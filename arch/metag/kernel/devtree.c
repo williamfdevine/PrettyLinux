@@ -26,21 +26,23 @@
 void __init early_init_dt_add_memory_arch(u64 base, u64 size)
 {
 	pr_err("%s(%llx, %llx)\n",
-	       __func__, base, size);
+		   __func__, base, size);
 }
 
-void * __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
+void *__init early_init_dt_alloc_memory_arch(u64 size, u64 align)
 {
 	return alloc_bootmem_align(size, align);
 }
 
-static const void * __init arch_get_next_mach(const char *const **match)
+static const void *__init arch_get_next_mach(const char *const **match)
 {
 	static const struct machine_desc *mdesc = __arch_info_begin;
 	const struct machine_desc *m = mdesc;
 
 	if (m >= __arch_info_end)
+	{
 		return NULL;
+	}
 
 	mdesc++;
 	*match = m->dt_compat;
@@ -54,17 +56,23 @@ static const void * __init arch_get_next_mach(const char *const **match)
  * If a dtb was passed to the kernel, then use it to choose the correct
  * machine_desc and to setup the system.
  */
-const struct machine_desc * __init setup_machine_fdt(void *dt)
+const struct machine_desc *__init setup_machine_fdt(void *dt)
 {
 	const struct machine_desc *mdesc;
 
 	/* check device tree validity */
 	if (!early_init_dt_scan(dt))
+	{
 		return NULL;
+	}
 
 	mdesc = of_flat_dt_match_machine(NULL, arch_get_next_mach);
+
 	if (!mdesc)
-		dump_machine_table(); /* does not return */
+	{
+		dump_machine_table();    /* does not return */
+	}
+
 	pr_info("Machine name: %s\n", mdesc->name);
 
 	return mdesc;

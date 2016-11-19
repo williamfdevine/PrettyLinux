@@ -16,7 +16,8 @@
  * of the extended context data is indicated by the magic value
  * END_EXTCONTEXT_MAGIC.
  */
-struct extcontext {
+struct extcontext
+{
 	unsigned int		magic;
 	unsigned int		size;
 };
@@ -31,7 +32,8 @@ struct extcontext {
  * this structure will hold the MSA context of the task as it was prior to the
  * signal delivery.
  */
-struct msa_extcontext {
+struct msa_extcontext
+{
 	struct extcontext	ext;
 #define MSA_EXTCONTEXT_MAGIC	0x784d5341	/* xMSA */
 
@@ -50,7 +52,8 @@ struct msa_extcontext {
  * @uc_sigmask:
  * @uc_extcontext:	holds extended processor state
  */
-struct ucontext {
+struct ucontext
+{
 	/* Historic fields matching asm-generic */
 	unsigned long		uc_flags;
 	struct ucontext		*uc_link;

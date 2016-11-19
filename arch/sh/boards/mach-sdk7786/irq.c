@@ -12,7 +12,8 @@
 #include <mach/fpga.h>
 #include <mach/irq.h>
 
-enum {
+enum
+{
 	ATA_IRQ_BIT		= 1,
 	SPI_BUSY_BIT		= 2,
 	LIRQ5_BIT		= 3,

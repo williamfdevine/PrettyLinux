@@ -79,9 +79,14 @@ static int pvc_wait(void)
 	int err = 0;
 
 	while ((pvc_read_data() & PVC_BUSY) && i)
+	{
 		i--;
+	}
+
 	if (i == 0)
+	{
 		err = -ETIME;
+	}
 
 	return err;
 }
@@ -92,17 +97,29 @@ static void pvc_write(u8 byte, int mode)
 {
 	u32 data = pvc_reg_read();
 	data &= ~picvue->rw;
+
 	if (mode == MODE_DATA)
+	{
 		data |= picvue->rs;
+	}
 	else
+	{
 		data &= ~picvue->rs;
+	}
+
 	pvc_reg_write(data);
 	ndelay(40);
 	pvc_write_byte(data, byte);
+
 	if (mode == MODE_DATA)
+	{
 		data &= ~picvue->rs;
+	}
 	else
+	{
 		data |= picvue->rs;
+	}
+
 	pvc_reg_write(data);
 	pvc_wait();
 }
@@ -112,10 +129,14 @@ void pvc_write_string(const unsigned char *str, u8 addr, int line)
 	int i = 0;
 
 	if (line > 0 && (PVC_NLINES > 1))
+	{
 		addr += 0x40 * line;
+	}
+
 	pvc_write(0x80 | addr, MODE_INST);
 
-	while (*str != 0 && i < PVC_LINELEN) {
+	while (*str != 0 && i < PVC_LINELEN)
+	{
 		pvc_write(*str++, MODE_DATA);
 		i++;
 	}
@@ -127,9 +148,13 @@ void pvc_write_string_centered(const unsigned char *str, int line)
 	u8 addr;
 
 	if (len > PVC_VISIBLE_CHARS)
+	{
 		addr = 0;
+	}
 	else
-		addr = (PVC_VISIBLE_CHARS - strlen(str))/2;
+	{
+		addr = (PVC_VISIBLE_CHARS - strlen(str)) / 2;
+	}
 
 	pvc_write_string(str, addr, line);
 }
@@ -139,8 +164,11 @@ void pvc_dump_string(const unsigned char *str)
 	int len = strlen(str);
 
 	pvc_write_string(str, 0, 0);
+
 	if (len > PVC_VISIBLE_CHARS)
+	{
 		pvc_write_string(&str[PVC_VISIBLE_CHARS], 0, 1);
+	}
 }
 
 #define BM_SIZE			8
@@ -151,13 +179,18 @@ int pvc_program_cg(int charnum, u8 bitmap[BM_SIZE])
 	int addr;
 
 	if (charnum > MAX_PROGRAMMABLE_CHARS)
+	{
 		return -ENOENT;
+	}
 
 	addr = charnum * 8;
 	pvc_write(0x40 | addr, MODE_INST);
 
 	for (i = 0; i < BM_SIZE; i++)
+	{
 		pvc_write(bitmap[i], MODE_DATA);
+	}
+
 	return 0;
 }
 
@@ -171,8 +204,8 @@ int pvc_program_cg(int charnum, u8 bitmap[BM_SIZE])
 
 static void pvc_funcset(u8 cmd)
 {
-	pvc_write(FUNC_SET_CMD | (cmd & (EIGHT_BYTE|TWO_LINES|LARGE_FONT)),
-		  MODE_INST);
+	pvc_write(FUNC_SET_CMD | (cmd & (EIGHT_BYTE | TWO_LINES | LARGE_FONT)),
+			  MODE_INST);
 }
 
 #define ENTRYMODE_CMD		0x4
@@ -182,8 +215,8 @@ static void pvc_funcset(u8 cmd)
 
 static void pvc_entrymode(u8 cmd)
 {
-	pvc_write(ENTRYMODE_CMD | (cmd & (AUTO_INC|CURSOR_FOLLOWS_DISP)),
-		  MODE_INST);
+	pvc_write(ENTRYMODE_CMD | (cmd & (AUTO_INC | CURSOR_FOLLOWS_DISP)),
+			  MODE_INST);
 }
 
 #define DISP_CNT_CMD	0x08
@@ -193,7 +226,7 @@ static void pvc_entrymode(u8 cmd)
 #define	 CUR_BLINK	(1 << 0)
 void pvc_dispcnt(u8 cmd)
 {
-	pvc_write(DISP_CNT_CMD | (cmd & (DISP_ON|CUR_ON|CUR_BLINK)), MODE_INST);
+	pvc_write(DISP_CNT_CMD | (cmd & (DISP_ON | CUR_ON | CUR_BLINK)), MODE_INST);
 }
 
 #define MOVE_CMD	0x10
@@ -203,7 +236,7 @@ void pvc_dispcnt(u8 cmd)
 #define	 LEFT		0
 void pvc_move(u8 cmd)
 {
-	pvc_write(MOVE_CMD | (cmd & (DISPLAY|RIGHT)), MODE_INST);
+	pvc_write(MOVE_CMD | (cmd & (DISPLAY | RIGHT)), MODE_INST);
 }
 
 #define CLEAR_CMD	0x1
@@ -223,9 +256,14 @@ int pvc_init(void)
 	u8 cmd = EIGHT_BYTE;
 
 	if (PVC_NLINES == 2)
-		cmd |= (SMALL_FONT|TWO_LINES);
+	{
+		cmd |= (SMALL_FONT | TWO_LINES);
+	}
 	else
-		cmd |= (LARGE_FONT|ONE_LINE);
+	{
+		cmd |= (LARGE_FONT | ONE_LINE);
+	}
+
 	pvc_funcset(cmd);
 	pvc_dispcnt(DISP_ON);
 	pvc_entrymode(AUTO_INC);

@@ -29,11 +29,13 @@
 /* This struct is shared between the PROM and the kernel.
  * Changes to this struct will require corresponding changes to the kernel.
  */
-struct sn_flush_device_common {
+struct sn_flush_device_common
+{
 	int sfdl_bus;
 	int sfdl_slot;
 	int sfdl_pin;
-	struct common_bar_list {
+	struct common_bar_list
+	{
 		unsigned long start;
 		unsigned long end;
 	} sfdl_bar_list[6];
@@ -46,7 +48,8 @@ struct sn_flush_device_common {
 };
 
 /* This struct is kernel only and is not used by the PROM */
-struct sn_flush_device_kernel {
+struct sn_flush_device_kernel
+{
 	spinlock_t sfdl_flush_lock;
 	struct sn_flush_device_common *common;
 };
@@ -55,7 +58,8 @@ struct sn_flush_device_kernel {
  * for older official PROMs to function on the new kernel base.  This struct
  * will be removed when the next official PROM release occurs. */
 
-struct sn_flush_device_war {
+struct sn_flush_device_war
+{
 	struct sn_flush_device_common common;
 	u32 filler; /* older PROMs expect the default size of a spinlock_t */
 };
@@ -63,12 +67,14 @@ struct sn_flush_device_war {
 /*
  * **widget_p - Used as an array[wid_num][device] of sn_flush_device_kernel.
  */
-struct sn_flush_nasid_entry  {
+struct sn_flush_nasid_entry
+{
 	struct sn_flush_device_kernel **widget_p; // Used as an array of wid_num
 	u64 iio_itte[8];
 };
 
-struct hubdev_info {
+struct hubdev_info
+{
 	geoid_t				hdi_geoid;
 	short				hdi_nasid;
 	short				hdi_peer_nasid;   /* Dual Porting Peer */

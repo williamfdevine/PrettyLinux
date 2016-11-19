@@ -33,7 +33,8 @@
  * physical memory with fixmap indices.
  *
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 	FIX_HOLE,
 
 	/*

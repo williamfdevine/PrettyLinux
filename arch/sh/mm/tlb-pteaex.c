@@ -23,7 +23,9 @@ void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
 	 * Handle debugger faulting in for debugee.
 	 */
 	if (vma && current->active_mm != vma->vm_mm)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
@@ -92,13 +94,19 @@ void local_flush_tlb_all(void)
 	status = ((status & MMUCR_URB) >> MMUCR_URB_SHIFT);
 
 	if (status == 0)
+	{
 		status = MMUCR_URB_NENTRIES;
+	}
 
 	for (i = 0; i < status; i++)
+	{
 		__raw_writel(0x0, MMU_UTLB_ADDRESS_ARRAY | (i << 8));
+	}
 
 	for (i = 0; i < 4; i++)
+	{
 		__raw_writel(0x0, MMU_ITLB_ADDRESS_ARRAY | (i << 8));
+	}
 
 	back_to_cached();
 	ctrl_barrier();

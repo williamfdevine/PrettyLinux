@@ -94,7 +94,8 @@
 #define REG_SR		 0
 
 #ifndef __ASSEMBLY__
-struct pt_regs {
+struct pt_regs
+{
 	/* These are always saved */
 	unsigned long sr;
 	unsigned long pc;

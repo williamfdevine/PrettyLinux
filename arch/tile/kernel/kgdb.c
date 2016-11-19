@@ -25,7 +25,8 @@ static tile_bundle_bits singlestep_insn = TILEGX_BPT_BUNDLE | DIE_SSTEPBP;
 static unsigned long stepped_addr;
 static tile_bundle_bits stepped_instr;
 
-struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] = {
+struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] =
+{
 	{ "r0", GDB_SIZEOF_REG, offsetof(struct pt_regs, regs[0])},
 	{ "r1", GDB_SIZEOF_REG, offsetof(struct pt_regs, regs[1])},
 	{ "r2", GDB_SIZEOF_REG, offsetof(struct pt_regs, regs[2])},
@@ -97,24 +98,32 @@ struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] = {
 char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return NULL;
+	}
 
 	if (dbg_reg_def[regno].offset != -1)
 		memcpy(mem, (void *)regs + dbg_reg_def[regno].offset,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 	else
+	{
 		memset(mem, 0, dbg_reg_def[regno].size);
+	}
+
 	return dbg_reg_def[regno].name;
 }
 
 int dbg_set_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (dbg_reg_def[regno].offset != -1)
 		memcpy((void *)regs + dbg_reg_def[regno].offset, mem,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
+
 	return 0;
 }
 
@@ -129,12 +138,14 @@ sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *task)
 	const int NGPRS = TREG_LAST_GPR + 1;
 
 	if (task == NULL)
+	{
 		return;
+	}
 
 	thread_regs = task_pt_regs(task);
 	memcpy(gdb_regs, thread_regs, NGPRS * sizeof(unsigned long));
 	memset(&gdb_regs[NGPRS], 0,
-	       (TILEGX_PC_REGNUM - NGPRS) * sizeof(unsigned long));
+		   (TILEGX_PC_REGNUM - NGPRS) * sizeof(unsigned long));
 	gdb_regs[TILEGX_PC_REGNUM] = thread_regs->pc;
 	gdb_regs[TILEGX_FAULTNUM_REGNUM] = thread_regs->faultnum;
 }
@@ -164,11 +175,17 @@ static unsigned long writable_address(unsigned long addr)
 	unsigned long ret = 0;
 
 	if (core_kernel_text(addr))
+	{
 		ret = ktext_writable_addr(addr);
+	}
 	else if (is_module_text_address(addr))
+	{
 		ret = addr;
+	}
 	else
+	{
 		pr_err("Unknown virtual address 0x%lx\n", addr);
+	}
 
 	return ret;
 }
@@ -190,99 +207,144 @@ static unsigned long get_step_address(struct pt_regs *regs)
 	bundle = *(unsigned long *)instruction_pointer(regs);
 
 	/* 0: X mode, Otherwise: Y mode. */
-	if (bundle & TILEGX_BUNDLE_MODE_MASK) {
+	if (bundle & TILEGX_BUNDLE_MODE_MASK)
+	{
 		if (get_Opcode_Y1(bundle) == RRR_1_OPCODE_Y1 &&
-		    get_RRROpcodeExtension_Y1(bundle) ==
-		    UNARY_RRR_1_OPCODE_Y1) {
+			get_RRROpcodeExtension_Y1(bundle) ==
+			UNARY_RRR_1_OPCODE_Y1)
+		{
 			opcode = get_UnaryOpcodeExtension_Y1(bundle);
 
-			switch (opcode) {
-			case JALR_UNARY_OPCODE_Y1:
-			case JALRP_UNARY_OPCODE_Y1:
-			case JR_UNARY_OPCODE_Y1:
-			case JRP_UNARY_OPCODE_Y1:
-				src_reg = get_SrcA_Y1(bundle);
-				dbg_get_reg(src_reg, &addr, regs);
-				break;
+			switch (opcode)
+			{
+				case JALR_UNARY_OPCODE_Y1:
+				case JALRP_UNARY_OPCODE_Y1:
+				case JR_UNARY_OPCODE_Y1:
+				case JRP_UNARY_OPCODE_Y1:
+					src_reg = get_SrcA_Y1(bundle);
+					dbg_get_reg(src_reg, &addr, regs);
+					break;
 			}
 		}
-	} else if (get_Opcode_X1(bundle) == RRR_0_OPCODE_X1) {
+	}
+	else if (get_Opcode_X1(bundle) == RRR_0_OPCODE_X1)
+	{
 		if (get_RRROpcodeExtension_X1(bundle) ==
-		    UNARY_RRR_0_OPCODE_X1) {
+			UNARY_RRR_0_OPCODE_X1)
+		{
 			opcode = get_UnaryOpcodeExtension_X1(bundle);
 
-			switch (opcode) {
-			case JALR_UNARY_OPCODE_X1:
-			case JALRP_UNARY_OPCODE_X1:
-			case JR_UNARY_OPCODE_X1:
-			case JRP_UNARY_OPCODE_X1:
-				src_reg = get_SrcA_X1(bundle);
-				dbg_get_reg(src_reg, &addr, regs);
-				break;
+			switch (opcode)
+			{
+				case JALR_UNARY_OPCODE_X1:
+				case JALRP_UNARY_OPCODE_X1:
+				case JR_UNARY_OPCODE_X1:
+				case JRP_UNARY_OPCODE_X1:
+					src_reg = get_SrcA_X1(bundle);
+					dbg_get_reg(src_reg, &addr, regs);
+					break;
 			}
 		}
-	} else if (get_Opcode_X1(bundle) == JUMP_OPCODE_X1) {
+	}
+	else if (get_Opcode_X1(bundle) == JUMP_OPCODE_X1)
+	{
 		opcode = get_JumpOpcodeExtension_X1(bundle);
 
-		switch (opcode) {
-		case JAL_JUMP_OPCODE_X1:
-		case J_JUMP_OPCODE_X1:
-			jump_off = sign_extend(get_JumpOff_X1(bundle), 27);
-			addr = regs->pc +
-				(jump_off << TILEGX_LOG2_BUNDLE_SIZE_IN_BYTES);
-			break;
+		switch (opcode)
+		{
+			case JAL_JUMP_OPCODE_X1:
+			case J_JUMP_OPCODE_X1:
+				jump_off = sign_extend(get_JumpOff_X1(bundle), 27);
+				addr = regs->pc +
+					   (jump_off << TILEGX_LOG2_BUNDLE_SIZE_IN_BYTES);
+				break;
 		}
-	} else if (get_Opcode_X1(bundle) == BRANCH_OPCODE_X1) {
+	}
+	else if (get_Opcode_X1(bundle) == BRANCH_OPCODE_X1)
+	{
 		br_off = 0;
 		opcode = get_BrType_X1(bundle);
 
-		switch (opcode) {
-		case BEQZT_BRANCH_OPCODE_X1:
-		case BEQZ_BRANCH_OPCODE_X1:
-			if (get_SrcA_X1(bundle) == 0)
-				br_off = get_BrOff_X1(bundle);
-			break;
-		case BGEZT_BRANCH_OPCODE_X1:
-		case BGEZ_BRANCH_OPCODE_X1:
-			if (get_SrcA_X1(bundle) >= 0)
-				br_off = get_BrOff_X1(bundle);
-			break;
-		case BGTZT_BRANCH_OPCODE_X1:
-		case BGTZ_BRANCH_OPCODE_X1:
-			if (get_SrcA_X1(bundle) > 0)
-				br_off = get_BrOff_X1(bundle);
-			break;
-		case BLBCT_BRANCH_OPCODE_X1:
-		case BLBC_BRANCH_OPCODE_X1:
-			if (!(get_SrcA_X1(bundle) & 1))
-				br_off = get_BrOff_X1(bundle);
-			break;
-		case BLBST_BRANCH_OPCODE_X1:
-		case BLBS_BRANCH_OPCODE_X1:
-			if (get_SrcA_X1(bundle) & 1)
-				br_off = get_BrOff_X1(bundle);
-			break;
-		case BLEZT_BRANCH_OPCODE_X1:
-		case BLEZ_BRANCH_OPCODE_X1:
-			if (get_SrcA_X1(bundle) <= 0)
-				br_off = get_BrOff_X1(bundle);
-			break;
-		case BLTZT_BRANCH_OPCODE_X1:
-		case BLTZ_BRANCH_OPCODE_X1:
-			if (get_SrcA_X1(bundle) < 0)
-				br_off = get_BrOff_X1(bundle);
-			break;
-		case BNEZT_BRANCH_OPCODE_X1:
-		case BNEZ_BRANCH_OPCODE_X1:
-			if (get_SrcA_X1(bundle) != 0)
-				br_off = get_BrOff_X1(bundle);
-			break;
+		switch (opcode)
+		{
+			case BEQZT_BRANCH_OPCODE_X1:
+			case BEQZ_BRANCH_OPCODE_X1:
+				if (get_SrcA_X1(bundle) == 0)
+				{
+					br_off = get_BrOff_X1(bundle);
+				}
+
+				break;
+
+			case BGEZT_BRANCH_OPCODE_X1:
+			case BGEZ_BRANCH_OPCODE_X1:
+				if (get_SrcA_X1(bundle) >= 0)
+				{
+					br_off = get_BrOff_X1(bundle);
+				}
+
+				break;
+
+			case BGTZT_BRANCH_OPCODE_X1:
+			case BGTZ_BRANCH_OPCODE_X1:
+				if (get_SrcA_X1(bundle) > 0)
+				{
+					br_off = get_BrOff_X1(bundle);
+				}
+
+				break;
+
+			case BLBCT_BRANCH_OPCODE_X1:
+			case BLBC_BRANCH_OPCODE_X1:
+				if (!(get_SrcA_X1(bundle) & 1))
+				{
+					br_off = get_BrOff_X1(bundle);
+				}
+
+				break;
+
+			case BLBST_BRANCH_OPCODE_X1:
+			case BLBS_BRANCH_OPCODE_X1:
+				if (get_SrcA_X1(bundle) & 1)
+				{
+					br_off = get_BrOff_X1(bundle);
+				}
+
+				break;
+
+			case BLEZT_BRANCH_OPCODE_X1:
+			case BLEZ_BRANCH_OPCODE_X1:
+				if (get_SrcA_X1(bundle) <= 0)
+				{
+					br_off = get_BrOff_X1(bundle);
+				}
+
+				break;
+
+			case BLTZT_BRANCH_OPCODE_X1:
+			case BLTZ_BRANCH_OPCODE_X1:
+				if (get_SrcA_X1(bundle) < 0)
+				{
+					br_off = get_BrOff_X1(bundle);
+				}
+
+				break;
+
+			case BNEZT_BRANCH_OPCODE_X1:
+			case BNEZ_BRANCH_OPCODE_X1:
+				if (get_SrcA_X1(bundle) != 0)
+				{
+					br_off = get_BrOff_X1(bundle);
+				}
+
+				break;
 		}
 
-		if (br_off != 0) {
+		if (br_off != 0)
+		{
 			br_off = sign_extend(br_off, 17);
 			addr = regs->pc +
-				(br_off << TILEGX_LOG2_BUNDLE_SIZE_IN_BYTES);
+				   (br_off << TILEGX_LOG2_BUNDLE_SIZE_IN_BYTES);
 		}
 	}
 
@@ -300,11 +362,11 @@ static void do_single_step(struct pt_regs *regs)
 	/* Determine where the target instruction will send us to. */
 	stepped_addr = get_step_address(regs);
 	probe_kernel_read((char *)&stepped_instr, (char *)stepped_addr,
-			  BREAK_INSTR_SIZE);
+					  BREAK_INSTR_SIZE);
 
 	addr_wr = writable_address(stepped_addr);
 	probe_kernel_write((char *)addr_wr, (char *)&singlestep_insn,
-			   BREAK_INSTR_SIZE);
+					   BREAK_INSTR_SIZE);
 	smp_wmb();
 	flush_icache_range(stepped_addr, stepped_addr + BREAK_INSTR_SIZE);
 }
@@ -314,11 +376,13 @@ static void undo_single_step(struct pt_regs *regs)
 	unsigned long addr_wr;
 
 	if (stepped_instr == 0)
+	{
 		return;
+	}
 
 	addr_wr = writable_address(stepped_addr);
 	probe_kernel_write((char *)addr_wr, (char *)&stepped_instr,
-			   BREAK_INSTR_SIZE);
+					   BREAK_INSTR_SIZE);
 	stepped_instr = 0;
 	smp_wmb();
 	flush_icache_range(stepped_addr, stepped_addr + BREAK_INSTR_SIZE);
@@ -337,39 +401,53 @@ kgdb_notify(struct notifier_block *self, unsigned long cmd, void *ptr)
 	struct pt_regs *regs = args->regs;
 
 #ifdef CONFIG_KPROBES
+
 	/*
 	 * Return immediately if the kprobes fault notifier has set
 	 * DIE_PAGE_FAULT.
 	 */
 	if (cmd == DIE_PAGE_FAULT)
+	{
 		return NOTIFY_DONE;
+	}
+
 #endif /* CONFIG_KPROBES */
 
-	switch (cmd) {
-	case DIE_BREAK:
-	case DIE_COMPILED_BPT:
-		break;
-	case DIE_SSTEPBP:
-		local_irq_save(flags);
-		kgdb_handle_exception(0, SIGTRAP, 0, regs);
-		local_irq_restore(flags);
-		return NOTIFY_STOP;
-	default:
-		/* Userspace events, ignore. */
-		if (user_mode(regs))
-			return NOTIFY_DONE;
+	switch (cmd)
+	{
+		case DIE_BREAK:
+		case DIE_COMPILED_BPT:
+			break;
+
+		case DIE_SSTEPBP:
+			local_irq_save(flags);
+			kgdb_handle_exception(0, SIGTRAP, 0, regs);
+			local_irq_restore(flags);
+			return NOTIFY_STOP;
+
+		default:
+
+			/* Userspace events, ignore. */
+			if (user_mode(regs))
+			{
+				return NOTIFY_DONE;
+			}
 	}
 
 	local_irq_save(flags);
 	ret = kgdb_handle_exception(args->trapnr, args->signr, args->err, regs);
 	local_irq_restore(flags);
+
 	if (ret)
+	{
 		return NOTIFY_DONE;
+	}
 
 	return NOTIFY_STOP;
 }
 
-static struct notifier_block kgdb_notifier = {
+static struct notifier_block kgdb_notifier =
+{
 	.notifier_call = kgdb_notify,
 };
 
@@ -390,8 +468,8 @@ static struct notifier_block kgdb_notifier = {
  * kgdb callback.
  */
 int kgdb_arch_handle_exception(int vector, int signo, int err_code,
-			       char *remcom_in_buffer, char *remcom_out_buffer,
-			       struct pt_regs *regs)
+							   char *remcom_in_buffer, char *remcom_out_buffer,
+							   struct pt_regs *regs)
 {
 	char *ptr;
 	unsigned long address;
@@ -399,32 +477,42 @@ int kgdb_arch_handle_exception(int vector, int signo, int err_code,
 	/* Undo any stepping we may have done. */
 	undo_single_step(regs);
 
-	switch (remcom_in_buffer[0]) {
-	case 'c':
-	case 's':
-	case 'D':
-	case 'k':
-		/*
-		 * Try to read optional parameter, pc unchanged if no parm.
-		 * If this was a compiled-in breakpoint, we need to move
-		 * to the next instruction or we will just breakpoint
-		 * over and over again.
-		 */
-		ptr = &remcom_in_buffer[1];
-		if (kgdb_hex2long(&ptr, &address))
-			regs->pc = address;
-		else if (*(unsigned long *)regs->pc == compiled_bpt)
-			regs->pc += BREAK_INSTR_SIZE;
+	switch (remcom_in_buffer[0])
+	{
+		case 'c':
+		case 's':
+		case 'D':
+		case 'k':
+			/*
+			 * Try to read optional parameter, pc unchanged if no parm.
+			 * If this was a compiled-in breakpoint, we need to move
+			 * to the next instruction or we will just breakpoint
+			 * over and over again.
+			 */
+			ptr = &remcom_in_buffer[1];
 
-		if (remcom_in_buffer[0] == 's') {
-			do_single_step(regs);
-			kgdb_single_step = 1;
-			atomic_set(&kgdb_cpu_doing_single_step,
-				   raw_smp_processor_id());
-		} else
-			atomic_set(&kgdb_cpu_doing_single_step, -1);
+			if (kgdb_hex2long(&ptr, &address))
+			{
+				regs->pc = address;
+			}
+			else if (*(unsigned long *)regs->pc == compiled_bpt)
+			{
+				regs->pc += BREAK_INSTR_SIZE;
+			}
 
-		return 0;
+			if (remcom_in_buffer[0] == 's')
+			{
+				do_single_step(regs);
+				kgdb_single_step = 1;
+				atomic_set(&kgdb_cpu_doing_single_step,
+						   raw_smp_processor_id());
+			}
+			else
+			{
+				atomic_set(&kgdb_cpu_doing_single_step, -1);
+			}
+
+			return 0;
 	}
 
 	return -1; /* this means that we do not want to exit from the handler */
@@ -463,18 +551,23 @@ int kgdb_arch_set_breakpoint(struct kgdb_bkpt *bpt)
 	unsigned long addr_wr = writable_address(bpt->bpt_addr);
 
 	if (addr_wr == 0)
+	{
 		return -1;
+	}
 
 	err = probe_kernel_read(bpt->saved_instr, (char *)bpt->bpt_addr,
-				BREAK_INSTR_SIZE);
+							BREAK_INSTR_SIZE);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = probe_kernel_write((char *)addr_wr, arch_kgdb_ops.gdb_bpt_instr,
-				 BREAK_INSTR_SIZE);
+							 BREAK_INSTR_SIZE);
 	smp_wmb();
 	flush_icache_range((unsigned long)bpt->bpt_addr,
-			   (unsigned long)bpt->bpt_addr + BREAK_INSTR_SIZE);
+					   (unsigned long)bpt->bpt_addr + BREAK_INSTR_SIZE);
 	return err;
 }
 
@@ -484,12 +577,14 @@ int kgdb_arch_remove_breakpoint(struct kgdb_bkpt *bpt)
 	unsigned long addr_wr = writable_address(bpt->bpt_addr);
 
 	if (addr_wr == 0)
+	{
 		return -1;
+	}
 
 	err = probe_kernel_write((char *)addr_wr, (char *)bpt->saved_instr,
-				 BREAK_INSTR_SIZE);
+							 BREAK_INSTR_SIZE);
 	smp_wmb();
 	flush_icache_range((unsigned long)bpt->bpt_addr,
-			   (unsigned long)bpt->bpt_addr + BREAK_INSTR_SIZE);
+					   (unsigned long)bpt->bpt_addr + BREAK_INSTR_SIZE);
 	return err;
 }

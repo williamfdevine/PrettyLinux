@@ -7,7 +7,8 @@
 
 #define NR_IPI	7
 
-typedef struct {
+typedef struct
+{
 	unsigned int __softirq_pending;
 #ifdef CONFIG_SMP
 	unsigned int ipi_irqs[NR_IPI];
@@ -20,9 +21,9 @@ typedef struct {
 #define __get_irq_stat(cpu, member)	__IRQ_STAT(cpu, member)
 
 #ifdef CONFIG_SMP
-u64 smp_irq_stat_cpu(unsigned int cpu);
+	u64 smp_irq_stat_cpu(unsigned int cpu);
 #else
-#define smp_irq_stat_cpu(cpu)	0
+	#define smp_irq_stat_cpu(cpu)	0
 #endif
 
 #define arch_irq_stat_cpu	smp_irq_stat_cpu

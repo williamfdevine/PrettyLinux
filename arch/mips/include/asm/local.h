@@ -26,39 +26,44 @@ typedef struct
 /*
  * Same as above, but return the result value
  */
-static __inline__ long local_add_return(long i, local_t * l)
+static __inline__ long local_add_return(long i, local_t *l)
 {
 	unsigned long result;
 
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {
+	if (kernel_uses_llsc && R10000_LLSC_WAR)
+	{
 		unsigned long temp;
 
 		__asm__ __volatile__(
-		"	.set	arch=r4000				\n"
-		"1:"	__LL	"%1, %2		# local_add_return	\n"
-		"	addu	%0, %1, %3				\n"
+			"	.set	arch=r4000				\n"
+			"1:"	__LL	"%1, %2		# local_add_return	\n"
+			"	addu	%0, %1, %3				\n"
 			__SC	"%0, %2					\n"
-		"	beqzl	%0, 1b					\n"
-		"	addu	%0, %1, %3				\n"
-		"	.set	mips0					\n"
-		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-		: "Ir" (i), "m" (l->a.counter)
-		: "memory");
-	} else if (kernel_uses_llsc) {
+			"	beqzl	%0, 1b					\n"
+			"	addu	%0, %1, %3				\n"
+			"	.set	mips0					\n"
+			: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
+			: "Ir" (i), "m" (l->a.counter)
+			: "memory");
+	}
+	else if (kernel_uses_llsc)
+	{
 		unsigned long temp;
 
 		__asm__ __volatile__(
-		"	.set	"MIPS_ISA_ARCH_LEVEL"			\n"
-		"1:"	__LL	"%1, %2		# local_add_return	\n"
-		"	addu	%0, %1, %3				\n"
+			"	.set	"MIPS_ISA_ARCH_LEVEL"			\n"
+			"1:"	__LL	"%1, %2		# local_add_return	\n"
+			"	addu	%0, %1, %3				\n"
 			__SC	"%0, %2					\n"
-		"	beqz	%0, 1b					\n"
-		"	addu	%0, %1, %3				\n"
-		"	.set	mips0					\n"
-		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-		: "Ir" (i), "m" (l->a.counter)
-		: "memory");
-	} else {
+			"	beqz	%0, 1b					\n"
+			"	addu	%0, %1, %3				\n"
+			"	.set	mips0					\n"
+			: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
+			: "Ir" (i), "m" (l->a.counter)
+			: "memory");
+	}
+	else
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
@@ -71,39 +76,44 @@ static __inline__ long local_add_return(long i, local_t * l)
 	return result;
 }
 
-static __inline__ long local_sub_return(long i, local_t * l)
+static __inline__ long local_sub_return(long i, local_t *l)
 {
 	unsigned long result;
 
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {
+	if (kernel_uses_llsc && R10000_LLSC_WAR)
+	{
 		unsigned long temp;
 
 		__asm__ __volatile__(
-		"	.set	arch=r4000				\n"
-		"1:"	__LL	"%1, %2		# local_sub_return	\n"
-		"	subu	%0, %1, %3				\n"
+			"	.set	arch=r4000				\n"
+			"1:"	__LL	"%1, %2		# local_sub_return	\n"
+			"	subu	%0, %1, %3				\n"
 			__SC	"%0, %2					\n"
-		"	beqzl	%0, 1b					\n"
-		"	subu	%0, %1, %3				\n"
-		"	.set	mips0					\n"
-		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-		: "Ir" (i), "m" (l->a.counter)
-		: "memory");
-	} else if (kernel_uses_llsc) {
+			"	beqzl	%0, 1b					\n"
+			"	subu	%0, %1, %3				\n"
+			"	.set	mips0					\n"
+			: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
+			: "Ir" (i), "m" (l->a.counter)
+			: "memory");
+	}
+	else if (kernel_uses_llsc)
+	{
 		unsigned long temp;
 
 		__asm__ __volatile__(
-		"	.set	"MIPS_ISA_ARCH_LEVEL"			\n"
-		"1:"	__LL	"%1, %2		# local_sub_return	\n"
-		"	subu	%0, %1, %3				\n"
+			"	.set	"MIPS_ISA_ARCH_LEVEL"			\n"
+			"1:"	__LL	"%1, %2		# local_sub_return	\n"
+			"	subu	%0, %1, %3				\n"
 			__SC	"%0, %2					\n"
-		"	beqz	%0, 1b					\n"
-		"	subu	%0, %1, %3				\n"
-		"	.set	mips0					\n"
-		: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
-		: "Ir" (i), "m" (l->a.counter)
-		: "memory");
-	} else {
+			"	beqz	%0, 1b					\n"
+			"	subu	%0, %1, %3				\n"
+			"	.set	mips0					\n"
+			: "=&r" (result), "=&r" (temp), "=m" (l->a.counter)
+			: "Ir" (i), "m" (l->a.counter)
+			: "memory");
+	}
+	else
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
@@ -130,13 +140,13 @@ static __inline__ long local_sub_return(long i, local_t * l)
  * Returns non-zero if @l was not @u, and zero otherwise.
  */
 #define local_add_unless(l, a, u)				\
-({								\
-	long c, old;						\
-	c = local_read(l);					\
-	while (c != (u) && (old = local_cmpxchg((l), c, c + (a))) != c) \
-		c = old;					\
-	c != (u);						\
-})
+	({								\
+		long c, old;						\
+		c = local_read(l);					\
+		while (c != (u) && (old = local_cmpxchg((l), c, c + (a))) != c) \
+			c = old;					\
+		c != (u);						\
+	})
 #define local_inc_not_zero(l) local_add_unless((l), 1, 0)
 
 #define local_dec_return(l) local_sub_return(1, (l))

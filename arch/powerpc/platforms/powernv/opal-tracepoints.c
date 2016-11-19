@@ -52,7 +52,9 @@ void __trace_opal_entry(unsigned long opcode, unsigned long *args)
 	depth = this_cpu_ptr(&opal_trace_depth);
 
 	if (*depth)
+	{
 		goto out;
+	}
 
 	(*depth)++;
 	preempt_disable();
@@ -73,7 +75,9 @@ void __trace_opal_exit(long opcode, unsigned long retval)
 	depth = this_cpu_ptr(&opal_trace_depth);
 
 	if (*depth)
+	{
 		goto out;
+	}
 
 	(*depth)++;
 	trace_opal_exit(opcode, retval);

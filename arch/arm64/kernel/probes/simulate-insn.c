@@ -39,29 +39,41 @@
 static inline void set_x_reg(struct pt_regs *regs, int reg, u64 val)
 {
 	if (reg < 31)
+	{
 		regs->regs[reg] = val;
+	}
 }
 
 static inline void set_w_reg(struct pt_regs *regs, int reg, u64 val)
 {
 	if (reg < 31)
+	{
 		regs->regs[reg] = lower_32_bits(val);
+	}
 }
 
 static inline u64 get_x_reg(struct pt_regs *regs, int reg)
 {
 	if (reg < 31)
+	{
 		return regs->regs[reg];
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static inline u32 get_w_reg(struct pt_regs *regs, int reg)
 {
 	if (reg < 31)
+	{
 		return lower_32_bits(regs->regs[reg]);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static bool __kprobes check_cbz(u32 opcode, struct pt_regs *regs)
@@ -69,7 +81,7 @@ static bool __kprobes check_cbz(u32 opcode, struct pt_regs *regs)
 	int xn = opcode & 0x1f;
 
 	return (opcode & (1 << 31)) ?
-	    (get_x_reg(regs, xn) == 0) : (get_w_reg(regs, xn) == 0);
+		   (get_x_reg(regs, xn) == 0) : (get_w_reg(regs, xn) == 0);
 }
 
 static bool __kprobes check_cbnz(u32 opcode, struct pt_regs *regs)
@@ -77,7 +89,7 @@ static bool __kprobes check_cbnz(u32 opcode, struct pt_regs *regs)
 	int xn = opcode & 0x1f;
 
 	return (opcode & (1 << 31)) ?
-	    (get_x_reg(regs, xn) != 0) : (get_w_reg(regs, xn) != 0);
+		   (get_x_reg(regs, xn) != 0) : (get_w_reg(regs, xn) != 0);
 }
 
 static bool __kprobes check_tbz(u32 opcode, struct pt_regs *regs)
@@ -107,10 +119,15 @@ simulate_adr_adrp(u32 opcode, long addr, struct pt_regs *regs)
 	xn = opcode & 0x1f;
 	imm = ((opcode >> 3) & 0x1ffffc) | ((opcode >> 29) & 0x3);
 	imm = sign_extend(imm, 20);
+
 	if (opcode & 0x80000000)
-		val = (imm<<12) + (addr & 0xfffffffffffff000);
+	{
+		val = (imm << 12) + (addr & 0xfffffffffffff000);
+	}
 	else
+	{
 		val = imm + addr;
+	}
 
 	set_x_reg(regs, xn, val);
 
@@ -124,7 +141,9 @@ simulate_b_bl(u32 opcode, long addr, struct pt_regs *regs)
 
 	/* Link register is x30 */
 	if (opcode & (1 << 31))
+	{
 		set_x_reg(regs, 30, addr + 4);
+	}
 
 	instruction_pointer_set(regs, addr + disp);
 }
@@ -135,7 +154,9 @@ simulate_b_cond(u32 opcode, long addr, struct pt_regs *regs)
 	int disp = 4;
 
 	if (aarch32_opcode_cond_checks[opcode & 0xf](regs->pstate & 0xffffffff))
+	{
 		disp = bcond_displacement(opcode);
+	}
 
 	instruction_pointer_set(regs, addr + disp);
 }
@@ -150,7 +171,9 @@ simulate_br_blr_ret(u32 opcode, long addr, struct pt_regs *regs)
 
 	/* Link register is x30 */
 	if (((opcode >> 21) & 0x3) == 1)
+	{
 		set_x_reg(regs, 30, addr + 4);
+	}
 }
 
 void __kprobes
@@ -158,13 +181,21 @@ simulate_cbz_cbnz(u32 opcode, long addr, struct pt_regs *regs)
 {
 	int disp = 4;
 
-	if (opcode & (1 << 24)) {
+	if (opcode & (1 << 24))
+	{
 		if (check_cbnz(opcode, regs))
+		{
 			disp = cbz_displacement(opcode);
-	} else {
-		if (check_cbz(opcode, regs))
-			disp = cbz_displacement(opcode);
+		}
 	}
+	else
+	{
+		if (check_cbz(opcode, regs))
+		{
+			disp = cbz_displacement(opcode);
+		}
+	}
+
 	instruction_pointer_set(regs, addr + disp);
 }
 
@@ -173,13 +204,21 @@ simulate_tbz_tbnz(u32 opcode, long addr, struct pt_regs *regs)
 {
 	int disp = 4;
 
-	if (opcode & (1 << 24)) {
+	if (opcode & (1 << 24))
+	{
 		if (check_tbnz(opcode, regs))
+		{
 			disp = tbz_displacement(opcode);
-	} else {
-		if (check_tbz(opcode, regs))
-			disp = tbz_displacement(opcode);
+		}
 	}
+	else
+	{
+		if (check_tbz(opcode, regs))
+		{
+			disp = tbz_displacement(opcode);
+		}
+	}
+
 	instruction_pointer_set(regs, addr + disp);
 }
 
@@ -194,9 +233,13 @@ simulate_ldr_literal(u32 opcode, long addr, struct pt_regs *regs)
 	load_addr = (u64 *) (addr + disp);
 
 	if (opcode & (1 << 30))	/* x0-x30 */
+	{
 		set_x_reg(regs, xn, *load_addr);
+	}
 	else			/* w0-w30 */
+	{
 		set_w_reg(regs, xn, *load_addr);
+	}
 
 	instruction_pointer_set(regs, instruction_pointer(regs) + 4);
 }

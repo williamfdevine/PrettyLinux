@@ -35,9 +35,11 @@ Boston, MA 02111-1307, USA.  */
 
 #include <linux/types.h>
 
-union DWunion {
+union DWunion
+{
 	s64 ll;
-	struct {
+	struct
+	{
 		s32 low;
 		s32 high;
 	} s;

@@ -31,7 +31,8 @@ static unsigned long map_addr(unsigned long phys)
 	offset = phys - dm_base;
 
 	/* Are we in the current map range ? */
-	if ((offset < 0) || (offset >= MMCU_DIRECTMAPn_ADDR_SCALE)) {
+	if ((offset < 0) || (offset >= MMCU_DIRECTMAPn_ADDR_SCALE))
+	{
 		/* Calculate new DM area */
 		dm_base = phys & ~(MMCU_DIRECTMAPn_ADDR_SCALE - 1);
 
@@ -54,9 +55,13 @@ static inline unsigned long __get_mmu_base(void)
 	unsigned int stride;
 
 	if (is_global_space(PAGE_OFFSET))
+	{
 		stride = 4;
+	}
 	else
-		stride = hard_processor_id();	/* [0..3] */
+	{
+		stride = hard_processor_id();    /* [0..3] */
+	}
 
 	base_phys = metag_in32(MMCU_TABLE_PHYS_ADDR);
 	base_phys += (0x800 * stride);
@@ -71,13 +76,16 @@ static unsigned long pgd_entry_addr(unsigned long virt)
 	unsigned long pgd_virt;
 
 	if (!mmu_base_phys)
+	{
 		mmu_base_phys = __get_mmu_base();
+	}
 
 	/*
 	 * Are we trying to map a global address.  If so, then index
 	 * the global pgd table instead of our local one.
 	 */
-	if (is_global_space(virt)) {
+	if (is_global_space(virt))
+	{
 		/* Scale into 2gig map */
 		virt &= ~0x80000000;
 	}
@@ -124,7 +132,9 @@ unsigned long mmu_get_base(void)
 
 	/* Find the base of our MMU pgd table */
 	if (!__base)
+	{
 		__base = pgd_entry_addr(0);
+	}
 
 	return __base;
 }
@@ -144,7 +154,8 @@ void __init mmu_init(unsigned long mem_end)
 	entry = pgd_index(PAGE_OFFSET);
 	p_swapper_pg_dir = pgd_offset_k(0) + entry;
 
-	while (addr <= META_MEMORY_LIMIT) {
+	while (addr <= META_MEMORY_LIMIT)
+	{
 		unsigned long pgd_entry;
 		/* copy over the current MMU value */
 		pgd_entry = mmu_read_first_level_page(addr);

@@ -44,23 +44,31 @@ get_mmu_context(struct mm_struct *mm)
 
 	if (((mm->context ^ mc) & MMU_CONTEXT_VERSION_MASK) == 0)
 		/* It's up to date, do nothing */
+	{
 		return;
+	}
 
 	/* It's old, we need to get new context with new version */
 	mc = ++mmu_context_cache;
-	if (!(mc & MMU_CONTEXT_ASID_MASK)) {
+
+	if (!(mc & MMU_CONTEXT_ASID_MASK))
+	{
 		/*
 		 * We have exhausted all ASIDs of this version.
 		 * Flush the TLB and start new cycle.
 		 */
 		flush_tlb_all();
+
 		/*
 		 * Fix version. Note that we avoid version #0
 		 * to distinguish NO_CONTEXT.
 		 */
 		if (!mc)
+		{
 			mmu_context_cache = mc = MMU_CONTEXT_FIRST_VERSION;
+		}
 	}
+
 	mm->context = mc;
 }
 
@@ -69,7 +77,7 @@ get_mmu_context(struct mm_struct *mm)
  * instance.
  */
 static inline int init_new_context(struct task_struct *tsk,
-				       struct mm_struct *mm)
+								   struct mm_struct *mm)
 {
 	mm->context = NO_CONTEXT;
 	return 0;
@@ -106,10 +114,11 @@ static inline void activate_context(struct mm_struct *mm)
 }
 
 static inline void switch_mm(struct mm_struct *prev,
-				 struct mm_struct *next,
-				 struct task_struct *tsk)
+							 struct mm_struct *next,
+							 struct task_struct *tsk)
 {
-	if (likely(prev != next)) {
+	if (likely(prev != next))
+	{
 		unsigned long __pgdir = (unsigned long)next->pgd;
 
 		sysreg_write(PTBR, __pgdir);
@@ -130,12 +139,14 @@ enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
 static inline void enable_mmu(void)
 {
 	sysreg_write(MMUCR, (SYSREG_BIT(MMUCR_S)
-			     | SYSREG_BIT(E)
-			     | SYSREG_BIT(MMUCR_I)));
+						 | SYSREG_BIT(E)
+						 | SYSREG_BIT(MMUCR_I)));
 	nop(); nop(); nop(); nop(); nop(); nop(); nop(); nop();
 
 	if (mmu_context_cache == NO_CONTEXT)
+	{
 		mmu_context_cache = MMU_CONTEXT_FIRST_VERSION;
+	}
 
 	set_asid(mmu_context_cache & MMU_CONTEXT_ASID_MASK);
 }

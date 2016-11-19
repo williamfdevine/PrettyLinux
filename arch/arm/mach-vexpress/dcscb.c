@@ -43,8 +43,11 @@ static int dcscb_cpu_powerup(unsigned int cpu, unsigned int cluster)
 	unsigned int rst_hold, cpumask = (1 << cpu);
 
 	pr_debug("%s: cpu %u cluster %u\n", __func__, cpu, cluster);
+
 	if (cluster >= 2 || !(cpumask & dcscb_allcpus_mask[cluster]))
+	{
 		return -EINVAL;
+	}
 
 	rst_hold = readl_relaxed(dcscb_base + RST_HOLD0 + cluster * 4);
 	rst_hold &= ~(cpumask | (cpumask << 4));
@@ -57,8 +60,11 @@ static int dcscb_cluster_powerup(unsigned int cluster)
 	unsigned int rst_hold;
 
 	pr_debug("%s: cluster %u\n", __func__, cluster);
+
 	if (cluster >= 2)
+	{
 		return -EINVAL;
+	}
 
 	/* remove cluster reset and add individual CPU's reset */
 	rst_hold = readl_relaxed(dcscb_base + RST_HOLD0 + cluster * 4);
@@ -122,7 +128,8 @@ static void dcscb_cluster_cache_disable(void)
 	cci_disable_port_by_cpu(read_cpuid_mpidr());
 }
 
-static const struct mcpm_platform_ops dcscb_power_ops = {
+static const struct mcpm_platform_ops dcscb_power_ops =
+{
 	.cpu_powerup		= dcscb_cpu_powerup,
 	.cluster_powerup	= dcscb_cluster_powerup,
 	.cpu_powerdown_prepare	= dcscb_cpu_powerdown_prepare,
@@ -140,22 +147,37 @@ static int __init dcscb_init(void)
 	int ret;
 
 	if (!cci_probed())
+	{
 		return -ENODEV;
+	}
 
 	node = of_find_compatible_node(NULL, NULL, "arm,rtsm,dcscb");
+
 	if (!node)
+	{
 		return -ENODEV;
+	}
+
 	dcscb_base = of_iomap(node, 0);
+
 	if (!dcscb_base)
+	{
 		return -EADDRNOTAVAIL;
+	}
+
 	cfg = readl_relaxed(dcscb_base + DCS_CFG_R);
 	dcscb_allcpus_mask[0] = (1 << (((cfg >> 16) >> (0 << 2)) & 0xf)) - 1;
 	dcscb_allcpus_mask[1] = (1 << (((cfg >> 16) >> (1 << 2)) & 0xf)) - 1;
 
 	ret = mcpm_platform_register(&dcscb_power_ops);
+
 	if (!ret)
+	{
 		ret = mcpm_sync_init(dcscb_power_up_setup);
-	if (ret) {
+	}
+
+	if (ret)
+	{
 		iounmap(dcscb_base);
 		return ret;
 	}

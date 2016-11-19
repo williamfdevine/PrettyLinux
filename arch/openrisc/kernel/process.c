@@ -88,7 +88,7 @@ void flush_thread(void)
 
 void show_regs(struct pt_regs *regs)
 {
-	extern void show_registers(struct pt_regs *regs);
+	extern void show_registers(struct pt_regs * regs);
 
 	show_regs_print_info(KERN_DEFAULT);
 	/* __PHX__ cleanup this mess */
@@ -143,7 +143,7 @@ extern asmlinkage void ret_from_fork(void);
 
 int
 copy_thread(unsigned long clone_flags, unsigned long usp,
-	    unsigned long arg, struct task_struct *p)
+			unsigned long arg, struct task_struct *p)
 {
 	struct pt_regs *userregs;
 	struct pt_regs *kregs;
@@ -164,15 +164,21 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 	sp -= sizeof(struct pt_regs);
 	kregs = (struct pt_regs *)sp;
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		memset(kregs, 0, sizeof(struct pt_regs));
 		kregs->gpr[20] = usp; /* fn, kernel thread */
 		kregs->gpr[22] = arg;
-	} else {
+	}
+	else
+	{
 		*userregs = *current_pt_regs();
 
 		if (usp)
+		{
 			userregs->sp = usp;
+		}
+
 		userregs->gpr[11] = 0;	/* Result from fork() */
 
 		kregs->gpr[20] = 0;	/* Userspace thread */
@@ -205,17 +211,17 @@ void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 }
 
 /* Fill in the fpu structure for a core dump.  */
-int dump_fpu(struct pt_regs *regs, elf_fpregset_t * fpu)
+int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu)
 {
 	/* TODO */
 	return 0;
 }
 
 extern struct thread_info *_switch(struct thread_info *old_ti,
-				   struct thread_info *new_ti);
+								   struct thread_info *new_ti);
 
 struct task_struct *__switch_to(struct task_struct *old,
-				struct task_struct *new)
+								struct task_struct *new)
 {
 	struct task_struct *last;
 	struct thread_info *new_ti, *old_ti;
@@ -242,10 +248,10 @@ struct task_struct *__switch_to(struct task_struct *old,
  * Write out registers in core dump format, as defined by the
  * struct user_regs_struct
  */
-void dump_elf_thread(elf_greg_t *dest, struct pt_regs* regs)
+void dump_elf_thread(elf_greg_t *dest, struct pt_regs *regs)
 {
 	dest[0] = 0; /* r0 */
-	memcpy(dest+1, regs->gpr+1, 31*sizeof(unsigned long));
+	memcpy(dest + 1, regs->gpr + 1, 31 * sizeof(unsigned long));
 	dest[32] = regs->pc;
 	dest[33] = regs->sr;
 	dest[34] = 0;

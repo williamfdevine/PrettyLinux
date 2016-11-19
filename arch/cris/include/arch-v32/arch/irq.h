@@ -8,16 +8,17 @@
 #define FIRST_IRQ 0x31 /* Exception number for first IRQ */
 #define NR_REAL_IRQS (NBR_INTR_VECT - FIRST_IRQ) /* IRQs */
 #if NR_REAL_IRQS > 32
-#define MACH_IRQS 64
+	#define MACH_IRQS 64
 #else
-#define MACH_IRQS 32
+	#define MACH_IRQS 32
 #endif
 
 #ifndef __ASSEMBLY__
 /* Global IRQ vector. */
 typedef void (*irqvectptr)(void);
 
-struct etrax_interrupt_vector {
+struct etrax_interrupt_vector
+{
 	irqvectptr v[256];
 };
 
@@ -79,18 +80,18 @@ void set_exception_vector(int n, irqvectptr addr);
  * by crisv32_do_IRQ.
  */
 #define BUILD_IRQ(nr)		        \
-void IRQ_NAME(nr);			\
-__asm__ (				\
-	".text\n\t"			\
-	"IRQ" #nr "_interrupt:\n\t" 	\
-	SAVE_ALL			\
-	KGDB_FIXUP                      \
-	"move.d "#nr",$r10\n\t"		\
-	"move.d $sp, $r12\n\t"          \
-	"jsr crisv32_do_IRQ\n\t"       	\
-	"moveq 1, $r11\n\t"		\
-	"jump ret_from_intr\n\t"	\
-	"nop\n\t");
+	void IRQ_NAME(nr);			\
+	__asm__ (				\
+							".text\n\t"			\
+							"IRQ" #nr "_interrupt:\n\t" 	\
+							SAVE_ALL			\
+							KGDB_FIXUP                      \
+							"move.d "#nr",$r10\n\t"		\
+							"move.d $sp, $r12\n\t"          \
+							"jsr crisv32_do_IRQ\n\t"       	\
+							"moveq 1, $r11\n\t"		\
+							"jump ret_from_intr\n\t"	\
+							"nop\n\t");
 /*
  * This is subtle. The timer interrupt is crucial and it should not be disabled
  * for too long. However, if it had been a normal interrupt as per BUILD_IRQ, it
@@ -107,18 +108,18 @@ __asm__ (				\
  * timer irq handler is run to acknowledge the interrupt.
  */
 #define BUILD_TIMER_IRQ(nr, mask) 	\
-void IRQ_NAME(nr);			\
-__asm__ (				\
-	".text\n\t"			\
-	"IRQ" #nr "_interrupt:\n\t"	\
-	SAVE_ALL			\
-        KGDB_FIXUP                      \
-	"move.d "#nr",$r10\n\t"		\
-	"move.d $sp,$r12\n\t"		\
-	"jsr crisv32_do_IRQ\n\t"	\
-	"moveq 0,$r11\n\t"		\
-	"jump ret_from_intr\n\t"	\
-	"nop\n\t");
+	void IRQ_NAME(nr);			\
+	__asm__ (				\
+							".text\n\t"			\
+							"IRQ" #nr "_interrupt:\n\t"	\
+							SAVE_ALL			\
+							KGDB_FIXUP                      \
+							"move.d "#nr",$r10\n\t"		\
+							"move.d $sp,$r12\n\t"		\
+							"jsr crisv32_do_IRQ\n\t"	\
+							"moveq 0,$r11\n\t"		\
+							"jump ret_from_intr\n\t"	\
+							"nop\n\t");
 
 #endif /* __ASSEMBLY__ */
 #endif /* _ASM_ARCH_IRQ_H */

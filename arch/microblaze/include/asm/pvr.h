@@ -15,7 +15,8 @@
 
 #define PVR_MSR_BIT 0x400
 
-struct pvr_s {
+struct pvr_s
+{
 	unsigned pvr[12];
 };
 
@@ -139,76 +140,76 @@ struct pvr_s {
 #define PVR_I_OPB(_pvr)		(_pvr.pvr[2] & PVR2_I_OPB_MASK)
 #define PVR_I_LMB(_pvr)		(_pvr.pvr[2] & PVR2_I_LMB_MASK)
 #define PVR_INTERRUPT_IS_EDGE(_pvr) \
-			(_pvr.pvr[2] & PVR2_INTERRUPT_IS_EDGE_MASK)
+	(_pvr.pvr[2] & PVR2_INTERRUPT_IS_EDGE_MASK)
 #define PVR_EDGE_IS_POSITIVE(_pvr) \
-			(_pvr.pvr[2] & PVR2_EDGE_IS_POSITIVE_MASK)
+	(_pvr.pvr[2] & PVR2_EDGE_IS_POSITIVE_MASK)
 #define PVR_USE_MSR_INSTR(_pvr)		(_pvr.pvr[2] & PVR2_USE_MSR_INSTR)
 #define PVR_USE_PCMP_INSTR(_pvr)	(_pvr.pvr[2] & PVR2_USE_PCMP_INSTR)
 #define PVR_AREA_OPTIMISED(_pvr)	(_pvr.pvr[2] & PVR2_AREA_OPTIMISED)
 #define PVR_USE_MUL64(_pvr)		(_pvr.pvr[2] & PVR2_USE_MUL64_MASK)
 #define PVR_OPCODE_0x0_ILLEGAL(_pvr) \
-			(_pvr.pvr[2] & PVR2_OPCODE_0x0_ILL_MASK)
+	(_pvr.pvr[2] & PVR2_OPCODE_0x0_ILL_MASK)
 #define PVR_UNALIGNED_EXCEPTION(_pvr) \
-			(_pvr.pvr[2] & PVR2_UNALIGNED_EXC_MASK)
+	(_pvr.pvr[2] & PVR2_UNALIGNED_EXC_MASK)
 #define PVR_ILL_OPCODE_EXCEPTION(_pvr) \
-			(_pvr.pvr[2] & PVR2_ILL_OPCODE_EXC_MASK)
+	(_pvr.pvr[2] & PVR2_ILL_OPCODE_EXC_MASK)
 #define PVR_IOPB_BUS_EXCEPTION(_pvr) \
-			(_pvr.pvr[2] & PVR2_IOPB_BUS_EXC_MASK)
+	(_pvr.pvr[2] & PVR2_IOPB_BUS_EXC_MASK)
 #define PVR_DOPB_BUS_EXCEPTION(_pvr) \
-			(_pvr.pvr[2] & PVR2_DOPB_BUS_EXC_MASK)
+	(_pvr.pvr[2] & PVR2_DOPB_BUS_EXC_MASK)
 #define PVR_DIV_ZERO_EXCEPTION(_pvr) \
-			(_pvr.pvr[2] & PVR2_DIV_ZERO_EXC_MASK)
+	(_pvr.pvr[2] & PVR2_DIV_ZERO_EXC_MASK)
 #define PVR_FPU_EXCEPTION(_pvr)		(_pvr.pvr[2] & PVR2_FPU_EXC_MASK)
 #define PVR_FSL_EXCEPTION(_pvr)		(_pvr.pvr[2] & PVR2_USE_EXTEND_FSL)
 
 #define PVR_DEBUG_ENABLED(_pvr)		(_pvr.pvr[3] & PVR3_DEBUG_ENABLED_MASK)
 #define PVR_NUMBER_OF_PC_BRK(_pvr) \
-			((_pvr.pvr[3] & PVR3_NUMBER_OF_PC_BRK_MASK) >> 25)
+	((_pvr.pvr[3] & PVR3_NUMBER_OF_PC_BRK_MASK) >> 25)
 #define PVR_NUMBER_OF_RD_ADDR_BRK(_pvr) \
-			((_pvr.pvr[3] & PVR3_NUMBER_OF_RD_ADDR_BRK_MASK) >> 19)
+	((_pvr.pvr[3] & PVR3_NUMBER_OF_RD_ADDR_BRK_MASK) >> 19)
 #define PVR_NUMBER_OF_WR_ADDR_BRK(_pvr) \
-			((_pvr.pvr[3] & PVR3_NUMBER_OF_WR_ADDR_BRK_MASK) >> 13)
+	((_pvr.pvr[3] & PVR3_NUMBER_OF_WR_ADDR_BRK_MASK) >> 13)
 #define PVR_FSL_LINKS(_pvr)	((_pvr.pvr[3] & PVR3_FSL_LINKS_MASK) >> 7)
 
 #define PVR_ICACHE_ADDR_TAG_BITS(_pvr) \
-		((_pvr.pvr[4] & PVR4_ICACHE_ADDR_TAG_BITS_MASK) >> 26)
+	((_pvr.pvr[4] & PVR4_ICACHE_ADDR_TAG_BITS_MASK) >> 26)
 #define PVR_ICACHE_USE_FSL(_pvr) \
-		(_pvr.pvr[4] & PVR4_ICACHE_USE_FSL_MASK)
+	(_pvr.pvr[4] & PVR4_ICACHE_USE_FSL_MASK)
 #define PVR_ICACHE_ALLOW_WR(_pvr) \
-		(_pvr.pvr[4] & PVR4_ICACHE_ALLOW_WR_MASK)
+	(_pvr.pvr[4] & PVR4_ICACHE_ALLOW_WR_MASK)
 #define PVR_ICACHE_LINE_LEN(_pvr) \
-		(1 << ((_pvr.pvr[4] & PVR4_ICACHE_LINE_LEN_MASK) >> 21))
+	(1 << ((_pvr.pvr[4] & PVR4_ICACHE_LINE_LEN_MASK) >> 21))
 #define PVR_ICACHE_BYTE_SIZE(_pvr) \
-		(1 << ((_pvr.pvr[4] & PVR4_ICACHE_BYTE_SIZE_MASK) >> 16))
+	(1 << ((_pvr.pvr[4] & PVR4_ICACHE_BYTE_SIZE_MASK) >> 16))
 
 #define PVR_DCACHE_ADDR_TAG_BITS(_pvr) \
-			((_pvr.pvr[5] & PVR5_DCACHE_ADDR_TAG_BITS_MASK) >> 26)
+	((_pvr.pvr[5] & PVR5_DCACHE_ADDR_TAG_BITS_MASK) >> 26)
 #define PVR_DCACHE_USE_FSL(_pvr)	(_pvr.pvr[5] & PVR5_DCACHE_USE_FSL_MASK)
 #define PVR_DCACHE_ALLOW_WR(_pvr) \
-			(_pvr.pvr[5] & PVR5_DCACHE_ALLOW_WR_MASK)
+	(_pvr.pvr[5] & PVR5_DCACHE_ALLOW_WR_MASK)
 /* FIXME two shifts on one line needs any comment */
 #define PVR_DCACHE_LINE_LEN(_pvr) \
-		(1 << ((_pvr.pvr[5] & PVR5_DCACHE_LINE_LEN_MASK) >> 21))
+	(1 << ((_pvr.pvr[5] & PVR5_DCACHE_LINE_LEN_MASK) >> 21))
 #define PVR_DCACHE_BYTE_SIZE(_pvr) \
-		(1 << ((_pvr.pvr[5] & PVR5_DCACHE_BYTE_SIZE_MASK) >> 16))
+	(1 << ((_pvr.pvr[5] & PVR5_DCACHE_BYTE_SIZE_MASK) >> 16))
 
 #define PVR_DCACHE_USE_WRITEBACK(_pvr) \
-			((_pvr.pvr[5] & PVR5_DCACHE_USE_WRITEBACK) >> 14)
+	((_pvr.pvr[5] & PVR5_DCACHE_USE_WRITEBACK) >> 14)
 
 #define PVR_ICACHE_BASEADDR(_pvr) \
-			(_pvr.pvr[6] & PVR6_ICACHE_BASEADDR_MASK)
+	(_pvr.pvr[6] & PVR6_ICACHE_BASEADDR_MASK)
 #define PVR_ICACHE_HIGHADDR(_pvr) \
-			(_pvr.pvr[7] & PVR7_ICACHE_HIGHADDR_MASK)
+	(_pvr.pvr[7] & PVR7_ICACHE_HIGHADDR_MASK)
 #define PVR_DCACHE_BASEADDR(_pvr) \
-			(_pvr.pvr[8] & PVR8_DCACHE_BASEADDR_MASK)
+	(_pvr.pvr[8] & PVR8_DCACHE_BASEADDR_MASK)
 #define PVR_DCACHE_HIGHADDR(_pvr) \
-			(_pvr.pvr[9] & PVR9_DCACHE_HIGHADDR_MASK)
+	(_pvr.pvr[9] & PVR9_DCACHE_HIGHADDR_MASK)
 
 #define PVR_TARGET_FAMILY(_pvr) \
-			((_pvr.pvr[10] & PVR10_TARGET_FAMILY_MASK) >> 24)
+	((_pvr.pvr[10] & PVR10_TARGET_FAMILY_MASK) >> 24)
 
 #define PVR_MSR_RESET_VALUE(_pvr) \
-			(_pvr.pvr[11] & PVR11_MSR_RESET_VALUE_MASK)
+	(_pvr.pvr[11] & PVR11_MSR_RESET_VALUE_MASK)
 
 /* mmu */
 #define PVR_USE_MMU(_pvr)		((_pvr.pvr[11] & PVR11_USE_MMU) >> 30)

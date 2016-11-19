@@ -14,7 +14,7 @@
 #include <asm/mpx.h>
 #ifndef CONFIG_PARAVIRT
 static inline void paravirt_activate_mm(struct mm_struct *prev,
-					struct mm_struct *next)
+										struct mm_struct *next)
 {
 }
 #endif	/* !CONFIG_PARAVIRT */
@@ -25,10 +25,14 @@ extern struct static_key rdpmc_always_available;
 static inline void load_mm_cr4(struct mm_struct *mm)
 {
 	if (static_key_false(&rdpmc_always_available) ||
-	    atomic_read(&mm->context.perf_rdpmc_allowed))
+		atomic_read(&mm->context.perf_rdpmc_allowed))
+	{
 		cr4_set_bits(X86_CR4_PCE);
+	}
 	else
+	{
 		cr4_clear_bits(X86_CR4_PCE);
+	}
 }
 #else
 static inline void load_mm_cr4(struct mm_struct *mm) {}
@@ -39,7 +43,8 @@ static inline void load_mm_cr4(struct mm_struct *mm) {}
  * ldt_structs can be allocated, used, and freed, but they are never
  * modified while live.
  */
-struct ldt_struct {
+struct ldt_struct
+{
 	/*
 	 * Xen requires page-aligned LDTs with special permissions.  This is
 	 * needed to prevent us from installing evil descriptors such as
@@ -57,7 +62,7 @@ int init_new_context_ldt(struct task_struct *tsk, struct mm_struct *mm);
 void destroy_context_ldt(struct mm_struct *mm);
 #else	/* CONFIG_MODIFY_LDT_SYSCALL */
 static inline int init_new_context_ldt(struct task_struct *tsk,
-				       struct mm_struct *mm)
+									   struct mm_struct *mm)
 {
 	return 0;
 }
@@ -87,9 +92,14 @@ static inline void load_mm_ldt(struct mm_struct *mm)
 	 */
 
 	if (unlikely(ldt))
+	{
 		set_ldt(ldt->entries, ldt->size);
+	}
 	else
+	{
 		clear_LDT();
+	}
+
 #else
 	clear_LDT();
 #endif
@@ -100,22 +110,29 @@ static inline void load_mm_ldt(struct mm_struct *mm)
 static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
 {
 #ifdef CONFIG_SMP
+
 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
+	{
 		this_cpu_write(cpu_tlbstate.state, TLBSTATE_LAZY);
+	}
+
 #endif
 }
 
 static inline int init_new_context(struct task_struct *tsk,
-				   struct mm_struct *mm)
+								   struct mm_struct *mm)
 {
-	#ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
-	if (cpu_feature_enabled(X86_FEATURE_OSPKE)) {
+#ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
+
+	if (cpu_feature_enabled(X86_FEATURE_OSPKE))
+	{
 		/* pkey 0 is the default and always allocated */
 		mm->context.pkey_allocation_map = 0x1;
 		/* -1 means unallocated or invalid */
 		mm->context.execute_only_pkey = -1;
 	}
-	#endif
+
+#endif
 	init_new_context_ldt(tsk, mm);
 
 	return 0;
@@ -126,33 +143,33 @@ static inline void destroy_context(struct mm_struct *mm)
 }
 
 extern void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-		      struct task_struct *tsk);
+					  struct task_struct *tsk);
 
 extern void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
-			       struct task_struct *tsk);
+							   struct task_struct *tsk);
 #define switch_mm_irqs_off switch_mm_irqs_off
 
 #define activate_mm(prev, next)			\
-do {						\
-	paravirt_activate_mm((prev), (next));	\
-	switch_mm((prev), (next), NULL);	\
-} while (0);
+	do {						\
+		paravirt_activate_mm((prev), (next));	\
+		switch_mm((prev), (next), NULL);	\
+	} while (0);
 
 #ifdef CONFIG_X86_32
 #define deactivate_mm(tsk, mm)			\
-do {						\
-	lazy_load_gs(0);			\
-} while (0)
+	do {						\
+		lazy_load_gs(0);			\
+	} while (0)
 #else
 #define deactivate_mm(tsk, mm)			\
-do {						\
-	load_gs_index(0);			\
-	loadsegment(fs, 0);			\
-} while (0)
+	do {						\
+		load_gs_index(0);			\
+		loadsegment(fs, 0);			\
+	} while (0)
 #endif
 
 static inline void arch_dup_mmap(struct mm_struct *oldmm,
-				 struct mm_struct *mm)
+								 struct mm_struct *mm)
 {
 	paravirt_arch_dup_mmap(oldmm, mm);
 }
@@ -166,7 +183,7 @@ static inline void arch_exit_mmap(struct mm_struct *mm)
 static inline bool is_64bit_mm(struct mm_struct *mm)
 {
 	return	!IS_ENABLED(CONFIG_IA32_EMULATION) ||
-		!(mm->context.ia32_compat == TIF_IA32);
+			!(mm->context.ia32_compat == TIF_IA32);
 }
 #else
 static inline bool is_64bit_mm(struct mm_struct *mm)
@@ -176,13 +193,13 @@ static inline bool is_64bit_mm(struct mm_struct *mm)
 #endif
 
 static inline void arch_bprm_mm_init(struct mm_struct *mm,
-		struct vm_area_struct *vma)
+									 struct vm_area_struct *vma)
 {
 	mpx_mm_init(mm);
 }
 
 static inline void arch_unmap(struct mm_struct *mm, struct vm_area_struct *vma,
-			      unsigned long start, unsigned long end)
+							  unsigned long start, unsigned long end)
 {
 	/*
 	 * mpx_notify_unmap() goes and reads a rarely-hot
@@ -202,14 +219,16 @@ static inline void arch_unmap(struct mm_struct *mm, struct vm_area_struct *vma,
 	 * consistently wrong.
 	 */
 	if (unlikely(cpu_feature_enabled(X86_FEATURE_MPX)))
+	{
 		mpx_notify_unmap(mm, vma, start, end);
+	}
 }
 
 #ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
 static inline int vma_pkey(struct vm_area_struct *vma)
 {
 	unsigned long vma_pkey_mask = VM_PKEY_BIT0 | VM_PKEY_BIT1 |
-				      VM_PKEY_BIT2 | VM_PKEY_BIT3;
+								  VM_PKEY_BIT2 | VM_PKEY_BIT3;
 
 	return (vma->vm_flags & vma_pkey_mask) >> VM_PKEY_SHIFT;
 }
@@ -225,9 +244,14 @@ static inline bool __pkru_allows_pkey(u16 pkey, bool write)
 	u32 pkru = read_pkru();
 
 	if (!__pkru_allows_read(pkru, pkey))
+	{
 		return false;
+	}
+
 	if (write && !__pkru_allows_write(pkru, pkey))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -244,14 +268,19 @@ static inline bool __pkru_allows_pkey(u16 pkey, bool write)
 static inline bool vma_is_foreign(struct vm_area_struct *vma)
 {
 	if (!current->mm)
+	{
 		return true;
+	}
+
 	/*
 	 * Should PKRU be enforced on the access to this VMA?  If
 	 * the VMA is from another process, then PKRU has no
 	 * relevance and should not be enforced.
 	 */
 	if (current->mm != vma->vm_mm)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -261,10 +290,16 @@ static inline bool arch_vma_access_permitted(struct vm_area_struct *vma,
 {
 	/* pkeys never affect instruction fetches */
 	if (execute)
+	{
 		return true;
+	}
+
 	/* allow access if the VMA is not one from this process */
 	if (foreign || vma_is_foreign(vma))
+	{
 		return true;
+	}
+
 	return __pkru_allows_pkey(vma_pkey(vma), write);
 }
 

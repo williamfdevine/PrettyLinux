@@ -46,14 +46,18 @@ static void mips_cpu_restore(void)
 
 	/* Restore ASID */
 	if (current->mm)
+	{
 		write_c0_entryhi(cpu_asid(cpu, current->mm));
+	}
 
 	/* Restore DSP state */
 	restore_dsp(current);
 
 	/* Restore UserLocal */
 	if (cpu_has_userlocal)
+	{
 		write_c0_userlocal(current_thread_info()->tp_value);
+	}
 
 	/* Restore watch registers */
 	__restore_watch(current);
@@ -69,26 +73,33 @@ static void mips_cpu_restore(void)
  * ensure that important CPU context is preserved across a CPU power down.
  */
 static int mips_pm_notifier(struct notifier_block *self, unsigned long cmd,
-			    void *v)
+							void *v)
 {
 	int ret;
 
-	switch (cmd) {
-	case CPU_PM_ENTER:
-		ret = mips_cpu_save();
-		if (ret)
-			return NOTIFY_STOP;
-		break;
-	case CPU_PM_ENTER_FAILED:
-	case CPU_PM_EXIT:
-		mips_cpu_restore();
-		break;
+	switch (cmd)
+	{
+		case CPU_PM_ENTER:
+			ret = mips_cpu_save();
+
+			if (ret)
+			{
+				return NOTIFY_STOP;
+			}
+
+			break;
+
+		case CPU_PM_ENTER_FAILED:
+		case CPU_PM_EXIT:
+			mips_cpu_restore();
+			break;
 	}
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block mips_pm_notifier_block = {
+static struct notifier_block mips_pm_notifier_block =
+{
 	.notifier_call = mips_pm_notifier,
 };
 

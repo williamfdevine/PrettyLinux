@@ -47,8 +47,8 @@
 #define IEEE_TRAP_ENABLE_INE	(1UL<<5)	/* inexact */
 #define IEEE_TRAP_ENABLE_DNO	(1UL<<6)	/* denorm */
 #define IEEE_TRAP_ENABLE_MASK	(IEEE_TRAP_ENABLE_INV | IEEE_TRAP_ENABLE_DZE |\
-				 IEEE_TRAP_ENABLE_OVF | IEEE_TRAP_ENABLE_UNF |\
-				 IEEE_TRAP_ENABLE_INE | IEEE_TRAP_ENABLE_DNO)
+								 IEEE_TRAP_ENABLE_OVF | IEEE_TRAP_ENABLE_UNF |\
+								 IEEE_TRAP_ENABLE_INE | IEEE_TRAP_ENABLE_DNO)
 
 /* Denorm and Underflow flushing */
 #define IEEE_MAP_DMZ		(1UL<<12)	/* Map denorm inputs to zero */
@@ -65,11 +65,11 @@
 #define IEEE_STATUS_DNO		(1UL<<22)
 
 #define IEEE_STATUS_MASK	(IEEE_STATUS_INV | IEEE_STATUS_DZE |	\
-				 IEEE_STATUS_OVF | IEEE_STATUS_UNF |	\
-				 IEEE_STATUS_INE | IEEE_STATUS_DNO)
+							 IEEE_STATUS_OVF | IEEE_STATUS_UNF |	\
+							 IEEE_STATUS_INE | IEEE_STATUS_DNO)
 
 #define IEEE_SW_MASK		(IEEE_TRAP_ENABLE_MASK |		\
-				 IEEE_STATUS_MASK | IEEE_MAP_MASK)
+							 IEEE_STATUS_MASK | IEEE_MAP_MASK)
 
 #define IEEE_CURRENT_RM_SHIFT	32
 #define IEEE_CURRENT_RM_MASK	(3UL<<IEEE_CURRENT_RM_SHIFT)
@@ -80,7 +80,7 @@
 
 /*
  * Convert the software IEEE trap enable and status bits into the
- * hardware fpcr format. 
+ * hardware fpcr format.
  *
  * Digital Unix engineers receive my thanks for not defining the
  * software bits identical to the hardware bits.  The chip designers
@@ -96,8 +96,8 @@ ieee_swcr_to_fpcr(unsigned long sw)
 	fp |= (sw & IEEE_MAP_DMZ) << 36;
 	fp |= (sw & IEEE_STATUS_MASK ? FPCR_SUM : 0);
 	fp |= (~sw & (IEEE_TRAP_ENABLE_INV
-		      | IEEE_TRAP_ENABLE_DZE
-		      | IEEE_TRAP_ENABLE_OVF)) << 48;
+				  | IEEE_TRAP_ENABLE_DZE
+				  | IEEE_TRAP_ENABLE_OVF)) << 48;
 	fp |= (~sw & (IEEE_TRAP_ENABLE_UNF | IEEE_TRAP_ENABLE_INE)) << 57;
 	fp |= (sw & IEEE_MAP_UMZ ? FPCR_UNDZ | FPCR_UNFD : 0);
 	fp |= (~sw & IEEE_TRAP_ENABLE_DNO) << 41;
@@ -111,8 +111,8 @@ ieee_fpcr_to_swcr(unsigned long fp)
 	sw = (fp >> 35) & IEEE_STATUS_MASK;
 	sw |= (fp >> 36) & IEEE_MAP_DMZ;
 	sw |= (~fp >> 48) & (IEEE_TRAP_ENABLE_INV
-			     | IEEE_TRAP_ENABLE_DZE
-			     | IEEE_TRAP_ENABLE_OVF);
+						 | IEEE_TRAP_ENABLE_DZE
+						 | IEEE_TRAP_ENABLE_OVF);
 	sw |= (~fp >> 57) & (IEEE_TRAP_ENABLE_UNF | IEEE_TRAP_ENABLE_INE);
 	sw |= (fp >> 47) & IEEE_MAP_UMZ;
 	sw |= (~fp >> 41) & IEEE_TRAP_ENABLE_DNO;

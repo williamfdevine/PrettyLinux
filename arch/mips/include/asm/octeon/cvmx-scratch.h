@@ -98,7 +98,7 @@ static inline uint64_t cvmx_scratch_read64(uint64_t address)
 static inline void cvmx_scratch_write8(uint64_t address, uint64_t value)
 {
 	*CASTPTR(volatile uint8_t, CVMX_SCRATCH_BASE + address) =
-	    (uint8_t) value;
+		(uint8_t) value;
 }
 
 /**
@@ -110,7 +110,7 @@ static inline void cvmx_scratch_write8(uint64_t address, uint64_t value)
 static inline void cvmx_scratch_write16(uint64_t address, uint64_t value)
 {
 	*CASTPTR(volatile uint16_t, CVMX_SCRATCH_BASE + address) =
-	    (uint16_t) value;
+		(uint16_t) value;
 }
 
 /**
@@ -122,7 +122,7 @@ static inline void cvmx_scratch_write16(uint64_t address, uint64_t value)
 static inline void cvmx_scratch_write32(uint64_t address, uint64_t value)
 {
 	*CASTPTR(volatile uint32_t, CVMX_SCRATCH_BASE + address) =
-	    (uint32_t) value;
+		(uint32_t) value;
 }
 
 /**

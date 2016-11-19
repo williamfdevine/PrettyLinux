@@ -41,7 +41,8 @@
 
 struct uic *primary_uic;
 
-struct uic {
+struct uic
+{
 	int index;
 	int dcrbase;
 
@@ -58,11 +59,15 @@ static void uic_unmask_irq(struct irq_data *d)
 	unsigned long flags;
 	u32 er, sr;
 
-	sr = 1 << (31-src);
+	sr = 1 << (31 - src);
 	raw_spin_lock_irqsave(&uic->lock, flags);
+
 	/* ack level-triggered interrupts here */
 	if (irqd_is_level_type(d))
+	{
 		mtdcr(uic->dcrbase + UIC_SR, sr);
+	}
+
 	er = mfdcr(uic->dcrbase + UIC_ER);
 	er |= sr;
 	mtdcr(uic->dcrbase + UIC_ER, er);
@@ -90,7 +95,7 @@ static void uic_ack_irq(struct irq_data *d)
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&uic->lock, flags);
-	mtdcr(uic->dcrbase + UIC_SR, 1 << (31-src));
+	mtdcr(uic->dcrbase + UIC_SR, 1 << (31 - src));
 	raw_spin_unlock_irqrestore(&uic->lock, flags);
 }
 
@@ -101,12 +106,13 @@ static void uic_mask_ack_irq(struct irq_data *d)
 	unsigned long flags;
 	u32 er, sr;
 
-	sr = 1 << (31-src);
+	sr = 1 << (31 - src);
 	raw_spin_lock_irqsave(&uic->lock, flags);
 	er = mfdcr(uic->dcrbase + UIC_ER);
 	er &= ~sr;
 	mtdcr(uic->dcrbase + UIC_ER, er);
- 	/* On the UIC, acking (i.e. clearing the SR bit)
+
+	/* On the UIC, acking (i.e. clearing the SR bit)
 	 * a level irq will have no effect if the interrupt
 	 * is still asserted by the device, even if
 	 * the interrupt is already masked. Therefore
@@ -115,7 +121,10 @@ static void uic_mask_ack_irq(struct irq_data *d)
 	 * isr call in the uic_unmask_irq()
 	 */
 	if (!irqd_is_level_type(d))
+	{
 		mtdcr(uic->dcrbase + UIC_SR, sr);
+	}
+
 	raw_spin_unlock_irqrestore(&uic->lock, flags);
 }
 
@@ -127,25 +136,30 @@ static int uic_set_irq_type(struct irq_data *d, unsigned int flow_type)
 	int trigger, polarity;
 	u32 tr, pr, mask;
 
-	switch (flow_type & IRQ_TYPE_SENSE_MASK) {
-	case IRQ_TYPE_NONE:
-		uic_mask_irq(d);
-		return 0;
+	switch (flow_type & IRQ_TYPE_SENSE_MASK)
+	{
+		case IRQ_TYPE_NONE:
+			uic_mask_irq(d);
+			return 0;
 
-	case IRQ_TYPE_EDGE_RISING:
-		trigger = 1; polarity = 1;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		trigger = 1; polarity = 0;
-		break;
-	case IRQ_TYPE_LEVEL_HIGH:
-		trigger = 0; polarity = 1;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		trigger = 0; polarity = 0;
-		break;
-	default:
-		return -EINVAL;
+		case IRQ_TYPE_EDGE_RISING:
+			trigger = 1; polarity = 1;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			trigger = 1; polarity = 0;
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:
+			trigger = 0; polarity = 1;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			trigger = 0; polarity = 0;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	mask = ~(1 << (31 - src));
@@ -153,8 +167,8 @@ static int uic_set_irq_type(struct irq_data *d, unsigned int flow_type)
 	raw_spin_lock_irqsave(&uic->lock, flags);
 	tr = mfdcr(uic->dcrbase + UIC_TR);
 	pr = mfdcr(uic->dcrbase + UIC_PR);
-	tr = (tr & mask) | (trigger << (31-src));
-	pr = (pr & mask) | (polarity << (31-src));
+	tr = (tr & mask) | (trigger << (31 - src));
+	pr = (pr & mask) | (polarity << (31 - src));
 
 	mtdcr(uic->dcrbase + UIC_PR, pr);
 	mtdcr(uic->dcrbase + UIC_TR, tr);
@@ -164,7 +178,8 @@ static int uic_set_irq_type(struct irq_data *d, unsigned int flow_type)
 	return 0;
 }
 
-static struct irq_chip uic_irq_chip = {
+static struct irq_chip uic_irq_chip =
+{
 	.name		= "UIC",
 	.irq_unmask	= uic_unmask_irq,
 	.irq_mask	= uic_mask_irq,
@@ -174,7 +189,7 @@ static struct irq_chip uic_irq_chip = {
 };
 
 static int uic_host_map(struct irq_domain *h, unsigned int virq,
-			irq_hw_number_t hw)
+						irq_hw_number_t hw)
 {
 	struct uic *uic = h->host_data;
 
@@ -189,7 +204,8 @@ static int uic_host_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops uic_host_ops = {
+static const struct irq_domain_ops uic_host_ops =
+{
 	.map	= uic_host_map,
 	.xlate	= irq_domain_xlate_twocell,
 };
@@ -204,15 +220,24 @@ static void uic_irq_cascade(struct irq_desc *desc)
 	int subvirq;
 
 	raw_spin_lock(&desc->lock);
+
 	if (irqd_is_level_type(idata))
+	{
 		chip->irq_mask(idata);
+	}
 	else
+	{
 		chip->irq_mask_ack(idata);
+	}
+
 	raw_spin_unlock(&desc->lock);
 
 	msr = mfdcr(uic->dcrbase + UIC_MSR);
+
 	if (!msr) /* spurious interrupt */
+	{
 		goto uic_irq_ret;
+	}
 
 	src = 32 - ffs(msr);
 
@@ -221,14 +246,21 @@ static void uic_irq_cascade(struct irq_desc *desc)
 
 uic_irq_ret:
 	raw_spin_lock(&desc->lock);
+
 	if (irqd_is_level_type(idata))
+	{
 		chip->irq_ack(idata);
+	}
+
 	if (!irqd_irq_disabled(idata) && chip->irq_unmask)
+	{
 		chip->irq_unmask(idata);
+	}
+
 	raw_spin_unlock(&desc->lock);
 }
 
-static struct uic * __init uic_init_one(struct device_node *node)
+static struct uic *__init uic_init_one(struct device_node *node)
 {
 	struct uic *uic;
 	const u32 *indexp, *dcrreg;
@@ -237,30 +269,42 @@ static struct uic * __init uic_init_one(struct device_node *node)
 	BUG_ON(! of_device_is_compatible(node, "ibm,uic"));
 
 	uic = kzalloc(sizeof(*uic), GFP_KERNEL);
+
 	if (! uic)
-		return NULL; /* FIXME: panic? */
+	{
+		return NULL;    /* FIXME: panic? */
+	}
 
 	raw_spin_lock_init(&uic->lock);
 	indexp = of_get_property(node, "cell-index", &len);
-	if (!indexp || (len != sizeof(u32))) {
+
+	if (!indexp || (len != sizeof(u32)))
+	{
 		printk(KERN_ERR "uic: Device node %s has missing or invalid "
-		       "cell-index property\n", node->full_name);
+			   "cell-index property\n", node->full_name);
 		return NULL;
 	}
+
 	uic->index = *indexp;
 
 	dcrreg = of_get_property(node, "dcr-reg", &len);
-	if (!dcrreg || (len != 2*sizeof(u32))) {
+
+	if (!dcrreg || (len != 2 * sizeof(u32)))
+	{
 		printk(KERN_ERR "uic: Device node %s has missing or invalid "
-		       "dcr-reg property\n", node->full_name);
+			   "dcr-reg property\n", node->full_name);
 		return NULL;
 	}
+
 	uic->dcrbase = *dcrreg;
 
 	uic->irqhost = irq_domain_add_linear(node, NR_UIC_INTS, &uic_host_ops,
-					     uic);
+										 uic);
+
 	if (! uic->irqhost)
-		return NULL; /* FIXME: panic? */
+	{
+		return NULL;    /* FIXME: panic? */
+	}
 
 	/* Start with all interrupts disabled, level and non-critical */
 	mtdcr(uic->dcrbase + UIC_ER, 0);
@@ -270,7 +314,7 @@ static struct uic * __init uic_init_one(struct device_node *node)
 	mtdcr(uic->dcrbase + UIC_SR, 0xffffffff);
 
 	printk ("UIC%d (%d IRQ sources) at DCR 0x%x\n", uic->index,
-		NR_UIC_INTS, uic->dcrbase);
+			NR_UIC_INTS, uic->dcrbase);
 
 	return uic;
 }
@@ -282,32 +326,43 @@ void __init uic_init_tree(void)
 	const u32 *interrupts;
 
 	/* First locate and initialize the top-level UIC */
-	for_each_compatible_node(np, NULL, "ibm,uic") {
+	for_each_compatible_node(np, NULL, "ibm,uic")
+	{
 		interrupts = of_get_property(np, "interrupts", NULL);
+
 		if (!interrupts)
+		{
 			break;
+		}
 	}
 
 	BUG_ON(!np); /* uic_init_tree() assumes there's a UIC as the
 		      * top-level interrupt controller */
 	primary_uic = uic_init_one(np);
+
 	if (!primary_uic)
+	{
 		panic("Unable to initialize primary UIC %s\n", np->full_name);
+	}
 
 	irq_set_default_host(primary_uic->irqhost);
 	of_node_put(np);
 
 	/* The scan again for cascaded UICs */
-	for_each_compatible_node(np, NULL, "ibm,uic") {
+	for_each_compatible_node(np, NULL, "ibm,uic")
+	{
 		interrupts = of_get_property(np, "interrupts", NULL);
-		if (interrupts) {
+
+		if (interrupts)
+		{
 			/* Secondary UIC */
 			int cascade_virq;
 
 			uic = uic_init_one(np);
+
 			if (! uic)
 				panic("Unable to initialize a secondary UIC %s\n",
-				      np->full_name);
+					  np->full_name);
 
 			cascade_virq = irq_of_parse_and_map(np, 0);
 

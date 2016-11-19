@@ -38,7 +38,7 @@ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
 
 static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
 {
-	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
+	BUG_ON((unsigned long)pmd & (PAGE_SIZE - 1));
 	free_page((unsigned long)pmd);
 }
 
@@ -67,7 +67,7 @@ static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
 
 static inline void pud_free(struct mm_struct *mm, pud_t *pud)
 {
-	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
+	BUG_ON((unsigned long)pud & (PAGE_SIZE - 1));
 	free_page((unsigned long)pud);
 }
 
@@ -102,12 +102,18 @@ pte_alloc_one(struct mm_struct *mm, unsigned long addr)
 	struct page *pte;
 
 	pte = alloc_pages(PGALLOC_GFP, 0);
+
 	if (!pte)
+	{
 		return NULL;
-	if (!pgtable_page_ctor(pte)) {
+	}
+
+	if (!pgtable_page_ctor(pte))
+	{
 		__free_page(pte);
 		return NULL;
 	}
+
 	return pte;
 }
 
@@ -117,7 +123,9 @@ pte_alloc_one(struct mm_struct *mm, unsigned long addr)
 static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
 {
 	if (pte)
+	{
 		free_page((unsigned long)pte);
+	}
 }
 
 static inline void pte_free(struct mm_struct *mm, pgtable_t pte)
@@ -127,7 +135,7 @@ static inline void pte_free(struct mm_struct *mm, pgtable_t pte)
 }
 
 static inline void __pmd_populate(pmd_t *pmdp, phys_addr_t pte,
-				  pmdval_t prot)
+								  pmdval_t prot)
 {
 	set_pmd(pmdp, __pmd(pte | prot));
 }

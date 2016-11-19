@@ -27,7 +27,8 @@ void pgd_init(unsigned long page)
 	p = (unsigned long *) page;
 	end = p + PTRS_PER_PGD;
 
-	do {
+	do
+	{
 		p[0] = entry;
 		p[1] = entry;
 		p[2] = entry;
@@ -37,7 +38,8 @@ void pgd_init(unsigned long page)
 		p[-3] = entry;
 		p[-2] = entry;
 		p[-1] = entry;
-	} while (p != end);
+	}
+	while (p != end);
 }
 
 #ifndef __PAGETABLE_PMD_FOLDED
@@ -48,7 +50,8 @@ void pmd_init(unsigned long addr, unsigned long pagetable)
 	p = (unsigned long *) addr;
 	end = p + PTRS_PER_PMD;
 
-	do {
+	do
+	{
 		p[0] = pagetable;
 		p[1] = pagetable;
 		p[2] = pagetable;
@@ -58,7 +61,8 @@ void pmd_init(unsigned long addr, unsigned long pagetable)
 		p[-3] = pagetable;
 		p[-2] = pagetable;
 		p[-1] = pagetable;
-	} while (p != end);
+	}
+	while (p != end);
 }
 #endif
 
@@ -72,7 +76,7 @@ pmd_t mk_pmd(struct page *page, pgprot_t prot)
 }
 
 void set_pmd_at(struct mm_struct *mm, unsigned long addr,
-		pmd_t *pmdp, pmd_t pmd)
+				pmd_t *pmdp, pmd_t pmd)
 {
 	*pmdp = pmd;
 	flush_tlb_all();

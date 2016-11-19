@@ -45,7 +45,8 @@
 
 /* Flash partitions. */
 
-static struct mtd_partition xcep_partitions[] = {
+static struct mtd_partition xcep_partitions[] =
+{
 	{
 		.name =		"Bootloader",
 		.size =		0x00040000,
@@ -71,7 +72,8 @@ static struct mtd_partition xcep_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data xcep_flash_data[] = {
+static struct physmap_flash_data xcep_flash_data[] =
+{
 	{
 		.width		= 4,		/* bankwidth in bytes */
 		.parts		= xcep_partitions,
@@ -79,13 +81,15 @@ static struct physmap_flash_data xcep_flash_data[] = {
 	}
 };
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_32M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device flash_device = {
+static struct platform_device flash_device =
+{
 	.name	= "physmap-flash",
 	.id	= 0,
 	.dev 	= {
@@ -99,7 +103,8 @@ static struct platform_device flash_device = {
 
 /* SMC LAN91C111 network controller. */
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.name	= "smc91x-regs",
 		.start	= XCEP_ETH_PHYS,
@@ -119,12 +124,14 @@ static struct resource smc91x_resources[] = {
 	},
 };
 
-static struct smc91x_platdata xcep_smc91x_info = {
+static struct smc91x_platdata xcep_smc91x_info =
+{
 	.flags	= SMC91X_USE_8BIT | SMC91X_USE_16BIT | SMC91X_USE_32BIT |
-		  SMC91X_NOWAIT | SMC91X_USE_DMA,
+	SMC91X_NOWAIT | SMC91X_USE_DMA,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -135,7 +142,8 @@ static struct platform_device smc91x_device = {
 };
 
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&flash_device,
 	&smc91x_device,
 };
@@ -144,12 +152,14 @@ static struct platform_device *devices[] __initdata = {
 /* We have to state that there are HWMON devices on the I2C bus on XCEP.
  * Drivers for HWMON verify capabilities of the adapter when loading and
  * refuse to attach if the adapter doesn't support HWMON class of devices. */
-static struct i2c_pxa_platform_data xcep_i2c_platform_data  = {
+static struct i2c_pxa_platform_data xcep_i2c_platform_data  =
+{
 	.class = I2C_CLASS_HWMON
 };
 
 
-static mfp_cfg_t xcep_pin_config[] __initdata = {
+static mfp_cfg_t xcep_pin_config[] __initdata =
+{
 	GPIO79_nCS_3,	/* SMC 91C111 chip select. */
 	GPIO80_nCS_4,	/* CPLD chip select. */
 	/* SSP communication to MSP430 */
@@ -180,13 +190,13 @@ static void __init xcep_init(void)
 }
 
 MACHINE_START(XCEP, "Iskratel XCEP")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.init_machine	= xcep_init,
-	.map_io		= pxa25x_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+	   .map_io		= pxa25x_map_io,
+		   .nr_irqs	= PXA_NR_IRQS,
+			   .init_irq	= pxa25x_init_irq,
+				  .handle_irq	= pxa25x_handle_irq,
+				   .init_time	= pxa_timer_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END
 

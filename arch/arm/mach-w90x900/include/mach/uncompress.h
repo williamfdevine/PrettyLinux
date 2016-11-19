@@ -25,14 +25,16 @@
 #include <linux/serial_reg.h>
 
 #define TX_DONE	(UART_LSR_TEMT | UART_LSR_THRE)
-static volatile u32 * const uart_base = (u32 *)UART0_PA;
+static volatile u32 *const uart_base = (u32 *)UART0_PA;
 
 static inline void putc(int ch)
 {
 	/* Check THRE and TEMT bits before we transmit the character.
 	 */
 	while ((uart_base[UART_LSR] & TX_DONE) != TX_DONE)
+	{
 		barrier();
+	}
 
 	*uart_base = ch;
 }

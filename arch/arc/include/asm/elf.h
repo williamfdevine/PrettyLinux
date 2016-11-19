@@ -18,7 +18,7 @@
 #define EM_ARCV2		195	/* ARCv2 Cores */
 
 #define EM_ARC_INUSE		(IS_ENABLED(CONFIG_ISA_ARCOMPACT) ? \
-					EM_ARCOMPACT : EM_ARCV2)
+							 EM_ARCOMPACT : EM_ARCV2)
 
 /* ARC Relocations (kernel Modules only) */
 #define  R_ARC_32		0x4
@@ -30,9 +30,9 @@
 #define ELF_CLASS		ELFCLASS32
 
 #ifdef CONFIG_CPU_BIG_ENDIAN
-#define ELF_DATA		ELFDATA2MSB
+	#define ELF_DATA		ELFDATA2MSB
 #else
-#define ELF_DATA		ELFDATA2LSB
+	#define ELF_DATA		ELFDATA2LSB
 #endif
 
 /*

@@ -61,7 +61,7 @@ static inline unsigned long arch_local_irq_save(void)
 	unsigned long flags = __irqs_disabled();
 
 	asm volatile("SWAP %0,TXMASKI\n" : "=r" (flags) : "0" (flags)
-		     : "memory");
+				 : "memory");
 
 	return flags;
 }

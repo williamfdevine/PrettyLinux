@@ -24,7 +24,8 @@
 
 #define INTERSIL_HZ_100_MASK	 0x02
 
-struct intersil_dt {
+struct intersil_dt
+{
 	unsigned char	csec;
 	unsigned char	hour;
 	unsigned char	minute;
@@ -35,14 +36,15 @@ struct intersil_dt {
 	unsigned char	weekday;
 };
 
-struct intersil_7170 {
+struct intersil_7170
+{
 	struct intersil_dt counter;
 	struct intersil_dt alarm;
 	unsigned char	int_reg;
 	unsigned char	cmd_reg;
 };
 
-extern volatile char* clock_va;
+extern volatile char *clock_va;
 #define intersil_clock ((volatile struct intersil_7170 *) clock_va)
 #define intersil_clear() (void)intersil_clock->int_reg
 #endif

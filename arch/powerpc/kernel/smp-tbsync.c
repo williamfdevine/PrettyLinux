@@ -16,11 +16,13 @@
 
 #define NUM_ITER		300
 
-enum {
-	kExit=0, kSetAndTest, kTest
+enum
+{
+	kExit = 0, kSetAndTest, kTest
 };
 
-static struct {
+static struct
+{
 	volatile u64		tb;
 	volatile u64		mark;
 	volatile int		cmd;
@@ -38,7 +40,9 @@ static volatile int		running;
 static void enter_contest(u64 mark, long add)
 {
 	while (get_tb() < mark)
+	{
 		tbsync->race_result = add;
+	}
 }
 
 void smp_generic_take_timebase(void)
@@ -48,42 +52,63 @@ void smp_generic_take_timebase(void)
 	unsigned long flags;
 
 	local_irq_save(flags);
+
 	while (!running)
+	{
 		barrier();
+	}
+
 	rmb();
 
-	for (;;) {
+	for (;;)
+	{
 		tbsync->ack = 1;
+
 		while (!tbsync->handshake)
+		{
 			barrier();
+		}
+
 		rmb();
 
 		cmd = tbsync->cmd;
 		tb = tbsync->tb;
 		mb();
 		tbsync->ack = 0;
+
 		if (cmd == kExit)
+		{
 			break;
+		}
 
 		while (tbsync->handshake)
+		{
 			barrier();
+		}
+
 		if (cmd == kSetAndTest)
+		{
 			set_tb(tb >> 32, tb & 0xfffffffful);
+		}
+
 		enter_contest(tbsync->mark, -1);
 	}
+
 	local_irq_restore(flags);
 }
 
 static int start_contest(int cmd, long offset, int num)
 {
-	int i, score=0;
+	int i, score = 0;
 	u64 tb;
 	u64 mark;
 
 	tbsync->cmd = cmd;
 
 	local_irq_disable();
-	for (i = -3; i < num; ) {
+
+	for (i = -3; i < num; )
+	{
 		tb = get_tb() + 400;
 		tbsync->tb = tb + offset;
 		tbsync->mark = mark = tb + 400;
@@ -91,27 +116,38 @@ static int start_contest(int cmd, long offset, int num)
 		wmb();
 
 		tbsync->handshake = 1;
+
 		while (tbsync->ack)
+		{
 			barrier();
+		}
 
 		while (get_tb() <= tb)
+		{
 			barrier();
+		}
+
 		tbsync->handshake = 0;
 		enter_contest(mark, 1);
 
 		while (!tbsync->ack)
+		{
 			barrier();
+		}
 
 		if (i++ > 0)
+		{
 			score += tbsync->race_result;
+		}
 	}
+
 	local_irq_enable();
 	return score;
 }
 
 void smp_generic_give_timebase(void)
 {
-	int i, score, score2, old, min=0, max=5000, offset=1000;
+	int i, score, score2, old, min = 0, max = 5000, offset = 1000;
 
 	pr_debug("Software timebase sync\n");
 
@@ -121,48 +157,68 @@ void smp_generic_give_timebase(void)
 	running = 1;
 
 	while (!tbsync->ack)
+	{
 		barrier();
+	}
 
 	pr_debug("Got ack\n");
 
 	/* binary search */
-	for (old = -1; old != offset ; offset = (min+max) / 2) {
+	for (old = -1; old != offset ; offset = (min + max) / 2)
+	{
 		score = start_contest(kSetAndTest, offset, NUM_ITER);
 
 		pr_debug("score %d, offset %d\n", score, offset );
 
-		if( score > 0 )
+		if ( score > 0 )
+		{
 			max = offset;
+		}
 		else
+		{
 			min = offset;
+		}
+
 		old = offset;
 	}
+
 	score = start_contest(kSetAndTest, min, NUM_ITER);
 	score2 = start_contest(kSetAndTest, max, NUM_ITER);
 
 	pr_debug("Min %d (score %d), Max %d (score %d)\n",
-		 min, score, max, score2);
+			 min, score, max, score2);
 	score = abs(score);
 	score2 = abs(score2);
 	offset = (score < score2) ? min : max;
 
 	/* guard against inaccurate mttb */
-	for (i = 0; i < 10; i++) {
-		start_contest(kSetAndTest, offset, NUM_ITER/10);
+	for (i = 0; i < 10; i++)
+	{
+		start_contest(kSetAndTest, offset, NUM_ITER / 10);
 
 		if ((score2 = start_contest(kTest, offset, NUM_ITER)) < 0)
+		{
 			score2 = -score2;
+		}
+
 		if (score2 <= score || score2 < 20)
+		{
 			break;
+		}
 	}
+
 	pr_debug("Final offset: %d (%d/%d)\n", offset, score2, NUM_ITER );
 
 	/* exiting */
 	tbsync->cmd = kExit;
 	wmb();
 	tbsync->handshake = 1;
+
 	while (tbsync->ack)
+	{
 		barrier();
+	}
+
 	tbsync->handshake = 0;
 	kfree(tbsync);
 	tbsync = NULL;

@@ -35,7 +35,8 @@ struct rt_sigframe
 {
 	struct siginfo info;
 	struct ucontext uc;
-	struct {
+	struct
+	{
 		xtregs_opt_t opt;
 		xtregs_user_t user;
 #if XTENSA_HAVE_COPROCESSORS
@@ -46,7 +47,7 @@ struct rt_sigframe
 	unsigned int window[4];
 };
 
-/* 
+/*
  * Flush register windows stored in pt_regs to stack.
  * Returns 1 for errors.
  */
@@ -64,49 +65,68 @@ flush_window_regs_user(struct pt_regs *regs)
 	/* Return if no other frames. */
 
 	if (regs->wmask == 1)
+	{
 		return 0;
+	}
 
 	/* Rotate windowmask and skip empty frames. */
 
 	wm = (ws >> wb) | (ws << (XCHAL_NUM_AREGS / 4 - wb));
 	base = (XCHAL_NUM_AREGS / 4) - (regs->wmask >> 4);
-		
+
 	/* For call8 or call12 frames, we need the previous stack pointer. */
 
 	if ((regs->wmask & 2) == 0)
-		if (__get_user(sp, (int*)(regs->areg[base * 4 + 1] - 12)))
+		if (__get_user(sp, (int *)(regs->areg[base * 4 + 1] - 12)))
+		{
 			goto errout;
+		}
 
 	/* Spill frames to stack. */
 
-	while (base < XCHAL_NUM_AREGS / 4) {
+	while (base < XCHAL_NUM_AREGS / 4)
+	{
 
 		int m = (wm >> base);
 		int inc = 0;
 
 		/* Save registers a4..a7 (call8) or a4...a11 (call12) */
 
-		if (m & 2) {			/* call4 */
+		if (m & 2)  			/* call4 */
+		{
 			inc = 1;
 
-		} else if (m & 4) {		/* call8 */
-			if (copy_to_user((void*)(sp - 32),
-					   &regs->areg[(base + 1) * 4], 16))
+		}
+		else if (m & 4)  		/* call8 */
+		{
+			if (copy_to_user((void *)(sp - 32),
+							 &regs->areg[(base + 1) * 4], 16))
+			{
 				goto errout;
+			}
+
 			inc = 2;
 
-		} else if (m & 8) {	/* call12 */
-			if (copy_to_user((void*)(sp - 48),
-					   &regs->areg[(base + 1) * 4], 32))
+		}
+		else if (m & 8)  	/* call12 */
+		{
+			if (copy_to_user((void *)(sp - 48),
+							 &regs->areg[(base + 1) * 4], 32))
+			{
 				goto errout;
+			}
+
 			inc = 3;
 		}
 
 		/* Save current frame a0..a3 under next SP */
 
 		sp = regs->areg[((base + inc) * 4 + 1) % XCHAL_NUM_AREGS];
-		if (copy_to_user((void*)(sp - 16), &regs->areg[base * 4], 16))
+
+		if (copy_to_user((void *)(sp - 16), &regs->areg[base * 4], 16))
+		{
 			goto errout;
+		}
 
 		/* Get current stack pointer for next loop iteration. */
 
@@ -124,10 +144,10 @@ errout:
 }
 
 /*
- * Note: We don't copy double exception 'regs', we have to finish double exc. 
- * first before we return to signal handler! This dbl.exc.handler might cause 
- * another double exception, but I think we are fine as the situation is the 
- * same as if we had returned to the signal handerl and got an interrupt 
+ * Note: We don't copy double exception 'regs', we have to finish double exc.
+ * first before we return to signal handler! This dbl.exc.handler might cause
+ * another double exception, but I think we are fine as the situation is the
+ * same as if we had returned to the signal handerl and got an interrupt
  * immediately...
  */
 
@@ -152,18 +172,20 @@ setup_sigcontext(struct rt_sigframe __user *frame, struct pt_regs *regs)
 	err |= __put_user(0, &sc->sc_xtregs);
 
 	if (err)
+	{
 		return err;
+	}
 
 #if XTENSA_HAVE_COPROCESSORS
 	coprocessor_flush_all(ti);
 	coprocessor_release_all(ti);
 	err |= __copy_to_user(&frame->xtregs.cp, &ti->xtregs_cp,
-			      sizeof (frame->xtregs.cp));
+						  sizeof (frame->xtregs.cp));
 #endif
 	err |= __copy_to_user(&frame->xtregs.opt, &regs->xtregs_opt,
-			      sizeof (xtregs_opt_t));
+						  sizeof (xtregs_opt_t));
 	err |= __copy_to_user(&frame->xtregs.user, &ti->xtregs_user,
-			      sizeof (xtregs_user_t));
+						  sizeof (xtregs_user_t));
 
 	err |= __put_user(err ? NULL : &frame->xtregs, &sc->sc_xtregs);
 
@@ -204,13 +226,17 @@ restore_sigcontext(struct pt_regs *regs, struct rt_sigframe __user *frame)
 	/* Additional corruption checks */
 
 	if ((regs->lcount > 0)
-	    && ((regs->lbeg > TASK_SIZE) || (regs->lend > TASK_SIZE)) )
+		&& ((regs->lbeg > TASK_SIZE) || (regs->lend > TASK_SIZE)) )
+	{
 		err = 1;
+	}
 
 	err |= __copy_from_user(regs->areg, sc->sc_a, 16 * 4);
 
 	if (err)
+	{
 		return err;
+	}
 
 	/* The signal handler may have used coprocessors in which
 	 * case they are still enabled.  We disable them to force a
@@ -222,12 +248,12 @@ restore_sigcontext(struct pt_regs *regs, struct rt_sigframe __user *frame)
 #if XTENSA_HAVE_COPROCESSORS
 	coprocessor_release_all(ti);
 	err |= __copy_from_user(&ti->xtregs_cp, &frame->xtregs.cp,
-				sizeof (frame->xtregs.cp));
+							sizeof (frame->xtregs.cp));
 #endif
 	err |= __copy_from_user(&ti->xtregs_user, &frame->xtregs.user,
-				sizeof (xtregs_user_t));
+							sizeof (xtregs_user_t));
 	err |= __copy_from_user(&regs->xtregs_opt, &frame->xtregs.opt,
-				sizeof (xtregs_opt_t));
+							sizeof (xtregs_opt_t));
 
 	return err;
 }
@@ -238,7 +264,7 @@ restore_sigcontext(struct pt_regs *regs, struct rt_sigframe __user *frame)
  */
 
 asmlinkage long xtensa_rt_sigreturn(long a0, long a1, long a2, long a3,
-				    long a4, long a5, struct pt_regs *regs)
+									long a4, long a5, struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame;
 	sigset_t set;
@@ -248,25 +274,35 @@ asmlinkage long xtensa_rt_sigreturn(long a0, long a1, long a2, long a3,
 	current->restart_block.fn = do_no_restart_syscall;
 
 	if (regs->depc > 64)
+	{
 		panic("rt_sigreturn in double exception!\n");
+	}
 
 	frame = (struct rt_sigframe __user *) regs->areg[1];
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, frame))
+	{
 		goto badframe;
+	}
 
 	ret = regs->areg[2];
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return ret;
 
@@ -322,7 +358,8 @@ gen_return_code(unsigned char *codemem)
 
 	/* Flush generated code out of the data cache */
 
-	if (err == 0) {
+	if (err == 0)
+	{
 		__invalidate_icache_range((unsigned long)codemem, 6UL);
 		__flush_invalidate_dcache_range((unsigned long)codemem, 6UL);
 	}
@@ -332,7 +369,7 @@ gen_return_code(unsigned char *codemem)
 
 
 static int setup_frame(struct ksignal *ksig, sigset_t *set,
-		       struct pt_regs *regs)
+					   struct pt_regs *regs)
 {
 	struct rt_sigframe *frame;
 	int err = 0, sig = ksig->sig;
@@ -340,20 +377,25 @@ static int setup_frame(struct ksignal *ksig, sigset_t *set,
 
 	sp = regs->areg[1];
 
-	if ((ksig->ka.sa.sa_flags & SA_ONSTACK) != 0 && sas_ss_flags(sp) == 0) {
+	if ((ksig->ka.sa.sa_flags & SA_ONSTACK) != 0 && sas_ss_flags(sp) == 0)
+	{
 		sp = current->sas_ss_sp + current->sas_ss_size;
 	}
 
 	frame = (void *)((sp - sizeof(*frame)) & -16ul);
 
 	if (regs->depc > 64)
+	{
 		panic ("Double exception sys_sigreturn\n");
+	}
 
-	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame))) {
+	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
 	}
 
-	if (ksig->ka.sa.sa_flags & SA_SIGINFO) {
+	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 	}
 
@@ -365,21 +407,26 @@ static int setup_frame(struct ksignal *ksig, sigset_t *set,
 	err |= setup_sigcontext(frame, regs);
 	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
 
-	if (ksig->ka.sa.sa_flags & SA_RESTORER) {
+	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		ra = (unsigned long)ksig->ka.sa.sa_restorer;
-	} else {
+	}
+	else
+	{
 
 		/* Create sys_rt_sigreturn syscall in stack frame */
 
 		err |= gen_return_code(frame->retcode);
 
-		if (err) {
+		if (err)
+		{
 			return -EFAULT;
 		}
+
 		ra = (unsigned long) frame->retcode;
 	}
 
-	/* 
+	/*
 	 * Create signal handler execution context.
 	 * Return context not modified until this point.
 	 */
@@ -387,7 +434,7 @@ static int setup_frame(struct ksignal *ksig, sigset_t *set,
 	/* Set up registers for signal handler; preserve the threadptr */
 	tp = regs->threadptr;
 	start_thread(regs, (unsigned long) ksig->ka.sa.sa_handler,
-		     (unsigned long) frame);
+				 (unsigned long) frame);
 
 	/* Set up a stack frame for a call4
 	 * Note: PS.CALLINC is set to one by start_thread
@@ -400,7 +447,7 @@ static int setup_frame(struct ksignal *ksig, sigset_t *set,
 
 #if DEBUG_SIG
 	printk("SIG rt deliver (%s:%d): signal=%d sp=%p pc=%08x\n",
-		current->comm, current->pid, sig, frame, regs->pc);
+		   current->comm, current->pid, sig, frame, regs->pc);
 #endif
 
 	return 0;
@@ -421,36 +468,44 @@ static void do_signal(struct pt_regs *regs)
 
 	task_pt_regs(current)->icountlevel = 0;
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		int ret;
 
 		/* Are we from a system call? */
 
-		if ((signed)regs->syscall >= 0) {
+		if ((signed)regs->syscall >= 0)
+		{
 
 			/* If so, check system call restarting.. */
 
-			switch (regs->areg[2]) {
+			switch (regs->areg[2])
+			{
 				case -ERESTARTNOHAND:
 				case -ERESTART_RESTARTBLOCK:
 					regs->areg[2] = -EINTR;
 					break;
 
 				case -ERESTARTSYS:
-					if (!(ksig.ka.sa.sa_flags & SA_RESTART)) {
+					if (!(ksig.ka.sa.sa_flags & SA_RESTART))
+					{
 						regs->areg[2] = -EINTR;
 						break;
 					}
-					/* fallthrough */
+
+				/* fallthrough */
 				case -ERESTARTNOINTR:
 					regs->areg[2] = regs->syscall;
 					regs->pc -= 3;
 					break;
 
 				default:
+
 					/* nothing to do */
 					if (regs->areg[2] != 0)
-					break;
+					{
+						break;
+					}
 			}
 		}
 
@@ -458,26 +513,32 @@ static void do_signal(struct pt_regs *regs)
 		/* Set up the stack frame */
 		ret = setup_frame(&ksig, sigmask_to_save(), regs);
 		signal_setup_done(ret, &ksig, 0);
+
 		if (current->ptrace & PT_SINGLESTEP)
+		{
 			task_pt_regs(current)->icountlevel = 1;
+		}
 
 		return;
 	}
 
 	/* Did we come from a system call? */
-	if ((signed) regs->syscall >= 0) {
+	if ((signed) regs->syscall >= 0)
+	{
 		/* Restart the system call - no handlers present */
-		switch (regs->areg[2]) {
-		case -ERESTARTNOHAND:
-		case -ERESTARTSYS:
-		case -ERESTARTNOINTR:
-			regs->areg[2] = regs->syscall;
-			regs->pc -= 3;
-			break;
-		case -ERESTART_RESTARTBLOCK:
-			regs->areg[2] = __NR_restart_syscall;
-			regs->pc -= 3;
-			break;
+		switch (regs->areg[2])
+		{
+			case -ERESTARTNOHAND:
+			case -ERESTARTSYS:
+			case -ERESTARTNOINTR:
+				regs->areg[2] = regs->syscall;
+				regs->pc -= 3;
+				break;
+
+			case -ERESTART_RESTARTBLOCK:
+				regs->areg[2] = __NR_restart_syscall;
+				regs->pc -= 3;
+				break;
 		}
 	}
 
@@ -485,15 +546,22 @@ static void do_signal(struct pt_regs *regs)
 	restore_saved_sigmask();
 
 	if (current->ptrace & PT_SINGLESTEP)
+	{
 		task_pt_regs(current)->icountlevel = 1;
+	}
+
 	return;
 }
 
 void do_notify_resume(struct pt_regs *regs)
 {
 	if (test_thread_flag(TIF_SIGPENDING))
+	{
 		do_signal(regs);
+	}
 
 	if (test_and_clear_thread_flag(TIF_NOTIFY_RESUME))
+	{
 		tracehook_notify_resume(regs);
+	}
 }

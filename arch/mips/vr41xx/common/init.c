@@ -43,11 +43,16 @@ void __init plat_time_init(void)
 	vr41xx_calculate_clock_frequency();
 
 	tclock = vr41xx_get_tclock_frequency();
+
 	if (current_cpu_data.processor_id == PRID_VR4131_REV2_0 ||
-	    current_cpu_data.processor_id == PRID_VR4131_REV2_1)
+		current_cpu_data.processor_id == PRID_VR4131_REV2_1)
+	{
 		mips_hpt_frequency = tclock / 2;
+	}
 	else
+	{
 		mips_hpt_frequency = tclock / 4;
+	}
 }
 
 void __init plat_mem_setup(void)
@@ -65,10 +70,14 @@ void __init prom_init(void)
 	argc = fw_arg0;
 	argv = (char **)fw_arg1;
 
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		strlcat(arcs_cmdline, argv[i], COMMAND_LINE_SIZE);
+
 		if (i < (argc - 1))
+		{
 			strlcat(arcs_cmdline, " ", COMMAND_LINE_SIZE);
+		}
 	}
 }
 

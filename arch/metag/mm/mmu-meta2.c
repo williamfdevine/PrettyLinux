@@ -23,7 +23,9 @@ unsigned long mmu_read_first_level_page(unsigned long vaddr)
 	pgd_t *pgd, entry;
 
 	if (is_global_space(vaddr))
+	{
 		vaddr &= ~0x80000000;
+	}
 
 	offset = vaddr >> PGDIR_SHIFT;
 
@@ -41,7 +43,9 @@ unsigned long mmu_read_first_level_page(unsigned long vaddr)
 	 * mapping exists.
 	 */
 	if (offset < linear_base || offset > linear_limit)
+	{
 		return 0;
+	}
 
 	offset -= linear_base;
 	pgd = (pgd_t *)mmu_get_base();
@@ -69,7 +73,9 @@ unsigned long mmu_get_base(void)
 	stride += (metag_in32(mmu_phys1_addr(cpu)) & 0x7fffc);
 
 	if (is_global_space(PAGE_OFFSET))
+	{
 		stride += LINSYSMEMTXG_OFFSET;
+	}
 
 	return LINSYSMEMT0L_BASE + stride;
 }
@@ -90,26 +96,33 @@ static void repriv_mmu_tables(void)
 	 * physical memory near where the page tables are.
 	 */
 	phys0_addr = MMCU_T0LOCAL_TABLE_PHYS0;
-	for (g = 0; g < 2; ++g) {
+
+	for (g = 0; g < 2; ++g)
+	{
 		unsigned int t, phys0;
 		unsigned long flags;
-		for (t = 0; t < 4; ++t) {
+
+		for (t = 0; t < 4; ++t)
+		{
 			__global_lock2(flags);
 			phys0 = metag_in32(phys0_addr);
-			if ((phys0 & _PAGE_PRESENT) && !(phys0 & _PAGE_PRIV)) {
+
+			if ((phys0 & _PAGE_PRESENT) && !(phys0 & _PAGE_PRIV))
+			{
 				pr_warn("Fixing priv protection on T%d %s MMU table region\n",
-					t,
-					g ? "global" : "local");
+						t,
+						g ? "global" : "local");
 				phys0 |= _PAGE_PRIV;
 				metag_out32(phys0, phys0_addr);
 			}
+
 			__global_unlock2(flags);
 
 			phys0_addr += MMCU_TnX_TABLE_PHYSX_STRIDE;
 		}
 
 		phys0_addr += MMCU_TXG_TABLE_PHYSX_OFFSET
-			    - 4*MMCU_TnX_TABLE_PHYSX_STRIDE;
+					  - 4 * MMCU_TnX_TABLE_PHYSX_STRIDE;
 	}
 }
 
@@ -126,7 +139,8 @@ static void mmu_resume(void)
 #define mmu_resume NULL
 #endif	/* CONFIG_METAG_SUSPEND_MEM */
 
-static struct syscore_ops mmu_syscore_ops = {
+static struct syscore_ops mmu_syscore_ops =
+{
 	.resume  = mmu_resume,
 };
 
@@ -151,7 +165,8 @@ void __init mmu_init(unsigned long mem_end)
 	entry = pgd_index(META_MEMORY_BASE);
 	p_swapper_pg_dir = pgd_offset_k(0) + entry;
 
-	while (entry < (PTRS_PER_PGD - pgd_index(META_MEMORY_BASE))) {
+	while (entry < (PTRS_PER_PGD - pgd_index(META_MEMORY_BASE)))
+	{
 		unsigned long pgd_entry;
 		/* copy over the current MMU value */
 		pgd_entry = mmu_read_first_level_page(addr);
@@ -173,7 +188,8 @@ void __init mmu_init(unsigned long mem_end)
 	entry = pgd_index(PAGE_OFFSET);
 	p_swapper_pg_dir = pgd_offset_k(0) + entry;
 
-	while (pages > 0) {
+	while (pages > 0)
+	{
 		unsigned long phys_addr, second_level_phys;
 		pte_t *pte = (pte_t *)&second_level_table[second_level_entry];
 
@@ -182,22 +198,23 @@ void __init mmu_init(unsigned long mem_end)
 		second_level_phys = __pa(pte);
 
 		pgd_val(*p_swapper_pg_dir) = ((second_level_phys &
-					       FIRST_LEVEL_MASK) |
-					      _PAGE_SZ_4M |
-					      _PAGE_PRESENT);
+									   FIRST_LEVEL_MASK) |
+									  _PAGE_SZ_4M |
+									  _PAGE_PRESENT);
 
 		pte_val(*pte) = ((phys_addr & SECOND_LEVEL_MASK) |
-				 _PAGE_PRESENT | _PAGE_DIRTY |
-				 _PAGE_ACCESSED | _PAGE_WRITE |
-				 _PAGE_CACHEABLE | _PAGE_KERNEL);
+						 _PAGE_PRESENT | _PAGE_DIRTY |
+						 _PAGE_ACCESSED | _PAGE_WRITE |
+						 _PAGE_CACHEABLE | _PAGE_KERNEL);
 
 		p_swapper_pg_dir++;
 		addr += PGDIR_SIZE;
 		/* Second level pages must be 64byte aligned. */
 		second_level_entry += (SECOND_LEVEL_ALIGN /
-				       sizeof(unsigned long));
+							   sizeof(unsigned long));
 		pages--;
 	}
+
 	load_pgd(swapper_pg_dir, hard_processor_id());
 	flush_tlb_all();
 #endif

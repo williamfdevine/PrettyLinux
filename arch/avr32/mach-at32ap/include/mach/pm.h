@@ -18,10 +18,10 @@
 #define CPU_SLEEP_STATIC	5
 
 #ifndef __ASSEMBLY__
-extern void cpu_enter_idle(void);
-extern void cpu_enter_standby(unsigned long sdramc_base);
+	extern void cpu_enter_idle(void);
+	extern void cpu_enter_standby(unsigned long sdramc_base);
 
-void intc_set_suspend_handler(unsigned long offset);
+	void intc_set_suspend_handler(unsigned long offset);
 #endif
 
 #endif /* __ASM_AVR32_ARCH_PM_H */

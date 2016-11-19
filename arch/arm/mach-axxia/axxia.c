@@ -16,7 +16,8 @@
 #include <linux/init.h>
 #include <asm/mach/arch.h>
 
-static const char *const axxia_dt_match[] __initconst = {
+static const char *const axxia_dt_match[] __initconst =
+{
 	"lsi,axm5516",
 	"lsi,axm5516-sim",
 	"lsi,axm5516-emu",
@@ -24,5 +25,5 @@ static const char *const axxia_dt_match[] __initconst = {
 };
 
 DT_MACHINE_START(AXXIA_DT, "LSI Axxia AXM55XX")
-	.dt_compat = axxia_dt_match,
-MACHINE_END
+.dt_compat = axxia_dt_match,
+ MACHINE_END

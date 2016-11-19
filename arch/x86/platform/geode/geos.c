@@ -28,7 +28,8 @@
 
 #include <asm/geode.h>
 
-static struct gpio_keys_button geos_gpio_buttons[] = {
+static struct gpio_keys_button geos_gpio_buttons[] =
+{
 	{
 		.code = KEY_RESTART,
 		.gpio = 3,
@@ -40,13 +41,15 @@ static struct gpio_keys_button geos_gpio_buttons[] = {
 		.can_disable = 0,
 	}
 };
-static struct gpio_keys_platform_data geos_buttons_data = {
+static struct gpio_keys_platform_data geos_buttons_data =
+{
 	.buttons = geos_gpio_buttons,
 	.nbuttons = ARRAY_SIZE(geos_gpio_buttons),
 	.poll_interval = 20,
 };
 
-static struct platform_device geos_buttons_dev = {
+static struct platform_device geos_buttons_dev =
+{
 	.name = "gpio-keys-polled",
 	.id = 1,
 	.dev = {
@@ -54,7 +57,8 @@ static struct platform_device geos_buttons_dev = {
 	}
 };
 
-static struct gpio_led geos_leds[] = {
+static struct gpio_led geos_leds[] =
+{
 	{
 		.name = "geos:1",
 		.gpio = 6,
@@ -75,18 +79,21 @@ static struct gpio_led geos_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data geos_leds_data = {
+static struct gpio_led_platform_data geos_leds_data =
+{
 	.num_leds = ARRAY_SIZE(geos_leds),
 	.leds = geos_leds,
 };
 
-static struct platform_device geos_leds_dev = {
+static struct platform_device geos_leds_dev =
+{
 	.name = "leds-gpio",
 	.id = -1,
 	.dev.platform_data = &geos_leds_data,
 };
 
-static struct platform_device *geos_devs[] __initdata = {
+static struct platform_device *geos_devs[] __initdata =
+{
 	&geos_buttons_dev,
 	&geos_leds_dev,
 };
@@ -102,18 +109,26 @@ static int __init geos_init(void)
 	const char *vendor, *product;
 
 	if (!is_geode())
+	{
 		return 0;
+	}
 
 	vendor = dmi_get_system_info(DMI_SYS_VENDOR);
+
 	if (!vendor || strcmp(vendor, "Traverse Technologies"))
+	{
 		return 0;
+	}
 
 	product = dmi_get_system_info(DMI_PRODUCT_NAME);
+
 	if (!product || strcmp(product, "Geos"))
+	{
 		return 0;
+	}
 
 	printk(KERN_INFO "%s: system is recognized as \"%s %s\"\n",
-	       KBUILD_MODNAME, vendor, product);
+		   KBUILD_MODNAME, vendor, product);
 
 	register_geos();
 

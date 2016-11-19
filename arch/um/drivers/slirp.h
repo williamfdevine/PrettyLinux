@@ -12,11 +12,12 @@
  *
  * or why I can't typecast like this:
  *
- *   argv :  (char* [SLIRP_MAX_ARGS])(init->argv), 
+ *   argv :  (char* [SLIRP_MAX_ARGS])(init->argv),
  */
 struct arg_list_dummy_wrapper { char *argv[SLIRP_MAX_ARGS]; };
 
-struct slirp_data {
+struct slirp_data
+{
 	void *dev;
 	struct arg_list_dummy_wrapper argw;
 	int pid;
@@ -28,6 +29,6 @@ extern const struct net_user_info slirp_user_info;
 
 extern int slirp_user_read(int fd, void *buf, int len, struct slirp_data *pri);
 extern int slirp_user_write(int fd, void *buf, int len,
-			    struct slirp_data *pri);
+							struct slirp_data *pri);
 
 #endif

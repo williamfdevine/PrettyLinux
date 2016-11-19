@@ -113,20 +113,22 @@ extern unsigned long uv_undefined(char *str);
 #define UV3H_BAU_DATA_BROADCAST_32 0x440
 #define UV4H_BAU_DATA_BROADCAST_32 0x360
 #define UVH_BAU_DATA_BROADCAST_32 (					\
-	is_uv1_hub() ? UV1H_BAU_DATA_BROADCAST_32 :			\
-	is_uv2_hub() ? UV2H_BAU_DATA_BROADCAST_32 :			\
-	is_uv3_hub() ? UV3H_BAU_DATA_BROADCAST_32 :			\
-	/*is_uv4_hub*/ UV4H_BAU_DATA_BROADCAST_32)
+		is_uv1_hub() ? UV1H_BAU_DATA_BROADCAST_32 :			\
+		is_uv2_hub() ? UV2H_BAU_DATA_BROADCAST_32 :			\
+		is_uv3_hub() ? UV3H_BAU_DATA_BROADCAST_32 :			\
+		/*is_uv4_hub*/ UV4H_BAU_DATA_BROADCAST_32)
 
 #define UVH_BAU_DATA_BROADCAST_ENABLE_SHFT		0
 #define UVH_BAU_DATA_BROADCAST_ENABLE_MASK		0x0000000000000001UL
 
 
-union uvh_bau_data_broadcast_u {
+union uvh_bau_data_broadcast_u
+{
 	unsigned long	v;
-	struct uvh_bau_data_broadcast_s {
-		unsigned long	enable:1;			/* RW */
-		unsigned long	rsvd_1_63:63;
+	struct uvh_bau_data_broadcast_s
+	{
+		unsigned long	enable: 1;			/* RW */
+		unsigned long	rsvd_1_63: 63;
 	} s;
 };
 
@@ -140,10 +142,10 @@ union uvh_bau_data_broadcast_u {
 #define UV3H_BAU_DATA_CONFIG_32 0x438
 #define UV4H_BAU_DATA_CONFIG_32 0x358
 #define UVH_BAU_DATA_CONFIG_32 (					\
-	is_uv1_hub() ? UV1H_BAU_DATA_CONFIG_32 :			\
-	is_uv2_hub() ? UV2H_BAU_DATA_CONFIG_32 :			\
-	is_uv3_hub() ? UV3H_BAU_DATA_CONFIG_32 :			\
-	/*is_uv4_hub*/ UV4H_BAU_DATA_CONFIG_32)
+		is_uv1_hub() ? UV1H_BAU_DATA_CONFIG_32 :			\
+		is_uv2_hub() ? UV2H_BAU_DATA_CONFIG_32 :			\
+		is_uv3_hub() ? UV3H_BAU_DATA_CONFIG_32 :			\
+		/*is_uv4_hub*/ UV4H_BAU_DATA_CONFIG_32)
 
 #define UVH_BAU_DATA_CONFIG_VECTOR_SHFT			0
 #define UVH_BAU_DATA_CONFIG_DM_SHFT			8
@@ -163,19 +165,21 @@ union uvh_bau_data_broadcast_u {
 #define UVH_BAU_DATA_CONFIG_APIC_ID_MASK		0xffffffff00000000UL
 
 
-union uvh_bau_data_config_u {
+union uvh_bau_data_config_u
+{
 	unsigned long	v;
-	struct uvh_bau_data_config_s {
-		unsigned long	vector_:8;			/* RW */
-		unsigned long	dm:3;				/* RW */
-		unsigned long	destmode:1;			/* RW */
-		unsigned long	status:1;			/* RO */
-		unsigned long	p:1;				/* RO */
-		unsigned long	rsvd_14:1;
-		unsigned long	t:1;				/* RO */
-		unsigned long	m:1;				/* RW */
-		unsigned long	rsvd_17_31:15;
-		unsigned long	apic_id:32;			/* RW */
+	struct uvh_bau_data_config_s
+	{
+		unsigned long	vector_: 8;			/* RW */
+		unsigned long	dm: 3;				/* RW */
+		unsigned long	destmode: 1;			/* RW */
+		unsigned long	status: 1;			/* RO */
+		unsigned long	p: 1;				/* RO */
+		unsigned long	rsvd_14: 1;
+		unsigned long	t: 1;				/* RO */
+		unsigned long	m: 1;				/* RW */
+		unsigned long	rsvd_17_31: 15;
+		unsigned long	apic_id: 32;			/* RW */
 	} s;
 };
 
@@ -606,104 +610,108 @@ union uvh_bau_data_config_u {
 #define UV4H_EVENT_OCCURRED0_EXTIO_INT3_MASK		0x8000000000000000UL
 
 #define UVH_EVENT_OCCURRED0_EXTIO_INT0_SHFT (				\
-	is_uv1_hub() ? UV1H_EVENT_OCCURRED0_EXTIO_INT0_SHFT :		\
-	is_uv2_hub() ? UV2H_EVENT_OCCURRED0_EXTIO_INT0_SHFT :		\
-	is_uv3_hub() ? UV3H_EVENT_OCCURRED0_EXTIO_INT0_SHFT :		\
-	/*is_uv4_hub*/ UV4H_EVENT_OCCURRED0_EXTIO_INT0_SHFT)
+		is_uv1_hub() ? UV1H_EVENT_OCCURRED0_EXTIO_INT0_SHFT :		\
+		is_uv2_hub() ? UV2H_EVENT_OCCURRED0_EXTIO_INT0_SHFT :		\
+		is_uv3_hub() ? UV3H_EVENT_OCCURRED0_EXTIO_INT0_SHFT :		\
+		/*is_uv4_hub*/ UV4H_EVENT_OCCURRED0_EXTIO_INT0_SHFT)
 
-union uvh_event_occurred0_u {
+union uvh_event_occurred0_u
+{
 	unsigned long	v;
-	struct uvh_event_occurred0_s {
-		unsigned long	lb_hcerr:1;			/* RW, W1C */
-		unsigned long	rsvd_1_10:10;
-		unsigned long	rh_aoerr0:1;			/* RW, W1C */
-		unsigned long	rsvd_12_63:52;
+	struct uvh_event_occurred0_s
+	{
+		unsigned long	lb_hcerr: 1;			/* RW, W1C */
+		unsigned long	rsvd_1_10: 10;
+		unsigned long	rh_aoerr0: 1;			/* RW, W1C */
+		unsigned long	rsvd_12_63: 52;
 	} s;
-	struct uvxh_event_occurred0_s {
-		unsigned long	lb_hcerr:1;			/* RW */
-		unsigned long	rsvd_1:1;
-		unsigned long	rh_hcerr:1;			/* RW */
-		unsigned long	lh0_hcerr:1;			/* RW */
-		unsigned long	lh1_hcerr:1;			/* RW */
-		unsigned long	gr0_hcerr:1;			/* RW */
-		unsigned long	gr1_hcerr:1;			/* RW */
-		unsigned long	ni0_hcerr:1;			/* RW */
-		unsigned long	ni1_hcerr:1;			/* RW */
-		unsigned long	lb_aoerr0:1;			/* RW */
-		unsigned long	rsvd_10:1;
-		unsigned long	rh_aoerr0:1;			/* RW */
-		unsigned long	lh0_aoerr0:1;			/* RW */
-		unsigned long	lh1_aoerr0:1;			/* RW */
-		unsigned long	gr0_aoerr0:1;			/* RW */
-		unsigned long	gr1_aoerr0:1;			/* RW */
-		unsigned long	xb_aoerr0:1;			/* RW */
-		unsigned long	rsvd_17_63:47;
+	struct uvxh_event_occurred0_s
+	{
+		unsigned long	lb_hcerr: 1;			/* RW */
+		unsigned long	rsvd_1: 1;
+		unsigned long	rh_hcerr: 1;			/* RW */
+		unsigned long	lh0_hcerr: 1;			/* RW */
+		unsigned long	lh1_hcerr: 1;			/* RW */
+		unsigned long	gr0_hcerr: 1;			/* RW */
+		unsigned long	gr1_hcerr: 1;			/* RW */
+		unsigned long	ni0_hcerr: 1;			/* RW */
+		unsigned long	ni1_hcerr: 1;			/* RW */
+		unsigned long	lb_aoerr0: 1;			/* RW */
+		unsigned long	rsvd_10: 1;
+		unsigned long	rh_aoerr0: 1;			/* RW */
+		unsigned long	lh0_aoerr0: 1;			/* RW */
+		unsigned long	lh1_aoerr0: 1;			/* RW */
+		unsigned long	gr0_aoerr0: 1;			/* RW */
+		unsigned long	gr1_aoerr0: 1;			/* RW */
+		unsigned long	xb_aoerr0: 1;			/* RW */
+		unsigned long	rsvd_17_63: 47;
 	} sx;
-	struct uv4h_event_occurred0_s {
-		unsigned long	lb_hcerr:1;			/* RW */
-		unsigned long	kt_hcerr:1;			/* RW */
-		unsigned long	rh_hcerr:1;			/* RW */
-		unsigned long	lh0_hcerr:1;			/* RW */
-		unsigned long	lh1_hcerr:1;			/* RW */
-		unsigned long	gr0_hcerr:1;			/* RW */
-		unsigned long	gr1_hcerr:1;			/* RW */
-		unsigned long	ni0_hcerr:1;			/* RW */
-		unsigned long	ni1_hcerr:1;			/* RW */
-		unsigned long	lb_aoerr0:1;			/* RW */
-		unsigned long	kt_aoerr0:1;			/* RW */
-		unsigned long	rh_aoerr0:1;			/* RW */
-		unsigned long	lh0_aoerr0:1;			/* RW */
-		unsigned long	lh1_aoerr0:1;			/* RW */
-		unsigned long	gr0_aoerr0:1;			/* RW */
-		unsigned long	gr1_aoerr0:1;			/* RW */
-		unsigned long	xb_aoerr0:1;			/* RW */
-		unsigned long	rtq0_aoerr0:1;			/* RW */
-		unsigned long	rtq1_aoerr0:1;			/* RW */
-		unsigned long	rtq2_aoerr0:1;			/* RW */
-		unsigned long	rtq3_aoerr0:1;			/* RW */
-		unsigned long	ni0_aoerr0:1;			/* RW */
-		unsigned long	ni1_aoerr0:1;			/* RW */
-		unsigned long	lb_aoerr1:1;			/* RW */
-		unsigned long	kt_aoerr1:1;			/* RW */
-		unsigned long	rh_aoerr1:1;			/* RW */
-		unsigned long	lh0_aoerr1:1;			/* RW */
-		unsigned long	lh1_aoerr1:1;			/* RW */
-		unsigned long	gr0_aoerr1:1;			/* RW */
-		unsigned long	gr1_aoerr1:1;			/* RW */
-		unsigned long	xb_aoerr1:1;			/* RW */
-		unsigned long	rtq0_aoerr1:1;			/* RW */
-		unsigned long	rtq1_aoerr1:1;			/* RW */
-		unsigned long	rtq2_aoerr1:1;			/* RW */
-		unsigned long	rtq3_aoerr1:1;			/* RW */
-		unsigned long	ni0_aoerr1:1;			/* RW */
-		unsigned long	ni1_aoerr1:1;			/* RW */
-		unsigned long	system_shutdown_int:1;		/* RW */
-		unsigned long	lb_irq_int_0:1;			/* RW */
-		unsigned long	lb_irq_int_1:1;			/* RW */
-		unsigned long	lb_irq_int_2:1;			/* RW */
-		unsigned long	lb_irq_int_3:1;			/* RW */
-		unsigned long	lb_irq_int_4:1;			/* RW */
-		unsigned long	lb_irq_int_5:1;			/* RW */
-		unsigned long	lb_irq_int_6:1;			/* RW */
-		unsigned long	lb_irq_int_7:1;			/* RW */
-		unsigned long	lb_irq_int_8:1;			/* RW */
-		unsigned long	lb_irq_int_9:1;			/* RW */
-		unsigned long	lb_irq_int_10:1;		/* RW */
-		unsigned long	lb_irq_int_11:1;		/* RW */
-		unsigned long	lb_irq_int_12:1;		/* RW */
-		unsigned long	lb_irq_int_13:1;		/* RW */
-		unsigned long	lb_irq_int_14:1;		/* RW */
-		unsigned long	lb_irq_int_15:1;		/* RW */
-		unsigned long	l1_nmi_int:1;			/* RW */
-		unsigned long	stop_clock:1;			/* RW */
-		unsigned long	asic_to_l1:1;			/* RW */
-		unsigned long	l1_to_asic:1;			/* RW */
-		unsigned long	la_seq_trigger:1;		/* RW */
-		unsigned long	ipi_int:1;			/* RW */
-		unsigned long	extio_int0:1;			/* RW */
-		unsigned long	extio_int1:1;			/* RW */
-		unsigned long	extio_int2:1;			/* RW */
-		unsigned long	extio_int3:1;			/* RW */
+	struct uv4h_event_occurred0_s
+	{
+		unsigned long	lb_hcerr: 1;			/* RW */
+		unsigned long	kt_hcerr: 1;			/* RW */
+		unsigned long	rh_hcerr: 1;			/* RW */
+		unsigned long	lh0_hcerr: 1;			/* RW */
+		unsigned long	lh1_hcerr: 1;			/* RW */
+		unsigned long	gr0_hcerr: 1;			/* RW */
+		unsigned long	gr1_hcerr: 1;			/* RW */
+		unsigned long	ni0_hcerr: 1;			/* RW */
+		unsigned long	ni1_hcerr: 1;			/* RW */
+		unsigned long	lb_aoerr0: 1;			/* RW */
+		unsigned long	kt_aoerr0: 1;			/* RW */
+		unsigned long	rh_aoerr0: 1;			/* RW */
+		unsigned long	lh0_aoerr0: 1;			/* RW */
+		unsigned long	lh1_aoerr0: 1;			/* RW */
+		unsigned long	gr0_aoerr0: 1;			/* RW */
+		unsigned long	gr1_aoerr0: 1;			/* RW */
+		unsigned long	xb_aoerr0: 1;			/* RW */
+		unsigned long	rtq0_aoerr0: 1;			/* RW */
+		unsigned long	rtq1_aoerr0: 1;			/* RW */
+		unsigned long	rtq2_aoerr0: 1;			/* RW */
+		unsigned long	rtq3_aoerr0: 1;			/* RW */
+		unsigned long	ni0_aoerr0: 1;			/* RW */
+		unsigned long	ni1_aoerr0: 1;			/* RW */
+		unsigned long	lb_aoerr1: 1;			/* RW */
+		unsigned long	kt_aoerr1: 1;			/* RW */
+		unsigned long	rh_aoerr1: 1;			/* RW */
+		unsigned long	lh0_aoerr1: 1;			/* RW */
+		unsigned long	lh1_aoerr1: 1;			/* RW */
+		unsigned long	gr0_aoerr1: 1;			/* RW */
+		unsigned long	gr1_aoerr1: 1;			/* RW */
+		unsigned long	xb_aoerr1: 1;			/* RW */
+		unsigned long	rtq0_aoerr1: 1;			/* RW */
+		unsigned long	rtq1_aoerr1: 1;			/* RW */
+		unsigned long	rtq2_aoerr1: 1;			/* RW */
+		unsigned long	rtq3_aoerr1: 1;			/* RW */
+		unsigned long	ni0_aoerr1: 1;			/* RW */
+		unsigned long	ni1_aoerr1: 1;			/* RW */
+		unsigned long	system_shutdown_int: 1;		/* RW */
+		unsigned long	lb_irq_int_0: 1;			/* RW */
+		unsigned long	lb_irq_int_1: 1;			/* RW */
+		unsigned long	lb_irq_int_2: 1;			/* RW */
+		unsigned long	lb_irq_int_3: 1;			/* RW */
+		unsigned long	lb_irq_int_4: 1;			/* RW */
+		unsigned long	lb_irq_int_5: 1;			/* RW */
+		unsigned long	lb_irq_int_6: 1;			/* RW */
+		unsigned long	lb_irq_int_7: 1;			/* RW */
+		unsigned long	lb_irq_int_8: 1;			/* RW */
+		unsigned long	lb_irq_int_9: 1;			/* RW */
+		unsigned long	lb_irq_int_10: 1;		/* RW */
+		unsigned long	lb_irq_int_11: 1;		/* RW */
+		unsigned long	lb_irq_int_12: 1;		/* RW */
+		unsigned long	lb_irq_int_13: 1;		/* RW */
+		unsigned long	lb_irq_int_14: 1;		/* RW */
+		unsigned long	lb_irq_int_15: 1;		/* RW */
+		unsigned long	l1_nmi_int: 1;			/* RW */
+		unsigned long	stop_clock: 1;			/* RW */
+		unsigned long	asic_to_l1: 1;			/* RW */
+		unsigned long	l1_to_asic: 1;			/* RW */
+		unsigned long	la_seq_trigger: 1;		/* RW */
+		unsigned long	ipi_int: 1;			/* RW */
+		unsigned long	extio_int0: 1;			/* RW */
+		unsigned long	extio_int1: 1;			/* RW */
+		unsigned long	extio_int2: 1;			/* RW */
+		unsigned long	extio_int3: 1;			/* RW */
 	} s4;
 };
 
@@ -724,20 +732,22 @@ union uvh_event_occurred0_u {
 #define UV3H_EXTIO_INT0_BROADCAST_32 0x3f0
 #define UV4H_EXTIO_INT0_BROADCAST_32 0x310
 #define UVH_EXTIO_INT0_BROADCAST_32 (					\
-	is_uv1_hub() ? UV1H_EXTIO_INT0_BROADCAST_32 :			\
-	is_uv2_hub() ? UV2H_EXTIO_INT0_BROADCAST_32 :			\
-	is_uv3_hub() ? UV3H_EXTIO_INT0_BROADCAST_32 :			\
-	/*is_uv4_hub*/ UV4H_EXTIO_INT0_BROADCAST_32)
+		is_uv1_hub() ? UV1H_EXTIO_INT0_BROADCAST_32 :			\
+		is_uv2_hub() ? UV2H_EXTIO_INT0_BROADCAST_32 :			\
+		is_uv3_hub() ? UV3H_EXTIO_INT0_BROADCAST_32 :			\
+		/*is_uv4_hub*/ UV4H_EXTIO_INT0_BROADCAST_32)
 
 #define UVH_EXTIO_INT0_BROADCAST_ENABLE_SHFT		0
 #define UVH_EXTIO_INT0_BROADCAST_ENABLE_MASK		0x0000000000000001UL
 
 
-union uvh_extio_int0_broadcast_u {
+union uvh_extio_int0_broadcast_u
+{
 	unsigned long	v;
-	struct uvh_extio_int0_broadcast_s {
-		unsigned long	enable:1;			/* RW */
-		unsigned long	rsvd_1_63:63;
+	struct uvh_extio_int0_broadcast_s
+	{
+		unsigned long	enable: 1;			/* RW */
+		unsigned long	rsvd_1_63: 63;
 	} s;
 };
 
@@ -764,19 +774,21 @@ union uvh_extio_int0_broadcast_u {
 #define UVH_GR0_TLB_INT0_CONFIG_APIC_ID_MASK		0xffffffff00000000UL
 
 
-union uvh_gr0_tlb_int0_config_u {
+union uvh_gr0_tlb_int0_config_u
+{
 	unsigned long	v;
-	struct uvh_gr0_tlb_int0_config_s {
-		unsigned long	vector_:8;			/* RW */
-		unsigned long	dm:3;				/* RW */
-		unsigned long	destmode:1;			/* RW */
-		unsigned long	status:1;			/* RO */
-		unsigned long	p:1;				/* RO */
-		unsigned long	rsvd_14:1;
-		unsigned long	t:1;				/* RO */
-		unsigned long	m:1;				/* RW */
-		unsigned long	rsvd_17_31:15;
-		unsigned long	apic_id:32;			/* RW */
+	struct uvh_gr0_tlb_int0_config_s
+	{
+		unsigned long	vector_: 8;			/* RW */
+		unsigned long	dm: 3;				/* RW */
+		unsigned long	destmode: 1;			/* RW */
+		unsigned long	status: 1;			/* RO */
+		unsigned long	p: 1;				/* RO */
+		unsigned long	rsvd_14: 1;
+		unsigned long	t: 1;				/* RO */
+		unsigned long	m: 1;				/* RW */
+		unsigned long	rsvd_17_31: 15;
+		unsigned long	apic_id: 32;			/* RW */
 	} s;
 };
 
@@ -803,19 +815,21 @@ union uvh_gr0_tlb_int0_config_u {
 #define UVH_GR0_TLB_INT1_CONFIG_APIC_ID_MASK		0xffffffff00000000UL
 
 
-union uvh_gr0_tlb_int1_config_u {
+union uvh_gr0_tlb_int1_config_u
+{
 	unsigned long	v;
-	struct uvh_gr0_tlb_int1_config_s {
-		unsigned long	vector_:8;			/* RW */
-		unsigned long	dm:3;				/* RW */
-		unsigned long	destmode:1;			/* RW */
-		unsigned long	status:1;			/* RO */
-		unsigned long	p:1;				/* RO */
-		unsigned long	rsvd_14:1;
-		unsigned long	t:1;				/* RO */
-		unsigned long	m:1;				/* RW */
-		unsigned long	rsvd_17_31:15;
-		unsigned long	apic_id:32;			/* RW */
+	struct uvh_gr0_tlb_int1_config_s
+	{
+		unsigned long	vector_: 8;			/* RW */
+		unsigned long	dm: 3;				/* RW */
+		unsigned long	destmode: 1;			/* RW */
+		unsigned long	status: 1;			/* RO */
+		unsigned long	p: 1;				/* RO */
+		unsigned long	rsvd_14: 1;
+		unsigned long	t: 1;				/* RO */
+		unsigned long	m: 1;				/* RW */
+		unsigned long	rsvd_17_31: 15;
+		unsigned long	apic_id: 32;			/* RW */
 	} s;
 };
 
@@ -827,10 +841,10 @@ union uvh_gr0_tlb_int1_config_u {
 #define UV3H_GR0_TLB_MMR_CONTROL 0xc01080UL
 #define UV4H_GR0_TLB_MMR_CONTROL 0x601080UL
 #define UVH_GR0_TLB_MMR_CONTROL (					\
-	is_uv1_hub() ? UV1H_GR0_TLB_MMR_CONTROL :			\
-	is_uv2_hub() ? UV2H_GR0_TLB_MMR_CONTROL :			\
-	is_uv3_hub() ? UV3H_GR0_TLB_MMR_CONTROL :			\
-	/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_CONTROL)
+		is_uv1_hub() ? UV1H_GR0_TLB_MMR_CONTROL :			\
+		is_uv2_hub() ? UV2H_GR0_TLB_MMR_CONTROL :			\
+		is_uv3_hub() ? UV3H_GR0_TLB_MMR_CONTROL :			\
+		/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_CONTROL)
 
 #define UVH_GR0_TLB_MMR_CONTROL_INDEX_SHFT		0
 #define UVH_GR0_TLB_MMR_CONTROL_AUTO_VALID_EN_SHFT	16
@@ -933,123 +947,130 @@ union uvh_gr0_tlb_int1_config_u {
 #define UV4H_GR0_TLB_MMR_CONTROL_PAGE_SIZE_MASK		0xf800000000000000UL
 
 #define UVH_GR0_TLB_MMR_CONTROL_INDEX_MASK (				\
-	is_uv1_hub() ? UV1H_GR0_TLB_MMR_CONTROL_INDEX_MASK :		\
-	is_uv2_hub() ? UV2H_GR0_TLB_MMR_CONTROL_INDEX_MASK :		\
-	is_uv3_hub() ? UV3H_GR0_TLB_MMR_CONTROL_INDEX_MASK :		\
-	/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_CONTROL_INDEX_MASK)
+		is_uv1_hub() ? UV1H_GR0_TLB_MMR_CONTROL_INDEX_MASK :		\
+		is_uv2_hub() ? UV2H_GR0_TLB_MMR_CONTROL_INDEX_MASK :		\
+		is_uv3_hub() ? UV3H_GR0_TLB_MMR_CONTROL_INDEX_MASK :		\
+		/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_CONTROL_INDEX_MASK)
 #define UVH_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK (				\
-	is_uv1_hub() ? UV1H_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK :		\
-	is_uv2_hub() ? UV2H_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK :		\
-	is_uv3_hub() ? UV3H_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK :		\
-	/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK)
+		is_uv1_hub() ? UV1H_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK :		\
+		is_uv2_hub() ? UV2H_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK :		\
+		is_uv3_hub() ? UV3H_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK :		\
+		/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_CONTROL_MEM_SEL_MASK)
 #define UVH_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT (				\
-	is_uv1_hub() ? UV1H_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT :		\
-	is_uv2_hub() ? UV2H_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT :		\
-	is_uv3_hub() ? UV3H_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT :		\
-	/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT)
+		is_uv1_hub() ? UV1H_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT :		\
+		is_uv2_hub() ? UV2H_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT :		\
+		is_uv3_hub() ? UV3H_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT :		\
+		/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_CONTROL_MEM_SEL_SHFT)
 
-union uvh_gr0_tlb_mmr_control_u {
+union uvh_gr0_tlb_mmr_control_u
+{
 	unsigned long	v;
-	struct uvh_gr0_tlb_mmr_control_s {
-		unsigned long	rsvd_0_15:16;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	rsvd_21_29:9;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	rsvd_32_48:17;
-		unsigned long	rsvd_49_51:3;
-		unsigned long	rsvd_52_63:12;
+	struct uvh_gr0_tlb_mmr_control_s
+	{
+		unsigned long	rsvd_0_15: 16;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	rsvd_21_29: 9;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	rsvd_32_48: 17;
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	rsvd_52_63: 12;
 	} s;
-	struct uv1h_gr0_tlb_mmr_control_s {
-		unsigned long	index:12;			/* RW */
-		unsigned long	mem_sel:2;			/* RW */
-		unsigned long	rsvd_14_15:2;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	rsvd_21_29:9;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	rsvd_32_47:16;
-		unsigned long	mmr_inj_con:1;			/* RW */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	mmr_inj_tlbram:1;		/* RW */
-		unsigned long	rsvd_53:1;
-		unsigned long	mmr_inj_tlbpgsize:1;		/* RW */
-		unsigned long	rsvd_55:1;
-		unsigned long	mmr_inj_tlbrreg:1;		/* RW */
-		unsigned long	rsvd_57_59:3;
-		unsigned long	mmr_inj_tlblruv:1;		/* RW */
-		unsigned long	rsvd_61_63:3;
+	struct uv1h_gr0_tlb_mmr_control_s
+	{
+		unsigned long	index: 12;			/* RW */
+		unsigned long	mem_sel: 2;			/* RW */
+		unsigned long	rsvd_14_15: 2;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	rsvd_21_29: 9;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	rsvd_32_47: 16;
+		unsigned long	mmr_inj_con: 1;			/* RW */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	mmr_inj_tlbram: 1;		/* RW */
+		unsigned long	rsvd_53: 1;
+		unsigned long	mmr_inj_tlbpgsize: 1;		/* RW */
+		unsigned long	rsvd_55: 1;
+		unsigned long	mmr_inj_tlbrreg: 1;		/* RW */
+		unsigned long	rsvd_57_59: 3;
+		unsigned long	mmr_inj_tlblruv: 1;		/* RW */
+		unsigned long	rsvd_61_63: 3;
 	} s1;
-	struct uvxh_gr0_tlb_mmr_control_s {
-		unsigned long	rsvd_0_15:16;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	rsvd_21_29:9;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	mmr_op_done:1;			/* RW */
-		unsigned long	rsvd_33_47:15;
-		unsigned long	rsvd_48:1;
-		unsigned long	rsvd_49_51:3;
-		unsigned long	rsvd_52_63:12;
+	struct uvxh_gr0_tlb_mmr_control_s
+	{
+		unsigned long	rsvd_0_15: 16;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	rsvd_21_29: 9;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	mmr_op_done: 1;			/* RW */
+		unsigned long	rsvd_33_47: 15;
+		unsigned long	rsvd_48: 1;
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	rsvd_52_63: 12;
 	} sx;
-	struct uv2h_gr0_tlb_mmr_control_s {
-		unsigned long	index:12;			/* RW */
-		unsigned long	mem_sel:2;			/* RW */
-		unsigned long	rsvd_14_15:2;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	rsvd_21_29:9;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	mmr_op_done:1;			/* RW */
-		unsigned long	rsvd_33_47:15;
-		unsigned long	mmr_inj_con:1;			/* RW */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	mmr_inj_tlbram:1;		/* RW */
-		unsigned long	rsvd_53_63:11;
+	struct uv2h_gr0_tlb_mmr_control_s
+	{
+		unsigned long	index: 12;			/* RW */
+		unsigned long	mem_sel: 2;			/* RW */
+		unsigned long	rsvd_14_15: 2;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	rsvd_21_29: 9;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	mmr_op_done: 1;			/* RW */
+		unsigned long	rsvd_33_47: 15;
+		unsigned long	mmr_inj_con: 1;			/* RW */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	mmr_inj_tlbram: 1;		/* RW */
+		unsigned long	rsvd_53_63: 11;
 	} s2;
-	struct uv3h_gr0_tlb_mmr_control_s {
-		unsigned long	index:12;			/* RW */
-		unsigned long	mem_sel:2;			/* RW */
-		unsigned long	rsvd_14_15:2;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	ecc_sel:1;			/* RW */
-		unsigned long	rsvd_22_29:8;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	mmr_op_done:1;			/* RW */
-		unsigned long	rsvd_33_47:15;
-		unsigned long	undef_48:1;			/* Undefined */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	undef_52:1;			/* Undefined */
-		unsigned long	rsvd_53_63:11;
+	struct uv3h_gr0_tlb_mmr_control_s
+	{
+		unsigned long	index: 12;			/* RW */
+		unsigned long	mem_sel: 2;			/* RW */
+		unsigned long	rsvd_14_15: 2;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	ecc_sel: 1;			/* RW */
+		unsigned long	rsvd_22_29: 8;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	mmr_op_done: 1;			/* RW */
+		unsigned long	rsvd_33_47: 15;
+		unsigned long	undef_48: 1;			/* Undefined */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	undef_52: 1;			/* Undefined */
+		unsigned long	rsvd_53_63: 11;
 	} s3;
-	struct uv4h_gr0_tlb_mmr_control_s {
-		unsigned long	index:13;			/* RW */
-		unsigned long	mem_sel:2;			/* RW */
-		unsigned long	rsvd_15:1;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	ecc_sel:1;			/* RW */
-		unsigned long	rsvd_22_29:8;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	mmr_op_done:1;			/* RW */
-		unsigned long	rsvd_33_47:15;
-		unsigned long	undef_48:1;			/* Undefined */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	rsvd_52_58:7;
-		unsigned long	page_size:5;			/* RW */
+	struct uv4h_gr0_tlb_mmr_control_s
+	{
+		unsigned long	index: 13;			/* RW */
+		unsigned long	mem_sel: 2;			/* RW */
+		unsigned long	rsvd_15: 1;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	ecc_sel: 1;			/* RW */
+		unsigned long	rsvd_22_29: 8;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	mmr_op_done: 1;			/* RW */
+		unsigned long	rsvd_33_47: 15;
+		unsigned long	undef_48: 1;			/* Undefined */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	rsvd_52_58: 7;
+		unsigned long	page_size: 5;			/* RW */
 	} s4;
 };
 
@@ -1061,10 +1082,10 @@ union uvh_gr0_tlb_mmr_control_u {
 #define UV3H_GR0_TLB_MMR_READ_DATA_HI 0xc010a0UL
 #define UV4H_GR0_TLB_MMR_READ_DATA_HI 0x6010a0UL
 #define UVH_GR0_TLB_MMR_READ_DATA_HI (					\
-	is_uv1_hub() ? UV1H_GR0_TLB_MMR_READ_DATA_HI :			\
-	is_uv2_hub() ? UV2H_GR0_TLB_MMR_READ_DATA_HI :			\
-	is_uv3_hub() ? UV3H_GR0_TLB_MMR_READ_DATA_HI :			\
-	/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_READ_DATA_HI)
+		is_uv1_hub() ? UV1H_GR0_TLB_MMR_READ_DATA_HI :			\
+		is_uv2_hub() ? UV2H_GR0_TLB_MMR_READ_DATA_HI :			\
+		is_uv3_hub() ? UV3H_GR0_TLB_MMR_READ_DATA_HI :			\
+		/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_READ_DATA_HI)
 
 #define UVH_GR0_TLB_MMR_READ_DATA_HI_PFN_SHFT		0
 
@@ -1117,40 +1138,45 @@ union uvh_gr0_tlb_mmr_control_u {
 #define UV4H_GR0_TLB_MMR_READ_DATA_HI_WAY_ECC_MASK	0xff80000000000000UL
 
 
-union uvh_gr0_tlb_mmr_read_data_hi_u {
+union uvh_gr0_tlb_mmr_read_data_hi_u
+{
 	unsigned long	v;
-	struct uv1h_gr0_tlb_mmr_read_data_hi_s {
-		unsigned long	pfn:41;				/* RO */
-		unsigned long	gaa:2;				/* RO */
-		unsigned long	dirty:1;			/* RO */
-		unsigned long	larger:1;			/* RO */
-		unsigned long	rsvd_45_63:19;
+	struct uv1h_gr0_tlb_mmr_read_data_hi_s
+	{
+		unsigned long	pfn: 41;				/* RO */
+		unsigned long	gaa: 2;				/* RO */
+		unsigned long	dirty: 1;			/* RO */
+		unsigned long	larger: 1;			/* RO */
+		unsigned long	rsvd_45_63: 19;
 	} s1;
-	struct uv2h_gr0_tlb_mmr_read_data_hi_s {
-		unsigned long	pfn:41;				/* RO */
-		unsigned long	gaa:2;				/* RO */
-		unsigned long	dirty:1;			/* RO */
-		unsigned long	larger:1;			/* RO */
-		unsigned long	rsvd_45_63:19;
+	struct uv2h_gr0_tlb_mmr_read_data_hi_s
+	{
+		unsigned long	pfn: 41;				/* RO */
+		unsigned long	gaa: 2;				/* RO */
+		unsigned long	dirty: 1;			/* RO */
+		unsigned long	larger: 1;			/* RO */
+		unsigned long	rsvd_45_63: 19;
 	} s2;
-	struct uv3h_gr0_tlb_mmr_read_data_hi_s {
-		unsigned long	pfn:41;				/* RO */
-		unsigned long	gaa:2;				/* RO */
-		unsigned long	dirty:1;			/* RO */
-		unsigned long	larger:1;			/* RO */
-		unsigned long	aa_ext:1;			/* RO */
-		unsigned long	undef_46_54:9;			/* Undefined */
-		unsigned long	way_ecc:9;			/* RO */
+	struct uv3h_gr0_tlb_mmr_read_data_hi_s
+	{
+		unsigned long	pfn: 41;				/* RO */
+		unsigned long	gaa: 2;				/* RO */
+		unsigned long	dirty: 1;			/* RO */
+		unsigned long	larger: 1;			/* RO */
+		unsigned long	aa_ext: 1;			/* RO */
+		unsigned long	undef_46_54: 9;			/* Undefined */
+		unsigned long	way_ecc: 9;			/* RO */
 	} s3;
-	struct uv4h_gr0_tlb_mmr_read_data_hi_s {
-		unsigned long	pfn:34;				/* RO */
-		unsigned long	pnid:15;			/* RO */
-		unsigned long	gaa:2;				/* RO */
-		unsigned long	dirty:1;			/* RO */
-		unsigned long	larger:1;			/* RO */
-		unsigned long	aa_ext:1;			/* RO */
-		unsigned long	undef_54:1;			/* Undefined */
-		unsigned long	way_ecc:9;			/* RO */
+	struct uv4h_gr0_tlb_mmr_read_data_hi_s
+	{
+		unsigned long	pfn: 34;				/* RO */
+		unsigned long	pnid: 15;			/* RO */
+		unsigned long	gaa: 2;				/* RO */
+		unsigned long	dirty: 1;			/* RO */
+		unsigned long	larger: 1;			/* RO */
+		unsigned long	aa_ext: 1;			/* RO */
+		unsigned long	undef_54: 1;			/* Undefined */
+		unsigned long	way_ecc: 9;			/* RO */
 	} s4;
 };
 
@@ -1162,10 +1188,10 @@ union uvh_gr0_tlb_mmr_read_data_hi_u {
 #define UV3H_GR0_TLB_MMR_READ_DATA_LO 0xc010a8UL
 #define UV4H_GR0_TLB_MMR_READ_DATA_LO 0x6010a8UL
 #define UVH_GR0_TLB_MMR_READ_DATA_LO (					\
-	is_uv1_hub() ? UV1H_GR0_TLB_MMR_READ_DATA_LO :			\
-	is_uv2_hub() ? UV2H_GR0_TLB_MMR_READ_DATA_LO :			\
-	is_uv3_hub() ? UV3H_GR0_TLB_MMR_READ_DATA_LO :			\
-	/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_READ_DATA_LO)
+		is_uv1_hub() ? UV1H_GR0_TLB_MMR_READ_DATA_LO :			\
+		is_uv2_hub() ? UV2H_GR0_TLB_MMR_READ_DATA_LO :			\
+		is_uv3_hub() ? UV3H_GR0_TLB_MMR_READ_DATA_LO :			\
+		/*is_uv4_hub*/ UV4H_GR0_TLB_MMR_READ_DATA_LO)
 
 #define UVH_GR0_TLB_MMR_READ_DATA_LO_VPN_SHFT		0
 #define UVH_GR0_TLB_MMR_READ_DATA_LO_ASID_SHFT		39
@@ -1210,37 +1236,44 @@ union uvh_gr0_tlb_mmr_read_data_hi_u {
 #define UV4H_GR0_TLB_MMR_READ_DATA_LO_VALID_MASK	0x8000000000000000UL
 
 
-union uvh_gr0_tlb_mmr_read_data_lo_u {
+union uvh_gr0_tlb_mmr_read_data_lo_u
+{
 	unsigned long	v;
-	struct uvh_gr0_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uvh_gr0_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s;
-	struct uv1h_gr0_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uv1h_gr0_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s1;
-	struct uvxh_gr0_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uvxh_gr0_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} sx;
-	struct uv2h_gr0_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uv2h_gr0_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s2;
-	struct uv3h_gr0_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uv3h_gr0_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s3;
-	struct uv4h_gr0_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uv4h_gr0_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s4;
 };
 
@@ -1252,10 +1285,10 @@ union uvh_gr0_tlb_mmr_read_data_lo_u {
 #define UV3H_GR1_TLB_INT0_CONFIG 0x61f00UL
 #define UV4H_GR1_TLB_INT0_CONFIG 0x62100UL
 #define UVH_GR1_TLB_INT0_CONFIG (					\
-	is_uv1_hub() ? UV1H_GR1_TLB_INT0_CONFIG :			\
-	is_uv2_hub() ? UV2H_GR1_TLB_INT0_CONFIG :			\
-	is_uv3_hub() ? UV3H_GR1_TLB_INT0_CONFIG :			\
-	/*is_uv4_hub*/ UV4H_GR1_TLB_INT0_CONFIG)
+		is_uv1_hub() ? UV1H_GR1_TLB_INT0_CONFIG :			\
+		is_uv2_hub() ? UV2H_GR1_TLB_INT0_CONFIG :			\
+		is_uv3_hub() ? UV3H_GR1_TLB_INT0_CONFIG :			\
+		/*is_uv4_hub*/ UV4H_GR1_TLB_INT0_CONFIG)
 
 #define UVH_GR1_TLB_INT0_CONFIG_VECTOR_SHFT		0
 #define UVH_GR1_TLB_INT0_CONFIG_DM_SHFT			8
@@ -1275,19 +1308,21 @@ union uvh_gr0_tlb_mmr_read_data_lo_u {
 #define UVH_GR1_TLB_INT0_CONFIG_APIC_ID_MASK		0xffffffff00000000UL
 
 
-union uvh_gr1_tlb_int0_config_u {
+union uvh_gr1_tlb_int0_config_u
+{
 	unsigned long	v;
-	struct uvh_gr1_tlb_int0_config_s {
-		unsigned long	vector_:8;			/* RW */
-		unsigned long	dm:3;				/* RW */
-		unsigned long	destmode:1;			/* RW */
-		unsigned long	status:1;			/* RO */
-		unsigned long	p:1;				/* RO */
-		unsigned long	rsvd_14:1;
-		unsigned long	t:1;				/* RO */
-		unsigned long	m:1;				/* RW */
-		unsigned long	rsvd_17_31:15;
-		unsigned long	apic_id:32;			/* RW */
+	struct uvh_gr1_tlb_int0_config_s
+	{
+		unsigned long	vector_: 8;			/* RW */
+		unsigned long	dm: 3;				/* RW */
+		unsigned long	destmode: 1;			/* RW */
+		unsigned long	status: 1;			/* RO */
+		unsigned long	p: 1;				/* RO */
+		unsigned long	rsvd_14: 1;
+		unsigned long	t: 1;				/* RO */
+		unsigned long	m: 1;				/* RW */
+		unsigned long	rsvd_17_31: 15;
+		unsigned long	apic_id: 32;			/* RW */
 	} s;
 };
 
@@ -1299,10 +1334,10 @@ union uvh_gr1_tlb_int0_config_u {
 #define UV3H_GR1_TLB_INT1_CONFIG 0x61f40UL
 #define UV4H_GR1_TLB_INT1_CONFIG 0x62140UL
 #define UVH_GR1_TLB_INT1_CONFIG (					\
-	is_uv1_hub() ? UV1H_GR1_TLB_INT1_CONFIG :			\
-	is_uv2_hub() ? UV2H_GR1_TLB_INT1_CONFIG :			\
-	is_uv3_hub() ? UV3H_GR1_TLB_INT1_CONFIG :			\
-	/*is_uv4_hub*/ UV4H_GR1_TLB_INT1_CONFIG)
+		is_uv1_hub() ? UV1H_GR1_TLB_INT1_CONFIG :			\
+		is_uv2_hub() ? UV2H_GR1_TLB_INT1_CONFIG :			\
+		is_uv3_hub() ? UV3H_GR1_TLB_INT1_CONFIG :			\
+		/*is_uv4_hub*/ UV4H_GR1_TLB_INT1_CONFIG)
 
 #define UVH_GR1_TLB_INT1_CONFIG_VECTOR_SHFT		0
 #define UVH_GR1_TLB_INT1_CONFIG_DM_SHFT			8
@@ -1322,19 +1357,21 @@ union uvh_gr1_tlb_int0_config_u {
 #define UVH_GR1_TLB_INT1_CONFIG_APIC_ID_MASK		0xffffffff00000000UL
 
 
-union uvh_gr1_tlb_int1_config_u {
+union uvh_gr1_tlb_int1_config_u
+{
 	unsigned long	v;
-	struct uvh_gr1_tlb_int1_config_s {
-		unsigned long	vector_:8;			/* RW */
-		unsigned long	dm:3;				/* RW */
-		unsigned long	destmode:1;			/* RW */
-		unsigned long	status:1;			/* RO */
-		unsigned long	p:1;				/* RO */
-		unsigned long	rsvd_14:1;
-		unsigned long	t:1;				/* RO */
-		unsigned long	m:1;				/* RW */
-		unsigned long	rsvd_17_31:15;
-		unsigned long	apic_id:32;			/* RW */
+	struct uvh_gr1_tlb_int1_config_s
+	{
+		unsigned long	vector_: 8;			/* RW */
+		unsigned long	dm: 3;				/* RW */
+		unsigned long	destmode: 1;			/* RW */
+		unsigned long	status: 1;			/* RO */
+		unsigned long	p: 1;				/* RO */
+		unsigned long	rsvd_14: 1;
+		unsigned long	t: 1;				/* RO */
+		unsigned long	m: 1;				/* RW */
+		unsigned long	rsvd_17_31: 15;
+		unsigned long	apic_id: 32;			/* RW */
 	} s;
 };
 
@@ -1346,10 +1383,10 @@ union uvh_gr1_tlb_int1_config_u {
 #define UV3H_GR1_TLB_MMR_CONTROL 0x1001080UL
 #define UV4H_GR1_TLB_MMR_CONTROL 0x701080UL
 #define UVH_GR1_TLB_MMR_CONTROL (					\
-	is_uv1_hub() ? UV1H_GR1_TLB_MMR_CONTROL :			\
-	is_uv2_hub() ? UV2H_GR1_TLB_MMR_CONTROL :			\
-	is_uv3_hub() ? UV3H_GR1_TLB_MMR_CONTROL :			\
-	/*is_uv4_hub*/ UV4H_GR1_TLB_MMR_CONTROL)
+		is_uv1_hub() ? UV1H_GR1_TLB_MMR_CONTROL :			\
+		is_uv2_hub() ? UV2H_GR1_TLB_MMR_CONTROL :			\
+		is_uv3_hub() ? UV3H_GR1_TLB_MMR_CONTROL :			\
+		/*is_uv4_hub*/ UV4H_GR1_TLB_MMR_CONTROL)
 
 #define UVH_GR1_TLB_MMR_CONTROL_INDEX_SHFT		0
 #define UVH_GR1_TLB_MMR_CONTROL_AUTO_VALID_EN_SHFT	16
@@ -1452,108 +1489,115 @@ union uvh_gr1_tlb_int1_config_u {
 #define UV4H_GR1_TLB_MMR_CONTROL_PAGE_SIZE_MASK		0xf800000000000000UL
 
 
-union uvh_gr1_tlb_mmr_control_u {
+union uvh_gr1_tlb_mmr_control_u
+{
 	unsigned long	v;
-	struct uvh_gr1_tlb_mmr_control_s {
-		unsigned long	rsvd_0_15:16;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	rsvd_21_29:9;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	rsvd_32_48:17;
-		unsigned long	rsvd_49_51:3;
-		unsigned long	rsvd_52_63:12;
+	struct uvh_gr1_tlb_mmr_control_s
+	{
+		unsigned long	rsvd_0_15: 16;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	rsvd_21_29: 9;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	rsvd_32_48: 17;
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	rsvd_52_63: 12;
 	} s;
-	struct uv1h_gr1_tlb_mmr_control_s {
-		unsigned long	index:12;			/* RW */
-		unsigned long	mem_sel:2;			/* RW */
-		unsigned long	rsvd_14_15:2;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	rsvd_21_29:9;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	rsvd_32_47:16;
-		unsigned long	mmr_inj_con:1;			/* RW */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	mmr_inj_tlbram:1;		/* RW */
-		unsigned long	rsvd_53:1;
-		unsigned long	mmr_inj_tlbpgsize:1;		/* RW */
-		unsigned long	rsvd_55:1;
-		unsigned long	mmr_inj_tlbrreg:1;		/* RW */
-		unsigned long	rsvd_57_59:3;
-		unsigned long	mmr_inj_tlblruv:1;		/* RW */
-		unsigned long	rsvd_61_63:3;
+	struct uv1h_gr1_tlb_mmr_control_s
+	{
+		unsigned long	index: 12;			/* RW */
+		unsigned long	mem_sel: 2;			/* RW */
+		unsigned long	rsvd_14_15: 2;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	rsvd_21_29: 9;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	rsvd_32_47: 16;
+		unsigned long	mmr_inj_con: 1;			/* RW */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	mmr_inj_tlbram: 1;		/* RW */
+		unsigned long	rsvd_53: 1;
+		unsigned long	mmr_inj_tlbpgsize: 1;		/* RW */
+		unsigned long	rsvd_55: 1;
+		unsigned long	mmr_inj_tlbrreg: 1;		/* RW */
+		unsigned long	rsvd_57_59: 3;
+		unsigned long	mmr_inj_tlblruv: 1;		/* RW */
+		unsigned long	rsvd_61_63: 3;
 	} s1;
-	struct uvxh_gr1_tlb_mmr_control_s {
-		unsigned long	rsvd_0_15:16;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	rsvd_21_29:9;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	mmr_op_done:1;			/* RW */
-		unsigned long	rsvd_33_47:15;
-		unsigned long	rsvd_48:1;
-		unsigned long	rsvd_49_51:3;
-		unsigned long	rsvd_52_63:12;
+	struct uvxh_gr1_tlb_mmr_control_s
+	{
+		unsigned long	rsvd_0_15: 16;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	rsvd_21_29: 9;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	mmr_op_done: 1;			/* RW */
+		unsigned long	rsvd_33_47: 15;
+		unsigned long	rsvd_48: 1;
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	rsvd_52_63: 12;
 	} sx;
-	struct uv2h_gr1_tlb_mmr_control_s {
-		unsigned long	index:12;			/* RW */
-		unsigned long	mem_sel:2;			/* RW */
-		unsigned long	rsvd_14_15:2;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	rsvd_21_29:9;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	mmr_op_done:1;			/* RW */
-		unsigned long	rsvd_33_47:15;
-		unsigned long	mmr_inj_con:1;			/* RW */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	mmr_inj_tlbram:1;		/* RW */
-		unsigned long	rsvd_53_63:11;
+	struct uv2h_gr1_tlb_mmr_control_s
+	{
+		unsigned long	index: 12;			/* RW */
+		unsigned long	mem_sel: 2;			/* RW */
+		unsigned long	rsvd_14_15: 2;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	rsvd_21_29: 9;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	mmr_op_done: 1;			/* RW */
+		unsigned long	rsvd_33_47: 15;
+		unsigned long	mmr_inj_con: 1;			/* RW */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	mmr_inj_tlbram: 1;		/* RW */
+		unsigned long	rsvd_53_63: 11;
 	} s2;
-	struct uv3h_gr1_tlb_mmr_control_s {
-		unsigned long	index:12;			/* RW */
-		unsigned long	mem_sel:2;			/* RW */
-		unsigned long	rsvd_14_15:2;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	ecc_sel:1;			/* RW */
-		unsigned long	rsvd_22_29:8;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	mmr_op_done:1;			/* RW */
-		unsigned long	rsvd_33_47:15;
-		unsigned long	undef_48:1;			/* Undefined */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	undef_52:1;			/* Undefined */
-		unsigned long	rsvd_53_63:11;
+	struct uv3h_gr1_tlb_mmr_control_s
+	{
+		unsigned long	index: 12;			/* RW */
+		unsigned long	mem_sel: 2;			/* RW */
+		unsigned long	rsvd_14_15: 2;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	ecc_sel: 1;			/* RW */
+		unsigned long	rsvd_22_29: 8;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	mmr_op_done: 1;			/* RW */
+		unsigned long	rsvd_33_47: 15;
+		unsigned long	undef_48: 1;			/* Undefined */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	undef_52: 1;			/* Undefined */
+		unsigned long	rsvd_53_63: 11;
 	} s3;
-	struct uv4h_gr1_tlb_mmr_control_s {
-		unsigned long	index:13;			/* RW */
-		unsigned long	mem_sel:2;			/* RW */
-		unsigned long	rsvd_15:1;
-		unsigned long	auto_valid_en:1;		/* RW */
-		unsigned long	rsvd_17_19:3;
-		unsigned long	mmr_hash_index_en:1;		/* RW */
-		unsigned long	ecc_sel:1;			/* RW */
-		unsigned long	rsvd_22_29:8;
-		unsigned long	mmr_write:1;			/* WP */
-		unsigned long	mmr_read:1;			/* WP */
-		unsigned long	mmr_op_done:1;			/* RW */
-		unsigned long	rsvd_33_47:15;
-		unsigned long	undef_48:1;			/* Undefined */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	rsvd_52_58:7;
-		unsigned long	page_size:5;			/* RW */
+	struct uv4h_gr1_tlb_mmr_control_s
+	{
+		unsigned long	index: 13;			/* RW */
+		unsigned long	mem_sel: 2;			/* RW */
+		unsigned long	rsvd_15: 1;
+		unsigned long	auto_valid_en: 1;		/* RW */
+		unsigned long	rsvd_17_19: 3;
+		unsigned long	mmr_hash_index_en: 1;		/* RW */
+		unsigned long	ecc_sel: 1;			/* RW */
+		unsigned long	rsvd_22_29: 8;
+		unsigned long	mmr_write: 1;			/* WP */
+		unsigned long	mmr_read: 1;			/* WP */
+		unsigned long	mmr_op_done: 1;			/* RW */
+		unsigned long	rsvd_33_47: 15;
+		unsigned long	undef_48: 1;			/* Undefined */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	rsvd_52_58: 7;
+		unsigned long	page_size: 5;			/* RW */
 	} s4;
 };
 
@@ -1565,10 +1609,10 @@ union uvh_gr1_tlb_mmr_control_u {
 #define UV3H_GR1_TLB_MMR_READ_DATA_HI 0x10010a0UL
 #define UV4H_GR1_TLB_MMR_READ_DATA_HI 0x7010a0UL
 #define UVH_GR1_TLB_MMR_READ_DATA_HI (					\
-	is_uv1_hub() ? UV1H_GR1_TLB_MMR_READ_DATA_HI :			\
-	is_uv2_hub() ? UV2H_GR1_TLB_MMR_READ_DATA_HI :			\
-	is_uv3_hub() ? UV3H_GR1_TLB_MMR_READ_DATA_HI :			\
-	/*is_uv4_hub*/ UV4H_GR1_TLB_MMR_READ_DATA_HI)
+		is_uv1_hub() ? UV1H_GR1_TLB_MMR_READ_DATA_HI :			\
+		is_uv2_hub() ? UV2H_GR1_TLB_MMR_READ_DATA_HI :			\
+		is_uv3_hub() ? UV3H_GR1_TLB_MMR_READ_DATA_HI :			\
+		/*is_uv4_hub*/ UV4H_GR1_TLB_MMR_READ_DATA_HI)
 
 #define UVH_GR1_TLB_MMR_READ_DATA_HI_PFN_SHFT		0
 
@@ -1621,40 +1665,45 @@ union uvh_gr1_tlb_mmr_control_u {
 #define UV4H_GR1_TLB_MMR_READ_DATA_HI_WAY_ECC_MASK	0xff80000000000000UL
 
 
-union uvh_gr1_tlb_mmr_read_data_hi_u {
+union uvh_gr1_tlb_mmr_read_data_hi_u
+{
 	unsigned long	v;
-	struct uv1h_gr1_tlb_mmr_read_data_hi_s {
-		unsigned long	pfn:41;				/* RO */
-		unsigned long	gaa:2;				/* RO */
-		unsigned long	dirty:1;			/* RO */
-		unsigned long	larger:1;			/* RO */
-		unsigned long	rsvd_45_63:19;
+	struct uv1h_gr1_tlb_mmr_read_data_hi_s
+	{
+		unsigned long	pfn: 41;				/* RO */
+		unsigned long	gaa: 2;				/* RO */
+		unsigned long	dirty: 1;			/* RO */
+		unsigned long	larger: 1;			/* RO */
+		unsigned long	rsvd_45_63: 19;
 	} s1;
-	struct uv2h_gr1_tlb_mmr_read_data_hi_s {
-		unsigned long	pfn:41;				/* RO */
-		unsigned long	gaa:2;				/* RO */
-		unsigned long	dirty:1;			/* RO */
-		unsigned long	larger:1;			/* RO */
-		unsigned long	rsvd_45_63:19;
+	struct uv2h_gr1_tlb_mmr_read_data_hi_s
+	{
+		unsigned long	pfn: 41;				/* RO */
+		unsigned long	gaa: 2;				/* RO */
+		unsigned long	dirty: 1;			/* RO */
+		unsigned long	larger: 1;			/* RO */
+		unsigned long	rsvd_45_63: 19;
 	} s2;
-	struct uv3h_gr1_tlb_mmr_read_data_hi_s {
-		unsigned long	pfn:41;				/* RO */
-		unsigned long	gaa:2;				/* RO */
-		unsigned long	dirty:1;			/* RO */
-		unsigned long	larger:1;			/* RO */
-		unsigned long	aa_ext:1;			/* RO */
-		unsigned long	undef_46_54:9;			/* Undefined */
-		unsigned long	way_ecc:9;			/* RO */
+	struct uv3h_gr1_tlb_mmr_read_data_hi_s
+	{
+		unsigned long	pfn: 41;				/* RO */
+		unsigned long	gaa: 2;				/* RO */
+		unsigned long	dirty: 1;			/* RO */
+		unsigned long	larger: 1;			/* RO */
+		unsigned long	aa_ext: 1;			/* RO */
+		unsigned long	undef_46_54: 9;			/* Undefined */
+		unsigned long	way_ecc: 9;			/* RO */
 	} s3;
-	struct uv4h_gr1_tlb_mmr_read_data_hi_s {
-		unsigned long	pfn:34;				/* RO */
-		unsigned long	pnid:15;			/* RO */
-		unsigned long	gaa:2;				/* RO */
-		unsigned long	dirty:1;			/* RO */
-		unsigned long	larger:1;			/* RO */
-		unsigned long	aa_ext:1;			/* RO */
-		unsigned long	undef_54:1;			/* Undefined */
-		unsigned long	way_ecc:9;			/* RO */
+	struct uv4h_gr1_tlb_mmr_read_data_hi_s
+	{
+		unsigned long	pfn: 34;				/* RO */
+		unsigned long	pnid: 15;			/* RO */
+		unsigned long	gaa: 2;				/* RO */
+		unsigned long	dirty: 1;			/* RO */
+		unsigned long	larger: 1;			/* RO */
+		unsigned long	aa_ext: 1;			/* RO */
+		unsigned long	undef_54: 1;			/* Undefined */
+		unsigned long	way_ecc: 9;			/* RO */
 	} s4;
 };
 
@@ -1666,10 +1715,10 @@ union uvh_gr1_tlb_mmr_read_data_hi_u {
 #define UV3H_GR1_TLB_MMR_READ_DATA_LO 0x10010a8UL
 #define UV4H_GR1_TLB_MMR_READ_DATA_LO 0x7010a8UL
 #define UVH_GR1_TLB_MMR_READ_DATA_LO (					\
-	is_uv1_hub() ? UV1H_GR1_TLB_MMR_READ_DATA_LO :			\
-	is_uv2_hub() ? UV2H_GR1_TLB_MMR_READ_DATA_LO :			\
-	is_uv3_hub() ? UV3H_GR1_TLB_MMR_READ_DATA_LO :			\
-	/*is_uv4_hub*/ UV4H_GR1_TLB_MMR_READ_DATA_LO)
+		is_uv1_hub() ? UV1H_GR1_TLB_MMR_READ_DATA_LO :			\
+		is_uv2_hub() ? UV2H_GR1_TLB_MMR_READ_DATA_LO :			\
+		is_uv3_hub() ? UV3H_GR1_TLB_MMR_READ_DATA_LO :			\
+		/*is_uv4_hub*/ UV4H_GR1_TLB_MMR_READ_DATA_LO)
 
 #define UVH_GR1_TLB_MMR_READ_DATA_LO_VPN_SHFT		0
 #define UVH_GR1_TLB_MMR_READ_DATA_LO_ASID_SHFT		39
@@ -1714,37 +1763,44 @@ union uvh_gr1_tlb_mmr_read_data_hi_u {
 #define UV4H_GR1_TLB_MMR_READ_DATA_LO_VALID_MASK	0x8000000000000000UL
 
 
-union uvh_gr1_tlb_mmr_read_data_lo_u {
+union uvh_gr1_tlb_mmr_read_data_lo_u
+{
 	unsigned long	v;
-	struct uvh_gr1_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uvh_gr1_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s;
-	struct uv1h_gr1_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uv1h_gr1_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s1;
-	struct uvxh_gr1_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uvxh_gr1_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} sx;
-	struct uv2h_gr1_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uv2h_gr1_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s2;
-	struct uv3h_gr1_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uv3h_gr1_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s3;
-	struct uv4h_gr1_tlb_mmr_read_data_lo_s {
-		unsigned long	vpn:39;				/* RO */
-		unsigned long	asid:24;			/* RO */
-		unsigned long	valid:1;			/* RO */
+	struct uv4h_gr1_tlb_mmr_read_data_lo_s
+	{
+		unsigned long	vpn: 39;				/* RO */
+		unsigned long	asid: 24;			/* RO */
+		unsigned long	valid: 1;			/* RO */
 	} s4;
 };
 
@@ -1757,11 +1813,13 @@ union uvh_gr1_tlb_mmr_read_data_lo_u {
 #define UVH_INT_CMPB_REAL_TIME_CMPB_MASK		0x00ffffffffffffffUL
 
 
-union uvh_int_cmpb_u {
+union uvh_int_cmpb_u
+{
 	unsigned long	v;
-	struct uvh_int_cmpb_s {
-		unsigned long	real_time_cmpb:56;		/* RW */
-		unsigned long	rsvd_56_63:8;
+	struct uvh_int_cmpb_s
+	{
+		unsigned long	real_time_cmpb: 56;		/* RW */
+		unsigned long	rsvd_56_63: 8;
 	} s;
 };
 
@@ -1778,11 +1836,13 @@ union uvh_int_cmpb_u {
 #define UVXH_INT_CMPC_REAL_TIME_CMP_2_MASK		0x00ffffffffffffffUL
 
 
-union uvh_int_cmpc_u {
+union uvh_int_cmpc_u
+{
 	unsigned long	v;
-	struct uvh_int_cmpc_s {
-		unsigned long	real_time_cmpc:56;		/* RW */
-		unsigned long	rsvd_56_63:8;
+	struct uvh_int_cmpc_s
+	{
+		unsigned long	real_time_cmpc: 56;		/* RW */
+		unsigned long	rsvd_56_63: 8;
 	} s;
 };
 
@@ -1799,11 +1859,13 @@ union uvh_int_cmpc_u {
 #define UVXH_INT_CMPD_REAL_TIME_CMP_3_MASK		0x00ffffffffffffffUL
 
 
-union uvh_int_cmpd_u {
+union uvh_int_cmpd_u
+{
 	unsigned long	v;
-	struct uvh_int_cmpd_s {
-		unsigned long	real_time_cmpd:56;		/* RW */
-		unsigned long	rsvd_56_63:8;
+	struct uvh_int_cmpd_s
+	{
+		unsigned long	real_time_cmpd: 56;		/* RW */
+		unsigned long	rsvd_56_63: 8;
 	} s;
 };
 
@@ -1817,10 +1879,10 @@ union uvh_int_cmpd_u {
 #define UV3H_IPI_INT_32 0x348
 #define UV4H_IPI_INT_32 0x268
 #define UVH_IPI_INT_32 (						\
-	is_uv1_hub() ? UV1H_IPI_INT_32 :				\
-	is_uv2_hub() ? UV2H_IPI_INT_32 :				\
-	is_uv3_hub() ? UV3H_IPI_INT_32 :				\
-	/*is_uv4_hub*/ UV4H_IPI_INT_32)
+		is_uv1_hub() ? UV1H_IPI_INT_32 :				\
+		is_uv2_hub() ? UV2H_IPI_INT_32 :				\
+		is_uv3_hub() ? UV3H_IPI_INT_32 :				\
+		/*is_uv4_hub*/ UV4H_IPI_INT_32)
 
 #define UVH_IPI_INT_VECTOR_SHFT				0
 #define UVH_IPI_INT_DELIVERY_MODE_SHFT			8
@@ -1834,16 +1896,18 @@ union uvh_int_cmpd_u {
 #define UVH_IPI_INT_SEND_MASK				0x8000000000000000UL
 
 
-union uvh_ipi_int_u {
+union uvh_ipi_int_u
+{
 	unsigned long	v;
-	struct uvh_ipi_int_s {
-		unsigned long	vector_:8;			/* RW */
-		unsigned long	delivery_mode:3;		/* RW */
-		unsigned long	destmode:1;			/* RW */
-		unsigned long	rsvd_12_15:4;
-		unsigned long	apic_id:32;			/* RW */
-		unsigned long	rsvd_48_62:15;
-		unsigned long	send:1;				/* WP */
+	struct uvh_ipi_int_s
+	{
+		unsigned long	vector_: 8;			/* RW */
+		unsigned long	delivery_mode: 3;		/* RW */
+		unsigned long	destmode: 1;			/* RW */
+		unsigned long	rsvd_12_15: 4;
+		unsigned long	apic_id: 32;			/* RW */
+		unsigned long	rsvd_48_62: 15;
+		unsigned long	send: 1;				/* WP */
 	} s;
 };
 
@@ -1855,10 +1919,10 @@ union uvh_ipi_int_u {
 #define UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST 0x320050UL
 #define UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST uv_undefined("UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST")
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST (				\
-	is_uv1_hub() ? UV1H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST :		\
-	is_uv2_hub() ? UV2H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST :		\
-	is_uv3_hub() ? UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST)
+		is_uv1_hub() ? UV1H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST :		\
+		is_uv2_hub() ? UV2H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST :		\
+		is_uv3_hub() ? UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST)
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST_32 0x9c0
 
 
@@ -1879,28 +1943,32 @@ union uvh_ipi_int_u {
 #define UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST_NODE_ID_MASK 0x7ffe000000000000UL
 
 
-union uvh_lb_bau_intd_payload_queue_first_u {
+union uvh_lb_bau_intd_payload_queue_first_u
+{
 	unsigned long	v;
-	struct uv1h_lb_bau_intd_payload_queue_first_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_48:6;
-		unsigned long	node_id:14;			/* RW */
-		unsigned long	rsvd_63:1;
+	struct uv1h_lb_bau_intd_payload_queue_first_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_48: 6;
+		unsigned long	node_id: 14;			/* RW */
+		unsigned long	rsvd_63: 1;
 	} s1;
-	struct uv2h_lb_bau_intd_payload_queue_first_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_48:6;
-		unsigned long	node_id:14;			/* RW */
-		unsigned long	rsvd_63:1;
+	struct uv2h_lb_bau_intd_payload_queue_first_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_48: 6;
+		unsigned long	node_id: 14;			/* RW */
+		unsigned long	rsvd_63: 1;
 	} s2;
-	struct uv3h_lb_bau_intd_payload_queue_first_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_48:6;
-		unsigned long	node_id:14;			/* RW */
-		unsigned long	rsvd_63:1;
+	struct uv3h_lb_bau_intd_payload_queue_first_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_48: 6;
+		unsigned long	node_id: 14;			/* RW */
+		unsigned long	rsvd_63: 1;
 	} s3;
 };
 
@@ -1912,10 +1980,10 @@ union uvh_lb_bau_intd_payload_queue_first_u {
 #define UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST 0x320060UL
 #define UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST uv_undefined("UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST")
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_LAST (				\
-	is_uv1_hub() ? UV1H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST :		\
-	is_uv2_hub() ? UV2H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST :		\
-	is_uv3_hub() ? UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST)
+		is_uv1_hub() ? UV1H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST :		\
+		is_uv2_hub() ? UV2H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST :		\
+		is_uv3_hub() ? UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST)
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_LAST_32 0x9c8
 
 
@@ -1930,22 +1998,26 @@ union uvh_lb_bau_intd_payload_queue_first_u {
 #define UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_LAST_ADDRESS_MASK 0x000007fffffffff0UL
 
 
-union uvh_lb_bau_intd_payload_queue_last_u {
+union uvh_lb_bau_intd_payload_queue_last_u
+{
 	unsigned long	v;
-	struct uv1h_lb_bau_intd_payload_queue_last_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_63:21;
+	struct uv1h_lb_bau_intd_payload_queue_last_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_63: 21;
 	} s1;
-	struct uv2h_lb_bau_intd_payload_queue_last_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_63:21;
+	struct uv2h_lb_bau_intd_payload_queue_last_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_63: 21;
 	} s2;
-	struct uv3h_lb_bau_intd_payload_queue_last_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_63:21;
+	struct uv3h_lb_bau_intd_payload_queue_last_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_63: 21;
 	} s3;
 };
 
@@ -1957,10 +2029,10 @@ union uvh_lb_bau_intd_payload_queue_last_u {
 #define UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL 0x320070UL
 #define UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL uv_undefined("UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL")
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL (				\
-	is_uv1_hub() ? UV1H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL :		\
-	is_uv2_hub() ? UV2H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL :		\
-	is_uv3_hub() ? UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL)
+		is_uv1_hub() ? UV1H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL :		\
+		is_uv2_hub() ? UV2H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL :		\
+		is_uv3_hub() ? UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL)
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL_32 0x9d0
 
 
@@ -1975,22 +2047,26 @@ union uvh_lb_bau_intd_payload_queue_last_u {
 #define UV3H_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL_ADDRESS_MASK 0x000007fffffffff0UL
 
 
-union uvh_lb_bau_intd_payload_queue_tail_u {
+union uvh_lb_bau_intd_payload_queue_tail_u
+{
 	unsigned long	v;
-	struct uv1h_lb_bau_intd_payload_queue_tail_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_63:21;
+	struct uv1h_lb_bau_intd_payload_queue_tail_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_63: 21;
 	} s1;
-	struct uv2h_lb_bau_intd_payload_queue_tail_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_63:21;
+	struct uv2h_lb_bau_intd_payload_queue_tail_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_63: 21;
 	} s2;
-	struct uv3h_lb_bau_intd_payload_queue_tail_s {
-		unsigned long	rsvd_0_3:4;
-		unsigned long	address:39;			/* RW */
-		unsigned long	rsvd_43_63:21;
+	struct uv3h_lb_bau_intd_payload_queue_tail_s
+	{
+		unsigned long	rsvd_0_3: 4;
+		unsigned long	address: 39;			/* RW */
+		unsigned long	rsvd_43_63: 21;
 	} s3;
 };
 
@@ -2002,10 +2078,10 @@ union uvh_lb_bau_intd_payload_queue_tail_u {
 #define UV3H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE 0x320080UL
 #define UV4H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE uv_undefined("UV4H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE")
 #define UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE (				\
-	is_uv1_hub() ? UV1H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE :		\
-	is_uv2_hub() ? UV2H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE :		\
-	is_uv3_hub() ? UV3H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE)
+		is_uv1_hub() ? UV1H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE :		\
+		is_uv2_hub() ? UV2H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE :		\
+		is_uv3_hub() ? UV3H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE)
 #define UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_32 0xa68
 
 
@@ -2110,64 +2186,68 @@ union uvh_lb_bau_intd_payload_queue_tail_u {
 #define UV3H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_TIMEOUT_7_MASK 0x0000000000008000UL
 
 
-union uvh_lb_bau_intd_software_acknowledge_u {
+union uvh_lb_bau_intd_software_acknowledge_u
+{
 	unsigned long	v;
-	struct uv1h_lb_bau_intd_software_acknowledge_s {
-		unsigned long	pending_0:1;			/* RW, W1C */
-		unsigned long	pending_1:1;			/* RW, W1C */
-		unsigned long	pending_2:1;			/* RW, W1C */
-		unsigned long	pending_3:1;			/* RW, W1C */
-		unsigned long	pending_4:1;			/* RW, W1C */
-		unsigned long	pending_5:1;			/* RW, W1C */
-		unsigned long	pending_6:1;			/* RW, W1C */
-		unsigned long	pending_7:1;			/* RW, W1C */
-		unsigned long	timeout_0:1;			/* RW, W1C */
-		unsigned long	timeout_1:1;			/* RW, W1C */
-		unsigned long	timeout_2:1;			/* RW, W1C */
-		unsigned long	timeout_3:1;			/* RW, W1C */
-		unsigned long	timeout_4:1;			/* RW, W1C */
-		unsigned long	timeout_5:1;			/* RW, W1C */
-		unsigned long	timeout_6:1;			/* RW, W1C */
-		unsigned long	timeout_7:1;			/* RW, W1C */
-		unsigned long	rsvd_16_63:48;
+	struct uv1h_lb_bau_intd_software_acknowledge_s
+	{
+		unsigned long	pending_0: 1;			/* RW, W1C */
+		unsigned long	pending_1: 1;			/* RW, W1C */
+		unsigned long	pending_2: 1;			/* RW, W1C */
+		unsigned long	pending_3: 1;			/* RW, W1C */
+		unsigned long	pending_4: 1;			/* RW, W1C */
+		unsigned long	pending_5: 1;			/* RW, W1C */
+		unsigned long	pending_6: 1;			/* RW, W1C */
+		unsigned long	pending_7: 1;			/* RW, W1C */
+		unsigned long	timeout_0: 1;			/* RW, W1C */
+		unsigned long	timeout_1: 1;			/* RW, W1C */
+		unsigned long	timeout_2: 1;			/* RW, W1C */
+		unsigned long	timeout_3: 1;			/* RW, W1C */
+		unsigned long	timeout_4: 1;			/* RW, W1C */
+		unsigned long	timeout_5: 1;			/* RW, W1C */
+		unsigned long	timeout_6: 1;			/* RW, W1C */
+		unsigned long	timeout_7: 1;			/* RW, W1C */
+		unsigned long	rsvd_16_63: 48;
 	} s1;
-	struct uv2h_lb_bau_intd_software_acknowledge_s {
-		unsigned long	pending_0:1;			/* RW */
-		unsigned long	pending_1:1;			/* RW */
-		unsigned long	pending_2:1;			/* RW */
-		unsigned long	pending_3:1;			/* RW */
-		unsigned long	pending_4:1;			/* RW */
-		unsigned long	pending_5:1;			/* RW */
-		unsigned long	pending_6:1;			/* RW */
-		unsigned long	pending_7:1;			/* RW */
-		unsigned long	timeout_0:1;			/* RW */
-		unsigned long	timeout_1:1;			/* RW */
-		unsigned long	timeout_2:1;			/* RW */
-		unsigned long	timeout_3:1;			/* RW */
-		unsigned long	timeout_4:1;			/* RW */
-		unsigned long	timeout_5:1;			/* RW */
-		unsigned long	timeout_6:1;			/* RW */
-		unsigned long	timeout_7:1;			/* RW */
-		unsigned long	rsvd_16_63:48;
+	struct uv2h_lb_bau_intd_software_acknowledge_s
+	{
+		unsigned long	pending_0: 1;			/* RW */
+		unsigned long	pending_1: 1;			/* RW */
+		unsigned long	pending_2: 1;			/* RW */
+		unsigned long	pending_3: 1;			/* RW */
+		unsigned long	pending_4: 1;			/* RW */
+		unsigned long	pending_5: 1;			/* RW */
+		unsigned long	pending_6: 1;			/* RW */
+		unsigned long	pending_7: 1;			/* RW */
+		unsigned long	timeout_0: 1;			/* RW */
+		unsigned long	timeout_1: 1;			/* RW */
+		unsigned long	timeout_2: 1;			/* RW */
+		unsigned long	timeout_3: 1;			/* RW */
+		unsigned long	timeout_4: 1;			/* RW */
+		unsigned long	timeout_5: 1;			/* RW */
+		unsigned long	timeout_6: 1;			/* RW */
+		unsigned long	timeout_7: 1;			/* RW */
+		unsigned long	rsvd_16_63: 48;
 	} s2;
-	struct uv3h_lb_bau_intd_software_acknowledge_s {
-		unsigned long	pending_0:1;			/* RW */
-		unsigned long	pending_1:1;			/* RW */
-		unsigned long	pending_2:1;			/* RW */
-		unsigned long	pending_3:1;			/* RW */
-		unsigned long	pending_4:1;			/* RW */
-		unsigned long	pending_5:1;			/* RW */
-		unsigned long	pending_6:1;			/* RW */
-		unsigned long	pending_7:1;			/* RW */
-		unsigned long	timeout_0:1;			/* RW */
-		unsigned long	timeout_1:1;			/* RW */
-		unsigned long	timeout_2:1;			/* RW */
-		unsigned long	timeout_3:1;			/* RW */
-		unsigned long	timeout_4:1;			/* RW */
-		unsigned long	timeout_5:1;			/* RW */
-		unsigned long	timeout_6:1;			/* RW */
-		unsigned long	timeout_7:1;			/* RW */
-		unsigned long	rsvd_16_63:48;
+	struct uv3h_lb_bau_intd_software_acknowledge_s
+	{
+		unsigned long	pending_0: 1;			/* RW */
+		unsigned long	pending_1: 1;			/* RW */
+		unsigned long	pending_2: 1;			/* RW */
+		unsigned long	pending_3: 1;			/* RW */
+		unsigned long	pending_4: 1;			/* RW */
+		unsigned long	pending_5: 1;			/* RW */
+		unsigned long	pending_6: 1;			/* RW */
+		unsigned long	pending_7: 1;			/* RW */
+		unsigned long	timeout_0: 1;			/* RW */
+		unsigned long	timeout_1: 1;			/* RW */
+		unsigned long	timeout_2: 1;			/* RW */
+		unsigned long	timeout_3: 1;			/* RW */
+		unsigned long	timeout_4: 1;			/* RW */
+		unsigned long	timeout_5: 1;			/* RW */
+		unsigned long	timeout_6: 1;			/* RW */
+		unsigned long	timeout_7: 1;			/* RW */
+		unsigned long	rsvd_16_63: 48;
 	} s3;
 };
 
@@ -2179,10 +2259,10 @@ union uvh_lb_bau_intd_software_acknowledge_u {
 #define UV3H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS 0x320088UL
 #define UV4H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS uv_undefined("UV4H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS")
 #define UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS (			\
-	is_uv1_hub() ? UV1H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS :	\
-	is_uv2_hub() ? UV2H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS :	\
-	is_uv3_hub() ? UV3H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS :	\
-	/*is_uv4_hub*/ UV4H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS)
+		is_uv1_hub() ? UV1H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS :	\
+		is_uv2_hub() ? UV2H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS :	\
+		is_uv3_hub() ? UV3H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS :	\
+		/*is_uv4_hub*/ UV4H_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS)
 #define UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS_32 0xa70
 
 
@@ -2194,20 +2274,20 @@ union uvh_lb_bau_intd_software_acknowledge_u {
 #define UV3H_LB_BAU_MISC_CONTROL 0x320170UL
 #define UV4H_LB_BAU_MISC_CONTROL 0xc8170UL
 #define UVH_LB_BAU_MISC_CONTROL (					\
-	is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL :			\
-	is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL :			\
-	is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL :			\
-	/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL)
+		is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL :			\
+		is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL :			\
+		is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL :			\
+		/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL)
 
 #define UV1H_LB_BAU_MISC_CONTROL_32 0xa10
 #define UV2H_LB_BAU_MISC_CONTROL_32 0xa10
 #define UV3H_LB_BAU_MISC_CONTROL_32 0xa10
 #define UV4H_LB_BAU_MISC_CONTROL_32 0xa18
 #define UVH_LB_BAU_MISC_CONTROL_32 (					\
-	is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_32 :			\
-	is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_32 :			\
-	is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_32 :			\
-	/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_32)
+		is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_32 :			\
+		is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_32 :			\
+		is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_32 :			\
+		/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_32)
 
 #define UVH_LB_BAU_MISC_CONTROL_REJECTION_DELAY_SHFT	0
 #define UVH_LB_BAU_MISC_CONTROL_APIC_MODE_SHFT		8
@@ -2470,179 +2550,186 @@ union uvh_lb_bau_intd_software_acknowledge_u {
 #define UV4H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK	\
 	uv_undefined("UV4H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK")
 #define UVH_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK (	\
-	is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK : \
-	is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK : \
-	is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK : \
-	/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK)
+		is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK : \
+		is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK : \
+		is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK : \
+		/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_MASK)
 #define UV4H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT	\
 	uv_undefined("UV4H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT")
 #define UVH_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT (	\
-	is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT : \
-	is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT : \
-	is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT : \
-	/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT)
+		is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT : \
+		is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT : \
+		is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT : \
+		/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_ENABLE_INTD_SOFT_ACK_MODE_SHFT)
 #define UV4H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK	\
 	uv_undefined("UV4H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK")
 #define UVH_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK (	\
-	is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK : \
-	is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK : \
-	is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK : \
-	/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK)
+		is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK : \
+		is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK : \
+		is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK : \
+		/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_MASK)
 #define UV4H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT	\
 	uv_undefined("UV4H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT")
 #define UVH_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT (	\
-	is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT : \
-	is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT : \
-	is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT : \
-	/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT)
+		is_uv1_hub() ? UV1H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT : \
+		is_uv2_hub() ? UV2H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT : \
+		is_uv3_hub() ? UV3H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT : \
+		/*is_uv4_hub*/ UV4H_LB_BAU_MISC_CONTROL_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHFT)
 
-union uvh_lb_bau_misc_control_u {
+union uvh_lb_bau_misc_control_u
+{
 	unsigned long	v;
-	struct uvh_lb_bau_misc_control_s {
-		unsigned long	rejection_delay:8;		/* RW */
-		unsigned long	apic_mode:1;			/* RW */
-		unsigned long	force_broadcast:1;		/* RW */
-		unsigned long	force_lock_nop:1;		/* RW */
-		unsigned long	qpi_agent_presence_vector:3;	/* RW */
-		unsigned long	descriptor_fetch_mode:1;	/* RW */
-		unsigned long	rsvd_15_19:5;
-		unsigned long	enable_dual_mapping_mode:1;	/* RW */
-		unsigned long	vga_io_port_decode_enable:1;	/* RW */
-		unsigned long	vga_io_port_16_bit_decode:1;	/* RW */
-		unsigned long	suppress_dest_registration:1;	/* RW */
-		unsigned long	programmed_initial_priority:3;	/* RW */
-		unsigned long	use_incoming_priority:1;	/* RW */
-		unsigned long	enable_programmed_initial_priority:1;/* RW */
-		unsigned long	rsvd_29_47:19;
-		unsigned long	fun:16;				/* RW */
+	struct uvh_lb_bau_misc_control_s
+	{
+		unsigned long	rejection_delay: 8;		/* RW */
+		unsigned long	apic_mode: 1;			/* RW */
+		unsigned long	force_broadcast: 1;		/* RW */
+		unsigned long	force_lock_nop: 1;		/* RW */
+		unsigned long	qpi_agent_presence_vector: 3;	/* RW */
+		unsigned long	descriptor_fetch_mode: 1;	/* RW */
+		unsigned long	rsvd_15_19: 5;
+		unsigned long	enable_dual_mapping_mode: 1;	/* RW */
+		unsigned long	vga_io_port_decode_enable: 1;	/* RW */
+		unsigned long	vga_io_port_16_bit_decode: 1;	/* RW */
+		unsigned long	suppress_dest_registration: 1;	/* RW */
+		unsigned long	programmed_initial_priority: 3;	/* RW */
+		unsigned long	use_incoming_priority: 1;	/* RW */
+		unsigned long	enable_programmed_initial_priority: 1; /* RW */
+		unsigned long	rsvd_29_47: 19;
+		unsigned long	fun: 16;				/* RW */
 	} s;
-	struct uv1h_lb_bau_misc_control_s {
-		unsigned long	rejection_delay:8;		/* RW */
-		unsigned long	apic_mode:1;			/* RW */
-		unsigned long	force_broadcast:1;		/* RW */
-		unsigned long	force_lock_nop:1;		/* RW */
-		unsigned long	qpi_agent_presence_vector:3;	/* RW */
-		unsigned long	descriptor_fetch_mode:1;	/* RW */
-		unsigned long	enable_intd_soft_ack_mode:1;	/* RW */
-		unsigned long	intd_soft_ack_timeout_period:4;	/* RW */
-		unsigned long	enable_dual_mapping_mode:1;	/* RW */
-		unsigned long	vga_io_port_decode_enable:1;	/* RW */
-		unsigned long	vga_io_port_16_bit_decode:1;	/* RW */
-		unsigned long	suppress_dest_registration:1;	/* RW */
-		unsigned long	programmed_initial_priority:3;	/* RW */
-		unsigned long	use_incoming_priority:1;	/* RW */
-		unsigned long	enable_programmed_initial_priority:1;/* RW */
-		unsigned long	rsvd_29_47:19;
-		unsigned long	fun:16;				/* RW */
+	struct uv1h_lb_bau_misc_control_s
+	{
+		unsigned long	rejection_delay: 8;		/* RW */
+		unsigned long	apic_mode: 1;			/* RW */
+		unsigned long	force_broadcast: 1;		/* RW */
+		unsigned long	force_lock_nop: 1;		/* RW */
+		unsigned long	qpi_agent_presence_vector: 3;	/* RW */
+		unsigned long	descriptor_fetch_mode: 1;	/* RW */
+		unsigned long	enable_intd_soft_ack_mode: 1;	/* RW */
+		unsigned long	intd_soft_ack_timeout_period: 4;	/* RW */
+		unsigned long	enable_dual_mapping_mode: 1;	/* RW */
+		unsigned long	vga_io_port_decode_enable: 1;	/* RW */
+		unsigned long	vga_io_port_16_bit_decode: 1;	/* RW */
+		unsigned long	suppress_dest_registration: 1;	/* RW */
+		unsigned long	programmed_initial_priority: 3;	/* RW */
+		unsigned long	use_incoming_priority: 1;	/* RW */
+		unsigned long	enable_programmed_initial_priority: 1; /* RW */
+		unsigned long	rsvd_29_47: 19;
+		unsigned long	fun: 16;				/* RW */
 	} s1;
-	struct uvxh_lb_bau_misc_control_s {
-		unsigned long	rejection_delay:8;		/* RW */
-		unsigned long	apic_mode:1;			/* RW */
-		unsigned long	force_broadcast:1;		/* RW */
-		unsigned long	force_lock_nop:1;		/* RW */
-		unsigned long	qpi_agent_presence_vector:3;	/* RW */
-		unsigned long	descriptor_fetch_mode:1;	/* RW */
-		unsigned long	rsvd_15_19:5;
-		unsigned long	enable_dual_mapping_mode:1;	/* RW */
-		unsigned long	vga_io_port_decode_enable:1;	/* RW */
-		unsigned long	vga_io_port_16_bit_decode:1;	/* RW */
-		unsigned long	suppress_dest_registration:1;	/* RW */
-		unsigned long	programmed_initial_priority:3;	/* RW */
-		unsigned long	use_incoming_priority:1;	/* RW */
-		unsigned long	enable_programmed_initial_priority:1;/* RW */
-		unsigned long	enable_automatic_apic_mode_selection:1;/* RW */
-		unsigned long	apic_mode_status:1;		/* RO */
-		unsigned long	suppress_interrupts_to_self:1;	/* RW */
-		unsigned long	enable_lock_based_system_flush:1;/* RW */
-		unsigned long	enable_extended_sb_status:1;	/* RW */
-		unsigned long	suppress_int_prio_udt_to_self:1;/* RW */
-		unsigned long	use_legacy_descriptor_formats:1;/* RW */
-		unsigned long	rsvd_36_47:12;
-		unsigned long	fun:16;				/* RW */
+	struct uvxh_lb_bau_misc_control_s
+	{
+		unsigned long	rejection_delay: 8;		/* RW */
+		unsigned long	apic_mode: 1;			/* RW */
+		unsigned long	force_broadcast: 1;		/* RW */
+		unsigned long	force_lock_nop: 1;		/* RW */
+		unsigned long	qpi_agent_presence_vector: 3;	/* RW */
+		unsigned long	descriptor_fetch_mode: 1;	/* RW */
+		unsigned long	rsvd_15_19: 5;
+		unsigned long	enable_dual_mapping_mode: 1;	/* RW */
+		unsigned long	vga_io_port_decode_enable: 1;	/* RW */
+		unsigned long	vga_io_port_16_bit_decode: 1;	/* RW */
+		unsigned long	suppress_dest_registration: 1;	/* RW */
+		unsigned long	programmed_initial_priority: 3;	/* RW */
+		unsigned long	use_incoming_priority: 1;	/* RW */
+		unsigned long	enable_programmed_initial_priority: 1; /* RW */
+		unsigned long	enable_automatic_apic_mode_selection: 1; /* RW */
+		unsigned long	apic_mode_status: 1;		/* RO */
+		unsigned long	suppress_interrupts_to_self: 1;	/* RW */
+		unsigned long	enable_lock_based_system_flush: 1; /* RW */
+		unsigned long	enable_extended_sb_status: 1;	/* RW */
+		unsigned long	suppress_int_prio_udt_to_self: 1; /* RW */
+		unsigned long	use_legacy_descriptor_formats: 1; /* RW */
+		unsigned long	rsvd_36_47: 12;
+		unsigned long	fun: 16;				/* RW */
 	} sx;
-	struct uv2h_lb_bau_misc_control_s {
-		unsigned long	rejection_delay:8;		/* RW */
-		unsigned long	apic_mode:1;			/* RW */
-		unsigned long	force_broadcast:1;		/* RW */
-		unsigned long	force_lock_nop:1;		/* RW */
-		unsigned long	qpi_agent_presence_vector:3;	/* RW */
-		unsigned long	descriptor_fetch_mode:1;	/* RW */
-		unsigned long	enable_intd_soft_ack_mode:1;	/* RW */
-		unsigned long	intd_soft_ack_timeout_period:4;	/* RW */
-		unsigned long	enable_dual_mapping_mode:1;	/* RW */
-		unsigned long	vga_io_port_decode_enable:1;	/* RW */
-		unsigned long	vga_io_port_16_bit_decode:1;	/* RW */
-		unsigned long	suppress_dest_registration:1;	/* RW */
-		unsigned long	programmed_initial_priority:3;	/* RW */
-		unsigned long	use_incoming_priority:1;	/* RW */
-		unsigned long	enable_programmed_initial_priority:1;/* RW */
-		unsigned long	enable_automatic_apic_mode_selection:1;/* RW */
-		unsigned long	apic_mode_status:1;		/* RO */
-		unsigned long	suppress_interrupts_to_self:1;	/* RW */
-		unsigned long	enable_lock_based_system_flush:1;/* RW */
-		unsigned long	enable_extended_sb_status:1;	/* RW */
-		unsigned long	suppress_int_prio_udt_to_self:1;/* RW */
-		unsigned long	use_legacy_descriptor_formats:1;/* RW */
-		unsigned long	rsvd_36_47:12;
-		unsigned long	fun:16;				/* RW */
+	struct uv2h_lb_bau_misc_control_s
+	{
+		unsigned long	rejection_delay: 8;		/* RW */
+		unsigned long	apic_mode: 1;			/* RW */
+		unsigned long	force_broadcast: 1;		/* RW */
+		unsigned long	force_lock_nop: 1;		/* RW */
+		unsigned long	qpi_agent_presence_vector: 3;	/* RW */
+		unsigned long	descriptor_fetch_mode: 1;	/* RW */
+		unsigned long	enable_intd_soft_ack_mode: 1;	/* RW */
+		unsigned long	intd_soft_ack_timeout_period: 4;	/* RW */
+		unsigned long	enable_dual_mapping_mode: 1;	/* RW */
+		unsigned long	vga_io_port_decode_enable: 1;	/* RW */
+		unsigned long	vga_io_port_16_bit_decode: 1;	/* RW */
+		unsigned long	suppress_dest_registration: 1;	/* RW */
+		unsigned long	programmed_initial_priority: 3;	/* RW */
+		unsigned long	use_incoming_priority: 1;	/* RW */
+		unsigned long	enable_programmed_initial_priority: 1; /* RW */
+		unsigned long	enable_automatic_apic_mode_selection: 1; /* RW */
+		unsigned long	apic_mode_status: 1;		/* RO */
+		unsigned long	suppress_interrupts_to_self: 1;	/* RW */
+		unsigned long	enable_lock_based_system_flush: 1; /* RW */
+		unsigned long	enable_extended_sb_status: 1;	/* RW */
+		unsigned long	suppress_int_prio_udt_to_self: 1; /* RW */
+		unsigned long	use_legacy_descriptor_formats: 1; /* RW */
+		unsigned long	rsvd_36_47: 12;
+		unsigned long	fun: 16;				/* RW */
 	} s2;
-	struct uv3h_lb_bau_misc_control_s {
-		unsigned long	rejection_delay:8;		/* RW */
-		unsigned long	apic_mode:1;			/* RW */
-		unsigned long	force_broadcast:1;		/* RW */
-		unsigned long	force_lock_nop:1;		/* RW */
-		unsigned long	qpi_agent_presence_vector:3;	/* RW */
-		unsigned long	descriptor_fetch_mode:1;	/* RW */
-		unsigned long	enable_intd_soft_ack_mode:1;	/* RW */
-		unsigned long	intd_soft_ack_timeout_period:4;	/* RW */
-		unsigned long	enable_dual_mapping_mode:1;	/* RW */
-		unsigned long	vga_io_port_decode_enable:1;	/* RW */
-		unsigned long	vga_io_port_16_bit_decode:1;	/* RW */
-		unsigned long	suppress_dest_registration:1;	/* RW */
-		unsigned long	programmed_initial_priority:3;	/* RW */
-		unsigned long	use_incoming_priority:1;	/* RW */
-		unsigned long	enable_programmed_initial_priority:1;/* RW */
-		unsigned long	enable_automatic_apic_mode_selection:1;/* RW */
-		unsigned long	apic_mode_status:1;		/* RO */
-		unsigned long	suppress_interrupts_to_self:1;	/* RW */
-		unsigned long	enable_lock_based_system_flush:1;/* RW */
-		unsigned long	enable_extended_sb_status:1;	/* RW */
-		unsigned long	suppress_int_prio_udt_to_self:1;/* RW */
-		unsigned long	use_legacy_descriptor_formats:1;/* RW */
-		unsigned long	suppress_quiesce_msgs_to_qpi:1;	/* RW */
-		unsigned long	enable_intd_prefetch_hint:1;	/* RW */
-		unsigned long	thread_kill_timebase:8;		/* RW */
-		unsigned long	rsvd_46_47:2;
-		unsigned long	fun:16;				/* RW */
+	struct uv3h_lb_bau_misc_control_s
+	{
+		unsigned long	rejection_delay: 8;		/* RW */
+		unsigned long	apic_mode: 1;			/* RW */
+		unsigned long	force_broadcast: 1;		/* RW */
+		unsigned long	force_lock_nop: 1;		/* RW */
+		unsigned long	qpi_agent_presence_vector: 3;	/* RW */
+		unsigned long	descriptor_fetch_mode: 1;	/* RW */
+		unsigned long	enable_intd_soft_ack_mode: 1;	/* RW */
+		unsigned long	intd_soft_ack_timeout_period: 4;	/* RW */
+		unsigned long	enable_dual_mapping_mode: 1;	/* RW */
+		unsigned long	vga_io_port_decode_enable: 1;	/* RW */
+		unsigned long	vga_io_port_16_bit_decode: 1;	/* RW */
+		unsigned long	suppress_dest_registration: 1;	/* RW */
+		unsigned long	programmed_initial_priority: 3;	/* RW */
+		unsigned long	use_incoming_priority: 1;	/* RW */
+		unsigned long	enable_programmed_initial_priority: 1; /* RW */
+		unsigned long	enable_automatic_apic_mode_selection: 1; /* RW */
+		unsigned long	apic_mode_status: 1;		/* RO */
+		unsigned long	suppress_interrupts_to_self: 1;	/* RW */
+		unsigned long	enable_lock_based_system_flush: 1; /* RW */
+		unsigned long	enable_extended_sb_status: 1;	/* RW */
+		unsigned long	suppress_int_prio_udt_to_self: 1; /* RW */
+		unsigned long	use_legacy_descriptor_formats: 1; /* RW */
+		unsigned long	suppress_quiesce_msgs_to_qpi: 1;	/* RW */
+		unsigned long	enable_intd_prefetch_hint: 1;	/* RW */
+		unsigned long	thread_kill_timebase: 8;		/* RW */
+		unsigned long	rsvd_46_47: 2;
+		unsigned long	fun: 16;				/* RW */
 	} s3;
-	struct uv4h_lb_bau_misc_control_s {
-		unsigned long	rejection_delay:8;		/* RW */
-		unsigned long	apic_mode:1;			/* RW */
-		unsigned long	force_broadcast:1;		/* RW */
-		unsigned long	force_lock_nop:1;		/* RW */
-		unsigned long	qpi_agent_presence_vector:3;	/* RW */
-		unsigned long	descriptor_fetch_mode:1;	/* RW */
-		unsigned long	rsvd_15_19:5;
-		unsigned long	enable_dual_mapping_mode:1;	/* RW */
-		unsigned long	vga_io_port_decode_enable:1;	/* RW */
-		unsigned long	vga_io_port_16_bit_decode:1;	/* RW */
-		unsigned long	suppress_dest_registration:1;	/* RW */
-		unsigned long	programmed_initial_priority:3;	/* RW */
-		unsigned long	use_incoming_priority:1;	/* RW */
-		unsigned long	enable_programmed_initial_priority:1;/* RW */
-		unsigned long	enable_automatic_apic_mode_selection:1;/* RW */
-		unsigned long	apic_mode_status:1;		/* RO */
-		unsigned long	suppress_interrupts_to_self:1;	/* RW */
-		unsigned long	enable_lock_based_system_flush:1;/* RW */
-		unsigned long	enable_extended_sb_status:1;	/* RW */
-		unsigned long	suppress_int_prio_udt_to_self:1;/* RW */
-		unsigned long	use_legacy_descriptor_formats:1;/* RW */
-		unsigned long	suppress_quiesce_msgs_to_qpi:1;	/* RW */
-		unsigned long	rsvd_37:1;
-		unsigned long	thread_kill_timebase:8;		/* RW */
-		unsigned long	address_interleave_select:1;	/* RW */
-		unsigned long	rsvd_47:1;
-		unsigned long	fun:16;				/* RW */
+	struct uv4h_lb_bau_misc_control_s
+	{
+		unsigned long	rejection_delay: 8;		/* RW */
+		unsigned long	apic_mode: 1;			/* RW */
+		unsigned long	force_broadcast: 1;		/* RW */
+		unsigned long	force_lock_nop: 1;		/* RW */
+		unsigned long	qpi_agent_presence_vector: 3;	/* RW */
+		unsigned long	descriptor_fetch_mode: 1;	/* RW */
+		unsigned long	rsvd_15_19: 5;
+		unsigned long	enable_dual_mapping_mode: 1;	/* RW */
+		unsigned long	vga_io_port_decode_enable: 1;	/* RW */
+		unsigned long	vga_io_port_16_bit_decode: 1;	/* RW */
+		unsigned long	suppress_dest_registration: 1;	/* RW */
+		unsigned long	programmed_initial_priority: 3;	/* RW */
+		unsigned long	use_incoming_priority: 1;	/* RW */
+		unsigned long	enable_programmed_initial_priority: 1; /* RW */
+		unsigned long	enable_automatic_apic_mode_selection: 1; /* RW */
+		unsigned long	apic_mode_status: 1;		/* RO */
+		unsigned long	suppress_interrupts_to_self: 1;	/* RW */
+		unsigned long	enable_lock_based_system_flush: 1; /* RW */
+		unsigned long	enable_extended_sb_status: 1;	/* RW */
+		unsigned long	suppress_int_prio_udt_to_self: 1; /* RW */
+		unsigned long	use_legacy_descriptor_formats: 1; /* RW */
+		unsigned long	suppress_quiesce_msgs_to_qpi: 1;	/* RW */
+		unsigned long	rsvd_37: 1;
+		unsigned long	thread_kill_timebase: 8;		/* RW */
+		unsigned long	address_interleave_select: 1;	/* RW */
+		unsigned long	rsvd_47: 1;
+		unsigned long	fun: 16;				/* RW */
 	} s4;
 };
 
@@ -2654,20 +2741,20 @@ union uvh_lb_bau_misc_control_u {
 #define UV3H_LB_BAU_SB_ACTIVATION_CONTROL 0x320020UL
 #define UV4H_LB_BAU_SB_ACTIVATION_CONTROL 0xc8020UL
 #define UVH_LB_BAU_SB_ACTIVATION_CONTROL (				\
-	is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_CONTROL :		\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_CONTROL :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_CONTROL :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_CONTROL)
+		is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_CONTROL :		\
+		is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_CONTROL :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_CONTROL :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_CONTROL)
 
 #define UV1H_LB_BAU_SB_ACTIVATION_CONTROL_32 0x9a8
 #define UV2H_LB_BAU_SB_ACTIVATION_CONTROL_32 0x9a8
 #define UV3H_LB_BAU_SB_ACTIVATION_CONTROL_32 0x9a8
 #define UV4H_LB_BAU_SB_ACTIVATION_CONTROL_32 0x9c8
 #define UVH_LB_BAU_SB_ACTIVATION_CONTROL_32 (				\
-	is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_CONTROL_32 :		\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_CONTROL_32 :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_CONTROL_32 :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_CONTROL_32)
+		is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_CONTROL_32 :		\
+		is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_CONTROL_32 :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_CONTROL_32 :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_CONTROL_32)
 
 #define UVH_LB_BAU_SB_ACTIVATION_CONTROL_INDEX_SHFT	0
 #define UVH_LB_BAU_SB_ACTIVATION_CONTROL_PUSH_SHFT	62
@@ -2677,13 +2764,15 @@ union uvh_lb_bau_misc_control_u {
 #define UVH_LB_BAU_SB_ACTIVATION_CONTROL_INIT_MASK	0x8000000000000000UL
 
 
-union uvh_lb_bau_sb_activation_control_u {
+union uvh_lb_bau_sb_activation_control_u
+{
 	unsigned long	v;
-	struct uvh_lb_bau_sb_activation_control_s {
-		unsigned long	index:6;			/* RW */
-		unsigned long	rsvd_6_61:56;
-		unsigned long	push:1;				/* WP */
-		unsigned long	init:1;				/* WP */
+	struct uvh_lb_bau_sb_activation_control_s
+	{
+		unsigned long	index: 6;			/* RW */
+		unsigned long	rsvd_6_61: 56;
+		unsigned long	push: 1;				/* WP */
+		unsigned long	init: 1;				/* WP */
 	} s;
 };
 
@@ -2695,29 +2784,31 @@ union uvh_lb_bau_sb_activation_control_u {
 #define UV3H_LB_BAU_SB_ACTIVATION_STATUS_0 0x320030UL
 #define UV4H_LB_BAU_SB_ACTIVATION_STATUS_0 0xc8030UL
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_0 (				\
-	is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_STATUS_0 :		\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_0 :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_0 :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_0)
+		is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_STATUS_0 :		\
+		is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_0 :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_0 :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_0)
 
 #define UV1H_LB_BAU_SB_ACTIVATION_STATUS_0_32 0x9b0
 #define UV2H_LB_BAU_SB_ACTIVATION_STATUS_0_32 0x9b0
 #define UV3H_LB_BAU_SB_ACTIVATION_STATUS_0_32 0x9b0
 #define UV4H_LB_BAU_SB_ACTIVATION_STATUS_0_32 0x9d0
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_0_32 (				\
-	is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_STATUS_0_32 :		\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_0_32 :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_0_32 :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_0_32)
+		is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_STATUS_0_32 :		\
+		is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_0_32 :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_0_32 :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_0_32)
 
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_0_STATUS_SHFT	0
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_0_STATUS_MASK	0xffffffffffffffffUL
 
 
-union uvh_lb_bau_sb_activation_status_0_u {
+union uvh_lb_bau_sb_activation_status_0_u
+{
 	unsigned long	v;
-	struct uvh_lb_bau_sb_activation_status_0_s {
-		unsigned long	status:64;			/* RW */
+	struct uvh_lb_bau_sb_activation_status_0_s
+	{
+		unsigned long	status: 64;			/* RW */
 	} s;
 };
 
@@ -2729,29 +2820,31 @@ union uvh_lb_bau_sb_activation_status_0_u {
 #define UV3H_LB_BAU_SB_ACTIVATION_STATUS_1 0x320040UL
 #define UV4H_LB_BAU_SB_ACTIVATION_STATUS_1 0xc8040UL
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_1 (				\
-	is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_STATUS_1 :		\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_1 :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_1 :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_1)
+		is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_STATUS_1 :		\
+		is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_1 :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_1 :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_1)
 
 #define UV1H_LB_BAU_SB_ACTIVATION_STATUS_1_32 0x9b8
 #define UV2H_LB_BAU_SB_ACTIVATION_STATUS_1_32 0x9b8
 #define UV3H_LB_BAU_SB_ACTIVATION_STATUS_1_32 0x9b8
 #define UV4H_LB_BAU_SB_ACTIVATION_STATUS_1_32 0x9d8
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_1_32 (				\
-	is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_STATUS_1_32 :		\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_1_32 :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_1_32 :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_1_32)
+		is_uv1_hub() ? UV1H_LB_BAU_SB_ACTIVATION_STATUS_1_32 :		\
+		is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_1_32 :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_1_32 :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_1_32)
 
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_1_STATUS_SHFT	0
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_1_STATUS_MASK	0xffffffffffffffffUL
 
 
-union uvh_lb_bau_sb_activation_status_1_u {
+union uvh_lb_bau_sb_activation_status_1_u
+{
 	unsigned long	v;
-	struct uvh_lb_bau_sb_activation_status_1_s {
-		unsigned long	status:64;			/* RW */
+	struct uvh_lb_bau_sb_activation_status_1_s
+	{
+		unsigned long	status: 64;			/* RW */
 	} s;
 };
 
@@ -2763,20 +2856,20 @@ union uvh_lb_bau_sb_activation_status_1_u {
 #define UV3H_LB_BAU_SB_DESCRIPTOR_BASE 0x320010UL
 #define UV4H_LB_BAU_SB_DESCRIPTOR_BASE 0xc8010UL
 #define UVH_LB_BAU_SB_DESCRIPTOR_BASE (					\
-	is_uv1_hub() ? UV1H_LB_BAU_SB_DESCRIPTOR_BASE :			\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_DESCRIPTOR_BASE :			\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_DESCRIPTOR_BASE :			\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_DESCRIPTOR_BASE)
+		is_uv1_hub() ? UV1H_LB_BAU_SB_DESCRIPTOR_BASE :			\
+		is_uv2_hub() ? UV2H_LB_BAU_SB_DESCRIPTOR_BASE :			\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_DESCRIPTOR_BASE :			\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_DESCRIPTOR_BASE)
 
 #define UV1H_LB_BAU_SB_DESCRIPTOR_BASE_32 0x9a0
 #define UV2H_LB_BAU_SB_DESCRIPTOR_BASE_32 0x9a0
 #define UV3H_LB_BAU_SB_DESCRIPTOR_BASE_32 0x9a0
 #define UV4H_LB_BAU_SB_DESCRIPTOR_BASE_32 0x9c0
 #define UVH_LB_BAU_SB_DESCRIPTOR_BASE_32 (				\
-	is_uv1_hub() ? UV1H_LB_BAU_SB_DESCRIPTOR_BASE_32 :		\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_DESCRIPTOR_BASE_32 :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_DESCRIPTOR_BASE_32 :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_DESCRIPTOR_BASE_32)
+		is_uv1_hub() ? UV1H_LB_BAU_SB_DESCRIPTOR_BASE_32 :		\
+		is_uv2_hub() ? UV2H_LB_BAU_SB_DESCRIPTOR_BASE_32 :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_DESCRIPTOR_BASE_32 :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_DESCRIPTOR_BASE_32)
 
 #define UVH_LB_BAU_SB_DESCRIPTOR_BASE_PAGE_ADDRESS_SHFT	12
 #define UVH_LB_BAU_SB_DESCRIPTOR_BASE_NODE_ID_SHFT	49
@@ -2792,20 +2885,23 @@ union uvh_lb_bau_sb_activation_status_1_u {
 #define UV4H_LB_BAU_SB_DESCRIPTOR_BASE_PAGE_ADDRESS_MASK 0x00003ffffffff000UL
 
 
-union uvh_lb_bau_sb_descriptor_base_u {
+union uvh_lb_bau_sb_descriptor_base_u
+{
 	unsigned long	v;
-	struct uvh_lb_bau_sb_descriptor_base_s {
-		unsigned long	rsvd_0_11:12;
-		unsigned long	rsvd_12_48:37;
-		unsigned long	node_id:14;			/* RW */
-		unsigned long	rsvd_63:1;
+	struct uvh_lb_bau_sb_descriptor_base_s
+	{
+		unsigned long	rsvd_0_11: 12;
+		unsigned long	rsvd_12_48: 37;
+		unsigned long	node_id: 14;			/* RW */
+		unsigned long	rsvd_63: 1;
 	} s;
-	struct uv4h_lb_bau_sb_descriptor_base_s {
-		unsigned long	rsvd_0_11:12;
-		unsigned long	page_address:34;		/* RW */
-		unsigned long	rsvd_46_48:3;
-		unsigned long	node_id:14;			/* RW */
-		unsigned long	rsvd_63:1;
+	struct uv4h_lb_bau_sb_descriptor_base_s
+	{
+		unsigned long	rsvd_0_11: 12;
+		unsigned long	page_address: 34;		/* RW */
+		unsigned long	rsvd_46_48: 3;
+		unsigned long	node_id: 14;			/* RW */
+		unsigned long	rsvd_63: 1;
 	} s4;
 };
 
@@ -2913,75 +3009,82 @@ union uvh_lb_bau_sb_descriptor_base_u {
 #define UV4H_NODE_ID_NI_PORT_MASK			0x3e00000000000000UL
 
 
-union uvh_node_id_u {
+union uvh_node_id_u
+{
 	unsigned long	v;
-	struct uvh_node_id_s {
-		unsigned long	force1:1;			/* RO */
-		unsigned long	manufacturer:11;		/* RO */
-		unsigned long	part_number:16;			/* RO */
-		unsigned long	revision:4;			/* RO */
-		unsigned long	node_id:15;			/* RW */
-		unsigned long	rsvd_47_63:17;
+	struct uvh_node_id_s
+	{
+		unsigned long	force1: 1;			/* RO */
+		unsigned long	manufacturer: 11;		/* RO */
+		unsigned long	part_number: 16;			/* RO */
+		unsigned long	revision: 4;			/* RO */
+		unsigned long	node_id: 15;			/* RW */
+		unsigned long	rsvd_47_63: 17;
 	} s;
-	struct uv1h_node_id_s {
-		unsigned long	force1:1;			/* RO */
-		unsigned long	manufacturer:11;		/* RO */
-		unsigned long	part_number:16;			/* RO */
-		unsigned long	revision:4;			/* RO */
-		unsigned long	node_id:15;			/* RW */
-		unsigned long	rsvd_47:1;
-		unsigned long	nodes_per_bit:7;		/* RW */
-		unsigned long	rsvd_55:1;
-		unsigned long	ni_port:4;			/* RO */
-		unsigned long	rsvd_60_63:4;
+	struct uv1h_node_id_s
+	{
+		unsigned long	force1: 1;			/* RO */
+		unsigned long	manufacturer: 11;		/* RO */
+		unsigned long	part_number: 16;			/* RO */
+		unsigned long	revision: 4;			/* RO */
+		unsigned long	node_id: 15;			/* RW */
+		unsigned long	rsvd_47: 1;
+		unsigned long	nodes_per_bit: 7;		/* RW */
+		unsigned long	rsvd_55: 1;
+		unsigned long	ni_port: 4;			/* RO */
+		unsigned long	rsvd_60_63: 4;
 	} s1;
-	struct uvxh_node_id_s {
-		unsigned long	force1:1;			/* RO */
-		unsigned long	manufacturer:11;		/* RO */
-		unsigned long	part_number:16;			/* RO */
-		unsigned long	revision:4;			/* RO */
-		unsigned long	node_id:15;			/* RW */
-		unsigned long	rsvd_47_49:3;
-		unsigned long	nodes_per_bit:7;		/* RO */
-		unsigned long	ni_port:5;			/* RO */
-		unsigned long	rsvd_62_63:2;
+	struct uvxh_node_id_s
+	{
+		unsigned long	force1: 1;			/* RO */
+		unsigned long	manufacturer: 11;		/* RO */
+		unsigned long	part_number: 16;			/* RO */
+		unsigned long	revision: 4;			/* RO */
+		unsigned long	node_id: 15;			/* RW */
+		unsigned long	rsvd_47_49: 3;
+		unsigned long	nodes_per_bit: 7;		/* RO */
+		unsigned long	ni_port: 5;			/* RO */
+		unsigned long	rsvd_62_63: 2;
 	} sx;
-	struct uv2h_node_id_s {
-		unsigned long	force1:1;			/* RO */
-		unsigned long	manufacturer:11;		/* RO */
-		unsigned long	part_number:16;			/* RO */
-		unsigned long	revision:4;			/* RO */
-		unsigned long	node_id:15;			/* RW */
-		unsigned long	rsvd_47_49:3;
-		unsigned long	nodes_per_bit:7;		/* RO */
-		unsigned long	ni_port:5;			/* RO */
-		unsigned long	rsvd_62_63:2;
+	struct uv2h_node_id_s
+	{
+		unsigned long	force1: 1;			/* RO */
+		unsigned long	manufacturer: 11;		/* RO */
+		unsigned long	part_number: 16;			/* RO */
+		unsigned long	revision: 4;			/* RO */
+		unsigned long	node_id: 15;			/* RW */
+		unsigned long	rsvd_47_49: 3;
+		unsigned long	nodes_per_bit: 7;		/* RO */
+		unsigned long	ni_port: 5;			/* RO */
+		unsigned long	rsvd_62_63: 2;
 	} s2;
-	struct uv3h_node_id_s {
-		unsigned long	force1:1;			/* RO */
-		unsigned long	manufacturer:11;		/* RO */
-		unsigned long	part_number:16;			/* RO */
-		unsigned long	revision:4;			/* RO */
-		unsigned long	node_id:15;			/* RW */
-		unsigned long	rsvd_47:1;
-		unsigned long	router_select:1;		/* RO */
-		unsigned long	rsvd_49:1;
-		unsigned long	nodes_per_bit:7;		/* RO */
-		unsigned long	ni_port:5;			/* RO */
-		unsigned long	rsvd_62_63:2;
+	struct uv3h_node_id_s
+	{
+		unsigned long	force1: 1;			/* RO */
+		unsigned long	manufacturer: 11;		/* RO */
+		unsigned long	part_number: 16;			/* RO */
+		unsigned long	revision: 4;			/* RO */
+		unsigned long	node_id: 15;			/* RW */
+		unsigned long	rsvd_47: 1;
+		unsigned long	router_select: 1;		/* RO */
+		unsigned long	rsvd_49: 1;
+		unsigned long	nodes_per_bit: 7;		/* RO */
+		unsigned long	ni_port: 5;			/* RO */
+		unsigned long	rsvd_62_63: 2;
 	} s3;
-	struct uv4h_node_id_s {
-		unsigned long	force1:1;			/* RO */
-		unsigned long	manufacturer:11;		/* RO */
-		unsigned long	part_number:16;			/* RO */
-		unsigned long	revision:4;			/* RO */
-		unsigned long	node_id:15;			/* RW */
-		unsigned long	rsvd_47:1;
-		unsigned long	router_select:1;		/* RO */
-		unsigned long	rsvd_49:1;
-		unsigned long	nodes_per_bit:7;		/* RO */
-		unsigned long	ni_port:5;			/* RO */
-		unsigned long	rsvd_62_63:2;
+	struct uv4h_node_id_s
+	{
+		unsigned long	force1: 1;			/* RO */
+		unsigned long	manufacturer: 11;		/* RO */
+		unsigned long	part_number: 16;			/* RO */
+		unsigned long	revision: 4;			/* RO */
+		unsigned long	node_id: 15;			/* RW */
+		unsigned long	rsvd_47: 1;
+		unsigned long	router_select: 1;		/* RO */
+		unsigned long	rsvd_49: 1;
+		unsigned long	nodes_per_bit: 7;		/* RO */
+		unsigned long	ni_port: 5;			/* RO */
+		unsigned long	rsvd_62_63: 2;
 	} s4;
 };
 
@@ -2995,19 +3098,21 @@ union uvh_node_id_u {
 #define UV3H_NODE_PRESENT_TABLE_DEPTH 16
 #define UV4H_NODE_PRESENT_TABLE_DEPTH 4
 #define UVH_NODE_PRESENT_TABLE_DEPTH (					\
-	is_uv1_hub() ? UV1H_NODE_PRESENT_TABLE_DEPTH :			\
-	is_uv2_hub() ? UV2H_NODE_PRESENT_TABLE_DEPTH :			\
-	is_uv3_hub() ? UV3H_NODE_PRESENT_TABLE_DEPTH :			\
-	/*is_uv4_hub*/ UV4H_NODE_PRESENT_TABLE_DEPTH)
+		is_uv1_hub() ? UV1H_NODE_PRESENT_TABLE_DEPTH :			\
+		is_uv2_hub() ? UV2H_NODE_PRESENT_TABLE_DEPTH :			\
+		is_uv3_hub() ? UV3H_NODE_PRESENT_TABLE_DEPTH :			\
+		/*is_uv4_hub*/ UV4H_NODE_PRESENT_TABLE_DEPTH)
 
 #define UVH_NODE_PRESENT_TABLE_NODES_SHFT		0
 #define UVH_NODE_PRESENT_TABLE_NODES_MASK		0xffffffffffffffffUL
 
 
-union uvh_node_present_table_u {
+union uvh_node_present_table_u
+{
 	unsigned long	v;
-	struct uvh_node_present_table_s {
-		unsigned long	nodes:64;			/* RW */
+	struct uvh_node_present_table_s
+	{
+		unsigned long	nodes: 64;			/* RW */
 	} s;
 };
 
@@ -3019,10 +3124,10 @@ union uvh_node_present_table_u {
 #define UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR 0x16000c8UL
 #define UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR 0x4800c8UL
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR (			\
-	is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR :	\
-	is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR :	\
-	is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR :	\
-	/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR :	\
+		is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR :	\
+		is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR :	\
+		/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR)
 
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR_BASE_SHFT 24
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR_M_ALIAS_SHFT 48
@@ -3032,15 +3137,17 @@ union uvh_node_present_table_u {
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_0_MMR_ENABLE_MASK 0x8000000000000000UL
 
 
-union uvh_rh_gam_alias210_overlay_config_0_mmr_u {
+union uvh_rh_gam_alias210_overlay_config_0_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_alias210_overlay_config_0_mmr_s {
-		unsigned long	rsvd_0_23:24;
-		unsigned long	base:8;				/* RW */
-		unsigned long	rsvd_32_47:16;
-		unsigned long	m_alias:5;			/* RW */
-		unsigned long	rsvd_53_62:10;
-		unsigned long	enable:1;			/* RW */
+	struct uvh_rh_gam_alias210_overlay_config_0_mmr_s
+	{
+		unsigned long	rsvd_0_23: 24;
+		unsigned long	base: 8;				/* RW */
+		unsigned long	rsvd_32_47: 16;
+		unsigned long	m_alias: 5;			/* RW */
+		unsigned long	rsvd_53_62: 10;
+		unsigned long	enable: 1;			/* RW */
 	} s;
 };
 
@@ -3052,10 +3159,10 @@ union uvh_rh_gam_alias210_overlay_config_0_mmr_u {
 #define UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR 0x16000d8UL
 #define UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR 0x4800d8UL
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR (			\
-	is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR :	\
-	is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR :	\
-	is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR :	\
-	/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR :	\
+		is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR :	\
+		is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR :	\
+		/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR)
 
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR_BASE_SHFT 24
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR_M_ALIAS_SHFT 48
@@ -3065,15 +3172,17 @@ union uvh_rh_gam_alias210_overlay_config_0_mmr_u {
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_1_MMR_ENABLE_MASK 0x8000000000000000UL
 
 
-union uvh_rh_gam_alias210_overlay_config_1_mmr_u {
+union uvh_rh_gam_alias210_overlay_config_1_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_alias210_overlay_config_1_mmr_s {
-		unsigned long	rsvd_0_23:24;
-		unsigned long	base:8;				/* RW */
-		unsigned long	rsvd_32_47:16;
-		unsigned long	m_alias:5;			/* RW */
-		unsigned long	rsvd_53_62:10;
-		unsigned long	enable:1;			/* RW */
+	struct uvh_rh_gam_alias210_overlay_config_1_mmr_s
+	{
+		unsigned long	rsvd_0_23: 24;
+		unsigned long	base: 8;				/* RW */
+		unsigned long	rsvd_32_47: 16;
+		unsigned long	m_alias: 5;			/* RW */
+		unsigned long	rsvd_53_62: 10;
+		unsigned long	enable: 1;			/* RW */
 	} s;
 };
 
@@ -3085,10 +3194,10 @@ union uvh_rh_gam_alias210_overlay_config_1_mmr_u {
 #define UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR 0x16000e8UL
 #define UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR 0x4800e8UL
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR (			\
-	is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR :	\
-	is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR :	\
-	is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR :	\
-	/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR :	\
+		is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR :	\
+		is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR :	\
+		/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR)
 
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR_BASE_SHFT 24
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR_M_ALIAS_SHFT 48
@@ -3098,15 +3207,17 @@ union uvh_rh_gam_alias210_overlay_config_1_mmr_u {
 #define UVH_RH_GAM_ALIAS210_OVERLAY_CONFIG_2_MMR_ENABLE_MASK 0x8000000000000000UL
 
 
-union uvh_rh_gam_alias210_overlay_config_2_mmr_u {
+union uvh_rh_gam_alias210_overlay_config_2_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_alias210_overlay_config_2_mmr_s {
-		unsigned long	rsvd_0_23:24;
-		unsigned long	base:8;				/* RW */
-		unsigned long	rsvd_32_47:16;
-		unsigned long	m_alias:5;			/* RW */
-		unsigned long	rsvd_53_62:10;
-		unsigned long	enable:1;			/* RW */
+	struct uvh_rh_gam_alias210_overlay_config_2_mmr_s
+	{
+		unsigned long	rsvd_0_23: 24;
+		unsigned long	base: 8;				/* RW */
+		unsigned long	rsvd_32_47: 16;
+		unsigned long	m_alias: 5;			/* RW */
+		unsigned long	rsvd_53_62: 10;
+		unsigned long	enable: 1;			/* RW */
 	} s;
 };
 
@@ -3118,21 +3229,23 @@ union uvh_rh_gam_alias210_overlay_config_2_mmr_u {
 #define UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR 0x16000d0UL
 #define UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR 0x4800d0UL
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR (			\
-	is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR :	\
-	is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR :	\
-	is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR :	\
-	/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR :	\
+		is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR :	\
+		is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR :	\
+		/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR)
 
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR_DEST_BASE_SHFT 24
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR_DEST_BASE_MASK 0x00003fffff000000UL
 
 
-union uvh_rh_gam_alias210_redirect_config_0_mmr_u {
+union uvh_rh_gam_alias210_redirect_config_0_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_alias210_redirect_config_0_mmr_s {
-		unsigned long	rsvd_0_23:24;
-		unsigned long	dest_base:22;			/* RW */
-		unsigned long	rsvd_46_63:18;
+	struct uvh_rh_gam_alias210_redirect_config_0_mmr_s
+	{
+		unsigned long	rsvd_0_23: 24;
+		unsigned long	dest_base: 22;			/* RW */
+		unsigned long	rsvd_46_63: 18;
 	} s;
 };
 
@@ -3144,21 +3257,23 @@ union uvh_rh_gam_alias210_redirect_config_0_mmr_u {
 #define UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR 0x16000e0UL
 #define UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR 0x4800e0UL
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR (			\
-	is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR :	\
-	is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR :	\
-	is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR :	\
-	/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR :	\
+		is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR :	\
+		is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR :	\
+		/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR)
 
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR_DEST_BASE_SHFT 24
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR_DEST_BASE_MASK 0x00003fffff000000UL
 
 
-union uvh_rh_gam_alias210_redirect_config_1_mmr_u {
+union uvh_rh_gam_alias210_redirect_config_1_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_alias210_redirect_config_1_mmr_s {
-		unsigned long	rsvd_0_23:24;
-		unsigned long	dest_base:22;			/* RW */
-		unsigned long	rsvd_46_63:18;
+	struct uvh_rh_gam_alias210_redirect_config_1_mmr_s
+	{
+		unsigned long	rsvd_0_23: 24;
+		unsigned long	dest_base: 22;			/* RW */
+		unsigned long	rsvd_46_63: 18;
 	} s;
 };
 
@@ -3170,21 +3285,23 @@ union uvh_rh_gam_alias210_redirect_config_1_mmr_u {
 #define UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR 0x16000f0UL
 #define UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR 0x4800f0UL
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR (			\
-	is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR :	\
-	is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR :	\
-	is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR :	\
-	/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR :	\
+		is_uv2_hub() ? UV2H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR :	\
+		is_uv3_hub() ? UV3H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR :	\
+		/*is_uv4_hub*/ UV4H_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR)
 
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR_DEST_BASE_SHFT 24
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR_DEST_BASE_MASK 0x00003fffff000000UL
 
 
-union uvh_rh_gam_alias210_redirect_config_2_mmr_u {
+union uvh_rh_gam_alias210_redirect_config_2_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_alias210_redirect_config_2_mmr_s {
-		unsigned long	rsvd_0_23:24;
-		unsigned long	dest_base:22;			/* RW */
-		unsigned long	rsvd_46_63:18;
+	struct uvh_rh_gam_alias210_redirect_config_2_mmr_s
+	{
+		unsigned long	rsvd_0_23: 24;
+		unsigned long	dest_base: 22;			/* RW */
+		unsigned long	rsvd_46_63: 18;
 	} s;
 };
 
@@ -3196,10 +3313,10 @@ union uvh_rh_gam_alias210_redirect_config_2_mmr_u {
 #define UV3H_RH_GAM_CONFIG_MMR 0x1600000UL
 #define UV4H_RH_GAM_CONFIG_MMR 0x480000UL
 #define UVH_RH_GAM_CONFIG_MMR (						\
-	is_uv1_hub() ? UV1H_RH_GAM_CONFIG_MMR :				\
-	is_uv2_hub() ? UV2H_RH_GAM_CONFIG_MMR :				\
-	is_uv3_hub() ? UV3H_RH_GAM_CONFIG_MMR :				\
-	/*is_uv4_hub*/ UV4H_RH_GAM_CONFIG_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_CONFIG_MMR :				\
+		is_uv2_hub() ? UV2H_RH_GAM_CONFIG_MMR :				\
+		is_uv3_hub() ? UV3H_RH_GAM_CONFIG_MMR :				\
+		/*is_uv4_hub*/ UV4H_RH_GAM_CONFIG_MMR)
 
 #define UVH_RH_GAM_CONFIG_MMR_N_SKT_SHFT		6
 #define UVH_RH_GAM_CONFIG_MMR_N_SKT_MASK		0x00000000000003c0UL
@@ -3228,39 +3345,46 @@ union uvh_rh_gam_alias210_redirect_config_2_mmr_u {
 #define UV4H_RH_GAM_CONFIG_MMR_N_SKT_MASK		0x00000000000003c0UL
 
 
-union uvh_rh_gam_config_mmr_u {
+union uvh_rh_gam_config_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_config_mmr_s {
-		unsigned long	rsvd_0_5:6;
-		unsigned long	n_skt:4;			/* RW */
-		unsigned long	rsvd_10_63:54;
+	struct uvh_rh_gam_config_mmr_s
+	{
+		unsigned long	rsvd_0_5: 6;
+		unsigned long	n_skt: 4;			/* RW */
+		unsigned long	rsvd_10_63: 54;
 	} s;
-	struct uv1h_rh_gam_config_mmr_s {
-		unsigned long	m_skt:6;			/* RW */
-		unsigned long	n_skt:4;			/* RW */
-		unsigned long	rsvd_10_11:2;
-		unsigned long	mmiol_cfg:1;			/* RW */
-		unsigned long	rsvd_13_63:51;
+	struct uv1h_rh_gam_config_mmr_s
+	{
+		unsigned long	m_skt: 6;			/* RW */
+		unsigned long	n_skt: 4;			/* RW */
+		unsigned long	rsvd_10_11: 2;
+		unsigned long	mmiol_cfg: 1;			/* RW */
+		unsigned long	rsvd_13_63: 51;
 	} s1;
-	struct uvxh_rh_gam_config_mmr_s {
-		unsigned long	rsvd_0_5:6;
-		unsigned long	n_skt:4;			/* RW */
-		unsigned long	rsvd_10_63:54;
+	struct uvxh_rh_gam_config_mmr_s
+	{
+		unsigned long	rsvd_0_5: 6;
+		unsigned long	n_skt: 4;			/* RW */
+		unsigned long	rsvd_10_63: 54;
 	} sx;
-	struct uv2h_rh_gam_config_mmr_s {
-		unsigned long	m_skt:6;			/* RW */
-		unsigned long	n_skt:4;			/* RW */
-		unsigned long	rsvd_10_63:54;
+	struct uv2h_rh_gam_config_mmr_s
+	{
+		unsigned long	m_skt: 6;			/* RW */
+		unsigned long	n_skt: 4;			/* RW */
+		unsigned long	rsvd_10_63: 54;
 	} s2;
-	struct uv3h_rh_gam_config_mmr_s {
-		unsigned long	m_skt:6;			/* RW */
-		unsigned long	n_skt:4;			/* RW */
-		unsigned long	rsvd_10_63:54;
+	struct uv3h_rh_gam_config_mmr_s
+	{
+		unsigned long	m_skt: 6;			/* RW */
+		unsigned long	n_skt: 4;			/* RW */
+		unsigned long	rsvd_10_63: 54;
 	} s3;
-	struct uv4h_rh_gam_config_mmr_s {
-		unsigned long	rsvd_0_5:6;
-		unsigned long	n_skt:4;			/* RW */
-		unsigned long	rsvd_10_63:54;
+	struct uv4h_rh_gam_config_mmr_s
+	{
+		unsigned long	rsvd_0_5: 6;
+		unsigned long	n_skt: 4;			/* RW */
+		unsigned long	rsvd_10_63: 54;
 	} s4;
 };
 
@@ -3272,10 +3396,10 @@ union uvh_rh_gam_config_mmr_u {
 #define UV3H_RH_GAM_GRU_OVERLAY_CONFIG_MMR 0x1600010UL
 #define UV4H_RH_GAM_GRU_OVERLAY_CONFIG_MMR 0x480010UL
 #define UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR (				\
-	is_uv1_hub() ? UV1H_RH_GAM_GRU_OVERLAY_CONFIG_MMR :		\
-	is_uv2_hub() ? UV2H_RH_GAM_GRU_OVERLAY_CONFIG_MMR :		\
-	is_uv3_hub() ? UV3H_RH_GAM_GRU_OVERLAY_CONFIG_MMR :		\
-	/*is_uv4_hub*/ UV4H_RH_GAM_GRU_OVERLAY_CONFIG_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_GRU_OVERLAY_CONFIG_MMR :		\
+		is_uv2_hub() ? UV2H_RH_GAM_GRU_OVERLAY_CONFIG_MMR :		\
+		is_uv3_hub() ? UV3H_RH_GAM_GRU_OVERLAY_CONFIG_MMR :		\
+		/*is_uv4_hub*/ UV4H_RH_GAM_GRU_OVERLAY_CONFIG_MMR)
 
 #define UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR_N_GRU_SHFT	52
 #define UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR_ENABLE_SHFT	63
@@ -3320,66 +3444,73 @@ union uvh_rh_gam_config_mmr_u {
 #define UV4H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_ENABLE_MASK	0x8000000000000000UL
 
 #define UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK (			\
-	is_uv1_hub() ? UV1H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK :	\
-	is_uv2_hub() ? UV2H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK :	\
-	is_uv3_hub() ? UV3H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK :	\
-	/*is_uv4_hub*/ UV4H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK)
+		is_uv1_hub() ? UV1H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK :	\
+		is_uv2_hub() ? UV2H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK :	\
+		is_uv3_hub() ? UV3H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK :	\
+		/*is_uv4_hub*/ UV4H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_MASK)
 #define UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT (			\
-	is_uv1_hub() ? UV1H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT :	\
-	is_uv2_hub() ? UV2H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT :	\
-	is_uv3_hub() ? UV3H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT :	\
-	/*is_uv4_hub*/ UV4H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT)
+		is_uv1_hub() ? UV1H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT :	\
+		is_uv2_hub() ? UV2H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT :	\
+		is_uv3_hub() ? UV3H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT :	\
+		/*is_uv4_hub*/ UV4H_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT)
 
-union uvh_rh_gam_gru_overlay_config_mmr_u {
+union uvh_rh_gam_gru_overlay_config_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_gru_overlay_config_mmr_s {
-		unsigned long	rsvd_0_51:52;
-		unsigned long	n_gru:4;			/* RW */
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uvh_rh_gam_gru_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_51: 52;
+		unsigned long	n_gru: 4;			/* RW */
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} s;
-	struct uv1h_rh_gam_gru_overlay_config_mmr_s {
-		unsigned long	rsvd_0_27:28;
-		unsigned long	base:18;			/* RW */
-		unsigned long	rsvd_46_47:2;
-		unsigned long	gr4:1;				/* RW */
-		unsigned long	rsvd_49_51:3;
-		unsigned long	n_gru:4;			/* RW */
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uv1h_rh_gam_gru_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_27: 28;
+		unsigned long	base: 18;			/* RW */
+		unsigned long	rsvd_46_47: 2;
+		unsigned long	gr4: 1;				/* RW */
+		unsigned long	rsvd_49_51: 3;
+		unsigned long	n_gru: 4;			/* RW */
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} s1;
-	struct uvxh_rh_gam_gru_overlay_config_mmr_s {
-		unsigned long	rsvd_0_45:46;
-		unsigned long	rsvd_46_51:6;
-		unsigned long	n_gru:4;			/* RW */
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uvxh_rh_gam_gru_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_45: 46;
+		unsigned long	rsvd_46_51: 6;
+		unsigned long	n_gru: 4;			/* RW */
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} sx;
-	struct uv2h_rh_gam_gru_overlay_config_mmr_s {
-		unsigned long	rsvd_0_27:28;
-		unsigned long	base:18;			/* RW */
-		unsigned long	rsvd_46_51:6;
-		unsigned long	n_gru:4;			/* RW */
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uv2h_rh_gam_gru_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_27: 28;
+		unsigned long	base: 18;			/* RW */
+		unsigned long	rsvd_46_51: 6;
+		unsigned long	n_gru: 4;			/* RW */
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} s2;
-	struct uv3h_rh_gam_gru_overlay_config_mmr_s {
-		unsigned long	rsvd_0_27:28;
-		unsigned long	base:18;			/* RW */
-		unsigned long	rsvd_46_51:6;
-		unsigned long	n_gru:4;			/* RW */
-		unsigned long	rsvd_56_61:6;
-		unsigned long	mode:1;				/* RW */
-		unsigned long	enable:1;			/* RW */
+	struct uv3h_rh_gam_gru_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_27: 28;
+		unsigned long	base: 18;			/* RW */
+		unsigned long	rsvd_46_51: 6;
+		unsigned long	n_gru: 4;			/* RW */
+		unsigned long	rsvd_56_61: 6;
+		unsigned long	mode: 1;				/* RW */
+		unsigned long	enable: 1;			/* RW */
 	} s3;
-	struct uv4h_rh_gam_gru_overlay_config_mmr_s {
-		unsigned long	rsvd_0_24:25;
-		unsigned long	undef_25:1;			/* Undefined */
-		unsigned long	base:20;			/* RW */
-		unsigned long	rsvd_46_51:6;
-		unsigned long	n_gru:4;			/* RW */
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uv4h_rh_gam_gru_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_24: 25;
+		unsigned long	undef_25: 1;			/* Undefined */
+		unsigned long	base: 20;			/* RW */
+		unsigned long	rsvd_46_51: 6;
+		unsigned long	n_gru: 4;			/* RW */
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} s4;
 };
 
@@ -3391,10 +3522,10 @@ union uvh_rh_gam_gru_overlay_config_mmr_u {
 #define UV3H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR uv_undefined("UV3H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR")
 #define UV4H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR uv_undefined("UV4H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR")
 #define UVH_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR (				\
-	is_uv1_hub() ? UV1H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR :		\
-	is_uv2_hub() ? UV2H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR :		\
-	is_uv3_hub() ? UV3H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR :		\
-	/*is_uv4_hub*/ UV4H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR :		\
+		is_uv2_hub() ? UV2H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR :		\
+		is_uv3_hub() ? UV3H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR :		\
+		/*is_uv4_hub*/ UV4H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR)
 
 
 #define UV1H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR_BASE_SHFT	30
@@ -3417,23 +3548,26 @@ union uvh_rh_gam_gru_overlay_config_mmr_u {
 #define UV2H_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR_ENABLE_MASK 0x8000000000000000UL
 
 
-union uvh_rh_gam_mmioh_overlay_config_mmr_u {
+union uvh_rh_gam_mmioh_overlay_config_mmr_u
+{
 	unsigned long	v;
-	struct uv1h_rh_gam_mmioh_overlay_config_mmr_s {
-		unsigned long	rsvd_0_29:30;
-		unsigned long	base:16;			/* RW */
-		unsigned long	m_io:6;				/* RW */
-		unsigned long	n_io:4;				/* RW */
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uv1h_rh_gam_mmioh_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_29: 30;
+		unsigned long	base: 16;			/* RW */
+		unsigned long	m_io: 6;				/* RW */
+		unsigned long	n_io: 4;				/* RW */
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} s1;
-	struct uv2h_rh_gam_mmioh_overlay_config_mmr_s {
-		unsigned long	rsvd_0_26:27;
-		unsigned long	base:19;			/* RW */
-		unsigned long	m_io:6;				/* RW */
-		unsigned long	n_io:4;				/* RW */
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uv2h_rh_gam_mmioh_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_26: 27;
+		unsigned long	base: 19;			/* RW */
+		unsigned long	m_io: 6;				/* RW */
+		unsigned long	n_io: 4;				/* RW */
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} s2;
 };
 
@@ -3445,10 +3579,10 @@ union uvh_rh_gam_mmioh_overlay_config_mmr_u {
 #define UV3H_RH_GAM_MMR_OVERLAY_CONFIG_MMR 0x1600028UL
 #define UV4H_RH_GAM_MMR_OVERLAY_CONFIG_MMR 0x480028UL
 #define UVH_RH_GAM_MMR_OVERLAY_CONFIG_MMR (				\
-	is_uv1_hub() ? UV1H_RH_GAM_MMR_OVERLAY_CONFIG_MMR :		\
-	is_uv2_hub() ? UV2H_RH_GAM_MMR_OVERLAY_CONFIG_MMR :		\
-	is_uv3_hub() ? UV3H_RH_GAM_MMR_OVERLAY_CONFIG_MMR :		\
-	/*is_uv4_hub*/ UV4H_RH_GAM_MMR_OVERLAY_CONFIG_MMR)
+		is_uv1_hub() ? UV1H_RH_GAM_MMR_OVERLAY_CONFIG_MMR :		\
+		is_uv2_hub() ? UV2H_RH_GAM_MMR_OVERLAY_CONFIG_MMR :		\
+		is_uv3_hub() ? UV3H_RH_GAM_MMR_OVERLAY_CONFIG_MMR :		\
+		/*is_uv4_hub*/ UV4H_RH_GAM_MMR_OVERLAY_CONFIG_MMR)
 
 #define UVH_RH_GAM_MMR_OVERLAY_CONFIG_MMR_BASE_SHFT	26
 #define UVH_RH_GAM_MMR_OVERLAY_CONFIG_MMR_ENABLE_SHFT	63
@@ -3483,44 +3617,51 @@ union uvh_rh_gam_mmioh_overlay_config_mmr_u {
 #define UV4H_RH_GAM_MMR_OVERLAY_CONFIG_MMR_ENABLE_MASK	0x8000000000000000UL
 
 
-union uvh_rh_gam_mmr_overlay_config_mmr_u {
+union uvh_rh_gam_mmr_overlay_config_mmr_u
+{
 	unsigned long	v;
-	struct uvh_rh_gam_mmr_overlay_config_mmr_s {
-		unsigned long	rsvd_0_25:26;
-		unsigned long	base:20;			/* RW */
-		unsigned long	rsvd_46_62:17;
-		unsigned long	enable:1;			/* RW */
+	struct uvh_rh_gam_mmr_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_25: 26;
+		unsigned long	base: 20;			/* RW */
+		unsigned long	rsvd_46_62: 17;
+		unsigned long	enable: 1;			/* RW */
 	} s;
-	struct uv1h_rh_gam_mmr_overlay_config_mmr_s {
-		unsigned long	rsvd_0_25:26;
-		unsigned long	base:20;			/* RW */
-		unsigned long	dual_hub:1;			/* RW */
-		unsigned long	rsvd_47_62:16;
-		unsigned long	enable:1;			/* RW */
+	struct uv1h_rh_gam_mmr_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_25: 26;
+		unsigned long	base: 20;			/* RW */
+		unsigned long	dual_hub: 1;			/* RW */
+		unsigned long	rsvd_47_62: 16;
+		unsigned long	enable: 1;			/* RW */
 	} s1;
-	struct uvxh_rh_gam_mmr_overlay_config_mmr_s {
-		unsigned long	rsvd_0_25:26;
-		unsigned long	base:20;			/* RW */
-		unsigned long	rsvd_46_62:17;
-		unsigned long	enable:1;			/* RW */
+	struct uvxh_rh_gam_mmr_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_25: 26;
+		unsigned long	base: 20;			/* RW */
+		unsigned long	rsvd_46_62: 17;
+		unsigned long	enable: 1;			/* RW */
 	} sx;
-	struct uv2h_rh_gam_mmr_overlay_config_mmr_s {
-		unsigned long	rsvd_0_25:26;
-		unsigned long	base:20;			/* RW */
-		unsigned long	rsvd_46_62:17;
-		unsigned long	enable:1;			/* RW */
+	struct uv2h_rh_gam_mmr_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_25: 26;
+		unsigned long	base: 20;			/* RW */
+		unsigned long	rsvd_46_62: 17;
+		unsigned long	enable: 1;			/* RW */
 	} s2;
-	struct uv3h_rh_gam_mmr_overlay_config_mmr_s {
-		unsigned long	rsvd_0_25:26;
-		unsigned long	base:20;			/* RW */
-		unsigned long	rsvd_46_62:17;
-		unsigned long	enable:1;			/* RW */
+	struct uv3h_rh_gam_mmr_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_25: 26;
+		unsigned long	base: 20;			/* RW */
+		unsigned long	rsvd_46_62: 17;
+		unsigned long	enable: 1;			/* RW */
 	} s3;
-	struct uv4h_rh_gam_mmr_overlay_config_mmr_s {
-		unsigned long	rsvd_0_25:26;
-		unsigned long	base:20;			/* RW */
-		unsigned long	rsvd_46_62:17;
-		unsigned long	enable:1;			/* RW */
+	struct uv4h_rh_gam_mmr_overlay_config_mmr_s
+	{
+		unsigned long	rsvd_0_25: 26;
+		unsigned long	base: 20;			/* RW */
+		unsigned long	rsvd_46_62: 17;
+		unsigned long	enable: 1;			/* RW */
 	} s4;
 };
 
@@ -3532,20 +3673,22 @@ union uvh_rh_gam_mmr_overlay_config_mmr_u {
 #define UV3H_RTC 0x340000UL
 #define UV4H_RTC 0xe0000UL
 #define UVH_RTC (							\
-	is_uv1_hub() ? UV1H_RTC :					\
-	is_uv2_hub() ? UV2H_RTC :					\
-	is_uv3_hub() ? UV3H_RTC :					\
-	/*is_uv4_hub*/ UV4H_RTC)
+		is_uv1_hub() ? UV1H_RTC :					\
+		is_uv2_hub() ? UV2H_RTC :					\
+		is_uv3_hub() ? UV3H_RTC :					\
+		/*is_uv4_hub*/ UV4H_RTC)
 
 #define UVH_RTC_REAL_TIME_CLOCK_SHFT			0
 #define UVH_RTC_REAL_TIME_CLOCK_MASK			0x00ffffffffffffffUL
 
 
-union uvh_rtc_u {
+union uvh_rtc_u
+{
 	unsigned long	v;
-	struct uvh_rtc_s {
-		unsigned long	real_time_clock:56;		/* RW */
-		unsigned long	rsvd_56_63:8;
+	struct uvh_rtc_s
+	{
+		unsigned long	real_time_clock: 56;		/* RW */
+		unsigned long	rsvd_56_63: 8;
 	} s;
 };
 
@@ -3572,19 +3715,21 @@ union uvh_rtc_u {
 #define UVH_RTC1_INT_CONFIG_APIC_ID_MASK		0xffffffff00000000UL
 
 
-union uvh_rtc1_int_config_u {
+union uvh_rtc1_int_config_u
+{
 	unsigned long	v;
-	struct uvh_rtc1_int_config_s {
-		unsigned long	vector_:8;			/* RW */
-		unsigned long	dm:3;				/* RW */
-		unsigned long	destmode:1;			/* RW */
-		unsigned long	status:1;			/* RO */
-		unsigned long	p:1;				/* RO */
-		unsigned long	rsvd_14:1;
-		unsigned long	t:1;				/* RO */
-		unsigned long	m:1;				/* RW */
-		unsigned long	rsvd_17_31:15;
-		unsigned long	apic_id:32;			/* RW */
+	struct uvh_rtc1_int_config_s
+	{
+		unsigned long	vector_: 8;			/* RW */
+		unsigned long	dm: 3;				/* RW */
+		unsigned long	destmode: 1;			/* RW */
+		unsigned long	status: 1;			/* RO */
+		unsigned long	p: 1;				/* RO */
+		unsigned long	rsvd_14: 1;
+		unsigned long	t: 1;				/* RO */
+		unsigned long	m: 1;				/* RW */
+		unsigned long	rsvd_17_31: 15;
+		unsigned long	apic_id: 32;			/* RW */
 	} s;
 };
 
@@ -3596,29 +3741,31 @@ union uvh_rtc1_int_config_u {
 #define UV3H_SCRATCH5 0x2d0200UL
 #define UV4H_SCRATCH5 0xb0200UL
 #define UVH_SCRATCH5 (							\
-	is_uv1_hub() ? UV1H_SCRATCH5 :					\
-	is_uv2_hub() ? UV2H_SCRATCH5 :					\
-	is_uv3_hub() ? UV3H_SCRATCH5 :					\
-	/*is_uv4_hub*/ UV4H_SCRATCH5)
+		is_uv1_hub() ? UV1H_SCRATCH5 :					\
+		is_uv2_hub() ? UV2H_SCRATCH5 :					\
+		is_uv3_hub() ? UV3H_SCRATCH5 :					\
+		/*is_uv4_hub*/ UV4H_SCRATCH5)
 
 #define UV1H_SCRATCH5_32 0x778
 #define UV2H_SCRATCH5_32 0x778
 #define UV3H_SCRATCH5_32 0x778
 #define UV4H_SCRATCH5_32 0x798
 #define UVH_SCRATCH5_32 (						\
-	is_uv1_hub() ? UV1H_SCRATCH5_32 :				\
-	is_uv2_hub() ? UV2H_SCRATCH5_32 :				\
-	is_uv3_hub() ? UV3H_SCRATCH5_32 :				\
-	/*is_uv4_hub*/ UV4H_SCRATCH5_32)
+		is_uv1_hub() ? UV1H_SCRATCH5_32 :				\
+		is_uv2_hub() ? UV2H_SCRATCH5_32 :				\
+		is_uv3_hub() ? UV3H_SCRATCH5_32 :				\
+		/*is_uv4_hub*/ UV4H_SCRATCH5_32)
 
 #define UVH_SCRATCH5_SCRATCH5_SHFT			0
 #define UVH_SCRATCH5_SCRATCH5_MASK			0xffffffffffffffffUL
 
 
-union uvh_scratch5_u {
+union uvh_scratch5_u
+{
 	unsigned long	v;
-	struct uvh_scratch5_s {
-		unsigned long	scratch5:64;			/* RW, W1CS */
+	struct uvh_scratch5_s
+	{
+		unsigned long	scratch5: 64;			/* RW, W1CS */
 	} s;
 };
 
@@ -3630,20 +3777,20 @@ union uvh_scratch5_u {
 #define UV3H_SCRATCH5_ALIAS 0x2d0208UL
 #define UV4H_SCRATCH5_ALIAS 0xb0208UL
 #define UVH_SCRATCH5_ALIAS (						\
-	is_uv1_hub() ? UV1H_SCRATCH5_ALIAS :				\
-	is_uv2_hub() ? UV2H_SCRATCH5_ALIAS :				\
-	is_uv3_hub() ? UV3H_SCRATCH5_ALIAS :				\
-	/*is_uv4_hub*/ UV4H_SCRATCH5_ALIAS)
+		is_uv1_hub() ? UV1H_SCRATCH5_ALIAS :				\
+		is_uv2_hub() ? UV2H_SCRATCH5_ALIAS :				\
+		is_uv3_hub() ? UV3H_SCRATCH5_ALIAS :				\
+		/*is_uv4_hub*/ UV4H_SCRATCH5_ALIAS)
 
 #define UV1H_SCRATCH5_ALIAS_32 0x780
 #define UV2H_SCRATCH5_ALIAS_32 0x780
 #define UV3H_SCRATCH5_ALIAS_32 0x780
 #define UV4H_SCRATCH5_ALIAS_32 0x7a0
 #define UVH_SCRATCH5_ALIAS_32 (						\
-	is_uv1_hub() ? UV1H_SCRATCH5_ALIAS_32 :				\
-	is_uv2_hub() ? UV2H_SCRATCH5_ALIAS_32 :				\
-	is_uv3_hub() ? UV3H_SCRATCH5_ALIAS_32 :				\
-	/*is_uv4_hub*/ UV4H_SCRATCH5_ALIAS_32)
+		is_uv1_hub() ? UV1H_SCRATCH5_ALIAS_32 :				\
+		is_uv2_hub() ? UV2H_SCRATCH5_ALIAS_32 :				\
+		is_uv3_hub() ? UV3H_SCRATCH5_ALIAS_32 :				\
+		/*is_uv4_hub*/ UV4H_SCRATCH5_ALIAS_32)
 
 
 /* ========================================================================= */
@@ -3654,10 +3801,10 @@ union uvh_scratch5_u {
 #define UV3H_SCRATCH5_ALIAS_2 0x2d0210UL
 #define UV4H_SCRATCH5_ALIAS_2 0xb0210UL
 #define UVH_SCRATCH5_ALIAS_2 (						\
-	is_uv1_hub() ? UV1H_SCRATCH5_ALIAS_2 :				\
-	is_uv2_hub() ? UV2H_SCRATCH5_ALIAS_2 :				\
-	is_uv3_hub() ? UV3H_SCRATCH5_ALIAS_2 :				\
-	/*is_uv4_hub*/ UV4H_SCRATCH5_ALIAS_2)
+		is_uv1_hub() ? UV1H_SCRATCH5_ALIAS_2 :				\
+		is_uv2_hub() ? UV2H_SCRATCH5_ALIAS_2 :				\
+		is_uv3_hub() ? UV3H_SCRATCH5_ALIAS_2 :				\
+		/*is_uv4_hub*/ UV4H_SCRATCH5_ALIAS_2)
 #define UVH_SCRATCH5_ALIAS_2_32 0x788
 
 
@@ -3670,9 +3817,9 @@ union uvh_scratch5_u {
 #define UV3H_EVENT_OCCURRED2_32 0xb68
 #define UV4H_EVENT_OCCURRED2_32 0x608
 #define UVH_EVENT_OCCURRED2_32 (					\
-	is_uv2_hub() ? UV2H_EVENT_OCCURRED2_32 :			\
-	is_uv3_hub() ? UV3H_EVENT_OCCURRED2_32 :			\
-	/*is_uv4_hub*/ UV4H_EVENT_OCCURRED2_32)
+		is_uv2_hub() ? UV2H_EVENT_OCCURRED2_32 :			\
+		is_uv3_hub() ? UV3H_EVENT_OCCURRED2_32 :			\
+		/*is_uv4_hub*/ UV4H_EVENT_OCCURRED2_32)
 
 
 #define UV2H_EVENT_OCCURRED2_RTC_0_SHFT			0
@@ -3907,134 +4054,138 @@ union uvh_scratch5_u {
 #define UV4H_EVENT_OCCURRED2_RTC_31_MASK		0x0002000000000000UL
 
 #define UVXH_EVENT_OCCURRED2_RTC_1_MASK (				\
-	is_uv2_hub() ? UV2H_EVENT_OCCURRED2_RTC_1_MASK :		\
-	is_uv3_hub() ? UV3H_EVENT_OCCURRED2_RTC_1_MASK :		\
-	/*is_uv4_hub*/ UV4H_EVENT_OCCURRED2_RTC_1_MASK)
+		is_uv2_hub() ? UV2H_EVENT_OCCURRED2_RTC_1_MASK :		\
+		is_uv3_hub() ? UV3H_EVENT_OCCURRED2_RTC_1_MASK :		\
+		/*is_uv4_hub*/ UV4H_EVENT_OCCURRED2_RTC_1_MASK)
 
-union uvh_event_occurred2_u {
+union uvh_event_occurred2_u
+{
 	unsigned long	v;
-	struct uv2h_event_occurred2_s {
-		unsigned long	rtc_0:1;			/* RW */
-		unsigned long	rtc_1:1;			/* RW */
-		unsigned long	rtc_2:1;			/* RW */
-		unsigned long	rtc_3:1;			/* RW */
-		unsigned long	rtc_4:1;			/* RW */
-		unsigned long	rtc_5:1;			/* RW */
-		unsigned long	rtc_6:1;			/* RW */
-		unsigned long	rtc_7:1;			/* RW */
-		unsigned long	rtc_8:1;			/* RW */
-		unsigned long	rtc_9:1;			/* RW */
-		unsigned long	rtc_10:1;			/* RW */
-		unsigned long	rtc_11:1;			/* RW */
-		unsigned long	rtc_12:1;			/* RW */
-		unsigned long	rtc_13:1;			/* RW */
-		unsigned long	rtc_14:1;			/* RW */
-		unsigned long	rtc_15:1;			/* RW */
-		unsigned long	rtc_16:1;			/* RW */
-		unsigned long	rtc_17:1;			/* RW */
-		unsigned long	rtc_18:1;			/* RW */
-		unsigned long	rtc_19:1;			/* RW */
-		unsigned long	rtc_20:1;			/* RW */
-		unsigned long	rtc_21:1;			/* RW */
-		unsigned long	rtc_22:1;			/* RW */
-		unsigned long	rtc_23:1;			/* RW */
-		unsigned long	rtc_24:1;			/* RW */
-		unsigned long	rtc_25:1;			/* RW */
-		unsigned long	rtc_26:1;			/* RW */
-		unsigned long	rtc_27:1;			/* RW */
-		unsigned long	rtc_28:1;			/* RW */
-		unsigned long	rtc_29:1;			/* RW */
-		unsigned long	rtc_30:1;			/* RW */
-		unsigned long	rtc_31:1;			/* RW */
-		unsigned long	rsvd_32_63:32;
+	struct uv2h_event_occurred2_s
+	{
+		unsigned long	rtc_0: 1;			/* RW */
+		unsigned long	rtc_1: 1;			/* RW */
+		unsigned long	rtc_2: 1;			/* RW */
+		unsigned long	rtc_3: 1;			/* RW */
+		unsigned long	rtc_4: 1;			/* RW */
+		unsigned long	rtc_5: 1;			/* RW */
+		unsigned long	rtc_6: 1;			/* RW */
+		unsigned long	rtc_7: 1;			/* RW */
+		unsigned long	rtc_8: 1;			/* RW */
+		unsigned long	rtc_9: 1;			/* RW */
+		unsigned long	rtc_10: 1;			/* RW */
+		unsigned long	rtc_11: 1;			/* RW */
+		unsigned long	rtc_12: 1;			/* RW */
+		unsigned long	rtc_13: 1;			/* RW */
+		unsigned long	rtc_14: 1;			/* RW */
+		unsigned long	rtc_15: 1;			/* RW */
+		unsigned long	rtc_16: 1;			/* RW */
+		unsigned long	rtc_17: 1;			/* RW */
+		unsigned long	rtc_18: 1;			/* RW */
+		unsigned long	rtc_19: 1;			/* RW */
+		unsigned long	rtc_20: 1;			/* RW */
+		unsigned long	rtc_21: 1;			/* RW */
+		unsigned long	rtc_22: 1;			/* RW */
+		unsigned long	rtc_23: 1;			/* RW */
+		unsigned long	rtc_24: 1;			/* RW */
+		unsigned long	rtc_25: 1;			/* RW */
+		unsigned long	rtc_26: 1;			/* RW */
+		unsigned long	rtc_27: 1;			/* RW */
+		unsigned long	rtc_28: 1;			/* RW */
+		unsigned long	rtc_29: 1;			/* RW */
+		unsigned long	rtc_30: 1;			/* RW */
+		unsigned long	rtc_31: 1;			/* RW */
+		unsigned long	rsvd_32_63: 32;
 	} s2;
-	struct uv3h_event_occurred2_s {
-		unsigned long	rtc_0:1;			/* RW */
-		unsigned long	rtc_1:1;			/* RW */
-		unsigned long	rtc_2:1;			/* RW */
-		unsigned long	rtc_3:1;			/* RW */
-		unsigned long	rtc_4:1;			/* RW */
-		unsigned long	rtc_5:1;			/* RW */
-		unsigned long	rtc_6:1;			/* RW */
-		unsigned long	rtc_7:1;			/* RW */
-		unsigned long	rtc_8:1;			/* RW */
-		unsigned long	rtc_9:1;			/* RW */
-		unsigned long	rtc_10:1;			/* RW */
-		unsigned long	rtc_11:1;			/* RW */
-		unsigned long	rtc_12:1;			/* RW */
-		unsigned long	rtc_13:1;			/* RW */
-		unsigned long	rtc_14:1;			/* RW */
-		unsigned long	rtc_15:1;			/* RW */
-		unsigned long	rtc_16:1;			/* RW */
-		unsigned long	rtc_17:1;			/* RW */
-		unsigned long	rtc_18:1;			/* RW */
-		unsigned long	rtc_19:1;			/* RW */
-		unsigned long	rtc_20:1;			/* RW */
-		unsigned long	rtc_21:1;			/* RW */
-		unsigned long	rtc_22:1;			/* RW */
-		unsigned long	rtc_23:1;			/* RW */
-		unsigned long	rtc_24:1;			/* RW */
-		unsigned long	rtc_25:1;			/* RW */
-		unsigned long	rtc_26:1;			/* RW */
-		unsigned long	rtc_27:1;			/* RW */
-		unsigned long	rtc_28:1;			/* RW */
-		unsigned long	rtc_29:1;			/* RW */
-		unsigned long	rtc_30:1;			/* RW */
-		unsigned long	rtc_31:1;			/* RW */
-		unsigned long	rsvd_32_63:32;
+	struct uv3h_event_occurred2_s
+	{
+		unsigned long	rtc_0: 1;			/* RW */
+		unsigned long	rtc_1: 1;			/* RW */
+		unsigned long	rtc_2: 1;			/* RW */
+		unsigned long	rtc_3: 1;			/* RW */
+		unsigned long	rtc_4: 1;			/* RW */
+		unsigned long	rtc_5: 1;			/* RW */
+		unsigned long	rtc_6: 1;			/* RW */
+		unsigned long	rtc_7: 1;			/* RW */
+		unsigned long	rtc_8: 1;			/* RW */
+		unsigned long	rtc_9: 1;			/* RW */
+		unsigned long	rtc_10: 1;			/* RW */
+		unsigned long	rtc_11: 1;			/* RW */
+		unsigned long	rtc_12: 1;			/* RW */
+		unsigned long	rtc_13: 1;			/* RW */
+		unsigned long	rtc_14: 1;			/* RW */
+		unsigned long	rtc_15: 1;			/* RW */
+		unsigned long	rtc_16: 1;			/* RW */
+		unsigned long	rtc_17: 1;			/* RW */
+		unsigned long	rtc_18: 1;			/* RW */
+		unsigned long	rtc_19: 1;			/* RW */
+		unsigned long	rtc_20: 1;			/* RW */
+		unsigned long	rtc_21: 1;			/* RW */
+		unsigned long	rtc_22: 1;			/* RW */
+		unsigned long	rtc_23: 1;			/* RW */
+		unsigned long	rtc_24: 1;			/* RW */
+		unsigned long	rtc_25: 1;			/* RW */
+		unsigned long	rtc_26: 1;			/* RW */
+		unsigned long	rtc_27: 1;			/* RW */
+		unsigned long	rtc_28: 1;			/* RW */
+		unsigned long	rtc_29: 1;			/* RW */
+		unsigned long	rtc_30: 1;			/* RW */
+		unsigned long	rtc_31: 1;			/* RW */
+		unsigned long	rsvd_32_63: 32;
 	} s3;
-	struct uv4h_event_occurred2_s {
-		unsigned long	message_accelerator_int0:1;	/* RW */
-		unsigned long	message_accelerator_int1:1;	/* RW */
-		unsigned long	message_accelerator_int2:1;	/* RW */
-		unsigned long	message_accelerator_int3:1;	/* RW */
-		unsigned long	message_accelerator_int4:1;	/* RW */
-		unsigned long	message_accelerator_int5:1;	/* RW */
-		unsigned long	message_accelerator_int6:1;	/* RW */
-		unsigned long	message_accelerator_int7:1;	/* RW */
-		unsigned long	message_accelerator_int8:1;	/* RW */
-		unsigned long	message_accelerator_int9:1;	/* RW */
-		unsigned long	message_accelerator_int10:1;	/* RW */
-		unsigned long	message_accelerator_int11:1;	/* RW */
-		unsigned long	message_accelerator_int12:1;	/* RW */
-		unsigned long	message_accelerator_int13:1;	/* RW */
-		unsigned long	message_accelerator_int14:1;	/* RW */
-		unsigned long	message_accelerator_int15:1;	/* RW */
-		unsigned long	rtc_interval_int:1;		/* RW */
-		unsigned long	bau_dashboard_int:1;		/* RW */
-		unsigned long	rtc_0:1;			/* RW */
-		unsigned long	rtc_1:1;			/* RW */
-		unsigned long	rtc_2:1;			/* RW */
-		unsigned long	rtc_3:1;			/* RW */
-		unsigned long	rtc_4:1;			/* RW */
-		unsigned long	rtc_5:1;			/* RW */
-		unsigned long	rtc_6:1;			/* RW */
-		unsigned long	rtc_7:1;			/* RW */
-		unsigned long	rtc_8:1;			/* RW */
-		unsigned long	rtc_9:1;			/* RW */
-		unsigned long	rtc_10:1;			/* RW */
-		unsigned long	rtc_11:1;			/* RW */
-		unsigned long	rtc_12:1;			/* RW */
-		unsigned long	rtc_13:1;			/* RW */
-		unsigned long	rtc_14:1;			/* RW */
-		unsigned long	rtc_15:1;			/* RW */
-		unsigned long	rtc_16:1;			/* RW */
-		unsigned long	rtc_17:1;			/* RW */
-		unsigned long	rtc_18:1;			/* RW */
-		unsigned long	rtc_19:1;			/* RW */
-		unsigned long	rtc_20:1;			/* RW */
-		unsigned long	rtc_21:1;			/* RW */
-		unsigned long	rtc_22:1;			/* RW */
-		unsigned long	rtc_23:1;			/* RW */
-		unsigned long	rtc_24:1;			/* RW */
-		unsigned long	rtc_25:1;			/* RW */
-		unsigned long	rtc_26:1;			/* RW */
-		unsigned long	rtc_27:1;			/* RW */
-		unsigned long	rtc_28:1;			/* RW */
-		unsigned long	rtc_29:1;			/* RW */
-		unsigned long	rtc_30:1;			/* RW */
-		unsigned long	rtc_31:1;			/* RW */
-		unsigned long	rsvd_50_63:14;
+	struct uv4h_event_occurred2_s
+	{
+		unsigned long	message_accelerator_int0: 1;	/* RW */
+		unsigned long	message_accelerator_int1: 1;	/* RW */
+		unsigned long	message_accelerator_int2: 1;	/* RW */
+		unsigned long	message_accelerator_int3: 1;	/* RW */
+		unsigned long	message_accelerator_int4: 1;	/* RW */
+		unsigned long	message_accelerator_int5: 1;	/* RW */
+		unsigned long	message_accelerator_int6: 1;	/* RW */
+		unsigned long	message_accelerator_int7: 1;	/* RW */
+		unsigned long	message_accelerator_int8: 1;	/* RW */
+		unsigned long	message_accelerator_int9: 1;	/* RW */
+		unsigned long	message_accelerator_int10: 1;	/* RW */
+		unsigned long	message_accelerator_int11: 1;	/* RW */
+		unsigned long	message_accelerator_int12: 1;	/* RW */
+		unsigned long	message_accelerator_int13: 1;	/* RW */
+		unsigned long	message_accelerator_int14: 1;	/* RW */
+		unsigned long	message_accelerator_int15: 1;	/* RW */
+		unsigned long	rtc_interval_int: 1;		/* RW */
+		unsigned long	bau_dashboard_int: 1;		/* RW */
+		unsigned long	rtc_0: 1;			/* RW */
+		unsigned long	rtc_1: 1;			/* RW */
+		unsigned long	rtc_2: 1;			/* RW */
+		unsigned long	rtc_3: 1;			/* RW */
+		unsigned long	rtc_4: 1;			/* RW */
+		unsigned long	rtc_5: 1;			/* RW */
+		unsigned long	rtc_6: 1;			/* RW */
+		unsigned long	rtc_7: 1;			/* RW */
+		unsigned long	rtc_8: 1;			/* RW */
+		unsigned long	rtc_9: 1;			/* RW */
+		unsigned long	rtc_10: 1;			/* RW */
+		unsigned long	rtc_11: 1;			/* RW */
+		unsigned long	rtc_12: 1;			/* RW */
+		unsigned long	rtc_13: 1;			/* RW */
+		unsigned long	rtc_14: 1;			/* RW */
+		unsigned long	rtc_15: 1;			/* RW */
+		unsigned long	rtc_16: 1;			/* RW */
+		unsigned long	rtc_17: 1;			/* RW */
+		unsigned long	rtc_18: 1;			/* RW */
+		unsigned long	rtc_19: 1;			/* RW */
+		unsigned long	rtc_20: 1;			/* RW */
+		unsigned long	rtc_21: 1;			/* RW */
+		unsigned long	rtc_22: 1;			/* RW */
+		unsigned long	rtc_23: 1;			/* RW */
+		unsigned long	rtc_24: 1;			/* RW */
+		unsigned long	rtc_25: 1;			/* RW */
+		unsigned long	rtc_26: 1;			/* RW */
+		unsigned long	rtc_27: 1;			/* RW */
+		unsigned long	rtc_28: 1;			/* RW */
+		unsigned long	rtc_29: 1;			/* RW */
+		unsigned long	rtc_30: 1;			/* RW */
+		unsigned long	rtc_31: 1;			/* RW */
+		unsigned long	rsvd_50_63: 14;
 	} s4;
 };
 
@@ -4047,9 +4198,9 @@ union uvh_event_occurred2_u {
 #define UV3H_EVENT_OCCURRED2_ALIAS_32 0xb70
 #define UV4H_EVENT_OCCURRED2_ALIAS_32 0x610
 #define UVH_EVENT_OCCURRED2_ALIAS_32 (					\
-	is_uv2_hub() ? UV2H_EVENT_OCCURRED2_ALIAS_32 :			\
-	is_uv3_hub() ? UV3H_EVENT_OCCURRED2_ALIAS_32 :			\
-	/*is_uv4_hub*/ UV4H_EVENT_OCCURRED2_ALIAS_32)
+		is_uv2_hub() ? UV2H_EVENT_OCCURRED2_ALIAS_32 :			\
+		is_uv3_hub() ? UV3H_EVENT_OCCURRED2_ALIAS_32 :			\
+		/*is_uv4_hub*/ UV4H_EVENT_OCCURRED2_ALIAS_32)
 
 
 /* ========================================================================= */
@@ -4059,17 +4210,17 @@ union uvh_event_occurred2_u {
 #define UV3H_LB_BAU_SB_ACTIVATION_STATUS_2 0x320130UL
 #define UV4H_LB_BAU_SB_ACTIVATION_STATUS_2 0xc8130UL
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_2 (				\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_2 :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_2 :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_2)
+		is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_2 :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_2 :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_2)
 
 #define UV2H_LB_BAU_SB_ACTIVATION_STATUS_2_32 0x9f0
 #define UV3H_LB_BAU_SB_ACTIVATION_STATUS_2_32 0x9f0
 #define UV4H_LB_BAU_SB_ACTIVATION_STATUS_2_32 0xa10
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_2_32 (				\
-	is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_2_32 :		\
-	is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_2_32 :		\
-	/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_2_32)
+		is_uv2_hub() ? UV2H_LB_BAU_SB_ACTIVATION_STATUS_2_32 :		\
+		is_uv3_hub() ? UV3H_LB_BAU_SB_ACTIVATION_STATUS_2_32 :		\
+		/*is_uv4_hub*/ UV4H_LB_BAU_SB_ACTIVATION_STATUS_2_32)
 
 #define UVXH_LB_BAU_SB_ACTIVATION_STATUS_2_AUX_ERROR_SHFT 0
 #define UVXH_LB_BAU_SB_ACTIVATION_STATUS_2_AUX_ERROR_MASK 0xffffffffffffffffUL
@@ -4084,19 +4235,24 @@ union uvh_event_occurred2_u {
 #define UV4H_LB_BAU_SB_ACTIVATION_STATUS_2_AUX_ERROR_MASK 0xffffffffffffffffUL
 
 
-union uvxh_lb_bau_sb_activation_status_2_u {
+union uvxh_lb_bau_sb_activation_status_2_u
+{
 	unsigned long	v;
-	struct uvxh_lb_bau_sb_activation_status_2_s {
-		unsigned long	aux_error:64;			/* RW */
+	struct uvxh_lb_bau_sb_activation_status_2_s
+	{
+		unsigned long	aux_error: 64;			/* RW */
 	} sx;
-	struct uv2h_lb_bau_sb_activation_status_2_s {
-		unsigned long	aux_error:64;			/* RW */
+	struct uv2h_lb_bau_sb_activation_status_2_s
+	{
+		unsigned long	aux_error: 64;			/* RW */
 	} s2;
-	struct uv3h_lb_bau_sb_activation_status_2_s {
-		unsigned long	aux_error:64;			/* RW */
+	struct uv3h_lb_bau_sb_activation_status_2_s
+	{
+		unsigned long	aux_error: 64;			/* RW */
 	} s3;
-	struct uv4h_lb_bau_sb_activation_status_2_s {
-		unsigned long	aux_error:64;			/* RW */
+	struct uv4h_lb_bau_sb_activation_status_2_s
+	{
+		unsigned long	aux_error: 64;			/* RW */
 	} s4;
 };
 
@@ -4109,11 +4265,13 @@ union uvxh_lb_bau_sb_activation_status_2_u {
 #define UV1H_LB_TARGET_PHYSICAL_APIC_ID_MASK_BIT_ENABLES_SHFT 0
 #define UV1H_LB_TARGET_PHYSICAL_APIC_ID_MASK_BIT_ENABLES_MASK 0x00000000ffffffffUL
 
-union uv1h_lb_target_physical_apic_id_mask_u {
+union uv1h_lb_target_physical_apic_id_mask_u
+{
 	unsigned long	v;
-	struct uv1h_lb_target_physical_apic_id_mask_s {
-		unsigned long	bit_enables:32;			/* RW */
-		unsigned long	rsvd_32_63:32;
+	struct uv1h_lb_target_physical_apic_id_mask_s
+	{
+		unsigned long	bit_enables: 32;			/* RW */
+		unsigned long	rsvd_32_63: 32;
 	} s1;
 };
 
@@ -4127,13 +4285,15 @@ union uv1h_lb_target_physical_apic_id_mask_u {
 #define UV3H_GR0_GAM_GR_CONFIG_M_SKT_MASK		0x000000000000003fUL
 #define UV3H_GR0_GAM_GR_CONFIG_SUBSPACE_MASK		0x0000000000000400UL
 
-union uv3h_gr0_gam_gr_config_u {
+union uv3h_gr0_gam_gr_config_u
+{
 	unsigned long	v;
-	struct uv3h_gr0_gam_gr_config_s {
-		unsigned long	m_skt:6;			/* RW */
-		unsigned long	undef_6_9:4;			/* Undefined */
-		unsigned long	subspace:1;			/* RW */
-		unsigned long	reserved:53;
+	struct uv3h_gr0_gam_gr_config_s
+	{
+		unsigned long	m_skt: 6;			/* RW */
+		unsigned long	undef_6_9: 4;			/* Undefined */
+		unsigned long	subspace: 1;			/* RW */
+		unsigned long	reserved: 53;
 	} s3;
 };
 
@@ -4149,15 +4309,17 @@ union uv3h_gr0_gam_gr_config_u {
 #define UV3H_RH_GAM_MMIOH_OVERLAY_CONFIG0_MMR_M_IO_MASK	0x000fc00000000000UL
 #define UV3H_RH_GAM_MMIOH_OVERLAY_CONFIG0_MMR_ENABLE_MASK 0x8000000000000000UL
 
-union uv3h_rh_gam_mmioh_overlay_config0_mmr_u {
+union uv3h_rh_gam_mmioh_overlay_config0_mmr_u
+{
 	unsigned long	v;
-	struct uv3h_rh_gam_mmioh_overlay_config0_mmr_s {
-		unsigned long	rsvd_0_25:26;
-		unsigned long	base:20;			/* RW */
-		unsigned long	m_io:6;				/* RW */
-		unsigned long	n_io:4;
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uv3h_rh_gam_mmioh_overlay_config0_mmr_s
+	{
+		unsigned long	rsvd_0_25: 26;
+		unsigned long	base: 20;			/* RW */
+		unsigned long	m_io: 6;				/* RW */
+		unsigned long	n_io: 4;
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} s3;
 };
 
@@ -4173,15 +4335,17 @@ union uv3h_rh_gam_mmioh_overlay_config0_mmr_u {
 #define UV3H_RH_GAM_MMIOH_OVERLAY_CONFIG1_MMR_M_IO_MASK	0x000fc00000000000UL
 #define UV3H_RH_GAM_MMIOH_OVERLAY_CONFIG1_MMR_ENABLE_MASK 0x8000000000000000UL
 
-union uv3h_rh_gam_mmioh_overlay_config1_mmr_u {
+union uv3h_rh_gam_mmioh_overlay_config1_mmr_u
+{
 	unsigned long	v;
-	struct uv3h_rh_gam_mmioh_overlay_config1_mmr_s {
-		unsigned long	rsvd_0_25:26;
-		unsigned long	base:20;			/* RW */
-		unsigned long	m_io:6;				/* RW */
-		unsigned long	n_io:4;
-		unsigned long	rsvd_56_62:7;
-		unsigned long	enable:1;			/* RW */
+	struct uv3h_rh_gam_mmioh_overlay_config1_mmr_s
+	{
+		unsigned long	rsvd_0_25: 26;
+		unsigned long	base: 20;			/* RW */
+		unsigned long	m_io: 6;				/* RW */
+		unsigned long	n_io: 4;
+		unsigned long	rsvd_56_62: 7;
+		unsigned long	enable: 1;			/* RW */
 	} s3;
 };
 
@@ -4194,11 +4358,13 @@ union uv3h_rh_gam_mmioh_overlay_config1_mmr_u {
 #define UV3H_RH_GAM_MMIOH_REDIRECT_CONFIG0_MMR_NASID_SHFT 0
 #define UV3H_RH_GAM_MMIOH_REDIRECT_CONFIG0_MMR_NASID_MASK 0x0000000000007fffUL
 
-union uv3h_rh_gam_mmioh_redirect_config0_mmr_u {
+union uv3h_rh_gam_mmioh_redirect_config0_mmr_u
+{
 	unsigned long	v;
-	struct uv3h_rh_gam_mmioh_redirect_config0_mmr_s {
-		unsigned long	nasid:15;			/* RW */
-		unsigned long	rsvd_15_63:49;
+	struct uv3h_rh_gam_mmioh_redirect_config0_mmr_s
+	{
+		unsigned long	nasid: 15;			/* RW */
+		unsigned long	rsvd_15_63: 49;
 	} s3;
 };
 
@@ -4211,11 +4377,13 @@ union uv3h_rh_gam_mmioh_redirect_config0_mmr_u {
 #define UV3H_RH_GAM_MMIOH_REDIRECT_CONFIG1_MMR_NASID_SHFT 0
 #define UV3H_RH_GAM_MMIOH_REDIRECT_CONFIG1_MMR_NASID_MASK 0x0000000000007fffUL
 
-union uv3h_rh_gam_mmioh_redirect_config1_mmr_u {
+union uv3h_rh_gam_mmioh_redirect_config1_mmr_u
+{
 	unsigned long	v;
-	struct uv3h_rh_gam_mmioh_redirect_config1_mmr_s {
-		unsigned long	nasid:15;			/* RW */
-		unsigned long	rsvd_15_63:49;
+	struct uv3h_rh_gam_mmioh_redirect_config1_mmr_s
+	{
+		unsigned long	nasid: 15;			/* RW */
+		unsigned long	rsvd_15_63: 49;
 	} s3;
 };
 
@@ -4227,11 +4395,13 @@ union uv3h_rh_gam_mmioh_redirect_config1_mmr_u {
 #define UV4H_LB_PROC_INTD_QUEUE_FIRST_FIRST_PAYLOAD_ADDRESS_SHFT 6
 #define UV4H_LB_PROC_INTD_QUEUE_FIRST_FIRST_PAYLOAD_ADDRESS_MASK 0x00003fffffffffc0UL
 
-union uv4h_lb_proc_intd_queue_first_u {
+union uv4h_lb_proc_intd_queue_first_u
+{
 	unsigned long	v;
-	struct uv4h_lb_proc_intd_queue_first_s {
-		unsigned long	undef_0_5:6;			/* Undefined */
-		unsigned long	first_payload_address:40;	/* RW */
+	struct uv4h_lb_proc_intd_queue_first_s
+	{
+		unsigned long	undef_0_5: 6;			/* Undefined */
+		unsigned long	first_payload_address: 40;	/* RW */
 	} s4;
 };
 
@@ -4243,11 +4413,13 @@ union uv4h_lb_proc_intd_queue_first_u {
 #define UV4H_LB_PROC_INTD_QUEUE_LAST_LAST_PAYLOAD_ADDRESS_SHFT 5
 #define UV4H_LB_PROC_INTD_QUEUE_LAST_LAST_PAYLOAD_ADDRESS_MASK 0x00003fffffffffe0UL
 
-union uv4h_lb_proc_intd_queue_last_u {
+union uv4h_lb_proc_intd_queue_last_u
+{
 	unsigned long	v;
-	struct uv4h_lb_proc_intd_queue_last_s {
-		unsigned long	undef_0_4:5;			/* Undefined */
-		unsigned long	last_payload_address:41;	/* RW */
+	struct uv4h_lb_proc_intd_queue_last_s
+	{
+		unsigned long	undef_0_4: 5;			/* Undefined */
+		unsigned long	last_payload_address: 41;	/* RW */
 	} s4;
 };
 
@@ -4259,10 +4431,12 @@ union uv4h_lb_proc_intd_queue_last_u {
 #define UV4H_LB_PROC_INTD_SOFT_ACK_CLEAR_SOFT_ACK_PENDING_FLAGS_SHFT 0
 #define UV4H_LB_PROC_INTD_SOFT_ACK_CLEAR_SOFT_ACK_PENDING_FLAGS_MASK 0x00000000000000ffUL
 
-union uv4h_lb_proc_intd_soft_ack_clear_u {
+union uv4h_lb_proc_intd_soft_ack_clear_u
+{
 	unsigned long	v;
-	struct uv4h_lb_proc_intd_soft_ack_clear_s {
-		unsigned long	soft_ack_pending_flags:8;	/* WP */
+	struct uv4h_lb_proc_intd_soft_ack_clear_s
+	{
+		unsigned long	soft_ack_pending_flags: 8;	/* WP */
 	} s4;
 };
 
@@ -4274,10 +4448,12 @@ union uv4h_lb_proc_intd_soft_ack_clear_u {
 #define UV4H_LB_PROC_INTD_SOFT_ACK_PENDING_SOFT_ACK_FLAGS_SHFT 0
 #define UV4H_LB_PROC_INTD_SOFT_ACK_PENDING_SOFT_ACK_FLAGS_MASK 0x00000000000000ffUL
 
-union uv4h_lb_proc_intd_soft_ack_pending_u {
+union uv4h_lb_proc_intd_soft_ack_pending_u
+{
 	unsigned long	v;
-	struct uv4h_lb_proc_intd_soft_ack_pending_s {
-		unsigned long	soft_ack_flags:8;		/* RW */
+	struct uv4h_lb_proc_intd_soft_ack_pending_s
+	{
+		unsigned long	soft_ack_flags: 8;		/* RW */
 	} s4;
 };
 

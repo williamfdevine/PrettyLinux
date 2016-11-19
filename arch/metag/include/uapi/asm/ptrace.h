@@ -64,7 +64,8 @@
  *
  * It is also used in the signal context.
  */
-struct user_gp_regs {
+struct user_gp_regs
+{
 	unsigned long dx[8][2];
 	unsigned long ax[4][2];
 	unsigned long pc;
@@ -87,7 +88,8 @@ struct user_gp_regs {
  *
  * It can be accessed through PTRACE_GETREGSET with NT_METAG_CBUF.
  */
-struct user_cb_regs {
+struct user_cb_regs
+{
 	unsigned long flags;
 	unsigned long addr;
 	unsigned long long data;
@@ -103,7 +105,8 @@ struct user_cb_regs {
  *
  * It can be accessed through PTRACE_GETREGSET with NT_METAG_RPIPE.
  */
-struct user_rp_state {
+struct user_rp_state
+{
 	unsigned long long entries[6];
 	unsigned long mask;
 };

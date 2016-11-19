@@ -39,14 +39,18 @@ static void __init fix_hypertransport_config(int num, int slot, int func)
 	 * if we're using extended apic ids
 	 */
 	htcfg = read_pci_config(num, slot, func, 0x68);
-	if (htcfg & (1 << 18)) {
+
+	if (htcfg & (1 << 18))
+	{
 		printk(KERN_INFO "Detected use of extended apic ids "
-				 "on hypertransport bus\n");
-		if ((htcfg & (1 << 17)) == 0) {
+			   "on hypertransport bus\n");
+
+		if ((htcfg & (1 << 17)) == 0)
+		{
 			printk(KERN_INFO "Enabling hypertransport extended "
-					 "apic interrupt broadcast\n");
+				   "apic interrupt broadcast\n");
 			printk(KERN_INFO "Note this is a bios bug, "
-					 "please contact your hw vendor\n");
+				   "please contact your hw vendor\n");
 			htcfg |= (1 << 17);
 			write_pci_config(num, slot, func, 0x68, htcfg);
 		}
@@ -58,13 +62,16 @@ static void __init fix_hypertransport_config(int num, int slot, int func)
 static void __init via_bugs(int  num, int slot, int func)
 {
 #ifdef CONFIG_GART_IOMMU
+
 	if ((max_pfn > MAX_DMA32_PFN ||  force_iommu) &&
-	    !gart_iommu_aperture_allowed) {
+		!gart_iommu_aperture_allowed)
+	{
 		printk(KERN_INFO
-		       "Looks like a VIA chipset. Disabling IOMMU."
-		       " Override with iommu=allowed\n");
+			   "Looks like a VIA chipset. Disabling IOMMU."
+			   " Override with iommu=allowed\n");
 		gart_iommu_aperture_disabled = 1;
 	}
+
 #endif
 }
 
@@ -82,12 +89,15 @@ static void __init nvidia_bugs(int num, int slot, int func)
 {
 #ifdef CONFIG_ACPI
 #ifdef CONFIG_X86_IO_APIC
+
 	/*
 	 * Only applies to Nvidia root ports (bus 0) and not to
 	 * Nvidia graphics cards with PCI ports on secondary buses.
 	 */
 	if (num)
+	{
 		return;
+	}
 
 	/*
 	 * All timer overrides on Nvidia are
@@ -97,16 +107,20 @@ static void __init nvidia_bugs(int num, int slot, int func)
 	 * at least allow a command line override.
 	 */
 	if (acpi_use_timer_override)
+	{
 		return;
+	}
 
-	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
+	if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check))
+	{
 		acpi_skip_timer_override = 1;
 		printk(KERN_INFO "Nvidia board "
-		       "detected. Ignoring ACPI "
-		       "timer override.\n");
+			   "detected. Ignoring ACPI "
+			   "timer override.\n");
 		printk(KERN_INFO "If you got timer trouble "
-			"try acpi_use_timer_override\n");
+			   "try acpi_use_timer_override\n");
 	}
+
 #endif
 #endif
 	/* RED-PEN skip them on mptables too? */
@@ -120,11 +134,11 @@ static u32 __init ati_ixp4x0_rev(int num, int slot, int func)
 	u8  b;
 
 	b = read_pci_config_byte(num, slot, func, 0xac);
-	b &= ~(1<<5);
+	b &= ~(1 << 5);
 	write_pci_config_byte(num, slot, func, 0xac, b);
 
 	d = read_pci_config(num, slot, func, 0x70);
-	d |= 1<<8;
+	d |= 1 << 8;
 	write_pci_config(num, slot, func, 0x70, d);
 
 	d = read_pci_config(num, slot, func, 0x8);
@@ -138,23 +152,33 @@ static void __init ati_bugs(int num, int slot, int func)
 	u8  b;
 
 	if (acpi_use_timer_override)
+	{
 		return;
-
-	d = ati_ixp4x0_rev(num, slot, func);
-	if (d  < 0x82)
-		acpi_skip_timer_override = 1;
-	else {
-		/* check for IRQ0 interrupt swap */
-		outb(0x72, 0xcd6); b = inb(0xcd7);
-		if (!(b & 0x2))
-			acpi_skip_timer_override = 1;
 	}
 
-	if (acpi_skip_timer_override) {
+	d = ati_ixp4x0_rev(num, slot, func);
+
+	if (d  < 0x82)
+	{
+		acpi_skip_timer_override = 1;
+	}
+	else
+	{
+		/* check for IRQ0 interrupt swap */
+		outb(0x72, 0xcd6); b = inb(0xcd7);
+
+		if (!(b & 0x2))
+		{
+			acpi_skip_timer_override = 1;
+		}
+	}
+
+	if (acpi_skip_timer_override)
+	{
 		printk(KERN_INFO "SB4X0 revision 0x%x\n", d);
 		printk(KERN_INFO "Ignoring ACPI timer override.\n");
 		printk(KERN_INFO "If you got timer trouble "
-		       "try acpi_use_timer_override\n");
+			   "try acpi_use_timer_override\n");
 	}
 }
 
@@ -173,8 +197,11 @@ static void __init ati_bugs_contd(int num, int slot, int func)
 	u32 d, rev;
 
 	rev = ati_sbx00_rev(num, slot, func);
+
 	if (rev >= 0x40)
+	{
 		acpi_fix_pin2_polarity = 1;
+	}
 
 	/*
 	 * SB600: revisions 0x11, 0x12, 0x13, 0x14, ...
@@ -182,21 +209,29 @@ static void __init ati_bugs_contd(int num, int slot, int func)
 	 * SB800: revisions 0x40, 0x41, ...
 	 */
 	if (rev >= 0x39)
+	{
 		return;
+	}
 
 	if (acpi_use_timer_override)
+	{
 		return;
+	}
 
 	/* check for IRQ0 interrupt swap */
 	d = read_pci_config(num, slot, func, 0x64);
-	if (!(d & (1<<14)))
-		acpi_skip_timer_override = 1;
 
-	if (acpi_skip_timer_override) {
+	if (!(d & (1 << 14)))
+	{
+		acpi_skip_timer_override = 1;
+	}
+
+	if (acpi_skip_timer_override)
+	{
 		printk(KERN_INFO "SB600 revision 0x%x\n", rev);
 		printk(KERN_INFO "Ignoring ACPI timer override.\n");
 		printk(KERN_INFO "If you got timer trouble "
-		       "try acpi_use_timer_override\n");
+			   "try acpi_use_timer_override\n");
 	}
 }
 #else
@@ -224,9 +259,13 @@ static void __init intel_remapping_check(int num, int slot, int func)
 	 * revision 0x22 of device id 0x3405 has this problem.
 	 */
 	if (revision <= 0x13)
+	{
 		set_irq_remapping_broken();
+	}
 	else if (device == 0x3405 && revision == 0x22)
+	{
 		set_irq_remapping_broken();
+	}
 }
 
 /*
@@ -247,12 +286,18 @@ static size_t __init i830_tseg_size(void)
 	u8 esmramc = read_pci_config_byte(0, 0, 0, I830_ESMRAMC);
 
 	if (!(esmramc & TSEG_ENABLE))
+	{
 		return 0;
+	}
 
 	if (esmramc & I830_TSEG_SIZE_1M)
+	{
 		return MB(1);
+	}
 	else
+	{
 		return KB(512);
+	}
 }
 
 static size_t __init i845_tseg_size(void)
@@ -261,14 +306,20 @@ static size_t __init i845_tseg_size(void)
 	u8 tseg_size = esmramc & I845_TSEG_SIZE_MASK;
 
 	if (!(esmramc & TSEG_ENABLE))
+	{
 		return 0;
-
-	switch (tseg_size) {
-	case I845_TSEG_SIZE_512K:	return KB(512);
-	case I845_TSEG_SIZE_1M:		return MB(1);
-	default:
-		WARN(1, "Unknown ESMRAMC value: %x!\n", esmramc);
 	}
+
+	switch (tseg_size)
+	{
+		case I845_TSEG_SIZE_512K:	return KB(512);
+
+		case I845_TSEG_SIZE_1M:		return MB(1);
+
+		default:
+			WARN(1, "Unknown ESMRAMC value: %x!\n", esmramc);
+	}
+
 	return 0;
 }
 
@@ -277,7 +328,9 @@ static size_t __init i85x_tseg_size(void)
 	u8 esmramc = read_pci_config_byte(0, 0, 0, I85X_ESMRAMC);
 
 	if (!(esmramc & TSEG_ENABLE))
+	{
 		return 0;
+	}
 
 	return MB(1);
 }
@@ -297,25 +350,25 @@ static size_t __init i85x_mem_size(void)
  * register. We need to calculate it as TOM-TSEG_SIZE-stolen_size.
  */
 static phys_addr_t __init i830_stolen_base(int num, int slot, int func,
-					   size_t stolen_size)
+		size_t stolen_size)
 {
 	return (phys_addr_t)i830_mem_size() - i830_tseg_size() - stolen_size;
 }
 
 static phys_addr_t __init i845_stolen_base(int num, int slot, int func,
-					   size_t stolen_size)
+		size_t stolen_size)
 {
 	return (phys_addr_t)i830_mem_size() - i845_tseg_size() - stolen_size;
 }
 
 static phys_addr_t __init i85x_stolen_base(int num, int slot, int func,
-					   size_t stolen_size)
+		size_t stolen_size)
 {
 	return (phys_addr_t)i85x_mem_size() - i85x_tseg_size() - stolen_size;
 }
 
 static phys_addr_t __init i865_stolen_base(int num, int slot, int func,
-					   size_t stolen_size)
+		size_t stolen_size)
 {
 	u16 toud = 0;
 
@@ -325,7 +378,7 @@ static phys_addr_t __init i865_stolen_base(int num, int slot, int func,
 }
 
 static phys_addr_t __init gen3_stolen_base(int num, int slot, int func,
-					   size_t stolen_size)
+		size_t stolen_size)
 {
 	u32 bsm;
 
@@ -347,14 +400,19 @@ static size_t __init i830_stolen_size(int num, int slot, int func)
 	gmch_ctrl = read_pci_config_16(0, 0, 0, I830_GMCH_CTRL);
 	gms = gmch_ctrl & I830_GMCH_GMS_MASK;
 
-	switch (gms) {
-	case I830_GMCH_GMS_STOLEN_512:	return KB(512);
-	case I830_GMCH_GMS_STOLEN_1024:	return MB(1);
-	case I830_GMCH_GMS_STOLEN_8192:	return MB(8);
-	/* local memory isn't part of the normal address space */
-	case I830_GMCH_GMS_LOCAL:	return 0;
-	default:
-		WARN(1, "Unknown GMCH_CTRL value: %x!\n", gmch_ctrl);
+	switch (gms)
+	{
+		case I830_GMCH_GMS_STOLEN_512:	return KB(512);
+
+		case I830_GMCH_GMS_STOLEN_1024:	return MB(1);
+
+		case I830_GMCH_GMS_STOLEN_8192:	return MB(8);
+
+		/* local memory isn't part of the normal address space */
+		case I830_GMCH_GMS_LOCAL:	return 0;
+
+		default:
+			WARN(1, "Unknown GMCH_CTRL value: %x!\n", gmch_ctrl);
 	}
 
 	return 0;
@@ -368,22 +426,36 @@ static size_t __init gen3_stolen_size(int num, int slot, int func)
 	gmch_ctrl = read_pci_config_16(0, 0, 0, I830_GMCH_CTRL);
 	gms = gmch_ctrl & I855_GMCH_GMS_MASK;
 
-	switch (gms) {
-	case I855_GMCH_GMS_STOLEN_1M:	return MB(1);
-	case I855_GMCH_GMS_STOLEN_4M:	return MB(4);
-	case I855_GMCH_GMS_STOLEN_8M:	return MB(8);
-	case I855_GMCH_GMS_STOLEN_16M:	return MB(16);
-	case I855_GMCH_GMS_STOLEN_32M:	return MB(32);
-	case I915_GMCH_GMS_STOLEN_48M:	return MB(48);
-	case I915_GMCH_GMS_STOLEN_64M:	return MB(64);
-	case G33_GMCH_GMS_STOLEN_128M:	return MB(128);
-	case G33_GMCH_GMS_STOLEN_256M:	return MB(256);
-	case INTEL_GMCH_GMS_STOLEN_96M:	return MB(96);
-	case INTEL_GMCH_GMS_STOLEN_160M:return MB(160);
-	case INTEL_GMCH_GMS_STOLEN_224M:return MB(224);
-	case INTEL_GMCH_GMS_STOLEN_352M:return MB(352);
-	default:
-		WARN(1, "Unknown GMCH_CTRL value: %x!\n", gmch_ctrl);
+	switch (gms)
+	{
+		case I855_GMCH_GMS_STOLEN_1M:	return MB(1);
+
+		case I855_GMCH_GMS_STOLEN_4M:	return MB(4);
+
+		case I855_GMCH_GMS_STOLEN_8M:	return MB(8);
+
+		case I855_GMCH_GMS_STOLEN_16M:	return MB(16);
+
+		case I855_GMCH_GMS_STOLEN_32M:	return MB(32);
+
+		case I915_GMCH_GMS_STOLEN_48M:	return MB(48);
+
+		case I915_GMCH_GMS_STOLEN_64M:	return MB(64);
+
+		case G33_GMCH_GMS_STOLEN_128M:	return MB(128);
+
+		case G33_GMCH_GMS_STOLEN_256M:	return MB(256);
+
+		case INTEL_GMCH_GMS_STOLEN_96M:	return MB(96);
+
+		case INTEL_GMCH_GMS_STOLEN_160M: return MB(160);
+
+		case INTEL_GMCH_GMS_STOLEN_224M: return MB(224);
+
+		case INTEL_GMCH_GMS_STOLEN_352M: return MB(352);
+
+		default:
+			WARN(1, "Unknown GMCH_CTRL value: %x!\n", gmch_ctrl);
 	}
 
 	return 0;
@@ -425,11 +497,17 @@ static size_t __init chv_stolen_size(int num, int slot, int func)
 	 * 0x17 to 0x1d: 4MB increments start at 36MB
 	 */
 	if (gms < 0x11)
+	{
 		return (size_t)gms * MB(32);
+	}
 	else if (gms < 0x17)
+	{
 		return (size_t)(gms - 0x11 + 2) * MB(4);
+	}
 	else
+	{
 		return (size_t)(gms - 0x17 + 9) * MB(4);
+	}
 }
 
 static size_t __init gen9_stolen_size(int num, int slot, int func)
@@ -443,62 +521,77 @@ static size_t __init gen9_stolen_size(int num, int slot, int func)
 	/* 0x0  to 0xef: 32MB increments starting at 0MB */
 	/* 0xf0 to 0xfe: 4MB increments starting at 4MB */
 	if (gms < 0xf0)
+	{
 		return (size_t)gms * MB(32);
+	}
 	else
+	{
 		return (size_t)(gms - 0xf0 + 1) * MB(4);
+	}
 }
 
-struct intel_early_ops {
+struct intel_early_ops
+{
 	size_t (*stolen_size)(int num, int slot, int func);
 	phys_addr_t (*stolen_base)(int num, int slot, int func, size_t size);
 };
 
-static const struct intel_early_ops i830_early_ops __initconst = {
+static const struct intel_early_ops i830_early_ops __initconst =
+{
 	.stolen_base = i830_stolen_base,
 	.stolen_size = i830_stolen_size,
 };
 
-static const struct intel_early_ops i845_early_ops __initconst = {
+static const struct intel_early_ops i845_early_ops __initconst =
+{
 	.stolen_base = i845_stolen_base,
 	.stolen_size = i830_stolen_size,
 };
 
-static const struct intel_early_ops i85x_early_ops __initconst = {
+static const struct intel_early_ops i85x_early_ops __initconst =
+{
 	.stolen_base = i85x_stolen_base,
 	.stolen_size = gen3_stolen_size,
 };
 
-static const struct intel_early_ops i865_early_ops __initconst = {
+static const struct intel_early_ops i865_early_ops __initconst =
+{
 	.stolen_base = i865_stolen_base,
 	.stolen_size = gen3_stolen_size,
 };
 
-static const struct intel_early_ops gen3_early_ops __initconst = {
+static const struct intel_early_ops gen3_early_ops __initconst =
+{
 	.stolen_base = gen3_stolen_base,
 	.stolen_size = gen3_stolen_size,
 };
 
-static const struct intel_early_ops gen6_early_ops __initconst = {
+static const struct intel_early_ops gen6_early_ops __initconst =
+{
 	.stolen_base = gen3_stolen_base,
 	.stolen_size = gen6_stolen_size,
 };
 
-static const struct intel_early_ops gen8_early_ops __initconst = {
+static const struct intel_early_ops gen8_early_ops __initconst =
+{
 	.stolen_base = gen3_stolen_base,
 	.stolen_size = gen8_stolen_size,
 };
 
-static const struct intel_early_ops gen9_early_ops __initconst = {
+static const struct intel_early_ops gen9_early_ops __initconst =
+{
 	.stolen_base = gen3_stolen_base,
 	.stolen_size = gen9_stolen_size,
 };
 
-static const struct intel_early_ops chv_early_ops __initconst = {
+static const struct intel_early_ops chv_early_ops __initconst =
+{
 	.stolen_base = gen3_stolen_base,
 	.stolen_size = chv_stolen_size,
 };
 
-static const struct pci_device_id intel_early_ids[] __initconst = {
+static const struct pci_device_id intel_early_ids[] __initconst =
+{
 	INTEL_I830_IDS(&i830_early_ops),
 	INTEL_I845G_IDS(&i845_early_ops),
 	INTEL_I85X_IDS(&i85x_early_ops),
@@ -530,7 +623,7 @@ static const struct pci_device_id intel_early_ids[] __initconst = {
 
 static void __init
 intel_graphics_stolen(int num, int slot, int func,
-		      const struct intel_early_ops *early_ops)
+					  const struct intel_early_ops *early_ops)
 {
 	phys_addr_t base, end;
 	size_t size;
@@ -539,11 +632,13 @@ intel_graphics_stolen(int num, int slot, int func,
 	base = early_ops->stolen_base(num, slot, func, size);
 
 	if (!size || !base)
+	{
 		return;
+	}
 
 	end = base + size - 1;
 	printk(KERN_INFO "Reserving Intel graphics memory at %pa-%pa\n",
-	       &base, &end);
+		   &base, &end);
 
 	/* Mark this space as reserved */
 	e820_add_region(base, size, E820_RESERVED);
@@ -558,11 +653,14 @@ static void __init intel_graphics_quirks(int num, int slot, int func)
 
 	device = read_pci_config_16(num, slot, func, PCI_DEVICE_ID);
 
-	for (i = 0; i < ARRAY_SIZE(intel_early_ids); i++) {
+	for (i = 0; i < ARRAY_SIZE(intel_early_ids); i++)
+	{
 		kernel_ulong_t driver_data = intel_early_ids[i].driver_data;
 
 		if (intel_early_ids[i].device != device)
+		{
 			continue;
+		}
 
 		early_ops = (typeof(early_ops))driver_data;
 
@@ -593,18 +691,23 @@ static void __init apple_airport_reset(int bus, int slot, int func)
 	int i;
 
 	if (!dmi_match(DMI_SYS_VENDOR, "Apple Inc."))
+	{
 		return;
+	}
 
 	/* Card may have been put into PCI_D3hot by grub quirk */
 	pmcsr = read_pci_config_16(bus, slot, func, BCM4331_PM_CAP + PCI_PM_CTRL);
 
-	if ((pmcsr & PCI_PM_CTRL_STATE_MASK) != PCI_D0) {
+	if ((pmcsr & PCI_PM_CTRL_STATE_MASK) != PCI_D0)
+	{
 		pmcsr &= ~PCI_PM_CTRL_STATE_MASK;
 		write_pci_config_16(bus, slot, func, BCM4331_PM_CAP + PCI_PM_CTRL, pmcsr);
 		mdelay(10);
 
 		pmcsr = read_pci_config_16(bus, slot, func, BCM4331_PM_CAP + PCI_PM_CTRL);
-		if ((pmcsr & PCI_PM_CTRL_STATE_MASK) != PCI_D0) {
+
+		if ((pmcsr & PCI_PM_CTRL_STATE_MASK) != PCI_D0)
+		{
 			dev_err("Cannot power up Apple AirPort card\n");
 			return;
 		}
@@ -615,7 +718,9 @@ static void __init apple_airport_reset(int bus, int slot, int func)
 	addr &= PCI_BASE_ADDRESS_MEM_MASK;
 
 	mmio = early_ioremap(addr, BCM4331_MMIO_SIZE);
-	if (!mmio) {
+
+	if (!mmio)
+	{
 		dev_err("Cannot iomap Apple AirPort card\n");
 		return;
 	}
@@ -623,7 +728,9 @@ static void __init apple_airport_reset(int bus, int slot, int func)
 	pr_info("Resetting Apple AirPort card (left enabled by EFI)\n");
 
 	for (i = 0; bcma_aread32(BCMA_RESET_ST) && i < 30; i++)
+	{
 		udelay(10);
+	}
 
 	bcma_awrite32(BCMA_RESET_CTL, BCMA_RESET_CTL_RESET);
 	bcma_aread32(BCMA_RESET_CTL);
@@ -639,7 +746,8 @@ static void __init apple_airport_reset(int bus, int slot, int func)
 #define QFLAG_APPLY_ONCE 	0x1
 #define QFLAG_APPLIED		0x2
 #define QFLAG_DONE		(QFLAG_APPLY_ONCE|QFLAG_APPLIED)
-struct chipset {
+struct chipset
+{
 	u32 vendor;
 	u32 device;
 	u32 class;
@@ -648,25 +756,44 @@ struct chipset {
 	void (*f)(int num, int slot, int func);
 };
 
-static struct chipset early_qrk[] __initdata = {
-	{ PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
-	  PCI_CLASS_BRIDGE_PCI, PCI_ANY_ID, QFLAG_APPLY_ONCE, nvidia_bugs },
-	{ PCI_VENDOR_ID_VIA, PCI_ANY_ID,
-	  PCI_CLASS_BRIDGE_PCI, PCI_ANY_ID, QFLAG_APPLY_ONCE, via_bugs },
-	{ PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_K8_NB,
-	  PCI_CLASS_BRIDGE_HOST, PCI_ANY_ID, 0, fix_hypertransport_config },
-	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP400_SMBUS,
-	  PCI_CLASS_SERIAL_SMBUS, PCI_ANY_ID, 0, ati_bugs },
-	{ PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_SBX00_SMBUS,
-	  PCI_CLASS_SERIAL_SMBUS, PCI_ANY_ID, 0, ati_bugs_contd },
-	{ PCI_VENDOR_ID_INTEL, 0x3403, PCI_CLASS_BRIDGE_HOST,
-	  PCI_BASE_CLASS_BRIDGE, 0, intel_remapping_check },
-	{ PCI_VENDOR_ID_INTEL, 0x3405, PCI_CLASS_BRIDGE_HOST,
-	  PCI_BASE_CLASS_BRIDGE, 0, intel_remapping_check },
-	{ PCI_VENDOR_ID_INTEL, 0x3406, PCI_CLASS_BRIDGE_HOST,
-	  PCI_BASE_CLASS_BRIDGE, 0, intel_remapping_check },
-	{ PCI_VENDOR_ID_INTEL, PCI_ANY_ID, PCI_CLASS_DISPLAY_VGA, PCI_ANY_ID,
-	  QFLAG_APPLY_ONCE, intel_graphics_quirks },
+static struct chipset early_qrk[] __initdata =
+{
+	{
+		PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
+		PCI_CLASS_BRIDGE_PCI, PCI_ANY_ID, QFLAG_APPLY_ONCE, nvidia_bugs
+	},
+	{
+		PCI_VENDOR_ID_VIA, PCI_ANY_ID,
+		PCI_CLASS_BRIDGE_PCI, PCI_ANY_ID, QFLAG_APPLY_ONCE, via_bugs
+	},
+	{
+		PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_K8_NB,
+		PCI_CLASS_BRIDGE_HOST, PCI_ANY_ID, 0, fix_hypertransport_config
+	},
+	{
+		PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP400_SMBUS,
+		PCI_CLASS_SERIAL_SMBUS, PCI_ANY_ID, 0, ati_bugs
+	},
+	{
+		PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_SBX00_SMBUS,
+		PCI_CLASS_SERIAL_SMBUS, PCI_ANY_ID, 0, ati_bugs_contd
+	},
+	{
+		PCI_VENDOR_ID_INTEL, 0x3403, PCI_CLASS_BRIDGE_HOST,
+		PCI_BASE_CLASS_BRIDGE, 0, intel_remapping_check
+	},
+	{
+		PCI_VENDOR_ID_INTEL, 0x3405, PCI_CLASS_BRIDGE_HOST,
+		PCI_BASE_CLASS_BRIDGE, 0, intel_remapping_check
+	},
+	{
+		PCI_VENDOR_ID_INTEL, 0x3406, PCI_CLASS_BRIDGE_HOST,
+		PCI_BASE_CLASS_BRIDGE, 0, intel_remapping_check
+	},
+	{
+		PCI_VENDOR_ID_INTEL, PCI_ANY_ID, PCI_CLASS_DISPLAY_VGA, PCI_ANY_ID,
+		QFLAG_APPLY_ONCE, intel_graphics_quirks
+	},
 	/*
 	 * HPET on the current version of the Baytrail platform has accuracy
 	 * problems: it will halt in deep idle state - so we disable it.
@@ -675,10 +802,14 @@ static struct chipset early_qrk[] __initdata = {
 	 *
 	 *    http://www.intel.com/content/dam/www/public/us/en/documents/datasheets/atom-z8000-datasheet-vol-1.pdf
 	 */
-	{ PCI_VENDOR_ID_INTEL, 0x0f00,
-		PCI_CLASS_BRIDGE_HOST, PCI_ANY_ID, 0, force_disable_hpet},
-	{ PCI_VENDOR_ID_BROADCOM, 0x4331,
-	  PCI_CLASS_NETWORK_OTHER, PCI_ANY_ID, 0, apple_airport_reset},
+	{
+		PCI_VENDOR_ID_INTEL, 0x0f00,
+		PCI_CLASS_BRIDGE_HOST, PCI_ANY_ID, 0, force_disable_hpet
+	},
+	{
+		PCI_VENDOR_ID_BROADCOM, 0x4331,
+		PCI_CLASS_NETWORK_OTHER, PCI_ANY_ID, 0, apple_airport_reset
+	},
 	{}
 };
 
@@ -707,37 +838,50 @@ static int __init check_dev_quirk(int num, int slot, int func)
 	class = read_pci_config_16(num, slot, func, PCI_CLASS_DEVICE);
 
 	if (class == 0xffff)
-		return -1; /* no class, treat as single function */
+	{
+		return -1;    /* no class, treat as single function */
+	}
 
 	vendor = read_pci_config_16(num, slot, func, PCI_VENDOR_ID);
 
 	device = read_pci_config_16(num, slot, func, PCI_DEVICE_ID);
 
-	for (i = 0; early_qrk[i].f != NULL; i++) {
+	for (i = 0; early_qrk[i].f != NULL; i++)
+	{
 		if (((early_qrk[i].vendor == PCI_ANY_ID) ||
-			(early_qrk[i].vendor == vendor)) &&
+			 (early_qrk[i].vendor == vendor)) &&
 			((early_qrk[i].device == PCI_ANY_ID) ||
-			(early_qrk[i].device == device)) &&
+			 (early_qrk[i].device == device)) &&
 			(!((early_qrk[i].class ^ class) &
-			    early_qrk[i].class_mask))) {
-				if ((early_qrk[i].flags &
-				     QFLAG_DONE) != QFLAG_DONE)
-					early_qrk[i].f(num, slot, func);
-				early_qrk[i].flags |= QFLAG_APPLIED;
+			   early_qrk[i].class_mask)))
+		{
+			if ((early_qrk[i].flags &
+				 QFLAG_DONE) != QFLAG_DONE)
+			{
+				early_qrk[i].f(num, slot, func);
 			}
+
+			early_qrk[i].flags |= QFLAG_APPLIED;
+		}
 	}
 
 	type = read_pci_config_byte(num, slot, func,
-				    PCI_HEADER_TYPE);
+								PCI_HEADER_TYPE);
 
-	if ((type & 0x7f) == PCI_HEADER_TYPE_BRIDGE) {
+	if ((type & 0x7f) == PCI_HEADER_TYPE_BRIDGE)
+	{
 		sec = read_pci_config_byte(num, slot, func, PCI_SECONDARY_BUS);
+
 		if (sec > num)
+		{
 			early_pci_scan_bus(sec);
+		}
 	}
 
 	if (!(type & 0x80))
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -748,17 +892,22 @@ static void __init early_pci_scan_bus(int bus)
 
 	/* Poor man's PCI discovery */
 	for (slot = 0; slot < 32; slot++)
-		for (func = 0; func < 8; func++) {
+		for (func = 0; func < 8; func++)
+		{
 			/* Only probe function 0 on single fn devices */
 			if (check_dev_quirk(bus, slot, func))
+			{
 				break;
+			}
 		}
 }
 
 void __init early_quirks(void)
 {
 	if (!early_pci_allowed())
+	{
 		return;
+	}
 
 	early_pci_scan_bus(0);
 }

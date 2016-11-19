@@ -31,7 +31,7 @@ int (*__prom_getchar)(void);
 char *(*__prom_getenv)(char *);
 int (*__prom_printf)(char *, ...);
 
-int (*__pmax_open)(char*, int);
+int (*__pmax_open)(char *, int);
 int (*__pmax_lseek)(int, long, int);
 int (*__pmax_read)(int, void *, int);
 int (*__pmax_close)(int);
@@ -47,31 +47,34 @@ void __init which_prom(s32 magic, s32 *prom_vec)
 	 * No sign of the REX PROM's magic number means we assume a non-REX
 	 * machine (i.e. we're on a DS2100/3100, DS5100 or DS5000/2xx)
 	 */
-	if (prom_is_rex(magic)) {
+	if (prom_is_rex(magic))
+	{
 		/*
 		 * Set up prom abstraction structure with REX entry points.
 		 */
 		__rex_bootinit =
-			(void *)(long)*(prom_vec + REX_PROM_BOOTINIT);
+			(void *)(long) * (prom_vec + REX_PROM_BOOTINIT);
 		__rex_bootread =
-			(void *)(long)*(prom_vec + REX_PROM_BOOTREAD);
+			(void *)(long) * (prom_vec + REX_PROM_BOOTREAD);
 		__rex_getbitmap =
-			(void *)(long)*(prom_vec + REX_PROM_GETBITMAP);
+			(void *)(long) * (prom_vec + REX_PROM_GETBITMAP);
 		__prom_getchar =
-			(void *)(long)*(prom_vec + REX_PROM_GETCHAR);
+			(void *)(long) * (prom_vec + REX_PROM_GETCHAR);
 		__prom_getenv =
-			(void *)(long)*(prom_vec + REX_PROM_GETENV);
+			(void *)(long) * (prom_vec + REX_PROM_GETENV);
 		__rex_getsysid =
-			(void *)(long)*(prom_vec + REX_PROM_GETSYSID);
+			(void *)(long) * (prom_vec + REX_PROM_GETSYSID);
 		__rex_gettcinfo =
-			(void *)(long)*(prom_vec + REX_PROM_GETTCINFO);
+			(void *)(long) * (prom_vec + REX_PROM_GETTCINFO);
 		__prom_printf =
-			(void *)(long)*(prom_vec + REX_PROM_PRINTF);
+			(void *)(long) * (prom_vec + REX_PROM_PRINTF);
 		__rex_slot_address =
-			(void *)(long)*(prom_vec + REX_PROM_SLOTADDR);
+			(void *)(long) * (prom_vec + REX_PROM_SLOTADDR);
 		__rex_clear_cache =
-			(void *)(long)*(prom_vec + REX_PROM_CLEARCACHE);
-	} else {
+			(void *)(long) * (prom_vec + REX_PROM_CLEARCACHE);
+	}
+	else
+	{
 		/*
 		 * Set up prom abstraction structure with non-REX entry points.
 		 */
@@ -102,32 +105,40 @@ void __init prom_init(void)
 	which_prom(magic, prom_vec);
 
 	if (prom_is_rex(magic))
+	{
 		rex_clear_cache();
+	}
 
 	/* Register the early console.  */
 	register_prom_console();
 
 	/* Were we compiled with the right CPU option? */
 #if defined(CONFIG_CPU_R3000)
+
 	if ((current_cpu_type() == CPU_R4000SC) ||
-	    (current_cpu_type() == CPU_R4400SC)) {
+		(current_cpu_type() == CPU_R4400SC))
+	{
 		static char r4k_msg[] __initdata =
 			"Please recompile with \"CONFIG_CPU_R4x00 = y\".\n";
 		printk(cpu_msg);
 		printk(r4k_msg);
 		dec_machine_halt();
 	}
+
 #endif
 
 #if defined(CONFIG_CPU_R4X00)
+
 	if ((current_cpu_type() == CPU_R3000) ||
-	    (current_cpu_type() == CPU_R3000A)) {
+		(current_cpu_type() == CPU_R3000A))
+	{
 		static char r3k_msg[] __initdata =
 			"Please recompile with \"CONFIG_CPU_R3000 = y\".\n";
 		printk(cpu_msg);
 		printk(r3k_msg);
 		dec_machine_halt();
 	}
+
 #endif
 
 	prom_meminit(magic);

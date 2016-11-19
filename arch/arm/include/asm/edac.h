@@ -30,19 +30,21 @@ static inline void edac_atomic_scrub(void *va, u32 size)
 	unsigned int temp, temp2;
 	unsigned int i;
 
-	for (i = 0; i < size / sizeof(*virt_addr); i++, virt_addr++) {
+	for (i = 0; i < size / sizeof(*virt_addr); i++, virt_addr++)
+	{
 		/* Very carefully read and write to memory atomically
 		 * so we are interrupt, DMA and SMP safe.
 		 */
 		__asm__ __volatile__("\n"
-			"1:	ldrex	%0, [%2]\n"
-			"	strex	%1, %0, [%2]\n"
-			"	teq	%1, #0\n"
-			"	bne	1b\n"
-			: "=&r"(temp), "=&r"(temp2)
-			: "r"(virt_addr)
-			: "cc");
+							 "1:	ldrex	%0, [%2]\n"
+							 "	strex	%1, %0, [%2]\n"
+							 "	teq	%1, #0\n"
+							 "	bne	1b\n"
+							 : "=&r"(temp), "=&r"(temp2)
+							 : "r"(virt_addr)
+							 : "cc");
 	}
+
 #endif
 }
 

@@ -26,16 +26,20 @@
 #ifdef HAVE_JUMP_LABEL
 
 static void __jump_label_transform(struct jump_entry *e,
-				   enum jump_label_type type)
+								   enum jump_label_type type)
 {
 	tilegx_bundle_bits opcode;
 	/* Operate on writable kernel text mapping. */
 	unsigned long pc_wr = ktext_writable_addr(e->code);
 
 	if (type == JUMP_LABEL_JMP)
+	{
 		opcode = tilegx_gen_branch(e->code, e->target, false);
+	}
 	else
+	{
 		opcode = NOP();
+	}
 
 	*(tilegx_bundle_bits *)pc_wr = opcode;
 	/* Make sure that above mem writes were issued towards the memory. */
@@ -43,7 +47,7 @@ static void __jump_label_transform(struct jump_entry *e,
 }
 
 void arch_jump_label_transform(struct jump_entry *e,
-				enum jump_label_type type)
+							   enum jump_label_type type)
 {
 	get_online_cpus();
 	mutex_lock(&text_mutex);
@@ -56,7 +60,7 @@ void arch_jump_label_transform(struct jump_entry *e,
 }
 
 __init_or_module void arch_jump_label_transform_static(struct jump_entry *e,
-						enum jump_label_type type)
+		enum jump_label_type type)
 {
 	__jump_label_transform(e, type);
 }

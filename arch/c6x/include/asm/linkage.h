@@ -10,13 +10,13 @@
 #define ENTRY(name)		\
 	.global name @		\
 	__ALIGN @		\
-name:
+	name:
 #else
 #define ENTRY(name)		\
 	.global name @		\
 	.hidden name @		\
 	__ALIGN @		\
-name:
+	name:
 #endif
 
 #define ENDPROC(name)		\

@@ -65,55 +65,86 @@ asmlinkage void plat_irq_dispatch(void)
 	 */
 
 #ifdef CONFIG_IRQ_MSP_CIC	/* break out the CIC stuff for now */
+
 	if (pending & C_IRQ4)	/* do the peripherals first, that's the timer */
+	{
 		msp_cic_irq_dispatch();
+	}
 
 	else if (pending & C_IRQ0)
+	{
 		do_IRQ(MSP_INT_MAC0);
+	}
 
 	else if (pending & C_IRQ1)
+	{
 		do_IRQ(MSP_INT_MAC1);
+	}
 
 	else if (pending & C_IRQ2)
+	{
 		do_IRQ(MSP_INT_USB);
+	}
 
 	else if (pending & C_IRQ3)
+	{
 		do_IRQ(MSP_INT_SAR);
+	}
 
 	else if (pending & C_IRQ5)
+	{
 		do_IRQ(MSP_INT_SEC);
+	}
 
 #else
+
 	if (pending & C_IRQ5)
+	{
 		do_IRQ(MSP_INT_TIMER);
+	}
 
 	else if (pending & C_IRQ0)
+	{
 		do_IRQ(MSP_INT_MAC0);
+	}
 
 	else if (pending & C_IRQ1)
+	{
 		do_IRQ(MSP_INT_MAC1);
+	}
 
 	else if (pending & C_IRQ3)
+	{
 		do_IRQ(MSP_INT_VE);
+	}
 
 	else if (pending & C_IRQ4)
+	{
 		msp_slp_irq_dispatch();
+	}
+
 #endif
 
 	else if (pending & C_SW0)	/* do software after hardware */
+	{
 		do_IRQ(MSP_INT_SW0);
+	}
 
 	else if (pending & C_SW1)
+	{
 		do_IRQ(MSP_INT_SW1);
+	}
 }
 
-static struct irqaction cic_cascade_msp = {
+static struct irqaction cic_cascade_msp =
+{
 	.handler = no_action,
 	.name	 = "MSP CIC cascade",
 	.flags	 = IRQF_NO_THREAD,
 };
 
-static struct irqaction per_cascade_msp = {
+static struct irqaction per_cascade_msp =
+{
 	.handler = no_action,
 	.name	 = "MSP PER cascade",
 	.flags	 = IRQF_NO_THREAD,

@@ -12,8 +12,8 @@
 #define _MN10300_SERIAL_H
 
 #ifndef __ASSEMBLY__
-#include <linux/serial_core.h>
-#include <linux/termios.h>
+	#include <linux/serial_core.h>
+	#include <linux/termios.h>
 #endif
 
 #include <asm/page.h>
@@ -35,7 +35,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct mn10300_serial_port {
+struct mn10300_serial_port
+{
 	char			*rx_buffer;	/* reception buffer base */
 	unsigned		rx_inp;		/* pointer to rx input offset */
 	unsigned		rx_outp;	/* pointer to rx output offset */
@@ -87,20 +88,21 @@ struct mn10300_serial_port {
 };
 
 #ifdef CONFIG_MN10300_TTYSM0
-extern struct mn10300_serial_port mn10300_serial_port_sif0;
+	extern struct mn10300_serial_port mn10300_serial_port_sif0;
 #endif
 
 #ifdef CONFIG_MN10300_TTYSM1
-extern struct mn10300_serial_port mn10300_serial_port_sif1;
+	extern struct mn10300_serial_port mn10300_serial_port_sif1;
 #endif
 
 #ifdef CONFIG_MN10300_TTYSM2
-extern struct mn10300_serial_port mn10300_serial_port_sif2;
+	extern struct mn10300_serial_port mn10300_serial_port_sif2;
 #endif
 
 extern struct mn10300_serial_port *mn10300_serial_ports[];
 
-struct mn10300_serial_int {
+struct mn10300_serial_int
+{
 	struct mn10300_serial_port *port;
 	asmlinkage void (*vdma)(void);
 };
@@ -114,17 +116,17 @@ extern asmlinkage void mn10300_serial_vdma_tx_handler(void);
 #endif /* __ASSEMBLY__ */
 
 #if defined(CONFIG_GDBSTUB_ON_TTYSM0)
-#define SCgSTR SC0STR
-#define SCgRXB SC0RXB
-#define SCgRXIRQ SC0RXIRQ
+	#define SCgSTR SC0STR
+	#define SCgRXB SC0RXB
+	#define SCgRXIRQ SC0RXIRQ
 #elif defined(CONFIG_GDBSTUB_ON_TTYSM1)
-#define SCgSTR SC1STR
-#define SCgRXB SC1RXB
-#define SCgRXIRQ SC1RXIRQ
+	#define SCgSTR SC1STR
+	#define SCgRXB SC1RXB
+	#define SCgRXIRQ SC1RXIRQ
 #elif defined(CONFIG_GDBSTUB_ON_TTYSM2)
-#define SCgSTR SC2STR
-#define SCgRXB SC2RXB
-#define SCgRXIRQ SC2RXIRQ
+	#define SCgSTR SC2STR
+	#define SCgRXB SC2RXB
+	#define SCgRXIRQ SC2RXIRQ
 #endif
 
 #endif /* _MN10300_SERIAL_H */

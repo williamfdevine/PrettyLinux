@@ -9,7 +9,8 @@
  * handler. That not really the same as a user context that we are
  * going to store on syscall etc.
  */
-struct sigcontext {
+struct sigcontext
+{
 	struct user_gp_regs regs;	/* needs to be first */
 
 	/*

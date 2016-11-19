@@ -28,7 +28,7 @@ unsigned long perip_base = ARC_UNCACHED_ADDR_SPACE; /* legacy value for boot */
 unsigned long perip_end = 0xFFFFFFFF; /* legacy value */
 
 void (*_cache_line_loop_ic_fn)(phys_addr_t paddr, unsigned long vaddr,
-			       unsigned long sz, const int cacheop);
+							   unsigned long sz, const int cacheop);
 
 void (*__dma_cache_wback_inv)(phys_addr_t start, unsigned long sz);
 void (*__dma_cache_inv)(phys_addr_t start, unsigned long sz);
@@ -44,24 +44,25 @@ char *arc_cache_mumbojumbo(int c, char *buf, int len)
 		n += scnprintf(buf + n, len - n, str"\t\t: N/A\n");	\
 	else								\
 		n += scnprintf(buf + n, len - n,			\
-			str"\t\t: %uK, %dway/set, %uB Line, %s%s%s\n",	\
-			(p)->sz_k, (p)->assoc, (p)->line_len,		\
-			(p)->vipt ? "VIPT" : "PIPT",			\
-			(p)->alias ? " aliasing" : "",			\
-			IS_USED_CFG(cfg));
+					   str"\t\t: %uK, %dway/set, %uB Line, %s%s%s\n",	\
+					   (p)->sz_k, (p)->assoc, (p)->line_len,		\
+					   (p)->vipt ? "VIPT" : "PIPT",			\
+					   (p)->alias ? " aliasing" : "",			\
+					   IS_USED_CFG(cfg));
 
 	PR_CACHE(&cpuinfo_arc700[c].icache, CONFIG_ARC_HAS_ICACHE, "I-Cache");
 	PR_CACHE(&cpuinfo_arc700[c].dcache, CONFIG_ARC_HAS_DCACHE, "D-Cache");
 
 	p = &cpuinfo_arc700[c].slc;
+
 	if (p->ver)
 		n += scnprintf(buf + n, len - n,
-			       "SLC\t\t: %uK, %uB Line%s\n",
-			       p->sz_k, p->line_len, IS_USED_RUN(slc_enable));
+					   "SLC\t\t: %uK, %uB Line%s\n",
+					   p->sz_k, p->line_len, IS_USED_RUN(slc_enable));
 
 	n += scnprintf(buf + n, len - n, "Peripherals\t: %#lx%s%s\n",
-		       perip_base,
-		       IS_AVAIL3(ioc_exists, ioc_enable, ", IO-Coherency "));
+				   perip_base,
+				   IS_AVAIL3(ioc_exists, ioc_enable, ", IO-Coherency "));
 
 	return buf;
 }
@@ -76,33 +77,38 @@ static void read_decode_cache_bcr_arcv2(int cpu)
 	struct cpuinfo_arc_cache *p_slc = &cpuinfo_arc700[cpu].slc;
 	struct bcr_generic sbcr;
 
-	struct bcr_slc_cfg {
+	struct bcr_slc_cfg
+	{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-		unsigned int pad:24, way:2, lsz:2, sz:4;
+		unsigned int pad: 24, way: 2, lsz: 2, sz: 4;
 #else
-		unsigned int sz:4, lsz:2, way:2, pad:24;
+		unsigned int sz: 4, lsz: 2, way: 2, pad: 24;
 #endif
 	} slc_cfg;
 
-	struct bcr_clust_cfg {
+	struct bcr_clust_cfg
+	{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-		unsigned int pad:7, c:1, num_entries:8, num_cores:8, ver:8;
+		unsigned int pad: 7, c: 1, num_entries: 8, num_cores: 8, ver: 8;
 #else
-		unsigned int ver:8, num_cores:8, num_entries:8, c:1, pad:7;
+		unsigned int ver: 8, num_cores: 8, num_entries: 8, c: 1, pad: 7;
 #endif
 	} cbcr;
 
-	struct bcr_volatile {
+	struct bcr_volatile
+	{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-		unsigned int start:4, limit:4, pad:22, order:1, disable:1;
+		unsigned int start: 4, limit: 4, pad: 22, order: 1, disable: 1;
 #else
-		unsigned int disable:1, order:1, pad:22, limit:4, start:4;
+		unsigned int disable: 1, order: 1, pad: 22, limit: 4, start: 4;
 #endif
 	} vol;
 
 
 	READ_BCR(ARC_REG_SLC_BCR, sbcr);
-	if (sbcr.ver) {
+
+	if (sbcr.ver)
+	{
 		READ_BCR(ARC_REG_SLC_CFG, slc_cfg);
 		p_slc->ver = sbcr.ver;
 		p_slc->sz_k = 128 << slc_cfg.sz;
@@ -110,18 +116,27 @@ static void read_decode_cache_bcr_arcv2(int cpu)
 	}
 
 	READ_BCR(ARC_REG_CLUSTER_BCR, cbcr);
+
 	if (cbcr.c)
+	{
 		ioc_exists = 1;
+	}
 	else
+	{
 		ioc_enable = 0;
+	}
 
 	/* HS 2.0 didn't have AUX_VOL */
-	if (cpuinfo_arc700[cpu].core.family > 0x51) {
+	if (cpuinfo_arc700[cpu].core.family > 0x51)
+	{
 		READ_BCR(AUX_VOL, vol);
 		perip_base = vol.start << 28;
+
 		/* HS 3.0 has limit and strict-ordering fields */
 		if (cpuinfo_arc700[cpu].core.family > 0x52)
+		{
 			perip_end = (vol.limit << 28) - 1;
+		}
 	}
 }
 
@@ -129,11 +144,12 @@ void read_decode_cache_bcr(void)
 {
 	struct cpuinfo_arc_cache *p_ic, *p_dc;
 	unsigned int cpu = smp_processor_id();
-	struct bcr_cache {
+	struct bcr_cache
+	{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-		unsigned int pad:12, line_len:4, sz:4, config:4, ver:8;
+		unsigned int pad: 12, line_len: 4, sz: 4, config: 4, ver: 8;
 #else
-		unsigned int ver:8, config:4, sz:4, line_len:4, pad:12;
+		unsigned int ver: 8, config: 4, sz: 4, line_len: 4, pad: 12;
 #endif
 	} ibcr, dbcr;
 
@@ -141,12 +157,17 @@ void read_decode_cache_bcr(void)
 	READ_BCR(ARC_REG_IC_BCR, ibcr);
 
 	if (!ibcr.ver)
+	{
 		goto dc_chk;
+	}
 
-	if (ibcr.ver <= 3) {
+	if (ibcr.ver <= 3)
+	{
 		BUG_ON(ibcr.config != 3);
 		p_ic->assoc = 2;		/* Fixed to 2w set assoc */
-	} else if (ibcr.ver >= 4) {
+	}
+	else if (ibcr.ver >= 4)
+	{
 		p_ic->assoc = 1 << ibcr.config;	/* 1,2,4,8 */
 	}
 
@@ -154,21 +175,26 @@ void read_decode_cache_bcr(void)
 	p_ic->sz_k = 1 << (ibcr.sz - 1);
 	p_ic->ver = ibcr.ver;
 	p_ic->vipt = 1;
-	p_ic->alias = p_ic->sz_k/p_ic->assoc/TO_KB(PAGE_SIZE) > 1;
+	p_ic->alias = p_ic->sz_k / p_ic->assoc / TO_KB(PAGE_SIZE) > 1;
 
 dc_chk:
 	p_dc = &cpuinfo_arc700[cpu].dcache;
 	READ_BCR(ARC_REG_DC_BCR, dbcr);
 
 	if (!dbcr.ver)
+	{
 		goto slc_chk;
+	}
 
-	if (dbcr.ver <= 3) {
+	if (dbcr.ver <= 3)
+	{
 		BUG_ON(dbcr.config != 2);
 		p_dc->assoc = 4;		/* Fixed to 4w set assoc */
 		p_dc->vipt = 1;
-		p_dc->alias = p_dc->sz_k/p_dc->assoc/TO_KB(PAGE_SIZE) > 1;
-	} else if (dbcr.ver >= 4) {
+		p_dc->alias = p_dc->sz_k / p_dc->assoc / TO_KB(PAGE_SIZE) > 1;
+	}
+	else if (dbcr.ver >= 4)
+	{
 		p_dc->assoc = 1 << dbcr.config;	/* 1,2,4,8 */
 		p_dc->vipt = 0;
 		p_dc->alias = 0;		/* PIPT so can't VIPT alias */
@@ -179,8 +205,11 @@ dc_chk:
 	p_dc->ver = dbcr.ver;
 
 slc_chk:
+
 	if (is_isa_arcv2())
-                read_decode_cache_bcr_arcv2(cpu);
+	{
+		read_decode_cache_bcr_arcv2(cpu);
+	}
 }
 
 /*
@@ -236,15 +265,18 @@ slc_chk:
 
 static inline
 void __cache_line_loop_v2(phys_addr_t paddr, unsigned long vaddr,
-			  unsigned long sz, const int op)
+						  unsigned long sz, const int op)
 {
 	unsigned int aux_cmd;
 	int num_lines;
 	const int full_page = __builtin_constant_p(sz) && sz == PAGE_SIZE;
 
-	if (op == OP_INV_IC) {
+	if (op == OP_INV_IC)
+	{
 		aux_cmd = ARC_REG_IC_IVIL;
-	} else {
+	}
+	else
+	{
 		/* d$ cmd: INV (discard or wback-n-discard) OR FLUSH (wback) */
 		aux_cmd = op & OP_INV ? ARC_REG_DC_IVDL : ARC_REG_DC_FLDL;
 	}
@@ -255,7 +287,8 @@ void __cache_line_loop_v2(phys_addr_t paddr, unsigned long vaddr,
 	 *  -@paddr will be cache-line aligned already (being page aligned)
 	 *  -@sz will be integral multiple of line size (being page sized).
 	 */
-	if (!full_page) {
+	if (!full_page)
+	{
 		sz += paddr & ~CACHE_LINE_MASK;
 		paddr &= CACHE_LINE_MASK;
 		vaddr &= CACHE_LINE_MASK;
@@ -266,7 +299,8 @@ void __cache_line_loop_v2(phys_addr_t paddr, unsigned long vaddr,
 	/* MMUv2 and before: paddr contains stuffed vaddrs bits */
 	paddr |= (vaddr >> PAGE_SHIFT) & 0x1F;
 
-	while (num_lines-- > 0) {
+	while (num_lines-- > 0)
+	{
 		write_aux_reg(aux_cmd, paddr);
 		paddr += L1_CACHE_BYTES;
 	}
@@ -278,16 +312,19 @@ void __cache_line_loop_v2(phys_addr_t paddr, unsigned long vaddr,
  */
 static inline
 void __cache_line_loop_v3(phys_addr_t paddr, unsigned long vaddr,
-			  unsigned long sz, const int op)
+						  unsigned long sz, const int op)
 {
 	unsigned int aux_cmd, aux_tag;
 	int num_lines;
 	const int full_page = __builtin_constant_p(sz) && sz == PAGE_SIZE;
 
-	if (op == OP_INV_IC) {
+	if (op == OP_INV_IC)
+	{
 		aux_cmd = ARC_REG_IC_IVIL;
 		aux_tag = ARC_REG_IC_PTAG;
-	} else {
+	}
+	else
+	{
 		aux_cmd = op & OP_INV ? ARC_REG_DC_IVDL : ARC_REG_DC_FLDL;
 		aux_tag = ARC_REG_DC_PTAG;
 	}
@@ -298,11 +335,13 @@ void __cache_line_loop_v3(phys_addr_t paddr, unsigned long vaddr,
 	 *  -@paddr will be cache-line aligned already (being page aligned)
 	 *  -@sz will be integral multiple of line size (being page sized).
 	 */
-	if (!full_page) {
+	if (!full_page)
+	{
 		sz += paddr & ~CACHE_LINE_MASK;
 		paddr &= CACHE_LINE_MASK;
 		vaddr &= CACHE_LINE_MASK;
 	}
+
 	num_lines = DIV_ROUND_UP(sz, L1_CACHE_BYTES);
 
 	/*
@@ -310,7 +349,9 @@ void __cache_line_loop_v3(phys_addr_t paddr, unsigned long vaddr,
 	 * if V-P const for loop, PTAG can be written once outside loop
 	 */
 	if (full_page)
+	{
 		write_aux_reg(aux_tag, paddr);
+	}
 
 	/*
 	 * This is technically for MMU v4, using the MMU v3 programming model
@@ -320,10 +361,14 @@ void __cache_line_loop_v3(phys_addr_t paddr, unsigned long vaddr,
 	 * Note that PTAG_HI is hoisted outside the line loop
 	 */
 	if (is_pae40_enabled() && op == OP_INV_IC)
+	{
 		write_aux_reg(ARC_REG_IC_PTAG_HI, (u64)paddr >> 32);
+	}
 
-	while (num_lines-- > 0) {
-		if (!full_page) {
+	while (num_lines-- > 0)
+	{
+		if (!full_page)
+		{
 			write_aux_reg(aux_tag, paddr);
 			paddr += L1_CACHE_BYTES;
 		}
@@ -348,15 +393,18 @@ void __cache_line_loop_v3(phys_addr_t paddr, unsigned long vaddr,
  */
 static inline
 void __cache_line_loop_v4(phys_addr_t paddr, unsigned long vaddr,
-			  unsigned long sz, const int cacheop)
+						  unsigned long sz, const int cacheop)
 {
 	unsigned int aux_cmd;
 	int num_lines;
 	const int full_page_op = __builtin_constant_p(sz) && sz == PAGE_SIZE;
 
-	if (cacheop == OP_INV_IC) {
+	if (cacheop == OP_INV_IC)
+	{
 		aux_cmd = ARC_REG_IC_IVIL;
-	} else {
+	}
+	else
+	{
 		/* d$ cmd: INV (discard or wback-n-discard) OR FLUSH (wback) */
 		aux_cmd = cacheop & OP_INV ? ARC_REG_DC_IVDL : ARC_REG_DC_FLDL;
 	}
@@ -367,7 +415,8 @@ void __cache_line_loop_v4(phys_addr_t paddr, unsigned long vaddr,
 	 *  -@paddr will be cache-line aligned already (being page aligned)
 	 *  -@sz will be integral multiple of line size (being page sized).
 	 */
-	if (!full_page_op) {
+	if (!full_page_op)
+	{
 		sz += paddr & ~CACHE_LINE_MASK;
 		paddr &= CACHE_LINE_MASK;
 	}
@@ -379,29 +428,35 @@ void __cache_line_loop_v4(phys_addr_t paddr, unsigned long vaddr,
 	 *   - upper 8 bits of paddr need to be written into PTAG_HI
 	 *   - (and needs to be written before the lower 32 bits)
 	 */
-	if (is_pae40_enabled()) {
+	if (is_pae40_enabled())
+	{
 		if (cacheop == OP_INV_IC)
 			/*
 			 * Non aliasing I-cache in HS38,
 			 * aliasing I-cache handled in __cache_line_loop_v3()
 			 */
+		{
 			write_aux_reg(ARC_REG_IC_PTAG_HI, (u64)paddr >> 32);
+		}
 		else
+		{
 			write_aux_reg(ARC_REG_DC_PTAG_HI, (u64)paddr >> 32);
+		}
 	}
 
-	while (num_lines-- > 0) {
+	while (num_lines-- > 0)
+	{
 		write_aux_reg(aux_cmd, paddr);
 		paddr += L1_CACHE_BYTES;
 	}
 }
 
 #if (CONFIG_ARC_MMU_VER < 3)
-#define __cache_line_loop	__cache_line_loop_v2
+	#define __cache_line_loop	__cache_line_loop_v2
 #elif (CONFIG_ARC_MMU_VER == 3)
-#define __cache_line_loop	__cache_line_loop_v3
+	#define __cache_line_loop	__cache_line_loop_v3
 #elif (CONFIG_ARC_MMU_VER > 3)
-#define __cache_line_loop	__cache_line_loop_v4
+	#define __cache_line_loop	__cache_line_loop_v4
 #endif
 
 #ifdef CONFIG_ARC_HAS_DCACHE
@@ -412,7 +467,8 @@ void __cache_line_loop_v4(phys_addr_t paddr, unsigned long vaddr,
 
 static inline void __before_dc_op(const int op)
 {
-	if (op == OP_FLUSH_N_INV) {
+	if (op == OP_FLUSH_N_INV)
+	{
 		/* Dcache provides 2 cmd: FLUSH or INV
 		 * INV inturn has sub-modes: DISCARD or FLUSH-BEFORE
 		 * flush-n-inv is achieved by INV cmd but with IM=1
@@ -425,7 +481,8 @@ static inline void __before_dc_op(const int op)
 
 static inline void __after_dc_op(const int op)
 {
-	if (op & OP_FLUSH) {
+	if (op & OP_FLUSH)
+	{
 		const unsigned int ctl = ARC_REG_DC_CTRL;
 		unsigned int reg;
 
@@ -435,7 +492,9 @@ static inline void __after_dc_op(const int op)
 
 		/* Switch back to default Invalidate mode */
 		if (op == OP_FLUSH_N_INV)
+		{
 			write_aux_reg(ctl, reg & ~DC_CTRL_INV_MODE_FLUSH);
+		}
 	}
 }
 
@@ -452,9 +511,13 @@ static inline void __dc_entire_op(const int op)
 	__before_dc_op(op);
 
 	if (op & OP_INV)	/* Inv or flush-n-inv use same cmd reg */
+	{
 		aux = ARC_REG_DC_IVDC;
+	}
 	else
+	{
 		aux = ARC_REG_DC_FLSH;
+	}
 
 	write_aux_reg(aux, 0x1);
 
@@ -468,7 +531,7 @@ static inline void __dc_entire_op(const int op)
  * D-Cache Line ops: Per Line INV (discard or wback+discard) or FLUSH (wback)
  */
 static inline void __dc_line_op(phys_addr_t paddr, unsigned long vaddr,
-				unsigned long sz, const int op)
+								unsigned long sz, const int op)
 {
 	unsigned long flags;
 
@@ -501,7 +564,7 @@ static inline void __ic_entire_inv(void)
 
 static inline void
 __ic_line_inv_vaddr_local(phys_addr_t paddr, unsigned long vaddr,
-			  unsigned long sz)
+						  unsigned long sz)
 {
 	unsigned long flags;
 
@@ -516,22 +579,24 @@ __ic_line_inv_vaddr_local(phys_addr_t paddr, unsigned long vaddr,
 
 #else
 
-struct ic_inv_args {
+struct ic_inv_args
+{
 	phys_addr_t paddr, vaddr;
 	int sz;
 };
 
 static void __ic_line_inv_vaddr_helper(void *info)
 {
-        struct ic_inv_args *ic_inv = info;
+	struct ic_inv_args *ic_inv = info;
 
-        __ic_line_inv_vaddr_local(ic_inv->paddr, ic_inv->vaddr, ic_inv->sz);
+	__ic_line_inv_vaddr_local(ic_inv->paddr, ic_inv->vaddr, ic_inv->sz);
 }
 
 static void __ic_line_inv_vaddr(phys_addr_t paddr, unsigned long vaddr,
-				unsigned long sz)
+								unsigned long sz)
 {
-	struct ic_inv_args ic_inv = {
+	struct ic_inv_args ic_inv =
+	{
 		.paddr = paddr,
 		.vaddr = vaddr,
 		.sz    = sz
@@ -575,14 +640,22 @@ noinline void slc_op(phys_addr_t paddr, unsigned long sz, const int op)
 
 	/* Don't rely on default value of IM bit */
 	if (!(op & OP_FLUSH))		/* i.e. OP_INV */
-		ctrl &= ~SLC_CTRL_IM;	/* clear IM: Disable flush before Inv */
+	{
+		ctrl &= ~SLC_CTRL_IM;    /* clear IM: Disable flush before Inv */
+	}
 	else
+	{
 		ctrl |= SLC_CTRL_IM;
+	}
 
 	if (op & OP_INV)
-		ctrl |= SLC_CTRL_RGN_OP_INV;	/* Inv or flush-n-inv */
+	{
+		ctrl |= SLC_CTRL_RGN_OP_INV;    /* Inv or flush-n-inv */
+	}
 	else
+	{
 		ctrl &= ~SLC_CTRL_RGN_OP_INV;
+	}
 
 	write_aux_reg(ARC_REG_SLC_CTRL, ctrl);
 
@@ -620,30 +693,39 @@ void flush_dcache_page(struct page *page)
 {
 	struct address_space *mapping;
 
-	if (!cache_is_vipt_aliasing()) {
+	if (!cache_is_vipt_aliasing())
+	{
 		clear_bit(PG_dc_clean, &page->flags);
 		return;
 	}
 
 	/* don't handle anon pages here */
 	mapping = page_mapping(page);
+
 	if (!mapping)
+	{
 		return;
+	}
 
 	/*
 	 * pagecache page, file not yet mapped to userspace
 	 * Make a note that K-mapping is dirty
 	 */
-	if (!mapping_mapped(mapping)) {
+	if (!mapping_mapped(mapping))
+	{
 		clear_bit(PG_dc_clean, &page->flags);
-	} else if (page_mapcount(page)) {
+	}
+	else if (page_mapcount(page))
+	{
 
 		/* kernel reading from page with U-mapping */
 		phys_addr_t paddr = (unsigned long)page_address(page);
 		unsigned long vaddr = page->index << PAGE_SHIFT;
 
 		if (addr_not_cache_congruent(paddr, vaddr))
+		{
 			__flush_dcache_page(paddr, vaddr);
+		}
 	}
 }
 EXPORT_SYMBOL(flush_dcache_page);
@@ -736,13 +818,16 @@ void flush_icache_range(unsigned long kstart, unsigned long kend)
 	 * Here we don't care if this was kernel virtual or phy addr
 	 */
 	tot_sz = kend - kstart;
-	if (tot_sz > PAGE_SIZE) {
+
+	if (tot_sz > PAGE_SIZE)
+	{
 		flush_cache_all();
 		return;
 	}
 
 	/* Case: Kernel Phy addr (0x8000_0000 onwards) */
-	if (likely(kstart > PAGE_OFFSET)) {
+	if (likely(kstart > PAGE_OFFSET))
+	{
 		/*
 		 * The 2nd arg despite being paddr will be used to index icache
 		 * This is OK since no alternate virtual mappings will exist
@@ -762,7 +847,8 @@ void flush_icache_range(unsigned long kstart, unsigned long kend)
 	 *     it still needs to handle  a 2 page scenario, where the range
 	 *     straddles across 2 virtual pages and hence need for loop
 	 */
-	while (tot_sz > 0) {
+	while (tot_sz > 0)
+	{
 		unsigned int off, sz;
 		unsigned long phy, pfn;
 
@@ -829,7 +915,7 @@ void flush_cache_mm(struct mm_struct *mm)
 }
 
 void flush_cache_page(struct vm_area_struct *vma, unsigned long u_vaddr,
-		      unsigned long pfn)
+					  unsigned long pfn)
 {
 	unsigned int paddr = pfn << PAGE_SHIFT;
 
@@ -838,17 +924,19 @@ void flush_cache_page(struct vm_area_struct *vma, unsigned long u_vaddr,
 	__flush_dcache_page(paddr, u_vaddr);
 
 	if (vma->vm_flags & VM_EXEC)
+	{
 		__inv_icache_page(paddr, u_vaddr);
+	}
 }
 
 void flush_cache_range(struct vm_area_struct *vma, unsigned long start,
-		       unsigned long end)
+					   unsigned long end)
 {
 	flush_cache_all();
 }
 
 void flush_anon_page(struct vm_area_struct *vma, struct page *page,
-		     unsigned long u_vaddr)
+					 unsigned long u_vaddr)
 {
 	/* TBD: do we really need to clear the kernel mapping */
 	__flush_dcache_page(page_address(page), u_vaddr);
@@ -859,7 +947,7 @@ void flush_anon_page(struct vm_area_struct *vma, struct page *page,
 #endif
 
 void copy_user_highpage(struct page *to, struct page *from,
-	unsigned long u_vaddr, struct vm_area_struct *vma)
+						unsigned long u_vaddr, struct vm_area_struct *vma)
 {
 	void *kfrom = kmap_atomic(from);
 	void *kto = kmap_atomic(to);
@@ -876,7 +964,8 @@ void copy_user_highpage(struct page *to, struct page *from,
 	 * For !VIPT cache, all of this gets compiled out as
 	 * addr_not_cache_congruent() is 0
 	 */
-	if (page_mapcount(from) && addr_not_cache_congruent(kfrom, u_vaddr)) {
+	if (page_mapcount(from) && addr_not_cache_congruent(kfrom, u_vaddr))
+	{
 		__flush_dcache_page((unsigned long)kfrom, u_vaddr);
 		clean_src_k_mappings = 1;
 	}
@@ -897,10 +986,13 @@ void copy_user_highpage(struct page *to, struct page *from,
 	 * if SRC was already usermapped and non-congruent to kernel mapping
 	 * sync the kernel mapping back to physical page
 	 */
-	if (clean_src_k_mappings) {
+	if (clean_src_k_mappings)
+	{
 		__flush_dcache_page((unsigned long)kfrom, (unsigned long)kfrom);
 		set_bit(PG_dc_clean, &from->flags);
-	} else {
+	}
+	else
+	{
 		clear_bit(PG_dc_clean, &from->flags);
 	}
 
@@ -940,68 +1032,88 @@ void arc_cache_init(void)
 	 *  - IOC setup / dma callbacks only need to be setup once
 	 */
 	if (cpu)
+	{
 		return;
+	}
 
-	if (IS_ENABLED(CONFIG_ARC_HAS_ICACHE)) {
+	if (IS_ENABLED(CONFIG_ARC_HAS_ICACHE))
+	{
 		struct cpuinfo_arc_cache *ic = &cpuinfo_arc700[cpu].icache;
 
 		if (!ic->ver)
+		{
 			panic("cache support enabled but non-existent cache\n");
+		}
 
 		if (ic->line_len != L1_CACHE_BYTES)
 			panic("ICache line [%d] != kernel Config [%d]",
-			      ic->line_len, L1_CACHE_BYTES);
+				  ic->line_len, L1_CACHE_BYTES);
 
 		if (ic->ver != CONFIG_ARC_MMU_VER)
 			panic("Cache ver [%d] doesn't match MMU ver [%d]\n",
-			      ic->ver, CONFIG_ARC_MMU_VER);
+				  ic->ver, CONFIG_ARC_MMU_VER);
 
 		/*
 		 * In MMU v4 (HS38x) the aliasing icache config uses IVIL/PTAG
 		 * pair to provide vaddr/paddr respectively, just as in MMU v3
 		 */
 		if (is_isa_arcv2() && ic->alias)
+		{
 			_cache_line_loop_ic_fn = __cache_line_loop_v3;
+		}
 		else
+		{
 			_cache_line_loop_ic_fn = __cache_line_loop;
-	}
-
-	if (IS_ENABLED(CONFIG_ARC_HAS_DCACHE)) {
-		struct cpuinfo_arc_cache *dc = &cpuinfo_arc700[cpu].dcache;
-
-		if (!dc->ver)
-			panic("cache support enabled but non-existent cache\n");
-
-		if (dc->line_len != L1_CACHE_BYTES)
-			panic("DCache line [%d] != kernel Config [%d]",
-			      dc->line_len, L1_CACHE_BYTES);
-
-		/* check for D-Cache aliasing on ARCompact: ARCv2 has PIPT */
-		if (is_isa_arcompact()) {
-			int handled = IS_ENABLED(CONFIG_ARC_CACHE_VIPT_ALIASING);
-
-			if (dc->alias && !handled)
-				panic("Enable CONFIG_ARC_CACHE_VIPT_ALIASING\n");
-			else if (!dc->alias && handled)
-				panic("Disable CONFIG_ARC_CACHE_VIPT_ALIASING\n");
 		}
 	}
 
-	if (is_isa_arcv2() && l2_line_sz && !slc_enable) {
+	if (IS_ENABLED(CONFIG_ARC_HAS_DCACHE))
+	{
+		struct cpuinfo_arc_cache *dc = &cpuinfo_arc700[cpu].dcache;
+
+		if (!dc->ver)
+		{
+			panic("cache support enabled but non-existent cache\n");
+		}
+
+		if (dc->line_len != L1_CACHE_BYTES)
+			panic("DCache line [%d] != kernel Config [%d]",
+				  dc->line_len, L1_CACHE_BYTES);
+
+		/* check for D-Cache aliasing on ARCompact: ARCv2 has PIPT */
+		if (is_isa_arcompact())
+		{
+			int handled = IS_ENABLED(CONFIG_ARC_CACHE_VIPT_ALIASING);
+
+			if (dc->alias && !handled)
+			{
+				panic("Enable CONFIG_ARC_CACHE_VIPT_ALIASING\n");
+			}
+			else if (!dc->alias && handled)
+			{
+				panic("Disable CONFIG_ARC_CACHE_VIPT_ALIASING\n");
+			}
+		}
+	}
+
+	if (is_isa_arcv2() && l2_line_sz && !slc_enable)
+	{
 
 		/* IM set : flush before invalidate */
 		write_aux_reg(ARC_REG_SLC_CTRL,
-			read_aux_reg(ARC_REG_SLC_CTRL) | SLC_CTRL_IM);
+					  read_aux_reg(ARC_REG_SLC_CTRL) | SLC_CTRL_IM);
 
 		write_aux_reg(ARC_REG_SLC_INVALIDATE, 1);
 
 		/* Important to wait for flush to complete */
 		while (read_aux_reg(ARC_REG_SLC_CTRL) & SLC_CTRL_BUSY);
+
 		write_aux_reg(ARC_REG_SLC_CTRL,
-			read_aux_reg(ARC_REG_SLC_CTRL) | SLC_CTRL_DISABLE);
+					  read_aux_reg(ARC_REG_SLC_CTRL) | SLC_CTRL_DISABLE);
 	}
 
-	if (is_isa_arcv2() && ioc_enable) {
+	if (is_isa_arcv2() && ioc_enable)
+	{
 		/* IO coherency base - 0x8z */
 		write_aux_reg(ARC_REG_IO_COH_AP0_BASE, 0x80000);
 		/* IO coherency aperture size - 512Mb: 0x8z-0xAz */
@@ -1014,11 +1126,15 @@ void arc_cache_init(void)
 		__dma_cache_wback_inv = __dma_cache_wback_inv_ioc;
 		__dma_cache_inv = __dma_cache_inv_ioc;
 		__dma_cache_wback = __dma_cache_wback_ioc;
-	} else if (is_isa_arcv2() && l2_line_sz && slc_enable) {
+	}
+	else if (is_isa_arcv2() && l2_line_sz && slc_enable)
+	{
 		__dma_cache_wback_inv = __dma_cache_wback_inv_slc;
 		__dma_cache_inv = __dma_cache_inv_slc;
 		__dma_cache_wback = __dma_cache_wback_slc;
-	} else {
+	}
+	else
+	{
 		__dma_cache_wback_inv = __dma_cache_wback_inv_l1;
 		__dma_cache_inv = __dma_cache_inv_l1;
 		__dma_cache_wback = __dma_cache_wback_l1;

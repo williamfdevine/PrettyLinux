@@ -65,7 +65,7 @@ extern u32 cs5536_pci_conf_read4(int function, int reg);
 
 #define CFG_PCI_CACHE_LINE_SIZE(header_type, latency_timer)	\
 	((PCI_NONE_BIST << 24) | ((header_type) << 16) \
-		| ((latency_timer) << 8) | PCI_NORMAL_CACHE_LINE_SIZE);
+	 | ((latency_timer) << 8) | PCI_NORMAL_CACHE_LINE_SIZE);
 
 #define PCI_NONE_BIST			0x00	/* RO not implemented yet. */
 #define PCI_BRIDGE_HEADER_TYPE		0x80	/* RO */
@@ -106,7 +106,7 @@ extern u32 cs5536_pci_conf_read4(int function, int reg);
 
 #define CFG_PCI_INTERRUPT_LINE(pin, mod_intr) \
 	((PCI_MAX_LATENCY << 24) | (PCI_MIN_GRANT << 16) | \
-		((pin) << 8) | (mod_intr))
+	 ((pin) << 8) | (mod_intr))
 
 #define PCI_MAX_LATENCY			0x40
 #define PCI_MIN_GRANT			0x00

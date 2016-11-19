@@ -29,7 +29,8 @@
 #include "prcm_mpu54xx.h"
 
 /* core_54xx_pwrdm: CORE power domain */
-static struct powerdomain core_54xx_pwrdm = {
+static struct powerdomain core_54xx_pwrdm =
+{
 	.name		  = "core_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = OMAP54XX_PRM_CORE_INST,
@@ -55,7 +56,8 @@ static struct powerdomain core_54xx_pwrdm = {
 };
 
 /* abe_54xx_pwrdm: Audio back end power domain */
-static struct powerdomain abe_54xx_pwrdm = {
+static struct powerdomain abe_54xx_pwrdm =
+{
 	.name		  = "abe_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = OMAP54XX_PRM_ABE_INST,
@@ -75,7 +77,8 @@ static struct powerdomain abe_54xx_pwrdm = {
 };
 
 /* coreaon_54xx_pwrdm: Always ON logic that sits in VDD_CORE voltage domain */
-static struct powerdomain coreaon_54xx_pwrdm = {
+static struct powerdomain coreaon_54xx_pwrdm =
+{
 	.name		  = "coreaon_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = OMAP54XX_PRM_COREAON_INST,
@@ -84,7 +87,8 @@ static struct powerdomain coreaon_54xx_pwrdm = {
 };
 
 /* dss_54xx_pwrdm: Display subsystem power domain */
-static struct powerdomain dss_54xx_pwrdm = {
+static struct powerdomain dss_54xx_pwrdm =
+{
 	.name		  = "dss_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = OMAP54XX_PRM_DSS_INST,
@@ -102,7 +106,8 @@ static struct powerdomain dss_54xx_pwrdm = {
 };
 
 /* cpu0_54xx_pwrdm: MPU0 processor and Neon coprocessor power domain */
-static struct powerdomain cpu0_54xx_pwrdm = {
+static struct powerdomain cpu0_54xx_pwrdm =
+{
 	.name		  = "cpu0_pwrdm",
 	.voltdm		  = { .name = "mpu" },
 	.prcm_offs	  = OMAP54XX_PRCM_MPU_PRM_C0_INST,
@@ -119,7 +124,8 @@ static struct powerdomain cpu0_54xx_pwrdm = {
 };
 
 /* cpu1_54xx_pwrdm: MPU1 processor and Neon coprocessor power domain */
-static struct powerdomain cpu1_54xx_pwrdm = {
+static struct powerdomain cpu1_54xx_pwrdm =
+{
 	.name		  = "cpu1_pwrdm",
 	.voltdm		  = { .name = "mpu" },
 	.prcm_offs	  = OMAP54XX_PRCM_MPU_PRM_C1_INST,
@@ -136,7 +142,8 @@ static struct powerdomain cpu1_54xx_pwrdm = {
 };
 
 /* emu_54xx_pwrdm: Emulation power domain */
-static struct powerdomain emu_54xx_pwrdm = {
+static struct powerdomain emu_54xx_pwrdm =
+{
 	.name		  = "emu_pwrdm",
 	.voltdm		  = { .name = "wkup" },
 	.prcm_offs	  = OMAP54XX_PRM_EMU_INST,
@@ -152,7 +159,8 @@ static struct powerdomain emu_54xx_pwrdm = {
 };
 
 /* mpu_54xx_pwrdm: Modena processor and the Neon coprocessor power domain */
-static struct powerdomain mpu_54xx_pwrdm = {
+static struct powerdomain mpu_54xx_pwrdm =
+{
 	.name		  = "mpu_pwrdm",
 	.voltdm		  = { .name = "mpu" },
 	.prcm_offs	  = OMAP54XX_PRM_MPU_INST,
@@ -171,7 +179,8 @@ static struct powerdomain mpu_54xx_pwrdm = {
 };
 
 /* custefuse_54xx_pwrdm: Customer efuse controller power domain */
-static struct powerdomain custefuse_54xx_pwrdm = {
+static struct powerdomain custefuse_54xx_pwrdm =
+{
 	.name		  = "custefuse_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = OMAP54XX_PRM_CUSTEFUSE_INST,
@@ -181,7 +190,8 @@ static struct powerdomain custefuse_54xx_pwrdm = {
 };
 
 /* dsp_54xx_pwrdm: Tesla processor power domain */
-static struct powerdomain dsp_54xx_pwrdm = {
+static struct powerdomain dsp_54xx_pwrdm =
+{
 	.name		  = "dsp_pwrdm",
 	.voltdm		  = { .name = "mm" },
 	.prcm_offs	  = OMAP54XX_PRM_DSP_INST,
@@ -203,7 +213,8 @@ static struct powerdomain dsp_54xx_pwrdm = {
 };
 
 /* cam_54xx_pwrdm: Camera subsystem power domain */
-static struct powerdomain cam_54xx_pwrdm = {
+static struct powerdomain cam_54xx_pwrdm =
+{
 	.name		  = "cam_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = OMAP54XX_PRM_CAM_INST,
@@ -220,7 +231,8 @@ static struct powerdomain cam_54xx_pwrdm = {
 };
 
 /* l3init_54xx_pwrdm: L3 initators pheripherals power domain  */
-static struct powerdomain l3init_54xx_pwrdm = {
+static struct powerdomain l3init_54xx_pwrdm =
+{
 	.name		  = "l3init_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = OMAP54XX_PRM_L3INIT_INST,
@@ -240,7 +252,8 @@ static struct powerdomain l3init_54xx_pwrdm = {
 };
 
 /* gpu_54xx_pwrdm: 3D accelerator power domain */
-static struct powerdomain gpu_54xx_pwrdm = {
+static struct powerdomain gpu_54xx_pwrdm =
+{
 	.name		  = "gpu_pwrdm",
 	.voltdm		  = { .name = "mm" },
 	.prcm_offs	  = OMAP54XX_PRM_GPU_INST,
@@ -257,7 +270,8 @@ static struct powerdomain gpu_54xx_pwrdm = {
 };
 
 /* wkupaon_54xx_pwrdm: Wake-up power domain */
-static struct powerdomain wkupaon_54xx_pwrdm = {
+static struct powerdomain wkupaon_54xx_pwrdm =
+{
 	.name		  = "wkupaon_pwrdm",
 	.voltdm		  = { .name = "wkup" },
 	.prcm_offs	  = OMAP54XX_PRM_WKUPAON_INST,
@@ -272,7 +286,8 @@ static struct powerdomain wkupaon_54xx_pwrdm = {
 };
 
 /* iva_54xx_pwrdm: IVA-HD power domain */
-static struct powerdomain iva_54xx_pwrdm = {
+static struct powerdomain iva_54xx_pwrdm =
+{
 	.name		  = "iva_pwrdm",
 	.voltdm		  = { .name = "mm" },
 	.prcm_offs	  = OMAP54XX_PRM_IVA_INST,
@@ -303,7 +318,8 @@ static struct powerdomain iva_54xx_pwrdm = {
  */
 
 /* As powerdomains are added or removed above, this list must also be changed */
-static struct powerdomain *powerdomains_omap54xx[] __initdata = {
+static struct powerdomain *powerdomains_omap54xx[] __initdata =
+{
 	&core_54xx_pwrdm,
 	&abe_54xx_pwrdm,
 	&coreaon_54xx_pwrdm,

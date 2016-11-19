@@ -22,11 +22,13 @@
 
 #include "mpc8xx.h"
 
-struct cpm_pin {
+struct cpm_pin
+{
 	int port, pin, flags;
 };
 
-static __initdata struct cpm_pin adder875_pins[] = {
+static __initdata struct cpm_pin adder875_pins[] =
+{
 	/* SMC1 */
 	{CPM_PORTB, 24, CPM_PIN_INPUT}, /* RX */
 	{CPM_PORTB, 25, CPM_PIN_INPUT | CPM_PIN_SECONDARY}, /* TX */
@@ -69,7 +71,8 @@ static void __init init_ioports(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(adder875_pins); i++) {
+	for (i = 0; i < ARRAY_SIZE(adder875_pins); i++)
+	{
 		const struct cpm_pin *pin = &adder875_pins[i];
 		cpm1_set_pin(pin->port, pin->pin, pin->flags);
 	}
@@ -91,7 +94,8 @@ static int __init adder875_probe(void)
 	return of_machine_is_compatible("analogue-and-micro,adder875");
 }
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .compatible = "simple-bus", },
 	{},
 };
@@ -103,15 +107,16 @@ static int __init declare_of_platform_devices(void)
 }
 machine_device_initcall(adder875, declare_of_platform_devices);
 
-define_machine(adder875) {
+define_machine(adder875)
+{
 	.name = "Adder MPC875",
-	.probe = adder875_probe,
-	.setup_arch = adder875_setup,
-	.init_IRQ = mpc8xx_pics_init,
-	.get_irq = mpc8xx_get_irq,
-	.restart = mpc8xx_restart,
-	.calibrate_decr = generic_calibrate_decr,
-	.set_rtc_time = mpc8xx_set_rtc_time,
-	.get_rtc_time = mpc8xx_get_rtc_time,
-	.progress = udbg_progress,
+	 .probe = adder875_probe,
+	  .setup_arch = adder875_setup,
+	   .init_IRQ = mpc8xx_pics_init,
+		.get_irq = mpc8xx_get_irq,
+		 .restart = mpc8xx_restart,
+		  .calibrate_decr = generic_calibrate_decr,
+		   .set_rtc_time = mpc8xx_set_rtc_time,
+			.get_rtc_time = mpc8xx_get_rtc_time,
+			 .progress = udbg_progress,
 };

@@ -21,31 +21,31 @@
  * Tracepoints for VM enters
  */
 DECLARE_EVENT_CLASS(kvm_transition,
-	TP_PROTO(struct kvm_vcpu *vcpu),
-	TP_ARGS(vcpu),
-	TP_STRUCT__entry(
-		__field(unsigned long, pc)
-	),
+					TP_PROTO(struct kvm_vcpu *vcpu),
+					TP_ARGS(vcpu),
+					TP_STRUCT__entry(
+						__field(unsigned long, pc)
+					),
 
-	TP_fast_assign(
-		__entry->pc = vcpu->arch.pc;
-	),
+					TP_fast_assign(
+						__entry->pc = vcpu->arch.pc;
+					),
 
-	TP_printk("PC: 0x%08lx",
-		  __entry->pc)
-);
+					TP_printk("PC: 0x%08lx",
+							  __entry->pc)
+				   );
 
 DEFINE_EVENT(kvm_transition, kvm_enter,
-	     TP_PROTO(struct kvm_vcpu *vcpu),
-	     TP_ARGS(vcpu));
+			 TP_PROTO(struct kvm_vcpu *vcpu),
+			 TP_ARGS(vcpu));
 
 DEFINE_EVENT(kvm_transition, kvm_reenter,
-	     TP_PROTO(struct kvm_vcpu *vcpu),
-	     TP_ARGS(vcpu));
+			 TP_PROTO(struct kvm_vcpu *vcpu),
+			 TP_ARGS(vcpu));
 
 DEFINE_EVENT(kvm_transition, kvm_out,
-	     TP_PROTO(struct kvm_vcpu *vcpu),
-	     TP_ARGS(vcpu));
+			 TP_PROTO(struct kvm_vcpu *vcpu),
+			 TP_ARGS(vcpu));
 
 /* The first 32 exit reasons correspond to Cause.ExcCode */
 #define KVM_TRACE_EXIT_INT		 0
@@ -88,23 +88,23 @@ DEFINE_EVENT(kvm_transition, kvm_out,
 	{ KVM_TRACE_EXIT_SIGNAL,	"Signal" }
 
 TRACE_EVENT(kvm_exit,
-	    TP_PROTO(struct kvm_vcpu *vcpu, unsigned int reason),
-	    TP_ARGS(vcpu, reason),
-	    TP_STRUCT__entry(
-			__field(unsigned long, pc)
-			__field(unsigned int, reason)
-	    ),
+			TP_PROTO(struct kvm_vcpu *vcpu, unsigned int reason),
+			TP_ARGS(vcpu, reason),
+			TP_STRUCT__entry(
+				__field(unsigned long, pc)
+				__field(unsigned int, reason)
+			),
 
-	    TP_fast_assign(
-			__entry->pc = vcpu->arch.pc;
-			__entry->reason = reason;
-	    ),
+			TP_fast_assign(
+				__entry->pc = vcpu->arch.pc;
+				__entry->reason = reason;
+			),
 
-	    TP_printk("[%s]PC: 0x%08lx",
-		      __print_symbolic(__entry->reason,
-				       kvm_trace_symbol_exit_types),
-		      __entry->pc)
-);
+			TP_printk("[%s]PC: 0x%08lx",
+					  __print_symbolic(__entry->reason,
+									   kvm_trace_symbol_exit_types),
+					  __entry->pc)
+		   );
 
 #define KVM_TRACE_MFC0		0
 #define KVM_TRACE_MTC0		1
@@ -116,9 +116,9 @@ TRACE_EVENT(kvm_exit,
 #define KVM_TRACE_HWR_HWR	1
 
 #define KVM_TRACE_COP0(REG, SEL)	((KVM_TRACE_HWR_COP0 << 8) |	\
-					 ((REG) << 3) | (SEL))
+									 ((REG) << 3) | (SEL))
 #define KVM_TRACE_HWR(REG, SEL)		((KVM_TRACE_HWR_HWR  << 8) |	\
-					 ((REG) << 3) | (SEL))
+									 ((REG) << 3) | (SEL))
 
 #define kvm_trace_symbol_hwr_ops				\
 	{ KVM_TRACE_MFC0,		"MFC0" },		\
@@ -173,32 +173,32 @@ TRACE_EVENT(kvm_exit,
 	{ KVM_TRACE_HWR(29, 0),		"ULR" }
 
 TRACE_EVENT(kvm_hwr,
-	    TP_PROTO(struct kvm_vcpu *vcpu, unsigned int op, unsigned int reg,
-		     unsigned long val),
-	    TP_ARGS(vcpu, op, reg, val),
-	    TP_STRUCT__entry(
-			__field(unsigned long, val)
-			__field(u16, reg)
-			__field(u8, op)
-	    ),
+			TP_PROTO(struct kvm_vcpu *vcpu, unsigned int op, unsigned int reg,
+					 unsigned long val),
+			TP_ARGS(vcpu, op, reg, val),
+			TP_STRUCT__entry(
+				__field(unsigned long, val)
+				__field(u16, reg)
+				__field(u8, op)
+			),
 
-	    TP_fast_assign(
-			__entry->val = val;
-			__entry->reg = reg;
-			__entry->op = op;
-	    ),
+			TP_fast_assign(
+				__entry->val = val;
+				__entry->reg = reg;
+				__entry->op = op;
+			),
 
-	    TP_printk("%s %s (%s:%u:%u) 0x%08lx",
-		      __print_symbolic(__entry->op,
-				       kvm_trace_symbol_hwr_ops),
-		      __print_symbolic(__entry->reg,
-				       kvm_trace_symbol_hwr_regs),
-		      __print_symbolic(__entry->reg >> 8,
-				       kvm_trace_symbol_hwr_cop),
-		      (__entry->reg >> 3) & 0x1f,
-		      __entry->reg & 0x7,
-		      __entry->val)
-);
+			TP_printk("%s %s (%s:%u:%u) 0x%08lx",
+					  __print_symbolic(__entry->op,
+									   kvm_trace_symbol_hwr_ops),
+					  __print_symbolic(__entry->reg,
+									   kvm_trace_symbol_hwr_regs),
+					  __print_symbolic(__entry->reg >> 8,
+									   kvm_trace_symbol_hwr_cop),
+					  (__entry->reg >> 3) & 0x1f,
+					  __entry->reg & 0x7,
+					  __entry->val)
+		   );
 
 #define KVM_TRACE_AUX_RESTORE		0
 #define KVM_TRACE_AUX_SAVE		1
@@ -223,50 +223,50 @@ TRACE_EVENT(kvm_hwr,
 	{ KVM_TRACE_AUX_FPU_MSA, "FPU & MSA" }
 
 TRACE_EVENT(kvm_aux,
-	    TP_PROTO(struct kvm_vcpu *vcpu, unsigned int op,
-		     unsigned int state),
-	    TP_ARGS(vcpu, op, state),
-	    TP_STRUCT__entry(
-			__field(unsigned long, pc)
-			__field(u8, op)
-			__field(u8, state)
-	    ),
+			TP_PROTO(struct kvm_vcpu *vcpu, unsigned int op,
+					 unsigned int state),
+			TP_ARGS(vcpu, op, state),
+			TP_STRUCT__entry(
+				__field(unsigned long, pc)
+				__field(u8, op)
+				__field(u8, state)
+			),
 
-	    TP_fast_assign(
-			__entry->pc = vcpu->arch.pc;
-			__entry->op = op;
-			__entry->state = state;
-	    ),
+			TP_fast_assign(
+				__entry->pc = vcpu->arch.pc;
+				__entry->op = op;
+				__entry->state = state;
+			),
 
-	    TP_printk("%s %s PC: 0x%08lx",
-		      __print_symbolic(__entry->op,
-				       kvm_trace_symbol_aux_op),
-		      __print_symbolic(__entry->state,
-				       kvm_trace_symbol_aux_state),
-		      __entry->pc)
-);
+			TP_printk("%s %s PC: 0x%08lx",
+					  __print_symbolic(__entry->op,
+									   kvm_trace_symbol_aux_op),
+					  __print_symbolic(__entry->state,
+									   kvm_trace_symbol_aux_state),
+					  __entry->pc)
+		   );
 
 TRACE_EVENT(kvm_asid_change,
-	    TP_PROTO(struct kvm_vcpu *vcpu, unsigned int old_asid,
-		     unsigned int new_asid),
-	    TP_ARGS(vcpu, old_asid, new_asid),
-	    TP_STRUCT__entry(
-			__field(unsigned long, pc)
-			__field(u8, old_asid)
-			__field(u8, new_asid)
-	    ),
+			TP_PROTO(struct kvm_vcpu *vcpu, unsigned int old_asid,
+					 unsigned int new_asid),
+			TP_ARGS(vcpu, old_asid, new_asid),
+			TP_STRUCT__entry(
+				__field(unsigned long, pc)
+				__field(u8, old_asid)
+				__field(u8, new_asid)
+			),
 
-	    TP_fast_assign(
-			__entry->pc = vcpu->arch.pc;
-			__entry->old_asid = old_asid;
-			__entry->new_asid = new_asid;
-	    ),
+			TP_fast_assign(
+				__entry->pc = vcpu->arch.pc;
+				__entry->old_asid = old_asid;
+				__entry->new_asid = new_asid;
+			),
 
-	    TP_printk("PC: 0x%08lx old: 0x%02x new: 0x%02x",
-		      __entry->pc,
-		      __entry->old_asid,
-		      __entry->new_asid)
-);
+			TP_printk("PC: 0x%08lx old: 0x%02x new: 0x%02x",
+					  __entry->pc,
+					  __entry->old_asid,
+					  __entry->new_asid)
+		   );
 
 #endif /* _TRACE_KVM_H */
 

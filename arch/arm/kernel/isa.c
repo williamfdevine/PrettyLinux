@@ -20,22 +20,23 @@
 
 static unsigned int isa_membase, isa_portbase, isa_portshift;
 
-static struct ctl_table ctl_isa_vars[4] = {
+static struct ctl_table ctl_isa_vars[4] =
+{
 	{
 		.procname	= "membase",
-		.data		= &isa_membase, 
+		.data		= &isa_membase,
 		.maxlen		= sizeof(isa_membase),
 		.mode		= 0444,
 		.proc_handler	= proc_dointvec,
 	}, {
 		.procname	= "portbase",
-		.data		= &isa_portbase, 
+		.data		= &isa_portbase,
 		.maxlen		= sizeof(isa_portbase),
 		.mode		= 0444,
 		.proc_handler	= proc_dointvec,
 	}, {
 		.procname	= "portshift",
-		.data		= &isa_portshift, 
+		.data		= &isa_portshift,
 		.maxlen		= sizeof(isa_portshift),
 		.mode		= 0444,
 		.proc_handler	= proc_dointvec,
@@ -44,7 +45,8 @@ static struct ctl_table ctl_isa_vars[4] = {
 
 static struct ctl_table_header *isa_sysctl_header;
 
-static struct ctl_table ctl_isa[2] = {
+static struct ctl_table ctl_isa[2] =
+{
 	{
 		.procname	= "isa",
 		.mode		= 0555,
@@ -52,7 +54,8 @@ static struct ctl_table ctl_isa[2] = {
 	}, {}
 };
 
-static struct ctl_table ctl_bus[2] = {
+static struct ctl_table ctl_bus[2] =
+{
 	{
 		.procname	= "bus",
 		.mode		= 0555,

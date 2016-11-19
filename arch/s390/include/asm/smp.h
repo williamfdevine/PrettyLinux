@@ -63,7 +63,8 @@ static inline void smp_stop_cpu(void)
 {
 	u16 pcpu = stap();
 
-	for (;;) {
+	for (;;)
+	{
 		__pcpu_sigp(pcpu, SIGP_STOP, 0, NULL);
 		cpu_relax();
 	}

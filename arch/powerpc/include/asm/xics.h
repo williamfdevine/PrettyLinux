@@ -49,7 +49,8 @@ static inline int icp_opal_init(void) { return -ENODEV; }
 #endif
 
 /* ICP ops */
-struct icp_ops {
+struct icp_ops
+{
 	unsigned int (*get_irq)(void);
 	void (*eoi)(struct irq_data *d);
 	void (*set_priority)(unsigned char prio);
@@ -81,7 +82,8 @@ static inline int ics_opal_init(void) { return -ENODEV; }
 #endif
 
 /* ICS instance, hooked up to chip_data of an irq */
-struct ics {
+struct ics
+{
 	struct list_head link;
 	int (*map)(struct ics *ics, unsigned int virq);
 	void (*mask_unknown)(struct ics *ics, unsigned long vec);
@@ -96,7 +98,8 @@ extern unsigned int xics_default_distrib_server;
 extern unsigned int xics_interrupt_server_size;
 extern struct irq_domain *xics_host;
 
-struct xics_cppr {
+struct xics_cppr
+{
 	unsigned char stack[MAX_NUM_PRIORITIES];
 	int index;
 };
@@ -108,12 +111,18 @@ static inline void xics_push_cppr(unsigned int vec)
 	struct xics_cppr *os_cppr = this_cpu_ptr(&xics_cppr);
 
 	if (WARN_ON(os_cppr->index >= MAX_NUM_PRIORITIES - 1))
+	{
 		return;
+	}
 
 	if (vec == XICS_IPI)
+	{
 		os_cppr->stack[++os_cppr->index] = IPI_PRIORITY;
+	}
 	else
+	{
 		os_cppr->stack[++os_cppr->index] = DEFAULT_PRIORITY;
+	}
 }
 
 static inline unsigned char xics_pop_cppr(void)
@@ -121,7 +130,9 @@ static inline unsigned char xics_pop_cppr(void)
 	struct xics_cppr *os_cppr = this_cpu_ptr(&xics_cppr);
 
 	if (WARN_ON(os_cppr->index < 1))
+	{
 		return LOWEST_PRIORITY;
+	}
 
 	return os_cppr->stack[--os_cppr->index];
 }
@@ -141,7 +152,7 @@ static inline void xics_set_base_cppr(unsigned char cppr)
 static inline unsigned char xics_cppr_top(void)
 {
 	struct xics_cppr *os_cppr = this_cpu_ptr(&xics_cppr);
-	
+
 	return os_cppr->stack[os_cppr->index];
 }
 
@@ -163,7 +174,7 @@ extern int xics_set_irq_type(struct irq_data *d, unsigned int flow_type);
 extern int xics_retrigger(struct irq_data *data);
 #ifdef CONFIG_SMP
 extern int xics_get_irq_server(unsigned int virq, const struct cpumask *cpumask,
-			       unsigned int strict_check);
+							   unsigned int strict_check);
 #else
 #define xics_get_irq_server(virq, cpumask, strict_check) (xics_default_server)
 #endif

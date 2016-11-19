@@ -16,8 +16,8 @@
 #include "defBF532.h"
 
 #ifndef __ASSEMBLY__
-# include <asm/cdef_LPBlackfin.h>
-# include "cdefBF532.h"
+	#include <asm/cdef_LPBlackfin.h>
+	#include "cdefBF532.h"
 #endif
 
 #endif

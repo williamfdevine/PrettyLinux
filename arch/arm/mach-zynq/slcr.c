@@ -104,7 +104,7 @@ u32 zynq_slcr_get_device_id(void)
  */
 static
 int zynq_slcr_system_restart(struct notifier_block *nb,
-			     unsigned long action, void *data)
+							 unsigned long action, void *data)
 {
 	u32 reboot;
 
@@ -119,7 +119,8 @@ int zynq_slcr_system_restart(struct notifier_block *nb,
 	return 0;
 }
 
-static struct notifier_block zynq_slcr_restart_nb = {
+static struct notifier_block zynq_slcr_restart_nb =
+{
 	.notifier_call	= zynq_slcr_system_restart,
 	.priority	= 192,
 };
@@ -187,10 +188,16 @@ void zynq_slcr_cpu_state_write(int cpu, bool die)
 
 	state = readl(zynq_slcr_base + SLCR_REBOOT_STATUS_OFFSET);
 	mask = 1 << (31 - cpu);
+
 	if (die)
+	{
 		state |= mask;
+	}
 	else
+	{
 		state &= ~mask;
+	}
+
 	writel(state, zynq_slcr_base + SLCR_REBOOT_STATUS_OFFSET);
 }
 
@@ -206,13 +213,17 @@ int __init zynq_early_slcr_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "xlnx,zynq-slcr");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("%s: no slcr node found\n", __func__);
 		BUG();
 	}
 
 	zynq_slcr_base = of_iomap(np, 0);
-	if (!zynq_slcr_base) {
+
+	if (!zynq_slcr_base)
+	{
 		pr_err("%s: Unable to map I/O memory\n", __func__);
 		BUG();
 	}
@@ -220,7 +231,9 @@ int __init zynq_early_slcr_init(void)
 	np->data = (__force void *)zynq_slcr_base;
 
 	zynq_slcr_regmap = syscon_regmap_lookup_by_compatible("xlnx,zynq-slcr");
-	if (IS_ERR(zynq_slcr_regmap)) {
+
+	if (IS_ERR(zynq_slcr_regmap))
+	{
 		pr_err("%s: failed to find zynq-slcr\n", __func__);
 		return -ENODEV;
 	}

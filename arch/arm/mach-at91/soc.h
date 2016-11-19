@@ -14,7 +14,8 @@
 
 #include <linux/sys_soc.h>
 
-struct at91_soc {
+struct at91_soc
+{
 	u32 cidr_match;
 	u32 exid_match;
 	const char *name;
@@ -24,12 +25,12 @@ struct at91_soc {
 #define AT91_SOC(__cidr, __exid, __name, __family)		\
 	{							\
 		.cidr_match = (__cidr),				\
-		.exid_match = (__exid),				\
-		.name = (__name),				\
-		.family = (__family),				\
+					  .exid_match = (__exid),				\
+									.name = (__name),				\
+											.family = (__family),				\
 	}
 
-struct soc_device * __init
+struct soc_device *__init
 at91_soc_init(const struct at91_soc *socs);
 
 #define AT91RM9200_CIDR_MATCH		0x09290780

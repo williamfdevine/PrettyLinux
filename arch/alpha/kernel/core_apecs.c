@@ -27,7 +27,7 @@
 #include "pci_impl.h"
 
 /*
- * NOTE: Herein lie back-to-back mb instructions.  They are magic. 
+ * NOTE: Herein lie back-to-back mb instructions.  They are magic.
  * One plausible explanation is that the i/o controller does not properly
  * handle the system transaction.  Another involves timing.  Ho hum.
  */
@@ -39,9 +39,9 @@
 #define DEBUG_CONFIG 0
 
 #if DEBUG_CONFIG
-# define DBGC(args)	printk args
+	#define DBGC(args)	printk args
 #else
-# define DBGC(args)
+	#define DBGC(args)
 #endif
 
 #define vuip	volatile unsigned int  *
@@ -55,7 +55,7 @@
  *
  * Type 0:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | | | | | | | | | | | | | | | | | | | | | | |F|F|F|R|R|R|R|R|R|0|0|
@@ -67,7 +67,7 @@
  *
  * Type 1:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | | | | | | | | | |B|B|B|B|B|B|B|B|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|1|
@@ -78,11 +78,11 @@
  *	15:11	Device number (5 bits)
  *	10:8	function number
  *	 7:2	register number
- *  
+ *
  * Notes:
- *	The function number selects which function of a multi-function device 
+ *	The function number selects which function of a multi-function device
  *	(e.g., SCSI and Ethernet).
- * 
+ *
  *	The register selects a DWORD (32 bit) register offset.  Hence it
  *	doesn't get shifted by 2 bits as we want to "drop" the bottom two
  *	bits.
@@ -90,33 +90,38 @@
 
 static int
 mk_conf_addr(struct pci_bus *pbus, unsigned int device_fn, int where,
-	     unsigned long *pci_addr, unsigned char *type1)
+			 unsigned long *pci_addr, unsigned char *type1)
 {
 	unsigned long addr;
 	u8 bus = pbus->number;
 
 	DBGC(("mk_conf_addr(bus=%d ,device_fn=0x%x, where=0x%x,"
-	      " pci_addr=0x%p, type1=0x%p)\n",
-	      bus, device_fn, where, pci_addr, type1));
+		  " pci_addr=0x%p, type1=0x%p)\n",
+		  bus, device_fn, where, pci_addr, type1));
 
-	if (bus == 0) {
+	if (bus == 0)
+	{
 		int device = device_fn >> 3;
 
 		/* type 0 configuration cycle: */
 
-		if (device > 20) {
+		if (device > 20)
+		{
 			DBGC(("mk_conf_addr: device (%d) > 20, returning -1\n",
-			      device));
+				  device));
 			return -1;
 		}
 
 		*type1 = 0;
 		addr = (device_fn << 8) | (where);
-	} else {
+	}
+	else
+	{
 		/* type 1 configuration cycle: */
 		*type1 = 1;
 		addr = (bus << 16) | (device_fn << 8) | (where);
 	}
+
 	*pci_addr = addr;
 	DBGC(("mk_conf_addr: returning pci_addr 0x%lx\n", addr));
 	return 0;
@@ -140,7 +145,8 @@ conf_read(unsigned long addr, unsigned char type1)
 	DBGC(("conf_read: APECS DCSR was 0x%x\n", stat0));
 
 	/* If Type1 access, must set HAE #2. */
-	if (type1) {
+	if (type1)
+	{
 		haxr2 = *(vuip)APECS_IOC_HAXR2;
 		mb();
 		*(vuip)APECS_IOC_HAXR2 = haxr2 | 1;
@@ -156,13 +162,15 @@ conf_read(unsigned long addr, unsigned char type1)
 
 	/* Some SRMs step on these registers during a machine check.  */
 	asm volatile("ldl %0,%1; mb; mb" : "=r"(value) : "m"(*(vuip)addr)
-		     : "$9", "$10", "$11", "$12", "$13", "$14", "memory");
+				 : "$9", "$10", "$11", "$12", "$13", "$14", "memory");
 
-	if (mcheck_taken(0)) {
+	if (mcheck_taken(0))
+	{
 		mcheck_taken(0) = 0;
 		value = 0xffffffffU;
 		mb();
 	}
+
 	mcheck_expected(0) = 0;
 	mb();
 
@@ -180,9 +188,11 @@ conf_read(unsigned long addr, unsigned char type1)
 	DBGC(("conf_read: APECS DCSR after read 0x%x\n", stat0));
 
 	/* Is any error bit set? */
-	if (stat0 & 0xffe0U) {
+	if (stat0 & 0xffe0U)
+	{
 		/* If not NDEV, print status.  */
-		if (!(stat0 & 0x0800)) {
+		if (!(stat0 & 0x0800))
+		{
 			printk("apecs.c:conf_read: got stat0=%x\n", stat0);
 		}
 
@@ -192,13 +202,16 @@ conf_read(unsigned long addr, unsigned char type1)
 		wrmces(0x7);			/* reset machine check */
 		value = 0xffffffff;
 	}
+
 #endif
 
 	/* If Type1 access, must reset HAE #2 so normal IO space ops work.  */
-	if (type1) {
+	if (type1)
+	{
 		*(vuip)APECS_IOC_HAXR2 = haxr2 & ~1;
 		mb();
 	}
+
 	local_irq_restore(flags);
 
 	return value;
@@ -219,7 +232,8 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 	mb();
 
 	/* If Type1 access, must set HAE #2. */
-	if (type1) {
+	if (type1)
+	{
 		haxr2 = *(vuip)APECS_IOC_HAXR2;
 		mb();
 		*(vuip)APECS_IOC_HAXR2 = haxr2 | 1;
@@ -249,9 +263,11 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 	stat0 = *(vuip)APECS_IOC_DCSR;
 
 	/* Is any error bit set? */
-	if (stat0 & 0xffe0U) {
+	if (stat0 & 0xffe0U)
+	{
 		/* If not NDEV, print status.  */
-		if (!(stat0 & 0x0800)) {
+		if (!(stat0 & 0x0800))
+		{
 			printk("apecs.c:conf_write: got stat0=%x\n", stat0);
 		}
 
@@ -260,19 +276,22 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 		mb();
 		wrmces(0x7);			/* reset machine check */
 	}
+
 #endif
 
 	/* If Type1 access, must reset HAE #2 so normal IO space ops work.  */
-	if (type1) {
+	if (type1)
+	{
 		*(vuip)APECS_IOC_HAXR2 = haxr2 & ~1;
 		mb();
 	}
+
 	local_irq_restore(flags);
 }
 
 static int
 apecs_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		  int size, u32 *value)
+				  int size, u32 *value)
 {
 	unsigned long addr, pci_addr;
 	unsigned char type1;
@@ -280,7 +299,9 @@ apecs_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 	int shift;
 
 	if (mk_conf_addr(bus, devfn, where, &pci_addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	mask = (size - 1) * 8;
 	shift = (where & 3) * 8;
@@ -291,14 +312,16 @@ apecs_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 
 static int
 apecs_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		   int size, u32 value)
+				   int size, u32 value)
 {
 	unsigned long addr, pci_addr;
 	unsigned char type1;
 	long mask;
 
 	if (mk_conf_addr(bus, devfn, where, &pci_addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	mask = (size - 1) * 8;
 	addr = (pci_addr << 5) + mask + APECS_CONF;
@@ -306,7 +329,7 @@ apecs_write_config(struct pci_bus *bus, unsigned int devfn, int where,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops apecs_pci_ops = 
+struct pci_ops apecs_pci_ops =
 {
 	.read =		apecs_read_config,
 	.write =	apecs_write_config,
@@ -376,12 +399,15 @@ apecs_pci_clr_err(void)
 	unsigned int jd;
 
 	jd = *(vuip)APECS_IOC_DCSR;
-	if (jd & 0xffe0L) {
+
+	if (jd & 0xffe0L)
+	{
 		*(vuip)APECS_IOC_SEAR;
 		*(vuip)APECS_IOC_DCSR = jd | 0xffe1L;
 		mb();
 		*(vuip)APECS_IOC_DCSR;
 	}
+
 	*(vuip)APECS_IOC_TBIA = (unsigned int)APECS_IOC_TBIA;
 	mb();
 	*(vuip)APECS_IOC_TBIA;
@@ -397,11 +423,11 @@ apecs_machine_check(unsigned long vector, unsigned long la_ptr)
 	mchk_header = (struct el_common *)la_ptr;
 
 	mchk_procdata = (struct el_apecs_procdata *)
-		(la_ptr + mchk_header->proc_offset
-		 - sizeof(mchk_procdata->paltemp));
+					(la_ptr + mchk_header->proc_offset
+					 - sizeof(mchk_procdata->paltemp));
 
 	mchk_sysdata = (struct el_apecs_sysdata_mcheck *)
-		(la_ptr + mchk_header->sys_offset);
+				   (la_ptr + mchk_header->sys_offset);
 
 
 	/* Clear the error before any reporting.  */
@@ -413,6 +439,6 @@ apecs_machine_check(unsigned long vector, unsigned long la_ptr)
 	mb();
 
 	process_mcheck_info(vector, la_ptr, "APECS",
-			    (mcheck_expected(0)
-			     && (mchk_sysdata->epic_dcsr & 0x0c00UL)));
+						(mcheck_expected(0)
+						 && (mchk_sysdata->epic_dcsr & 0x0c00UL)));
 }

@@ -42,11 +42,11 @@ set_int_vector(int n, irqvectptr addr)
 void
 set_break_vector(int n, irqvectptr addr)
 {
-	unsigned short *jinstr = (unsigned short *)&etrax_irv->v[n*2];
+	unsigned short *jinstr = (unsigned short *)&etrax_irv->v[n * 2];
 	unsigned long *jaddr = (unsigned long *)(jinstr + 1);
 
 	/* if you don't know what this does, do not touch it! */
-	
+
 	*jinstr = 0x0d3f;
 	*jaddr = (unsigned long)addr;
 
@@ -91,18 +91,19 @@ BUILD_IRQ(24, 0x1000000)
 BUILD_IRQ(25, 0x2000000)
 /* IRQ 26-30 are reserved */
 BUILD_IRQ(31, 0x80000000)
- 
+
 /*
- * Pointers to the low-level handlers 
+ * Pointers to the low-level handlers
  */
 
-static void (*interrupt[NR_IRQS])(void) = {
+static void (*interrupt[NR_IRQS])(void) =
+{
 	NULL, NULL, IRQ2_interrupt, IRQ3_interrupt,
 	IRQ4_interrupt, IRQ5_interrupt, IRQ6_interrupt, IRQ7_interrupt,
 	IRQ8_interrupt, IRQ9_interrupt, IRQ10_interrupt, IRQ11_interrupt,
-	IRQ12_interrupt, IRQ13_interrupt, NULL, NULL,	
-	IRQ16_interrupt, IRQ17_interrupt, IRQ18_interrupt, IRQ19_interrupt,	
-	IRQ20_interrupt, IRQ21_interrupt, IRQ22_interrupt, IRQ23_interrupt,	
+	IRQ12_interrupt, IRQ13_interrupt, NULL, NULL,
+	IRQ16_interrupt, IRQ17_interrupt, IRQ18_interrupt, IRQ19_interrupt,
+	IRQ20_interrupt, IRQ21_interrupt, IRQ22_interrupt, IRQ23_interrupt,
 	IRQ24_interrupt, IRQ25_interrupt, NULL, NULL, NULL, NULL, NULL,
 	IRQ31_interrupt
 };
@@ -117,7 +118,8 @@ static void disable_crisv10_irq(struct irq_data *data)
 	crisv10_mask_irq(data->irq);
 }
 
-static struct irq_chip crisv10_irq_type = {
+static struct irq_chip crisv10_irq_type =
+{
 	.name		= "CRISv10",
 	.irq_shutdown	= disable_crisv10_irq,
 	.irq_enable	= enable_crisv10_irq,
@@ -129,10 +131,10 @@ void system_call(void);  /* from entry.S */
 void do_sigtrap(void); /* from entry.S */
 void gdb_handle_breakpoint(void); /* from entry.S */
 
-extern void do_IRQ(int irq, struct pt_regs * regs);
+extern void do_IRQ(int irq, struct pt_regs *regs);
 
 /* Handle multiple IRQs */
-void do_multiple_IRQ(struct pt_regs* regs)
+void do_multiple_IRQ(struct pt_regs *regs)
 {
 	int bit;
 	unsigned masked;
@@ -150,10 +152,11 @@ void do_multiple_IRQ(struct pt_regs* regs)
 	 * the other one too. Unblock afterwards also.
 	 */
 	if (mask &
-	    (IO_STATE(R_VECT_MASK_RD, dma0, active) |
-	     IO_STATE(R_VECT_MASK_RD, dma1, active))) {
+		(IO_STATE(R_VECT_MASK_RD, dma0, active) |
+		 IO_STATE(R_VECT_MASK_RD, dma1, active)))
+	{
 		ethmask = (IO_MASK(R_VECT_MASK_RD, dma0) |
-			   IO_MASK(R_VECT_MASK_RD, dma1));
+				   IO_MASK(R_VECT_MASK_RD, dma1));
 	}
 
 	/* Block them */
@@ -165,8 +168,10 @@ void do_multiple_IRQ(struct pt_regs* regs)
 	irq_enter();
 
 	/* Handle all IRQs */
-	for (bit = 2; bit < 32; bit++) {
-		if (masked & (1 << bit)) {
+	for (bit = 2; bit < 32; bit++)
+	{
+		if (masked & (1 << bit))
+		{
 			do_IRQ(bit, regs);
 		}
 	}
@@ -192,22 +197,27 @@ void __init init_IRQ(void)
 	*R_IRQ_MASK2_CLR = 0xffffffff;
 	*R_VECT_MASK_CLR = 0xffffffff;
 
-        for (i = 0; i < 256; i++)
-               etrax_irv->v[i] = weird_irq;
+	for (i = 0; i < 256; i++)
+	{
+		etrax_irv->v[i] = weird_irq;
+	}
 
 	/* Initialize IRQ handler descriptors. */
-	for(i = 2; i < NR_IRQS; i++) {
+	for (i = 2; i < NR_IRQS; i++)
+	{
 		irq_set_chip_and_handler(i, &crisv10_irq_type,
-					 handle_simple_irq);
+								 handle_simple_irq);
 		set_int_vector(i, interrupt[i]);
 	}
 
-        /* the entries in the break vector contain actual code to be
-           executed by the associated break handler, rather than just a jump
-           address. therefore we need to setup a default breakpoint handler
-           for all breakpoints */
+	/* the entries in the break vector contain actual code to be
+	   executed by the associated break handler, rather than just a jump
+	   address. therefore we need to setup a default breakpoint handler
+	   for all breakpoints */
 	for (i = 0; i < 16; i++)
-                set_break_vector(i, do_sigtrap);
+	{
+		set_break_vector(i, do_sigtrap);
+	}
 
 	/* except IRQ 15 which is the multiple-IRQ handler on Etrax100 */
 	set_int_vector(15, multiple_interrupt);
@@ -222,10 +232,10 @@ void __init init_IRQ(void)
 	/* setup the system-call trap, which is reached by BREAK 13 */
 	set_break_vector(13, system_call);
 
-        /* setup a breakpoint handler for debugging used for both user and
-           kernel mode debugging  (which is why it is not inside an ifdef
-           CONFIG_ETRAX_KGDB) */
-        set_break_vector(8, gdb_handle_breakpoint);
+	/* setup a breakpoint handler for debugging used for both user and
+	   kernel mode debugging  (which is why it is not inside an ifdef
+	   CONFIG_ETRAX_KGDB) */
+	set_break_vector(8, gdb_handle_breakpoint);
 
 #ifdef CONFIG_ETRAX_KGDB
 	/* setup kgdb if its enabled, and break into the debugger */

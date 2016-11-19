@@ -29,43 +29,55 @@
 
 static bool domain_is_valid(unsigned domain)
 {
-	switch (domain) {
+	switch (domain)
+	{
 #define DOMAIN(n, v, x, c)		\
-	case HV_PERF_DOMAIN_##n:	\
-		/* fall through */
+case HV_PERF_DOMAIN_##n:	\
+	/* fall through */
 #include "hv-24x7-domains.h"
 #undef DOMAIN
-		return true;
-	default:
-		return false;
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool is_physical_domain(unsigned domain)
 {
-	switch (domain) {
+	switch (domain)
+	{
 #define DOMAIN(n, v, x, c)		\
-	case HV_PERF_DOMAIN_##n:	\
-		return c;
+case HV_PERF_DOMAIN_##n:	\
+	return c;
 #include "hv-24x7-domains.h"
 #undef DOMAIN
-	default:
-		return false;
+
+		default:
+			return false;
 	}
 }
 
 static const char *domain_name(unsigned domain)
 {
 	if (!domain_is_valid(domain))
+	{
 		return NULL;
+	}
 
-	switch (domain) {
-	case HV_PERF_DOMAIN_PHYS_CHIP:		return "Physical Chip";
-	case HV_PERF_DOMAIN_PHYS_CORE:		return "Physical Core";
-	case HV_PERF_DOMAIN_VCPU_HOME_CORE:	return "VCPU Home Core";
-	case HV_PERF_DOMAIN_VCPU_HOME_CHIP:	return "VCPU Home Chip";
-	case HV_PERF_DOMAIN_VCPU_HOME_NODE:	return "VCPU Home Node";
-	case HV_PERF_DOMAIN_VCPU_REMOTE_NODE:	return "VCPU Remote Node";
+	switch (domain)
+	{
+		case HV_PERF_DOMAIN_PHYS_CHIP:		return "Physical Chip";
+
+		case HV_PERF_DOMAIN_PHYS_CORE:		return "Physical Core";
+
+		case HV_PERF_DOMAIN_VCPU_HOME_CORE:	return "VCPU Home Core";
+
+		case HV_PERF_DOMAIN_VCPU_HOME_CHIP:	return "VCPU Home Chip";
+
+		case HV_PERF_DOMAIN_VCPU_HOME_NODE:	return "VCPU Home Node";
+
+		case HV_PERF_DOMAIN_VCPU_REMOTE_NODE:	return "VCPU Remote Node";
 	}
 
 	WARN_ON_ONCE(domain);
@@ -116,7 +128,8 @@ EVENT_DEFINE_RANGE(reserved1, config,   4, 15);
 EVENT_DEFINE_RANGE(reserved2, config1, 16, 63);
 EVENT_DEFINE_RANGE(reserved3, config2,  0, 63);
 
-static struct attribute *format_attrs[] = {
+static struct attribute *format_attrs[] =
+{
 	&format_attr_domain.attr,
 	&format_attr_offset.attr,
 	&format_attr_core.attr,
@@ -126,22 +139,26 @@ static struct attribute *format_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group format_group = {
+static struct attribute_group format_group =
+{
 	.name = "format",
 	.attrs = format_attrs,
 };
 
-static struct attribute_group event_group = {
+static struct attribute_group event_group =
+{
 	.name = "events",
 	/* .attrs is set in init */
 };
 
-static struct attribute_group event_desc_group = {
+static struct attribute_group event_desc_group =
+{
 	.name = "event_descs",
 	/* .attrs is set in init */
 };
 
-static struct attribute_group event_long_desc_group = {
+static struct attribute_group event_long_desc_group =
+{
 	.name = "event_long_descs",
 	/* .attrs is set in init */
 };
@@ -151,7 +168,8 @@ static struct kmem_cache *hv_page_cache;
 DEFINE_PER_CPU(int, hv_24x7_txn_flags);
 DEFINE_PER_CPU(int, hv_24x7_txn_err);
 
-struct hv_24x7_hw {
+struct hv_24x7_hw
+{
 	struct perf_event *events[255];
 };
 
@@ -193,7 +211,7 @@ static char *event_long_desc(struct hv_24x7_event_data *ev, int *len)
 }
 
 static bool event_fixed_portion_is_within(struct hv_24x7_event_data *ev,
-					  void *end)
+		void *end)
 {
 	void *start = ev;
 
@@ -215,45 +233,61 @@ static void *event_end(struct hv_24x7_event_data *ev, void *end)
 	unsigned dl, ldl;
 	unsigned nl = be16_to_cpu(ev->event_name_len);
 
-	if (nl < 2) {
+	if (nl < 2)
+	{
 		pr_debug("%s: name length too short: %d", __func__, nl);
 		return NULL;
 	}
 
-	if (start + nl > end) {
+	if (start + nl > end)
+	{
 		pr_debug("%s: start=%p + nl=%u > end=%p",
-				__func__, start, nl, end);
+				 __func__, start, nl, end);
 		return NULL;
 	}
 
 	dl_ = (__be16 *)(ev->remainder + nl - 2);
+
 	if (!IS_ALIGNED((uintptr_t)dl_, 2))
+	{
 		pr_warn("desc len not aligned %p", dl_);
+	}
+
 	dl = be16_to_cpu(*dl_);
-	if (dl < 2) {
+
+	if (dl < 2)
+	{
 		pr_debug("%s: desc len too short: %d", __func__, dl);
 		return NULL;
 	}
 
-	if (start + nl + dl > end) {
+	if (start + nl + dl > end)
+	{
 		pr_debug("%s: (start=%p + nl=%u + dl=%u)=%p > end=%p",
-				__func__, start, nl, dl, start + nl + dl, end);
+				 __func__, start, nl, dl, start + nl + dl, end);
 		return NULL;
 	}
 
 	ldl_ = (__be16 *)(ev->remainder + nl + dl - 2);
+
 	if (!IS_ALIGNED((uintptr_t)ldl_, 2))
+	{
 		pr_warn("long desc len not aligned %p", ldl_);
+	}
+
 	ldl = be16_to_cpu(*ldl_);
-	if (ldl < 2) {
+
+	if (ldl < 2)
+	{
 		pr_debug("%s: long desc len too short (ldl=%u)",
-				__func__, ldl);
+				 __func__, ldl);
 		return NULL;
 	}
 
-	if (start + nl + dl + ldl > end) {
+	if (start + nl + dl + ldl > end)
+	{
 		pr_debug("%s: start=%p + nl=%u + dl=%u + ldl=%u > end=%p",
-				__func__, start, nl, dl, ldl, end);
+				 __func__, start, nl, dl, ldl, end);
 		return NULL;
 	}
 
@@ -261,23 +295,23 @@ static void *event_end(struct hv_24x7_event_data *ev, void *end)
 }
 
 static unsigned long h_get_24x7_catalog_page_(unsigned long phys_4096,
-					      unsigned long version,
-					      unsigned long index)
+		unsigned long version,
+		unsigned long index)
 {
 	pr_devel("h_get_24x7_catalog_page(0x%lx, %lu, %lu)",
-			phys_4096, version, index);
+			 phys_4096, version, index);
 
 	WARN_ON(!IS_ALIGNED(phys_4096, 4096));
 
 	return plpar_hcall_norets(H_GET_24X7_CATALOG_PAGE,
-			phys_4096, version, index);
+							  phys_4096, version, index);
 }
 
 static unsigned long h_get_24x7_catalog_page(char page[],
-					     u64 version, u32 index)
+		u64 version, u32 index)
 {
 	return h_get_24x7_catalog_page_(virt_to_phys(page),
-					version, index);
+									version, index);
 }
 
 /*
@@ -323,31 +357,34 @@ static char *event_fmt(struct hv_24x7_event_data *event, unsigned domain)
 	const char *domain_str;
 	char buf[8];
 
-	switch (domain) {
-	case HV_PERF_DOMAIN_PHYS_CHIP:
-		snprintf(buf, sizeof(buf), "%d", domain);
-		domain_str = buf;
-		lpar = "0x0";
-		sindex = "chip";
-		break;
-	case HV_PERF_DOMAIN_PHYS_CORE:
-		domain_str = "?";
-		lpar = "0x0";
-		sindex = "core";
-		break;
-	default:
-		domain_str = "?";
-		lpar = "?";
-		sindex = "vcpu";
+	switch (domain)
+	{
+		case HV_PERF_DOMAIN_PHYS_CHIP:
+			snprintf(buf, sizeof(buf), "%d", domain);
+			domain_str = buf;
+			lpar = "0x0";
+			sindex = "chip";
+			break;
+
+		case HV_PERF_DOMAIN_PHYS_CORE:
+			domain_str = "?";
+			lpar = "0x0";
+			sindex = "core";
+			break;
+
+		default:
+			domain_str = "?";
+			lpar = "?";
+			sindex = "vcpu";
 	}
 
 	return kasprintf(GFP_KERNEL,
-			"domain=%s,offset=0x%x,%s=?,lpar=%s",
-			domain_str,
-			be16_to_cpu(event->event_counter_offs) +
-				be16_to_cpu(event->event_group_record_offs),
-			sindex,
-			lpar);
+					 "domain=%s,offset=0x%x,%s=?,lpar=%s",
+					 domain_str,
+					 be16_to_cpu(event->event_counter_offs) +
+					 be16_to_cpu(event->event_group_record_offs),
+					 sindex,
+					 lpar);
 }
 
 /* Avoid trusting fw to NUL terminate strings */
@@ -357,7 +394,7 @@ static char *memdup_to_str(char *maybe_str, int max_len, gfp_t gfp)
 }
 
 static ssize_t device_show_string(struct device *dev,
-		struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	struct dev_ext_attribute *d;
 
@@ -371,7 +408,9 @@ static struct attribute *device_str_attr_create_(char *name, char *str)
 	struct dev_ext_attribute *attr = kzalloc(sizeof(*attr), GFP_KERNEL);
 
 	if (!attr)
+	{
 		return NULL;
+	}
 
 	sysfs_attr_init(&attr->attr.attr);
 
@@ -393,27 +432,37 @@ static struct attribute *device_str_attr_create_(char *name, char *str)
  *	 freed by the caller.
  */
 static struct attribute *device_str_attr_create(char *name, int name_max,
-						int name_nonce,
-						char *str, size_t str_max)
+		int name_nonce,
+		char *str, size_t str_max)
 {
 	char *n;
 	char *s = memdup_to_str(str, str_max, GFP_KERNEL);
 	struct attribute *a;
 
 	if (!s)
+	{
 		return NULL;
+	}
 
 	if (!name_nonce)
+	{
 		n = kasprintf(GFP_KERNEL, "%.*s", name_max, name);
+	}
 	else
 		n = kasprintf(GFP_KERNEL, "%.*s__%d", name_max, name,
-					name_nonce);
+					  name_nonce);
+
 	if (!n)
+	{
 		goto out_s;
+	}
 
 	a = device_str_attr_create_(n, s);
+
 	if (!a)
+	{
 		goto out_n;
+	}
 
 	return a;
 out_n:
@@ -424,38 +473,48 @@ out_s:
 }
 
 static struct attribute *event_to_attr(unsigned ix,
-				       struct hv_24x7_event_data *event,
-				       unsigned domain,
-				       int nonce)
+									   struct hv_24x7_event_data *event,
+									   unsigned domain,
+									   int nonce)
 {
 	int event_name_len;
 	char *ev_name, *a_ev_name, *val;
 	struct attribute *attr;
 
-	if (!domain_is_valid(domain)) {
+	if (!domain_is_valid(domain))
+	{
 		pr_warn("catalog event %u has invalid domain %u\n",
 				ix, domain);
 		return NULL;
 	}
 
 	val = event_fmt(event, domain);
+
 	if (!val)
+	{
 		return NULL;
+	}
 
 	ev_name = event_name(event, &event_name_len);
+
 	if (!nonce)
 		a_ev_name = kasprintf(GFP_KERNEL, "%.*s",
-				(int)event_name_len, ev_name);
+							  (int)event_name_len, ev_name);
 	else
 		a_ev_name = kasprintf(GFP_KERNEL, "%.*s__%d",
-				(int)event_name_len, ev_name, nonce);
+							  (int)event_name_len, ev_name, nonce);
 
 	if (!a_ev_name)
+	{
 		goto out_val;
+	}
 
 	attr = device_str_attr_create_(a_ev_name, val);
+
 	if (!attr)
+	{
 		goto out_name;
+	}
 
 	return attr;
 out_name:
@@ -466,7 +525,7 @@ out_val:
 }
 
 static struct attribute *event_to_desc_attr(struct hv_24x7_event_data *event,
-					    int nonce)
+		int nonce)
 {
 	int nl, dl;
 	char *name = event_name(event, &nl);
@@ -474,7 +533,9 @@ static struct attribute *event_to_desc_attr(struct hv_24x7_event_data *event,
 
 	/* If there isn't a description, don't create the sysfs file */
 	if (!dl)
+	{
 		return NULL;
+	}
 
 	return device_str_attr_create(name, nl, nonce, desc, dl);
 }
@@ -488,23 +549,29 @@ event_to_long_desc_attr(struct hv_24x7_event_data *event, int nonce)
 
 	/* If there isn't a description, don't create the sysfs file */
 	if (!dl)
+	{
 		return NULL;
+	}
 
 	return device_str_attr_create(name, nl, nonce, desc, dl);
 }
 
 static int event_data_to_attrs(unsigned ix, struct attribute **attrs,
-				   struct hv_24x7_event_data *event, int nonce)
+							   struct hv_24x7_event_data *event, int nonce)
 {
 	*attrs = event_to_attr(ix, event, event->domain, nonce);
+
 	if (!*attrs)
+	{
 		return -1;
+	}
 
 	return 0;
 }
 
 /* */
-struct event_uniq {
+struct event_uniq
+{
 	struct rb_node node;
 	const char *name;
 	int nl;
@@ -515,64 +582,89 @@ struct event_uniq {
 static int memord(const void *d1, size_t s1, const void *d2, size_t s2)
 {
 	if (s1 < s2)
+	{
 		return 1;
+	}
+
 	if (s2 > s1)
+	{
 		return -1;
+	}
 
 	return memcmp(d1, d2, s1);
 }
 
 static int ev_uniq_ord(const void *v1, size_t s1, unsigned d1, const void *v2,
-		       size_t s2, unsigned d2)
+					   size_t s2, unsigned d2)
 {
 	int r = memord(v1, s1, v2, s2);
 
 	if (r)
+	{
 		return r;
+	}
+
 	if (d1 > d2)
+	{
 		return 1;
+	}
+
 	if (d2 > d1)
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
 static int event_uniq_add(struct rb_root *root, const char *name, int nl,
-			  unsigned domain)
+						  unsigned domain)
 {
 	struct rb_node **new = &(root->rb_node), *parent = NULL;
 	struct event_uniq *data;
 
 	/* Figure out where to put new node */
-	while (*new) {
+	while (*new)
+	{
 		struct event_uniq *it;
 		int result;
 
 		it = container_of(*new, struct event_uniq, node);
 		result = ev_uniq_ord(name, nl, domain, it->name, it->nl,
-					it->domain);
+							 it->domain);
 
 		parent = *new;
+
 		if (result < 0)
+		{
 			new = &((*new)->rb_left);
+		}
 		else if (result > 0)
+		{
 			new = &((*new)->rb_right);
-		else {
+		}
+		else
+		{
 			it->ct++;
 			pr_info("found a duplicate event %.*s, ct=%u\n", nl,
-						name, it->ct);
+					name, it->ct);
 			return it->ct;
 		}
 	}
 
 	data = kmalloc(sizeof(*data), GFP_KERNEL);
-	if (!data)
-		return -ENOMEM;
 
-	*data = (struct event_uniq) {
+	if (!data)
+	{
+		return -ENOMEM;
+	}
+
+	*data = (struct event_uniq)
+	{
 		.name = name,
-		.nl = nl,
-		.ct = 0,
-		.domain = domain,
+		 .nl = nl,
+		  .ct = 0,
+		   .domain = domain,
 	};
 
 	/* Add new node and rebalance tree. */
@@ -592,7 +684,7 @@ static void event_uniq_destroy(struct rb_root *root)
 	struct event_uniq *pos, *n;
 
 	rbtree_postorder_for_each_entry_safe(pos, n, root, node)
-		kfree(pos);
+	kfree(pos);
 }
 
 
@@ -604,24 +696,28 @@ static void event_uniq_destroy(struct rb_root *root)
  * Otherwise, return -1 (and print as appropriate).
  */
 static ssize_t catalog_event_len_validate(struct hv_24x7_event_data *event,
-					  size_t event_idx,
-					  size_t event_data_bytes,
-					  size_t event_entry_count,
-					  size_t offset, void *end)
+		size_t event_idx,
+		size_t event_data_bytes,
+		size_t event_entry_count,
+		size_t offset, void *end)
 {
 	ssize_t ev_len;
 	void *ev_end, *calc_ev_end;
 
 	if (offset >= event_data_bytes)
-		return -1;
-
-	if (event_idx >= event_entry_count) {
-		pr_devel("catalog event data has %zu bytes of padding after last event\n",
-				event_data_bytes - offset);
+	{
 		return -1;
 	}
 
-	if (!event_fixed_portion_is_within(event, end)) {
+	if (event_idx >= event_entry_count)
+	{
+		pr_devel("catalog event data has %zu bytes of padding after last event\n",
+				 event_data_bytes - offset);
+		return -1;
+	}
+
+	if (!event_fixed_portion_is_within(event, end))
+	{
 		pr_warn("event %zu fixed portion is not within range\n",
 				event_idx);
 		return -1;
@@ -634,7 +730,9 @@ static ssize_t catalog_event_len_validate(struct hv_24x7_event_data *event,
 				event_idx, ev_len, event);
 
 	ev_end = (__u8 *)event + ev_len;
-	if (ev_end > end) {
+
+	if (ev_end > end)
+	{
 		pr_warn("event %zu has .length=%zu, ends after buffer end: ev_end=%pK > end=%pK, offset=%zu\n",
 				event_idx, ev_len, ev_end, end,
 				offset);
@@ -642,16 +740,19 @@ static ssize_t catalog_event_len_validate(struct hv_24x7_event_data *event,
 	}
 
 	calc_ev_end = event_end(event, end);
-	if (!calc_ev_end) {
+
+	if (!calc_ev_end)
+	{
 		pr_warn("event %zu has a calculated length which exceeds buffer length %zu: event=%pK end=%pK, offset=%zu\n",
-			event_idx, event_data_bytes, event, end,
-			offset);
+				event_idx, event_data_bytes, event, end,
+				offset);
 		return -1;
 	}
 
-	if (calc_ev_end > ev_end) {
+	if (calc_ev_end > ev_end)
+	{
 		pr_warn("event %zu exceeds it's own length: event=%pK, end=%pK, offset=%zu, calc_ev_end=%pK\n",
-			event_idx, event, ev_end, offset, calc_ev_end);
+				event_idx, event, ev_end, offset, calc_ev_end);
 		return -1;
 	}
 
@@ -661,14 +762,14 @@ static ssize_t catalog_event_len_validate(struct hv_24x7_event_data *event,
 #define MAX_4K (SIZE_MAX / 4096)
 
 static int create_events_from_catalog(struct attribute ***events_,
-				      struct attribute ***event_descs_,
-				      struct attribute ***event_long_descs_)
+									  struct attribute ***event_descs_,
+									  struct attribute ***event_long_descs_)
 {
 	unsigned long hret;
 	size_t catalog_len, catalog_page_len, event_entry_count,
-	       event_data_len, event_data_offs,
-	       event_data_bytes, junk_events, event_idx, event_attr_ct, i,
-	       attr_max, event_idx_last, desc_ct, long_desc_ct;
+		   event_data_len, event_data_offs,
+		   event_data_bytes, junk_events, event_idx, event_attr_ct, i,
+		   attr_max, event_idx_last, desc_ct, long_desc_ct;
 	ssize_t ct, ev_len;
 	uint32_t catalog_version_num;
 	struct attribute **events, **event_descs, **event_long_descs;
@@ -680,13 +781,16 @@ static int create_events_from_catalog(struct attribute ***events_,
 	struct rb_root ev_uniq = RB_ROOT;
 	int ret = 0;
 
-	if (!page) {
+	if (!page)
+	{
 		ret = -ENOMEM;
 		goto e_out;
 	}
 
 	hret = h_get_24x7_catalog_page(page, 0, 0);
-	if (hret) {
+
+	if (hret)
+	{
 		ret = -EIO;
 		goto e_free;
 	}
@@ -694,7 +798,8 @@ static int create_events_from_catalog(struct attribute ***events_,
 	catalog_version_num = be64_to_cpu(page_0->version);
 	catalog_page_len = be32_to_cpu(page_0->length);
 
-	if (MAX_4K < catalog_page_len) {
+	if (MAX_4K < catalog_page_len)
+	{
 		pr_err("invalid page count: %zu\n", catalog_page_len);
 		ret = -EIO;
 		goto e_free;
@@ -707,28 +812,31 @@ static int create_events_from_catalog(struct attribute ***events_,
 	event_data_len    = be16_to_cpu(page_0->event_data_len);
 
 	pr_devel("cv %zu cl %zu eec %zu edo %zu edl %zu\n",
-			(size_t)catalog_version_num, catalog_len,
-			event_entry_count, event_data_offs, event_data_len);
+			 (size_t)catalog_version_num, catalog_len,
+			 event_entry_count, event_data_offs, event_data_len);
 
 	if ((MAX_4K < event_data_len)
-			|| (MAX_4K < event_data_offs)
-			|| (MAX_4K - event_data_offs < event_data_len)) {
+		|| (MAX_4K < event_data_offs)
+		|| (MAX_4K - event_data_offs < event_data_len))
+	{
 		pr_err("invalid event data offs %zu and/or len %zu\n",
-				event_data_offs, event_data_len);
+			   event_data_offs, event_data_len);
 		ret = -EIO;
 		goto e_free;
 	}
 
-	if ((event_data_offs + event_data_len) > catalog_page_len) {
+	if ((event_data_offs + event_data_len) > catalog_page_len)
+	{
 		pr_err("event data %zu-%zu does not fit inside catalog 0-%zu\n",
-				event_data_offs,
-				event_data_offs + event_data_len,
-				catalog_page_len);
+			   event_data_offs,
+			   event_data_offs + event_data_len,
+			   catalog_page_len);
 		ret = -EIO;
 		goto e_free;
 	}
 
-	if (SIZE_MAX - 1 < event_entry_count) {
+	if (SIZE_MAX - 1 < event_entry_count)
+	{
 		pr_err("event_entry_count %zu is invalid\n", event_entry_count);
 		ret = -EIO;
 		goto e_free;
@@ -741,7 +849,9 @@ static int create_events_from_catalog(struct attribute ***events_,
 	 * pages. Use vmalloc to make this easier.
 	 */
 	event_data = vmalloc(event_data_bytes);
-	if (!event_data) {
+
+	if (!event_data)
+	{
 		pr_err("could not allocate event data\n");
 		ret = -ENOMEM;
 		goto e_free;
@@ -755,14 +865,17 @@ static int create_events_from_catalog(struct attribute ***events_,
 	 */
 	BUILD_BUG_ON(PAGE_SIZE % 4096);
 
-	for (i = 0; i < event_data_len; i++) {
+	for (i = 0; i < event_data_len; i++)
+	{
 		hret = h_get_24x7_catalog_page_(
-				vmalloc_to_phys(event_data + i * 4096),
-				catalog_version_num,
-				i + event_data_offs);
-		if (hret) {
+				   vmalloc_to_phys(event_data + i * 4096),
+				   catalog_version_num,
+				   i + event_data_offs);
+
+		if (hret)
+		{
 			pr_err("failed to get event data in page %zu\n",
-					i + event_data_offs);
+				   i + event_data_offs);
 			ret = -EIO;
 			goto e_event_data;
 		}
@@ -773,29 +886,35 @@ static int create_events_from_catalog(struct attribute ***events_,
 	 * verify it at the same time.
 	 */
 	for (junk_events = 0, event = event_data, event_idx = 0, attr_max = 0;
-	     ;
-	     event_idx++, event = (void *)event + ev_len) {
+		 ;
+		 event_idx++, event = (void *)event + ev_len)
+	{
 		size_t offset = (void *)event - (void *)event_data;
 		char *name;
 		int nl;
 
 		ev_len = catalog_event_len_validate(event, event_idx,
-						    event_data_bytes,
-						    event_entry_count,
-						    offset, end);
+											event_data_bytes,
+											event_entry_count,
+											offset, end);
+
 		if (ev_len < 0)
+		{
 			break;
+		}
 
 		name = event_name(event, &nl);
 
-		if (event->event_group_record_len == 0) {
+		if (event->event_group_record_len == 0)
+		{
 			pr_devel("invalid event %zu (%.*s): group_record_len == 0, skipping\n",
-					event_idx, nl, name);
+					 event_idx, nl, name);
 			junk_events++;
 			continue;
 		}
 
-		if (!catalog_entry_domain_is_valid(event->domain)) {
+		if (!catalog_entry_domain_is_valid(event->domain))
+		{
 			pr_info("event %zu (%.*s) has invalid domain %d\n",
 					event_idx, nl, name, event->domain);
 			junk_events++;
@@ -806,65 +925,90 @@ static int create_events_from_catalog(struct attribute ***events_,
 	}
 
 	event_idx_last = event_idx;
+
 	if (event_idx_last != event_entry_count)
 		pr_warn("event buffer ended before listed # of events were parsed (got %zu, wanted %zu, junk %zu)\n",
 				event_idx_last, event_entry_count, junk_events);
 
 	events = kmalloc_array(attr_max + 1, sizeof(*events), GFP_KERNEL);
-	if (!events) {
+
+	if (!events)
+	{
 		ret = -ENOMEM;
 		goto e_event_data;
 	}
 
 	event_descs = kmalloc_array(event_idx + 1, sizeof(*event_descs),
-				GFP_KERNEL);
-	if (!event_descs) {
+								GFP_KERNEL);
+
+	if (!event_descs)
+	{
 		ret = -ENOMEM;
 		goto e_event_attrs;
 	}
 
 	event_long_descs = kmalloc_array(event_idx + 1,
-			sizeof(*event_long_descs), GFP_KERNEL);
-	if (!event_long_descs) {
+									 sizeof(*event_long_descs), GFP_KERNEL);
+
+	if (!event_long_descs)
+	{
 		ret = -ENOMEM;
 		goto e_event_descs;
 	}
 
 	/* Iterate over the catalog filling in the attribute vector */
 	for (junk_events = 0, event_attr_ct = 0, desc_ct = 0, long_desc_ct = 0,
-				event = event_data, event_idx = 0;
-			event_idx < event_idx_last;
-			event_idx++, ev_len = be16_to_cpu(event->length),
-				event = (void *)event + ev_len) {
+		 event = event_data, event_idx = 0;
+		 event_idx < event_idx_last;
+		 event_idx++, ev_len = be16_to_cpu(event->length),
+		 event = (void *)event + ev_len)
+	{
 		char *name;
 		int nl;
 		int nonce;
+
 		/*
 		 * these are the only "bad" events that are intermixed and that
 		 * we can ignore without issue. make sure to skip them here
 		 */
 		if (event->event_group_record_len == 0)
+		{
 			continue;
+		}
+
 		if (!catalog_entry_domain_is_valid(event->domain))
+		{
 			continue;
+		}
 
 		name  = event_name(event, &nl);
 		nonce = event_uniq_add(&ev_uniq, name, nl, event->domain);
 		ct    = event_data_to_attrs(event_idx, events + event_attr_ct,
-					    event, nonce);
-		if (ct < 0) {
+									event, nonce);
+
+		if (ct < 0)
+		{
 			pr_warn("event %zu (%.*s) creation failure, skipping\n",
-				event_idx, nl, name);
+					event_idx, nl, name);
 			junk_events++;
-		} else {
+		}
+		else
+		{
 			event_attr_ct++;
 			event_descs[desc_ct] = event_to_desc_attr(event, nonce);
+
 			if (event_descs[desc_ct])
+			{
 				desc_ct++;
+			}
+
 			event_long_descs[long_desc_ct] =
-					event_to_long_desc_attr(event, nonce);
+				event_to_long_desc_attr(event, nonce);
+
 			if (event_long_descs[long_desc_ct])
+			{
 				long_desc_ct++;
+			}
 		}
 	}
 
@@ -900,8 +1044,8 @@ e_out:
 }
 
 static ssize_t catalog_read(struct file *filp, struct kobject *kobj,
-			    struct bin_attribute *bin_attr, char *buf,
-			    loff_t offset, size_t count)
+							struct bin_attribute *bin_attr, char *buf,
+							loff_t offset, size_t count)
 {
 	unsigned long hret;
 	ssize_t ret = 0;
@@ -914,10 +1058,14 @@ static ssize_t catalog_read(struct file *filp, struct kobject *kobj,
 	struct hv_24x7_catalog_page_0 *page_0 = page;
 
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	hret = h_get_24x7_catalog_page(page, 0, 0);
-	if (hret) {
+
+	if (hret)
+	{
 		ret = -EIO;
 		goto e_free;
 	}
@@ -930,108 +1078,130 @@ static ssize_t catalog_read(struct file *filp, struct kobject *kobj,
 	offset_in_page = offset % 4096;
 
 	if (page_offset >= catalog_page_len)
+	{
 		goto e_free;
+	}
 
-	if (page_offset != 0) {
+	if (page_offset != 0)
+	{
 		hret = h_get_24x7_catalog_page(page, catalog_version_num,
-					       page_offset);
-		if (hret) {
+									   page_offset);
+
+		if (hret)
+		{
 			ret = -EIO;
 			goto e_free;
 		}
 	}
 
 	copy_len = 4096 - offset_in_page;
-	if (copy_len > count)
-		copy_len = count;
 
-	memcpy(buf, page+offset_in_page, copy_len);
+	if (copy_len > count)
+	{
+		copy_len = count;
+	}
+
+	memcpy(buf, page + offset_in_page, copy_len);
 	ret = copy_len;
 
 e_free:
+
 	if (hret)
 		pr_err("h_get_24x7_catalog_page(ver=%lld, page=%lld) failed:"
-		       " rc=%ld\n",
-		       catalog_version_num, page_offset, hret);
+			   " rc=%ld\n",
+			   catalog_version_num, page_offset, hret);
+
 	kmem_cache_free(hv_page_cache, page);
 
 	pr_devel("catalog_read: offset=%lld(%lld) count=%zu "
-			"catalog_len=%zu(%zu) => %zd\n", offset, page_offset,
-			count, catalog_len, catalog_page_len, ret);
+			 "catalog_len=%zu(%zu) => %zd\n", offset, page_offset,
+			 count, catalog_len, catalog_page_len, ret);
 
 	return ret;
 }
 
 static ssize_t domains_show(struct device *dev, struct device_attribute *attr,
-			    char *page)
+							char *page)
 {
 	int d, n, count = 0;
 	const char *str;
 
-	for (d = 0; d < HV_PERF_DOMAIN_MAX; d++) {
+	for (d = 0; d < HV_PERF_DOMAIN_MAX; d++)
+	{
 		str = domain_name(d);
+
 		if (!str)
+		{
 			continue;
+		}
 
 		n = sprintf(page, "%d: %s\n", d, str);
+
 		if (n < 0)
+		{
 			break;
+		}
 
 		count += n;
 		page += n;
 	}
+
 	return count;
 }
 
 #define PAGE_0_ATTR(_name, _fmt, _expr)				\
-static ssize_t _name##_show(struct device *dev,			\
-			    struct device_attribute *dev_attr,	\
-			    char *buf)				\
-{								\
-	unsigned long hret;					\
-	ssize_t ret = 0;					\
-	void *page = kmem_cache_alloc(hv_page_cache, GFP_USER);	\
-	struct hv_24x7_catalog_page_0 *page_0 = page;		\
-	if (!page)						\
-		return -ENOMEM;					\
-	hret = h_get_24x7_catalog_page(page, 0, 0);		\
-	if (hret) {						\
-		ret = -EIO;					\
-		goto e_free;					\
-	}							\
-	ret = sprintf(buf, _fmt, _expr);			\
-e_free:								\
-	kmem_cache_free(hv_page_cache, page);			\
-	return ret;						\
-}								\
-static DEVICE_ATTR_RO(_name)
+	static ssize_t _name##_show(struct device *dev,			\
+								struct device_attribute *dev_attr,	\
+								char *buf)				\
+	{								\
+		unsigned long hret;					\
+		ssize_t ret = 0;					\
+		void *page = kmem_cache_alloc(hv_page_cache, GFP_USER);	\
+		struct hv_24x7_catalog_page_0 *page_0 = page;		\
+		if (!page)						\
+			return -ENOMEM;					\
+		hret = h_get_24x7_catalog_page(page, 0, 0);		\
+		if (hret) {						\
+			ret = -EIO;					\
+			goto e_free;					\
+		}							\
+		ret = sprintf(buf, _fmt, _expr);			\
+	e_free:								\
+		kmem_cache_free(hv_page_cache, page);			\
+		return ret;						\
+	}								\
+	static DEVICE_ATTR_RO(_name)
 
 PAGE_0_ATTR(catalog_version, "%lld\n",
-		(unsigned long long)be64_to_cpu(page_0->version));
+			(unsigned long long)be64_to_cpu(page_0->version));
 PAGE_0_ATTR(catalog_len, "%lld\n",
-		(unsigned long long)be32_to_cpu(page_0->length) * 4096);
+			(unsigned long long)be32_to_cpu(page_0->length) * 4096);
 static BIN_ATTR_RO(catalog, 0/* real length varies */);
 static DEVICE_ATTR_RO(domains);
 
-static struct bin_attribute *if_bin_attrs[] = {
+static struct bin_attribute *if_bin_attrs[] =
+{
 	&bin_attr_catalog,
 	NULL,
 };
 
-static struct attribute *if_attrs[] = {
+static struct attribute *if_attrs[] =
+{
 	&dev_attr_catalog_len.attr,
 	&dev_attr_catalog_version.attr,
 	&dev_attr_domains.attr,
 	NULL,
 };
 
-static struct attribute_group if_group = {
+static struct attribute_group if_group =
+{
 	.name = "interface",
 	.bin_attrs = if_bin_attrs,
 	.attrs = if_attrs,
 };
 
-static const struct attribute_group *attr_groups[] = {
+static const struct attribute_group *attr_groups[] =
+{
 	&format_group,
 	&event_group,
 	&event_desc_group,
@@ -1041,25 +1211,25 @@ static const struct attribute_group *attr_groups[] = {
 };
 
 static void log_24x7_hcall(struct hv_24x7_request_buffer *request_buffer,
-			   struct hv_24x7_data_result_buffer *result_buffer,
-			   unsigned long ret)
+						   struct hv_24x7_data_result_buffer *result_buffer,
+						   unsigned long ret)
 {
 	struct hv_24x7_request *req;
 
 	req = &request_buffer->requests[0];
 	pr_notice_ratelimited("hcall failed: [%d %#x %#x %d] => "
-			"ret 0x%lx (%ld) detail=0x%x failing ix=%x\n",
-			req->performance_domain, req->data_offset,
-			req->starting_ix, req->starting_lpar_ix, ret, ret,
-			result_buffer->detailed_rc,
-			result_buffer->failing_request_ix);
+						  "ret 0x%lx (%ld) detail=0x%x failing ix=%x\n",
+						  req->performance_domain, req->data_offset,
+						  req->starting_ix, req->starting_lpar_ix, ret, ret,
+						  result_buffer->detailed_rc,
+						  result_buffer->failing_request_ix);
 }
 
 /*
  * Start the process for a new H_GET_24x7_DATA hcall.
  */
 static void init_24x7_request(struct hv_24x7_request_buffer *request_buffer,
-			      struct hv_24x7_data_result_buffer *result_buffer)
+							  struct hv_24x7_data_result_buffer *result_buffer)
 {
 
 	memset(request_buffer, 0, 4096);
@@ -1074,7 +1244,7 @@ static void init_24x7_request(struct hv_24x7_request_buffer *request_buffer,
  * by 'init_24x7_request()' and 'add_event_to_24x7_request()'.
  */
 static int make_24x7_request(struct hv_24x7_request_buffer *request_buffer,
-			     struct hv_24x7_data_result_buffer *result_buffer)
+							 struct hv_24x7_data_result_buffer *result_buffer)
 {
 	unsigned long ret;
 
@@ -1084,11 +1254,13 @@ static int make_24x7_request(struct hv_24x7_request_buffer *request_buffer,
 	 *	 allocated buffer size, H24x7_DATA_BUFFER_SIZE.
 	 */
 	ret = plpar_hcall_norets(H_GET_24X7_DATA,
-			virt_to_phys(request_buffer), H24x7_DATA_BUFFER_SIZE,
-			virt_to_phys(result_buffer),  H24x7_DATA_BUFFER_SIZE);
+							 virt_to_phys(request_buffer), H24x7_DATA_BUFFER_SIZE,
+							 virt_to_phys(result_buffer),  H24x7_DATA_BUFFER_SIZE);
 
 	if (ret)
+	{
 		log_24x7_hcall(request_buffer, result_buffer, ret);
+	}
 
 	return ret;
 }
@@ -1101,27 +1273,31 @@ static int make_24x7_request(struct hv_24x7_request_buffer *request_buffer,
  * request buffer one by one, make the HCALL and process the results.
  */
 static int add_event_to_24x7_request(struct perf_event *event,
-				struct hv_24x7_request_buffer *request_buffer)
+									 struct hv_24x7_request_buffer *request_buffer)
 {
 	u16 idx;
 	int i;
 	struct hv_24x7_request *req;
 
-	if (request_buffer->num_requests > 254) {
+	if (request_buffer->num_requests > 254)
+	{
 		pr_devel("Too many requests for 24x7 HCALL %d\n",
-				request_buffer->num_requests);
+				 request_buffer->num_requests);
 		return -EINVAL;
 	}
 
-	switch (event_get_domain(event)) {
-	case HV_PERF_DOMAIN_PHYS_CHIP:
-		idx = event_get_chip(event);
-		break;
-	case HV_PERF_DOMAIN_PHYS_CORE:
-		idx = event_get_core(event);
-		break;
-	default:
-		idx = event_get_vcpu(event);
+	switch (event_get_domain(event))
+	{
+		case HV_PERF_DOMAIN_PHYS_CHIP:
+			idx = event_get_chip(event);
+			break;
+
+		case HV_PERF_DOMAIN_PHYS_CORE:
+			idx = event_get_core(event);
+			break;
+
+		default:
+			idx = event_get_vcpu(event);
 	}
 
 	i = request_buffer->num_requests++;
@@ -1131,7 +1307,7 @@ static int add_event_to_24x7_request(struct perf_event *event,
 	req->data_size = cpu_to_be16(8);
 	req->data_offset = cpu_to_be32(event_get_offset(event));
 	req->starting_lpar_ix = cpu_to_be16(event_get_lpar(event)),
-	req->max_num_lpars = cpu_to_be16(1);
+		 req->max_num_lpars = cpu_to_be16(1);
 	req->starting_ix = cpu_to_be16(idx);
 	req->max_ix = cpu_to_be16(1);
 
@@ -1153,11 +1329,16 @@ static unsigned long single_24x7_request(struct perf_event *event, u64 *count)
 	init_24x7_request(request_buffer, result_buffer);
 
 	ret = add_event_to_24x7_request(event, request_buffer);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = make_24x7_request(request_buffer, result_buffer);
-	if (ret) {
+
+	if (ret)
+	{
 		log_24x7_hcall(request_buffer, result_buffer, ret);
 		goto out;
 	}
@@ -1181,68 +1362,83 @@ static int h_24x7_event_init(struct perf_event *event)
 
 	/* Not our event */
 	if (event->attr.type != event->pmu->type)
+	{
 		return -ENOENT;
+	}
 
 	/* Unused areas must be 0 */
 	if (event_get_reserved1(event) ||
-	    event_get_reserved2(event) ||
-	    event_get_reserved3(event)) {
+		event_get_reserved2(event) ||
+		event_get_reserved3(event))
+	{
 		pr_devel("reserved set when forbidden 0x%llx(0x%llx) 0x%llx(0x%llx) 0x%llx(0x%llx)\n",
-				event->attr.config,
-				event_get_reserved1(event),
-				event->attr.config1,
-				event_get_reserved2(event),
-				event->attr.config2,
-				event_get_reserved3(event));
+				 event->attr.config,
+				 event_get_reserved1(event),
+				 event->attr.config1,
+				 event_get_reserved2(event),
+				 event->attr.config2,
+				 event_get_reserved3(event));
 		return -EINVAL;
 	}
 
 	/* unsupported modes and filters */
 	if (event->attr.exclude_user   ||
-	    event->attr.exclude_kernel ||
-	    event->attr.exclude_hv     ||
-	    event->attr.exclude_idle   ||
-	    event->attr.exclude_host   ||
-	    event->attr.exclude_guest)
+		event->attr.exclude_kernel ||
+		event->attr.exclude_hv     ||
+		event->attr.exclude_idle   ||
+		event->attr.exclude_host   ||
+		event->attr.exclude_guest)
+	{
 		return -EINVAL;
+	}
 
 	/* no branch sampling */
 	if (has_branch_stack(event))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* offset must be 8 byte aligned */
-	if (event_get_offset(event) % 8) {
+	if (event_get_offset(event) % 8)
+	{
 		pr_devel("bad alignment\n");
 		return -EINVAL;
 	}
 
 	/* Domains above 6 are invalid */
 	domain = event_get_domain(event);
-	if (domain > 6) {
+
+	if (domain > 6)
+	{
 		pr_devel("invalid domain %d\n", domain);
 		return -EINVAL;
 	}
 
 	hret = hv_perf_caps_get(&caps);
-	if (hret) {
+
+	if (hret)
+	{
 		pr_devel("could not get capabilities: rc=%ld\n", hret);
 		return -EIO;
 	}
 
 	/* Physical domains & other lpars require extra capabilities */
 	if (!caps.collect_privileged && (is_physical_domain(domain) ||
-		(event_get_lpar(event) != event_get_lpar_max()))) {
+									 (event_get_lpar(event) != event_get_lpar_max())))
+	{
 		pr_devel("hv permissions disallow: is_physical_domain:%d, lpar=0x%llx\n",
-				is_physical_domain(domain),
-				event_get_lpar(event));
+				 is_physical_domain(domain),
+				 event_get_lpar(event));
 		return -EACCES;
 	}
 
 	/* Get the initial value of the counter for this event */
-	if (single_24x7_request(event, &ct)) {
+	if (single_24x7_request(event, &ct))
+	{
 		pr_devel("test hcall failed\n");
 		return -EIO;
 	}
+
 	(void)local64_xchg(&event->hw.prev_count, ct);
 
 	return 0;
@@ -1253,9 +1449,12 @@ static u64 h_24x7_get_value(struct perf_event *event)
 	unsigned long ret;
 	u64 ct;
 	ret = single_24x7_request(event, &ct);
+
 	if (ret)
 		/* We checked this in event init, shouldn't fail here... */
+	{
 		return 0;
+	}
 
 	return ct;
 }
@@ -1284,19 +1483,26 @@ static void h_24x7_event_read(struct perf_event *event)
 	 * to read this counter by itself.
 	 */
 
-	if (txn_flags & PERF_PMU_TXN_READ) {
+	if (txn_flags & PERF_PMU_TXN_READ)
+	{
 		int i;
 		int ret;
 
 		if (__this_cpu_read(hv_24x7_txn_err))
+		{
 			return;
+		}
 
 		request_buffer = (void *)get_cpu_var(hv_24x7_reqb);
 
 		ret = add_event_to_24x7_request(event, request_buffer);
-		if (ret) {
+
+		if (ret)
+		{
 			__this_cpu_write(hv_24x7_txn_err, ret);
-		} else {
+		}
+		else
+		{
 			/*
 			 * Associate the event with the HCALL request index,
 			 * so ->commit_txn() can quickly find/update count.
@@ -1319,7 +1525,9 @@ static void h_24x7_event_read(struct perf_event *event)
 		}
 
 		put_cpu_var(hv_24x7_reqb);
-	} else {
+	}
+	else
+	{
 		now = h_24x7_get_value(event);
 		update_event_count(event, now);
 	}
@@ -1328,7 +1536,9 @@ static void h_24x7_event_read(struct perf_event *event)
 static void h_24x7_event_start(struct perf_event *event, int flags)
 {
 	if (flags & PERF_EF_RELOAD)
+	{
 		local64_set(&event->hw.prev_count, h_24x7_get_value(event));
+	}
 }
 
 static void h_24x7_event_stop(struct perf_event *event, int flags)
@@ -1339,7 +1549,9 @@ static void h_24x7_event_stop(struct perf_event *event, int flags)
 static int h_24x7_event_add(struct perf_event *event, int flags)
 {
 	if (flags & PERF_EF_START)
+	{
 		h_24x7_event_start(event, flags);
+	}
 
 	return 0;
 }
@@ -1359,8 +1571,11 @@ static void h_24x7_event_start_txn(struct pmu *pmu, unsigned int flags)
 	WARN_ON_ONCE(__this_cpu_read(hv_24x7_txn_flags));
 
 	__this_cpu_write(hv_24x7_txn_flags, flags);
+
 	if (flags & ~PERF_PMU_TXN_READ)
+	{
 		return;
+	}
 
 	request_buffer = (void *)get_cpu_var(hv_24x7_reqb);
 	result_buffer = (void *)get_cpu_var(hv_24x7_resb);
@@ -1406,18 +1621,26 @@ static int h_24x7_event_commit_txn(struct pmu *pmu)
 	WARN_ON_ONCE(!txn_flags);
 
 	ret = 0;
+
 	if (txn_flags & ~PERF_PMU_TXN_READ)
+	{
 		goto out;
+	}
 
 	ret = __this_cpu_read(hv_24x7_txn_err);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	request_buffer = (void *)get_cpu_var(hv_24x7_reqb);
 	result_buffer = (void *)get_cpu_var(hv_24x7_resb);
 
 	ret = make_24x7_request(request_buffer, result_buffer);
-	if (ret) {
+
+	if (ret)
+	{
 		log_24x7_hcall(request_buffer, result_buffer, ret);
 		goto put_reqb;
 	}
@@ -1425,7 +1648,8 @@ static int h_24x7_event_commit_txn(struct pmu *pmu)
 	h24x7hw = &get_cpu_var(hv_24x7_hw);
 
 	/* Update event counts from hcall */
-	for (i = 0; i < request_buffer->num_requests; i++) {
+	for (i = 0; i < request_buffer->num_requests; i++)
+	{
 		resb = &result_buffer->results[i];
 		count = be64_to_cpu(resb->elements[0].element_data[0]);
 		event = h24x7hw->events[i];
@@ -1455,7 +1679,8 @@ static void h_24x7_event_cancel_txn(struct pmu *pmu)
 	reset_txn();
 }
 
-static struct pmu h_24x7_pmu = {
+static struct pmu h_24x7_pmu =
+{
 	.task_ctx_nr = perf_invalid_context,
 
 	.name = "hv_24x7",
@@ -1477,35 +1702,46 @@ static int hv_24x7_init(void)
 	unsigned long hret;
 	struct hv_perf_caps caps;
 
-	if (!firmware_has_feature(FW_FEATURE_LPAR)) {
+	if (!firmware_has_feature(FW_FEATURE_LPAR))
+	{
 		pr_debug("not a virtualized system, not enabling\n");
 		return -ENODEV;
 	}
 
 	hret = hv_perf_caps_get(&caps);
-	if (hret) {
+
+	if (hret)
+	{
 		pr_debug("could not obtain capabilities, not enabling, rc=%ld\n",
-				hret);
+				 hret);
 		return -ENODEV;
 	}
 
 	hv_page_cache = kmem_cache_create("hv-page-4096", 4096, 4096, 0, NULL);
+
 	if (!hv_page_cache)
+	{
 		return -ENOMEM;
+	}
 
 	/* sampling not supported */
 	h_24x7_pmu.capabilities |= PERF_PMU_CAP_NO_INTERRUPT;
 
 	r = create_events_from_catalog(&event_group.attrs,
-				   &event_desc_group.attrs,
-				   &event_long_desc_group.attrs);
+								   &event_desc_group.attrs,
+								   &event_long_desc_group.attrs);
 
 	if (r)
+	{
 		return r;
+	}
 
 	r = perf_pmu_register(&h_24x7_pmu, h_24x7_pmu.name, -1);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }

@@ -16,18 +16,18 @@
 #define PLD_PLAT_BASE		0x1cc00000
 
 #ifndef __ASSEMBLY__
-/*
- * C functions use non-cache address.
- */
-#define PLD_BASE		(PLD_PLAT_BASE /* + NONCACHE_OFFSET */)
-#define __reg8			(volatile unsigned char *)
-#define __reg16			(volatile unsigned short *)
-#define __reg32			(volatile unsigned int *)
+	/*
+	* C functions use non-cache address.
+	*/
+	#define PLD_BASE		(PLD_PLAT_BASE /* + NONCACHE_OFFSET */)
+	#define __reg8			(volatile unsigned char *)
+	#define __reg16			(volatile unsigned short *)
+	#define __reg32			(volatile unsigned int *)
 #else
-#define PLD_BASE		(PLD_PLAT_BASE + NONCACHE_OFFSET)
-#define __reg8
-#define __reg16
-#define __reg32
+	#define PLD_BASE		(PLD_PLAT_BASE + NONCACHE_OFFSET)
+	#define __reg8
+	#define __reg16
+	#define __reg32
 #endif /* __ASSEMBLY__ */
 
 /* CFC */
@@ -70,72 +70,72 @@
  *  ICUCR17:	control register for SIO0 send interrupt
  */
 #if !defined(CONFIG_PLAT_USRV)
-#define PLD_IRQ_INT0		(OPSPUT_PLD_IRQ_BASE + 0)	/* None */
-#define PLD_IRQ_INT1		(OPSPUT_PLD_IRQ_BASE + 1)	/* reserved */
-#define PLD_IRQ_INT2		(OPSPUT_PLD_IRQ_BASE + 2)	/* reserved */
-#define PLD_IRQ_CFIREQ		(OPSPUT_PLD_IRQ_BASE + 3)	/* CF IREQ */
-#define PLD_IRQ_CFC_INSERT	(OPSPUT_PLD_IRQ_BASE + 4)	/* CF Insert */
-#define PLD_IRQ_CFC_EJECT	(OPSPUT_PLD_IRQ_BASE + 5)	/* CF Eject */
-#define PLD_IRQ_EXINT		(OPSPUT_PLD_IRQ_BASE + 6)	/* EXINT */
-#define PLD_IRQ_INT7		(OPSPUT_PLD_IRQ_BASE + 7)	/* reserved */
-#define PLD_IRQ_INT8		(OPSPUT_PLD_IRQ_BASE + 8)	/* reserved */
-#define PLD_IRQ_INT9		(OPSPUT_PLD_IRQ_BASE + 9)	/* reserved */
-#define PLD_IRQ_INT10		(OPSPUT_PLD_IRQ_BASE + 10)	/* reserved */
-#define PLD_IRQ_MMCCARD		(OPSPUT_PLD_IRQ_BASE + 11)	/* MMC Insert/Eject */
-#define PLD_IRQ_INT12		(OPSPUT_PLD_IRQ_BASE + 12)	/* reserved */
-#define PLD_IRQ_SC_ERROR	(OPSPUT_PLD_IRQ_BASE + 13)	/* SC error */
-#define PLD_IRQ_SC_RCV		(OPSPUT_PLD_IRQ_BASE + 14)	/* SC receive */
-#define PLD_IRQ_SC_SND		(OPSPUT_PLD_IRQ_BASE + 15)	/* SC send */
-#define PLD_IRQ_SIO0_RCV	(OPSPUT_PLD_IRQ_BASE + 16)	/* SIO receive */
-#define PLD_IRQ_SIO0_SND	(OPSPUT_PLD_IRQ_BASE + 17)	/* SIO send */
-#define PLD_IRQ_INT18		(OPSPUT_PLD_IRQ_BASE + 18)	/* reserved */
-#define PLD_IRQ_INT19		(OPSPUT_PLD_IRQ_BASE + 19)	/* reserved */
-#define PLD_IRQ_INT20		(OPSPUT_PLD_IRQ_BASE + 20)	/* reserved */
-#define PLD_IRQ_INT21		(OPSPUT_PLD_IRQ_BASE + 21)	/* reserved */
-#define PLD_IRQ_INT22		(OPSPUT_PLD_IRQ_BASE + 22)	/* reserved */
-#define PLD_IRQ_INT23		(OPSPUT_PLD_IRQ_BASE + 23)	/* reserved */
-#define PLD_IRQ_INT24		(OPSPUT_PLD_IRQ_BASE + 24)	/* reserved */
-#define PLD_IRQ_INT25		(OPSPUT_PLD_IRQ_BASE + 25)	/* reserved */
-#define PLD_IRQ_INT26		(OPSPUT_PLD_IRQ_BASE + 26)	/* reserved */
-#define PLD_IRQ_INT27		(OPSPUT_PLD_IRQ_BASE + 27)	/* reserved */
-#define PLD_IRQ_INT28		(OPSPUT_PLD_IRQ_BASE + 28)	/* reserved */
-#define PLD_IRQ_INT29		(OPSPUT_PLD_IRQ_BASE + 29)	/* reserved */
-#define PLD_IRQ_INT30		(OPSPUT_PLD_IRQ_BASE + 30)	/* reserved */
-#define PLD_IRQ_INT31		(OPSPUT_PLD_IRQ_BASE + 31)	/* reserved */
+	#define PLD_IRQ_INT0		(OPSPUT_PLD_IRQ_BASE + 0)	/* None */
+	#define PLD_IRQ_INT1		(OPSPUT_PLD_IRQ_BASE + 1)	/* reserved */
+	#define PLD_IRQ_INT2		(OPSPUT_PLD_IRQ_BASE + 2)	/* reserved */
+	#define PLD_IRQ_CFIREQ		(OPSPUT_PLD_IRQ_BASE + 3)	/* CF IREQ */
+	#define PLD_IRQ_CFC_INSERT	(OPSPUT_PLD_IRQ_BASE + 4)	/* CF Insert */
+	#define PLD_IRQ_CFC_EJECT	(OPSPUT_PLD_IRQ_BASE + 5)	/* CF Eject */
+	#define PLD_IRQ_EXINT		(OPSPUT_PLD_IRQ_BASE + 6)	/* EXINT */
+	#define PLD_IRQ_INT7		(OPSPUT_PLD_IRQ_BASE + 7)	/* reserved */
+	#define PLD_IRQ_INT8		(OPSPUT_PLD_IRQ_BASE + 8)	/* reserved */
+	#define PLD_IRQ_INT9		(OPSPUT_PLD_IRQ_BASE + 9)	/* reserved */
+	#define PLD_IRQ_INT10		(OPSPUT_PLD_IRQ_BASE + 10)	/* reserved */
+	#define PLD_IRQ_MMCCARD		(OPSPUT_PLD_IRQ_BASE + 11)	/* MMC Insert/Eject */
+	#define PLD_IRQ_INT12		(OPSPUT_PLD_IRQ_BASE + 12)	/* reserved */
+	#define PLD_IRQ_SC_ERROR	(OPSPUT_PLD_IRQ_BASE + 13)	/* SC error */
+	#define PLD_IRQ_SC_RCV		(OPSPUT_PLD_IRQ_BASE + 14)	/* SC receive */
+	#define PLD_IRQ_SC_SND		(OPSPUT_PLD_IRQ_BASE + 15)	/* SC send */
+	#define PLD_IRQ_SIO0_RCV	(OPSPUT_PLD_IRQ_BASE + 16)	/* SIO receive */
+	#define PLD_IRQ_SIO0_SND	(OPSPUT_PLD_IRQ_BASE + 17)	/* SIO send */
+	#define PLD_IRQ_INT18		(OPSPUT_PLD_IRQ_BASE + 18)	/* reserved */
+	#define PLD_IRQ_INT19		(OPSPUT_PLD_IRQ_BASE + 19)	/* reserved */
+	#define PLD_IRQ_INT20		(OPSPUT_PLD_IRQ_BASE + 20)	/* reserved */
+	#define PLD_IRQ_INT21		(OPSPUT_PLD_IRQ_BASE + 21)	/* reserved */
+	#define PLD_IRQ_INT22		(OPSPUT_PLD_IRQ_BASE + 22)	/* reserved */
+	#define PLD_IRQ_INT23		(OPSPUT_PLD_IRQ_BASE + 23)	/* reserved */
+	#define PLD_IRQ_INT24		(OPSPUT_PLD_IRQ_BASE + 24)	/* reserved */
+	#define PLD_IRQ_INT25		(OPSPUT_PLD_IRQ_BASE + 25)	/* reserved */
+	#define PLD_IRQ_INT26		(OPSPUT_PLD_IRQ_BASE + 26)	/* reserved */
+	#define PLD_IRQ_INT27		(OPSPUT_PLD_IRQ_BASE + 27)	/* reserved */
+	#define PLD_IRQ_INT28		(OPSPUT_PLD_IRQ_BASE + 28)	/* reserved */
+	#define PLD_IRQ_INT29		(OPSPUT_PLD_IRQ_BASE + 29)	/* reserved */
+	#define PLD_IRQ_INT30		(OPSPUT_PLD_IRQ_BASE + 30)	/* reserved */
+	#define PLD_IRQ_INT31		(OPSPUT_PLD_IRQ_BASE + 31)	/* reserved */
 
 #else	/* CONFIG_PLAT_USRV */
 
-#define PLD_IRQ_INT0		(OPSPUT_PLD_IRQ_BASE + 0)	/* None */
-#define PLD_IRQ_INT1		(OPSPUT_PLD_IRQ_BASE + 1)	/* reserved */
-#define PLD_IRQ_INT2		(OPSPUT_PLD_IRQ_BASE + 2)	/* reserved */
-#define PLD_IRQ_CF0		(OPSPUT_PLD_IRQ_BASE + 3)	/* CF0# */
-#define PLD_IRQ_CF1		(OPSPUT_PLD_IRQ_BASE + 4)	/* CF1# */
-#define PLD_IRQ_CF2		(OPSPUT_PLD_IRQ_BASE + 5)	/* CF2# */
-#define PLD_IRQ_CF3		(OPSPUT_PLD_IRQ_BASE + 6)	/* CF3# */
-#define PLD_IRQ_CF4		(OPSPUT_PLD_IRQ_BASE + 7)	/* CF4# */
-#define PLD_IRQ_INT8		(OPSPUT_PLD_IRQ_BASE + 8)	/* reserved */
-#define PLD_IRQ_INT9		(OPSPUT_PLD_IRQ_BASE + 9)	/* reserved */
-#define PLD_IRQ_INT10		(OPSPUT_PLD_IRQ_BASE + 10)	/* reserved */
-#define PLD_IRQ_INT11		(OPSPUT_PLD_IRQ_BASE + 11)	/* reserved */
-#define PLD_IRQ_UART0		(OPSPUT_PLD_IRQ_BASE + 12)	/* UARTIRQ0 */
-#define PLD_IRQ_UART1		(OPSPUT_PLD_IRQ_BASE + 13)	/* UARTIRQ1 */
-#define PLD_IRQ_INT14		(OPSPUT_PLD_IRQ_BASE + 14)	/* reserved */
-#define PLD_IRQ_INT15		(OPSPUT_PLD_IRQ_BASE + 15)	/* reserved */
-#define PLD_IRQ_SNDINT		(OPSPUT_PLD_IRQ_BASE + 16)	/* SNDINT# */
-#define PLD_IRQ_INT17		(OPSPUT_PLD_IRQ_BASE + 17)	/* reserved */
-#define PLD_IRQ_INT18		(OPSPUT_PLD_IRQ_BASE + 18)	/* reserved */
-#define PLD_IRQ_INT19		(OPSPUT_PLD_IRQ_BASE + 19)	/* reserved */
-#define PLD_IRQ_INT20		(OPSPUT_PLD_IRQ_BASE + 20)	/* reserved */
-#define PLD_IRQ_INT21		(OPSPUT_PLD_IRQ_BASE + 21)	/* reserved */
-#define PLD_IRQ_INT22		(OPSPUT_PLD_IRQ_BASE + 22)	/* reserved */
-#define PLD_IRQ_INT23		(OPSPUT_PLD_IRQ_BASE + 23)	/* reserved */
-#define PLD_IRQ_INT24		(OPSPUT_PLD_IRQ_BASE + 24)	/* reserved */
-#define PLD_IRQ_INT25		(OPSPUT_PLD_IRQ_BASE + 25)	/* reserved */
-#define PLD_IRQ_INT26		(OPSPUT_PLD_IRQ_BASE + 26)	/* reserved */
-#define PLD_IRQ_INT27		(OPSPUT_PLD_IRQ_BASE + 27)	/* reserved */
-#define PLD_IRQ_INT28		(OPSPUT_PLD_IRQ_BASE + 28)	/* reserved */
-#define PLD_IRQ_INT29		(OPSPUT_PLD_IRQ_BASE + 29)	/* reserved */
-#define PLD_IRQ_INT30		(OPSPUT_PLD_IRQ_BASE + 30)	/* reserved */
+	#define PLD_IRQ_INT0		(OPSPUT_PLD_IRQ_BASE + 0)	/* None */
+	#define PLD_IRQ_INT1		(OPSPUT_PLD_IRQ_BASE + 1)	/* reserved */
+	#define PLD_IRQ_INT2		(OPSPUT_PLD_IRQ_BASE + 2)	/* reserved */
+	#define PLD_IRQ_CF0		(OPSPUT_PLD_IRQ_BASE + 3)	/* CF0# */
+	#define PLD_IRQ_CF1		(OPSPUT_PLD_IRQ_BASE + 4)	/* CF1# */
+	#define PLD_IRQ_CF2		(OPSPUT_PLD_IRQ_BASE + 5)	/* CF2# */
+	#define PLD_IRQ_CF3		(OPSPUT_PLD_IRQ_BASE + 6)	/* CF3# */
+	#define PLD_IRQ_CF4		(OPSPUT_PLD_IRQ_BASE + 7)	/* CF4# */
+	#define PLD_IRQ_INT8		(OPSPUT_PLD_IRQ_BASE + 8)	/* reserved */
+	#define PLD_IRQ_INT9		(OPSPUT_PLD_IRQ_BASE + 9)	/* reserved */
+	#define PLD_IRQ_INT10		(OPSPUT_PLD_IRQ_BASE + 10)	/* reserved */
+	#define PLD_IRQ_INT11		(OPSPUT_PLD_IRQ_BASE + 11)	/* reserved */
+	#define PLD_IRQ_UART0		(OPSPUT_PLD_IRQ_BASE + 12)	/* UARTIRQ0 */
+	#define PLD_IRQ_UART1		(OPSPUT_PLD_IRQ_BASE + 13)	/* UARTIRQ1 */
+	#define PLD_IRQ_INT14		(OPSPUT_PLD_IRQ_BASE + 14)	/* reserved */
+	#define PLD_IRQ_INT15		(OPSPUT_PLD_IRQ_BASE + 15)	/* reserved */
+	#define PLD_IRQ_SNDINT		(OPSPUT_PLD_IRQ_BASE + 16)	/* SNDINT# */
+	#define PLD_IRQ_INT17		(OPSPUT_PLD_IRQ_BASE + 17)	/* reserved */
+	#define PLD_IRQ_INT18		(OPSPUT_PLD_IRQ_BASE + 18)	/* reserved */
+	#define PLD_IRQ_INT19		(OPSPUT_PLD_IRQ_BASE + 19)	/* reserved */
+	#define PLD_IRQ_INT20		(OPSPUT_PLD_IRQ_BASE + 20)	/* reserved */
+	#define PLD_IRQ_INT21		(OPSPUT_PLD_IRQ_BASE + 21)	/* reserved */
+	#define PLD_IRQ_INT22		(OPSPUT_PLD_IRQ_BASE + 22)	/* reserved */
+	#define PLD_IRQ_INT23		(OPSPUT_PLD_IRQ_BASE + 23)	/* reserved */
+	#define PLD_IRQ_INT24		(OPSPUT_PLD_IRQ_BASE + 24)	/* reserved */
+	#define PLD_IRQ_INT25		(OPSPUT_PLD_IRQ_BASE + 25)	/* reserved */
+	#define PLD_IRQ_INT26		(OPSPUT_PLD_IRQ_BASE + 26)	/* reserved */
+	#define PLD_IRQ_INT27		(OPSPUT_PLD_IRQ_BASE + 27)	/* reserved */
+	#define PLD_IRQ_INT28		(OPSPUT_PLD_IRQ_BASE + 28)	/* reserved */
+	#define PLD_IRQ_INT29		(OPSPUT_PLD_IRQ_BASE + 29)	/* reserved */
+	#define PLD_IRQ_INT30		(OPSPUT_PLD_IRQ_BASE + 30)	/* reserved */
 
 #endif	/* CONFIG_PLAT_USRV */
 

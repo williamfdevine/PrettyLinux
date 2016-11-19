@@ -70,8 +70,10 @@ void coprocessor_release_all(struct thread_info *ti)
 
 	cpenable = ti->cpenable;
 
-	for (i = 0; i < XCHAL_CP_MAX; i++) {
-		if (coprocessor_owner[i] == ti) {
+	for (i = 0; i < XCHAL_CP_MAX; i++)
+	{
+		if (coprocessor_owner[i] == ti)
+		{
 			coprocessor_owner[i] = 0;
 			cpenable &= ~(1 << i);
 		}
@@ -92,9 +94,13 @@ void coprocessor_flush_all(struct thread_info *ti)
 
 	cpenable = ti->cpenable;
 
-	for (i = 0; i < XCHAL_CP_MAX; i++) {
+	for (i = 0; i < XCHAL_CP_MAX; i++)
+	{
 		if ((cpenable & 1) != 0 && coprocessor_owner[i] == ti)
+		{
 			coprocessor_flush(ti, i);
+		}
+
 		cpenable >>= 1;
 	}
 
@@ -192,7 +198,7 @@ int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
  */
 
 int copy_thread(unsigned long clone_flags, unsigned long usp_thread_fn,
-		unsigned long thread_fn_arg, struct task_struct *p)
+				unsigned long thread_fn_arg, struct task_struct *p)
 {
 	struct pt_regs *childregs = task_pt_regs(p);
 
@@ -201,18 +207,19 @@ int copy_thread(unsigned long clone_flags, unsigned long usp_thread_fn,
 #endif
 
 	/* Create a call4 dummy-frame: a0 = 0, a1 = childregs. */
-	*((int*)childregs - 3) = (unsigned long)childregs;
-	*((int*)childregs - 4) = 0;
+	*((int *)childregs - 3) = (unsigned long)childregs;
+	*((int *)childregs - 4) = 0;
 
 	p->thread.sp = (unsigned long)childregs;
 
-	if (!(p->flags & PF_KTHREAD)) {
+	if (!(p->flags & PF_KTHREAD))
+	{
 		struct pt_regs *regs = current_pt_regs();
 		unsigned long usp = usp_thread_fn ?
-			usp_thread_fn : regs->areg[1];
+							usp_thread_fn : regs->areg[1];
 
 		p->thread.ra = MAKE_RA_FOR_CALL(
-				(unsigned long)ret_from_fork, 0x1);
+						   (unsigned long)ret_from_fork, 0x1);
 
 		/* This does not copy all the regs.
 		 * In a bout of brilliance or madness,
@@ -235,30 +242,40 @@ int copy_thread(unsigned long clone_flags, unsigned long usp_thread_fn,
 		   In this case, ensure to spill at least the stack pointer
 		   of that frame. */
 
-		if (clone_flags & CLONE_VM) {
+		if (clone_flags & CLONE_VM)
+		{
 			/* check that caller window is live and same stack */
 			int len = childregs->wmask & ~0xf;
-			if (regs->areg[1] == usp && len != 0) {
+
+			if (regs->areg[1] == usp && len != 0)
+			{
 				int callinc = (regs->areg[0] >> 30) & 3;
 				int caller_ars = XCHAL_NUM_AREGS - callinc * 4;
-				put_user(regs->areg[caller_ars+1],
-					 (unsigned __user*)(usp - 12));
+				put_user(regs->areg[caller_ars + 1],
+						 (unsigned __user *)(usp - 12));
 			}
+
 			childregs->wmask = 1;
 			childregs->windowstart = 1;
 			childregs->windowbase = 0;
-		} else {
+		}
+		else
+		{
 			int len = childregs->wmask & ~0xf;
-			memcpy(&childregs->areg[XCHAL_NUM_AREGS - len/4],
-			       &regs->areg[XCHAL_NUM_AREGS - len/4], len);
+			memcpy(&childregs->areg[XCHAL_NUM_AREGS - len / 4],
+				   &regs->areg[XCHAL_NUM_AREGS - len / 4], len);
 		}
 
 		/* The thread pointer is passed in the '4th argument' (= a5) */
 		if (clone_flags & CLONE_SETTLS)
+		{
 			childregs->threadptr = childregs->areg[5];
-	} else {
+		}
+	}
+	else
+	{
 		p->thread.ra = MAKE_RA_FOR_CALL(
-				(unsigned long)ret_from_kernel_thread, 1);
+						   (unsigned long)ret_from_kernel_thread, 1);
 
 		/* pass parameters to ret_from_kernel_thread:
 		 * a2 = thread_fn, a3 = thread_fn arg
@@ -293,24 +310,34 @@ unsigned long get_wchan(struct task_struct *p)
 	int count = 0;
 
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	sp = p->thread.sp;
 	pc = MAKE_PC_FROM_RA(p->thread.ra, p->thread.sp);
 
-	do {
+	do
+	{
 		if (sp < stack_page + sizeof(struct task_struct) ||
-		    sp >= (stack_page + THREAD_SIZE) ||
-		    pc == 0)
+			sp >= (stack_page + THREAD_SIZE) ||
+			pc == 0)
+		{
 			return 0;
+		}
+
 		if (!in_sched_functions(pc))
+		{
 			return pc;
+		}
 
 		/* Stack layout: sp-4: ra, sp-3: sp' */
 
-		pc = MAKE_PC_FROM_RA(*(unsigned long*)sp - 4, sp);
+		pc = MAKE_PC_FROM_RA(*(unsigned long *)sp - 4, sp);
 		sp = *(unsigned long *)sp - 3;
-	} while (count++ < 16);
+	}
+	while (count++ < 16);
+
 	return 0;
 }
 

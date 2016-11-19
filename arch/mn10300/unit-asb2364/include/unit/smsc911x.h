@@ -27,11 +27,11 @@
  */
 #undef SMSC_INITIALIZE
 #define SMSC_INITIALIZE()					\
-do {								\
-	/* release reset */					\
-	ASB2364_FPGA_REG_RESET_LAN = 0x0001;			\
-	SyncExBus();						\
-} while (0)
+	do {								\
+		/* release reset */					\
+		ASB2364_FPGA_REG_RESET_LAN = 0x0001;			\
+		SyncExBus();						\
+	} while (0)
 
 #ifdef MN10300_USE_EXT_EEPROM
 #include <linux/delay.h>
@@ -65,6 +65,7 @@ static inline void POLL_INT_REQ(volatile u16 *icr)
 
 	while (!(*icr & GxICR_REQUEST))
 		;
+
 	flags = arch_local_cli_save();
 	tmp = *icr;
 	*icr = (tmp & GxICR_LEVEL) | GxICR_DETECT;
@@ -98,19 +99,29 @@ static inline int smsc_get_mac(struct net_device *dev)
 	IIC_CLK = (IIC_CLK_LOW << 16) + (IIC_CLK_PLS);
 	/* bus hung recovery */
 
-	while (1) {
+	while (1)
+	{
 		check = 0;
-		for (i = 0; i < 3; i++) {
+
+		for (i = 0; i < 3; i++)
+		{
 			if ((IIC_BSTS & 0x00000003) == 0x00000003)
+			{
 				check++;
+			}
+
 			udelay(3);
 		}
 
-		if (check == 3) {
+		if (check == 3)
+		{
 			IIC_BRST = 0x00000003;
 			break;
-		} else {
-			for (i = 0; i < 3; i++) {
+		}
+		else
+		{
+			for (i = 0; i < 3; i++)
+			{
 				IIC_BRST = 0x00000002;
 				udelay(8);
 				IIC_BRST = 0x00000003;
@@ -124,7 +135,7 @@ static inline int smsc_get_mac(struct net_device *dev)
 
 	value	=  SYS_IIC_DTRM_Bit_STA | SYS_IIC_DTRM_Bit_ACK;
 	value	|= (((unsigned short)EEPROM_ADDRESS & SYS_IIC_DTRM_Bit_DATA) |
-		    (unsigned short)0x0000);
+				(unsigned short)0x0000);
 	IIC_DTRM = value;
 	POLL_INT_REQ(&IIC_ICR);
 
@@ -139,22 +150,32 @@ static inline int smsc_get_mac(struct net_device *dev)
 
 	value	=  SYS_IIC_DTRM_Bit_STA;
 	value	|= (((unsigned short)EEPROM_ADDRESS & SYS_IIC_DTRM_Bit_DATA) |
-		    (unsigned short)0x0001);
+				(unsigned short)0x0001);
 	IIC_DTRM = value;
 	POLL_INT_REQ(&IIC_ICR);
 
 	IIC_DTRM = 0x00000000;
-	while (mac_length > 0) {
+
+	while (mac_length > 0)
+	{
 		POLL_INT_REQ(&IIC_ICR);
 
 		data = IIC_DREC;
 		mac_length--;
+
 		if (mac_length == 0)
-			value = 0x00000300;	/* stop IIC bus */
+		{
+			value = 0x00000300;    /* stop IIC bus */
+		}
 		else if (mac_length == 1)
-			value = 0x00000100;	/* no ack */
+		{
+			value = 0x00000100;    /* no ack */
+		}
 		else
-			value = 0x00000000;	/* ack */
+		{
+			value = 0x00000000;    /* ack */
+		}
+
 		IIC_DTRM = value;
 		*mac_buf++ = (unsigned char)(data & 0xff);
 	}

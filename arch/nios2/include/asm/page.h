@@ -52,7 +52,7 @@ struct page;
 
 extern void clear_user_page(void *addr, unsigned long vaddr, struct page *page);
 extern void copy_user_page(void *vto, void *vfrom, unsigned long vaddr,
-				struct page *to);
+						   struct page *to);
 
 /*
  * These are used to make use of C type-checking.
@@ -88,19 +88,19 @@ extern struct page *mem_map;
 
 # define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
 # define pfn_valid(pfn)		((pfn) >= ARCH_PFN_OFFSET &&	\
-					(pfn) < max_mapnr)
+							 (pfn) < max_mapnr)
 
 # define virt_to_page(vaddr)	pfn_to_page(PFN_DOWN(virt_to_phys(vaddr)))
 # define virt_addr_valid(vaddr)	pfn_valid(PFN_DOWN(virt_to_phys(vaddr)))
 
 # define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 # define UNCAC_ADDR(addr)	\
 	((void *)((unsigned)(addr) | CONFIG_NIOS2_IO_REGION_BASE))
 # define CAC_ADDR(addr)		\
 	((void *)(((unsigned)(addr) & ~CONFIG_NIOS2_IO_REGION_BASE) |	\
-		CONFIG_NIOS2_KERNEL_REGION_BASE))
+			  CONFIG_NIOS2_KERNEL_REGION_BASE))
 
 #include <asm-generic/memory_model.h>
 

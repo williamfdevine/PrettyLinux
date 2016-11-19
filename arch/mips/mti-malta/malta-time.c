@@ -62,7 +62,7 @@ static void mips_perf_dispatch(void)
 static unsigned int freqround(unsigned int freq, unsigned int amount)
 {
 	freq += amount;
-	freq -= freq % (amount*2);
+	freq -= freq % (amount * 2);
 	return freq;
 }
 
@@ -85,49 +85,68 @@ static void __init estimate_frequencies(void)
 	local_irq_save(flags);
 
 	if (gic_present)
+	{
 		gic_start_count();
+	}
 
 	/*
 	 * Read counters exactly on rising edge of update flag.
 	 * This helps get an accurate reading under virtualisation.
 	 */
 	while (CMOS_READ(RTC_REG_A) & RTC_UIP);
+
 	while (!(CMOS_READ(RTC_REG_A) & RTC_UIP));
+
 	start = read_c0_count();
+
 	if (gic_present)
+	{
 		gicstart = gic_read_count();
+	}
 
 	/* Wait for falling edge before reading RTC. */
 	while (CMOS_READ(RTC_REG_A) & RTC_UIP);
+
 	secs1 = CMOS_READ(RTC_SECONDS);
 
 	/* Read counters again exactly on rising edge of update flag. */
 	while (!(CMOS_READ(RTC_REG_A) & RTC_UIP));
+
 	count = read_c0_count();
+
 	if (gic_present)
+	{
 		giccount = gic_read_count();
+	}
 
 	/* Wait for falling edge before reading RTC again. */
 	while (CMOS_READ(RTC_REG_A) & RTC_UIP);
+
 	secs2 = CMOS_READ(RTC_SECONDS);
 
 	ctrl = CMOS_READ(RTC_CONTROL);
 
 	local_irq_restore(flags);
 
-	if (!(ctrl & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+	if (!(ctrl & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+	{
 		secs1 = bcd2bin(secs1);
 		secs2 = bcd2bin(secs2);
 	}
+
 	secs = secs2 - secs1;
+
 	if (secs < 1)
+	{
 		secs += 60;
+	}
 
 	count -= start;
 	count /= secs;
 	mips_hpt_frequency = count;
 
-	if (gic_present) {
+	if (gic_present)
+	{
 		giccount = div_u64(giccount - gicstart, secs);
 		gic_frequency = giccount;
 	}
@@ -145,32 +164,48 @@ int get_c0_fdc_int(void)
 	 * Some cores claim the FDC is routable through the GIC, but it doesn't
 	 * actually seem to be connected for those Malta bitstreams.
 	 */
-	switch (current_cpu_type()) {
-	case CPU_INTERAPTIV:
-	case CPU_PROAPTIV:
-		return -1;
+	switch (current_cpu_type())
+	{
+		case CPU_INTERAPTIV:
+		case CPU_PROAPTIV:
+			return -1;
 	};
 
 	if (cpu_has_veic)
+	{
 		return -1;
+	}
 	else if (gic_present)
+	{
 		return gic_get_c0_fdc_int();
+	}
 	else if (cp0_fdc_irq >= 0)
+	{
 		return MIPS_CPU_IRQ_BASE + cp0_fdc_irq;
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 int get_c0_perfcount_int(void)
 {
-	if (cpu_has_veic) {
+	if (cpu_has_veic)
+	{
 		set_vi_handler(MSC01E_INT_PERFCTR, mips_perf_dispatch);
 		mips_cpu_perf_irq = MSC01E_INT_BASE + MSC01E_INT_PERFCTR;
-	} else if (gic_present) {
+	}
+	else if (gic_present)
+	{
 		mips_cpu_perf_irq = gic_get_c0_perfcount_int();
-	} else if (cp0_perfcount_irq >= 0) {
+	}
+	else if (cp0_perfcount_irq >= 0)
+	{
 		mips_cpu_perf_irq = MIPS_CPU_IRQ_BASE + cp0_perfcount_irq;
-	} else {
+	}
+	else
+	{
 		mips_cpu_perf_irq = -1;
 	}
 
@@ -180,12 +215,17 @@ EXPORT_SYMBOL_GPL(get_c0_perfcount_int);
 
 unsigned int get_c0_compare_int(void)
 {
-	if (cpu_has_veic) {
+	if (cpu_has_veic)
+	{
 		set_vi_handler(MSC01E_INT_CPUCTR, mips_timer_dispatch);
 		mips_cpu_timer_irq = MSC01E_INT_BASE + MSC01E_INT_CPUCTR;
-	} else if (gic_present) {
+	}
+	else if (gic_present)
+	{
 		mips_cpu_timer_irq = gic_get_c0_compare_int();
-	} else {
+	}
+	else
+	{
 		mips_cpu_timer_irq = MIPS_CPU_IRQ_BASE + cp0_compare_irq;
 	}
 
@@ -198,13 +238,19 @@ static void __init init_rtc(void)
 
 	/* Set 32KHz time base if not already set */
 	freq = CMOS_READ(RTC_FREQ_SELECT);
+
 	if ((freq & RTC_DIV_CTL) != RTC_REF_CLCK_32KHZ)
+	{
 		CMOS_WRITE(RTC_REF_CLCK_32KHZ, RTC_FREQ_SELECT);
+	}
 
 	/* Ensure SET bit is clear so RTC can run */
 	ctrl = CMOS_READ(RTC_CONTROL);
+
 	if (ctrl & RTC_SET)
+	{
 		CMOS_WRITE(ctrl & ~RTC_SET, RTC_CONTROL);
+	}
 }
 
 void __init plat_time_init(void)
@@ -216,12 +262,16 @@ void __init plat_time_init(void)
 	estimate_frequencies();
 
 	freq = mips_hpt_frequency;
+
 	if ((prid != (PRID_COMP_MIPS | PRID_IMP_20KC)) &&
-	    (prid != (PRID_COMP_MIPS | PRID_IMP_25KF)))
+		(prid != (PRID_COMP_MIPS | PRID_IMP_25KF)))
+	{
 		freq *= 2;
+	}
+
 	freq = freqround(freq, 5000);
-	printk("CPU frequency %d.%02d MHz\n", freq/1000000,
-	       (freq%1000000)*100/1000000);
+	printk("CPU frequency %d.%02d MHz\n", freq / 1000000,
+		   (freq % 1000000) * 100 / 1000000);
 
 	mips_scroll_message();
 
@@ -231,13 +281,16 @@ void __init plat_time_init(void)
 #endif
 
 #ifdef CONFIG_MIPS_GIC
-	if (gic_present) {
+
+	if (gic_present)
+	{
 		freq = freqround(gic_frequency, 5000);
-		printk("GIC frequency %d.%02d MHz\n", freq/1000000,
-		       (freq%1000000)*100/1000000);
+		printk("GIC frequency %d.%02d MHz\n", freq / 1000000,
+			   (freq % 1000000) * 100 / 1000000);
 #ifdef CONFIG_CLKSRC_MIPS_GIC
 		gic_clocksource_init(gic_frequency);
 #endif
 	}
+
 #endif
 }

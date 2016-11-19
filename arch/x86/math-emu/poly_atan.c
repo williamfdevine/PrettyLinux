@@ -19,7 +19,8 @@
 #include "poly.h"
 
 #define	HIPOWERon	6	/* odd poly, negative terms */
-static const unsigned long long oddnegterms[HIPOWERon] = {
+static const unsigned long long oddnegterms[HIPOWERon] =
+{
 	0x0000000000000000LL,	/* Dummy (not for - 1.0) */
 	0x015328437f756467LL,
 	0x0005dda27b73dec6LL,
@@ -29,8 +30,9 @@ static const unsigned long long oddnegterms[HIPOWERon] = {
 };
 
 #define	HIPOWERop	6	/* odd poly, positive terms */
-static const unsigned long long oddplterms[HIPOWERop] = {
-/*  0xaaaaaaaaaaaaaaabLL,  transferred to fixedpterm[] */
+static const unsigned long long oddplterms[HIPOWERop] =
+{
+	/*  0xaaaaaaaaaaaaaaabLL,  transferred to fixedpterm[] */
 	0x0db55a71875c9ac2LL,
 	0x0029fce2d67880b0LL,
 	0x0000dfd3908b4596LL,
@@ -49,7 +51,7 @@ static const Xsig pi_signif = MK_XSIG(0xc90fdaa2, 0x2168c234, 0xc4c6628b);
  |                                                                           |
  +---------------------------------------------------------------------------*/
 void poly_atan(FPU_REG *st0_ptr, u_char st0_tag,
-	       FPU_REG *st1_ptr, u_char st1_tag)
+			   FPU_REG *st1_ptr, u_char st1_tag)
 {
 	u_char transformed, inverted, sign1, sign2;
 	int exponent;
@@ -59,61 +61,83 @@ void poly_atan(FPU_REG *st0_ptr, u_char st0_tag,
 
 	sign1 = getsign(st0_ptr);
 	sign2 = getsign(st1_ptr);
-	if (st0_tag == TAG_Valid) {
+
+	if (st0_tag == TAG_Valid)
+	{
 		exponent = exponent(st0_ptr);
-	} else {
+	}
+	else
+	{
 		/* This gives non-compatible stack contents... */
 		FPU_to_exp16(st0_ptr, st0_ptr);
 		exponent = exponent16(st0_ptr);
 	}
-	if (st1_tag == TAG_Valid) {
+
+	if (st1_tag == TAG_Valid)
+	{
 		exponent -= exponent(st1_ptr);
-	} else {
+	}
+	else
+	{
 		/* This gives non-compatible stack contents... */
 		FPU_to_exp16(st1_ptr, st1_ptr);
 		exponent -= exponent16(st1_ptr);
 	}
 
 	if ((exponent < 0) || ((exponent == 0) &&
-			       ((st0_ptr->sigh < st1_ptr->sigh) ||
-				((st0_ptr->sigh == st1_ptr->sigh) &&
-				 (st0_ptr->sigl < st1_ptr->sigl))))) {
+						   ((st0_ptr->sigh < st1_ptr->sigh) ||
+							((st0_ptr->sigh == st1_ptr->sigh) &&
+							 (st0_ptr->sigl < st1_ptr->sigl)))))
+	{
 		inverted = 1;
 		Numer.lsw = Denom.lsw = 0;
 		XSIG_LL(Numer) = significand(st0_ptr);
 		XSIG_LL(Denom) = significand(st1_ptr);
-	} else {
+	}
+	else
+	{
 		inverted = 0;
 		exponent = -exponent;
 		Numer.lsw = Denom.lsw = 0;
 		XSIG_LL(Numer) = significand(st1_ptr);
 		XSIG_LL(Denom) = significand(st0_ptr);
 	}
+
 	div_Xsig(&Numer, &Denom, &argSignif);
 	exponent += norm_Xsig(&argSignif);
 
 	if ((exponent >= -1)
-	    || ((exponent == -2) && (argSignif.msw > 0xd413ccd0))) {
+		|| ((exponent == -2) && (argSignif.msw > 0xd413ccd0)))
+	{
 		/* The argument is greater than sqrt(2)-1 (=0.414213562...) */
 		/* Convert the argument by an identity for atan */
 		transformed = 1;
 
-		if (exponent >= 0) {
+		if (exponent >= 0)
+		{
 #ifdef PARANOID
+
 			if (!((exponent == 0) &&
-			      (argSignif.lsw == 0) && (argSignif.midw == 0) &&
-			      (argSignif.msw == 0x80000000))) {
+				  (argSignif.lsw == 0) && (argSignif.midw == 0) &&
+				  (argSignif.msw == 0x80000000)))
+			{
 				EXCEPTION(EX_INTERNAL | 0x104);	/* There must be a logic error */
 				return;
 			}
+
 #endif /* PARANOID */
 			argSignif.msw = 0;	/* Make the transformed arg -> 0.0 */
-		} else {
+		}
+		else
+		{
 			Numer.lsw = Denom.lsw = argSignif.lsw;
 			XSIG_LL(Numer) = XSIG_LL(Denom) = XSIG_LL(argSignif);
 
 			if (exponent < -1)
+			{
 				shr_Xsig(&Numer, -1 - exponent);
+			}
+
 			negate_Xsig(&Numer);
 
 			shr_Xsig(&Denom, -exponent);
@@ -123,7 +147,9 @@ void poly_atan(FPU_REG *st0_ptr, u_char st0_tag,
 
 			exponent = -1 + norm_Xsig(&argSignif);
 		}
-	} else {
+	}
+	else
+	{
 		transformed = 0;
 	}
 
@@ -149,11 +175,11 @@ void poly_atan(FPU_REG *st0_ptr, u_char st0_tag,
 	/* Do the basic fixed point polynomial evaluation */
 	accumulator.msw = accumulator.midw = accumulator.lsw = 0;
 	polynomial_Xsig(&accumulator, &XSIG_LL(argSqSq),
-			oddplterms, HIPOWERop - 1);
+					oddplterms, HIPOWERop - 1);
 	mul64_Xsig(&accumulator, &XSIG_LL(argSq));
 	negate_Xsig(&accumulator);
 	polynomial_Xsig(&accumulator, &XSIG_LL(argSqSq), oddnegterms,
-			HIPOWERon - 1);
+					HIPOWERon - 1);
 	negate_Xsig(&accumulator);
 	add_two_Xsig(&accumulator, &fixedpterm, &dummy_exp);
 
@@ -170,7 +196,8 @@ void poly_atan(FPU_REG *st0_ptr, u_char st0_tag,
 	negate_Xsig(&accumulator);
 	add_Xsig_Xsig(&accumulator, &argSignif);
 
-	if (transformed) {
+	if (transformed)
+	{
 		/* compute pi/4 - accumulator */
 		shr_Xsig(&accumulator, -1 - exponent);
 		negate_Xsig(&accumulator);
@@ -178,7 +205,8 @@ void poly_atan(FPU_REG *st0_ptr, u_char st0_tag,
 		exponent = -1;
 	}
 
-	if (inverted) {
+	if (inverted)
+	{
 		/* compute pi/2 - accumulator */
 		shr_Xsig(&accumulator, -exponent);
 		negate_Xsig(&accumulator);
@@ -186,7 +214,8 @@ void poly_atan(FPU_REG *st0_ptr, u_char st0_tag,
 		exponent = 0;
 	}
 
-	if (sign1) {
+	if (sign1)
+	{
 		/* compute pi - accumulator */
 		shr_Xsig(&accumulator, 1 - exponent);
 		negate_Xsig(&accumulator);

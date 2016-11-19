@@ -63,7 +63,8 @@ static inline void rockchip_suspend_init(void)
 #define PMU_ARMINT_WAKEUP_EN		BIT(0)
 #define PMU_GPIOINT_WAKEUP_EN		BIT(3)
 
-enum rk3288_pwr_mode_con {
+enum rk3288_pwr_mode_con
+{
 	PMU_PWR_MODE_EN = 0,
 	PMU_CLK_CORE_SRC_GATE_EN,
 	PMU_GLOBAL_INT_DISABLE,
@@ -89,7 +90,8 @@ enum rk3288_pwr_mode_con {
 	PMU_DDR1IO_RET_DE_REQ
 };
 
-enum rk3288_pwr_mode_con1 {
+enum rk3288_pwr_mode_con1
+{
 	PMU_CLR_BUS = 0,
 	PMU_CLR_CORE,
 	PMU_CLR_CPUP,

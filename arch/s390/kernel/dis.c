@@ -31,7 +31,8 @@
 #include <asm/debug.h>
 #include <asm/irq.h>
 
-enum {
+enum
+{
 	UNUSED,	/* Indicates the end of the operand list */
 	R_8,	/* GPR starting at position 8 */
 	R_12,	/* GPR starting at position 12 */
@@ -106,7 +107,8 @@ enum {
  * Enumeration of the different instruction formats.
  * For details consult the principles of operation.
  */
-enum {
+enum
+{
 	INSTR_INVALID,
 	INSTR_E,
 	INSTR_IE_UU,
@@ -231,144 +233,146 @@ static const struct s390_operand operands[] =
 	[RO_28]  = {  4, 28, OPERAND_GPR }
 };
 
-static const unsigned char formats[][7] = {
-	[INSTR_E]	  = { 0xff, 0,0,0,0,0,0 },
-	[INSTR_IE_UU]	  = { 0xff, U4_24,U4_28,0,0,0,0 },
-	[INSTR_MII_UPI]	  = { 0xff, U4_8,J12_12,I24_24 },
-	[INSTR_RIE_R0IU]  = { 0xff, R_8,I16_16,U4_32,0,0,0 },
-	[INSTR_RIE_R0UU]  = { 0xff, R_8,U16_16,U4_32,0,0,0 },
-	[INSTR_RIE_RRI0]  = { 0xff, R_8,R_12,I16_16,0,0,0 },
-	[INSTR_RIE_RRPU]  = { 0xff, R_8,R_12,U4_32,J16_16,0,0 },
-	[INSTR_RIE_RRP]	  = { 0xff, R_8,R_12,J16_16,0,0,0 },
-	[INSTR_RIE_RRUUU] = { 0xff, R_8,R_12,U8_16,U8_24,U8_32,0 },
-	[INSTR_RIE_RUPI]  = { 0xff, R_8,I8_32,U4_12,J16_16,0,0 },
-	[INSTR_RIE_RUPU]  = { 0xff, R_8,U8_32,U4_12,J16_16,0,0 },
-	[INSTR_RIL_RI]	  = { 0x0f, R_8,I32_16,0,0,0,0 },
-	[INSTR_RIL_RP]	  = { 0x0f, R_8,J32_16,0,0,0,0 },
-	[INSTR_RIL_RU]	  = { 0x0f, R_8,U32_16,0,0,0,0 },
-	[INSTR_RIL_UP]	  = { 0x0f, U4_8,J32_16,0,0,0,0 },
-	[INSTR_RIS_R0RDU] = { 0xff, R_8,U8_32,D_20,B_16,0,0 },
-	[INSTR_RIS_RURDI] = { 0xff, R_8,I8_32,U4_12,D_20,B_16,0 },
-	[INSTR_RIS_RURDU] = { 0xff, R_8,U8_32,U4_12,D_20,B_16,0 },
-	[INSTR_RI_RI]	  = { 0x0f, R_8,I16_16,0,0,0,0 },
-	[INSTR_RI_RP]	  = { 0x0f, R_8,J16_16,0,0,0,0 },
-	[INSTR_RI_RU]	  = { 0x0f, R_8,U16_16,0,0,0,0 },
-	[INSTR_RI_UP]	  = { 0x0f, U4_8,J16_16,0,0,0,0 },
-	[INSTR_RRE_00]	  = { 0xff, 0,0,0,0,0,0 },
-	[INSTR_RRE_0R]	  = { 0xff, R_28,0,0,0,0,0 },
-	[INSTR_RRE_AA]	  = { 0xff, A_24,A_28,0,0,0,0 },
-	[INSTR_RRE_AR]	  = { 0xff, A_24,R_28,0,0,0,0 },
-	[INSTR_RRE_F0]	  = { 0xff, F_24,0,0,0,0,0 },
-	[INSTR_RRE_FF]	  = { 0xff, F_24,F_28,0,0,0,0 },
-	[INSTR_RRE_FR]	  = { 0xff, F_24,R_28,0,0,0,0 },
-	[INSTR_RRE_R0]	  = { 0xff, R_24,0,0,0,0,0 },
-	[INSTR_RRE_RA]	  = { 0xff, R_24,A_28,0,0,0,0 },
-	[INSTR_RRE_RF]	  = { 0xff, R_24,F_28,0,0,0,0 },
-	[INSTR_RRE_RR]	  = { 0xff, R_24,R_28,0,0,0,0 },
-	[INSTR_RRE_RR_OPT]= { 0xff, R_24,RO_28,0,0,0,0 },
-	[INSTR_RRF_0UFF]  = { 0xff, F_24,F_28,U4_20,0,0,0 },
-	[INSTR_RRF_F0FF2] = { 0xff, F_24,F_16,F_28,0,0,0 },
-	[INSTR_RRF_F0FF]  = { 0xff, F_16,F_24,F_28,0,0,0 },
-	[INSTR_RRF_F0FR]  = { 0xff, F_24,F_16,R_28,0,0,0 },
-	[INSTR_RRF_FFRU]  = { 0xff, F_24,F_16,R_28,U4_20,0,0 },
-	[INSTR_RRF_FUFF]  = { 0xff, F_24,F_16,F_28,U4_20,0,0 },
-	[INSTR_RRF_FUFF2] = { 0xff, F_24,F_28,F_16,U4_20,0,0 },
-	[INSTR_RRF_M0RR]  = { 0xff, R_24,R_28,M_16,0,0,0 },
-	[INSTR_RRF_R0RR]  = { 0xff, R_24,R_16,R_28,0,0,0 },
-	[INSTR_RRF_R0RR2] = { 0xff, R_24,R_28,R_16,0,0,0 },
-	[INSTR_RRF_RMRR]  = { 0xff, R_24,R_16,R_28,M_20,0,0 },
-	[INSTR_RRF_RURR]  = { 0xff, R_24,R_28,R_16,U4_20,0,0 },
-	[INSTR_RRF_U0FF]  = { 0xff, F_24,U4_16,F_28,0,0,0 },
-	[INSTR_RRF_U0RF]  = { 0xff, R_24,U4_16,F_28,0,0,0 },
-	[INSTR_RRF_U0RR]  = { 0xff, R_24,R_28,U4_16,0,0,0 },
-	[INSTR_RRF_UUFF]  = { 0xff, F_24,U4_16,F_28,U4_20,0,0 },
-	[INSTR_RRF_UUFR]  = { 0xff, F_24,U4_16,R_28,U4_20,0,0 },
-	[INSTR_RRF_UURF]  = { 0xff, R_24,U4_16,F_28,U4_20,0,0 },
-	[INSTR_RRR_F0FF]  = { 0xff, F_24,F_28,F_16,0,0,0 },
-	[INSTR_RRS_RRRDU] = { 0xff, R_8,R_12,U4_32,D_20,B_16,0 },
-	[INSTR_RR_FF]	  = { 0xff, F_8,F_12,0,0,0,0 },
-	[INSTR_RR_R0]	  = { 0xff, R_8, 0,0,0,0,0 },
-	[INSTR_RR_RR]	  = { 0xff, R_8,R_12,0,0,0,0 },
-	[INSTR_RR_U0]	  = { 0xff, U8_8, 0,0,0,0,0 },
-	[INSTR_RR_UR]	  = { 0xff, U4_8,R_12,0,0,0,0 },
-	[INSTR_RSE_CCRD]  = { 0xff, C_8,C_12,D_20,B_16,0,0 },
-	[INSTR_RSE_RRRD]  = { 0xff, R_8,R_12,D_20,B_16,0,0 },
-	[INSTR_RSE_RURD]  = { 0xff, R_8,U4_12,D_20,B_16,0,0 },
-	[INSTR_RSI_RRP]	  = { 0xff, R_8,R_12,J16_16,0,0,0 },
-	[INSTR_RSL_LRDFU] = { 0xff, F_32,D_20,L4_8,B_16,U4_36,0 },
-	[INSTR_RSL_R0RD]  = { 0xff, D_20,L4_8,B_16,0,0,0 },
-	[INSTR_RSY_AARD]  = { 0xff, A_8,A_12,D20_20,B_16,0,0 },
-	[INSTR_RSY_CCRD]  = { 0xff, C_8,C_12,D20_20,B_16,0,0 },
-	[INSTR_RSY_RDRM]  = { 0xff, R_8,D20_20,B_16,U4_12,0,0 },
-	[INSTR_RSY_RMRD]  = { 0xff, R_8,U4_12,D20_20,B_16,0,0 },
-	[INSTR_RSY_RRRD]  = { 0xff, R_8,R_12,D20_20,B_16,0,0 },
-	[INSTR_RSY_RURD]  = { 0xff, R_8,U4_12,D20_20,B_16,0,0 },
-	[INSTR_RS_AARD]	  = { 0xff, A_8,A_12,D_20,B_16,0,0 },
-	[INSTR_RS_CCRD]	  = { 0xff, C_8,C_12,D_20,B_16,0,0 },
-	[INSTR_RS_R0RD]	  = { 0xff, R_8,D_20,B_16,0,0,0 },
-	[INSTR_RS_RRRD]	  = { 0xff, R_8,R_12,D_20,B_16,0,0 },
-	[INSTR_RS_RURD]	  = { 0xff, R_8,U4_12,D_20,B_16,0,0 },
-	[INSTR_RXE_FRRD]  = { 0xff, F_8,D_20,X_12,B_16,0,0 },
-	[INSTR_RXE_RRRD]  = { 0xff, R_8,D_20,X_12,B_16,0,0 },
-	[INSTR_RXE_RRRDM] = { 0xff, R_8,D_20,X_12,B_16,M_32,0 },
-	[INSTR_RXF_FRRDF] = { 0xff, F_32,F_8,D_20,X_12,B_16,0 },
-	[INSTR_RXY_FRRD]  = { 0xff, F_8,D20_20,X_12,B_16,0,0 },
-	[INSTR_RXY_RRRD]  = { 0xff, R_8,D20_20,X_12,B_16,0,0 },
-	[INSTR_RXY_URRD]  = { 0xff, U4_8,D20_20,X_12,B_16,0,0 },
-	[INSTR_RX_FRRD]	  = { 0xff, F_8,D_20,X_12,B_16,0,0 },
-	[INSTR_RX_RRRD]	  = { 0xff, R_8,D_20,X_12,B_16,0,0 },
-	[INSTR_RX_URRD]	  = { 0xff, U4_8,D_20,X_12,B_16,0,0 },
-	[INSTR_SIL_RDI]   = { 0xff, D_20,B_16,I16_32,0,0,0 },
-	[INSTR_SIL_RDU]   = { 0xff, D_20,B_16,U16_32,0,0,0 },
-	[INSTR_SIY_IRD]   = { 0xff, D20_20,B_16,I8_8,0,0,0 },
-	[INSTR_SIY_URD]	  = { 0xff, D20_20,B_16,U8_8,0,0,0 },
-	[INSTR_SI_URD]	  = { 0xff, D_20,B_16,U8_8,0,0,0 },
-	[INSTR_SMI_U0RDP] = { 0xff, U4_8,J16_32,D_20,B_16,0,0 },
-	[INSTR_SSE_RDRD]  = { 0xff, D_20,B_16,D_36,B_32,0,0 },
-	[INSTR_SSF_RRDRD] = { 0x0f, D_20,B_16,D_36,B_32,R_8,0 },
-	[INSTR_SSF_RRDRD2]= { 0x0f, R_8,D_20,B_16,D_36,B_32,0 },
-	[INSTR_SS_L0RDRD] = { 0xff, D_20,L8_8,B_16,D_36,B_32,0 },
-	[INSTR_SS_LIRDRD] = { 0xff, D_20,L4_8,B_16,D_36,B_32,U4_12 },
-	[INSTR_SS_LLRDRD] = { 0xff, D_20,L4_8,B_16,D_36,L4_12,B_32 },
-	[INSTR_SS_RRRDRD2]= { 0xff, R_8,D_20,B_16,R_12,D_36,B_32 },
-	[INSTR_SS_RRRDRD3]= { 0xff, R_8,R_12,D_20,B_16,D_36,B_32 },
-	[INSTR_SS_RRRDRD] = { 0xff, D_20,R_8,B_16,D_36,B_32,R_12 },
-	[INSTR_S_00]	  = { 0xff, 0,0,0,0,0,0 },
-	[INSTR_S_RD]	  = { 0xff, D_20,B_16,0,0,0,0 },
-	[INSTR_VRI_V0IM]  = { 0xff, V_8,I16_16,M_32,0,0,0 },
-	[INSTR_VRI_V0I0]  = { 0xff, V_8,I16_16,0,0,0,0 },
-	[INSTR_VRI_V0IIM] = { 0xff, V_8,I8_16,I8_24,M_32,0,0 },
-	[INSTR_VRI_VVIM]  = { 0xff, V_8,I16_16,V_12,M_32,0,0 },
-	[INSTR_VRI_VVV0IM]= { 0xff, V_8,V_12,V_16,I8_24,M_32,0 },
-	[INSTR_VRI_VVV0I0]= { 0xff, V_8,V_12,V_16,I8_24,0,0 },
-	[INSTR_VRI_VVIMM] = { 0xff, V_8,V_12,I16_16,M_32,M_28,0 },
-	[INSTR_VRR_VV00MMM]={ 0xff, V_8,V_12,M_32,M_28,M_24,0 },
-	[INSTR_VRR_VV000MM]={ 0xff, V_8,V_12,M_32,M_28,0,0 },
-	[INSTR_VRR_VV0000M]={ 0xff, V_8,V_12,M_32,0,0,0 },
-	[INSTR_VRR_VV00000]={ 0xff, V_8,V_12,0,0,0,0 },
-	[INSTR_VRR_VVV0M0M]={ 0xff, V_8,V_12,V_16,M_32,M_24,0 },
-	[INSTR_VRR_VV00M0M]={ 0xff, V_8,V_12,M_32,M_24,0,0 },
-	[INSTR_VRR_VVV000M]={ 0xff, V_8,V_12,V_16,M_32,0,0 },
-	[INSTR_VRR_VVV000V]={ 0xff, V_8,V_12,V_16,V_32,0,0 },
-	[INSTR_VRR_VVV0000]={ 0xff, V_8,V_12,V_16,0,0,0 },
-	[INSTR_VRR_VVV0MMM]={ 0xff, V_8,V_12,V_16,M_32,M_28,M_24 },
-	[INSTR_VRR_VVV00MM]={ 0xff, V_8,V_12,V_16,M_32,M_28,0 },
-	[INSTR_VRR_VVVMM0V]={ 0xff, V_8,V_12,V_16,V_32,M_20,M_24 },
-	[INSTR_VRR_VVVM0MV]={ 0xff, V_8,V_12,V_16,V_32,M_28,M_20 },
-	[INSTR_VRR_VVVM00V]={ 0xff, V_8,V_12,V_16,V_32,M_20,0 },
-	[INSTR_VRR_VRR0000]={ 0xff, V_8,R_12,R_16,0,0,0 },
-	[INSTR_VRS_VVRDM] = { 0xff, V_8,V_12,D_20,B_16,M_32,0 },
-	[INSTR_VRS_VVRD0] = { 0xff, V_8,V_12,D_20,B_16,0,0 },
-	[INSTR_VRS_VRRDM] = { 0xff, V_8,R_12,D_20,B_16,M_32,0 },
-	[INSTR_VRS_VRRD0] = { 0xff, V_8,R_12,D_20,B_16,0,0 },
-	[INSTR_VRS_RVRDM] = { 0xff, R_8,V_12,D_20,B_16,M_32,0 },
-	[INSTR_VRV_VVRDM] = { 0xff, V_8,V_12,D_20,B_16,M_32,0 },
-	[INSTR_VRV_VWRDM] = { 0xff, V_8,D_20,W_12,B_16,M_32,0 },
-	[INSTR_VRX_VRRDM] = { 0xff, V_8,D_20,X_12,B_16,M_32,0 },
-	[INSTR_VRX_VRRD0] = { 0xff, V_8,D_20,X_12,B_16,0,0 },
+static const unsigned char formats[][7] =
+{
+	[INSTR_E]	  = { 0xff, 0, 0, 0, 0, 0, 0 },
+	[INSTR_IE_UU]	  = { 0xff, U4_24, U4_28, 0, 0, 0, 0 },
+	[INSTR_MII_UPI]	  = { 0xff, U4_8, J12_12, I24_24 },
+	[INSTR_RIE_R0IU]  = { 0xff, R_8, I16_16, U4_32, 0, 0, 0 },
+	[INSTR_RIE_R0UU]  = { 0xff, R_8, U16_16, U4_32, 0, 0, 0 },
+	[INSTR_RIE_RRI0]  = { 0xff, R_8, R_12, I16_16, 0, 0, 0 },
+	[INSTR_RIE_RRPU]  = { 0xff, R_8, R_12, U4_32, J16_16, 0, 0 },
+	[INSTR_RIE_RRP]	  = { 0xff, R_8, R_12, J16_16, 0, 0, 0 },
+	[INSTR_RIE_RRUUU] = { 0xff, R_8, R_12, U8_16, U8_24, U8_32, 0 },
+	[INSTR_RIE_RUPI]  = { 0xff, R_8, I8_32, U4_12, J16_16, 0, 0 },
+	[INSTR_RIE_RUPU]  = { 0xff, R_8, U8_32, U4_12, J16_16, 0, 0 },
+	[INSTR_RIL_RI]	  = { 0x0f, R_8, I32_16, 0, 0, 0, 0 },
+	[INSTR_RIL_RP]	  = { 0x0f, R_8, J32_16, 0, 0, 0, 0 },
+	[INSTR_RIL_RU]	  = { 0x0f, R_8, U32_16, 0, 0, 0, 0 },
+	[INSTR_RIL_UP]	  = { 0x0f, U4_8, J32_16, 0, 0, 0, 0 },
+	[INSTR_RIS_R0RDU] = { 0xff, R_8, U8_32, D_20, B_16, 0, 0 },
+	[INSTR_RIS_RURDI] = { 0xff, R_8, I8_32, U4_12, D_20, B_16, 0 },
+	[INSTR_RIS_RURDU] = { 0xff, R_8, U8_32, U4_12, D_20, B_16, 0 },
+	[INSTR_RI_RI]	  = { 0x0f, R_8, I16_16, 0, 0, 0, 0 },
+	[INSTR_RI_RP]	  = { 0x0f, R_8, J16_16, 0, 0, 0, 0 },
+	[INSTR_RI_RU]	  = { 0x0f, R_8, U16_16, 0, 0, 0, 0 },
+	[INSTR_RI_UP]	  = { 0x0f, U4_8, J16_16, 0, 0, 0, 0 },
+	[INSTR_RRE_00]	  = { 0xff, 0, 0, 0, 0, 0, 0 },
+	[INSTR_RRE_0R]	  = { 0xff, R_28, 0, 0, 0, 0, 0 },
+	[INSTR_RRE_AA]	  = { 0xff, A_24, A_28, 0, 0, 0, 0 },
+	[INSTR_RRE_AR]	  = { 0xff, A_24, R_28, 0, 0, 0, 0 },
+	[INSTR_RRE_F0]	  = { 0xff, F_24, 0, 0, 0, 0, 0 },
+	[INSTR_RRE_FF]	  = { 0xff, F_24, F_28, 0, 0, 0, 0 },
+	[INSTR_RRE_FR]	  = { 0xff, F_24, R_28, 0, 0, 0, 0 },
+	[INSTR_RRE_R0]	  = { 0xff, R_24, 0, 0, 0, 0, 0 },
+	[INSTR_RRE_RA]	  = { 0xff, R_24, A_28, 0, 0, 0, 0 },
+	[INSTR_RRE_RF]	  = { 0xff, R_24, F_28, 0, 0, 0, 0 },
+	[INSTR_RRE_RR]	  = { 0xff, R_24, R_28, 0, 0, 0, 0 },
+	[INSTR_RRE_RR_OPT] = { 0xff, R_24, RO_28, 0, 0, 0, 0 },
+	[INSTR_RRF_0UFF]  = { 0xff, F_24, F_28, U4_20, 0, 0, 0 },
+	[INSTR_RRF_F0FF2] = { 0xff, F_24, F_16, F_28, 0, 0, 0 },
+	[INSTR_RRF_F0FF]  = { 0xff, F_16, F_24, F_28, 0, 0, 0 },
+	[INSTR_RRF_F0FR]  = { 0xff, F_24, F_16, R_28, 0, 0, 0 },
+	[INSTR_RRF_FFRU]  = { 0xff, F_24, F_16, R_28, U4_20, 0, 0 },
+	[INSTR_RRF_FUFF]  = { 0xff, F_24, F_16, F_28, U4_20, 0, 0 },
+	[INSTR_RRF_FUFF2] = { 0xff, F_24, F_28, F_16, U4_20, 0, 0 },
+	[INSTR_RRF_M0RR]  = { 0xff, R_24, R_28, M_16, 0, 0, 0 },
+	[INSTR_RRF_R0RR]  = { 0xff, R_24, R_16, R_28, 0, 0, 0 },
+	[INSTR_RRF_R0RR2] = { 0xff, R_24, R_28, R_16, 0, 0, 0 },
+	[INSTR_RRF_RMRR]  = { 0xff, R_24, R_16, R_28, M_20, 0, 0 },
+	[INSTR_RRF_RURR]  = { 0xff, R_24, R_28, R_16, U4_20, 0, 0 },
+	[INSTR_RRF_U0FF]  = { 0xff, F_24, U4_16, F_28, 0, 0, 0 },
+	[INSTR_RRF_U0RF]  = { 0xff, R_24, U4_16, F_28, 0, 0, 0 },
+	[INSTR_RRF_U0RR]  = { 0xff, R_24, R_28, U4_16, 0, 0, 0 },
+	[INSTR_RRF_UUFF]  = { 0xff, F_24, U4_16, F_28, U4_20, 0, 0 },
+	[INSTR_RRF_UUFR]  = { 0xff, F_24, U4_16, R_28, U4_20, 0, 0 },
+	[INSTR_RRF_UURF]  = { 0xff, R_24, U4_16, F_28, U4_20, 0, 0 },
+	[INSTR_RRR_F0FF]  = { 0xff, F_24, F_28, F_16, 0, 0, 0 },
+	[INSTR_RRS_RRRDU] = { 0xff, R_8, R_12, U4_32, D_20, B_16, 0 },
+	[INSTR_RR_FF]	  = { 0xff, F_8, F_12, 0, 0, 0, 0 },
+	[INSTR_RR_R0]	  = { 0xff, R_8, 0, 0, 0, 0, 0 },
+	[INSTR_RR_RR]	  = { 0xff, R_8, R_12, 0, 0, 0, 0 },
+	[INSTR_RR_U0]	  = { 0xff, U8_8, 0, 0, 0, 0, 0 },
+	[INSTR_RR_UR]	  = { 0xff, U4_8, R_12, 0, 0, 0, 0 },
+	[INSTR_RSE_CCRD]  = { 0xff, C_8, C_12, D_20, B_16, 0, 0 },
+	[INSTR_RSE_RRRD]  = { 0xff, R_8, R_12, D_20, B_16, 0, 0 },
+	[INSTR_RSE_RURD]  = { 0xff, R_8, U4_12, D_20, B_16, 0, 0 },
+	[INSTR_RSI_RRP]	  = { 0xff, R_8, R_12, J16_16, 0, 0, 0 },
+	[INSTR_RSL_LRDFU] = { 0xff, F_32, D_20, L4_8, B_16, U4_36, 0 },
+	[INSTR_RSL_R0RD]  = { 0xff, D_20, L4_8, B_16, 0, 0, 0 },
+	[INSTR_RSY_AARD]  = { 0xff, A_8, A_12, D20_20, B_16, 0, 0 },
+	[INSTR_RSY_CCRD]  = { 0xff, C_8, C_12, D20_20, B_16, 0, 0 },
+	[INSTR_RSY_RDRM]  = { 0xff, R_8, D20_20, B_16, U4_12, 0, 0 },
+	[INSTR_RSY_RMRD]  = { 0xff, R_8, U4_12, D20_20, B_16, 0, 0 },
+	[INSTR_RSY_RRRD]  = { 0xff, R_8, R_12, D20_20, B_16, 0, 0 },
+	[INSTR_RSY_RURD]  = { 0xff, R_8, U4_12, D20_20, B_16, 0, 0 },
+	[INSTR_RS_AARD]	  = { 0xff, A_8, A_12, D_20, B_16, 0, 0 },
+	[INSTR_RS_CCRD]	  = { 0xff, C_8, C_12, D_20, B_16, 0, 0 },
+	[INSTR_RS_R0RD]	  = { 0xff, R_8, D_20, B_16, 0, 0, 0 },
+	[INSTR_RS_RRRD]	  = { 0xff, R_8, R_12, D_20, B_16, 0, 0 },
+	[INSTR_RS_RURD]	  = { 0xff, R_8, U4_12, D_20, B_16, 0, 0 },
+	[INSTR_RXE_FRRD]  = { 0xff, F_8, D_20, X_12, B_16, 0, 0 },
+	[INSTR_RXE_RRRD]  = { 0xff, R_8, D_20, X_12, B_16, 0, 0 },
+	[INSTR_RXE_RRRDM] = { 0xff, R_8, D_20, X_12, B_16, M_32, 0 },
+	[INSTR_RXF_FRRDF] = { 0xff, F_32, F_8, D_20, X_12, B_16, 0 },
+	[INSTR_RXY_FRRD]  = { 0xff, F_8, D20_20, X_12, B_16, 0, 0 },
+	[INSTR_RXY_RRRD]  = { 0xff, R_8, D20_20, X_12, B_16, 0, 0 },
+	[INSTR_RXY_URRD]  = { 0xff, U4_8, D20_20, X_12, B_16, 0, 0 },
+	[INSTR_RX_FRRD]	  = { 0xff, F_8, D_20, X_12, B_16, 0, 0 },
+	[INSTR_RX_RRRD]	  = { 0xff, R_8, D_20, X_12, B_16, 0, 0 },
+	[INSTR_RX_URRD]	  = { 0xff, U4_8, D_20, X_12, B_16, 0, 0 },
+	[INSTR_SIL_RDI]   = { 0xff, D_20, B_16, I16_32, 0, 0, 0 },
+	[INSTR_SIL_RDU]   = { 0xff, D_20, B_16, U16_32, 0, 0, 0 },
+	[INSTR_SIY_IRD]   = { 0xff, D20_20, B_16, I8_8, 0, 0, 0 },
+	[INSTR_SIY_URD]	  = { 0xff, D20_20, B_16, U8_8, 0, 0, 0 },
+	[INSTR_SI_URD]	  = { 0xff, D_20, B_16, U8_8, 0, 0, 0 },
+	[INSTR_SMI_U0RDP] = { 0xff, U4_8, J16_32, D_20, B_16, 0, 0 },
+	[INSTR_SSE_RDRD]  = { 0xff, D_20, B_16, D_36, B_32, 0, 0 },
+	[INSTR_SSF_RRDRD] = { 0x0f, D_20, B_16, D_36, B_32, R_8, 0 },
+	[INSTR_SSF_RRDRD2] = { 0x0f, R_8, D_20, B_16, D_36, B_32, 0 },
+	[INSTR_SS_L0RDRD] = { 0xff, D_20, L8_8, B_16, D_36, B_32, 0 },
+	[INSTR_SS_LIRDRD] = { 0xff, D_20, L4_8, B_16, D_36, B_32, U4_12 },
+	[INSTR_SS_LLRDRD] = { 0xff, D_20, L4_8, B_16, D_36, L4_12, B_32 },
+	[INSTR_SS_RRRDRD2] = { 0xff, R_8, D_20, B_16, R_12, D_36, B_32 },
+	[INSTR_SS_RRRDRD3] = { 0xff, R_8, R_12, D_20, B_16, D_36, B_32 },
+	[INSTR_SS_RRRDRD] = { 0xff, D_20, R_8, B_16, D_36, B_32, R_12 },
+	[INSTR_S_00]	  = { 0xff, 0, 0, 0, 0, 0, 0 },
+	[INSTR_S_RD]	  = { 0xff, D_20, B_16, 0, 0, 0, 0 },
+	[INSTR_VRI_V0IM]  = { 0xff, V_8, I16_16, M_32, 0, 0, 0 },
+	[INSTR_VRI_V0I0]  = { 0xff, V_8, I16_16, 0, 0, 0, 0 },
+	[INSTR_VRI_V0IIM] = { 0xff, V_8, I8_16, I8_24, M_32, 0, 0 },
+	[INSTR_VRI_VVIM]  = { 0xff, V_8, I16_16, V_12, M_32, 0, 0 },
+	[INSTR_VRI_VVV0IM] = { 0xff, V_8, V_12, V_16, I8_24, M_32, 0 },
+	[INSTR_VRI_VVV0I0] = { 0xff, V_8, V_12, V_16, I8_24, 0, 0 },
+	[INSTR_VRI_VVIMM] = { 0xff, V_8, V_12, I16_16, M_32, M_28, 0 },
+	[INSTR_VRR_VV00MMM] = { 0xff, V_8, V_12, M_32, M_28, M_24, 0 },
+	[INSTR_VRR_VV000MM] = { 0xff, V_8, V_12, M_32, M_28, 0, 0 },
+	[INSTR_VRR_VV0000M] = { 0xff, V_8, V_12, M_32, 0, 0, 0 },
+	[INSTR_VRR_VV00000] = { 0xff, V_8, V_12, 0, 0, 0, 0 },
+	[INSTR_VRR_VVV0M0M] = { 0xff, V_8, V_12, V_16, M_32, M_24, 0 },
+	[INSTR_VRR_VV00M0M] = { 0xff, V_8, V_12, M_32, M_24, 0, 0 },
+	[INSTR_VRR_VVV000M] = { 0xff, V_8, V_12, V_16, M_32, 0, 0 },
+	[INSTR_VRR_VVV000V] = { 0xff, V_8, V_12, V_16, V_32, 0, 0 },
+	[INSTR_VRR_VVV0000] = { 0xff, V_8, V_12, V_16, 0, 0, 0 },
+	[INSTR_VRR_VVV0MMM] = { 0xff, V_8, V_12, V_16, M_32, M_28, M_24 },
+	[INSTR_VRR_VVV00MM] = { 0xff, V_8, V_12, V_16, M_32, M_28, 0 },
+	[INSTR_VRR_VVVMM0V] = { 0xff, V_8, V_12, V_16, V_32, M_20, M_24 },
+	[INSTR_VRR_VVVM0MV] = { 0xff, V_8, V_12, V_16, V_32, M_28, M_20 },
+	[INSTR_VRR_VVVM00V] = { 0xff, V_8, V_12, V_16, V_32, M_20, 0 },
+	[INSTR_VRR_VRR0000] = { 0xff, V_8, R_12, R_16, 0, 0, 0 },
+	[INSTR_VRS_VVRDM] = { 0xff, V_8, V_12, D_20, B_16, M_32, 0 },
+	[INSTR_VRS_VVRD0] = { 0xff, V_8, V_12, D_20, B_16, 0, 0 },
+	[INSTR_VRS_VRRDM] = { 0xff, V_8, R_12, D_20, B_16, M_32, 0 },
+	[INSTR_VRS_VRRD0] = { 0xff, V_8, R_12, D_20, B_16, 0, 0 },
+	[INSTR_VRS_RVRDM] = { 0xff, R_8, V_12, D_20, B_16, M_32, 0 },
+	[INSTR_VRV_VVRDM] = { 0xff, V_8, V_12, D_20, B_16, M_32, 0 },
+	[INSTR_VRV_VWRDM] = { 0xff, V_8, D_20, W_12, B_16, M_32, 0 },
+	[INSTR_VRX_VRRDM] = { 0xff, V_8, D_20, X_12, B_16, M_32, 0 },
+	[INSTR_VRX_VRRD0] = { 0xff, V_8, D_20, X_12, B_16, 0, 0 },
 };
 
-enum {
+enum
+{
 	LONG_INSN_ALGHSIK,
 	LONG_INSN_ALHHHR,
 	LONG_INSN_ALHHLR,
@@ -448,7 +452,8 @@ enum {
 	LONG_INSN_STCCTM
 };
 
-static char *long_insn_name[] = {
+static char *long_insn_name[] =
+{
 	[LONG_INSN_ALGHSIK] = "alghsik",
 	[LONG_INSN_ALHHHR] = "alhhhr",
 	[LONG_INSN_ALHHLR] = "alhhlr",
@@ -528,7 +533,8 @@ static char *long_insn_name[] = {
 	[LONG_INSN_STCCTM] = "stcctm",
 };
 
-static struct s390_insn opcode[] = {
+static struct s390_insn opcode[] =
+{
 	{ "bprp", 0xc5, INSTR_MII_UPI },
 	{ "bpp", 0xc7, INSTR_SMI_U0RDP },
 	{ "trtr", 0xd0, INSTR_SS_L0RDRD },
@@ -715,7 +721,8 @@ static struct s390_insn opcode[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_01[] = {
+static struct s390_insn opcode_01[] =
+{
 	{ "ptff", 0x04, INSTR_E },
 	{ "pfpo", 0x0a, INSTR_E },
 	{ "sam64", 0x0e, INSTR_E },
@@ -729,7 +736,8 @@ static struct s390_insn opcode_01[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_a5[] = {
+static struct s390_insn opcode_a5[] =
+{
 	{ "iihh", 0x00, INSTR_RI_RU },
 	{ "iihl", 0x01, INSTR_RI_RU },
 	{ "iilh", 0x02, INSTR_RI_RU },
@@ -749,7 +757,8 @@ static struct s390_insn opcode_a5[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_a7[] = {
+static struct s390_insn opcode_a7[] =
+{
 	{ "tmhh", 0x02, INSTR_RI_RU },
 	{ "tmhl", 0x03, INSTR_RI_RU },
 	{ "brctg", 0x07, INSTR_RI_RP },
@@ -769,7 +778,8 @@ static struct s390_insn opcode_a7[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_aa[] = {
+static struct s390_insn opcode_aa[] =
+{
 	{ { 0, LONG_INSN_RINEXT }, 0x00, INSTR_RI_RI },
 	{ "rion", 0x01, INSTR_RI_RI },
 	{ "tric", 0x02, INSTR_RI_RI },
@@ -778,7 +788,8 @@ static struct s390_insn opcode_aa[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_b2[] = {
+static struct s390_insn opcode_b2[] =
+{
 	{ "stckf", 0x7c, INSTR_S_RD },
 	{ "lpp", 0x80, INSTR_S_RD },
 	{ "lcctl", 0x84, INSTR_S_RD },
@@ -888,7 +899,8 @@ static struct s390_insn opcode_b2[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_b3[] = {
+static struct s390_insn opcode_b3[] =
+{
 	{ "maylr", 0x38, INSTR_RRF_F0FF },
 	{ "mylr", 0x39, INSTR_RRF_F0FF },
 	{ "mayr", 0x3a, INSTR_RRF_F0FF },
@@ -1069,7 +1081,8 @@ static struct s390_insn opcode_b3[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_b9[] = {
+static struct s390_insn opcode_b9[] =
+{
 	{ "lpgr", 0x00, INSTR_RRE_RR },
 	{ "lngr", 0x01, INSTR_RRE_RR },
 	{ "ltgr", 0x02, INSTR_RRE_RR },
@@ -1200,7 +1213,8 @@ static struct s390_insn opcode_b9[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_c0[] = {
+static struct s390_insn opcode_c0[] =
+{
 	{ "lgfi", 0x01, INSTR_RIL_RI },
 	{ "xihf", 0x06, INSTR_RIL_RU },
 	{ "xilf", 0x07, INSTR_RIL_RU },
@@ -1218,7 +1232,8 @@ static struct s390_insn opcode_c0[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_c2[] = {
+static struct s390_insn opcode_c2[] =
+{
 	{ "msgfi", 0x00, INSTR_RIL_RI },
 	{ "msfi", 0x01, INSTR_RIL_RI },
 	{ "slgfi", 0x04, INSTR_RIL_RU },
@@ -1234,7 +1249,8 @@ static struct s390_insn opcode_c2[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_c4[] = {
+static struct s390_insn opcode_c4[] =
+{
 	{ "llhrl", 0x02, INSTR_RIL_RP },
 	{ "lghrl", 0x04, INSTR_RIL_RP },
 	{ "lhrl", 0x05, INSTR_RIL_RP },
@@ -1249,7 +1265,8 @@ static struct s390_insn opcode_c4[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_c6[] = {
+static struct s390_insn opcode_c6[] =
+{
 	{ "exrl", 0x00, INSTR_RIL_RP },
 	{ "pfdrl", 0x02, INSTR_RIL_UP },
 	{ "cghrl", 0x04, INSTR_RIL_RP },
@@ -1265,7 +1282,8 @@ static struct s390_insn opcode_c6[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_c8[] = {
+static struct s390_insn opcode_c8[] =
+{
 	{ "mvcos", 0x00, INSTR_SSF_RRDRD },
 	{ "ectg", 0x01, INSTR_SSF_RRDRD },
 	{ "csst", 0x02, INSTR_SSF_RRDRD },
@@ -1274,7 +1292,8 @@ static struct s390_insn opcode_c8[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_cc[] = {
+static struct s390_insn opcode_cc[] =
+{
 	{ "brcth", 0x06, INSTR_RIL_RP },
 	{ "aih", 0x08, INSTR_RIL_RI },
 	{ "alsih", 0x0a, INSTR_RIL_RI },
@@ -1284,7 +1303,8 @@ static struct s390_insn opcode_cc[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_e3[] = {
+static struct s390_insn opcode_e3[] =
+{
 	{ "ltg", 0x02, INSTR_RXY_RRRD },
 	{ "lrag", 0x03, INSTR_RXY_RRRD },
 	{ "lg", 0x04, INSTR_RXY_RRRD },
@@ -1388,7 +1408,8 @@ static struct s390_insn opcode_e3[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_e5[] = {
+static struct s390_insn opcode_e5[] =
+{
 	{ "strag", 0x02, INSTR_SSE_RDRD },
 	{ "mvhhi", 0x44, INSTR_SIL_RDI },
 	{ "mvghi", 0x48, INSTR_SIL_RDI },
@@ -1408,7 +1429,8 @@ static struct s390_insn opcode_e5[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_e7[] = {
+static struct s390_insn opcode_e7[] =
+{
 	{ "lcbb", 0x27, INSTR_RXE_RRRDM },
 	{ "vgef", 0x13, INSTR_VRV_VVRDM },
 	{ "vgeg", 0x12, INSTR_VRV_VVRDM },
@@ -1550,7 +1572,8 @@ static struct s390_insn opcode_e7[] = {
 	{ "vftci", 0x4a, INSTR_VRI_VVIMM },
 };
 
-static struct s390_insn opcode_eb[] = {
+static struct s390_insn opcode_eb[] =
+{
 	{ "lmg", 0x04, INSTR_RSY_RRRD },
 	{ "srag", 0x0a, INSTR_RSY_RRRD },
 	{ "slag", 0x0b, INSTR_RSY_RRRD },
@@ -1623,7 +1646,8 @@ static struct s390_insn opcode_eb[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_ec[] = {
+static struct s390_insn opcode_ec[] =
+{
 	{ "brxhg", 0x44, INSTR_RIE_RRP },
 	{ "brxlg", 0x45, INSTR_RIE_RRP },
 	{ { 0, LONG_INSN_RISBLG }, 0x51, INSTR_RIE_RRUUU },
@@ -1660,7 +1684,8 @@ static struct s390_insn opcode_ec[] = {
 	{ "", 0, INSTR_INVALID }
 };
 
-static struct s390_insn opcode_ed[] = {
+static struct s390_insn opcode_ed[] =
+{
 	{ "mayl", 0x38, INSTR_RXF_FRRDF },
 	{ "myl", 0x39, INSTR_RXF_FRRDF },
 	{ "may", 0x3a, INSTR_RXF_FRRDF },
@@ -1726,7 +1751,7 @@ static struct s390_insn opcode_ed[] = {
 
 /* Extracts an operand value from an instruction.  */
 static unsigned int extract_operand(unsigned char *code,
-				    const struct s390_operand *operand)
+									const struct s390_operand *operand)
 {
 	unsigned char *cp;
 	unsigned int val;
@@ -1736,42 +1761,64 @@ static unsigned int extract_operand(unsigned char *code,
 	cp = code + operand->shift / 8;
 	bits = (operand->shift & 7) + operand->bits;
 	val = 0;
-	do {
+
+	do
+	{
 		val <<= 8;
-		val |= (unsigned int) *cp++;
+		val |= (unsigned int) * cp++;
 		bits -= 8;
-	} while (bits > 0);
+	}
+	while (bits > 0);
+
 	val >>= -bits;
 	val &= ((1U << (operand->bits - 1)) << 1) - 1;
 
 	/* Check for special long displacement case.  */
 	if (operand->bits == 20 && operand->shift == 20)
+	{
 		val = (val & 0xff) << 12 | (val & 0xfff00) >> 8;
+	}
 
 	/* Check for register extensions bits for vector registers. */
-	if (operand->flags & OPERAND_VR) {
+	if (operand->flags & OPERAND_VR)
+	{
 		if (operand->shift == 8)
+		{
 			val |= (code[4] & 8) << 1;
+		}
 		else if (operand->shift == 12)
+		{
 			val |= (code[4] & 4) << 2;
+		}
 		else if (operand->shift == 16)
+		{
 			val |= (code[4] & 2) << 3;
+		}
 		else if (operand->shift == 32)
+		{
 			val |= (code[4] & 1) << 4;
+		}
 	}
 
 	/* Sign extend value if the operand is signed or pc relative.  */
 	if ((operand->flags & (OPERAND_SIGNED | OPERAND_PCREL)) &&
-	    (val & (1U << (operand->bits - 1))))
+		(val & (1U << (operand->bits - 1))))
+	{
 		val |= (-1U << (operand->bits - 1)) << 1;
+	}
 
 	/* Double value if the operand is pc relative.	*/
 	if (operand->flags & OPERAND_PCREL)
+	{
 		val <<= 1;
+	}
 
 	/* Length x in an instructions has real length x + 1.  */
 	if (operand->flags & OPERAND_LENGTH)
+	{
 		val++;
+	}
+
 	return val;
 }
 
@@ -1781,80 +1828,107 @@ struct s390_insn *find_insn(unsigned char *code)
 	unsigned char opmask;
 	struct s390_insn *table;
 
-	switch (code[0]) {
-	case 0x01:
-		table = opcode_01;
-		break;
-	case 0xa5:
-		table = opcode_a5;
-		break;
-	case 0xa7:
-		table = opcode_a7;
-		break;
-	case 0xaa:
-		table = opcode_aa;
-		break;
-	case 0xb2:
-		table = opcode_b2;
-		break;
-	case 0xb3:
-		table = opcode_b3;
-		break;
-	case 0xb9:
-		table = opcode_b9;
-		break;
-	case 0xc0:
-		table = opcode_c0;
-		break;
-	case 0xc2:
-		table = opcode_c2;
-		break;
-	case 0xc4:
-		table = opcode_c4;
-		break;
-	case 0xc6:
-		table = opcode_c6;
-		break;
-	case 0xc8:
-		table = opcode_c8;
-		break;
-	case 0xcc:
-		table = opcode_cc;
-		break;
-	case 0xe3:
-		table = opcode_e3;
-		opfrag = code[5];
-		break;
-	case 0xe5:
-		table = opcode_e5;
-		break;
-	case 0xe7:
-		table = opcode_e7;
-		opfrag = code[5];
-		break;
-	case 0xeb:
-		table = opcode_eb;
-		opfrag = code[5];
-		break;
-	case 0xec:
-		table = opcode_ec;
-		opfrag = code[5];
-		break;
-	case 0xed:
-		table = opcode_ed;
-		opfrag = code[5];
-		break;
-	default:
-		table = opcode;
-		opfrag = code[0];
-		break;
+	switch (code[0])
+	{
+		case 0x01:
+			table = opcode_01;
+			break;
+
+		case 0xa5:
+			table = opcode_a5;
+			break;
+
+		case 0xa7:
+			table = opcode_a7;
+			break;
+
+		case 0xaa:
+			table = opcode_aa;
+			break;
+
+		case 0xb2:
+			table = opcode_b2;
+			break;
+
+		case 0xb3:
+			table = opcode_b3;
+			break;
+
+		case 0xb9:
+			table = opcode_b9;
+			break;
+
+		case 0xc0:
+			table = opcode_c0;
+			break;
+
+		case 0xc2:
+			table = opcode_c2;
+			break;
+
+		case 0xc4:
+			table = opcode_c4;
+			break;
+
+		case 0xc6:
+			table = opcode_c6;
+			break;
+
+		case 0xc8:
+			table = opcode_c8;
+			break;
+
+		case 0xcc:
+			table = opcode_cc;
+			break;
+
+		case 0xe3:
+			table = opcode_e3;
+			opfrag = code[5];
+			break;
+
+		case 0xe5:
+			table = opcode_e5;
+			break;
+
+		case 0xe7:
+			table = opcode_e7;
+			opfrag = code[5];
+			break;
+
+		case 0xeb:
+			table = opcode_eb;
+			opfrag = code[5];
+			break;
+
+		case 0xec:
+			table = opcode_ec;
+			opfrag = code[5];
+			break;
+
+		case 0xed:
+			table = opcode_ed;
+			opfrag = code[5];
+			break;
+
+		default:
+			table = opcode;
+			opfrag = code[0];
+			break;
 	}
-	while (table->format != INSTR_INVALID) {
+
+	while (table->format != INSTR_INVALID)
+	{
 		opmask = formats[table->format][0];
+
 		if (table->opfrag == (opfrag & opmask))
+		{
 			return table;
+		}
+
 		table++;
 	}
+
 	return NULL;
 }
 
@@ -1875,13 +1949,20 @@ int insn_to_mnemonic(unsigned char *instruction, char *buf, unsigned int len)
 	struct s390_insn *insn;
 
 	insn = find_insn(instruction);
+
 	if (!insn)
+	{
 		return -ENOENT;
+	}
+
 	if (insn->name[0] == '\0')
 		snprintf(buf, len, "%s",
-			 long_insn_name[(int) insn->name[1]]);
+				 long_insn_name[(int) insn->name[1]]);
 	else
+	{
 		snprintf(buf, len, "%.5s", insn->name);
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(insn_to_mnemonic);
@@ -1898,54 +1979,95 @@ static int print_insn(char *buffer, unsigned char *code, unsigned long addr)
 
 	ptr = buffer;
 	insn = find_insn(code);
-	if (insn) {
+
+	if (insn)
+	{
 		if (insn->name[0] == '\0')
 			ptr += sprintf(ptr, "%s\t",
-				       long_insn_name[(int) insn->name[1]]);
+						   long_insn_name[(int) insn->name[1]]);
 		else
+		{
 			ptr += sprintf(ptr, "%.5s\t", insn->name);
+		}
+
 		/* Extract the operands. */
 		separator = 0;
+
 		for (ops = formats[insn->format] + 1, i = 0;
-		     *ops != 0 && i < 6; ops++, i++) {
+			 *ops != 0 && i < 6; ops++, i++)
+		{
 			operand = operands + *ops;
 			value = extract_operand(code, operand);
+
 			if ((operand->flags & OPERAND_INDEX)  && value == 0)
+			{
 				continue;
+			}
+
 			if ((operand->flags & OPERAND_BASE) &&
-			    value == 0 && separator == '(') {
+				value == 0 && separator == '(')
+			{
 				separator = ',';
 				continue;
 			}
+
 			if (separator)
+			{
 				ptr += sprintf(ptr, "%c", separator);
+			}
+
 			if (operand->flags & OPERAND_GPR)
+			{
 				ptr += sprintf(ptr, "%%r%i", value);
+			}
 			else if (operand->flags & OPERAND_FPR)
+			{
 				ptr += sprintf(ptr, "%%f%i", value);
+			}
 			else if (operand->flags & OPERAND_AR)
+			{
 				ptr += sprintf(ptr, "%%a%i", value);
+			}
 			else if (operand->flags & OPERAND_CR)
+			{
 				ptr += sprintf(ptr, "%%c%i", value);
+			}
 			else if (operand->flags & OPERAND_VR)
+			{
 				ptr += sprintf(ptr, "%%v%i", value);
+			}
 			else if (operand->flags & OPERAND_PCREL)
 				ptr += sprintf(ptr, "%lx", (signed int) value
-								      + addr);
+							   + addr);
 			else if (operand->flags & OPERAND_SIGNED)
+			{
 				ptr += sprintf(ptr, "%i", value);
+			}
 			else
+			{
 				ptr += sprintf(ptr, "%u", value);
+			}
+
 			if (operand->flags & OPERAND_DISP)
+			{
 				separator = '(';
-			else if (operand->flags & OPERAND_BASE) {
+			}
+			else if (operand->flags & OPERAND_BASE)
+			{
 				ptr += sprintf(ptr, ")");
 				separator = ',';
-			} else
+			}
+			else
+			{
 				separator = ',';
+			}
 		}
-	} else
+	}
+	else
+	{
 		ptr += sprintf(ptr, "unknown");
+	}
+
 	return (int) (ptr - buffer);
 }
 
@@ -1961,57 +2083,102 @@ void show_code(struct pt_regs *regs)
 	/* Get a snapshot of the 64 bytes surrounding the fault address. */
 	old_fs = get_fs();
 	set_fs(user_mode(regs) ? USER_DS : KERNEL_DS);
-	for (start = 32; start && regs->psw.addr >= 34 - start; start -= 2) {
+
+	for (start = 32; start && regs->psw.addr >= 34 - start; start -= 2)
+	{
 		addr = regs->psw.addr - 34 + start;
+
 		if (__copy_from_user(code + start - 2,
-				     (char __user *) addr, 2))
+							 (char __user *) addr, 2))
+		{
 			break;
+		}
 	}
-	for (end = 32; end < 64; end += 2) {
+
+	for (end = 32; end < 64; end += 2)
+	{
 		addr = regs->psw.addr + end - 32;
+
 		if (__copy_from_user(code + end,
-				     (char __user *) addr, 2))
+							 (char __user *) addr, 2))
+		{
 			break;
+		}
 	}
+
 	set_fs(old_fs);
+
 	/* Code snapshot useable ? */
-	if ((regs->psw.addr & 1) || start >= end) {
+	if ((regs->psw.addr & 1) || start >= end)
+	{
 		printk("%s Code: Bad PSW.\n", mode);
 		return;
 	}
+
 	/* Find a starting point for the disassembly. */
-	while (start < 32) {
-		for (i = 0, hops = 0; start + i < 32 && hops < 3; hops++) {
+	while (start < 32)
+	{
+		for (i = 0, hops = 0; start + i < 32 && hops < 3; hops++)
+		{
 			if (!find_insn(code + start + i))
+			{
 				break;
+			}
+
 			i += insn_length(code[start + i]);
 		}
+
 		if (start + i == 32)
 			/* Looks good, sequence ends at PSW. */
+		{
 			break;
+		}
+
 		start += 2;
 	}
+
 	/* Decode the instructions. */
 	ptr = buffer;
 	ptr += sprintf(ptr, "%s Code:", mode);
 	hops = 0;
-	while (start < end && hops < 8) {
+
+	while (start < end && hops < 8)
+	{
 		opsize = insn_length(code[start]);
+
 		if  (start + opsize == 32)
+		{
 			*ptr++ = '#';
+		}
 		else if (start == 32)
+		{
 			*ptr++ = '>';
+		}
 		else
+		{
 			*ptr++ = ' ';
+		}
+
 		addr = regs->psw.addr + start - 32;
 		ptr += sprintf(ptr, "%016lx: ", addr);
+
 		if (start + opsize >= end)
+		{
 			break;
+		}
+
 		for (i = 0; i < opsize; i++)
+		{
 			ptr += sprintf(ptr, "%02x", code[start + i]);
+		}
+
 		*ptr++ = '\t';
+
 		if (i < 6)
+		{
 			*ptr++ = '\t';
+		}
+
 		ptr += print_insn(ptr, code + start, addr);
 		start += opsize;
 		pr_cont("%s", buffer);
@@ -2019,6 +2186,7 @@ void show_code(struct pt_regs *regs)
 		ptr += sprintf(ptr, "\n          ");
 		hops++;
 	}
+
 	pr_cont("\n");
 }
 
@@ -2027,17 +2195,30 @@ void print_fn_code(unsigned char *code, unsigned long len)
 	char buffer[64], *ptr;
 	int opsize, i;
 
-	while (len) {
+	while (len)
+	{
 		ptr = buffer;
 		opsize = insn_length(*code);
+
 		if (opsize > len)
+		{
 			break;
+		}
+
 		ptr += sprintf(ptr, "%p: ", code);
+
 		for (i = 0; i < opsize; i++)
+		{
 			ptr += sprintf(ptr, "%02x", code[i]);
+		}
+
 		*ptr++ = '\t';
+
 		if (i < 4)
+		{
 			*ptr++ = '\t';
+		}
+
 		ptr += print_insn(ptr, code, (unsigned long) code);
 		*ptr++ = '\n';
 		*ptr++ = 0;

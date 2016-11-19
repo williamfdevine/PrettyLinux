@@ -59,18 +59,30 @@ static struct vm_struct *get_io_area(unsigned long size)
 	struct vm_struct **p, *tmp, *area;
 
 	area = kmalloc(sizeof(*area), GFP_KERNEL);
+
 	if (!area)
+	{
 		return NULL;
+	}
+
 	addr = KMAP_START;
-	for (p = &iolist; (tmp = *p) ; p = &tmp->next) {
+
+	for (p = &iolist; (tmp = *p) ; p = &tmp->next)
+	{
 		if (size + addr < (unsigned long)tmp->addr)
+		{
 			break;
-		if (addr > KMAP_END-size) {
+		}
+
+		if (addr > KMAP_END - size)
+		{
 			kfree(area);
 			return NULL;
 		}
+
 		addr = tmp->size + (unsigned long)tmp->addr;
 	}
+
 	area->addr = (void *)addr;
 	area->size = size + IO_SIZE;
 	area->next = *p;
@@ -83,10 +95,16 @@ static inline void free_io_area(void *addr)
 	struct vm_struct **p, *tmp;
 
 	if (!addr)
+	{
 		return;
+	}
+
 	addr = (void *)((unsigned long)addr & -IO_SIZE);
-	for (p = &iolist ; (tmp = *p) ; p = &tmp->next) {
-		if (tmp->addr == addr) {
+
+	for (p = &iolist ; (tmp = *p) ; p = &tmp->next)
+	{
+		if (tmp->addr == addr)
+		{
 			*p = tmp->next;
 			__iounmap(tmp->addr, tmp->size);
 			kfree(tmp);
@@ -115,14 +133,21 @@ void __iomem *__ioremap(unsigned long physaddr, unsigned long size, int cachefla
 	 * Don't allow mappings that wrap..
 	 */
 	if (!size || physaddr > (unsigned long)(-size))
+	{
 		return NULL;
+	}
 
 #ifdef CONFIG_AMIGA
-	if (MACH_IS_AMIGA) {
+
+	if (MACH_IS_AMIGA)
+	{
 		if ((physaddr >= 0x40000000) && (physaddr + size < 0x60000000)
-		    && (cacheflag == IOMAP_NOCACHE_SER))
+			&& (cacheflag == IOMAP_NOCACHE_SER))
+		{
 			return (void __iomem *)physaddr;
+		}
 	}
+
 #endif
 
 #ifdef DEBUG
@@ -139,8 +164,11 @@ void __iomem *__ioremap(unsigned long physaddr, unsigned long size, int cachefla
 	 * Ok, go for it..
 	 */
 	area = get_io_area(size);
+
 	if (!area)
+	{
 		return NULL;
+	}
 
 	virtaddr = (unsigned long)area->addr;
 	retaddr = virtaddr + offset;
@@ -151,59 +179,82 @@ void __iomem *__ioremap(unsigned long physaddr, unsigned long size, int cachefla
 	/*
 	 * add cache and table flags to physical address
 	 */
-	if (CPU_IS_040_OR_060) {
+	if (CPU_IS_040_OR_060)
+	{
 		physaddr |= (_PAGE_PRESENT | _PAGE_GLOBAL040 |
-			     _PAGE_ACCESSED | _PAGE_DIRTY);
-		switch (cacheflag) {
-		case IOMAP_FULL_CACHING:
-			physaddr |= _PAGE_CACHE040;
-			break;
-		case IOMAP_NOCACHE_SER:
-		default:
-			physaddr |= _PAGE_NOCACHE_S;
-			break;
-		case IOMAP_NOCACHE_NONSER:
-			physaddr |= _PAGE_NOCACHE;
-			break;
-		case IOMAP_WRITETHROUGH:
-			physaddr |= _PAGE_CACHE040W;
-			break;
+					 _PAGE_ACCESSED | _PAGE_DIRTY);
+
+		switch (cacheflag)
+		{
+			case IOMAP_FULL_CACHING:
+				physaddr |= _PAGE_CACHE040;
+				break;
+
+			case IOMAP_NOCACHE_SER:
+			default:
+				physaddr |= _PAGE_NOCACHE_S;
+				break;
+
+			case IOMAP_NOCACHE_NONSER:
+				physaddr |= _PAGE_NOCACHE;
+				break;
+
+			case IOMAP_WRITETHROUGH:
+				physaddr |= _PAGE_CACHE040W;
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		physaddr |= (_PAGE_PRESENT | _PAGE_ACCESSED |
-			     _PAGE_DIRTY | _PAGE_READWRITE);
-		switch (cacheflag) {
-		case IOMAP_NOCACHE_SER:
-		case IOMAP_NOCACHE_NONSER:
-		default:
-			physaddr |= _PAGE_NOCACHE030;
-			break;
-		case IOMAP_FULL_CACHING:
-		case IOMAP_WRITETHROUGH:
-			break;
+					 _PAGE_DIRTY | _PAGE_READWRITE);
+
+		switch (cacheflag)
+		{
+			case IOMAP_NOCACHE_SER:
+			case IOMAP_NOCACHE_NONSER:
+			default:
+				physaddr |= _PAGE_NOCACHE030;
+				break;
+
+			case IOMAP_FULL_CACHING:
+			case IOMAP_WRITETHROUGH:
+				break;
 		}
 	}
 
-	while ((long)size > 0) {
+	while ((long)size > 0)
+	{
 #ifdef DEBUG
-		if (!(virtaddr & (PTRTREESIZE-1)))
+
+		if (!(virtaddr & (PTRTREESIZE - 1)))
+		{
 			printk ("\npa=%#lx va=%#lx ", physaddr, virtaddr);
+		}
+
 #endif
 		pgd_dir = pgd_offset_k(virtaddr);
 		pmd_dir = pmd_alloc(&init_mm, pgd_dir, virtaddr);
-		if (!pmd_dir) {
+
+		if (!pmd_dir)
+		{
 			printk("ioremap: no mem for pmd_dir\n");
 			return NULL;
 		}
 
-		if (CPU_IS_020_OR_030) {
-			pmd_dir->pmd[(virtaddr/PTRTREESIZE) & 15] = physaddr;
+		if (CPU_IS_020_OR_030)
+		{
+			pmd_dir->pmd[(virtaddr / PTRTREESIZE) & 15] = physaddr;
 			physaddr += PTRTREESIZE;
 			virtaddr += PTRTREESIZE;
 			size -= PTRTREESIZE;
-		} else {
+		}
+		else
+		{
 			pte_dir = pte_alloc_kernel(pmd_dir, virtaddr);
-			if (!pte_dir) {
+
+			if (!pte_dir)
+			{
 				printk("ioremap: no mem for pte_dir\n");
 				return NULL;
 			}
@@ -214,6 +265,7 @@ void __iomem *__ioremap(unsigned long physaddr, unsigned long size, int cachefla
 			size -= PAGE_SIZE;
 		}
 	}
+
 #ifdef DEBUG
 	printk("\n");
 #endif
@@ -229,10 +281,14 @@ EXPORT_SYMBOL(__ioremap);
 void iounmap(void __iomem *addr)
 {
 #ifdef CONFIG_AMIGA
+
 	if ((!MACH_IS_AMIGA) ||
-	    (((unsigned long)addr < 0x40000000) ||
-	     ((unsigned long)addr > 0x60000000)))
-			free_io_area((__force void *)addr);
+		(((unsigned long)addr < 0x40000000) ||
+		 ((unsigned long)addr > 0x60000000)))
+	{
+		free_io_area((__force void *)addr);
+	}
+
 #else
 	free_io_area((__force void *)addr);
 #endif
@@ -251,33 +307,44 @@ void __iounmap(void *addr, unsigned long size)
 	pmd_t *pmd_dir;
 	pte_t *pte_dir;
 
-	while ((long)size > 0) {
+	while ((long)size > 0)
+	{
 		pgd_dir = pgd_offset_k(virtaddr);
-		if (pgd_bad(*pgd_dir)) {
+
+		if (pgd_bad(*pgd_dir))
+		{
 			printk("iounmap: bad pgd(%08lx)\n", pgd_val(*pgd_dir));
 			pgd_clear(pgd_dir);
 			return;
 		}
+
 		pmd_dir = pmd_offset(pgd_dir, virtaddr);
 
-		if (CPU_IS_020_OR_030) {
-			int pmd_off = (virtaddr/PTRTREESIZE) & 15;
+		if (CPU_IS_020_OR_030)
+		{
+			int pmd_off = (virtaddr / PTRTREESIZE) & 15;
 			int pmd_type = pmd_dir->pmd[pmd_off] & _DESCTYPE_MASK;
 
-			if (pmd_type == _PAGE_PRESENT) {
+			if (pmd_type == _PAGE_PRESENT)
+			{
 				pmd_dir->pmd[pmd_off] = 0;
 				virtaddr += PTRTREESIZE;
 				size -= PTRTREESIZE;
 				continue;
-			} else if (pmd_type == 0)
+			}
+			else if (pmd_type == 0)
+			{
 				continue;
+			}
 		}
 
-		if (pmd_bad(*pmd_dir)) {
+		if (pmd_bad(*pmd_dir))
+		{
 			printk("iounmap: bad pmd (%08lx)\n", pmd_val(*pmd_dir));
 			pmd_clear(pmd_dir);
 			return;
 		}
+
 		pte_dir = pte_offset_kernel(pmd_dir, virtaddr);
 
 		pte_val(*pte_dir) = 0;
@@ -300,61 +367,78 @@ void kernel_set_cachemode(void *addr, unsigned long size, int cmode)
 	pmd_t *pmd_dir;
 	pte_t *pte_dir;
 
-	if (CPU_IS_040_OR_060) {
-		switch (cmode) {
-		case IOMAP_FULL_CACHING:
-			cmode = _PAGE_CACHE040;
-			break;
-		case IOMAP_NOCACHE_SER:
-		default:
-			cmode = _PAGE_NOCACHE_S;
-			break;
-		case IOMAP_NOCACHE_NONSER:
-			cmode = _PAGE_NOCACHE;
-			break;
-		case IOMAP_WRITETHROUGH:
-			cmode = _PAGE_CACHE040W;
-			break;
+	if (CPU_IS_040_OR_060)
+	{
+		switch (cmode)
+		{
+			case IOMAP_FULL_CACHING:
+				cmode = _PAGE_CACHE040;
+				break;
+
+			case IOMAP_NOCACHE_SER:
+			default:
+				cmode = _PAGE_NOCACHE_S;
+				break;
+
+			case IOMAP_NOCACHE_NONSER:
+				cmode = _PAGE_NOCACHE;
+				break;
+
+			case IOMAP_WRITETHROUGH:
+				cmode = _PAGE_CACHE040W;
+				break;
 		}
-	} else {
-		switch (cmode) {
-		case IOMAP_NOCACHE_SER:
-		case IOMAP_NOCACHE_NONSER:
-		default:
-			cmode = _PAGE_NOCACHE030;
-			break;
-		case IOMAP_FULL_CACHING:
-		case IOMAP_WRITETHROUGH:
-			cmode = 0;
+	}
+	else
+	{
+		switch (cmode)
+		{
+			case IOMAP_NOCACHE_SER:
+			case IOMAP_NOCACHE_NONSER:
+			default:
+				cmode = _PAGE_NOCACHE030;
+				break;
+
+			case IOMAP_FULL_CACHING:
+			case IOMAP_WRITETHROUGH:
+				cmode = 0;
 		}
 	}
 
-	while ((long)size > 0) {
+	while ((long)size > 0)
+	{
 		pgd_dir = pgd_offset_k(virtaddr);
-		if (pgd_bad(*pgd_dir)) {
+
+		if (pgd_bad(*pgd_dir))
+		{
 			printk("iocachemode: bad pgd(%08lx)\n", pgd_val(*pgd_dir));
 			pgd_clear(pgd_dir);
 			return;
 		}
+
 		pmd_dir = pmd_offset(pgd_dir, virtaddr);
 
-		if (CPU_IS_020_OR_030) {
-			int pmd_off = (virtaddr/PTRTREESIZE) & 15;
+		if (CPU_IS_020_OR_030)
+		{
+			int pmd_off = (virtaddr / PTRTREESIZE) & 15;
 
-			if ((pmd_dir->pmd[pmd_off] & _DESCTYPE_MASK) == _PAGE_PRESENT) {
+			if ((pmd_dir->pmd[pmd_off] & _DESCTYPE_MASK) == _PAGE_PRESENT)
+			{
 				pmd_dir->pmd[pmd_off] = (pmd_dir->pmd[pmd_off] &
-							 _CACHEMASK040) | cmode;
+										 _CACHEMASK040) | cmode;
 				virtaddr += PTRTREESIZE;
 				size -= PTRTREESIZE;
 				continue;
 			}
 		}
 
-		if (pmd_bad(*pmd_dir)) {
+		if (pmd_bad(*pmd_dir))
+		{
 			printk("iocachemode: bad pmd (%08lx)\n", pmd_val(*pmd_dir));
 			pmd_clear(pmd_dir);
 			return;
 		}
+
 		pte_dir = pte_offset_kernel(pmd_dir, virtaddr);
 
 		pte_val(*pte_dir) = (pte_val(*pte_dir) & _CACHEMASK040) | cmode;

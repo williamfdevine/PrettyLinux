@@ -15,22 +15,23 @@
 #define IPL_PARMBLOCK_ORIGIN	0x2000
 
 #define IPL_PARM_BLK_FCP_LEN (sizeof(struct ipl_list_hdr) + \
-			      sizeof(struct ipl_block_fcp))
+							  sizeof(struct ipl_block_fcp))
 
 #define IPL_PARM_BLK0_FCP_LEN (sizeof(struct ipl_block_fcp) + 16)
 
 #define IPL_PARM_BLK_CCW_LEN (sizeof(struct ipl_list_hdr) + \
-			      sizeof(struct ipl_block_ccw))
+							  sizeof(struct ipl_block_ccw))
 
 #define IPL_PARM_BLK0_CCW_LEN (sizeof(struct ipl_block_ccw) + 16)
 
 #define IPL_MAX_SUPPORTED_VERSION (0)
 
 #define IPL_PARMBLOCK_START	((struct ipl_parameter_block *) \
-				 IPL_PARMBLOCK_ORIGIN)
+							 IPL_PARMBLOCK_ORIGIN)
 #define IPL_PARMBLOCK_SIZE	(IPL_PARMBLOCK_START->hdr.len)
 
-struct ipl_list_hdr {
+struct ipl_list_hdr
+{
 	u32 len;
 	u8  reserved1[3];
 	u8  version;
@@ -41,8 +42,9 @@ struct ipl_list_hdr {
 	u8  loadparm[8];
 } __attribute__((packed));
 
-struct ipl_block_fcp {
-	u8  reserved1[305-1];
+struct ipl_block_fcp
+{
+	u8  reserved1[305 - 1];
 	u8  opt;
 	u8  reserved2[3];
 	u16 reserved3;
@@ -60,9 +62,10 @@ struct ipl_block_fcp {
 
 #define DIAG308_VMPARM_SIZE	64
 #define DIAG308_SCPDATA_SIZE	(PAGE_SIZE - (sizeof(struct ipl_list_hdr) + \
-				 offsetof(struct ipl_block_fcp, scp_data)))
+								 offsetof(struct ipl_block_fcp, scp_data)))
 
-struct ipl_block_ccw {
+struct ipl_block_ccw
+{
 	u8  reserved1[84];
 	u16 reserved2 : 13;
 	u8  ssid : 3;
@@ -75,13 +78,15 @@ struct ipl_block_ccw {
 	u8  reserved4[8];
 } __attribute__((packed));
 
-struct ipl_parameter_block {
+struct ipl_parameter_block
+{
 	struct ipl_list_hdr hdr;
-	union {
+	union
+	{
 		struct ipl_block_fcp fcp;
 		struct ipl_block_ccw ccw;
 	} ipl_info;
-} __attribute__((packed,aligned(4096)));
+} __attribute__((packed, aligned(4096)));
 
 /*
  * IPL validity flags
@@ -89,8 +94,8 @@ struct ipl_parameter_block {
 extern u32 ipl_flags;
 
 struct save_area;
-struct save_area * __init save_area_alloc(bool is_boot_cpu);
-struct save_area * __init save_area_boot_cpu(void);
+struct save_area *__init save_area_alloc(bool is_boot_cpu);
+struct save_area *__init save_area_boot_cpu(void);
 void __init save_area_add_regs(struct save_area *, void *regs);
 void __init save_area_add_vxrs(struct save_area *, __vector128 *vxrs);
 
@@ -102,13 +107,15 @@ extern void ipl_update_parameters(void);
 extern size_t append_ipl_vmparm(char *, size_t);
 extern size_t append_ipl_scpdata(char *, size_t);
 
-enum {
+enum
+{
 	IPL_DEVNO_VALID		= 1,
 	IPL_PARMBLOCK_VALID	= 2,
 	IPL_NSS_VALID		= 4,
 };
 
-enum ipl_type {
+enum ipl_type
+{
 	IPL_TYPE_UNKNOWN	= 1,
 	IPL_TYPE_CCW		= 2,
 	IPL_TYPE_FCP		= 4,
@@ -119,16 +126,20 @@ enum ipl_type {
 struct ipl_info
 {
 	enum ipl_type type;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct ccw_dev_id dev_id;
 		} ccw;
-		struct {
+		struct
+		{
 			struct ccw_dev_id dev_id;
 			u64 wwpn;
 			u64 lun;
 		} fcp;
-		struct {
+		struct
+		{
 			char name[NSS_NAME_SIZE + 1];
 		} nss;
 	} data;
@@ -140,7 +151,8 @@ extern void setup_ipl(void);
 /*
  * DIAG 308 support
  */
-enum diag308_subcode  {
+enum diag308_subcode
+{
 	DIAG308_REL_HSA = 2,
 	DIAG308_LOAD_CLEAR = 3,
 	DIAG308_LOAD_NORMAL_DUMP = 4,
@@ -148,26 +160,31 @@ enum diag308_subcode  {
 	DIAG308_STORE = 6,
 };
 
-enum diag308_ipl_type {
+enum diag308_ipl_type
+{
 	DIAG308_IPL_TYPE_FCP	= 0,
 	DIAG308_IPL_TYPE_CCW	= 2,
 };
 
-enum diag308_opt {
+enum diag308_opt
+{
 	DIAG308_IPL_OPT_IPL	= 0x10,
 	DIAG308_IPL_OPT_DUMP	= 0x20,
 };
 
-enum diag308_flags {
+enum diag308_flags
+{
 	DIAG308_FLAGS_LP_VALID	= 0x80,
 };
 
-enum diag308_vm_flags {
+enum diag308_vm_flags
+{
 	DIAG308_VM_FLAGS_NSS_VALID	= 0x80,
 	DIAG308_VM_FLAGS_VP_VALID	= 0x40,
 };
 
-enum diag308_rc {
+enum diag308_rc
+{
 	DIAG308_RC_OK		= 0x0001,
 	DIAG308_RC_NOCONFIG	= 0x0102,
 };

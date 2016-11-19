@@ -33,7 +33,8 @@
 #define	PART_FPGA_START		0x00700000	/* Start at offset 7MB */
 #define	PART_FPGA_SIZE		0x00100000	/* 1MB in size */
 
-static struct mtd_partition firebee_flash_parts[] = {
+static struct mtd_partition firebee_flash_parts[] =
+{
 	{
 		.name	= "dBUG",
 		.offset	= PART_BOOT_START,
@@ -51,19 +52,22 @@ static struct mtd_partition firebee_flash_parts[] = {
 	},
 };
 
-static struct physmap_flash_data firebee_flash_data = {
+static struct physmap_flash_data firebee_flash_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(firebee_flash_parts),
 	.parts		= firebee_flash_parts,
 };
 
-static struct resource firebee_flash_resource = {
+static struct resource firebee_flash_resource =
+{
 	.start		= FLASH_PHYS_ADDR,
 	.end		= FLASH_PHYS_ADDR + FLASH_PHYS_SIZE,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device firebee_flash = {
+static struct platform_device firebee_flash =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {

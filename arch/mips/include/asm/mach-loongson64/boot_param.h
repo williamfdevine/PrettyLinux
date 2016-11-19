@@ -14,11 +14,13 @@
 #define MAX_MEMORY_TYPE		11
 
 #define LOONGSON3_BOOT_MEM_MAP_MAX 128
-struct efi_memory_map_loongson {
+struct efi_memory_map_loongson
+{
 	u16 vers;	/* version of efi_memory_map */
 	u32 nr_map;	/* number of memory_maps */
 	u32 mem_freq;	/* memory frequence */
-	struct mem_map {
+	struct mem_map
+	{
 		u32 node_id;	/* node_id which memory attached to */
 		u32 mem_type;	/* system memory, pci memory, pci io, etc. */
 		u64 mem_start;	/* memory map start address */
@@ -26,7 +28,8 @@ struct efi_memory_map_loongson {
 	} map[LOONGSON3_BOOT_MEM_MAP_MAX];
 } __packed;
 
-enum loongson_cpu_type {
+enum loongson_cpu_type
+{
 	Loongson_2E = 0,
 	Loongson_2F = 1,
 	Loongson_3A = 2,
@@ -38,7 +41,8 @@ enum loongson_cpu_type {
 /*
  * Capability and feature descriptor structure for MIPS CPU
  */
-struct efi_cpuinfo_loongson {
+struct efi_cpuinfo_loongson
+{
 	u16 vers;     /* version of efi_cpuinfo_loongson */
 	u32 processor_id; /* PRID, e.g. 6305, 6306 */
 	u32 cputype;  /* Loongson_3A/3B, etc. */
@@ -50,7 +54,8 @@ struct efi_cpuinfo_loongson {
 } __packed;
 
 #define MAX_UARTS 64
-struct uart_device {
+struct uart_device
+{
 	u32 iotype; /* see include/linux/serial_core.h */
 	u32 uartclk;
 	u32 int_offset;
@@ -61,7 +66,8 @@ struct uart_device {
 #define SENSOR_TEMPER  0x00000001
 #define SENSOR_VOLTAGE 0x00000002
 #define SENSOR_FAN     0x00000004
-struct sensor_device {
+struct sensor_device
+{
 	char name[32];  /* a formal name */
 	char label[64]; /* a flexible description */
 	u32 type;       /* SENSOR_* */
@@ -71,7 +77,8 @@ struct sensor_device {
 	u64 base_addr;  /* base address of device registers */
 } __packed;
 
-struct system_loongson {
+struct system_loongson
+{
 	u16 vers;     /* version of system_loongson */
 	u32 ccnuma_smp; /* 0: no numa; 1: has numa */
 	u32 sing_double_channel; /* 1:single; 2:double */
@@ -88,7 +95,8 @@ struct system_loongson {
 	u64 workarounds; /* see workarounds.h */
 } __packed;
 
-struct irq_source_routing_table {
+struct irq_source_routing_table
+{
 	u16 vers;
 	u16 size;
 	u16 rtr_bus;
@@ -107,7 +115,8 @@ struct irq_source_routing_table {
 	u32 dma_mask_bits;
 } __packed;
 
-struct interface_info {
+struct interface_info
+{
 	u16 vers; /* version of the specificition */
 	u16 size;
 	u8  flag;
@@ -115,7 +124,8 @@ struct interface_info {
 } __packed;
 
 #define MAX_RESOURCE_NUMBER 128
-struct resource_loongson {
+struct resource_loongson
+{
 	u64 start; /* resource start address */
 	u64 end;   /* resource end address */
 	char name[64];
@@ -124,7 +134,8 @@ struct resource_loongson {
 
 struct archdev_data {};  /* arch specific additions */
 
-struct board_devices {
+struct board_devices
+{
 	char name[64];    /* hold the device name */
 	u32 num_resources; /* number of device_resource */
 	/* for each device's resource */
@@ -133,7 +144,8 @@ struct board_devices {
 	struct archdev_data archdata;
 };
 
-struct loongson_special_attribute {
+struct loongson_special_attribute
+{
 	u16 vers;     /* version of this special */
 	char special_name[64]; /* special_atribute_name */
 	u32 loongson_special_type; /* type of special device */
@@ -141,7 +153,8 @@ struct loongson_special_attribute {
 	struct resource_loongson resource[MAX_RESOURCE_NUMBER];
 };
 
-struct loongson_params {
+struct loongson_params
+{
 	u64 memory_offset;	/* efi_memory_map_loongson struct offset */
 	u64 cpu_offset;		/* efi_cpuinfo_loongson struct offset */
 	u64 system_offset;	/* system_loongson struct offset */
@@ -151,13 +164,15 @@ struct loongson_params {
 	u64 boarddev_table_offset;  /* board_devices offset */
 };
 
-struct smbios_tables {
+struct smbios_tables
+{
 	u16 vers;     /* version of smbios */
 	u64 vga_bios; /* vga_bios address */
 	struct loongson_params lp;
 };
 
-struct efi_reset_system_t {
+struct efi_reset_system_t
+{
 	u64 ResetCold;
 	u64 ResetWarm;
 	u64 ResetType;
@@ -165,7 +180,8 @@ struct efi_reset_system_t {
 	u64 DoSuspend; /* NULL if not support */
 };
 
-struct efi_loongson {
+struct efi_loongson
+{
 	u64 mps;	/* MPS table */
 	u64 acpi;	/* ACPI table (IA64 ext 0.71) */
 	u64 acpi20;	/* ACPI table (ACPI 2.0) */
@@ -174,12 +190,14 @@ struct efi_loongson {
 	u64 boot_info;	/* boot info table */
 };
 
-struct boot_params {
+struct boot_params
+{
 	struct efi_loongson efi;
 	struct efi_reset_system_t reset_system;
 };
 
-struct loongson_system_configuration {
+struct loongson_system_configuration
+{
 	u32 nr_cpus;
 	u32 nr_nodes;
 	int cores_per_node;

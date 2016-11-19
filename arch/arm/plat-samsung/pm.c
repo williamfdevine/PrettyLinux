@@ -48,15 +48,21 @@ int s3c_irqext_wake(struct irq_data *data, unsigned int state)
 	unsigned long bit = 1L << IRQ_EINT_BIT(data->irq);
 
 	if (!(s3c_irqwake_eintallow & bit))
+	{
 		return -ENOENT;
+	}
 
 	printk(KERN_INFO "wake %s for irq %d\n",
-	       state ? "enabled" : "disabled", data->irq);
+		   state ? "enabled" : "disabled", data->irq);
 
 	if (!state)
+	{
 		s3c_irqwake_eintmask |= bit;
+	}
 	else
+	{
 		s3c_irqwake_eintmask &= ~bit;
+	}
 
 	return 0;
 }
@@ -80,7 +86,8 @@ static int s3c_pm_enter(suspend_state_t state)
 
 	S3C_PMDBG("%s(%d)\n", __func__, state);
 
-	if (pm_cpu_prep == NULL || pm_cpu_sleep == NULL) {
+	if (pm_cpu_prep == NULL || pm_cpu_sleep == NULL)
+	{
 		printk(KERN_ERR "%s: error: no cpu sleep function\n", __func__);
 		return -EINVAL;
 	}
@@ -91,8 +98,9 @@ static int s3c_pm_enter(suspend_state_t state)
 	*/
 
 	if (!of_have_populated_dt() &&
-	    !any_allowed(s3c_irqwake_intmask, s3c_irqwake_intallow) &&
-	    !any_allowed(s3c_irqwake_eintmask, s3c_irqwake_eintallow)) {
+		!any_allowed(s3c_irqwake_intmask, s3c_irqwake_intallow) &&
+		!any_allowed(s3c_irqwake_eintmask, s3c_irqwake_eintallow))
+	{
 		printk(KERN_ERR "%s: No wake-up sources!\n", __func__);
 		printk(KERN_ERR "%s: Aborting sleep\n", __func__);
 		return -EINVAL;
@@ -100,7 +108,8 @@ static int s3c_pm_enter(suspend_state_t state)
 
 	/* save all necessary core registers not covered by the drivers */
 
-	if (!of_have_populated_dt()) {
+	if (!of_have_populated_dt())
+	{
 		samsung_pm_save_gpios();
 		samsung_pm_saved_gpios();
 	}
@@ -113,7 +122,7 @@ static int s3c_pm_enter(suspend_state_t state)
 	s3c_pm_configure_extint();
 
 	S3C_PMDBG("sleep: irq wakeup masks: %08lx,%08lx\n",
-	    s3c_irqwake_intmask, s3c_irqwake_eintmask);
+			  s3c_irqwake_intmask, s3c_irqwake_eintmask);
 
 	s3c_pm_arch_prepare_irqs();
 
@@ -136,15 +145,19 @@ static int s3c_pm_enter(suspend_state_t state)
 	 * during the resume.  */
 
 	ret = cpu_suspend(0, pm_cpu_sleep);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* restore the system state */
 
 	s3c_pm_restore_core();
 	s3c_pm_restore_uarts();
 
-	if (!of_have_populated_dt()) {
+	if (!of_have_populated_dt())
+	{
 		samsung_pm_restore_gpios();
 		s3c_pm_restored_gpios();
 	}
@@ -181,7 +194,8 @@ static void s3c_pm_finish(void)
 	s3c_pm_check_cleanup();
 }
 
-static const struct platform_suspend_ops s3c_pm_ops = {
+static const struct platform_suspend_ops s3c_pm_ops =
+{
 	.enter		= s3c_pm_enter,
 	.prepare	= s3c_pm_prepare,
 	.finish		= s3c_pm_finish,

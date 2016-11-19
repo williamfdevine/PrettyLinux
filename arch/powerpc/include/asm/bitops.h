@@ -39,7 +39,7 @@
 #ifdef __KERNEL__
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <linux/compiler.h>
@@ -55,24 +55,24 @@
 
 /* Macro for generating the ***_bits() functions */
 #define DEFINE_BITOP(fn, op, prefix)		\
-static __inline__ void fn(unsigned long mask,	\
-		volatile unsigned long *_p)	\
-{						\
-	unsigned long old;			\
-	unsigned long *p = (unsigned long *)_p;	\
-	__asm__ __volatile__ (			\
-	prefix					\
-"1:"	PPC_LLARX(%0,0,%3,0) "\n"		\
-	stringify_in_c(op) "%0,%0,%2\n"		\
-	PPC405_ERR77(0,%3)			\
-	PPC_STLCX "%0,0,%3\n"			\
-	"bne- 1b\n"				\
-	: "=&r" (old), "+m" (*p)		\
-	: "r" (mask), "r" (p)			\
-	: "cc", "memory");			\
-}
+	static __inline__ void fn(unsigned long mask,	\
+							  volatile unsigned long *_p)	\
+	{						\
+		unsigned long old;			\
+		unsigned long *p = (unsigned long *)_p;	\
+		__asm__ __volatile__ (			\
+										prefix					\
+										"1:"	PPC_LLARX(%0,0,%3,0) "\n"		\
+										stringify_in_c(op) "%0,%0,%2\n"		\
+										PPC405_ERR77(0,%3)			\
+										PPC_STLCX "%0,0,%3\n"			\
+										"bne- 1b\n"				\
+										: "=&r" (old), "+m" (*p)		\
+										: "r" (mask), "r" (p)			\
+										: "cc", "memory");			\
+	}
 
-DEFINE_BITOP(set_bits, or, "")
+DEFINE_BITOP(set_bits, or , "")
 DEFINE_BITOP(clear_bits, andc, "")
 DEFINE_BITOP(clear_bits_unlock, andc, PPC_RELEASE_BARRIER)
 DEFINE_BITOP(change_bits, xor, "")
@@ -100,56 +100,56 @@ static __inline__ void change_bit(int nr, volatile unsigned long *addr)
 /* Like DEFINE_BITOP(), with changes to the arguments to 'op' and the output
  * operands. */
 #define DEFINE_TESTOP(fn, op, prefix, postfix, eh)	\
-static __inline__ unsigned long fn(			\
-		unsigned long mask,			\
-		volatile unsigned long *_p)		\
-{							\
-	unsigned long old, t;				\
-	unsigned long *p = (unsigned long *)_p;		\
-	__asm__ __volatile__ (				\
-	prefix						\
-"1:"	PPC_LLARX(%0,0,%3,eh) "\n"			\
-	stringify_in_c(op) "%1,%0,%2\n"			\
-	PPC405_ERR77(0,%3)				\
-	PPC_STLCX "%1,0,%3\n"				\
-	"bne- 1b\n"					\
-	postfix						\
-	: "=&r" (old), "=&r" (t)			\
-	: "r" (mask), "r" (p)				\
-	: "cc", "memory");				\
-	return (old & mask);				\
-}
+	static __inline__ unsigned long fn(			\
+			unsigned long mask,			\
+			volatile unsigned long *_p)		\
+	{							\
+		unsigned long old, t;				\
+		unsigned long *p = (unsigned long *)_p;		\
+		__asm__ __volatile__ (				\
+											prefix						\
+											"1:"	PPC_LLARX(%0,0,%3,eh) "\n"			\
+											stringify_in_c(op) "%1,%0,%2\n"			\
+											PPC405_ERR77(0,%3)				\
+											PPC_STLCX "%1,0,%3\n"				\
+											"bne- 1b\n"					\
+											postfix						\
+											: "=&r" (old), "=&r" (t)			\
+											: "r" (mask), "r" (p)				\
+											: "cc", "memory");				\
+		return (old & mask);				\
+	}
 
-DEFINE_TESTOP(test_and_set_bits, or, PPC_ATOMIC_ENTRY_BARRIER,
-	      PPC_ATOMIC_EXIT_BARRIER, 0)
-DEFINE_TESTOP(test_and_set_bits_lock, or, "",
-	      PPC_ACQUIRE_BARRIER, 1)
+DEFINE_TESTOP(test_and_set_bits, or , PPC_ATOMIC_ENTRY_BARRIER,
+			  PPC_ATOMIC_EXIT_BARRIER, 0)
+DEFINE_TESTOP(test_and_set_bits_lock, or , "",
+			  PPC_ACQUIRE_BARRIER, 1)
 DEFINE_TESTOP(test_and_clear_bits, andc, PPC_ATOMIC_ENTRY_BARRIER,
-	      PPC_ATOMIC_EXIT_BARRIER, 0)
+			  PPC_ATOMIC_EXIT_BARRIER, 0)
 DEFINE_TESTOP(test_and_change_bits, xor, PPC_ATOMIC_ENTRY_BARRIER,
-	      PPC_ATOMIC_EXIT_BARRIER, 0)
+			  PPC_ATOMIC_EXIT_BARRIER, 0)
 
 static __inline__ int test_and_set_bit(unsigned long nr,
-				       volatile unsigned long *addr)
+									   volatile unsigned long *addr)
 {
 	return test_and_set_bits(BIT_MASK(nr), addr + BIT_WORD(nr)) != 0;
 }
 
 static __inline__ int test_and_set_bit_lock(unsigned long nr,
-				       volatile unsigned long *addr)
+		volatile unsigned long *addr)
 {
 	return test_and_set_bits_lock(BIT_MASK(nr),
-				addr + BIT_WORD(nr)) != 0;
+								  addr + BIT_WORD(nr)) != 0;
 }
 
 static __inline__ int test_and_clear_bit(unsigned long nr,
-					 volatile unsigned long *addr)
+		volatile unsigned long *addr)
 {
 	return test_and_clear_bits(BIT_MASK(nr), addr + BIT_WORD(nr)) != 0;
 }
 
 static __inline__ int test_and_change_bit(unsigned long nr,
-					  volatile unsigned long *addr)
+		volatile unsigned long *addr)
 {
 	return test_and_change_bits(BIT_MASK(nr), addr + BIT_WORD(nr)) != 0;
 }
@@ -202,7 +202,9 @@ static __inline__ unsigned long ffz(unsigned long x)
 {
 	/* no zero exists anywhere in the 8 byte area. */
 	if ((x = ~x) == 0)
+	{
 		return BITS_PER_LONG;
+	}
 
 	/*
 	 * Calculate the bit position of the least significant '1' bit in x
@@ -264,13 +266,13 @@ static __inline__ int fls64(__u64 x)
 #endif /* __powerpc64__ */
 
 #ifdef CONFIG_PPC64
-unsigned int __arch_hweight8(unsigned int w);
-unsigned int __arch_hweight16(unsigned int w);
-unsigned int __arch_hweight32(unsigned int w);
-unsigned long __arch_hweight64(__u64 w);
-#include <asm-generic/bitops/const_hweight.h>
+	unsigned int __arch_hweight8(unsigned int w);
+	unsigned int __arch_hweight16(unsigned int w);
+	unsigned int __arch_hweight32(unsigned int w);
+	unsigned long __arch_hweight64(__u64 w);
+	#include <asm-generic/bitops/const_hweight.h>
 #else
-#include <asm-generic/bitops/hweight.h>
+	#include <asm-generic/bitops/hweight.h>
 #endif
 
 #include <asm-generic/bitops/find.h>

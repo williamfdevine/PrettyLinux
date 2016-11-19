@@ -9,110 +9,110 @@
 
 static const u64 knc_perfmon_event_map[] =
 {
-  [PERF_COUNT_HW_CPU_CYCLES]		= 0x002a,
-  [PERF_COUNT_HW_INSTRUCTIONS]		= 0x0016,
-  [PERF_COUNT_HW_CACHE_REFERENCES]	= 0x0028,
-  [PERF_COUNT_HW_CACHE_MISSES]		= 0x0029,
-  [PERF_COUNT_HW_BRANCH_INSTRUCTIONS]	= 0x0012,
-  [PERF_COUNT_HW_BRANCH_MISSES]		= 0x002b,
+	[PERF_COUNT_HW_CPU_CYCLES]		= 0x002a,
+	[PERF_COUNT_HW_INSTRUCTIONS]		= 0x0016,
+	[PERF_COUNT_HW_CACHE_REFERENCES]	= 0x0028,
+	[PERF_COUNT_HW_CACHE_MISSES]		= 0x0029,
+	[PERF_COUNT_HW_BRANCH_INSTRUCTIONS]	= 0x0012,
+	[PERF_COUNT_HW_BRANCH_MISSES]		= 0x002b,
 };
 
 static const u64 __initconst knc_hw_cache_event_ids
-				[PERF_COUNT_HW_CACHE_MAX]
-				[PERF_COUNT_HW_CACHE_OP_MAX]
-				[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+[PERF_COUNT_HW_CACHE_MAX]
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
 {
- [ C(L1D) ] = {
-	[ C(OP_READ) ] = {
-		/* On Xeon Phi event "0" is a valid DATA_READ          */
-		/*   (L1 Data Cache Reads) Instruction.                */
-		/* We code this as ARCH_PERFMON_EVENTSEL_INT as this   */
-		/* bit will always be set in x86_pmu_hw_config().      */
-		[ C(RESULT_ACCESS) ] = ARCH_PERFMON_EVENTSEL_INT,
-						/* DATA_READ           */
-		[ C(RESULT_MISS)   ] = 0x0003,	/* DATA_READ_MISS      */
+	[ C(L1D) ] = {
+		[ C(OP_READ) ] = {
+			/* On Xeon Phi event "0" is a valid DATA_READ          */
+			/*   (L1 Data Cache Reads) Instruction.                */
+			/* We code this as ARCH_PERFMON_EVENTSEL_INT as this   */
+			/* bit will always be set in x86_pmu_hw_config().      */
+			[ C(RESULT_ACCESS) ] = ARCH_PERFMON_EVENTSEL_INT,
+			/* DATA_READ           */
+			[ C(RESULT_MISS)   ] = 0x0003,	/* DATA_READ_MISS      */
+		},
+		[ C(OP_WRITE) ] = {
+			[ C(RESULT_ACCESS) ] = 0x0001,	/* DATA_WRITE          */
+			[ C(RESULT_MISS)   ] = 0x0004,	/* DATA_WRITE_MISS     */
+		},
+		[ C(OP_PREFETCH) ] = {
+			[ C(RESULT_ACCESS) ] = 0x0011,	/* L1_DATA_PF1         */
+			[ C(RESULT_MISS)   ] = 0x001c,	/* L1_DATA_PF1_MISS    */
+		},
 	},
-	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0001,	/* DATA_WRITE          */
-		[ C(RESULT_MISS)   ] = 0x0004,	/* DATA_WRITE_MISS     */
+	[ C(L1I ) ] = {
+		[ C(OP_READ) ] = {
+			[ C(RESULT_ACCESS) ] = 0x000c,	/* CODE_READ          */
+			[ C(RESULT_MISS)   ] = 0x000e,	/* CODE_CACHE_MISS    */
+		},
+		[ C(OP_WRITE) ] = {
+			[ C(RESULT_ACCESS) ] = -1,
+			[ C(RESULT_MISS)   ] = -1,
+		},
+		[ C(OP_PREFETCH) ] = {
+			[ C(RESULT_ACCESS) ] = 0x0,
+			[ C(RESULT_MISS)   ] = 0x0,
+		},
 	},
-	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0011,	/* L1_DATA_PF1         */
-		[ C(RESULT_MISS)   ] = 0x001c,	/* L1_DATA_PF1_MISS    */
+	[ C(LL  ) ] = {
+		[ C(OP_READ) ] = {
+			[ C(RESULT_ACCESS) ] = 0,
+			[ C(RESULT_MISS)   ] = 0x10cb,	/* L2_READ_MISS */
+		},
+		[ C(OP_WRITE) ] = {
+			[ C(RESULT_ACCESS) ] = 0x10cc,	/* L2_WRITE_HIT */
+			[ C(RESULT_MISS)   ] = 0,
+		},
+		[ C(OP_PREFETCH) ] = {
+			[ C(RESULT_ACCESS) ] = 0x10fc,	/* L2_DATA_PF2      */
+			[ C(RESULT_MISS)   ] = 0x10fe,	/* L2_DATA_PF2_MISS */
+		},
 	},
- },
- [ C(L1I ) ] = {
-	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x000c,	/* CODE_READ          */
-		[ C(RESULT_MISS)   ] = 0x000e,	/* CODE_CACHE_MISS    */
+	[ C(DTLB) ] = {
+		[ C(OP_READ) ] = {
+			[ C(RESULT_ACCESS) ] = ARCH_PERFMON_EVENTSEL_INT,
+			/* DATA_READ */
+			/* see note on L1 OP_READ */
+			[ C(RESULT_MISS)   ] = 0x0002,	/* DATA_PAGE_WALK */
+		},
+		[ C(OP_WRITE) ] = {
+			[ C(RESULT_ACCESS) ] = 0x0001,	/* DATA_WRITE */
+			[ C(RESULT_MISS)   ] = 0x0002,	/* DATA_PAGE_WALK */
+		},
+		[ C(OP_PREFETCH) ] = {
+			[ C(RESULT_ACCESS) ] = 0x0,
+			[ C(RESULT_MISS)   ] = 0x0,
+		},
 	},
-	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = -1,
-		[ C(RESULT_MISS)   ] = -1,
+	[ C(ITLB) ] = {
+		[ C(OP_READ) ] = {
+			[ C(RESULT_ACCESS) ] = 0x000c,	/* CODE_READ */
+			[ C(RESULT_MISS)   ] = 0x000d,	/* CODE_PAGE_WALK */
+		},
+		[ C(OP_WRITE) ] = {
+			[ C(RESULT_ACCESS) ] = -1,
+			[ C(RESULT_MISS)   ] = -1,
+		},
+		[ C(OP_PREFETCH) ] = {
+			[ C(RESULT_ACCESS) ] = -1,
+			[ C(RESULT_MISS)   ] = -1,
+		},
 	},
-	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0,
-		[ C(RESULT_MISS)   ] = 0x0,
+	[ C(BPU ) ] = {
+		[ C(OP_READ) ] = {
+			[ C(RESULT_ACCESS) ] = 0x0012,	/* BRANCHES */
+			[ C(RESULT_MISS)   ] = 0x002b,	/* BRANCHES_MISPREDICTED */
+		},
+		[ C(OP_WRITE) ] = {
+			[ C(RESULT_ACCESS) ] = -1,
+			[ C(RESULT_MISS)   ] = -1,
+		},
+		[ C(OP_PREFETCH) ] = {
+			[ C(RESULT_ACCESS) ] = -1,
+			[ C(RESULT_MISS)   ] = -1,
+		},
 	},
- },
- [ C(LL  ) ] = {
-	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0,
-		[ C(RESULT_MISS)   ] = 0x10cb,	/* L2_READ_MISS */
-	},
-	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x10cc,	/* L2_WRITE_HIT */
-		[ C(RESULT_MISS)   ] = 0,
-	},
-	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x10fc,	/* L2_DATA_PF2      */
-		[ C(RESULT_MISS)   ] = 0x10fe,	/* L2_DATA_PF2_MISS */
-	},
- },
- [ C(DTLB) ] = {
-	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = ARCH_PERFMON_EVENTSEL_INT,
-						/* DATA_READ */
-						/* see note on L1 OP_READ */
-		[ C(RESULT_MISS)   ] = 0x0002,	/* DATA_PAGE_WALK */
-	},
-	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0001,	/* DATA_WRITE */
-		[ C(RESULT_MISS)   ] = 0x0002,	/* DATA_PAGE_WALK */
-	},
-	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0,
-		[ C(RESULT_MISS)   ] = 0x0,
-	},
- },
- [ C(ITLB) ] = {
-	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x000c,	/* CODE_READ */
-		[ C(RESULT_MISS)   ] = 0x000d,	/* CODE_PAGE_WALK */
-	},
-	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = -1,
-		[ C(RESULT_MISS)   ] = -1,
-	},
-	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = -1,
-		[ C(RESULT_MISS)   ] = -1,
-	},
- },
- [ C(BPU ) ] = {
-	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0012,	/* BRANCHES */
-		[ C(RESULT_MISS)   ] = 0x002b,	/* BRANCHES_MISPREDICTED */
-	},
-	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = -1,
-		[ C(RESULT_MISS)   ] = -1,
-	},
-	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = -1,
-		[ C(RESULT_MISS)   ] = -1,
-	},
- },
 };
 
 
@@ -159,7 +159,7 @@ static void knc_pmu_disable_all(void)
 	u64 val;
 
 	rdmsrl(MSR_KNC_IA32_PERF_GLOBAL_CTRL, val);
-	val &= ~(KNC_ENABLE_COUNTER0|KNC_ENABLE_COUNTER1);
+	val &= ~(KNC_ENABLE_COUNTER0 | KNC_ENABLE_COUNTER1);
 	wrmsrl(MSR_KNC_IA32_PERF_GLOBAL_CTRL, val);
 }
 
@@ -168,7 +168,7 @@ static void knc_pmu_enable_all(int added)
 	u64 val;
 
 	rdmsrl(MSR_KNC_IA32_PERF_GLOBAL_CTRL, val);
-	val |= (KNC_ENABLE_COUNTER0|KNC_ENABLE_COUNTER1);
+	val |= (KNC_ENABLE_COUNTER0 | KNC_ENABLE_COUNTER1);
 	wrmsrl(MSR_KNC_IA32_PERF_GLOBAL_CTRL, val);
 }
 
@@ -222,7 +222,9 @@ static int knc_pmu_handle_irq(struct pt_regs *regs)
 	knc_pmu_disable_all();
 
 	status = knc_pmu_get_status();
-	if (!status) {
+
+	if (!status)
+	{
 		knc_pmu_enable_all(0);
 		return handled;
 	}
@@ -230,7 +232,9 @@ static int knc_pmu_handle_irq(struct pt_regs *regs)
 	loops = 0;
 again:
 	knc_pmu_ack_status(status);
-	if (++loops > 100) {
+
+	if (++loops > 100)
+	{
 		WARN_ONCE(1, "perf: irq loop stuck!\n");
 		perf_event_print_debug();
 		goto done;
@@ -238,34 +242,47 @@ again:
 
 	inc_irq_stat(apic_perf_irqs);
 
-	for_each_set_bit(bit, (unsigned long *)&status, X86_PMC_IDX_MAX) {
+	for_each_set_bit(bit, (unsigned long *)&status, X86_PMC_IDX_MAX)
+	{
 		struct perf_event *event = cpuc->events[bit];
 
 		handled++;
 
 		if (!test_bit(bit, cpuc->active_mask))
+		{
 			continue;
+		}
 
 		if (!intel_pmu_save_and_restart(event))
+		{
 			continue;
+		}
 
 		perf_sample_data_init(&data, 0, event->hw.last_period);
 
 		if (perf_event_overflow(event, &data, regs))
+		{
 			x86_pmu_stop(event, 0);
+		}
 	}
 
 	/*
 	 * Repeat if there is more work to be done:
 	 */
 	status = knc_pmu_get_status();
+
 	if (status)
+	{
 		goto again;
+	}
 
 done:
+
 	/* Only restore PMU state when it's active. See x86_pmu_disable(). */
 	if (cpuc->enabled)
+	{
 		knc_pmu_enable_all(0);
+	}
 
 	return handled;
 }
@@ -277,7 +294,8 @@ PMU_FORMAT_ATTR(edge,	"config:18"	);
 PMU_FORMAT_ATTR(inv,	"config:23"	);
 PMU_FORMAT_ATTR(cmask,	"config:24-31"	);
 
-static struct attribute *intel_knc_formats_attr[] = {
+static struct attribute *intel_knc_formats_attr[] =
+{
 	&format_attr_event.attr,
 	&format_attr_umask.attr,
 	&format_attr_edge.attr,
@@ -286,7 +304,8 @@ static struct attribute *intel_knc_formats_attr[] = {
 	NULL,
 };
 
-static const struct x86_pmu knc_pmu __initconst = {
+static const struct x86_pmu knc_pmu __initconst =
+{
 	.name			= "knc",
 	.handle_irq		= knc_pmu_handle_irq,
 	.disable_all		= knc_pmu_disable_all,
@@ -314,8 +333,8 @@ __init int knc_pmu_init(void)
 {
 	x86_pmu = knc_pmu;
 
-	memcpy(hw_cache_event_ids, knc_hw_cache_event_ids, 
-		sizeof(hw_cache_event_ids));
+	memcpy(hw_cache_event_ids, knc_hw_cache_event_ids,
+		   sizeof(hw_cache_event_ids));
 
 	return 0;
 }

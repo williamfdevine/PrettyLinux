@@ -34,16 +34,25 @@ pin_page_for_write(const void __user *_addr, pte_t **ptep, spinlock_t **ptlp)
 	spinlock_t *ptl;
 
 	pgd = pgd_offset(current->mm, addr);
+
 	if (unlikely(pgd_none(*pgd) || pgd_bad(*pgd)))
+	{
 		return 0;
+	}
 
 	pud = pud_offset(pgd, addr);
+
 	if (unlikely(pud_none(*pud) || pud_bad(*pud)))
+	{
 		return 0;
+	}
 
 	pmd = pmd_offset(pud, addr);
+
 	if (unlikely(pmd_none(*pmd)))
+	{
 		return 0;
+	}
 
 	/*
 	 * A pmd can be bad if it refers to a HugeTLB or THP page.
@@ -55,11 +64,14 @@ pin_page_for_write(const void __user *_addr, pte_t **ptep, spinlock_t **ptlp)
 	 * to see that it's still huge and whether or not we will
 	 * need to fault on write.
 	 */
-	if (unlikely(pmd_thp_or_huge(*pmd))) {
+	if (unlikely(pmd_thp_or_huge(*pmd)))
+	{
 		ptl = &current->mm->page_table_lock;
 		spin_lock(ptl);
+
 		if (unlikely(!pmd_thp_or_huge(*pmd)
-			|| pmd_hugewillfault(*pmd))) {
+					 || pmd_hugewillfault(*pmd)))
+		{
 			spin_unlock(ptl);
 			return 0;
 		}
@@ -70,11 +82,15 @@ pin_page_for_write(const void __user *_addr, pte_t **ptep, spinlock_t **ptlp)
 	}
 
 	if (unlikely(pmd_bad(*pmd)))
+	{
 		return 0;
+	}
 
 	pte = pte_offset_map_lock(current->mm, pmd, addr, &ptl);
+
 	if (unlikely(!pte_present(*pte) || !pte_young(*pte) ||
-	    !pte_write(*pte) || !pte_dirty(*pte))) {
+				 !pte_write(*pte) || !pte_dirty(*pte)))
+	{
 		pte_unmap_unlock(pte, ptl);
 		return 0;
 	}
@@ -91,7 +107,8 @@ __copy_to_user_memcpy(void __user *to, const void *from, unsigned long n)
 	unsigned long ua_flags;
 	int atomic;
 
-	if (unlikely(segment_eq(get_fs(), KERNEL_DS))) {
+	if (unlikely(segment_eq(get_fs(), KERNEL_DS)))
+	{
 		memcpy((void *)to, from, n);
 		return 0;
 	}
@@ -100,24 +117,40 @@ __copy_to_user_memcpy(void __user *to, const void *from, unsigned long n)
 	atomic = faulthandler_disabled();
 
 	if (!atomic)
+	{
 		down_read(&current->mm->mmap_sem);
-	while (n) {
+	}
+
+	while (n)
+	{
 		pte_t *pte;
 		spinlock_t *ptl;
 		int tocopy;
 
-		while (!pin_page_for_write(to, &pte, &ptl)) {
+		while (!pin_page_for_write(to, &pte, &ptl))
+		{
 			if (!atomic)
+			{
 				up_read(&current->mm->mmap_sem);
+			}
+
 			if (__put_user(0, (char __user *)to))
+			{
 				goto out;
+			}
+
 			if (!atomic)
+			{
 				down_read(&current->mm->mmap_sem);
+			}
 		}
 
 		tocopy = (~(unsigned long)to & ~PAGE_MASK) + 1;
+
 		if (tocopy > n)
+		{
 			tocopy = n;
+		}
 
 		ua_flags = uaccess_save_and_enable();
 		memcpy((void *)to, from, tocopy);
@@ -127,12 +160,19 @@ __copy_to_user_memcpy(void __user *to, const void *from, unsigned long n)
 		n -= tocopy;
 
 		if (pte)
+		{
 			pte_unmap_unlock(pte, ptl);
+		}
 		else
+		{
 			spin_unlock(ptl);
+		}
 	}
+
 	if (!atomic)
+	{
 		up_read(&current->mm->mmap_sem);
+	}
 
 out:
 	return n;
@@ -148,43 +188,58 @@ arm_copy_to_user(void __user *to, const void *from, unsigned long n)
 	 * With frame pointer disabled, tail call optimization kicks in
 	 * as well making this test almost invisible.
 	 */
-	if (n < 64) {
+	if (n < 64)
+	{
 		unsigned long ua_flags = uaccess_save_and_enable();
 		n = __copy_to_user_std(to, from, n);
 		uaccess_restore(ua_flags);
-	} else {
+	}
+	else
+	{
 		n = __copy_to_user_memcpy(to, from, n);
 	}
+
 	return n;
 }
 EXPORT_SYMBOL(arm_copy_to_user);
-	
+
 static unsigned long noinline
 __clear_user_memset(void __user *addr, unsigned long n)
 {
 	unsigned long ua_flags;
 
-	if (unlikely(segment_eq(get_fs(), KERNEL_DS))) {
+	if (unlikely(segment_eq(get_fs(), KERNEL_DS)))
+	{
 		memset((void *)addr, 0, n);
 		return 0;
 	}
 
 	down_read(&current->mm->mmap_sem);
-	while (n) {
+
+	while (n)
+	{
 		pte_t *pte;
 		spinlock_t *ptl;
 		int tocopy;
 
-		while (!pin_page_for_write(addr, &pte, &ptl)) {
+		while (!pin_page_for_write(addr, &pte, &ptl))
+		{
 			up_read(&current->mm->mmap_sem);
+
 			if (__put_user(0, (char __user *)addr))
+			{
 				goto out;
+			}
+
 			down_read(&current->mm->mmap_sem);
 		}
 
 		tocopy = (~(unsigned long)addr & ~PAGE_MASK) + 1;
+
 		if (tocopy > n)
+		{
 			tocopy = n;
+		}
 
 		ua_flags = uaccess_save_and_enable();
 		memset((void *)addr, 0, tocopy);
@@ -193,10 +248,15 @@ __clear_user_memset(void __user *addr, unsigned long n)
 		n -= tocopy;
 
 		if (pte)
+		{
 			pte_unmap_unlock(pte, ptl);
+		}
 		else
+		{
 			spin_unlock(ptl);
+		}
 	}
+
 	up_read(&current->mm->mmap_sem);
 
 out:
@@ -206,13 +266,17 @@ out:
 unsigned long arm_clear_user(void __user *addr, unsigned long n)
 {
 	/* See rational for this in __copy_to_user() above. */
-	if (n < 64) {
+	if (n < 64)
+	{
 		unsigned long ua_flags = uaccess_save_and_enable();
 		n = __clear_user_std(addr, n);
 		uaccess_restore(ua_flags);
-	} else {
+	}
+	else
+	{
 		n = __clear_user_memset(addr, n);
 	}
+
 	return n;
 }
 EXPORT_SYMBOL(arm_clear_user);
@@ -241,20 +305,32 @@ static int __init test_size_treshold(void)
 
 	ret = -ENOMEM;
 	src_page = alloc_page(GFP_KERNEL);
+
 	if (!src_page)
+	{
 		goto no_src;
+	}
+
 	dst_page = alloc_page(GFP_KERNEL);
+
 	if (!dst_page)
+	{
 		goto no_dst;
+	}
+
 	kernel_ptr = page_address(src_page);
 	user_ptr = vmap(&dst_page, 1, VM_IOREMAP, __pgprot(__P010));
+
 	if (!user_ptr)
+	{
 		goto no_vmap;
+	}
 
 	/* warm up the src page dcache */
 	ret = __copy_to_user_memcpy(user_ptr, kernel_ptr, PAGE_SIZE);
 
-	for (size = PAGE_SIZE; size >= 4; size /= 2) {
+	for (size = PAGE_SIZE; size >= 4; size /= 2)
+	{
 		t0 = sched_clock();
 		ret |= __copy_to_user_memcpy(user_ptr, kernel_ptr, size);
 		t1 = sched_clock();
@@ -263,7 +339,8 @@ static int __init test_size_treshold(void)
 		printk("copy_to_user: %d %llu %llu\n", size, t1 - t0, t2 - t1);
 	}
 
-	for (size = PAGE_SIZE; size >= 4; size /= 2) {
+	for (size = PAGE_SIZE; size >= 4; size /= 2)
+	{
 		t0 = sched_clock();
 		ret |= __clear_user_memset(user_ptr, size);
 		t1 = sched_clock();
@@ -273,7 +350,9 @@ static int __init test_size_treshold(void)
 	}
 
 	if (ret)
+	{
 		ret = -EFAULT;
+	}
 
 	vunmap(user_ptr);
 no_vmap:

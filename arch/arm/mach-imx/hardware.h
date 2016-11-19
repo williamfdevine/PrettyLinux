@@ -21,8 +21,8 @@
 #define __ASM_ARCH_MXC_HARDWARE_H__
 
 #ifndef __ASSEMBLY__
-#include <asm/io.h>
-#include <soc/imx/revision.h>
+	#include <asm/io.h>
+	#include <soc/imx/revision.h>
 #endif
 #include <asm/sizes.h>
 
@@ -96,11 +96,11 @@
  *	UART4	0x021f0000+0x004000	->	0xf42f0000+0x004000
  */
 #define IMX_IO_P2V(x)	(						\
-			(((x) & 0x80000000) >> 7) |			\
-			(0xf4000000 +					\
-			(((x) & 0x50000000) >> 6) +			\
-			(((x) & 0x0b000000) >> 4) +			\
-			(((x) & 0x000fffff))))
+		(((x) & 0x80000000) >> 7) |			\
+		(0xf4000000 +					\
+		 (((x) & 0x50000000) >> 6) +			\
+		 (((x) & 0x0b000000) >> 4) +			\
+		 (((x) & 0x000fffff))))
 
 #define IMX_IO_ADDRESS(x)	IOMEM(IMX_IO_P2V(x))
 
@@ -114,11 +114,11 @@
 #include "mx27.h"
 
 #define imx_map_entry(soc, name, _type)	{				\
-	.virtual = soc ## _IO_P2V(soc ## _ ## name ## _BASE_ADDR),	\
-	.pfn = __phys_to_pfn(soc ## _ ## name ## _BASE_ADDR),		\
-	.length = soc ## _ ## name ## _SIZE,				\
-	.type = _type,							\
-}
+		.virtual = soc ## _IO_P2V(soc ## _ ## name ## _BASE_ADDR),	\
+				   .pfn = __phys_to_pfn(soc ## _ ## name ## _BASE_ADDR),		\
+						  .length = soc ## _ ## name ## _SIZE,				\
+									.type = _type,							\
+	}
 
 /* There's an off-by-one between the gpio bank number and the gpiochip */
 /* range e.g. GPIO_1_5 is gpio 5 under linux */

@@ -40,21 +40,21 @@
 #define NR_IRQS		(2048)
 
 void irq_install_pre_handler(int irq,
-			     void (*func)(unsigned int, void *, void *),
-			     void *arg1, void *arg2);
+							 void (*func)(unsigned int, void *, void *),
+							 void *arg1, void *arg2);
 #define irq_canonicalize(irq)	(irq)
 unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap);
 unsigned int sun4v_build_irq(u32 devhandle, unsigned int devino);
 unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino);
 unsigned int sun4v_build_msi(u32 devhandle, unsigned int *irq_p,
-			     unsigned int msi_devino_start,
-			     unsigned int msi_devino_end);
+							 unsigned int msi_devino_start,
+							 unsigned int msi_devino_end);
 void sun4v_destroy_msi(unsigned int irq);
 unsigned int sun4u_build_msi(u32 portid, unsigned int *irq_p,
-			     unsigned int msi_devino_start,
-			     unsigned int msi_devino_end,
-			     unsigned long imap_base,
-			     unsigned long iclr_base);
+							 unsigned int msi_devino_start,
+							 unsigned int msi_devino_end,
+							 unsigned long imap_base,
+							 unsigned long iclr_base);
 void sun4u_destroy_msi(unsigned int irq);
 
 unsigned int irq_alloc(unsigned int dev_handle, unsigned int dev_ino);
@@ -66,15 +66,15 @@ void fixup_irqs(void);
 static inline void set_softint(unsigned long bits)
 {
 	__asm__ __volatile__("wr	%0, 0x0, %%set_softint"
-			     : /* No outputs */
-			     : "r" (bits));
+						 : /* No outputs */
+						 : "r" (bits));
 }
 
 static inline void clear_softint(unsigned long bits)
 {
 	__asm__ __volatile__("wr	%0, 0x0, %%clear_softint"
-			     : /* No outputs */
-			     : "r" (bits));
+						 : /* No outputs */
+						 : "r" (bits));
 }
 
 static inline unsigned long get_softint(void)
@@ -82,12 +82,12 @@ static inline unsigned long get_softint(void)
 	unsigned long retval;
 
 	__asm__ __volatile__("rd	%%softint, %0"
-			     : "=r" (retval));
+						 : "=r" (retval));
 	return retval;
 }
 
 void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
-				    bool exclude_self);
+									bool exclude_self);
 #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
 
 extern void *hardirq_stack[NR_CPUS];

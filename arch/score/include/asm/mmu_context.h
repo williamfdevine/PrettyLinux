@@ -21,10 +21,10 @@ extern unsigned long pgd_current;
 #define TLBMISS_HANDLER_SETUP_PGD(pgd) (pgd_current = (unsigned long)(pgd))
 
 #define TLBMISS_HANDLER_SETUP()				\
-do {							\
-	write_c0_context(0);				\
-	TLBMISS_HANDLER_SETUP_PGD(swapper_pg_dir)	\
-} while (0)
+	do {							\
+		write_c0_context(0);				\
+		TLBMISS_HANDLER_SETUP_PGD(swapper_pg_dir)	\
+	} while (0)
 
 /*
  * All unused by hardware upper bits will be considered
@@ -40,7 +40,7 @@ do {							\
 #define ASID_MASK	0xff0
 
 static inline void enter_lazy_tlb(struct mm_struct *mm,
-				struct task_struct *tsk)
+								  struct task_struct *tsk)
 {}
 
 static inline void
@@ -48,10 +48,14 @@ get_new_mmu_context(struct mm_struct *mm)
 {
 	unsigned long asid = asid_cache + ASID_INC;
 
-	if (!(asid & ASID_MASK)) {
+	if (!(asid & ASID_MASK))
+	{
 		local_flush_tlb_all();		/* start new asid cycle */
+
 		if (!asid)			/* fix version if needed */
+		{
 			asid = ASID_FIRST_VERSION;
+		}
 	}
 
 	mm->context = asid;
@@ -70,13 +74,16 @@ init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 }
 
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
 	unsigned long flags;
 
 	local_irq_save(flags);
+
 	if ((next->context ^ asid_cache) & ASID_VERSION_MASK)
+	{
 		get_new_mmu_context(next);
+	}
 
 	pevn_set(next->context);
 	TLBMISS_HANDLER_SETUP_PGD(next->pgd);

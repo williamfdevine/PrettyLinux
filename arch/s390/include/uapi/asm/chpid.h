@@ -11,7 +11,8 @@
 
 #define __MAX_CHPID 255
 
-struct chp_id {
+struct chp_id
+{
 	__u8 reserved1;
 	__u8 cssid;
 	__u8 reserved2;

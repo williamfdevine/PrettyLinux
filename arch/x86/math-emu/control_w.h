@@ -11,9 +11,9 @@
 #define _CONTROLW_H_
 
 #ifdef __ASSEMBLY__
-#define	_Const_(x)	$##x
+	#define	_Const_(x)	$##x
 #else
-#define	_Const_(x)	x
+	#define	_Const_(x)	x
 #endif
 
 #define CW_RC		_Const_(0x0C00)	/* rounding control */

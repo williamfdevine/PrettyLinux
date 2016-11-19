@@ -60,13 +60,14 @@
 
 #ifndef __ASSEMBLY__
 
-struct mac_oss {
-    __u8  irq_level[0x10];	/* [0x000-0x00f] Interrupt levels */
-    __u8  padding0[0x1F2];	/* [0x010-0x201] IO space filler */
-    __u16 irq_pending;		/* [0x202-0x203] pending interrupts bits */
-    __u8  rom_ctrl;		/* [0x204-0x204] ROM cntl reg (for poweroff) */
-    __u8  padding1[0x2];	/* [0x205-0x206] currently unused by A/UX */
-    __u8  ack_60hz;		/* [0x207-0x207] 60 Hz ack. */
+struct mac_oss
+{
+	__u8  irq_level[0x10];	/* [0x000-0x00f] Interrupt levels */
+	__u8  padding0[0x1F2];	/* [0x010-0x201] IO space filler */
+	__u16 irq_pending;		/* [0x202-0x203] pending interrupts bits */
+	__u8  rom_ctrl;		/* [0x204-0x204] ROM cntl reg (for poweroff) */
+	__u8  padding1[0x2];	/* [0x205-0x206] currently unused by A/UX */
+	__u8  ack_60hz;		/* [0x207-0x207] 60 Hz ack. */
 };
 
 extern volatile struct mac_oss *oss;

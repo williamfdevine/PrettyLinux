@@ -44,7 +44,9 @@ static inline void tlb_flush(struct mmu_gather *tlb)
 	 * it as used.
 	 */
 	if (tlb->fullmm)
+	{
 		return;
+	}
 
 	/*
 	 * The intermediate page table levels are already handled by
@@ -55,7 +57,7 @@ static inline void tlb_flush(struct mmu_gather *tlb)
 }
 
 static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
-				  unsigned long addr)
+								  unsigned long addr)
 {
 	__flush_tlb_pgtable(tlb->mm, addr);
 	pgtable_page_dtor(pte);
@@ -64,7 +66,7 @@ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
 
 #if CONFIG_PGTABLE_LEVELS > 2
 static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmdp,
-				  unsigned long addr)
+								  unsigned long addr)
 {
 	__flush_tlb_pgtable(tlb->mm, addr);
 	tlb_remove_entry(tlb, virt_to_page(pmdp));
@@ -73,7 +75,7 @@ static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmdp,
 
 #if CONFIG_PGTABLE_LEVELS > 3
 static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pudp,
-				  unsigned long addr)
+								  unsigned long addr)
 {
 	__flush_tlb_pgtable(tlb->mm, addr);
 	tlb_remove_entry(tlb, virt_to_page(pudp));

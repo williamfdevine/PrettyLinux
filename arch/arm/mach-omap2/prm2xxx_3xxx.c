@@ -36,7 +36,7 @@
 int omap2_prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset)
 {
 	return omap2_prm_read_mod_bits_shift(prm_mod, OMAP2_RM_RSTCTRL,
-				       (1 << shift));
+										 (1 << shift));
 }
 
 /**
@@ -83,7 +83,7 @@ int omap2_prm_assert_hardreset(u8 shift, u8 part, s16 prm_mod, u16 offset)
  * of reset, or -EBUSY if the submodule did not exit reset promptly.
  */
 int omap2_prm_deassert_hardreset(u8 rst_shift, u8 st_shift, u8 part,
-				 s16 prm_mod, u16 rst_offset, u16 st_offset)
+								 s16 prm_mod, u16 rst_offset, u16 st_offset)
 {
 	u32 rst, st;
 	int c;
@@ -93,7 +93,9 @@ int omap2_prm_deassert_hardreset(u8 rst_shift, u8 st_shift, u8 part,
 
 	/* Check the current status to avoid de-asserting the line twice */
 	if (omap2_prm_read_mod_bits_shift(prm_mod, OMAP2_RM_RSTCTRL, rst) == 0)
+	{
 		return -EEXIST;
+	}
 
 	/* Clear the reset status by writing 1 to the status bit */
 	omap2_prm_rmw_mod_reg_bits(0xffffffff, st, prm_mod, OMAP2_RM_RSTST);
@@ -101,8 +103,8 @@ int omap2_prm_deassert_hardreset(u8 rst_shift, u8 st_shift, u8 part,
 	omap2_prm_rmw_mod_reg_bits(rst, 0, prm_mod, OMAP2_RM_RSTCTRL);
 	/* wait the status to be set */
 	omap_test_timeout(omap2_prm_read_mod_bits_shift(prm_mod, OMAP2_RM_RSTST,
-						  st),
-			  MAX_MODULE_HARDRESET_WAIT, c);
+					  st),
+					  MAX_MODULE_HARDRESET_WAIT, c);
 
 	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
 }
@@ -112,27 +114,27 @@ int omap2_prm_deassert_hardreset(u8 rst_shift, u8 st_shift, u8 part,
 
 /* Common functions across OMAP2 and OMAP3 */
 int omap2_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank,
-								u8 pwrst)
+							 u8 pwrst)
 {
 	u32 m;
 
 	m = omap2_pwrdm_get_mem_bank_onstate_mask(bank);
 
 	omap2_prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
-				   OMAP2_PM_PWSTCTRL);
+							   OMAP2_PM_PWSTCTRL);
 
 	return 0;
 }
 
 int omap2_pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank,
-								u8 pwrst)
+							  u8 pwrst)
 {
 	u32 m;
 
 	m = omap2_pwrdm_get_mem_bank_retst_mask(bank);
 
 	omap2_prm_rmw_mod_reg_bits(m, (pwrst << __ffs(m)), pwrdm->prcm_offs,
-				   OMAP2_PM_PWSTCTRL);
+							   OMAP2_PM_PWSTCTRL);
 
 	return 0;
 }
@@ -144,7 +146,7 @@ int omap2_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
 	m = omap2_pwrdm_get_mem_bank_stst_mask(bank);
 
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs, OMAP2_PM_PWSTST,
-					     m);
+										 m);
 }
 
 int omap2_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
@@ -154,7 +156,7 @@ int omap2_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
 	m = omap2_pwrdm_get_mem_bank_retst_mask(bank);
 
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-					     OMAP2_PM_PWSTCTRL, m);
+										 OMAP2_PM_PWSTCTRL, m);
 }
 
 int omap2_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
@@ -163,7 +165,7 @@ int omap2_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
 
 	v = pwrst << __ffs(OMAP_LOGICRETSTATE_MASK);
 	omap2_prm_rmw_mod_reg_bits(OMAP_LOGICRETSTATE_MASK, v, pwrdm->prcm_offs,
-				   OMAP2_PM_PWSTCTRL);
+							   OMAP2_PM_PWSTCTRL);
 
 	return 0;
 }
@@ -180,13 +182,16 @@ int omap2_pwrdm_wait_transition(struct powerdomain *pwrdm)
 
 	/* XXX Is this udelay() value meaningful? */
 	while ((omap2_prm_read_mod_reg(pwrdm->prcm_offs, OMAP2_PM_PWSTST) &
-		OMAP_INTRANSITION_MASK) &&
-		(c++ < PWRDM_TRANSITION_BAILOUT))
-			udelay(1);
+			OMAP_INTRANSITION_MASK) &&
+		   (c++ < PWRDM_TRANSITION_BAILOUT))
+	{
+		udelay(1);
+	}
 
-	if (c > PWRDM_TRANSITION_BAILOUT) {
+	if (c > PWRDM_TRANSITION_BAILOUT)
+	{
 		pr_err("powerdomain: %s: waited too long to complete transition\n",
-		       pwrdm->name);
+			   pwrdm->name);
 		return -EAGAIN;
 	}
 
@@ -196,26 +201,26 @@ int omap2_pwrdm_wait_transition(struct powerdomain *pwrdm)
 }
 
 int omap2_clkdm_add_wkdep(struct clockdomain *clkdm1,
-			  struct clockdomain *clkdm2)
+						  struct clockdomain *clkdm2)
 {
 	omap2_prm_set_mod_reg_bits((1 << clkdm2->dep_bit),
-				   clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
+							   clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
 	return 0;
 }
 
 int omap2_clkdm_del_wkdep(struct clockdomain *clkdm1,
-			  struct clockdomain *clkdm2)
+						  struct clockdomain *clkdm2)
 {
 	omap2_prm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
-				     clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
+								 clkdm1->pwrdm.ptr->prcm_offs, PM_WKDEP);
 	return 0;
 }
 
 int omap2_clkdm_read_wkdep(struct clockdomain *clkdm1,
-			   struct clockdomain *clkdm2)
+						   struct clockdomain *clkdm2)
 {
 	return omap2_prm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
-					     PM_WKDEP, (1 << clkdm2->dep_bit));
+										 PM_WKDEP, (1 << clkdm2->dep_bit));
 }
 
 /* XXX Caller must hold the clkdm's powerdomain lock */
@@ -224,9 +229,12 @@ int omap2_clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
 	struct clkdm_dep *cd;
 	u32 mask = 0;
 
-	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++) {
+	for (cd = clkdm->wkdep_srcs; cd && cd->clkdm_name; cd++)
+	{
 		if (!cd->clkdm)
-			continue; /* only happens if data is erroneous */
+		{
+			continue;    /* only happens if data is erroneous */
+		}
 
 		/* PRM accesses are slow, so minimize them */
 		mask |= 1 << cd->clkdm->dep_bit;
@@ -234,7 +242,7 @@ int omap2_clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
 	}
 
 	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
-				     PM_WKDEP);
+								 PM_WKDEP);
 	return 0;
 }
 

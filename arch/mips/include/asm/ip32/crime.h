@@ -17,7 +17,8 @@
  */
 #define CRIME_BASE	0x14000000	/* physical */
 
-struct sgi_crime {
+struct sgi_crime
+{
 	volatile unsigned long id;
 #define CRIME_ID_MASK			0xff
 #define CRIME_ID_IDBITS			0xf0
@@ -80,7 +81,7 @@ struct sgi_crime {
 #define CRIME_SOFT2_INT			BIT(30)
 #define CRIME_SYSCORERR_INT		CRIME_SOFT2_INT
 #define CRIME_VICE_INT			BIT(31)
-/* Masks for deciding who handles the interrupt */
+	/* Masks for deciding who handles the interrupt */
 #define CRIME_MACE_INT_MASK		0x8f
 #define CRIME_MACEISA_INT_MASK		0x70
 #define CRIME_MACEPCI_INT_MASK		0xff00

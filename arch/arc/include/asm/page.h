@@ -21,7 +21,7 @@ struct page;
 #define __HAVE_ARCH_COPY_USER_HIGHPAGE
 
 void copy_user_highpage(struct page *to, struct page *from,
-			unsigned long u_vaddr, struct vm_area_struct *vma);
+						unsigned long u_vaddr, struct vm_area_struct *vma);
 void clear_user_page(void *to, unsigned long u_vaddr, struct page *page);
 
 #undef STRICT_MM_TYPECHECKS
@@ -30,17 +30,20 @@ void clear_user_page(void *to, unsigned long u_vaddr, struct page *page);
 /*
  * These are used to make use of C type-checking..
  */
-typedef struct {
+typedef struct
+{
 #ifdef CONFIG_ARC_HAS_PAE40
 	unsigned long long pte;
 #else
 	unsigned long pte;
 #endif
 } pte_t;
-typedef struct {
+typedef struct
+{
 	unsigned long pgd;
 } pgd_t;
-typedef struct {
+typedef struct
+{
 	unsigned long pgprot;
 } pgprot_t;
 
@@ -57,9 +60,9 @@ typedef struct {
 #else /* !STRICT_MM_TYPECHECKS */
 
 #ifdef CONFIG_ARC_HAS_PAE40
-typedef unsigned long long pte_t;
+	typedef unsigned long long pte_t;
 #else
-typedef unsigned long pte_t;
+	typedef unsigned long pte_t;
 #endif
 typedef unsigned long pgd_t;
 typedef unsigned long pgprot_t;
@@ -74,7 +77,7 @@ typedef unsigned long pgprot_t;
 
 #endif
 
-typedef pte_t * pgtable_t;
+typedef pte_t *pgtable_t;
 
 /*
  * Use virt_to_pfn with caution:
@@ -88,7 +91,7 @@ typedef pte_t * pgtable_t;
 #define ARCH_PFN_OFFSET		virt_to_pfn(CONFIG_LINUX_LINK_BASE)
 
 #ifdef CONFIG_FLATMEM
-#define pfn_valid(pfn)		(((pfn) - ARCH_PFN_OFFSET) < max_mapnr)
+	#define pfn_valid(pfn)		(((pfn) - ARCH_PFN_OFFSET) < max_mapnr)
 #endif
 
 /*

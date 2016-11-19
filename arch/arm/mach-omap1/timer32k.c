@@ -84,7 +84,7 @@
 #define OMAP_32K_TIMER_TICK_PERIOD	((OMAP_32K_TICKS_PER_SEC / HZ) - 1)
 
 #define JIFFIES_TO_HW_TICKS(nr_jiffies, clock_rate)			\
-				(((nr_jiffies) * (clock_rate)) / HZ)
+	(((nr_jiffies) * (clock_rate)) / HZ)
 
 static inline void omap_32k_timer_write(int val, int reg)
 {
@@ -94,7 +94,10 @@ static inline void omap_32k_timer_write(int val, int reg)
 static inline void omap_32k_timer_start(unsigned long load_val)
 {
 	if (!load_val)
+	{
 		load_val = 1;
+	}
+
 	omap_32k_timer_write(load_val, OMAP1_32K_TIMER_TVR);
 	omap_32k_timer_write(0x0f, OMAP1_32K_TIMER_CR);
 }
@@ -107,7 +110,7 @@ static inline void omap_32k_timer_stop(void)
 #define omap_32k_timer_ack_irq()
 
 static int omap_32k_timer_set_next_event(unsigned long delta,
-					 struct clock_event_device *dev)
+		struct clock_event_device *dev)
 {
 	omap_32k_timer_start(delta);
 
@@ -127,10 +130,11 @@ static int omap_32k_timer_set_periodic(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device clockevent_32k_timer = {
+static struct clock_event_device clockevent_32k_timer =
+{
 	.name			= "32k-timer",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_next_event		= omap_32k_timer_set_next_event,
 	.set_state_shutdown	= omap_32k_timer_shutdown,
 	.set_state_periodic	= omap_32k_timer_set_periodic,
@@ -148,7 +152,8 @@ static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction omap_32k_timer_irq = {
+static struct irqaction omap_32k_timer_irq =
+{
 	.name		= "32KHz timer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= omap_32k_timer_interrupt,
@@ -160,7 +165,7 @@ static __init void omap_init_32k_timer(void)
 
 	clockevent_32k_timer.cpumask = cpumask_of(0);
 	clockevents_config_and_register(&clockevent_32k_timer,
-					OMAP_32K_TICKS_PER_SEC, 1, 0xfffffffe);
+									OMAP_32K_TICKS_PER_SEC, 1, 0xfffffffe);
 }
 
 /*
@@ -172,25 +177,33 @@ int __init omap_32k_timer_init(void)
 {
 	int ret = -ENODEV;
 
-	if (cpu_is_omap16xx()) {
+	if (cpu_is_omap16xx())
+	{
 		void __iomem *base;
 		struct clk *sync32k_ick;
 
 		base = ioremap(OMAP1_32KSYNC_TIMER_BASE, SZ_1K);
-		if (!base) {
+
+		if (!base)
+		{
 			pr_err("32k_counter: failed to map base addr\n");
 			return -ENODEV;
 		}
 
 		sync32k_ick = clk_get(NULL, "omap_32ksync_ick");
+
 		if (!IS_ERR(sync32k_ick))
+		{
 			clk_enable(sync32k_ick);
+		}
 
 		ret = omap_init_clocksource_32k(base);
 	}
 
 	if (!ret)
+	{
 		omap_init_32k_timer();
+	}
 
 	return ret;
 }

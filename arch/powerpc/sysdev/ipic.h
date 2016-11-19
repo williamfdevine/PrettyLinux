@@ -39,14 +39,16 @@
 /* System Error Control Register */
 #define SERCR_MCPR	0x00000001
 
-struct ipic {
+struct ipic
+{
 	volatile u32 __iomem	*regs;
 
 	/* The remapper for this IPIC */
 	struct irq_domain		*irqhost;
 };
 
-struct ipic_info {
+struct ipic_info
+{
 	u8	ack;		/* pending register offset from base if the irq
 				   supports ack operation */
 	u8	mask;		/* mask register offset from base */

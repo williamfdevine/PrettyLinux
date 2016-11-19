@@ -1,7 +1,7 @@
 #ifndef _ALPHA_MSGBUF_H
 #define _ALPHA_MSGBUF_H
 
-/* 
+/*
  * The msqid64_ds structure for alpha architecture.
  * Note extra padding because this structure is passed back and forth
  * between kernel and user space.
@@ -10,7 +10,8 @@
  * - 2 miscellaneous 64-bit values
  */
 
-struct msqid64_ds {
+struct msqid64_ds
+{
 	struct ipc64_perm msg_perm;
 	__kernel_time_t msg_stime;	/* last msgsnd time */
 	__kernel_time_t msg_rtime;	/* last msgrcv time */

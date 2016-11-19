@@ -57,15 +57,21 @@ void arch_cpu_idle(void)
 {
 	ppc64_runlatch_off();
 
-	if (ppc_md.power_save) {
+	if (ppc_md.power_save)
+	{
 		ppc_md.power_save();
+
 		/*
 		 * Some power_save functions return with
 		 * interrupts enabled, some don't.
 		 */
 		if (irqs_disabled())
+		{
 			local_irq_enable();
-	} else {
+		}
+	}
+	else
+	{
 		local_irq_enable();
 		/*
 		 * Go into low thread priority and possibly
@@ -85,7 +91,8 @@ int powersave_nap;
 /*
  * Register the sysctl to set/clear powersave_nap.
  */
-static struct ctl_table powersave_nap_ctl_table[] = {
+static struct ctl_table powersave_nap_ctl_table[] =
+{
 	{
 		.procname	= "powersave-nap",
 		.data		= &powersave_nap,
@@ -95,7 +102,8 @@ static struct ctl_table powersave_nap_ctl_table[] = {
 	},
 	{}
 };
-static struct ctl_table powersave_nap_sysctl_root[] = {
+static struct ctl_table powersave_nap_sysctl_root[] =
+{
 	{
 		.procname	= "kernel",
 		.mode		= 0555,

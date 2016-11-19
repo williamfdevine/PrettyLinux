@@ -34,17 +34,21 @@ static inline unsigned int hugepd_shift(hugepd_t hpd)
 	return mmu_psize_to_shift(hugepd_mmu_psize(hpd));
 }
 static inline void flush_hugetlb_page(struct vm_area_struct *vma,
-				      unsigned long vmaddr)
+									  unsigned long vmaddr)
 {
 	if (radix_enabled())
+	{
 		return radix__flush_hugetlb_page(vma, vmaddr);
+	}
 }
 
 static inline void __local_flush_hugetlb_page(struct vm_area_struct *vma,
-					      unsigned long vmaddr)
+		unsigned long vmaddr)
 {
 	if (radix_enabled())
+	{
 		return radix__local_flush_hugetlb_page(vma, vmaddr);
+	}
 }
 #else
 
@@ -63,7 +67,7 @@ static inline unsigned int hugepd_shift(hugepd_t hpd)
 
 
 static inline pte_t *hugepte_offset(hugepd_t hpd, unsigned long addr,
-				    unsigned pdshift)
+									unsigned pdshift)
 {
 	/*
 	 * On FSL BookE, we have multiple higher-level table entries that
@@ -81,29 +85,29 @@ static inline pte_t *hugepte_offset(hugepd_t hpd, unsigned long addr,
 }
 
 pte_t *huge_pte_offset_and_shift(struct mm_struct *mm,
-				 unsigned long addr, unsigned *shift);
+								 unsigned long addr, unsigned *shift);
 
 void flush_dcache_icache_hugepage(struct page *page);
 
 #if defined(CONFIG_PPC_MM_SLICES)
 int is_hugepage_only_range(struct mm_struct *mm, unsigned long addr,
-			   unsigned long len);
+						   unsigned long len);
 #else
 static inline int is_hugepage_only_range(struct mm_struct *mm,
-					 unsigned long addr,
-					 unsigned long len)
+		unsigned long addr,
+		unsigned long len)
 {
 	return 0;
 }
 #endif
 
 void book3e_hugetlb_preload(struct vm_area_struct *vma, unsigned long ea,
-			    pte_t pte);
+							pte_t pte);
 void flush_hugetlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
 
 void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
-			    unsigned long end, unsigned long floor,
-			    unsigned long ceiling);
+							unsigned long end, unsigned long floor,
+							unsigned long ceiling);
 
 /*
  * The version of vma_mmu_pagesize() in arch/powerpc/mm/hugetlbpage.c needs
@@ -116,24 +120,31 @@ void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
  * size aligned regions are ok without further preparation.
  */
 static inline int prepare_hugepage_range(struct file *file,
-			unsigned long addr, unsigned long len)
+		unsigned long addr, unsigned long len)
 {
 	struct hstate *h = hstate_file(file);
+
 	if (len & ~huge_page_mask(h))
+	{
 		return -EINVAL;
+	}
+
 	if (addr & ~huge_page_mask(h))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
 static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-				   pte_t *ptep, pte_t pte)
+								   pte_t *ptep, pte_t pte)
 {
 	set_pte_at(mm, addr, ptep, pte);
 }
 
 static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
-					    unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 #ifdef CONFIG_PPC64
 	return __pte(pte_update(mm, addr, ptep, ~0UL, 0, 1));
@@ -143,7 +154,7 @@ static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
 }
 
 static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
-					 unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 	pte_t pte;
 	pte = huge_ptep_get_and_clear(vma->vm_mm, addr, ptep);
@@ -161,8 +172,8 @@ static inline pte_t huge_pte_wrprotect(pte_t pte)
 }
 
 static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
-					     unsigned long addr, pte_t *ptep,
-					     pte_t pte, int dirty)
+		unsigned long addr, pte_t *ptep,
+		pte_t pte, int dirty)
 {
 #ifdef HUGETLB_NEED_PRELOAD
 	/*
@@ -188,13 +199,13 @@ static inline void arch_clear_hugepage_flags(struct page *page)
 
 #else /* ! CONFIG_HUGETLB_PAGE */
 static inline void flush_hugetlb_page(struct vm_area_struct *vma,
-				      unsigned long vmaddr)
+									  unsigned long vmaddr)
 {
 }
 
 #define hugepd_shift(x) 0
 static inline pte_t *hugepte_offset(hugepd_t hpd, unsigned long addr,
-				    unsigned pdshift)
+									unsigned pdshift)
 {
 	return 0;
 }

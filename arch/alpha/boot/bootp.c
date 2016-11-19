@@ -23,8 +23,8 @@
 #include "ksize.h"
 
 extern unsigned long switch_to_osf_pal(unsigned long nr,
-	struct pcb_struct * pcb_va, struct pcb_struct * pcb_pa,
-	unsigned long *vptb);
+									   struct pcb_struct *pcb_va, struct pcb_struct *pcb_pa,
+									   unsigned long *vptb);
 
 extern void move_stack(unsigned long new_stack);
 
@@ -48,7 +48,7 @@ find_pa(unsigned long *vptb, void *ptr)
 	result <<= 13;
 	result |= address & 0x1fff;
 	return (void *) result;
-}	
+}
 
 /*
  * This function moves into OSF/1 pal-code, and has a temporary
@@ -68,8 +68,8 @@ void
 pal_init(void)
 {
 	unsigned long i, rev;
-	struct percpu_struct * percpu;
-	struct pcb_struct * pcb_pa;
+	struct percpu_struct *percpu;
+	struct pcb_struct *pcb_pa;
 
 	/* Create the dummy PCB.  */
 	pcb_va->ksp = 0;
@@ -93,13 +93,15 @@ pal_init(void)
 	srm_printk("Switching to OSF PAL-code .. ");
 
 	i = switch_to_osf_pal(2, pcb_va, pcb_pa, VPTB);
-	if (i) {
+
+	if (i)
+	{
 		srm_printk("failed, code %ld\n", i);
 		__halt();
 	}
 
 	percpu = (struct percpu_struct *)
-		(INIT_HWRPB->processor_offset + (unsigned long) INIT_HWRPB);
+			 (INIT_HWRPB->processor_offset + (unsigned long) INIT_HWRPB);
 	rev = percpu->pal_revision = percpu->palcode_avail[2];
 
 	srm_printk("Ok (rev %lx)\n", rev);
@@ -150,22 +152,27 @@ start_kernel(void)
 	static unsigned long initrd_start;
 
 	srm_printk("Linux/AXP bootp loader for Linux " UTS_RELEASE "\n");
-	if (INIT_HWRPB->pagesize != 8192) {
+
+	if (INIT_HWRPB->pagesize != 8192)
+	{
 		srm_printk("Expected 8kB pages, got %ldkB\n",
-		           INIT_HWRPB->pagesize >> 10);
+				   INIT_HWRPB->pagesize >> 10);
 		return;
 	}
-	if (INIT_HWRPB->vptb != (unsigned long) VPTB) {
+
+	if (INIT_HWRPB->vptb != (unsigned long) VPTB)
+	{
 		srm_printk("Expected vptb at %p, got %p\n",
-			   VPTB, (void *)INIT_HWRPB->vptb);
+				   VPTB, (void *)INIT_HWRPB->vptb);
 		return;
 	}
+
 	pal_init();
 
-	/* The initrd must be page-aligned.  See below for the 
+	/* The initrd must be page-aligned.  See below for the
 	   cause of the magic number 5.  */
-	initrd_start = ((START_ADDR + 5*KERNEL_SIZE + PAGE_SIZE) |
-			(PAGE_SIZE-1)) + 1;
+	initrd_start = ((START_ADDR + 5 * KERNEL_SIZE + PAGE_SIZE) |
+					(PAGE_SIZE - 1)) + 1;
 #ifdef INITRD_IMAGE_SIZE
 	srm_printk("Initrd positioned at %#lx\n", initrd_start);
 #endif
@@ -177,9 +184,12 @@ start_kernel(void)
 	move_stack(initrd_start - PAGE_SIZE);
 
 	nbytes = callback_getenv(ENV_BOOTED_OSFLAGS, envval, sizeof(envval));
-	if (nbytes < 0 || nbytes >= sizeof(envval)) {
+
+	if (nbytes < 0 || nbytes >= sizeof(envval))
+	{
 		nbytes = 0;
 	}
+
 	envval[nbytes] = '\0';
 	srm_printk("Loading the kernel...'%s'\n", envval);
 
@@ -198,16 +208,16 @@ start_kernel(void)
 	 * Sigh...  */
 
 #ifdef INITRD_IMAGE_SIZE
-	load(initrd_start, KERNEL_ORIGIN+KERNEL_SIZE, INITRD_IMAGE_SIZE);
+	load(initrd_start, KERNEL_ORIGIN + KERNEL_SIZE, INITRD_IMAGE_SIZE);
 #endif
-        load(START_ADDR+(4*KERNEL_SIZE), KERNEL_ORIGIN, KERNEL_SIZE);
-        load(START_ADDR, START_ADDR+(4*KERNEL_SIZE), KERNEL_SIZE);
+	load(START_ADDR + (4 * KERNEL_SIZE), KERNEL_ORIGIN, KERNEL_SIZE);
+	load(START_ADDR, START_ADDR + (4 * KERNEL_SIZE), KERNEL_SIZE);
 
-	memset((char*)ZERO_PGE, 0, PAGE_SIZE);
-	strcpy((char*)ZERO_PGE, envval);
+	memset((char *)ZERO_PGE, 0, PAGE_SIZE);
+	strcpy((char *)ZERO_PGE, envval);
 #ifdef INITRD_IMAGE_SIZE
-	((long *)(ZERO_PGE+256))[0] = initrd_start;
-	((long *)(ZERO_PGE+256))[1] = INITRD_IMAGE_SIZE;
+	((long *)(ZERO_PGE + 256))[0] = initrd_start;
+	((long *)(ZERO_PGE + 256))[1] = INITRD_IMAGE_SIZE;
 #endif
 
 	runkernel();

@@ -16,13 +16,14 @@
 #include <asm/pgtable.h>
 #include <asm/tlbflush.h>
 
-struct page_change_data {
+struct page_change_data
+{
 	pgprot_t set_mask;
 	pgprot_t clear_mask;
 };
 
 static int change_page_range(pte_t *ptep, pgtable_t token, unsigned long addr,
-			void *data)
+							 void *data)
 {
 	struct page_change_data *cdata = data;
 	pte_t pte = *ptep;
@@ -35,34 +36,41 @@ static int change_page_range(pte_t *ptep, pgtable_t token, unsigned long addr,
 }
 
 static int change_memory_common(unsigned long addr, int numpages,
-				pgprot_t set_mask, pgprot_t clear_mask)
+								pgprot_t set_mask, pgprot_t clear_mask)
 {
 	unsigned long start = addr;
-	unsigned long size = PAGE_SIZE*numpages;
+	unsigned long size = PAGE_SIZE * numpages;
 	unsigned long end = start + size;
 	int ret;
 	struct page_change_data data;
 
-	if (!IS_ALIGNED(addr, PAGE_SIZE)) {
+	if (!IS_ALIGNED(addr, PAGE_SIZE))
+	{
 		start &= PAGE_MASK;
 		end = start + size;
 		WARN_ON_ONCE(1);
 	}
 
 	if (!numpages)
+	{
 		return 0;
+	}
 
 	if (start < MODULES_VADDR || start >= MODULES_END)
+	{
 		return -EINVAL;
+	}
 
 	if (end < MODULES_VADDR || start >= MODULES_END)
+	{
 		return -EINVAL;
+	}
 
 	data.set_mask = set_mask;
 	data.clear_mask = clear_mask;
 
 	ret = apply_to_page_range(&init_mm, start, size, change_page_range,
-					&data);
+							  &data);
 
 	flush_tlb_kernel_range(start, end);
 	return ret;
@@ -71,27 +79,27 @@ static int change_memory_common(unsigned long addr, int numpages,
 int set_memory_ro(unsigned long addr, int numpages)
 {
 	return change_memory_common(addr, numpages,
-					__pgprot(L_PTE_RDONLY),
-					__pgprot(0));
+								__pgprot(L_PTE_RDONLY),
+								__pgprot(0));
 }
 
 int set_memory_rw(unsigned long addr, int numpages)
 {
 	return change_memory_common(addr, numpages,
-					__pgprot(0),
-					__pgprot(L_PTE_RDONLY));
+								__pgprot(0),
+								__pgprot(L_PTE_RDONLY));
 }
 
 int set_memory_nx(unsigned long addr, int numpages)
 {
 	return change_memory_common(addr, numpages,
-					__pgprot(L_PTE_XN),
-					__pgprot(0));
+								__pgprot(L_PTE_XN),
+								__pgprot(0));
 }
 
 int set_memory_x(unsigned long addr, int numpages)
 {
 	return change_memory_common(addr, numpages,
-					__pgprot(0),
-					__pgprot(L_PTE_XN));
+								__pgprot(0),
+								__pgprot(L_PTE_XN));
 }

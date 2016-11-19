@@ -47,24 +47,33 @@ static unsigned get_cxn(mm_context_t *ctx)
 	mm_context_t *p;
 	unsigned cxn;
 
-	if (!list_empty(&ctx->id_link)) {
+	if (!list_empty(&ctx->id_link))
+	{
 		list_move_tail(&ctx->id_link, &cxn_owners_lru);
 	}
-	else {
+	else
+	{
 		/* find the first unallocated context number
 		 * - 0 is reserved for the kernel
 		 */
 		cxn = find_next_zero_bit(cxn_bitmap, NR_CXN, 1);
-		if (cxn < NR_CXN) {
+
+		if (cxn < NR_CXN)
+		{
 			set_bit(cxn, cxn_bitmap);
 		}
-		else {
+		else
+		{
 			/* none remaining - need to steal someone else's cxn */
 			p = NULL;
-			list_for_each(_p, &cxn_owners_lru) {
+			list_for_each(_p, &cxn_owners_lru)
+			{
 				p = list_entry(_p, mm_context_t, id_link);
+
 				if (!p->id_busy && p->id != cxn_pinned)
+				{
 					break;
+				}
 			}
 
 			BUG_ON(_p == &cxn_owners_lru);
@@ -118,8 +127,8 @@ void change_mm_context(mm_context_t *old, mm_context_t *ctx, pgd_t *pgd)
 	/* map the PGD into uncached virtual memory */
 	asm volatile("movgs %0,ttbr"   : : "r"(_pgd));
 	asm volatile("movgs %0,dampr3"
-		     :: "r"(_pgd | xAMPRx_L | xAMPRx_M | xAMPRx_SS_16Kb |
-			    xAMPRx_S | xAMPRx_C | xAMPRx_V));
+				 :: "r"(_pgd | xAMPRx_L | xAMPRx_M | xAMPRx_SS_16Kb |
+						xAMPRx_S | xAMPRx_C | xAMPRx_V));
 
 } /* end change_mm_context() */
 
@@ -133,9 +142,12 @@ void destroy_context(struct mm_struct *mm)
 
 	spin_lock(&cxn_owners_lock);
 
-	if (!list_empty(&ctx->id_link)) {
+	if (!list_empty(&ctx->id_link))
+	{
 		if (ctx->id == cxn_pinned)
+		{
 			cxn_pinned = -1;
+		}
 
 		list_del_init(&ctx->id_link);
 		clear_bit(ctx->id, cxn_bitmap);
@@ -172,7 +184,8 @@ int cxn_pin_by_pid(pid_t pid)
 	int ret;
 
 	/* unpin if pid is zero */
-	if (pid == 0) {
+	if (pid == 0)
+	{
 		cxn_pinned = -1;
 		return 0;
 	}
@@ -182,21 +195,29 @@ int cxn_pin_by_pid(pid_t pid)
 	/* get a handle on the mm_struct */
 	read_lock(&tasklist_lock);
 	tsk = find_task_by_vpid(pid);
-	if (tsk) {
+
+	if (tsk)
+	{
 		ret = -EINVAL;
 
 		task_lock(tsk);
-		if (tsk->mm) {
+
+		if (tsk->mm)
+		{
 			mm = tsk->mm;
 			atomic_inc(&mm->mm_users);
 			ret = 0;
 		}
+
 		task_unlock(tsk);
 	}
+
 	read_unlock(&tasklist_lock);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* make sure it has a CXN and pin it */
 	spin_lock(&cxn_owners_lock);

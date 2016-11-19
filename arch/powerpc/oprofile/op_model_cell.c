@@ -80,7 +80,8 @@ static unsigned int spu_cycle_reset;
 static unsigned int profiling_mode;
 static int spu_evnt_phys_spu_indx;
 
-struct pmc_cntrl_data {
+struct pmc_cntrl_data
+{
 	unsigned long vcntr;
 	unsigned long evnts;
 	unsigned long masks;
@@ -90,7 +91,8 @@ struct pmc_cntrl_data {
 /*
  * ibm,cbe-perftools rtas parameters
  */
-struct pm_signal {
+struct pm_signal
+{
 	u16 cpu;		/* Processor to modify */
 	u16 sub_unit;		/* hw subunit this applies to (if applicable)*/
 	short int signal_group; /* Signal Group to Enable/Disable */
@@ -103,7 +105,8 @@ struct pm_signal {
 /*
  * rtas call arguments
  */
-enum {
+enum
+{
 	SUBFUNC_RESET = 1,
 	SUBFUNC_ACTIVATE = 2,
 	SUBFUNC_DEACTIVATE = 3,
@@ -113,7 +116,8 @@ enum {
 	PASSTHRU_DISABLE = 2,
 };
 
-struct pm_cntrl {
+struct pm_cntrl
+{
 	u16 enable;
 	u16 stop_at_max;
 	u16 trace_mode;
@@ -123,7 +127,8 @@ struct pm_cntrl {
 	u8  trace_buf_ovflw;
 };
 
-static struct {
+static struct
+{
 	u32 group_control;
 	u32 debug_bus_control;
 	struct pm_cntrl pm_cntrl;
@@ -193,12 +198,12 @@ static unsigned char input_bus[NUM_INPUT_BUS_WORDS];
  */
 static int
 rtas_ibm_cbe_perftools(int subfunc, int passthru,
-		       void *address, unsigned long length)
+					   void *address, unsigned long length)
 {
 	u64 paddr = __pa(address);
 
 	return rtas_call(pm_rtas_token, 5, 1, NULL, subfunc,
-			 passthru, paddr >> 32, paddr & 0xffffffff, length);
+					 passthru, paddr >> 32, paddr & 0xffffffff, length);
 }
 
 static void pm_rtas_reset_signals(u32 node)
@@ -223,8 +228,8 @@ static void pm_rtas_reset_signals(u32 node)
 	pm_signal_local.bit = 0;
 
 	ret = rtas_ibm_cbe_perftools(SUBFUNC_RESET, PASSTHRU_DISABLE,
-				     &pm_signal_local,
-				     sizeof(struct pm_signal));
+								 &pm_signal_local,
+								 sizeof(struct pm_signal));
 
 	if (unlikely(ret))
 		/*
@@ -233,7 +238,7 @@ static void pm_rtas_reset_signals(u32 node)
 		 * failure to stop OProfile.
 		 */
 		printk(KERN_WARNING "%s: rtas returned: %d\n",
-		       __func__, ret);
+			   __func__, ret);
 }
 
 static int pm_rtas_activate_signals(u32 node, u32 count)
@@ -251,8 +256,11 @@ static int pm_rtas_activate_signals(u32 node, u32 count)
 	 * the same group.
 	 */
 	i = 0;
-	for (j = 0; j < count; j++) {
-		if (pm_signal[j].signal_group != PPU_CYCLES_GRP_NUM) {
+
+	for (j = 0; j < count; j++)
+	{
+		if (pm_signal[j].signal_group != PPU_CYCLES_GRP_NUM)
+		{
 
 			/* fw expects physical cpu # */
 			pm_signal_local[i].cpu = node;
@@ -265,14 +273,16 @@ static int pm_rtas_activate_signals(u32 node, u32 count)
 		}
 	}
 
-	if (i != 0) {
+	if (i != 0)
+	{
 		ret = rtas_ibm_cbe_perftools(SUBFUNC_ACTIVATE, PASSTHRU_ENABLE,
-					     pm_signal_local,
-					     i * sizeof(struct pm_signal));
+									 pm_signal_local,
+									 i * sizeof(struct pm_signal));
 
-		if (unlikely(ret)) {
+		if (unlikely(ret))
+		{
 			printk(KERN_WARNING "%s: rtas returned: %d\n",
-			       __func__, ret);
+				   __func__, ret);
 			return -EIO;
 		}
 	}
@@ -290,7 +300,8 @@ static void set_pm_event(u32 ctr, int event, u32 unit_mask)
 	u32 bus_word, bus_type, count_cycles, polarity, input_control;
 	int j, i;
 
-	if (event == PPU_CYCLES_EVENT_NUM) {
+	if (event == PPU_CYCLES_EVENT_NUM)
+	{
 		/* Special Event: Count all cpu cycles */
 		pm_regs.pm07_cntrl[ctr] = CBE_COUNT_ALL_CYCLES;
 		p = &(pm_signal[ctr]);
@@ -299,7 +310,9 @@ static void set_pm_event(u32 ctr, int event, u32 unit_mask)
 		p->sub_unit = 0;
 		p->bit = 0;
 		goto out;
-	} else {
+	}
+	else
+	{
 		pm_regs.pm07_cntrl[ctr] = 0;
 	}
 
@@ -330,33 +343,51 @@ static void set_pm_event(u32 ctr, int event, u32 unit_mask)
 	 * monitoring signals manual and the Perf cntr hardware descriptions
 	 * for the details.
 	 */
-	if (input_control == 0) {
-		if (signal_bit > 31) {
+	if (input_control == 0)
+	{
+		if (signal_bit > 31)
+		{
 			signal_bit -= 32;
+
 			if (bus_word == 0x3)
+			{
 				bus_word = 0x2;
+			}
 			else if (bus_word == 0xc)
+			{
 				bus_word = 0x8;
+			}
 		}
 
 		if ((bus_type == 0) && p->signal_group >= 60)
+		{
 			bus_type = 2;
+		}
+
 		if ((bus_type == 1) && p->signal_group >= 50)
+		{
 			bus_type = 0;
+		}
 
 		pm_regs.pm07_cntrl[ctr] |= PM07_CTR_INPUT_MUX(signal_bit);
-	} else {
+	}
+	else
+	{
 		pm_regs.pm07_cntrl[ctr] = 0;
 		p->bit = signal_bit;
 	}
 
-	for (i = 0; i < NUM_DEBUG_BUS_WORDS; i++) {
-		if (bus_word & (1 << i)) {
+	for (i = 0; i < NUM_DEBUG_BUS_WORDS; i++)
+	{
+		if (bus_word & (1 << i))
+		{
 			pm_regs.debug_bus_control |=
 				(bus_type << (30 - (2 * i)));
 
-			for (j = 0; j < NUM_INPUT_BUS_WORDS; j++) {
-				if (input_bus[j] == 0xff) {
+			for (j = 0; j < NUM_INPUT_BUS_WORDS; j++)
+			{
+				if (input_bus[j] == 0xff)
+				{
 					input_bus[j] = i;
 					pm_regs.group_control |=
 						(i << (30 - (2 * j)));
@@ -366,6 +397,7 @@ static void set_pm_event(u32 ctr, int event, u32 unit_mask)
 			}
 		}
 	}
+
 out:
 	;
 }
@@ -378,19 +410,31 @@ static void write_pm_cntrl(int cpu)
 	 */
 
 	u32 val = 0;
+
 	if (pm_regs.pm_cntrl.enable == 1)
+	{
 		val |= CBE_PM_ENABLE_PERF_MON;
+	}
 
 	if (pm_regs.pm_cntrl.stop_at_max == 1)
+	{
 		val |= CBE_PM_STOP_AT_MAX;
+	}
 
 	if (pm_regs.pm_cntrl.trace_mode != 0)
+	{
 		val |= CBE_PM_TRACE_MODE_SET(pm_regs.pm_cntrl.trace_mode);
+	}
 
 	if (pm_regs.pm_cntrl.trace_buf_ovflw == 1)
+	{
 		val |= CBE_PM_TRACE_BUF_OVFLW(pm_regs.pm_cntrl.trace_buf_ovflw);
+	}
+
 	if (pm_regs.pm_cntrl.freeze == 1)
+	{
 		val |= CBE_PM_FREEZE_ALL_CTRS;
+	}
 
 	val |= CBE_PM_SPU_ADDR_TRACE_SET(pm_regs.pm_cntrl.spu_addr_trace);
 
@@ -410,15 +454,22 @@ set_count_mode(u32 kernel, u32 user)
 	 *  neither is specified, OProfile will count in hypervisor mode.
 	 *  pm_regs.pm_cntrl is a global
 	 */
-	if (kernel) {
+	if (kernel)
+	{
 		if (user)
+		{
 			pm_regs.pm_cntrl.count_mode = CBE_COUNT_ALL_MODES;
+		}
 		else
 			pm_regs.pm_cntrl.count_mode =
 				CBE_COUNT_SUPERVISOR_MODE;
-	} else {
+	}
+	else
+	{
 		if (user)
+		{
 			pm_regs.pm_cntrl.count_mode = CBE_COUNT_PROBLEM_MODE;
+		}
 		else
 			pm_regs.pm_cntrl.count_mode =
 				CBE_COUNT_HYPERVISOR_MODE;
@@ -474,7 +525,9 @@ static void cell_virtual_cntr(unsigned long data)
 	pm_regs.debug_bus_control = 0;
 
 	for (i = 0; i < NUM_INPUT_BUS_WORDS; i++)
+	{
 		input_bus[i] = 0xff;
+	}
 
 	/*
 	 * There are some per thread events.  Must do the
@@ -482,16 +535,19 @@ static void cell_virtual_cntr(unsigned long data)
 	 */
 	for (i = 0; i < num_counters; i++)
 		set_pm_event(i,
-			pmc_cntrl[next_hdw_thread][i].evnts,
-			pmc_cntrl[next_hdw_thread][i].masks);
+					 pmc_cntrl[next_hdw_thread][i].evnts,
+					 pmc_cntrl[next_hdw_thread][i].masks);
 
 	/*
 	 * The following is done only once per each node, but
 	 * we need cpu #, not node #, to pass to the cbe_xxx functions.
 	 */
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		/*
 		 * stop counters, save counter values, restore counts
@@ -499,12 +555,14 @@ static void cell_virtual_cntr(unsigned long data)
 		 */
 		cbe_disable_pm(cpu);
 		cbe_disable_pm_interrupts(cpu);
-		for (i = 0; i < num_counters; i++) {
+
+		for (i = 0; i < num_counters; i++)
+		{
 			per_cpu(pmc_values, cpu + prev_hdw_thread)[i]
 				= cbe_read_ctr(cpu, i);
 
 			if (per_cpu(pmc_values, cpu + next_hdw_thread)[i]
-			    == 0xFFFFFFFF)
+				== 0xFFFFFFFF)
 				/* If the cntr value is 0xffffffff, we must
 				 * reset that to 0xfffffff0 when the current
 				 * thread is restarted.	 This will generate a
@@ -515,12 +573,14 @@ static void cell_virtual_cntr(unsigned long data)
 				 * generated.  Hence no more samples will be
 				 * collected on that cpu.
 				 */
+			{
 				cbe_write_ctr(cpu, i, 0xFFFFFFF0);
+			}
 			else
 				cbe_write_ctr(cpu, i,
-					      per_cpu(pmc_values,
-						      cpu +
-						      next_hdw_thread)[i]);
+							  per_cpu(pmc_values,
+									  cpu +
+									  next_hdw_thread)[i]);
 		}
 
 		/*
@@ -528,23 +588,27 @@ static void cell_virtual_cntr(unsigned long data)
 		 * and control regs to be scheduled on the CPU
 		 * corresponding to the thread to execute.
 		 */
-		for (i = 0; i < num_counters; i++) {
-			if (pmc_cntrl[next_hdw_thread][i].enabled) {
+		for (i = 0; i < num_counters; i++)
+		{
+			if (pmc_cntrl[next_hdw_thread][i].enabled)
+			{
 				/*
 				 * There are some per thread events.
 				 * Must do the set event, enable_cntr
 				 * for each cpu.
 				 */
 				enable_ctr(cpu, i,
-					   pm_regs.pm07_cntrl);
-			} else {
+						   pm_regs.pm07_cntrl);
+			}
+			else
+			{
 				cbe_write_pm07_control(cpu, i, 0);
 			}
 		}
 
 		/* Enable interrupts on the CPU thread that is starting */
 		cbe_enable_pm_interrupts(cpu, next_hdw_thread,
-					 virt_cntr_inter_mask);
+								 virt_cntr_inter_mask);
 		cbe_enable_pm(cpu);
 	}
 
@@ -563,7 +627,7 @@ static void start_virt_cntrs(void)
 }
 
 static int cell_reg_setup_spu_cycles(struct op_counter_config *ctr,
-			struct op_system_config *sys, int num_ctrs)
+									 struct op_system_config *sys, int num_ctrs)
 {
 	spu_cycle_reset = ctr[0].count;
 
@@ -573,12 +637,14 @@ static int cell_reg_setup_spu_cycles(struct op_counter_config *ctr,
 	 */
 	spu_rtas_token = rtas_token("ibm,cbe-spu-perftools");
 
-	if (unlikely(spu_rtas_token == RTAS_UNKNOWN_SERVICE)) {
+	if (unlikely(spu_rtas_token == RTAS_UNKNOWN_SERVICE))
+	{
 		printk(KERN_ERR
-		       "%s: rtas token ibm,cbe-spu-perftools unknown\n",
-		       __func__);
+			   "%s: rtas token ibm,cbe-spu-perftools unknown\n",
+			   __func__);
 		return -EIO;
 	}
+
 	return 0;
 }
 
@@ -612,22 +678,27 @@ static void spu_evnt_swap(unsigned long data)
 	cur_spu_evnt_phys_spu_indx = spu_evnt_phys_spu_indx;
 
 	if (++(spu_evnt_phys_spu_indx) == NUM_SPUS_PER_NODE)
+	{
 		spu_evnt_phys_spu_indx = 0;
+	}
 
 	pm_signal[0].sub_unit = spu_evnt_phys_spu_indx;
 	pm_signal[1].sub_unit = spu_evnt_phys_spu_indx;
 	pm_signal[2].sub_unit = spu_evnt_phys_spu_indx;
 
 	/* switch the SPU being profiled on each node */
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		node = cbe_cpu_to_node(cpu);
 		cur_phys_spu = (node * NUM_SPUS_PER_NODE)
-			+ cur_spu_evnt_phys_spu_indx;
+					   + cur_spu_evnt_phys_spu_indx;
 		nxt_phys_spu = (node * NUM_SPUS_PER_NODE)
-			+ spu_evnt_phys_spu_indx;
+					   + spu_evnt_phys_spu_indx;
 
 		/*
 		 * stop counters, save counter values, restore counts
@@ -644,9 +715,13 @@ static void spu_evnt_swap(unsigned long data)
 		 * counter value is at max (0xFFFFFFFF).
 		 */
 		if (spu_pm_cnt[nxt_phys_spu] >= 0xFFFFFFFF)
+		{
 			cbe_write_ctr(cpu, 0, 0xFFFFFFF0);
-		 else
-			 cbe_write_ctr(cpu, 0, spu_pm_cnt[nxt_phys_spu]);
+		}
+		else
+		{
+			cbe_write_ctr(cpu, 0, spu_pm_cnt[nxt_phys_spu]);
+		}
 
 		pm_rtas_reset_signals(cbe_cpu_to_node(cpu));
 
@@ -655,9 +730,10 @@ static void spu_evnt_swap(unsigned long data)
 		 * the debug bus
 		 */
 		ret = pm_rtas_activate_signals(cbe_cpu_to_node(cpu), 3);
+
 		if (ret)
 			printk(KERN_ERR "%s: pm_rtas_activate_signals failed, "
-			       "SPU event swap\n", __func__);
+				   "SPU event swap\n", __func__);
 
 		/* clear the trace buffer, don't want to take PC for
 		 * previous SPU*/
@@ -667,7 +743,7 @@ static void spu_evnt_swap(unsigned long data)
 
 		/* Enable interrupts on the CPU thread that is starting */
 		cbe_enable_pm_interrupts(cpu, hdw_thread,
-					 interrupt_mask);
+								 interrupt_mask);
 		cbe_enable_pm(cpu);
 	}
 
@@ -687,7 +763,7 @@ static void start_spu_event_swap(void)
 }
 
 static int cell_reg_setup_spu_events(struct op_counter_config *ctr,
-			struct op_system_config *sys, int num_ctrs)
+									 struct op_system_config *sys, int num_ctrs)
 {
 	int i;
 
@@ -702,10 +778,11 @@ static int cell_reg_setup_spu_events(struct op_counter_config *ctr,
 	 */
 	pm_rtas_token = rtas_token("ibm,cbe-perftools");
 
-	if (unlikely(pm_rtas_token == RTAS_UNKNOWN_SERVICE)) {
+	if (unlikely(pm_rtas_token == RTAS_UNKNOWN_SERVICE))
+	{
 		printk(KERN_ERR
-		       "%s: rtas token ibm,cbe-perftools unknown\n",
-		       __func__);
+			   "%s: rtas token ibm,cbe-perftools unknown\n",
+			   __func__);
 		return -EIO;
 	}
 
@@ -749,32 +826,36 @@ static int cell_reg_setup_spu_events(struct op_counter_config *ctr,
 	ctr_enabled |= 1;
 
 	/* Initialize the count for each SPU to the reset value */
-	for (i=0; i < MAX_NUMNODES * NUM_SPUS_PER_NODE; i++)
+	for (i = 0; i < MAX_NUMNODES * NUM_SPUS_PER_NODE; i++)
+	{
 		spu_pm_cnt[i] = reset_value[0];
+	}
 
 	return 0;
 }
 
 static int cell_reg_setup_ppu(struct op_counter_config *ctr,
-			struct op_system_config *sys, int num_ctrs)
+							  struct op_system_config *sys, int num_ctrs)
 {
 	/* routine is called once for all nodes */
 	int i, j, cpu;
 
 	num_counters = num_ctrs;
 
-	if (unlikely(num_ctrs > NR_PHYS_CTRS)) {
+	if (unlikely(num_ctrs > NR_PHYS_CTRS))
+	{
 		printk(KERN_ERR
-		       "%s: Oprofile, number of specified events " \
-		       "exceeds number of physical counters\n",
-		       __func__);
+			   "%s: Oprofile, number of specified events " \
+			   "exceeds number of physical counters\n",
+			   __func__);
 		return -EIO;
 	}
 
 	set_count_mode(sys->enable_kernel, sys->enable_user);
 
 	/* Setup the thread 0 events */
-	for (i = 0; i < num_ctrs; ++i) {
+	for (i = 0; i < num_ctrs; ++i)
+	{
 
 		pmc_cntrl[0][i].evnts = ctr[i].event;
 		pmc_cntrl[0][i].masks = ctr[i].unit_mask;
@@ -782,22 +863,31 @@ static int cell_reg_setup_ppu(struct op_counter_config *ctr,
 		pmc_cntrl[0][i].vcntr = i;
 
 		for_each_possible_cpu(j)
-			per_cpu(pmc_values, j)[i] = 0;
+		per_cpu(pmc_values, j)[i] = 0;
 	}
 
 	/*
 	 * Setup the thread 1 events, map the thread 0 event to the
 	 * equivalent thread 1 event.
 	 */
-	for (i = 0; i < num_ctrs; ++i) {
+	for (i = 0; i < num_ctrs; ++i)
+	{
 		if ((ctr[i].event >= 2100) && (ctr[i].event <= 2111))
+		{
 			pmc_cntrl[1][i].evnts = ctr[i].event + 19;
+		}
 		else if (ctr[i].event == 2203)
+		{
 			pmc_cntrl[1][i].evnts = ctr[i].event;
+		}
 		else if ((ctr[i].event >= 2200) && (ctr[i].event <= 2215))
+		{
 			pmc_cntrl[1][i].evnts = ctr[i].event + 16;
+		}
 		else
+		{
 			pmc_cntrl[1][i].evnts = ctr[i].event;
+		}
 
 		pmc_cntrl[1][i].masks = ctr[i].unit_mask;
 		pmc_cntrl[1][i].enabled = ctr[i].enabled;
@@ -805,7 +895,9 @@ static int cell_reg_setup_ppu(struct op_counter_config *ctr,
 	}
 
 	for (i = 0; i < NUM_INPUT_BUS_WORDS; i++)
+	{
 		input_bus[i] = 0xff;
+	}
 
 	/*
 	 * Our counters count up, and "count" refers to
@@ -814,14 +906,16 @@ static int cell_reg_setup_ppu(struct op_counter_config *ctr,
 	 * which will give us "count" until overflow.
 	 * Then we set the events on the enabled counters.
 	 */
-	for (i = 0; i < num_counters; ++i) {
+	for (i = 0; i < num_counters; ++i)
+	{
 		/* start with virtual counter set 0 */
-		if (pmc_cntrl[0][i].enabled) {
+		if (pmc_cntrl[0][i].enabled)
+		{
 			/* Using 32bit counters, reset max - count */
 			reset_value[i] = 0xFFFFFFFF - ctr[i].count;
 			set_pm_event(i,
-				     pmc_cntrl[0][i].evnts,
-				     pmc_cntrl[0][i].masks);
+						 pmc_cntrl[0][i].evnts,
+						 pmc_cntrl[0][i].masks);
 
 			/* global, used by cell_cpu_setup */
 			ctr_enabled |= (1 << i);
@@ -830,9 +924,11 @@ static int cell_reg_setup_ppu(struct op_counter_config *ctr,
 
 	/* initialize the previous counts for the virtual cntrs */
 	for_each_online_cpu(cpu)
-		for (i = 0; i < num_counters; ++i) {
-			per_cpu(pmc_values, cpu)[i] = reset_value[i];
-		}
+
+	for (i = 0; i < num_counters; ++i)
+	{
+		per_cpu(pmc_values, cpu)[i] = reset_value[i];
+	}
 
 	return 0;
 }
@@ -840,9 +936,9 @@ static int cell_reg_setup_ppu(struct op_counter_config *ctr,
 
 /* This function is called once for all cpus combined */
 static int cell_reg_setup(struct op_counter_config *ctr,
-			struct op_system_config *sys, int num_ctrs)
+						  struct op_system_config *sys, int num_ctrs)
 {
-	int ret=0;
+	int ret = 0;
 	spu_cycle_reset = 0;
 
 	/* initialize the spu_arr_trace value, will be reset if
@@ -864,18 +960,22 @@ static int cell_reg_setup(struct op_counter_config *ctr,
 	 */
 	pm_rtas_token = rtas_token("ibm,cbe-perftools");
 
-	if (unlikely(pm_rtas_token == RTAS_UNKNOWN_SERVICE)) {
+	if (unlikely(pm_rtas_token == RTAS_UNKNOWN_SERVICE))
+	{
 		printk(KERN_ERR
-		       "%s: rtas token ibm,cbe-perftools unknown\n",
-		       __func__);
+			   "%s: rtas token ibm,cbe-perftools unknown\n",
+			   __func__);
 		return -EIO;
 	}
 
-	if (ctr[0].event == SPU_CYCLES_EVENT_NUM) {
+	if (ctr[0].event == SPU_CYCLES_EVENT_NUM)
+	{
 		profiling_mode = SPU_PROFILING_CYCLES;
 		ret = cell_reg_setup_spu_cycles(ctr, sys, num_ctrs);
-	} else if ((ctr[0].event >= SPU_EVENT_NUM_START) &&
-		   (ctr[0].event <= SPU_EVENT_NUM_STOP)) {
+	}
+	else if ((ctr[0].event >= SPU_EVENT_NUM_START) &&
+			 (ctr[0].event <= SPU_EVENT_NUM_STOP))
+	{
 		profiling_mode = SPU_PROFILING_EVENTS;
 		spu_cycle_reset = ctr[0].count;
 
@@ -886,7 +986,9 @@ static int cell_reg_setup(struct op_counter_config *ctr,
 		 * at a time.
 		 */
 		cell_reg_setup_spu_events(ctr, sys, num_ctrs);
-	} else {
+	}
+	else
+	{
 		profiling_mode = PPU_PROFILING;
 		ret = cell_reg_setup_ppu(ctr, sys, num_ctrs);
 	}
@@ -909,13 +1011,17 @@ static int cell_cpu_setup(struct op_counter_config *cntr)
 	 * the data.
 	 */
 	if (profiling_mode == SPU_PROFILING_CYCLES)
+	{
 		return 0;
+	}
 
 	/* There is one performance monitor per processor chip (i.e. node),
 	 * so we only need to perform this function once per node.
 	 */
 	if (cbe_get_hw_thread_id(cpu))
+	{
 		return 0;
+	}
 
 	/* Stop all counters */
 	cbe_disable_pm(cpu);
@@ -926,8 +1032,10 @@ static int cell_cpu_setup(struct op_counter_config *cntr)
 	cbe_write_pm(cpu, debug_bus_control, pm_regs.debug_bus_control);
 	write_pm_cntrl(cpu);
 
-	for (i = 0; i < num_counters; ++i) {
-		if (ctr_enabled & (1 << i)) {
+	for (i = 0; i < num_counters; ++i)
+	{
+		if (ctr_enabled & (1 << i))
+		{
 			pm_signal[num_enabled].cpu = cbe_cpu_to_node(cpu);
 			num_enabled++;
 		}
@@ -937,65 +1045,68 @@ static int cell_cpu_setup(struct op_counter_config *cntr)
 	 * The pm_rtas_activate_signals will return -EIO if the FW
 	 * call failed.
 	 */
-	if (profiling_mode == SPU_PROFILING_EVENTS) {
+	if (profiling_mode == SPU_PROFILING_EVENTS)
+	{
 		/* For SPU event profiling also need to setup the
 		 * pm interval timer
 		 */
 		ret = pm_rtas_activate_signals(cbe_cpu_to_node(cpu),
-					       num_enabled+2);
+									   num_enabled + 2);
 		/* store PC from debug bus to Trace buffer as often
 		 * as possible (every 10 cycles)
 		 */
 		cbe_write_pm(cpu, pm_interval, NUM_INTERVAL_CYC);
 		return ret;
-	} else
+	}
+	else
 		return pm_rtas_activate_signals(cbe_cpu_to_node(cpu),
-						num_enabled);
+										num_enabled);
 }
 
 #define ENTRIES	 303
 #define MAXLFSR	 0xFFFFFF
 
 /* precomputed table of 24 bit LFSR values */
-static int initial_lfsr[] = {
- 8221349, 12579195, 5379618, 10097839, 7512963, 7519310, 3955098, 10753424,
- 15507573, 7458917, 285419, 2641121, 9780088, 3915503, 6668768, 1548716,
- 4885000, 8774424, 9650099, 2044357, 2304411, 9326253, 10332526, 4421547,
- 3440748, 10179459, 13332843, 10375561, 1313462, 8375100, 5198480, 6071392,
- 9341783, 1526887, 3985002, 1439429, 13923762, 7010104, 11969769, 4547026,
- 2040072, 4025602, 3437678, 7939992, 11444177, 4496094, 9803157, 10745556,
- 3671780, 4257846, 5662259, 13196905, 3237343, 12077182, 16222879, 7587769,
- 14706824, 2184640, 12591135, 10420257, 7406075, 3648978, 11042541, 15906893,
- 11914928, 4732944, 10695697, 12928164, 11980531, 4430912, 11939291, 2917017,
- 6119256, 4172004, 9373765, 8410071, 14788383, 5047459, 5474428, 1737756,
- 15967514, 13351758, 6691285, 8034329, 2856544, 14394753, 11310160, 12149558,
- 7487528, 7542781, 15668898, 12525138, 12790975, 3707933, 9106617, 1965401,
- 16219109, 12801644, 2443203, 4909502, 8762329, 3120803, 6360315, 9309720,
- 15164599, 10844842, 4456529, 6667610, 14924259, 884312, 6234963, 3326042,
- 15973422, 13919464, 5272099, 6414643, 3909029, 2764324, 5237926, 4774955,
- 10445906, 4955302, 5203726, 10798229, 11443419, 2303395, 333836, 9646934,
- 3464726, 4159182, 568492, 995747, 10318756, 13299332, 4836017, 8237783,
- 3878992, 2581665, 11394667, 5672745, 14412947, 3159169, 9094251, 16467278,
- 8671392, 15230076, 4843545, 7009238, 15504095, 1494895, 9627886, 14485051,
- 8304291, 252817, 12421642, 16085736, 4774072, 2456177, 4160695, 15409741,
- 4902868, 5793091, 13162925, 16039714, 782255, 11347835, 14884586, 366972,
- 16308990, 11913488, 13390465, 2958444, 10340278, 1177858, 1319431, 10426302,
- 2868597, 126119, 5784857, 5245324, 10903900, 16436004, 3389013, 1742384,
- 14674502, 10279218, 8536112, 10364279, 6877778, 14051163, 1025130, 6072469,
- 1988305, 8354440, 8216060, 16342977, 13112639, 3976679, 5913576, 8816697,
- 6879995, 14043764, 3339515, 9364420, 15808858, 12261651, 2141560, 5636398,
- 10345425, 10414756, 781725, 6155650, 4746914, 5078683, 7469001, 6799140,
- 10156444, 9667150, 10116470, 4133858, 2121972, 1124204, 1003577, 1611214,
- 14304602, 16221850, 13878465, 13577744, 3629235, 8772583, 10881308, 2410386,
- 7300044, 5378855, 9301235, 12755149, 4977682, 8083074, 10327581, 6395087,
- 9155434, 15501696, 7514362, 14520507, 15808945, 3244584, 4741962, 9658130,
- 14336147, 8654727, 7969093, 15759799, 14029445, 5038459, 9894848, 8659300,
- 13699287, 8834306, 10712885, 14753895, 10410465, 3373251, 309501, 9561475,
- 5526688, 14647426, 14209836, 5339224, 207299, 14069911, 8722990, 2290950,
- 3258216, 12505185, 6007317, 9218111, 14661019, 10537428, 11731949, 9027003,
- 6641507, 9490160, 200241, 9720425, 16277895, 10816638, 1554761, 10431375,
- 7467528, 6790302, 3429078, 14633753, 14428997, 11463204, 3576212, 2003426,
- 6123687, 820520, 9992513, 15784513, 5778891, 6428165, 8388607
+static int initial_lfsr[] =
+{
+	8221349, 12579195, 5379618, 10097839, 7512963, 7519310, 3955098, 10753424,
+	15507573, 7458917, 285419, 2641121, 9780088, 3915503, 6668768, 1548716,
+	4885000, 8774424, 9650099, 2044357, 2304411, 9326253, 10332526, 4421547,
+	3440748, 10179459, 13332843, 10375561, 1313462, 8375100, 5198480, 6071392,
+	9341783, 1526887, 3985002, 1439429, 13923762, 7010104, 11969769, 4547026,
+	2040072, 4025602, 3437678, 7939992, 11444177, 4496094, 9803157, 10745556,
+	3671780, 4257846, 5662259, 13196905, 3237343, 12077182, 16222879, 7587769,
+	14706824, 2184640, 12591135, 10420257, 7406075, 3648978, 11042541, 15906893,
+	11914928, 4732944, 10695697, 12928164, 11980531, 4430912, 11939291, 2917017,
+	6119256, 4172004, 9373765, 8410071, 14788383, 5047459, 5474428, 1737756,
+	15967514, 13351758, 6691285, 8034329, 2856544, 14394753, 11310160, 12149558,
+	7487528, 7542781, 15668898, 12525138, 12790975, 3707933, 9106617, 1965401,
+	16219109, 12801644, 2443203, 4909502, 8762329, 3120803, 6360315, 9309720,
+	15164599, 10844842, 4456529, 6667610, 14924259, 884312, 6234963, 3326042,
+	15973422, 13919464, 5272099, 6414643, 3909029, 2764324, 5237926, 4774955,
+	10445906, 4955302, 5203726, 10798229, 11443419, 2303395, 333836, 9646934,
+	3464726, 4159182, 568492, 995747, 10318756, 13299332, 4836017, 8237783,
+	3878992, 2581665, 11394667, 5672745, 14412947, 3159169, 9094251, 16467278,
+	8671392, 15230076, 4843545, 7009238, 15504095, 1494895, 9627886, 14485051,
+	8304291, 252817, 12421642, 16085736, 4774072, 2456177, 4160695, 15409741,
+	4902868, 5793091, 13162925, 16039714, 782255, 11347835, 14884586, 366972,
+	16308990, 11913488, 13390465, 2958444, 10340278, 1177858, 1319431, 10426302,
+	2868597, 126119, 5784857, 5245324, 10903900, 16436004, 3389013, 1742384,
+	14674502, 10279218, 8536112, 10364279, 6877778, 14051163, 1025130, 6072469,
+	1988305, 8354440, 8216060, 16342977, 13112639, 3976679, 5913576, 8816697,
+	6879995, 14043764, 3339515, 9364420, 15808858, 12261651, 2141560, 5636398,
+	10345425, 10414756, 781725, 6155650, 4746914, 5078683, 7469001, 6799140,
+	10156444, 9667150, 10116470, 4133858, 2121972, 1124204, 1003577, 1611214,
+	14304602, 16221850, 13878465, 13577744, 3629235, 8772583, 10881308, 2410386,
+	7300044, 5378855, 9301235, 12755149, 4977682, 8083074, 10327581, 6395087,
+	9155434, 15501696, 7514362, 14520507, 15808945, 3244584, 4741962, 9658130,
+	14336147, 8654727, 7969093, 15759799, 14029445, 5038459, 9894848, 8659300,
+	13699287, 8834306, 10712885, 14753895, 10410465, 3373251, 309501, 9561475,
+	5526688, 14647426, 14209836, 5339224, 207299, 14069911, 8722990, 2290950,
+	3258216, 12505185, 6007317, 9218111, 14661019, 10537428, 11731949, 9027003,
+	6641507, 9490160, 200241, 9720425, 16277895, 10816638, 1554761, 10431375,
+	7467528, 6790302, 3429078, 14633753, 14428997, 11463204, 3576212, 2003426,
+	6123687, 820520, 9992513, 15784513, 5778891, 6428165, 8388607
 };
 
 /*
@@ -1064,19 +1175,31 @@ static int calculate_lfsr(int n)
 	int index;
 
 	if ((n >> 16) == 0)
+	{
 		index = 0;
+	}
 	else if (((n - V2_16) >> 19) == 0)
+	{
 		index = ((n - V2_16) >> 12) + 1;
+	}
 	else if (((n - V2_16 - V2_19) >> 22) == 0)
+	{
 		index = ((n - V2_16 - V2_19) >> 15 ) + 1 + 128;
+	}
 	else if (((n - V2_16 - V2_19 - V2_22) >> 24) == 0)
+	{
 		index = ((n - V2_16 - V2_19 - V2_22) >> 18 ) + 1 + 256;
+	}
 	else
-		index = ENTRIES-1;
+	{
+		index = ENTRIES - 1;
+	}
 
 	/* make sure index is valid */
 	if ((index >= ENTRIES) || (index < 0))
-		index = ENTRIES-1;
+	{
+		index = ENTRIES - 1;
+	}
 
 	return initial_lfsr[index];
 }
@@ -1090,7 +1213,8 @@ static int pm_rtas_activate_spu_profiling(u32 node)
 	 * Set up the rtas call to configure the debug bus to
 	 * route the SPU PCs.  Setup the pm_signal for each SPU
 	 */
-	for (i = 0; i < ARRAY_SIZE(pm_signal_local); i++) {
+	for (i = 0; i < ARRAY_SIZE(pm_signal_local); i++)
+	{
 		pm_signal_local[i].cpu = node;
 		pm_signal_local[i].signal_group = 41;
 		/* spu i on word (i/2) */
@@ -1101,13 +1225,14 @@ static int pm_rtas_activate_spu_profiling(u32 node)
 	}
 
 	ret = rtas_ibm_cbe_perftools(SUBFUNC_ACTIVATE,
-				     PASSTHRU_ENABLE, pm_signal_local,
-				     (ARRAY_SIZE(pm_signal_local)
-				      * sizeof(struct pm_signal)));
+								 PASSTHRU_ENABLE, pm_signal_local,
+								 (ARRAY_SIZE(pm_signal_local)
+								  * sizeof(struct pm_signal)));
 
-	if (unlikely(ret)) {
+	if (unlikely(ret))
+	{
 		printk(KERN_WARNING "%s: rtas returned: %d\n",
-		       __func__, ret);
+			   __func__, ret);
 		return -EIO;
 	}
 
@@ -1120,13 +1245,18 @@ oprof_cpufreq_notify(struct notifier_block *nb, unsigned long val, void *data)
 {
 	int ret = 0;
 	struct cpufreq_freqs *frq = data;
+
 	if ((val == CPUFREQ_PRECHANGE && frq->old < frq->new) ||
-	    (val == CPUFREQ_POSTCHANGE && frq->old > frq->new))
+		(val == CPUFREQ_POSTCHANGE && frq->old > frq->new))
+	{
 		set_spu_profiling_frequency(frq->new, spu_cycle_reset);
+	}
+
 	return ret;
 }
 
-static struct notifier_block cpu_freq_notifier_block = {
+static struct notifier_block cpu_freq_notifier_block =
+{
 	.notifier_call	= oprof_cpufreq_notify
 };
 #endif
@@ -1150,12 +1280,15 @@ static void cell_global_stop_spu_cycles(void)
 
 #ifdef CONFIG_CPU_FREQ
 	cpufreq_unregister_notifier(&cpu_freq_notifier_block,
-				    CPUFREQ_TRANSITION_NOTIFIER);
+								CPUFREQ_TRANSITION_NOTIFIER);
 #endif
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		subfunc = 3;	/*
 				 * 2 - activate SPU tracing,
@@ -1164,14 +1297,15 @@ static void cell_global_stop_spu_cycles(void)
 		lfsr_value = 0x8f100000;
 
 		rtn_value = rtas_call(spu_rtas_token, 3, 1, NULL,
-				      subfunc, cbe_cpu_to_node(cpu),
-				      lfsr_value);
+							  subfunc, cbe_cpu_to_node(cpu),
+							  lfsr_value);
 
-		if (unlikely(rtn_value != 0)) {
+		if (unlikely(rtn_value != 0))
+		{
 			printk(KERN_ERR
-			       "%s: rtas call ibm,cbe-spu-perftools " \
-			       "failed, return = %d\n",
-			       __func__, rtn_value);
+				   "%s: rtas call ibm,cbe-spu-perftools " \
+				   "failed, return = %d\n",
+				   __func__, rtn_value);
 		}
 
 		/* Deactivate the signals */
@@ -1189,9 +1323,12 @@ static void cell_global_stop_spu_events(void)
 	stop_spu_profiling_events();
 	smp_wmb();
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		cbe_sync_irq(cbe_cpu_to_node(cpu));
 		/* Stop the counters */
@@ -1220,9 +1357,12 @@ static void cell_global_stop_ppu(void)
 	oprofile_running = 0;
 	smp_wmb();
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		cbe_sync_irq(cbe_cpu_to_node(cpu));
 		/* Stop the counters */
@@ -1239,11 +1379,17 @@ static void cell_global_stop_ppu(void)
 static void cell_global_stop(void)
 {
 	if (profiling_mode == PPU_PROFILING)
+	{
 		cell_global_stop_ppu();
+	}
 	else if (profiling_mode == SPU_PROFILING_EVENTS)
+	{
 		cell_global_stop_spu_events();
+	}
 	else
+	{
 		cell_global_stop_spu_cycles();
+	}
 }
 
 static int cell_global_start_spu_cycles(struct op_counter_config *ctr)
@@ -1262,21 +1408,28 @@ static int cell_global_start_spu_cycles(struct op_counter_config *ctr)
 	 */
 #ifdef CONFIG_CPU_FREQ
 	ret = cpufreq_register_notifier(&cpu_freq_notifier_block,
-					CPUFREQ_TRANSITION_NOTIFIER);
+									CPUFREQ_TRANSITION_NOTIFIER);
+
 	if (ret < 0)
 		/* this is not a fatal error */
 		printk(KERN_ERR "CPU freq change registration failed: %d\n",
-		       ret);
+			   ret);
 
 	else
+	{
 		cpu_khzfreq = cpufreq_quick_get(smp_processor_id());
+	}
+
 #endif
 
 	set_spu_profiling_frequency(cpu_khzfreq, spu_cycle_reset);
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		/*
 		 * Setup SPU cycle-based profiling.
@@ -1287,13 +1440,19 @@ static int cell_global_start_spu_cycles(struct op_counter_config *ctr)
 
 		if (spu_cycle_reset > MAX_SPU_COUNT)
 			/* use largest possible value */
-			lfsr_value = calculate_lfsr(MAX_SPU_COUNT-1);
+		{
+			lfsr_value = calculate_lfsr(MAX_SPU_COUNT - 1);
+		}
 		else
+		{
 			lfsr_value = calculate_lfsr(spu_cycle_reset);
+		}
 
 		/* must use a non zero value. Zero disables data collection. */
 		if (lfsr_value == 0)
+		{
 			lfsr_value = calculate_lfsr(1);
+		}
 
 		lfsr_value = lfsr_value << 8; /* shift lfsr to correct
 						* register location
@@ -1302,7 +1461,8 @@ static int cell_global_start_spu_cycles(struct op_counter_config *ctr)
 		/* debug bus setup */
 		ret = pm_rtas_activate_spu_profiling(cbe_cpu_to_node(cpu));
 
-		if (unlikely(ret)) {
+		if (unlikely(ret))
+		{
 			rtas_error = ret;
 			goto out;
 		}
@@ -1312,20 +1472,24 @@ static int cell_global_start_spu_cycles(struct op_counter_config *ctr)
 
 		/* start profiling */
 		ret = rtas_call(spu_rtas_token, 3, 1, NULL, subfunc,
-				cbe_cpu_to_node(cpu), lfsr_value);
+						cbe_cpu_to_node(cpu), lfsr_value);
 
-		if (unlikely(ret != 0)) {
+		if (unlikely(ret != 0))
+		{
 			printk(KERN_ERR
-			       "%s: rtas call ibm,cbe-spu-perftools failed, " \
-			       "return = %d\n", __func__, ret);
+				   "%s: rtas call ibm,cbe-spu-perftools failed, " \
+				   "return = %d\n", __func__, ret);
 			rtas_error = -EIO;
 			goto out;
 		}
 	}
 
 	rtas_error = start_spu_profiling_cycles(spu_cycle_reset);
+
 	if (rtas_error)
+	{
 		goto out_stop;
+	}
 
 	oprofile_running = 1;
 	return 0;
@@ -1358,9 +1522,12 @@ static int cell_global_start_spu_events(struct op_counter_config *ctr)
 	 * only need to perform this function once per node.
 	 */
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		/*
 		 * Setup SPU event-based profiling.
@@ -1369,12 +1536,15 @@ static int cell_global_start_spu_events(struct op_counter_config *ctr)
 		 *
 		 * Only support one SPU event on one SPU per node.
 		 */
-		if (ctr_enabled & 1) {
+		if (ctr_enabled & 1)
+		{
 			cbe_write_ctr(cpu, 0, reset_value[0]);
 			enable_ctr(cpu, 0, pm_regs.pm07_cntrl);
 			interrupt_mask |=
 				CBE_PM_CTR_OVERFLOW_INTR(0);
-		} else {
+		}
+		else
+		{
 			/* Disable counter */
 			cbe_write_pm07_control(cpu, 0, 0);
 		}
@@ -1408,18 +1578,25 @@ static int cell_global_start_ppu(struct op_counter_config *ctr)
 	 * There is one performance monitor per node, so we
 	 * only need to perform this function once per node.
 	 */
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		interrupt_mask = 0;
 
-		for (i = 0; i < num_counters; ++i) {
-			if (ctr_enabled & (1 << i)) {
+		for (i = 0; i < num_counters; ++i)
+		{
+			if (ctr_enabled & (1 << i))
+			{
 				cbe_write_ctr(cpu, i, reset_value[i]);
 				enable_ctr(cpu, i, pm_regs.pm07_cntrl);
 				interrupt_mask |= CBE_PM_CTR_OVERFLOW_INTR(i);
-			} else {
+			}
+			else
+			{
 				/* Disable counter */
 				cbe_write_pm07_control(cpu, i, 0);
 			}
@@ -1448,11 +1625,17 @@ static int cell_global_start_ppu(struct op_counter_config *ctr)
 static int cell_global_start(struct op_counter_config *ctr)
 {
 	if (profiling_mode == SPU_PROFILING_CYCLES)
+	{
 		return cell_global_start_spu_cycles(ctr);
+	}
 	else if (profiling_mode == SPU_PROFILING_EVENTS)
+	{
 		return cell_global_start_spu_events(ctr);
+	}
 	else
+	{
 		return cell_global_start_ppu(ctr);
+	}
 }
 
 
@@ -1484,7 +1667,7 @@ static int cell_global_start(struct op_counter_config *ctr)
  * It may also be necessary to use a longer sample collection period.
  */
 static void cell_handle_interrupt_spu(struct pt_regs *regs,
-				      struct op_counter_config *ctr)
+									  struct op_counter_config *ctr)
 {
 	u32 cpu, cpu_tmp;
 	u64 trace_entry;
@@ -1512,22 +1695,26 @@ static void cell_handle_interrupt_spu(struct pt_regs *regs,
 	trace_entry = 0xfedcba;
 	last_trace_buffer = 0xdeadbeaf;
 
-	if ((oprofile_running == 1) && (interrupt_mask != 0)) {
+	if ((oprofile_running == 1) && (interrupt_mask != 0))
+	{
 		/* disable writes to trace buff */
 		cbe_write_pm(cpu, pm_interval, 0);
 
 		/* only have one perf cntr being used, cntr 0 */
 		if ((interrupt_mask & CBE_PM_CTR_OVERFLOW_INTR(0))
-		    && ctr[0].enabled)
+			&& ctr[0].enabled)
 			/* The SPU PC values will be read
 			 * from the trace buffer, reset counter
 			 */
 
+		{
 			cbe_write_ctr(cpu, 0, reset_value[0]);
+		}
 
 		trace_addr = cbe_read_pm(cpu, trace_address);
 
-		while (!(trace_addr & CBE_PM_TRACE_BUF_EMPTY)) {
+		while (!(trace_addr & CBE_PM_TRACE_BUF_EMPTY))
+		{
 			/* There is data in the trace buffer to process
 			 * Read the buffer until you get to the last
 			 * entry.  This is the value we want.
@@ -1553,7 +1740,7 @@ static void cell_handle_interrupt_spu(struct pt_regs *regs,
 		 */
 
 		trace_entry = trace_buffer[0]
-			& 0x00000000FFFF0000;
+					  & 0x00000000FFFF0000;
 
 		/* only top 16 of the 18 bit SPU PC address
 		 * is stored in trace buffer, hence shift right
@@ -1562,16 +1749,16 @@ static void cell_handle_interrupt_spu(struct pt_regs *regs,
 		last_trace_buffer = trace_buffer[0];
 
 		spu_num = spu_evnt_phys_spu_indx
-			+ (cbe_cpu_to_node(cpu) * NUM_SPUS_PER_NODE);
+				  + (cbe_cpu_to_node(cpu) * NUM_SPUS_PER_NODE);
 
 		/* make sure only one process at a time is calling
 		 * spu_sync_buffer()
 		 */
 		spin_lock_irqsave(&oprof_spu_smpl_arry_lck,
-				  sample_array_lock_flags);
+						  sample_array_lock_flags);
 		spu_sync_buffer(spu_num, &sample, 1);
 		spin_unlock_irqrestore(&oprof_spu_smpl_arry_lck,
-				       sample_array_lock_flags);
+							   sample_array_lock_flags);
 
 		smp_wmb();    /* insure spu event buffer updates are written
 			       * don't want events intermingled... */
@@ -1581,7 +1768,7 @@ static void cell_handle_interrupt_spu(struct pt_regs *regs,
 		 */
 		cbe_write_pm(cpu, pm_interval, NUM_INTERVAL_CYC);
 		cbe_enable_pm_interrupts(cpu, hdw_thread,
-					 virt_cntr_inter_mask);
+								 virt_cntr_inter_mask);
 
 		/* clear the trace buffer, re-enable writes to trace buff */
 		cbe_write_pm(cpu, trace_address, 0);
@@ -1598,11 +1785,12 @@ static void cell_handle_interrupt_spu(struct pt_regs *regs,
 		write_pm_cntrl(cpu);
 		cbe_enable_pm(cpu);
 	}
+
 	spin_unlock_irqrestore(&cntr_lock, flags);
 }
 
 static void cell_handle_interrupt_ppu(struct pt_regs *regs,
-				      struct op_counter_config *ctr)
+									  struct op_counter_config *ctr)
 {
 	u32 cpu;
 	u64 pc;
@@ -1637,13 +1825,16 @@ static void cell_handle_interrupt_ppu(struct pt_regs *regs,
 	 * 0xffffff0 to cause the interrupt to be regenerated.
 	 */
 
-	if ((oprofile_running == 1) && (interrupt_mask != 0)) {
+	if ((oprofile_running == 1) && (interrupt_mask != 0))
+	{
 		pc = regs->nip;
 		is_kernel = is_kernel_addr(pc);
 
-		for (i = 0; i < num_counters; ++i) {
+		for (i = 0; i < num_counters; ++i)
+		{
 			if ((interrupt_mask & CBE_PM_CTR_OVERFLOW_INTR(i))
-			    && ctr[i].enabled) {
+				&& ctr[i].enabled)
+			{
 				oprofile_add_ext_sample(pc, regs, i, is_kernel);
 				cbe_write_ctr(cpu, i, reset_value[i]);
 			}
@@ -1658,7 +1849,7 @@ static void cell_handle_interrupt_ppu(struct pt_regs *regs,
 		 * use the virt_cntr_inter_mask to re-enable the interrupts.
 		 */
 		cbe_enable_pm_interrupts(cpu, hdw_thread,
-					 virt_cntr_inter_mask);
+								 virt_cntr_inter_mask);
 
 		/*
 		 * The writes to the various performance counters only writes
@@ -1671,16 +1862,21 @@ static void cell_handle_interrupt_ppu(struct pt_regs *regs,
 		 */
 		cbe_enable_pm(cpu);
 	}
+
 	spin_unlock_irqrestore(&cntr_lock, flags);
 }
 
 static void cell_handle_interrupt(struct pt_regs *regs,
-				  struct op_counter_config *ctr)
+								  struct op_counter_config *ctr)
 {
 	if (profiling_mode == PPU_PROFILING)
+	{
 		cell_handle_interrupt_ppu(regs, ctr);
+	}
 	else
+	{
 		cell_handle_interrupt_spu(regs, ctr);
+	}
 }
 
 /*
@@ -1691,22 +1887,31 @@ static void cell_handle_interrupt(struct pt_regs *regs,
 static int cell_sync_start(void)
 {
 	if ((profiling_mode == SPU_PROFILING_CYCLES) ||
-	    (profiling_mode == SPU_PROFILING_EVENTS))
+		(profiling_mode == SPU_PROFILING_EVENTS))
+	{
 		return spu_sync_start();
+	}
 	else
+	{
 		return DO_GENERIC_SYNC;
+	}
 }
 
 static int cell_sync_stop(void)
 {
 	if ((profiling_mode == SPU_PROFILING_CYCLES) ||
-	    (profiling_mode == SPU_PROFILING_EVENTS))
+		(profiling_mode == SPU_PROFILING_EVENTS))
+	{
 		return spu_sync_stop();
+	}
 	else
+	{
 		return 1;
+	}
 }
 
-struct op_powerpc_model op_model_cell = {
+struct op_powerpc_model op_model_cell =
+{
 	.reg_setup = cell_reg_setup,
 	.cpu_setup = cell_cpu_setup,
 	.global_start = cell_global_start,

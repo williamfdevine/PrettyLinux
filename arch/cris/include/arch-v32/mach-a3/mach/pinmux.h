@@ -5,14 +5,16 @@
 #define PORT_B 1
 #define PORT_C 2
 
-enum pin_mode {
+enum pin_mode
+{
 	pinmux_none = 0,
 	pinmux_fixed,
 	pinmux_gpio,
 	pinmux_iop
 };
 
-enum fixed_function {
+enum fixed_function
+{
 	pinmux_eth,
 	pinmux_geth,
 	pinmux_tg_ccd,

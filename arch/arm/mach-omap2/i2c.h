@@ -32,7 +32,8 @@
  * @fifo_depth represents what exists on the hardware, not what is
  * actually configured at runtime by the device driver.
  */
-struct omap_i2c_dev_attr {
+struct omap_i2c_dev_attr
+{
 	u8	fifo_depth;
 	u32	flags;
 };

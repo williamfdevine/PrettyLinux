@@ -24,14 +24,15 @@
 #include <linux/slab.h>
 
 #if 0
-#define DEBUGP printk
+	#define DEBUGP printk
 #else
-#define DEBUGP(fmt...)
+	#define DEBUGP(fmt...)
 #endif
 
 /* Allocate the GOT at the end of the core sections.  */
 
-struct got_entry {
+struct got_entry
+{
 	struct got_entry *next;
 	Elf64_Sxword r_addend;
 	int got_offset;
@@ -39,7 +40,7 @@ struct got_entry {
 
 static inline void
 process_reloc_for_got(Elf64_Rela *rela,
-		      struct got_entry *chains, Elf64_Xword *poffset)
+					  struct got_entry *chains, Elf64_Xword *poffset)
 {
 	unsigned long r_sym = ELF64_R_SYM (rela->r_info);
 	unsigned long r_type = ELF64_R_TYPE (rela->r_info);
@@ -47,14 +48,19 @@ process_reloc_for_got(Elf64_Rela *rela,
 	struct got_entry *g;
 
 	if (r_type != R_ALPHA_LITERAL)
+	{
 		return;
+	}
 
 	for (g = chains + r_sym; g ; g = g->next)
-		if (g->r_addend == r_addend) {
-			if (g->got_offset == 0) {
+		if (g->r_addend == r_addend)
+		{
+			if (g->got_offset == 0)
+			{
 				g->got_offset = *poffset;
 				*poffset += 8;
 			}
+
 			goto found_entry;
 		}
 
@@ -65,7 +71,7 @@ process_reloc_for_got(Elf64_Rela *rela,
 	*poffset += 8;
 	chains[r_sym].next = g;
 
- found_entry:
+found_entry:
 	/* Trick: most of the ELF64_R_TYPE field is unused.  There are
 	   42 valid relocation types, and a 32-bit field.  Co-opt the
 	   bits above 256 to store the got offset for this reloc.  */
@@ -74,7 +80,7 @@ process_reloc_for_got(Elf64_Rela *rela,
 
 int
 module_frob_arch_sections(Elf64_Ehdr *hdr, Elf64_Shdr *sechdrs,
-			  char *secstrings, struct module *me)
+						  char *secstrings, struct module *me)
 {
 	struct got_entry *chains;
 	Elf64_Rela *rela;
@@ -89,27 +95,35 @@ module_frob_arch_sections(Elf64_Ehdr *hdr, Elf64_Shdr *sechdrs,
 	   We'll chain different offsets for the symbol down each head.  */
 	for (s = sechdrs; s < esechdrs; ++s)
 		if (s->sh_type == SHT_SYMTAB)
+		{
 			symtab = s;
-		else if (!strcmp(".got", secstrings + s->sh_name)) {
+		}
+		else if (!strcmp(".got", secstrings + s->sh_name))
+		{
 			got = s;
 			me->arch.gotsecindex = s - sechdrs;
 		}
 
-	if (!symtab) {
+	if (!symtab)
+	{
 		printk(KERN_ERR "module %s: no symbol table\n", me->name);
 		return -ENOEXEC;
 	}
-	if (!got) {
+
+	if (!got)
+	{
 		printk(KERN_ERR "module %s: no got section\n", me->name);
 		return -ENOEXEC;
 	}
 
 	nsyms = symtab->sh_size / sizeof(Elf64_Sym);
 	chains = kcalloc(nsyms, sizeof(struct got_entry), GFP_KERNEL);
-	if (!chains) {
+
+	if (!chains)
+	{
 		printk(KERN_ERR
-		       "module %s: no memory for symbol chain buffer\n",
-		       me->name);
+			   "module %s: no memory for symbol chain buffer\n",
+			   me->name);
 		return -ENOMEM;
 	}
 
@@ -120,22 +134,28 @@ module_frob_arch_sections(Elf64_Ehdr *hdr, Elf64_Shdr *sechdrs,
 	/* Examine all LITERAL relocations to find out what GOT entries
 	   are required.  This sizes the GOT section as well.  */
 	for (s = sechdrs; s < esechdrs; ++s)
-		if (s->sh_type == SHT_RELA) {
+		if (s->sh_type == SHT_RELA)
+		{
 			nrela = s->sh_size / sizeof(Elf64_Rela);
 			rela = (void *)hdr + s->sh_offset;
+
 			for (i = 0; i < nrela; ++i)
-				process_reloc_for_got(rela+i, chains,
-						      &got->sh_size);
+				process_reloc_for_got(rela + i, chains,
+									  &got->sh_size);
 		}
 
 	/* Free the memory we allocated.  */
-	for (i = 0; i < nsyms; ++i) {
+	for (i = 0; i < nsyms; ++i)
+	{
 		struct got_entry *g, *n;
-		for (g = chains[i].next; g ; g = n) {
+
+		for (g = chains[i].next; g ; g = n)
+		{
 			n = g->next;
 			kfree(g);
 		}
 	}
+
 	kfree(chains);
 
 	return 0;
@@ -143,8 +163,8 @@ module_frob_arch_sections(Elf64_Ehdr *hdr, Elf64_Shdr *sechdrs,
 
 int
 apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
-		   unsigned int symindex, unsigned int relsec,
-		   struct module *me)
+				   unsigned int symindex, unsigned int relsec,
+				   struct module *me)
 {
 	Elf64_Rela *rela = (void *)sechdrs[relsec].sh_addr;
 	unsigned long i, n = sechdrs[relsec].sh_size / sizeof(*rela);
@@ -153,7 +173,7 @@ apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
 	unsigned long got, gp;
 
 	DEBUGP("Applying relocate section %u to %u\n", relsec,
-	       sechdrs[relsec].sh_info);
+		   sechdrs[relsec].sh_info);
 
 	base = (void *)sechdrs[sechdrs[relsec].sh_info].sh_addr;
 	symtab = (Elf64_Sym *)sechdrs[symindex].sh_addr;
@@ -163,7 +183,8 @@ apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
 	gp = (u64)me->core_layout.base + me->core_layout.size - 0x8000;
 	got = sechdrs[me->arch.gotsecindex].sh_addr;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		unsigned long r_sym = ELF64_R_SYM (rela[i].r_info);
 		unsigned long r_type = ELF64_R_TYPE (rela[i].r_info);
 		unsigned long r_got_offset = r_type >> 8;
@@ -178,103 +199,158 @@ apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
 		sym = symtab + r_sym;
 		value = sym->st_value + rela[i].r_addend;
 
-		switch (r_type) {
-		case R_ALPHA_NONE:
-			break;
-		case R_ALPHA_REFQUAD:
-			/* BUG() can produce misaligned relocations. */
-			((u32 *)location)[0] = value;
-			((u32 *)location)[1] = value >> 32;
-			break;
-		case R_ALPHA_GPREL32:
-			value -= gp;
-			if ((int)value != value)
-				goto reloc_overflow;
-			*(u32 *)location = value;
-			break;
-		case R_ALPHA_LITERAL:
-			hi = got + r_got_offset;
-			lo = hi - gp;
-			if ((short)lo != lo)
-				goto reloc_overflow;
-			*(u16 *)location = lo;
-			*(u64 *)hi = value;
-			break;
-		case R_ALPHA_LITUSE:
-			break;
-		case R_ALPHA_GPDISP:
-			value = gp - (u64)location;
-			lo = (short)value;
-			hi = (int)(value - lo);
-			if (hi + lo != value)
-				goto reloc_overflow;
-			*(u16 *)location = hi >> 16;
-			*(u16 *)(location + rela[i].r_addend) = lo;
-			break;
-		case R_ALPHA_BRSGP:
-			/* BRSGP is only allowed to bind to local symbols.
-			   If the section is undef, this means that the
-			   value was resolved from somewhere else.  */
-			if (sym->st_shndx == SHN_UNDEF)
-				goto reloc_overflow;
-			if ((sym->st_other & STO_ALPHA_STD_GPLOAD) ==
-			    STO_ALPHA_STD_GPLOAD)
-				/* Omit the prologue. */
-				value += 8;
+		switch (r_type)
+		{
+			case R_ALPHA_NONE:
+				break;
+
+			case R_ALPHA_REFQUAD:
+				/* BUG() can produce misaligned relocations. */
+				((u32 *)location)[0] = value;
+				((u32 *)location)[1] = value >> 32;
+				break;
+
+			case R_ALPHA_GPREL32:
+				value -= gp;
+
+				if ((int)value != value)
+				{
+					goto reloc_overflow;
+				}
+
+				*(u32 *)location = value;
+				break;
+
+			case R_ALPHA_LITERAL:
+				hi = got + r_got_offset;
+				lo = hi - gp;
+
+				if ((short)lo != lo)
+				{
+					goto reloc_overflow;
+				}
+
+				*(u16 *)location = lo;
+				*(u64 *)hi = value;
+				break;
+
+			case R_ALPHA_LITUSE:
+				break;
+
+			case R_ALPHA_GPDISP:
+				value = gp - (u64)location;
+				lo = (short)value;
+				hi = (int)(value - lo);
+
+				if (hi + lo != value)
+				{
+					goto reloc_overflow;
+				}
+
+				*(u16 *)location = hi >> 16;
+				*(u16 *)(location + rela[i].r_addend) = lo;
+				break;
+
+			case R_ALPHA_BRSGP:
+
+				/* BRSGP is only allowed to bind to local symbols.
+				   If the section is undef, this means that the
+				   value was resolved from somewhere else.  */
+				if (sym->st_shndx == SHN_UNDEF)
+				{
+					goto reloc_overflow;
+				}
+
+				if ((sym->st_other & STO_ALPHA_STD_GPLOAD) ==
+					STO_ALPHA_STD_GPLOAD)
+					/* Omit the prologue. */
+				{
+					value += 8;
+				}
+
 			/* FALLTHRU */
-		case R_ALPHA_BRADDR:
-			value -= (u64)location + 4;
-			if (value & 3)
-				goto reloc_overflow;
-			value = (long)value >> 2;
-			if (value + (1<<21) >= 1<<22)
-				goto reloc_overflow;
-			value &= 0x1fffff;
-			value |= *(u32 *)location & ~0x1fffff;
-			*(u32 *)location = value;
-			break;
-		case R_ALPHA_HINT:
-			break;
-		case R_ALPHA_SREL32:
-			value -= (u64)location;
-			if ((int)value != value)
-				goto reloc_overflow;
-			*(u32 *)location = value;
-			break;
-		case R_ALPHA_SREL64:
-			value -= (u64)location;
-			*(u64 *)location = value;
-			break;
-		case R_ALPHA_GPRELHIGH:
-			value = (long)(value - gp + 0x8000) >> 16;
-			if ((short) value != value)
-				goto reloc_overflow;
-			*(u16 *)location = value;
-			break;
-		case R_ALPHA_GPRELLOW:
-			value -= gp;
-			*(u16 *)location = value;
-			break;
-		case R_ALPHA_GPREL16:
-			value -= gp;
-			if ((short) value != value)
-				goto reloc_overflow;
-			*(u16 *)location = value;
-			break;
-		default:
-			printk(KERN_ERR "module %s: Unknown relocation: %lu\n",
-			       me->name, r_type);
-			return -ENOEXEC;
-		reloc_overflow:
-			if (ELF64_ST_TYPE (sym->st_info) == STT_SECTION)
-			  printk(KERN_ERR
-			         "module %s: Relocation (type %lu) overflow vs section %d\n",
-			         me->name, r_type, sym->st_shndx);
-			else
-			  printk(KERN_ERR
-			         "module %s: Relocation (type %lu) overflow vs %s\n",
-			         me->name, r_type, strtab + sym->st_name);
-			return -ENOEXEC;
+			case R_ALPHA_BRADDR:
+				value -= (u64)location + 4;
+
+				if (value & 3)
+				{
+					goto reloc_overflow;
+				}
+
+				value = (long)value >> 2;
+
+				if (value + (1 << 21) >= 1 << 22)
+				{
+					goto reloc_overflow;
+				}
+
+				value &= 0x1fffff;
+				value |= *(u32 *)location & ~0x1fffff;
+				*(u32 *)location = value;
+				break;
+
+			case R_ALPHA_HINT:
+				break;
+
+			case R_ALPHA_SREL32:
+				value -= (u64)location;
+
+				if ((int)value != value)
+				{
+					goto reloc_overflow;
+				}
+
+				*(u32 *)location = value;
+				break;
+
+			case R_ALPHA_SREL64:
+				value -= (u64)location;
+				*(u64 *)location = value;
+				break;
+
+			case R_ALPHA_GPRELHIGH:
+				value = (long)(value - gp + 0x8000) >> 16;
+
+				if ((short) value != value)
+				{
+					goto reloc_overflow;
+				}
+
+				*(u16 *)location = value;
+				break;
+
+			case R_ALPHA_GPRELLOW:
+				value -= gp;
+				*(u16 *)location = value;
+				break;
+
+			case R_ALPHA_GPREL16:
+				value -= gp;
+
+				if ((short) value != value)
+				{
+					goto reloc_overflow;
+				}
+
+				*(u16 *)location = value;
+				break;
+
+			default:
+				printk(KERN_ERR "module %s: Unknown relocation: %lu\n",
+					   me->name, r_type);
+				return -ENOEXEC;
+reloc_overflow:
+
+				if (ELF64_ST_TYPE (sym->st_info) == STT_SECTION)
+					printk(KERN_ERR
+						   "module %s: Relocation (type %lu) overflow vs section %d\n",
+						   me->name, r_type, sym->st_shndx);
+				else
+					printk(KERN_ERR
+						   "module %s: Relocation (type %lu) overflow vs %s\n",
+						   me->name, r_type, strtab + sym->st_name);
+
+				return -ENOEXEC;
 		}
 	}
 

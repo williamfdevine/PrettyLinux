@@ -35,8 +35,8 @@
 
 /* Use PNX833X_FIELD to extract a field from val */
 #define PNX_FIELD(cpu, val, reg, field) \
-		(((val) & PNX##cpu##_##reg##_##field##_MASK) >> \
-			PNX##cpu##_##reg##_##field##_SHIFT)
+	(((val) & PNX##cpu##_##reg##_##field##_MASK) >> \
+	 PNX##cpu##_##reg##_##field##_SHIFT)
 #define PNX833X_FIELD(val, reg, field)	PNX_FIELD(833X, val, reg, field)
 #define PNX8330_FIELD(val, reg, field)	PNX_FIELD(8330, val, reg, field)
 #define PNX8335_FIELD(val, reg, field)	PNX_FIELD(8335, val, reg, field)
@@ -51,11 +51,11 @@
 	(PNX##cpu##_##reg = (PNX##cpu##_##reg & ~(PNX##cpu##_##reg##_##field##_MASK)) | \
 						((val) << PNX##cpu##_##reg##_##field##_SHIFT))
 #define PNX833X_WRITEFIELD(val, reg, field) \
-					PNX_WRITEFIELD(833X, val, reg, field)
+	PNX_WRITEFIELD(833X, val, reg, field)
 #define PNX8330_WRITEFIELD(val, reg, field) \
-					PNX_WRITEFIELD(8330, val, reg, field)
+	PNX_WRITEFIELD(8330, val, reg, field)
 #define PNX8335_WRITEFIELD(val, reg, field) \
-					PNX_WRITEFIELD(8335, val, reg, field)
+	PNX_WRITEFIELD(8335, val, reg, field)
 
 
 /* Macros to detect CPU type */
@@ -66,9 +66,9 @@
 #define PNX8330_CONFIG_MODULE_MAJREV		4
 #define PNX8335_CONFIG_MODULE_MAJREV		5
 #define CPU_IS_PNX8330	(PNX833X_REGFIELD(CONFIG_MODULE_ID, MAJREV) == \
-					PNX8330_CONFIG_MODULE_MAJREV)
+						 PNX8330_CONFIG_MODULE_MAJREV)
 #define CPU_IS_PNX8335	(PNX833X_REGFIELD(CONFIG_MODULE_ID, MAJREV) == \
-					PNX8335_CONFIG_MODULE_MAJREV)
+						 PNX8335_CONFIG_MODULE_MAJREV)
 
 
 
@@ -170,11 +170,11 @@
 #define PNX833X_MIU_CONFIG_SPI_SYNC_SHIFT	0
 
 #define PNX833X_WRITE_CONFIG_SPI(opcode, data_enable, addr_enable, sync) \
-   (PNX833X_MIU_CONFIG_SPI =						\
-    ((opcode) << PNX833X_MIU_CONFIG_SPI_OPCODE_SHIFT) |			\
-    ((data_enable) << PNX833X_MIU_CONFIG_SPI_DATA_ENABLE_SHIFT) |	\
-    ((addr_enable) << PNX833X_MIU_CONFIG_SPI_ADDR_ENABLE_SHIFT) |	\
-    ((sync) << PNX833X_MIU_CONFIG_SPI_SYNC_SHIFT))
+	(PNX833X_MIU_CONFIG_SPI =						\
+			((opcode) << PNX833X_MIU_CONFIG_SPI_OPCODE_SHIFT) |			\
+			((data_enable) << PNX833X_MIU_CONFIG_SPI_DATA_ENABLE_SHIFT) |	\
+			((addr_enable) << PNX833X_MIU_CONFIG_SPI_ADDR_ENABLE_SHIFT) |	\
+			((sync) << PNX833X_MIU_CONFIG_SPI_SYNC_SHIFT))
 
 #define PNX8335_IP3902_PORTS_START		(PNX833X_BASE + 0x2F000)
 #define PNX8335_IP3902_PORTS_END		(PNX833X_BASE + 0x2FFFF)
@@ -184,7 +184,7 @@
 #define PNX8335_IP3902_MODULE_ID_MODULE_ID_SHIFT	16
 #define PNX8335_IP3902_MODULE_ID_VALUE			0x3902
 
- /* I/O location(gets remapped)*/
+/* I/O location(gets remapped)*/
 #define PNX8335_NAND_BASE	    0x18000000
 /* I/O location with CLE high */
 #define PNX8335_NAND_CLE_MASK	0x00100000

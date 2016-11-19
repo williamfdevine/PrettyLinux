@@ -11,7 +11,7 @@
 #define __ASMARM_TCM_H
 
 #ifndef CONFIG_HAVE_TCM
-#error "You should not be including tcm.h unless you have a TCM!"
+	#error "You should not be including tcm.h unless you have a TCM!"
 #endif
 
 #include <linux/compiler.h>

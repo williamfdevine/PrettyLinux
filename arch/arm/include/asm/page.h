@@ -44,76 +44,77 @@
 #undef MULTI_USER
 
 #ifdef CONFIG_CPU_COPY_V4WT
-# ifdef _USER
-#  define MULTI_USER 1
-# else
-#  define _USER v4wt
-# endif
+	#ifdef _USER
+		#define MULTI_USER 1
+	#else
+		#define _USER v4wt
+	#endif
 #endif
 
 #ifdef CONFIG_CPU_COPY_V4WB
-# ifdef _USER
-#  define MULTI_USER 1
-# else
-#  define _USER v4wb
-# endif
+	#ifdef _USER
+		#define MULTI_USER 1
+	#else
+		#define _USER v4wb
+	#endif
 #endif
 
 #ifdef CONFIG_CPU_COPY_FEROCEON
-# ifdef _USER
-#  define MULTI_USER 1
-# else
-#  define _USER feroceon
-# endif
+	#ifdef _USER
+		#define MULTI_USER 1
+	#else
+		#define _USER feroceon
+	#endif
 #endif
 
 #ifdef CONFIG_CPU_COPY_FA
-# ifdef _USER
-#  define MULTI_USER 1
-# else
-#  define _USER fa
-# endif
+	#ifdef _USER
+		#define MULTI_USER 1
+	#else
+		#define _USER fa
+	#endif
 #endif
 
 #ifdef CONFIG_CPU_SA1100
-# ifdef _USER
-#  define MULTI_USER 1
-# else
-#  define _USER v4_mc
-# endif
+	#ifdef _USER
+		#define MULTI_USER 1
+	#else
+		#define _USER v4_mc
+	#endif
 #endif
 
 #ifdef CONFIG_CPU_XSCALE
-# ifdef _USER
-#  define MULTI_USER 1
-# else
-#  define _USER xscale_mc
-# endif
+	#ifdef _USER
+		#define MULTI_USER 1
+	#else
+		#define _USER xscale_mc
+	#endif
 #endif
 
 #ifdef CONFIG_CPU_XSC3
-# ifdef _USER
-#  define MULTI_USER 1
-# else
-#  define _USER xsc3_mc
-# endif
+	#ifdef _USER
+		#define MULTI_USER 1
+	#else
+		#define _USER xsc3_mc
+	#endif
 #endif
 
 #ifdef CONFIG_CPU_COPY_V6
-# define MULTI_USER 1
+	#define MULTI_USER 1
 #endif
 
 #if !defined(_USER) && !defined(MULTI_USER)
-#error Unknown user operations model
+	#error Unknown user operations model
 #endif
 
 struct page;
 struct vm_area_struct;
 
-struct cpu_user_fns {
+struct cpu_user_fns
+{
 	void (*cpu_clear_user_highpage)(struct page *page, unsigned long vaddr);
 	void (*cpu_copy_user_highpage)(struct page *to, struct page *from,
-			unsigned long vaddr, struct vm_area_struct *vma);
+								   unsigned long vaddr, struct vm_area_struct *vma);
 };
 
 #ifdef MULTI_USER
@@ -129,11 +130,11 @@ extern struct cpu_user_fns cpu_user;
 
 extern void __cpu_clear_user_highpage(struct page *page, unsigned long vaddr);
 extern void __cpu_copy_user_highpage(struct page *to, struct page *from,
-			unsigned long vaddr, struct vm_area_struct *vma);
+									 unsigned long vaddr, struct vm_area_struct *vma);
 #endif
 
 #define clear_user_highpage(page,vaddr)		\
-	 __cpu_clear_user_highpage(page, vaddr)
+	__cpu_clear_user_highpage(page, vaddr)
 
 #define __HAVE_ARCH_COPY_USER_HIGHPAGE
 #define copy_user_highpage(to,from,vaddr,vma)	\
@@ -143,13 +144,13 @@ extern void __cpu_copy_user_highpage(struct page *to, struct page *from,
 extern void copy_page(void *to, const void *from);
 
 #ifdef CONFIG_KUSER_HELPERS
-#define __HAVE_ARCH_GATE_AREA 1
+	#define __HAVE_ARCH_GATE_AREA 1
 #endif
 
 #ifdef CONFIG_ARM_LPAE
-#include <asm/pgtable-3level-types.h>
+	#include <asm/pgtable-3level-types.h>
 #else
-#include <asm/pgtable-2level-types.h>
+	#include <asm/pgtable-2level-types.h>
 #endif
 
 #endif /* CONFIG_MMU */
@@ -157,7 +158,7 @@ extern void copy_page(void *to, const void *from);
 typedef struct page *pgtable_t;
 
 #ifdef CONFIG_HAVE_ARCH_PFN_VALID
-extern int pfn_valid(unsigned long);
+	extern int pfn_valid(unsigned long);
 #endif
 
 #include <asm/memory.h>

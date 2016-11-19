@@ -31,14 +31,14 @@ EXPORT_SYMBOL(__generic_copy_to_user);
 EXPORT_SYMBOL(strnlen_user);
 
 #ifdef CONFIG_SMP
-#ifdef CONFIG_CHIP_M32700_TS1
-extern void *dcache_dummy;
-EXPORT_SYMBOL(dcache_dummy);
-#endif
-EXPORT_SYMBOL(cpu_data);
+	#ifdef CONFIG_CHIP_M32700_TS1
+		extern void *dcache_dummy;
+		EXPORT_SYMBOL(dcache_dummy);
+	#endif
+	EXPORT_SYMBOL(cpu_data);
 
-/* TLB flushing */
-EXPORT_SYMBOL(smp_flush_tlb_page);
+	/* TLB flushing */
+	EXPORT_SYMBOL(smp_flush_tlb_page);
 #endif
 
 extern int __ucmpdi2(unsigned long long a, unsigned long long b);

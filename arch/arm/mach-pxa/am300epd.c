@@ -41,7 +41,8 @@ static unsigned int panel_type = 6;
 static struct platform_device *am300_device;
 static struct broadsheet_board am300_board;
 
-static unsigned long am300_pin_config[] __initdata = {
+static unsigned long am300_pin_config[] __initdata =
+{
 	GPIO16_GPIO,
 	GPIO17_GPIO,
 	GPIO32_GPIO,
@@ -92,10 +93,12 @@ static unsigned long am300_pin_config[] __initdata = {
 #define DB15_GPIO_PIN	73
 
 static int gpios[] = { PWR_GPIO_PIN, CFG_GPIO_PIN, RDY_GPIO_PIN, DC_GPIO_PIN,
-			RST_GPIO_PIN, RD_GPIO_PIN, WR_GPIO_PIN, CS_GPIO_PIN,
-			IRQ_GPIO_PIN, LED_GPIO_PIN };
+					   RST_GPIO_PIN, RD_GPIO_PIN, WR_GPIO_PIN, CS_GPIO_PIN,
+					   IRQ_GPIO_PIN, LED_GPIO_PIN
+					 };
 static char *gpio_names[] = { "PWR", "CFG", "RDY", "DC", "RST", "RD", "WR",
-				"CS", "IRQ", "LED" };
+							  "CS", "IRQ", "LED"
+							};
 
 static int am300_wait_event(struct broadsheetfb_par *par)
 {
@@ -110,22 +113,28 @@ static int am300_init_gpio_regs(struct broadsheetfb_par *par)
 	int err;
 	char dbname[8];
 
-	for (i = 0; i < ARRAY_SIZE(gpios); i++) {
+	for (i = 0; i < ARRAY_SIZE(gpios); i++)
+	{
 		err = gpio_request(gpios[i], gpio_names[i]);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&am300_device->dev, "failed requesting "
-				"gpio %s, err=%d\n", gpio_names[i], err);
+					"gpio %s, err=%d\n", gpio_names[i], err);
 			goto err_req_gpio;
 		}
 	}
 
 	/* we also need to take care of the hdb bus */
-	for (i = DB0_GPIO_PIN; i <= DB15_GPIO_PIN; i++) {
+	for (i = DB0_GPIO_PIN; i <= DB15_GPIO_PIN; i++)
+	{
 		sprintf(dbname, "DB%d", i);
 		err = gpio_request(i, dbname);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&am300_device->dev, "failed requesting "
-				"gpio %d, err=%d\n", i, err);
+					"gpio %d, err=%d\n", i, err);
 			goto err_req_gpio2;
 		}
 	}
@@ -145,7 +154,9 @@ static int am300_init_gpio_regs(struct broadsheetfb_par *par)
 
 	/* start the hdb bus as an input */
 	for (i = DB0_GPIO_PIN; i <= DB15_GPIO_PIN; i++)
+	{
 		gpio_direction_output(i, 0);
+	}
 
 	/* go into command mode */
 	gpio_set_value(CFG_GPIO_PIN, 1);
@@ -158,12 +169,19 @@ static int am300_init_gpio_regs(struct broadsheetfb_par *par)
 	return 0;
 
 err_req_gpio2:
+
 	while (--i >= DB0_GPIO_PIN)
+	{
 		gpio_free(i);
+	}
+
 	i = ARRAY_SIZE(gpios);
 err_req_gpio:
+
 	while (--i >= 0)
+	{
 		gpio_free(gpios[i]);
+	}
 
 	return err;
 }
@@ -180,10 +198,14 @@ static void am300_cleanup(struct broadsheetfb_par *par)
 	free_irq(PXA_GPIO_TO_IRQ(RDY_GPIO_PIN), par);
 
 	for (i = 0; i < ARRAY_SIZE(gpios); i++)
+	{
 		gpio_free(gpios[i]);
+	}
 
 	for (i = DB0_GPIO_PIN; i <= DB15_GPIO_PIN; i++)
+	{
 		gpio_free(i);
+	}
 
 }
 
@@ -193,7 +215,9 @@ static u16 am300_get_hdb(struct broadsheetfb_par *par)
 	int i;
 
 	for (i = 0; i <= (DB15_GPIO_PIN - DB0_GPIO_PIN) ; i++)
+	{
 		res |= (gpio_get_value(DB0_GPIO_PIN + i)) ? (1 << i) : 0;
+	}
 
 	return res;
 }
@@ -203,23 +227,28 @@ static void am300_set_hdb(struct broadsheetfb_par *par, u16 data)
 	int i;
 
 	for (i = 0; i <= (DB15_GPIO_PIN - DB0_GPIO_PIN) ; i++)
+	{
 		gpio_set_value(DB0_GPIO_PIN + i, (data >> i) & 0x01);
+	}
 }
 
 
 static void am300_set_ctl(struct broadsheetfb_par *par, unsigned char bit,
-				u8 state)
+						  u8 state)
 {
-	switch (bit) {
-	case BS_CS:
-		gpio_set_value(CS_GPIO_PIN, state);
-		break;
-	case BS_DC:
-		gpio_set_value(DC_GPIO_PIN, state);
-		break;
-	case BS_WR:
-		gpio_set_value(WR_GPIO_PIN, state);
-		break;
+	switch (bit)
+	{
+		case BS_CS:
+			gpio_set_value(CS_GPIO_PIN, state);
+			break;
+
+		case BS_DC:
+			gpio_set_value(DC_GPIO_PIN, state);
+			break;
+
+		case BS_WR:
+			gpio_set_value(WR_GPIO_PIN, state);
+			break;
 	}
 }
 
@@ -242,14 +271,18 @@ static int am300_setup_irq(struct fb_info *info)
 	struct broadsheetfb_par *par = info->par;
 
 	ret = request_irq(PXA_GPIO_TO_IRQ(RDY_GPIO_PIN), am300_handle_irq,
-				IRQF_TRIGGER_RISING, "AM300", par);
+					  IRQF_TRIGGER_RISING, "AM300", par);
+
 	if (ret)
+	{
 		dev_err(&am300_device->dev, "request_irq failed: %d\n", ret);
+	}
 
 	return ret;
 }
 
-static struct broadsheet_board am300_board = {
+static struct broadsheet_board am300_board =
+{
 	.owner			= THIS_MODULE,
 	.init			= am300_init_board,
 	.cleanup		= am300_cleanup,
@@ -271,16 +304,20 @@ int __init am300_init(void)
 	request_module("broadsheetfb");
 
 	am300_device = platform_device_alloc("broadsheetfb", -1);
+
 	if (!am300_device)
+	{
 		return -ENOMEM;
+	}
 
 	/* the am300_board that will be seen by broadsheetfb is a copy */
 	platform_device_add_data(am300_device, &am300_board,
-					sizeof(am300_board));
+							 sizeof(am300_board));
 
 	ret = platform_device_add(am300_device);
 
-	if (ret) {
+	if (ret)
+	{
 		platform_device_put(am300_device);
 		return ret;
 	}

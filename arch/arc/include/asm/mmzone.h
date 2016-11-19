@@ -19,7 +19,9 @@ static inline int pfn_to_nid(unsigned long pfn)
 	int is_end_low = 1;
 
 	if (IS_ENABLED(CONFIG_ARC_HAS_PAE40))
+	{
 		is_end_low = pfn <= virt_to_pfn(0xFFFFFFFFUL);
+	}
 
 	/*
 	 * node 0: lowmem:             0x8000_0000   to 0xFFFF_FFFF
@@ -27,7 +29,9 @@ static inline int pfn_to_nid(unsigned long pfn)
 	 *         HIGHMEM with PAE40: 0x1_0000_0000 to ...
 	 */
 	if (pfn >= ARCH_PFN_OFFSET && is_end_low)
+	{
 		return 0;
+	}
 
 	return 1;
 }

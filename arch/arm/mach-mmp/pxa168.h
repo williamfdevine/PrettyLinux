@@ -49,34 +49,45 @@ static inline int pxa168_add_uart(int id)
 {
 	struct pxa_device_desc *d = NULL;
 
-	switch (id) {
-	case 1: d = &pxa168_device_uart1; break;
-	case 2: d = &pxa168_device_uart2; break;
-	case 3: d = &pxa168_device_uart3; break;
+	switch (id)
+	{
+		case 1: d = &pxa168_device_uart1; break;
+
+		case 2: d = &pxa168_device_uart2; break;
+
+		case 3: d = &pxa168_device_uart3; break;
 	}
 
 	if (d == NULL)
+	{
 		return -EINVAL;
+	}
 
 	return pxa_register_device(d, NULL, 0);
 }
 
 static inline int pxa168_add_twsi(int id, struct i2c_pxa_platform_data *data,
-				  struct i2c_board_info *info, unsigned size)
+								  struct i2c_board_info *info, unsigned size)
 {
 	struct pxa_device_desc *d = NULL;
 	int ret;
 
-	switch (id) {
-	case 0: d = &pxa168_device_twsi0; break;
-	case 1: d = &pxa168_device_twsi1; break;
-	default:
-		return -EINVAL;
+	switch (id)
+	{
+		case 0: d = &pxa168_device_twsi0; break;
+
+		case 1: d = &pxa168_device_twsi1; break;
+
+		default:
+			return -EINVAL;
 	}
 
 	ret = i2c_register_board_info(id, info, size);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return pxa_register_device(d, data, sizeof(*data));
 }
@@ -85,13 +96,18 @@ static inline int pxa168_add_pwm(int id)
 {
 	struct pxa_device_desc *d = NULL;
 
-	switch (id) {
-	case 1: d = &pxa168_device_pwm1; break;
-	case 2: d = &pxa168_device_pwm2; break;
-	case 3: d = &pxa168_device_pwm3; break;
-	case 4: d = &pxa168_device_pwm4; break;
-	default:
-		return -EINVAL;
+	switch (id)
+	{
+		case 1: d = &pxa168_device_pwm1; break;
+
+		case 2: d = &pxa168_device_pwm2; break;
+
+		case 3: d = &pxa168_device_pwm3; break;
+
+		case 4: d = &pxa168_device_pwm4; break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return pxa_register_device(d, NULL, 0);
@@ -101,15 +117,22 @@ static inline int pxa168_add_ssp(int id)
 {
 	struct pxa_device_desc *d = NULL;
 
-	switch (id) {
-	case 1: d = &pxa168_device_ssp1; break;
-	case 2: d = &pxa168_device_ssp2; break;
-	case 3: d = &pxa168_device_ssp3; break;
-	case 4: d = &pxa168_device_ssp4; break;
-	case 5: d = &pxa168_device_ssp5; break;
-	default:
-		return -EINVAL;
+	switch (id)
+	{
+		case 1: d = &pxa168_device_ssp1; break;
+
+		case 2: d = &pxa168_device_ssp2; break;
+
+		case 3: d = &pxa168_device_ssp3; break;
+
+		case 4: d = &pxa168_device_ssp4; break;
+
+		case 5: d = &pxa168_device_ssp5; break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return pxa_register_device(d, NULL, 0);
 }
 
@@ -126,7 +149,9 @@ static inline int pxa168_add_fb(struct pxa168fb_mach_info *mi)
 static inline int pxa168_add_keypad(struct pxa27x_keypad_platform_data *data)
 {
 	if (cpu_is_pxa168())
+	{
 		data->clear_wakeup_event = pxa168_clear_keypad_wakeup;
+	}
 
 	return pxa_register_device(&pxa168_device_keypad, data, sizeof(*data));
 }

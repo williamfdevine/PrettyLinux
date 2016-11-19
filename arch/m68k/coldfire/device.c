@@ -23,7 +23,8 @@
 /*
  *	All current ColdFire parts contain from 2, 3, 4 or 10 UARTS.
  */
-static struct mcf_platform_uart mcf_uart_platform_data[] = {
+static struct mcf_platform_uart mcf_uart_platform_data[] =
+{
 	{
 		.mapbase	= MCFUART_BASE0,
 		.irq		= MCF_IRQ_UART0,
@@ -83,7 +84,8 @@ static struct mcf_platform_uart mcf_uart_platform_data[] = {
 	{ },
 };
 
-static struct platform_device mcf_uart = {
+static struct platform_device mcf_uart =
+{
 	.name			= "mcfuart",
 	.id			= 0,
 	.dev.platform_data	= mcf_uart_platform_data,
@@ -93,7 +95,8 @@ static struct platform_device mcf_uart = {
 
 #ifdef CONFIG_M5441x
 #define FEC_NAME	"enet-fec"
-static struct fec_platform_data fec_pdata = {
+static struct fec_platform_data fec_pdata =
+{
 	.phy		= PHY_INTERFACE_MODE_RMII,
 };
 #define FEC_PDATA	(&fec_pdata)
@@ -107,7 +110,8 @@ static struct fec_platform_data fec_pdata = {
  *	block. It is Freescale's own hardware block. Some ColdFires
  *	have 2 of these.
  */
-static struct resource mcf_fec0_resources[] = {
+static struct resource mcf_fec0_resources[] =
+{
 	{
 		.start		= MCFFEC_BASE0,
 		.end		= MCFFEC_BASE0 + MCFFEC_SIZE0 - 1,
@@ -130,7 +134,8 @@ static struct resource mcf_fec0_resources[] = {
 	},
 };
 
-static struct platform_device mcf_fec0 = {
+static struct platform_device mcf_fec0 =
+{
 	.name			= FEC_NAME,
 	.id			= 0,
 	.num_resources		= ARRAY_SIZE(mcf_fec0_resources),
@@ -139,7 +144,8 @@ static struct platform_device mcf_fec0 = {
 };
 
 #ifdef MCFFEC_BASE1
-static struct resource mcf_fec1_resources[] = {
+static struct resource mcf_fec1_resources[] =
+{
 	{
 		.start		= MCFFEC_BASE1,
 		.end		= MCFFEC_BASE1 + MCFFEC_SIZE1 - 1,
@@ -162,7 +168,8 @@ static struct resource mcf_fec1_resources[] = {
 	},
 };
 
-static struct platform_device mcf_fec1 = {
+static struct platform_device mcf_fec1 =
+{
 	.name			= FEC_NAME,
 	.id			= 1,
 	.num_resources		= ARRAY_SIZE(mcf_fec1_resources),
@@ -177,7 +184,8 @@ static struct platform_device mcf_fec1 = {
  *	The ColdFire QSPI module is an SPI protocol hardware block used
  *	on a number of different ColdFire CPUs.
  */
-static struct resource mcf_qspi_resources[] = {
+static struct resource mcf_qspi_resources[] =
+{
 	{
 		.start		= MCFQSPI_BASE,
 		.end		= MCFQSPI_BASE + MCFQSPI_SIZE - 1,
@@ -195,50 +203,71 @@ static int mcf_cs_setup(struct mcfqspi_cs_control *cs_control)
 	int status;
 
 	status = gpio_request(MCFQSPI_CS0, "MCFQSPI_CS0");
-	if (status) {
+
+	if (status)
+	{
 		pr_debug("gpio_request for MCFQSPI_CS0 failed\n");
 		goto fail0;
 	}
+
 	status = gpio_direction_output(MCFQSPI_CS0, 1);
-	if (status) {
+
+	if (status)
+	{
 		pr_debug("gpio_direction_output for MCFQSPI_CS0 failed\n");
 		goto fail1;
 	}
 
 	status = gpio_request(MCFQSPI_CS1, "MCFQSPI_CS1");
-	if (status) {
+
+	if (status)
+	{
 		pr_debug("gpio_request for MCFQSPI_CS1 failed\n");
 		goto fail1;
 	}
+
 	status = gpio_direction_output(MCFQSPI_CS1, 1);
-	if (status) {
+
+	if (status)
+	{
 		pr_debug("gpio_direction_output for MCFQSPI_CS1 failed\n");
 		goto fail2;
 	}
 
 	status = gpio_request(MCFQSPI_CS2, "MCFQSPI_CS2");
-	if (status) {
+
+	if (status)
+	{
 		pr_debug("gpio_request for MCFQSPI_CS2 failed\n");
 		goto fail2;
 	}
+
 	status = gpio_direction_output(MCFQSPI_CS2, 1);
-	if (status) {
+
+	if (status)
+	{
 		pr_debug("gpio_direction_output for MCFQSPI_CS2 failed\n");
 		goto fail3;
 	}
 
 #ifdef MCFQSPI_CS3
 	status = gpio_request(MCFQSPI_CS3, "MCFQSPI_CS3");
-	if (status) {
+
+	if (status)
+	{
 		pr_debug("gpio_request for MCFQSPI_CS3 failed\n");
 		goto fail3;
 	}
+
 	status = gpio_direction_output(MCFQSPI_CS3, 1);
-	if (status) {
+
+	if (status)
+	{
 		pr_debug("gpio_direction_output for MCFQSPI_CS3 failed\n");
 		gpio_free(MCFQSPI_CS3);
 		goto fail3;
 	}
+
 #endif
 
 	return 0;
@@ -264,61 +293,72 @@ static void mcf_cs_teardown(struct mcfqspi_cs_control *cs_control)
 }
 
 static void mcf_cs_select(struct mcfqspi_cs_control *cs_control,
-			  u8 chip_select, bool cs_high)
+						  u8 chip_select, bool cs_high)
 {
-	switch (chip_select) {
-	case 0:
-		gpio_set_value(MCFQSPI_CS0, cs_high);
-		break;
-	case 1:
-		gpio_set_value(MCFQSPI_CS1, cs_high);
-		break;
-	case 2:
-		gpio_set_value(MCFQSPI_CS2, cs_high);
-		break;
+	switch (chip_select)
+	{
+		case 0:
+			gpio_set_value(MCFQSPI_CS0, cs_high);
+			break;
+
+		case 1:
+			gpio_set_value(MCFQSPI_CS1, cs_high);
+			break;
+
+		case 2:
+			gpio_set_value(MCFQSPI_CS2, cs_high);
+			break;
 #ifdef MCFQSPI_CS3
-	case 3:
-		gpio_set_value(MCFQSPI_CS3, cs_high);
-		break;
+
+		case 3:
+			gpio_set_value(MCFQSPI_CS3, cs_high);
+			break;
 #endif
 	}
 }
 
 static void mcf_cs_deselect(struct mcfqspi_cs_control *cs_control,
-			    u8 chip_select, bool cs_high)
+							u8 chip_select, bool cs_high)
 {
-	switch (chip_select) {
-	case 0:
-		gpio_set_value(MCFQSPI_CS0, !cs_high);
-		break;
-	case 1:
-		gpio_set_value(MCFQSPI_CS1, !cs_high);
-		break;
-	case 2:
-		gpio_set_value(MCFQSPI_CS2, !cs_high);
-		break;
+	switch (chip_select)
+	{
+		case 0:
+			gpio_set_value(MCFQSPI_CS0, !cs_high);
+			break;
+
+		case 1:
+			gpio_set_value(MCFQSPI_CS1, !cs_high);
+			break;
+
+		case 2:
+			gpio_set_value(MCFQSPI_CS2, !cs_high);
+			break;
 #ifdef MCFQSPI_CS3
-	case 3:
-		gpio_set_value(MCFQSPI_CS3, !cs_high);
-		break;
+
+		case 3:
+			gpio_set_value(MCFQSPI_CS3, !cs_high);
+			break;
 #endif
 	}
 }
 
-static struct mcfqspi_cs_control mcf_cs_control = {
+static struct mcfqspi_cs_control mcf_cs_control =
+{
 	.setup			= mcf_cs_setup,
 	.teardown		= mcf_cs_teardown,
 	.select			= mcf_cs_select,
 	.deselect		= mcf_cs_deselect,
 };
 
-static struct mcfqspi_platform_data mcf_qspi_data = {
+static struct mcfqspi_platform_data mcf_qspi_data =
+{
 	.bus_num		= 0,
 	.num_chipselect		= 4,
 	.cs_control		= &mcf_cs_control,
 };
 
-static struct platform_device mcf_qspi = {
+static struct platform_device mcf_qspi =
+{
 	.name			= "mcfqspi",
 	.id			= 0,
 	.num_resources		= ARRAY_SIZE(mcf_qspi_resources),
@@ -327,7 +367,8 @@ static struct platform_device mcf_qspi = {
 };
 #endif /* IS_ENABLED(CONFIG_SPI_COLDFIRE_QSPI) */
 
-static struct platform_device *mcf_devices[] __initdata = {
+static struct platform_device *mcf_devices[] __initdata =
+{
 	&mcf_uart,
 #if IS_ENABLED(CONFIG_FEC)
 	&mcf_fec0,

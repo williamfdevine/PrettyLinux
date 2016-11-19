@@ -7,8 +7,8 @@
 #define MCOUNT_INSN_SIZE	8 /* sizeof mcount call */
 
 #ifndef __ASSEMBLY__
-extern void _mcount(void);
-extern void ftrace_call_graph(void);
+	extern void _mcount(void);
+	extern void ftrace_call_graph(void);
 #endif
 
 #ifdef CONFIG_DYNAMIC_FTRACE
@@ -18,7 +18,8 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 	return addr;
 }
 
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 };
 #endif /* CONFIG_DYNAMIC_FTRACE */
 

@@ -6,7 +6,8 @@
 #include <asm-generic/signal.h>
 
 #ifndef __KERNEL__
-struct old_sigaction {
+struct old_sigaction
+{
 	__sighandler_t sa_handler;
 	old_sigset_t sa_mask;
 	unsigned long sa_flags;

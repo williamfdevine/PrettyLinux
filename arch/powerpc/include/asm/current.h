@@ -20,8 +20,8 @@ static inline struct task_struct *get_current(void)
 	struct task_struct *task;
 
 	__asm__ __volatile__("ld %0,%1(13)"
-	: "=r" (task)
-	: "i" (offsetof(struct paca_struct, __current)));
+						 : "=r" (task)
+						 : "i" (offsetof(struct paca_struct, __current)));
 
 	return task;
 }

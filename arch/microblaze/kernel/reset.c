@@ -22,16 +22,19 @@ void of_platform_reset_gpio_probe(void)
 {
 	int ret;
 	handle = of_get_named_gpio(of_find_node_by_path("/"),
-				   "hard-reset-gpios", 0);
+							   "hard-reset-gpios", 0);
 
-	if (!gpio_is_valid(handle)) {
+	if (!gpio_is_valid(handle))
+	{
 		pr_info("Skipping unavailable RESET gpio %d (%s)\n",
 				handle, "reset");
 		return;
 	}
 
 	ret = gpio_request(handle, "reset");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_info("GPIO pin is already allocated\n");
 		return;
 	}
@@ -43,14 +46,17 @@ void of_platform_reset_gpio_probe(void)
 
 	/* Setup GPIO as output */
 	ret = gpio_direction_output(handle, 0);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* Setup output direction */
 	gpio_set_value(handle, 0);
 
 	pr_info("RESET: Registered gpio device: %d, current val: %d\n",
-							handle, reset_val);
+			handle, reset_val);
 	return;
 err:
 	gpio_free(handle);
@@ -61,9 +67,13 @@ err:
 static void gpio_system_reset(void)
 {
 	if (gpio_is_valid(handle))
+	{
 		gpio_set_value(handle, 1 - reset_val);
+	}
 	else
+	{
 		pr_notice("Reset GPIO unavailable - halting!\n");
+	}
 }
 #else
 static void gpio_system_reset(void)
@@ -81,6 +91,7 @@ void machine_restart(char *cmd)
 {
 	pr_notice("Machine restart...\n");
 	gpio_system_reset();
+
 	while (1)
 		;
 }
@@ -88,6 +99,7 @@ void machine_restart(char *cmd)
 void machine_shutdown(void)
 {
 	pr_notice("Machine shutdown...\n");
+
 	while (1)
 		;
 }
@@ -95,6 +107,7 @@ void machine_shutdown(void)
 void machine_halt(void)
 {
 	pr_notice("Machine halt...\n");
+
 	while (1)
 		;
 }
@@ -102,6 +115,7 @@ void machine_halt(void)
 void machine_power_off(void)
 {
 	pr_notice("Machine power off...\n");
+
 	while (1)
 		;
 }

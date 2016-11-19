@@ -26,7 +26,8 @@
 
 #define AP121_CAL_DATA_ADDR	0x1fff1000
 
-static struct gpio_led ap121_leds_gpio[] __initdata = {
+static struct gpio_led ap121_leds_gpio[] __initdata =
+{
 	{
 		.name		= "ap121:green:usb",
 		.gpio		= AP121_GPIO_LED_USB,
@@ -39,7 +40,8 @@ static struct gpio_led ap121_leds_gpio[] __initdata = {
 	},
 };
 
-static struct gpio_keys_button ap121_gpio_keys[] __initdata = {
+static struct gpio_keys_button ap121_gpio_keys[] __initdata =
+{
 	{
 		.desc		= "jumpstart button",
 		.type		= EV_KEY,
@@ -58,7 +60,8 @@ static struct gpio_keys_button ap121_gpio_keys[] __initdata = {
 	}
 };
 
-static struct spi_board_info ap121_spi_info[] = {
+static struct spi_board_info ap121_spi_info[] =
+{
 	{
 		.bus_num	= 0,
 		.chip_select	= 0,
@@ -67,7 +70,8 @@ static struct spi_board_info ap121_spi_info[] = {
 	}
 };
 
-static struct ath79_spi_platform_data ap121_spi_data = {
+static struct ath79_spi_platform_data ap121_spi_data =
+{
 	.bus_num	= 0,
 	.num_chipselect = 1,
 };
@@ -77,16 +81,16 @@ static void __init ap121_setup(void)
 	u8 *cal_data = (u8 *) KSEG1ADDR(AP121_CAL_DATA_ADDR);
 
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(ap121_leds_gpio),
-				 ap121_leds_gpio);
+							 ap121_leds_gpio);
 	ath79_register_gpio_keys_polled(-1, AP121_KEYS_POLL_INTERVAL,
-					ARRAY_SIZE(ap121_gpio_keys),
-					ap121_gpio_keys);
+									ARRAY_SIZE(ap121_gpio_keys),
+									ap121_gpio_keys);
 
 	ath79_register_spi(&ap121_spi_data, ap121_spi_info,
-			   ARRAY_SIZE(ap121_spi_info));
+					   ARRAY_SIZE(ap121_spi_info));
 	ath79_register_usb();
 	ath79_register_wmac(cal_data);
 }
 
 MIPS_MACHINE(ATH79_MACH_AP121, "AP121", "Atheros AP121 reference board",
-	     ap121_setup);
+			 ap121_setup);

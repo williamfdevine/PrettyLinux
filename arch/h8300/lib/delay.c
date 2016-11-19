@@ -13,7 +13,7 @@
 void __delay(unsigned long cycles)
 {
 	__asm__ volatile ("1: dec.l #1,%0\n\t"
-			  "bne 1b":"=r"(cycles):"0"(cycles));
+					  "bne 1b":"=r"(cycles):"0"(cycles));
 }
 EXPORT_SYMBOL(__delay);
 

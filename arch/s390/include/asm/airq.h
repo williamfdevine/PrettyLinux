@@ -11,7 +11,8 @@
 
 #include <linux/bit_spinlock.h>
 
-struct airq_struct {
+struct airq_struct
+{
 	struct hlist_node list;		/* Handler queueing. */
 	void (*handler)(struct airq_struct *);	/* Thin-interrupt handler */
 	u8 *lsi_ptr;			/* Local-Summary-Indicator pointer */
@@ -26,7 +27,8 @@ int register_adapter_interrupt(struct airq_struct *airq);
 void unregister_adapter_interrupt(struct airq_struct *airq);
 
 /* Adapter interrupt bit vector */
-struct airq_iv {
+struct airq_iv
+{
 	unsigned long *vector;	/* Adapter interrupt bit vector */
 	unsigned long *avail;	/* Allocation bit mask for the bit vector */
 	unsigned long *bitlock;	/* Lock bit mask for the bit vector */
@@ -47,7 +49,7 @@ void airq_iv_release(struct airq_iv *iv);
 unsigned long airq_iv_alloc(struct airq_iv *iv, unsigned long num);
 void airq_iv_free(struct airq_iv *iv, unsigned long bit, unsigned long num);
 unsigned long airq_iv_scan(struct airq_iv *iv, unsigned long start,
-			   unsigned long end);
+						   unsigned long end);
 
 static inline unsigned long airq_iv_alloc_bit(struct airq_iv *iv)
 {
@@ -77,25 +79,25 @@ static inline void airq_iv_unlock(struct airq_iv *iv, unsigned long bit)
 }
 
 static inline void airq_iv_set_data(struct airq_iv *iv, unsigned long bit,
-				    unsigned int data)
+									unsigned int data)
 {
 	iv->data[bit] = data;
 }
 
 static inline unsigned int airq_iv_get_data(struct airq_iv *iv,
-					    unsigned long bit)
+		unsigned long bit)
 {
 	return iv->data[bit];
 }
 
 static inline void airq_iv_set_ptr(struct airq_iv *iv, unsigned long bit,
-				   unsigned long ptr)
+								   unsigned long ptr)
 {
 	iv->ptr[bit] = ptr;
 }
 
 static inline unsigned long airq_iv_get_ptr(struct airq_iv *iv,
-					    unsigned long bit)
+		unsigned long bit)
 {
 	return iv->ptr[bit];
 }

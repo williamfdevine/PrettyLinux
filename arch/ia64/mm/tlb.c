@@ -34,12 +34,14 @@
 #include <asm/sal.h>
 #include <asm/tlb.h>
 
-static struct {
+static struct
+{
 	u64 mask;		/* mask of supported purge page-sizes */
 	unsigned long max_bits;	/* log2 of largest supported purge page-size */
 } purge;
 
-struct ia64_ctx ia64_ctx = {
+struct ia64_ctx ia64_ctx =
+{
 	.lock =	__SPIN_LOCK_UNLOCKED(ia64_ctx.lock),
 	.next =	1,
 	.max_ctx = ~0U
@@ -59,8 +61,8 @@ struct ia64_tr_entry *ia64_idtrs[NR_CPUS];
 void __init
 mmu_context_init (void)
 {
-	ia64_ctx.bitmap = alloc_bootmem((ia64_ctx.max_ctx+1)>>3);
-	ia64_ctx.flushmap = alloc_bootmem((ia64_ctx.max_ctx+1)>>3);
+	ia64_ctx.bitmap = alloc_bootmem((ia64_ctx.max_ctx + 1) >> 3);
+	ia64_ctx.flushmap = alloc_bootmem((ia64_ctx.max_ctx + 1) >> 3);
 }
 
 /*
@@ -72,16 +74,17 @@ wrap_mmu_context (struct mm_struct *mm)
 	int i, cpu;
 	unsigned long flush_bit;
 
-	for (i=0; i <= ia64_ctx.max_ctx / BITS_PER_LONG; i++) {
+	for (i = 0; i <= ia64_ctx.max_ctx / BITS_PER_LONG; i++)
+	{
 		flush_bit = xchg(&ia64_ctx.flushmap[i], 0);
 		ia64_ctx.bitmap[i] ^= flush_bit;
 	}
- 
+
 	/* use offset at 300 to skip daemons */
 	ia64_ctx.next = find_next_zero_bit(ia64_ctx.bitmap,
-				ia64_ctx.max_ctx, 300);
+									   ia64_ctx.max_ctx, 300);
 	ia64_ctx.limit = find_next_bit(ia64_ctx.bitmap,
-				ia64_ctx.max_ctx, ia64_ctx.next);
+								   ia64_ctx.max_ctx, ia64_ctx.next);
 
 	/*
 	 * can't call flush_tlb_all() here because of race condition
@@ -89,8 +92,12 @@ wrap_mmu_context (struct mm_struct *mm)
 	 */
 	cpu = get_cpu(); /* prevent preemption/migration */
 	for_each_online_cpu(i)
-		if (i != cpu)
-			per_cpu(ia64_need_tlb_flush, i) = 1;
+
+	if (i != cpu)
+	{
+		per_cpu(ia64_need_tlb_flush, i) = 1;
+	}
+
 	put_cpu();
 	local_flush_tlb_all();
 }
@@ -100,7 +107,8 @@ wrap_mmu_context (struct mm_struct *mm)
  * spin instead of sleeping.  If there are ever any other users for
  * this primitive it can be moved up to a spinaphore.h header.
  */
-struct spinaphore {
+struct spinaphore
+{
 	unsigned long	ticket;
 	unsigned long	serve;
 };
@@ -116,14 +124,21 @@ static inline void down_spin(struct spinaphore *ss)
 	unsigned long t = ia64_fetchadd(1, &ss->ticket, acq), serve;
 
 	if (time_before(t, ss->serve))
+	{
 		return;
+	}
 
 	ia64_invala();
 
-	for (;;) {
+	for (;;)
+	{
 		asm volatile ("ld8.c.nc %0=[%1]" : "=r"(serve) : "r"(&ss->serve) : "memory");
+
 		if (time_before(t, serve))
+		{
 			return;
+		}
+
 		cpu_relax();
 	}
 }
@@ -180,57 +195,87 @@ setup_ptcg_sem(int max_purges, int nptcg_from)
 	static int palo_override;
 	static int firstcpu = 1;
 
-	if (toolatetochangeptcgsem) {
+	if (toolatetochangeptcgsem)
+	{
 		if (nptcg_from == NPTCG_FROM_PAL && max_purges == 0)
+		{
 			BUG_ON(1 < nptcg);
+		}
 		else
+		{
 			BUG_ON(max_purges < nptcg);
+		}
+
 		return;
 	}
 
-	if (nptcg_from == NPTCG_FROM_KERNEL_PARAMETER) {
+	if (nptcg_from == NPTCG_FROM_KERNEL_PARAMETER)
+	{
 		kp_override = 1;
 		nptcg = max_purges;
 		goto resetsema;
 	}
-	if (kp_override) {
+
+	if (kp_override)
+	{
 		need_ptcg_sem = num_possible_cpus() > nptcg;
 		return;
 	}
 
-	if (nptcg_from == NPTCG_FROM_PALO) {
+	if (nptcg_from == NPTCG_FROM_PALO)
+	{
 		palo_override = 1;
 
 		/* In PALO max_purges == 0 really means it! */
 		if (max_purges == 0)
+		{
 			panic("Whoa! Platform does not support global TLB purges.\n");
+		}
+
 		nptcg = max_purges;
-		if (nptcg == PALO_MAX_TLB_PURGES) {
+
+		if (nptcg == PALO_MAX_TLB_PURGES)
+		{
 			need_ptcg_sem = 0;
 			return;
 		}
+
 		goto resetsema;
 	}
-	if (palo_override) {
+
+	if (palo_override)
+	{
 		if (nptcg != PALO_MAX_TLB_PURGES)
+		{
 			need_ptcg_sem = (num_possible_cpus() > nptcg);
+		}
+
 		return;
 	}
 
 	/* In PAL_VM_SUMMARY max_purges == 0 actually means 1 */
-	if (max_purges == 0) max_purges = 1;
+	if (max_purges == 0) { max_purges = 1; }
 
-	if (firstcpu) {
+	if (firstcpu)
+	{
 		nptcg = max_purges;
 		firstcpu = 0;
 	}
+
 	if (max_purges < nptcg)
+	{
 		nptcg = max_purges;
-	if (nptcg == PAL_MAX_PURGES) {
+	}
+
+	if (nptcg == PAL_MAX_PURGES)
+	{
 		need_ptcg_sem = 0;
 		return;
-	} else
+	}
+	else
+	{
 		need_ptcg_sem = (num_possible_cpus() > nptcg);
+	}
 
 resetsema:
 	spinaphore_init(&ptcg_sem, max_purges);
@@ -238,40 +283,51 @@ resetsema:
 
 void
 ia64_global_tlb_purge (struct mm_struct *mm, unsigned long start,
-		       unsigned long end, unsigned long nbits)
+					   unsigned long end, unsigned long nbits)
 {
 	struct mm_struct *active_mm = current->active_mm;
 
 	toolatetochangeptcgsem = 1;
 
-	if (mm != active_mm) {
+	if (mm != active_mm)
+	{
 		/* Restore region IDs for mm */
-		if (mm && active_mm) {
+		if (mm && active_mm)
+		{
 			activate_context(mm);
-		} else {
+		}
+		else
+		{
 			flush_tlb_all();
 			return;
 		}
 	}
 
 	if (need_ptcg_sem)
+	{
 		down_spin(&ptcg_sem);
+	}
 
-	do {
+	do
+	{
 		/*
 		 * Flush ALAT entries also.
 		 */
 		ia64_ptcga(start, (nbits << 2));
 		ia64_srlz_i();
 		start += (1UL << nbits);
-	} while (start < end);
+	}
+	while (start < end);
 
 	if (need_ptcg_sem)
+	{
 		up_spin(&ptcg_sem);
+	}
 
-        if (mm != active_mm) {
-                activate_context(active_mm);
-        }
+	if (mm != active_mm)
+	{
+		activate_context(active_mm);
+	}
 }
 
 void
@@ -286,52 +342,74 @@ local_flush_tlb_all (void)
 	stride1 = local_cpu_data->ptce_stride[1];
 
 	local_irq_save(flags);
-	for (i = 0; i < count0; ++i) {
-		for (j = 0; j < count1; ++j) {
+
+	for (i = 0; i < count0; ++i)
+	{
+		for (j = 0; j < count1; ++j)
+		{
 			ia64_ptce(addr);
 			addr += stride1;
 		}
+
 		addr += stride0;
 	}
+
 	local_irq_restore(flags);
 	ia64_srlz_i();			/* srlz.i implies srlz.d */
 }
 
 void
 flush_tlb_range (struct vm_area_struct *vma, unsigned long start,
-		 unsigned long end)
+				 unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	unsigned long size = end - start;
 	unsigned long nbits;
 
 #ifndef CONFIG_SMP
-	if (mm != current->active_mm) {
+
+	if (mm != current->active_mm)
+	{
 		mm->context = 0;
 		return;
 	}
+
 #endif
 
 	nbits = ia64_fls(size + 0xfff);
+
 	while (unlikely (((1UL << nbits) & purge.mask) == 0) &&
-			(nbits < purge.max_bits))
+		   (nbits < purge.max_bits))
+	{
 		++nbits;
+	}
+
 	if (nbits > purge.max_bits)
+	{
 		nbits = purge.max_bits;
+	}
+
 	start &= ~((1UL << nbits) - 1);
 
 	preempt_disable();
 #ifdef CONFIG_SMP
-	if (mm != current->active_mm || cpumask_weight(mm_cpumask(mm)) != 1) {
+
+	if (mm != current->active_mm || cpumask_weight(mm_cpumask(mm)) != 1)
+	{
 		platform_global_tlb_purge(mm, start, end, nbits);
 		preempt_enable();
 		return;
 	}
+
 #endif
-	do {
-		ia64_ptcl(start, (nbits<<2));
+
+	do
+	{
+		ia64_ptcl(start, (nbits << 2));
 		start += (1UL << nbits);
-	} while (start < end);
+	}
+	while (start < end);
+
 	preempt_enable();
 	ia64_srlz_i();			/* srlz.i implies srlz.d */
 }
@@ -346,11 +424,13 @@ void ia64_tlb_init(void)
 	pal_vm_info_2_u_t vm_info_2;
 	int cpu = smp_processor_id();
 
-	if ((status = ia64_pal_vm_page_size(&tr_pgbits, &purge.mask)) != 0) {
+	if ((status = ia64_pal_vm_page_size(&tr_pgbits, &purge.mask)) != 0)
+	{
 		printk(KERN_ERR "PAL_VM_PAGE_SIZE failed with status=%ld; "
-		       "defaulting to architected purge page-sizes.\n", status);
+			   "defaulting to architected purge page-sizes.\n", status);
 		purge.mask = 0x115557000UL;
 	}
+
 	purge.max_bits = ia64_fls(purge.mask);
 
 	ia64_get_ptce(&ptce_info);
@@ -363,23 +443,30 @@ void ia64_tlb_init(void)
 	local_flush_tlb_all();	/* nuke left overs from bootstrapping... */
 	status = ia64_pal_vm_summary(&vm_info_1, &vm_info_2);
 
-	if (status) {
+	if (status)
+	{
 		printk(KERN_ERR "ia64_pal_vm_summary=%ld\n", status);
 		per_cpu(ia64_tr_num, cpu) = 8;
 		return;
 	}
-	per_cpu(ia64_tr_num, cpu) = vm_info_1.pal_vm_info_1_s.max_itr_entry+1;
+
+	per_cpu(ia64_tr_num, cpu) = vm_info_1.pal_vm_info_1_s.max_itr_entry + 1;
+
 	if (per_cpu(ia64_tr_num, cpu) >
-				(vm_info_1.pal_vm_info_1_s.max_dtr_entry+1))
+		(vm_info_1.pal_vm_info_1_s.max_dtr_entry + 1))
 		per_cpu(ia64_tr_num, cpu) =
-				vm_info_1.pal_vm_info_1_s.max_dtr_entry+1;
-	if (per_cpu(ia64_tr_num, cpu) > IA64_TR_ALLOC_MAX) {
+			vm_info_1.pal_vm_info_1_s.max_dtr_entry + 1;
+
+	if (per_cpu(ia64_tr_num, cpu) > IA64_TR_ALLOC_MAX)
+	{
 		static int justonce = 1;
 		per_cpu(ia64_tr_num, cpu) = IA64_TR_ALLOC_MAX;
-		if (justonce) {
+
+		if (justonce)
+		{
 			justonce = 0;
 			printk(KERN_DEBUG "TR register number exceeds "
-			       "IA64_TR_ALLOC_MAX!\n");
+				   "IA64_TR_ALLOC_MAX!\n");
 		}
 	}
 }
@@ -395,15 +482,21 @@ static int is_tr_overlap(struct ia64_tr_entry *p, u64 va, u64 log_size)
 	u64 tr_end;
 	u64 va_rr = ia64_get_rr(va);
 	u64 va_rid = RR_TO_RID(va_rr);
-	u64 va_end = va + (1<<log_size) - 1;
+	u64 va_end = va + (1 << log_size) - 1;
 
 	if (va_rid != RR_TO_RID(p->rr))
+	{
 		return 0;
+	}
+
 	tr_log_size = (p->itir & 0xff) >> 2;
-	tr_end = p->ifa + (1<<tr_log_size) - 1;
+	tr_end = p->ifa + (1 << tr_log_size) - 1;
 
 	if (va > tr_end || p->ifa > va_end)
+	{
 		return 0;
+	}
+
 	return 1;
 
 }
@@ -429,69 +522,106 @@ int ia64_itr_entry(u64 target_mask, u64 va, u64 pte, u64 log_size)
 	struct ia64_tr_entry *p;
 	int cpu = smp_processor_id();
 
-	if (!ia64_idtrs[cpu]) {
+	if (!ia64_idtrs[cpu])
+	{
 		ia64_idtrs[cpu] = kmalloc(2 * IA64_TR_ALLOC_MAX *
-				sizeof (struct ia64_tr_entry), GFP_KERNEL);
+								  sizeof (struct ia64_tr_entry), GFP_KERNEL);
+
 		if (!ia64_idtrs[cpu])
+		{
 			return -ENOMEM;
-	}
-	r = -EINVAL;
-	/*Check overlap with existing TR entries*/
-	if (target_mask & 0x1) {
-		p = ia64_idtrs[cpu];
-		for (i = IA64_TR_ALLOC_BASE; i <= per_cpu(ia64_tr_used, cpu);
-								i++, p++) {
-			if (p->pte & 0x1)
-				if (is_tr_overlap(p, va, log_size)) {
-					printk(KERN_DEBUG "Overlapped Entry"
-						"Inserted for TR Register!!\n");
-					goto out;
-			}
 		}
 	}
-	if (target_mask & 0x2) {
-		p = ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX;
+
+	r = -EINVAL;
+
+	/*Check overlap with existing TR entries*/
+	if (target_mask & 0x1)
+	{
+		p = ia64_idtrs[cpu];
+
 		for (i = IA64_TR_ALLOC_BASE; i <= per_cpu(ia64_tr_used, cpu);
-								i++, p++) {
+			 i++, p++)
+		{
 			if (p->pte & 0x1)
-				if (is_tr_overlap(p, va, log_size)) {
+				if (is_tr_overlap(p, va, log_size))
+				{
 					printk(KERN_DEBUG "Overlapped Entry"
-						"Inserted for TR Register!!\n");
+						   "Inserted for TR Register!!\n");
 					goto out;
 				}
 		}
 	}
 
-	for (i = IA64_TR_ALLOC_BASE; i < per_cpu(ia64_tr_num, cpu); i++) {
-		switch (target_mask & 0x3) {
-		case 1:
-			if (!((ia64_idtrs[cpu] + i)->pte & 0x1))
-				goto found;
-			continue;
-		case 2:
-			if (!((ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX + i)->pte & 0x1))
-				goto found;
-			continue;
-		case 3:
-			if (!((ia64_idtrs[cpu] + i)->pte & 0x1) &&
-			    !((ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX + i)->pte & 0x1))
-				goto found;
-			continue;
-		default:
-			r = -EINVAL;
-			goto out;
+	if (target_mask & 0x2)
+	{
+		p = ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX;
+
+		for (i = IA64_TR_ALLOC_BASE; i <= per_cpu(ia64_tr_used, cpu);
+			 i++, p++)
+		{
+			if (p->pte & 0x1)
+				if (is_tr_overlap(p, va, log_size))
+				{
+					printk(KERN_DEBUG "Overlapped Entry"
+						   "Inserted for TR Register!!\n");
+					goto out;
+				}
 		}
 	}
+
+	for (i = IA64_TR_ALLOC_BASE; i < per_cpu(ia64_tr_num, cpu); i++)
+	{
+		switch (target_mask & 0x3)
+		{
+			case 1:
+				if (!((ia64_idtrs[cpu] + i)->pte & 0x1))
+				{
+					goto found;
+				}
+
+				continue;
+
+			case 2:
+				if (!((ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX + i)->pte & 0x1))
+				{
+					goto found;
+				}
+
+				continue;
+
+			case 3:
+				if (!((ia64_idtrs[cpu] + i)->pte & 0x1) &&
+					!((ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX + i)->pte & 0x1))
+				{
+					goto found;
+				}
+
+				continue;
+
+			default:
+				r = -EINVAL;
+				goto out;
+		}
+	}
+
 found:
+
 	if (i >= per_cpu(ia64_tr_num, cpu))
+	{
 		return -EBUSY;
+	}
 
 	/*Record tr info for mca hander use!*/
 	if (i > per_cpu(ia64_tr_used, cpu))
+	{
 		per_cpu(ia64_tr_used, cpu) = i;
+	}
 
 	psr = ia64_clear_ic();
-	if (target_mask & 0x1) {
+
+	if (target_mask & 0x1)
+	{
 		ia64_itr(0x1, i, va, pte, log_size);
 		ia64_srlz_i();
 		p = ia64_idtrs[cpu] + i;
@@ -500,7 +630,9 @@ found:
 		p->itir = log_size << 2;
 		p->rr = ia64_get_rr(va);
 	}
-	if (target_mask & 0x2) {
+
+	if (target_mask & 0x2)
+	{
 		ia64_itr(0x2, i, va, pte, log_size);
 		ia64_srlz_i();
 		p = ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX + i;
@@ -509,6 +641,7 @@ found:
 		p->itir = log_size << 2;
 		p->rr = ia64_get_rr(va);
 	}
+
 	ia64_set_psr(psr);
 	r = i;
 out:
@@ -531,31 +664,43 @@ void ia64_ptr_entry(u64 target_mask, int slot)
 	struct ia64_tr_entry *p;
 
 	if (slot < IA64_TR_ALLOC_BASE || slot >= per_cpu(ia64_tr_num, cpu))
+	{
 		return;
+	}
 
-	if (target_mask & 0x1) {
+	if (target_mask & 0x1)
+	{
 		p = ia64_idtrs[cpu] + slot;
-		if ((p->pte&0x1) && is_tr_overlap(p, p->ifa, p->itir>>2)) {
+
+		if ((p->pte & 0x1) && is_tr_overlap(p, p->ifa, p->itir >> 2))
+		{
 			p->pte = 0;
-			ia64_ptr(0x1, p->ifa, p->itir>>2);
+			ia64_ptr(0x1, p->ifa, p->itir >> 2);
 			ia64_srlz_i();
 		}
 	}
 
-	if (target_mask & 0x2) {
+	if (target_mask & 0x2)
+	{
 		p = ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX + slot;
-		if ((p->pte & 0x1) && is_tr_overlap(p, p->ifa, p->itir>>2)) {
+
+		if ((p->pte & 0x1) && is_tr_overlap(p, p->ifa, p->itir >> 2))
+		{
 			p->pte = 0;
-			ia64_ptr(0x2, p->ifa, p->itir>>2);
+			ia64_ptr(0x2, p->ifa, p->itir >> 2);
 			ia64_srlz_i();
 		}
 	}
 
-	for (i = per_cpu(ia64_tr_used, cpu); i >= IA64_TR_ALLOC_BASE; i--) {
+	for (i = per_cpu(ia64_tr_used, cpu); i >= IA64_TR_ALLOC_BASE; i--)
+	{
 		if (((ia64_idtrs[cpu] + i)->pte & 0x1) ||
-		    ((ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX + i)->pte & 0x1))
+			((ia64_idtrs[cpu] + IA64_TR_ALLOC_MAX + i)->pte & 0x1))
+		{
 			break;
+		}
 	}
+
 	per_cpu(ia64_tr_used, cpu) = i;
 }
 EXPORT_SYMBOL_GPL(ia64_ptr_entry);

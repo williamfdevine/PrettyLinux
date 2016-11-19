@@ -5,7 +5,8 @@
 #include <linux/spinlock.h>
 #include <linux/wait.h>
 
-typedef struct {
+typedef struct
+{
 	unsigned long asid[NR_CPUS];
 	void *vdso;
 	atomic_t fp_mode_switching;

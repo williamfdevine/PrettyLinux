@@ -30,7 +30,8 @@ static void master_clk_init(struct clk *clk)
 	clk->rate *= pfc_divisors[idx];
 }
 
-static struct sh_clk_ops sh7706_master_clk_ops = {
+static struct sh_clk_ops sh7706_master_clk_ops =
+{
 	.init		= master_clk_init,
 };
 
@@ -42,7 +43,8 @@ static unsigned long module_clk_recalc(struct clk *clk)
 	return clk->parent->rate / pfc_divisors[idx];
 }
 
-static struct sh_clk_ops sh7706_module_clk_ops = {
+static struct sh_clk_ops sh7706_module_clk_ops =
+{
 	.recalc		= module_clk_recalc,
 };
 
@@ -54,7 +56,8 @@ static unsigned long bus_clk_recalc(struct clk *clk)
 	return clk->parent->rate / stc_multipliers[idx];
 }
 
-static struct sh_clk_ops sh7706_bus_clk_ops = {
+static struct sh_clk_ops sh7706_bus_clk_ops =
+{
 	.recalc		= bus_clk_recalc,
 };
 
@@ -66,11 +69,13 @@ static unsigned long cpu_clk_recalc(struct clk *clk)
 	return clk->parent->rate / ifc_divisors[idx];
 }
 
-static struct sh_clk_ops sh7706_cpu_clk_ops = {
+static struct sh_clk_ops sh7706_cpu_clk_ops =
+{
 	.recalc		= cpu_clk_recalc,
 };
 
-static struct sh_clk_ops *sh7706_clk_ops[] = {
+static struct sh_clk_ops *sh7706_clk_ops[] =
+{
 	&sh7706_master_clk_ops,
 	&sh7706_module_clk_ops,
 	&sh7706_bus_clk_ops,
@@ -80,5 +85,7 @@ static struct sh_clk_ops *sh7706_clk_ops[] = {
 void __init arch_init_clk_ops(struct sh_clk_ops **ops, int idx)
 {
 	if (idx < ARRAY_SIZE(sh7706_clk_ops))
+	{
 		*ops = sh7706_clk_ops[idx];
+	}
 }

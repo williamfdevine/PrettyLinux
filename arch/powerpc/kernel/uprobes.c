@@ -48,10 +48,12 @@ bool is_trap_insn(uprobe_opcode_t *insn)
  * Return 0 on success or a -ve number on error.
  */
 int arch_uprobe_analyze_insn(struct arch_uprobe *auprobe,
-		struct mm_struct *mm, unsigned long addr)
+							 struct mm_struct *mm, unsigned long addr)
 {
 	if (addr & 0x03)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -97,7 +99,9 @@ unsigned long uprobe_get_swbp_addr(struct pt_regs *regs)
 bool arch_uprobe_xol_was_trapped(struct task_struct *t)
 {
 	if (t->thread.trap_nr != UPROBE_TRAP_NR)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -132,30 +136,43 @@ int arch_uprobe_post_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 
 /* callback routine for handling exceptions. */
 int arch_uprobe_exception_notify(struct notifier_block *self,
-				unsigned long val, void *data)
+								 unsigned long val, void *data)
 {
 	struct die_args *args = data;
 	struct pt_regs *regs = args->regs;
 
 	/* regs == NULL is a kernel bug */
 	if (WARN_ON(!regs))
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* We are only interested in userspace traps */
 	if (!user_mode(regs))
+	{
 		return NOTIFY_DONE;
-
-	switch (val) {
-	case DIE_BPT:
-		if (uprobe_pre_sstep_notifier(regs))
-			return NOTIFY_STOP;
-		break;
-	case DIE_SSTEP:
-		if (uprobe_post_sstep_notifier(regs))
-			return NOTIFY_STOP;
-	default:
-		break;
 	}
+
+	switch (val)
+	{
+		case DIE_BPT:
+			if (uprobe_pre_sstep_notifier(regs))
+			{
+				return NOTIFY_STOP;
+			}
+
+			break;
+
+		case DIE_SSTEP:
+			if (uprobe_post_sstep_notifier(regs))
+			{
+				return NOTIFY_STOP;
+			}
+
+		default:
+			break;
+	}
+
 	return NOTIFY_DONE;
 }
 
@@ -187,8 +204,11 @@ bool arch_uprobe_skip_sstep(struct arch_uprobe *auprobe, struct pt_regs *regs)
 	 * For all other cases, we need to single-step in hardware.
 	 */
 	ret = emulate_step(regs, auprobe->insn);
+
 	if (ret > 0)
+	{
 		return true;
+	}
 
 	return false;
 }

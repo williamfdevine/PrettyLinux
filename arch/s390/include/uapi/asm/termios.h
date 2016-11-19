@@ -10,7 +10,8 @@
 #include <asm/termbits.h>
 #include <asm/ioctls.h>
 
-struct winsize {
+struct winsize
+{
 	unsigned short ws_row;
 	unsigned short ws_col;
 	unsigned short ws_xpixel;
@@ -18,7 +19,8 @@ struct winsize {
 };
 
 #define NCC 8
-struct termio {
+struct termio
+{
 	unsigned short c_iflag;		/* input mode flags */
 	unsigned short c_oflag;		/* output mode flags */
 	unsigned short c_cflag;		/* control mode flags */

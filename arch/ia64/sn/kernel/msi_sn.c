@@ -19,7 +19,8 @@
 #include <asm/sn/pcidev.h>
 #include <asm/sn/nodepda.h>
 
-struct sn_msi_info {
+struct sn_msi_info
+{
 	u64 pci_addr;
 	struct sn_irq_info *sn_irq_info;
 };
@@ -39,23 +40,26 @@ void sn_teardown_msi_irq(unsigned int irq)
 	struct sn_pcibus_provider *provider;
 
 	sn_irq_info = sn_msi_info[irq].sn_irq_info;
+
 	if (sn_irq_info == NULL || sn_irq_info->irq_int_bit >= 0)
+	{
 		return;
+	}
 
 	sn_pdev = (struct pcidev_info *)sn_irq_info->irq_pciioinfo;
 	pdev = sn_pdev->pdi_linux_pcidev;
 	provider = SN_PCIDEV_BUSPROVIDER(pdev);
 
 	(*provider->dma_unmap)(pdev,
-			       sn_msi_info[irq].pci_addr,
-			       PCI_DMA_FROMDEVICE);
+						   sn_msi_info[irq].pci_addr,
+						   PCI_DMA_FROMDEVICE);
 	sn_msi_info[irq].pci_addr = 0;
 
 	bussoft = SN_PCIDEV_BUSSOFT(pdev);
 	nasid = NASID_GET(bussoft->bs_base);
 	widget = (nasid & 1) ?
-			TIO_SWIN_WIDGETNUM(bussoft->bs_base) :
-			SWIN_WIDGETNUM(bussoft->bs_base);
+			 TIO_SWIN_WIDGETNUM(bussoft->bs_base) :
+			 SWIN_WIDGETNUM(bussoft->bs_base);
 
 	sn_intr_free(nasid, widget, sn_irq_info);
 	sn_msi_info[irq].sn_irq_info = NULL;
@@ -76,17 +80,26 @@ int sn_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *entry)
 	int irq;
 
 	if (!entry->msi_attrib.is_64)
+	{
 		return -EINVAL;
+	}
 
 	if (bussoft == NULL)
+	{
 		return -EINVAL;
+	}
 
 	if (provider == NULL || provider->dma_map_consistent == NULL)
+	{
 		return -EINVAL;
+	}
 
 	irq = create_irq();
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	/*
 	 * Set up the vector plumbing.  Let the prom (via sn_intr_alloc)
@@ -95,17 +108,21 @@ int sn_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *entry)
 
 	nasid = NASID_GET(bussoft->bs_base);
 	widget = (nasid & 1) ?
-			TIO_SWIN_WIDGETNUM(bussoft->bs_base) :
-			SWIN_WIDGETNUM(bussoft->bs_base);
+			 TIO_SWIN_WIDGETNUM(bussoft->bs_base) :
+			 SWIN_WIDGETNUM(bussoft->bs_base);
 
 	sn_irq_info = kzalloc(sizeof(struct sn_irq_info), GFP_KERNEL);
-	if (! sn_irq_info) {
+
+	if (! sn_irq_info)
+	{
 		destroy_irq(irq);
 		return -ENOMEM;
 	}
 
 	status = sn_intr_alloc(nasid, widget, sn_irq_info, irq, -1, -1);
-	if (status) {
+
+	if (status)
+	{
 		kfree(sn_irq_info);
 		destroy_irq(irq);
 		return -ENOMEM;
@@ -122,10 +139,12 @@ int sn_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *entry)
 	 * Map the xio address into bus space
 	 */
 	bus_addr = (*provider->dma_map_consistent)(pdev,
-					sn_irq_info->irq_xtalkaddr,
-					sizeof(sn_irq_info->irq_xtalkaddr),
-					SN_DMA_MSI|SN_DMA_ADDR_XIO);
-	if (! bus_addr) {
+			   sn_irq_info->irq_xtalkaddr,
+			   sizeof(sn_irq_info->irq_xtalkaddr),
+			   SN_DMA_MSI | SN_DMA_ADDR_XIO);
+
+	if (! bus_addr)
+	{
 		sn_intr_free(nasid, widget, sn_irq_info);
 		kfree(sn_irq_info);
 		destroy_irq(irq);
@@ -153,7 +172,7 @@ int sn_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *entry)
 
 #ifdef CONFIG_SMP
 static int sn_set_msi_irq_affinity(struct irq_data *data,
-				   const struct cpumask *cpu_mask, bool force)
+								   const struct cpumask *cpu_mask, bool force)
 {
 	struct msi_msg msg;
 	int slice;
@@ -168,8 +187,11 @@ static int sn_set_msi_irq_affinity(struct irq_data *data,
 
 	cpu = cpumask_first_and(cpu_mask, cpu_online_mask);
 	sn_irq_info = sn_msi_info[irq].sn_irq_info;
+
 	if (sn_irq_info == NULL || sn_irq_info->irq_int_bit >= 0)
+	{
 		return -1;
+	}
 
 	/*
 	 * Release XIO resources for the old MSI PCI address
@@ -189,17 +211,20 @@ static int sn_set_msi_irq_affinity(struct irq_data *data,
 
 	new_irq_info = sn_retarget_vector(sn_irq_info, nasid, slice);
 	sn_msi_info[irq].sn_irq_info = new_irq_info;
+
 	if (new_irq_info == NULL)
+	{
 		return -1;
+	}
 
 	/*
 	 * Map the xio address into bus space
 	 */
 
 	bus_addr = (*provider->dma_map_consistent)(pdev,
-					new_irq_info->irq_xtalkaddr,
-					sizeof(new_irq_info->irq_xtalkaddr),
-					SN_DMA_MSI|SN_DMA_ADDR_XIO);
+			   new_irq_info->irq_xtalkaddr,
+			   sizeof(new_irq_info->irq_xtalkaddr),
+			   SN_DMA_MSI | SN_DMA_ADDR_XIO);
 
 	sn_msi_info[irq].pci_addr = bus_addr;
 	msg.address_hi = (u32)(bus_addr >> 32);
@@ -226,7 +251,8 @@ static int sn_msi_retrigger_irq(struct irq_data *data)
 	return 1;
 }
 
-static struct irq_chip sn_msi_chip = {
+static struct irq_chip sn_msi_chip =
+{
 	.name			= "PCI-MSI",
 	.irq_mask		= pci_msi_mask_irq,
 	.irq_unmask		= pci_msi_unmask_irq,

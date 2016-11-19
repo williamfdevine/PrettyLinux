@@ -18,17 +18,26 @@ acornfb_valid_pixrate(struct fb_var_screeninfo *var)
 	u_long limit;
 
 	if (!var->pixclock)
+	{
 		return 0;
+	}
 
 	/*
 	 * Limits below are taken from RISC OS bandwidthlimit file
 	 */
-	if (current_par.using_vram) {
+	if (current_par.using_vram)
+	{
 		if (current_par.vram_half_sam == 2048)
+		{
 			limit = 6578;
+		}
 		else
+		{
 			limit = 13157;
-	} else {
+		}
+	}
+	else
+	{
 		limit = 26315;
 	}
 
@@ -47,7 +56,8 @@ acornfb_vidc20_find_pll(u_int pixclk)
 	u_int r, best_r = 2, best_v = 2;
 	int best_d = 0x7fffffff;
 
-	for (r = 2; r <= 32; r++) {
+	for (r = 2; r <= 32; r++)
+	{
 		u_int rr, v, p;
 		int d;
 
@@ -56,23 +66,30 @@ acornfb_vidc20_find_pll(u_int pixclk)
 		v = (rr + pixclk / 2) / pixclk;
 
 		if (v > 32 || v < 2)
+		{
 			continue;
+		}
 
 		p = (rr + v / 2) / v;
 
 		d = pixclk - p;
 
 		if (d < 0)
+		{
 			d = -d;
+		}
 
-		if (d < best_d) {
+		if (d < best_d)
+		{
 			best_d = d;
 			best_v = v - 1;
 			best_r = r - 1;
 		}
 
 		if (d == 0)
+		{
 			break;
+		}
 	}
 
 	return best_v << 8 | best_r;
@@ -80,7 +97,7 @@ acornfb_vidc20_find_pll(u_int pixclk)
 
 static inline void
 acornfb_vidc20_find_rates(struct vidc_timing *vidc,
-			  struct fb_var_screeninfo *var)
+						  struct fb_var_screeninfo *var)
 {
 	u_int div;
 
@@ -89,20 +106,33 @@ acornfb_vidc20_find_rates(struct vidc_timing *vidc,
 
 	/* Limit divisor */
 	if (div == 0)
+	{
 		div = 1;
+	}
+
 	if (div > 8)
+	{
 		div = 8;
+	}
 
 	/* Encode divisor to VIDC20 setting */
-	switch (div) {
-	case 1:	vidc->control |= VIDC20_CTRL_PIX_CK;  break;
-	case 2:	vidc->control |= VIDC20_CTRL_PIX_CK2; break;
-	case 3:	vidc->control |= VIDC20_CTRL_PIX_CK3; break;
-	case 4:	vidc->control |= VIDC20_CTRL_PIX_CK4; break;
-	case 5:	vidc->control |= VIDC20_CTRL_PIX_CK5; break;
-	case 6:	vidc->control |= VIDC20_CTRL_PIX_CK6; break;
-	case 7:	vidc->control |= VIDC20_CTRL_PIX_CK7; break;
-	case 8: vidc->control |= VIDC20_CTRL_PIX_CK8; break;
+	switch (div)
+	{
+		case 1:	vidc->control |= VIDC20_CTRL_PIX_CK;  break;
+
+		case 2:	vidc->control |= VIDC20_CTRL_PIX_CK2; break;
+
+		case 3:	vidc->control |= VIDC20_CTRL_PIX_CK3; break;
+
+		case 4:	vidc->control |= VIDC20_CTRL_PIX_CK4; break;
+
+		case 5:	vidc->control |= VIDC20_CTRL_PIX_CK5; break;
+
+		case 6:	vidc->control |= VIDC20_CTRL_PIX_CK6; break;
+
+		case 7:	vidc->control |= VIDC20_CTRL_PIX_CK7; break;
+
+		case 8: vidc->control |= VIDC20_CTRL_PIX_CK8; break;
 	}
 
 	/*
@@ -113,23 +143,38 @@ acornfb_vidc20_find_rates(struct vidc_timing *vidc,
 	 * the FIFO overflow. See VIDC20 manual page 33 (6.0 Setting the
 	 * FIFO preload value).
 	 */
-	if (current_par.using_vram) {
+	if (current_par.using_vram)
+	{
 		if (current_par.vram_half_sam == 2048)
+		{
 			vidc->control |= VIDC20_CTRL_FIFO_24;
+		}
 		else
+		{
 			vidc->control |= VIDC20_CTRL_FIFO_28;
-	} else {
+		}
+	}
+	else
+	{
 		unsigned long bandwidth = acornfb_bandwidth(var);
 
 		/* Encode bandwidth as VIDC20 setting */
 		if (bandwidth > 33334)		/* < 30.0MB/s */
+		{
 			vidc->control |= VIDC20_CTRL_FIFO_16;
+		}
 		else if (bandwidth > 26666)	/* < 37.5MB/s */
+		{
 			vidc->control |= VIDC20_CTRL_FIFO_20;
+		}
 		else if (bandwidth > 22222)	/* < 45.0MB/s */
+		{
 			vidc->control |= VIDC20_CTRL_FIFO_24;
+		}
 		else				/* > 45.0MB/s */
+		{
 			vidc->control |= VIDC20_CTRL_FIFO_28;
+		}
 	}
 
 	/* Find the PLL values */

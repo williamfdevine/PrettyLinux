@@ -39,7 +39,8 @@
 #define PWM_BL_CH 2
 
 /* Oscillator frequencies. These are board-specific */
-unsigned long at32_board_osc_rates[3] = {
+unsigned long at32_board_osc_rates[3] =
+{
 	[0] = 32768,	/* 32.768 kHz on RTC osc */
 	[1] = 20000000,	/* 20 MHz on osc0 */
 	[2] = 12000000,	/* 12 MHz on osc1 */
@@ -48,14 +49,17 @@ unsigned long at32_board_osc_rates[3] = {
 /* Initialized by bootloader-specific startup code. */
 struct tag *bootloader_tags __initdata;
 
-static struct atmel_abdac_pdata __initdata abdac0_data = {
+static struct atmel_abdac_pdata __initdata abdac0_data =
+{
 };
 
-struct eth_addr {
+struct eth_addr
+{
 	u8 addr[6];
 };
 static struct eth_addr __initdata hw_addr[1];
-static struct macb_platform_data __initdata eth_data[1] = {
+static struct macb_platform_data __initdata eth_data[1] =
+{
 	{
 		.phy_mask	= ~(1U << 1),
 	},
@@ -66,7 +70,8 @@ static int ads7843_get_pendown_state(void)
 	return !gpio_get_value(GPIO_PIN_PB(3));
 }
 
-static struct ads7846_platform_data ads7843_data = {
+static struct ads7846_platform_data ads7843_data =
+{
 	.model			= 7843,
 	.get_pendown_state	= ads7843_get_pendown_state,
 	.pressure_max		= 255,
@@ -83,7 +88,8 @@ static struct ads7846_platform_data ads7843_data = {
 	.penirq_recheck_delay_usecs = 100,
 };
 
-static struct spi_board_info __initdata spi1_board_info[] = {
+static struct spi_board_info __initdata spi1_board_info[] =
+{
 	{
 		/* ADS7843 touch controller */
 		.modalias	= "ads7846",
@@ -94,7 +100,8 @@ static struct spi_board_info __initdata spi1_board_info[] = {
 	},
 };
 
-static struct mci_platform_data __initdata mci0_data = {
+static struct mci_platform_data __initdata mci0_data =
+{
 	.slot[0] = {
 		.bus_width	= 4,
 		.detect_pin	= -ENODEV,
@@ -102,7 +109,8 @@ static struct mci_platform_data __initdata mci0_data = {
 	},
 };
 
-static struct fb_videomode __initdata lb104v03_modes[] = {
+static struct fb_videomode __initdata lb104v03_modes[] =
+{
 	{
 		.name		= "640x480 @ 50",
 		.refresh	= 50,
@@ -118,7 +126,8 @@ static struct fb_videomode __initdata lb104v03_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata favr32_default_monspecs = {
+static struct fb_monspecs __initdata favr32_default_monspecs =
+{
 	.manufacturer		= "LG",
 	.monitor		= "LB104V03",
 	.modedb			= lb104v03_modes,
@@ -130,17 +139,19 @@ static struct fb_monspecs __initdata favr32_default_monspecs = {
 	.dclkmax		= 28000000,
 };
 
-struct atmel_lcdfb_pdata __initdata favr32_lcdc_data = {
+struct atmel_lcdfb_pdata __initdata favr32_lcdc_data =
+{
 	.default_bpp		= 16,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_MEMOR_BIG),
 	.default_monspecs	= &favr32_default_monspecs,
 	.guard_time		= 2,
 };
 
-static struct gpio_led favr32_leds[] = {
+static struct gpio_led favr32_leds[] =
+{
 	{
 		.name		 = "green",
 		.gpio		 = GPIO_PIN_PE(19),
@@ -154,12 +165,14 @@ static struct gpio_led favr32_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data favr32_led_data = {
+static struct gpio_led_platform_data favr32_led_data =
+{
 	.num_leds	= ARRAY_SIZE(favr32_leds),
 	.leds		= favr32_leds,
 };
 
-static struct platform_device favr32_led_dev = {
+static struct platform_device favr32_led_dev =
+{
 	.name		= "leds-gpio",
 	.id		= 0,
 	.dev		= {
@@ -180,9 +193,10 @@ static int __init parse_tag_ethernet(struct tag *tag)
 	int i;
 
 	i = tag->u.ethernet.mac_index;
+
 	if (i < ARRAY_SIZE(hw_addr))
 		memcpy(hw_addr[i].addr, tag->u.ethernet.hw_address,
-		       sizeof(hw_addr[i].addr));
+			   sizeof(hw_addr[i].addr));
 
 	return 0;
 }
@@ -196,13 +210,21 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	struct clk *pclk;
 
 	if (!res)
+	{
 		return;
+	}
+
 	if (pdev->id >= ARRAY_SIZE(hw_addr))
+	{
 		return;
+	}
 
 	addr = hw_addr[pdev->id].addr;
+
 	if (!is_valid_ether_addr(addr))
+	{
 		return;
+	}
 
 	/*
 	 * Since this is board-specific code, we'll cheat and use the
@@ -211,12 +233,15 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	 */
 	regs = (void __iomem __force *)res->start;
 	pclk = clk_get(&pdev->dev, "pclk");
+
 	if (IS_ERR(pclk))
+	{
 		return;
+	}
 
 	clk_enable(pclk);
 	__raw_writel((addr[3] << 24) | (addr[2] << 16)
-		     | (addr[1] << 8) | addr[0], regs + 0x98);
+				 | (addr[1] << 8) | addr[0], regs + 0x98);
 	__raw_writel((addr[5] << 8) | addr[4], regs + 0x9c);
 	clk_disable(pclk);
 	clk_put(pclk);
@@ -227,28 +252,34 @@ void __init favr32_setup_leds(void)
 	unsigned i;
 
 	for (i = 0; i < ARRAY_SIZE(favr32_leds); i++)
+	{
 		at32_select_gpio(favr32_leds[i].gpio, AT32_GPIOF_OUTPUT);
+	}
 
 	platform_device_register(&favr32_led_dev);
 }
 
-static struct pwm_lookup pwm_lookup[] = {
+static struct pwm_lookup pwm_lookup[] =
+{
 	PWM_LOOKUP("at91sam9rl-pwm", PWM_BL_CH, "pwm-backlight.0", NULL,
-		   5000, PWM_POLARITY_INVERSED),
+	5000, PWM_POLARITY_INVERSED),
 };
 
-static struct regulator_consumer_supply fixed_power_consumers[] = {
+static struct regulator_consumer_supply fixed_power_consumers[] =
+{
 	REGULATOR_SUPPLY("power", "pwm-backlight.0"),
 };
 
-static struct platform_pwm_backlight_data pwm_bl_data = {
+static struct platform_pwm_backlight_data pwm_bl_data =
+{
 	.enable_gpio		= GPIO_PIN_PA(28),
 	.max_brightness		= 255,
 	.dft_brightness		= 255,
 	.lth_brightness		= 50,
 };
 
-static struct platform_device pwm_bl_device = {
+static struct platform_device pwm_bl_device =
+{
 	.name = "pwm-backlight",
 	.dev = {
 		.platform_data = &pwm_bl_data,
@@ -259,7 +290,7 @@ static void __init favr32_setup_atmel_pwm_bl(void)
 {
 	pwm_add_table(pwm_lookup, ARRAY_SIZE(pwm_lookup));
 	regulator_register_always_on(0, "fixed", fixed_power_consumers,
-				    ARRAY_SIZE(fixed_power_consumers), 3300000);
+								 ARRAY_SIZE(fixed_power_consumers), 3300000);
 	platform_device_register(&pwm_bl_device);
 	at32_select_gpio(pwm_bl_data.enable_gpio, 0);
 }
@@ -278,29 +309,40 @@ static int __init set_abdac_rate(struct platform_device *pdev)
 	struct clk *abdac;
 
 	if (pdev == NULL)
+	{
 		return -ENXIO;
+	}
 
 	osc1 = clk_get(NULL, "osc1");
-	if (IS_ERR(osc1)) {
+
+	if (IS_ERR(osc1))
+	{
 		retval = PTR_ERR(osc1);
 		goto out;
 	}
 
 	pll1 = clk_get(NULL, "pll1");
-	if (IS_ERR(pll1)) {
+
+	if (IS_ERR(pll1))
+	{
 		retval = PTR_ERR(pll1);
 		goto out_osc1;
 	}
 
 	abdac = clk_get(&pdev->dev, "sample_clk");
-	if (IS_ERR(abdac)) {
+
+	if (IS_ERR(abdac))
+	{
 		retval = PTR_ERR(abdac);
 		goto out_pll1;
 	}
 
 	retval = clk_set_parent(pll1, osc1);
+
 	if (retval != 0)
+	{
 		goto out_abdac;
+	}
 
 	/*
 	 * Rate is 32000 to 50000 and ABDAC oversamples 256x. Multiply, in
@@ -309,19 +351,27 @@ static int __init set_abdac_rate(struct platform_device *pdev)
 	 * lowest frequency for the PLL.
 	 */
 	retval = clk_round_rate(pll1,
-			CONFIG_BOARD_FAVR32_ABDAC_RATE * 256 * 16);
-	if (retval <= 0) {
+							CONFIG_BOARD_FAVR32_ABDAC_RATE * 256 * 16);
+
+	if (retval <= 0)
+	{
 		retval = -EINVAL;
 		goto out_abdac;
 	}
 
 	retval = clk_set_rate(pll1, retval);
+
 	if (retval != 0)
+	{
 		goto out_abdac;
+	}
 
 	retval = clk_set_parent(abdac, pll1);
+
 	if (retval != 0)
+	{
 		goto out_abdac;
+	}
 
 out_abdac:
 	clk_put(abdac);

@@ -61,7 +61,7 @@ static int netx_set_oneshot(struct clock_event_device *evt)
 static int netx_set_periodic(struct clock_event_device *evt)
 {
 	u32 tmode = NETX_GPIO_COUNTER_CTRL_RST_EN |
-		    NETX_GPIO_COUNTER_CTRL_IRQ_EN | NETX_GPIO_COUNTER_CTRL_RUN;
+				NETX_GPIO_COUNTER_CTRL_IRQ_EN | NETX_GPIO_COUNTER_CTRL_RUN;
 
 	timer_shutdown(evt);
 	writel(NETX_LATCH, NETX_GPIO_COUNTER_MAX(TIMER_CLOCKEVENT));
@@ -71,13 +71,14 @@ static int netx_set_periodic(struct clock_event_device *evt)
 }
 
 static int netx_set_next_event(unsigned long evt,
-		struct clock_event_device *clk)
+							   struct clock_event_device *clk)
 {
 	writel(0 - evt, NETX_GPIO_COUNTER_CURRENT(TIMER_CLOCKEVENT));
 	return 0;
 }
 
-static struct clock_event_device netx_clockevent = {
+static struct clock_event_device netx_clockevent =
+{
 	.name = "netx-timer" __stringify(TIMER_CLOCKEVENT),
 	.features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
 	.set_next_event = netx_set_next_event,
@@ -103,7 +104,8 @@ netx_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction netx_timer_irq = {
+static struct irqaction netx_timer_irq =
+{
 	.name		= "NetX Timer Tick",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= netx_timer_interrupt,
@@ -130,7 +132,7 @@ void __init netx_timer_init(void)
 	 */
 	writel(COUNTER_BIT(0), NETX_GPIO_IRQ_ENABLE);
 	writel(NETX_GPIO_COUNTER_CTRL_IRQ_EN | NETX_GPIO_COUNTER_CTRL_RUN,
-			NETX_GPIO_COUNTER_CTRL(0));
+		   NETX_GPIO_COUNTER_CTRL(0));
 
 	setup_irq(NETX_IRQ_TIMER0, &netx_timer_irq);
 
@@ -140,14 +142,14 @@ void __init netx_timer_init(void)
 	writel(0xffffffff, NETX_GPIO_COUNTER_MAX(TIMER_CLOCKSOURCE));
 
 	writel(NETX_GPIO_COUNTER_CTRL_RUN,
-			NETX_GPIO_COUNTER_CTRL(TIMER_CLOCKSOURCE));
+		   NETX_GPIO_COUNTER_CTRL(TIMER_CLOCKSOURCE));
 
 	clocksource_mmio_init(NETX_GPIO_COUNTER_CURRENT(TIMER_CLOCKSOURCE),
-		"netx_timer", NETX_CLOCK_FREQ, 200, 32, clocksource_mmio_readl_up);
+						  "netx_timer", NETX_CLOCK_FREQ, 200, 32, clocksource_mmio_readl_up);
 
 	/* with max_delta_ns >= delta2ns(0x800) the system currently runs fine.
 	 * Adding some safety ... */
 	netx_clockevent.cpumask = cpumask_of(0);
 	clockevents_config_and_register(&netx_clockevent, NETX_CLOCK_FREQ,
-					0xa00, 0xfffffffe);
+									0xa00, 0xfffffffe);
 }

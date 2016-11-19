@@ -31,7 +31,7 @@
 static void __init ppa8548_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 }
@@ -42,7 +42,9 @@ static void __init ppa8548_pic_init(void)
 static void __init ppa8548_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("ppa8548_setup_arch()", 0);
+	}
 }
 
 static void ppa8548_show_cpuinfo(struct seq_file *m)
@@ -59,7 +61,8 @@ static void ppa8548_show_cpuinfo(struct seq_file *m)
 	seq_printf(m, "PLL setting\t: 0x%x\n", ((phid1 >> 24) & 0x3f));
 }
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .name = "soc", },
 	{ .type = "soc", },
 	{ .compatible = "simple-bus", },
@@ -84,13 +87,14 @@ static int __init ppa8548_probe(void)
 	return of_machine_is_compatible("ppa8548");
 }
 
-define_machine(ppa8548) {
+define_machine(ppa8548)
+{
 	.name		= "ppa8548",
-	.probe		= ppa8548_probe,
-	.setup_arch	= ppa8548_setup_arch,
-	.init_IRQ	= ppa8548_pic_init,
-	.show_cpuinfo	= ppa8548_show_cpuinfo,
-	.get_irq	= mpic_get_irq,
-	.calibrate_decr = generic_calibrate_decr,
-	.progress	= udbg_progress,
+		  .probe		= ppa8548_probe,
+			   .setup_arch	= ppa8548_setup_arch,
+				.init_IRQ	= ppa8548_pic_init,
+				   .show_cpuinfo	= ppa8548_show_cpuinfo,
+					  .get_irq	= mpic_get_irq,
+						  .calibrate_decr = generic_calibrate_decr,
+						   .progress	= udbg_progress,
 };

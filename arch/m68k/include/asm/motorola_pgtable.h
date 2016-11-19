@@ -41,21 +41,21 @@ extern int m68k_pgtable_cachemode;
  * defined and initialized in head.S */
 
 #if defined(CPU_M68060_ONLY) && defined(CONFIG_060_WRITETHROUGH)
-#define m68k_supervisor_cachemode _PAGE_CACHE040W
+	#define m68k_supervisor_cachemode _PAGE_CACHE040W
 #elif defined(CPU_M68040_OR_M68060_ONLY)
-#define m68k_supervisor_cachemode _PAGE_CACHE040
+	#define m68k_supervisor_cachemode _PAGE_CACHE040
 #elif defined(CPU_M68020_OR_M68030_ONLY)
-#define m68k_supervisor_cachemode 0
+	#define m68k_supervisor_cachemode 0
 #else
-extern int m68k_supervisor_cachemode;
+	extern int m68k_supervisor_cachemode;
 #endif
 
 #if defined(CPU_M68040_OR_M68060_ONLY)
-#define mm_cachebits _PAGE_CACHE040
+	#define mm_cachebits _PAGE_CACHE040
 #elif defined(CPU_M68020_OR_M68030_ONLY)
-#define mm_cachebits 0
+	#define mm_cachebits 0
 #else
-extern unsigned long mm_cachebits;
+	extern unsigned long mm_cachebits;
 #endif
 
 #define PAGE_NONE	__pgprot(_PAGE_PROTNONE | _PAGE_ACCESSED | mm_cachebits)
@@ -110,9 +110,11 @@ static inline void pmd_set(pmd_t *pmdp, pte_t *ptep)
 	unsigned long ptbl = virt_to_phys(ptep) | _PAGE_TABLE | _PAGE_ACCESSED;
 	unsigned long *ptr = pmdp->pmd;
 	short i = 16;
-	while (--i >= 0) {
+
+	while (--i >= 0)
+	{
 		*ptr++ = ptbl;
-		ptbl += (sizeof(pte_t)*PTRS_PER_PTE/16);
+		ptbl += (sizeof(pte_t) * PTRS_PER_PTE / 16);
 	}
 }
 
@@ -138,11 +140,11 @@ static inline void pgd_set(pgd_t *pgdp, pmd_t *pmdp)
 #define pmd_bad(pmd)		((pmd_val(pmd) & _DESCTYPE_MASK) != _PAGE_TABLE)
 #define pmd_present(pmd)	(pmd_val(pmd) & _PAGE_TABLE)
 #define pmd_clear(pmdp) ({			\
-	unsigned long *__ptr = pmdp->pmd;	\
-	short __i = 16;				\
-	while (--__i >= 0)			\
-		*__ptr++ = 0;			\
-})
+		unsigned long *__ptr = pmdp->pmd;	\
+		short __i = 16;				\
+		while (--__i >= 0)			\
+			*__ptr++ = 0;			\
+	})
 #define pmd_page(pmd)		virt_to_page(__va(pmd_val(pmd)))
 
 
@@ -193,7 +195,7 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
 
 /* to find an entry in a page-table-directory */
 static inline pgd_t *pgd_offset(const struct mm_struct *mm,
-				unsigned long address)
+								unsigned long address)
 {
 	return mm->pgd + pgd_index(address);
 }
@@ -210,7 +212,7 @@ static inline pgd_t *pgd_offset_k(unsigned long address)
 /* Find an entry in the second-level page table.. */
 static inline pmd_t *pmd_offset(pgd_t *dir, unsigned long address)
 {
-	return (pmd_t *)__pgd_page(*dir) + ((address >> PMD_SHIFT) & (PTRS_PER_PMD-1));
+	return (pmd_t *)__pgd_page(*dir) + ((address >> PMD_SHIFT) & (PTRS_PER_PMD - 1));
 }
 
 /* Find an entry in the third-level page table.. */
@@ -236,7 +238,8 @@ static inline void nocache_page(void *vaddr)
 {
 	unsigned long addr = (unsigned long)vaddr;
 
-	if (CPU_IS_040_OR_060) {
+	if (CPU_IS_040_OR_060)
+	{
 		pgd_t *dir;
 		pmd_t *pmdp;
 		pte_t *ptep;
@@ -252,7 +255,8 @@ static inline void cache_page(void *vaddr)
 {
 	unsigned long addr = (unsigned long)vaddr;
 
-	if (CPU_IS_040_OR_060) {
+	if (CPU_IS_040_OR_060)
+	{
 		pgd_t *dir;
 		pmd_t *pmdp;
 		pte_t *ptep;

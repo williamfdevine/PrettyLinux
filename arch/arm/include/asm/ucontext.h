@@ -13,7 +13,8 @@
  * coordination with glibc.
  */
 
-struct ucontext {
+struct ucontext
+{
 	unsigned long	  uc_flags;
 	struct ucontext  *uc_link;
 	stack_t		  uc_stack;
@@ -23,7 +24,7 @@ struct ucontext {
 	int		  __unused[32 - (sizeof (sigset_t) / sizeof (int))];
 	/* Last for extensibility.  Eight byte aligned because some
 	   coprocessors require eight byte alignment.  */
- 	unsigned long	  uc_regspace[128] __attribute__((__aligned__(8)));
+	unsigned long	  uc_regspace[128] __attribute__((__aligned__(8)));
 };
 
 #ifdef __KERNEL__
@@ -39,7 +40,8 @@ struct ucontext {
 #define CRUNCH_MAGIC		0x5065cf03
 #define CRUNCH_STORAGE_SIZE	(CRUNCH_SIZE + 8)
 
-struct crunch_sigframe {
+struct crunch_sigframe
+{
 	unsigned long	magic;
 	unsigned long	size;
 	struct crunch_state	storage;
@@ -51,7 +53,8 @@ struct crunch_sigframe {
 #define IWMMXT_MAGIC		0x12ef842a
 #define IWMMXT_STORAGE_SIZE	(IWMMXT_SIZE + 8)
 
-struct iwmmxt_sigframe {
+struct iwmmxt_sigframe
+{
 	unsigned long	magic;
 	unsigned long	size;
 	struct iwmmxt_struct storage;
@@ -83,7 +86,8 @@ struct vfp_sigframe
  * because the config options aren't.  uc_regspace is really
  * one of these.
  */
-struct aux_sigframe {
+struct aux_sigframe
+{
 #ifdef CONFIG_CRUNCH
 	struct crunch_sigframe	crunch;
 #endif

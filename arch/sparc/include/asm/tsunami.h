@@ -48,17 +48,17 @@
 static inline void tsunami_flush_icache(void)
 {
 	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
-			     : /* no outputs */
-			     : "i" (ASI_M_IC_FLCLEAR)
-			     : "memory");
+						 : /* no outputs */
+						 : "i" (ASI_M_IC_FLCLEAR)
+						 : "memory");
 }
 
 static inline void tsunami_flush_dcache(void)
 {
 	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
-			     : /* no outputs */
-			     : "i" (ASI_M_DC_FLCLEAR)
-			     : "memory");
+						 : /* no outputs */
+						 : "i" (ASI_M_DC_FLCLEAR)
+						 : "memory");
 }
 
 #endif /* !(_SPARC_TSUNAMI_H) */

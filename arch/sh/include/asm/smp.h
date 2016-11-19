@@ -22,7 +22,8 @@ extern int __cpu_number_map[NR_CPUS];
 extern int __cpu_logical_map[NR_CPUS];
 #define cpu_logical_map(cpu)  __cpu_logical_map[cpu]
 
-enum {
+enum
+{
 	SMP_MSG_FUNCTION,
 	SMP_MSG_RESCHEDULE,
 	SMP_MSG_FUNCTION_SINGLE,
@@ -59,19 +60,22 @@ static inline int hard_smp_processor_id(void)
 	extern struct plat_smp_ops *mp_ops;	/* private */
 
 	if (!mp_ops)
-		return 0;	/* boot CPU */
+	{
+		return 0;    /* boot CPU */
+	}
 
 	return mp_ops->smp_processor_id();
 }
 
-struct of_cpu_method {
+struct of_cpu_method
+{
 	const char *method;
 	struct plat_smp_ops *ops;
 };
 
 #define CPU_METHOD_OF_DECLARE(name, _method, _ops)			\
 	static const struct of_cpu_method __cpu_method_of_table_##name	\
-		__used __section(__cpu_method_of_table)			\
+	__used __section(__cpu_method_of_table)			\
 		= { .method = _method, .ops = _ops }
 
 #else

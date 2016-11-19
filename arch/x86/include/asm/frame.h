@@ -13,12 +13,12 @@
 #ifdef __ASSEMBLY__
 
 .macro FRAME_BEGIN
-	push %_ASM_BP
-	_ASM_MOV %_ASM_SP, %_ASM_BP
+push % _ASM_BP
+_ASM_MOV % _ASM_SP, % _ASM_BP
 .endm
 
 .macro FRAME_END
-	pop %_ASM_BP
+pop % _ASM_BP
 .endm
 
 #else /* !__ASSEMBLY__ */

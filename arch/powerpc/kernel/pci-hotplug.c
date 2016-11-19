@@ -22,18 +22,24 @@
 #include <asm/eeh.h>
 
 static struct pci_bus *find_bus_among_children(struct pci_bus *bus,
-					       struct device_node *dn)
+		struct device_node *dn)
 {
 	struct pci_bus *child = NULL;
 	struct pci_bus *tmp;
 
 	if (pci_bus_to_OF_node(bus) == dn)
+	{
 		return bus;
+	}
 
-	list_for_each_entry(tmp, &bus->children, node) {
+	list_for_each_entry(tmp, &bus->children, node)
+	{
 		child = find_bus_among_children(tmp, dn);
+
 		if (child)
+		{
 			break;
+		}
 	}
 
 	return child;
@@ -44,7 +50,9 @@ struct pci_bus *pci_find_bus_by_node(struct device_node *dn)
 	struct pci_dn *pdn = PCI_DN(dn);
 
 	if (!pdn  || !pdn->phb || !pdn->phb->bus)
+	{
 		return NULL;
+	}
 
 	return find_bus_among_children(pdn->phb->bus, dn);
 }
@@ -63,7 +71,9 @@ void pcibios_release_device(struct pci_dev *dev)
 	eeh_remove_device(dev);
 
 	if (phb->controller_ops.release_device)
+	{
 		phb->controller_ops.release_device(dev);
+	}
 }
 
 /**
@@ -80,11 +90,12 @@ void pci_hp_remove_devices(struct pci_bus *bus)
 
 	/* First go down child busses */
 	list_for_each_entry(child_bus, &bus->children, node)
-		pci_hp_remove_devices(child_bus);
+	pci_hp_remove_devices(child_bus);
 
 	pr_debug("PCI: Removing devices on bus %04x:%02x\n",
-		 pci_domain_nr(bus),  bus->number);
-	list_for_each_entry_safe_reverse(dev, tmp, &bus->devices, bus_list) {
+			 pci_domain_nr(bus),  bus->number);
+	list_for_each_entry_safe_reverse(dev, tmp, &bus->devices, bus_list)
+	{
 		pr_debug("   Removing %s...\n", pci_name(dev));
 		pci_stop_and_remove_bus_device(dev);
 	}
@@ -114,14 +125,20 @@ void pci_hp_add_devices(struct pci_bus *bus)
 	phb = pci_bus_to_host(bus);
 
 	mode = PCI_PROBE_NORMAL;
-	if (phb->controller_ops.probe_mode)
-		mode = phb->controller_ops.probe_mode(bus);
 
-	if (mode == PCI_PROBE_DEVTREE) {
+	if (phb->controller_ops.probe_mode)
+	{
+		mode = phb->controller_ops.probe_mode(bus);
+	}
+
+	if (mode == PCI_PROBE_DEVTREE)
+	{
 		/* use ofdt-based probe */
 		of_rescan_bus(dn, bus);
-	} else if (mode == PCI_PROBE_NORMAL &&
-		   dn->child && PCI_DN(dn->child)) {
+	}
+	else if (mode == PCI_PROBE_NORMAL &&
+			 dn->child && PCI_DN(dn->child))
+	{
 		/*
 		 * Use legacy probe. In the partial hotplug case, we
 		 * probably have grandchildren devices unplugged. So
@@ -133,14 +150,18 @@ void pci_hp_add_devices(struct pci_bus *bus)
 		pci_scan_slot(bus, PCI_DEVFN(slotno, 0));
 		pcibios_setup_bus_devices(bus);
 		max = bus->busn_res.start;
-		for (pass = 0; pass < 2; pass++) {
-			list_for_each_entry(dev, &bus->devices, bus_list) {
+
+		for (pass = 0; pass < 2; pass++)
+		{
+			list_for_each_entry(dev, &bus->devices, bus_list)
+			{
 				if (pci_is_bridge(dev))
 					max = pci_scan_bridge(bus, dev,
-							      max, pass);
+										  max, pass);
 			}
 		}
 	}
+
 	pcibios_finish_adding_to_bus(bus);
 }
 EXPORT_SYMBOL_GPL(pci_hp_add_devices);

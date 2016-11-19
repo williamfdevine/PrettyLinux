@@ -39,7 +39,8 @@ struct task_struct;
  */
 #define EISA_bus 0
 
-struct thread_struct {
+struct thread_struct
+{
 	struct pt_regs		*frame;		/* [GR28] exception frame ptr for this thread */
 	struct task_struct	*curr;		/* [GR29] current pointer for this thread */
 	unsigned long		sp;		/* [GR1 ] kernel stack pointer */
@@ -49,7 +50,8 @@ struct thread_struct {
 	unsigned long		gr[12];		/* [GR16-GR27] */
 	unsigned long		sched_lr;	/* LR from schedule() */
 
-	union {
+	union
+	{
 		struct pt_regs		*frame0;	/* top (user) stack frame */
 		struct user_context	*user;		/* userspace context */
 	};
@@ -63,26 +65,26 @@ extern struct task_struct *__kernel_current_task;
 #ifndef __ASSEMBLY__
 #define INIT_THREAD_FRAME0 \
 	((struct pt_regs *) \
-	(sizeof(init_stack) + (unsigned long) init_stack - sizeof(struct user_context)))
+	 (sizeof(init_stack) + (unsigned long) init_stack - sizeof(struct user_context)))
 
 #define INIT_THREAD {				\
-	NULL,					\
-	(struct task_struct *) init_stack,	\
-	0, 0, 0, 0,				\
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },	\
-	0,					\
-	{ INIT_THREAD_FRAME0 },			\
-}
+		NULL,					\
+		(struct task_struct *) init_stack,	\
+		0, 0, 0, 0,				\
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },	\
+		0,					\
+		{ INIT_THREAD_FRAME0 },			\
+	}
 
 /*
  * do necessary setup to start up a newly executed thread.
  */
 #define start_thread(_regs, _pc, _usp)			\
-do {							\
-	_regs->pc	= (_pc);			\
-	_regs->psr	&= ~PSR_S;			\
-	_regs->sp	= (_usp);			\
-} while(0)
+	do {							\
+		_regs->pc	= (_pc);			\
+		_regs->psr	&= ~PSR_S;			\
+		_regs->sp	= (_usp);			\
+	} while(0)
 
 /* Free all resources held by a thread. */
 static inline void release_thread(struct task_struct *dead_task)

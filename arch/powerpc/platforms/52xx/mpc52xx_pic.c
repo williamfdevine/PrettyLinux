@@ -119,12 +119,14 @@
 
 
 /* MPC5200 device tree match tables */
-static const struct of_device_id mpc52xx_pic_ids[] __initconst = {
+static const struct of_device_id mpc52xx_pic_ids[] __initconst =
+{
 	{ .compatible = "fsl,mpc5200-pic", },
 	{ .compatible = "mpc5200-pic", },
 	{}
 };
-static const struct of_device_id mpc52xx_sdma_ids[] __initconst = {
+static const struct of_device_id mpc52xx_sdma_ids[] __initconst =
+{
 	{ .compatible = "fsl,mpc5200-bestcomm", },
 	{ .compatible = "mpc5200-bestcomm", },
 	{}
@@ -134,7 +136,8 @@ static struct mpc52xx_intr __iomem *intr;
 static struct mpc52xx_sdma __iomem *sdma;
 static struct irq_domain *mpc52xx_irqhost = NULL;
 
-static unsigned char mpc52xx_map_senses[4] = {
+static unsigned char mpc52xx_map_senses[4] =
+{
 	IRQ_TYPE_LEVEL_HIGH,
 	IRQ_TYPE_EDGE_RISING,
 	IRQ_TYPE_EDGE_FALLING,
@@ -170,7 +173,7 @@ static void mpc52xx_extirq_unmask(struct irq_data *d)
 static void mpc52xx_extirq_ack(struct irq_data *d)
 {
 	int l2irq = irqd_to_hwirq(d) & MPC52xx_IRQ_L2_MASK;
-	io_be_setbit(&intr->ctrl, 27-l2irq);
+	io_be_setbit(&intr->ctrl, 27 - l2irq);
 }
 
 static int mpc52xx_extirq_set_type(struct irq_data *d, unsigned int flow_type)
@@ -180,15 +183,20 @@ static int mpc52xx_extirq_set_type(struct irq_data *d, unsigned int flow_type)
 	void *handler = handle_level_irq;
 
 	pr_debug("%s: irq=%x. l2=%d flow_type=%d\n", __func__,
-		(int) irqd_to_hwirq(d), l2irq, flow_type);
+			 (int) irqd_to_hwirq(d), l2irq, flow_type);
 
-	switch (flow_type) {
-	case IRQF_TRIGGER_HIGH: type = 0; break;
-	case IRQF_TRIGGER_RISING: type = 1; handler = handle_edge_irq; break;
-	case IRQF_TRIGGER_FALLING: type = 2; handler = handle_edge_irq; break;
-	case IRQF_TRIGGER_LOW: type = 3; break;
-	default:
-		type = 0;
+	switch (flow_type)
+	{
+		case IRQF_TRIGGER_HIGH: type = 0; break;
+
+		case IRQF_TRIGGER_RISING: type = 1; handler = handle_edge_irq; break;
+
+		case IRQF_TRIGGER_FALLING: type = 2; handler = handle_edge_irq; break;
+
+		case IRQF_TRIGGER_LOW: type = 3; break;
+
+		default:
+			type = 0;
 	}
 
 	ctrl_reg = in_be32(&intr->ctrl);
@@ -201,7 +209,8 @@ static int mpc52xx_extirq_set_type(struct irq_data *d, unsigned int flow_type)
 	return 0;
 }
 
-static struct irq_chip mpc52xx_extirq_irqchip = {
+static struct irq_chip mpc52xx_extirq_irqchip =
+{
 	.name = "MPC52xx External",
 	.irq_mask = mpc52xx_extirq_mask,
 	.irq_unmask = mpc52xx_extirq_unmask,
@@ -229,7 +238,8 @@ static void mpc52xx_main_unmask(struct irq_data *d)
 	io_be_clrbit(&intr->main_mask, 16 - l2irq);
 }
 
-static struct irq_chip mpc52xx_main_irqchip = {
+static struct irq_chip mpc52xx_main_irqchip =
+{
 	.name = "MPC52xx Main",
 	.irq_mask = mpc52xx_main_mask,
 	.irq_mask_ack = mpc52xx_main_mask,
@@ -252,7 +262,8 @@ static void mpc52xx_periph_unmask(struct irq_data *d)
 	io_be_clrbit(&intr->per_mask, 31 - l2irq);
 }
 
-static struct irq_chip mpc52xx_periph_irqchip = {
+static struct irq_chip mpc52xx_periph_irqchip =
+{
 	.name = "MPC52xx Peripherals",
 	.irq_mask = mpc52xx_periph_mask,
 	.irq_mask_ack = mpc52xx_periph_mask,
@@ -281,7 +292,8 @@ static void mpc52xx_sdma_ack(struct irq_data *d)
 	out_be32(&sdma->IntPend, 1 << l2irq);
 }
 
-static struct irq_chip mpc52xx_sdma_irqchip = {
+static struct irq_chip mpc52xx_sdma_irqchip =
+{
 	.name = "MPC52xx SDMA",
 	.irq_mask = mpc52xx_sdma_mask,
 	.irq_unmask = mpc52xx_sdma_unmask,
@@ -295,16 +307,16 @@ static struct irq_chip mpc52xx_sdma_irqchip = {
 static int mpc52xx_is_extirq(int l1, int l2)
 {
 	return ((l1 == 0) && (l2 == 0)) ||
-	       ((l1 == 1) && (l2 >= 1) && (l2 <= 3));
+		   ((l1 == 1) && (l2 >= 1) && (l2 <= 3));
 }
 
 /**
  * mpc52xx_irqhost_xlate - translate virq# from device tree interrupts property
  */
 static int mpc52xx_irqhost_xlate(struct irq_domain *h, struct device_node *ct,
-				 const u32 *intspec, unsigned int intsize,
-				 irq_hw_number_t *out_hwirq,
-				 unsigned int *out_flags)
+								 const u32 *intspec, unsigned int intsize,
+								 irq_hw_number_t *out_hwirq,
+								 unsigned int *out_flags)
 {
 	int intrvect_l1;
 	int intrvect_l2;
@@ -312,23 +324,28 @@ static int mpc52xx_irqhost_xlate(struct irq_domain *h, struct device_node *ct,
 	int intrvect_linux;
 
 	if (intsize != 3)
+	{
 		return -1;
+	}
 
 	intrvect_l1 = (int)intspec[0];
 	intrvect_l2 = (int)intspec[1];
 	intrvect_type = (int)intspec[2] & 0x3;
 
 	intrvect_linux = (intrvect_l1 << MPC52xx_IRQ_L1_OFFSET) &
-			 MPC52xx_IRQ_L1_MASK;
+					 MPC52xx_IRQ_L1_MASK;
 	intrvect_linux |= intrvect_l2 & MPC52xx_IRQ_L2_MASK;
 
 	*out_hwirq = intrvect_linux;
 	*out_flags = IRQ_TYPE_LEVEL_LOW;
+
 	if (mpc52xx_is_extirq(intrvect_l1, intrvect_l2))
+	{
 		*out_flags = mpc52xx_map_senses[intrvect_type];
+	}
 
 	pr_debug("return %x, l1=%d, l2=%d\n", intrvect_linux, intrvect_l1,
-		 intrvect_l2);
+			 intrvect_l2);
 	return 0;
 }
 
@@ -336,7 +353,7 @@ static int mpc52xx_irqhost_xlate(struct irq_domain *h, struct device_node *ct,
  * mpc52xx_irqhost_map - Hook to map from virq to an irq_chip structure
  */
 static int mpc52xx_irqhost_map(struct irq_domain *h, unsigned int virq,
-			       irq_hw_number_t irq)
+							   irq_hw_number_t irq)
 {
 	int l1irq;
 	int l2irq;
@@ -352,31 +369,41 @@ static int mpc52xx_irqhost_map(struct irq_domain *h, unsigned int virq,
 	 * External IRQs are handled differently by the hardware so they are
 	 * handled by a dedicated irq_chip structure.
 	 */
-	if (mpc52xx_is_extirq(l1irq, l2irq)) {
+	if (mpc52xx_is_extirq(l1irq, l2irq))
+	{
 		reg = in_be32(&intr->ctrl);
 		type = mpc52xx_map_senses[(reg >> (22 - l2irq * 2)) & 0x3];
+
 		if ((type == IRQ_TYPE_EDGE_FALLING) ||
-		    (type == IRQ_TYPE_EDGE_RISING))
+			(type == IRQ_TYPE_EDGE_RISING))
+		{
 			hndlr = handle_edge_irq;
+		}
 		else
+		{
 			hndlr = handle_level_irq;
+		}
 
 		irq_set_chip_and_handler(virq, &mpc52xx_extirq_irqchip, hndlr);
 		pr_debug("%s: External IRQ%i virq=%x, hw=%x. type=%x\n",
-			 __func__, l2irq, virq, (int)irq, type);
+				 __func__, l2irq, virq, (int)irq, type);
 		return 0;
 	}
 
 	/* It is an internal SOC irq.  Choose the correct irq_chip */
-	switch (l1irq) {
-	case MPC52xx_IRQ_L1_MAIN: irqchip = &mpc52xx_main_irqchip; break;
-	case MPC52xx_IRQ_L1_PERP: irqchip = &mpc52xx_periph_irqchip; break;
-	case MPC52xx_IRQ_L1_SDMA: irqchip = &mpc52xx_sdma_irqchip; break;
-	case MPC52xx_IRQ_L1_CRIT:
-		pr_warn("%s: Critical IRQ #%d is unsupported! Nopping it.\n",
-			__func__, l2irq);
-		irq_set_chip(virq, &no_irq_chip);
-		return 0;
+	switch (l1irq)
+	{
+		case MPC52xx_IRQ_L1_MAIN: irqchip = &mpc52xx_main_irqchip; break;
+
+		case MPC52xx_IRQ_L1_PERP: irqchip = &mpc52xx_periph_irqchip; break;
+
+		case MPC52xx_IRQ_L1_SDMA: irqchip = &mpc52xx_sdma_irqchip; break;
+
+		case MPC52xx_IRQ_L1_CRIT:
+			pr_warn("%s: Critical IRQ #%d is unsupported! Nopping it.\n",
+					__func__, l2irq);
+			irq_set_chip(virq, &no_irq_chip);
+			return 0;
 	}
 
 	irq_set_chip_and_handler(virq, irqchip, handle_level_irq);
@@ -385,7 +412,8 @@ static int mpc52xx_irqhost_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops mpc52xx_irqhost_ops = {
+static const struct irq_domain_ops mpc52xx_irqhost_ops =
+{
 	.xlate = mpc52xx_irqhost_xlate,
 	.map = mpc52xx_irqhost_map,
 };
@@ -408,16 +436,18 @@ void __init mpc52xx_init_irq(void)
 	/* Remap the necessary zones */
 	picnode = of_find_matching_node(NULL, mpc52xx_pic_ids);
 	intr = of_iomap(picnode, 0);
+
 	if (!intr)
 		panic(__FILE__	": find_and_map failed on 'mpc5200-pic'. "
-				"Check node !");
+			  "Check node !");
 
 	np = of_find_matching_node(NULL, mpc52xx_sdma_ids);
 	sdma = of_iomap(np, 0);
 	of_node_put(np);
+
 	if (!sdma)
 		panic(__FILE__	": find_and_map failed on 'mpc5200-bestcomm'. "
-				"Check node !");
+			  "Check node !");
 
 	pr_debug("MPC5200 IRQ controller mapped to 0x%p\n", intr);
 
@@ -429,9 +459,9 @@ void __init mpc52xx_init_irq(void)
 	intr_ctrl = in_be32(&intr->ctrl);
 	intr_ctrl &= 0x00ff0000;	/* Keeps IRQ[0-3] config */
 	intr_ctrl |=	0x0f000000 |	/* clear IRQ 0-3 */
-			0x00001000 |	/* MEE master external enable */
-			0x00000000 |	/* 0 means disable IRQ 0-3 */
-			0x00000001;	/* CEb route critical normally */
+					0x00001000 |	/* MEE master external enable */
+					0x00000000 |	/* 0 means disable IRQ 0-3 */
+					0x00000001;	/* CEb route critical normally */
 	out_be32(&intr->ctrl, intr_ctrl);
 
 	/* Zero a bunch of the priority settings. */
@@ -446,11 +476,13 @@ void __init mpc52xx_init_irq(void)
 	 * hw irq information provided by the ofw to linux virq
 	 */
 	mpc52xx_irqhost = irq_domain_add_linear(picnode,
-	                                 MPC52xx_IRQ_HIGHTESTHWIRQ,
-	                                 &mpc52xx_irqhost_ops, NULL);
+											MPC52xx_IRQ_HIGHTESTHWIRQ,
+											&mpc52xx_irqhost_ops, NULL);
 
 	if (!mpc52xx_irqhost)
+	{
 		panic(__FILE__ ": Cannot allocate the IRQ host\n");
+	}
 
 	irq_set_default_host(mpc52xx_irqhost);
 
@@ -490,27 +522,47 @@ unsigned int mpc52xx_get_irq(void)
 	int irq;
 
 	status = in_be32(&intr->enc_status);
-	if (status & 0x00000400) {	/* critical */
+
+	if (status & 0x00000400)  	/* critical */
+	{
 		irq = (status >> 8) & 0x3;
+
 		if (irq == 2)	/* high priority peripheral */
+		{
 			goto peripheral;
+		}
+
 		irq |= (MPC52xx_IRQ_L1_CRIT << MPC52xx_IRQ_L1_OFFSET);
-	} else if (status & 0x00200000) {	/* main */
+	}
+	else if (status & 0x00200000)  	/* main */
+	{
 		irq = (status >> 16) & 0x1f;
+
 		if (irq == 4)	/* low priority peripheral */
+		{
 			goto peripheral;
+		}
+
 		irq |= (MPC52xx_IRQ_L1_MAIN << MPC52xx_IRQ_L1_OFFSET);
-	} else if (status & 0x20000000) {	/* peripheral */
-	      peripheral:
+	}
+	else if (status & 0x20000000)  	/* peripheral */
+	{
+peripheral:
 		irq = (status >> 24) & 0x1f;
-		if (irq == 0) {	/* bestcomm */
+
+		if (irq == 0)  	/* bestcomm */
+		{
 			status = in_be32(&sdma->IntPend);
 			irq = ffs(status) - 1;
 			irq |= (MPC52xx_IRQ_L1_SDMA << MPC52xx_IRQ_L1_OFFSET);
-		} else {
+		}
+		else
+		{
 			irq |= (MPC52xx_IRQ_L1_PERP << MPC52xx_IRQ_L1_OFFSET);
 		}
-	} else {
+	}
+	else
+	{
 		return 0;
 	}
 

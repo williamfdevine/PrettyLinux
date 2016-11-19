@@ -29,7 +29,7 @@
 #include "platform.h"
 
 #define dump_tm(_a) _dump_tm(_a, __func__, __LINE__)
-static void _dump_tm(const struct rtc_time *tm, const char* func, int line)
+static void _dump_tm(const struct rtc_time *tm, const char *func, int line)
 {
 	pr_debug("%s:%d tm_sec  %d\n", func, line, tm->tm_sec);
 	pr_debug("%s:%d tm_min  %d\n", func, line, tm->tm_min);
@@ -42,7 +42,7 @@ static void _dump_tm(const struct rtc_time *tm, const char* func, int line)
 
 #define dump_time(_a) _dump_time(_a, __func__, __LINE__)
 static void __maybe_unused _dump_time(int time, const char *func,
-	int line)
+									  int line)
 {
 	struct rtc_time tm;
 
@@ -86,7 +86,9 @@ static int __init ps3_rtc_init(void)
 	struct platform_device *pdev;
 
 	if (!firmware_has_feature(FW_FEATURE_PS3_LV1))
+	{
 		return -ENODEV;
+	}
 
 	pdev = platform_device_register_simple("rtc-ps3", -1, NULL, 0);
 

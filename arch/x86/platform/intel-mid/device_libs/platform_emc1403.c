@@ -23,9 +23,14 @@ static void __init *emc1403_platform_data(void *info)
 	int intr2nd = get_gpio_by_name("thermal_alert");
 
 	if (intr < 0)
+	{
 		return NULL;
+	}
+
 	if (intr2nd < 0)
+	{
 		return NULL;
+	}
 
 	i2c_info->irq = intr + INTEL_MID_IRQ_OFFSET;
 	intr2nd_pdata = intr2nd + INTEL_MID_IRQ_OFFSET;
@@ -33,7 +38,8 @@ static void __init *emc1403_platform_data(void *info)
 	return &intr2nd_pdata;
 }
 
-static const struct devs_id emc1403_dev_id __initconst = {
+static const struct devs_id emc1403_dev_id __initconst =
+{
 	.name = "emc1403",
 	.type = SFI_DEV_TYPE_I2C,
 	.delay = 1,

@@ -8,8 +8,8 @@
 #include <asm/processor.h>
 
 #ifndef RTC_PORT
-#define RTC_PORT(x)	(0x70 + (x))
-#define RTC_ALWAYS_BCD	1	/* RTC operates in binary mode */
+	#define RTC_PORT(x)	(0x70 + (x))
+	#define RTC_ALWAYS_BCD	1	/* RTC operates in binary mode */
 #endif
 
 #if defined(CONFIG_X86_32)
@@ -41,13 +41,19 @@ static inline void lock_cmos(unsigned char reg)
 {
 	unsigned long new;
 	new = ((smp_processor_id() + 1) << 8) | reg;
-	for (;;) {
-		if (cmos_lock) {
+
+	for (;;)
+	{
+		if (cmos_lock)
+		{
 			cpu_relax();
 			continue;
 		}
+
 		if (__cmpxchg(&cmos_lock, 0, new, sizeof(cmos_lock)) == 0)
+		{
 			return;
+		}
 	}
 }
 

@@ -15,7 +15,8 @@
 #include <linux/dmaengine.h>
 #include <linux/mtd/partitions.h>
 
-struct plat_ls1x_nand {
+struct plat_ls1x_nand
+{
 	struct mtd_partition *parts;
 	unsigned int nr_parts;
 

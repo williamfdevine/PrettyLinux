@@ -24,7 +24,7 @@ static int op_nmi_init(struct oprofile_operations *ops) { return -ENODEV; }
 static void op_nmi_exit(void) { }
 #endif
 
-extern void x86_backtrace(struct pt_regs * const regs, unsigned int depth);
+extern void x86_backtrace(struct pt_regs *const regs, unsigned int depth);
 
 int __init oprofile_arch_init(struct oprofile_operations *ops)
 {

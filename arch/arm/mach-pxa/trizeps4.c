@@ -61,7 +61,8 @@
 /*****************************************************************************
  * MultiFunctionPins of CPU
  *****************************************************************************/
-static unsigned long trizeps4_pin_config[] __initdata = {
+static unsigned long trizeps4_pin_config[] __initdata =
+{
 	/* Chip Selects */
 	GPIO15_nCS_1,		/* DiskOnChip CS */
 	GPIO93_GPIO,		/* TRIZEPS4_DOC_IRQ */
@@ -135,7 +136,8 @@ static unsigned long trizeps4_pin_config[] __initdata = {
 	GPIO118_I2C_SDA,
 };
 
-static unsigned long trizeps4wl_pin_config[] __initdata = {
+static unsigned long trizeps4wl_pin_config[] __initdata =
+{
 	/* SSP 2 */
 	GPIO14_SSP2_SFRM,
 	GPIO19_SSP2_SCLK,
@@ -147,7 +149,8 @@ static unsigned long trizeps4wl_pin_config[] __initdata = {
 /****************************************************************************
  * ONBOARD FLASH
  ****************************************************************************/
-static struct mtd_partition trizeps4_partitions[] = {
+static struct mtd_partition trizeps4_partitions[] =
+{
 	{
 		.name =		"Bootloader",
 		.offset =	0x00000000,
@@ -172,7 +175,8 @@ static struct mtd_partition trizeps4_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data trizeps4_flash_data[] = {
+static struct physmap_flash_data trizeps4_flash_data[] =
+{
 	{
 		.width		= 4,			/* bankwidth in bytes */
 		.parts		= trizeps4_partitions,
@@ -180,13 +184,15 @@ static struct physmap_flash_data trizeps4_flash_data[] = {
 	}
 };
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_32M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device flash_device = {
+static struct platform_device flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev = {
@@ -199,15 +205,16 @@ static struct platform_device flash_device = {
 /****************************************************************************
  * DAVICOM DM9000 Ethernet
  ****************************************************************************/
-static struct resource dm9000_resources[] = {
+static struct resource dm9000_resources[] =
+{
 	[0] = {
-		.start	= TRIZEPS4_ETH_PHYS+0x300,
-		.end	= TRIZEPS4_ETH_PHYS+0x400-1,
+		.start	= TRIZEPS4_ETH_PHYS + 0x300,
+		.end	= TRIZEPS4_ETH_PHYS + 0x400 - 1,
 		.flags	= IORESOURCE_MEM,
 	},
 	[1] = {
-		.start	= TRIZEPS4_ETH_PHYS+0x8300,
-		.end	= TRIZEPS4_ETH_PHYS+0x8400-1,
+		.start	= TRIZEPS4_ETH_PHYS + 0x8300,
+		.end	= TRIZEPS4_ETH_PHYS + 0x8400 - 1,
 		.flags	= IORESOURCE_MEM,
 	},
 	[2] = {
@@ -217,11 +224,13 @@ static struct resource dm9000_resources[] = {
 	},
 };
 
-static struct dm9000_plat_data tri_dm9000_platdata = {
+static struct dm9000_plat_data tri_dm9000_platdata =
+{
 	.flags		= DM9000_PLATF_32BITONLY,
 };
 
-static struct platform_device dm9000_device = {
+static struct platform_device dm9000_device =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(dm9000_resources),
@@ -234,7 +243,8 @@ static struct platform_device dm9000_device = {
 /****************************************************************************
  * LED's on GPIO pins of PXA
  ****************************************************************************/
-static struct gpio_led trizeps4_led[] = {
+static struct gpio_led trizeps4_led[] =
+{
 #ifdef STATUS_LEDS_ON_STUART_PINS
 	{
 		.name = "led0:orange:heartbeat",	/* */
@@ -251,12 +261,14 @@ static struct gpio_led trizeps4_led[] = {
 #endif
 };
 
-static struct gpio_led_platform_data trizeps4_led_data = {
+static struct gpio_led_platform_data trizeps4_led_data =
+{
 	.leds		= trizeps4_led,
 	.num_leds	= ARRAY_SIZE(trizeps4_led),
 };
 
-static struct platform_device leds_devices = {
+static struct platform_device leds_devices =
+{
 	.name		= "leds-gpio",
 	.id		= -1,
 	.dev		= {
@@ -264,13 +276,15 @@ static struct platform_device leds_devices = {
 	},
 };
 
-static struct platform_device *trizeps4_devices[] __initdata = {
+static struct platform_device *trizeps4_devices[] __initdata =
+{
 	&flash_device,
 	&dm9000_device,
 	&leds_devices,
 };
 
-static struct platform_device *trizeps4wl_devices[] __initdata = {
+static struct platform_device *trizeps4wl_devices[] __initdata =
+{
 	&flash_device,
 	&leds_devices,
 };
@@ -280,7 +294,8 @@ static short trizeps_conxs_bcr;
 /* PCCARD power switching supports only 3,3V */
 void board_pcmcia_power(int power)
 {
-	if (power) {
+	if (power)
+	{
 		/* switch power on, put in reset and enable buffers */
 		trizeps_conxs_bcr |= power;
 		trizeps_conxs_bcr |= ConXS_BCR_CF_RESET;
@@ -292,7 +307,9 @@ void board_pcmcia_power(int power)
 		trizeps_conxs_bcr &= ~ConXS_BCR_CF_RESET;
 		BCR_writew(trizeps_conxs_bcr);
 		udelay(2000);
-	} else {
+	}
+	else
+	{
 		/* put in reset */
 		trizeps_conxs_bcr |= ConXS_BCR_CF_RESET;
 		BCR_writew(trizeps_conxs_bcr);
@@ -301,8 +318,9 @@ void board_pcmcia_power(int power)
 		trizeps_conxs_bcr &= ~0xf;
 		BCR_writew(trizeps_conxs_bcr);
 	}
+
 	pr_debug("%s: o%s 0x%x\n", __func__, power ? "n" : "ff",
-			trizeps_conxs_bcr);
+			 trizeps_conxs_bcr);
 }
 EXPORT_SYMBOL(board_pcmcia_power);
 
@@ -310,17 +328,22 @@ EXPORT_SYMBOL(board_pcmcia_power);
 static void board_backlight_power(int on)
 {
 	if (on)
+	{
 		trizeps_conxs_bcr |= ConXS_BCR_L_DISP;
+	}
 	else
+	{
 		trizeps_conxs_bcr &= ~ConXS_BCR_L_DISP;
+	}
 
 	pr_debug("%s: o%s 0x%x\n", __func__, on ? "n" : "ff",
-			trizeps_conxs_bcr);
+			 trizeps_conxs_bcr);
 	BCR_writew(trizeps_conxs_bcr);
 }
 
 /* a I2C based RTC is known on CONXS board */
-static struct i2c_board_info trizeps4_i2c_devices[] __initdata = {
+static struct i2c_board_info trizeps4_i2c_devices[] __initdata =
+{
 	{ I2C_BOARD_INFO("rtc-pcf8593", 0x51) }
 };
 
@@ -328,17 +351,20 @@ static struct i2c_board_info trizeps4_i2c_devices[] __initdata = {
  * MMC card slot external to module
  ****************************************************************************/
 static int trizeps4_mci_init(struct device *dev, irq_handler_t mci_detect_int,
-		void *data)
+							 void *data)
 {
 	int err;
 
 	err = request_irq(TRIZEPS4_MMC_IRQ, mci_detect_int,
-			  IRQF_TRIGGER_RISING, "MMC card detect", data);
-	if (err) {
+					  IRQF_TRIGGER_RISING, "MMC card detect", data);
+
+	if (err)
+	{
 		printk(KERN_ERR "trizeps4_mci_init: MMC/SD: can't request"
-						"MMC card detect IRQ\n");
+			   "MMC card detect IRQ\n");
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -347,9 +373,10 @@ static void trizeps4_mci_exit(struct device *dev, void *data)
 	free_irq(TRIZEPS4_MMC_IRQ, data);
 }
 
-static struct pxamci_platform_data trizeps4_mci_platform_data = {
-	.ocr_mask	= MMC_VDD_32_33|MMC_VDD_33_34,
-	.detect_delay_ms= 10,
+static struct pxamci_platform_data trizeps4_mci_platform_data =
+{
+	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
+	.detect_delay_ms = 10,
 	.init 		= trizeps4_mci_init,
 	.exit		= trizeps4_mci_exit,
 	.get_ro		= NULL,	/* write-protection not supported */
@@ -383,17 +410,26 @@ static void trizeps4_irda_transceiver_mode(struct device *dev, int mode)
 	unsigned long flags;
 
 	local_irq_save(flags);
+
 	/* Switch mode */
 	if (mode & IR_SIRMODE)
-		trizeps_conxs_ircr &= ~ConXS_IRCR_MODE;	/* Slow mode */
+	{
+		trizeps_conxs_ircr &= ~ConXS_IRCR_MODE;    /* Slow mode */
+	}
 	else if (mode & IR_FIRMODE)
-		trizeps_conxs_ircr |= ConXS_IRCR_MODE;	/* Fast mode */
+	{
+		trizeps_conxs_ircr |= ConXS_IRCR_MODE;    /* Fast mode */
+	}
 
 	/* Switch power */
 	if (mode & IR_OFF)
+	{
 		trizeps_conxs_ircr |= ConXS_IRCR_SD;
+	}
 	else
+	{
 		trizeps_conxs_ircr &= ~ConXS_IRCR_SD;
+	}
 
 	IRCR_writew(trizeps_conxs_ircr);
 	local_irq_restore(flags);
@@ -401,7 +437,8 @@ static void trizeps4_irda_transceiver_mode(struct device *dev, int mode)
 	pxa2xx_transceiver_mode(dev, mode);
 }
 
-static struct pxaficp_platform_data trizeps4_ficp_platform_data = {
+static struct pxaficp_platform_data trizeps4_ficp_platform_data =
+{
 	.gpio_pwdown		= -1,
 	.transceiver_cap	= IR_SIRMODE | IR_FIRMODE | IR_OFF,
 	.transceiver_mode	= trizeps4_irda_transceiver_mode,
@@ -413,12 +450,14 @@ static struct pxaficp_platform_data trizeps4_ficp_platform_data = {
 /****************************************************************************
  * OHCI USB port
  ****************************************************************************/
-static struct pxaohci_platform_data trizeps4_ohci_platform_data = {
+static struct pxaohci_platform_data trizeps4_ohci_platform_data =
+{
 	.port_mode	= PMM_PERPORT_MODE,
 	.flags		= ENABLE_PORT_ALL | POWER_CONTROL_LOW | POWER_SENSE_LOW,
 };
 
-static struct map_desc trizeps4_io_desc[] __initdata = {
+static struct map_desc trizeps4_io_desc[] __initdata =
+{
 	{ 	/* ConXS CFSR */
 		.virtual	= TRIZEPS4_CFSR_VIRT,
 		.pfn		= __phys_to_pfn(TRIZEPS4_CFSR_PHYS),
@@ -451,7 +490,8 @@ static struct map_desc trizeps4_io_desc[] __initdata = {
 	}
 };
 
-static struct pxafb_mode_info sharp_lcd_mode = {
+static struct pxafb_mode_info sharp_lcd_mode =
+{
 	.pixclock	= 78000,
 	.xres		= 640,
 	.yres		= 480,
@@ -466,7 +506,8 @@ static struct pxafb_mode_info sharp_lcd_mode = {
 	.cmap_greyscale	= 0,
 };
 
-static struct pxafb_mach_info sharp_lcd = {
+static struct pxafb_mach_info sharp_lcd =
+{
 	.modes		= &sharp_lcd_mode,
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_DSTN_16BPP | LCD_PCLK_EDGE_FALL,
@@ -475,7 +516,8 @@ static struct pxafb_mach_info sharp_lcd = {
 	.pxafb_backlight_power = board_backlight_power,
 };
 
-static struct pxafb_mode_info toshiba_lcd_mode = {
+static struct pxafb_mode_info toshiba_lcd_mode =
+{
 	.pixclock	= 39720,
 	.xres		= 640,
 	.yres		= 480,
@@ -490,7 +532,8 @@ static struct pxafb_mode_info toshiba_lcd_mode = {
 	.cmap_greyscale	= 0,
 };
 
-static struct pxafb_mach_info toshiba_lcd = {
+static struct pxafb_mach_info toshiba_lcd =
+{
 	.modes		= &toshiba_lcd_mode,
 	.num_modes	= 1,
 	.lcd_conn	= (LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL),
@@ -502,13 +545,17 @@ static struct pxafb_mach_info toshiba_lcd = {
 static void __init trizeps4_init(void)
 {
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(trizeps4_pin_config));
-	if (machine_is_trizeps4wl()) {
+
+	if (machine_is_trizeps4wl())
+	{
 		pxa2xx_mfp_config(ARRAY_AND_SIZE(trizeps4wl_pin_config));
 		platform_add_devices(trizeps4wl_devices,
-					ARRAY_SIZE(trizeps4wl_devices));
-	} else {
+							 ARRAY_SIZE(trizeps4wl_devices));
+	}
+	else
+	{
 		platform_add_devices(trizeps4_devices,
-					ARRAY_SIZE(trizeps4_devices));
+							 ARRAY_SIZE(trizeps4_devices));
 	}
 
 	pxa_set_ffuart_info(NULL);
@@ -516,9 +563,13 @@ static void __init trizeps4_init(void)
 	pxa_set_stuart_info(NULL);
 
 	if (0)	/* dont know how to determine LCD */
+	{
 		pxa_set_fb_info(NULL, &sharp_lcd);
+	}
 	else
+	{
 		pxa_set_fb_info(NULL, &toshiba_lcd);
+	}
 
 	pxa_set_mci_info(&trizeps4_mci_platform_data);
 #ifndef STATUS_LEDS_ON_STUART_PINS
@@ -528,7 +579,7 @@ static void __init trizeps4_init(void)
 	pxa_set_ac97_info(NULL);
 	pxa_set_i2c_info(NULL);
 	i2c_register_board_info(0, trizeps4_i2c_devices,
-					ARRAY_SIZE(trizeps4_i2c_devices));
+							ARRAY_SIZE(trizeps4_i2c_devices));
 
 	/* this is the reset value */
 	trizeps_conxs_bcr = 0x00A0;
@@ -544,11 +595,14 @@ static void __init trizeps4_map_io(void)
 	pxa27x_map_io();
 	iotable_init(trizeps4_io_desc, ARRAY_SIZE(trizeps4_io_desc));
 
-	if ((__raw_readl(MSC0) & 0x8) && (__raw_readl(BOOT_DEF) & 0x1)) {
+	if ((__raw_readl(MSC0) & 0x8) && (__raw_readl(BOOT_DEF) & 0x1))
+	{
 		/* if flash is 16 bit wide its a Trizeps4 WL */
 		__machine_arch_type = MACH_TYPE_TRIZEPS4WL;
 		trizeps4_flash_data[0].width = 2;
-	} else {
+	}
+	else
+	{
 		/* if flash is 32 bit wide its a Trizeps4 */
 		__machine_arch_type = MACH_TYPE_TRIZEPS4;
 		trizeps4_flash_data[0].width = 4;
@@ -556,25 +610,25 @@ static void __init trizeps4_map_io(void)
 }
 
 MACHINE_START(TRIZEPS4, "Keith und Koep Trizeps IV module")
-	/* MAINTAINER("Jürgen Schindele") */
-	.atag_offset	= 0x100,
+/* MAINTAINER("Jürgen Schindele") */
+.atag_offset	= 0x100,
 	.init_machine	= trizeps4_init,
-	.map_io		= trizeps4_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+	   .map_io		= trizeps4_map_io,
+		   .nr_irqs	= PXA_NR_IRQS,
+			   .init_irq	= pxa27x_init_irq,
+				  .handle_irq	= pxa27x_handle_irq,
+				   .init_time	= pxa_timer_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END
 
-MACHINE_START(TRIZEPS4WL, "Keith und Koep Trizeps IV-WL module")
-	/* MAINTAINER("Jürgen Schindele") */
-	.atag_offset	= 0x100,
-	.init_machine	= trizeps4_init,
-	.map_io		= trizeps4_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+						 MACHINE_START(TRIZEPS4WL, "Keith und Koep Trizeps IV-WL module")
+						 /* MAINTAINER("Jürgen Schindele") */
+						 .atag_offset	= 0x100,
+							 .init_machine	= trizeps4_init,
+								.map_io		= trizeps4_map_io,
+									.nr_irqs	= PXA_NR_IRQS,
+										.init_irq	= pxa27x_init_irq,
+										   .handle_irq	= pxa27x_handle_irq,
+											.init_time	= pxa_timer_init,
+											  .restart	= pxa_restart,
+												  MACHINE_END

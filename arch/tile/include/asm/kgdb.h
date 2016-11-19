@@ -54,7 +54,8 @@
  */
 static tile_bundle_bits compiled_bpt = TILEGX_BPT_BUNDLE | DIE_COMPILED_BPT;
 
-enum tilegx_regnum {
+enum tilegx_regnum
+{
 	TILEGX_PC_REGNUM = TREG_LAST_GPR + 9,
 	TILEGX_FAULTNUM_REGNUM,
 };
@@ -65,7 +66,7 @@ enum tilegx_regnum {
 static inline void arch_kgdb_breakpoint(void)
 {
 	asm volatile (".quad %0\n\t"
-		      ::""(compiled_bpt));
+				  ::""(compiled_bpt));
 }
 
 #endif /* __TILE_KGDB_H__ */

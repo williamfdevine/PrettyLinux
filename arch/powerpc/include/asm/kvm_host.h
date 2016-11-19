@@ -46,7 +46,7 @@
 #define __KVM_HAVE_ARCH_INTC_INITIALIZED
 
 #ifdef CONFIG_KVM_MMIO
-#define KVM_COALESCED_MMIO_PAGE_OFFSET 1
+	#define KVM_COALESCED_MMIO_PAGE_OFFSET 1
 #endif
 #define KVM_HALT_POLL_NS_DEFAULT 500000
 
@@ -64,13 +64,13 @@
 
 extern int kvm_unmap_hva(struct kvm *kvm, unsigned long hva);
 extern int kvm_unmap_hva_range(struct kvm *kvm,
-			       unsigned long start, unsigned long end);
+							   unsigned long start, unsigned long end);
 extern int kvm_age_hva(struct kvm *kvm, unsigned long start, unsigned long end);
 extern int kvm_test_age_hva(struct kvm *kvm, unsigned long hva);
 extern void kvm_set_spte_hva(struct kvm *kvm, unsigned long hva, pte_t pte);
 
 static inline void kvm_arch_mmu_notifier_invalidate_page(struct kvm *kvm,
-							 unsigned long address)
+		unsigned long address)
 {
 }
 
@@ -96,11 +96,13 @@ struct dtl_entry;
 struct kvmppc_vcpu_book3s;
 struct kvmppc_book3s_shadow_vcpu;
 
-struct kvm_vm_stat {
+struct kvm_vm_stat
+{
 	ulong remote_tlb_flush;
 };
 
-struct kvm_vcpu_stat {
+struct kvm_vcpu_stat
+{
 	u64 sum_exits;
 	u64 mmio_exits;
 	u64 signal_exits;
@@ -142,7 +144,8 @@ struct kvm_vcpu_stat {
 	u64 pthru_bad_aff;
 };
 
-enum kvm_exit_types {
+enum kvm_exit_types
+{
 	MMIO_EXITS,
 	SIGNAL_EXITS,
 	ITLB_REAL_MISS_EXITS,
@@ -177,21 +180,26 @@ enum kvm_exit_types {
 };
 
 /* allow access to big endian 32bit upper/lower parts and 64bit var */
-struct kvmppc_exit_timing {
-	union {
+struct kvmppc_exit_timing
+{
+	union
+	{
 		u64 tv64;
-		struct {
+		struct
+		{
 			u32 tbu, tbl;
 		} tv32;
 	};
 };
 
-struct kvmppc_pginfo {
+struct kvmppc_pginfo
+{
 	unsigned long pfn;
 	atomic_t refcnt;
 };
 
-struct kvmppc_spapr_tce_table {
+struct kvmppc_spapr_tce_table
+{
 	struct list_head list;
 	struct kvm *kvm;
 	u64 liobn;
@@ -216,7 +224,8 @@ struct kvmppc_passthru_irqmap;
  * of HPTEs that map the same host page.  The pointers in this
  * ring are 32-bit HPTE indexes, to save space.
  */
-struct revmap_entry {
+struct revmap_entry
+{
 	unsigned long guest_rpte;
 	unsigned int forw, back;
 };
@@ -235,13 +244,15 @@ struct revmap_entry {
 #define KVMPPC_RMAP_PRESENT	0x100000000ul
 #define KVMPPC_RMAP_INDEX	0xfffffffful
 
-struct kvm_arch_memory_slot {
+struct kvm_arch_memory_slot
+{
 #ifdef CONFIG_KVM_BOOK3S_HV_POSSIBLE
 	unsigned long *rmap;
 #endif /* CONFIG_KVM_BOOK3S_HV_POSSIBLE */
 };
 
-struct kvm_arch {
+struct kvm_arch
+{
 	unsigned int lpid;
 #ifdef CONFIG_KVM_BOOK3S_HV_POSSIBLE
 	unsigned long hpt_virt;
@@ -271,7 +282,7 @@ struct kvm_arch {
 #ifdef CONFIG_PPC_BOOK3S_64
 	struct list_head spapr_tce_tables;
 	struct list_head rtas_tokens;
-	DECLARE_BITMAP(enabled_hcalls, MAX_HCALL_OPCODE/4 + 1);
+	DECLARE_BITMAP(enabled_hcalls, MAX_HCALL_OPCODE / 4 + 1);
 #endif
 #ifdef CONFIG_KVM_MPIC
 	struct openpic *mpic;
@@ -313,7 +324,8 @@ struct kvm_arch {
  * registered by a PAPR guest.  There are three types of area
  * that a guest can register.
  */
-struct kvmppc_vpa {
+struct kvmppc_vpa
+{
 	unsigned long gpa;	/* Current guest phys addr */
 	void *pinned_addr;	/* Address in kernel linear mapping */
 	void *pinned_end;	/* End of region */
@@ -323,7 +335,8 @@ struct kvmppc_vpa {
 	bool dirty;		/* true => area has been modified by kernel */
 };
 
-struct kvmppc_pte {
+struct kvmppc_pte
+{
 	ulong eaddr;
 	u64 vpage;
 	ulong raddr;
@@ -333,7 +346,8 @@ struct kvmppc_pte {
 	u8 page_size;		/* MMU_PAGE_xxx */
 };
 
-struct kvmppc_mmu {
+struct kvmppc_mmu
+{
 	/* book3s_64 only */
 	void (*slbmte)(struct kvm_vcpu *vcpu, u64 rb, u64 rs);
 	u64  (*slbmfee)(struct kvm_vcpu *vcpu, u64 slb_nr);
@@ -344,7 +358,7 @@ struct kvmppc_mmu {
 	void (*mtsrin)(struct kvm_vcpu *vcpu, u32 srnum, ulong value);
 	u32  (*mfsrin)(struct kvm_vcpu *vcpu, u32 srnum);
 	int  (*xlate)(struct kvm_vcpu *vcpu, gva_t eaddr,
-		      struct kvmppc_pte *pte, bool data, bool iswrite);
+				  struct kvmppc_pte *pte, bool data, bool iswrite);
 	void (*reset_msr)(struct kvm_vcpu *vcpu);
 	void (*tlbie)(struct kvm_vcpu *vcpu, ulong addr, bool large);
 	int  (*esid_to_vsid)(struct kvm_vcpu *vcpu, ulong esid, u64 *vsid);
@@ -352,7 +366,8 @@ struct kvmppc_mmu {
 	bool (*is_dcbz32)(struct kvm_vcpu *vcpu);
 };
 
-struct kvmppc_slb {
+struct kvmppc_slb
+{
 	u64 esid;
 	u64 vsid;
 	u64 orige;
@@ -368,7 +383,8 @@ struct kvmppc_slb {
 };
 
 /* Struct used to accumulate timing information in HV real mode code */
-struct kvmhv_tb_accumulator {
+struct kvmhv_tb_accumulator
+{
 	u64	seqcount;	/* used to synchronize access, also count * 2 */
 	u64	tb_total;	/* total time in timebase ticks */
 	u64	tb_min;		/* min time */
@@ -376,26 +392,28 @@ struct kvmhv_tb_accumulator {
 };
 
 #ifdef CONFIG_PPC_BOOK3S_64
-struct kvmppc_irq_map {
+struct kvmppc_irq_map
+{
 	u32	r_hwirq;
 	u32	v_hwirq;
 	struct irq_desc *desc;
 };
 
 #define	KVMPPC_PIRQ_MAPPED	1024
-struct kvmppc_passthru_irqmap {
+struct kvmppc_passthru_irqmap
+{
 	int n_mapped;
 	struct kvmppc_irq_map mapped[KVMPPC_PIRQ_MAPPED];
 };
 #endif
 
-# ifdef CONFIG_PPC_FSL_BOOK3E
-#define KVMPPC_BOOKE_IAC_NUM	2
-#define KVMPPC_BOOKE_DAC_NUM	2
-# else
-#define KVMPPC_BOOKE_IAC_NUM	4
-#define KVMPPC_BOOKE_DAC_NUM	2
-# endif
+#ifdef CONFIG_PPC_FSL_BOOK3E
+	#define KVMPPC_BOOKE_IAC_NUM	2
+	#define KVMPPC_BOOKE_DAC_NUM	2
+#else
+	#define KVMPPC_BOOKE_IAC_NUM	4
+	#define KVMPPC_BOOKE_DAC_NUM	2
+#endif
 #define KVMPPC_BOOKE_MAX_IAC	4
 #define KVMPPC_BOOKE_MAX_DAC	2
 
@@ -410,7 +428,8 @@ struct kvmppc_passthru_irqmap {
 
 struct openpic;
 
-struct kvm_vcpu_arch {
+struct kvm_vcpu_arch
+{
 	ulong host_stack;
 	u32 host_pid;
 #ifdef CONFIG_PPC_BOOK3S

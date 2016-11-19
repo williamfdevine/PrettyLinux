@@ -44,14 +44,23 @@ long __init chrp_time_init(void)
 	int base;
 
 	rtcs = of_find_compatible_node(NULL, "rtc", "pnpPNP,b00");
+
 	if (rtcs == NULL)
+	{
 		rtcs = of_find_compatible_node(NULL, "rtc", "ds1385-rtc");
+	}
+
 	if (rtcs == NULL)
+	{
 		return 0;
-	if (of_address_to_resource(rtcs, 0, &r)) {
+	}
+
+	if (of_address_to_resource(rtcs, 0, &r))
+	{
 		of_node_put(rtcs);
 		return 0;
 	}
+
 	of_node_put(rtcs);
 
 	base = r.start;
@@ -65,7 +74,10 @@ long __init chrp_time_init(void)
 int chrp_cmos_clock_read(int addr)
 {
 	if (nvram_as1 != 0)
-		outb(addr>>8, nvram_as1);
+	{
+		outb(addr >> 8, nvram_as1);
+	}
+
 	outb(addr, nvram_as0);
 	return (inb(nvram_data));
 }
@@ -73,7 +85,10 @@ int chrp_cmos_clock_read(int addr)
 void chrp_cmos_clock_write(unsigned long val, int addr)
 {
 	if (nvram_as1 != 0)
-		outb(addr>>8, nvram_as1);
+	{
+		outb(addr >> 8, nvram_as1);
+	}
+
 	outb(addr, nvram_as0);
 	outb(val, nvram_data);
 	return;
@@ -91,13 +106,14 @@ int chrp_set_rtc_time(struct rtc_time *tmarg)
 
 	save_control = chrp_cmos_clock_read(RTC_CONTROL); /* tell the clock it's being set */
 
-	chrp_cmos_clock_write((save_control|RTC_SET), RTC_CONTROL);
+	chrp_cmos_clock_write((save_control | RTC_SET), RTC_CONTROL);
 
 	save_freq_select = chrp_cmos_clock_read(RTC_FREQ_SELECT); /* stop and reset prescaler */
 
-	chrp_cmos_clock_write((save_freq_select|RTC_DIV_RESET2), RTC_FREQ_SELECT);
+	chrp_cmos_clock_write((save_freq_select | RTC_DIV_RESET2), RTC_FREQ_SELECT);
 
-	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+	{
 		tm.tm_sec = bin2bcd(tm.tm_sec);
 		tm.tm_min = bin2bcd(tm.tm_min);
 		tm.tm_hour = bin2bcd(tm.tm_hour);
@@ -105,12 +121,13 @@ int chrp_set_rtc_time(struct rtc_time *tmarg)
 		tm.tm_mday = bin2bcd(tm.tm_mday);
 		tm.tm_year = bin2bcd(tm.tm_year);
 	}
-	chrp_cmos_clock_write(tm.tm_sec,RTC_SECONDS);
-	chrp_cmos_clock_write(tm.tm_min,RTC_MINUTES);
-	chrp_cmos_clock_write(tm.tm_hour,RTC_HOURS);
-	chrp_cmos_clock_write(tm.tm_mon,RTC_MONTH);
-	chrp_cmos_clock_write(tm.tm_mday,RTC_DAY_OF_MONTH);
-	chrp_cmos_clock_write(tm.tm_year,RTC_YEAR);
+
+	chrp_cmos_clock_write(tm.tm_sec, RTC_SECONDS);
+	chrp_cmos_clock_write(tm.tm_min, RTC_MINUTES);
+	chrp_cmos_clock_write(tm.tm_hour, RTC_HOURS);
+	chrp_cmos_clock_write(tm.tm_mon, RTC_MONTH);
+	chrp_cmos_clock_write(tm.tm_mday, RTC_DAY_OF_MONTH);
+	chrp_cmos_clock_write(tm.tm_year, RTC_YEAR);
 
 	/* The following flags have to be released exactly in this order,
 	 * otherwise the DS12887 (popular MC146818A clone with integrated
@@ -130,16 +147,19 @@ void chrp_get_rtc_time(struct rtc_time *tm)
 {
 	unsigned int year, mon, day, hour, min, sec;
 
-	do {
+	do
+	{
 		sec = chrp_cmos_clock_read(RTC_SECONDS);
 		min = chrp_cmos_clock_read(RTC_MINUTES);
 		hour = chrp_cmos_clock_read(RTC_HOURS);
 		day = chrp_cmos_clock_read(RTC_DAY_OF_MONTH);
 		mon = chrp_cmos_clock_read(RTC_MONTH);
 		year = chrp_cmos_clock_read(RTC_YEAR);
-	} while (sec != chrp_cmos_clock_read(RTC_SECONDS));
+	}
+	while (sec != chrp_cmos_clock_read(RTC_SECONDS));
 
-	if (!(chrp_cmos_clock_read(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+	if (!(chrp_cmos_clock_read(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+	{
 		sec = bcd2bin(sec);
 		min = bcd2bin(min);
 		hour = bcd2bin(hour);
@@ -147,8 +167,12 @@ void chrp_get_rtc_time(struct rtc_time *tm)
 		mon = bcd2bin(mon);
 		year = bcd2bin(year);
 	}
+
 	if (year < 70)
+	{
 		year += 100;
+	}
+
 	tm->tm_sec = sec;
 	tm->tm_min = min;
 	tm->tm_hour = hour;

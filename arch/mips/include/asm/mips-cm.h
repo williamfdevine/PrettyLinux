@@ -114,57 +114,57 @@ static inline bool mips_cm_has_l2sync(void)
 
 /* Macros to ease the creation of register access functions */
 #define BUILD_CM_R_(name, off)					\
-static inline unsigned long __iomem *addr_gcr_##name(void)	\
-{								\
-	return (unsigned long __iomem *)(mips_cm_base + (off));	\
-}								\
-								\
-static inline u32 read32_gcr_##name(void)			\
-{								\
-	return __raw_readl(addr_gcr_##name());			\
-}								\
-								\
-static inline u64 read64_gcr_##name(void)			\
-{								\
-	void __iomem *addr = addr_gcr_##name();			\
-	u64 ret;						\
-								\
-	if (mips_cm_is64) {					\
-		ret = __raw_readq(addr);			\
-	} else {						\
-		ret = __raw_readl(addr);			\
-		ret |= (u64)__raw_readl(addr + 0x4) << 32;	\
-	}							\
-								\
-	return ret;						\
-}								\
-								\
-static inline unsigned long read_gcr_##name(void)		\
-{								\
-	if (mips_cm_is64)					\
-		return read64_gcr_##name();			\
-	else							\
-		return read32_gcr_##name();			\
-}
+	static inline unsigned long __iomem *addr_gcr_##name(void)	\
+	{								\
+		return (unsigned long __iomem *)(mips_cm_base + (off));	\
+	}								\
+	\
+	static inline u32 read32_gcr_##name(void)			\
+	{								\
+		return __raw_readl(addr_gcr_##name());			\
+	}								\
+	\
+	static inline u64 read64_gcr_##name(void)			\
+	{								\
+		void __iomem *addr = addr_gcr_##name();			\
+		u64 ret;						\
+		\
+		if (mips_cm_is64) {					\
+			ret = __raw_readq(addr);			\
+		} else {						\
+			ret = __raw_readl(addr);			\
+			ret |= (u64)__raw_readl(addr + 0x4) << 32;	\
+		}							\
+		\
+		return ret;						\
+	}								\
+	\
+	static inline unsigned long read_gcr_##name(void)		\
+	{								\
+		if (mips_cm_is64)					\
+			return read64_gcr_##name();			\
+		else							\
+			return read32_gcr_##name();			\
+	}
 
 #define BUILD_CM__W(name, off)					\
-static inline void write32_gcr_##name(u32 value)		\
-{								\
-	__raw_writel(value, addr_gcr_##name());			\
-}								\
-								\
-static inline void write64_gcr_##name(u64 value)		\
-{								\
-	__raw_writeq(value, addr_gcr_##name());			\
-}								\
-								\
-static inline void write_gcr_##name(unsigned long value)	\
-{								\
-	if (mips_cm_is64)					\
-		write64_gcr_##name(value);			\
-	else							\
-		write32_gcr_##name(value);			\
-}
+	static inline void write32_gcr_##name(u32 value)		\
+	{								\
+		__raw_writel(value, addr_gcr_##name());			\
+	}								\
+	\
+	static inline void write64_gcr_##name(u64 value)		\
+	{								\
+		__raw_writeq(value, addr_gcr_##name());			\
+	}								\
+	\
+	static inline void write_gcr_##name(unsigned long value)	\
+	{								\
+		if (mips_cm_is64)					\
+			write64_gcr_##name(value);			\
+		else							\
+			write32_gcr_##name(value);			\
+	}
 
 #define BUILD_CM_RW(name, off)					\
 	BUILD_CM_R_(name, off)					\
@@ -259,8 +259,8 @@ BUILD_CM_Cx_R_(tcid_8_priority,	0x80)
 #define CM_GCR_REV_MINOR_MSK			(_ULCAST_(0xff) << 0)
 
 #define CM_ENCODE_REV(major, minor) \
-		(((major) << CM_GCR_REV_MAJOR_SHF) | \
-		 ((minor) << CM_GCR_REV_MINOR_SHF))
+	(((major) << CM_GCR_REV_MAJOR_SHF) | \
+	 ((minor) << CM_GCR_REV_MINOR_SHF))
 
 #define CM_REV_CM2				CM_ENCODE_REV(6, 0)
 #define CM_REV_CM2_5				CM_ENCODE_REV(7, 0)
@@ -400,10 +400,12 @@ BUILD_CM_Cx_R_(tcid_8_priority,	0x80)
 static inline unsigned mips_cm_numcores(void)
 {
 	if (!mips_cm_present())
+	{
 		return 0;
+	}
 
 	return ((read_gcr_config() & CM_GCR_CONFIG_PCORES_MSK)
-		>> CM_GCR_CONFIG_PCORES_SHF) + 1;
+			>> CM_GCR_CONFIG_PCORES_SHF) + 1;
 }
 
 /**
@@ -415,10 +417,12 @@ static inline unsigned mips_cm_numcores(void)
 static inline unsigned mips_cm_numiocu(void)
 {
 	if (!mips_cm_present())
+	{
 		return 0;
+	}
 
 	return (read_gcr_config() & CM_GCR_CONFIG_NUMIOCU_MSK)
-		>> CM_GCR_CONFIG_NUMIOCU_SHF;
+		   >> CM_GCR_CONFIG_NUMIOCU_SHF;
 }
 
 /**
@@ -430,7 +434,9 @@ static inline unsigned mips_cm_numiocu(void)
 static inline int mips_cm_l2sync(void)
 {
 	if (!mips_cm_has_l2sync())
+	{
 		return -ENODEV;
+	}
 
 	writel(0, mips_cm_l2sync_base);
 	return 0;
@@ -445,7 +451,9 @@ static inline int mips_cm_l2sync(void)
 static inline int mips_cm_revision(void)
 {
 	if (!mips_cm_present())
+	{
 		return 0;
+	}
 
 	return read_gcr_rev();
 }
@@ -462,9 +470,12 @@ static inline unsigned int mips_cm_max_vp_width(void)
 	uint32_t cfg;
 
 	if (mips_cm_revision() >= CM_REV_CM3)
+	{
 		return read_gcr_sys_config2() & CM_GCR_SYS_CONFIG2_MAXVPW_MSK;
+	}
 
-	if (mips_cm_present()) {
+	if (mips_cm_present())
+	{
 		/*
 		 * We presume that all cores in the system will have the same
 		 * number of VP(E)s, and if that ever changes then this will
@@ -475,7 +486,9 @@ static inline unsigned int mips_cm_max_vp_width(void)
 	}
 
 	if (IS_ENABLED(CONFIG_SMP))
+	{
 		return smp_num_siblings;
+	}
 
 	return 1;
 }

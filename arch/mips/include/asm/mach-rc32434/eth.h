@@ -32,7 +32,8 @@
 
 #define ETH0_BASE_ADDR		0x18060000
 
-struct eth_regs {
+struct eth_regs
+{
 	u32 ethintfc;
 	u32 ethfifott;
 	u32 etharc;

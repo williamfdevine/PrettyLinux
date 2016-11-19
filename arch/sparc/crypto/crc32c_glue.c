@@ -28,14 +28,16 @@
  * the seed.
  */
 static int crc32c_sparc64_setkey(struct crypto_shash *hash, const u8 *key,
-				 unsigned int keylen)
+								 unsigned int keylen)
 {
 	u32 *mctx = crypto_shash_ctx(hash);
 
-	if (keylen != sizeof(u32)) {
+	if (keylen != sizeof(u32))
+	{
 		crypto_shash_set_flags(hash, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
+
 	*(__le32 *)mctx = le32_to_cpup((__le32 *)key);
 	return 0;
 }
@@ -57,17 +59,22 @@ static void crc32c_compute(u32 *crcp, const u64 *data, unsigned int len)
 	unsigned int asm_len;
 
 	asm_len = len & ~7U;
-	if (asm_len) {
+
+	if (asm_len)
+	{
 		crc32c_sparc64(crcp, data, asm_len);
 		data += asm_len / 8;
 		len -= asm_len;
 	}
+
 	if (len)
+	{
 		*crcp = __crc32c_le(*crcp, (const unsigned char *) data, len);
+	}
 }
 
 static int crc32c_sparc64_update(struct shash_desc *desc, const u8 *data,
-				 unsigned int len)
+								 unsigned int len)
 {
 	u32 *crcp = shash_desc_ctx(desc);
 
@@ -77,7 +84,7 @@ static int crc32c_sparc64_update(struct shash_desc *desc, const u8 *data,
 }
 
 static int __crc32c_sparc64_finup(u32 *crcp, const u8 *data, unsigned int len,
-				  u8 *out)
+								  u8 *out)
 {
 	u32 tmp = *crcp;
 
@@ -88,7 +95,7 @@ static int __crc32c_sparc64_finup(u32 *crcp, const u8 *data, unsigned int len,
 }
 
 static int crc32c_sparc64_finup(struct shash_desc *desc, const u8 *data,
-				unsigned int len, u8 *out)
+								unsigned int len, u8 *out)
 {
 	return __crc32c_sparc64_finup(shash_desc_ctx(desc), data, len, out);
 }
@@ -102,10 +109,10 @@ static int crc32c_sparc64_final(struct shash_desc *desc, u8 *out)
 }
 
 static int crc32c_sparc64_digest(struct shash_desc *desc, const u8 *data,
-				 unsigned int len, u8 *out)
+								 unsigned int len, u8 *out)
 {
 	return __crc32c_sparc64_finup(crypto_shash_ctx(desc->tfm), data, len,
-				      out);
+								  out);
 }
 
 static int crc32c_sparc64_cra_init(struct crypto_tfm *tfm)
@@ -120,7 +127,8 @@ static int crc32c_sparc64_cra_init(struct crypto_tfm *tfm)
 #define CHKSUM_BLOCK_SIZE	1
 #define CHKSUM_DIGEST_SIZE	4
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.setkey			=	crc32c_sparc64_setkey,
 	.init			=	crc32c_sparc64_init,
 	.update			=	crc32c_sparc64_update,
@@ -146,21 +154,28 @@ static bool __init sparc64_has_crc32c_opcode(void)
 	unsigned long cfr;
 
 	if (!(sparc64_elf_hwcap & HWCAP_SPARC_CRYPTO))
+	{
 		return false;
+	}
 
 	__asm__ __volatile__("rd %%asr26, %0" : "=r" (cfr));
+
 	if (!(cfr & CFR_CRC32C))
+	{
 		return false;
+	}
 
 	return true;
 }
 
 static int __init crc32c_sparc64_mod_init(void)
 {
-	if (sparc64_has_crc32c_opcode()) {
+	if (sparc64_has_crc32c_opcode())
+	{
 		pr_info("Using sparc64 crc32c opcode optimized CRC32C implementation\n");
 		return crypto_register_shash(&alg);
 	}
+
 	pr_info("sparc64 crc32c opcode not available.\n");
 	return -ENODEV;
 }

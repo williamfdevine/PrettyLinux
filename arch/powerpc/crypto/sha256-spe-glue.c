@@ -1,7 +1,7 @@
 /*
  * Glue code for SHA-256 implementation for SPE instructions (PPC)
  *
- * Based on generic implementation. The assembler module takes care 
+ * Based on generic implementation. The assembler module takes care
  * about the SPE registers so it can run from interrupt context.
  *
  * Copyright (c) 2015 Markus Stockhausen <stockhausen@collogia.de>
@@ -59,7 +59,9 @@ static inline void ppc_sha256_clear_context(struct sha256_state *sctx)
 
 	/* make sure we can clear the fast way */
 	BUILD_BUG_ON(sizeof(struct sha256_state) % 4);
-	do { *ptr++ = 0; } while (--count);
+
+	do { *ptr++ = 0; }
+	while (--count);
 }
 
 static int ppc_spe_sha256_init(struct shash_desc *desc)
@@ -97,7 +99,7 @@ static int ppc_spe_sha224_init(struct shash_desc *desc)
 }
 
 static int ppc_spe_sha256_update(struct shash_desc *desc, const u8 *data,
-			unsigned int len)
+								 unsigned int len)
 {
 	struct sha256_state *sctx = shash_desc_ctx(desc);
 	const unsigned int offset = sctx->count & 0x3f;
@@ -105,7 +107,8 @@ static int ppc_spe_sha256_update(struct shash_desc *desc, const u8 *data,
 	unsigned int bytes;
 	const u8 *src = data;
 
-	if (avail > len) {
+	if (avail > len)
+	{
 		sctx->count += len;
 		memcpy((char *)sctx->buf + offset, src, len);
 		return 0;
@@ -113,7 +116,8 @@ static int ppc_spe_sha256_update(struct shash_desc *desc, const u8 *data,
 
 	sctx->count += len;
 
-	if (offset) {
+	if (offset)
+	{
 		memcpy((char *)sctx->buf + offset, src, avail);
 
 		spe_begin();
@@ -124,7 +128,8 @@ static int ppc_spe_sha256_update(struct shash_desc *desc, const u8 *data,
 		src += avail;
 	}
 
-	while (len > 63) {
+	while (len > 63)
+	{
 		/* cut input data into smaller blocks */
 		bytes = (len > MAX_BYTES) ? MAX_BYTES : len;
 		bytes = bytes & ~0x3f;
@@ -138,6 +143,7 @@ static int ppc_spe_sha256_update(struct shash_desc *desc, const u8 *data,
 	};
 
 	memcpy((char *)sctx->buf, src, len);
+
 	return 0;
 }
 
@@ -155,7 +161,8 @@ static int ppc_spe_sha256_final(struct shash_desc *desc, u8 *out)
 
 	spe_begin();
 
-	if (padlen < 0) {
+	if (padlen < 0)
+	{
 		memset(p, 0x00, padlen + sizeof (u64));
 		ppc_spe_sha256_transform(sctx->state, sctx->buf, 1);
 		p = (char *)sctx->buf;
@@ -219,40 +226,41 @@ static int ppc_spe_sha256_import(struct shash_desc *desc, const void *in)
 }
 
 static struct shash_alg algs[2] = { {
-	.digestsize	=	SHA256_DIGEST_SIZE,
-	.init		=	ppc_spe_sha256_init,
-	.update		=	ppc_spe_sha256_update,
-	.final		=	ppc_spe_sha256_final,
-	.export		=	ppc_spe_sha256_export,
-	.import		=	ppc_spe_sha256_import,
-	.descsize	=	sizeof(struct sha256_state),
-	.statesize	=	sizeof(struct sha256_state),
-	.base		=	{
-		.cra_name	=	"sha256",
-		.cra_driver_name=	"sha256-ppc-spe",
-		.cra_priority	=	300,
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	SHA256_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
+		.digestsize	=	SHA256_DIGEST_SIZE,
+		.init		=	ppc_spe_sha256_init,
+		.update		=	ppc_spe_sha256_update,
+		.final		=	ppc_spe_sha256_final,
+		.export		=	ppc_spe_sha256_export,
+		.import		=	ppc_spe_sha256_import,
+		.descsize	=	sizeof(struct sha256_state),
+		.statesize	=	sizeof(struct sha256_state),
+		.base		=	{
+			.cra_name	=	"sha256",
+			.cra_driver_name =	"sha256-ppc-spe",
+			.cra_priority	=	300,
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	SHA256_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
+	}, {
+		.digestsize	=	SHA224_DIGEST_SIZE,
+		.init		=	ppc_spe_sha224_init,
+		.update		=	ppc_spe_sha256_update,
+		.final		=	ppc_spe_sha224_final,
+		.export		=	ppc_spe_sha256_export,
+		.import		=	ppc_spe_sha256_import,
+		.descsize	=	sizeof(struct sha256_state),
+		.statesize	=	sizeof(struct sha256_state),
+		.base		=	{
+			.cra_name	=	"sha224",
+			.cra_driver_name =	"sha224-ppc-spe",
+			.cra_priority	=	300,
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	SHA224_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
 	}
-}, {
-	.digestsize	=	SHA224_DIGEST_SIZE,
-	.init		=	ppc_spe_sha224_init,
-	.update		=	ppc_spe_sha256_update,
-	.final		=	ppc_spe_sha224_final,
-	.export		=	ppc_spe_sha256_export,
-	.import		=	ppc_spe_sha256_import,
-	.descsize	=	sizeof(struct sha256_state),
-	.statesize	=	sizeof(struct sha256_state),
-	.base		=	{
-		.cra_name	=	"sha224",
-		.cra_driver_name=	"sha224-ppc-spe",
-		.cra_priority	=	300,
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	SHA224_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
-	}
-} };
+};
 
 static int __init ppc_spe_sha256_mod_init(void)
 {

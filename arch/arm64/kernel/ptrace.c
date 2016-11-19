@@ -48,7 +48,8 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/syscalls.h>
 
-struct pt_regs_offset {
+struct pt_regs_offset
+{
 	const char *name;
 	int offset;
 };
@@ -58,7 +59,8 @@ struct pt_regs_offset {
 #define GPR_OFFSET_NAME(r) \
 	{.name = "x" #r, .offset = offsetof(struct pt_regs, regs[r])}
 
-static const struct pt_regs_offset regoffset_table[] = {
+static const struct pt_regs_offset regoffset_table[] =
+{
 	GPR_OFFSET_NAME(0),
 	GPR_OFFSET_NAME(1),
 	GPR_OFFSET_NAME(2),
@@ -110,7 +112,10 @@ int regs_query_register_offset(const char *name)
 
 	for (roff = regoffset_table; roff->name != NULL; roff++)
 		if (!strcmp(roff->name, name))
+		{
 			return roff->offset;
+		}
+
 	return -EINVAL;
 }
 
@@ -125,8 +130,8 @@ int regs_query_register_offset(const char *name)
 static bool regs_within_kernel_stack(struct pt_regs *regs, unsigned long addr)
 {
 	return ((addr & ~(THREAD_SIZE - 1))  ==
-		(kernel_stack_pointer(regs) & ~(THREAD_SIZE - 1))) ||
-		on_irq_stack(addr, raw_smp_processor_id());
+			(kernel_stack_pointer(regs) & ~(THREAD_SIZE - 1))) ||
+		   on_irq_stack(addr, raw_smp_processor_id());
 }
 
 /**
@@ -143,10 +148,15 @@ unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs, unsigned int n)
 	unsigned long *addr = (unsigned long *)kernel_stack_pointer(regs);
 
 	addr += n;
+
 	if (regs_within_kernel_stack(regs, (unsigned long)addr))
+	{
 		return *addr;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /*
@@ -172,11 +182,12 @@ void ptrace_disable(struct task_struct *child)
  * Handle hitting a HW-breakpoint.
  */
 static void ptrace_hbptriggered(struct perf_event *bp,
-				struct perf_sample_data *data,
-				struct pt_regs *regs)
+								struct perf_sample_data *data,
+								struct pt_regs *regs)
 {
 	struct arch_hw_breakpoint *bkpt = counter_arch_bp(bp);
-	siginfo_t info = {
+	siginfo_t info =
+	{
 		.si_signo	= SIGTRAP,
 		.si_errno	= 0,
 		.si_code	= TRAP_HWBKPT,
@@ -187,17 +198,23 @@ static void ptrace_hbptriggered(struct perf_event *bp,
 	int i;
 
 	if (!is_compat_task())
+	{
 		goto send_sig;
+	}
 
-	for (i = 0; i < ARM_MAX_BRP; ++i) {
-		if (current->thread.debug.hbp_break[i] == bp) {
+	for (i = 0; i < ARM_MAX_BRP; ++i)
+	{
+		if (current->thread.debug.hbp_break[i] == bp)
+		{
 			info.si_errno = (i << 1) + 1;
 			break;
 		}
 	}
 
-	for (i = 0; i < ARM_MAX_WRP; ++i) {
-		if (current->thread.debug.hbp_watch[i] == bp) {
+	for (i = 0; i < ARM_MAX_WRP; ++i)
+	{
+		if (current->thread.debug.hbp_watch[i] == bp)
+		{
 			info.si_errno = -((i << 1) + 1);
 			break;
 		}
@@ -217,15 +234,19 @@ void flush_ptrace_hw_breakpoint(struct task_struct *tsk)
 	int i;
 	struct thread_struct *t = &tsk->thread;
 
-	for (i = 0; i < ARM_MAX_BRP; i++) {
-		if (t->debug.hbp_break[i]) {
+	for (i = 0; i < ARM_MAX_BRP; i++)
+	{
+		if (t->debug.hbp_break[i])
+		{
 			unregister_hw_breakpoint(t->debug.hbp_break[i]);
 			t->debug.hbp_break[i] = NULL;
 		}
 	}
 
-	for (i = 0; i < ARM_MAX_WRP; i++) {
-		if (t->debug.hbp_watch[i]) {
+	for (i = 0; i < ARM_MAX_WRP; i++)
+	{
+		if (t->debug.hbp_watch[i])
+		{
 			unregister_hw_breakpoint(t->debug.hbp_watch[i]);
 			t->debug.hbp_watch[i] = NULL;
 		}
@@ -238,67 +259,84 @@ void ptrace_hw_copy_thread(struct task_struct *tsk)
 }
 
 static struct perf_event *ptrace_hbp_get_event(unsigned int note_type,
-					       struct task_struct *tsk,
-					       unsigned long idx)
+		struct task_struct *tsk,
+		unsigned long idx)
 {
 	struct perf_event *bp = ERR_PTR(-EINVAL);
 
-	switch (note_type) {
-	case NT_ARM_HW_BREAK:
-		if (idx < ARM_MAX_BRP)
-			bp = tsk->thread.debug.hbp_break[idx];
-		break;
-	case NT_ARM_HW_WATCH:
-		if (idx < ARM_MAX_WRP)
-			bp = tsk->thread.debug.hbp_watch[idx];
-		break;
+	switch (note_type)
+	{
+		case NT_ARM_HW_BREAK:
+			if (idx < ARM_MAX_BRP)
+			{
+				bp = tsk->thread.debug.hbp_break[idx];
+			}
+
+			break;
+
+		case NT_ARM_HW_WATCH:
+			if (idx < ARM_MAX_WRP)
+			{
+				bp = tsk->thread.debug.hbp_watch[idx];
+			}
+
+			break;
 	}
 
 	return bp;
 }
 
 static int ptrace_hbp_set_event(unsigned int note_type,
-				struct task_struct *tsk,
-				unsigned long idx,
-				struct perf_event *bp)
+								struct task_struct *tsk,
+								unsigned long idx,
+								struct perf_event *bp)
 {
 	int err = -EINVAL;
 
-	switch (note_type) {
-	case NT_ARM_HW_BREAK:
-		if (idx < ARM_MAX_BRP) {
-			tsk->thread.debug.hbp_break[idx] = bp;
-			err = 0;
-		}
-		break;
-	case NT_ARM_HW_WATCH:
-		if (idx < ARM_MAX_WRP) {
-			tsk->thread.debug.hbp_watch[idx] = bp;
-			err = 0;
-		}
-		break;
+	switch (note_type)
+	{
+		case NT_ARM_HW_BREAK:
+			if (idx < ARM_MAX_BRP)
+			{
+				tsk->thread.debug.hbp_break[idx] = bp;
+				err = 0;
+			}
+
+			break;
+
+		case NT_ARM_HW_WATCH:
+			if (idx < ARM_MAX_WRP)
+			{
+				tsk->thread.debug.hbp_watch[idx] = bp;
+				err = 0;
+			}
+
+			break;
 	}
 
 	return err;
 }
 
 static struct perf_event *ptrace_hbp_create(unsigned int note_type,
-					    struct task_struct *tsk,
-					    unsigned long idx)
+		struct task_struct *tsk,
+		unsigned long idx)
 {
 	struct perf_event *bp;
 	struct perf_event_attr attr;
 	int err, type;
 
-	switch (note_type) {
-	case NT_ARM_HW_BREAK:
-		type = HW_BREAKPOINT_X;
-		break;
-	case NT_ARM_HW_WATCH:
-		type = HW_BREAKPOINT_RW;
-		break;
-	default:
-		return ERR_PTR(-EINVAL);
+	switch (note_type)
+	{
+		case NT_ARM_HW_BREAK:
+			type = HW_BREAKPOINT_X;
+			break;
+
+		case NT_ARM_HW_WATCH:
+			type = HW_BREAKPOINT_RW;
+			break;
+
+		default:
+			return ERR_PTR(-EINVAL);
 	}
 
 	ptrace_breakpoint_init(&attr);
@@ -313,41 +351,62 @@ static struct perf_event *ptrace_hbp_create(unsigned int note_type,
 	attr.disabled	= 1;
 
 	bp = register_user_hw_breakpoint(&attr, ptrace_hbptriggered, NULL, tsk);
+
 	if (IS_ERR(bp))
+	{
 		return bp;
+	}
 
 	err = ptrace_hbp_set_event(note_type, tsk, idx, bp);
+
 	if (err)
+	{
 		return ERR_PTR(err);
+	}
 
 	return bp;
 }
 
 static int ptrace_hbp_fill_attr_ctrl(unsigned int note_type,
-				     struct arch_hw_breakpoint_ctrl ctrl,
-				     struct perf_event_attr *attr)
+									 struct arch_hw_breakpoint_ctrl ctrl,
+									 struct perf_event_attr *attr)
 {
 	int err, len, type, disabled = !ctrl.enabled;
 
 	attr->disabled = disabled;
+
 	if (disabled)
+	{
 		return 0;
+	}
 
 	err = arch_bp_generic_fields(ctrl, &len, &type);
-	if (err)
-		return err;
 
-	switch (note_type) {
-	case NT_ARM_HW_BREAK:
-		if ((type & HW_BREAKPOINT_X) != type)
+	if (err)
+	{
+		return err;
+	}
+
+	switch (note_type)
+	{
+		case NT_ARM_HW_BREAK:
+			if ((type & HW_BREAKPOINT_X) != type)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case NT_ARM_HW_WATCH:
+			if ((type & HW_BREAKPOINT_RW) != type)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-		break;
-	case NT_ARM_HW_WATCH:
-		if ((type & HW_BREAKPOINT_RW) != type)
-			return -EINVAL;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	attr->bp_len	= len;
@@ -361,15 +420,18 @@ static int ptrace_hbp_get_resource_info(unsigned int note_type, u32 *info)
 	u8 num;
 	u32 reg = 0;
 
-	switch (note_type) {
-	case NT_ARM_HW_BREAK:
-		num = hw_breakpoint_slots(TYPE_INST);
-		break;
-	case NT_ARM_HW_WATCH:
-		num = hw_breakpoint_slots(TYPE_DATA);
-		break;
-	default:
-		return -EINVAL;
+	switch (note_type)
+	{
+		case NT_ARM_HW_BREAK:
+			num = hw_breakpoint_slots(TYPE_INST);
+			break;
+
+		case NT_ARM_HW_WATCH:
+			num = hw_breakpoint_slots(TYPE_DATA);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	reg |= debug_monitors_arch();
@@ -381,49 +443,55 @@ static int ptrace_hbp_get_resource_info(unsigned int note_type, u32 *info)
 }
 
 static int ptrace_hbp_get_ctrl(unsigned int note_type,
-			       struct task_struct *tsk,
-			       unsigned long idx,
-			       u32 *ctrl)
+							   struct task_struct *tsk,
+							   unsigned long idx,
+							   u32 *ctrl)
 {
 	struct perf_event *bp = ptrace_hbp_get_event(note_type, tsk, idx);
 
 	if (IS_ERR(bp))
+	{
 		return PTR_ERR(bp);
+	}
 
 	*ctrl = bp ? encode_ctrl_reg(counter_arch_bp(bp)->ctrl) : 0;
 	return 0;
 }
 
 static int ptrace_hbp_get_addr(unsigned int note_type,
-			       struct task_struct *tsk,
-			       unsigned long idx,
-			       u64 *addr)
+							   struct task_struct *tsk,
+							   unsigned long idx,
+							   u64 *addr)
 {
 	struct perf_event *bp = ptrace_hbp_get_event(note_type, tsk, idx);
 
 	if (IS_ERR(bp))
+	{
 		return PTR_ERR(bp);
+	}
 
 	*addr = bp ? bp->attr.bp_addr : 0;
 	return 0;
 }
 
 static struct perf_event *ptrace_hbp_get_initialised_bp(unsigned int note_type,
-							struct task_struct *tsk,
-							unsigned long idx)
+		struct task_struct *tsk,
+		unsigned long idx)
 {
 	struct perf_event *bp = ptrace_hbp_get_event(note_type, tsk, idx);
 
 	if (!bp)
+	{
 		bp = ptrace_hbp_create(note_type, tsk, idx);
+	}
 
 	return bp;
 }
 
 static int ptrace_hbp_set_ctrl(unsigned int note_type,
-			       struct task_struct *tsk,
-			       unsigned long idx,
-			       u32 uctrl)
+							   struct task_struct *tsk,
+							   unsigned long idx,
+							   u32 uctrl)
 {
 	int err;
 	struct perf_event *bp;
@@ -431,7 +499,9 @@ static int ptrace_hbp_set_ctrl(unsigned int note_type,
 	struct arch_hw_breakpoint_ctrl ctrl;
 
 	bp = ptrace_hbp_get_initialised_bp(note_type, tsk, idx);
-	if (IS_ERR(bp)) {
+
+	if (IS_ERR(bp))
+	{
 		err = PTR_ERR(bp);
 		return err;
 	}
@@ -439,23 +509,28 @@ static int ptrace_hbp_set_ctrl(unsigned int note_type,
 	attr = bp->attr;
 	decode_ctrl_reg(uctrl, &ctrl);
 	err = ptrace_hbp_fill_attr_ctrl(note_type, ctrl, &attr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return modify_user_hw_breakpoint(bp, &attr);
 }
 
 static int ptrace_hbp_set_addr(unsigned int note_type,
-			       struct task_struct *tsk,
-			       unsigned long idx,
-			       u64 addr)
+							   struct task_struct *tsk,
+							   unsigned long idx,
+							   u64 addr)
 {
 	int err;
 	struct perf_event *bp;
 	struct perf_event_attr attr;
 
 	bp = ptrace_hbp_get_initialised_bp(note_type, tsk, idx);
-	if (IS_ERR(bp)) {
+
+	if (IS_ERR(bp))
+	{
 		err = PTR_ERR(bp);
 		return err;
 	}
@@ -471,9 +546,9 @@ static int ptrace_hbp_set_addr(unsigned int note_type,
 #define PTRACE_HBP_PAD_SZ	sizeof(u32)
 
 static int hw_break_get(struct task_struct *target,
-			const struct user_regset *regset,
-			unsigned int pos, unsigned int count,
-			void *kbuf, void __user *ubuf)
+						const struct user_regset *regset,
+						unsigned int pos, unsigned int count,
+						void *kbuf, void __user *ubuf)
 {
 	unsigned int note_type = regset->core_note_type;
 	int ret, idx = 0, offset, limit;
@@ -482,48 +557,79 @@ static int hw_break_get(struct task_struct *target,
 
 	/* Resource info */
 	ret = ptrace_hbp_get_resource_info(note_type, &info);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf, &info, 0,
-				  sizeof(info));
+							  sizeof(info));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Pad */
 	offset = offsetof(struct user_hwdebug_state, pad);
 	ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf, offset,
-				       offset + PTRACE_HBP_PAD_SZ);
+								   offset + PTRACE_HBP_PAD_SZ);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* (address, ctrl) registers */
 	offset = offsetof(struct user_hwdebug_state, dbg_regs);
 	limit = regset->n * regset->size;
-	while (count && offset < limit) {
+
+	while (count && offset < limit)
+	{
 		ret = ptrace_hbp_get_addr(note_type, target, idx, &addr);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf, &addr,
-					  offset, offset + PTRACE_HBP_ADDR_SZ);
+								  offset, offset + PTRACE_HBP_ADDR_SZ);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		offset += PTRACE_HBP_ADDR_SZ;
 
 		ret = ptrace_hbp_get_ctrl(note_type, target, idx, &ctrl);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf, &ctrl,
-					  offset, offset + PTRACE_HBP_CTRL_SZ);
+								  offset, offset + PTRACE_HBP_CTRL_SZ);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		offset += PTRACE_HBP_CTRL_SZ;
 
 		ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf,
-					       offset,
-					       offset + PTRACE_HBP_PAD_SZ);
+									   offset,
+									   offset + PTRACE_HBP_PAD_SZ);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		offset += PTRACE_HBP_PAD_SZ;
 		idx++;
 	}
@@ -532,9 +638,9 @@ static int hw_break_get(struct task_struct *target,
 }
 
 static int hw_break_set(struct task_struct *target,
-			const struct user_regset *regset,
-			unsigned int pos, unsigned int count,
-			const void *kbuf, const void __user *ubuf)
+						const struct user_regset *regset,
+						unsigned int pos, unsigned int count,
+						const void *kbuf, const void __user *ubuf)
 {
 	unsigned int note_type = regset->core_note_type;
 	int ret, idx = 0, offset, limit;
@@ -544,35 +650,60 @@ static int hw_break_set(struct task_struct *target,
 	/* Resource info and pad */
 	offset = offsetof(struct user_hwdebug_state, dbg_regs);
 	ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf, 0, offset);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* (address, ctrl) registers */
 	limit = regset->n * regset->size;
-	while (count && offset < limit) {
+
+	while (count && offset < limit)
+	{
 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &addr,
-					 offset, offset + PTRACE_HBP_ADDR_SZ);
+								 offset, offset + PTRACE_HBP_ADDR_SZ);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = ptrace_hbp_set_addr(note_type, target, idx, addr);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		offset += PTRACE_HBP_ADDR_SZ;
 
 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &ctrl,
-					 offset, offset + PTRACE_HBP_CTRL_SZ);
+								 offset, offset + PTRACE_HBP_CTRL_SZ);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = ptrace_hbp_set_ctrl(note_type, target, idx, ctrl);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		offset += PTRACE_HBP_CTRL_SZ;
 
 		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-						offset,
-						offset + PTRACE_HBP_PAD_SZ);
+										offset,
+										offset + PTRACE_HBP_PAD_SZ);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		offset += PTRACE_HBP_PAD_SZ;
 		idx++;
 	}
@@ -582,27 +713,32 @@ static int hw_break_set(struct task_struct *target,
 #endif	/* CONFIG_HAVE_HW_BREAKPOINT */
 
 static int gpr_get(struct task_struct *target,
-		   const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   void *kbuf, void __user *ubuf)
+				   const struct user_regset *regset,
+				   unsigned int pos, unsigned int count,
+				   void *kbuf, void __user *ubuf)
 {
 	struct user_pt_regs *uregs = &task_pt_regs(target)->user_regs;
 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf, uregs, 0, -1);
 }
 
 static int gpr_set(struct task_struct *target, const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   const void *kbuf, const void __user *ubuf)
+				   unsigned int pos, unsigned int count,
+				   const void *kbuf, const void __user *ubuf)
 {
 	int ret;
 	struct user_pt_regs newregs;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &newregs, 0, -1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!valid_user_regs(&newregs, target))
+	{
 		return -EINVAL;
+	}
 
 	task_pt_regs(target)->user_regs = newregs;
 	return 0;
@@ -612,8 +748,8 @@ static int gpr_set(struct task_struct *target, const struct user_regset *regset,
  * TODO: update fp accessors for lazy context switching (sync/flush hwstate)
  */
 static int fpr_get(struct task_struct *target, const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   void *kbuf, void __user *ubuf)
+				   unsigned int pos, unsigned int count,
+				   void *kbuf, void __user *ubuf)
 {
 	struct user_fpsimd_state *uregs;
 	uregs = &target->thread.fpsimd_state.user_fpsimd;
@@ -621,15 +757,18 @@ static int fpr_get(struct task_struct *target, const struct user_regset *regset,
 }
 
 static int fpr_set(struct task_struct *target, const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   const void *kbuf, const void __user *ubuf)
+				   unsigned int pos, unsigned int count,
+				   const void *kbuf, const void __user *ubuf)
 {
 	int ret;
 	struct user_fpsimd_state newstate;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &newstate, 0, -1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	target->thread.fpsimd_state.user_fpsimd = newstate;
 	fpsimd_flush_task_state(target);
@@ -637,55 +776,62 @@ static int fpr_set(struct task_struct *target, const struct user_regset *regset,
 }
 
 static int tls_get(struct task_struct *target, const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   void *kbuf, void __user *ubuf)
+				   unsigned int pos, unsigned int count,
+				   void *kbuf, void __user *ubuf)
 {
 	unsigned long *tls = &target->thread.tp_value;
 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf, tls, 0, -1);
 }
 
 static int tls_set(struct task_struct *target, const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   const void *kbuf, const void __user *ubuf)
+				   unsigned int pos, unsigned int count,
+				   const void *kbuf, const void __user *ubuf)
 {
 	int ret;
 	unsigned long tls;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &tls, 0, -1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	target->thread.tp_value = tls;
 	return ret;
 }
 
 static int system_call_get(struct task_struct *target,
-			   const struct user_regset *regset,
-			   unsigned int pos, unsigned int count,
-			   void *kbuf, void __user *ubuf)
+						   const struct user_regset *regset,
+						   unsigned int pos, unsigned int count,
+						   void *kbuf, void __user *ubuf)
 {
 	int syscallno = task_pt_regs(target)->syscallno;
 
 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				   &syscallno, 0, -1);
+							   &syscallno, 0, -1);
 }
 
 static int system_call_set(struct task_struct *target,
-			   const struct user_regset *regset,
-			   unsigned int pos, unsigned int count,
-			   const void *kbuf, const void __user *ubuf)
+						   const struct user_regset *regset,
+						   unsigned int pos, unsigned int count,
+						   const void *kbuf, const void __user *ubuf)
 {
 	int syscallno, ret;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &syscallno, 0, -1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	task_pt_regs(target)->syscallno = syscallno;
 	return ret;
 }
 
-enum aarch64_regset {
+enum aarch64_regset
+{
 	REGSET_GPR,
 	REGSET_FPR,
 	REGSET_TLS,
@@ -696,7 +842,8 @@ enum aarch64_regset {
 	REGSET_SYSTEM_CALL,
 };
 
-static const struct user_regset aarch64_regsets[] = {
+static const struct user_regset aarch64_regsets[] =
+{
 	[REGSET_GPR] = {
 		.core_note_type = NT_PRSTATUS,
 		.n = sizeof(struct user_pt_regs) / sizeof(u64),
@@ -753,7 +900,8 @@ static const struct user_regset aarch64_regsets[] = {
 	},
 };
 
-static const struct user_regset_view user_aarch64_view = {
+static const struct user_regset_view user_aarch64_view =
+{
 	.name = "aarch64", .e_machine = EM_AARCH64,
 	.regsets = aarch64_regsets, .n = ARRAY_SIZE(aarch64_regsets)
 };
@@ -761,15 +909,16 @@ static const struct user_regset_view user_aarch64_view = {
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
 
-enum compat_regset {
+enum compat_regset
+{
 	REGSET_COMPAT_GPR,
 	REGSET_COMPAT_VFP,
 };
 
 static int compat_gpr_get(struct task_struct *target,
-			  const struct user_regset *regset,
-			  unsigned int pos, unsigned int count,
-			  void *kbuf, void __user *ubuf)
+						  const struct user_regset *regset,
+						  unsigned int pos, unsigned int count,
+						  void *kbuf, void __user *ubuf)
 {
 	int ret = 0;
 	unsigned int i, start, num_regs;
@@ -781,32 +930,44 @@ static int compat_gpr_get(struct task_struct *target,
 	start = pos / regset->size;
 
 	if (start + num_regs > regset->n)
+	{
 		return -EIO;
+	}
 
-	for (i = 0; i < num_regs; ++i) {
+	for (i = 0; i < num_regs; ++i)
+	{
 		unsigned int idx = start + i;
 		compat_ulong_t reg;
 
-		switch (idx) {
-		case 15:
-			reg = task_pt_regs(target)->pc;
-			break;
-		case 16:
-			reg = task_pt_regs(target)->pstate;
-			break;
-		case 17:
-			reg = task_pt_regs(target)->orig_x0;
-			break;
-		default:
-			reg = task_pt_regs(target)->regs[idx];
+		switch (idx)
+		{
+			case 15:
+				reg = task_pt_regs(target)->pc;
+				break;
+
+			case 16:
+				reg = task_pt_regs(target)->pstate;
+				break;
+
+			case 17:
+				reg = task_pt_regs(target)->orig_x0;
+				break;
+
+			default:
+				reg = task_pt_regs(target)->regs[idx];
 		}
 
-		if (kbuf) {
+		if (kbuf)
+		{
 			memcpy(kbuf, &reg, sizeof(reg));
 			kbuf += sizeof(reg);
-		} else {
+		}
+		else
+		{
 			ret = copy_to_user(ubuf, &reg, sizeof(reg));
-			if (ret) {
+
+			if (ret)
+			{
 				ret = -EFAULT;
 				break;
 			}
@@ -819,9 +980,9 @@ static int compat_gpr_get(struct task_struct *target,
 }
 
 static int compat_gpr_set(struct task_struct *target,
-			  const struct user_regset *regset,
-			  unsigned int pos, unsigned int count,
-			  const void *kbuf, const void __user *ubuf)
+						  const struct user_regset *regset,
+						  unsigned int pos, unsigned int count,
+						  const void *kbuf, const void __user *ubuf)
 {
 	struct pt_regs newregs;
 	int ret = 0;
@@ -834,20 +995,28 @@ static int compat_gpr_set(struct task_struct *target,
 	start = pos / regset->size;
 
 	if (start + num_regs > regset->n)
+	{
 		return -EIO;
+	}
 
 	newregs = *task_pt_regs(target);
 
-	for (i = 0; i < num_regs; ++i) {
+	for (i = 0; i < num_regs; ++i)
+	{
 		unsigned int idx = start + i;
 		compat_ulong_t reg;
 
-		if (kbuf) {
+		if (kbuf)
+		{
 			memcpy(&reg, kbuf, sizeof(reg));
 			kbuf += sizeof(reg);
-		} else {
+		}
+		else
+		{
 			ret = copy_from_user(&reg, ubuf, sizeof(reg));
-			if (ret) {
+
+			if (ret)
+			{
 				ret = -EFAULT;
 				break;
 			}
@@ -855,34 +1024,42 @@ static int compat_gpr_set(struct task_struct *target,
 			ubuf += sizeof(reg);
 		}
 
-		switch (idx) {
-		case 15:
-			newregs.pc = reg;
-			break;
-		case 16:
-			newregs.pstate = reg;
-			break;
-		case 17:
-			newregs.orig_x0 = reg;
-			break;
-		default:
-			newregs.regs[idx] = reg;
+		switch (idx)
+		{
+			case 15:
+				newregs.pc = reg;
+				break;
+
+			case 16:
+				newregs.pstate = reg;
+				break;
+
+			case 17:
+				newregs.orig_x0 = reg;
+				break;
+
+			default:
+				newregs.regs[idx] = reg;
 		}
 
 	}
 
 	if (valid_user_regs(&newregs.user_regs, target))
+	{
 		*task_pt_regs(target) = newregs;
+	}
 	else
+	{
 		ret = -EINVAL;
+	}
 
 	return ret;
 }
 
 static int compat_vfp_get(struct task_struct *target,
-			  const struct user_regset *regset,
-			  unsigned int pos, unsigned int count,
-			  void *kbuf, void __user *ubuf)
+						  const struct user_regset *regset,
+						  unsigned int pos, unsigned int count,
+						  void *kbuf, void __user *ubuf)
 {
 	struct user_fpsimd_state *uregs;
 	compat_ulong_t fpscr;
@@ -895,11 +1072,12 @@ static int compat_vfp_get(struct task_struct *target,
 	 * nicely together for us. We just need to create the fpscr separately.
 	 */
 	ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf, uregs, 0,
-				  VFP_STATE_SIZE - sizeof(compat_ulong_t));
+							  VFP_STATE_SIZE - sizeof(compat_ulong_t));
 
-	if (count && !ret) {
+	if (count && !ret)
+	{
 		fpscr = (uregs->fpsr & VFP_FPSCR_STAT_MASK) |
-			(uregs->fpcr & VFP_FPSCR_CTRL_MASK);
+				(uregs->fpcr & VFP_FPSCR_CTRL_MASK);
 		ret = put_user(fpscr, (compat_ulong_t *)ubuf);
 	}
 
@@ -907,23 +1085,26 @@ static int compat_vfp_get(struct task_struct *target,
 }
 
 static int compat_vfp_set(struct task_struct *target,
-			  const struct user_regset *regset,
-			  unsigned int pos, unsigned int count,
-			  const void *kbuf, const void __user *ubuf)
+						  const struct user_regset *regset,
+						  unsigned int pos, unsigned int count,
+						  const void *kbuf, const void __user *ubuf)
 {
 	struct user_fpsimd_state *uregs;
 	compat_ulong_t fpscr;
 	int ret;
 
 	if (pos + count > VFP_STATE_SIZE)
+	{
 		return -EIO;
+	}
 
 	uregs = &target->thread.fpsimd_state.user_fpsimd;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, uregs, 0,
-				 VFP_STATE_SIZE - sizeof(compat_ulong_t));
+							 VFP_STATE_SIZE - sizeof(compat_ulong_t));
 
-	if (count && !ret) {
+	if (count && !ret)
+	{
 		ret = get_user(fpscr, (compat_ulong_t *)ubuf);
 		uregs->fpsr = fpscr & VFP_FPSCR_STAT_MASK;
 		uregs->fpcr = fpscr & VFP_FPSCR_CTRL_MASK;
@@ -934,30 +1115,34 @@ static int compat_vfp_set(struct task_struct *target,
 }
 
 static int compat_tls_get(struct task_struct *target,
-			  const struct user_regset *regset, unsigned int pos,
-			  unsigned int count, void *kbuf, void __user *ubuf)
+						  const struct user_regset *regset, unsigned int pos,
+						  unsigned int count, void *kbuf, void __user *ubuf)
 {
 	compat_ulong_t tls = (compat_ulong_t)target->thread.tp_value;
 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf, &tls, 0, -1);
 }
 
 static int compat_tls_set(struct task_struct *target,
-			  const struct user_regset *regset, unsigned int pos,
-			  unsigned int count, const void *kbuf,
-			  const void __user *ubuf)
+						  const struct user_regset *regset, unsigned int pos,
+						  unsigned int count, const void *kbuf,
+						  const void __user *ubuf)
 {
 	int ret;
 	compat_ulong_t tls;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &tls, 0, -1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	target->thread.tp_value = tls;
 	return ret;
 }
 
-static const struct user_regset aarch32_regsets[] = {
+static const struct user_regset aarch32_regsets[] =
+{
 	[REGSET_COMPAT_GPR] = {
 		.core_note_type = NT_PRSTATUS,
 		.n = COMPAT_ELF_NGREG,
@@ -976,12 +1161,14 @@ static const struct user_regset aarch32_regsets[] = {
 	},
 };
 
-static const struct user_regset_view user_aarch32_view = {
+static const struct user_regset_view user_aarch32_view =
+{
 	.name = "aarch32", .e_machine = EM_ARM,
 	.regsets = aarch32_regsets, .n = ARRAY_SIZE(aarch32_regsets)
 };
 
-static const struct user_regset aarch32_ptrace_regsets[] = {
+static const struct user_regset aarch32_ptrace_regsets[] =
+{
 	[REGSET_GPR] = {
 		.core_note_type = NT_PRSTATUS,
 		.n = COMPAT_ELF_NGREG,
@@ -1034,54 +1221,71 @@ static const struct user_regset aarch32_ptrace_regsets[] = {
 	},
 };
 
-static const struct user_regset_view user_aarch32_ptrace_view = {
+static const struct user_regset_view user_aarch32_ptrace_view =
+{
 	.name = "aarch32", .e_machine = EM_ARM,
 	.regsets = aarch32_ptrace_regsets, .n = ARRAY_SIZE(aarch32_ptrace_regsets)
 };
 
 static int compat_ptrace_read_user(struct task_struct *tsk, compat_ulong_t off,
-				   compat_ulong_t __user *ret)
+								   compat_ulong_t __user *ret)
 {
 	compat_ulong_t tmp;
 
 	if (off & 3)
+	{
 		return -EIO;
+	}
 
 	if (off == COMPAT_PT_TEXT_ADDR)
+	{
 		tmp = tsk->mm->start_code;
+	}
 	else if (off == COMPAT_PT_DATA_ADDR)
+	{
 		tmp = tsk->mm->start_data;
+	}
 	else if (off == COMPAT_PT_TEXT_END_ADDR)
+	{
 		tmp = tsk->mm->end_code;
+	}
 	else if (off < sizeof(compat_elf_gregset_t))
 		return copy_regset_to_user(tsk, &user_aarch32_view,
-					   REGSET_COMPAT_GPR, off,
-					   sizeof(compat_ulong_t), ret);
+								   REGSET_COMPAT_GPR, off,
+								   sizeof(compat_ulong_t), ret);
 	else if (off >= COMPAT_USER_SZ)
+	{
 		return -EIO;
+	}
 	else
+	{
 		tmp = 0;
+	}
 
 	return put_user(tmp, ret);
 }
 
 static int compat_ptrace_write_user(struct task_struct *tsk, compat_ulong_t off,
-				    compat_ulong_t val)
+									compat_ulong_t val)
 {
 	int ret;
 	mm_segment_t old_fs = get_fs();
 
 	if (off & 3 || off >= COMPAT_USER_SZ)
+	{
 		return -EIO;
+	}
 
 	if (off >= sizeof(compat_elf_gregset_t))
+	{
 		return 0;
+	}
 
 	set_fs(KERNEL_DS);
 	ret = copy_regset_from_user(tsk, &user_aarch32_view,
-				    REGSET_COMPAT_GPR, off,
-				    sizeof(compat_ulong_t),
-				    &val);
+								REGSET_COMPAT_GPR, off,
+								sizeof(compat_ulong_t),
+								&val);
 	set_fs(old_fs);
 
 	return ret;
@@ -1124,19 +1328,22 @@ static int compat_ptrace_hbp_get_resource_info(u32 *kdata)
 }
 
 static int compat_ptrace_hbp_get(unsigned int note_type,
-				 struct task_struct *tsk,
-				 compat_long_t num,
-				 u32 *kdata)
+								 struct task_struct *tsk,
+								 compat_long_t num,
+								 u32 *kdata)
 {
 	u64 addr = 0;
 	u32 ctrl = 0;
 
 	int err, idx = compat_ptrace_hbp_num_to_idx(num);;
 
-	if (num & 1) {
+	if (num & 1)
+	{
 		err = ptrace_hbp_get_addr(note_type, tsk, idx, &addr);
 		*kdata = (u32)addr;
-	} else {
+	}
+	else
+	{
 		err = ptrace_hbp_get_ctrl(note_type, tsk, idx, &ctrl);
 		*kdata = ctrl;
 	}
@@ -1145,19 +1352,22 @@ static int compat_ptrace_hbp_get(unsigned int note_type,
 }
 
 static int compat_ptrace_hbp_set(unsigned int note_type,
-				 struct task_struct *tsk,
-				 compat_long_t num,
-				 u32 *kdata)
+								 struct task_struct *tsk,
+								 compat_long_t num,
+								 u32 *kdata)
 {
 	u64 addr;
 	u32 ctrl;
 
 	int err, idx = compat_ptrace_hbp_num_to_idx(num);
 
-	if (num & 1) {
+	if (num & 1)
+	{
 		addr = *kdata;
 		err = ptrace_hbp_set_addr(note_type, tsk, idx, addr);
-	} else {
+	}
+	else
+	{
 		ctrl = *kdata;
 		err = ptrace_hbp_set_ctrl(note_type, tsk, idx, ctrl);
 	}
@@ -1166,50 +1376,70 @@ static int compat_ptrace_hbp_set(unsigned int note_type,
 }
 
 static int compat_ptrace_gethbpregs(struct task_struct *tsk, compat_long_t num,
-				    compat_ulong_t __user *data)
+									compat_ulong_t __user *data)
 {
 	int ret;
 	u32 kdata;
 	mm_segment_t old_fs = get_fs();
 
 	set_fs(KERNEL_DS);
+
 	/* Watchpoint */
-	if (num < 0) {
+	if (num < 0)
+	{
 		ret = compat_ptrace_hbp_get(NT_ARM_HW_WATCH, tsk, num, &kdata);
-	/* Resource info */
-	} else if (num == 0) {
+		/* Resource info */
+	}
+	else if (num == 0)
+	{
 		ret = compat_ptrace_hbp_get_resource_info(&kdata);
-	/* Breakpoint */
-	} else {
+		/* Breakpoint */
+	}
+	else
+	{
 		ret = compat_ptrace_hbp_get(NT_ARM_HW_BREAK, tsk, num, &kdata);
 	}
+
 	set_fs(old_fs);
 
 	if (!ret)
+	{
 		ret = put_user(kdata, data);
+	}
 
 	return ret;
 }
 
 static int compat_ptrace_sethbpregs(struct task_struct *tsk, compat_long_t num,
-				    compat_ulong_t __user *data)
+									compat_ulong_t __user *data)
 {
 	int ret;
 	u32 kdata = 0;
 	mm_segment_t old_fs = get_fs();
 
 	if (num == 0)
+	{
 		return 0;
+	}
 
 	ret = get_user(kdata, data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	set_fs(KERNEL_DS);
+
 	if (num < 0)
+	{
 		ret = compat_ptrace_hbp_set(NT_ARM_HW_WATCH, tsk, num, &kdata);
+	}
 	else
+	{
 		ret = compat_ptrace_hbp_set(NT_ARM_HW_BREAK, tsk, num, &kdata);
+	}
+
 	set_fs(old_fs);
 
 	return ret;
@@ -1217,14 +1447,15 @@ static int compat_ptrace_sethbpregs(struct task_struct *tsk, compat_long_t num,
 #endif	/* CONFIG_HAVE_HW_BREAKPOINT */
 
 long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
-			compat_ulong_t caddr, compat_ulong_t cdata)
+						compat_ulong_t caddr, compat_ulong_t cdata)
 {
 	unsigned long addr = caddr;
 	unsigned long data = cdata;
 	void __user *datap = compat_ptr(data);
 	int ret;
 
-	switch (request) {
+	switch (request)
+	{
 		case PTRACE_PEEKUSR:
 			ret = compat_ptrace_read_user(child, addr, datap);
 			break;
@@ -1235,23 +1466,23 @@ long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
 
 		case COMPAT_PTRACE_GETREGS:
 			ret = copy_regset_to_user(child,
-						  &user_aarch32_view,
-						  REGSET_COMPAT_GPR,
-						  0, sizeof(compat_elf_gregset_t),
-						  datap);
+									  &user_aarch32_view,
+									  REGSET_COMPAT_GPR,
+									  0, sizeof(compat_elf_gregset_t),
+									  datap);
 			break;
 
 		case COMPAT_PTRACE_SETREGS:
 			ret = copy_regset_from_user(child,
-						    &user_aarch32_view,
-						    REGSET_COMPAT_GPR,
-						    0, sizeof(compat_elf_gregset_t),
-						    datap);
+										&user_aarch32_view,
+										REGSET_COMPAT_GPR,
+										0, sizeof(compat_elf_gregset_t),
+										datap);
 			break;
 
 		case COMPAT_PTRACE_GET_THREAD_AREA:
 			ret = put_user((compat_ulong_t)child->thread.tp_value,
-				       (compat_ulong_t __user *)datap);
+						   (compat_ulong_t __user *)datap);
 			break;
 
 		case COMPAT_PTRACE_SET_SYSCALL:
@@ -1261,21 +1492,22 @@ long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
 
 		case COMPAT_PTRACE_GETVFPREGS:
 			ret = copy_regset_to_user(child,
-						  &user_aarch32_view,
-						  REGSET_COMPAT_VFP,
-						  0, VFP_STATE_SIZE,
-						  datap);
+									  &user_aarch32_view,
+									  REGSET_COMPAT_VFP,
+									  0, VFP_STATE_SIZE,
+									  datap);
 			break;
 
 		case COMPAT_PTRACE_SETVFPREGS:
 			ret = copy_regset_from_user(child,
-						    &user_aarch32_view,
-						    REGSET_COMPAT_VFP,
-						    0, VFP_STATE_SIZE,
-						    datap);
+										&user_aarch32_view,
+										REGSET_COMPAT_VFP,
+										0, VFP_STATE_SIZE,
+										datap);
 			break;
 
 #ifdef CONFIG_HAVE_HW_BREAKPOINT
+
 		case COMPAT_PTRACE_GETHBPREGS:
 			ret = compat_ptrace_gethbpregs(child, addr, datap);
 			break;
@@ -1287,7 +1519,7 @@ long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
 
 		default:
 			ret = compat_ptrace_request(child, request, addr,
-						    data);
+										data);
 			break;
 	}
 
@@ -1298,6 +1530,7 @@ long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
 const struct user_regset_view *task_user_regset_view(struct task_struct *task)
 {
 #ifdef CONFIG_COMPAT
+
 	/*
 	 * Core dumping of 32-bit tasks or compat ptrace requests must use the
 	 * user_aarch32_view compatible with arm32. Native ptrace requests on
@@ -1305,26 +1538,32 @@ const struct user_regset_view *task_user_regset_view(struct task_struct *task)
 	 * access to the TLS register.
 	 */
 	if (is_compat_task())
+	{
 		return &user_aarch32_view;
+	}
 	else if (is_compat_thread(task_thread_info(task)))
+	{
 		return &user_aarch32_ptrace_view;
+	}
+
 #endif
 	return &user_aarch64_view;
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	return ptrace_request(child, request, addr, data);
 }
 
-enum ptrace_syscall_dir {
+enum ptrace_syscall_dir
+{
 	PTRACE_SYSCALL_ENTER = 0,
 	PTRACE_SYSCALL_EXIT,
 };
 
 static void tracehook_report_syscall(struct pt_regs *regs,
-				     enum ptrace_syscall_dir dir)
+									 enum ptrace_syscall_dir dir)
 {
 	int regno;
 	unsigned long saved_reg;
@@ -1338,9 +1577,13 @@ static void tracehook_report_syscall(struct pt_regs *regs,
 	regs->regs[regno] = dir;
 
 	if (dir == PTRACE_SYSCALL_EXIT)
+	{
 		tracehook_report_syscall_exit(regs, 0);
+	}
 	else if (tracehook_report_syscall_entry(regs))
+	{
 		regs->syscallno = ~0UL;
+	}
 
 	regs->regs[regno] = saved_reg;
 }
@@ -1348,17 +1591,23 @@ static void tracehook_report_syscall(struct pt_regs *regs,
 asmlinkage int syscall_trace_enter(struct pt_regs *regs)
 {
 	if (test_thread_flag(TIF_SYSCALL_TRACE))
+	{
 		tracehook_report_syscall(regs, PTRACE_SYSCALL_ENTER);
+	}
 
 	/* Do the secure computing after ptrace; failures should be fast. */
 	if (secure_computing(NULL) == -1)
+	{
 		return -1;
+	}
 
 	if (test_thread_flag(TIF_SYSCALL_TRACEPOINT))
+	{
 		trace_sys_enter(regs, regs->syscallno);
+	}
 
 	audit_syscall_entry(regs->syscallno, regs->orig_x0, regs->regs[1],
-			    regs->regs[2], regs->regs[3]);
+						regs->regs[2], regs->regs[3]);
 
 	return regs->syscallno;
 }
@@ -1368,10 +1617,14 @@ asmlinkage void syscall_trace_exit(struct pt_regs *regs)
 	audit_syscall_exit(regs);
 
 	if (test_thread_flag(TIF_SYSCALL_TRACEPOINT))
+	{
 		trace_sys_exit(regs, regs_return_value(regs));
+	}
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE))
+	{
 		tracehook_report_syscall(regs, PTRACE_SYSCALL_EXIT);
+	}
 }
 
 /*
@@ -1389,17 +1642,23 @@ static int valid_compat_regs(struct user_pt_regs *regs)
 {
 	regs->pstate &= ~SPSR_EL1_AARCH32_RES0_BITS;
 
-	if (!system_supports_mixed_endian_el0()) {
+	if (!system_supports_mixed_endian_el0())
+	{
 		if (IS_ENABLED(CONFIG_CPU_BIG_ENDIAN))
+		{
 			regs->pstate |= COMPAT_PSR_E_BIT;
+		}
 		else
+		{
 			regs->pstate &= ~COMPAT_PSR_E_BIT;
+		}
 	}
 
 	if (user_mode(regs) && (regs->pstate & PSR_MODE32_BIT) &&
-	    (regs->pstate & COMPAT_PSR_A_BIT) == 0 &&
-	    (regs->pstate & COMPAT_PSR_I_BIT) == 0 &&
-	    (regs->pstate & COMPAT_PSR_F_BIT) == 0) {
+		(regs->pstate & COMPAT_PSR_A_BIT) == 0 &&
+		(regs->pstate & COMPAT_PSR_I_BIT) == 0 &&
+		(regs->pstate & COMPAT_PSR_F_BIT) == 0)
+	{
 		return 1;
 	}
 
@@ -1408,10 +1667,10 @@ static int valid_compat_regs(struct user_pt_regs *regs)
 	 * arch/arm.
 	 */
 	regs->pstate &= COMPAT_PSR_N_BIT | COMPAT_PSR_Z_BIT |
-			COMPAT_PSR_C_BIT | COMPAT_PSR_V_BIT |
-			COMPAT_PSR_Q_BIT | COMPAT_PSR_IT_MASK |
-			COMPAT_PSR_GE_MASK | COMPAT_PSR_E_BIT |
-			COMPAT_PSR_T_BIT;
+					COMPAT_PSR_C_BIT | COMPAT_PSR_V_BIT |
+					COMPAT_PSR_Q_BIT | COMPAT_PSR_IT_MASK |
+					COMPAT_PSR_GE_MASK | COMPAT_PSR_E_BIT |
+					COMPAT_PSR_T_BIT;
 	regs->pstate |= PSR_MODE32_BIT;
 
 	return 0;
@@ -1422,10 +1681,11 @@ static int valid_native_regs(struct user_pt_regs *regs)
 	regs->pstate &= ~SPSR_EL1_AARCH64_RES0_BITS;
 
 	if (user_mode(regs) && !(regs->pstate & PSR_MODE32_BIT) &&
-	    (regs->pstate & PSR_D_BIT) == 0 &&
-	    (regs->pstate & PSR_A_BIT) == 0 &&
-	    (regs->pstate & PSR_I_BIT) == 0 &&
-	    (regs->pstate & PSR_F_BIT) == 0) {
+		(regs->pstate & PSR_D_BIT) == 0 &&
+		(regs->pstate & PSR_A_BIT) == 0 &&
+		(regs->pstate & PSR_I_BIT) == 0 &&
+		(regs->pstate & PSR_F_BIT) == 0)
+	{
 		return 1;
 	}
 
@@ -1442,10 +1702,16 @@ static int valid_native_regs(struct user_pt_regs *regs)
 int valid_user_regs(struct user_pt_regs *regs, struct task_struct *task)
 {
 	if (!test_tsk_thread_flag(task, TIF_SINGLESTEP))
+	{
 		regs->pstate &= ~DBG_SPSR_SS;
+	}
 
 	if (is_compat_thread(task_thread_info(task)))
+	{
 		return valid_compat_regs(regs);
+	}
 	else
+	{
 		return valid_native_regs(regs);
+	}
 }

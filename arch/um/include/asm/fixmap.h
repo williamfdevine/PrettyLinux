@@ -32,12 +32,13 @@
  * future, say framebuffers for the console driver(s) could be
  * fix-mapped?
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 	__end_of_fixed_addresses
 };
 
 extern void __set_fixmap (enum fixed_addresses idx,
-			  unsigned long phys, pgprot_t flags);
+						  unsigned long phys, pgprot_t flags);
 
 /*
  * used by vmalloc.c.

@@ -18,20 +18,28 @@
 int _access_ok(unsigned long addr, unsigned long size)
 {
 	if (!size)
+	{
 		return 1;
+	}
 
 	if (!addr || addr > (0xffffffffUL - (size - 1)))
+	{
 		goto _bad_access;
+	}
 
 	if (segment_eq(get_fs(), KERNEL_DS))
+	{
 		return 1;
+	}
 
 	if (memory_start <= addr && (addr + size - 1) < memory_end)
+	{
 		return 1;
+	}
 
 _bad_access:
 	pr_debug("Bad access attempt: pid[%d] addr[%08lx] size[0x%lx]\n",
-		 current->pid, addr, size);
+			 current->pid, addr, size);
 	return 0;
 }
 EXPORT_SYMBOL(_access_ok);
@@ -68,7 +76,8 @@ asmlinkage int sys_cache_sync(unsigned long s, unsigned long e)
  * Note that we can't include <linux/unistd.h> here since the header
  * guard will defeat us; <asm/unistd.h> checks for __SYSCALL as well.
  */
-void *sys_call_table[__NR_syscalls] = {
-	[0 ... __NR_syscalls-1] = sys_ni_syscall,
+void *sys_call_table[__NR_syscalls] =
+{
+	[0 ... __NR_syscalls - 1] = sys_ni_syscall,
 #include <asm/unistd.h>
 };

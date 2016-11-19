@@ -55,7 +55,8 @@
 #define IRQ_BANK(irq) ((irq) >> 5)
 #define IRQ_BIT(irq)  ((irq) & 0x1f)
 
-struct omap_irq_bank {
+struct omap_irq_bank
+{
 	unsigned long base_reg;
 	void __iomem *va;
 	unsigned long trigger_map;
@@ -79,7 +80,9 @@ static inline void irq_bank_writel(unsigned long value, int bank, int offset)
 static void omap_ack_irq(int irq)
 {
 	if (irq > 31)
+	{
 		writel_relaxed(0x1, irq_banks[1].va + IRQ_CONTROL_REG_OFFSET);
+	}
 
 	writel_relaxed(0x1, irq_banks[0].va + IRQ_CONTROL_REG_OFFSET);
 }
@@ -113,7 +116,8 @@ static void omap_irq_set_cfg(int irq, int fiq, int priority, int trigger)
 }
 
 #if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
-static struct omap_irq_bank omap7xx_irq_banks[] = {
+static struct omap_irq_bank omap7xx_irq_banks[] =
+{
 	{ .base_reg = OMAP_IH1_BASE,		.trigger_map = 0xb3f8e22f },
 	{ .base_reg = OMAP_IH2_BASE,		.trigger_map = 0xfdb9c1f2 },
 	{ .base_reg = OMAP_IH2_BASE + 0x100,	.trigger_map = 0x800040f3 },
@@ -121,11 +125,13 @@ static struct omap_irq_bank omap7xx_irq_banks[] = {
 #endif
 
 #ifdef CONFIG_ARCH_OMAP15XX
-static struct omap_irq_bank omap1510_irq_banks[] = {
+static struct omap_irq_bank omap1510_irq_banks[] =
+{
 	{ .base_reg = OMAP_IH1_BASE,		.trigger_map = 0xb3febfff },
 	{ .base_reg = OMAP_IH2_BASE,		.trigger_map = 0xffbfffed },
 };
-static struct omap_irq_bank omap310_irq_banks[] = {
+static struct omap_irq_bank omap310_irq_banks[] =
+{
 	{ .base_reg = OMAP_IH1_BASE,		.trigger_map = 0xb3faefc3 },
 	{ .base_reg = OMAP_IH2_BASE,		.trigger_map = 0x65b3c061 },
 };
@@ -133,7 +139,8 @@ static struct omap_irq_bank omap310_irq_banks[] = {
 
 #if defined(CONFIG_ARCH_OMAP16XX)
 
-static struct omap_irq_bank omap1610_irq_banks[] = {
+static struct omap_irq_bank omap1610_irq_banks[] =
+{
 	{ .base_reg = OMAP_IH1_BASE,		.trigger_map = 0xb3fefe8f },
 	{ .base_reg = OMAP_IH2_BASE,		.trigger_map = 0xfdb7c1fd },
 	{ .base_reg = OMAP_IH2_BASE + 0x100,	.trigger_map = 0xffffb7ff },
@@ -147,28 +154,47 @@ asmlinkage void __exception_irq_entry omap1_handle_irq(struct pt_regs *regs)
 	void __iomem *l2 = irq_banks[1].va;
 	u32 irqnr;
 
-	do {
+	do
+	{
 		irqnr = readl_relaxed(l1 + IRQ_ITR_REG_OFFSET);
 		irqnr &= ~(readl_relaxed(l1 + IRQ_MIR_REG_OFFSET) & 0xffffffff);
+
 		if (!irqnr)
+		{
 			break;
+		}
 
 		irqnr = readl_relaxed(l1 + IRQ_SIR_FIQ_REG_OFFSET);
+
 		if (irqnr)
+		{
 			goto irq;
+		}
 
 		irqnr = readl_relaxed(l1 + IRQ_SIR_IRQ_REG_OFFSET);
-		if (irqnr == omap_l2_irq) {
+
+		if (irqnr == omap_l2_irq)
+		{
 			irqnr = readl_relaxed(l2 + IRQ_SIR_IRQ_REG_OFFSET);
+
 			if (irqnr)
+			{
 				irqnr += 32;
+			}
 		}
+
 irq:
+
 		if (irqnr)
+		{
 			handle_domain_irq(domain, irqnr, regs);
+		}
 		else
+		{
 			break;
-	} while (irqnr);
+		}
+	}
+	while (irqnr);
 }
 
 static __init void
@@ -178,7 +204,7 @@ omap_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
 	struct irq_chip_type *ct;
 
 	gc = irq_alloc_generic_chip("MPU", 1, irq_start, base,
-				    handle_level_irq);
+								handle_level_irq);
 	ct = gc->chip_types;
 	ct->chip.irq_ack = omap_mask_ack_irq;
 	ct->chip.irq_mask = irq_gc_mask_set_bit;
@@ -186,7 +212,7 @@ omap_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
 	ct->chip.irq_set_wake = irq_gc_set_wake;
 	ct->regs.mask = IRQ_MIR_REG_OFFSET;
 	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
-			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+						   IRQ_NOREQUEST | IRQ_NOPROBE, 0);
 }
 
 void __init omap1_init_irq(void)
@@ -197,52 +223,71 @@ void __init omap1_init_irq(void)
 	unsigned long nr_irqs;
 
 #if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-	if (cpu_is_omap7xx()) {
+
+	if (cpu_is_omap7xx())
+	{
 		irq_banks = omap7xx_irq_banks;
 		irq_bank_count = ARRAY_SIZE(omap7xx_irq_banks);
 	}
+
 #endif
 #ifdef CONFIG_ARCH_OMAP15XX
-	if (cpu_is_omap1510()) {
+
+	if (cpu_is_omap1510())
+	{
 		irq_banks = omap1510_irq_banks;
 		irq_bank_count = ARRAY_SIZE(omap1510_irq_banks);
 	}
-	if (cpu_is_omap310()) {
+
+	if (cpu_is_omap310())
+	{
 		irq_banks = omap310_irq_banks;
 		irq_bank_count = ARRAY_SIZE(omap310_irq_banks);
 	}
+
 #endif
 #if defined(CONFIG_ARCH_OMAP16XX)
-	if (cpu_is_omap16xx()) {
+
+	if (cpu_is_omap16xx())
+	{
 		irq_banks = omap1610_irq_banks;
 		irq_bank_count = ARRAY_SIZE(omap1610_irq_banks);
 	}
+
 #endif
 
-	for (i = 0; i < irq_bank_count; i++) {
+	for (i = 0; i < irq_bank_count; i++)
+	{
 		irq_banks[i].va = ioremap(irq_banks[i].base_reg, 0xff);
+
 		if (WARN_ON(!irq_banks[i].va))
+		{
 			return;
+		}
 	}
 
 	nr_irqs = irq_bank_count * 32;
 
 	irq_base = irq_alloc_descs(-1, 0, nr_irqs, 0);
-	if (irq_base < 0) {
+
+	if (irq_base < 0)
+	{
 		pr_warn("Couldn't allocate IRQ numbers\n");
 		irq_base = 0;
 	}
+
 	omap_l2_irq = cpu_is_omap7xx() ? irq_base + 1 : irq_base;
 	omap_l2_irq -= NR_IRQS_LEGACY;
 
 	domain = irq_domain_add_legacy(NULL, nr_irqs, irq_base, 0,
-				       &irq_domain_simple_ops, NULL);
+								   &irq_domain_simple_ops, NULL);
 
 	pr_info("Total of %lu interrupts in %i interrupt banks\n",
-		nr_irqs, irq_bank_count);
+			nr_irqs, irq_bank_count);
 
 	/* Mask and clear all interrupts */
-	for (i = 0; i < irq_bank_count; i++) {
+	for (i = 0; i < irq_bank_count; i++)
+	{
 		irq_bank_writel(~0x0, i, IRQ_MIR_REG_OFFSET);
 		irq_bank_writel(0x0, i, IRQ_ITR_REG_OFFSET);
 	}
@@ -253,23 +298,30 @@ void __init omap1_init_irq(void)
 
 	/* Enable interrupts in global mask */
 	if (cpu_is_omap7xx())
+	{
 		irq_bank_writel(0x0, 0, IRQ_GMR_REG_OFFSET);
+	}
 
 	/* Install the interrupt handlers for each bank */
-	for (i = 0; i < irq_bank_count; i++) {
-		for (j = i * 32; j < (i + 1) * 32; j++) {
+	for (i = 0; i < irq_bank_count; i++)
+	{
+		for (j = i * 32; j < (i + 1) * 32; j++)
+		{
 			int irq_trigger;
 
 			irq_trigger = irq_banks[i].trigger_map >> IRQ_BIT(j);
 			omap_irq_set_cfg(j, 0, 0, irq_trigger);
 			irq_clear_status_flags(j, IRQ_NOREQUEST);
 		}
+
 		omap_alloc_gc(irq_banks[i].va, irq_base + i * 32, 32);
 	}
 
 	/* Unmask level 2 handler */
 	d = irq_get_irq_data(irq_find_mapping(domain, omap_l2_irq));
-	if (d) {
+
+	if (d)
+	{
 		ct = irq_data_get_chip_type(d);
 		ct->chip.irq_unmask(d);
 	}

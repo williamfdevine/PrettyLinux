@@ -67,18 +67,19 @@ static int xicor_read(uint8_t addr)
 	__raw_writeq((addr >> 8) & 0x7, SMB_CSR(R_SMB_CMD));
 	__raw_writeq(addr & 0xff, SMB_CSR(R_SMB_DATA));
 	__raw_writeq(V_SMB_ADDR(X1241_CCR_ADDRESS) | V_SMB_TT_WR2BYTE,
-		     SMB_CSR(R_SMB_START));
+				 SMB_CSR(R_SMB_START));
 
 	while (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_BUSY)
 		;
 
 	__raw_writeq(V_SMB_ADDR(X1241_CCR_ADDRESS) | V_SMB_TT_RD1BYTE,
-		     SMB_CSR(R_SMB_START));
+				 SMB_CSR(R_SMB_START));
 
 	while (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_BUSY)
 		;
 
-	if (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_ERROR) {
+	if (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_ERROR)
+	{
 		/* Clear error bit by writing a 1 */
 		__raw_writeq(M_SMB_ERROR, SMB_CSR(R_SMB_STATUS));
 		return -1;
@@ -95,16 +96,19 @@ static int xicor_write(uint8_t addr, int b)
 	__raw_writeq(addr, SMB_CSR(R_SMB_CMD));
 	__raw_writeq((addr & 0xff) | ((b & 0xff) << 8), SMB_CSR(R_SMB_DATA));
 	__raw_writeq(V_SMB_ADDR(X1241_CCR_ADDRESS) | V_SMB_TT_WR3BYTE,
-		     SMB_CSR(R_SMB_START));
+				 SMB_CSR(R_SMB_START));
 
 	while (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_BUSY)
 		;
 
-	if (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_ERROR) {
+	if (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_ERROR)
+	{
 		/* Clear error bit by writing a 1 */
 		__raw_writeq(M_SMB_ERROR, SMB_CSR(R_SMB_STATUS));
 		return -1;
-	} else {
+	}
+	else
+	{
 		return 0;
 	}
 }
@@ -146,20 +150,28 @@ int xicor_set_time(unsigned long t)
 
 	/* hour is the most tricky one */
 	tmp = xicor_read(X1241REG_HR);
-	if (tmp & X1241REG_HR_MIL) {
+
+	if (tmp & X1241REG_HR_MIL)
+	{
 		/* 24 hour format */
 		tm.tm_hour = bin2bcd(tm.tm_hour);
 		tmp = (tmp & ~0x3f) | (tm.tm_hour & 0x3f);
-	} else {
+	}
+	else
+	{
 		/* 12 hour format, with 0x2 for pm */
 		tmp = tmp & ~0x3f;
-		if (tm.tm_hour >= 12) {
+
+		if (tm.tm_hour >= 12)
+		{
 			tmp |= 0x20;
 			tm.tm_hour -= 12;
 		}
+
 		tm.tm_hour = bin2bcd(tm.tm_hour);
 		tmp |= tm.tm_hour;
 	}
+
 	xicor_write(X1241REG_HR, tmp);
 
 	xicor_write(X1241REG_SR, 0);
@@ -178,11 +190,16 @@ unsigned long xicor_get_time(void)
 	min = xicor_read(X1241REG_MN);
 	hour = xicor_read(X1241REG_HR);
 
-	if (hour & X1241REG_HR_MIL) {
+	if (hour & X1241REG_HR_MIL)
+	{
 		hour &= 0x3f;
-	} else {
+	}
+	else
+	{
 		if (hour & 0x20)
+		{
 			hour = (hour & 0xf) + 0x12;
+		}
 	}
 
 	day = xicor_read(X1241REG_DT);

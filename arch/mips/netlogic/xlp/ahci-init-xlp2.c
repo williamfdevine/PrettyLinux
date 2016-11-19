@@ -143,17 +143,19 @@
 #define nlm_read_sata_reg(b, r)		nlm_read_reg(b, r)
 #define nlm_write_sata_reg(b, r, v)	nlm_write_reg(b, r, v)
 #define nlm_get_sata_pcibase(node)	\
-		nlm_pcicfg_base(XLP9XX_IO_SATA_OFFSET(node))
+	nlm_pcicfg_base(XLP9XX_IO_SATA_OFFSET(node))
 #define nlm_get_sata_regbase(node)	\
-		(nlm_get_sata_pcibase(node) + 0x100)
+	(nlm_get_sata_pcibase(node) + 0x100)
 
 /* SATA PHY config for register block 1 0x0065 .. 0x006e */
-static const u8 sata_phy_config1[]  = {
+static const u8 sata_phy_config1[]  =
+{
 	0xC9, 0xC9, 0x07, 0x07, 0x18, 0x18, 0x01, 0x01, 0x22, 0x00
 };
 
 /* SATA PHY config for register block 2 0x8065 .. 0x80A4 */
-static const u8 sata_phy_config2[]  = {
+static const u8 sata_phy_config2[]  =
+{
 	0xAA, 0x00, 0x4C, 0xC9, 0xC9, 0x07, 0x07, 0x18,
 	0x18, 0x05, 0x0C, 0x10, 0x00, 0x10, 0x00, 0xFF,
 	0xCF, 0xF7, 0xE1, 0xF5, 0xFD, 0xFD, 0xFF, 0xFF,
@@ -185,7 +187,7 @@ static void sata_set_glue_reg(u64 regbase, u32 off, u32 bit)
 static void write_phy_reg(u64 regbase, u32 addr, u32 physel, u8 data)
 {
 	nlm_write_sata_reg(regbase, PHY_MEM_ACCESS,
-		(1u << 31) | (physel << 24) | (data << 16) | addr);
+					   (1u << 31) | (physel << 24) | (data << 16) | addr);
 	udelay(850);
 }
 
@@ -194,7 +196,7 @@ static u8 read_phy_reg(u64 regbase, u32 addr, u32 physel)
 	u32 val;
 
 	nlm_write_sata_reg(regbase, PHY_MEM_ACCESS,
-		(0 << 31) | (physel << 24) | (0 << 16) | addr);
+					   (0 << 31) | (physel << 24) | (0 << 16) | addr);
 	udelay(850);
 	val = nlm_read_sata_reg(regbase, PHY_MEM_ACCESS);
 	return (val >> 16) & 0xff;
@@ -205,12 +207,17 @@ static void config_sata_phy(u64 regbase)
 	u32 port, i, reg;
 	u8 val;
 
-	for (port = 0; port < 2; port++) {
+	for (port = 0; port < 2; port++)
+	{
 		for (i = 0, reg = RXCDRCALFOSC0; reg <= CALDUTY; reg++, i++)
+		{
 			write_phy_reg(regbase, reg, port, sata_phy_config1[i]);
+		}
 
 		for (i = 0, reg = RXDPIF; reg <= PPMDRIFTMAX_HI; reg++, i++)
+		{
 			write_phy_reg(regbase, reg, port, sata_phy_config2[i]);
+		}
 
 		/* Fix for PHY link up failures at lower temperatures */
 		write_phy_reg(regbase, 0x800F, port, 0x1f);
@@ -232,21 +239,22 @@ static void check_phy_register(u64 regbase, u32 addr, u32 physel, u8 xdata)
 
 	data = read_phy_reg(regbase, addr, physel);
 	pr_info("PHY read addr = 0x%x physel = %d data = 0x%x %s\n",
-		addr, physel, data, data == xdata ? "TRUE" : "FALSE");
+			addr, physel, data, data == xdata ? "TRUE" : "FALSE");
 }
 
 static void verify_sata_phy_config(u64 regbase)
 {
 	u32 port, i, reg;
 
-	for (port = 0; port < 2; port++) {
+	for (port = 0; port < 2; port++)
+	{
 		for (i = 0, reg = RXCDRCALFOSC0; reg <= CALDUTY; reg++, i++)
 			check_phy_register(regbase, reg, port,
-						sata_phy_config1[i]);
+							   sata_phy_config1[i]);
 
 		for (i = 0, reg = RXDPIF; reg <= PPMDRIFTMAX_HI; reg++, i++)
 			check_phy_register(regbase, reg, port,
-						sata_phy_config2[i]);
+							   sata_phy_config2[i]);
 	}
 }
 
@@ -292,8 +300,11 @@ static void nlm_sata_firmware_init(int node)
 
 	/* setup PHY */
 	config_sata_phy(regbase);
+
 	if (sata_phy_debug)
+	{
 		verify_sata_phy_config(regbase);
+	}
 
 	udelay(1000);
 	sata_set_glue_reg(regbase, SATA_CTL, P0_IRST_HARD_TXRX);
@@ -311,21 +322,37 @@ static void nlm_sata_firmware_init(int node)
 
 	pr_debug("Waiting for PHYs to come up.\n");
 	n = 10000;
-	do {
+
+	do
+	{
 		reg_val = nlm_read_sata_reg(regbase, SATA_STATUS);
+
 		if ((reg_val & P1_PHY_READY) && (reg_val & P0_PHY_READY))
+		{
 			break;
+		}
+
 		udelay(10);
-	} while (--n > 0);
+	}
+	while (--n > 0);
 
 	if (reg_val  & P0_PHY_READY)
+	{
 		pr_info("PHY0 is up.\n");
+	}
 	else
+	{
 		pr_info("PHY0 is down.\n");
+	}
+
 	if (reg_val  & P1_PHY_READY)
+	{
 		pr_info("PHY1 is up.\n");
+	}
 	else
+	{
 		pr_info("PHY1 is down.\n");
+	}
 
 	pr_info("XLP AHCI Init Done.\n");
 }
@@ -335,10 +362,16 @@ static int __init nlm_ahci_init(void)
 	int node;
 
 	if (!cpu_is_xlp9xx())
+	{
 		return 0;
+	}
+
 	for (node = 0; node < NLM_NR_NODES; node++)
 		if (nlm_node_present(node))
+		{
 			nlm_sata_firmware_init(node);
+		}
+
 	return 0;
 }
 
@@ -384,7 +417,7 @@ static void nlm_sata_fixup_final(struct pci_dev *dev)
 arch_initcall(nlm_ahci_init);
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_BROADCOM, PCI_DEVICE_ID_XLP9XX_SATA,
-		nlm_sata_fixup_bar);
+						 nlm_sata_fixup_bar);
 
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM, PCI_DEVICE_ID_XLP9XX_SATA,
-		nlm_sata_fixup_final);
+						nlm_sata_fixup_final);

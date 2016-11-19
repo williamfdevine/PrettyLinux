@@ -24,13 +24,14 @@
 #include "opcodes.h"
 
 asmlinkage void sha1_sparc64_transform(u32 *digest, const char *data,
-				       unsigned int rounds);
+									   unsigned int rounds);
 
 static int sha1_sparc64_init(struct shash_desc *desc)
 {
 	struct sha1_state *sctx = shash_desc_ctx(desc);
 
-	*sctx = (struct sha1_state){
+	*sctx = (struct sha1_state)
+	{
 		.state = { SHA1_H0, SHA1_H1, SHA1_H2, SHA1_H3, SHA1_H4 },
 	};
 
@@ -38,17 +39,21 @@ static int sha1_sparc64_init(struct shash_desc *desc)
 }
 
 static void __sha1_sparc64_update(struct sha1_state *sctx, const u8 *data,
-				  unsigned int len, unsigned int partial)
+								  unsigned int len, unsigned int partial)
 {
 	unsigned int done = 0;
 
 	sctx->count += len;
-	if (partial) {
+
+	if (partial)
+	{
 		done = SHA1_BLOCK_SIZE - partial;
 		memcpy(sctx->buffer + partial, data, done);
 		sha1_sparc64_transform(sctx->state, sctx->buffer, 1);
 	}
-	if (len - done >= SHA1_BLOCK_SIZE) {
+
+	if (len - done >= SHA1_BLOCK_SIZE)
+	{
 		const unsigned int rounds = (len - done) / SHA1_BLOCK_SIZE;
 
 		sha1_sparc64_transform(sctx->state, data + done, rounds);
@@ -59,17 +64,21 @@ static void __sha1_sparc64_update(struct sha1_state *sctx, const u8 *data,
 }
 
 static int sha1_sparc64_update(struct shash_desc *desc, const u8 *data,
-			       unsigned int len)
+							   unsigned int len)
 {
 	struct sha1_state *sctx = shash_desc_ctx(desc);
 	unsigned int partial = sctx->count % SHA1_BLOCK_SIZE;
 
 	/* Handle the fast case right here */
-	if (partial + len < SHA1_BLOCK_SIZE) {
+	if (partial + len < SHA1_BLOCK_SIZE)
+	{
 		sctx->count += len;
 		memcpy(sctx->buffer + partial, data, len);
-	} else
+	}
+	else
+	{
 		__sha1_sparc64_update(sctx, data, len, partial);
+	}
 
 	return 0;
 }
@@ -87,20 +96,26 @@ static int sha1_sparc64_final(struct shash_desc *desc, u8 *out)
 
 	/* Pad out to 56 mod 64 and append length */
 	index = sctx->count % SHA1_BLOCK_SIZE;
-	padlen = (index < 56) ? (56 - index) : ((SHA1_BLOCK_SIZE+56) - index);
+	padlen = (index < 56) ? (56 - index) : ((SHA1_BLOCK_SIZE + 56) - index);
 
 	/* We need to fill a whole block for __sha1_sparc64_update() */
-	if (padlen <= 56) {
+	if (padlen <= 56)
+	{
 		sctx->count += padlen;
 		memcpy(sctx->buffer + index, padding, padlen);
-	} else {
+	}
+	else
+	{
 		__sha1_sparc64_update(sctx, padding, padlen, index);
 	}
+
 	__sha1_sparc64_update(sctx, (const u8 *)&bits, sizeof(bits), 56);
 
 	/* Store state in digest */
 	for (i = 0; i < 5; i++)
+	{
 		dst[i] = cpu_to_be32(sctx->state[i]);
+	}
 
 	/* Wipe context */
 	memset(sctx, 0, sizeof(*sctx));
@@ -126,7 +141,8 @@ static int sha1_sparc64_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	SHA1_DIGEST_SIZE,
 	.init		=	sha1_sparc64_init,
 	.update		=	sha1_sparc64_update,
@@ -137,7 +153,7 @@ static struct shash_alg alg = {
 	.statesize	=	sizeof(struct sha1_state),
 	.base		=	{
 		.cra_name	=	"sha1",
-		.cra_driver_name=	"sha1-sparc64",
+		.cra_driver_name =	"sha1-sparc64",
 		.cra_priority	=	SPARC_CR_OPCODE_PRIORITY,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA1_BLOCK_SIZE,
@@ -150,21 +166,28 @@ static bool __init sparc64_has_sha1_opcode(void)
 	unsigned long cfr;
 
 	if (!(sparc64_elf_hwcap & HWCAP_SPARC_CRYPTO))
+	{
 		return false;
+	}
 
 	__asm__ __volatile__("rd %%asr26, %0" : "=r" (cfr));
+
 	if (!(cfr & CFR_SHA1))
+	{
 		return false;
+	}
 
 	return true;
 }
 
 static int __init sha1_sparc64_mod_init(void)
 {
-	if (sparc64_has_sha1_opcode()) {
+	if (sparc64_has_sha1_opcode())
+	{
 		pr_info("Using sparc64 sha1 opcode optimized SHA-1 implementation\n");
 		return crypto_register_shash(&alg);
 	}
+
 	pr_info("sparc64 sha1 opcode not available.\n");
 	return -ENODEV;
 }

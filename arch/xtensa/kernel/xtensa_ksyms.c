@@ -28,10 +28,10 @@
 #include <asm/pgalloc.h>
 #include <asm/ftrace.h>
 #ifdef CONFIG_BLK_DEV_FD
-#include <asm/floppy.h>
+	#include <asm/floppy.h>
 #endif
 #ifdef CONFIG_NET
-#include <net/checksum.h>
+	#include <net/checksum.h>
 #endif /* CONFIG_NET */
 
 
@@ -95,11 +95,11 @@ unsigned long __sync_fetch_and_or_4(unsigned long *p, unsigned long v)
 EXPORT_SYMBOL(__sync_fetch_and_or_4);
 
 #ifdef CONFIG_NET
-/*
- * Networking support
- */
-EXPORT_SYMBOL(csum_partial);
-EXPORT_SYMBOL(csum_partial_copy_generic);
+	/*
+	* Networking support
+	*/
+	EXPORT_SYMBOL(csum_partial);
+	EXPORT_SYMBOL(csum_partial_copy_generic);
 #endif /* CONFIG_NET */
 
 /*
@@ -113,7 +113,7 @@ EXPORT_SYMBOL(__invalidate_icache_range);
  */
 
 #if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_DUMMY_CONSOLE)
-// FIXME EXPORT_SYMBOL(screen_info);
+	// FIXME EXPORT_SYMBOL(screen_info);
 #endif
 
 EXPORT_SYMBOL(outsb);
@@ -127,10 +127,10 @@ extern long common_exception_return;
 EXPORT_SYMBOL(common_exception_return);
 
 #ifdef CONFIG_FUNCTION_TRACER
-EXPORT_SYMBOL(_mcount);
+	EXPORT_SYMBOL(_mcount);
 #endif
 
 EXPORT_SYMBOL(__invalidate_dcache_range);
 #if XCHAL_DCACHE_IS_WRITEBACK
-EXPORT_SYMBOL(__flush_dcache_range);
+	EXPORT_SYMBOL(__flush_dcache_range);
 #endif

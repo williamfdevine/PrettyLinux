@@ -9,7 +9,8 @@
 #include <net_kern.h>
 #include "slip.h"
 
-struct slip_init {
+struct slip_init
+{
 	char *gate_addr;
 };
 
@@ -47,16 +48,17 @@ static unsigned short slip_protocol(struct sk_buff *skbuff)
 static int slip_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
 {
 	return slip_user_read(fd, skb_mac_header(skb), skb->dev->mtu,
-			      (struct slip_data *) &lp->user);
+						  (struct slip_data *) &lp->user);
 }
 
 static int slip_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
 {
 	return slip_user_write(fd, skb->data, skb->len,
-			       (struct slip_data *) &lp->user);
+						   (struct slip_data *) &lp->user);
 }
 
-static const struct net_kern_info slip_kern_info = {
+static const struct net_kern_info slip_kern_info =
+{
 	.init			= slip_init,
 	.protocol		= slip_protocol,
 	.read			= slip_read,
@@ -70,11 +72,15 @@ static int slip_setup(char *str, char **mac_out, void *data)
 	*init = ((struct slip_init) { .gate_addr = NULL });
 
 	if (str[0] != '\0')
+	{
 		init->gate_addr = str;
+	}
+
 	return 1;
 }
 
-static struct transport slip_transport = {
+static struct transport slip_transport =
+{
 	.list 		= LIST_HEAD_INIT(slip_transport.list),
 	.name 		= "slip",
 	.setup  	= slip_setup,

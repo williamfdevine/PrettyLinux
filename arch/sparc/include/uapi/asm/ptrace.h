@@ -18,7 +18,8 @@
 
 #include <linux/types.h>
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long u_regs[16]; /* globals and ins */
 	unsigned long tstate;
 	unsigned long tpc;
@@ -39,7 +40,8 @@ struct pt_regs {
 	unsigned int magic;
 };
 
-struct pt_regs32 {
+struct pt_regs32
+{
 	unsigned int psr;
 	unsigned int pc;
 	unsigned int npc;
@@ -48,21 +50,24 @@ struct pt_regs32 {
 };
 
 /* A V9 register window */
-struct reg_window {
+struct reg_window
+{
 	unsigned long locals[8];
 	unsigned long ins[8];
 };
 
 /* A 32-bit register window. */
-struct reg_window32 {
+struct reg_window32
+{
 	unsigned int locals[8];
 	unsigned int ins[8];
 };
 
 /* A V9 Sparc stack frame */
-struct sparc_stackf {
+struct sparc_stackf
+{
 	unsigned long locals[8];
-        unsigned long ins[6];
+	unsigned long ins[6];
 	struct sparc_stackf *fp;
 	unsigned long callers_pc;
 	char *structptr;
@@ -71,9 +76,10 @@ struct sparc_stackf {
 };
 
 /* A 32-bit Sparc stack frame */
-struct sparc_stackf32 {
+struct sparc_stackf32
+{
 	unsigned int locals[8];
-        unsigned int ins[6];
+	unsigned int ins[6];
 	unsigned int fp;
 	unsigned int callers_pc;
 	unsigned int structptr;
@@ -81,7 +87,8 @@ struct sparc_stackf32 {
 	unsigned int xxargs[1];
 };
 
-struct sparc_trapf {
+struct sparc_trapf
+{
 	unsigned long locals[8];
 	unsigned long ins[8];
 	unsigned long _unused;
@@ -100,7 +107,8 @@ struct sparc_trapf {
 
 #include <linux/types.h>
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long psr;
 	unsigned long pc;
 	unsigned long npc;
@@ -109,15 +117,17 @@ struct pt_regs {
 };
 
 /* A 32-bit register window. */
-struct reg_window32 {
+struct reg_window32
+{
 	unsigned long locals[8];
 	unsigned long ins[8];
 };
 
 /* A Sparc stack frame */
-struct sparc_stackf {
+struct sparc_stackf
+{
 	unsigned long locals[8];
-        unsigned long ins[6];
+	unsigned long ins[6];
 	struct sparc_stackf *fp;
 	unsigned long callers_pc;
 	char *structptr;
@@ -130,11 +140,11 @@ struct sparc_stackf {
 
 #ifndef __ASSEMBLY__
 
-#define TRACEREG_SZ	sizeof(struct pt_regs)
-#define STACKFRAME_SZ	sizeof(struct sparc_stackf)
+	#define TRACEREG_SZ	sizeof(struct pt_regs)
+	#define STACKFRAME_SZ	sizeof(struct sparc_stackf)
 
-#define TRACEREG32_SZ	sizeof(struct pt_regs32)
-#define STACKFRAME32_SZ	sizeof(struct sparc_stackf32)
+	#define TRACEREG32_SZ	sizeof(struct pt_regs32)
+	#define STACKFRAME32_SZ	sizeof(struct sparc_stackf32)
 
 #endif /* (!__ASSEMBLY__) */
 
@@ -158,32 +168,32 @@ struct sparc_stackf {
 #define UREG_RETPC     UREG_I7
 
 #if defined(__sparc__) && defined(__arch64__)
-/* 64 bit sparc */
+	/* 64 bit sparc */
 
-#ifndef __ASSEMBLY__
+	#ifndef __ASSEMBLY__
 
 
-#else /* __ASSEMBLY__ */
-/* For assembly code. */
-#define TRACEREG_SZ		0xa0
-#define STACKFRAME_SZ		0xc0
+	#else /* __ASSEMBLY__ */
+		/* For assembly code. */
+		#define TRACEREG_SZ		0xa0
+		#define STACKFRAME_SZ		0xc0
 
-#define TRACEREG32_SZ		0x50
-#define STACKFRAME32_SZ		0x60
-#endif /* __ASSEMBLY__ */
+		#define TRACEREG32_SZ		0x50
+		#define STACKFRAME32_SZ		0x60
+	#endif /* __ASSEMBLY__ */
 
 #else /* (defined(__sparc__) && defined(__arch64__)) */
 
-/* 32 bit sparc */
+	/* 32 bit sparc */
 
-#ifndef __ASSEMBLY__
+	#ifndef __ASSEMBLY__
 
 
-#else /* (!__ASSEMBLY__) */
-/* For assembly code. */
-#define TRACEREG_SZ       0x50
-#define STACKFRAME_SZ     0x60
-#endif /* (!__ASSEMBLY__) */
+	#else /* (!__ASSEMBLY__) */
+		/* For assembly code. */
+		#define TRACEREG_SZ       0x50
+		#define STACKFRAME_SZ     0x60
+	#endif /* (!__ASSEMBLY__) */
 
 #endif /* (defined(__sparc__) && defined(__arch64__)) */
 

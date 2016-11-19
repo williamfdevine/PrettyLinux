@@ -32,7 +32,7 @@ static unsigned long long dtlb_cache_slot;
  */
 static inline void
 sh64_setup_dtlb_cache_slot(unsigned long eaddr, unsigned long asid,
-			   unsigned long paddr)
+						   unsigned long paddr)
 {
 	local_irq_disable();
 	sh64_setup_tlb_slot(dtlb_cache_slot, eaddr, asid, paddr);
@@ -78,7 +78,8 @@ static void sh64_icache_inv_kernel_range(unsigned long start, unsigned long end)
 	addr = L1_CACHE_ALIGN(aligned_start);
 	ullend = (unsigned long long) (signed long long) (signed long) end;
 
-	while (addr <= ullend) {
+	while (addr <= ullend)
+	{
 		__asm__ __volatile__ ("icbi %0, 0" : : "r" (addr));
 		addr += L1_CACHE_BYTES;
 	}
@@ -111,11 +112,15 @@ static void sh64_icache_inv_user_page(struct vm_area_struct *vma, unsigned long 
 
 	running_asid = get_asid();
 	vma_asid = cpu_asid(cpu, vma->vm_mm);
-	if (running_asid != vma_asid) {
+
+	if (running_asid != vma_asid)
+	{
 		local_irq_save(flags);
 		switch_and_save_asid(vma_asid);
 	}
-	while (addr < end_addr) {
+
+	while (addr < end_addr)
+	{
 		/* Worth unrolling a little */
 		__asm__ __volatile__("icbi %0,  0" : : "r" (addr));
 		__asm__ __volatile__("icbi %0, 32" : : "r" (addr));
@@ -123,14 +128,16 @@ static void sh64_icache_inv_user_page(struct vm_area_struct *vma, unsigned long 
 		__asm__ __volatile__("icbi %0, 96" : : "r" (addr));
 		addr += 128;
 	}
-	if (running_asid != vma_asid) {
+
+	if (running_asid != vma_asid)
+	{
 		switch_and_save_asid(running_asid);
 		local_irq_restore(flags);
 	}
 }
 
 static void sh64_icache_inv_user_page_range(struct mm_struct *mm,
-			  unsigned long start, unsigned long end)
+		unsigned long start, unsigned long end)
 {
 	/* Used for invalidating big chunks of I-cache, i.e. assume the range
 	   is whole pages.  If 'start' or 'end' is not page aligned, the code
@@ -149,12 +156,18 @@ static void sh64_icache_inv_user_page_range(struct mm_struct *mm,
 	int n_pages;
 
 	if (!mm)
+	{
 		return;
+	}
 
 	n_pages = ((end - start) >> PAGE_SHIFT);
-	if (n_pages >= 64) {
+
+	if (n_pages >= 64)
+	{
 		sh64_icache_inv_all();
-	} else {
+	}
+	else
+	{
 		unsigned long aligned_start;
 		unsigned long eaddr;
 		unsigned long after_last_page_start;
@@ -164,7 +177,8 @@ static void sh64_icache_inv_user_page_range(struct mm_struct *mm,
 		mm_asid = cpu_asid(smp_processor_id(), mm);
 		current_asid = get_asid();
 
-		if (mm_asid != current_asid) {
+		if (mm_asid != current_asid)
+		{
 			/* Switch ASID and run the invalidate loop under cli */
 			local_irq_save(flags);
 			switch_and_save_asid(mm_asid);
@@ -173,28 +187,38 @@ static void sh64_icache_inv_user_page_range(struct mm_struct *mm,
 		aligned_start = start & PAGE_MASK;
 		after_last_page_start = PAGE_SIZE + ((end - 1) & PAGE_MASK);
 
-		while (aligned_start < after_last_page_start) {
+		while (aligned_start < after_last_page_start)
+		{
 			struct vm_area_struct *vma;
 			unsigned long vma_end;
 			vma = find_vma(mm, aligned_start);
-			if (!vma || (aligned_start <= vma->vm_end)) {
+
+			if (!vma || (aligned_start <= vma->vm_end))
+			{
 				/* Avoid getting stuck in an error condition */
 				aligned_start += PAGE_SIZE;
 				continue;
 			}
+
 			vma_end = vma->vm_end;
-			if (vma->vm_flags & VM_EXEC) {
+
+			if (vma->vm_flags & VM_EXEC)
+			{
 				/* Executable */
 				eaddr = aligned_start;
-				while (eaddr < vma_end) {
+
+				while (eaddr < vma_end)
+				{
 					sh64_icache_inv_user_page(vma, eaddr);
 					eaddr += PAGE_SIZE;
 				}
 			}
+
 			aligned_start = vma->vm_end; /* Skip to start of next region */
 		}
 
-		if (mm_asid != current_asid) {
+		if (mm_asid != current_asid)
+		{
 			switch_and_save_asid(current_asid);
 			local_irq_restore(flags);
 		}
@@ -221,7 +245,9 @@ static void sh64_icache_inv_current_user_range(unsigned long start, unsigned lon
 	   performance drop for him. */
 	aligned_start = L1_CACHE_ALIGN(start);
 	addr = aligned_start;
-	while (addr < ull_end) {
+
+	while (addr < ull_end)
+	{
 		__asm__ __volatile__ ("icbi %0, 0" : : "r" (addr));
 		__asm__ __volatile__ ("nop");
 		__asm__ __volatile__ ("nop");
@@ -246,14 +272,15 @@ static void inline sh64_dcache_purge_sets(int sets_to_purge_base, int n_sets)
 	int set_offset;
 
 	dummy_buffer_base_set = ((int)&dummy_alloco_area &
-				 cpu_data->dcache.entry_mask) >>
-				 cpu_data->dcache.entry_shift;
+							 cpu_data->dcache.entry_mask) >>
+							cpu_data->dcache.entry_shift;
 	set_offset = sets_to_purge_base - dummy_buffer_base_set;
 
-	for (j = 0; j < n_sets; j++, set_offset++) {
+	for (j = 0; j < n_sets; j++, set_offset++)
+	{
 		set_offset &= (cpu_data->dcache.sets - 1);
 		eaddr0 = (unsigned long long)dummy_alloco_area +
-			(set_offset << cpu_data->dcache.entry_shift);
+				 (set_offset << cpu_data->dcache.entry_shift);
 
 		/*
 		 * Do one alloco which hits the required set per cache
@@ -263,25 +290,29 @@ static void inline sh64_dcache_purge_sets(int sets_to_purge_base, int n_sets)
 		 * close together.
 		 */
 		eaddr1 = eaddr0 + cpu_data->dcache.way_size *
-				  cpu_data->dcache.ways;
+				 cpu_data->dcache.ways;
 
 		for (eaddr = eaddr0; eaddr < eaddr1;
-		     eaddr += cpu_data->dcache.way_size) {
+			 eaddr += cpu_data->dcache.way_size)
+		{
 			__asm__ __volatile__ ("alloco %0, 0" : : "r" (eaddr));
 			__asm__ __volatile__ ("synco"); /* TAKum03020 */
 		}
 
 		eaddr1 = eaddr0 + cpu_data->dcache.way_size *
-				  cpu_data->dcache.ways;
+				 cpu_data->dcache.ways;
 
 		for (eaddr = eaddr0; eaddr < eaddr1;
-		     eaddr += cpu_data->dcache.way_size) {
+			 eaddr += cpu_data->dcache.way_size)
+		{
 			/*
 			 * Load from each address.  Required because
 			 * alloco is a NOP if the cache is write-through.
 			 */
 			if (test_bit(SH_CACHE_MODE_WT, &(cpu_data->dcache.flags)))
+			{
 				__raw_readb((unsigned long)eaddr);
+			}
 		}
 	}
 
@@ -323,7 +354,7 @@ static void sh64_dcache_purge_all(void)
  * anyway.)
  */
 static void sh64_dcache_purge_coloured_phy_page(unsigned long paddr,
-					        unsigned long eaddr)
+		unsigned long eaddr)
 {
 	unsigned long long magic_page_start;
 	unsigned long long magic_eaddr, magic_eaddr_end;
@@ -337,7 +368,8 @@ static void sh64_dcache_purge_coloured_phy_page(unsigned long paddr,
 	magic_eaddr = magic_page_start;
 	magic_eaddr_end = magic_eaddr + PAGE_SIZE;
 
-	while (magic_eaddr < magic_eaddr_end) {
+	while (magic_eaddr < magic_eaddr_end)
+	{
 		/* Little point in unrolling this loop - the OCBPs are blocking
 		   and won't go any quicker (i.e. the loop overhead is parallel
 		   to part of the OCBP execution.) */
@@ -364,12 +396,16 @@ static void sh64_dcache_purge_phy_page(unsigned long paddr)
 	/* As long as the kernel is not pre-emptible, this doesn't need to be
 	   under cli/sti. */
 	eaddr_start = MAGIC_PAGE0_START;
-	for (i = 0; i < (1 << CACHE_OC_N_SYNBITS); i++) {
+
+	for (i = 0; i < (1 << CACHE_OC_N_SYNBITS); i++)
+	{
 		sh64_setup_dtlb_cache_slot(eaddr_start, get_asid(), paddr);
 
 		eaddr = eaddr_start;
 		eaddr_end = eaddr + PAGE_SIZE;
-		while (eaddr < eaddr_end) {
+
+		while (eaddr < eaddr_end)
+		{
 			__asm__ __volatile__ ("ocbp %0, 0" : : "r" (eaddr));
 			eaddr += L1_CACHE_BYTES;
 		}
@@ -380,7 +416,7 @@ static void sh64_dcache_purge_phy_page(unsigned long paddr)
 }
 
 static void sh64_dcache_purge_user_pages(struct mm_struct *mm,
-				unsigned long addr, unsigned long end)
+		unsigned long addr, unsigned long end)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -391,28 +427,47 @@ static void sh64_dcache_purge_user_pages(struct mm_struct *mm,
 	unsigned long paddr;
 
 	if (!mm)
-		return; /* No way to find physical address of page */
+	{
+		return;    /* No way to find physical address of page */
+	}
 
 	pgd = pgd_offset(mm, addr);
+
 	if (pgd_bad(*pgd))
+	{
 		return;
+	}
 
 	pud = pud_offset(pgd, addr);
+
 	if (pud_none(*pud) || pud_bad(*pud))
+	{
 		return;
+	}
 
 	pmd = pmd_offset(pud, addr);
+
 	if (pmd_none(*pmd) || pmd_bad(*pmd))
+	{
 		return;
+	}
 
 	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-	do {
+
+	do
+	{
 		entry = *pte;
+
 		if (pte_none(entry) || !pte_present(entry))
+		{
 			continue;
+		}
+
 		paddr = pte_val(entry) & PAGE_MASK;
 		sh64_dcache_purge_coloured_phy_page(paddr, addr);
-	} while (pte++, addr += PAGE_SIZE, addr != end);
+	}
+	while (pte++, addr += PAGE_SIZE, addr != end);
+
 	pte_unmap_unlock(pte - 1, ptl);
 }
 
@@ -465,13 +520,16 @@ static void sh64_dcache_purge_user_pages(struct mm_struct *mm,
  * For now use approach (2) for small ranges and (5) for large ones.
  */
 static void sh64_dcache_purge_user_range(struct mm_struct *mm,
-			  unsigned long start, unsigned long end)
+		unsigned long start, unsigned long end)
 {
 	int n_pages = ((end - start) >> PAGE_SHIFT);
 
-	if (n_pages >= 64 || ((start ^ (end - 1)) & PMD_MASK)) {
+	if (n_pages >= 64 || ((start ^ (end - 1)) & PMD_MASK))
+	{
 		sh64_dcache_purge_all();
-	} else {
+	}
+	else
+	{
 		/* Small range, covered by a single page table page */
 		start &= PAGE_MASK;	/* should already be so */
 		end = PAGE_ALIGN(end);	/* should already be so */
@@ -558,7 +616,9 @@ static void sh5_flush_cache_page(void *args)
 	sh64_dcache_purge_phy_page(pfn << PAGE_SHIFT);
 
 	if (vma->vm_flags & VM_EXEC)
+	{
 		sh64_icache_inv_user_page(vma, eaddr);
+	}
 }
 
 static void sh5_flush_dcache_page(void *page)

@@ -44,13 +44,17 @@ static unsigned int bfin_get_vlev(unsigned int freq)
 	int i;
 
 	if (!pdata)
+	{
 		goto err_out;
+	}
 
 	freq >>= 16;
 
 	for (i = 0; i < pdata->tabsize; i++)
 		if (freq <= (pdata->tuple_tab[i] & 0xFFFF))
+		{
 			return pdata->tuple_tab[i] >> 16;
+		}
 
 err_out:
 	printk(KERN_WARNING "DPMC: No suitable CCLK VDDINT voltage pair found\n");
@@ -90,7 +94,7 @@ static void bfin_wakeup_cpu(void)
 	cpumask_copy(&mask, cpu_online_mask);
 	cpumask_clear_cpu(this_cpu, &mask);
 	for_each_cpu(cpu, &mask)
-		platform_send_ipi_cpu(cpu, IRQ_SUPPLE_0);
+	platform_send_ipi_cpu(cpu, IRQ_SUPPLE_0);
 }
 
 # else
@@ -104,14 +108,19 @@ vreg_cpufreq_notifier(struct notifier_block *nb, unsigned long val, void *data)
 	struct cpufreq_freqs *freq = data;
 
 	if (freq->cpu != CPUFREQ_CPU)
+	{
 		return 0;
+	}
 
-	if (val == CPUFREQ_PRECHANGE && freq->old < freq->new) {
+	if (val == CPUFREQ_PRECHANGE && freq->old < freq->new)
+	{
 		bfin_idle_cpu();
 		bfin_set_vlev(bfin_get_vlev(freq->new));
 		udelay(pdata->vr_settling_time); /* Wait until Volatge settled */
 		bfin_wakeup_cpu();
-	} else if (val == CPUFREQ_POSTCHANGE && freq->old > freq->new) {
+	}
+	else if (val == CPUFREQ_POSTCHANGE && freq->old > freq->new)
+	{
 		bfin_idle_cpu();
 		bfin_set_vlev(bfin_get_vlev(freq->new));
 		bfin_wakeup_cpu();
@@ -120,7 +129,8 @@ vreg_cpufreq_notifier(struct notifier_block *nb, unsigned long val, void *data)
 	return 0;
 }
 
-static struct notifier_block vreg_cpufreq_notifier_block = {
+static struct notifier_block vreg_cpufreq_notifier_block =
+{
 	.notifier_call	= vreg_cpufreq_notifier
 };
 #endif /* CONFIG_CPU_FREQ */
@@ -132,12 +142,16 @@ static struct notifier_block vreg_cpufreq_notifier_block = {
 static int bfin_dpmc_probe(struct platform_device *pdev)
 {
 	if (pdev->dev.platform_data)
+	{
 		pdata = pdev->dev.platform_data;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return cpufreq_register_notifier(&vreg_cpufreq_notifier_block,
-					 CPUFREQ_TRANSITION_NOTIFIER);
+									 CPUFREQ_TRANSITION_NOTIFIER);
 }
 
 /**
@@ -147,10 +161,11 @@ static int bfin_dpmc_remove(struct platform_device *pdev)
 {
 	pdata = NULL;
 	return cpufreq_unregister_notifier(&vreg_cpufreq_notifier_block,
-					 CPUFREQ_TRANSITION_NOTIFIER);
+									   CPUFREQ_TRANSITION_NOTIFIER);
 }
 
-struct platform_driver bfin_dpmc_device_driver = {
+struct platform_driver bfin_dpmc_device_driver =
+{
 	.probe   = bfin_dpmc_probe,
 	.remove  = bfin_dpmc_remove,
 	.driver  = {

@@ -52,27 +52,27 @@ static int vidport;
 static int lines, cols;
 
 #ifdef CONFIG_KERNEL_GZIP
-#include "../../../../lib/decompress_inflate.c"
+	#include "../../../../lib/decompress_inflate.c"
 #endif
 
 #ifdef CONFIG_KERNEL_BZIP2
-#include "../../../../lib/decompress_bunzip2.c"
+	#include "../../../../lib/decompress_bunzip2.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZMA
-#include "../../../../lib/decompress_unlzma.c"
+	#include "../../../../lib/decompress_unlzma.c"
 #endif
 
 #ifdef CONFIG_KERNEL_XZ
-#include "../../../../lib/decompress_unxz.c"
+	#include "../../../../lib/decompress_unxz.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZO
-#include "../../../../lib/decompress_unlzo.c"
+	#include "../../../../lib/decompress_unlzo.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZ4
-#include "../../../../lib/decompress_unlz4.c"
+	#include "../../../../lib/decompress_unlz4.c"
 #endif
 /*
  * NOTE: When adding a new decompressor, please update the analysis in
@@ -84,8 +84,11 @@ static void scroll(void)
 	int i;
 
 	memmove(vidmem, vidmem + cols * 2, (lines - 1) * cols * 2);
+
 	for (i = (lines - 1) * cols * 2; i < lines * cols * 2; i += 2)
+	{
 		vidmem[i] = ' ';
+	}
 }
 
 #define XMTRDY          0x20
@@ -97,7 +100,9 @@ static void serial_putchar(int ch)
 	unsigned timeout = 0xffff;
 
 	while ((inb(early_serial_base + LSR) & XMTRDY) == 0 && --timeout)
+	{
 		cpu_relax();
+	}
 
 	outb(ch, early_serial_base + TXR);
 }
@@ -107,34 +112,52 @@ void __putstr(const char *s)
 	int x, y, pos;
 	char c;
 
-	if (early_serial_base) {
+	if (early_serial_base)
+	{
 		const char *str = s;
-		while (*str) {
+
+		while (*str)
+		{
 			if (*str == '\n')
+			{
 				serial_putchar('\r');
+			}
+
 			serial_putchar(*str++);
 		}
 	}
 
 	if (boot_params->screen_info.orig_video_mode == 0 &&
-	    lines == 0 && cols == 0)
+		lines == 0 && cols == 0)
+	{
 		return;
+	}
 
 	x = boot_params->screen_info.orig_x;
 	y = boot_params->screen_info.orig_y;
 
-	while ((c = *s++) != '\0') {
-		if (c == '\n') {
+	while ((c = *s++) != '\0')
+	{
+		if (c == '\n')
+		{
 			x = 0;
-			if (++y >= lines) {
+
+			if (++y >= lines)
+			{
 				scroll();
 				y--;
 			}
-		} else {
+		}
+		else
+		{
 			vidmem[(x + cols * y) * 2] = c;
-			if (++x >= cols) {
+
+			if (++x >= cols)
+			{
 				x = 0;
-				if (++y >= lines) {
+
+				if (++y >= lines)
+				{
 					scroll();
 					y--;
 				}
@@ -147,9 +170,9 @@ void __putstr(const char *s)
 
 	pos = (x + cols * y) * 2;	/* Update cursor position */
 	outb(14, vidport);
-	outb(0xff & (pos >> 9), vidport+1);
+	outb(0xff & (pos >> 9), vidport + 1);
 	outb(15, vidport);
-	outb(0xff & (pos >> 1), vidport+1);
+	outb(0xff & (pos >> 1), vidport + 1);
 }
 
 void __puthex(unsigned long value)
@@ -157,13 +180,18 @@ void __puthex(unsigned long value)
 	char alpha[2] = "0";
 	int bits;
 
-	for (bits = sizeof(value) * 8 - 4; bits >= 0; bits -= 4) {
+	for (bits = sizeof(value) * 8 - 4; bits >= 0; bits -= 4)
+	{
 		unsigned long digit = (value >> bits) & 0xf;
 
 		if (digit < 0xA)
+		{
 			alpha[0] = '0' + digit;
+		}
 		else
+		{
 			alpha[0] = 'a' + (digit - 0xA);
+		}
 
 		__putstr(alpha);
 	}
@@ -171,7 +199,7 @@ void __puthex(unsigned long value)
 
 #if CONFIG_X86_NEED_RELOCS
 static void handle_relocations(void *output, unsigned long output_len,
-			       unsigned long virt_addr)
+							   unsigned long virt_addr)
 {
 	int *reloc;
 	unsigned long delta, map, ptr;
@@ -199,12 +227,16 @@ static void handle_relocations(void *output, unsigned long output_len,
 	 * from __START_KERNEL_map.
 	 */
 	if (IS_ENABLED(CONFIG_X86_64))
+	{
 		delta = virt_addr - LOAD_PHYSICAL_ADDR;
+	}
 
-	if (!delta) {
+	if (!delta)
+	{
 		debug_putstr("No relocation needed... ");
 		return;
 	}
+
 	debug_putstr("Performing relocations... ");
 
 	/*
@@ -226,42 +258,58 @@ static void handle_relocations(void *output, unsigned long output_len,
 	 *
 	 * So we work backwards from the end of the decompressed image.
 	 */
-	for (reloc = output + output_len - sizeof(*reloc); *reloc; reloc--) {
+	for (reloc = output + output_len - sizeof(*reloc); *reloc; reloc--)
+	{
 		long extended = *reloc;
 		extended += map;
 
 		ptr = (unsigned long)extended;
+
 		if (ptr < min_addr || ptr > max_addr)
+		{
 			error("32-bit relocation outside of kernel!\n");
+		}
 
 		*(uint32_t *)ptr += delta;
 	}
+
 #ifdef CONFIG_X86_64
-	while (*--reloc) {
+
+	while (*--reloc)
+	{
 		long extended = *reloc;
 		extended += map;
 
 		ptr = (unsigned long)extended;
+
 		if (ptr < min_addr || ptr > max_addr)
+		{
 			error("inverse 32-bit relocation outside of kernel!\n");
+		}
 
 		*(int32_t *)ptr -= delta;
 	}
-	for (reloc--; *reloc; reloc--) {
+
+	for (reloc--; *reloc; reloc--)
+	{
 		long extended = *reloc;
 		extended += map;
 
 		ptr = (unsigned long)extended;
+
 		if (ptr < min_addr || ptr > max_addr)
+		{
 			error("64-bit relocation outside of kernel!\n");
+		}
 
 		*(uint64_t *)ptr += delta;
 	}
+
 #endif
 }
 #else
 static inline void handle_relocations(void *output, unsigned long output_len,
-				      unsigned long virt_addr)
+									  unsigned long virt_addr)
 { }
 #endif
 
@@ -278,10 +326,12 @@ static void parse_elf(void *output)
 	int i;
 
 	memcpy(&ehdr, output, sizeof(ehdr));
+
 	if (ehdr.e_ident[EI_MAG0] != ELFMAG0 ||
-	   ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
-	   ehdr.e_ident[EI_MAG2] != ELFMAG2 ||
-	   ehdr.e_ident[EI_MAG3] != ELFMAG3) {
+		ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
+		ehdr.e_ident[EI_MAG2] != ELFMAG2 ||
+		ehdr.e_ident[EI_MAG3] != ELFMAG3)
+	{
 		error("Kernel is not a valid ELF file");
 		return;
 	}
@@ -289,25 +339,31 @@ static void parse_elf(void *output)
 	debug_putstr("Parsing ELF... ");
 
 	phdrs = malloc(sizeof(*phdrs) * ehdr.e_phnum);
+
 	if (!phdrs)
+	{
 		error("Failed to allocate space for phdrs");
+	}
 
 	memcpy(phdrs, output + ehdr.e_phoff, sizeof(*phdrs) * ehdr.e_phnum);
 
-	for (i = 0; i < ehdr.e_phnum; i++) {
+	for (i = 0; i < ehdr.e_phnum; i++)
+	{
 		phdr = &phdrs[i];
 
-		switch (phdr->p_type) {
-		case PT_LOAD:
+		switch (phdr->p_type)
+		{
+			case PT_LOAD:
 #ifdef CONFIG_RELOCATABLE
-			dest = output;
-			dest += (phdr->p_paddr - LOAD_PHYSICAL_ADDR);
+				dest = output;
+				dest += (phdr->p_paddr - LOAD_PHYSICAL_ADDR);
 #else
-			dest = (void *)(phdr->p_paddr);
+				dest = (void *)(phdr->p_paddr);
 #endif
-			memmove(dest, output + phdr->p_offset, phdr->p_filesz);
-			break;
-		default: /* Ignore other PT_* */ break;
+				memmove(dest, output + phdr->p_offset, phdr->p_filesz);
+				break;
+
+			default: /* Ignore other PT_* */ break;
 		}
 	}
 
@@ -332,10 +388,10 @@ static void parse_elf(void *output)
  *
  */
 asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
-				  unsigned char *input_data,
-				  unsigned long input_len,
-				  unsigned char *output,
-				  unsigned long output_len)
+		unsigned char *input_data,
+		unsigned long input_len,
+		unsigned char *output,
+		unsigned long output_len)
 {
 	const unsigned long kernel_total_size = VO__end - VO__text;
 	unsigned long virt_addr = (unsigned long)output;
@@ -348,10 +404,13 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 
 	sanitize_boot_params(boot_params);
 
-	if (boot_params->screen_info.orig_video_mode == 7) {
+	if (boot_params->screen_info.orig_video_mode == 7)
+	{
 		vidmem = (char *) 0xb0000;
 		vidport = 0x3b4;
-	} else {
+	}
+	else
+	{
 		vidmem = (char *) 0xb8000;
 		vidport = 0x3d4;
 	}
@@ -378,32 +437,53 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 	 * entire decompressed kernel plus .bss and .brk sections.
 	 */
 	choose_random_location((unsigned long)input_data, input_len,
-				(unsigned long *)&output,
-				max(output_len, kernel_total_size),
-				&virt_addr);
+						   (unsigned long *)&output,
+						   max(output_len, kernel_total_size),
+						   &virt_addr);
 
 	/* Validate memory location choices. */
 	if ((unsigned long)output & (MIN_KERNEL_ALIGN - 1))
+	{
 		error("Destination physical address inappropriately aligned");
+	}
+
 	if (virt_addr & (MIN_KERNEL_ALIGN - 1))
+	{
 		error("Destination virtual address inappropriately aligned");
+	}
+
 #ifdef CONFIG_X86_64
+
 	if (heap > 0x3fffffffffffUL)
+	{
 		error("Destination address too large");
+	}
+
 #else
-	if (heap > ((-__PAGE_OFFSET-(128<<20)-1) & 0x7fffffff))
+
+	if (heap > ((-__PAGE_OFFSET - (128 << 20) - 1) & 0x7fffffff))
+	{
 		error("Destination address too large");
+	}
+
 #endif
 #ifndef CONFIG_RELOCATABLE
+
 	if ((unsigned long)output != LOAD_PHYSICAL_ADDR)
+	{
 		error("Destination address does not match LOAD_PHYSICAL_ADDR");
+	}
+
 	if ((unsigned long)output != virt_addr)
+	{
 		error("Destination virtual address changed when not relocatable");
+	}
+
 #endif
 
 	debug_putstr("\nDecompressing Linux... ");
 	__decompress(input_data, input_len, NULL, NULL, output, output_len,
-			NULL, error);
+				 NULL, error);
 	parse_elf(output);
 	handle_relocations(output, output_len, virt_addr);
 	debug_putstr("done.\nBooting the kernel.\n");

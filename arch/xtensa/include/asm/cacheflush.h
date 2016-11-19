@@ -71,15 +71,15 @@ extern void __flush_invalidate_dcache_page_alias(unsigned long, unsigned long);
 extern void __invalidate_dcache_page_alias(unsigned long, unsigned long);
 #else
 static inline void __flush_invalidate_dcache_page_alias(unsigned long virt,
-							unsigned long phys) { }
+		unsigned long phys) { }
 static inline void __invalidate_dcache_page_alias(unsigned long virt,
-						  unsigned long phys) { }
+		unsigned long phys) { }
 #endif
 #if defined(CONFIG_MMU) && (ICACHE_WAY_SIZE > PAGE_SIZE)
 extern void __invalidate_icache_page_alias(unsigned long, unsigned long);
 #else
 static inline void __invalidate_icache_page_alias(unsigned long virt,
-						unsigned long phys) { }
+		unsigned long phys) { }
 #endif
 
 /*
@@ -96,10 +96,10 @@ static inline void __invalidate_icache_page_alias(unsigned long virt,
 
 #ifdef CONFIG_SMP
 void flush_cache_all(void);
-void flush_cache_range(struct vm_area_struct*, ulong, ulong);
+void flush_cache_range(struct vm_area_struct *, ulong, ulong);
 void flush_icache_range(unsigned long start, unsigned long end);
-void flush_cache_page(struct vm_area_struct*,
-			     unsigned long, unsigned long);
+void flush_cache_page(struct vm_area_struct *,
+					  unsigned long, unsigned long);
 #else
 #define flush_cache_all local_flush_cache_all
 #define flush_cache_range local_flush_cache_range
@@ -120,12 +120,12 @@ void flush_cache_page(struct vm_area_struct*,
 #define flush_cache_vunmap(start,end)	flush_cache_all()
 
 #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
-extern void flush_dcache_page(struct page*);
+extern void flush_dcache_page(struct page *);
 
 void local_flush_cache_range(struct vm_area_struct *vma,
-		unsigned long start, unsigned long end);
+							 unsigned long start, unsigned long end);
 void local_flush_cache_page(struct vm_area_struct *vma,
-		unsigned long address, unsigned long pfn);
+							unsigned long address, unsigned long pfn);
 
 #else
 
@@ -160,10 +160,10 @@ void local_flush_cache_page(struct vm_area_struct *vma,
 
 #if defined(CONFIG_MMU) && (DCACHE_WAY_SIZE > PAGE_SIZE)
 
-extern void copy_to_user_page(struct vm_area_struct*, struct page*,
-		unsigned long, void*, const void*, unsigned long);
-extern void copy_from_user_page(struct vm_area_struct*, struct page*,
-		unsigned long, void*, const void*, unsigned long);
+extern void copy_to_user_page(struct vm_area_struct *, struct page *,
+							  unsigned long, void *, const void *, unsigned long);
+extern void copy_from_user_page(struct vm_area_struct *, struct page *,
+								unsigned long, void *, const void *, unsigned long);
 
 #else
 

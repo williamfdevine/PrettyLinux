@@ -29,7 +29,8 @@
 #define __KVM_HAVE_IRQ_LINE
 #define __KVM_HAVE_GUEST_DEBUG
 
-struct kvm_regs {
+struct kvm_regs
+{
 	__u64 pc;
 	__u64 cr;
 	__u64 ctr;
@@ -163,26 +164,35 @@ struct kvm_regs {
  * as write-one-to-clear.  Calling KVM_SET_SREGS on an unmodified struct
  * just received from KVM_GET_SREGS is always a no-op.
  */
-struct kvm_sregs {
+struct kvm_sregs
+{
 	__u32 pvr;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u64 sdr1;
-			struct {
-				struct {
+			struct
+			{
+				struct
+				{
 					__u64 slbe;
 					__u64 slbv;
 				} slb[64];
 			} ppc64;
-			struct {
+			struct
+			{
 				__u32 sr[16];
 				__u64 ibat[8];
 				__u64 dbat[8];
 			} ppc32;
 		} s;
-		struct {
-			union {
-				struct { /* KVM_SREGS_E_IMPL_FSL */
+		struct
+		{
+			union
+			{
+				struct   /* KVM_SREGS_E_IMPL_FSL */
+				{
 					__u32 features; /* KVM_SREGS_E_FSL_ */
 					__u32 svr;
 					__u64 mcar;
@@ -266,7 +276,8 @@ struct kvm_sregs {
 	} u;
 };
 
-struct kvm_fpu {
+struct kvm_fpu
+{
 	__u64 fpr[32];
 };
 
@@ -280,7 +291,8 @@ struct kvm_fpu {
 #define KVMPPC_DEBUG_BREAKPOINT		(1UL << 1)
 #define KVMPPC_DEBUG_WATCH_WRITE	(1UL << 2)
 #define KVMPPC_DEBUG_WATCH_READ		(1UL << 3)
-struct kvm_debug_exit_arch {
+struct kvm_debug_exit_arch
+{
 	__u64 address;
 	/*
 	 * exiting to userspace because of h/w breakpoint, watchpoint
@@ -291,8 +303,10 @@ struct kvm_debug_exit_arch {
 };
 
 /* for KVM_SET_GUEST_DEBUG */
-struct kvm_guest_debug_arch {
-	struct {
+struct kvm_guest_debug_arch
+{
+	struct
+	{
 		/* H/W breakpoint/watchpoint address */
 		__u64 addr;
 		/*
@@ -314,7 +328,8 @@ struct kvm_guest_debug_arch {
 #define KVM_GUESTDBG_USE_HW_BP		0x00020000
 
 /* definition of registers in kvm_run */
-struct kvm_sync_regs {
+struct kvm_sync_regs
+{
 };
 
 #define KVM_INTERRUPT_SET	-1U
@@ -328,13 +343,15 @@ struct kvm_sync_regs {
 #define KVM_CPU_E500MC		5
 
 /* for KVM_CAP_SPAPR_TCE */
-struct kvm_create_spapr_tce {
+struct kvm_create_spapr_tce
+{
 	__u64 liobn;
 	__u32 window_size;
 };
 
 /* for KVM_CAP_SPAPR_TCE_64 */
-struct kvm_create_spapr_tce_64 {
+struct kvm_create_spapr_tce_64
+{
 	__u64 liobn;
 	__u32 page_shift;
 	__u32 flags;
@@ -343,24 +360,28 @@ struct kvm_create_spapr_tce_64 {
 };
 
 /* for KVM_ALLOCATE_RMA */
-struct kvm_allocate_rma {
+struct kvm_allocate_rma
+{
 	__u64 rma_size;
 };
 
 /* for KVM_CAP_PPC_RTAS */
-struct kvm_rtas_token_args {
+struct kvm_rtas_token_args
+{
 	char name[120];
 	__u64 token;	/* Use a token of 0 to undefine a mapping */
 };
 
-struct kvm_book3e_206_tlb_entry {
+struct kvm_book3e_206_tlb_entry
+{
 	__u32 mas8;
 	__u32 mas1;
 	__u64 mas2;
 	__u64 mas7_3;
 };
 
-struct kvm_book3e_206_tlb_params {
+struct kvm_book3e_206_tlb_params
+{
 	/*
 	 * For mmu types KVM_MMU_FSL_BOOKE_NOHV and KVM_MMU_FSL_BOOKE_HV:
 	 *
@@ -389,7 +410,8 @@ struct kvm_book3e_206_tlb_params {
 };
 
 /* For KVM_PPC_GET_HTAB_FD */
-struct kvm_get_htab_fd {
+struct kvm_get_htab_fd
+{
 	__u64	flags;
 	__u64	start_index;
 	__u64	reserved[2];
@@ -407,7 +429,8 @@ struct kvm_get_htab_fd {
  * are not represented explicitly in the stream.  The same format
  * is used for writing.
  */
-struct kvm_get_htab_header {
+struct kvm_get_htab_header
+{
 	__u32	index;
 	__u16	n_valid;
 	__u16	n_invalid;

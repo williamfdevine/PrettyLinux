@@ -37,7 +37,8 @@
 #include <asm/pmi.h>
 #include <asm/prom.h>
 
-struct pmi_data {
+struct pmi_data
+{
 	struct list_head	handler;
 	spinlock_t		handler_spinlock;
 	spinlock_t		pmi_spinlock;
@@ -62,13 +63,15 @@ static irqreturn_t pmi_irq_handler(int irq, void *dev_id)
 	type = ioread8(data->pmi_reg + PMI_READ_TYPE);
 	pr_debug("pmi: got message of type %d\n", type);
 
-	if (type & PMI_ACK && !data->completion) {
+	if (type & PMI_ACK && !data->completion)
+	{
 		printk(KERN_WARNING "pmi: got unexpected ACK message.\n");
 		rc = -EIO;
 		goto unlock;
 	}
 
-	if (data->completion && !(type & PMI_ACK)) {
+	if (data->completion && !(type & PMI_ACK))
+	{
 		printk(KERN_WARNING "pmi: expected ACK, but got %d\n", type);
 		rc = -EIO;
 		goto unlock;
@@ -82,12 +85,14 @@ static irqreturn_t pmi_irq_handler(int irq, void *dev_id)
 unlock:
 	spin_unlock(&data->pmi_spinlock);
 
-	if (rc == -EIO) {
+	if (rc == -EIO)
+	{
 		rc = IRQ_HANDLED;
 		goto out;
 	}
 
-	if (data->msg.type & PMI_ACK) {
+	if (data->msg.type & PMI_ACK)
+	{
 		complete(data->completion);
 		rc = IRQ_HANDLED;
 		goto out;
@@ -101,7 +106,8 @@ out:
 }
 
 
-static const struct of_device_id pmi_match[] = {
+static const struct of_device_id pmi_match[] =
+{
 	{ .type = "ibm,pmi", .name = "ibm,pmi" },
 	{ .type = "ibm,pmi" },
 	{},
@@ -114,10 +120,14 @@ static void pmi_notify_handlers(struct work_struct *work)
 	struct pmi_handler *handler;
 
 	spin_lock(&data->handler_spinlock);
-	list_for_each_entry(handler, &data->handler, node) {
+	list_for_each_entry(handler, &data->handler, node)
+	{
 		pr_debug("pmi: notifying handler %p\n", handler);
+
 		if (handler->type == data->msg.type)
+		{
 			handler->handle_pmi_message(data->msg);
+		}
 	}
 	spin_unlock(&data->handler_spinlock);
 }
@@ -127,21 +137,26 @@ static int pmi_of_probe(struct platform_device *dev)
 	struct device_node *np = dev->dev.of_node;
 	int rc;
 
-	if (data) {
+	if (data)
+	{
 		printk(KERN_ERR "pmi: driver has already been initialized.\n");
 		rc = -EBUSY;
 		goto out;
 	}
 
 	data = kzalloc(sizeof(struct pmi_data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		printk(KERN_ERR "pmi: could not allocate memory.\n");
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	data->pmi_reg = of_iomap(np, 0);
-	if (!data->pmi_reg) {
+
+	if (!data->pmi_reg)
+	{
 		printk(KERN_ERR "pmi: invalid register address.\n");
 		rc = -EFAULT;
 		goto error_cleanup_data;
@@ -158,16 +173,20 @@ static int pmi_of_probe(struct platform_device *dev)
 	data->dev = dev;
 
 	data->irq = irq_of_parse_and_map(np, 0);
-	if (!data->irq) {
+
+	if (!data->irq)
+	{
 		printk(KERN_ERR "pmi: invalid interrupt.\n");
 		rc = -EFAULT;
 		goto error_cleanup_iomap;
 	}
 
 	rc = request_irq(data->irq, pmi_irq_handler, 0, "pmi", NULL);
-	if (rc) {
+
+	if (rc)
+	{
 		printk(KERN_ERR "pmi: can't request IRQ %d: returned %d\n",
-				data->irq, rc);
+			   data->irq, rc);
 		goto error_cleanup_iomap;
 	}
 
@@ -195,7 +214,7 @@ static int pmi_of_remove(struct platform_device *dev)
 	spin_lock(&data->handler_spinlock);
 
 	list_for_each_entry_safe(handler, tmp, &data->handler, node)
-		list_del(&handler->node);
+	list_del(&handler->node);
 
 	spin_unlock(&data->handler_spinlock);
 
@@ -205,7 +224,8 @@ static int pmi_of_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver pmi_of_platform_driver = {
+static struct platform_driver pmi_of_platform_driver =
+{
 	.probe		= pmi_of_probe,
 	.remove		= pmi_of_remove,
 	.driver = {
@@ -221,12 +241,14 @@ int pmi_send_message(pmi_message_t msg)
 	DECLARE_COMPLETION_ONSTACK(completion);
 
 	if (!data)
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&data->msg_mutex);
 
 	data->msg = msg;
-	pr_debug("pmi_send_message: msg is %08x\n", *(u32*)&msg);
+	pr_debug("pmi_send_message: msg is %08x\n", *(u32 *)&msg);
 
 	data->completion = &completion;
 
@@ -240,7 +262,7 @@ int pmi_send_message(pmi_message_t msg)
 	pr_debug("pmi_send_message: wait for completion\n");
 
 	wait_for_completion_interruptible_timeout(data->completion,
-						  PMI_TIMEOUT);
+			PMI_TIMEOUT);
 
 	data->completion = NULL;
 
@@ -253,7 +275,9 @@ EXPORT_SYMBOL_GPL(pmi_send_message);
 int pmi_register_handler(struct pmi_handler *handler)
 {
 	if (!data)
+	{
 		return -ENODEV;
+	}
 
 	spin_lock(&data->handler_spinlock);
 	list_add_tail(&handler->node, &data->handler);
@@ -266,7 +290,9 @@ EXPORT_SYMBOL_GPL(pmi_register_handler);
 void pmi_unregister_handler(struct pmi_handler *handler)
 {
 	if (!data)
+	{
 		return;
+	}
 
 	pr_debug("pmi: unregistering handler %p\n", handler);
 

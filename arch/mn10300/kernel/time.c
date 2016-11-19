@@ -36,7 +36,8 @@ static unsigned long sched_clock_multiplier;
  */
 unsigned long long sched_clock(void)
 {
-	union {
+	union
+	{
 		unsigned long long ll;
 		unsigned l[2];
 	} tsc64, result;
@@ -58,12 +59,12 @@ unsigned long long sched_clock(void)
 	 * intermediate
 	 */
 	asm("mulu	%2,%0,%3,%0	\n"	/* LSW * mult ->  0:%3:%0 */
-	    "mulu	%2,%1,%2,%1	\n"	/* MSW * mult -> %2:%1:0 */
-	    "add	%3,%1		\n"
-	    "addc	0,%2		\n"	/* result in %2:%1:%0 */
-	    : "=r"(product[0]), "=r"(product[1]), "=r"(product[2]), "=r"(tmp)
-	    :  "0"(tsc64.l[0]),  "1"(tsc64.l[1]),  "2"(sched_clock_multiplier)
-	    : "cc");
+		"mulu	%2,%1,%2,%1	\n"	/* MSW * mult -> %2:%1:0 */
+		"add	%3,%1		\n"
+		"addc	0,%2		\n"	/* result in %2:%1:%0 */
+		: "=r"(product[0]), "=r"(product[1]), "=r"(product[2]), "=r"(tmp)
+		:  "0"(tsc64.l[0]),  "1"(tsc64.l[1]),  "2"(sched_clock_multiplier)
+		: "cc");
 
 	result.l[0] = product[1] << 16 | product[0] >> 16;
 	result.l[1] = product[2] << 16 | product[1] >> 16;
@@ -107,9 +108,9 @@ void __init time_init(void)
 	init_clocksource();
 
 	printk(KERN_INFO
-	       "timestamp counter I/O clock running at %lu.%02lu"
-	       " (calibrated against RTC)\n",
-	       MN10300_TSCCLK / 1000000, (MN10300_TSCCLK / 10000) % 100);
+		   "timestamp counter I/O clock running at %lu.%02lu"
+		   " (calibrated against RTC)\n",
+		   MN10300_TSCCLK / 1000000, (MN10300_TSCCLK / 10000) % 100);
 
 	mn10300_last_tsc = read_timestamp_counter();
 

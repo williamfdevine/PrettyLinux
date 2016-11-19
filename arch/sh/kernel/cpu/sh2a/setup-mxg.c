@@ -13,7 +13,8 @@
 #include <linux/serial_sci.h>
 #include <linux/sh_timer.h>
 
-enum {
+enum
+{
 	UNUSED = 0,
 
 	/* interrupt sources */
@@ -32,7 +33,8 @@ enum {
 	PINT,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_IRQ(IRQ0, 64), INTC_IRQ(IRQ1, 65),
 	INTC_IRQ(IRQ2, 66), INTC_IRQ(IRQ3, 67),
 	INTC_IRQ(IRQ4, 68), INTC_IRQ(IRQ5, 69),
@@ -79,12 +81,14 @@ static struct intc_vect vectors[] __initdata = {
 	INTC_IRQ(MTU2_GROUP5, 254), INTC_IRQ(MTU2_GROUP5, 255),
 };
 
-static struct intc_group groups[] __initdata = {
+static struct intc_group groups[] __initdata =
+{
 	INTC_GROUP(PINT, PINT0, PINT1, PINT2, PINT3,
-		   PINT4, PINT5, PINT6, PINT7),
+	PINT4, PINT5, PINT6, PINT7),
 };
 
-static struct intc_prio_reg prio_registers[] __initdata = {
+static struct intc_prio_reg prio_registers[] __initdata =
+{
 	{ 0xfffd9418, 0, 16, 4, /* IPR01 */ { IRQ0, IRQ1, IRQ2, IRQ3 } },
 	{ 0xfffd941a, 0, 16, 4, /* IPR02 */ { IRQ4, IRQ5, IRQ6, IRQ7 } },
 	{ 0xfffd941c, 0, 16, 4, /* IPR03 */ { IRQ8, IRQ9, IRQ10, IRQ11 } },
@@ -99,47 +103,61 @@ static struct intc_prio_reg prio_registers[] __initdata = {
 	{ 0xfffd980c, 0, 16, 4, /* IPR12 */ { } },
 	{ 0xfffd980e, 0, 16, 4, /* IPR13 */ { } },
 	{ 0xfffd9810, 0, 16, 4, /* IPR14 */ { 0, 0, 0, SCIF0 } },
-	{ 0xfffd9812, 0, 16, 4, /* IPR15 */
-		{ SCIF1, MTU2_GROUP1, MTU2_GROUP2, MTU2_GROUP3 } },
-	{ 0xfffd9814, 0, 16, 4, /* IPR16 */
-		{ MTU2_TGI3B, MTU2_TGI3C, MTU2_GROUP4, MTU2_GROUP5 } },
+	{
+		0xfffd9812, 0, 16, 4, /* IPR15 */
+		{ SCIF1, MTU2_GROUP1, MTU2_GROUP2, MTU2_GROUP3 }
+	},
+	{
+		0xfffd9814, 0, 16, 4, /* IPR16 */
+		{ MTU2_TGI3B, MTU2_TGI3C, MTU2_GROUP4, MTU2_GROUP5 }
+	},
 };
 
-static struct intc_mask_reg mask_registers[] __initdata = {
-	{ 0xfffd9408, 0, 16, /* PINTER */
-	  { 0, 0, 0, 0, 0, 0, 0, 0,
-	    PINT7, PINT6, PINT5, PINT4, PINT3, PINT2, PINT1, PINT0 } },
+static struct intc_mask_reg mask_registers[] __initdata =
+{
+	{
+		0xfffd9408, 0, 16, /* PINTER */
+		{
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PINT7, PINT6, PINT5, PINT4, PINT3, PINT2, PINT1, PINT0
+		}
+	},
 };
 
 static DECLARE_INTC_DESC(intc_desc, "mxg", vectors, groups,
-			 mask_registers, prio_registers, NULL);
+						 mask_registers, prio_registers, NULL);
 
-static struct resource mtu2_resources[] = {
+static struct resource mtu2_resources[] =
+{
 	DEFINE_RES_MEM(0xff801000, 0x400),
 	DEFINE_RES_IRQ_NAMED(228, "tgi0a"),
 	DEFINE_RES_IRQ_NAMED(234, "tgi1a"),
 	DEFINE_RES_IRQ_NAMED(240, "tgi2a"),
 };
 
-static struct platform_device mtu2_device = {
+static struct platform_device mtu2_device =
+{
 	.name		= "sh-mtu2",
 	.id		= -1,
 	.resource	= mtu2_resources,
 	.num_resources	= ARRAY_SIZE(mtu2_resources),
 };
 
-static struct plat_sci_port scif0_platform_data = {
+static struct plat_sci_port scif0_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif0_resources[] = {
+static struct resource scif0_resources[] =
+{
 	DEFINE_RES_MEM(0xff804000, 0x100),
 	DEFINE_RES_IRQ(220),
 };
 
-static struct platform_device scif0_device = {
+static struct platform_device scif0_device =
+{
 	.name		= "sh-sci",
 	.id		= 0,
 	.resource	= scif0_resources,
@@ -149,7 +167,8 @@ static struct platform_device scif0_device = {
 	},
 };
 
-static struct platform_device *mxg_devices[] __initdata = {
+static struct platform_device *mxg_devices[] __initdata =
+{
 	&scif0_device,
 	&mtu2_device,
 };
@@ -157,7 +176,7 @@ static struct platform_device *mxg_devices[] __initdata = {
 static int __init mxg_devices_setup(void)
 {
 	return platform_add_devices(mxg_devices,
-				    ARRAY_SIZE(mxg_devices));
+								ARRAY_SIZE(mxg_devices));
 }
 arch_initcall(mxg_devices_setup);
 
@@ -166,7 +185,8 @@ void __init plat_irq_setup(void)
 	register_intc_controller(&intc_desc);
 }
 
-static struct platform_device *mxg_early_devices[] __initdata = {
+static struct platform_device *mxg_early_devices[] __initdata =
+{
 	&scif0_device,
 	&mtu2_device,
 };
@@ -174,5 +194,5 @@ static struct platform_device *mxg_early_devices[] __initdata = {
 void __init plat_early_device_setup(void)
 {
 	early_platform_add_devices(mxg_early_devices,
-				   ARRAY_SIZE(mxg_early_devices));
+							   ARRAY_SIZE(mxg_early_devices));
 }

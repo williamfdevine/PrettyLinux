@@ -14,7 +14,8 @@
 
 #include <linux/suspend.h>
 
-struct puv3_cpu_pm_fns {
+struct puv3_cpu_pm_fns
+{
 	int	save_count;
 	void	(*save)(unsigned long *);
 	void	(*restore)(unsigned long *);

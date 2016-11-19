@@ -42,136 +42,136 @@
 #define atomic_set(v, i)	WRITE_ONCE((v)->counter, (i))
 
 #define ATOMIC_OP(op, c_op, asm_op)					      \
-static __inline__ void atomic_##op(int i, atomic_t * v)			      \
-{									      \
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
-		int temp;						      \
-									      \
-		__asm__ __volatile__(					      \
-		"	.set	arch=r4000				\n"   \
-		"1:	ll	%0, %1		# atomic_" #op "	\n"   \
-		"	" #asm_op " %0, %2				\n"   \
-		"	sc	%0, %1					\n"   \
-		"	beqzl	%0, 1b					\n"   \
-		"	.set	mips0					\n"   \
-		: "=&r" (temp), "+" GCC_OFF_SMALL_ASM() (v->counter)	      \
-		: "Ir" (i));						      \
-	} else if (kernel_uses_llsc) {					      \
-		int temp;						      \
-									      \
-		do {							      \
-			__asm__ __volatile__(				      \
-			"	.set	"MIPS_ISA_LEVEL"		\n"   \
-			"	ll	%0, %1		# atomic_" #op "\n"   \
-			"	" #asm_op " %0, %2			\n"   \
-			"	sc	%0, %1				\n"   \
-			"	.set	mips0				\n"   \
-			: "=&r" (temp), "+" GCC_OFF_SMALL_ASM() (v->counter)  \
-			: "Ir" (i));					      \
-		} while (unlikely(!temp));				      \
-	} else {							      \
-		unsigned long flags;					      \
-									      \
-		raw_local_irq_save(flags);				      \
-		v->counter c_op i;					      \
-		raw_local_irq_restore(flags);				      \
-	}								      \
-}
+	static __inline__ void atomic_##op(int i, atomic_t * v)			      \
+	{									      \
+		if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
+			int temp;						      \
+			\
+			__asm__ __volatile__(					      \
+					"	.set	arch=r4000				\n"   \
+					"1:	ll	%0, %1		# atomic_" #op "	\n"   \
+					"	" #asm_op " %0, %2				\n"   \
+					"	sc	%0, %1					\n"   \
+					"	beqzl	%0, 1b					\n"   \
+					"	.set	mips0					\n"   \
+					: "=&r" (temp), "+" GCC_OFF_SMALL_ASM() (v->counter)	      \
+					: "Ir" (i));						      \
+		} else if (kernel_uses_llsc) {					      \
+			int temp;						      \
+			\
+			do {							      \
+				__asm__ __volatile__(				      \
+						"	.set	"MIPS_ISA_LEVEL"		\n"   \
+						"	ll	%0, %1		# atomic_" #op "\n"   \
+						"	" #asm_op " %0, %2			\n"   \
+						"	sc	%0, %1				\n"   \
+						"	.set	mips0				\n"   \
+						: "=&r" (temp), "+" GCC_OFF_SMALL_ASM() (v->counter)  \
+						: "Ir" (i));					      \
+			} while (unlikely(!temp));				      \
+		} else {							      \
+			unsigned long flags;					      \
+			\
+			raw_local_irq_save(flags);				      \
+			v->counter c_op i;					      \
+			raw_local_irq_restore(flags);				      \
+		}								      \
+	}
 
 #define ATOMIC_OP_RETURN(op, c_op, asm_op)				      \
-static __inline__ int atomic_##op##_return_relaxed(int i, atomic_t * v)	      \
-{									      \
-	int result;							      \
-									      \
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
-		int temp;						      \
-									      \
-		__asm__ __volatile__(					      \
-		"	.set	arch=r4000				\n"   \
-		"1:	ll	%1, %2		# atomic_" #op "_return	\n"   \
-		"	" #asm_op " %0, %1, %3				\n"   \
-		"	sc	%0, %2					\n"   \
-		"	beqzl	%0, 1b					\n"   \
-		"	" #asm_op " %0, %1, %3				\n"   \
-		"	.set	mips0					\n"   \
-		: "=&r" (result), "=&r" (temp),				      \
-		  "+" GCC_OFF_SMALL_ASM() (v->counter)			      \
-		: "Ir" (i));						      \
-	} else if (kernel_uses_llsc) {					      \
-		int temp;						      \
-									      \
-		do {							      \
-			__asm__ __volatile__(				      \
-			"	.set	"MIPS_ISA_LEVEL"		\n"   \
-			"	ll	%1, %2	# atomic_" #op "_return	\n"   \
-			"	" #asm_op " %0, %1, %3			\n"   \
-			"	sc	%0, %2				\n"   \
-			"	.set	mips0				\n"   \
-			: "=&r" (result), "=&r" (temp),			      \
-			  "+" GCC_OFF_SMALL_ASM() (v->counter)		      \
-			: "Ir" (i));					      \
-		} while (unlikely(!result));				      \
-									      \
-		result = temp; result c_op i;				      \
-	} else {							      \
-		unsigned long flags;					      \
-									      \
-		raw_local_irq_save(flags);				      \
-		result = v->counter;					      \
-		result c_op i;						      \
-		v->counter = result;					      \
-		raw_local_irq_restore(flags);				      \
-	}								      \
-									      \
-	return result;							      \
-}
+	static __inline__ int atomic_##op##_return_relaxed(int i, atomic_t * v)	      \
+	{									      \
+		int result;							      \
+		\
+		if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
+			int temp;						      \
+			\
+			__asm__ __volatile__(					      \
+					"	.set	arch=r4000				\n"   \
+					"1:	ll	%1, %2		# atomic_" #op "_return	\n"   \
+					"	" #asm_op " %0, %1, %3				\n"   \
+					"	sc	%0, %2					\n"   \
+					"	beqzl	%0, 1b					\n"   \
+					"	" #asm_op " %0, %1, %3				\n"   \
+					"	.set	mips0					\n"   \
+					: "=&r" (result), "=&r" (temp),				      \
+					"+" GCC_OFF_SMALL_ASM() (v->counter)			      \
+					: "Ir" (i));						      \
+		} else if (kernel_uses_llsc) {					      \
+			int temp;						      \
+			\
+			do {							      \
+				__asm__ __volatile__(				      \
+						"	.set	"MIPS_ISA_LEVEL"		\n"   \
+						"	ll	%1, %2	# atomic_" #op "_return	\n"   \
+						"	" #asm_op " %0, %1, %3			\n"   \
+						"	sc	%0, %2				\n"   \
+						"	.set	mips0				\n"   \
+						: "=&r" (result), "=&r" (temp),			      \
+						"+" GCC_OFF_SMALL_ASM() (v->counter)		      \
+						: "Ir" (i));					      \
+			} while (unlikely(!result));				      \
+			\
+			result = temp; result c_op i;				      \
+		} else {							      \
+			unsigned long flags;					      \
+			\
+			raw_local_irq_save(flags);				      \
+			result = v->counter;					      \
+			result c_op i;						      \
+			v->counter = result;					      \
+			raw_local_irq_restore(flags);				      \
+		}								      \
+		\
+		return result;							      \
+	}
 
 #define ATOMIC_FETCH_OP(op, c_op, asm_op)				      \
-static __inline__ int atomic_fetch_##op##_relaxed(int i, atomic_t * v)	      \
-{									      \
-	int result;							      \
-									      \
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
-		int temp;						      \
-									      \
-		__asm__ __volatile__(					      \
-		"	.set	arch=r4000				\n"   \
-		"1:	ll	%1, %2		# atomic_fetch_" #op "	\n"   \
-		"	" #asm_op " %0, %1, %3				\n"   \
-		"	sc	%0, %2					\n"   \
-		"	beqzl	%0, 1b					\n"   \
-		"	move	%0, %1					\n"   \
-		"	.set	mips0					\n"   \
-		: "=&r" (result), "=&r" (temp),				      \
-		  "+" GCC_OFF_SMALL_ASM() (v->counter)			      \
-		: "Ir" (i));						      \
-	} else if (kernel_uses_llsc) {					      \
-		int temp;						      \
-									      \
-		do {							      \
-			__asm__ __volatile__(				      \
-			"	.set	"MIPS_ISA_LEVEL"		\n"   \
-			"	ll	%1, %2	# atomic_fetch_" #op "	\n"   \
-			"	" #asm_op " %0, %1, %3			\n"   \
-			"	sc	%0, %2				\n"   \
-			"	.set	mips0				\n"   \
-			: "=&r" (result), "=&r" (temp),			      \
-			  "+" GCC_OFF_SMALL_ASM() (v->counter)		      \
-			: "Ir" (i));					      \
-		} while (unlikely(!result));				      \
-									      \
-		result = temp;						      \
-	} else {							      \
-		unsigned long flags;					      \
-									      \
-		raw_local_irq_save(flags);				      \
-		result = v->counter;					      \
-		v->counter c_op i;					      \
-		raw_local_irq_restore(flags);				      \
-	}								      \
-									      \
-	return result;							      \
-}
+	static __inline__ int atomic_fetch_##op##_relaxed(int i, atomic_t * v)	      \
+	{									      \
+		int result;							      \
+		\
+		if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
+			int temp;						      \
+			\
+			__asm__ __volatile__(					      \
+					"	.set	arch=r4000				\n"   \
+					"1:	ll	%1, %2		# atomic_fetch_" #op "	\n"   \
+					"	" #asm_op " %0, %1, %3				\n"   \
+					"	sc	%0, %2					\n"   \
+					"	beqzl	%0, 1b					\n"   \
+					"	move	%0, %1					\n"   \
+					"	.set	mips0					\n"   \
+					: "=&r" (result), "=&r" (temp),				      \
+					"+" GCC_OFF_SMALL_ASM() (v->counter)			      \
+					: "Ir" (i));						      \
+		} else if (kernel_uses_llsc) {					      \
+			int temp;						      \
+			\
+			do {							      \
+				__asm__ __volatile__(				      \
+						"	.set	"MIPS_ISA_LEVEL"		\n"   \
+						"	ll	%1, %2	# atomic_fetch_" #op "	\n"   \
+						"	" #asm_op " %0, %1, %3			\n"   \
+						"	sc	%0, %2				\n"   \
+						"	.set	mips0				\n"   \
+						: "=&r" (result), "=&r" (temp),			      \
+						"+" GCC_OFF_SMALL_ASM() (v->counter)		      \
+						: "Ir" (i));					      \
+			} while (unlikely(!result));				      \
+			\
+			result = temp;						      \
+		} else {							      \
+			unsigned long flags;					      \
+			\
+			raw_local_irq_save(flags);				      \
+			result = v->counter;					      \
+			v->counter c_op i;					      \
+			raw_local_irq_restore(flags);				      \
+		}								      \
+		\
+		return result;							      \
+	}
 
 #define ATOMIC_OPS(op, c_op, asm_op)					      \
 	ATOMIC_OP(op, c_op, asm_op)					      \
@@ -191,8 +191,8 @@ ATOMIC_OPS(sub, -=, subu)
 	ATOMIC_OP(op, c_op, asm_op)					      \
 	ATOMIC_FETCH_OP(op, c_op, asm_op)
 
-ATOMIC_OPS(and, &=, and)
-ATOMIC_OPS(or, |=, or)
+ATOMIC_OPS( and , &=, and )
+ATOMIC_OPS( or , |=, or )
 ATOMIC_OPS(xor, ^=, xor)
 
 #define atomic_fetch_and_relaxed	atomic_fetch_and_relaxed
@@ -212,57 +212,66 @@ ATOMIC_OPS(xor, ^=, xor)
  * Atomically test @v and subtract @i if @v is greater or equal than @i.
  * The function returns the old value of @v minus @i.
  */
-static __inline__ int atomic_sub_if_positive(int i, atomic_t * v)
+static __inline__ int atomic_sub_if_positive(int i, atomic_t *v)
 {
 	int result;
 
 	smp_mb__before_llsc();
 
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {
+	if (kernel_uses_llsc && R10000_LLSC_WAR)
+	{
 		int temp;
 
 		__asm__ __volatile__(
-		"	.set	arch=r4000				\n"
-		"1:	ll	%1, %2		# atomic_sub_if_positive\n"
-		"	subu	%0, %1, %3				\n"
-		"	bltz	%0, 1f					\n"
-		"	sc	%0, %2					\n"
-		"	.set	noreorder				\n"
-		"	beqzl	%0, 1b					\n"
-		"	 subu	%0, %1, %3				\n"
-		"	.set	reorder					\n"
-		"1:							\n"
-		"	.set	mips0					\n"
-		: "=&r" (result), "=&r" (temp),
-		  "+" GCC_OFF_SMALL_ASM() (v->counter)
-		: "Ir" (i), GCC_OFF_SMALL_ASM() (v->counter)
-		: "memory");
-	} else if (kernel_uses_llsc) {
+			"	.set	arch=r4000				\n"
+			"1:	ll	%1, %2		# atomic_sub_if_positive\n"
+			"	subu	%0, %1, %3				\n"
+			"	bltz	%0, 1f					\n"
+			"	sc	%0, %2					\n"
+			"	.set	noreorder				\n"
+			"	beqzl	%0, 1b					\n"
+			"	 subu	%0, %1, %3				\n"
+			"	.set	reorder					\n"
+			"1:							\n"
+			"	.set	mips0					\n"
+			: "=&r" (result), "=&r" (temp),
+			"+" GCC_OFF_SMALL_ASM() (v->counter)
+			: "Ir" (i), GCC_OFF_SMALL_ASM() (v->counter)
+			: "memory");
+	}
+	else if (kernel_uses_llsc)
+	{
 		int temp;
 
 		__asm__ __volatile__(
-		"	.set	"MIPS_ISA_LEVEL"			\n"
-		"1:	ll	%1, %2		# atomic_sub_if_positive\n"
-		"	subu	%0, %1, %3				\n"
-		"	bltz	%0, 1f					\n"
-		"	sc	%0, %2					\n"
-		"	.set	noreorder				\n"
-		"	beqz	%0, 1b					\n"
-		"	 subu	%0, %1, %3				\n"
-		"	.set	reorder					\n"
-		"1:							\n"
-		"	.set	mips0					\n"
-		: "=&r" (result), "=&r" (temp),
-		  "+" GCC_OFF_SMALL_ASM() (v->counter)
-		: "Ir" (i));
-	} else {
+			"	.set	"MIPS_ISA_LEVEL"			\n"
+			"1:	ll	%1, %2		# atomic_sub_if_positive\n"
+			"	subu	%0, %1, %3				\n"
+			"	bltz	%0, 1f					\n"
+			"	sc	%0, %2					\n"
+			"	.set	noreorder				\n"
+			"	beqz	%0, 1b					\n"
+			"	 subu	%0, %1, %3				\n"
+			"	.set	reorder					\n"
+			"1:							\n"
+			"	.set	mips0					\n"
+			: "=&r" (result), "=&r" (temp),
+			"+" GCC_OFF_SMALL_ASM() (v->counter)
+			: "Ir" (i));
+	}
+	else
+	{
 		unsigned long flags;
 
 		raw_local_irq_save(flags);
 		result = v->counter;
 		result -= i;
+
 		if (result >= 0)
+		{
 			v->counter = result;
+		}
+
 		raw_local_irq_restore(flags);
 	}
 
@@ -287,14 +296,24 @@ static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
 {
 	int c, old;
 	c = atomic_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		if (unlikely(c == (u)))
+		{
 			break;
+		}
+
 		old = atomic_cmpxchg((v), c, c + (a));
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return c;
 }
 
@@ -384,138 +403,138 @@ static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
 #define atomic64_set(v, i)	WRITE_ONCE((v)->counter, (i))
 
 #define ATOMIC64_OP(op, c_op, asm_op)					      \
-static __inline__ void atomic64_##op(long i, atomic64_t * v)		      \
-{									      \
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
-		long temp;						      \
-									      \
-		__asm__ __volatile__(					      \
-		"	.set	arch=r4000				\n"   \
-		"1:	lld	%0, %1		# atomic64_" #op "	\n"   \
-		"	" #asm_op " %0, %2				\n"   \
-		"	scd	%0, %1					\n"   \
-		"	beqzl	%0, 1b					\n"   \
-		"	.set	mips0					\n"   \
-		: "=&r" (temp), "+" GCC_OFF_SMALL_ASM() (v->counter)	      \
-		: "Ir" (i));						      \
-	} else if (kernel_uses_llsc) {					      \
-		long temp;						      \
-									      \
-		do {							      \
-			__asm__ __volatile__(				      \
-			"	.set	"MIPS_ISA_LEVEL"		\n"   \
-			"	lld	%0, %1		# atomic64_" #op "\n" \
-			"	" #asm_op " %0, %2			\n"   \
-			"	scd	%0, %1				\n"   \
-			"	.set	mips0				\n"   \
-			: "=&r" (temp), "+" GCC_OFF_SMALL_ASM() (v->counter)      \
-			: "Ir" (i));					      \
-		} while (unlikely(!temp));				      \
-	} else {							      \
-		unsigned long flags;					      \
-									      \
-		raw_local_irq_save(flags);				      \
-		v->counter c_op i;					      \
-		raw_local_irq_restore(flags);				      \
-	}								      \
-}
+	static __inline__ void atomic64_##op(long i, atomic64_t * v)		      \
+	{									      \
+		if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
+			long temp;						      \
+			\
+			__asm__ __volatile__(					      \
+					"	.set	arch=r4000				\n"   \
+					"1:	lld	%0, %1		# atomic64_" #op "	\n"   \
+					"	" #asm_op " %0, %2				\n"   \
+					"	scd	%0, %1					\n"   \
+					"	beqzl	%0, 1b					\n"   \
+					"	.set	mips0					\n"   \
+					: "=&r" (temp), "+" GCC_OFF_SMALL_ASM() (v->counter)	      \
+					: "Ir" (i));						      \
+		} else if (kernel_uses_llsc) {					      \
+			long temp;						      \
+			\
+			do {							      \
+				__asm__ __volatile__(				      \
+						"	.set	"MIPS_ISA_LEVEL"		\n"   \
+						"	lld	%0, %1		# atomic64_" #op "\n" \
+						"	" #asm_op " %0, %2			\n"   \
+						"	scd	%0, %1				\n"   \
+						"	.set	mips0				\n"   \
+						: "=&r" (temp), "+" GCC_OFF_SMALL_ASM() (v->counter)      \
+						: "Ir" (i));					      \
+			} while (unlikely(!temp));				      \
+		} else {							      \
+			unsigned long flags;					      \
+			\
+			raw_local_irq_save(flags);				      \
+			v->counter c_op i;					      \
+			raw_local_irq_restore(flags);				      \
+		}								      \
+	}
 
 #define ATOMIC64_OP_RETURN(op, c_op, asm_op)				      \
-static __inline__ long atomic64_##op##_return_relaxed(long i, atomic64_t * v) \
-{									      \
-	long result;							      \
-									      \
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
-		long temp;						      \
-									      \
-		__asm__ __volatile__(					      \
-		"	.set	arch=r4000				\n"   \
-		"1:	lld	%1, %2		# atomic64_" #op "_return\n"  \
-		"	" #asm_op " %0, %1, %3				\n"   \
-		"	scd	%0, %2					\n"   \
-		"	beqzl	%0, 1b					\n"   \
-		"	" #asm_op " %0, %1, %3				\n"   \
-		"	.set	mips0					\n"   \
-		: "=&r" (result), "=&r" (temp),				      \
-		  "+" GCC_OFF_SMALL_ASM() (v->counter)			      \
-		: "Ir" (i));						      \
-	} else if (kernel_uses_llsc) {					      \
-		long temp;						      \
-									      \
-		do {							      \
-			__asm__ __volatile__(				      \
-			"	.set	"MIPS_ISA_LEVEL"		\n"   \
-			"	lld	%1, %2	# atomic64_" #op "_return\n"  \
-			"	" #asm_op " %0, %1, %3			\n"   \
-			"	scd	%0, %2				\n"   \
-			"	.set	mips0				\n"   \
-			: "=&r" (result), "=&r" (temp),			      \
-			  "=" GCC_OFF_SMALL_ASM() (v->counter)		      \
-			: "Ir" (i), GCC_OFF_SMALL_ASM() (v->counter)	      \
-			: "memory");					      \
-		} while (unlikely(!result));				      \
-									      \
-		result = temp; result c_op i;				      \
-	} else {							      \
-		unsigned long flags;					      \
-									      \
-		raw_local_irq_save(flags);				      \
-		result = v->counter;					      \
-		result c_op i;						      \
-		v->counter = result;					      \
-		raw_local_irq_restore(flags);				      \
-	}								      \
-									      \
-	return result;							      \
-}
+	static __inline__ long atomic64_##op##_return_relaxed(long i, atomic64_t * v) \
+	{									      \
+		long result;							      \
+		\
+		if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
+			long temp;						      \
+			\
+			__asm__ __volatile__(					      \
+					"	.set	arch=r4000				\n"   \
+					"1:	lld	%1, %2		# atomic64_" #op "_return\n"  \
+					"	" #asm_op " %0, %1, %3				\n"   \
+					"	scd	%0, %2					\n"   \
+					"	beqzl	%0, 1b					\n"   \
+					"	" #asm_op " %0, %1, %3				\n"   \
+					"	.set	mips0					\n"   \
+					: "=&r" (result), "=&r" (temp),				      \
+					"+" GCC_OFF_SMALL_ASM() (v->counter)			      \
+					: "Ir" (i));						      \
+		} else if (kernel_uses_llsc) {					      \
+			long temp;						      \
+			\
+			do {							      \
+				__asm__ __volatile__(				      \
+						"	.set	"MIPS_ISA_LEVEL"		\n"   \
+						"	lld	%1, %2	# atomic64_" #op "_return\n"  \
+						"	" #asm_op " %0, %1, %3			\n"   \
+						"	scd	%0, %2				\n"   \
+						"	.set	mips0				\n"   \
+						: "=&r" (result), "=&r" (temp),			      \
+						"=" GCC_OFF_SMALL_ASM() (v->counter)		      \
+						: "Ir" (i), GCC_OFF_SMALL_ASM() (v->counter)	      \
+						: "memory");					      \
+			} while (unlikely(!result));				      \
+			\
+			result = temp; result c_op i;				      \
+		} else {							      \
+			unsigned long flags;					      \
+			\
+			raw_local_irq_save(flags);				      \
+			result = v->counter;					      \
+			result c_op i;						      \
+			v->counter = result;					      \
+			raw_local_irq_restore(flags);				      \
+		}								      \
+		\
+		return result;							      \
+	}
 
 #define ATOMIC64_FETCH_OP(op, c_op, asm_op)				      \
-static __inline__ long atomic64_fetch_##op##_relaxed(long i, atomic64_t * v)  \
-{									      \
-	long result;							      \
-									      \
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
-		long temp;						      \
-									      \
-		__asm__ __volatile__(					      \
-		"	.set	arch=r4000				\n"   \
-		"1:	lld	%1, %2		# atomic64_fetch_" #op "\n"   \
-		"	" #asm_op " %0, %1, %3				\n"   \
-		"	scd	%0, %2					\n"   \
-		"	beqzl	%0, 1b					\n"   \
-		"	move	%0, %1					\n"   \
-		"	.set	mips0					\n"   \
-		: "=&r" (result), "=&r" (temp),				      \
-		  "+" GCC_OFF_SMALL_ASM() (v->counter)			      \
-		: "Ir" (i));						      \
-	} else if (kernel_uses_llsc) {					      \
-		long temp;						      \
-									      \
-		do {							      \
-			__asm__ __volatile__(				      \
-			"	.set	"MIPS_ISA_LEVEL"		\n"   \
-			"	lld	%1, %2	# atomic64_fetch_" #op "\n"   \
-			"	" #asm_op " %0, %1, %3			\n"   \
-			"	scd	%0, %2				\n"   \
-			"	.set	mips0				\n"   \
-			: "=&r" (result), "=&r" (temp),			      \
-			  "=" GCC_OFF_SMALL_ASM() (v->counter)		      \
-			: "Ir" (i), GCC_OFF_SMALL_ASM() (v->counter)	      \
-			: "memory");					      \
-		} while (unlikely(!result));				      \
-									      \
-		result = temp;						      \
-	} else {							      \
-		unsigned long flags;					      \
-									      \
-		raw_local_irq_save(flags);				      \
-		result = v->counter;					      \
-		v->counter c_op i;					      \
-		raw_local_irq_restore(flags);				      \
-	}								      \
-									      \
-	return result;							      \
-}
+	static __inline__ long atomic64_fetch_##op##_relaxed(long i, atomic64_t * v)  \
+	{									      \
+		long result;							      \
+		\
+		if (kernel_uses_llsc && R10000_LLSC_WAR) {			      \
+			long temp;						      \
+			\
+			__asm__ __volatile__(					      \
+					"	.set	arch=r4000				\n"   \
+					"1:	lld	%1, %2		# atomic64_fetch_" #op "\n"   \
+					"	" #asm_op " %0, %1, %3				\n"   \
+					"	scd	%0, %2					\n"   \
+					"	beqzl	%0, 1b					\n"   \
+					"	move	%0, %1					\n"   \
+					"	.set	mips0					\n"   \
+					: "=&r" (result), "=&r" (temp),				      \
+					"+" GCC_OFF_SMALL_ASM() (v->counter)			      \
+					: "Ir" (i));						      \
+		} else if (kernel_uses_llsc) {					      \
+			long temp;						      \
+			\
+			do {							      \
+				__asm__ __volatile__(				      \
+						"	.set	"MIPS_ISA_LEVEL"		\n"   \
+						"	lld	%1, %2	# atomic64_fetch_" #op "\n"   \
+						"	" #asm_op " %0, %1, %3			\n"   \
+						"	scd	%0, %2				\n"   \
+						"	.set	mips0				\n"   \
+						: "=&r" (result), "=&r" (temp),			      \
+						"=" GCC_OFF_SMALL_ASM() (v->counter)		      \
+						: "Ir" (i), GCC_OFF_SMALL_ASM() (v->counter)	      \
+						: "memory");					      \
+			} while (unlikely(!result));				      \
+			\
+			result = temp;						      \
+		} else {							      \
+			unsigned long flags;					      \
+			\
+			raw_local_irq_save(flags);				      \
+			result = v->counter;					      \
+			v->counter c_op i;					      \
+			raw_local_irq_restore(flags);				      \
+		}								      \
+		\
+		return result;							      \
+	}
 
 #define ATOMIC64_OPS(op, c_op, asm_op)					      \
 	ATOMIC64_OP(op, c_op, asm_op)					      \
@@ -535,8 +554,8 @@ ATOMIC64_OPS(sub, -=, dsubu)
 	ATOMIC64_OP(op, c_op, asm_op)					      \
 	ATOMIC64_FETCH_OP(op, c_op, asm_op)
 
-ATOMIC64_OPS(and, &=, and)
-ATOMIC64_OPS(or, |=, or)
+ATOMIC64_OPS( and , &=, and )
+ATOMIC64_OPS( or , |=, or )
 ATOMIC64_OPS(xor, ^=, xor)
 
 #define atomic64_fetch_and_relaxed	atomic64_fetch_and_relaxed
@@ -557,57 +576,66 @@ ATOMIC64_OPS(xor, ^=, xor)
  * Atomically test @v and subtract @i if @v is greater or equal than @i.
  * The function returns the old value of @v minus @i.
  */
-static __inline__ long atomic64_sub_if_positive(long i, atomic64_t * v)
+static __inline__ long atomic64_sub_if_positive(long i, atomic64_t *v)
 {
 	long result;
 
 	smp_mb__before_llsc();
 
-	if (kernel_uses_llsc && R10000_LLSC_WAR) {
+	if (kernel_uses_llsc && R10000_LLSC_WAR)
+	{
 		long temp;
 
 		__asm__ __volatile__(
-		"	.set	arch=r4000				\n"
-		"1:	lld	%1, %2		# atomic64_sub_if_positive\n"
-		"	dsubu	%0, %1, %3				\n"
-		"	bltz	%0, 1f					\n"
-		"	scd	%0, %2					\n"
-		"	.set	noreorder				\n"
-		"	beqzl	%0, 1b					\n"
-		"	 dsubu	%0, %1, %3				\n"
-		"	.set	reorder					\n"
-		"1:							\n"
-		"	.set	mips0					\n"
-		: "=&r" (result), "=&r" (temp),
-		  "=" GCC_OFF_SMALL_ASM() (v->counter)
-		: "Ir" (i), GCC_OFF_SMALL_ASM() (v->counter)
-		: "memory");
-	} else if (kernel_uses_llsc) {
+			"	.set	arch=r4000				\n"
+			"1:	lld	%1, %2		# atomic64_sub_if_positive\n"
+			"	dsubu	%0, %1, %3				\n"
+			"	bltz	%0, 1f					\n"
+			"	scd	%0, %2					\n"
+			"	.set	noreorder				\n"
+			"	beqzl	%0, 1b					\n"
+			"	 dsubu	%0, %1, %3				\n"
+			"	.set	reorder					\n"
+			"1:							\n"
+			"	.set	mips0					\n"
+			: "=&r" (result), "=&r" (temp),
+			"=" GCC_OFF_SMALL_ASM() (v->counter)
+			: "Ir" (i), GCC_OFF_SMALL_ASM() (v->counter)
+			: "memory");
+	}
+	else if (kernel_uses_llsc)
+	{
 		long temp;
 
 		__asm__ __volatile__(
-		"	.set	"MIPS_ISA_LEVEL"			\n"
-		"1:	lld	%1, %2		# atomic64_sub_if_positive\n"
-		"	dsubu	%0, %1, %3				\n"
-		"	bltz	%0, 1f					\n"
-		"	scd	%0, %2					\n"
-		"	.set	noreorder				\n"
-		"	beqz	%0, 1b					\n"
-		"	 dsubu	%0, %1, %3				\n"
-		"	.set	reorder					\n"
-		"1:							\n"
-		"	.set	mips0					\n"
-		: "=&r" (result), "=&r" (temp),
-		  "+" GCC_OFF_SMALL_ASM() (v->counter)
-		: "Ir" (i));
-	} else {
+			"	.set	"MIPS_ISA_LEVEL"			\n"
+			"1:	lld	%1, %2		# atomic64_sub_if_positive\n"
+			"	dsubu	%0, %1, %3				\n"
+			"	bltz	%0, 1f					\n"
+			"	scd	%0, %2					\n"
+			"	.set	noreorder				\n"
+			"	beqz	%0, 1b					\n"
+			"	 dsubu	%0, %1, %3				\n"
+			"	.set	reorder					\n"
+			"1:							\n"
+			"	.set	mips0					\n"
+			: "=&r" (result), "=&r" (temp),
+			"+" GCC_OFF_SMALL_ASM() (v->counter)
+			: "Ir" (i));
+	}
+	else
+	{
 		unsigned long flags;
 
 		raw_local_irq_save(flags);
 		result = v->counter;
 		result -= i;
+
 		if (result >= 0)
+		{
 			v->counter = result;
+		}
+
 		raw_local_irq_restore(flags);
 	}
 
@@ -633,14 +661,24 @@ static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
 {
 	long c, old;
 	c = atomic64_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		if (unlikely(c == (u)))
+		{
 			break;
+		}
+
 		old = atomic64_cmpxchg((v), c, c + (a));
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return c != (u);
 }
 

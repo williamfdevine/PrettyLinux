@@ -49,20 +49,20 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[15]) >> 32;
 	cl = (regs->regs[15]) & 0xffffffff;
 	printk("PC  : %08Lx%08Lx LINK: %08Lx%08Lx SP  : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->sr) >> 32;
 	al = (regs->sr) & 0xffffffff;
-        asm volatile ("getcon   " __TEA ", %0" : "=r" (bh));
-        asm volatile ("getcon   " __TEA ", %0" : "=r" (bl));
+	asm volatile ("getcon   " __TEA ", %0" : "=r" (bh));
+	asm volatile ("getcon   " __TEA ", %0" : "=r" (bl));
 	bh = (bh) >> 32;
 	bl = (bl) & 0xffffffff;
-        asm volatile ("getcon   " __KCR0 ", %0" : "=r" (ch));
-        asm volatile ("getcon   " __KCR0 ", %0" : "=r" (cl));
+	asm volatile ("getcon   " __KCR0 ", %0" : "=r" (ch));
+	asm volatile ("getcon   " __KCR0 ", %0" : "=r" (cl));
 	ch = (ch) >> 32;
 	cl = (cl) & 0xffffffff;
 	printk("SR  : %08Lx%08Lx TEA : %08Lx%08Lx KCR0: %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[0]) >> 32;
 	al = (regs->regs[0]) & 0xffffffff;
@@ -71,7 +71,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[2]) >> 32;
 	cl = (regs->regs[2]) & 0xffffffff;
 	printk("R0  : %08Lx%08Lx R1  : %08Lx%08Lx R2  : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[3]) >> 32;
 	al = (regs->regs[3]) & 0xffffffff;
@@ -80,7 +80,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[5]) >> 32;
 	cl = (regs->regs[5]) & 0xffffffff;
 	printk("R3  : %08Lx%08Lx R4  : %08Lx%08Lx R5  : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[6]) >> 32;
 	al = (regs->regs[6]) & 0xffffffff;
@@ -89,7 +89,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[8]) >> 32;
 	cl = (regs->regs[8]) & 0xffffffff;
 	printk("R6  : %08Lx%08Lx R7  : %08Lx%08Lx R8  : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[9]) >> 32;
 	al = (regs->regs[9]) & 0xffffffff;
@@ -98,7 +98,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[11]) >> 32;
 	cl = (regs->regs[11]) & 0xffffffff;
 	printk("R9  : %08Lx%08Lx R10 : %08Lx%08Lx R11 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[12]) >> 32;
 	al = (regs->regs[12]) & 0xffffffff;
@@ -107,7 +107,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[14]) >> 32;
 	cl = (regs->regs[14]) & 0xffffffff;
 	printk("R12 : %08Lx%08Lx R13 : %08Lx%08Lx R14 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[16]) >> 32;
 	al = (regs->regs[16]) & 0xffffffff;
@@ -116,7 +116,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[19]) >> 32;
 	cl = (regs->regs[19]) & 0xffffffff;
 	printk("R16 : %08Lx%08Lx R17 : %08Lx%08Lx R19 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[20]) >> 32;
 	al = (regs->regs[20]) & 0xffffffff;
@@ -125,7 +125,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[22]) >> 32;
 	cl = (regs->regs[22]) & 0xffffffff;
 	printk("R20 : %08Lx%08Lx R21 : %08Lx%08Lx R22 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[23]) >> 32;
 	al = (regs->regs[23]) & 0xffffffff;
@@ -134,7 +134,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[25]) >> 32;
 	cl = (regs->regs[25]) & 0xffffffff;
 	printk("R23 : %08Lx%08Lx R24 : %08Lx%08Lx R25 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[26]) >> 32;
 	al = (regs->regs[26]) & 0xffffffff;
@@ -143,7 +143,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[28]) >> 32;
 	cl = (regs->regs[28]) & 0xffffffff;
 	printk("R26 : %08Lx%08Lx R27 : %08Lx%08Lx R28 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[29]) >> 32;
 	al = (regs->regs[29]) & 0xffffffff;
@@ -152,7 +152,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[31]) >> 32;
 	cl = (regs->regs[31]) & 0xffffffff;
 	printk("R29 : %08Lx%08Lx R30 : %08Lx%08Lx R31 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[32]) >> 32;
 	al = (regs->regs[32]) & 0xffffffff;
@@ -161,7 +161,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[34]) >> 32;
 	cl = (regs->regs[34]) & 0xffffffff;
 	printk("R32 : %08Lx%08Lx R33 : %08Lx%08Lx R34 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[35]) >> 32;
 	al = (regs->regs[35]) & 0xffffffff;
@@ -170,7 +170,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[37]) >> 32;
 	cl = (regs->regs[37]) & 0xffffffff;
 	printk("R35 : %08Lx%08Lx R36 : %08Lx%08Lx R37 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[38]) >> 32;
 	al = (regs->regs[38]) & 0xffffffff;
@@ -179,7 +179,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[40]) >> 32;
 	cl = (regs->regs[40]) & 0xffffffff;
 	printk("R38 : %08Lx%08Lx R39 : %08Lx%08Lx R40 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[41]) >> 32;
 	al = (regs->regs[41]) & 0xffffffff;
@@ -188,7 +188,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[43]) >> 32;
 	cl = (regs->regs[43]) & 0xffffffff;
 	printk("R41 : %08Lx%08Lx R42 : %08Lx%08Lx R43 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[44]) >> 32;
 	al = (regs->regs[44]) & 0xffffffff;
@@ -197,7 +197,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[46]) >> 32;
 	cl = (regs->regs[46]) & 0xffffffff;
 	printk("R44 : %08Lx%08Lx R45 : %08Lx%08Lx R46 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[47]) >> 32;
 	al = (regs->regs[47]) & 0xffffffff;
@@ -206,7 +206,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[49]) >> 32;
 	cl = (regs->regs[49]) & 0xffffffff;
 	printk("R47 : %08Lx%08Lx R48 : %08Lx%08Lx R49 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[50]) >> 32;
 	al = (regs->regs[50]) & 0xffffffff;
@@ -215,7 +215,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[52]) >> 32;
 	cl = (regs->regs[52]) & 0xffffffff;
 	printk("R50 : %08Lx%08Lx R51 : %08Lx%08Lx R52 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[53]) >> 32;
 	al = (regs->regs[53]) & 0xffffffff;
@@ -224,7 +224,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[55]) >> 32;
 	cl = (regs->regs[55]) & 0xffffffff;
 	printk("R53 : %08Lx%08Lx R54 : %08Lx%08Lx R55 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[56]) >> 32;
 	al = (regs->regs[56]) & 0xffffffff;
@@ -233,7 +233,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[58]) >> 32;
 	cl = (regs->regs[58]) & 0xffffffff;
 	printk("R56 : %08Lx%08Lx R57 : %08Lx%08Lx R58 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[59]) >> 32;
 	al = (regs->regs[59]) & 0xffffffff;
@@ -242,7 +242,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->regs[61]) >> 32;
 	cl = (regs->regs[61]) & 0xffffffff;
 	printk("R59 : %08Lx%08Lx R60 : %08Lx%08Lx R61 : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->regs[62]) >> 32;
 	al = (regs->regs[62]) & 0xffffffff;
@@ -251,7 +251,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->tregs[1]) >> 32;
 	cl = (regs->tregs[1]) & 0xffffffff;
 	printk("R62 : %08Lx%08Lx T0  : %08Lx%08Lx T1  : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->tregs[2]) >> 32;
 	al = (regs->tregs[2]) & 0xffffffff;
@@ -260,7 +260,7 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->tregs[4]) >> 32;
 	cl = (regs->tregs[4]) & 0xffffffff;
 	printk("T2  : %08Lx%08Lx T3  : %08Lx%08Lx T4  : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	ah = (regs->tregs[5]) >> 32;
 	al = (regs->tregs[5]) & 0xffffffff;
@@ -269,13 +269,14 @@ void show_regs(struct pt_regs *regs)
 	ch = (regs->tregs[7]) >> 32;
 	cl = (regs->tregs[7]) & 0xffffffff;
 	printk("T5  : %08Lx%08Lx T6  : %08Lx%08Lx T7  : %08Lx%08Lx\n",
-	       ah, al, bh, bl, ch, cl);
+		   ah, al, bh, bl, ch, cl);
 
 	/*
 	 * If we're in kernel mode, dump the stack too..
 	 */
-	if (!user_mode(regs)) {
-		void show_stack(struct task_struct *tsk, unsigned long *sp);
+	if (!user_mode(regs))
+	{
+		void show_stack(struct task_struct * tsk, unsigned long * sp);
 		unsigned long sp = regs->regs[15] & 0xffffffff;
 		struct task_struct *tsk = get_current();
 
@@ -308,7 +309,10 @@ void exit_thread(struct task_struct *tsk)
 	 */
 #ifdef CONFIG_SH_FPU
 	if (last_task_used_math == tsk)
+	{
 		last_task_used_math = NULL;
+	}
+
 #endif
 }
 
@@ -318,20 +322,23 @@ void flush_thread(void)
 	/* Called by fs/exec.c (setup_new_exec) to remove traces of a
 	 * previously running executable. */
 #ifdef CONFIG_SH_FPU
-	if (last_task_used_math == current) {
+	if (last_task_used_math == current)
+	{
 		last_task_used_math = NULL;
 	}
+
 	/* Force FPU state to be reinitialised after exec */
 	clear_used_math();
 #endif
 
 	/* if we are a kernel thread, about to change to user thread,
-         * update kreg
-         */
-	if(current->thread.kregs==&fake_swapper_regs) {
-          current->thread.kregs =
-             ((struct pt_regs *)(THREAD_SIZE + (unsigned long) current) - 1);
-	  current->thread.uregs = current->thread.kregs;
+	     * update kreg
+	     */
+	if (current->thread.kregs == &fake_swapper_regs)
+	{
+		current->thread.kregs =
+			((struct pt_regs *)(THREAD_SIZE + (unsigned long) current) - 1);
+		current->thread.uregs = current->thread.kregs;
 	}
 }
 
@@ -348,8 +355,11 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu)
 	struct task_struct *tsk = current;
 
 	fpvalid = !!tsk_used_math(tsk);
-	if (fpvalid) {
-		if (current == last_task_used_math) {
+
+	if (fpvalid)
+	{
+		if (current == last_task_used_math)
+		{
 			enable_fpu();
 			save_fpu(tsk);
 			disable_fpu();
@@ -371,25 +381,29 @@ asmlinkage void ret_from_fork(void);
 asmlinkage void ret_from_kernel_thread(void);
 
 int copy_thread(unsigned long clone_flags, unsigned long usp,
-		unsigned long arg, struct task_struct *p)
+				unsigned long arg, struct task_struct *p)
 {
 	struct pt_regs *childregs;
 
 #ifdef CONFIG_SH_FPU
+
 	/* can't happen for a kernel thread */
-	if (last_task_used_math == current) {
+	if (last_task_used_math == current)
+	{
 		enable_fpu();
 		save_fpu(current);
 		disable_fpu();
 		last_task_used_math = NULL;
 		current_pt_regs()->sr |= SR_FD;
 	}
+
 #endif
 	/* Copy from sh version */
 	childregs = (struct pt_regs *)(THREAD_SIZE + task_stack_page(p)) - 1;
 	p->thread.sp = (unsigned long) childregs;
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		memset(childregs, 0, sizeof(struct pt_regs));
 		childregs->regs[2] = (unsigned long)arg;
 		childregs->regs[3] = (unsigned long)usp;
@@ -398,6 +412,7 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 		p->thread.pc = (unsigned long) ret_from_kernel_thread;
 		return 0;
 	}
+
 	*childregs = *current_pt_regs();
 
 	/*
@@ -407,7 +422,10 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	 * of NEFF sign extension.
 	 */
 	if (usp)
+	{
 		childregs->regs[15] = neff_sign_extend(usp);
+	}
+
 	p->thread.uregs = childregs;
 
 	childregs->regs[9] = 0; /* Set return value for child */
@@ -425,7 +443,7 @@ static int in_sh64_switch_to(unsigned long pc)
 	/* For a sleeping task, the PC is somewhere in the middle of the function,
 	   so we don't have to worry about masking the LSB off */
 	return (pc >= (unsigned long) sh64_switch_to) &&
-	       (pc < (unsigned long) &__sh64_switch_to_end);
+		   (pc < (unsigned long) &__sh64_switch_to_end);
 }
 #endif
 
@@ -434,7 +452,9 @@ unsigned long get_wchan(struct task_struct *p)
 	unsigned long pc;
 
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	/*
 	 * The same comment as on the Alpha applies here, too ...
@@ -442,7 +462,9 @@ unsigned long get_wchan(struct task_struct *p)
 	pc = thread_saved_pc(p);
 
 #ifdef CONFIG_FRAME_POINTER
-	if (in_sh64_switch_to(pc)) {
+
+	if (in_sh64_switch_to(pc))
+	{
 		unsigned long schedule_fp;
 		unsigned long sh64_switch_to_fp;
 		unsigned long schedule_caller_pc;
@@ -456,6 +478,7 @@ unsigned long get_wchan(struct task_struct *p)
 		schedule_caller_pc = *(unsigned long *) (long)(schedule_fp + 24);
 		return schedule_caller_pc;
 	}
+
 #endif
 	return pc;
 }

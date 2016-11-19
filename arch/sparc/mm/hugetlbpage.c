@@ -23,16 +23,18 @@
  */
 
 static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *filp,
-							unsigned long addr,
-							unsigned long len,
-							unsigned long pgoff,
-							unsigned long flags)
+		unsigned long addr,
+		unsigned long len,
+		unsigned long pgoff,
+		unsigned long flags)
 {
 	unsigned long task_size = TASK_SIZE;
 	struct vm_unmapped_area_info info;
 
 	if (test_thread_flag(TIF_32BIT))
+	{
 		task_size = STACK_TOP32;
+	}
 
 	info.flags = 0;
 	info.length = len;
@@ -42,7 +44,8 @@ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *filp,
 	info.align_offset = 0;
 	addr = vm_unmapped_area(&info);
 
-	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
+	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END)
+	{
 		VM_BUG_ON(addr != -ENOMEM);
 		info.low_limit = VA_EXCLUDE_END;
 		info.high_limit = task_size;
@@ -54,9 +57,9 @@ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *filp,
 
 static unsigned long
 hugetlb_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
-				  const unsigned long len,
-				  const unsigned long pgoff,
-				  const unsigned long flags)
+								  const unsigned long len,
+								  const unsigned long pgoff,
+								  const unsigned long flags)
 {
 	struct mm_struct *mm = current->mm;
 	unsigned long addr = addr0;
@@ -79,7 +82,8 @@ hugetlb_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 	 * can happen with large stack limits and large mmap()
 	 * allocations.
 	 */
-	if (addr & ~PAGE_MASK) {
+	if (addr & ~PAGE_MASK)
+	{
 		VM_BUG_ON(addr != -ENOMEM);
 		info.flags = 0;
 		info.low_limit = TASK_UNMAPPED_BASE;
@@ -92,33 +96,49 @@ hugetlb_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
 
 unsigned long
 hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
-		unsigned long len, unsigned long pgoff, unsigned long flags)
+						  unsigned long len, unsigned long pgoff, unsigned long flags)
 {
 	struct mm_struct *mm = current->mm;
 	struct vm_area_struct *vma;
 	unsigned long task_size = TASK_SIZE;
 
 	if (test_thread_flag(TIF_32BIT))
+	{
 		task_size = STACK_TOP32;
+	}
 
 	if (len & ~HPAGE_MASK)
+	{
 		return -EINVAL;
-	if (len > task_size)
-		return -ENOMEM;
+	}
 
-	if (flags & MAP_FIXED) {
+	if (len > task_size)
+	{
+		return -ENOMEM;
+	}
+
+	if (flags & MAP_FIXED)
+	{
 		if (prepare_hugepage_range(file, addr, len))
+		{
 			return -EINVAL;
+		}
+
 		return addr;
 	}
 
-	if (addr) {
+	if (addr)
+	{
 		addr = ALIGN(addr, HPAGE_SIZE);
 		vma = find_vma(mm, addr);
+
 		if (task_size - len >= addr &&
-		    (!vma || addr + len <= vma->vm_start))
+			(!vma || addr + len <= vma->vm_start))
+		{
 			return addr;
+		}
 	}
+
 	if (mm->get_unmapped_area == arch_get_unmapped_area)
 		return hugetlb_get_unmapped_area_bottomup(file, addr, len,
 				pgoff, flags);
@@ -128,7 +148,7 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
 }
 
 pte_t *huge_pte_alloc(struct mm_struct *mm,
-			unsigned long addr, unsigned long sz)
+					  unsigned long addr, unsigned long sz)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -136,8 +156,11 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
 
 	pgd = pgd_offset(mm, addr);
 	pud = pud_alloc(mm, pgd, addr);
+
 	if (pud)
+	{
 		pte = (pte_t *)pmd_alloc(mm, pud, addr);
+	}
 
 	return pte;
 }
@@ -149,21 +172,29 @@ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
 	pte_t *pte = NULL;
 
 	pgd = pgd_offset(mm, addr);
-	if (!pgd_none(*pgd)) {
+
+	if (!pgd_none(*pgd))
+	{
 		pud = pud_offset(pgd, addr);
+
 		if (!pud_none(*pud))
+		{
 			pte = (pte_t *)pmd_offset(pud, addr);
+		}
 	}
+
 	return pte;
 }
 
 void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-		     pte_t *ptep, pte_t entry)
+					 pte_t *ptep, pte_t entry)
 {
 	pte_t orig;
 
 	if (!pte_present(*ptep) && pte_present(entry))
+	{
 		mm->context.hugetlb_pte_count++;
+	}
 
 	addr &= HPAGE_MASK;
 	orig = *ptep;
@@ -175,13 +206,16 @@ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
 }
 
 pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
-			      pte_t *ptep)
+							  pte_t *ptep)
 {
 	pte_t entry;
 
 	entry = *ptep;
+
 	if (pte_present(entry))
+	{
 		mm->context.hugetlb_pte_count--;
+	}
 
 	addr &= HPAGE_MASK;
 	*ptep = __pte(0UL);
@@ -196,7 +230,7 @@ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
 int pmd_huge(pmd_t pmd)
 {
 	return !pmd_none(pmd) &&
-		(pmd_val(pmd) & (_PAGE_VALID|_PAGE_PMD_HUGE)) != _PAGE_VALID;
+		   (pmd_val(pmd) & (_PAGE_VALID | _PAGE_PMD_HUGE)) != _PAGE_VALID;
 }
 
 int pud_huge(pud_t pud)
@@ -205,7 +239,7 @@ int pud_huge(pud_t pud)
 }
 
 static void hugetlb_free_pte_range(struct mmu_gather *tlb, pmd_t *pmd,
-			   unsigned long addr)
+								   unsigned long addr)
 {
 	pgtable_t token = pmd_pgtable(*pmd);
 
@@ -215,8 +249,8 @@ static void hugetlb_free_pte_range(struct mmu_gather *tlb, pmd_t *pmd,
 }
 
 static void hugetlb_free_pmd_range(struct mmu_gather *tlb, pud_t *pud,
-				   unsigned long addr, unsigned long end,
-				   unsigned long floor, unsigned long ceiling)
+								   unsigned long addr, unsigned long end,
+								   unsigned long floor, unsigned long ceiling)
 {
 	pmd_t *pmd;
 	unsigned long next;
@@ -224,26 +258,48 @@ static void hugetlb_free_pmd_range(struct mmu_gather *tlb, pud_t *pud,
 
 	start = addr;
 	pmd = pmd_offset(pud, addr);
-	do {
+
+	do
+	{
 		next = pmd_addr_end(addr, end);
+
 		if (pmd_none(*pmd))
+		{
 			continue;
+		}
+
 		if (is_hugetlb_pmd(*pmd))
+		{
 			pmd_clear(pmd);
+		}
 		else
+		{
 			hugetlb_free_pte_range(tlb, pmd, addr);
-	} while (pmd++, addr = next, addr != end);
+		}
+	}
+	while (pmd++, addr = next, addr != end);
 
 	start &= PUD_MASK;
+
 	if (start < floor)
+	{
 		return;
-	if (ceiling) {
-		ceiling &= PUD_MASK;
-		if (!ceiling)
-			return;
 	}
+
+	if (ceiling)
+	{
+		ceiling &= PUD_MASK;
+
+		if (!ceiling)
+		{
+			return;
+		}
+	}
+
 	if (end - 1 > ceiling - 1)
+	{
 		return;
+	}
 
 	pmd = pmd_offset(pud, start);
 	pud_clear(pud);
@@ -252,8 +308,8 @@ static void hugetlb_free_pmd_range(struct mmu_gather *tlb, pud_t *pud,
 }
 
 static void hugetlb_free_pud_range(struct mmu_gather *tlb, pgd_t *pgd,
-				   unsigned long addr, unsigned long end,
-				   unsigned long floor, unsigned long ceiling)
+								   unsigned long addr, unsigned long end,
+								   unsigned long floor, unsigned long ceiling)
 {
 	pud_t *pud;
 	unsigned long next;
@@ -261,24 +317,42 @@ static void hugetlb_free_pud_range(struct mmu_gather *tlb, pgd_t *pgd,
 
 	start = addr;
 	pud = pud_offset(pgd, addr);
-	do {
+
+	do
+	{
 		next = pud_addr_end(addr, end);
+
 		if (pud_none_or_clear_bad(pud))
+		{
 			continue;
+		}
+
 		hugetlb_free_pmd_range(tlb, pud, addr, next, floor,
-				       ceiling);
-	} while (pud++, addr = next, addr != end);
+							   ceiling);
+	}
+	while (pud++, addr = next, addr != end);
 
 	start &= PGDIR_MASK;
+
 	if (start < floor)
+	{
 		return;
-	if (ceiling) {
-		ceiling &= PGDIR_MASK;
-		if (!ceiling)
-			return;
 	}
+
+	if (ceiling)
+	{
+		ceiling &= PGDIR_MASK;
+
+		if (!ceiling)
+		{
+			return;
+		}
+	}
+
 	if (end - 1 > ceiling - 1)
+	{
 		return;
+	}
 
 	pud = pud_offset(pgd, start);
 	pgd_clear(pgd);
@@ -286,17 +360,24 @@ static void hugetlb_free_pud_range(struct mmu_gather *tlb, pgd_t *pgd,
 }
 
 void hugetlb_free_pgd_range(struct mmu_gather *tlb,
-			    unsigned long addr, unsigned long end,
-			    unsigned long floor, unsigned long ceiling)
+							unsigned long addr, unsigned long end,
+							unsigned long floor, unsigned long ceiling)
 {
 	pgd_t *pgd;
 	unsigned long next;
 
 	pgd = pgd_offset(tlb->mm, addr);
-	do {
+
+	do
+	{
 		next = pgd_addr_end(addr, end);
+
 		if (pgd_none_or_clear_bad(pgd))
+		{
 			continue;
+		}
+
 		hugetlb_free_pud_range(tlb, pgd, addr, next, floor, ceiling);
-	} while (pgd++, addr = next, addr != end);
+	}
+	while (pgd++, addr = next, addr != end);
 }

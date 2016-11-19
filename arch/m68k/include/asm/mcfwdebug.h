@@ -3,7 +3,7 @@
 /*
  *	mcfdebug.h -- ColdFire Debug Module support.
  *
- * 	(C) Copyright 2001, Lineo Inc. (www.lineo.com) 
+ * 	(C) Copyright 2001, Lineo Inc. (www.lineo.com)
  */
 
 /****************************************************************************/
@@ -89,7 +89,8 @@
  * that the debug module instructions (2 longs) must be long word aligned and
  * some pointer fiddling is performed to ensure this.
  */
-static inline void wdebug(int reg, unsigned long data) {
+static inline void wdebug(int reg, unsigned long data)
+{
 	unsigned short dbg_spc[6];
 	unsigned short *dbg;
 
@@ -106,9 +107,9 @@ static inline void wdebug(int reg, unsigned long data) {
 #if 0
 	// This strain is for gas which doesn't have the wdebug instructions defined
 	asm(	"move.l	%0, %%a0\n\t"
-		".word	0xfbd0\n\t"
-		".word	0x0003\n\t"
-	    :: "g" (dbg) : "a0");
+			".word	0xfbd0\n\t"
+			".word	0x0003\n\t"
+			:: "g" (dbg) : "a0");
 #else
 	// And this is for when it does
 	asm(	"wdebug	(%0)" :: "a" (dbg));

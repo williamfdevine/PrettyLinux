@@ -30,7 +30,8 @@
 #include <asm/machdep.h>
 #include <asm/mpc52xx.h>
 
-static const struct of_device_id mpc5200_gpio_ids[] __initconst = {
+static const struct of_device_id mpc5200_gpio_ids[] __initconst =
+{
 	{ .compatible = "fsl,mpc5200-gpio", },
 	{ .compatible = "mpc5200-gpio", },
 	{}
@@ -42,7 +43,8 @@ static const struct of_device_id mpc5200_gpio_ids[] __initconst = {
 #define MEDIA5200_NUM_IRQS   (6)
 #define MEDIA5200_IRQ_SHIFT  (32 - MEDIA5200_NUM_IRQS)
 
-struct media5200_irq {
+struct media5200_irq
+{
 	void __iomem *regs;
 	spinlock_t lock;
 	struct irq_domain *irqhost;
@@ -73,7 +75,8 @@ static void media5200_irq_mask(struct irq_data *d)
 	spin_unlock_irqrestore(&media5200_irq.lock, flags);
 }
 
-static struct irq_chip media5200_irq_chip = {
+static struct irq_chip media5200_irq_chip =
+{
 	.name = "Media5200 FPGA",
 	.irq_unmask = media5200_irq_unmask,
 	.irq_mask = media5200_irq_mask,
@@ -96,7 +99,9 @@ static void media5200_irq_cascade(struct irq_desc *desc)
 	status = in_be32(media5200_irq.regs + MEDIA5200_IRQ_ENABLE);
 	enable = in_be32(media5200_irq.regs + MEDIA5200_IRQ_STATUS);
 	val = ffs((status & enable) >> MEDIA5200_IRQ_SHIFT);
-	if (val) {
+
+	if (val)
+	{
 		sub_virq = irq_linear_revmap(media5200_irq.irqhost, val - 1);
 		/* pr_debug("%s: virq=%i s=%.8x e=%.8x hwirq=%i subvirq=%i\n",
 		 *          __func__, virq, status, enable, val - 1, sub_virq);
@@ -107,13 +112,17 @@ static void media5200_irq_cascade(struct irq_desc *desc)
 	/* Processing done; can reenable the cascade now */
 	raw_spin_lock(&desc->lock);
 	chip->irq_ack(&desc->irq_data);
+
 	if (!irqd_irq_disabled(&desc->irq_data))
+	{
 		chip->irq_unmask(&desc->irq_data);
+	}
+
 	raw_spin_unlock(&desc->lock);
 }
 
 static int media5200_irq_map(struct irq_domain *h, unsigned int virq,
-			     irq_hw_number_t hw)
+							 irq_hw_number_t hw)
 {
 	pr_debug("%s: h=%p, virq=%i, hwirq=%i\n", __func__, h, virq, (int)hw);
 	irq_set_chip_data(virq, &media5200_irq);
@@ -123,12 +132,14 @@ static int media5200_irq_map(struct irq_domain *h, unsigned int virq,
 }
 
 static int media5200_irq_xlate(struct irq_domain *h, struct device_node *ct,
-				 const u32 *intspec, unsigned int intsize,
-				 irq_hw_number_t *out_hwirq,
-				 unsigned int *out_flags)
+							   const u32 *intspec, unsigned int intsize,
+							   irq_hw_number_t *out_hwirq,
+							   unsigned int *out_flags)
 {
 	if (intsize != 2)
+	{
 		return -1;
+	}
 
 	pr_debug("%s: bank=%i, number=%i\n", __func__, intspec[0], intspec[1]);
 	*out_hwirq = intspec[1];
@@ -136,7 +147,8 @@ static int media5200_irq_xlate(struct irq_domain *h, struct device_node *ct,
 	return 0;
 }
 
-static const struct irq_domain_ops media5200_irq_ops = {
+static const struct irq_domain_ops media5200_irq_ops =
+{
 	.map = media5200_irq_map,
 	.xlate = media5200_irq_xlate,
 };
@@ -154,18 +166,30 @@ static void __init media5200_init_irq(void)
 
 	/* Now find the FPGA IRQ */
 	fpga_np = of_find_compatible_node(NULL, NULL, "fsl,media5200-fpga");
+
 	if (!fpga_np)
+	{
 		goto out;
+	}
+
 	pr_debug("%s: found fpga node: %s\n", __func__, fpga_np->full_name);
 
 	media5200_irq.regs = of_iomap(fpga_np, 0);
+
 	if (!media5200_irq.regs)
+	{
 		goto out;
+	}
+
 	pr_debug("%s: mapped to %p\n", __func__, media5200_irq.regs);
 
 	cascade_virq = irq_of_parse_and_map(fpga_np, 0);
+
 	if (!cascade_virq)
+	{
 		goto out;
+	}
+
 	pr_debug("%s: cascaded on virq=%i\n", __func__, cascade_virq);
 
 	/* Disable all FPGA IRQs */
@@ -174,9 +198,13 @@ static void __init media5200_init_irq(void)
 	spin_lock_init(&media5200_irq.lock);
 
 	media5200_irq.irqhost = irq_domain_add_linear(fpga_np,
-			MEDIA5200_NUM_IRQS, &media5200_irq_ops, &media5200_irq);
+							MEDIA5200_NUM_IRQS, &media5200_irq_ops, &media5200_irq);
+
 	if (!media5200_irq.irqhost)
+	{
 		goto out;
+	}
+
 	pr_debug("%s: allocated irqhost\n", __func__);
 
 	irq_set_handler_data(cascade_virq, &media5200_irq);
@@ -184,7 +212,7 @@ static void __init media5200_init_irq(void)
 
 	return;
 
- out:
+out:
 	pr_err("Could not find Media5200 FPGA; PCI interrupts will not work\n");
 }
 
@@ -199,7 +227,9 @@ static void __init media5200_setup_arch(void)
 	u32 port_config;
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("media5200_setup_arch()", 0);
+	}
 
 	/* Map important registers from the internal memory map */
 	mpc52xx_map_common_devices();
@@ -212,9 +242,11 @@ static void __init media5200_setup_arch(void)
 	np = of_find_matching_node(NULL, mpc5200_gpio_ids);
 	gpio = of_iomap(np, 0);
 	of_node_put(np);
-	if (!gpio) {
+
+	if (!gpio)
+	{
 		printk(KERN_ERR "%s() failed. expect abnormal behavior\n",
-		       __func__);
+			   __func__);
 		return;
 	}
 
@@ -232,7 +264,8 @@ static void __init media5200_setup_arch(void)
 }
 
 /* list of the supported boards */
-static const char * const board[] __initconst = {
+static const char *const board[] __initconst =
+{
 	"fsl,media5200",
 	NULL
 };
@@ -245,13 +278,14 @@ static int __init media5200_probe(void)
 	return of_device_compatible_match(of_root, board);
 }
 
-define_machine(media5200_platform) {
+define_machine(media5200_platform)
+{
 	.name		= "media5200-platform",
-	.probe		= media5200_probe,
-	.setup_arch	= media5200_setup_arch,
-	.init		= mpc52xx_declare_of_platform_devices,
-	.init_IRQ	= media5200_init_irq,
-	.get_irq	= mpc52xx_get_irq,
-	.restart	= mpc52xx_restart,
-	.calibrate_decr	= generic_calibrate_decr,
+		  .probe		= media5200_probe,
+			   .setup_arch	= media5200_setup_arch,
+				.init		= mpc52xx_declare_of_platform_devices,
+					  .init_IRQ	= media5200_init_irq,
+						 .get_irq	= mpc52xx_get_irq,
+							 .restart	= mpc52xx_restart,
+								 .calibrate_decr	= generic_calibrate_decr,
 };

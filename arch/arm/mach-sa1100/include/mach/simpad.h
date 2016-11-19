@@ -120,7 +120,8 @@ void simpad_clear_cs3_bit(int value);
 #define PCMCIA_SHORT	0x40
 
 /*--- Battery ---*/
-struct simpad_battery {
+struct simpad_battery
+{
 	unsigned char ac_status;	/* line connected yes/no */
 	unsigned char status;		/* battery loading yes/no */
 	unsigned char percentage;	/* percentage loaded */
@@ -145,7 +146,7 @@ struct simpad_battery {
 #define SIMPAD_BATT_STATUS_NOBATT        0x80
 #define SIMPAD_BATT_STATUS_UNKNOWN       0xff
 
-extern int simpad_get_battery(struct simpad_battery* );
+extern int simpad_get_battery(struct simpad_battery * );
 
 #endif // __ASM_ARCH_SIMPAD_H
 

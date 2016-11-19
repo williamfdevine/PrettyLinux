@@ -47,7 +47,7 @@ extern void die(char *, struct pt_regs *, long);
  */
 
 asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long address,
-			      unsigned long vector, int write_acc)
+							  unsigned long vector, int write_acc)
 {
 	struct task_struct *tsk;
 	struct mm_struct *mm;
@@ -78,22 +78,29 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long address,
 	 */
 
 	if (address >= VMALLOC_START &&
-	    (vector != 0x300 && vector != 0x400) &&
-	    !user_mode(regs))
+		(vector != 0x300 && vector != 0x400) &&
+		!user_mode(regs))
+	{
 		goto vmalloc_fault;
+	}
 
 	/* If exceptions were enabled, we can reenable them here */
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		/* Exception was in userspace: reenable interrupts */
 		local_irq_enable();
 		flags |= FAULT_FLAG_USER;
-	} else {
+	}
+	else
+	{
 		/* If exception was in a syscall, then IRQ's may have
 		 * been enabled or disabled.  If they were enabled,
 		 * reenable them.
 		 */
 		if (regs->sr && (SPR_SR_IEE | SPR_SR_TEE))
+		{
 			local_irq_enable();
+		}
 	}
 
 	mm = tsk->mm;
@@ -105,22 +112,31 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long address,
 	 */
 
 	if (in_interrupt() || !mm)
+	{
 		goto no_context;
+	}
 
 retry:
 	down_read(&mm->mmap_sem);
 	vma = find_vma(mm, address);
 
 	if (!vma)
+	{
 		goto bad_area;
+	}
 
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
 
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
+	}
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		/*
 		 * accessing the stack below usp is always a bug.
 		 * we get page-aligned addresses so we can only check
@@ -128,10 +144,15 @@ retry:
 		 * enough to catch brutal errors at least.
 		 */
 		if (address + PAGE_SIZE < regs->sp)
+		{
 			goto bad_area;
+		}
 	}
+
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
 
 	/*
 	 * Ok, we have a good vm_area for this memory access, so
@@ -143,19 +164,29 @@ good_area:
 
 	/* first do some preliminary protection checks */
 
-	if (write_acc) {
+	if (write_acc)
+	{
 		if (!(vma->vm_flags & VM_WRITE))
+		{
 			goto bad_area;
+		}
+
 		flags |= FAULT_FLAG_WRITE;
-	} else {
+	}
+	else
+	{
 		/* not present */
 		if (!(vma->vm_flags & (VM_READ | VM_EXEC)))
+		{
 			goto bad_area;
+		}
 	}
 
 	/* are we trying to execute nonexecutable area */
 	if ((vector == 0x400) && !(vma->vm_page_prot.pgprot & _PAGE_EXEC))
+	{
 		goto bad_area;
+	}
 
 	/*
 	 * If for any reason at all we couldn't handle the fault,
@@ -166,32 +197,49 @@ good_area:
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return;
+	}
 
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
 
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
 		/*RGD modeled on Cris */
 		if (fault & VM_FAULT_MAJOR)
+		{
 			tsk->maj_flt++;
+		}
 		else
+		{
 			tsk->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 			flags |= FAULT_FLAG_TRIED;
 
-			 /* No need to up_read(&mm->mmap_sem) as we would
-			 * have already released it in __lock_page_or_retry
-			 * in mm/filemap.c.
-			 */
+			/* No need to up_read(&mm->mmap_sem) as we would
+			* have already released it in __lock_page_or_retry
+			* in mm/filemap.c.
+			*/
 
 			goto retry;
 		}
@@ -212,7 +260,8 @@ bad_area_nosemaphore:
 
 	/* User mode accesses just cause a SIGSEGV */
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		info.si_signo = SIGSEGV;
 		info.si_errno = 0;
 		/* info.si_code has been set above */
@@ -237,7 +286,8 @@ no_context:
 
 		__asm__ __volatile__("l.nop 42");
 
-		if ((entry = search_exception_tables(regs->pc)) != NULL) {
+		if ((entry = search_exception_tables(regs->pc)) != NULL)
+		{
 			/* Adjust the instruction pointer in the stackframe */
 			regs->pc = entry->fixup;
 			return;
@@ -251,9 +301,12 @@ no_context:
 
 	if ((unsigned long)(address) < PAGE_SIZE)
 		printk(KERN_ALERT
-		       "Unable to handle kernel NULL pointer dereference");
+			   "Unable to handle kernel NULL pointer dereference");
 	else
+	{
 		printk(KERN_ALERT "Unable to handle kernel access");
+	}
+
 	printk(" at virtual address 0x%08lx\n", address);
 
 	die("Oops", regs, write_acc);
@@ -270,8 +323,12 @@ out_of_memory:
 	__asm__ __volatile__("l.nop 1");
 
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return;
 
@@ -290,7 +347,10 @@ do_sigbus:
 
 	/* Kernel mode? Handle exceptions or die */
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
+
 	return;
 
 vmalloc_fault:
@@ -312,13 +372,13 @@ vmalloc_fault:
 		pmd_t *pmd, *pmd_k;
 		pte_t *pte_k;
 
-/*
-		phx_warn("do_page_fault(): vmalloc_fault will not work, "
-			 "since current_pgd assign a proper value somewhere\n"
-			 "anyhow we don't need this at the moment\n");
+		/*
+				phx_warn("do_page_fault(): vmalloc_fault will not work, "
+					 "since current_pgd assign a proper value somewhere\n"
+					 "anyhow we don't need this at the moment\n");
 
-		phx_mmu("vmalloc_fault");
-*/
+				phx_mmu("vmalloc_fault");
+		*/
 		pgd = (pgd_t *)current_pgd + offset;
 		pgd_k = init_mm.pgd + offset;
 
@@ -336,14 +396,19 @@ vmalloc_fault:
 
 		pud = pud_offset(pgd, address);
 		pud_k = pud_offset(pgd_k, address);
+
 		if (!pud_present(*pud_k))
+		{
 			goto no_context;
+		}
 
 		pmd = pmd_offset(pud, address);
 		pmd_k = pmd_offset(pud_k, address);
 
 		if (!pmd_present(*pmd_k))
+		{
 			goto bad_area_nosemaphore;
+		}
 
 		set_pmd(pmd, *pmd_k);
 
@@ -354,8 +419,11 @@ vmalloc_fault:
 		 */
 
 		pte_k = pte_offset_kernel(pmd_k, address);
+
 		if (!pte_present(*pte_k))
+		{
 			goto no_context;
+		}
 
 		return;
 	}

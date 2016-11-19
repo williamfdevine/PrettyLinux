@@ -23,7 +23,8 @@
  */
 
 struct pglist_data;
-struct ia64_node_data {
+struct ia64_node_data
+{
 	short			active_cpu_count;
 	short			node;
 	struct pglist_data	*pg_data_ptrs[MAX_NUMNODES];
@@ -40,7 +41,7 @@ struct ia64_node_data {
  *
  * NODE_DATA 	- should be used in all code not related to system
  *		  initialization. It uses pernode data structures to minimize
- *		  offnode memory references. However, these structure are not 
+ *		  offnode memory references. However, these structure are not
  *		  present during boot. This macro can be used once cpu_init
  *		  completes.
  */
@@ -56,7 +57,7 @@ struct ia64_node_data {
  */
 #define LOCAL_DATA_ADDR(pgdat)  			\
 	((struct ia64_node_data *)((u64)(pgdat) + 	\
-				   L1_CACHE_ALIGN(sizeof(struct pglist_data))))
+							   L1_CACHE_ALIGN(sizeof(struct pglist_data))))
 
 #endif /* CONFIG_NUMA */
 

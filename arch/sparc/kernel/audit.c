@@ -5,36 +5,45 @@
 
 #include "kernel.h"
 
-static unsigned int dir_class[] = {
+static unsigned int dir_class[] =
+{
 #include <asm-generic/audit_dir_write.h>
-~0U
+	~0U
 };
 
-static unsigned int read_class[] = {
+static unsigned int read_class[] =
+{
 #include <asm-generic/audit_read.h>
-~0U
+	~0U
 };
 
-static unsigned int write_class[] = {
+static unsigned int write_class[] =
+{
 #include <asm-generic/audit_write.h>
-~0U
+	~0U
 };
 
-static unsigned int chattr_class[] = {
+static unsigned int chattr_class[] =
+{
 #include <asm-generic/audit_change_attr.h>
-~0U
+	~0U
 };
 
-static unsigned int signal_class[] = {
+static unsigned int signal_class[] =
+{
 #include <asm-generic/audit_signal.h>
-~0U
+	~0U
 };
 
 int audit_classify_arch(int arch)
 {
 #ifdef CONFIG_COMPAT
+
 	if (arch == AUDIT_ARCH_SPARC)
+	{
 		return 1;
+	}
+
 #endif
 	return 0;
 }
@@ -42,20 +51,30 @@ int audit_classify_arch(int arch)
 int audit_classify_syscall(int abi, unsigned int syscall)
 {
 #ifdef CONFIG_COMPAT
+
 	if (abi == AUDIT_ARCH_SPARC)
+	{
 		return sparc32_classify_syscall(syscall);
+	}
+
 #endif
-	switch(syscall) {
-	case __NR_open:
-		return 2;
-	case __NR_openat:
-		return 3;
-	case __NR_socketcall:
-		return 4;
-	case __NR_execve:
-		return 5;
-	default:
-		return 0;
+
+	switch (syscall)
+	{
+		case __NR_open:
+			return 2;
+
+		case __NR_openat:
+			return 3;
+
+		case __NR_socketcall:
+			return 4;
+
+		case __NR_execve:
+			return 5;
+
+		default:
+			return 0;
 	}
 }
 

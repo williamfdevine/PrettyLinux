@@ -105,14 +105,16 @@
 /* DCL */
 #define AR7_WDT_HW_ENA	0x10
 
-struct plat_cpmac_data {
+struct plat_cpmac_data
+{
 	int reset_bit;
 	int power_bit;
 	u32 phy_mask;
 	char dev_addr[6];
 };
 
-struct plat_dsl_data {
+struct plat_dsl_data
+{
 	int reset_bit_dsl;
 	int reset_bit_sar;
 };
@@ -122,43 +124,48 @@ extern int ar7_cpu_clock, ar7_bus_clock, ar7_dsp_clock;
 static inline int ar7_is_titan(void)
 {
 	return (readl((void *)KSEG1ADDR(AR7_REGS_GPIO + 0x24)) & 0xffff) ==
-		AR7_CHIP_TITAN;
+		   AR7_CHIP_TITAN;
 }
 
 static inline u16 ar7_chip_id(void)
 {
 	return ar7_is_titan() ? AR7_CHIP_TITAN : (readl((void *)
-		KSEG1ADDR(AR7_REGS_GPIO + 0x14)) & 0xffff);
+			KSEG1ADDR(AR7_REGS_GPIO + 0x14)) & 0xffff);
 }
 
 static inline u16 titan_chip_id(void)
 {
 	unsigned int val = readl((void *)KSEG1ADDR(AR7_REGS_GPIO +
-						TITAN_GPIO_INPUT_1));
+							 TITAN_GPIO_INPUT_1));
 	return ((val >> 12) & 0x0f);
 }
 
 static inline u8 ar7_chip_rev(void)
 {
 	return (readl((void *)KSEG1ADDR(AR7_REGS_GPIO + (ar7_is_titan() ? 0x24 :
-		0x14))) >> 16) & 0xff;
+									0x14))) >> 16) & 0xff;
 }
 
-struct clk {
+struct clk
+{
 	unsigned int	rate;
 };
 
 static inline int ar7_has_high_cpmac(void)
 {
 	u16 chip_id = ar7_chip_id();
-	switch (chip_id) {
-	case AR7_CHIP_7100:
-	case AR7_CHIP_7200:
-		return 0;
-	case AR7_CHIP_7300:
-		return 1;
-	default:
-		return -ENXIO;
+
+	switch (chip_id)
+	{
+		case AR7_CHIP_7100:
+		case AR7_CHIP_7200:
+			return 0;
+
+		case AR7_CHIP_7300:
+			return 1;
+
+		default:
+			return -ENXIO;
 	}
 }
 #define ar7_has_high_vlynq ar7_has_high_cpmac

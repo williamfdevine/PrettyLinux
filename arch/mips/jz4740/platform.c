@@ -33,12 +33,14 @@
 #include "clock.h"
 
 /* USB Device Controller */
-struct platform_device jz4740_udc_xceiv_device = {
+struct platform_device jz4740_udc_xceiv_device =
+{
 	.name = "usb_phy_generic",
 	.id   = 0,
 };
 
-static struct resource jz4740_udc_resources[] = {
+static struct resource jz4740_udc_resources[] =
+{
 	[0] = {
 		.start = JZ4740_UDC_BASE_ADDR,
 		.end   = JZ4740_UDC_BASE_ADDR + 0x10000 - 1,
@@ -52,7 +54,8 @@ static struct resource jz4740_udc_resources[] = {
 	},
 };
 
-struct platform_device jz4740_udc_device = {
+struct platform_device jz4740_udc_device =
+{
 	.name = "musb-jz4740",
 	.id   = -1,
 	.dev  = {
@@ -64,7 +67,8 @@ struct platform_device jz4740_udc_device = {
 };
 
 /* MMC/SD controller */
-static struct resource jz4740_mmc_resources[] = {
+static struct resource jz4740_mmc_resources[] =
+{
 	{
 		.start	= JZ4740_MSC_BASE_ADDR,
 		.end	= JZ4740_MSC_BASE_ADDR + 0x1000 - 1,
@@ -77,7 +81,8 @@ static struct resource jz4740_mmc_resources[] = {
 	}
 };
 
-struct platform_device jz4740_mmc_device = {
+struct platform_device jz4740_mmc_device =
+{
 	.name		= "jz4740-mmc",
 	.id		= 0,
 	.dev = {
@@ -89,7 +94,8 @@ struct platform_device jz4740_mmc_device = {
 };
 
 /* RTC controller */
-static struct resource jz4740_rtc_resources[] = {
+static struct resource jz4740_rtc_resources[] =
+{
 	{
 		.start	= JZ4740_RTC_BASE_ADDR,
 		.end	= JZ4740_RTC_BASE_ADDR + 0x38 - 1,
@@ -102,7 +108,8 @@ static struct resource jz4740_rtc_resources[] = {
 	},
 };
 
-struct platform_device jz4740_rtc_device = {
+struct platform_device jz4740_rtc_device =
+{
 	.name		= "jz4740-rtc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(jz4740_rtc_resources),
@@ -110,7 +117,8 @@ struct platform_device jz4740_rtc_device = {
 };
 
 /* I2C controller */
-static struct resource jz4740_i2c_resources[] = {
+static struct resource jz4740_i2c_resources[] =
+{
 	{
 		.start	= JZ4740_I2C_BASE_ADDR,
 		.end	= JZ4740_I2C_BASE_ADDR + 0x1000 - 1,
@@ -123,7 +131,8 @@ static struct resource jz4740_i2c_resources[] = {
 	}
 };
 
-struct platform_device jz4740_i2c_device = {
+struct platform_device jz4740_i2c_device =
+{
 	.name		= "jz4740-i2c",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(jz4740_i2c_resources),
@@ -131,7 +140,8 @@ struct platform_device jz4740_i2c_device = {
 };
 
 /* NAND controller */
-static struct resource jz4740_nand_resources[] = {
+static struct resource jz4740_nand_resources[] =
+{
 	{
 		.name	= "mmio",
 		.start	= JZ4740_EMC_BASE_ADDR,
@@ -164,14 +174,16 @@ static struct resource jz4740_nand_resources[] = {
 	},
 };
 
-struct platform_device jz4740_nand_device = {
+struct platform_device jz4740_nand_device =
+{
 	.name = "jz4740-nand",
 	.num_resources = ARRAY_SIZE(jz4740_nand_resources),
 	.resource = jz4740_nand_resources,
 };
 
 /* LCD controller */
-static struct resource jz4740_framebuffer_resources[] = {
+static struct resource jz4740_framebuffer_resources[] =
+{
 	{
 		.start	= JZ4740_LCD_BASE_ADDR,
 		.end	= JZ4740_LCD_BASE_ADDR + 0x1000 - 1,
@@ -179,7 +191,8 @@ static struct resource jz4740_framebuffer_resources[] = {
 	},
 };
 
-struct platform_device jz4740_framebuffer_device = {
+struct platform_device jz4740_framebuffer_device =
+{
 	.name		= "jz4740-fb",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(jz4740_framebuffer_resources),
@@ -191,7 +204,8 @@ struct platform_device jz4740_framebuffer_device = {
 };
 
 /* I2S controller */
-static struct resource jz4740_i2s_resources[] = {
+static struct resource jz4740_i2s_resources[] =
+{
 	{
 		.start	= JZ4740_AIC_BASE_ADDR,
 		.end	= JZ4740_AIC_BASE_ADDR + 0x38 - 1,
@@ -199,7 +213,8 @@ static struct resource jz4740_i2s_resources[] = {
 	},
 };
 
-struct platform_device jz4740_i2s_device = {
+struct platform_device jz4740_i2s_device =
+{
 	.name		= "jz4740-i2s",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(jz4740_i2s_resources),
@@ -207,13 +222,15 @@ struct platform_device jz4740_i2s_device = {
 };
 
 /* PCM */
-struct platform_device jz4740_pcm_device = {
+struct platform_device jz4740_pcm_device =
+{
 	.name		= "jz4740-pcm-audio",
 	.id		= -1,
 };
 
 /* Codec */
-static struct resource jz4740_codec_resources[] = {
+static struct resource jz4740_codec_resources[] =
+{
 	{
 		.start	= JZ4740_AIC_BASE_ADDR + 0x80,
 		.end	= JZ4740_AIC_BASE_ADDR + 0x88 - 1,
@@ -221,7 +238,8 @@ static struct resource jz4740_codec_resources[] = {
 	},
 };
 
-struct platform_device jz4740_codec_device = {
+struct platform_device jz4740_codec_device =
+{
 	.name		= "jz4740-codec",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(jz4740_codec_resources),
@@ -229,7 +247,8 @@ struct platform_device jz4740_codec_device = {
 };
 
 /* ADC controller */
-static struct resource jz4740_adc_resources[] = {
+static struct resource jz4740_adc_resources[] =
+{
 	{
 		.start	= JZ4740_SADC_BASE_ADDR,
 		.end	= JZ4740_SADC_BASE_ADDR + 0x30,
@@ -247,7 +266,8 @@ static struct resource jz4740_adc_resources[] = {
 	},
 };
 
-struct platform_device jz4740_adc_device = {
+struct platform_device jz4740_adc_device =
+{
 	.name		= "jz4740-adc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(jz4740_adc_resources),
@@ -255,7 +275,8 @@ struct platform_device jz4740_adc_device = {
 };
 
 /* Watchdog */
-static struct resource jz4740_wdt_resources[] = {
+static struct resource jz4740_wdt_resources[] =
+{
 	{
 		.start = JZ4740_WDT_BASE_ADDR,
 		.end   = JZ4740_WDT_BASE_ADDR + 0x10 - 1,
@@ -263,7 +284,8 @@ static struct resource jz4740_wdt_resources[] = {
 	},
 };
 
-struct platform_device jz4740_wdt_device = {
+struct platform_device jz4740_wdt_device =
+{
 	.name	       = "jz4740-wdt",
 	.id	       = -1,
 	.num_resources = ARRAY_SIZE(jz4740_wdt_resources),
@@ -271,13 +293,15 @@ struct platform_device jz4740_wdt_device = {
 };
 
 /* PWM */
-struct platform_device jz4740_pwm_device = {
+struct platform_device jz4740_pwm_device =
+{
 	.name = "jz4740-pwm",
 	.id   = -1,
 };
 
 /* DMA */
-static struct resource jz4740_dma_resources[] = {
+static struct resource jz4740_dma_resources[] =
+{
 	{
 		.start	= JZ4740_DMAC_BASE_ADDR,
 		.end	= JZ4740_DMAC_BASE_ADDR + 0x400 - 1,
@@ -290,7 +314,8 @@ static struct resource jz4740_dma_resources[] = {
 	},
 };
 
-struct platform_device jz4740_dma_device = {
+struct platform_device jz4740_dma_device =
+{
 	.name		= "jz4740-dma",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(jz4740_dma_resources),

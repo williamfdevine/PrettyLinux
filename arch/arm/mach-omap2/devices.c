@@ -48,14 +48,18 @@ static int __init omap3_l3_init(void)
 	 * multi-omap builds
 	 */
 	if (!(cpu_is_omap34xx()) || of_have_populated_dt())
+	{
 		return -ENODEV;
+	}
 
 	snprintf(oh_name, L3_MODULES_MAX_LEN, "l3_main");
 
 	oh = omap_hwmod_lookup(oh_name);
 
 	if (!oh)
+	{
 		pr_err("could not look up %s\n", oh_name);
+	}
 
 	pdev = omap_device_build("omap_l3_smx", 0, oh, NULL, 0);
 
@@ -80,21 +84,27 @@ static int __init omap_mcspi_init(struct omap_hwmod *oh, void *unused)
 	struct omap2_mcspi_dev_attr *mcspi_attrib = oh->dev_attr;
 
 	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		pr_err("Memory allocation for McSPI device failed\n");
 		return -ENOMEM;
 	}
 
 	pdata->num_cs = mcspi_attrib->num_chipselect;
-	switch (oh->class->rev) {
-	case OMAP2_MCSPI_REV:
-	case OMAP3_MCSPI_REV:
+
+	switch (oh->class->rev)
+	{
+		case OMAP2_MCSPI_REV:
+		case OMAP3_MCSPI_REV:
 			pdata->regs_offset = 0;
 			break;
-	case OMAP4_MCSPI_REV:
+
+		case OMAP4_MCSPI_REV:
 			pdata->regs_offset = OMAP4_MCSPI_REG_OFFSET;
 			break;
-	default:
+
+		default:
 			pr_err("Invalid McSPI Revision value\n");
 			kfree(pdata);
 			return -EINVAL;
@@ -103,7 +113,7 @@ static int __init omap_mcspi_init(struct omap_hwmod *oh, void *unused)
 	spi_num++;
 	pdev = omap_device_build(name, spi_num, oh, pdata, sizeof(*pdata));
 	WARN(IS_ERR(pdev), "Can't build omap_device for %s:%s\n",
-				name, oh->name);
+		 name, oh->name);
 	kfree(pdata);
 	return 0;
 }
@@ -128,8 +138,11 @@ static void omap_init_rng(void)
 	struct platform_device *pdev;
 
 	oh = omap_hwmod_lookup("rng");
+
 	if (!oh)
+	{
 		return;
+	}
 
 	pdev = omap_device_build("omap_rng", -1, oh, NULL, 0);
 	WARN(IS_ERR(pdev), "Can't build omap_device for omap_rng\n");
@@ -141,8 +154,11 @@ static void __init omap_init_sham(void)
 	struct platform_device *pdev;
 
 	oh = omap_hwmod_lookup("sham");
+
 	if (!oh)
+	{
 		return;
+	}
 
 	pdev = omap_device_build("omap-sham", -1, oh, NULL, 0);
 	WARN(IS_ERR(pdev), "Can't build omap_device for omap-sham\n");
@@ -154,8 +170,11 @@ static void __init omap_init_aes(void)
 	struct platform_device *pdev;
 
 	oh = omap_hwmod_lookup("aes");
+
 	if (!oh)
+	{
 		return;
+	}
 
 	pdev = omap_device_build("omap-aes", -1, oh, NULL, 0);
 	WARN(IS_ERR(pdev), "Can't build omap_device for omap-aes\n");
@@ -165,14 +184,17 @@ static void __init omap_init_aes(void)
 
 #if IS_ENABLED(CONFIG_VIDEO_OMAP2_VOUT)
 #if IS_ENABLED(CONFIG_FB_OMAP2)
-static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
+static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] =
+{
 };
 #else
-static struct resource omap_vout_resource[2] = {
+static struct resource omap_vout_resource[2] =
+{
 };
 #endif
 
-static struct platform_device omap_vout_device = {
+static struct platform_device omap_vout_device =
+{
 	.name		= "omap_vout",
 	.num_resources	= ARRAY_SIZE(omap_vout_resource),
 	.resource 	= &omap_vout_resource[0],
@@ -193,10 +215,13 @@ static int __init omap2_init_devices(void)
 {
 	/* Enable dummy states for those platforms without pinctrl support */
 	if (!of_have_populated_dt())
+	{
 		pinctrl_provide_dummies();
+	}
 
 	/* If dtb is there, the devices will be created dynamically */
-	if (!of_have_populated_dt()) {
+	if (!of_have_populated_dt())
+	{
 		/*
 		 * please keep these calls, and their implementations above,
 		 * in alphabetical order so they're easier to sort through.
@@ -206,6 +231,7 @@ static int __init omap2_init_devices(void)
 		omap_init_aes();
 		omap_init_rng();
 	}
+
 	omap_init_sti();
 
 	return 0;
@@ -223,10 +249,14 @@ static int __init omap_gpmc_init(void)
 	 * manually add the device from this initcall
 	 */
 	if (of_have_populated_dt())
+	{
 		return -ENODEV;
+	}
 
 	oh = omap_hwmod_lookup(oh_name);
-	if (!oh) {
+
+	if (!oh)
+	{
 		pr_err("Could not look up %s\n", oh_name);
 		return -ENODEV;
 	}

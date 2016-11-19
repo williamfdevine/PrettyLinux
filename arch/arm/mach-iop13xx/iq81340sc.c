@@ -34,28 +34,42 @@ iq81340sc_atux_map_irq(const struct pci_dev *dev, u8 idsel, u8 pin)
 {
 	WARN_ON(idsel < 1 || idsel > 2);
 
-	switch (idsel) {
-	case 1:
-		switch (pin) {
-		case 1: return ATUX_INTB;
-		case 2: return ATUX_INTC;
-		case 3: return ATUX_INTD;
-		case 4: return ATUX_INTA;
+	switch (idsel)
+	{
+		case 1:
+			switch (pin)
+			{
+				case 1: return ATUX_INTB;
+
+				case 2: return ATUX_INTC;
+
+				case 3: return ATUX_INTD;
+
+				case 4: return ATUX_INTA;
+
+				default: return -1;
+			}
+
+		case 2:
+			switch (pin)
+			{
+				case 1: return ATUX_INTC;
+
+				case 2: return ATUX_INTC;
+
+				case 3: return ATUX_INTC;
+
+				case 4: return ATUX_INTC;
+
+				default: return -1;
+			}
+
 		default: return -1;
-		}
-	case 2:
-		switch (pin) {
-		case 1: return ATUX_INTC;
-		case 2: return ATUX_INTC;
-		case 3: return ATUX_INTC;
-		case 4: return ATUX_INTC;
-		default: return -1;
-		}
-	default: return -1;
 	}
 }
 
-static struct hw_pci iq81340sc_pci __initdata = {
+static struct hw_pci iq81340sc_pci __initdata =
+{
 	.nr_controllers = 0,
 	.setup		= iop13xx_pci_setup,
 	.scan		= iop13xx_scan_bus,
@@ -87,13 +101,13 @@ static void __init iq81340sc_timer_init(void)
 }
 
 MACHINE_START(IQ81340SC, "Intel IQ81340SC")
-	/* Maintainer: Dan Williams <dan.j.williams@intel.com> */
-	.atag_offset    = 0x100,
-	.init_early     = iop13xx_init_early,
-	.map_io         = iop13xx_map_io,
-	.init_irq       = iop13xx_init_irq,
+/* Maintainer: Dan Williams <dan.j.williams@intel.com> */
+.atag_offset    = 0x100,
+ .init_early     = iop13xx_init_early,
+  .map_io         = iop13xx_map_io,
+   .init_irq       = iop13xx_init_irq,
 	.init_time	= iq81340sc_timer_init,
-	.init_machine   = iq81340sc_init,
-	.restart	= iop13xx_restart,
-	.nr_irqs	= NR_IOP13XX_IRQS,
-MACHINE_END
+	  .init_machine   = iq81340sc_init,
+	   .restart	= iop13xx_restart,
+		   .nr_irqs	= NR_IOP13XX_IRQS,
+			   MACHINE_END

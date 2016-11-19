@@ -61,7 +61,8 @@ static struct pt_regs dfl_fiq_regs;
  */
 static int fiq_def_op(void *ref, int relinquish)
 {
-	if (!relinquish) {
+	if (!relinquish)
+	{
 		/* Restore default handler and registers */
 		local_fiq_disable();
 		set_fiq_regs(&dfl_fiq_regs);
@@ -74,7 +75,8 @@ static int fiq_def_op(void *ref, int relinquish)
 	return 0;
 }
 
-static struct fiq_handler default_owner = {
+static struct fiq_handler default_owner =
+{
 	.name	= "default",
 	.fiq_op = fiq_def_op,
 };
@@ -85,7 +87,7 @@ int show_fiq_list(struct seq_file *p, int prec)
 {
 	if (current_fiq != &default_owner)
 		seq_printf(p, "%*s:              %s\n", prec, "FIQ",
-			current_fiq->name);
+				   current_fiq->name);
 
 	return 0;
 }
@@ -96,9 +98,11 @@ void set_fiq_handler(void *start, unsigned int length)
 	unsigned offset = FIQ_OFFSET;
 
 	memcpy(base + offset, start, length);
+
 	if (!cache_is_vipt_nonaliasing())
 		flush_icache_range((unsigned long)base + offset, offset +
-				   length);
+						   length);
+
 	flush_icache_range(0xffff0000 + offset, 0xffff0000 + offset + length);
 }
 
@@ -106,14 +110,18 @@ int claim_fiq(struct fiq_handler *f)
 {
 	int ret = 0;
 
-	if (current_fiq) {
+	if (current_fiq)
+	{
 		ret = -EBUSY;
 
 		if (current_fiq->fiq_op != NULL)
+		{
 			ret = current_fiq->fiq_op(current_fiq->dev_id, 1);
+		}
 	}
 
-	if (!ret) {
+	if (!ret)
+	{
 		f->next = current_fiq;
 		current_fiq = f;
 	}
@@ -123,15 +131,18 @@ int claim_fiq(struct fiq_handler *f)
 
 void release_fiq(struct fiq_handler *f)
 {
-	if (current_fiq != f) {
+	if (current_fiq != f)
+	{
 		pr_err("%s FIQ trying to release %s FIQ\n",
-		       f->name, current_fiq->name);
+			   f->name, current_fiq->name);
 		dump_stack();
 		return;
 	}
 
 	do
+	{
 		current_fiq = current_fiq->next;
+	}
 	while (current_fiq->fiq_op(current_fiq->dev_id, 0));
 }
 

@@ -13,7 +13,7 @@
 #include <linux/module.h>
 #include <linux/bootmem.h>
 #ifdef CONFIG_BLK_DEV_RAM
-#include <linux/blkdev.h>
+	#include <linux/blkdev.h>
 #endif
 #include <linux/initrd.h>
 

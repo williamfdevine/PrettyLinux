@@ -8,7 +8,8 @@
  * The x86 doesn't have a mmu context, but
  * we put the segment information here.
  */
-typedef struct {
+typedef struct
+{
 #ifdef CONFIG_MODIFY_LDT_SYSCALL
 	struct ldt_struct *ldt;
 #endif

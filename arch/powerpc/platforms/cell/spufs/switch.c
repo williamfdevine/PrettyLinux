@@ -56,21 +56,21 @@
 
 #if 0
 #define POLL_WHILE_TRUE(_c) {				\
-    do {						\
-    } while (_c);					\
-  }
+		do {						\
+		} while (_c);					\
+	}
 #else
 #define RELAX_SPIN_COUNT				1000
 #define POLL_WHILE_TRUE(_c) {				\
-    do {						\
-	int _i;						\
-	for (_i=0; _i<RELAX_SPIN_COUNT && (_c); _i++) { \
-	    cpu_relax();				\
-	}						\
-	if (unlikely(_c)) yield();			\
-	else break;					\
-    } while (_c);					\
-  }
+		do {						\
+			int _i;						\
+			for (_i=0; _i<RELAX_SPIN_COUNT && (_c); _i++) { \
+				cpu_relax();				\
+			}						\
+			if (unlikely(_c)) yield();			\
+			else break;					\
+		} while (_c);					\
+	}
 #endif				/* debug */
 
 #define POLL_WHILE_FALSE(_c)	POLL_WHILE_TRUE(!(_c))
@@ -104,7 +104,7 @@ static inline int check_spu_isolate(struct spu_state *csa, struct spu *spu)
 	 *     saved at this time.
 	 */
 	isolate_state = SPU_STATUS_ISOLATED_STATE |
-	    SPU_STATUS_ISOLATED_LOAD_STATUS | SPU_STATUS_ISOLATED_EXIT_STATUS;
+					SPU_STATUS_ISOLATED_LOAD_STATUS | SPU_STATUS_ISOLATED_EXIT_STATUS;
 	return (in_be32(&prob->spu_status_R) & isolate_state) ? 1 : 0;
 }
 
@@ -122,11 +122,14 @@ static inline void disable_interrupts(struct spu_state *csa, struct spu *spu)
 	 *     we no longer execute a handler on another CPU.
 	 */
 	spin_lock_irq(&spu->register_lock);
-	if (csa) {
+
+	if (csa)
+	{
 		csa->priv1.int_mask_class0_RW = spu_int_mask_get(spu, 0);
 		csa->priv1.int_mask_class1_RW = spu_int_mask_get(spu, 1);
 		csa->priv1.int_mask_class2_RW = spu_int_mask_get(spu, 2);
 	}
+
 	spu_int_mask_set(spu, 0, 0ul);
 	spu_int_mask_set(spu, 1, 0ul);
 	spu_int_mask_set(spu, 2, 0ul);
@@ -186,29 +189,35 @@ static inline void save_mfc_cntl(struct spu_state *csa, struct spu *spu)
 	 *     Suspend DMA and save MFC_CNTL.
 	 */
 	switch (in_be64(&priv2->mfc_control_RW) &
-	       MFC_CNTL_SUSPEND_DMA_STATUS_MASK) {
-	case MFC_CNTL_SUSPEND_IN_PROGRESS:
-		POLL_WHILE_FALSE((in_be64(&priv2->mfc_control_RW) &
-				  MFC_CNTL_SUSPEND_DMA_STATUS_MASK) ==
-				 MFC_CNTL_SUSPEND_COMPLETE);
+			MFC_CNTL_SUSPEND_DMA_STATUS_MASK)
+	{
+		case MFC_CNTL_SUSPEND_IN_PROGRESS:
+			POLL_WHILE_FALSE((in_be64(&priv2->mfc_control_RW) &
+							  MFC_CNTL_SUSPEND_DMA_STATUS_MASK) ==
+							 MFC_CNTL_SUSPEND_COMPLETE);
+
 		/* fall through */
-	case MFC_CNTL_SUSPEND_COMPLETE:
-		if (csa)
-			csa->priv2.mfc_control_RW =
-				in_be64(&priv2->mfc_control_RW) |
-				MFC_CNTL_SUSPEND_DMA_QUEUE;
-		break;
-	case MFC_CNTL_NORMAL_DMA_QUEUE_OPERATION:
-		out_be64(&priv2->mfc_control_RW, MFC_CNTL_SUSPEND_DMA_QUEUE);
-		POLL_WHILE_FALSE((in_be64(&priv2->mfc_control_RW) &
-				  MFC_CNTL_SUSPEND_DMA_STATUS_MASK) ==
-				 MFC_CNTL_SUSPEND_COMPLETE);
-		if (csa)
-			csa->priv2.mfc_control_RW =
-				in_be64(&priv2->mfc_control_RW) &
-				~MFC_CNTL_SUSPEND_DMA_QUEUE &
-				~MFC_CNTL_SUSPEND_MASK;
-		break;
+		case MFC_CNTL_SUSPEND_COMPLETE:
+			if (csa)
+				csa->priv2.mfc_control_RW =
+					in_be64(&priv2->mfc_control_RW) |
+					MFC_CNTL_SUSPEND_DMA_QUEUE;
+
+			break;
+
+		case MFC_CNTL_NORMAL_DMA_QUEUE_OPERATION:
+			out_be64(&priv2->mfc_control_RW, MFC_CNTL_SUSPEND_DMA_QUEUE);
+			POLL_WHILE_FALSE((in_be64(&priv2->mfc_control_RW) &
+							  MFC_CNTL_SUSPEND_DMA_STATUS_MASK) ==
+							 MFC_CNTL_SUSPEND_COMPLETE);
+
+			if (csa)
+				csa->priv2.mfc_control_RW =
+					in_be64(&priv2->mfc_control_RW) &
+					~MFC_CNTL_SUSPEND_DMA_QUEUE &
+					~MFC_CNTL_SUSPEND_MASK;
+
+			break;
 	}
 }
 
@@ -238,22 +247,30 @@ static inline void save_spu_status(struct spu_state *csa, struct spu *spu)
 	/* Save, Step 11:
 	 *     Read SPU_Status[R], and save to CSA.
 	 */
-	if ((in_be32(&prob->spu_status_R) & SPU_STATUS_RUNNING) == 0) {
+	if ((in_be32(&prob->spu_status_R) & SPU_STATUS_RUNNING) == 0)
+	{
 		csa->prob.spu_status_R = in_be32(&prob->spu_status_R);
-	} else {
+	}
+	else
+	{
 		u32 stopped;
 
 		out_be32(&prob->spu_runcntl_RW, SPU_RUNCNTL_STOP);
 		eieio();
 		POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-				SPU_STATUS_RUNNING);
+						SPU_STATUS_RUNNING);
 		stopped =
-		    SPU_STATUS_INVALID_INSTR | SPU_STATUS_SINGLE_STEP |
-		    SPU_STATUS_STOPPED_BY_HALT | SPU_STATUS_STOPPED_BY_STOP;
+			SPU_STATUS_INVALID_INSTR | SPU_STATUS_SINGLE_STEP |
+			SPU_STATUS_STOPPED_BY_HALT | SPU_STATUS_STOPPED_BY_STOP;
+
 		if ((in_be32(&prob->spu_status_R) & stopped) == 0)
+		{
 			csa->prob.spu_status_R = SPU_STATUS_RUNNING;
+		}
 		else
+		{
 			csa->prob.spu_status_R = in_be32(&prob->spu_status_R);
+		}
 	}
 }
 
@@ -262,7 +279,7 @@ static inline void save_mfc_stopped_status(struct spu_state *csa,
 {
 	struct spu_priv2 __iomem *priv2 = spu->priv2;
 	const u64 mask = MFC_CNTL_DECREMENTER_RUNNING |
-			MFC_CNTL_DMA_QUEUES_EMPTY;
+					 MFC_CNTL_DMA_QUEUES_EMPTY;
 
 	/* Save, Step 12:
 	 *     Read MFC_CNTL[Ds].  Update saved copy of
@@ -283,7 +300,7 @@ static inline void halt_mfc_decr(struct spu_state *csa, struct spu *spu)
 	 *     the decrementer.
 	 */
 	out_be64(&priv2->mfc_control_RW,
-		 MFC_CNTL_DECREMENTER_HALTED | MFC_CNTL_SUSPEND_MASK);
+			 MFC_CNTL_DECREMENTER_HALTED | MFC_CNTL_SUSPEND_MASK);
 	eieio();
 }
 
@@ -297,7 +314,7 @@ static inline void save_timebase(struct spu_state *csa, struct spu *spu)
 }
 
 static inline void remove_other_spu_access(struct spu_state *csa,
-					   struct spu *spu)
+		struct spu *spu)
 {
 	/* Save, Step 15:
 	 *     Remove other SPU access to this SPU by unmapping
@@ -331,7 +348,7 @@ static inline void issue_mfc_tlbie(struct spu_state *csa, struct spu *spu)
 }
 
 static inline void handle_pending_interrupts(struct spu_state *csa,
-					     struct spu *spu)
+		struct spu *spu)
 {
 	/* Save, Step 18:
 	 *     Handle any pending interrupts from this SPU
@@ -353,26 +370,30 @@ static inline void save_mfc_queues(struct spu_state *csa, struct spu *spu)
 	 *     If MFC_Cntl[Se]=0 then save
 	 *     MFC command queues.
 	 */
-	if ((in_be64(&priv2->mfc_control_RW) & MFC_CNTL_DMA_QUEUES_EMPTY) == 0) {
-		for (i = 0; i < 8; i++) {
+	if ((in_be64(&priv2->mfc_control_RW) & MFC_CNTL_DMA_QUEUES_EMPTY) == 0)
+	{
+		for (i = 0; i < 8; i++)
+		{
 			csa->priv2.puq[i].mfc_cq_data0_RW =
-			    in_be64(&priv2->puq[i].mfc_cq_data0_RW);
+				in_be64(&priv2->puq[i].mfc_cq_data0_RW);
 			csa->priv2.puq[i].mfc_cq_data1_RW =
-			    in_be64(&priv2->puq[i].mfc_cq_data1_RW);
+				in_be64(&priv2->puq[i].mfc_cq_data1_RW);
 			csa->priv2.puq[i].mfc_cq_data2_RW =
-			    in_be64(&priv2->puq[i].mfc_cq_data2_RW);
+				in_be64(&priv2->puq[i].mfc_cq_data2_RW);
 			csa->priv2.puq[i].mfc_cq_data3_RW =
-			    in_be64(&priv2->puq[i].mfc_cq_data3_RW);
+				in_be64(&priv2->puq[i].mfc_cq_data3_RW);
 		}
-		for (i = 0; i < 16; i++) {
+
+		for (i = 0; i < 16; i++)
+		{
 			csa->priv2.spuq[i].mfc_cq_data0_RW =
-			    in_be64(&priv2->spuq[i].mfc_cq_data0_RW);
+				in_be64(&priv2->spuq[i].mfc_cq_data0_RW);
 			csa->priv2.spuq[i].mfc_cq_data1_RW =
-			    in_be64(&priv2->spuq[i].mfc_cq_data1_RW);
+				in_be64(&priv2->spuq[i].mfc_cq_data1_RW);
 			csa->priv2.spuq[i].mfc_cq_data2_RW =
-			    in_be64(&priv2->spuq[i].mfc_cq_data2_RW);
+				in_be64(&priv2->spuq[i].mfc_cq_data2_RW);
 			csa->priv2.spuq[i].mfc_cq_data3_RW =
-			    in_be64(&priv2->spuq[i].mfc_cq_data3_RW);
+				in_be64(&priv2->spuq[i].mfc_cq_data3_RW);
 		}
 	}
 }
@@ -421,7 +442,7 @@ static inline void save_mfc_csr_tsq(struct spu_state *csa, struct spu *spu)
 	 *     in the LSCSA.
 	 */
 	csa->priv2.spu_tag_status_query_RW =
-	    in_be64(&priv2->spu_tag_status_query_RW);
+		in_be64(&priv2->spu_tag_status_query_RW);
 }
 
 static inline void save_mfc_csr_cmd(struct spu_state *csa, struct spu *spu)
@@ -476,8 +497,8 @@ static inline void purge_mfc_queue(struct spu_state *csa, struct spu *spu)
 	 *     Write MFC_CNTL[Pc]=1 (purge queue).
 	 */
 	out_be64(&priv2->mfc_control_RW,
-			MFC_CNTL_PURGE_DMA_REQUEST |
-			MFC_CNTL_SUSPEND_MASK);
+			 MFC_CNTL_PURGE_DMA_REQUEST |
+			 MFC_CNTL_SUSPEND_MASK);
 	eieio();
 }
 
@@ -490,8 +511,8 @@ static inline void wait_purge_complete(struct spu_state *csa, struct spu *spu)
 	 *     (purge complete).
 	 */
 	POLL_WHILE_FALSE((in_be64(&priv2->mfc_control_RW) &
-			 MFC_CNTL_PURGE_DMA_STATUS_MASK) ==
-			 MFC_CNTL_PURGE_DMA_COMPLETE);
+					  MFC_CNTL_PURGE_DMA_STATUS_MASK) ==
+					 MFC_CNTL_PURGE_DMA_COMPLETE);
 }
 
 static inline void setup_mfc_sr1(struct spu_state *csa, struct spu *spu)
@@ -508,8 +529,8 @@ static inline void setup_mfc_sr1(struct spu_state *csa, struct spu *spu)
 	 *
 	 */
 	spu_mfc_sr1_set(spu, (MFC_STATE1_MASTER_RUN_CONTROL_MASK |
-			      MFC_STATE1_RELOCATE_MASK |
-			      MFC_STATE1_BUS_TLBIE_MASK));
+						  MFC_STATE1_RELOCATE_MASK |
+						  MFC_STATE1_BUS_TLBIE_MASK));
 }
 
 static inline void save_spu_npc(struct spu_state *csa, struct spu *spu)
@@ -640,7 +661,8 @@ static inline void save_ch_part1(struct spu_state *csa, struct spu *spu)
 	csa->spu_chnldata_RW[1] = in_be64(&priv2->spu_chnldata_RW);
 
 	/* Save the following CH: [0,3,4,24,25,27] */
-	for (i = 0; i < ARRAY_SIZE(ch_indices); i++) {
+	for (i = 0; i < ARRAY_SIZE(ch_indices); i++)
+	{
 		idx = ch_indices[i];
 		out_be64(&priv2->spu_chnlcntptr_RW, idx);
 		eieio();
@@ -663,9 +685,12 @@ static inline void save_spu_mb(struct spu_state *csa, struct spu *spu)
 	out_be64(&priv2->spu_chnlcntptr_RW, 29UL);
 	eieio();
 	csa->spu_chnlcnt_RW[29] = in_be64(&priv2->spu_chnlcnt_RW);
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		csa->spu_mailbox_data[i] = in_be64(&priv2->spu_chnldata_RW);
 	}
+
 	out_be64(&priv2->spu_chnlcnt_RW, 0UL);
 	eieio();
 }
@@ -694,7 +719,8 @@ static inline void reset_ch(struct spu_state *csa, struct spu *spu)
 	/* Save, Step 45:
 	 *     Reset the following CH: [21, 23, 28, 30]
 	 */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		idx = ch_indices[i];
 		out_be64(&priv2->spu_chnlcntptr_RW, idx);
 		eieio();
@@ -715,7 +741,7 @@ static inline void resume_mfc_queue(struct spu_state *csa, struct spu *spu)
 }
 
 static inline void setup_mfc_slbs(struct spu_state *csa, struct spu *spu,
-		unsigned int *code, int code_size)
+								  unsigned int *code, int code_size)
 {
 	/* Save, Step 47:
 	 * Restore, Step 30.
@@ -747,7 +773,10 @@ static inline void set_switch_active(struct spu_state *csa, struct spu *spu)
 	 * restart command if an exception occurred.
 	 */
 	if (test_bit(SPU_CONTEXT_FAULT_PENDING, &spu->flags))
+	{
 		csa->priv2.mfc_control_RW |= MFC_CNTL_RESTART_DMA_COMMAND;
+	}
+
 	clear_bit(SPU_CONTEXT_SWITCH_PENDING, &spu->flags);
 	mb();
 }
@@ -755,7 +784,7 @@ static inline void set_switch_active(struct spu_state *csa, struct spu *spu)
 static inline void enable_interrupts(struct spu_state *csa, struct spu *spu)
 {
 	unsigned long class1_mask = CLASS1_ENABLE_SEGMENT_FAULT_INTR |
-	    CLASS1_ENABLE_STORAGE_FAULT_INTR;
+								CLASS1_ENABLE_STORAGE_FAULT_INTR;
 
 	/* Save, Step 49:
 	 * Restore, Step 22:
@@ -776,36 +805,44 @@ static inline void enable_interrupts(struct spu_state *csa, struct spu *spu)
 }
 
 static inline int send_mfc_dma(struct spu *spu, unsigned long ea,
-			       unsigned int ls_offset, unsigned int size,
-			       unsigned int tag, unsigned int rclass,
-			       unsigned int cmd)
+							   unsigned int ls_offset, unsigned int size,
+							   unsigned int tag, unsigned int rclass,
+							   unsigned int cmd)
 {
 	struct spu_problem __iomem *prob = spu->problem;
 	union mfc_tag_size_class_cmd command;
 	unsigned int transfer_size;
 	volatile unsigned int status = 0x0;
 
-	while (size > 0) {
+	while (size > 0)
+	{
 		transfer_size =
-		    (size > MFC_MAX_DMA_SIZE) ? MFC_MAX_DMA_SIZE : size;
+			(size > MFC_MAX_DMA_SIZE) ? MFC_MAX_DMA_SIZE : size;
 		command.u.mfc_size = transfer_size;
 		command.u.mfc_tag = tag;
 		command.u.mfc_rclassid = rclass;
 		command.u.mfc_cmd = cmd;
-		do {
+
+		do
+		{
 			out_be32(&prob->mfc_lsa_W, ls_offset);
 			out_be64(&prob->mfc_ea_W, ea);
 			out_be64(&prob->mfc_union_W.all64, command.all64);
 			status =
-			    in_be32(&prob->mfc_union_W.by32.mfc_class_cmd32);
-			if (unlikely(status & 0x2)) {
+				in_be32(&prob->mfc_union_W.by32.mfc_class_cmd32);
+
+			if (unlikely(status & 0x2))
+			{
 				cpu_relax();
 			}
-		} while (status & 0x3);
+		}
+		while (status & 0x3);
+
 		size -= transfer_size;
 		ea += transfer_size;
 		ls_offset += transfer_size;
 	}
+
 	return 0;
 }
 
@@ -845,7 +882,8 @@ static inline void set_spu_npc(struct spu_state *csa, struct spu *spu)
 static inline void set_signot1(struct spu_state *csa, struct spu *spu)
 {
 	struct spu_problem __iomem *prob = spu->problem;
-	union {
+	union
+	{
 		u64 ull;
 		u32 ui[2];
 	} addr64;
@@ -863,7 +901,8 @@ static inline void set_signot1(struct spu_state *csa, struct spu *spu)
 static inline void set_signot2(struct spu_state *csa, struct spu *spu)
 {
 	struct spu_problem __iomem *prob = spu->problem;
-	union {
+	union
+	{
 		u64 ull;
 		u32 ui[2];
 	} addr64;
@@ -960,7 +999,7 @@ static inline int check_save_status(struct spu_state *csa, struct spu *spu)
 	 *     failed.
 	 */
 	complete = ((SPU_SAVE_COMPLETE << SPU_STOP_STATUS_SHIFT) |
-		    SPU_STATUS_STOPPED_BY_STOP);
+				SPU_STATUS_STOPPED_BY_STOP);
 	return (in_be32(&prob->spu_status_R) != complete) ? 1 : 0;
 }
 
@@ -982,12 +1021,12 @@ static inline void suspend_mfc_and_halt_decr(struct spu_state *csa,
 	 *     the queue and halt the decrementer.
 	 */
 	out_be64(&priv2->mfc_control_RW, MFC_CNTL_SUSPEND_DMA_QUEUE |
-		 MFC_CNTL_DECREMENTER_HALTED);
+			 MFC_CNTL_DECREMENTER_HALTED);
 	eieio();
 }
 
 static inline void wait_suspend_mfc_complete(struct spu_state *csa,
-					     struct spu *spu)
+		struct spu *spu)
 {
 	struct spu_priv2 __iomem *priv2 = spu->priv2;
 
@@ -996,8 +1035,8 @@ static inline void wait_suspend_mfc_complete(struct spu_state *csa,
 	 *     Poll MFC_CNTL[Ss] until 11 is returned.
 	 */
 	POLL_WHILE_FALSE((in_be64(&priv2->mfc_control_RW) &
-			 MFC_CNTL_SUSPEND_DMA_STATUS_MASK) ==
-			 MFC_CNTL_SUSPEND_COMPLETE);
+					  MFC_CNTL_SUSPEND_DMA_STATUS_MASK) ==
+					 MFC_CNTL_SUSPEND_COMPLETE);
 }
 
 static inline int suspend_spe(struct spu_state *csa, struct spu *spu)
@@ -1011,34 +1050,42 @@ static inline int suspend_spe(struct spu_state *csa, struct spu *spu)
 	 *    Returns       1 if SPU_Status[R]=1 on entry.
 	 *                  0 otherwise
 	 */
-	if (in_be32(&prob->spu_status_R) & SPU_STATUS_RUNNING) {
+	if (in_be32(&prob->spu_status_R) & SPU_STATUS_RUNNING)
+	{
 		if (in_be32(&prob->spu_status_R) &
-		    SPU_STATUS_ISOLATED_EXIT_STATUS) {
+			SPU_STATUS_ISOLATED_EXIT_STATUS)
+		{
 			POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-					SPU_STATUS_RUNNING);
+							SPU_STATUS_RUNNING);
 		}
+
 		if ((in_be32(&prob->spu_status_R) &
-		     SPU_STATUS_ISOLATED_LOAD_STATUS)
-		    || (in_be32(&prob->spu_status_R) &
-			SPU_STATUS_ISOLATED_STATE)) {
+			 SPU_STATUS_ISOLATED_LOAD_STATUS)
+			|| (in_be32(&prob->spu_status_R) &
+				SPU_STATUS_ISOLATED_STATE))
+		{
 			out_be32(&prob->spu_runcntl_RW, SPU_RUNCNTL_STOP);
 			eieio();
 			POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-					SPU_STATUS_RUNNING);
+							SPU_STATUS_RUNNING);
 			out_be32(&prob->spu_runcntl_RW, 0x2);
 			eieio();
 			POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-					SPU_STATUS_RUNNING);
+							SPU_STATUS_RUNNING);
 		}
+
 		if (in_be32(&prob->spu_status_R) &
-		    SPU_STATUS_WAITING_FOR_CHANNEL) {
+			SPU_STATUS_WAITING_FOR_CHANNEL)
+		{
 			out_be32(&prob->spu_runcntl_RW, SPU_RUNCNTL_STOP);
 			eieio();
 			POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-					SPU_STATUS_RUNNING);
+							SPU_STATUS_RUNNING);
 		}
+
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -1050,28 +1097,32 @@ static inline void clear_spu_status(struct spu_state *csa, struct spu *spu)
 	 *    If SPU_Status[R]=0 and SPU_Status[E,L,IS]=1,
 	 *    release SPU from isolate state.
 	 */
-	if (!(in_be32(&prob->spu_status_R) & SPU_STATUS_RUNNING)) {
+	if (!(in_be32(&prob->spu_status_R) & SPU_STATUS_RUNNING))
+	{
 		if (in_be32(&prob->spu_status_R) &
-		    SPU_STATUS_ISOLATED_EXIT_STATUS) {
+			SPU_STATUS_ISOLATED_EXIT_STATUS)
+		{
 			spu_mfc_sr1_set(spu,
-					MFC_STATE1_MASTER_RUN_CONTROL_MASK);
+							MFC_STATE1_MASTER_RUN_CONTROL_MASK);
 			eieio();
 			out_be32(&prob->spu_runcntl_RW, SPU_RUNCNTL_RUNNABLE);
 			eieio();
 			POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-					SPU_STATUS_RUNNING);
+							SPU_STATUS_RUNNING);
 		}
+
 		if ((in_be32(&prob->spu_status_R) &
-		     SPU_STATUS_ISOLATED_LOAD_STATUS)
-		    || (in_be32(&prob->spu_status_R) &
-			SPU_STATUS_ISOLATED_STATE)) {
+			 SPU_STATUS_ISOLATED_LOAD_STATUS)
+			|| (in_be32(&prob->spu_status_R) &
+				SPU_STATUS_ISOLATED_STATE))
+		{
 			spu_mfc_sr1_set(spu,
-					MFC_STATE1_MASTER_RUN_CONTROL_MASK);
+							MFC_STATE1_MASTER_RUN_CONTROL_MASK);
 			eieio();
 			out_be32(&prob->spu_runcntl_RW, 0x2);
 			eieio();
 			POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-					SPU_STATUS_RUNNING);
+							SPU_STATUS_RUNNING);
 		}
 	}
 }
@@ -1091,7 +1142,8 @@ static inline void reset_ch_part1(struct spu_state *csa, struct spu *spu)
 	out_be64(&priv2->spu_chnldata_RW, 0UL);
 
 	/* Reset the following CH: [0,3,4,24,25,27] */
-	for (i = 0; i < ARRAY_SIZE(ch_indices); i++) {
+	for (i = 0; i < ARRAY_SIZE(ch_indices); i++)
+	{
 		idx = ch_indices[i];
 		out_be64(&priv2->spu_chnlcntptr_RW, idx);
 		eieio();
@@ -1112,7 +1164,8 @@ static inline void reset_ch_part2(struct spu_state *csa, struct spu *spu)
 	/* Restore, Step 21:
 	 *     Reset the following CH: [21, 23, 28, 29, 30]
 	 */
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		idx = ch_indices[i];
 		out_be64(&priv2->spu_chnlcntptr_RW, idx);
 		eieio();
@@ -1122,7 +1175,7 @@ static inline void reset_ch_part2(struct spu_state *csa, struct spu *spu)
 }
 
 static inline void setup_spu_status_part1(struct spu_state *csa,
-					  struct spu *spu)
+		struct spu *spu)
 {
 	u32 status_P = SPU_STATUS_STOPPED_BY_STOP;
 	u32 status_I = SPU_STATUS_INVALID_INSTR;
@@ -1130,8 +1183,8 @@ static inline void setup_spu_status_part1(struct spu_state *csa,
 	u32 status_S = SPU_STATUS_SINGLE_STEP;
 	u32 status_S_I = SPU_STATUS_SINGLE_STEP | SPU_STATUS_INVALID_INSTR;
 	u32 status_S_P = SPU_STATUS_SINGLE_STEP | SPU_STATUS_STOPPED_BY_STOP;
-	u32 status_P_H = SPU_STATUS_STOPPED_BY_HALT |SPU_STATUS_STOPPED_BY_STOP;
-	u32 status_P_I = SPU_STATUS_STOPPED_BY_STOP |SPU_STATUS_INVALID_INSTR;
+	u32 status_P_H = SPU_STATUS_STOPPED_BY_HALT | SPU_STATUS_STOPPED_BY_STOP;
+	u32 status_P_I = SPU_STATUS_STOPPED_BY_STOP | SPU_STATUS_INVALID_INSTR;
 	u32 status_code;
 
 	/* Restore, Step 27:
@@ -1147,8 +1200,10 @@ static inline void setup_spu_status_part1(struct spu_state *csa,
 	 */
 
 	status_code =
-	    (csa->prob.spu_status_R >> SPU_STOP_STATUS_SHIFT) & 0xFFFF;
-	if ((csa->prob.spu_status_R & status_P_I) == status_P_I) {
+		(csa->prob.spu_status_R >> SPU_STOP_STATUS_SHIFT) & 0xFFFF;
+
+	if ((csa->prob.spu_status_R & status_P_I) == status_P_I)
+	{
 
 		/* SPU_Status[P,I]=1 - Illegal Instruction followed
 		 * by Stop and Signal instruction, followed by 'br -4'.
@@ -1157,7 +1212,9 @@ static inline void setup_spu_status_part1(struct spu_state *csa,
 		csa->lscsa->stopped_status.slot[0] = SPU_STOPPED_STATUS_P_I;
 		csa->lscsa->stopped_status.slot[1] = status_code;
 
-	} else if ((csa->prob.spu_status_R & status_P_H) == status_P_H) {
+	}
+	else if ((csa->prob.spu_status_R & status_P_H) == status_P_H)
+	{
 
 		/* SPU_Status[P,H]=1 - Halt Conditional, followed
 		 * by Stop and Signal instruction, followed by
@@ -1166,7 +1223,9 @@ static inline void setup_spu_status_part1(struct spu_state *csa,
 		csa->lscsa->stopped_status.slot[0] = SPU_STOPPED_STATUS_P_H;
 		csa->lscsa->stopped_status.slot[1] = status_code;
 
-	} else if ((csa->prob.spu_status_R & status_S_P) == status_S_P) {
+	}
+	else if ((csa->prob.spu_status_R & status_S_P) == status_S_P)
+	{
 
 		/* SPU_Status[S,P]=1 - Stop and Signal instruction
 		 * followed by 'br -4'.
@@ -1174,7 +1233,9 @@ static inline void setup_spu_status_part1(struct spu_state *csa,
 		csa->lscsa->stopped_status.slot[0] = SPU_STOPPED_STATUS_S_P;
 		csa->lscsa->stopped_status.slot[1] = status_code;
 
-	} else if ((csa->prob.spu_status_R & status_S_I) == status_S_I) {
+	}
+	else if ((csa->prob.spu_status_R & status_S_I) == status_S_I)
+	{
 
 		/* SPU_Status[S,I]=1 - Illegal instruction followed
 		 * by 'br -4'.
@@ -1182,7 +1243,9 @@ static inline void setup_spu_status_part1(struct spu_state *csa,
 		csa->lscsa->stopped_status.slot[0] = SPU_STOPPED_STATUS_S_I;
 		csa->lscsa->stopped_status.slot[1] = status_code;
 
-	} else if ((csa->prob.spu_status_R & status_P) == status_P) {
+	}
+	else if ((csa->prob.spu_status_R & status_P) == status_P)
+	{
 
 		/* SPU_Status[P]=1 - Stop and Signal instruction
 		 * followed by 'br -4'.
@@ -1190,20 +1253,26 @@ static inline void setup_spu_status_part1(struct spu_state *csa,
 		csa->lscsa->stopped_status.slot[0] = SPU_STOPPED_STATUS_P;
 		csa->lscsa->stopped_status.slot[1] = status_code;
 
-	} else if ((csa->prob.spu_status_R & status_H) == status_H) {
+	}
+	else if ((csa->prob.spu_status_R & status_H) == status_H)
+	{
 
 		/* SPU_Status[H]=1 - Halt Conditional, followed
 		 * by 'br -4'.
 		 */
 		csa->lscsa->stopped_status.slot[0] = SPU_STOPPED_STATUS_H;
 
-	} else if ((csa->prob.spu_status_R & status_S) == status_S) {
+	}
+	else if ((csa->prob.spu_status_R & status_S) == status_S)
+	{
 
 		/* SPU_Status[S]=1 - Two nop instructions.
 		 */
 		csa->lscsa->stopped_status.slot[0] = SPU_STOPPED_STATUS_S;
 
-	} else if ((csa->prob.spu_status_R & status_I) == status_I) {
+	}
+	else if ((csa->prob.spu_status_R & status_I) == status_I)
+	{
 
 		/* SPU_Status[I]=1 - Illegal instruction followed
 		 * by 'br -4'.
@@ -1214,7 +1283,7 @@ static inline void setup_spu_status_part1(struct spu_state *csa,
 }
 
 static inline void setup_spu_status_part2(struct spu_state *csa,
-					  struct spu *spu)
+		struct spu *spu)
 {
 	u32 mask;
 
@@ -1229,10 +1298,12 @@ static inline void setup_spu_status_part2(struct spu_state *csa,
 	 *     takes the appropriate action when exiting.
 	 */
 	mask = SPU_STATUS_INVALID_INSTR |
-	    SPU_STATUS_SINGLE_STEP |
-	    SPU_STATUS_STOPPED_BY_HALT |
-	    SPU_STATUS_STOPPED_BY_STOP | SPU_STATUS_RUNNING;
-	if (!(csa->prob.spu_status_R & mask)) {
+		   SPU_STATUS_SINGLE_STEP |
+		   SPU_STATUS_STOPPED_BY_HALT |
+		   SPU_STATUS_STOPPED_BY_STOP | SPU_STATUS_RUNNING;
+
+	if (!(csa->prob.spu_status_R & mask))
+	{
 		csa->lscsa->stopped_status.slot[0] = SPU_STOPPED_STATUS_R;
 	}
 }
@@ -1244,9 +1315,9 @@ static inline void restore_mfc_rag(struct spu_state *csa, struct spu *spu)
 	 *     RA_ENABLE reigster from the CSA.
 	 */
 	spu_resource_allocation_groupID_set(spu,
-			csa->priv1.resource_allocation_groupID_RW);
+										csa->priv1.resource_allocation_groupID_RW);
 	spu_resource_allocation_enable_set(spu,
-			csa->priv1.resource_allocation_enable_RW);
+									   csa->priv1.resource_allocation_enable_RW);
 }
 
 static inline void send_restore_code(struct spu_state *csa, struct spu *spu)
@@ -1274,18 +1345,23 @@ static inline void setup_decr(struct spu_state *csa, struct spu *spu)
 	 *     and set decrementer "wrapped" status
 	 *     in LSCSA.
 	 */
-	if (csa->priv2.mfc_control_RW & MFC_CNTL_DECREMENTER_RUNNING) {
+	if (csa->priv2.mfc_control_RW & MFC_CNTL_DECREMENTER_RUNNING)
+	{
 		cycles_t resume_time = get_cycles();
 		cycles_t delta_time = resume_time - csa->suspend_time;
 
 		csa->lscsa->decr_status.slot[0] = SPU_DECR_STATUS_RUNNING;
-		if (csa->lscsa->decr.slot[0] < delta_time) {
+
+		if (csa->lscsa->decr.slot[0] < delta_time)
+		{
 			csa->lscsa->decr_status.slot[0] |=
-				 SPU_DECR_STATUS_WRAPPED;
+				SPU_DECR_STATUS_WRAPPED;
 		}
 
 		csa->lscsa->decr.slot[0] -= delta_time;
-	} else {
+	}
+	else
+	{
 		csa->lscsa->decr_status.slot[0] = 0;
 	}
 }
@@ -1317,7 +1393,7 @@ static inline int check_restore_status(struct spu_state *csa, struct spu *spu)
 	 *     failed.
 	 */
 	complete = ((SPU_RESTORE_COMPLETE << SPU_STOP_STATUS_SHIFT) |
-		    SPU_STATUS_STOPPED_BY_STOP);
+				SPU_STATUS_STOPPED_BY_STOP);
 	return (in_be32(&prob->spu_status_R) != complete) ? 1 : 0;
 }
 
@@ -1342,13 +1418,15 @@ static inline void restore_status_part1(struct spu_state *csa, struct spu *spu)
 	 *     restore the error or single step state.
 	 */
 	mask = SPU_STATUS_INVALID_INSTR |
-	    SPU_STATUS_SINGLE_STEP |
-	    SPU_STATUS_STOPPED_BY_HALT | SPU_STATUS_STOPPED_BY_STOP;
-	if (csa->prob.spu_status_R & mask) {
+		   SPU_STATUS_SINGLE_STEP |
+		   SPU_STATUS_STOPPED_BY_HALT | SPU_STATUS_STOPPED_BY_STOP;
+
+	if (csa->prob.spu_status_R & mask)
+	{
 		out_be32(&prob->spu_runcntl_RW, SPU_RUNCNTL_RUNNABLE);
 		eieio();
 		POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-				SPU_STATUS_RUNNING);
+						SPU_STATUS_RUNNING);
 	}
 }
 
@@ -1364,18 +1442,20 @@ static inline void restore_status_part2(struct spu_state *csa, struct spu *spu)
 	 *     for SPU_Status[R]=0.
 	 */
 	mask = SPU_STATUS_INVALID_INSTR |
-	    SPU_STATUS_SINGLE_STEP |
-	    SPU_STATUS_STOPPED_BY_HALT |
-	    SPU_STATUS_STOPPED_BY_STOP | SPU_STATUS_RUNNING;
-	if (!(csa->prob.spu_status_R & mask)) {
+		   SPU_STATUS_SINGLE_STEP |
+		   SPU_STATUS_STOPPED_BY_HALT |
+		   SPU_STATUS_STOPPED_BY_STOP | SPU_STATUS_RUNNING;
+
+	if (!(csa->prob.spu_status_R & mask))
+	{
 		out_be32(&prob->spu_runcntl_RW, SPU_RUNCNTL_RUNNABLE);
 		eieio();
 		POLL_WHILE_FALSE(in_be32(&prob->spu_status_R) &
-				 SPU_STATUS_RUNNING);
+						 SPU_STATUS_RUNNING);
 		out_be32(&prob->spu_runcntl_RW, SPU_RUNCNTL_STOP);
 		eieio();
 		POLL_WHILE_TRUE(in_be32(&prob->spu_status_R) &
-				SPU_STATUS_RUNNING);
+						SPU_STATUS_RUNNING);
 	}
 }
 
@@ -1436,28 +1516,33 @@ static inline void restore_mfc_queues(struct spu_state *csa, struct spu *spu)
 	 *     If MFC_Cntl[Se]!=0 then restore
 	 *     MFC command queues.
 	 */
-	if ((csa->priv2.mfc_control_RW & MFC_CNTL_DMA_QUEUES_EMPTY_MASK) == 0) {
-		for (i = 0; i < 8; i++) {
+	if ((csa->priv2.mfc_control_RW & MFC_CNTL_DMA_QUEUES_EMPTY_MASK) == 0)
+	{
+		for (i = 0; i < 8; i++)
+		{
 			out_be64(&priv2->puq[i].mfc_cq_data0_RW,
-				 csa->priv2.puq[i].mfc_cq_data0_RW);
+					 csa->priv2.puq[i].mfc_cq_data0_RW);
 			out_be64(&priv2->puq[i].mfc_cq_data1_RW,
-				 csa->priv2.puq[i].mfc_cq_data1_RW);
+					 csa->priv2.puq[i].mfc_cq_data1_RW);
 			out_be64(&priv2->puq[i].mfc_cq_data2_RW,
-				 csa->priv2.puq[i].mfc_cq_data2_RW);
+					 csa->priv2.puq[i].mfc_cq_data2_RW);
 			out_be64(&priv2->puq[i].mfc_cq_data3_RW,
-				 csa->priv2.puq[i].mfc_cq_data3_RW);
+					 csa->priv2.puq[i].mfc_cq_data3_RW);
 		}
-		for (i = 0; i < 16; i++) {
+
+		for (i = 0; i < 16; i++)
+		{
 			out_be64(&priv2->spuq[i].mfc_cq_data0_RW,
-				 csa->priv2.spuq[i].mfc_cq_data0_RW);
+					 csa->priv2.spuq[i].mfc_cq_data0_RW);
 			out_be64(&priv2->spuq[i].mfc_cq_data1_RW,
-				 csa->priv2.spuq[i].mfc_cq_data1_RW);
+					 csa->priv2.spuq[i].mfc_cq_data1_RW);
 			out_be64(&priv2->spuq[i].mfc_cq_data2_RW,
-				 csa->priv2.spuq[i].mfc_cq_data2_RW);
+					 csa->priv2.spuq[i].mfc_cq_data2_RW);
 			out_be64(&priv2->spuq[i].mfc_cq_data3_RW,
-				 csa->priv2.spuq[i].mfc_cq_data3_RW);
+					 csa->priv2.spuq[i].mfc_cq_data3_RW);
 		}
 	}
+
 	eieio();
 }
 
@@ -1491,7 +1576,7 @@ static inline void restore_mfc_csr_tsq(struct spu_state *csa, struct spu *spu)
 	 *     Restore the MFC_CSR_TSQ register from CSA.
 	 */
 	out_be64(&priv2->spu_tag_status_query_RW,
-		 csa->priv2.spu_tag_status_query_RW);
+			 csa->priv2.spu_tag_status_query_RW);
 	eieio();
 }
 
@@ -1544,8 +1629,10 @@ static inline void set_llr_event(struct spu_state *csa, struct spu *spu)
 	ch0_data = csa->spu_chnldata_RW[0];
 	ch1_data = csa->spu_chnldata_RW[1];
 	csa->spu_chnldata_RW[0] |= MFC_LLR_LOST_EVENT;
+
 	if ((ch0_cnt == 0) && !(ch0_data & MFC_LLR_LOST_EVENT) &&
-	    (ch1_data & MFC_LLR_LOST_EVENT)) {
+		(ch1_data & MFC_LLR_LOST_EVENT))
+	{
 		csa->spu_chnlcnt_RW[0] = 1;
 	}
 }
@@ -1558,12 +1645,16 @@ static inline void restore_decr_wrapped(struct spu_state *csa, struct spu *spu)
 	 *     CSA.SPU_Event_Status[Tm].
 	 */
 	if (!(csa->lscsa->decr_status.slot[0] & SPU_DECR_STATUS_WRAPPED))
+	{
 		return;
+	}
 
 	if ((csa->spu_chnlcnt_RW[0] == 0) &&
-	    (csa->spu_chnldata_RW[1] & 0x20) &&
-	    !(csa->spu_chnldata_RW[0] & 0x20))
+		(csa->spu_chnldata_RW[1] & 0x20) &&
+		!(csa->spu_chnldata_RW[0] & 0x20))
+	{
 		csa->spu_chnlcnt_RW[0] = 1;
+	}
 
 	csa->spu_chnldata_RW[0] |= 0x20;
 }
@@ -1577,7 +1668,8 @@ static inline void restore_ch_part1(struct spu_state *csa, struct spu *spu)
 	/* Restore, Step 59:
 	 *	Restore the following CH: [0,3,4,24,25,27]
 	 */
-	for (i = 0; i < ARRAY_SIZE(ch_indices); i++) {
+	for (i = 0; i < ARRAY_SIZE(ch_indices); i++)
+	{
 		idx = ch_indices[i];
 		out_be64(&priv2->spu_chnlcntptr_RW, idx);
 		eieio();
@@ -1601,7 +1693,9 @@ static inline void restore_ch_part2(struct spu_state *csa, struct spu *spu)
 	ch_counts[0] = 1UL;
 	ch_counts[1] = csa->spu_chnlcnt_RW[21];
 	ch_counts[2] = 1UL;
-	for (i = 0; i < 3; i++) {
+
+	for (i = 0; i < 3; i++)
+	{
 		idx = ch_indices[i];
 		out_be64(&priv2->spu_chnlcntptr_RW, idx);
 		eieio();
@@ -1662,9 +1756,12 @@ static inline void restore_spu_mb(struct spu_state *csa, struct spu *spu)
 	out_be64(&priv2->spu_chnlcntptr_RW, 29UL);
 	eieio();
 	out_be64(&priv2->spu_chnlcnt_RW, csa->spu_chnlcnt_RW[29]);
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		out_be64(&priv2->spu_chnldata_RW, csa->spu_mailbox_data[i]);
 	}
+
 	eieio();
 }
 
@@ -1677,7 +1774,8 @@ static inline void check_ppu_mb_stat(struct spu_state *csa, struct spu *spu)
 	 *     If CSA.MB_Stat[P]=0 (mailbox empty) then
 	 *     read from the PPU_MB register.
 	 */
-	if ((csa->prob.mb_stat_R & 0xFF) == 0) {
+	if ((csa->prob.mb_stat_R & 0xFF) == 0)
+	{
 		dummy = in_be32(&prob->pu_mb_R);
 		eieio();
 	}
@@ -1692,7 +1790,8 @@ static inline void check_ppuint_mb_stat(struct spu_state *csa, struct spu *spu)
 	 *     If CSA.MB_Stat[I]=0 (mailbox empty) then
 	 *     read from the PPUINT_MB register.
 	 */
-	if ((csa->prob.mb_stat_R & 0xFF0000) == 0) {
+	if ((csa->prob.mb_stat_R & 0xFF0000) == 0)
+	{
 		dummy = in_be64(&priv2->puint_mb_R);
 		eieio();
 		spu_int_stat_clear(spu, 2, CLASS2_ENABLE_MAILBOX_INTR);
@@ -1717,7 +1816,7 @@ static inline void set_int_route(struct spu_state *csa, struct spu *spu)
 }
 
 static inline void restore_other_spu_access(struct spu_state *csa,
-					    struct spu *spu)
+		struct spu *spu)
 {
 	/* Restore, Step 70:
 	 *     Restore other SPU mappings to this SPU. TBD.
@@ -1732,7 +1831,8 @@ static inline void restore_spu_runcntl(struct spu_state *csa, struct spu *spu)
 	 *     If CSA.SPU_Status[R]=1 then write
 	 *     SPU_RunCntl[R0R1]='01'.
 	 */
-	if (csa->prob.spu_status_R & SPU_STATUS_RUNNING) {
+	if (csa->prob.spu_status_R & SPU_STATUS_RUNNING)
+	{
 		out_be32(&prob->spu_runcntl_RW, SPU_RUNCNTL_RUNNABLE);
 		eieio();
 	}
@@ -1800,15 +1900,20 @@ static int quiece_spu(struct spu_state *prev, struct spu *spu)
 	 *              6 if failed step 6.
 	 */
 
-	if (check_spu_isolate(prev, spu)) {	/* Step 2. */
+	if (check_spu_isolate(prev, spu))  	/* Step 2. */
+	{
 		return 2;
 	}
+
 	disable_interrupts(prev, spu);	        /* Step 3. */
 	set_watchdog_timer(prev, spu);	        /* Step 4. */
 	inhibit_user_access(prev, spu);	        /* Step 5. */
-	if (check_spu_isolate(prev, spu)) {	/* Step 6. */
+
+	if (check_spu_isolate(prev, spu))  	/* Step 6. */
+	{
 		return 6;
 	}
+
 	set_switch_pending(prev, spu);	        /* Step 7. */
 	save_mfc_cntl(prev, spu);		/* Step 8. */
 	save_spu_runcntl(prev, spu);	        /* Step 9. */
@@ -1904,7 +2009,7 @@ static void force_spu_isolate_exit(struct spu *spu)
 	out_be32(&prob->spu_runcntl_RW, 2);
 	iobarrier_rw();
 	POLL_WHILE_FALSE((in_be32(&prob->spu_status_R)
-				& SPU_STATUS_STOPPED_BY_STOP));
+					  & SPU_STATUS_STOPPED_BY_STOP));
 
 	/* Reset load request to normal. */
 	out_be64(&priv2->spu_privcntl_RW, SPU_PRIVCNT_LOAD_REQUEST_NORMAL);
@@ -1920,7 +2025,8 @@ static void stop_spu_isolate(struct spu *spu)
 {
 	struct spu_problem __iomem *prob = spu->problem;
 
-	if (in_be32(&prob->spu_status_R) & SPU_STATUS_ISOLATED_STATE) {
+	if (in_be32(&prob->spu_status_R) & SPU_STATUS_ISOLATED_STATE)
+	{
 		/* The SPU is in isolated state; the only way
 		 * to get it out is to perform an isolated
 		 * exit (clean) operation.
@@ -1945,8 +2051,12 @@ static void harvest(struct spu_state *prev, struct spu *spu)
 	remove_other_spu_access(prev, spu);	/* Step 6.  */
 	suspend_mfc_and_halt_decr(prev, spu);	/* Step 7.  */
 	wait_suspend_mfc_complete(prev, spu);	/* Step 8.  */
+
 	if (!suspend_spe(prev, spu))	        /* Step 9.  */
-		clear_spu_status(prev, spu);	/* Step 10. */
+	{
+		clear_spu_status(prev, spu);    /* Step 10. */
+	}
+
 	do_mfc_mssync(prev, spu);	        /* Step 11. */
 	issue_mfc_tlbie(prev, spu);	        /* Step 12. */
 	handle_pending_interrupts(prev, spu);	/* Step 13. */
@@ -2052,16 +2162,20 @@ static int __do_spu_save(struct spu_state *prev, struct spu *spu)
 	 */
 
 	rc = quiece_spu(prev, spu);	        /* Steps 2-16. */
-	switch (rc) {
-	default:
-	case 2:
-	case 6:
-		harvest(prev, spu);
-		return rc;
-		break;
-	case 0:
-		break;
+
+	switch (rc)
+	{
+		default:
+		case 2:
+		case 6:
+			harvest(prev, spu);
+			return rc;
+			break;
+
+		case 0:
+			break;
 	}
+
 	save_csa(prev, spu);	                /* Steps 17-43. */
 	save_lscsa(prev, spu);	                /* Steps 44-53. */
 	return check_save_status(prev, spu);	/* Step 54.     */
@@ -2084,15 +2198,19 @@ static int __do_spu_restore(struct spu_state *next, struct spu *spu)
 
 	restore_lscsa(next, spu);	        /* Steps 24-39. */
 	rc = check_restore_status(next, spu);	/* Step 40.     */
-	switch (rc) {
-	default:
-		/* Failed. Return now. */
-		return rc;
-		break;
-	case 0:
-		/* Fall through to next step. */
-		break;
+
+	switch (rc)
+	{
+		default:
+			/* Failed. Return now. */
+			return rc;
+			break;
+
+		case 0:
+			/* Fall through to next step. */
+			break;
 	}
+
 	restore_csa(next, spu);
 
 	return 0;
@@ -2112,10 +2230,13 @@ int spu_save(struct spu_state *prev, struct spu *spu)
 	acquire_spu_lock(spu);	        /* Step 1.     */
 	rc = __do_spu_save(prev, spu);	/* Steps 2-53. */
 	release_spu_lock(spu);
-	if (rc != 0 && rc != 2 && rc != 6) {
+
+	if (rc != 0 && rc != 2 && rc != 6)
+	{
 		panic("%s failed on SPU[%d], rc=%d.\n",
-		      __func__, spu->number, rc);
+			  __func__, spu->number, rc);
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(spu_save);
@@ -2138,10 +2259,13 @@ int spu_restore(struct spu_state *new, struct spu *spu)
 	spu->slb_replace = 0;
 	rc = __do_spu_restore(new, spu);
 	release_spu_lock(spu);
-	if (rc) {
+
+	if (rc)
+	{
 		panic("%s failed on SPU[%d] rc=%d.\n",
-		       __func__, spu->number, rc);
+			  __func__, spu->number, rc);
 	}
+
 	return rc;
 }
 EXPORT_SYMBOL_GPL(spu_restore);
@@ -2161,27 +2285,27 @@ static void init_priv1(struct spu_state *csa)
 {
 	/* Enable decode, relocate, tlbie response, master runcntl. */
 	csa->priv1.mfc_sr1_RW = MFC_STATE1_LOCAL_STORAGE_DECODE_MASK |
-	    MFC_STATE1_MASTER_RUN_CONTROL_MASK |
-	    MFC_STATE1_PROBLEM_STATE_MASK |
-	    MFC_STATE1_RELOCATE_MASK | MFC_STATE1_BUS_TLBIE_MASK;
+							MFC_STATE1_MASTER_RUN_CONTROL_MASK |
+							MFC_STATE1_PROBLEM_STATE_MASK |
+							MFC_STATE1_RELOCATE_MASK | MFC_STATE1_BUS_TLBIE_MASK;
 
 	/* Enable OS-specific set of interrupts. */
 	csa->priv1.int_mask_class0_RW = CLASS0_ENABLE_DMA_ALIGNMENT_INTR |
-	    CLASS0_ENABLE_INVALID_DMA_COMMAND_INTR |
-	    CLASS0_ENABLE_SPU_ERROR_INTR;
+									CLASS0_ENABLE_INVALID_DMA_COMMAND_INTR |
+									CLASS0_ENABLE_SPU_ERROR_INTR;
 	csa->priv1.int_mask_class1_RW = CLASS1_ENABLE_SEGMENT_FAULT_INTR |
-	    CLASS1_ENABLE_STORAGE_FAULT_INTR;
+									CLASS1_ENABLE_STORAGE_FAULT_INTR;
 	csa->priv1.int_mask_class2_RW = CLASS2_ENABLE_SPU_STOP_INTR |
-	    CLASS2_ENABLE_SPU_HALT_INTR |
-	    CLASS2_ENABLE_SPU_DMA_TAG_GROUP_COMPLETE_INTR;
+									CLASS2_ENABLE_SPU_HALT_INTR |
+									CLASS2_ENABLE_SPU_DMA_TAG_GROUP_COMPLETE_INTR;
 }
 
 static void init_priv2(struct spu_state *csa)
 {
 	csa->priv2.spu_lslr_RW = LS_ADDR_MASK;
 	csa->priv2.mfc_control_RW = MFC_CNTL_RESUME_DMA_QUEUE |
-	    MFC_CNTL_NORMAL_DMA_QUEUE_OPERATION |
-	    MFC_CNTL_DMA_QUEUES_EMPTY_MASK;
+								MFC_CNTL_NORMAL_DMA_QUEUE_OPERATION |
+								MFC_CNTL_DMA_QUEUES_EMPTY_MASK;
 }
 
 /**
@@ -2200,12 +2324,18 @@ int spu_init_csa(struct spu_state *csa)
 	int rc;
 
 	if (!csa)
+	{
 		return -EINVAL;
+	}
+
 	memset(csa, 0, sizeof(struct spu_state));
 
 	rc = spu_alloc_lscsa(csa);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	spin_lock_init(&csa->register_lock);
 

@@ -46,7 +46,8 @@ int wm9713_irq;
 int lcd_id;
 int lcd_orientation;
 
-struct platform_device pxa_device_wm9713_audio = {
+struct platform_device pxa_device_wm9713_audio =
+{
 	.name		= "wm9713-codec",
 	.id		= -1,
 };
@@ -56,7 +57,8 @@ static void __init zylonite_init_wm9713_audio(void)
 	platform_device_register(&pxa_device_wm9713_audio);
 }
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= ZYLONITE_ETH_PHYS + 0x300,
 		.end	= ZYLONITE_ETH_PHYS + 0xfffff,
@@ -69,12 +71,14 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct smc91x_platdata zylonite_smc91x_info = {
+static struct smc91x_platdata zylonite_smc91x_info =
+{
 	.flags	= SMC91X_USE_8BIT | SMC91X_USE_16BIT |
-		  SMC91X_NOWAIT | SMC91X_USE_DMA,
+	SMC91X_NOWAIT | SMC91X_USE_DMA,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -85,7 +89,8 @@ static struct platform_device smc91x_device = {
 };
 
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-static struct gpio_led zylonite_debug_leds[] = {
+static struct gpio_led zylonite_debug_leds[] =
+{
 	[0] = {
 		.name			= "zylonite:yellow:1",
 		.default_trigger	= "heartbeat",
@@ -96,12 +101,14 @@ static struct gpio_led zylonite_debug_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data zylonite_debug_leds_info = {
+static struct gpio_led_platform_data zylonite_debug_leds_info =
+{
 	.leds		= zylonite_debug_leds,
 	.num_leds	= ARRAY_SIZE(zylonite_debug_leds),
 };
 
-static struct platform_device zylonite_device_leds = {
+static struct platform_device zylonite_device_leds =
+{
 	.name		= "leds-gpio",
 	.id		= -1,
 	.dev		= {
@@ -121,18 +128,21 @@ static inline void zylonite_init_leds(void) {}
 #endif
 
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static struct pwm_lookup zylonite_pwm_lookup[] = {
+static struct pwm_lookup zylonite_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa27x-pwm.1", 1, "pwm-backlight.0", NULL, 10000,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data zylonite_backlight_data = {
+static struct platform_pwm_backlight_data zylonite_backlight_data =
+{
 	.max_brightness	= 100,
 	.dft_brightness	= 100,
 	.enable_gpio	= -1,
 };
 
-static struct platform_device zylonite_backlight_device = {
+static struct platform_device zylonite_backlight_device =
+{
 	.name		= "pwm-backlight",
 	.dev		= {
 		.parent = &pxa27x_device_pwm1.dev,
@@ -140,7 +150,8 @@ static struct platform_device zylonite_backlight_device = {
 	},
 };
 
-static struct pxafb_mode_info toshiba_ltm035a776c_mode = {
+static struct pxafb_mode_info toshiba_ltm035a776c_mode =
+{
 	.pixclock		= 110000,
 	.xres			= 240,
 	.yres			= 320,
@@ -154,7 +165,8 @@ static struct pxafb_mode_info toshiba_ltm035a776c_mode = {
 	.sync			= FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mode_info toshiba_ltm04c380k_mode = {
+static struct pxafb_mode_info toshiba_ltm04c380k_mode =
+{
 	.pixclock		= 50000,
 	.xres			= 640,
 	.yres			= 480,
@@ -165,15 +177,17 @@ static struct pxafb_mode_info toshiba_ltm04c380k_mode = {
 	.vsync_len		= 44,
 	.upper_margin		= 0,
 	.lower_margin		= 0,
-	.sync			= FB_SYNC_HOR_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT,
+	.sync			= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mach_info zylonite_toshiba_lcd_info = {
+static struct pxafb_mach_info zylonite_toshiba_lcd_info =
+{
 	.num_modes      	= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 };
 
-static struct pxafb_mode_info sharp_ls037_modes[] = {
+static struct pxafb_mode_info sharp_ls037_modes[] =
+{
 	[0] = {
 		.pixclock	= 158000,
 		.xres		= 240,
@@ -202,7 +216,8 @@ static struct pxafb_mode_info sharp_ls037_modes[] = {
 	},
 };
 
-static struct pxafb_mach_info zylonite_sharp_lcd_info = {
+static struct pxafb_mach_info zylonite_sharp_lcd_info =
+{
 	.modes			= sharp_ls037_modes,
 	.num_modes		= 2,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
@@ -213,7 +228,8 @@ static void __init zylonite_init_lcd(void)
 	pwm_add_table(zylonite_pwm_lookup, ARRAY_SIZE(zylonite_pwm_lookup));
 	platform_device_register(&zylonite_backlight_device);
 
-	if (lcd_id & 0x20) {
+	if (lcd_id & 0x20)
+	{
 		pxa_set_fb_info(NULL, &zylonite_sharp_lcd_info);
 		return;
 	}
@@ -222,9 +238,13 @@ static void __init zylonite_init_lcd(void)
 	 * be decided at run-time
 	 */
 	if (1)
+	{
 		zylonite_toshiba_lcd_info.modes = &toshiba_ltm035a776c_mode;
+	}
 	else
+	{
 		zylonite_toshiba_lcd_info.modes = &toshiba_ltm04c380k_mode;
+	}
 
 	pxa_set_fb_info(NULL, &zylonite_toshiba_lcd_info);
 }
@@ -233,25 +253,28 @@ static inline void zylonite_init_lcd(void) {}
 #endif
 
 #if defined(CONFIG_MMC)
-static struct pxamci_platform_data zylonite_mci_platform_data = {
-	.detect_delay_ms= 200,
-	.ocr_mask	= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct pxamci_platform_data zylonite_mci_platform_data =
+{
+	.detect_delay_ms = 200,
+	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect = EXT_GPIO(0),
 	.gpio_card_ro	= EXT_GPIO(2),
 	.gpio_power	= -1,
 };
 
-static struct pxamci_platform_data zylonite_mci2_platform_data = {
-	.detect_delay_ms= 200,
-	.ocr_mask	= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct pxamci_platform_data zylonite_mci2_platform_data =
+{
+	.detect_delay_ms = 200,
+	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect = EXT_GPIO(1),
 	.gpio_card_ro	= EXT_GPIO(3),
 	.gpio_power	= -1,
 };
 
-static struct pxamci_platform_data zylonite_mci3_platform_data = {
-	.detect_delay_ms= 200,
-	.ocr_mask	= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct pxamci_platform_data zylonite_mci3_platform_data =
+{
+	.detect_delay_ms = 200,
+	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect = EXT_GPIO(30),
 	.gpio_card_ro	= EXT_GPIO(31),
 	.gpio_power	= -1,
@@ -261,15 +284,19 @@ static void __init zylonite_init_mmc(void)
 {
 	pxa_set_mci_info(&zylonite_mci_platform_data);
 	pxa3xx_set_mci2_info(&zylonite_mci2_platform_data);
+
 	if (cpu_is_pxa310())
+	{
 		pxa3xx_set_mci3_info(&zylonite_mci3_platform_data);
+	}
 }
 #else
 static inline void zylonite_init_mmc(void) {}
 #endif
 
 #if defined(CONFIG_KEYBOARD_PXA27x) || defined(CONFIG_KEYBOARD_PXA27x_MODULE)
-static const unsigned int zylonite_matrix_key_map[] = {
+static const unsigned int zylonite_matrix_key_map[] =
+{
 	/* KEY(row, col, key_code) */
 	KEY(0, 0, KEY_A), KEY(0, 1, KEY_B), KEY(0, 2, KEY_C), KEY(0, 5, KEY_D),
 	KEY(1, 0, KEY_E), KEY(1, 1, KEY_F), KEY(1, 2, KEY_G), KEY(1, 5, KEY_H),
@@ -312,12 +339,14 @@ static const unsigned int zylonite_matrix_key_map[] = {
 	KEY(0, 3, KEY_AUX),	/* contact */
 };
 
-static struct matrix_keymap_data zylonite_matrix_keymap_data = {
+static struct matrix_keymap_data zylonite_matrix_keymap_data =
+{
 	.keymap			= zylonite_matrix_key_map,
 	.keymap_size		= ARRAY_SIZE(zylonite_matrix_key_map),
 };
 
-static struct pxa27x_keypad_platform_data zylonite_keypad_info = {
+static struct pxa27x_keypad_platform_data zylonite_keypad_info =
+{
 	.matrix_key_rows	= 8,
 	.matrix_key_cols	= 8,
 	.matrix_keymap_data	= &zylonite_matrix_keymap_data,
@@ -338,7 +367,8 @@ static inline void zylonite_init_keypad(void) {}
 #endif
 
 #if defined(CONFIG_MTD_NAND_PXA3xx) || defined(CONFIG_MTD_NAND_PXA3xx_MODULE)
-static struct mtd_partition zylonite_nand_partitions[] = {
+static struct mtd_partition zylonite_nand_partitions[] =
+{
 	[0] = {
 		.name        = "Bootloader",
 		.offset      = 0,
@@ -374,7 +404,8 @@ static struct mtd_partition zylonite_nand_partitions[] = {
 	 */
 };
 
-static struct pxa3xx_nand_platform_data zylonite_nand_info = {
+static struct pxa3xx_nand_platform_data zylonite_nand_info =
+{
 	.enable_arbiter	= 1,
 	.num_cs		= 1,
 	.parts[0]	= zylonite_nand_partitions,
@@ -390,10 +421,11 @@ static inline void zylonite_init_nand(void) {}
 #endif /* CONFIG_MTD_NAND_PXA3xx || CONFIG_MTD_NAND_PXA3xx_MODULE */
 
 #if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-static struct pxaohci_platform_data zylonite_ohci_info = {
+static struct pxaohci_platform_data zylonite_ohci_info =
+{
 	.port_mode	= PMM_PERPORT_MODE,
 	.flags		= ENABLE_PORT1 | ENABLE_PORT2 |
-			  POWER_CONTROL_LOW | POWER_SENSE_LOW,
+	POWER_CONTROL_LOW | POWER_SENSE_LOW,
 };
 
 static void __init zylonite_init_ohci(void)
@@ -433,12 +465,12 @@ static void __init zylonite_init(void)
 }
 
 MACHINE_START(ZYLONITE, "PXA3xx Platform Development Kit (aka Zylonite)")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa3xx_map_io,
-	.nr_irqs	= ZYLONITE_NR_IRQS,
-	.init_irq	= pxa3xx_init_irq,
-	.handle_irq	= pxa3xx_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= zylonite_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= ZYLONITE_NR_IRQS,
+			.init_irq	= pxa3xx_init_irq,
+			   .handle_irq	= pxa3xx_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= zylonite_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

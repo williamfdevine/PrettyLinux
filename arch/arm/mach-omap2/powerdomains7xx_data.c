@@ -31,7 +31,8 @@
 #include "prcm_mpu7xx.h"
 
 /* iva_7xx_pwrdm: IVA-HD power domain */
-static struct powerdomain iva_7xx_pwrdm = {
+static struct powerdomain iva_7xx_pwrdm =
+{
 	.name		  = "iva_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_IVA_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -47,7 +48,8 @@ static struct powerdomain iva_7xx_pwrdm = {
 };
 
 /* rtc_7xx_pwrdm:  */
-static struct powerdomain rtc_7xx_pwrdm = {
+static struct powerdomain rtc_7xx_pwrdm =
+{
 	.name		  = "rtc_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_RTC_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -55,7 +57,8 @@ static struct powerdomain rtc_7xx_pwrdm = {
 };
 
 /* custefuse_7xx_pwrdm: Customer efuse controller power domain */
-static struct powerdomain custefuse_7xx_pwrdm = {
+static struct powerdomain custefuse_7xx_pwrdm =
+{
 	.name		  = "custefuse_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_CUSTEFUSE_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -64,7 +67,8 @@ static struct powerdomain custefuse_7xx_pwrdm = {
 };
 
 /* ipu_7xx_pwrdm: Audio back end power domain */
-static struct powerdomain ipu_7xx_pwrdm = {
+static struct powerdomain ipu_7xx_pwrdm =
+{
 	.name		  = "ipu_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_IPU_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -78,7 +82,8 @@ static struct powerdomain ipu_7xx_pwrdm = {
 };
 
 /* dss_7xx_pwrdm: Display subsystem power domain */
-static struct powerdomain dss_7xx_pwrdm = {
+static struct powerdomain dss_7xx_pwrdm =
+{
 	.name		  = "dss_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_DSS_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -91,7 +96,8 @@ static struct powerdomain dss_7xx_pwrdm = {
 };
 
 /* l4per_7xx_pwrdm: Target peripherals power domain */
-static struct powerdomain l4per_7xx_pwrdm = {
+static struct powerdomain l4per_7xx_pwrdm =
+{
 	.name		  = "l4per_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_L4PER_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -105,7 +111,8 @@ static struct powerdomain l4per_7xx_pwrdm = {
 };
 
 /* gpu_7xx_pwrdm: 3D accelerator power domain */
-static struct powerdomain gpu_7xx_pwrdm = {
+static struct powerdomain gpu_7xx_pwrdm =
+{
 	.name		  = "gpu_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_GPU_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -118,7 +125,8 @@ static struct powerdomain gpu_7xx_pwrdm = {
 };
 
 /* wkupaon_7xx_pwrdm: Wake-up power domain */
-static struct powerdomain wkupaon_7xx_pwrdm = {
+static struct powerdomain wkupaon_7xx_pwrdm =
+{
 	.name		  = "wkupaon_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_WKUPAON_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -130,7 +138,8 @@ static struct powerdomain wkupaon_7xx_pwrdm = {
 };
 
 /* core_7xx_pwrdm: CORE power domain */
-static struct powerdomain core_7xx_pwrdm = {
+static struct powerdomain core_7xx_pwrdm =
+{
 	.name		  = "core_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_CORE_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -147,7 +156,8 @@ static struct powerdomain core_7xx_pwrdm = {
 };
 
 /* coreaon_7xx_pwrdm: Always ON logic that sits in VDD_CORE voltage domain */
-static struct powerdomain coreaon_7xx_pwrdm = {
+static struct powerdomain coreaon_7xx_pwrdm =
+{
 	.name		  = "coreaon_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_COREAON_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -155,7 +165,8 @@ static struct powerdomain coreaon_7xx_pwrdm = {
 };
 
 /* cpu0_7xx_pwrdm: MPU0 processor and Neon coprocessor power domain */
-static struct powerdomain cpu0_7xx_pwrdm = {
+static struct powerdomain cpu0_7xx_pwrdm =
+{
 	.name		  = "cpu0_pwrdm",
 	.prcm_offs	  = DRA7XX_MPU_PRCM_PRM_C0_INST,
 	.prcm_partition	  = DRA7XX_MPU_PRCM_PARTITION,
@@ -171,7 +182,8 @@ static struct powerdomain cpu0_7xx_pwrdm = {
 };
 
 /* cpu1_7xx_pwrdm: MPU1 processor and Neon coprocessor power domain */
-static struct powerdomain cpu1_7xx_pwrdm = {
+static struct powerdomain cpu1_7xx_pwrdm =
+{
 	.name		  = "cpu1_pwrdm",
 	.prcm_offs	  = DRA7XX_MPU_PRCM_PRM_C1_INST,
 	.prcm_partition	  = DRA7XX_MPU_PRCM_PARTITION,
@@ -187,7 +199,8 @@ static struct powerdomain cpu1_7xx_pwrdm = {
 };
 
 /* vpe_7xx_pwrdm:  */
-static struct powerdomain vpe_7xx_pwrdm = {
+static struct powerdomain vpe_7xx_pwrdm =
+{
 	.name		  = "vpe_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_VPE_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -200,7 +213,8 @@ static struct powerdomain vpe_7xx_pwrdm = {
 };
 
 /* mpu_7xx_pwrdm: Modena processor and the Neon coprocessor power domain */
-static struct powerdomain mpu_7xx_pwrdm = {
+static struct powerdomain mpu_7xx_pwrdm =
+{
 	.name		  = "mpu_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_MPU_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -218,7 +232,8 @@ static struct powerdomain mpu_7xx_pwrdm = {
 };
 
 /* l3init_7xx_pwrdm: L3 initators pheripherals power domain  */
-static struct powerdomain l3init_7xx_pwrdm = {
+static struct powerdomain l3init_7xx_pwrdm =
+{
 	.name		  = "l3init_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_L3INIT_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -233,7 +248,8 @@ static struct powerdomain l3init_7xx_pwrdm = {
 };
 
 /* eve3_7xx_pwrdm:  */
-static struct powerdomain eve3_7xx_pwrdm = {
+static struct powerdomain eve3_7xx_pwrdm =
+{
 	.name		  = "eve3_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_EVE3_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -246,7 +262,8 @@ static struct powerdomain eve3_7xx_pwrdm = {
 };
 
 /* emu_7xx_pwrdm: Emulation power domain */
-static struct powerdomain emu_7xx_pwrdm = {
+static struct powerdomain emu_7xx_pwrdm =
+{
 	.name		  = "emu_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_EMU_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -258,7 +275,8 @@ static struct powerdomain emu_7xx_pwrdm = {
 };
 
 /* dsp2_7xx_pwrdm:  */
-static struct powerdomain dsp2_7xx_pwrdm = {
+static struct powerdomain dsp2_7xx_pwrdm =
+{
 	.name		  = "dsp2_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_DSP2_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -273,7 +291,8 @@ static struct powerdomain dsp2_7xx_pwrdm = {
 };
 
 /* dsp1_7xx_pwrdm: Tesla processor power domain */
-static struct powerdomain dsp1_7xx_pwrdm = {
+static struct powerdomain dsp1_7xx_pwrdm =
+{
 	.name		  = "dsp1_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_DSP1_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -288,7 +307,8 @@ static struct powerdomain dsp1_7xx_pwrdm = {
 };
 
 /* cam_7xx_pwrdm: Camera subsystem power domain */
-static struct powerdomain cam_7xx_pwrdm = {
+static struct powerdomain cam_7xx_pwrdm =
+{
 	.name		  = "cam_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_CAM_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -301,7 +321,8 @@ static struct powerdomain cam_7xx_pwrdm = {
 };
 
 /* eve4_7xx_pwrdm:  */
-static struct powerdomain eve4_7xx_pwrdm = {
+static struct powerdomain eve4_7xx_pwrdm =
+{
 	.name		  = "eve4_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_EVE4_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -314,7 +335,8 @@ static struct powerdomain eve4_7xx_pwrdm = {
 };
 
 /* eve2_7xx_pwrdm:  */
-static struct powerdomain eve2_7xx_pwrdm = {
+static struct powerdomain eve2_7xx_pwrdm =
+{
 	.name		  = "eve2_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_EVE2_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -327,7 +349,8 @@ static struct powerdomain eve2_7xx_pwrdm = {
 };
 
 /* eve1_7xx_pwrdm:  */
-static struct powerdomain eve1_7xx_pwrdm = {
+static struct powerdomain eve1_7xx_pwrdm =
+{
 	.name		  = "eve1_pwrdm",
 	.prcm_offs	  = DRA7XX_PRM_EVE1_INST,
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -347,7 +370,8 @@ static struct powerdomain eve1_7xx_pwrdm = {
  */
 
 /* As powerdomains are added or removed above, this list must also be changed */
-static struct powerdomain *powerdomains_dra7xx[] __initdata = {
+static struct powerdomain *powerdomains_dra7xx[] __initdata =
+{
 	&iva_7xx_pwrdm,
 	&rtc_7xx_pwrdm,
 	&custefuse_7xx_pwrdm,

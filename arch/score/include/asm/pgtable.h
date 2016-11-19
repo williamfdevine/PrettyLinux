@@ -9,7 +9,7 @@
 #include <asm/pgtable-bits.h>
 
 extern void load_pgd(unsigned long pg_dir);
-extern pte_t invalid_pte_table[PAGE_SIZE/sizeof(pte_t)];
+extern pte_t invalid_pte_table[PAGE_SIZE / sizeof(pte_t)];
 
 /* PGDIR_SHIFT determines what a third-level page table entry can map */
 #define PGDIR_SHIFT	22
@@ -37,10 +37,10 @@ extern pte_t invalid_pte_table[PAGE_SIZE/sizeof(pte_t)];
 
 #define pte_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pte %08lx.\n", \
-		__FILE__, __LINE__, pte_val(e))
+		   __FILE__, __LINE__, pte_val(e))
 #define pgd_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pgd %08lx.\n", \
-		__FILE__, __LINE__, pgd_val(e))
+		   __FILE__, __LINE__, pgd_val(e))
 
 /*
  * Empty pgd/pmd entries point to the invalid_pte_table.
@@ -122,13 +122,13 @@ static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
 
 #define PAGE_NONE	__pgprot(_PAGE_PRESENT | _PAGE_CACHE)
 #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_READ | _PAGE_WRITE | \
-				_PAGE_CACHE)
+							 _PAGE_CACHE)
 #define PAGE_COPY	__pgprot(_PAGE_PRESENT | _PAGE_READ | _PAGE_CACHE)
 #define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_READ | _PAGE_CACHE)
 #define PAGE_KERNEL	__pgprot(_PAGE_PRESENT | __READABLE | __WRITEABLE | \
-				_PAGE_GLOBAL | _PAGE_CACHE)
+							 _PAGE_GLOBAL | _PAGE_CACHE)
 #define PAGE_KERNEL_UNCACHED __pgprot(_PAGE_PRESENT | __READABLE | \
-				__WRITEABLE | _PAGE_GLOBAL & ~_PAGE_CACHE)
+									  __WRITEABLE | _PAGE_GLOBAL & ~_PAGE_CACHE)
 
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY
@@ -168,7 +168,7 @@ extern unsigned long zero_page_mask;
 
 #define ZERO_PAGE(vaddr) \
 	(virt_to_page((void *)(empty_zero_page + \
-	 (((unsigned long)(vaddr)) & zero_page_mask))))
+						   (((unsigned long)(vaddr)) & zero_page_mask))))
 
 #define pgtable_cache_init()	do {} while (0)
 
@@ -199,42 +199,54 @@ static inline pte_t pte_wrprotect(pte_t pte)
 
 static inline pte_t pte_mkclean(pte_t pte)
 {
-	pte_val(pte) &= ~(_PAGE_MODIFIED|_PAGE_SILENT_WRITE);
+	pte_val(pte) &= ~(_PAGE_MODIFIED | _PAGE_SILENT_WRITE);
 	return pte;
 }
 
 static inline pte_t pte_mkold(pte_t pte)
 {
-	pte_val(pte) &= ~(_PAGE_ACCESSED|_PAGE_SILENT_READ);
+	pte_val(pte) &= ~(_PAGE_ACCESSED | _PAGE_SILENT_READ);
 	return pte;
 }
 
 static inline pte_t pte_mkwrite(pte_t pte)
 {
 	pte_val(pte) |= _PAGE_WRITE;
+
 	if (pte_val(pte) & _PAGE_MODIFIED)
+	{
 		pte_val(pte) |= _PAGE_SILENT_WRITE;
+	}
+
 	return pte;
 }
 
 static inline pte_t pte_mkdirty(pte_t pte)
 {
 	pte_val(pte) |= _PAGE_MODIFIED;
+
 	if (pte_val(pte) & _PAGE_WRITE)
+	{
 		pte_val(pte) |= _PAGE_SILENT_WRITE;
+	}
+
 	return pte;
 }
 
 static inline pte_t pte_mkyoung(pte_t pte)
 {
 	pte_val(pte) |= _PAGE_ACCESSED;
+
 	if (pte_val(pte) & _PAGE_READ)
+	{
 		pte_val(pte) |= _PAGE_SILENT_READ;
+	}
+
 	return pte;
 }
 
 #define set_pmd(pmdptr, pmdval)		\
-	 do { *(pmdptr) = (pmdval); } while (0)
+	do { *(pmdptr) = (pmdval); } while (0)
 #define pte_present(pte)	(pte_val(pte) & _PAGE_PRESENT)
 
 extern unsigned long pgd_current;
@@ -247,12 +259,12 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 }
 
 extern void __update_tlb(struct vm_area_struct *vma,
-	unsigned long address,	pte_t pte);
+						 unsigned long address,	pte_t pte);
 extern void __update_cache(struct vm_area_struct *vma,
-	unsigned long address,	pte_t pte);
+						   unsigned long address,	pte_t pte);
 
 static inline void update_mmu_cache(struct vm_area_struct *vma,
-	unsigned long address, pte_t *ptep)
+									unsigned long address, pte_t *ptep)
 {
 	pte_t pte = *ptep;
 	__update_tlb(vma, address, pte);
@@ -260,9 +272,9 @@ static inline void update_mmu_cache(struct vm_area_struct *vma,
 }
 
 #ifndef __ASSEMBLY__
-#include <asm-generic/pgtable.h>
+	#include <asm-generic/pgtable.h>
 
-void setup_memory(void);
+	void setup_memory(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* _ASM_SCORE_PGTABLE_H */

@@ -21,14 +21,14 @@
 #include <gxio/kiorpc.h>
 
 #ifdef DEBUG_IORPC
-#define TRACE(FMT, ...) pr_info(SIMPLE_MSG_LINE FMT, ## __VA_ARGS__)
+	#define TRACE(FMT, ...) pr_info(SIMPLE_MSG_LINE FMT, ## __VA_ARGS__)
 #else
-#define TRACE(...)
+	#define TRACE(...)
 #endif
 
 /* Create kernel-VA-space MMIO mapping for an on-chip IO device. */
 void __iomem *iorpc_ioremap(int hv_fd, resource_size_t offset,
-			    unsigned long size)
+							unsigned long size)
 {
 	pgprot_t mmio_base, prot = { 0 };
 	unsigned long pfn;
@@ -36,14 +36,18 @@ void __iomem *iorpc_ioremap(int hv_fd, resource_size_t offset,
 
 	/* Look up the shim's lotar and base PA. */
 	err = __iorpc_get_mmio_base(hv_fd, &mmio_base);
-	if (err) {
+
+	if (err)
+	{
 		TRACE("get_mmio_base() failure: %d\n", err);
 		return NULL;
 	}
 
 	/* Make sure the HV driver approves of our offset and size. */
 	err = __iorpc_check_mmio_offset(hv_fd, offset, size);
-	if (err) {
+
+	if (err)
+	{
 		TRACE("check_mmio_offset() failure: %d\n", err);
 		return NULL;
 	}

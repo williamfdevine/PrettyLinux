@@ -7,9 +7,9 @@
 extern void flush_cache_all(void);
 extern void flush_cache_mm(struct mm_struct *mm);
 extern void flush_cache_range(struct vm_area_struct *vma,
-				unsigned long start, unsigned long end);
+							  unsigned long start, unsigned long end);
 extern void flush_cache_page(struct vm_area_struct *vma,
-				unsigned long page, unsigned long pfn);
+							 unsigned long page, unsigned long pfn);
 extern void flush_cache_sigtramp(unsigned long addr);
 extern void flush_icache_all(void);
 extern void flush_icache_range(unsigned long start, unsigned long end);
@@ -26,12 +26,13 @@ extern void flush_dcache_page(struct page *page);
 #define flush_cache_vunmap(start, end)		do {} while (0)
 
 static inline void flush_icache_page(struct vm_area_struct *vma,
-	struct page *page)
+									 struct page *page)
 {
-	if (vma->vm_flags & VM_EXEC) {
+	if (vma->vm_flags & VM_EXEC)
+	{
 		void *v = page_address(page);
 		flush_icache_range((unsigned long) v,
-				(unsigned long) v + PAGE_SIZE);
+						   (unsigned long) v + PAGE_SIZE);
 	}
 }
 

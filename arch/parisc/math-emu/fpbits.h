@@ -20,7 +20,8 @@
  */
 
 #ifdef __NO_PA_HDRS
-    PA header file -- do not include this header file for non-PA builds.
+
+	PA header file -- do not include this header file for non - PA builds.
 #endif
 
 
@@ -37,7 +38,7 @@
  */
 
 #ifndef HOSTWDSZ
-#define	HOSTWDSZ	32
+	#define	HOSTWDSZ	32
 #endif
 
 
@@ -48,18 +49,18 @@
  * function "DeclBitfR" except its use is restricted to occur within a larger
  * enclosing structure or union definition.  This declaration is an unnamed
  * structure with the argument, name, as the member name and the argument,
- * uname, as the element name. 
+ * uname, as the element name.
  *----------------------------------------------------------------------- */
 #define Bitfield_extract(start, length, object) 	\
-    ((object) >> (HOSTWDSZ - (start) - (length)) & 	\
-    ((unsigned)-1 >> (HOSTWDSZ - (length))))
+	((object) >> (HOSTWDSZ - (start) - (length)) & 	\
+	 ((unsigned)-1 >> (HOSTWDSZ - (length))))
 
 #define Bitfield_signed_extract(start, length, object) \
-    ((int)((object) << start) >> (HOSTWDSZ - (length)))
+	((int)((object) << start) >> (HOSTWDSZ - (length)))
 
 #define Bitfield_mask(start, len, object)		\
-    ((object) & (((unsigned)-1 >> (HOSTWDSZ-len)) << (HOSTWDSZ-start-len)))
+	((object) & (((unsigned)-1 >> (HOSTWDSZ-len)) << (HOSTWDSZ-start-len)))
 
 #define Bitfield_deposit(value,start,len,object)  object = \
-    ((object) & ~(((unsigned)-1 >> (HOSTWDSZ-len)) << (HOSTWDSZ-start-len))) | \
-    (((value) & ((unsigned)-1 >> (HOSTWDSZ-len))) << (HOSTWDSZ-start-len))
+		((object) & ~(((unsigned)-1 >> (HOSTWDSZ-len)) << (HOSTWDSZ-start-len))) | \
+		(((value) & ((unsigned)-1 >> (HOSTWDSZ-len))) << (HOSTWDSZ-start-len))

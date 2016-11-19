@@ -25,7 +25,8 @@
  *
  */
 
-enum {
+enum
+{
 	IIC_IRQ_INVALID		= 0x80000000u,
 	IIC_IRQ_NODE_MASK	= 0x100,
 	IIC_IRQ_NODE_SHIFT	= 8,

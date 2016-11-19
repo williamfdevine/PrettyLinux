@@ -13,13 +13,13 @@
 
 static inline void __delay(unsigned long loops)
 {
-__asm__ __volatile__ (
-			"LSETUP(1f, 1f) LC0 = %0;"
-			"1: NOP;"
-			:
-			: "a" (loops)
-			: "LT0", "LB0", "LC0"
-		);
+	__asm__ __volatile__ (
+		"LSETUP(1f, 1f) LC0 = %0;"
+		"1: NOP;"
+		:
+		: "a" (loops)
+		: "LT0", "LB0", "LC0"
+	);
 }
 
 #include <linux/param.h>	/* needed for HZ */

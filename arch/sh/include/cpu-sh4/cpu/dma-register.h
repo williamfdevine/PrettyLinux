@@ -17,31 +17,32 @@
 #define DMAOR_INIT	DMAOR_DME
 
 #if defined(CONFIG_CPU_SUBTYPE_SH7343)
-#define CHCR_TS_LOW_MASK	0x00000018
-#define CHCR_TS_LOW_SHIFT	3
-#define CHCR_TS_HIGH_MASK	0
-#define CHCR_TS_HIGH_SHIFT	0
+	#define CHCR_TS_LOW_MASK	0x00000018
+	#define CHCR_TS_LOW_SHIFT	3
+	#define CHCR_TS_HIGH_MASK	0
+	#define CHCR_TS_HIGH_SHIFT	0
 #elif defined(CONFIG_CPU_SUBTYPE_SH7722) || \
 	defined(CONFIG_CPU_SUBTYPE_SH7723) || \
 	defined(CONFIG_CPU_SUBTYPE_SH7724) || \
 	defined(CONFIG_CPU_SUBTYPE_SH7730) || \
 	defined(CONFIG_CPU_SUBTYPE_SH7786)
-#define CHCR_TS_LOW_MASK	0x00000018
-#define CHCR_TS_LOW_SHIFT	3
-#define CHCR_TS_HIGH_MASK	0x00300000
-#define CHCR_TS_HIGH_SHIFT	(20 - 2)	/* 2 bits for shifted low TS */
+	#define CHCR_TS_LOW_MASK	0x00000018
+	#define CHCR_TS_LOW_SHIFT	3
+	#define CHCR_TS_HIGH_MASK	0x00300000
+	#define CHCR_TS_HIGH_SHIFT	(20 - 2)	/* 2 bits for shifted low TS */
 #elif defined(CONFIG_CPU_SUBTYPE_SH7757) || \
 	defined(CONFIG_CPU_SUBTYPE_SH7763) || \
 	defined(CONFIG_CPU_SUBTYPE_SH7780) || \
 	defined(CONFIG_CPU_SUBTYPE_SH7785)
-#define CHCR_TS_LOW_MASK	0x00000018
-#define CHCR_TS_LOW_SHIFT	3
-#define CHCR_TS_HIGH_MASK	0x00100000
-#define CHCR_TS_HIGH_SHIFT	(20 - 2)	/* 2 bits for shifted low TS */
+	#define CHCR_TS_LOW_MASK	0x00000018
+	#define CHCR_TS_LOW_SHIFT	3
+	#define CHCR_TS_HIGH_MASK	0x00100000
+	#define CHCR_TS_HIGH_SHIFT	(20 - 2)	/* 2 bits for shifted low TS */
 #endif
 
 /* Transmit sizes and respective CHCR register values */
-enum {
+enum
+{
 	XMIT_SZ_8BIT		= 0,
 	XMIT_SZ_16BIT		= 1,
 	XMIT_SZ_32BIT		= 2,
@@ -54,18 +55,18 @@ enum {
 
 /* log2(size / 8) - used to calculate number of transfers */
 #define TS_SHIFT {			\
-	[XMIT_SZ_8BIT]		= 0,	\
-	[XMIT_SZ_16BIT]		= 1,	\
-	[XMIT_SZ_32BIT]		= 2,	\
-	[XMIT_SZ_64BIT]		= 3,	\
-	[XMIT_SZ_128BIT]	= 4,	\
-	[XMIT_SZ_256BIT]	= 5,	\
-	[XMIT_SZ_128BIT_BLK]	= 4,	\
-	[XMIT_SZ_256BIT_BLK]	= 5,	\
-}
+		[XMIT_SZ_8BIT]		= 0,	\
+							  [XMIT_SZ_16BIT]		= 1,	\
+									  [XMIT_SZ_32BIT]		= 2,	\
+											  [XMIT_SZ_64BIT]		= 3,	\
+													  [XMIT_SZ_128BIT]	= 4,	\
+															  [XMIT_SZ_256BIT]	= 5,	\
+																	  [XMIT_SZ_128BIT_BLK]	= 4,	\
+																			  [XMIT_SZ_256BIT_BLK]	= 5,	\
+	}
 
 #define TS_INDEX2VAL(i)	((((i) & 3) << CHCR_TS_LOW_SHIFT) | \
-			 (((i) & 0xc) << CHCR_TS_HIGH_SHIFT))
+						 (((i) & 0xc) << CHCR_TS_HIGH_SHIFT))
 
 #else /* CONFIG_CPU_SH4A */
 
@@ -77,7 +78,8 @@ enum {
 #define CHCR_TS_HIGH_SHIFT	0
 
 /* Transmit sizes and respective CHCR register values */
-enum {
+enum
+{
 	XMIT_SZ_8BIT	= 1,
 	XMIT_SZ_16BIT	= 2,
 	XMIT_SZ_32BIT	= 3,
@@ -87,12 +89,12 @@ enum {
 
 /* log2(size / 8) - used to calculate number of transfers */
 #define TS_SHIFT {			\
-	[XMIT_SZ_8BIT]		= 0,	\
-	[XMIT_SZ_16BIT]		= 1,	\
-	[XMIT_SZ_32BIT]		= 2,	\
-	[XMIT_SZ_64BIT]		= 3,	\
-	[XMIT_SZ_256BIT]	= 5,	\
-}
+		[XMIT_SZ_8BIT]		= 0,	\
+							  [XMIT_SZ_16BIT]		= 1,	\
+									  [XMIT_SZ_32BIT]		= 2,	\
+											  [XMIT_SZ_64BIT]		= 3,	\
+													  [XMIT_SZ_256BIT]	= 5,	\
+	}
 
 #define TS_INDEX2VAL(i)	(((i) & 7) << CHCR_TS_LOW_SHIFT)
 

@@ -59,10 +59,11 @@ static void samsung_gpio_pm_1bit_resume(struct samsung_gpio_chip *chip)
 	__raw_writel(gps_gpcon, base + OFFS_CON);
 
 	S3C_PMDBG("%s: CON %08x => %08x, DAT %08x => %08x\n",
-		  chip->chip.label, old_gpcon, gps_gpcon, old_gpdat, gps_gpdat);
+			  chip->chip.label, old_gpcon, gps_gpcon, old_gpdat, gps_gpdat);
 }
 
-struct samsung_gpio_pm samsung_gpio_pm_1bit = {
+struct samsung_gpio_pm samsung_gpio_pm_1bit =
+{
 	.save	= samsung_gpio_pm_1bit_save,
 	.resume = samsung_gpio_pm_1bit_resume,
 };
@@ -142,29 +143,38 @@ static void samsung_gpio_pm_2bit_resume(struct samsung_gpio_chip *chip)
 	 * we minimise the work between the two settings.
 	 */
 
-	for (nr = 0, mask = 0x03; nr < 32; nr += 2, mask <<= 2) {
+	for (nr = 0, mask = 0x03; nr < 32; nr += 2, mask <<= 2)
+	{
 		old = (old_gpcon & mask) >> nr;
 		new = (gps_gpcon & mask) >> nr;
 
 		/* If there is no change, then skip */
 
 		if (old == new)
+		{
 			continue;
+		}
 
 		/* If both are special function, then skip */
 
 		if (is_sfn(old) && is_sfn(new))
+		{
 			continue;
+		}
 
 		/* Change is IN => OUT, do not change now */
 
 		if (is_in(old) && is_out(new))
+		{
 			continue;
+		}
 
 		/* Change is SFN => OUT, do not change now */
 
 		if (is_sfn(old) && is_out(new))
+		{
 			continue;
+		}
 
 		/* We should now be at the case of IN=>SFN,
 		 * OUT=>SFN, OUT=>IN, SFN=>IN. */
@@ -186,10 +196,11 @@ static void samsung_gpio_pm_2bit_resume(struct samsung_gpio_chip *chip)
 	__raw_writel(gps_gpcon, base + OFFS_CON);
 
 	S3C_PMDBG("%s: CON %08x => %08x, DAT %08x => %08x\n",
-		  chip->chip.label, old_gpcon, gps_gpcon, old_gpdat, gps_gpdat);
+			  chip->chip.label, old_gpcon, gps_gpcon, old_gpdat, gps_gpdat);
 }
 
-struct samsung_gpio_pm samsung_gpio_pm_2bit = {
+struct samsung_gpio_pm samsung_gpio_pm_2bit =
+{
 	.save	= samsung_gpio_pm_2bit_save,
 	.resume = samsung_gpio_pm_2bit_resume,
 };
@@ -202,7 +213,9 @@ static void samsung_gpio_pm_4bit_save(struct samsung_gpio_chip *chip)
 	chip->pm_save[3] = __raw_readl(chip->base + OFFS_UP);
 
 	if (chip->chip.ngpio > 8)
+	{
 		chip->pm_save[0] = __raw_readl(chip->base - 4);
+	}
 }
 
 static u32 samsung_gpio_pm_4bit_mask(u32 old_gpcon, u32 gps_gpcon)
@@ -211,29 +224,38 @@ static u32 samsung_gpio_pm_4bit_mask(u32 old_gpcon, u32 gps_gpcon)
 	u32 change_mask = 0x0;
 	int nr;
 
-	for (nr = 0, mask = 0x0f; nr < 16; nr += 4, mask <<= 4) {
+	for (nr = 0, mask = 0x0f; nr < 16; nr += 4, mask <<= 4)
+	{
 		old = (old_gpcon & mask) >> nr;
 		new = (gps_gpcon & mask) >> nr;
 
 		/* If there is no change, then skip */
 
 		if (old == new)
+		{
 			continue;
+		}
 
 		/* If both are special function, then skip */
 
 		if (is_sfn(old) && is_sfn(new))
+		{
 			continue;
+		}
 
 		/* Change is IN => OUT, do not change now */
 
 		if (is_in(old) && is_out(new))
+		{
 			continue;
+		}
 
 		/* Change is SFN => OUT, do not change now */
 
 		if (is_sfn(old) && is_out(new))
+		{
 			continue;
+		}
 
 		/* We should now be at the case of IN=>SFN,
 		 * OUT=>SFN, OUT=>IN, SFN=>IN. */
@@ -272,7 +294,9 @@ static void samsung_gpio_pm_4bit_resume(struct samsung_gpio_chip *chip)
 	old_gpcon[1] = __raw_readl(base + OFFS_CON);
 
 	samsung_gpio_pm_4bit_con(chip, 0);
-	if (chip->chip.ngpio > 8) {
+
+	if (chip->chip.ngpio > 8)
+	{
 		old_gpcon[0] = __raw_readl(base - 4);
 		samsung_gpio_pm_4bit_con(chip, -1);
 	}
@@ -281,26 +305,32 @@ static void samsung_gpio_pm_4bit_resume(struct samsung_gpio_chip *chip)
 
 	__raw_writel(chip->pm_save[2], base + OFFS_DAT);
 	__raw_writel(chip->pm_save[1], base + OFFS_CON);
+
 	if (chip->chip.ngpio > 8)
+	{
 		__raw_writel(chip->pm_save[0], base - 4);
+	}
 
 	__raw_writel(chip->pm_save[2], base + OFFS_DAT);
 	__raw_writel(chip->pm_save[3], base + OFFS_UP);
 
-	if (chip->chip.ngpio > 8) {
+	if (chip->chip.ngpio > 8)
+	{
 		S3C_PMDBG("%s: CON4 %08x,%08x => %08x,%08x, DAT %08x => %08x\n",
-			  chip->chip.label, old_gpcon[0], old_gpcon[1],
-			  __raw_readl(base - 4),
-			  __raw_readl(base + OFFS_CON),
-			  old_gpdat, gps_gpdat);
-	} else
+				  chip->chip.label, old_gpcon[0], old_gpcon[1],
+				  __raw_readl(base - 4),
+				  __raw_readl(base + OFFS_CON),
+				  old_gpdat, gps_gpdat);
+	}
+	else
 		S3C_PMDBG("%s: CON4 %08x => %08x, DAT %08x => %08x\n",
-			  chip->chip.label, old_gpcon[1],
-			  __raw_readl(base + OFFS_CON),
-			  old_gpdat, gps_gpdat);
+				  chip->chip.label, old_gpcon[1],
+				  __raw_readl(base + OFFS_CON),
+				  old_gpdat, gps_gpdat);
 }
 
-struct samsung_gpio_pm samsung_gpio_pm_4bit = {
+struct samsung_gpio_pm samsung_gpio_pm_4bit =
+{
 	.save	= samsung_gpio_pm_4bit_save,
 	.resume = samsung_gpio_pm_4bit_resume,
 };
@@ -315,9 +345,13 @@ static void samsung_pm_save_gpio(struct samsung_gpio_chip *ourchip)
 	struct samsung_gpio_pm *pm = ourchip->pm;
 
 	if (pm == NULL || pm->save == NULL)
+	{
 		S3C_PMDBG("%s: no pm for %s\n", __func__, ourchip->chip.label);
+	}
 	else
+	{
 		pm->save(ourchip);
+	}
 }
 
 /**
@@ -331,9 +365,12 @@ void samsung_pm_save_gpios(void)
 	struct samsung_gpio_chip *ourchip;
 	unsigned int gpio_nr;
 
-	for (gpio_nr = 0; gpio_nr < S3C_GPIO_END;) {
+	for (gpio_nr = 0; gpio_nr < S3C_GPIO_END;)
+	{
 		ourchip = samsung_gpiolib_getchip(gpio_nr);
-		if (!ourchip) {
+
+		if (!ourchip)
+		{
 			gpio_nr++;
 			continue;
 		}
@@ -341,11 +378,11 @@ void samsung_pm_save_gpios(void)
 		samsung_pm_save_gpio(ourchip);
 
 		S3C_PMDBG("%s: save %08x,%08x,%08x,%08x\n",
-			  ourchip->chip.label,
-			  ourchip->pm_save[0],
-			  ourchip->pm_save[1],
-			  ourchip->pm_save[2],
-			  ourchip->pm_save[3]);
+				  ourchip->chip.label,
+				  ourchip->pm_save[0],
+				  ourchip->pm_save[1],
+				  ourchip->pm_save[2],
+				  ourchip->pm_save[3]);
 
 		gpio_nr += ourchip->chip.ngpio;
 		gpio_nr += CONFIG_S3C_GPIO_SPACE;
@@ -361,9 +398,13 @@ static void samsung_pm_resume_gpio(struct samsung_gpio_chip *ourchip)
 	struct samsung_gpio_pm *pm = ourchip->pm;
 
 	if (pm == NULL || pm->resume == NULL)
+	{
 		S3C_PMDBG("%s: no pm for %s\n", __func__, ourchip->chip.label);
+	}
 	else
+	{
 		pm->resume(ourchip);
+	}
 }
 
 void samsung_pm_restore_gpios(void)
@@ -371,9 +412,12 @@ void samsung_pm_restore_gpios(void)
 	struct samsung_gpio_chip *ourchip;
 	unsigned int gpio_nr;
 
-	for (gpio_nr = 0; gpio_nr < S3C_GPIO_END;) {
+	for (gpio_nr = 0; gpio_nr < S3C_GPIO_END;)
+	{
 		ourchip = samsung_gpiolib_getchip(gpio_nr);
-		if (!ourchip) {
+
+		if (!ourchip)
+		{
 			gpio_nr++;
 			continue;
 		}

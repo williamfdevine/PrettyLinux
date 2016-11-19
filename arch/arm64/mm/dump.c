@@ -29,7 +29,8 @@
 #include <asm/pgtable-hwdef.h>
 #include <asm/ptdump.h>
 
-static const struct addr_marker address_markers[] = {
+static const struct addr_marker address_markers[] =
+{
 #ifdef CONFIG_KASAN
 	{ KASAN_SHADOW_START,		"Kasan shadow start" },
 	{ KASAN_SHADOW_END,		"Kasan shadow end" },
@@ -56,7 +57,8 @@ static const struct addr_marker address_markers[] = {
  * iterating over the pte entries. When the continuity is broken it then
  * dumps out a description of the range.
  */
-struct pg_state {
+struct pg_state
+{
 	struct seq_file *seq;
 	const struct addr_marker *marker;
 	unsigned long start_address;
@@ -64,14 +66,16 @@ struct pg_state {
 	u64 current_prot;
 };
 
-struct prot_bits {
+struct prot_bits
+{
 	u64		mask;
 	u64		val;
 	const char	*set;
 	const char	*clear;
 };
 
-static const struct prot_bits pte_bits[] = {
+static const struct prot_bits pte_bits[] =
+{
 	{
 		.mask	= PTE_VALID,
 		.val	= PTE_VALID,
@@ -144,14 +148,16 @@ static const struct prot_bits pte_bits[] = {
 	}
 };
 
-struct pg_level {
+struct pg_level
+{
 	const struct prot_bits *bits;
 	const char *name;
 	size_t num;
 	u64 mask;
 };
 
-static struct pg_level pg_level[] = {
+static struct pg_level pg_level[] =
+{
 	{
 	}, { /* pgd */
 		.name	= "PGD",
@@ -173,57 +179,74 @@ static struct pg_level pg_level[] = {
 };
 
 static void dump_prot(struct pg_state *st, const struct prot_bits *bits,
-			size_t num)
+					  size_t num)
 {
 	unsigned i;
 
-	for (i = 0; i < num; i++, bits++) {
+	for (i = 0; i < num; i++, bits++)
+	{
 		const char *s;
 
 		if ((st->current_prot & bits->mask) == bits->val)
+		{
 			s = bits->set;
+		}
 		else
+		{
 			s = bits->clear;
+		}
 
 		if (s)
+		{
 			seq_printf(st->seq, " %s", s);
+		}
 	}
 }
 
 static void note_page(struct pg_state *st, unsigned long addr, unsigned level,
-				u64 val)
+					  u64 val)
 {
 	static const char units[] = "KMGTPE";
 	u64 prot = val & pg_level[level].mask;
 
-	if (!st->level) {
+	if (!st->level)
+	{
 		st->level = level;
 		st->current_prot = prot;
 		st->start_address = addr;
 		seq_printf(st->seq, "---[ %s ]---\n", st->marker->name);
-	} else if (prot != st->current_prot || level != st->level ||
-		   addr >= st->marker[1].start_address) {
+	}
+	else if (prot != st->current_prot || level != st->level ||
+			 addr >= st->marker[1].start_address)
+	{
 		const char *unit = units;
 		unsigned long delta;
 
-		if (st->current_prot) {
+		if (st->current_prot)
+		{
 			seq_printf(st->seq, "0x%016lx-0x%016lx   ",
-				   st->start_address, addr);
+					   st->start_address, addr);
 
 			delta = (addr - st->start_address) >> 10;
-			while (!(delta & 1023) && unit[1]) {
+
+			while (!(delta & 1023) && unit[1])
+			{
 				delta >>= 10;
 				unit++;
 			}
+
 			seq_printf(st->seq, "%9lu%c %s", delta, *unit,
-				   pg_level[st->level].name);
+					   pg_level[st->level].name);
+
 			if (pg_level[st->level].bits)
 				dump_prot(st, pg_level[st->level].bits,
-					  pg_level[st->level].num);
+						  pg_level[st->level].num);
+
 			seq_puts(st->seq, "\n");
 		}
 
-		if (addr >= st->marker[1].start_address) {
+		if (addr >= st->marker[1].start_address)
+		{
 			st->marker++;
 			seq_printf(st->seq, "---[ %s ]---\n", st->marker->name);
 		}
@@ -233,7 +256,8 @@ static void note_page(struct pg_state *st, unsigned long addr, unsigned level,
 		st->level = level;
 	}
 
-	if (addr >= st->marker[1].start_address) {
+	if (addr >= st->marker[1].start_address)
+	{
 		st->marker++;
 		seq_printf(st->seq, "---[ %s ]---\n", st->marker->name);
 	}
@@ -246,7 +270,8 @@ static void walk_pte(struct pg_state *st, pmd_t *pmd, unsigned long start)
 	unsigned long addr;
 	unsigned i;
 
-	for (i = 0; i < PTRS_PER_PTE; i++, pte++) {
+	for (i = 0; i < PTRS_PER_PTE; i++, pte++)
+	{
 		addr = start + i * PAGE_SIZE;
 		note_page(st, addr, 4, pte_val(*pte));
 	}
@@ -258,11 +283,16 @@ static void walk_pmd(struct pg_state *st, pud_t *pud, unsigned long start)
 	unsigned long addr;
 	unsigned i;
 
-	for (i = 0; i < PTRS_PER_PMD; i++, pmd++) {
+	for (i = 0; i < PTRS_PER_PMD; i++, pmd++)
+	{
 		addr = start + i * PMD_SIZE;
-		if (pmd_none(*pmd) || pmd_sect(*pmd)) {
+
+		if (pmd_none(*pmd) || pmd_sect(*pmd))
+		{
 			note_page(st, addr, 3, pmd_val(*pmd));
-		} else {
+		}
+		else
+		{
 			BUG_ON(pmd_bad(*pmd));
 			walk_pte(st, pmd, addr);
 		}
@@ -275,11 +305,16 @@ static void walk_pud(struct pg_state *st, pgd_t *pgd, unsigned long start)
 	unsigned long addr;
 	unsigned i;
 
-	for (i = 0; i < PTRS_PER_PUD; i++, pud++) {
+	for (i = 0; i < PTRS_PER_PUD; i++, pud++)
+	{
 		addr = start + i * PUD_SIZE;
-		if (pud_none(*pud) || pud_sect(*pud)) {
+
+		if (pud_none(*pud) || pud_sect(*pud))
+		{
 			note_page(st, addr, 2, pud_val(*pud));
-		} else {
+		}
+		else
+		{
 			BUG_ON(pud_bad(*pud));
 			walk_pmd(st, pud, addr);
 		}
@@ -287,17 +322,22 @@ static void walk_pud(struct pg_state *st, pgd_t *pgd, unsigned long start)
 }
 
 static void walk_pgd(struct pg_state *st, struct mm_struct *mm,
-		     unsigned long start)
+					 unsigned long start)
 {
 	pgd_t *pgd = pgd_offset(mm, 0UL);
 	unsigned i;
 	unsigned long addr;
 
-	for (i = 0; i < PTRS_PER_PGD; i++, pgd++) {
+	for (i = 0; i < PTRS_PER_PGD; i++, pgd++)
+	{
 		addr = start + i * PGDIR_SIZE;
-		if (pgd_none(*pgd)) {
+
+		if (pgd_none(*pgd))
+		{
 			note_page(st, addr, 1, pgd_val(*pgd));
-		} else {
+		}
+		else
+		{
 			BUG_ON(pgd_bad(*pgd));
 			walk_pud(st, pgd, addr);
 		}
@@ -307,7 +347,8 @@ static void walk_pgd(struct pg_state *st, struct mm_struct *mm,
 static int ptdump_show(struct seq_file *m, void *v)
 {
 	struct ptdump_info *info = m->private;
-	struct pg_state st = {
+	struct pg_state st =
+	{
 		.seq = m,
 		.marker = info->markers,
 	};
@@ -323,7 +364,8 @@ static int ptdump_open(struct inode *inode, struct file *file)
 	return single_open(file, ptdump_show, inode->i_private);
 }
 
-static const struct file_operations ptdump_fops = {
+static const struct file_operations ptdump_fops =
+{
 	.open		= ptdump_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -338,13 +380,16 @@ int ptdump_register(struct ptdump_info *info, const char *name)
 	for (i = 0; i < ARRAY_SIZE(pg_level); i++)
 		if (pg_level[i].bits)
 			for (j = 0; j < pg_level[i].num; j++)
+			{
 				pg_level[i].mask |= pg_level[i].bits[j].mask;
+			}
 
 	pe = debugfs_create_file(name, 0400, NULL, info, &ptdump_fops);
 	return pe ? 0 : -ENOMEM;
 }
 
-static struct ptdump_info kernel_ptdump_info = {
+static struct ptdump_info kernel_ptdump_info =
+{
 	.mm		= &init_mm,
 	.markers	= address_markers,
 	.base_addr	= VA_START,

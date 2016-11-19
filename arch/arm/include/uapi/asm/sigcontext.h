@@ -6,7 +6,8 @@
  * before the signal handler was invoked.  Note: only add new entries
  * to the end of the structure.
  */
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long trap_no;
 	unsigned long error_code;
 	unsigned long oldmask;

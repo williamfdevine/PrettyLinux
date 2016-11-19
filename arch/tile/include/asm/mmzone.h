@@ -47,7 +47,10 @@ static inline int pfn_valid(unsigned long pfn)
 	int nid = pfn_to_nid(pfn);
 
 	if (nid >= 0)
+	{
 		return (pfn < node_end_pfn(nid));
+	}
+
 	return 0;
 }
 
@@ -58,11 +61,11 @@ extern unsigned long node_memmap_pfn[];
 extern unsigned long node_percpu_pfn[];
 extern unsigned long node_free_pfn[];
 #ifdef CONFIG_HIGHMEM
-extern unsigned long node_lowmem_end_pfn[];
+	extern unsigned long node_lowmem_end_pfn[];
 #endif
 #ifdef CONFIG_PCI
-extern unsigned long pci_reserve_start_pfn;
-extern unsigned long pci_reserve_end_pfn;
+	extern unsigned long pci_reserve_start_pfn;
+	extern unsigned long pci_reserve_end_pfn;
 #endif
 
 #endif /* CONFIG_DISCONTIGMEM */

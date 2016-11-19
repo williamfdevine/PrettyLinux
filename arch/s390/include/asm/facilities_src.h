@@ -3,17 +3,19 @@
  */
 
 #ifndef S390_GEN_FACILITIES_C
-#error "This file can only be included by gen_facilities.c"
+	#error "This file can only be included by gen_facilities.c"
 #endif
 
 #include <linux/kconfig.h>
 
-struct facility_def {
+struct facility_def
+{
 	char *name;
 	int *bits;
 };
 
-static struct facility_def facility_defs[] = {
+static struct facility_def facility_defs[] =
+{
 	{
 		/*
 		 * FACILITIES_ALS contains the list of facilities that are
@@ -21,7 +23,8 @@ static struct facility_def facility_defs[] = {
 		 * -march=<machine>.
 		 */
 		.name = "FACILITIES_ALS",
-		.bits = (int[]){
+		.bits = (int[])
+		{
 #ifdef CONFIG_HAVE_MARCH_Z900_FEATURES
 			0,  /* N3 instructions */
 			1,  /* z/Arch mode installed */
@@ -57,7 +60,8 @@ static struct facility_def facility_defs[] = {
 	},
 	{
 		.name = "FACILITIES_KVM",
-		.bits = (int[]){
+		.bits = (int[])
+		{
 			0,  /* N3 instructions */
 			1,  /* z/Arch mode installed */
 			2,  /* z/Arch mode active */

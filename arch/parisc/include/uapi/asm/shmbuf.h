@@ -3,7 +3,7 @@
 
 #include <asm/bitsperlong.h>
 
-/* 
+/*
  * The shmid64_ds structure for parisc architecture.
  * Note extra padding because this structure is passed back and forth
  * between kernel and user space.
@@ -13,7 +13,8 @@
  * - 2 miscellaneous 32-bit values
  */
 
-struct shmid64_ds {
+struct shmid64_ds
+{
 	struct ipc64_perm	shm_perm;	/* operation perms */
 #if __BITS_PER_LONG != 64
 	unsigned int		__pad1;
@@ -38,7 +39,8 @@ struct shmid64_ds {
 	unsigned long		__unused2;
 };
 
-struct shminfo64 {
+struct shminfo64
+{
 	unsigned long	shmmax;
 	unsigned long	shmmin;
 	unsigned long	shmmni;

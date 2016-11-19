@@ -49,20 +49,29 @@ static void (*udbg_uart_out)(unsigned int reg, u8 data);
 static void udbg_uart_flush(void)
 {
 	if (!udbg_uart_in)
+	{
 		return;
+	}
 
 	/* wait for idle */
 	while ((udbg_uart_in(UART_LSR) & LSR_THRE) == 0)
+	{
 		cpu_relax();
+	}
 }
 
 static void udbg_uart_putc(char c)
 {
 	if (!udbg_uart_out)
+	{
 		return;
+	}
 
 	if (c == '\n')
+	{
 		udbg_uart_putc('\r');
+	}
+
 	udbg_uart_flush();
 	udbg_uart_out(UART_THR, c);
 }
@@ -70,10 +79,14 @@ static void udbg_uart_putc(char c)
 static int udbg_uart_getc_poll(void)
 {
 	if (!udbg_uart_in)
+	{
 		return -1;
+	}
 
 	if (!(udbg_uart_in(UART_LSR) & LSR_DR))
+	{
 		return udbg_uart_in(UART_RBR);
+	}
 
 	return -1;
 }
@@ -81,10 +94,16 @@ static int udbg_uart_getc_poll(void)
 static int udbg_uart_getc(void)
 {
 	if (!udbg_uart_in)
+	{
 		return -1;
+	}
+
 	/* wait for char */
 	while (!(udbg_uart_in(UART_LSR) & LSR_DR))
+	{
 		cpu_relax();
+	}
+
 	return udbg_uart_in(UART_RBR);
 }
 
@@ -101,12 +120,19 @@ void udbg_uart_setup(unsigned int speed, unsigned int clock)
 	unsigned int dll, base_bauds;
 
 	if (!udbg_uart_out)
+	{
 		return;
+	}
 
 	if (clock == 0)
+	{
 		clock = 1843200;
+	}
+
 	if (speed == 0)
+	{
 		speed = 9600;
+	}
 
 	base_bauds = clock / 16;
 	dll = base_bauds / speed;
@@ -142,9 +168,13 @@ unsigned int udbg_probe_uart_speed(unsigned int clock)
 
 	/* check prescaling */
 	if (udbg_uart_in(UART_MCR) & 0x80)
+	{
 		prescaler = 4;
+	}
 	else
+	{
 		prescaler = 1;
+	}
 
 	/* restore the LCR */
 	udbg_uart_out(UART_LCR, old_lcr);
@@ -154,12 +184,15 @@ unsigned int udbg_probe_uart_speed(unsigned int clock)
 
 	/* sanity check */
 	if (speed > (clock / 16))
+	{
 		speed = 9600;
+	}
 
 	return speed;
 }
 
-static union {
+static union
+{
 	unsigned char __iomem *mmio_base;
 	unsigned long pio_base;
 } udbg_uart;
@@ -179,7 +212,10 @@ static void udbg_uart_out_pio(unsigned int reg, u8 data)
 void udbg_uart_init_pio(unsigned long port, unsigned int stride)
 {
 	if (!port)
+	{
 		return;
+	}
+
 	udbg_uart.pio_base = port;
 	udbg_uart_stride = stride;
 	udbg_uart_in = udbg_uart_in_pio;
@@ -201,7 +237,10 @@ static void udbg_uart_out_mmio(unsigned int reg, u8 data)
 void udbg_uart_init_mmio(void __iomem *addr, unsigned int stride)
 {
 	if (!addr)
+	{
 		return;
+	}
+
 	udbg_uart.mmio_base = addr;
 	udbg_uart_stride = stride;
 	udbg_uart_in = udbg_uart_in_mmio;
@@ -283,13 +322,13 @@ void __init udbg_init_44x_as1(void)
 static u8 udbg_uart_in_40x(unsigned int reg)
 {
 	return real_readb((void __iomem *)CONFIG_PPC_EARLY_DEBUG_40x_PHYSADDR
-			  + reg);
+					  + reg);
 }
 
 static void udbg_uart_out_40x(unsigned int reg, u8 val)
 {
 	real_writeb(val, (void __iomem *)CONFIG_PPC_EARLY_DEBUG_40x_PHYSADDR
-		    + reg);
+				+ reg);
 }
 
 void __init udbg_init_40x_realmode(void)

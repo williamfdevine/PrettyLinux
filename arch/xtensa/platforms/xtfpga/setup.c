@@ -40,16 +40,22 @@ void platform_halt(void)
 {
 	lcd_disp_at_pos(" HALT ", 0);
 	local_irq_disable();
+
 	while (1)
+	{
 		cpu_relax();
+	}
 }
 
 void platform_power_off(void)
 {
 	lcd_disp_at_pos("POWEROFF", 0);
 	local_irq_disable();
+
 	while (1)
+	{
 		cpu_relax();
+	}
 }
 
 void platform_restart(void)
@@ -93,7 +99,8 @@ static void __init xtfpga_clk_setup(struct device_node *np)
 	struct clk *clk;
 	u32 freq;
 
-	if (!base) {
+	if (!base)
+	{
 		pr_err("%s: invalid address\n", np->name);
 		return;
 	}
@@ -102,12 +109,14 @@ static void __init xtfpga_clk_setup(struct device_node *np)
 	iounmap(base);
 	clk = clk_register_fixed_rate(NULL, np->name, NULL, 0, freq);
 
-	if (IS_ERR(clk)) {
+	if (IS_ERR(clk))
+	{
 		pr_err("%s: clk registration failed\n", np->name);
 		return;
 	}
 
-	if (of_clk_add_provider(np, of_clk_src_simple_get, clk)) {
+	if (of_clk_add_provider(np, of_clk_src_simple_get, clk))
+	{
 		pr_err("%s: clk provider registration failed\n", np->name);
 		return;
 	}
@@ -118,27 +127,35 @@ CLK_OF_DECLARE(xtfpga_clk, "cdns,xtfpga-clock", xtfpga_clk_setup);
 static void __init update_local_mac(struct device_node *node)
 {
 	struct property *newmac;
-	const u8* macaddr;
+	const u8 *macaddr;
 	int prop_len;
 
 	macaddr = of_get_property(node, "local-mac-address", &prop_len);
+
 	if (macaddr == NULL || prop_len != MAC_LEN)
+	{
 		return;
+	}
 
 	newmac = kzalloc(sizeof(*newmac) + MAC_LEN, GFP_KERNEL);
+
 	if (newmac == NULL)
+	{
 		return;
+	}
 
 	newmac->value = newmac + 1;
 	newmac->length = MAC_LEN;
 	newmac->name = kstrdup("local-mac-address", GFP_KERNEL);
-	if (newmac->name == NULL) {
+
+	if (newmac->name == NULL)
+	{
 		kfree(newmac);
 		return;
 	}
 
 	memcpy(newmac->value, macaddr, MAC_LEN);
-	((u8*)newmac->value)[5] = (*(u32*)DIP_SWITCHES_VADDR) & 0x3f;
+	((u8 *)newmac->value)[5] = (*(u32 *)DIP_SWITCHES_VADDR) & 0x3f;
 	of_update_property(node, newmac);
 }
 
@@ -147,7 +164,10 @@ static int __init machine_setup(void)
 	struct device_node *eth = NULL;
 
 	if ((eth = of_find_compatible_node(eth, NULL, "opencores,ethoc")))
+	{
 		update_local_mac(eth);
+	}
+
 	return 0;
 }
 arch_initcall(machine_setup);
@@ -163,7 +183,8 @@ arch_initcall(machine_setup);
  *  Ethernet -- OpenCores Ethernet MAC (ethoc driver)
  */
 
-static struct resource ethoc_res[] = {
+static struct resource ethoc_res[] =
+{
 	[0] = { /* register space */
 		.start = OETH_REGS_PADDR,
 		.end   = OETH_REGS_PADDR + OETH_REGS_SIZE - 1,
@@ -181,7 +202,8 @@ static struct resource ethoc_res[] = {
 	},
 };
 
-static struct ethoc_platform_data ethoc_pdata = {
+static struct ethoc_platform_data ethoc_pdata =
+{
 	/*
 	 * The MAC address for these boards is 00:50:c2:13:6f:xx.
 	 * The last byte (here as zero) is read from the DIP switches on the
@@ -192,7 +214,8 @@ static struct ethoc_platform_data ethoc_pdata = {
 	.big_endian = XCHAL_HAVE_BE,
 };
 
-static struct platform_device ethoc_device = {
+static struct platform_device ethoc_device =
+{
 	.name = "ethoc",
 	.id = -1,
 	.num_resources = ARRAY_SIZE(ethoc_res),
@@ -206,7 +229,8 @@ static struct platform_device ethoc_device = {
  *  USB Host/Device -- Cypress CY7C67300
  */
 
-static struct resource c67x00_res[] = {
+static struct resource c67x00_res[] =
+{
 	[0] = { /* register space */
 		.start = C67X00_PADDR,
 		.end   = C67X00_PADDR + C67X00_SIZE - 1,
@@ -219,12 +243,14 @@ static struct resource c67x00_res[] = {
 	},
 };
 
-static struct c67x00_platform_data c67x00_pdata = {
+static struct c67x00_platform_data c67x00_pdata =
+{
 	.sie_config = C67X00_SIE1_HOST | C67X00_SIE2_UNUSED,
 	.hpi_regstep = 4,
 };
 
-static struct platform_device c67x00_device = {
+static struct platform_device c67x00_device =
+{
 	.name = "c67x00",
 	.id = -1,
 	.num_resources = ARRAY_SIZE(c67x00_res),
@@ -238,18 +264,20 @@ static struct platform_device c67x00_device = {
  *  UART
  */
 
-static struct resource serial_resource = {
+static struct resource serial_resource =
+{
 	.start	= DUART16552_PADDR,
 	.end	= DUART16552_PADDR + 0x1f,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	[0] = {
 		.mapbase	= DUART16552_PADDR,
 		.irq		= DUART16552_INTNUM,
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
-				  UPF_IOREMAP,
+		UPF_IOREMAP,
 		.iotype		= XCHAL_HAVE_BE ? UPIO_MEM32BE : UPIO_MEM32,
 		.regshift	= 2,
 		.uartclk	= 0,    /* set in xtavnet_init() */
@@ -257,7 +285,8 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	{ },
 };
 
-static struct platform_device xtavnet_uart = {
+static struct platform_device xtavnet_uart =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev		= {
@@ -268,7 +297,8 @@ static struct platform_device xtavnet_uart = {
 };
 
 /* platform devices */
-static struct platform_device *platform_devices[] __initdata = {
+static struct platform_device *platform_devices[] __initdata =
+{
 	&ethoc_device,
 	&c67x00_device,
 	&xtavnet_uart,

@@ -8,8 +8,8 @@
 #define MAX_DMA_ADDRESS	0xffffffffUL
 #else
 #define MAX_DMA_ADDRESS	({ \
-	extern phys_addr_t arm_dma_zone_size; \
-	arm_dma_zone_size && arm_dma_zone_size < (0x10000000 - PAGE_OFFSET) ? \
+		extern phys_addr_t arm_dma_zone_size; \
+		arm_dma_zone_size && arm_dma_zone_size < (0x10000000 - PAGE_OFFSET) ? \
 		(PAGE_OFFSET + arm_dma_zone_size) : 0xffffffffUL; })
 #endif
 
@@ -63,7 +63,7 @@ extern void set_dma_page(unsigned int chan, char pagenr);
  *
  * Some architectures may need to do allocate an interrupt
  */
-extern int  request_dma(unsigned int chan, const char * device_id);
+extern int  request_dma(unsigned int chan, const char *device_id);
 
 /* Free a DMA channel
  *
@@ -137,15 +137,15 @@ extern void set_dma_speed(unsigned int chan, int cycle_ns);
 extern int  get_dma_residue(unsigned int chan);
 
 #ifndef NO_DMA
-#define NO_DMA	255
+	#define NO_DMA	255
 #endif
 
 #endif /* CONFIG_ISA_DMA_API */
 
 #ifdef CONFIG_PCI
-extern int isa_dma_bridge_buggy;
+	extern int isa_dma_bridge_buggy;
 #else
-#define isa_dma_bridge_buggy    (0)
+	#define isa_dma_bridge_buggy    (0)
 #endif
 
 #endif /* __ASM_ARM_DMA_H */

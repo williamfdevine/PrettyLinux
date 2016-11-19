@@ -44,12 +44,17 @@ static void hd64461_mask_and_ack_irq(struct irq_data *data)
 	hd64461_mask_irq(data);
 
 #ifdef CONFIG_HD64461_ENABLER
+
 	if (data->irq == HD64461_IRQBASE + 13)
+	{
 		__raw_writeb(0x00, HD64461_PCC1CSCR);
+	}
+
 #endif
 }
 
-static struct irq_chip hd64461_irq_chip = {
+static struct irq_chip hd64461_irq_chip =
+{
 	.name		= "HD64461-IRQ",
 	.irq_mask	= hd64461_mask_irq,
 	.irq_mask_ack	= hd64461_mask_and_ack_irq,
@@ -63,9 +68,12 @@ static void hd64461_irq_demux(struct irq_desc *desc)
 
 	intv &= (1 << HD64461_IRQ_NUM) - 1;
 
-	for (; intv; intv >>= 1, ext_irq++) {
+	for (; intv; intv >>= 1, ext_irq++)
+	{
 		if (!(intv & 1))
+		{
 			continue;
+		}
 
 		generic_handle_irq(ext_irq);
 	}
@@ -76,25 +84,27 @@ int __init setup_hd64461(void)
 	int irq_base, i;
 
 	printk(KERN_INFO
-	       "HD64461 configured at 0x%x on irq %d(mapped into %d to %d)\n",
-	       HD64461_IOBASE, CONFIG_HD64461_IRQ, HD64461_IRQBASE,
-	       HD64461_IRQBASE + 15);
+		   "HD64461 configured at 0x%x on irq %d(mapped into %d to %d)\n",
+		   HD64461_IOBASE, CONFIG_HD64461_IRQ, HD64461_IRQBASE,
+		   HD64461_IRQBASE + 15);
 
-/* Should be at processor specific part.. */
+	/* Should be at processor specific part.. */
 #if defined(CONFIG_CPU_SUBTYPE_SH7709)
 	__raw_writew(0x2240, INTC_ICR1);
 #endif
 	__raw_writew(0xffff, HD64461_NIMR);
 
 	irq_base = irq_alloc_descs(HD64461_IRQBASE, HD64461_IRQBASE, 16, -1);
-	if (IS_ERR_VALUE(irq_base)) {
+
+	if (IS_ERR_VALUE(irq_base))
+	{
 		pr_err("%s: failed hooking irqs for HD64461\n", __func__);
 		return irq_base;
 	}
 
 	for (i = 0; i < 16; i++)
 		irq_set_chip_and_handler(irq_base + i, &hd64461_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 
 	irq_set_chained_handler(CONFIG_HD64461_IRQ, hd64461_irq_demux);
 	irq_set_irq_type(CONFIG_HD64461_IRQ, IRQ_TYPE_LEVEL_LOW);

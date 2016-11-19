@@ -14,12 +14,13 @@
 #ifndef __ASSEMBLY__
 
 #ifdef CONFIG_SMP
-#define NR_CPU_IRQS	GxICR_NUM_EXT_IRQS
+	#define NR_CPU_IRQS	GxICR_NUM_EXT_IRQS
 #else
-#define NR_CPU_IRQS	GxICR_NUM_IRQS
+	#define NR_CPU_IRQS	GxICR_NUM_IRQS
 #endif
 
-enum {
+enum
+{
 	FPGA_LAN_IRQ	= NR_CPU_IRQS,
 	FPGA_UART_IRQ,
 	FPGA_I2C_IRQ,

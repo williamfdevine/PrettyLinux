@@ -27,54 +27,69 @@
 static pgd_t tmp_pg_dir[PTRS_PER_PGD] __initdata __aligned(PGD_SIZE);
 
 static void __init kasan_early_pte_populate(pmd_t *pmd, unsigned long addr,
-					unsigned long end)
+		unsigned long end)
 {
 	pte_t *pte;
 	unsigned long next;
 
 	if (pmd_none(*pmd))
+	{
 		pmd_populate_kernel(&init_mm, pmd, kasan_zero_pte);
+	}
 
 	pte = pte_offset_kimg(pmd, addr);
-	do {
+
+	do
+	{
 		next = addr + PAGE_SIZE;
 		set_pte(pte, pfn_pte(virt_to_pfn(kasan_zero_page),
-					PAGE_KERNEL));
-	} while (pte++, addr = next, addr != end && pte_none(*pte));
+							 PAGE_KERNEL));
+	}
+	while (pte++, addr = next, addr != end && pte_none(*pte));
 }
 
 static void __init kasan_early_pmd_populate(pud_t *pud,
-					unsigned long addr,
-					unsigned long end)
+		unsigned long addr,
+		unsigned long end)
 {
 	pmd_t *pmd;
 	unsigned long next;
 
 	if (pud_none(*pud))
+	{
 		pud_populate(&init_mm, pud, kasan_zero_pmd);
+	}
 
 	pmd = pmd_offset_kimg(pud, addr);
-	do {
+
+	do
+	{
 		next = pmd_addr_end(addr, end);
 		kasan_early_pte_populate(pmd, addr, next);
-	} while (pmd++, addr = next, addr != end && pmd_none(*pmd));
+	}
+	while (pmd++, addr = next, addr != end && pmd_none(*pmd));
 }
 
 static void __init kasan_early_pud_populate(pgd_t *pgd,
-					unsigned long addr,
-					unsigned long end)
+		unsigned long addr,
+		unsigned long end)
 {
 	pud_t *pud;
 	unsigned long next;
 
 	if (pgd_none(*pgd))
+	{
 		pgd_populate(&init_mm, pgd, kasan_zero_pud);
+	}
 
 	pud = pud_offset_kimg(pgd, addr);
-	do {
+
+	do
+	{
 		next = pud_addr_end(addr, end);
 		kasan_early_pmd_populate(pud, addr, next);
-	} while (pud++, addr = next, addr != end && pud_none(*pud));
+	}
+	while (pud++, addr = next, addr != end && pud_none(*pud));
 }
 
 static void __init kasan_map_early_shadow(void)
@@ -85,10 +100,13 @@ static void __init kasan_map_early_shadow(void)
 	pgd_t *pgd;
 
 	pgd = pgd_offset_k(addr);
-	do {
+
+	do
+	{
 		next = pgd_addr_end(addr, end);
 		kasan_early_pud_populate(pgd, addr, next);
-	} while (pgd++, addr = next, addr != end);
+	}
+	while (pgd++, addr = next, addr != end);
 }
 
 asmlinkage void __init kasan_early_init(void)
@@ -109,13 +127,16 @@ void __init kasan_copy_shadow(pgd_t *pgdir)
 	pgd = pgd_offset_k(KASAN_SHADOW_START);
 	pgd_end = pgd_offset_k(KASAN_SHADOW_END);
 	pgd_new = pgd_offset_raw(pgdir, KASAN_SHADOW_START);
-	do {
+
+	do
+	{
 		set_pgd(pgd_new, *pgd);
-	} while (pgd++, pgd_new++, pgd != pgd_end);
+	}
+	while (pgd++, pgd_new++, pgd != pgd_end);
 }
 
 static void __init clear_pgds(unsigned long start,
-			unsigned long end)
+							  unsigned long end)
 {
 	/*
 	 * Remove references to kasan page tables from
@@ -123,7 +144,9 @@ static void __init clear_pgds(unsigned long start,
 	 * here because it's nop on 2,3-level pagetable setups
 	 */
 	for (; start < end; start += PGDIR_SIZE)
+	{
 		set_pgd(pgd_offset_k(start), __pgd(0));
+	}
 }
 
 void __init kasan_init(void)
@@ -153,7 +176,7 @@ void __init kasan_init(void)
 	clear_pgds(KASAN_SHADOW_START, KASAN_SHADOW_END);
 
 	vmemmap_populate(kimg_shadow_start, kimg_shadow_end,
-			 pfn_to_nid(virt_to_pfn(_text)));
+					 pfn_to_nid(virt_to_pfn(_text)));
 
 	/*
 	 * vmemmap_populate() has populated the shadow region that covers the
@@ -167,20 +190,23 @@ void __init kasan_init(void)
 	kimg_shadow_end = round_up(kimg_shadow_end, SWAPPER_BLOCK_SIZE);
 
 	kasan_populate_zero_shadow((void *)KASAN_SHADOW_START,
-				   (void *)mod_shadow_start);
+							   (void *)mod_shadow_start);
 	kasan_populate_zero_shadow((void *)kimg_shadow_end,
-				   kasan_mem_to_shadow((void *)PAGE_OFFSET));
+							   kasan_mem_to_shadow((void *)PAGE_OFFSET));
 
 	if (kimg_shadow_start > mod_shadow_end)
 		kasan_populate_zero_shadow((void *)mod_shadow_end,
-					   (void *)kimg_shadow_start);
+								   (void *)kimg_shadow_start);
 
-	for_each_memblock(memory, reg) {
+	for_each_memblock(memory, reg)
+	{
 		void *start = (void *)__phys_to_virt(reg->base);
 		void *end = (void *)__phys_to_virt(reg->base + reg->size);
 
 		if (start >= end)
+		{
 			break;
+		}
 
 		/*
 		 * end + 1 here is intentional. We check several shadow bytes in
@@ -189,8 +215,8 @@ void __init kasan_init(void)
 		 * some more here.
 		 */
 		vmemmap_populate((unsigned long)kasan_mem_to_shadow(start),
-				(unsigned long)kasan_mem_to_shadow(end) + 1,
-				pfn_to_nid(virt_to_pfn(start)));
+						 (unsigned long)kasan_mem_to_shadow(end) + 1,
+						 pfn_to_nid(virt_to_pfn(start)));
 	}
 
 	/*
@@ -199,7 +225,7 @@ void __init kasan_init(void)
 	 */
 	for (i = 0; i < PTRS_PER_PTE; i++)
 		set_pte(&kasan_zero_pte[i],
-			pfn_pte(virt_to_pfn(kasan_zero_page), PAGE_KERNEL_RO));
+				pfn_pte(virt_to_pfn(kasan_zero_page), PAGE_KERNEL_RO));
 
 	memset(kasan_zero_page, 0, PAGE_SIZE);
 	cpu_replace_ttbr1(swapper_pg_dir);

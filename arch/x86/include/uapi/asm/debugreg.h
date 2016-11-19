@@ -65,9 +65,9 @@
    gdt or the ldt if we want to.  I am not sure why this is an advantage */
 
 #ifdef __i386__
-#define DR_CONTROL_RESERVED (0xFC00) /* Reserved by Intel */
+	#define DR_CONTROL_RESERVED (0xFC00) /* Reserved by Intel */
 #else
-#define DR_CONTROL_RESERVED (0xFFFFFFFF0000FC00UL) /* Reserved */
+	#define DR_CONTROL_RESERVED (0xFFFFFFFF0000FC00UL) /* Reserved */
 #endif
 
 #define DR_LOCAL_SLOWDOWN (0x100)   /* Local slow the pipeline */

@@ -4,18 +4,18 @@
 #include <asm/sun3mmu.h>
 
 #ifndef __ASSEMBLY__
-#include <asm/virtconvert.h>
-#include <linux/linkage.h>
+	#include <asm/virtconvert.h>
+	#include <linux/linkage.h>
 
-/*
- * This file contains all the things which change drastically for the sun3
- * pagetable stuff, to avoid making too much of a mess of the generic m68k
- * `pgtable.h'; this should only be included from the generic file. --m
- */
+	/*
+	* This file contains all the things which change drastically for the sun3
+	* pagetable stuff, to avoid making too much of a mess of the generic m68k
+	* `pgtable.h'; this should only be included from the generic file. --m
+	*/
 
-/* For virtual address to physical address conversion */
-#define VTOP(addr)	__pa(addr)
-#define PTOV(addr)	__va(addr)
+	/* For virtual address to physical address conversion */
+	#define VTOP(addr)	__pa(addr)
+	#define PTOV(addr)	__va(addr)
 
 
 #endif	/* !__ASSEMBLY__ */
@@ -42,28 +42,28 @@
 //todo: work out which ones *should* have SUN3_PAGE_NOCACHE and fix...
 // is it just PAGE_KERNEL and PAGE_SHARED?
 #define PAGE_NONE	__pgprot(SUN3_PAGE_VALID \
-				 | SUN3_PAGE_ACCESSED \
-				 | SUN3_PAGE_NOCACHE)
+							 | SUN3_PAGE_ACCESSED \
+							 | SUN3_PAGE_NOCACHE)
 #define PAGE_SHARED	__pgprot(SUN3_PAGE_VALID \
-				 | SUN3_PAGE_WRITEABLE \
-				 | SUN3_PAGE_ACCESSED \
-				 | SUN3_PAGE_NOCACHE)
+							 | SUN3_PAGE_WRITEABLE \
+							 | SUN3_PAGE_ACCESSED \
+							 | SUN3_PAGE_NOCACHE)
 #define PAGE_COPY	__pgprot(SUN3_PAGE_VALID \
-				 | SUN3_PAGE_ACCESSED \
-				 | SUN3_PAGE_NOCACHE)
+							 | SUN3_PAGE_ACCESSED \
+							 | SUN3_PAGE_NOCACHE)
 #define PAGE_READONLY	__pgprot(SUN3_PAGE_VALID \
-				 | SUN3_PAGE_ACCESSED \
-				 | SUN3_PAGE_NOCACHE)
+								 | SUN3_PAGE_ACCESSED \
+								 | SUN3_PAGE_NOCACHE)
 #define PAGE_KERNEL	__pgprot(SUN3_PAGE_VALID \
-				 | SUN3_PAGE_WRITEABLE \
-				 | SUN3_PAGE_SYSTEM \
-				 | SUN3_PAGE_NOCACHE \
-				 | SUN3_PAGE_ACCESSED \
-				 | SUN3_PAGE_MODIFIED)
+							 | SUN3_PAGE_WRITEABLE \
+							 | SUN3_PAGE_SYSTEM \
+							 | SUN3_PAGE_NOCACHE \
+							 | SUN3_PAGE_ACCESSED \
+							 | SUN3_PAGE_MODIFIED)
 #define PAGE_INIT	__pgprot(SUN3_PAGE_VALID \
-				 | SUN3_PAGE_WRITEABLE \
-				 | SUN3_PAGE_SYSTEM \
-				 | SUN3_PAGE_NOCACHE)
+							 | SUN3_PAGE_WRITEABLE \
+							 | SUN3_PAGE_SYSTEM \
+							 | SUN3_PAGE_NOCACHE)
 
 /*
  * Page protections for initialising protection_map. The sun3 has only two
@@ -115,9 +115,9 @@ static inline void pgd_set(pgd_t *pgdp, pmd_t *pmdp)
 }
 
 #define __pte_page(pte) \
-((unsigned long) __va ((pte_val (pte) & SUN3_PAGE_PGNUM_MASK) << PAGE_SHIFT))
+	((unsigned long) __va ((pte_val (pte) & SUN3_PAGE_PGNUM_MASK) << PAGE_SHIFT))
 #define __pmd_page(pmd) \
-((unsigned long) __va (pmd_val (pmd) & PAGE_MASK))
+	((unsigned long) __va (pmd_val (pmd) & PAGE_MASK))
 
 static inline int pte_none (pte_t pte) { return !pte_val (pte); }
 static inline int pte_present (pte_t pte) { return pte_val (pte) & SUN3_PAGE_VALID; }
@@ -128,7 +128,7 @@ static inline void pte_clear (struct mm_struct *mm, unsigned long addr, pte_t *p
 
 #define pte_pfn(pte)            (pte_val(pte) & SUN3_PAGE_PGNUM_MASK)
 #define pfn_pte(pfn, pgprot) \
-({ pte_t __pte; pte_val(__pte) = pfn | pgprot_val(pgprot); __pte; })
+	({ pte_t __pte; pte_val(__pte) = pfn | pgprot_val(pgprot); __pte; })
 
 #define pte_page(pte)		virt_to_page(__pte_page(pte))
 #define pmd_page(pmd)		virt_to_page(__pmd_page(pmd))
@@ -188,7 +188,7 @@ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
 #define pgd_index(address)     ((address) >> PGDIR_SHIFT)
 
 #define pgd_offset(mm, address) \
-((mm)->pgd + pgd_index(address))
+	((mm)->pgd + pgd_index(address))
 
 /* Find an entry in a kernel pagetable directory. */
 #define pgd_offset_k(address) pgd_offset(&init_mm, address)

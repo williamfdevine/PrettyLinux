@@ -21,7 +21,7 @@
 #include "mm.h"
 
 #if SHMLBA > 16384
-#error FIX ME
+	#error FIX ME
 #endif
 
 static DEFINE_RAW_SPINLOCK(v6_lock);
@@ -31,7 +31,7 @@ static DEFINE_RAW_SPINLOCK(v6_lock);
  * attack the kernel's existing mapping of these pages.
  */
 static void v6_copy_user_highpage_nonaliasing(struct page *to,
-	struct page *from, unsigned long vaddr, struct vm_area_struct *vma)
+		struct page *from, unsigned long vaddr, struct vm_area_struct *vma)
 {
 	void *kto, *kfrom;
 
@@ -60,23 +60,25 @@ static void v6_clear_user_highpage_nonaliasing(struct page *page, unsigned long 
 static void discard_old_kernel_data(void *kto)
 {
 	__asm__("mcrr	p15, 0, %1, %0, c6	@ 0xec401f06"
-	   :
-	   : "r" (kto),
-	     "r" ((unsigned long)kto + PAGE_SIZE - 1)
-	   : "cc");
+			:
+			: "r" (kto),
+			"r" ((unsigned long)kto + PAGE_SIZE - 1)
+			: "cc");
 }
 
 /*
  * Copy the page, taking account of the cache colour.
  */
 static void v6_copy_user_highpage_aliasing(struct page *to,
-	struct page *from, unsigned long vaddr, struct vm_area_struct *vma)
+		struct page *from, unsigned long vaddr, struct vm_area_struct *vma)
 {
 	unsigned int offset = CACHE_COLOUR(vaddr);
 	unsigned long kfrom, kto;
 
 	if (!test_and_set_bit(PG_dcache_clean, &from->flags))
+	{
 		__flush_dcache_page(page_mapping(from), from);
+	}
 
 	/* FIXME: not highmem safe */
 	discard_old_kernel_data(page_address(to));
@@ -122,14 +124,16 @@ static void v6_clear_user_highpage_aliasing(struct page *page, unsigned long vad
 	raw_spin_unlock(&v6_lock);
 }
 
-struct cpu_user_fns v6_user_fns __initdata = {
+struct cpu_user_fns v6_user_fns __initdata =
+{
 	.cpu_clear_user_highpage = v6_clear_user_highpage_nonaliasing,
 	.cpu_copy_user_highpage	= v6_copy_user_highpage_nonaliasing,
 };
 
 static int __init v6_userpage_init(void)
 {
-	if (cache_is_vipt_aliasing()) {
+	if (cache_is_vipt_aliasing())
+	{
 		cpu_user.cpu_clear_user_highpage = v6_clear_user_highpage_aliasing;
 		cpu_user.cpu_copy_user_highpage = v6_copy_user_highpage_aliasing;
 	}

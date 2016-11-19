@@ -33,18 +33,18 @@
  */
 
 #define LOCAL_HUB_CLR_INTR(level)				\
-do {								\
-	LOCAL_HUB_S(PI_INT_PEND_MOD, (level));			\
-	LOCAL_HUB_L(PI_INT_PEND0);				\
-} while (0);
+	do {								\
+		LOCAL_HUB_S(PI_INT_PEND_MOD, (level));			\
+		LOCAL_HUB_L(PI_INT_PEND0);				\
+	} while (0);
 
 #define REMOTE_HUB_CLR_INTR(hub, level)				\
-do {								\
-	nasid_t	 __hub = (hub);					\
-								\
-	REMOTE_HUB_S(__hub, PI_INT_PEND_MOD, (level));		\
-	REMOTE_HUB_L(__hub, PI_INT_PEND0);			\
-} while (0);
+	do {								\
+		nasid_t	 __hub = (hub);					\
+		\
+		REMOTE_HUB_S(__hub, PI_INT_PEND_MOD, (level));		\
+		REMOTE_HUB_L(__hub, PI_INT_PEND0);			\
+	} while (0);
 
 /*
  * Hard-coded interrupt levels:
@@ -115,7 +115,7 @@ do {								\
 #define IP27_INTR_7		52
 
 #define BRIDGE_ERROR_INTR	53	/* Setup by PROM to catch	*/
-					/* Bridge Errors */
+/* Bridge Errors */
 #define DEBUG_INTR_A		54
 #define DEBUG_INTR_B		55	/* Used by symmon to stop all cpus */
 #define IO_ERROR_INTR		57	/* Setup by PROM */

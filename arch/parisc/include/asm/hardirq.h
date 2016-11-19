@@ -12,10 +12,11 @@
 #include <linux/irq.h>
 
 #ifdef CONFIG_IRQSTACKS
-#define __ARCH_HAS_DO_SOFTIRQ
+	#define __ARCH_HAS_DO_SOFTIRQ
 #endif
 
-typedef struct {
+typedef struct
+{
 	unsigned int __softirq_pending;
 	unsigned int kernel_stack_usage;
 	unsigned int irq_stack_usage;
@@ -38,7 +39,7 @@ DECLARE_PER_CPU_SHARED_ALIGNED(irq_cpustat_t, irq_stat);
 #define __ARCH_SET_SOFTIRQ_PENDING
 
 #define set_softirq_pending(x)	\
-		this_cpu_write(irq_stat.__softirq_pending, (x))
+	this_cpu_write(irq_stat.__softirq_pending, (x))
 #define or_softirq_pending(x)	this_cpu_or(irq_stat.__softirq_pending, (x))
 
 #define ack_bad_irq(irq) WARN(1, "unexpected IRQ trap at vector %02x\n", irq)

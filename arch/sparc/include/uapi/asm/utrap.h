@@ -44,8 +44,8 @@
 #define	UTH_NOCHANGE				(-1)
 
 #ifndef __ASSEMBLY__
-typedef int utrap_entry_t;
-typedef void *utrap_handler_t;
+	typedef int utrap_entry_t;
+	typedef void *utrap_handler_t;
 #endif /* __ASSEMBLY__ */
 
 #endif /* !(__ASM_SPARC64_PROCESSOR_H) */

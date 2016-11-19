@@ -35,7 +35,9 @@ static int __init fpga_sram_init(void)
 	 * FPGA_SEL determines the area mapping
 	 */
 	area = (data & LCLASR_FPGA_SEL_MASK) >> LCLASR_FPGA_SEL_SHIFT;
-	if (unlikely(area == LCLASR_AREA_MASK)) {
+
+	if (unlikely(area == LCLASR_AREA_MASK))
+	{
 		pr_err("FPGA memory unmapped.\n");
 		return -ENXIO;
 	}
@@ -51,17 +53,21 @@ static int __init fpga_sram_init(void)
 	 * up a mapping prior to inserting it in to the pool.
 	 */
 	vaddr = ioremap(phys, SZ_2K);
-	if (unlikely(!vaddr)) {
+
+	if (unlikely(!vaddr))
+	{
 		pr_err("Failed remapping FPGA memory.\n");
 		return -ENXIO;
 	}
 
 	pr_info("Adding %dKiB of FPGA memory at 0x%08lx-0x%08lx "
-		"(area %d) to pool.\n",
-		SZ_2K >> 10, phys, phys + SZ_2K - 1, area);
+			"(area %d) to pool.\n",
+			SZ_2K >> 10, phys, phys + SZ_2K - 1, area);
 
 	ret = gen_pool_add(sram_pool, (unsigned long)vaddr, SZ_2K, -1);
-	if (unlikely(ret < 0)) {
+
+	if (unlikely(ret < 0))
+	{
 		pr_err("Failed adding memory\n");
 		iounmap(vaddr);
 		return ret;

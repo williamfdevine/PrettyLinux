@@ -20,8 +20,10 @@
  *
  * NOTE: By convention, pointer arguments point to an u32
  */
-struct pmf_args {
-	union {
+struct pmf_args
+{
+	union
+	{
 		u32 v;
 		u32 *p;
 	} u[4];
@@ -49,12 +51,13 @@ struct pmf_args {
  */
 
 #define PMF_STD_ARGS	struct pmf_function *func, void *instdata, \
-		        struct pmf_args *args
+		struct pmf_args *args
 
 struct pmf_function;
 
-struct pmf_handlers {
-	void * (*begin)(struct pmf_function *func, struct pmf_args *args);
+struct pmf_handlers
+{
+	void *(*begin)(struct pmf_function *func, struct pmf_args *args);
 	void (*end)(struct pmf_function *func, void *instdata);
 
 	int (*irq_enable)(struct pmf_function *func);
@@ -79,33 +82,33 @@ struct pmf_handlers {
 	int (*read_i2c)(PMF_STD_ARGS, u32 len);
 	int (*write_i2c)(PMF_STD_ARGS, u32 len, const u8 *data);
 	int (*rmw_i2c)(PMF_STD_ARGS, u32 masklen, u32 valuelen, u32 totallen,
-		       const u8 *maskdata, const u8 *valuedata);
+				   const u8 *maskdata, const u8 *valuedata);
 
 	int (*read_cfg)(PMF_STD_ARGS, u32 offset, u32 len);
 	int (*write_cfg)(PMF_STD_ARGS, u32 offset, u32 len, const u8 *data);
 	int (*rmw_cfg)(PMF_STD_ARGS, u32 offset, u32 masklen, u32 valuelen,
-		       u32 totallen, const u8 *maskdata, const u8 *valuedata);
+				   u32 totallen, const u8 *maskdata, const u8 *valuedata);
 
 	int (*read_i2c_sub)(PMF_STD_ARGS, u8 subaddr, u32 len);
 	int (*write_i2c_sub)(PMF_STD_ARGS, u8 subaddr, u32 len, const u8 *data);
 	int (*set_i2c_mode)(PMF_STD_ARGS, int mode);
 	int (*rmw_i2c_sub)(PMF_STD_ARGS, u8 subaddr, u32 masklen, u32 valuelen,
-			   u32 totallen, const u8 *maskdata,
-			   const u8 *valuedata);
+					   u32 totallen, const u8 *maskdata,
+					   const u8 *valuedata);
 
 	int (*read_reg32_msrx)(PMF_STD_ARGS, u32 offset, u32 mask, u32 shift,
-			       u32 xor);
+						   u32 xor);
 	int (*read_reg16_msrx)(PMF_STD_ARGS, u32 offset, u32 mask, u32 shift,
-			       u32 xor);
+						   u32 xor);
 	int (*read_reg8_msrx)(PMF_STD_ARGS, u32 offset, u32 mask, u32 shift,
-			      u32 xor);
+						  u32 xor);
 
 	int (*write_reg32_slm)(PMF_STD_ARGS, u32 offset, u32 shift, u32 mask);
 	int (*write_reg16_slm)(PMF_STD_ARGS, u32 offset, u32 shift, u32 mask);
 	int (*write_reg8_slm)(PMF_STD_ARGS, u32 offset, u32 shift, u32 mask);
 
 	int (*mask_and_compare)(PMF_STD_ARGS, u32 len, const u8 *maskdata,
-				const u8 *valuedata);
+							const u8 *valuedata);
 
 	struct module *owner;
 };
@@ -120,7 +123,8 @@ struct pmf_handlers {
  */
 struct pmf_device;
 
-struct pmf_function {
+struct pmf_function
+{
 	/* All functions for a given driver are linked */
 	struct list_head	link;
 
@@ -162,7 +166,8 @@ struct pmf_function {
  * a spinlock held, you must not call back into any of the pmf_* functions
  * from within that callback
  */
-struct pmf_irq_client {
+struct pmf_irq_client
+{
 	void			(*handler)(void *data);
 	void			*data;
 	struct module		*owner;
@@ -175,8 +180,8 @@ struct pmf_irq_client {
  * Register/Unregister a function-capable driver and its handlers
  */
 extern int pmf_register_driver(struct device_node *np,
-			      struct pmf_handlers *handlers,
-			      void *driverdata);
+							   struct pmf_handlers *handlers,
+							   void *driverdata);
 
 extern void pmf_unregister_driver(struct device_node *np);
 
@@ -185,8 +190,8 @@ extern void pmf_unregister_driver(struct device_node *np);
  * Register/Unregister interrupt clients
  */
 extern int pmf_register_irq_client(struct device_node *np,
-				   const char *name,
-				   struct pmf_irq_client *client);
+								   const char *name,
+								   struct pmf_irq_client *client);
 
 extern void pmf_unregister_irq_client(struct pmf_irq_client *client);
 
@@ -214,7 +219,7 @@ extern void pmf_do_irq(struct pmf_function *func);
  * phandle to match any
  */
 extern int pmf_do_functions(struct device_node *np, const char *name,
-			    u32 phandle, u32 flags, struct pmf_args *args);
+							u32 phandle, u32 flags, struct pmf_args *args);
 
 
 
@@ -228,7 +233,7 @@ extern int pmf_do_functions(struct device_node *np, const char *name,
  */
 
 extern int pmf_call_function(struct device_node *target, const char *name,
-			     struct pmf_args *args);
+							 struct pmf_args *args);
 
 
 /*
@@ -237,9 +242,9 @@ extern int pmf_call_function(struct device_node *target, const char *name,
  */
 
 extern struct pmf_function *pmf_find_function(struct device_node *target,
-					      const char *name);
+		const char *name);
 
-extern struct pmf_function * pmf_get_function(struct pmf_function *func);
+extern struct pmf_function *pmf_get_function(struct pmf_function *func);
 extern void pmf_put_function(struct pmf_function *func);
 
 extern int pmf_call_one(struct pmf_function *func, struct pmf_args *args);

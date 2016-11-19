@@ -5,7 +5,8 @@
 
 #if defined(__sparc__) && defined(__arch64__)
 /* 64 bit sparc */
-struct stat {
+struct stat
+{
 	unsigned int st_dev;
 	ino_t   st_ino;
 	mode_t  st_mode;
@@ -22,7 +23,8 @@ struct stat {
 	unsigned long  __unused4[2];
 };
 
-struct stat64 {
+struct stat64
+{
 	unsigned long	st_dev;
 	unsigned long	st_ino;
 	unsigned long	st_nlink;
@@ -48,7 +50,8 @@ struct stat64 {
 
 #else
 /* 32 bit sparc */
-struct stat {
+struct stat
+{
 	unsigned short	st_dev;
 	ino_t		st_ino;
 	mode_t		st_mode;
@@ -70,7 +73,8 @@ struct stat {
 
 #define STAT_HAVE_NSEC 1
 
-struct stat64 {
+struct stat64
+{
 	unsigned long long st_dev;
 
 	unsigned long long st_ino;

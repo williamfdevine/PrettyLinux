@@ -35,7 +35,8 @@
 #define GPIO_MASK2(gpio)	(0xc0000000 >> ((gpio) * 2))
 
 /* Physical GPIO register layout */
-struct ppc4xx_gpio {
+struct ppc4xx_gpio
+{
 	__be32 or;
 	__be32 tcr;
 	__be32 osrl;
@@ -56,7 +57,8 @@ struct ppc4xx_gpio {
 	__be32 isr3h;
 };
 
-struct ppc4xx_gpio_chip {
+struct ppc4xx_gpio_chip
+{
 	struct of_mm_gpio_chip mm_gc;
 	spinlock_t lock;
 };
@@ -82,9 +84,13 @@ __ppc4xx_gpio_set(struct gpio_chip *gc, unsigned int gpio, int val)
 	struct ppc4xx_gpio __iomem *regs = mm_gc->regs;
 
 	if (val)
-		setbits32(&regs->or, GPIO_MASK(gpio));
+	{
+		setbits32(&regs-> or , GPIO_MASK(gpio));
+	}
 	else
-		clrbits32(&regs->or, GPIO_MASK(gpio));
+	{
+		clrbits32(&regs-> or , GPIO_MASK(gpio));
+	}
 }
 
 static void
@@ -118,10 +124,13 @@ static int ppc4xx_gpio_dir_in(struct gpio_chip *gc, unsigned int gpio)
 	clrbits32(&regs->tcr, GPIO_MASK(gpio));
 
 	/* Bits 0-15 use TSRL/OSRL, bits 16-31 use TSRH/OSRH */
-	if (gpio < 16) {
+	if (gpio < 16)
+	{
 		clrbits32(&regs->osrl, GPIO_MASK2(gpio));
 		clrbits32(&regs->tsrl, GPIO_MASK2(gpio));
-	} else {
+	}
+	else
+	{
 		clrbits32(&regs->osrh, GPIO_MASK2(gpio));
 		clrbits32(&regs->tsrh, GPIO_MASK2(gpio));
 	}
@@ -151,10 +160,13 @@ ppc4xx_gpio_dir_out(struct gpio_chip *gc, unsigned int gpio, int val)
 	setbits32(&regs->tcr, GPIO_MASK(gpio));
 
 	/* Bits 0-15 use TSRL, bits 16-31 use TSRH */
-	if (gpio < 16) {
+	if (gpio < 16)
+	{
 		clrbits32(&regs->osrl, GPIO_MASK2(gpio));
 		clrbits32(&regs->tsrl, GPIO_MASK2(gpio));
-	} else {
+	}
+	else
+	{
 		clrbits32(&regs->osrh, GPIO_MASK2(gpio));
 		clrbits32(&regs->tsrh, GPIO_MASK2(gpio));
 	}
@@ -170,14 +182,17 @@ static int __init ppc4xx_add_gpiochips(void)
 {
 	struct device_node *np;
 
-	for_each_compatible_node(np, NULL, "ibm,ppc4xx-gpio") {
+	for_each_compatible_node(np, NULL, "ibm,ppc4xx-gpio")
+	{
 		int ret;
 		struct ppc4xx_gpio_chip *ppc4xx_gc;
 		struct of_mm_gpio_chip *mm_gc;
 		struct gpio_chip *gc;
 
 		ppc4xx_gc = kzalloc(sizeof(*ppc4xx_gc), GFP_KERNEL);
-		if (!ppc4xx_gc) {
+
+		if (!ppc4xx_gc)
+		{
 			ret = -ENOMEM;
 			goto err;
 		}
@@ -194,12 +209,16 @@ static int __init ppc4xx_add_gpiochips(void)
 		gc->set = ppc4xx_gpio_set;
 
 		ret = of_mm_gpiochip_add_data(np, mm_gc, ppc4xx_gc);
+
 		if (ret)
+		{
 			goto err;
+		}
+
 		continue;
 err:
 		pr_err("%s: registration failed with status %d\n",
-		       np->full_name, ret);
+			   np->full_name, ret);
 		kfree(ppc4xx_gc);
 		/* try others anyway */
 	}

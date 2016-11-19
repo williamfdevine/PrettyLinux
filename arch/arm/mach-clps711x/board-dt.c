@@ -30,7 +30,8 @@
 # define RANDID2		(0x2708)
 # define RANDID3		(0x270c)
 
-static struct map_desc clps711x_io_desc __initdata = {
+static struct map_desc clps711x_io_desc __initdata =
+{
 	.virtual	= (unsigned long)CLPS711X_VIRT_BASE,
 	.pfn		= __phys_to_pfn(CLPS711X_PHYS_BASE),
 	.length		= 48 * SZ_1K,
@@ -61,7 +62,7 @@ static void __init clps711x_init(void)
 	system_serial_low = id[0];
 
 	platform_device_register_simple("clps711x-cpuidle", PLATFORM_DEVID_NONE,
-					&clps711x_cpuidle_res, 1);
+									&clps711x_cpuidle_res, 1);
 }
 
 static void clps711x_restart(enum reboot_mode mode, const char *cmd)
@@ -69,14 +70,15 @@ static void clps711x_restart(enum reboot_mode mode, const char *cmd)
 	soft_restart(0);
 }
 
-static const char *clps711x_compat[] __initconst = {
+static const char *clps711x_compat[] __initconst =
+{
 	"cirrus,ep7209",
 	NULL
 };
 
 DT_MACHINE_START(CLPS711X_DT, "Cirrus Logic CLPS711X (Device Tree Support)")
-	.dt_compat	= clps711x_compat,
-	.map_io		= clps711x_map_io,
-	.init_late	= clps711x_init,
-	.restart	= clps711x_restart,
-MACHINE_END
+.dt_compat	= clps711x_compat,
+  .map_io		= clps711x_map_io,
+	  .init_late	= clps711x_init,
+		.restart	= clps711x_restart,
+			MACHINE_END

@@ -30,24 +30,28 @@ static void platform_fixups(void)
 	dt_fixup_cpu_clocks(bd.bi_intfreq, bd.bi_busfreq / 16, bd.bi_busfreq);
 
 	node = finddevice("/soc/cpm/brg");
-	if (node) {
+
+	if (node)
+	{
 		printf("BRG clock-frequency <- 0x%x (%dMHz)\r\n",
-		       bd.bi_busfreq, MHZ(bd.bi_busfreq));
+			   bd.bi_busfreq, MHZ(bd.bi_busfreq));
 		setprop(node, "clock-frequency",  &bd.bi_busfreq, 4);
 	}
 }
 
 void platform_init(unsigned long r3, unsigned long r4, unsigned long r5,
-                   unsigned long r6, unsigned long r7)
+				   unsigned long r6, unsigned long r7)
 {
 	memcpy(&bd, (char *)r3, sizeof(bd));
 
 	if (bd.bi_tag != 0x42444944)
+	{
 		return;
+	}
 
 	simple_alloc_init(_end,
-	                  bd.bi_memstart + bd.bi_memsize - (unsigned long)_end,
-	                  32, 64);
+					  bd.bi_memstart + bd.bi_memsize - (unsigned long)_end,
+					  32, 64);
 
 	fdt_init(_dtb_start);
 	serial_console_init();

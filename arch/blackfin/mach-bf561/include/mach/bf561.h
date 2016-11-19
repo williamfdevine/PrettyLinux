@@ -139,62 +139,62 @@
 #define AMBCTL1VAL	((CONFIG_BANK_3 << 16) | CONFIG_BANK_2)
 
 #if defined(CONFIG_C_AMBEN_ALL)
-#define V_AMBEN AMBEN_ALL
+	#define V_AMBEN AMBEN_ALL
 #elif defined(CONFIG_C_AMBEN)
-#define V_AMBEN 0x0
+	#define V_AMBEN 0x0
 #elif defined(CONFIG_C_AMBEN_B0)
-#define V_AMBEN AMBEN_B0
+	#define V_AMBEN AMBEN_B0
 #elif defined(CONFIG_C_AMBEN_B0_B1)
-#define V_AMBEN AMBEN_B0_B1
+	#define V_AMBEN AMBEN_B0_B1
 #elif defined(CONFIG_C_AMBEN_B0_B1_B2)
-#define V_AMBEN AMBEN_B0_B1_B2
+	#define V_AMBEN AMBEN_B0_B1_B2
 #endif
 
 #ifdef CONFIG_C_AMCKEN
-#define V_AMCKEN AMCKEN
+	#define V_AMCKEN AMCKEN
 #else
-#define V_AMCKEN 0x0
+	#define V_AMCKEN 0x0
 #endif
 
 #ifdef CONFIG_C_B0PEN
-#define V_B0PEN 0x10
+	#define V_B0PEN 0x10
 #else
-#define V_B0PEN 0x00
+	#define V_B0PEN 0x00
 #endif
 
 #ifdef CONFIG_C_B1PEN
-#define V_B1PEN 0x20
+	#define V_B1PEN 0x20
 #else
-#define V_B1PEN 0x00
+	#define V_B1PEN 0x00
 #endif
 
 #ifdef CONFIG_C_B2PEN
-#define V_B2PEN 0x40
+	#define V_B2PEN 0x40
 #else
-#define V_B2PEN 0x00
+	#define V_B2PEN 0x00
 #endif
 
 #ifdef CONFIG_C_B3PEN
-#define V_B3PEN 0x80
+	#define V_B3PEN 0x80
 #else
-#define V_B3PEN 0x00
+	#define V_B3PEN 0x00
 #endif
 
 #ifdef CONFIG_C_CDPRIO
-#define V_CDPRIO 0x100
+	#define V_CDPRIO 0x100
 #else
-#define V_CDPRIO 0x0
+	#define V_CDPRIO 0x0
 #endif
 
 #define AMGCTLVAL	(V_AMBEN | V_AMCKEN | V_CDPRIO | V_B0PEN | V_B1PEN | V_B2PEN | V_B3PEN | 0x0002)
 
 #ifdef CONFIG_BF561
-#define CPU "BF561"
-#define CPUID 0x27bb
+	#define CPU "BF561"
+	#define CPUID 0x27bb
 #endif
 
 #ifndef CPU
-#error "Unknown CPU type - This kernel doesn't seem to be configured properly"
+	#error "Unknown CPU type - This kernel doesn't seem to be configured properly"
 #endif
 
 #endif				/* __MACH_BF561_H__  */

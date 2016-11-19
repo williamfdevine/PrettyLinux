@@ -18,7 +18,8 @@
 
 #include <linux/types.h>
 
-struct ucontext {
+struct ucontext
+{
 	unsigned long	  uc_flags;
 	struct ucontext	 *uc_link;
 	stack_t		  uc_stack;

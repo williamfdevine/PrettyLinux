@@ -33,7 +33,10 @@ static inline int gpio_cansleep(unsigned int gpio)
 static inline int gpio_to_irq(unsigned int gpio)
 {
 	if (gpio < NR_GPIO_IRQS)
+	{
 		return gpio + GPIO_IRQ_BASE;
+	}
+
 	return -EINVAL;
 }
 

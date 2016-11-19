@@ -20,7 +20,7 @@
 #include "cm2xxx_3xxx.h"
 
 #define OMAP34XX_CM_REGADDR(module, reg)				\
-			OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE + (module) + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE + (module) + (reg))
 
 
 /*
@@ -68,11 +68,11 @@
 
 #ifndef __ASSEMBLER__
 
-extern void omap3_cm_save_context(void);
-extern void omap3_cm_restore_context(void);
-extern void omap3_cm_save_scratchpad_contents(u32 *ptr);
+	extern void omap3_cm_save_context(void);
+	extern void omap3_cm_restore_context(void);
+	extern void omap3_cm_save_scratchpad_contents(u32 *ptr);
 
-int __init omap3xxx_cm_init(const struct omap_prcm_init_data *data);
+	int __init omap3xxx_cm_init(const struct omap_prcm_init_data *data);
 
 #endif
 

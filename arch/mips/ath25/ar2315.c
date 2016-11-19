@@ -64,7 +64,8 @@ static irqreturn_t ar2315_ahb_err_handler(int cpl, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction ar2315_ahb_err_interrupt  = {
+static struct irqaction ar2315_ahb_err_interrupt  =
+{
 	.handler	= ar2315_ahb_err_handler,
 	.name		= "ar2315-ahb-error",
 };
@@ -72,23 +73,32 @@ static struct irqaction ar2315_ahb_err_interrupt  = {
 static void ar2315_misc_irq_handler(struct irq_desc *desc)
 {
 	u32 pending = ar2315_rst_reg_read(AR2315_ISR) &
-		      ar2315_rst_reg_read(AR2315_IMR);
+				  ar2315_rst_reg_read(AR2315_IMR);
 	unsigned nr, misc_irq = 0;
 
-	if (pending) {
+	if (pending)
+	{
 		struct irq_domain *domain = irq_desc_get_handler_data(desc);
 
 		nr = __ffs(pending);
 		misc_irq = irq_find_mapping(domain, nr);
 	}
 
-	if (misc_irq) {
+	if (misc_irq)
+	{
 		if (nr == AR2315_MISC_IRQ_GPIO)
+		{
 			ar2315_rst_reg_write(AR2315_ISR, AR2315_ISR_GPIO);
+		}
 		else if (nr == AR2315_MISC_IRQ_WATCHDOG)
+		{
 			ar2315_rst_reg_write(AR2315_ISR, AR2315_ISR_WD);
+		}
+
 		generic_handle_irq(misc_irq);
-	} else {
+	}
+	else
+	{
 		spurious_interrupt();
 	}
 }
@@ -103,20 +113,22 @@ static void ar2315_misc_irq_mask(struct irq_data *d)
 	ar2315_rst_reg_mask(AR2315_IMR, BIT(d->hwirq), 0);
 }
 
-static struct irq_chip ar2315_misc_irq_chip = {
+static struct irq_chip ar2315_misc_irq_chip =
+{
 	.name		= "ar2315-misc",
 	.irq_unmask	= ar2315_misc_irq_unmask,
 	.irq_mask	= ar2315_misc_irq_mask,
 };
 
 static int ar2315_misc_irq_map(struct irq_domain *d, unsigned irq,
-			       irq_hw_number_t hw)
+							   irq_hw_number_t hw)
 {
 	irq_set_chip_and_handler(irq, &ar2315_misc_irq_chip, handle_level_irq);
 	return 0;
 }
 
-static struct irq_domain_ops ar2315_misc_irq_domain_ops = {
+static struct irq_domain_ops ar2315_misc_irq_domain_ops =
+{
 	.map = ar2315_misc_irq_map,
 };
 
@@ -133,17 +145,29 @@ static void ar2315_irq_dispatch(void)
 	u32 pending = read_c0_status() & read_c0_cause();
 
 	if (pending & CAUSEF_IP3)
+	{
 		do_IRQ(AR2315_IRQ_WLAN0);
+	}
+
 #ifdef CONFIG_PCI_AR2315
 	else if (pending & CAUSEF_IP5)
+	{
 		do_IRQ(AR2315_IRQ_LCBUS_PCI);
+	}
+
 #endif
 	else if (pending & CAUSEF_IP2)
+	{
 		do_IRQ(AR2315_IRQ_MISC);
+	}
 	else if (pending & CAUSEF_IP7)
+	{
 		do_IRQ(ATH25_IRQ_CPU_CLOCK);
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }
 
 void __init ar2315_arch_init_irq(void)
@@ -154,15 +178,18 @@ void __init ar2315_arch_init_irq(void)
 	ath25_irq_dispatch = ar2315_irq_dispatch;
 
 	domain = irq_domain_add_linear(NULL, AR2315_MISC_IRQ_COUNT,
-				       &ar2315_misc_irq_domain_ops, NULL);
+								   &ar2315_misc_irq_domain_ops, NULL);
+
 	if (!domain)
+	{
 		panic("Failed to add IRQ domain");
+	}
 
 	irq = irq_create_mapping(domain, AR2315_MISC_IRQ_AHB);
 	setup_irq(irq, &ar2315_ahb_err_interrupt);
 
 	irq_set_chained_handler_and_data(AR2315_IRQ_MISC,
-					 ar2315_misc_irq_handler, domain);
+									 ar2315_misc_irq_handler, domain);
 
 	ar2315_misc_irq_domain = domain;
 }
@@ -217,24 +244,27 @@ static unsigned __init ar2315_sys_clk(u32 clock_ctl)
 	pllc_out = (40000000 / refdiv) * (2 * divby2) * fdiv;
 
 	/* clkm input selected */
-	switch (clock_ctl & AR2315_CPUCLK_CLK_SEL_M) {
-	case 0:
-	case 1:
-		clk_div = ATH25_REG_MS(pllc_ctrl, AR2315_PLLC_CLKM_DIV);
-		clk_div = pllc_divide_table[clk_div];
-		break;
-	case 2:
-		clk_div = ATH25_REG_MS(pllc_ctrl, AR2315_PLLC_CLKC_DIV);
-		clk_div = pllc_divide_table[clk_div];
-		break;
-	default:
-		pllc_out = 40000000;
-		clk_div = 1;
-		break;
+	switch (clock_ctl & AR2315_CPUCLK_CLK_SEL_M)
+	{
+		case 0:
+		case 1:
+			clk_div = ATH25_REG_MS(pllc_ctrl, AR2315_PLLC_CLKM_DIV);
+			clk_div = pllc_divide_table[clk_div];
+			break;
+
+		case 2:
+			clk_div = ATH25_REG_MS(pllc_ctrl, AR2315_PLLC_CLKC_DIV);
+			clk_div = pllc_divide_table[clk_div];
+			break;
+
+		default:
+			pllc_out = 40000000;
+			clk_div = 1;
+			break;
 	}
 
 	cpu_div = ATH25_REG_MS(clock_ctl, AR2315_CPUCLK_CLK_DIV);
-	cpu_div = cpu_div * 2 ?: 1;
+	cpu_div = cpu_div * 2 ? : 1;
 
 	return pllc_out / (clk_div * cpu_div);
 }
@@ -263,7 +293,7 @@ void __init ar2315_plat_mem_setup(void)
 
 	/* Detect memory size */
 	sdram_base = ioremap_nocache(AR2315_SDRAMCTL_BASE,
-				     AR2315_SDRAMCTL_SIZE);
+								 AR2315_SDRAMCTL_SIZE);
 	memcfg = __raw_readl(sdram_base + AR2315_MEM_CFG);
 	memsize   = 1 + ATH25_REG_MS(memcfg, AR2315_MEM_CFG_DATA_WIDTH);
 	memsize <<= 1 + ATH25_REG_MS(memcfg, AR2315_MEM_CFG_COL_WIDTH);
@@ -276,21 +306,27 @@ void __init ar2315_plat_mem_setup(void)
 
 	/* Detect the hardware based on the device ID */
 	devid = ar2315_rst_reg_read(AR2315_SREV) & AR2315_REV_CHIP;
-	switch (devid) {
-	case 0x91:	/* Need to check */
-		ath25_soc = ATH25_SOC_AR2318;
-		break;
-	case 0x90:
-		ath25_soc = ATH25_SOC_AR2317;
-		break;
-	case 0x87:
-		ath25_soc = ATH25_SOC_AR2316;
-		break;
-	case 0x86:
-	default:
-		ath25_soc = ATH25_SOC_AR2315;
-		break;
+
+	switch (devid)
+	{
+		case 0x91:	/* Need to check */
+			ath25_soc = ATH25_SOC_AR2318;
+			break;
+
+		case 0x90:
+			ath25_soc = ATH25_SOC_AR2317;
+			break;
+
+		case 0x87:
+			ath25_soc = ATH25_SOC_AR2316;
+			break;
+
+		case 0x86:
+		default:
+			ath25_soc = ATH25_SOC_AR2315;
+			break;
 	}
+
 	ath25_board.devid = devid;
 
 	/* Clear any lingering AHB errors */
@@ -304,7 +340,8 @@ void __init ar2315_plat_mem_setup(void)
 }
 
 #ifdef CONFIG_PCI_AR2315
-static struct resource ar2315_pci_res[] = {
+static struct resource ar2315_pci_res[] =
+{
 	{
 		.name = "ar2315-pci-ctrl",
 		.flags = IORESOURCE_MEM,
@@ -329,12 +366,14 @@ static struct resource ar2315_pci_res[] = {
 void __init ar2315_arch_init(void)
 {
 	unsigned irq = irq_create_mapping(ar2315_misc_irq_domain,
-					  AR2315_MISC_IRQ_UART0);
+									  AR2315_MISC_IRQ_UART0);
 
 	ath25_serial_setup(AR2315_UART0_BASE, irq, ar2315_apb_frequency());
 
 #ifdef CONFIG_PCI_AR2315
-	if (ath25_soc == ATH25_SOC_AR2315) {
+
+	if (ath25_soc == ATH25_SOC_AR2315)
+	{
 		/* Reset PCI DMA logic */
 		ar2315_rst_reg_mask(AR2315_RESET, 0, AR2315_RESET_PCIDMA);
 		msleep(20);
@@ -343,22 +382,23 @@ void __init ar2315_arch_init(void)
 
 		/* Configure endians */
 		ar2315_rst_reg_mask(AR2315_ENDIAN_CTL, 0, AR2315_CONFIG_PCIAHB |
-				    AR2315_CONFIG_PCIAHB_BRIDGE);
+							AR2315_CONFIG_PCIAHB_BRIDGE);
 
 		/* Configure as PCI host with DMA */
 		ar2315_rst_reg_write(AR2315_PCICLK, AR2315_PCICLK_PLLC_CLKM |
-				  (AR2315_PCICLK_IN_FREQ_DIV_6 <<
-				   AR2315_PCICLK_DIV_S));
+							 (AR2315_PCICLK_IN_FREQ_DIV_6 <<
+							  AR2315_PCICLK_DIV_S));
 		ar2315_rst_reg_mask(AR2315_AHB_ARB_CTL, 0, AR2315_ARB_PCI);
 		ar2315_rst_reg_mask(AR2315_IF_CTL, AR2315_IF_PCI_CLK_MASK |
-				    AR2315_IF_MASK, AR2315_IF_PCI |
-				    AR2315_IF_PCI_HOST | AR2315_IF_PCI_INTR |
-				    (AR2315_IF_PCI_CLK_OUTPUT_CLK <<
-				     AR2315_IF_PCI_CLK_SHIFT));
+							AR2315_IF_MASK, AR2315_IF_PCI |
+							AR2315_IF_PCI_HOST | AR2315_IF_PCI_INTR |
+							(AR2315_IF_PCI_CLK_OUTPUT_CLK <<
+							 AR2315_IF_PCI_CLK_SHIFT));
 
 		platform_device_register_simple("ar2315-pci", -1,
-						ar2315_pci_res,
-						ARRAY_SIZE(ar2315_pci_res));
+										ar2315_pci_res,
+										ARRAY_SIZE(ar2315_pci_res));
 	}
+
 #endif
 }

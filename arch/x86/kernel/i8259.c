@@ -60,10 +60,16 @@ static void mask_8259A_irq(unsigned int irq)
 
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	cached_irq_mask |= mask;
+
 	if (irq & 8)
+	{
 		outb(cached_slave_mask, PIC_SLAVE_IMR);
+	}
 	else
+	{
 		outb(cached_master_mask, PIC_MASTER_IMR);
+	}
+
 	raw_spin_unlock_irqrestore(&i8259A_lock, flags);
 }
 
@@ -79,10 +85,16 @@ static void unmask_8259A_irq(unsigned int irq)
 
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	cached_irq_mask &= mask;
+
 	if (irq & 8)
+	{
 		outb(cached_slave_mask, PIC_SLAVE_IMR);
+	}
 	else
+	{
 		outb(cached_master_mask, PIC_MASTER_IMR);
+	}
+
 	raw_spin_unlock_irqrestore(&i8259A_lock, flags);
 }
 
@@ -93,15 +105,21 @@ static void enable_8259A_irq(struct irq_data *data)
 
 static int i8259A_irq_pending(unsigned int irq)
 {
-	unsigned int mask = 1<<irq;
+	unsigned int mask = 1 << irq;
 	unsigned long flags;
 	int ret;
 
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
+
 	if (irq < 8)
+	{
 		ret = inb(PIC_MASTER_CMD) & mask;
+	}
 	else
+	{
 		ret = inb(PIC_SLAVE_CMD) & (mask >> 8);
+	}
+
 	raw_spin_unlock_irqrestore(&i8259A_lock, flags);
 
 	return ret;
@@ -110,7 +128,7 @@ static int i8259A_irq_pending(unsigned int irq)
 static void make_8259A_irq(unsigned int irq)
 {
 	disable_irq_nosync(irq);
-	io_apic_irqs &= ~(1<<irq);
+	io_apic_irqs &= ~(1 << irq);
 	irq_set_chip_and_handler(irq, &i8259A_chip, handle_level_irq);
 	enable_irq(irq);
 }
@@ -124,14 +142,16 @@ static void make_8259A_irq(unsigned int irq)
 static inline int i8259A_irq_real(unsigned int irq)
 {
 	int value;
-	int irqmask = 1<<irq;
+	int irqmask = 1 << irq;
 
-	if (irq < 8) {
+	if (irq < 8)
+	{
 		outb(0x0B, PIC_MASTER_CMD);	/* ISR register */
 		value = inb(PIC_MASTER_CMD) & irqmask;
 		outb(0x0A, PIC_MASTER_CMD);	/* back to the IRR register */
 		return value;
 	}
+
 	outb(0x0B, PIC_SLAVE_CMD);	/* ISR register */
 	value = inb(PIC_SLAVE_CMD) & (irqmask >> 8);
 	outb(0x0A, PIC_SLAVE_CMD);	/* back to the IRR register */
@@ -151,6 +171,7 @@ static void mask_and_ack_8259A(struct irq_data *data)
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
+
 	/*
 	 * Lightweight spurious IRQ detection. We do not want
 	 * to overdo spurious IRQ handling - it's usually a sign
@@ -167,26 +188,35 @@ static void mask_and_ack_8259A(struct irq_data *data)
 	 * is something bad going on ...
 	 */
 	if (cached_irq_mask & irqmask)
+	{
 		goto spurious_8259A_irq;
+	}
+
 	cached_irq_mask |= irqmask;
 
 handle_real_irq:
-	if (irq & 8) {
+
+	if (irq & 8)
+	{
 		inb(PIC_SLAVE_IMR);	/* DUMMY - (do we need this?) */
 		outb(cached_slave_mask, PIC_SLAVE_IMR);
 		/* 'Specific EOI' to slave */
-		outb(0x60+(irq&7), PIC_SLAVE_CMD);
-		 /* 'Specific EOI' to master-IRQ2 */
-		outb(0x60+PIC_CASCADE_IR, PIC_MASTER_CMD);
-	} else {
+		outb(0x60 + (irq & 7), PIC_SLAVE_CMD);
+		/* 'Specific EOI' to master-IRQ2 */
+		outb(0x60 + PIC_CASCADE_IR, PIC_MASTER_CMD);
+	}
+	else
+	{
 		inb(PIC_MASTER_IMR);	/* DUMMY - (do we need this?) */
 		outb(cached_master_mask, PIC_MASTER_IMR);
-		outb(0x60+irq, PIC_MASTER_CMD);	/* 'Specific EOI to master */
+		outb(0x60 + irq, PIC_MASTER_CMD);	/* 'Specific EOI to master */
 	}
+
 	raw_spin_unlock_irqrestore(&i8259A_lock, flags);
 	return;
 
 spurious_8259A_irq:
+
 	/*
 	 * this is the slow path - should happen rarely.
 	 */
@@ -195,19 +225,24 @@ spurious_8259A_irq:
 		 * oops, the IRQ _is_ in service according to the
 		 * 8259A - not spurious, go handle it.
 		 */
+	{
 		goto handle_real_irq;
+	}
 
 	{
 		static int spurious_irq_mask;
+
 		/*
 		 * At this point we can be sure the IRQ is spurious,
 		 * lets ACK and report it. [once per IRQ]
 		 */
-		if (!(spurious_irq_mask & irqmask)) {
+		if (!(spurious_irq_mask & irqmask))
+		{
 			printk(KERN_DEBUG
-			       "spurious 8259A interrupt: IRQ%d.\n", irq);
+				   "spurious 8259A interrupt: IRQ%d.\n", irq);
 			spurious_irq_mask |= irqmask;
 		}
+
 		atomic_inc(&irq_err_count);
 		/*
 		 * Theoretically we do not have to handle this IRQ,
@@ -218,7 +253,8 @@ spurious_8259A_irq:
 	}
 }
 
-struct irq_chip i8259A_chip = {
+struct irq_chip i8259A_chip =
+{
 	.name		= "XT-PIC",
 	.irq_mask	= disable_8259A_irq,
 	.irq_disable	= disable_8259A_irq,
@@ -265,7 +301,8 @@ static void i8259A_shutdown(void)
 	outb(0xff, PIC_SLAVE_IMR);	/* mask all of 8259A-2 */
 }
 
-static struct syscore_ops i8259_syscore_ops = {
+static struct syscore_ops i8259_syscore_ops =
+{
 	.suspend = i8259A_suspend,
 	.resume = i8259A_resume,
 	.shutdown = i8259A_shutdown,
@@ -312,7 +349,9 @@ static int probe_8259A(void)
 	outb(0xff, PIC_SLAVE_IMR);	/* mask all of 8259A-2 */
 	outb(probe_val, PIC_MASTER_IMR);
 	new_val = inb(PIC_MASTER_IMR);
-	if (new_val != probe_val) {
+
+	if (new_val != probe_val)
+	{
 		printk(KERN_INFO "Using NULL legacy PIC\n");
 		legacy_pic = &null_legacy_pic;
 	}
@@ -343,9 +382,13 @@ static void init_8259A(int auto_eoi)
 	outb_pic(1U << PIC_CASCADE_IR, PIC_MASTER_IMR);
 
 	if (auto_eoi)	/* master does Auto EOI */
+	{
 		outb_pic(MASTER_ICW4_DEFAULT | PIC_ICW4_AEOI, PIC_MASTER_IMR);
+	}
 	else		/* master expects normal EOI */
+	{
 		outb_pic(MASTER_ICW4_DEFAULT, PIC_MASTER_IMR);
+	}
 
 	outb_pic(0x11, PIC_SLAVE_CMD);	/* ICW1: select 8259A-2 init */
 
@@ -361,9 +404,13 @@ static void init_8259A(int auto_eoi)
 		 * In AEOI mode we just have to mask the interrupt
 		 * when acking.
 		 */
+	{
 		i8259A_chip.irq_mask_ack = disable_8259A_irq;
+	}
 	else
+	{
 		i8259A_chip.irq_mask_ack = mask_and_ack_8259A;
+	}
 
 	udelay(100);		/* wait for 8259A to initialize */
 
@@ -391,7 +438,8 @@ static int legacy_pic_probe(void)
 	return 0;
 }
 
-struct legacy_pic null_legacy_pic = {
+struct legacy_pic null_legacy_pic =
+{
 	.nr_legacy_irqs = 0,
 	.chip = &dummy_irq_chip,
 	.mask = legacy_pic_uint_noop,
@@ -404,7 +452,8 @@ struct legacy_pic null_legacy_pic = {
 	.make_irq = legacy_pic_uint_noop,
 };
 
-struct legacy_pic default_legacy_pic = {
+struct legacy_pic default_legacy_pic =
+{
 	.nr_legacy_irqs = NR_IRQS_LEGACY,
 	.chip  = &i8259A_chip,
 	.mask = mask_8259A_irq,
@@ -422,7 +471,9 @@ struct legacy_pic *legacy_pic = &default_legacy_pic;
 static int __init i8259A_init_ops(void)
 {
 	if (legacy_pic == &default_legacy_pic)
+	{
 		register_syscore_ops(&i8259_syscore_ops);
+	}
 
 	return 0;
 }

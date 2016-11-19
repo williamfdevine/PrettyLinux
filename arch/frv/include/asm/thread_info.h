@@ -16,7 +16,7 @@
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-#include <asm/processor.h>
+	#include <asm/processor.h>
 #endif
 
 #define THREAD_SIZE		8192
@@ -29,7 +29,8 @@
  */
 #ifndef __ASSEMBLY__
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	unsigned long		status;		/* thread-synchronous flags */
@@ -56,13 +57,13 @@ struct thread_info {
 #ifndef __ASSEMBLY__
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -102,7 +103,7 @@ register struct thread_info *__current_thread_info asm("gr15");
 #define _TIF_ALLWORK_MASK	(_TIF_WORK_MASK | _TIF_SYSCALL_TRACE)
 
 #if _TIF_ALLWORK_MASK >= 0x2000
-#error "_TIF_ALLWORK_MASK won't fit in an ANDI now (see entry.S)"
+	#error "_TIF_ALLWORK_MASK won't fit in an ANDI now (see entry.S)"
 #endif
 
 /*

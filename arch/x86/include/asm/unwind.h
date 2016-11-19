@@ -6,7 +6,8 @@
 #include <asm/ptrace.h>
 #include <asm/stacktrace.h>
 
-struct unwind_state {
+struct unwind_state
+{
 	struct stack_info stack_info;
 	unsigned long stack_mask;
 	struct task_struct *task;
@@ -19,7 +20,7 @@ struct unwind_state {
 };
 
 void __unwind_start(struct unwind_state *state, struct task_struct *task,
-		    struct pt_regs *regs, unsigned long *first_frame);
+					struct pt_regs *regs, unsigned long *first_frame);
 
 bool unwind_next_frame(struct unwind_state *state);
 
@@ -32,7 +33,7 @@ static inline bool unwind_done(struct unwind_state *state)
 
 static inline
 void unwind_start(struct unwind_state *state, struct task_struct *task,
-		  struct pt_regs *regs, unsigned long *first_frame)
+				  struct pt_regs *regs, unsigned long *first_frame)
 {
 	first_frame = first_frame ? : get_stack_pointer(task, regs);
 
@@ -45,7 +46,9 @@ static inline
 unsigned long *unwind_get_return_address_ptr(struct unwind_state *state)
 {
 	if (unwind_done(state))
+	{
 		return NULL;
+	}
 
 	return state->bp + 1;
 }

@@ -9,12 +9,14 @@
 #define virt_to_bus virt_to_phys
 #define bus_to_virt phys_to_virt
 
-static inline unsigned long isa_bus_to_virt(unsigned long addr) {
+static inline unsigned long isa_bus_to_virt(unsigned long addr)
+{
 	BUG();
 	return 0;
 }
 
-static inline unsigned long isa_virt_to_bus(void *addr) {
+static inline unsigned long isa_virt_to_bus(void *addr)
+{
 	BUG();
 	return 0;
 }
@@ -34,10 +36,10 @@ static inline unsigned char gsc_readb(unsigned long addr)
 	unsigned char ret;
 
 	__asm__ __volatile__(
-	"	rsm	2,%0\n"
-	"	ldbx	0(%2),%1\n"
-	"	mtsm	%0\n"
-	: "=&r" (flags), "=r" (ret) : "r" (addr) );
+		"	rsm	2,%0\n"
+		"	ldbx	0(%2),%1\n"
+		"	mtsm	%0\n"
+		: "=&r" (flags), "=r" (ret) : "r" (addr) );
 
 	return ret;
 }
@@ -48,10 +50,10 @@ static inline unsigned short gsc_readw(unsigned long addr)
 	unsigned short ret;
 
 	__asm__ __volatile__(
-	"	rsm	2,%0\n"
-	"	ldhx	0(%2),%1\n"
-	"	mtsm	%0\n"
-	: "=&r" (flags), "=r" (ret) : "r" (addr) );
+		"	rsm	2,%0\n"
+		"	ldhx	0(%2),%1\n"
+		"	mtsm	%0\n"
+		: "=&r" (flags), "=r" (ret) : "r" (addr) );
 
 	return ret;
 }
@@ -61,8 +63,8 @@ static inline unsigned int gsc_readl(unsigned long addr)
 	u32 ret;
 
 	__asm__ __volatile__(
-	"	ldwax	0(%1),%0\n"
-	: "=r" (ret) : "r" (addr) );
+		"	ldwax	0(%1),%0\n"
+		: "=r" (ret) : "r" (addr) );
 
 	return ret;
 }
@@ -73,12 +75,12 @@ static inline unsigned long long gsc_readq(unsigned long addr)
 
 #ifdef CONFIG_64BIT
 	__asm__ __volatile__(
-	"	ldda	0(%1),%0\n"
-	:  "=r" (ret) : "r" (addr) );
+		"	ldda	0(%1),%0\n"
+		:  "=r" (ret) : "r" (addr) );
 #else
 	/* two reads may have side effects.. */
 	ret = ((u64) gsc_readl(addr)) << 32;
-	ret |= gsc_readl(addr+4);
+	ret |= gsc_readl(addr + 4);
 #endif
 	return ret;
 }
@@ -87,39 +89,39 @@ static inline void gsc_writeb(unsigned char val, unsigned long addr)
 {
 	long flags;
 	__asm__ __volatile__(
-	"	rsm	2,%0\n"
-	"	stbs	%1,0(%2)\n"
-	"	mtsm	%0\n"
-	: "=&r" (flags) :  "r" (val), "r" (addr) );
+		"	rsm	2,%0\n"
+		"	stbs	%1,0(%2)\n"
+		"	mtsm	%0\n"
+		: "=&r" (flags) :  "r" (val), "r" (addr) );
 }
 
 static inline void gsc_writew(unsigned short val, unsigned long addr)
 {
 	long flags;
 	__asm__ __volatile__(
-	"	rsm	2,%0\n"
-	"	sths	%1,0(%2)\n"
-	"	mtsm	%0\n"
-	: "=&r" (flags) :  "r" (val), "r" (addr) );
+		"	rsm	2,%0\n"
+		"	sths	%1,0(%2)\n"
+		"	mtsm	%0\n"
+		: "=&r" (flags) :  "r" (val), "r" (addr) );
 }
 
 static inline void gsc_writel(unsigned int val, unsigned long addr)
 {
 	__asm__ __volatile__(
-	"	stwas	%0,0(%1)\n"
-	: :  "r" (val), "r" (addr) );
+		"	stwas	%0,0(%1)\n"
+		: :  "r" (val), "r" (addr) );
 }
 
 static inline void gsc_writeq(unsigned long long val, unsigned long addr)
 {
 #ifdef CONFIG_64BIT
 	__asm__ __volatile__(
-	"	stda	%0,0(%1)\n"
-	: :  "r" (val), "r" (addr) );
+		"	stda	%0,0(%1)\n"
+		: :  "r" (val), "r" (addr) );
 #else
 	/* two writes may have side effects.. */
 	gsc_writel(val >> 32, addr);
-	gsc_writel(val, addr+4);
+	gsc_writel(val, addr + 4);
 #endif
 }
 
@@ -127,12 +129,12 @@ static inline void gsc_writeq(unsigned long long val, unsigned long addr)
  * The standard PCI ioremap interfaces
  */
 
-extern void __iomem * __ioremap(unsigned long offset, unsigned long size, unsigned long flags);
+extern void __iomem *__ioremap(unsigned long offset, unsigned long size, unsigned long flags);
 
 /* Most machines react poorly to I/O-space being cacheable... Instead let's
  * define ioremap() in terms of ioremap_nocache().
  */
-static inline void __iomem * ioremap(unsigned long offset, unsigned long size)
+static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
 {
 	return __ioremap(offset, size, _PAGE_NO_CACHE);
 }

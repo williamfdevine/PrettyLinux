@@ -8,7 +8,8 @@
 #define VCLOCK_PVCLOCK	2	/* vDSO should use vread_pvclock.	*/
 #define VCLOCK_MAX	2
 
-struct arch_clocksource_data {
+struct arch_clocksource_data
+{
 	int vclock_mode;
 };
 

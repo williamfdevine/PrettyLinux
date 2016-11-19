@@ -26,37 +26,49 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	int err;
 
 	if ((current->ptrace & PT_DTRACE) && (current->ptrace & PT_PTRACED))
+	{
 		singlestep = 1;
+	}
 
 	/* Did we come from a system call? */
-	if (PT_REGS_SYSCALL_NR(regs) >= 0) {
+	if (PT_REGS_SYSCALL_NR(regs) >= 0)
+	{
 		/* If so, check system call restarting.. */
-		switch (PT_REGS_SYSCALL_RET(regs)) {
-		case -ERESTART_RESTARTBLOCK:
-		case -ERESTARTNOHAND:
-			PT_REGS_SYSCALL_RET(regs) = -EINTR;
-			break;
-
-		case -ERESTARTSYS:
-			if (!(ksig->ka.sa.sa_flags & SA_RESTART)) {
+		switch (PT_REGS_SYSCALL_RET(regs))
+		{
+			case -ERESTART_RESTARTBLOCK:
+			case -ERESTARTNOHAND:
 				PT_REGS_SYSCALL_RET(regs) = -EINTR;
 				break;
-			}
-		/* fallthrough */
-		case -ERESTARTNOINTR:
-			PT_REGS_RESTART_SYSCALL(regs);
-			PT_REGS_ORIG_SYSCALL(regs) = PT_REGS_SYSCALL_NR(regs);
-			break;
+
+			case -ERESTARTSYS:
+				if (!(ksig->ka.sa.sa_flags & SA_RESTART))
+				{
+					PT_REGS_SYSCALL_RET(regs) = -EINTR;
+					break;
+				}
+
+			/* fallthrough */
+			case -ERESTARTNOINTR:
+				PT_REGS_RESTART_SYSCALL(regs);
+				PT_REGS_ORIG_SYSCALL(regs) = PT_REGS_SYSCALL_NR(regs);
+				break;
 		}
 	}
 
 	sp = PT_REGS_SP(regs);
+
 	if ((ksig->ka.sa.sa_flags & SA_ONSTACK) && (sas_ss_flags(sp) == 0))
+	{
 		sp = current->sas_ss_sp + current->sas_ss_size;
+	}
 
 #ifdef CONFIG_ARCH_HAS_SC_SIGNALS
+
 	if (!(ksig->ka.sa.sa_flags & SA_SIGINFO))
+	{
 		err = setup_signal_stack_sc(sp, ksig, regs, oldset);
+	}
 	else
 #endif
 		err = setup_signal_stack_si(sp, ksig, regs, oldset);
@@ -69,26 +81,30 @@ void do_signal(struct pt_regs *regs)
 	struct ksignal ksig;
 	int handled_sig = 0;
 
-	while (get_signal(&ksig)) {
+	while (get_signal(&ksig))
+	{
 		handled_sig = 1;
 		/* Whee!  Actually deliver the signal.  */
 		handle_signal(&ksig, regs);
 	}
 
 	/* Did we come from a system call? */
-	if (!handled_sig && (PT_REGS_SYSCALL_NR(regs) >= 0)) {
+	if (!handled_sig && (PT_REGS_SYSCALL_NR(regs) >= 0))
+	{
 		/* Restart the system call - no handlers present */
-		switch (PT_REGS_SYSCALL_RET(regs)) {
-		case -ERESTARTNOHAND:
-		case -ERESTARTSYS:
-		case -ERESTARTNOINTR:
-			PT_REGS_ORIG_SYSCALL(regs) = PT_REGS_SYSCALL_NR(regs);
-			PT_REGS_RESTART_SYSCALL(regs);
-			break;
-		case -ERESTART_RESTARTBLOCK:
-			PT_REGS_ORIG_SYSCALL(regs) = __NR_restart_syscall;
-			PT_REGS_RESTART_SYSCALL(regs);
-			break;
+		switch (PT_REGS_SYSCALL_RET(regs))
+		{
+			case -ERESTARTNOHAND:
+			case -ERESTARTSYS:
+			case -ERESTARTNOINTR:
+				PT_REGS_ORIG_SYSCALL(regs) = PT_REGS_SYSCALL_NR(regs);
+				PT_REGS_RESTART_SYSCALL(regs);
+				break;
+
+			case -ERESTART_RESTARTBLOCK:
+				PT_REGS_ORIG_SYSCALL(regs) = __NR_restart_syscall;
+				PT_REGS_RESTART_SYSCALL(regs);
+				break;
 		}
 	}
 
@@ -109,5 +125,7 @@ void do_signal(struct pt_regs *regs)
 	 * back
 	 */
 	if (!handled_sig)
+	{
 		restore_saved_sigmask();
+	}
 }

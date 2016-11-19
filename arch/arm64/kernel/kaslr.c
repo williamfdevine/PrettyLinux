@@ -31,12 +31,18 @@ static __init u64 get_kaslr_seed(void *fdt)
 	u64 ret;
 
 	node = fdt_path_offset(fdt, "/chosen");
+
 	if (node < 0)
+	{
 		return 0;
+	}
 
 	prop = fdt_getprop_w(fdt, node, "kaslr-seed", &len);
+
 	if (!prop || len != sizeof(u64))
+	{
 		return 0;
+	}
 
 	ret = fdt64_to_cpu(*prop);
 	*prop = 0;
@@ -47,25 +53,34 @@ static __init const u8 *get_cmdline(void *fdt)
 {
 	static __initconst const u8 default_cmdline[] = CONFIG_CMDLINE;
 
-	if (!IS_ENABLED(CONFIG_CMDLINE_FORCE)) {
+	if (!IS_ENABLED(CONFIG_CMDLINE_FORCE))
+	{
 		int node;
 		const u8 *prop;
 
 		node = fdt_path_offset(fdt, "/chosen");
+
 		if (node < 0)
+		{
 			goto out;
+		}
 
 		prop = fdt_getprop(fdt, node, "bootargs", NULL);
+
 		if (!prop)
+		{
 			goto out;
+		}
+
 		return prop;
 	}
+
 out:
 	return default_cmdline;
 }
 
 extern void *__init __fixmap_remap_fdt(phys_addr_t dt_phys, int *size,
-				       pgprot_t prot);
+									   pgprot_t prot);
 
 /*
  * This routine will be executed with the kernel mapped at its default virtual
@@ -95,15 +110,21 @@ u64 __init kaslr_early_init(u64 dt_phys, u64 modulo_offset)
 	 */
 	early_fixmap_init();
 	fdt = __fixmap_remap_fdt(dt_phys, &size, PAGE_KERNEL);
+
 	if (!fdt)
+	{
 		return 0;
+	}
 
 	/*
 	 * Retrieve (and wipe) the seed from the FDT
 	 */
 	seed = get_kaslr_seed(fdt);
+
 	if (!seed)
+	{
 		return 0;
+	}
 
 	/*
 	 * Check if 'nokaslr' appears on the command line, and
@@ -111,8 +132,11 @@ u64 __init kaslr_early_init(u64 dt_phys, u64 modulo_offset)
 	 */
 	cmdline = get_cmdline(fdt);
 	str = strstr(cmdline, "nokaslr");
+
 	if (str == cmdline || (str > cmdline && *(str - 1) == ' '))
+	{
 		return 0;
+	}
 
 	/*
 	 * OK, so we are proceeding with KASLR enabled. Calculate a suitable
@@ -134,8 +158,10 @@ u64 __init kaslr_early_init(u64 dt_phys, u64 modulo_offset)
 	 * happens, increase the KASLR offset by the size of the kernel image.
 	 */
 	if ((((u64)_text + offset + modulo_offset) >> SWAPPER_TABLE_SHIFT) !=
-	    (((u64)_end + offset + modulo_offset) >> SWAPPER_TABLE_SHIFT))
+		(((u64)_end + offset + modulo_offset) >> SWAPPER_TABLE_SHIFT))
+	{
 		offset = (offset + (u64)(_end - _text)) & mask;
+	}
 
 	if (IS_ENABLED(CONFIG_KASAN))
 		/*
@@ -145,9 +171,12 @@ u64 __init kaslr_early_init(u64 dt_phys, u64 modulo_offset)
 		 * by KASAN zero pages. So keep modules out of the vmalloc
 		 * region if KASAN is enabled.
 		 */
+	{
 		return offset;
+	}
 
-	if (IS_ENABLED(CONFIG_RANDOMIZE_MODULE_REGION_FULL)) {
+	if (IS_ENABLED(CONFIG_RANDOMIZE_MODULE_REGION_FULL))
+	{
 		/*
 		 * Randomize the module region independently from the core
 		 * kernel. This prevents modules from leaking any information
@@ -158,7 +187,9 @@ u64 __init kaslr_early_init(u64 dt_phys, u64 modulo_offset)
 		 */
 		module_range = VMALLOC_END - VMALLOC_START - MODULES_VSIZE;
 		module_alloc_base = VMALLOC_START;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Randomize the module region by setting module_alloc_base to
 		 * a PAGE_SIZE multiple in the range [_etext - MODULES_VSIZE,

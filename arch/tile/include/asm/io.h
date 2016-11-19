@@ -45,7 +45,7 @@
 #if CHIP_HAS_MMIO()
 extern void __iomem *ioremap(resource_size_t offset, unsigned long size);
 extern void __iomem *ioremap_prot(resource_size_t offset, unsigned long size,
-	pgprot_t pgprot);
+								  pgprot_t pgprot);
 extern void iounmap(volatile void __iomem *addr);
 #else
 #define ioremap(physaddr, size)	((void __iomem *)(unsigned long)(physaddr))
@@ -263,26 +263,35 @@ static inline void memset_io(volatile void *dst, int val, size_t len)
 	size_t x;
 	BUG_ON((unsigned long)dst & 0x3);
 	val = (val & 0xff) * 0x01010101;
+
 	for (x = 0; x < len; x += 4)
+	{
 		writel(val, dst + x);
+	}
 }
 
 static inline void memcpy_fromio(void *dst, const volatile void __iomem *src,
-				 size_t len)
+								 size_t len)
 {
 	size_t x;
 	BUG_ON((unsigned long)src & 0x3);
+
 	for (x = 0; x < len; x += 4)
+	{
 		*(u32 *)(dst + x) = readl(src + x);
+	}
 }
 
 static inline void memcpy_toio(volatile void __iomem *dst, const void *src,
-				size_t len)
+							   size_t len)
 {
 	size_t x;
 	BUG_ON((unsigned long)dst & 0x3);
+
 	for (x = 0; x < len; x += 4)
+	{
 		writel(*(u32 *)(src + x), dst + x);
+	}
 }
 
 #endif
@@ -321,64 +330,88 @@ static inline void outl(u32 b, unsigned long addr)
 
 static inline void insb(unsigned long addr, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u8 *buf = buffer;
-		do {
+
+		do
+		{
 			u8 x = inb(addr);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void insw(unsigned long addr, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u16 *buf = buffer;
-		do {
+
+		do
+		{
 			u16 x = inw(addr);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void insl(unsigned long addr, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u32 *buf = buffer;
-		do {
+
+		do
+		{
 			u32 x = inl(addr);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void outsb(unsigned long addr, const void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		const u8 *buf = buffer;
-		do {
+
+		do
+		{
 			outb(*buf++, addr);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void outsw(unsigned long addr, const void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		const u16 *buf = buffer;
-		do {
+
+		do
+		{
 			outw(*buf++, addr);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void outsl(unsigned long addr, const void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		const u32 *buf = buffer;
-		do {
+
+		do
+		{
 			outl(*buf++, addr);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 

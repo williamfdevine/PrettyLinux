@@ -7,8 +7,9 @@
 
 extern int npmem_ranges;
 
-struct node_map_data {
-    pg_data_t pg_data;
+struct node_map_data
+{
+	pg_data_t pg_data;
 };
 
 extern struct node_map_data node_data[];
@@ -22,7 +23,7 @@ extern struct node_map_data node_data[];
  */
 
 /* Since each 1GB can only belong to one region (node), we can create
- * an index table for pfn to nid lookup; each entry in pfnnid_map 
+ * an index table for pfn to nid lookup; each entry in pfnnid_map
  * represents 1GB, and contains the node that the memory belongs to. */
 
 #define PFNNID_SHIFT (30 - PAGE_SHIFT)
@@ -30,10 +31,10 @@ extern struct node_map_data node_data[];
 extern signed char pfnnid_map[PFNNID_MAP_MAX];
 
 #ifndef CONFIG_64BIT
-#define pfn_is_io(pfn) ((pfn & (0xf0000000UL >> PAGE_SHIFT)) == (0xf0000000UL >> PAGE_SHIFT))
+	#define pfn_is_io(pfn) ((pfn & (0xf0000000UL >> PAGE_SHIFT)) == (0xf0000000UL >> PAGE_SHIFT))
 #else
-/* io can be 0xf0f0f0f0f0xxxxxx or 0xfffffffff0000000 */
-#define pfn_is_io(pfn) ((pfn & (0xf000000000000000UL >> PAGE_SHIFT)) == (0xf000000000000000UL >> PAGE_SHIFT))
+	/* io can be 0xf0f0f0f0f0xxxxxx or 0xfffffffff0000000 */
+	#define pfn_is_io(pfn) ((pfn & (0xf000000000000000UL >> PAGE_SHIFT)) == (0xf000000000000000UL >> PAGE_SHIFT))
 #endif
 
 static inline int pfn_to_nid(unsigned long pfn)
@@ -41,7 +42,9 @@ static inline int pfn_to_nid(unsigned long pfn)
 	unsigned int i;
 
 	if (unlikely(pfn_is_io(pfn)))
+	{
 		return 0;
+	}
 
 	i = pfn >> PFNNID_SHIFT;
 	BUG_ON(i >= ARRAY_SIZE(pfnnid_map));
@@ -54,7 +57,10 @@ static inline int pfn_valid(int pfn)
 	int nid = pfn_to_nid(pfn);
 
 	if (nid >= 0)
+	{
 		return (pfn < node_end_pfn(nid));
+	}
+
 	return 0;
 }
 

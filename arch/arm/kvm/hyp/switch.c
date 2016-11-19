@@ -38,7 +38,9 @@ static void __hyp_text __activate_traps(struct kvm_vcpu *vcpu, u32 *fpexc_host)
 	 */
 	val = read_sysreg(VFP_FPEXC);
 	*fpexc_host = val;
-	if (!(val & FPEXC_EN)) {
+
+	if (!(val & FPEXC_EN))
+	{
 		write_sysreg(val | FPEXC_EN, VFP_FPEXC);
 		isb();
 	}
@@ -62,7 +64,9 @@ static void __hyp_text __deactivate_traps(struct kvm_vcpu *vcpu)
 	 * pseudocode.
 	 */
 	if (vcpu->arch.hcr & HCR_VA)
+	{
 		vcpu->arch.hcr = read_sysreg(HCR);
+	}
 
 	write_sysreg(0, HCR);
 	write_sysreg(0, HSTR);
@@ -88,17 +92,25 @@ static void __hyp_text __deactivate_vm(struct kvm_vcpu *vcpu)
 static void __hyp_text __vgic_save_state(struct kvm_vcpu *vcpu)
 {
 	if (static_branch_unlikely(&kvm_vgic_global_state.gicv3_cpuif))
+	{
 		__vgic_v3_save_state(vcpu);
+	}
 	else
+	{
 		__vgic_v2_save_state(vcpu);
+	}
 }
 
 static void __hyp_text __vgic_restore_state(struct kvm_vcpu *vcpu)
 {
 	if (static_branch_unlikely(&kvm_vgic_global_state.gicv3_cpuif))
+	{
 		__vgic_v3_restore_state(vcpu);
+	}
 	else
+	{
 		__vgic_v2_restore_state(vcpu);
+	}
 }
 
 static bool __hyp_text __populate_fault_info(struct kvm_vcpu *vcpu)
@@ -110,11 +122,17 @@ static bool __hyp_text __populate_fault_info(struct kvm_vcpu *vcpu)
 	vcpu->arch.fault.hsr = hsr;
 
 	if (ec == HSR_EC_IABT)
+	{
 		far = read_sysreg(HIFAR);
+	}
 	else if (ec == HSR_EC_DABT)
+	{
 		far = read_sysreg(HDFAR);
+	}
 	else
+	{
 		return true;
+	}
 
 	/*
 	 * B3.13.5 Reporting exceptions taken to the Non-secure PL2 mode:
@@ -128,7 +146,8 @@ static bool __hyp_text __populate_fault_info(struct kvm_vcpu *vcpu)
 	 * the HPFAR holds the IPA that caused the fault. Otherwise, the HPFAR
 	 * is UNKNOWN.
 	 */
-	if (!(hsr & HSR_DABT_S1PTW) && (hsr & HSR_FSC_TYPE) == FSC_PERM) {
+	if (!(hsr & HSR_DABT_S1PTW) && (hsr & HSR_FSC_TYPE) == FSC_PERM)
+	{
 		u64 par, tmp;
 
 		par = read_sysreg(PAR);
@@ -139,10 +158,14 @@ static bool __hyp_text __populate_fault_info(struct kvm_vcpu *vcpu)
 		write_sysreg(par, PAR);
 
 		if (unlikely(tmp & 1))
-			return false; /* Translation failed, back to guest */
+		{
+			return false;    /* Translation failed, back to guest */
+		}
 
 		hpfar = ((tmp >> 12) & ((1UL << 28) - 1)) << 4;
-	} else {
+	}
+	else
+	{
 		hpfar = read_sysreg(HPFAR);
 	}
 
@@ -183,7 +206,9 @@ again:
 	/* And we're baaack! */
 
 	if (exit_code == ARM_EXCEPTION_HVC && !__populate_fault_info(vcpu))
+	{
 		goto again;
+	}
 
 	fp_enabled = __vfp_enabled();
 
@@ -198,7 +223,8 @@ again:
 	__banked_restore_state(host_ctxt);
 	__sysreg_restore_state(host_ctxt);
 
-	if (fp_enabled) {
+	if (fp_enabled)
+	{
 		__vfp_save_state(&guest_ctxt->vfp);
 		__vfp_restore_state(&host_ctxt->vfp);
 	}
@@ -208,7 +234,8 @@ again:
 	return exit_code;
 }
 
-static const char * const __hyp_panic_string[] = {
+static const char *const __hyp_panic_string[] =
+{
 	[ARM_EXCEPTION_RESET]      = "\nHYP panic: RST   PC:%08x CPSR:%08x",
 	[ARM_EXCEPTION_UNDEFINED]  = "\nHYP panic: UNDEF PC:%08x CPSR:%08x",
 	[ARM_EXCEPTION_SOFTWARE]   = "\nHYP panic: SVC   PC:%08x CPSR:%08x",
@@ -225,11 +252,16 @@ void __hyp_text __noreturn __hyp_panic(int cause)
 	u32 val;
 
 	if (cause == ARM_EXCEPTION_DATA_ABORT)
+	{
 		val = read_sysreg(HDFAR);
+	}
 	else
+	{
 		val = read_special(SPSR);
+	}
 
-	if (read_sysreg(VTTBR)) {
+	if (read_sysreg(VTTBR))
+	{
 		struct kvm_vcpu *vcpu;
 		struct kvm_cpu_context *host_ctxt;
 

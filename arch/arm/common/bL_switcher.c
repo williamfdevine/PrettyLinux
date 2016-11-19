@@ -73,11 +73,15 @@ static void bL_do_switch(void *_arg)
 	ib_cluster = MPIDR_AFFINITY_LEVEL(ib_mpidr, 1);
 
 	/* Advertise our handshake location */
-	if (handshake_ptr) {
+	if (handshake_ptr)
+	{
 		handshake = 0;
 		*handshake_ptr = &handshake;
-	} else
+	}
+	else
+	{
 		handshake = -1;
+	}
 
 	/*
 	 * Our state has been saved at this point.  Let's release our
@@ -100,7 +104,8 @@ static void bL_do_switch(void *_arg)
 	/*
 	 * Let's wait until our inbound is alive.
 	 */
-	while (!handshake) {
+	while (!handshake)
+	{
 		wfe();
 		smp_mb();
 	}
@@ -161,7 +166,9 @@ static int bL_switch_to(unsigned int new_cluster_id)
 	BUG_ON(cpu_logical_map(this_cpu) != ob_mpidr);
 
 	if (new_cluster_id == ob_cluster)
+	{
 		return 0;
+	}
 
 	that_cpu = bL_switcher_cpu_pairing[this_cpu];
 	ib_mpidr = cpu_logical_map(that_cpu);
@@ -169,7 +176,7 @@ static int bL_switch_to(unsigned int new_cluster_id)
 	ib_cluster = MPIDR_AFFINITY_LEVEL(ib_mpidr, 1);
 
 	pr_debug("before switch: CPU %d MPIDR %#x -> %#x\n",
-		 this_cpu, ob_mpidr, ib_mpidr);
+			 this_cpu, ob_mpidr, ib_mpidr);
 
 	this_cpu = smp_processor_id();
 
@@ -188,7 +195,9 @@ static int bL_switch_to(unsigned int new_cluster_id)
 	 * to come online, but leave it gated in our entry vector code.
 	 */
 	ret = mcpm_cpu_power_up(ib_cpu, ib_cluster);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: mcpm_cpu_power_up() returned %d\n", __func__, ret);
 		return ret;
 	}
@@ -223,7 +232,9 @@ static int bL_switch_to(unsigned int new_cluster_id)
 
 	/* we can not tolerate errors at this point */
 	if (ret)
+	{
 		panic("%s: cpu_pm_enter() returned %d\n", __func__, ret);
+	}
 
 	/* Swap the physical CPUs in the logical map for this logical CPU. */
 	cpu_logical_map(this_cpu) = ib_mpidr;
@@ -231,8 +242,11 @@ static int bL_switch_to(unsigned int new_cluster_id)
 
 	/* Let's do the actual CPU switch. */
 	ret = cpu_suspend((unsigned long)&handshake_ptr, bL_switchpoint);
+
 	if (ret > 0)
+	{
 		panic("%s: cpu_suspend() returned %d\n", __func__, ret);
+	}
 
 	/* We are executing on the inbound CPU at this point */
 	mpidr = read_mpidr();
@@ -253,11 +267,15 @@ static int bL_switch_to(unsigned int new_cluster_id)
 	dsb_sev();
 
 	if (ret)
+	{
 		pr_err("%s exiting with error %d\n", __func__, ret);
+	}
+
 	return ret;
 }
 
-struct bL_thread {
+struct bL_thread
+{
 	spinlock_t lock;
 	struct task_struct *task;
 	wait_queue_head_t wq;
@@ -280,12 +298,16 @@ static int bL_switcher_thread(void *arg)
 	sched_setscheduler_nocheck(current, SCHED_FIFO, &param);
 	complete(&t->started);
 
-	do {
+	do
+	{
 		if (signal_pending(current))
+		{
 			flush_signals(current);
+		}
+
 		wait_event_interruptible(t->wq,
-				t->wanted_cluster != -1 ||
-				kthread_should_stop());
+								 t->wanted_cluster != -1 ||
+								 kthread_should_stop());
 
 		spin_lock(&t->lock);
 		cluster = t->wanted_cluster;
@@ -295,13 +317,17 @@ static int bL_switcher_thread(void *arg)
 		t->completer = NULL;
 		spin_unlock(&t->lock);
 
-		if (cluster != -1) {
+		if (cluster != -1)
+		{
 			bL_switch_to(cluster);
 
 			if (completer)
+			{
 				completer(completer_cookie);
+			}
 		}
-	} while (!kthread_should_stop());
+	}
+	while (!kthread_should_stop());
 
 	return 0;
 }
@@ -311,12 +337,18 @@ static struct task_struct *bL_switcher_thread_create(int cpu, void *arg)
 	struct task_struct *task;
 
 	task = kthread_create_on_node(bL_switcher_thread, arg,
-				      cpu_to_node(cpu), "kswitcher_%d", cpu);
-	if (!IS_ERR(task)) {
+								  cpu_to_node(cpu), "kswitcher_%d", cpu);
+
+	if (!IS_ERR(task))
+	{
 		kthread_bind(task, cpu);
 		wake_up_process(task);
-	} else
+	}
+	else
+	{
 		pr_err("%s failed for CPU %d\n", __func__, cpu);
+	}
+
 	return task;
 }
 
@@ -343,12 +375,13 @@ static struct task_struct *bL_switcher_thread_create(int cpu, void *arg)
  * has returned.
  */
 int bL_switch_request_cb(unsigned int cpu, unsigned int new_cluster_id,
-			 bL_switch_completion_handler completer,
-			 void *completer_cookie)
+						 bL_switch_completion_handler completer,
+						 void *completer_cookie)
 {
 	struct bL_thread *t;
 
-	if (cpu >= ARRAY_SIZE(bL_threads)) {
+	if (cpu >= ARRAY_SIZE(bL_threads))
+	{
 		pr_err("%s: cpu %d out of bounds\n", __func__, cpu);
 		return -EINVAL;
 	}
@@ -356,15 +389,23 @@ int bL_switch_request_cb(unsigned int cpu, unsigned int new_cluster_id,
 	t = &bL_threads[cpu];
 
 	if (IS_ERR(t->task))
+	{
 		return PTR_ERR(t->task);
+	}
+
 	if (!t->task)
+	{
 		return -ESRCH;
+	}
 
 	spin_lock(&t->lock);
-	if (t->completer) {
+
+	if (t->completer)
+	{
 		spin_unlock(&t->lock);
 		return -EBUSY;
 	}
+
 	t->completer = completer;
 	t->completer_cookie = completer_cookie;
 	t->wanted_cluster = new_cluster_id;
@@ -401,9 +442,11 @@ static int bL_activation_notify(unsigned long val)
 	int ret;
 
 	ret = blocking_notifier_call_chain(&bL_activation_notifier, val, NULL);
+
 	if (ret & NOTIFY_STOP_MASK)
 		pr_err("%s: notifier chain failed with status 0x%x\n",
-			__func__, ret);
+			   __func__, ret);
+
 	return notifier_to_errno(ret);
 }
 
@@ -411,11 +454,15 @@ static void bL_switcher_restore_cpus(void)
 {
 	int i;
 
-	for_each_cpu(i, &bL_switcher_removed_logical_cpus) {
+	for_each_cpu(i, &bL_switcher_removed_logical_cpus)
+	{
 		struct device *cpu_dev = get_cpu_device(i);
 		int ret = device_online(cpu_dev);
+
 		if (ret)
+		{
 			dev_err(cpu_dev, "switcher: unable to restore CPU\n");
+		}
 	}
 }
 
@@ -427,18 +474,27 @@ static int bL_switcher_halve_cpus(void)
 
 	/* First pass to validate what we have */
 	mask = 0;
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		cpu = MPIDR_AFFINITY_LEVEL(cpu_logical_map(i), 0);
 		cluster = MPIDR_AFFINITY_LEVEL(cpu_logical_map(i), 1);
-		if (cluster >= 2) {
+
+		if (cluster >= 2)
+		{
 			pr_err("%s: only dual cluster systems are supported\n", __func__);
 			return -EINVAL;
 		}
+
 		if (WARN_ON(cpu >= MAX_CPUS_PER_CLUSTER))
+		{
 			return -EINVAL;
+		}
+
 		mask |= (1 << cluster);
 	}
-	if (mask != 3) {
+
+	if (mask != 3)
+	{
 		pr_err("%s: no CPU pairing possible\n", __func__);
 		return -EINVAL;
 	}
@@ -452,16 +508,26 @@ static int bL_switcher_halve_cpus(void)
 	memset(bL_switcher_cpu_pairing, -1, sizeof(bL_switcher_cpu_pairing));
 	cpumask_copy(&available_cpus, cpu_online_mask);
 	cluster_0 = -1;
-	for_each_cpu(i, &available_cpus) {
+	for_each_cpu(i, &available_cpus)
+	{
 		int match = -1;
 		cluster = MPIDR_AFFINITY_LEVEL(cpu_logical_map(i), 1);
+
 		if (cluster_0 == -1)
+		{
 			cluster_0 = cluster;
+		}
+
 		if (cluster != cluster_0)
+		{
 			continue;
+		}
+
 		cpumask_clear_cpu(i, &available_cpus);
-		for_each_cpu(j, &available_cpus) {
+		for_each_cpu(j, &available_cpus)
+		{
 			cluster = MPIDR_AFFINITY_LEVEL(cpu_logical_map(j), 1);
+
 			/*
 			 * Let's remember the last match to create "odd"
 			 * pairings on purpose in order for other code not
@@ -469,9 +535,13 @@ static int bL_switcher_halve_cpus(void)
 			 * logical CPU numbers.
 			 */
 			if (cluster != cluster_0)
+			{
 				match = j;
+			}
 		}
-		if (match != -1) {
+
+		if (match != -1)
+		{
 			bL_switcher_cpu_pairing[i] = match;
 			cpumask_clear_cpu(match, &available_cpus);
 			pr_info("CPU%d paired with CPU%d\n", i, match);
@@ -483,31 +553,39 @@ static int bL_switcher_halve_cpus(void)
 	 * pairing information (that includes the pairing counterparts).
 	 */
 	cpumask_clear(&bL_switcher_removed_logical_cpus);
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		cpu = MPIDR_AFFINITY_LEVEL(cpu_logical_map(i), 0);
 		cluster = MPIDR_AFFINITY_LEVEL(cpu_logical_map(i), 1);
 
 		/* Let's take note of the GIC ID for this CPU */
 		gic_id = gic_get_cpu_id(i);
-		if (gic_id < 0) {
+
+		if (gic_id < 0)
+		{
 			pr_err("%s: bad GIC ID for CPU %d\n", __func__, i);
 			bL_switcher_restore_cpus();
 			return -EINVAL;
 		}
+
 		bL_gic_id[cpu][cluster] = gic_id;
 		pr_info("GIC ID for CPU %u cluster %u is %u\n",
-			cpu, cluster, gic_id);
+				cpu, cluster, gic_id);
 
-		if (bL_switcher_cpu_pairing[i] != -1) {
+		if (bL_switcher_cpu_pairing[i] != -1)
+		{
 			bL_switcher_cpu_original_cluster[i] = cluster;
 			continue;
 		}
 
 		ret = device_offline(get_cpu_device(i));
-		if (ret) {
+
+		if (ret)
+		{
 			bL_switcher_restore_cpus();
 			return ret;
 		}
+
 		cpumask_set_cpu(i, &bL_switcher_removed_logical_cpus);
 	}
 
@@ -520,16 +598,25 @@ int bL_switcher_get_logical_index(u32 mpidr)
 	int cpu;
 
 	if (!bL_switcher_active)
+	{
 		return -EUNATCH;
+	}
 
 	mpidr &= MPIDR_HWID_BITMASK;
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		int pairing = bL_switcher_cpu_pairing[cpu];
+
 		if (pairing == -1)
+		{
 			continue;
+		}
+
 		if ((mpidr == cpu_logical_map(cpu)) ||
-		    (mpidr == cpu_logical_map(pairing)))
+			(mpidr == cpu_logical_map(pairing)))
+		{
 			return cpu;
+		}
 	}
 	return -EINVAL;
 }
@@ -560,7 +647,9 @@ static int bL_switcher_enable(void)
 
 	mutex_lock(&bL_switcher_activation_lock);
 	lock_device_hotplug();
-	if (bL_switcher_active) {
+
+	if (bL_switcher_active)
+	{
 		unlock_device_hotplug();
 		mutex_unlock(&bL_switcher_activation_lock);
 		return 0;
@@ -569,16 +658,23 @@ static int bL_switcher_enable(void)
 	pr_info("big.LITTLE switcher initializing\n");
 
 	ret = bL_activation_notify(BL_NOTIFY_PRE_ENABLE);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	ret = bL_switcher_halve_cpus();
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	bL_switcher_trace_trigger();
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		struct bL_thread *t = &bL_threads[cpu];
 		spin_lock_init(&t->lock);
 		init_waitqueue_head(&t->wq);
@@ -614,9 +710,12 @@ static void bL_switcher_disable(void)
 	lock_device_hotplug();
 
 	if (!bL_switcher_active)
+	{
 		goto out;
+	}
 
-	if (bL_activation_notify(BL_NOTIFY_PRE_DISABLE) != 0) {
+	if (bL_activation_notify(BL_NOTIFY_PRE_DISABLE) != 0)
+	{
 		bL_activation_notify(BL_NOTIFY_POST_ENABLE);
 		goto out;
 	}
@@ -631,34 +730,49 @@ static void bL_switcher_disable(void)
 	 * just for the purpose of switching the CPU back without any
 	 * possibility for interference from external requests.
 	 */
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		t = &bL_threads[cpu];
 		task = t->task;
 		t->task = NULL;
+
 		if (!task || IS_ERR(task))
+		{
 			continue;
+		}
+
 		kthread_stop(task);
 		/* no more switch may happen on this CPU at this point */
 		cluster = MPIDR_AFFINITY_LEVEL(cpu_logical_map(cpu), 1);
+
 		if (cluster == bL_switcher_cpu_original_cluster[cpu])
+		{
 			continue;
+		}
+
 		init_completion(&t->started);
 		t->wanted_cluster = bL_switcher_cpu_original_cluster[cpu];
 		task = bL_switcher_thread_create(cpu, t);
-		if (!IS_ERR(task)) {
+
+		if (!IS_ERR(task))
+		{
 			wait_for_completion(&t->started);
 			kthread_stop(task);
 			cluster = MPIDR_AFFINITY_LEVEL(cpu_logical_map(cpu), 1);
+
 			if (cluster == bL_switcher_cpu_original_cluster[cpu])
+			{
 				continue;
+			}
 		}
+
 		/* If execution gets here, we're in trouble. */
 		pr_crit("%s: unable to restore original cluster for CPU %d\n",
-			__func__, cpu);
+				__func__, cpu);
 		pr_crit("%s: CPU %d can't be restored\n",
-			__func__, bL_switcher_cpu_pairing[cpu]);
+				__func__, bL_switcher_cpu_pairing[cpu]);
 		cpumask_clear_cpu(bL_switcher_cpu_pairing[cpu],
-				  &bL_switcher_removed_logical_cpus);
+						  &bL_switcher_removed_logical_cpus);
 	}
 
 	bL_switcher_restore_cpus();
@@ -672,26 +786,29 @@ out:
 }
 
 static ssize_t bL_switcher_active_show(struct kobject *kobj,
-		struct kobj_attribute *attr, char *buf)
+									   struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", bL_switcher_active);
 }
 
 static ssize_t bL_switcher_active_store(struct kobject *kobj,
-		struct kobj_attribute *attr, const char *buf, size_t count)
+										struct kobj_attribute *attr, const char *buf, size_t count)
 {
 	int ret;
 
-	switch (buf[0]) {
-	case '0':
-		bL_switcher_disable();
-		ret = 0;
-		break;
-	case '1':
-		ret = bL_switcher_enable();
-		break;
-	default:
-		ret = -EINVAL;
+	switch (buf[0])
+	{
+		case '0':
+			bL_switcher_disable();
+			ret = 0;
+			break;
+
+		case '1':
+			ret = bL_switcher_enable();
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return (ret >= 0) ? count : ret;
@@ -711,13 +828,15 @@ static struct kobj_attribute bL_switcher_active_attr =
 static struct kobj_attribute bL_switcher_trace_trigger_attr =
 	__ATTR(trace_trigger, 0200, NULL, bL_switcher_trace_trigger_store);
 
-static struct attribute *bL_switcher_attrs[] = {
+static struct attribute *bL_switcher_attrs[] =
+{
 	&bL_switcher_active_attr.attr,
 	&bL_switcher_trace_trigger_attr.attr,
 	NULL,
 };
 
-static struct attribute_group bL_switcher_attr_group = {
+static struct attribute_group bL_switcher_attr_group =
+{
 	.attrs = bL_switcher_attrs,
 };
 
@@ -728,11 +847,19 @@ static int __init bL_switcher_sysfs_init(void)
 	int ret;
 
 	bL_switcher_kobj = kobject_create_and_add("bL_switcher", kernel_kobj);
+
 	if (!bL_switcher_kobj)
+	{
 		return -ENOMEM;
+	}
+
 	ret = sysfs_create_group(bL_switcher_kobj, &bL_switcher_attr_group);
+
 	if (ret)
+	{
 		kobject_put(bL_switcher_kobj);
+	}
+
 	return ret;
 }
 
@@ -758,17 +885,23 @@ EXPORT_SYMBOL_GPL(bL_switcher_put_enabled);
  * We're just not ready to deal with that given the trickery involved.
  */
 static int bL_switcher_hotplug_callback(struct notifier_block *nfb,
-					unsigned long action, void *hcpu)
+										unsigned long action, void *hcpu)
 {
-	if (bL_switcher_active) {
+	if (bL_switcher_active)
+	{
 		int pairing = bL_switcher_cpu_pairing[(unsigned long)hcpu];
-		switch (action & 0xf) {
-		case CPU_UP_PREPARE:
-		case CPU_DOWN_PREPARE:
-			if (pairing == -1)
-				return NOTIFY_BAD;
+
+		switch (action & 0xf)
+		{
+			case CPU_UP_PREPARE:
+			case CPU_DOWN_PREPARE:
+				if (pairing == -1)
+				{
+					return NOTIFY_BAD;
+				}
 		}
 	}
+
 	return NOTIFY_DONE;
 }
 
@@ -780,20 +913,30 @@ static int __init bL_switcher_init(void)
 	int ret;
 
 	if (!mcpm_is_available())
+	{
 		return -ENODEV;
+	}
 
 	cpu_notifier(bL_switcher_hotplug_callback, 0);
 
-	if (!no_bL_switcher) {
+	if (!no_bL_switcher)
+	{
 		ret = bL_switcher_enable();
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 #ifdef CONFIG_SYSFS
 	ret = bL_switcher_sysfs_init();
+
 	if (ret)
+	{
 		pr_err("%s: unable to create sysfs entry\n", __func__);
+	}
+
 #endif
 
 	return 0;

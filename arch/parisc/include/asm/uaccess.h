@@ -32,8 +32,8 @@
  * that put_user is the same as __put_user, etc.
  */
 
-static inline long access_ok(int type, const void __user * addr,
-		unsigned long size)
+static inline long access_ok(int type, const void __user *addr,
+							 unsigned long size)
 {
 	return 1;
 }
@@ -42,11 +42,11 @@ static inline long access_ok(int type, const void __user * addr,
 #define get_user __get_user
 
 #if !defined(CONFIG_64BIT)
-#define LDD_USER(ptr)		__get_user_asm64(ptr)
-#define STD_USER(x, ptr)	__put_user_asm64(x, ptr)
+	#define LDD_USER(ptr)		__get_user_asm64(ptr)
+	#define STD_USER(x, ptr)	__put_user_asm64(x, ptr)
 #else
-#define LDD_USER(ptr)		__get_user_asm("ldd", ptr)
-#define STD_USER(x, ptr)	__put_user_asm("std", x, ptr)
+	#define LDD_USER(ptr)		__get_user_asm("ldd", ptr)
+	#define STD_USER(x, ptr)	__put_user_asm("std", x, ptr)
 #endif
 
 /*
@@ -57,7 +57,8 @@ static inline long access_ok(int type, const void __user * addr,
  */
 
 #define ARCH_HAS_RELATIVE_EXTABLE
-struct exception_table_entry {
+struct exception_table_entry
+{
 	int insn;	/* relative address of insn that is allowed to fault. */
 	int fixup;	/* relative address of fixup routine */
 };
@@ -71,7 +72,8 @@ struct exception_table_entry {
  * The page fault handler stores, in a per-cpu area, the following information
  * if a fixup routine is available.
  */
-struct exception_data {
+struct exception_data
+{
 	unsigned long fault_ip;
 	unsigned long fault_gp;
 	unsigned long fault_space;
@@ -87,65 +89,65 @@ struct exception_data {
  */
 #define load_sr2() \
 	__asm__(" or,=  %0,%%r0,%%r0\n\t"	\
-		" mfsp %%sr3,%0\n\t"		\
-		" mtsp %0,%%sr2\n\t"		\
-		: : "r"(get_fs()) : )
+			" mfsp %%sr3,%0\n\t"		\
+			" mtsp %0,%%sr2\n\t"		\
+			: : "r"(get_fs()) : )
 
 #define __get_user(x, ptr)                               \
-({                                                       \
-	register long __gu_err __asm__ ("r8") = 0;       \
-	register long __gu_val __asm__ ("r9") = 0;       \
-							 \
-	load_sr2();					 \
-	switch (sizeof(*(ptr))) {			 \
-	    case 1: __get_user_asm("ldb", ptr); break;   \
-	    case 2: __get_user_asm("ldh", ptr); break;   \
-	    case 4: __get_user_asm("ldw", ptr); break;   \
-	    case 8: LDD_USER(ptr);  break;		 \
-	    default: BUILD_BUG(); break;		 \
-	}                                                \
-							 \
-	(x) = (__force __typeof__(*(ptr))) __gu_val;	 \
-	__gu_err;                                        \
-})
+	({                                                       \
+		register long __gu_err __asm__ ("r8") = 0;       \
+		register long __gu_val __asm__ ("r9") = 0;       \
+		\
+		load_sr2();					 \
+		switch (sizeof(*(ptr))) {			 \
+			case 1: __get_user_asm("ldb", ptr); break;   \
+			case 2: __get_user_asm("ldh", ptr); break;   \
+			case 4: __get_user_asm("ldw", ptr); break;   \
+			case 8: LDD_USER(ptr);  break;		 \
+			default: BUILD_BUG(); break;		 \
+		}                                                \
+		\
+		(x) = (__force __typeof__(*(ptr))) __gu_val;	 \
+		__gu_err;                                        \
+	})
 
 #define __get_user_asm(ldx, ptr)                        \
 	__asm__("\n1:\t" ldx "\t0(%%sr2,%2),%0\n\t"	\
-		ASM_EXCEPTIONTABLE_ENTRY(1b, fixup_get_user_skip_1)\
-		: "=r"(__gu_val), "=r"(__gu_err)        \
-		: "r"(ptr), "1"(__gu_err)		\
-		: "r1");
+			ASM_EXCEPTIONTABLE_ENTRY(1b, fixup_get_user_skip_1)\
+			: "=r"(__gu_val), "=r"(__gu_err)        \
+			: "r"(ptr), "1"(__gu_err)		\
+			: "r1");
 
 #if !defined(CONFIG_64BIT)
 
 #define __get_user_asm64(ptr) 				\
 	__asm__("\n1:\tldw 0(%%sr2,%2),%0"		\
-		"\n2:\tldw 4(%%sr2,%2),%R0\n\t"		\
-		ASM_EXCEPTIONTABLE_ENTRY(1b, fixup_get_user_skip_2)\
-		ASM_EXCEPTIONTABLE_ENTRY(2b, fixup_get_user_skip_1)\
-		: "=r"(__gu_val), "=r"(__gu_err)	\
-		: "r"(ptr), "1"(__gu_err)		\
-		: "r1");
+			"\n2:\tldw 4(%%sr2,%2),%R0\n\t"		\
+			ASM_EXCEPTIONTABLE_ENTRY(1b, fixup_get_user_skip_2)\
+			ASM_EXCEPTIONTABLE_ENTRY(2b, fixup_get_user_skip_1)\
+			: "=r"(__gu_val), "=r"(__gu_err)	\
+			: "r"(ptr), "1"(__gu_err)		\
+			: "r1");
 
 #endif /* !defined(CONFIG_64BIT) */
 
 
 #define __put_user(x, ptr)                                      \
-({								\
-	register long __pu_err __asm__ ("r8") = 0;      	\
-        __typeof__(*(ptr)) __x = (__typeof__(*(ptr)))(x);	\
-								\
-	load_sr2();						\
-	switch (sizeof(*(ptr))) {				\
-	    case 1: __put_user_asm("stb", __x, ptr); break;     \
-	    case 2: __put_user_asm("sth", __x, ptr); break;     \
-	    case 4: __put_user_asm("stw", __x, ptr); break;     \
-	    case 8: STD_USER(__x, ptr); break;			\
-	    default: BUILD_BUG(); break;			\
-	}                                                       \
-								\
-	__pu_err;						\
-})
+	({								\
+		register long __pu_err __asm__ ("r8") = 0;      	\
+		__typeof__(*(ptr)) __x = (__typeof__(*(ptr)))(x);	\
+		\
+		load_sr2();						\
+		switch (sizeof(*(ptr))) {				\
+			case 1: __put_user_asm("stb", __x, ptr); break;     \
+			case 2: __put_user_asm("sth", __x, ptr); break;     \
+			case 4: __put_user_asm("stw", __x, ptr); break;     \
+			case 8: STD_USER(__x, ptr); break;			\
+			default: BUILD_BUG(); break;			\
+		}                                                       \
+		\
+		__pu_err;						\
+	})
 
 /*
  * The "__put_user/kernel_asm()" macros tell gcc they read from memory
@@ -159,25 +161,25 @@ struct exception_data {
 
 #define __put_user_asm(stx, x, ptr)                         \
 	__asm__ __volatile__ (                              \
-		"\n1:\t" stx "\t%2,0(%%sr2,%1)\n\t"	    \
-		ASM_EXCEPTIONTABLE_ENTRY(1b, fixup_put_user_skip_1)\
-		: "=r"(__pu_err)                            \
-		: "r"(ptr), "r"(x), "0"(__pu_err)	    \
-		: "r1")
+			"\n1:\t" stx "\t%2,0(%%sr2,%1)\n\t"	    \
+			ASM_EXCEPTIONTABLE_ENTRY(1b, fixup_put_user_skip_1)\
+			: "=r"(__pu_err)                            \
+			: "r"(ptr), "r"(x), "0"(__pu_err)	    \
+			: "r1")
 
 
 #if !defined(CONFIG_64BIT)
 
 #define __put_user_asm64(__val, ptr) do {	    	    \
-	__asm__ __volatile__ (				    \
-		"\n1:\tstw %2,0(%%sr2,%1)"		    \
-		"\n2:\tstw %R2,4(%%sr2,%1)\n\t"		    \
-		ASM_EXCEPTIONTABLE_ENTRY(1b, fixup_put_user_skip_2)\
-		ASM_EXCEPTIONTABLE_ENTRY(2b, fixup_put_user_skip_1)\
-		: "=r"(__pu_err)                            \
-		: "r"(ptr), "r"(__val), "0"(__pu_err) \
-		: "r1");				    \
-} while (0)
+		__asm__ __volatile__ (				    \
+												"\n1:\tstw %2,0(%%sr2,%1)"		    \
+												"\n2:\tstw %R2,4(%%sr2,%1)\n\t"		    \
+												ASM_EXCEPTIONTABLE_ENTRY(1b, fixup_put_user_skip_2)\
+												ASM_EXCEPTIONTABLE_ENTRY(2b, fixup_put_user_skip_1)\
+												: "=r"(__pu_err)                            \
+												: "r"(ptr), "r"(__val), "0"(__pu_err) \
+												: "r1");				    \
+	} while (0)
 
 #endif /* !defined(CONFIG_64BIT) */
 
@@ -203,11 +205,11 @@ extern long lstrnlen_user(const char __user *, long);
 #define __clear_user lclear_user
 
 unsigned long __must_check __copy_to_user(void __user *dst, const void *src,
-					  unsigned long len);
+		unsigned long len);
 unsigned long __must_check __copy_from_user(void *dst, const void __user *src,
-					  unsigned long len);
+		unsigned long len);
 unsigned long copy_in_user(void __user *dst, const void __user *src,
-			   unsigned long len);
+						   unsigned long len);
 #define __copy_in_user copy_in_user
 #define __copy_to_user_inatomic __copy_to_user
 #define __copy_from_user_inatomic __copy_from_user
@@ -226,16 +228,24 @@ copy_from_user(void *to, const void __user *from, unsigned long n)
 	int sz = __compiletime_object_size(to);
 	unsigned long ret = n;
 
-	if (likely(sz < 0 || sz >= n)) {
+	if (likely(sz < 0 || sz >= n))
+	{
 		check_object_size(to, n, false);
 		ret = __copy_from_user(to, from, n);
-	} else if (!__builtin_constant_p(n))
+	}
+	else if (!__builtin_constant_p(n))
+	{
 		copy_user_overflow(sz, n);
+	}
 	else
+	{
 		__bad_copy_user();
+	}
 
 	if (unlikely(ret))
+	{
 		memset(to + (n - ret), 0, ret);
+	}
 
 	return ret;
 }
@@ -245,13 +255,19 @@ copy_to_user(void __user *to, const void *from, unsigned long n)
 {
 	int sz = __compiletime_object_size(from);
 
-	if (likely(sz < 0 || sz >= n)) {
+	if (likely(sz < 0 || sz >= n))
+	{
 		check_object_size(from, n, true);
 		n = __copy_to_user(to, from, n);
-	} else if (!__builtin_constant_p(n))
+	}
+	else if (!__builtin_constant_p(n))
+	{
 		copy_user_overflow(sz, n);
+	}
 	else
+	{
 		__bad_copy_user();
+	}
 
 	return n;
 }

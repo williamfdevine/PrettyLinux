@@ -30,13 +30,13 @@ extern void (*board_cache_error_setup)(void);
 extern int register_nmi_notifier(struct notifier_block *nb);
 
 #define nmi_notifier(fn, pri)						\
-({									\
-	static struct notifier_block fn##_nb = {			\
-		.notifier_call = fn,					\
-		.priority = pri						\
-	};								\
-									\
-	register_nmi_notifier(&fn##_nb);				\
-})
+	({									\
+		static struct notifier_block fn##_nb = {			\
+			.notifier_call = fn,					\
+							 .priority = pri						\
+		};								\
+		\
+		register_nmi_notifier(&fn##_nb);				\
+	})
 
 #endif /* _ASM_TRAPS_H */

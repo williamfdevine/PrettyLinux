@@ -67,13 +67,15 @@
 #define DB1300_NAND_PHYS_END	0x20000fff
 
 
-static struct i2c_board_info db1300_i2c_devs[] __initdata = {
+static struct i2c_board_info db1300_i2c_devs[] __initdata =
+{
 	{ I2C_BOARD_INFO("wm8731", 0x1b), },	/* I2S audio codec */
 	{ I2C_BOARD_INFO("ne1619", 0x2d), },	/* adm1025-compat hwmon */
 };
 
 /* multifunction pins to assign to GPIO controller */
-static int db1300_gpio_pins[] __initdata = {
+static int db1300_gpio_pins[] __initdata =
+{
 	AU1300_PIN_LCDPWM0, AU1300_PIN_PSC2SYNC1, AU1300_PIN_WAKE1,
 	AU1300_PIN_WAKE2, AU1300_PIN_WAKE3, AU1300_PIN_FG3AUX,
 	AU1300_PIN_EXTCLK1,
@@ -81,7 +83,8 @@ static int db1300_gpio_pins[] __initdata = {
 };
 
 /* multifunction pins to assign to device functions */
-static int db1300_dev_pins[] __initdata = {
+static int db1300_dev_pins[] __initdata =
+{
 	/* wake-from-str pins 0-3 */
 	AU1300_PIN_WAKE0,
 	/* external clock sources for PSC0 */
@@ -135,12 +138,18 @@ static void __init db1300_gpio_config(void)
 	int *i;
 
 	i = &db1300_dev_pins[0];
+
 	while (*i != -1)
+	{
 		au1300_pinfunc_to_dev(*i++);
+	}
 
 	i = &db1300_gpio_pins[0];
+
 	while (*i != -1)
-		au1300_gpio_direction_input(*i++);/* implies pin_to_gpio */
+	{
+		au1300_gpio_direction_input(*i++);    /* implies pin_to_gpio */
+	}
 
 	au1300_set_dbdma_gpio(1, AU1300_PIN_FG3AUX);
 }
@@ -148,23 +157,31 @@ static void __init db1300_gpio_config(void)
 /**********************************************************************/
 
 static void au1300_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-				 unsigned int ctrl)
+								 unsigned int ctrl)
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 	unsigned long ioaddr = (unsigned long)this->IO_ADDR_W;
 
 	ioaddr &= 0xffffff00;
 
-	if (ctrl & NAND_CLE) {
+	if (ctrl & NAND_CLE)
+	{
 		ioaddr += MEM_STNAND_CMD;
-	} else if (ctrl & NAND_ALE) {
+	}
+	else if (ctrl & NAND_ALE)
+	{
 		ioaddr += MEM_STNAND_ADDR;
-	} else {
+	}
+	else
+	{
 		/* assume we want to r/w real data  by default */
 		ioaddr += MEM_STNAND_DATA;
 	}
+
 	this->IO_ADDR_R = this->IO_ADDR_W = (void __iomem *)ioaddr;
-	if (cmd != NAND_CMD_NONE) {
+
+	if (cmd != NAND_CMD_NONE)
+	{
 		__raw_writeb(cmd, this->IO_ADDR_W);
 		wmb();
 	}
@@ -175,7 +192,8 @@ static int au1300_nand_device_ready(struct mtd_info *mtd)
 	return alchemy_rdsmem(AU1000_MEM_STSTAT) & 1;
 }
 
-static struct mtd_partition db1300_nand_parts[] = {
+static struct mtd_partition db1300_nand_parts[] =
+{
 	{
 		.name	= "NAND FS 0",
 		.offset = 0,
@@ -188,7 +206,8 @@ static struct mtd_partition db1300_nand_parts[] = {
 	},
 };
 
-struct platform_nand_data db1300_nand_platdata = {
+struct platform_nand_data db1300_nand_platdata =
+{
 	.chip = {
 		.nr_chips	= 1,
 		.chip_offset	= 0,
@@ -202,7 +221,8 @@ struct platform_nand_data db1300_nand_platdata = {
 	},
 };
 
-static struct resource db1300_nand_res[] = {
+static struct resource db1300_nand_res[] =
+{
 	[0] = {
 		.start	= DB1300_NAND_PHYS_ADDR,
 		.end	= DB1300_NAND_PHYS_ADDR + 0xff,
@@ -210,7 +230,8 @@ static struct resource db1300_nand_res[] = {
 	},
 };
 
-static struct platform_device db1300_nand_dev = {
+static struct platform_device db1300_nand_dev =
+{
 	.name		= "gen_nand",
 	.num_resources	= ARRAY_SIZE(db1300_nand_res),
 	.resource	= db1300_nand_res,
@@ -222,7 +243,8 @@ static struct platform_device db1300_nand_dev = {
 
 /**********************************************************************/
 
-static struct resource db1300_eth_res[] = {
+static struct resource db1300_eth_res[] =
+{
 	[0] = {
 		.start		= DB1300_ETH_PHYS_ADDR,
 		.end		= DB1300_ETH_PHYS_END,
@@ -235,14 +257,16 @@ static struct resource db1300_eth_res[] = {
 	},
 };
 
-static struct smsc911x_platform_config db1300_eth_config = {
+static struct smsc911x_platform_config db1300_eth_config =
+{
 	.phy_interface		= PHY_INTERFACE_MODE_MII,
 	.irq_polarity		= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type		= SMSC911X_IRQ_TYPE_PUSH_PULL,
 	.flags			= SMSC911X_USE_32BIT,
 };
 
-static struct platform_device db1300_eth_dev = {
+static struct platform_device db1300_eth_dev =
+{
 	.name			= "smsc911x",
 	.id			= -1,
 	.num_resources		= ARRAY_SIZE(db1300_eth_res),
@@ -254,7 +278,8 @@ static struct platform_device db1300_eth_dev = {
 
 /**********************************************************************/
 
-static struct resource au1300_psc1_res[] = {
+static struct resource au1300_psc1_res[] =
+{
 	[0] = {
 		.start	= AU1300_PSC1_PHYS_ADDR,
 		.end	= AU1300_PSC1_PHYS_ADDR + 0x0fff,
@@ -277,7 +302,8 @@ static struct resource au1300_psc1_res[] = {
 	},
 };
 
-static struct platform_device db1300_ac97_dev = {
+static struct platform_device db1300_ac97_dev =
+{
 	.name		= "au1xpsc_ac97",
 	.id		= 1,	/* PSC ID. match with AC97 codec ID! */
 	.num_resources	= ARRAY_SIZE(au1300_psc1_res),
@@ -286,7 +312,8 @@ static struct platform_device db1300_ac97_dev = {
 
 /**********************************************************************/
 
-static struct resource au1300_psc2_res[] = {
+static struct resource au1300_psc2_res[] =
+{
 	[0] = {
 		.start	= AU1300_PSC2_PHYS_ADDR,
 		.end	= AU1300_PSC2_PHYS_ADDR + 0x0fff,
@@ -309,7 +336,8 @@ static struct resource au1300_psc2_res[] = {
 	},
 };
 
-static struct platform_device db1300_i2s_dev = {
+static struct platform_device db1300_i2s_dev =
+{
 	.name		= "au1xpsc_i2s",
 	.id		= 2,	/* PSC ID */
 	.num_resources	= ARRAY_SIZE(au1300_psc2_res),
@@ -318,7 +346,8 @@ static struct platform_device db1300_i2s_dev = {
 
 /**********************************************************************/
 
-static struct resource au1300_psc3_res[] = {
+static struct resource au1300_psc3_res[] =
+{
 	[0] = {
 		.start	= AU1300_PSC3_PHYS_ADDR,
 		.end	= AU1300_PSC3_PHYS_ADDR + 0x0fff,
@@ -341,7 +370,8 @@ static struct resource au1300_psc3_res[] = {
 	},
 };
 
-static struct platform_device db1300_i2c_dev = {
+static struct platform_device db1300_i2c_dev =
+{
 	.name		= "au1xpsc_smbus",
 	.id		= 0,	/* bus number */
 	.num_resources	= ARRAY_SIZE(au1300_psc3_res),
@@ -354,7 +384,8 @@ static struct platform_device db1300_i2c_dev = {
  * according to the schematics swap up with down and left with right.
  * I chose to use it to emulate the arrow keys of a keyboard.
  */
-static struct gpio_keys_button db1300_5waysw_arrowkeys[] = {
+static struct gpio_keys_button db1300_5waysw_arrowkeys[] =
+{
 	{
 		.code			= KEY_DOWN,
 		.gpio			= AU1300_PIN_LCDPWM0,
@@ -397,14 +428,16 @@ static struct gpio_keys_button db1300_5waysw_arrowkeys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data db1300_5waysw_data = {
+static struct gpio_keys_platform_data db1300_5waysw_data =
+{
 	.buttons	= db1300_5waysw_arrowkeys,
 	.nbuttons	= ARRAY_SIZE(db1300_5waysw_arrowkeys),
 	.rep		= 1,
 	.name		= "db1300-5wayswitch",
 };
 
-static struct platform_device db1300_5waysw_dev = {
+static struct platform_device db1300_5waysw_dev =
+{
 	.name		= "gpio-keys",
 	.dev	= {
 		.platform_data	= &db1300_5waysw_data,
@@ -413,12 +446,14 @@ static struct platform_device db1300_5waysw_dev = {
 
 /**********************************************************************/
 
-static struct pata_platform_info db1300_ide_info = {
+static struct pata_platform_info db1300_ide_info =
+{
 	.ioport_shift	= DB1300_IDE_REG_SHIFT,
 };
 
 #define IDE_ALT_START	(14 << DB1300_IDE_REG_SHIFT)
-static struct resource db1300_ide_res[] = {
+static struct resource db1300_ide_res[] =
+{
 	[0] = {
 		.start	= DB1300_IDE_PHYS_ADDR,
 		.end	= DB1300_IDE_PHYS_ADDR + IDE_ALT_START - 1,
@@ -436,7 +471,8 @@ static struct resource db1300_ide_res[] = {
 	},
 };
 
-static struct platform_device db1300_ide_dev = {
+static struct platform_device db1300_ide_dev =
+{
 	.dev	= {
 		.platform_data	= &db1300_ide_info,
 	},
@@ -452,10 +488,13 @@ static irqreturn_t db1300_mmc_cd(int irq, void *ptr)
 	void(*mmc_cd)(struct mmc_host *, unsigned long);
 
 	/* disable the one currently screaming. No other way to shut it up */
-	if (irq == DB1300_SD1_INSERT_INT) {
+	if (irq == DB1300_SD1_INSERT_INT)
+	{
 		disable_irq_nosync(DB1300_SD1_INSERT_INT);
 		enable_irq(DB1300_SD1_EJECT_INT);
-	} else {
+	}
+	else
+	{
 		disable_irq_nosync(DB1300_SD1_EJECT_INT);
 		enable_irq(DB1300_SD1_INSERT_INT);
 	}
@@ -485,54 +524,74 @@ static int db1300_mmc_cd_setup(void *mmc_host, int en)
 {
 	int ret;
 
-	if (en) {
+	if (en)
+	{
 		ret = request_irq(DB1300_SD1_INSERT_INT, db1300_mmc_cd, 0,
-				  "sd_insert", mmc_host);
+						  "sd_insert", mmc_host);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		ret = request_irq(DB1300_SD1_EJECT_INT, db1300_mmc_cd, 0,
-				  "sd_eject", mmc_host);
-		if (ret) {
+						  "sd_eject", mmc_host);
+
+		if (ret)
+		{
 			free_irq(DB1300_SD1_INSERT_INT, mmc_host);
 			goto out;
 		}
 
 		if (db1300_mmc_card_inserted(mmc_host))
+		{
 			enable_irq(DB1300_SD1_EJECT_INT);
+		}
 		else
+		{
 			enable_irq(DB1300_SD1_INSERT_INT);
+		}
 
-	} else {
+	}
+	else
+	{
 		free_irq(DB1300_SD1_INSERT_INT, mmc_host);
 		free_irq(DB1300_SD1_EJECT_INT, mmc_host);
 	}
+
 	ret = 0;
 out:
 	return ret;
 }
 
 static void db1300_mmcled_set(struct led_classdev *led,
-			      enum led_brightness brightness)
+							  enum led_brightness brightness)
 {
 	if (brightness != LED_OFF)
+	{
 		bcsr_mod(BCSR_LEDS, BCSR_LEDS_LED0, 0);
+	}
 	else
+	{
 		bcsr_mod(BCSR_LEDS, 0, BCSR_LEDS_LED0);
+	}
 }
 
-static struct led_classdev db1300_mmc_led = {
+static struct led_classdev db1300_mmc_led =
+{
 	.brightness_set = db1300_mmcled_set,
 };
 
-struct au1xmmc_platform_data db1300_sd1_platdata = {
+struct au1xmmc_platform_data db1300_sd1_platdata =
+{
 	.cd_setup	= db1300_mmc_cd_setup,
 	.card_inserted	= db1300_mmc_card_inserted,
 	.card_readonly	= db1300_mmc_card_readonly,
 	.led		= &db1300_mmc_led,
 };
 
-static struct resource au1300_sd1_res[] = {
+static struct resource au1300_sd1_res[] =
+{
 	[0] = {
 		.start	= AU1300_SD1_PHYS_ADDR,
 		.end	= AU1300_SD1_PHYS_ADDR,
@@ -555,7 +614,8 @@ static struct resource au1300_sd1_res[] = {
 	},
 };
 
-static struct platform_device db1300_sd1_dev = {
+static struct platform_device db1300_sd1_dev =
+{
 	.dev = {
 		.platform_data	= &db1300_sd1_platdata,
 	},
@@ -578,26 +638,33 @@ static int db1300_movinand_readonly(void *mmc_host)
 }
 
 static void db1300_movinand_led_set(struct led_classdev *led,
-				    enum led_brightness brightness)
+									enum led_brightness brightness)
 {
 	if (brightness != LED_OFF)
+	{
 		bcsr_mod(BCSR_LEDS, BCSR_LEDS_LED1, 0);
+	}
 	else
+	{
 		bcsr_mod(BCSR_LEDS, 0, BCSR_LEDS_LED1);
+	}
 }
 
-static struct led_classdev db1300_movinand_led = {
+static struct led_classdev db1300_movinand_led =
+{
 	.brightness_set		= db1300_movinand_led_set,
 };
 
-struct au1xmmc_platform_data db1300_sd0_platdata = {
+struct au1xmmc_platform_data db1300_sd0_platdata =
+{
 	.card_inserted		= db1300_movinand_inserted,
 	.card_readonly		= db1300_movinand_readonly,
 	.led			= &db1300_movinand_led,
 	.mask_host_caps		= MMC_CAP_NEEDS_POLL,
 };
 
-static struct resource au1300_sd0_res[] = {
+static struct resource au1300_sd0_res[] =
+{
 	[0] = {
 		.start	= AU1100_SD0_PHYS_ADDR,
 		.end	= AU1100_SD0_PHYS_ADDR,
@@ -620,7 +687,8 @@ static struct resource au1300_sd0_res[] = {
 	},
 };
 
-static struct platform_device db1300_sd0_dev = {
+static struct platform_device db1300_sd0_dev =
+{
 	.dev = {
 		.platform_data	= &db1300_sd0_platdata,
 	},
@@ -632,26 +700,31 @@ static struct platform_device db1300_sd0_dev = {
 
 /**********************************************************************/
 
-static struct platform_device db1300_wm9715_dev = {
+static struct platform_device db1300_wm9715_dev =
+{
 	.name		= "wm9712-codec",
 	.id		= 1,	/* ID of PSC for AC97 audio, see asoc glue! */
 };
 
-static struct platform_device db1300_ac97dma_dev = {
+static struct platform_device db1300_ac97dma_dev =
+{
 	.name		= "au1xpsc-pcm",
 	.id		= 1,	/* PSC ID */
 };
 
-static struct platform_device db1300_i2sdma_dev = {
+static struct platform_device db1300_i2sdma_dev =
+{
 	.name		= "au1xpsc-pcm",
 	.id		= 2,	/* PSC ID */
 };
 
-static struct platform_device db1300_sndac97_dev = {
+static struct platform_device db1300_sndac97_dev =
+{
 	.name		= "db1300-ac97",
 };
 
-static struct platform_device db1300_sndi2s_dev = {
+static struct platform_device db1300_sndi2s_dev =
+{
 	.name		= "db1300-i2s",
 };
 
@@ -666,7 +739,7 @@ static int db1300fb_panel_init(void)
 {
 	/* Apply power (Vee/Vdd logic is inverted on Panel DB1300_800x480) */
 	bcsr_mod(BCSR_BOARD, BCSR_BOARD_LCDVEE | BCSR_BOARD_LCDVDD,
-			     BCSR_BOARD_LCDBL);
+			 BCSR_BOARD_LCDBL);
 	return 0;
 }
 
@@ -674,17 +747,19 @@ static int db1300fb_panel_shutdown(void)
 {
 	/* Remove power (Vee/Vdd logic is inverted on Panel DB1300_800x480) */
 	bcsr_mod(BCSR_BOARD, BCSR_BOARD_LCDBL,
-			     BCSR_BOARD_LCDVEE | BCSR_BOARD_LCDVDD);
+			 BCSR_BOARD_LCDVEE | BCSR_BOARD_LCDVDD);
 	return 0;
 }
 
-static struct au1200fb_platdata db1300fb_pd = {
+static struct au1200fb_platdata db1300fb_pd =
+{
 	.panel_index	= db1300fb_panel_index,
 	.panel_init	= db1300fb_panel_init,
 	.panel_shutdown = db1300fb_panel_shutdown,
 };
 
-static struct resource au1300_lcd_res[] = {
+static struct resource au1300_lcd_res[] =
+{
 	[0] = {
 		.start	= AU1200_LCD_PHYS_ADDR,
 		.end	= AU1200_LCD_PHYS_ADDR + 0x800 - 1,
@@ -699,7 +774,8 @@ static struct resource au1300_lcd_res[] = {
 
 static u64 au1300_lcd_dmamask = DMA_BIT_MASK(32);
 
-static struct platform_device db1300_lcd_dev = {
+static struct platform_device db1300_lcd_dev =
+{
 	.name		= "au1200-lcd",
 	.id		= 0,
 	.dev = {
@@ -716,12 +792,17 @@ static struct platform_device db1300_lcd_dev = {
 static void db1300_wm97xx_irqen(struct wm97xx *wm, int enable)
 {
 	if (enable)
+	{
 		enable_irq(DB1300_AC97_PEN_INT);
+	}
 	else
+	{
 		disable_irq_nosync(DB1300_AC97_PEN_INT);
+	}
 }
 
-static struct wm97xx_mach_ops db1300_wm97xx_ops = {
+static struct wm97xx_mach_ops db1300_wm97xx_ops =
+{
 	.irq_enable	= db1300_wm97xx_irqen,
 	.irq_gpio	= WM97XX_GPIO_3,
 };
@@ -732,20 +813,21 @@ static int db1300_wm97xx_probe(struct platform_device *pdev)
 
 	/* external pendown indicator */
 	wm97xx_config_gpio(wm, WM97XX_GPIO_13, WM97XX_GPIO_IN,
-			   WM97XX_GPIO_POL_LOW, WM97XX_GPIO_STICKY,
-			   WM97XX_GPIO_WAKE);
+					   WM97XX_GPIO_POL_LOW, WM97XX_GPIO_STICKY,
+					   WM97XX_GPIO_WAKE);
 
 	/* internal "virtual" pendown gpio */
 	wm97xx_config_gpio(wm, WM97XX_GPIO_3, WM97XX_GPIO_OUT,
-			   WM97XX_GPIO_POL_LOW, WM97XX_GPIO_NOTSTICKY,
-			   WM97XX_GPIO_NOWAKE);
+					   WM97XX_GPIO_POL_LOW, WM97XX_GPIO_NOTSTICKY,
+					   WM97XX_GPIO_NOWAKE);
 
 	wm->pen_irq = DB1300_AC97_PEN_INT;
 
 	return wm97xx_register_mach_ops(wm, &db1300_wm97xx_ops);
 }
 
-static struct platform_driver db1300_wm97xx_driver = {
+static struct platform_driver db1300_wm97xx_driver =
+{
 	.driver.name	= "wm97xx-touch",
 	.driver.owner	= THIS_MODULE,
 	.probe		= db1300_wm97xx_probe,
@@ -753,7 +835,8 @@ static struct platform_driver db1300_wm97xx_driver = {
 
 /**********************************************************************/
 
-static struct platform_device *db1300_dev[] __initdata = {
+static struct platform_device *db1300_dev[] __initdata =
+{
 	&db1300_eth_dev,
 	&db1300_i2c_dev,
 	&db1300_5waysw_dev,
@@ -795,27 +878,32 @@ int __init db1300_dev_setup(void)
 	prom_get_ethernet_addr(&db1300_eth_config.mac[0]);
 
 	i2c_register_board_info(0, db1300_i2c_devs,
-				ARRAY_SIZE(db1300_i2c_devs));
+							ARRAY_SIZE(db1300_i2c_devs));
 
 	if (platform_driver_register(&db1300_wm97xx_driver))
+	{
 		pr_warn("DB1300: failed to init touch pen irq support!\n");
+	}
 
 	/* Audio PSC clock is supplied by codecs (PSC1, 2) */
 	__raw_writel(PSC_SEL_CLK_SERCLK,
-	    (void __iomem *)KSEG1ADDR(AU1300_PSC1_PHYS_ADDR) + PSC_SEL_OFFSET);
+				 (void __iomem *)KSEG1ADDR(AU1300_PSC1_PHYS_ADDR) + PSC_SEL_OFFSET);
 	wmb();
 	__raw_writel(PSC_SEL_CLK_SERCLK,
-	    (void __iomem *)KSEG1ADDR(AU1300_PSC2_PHYS_ADDR) + PSC_SEL_OFFSET);
+				 (void __iomem *)KSEG1ADDR(AU1300_PSC2_PHYS_ADDR) + PSC_SEL_OFFSET);
 	wmb();
 	/* I2C driver wants 50MHz, get as close as possible */
 	c = clk_get(NULL, "psc3_intclk");
-	if (!IS_ERR(c)) {
+
+	if (!IS_ERR(c))
+	{
 		clk_set_rate(c, 50000000);
 		clk_prepare_enable(c);
 		clk_put(c);
 	}
+
 	__raw_writel(PSC_SEL_CLK_INTCLK,
-	    (void __iomem *)KSEG1ADDR(AU1300_PSC3_PHYS_ADDR) + PSC_SEL_OFFSET);
+				 (void __iomem *)KSEG1ADDR(AU1300_PSC3_PHYS_ADDR) + PSC_SEL_OFFSET);
 	wmb();
 
 	/* enable power to USB ports */
@@ -845,18 +933,21 @@ int __init db1300_board_setup(void)
 	unsigned short whoami;
 
 	bcsr_init(DB1300_BCSR_PHYS_ADDR,
-		  DB1300_BCSR_PHYS_ADDR + DB1300_BCSR_HEXLED_OFS);
+			  DB1300_BCSR_PHYS_ADDR + DB1300_BCSR_HEXLED_OFS);
 
 	whoami = bcsr_read(BCSR_WHOAMI);
+
 	if (BCSR_WHOAMI_BOARD(whoami) != BCSR_WHOAMI_DB1300)
+	{
 		return -ENODEV;
+	}
 
 	db1300_gpio_config();
 
 	printk(KERN_INFO "NetLogic DBAu1300 Development Platform.\n\t"
-		"BoardID %d   CPLD Rev %d   DaughtercardID %d\n",
-		BCSR_WHOAMI_BOARD(whoami), BCSR_WHOAMI_CPLD(whoami),
-		BCSR_WHOAMI_DCID(whoami));
+		   "BoardID %d   CPLD Rev %d   DaughtercardID %d\n",
+		   BCSR_WHOAMI_BOARD(whoami), BCSR_WHOAMI_CPLD(whoami),
+		   BCSR_WHOAMI_DCID(whoami));
 
 	/* enable UARTs, YAMON only enables #2 */
 	alchemy_uart_enable(AU1300_UART0_PHYS_ADDR);

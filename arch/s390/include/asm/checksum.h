@@ -5,7 +5,7 @@
  *    Copyright IBM Corp. 1999
  *    Author(s): Ulrich Hild        (first version)
  *               Martin Schwidefsky (heavily optimized CKSM version)
- *               D.J. Barrow        (third attempt) 
+ *               D.J. Barrow        (third attempt)
  */
 
 #ifndef _S390_CHECKSUM_H
@@ -48,11 +48,14 @@ csum_partial(const void *buff, int len, __wsum sum)
  */
 static inline __wsum
 csum_partial_copy_from_user(const void __user *src, void *dst,
-                                          int len, __wsum sum,
-                                          int *err_ptr)
+							int len, __wsum sum,
+							int *err_ptr)
 {
 	if (unlikely(copy_from_user(dst, src, len)))
+	{
 		*err_ptr = -EFAULT;
+	}
+
 	return csum_partial(dst, len, sum);
 }
 
@@ -60,7 +63,7 @@ csum_partial_copy_from_user(const void __user *src, void *dst,
 static inline __wsum
 csum_partial_copy_nocheck (const void *src, void *dst, int len, __wsum sum)
 {
-        memcpy(dst,src,len);
+	memcpy(dst, src, len);
 	return csum_partial(dst, len, sum);
 }
 
@@ -83,7 +86,7 @@ static inline __sum16 csum_fold(__wsum sum)
  */
 static inline __sum16 ip_fast_csum(const void *iph, unsigned int ihl)
 {
-	return csum_fold(csum_partial(iph, ihl*4, 0));
+	return csum_fold(csum_partial(iph, ihl * 4, 0));
 }
 
 /*
@@ -92,21 +95,30 @@ static inline __sum16 ip_fast_csum(const void *iph, unsigned int ihl)
  */
 static inline __wsum
 csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len, __u8 proto,
-                   __wsum sum)
+				   __wsum sum)
 {
 	__u32 csum = (__force __u32)sum;
 
 	csum += (__force __u32)saddr;
+
 	if (csum < (__force __u32)saddr)
+	{
 		csum++;
+	}
 
 	csum += (__force __u32)daddr;
+
 	if (csum < (__force __u32)daddr)
+	{
 		csum++;
+	}
 
 	csum += len + proto;
+
 	if (csum < len + proto)
+	{
 		csum++;
+	}
 
 	return (__force __wsum)csum;
 }
@@ -118,9 +130,9 @@ csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len, __u8 proto,
 
 static inline __sum16
 csum_tcpudp_magic(__be32 saddr, __be32 daddr, __u32 len, __u8 proto,
-                  __wsum sum)
+				  __wsum sum)
 {
-	return csum_fold(csum_tcpudp_nofold(saddr,daddr,len,proto,sum));
+	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
 }
 
 /*

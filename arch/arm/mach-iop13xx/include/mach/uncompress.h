@@ -8,7 +8,10 @@
 static inline void putc(char c)
 {
 	while ((UART_BASE[UART_LSR] & TX_DONE) != TX_DONE)
+	{
 		barrier();
+	}
+
 	UART_BASE[UART_TX] = c;
 }
 

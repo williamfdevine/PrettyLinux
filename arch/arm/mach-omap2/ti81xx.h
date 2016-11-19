@@ -28,7 +28,7 @@
  * TI81XX DEVICE ID register is at offset 0x600 from control base).
  */
 #define TI81XX_TAP_BASE		(TI81XX_CTRL_BASE + \
-				 TI81XX_CONTROL_DEVICE_ID - 0x204)
+							 TI81XX_CONTROL_DEVICE_ID - 0x204)
 
 
 #define TI81XX_ARM_INTC_BASE	0x48200000

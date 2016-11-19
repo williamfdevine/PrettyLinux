@@ -3,7 +3,8 @@
 
 struct sh_spi_info;
 
-struct sh_spi_info {
+struct sh_spi_info
+{
 	int			 bus_num;
 	int			 num_chipselect;
 

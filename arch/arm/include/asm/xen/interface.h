@@ -13,7 +13,7 @@
 
 #define __DEFINE_GUEST_HANDLE(name, type) \
 	typedef struct { union { type *p; uint64_aligned_t q; }; }  \
-        __guest_handle_ ## name
+	__guest_handle_ ## name
 
 #define DEFINE_GUEST_HANDLE_STRUCT(name) \
 	__DEFINE_GUEST_HANDLE(name, struct name)
@@ -62,7 +62,8 @@ struct arch_vcpu_info { };
 struct arch_shared_info { };
 
 /* TODO: Move pvclock definitions some place arch independent */
-struct pvclock_vcpu_time_info {
+struct pvclock_vcpu_time_info
+{
 	u32   version;
 	u32   pad0;
 	u64   tsc_timestamp;
@@ -74,7 +75,8 @@ struct pvclock_vcpu_time_info {
 } __attribute__((__packed__)); /* 32 bytes */
 
 /* It is OK to have a 12 bytes struct with no padding because it is packed */
-struct pvclock_wall_clock {
+struct pvclock_wall_clock
+{
 	u32   version;
 	u32   sec;
 	u32   nsec;

@@ -15,12 +15,12 @@
 #include <asm/machdep.h>
 
 extern long hpte_insert_repeating(unsigned long hash, unsigned long vpn,
-				  unsigned long pa, unsigned long rlags,
-				  unsigned long vflags, int psize, int ssize);
+								  unsigned long pa, unsigned long rlags,
+								  unsigned long vflags, int psize, int ssize);
 
 int __hash_page_huge(unsigned long ea, unsigned long access, unsigned long vsid,
-		     pte_t *ptep, unsigned long trap, unsigned long flags,
-		     int ssize, unsigned int shift, unsigned int mmu_psize)
+					 pte_t *ptep, unsigned long trap, unsigned long flags,
+					 int ssize, unsigned int shift, unsigned int mmu_psize)
 {
 	unsigned long vpn;
 	unsigned long old_pte, new_pte;
@@ -44,47 +44,69 @@ int __hash_page_huge(unsigned long ea, unsigned long access, unsigned long vsid,
 	 */
 
 
-	do {
+	do
+	{
 		old_pte = pte_val(*ptep);
+
 		/* If PTE busy, retry the access */
 		if (unlikely(old_pte & H_PAGE_BUSY))
+		{
 			return 0;
+		}
+
 		/* If PTE permissions don't match, take page fault */
 		if (unlikely(!check_pte_access(access, old_pte)))
+		{
 			return 1;
+		}
 
 		/* Try to lock the PTE, add ACCESSED and DIRTY if it was
 		 * a write access */
 		new_pte = old_pte | H_PAGE_BUSY | _PAGE_ACCESSED;
+
 		if (access & _PAGE_WRITE)
+		{
 			new_pte |= _PAGE_DIRTY;
-	} while(!pte_xchg(ptep, __pte(old_pte), __pte(new_pte)));
+		}
+	}
+	while (!pte_xchg(ptep, __pte(old_pte), __pte(new_pte)));
 
 	rflags = htab_convert_pte_flags(new_pte);
 
 	sz = ((1UL) << shift);
+
 	if (!cpu_has_feature(CPU_FTR_COHERENT_ICACHE))
 		/* No CPU has hugepages but lacks no execute, so we
 		 * don't need to worry about that case */
+	{
 		rflags = hash_page_do_lazy_icache(rflags, __pte(old_pte), trap);
+	}
 
 	/* Check if pte already has an hpte (case 2) */
-	if (unlikely(old_pte & H_PAGE_HASHPTE)) {
+	if (unlikely(old_pte & H_PAGE_HASHPTE))
+	{
 		/* There MIGHT be an HPTE for this pte */
 		unsigned long hash, slot;
 
 		hash = hpt_hash(vpn, shift, ssize);
+
 		if (old_pte & H_PAGE_F_SECOND)
+		{
 			hash = ~hash;
+		}
+
 		slot = (hash & htab_hash_mask) * HPTES_PER_GROUP;
 		slot += (old_pte & H_PAGE_F_GIX) >> H_PAGE_F_GIX_SHIFT;
 
 		if (mmu_hash_ops.hpte_updatepp(slot, rflags, vpn, mmu_psize,
-					       mmu_psize, ssize, flags) == -1)
+									   mmu_psize, ssize, flags) == -1)
+		{
 			old_pte &= ~_PAGE_HPTEFLAGS;
+		}
 	}
 
-	if (likely(!(old_pte & H_PAGE_HASHPTE))) {
+	if (likely(!(old_pte & H_PAGE_HASHPTE)))
+	{
 		unsigned long hash = hpt_hash(vpn, shift, ssize);
 
 		pa = pte_pfn(__pte(old_pte)) << PAGE_SHIFT;
@@ -93,21 +115,22 @@ int __hash_page_huge(unsigned long ea, unsigned long access, unsigned long vsid,
 		new_pte = (new_pte & ~_PAGE_HPTEFLAGS) | H_PAGE_HASHPTE;
 
 		slot = hpte_insert_repeating(hash, vpn, pa, rflags, 0,
-					     mmu_psize, ssize);
+									 mmu_psize, ssize);
 
 		/*
 		 * Hypervisor failure. Restore old pte and return -1
 		 * similar to __hash_page_*
 		 */
-		if (unlikely(slot == -2)) {
+		if (unlikely(slot == -2))
+		{
 			*ptep = __pte(old_pte);
 			hash_failure_debug(ea, access, vsid, trap, ssize,
-					   mmu_psize, mmu_psize, old_pte);
+							   mmu_psize, mmu_psize, old_pte);
 			return -1;
 		}
 
 		new_pte |= (slot << H_PAGE_F_GIX_SHIFT) &
-			(H_PAGE_F_SECOND | H_PAGE_F_GIX);
+				   (H_PAGE_F_SECOND | H_PAGE_F_GIX);
 	}
 
 	/*

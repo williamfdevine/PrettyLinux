@@ -63,7 +63,9 @@ void __init reserve_bios_regions(void)
 	 * without our help.
 	 */
 	if (!x86_platform.legacy.reserve_bios_regions)
+	{
 		return;
+	}
 
 	/*
 	 * BIOS RAM size is encoded in kilobytes, convert it
@@ -79,7 +81,9 @@ void __init reserve_bios_regions(void)
 	 * don't trust it.
 	 */
 	if (bios_start < BIOS_START_MIN || bios_start > BIOS_START_MAX)
+	{
 		bios_start = BIOS_START_MAX;
+	}
 
 	/* Get the start address of the EBDA page: */
 	ebda_start = get_bios_ebda();
@@ -90,7 +94,9 @@ void __init reserve_bios_regions(void)
 	 * the BIOS region.
 	 */
 	if (ebda_start >= BIOS_START_MIN && ebda_start < bios_start)
+	{
 		bios_start = ebda_start;
+	}
 
 	/* Reserve all memory between bios_start and the 1MB mark: */
 	memblock_reserve(bios_start, 0x100000 - bios_start);

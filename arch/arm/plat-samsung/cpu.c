@@ -30,7 +30,9 @@ EXPORT_SYMBOL(samsung_rev);
 void __init s3c64xx_init_cpu(void)
 {
 	samsung_cpu_id = readl_relaxed(S3C_VA_SYS + 0x118);
-	if (!samsung_cpu_id) {
+
+	if (!samsung_cpu_id)
+	{
 		/*
 		 * S3C6400 has the ID register in a different place,
 		 * and needs a write before it can be read.

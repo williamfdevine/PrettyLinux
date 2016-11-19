@@ -39,10 +39,10 @@
 #define SSC_READ_ACCESS			1
 
 #if DEBUG_SIMSCSI
-  int simscsi_debug;
-# define DBG	simscsi_debug
+	int simscsi_debug;
+	#define DBG	simscsi_debug
 #else
-# define DBG	0
+	#define DBG	0
 #endif
 
 static struct Scsi_Host *host;
@@ -50,21 +50,25 @@ static struct Scsi_Host *host;
 static void simscsi_interrupt (unsigned long val);
 static DECLARE_TASKLET(simscsi_tasklet, simscsi_interrupt, 0);
 
-struct disk_req {
+struct disk_req
+{
 	unsigned long addr;
 	unsigned len;
 };
 
-struct disk_stat {
+struct disk_stat
+{
 	int fd;
 	unsigned count;
 };
 
-static int desc[16] = {
+static int desc[16] =
+{
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 };
 
-static struct queue_entry {
+static struct queue_entry
+{
 	struct scsi_cmnd *sc;
 } queue[SIMSCSI_REQ_QUEUE_LEN];
 
@@ -85,11 +89,16 @@ static int __init
 simscsi_setup (char *s)
 {
 	/* XXX Fix me we may need to strcpy() ? */
-	if (strlen(s) > MAX_ROOT_LEN) {
+	if (strlen(s) > MAX_ROOT_LEN)
+	{
 		printk(KERN_ERR "simscsi_setup: prefix too long---using default %s\n",
-		       simscsi_root);
-	} else
+			   simscsi_root);
+	}
+	else
+	{
 		simscsi_root = s;
+	}
+
 	return 1;
 }
 
@@ -100,11 +109,16 @@ simscsi_interrupt (unsigned long val)
 {
 	struct scsi_cmnd *sc;
 
-	while ((sc = queue[rd].sc) != NULL) {
+	while ((sc = queue[rd].sc) != NULL)
+	{
 		atomic_dec(&num_reqs);
 		queue[rd].sc = NULL;
+
 		if (DBG)
+		{
 			printk("simscsi_interrupt: done with %ld\n", sc->serial_number);
+		}
+
 		(*sc->scsi_done)(sc);
 		rd = (rd + 1) % SIMSCSI_REQ_QUEUE_LEN;
 	}
@@ -112,7 +126,7 @@ simscsi_interrupt (unsigned long val)
 
 static int
 simscsi_biosparam (struct scsi_device *sdev, struct block_device *n,
-		sector_t capacity, int ip[])
+				   sector_t capacity, int ip[])
 {
 	ip[0] = 64;		/* heads */
 	ip[1] = 32;		/* sectors */
@@ -130,21 +144,26 @@ simscsi_sg_readwrite (struct scsi_cmnd *sc, int mode, unsigned long offset)
 
 	stat.fd = desc[sc->device->id];
 
-	scsi_for_each_sg(sc, sl, scsi_sg_count(sc), i) {
+	scsi_for_each_sg(sc, sl, scsi_sg_count(sc), i)
+	{
 		req.addr = __pa(sg_virt(sl));
 		req.len  = sl->length;
+
 		if (DBG)
 			printk("simscsi_sg_%s @ %lx (off %lx) use_sg=%d len=%d\n",
-			       mode == SSC_READ ? "read":"write", req.addr, offset,
-			       scsi_sg_count(sc) - i, sl->length);
+				   mode == SSC_READ ? "read" : "write", req.addr, offset,
+				   scsi_sg_count(sc) - i, sl->length);
+
 		ia64_ssc(stat.fd, 1, __pa(&req), offset, mode);
 		ia64_ssc(__pa(&stat), 0, 0, 0, SSC_WAIT_COMPLETION);
 
 		/* should not happen in our case */
-		if (stat.count != req.len) {
+		if (stat.count != req.len)
+		{
 			sc->result = DID_ERROR << 16;
 			return;
 		}
+
 		offset +=  sl->length;
 	}
 	sc->result = GOOD;
@@ -160,7 +179,7 @@ simscsi_readwrite6 (struct scsi_cmnd *sc, int mode)
 {
 	unsigned long offset;
 
-	offset = (((sc->cmnd[1] & 0x1f) << 16) | (sc->cmnd[2] << 8) | sc->cmnd[3])*512;
+	offset = (((sc->cmnd[1] & 0x1f) << 16) | (sc->cmnd[2] << 8) | sc->cmnd[3]) * 512;
 	simscsi_sg_readwrite(sc, mode, offset);
 }
 
@@ -177,15 +196,20 @@ simscsi_get_disk_size (int fd)
 	 * direct way of determining the disk size, so we do a binary
 	 * search, assuming a maximum disk size of 128GB.
 	 */
-	for (bit = (128UL << 30)/512; bit != 0; bit >>= 1) {
+	for (bit = (128UL << 30) / 512; bit != 0; bit >>= 1)
+	{
 		req.addr = __pa(&buf);
 		req.len = sizeof(buf);
-		ia64_ssc(fd, 1, __pa(&req), ((sectors | bit) - 1)*512, SSC_READ);
+		ia64_ssc(fd, 1, __pa(&req), ((sectors | bit) - 1) * 512, SSC_READ);
 		stat.fd = fd;
 		ia64_ssc(__pa(&stat), 0, 0, 0, SSC_WAIT_COMPLETION);
+
 		if (stat.count == sizeof(buf))
+		{
 			sectors |= bit;
+		}
 	}
+
 	return sectors - 1;	/* return last valid sector number */
 }
 
@@ -194,10 +218,10 @@ simscsi_readwrite10 (struct scsi_cmnd *sc, int mode)
 {
 	unsigned long offset;
 
-	offset = (((unsigned long)sc->cmnd[2] << 24) 
-		| ((unsigned long)sc->cmnd[3] << 16)
-		| ((unsigned long)sc->cmnd[4] <<  8) 
-		| ((unsigned long)sc->cmnd[5] <<  0))*512UL;
+	offset = (((unsigned long)sc->cmnd[2] << 24)
+			  | ((unsigned long)sc->cmnd[3] << 16)
+			  | ((unsigned long)sc->cmnd[4] <<  8)
+			  | ((unsigned long)sc->cmnd[5] <<  0)) * 512UL;
 	simscsi_sg_readwrite(sc, mode, offset);
 }
 
@@ -205,7 +229,7 @@ static int
 simscsi_queuecommand_lck (struct scsi_cmnd *sc, void (*done)(struct scsi_cmnd *))
 {
 	unsigned int target_id = sc->device->id;
-	char fname[MAX_ROOT_LEN+16];
+	char fname[MAX_ROOT_LEN + 16];
 	size_t disk_size;
 	char *buf;
 	char localbuf[36];
@@ -214,110 +238,138 @@ simscsi_queuecommand_lck (struct scsi_cmnd *sc, void (*done)(struct scsi_cmnd *)
 
 	if (DBG)
 		printk("simscsi_queuecommand: target=%d,cmnd=%u,sc=%lu,sp=%lx,done=%p\n",
-		       target_id, sc->cmnd[0], sc->serial_number, sp, done);
+			   target_id, sc->cmnd[0], sc->serial_number, sp, done);
+
 #endif
 
 	sc->result = DID_BAD_TARGET << 16;
 	sc->scsi_done = done;
-	if (target_id <= 15 && sc->device->lun == 0) {
-		switch (sc->cmnd[0]) {
-		      case INQUIRY:
-			if (scsi_bufflen(sc) < 35) {
+
+	if (target_id <= 15 && sc->device->lun == 0)
+	{
+		switch (sc->cmnd[0])
+		{
+			case INQUIRY:
+				if (scsi_bufflen(sc) < 35)
+				{
+					break;
+				}
+
+				sprintf (fname, "%s%c", simscsi_root, 'a' + target_id);
+				desc[target_id] = ia64_ssc(__pa(fname), SSC_READ_ACCESS | SSC_WRITE_ACCESS,
+										   0, 0, SSC_OPEN);
+
+				if (desc[target_id] < 0)
+				{
+					/* disk doesn't exist... */
+					break;
+				}
+
+				buf = localbuf;
+				buf[0] = 0;	/* magnetic disk */
+				buf[1] = 0;	/* not a removable medium */
+				buf[2] = 2;	/* SCSI-2 compliant device */
+				buf[3] = 2;	/* SCSI-2 response data format */
+				buf[4] = 31;	/* additional length (bytes) */
+				buf[5] = 0;	/* reserved */
+				buf[6] = 0;	/* reserved */
+				buf[7] = 0;	/* various flags */
+				memcpy(buf + 8, "HP      SIMULATED DISK  0.00",  28);
+				scsi_sg_copy_from_buffer(sc, buf, 36);
+				sc->result = GOOD;
 				break;
-			}
-			sprintf (fname, "%s%c", simscsi_root, 'a' + target_id);
-			desc[target_id] = ia64_ssc(__pa(fname), SSC_READ_ACCESS|SSC_WRITE_ACCESS,
-						   0, 0, SSC_OPEN);
-			if (desc[target_id] < 0) {
-				/* disk doesn't exist... */
+
+			case TEST_UNIT_READY:
+				sc->result = GOOD;
 				break;
-			}
-			buf = localbuf;
-			buf[0] = 0;	/* magnetic disk */
-			buf[1] = 0;	/* not a removable medium */
-			buf[2] = 2;	/* SCSI-2 compliant device */
-			buf[3] = 2;	/* SCSI-2 response data format */
-			buf[4] = 31;	/* additional length (bytes) */
-			buf[5] = 0;	/* reserved */
-			buf[6] = 0;	/* reserved */
-			buf[7] = 0;	/* various flags */
-			memcpy(buf + 8, "HP      SIMULATED DISK  0.00",  28);
-			scsi_sg_copy_from_buffer(sc, buf, 36);
-			sc->result = GOOD;
-			break;
 
-		      case TEST_UNIT_READY:
-			sc->result = GOOD;
-			break;
+			case READ_6:
+				if (desc[target_id] < 0 )
+				{
+					break;
+				}
 
-		      case READ_6:
-			if (desc[target_id] < 0 )
+				simscsi_readwrite6(sc, SSC_READ);
 				break;
-			simscsi_readwrite6(sc, SSC_READ);
-			break;
 
-		      case READ_10:
-			if (desc[target_id] < 0 )
+			case READ_10:
+				if (desc[target_id] < 0 )
+				{
+					break;
+				}
+
+				simscsi_readwrite10(sc, SSC_READ);
 				break;
-			simscsi_readwrite10(sc, SSC_READ);
-			break;
 
-		      case WRITE_6:
-			if (desc[target_id] < 0)
+			case WRITE_6:
+				if (desc[target_id] < 0)
+				{
+					break;
+				}
+
+				simscsi_readwrite6(sc, SSC_WRITE);
 				break;
-			simscsi_readwrite6(sc, SSC_WRITE);
-			break;
 
-		      case WRITE_10:
-			if (desc[target_id] < 0)
+			case WRITE_10:
+				if (desc[target_id] < 0)
+				{
+					break;
+				}
+
+				simscsi_readwrite10(sc, SSC_WRITE);
 				break;
-			simscsi_readwrite10(sc, SSC_WRITE);
-			break;
 
-		      case READ_CAPACITY:
-			if (desc[target_id] < 0 || scsi_bufflen(sc) < 8) {
+			case READ_CAPACITY:
+				if (desc[target_id] < 0 || scsi_bufflen(sc) < 8)
+				{
+					break;
+				}
+
+				buf = localbuf;
+				disk_size = simscsi_get_disk_size(desc[target_id]);
+
+				buf[0] = (disk_size >> 24) & 0xff;
+				buf[1] = (disk_size >> 16) & 0xff;
+				buf[2] = (disk_size >>  8) & 0xff;
+				buf[3] = (disk_size >>  0) & 0xff;
+				/* set block size of 512 bytes: */
+				buf[4] = 0;
+				buf[5] = 0;
+				buf[6] = 2;
+				buf[7] = 0;
+				scsi_sg_copy_from_buffer(sc, buf, 8);
+				sc->result = GOOD;
 				break;
-			}
-			buf = localbuf;
-			disk_size = simscsi_get_disk_size(desc[target_id]);
 
-			buf[0] = (disk_size >> 24) & 0xff;
-			buf[1] = (disk_size >> 16) & 0xff;
-			buf[2] = (disk_size >>  8) & 0xff;
-			buf[3] = (disk_size >>  0) & 0xff;
-			/* set block size of 512 bytes: */
-			buf[4] = 0;
-			buf[5] = 0;
-			buf[6] = 2;
-			buf[7] = 0;
-			scsi_sg_copy_from_buffer(sc, buf, 8);
-			sc->result = GOOD;
-			break;
+			case MODE_SENSE:
+			case MODE_SENSE_10:
+				/* sd.c uses this to determine whether disk does write-caching. */
+				scsi_sg_copy_from_buffer(sc, (char *)empty_zero_page,
+										 PAGE_SIZE);
+				sc->result = GOOD;
+				break;
 
-		      case MODE_SENSE:
-		      case MODE_SENSE_10:
-			/* sd.c uses this to determine whether disk does write-caching. */
-			scsi_sg_copy_from_buffer(sc, (char *)empty_zero_page,
-						 PAGE_SIZE);
-			sc->result = GOOD;
-			break;
+			case START_STOP:
+				printk(KERN_ERR "START_STOP\n");
+				break;
 
-		      case START_STOP:
-			printk(KERN_ERR "START_STOP\n");
-			break;
-
-		      default:
-			panic("simscsi: unknown SCSI command %u\n", sc->cmnd[0]);
+			default:
+				panic("simscsi: unknown SCSI command %u\n", sc->cmnd[0]);
 		}
 	}
-	if (sc->result == DID_BAD_TARGET) {
+
+	if (sc->result == DID_BAD_TARGET)
+	{
 		sc->result |= DRIVER_SENSE << 24;
 		sc->sense_buffer[0] = 0x70;
 		sc->sense_buffer[2] = 0x00;
 	}
-	if (atomic_read(&num_reqs) >= SIMSCSI_REQ_QUEUE_LEN) {
+
+	if (atomic_read(&num_reqs) >= SIMSCSI_REQ_QUEUE_LEN)
+	{
 		panic("Attempt to queue command while command is pending!!");
 	}
+
 	atomic_inc(&num_reqs);
 	queue[wr].sc = sc;
 	wr = (wr + 1) % SIMSCSI_REQ_QUEUE_LEN;
@@ -335,7 +387,8 @@ simscsi_host_reset (struct scsi_cmnd *sc)
 	return 0;
 }
 
-static struct scsi_host_template driver_template = {
+static struct scsi_host_template driver_template =
+{
 	.name			= "simulated SCSI host adapter",
 	.proc_name		= "simscsi",
 	.queuecommand		= simscsi_queuecommand,
@@ -355,16 +408,23 @@ simscsi_init(void)
 	int error;
 
 	host = scsi_host_alloc(&driver_template, 0);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	error = scsi_add_host(host, NULL);
+
 	if (error)
+	{
 		goto free_host;
+	}
+
 	scsi_scan_host(host);
 	return 0;
 
- free_host:
+free_host:
 	scsi_host_put(host);
 	return error;
 }

@@ -26,7 +26,8 @@
 /*
  * Megamodule Interrupt Controller register layout
  */
-struct megamod_regs {
+struct megamod_regs
+{
 	u32	evtflag[8];
 	u32	evtset[8];
 	u32	evtclr[8];
@@ -47,7 +48,8 @@ struct megamod_regs {
 	u32	evtasrt;
 };
 
-struct megamod_pic {
+struct megamod_pic
+{
 	struct irq_domain *irqhost;
 	struct megamod_regs __iomem *regs;
 	raw_spinlock_t lock;
@@ -58,7 +60,8 @@ struct megamod_pic {
 
 static struct megamod_pic *mm_pic;
 
-struct megamod_cascade_data {
+struct megamod_cascade_data
+{
 	struct megamod_pic *pic;
 	int index;
 };
@@ -87,7 +90,8 @@ static void unmask_megamod(struct irq_data *data)
 	raw_spin_unlock(&pic->lock);
 }
 
-static struct irq_chip megamod_chip = {
+static struct irq_chip megamod_chip =
+{
 	.name		= "megamod",
 	.irq_mask	= mask_megamod,
 	.irq_unmask	= unmask_megamod,
@@ -106,7 +110,8 @@ static void megamod_irq_cascade(struct irq_desc *desc)
 	pic = cascade->pic;
 	idx = cascade->index;
 
-	while ((events = soc_readl(&pic->regs->mevtflag[idx])) != 0) {
+	while ((events = soc_readl(&pic->regs->mevtflag[idx])) != 0)
+	{
 		n = __ffs(events);
 
 		irq = irq_linear_revmap(pic->irqhost, idx * 32 + n);
@@ -118,7 +123,7 @@ static void megamod_irq_cascade(struct irq_desc *desc)
 }
 
 static int megamod_map(struct irq_domain *h, unsigned int virq,
-		       irq_hw_number_t hw)
+					   irq_hw_number_t hw)
 {
 	struct megamod_pic *pic = h->host_data;
 	int i;
@@ -126,7 +131,9 @@ static int megamod_map(struct irq_domain *h, unsigned int virq,
 	/* We shouldn't see a hwirq which is muxed to core controller */
 	for (i = 0; i < NR_MUX_OUTPUTS; i++)
 		if (pic->output_to_irq[i] == hw)
+		{
 			return -1;
+		}
 
 	irq_set_chip_data(virq, pic);
 	irq_set_chip_and_handler(virq, &megamod_chip, handle_level_irq);
@@ -137,7 +144,8 @@ static int megamod_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops megamod_domain_ops = {
+static const struct irq_domain_ops megamod_domain_ops =
+{
 	.map	= megamod_map,
 	.xlate	= irq_domain_xlate_onecell,
 };
@@ -147,7 +155,8 @@ static void __init set_megamod_mux(struct megamod_pic *pic, int src, int output)
 	int index, offset;
 	u32 val;
 
-	if (src < 0 || src >= (NR_COMBINERS * 32)) {
+	if (src < 0 || src >= (NR_COMBINERS * 32))
+	{
 		pic->output_to_irq[output] = IRQ_UNMAPPED;
 		return;
 	}
@@ -176,7 +185,7 @@ static void __init set_megamod_mux(struct megamod_pic *pic, int src, int output)
  * value of zero as a "do not map" placeholder.
  */
 static void __init parse_priority_map(struct megamod_pic *pic,
-				      int *mapping, int size)
+									  int *mapping, int size)
 {
 	struct device_node *np = irq_domain_get_of_node(pic->irqhost);
 	const __be32 *map;
@@ -184,21 +193,31 @@ static void __init parse_priority_map(struct megamod_pic *pic,
 	u32 val;
 
 	map = of_get_property(np, "ti,c64x+megamod-pic-mux", &maplen);
-	if (map) {
-		maplen /= 4;
-		if (maplen > size)
-			maplen = size;
 
-		for (i = 0; i < maplen; i++) {
+	if (map)
+	{
+		maplen /= 4;
+
+		if (maplen > size)
+		{
+			maplen = size;
+		}
+
+		for (i = 0; i < maplen; i++)
+		{
 			val = be32_to_cpup(map);
+
 			if (val && val >= 4)
+			{
 				mapping[i] = val;
+			}
+
 			++map;
 		}
 	}
 }
 
-static struct megamod_pic * __init init_megamod_pic(struct device_node *np)
+static struct megamod_pic *__init init_megamod_pic(struct device_node *np)
 {
 	struct megamod_pic *pic;
 	int i, irq;
@@ -207,14 +226,18 @@ static struct megamod_pic * __init init_megamod_pic(struct device_node *np)
 	pr_info("Initializing C64x+ Megamodule PIC\n");
 
 	pic = kzalloc(sizeof(struct megamod_pic), GFP_KERNEL);
-	if (!pic) {
+
+	if (!pic)
+	{
 		pr_err("%s: Could not alloc PIC structure.\n", np->full_name);
 		return NULL;
 	}
 
 	pic->irqhost = irq_domain_add_linear(np, NR_COMBINERS * 32,
-					     &megamod_domain_ops, pic);
-	if (!pic->irqhost) {
+										 &megamod_domain_ops, pic);
+
+	if (!pic->irqhost)
+	{
 		pr_err("%s: Could not alloc host.\n", np->full_name);
 		goto error_free;
 	}
@@ -224,14 +247,18 @@ static struct megamod_pic * __init init_megamod_pic(struct device_node *np)
 	raw_spin_lock_init(&pic->lock);
 
 	pic->regs = of_iomap(np, 0);
-	if (!pic->regs) {
+
+	if (!pic->regs)
+	{
 		pr_err("%s: Could not map registers.\n", np->full_name);
 		goto error_free;
 	}
 
 	/* Initialize MUX map */
 	for (i = 0; i < ARRAY_SIZE(mapping); i++)
+	{
 		mapping[i] = IRQ_UNMAPPED;
+	}
 
 	parse_priority_map(pic, mapping, ARRAY_SIZE(mapping));
 
@@ -243,18 +270,24 @@ static struct megamod_pic * __init init_megamod_pic(struct device_node *np)
 	 * interrupts muxed to the core controller use the core controller
 	 * as their interrupt parent.
 	 */
-	for (i = 0; i < NR_COMBINERS; i++) {
+	for (i = 0; i < NR_COMBINERS; i++)
+	{
 		struct irq_data *irq_data;
 		irq_hw_number_t hwirq;
 
 		irq = irq_of_parse_and_map(np, i);
+
 		if (irq == NO_IRQ)
+		{
 			continue;
+		}
 
 		irq_data = irq_get_irq_data(irq);
-		if (!irq_data) {
+
+		if (!irq_data)
+		{
 			pr_err("%s: combiner-%d no irq_data for virq %d!\n",
-			       np->full_name, i, irq);
+				   np->full_name, i, irq);
 			continue;
 		}
 
@@ -264,9 +297,10 @@ static struct megamod_pic * __init init_megamod_pic(struct device_node *np)
 		 * Check that device tree provided something in the range
 		 * of the core priority interrupts (4 - 15).
 		 */
-		if (hwirq < 4 || hwirq >= NR_PRIORITY_IRQS) {
+		if (hwirq < 4 || hwirq >= NR_PRIORITY_IRQS)
+		{
 			pr_err("%s: combiner-%d core irq %ld out of range!\n",
-			       np->full_name, i, hwirq);
+				   np->full_name, i, hwirq);
 			continue;
 		}
 
@@ -274,7 +308,7 @@ static struct megamod_pic * __init init_megamod_pic(struct device_node *np)
 		mapping[hwirq - 4] = i;
 
 		pr_debug("%s: combiner-%d cascading to hwirq %ld\n",
-			 np->full_name, i, hwirq);
+				 np->full_name, i, hwirq);
 
 		cascade_data[i].pic = pic;
 		cascade_data[i].index = i;
@@ -284,14 +318,16 @@ static struct megamod_pic * __init init_megamod_pic(struct device_node *np)
 		soc_writel(~0, &pic->regs->evtclr[i]);
 
 		irq_set_chained_handler_and_data(irq, megamod_irq_cascade,
-						 &cascade_data[i]);
+										 &cascade_data[i]);
 	}
 
 	/* Finally, set up the MUX registers */
-	for (i = 0; i < NR_MUX_OUTPUTS; i++) {
-		if (mapping[i] != IRQ_UNMAPPED) {
+	for (i = 0; i < NR_MUX_OUTPUTS; i++)
+	{
+		if (mapping[i] != IRQ_UNMAPPED)
+		{
 			pr_debug("%s: setting mux %d to priority %d\n",
-				 np->full_name, mapping[i], i + 4);
+					 np->full_name, mapping[i], i + 4);
 			set_megamod_mux(pic, mapping[i], i);
 		}
 	}
@@ -313,14 +349,18 @@ static int get_exception(void)
 	int i, bit;
 	u32 mask;
 
-	for (i = 0; i < NR_COMBINERS; i++) {
+	for (i = 0; i < NR_COMBINERS; i++)
+	{
 		mask = soc_readl(&mm_pic->regs->mexpflag[i]);
-		if (mask) {
+
+		if (mask)
+		{
 			bit = __ffs(mask);
 			soc_writel(1 << bit, &mm_pic->regs->evtclr[i]);
 			return (i * 32) + bit;
 		}
 	}
+
 	return -1;
 }
 
@@ -334,8 +374,11 @@ void __init megamod_pic_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "ti,c64x+megamod-pic");
+
 	if (!np)
+	{
 		return;
+	}
 
 	mm_pic = init_megamod_pic(np);
 	of_node_put(np);

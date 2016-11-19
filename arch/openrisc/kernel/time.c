@@ -28,7 +28,7 @@
 #include <asm/cpuinfo.h>
 
 static int openrisc_timer_set_next_event(unsigned long delta,
-					 struct clock_event_device *dev)
+		struct clock_event_device *dev)
 {
 	u32 c;
 
@@ -54,7 +54,8 @@ static int openrisc_timer_set_next_event(unsigned long delta,
  * one-shot events, so no problem.
  */
 
-static struct clock_event_device clockevent_openrisc_timer = {
+static struct clock_event_device clockevent_openrisc_timer =
+{
 	.name = "openrisc_timer_clockevent",
 	.features = CLOCK_EVT_FEAT_ONESHOT,
 	.rating = 300,
@@ -105,8 +106,8 @@ static __init void openrisc_clockevent_init(void)
 
 	/* We only have 28 bits */
 	clockevents_config_and_register(&clockevent_openrisc_timer,
-					cpuinfo.clock_frequency,
-					100, 0x0fffffff);
+									cpuinfo.clock_frequency,
+									100, 0x0fffffff);
 
 }
 
@@ -122,7 +123,8 @@ static cycle_t openrisc_timer_read(struct clocksource *cs)
 	return (cycle_t) mfspr(SPR_TTCR);
 }
 
-static struct clocksource openrisc_timer = {
+static struct clocksource openrisc_timer =
+{
 	.name = "openrisc_timer",
 	.rating = 200,
 	.read = openrisc_timer_read,
@@ -133,7 +135,9 @@ static struct clocksource openrisc_timer = {
 static int __init openrisc_timer_init(void)
 {
 	if (clocksource_register_hz(&openrisc_timer, cpuinfo.clock_frequency))
+	{
 		panic("failed to register clocksource");
+	}
 
 	/* Enable the incrementer: 'continuous' mode with interrupt disabled */
 	mtspr(SPR_TTMR, SPR_TTMR_CR);
@@ -146,8 +150,11 @@ void __init time_init(void)
 	u32 upr;
 
 	upr = mfspr(SPR_UPR);
+
 	if (!(upr & SPR_UPR_TTP))
+	{
 		panic("Linux not supported on devices without tick timer");
+	}
 
 	openrisc_timer_init();
 	openrisc_clockevent_init();

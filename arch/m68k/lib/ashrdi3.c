@@ -27,36 +27,39 @@ struct DIstruct {SItype high, low;};
 
 typedef union
 {
-  struct DIstruct s;
-  DItype ll;
+	struct DIstruct s;
+	DItype ll;
 } DIunion;
 
 DItype
 __ashrdi3 (DItype u, word_type b)
 {
-  DIunion w;
-  word_type bm;
-  DIunion uu;
+	DIunion w;
+	word_type bm;
+	DIunion uu;
 
-  if (b == 0)
-    return u;
+	if (b == 0)
+	{
+		return u;
+	}
 
-  uu.ll = u;
+	uu.ll = u;
 
-  bm = (sizeof (SItype) * BITS_PER_UNIT) - b;
-  if (bm <= 0)
-    {
-      /* w.s.high = 1..1 or 0..0 */
-      w.s.high = uu.s.high >> (sizeof (SItype) * BITS_PER_UNIT - 1);
-      w.s.low = uu.s.high >> -bm;
-    }
-  else
-    {
-      USItype carries = (USItype)uu.s.high << bm;
-      w.s.high = uu.s.high >> b;
-      w.s.low = ((USItype)uu.s.low >> b) | carries;
-    }
+	bm = (sizeof (SItype) * BITS_PER_UNIT) - b;
 
-  return w.ll;
+	if (bm <= 0)
+	{
+		/* w.s.high = 1..1 or 0..0 */
+		w.s.high = uu.s.high >> (sizeof (SItype) * BITS_PER_UNIT - 1);
+		w.s.low = uu.s.high >> -bm;
+	}
+	else
+	{
+		USItype carries = (USItype)uu.s.high << bm;
+		w.s.high = uu.s.high >> b;
+		w.s.low = ((USItype)uu.s.low >> b) | carries;
+	}
+
+	return w.ll;
 }
 EXPORT_SYMBOL(__ashrdi3);

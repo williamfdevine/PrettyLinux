@@ -28,7 +28,8 @@
  * tioca_soft, etc).
  */
 
-struct pcibus_bussoft {
+struct pcibus_bussoft
+{
 	u32		bs_asic_type;	/* chipset type */
 	u32		bs_xid;		/* xwidget id */
 	u32		bs_persist_busnum; /* Persistent Bus Number */
@@ -44,13 +45,14 @@ struct pci_controller;
  * SN pci bus indirection
  */
 
-struct sn_pcibus_provider {
+struct sn_pcibus_provider
+{
 	dma_addr_t	(*dma_map)(struct pci_dev *, unsigned long, size_t, int flags);
 	dma_addr_t	(*dma_map_consistent)(struct pci_dev *, unsigned long, size_t, int flags);
 	void		(*dma_unmap)(struct pci_dev *, dma_addr_t, int);
-	void *		(*bus_fixup)(struct pcibus_bussoft *, struct pci_controller *);
- 	void		(*force_interrupt)(struct sn_irq_info *);
- 	void		(*target_interrupt)(struct sn_irq_info *);
+	void 		*(*bus_fixup)(struct pcibus_bussoft *, struct pci_controller *);
+	void		(*force_interrupt)(struct sn_irq_info *);
+	void		(*target_interrupt)(struct sn_irq_info *);
 };
 
 /*

@@ -18,7 +18,8 @@
  * before the signal handler was invoked.  Note: only add new entries
  * to the end of the structure.
  */
-struct sigcontext {
+struct sigcontext
+{
 	struct user_context	sc_context;
 	unsigned long		sc_oldmask; 	/* old sigmask */
 } __attribute__((aligned(8)));

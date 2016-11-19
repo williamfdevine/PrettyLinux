@@ -22,7 +22,8 @@ struct pci_controller;
 
 extern int pciauto_bus_scan(struct pci_controller *, int);
 
-struct pci_space {
+struct pci_space
+{
 	unsigned long start;
 	unsigned long end;
 	unsigned long base;
@@ -32,7 +33,8 @@ struct pci_space {
  * Structure of a PCI controller (host bridge)
  */
 
-struct pci_controller {
+struct pci_controller
+{
 	int index;			/* used for pci_controller_num */
 	struct pci_controller *next;
 	struct pci_bus *bus;
@@ -59,7 +61,7 @@ struct pci_controller {
 	struct pci_space mem_space;
 
 	/* Return the interrupt number fo a device. */
-	int (*map_irq)(struct pci_dev*, u8, u8);
+	int (*map_irq)(struct pci_dev *, u8, u8);
 
 };
 
@@ -77,12 +79,12 @@ static inline void pcibios_init_resource(struct resource *res,
 
 
 /* These are used for config access before all the PCI probing has been done. */
-int early_read_config_byte(struct pci_controller*, int, int, int, u8*);
-int early_read_config_word(struct pci_controller*, int, int, int, u16*);
-int early_read_config_dword(struct pci_controller*, int, int, int, u32*);
-int early_write_config_byte(struct pci_controller*, int, int, int, u8);
-int early_write_config_word(struct pci_controller*, int, int, int, u16);
-int early_write_config_dword(struct pci_controller*, int, int, int, u32);
+int early_read_config_byte(struct pci_controller *, int, int, int, u8 *);
+int early_read_config_word(struct pci_controller *, int, int, int, u16 *);
+int early_read_config_dword(struct pci_controller *, int, int, int, u32 *);
+int early_write_config_byte(struct pci_controller *, int, int, int, u8);
+int early_write_config_word(struct pci_controller *, int, int, int, u16);
+int early_write_config_dword(struct pci_controller *, int, int, int, u32);
 
 #endif	/* __KERNEL__ */
 #endif	/* _XTENSA_PCI_BRIDGE_H */

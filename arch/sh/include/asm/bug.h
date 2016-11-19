@@ -39,66 +39,66 @@
 #endif
 
 #define BUG()						\
-do {							\
-	__asm__ __volatile__ (				\
-		"1:\t.short %O0\n"			\
-		_EMIT_BUG_ENTRY				\
-		 :					\
-		 : "n" (TRAPA_BUG_OPCODE),		\
-		   "i" (__FILE__),			\
-		   "i" (__LINE__), "i" (0),		\
-		   "i" (sizeof(struct bug_entry)));	\
-} while (0)
+	do {							\
+		__asm__ __volatile__ (				\
+											"1:\t.short %O0\n"			\
+											_EMIT_BUG_ENTRY				\
+											:					\
+											: "n" (TRAPA_BUG_OPCODE),		\
+											"i" (__FILE__),			\
+											"i" (__LINE__), "i" (0),		\
+											"i" (sizeof(struct bug_entry)));	\
+	} while (0)
 
 #define __WARN_TAINT(taint)				\
-do {							\
-	__asm__ __volatile__ (				\
-		"1:\t.short %O0\n"			\
-		 _EMIT_BUG_ENTRY			\
-		 :					\
-		 : "n" (TRAPA_BUG_OPCODE),		\
-		   "i" (__FILE__),			\
-		   "i" (__LINE__),			\
-		   "i" (BUGFLAG_TAINT(taint)),		\
-		   "i" (sizeof(struct bug_entry)));	\
-} while (0)
+	do {							\
+		__asm__ __volatile__ (				\
+											"1:\t.short %O0\n"			\
+											_EMIT_BUG_ENTRY			\
+											:					\
+											: "n" (TRAPA_BUG_OPCODE),		\
+											"i" (__FILE__),			\
+											"i" (__LINE__),			\
+											"i" (BUGFLAG_TAINT(taint)),		\
+											"i" (sizeof(struct bug_entry)));	\
+	} while (0)
 
 #define WARN_ON(x) ({						\
-	int __ret_warn_on = !!(x);				\
-	if (__builtin_constant_p(__ret_warn_on)) {		\
-		if (__ret_warn_on)				\
-			__WARN();				\
-	} else {						\
-		if (unlikely(__ret_warn_on))			\
-			__WARN();				\
-	}							\
-	unlikely(__ret_warn_on);				\
-})
+		int __ret_warn_on = !!(x);				\
+		if (__builtin_constant_p(__ret_warn_on)) {		\
+			if (__ret_warn_on)				\
+				__WARN();				\
+		} else {						\
+			if (unlikely(__ret_warn_on))			\
+				__WARN();				\
+		}							\
+		unlikely(__ret_warn_on);				\
+	})
 
 #define UNWINDER_BUG()					\
-do {							\
-	__asm__ __volatile__ (				\
-		"1:\t.short %O0\n"			\
-		_EMIT_BUG_ENTRY				\
-		 :					\
-		 : "n" (TRAPA_BUG_OPCODE),		\
-		   "i" (__FILE__),			\
-		   "i" (__LINE__),			\
-		   "i" (BUGFLAG_UNWINDER),		\
-		   "i" (sizeof(struct bug_entry)));	\
-} while (0)
+	do {							\
+		__asm__ __volatile__ (				\
+											"1:\t.short %O0\n"			\
+											_EMIT_BUG_ENTRY				\
+											:					\
+											: "n" (TRAPA_BUG_OPCODE),		\
+											"i" (__FILE__),			\
+											"i" (__LINE__),			\
+											"i" (BUGFLAG_UNWINDER),		\
+											"i" (sizeof(struct bug_entry)));	\
+	} while (0)
 
 #define UNWINDER_BUG_ON(x) ({					\
-	int __ret_unwinder_on = !!(x);				\
-	if (__builtin_constant_p(__ret_unwinder_on)) {		\
-		if (__ret_unwinder_on)				\
-			UNWINDER_BUG();				\
-	} else {						\
-		if (unlikely(__ret_unwinder_on))		\
-			UNWINDER_BUG();				\
-	}							\
-	unlikely(__ret_unwinder_on);				\
-})
+		int __ret_unwinder_on = !!(x);				\
+		if (__builtin_constant_p(__ret_unwinder_on)) {		\
+			if (__ret_unwinder_on)				\
+				UNWINDER_BUG();				\
+		} else {						\
+			if (unlikely(__ret_unwinder_on))		\
+				UNWINDER_BUG();				\
+		}							\
+		unlikely(__ret_unwinder_on);				\
+	})
 
 #else
 

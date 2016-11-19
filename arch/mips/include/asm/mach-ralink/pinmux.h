@@ -14,17 +14,18 @@
 
 #define GRP(_name, _func, _mask, _shift) \
 	{ .name = _name, .mask = _mask, .shift = _shift, \
-	  .func = _func, .gpio = _mask, \
-	  .func_count = ARRAY_SIZE(_func) }
+											 .func = _func, .gpio = _mask, \
+													 .func_count = ARRAY_SIZE(_func) }
 
 #define GRP_G(_name, _func, _mask, _gpio, _shift) \
 	{ .name = _name, .mask = _mask, .shift = _shift, \
-	  .func = _func, .gpio = _gpio, \
-	  .func_count = ARRAY_SIZE(_func) }
+											 .func = _func, .gpio = _gpio, \
+													 .func_count = ARRAY_SIZE(_func) }
 
 struct rt2880_pmx_group;
 
-struct rt2880_pmx_func {
+struct rt2880_pmx_func
+{
 	const char *name;
 	const char value;
 
@@ -38,7 +39,8 @@ struct rt2880_pmx_func {
 	int enabled;
 };
 
-struct rt2880_pmx_group {
+struct rt2880_pmx_group
+{
 	const char *name;
 	int enabled;
 

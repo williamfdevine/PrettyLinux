@@ -15,10 +15,14 @@ long probe_kernel_read(void *dst, const void *src, size_t size)
 	void *psrc = (void *)rounddown((unsigned long)src, PAGE_SIZE);
 
 	if ((unsigned long)src < PAGE_SIZE || size <= 0)
+	{
 		return -EFAULT;
+	}
 
 	if (os_mincore(psrc, size + src - psrc) <= 0)
+	{
 		return -EFAULT;
+	}
 
 	return __probe_kernel_read(dst, src, size);
 }

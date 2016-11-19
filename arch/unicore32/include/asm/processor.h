@@ -25,42 +25,45 @@
 #include <asm/types.h>
 
 #ifdef __KERNEL__
-#define STACK_TOP	TASK_SIZE
-#define STACK_TOP_MAX	TASK_SIZE
+	#define STACK_TOP	TASK_SIZE
+	#define STACK_TOP_MAX	TASK_SIZE
 #endif
 
-struct debug_entry {
+struct debug_entry
+{
 	u32			address;
 	u32			insn;
 };
 
-struct debug_info {
+struct debug_info
+{
 	int			nsaved;
 	struct debug_entry	bp[2];
 };
 
-struct thread_struct {
-							/* fault info	  */
+struct thread_struct
+{
+	/* fault info	  */
 	unsigned long		address;
 	unsigned long		trap_no;
 	unsigned long		error_code;
-							/* debugging	  */
+	/* debugging	  */
 	struct debug_info	debug;
 };
 
 #define INIT_THREAD  {	}
 
 #define start_thread(regs, pc, sp)					\
-({									\
-	unsigned long *stack = (unsigned long *)sp;			\
-	memset(regs->uregs, 0, sizeof(regs->uregs));			\
-	regs->UCreg_asr = USER_MODE;					\
-	regs->UCreg_pc = pc & ~1;	/* pc */                        \
-	regs->UCreg_sp = sp;		/* sp */                        \
-	regs->UCreg_02 = stack[2];	/* r2 (envp) */                 \
-	regs->UCreg_01 = stack[1];	/* r1 (argv) */                 \
-	regs->UCreg_00 = stack[0];	/* r0 (argc) */                 \
-})
+	({									\
+		unsigned long *stack = (unsigned long *)sp;			\
+		memset(regs->uregs, 0, sizeof(regs->uregs));			\
+		regs->UCreg_asr = USER_MODE;					\
+		regs->UCreg_pc = pc & ~1;	/* pc */                        \
+		regs->UCreg_sp = sp;		/* sp */                        \
+		regs->UCreg_02 = stack[2];	/* r2 (envp) */                 \
+		regs->UCreg_01 = stack[1];	/* r1 (argv) */                 \
+		regs->UCreg_00 = stack[0];	/* r0 (argc) */                 \
+	})
 
 /* Forward declaration, a strange C thing */
 struct task_struct;

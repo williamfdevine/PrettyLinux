@@ -21,7 +21,8 @@
  * happen if you try word access them. You have been warned.
  */
 
-struct sgioc_uart_regs {
+struct sgioc_uart_regs
+{
 	u8 _ctrl1[3];
 	volatile u8 ctrl1;
 	u8 _data1[3];
@@ -32,14 +33,16 @@ struct sgioc_uart_regs {
 	volatile u8 data2;
 };
 
-struct sgioc_keyb_regs {
+struct sgioc_keyb_regs
+{
 	u8 _data[3];
 	volatile u8 data;
 	u8 _command[3];
 	volatile u8 command;
 };
 
-struct sgint_regs {
+struct sgint_regs
+{
 	u8 _istat0[3];
 	volatile u8 istat0;		/* Interrupt status zero */
 #define SGINT_ISTAT0_FFULL	0x01
@@ -117,7 +120,8 @@ struct sgint_regs {
 /* We need software copies of these because they are write only. */
 extern u8 sgi_ioc_reset, sgi_ioc_write;
 
-struct sgioc_regs {
+struct sgioc_regs
+{
 	struct pi1_regs pport;
 	u32 _unused0[2];
 	struct sgioc_uart_regs uart;

@@ -61,7 +61,8 @@
 /*
  * Valid machtype for Loongson family
  */
-enum loongson_machine_type {
+enum loongson_machine_type
+{
 	MACH_LOONGSON_UNKNOWN,
 	MACH_LEMOTE_FL2E,
 	MACH_LEMOTE_FL2F,
@@ -95,9 +96,11 @@ extern unsigned long mips_machtype;
  * A memory map that's built upon what was determined
  * or specified on the command line.
  */
-struct boot_mem_map {
+struct boot_mem_map
+{
 	int nr_map;
-	struct boot_mem_map_entry {
+	struct boot_mem_map_entry
+	{
 		phys_addr_t addr;	/* start of memory segment */
 		phys_addr_t size;	/* size of memory segment */
 		long type;		/* type of memory segment */
@@ -113,7 +116,7 @@ extern void prom_init(void);
 extern void prom_free_prom_memory(void);
 
 extern void free_init_pages(const char *what,
-			    unsigned long begin, unsigned long end);
+							unsigned long begin, unsigned long end);
 
 extern void (*free_init_pages_eva)(void *begin, void *end);
 
@@ -128,7 +131,7 @@ extern char arcs_cmdline[COMMAND_LINE_SIZE];
 extern unsigned long fw_arg0, fw_arg1, fw_arg2, fw_arg3;
 
 #ifdef CONFIG_USE_OF
-extern unsigned long fw_passed_dtb;
+	extern unsigned long fw_passed_dtb;
 #endif
 
 /*
@@ -149,21 +152,21 @@ static inline void plat_swiotlb_setup(void) {}
 #endif /* CONFIG_SWIOTLB */
 
 #ifdef CONFIG_USE_OF
-/**
- * plat_get_fdt() - Return a pointer to the platform's device tree blob
- *
- * This function provides a platform independent API to get a pointer to the
- * flattened device tree blob. The interface between bootloader and kernel
- * is not consistent across platforms so it is necessary to provide this
- * API such that common startup code can locate the FDT.
- *
- * This is used by the KASLR code to get command line arguments and random
- * seed from the device tree. Any platform wishing to use KASLR should
- * provide this API and select SYS_SUPPORTS_RELOCATABLE.
- *
- * Return: Pointer to the flattened device tree blob.
- */
-extern void *plat_get_fdt(void);
+	/**
+	* plat_get_fdt() - Return a pointer to the platform's device tree blob
+	*
+	* This function provides a platform independent API to get a pointer to the
+	* flattened device tree blob. The interface between bootloader and kernel
+	* is not consistent across platforms so it is necessary to provide this
+	* API such that common startup code can locate the FDT.
+	*
+	* This is used by the KASLR code to get command line arguments and random
+	* seed from the device tree. Any platform wishing to use KASLR should
+	* provide this API and select SYS_SUPPORTS_RELOCATABLE.
+	*
+	* Return: Pointer to the flattened device tree blob.
+	*/
+	extern void *plat_get_fdt(void);
 #endif /* CONFIG_USE_OF */
 
 #endif /* _ASM_BOOTINFO_H */

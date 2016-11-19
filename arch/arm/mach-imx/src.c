@@ -33,7 +33,8 @@
 static void __iomem *src_base;
 static DEFINE_SPINLOCK(scr_lock);
 
-static const int sw_reset_bits[5] = {
+static const int sw_reset_bits[5] =
+{
 	BP_SRC_SCR_SW_GPU_RST,
 	BP_SRC_SCR_SW_VPU_RST,
 	BP_SRC_SCR_SW_IPU1_RST,
@@ -42,7 +43,7 @@ static const int sw_reset_bits[5] = {
 };
 
 static int imx_src_reset_module(struct reset_controller_dev *rcdev,
-		unsigned long sw_reset_idx)
+								unsigned long sw_reset_idx)
 {
 	unsigned long timeout;
 	unsigned long flags;
@@ -50,10 +51,14 @@ static int imx_src_reset_module(struct reset_controller_dev *rcdev,
 	u32 val;
 
 	if (!src_base)
+	{
 		return -ENODEV;
+	}
 
 	if (sw_reset_idx >= ARRAY_SIZE(sw_reset_bits))
+	{
 		return -EINVAL;
+	}
 
 	bit = 1 << sw_reset_bits[sw_reset_idx];
 
@@ -64,20 +69,27 @@ static int imx_src_reset_module(struct reset_controller_dev *rcdev,
 	spin_unlock_irqrestore(&scr_lock, flags);
 
 	timeout = jiffies + msecs_to_jiffies(1000);
-	while (readl(src_base + SRC_SCR) & bit) {
+
+	while (readl(src_base + SRC_SCR) & bit)
+	{
 		if (time_after(jiffies, timeout))
+		{
 			return -ETIME;
+		}
+
 		cpu_relax();
 	}
 
 	return 0;
 }
 
-static const struct reset_control_ops imx_src_ops = {
+static const struct reset_control_ops imx_src_ops =
+{
 	.reset = imx_src_reset_module,
 };
 
-static struct reset_controller_dev imx_reset_controller = {
+static struct reset_controller_dev imx_reset_controller =
+{
 	.ops = &imx_src_ops,
 	.nr_resets = ARRAY_SIZE(sw_reset_bits),
 };
@@ -100,7 +112,7 @@ void imx_set_cpu_jump(int cpu, void *jump_addr)
 {
 	cpu = cpu_logical_map(cpu);
 	writel_relaxed(virt_to_phys(jump_addr),
-		       src_base + SRC_GPR1 + cpu * 8);
+				   src_base + SRC_GPR1 + cpu * 8);
 }
 
 u32 imx_get_cpu_arg(int cpu)
@@ -121,14 +133,21 @@ void __init imx_src_init(void)
 	u32 val;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,imx51-src");
+
 	if (!np)
+	{
 		return;
+	}
+
 	src_base = of_iomap(np, 0);
 	WARN_ON(!src_base);
 
 	imx_reset_controller.of_node = np;
+
 	if (IS_ENABLED(CONFIG_RESET_CONTROLLER))
+	{
 		reset_controller_register(&imx_reset_controller);
+	}
 
 	/*
 	 * force warm reset sources to generate cold reset

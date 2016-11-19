@@ -20,12 +20,14 @@
 #undef JH_HACK3
 
 #ifdef JH_HACK3
-; Calculate set index for 2-way MMU
+
+; Calculate set index for 2 - way MMU
 ; -avoiding use of GetIndex from MMU
-;   and its unpleasant LFSR pseudo-random sequence
+
+;   and its unpleasant LFSR pseudo - random sequence
 ;
 ; r1 = TLBPD0 from TLB_RELOAD above
-;
+	   ;
 ; -- jh_ex_way_set not cleared on startup
 ;    didn't want to change setup.c
 ;    hence extra instruction to clean

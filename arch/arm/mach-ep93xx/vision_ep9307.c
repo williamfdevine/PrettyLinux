@@ -48,7 +48,8 @@
 #define VISION_PHYS_BASE	EP93XX_CS7_PHYS_BASE
 #define VISION_VIRT_BASE	0xfebff000
 
-static struct map_desc vision_io_desc[] __initdata = {
+static struct map_desc vision_io_desc[] __initdata =
+{
 	{
 		.virtual	= VISION_VIRT_BASE,
 		.pfn		= __phys_to_pfn(VISION_PHYS_BASE),
@@ -67,7 +68,8 @@ static void __init vision_map_io(void)
 /*************************************************************************
  * Ethernet
  *************************************************************************/
-static struct ep93xx_eth_data vision_eth_data __initdata = {
+static struct ep93xx_eth_data vision_eth_data __initdata =
+{
 	.phy_id		= 1,
 };
 
@@ -81,13 +83,16 @@ static int vision_lcd_setup(struct platform_device *pdev)
 	int err;
 
 	err = gpio_request_one(VISION_LCD_ENABLE, GPIOF_INIT_HIGH,
-				dev_name(&pdev->dev));
+						   dev_name(&pdev->dev));
+
 	if (err)
+	{
 		return err;
+	}
 
 	ep93xx_devcfg_clear_bits(EP93XX_SYSCON_DEVCFG_RAS |
-				 EP93XX_SYSCON_DEVCFG_RASONP3 |
-				 EP93XX_SYSCON_DEVCFG_EXVC);
+							 EP93XX_SYSCON_DEVCFG_RASONP3 |
+							 EP93XX_SYSCON_DEVCFG_EXVC);
 
 	return 0;
 }
@@ -100,12 +105,17 @@ static void vision_lcd_teardown(struct platform_device *pdev)
 static void vision_lcd_blank(int blank_mode, struct fb_info *info)
 {
 	if (blank_mode)
+	{
 		gpio_set_value(VISION_LCD_ENABLE, 0);
+	}
 	else
+	{
 		gpio_set_value(VISION_LCD_ENABLE, 1);
+	}
 }
 
-static struct ep93xxfb_mach_info ep93xxfb_info __initdata = {
+static struct ep93xxfb_mach_info ep93xxfb_info __initdata =
+{
 	.flags		= EP93XXFB_USE_SDCSN0 | EP93XXFB_PCLK_FALLING,
 	.setup		= vision_lcd_setup,
 	.teardown	= vision_lcd_teardown,
@@ -121,22 +131,26 @@ static struct ep93xxfb_mach_info ep93xxfb_info __initdata = {
 #define PCA9539_76_GPIO_BASE	(PCA9539_75_GPIO_BASE + 16)
 #define PCA9539_77_GPIO_BASE	(PCA9539_76_GPIO_BASE + 16)
 
-static struct pca953x_platform_data pca953x_74_gpio_data = {
+static struct pca953x_platform_data pca953x_74_gpio_data =
+{
 	.gpio_base	= PCA9539_74_GPIO_BASE,
 	.irq_base	= EP93XX_BOARD_IRQ(0),
 };
 
-static struct pca953x_platform_data pca953x_75_gpio_data = {
+static struct pca953x_platform_data pca953x_75_gpio_data =
+{
 	.gpio_base	= PCA9539_75_GPIO_BASE,
 	.irq_base	= -1,
 };
 
-static struct pca953x_platform_data pca953x_76_gpio_data = {
+static struct pca953x_platform_data pca953x_76_gpio_data =
+{
 	.gpio_base	= PCA9539_76_GPIO_BASE,
 	.irq_base	= -1,
 };
 
-static struct pca953x_platform_data pca953x_77_gpio_data = {
+static struct pca953x_platform_data pca953x_77_gpio_data =
+{
 	.gpio_base	= PCA9539_77_GPIO_BASE,
 	.irq_base	= -1,
 };
@@ -144,12 +158,14 @@ static struct pca953x_platform_data pca953x_77_gpio_data = {
 /*************************************************************************
  * I2C Bus
  *************************************************************************/
-static struct i2c_gpio_platform_data vision_i2c_gpio_data __initdata = {
+static struct i2c_gpio_platform_data vision_i2c_gpio_data __initdata =
+{
 	.sda_pin		= EP93XX_GPIO_LINE_EEDAT,
 	.scl_pin		= EP93XX_GPIO_LINE_EECLK,
 };
 
-static struct i2c_board_info vision_i2c_info[] __initdata = {
+static struct i2c_board_info vision_i2c_info[] __initdata =
+{
 	{
 		I2C_BOARD_INFO("isl1208", 0x6f),
 		.irq		= IRQ_EP93XX_EXT1,
@@ -171,14 +187,15 @@ static struct i2c_board_info vision_i2c_info[] __initdata = {
 /*************************************************************************
  * SPI CS4271 Audio Codec
  *************************************************************************/
-static struct cs4271_platform_data vision_cs4271_data = {
+static struct cs4271_platform_data vision_cs4271_data =
+{
 	.gpio_nreset	= EP93XX_GPIO_LINE_H(2),
 };
 
 static int vision_cs4271_hw_setup(struct spi_device *spi)
 {
 	return gpio_request_one(EP93XX_GPIO_LINE_EGPIO6,
-				GPIOF_OUT_INIT_HIGH, spi->modalias);
+							GPIOF_OUT_INIT_HIGH, spi->modalias);
 }
 
 static void vision_cs4271_hw_cleanup(struct spi_device *spi)
@@ -191,7 +208,8 @@ static void vision_cs4271_hw_cs_control(struct spi_device *spi, int value)
 	gpio_set_value(EP93XX_GPIO_LINE_EGPIO6, value);
 }
 
-static struct ep93xx_spi_chip_ops vision_cs4271_hw = {
+static struct ep93xx_spi_chip_ops vision_cs4271_hw =
+{
 	.setup		= vision_cs4271_hw_setup,
 	.cleanup	= vision_cs4271_hw_cleanup,
 	.cs_control	= vision_cs4271_hw_cs_control,
@@ -202,7 +220,8 @@ static struct ep93xx_spi_chip_ops vision_cs4271_hw = {
  *************************************************************************/
 #define VISION_SPI_FLASH_CS	EP93XX_GPIO_LINE_EGPIO7
 
-static struct mtd_partition vision_spi_flash_partitions[] = {
+static struct mtd_partition vision_spi_flash_partitions[] =
+{
 	{
 		.name	= "SPI bootstrap",
 		.offset	= 0,
@@ -218,7 +237,8 @@ static struct mtd_partition vision_spi_flash_partitions[] = {
 	},
 };
 
-static struct flash_platform_data vision_spi_flash_data = {
+static struct flash_platform_data vision_spi_flash_data =
+{
 	.name		= "SPI Flash",
 	.parts		= vision_spi_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(vision_spi_flash_partitions),
@@ -227,7 +247,7 @@ static struct flash_platform_data vision_spi_flash_data = {
 static int vision_spi_flash_hw_setup(struct spi_device *spi)
 {
 	return gpio_request_one(VISION_SPI_FLASH_CS, GPIOF_INIT_HIGH,
-				spi->modalias);
+							spi->modalias);
 }
 
 static void vision_spi_flash_hw_cleanup(struct spi_device *spi)
@@ -240,7 +260,8 @@ static void vision_spi_flash_hw_cs_control(struct spi_device *spi, int value)
 	gpio_set_value(VISION_SPI_FLASH_CS, value);
 }
 
-static struct ep93xx_spi_chip_ops vision_spi_flash_hw = {
+static struct ep93xx_spi_chip_ops vision_spi_flash_hw =
+{
 	.setup		= vision_spi_flash_hw_setup,
 	.cleanup	= vision_spi_flash_hw_cleanup,
 	.cs_control	= vision_spi_flash_hw_cs_control,
@@ -253,7 +274,8 @@ static struct ep93xx_spi_chip_ops vision_spi_flash_hw = {
 #define VISION_SPI_MMC_WP	EP93XX_GPIO_LINE_F(0)
 #define VISION_SPI_MMC_CD	EP93XX_GPIO_LINE_EGPIO15
 
-static struct mmc_spi_platform_data vision_spi_mmc_data = {
+static struct mmc_spi_platform_data vision_spi_mmc_data =
+{
 	.detect_delay	= 100,
 	.powerup_msecs	= 100,
 	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
@@ -267,7 +289,7 @@ static struct mmc_spi_platform_data vision_spi_mmc_data = {
 static int vision_spi_mmc_hw_setup(struct spi_device *spi)
 {
 	return gpio_request_one(VISION_SPI_MMC_CS, GPIOF_INIT_HIGH,
-				spi->modalias);
+							spi->modalias);
 }
 
 static void vision_spi_mmc_hw_cleanup(struct spi_device *spi)
@@ -280,7 +302,8 @@ static void vision_spi_mmc_hw_cs_control(struct spi_device *spi, int value)
 	gpio_set_value(VISION_SPI_MMC_CS, value);
 }
 
-static struct ep93xx_spi_chip_ops vision_spi_mmc_hw = {
+static struct ep93xx_spi_chip_ops vision_spi_mmc_hw =
+{
 	.setup		= vision_spi_mmc_hw_setup,
 	.cleanup	= vision_spi_mmc_hw_cleanup,
 	.cs_control	= vision_spi_mmc_hw_cs_control,
@@ -289,7 +312,8 @@ static struct ep93xx_spi_chip_ops vision_spi_mmc_hw = {
 /*************************************************************************
  * SPI Bus
  *************************************************************************/
-static struct spi_board_info vision_spi_board_info[] __initdata = {
+static struct spi_board_info vision_spi_board_info[] __initdata =
+{
 	{
 		.modalias		= "cs4271",
 		.platform_data		= &vision_cs4271_data,
@@ -317,7 +341,8 @@ static struct spi_board_info vision_spi_board_info[] __initdata = {
 	},
 };
 
-static struct ep93xx_spi_info vision_spi_master __initdata = {
+static struct ep93xx_spi_info vision_spi_master __initdata =
+{
 	.num_chipselect	= ARRAY_SIZE(vision_spi_board_info),
 	.use_dma	= 1,
 };
@@ -325,7 +350,8 @@ static struct ep93xx_spi_info vision_spi_master __initdata = {
 /*************************************************************************
  * I2S Audio
  *************************************************************************/
-static struct platform_device vision_audio_device = {
+static struct platform_device vision_audio_device =
+{
 	.name		= "edb93xx-audio",
 	.id		= -1,
 };
@@ -352,25 +378,27 @@ static void __init vision_init_machine(void)
 	 * the kernel from doing a WARN in gpiolib:gpio_ensure_requested().
 	 */
 	if (gpio_request_one(EP93XX_GPIO_LINE_F(7), GPIOF_DIR_IN,
-				"pca9539:74"))
+						 "pca9539:74"))
+	{
 		pr_warn("cannot request interrupt gpio for pca9539:74\n");
+	}
 
 	vision_i2c_info[1].irq = gpio_to_irq(EP93XX_GPIO_LINE_F(7));
 
 	ep93xx_register_i2c(&vision_i2c_gpio_data, vision_i2c_info,
-				ARRAY_SIZE(vision_i2c_info));
+						ARRAY_SIZE(vision_i2c_info));
 	ep93xx_register_spi(&vision_spi_master, vision_spi_board_info,
-				ARRAY_SIZE(vision_spi_board_info));
+						ARRAY_SIZE(vision_spi_board_info));
 	vision_register_i2s();
 }
 
 MACHINE_START(VISION_EP9307, "Vision Engraving Systems EP9307")
-	/* Maintainer: H Hartley Sweeten <hsweeten@visionengravers.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: H Hartley Sweeten <hsweeten@visionengravers.com> */
+.atag_offset	= 0x100,
 	.map_io		= vision_map_io,
-	.init_irq	= ep93xx_init_irq,
-	.init_time	= ep93xx_timer_init,
-	.init_machine	= vision_init_machine,
-	.init_late	= ep93xx_init_late,
-	.restart	= ep93xx_restart,
-MACHINE_END
+		.init_irq	= ep93xx_init_irq,
+		   .init_time	= ep93xx_timer_init,
+			 .init_machine	= vision_init_machine,
+				.init_late	= ep93xx_init_late,
+				  .restart	= ep93xx_restart,
+					  MACHINE_END

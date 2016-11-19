@@ -55,11 +55,14 @@ static char __init *decode_eisa_sig(unsigned long addr)
 	u16 rev;
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		sig[i] = inb(addr + i);
 
 		if (!i && (sig[0] & 0x80))
+		{
 			return NULL;
+		}
 	}
 
 	sig_str[0] = ((sig[0] >> 2) & 0x1f) + ('A' - 1);
@@ -78,7 +81,8 @@ static irqreturn_t ip22_eisa_intr(int irq, void *dev_id)
 	inb(EISA_DMA1_STATUS);
 	inb(EISA_DMA2_STATUS);
 
-	if (eisa_irq < EISA_MAX_IRQ) {
+	if (eisa_irq < EISA_MAX_IRQ)
+	{
 		do_IRQ(eisa_irq);
 		return IRQ_HANDLED;
 	}
@@ -92,7 +96,8 @@ static irqreturn_t ip22_eisa_intr(int irq, void *dev_id)
 	return IRQ_NONE;
 }
 
-static struct irqaction eisa_action = {
+static struct irqaction eisa_action =
+{
 	.handler	= ip22_eisa_intr,
 	.name		= "EISA",
 };
@@ -102,19 +107,24 @@ int __init ip22_eisa_init(void)
 	int i, c;
 	char *str;
 
-	if (!(sgimc->systemid & SGIMC_SYSID_EPRESENT)) {
+	if (!(sgimc->systemid & SGIMC_SYSID_EPRESENT))
+	{
 		printk(KERN_INFO "EISA: bus not present.\n");
 		return 1;
 	}
 
 	printk(KERN_INFO "EISA: Probing bus...\n");
-	for (c = 0, i = 1; i <= IP22_EISA_MAX_SLOTS; i++) {
-		if ((str = decode_eisa_sig(0x1000 * i + EISA_VENDOR_ID_OFFSET))) {
+
+	for (c = 0, i = 1; i <= IP22_EISA_MAX_SLOTS; i++)
+	{
+		if ((str = decode_eisa_sig(0x1000 * i + EISA_VENDOR_ID_OFFSET)))
+		{
 			printk(KERN_INFO "EISA: slot %d : %s detected.\n",
-			       i, str);
+				   i, str);
 			c++;
 		}
 	}
+
 	printk(KERN_INFO "EISA: Detected %d card%s.\n", c, c < 2 ? "" : "s");
 #ifdef CONFIG_ISA
 	printk(KERN_INFO "ISA support compiled in.\n");

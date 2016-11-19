@@ -87,25 +87,29 @@ void nlm_cop2_restore(struct nlm_cop2_state *r)
 }
 
 static int nlm_cu2_call(struct notifier_block *nfb, unsigned long action,
-	void *data)
+						void *data)
 {
 	unsigned long flags;
 	unsigned int status;
 
-	switch (action) {
-	case CU2_EXCEPTION:
-		if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
-			break;
-		local_irq_save(flags);
-		KSTK_STATUS(current) |= ST0_CU2;
-		status = read_c0_status();
-		write_c0_status(status | ST0_CU2);
-		nlm_cop2_restore(&(current->thread.cp2));
-		write_c0_status(status & ~ST0_CU2);
-		local_irq_restore(flags);
-		pr_info("COP2 access enabled for pid %d (%s)\n",
+	switch (action)
+	{
+		case CU2_EXCEPTION:
+			if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+			{
+				break;
+			}
+
+			local_irq_save(flags);
+			KSTK_STATUS(current) |= ST0_CU2;
+			status = read_c0_status();
+			write_c0_status(status | ST0_CU2);
+			nlm_cop2_restore(&(current->thread.cp2));
+			write_c0_status(status & ~ST0_CU2);
+			local_irq_restore(flags);
+			pr_info("COP2 access enabled for pid %d (%s)\n",
 					current->pid, current->comm);
-		return NOTIFY_BAD;	/* Don't call default notifier */
+			return NOTIFY_BAD;	/* Don't call default notifier */
 	}
 
 	return NOTIFY_OK;		/* Let default notifier send signals */

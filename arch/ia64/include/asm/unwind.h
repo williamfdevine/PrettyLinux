@@ -16,7 +16,8 @@
 struct task_struct;	/* forward declaration */
 struct switch_stack;	/* forward declaration */
 
-enum unw_application_register {
+enum unw_application_register
+{
 	UNW_AR_BSP,
 	UNW_AR_BSPSTORE,
 	UNW_AR_PFS,
@@ -36,7 +37,8 @@ enum unw_application_register {
  * implementation:
  */
 
-struct unw_stack {
+struct unw_stack
+{
 	unsigned long limit;
 	unsigned long top;
 };
@@ -48,7 +50,8 @@ struct unw_stack {
  * as it is subject to change.  It is declared here solely so we can
  * use automatic variables.
  */
-struct unw_frame_info {
+struct unw_frame_info
+{
 	struct unw_stack regstk;
 	struct unw_stack memstk;
 	unsigned int flags;
@@ -78,9 +81,11 @@ struct unw_frame_info {
 	unsigned long *pr_loc;
 	unsigned long *lc_loc;
 	unsigned long *fpsr_loc;
-	struct unw_ireg {
+	struct unw_ireg
+	{
 		unsigned long *loc;
-		struct unw_ireg_nat {
+		struct unw_ireg_nat
+		{
 			unsigned long type : 3;		/* enum unw_nat_type */
 			signed long off : 61;		/* NaT word is at loc+nat.off */
 		} nat;
@@ -93,7 +98,8 @@ struct unw_frame_info {
  * The official API follows below:
  */
 
-struct unw_table_entry {
+struct unw_table_entry
+{
 	u64 start_offset;
 	u64 end_offset;
 	u64 info_offset;
@@ -105,7 +111,7 @@ struct unw_table_entry {
 extern void unw_init (void);
 
 extern void *unw_add_unwind_table (const char *name, unsigned long segment_base, unsigned long gp,
-				   const void *table_start, const void *table_end);
+								   const void *table_start, const void *table_end);
 
 extern void unw_remove_unwind_table (void *handle);
 
@@ -115,7 +121,7 @@ extern void unw_remove_unwind_table (void *handle);
 extern void unw_init_from_blocked_task (struct unw_frame_info *info, struct task_struct *t);
 
 extern void unw_init_frame_info (struct unw_frame_info *info, struct task_struct *t,
-				 struct switch_stack *sw);
+								 struct switch_stack *sw);
 
 /*
  * Prepare to unwind the currently running thread.
@@ -183,7 +189,10 @@ static inline int
 unw_get_rp (struct unw_frame_info *info, unsigned long *val)
 {
 	if (!info->rp_loc)
+	{
 		return -1;
+	}
+
 	*val = *info->rp_loc;
 	return 0;
 }

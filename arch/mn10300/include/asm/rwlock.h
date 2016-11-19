@@ -32,39 +32,39 @@ typedef struct { unsigned long a[100]; } __dummy_lock_t;
 #define __build_read_lock_ptr(rw, helper)				\
 	do {								\
 		asm volatile(						\
-			"	mov	(%0),d3			\n"	\
-			"	sub	1,d3			\n"	\
-			"	mov	d3,(%0)			\n"	\
-			"	blt	1f			\n"	\
-			"	bra	2f			\n"	\
-			"1:	jmp	3f			\n"	\
-			"2:					\n"	\
-			"	.section .text.lock,\"ax\"	\n"	\
-			"3:	call	"helper"[],0		\n"	\
-			"	jmp	2b			\n"	\
-			"	.previous"				\
-			:						\
-			: "d" (rw)					\
-			: "memory", "d3", "cc");			\
+											"	mov	(%0),d3			\n"	\
+											"	sub	1,d3			\n"	\
+											"	mov	d3,(%0)			\n"	\
+											"	blt	1f			\n"	\
+											"	bra	2f			\n"	\
+											"1:	jmp	3f			\n"	\
+											"2:					\n"	\
+											"	.section .text.lock,\"ax\"	\n"	\
+											"3:	call	"helper"[],0		\n"	\
+											"	jmp	2b			\n"	\
+											"	.previous"				\
+											:						\
+											: "d" (rw)					\
+											: "memory", "d3", "cc");			\
 	} while (0)
 
 #define __build_read_lock_const(rw, helper)				\
 	do {								\
 		asm volatile(						\
-			"	mov	(%0),d3			\n"	\
-			"	sub	1,d3			\n"	\
-			"	mov	d3,(%0)			\n"	\
-			"	blt	1f			\n"	\
-			"	bra	2f			\n"	\
-			"1:	jmp	3f			\n"	\
-			"2:					\n"	\
-			"	.section .text.lock,\"ax\"	\n"	\
-			"3:	call	"helper"[],0		\n"	\
-			"	jmp	2b			\n"	\
-			"	.previous"				\
-			:						\
-			: "d" (rw)					\
-			: "memory", "d3", "cc");			\
+											"	mov	(%0),d3			\n"	\
+											"	sub	1,d3			\n"	\
+											"	mov	d3,(%0)			\n"	\
+											"	blt	1f			\n"	\
+											"	bra	2f			\n"	\
+											"1:	jmp	3f			\n"	\
+											"2:					\n"	\
+											"	.section .text.lock,\"ax\"	\n"	\
+											"3:	call	"helper"[],0		\n"	\
+											"	jmp	2b			\n"	\
+											"	.previous"				\
+											:						\
+											: "d" (rw)					\
+											: "memory", "d3", "cc");			\
 	} while (0)
 
 #define __build_read_lock(rw, helper) \
@@ -78,39 +78,39 @@ typedef struct { unsigned long a[100]; } __dummy_lock_t;
 #define __build_write_lock_ptr(rw, helper)				\
 	do {								\
 		asm volatile(						\
-			"	mov	(%0),d3			\n"	\
-			"	sub	1,d3			\n"	\
-			"	mov	d3,(%0)			\n"	\
-			"	blt	1f			\n"	\
-			"	bra	2f			\n"	\
-			"1:	jmp	3f			\n"	\
-			"2:					\n"	\
-			"	.section .text.lock,\"ax\"	\n"	\
-			"3:	call	"helper"[],0		\n"	\
-			"	jmp	2b			\n"	\
-			"	.previous"				\
-			:						\
-			: "d" (rw)					\
-			: "memory", "d3", "cc");			\
+											"	mov	(%0),d3			\n"	\
+											"	sub	1,d3			\n"	\
+											"	mov	d3,(%0)			\n"	\
+											"	blt	1f			\n"	\
+											"	bra	2f			\n"	\
+											"1:	jmp	3f			\n"	\
+											"2:					\n"	\
+											"	.section .text.lock,\"ax\"	\n"	\
+											"3:	call	"helper"[],0		\n"	\
+											"	jmp	2b			\n"	\
+											"	.previous"				\
+											:						\
+											: "d" (rw)					\
+											: "memory", "d3", "cc");			\
 	} while (0)
 
 #define __build_write_lock_const(rw, helper)				\
 	do {								\
 		asm volatile(						\
-			"	mov	(%0),d3			\n"	\
-			"	sub	1,d3			\n"	\
-			"	mov	d3,(%0)			\n"	\
-			"	blt	1f			\n"	\
-			"	bra	2f			\n"	\
-			"1:	jmp	3f			\n"	\
-			"2:					\n"	\
-			"	.section .text.lock,\"ax\"	\n"	\
-			"3:	call	"helper"[],0		\n"	\
-			"	jmp	2b			\n"	\
-			"	.previous"				\
-			:						\
-			: "d" (rw)					\
-			: "memory", "d3", "cc");			\
+											"	mov	(%0),d3			\n"	\
+											"	sub	1,d3			\n"	\
+											"	mov	d3,(%0)			\n"	\
+											"	blt	1f			\n"	\
+											"	bra	2f			\n"	\
+											"1:	jmp	3f			\n"	\
+											"2:					\n"	\
+											"	.section .text.lock,\"ax\"	\n"	\
+											"3:	call	"helper"[],0		\n"	\
+											"	jmp	2b			\n"	\
+											"	.previous"				\
+											:						\
+											: "d" (rw)					\
+											: "memory", "d3", "cc");			\
 	} while (0)
 
 #define __build_write_lock(rw, helper)					\

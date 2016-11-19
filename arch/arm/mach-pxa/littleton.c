@@ -53,7 +53,8 @@
 #define GPIO_MMC1_CARD_DETECT	mfp_to_gpio(MFP_PIN_GPIO15)
 
 /* Littleton MFP configurations */
-static mfp_cfg_t littleton_mfp_cfg[] __initdata = {
+static mfp_cfg_t littleton_mfp_cfg[] __initdata =
+{
 	/* LCD */
 	GPIO54_LCD_LDD_0,
 	GPIO55_LCD_LDD_1,
@@ -117,7 +118,8 @@ static mfp_cfg_t littleton_mfp_cfg[] __initdata = {
 	GPIO110_UART3_RXD,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= (LITTLETON_ETH_PHYS + 0x300),
 		.end	= (LITTLETON_ETH_PHYS + 0xfffff),
@@ -130,12 +132,14 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct smc91x_platdata littleton_smc91x_info = {
+static struct smc91x_platdata littleton_smc91x_info =
+{
 	.flags	= SMC91X_USE_8BIT | SMC91X_USE_16BIT |
-		  SMC91X_NOWAIT | SMC91X_USE_DMA,
+	SMC91X_NOWAIT | SMC91X_USE_DMA,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -146,7 +150,8 @@ static struct platform_device smc91x_device = {
 };
 
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static struct pxafb_mode_info tpo_tdo24mtea1_modes[] = {
+static struct pxafb_mode_info tpo_tdo24mtea1_modes[] =
+{
 	[0] = {
 		/* VGA */
 		.pixclock	= 38250,
@@ -177,7 +182,8 @@ static struct pxafb_mode_info tpo_tdo24mtea1_modes[] = {
 	},
 };
 
-static struct pxafb_mach_info littleton_lcd_info = {
+static struct pxafb_mach_info littleton_lcd_info =
+{
 	.modes			= tpo_tdo24mtea1_modes,
 	.num_modes		= 2,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP,
@@ -192,23 +198,26 @@ static inline void littleton_init_lcd(void) {};
 #endif /* CONFIG_FB_PXA || CONFIG_FB_PXA_MODULE */
 
 #if defined(CONFIG_SPI_PXA2XX) || defined(CONFIG_SPI_PXA2XX_MODULE)
-static struct pxa2xx_spi_master littleton_spi_info = {
+static struct pxa2xx_spi_master littleton_spi_info =
+{
 	.num_chipselect		= 1,
 };
 
-static struct pxa2xx_spi_chip littleton_tdo24m_chip = {
+static struct pxa2xx_spi_chip littleton_tdo24m_chip =
+{
 	.rx_threshold	= 1,
 	.tx_threshold	= 1,
 	.gpio_cs	= LITTLETON_GPIO_LCD_CS,
 };
 
-static struct spi_board_info littleton_spi_devices[] __initdata = {
+static struct spi_board_info littleton_spi_devices[] __initdata =
+{
 	{
 		.modalias	= "tdo24m",
 		.max_speed_hz	= 1000000,
 		.bus_num	= 2,
 		.chip_select	= 0,
-		.controller_data= &littleton_tdo24m_chip,
+		.controller_data = &littleton_tdo24m_chip,
 	},
 };
 
@@ -222,7 +231,8 @@ static inline void littleton_init_spi(void) {}
 #endif
 
 #if defined(CONFIG_KEYBOARD_PXA27x) || defined(CONFIG_KEYBOARD_PXA27x_MODULE)
-static const unsigned int littleton_matrix_key_map[] = {
+static const unsigned int littleton_matrix_key_map[] =
+{
 	/* KEY(row, col, key_code) */
 	KEY(1, 3, KEY_0), KEY(0, 0, KEY_1), KEY(1, 0, KEY_2), KEY(2, 0, KEY_3),
 	KEY(0, 1, KEY_4), KEY(1, 1, KEY_5), KEY(2, 1, KEY_6), KEY(0, 2, KEY_7),
@@ -249,12 +259,14 @@ static const unsigned int littleton_matrix_key_map[] = {
 	KEY(3, 1, KEY_F23),	/* soft2 */
 };
 
-static struct matrix_keymap_data littleton_matrix_keymap_data = {
+static struct matrix_keymap_data littleton_matrix_keymap_data =
+{
 	.keymap			= littleton_matrix_key_map,
 	.keymap_size		= ARRAY_SIZE(littleton_matrix_key_map),
 };
 
-static struct pxa27x_keypad_platform_data littleton_keypad_info = {
+static struct pxa27x_keypad_platform_data littleton_keypad_info =
+{
 	.matrix_key_rows	= 6,
 	.matrix_key_cols	= 5,
 	.matrix_keymap_data	= &littleton_matrix_keymap_data,
@@ -274,7 +286,8 @@ static inline void littleton_init_keypad(void) {}
 #endif
 
 #if defined(CONFIG_MMC_PXA) || defined(CONFIG_MMC_PXA_MODULE)
-static struct pxamci_platform_data littleton_mci_platform_data = {
+static struct pxamci_platform_data littleton_mci_platform_data =
+{
 	.detect_delay_ms	= 200,
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO_MMC1_CARD_DETECT,
@@ -291,7 +304,8 @@ static inline void littleton_init_mmc(void) {}
 #endif
 
 #if defined(CONFIG_MTD_NAND_PXA3xx) || defined(CONFIG_MTD_NAND_PXA3xx_MODULE)
-static struct mtd_partition littleton_nand_partitions[] = {
+static struct mtd_partition littleton_nand_partitions[] =
+{
 	[0] = {
 		.name        = "Bootloader",
 		.offset      = 0,
@@ -327,7 +341,8 @@ static struct mtd_partition littleton_nand_partitions[] = {
 	 */
 };
 
-static struct pxa3xx_nand_platform_data littleton_nand_info = {
+static struct pxa3xx_nand_platform_data littleton_nand_info =
+{
 	.enable_arbiter	= 1,
 	.num_cs		= 1,
 	.parts[0]	= littleton_nand_partitions,
@@ -343,7 +358,8 @@ static inline void littleton_init_nand(void) {}
 #endif /* CONFIG_MTD_NAND_PXA3xx || CONFIG_MTD_NAND_PXA3xx_MODULE */
 
 #if defined(CONFIG_I2C_PXA) || defined(CONFIG_I2C_PXA_MODULE)
-static struct led_info littleton_da9034_leds[] = {
+static struct led_info littleton_da9034_leds[] =
+{
 	[0] = {
 		.name	= "littleton:keypad1",
 		.flags	= DA9034_LED_RAMP,
@@ -358,12 +374,14 @@ static struct led_info littleton_da9034_leds[] = {
 	},
 };
 
-static struct da9034_touch_pdata littleton_da9034_touch = {
+static struct da9034_touch_pdata littleton_da9034_touch =
+{
 	.x_inverted     = 1,
 	.interval_ms    = 20,
 };
 
-static struct da903x_subdev_info littleton_da9034_subdevs[] = {
+static struct da903x_subdev_info littleton_da9034_subdevs[] =
+{
 	{
 		.name		= "da903x-led",
 		.id		= DA9034_ID_LED_1,
@@ -386,16 +404,19 @@ static struct da903x_subdev_info littleton_da9034_subdevs[] = {
 	},
 };
 
-static struct da903x_platform_data littleton_da9034_info = {
+static struct da903x_platform_data littleton_da9034_info =
+{
 	.num_subdevs	= ARRAY_SIZE(littleton_da9034_subdevs),
 	.subdevs	= littleton_da9034_subdevs,
 };
 
-static struct max732x_platform_data littleton_max7320_info = {
+static struct max732x_platform_data littleton_max7320_info =
+{
 	.gpio_base	= EXT0_GPIO_BASE,
 };
 
-static struct i2c_board_info littleton_i2c_info[] = {
+static struct i2c_board_info littleton_i2c_info[] =
+{
 	[0] = {
 		.type		= "da9034",
 		.addr		= 0x34,
@@ -442,12 +463,12 @@ static void __init littleton_init(void)
 }
 
 MACHINE_START(LITTLETON, "Marvell Form Factor Development Platform (aka Littleton)")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa3xx_map_io,
-	.nr_irqs	= LITTLETON_NR_IRQS,
-	.init_irq	= pxa3xx_init_irq,
-	.handle_irq	= pxa3xx_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= littleton_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= LITTLETON_NR_IRQS,
+			.init_irq	= pxa3xx_init_irq,
+			   .handle_irq	= pxa3xx_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= littleton_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

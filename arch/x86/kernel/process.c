@@ -41,7 +41,8 @@
  * section. Since TSS's are completely CPU-local, we want them
  * on exact cacheline boundaries, to eliminate cacheline ping-pong.
  */
-__visible DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, cpu_tss) = {
+__visible DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, cpu_tss) =
+{
 	.x86_tss = {
 		.sp0 = TOP_OF_INIT_STACK,
 #ifdef CONFIG_X86_32
@@ -49,14 +50,14 @@ __visible DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, cpu_tss) = {
 		.ss1 = __KERNEL_CS,
 		.io_bitmap_base	= INVALID_IO_BITMAP_OFFSET,
 #endif
-	 },
+	},
 #ifdef CONFIG_X86_32
-	 /*
-	  * Note that the .io_bitmap member must be extra-big. This is because
-	  * the CPU will access an additional byte beyond the end of the IO
-	  * permission bitmap. The extra byte must be all 1 bits, and must
-	  * be within the limit.
-	  */
+	/*
+	 * Note that the .io_bitmap member must be extra-big. This is because
+	 * the CPU will access an additional byte beyond the end of the IO
+	 * permission bitmap. The extra byte must be all 1 bits, and must
+	 * be within the limit.
+	 */
 	.io_bitmap		= { [0 ... IO_BITMAP_LONGS] = ~0 },
 #endif
 #ifdef CONFIG_X86_32
@@ -105,7 +106,8 @@ void exit_thread(struct task_struct *tsk)
 	unsigned long *bp = t->io_bitmap_ptr;
 	struct fpu *fpu = &t->fpu;
 
-	if (bp) {
+	if (bp)
+	{
 		struct tss_struct *tss = &per_cpu(cpu_tss, get_cpu());
 
 		t->io_bitmap_ptr = NULL;
@@ -142,12 +144,16 @@ static void hard_disable_TSC(void)
 void disable_TSC(void)
 {
 	preempt_disable();
+
 	if (!test_and_set_thread_flag(TIF_NOTSC))
 		/*
 		 * Must flip the CPU state synchronously with
 		 * TIF_NOTSC in the current running context.
 		 */
+	{
 		hard_disable_TSC();
+	}
+
 	preempt_enable();
 }
 
@@ -159,12 +165,16 @@ static void hard_enable_TSC(void)
 static void enable_TSC(void)
 {
 	preempt_disable();
+
 	if (test_and_clear_thread_flag(TIF_NOTSC))
 		/*
 		 * Must flip the CPU state synchronously with
 		 * TIF_NOTSC in the current running context.
 		 */
+	{
 		hard_enable_TSC();
+	}
+
 	preempt_enable();
 }
 
@@ -173,9 +183,13 @@ int get_tsc_mode(unsigned long adr)
 	unsigned int val;
 
 	if (test_thread_flag(TIF_NOTSC))
+	{
 		val = PR_TSC_SIGSEGV;
+	}
 	else
+	{
 		val = PR_TSC_ENABLE;
+	}
 
 	return put_user(val, (unsigned int __user *)adr);
 }
@@ -183,17 +197,23 @@ int get_tsc_mode(unsigned long adr)
 int set_tsc_mode(unsigned int val)
 {
 	if (val == PR_TSC_SIGSEGV)
+	{
 		disable_TSC();
+	}
 	else if (val == PR_TSC_ENABLE)
+	{
 		enable_TSC();
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
-		      struct tss_struct *tss)
+					  struct tss_struct *tss)
 {
 	struct thread_struct *prev, *next;
 
@@ -201,38 +221,51 @@ void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
 	next = &next_p->thread;
 
 	if (test_tsk_thread_flag(prev_p, TIF_BLOCKSTEP) ^
-	    test_tsk_thread_flag(next_p, TIF_BLOCKSTEP)) {
+		test_tsk_thread_flag(next_p, TIF_BLOCKSTEP))
+	{
 		unsigned long debugctl = get_debugctlmsr();
 
 		debugctl &= ~DEBUGCTLMSR_BTF;
+
 		if (test_tsk_thread_flag(next_p, TIF_BLOCKSTEP))
+		{
 			debugctl |= DEBUGCTLMSR_BTF;
+		}
 
 		update_debugctlmsr(debugctl);
 	}
 
 	if (test_tsk_thread_flag(prev_p, TIF_NOTSC) ^
-	    test_tsk_thread_flag(next_p, TIF_NOTSC)) {
+		test_tsk_thread_flag(next_p, TIF_NOTSC))
+	{
 		/* prev and next are different */
 		if (test_tsk_thread_flag(next_p, TIF_NOTSC))
+		{
 			hard_disable_TSC();
+		}
 		else
+		{
 			hard_enable_TSC();
+		}
 	}
 
-	if (test_tsk_thread_flag(next_p, TIF_IO_BITMAP)) {
+	if (test_tsk_thread_flag(next_p, TIF_IO_BITMAP))
+	{
 		/*
 		 * Copy the relevant range of the IO bitmap.
 		 * Normally this is 128 bytes or less:
 		 */
 		memcpy(tss->io_bitmap, next->io_bitmap_ptr,
-		       max(prev->io_bitmap_max, next->io_bitmap_max));
-	} else if (test_tsk_thread_flag(prev_p, TIF_IO_BITMAP)) {
+			   max(prev->io_bitmap_max, next->io_bitmap_max));
+	}
+	else if (test_tsk_thread_flag(prev_p, TIF_IO_BITMAP))
+	{
 		/*
 		 * Clear any possible leftover bits:
 		 */
 		memset(tss->io_bitmap, 0xff, prev->io_bitmap_max);
 	}
+
 	propagate_user_return_notify(prev_p, next_p);
 }
 
@@ -261,7 +294,10 @@ void enter_idle(void)
 static void __exit_idle(void)
 {
 	if (x86_test_and_clear_bit_percpu(0, is_idle) == 0)
+	{
 		return;
+	}
+
 	atomic_notifier_call_chain(&idle_notifier, IDLE_END, NULL);
 }
 
@@ -270,7 +306,10 @@ void exit_idle(void)
 {
 	/* idle loop has pid 0 */
 	if (current->pid)
+	{
 		return;
+	}
+
 	__exit_idle();
 }
 #endif
@@ -309,7 +348,7 @@ void __cpuidle default_idle(void)
 	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
 }
 #ifdef CONFIG_APM_MODULE
-EXPORT_SYMBOL(default_idle);
+	EXPORT_SYMBOL(default_idle);
 #endif
 
 #ifdef CONFIG_XEN
@@ -333,7 +372,9 @@ void stop_this_cpu(void *dummy)
 	mcheck_cpu_clear(this_cpu_ptr(&cpu_info));
 
 	for (;;)
+	{
 		halt();
+	}
 }
 
 bool amd_e400_c1e_detected;
@@ -344,7 +385,9 @@ static cpumask_var_t amd_e400_c1e_mask;
 void amd_e400_remove_cpu(int cpu)
 {
 	if (amd_e400_c1e_mask != NULL)
+	{
 		cpumask_clear_cpu(cpu, amd_e400_c1e_mask);
+	}
 }
 
 /*
@@ -354,28 +397,37 @@ void amd_e400_remove_cpu(int cpu)
  */
 static void amd_e400_idle(void)
 {
-	if (!amd_e400_c1e_detected) {
+	if (!amd_e400_c1e_detected)
+	{
 		u32 lo, hi;
 
 		rdmsr(MSR_K8_INT_PENDING_MSG, lo, hi);
 
-		if (lo & K8_INTP_C1E_ACTIVE_MASK) {
+		if (lo & K8_INTP_C1E_ACTIVE_MASK)
+		{
 			amd_e400_c1e_detected = true;
+
 			if (!boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
+			{
 				mark_tsc_unstable("TSC halt in AMD C1E");
+			}
+
 			pr_info("System has AMD C1E enabled\n");
 		}
 	}
 
-	if (amd_e400_c1e_detected) {
+	if (amd_e400_c1e_detected)
+	{
 		int cpu = smp_processor_id();
 
-		if (!cpumask_test_cpu(cpu, amd_e400_c1e_mask)) {
+		if (!cpumask_test_cpu(cpu, amd_e400_c1e_mask))
+		{
 			cpumask_set_cpu(cpu, amd_e400_c1e_mask);
 			/* Force broadcast so ACPI can not interfere. */
 			tick_broadcast_force();
 			pr_info("Switch to broadcast mode on CPU%d\n", cpu);
 		}
+
 		tick_broadcast_enter();
 
 		default_idle();
@@ -387,8 +439,11 @@ static void amd_e400_idle(void)
 		local_irq_disable();
 		tick_broadcast_exit();
 		local_irq_enable();
-	} else
+	}
+	else
+	{
 		default_idle();
+	}
 }
 
 /*
@@ -404,10 +459,14 @@ static void amd_e400_idle(void)
 static int prefer_mwait_c1_over_halt(const struct cpuinfo_x86 *c)
 {
 	if (c->x86_vendor != X86_VENDOR_INTEL)
+	{
 		return 0;
+	}
 
 	if (!cpu_has(c, X86_FEATURE_MWAIT) || static_cpu_has_bug(X86_BUG_MONITOR))
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -419,63 +478,95 @@ static int prefer_mwait_c1_over_halt(const struct cpuinfo_x86 *c)
  */
 static __cpuidle void mwait_idle(void)
 {
-	if (!current_set_polling_and_test()) {
+	if (!current_set_polling_and_test())
+	{
 		trace_cpu_idle_rcuidle(1, smp_processor_id());
-		if (this_cpu_has(X86_BUG_CLFLUSH_MONITOR)) {
+
+		if (this_cpu_has(X86_BUG_CLFLUSH_MONITOR))
+		{
 			mb(); /* quirk */
 			clflush((void *)&current_thread_info()->flags);
 			mb(); /* quirk */
 		}
 
 		__monitor((void *)&current_thread_info()->flags, 0, 0);
+
 		if (!need_resched())
+		{
 			__sti_mwait(0, 0);
+		}
 		else
+		{
 			local_irq_enable();
+		}
+
 		trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
-	} else {
+	}
+	else
+	{
 		local_irq_enable();
 	}
+
 	__current_clr_polling();
 }
 
 void select_idle_routine(const struct cpuinfo_x86 *c)
 {
 #ifdef CONFIG_SMP
-	if (boot_option_idle_override == IDLE_POLL && smp_num_siblings > 1)
-		pr_warn_once("WARNING: polling idle and HT enabled, performance may degrade\n");
-#endif
-	if (x86_idle || boot_option_idle_override == IDLE_POLL)
-		return;
 
-	if (cpu_has_bug(c, X86_BUG_AMD_APIC_C1E)) {
+	if (boot_option_idle_override == IDLE_POLL && smp_num_siblings > 1)
+	{
+		pr_warn_once("WARNING: polling idle and HT enabled, performance may degrade\n");
+	}
+
+#endif
+
+	if (x86_idle || boot_option_idle_override == IDLE_POLL)
+	{
+		return;
+	}
+
+	if (cpu_has_bug(c, X86_BUG_AMD_APIC_C1E))
+	{
 		/* E400: APIC timer interrupt does not wake up CPU from C1e */
 		pr_info("using AMD E400 aware idle routine\n");
 		x86_idle = amd_e400_idle;
-	} else if (prefer_mwait_c1_over_halt(c)) {
+	}
+	else if (prefer_mwait_c1_over_halt(c))
+	{
 		pr_info("using mwait in idle threads\n");
 		x86_idle = mwait_idle;
-	} else
+	}
+	else
+	{
 		x86_idle = default_idle;
+	}
 }
 
 void __init init_amd_e400_c1e_mask(void)
 {
 	/* If we're using amd_e400_idle, we need to allocate amd_e400_c1e_mask. */
 	if (x86_idle == amd_e400_idle)
+	{
 		zalloc_cpumask_var(&amd_e400_c1e_mask, GFP_KERNEL);
+	}
 }
 
 static int __init idle_setup(char *str)
 {
 	if (!str)
+	{
 		return -EINVAL;
+	}
 
-	if (!strcmp(str, "poll")) {
+	if (!strcmp(str, "poll"))
+	{
 		pr_info("using polling idle threads\n");
 		boot_option_idle_override = IDLE_POLL;
 		cpu_idle_poll_ctrl(true);
-	} else if (!strcmp(str, "halt")) {
+	}
+	else if (!strcmp(str, "halt"))
+	{
 		/*
 		 * When the boot option of idle=halt is added, halt is
 		 * forced to be used for CPU idle. In such case CPU C2/C3
@@ -485,7 +576,9 @@ static int __init idle_setup(char *str)
 		 */
 		x86_idle = default_idle;
 		boot_option_idle_override = IDLE_HALT;
-	} else if (!strcmp(str, "nomwait")) {
+	}
+	else if (!strcmp(str, "nomwait"))
+	{
 		/*
 		 * If the boot option of "idle=nomwait" is added,
 		 * it means that mwait will be disabled for CPU C2/C3
@@ -493,8 +586,11 @@ static int __init idle_setup(char *str)
 		 * of boot_option_idle_override.
 		 */
 		boot_option_idle_override = IDLE_NOMWAIT;
-	} else
+	}
+	else
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -503,7 +599,10 @@ early_param("idle", idle_setup);
 unsigned long arch_align_stack(unsigned long sp)
 {
 	if (!(current->personality & ADDR_NO_RANDOMIZE) && randomize_va_space)
+	{
 		sp -= get_random_int() % 8192;
+	}
+
 	return sp & ~0xf;
 }
 
@@ -535,14 +634,21 @@ unsigned long get_wchan(struct task_struct *p)
 	int count = 0;
 
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	if (!try_get_task_stack(p))
+	{
 		return 0;
+	}
 
 	start = (unsigned long)task_stack_page(p);
+
 	if (!start)
+	{
 		goto out;
+	}
 
 	/*
 	 * Layout of the stack page:
@@ -565,20 +671,32 @@ unsigned long get_wchan(struct task_struct *p)
 	bottom = start;
 
 	sp = READ_ONCE(p->thread.sp);
+
 	if (sp < bottom || sp > top)
+	{
 		goto out;
+	}
 
 	fp = READ_ONCE_NOCHECK(((struct inactive_task_frame *)sp)->bp);
-	do {
+
+	do
+	{
 		if (fp < bottom || fp > top)
+		{
 			goto out;
+		}
+
 		ip = READ_ONCE_NOCHECK(*(unsigned long *)(fp + sizeof(unsigned long)));
-		if (!in_sched_functions(ip)) {
+
+		if (!in_sched_functions(ip))
+		{
 			ret = ip;
 			goto out;
 		}
+
 		fp = READ_ONCE_NOCHECK(*(unsigned long *)fp);
-	} while (count++ < 16 && p->state != TASK_RUNNING);
+	}
+	while (count++ < 16 && p->state != TASK_RUNNING);
 
 out:
 	put_task_stack(p);

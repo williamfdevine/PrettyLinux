@@ -13,13 +13,15 @@
 
 #ifndef __ASSEMBLY__
 
-struct vpe_boot_config {
+struct vpe_boot_config
+{
 	unsigned long pc;
 	unsigned long sp;
 	unsigned long gp;
 };
 
-struct core_boot_config {
+struct core_boot_config
+{
 	atomic_t vpe_mask;
 	struct vpe_boot_config *vpe_config;
 };

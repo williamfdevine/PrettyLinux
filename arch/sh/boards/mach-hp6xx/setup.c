@@ -24,7 +24,8 @@
 #define	SCPDR	0xa4000136
 
 /* CF Slot */
-static struct resource cf_ide_resources[] = {
+static struct resource cf_ide_resources[] =
+{
 	[0] = {
 		.start = 0x15000000 + 0x1f0,
 		.end   = 0x15000000 + 0x1f0 + 0x08 - 0x01,
@@ -41,14 +42,16 @@ static struct resource cf_ide_resources[] = {
 	},
 };
 
-static struct platform_device cf_ide_device = {
+static struct platform_device cf_ide_device =
+{
 	.name		=  "pata_platform",
 	.id		=  -1,
 	.num_resources	= ARRAY_SIZE(cf_ide_resources),
 	.resource	= cf_ide_resources,
 };
 
-static struct platform_device jornadakbd_device = {
+static struct platform_device jornadakbd_device =
+{
 	.name		= "jornada680_kbd",
 	.id		= -1,
 };
@@ -90,14 +93,16 @@ static void dac_audio_stop(struct dac_audio_pdata *pdata)
 	sh_dac_disable(pdata->channel);
 }
 
-static struct dac_audio_pdata dac_audio_platform_data = {
+static struct dac_audio_pdata dac_audio_platform_data =
+{
 	.buffer_size		= 64000,
 	.channel		= 1,
 	.start			= dac_audio_start,
 	.stop			= dac_audio_stop,
 };
 
-static struct platform_device dac_audio_device = {
+static struct platform_device dac_audio_device =
+{
 	.name		= "dac_audio",
 	.id		= -1,
 	.dev		= {
@@ -106,7 +111,8 @@ static struct platform_device dac_audio_device = {
 
 };
 
-static struct platform_device *hp6xx_devices[] __initdata = {
+static struct platform_device *hp6xx_devices[] __initdata =
+{
 	&cf_ide_device,
 	&jornadakbd_device,
 	&dac_audio_device,
@@ -130,10 +136,10 @@ static void __init hp6xx_setup(char **cmdline_p)
 
 	v = inw(HD64461_STBCR);
 	v |=	HD64461_STBCR_SURTST | HD64461_STBCR_SIRST	|
-		HD64461_STBCR_STM1ST | HD64461_STBCR_STM0ST	|
-		HD64461_STBCR_SAFEST | HD64461_STBCR_SPC0ST	|
-		HD64461_STBCR_SMIAST | HD64461_STBCR_SAFECKE_OST|
-		HD64461_STBCR_SAFECKE_IST;
+			HD64461_STBCR_STM1ST | HD64461_STBCR_STM0ST	|
+			HD64461_STBCR_SAFEST | HD64461_STBCR_SPC0ST	|
+			HD64461_STBCR_SMIAST | HD64461_STBCR_SAFECKE_OST |
+			HD64461_STBCR_SAFECKE_IST;
 #ifndef CONFIG_HD64461_ENABLER
 	v |= HD64461_STBCR_SPC1ST;
 #endif
@@ -152,7 +158,7 @@ static void __init hp6xx_setup(char **cmdline_p)
 	sh_dac_disable(DAC_SPEAKER_VOLUME);
 	v8 = __raw_readb(DACR);
 	v8 &= ~DACR_DAE;
-	__raw_writeb(v8,DACR);
+	__raw_writeb(v8, DACR);
 
 	v8 = __raw_readb(SCPDR);
 	v8 |= SCPDR_TS_SCAN_X | SCPDR_TS_SCAN_Y;
@@ -166,7 +172,8 @@ static void __init hp6xx_setup(char **cmdline_p)
 }
 device_initcall(hp6xx_devices_setup);
 
-static struct sh_machine_vector mv_hp6xx __initmv = {
+static struct sh_machine_vector mv_hp6xx __initmv =
+{
 	.mv_name = "hp6xx",
 	.mv_setup = hp6xx_setup,
 	/* Enable IRQ0 -> IRQ3 in IRQ_MODE */

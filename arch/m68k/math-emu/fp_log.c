@@ -36,14 +36,20 @@ fp_fsqrt(struct fp_ext *dest, struct fp_ext *src)
 	fp_monadic_check(dest, src);
 
 	if (IS_ZERO(dest))
+	{
 		return dest;
+	}
 
-	if (dest->sign) {
+	if (dest->sign)
+	{
 		fp_set_nan(dest);
 		return dest;
 	}
+
 	if (IS_INF(dest))
+	{
 		return dest;
+	}
 
 	/*
 	 *		 sqrt(m) * 2^(p)	, if e = 2*p
@@ -59,8 +65,12 @@ fp_fsqrt(struct fp_ext *dest, struct fp_ext *src)
 	 */
 	exp = dest->exp;
 	dest->exp = 0x3FFF;
+
 	if (!(exp & 1))		/* lowest bit of exponent is set */
+	{
 		dest->exp++;
+	}
+
 	fp_copy_ext(&src2, dest);
 
 	/*
@@ -85,7 +95,8 @@ fp_fsqrt(struct fp_ext *dest, struct fp_ext *src)
 	 *          = (2*x - x + r/x)/2
 	 *	    = (x + r/x)/2
 	 */
-	for (i = 0; i < 9; i++) {
+	for (i = 0; i < 9; i++)
+	{
 		fp_copy_ext(&tmp, &src2);
 
 		fp_fdiv(&tmp, dest);
@@ -185,12 +196,16 @@ fp_fgetexp(struct fp_ext *dest, struct fp_ext *src)
 
 	fp_monadic_check(dest, src);
 
-	if (IS_INF(dest)) {
+	if (IS_INF(dest))
+	{
 		fp_set_nan(dest);
 		return dest;
 	}
+
 	if (IS_ZERO(dest))
+	{
 		return dest;
+	}
 
 	fp_conv_long2ext(dest, (int)dest->exp - 0x3FFF);
 
@@ -207,10 +222,14 @@ fp_fgetman(struct fp_ext *dest, struct fp_ext *src)
 	fp_monadic_check(dest, src);
 
 	if (IS_ZERO(dest))
+	{
 		return dest;
+	}
 
 	if (IS_INF(dest))
+	{
 		return dest;
+	}
 
 	dest->exp = 0x3FFF;
 

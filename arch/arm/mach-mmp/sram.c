@@ -24,7 +24,8 @@
 
 #include <linux/platform_data/dma-mmp_tdma.h>
 
-struct sram_bank_info {
+struct sram_bank_info
+{
 	char *pool_name;
 	struct gen_pool *gpool;
 	int granularity;
@@ -44,18 +45,25 @@ struct gen_pool *sram_get_gpool(char *pool_name)
 	struct sram_bank_info *info = NULL;
 
 	if (!pool_name)
+	{
 		return NULL;
+	}
 
 	mutex_lock(&sram_lock);
 
 	list_for_each_entry(info, &sram_bank_list, node)
-		if (!strcmp(pool_name, info->pool_name))
-			break;
+
+	if (!strcmp(pool_name, info->pool_name))
+	{
+		break;
+	}
 
 	mutex_unlock(&sram_lock);
 
 	if (&info->node == &sram_bank_list)
+	{
 		return NULL;
+	}
 
 	return info->gpool;
 }
@@ -69,21 +77,30 @@ static int sram_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	if (!pdata || !pdata->pool_name)
+	{
 		return -ENODEV;
+	}
 
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&pdev->dev, "no memory resource defined\n");
 		ret = -ENODEV;
 		goto out;
 	}
 
 	if (!resource_size(res))
+	{
 		return 0;
+	}
 
 	info->sram_phys   = (phys_addr_t)res->start;
 	info->sram_size   = resource_size(res);
@@ -92,15 +109,19 @@ static int sram_probe(struct platform_device *pdev)
 	info->granularity = pdata->granularity;
 
 	info->gpool = gen_pool_create(ilog2(info->granularity), -1);
-	if (!info->gpool) {
+
+	if (!info->gpool)
+	{
 		dev_err(&pdev->dev, "create pool failed\n");
 		ret = -ENOMEM;
 		goto create_pool_err;
 	}
 
 	ret = gen_pool_add_virt(info->gpool, (unsigned long)info->sram_virt,
-				info->sram_phys, info->sram_size, -1);
-	if (ret < 0) {
+							info->sram_phys, info->sram_size, -1);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "add new chunk failed\n");
 		ret = -ENOMEM;
 		goto add_chunk_err;
@@ -130,8 +151,11 @@ static int sram_remove(struct platform_device *pdev)
 	struct sram_bank_info *info;
 
 	info = platform_get_drvdata(pdev);
+
 	if (info == NULL)
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&sram_lock);
 	list_del(&info->node);
@@ -144,13 +168,15 @@ static int sram_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id sram_id_table[] = {
+static const struct platform_device_id sram_id_table[] =
+{
 	{ "asram", MMP_ASRAM },
 	{ "isram", MMP_ISRAM },
 	{ }
 };
 
-static struct platform_driver sram_driver = {
+static struct platform_driver sram_driver =
+{
 	.probe		= sram_probe,
 	.remove		= sram_remove,
 	.driver		= {

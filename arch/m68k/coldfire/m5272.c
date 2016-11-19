@@ -42,7 +42,8 @@ DEFINE_CLK(mcfuart1, "mcfuart.1", MCF_BUSCLK);
 DEFINE_CLK(mcfqspi0, "mcfqspi.0", MCF_BUSCLK);
 DEFINE_CLK(fec0, "fec.0", MCF_BUSCLK);
 
-struct clk *mcf_clks[] = {
+struct clk *mcf_clks[] =
+{
 	&clk_pll,
 	&clk_sys,
 	&clk_mcftmr0,
@@ -81,6 +82,7 @@ static void m5272_cpu_reset(void)
 	__raw_writew(0, MCFSIM_WIRR);
 	__raw_writew(1, MCFSIM_WRRR);
 	__raw_writew(0, MCFSIM_WCR);
+
 	for (;;)
 		/* wait for watchdog to timeout */;
 }
@@ -97,11 +99,11 @@ void __init config_BSP(char *commandp, int size)
 #if defined(CONFIG_NETtel) || defined(CONFIG_SCALES)
 	/* Copy command line from FLASH to local buffer... */
 	memcpy(commandp, (char *) 0xf0004000, size);
-	commandp[size-1] = 0;
+	commandp[size - 1] = 0;
 #elif defined(CONFIG_CANCam)
 	/* Copy command line from FLASH to local buffer... */
 	memcpy(commandp, (char *) 0xf0010000, size);
-	commandp[size-1] = 0;
+	commandp[size - 1] = 0;
 #endif
 
 	mach_reset = m5272_cpu_reset;
@@ -115,7 +117,8 @@ void __init config_BSP(char *commandp, int size)
  * an ethernet switch. In this case we need to use the fixed phy type,
  * and we need to declare it early in boot.
  */
-static struct fixed_phy_status nettel_fixed_phy_status __initdata = {
+static struct fixed_phy_status nettel_fixed_phy_status __initdata =
+{
 	.link	= 1,
 	.speed	= 100,
 	.duplex	= 0,

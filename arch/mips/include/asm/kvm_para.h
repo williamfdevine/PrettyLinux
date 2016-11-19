@@ -21,13 +21,13 @@ static inline unsigned long kvm_hypercall0(unsigned long num)
 	__asm__ __volatile__(
 		KVM_HYPERCALL
 		: "=r" (r) : "r" (n) : "memory"
-		);
+	);
 
 	return r;
 }
 
 static inline unsigned long kvm_hypercall1(unsigned long num,
-					unsigned long arg0)
+		unsigned long arg0)
 {
 	register unsigned long n asm("v0");
 	register unsigned long r asm("v0");
@@ -38,13 +38,13 @@ static inline unsigned long kvm_hypercall1(unsigned long num,
 	__asm__ __volatile__(
 		KVM_HYPERCALL
 		: "=r" (r) : "r" (n), "r" (a0) : "memory"
-		);
+	);
 
 	return r;
 }
 
 static inline unsigned long kvm_hypercall2(unsigned long num,
-					unsigned long arg0, unsigned long arg1)
+		unsigned long arg0, unsigned long arg1)
 {
 	register unsigned long n asm("v0");
 	register unsigned long r asm("v0");
@@ -57,13 +57,13 @@ static inline unsigned long kvm_hypercall2(unsigned long num,
 	__asm__ __volatile__(
 		KVM_HYPERCALL
 		: "=r" (r) : "r" (n), "r" (a0), "r" (a1) : "memory"
-		);
+	);
 
 	return r;
 }
 
 static inline unsigned long kvm_hypercall3(unsigned long num,
-	unsigned long arg0, unsigned long arg1, unsigned long arg2)
+		unsigned long arg0, unsigned long arg1, unsigned long arg2)
 {
 	register unsigned long n asm("v0");
 	register unsigned long r asm("v0");
@@ -78,7 +78,7 @@ static inline unsigned long kvm_hypercall3(unsigned long num,
 	__asm__ __volatile__(
 		KVM_HYPERCALL
 		: "=r" (r) : "r" (n), "r" (a0), "r" (a1), "r" (a2) : "memory"
-		);
+	);
 
 	return r;
 }

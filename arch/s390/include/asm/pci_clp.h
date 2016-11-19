@@ -12,7 +12,8 @@
 #define CLP_SET_PCI_FN		0x0005
 
 /* PCI function handle list entry */
-struct clp_fh_list_entry {
+struct clp_fh_list_entry
+{
 	u16 device_id;
 	u16 vendor_id;
 	u32 config_state :  1;
@@ -38,7 +39,7 @@ struct clp_fh_list_entry {
 /* Number of function handles fitting in response block */
 #define CLP_FH_LIST_NR_ENTRIES				\
 	((CLP_BLK_SIZE - 2 * LIST_PCI_HDR_LEN)		\
-		/ sizeof(struct clp_fh_list_entry))
+	 / sizeof(struct clp_fh_list_entry))
 
 #define CLP_SET_ENABLE_PCI_FN	0	/* Yes, 0 enables it */
 #define CLP_SET_DISABLE_PCI_FN	1	/* Yes, 1 disables it */
@@ -47,14 +48,16 @@ struct clp_fh_list_entry {
 #define CLP_PFIP_NR_SEGMENTS	4
 
 /* List PCI functions request */
-struct clp_req_list_pci {
+struct clp_req_list_pci
+{
 	struct clp_req_hdr hdr;
 	u64 resume_token;
 	u64 reserved2;
 } __packed;
 
 /* List PCI functions response */
-struct clp_rsp_list_pci {
+struct clp_rsp_list_pci
+{
 	struct clp_rsp_hdr hdr;
 	u64 resume_token;
 	u32 reserved2;
@@ -65,7 +68,8 @@ struct clp_rsp_list_pci {
 } __packed;
 
 /* Query PCI function request */
-struct clp_req_query_pci {
+struct clp_req_query_pci
+{
 	struct clp_req_hdr hdr;
 	u32 fh;				/* function handle */
 	u32 reserved2;
@@ -73,7 +77,8 @@ struct clp_req_query_pci {
 } __packed;
 
 /* Query PCI function response */
-struct clp_rsp_query_pci {
+struct clp_rsp_query_pci
+{
 	struct clp_rsp_hdr hdr;
 	u16 vfn;			/* virtual fn number */
 	u16			:  7;
@@ -94,7 +99,8 @@ struct clp_rsp_query_pci {
 } __packed;
 
 /* Query PCI function group request */
-struct clp_req_query_pci_grp {
+struct clp_req_query_pci_grp
+{
 	struct clp_req_hdr hdr;
 	u32 reserved2		: 24;
 	u32 pfgid		:  8;	/* function group id */
@@ -103,7 +109,8 @@ struct clp_req_query_pci_grp {
 } __packed;
 
 /* Query PCI function group response */
-struct clp_rsp_query_pci_grp {
+struct clp_rsp_query_pci_grp
+{
 	struct clp_rsp_hdr hdr;
 	u16			:  4;
 	u16 noi			: 12;	/* number of interrupts */
@@ -121,7 +128,8 @@ struct clp_rsp_query_pci_grp {
 } __packed;
 
 /* Set PCI function request */
-struct clp_req_set_pci {
+struct clp_req_set_pci
+{
 	struct clp_req_hdr hdr;
 	u32 fh;				/* function handle */
 	u16 reserved2;
@@ -131,7 +139,8 @@ struct clp_req_set_pci {
 } __packed;
 
 /* Set PCI function response */
-struct clp_rsp_set_pci {
+struct clp_rsp_set_pci
+{
 	struct clp_rsp_hdr hdr;
 	u32 fh;				/* function handle */
 	u32 reserved3;
@@ -139,22 +148,26 @@ struct clp_rsp_set_pci {
 } __packed;
 
 /* Combined request/response block structures used by clp insn */
-struct clp_req_rsp_list_pci {
+struct clp_req_rsp_list_pci
+{
 	struct clp_req_list_pci request;
 	struct clp_rsp_list_pci response;
 } __packed;
 
-struct clp_req_rsp_set_pci {
+struct clp_req_rsp_set_pci
+{
 	struct clp_req_set_pci request;
 	struct clp_rsp_set_pci response;
 } __packed;
 
-struct clp_req_rsp_query_pci {
+struct clp_req_rsp_query_pci
+{
 	struct clp_req_query_pci request;
 	struct clp_rsp_query_pci response;
 } __packed;
 
-struct clp_req_rsp_query_pci_grp {
+struct clp_req_rsp_query_pci_grp
+{
 	struct clp_req_query_pci_grp request;
 	struct clp_rsp_query_pci_grp response;
 } __packed;

@@ -53,7 +53,7 @@
 #define S3C2410_GPIO_M_NR	(32)	/* technically 2. */
 
 #if CONFIG_S3C_GPIO_SPACE != 0
-#error CONFIG_S3C_GPIO_SPACE cannot be nonzero at the moment
+	#error CONFIG_S3C_GPIO_SPACE cannot be nonzero at the moment
 #endif
 
 #define S3C2410_GPIO_NEXT(__gpio) \
@@ -61,7 +61,8 @@
 
 #ifndef __ASSEMBLY__
 
-enum s3c_gpio_number {
+enum s3c_gpio_number
+{
 	S3C2410_GPIO_A_START = 0,
 	S3C2410_GPIO_B_START = S3C2410_GPIO_NEXT(S3C2410_GPIO_A),
 	S3C2410_GPIO_C_START = S3C2410_GPIO_NEXT(S3C2410_GPIO_B),
@@ -94,11 +95,11 @@ enum s3c_gpio_number {
 #define S3C2410_GPM(_nr)	(S3C2410_GPIO_M_START + (_nr))
 
 #ifdef CONFIG_CPU_S3C244X
-#define S3C_GPIO_END	(S3C2410_GPJ(0) + 32)
+	#define S3C_GPIO_END	(S3C2410_GPJ(0) + 32)
 #elif defined(CONFIG_CPU_S3C2443) || defined(CONFIG_CPU_S3C2416)
-#define S3C_GPIO_END	(S3C2410_GPM(0) + 32)
+	#define S3C_GPIO_END	(S3C2410_GPM(0) + 32)
 #else
-#define S3C_GPIO_END	(S3C2410_GPH(0) + 32)
+	#define S3C_GPIO_END	(S3C2410_GPH(0) + 32)
 #endif
 
 #endif /* GPIO_SAMSUNG_S3C24XX_H */

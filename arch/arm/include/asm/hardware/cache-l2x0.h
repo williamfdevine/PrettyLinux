@@ -176,7 +176,8 @@ static inline void l2x0_pmu_suspend(void) {}
 static inline void l2x0_pmu_resume(void) {}
 #endif
 
-struct l2x0_regs {
+struct l2x0_regs
+{
 	unsigned long phy_base;
 	unsigned long aux_ctrl;
 	/*

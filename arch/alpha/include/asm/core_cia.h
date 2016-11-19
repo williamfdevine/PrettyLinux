@@ -201,9 +201,9 @@
 #define CIA_IOC_PCI_W3_MASK		(IDENT_ADDR + 0x8760000740UL)
 #define CIA_IOC_PCI_T3_BASE		(IDENT_ADDR + 0x8760000780UL)
 
-#define CIA_IOC_PCI_Wn_BASE(N)	(IDENT_ADDR + 0x8760000400UL + (N)*0x100) 
-#define CIA_IOC_PCI_Wn_MASK(N)	(IDENT_ADDR + 0x8760000440UL + (N)*0x100) 
-#define CIA_IOC_PCI_Tn_BASE(N)	(IDENT_ADDR + 0x8760000480UL + (N)*0x100) 
+#define CIA_IOC_PCI_Wn_BASE(N)	(IDENT_ADDR + 0x8760000400UL + (N)*0x100)
+#define CIA_IOC_PCI_Wn_MASK(N)	(IDENT_ADDR + 0x8760000440UL + (N)*0x100)
+#define CIA_IOC_PCI_Tn_BASE(N)	(IDENT_ADDR + 0x8760000480UL + (N)*0x100)
 
 #define CIA_IOC_PCI_W_DAC		(IDENT_ADDR + 0x87600007C0UL)
 
@@ -274,7 +274,8 @@
  */
 
 /* System-specific info.  */
-struct el_CIA_sysdata_mcheck {
+struct el_CIA_sysdata_mcheck
+{
 	unsigned long	cpu_err0;
 	unsigned long	cpu_err1;
 	unsigned long	cia_err;
@@ -292,9 +293,9 @@ struct el_CIA_sysdata_mcheck {
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-/* Do not touch, this should *NOT* be static inline */
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	/* Do not touch, this should *NOT* be static inline */
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -347,9 +348,13 @@ __EXTERN_INLINE unsigned int cia_ioread8(void __iomem *xaddr)
 	unsigned long result, base_and_type;
 
 	if (addr >= CIA_DENSE_MEM)
+	{
 		base_and_type = CIA_SPARSE_MEM + 0x00;
+	}
 	else
+	{
 		base_and_type = CIA_IO + 0x00;
+	}
 
 	/* We can use CIA_MEM_R1_MASK for io ports too, since it is large
 	   enough to cover all io ports, and smaller than CIA_IO.  */
@@ -364,9 +369,13 @@ __EXTERN_INLINE void cia_iowrite8(u8 b, void __iomem *xaddr)
 	unsigned long w, base_and_type;
 
 	if (addr >= CIA_DENSE_MEM)
+	{
 		base_and_type = CIA_SPARSE_MEM + 0x00;
+	}
 	else
+	{
 		base_and_type = CIA_IO + 0x00;
+	}
 
 	addr &= CIA_MEM_R1_MASK;
 	w = __kernel_insbl(b, addr & 3);
@@ -379,9 +388,13 @@ __EXTERN_INLINE unsigned int cia_ioread16(void __iomem *xaddr)
 	unsigned long result, base_and_type;
 
 	if (addr >= CIA_DENSE_MEM)
+	{
 		base_and_type = CIA_SPARSE_MEM + 0x08;
+	}
 	else
+	{
 		base_and_type = CIA_IO + 0x08;
+	}
 
 	addr &= CIA_MEM_R1_MASK;
 	result = *(vip) ((addr << 5) + base_and_type);
@@ -394,9 +407,13 @@ __EXTERN_INLINE void cia_iowrite16(u16 b, void __iomem *xaddr)
 	unsigned long w, base_and_type;
 
 	if (addr >= CIA_DENSE_MEM)
+	{
 		base_and_type = CIA_SPARSE_MEM + 0x08;
+	}
 	else
+	{
 		base_and_type = CIA_IO + 0x08;
+	}
 
 	addr &= CIA_MEM_R1_MASK;
 	w = __kernel_inswl(b, addr & 3);
@@ -406,16 +423,24 @@ __EXTERN_INLINE void cia_iowrite16(u16 b, void __iomem *xaddr)
 __EXTERN_INLINE unsigned int cia_ioread32(void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
+
 	if (addr < CIA_DENSE_MEM)
+	{
 		addr = ((addr - CIA_IO) << 5) + CIA_IO + 0x18;
+	}
+
 	return *(vuip)addr;
 }
 
 __EXTERN_INLINE void cia_iowrite32(u32 b, void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
+
 	if (addr < CIA_DENSE_MEM)
+	{
 		addr = ((addr - CIA_IO) << 5) + CIA_IO + 0x18;
+	}
+
 	*(vuip)addr = b;
 }
 
@@ -425,7 +450,7 @@ __EXTERN_INLINE void __iomem *cia_ioportmap(unsigned long addr)
 }
 
 __EXTERN_INLINE void __iomem *cia_ioremap(unsigned long addr,
-					  unsigned long size)
+		unsigned long size)
 {
 	return (void __iomem *)(addr + CIA_DENSE_MEM);
 }
@@ -446,7 +471,7 @@ __EXTERN_INLINE void __iomem *cia_bwx_ioportmap(unsigned long addr)
 }
 
 __EXTERN_INLINE void __iomem *cia_bwx_ioremap(unsigned long addr,
-					      unsigned long size)
+		unsigned long size)
 {
 	return (void __iomem *)(addr + CIA_BW_MEM);
 }
@@ -485,14 +510,14 @@ __EXTERN_INLINE int cia_bwx_is_mmio(const volatile void __iomem *addr)
 
 #undef __IO_PREFIX
 #ifdef CONFIG_ALPHA_PYXIS
-#define __IO_PREFIX		cia_bwx
+	#define __IO_PREFIX		cia_bwx
 #else
-#define __IO_PREFIX		cia
+	#define __IO_PREFIX		cia
 #endif
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

@@ -43,8 +43,11 @@ static u_char normalize_no_excep(FPU_REG *r, int exp, int sign)
 
 	tag = FPU_normalize_nuo(r);
 	stdexp(r);
+
 	if (sign)
+	{
 		setnegative(r);
+	}
 
 	return tag;
 }
@@ -54,20 +57,26 @@ int FPU_tagof(FPU_REG *ptr)
 	int exp;
 
 	exp = exponent16(ptr) & 0x7fff;
-	if (exp == 0) {
-		if (!(ptr->sigh | ptr->sigl)) {
+
+	if (exp == 0)
+	{
+		if (!(ptr->sigh | ptr->sigl))
+		{
 			return TAG_Zero;
 		}
+
 		/* The number is a de-normal or pseudodenormal. */
 		return TAG_Special;
 	}
 
-	if (exp == 0x7fff) {
+	if (exp == 0x7fff)
+	{
 		/* Is an Infinity, a NaN, or an unsupported data type. */
 		return TAG_Special;
 	}
 
-	if (!(ptr->sigh & 0x80000000)) {
+	if (!(ptr->sigh & 0x80000000))
+	{
 		/* Unsupported data type. */
 		/* Valid numbers have the ms bit set to 1. */
 		/* Unnormal. */
@@ -105,15 +114,20 @@ int FPU_load_double(double __user *dfloat, FPU_REG *loaded_data)
 	negative = (m64 & 0x80000000) ? SIGN_Negative : SIGN_Positive;
 	exp = ((m64 & 0x7ff00000) >> 20) - DOUBLE_Ebias + EXTENDED_Ebias;
 	m64 &= 0xfffff;
-	if (exp > DOUBLE_Emax + EXTENDED_Ebias) {
+
+	if (exp > DOUBLE_Emax + EXTENDED_Ebias)
+	{
 		/* Infinity or NaN */
-		if ((m64 == 0) && (l64 == 0)) {
+		if ((m64 == 0) && (l64 == 0))
+		{
 			/* +- infinity */
 			loaded_data->sigh = 0x80000000;
 			loaded_data->sigl = 0x00000000;
 			exp = EXP_Infinity + EXTENDED_Ebias;
 			tag = TAG_Special;
-		} else {
+		}
+		else
+		{
 			/* Must be a signaling or quiet NaN */
 			exp = EXP_NaN + EXTENDED_Ebias;
 			loaded_data->sigh = (m64 << 11) | 0x80000000;
@@ -121,24 +135,31 @@ int FPU_load_double(double __user *dfloat, FPU_REG *loaded_data)
 			loaded_data->sigl = l64 << 11;
 			tag = TAG_Special;	/* The calling function must look for NaNs */
 		}
-	} else if (exp < DOUBLE_Emin + EXTENDED_Ebias) {
+	}
+	else if (exp < DOUBLE_Emin + EXTENDED_Ebias)
+	{
 		/* Zero or de-normal */
-		if ((m64 == 0) && (l64 == 0)) {
+		if ((m64 == 0) && (l64 == 0))
+		{
 			/* Zero */
 			reg_copy(&CONST_Z, loaded_data);
 			exp = 0;
 			tag = TAG_Zero;
-		} else {
+		}
+		else
+		{
 			/* De-normal */
 			loaded_data->sigh = m64 << 11;
 			loaded_data->sigh |= l64 >> 21;
 			loaded_data->sigl = l64 << 11;
 
 			return normalize_no_excep(loaded_data, DOUBLE_Emin,
-						  negative)
-			    | (denormal_operand() < 0 ? FPU_Exception : 0);
+									  negative)
+				   | (denormal_operand() < 0 ? FPU_Exception : 0);
 		}
-	} else {
+	}
+	else
+	{
 		loaded_data->sigh = (m64 << 11) | 0x80000000;
 		loaded_data->sigh |= l64 >> 21;
 		loaded_data->sigl = l64 << 11;
@@ -164,37 +185,48 @@ int FPU_load_single(float __user *single, FPU_REG *loaded_data)
 
 	negative = (m32 & 0x80000000) ? SIGN_Negative : SIGN_Positive;
 
-	if (!(m32 & 0x7fffffff)) {
+	if (!(m32 & 0x7fffffff))
+	{
 		/* Zero */
 		reg_copy(&CONST_Z, loaded_data);
 		addexponent(loaded_data, negative);
 		return TAG_Zero;
 	}
+
 	exp = ((m32 & 0x7f800000) >> 23) - SINGLE_Ebias + EXTENDED_Ebias;
 	m32 = (m32 & 0x7fffff) << 8;
-	if (exp < SINGLE_Emin + EXTENDED_Ebias) {
+
+	if (exp < SINGLE_Emin + EXTENDED_Ebias)
+	{
 		/* De-normals */
 		loaded_data->sigh = m32;
 		loaded_data->sigl = 0;
 
 		return normalize_no_excep(loaded_data, SINGLE_Emin, negative)
-		    | (denormal_operand() < 0 ? FPU_Exception : 0);
-	} else if (exp > SINGLE_Emax + EXTENDED_Ebias) {
+			   | (denormal_operand() < 0 ? FPU_Exception : 0);
+	}
+	else if (exp > SINGLE_Emax + EXTENDED_Ebias)
+	{
 		/* Infinity or NaN */
-		if (m32 == 0) {
+		if (m32 == 0)
+		{
 			/* +- infinity */
 			loaded_data->sigh = 0x80000000;
 			loaded_data->sigl = 0x00000000;
 			exp = EXP_Infinity + EXTENDED_Ebias;
 			tag = TAG_Special;
-		} else {
+		}
+		else
+		{
 			/* Must be a signaling or quiet NaN */
 			exp = EXP_NaN + EXTENDED_Ebias;
 			loaded_data->sigh = m32 | 0x80000000;
 			loaded_data->sigl = 0;
 			tag = TAG_Special;	/* The calling function must look for NaNs */
 		}
-	} else {
+	}
+	else
+	{
 		loaded_data->sigh = m32 | 0x80000000;
 		loaded_data->sigl = 0;
 		tag = TAG_Valid;
@@ -214,18 +246,26 @@ int FPU_load_int64(long long __user *_s)
 
 	RE_ENTRANT_CHECK_OFF;
 	FPU_access_ok(VERIFY_READ, _s, 8);
+
 	if (copy_from_user(&s, _s, 8))
+	{
 		FPU_abort;
+	}
+
 	RE_ENTRANT_CHECK_ON;
 
-	if (s == 0) {
+	if (s == 0)
+	{
 		reg_copy(&CONST_Z, st0_ptr);
 		return TAG_Zero;
 	}
 
 	if (s > 0)
+	{
 		sign = SIGN_Positive;
-	else {
+	}
+	else
+	{
 		s = -s;
 		sign = SIGN_Negative;
 	}
@@ -246,14 +286,18 @@ int FPU_load_int32(long __user *_s, FPU_REG *loaded_data)
 	FPU_get_user(s, _s);
 	RE_ENTRANT_CHECK_ON;
 
-	if (s == 0) {
+	if (s == 0)
+	{
 		reg_copy(&CONST_Z, loaded_data);
 		return TAG_Zero;
 	}
 
 	if (s > 0)
+	{
 		negative = SIGN_Positive;
-	else {
+	}
+	else
+	{
 		s = -s;
 		negative = SIGN_Negative;
 	}
@@ -275,14 +319,18 @@ int FPU_load_int16(short __user *_s, FPU_REG *loaded_data)
 	FPU_get_user(s, _s);
 	RE_ENTRANT_CHECK_ON;
 
-	if (s == 0) {
+	if (s == 0)
+	{
 		reg_copy(&CONST_Z, loaded_data);
 		return TAG_Zero;
 	}
 
 	if (s > 0)
+	{
 		negative = SIGN_Positive;
-	else {
+	}
+	else
+	{
 		s = -s;
 		negative = SIGN_Negative;
 	}
@@ -305,7 +353,9 @@ int FPU_load_bcd(u_char __user *s)
 	RE_ENTRANT_CHECK_OFF;
 	FPU_access_ok(VERIFY_READ, s, 10);
 	RE_ENTRANT_CHECK_ON;
-	for (pos = 8; pos >= 0; pos--) {
+
+	for (pos = 8; pos >= 0; pos--)
+	{
 		l *= 10;
 		RE_ENTRANT_CHECK_OFF;
 		FPU_get_user(bcd, s + pos);
@@ -320,11 +370,14 @@ int FPU_load_bcd(u_char __user *s)
 	sign = sign & 0x80 ? SIGN_Negative : SIGN_Positive;
 	RE_ENTRANT_CHECK_ON;
 
-	if (l == 0) {
+	if (l == 0)
+	{
 		reg_copy(&CONST_Z, st0_ptr);
 		addexponent(st0_ptr, sign);	/* Set the sign. */
 		return TAG_Zero;
-	} else {
+	}
+	else
+	{
 		significand(st0_ptr) = l;
 		return normalize_no_excep(st0_ptr, 63, sign);
 	}
@@ -334,7 +387,7 @@ int FPU_load_bcd(u_char __user *s)
 
 /* Put a long double into user memory */
 int FPU_store_extended(FPU_REG *st0_ptr, u_char st0_tag,
-		       long double __user * d)
+					   long double __user *d)
 {
 	/*
 	   The only exception raised by an attempt to store to an
@@ -342,16 +395,17 @@ int FPU_store_extended(FPU_REG *st0_ptr, u_char st0_tag,
 	   attempting to store from an empty register.
 	 */
 
-	if (st0_tag != TAG_Empty) {
+	if (st0_tag != TAG_Empty)
+	{
 		RE_ENTRANT_CHECK_OFF;
 		FPU_access_ok(VERIFY_WRITE, d, 10);
 
 		FPU_put_user(st0_ptr->sigl, (unsigned long __user *)d);
 		FPU_put_user(st0_ptr->sigh,
-			     (unsigned long __user *)((u_char __user *) d + 4));
+					 (unsigned long __user *)((u_char __user *) d + 4));
 		FPU_put_user(exponent16(st0_ptr),
-			     (unsigned short __user *)((u_char __user *) d +
-						       8));
+					 (unsigned short __user *)((u_char __user *) d +
+											   8));
 		RE_ENTRANT_CHECK_ON;
 
 		return 1;
@@ -359,7 +413,9 @@ int FPU_store_extended(FPU_REG *st0_ptr, u_char st0_tag,
 
 	/* Empty register (stack underflow) */
 	EXCEPTION(EX_StackUnder);
-	if (control_word & CW_Invalid) {
+
+	if (control_word & CW_Invalid)
+	{
 		/* The masked response */
 		/* Put out the QNaN indefinite */
 		RE_ENTRANT_CHECK_OFF;
@@ -369,8 +425,11 @@ int FPU_store_extended(FPU_REG *st0_ptr, u_char st0_tag,
 		FPU_put_user(0xffff, 4 + (short __user *)d);
 		RE_ENTRANT_CHECK_ON;
 		return 1;
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 
 }
 
@@ -385,170 +444,259 @@ int FPU_store_double(FPU_REG *st0_ptr, u_char st0_tag, double __user *dfloat)
 
 	l[0] = 0;
 	l[1] = 0;
-	if (st0_tag == TAG_Valid) {
+
+	if (st0_tag == TAG_Valid)
+	{
 		reg_copy(st0_ptr, &tmp);
 		exp = exponent(&tmp);
 
-		if (exp < DOUBLE_Emin) {	/* It may be a denormal */
+		if (exp < DOUBLE_Emin)  	/* It may be a denormal */
+		{
 			addexponent(&tmp, -DOUBLE_Emin + 52);	/* largest exp to be 51 */
 denormal_arg:
-			if ((precision_loss = FPU_round_to_int(&tmp, st0_tag))) {
+
+			if ((precision_loss = FPU_round_to_int(&tmp, st0_tag)))
+			{
 #ifdef PECULIAR_486
+
 				/* Did it round to a non-denormal ? */
 				/* This behaviour might be regarded as peculiar, it appears
 				   that the 80486 rounds to the dest precision, then
 				   converts to decide underflow. */
 				if (!
-				    ((tmp.sigh == 0x00100000) && (tmp.sigl == 0)
-				     && (st0_ptr->sigl & 0x000007ff)))
+					((tmp.sigh == 0x00100000) && (tmp.sigl == 0)
+					 && (st0_ptr->sigl & 0x000007ff)))
 #endif /* PECULIAR_486 */
 				{
 					EXCEPTION(EX_Underflow);
+
 					/* This is a special case: see sec 16.2.5.1 of
 					   the 80486 book */
 					if (!(control_word & CW_Underflow))
+					{
 						return 0;
+					}
 				}
+
 				EXCEPTION(precision_loss);
+
 				if (!(control_word & CW_Precision))
+				{
 					return 0;
+				}
 			}
+
 			l[0] = tmp.sigl;
 			l[1] = tmp.sigh;
-		} else {
-			if (tmp.sigl & 0x000007ff) {
+		}
+		else
+		{
+			if (tmp.sigl & 0x000007ff)
+			{
 				precision_loss = 1;
-				switch (control_word & CW_RC) {
-				case RC_RND:
-					/* Rounding can get a little messy.. */
-					increment = ((tmp.sigl & 0x7ff) > 0x400) |	/* nearest */
-					    ((tmp.sigl & 0xc00) == 0xc00);	/* odd -> even */
-					break;
-				case RC_DOWN:	/* towards -infinity */
-					increment =
-					    signpositive(&tmp) ? 0 : tmp.
-					    sigl & 0x7ff;
-					break;
-				case RC_UP:	/* towards +infinity */
-					increment =
-					    signpositive(&tmp) ? tmp.
-					    sigl & 0x7ff : 0;
-					break;
-				case RC_CHOP:
-					increment = 0;
-					break;
+
+				switch (control_word & CW_RC)
+				{
+					case RC_RND:
+						/* Rounding can get a little messy.. */
+						increment = ((tmp.sigl & 0x7ff) > 0x400) |	/* nearest */
+									((tmp.sigl & 0xc00) == 0xc00);	/* odd -> even */
+						break;
+
+					case RC_DOWN:	/* towards -infinity */
+						increment =
+							signpositive(&tmp) ? 0 : tmp.
+							sigl & 0x7ff;
+						break;
+
+					case RC_UP:	/* towards +infinity */
+						increment =
+							signpositive(&tmp) ? tmp.
+							sigl & 0x7ff : 0;
+						break;
+
+					case RC_CHOP:
+						increment = 0;
+						break;
 				}
 
 				/* Truncate the mantissa */
 				tmp.sigl &= 0xfffff800;
 
-				if (increment) {
-					if (tmp.sigl >= 0xfffff800) {
+				if (increment)
+				{
+					if (tmp.sigl >= 0xfffff800)
+					{
 						/* the sigl part overflows */
-						if (tmp.sigh == 0xffffffff) {
+						if (tmp.sigh == 0xffffffff)
+						{
 							/* The sigh part overflows */
 							tmp.sigh = 0x80000000;
 							exp++;
+
 							if (exp >= EXP_OVER)
+							{
 								goto overflow;
-						} else {
+							}
+						}
+						else
+						{
 							tmp.sigh++;
 						}
+
 						tmp.sigl = 0x00000000;
-					} else {
+					}
+					else
+					{
 						/* We only need to increment sigl */
 						tmp.sigl += 0x00000800;
 					}
 				}
-			} else
+			}
+			else
+			{
 				precision_loss = 0;
+			}
 
 			l[0] = (tmp.sigl >> 11) | (tmp.sigh << 21);
 			l[1] = ((tmp.sigh >> 11) & 0xfffff);
 
-			if (exp > DOUBLE_Emax) {
-			      overflow:
+			if (exp > DOUBLE_Emax)
+			{
+overflow:
 				EXCEPTION(EX_Overflow);
+
 				if (!(control_word & CW_Overflow))
+				{
 					return 0;
+				}
+
 				set_precision_flag_up();
+
 				if (!(control_word & CW_Precision))
+				{
 					return 0;
+				}
 
 				/* This is a special case: see sec 16.2.5.1 of the 80486 book */
 				/* Overflow to infinity */
 				l[1] = 0x7ff00000;	/* Set to + INF */
-			} else {
-				if (precision_loss) {
+			}
+			else
+			{
+				if (precision_loss)
+				{
 					if (increment)
+					{
 						set_precision_flag_up();
+					}
 					else
+					{
 						set_precision_flag_down();
+					}
 				}
+
 				/* Add the exponent */
 				l[1] |= (((exp + DOUBLE_Ebias) & 0x7ff) << 20);
 			}
 		}
-	} else if (st0_tag == TAG_Zero) {
+	}
+	else if (st0_tag == TAG_Zero)
+	{
 		/* Number is zero */
-	} else if (st0_tag == TAG_Special) {
+	}
+	else if (st0_tag == TAG_Special)
+	{
 		st0_tag = FPU_Special(st0_ptr);
-		if (st0_tag == TW_Denormal) {
+
+		if (st0_tag == TW_Denormal)
+		{
 			/* A denormal will always underflow. */
 #ifndef PECULIAR_486
 			/* An 80486 is supposed to be able to generate
 			   a denormal exception here, but... */
 			/* Underflow has priority. */
 			if (control_word & CW_Underflow)
+			{
 				denormal_operand();
+			}
+
 #endif /* PECULIAR_486 */
 			reg_copy(st0_ptr, &tmp);
 			goto denormal_arg;
-		} else if (st0_tag == TW_Infinity) {
+		}
+		else if (st0_tag == TW_Infinity)
+		{
 			l[1] = 0x7ff00000;
-		} else if (st0_tag == TW_NaN) {
+		}
+		else if (st0_tag == TW_NaN)
+		{
 			/* Is it really a NaN ? */
 			if ((exponent(st0_ptr) == EXP_OVER)
-			    && (st0_ptr->sigh & 0x80000000)) {
+				&& (st0_ptr->sigh & 0x80000000))
+			{
 				/* See if we can get a valid NaN from the FPU_REG */
 				l[0] =
-				    (st0_ptr->sigl >> 11) | (st0_ptr->
-							     sigh << 21);
+					(st0_ptr->sigl >> 11) | (st0_ptr->
+											 sigh << 21);
 				l[1] = ((st0_ptr->sigh >> 11) & 0xfffff);
-				if (!(st0_ptr->sigh & 0x40000000)) {
+
+				if (!(st0_ptr->sigh & 0x40000000))
+				{
 					/* It is a signalling NaN */
 					EXCEPTION(EX_Invalid);
+
 					if (!(control_word & CW_Invalid))
+					{
 						return 0;
+					}
+
 					l[1] |= (0x40000000 >> 11);
 				}
+
 				l[1] |= 0x7ff00000;
-			} else {
+			}
+			else
+			{
 				/* It is an unsupported data type */
 				EXCEPTION(EX_Invalid);
+
 				if (!(control_word & CW_Invalid))
+				{
 					return 0;
+				}
+
 				l[1] = 0xfff80000;
 			}
 		}
-	} else if (st0_tag == TAG_Empty) {
+	}
+	else if (st0_tag == TAG_Empty)
+	{
 		/* Empty register (stack underflow) */
 		EXCEPTION(EX_StackUnder);
-		if (control_word & CW_Invalid) {
+
+		if (control_word & CW_Invalid)
+		{
 			/* The masked response */
 			/* Put out the QNaN indefinite */
 			RE_ENTRANT_CHECK_OFF;
 			FPU_access_ok(VERIFY_WRITE, dfloat, 8);
 			FPU_put_user(0, (unsigned long __user *)dfloat);
 			FPU_put_user(0xfff80000,
-				     1 + (unsigned long __user *)dfloat);
+						 1 + (unsigned long __user *)dfloat);
 			RE_ENTRANT_CHECK_ON;
 			return 1;
-		} else
+		}
+		else
+		{
 			return 0;
+		}
 	}
+
 	if (getsign(st0_ptr))
+	{
 		l[1] |= 0x80000000;
+	}
 
 	RE_ENTRANT_CHECK_OFF;
 	FPU_access_ok(VERIFY_WRITE, dfloat, 8);
@@ -568,177 +716,269 @@ int FPU_store_single(FPU_REG *st0_ptr, u_char st0_tag, float __user *single)
 	int exp;
 	FPU_REG tmp;
 
-	if (st0_tag == TAG_Valid) {
+	if (st0_tag == TAG_Valid)
+	{
 
 		reg_copy(st0_ptr, &tmp);
 		exp = exponent(&tmp);
 
-		if (exp < SINGLE_Emin) {
+		if (exp < SINGLE_Emin)
+		{
 			addexponent(&tmp, -SINGLE_Emin + 23);	/* largest exp to be 22 */
 
-		      denormal_arg:
+denormal_arg:
 
-			if ((precision_loss = FPU_round_to_int(&tmp, st0_tag))) {
+			if ((precision_loss = FPU_round_to_int(&tmp, st0_tag)))
+			{
 #ifdef PECULIAR_486
+
 				/* Did it round to a non-denormal ? */
 				/* This behaviour might be regarded as peculiar, it appears
 				   that the 80486 rounds to the dest precision, then
 				   converts to decide underflow. */
 				if (!((tmp.sigl == 0x00800000) &&
-				      ((st0_ptr->sigh & 0x000000ff)
-				       || st0_ptr->sigl)))
+					  ((st0_ptr->sigh & 0x000000ff)
+					   || st0_ptr->sigl)))
 #endif /* PECULIAR_486 */
 				{
 					EXCEPTION(EX_Underflow);
+
 					/* This is a special case: see sec 16.2.5.1 of
 					   the 80486 book */
 					if (!(control_word & CW_Underflow))
+					{
 						return 0;
+					}
 				}
+
 				EXCEPTION(precision_loss);
+
 				if (!(control_word & CW_Precision))
+				{
 					return 0;
+				}
 			}
+
 			templ = tmp.sigl;
-		} else {
-			if (tmp.sigl | (tmp.sigh & 0x000000ff)) {
+		}
+		else
+		{
+			if (tmp.sigl | (tmp.sigh & 0x000000ff))
+			{
 				unsigned long sigh = tmp.sigh;
 				unsigned long sigl = tmp.sigl;
 
 				precision_loss = 1;
-				switch (control_word & CW_RC) {
-				case RC_RND:
-					increment = ((sigh & 0xff) > 0x80)	/* more than half */
-					    ||(((sigh & 0xff) == 0x80) && sigl)	/* more than half */
-					    ||((sigh & 0x180) == 0x180);	/* round to even */
-					break;
-				case RC_DOWN:	/* towards -infinity */
-					increment = signpositive(&tmp)
-					    ? 0 : (sigl | (sigh & 0xff));
-					break;
-				case RC_UP:	/* towards +infinity */
-					increment = signpositive(&tmp)
-					    ? (sigl | (sigh & 0xff)) : 0;
-					break;
-				case RC_CHOP:
-					increment = 0;
-					break;
+
+				switch (control_word & CW_RC)
+				{
+					case RC_RND:
+						increment = ((sigh & 0xff) > 0x80)	/* more than half */
+									|| (((sigh & 0xff) == 0x80) && sigl)	/* more than half */
+									|| ((sigh & 0x180) == 0x180);	/* round to even */
+						break;
+
+					case RC_DOWN:	/* towards -infinity */
+						increment = signpositive(&tmp)
+									? 0 : (sigl | (sigh & 0xff));
+						break;
+
+					case RC_UP:	/* towards +infinity */
+						increment = signpositive(&tmp)
+									? (sigl | (sigh & 0xff)) : 0;
+						break;
+
+					case RC_CHOP:
+						increment = 0;
+						break;
 				}
 
 				/* Truncate part of the mantissa */
 				tmp.sigl = 0;
 
-				if (increment) {
-					if (sigh >= 0xffffff00) {
+				if (increment)
+				{
+					if (sigh >= 0xffffff00)
+					{
 						/* The sigh part overflows */
 						tmp.sigh = 0x80000000;
 						exp++;
+
 						if (exp >= EXP_OVER)
+						{
 							goto overflow;
-					} else {
+						}
+					}
+					else
+					{
 						tmp.sigh &= 0xffffff00;
 						tmp.sigh += 0x100;
 					}
-				} else {
+				}
+				else
+				{
 					tmp.sigh &= 0xffffff00;	/* Finish the truncation */
 				}
-			} else
+			}
+			else
+			{
 				precision_loss = 0;
+			}
 
 			templ = (tmp.sigh >> 8) & 0x007fffff;
 
-			if (exp > SINGLE_Emax) {
-			      overflow:
+			if (exp > SINGLE_Emax)
+			{
+overflow:
 				EXCEPTION(EX_Overflow);
+
 				if (!(control_word & CW_Overflow))
+				{
 					return 0;
+				}
+
 				set_precision_flag_up();
+
 				if (!(control_word & CW_Precision))
+				{
 					return 0;
+				}
 
 				/* This is a special case: see sec 16.2.5.1 of the 80486 book. */
 				/* Masked response is overflow to infinity. */
 				templ = 0x7f800000;
-			} else {
-				if (precision_loss) {
+			}
+			else
+			{
+				if (precision_loss)
+				{
 					if (increment)
+					{
 						set_precision_flag_up();
+					}
 					else
+					{
 						set_precision_flag_down();
+					}
 				}
+
 				/* Add the exponent */
 				templ |= ((exp + SINGLE_Ebias) & 0xff) << 23;
 			}
 		}
-	} else if (st0_tag == TAG_Zero) {
+	}
+	else if (st0_tag == TAG_Zero)
+	{
 		templ = 0;
-	} else if (st0_tag == TAG_Special) {
+	}
+	else if (st0_tag == TAG_Special)
+	{
 		st0_tag = FPU_Special(st0_ptr);
-		if (st0_tag == TW_Denormal) {
+
+		if (st0_tag == TW_Denormal)
+		{
 			reg_copy(st0_ptr, &tmp);
 
 			/* A denormal will always underflow. */
 #ifndef PECULIAR_486
+
 			/* An 80486 is supposed to be able to generate
 			   a denormal exception here, but... */
 			/* Underflow has priority. */
 			if (control_word & CW_Underflow)
+			{
 				denormal_operand();
+			}
+
 #endif /* PECULIAR_486 */
 			goto denormal_arg;
-		} else if (st0_tag == TW_Infinity) {
+		}
+		else if (st0_tag == TW_Infinity)
+		{
 			templ = 0x7f800000;
-		} else if (st0_tag == TW_NaN) {
+		}
+		else if (st0_tag == TW_NaN)
+		{
 			/* Is it really a NaN ? */
 			if ((exponent(st0_ptr) == EXP_OVER)
-			    && (st0_ptr->sigh & 0x80000000)) {
+				&& (st0_ptr->sigh & 0x80000000))
+			{
 				/* See if we can get a valid NaN from the FPU_REG */
 				templ = st0_ptr->sigh >> 8;
-				if (!(st0_ptr->sigh & 0x40000000)) {
+
+				if (!(st0_ptr->sigh & 0x40000000))
+				{
 					/* It is a signalling NaN */
 					EXCEPTION(EX_Invalid);
+
 					if (!(control_word & CW_Invalid))
+					{
 						return 0;
+					}
+
 					templ |= (0x40000000 >> 8);
 				}
+
 				templ |= 0x7f800000;
-			} else {
+			}
+			else
+			{
 				/* It is an unsupported data type */
 				EXCEPTION(EX_Invalid);
+
 				if (!(control_word & CW_Invalid))
+				{
 					return 0;
+				}
+
 				templ = 0xffc00000;
 			}
 		}
+
 #ifdef PARANOID
-		else {
+		else
+		{
 			EXCEPTION(EX_INTERNAL | 0x164);
 			return 0;
 		}
+
 #endif
-	} else if (st0_tag == TAG_Empty) {
+	}
+	else if (st0_tag == TAG_Empty)
+	{
 		/* Empty register (stack underflow) */
 		EXCEPTION(EX_StackUnder);
-		if (control_word & EX_Invalid) {
+
+		if (control_word & EX_Invalid)
+		{
 			/* The masked response */
 			/* Put out the QNaN indefinite */
 			RE_ENTRANT_CHECK_OFF;
 			FPU_access_ok(VERIFY_WRITE, single, 4);
 			FPU_put_user(0xffc00000,
-				     (unsigned long __user *)single);
+						 (unsigned long __user *)single);
 			RE_ENTRANT_CHECK_ON;
 			return 1;
-		} else
+		}
+		else
+		{
 			return 0;
+		}
 	}
+
 #ifdef PARANOID
-	else {
+	else
+	{
 		EXCEPTION(EX_INTERNAL | 0x163);
 		return 0;
 	}
+
 #endif
+
 	if (getsign(st0_ptr))
+	{
 		templ |= 0x80000000;
+	}
 
 	RE_ENTRANT_CHECK_OFF;
 	FPU_access_ok(VERIFY_WRITE, single, 4);
@@ -755,13 +995,18 @@ int FPU_store_int64(FPU_REG *st0_ptr, u_char st0_tag, long long __user *d)
 	long long tll;
 	int precision_loss;
 
-	if (st0_tag == TAG_Empty) {
+	if (st0_tag == TAG_Empty)
+	{
 		/* Empty register (stack underflow) */
 		EXCEPTION(EX_StackUnder);
 		goto invalid_operand;
-	} else if (st0_tag == TAG_Special) {
+	}
+	else if (st0_tag == TAG_Special)
+	{
 		st0_tag = FPU_Special(st0_ptr);
-		if ((st0_tag == TW_Infinity) || (st0_tag == TW_NaN)) {
+
+		if ((st0_tag == TW_Infinity) || (st0_tag == TW_NaN))
+		{
 			EXCEPTION(EX_Invalid);
 			goto invalid_operand;
 		}
@@ -771,28 +1016,46 @@ int FPU_store_int64(FPU_REG *st0_ptr, u_char st0_tag, long long __user *d)
 	precision_loss = FPU_round_to_int(&t, st0_tag);
 	((long *)&tll)[0] = t.sigl;
 	((long *)&tll)[1] = t.sigh;
+
 	if ((precision_loss == 1) ||
-	    ((t.sigh & 0x80000000) &&
-	     !((t.sigh == 0x80000000) && (t.sigl == 0) && signnegative(&t)))) {
+		((t.sigh & 0x80000000) &&
+		 !((t.sigh == 0x80000000) && (t.sigl == 0) && signnegative(&t))))
+	{
 		EXCEPTION(EX_Invalid);
 		/* This is a special case: see sec 16.2.5.1 of the 80486 book */
-	      invalid_operand:
-		if (control_word & EX_Invalid) {
+invalid_operand:
+
+		if (control_word & EX_Invalid)
+		{
 			/* Produce something like QNaN "indefinite" */
 			tll = 0x8000000000000000LL;
-		} else
+		}
+		else
+		{
 			return 0;
-	} else {
+		}
+	}
+	else
+	{
 		if (precision_loss)
+		{
 			set_precision_flag(precision_loss);
+		}
+
 		if (signnegative(&t))
+		{
 			tll = -tll;
+		}
 	}
 
 	RE_ENTRANT_CHECK_OFF;
 	FPU_access_ok(VERIFY_WRITE, d, 8);
+
 	if (copy_to_user(d, &tll, 8))
+	{
 		FPU_abort;
+	}
+
 	RE_ENTRANT_CHECK_ON;
 
 	return 1;
@@ -804,13 +1067,18 @@ int FPU_store_int32(FPU_REG *st0_ptr, u_char st0_tag, long __user *d)
 	FPU_REG t;
 	int precision_loss;
 
-	if (st0_tag == TAG_Empty) {
+	if (st0_tag == TAG_Empty)
+	{
 		/* Empty register (stack underflow) */
 		EXCEPTION(EX_StackUnder);
 		goto invalid_operand;
-	} else if (st0_tag == TAG_Special) {
+	}
+	else if (st0_tag == TAG_Special)
+	{
 		st0_tag = FPU_Special(st0_ptr);
-		if ((st0_tag == TW_Infinity) || (st0_tag == TW_NaN)) {
+
+		if ((st0_tag == TW_Infinity) || (st0_tag == TW_NaN))
+		{
 			EXCEPTION(EX_Invalid);
 			goto invalid_operand;
 		}
@@ -818,22 +1086,36 @@ int FPU_store_int32(FPU_REG *st0_ptr, u_char st0_tag, long __user *d)
 
 	reg_copy(st0_ptr, &t);
 	precision_loss = FPU_round_to_int(&t, st0_tag);
+
 	if (t.sigh ||
-	    ((t.sigl & 0x80000000) &&
-	     !((t.sigl == 0x80000000) && signnegative(&t)))) {
+		((t.sigl & 0x80000000) &&
+		 !((t.sigl == 0x80000000) && signnegative(&t))))
+	{
 		EXCEPTION(EX_Invalid);
 		/* This is a special case: see sec 16.2.5.1 of the 80486 book */
-	      invalid_operand:
-		if (control_word & EX_Invalid) {
+invalid_operand:
+
+		if (control_word & EX_Invalid)
+		{
 			/* Produce something like QNaN "indefinite" */
 			t.sigl = 0x80000000;
-		} else
+		}
+		else
+		{
 			return 0;
-	} else {
+		}
+	}
+	else
+	{
 		if (precision_loss)
+		{
 			set_precision_flag(precision_loss);
+		}
+
 		if (signnegative(&t))
+		{
 			t.sigl = -(long)t.sigl;
+		}
 	}
 
 	RE_ENTRANT_CHECK_OFF;
@@ -850,13 +1132,18 @@ int FPU_store_int16(FPU_REG *st0_ptr, u_char st0_tag, short __user *d)
 	FPU_REG t;
 	int precision_loss;
 
-	if (st0_tag == TAG_Empty) {
+	if (st0_tag == TAG_Empty)
+	{
 		/* Empty register (stack underflow) */
 		EXCEPTION(EX_StackUnder);
 		goto invalid_operand;
-	} else if (st0_tag == TAG_Special) {
+	}
+	else if (st0_tag == TAG_Special)
+	{
 		st0_tag = FPU_Special(st0_ptr);
-		if ((st0_tag == TW_Infinity) || (st0_tag == TW_NaN)) {
+
+		if ((st0_tag == TW_Infinity) || (st0_tag == TW_NaN))
+		{
 			EXCEPTION(EX_Invalid);
 			goto invalid_operand;
 		}
@@ -864,22 +1151,36 @@ int FPU_store_int16(FPU_REG *st0_ptr, u_char st0_tag, short __user *d)
 
 	reg_copy(st0_ptr, &t);
 	precision_loss = FPU_round_to_int(&t, st0_tag);
+
 	if (t.sigh ||
-	    ((t.sigl & 0xffff8000) &&
-	     !((t.sigl == 0x8000) && signnegative(&t)))) {
+		((t.sigl & 0xffff8000) &&
+		 !((t.sigl == 0x8000) && signnegative(&t))))
+	{
 		EXCEPTION(EX_Invalid);
 		/* This is a special case: see sec 16.2.5.1 of the 80486 book */
-	      invalid_operand:
-		if (control_word & EX_Invalid) {
+invalid_operand:
+
+		if (control_word & EX_Invalid)
+		{
 			/* Produce something like QNaN "indefinite" */
 			t.sigl = 0x8000;
-		} else
+		}
+		else
+		{
 			return 0;
-	} else {
+		}
+	}
+	else
+	{
 		if (precision_loss)
+		{
 			set_precision_flag(precision_loss);
+		}
+
 		if (signnegative(&t))
+		{
 			t.sigl = -t.sigl;
+		}
 	}
 
 	RE_ENTRANT_CHECK_OFF;
@@ -899,13 +1200,18 @@ int FPU_store_bcd(FPU_REG *st0_ptr, u_char st0_tag, u_char __user *d)
 	int i, precision_loss;
 	u_char sign = (getsign(st0_ptr) == SIGN_NEG) ? 0x80 : 0;
 
-	if (st0_tag == TAG_Empty) {
+	if (st0_tag == TAG_Empty)
+	{
 		/* Empty register (stack underflow) */
 		EXCEPTION(EX_StackUnder);
 		goto invalid_operand;
-	} else if (st0_tag == TAG_Special) {
+	}
+	else if (st0_tag == TAG_Special)
+	{
 		st0_tag = FPU_Special(st0_ptr);
-		if ((st0_tag == TW_Infinity) || (st0_tag == TW_NaN)) {
+
+		if ((st0_tag == TW_Infinity) || (st0_tag == TW_NaN))
+		{
 			EXCEPTION(EX_Invalid);
 			goto invalid_operand;
 		}
@@ -917,24 +1223,36 @@ int FPU_store_bcd(FPU_REG *st0_ptr, u_char st0_tag, u_char __user *d)
 
 	/* Check for overflow, by comparing with 999999999999999999 decimal. */
 	if ((t.sigh > 0x0de0b6b3) ||
-	    ((t.sigh == 0x0de0b6b3) && (t.sigl > 0xa763ffff))) {
+		((t.sigh == 0x0de0b6b3) && (t.sigl > 0xa763ffff)))
+	{
 		EXCEPTION(EX_Invalid);
 		/* This is a special case: see sec 16.2.5.1 of the 80486 book */
-	      invalid_operand:
-		if (control_word & CW_Invalid) {
+invalid_operand:
+
+		if (control_word & CW_Invalid)
+		{
 			/* Produce the QNaN "indefinite" */
 			RE_ENTRANT_CHECK_OFF;
 			FPU_access_ok(VERIFY_WRITE, d, 10);
+
 			for (i = 0; i < 7; i++)
-				FPU_put_user(0, d + i);	/* These bytes "undefined" */
+			{
+				FPU_put_user(0, d + i);    /* These bytes "undefined" */
+			}
+
 			FPU_put_user(0xc0, d + 7);	/* This byte "undefined" */
 			FPU_put_user(0xff, d + 8);
 			FPU_put_user(0xff, d + 9);
 			RE_ENTRANT_CHECK_ON;
 			return 1;
-		} else
+		}
+		else
+		{
 			return 0;
-	} else if (precision_loss) {
+		}
+	}
+	else if (precision_loss)
+	{
 		/* Precision loss doesn't stop the data transfer */
 		set_precision_flag(precision_loss);
 	}
@@ -942,13 +1260,16 @@ int FPU_store_bcd(FPU_REG *st0_ptr, u_char st0_tag, u_char __user *d)
 	RE_ENTRANT_CHECK_OFF;
 	FPU_access_ok(VERIFY_WRITE, d, 10);
 	RE_ENTRANT_CHECK_ON;
-	for (i = 0; i < 9; i++) {
+
+	for (i = 0; i < 9; i++)
+	{
 		b = FPU_div_small(&ll, 10);
 		b |= (FPU_div_small(&ll, 10)) << 4;
 		RE_ENTRANT_CHECK_OFF;
 		FPU_put_user(b, d + i);
 		RE_ENTRANT_CHECK_ON;
 	}
+
 	RE_ENTRANT_CHECK_OFF;
 	FPU_put_user(sign, d + 9);
 	RE_ENTRANT_CHECK_ON;
@@ -958,7 +1279,7 @@ int FPU_store_bcd(FPU_REG *st0_ptr, u_char st0_tag, u_char __user *d)
 
 /*===========================================================================*/
 
-/* r gets mangled such that sig is int, sign: 
+/* r gets mangled such that sig is int, sign:
    it is NOT normalized */
 /* The return value (in eax) is zero if the result is exact,
    if bits are changed due to rounding, truncation, etc, then
@@ -971,13 +1292,15 @@ int FPU_round_to_int(FPU_REG *r, u_char tag)
 	u_char very_big;
 	unsigned eax;
 
-	if (tag == TAG_Zero) {
+	if (tag == TAG_Zero)
+	{
 		/* Make sure that zero is returned */
 		significand(r) = 0;
 		return 0;	/* o.k. */
 	}
 
-	if (exponent(r) > 63) {
+	if (exponent(r) > 63)
+	{
 		r->sigl = r->sigh = ~0;	/* The largest representable number */
 		return 1;	/* overflow */
 	}
@@ -987,34 +1310,54 @@ int FPU_round_to_int(FPU_REG *r, u_char tag)
 #define	half_or_more	(eax & 0x80000000)
 #define	frac_part	(eax)
 #define more_than_half  ((eax & 0x80000001) == 0x80000001)
-	switch (control_word & CW_RC) {
-	case RC_RND:
-		if (more_than_half	/* nearest */
-		    || (half_or_more && (r->sigl & 1))) {	/* odd -> even */
-			if (very_big)
-				return 1;	/* overflow */
-			significand(r)++;
-			return PRECISION_LOST_UP;
-		}
-		break;
-	case RC_DOWN:
-		if (frac_part && getsign(r)) {
-			if (very_big)
-				return 1;	/* overflow */
-			significand(r)++;
-			return PRECISION_LOST_UP;
-		}
-		break;
-	case RC_UP:
-		if (frac_part && !getsign(r)) {
-			if (very_big)
-				return 1;	/* overflow */
-			significand(r)++;
-			return PRECISION_LOST_UP;
-		}
-		break;
-	case RC_CHOP:
-		break;
+
+	switch (control_word & CW_RC)
+	{
+		case RC_RND:
+			if (more_than_half	/* nearest */
+				|| (half_or_more && (r->sigl & 1)))  	/* odd -> even */
+			{
+				if (very_big)
+				{
+					return 1;    /* overflow */
+				}
+
+				significand(r)++;
+				return PRECISION_LOST_UP;
+			}
+
+			break;
+
+		case RC_DOWN:
+			if (frac_part && getsign(r))
+			{
+				if (very_big)
+				{
+					return 1;    /* overflow */
+				}
+
+				significand(r)++;
+				return PRECISION_LOST_UP;
+			}
+
+			break;
+
+		case RC_UP:
+			if (frac_part && !getsign(r))
+			{
+				if (very_big)
+				{
+					return 1;    /* overflow */
+				}
+
+				significand(r)++;
+				return PRECISION_LOST_UP;
+			}
+
+			break;
+
+		case RC_CHOP:
+			break;
 	}
 
 	return eax ? PRECISION_LOST_DOWN : 0;
@@ -1030,45 +1373,50 @@ u_char __user *fldenv(fpu_addr_modes addr_modes, u_char __user *s)
 	int i;
 
 	if ((addr_modes.default_mode == VM86) ||
-	    ((addr_modes.default_mode == PM16)
-	     ^ (addr_modes.override.operand_size == OP_SIZE_PREFIX))) {
+		((addr_modes.default_mode == PM16)
+		 ^ (addr_modes.override.operand_size == OP_SIZE_PREFIX)))
+	{
 		RE_ENTRANT_CHECK_OFF;
 		FPU_access_ok(VERIFY_READ, s, 0x0e);
 		FPU_get_user(control_word, (unsigned short __user *)s);
 		FPU_get_user(partial_status, (unsigned short __user *)(s + 2));
 		FPU_get_user(tag_word, (unsigned short __user *)(s + 4));
 		FPU_get_user(instruction_address.offset,
-			     (unsigned short __user *)(s + 6));
+					 (unsigned short __user *)(s + 6));
 		FPU_get_user(instruction_address.selector,
-			     (unsigned short __user *)(s + 8));
+					 (unsigned short __user *)(s + 8));
 		FPU_get_user(operand_address.offset,
-			     (unsigned short __user *)(s + 0x0a));
+					 (unsigned short __user *)(s + 0x0a));
 		FPU_get_user(operand_address.selector,
-			     (unsigned short __user *)(s + 0x0c));
+					 (unsigned short __user *)(s + 0x0c));
 		RE_ENTRANT_CHECK_ON;
 		s += 0x0e;
-		if (addr_modes.default_mode == VM86) {
+
+		if (addr_modes.default_mode == VM86)
+		{
 			instruction_address.offset
-			    += (instruction_address.selector & 0xf000) << 4;
+			+= (instruction_address.selector & 0xf000) << 4;
 			operand_address.offset +=
-			    (operand_address.selector & 0xf000) << 4;
+				(operand_address.selector & 0xf000) << 4;
 		}
-	} else {
+	}
+	else
+	{
 		RE_ENTRANT_CHECK_OFF;
 		FPU_access_ok(VERIFY_READ, s, 0x1c);
 		FPU_get_user(control_word, (unsigned short __user *)s);
 		FPU_get_user(partial_status, (unsigned short __user *)(s + 4));
 		FPU_get_user(tag_word, (unsigned short __user *)(s + 8));
 		FPU_get_user(instruction_address.offset,
-			     (unsigned long __user *)(s + 0x0c));
+					 (unsigned long __user *)(s + 0x0c));
 		FPU_get_user(instruction_address.selector,
-			     (unsigned short __user *)(s + 0x10));
+					 (unsigned short __user *)(s + 0x10));
 		FPU_get_user(instruction_address.opcode,
-			     (unsigned short __user *)(s + 0x12));
+					 (unsigned short __user *)(s + 0x12));
 		FPU_get_user(operand_address.offset,
-			     (unsigned long __user *)(s + 0x14));
+					 (unsigned long __user *)(s + 0x14));
 		FPU_get_user(operand_address.selector,
-			     (unsigned long __user *)(s + 0x18));
+					 (unsigned long __user *)(s + 0x18));
 		RE_ENTRANT_CHECK_ON;
 		s += 0x1c;
 	}
@@ -1080,35 +1428,56 @@ u_char __user *fldenv(fpu_addr_modes addr_modes, u_char __user *s)
 	top = (partial_status >> SW_Top_Shift) & 7;
 
 	if (partial_status & ~control_word & CW_Exceptions)
+	{
 		partial_status |= (SW_Summary | SW_Backward);
+	}
 	else
+	{
 		partial_status &= ~(SW_Summary | SW_Backward);
+	}
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		tag = tag_word & 3;
 		tag_word >>= 2;
 
 		if (tag == TAG_Empty)
 			/* New tag is empty.  Accept it */
+		{
 			FPU_settag(i, TAG_Empty);
-		else if (FPU_gettag(i) == TAG_Empty) {
+		}
+		else if (FPU_gettag(i) == TAG_Empty)
+		{
 			/* Old tag is empty and new tag is not empty.  New tag is determined
 			   by old reg contents */
-			if (exponent(&fpu_register(i)) == -EXTENDED_Ebias) {
+			if (exponent(&fpu_register(i)) == -EXTENDED_Ebias)
+			{
 				if (!
-				    (fpu_register(i).sigl | fpu_register(i).
-				     sigh))
+					(fpu_register(i).sigl | fpu_register(i).
+					 sigh))
+				{
 					FPU_settag(i, TAG_Zero);
+				}
 				else
+				{
 					FPU_settag(i, TAG_Special);
-			} else if (exponent(&fpu_register(i)) ==
-				   0x7fff - EXTENDED_Ebias) {
+				}
+			}
+			else if (exponent(&fpu_register(i)) ==
+					 0x7fff - EXTENDED_Ebias)
+			{
 				FPU_settag(i, TAG_Special);
-			} else if (fpu_register(i).sigh & 0x80000000)
+			}
+			else if (fpu_register(i).sigh & 0x80000000)
+			{
 				FPU_settag(i, TAG_Valid);
+			}
 			else
-				FPU_settag(i, TAG_Special);	/* An Un-normal */
+			{
+				FPU_settag(i, TAG_Special);    /* An Un-normal */
+			}
 		}
+
 		/* Else old tag is not empty and new tag is not empty.  Old tag
 		   remains correct */
 	}
@@ -1126,15 +1495,23 @@ void frstor(fpu_addr_modes addr_modes, u_char __user *data_address)
 	RE_ENTRANT_CHECK_OFF;
 	FPU_access_ok(VERIFY_READ, s, 80);
 	__copy_from_user(register_base + offset, s, other);
+
 	if (offset)
+	{
 		__copy_from_user(register_base, s + other, offset);
+	}
+
 	RE_ENTRANT_CHECK_ON;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		regnr = (i + top) & 7;
+
 		if (FPU_gettag(regnr) != TAG_Empty)
 			/* The loaded data over-rides all other cases. */
+		{
 			FPU_settag(regnr, FPU_tagof(&st(i)));
+		}
 	}
 
 }
@@ -1142,8 +1519,9 @@ void frstor(fpu_addr_modes addr_modes, u_char __user *data_address)
 u_char __user *fstenv(fpu_addr_modes addr_modes, u_char __user *d)
 {
 	if ((addr_modes.default_mode == VM86) ||
-	    ((addr_modes.default_mode == PM16)
-	     ^ (addr_modes.override.operand_size == OP_SIZE_PREFIX))) {
+		((addr_modes.default_mode == PM16)
+		 ^ (addr_modes.override.operand_size == OP_SIZE_PREFIX)))
+	{
 		RE_ENTRANT_CHECK_OFF;
 		FPU_access_ok(VERIFY_WRITE, d, 14);
 #ifdef PECULIAR_486
@@ -1154,24 +1532,31 @@ u_char __user *fstenv(fpu_addr_modes addr_modes, u_char __user *d)
 		FPU_put_user(status_word(), (unsigned short __user *)(d + 2));
 		FPU_put_user(fpu_tag_word, (unsigned short __user *)(d + 4));
 		FPU_put_user(instruction_address.offset,
-			     (unsigned short __user *)(d + 6));
+					 (unsigned short __user *)(d + 6));
 		FPU_put_user(operand_address.offset,
-			     (unsigned short __user *)(d + 0x0a));
-		if (addr_modes.default_mode == VM86) {
+					 (unsigned short __user *)(d + 0x0a));
+
+		if (addr_modes.default_mode == VM86)
+		{
 			FPU_put_user((instruction_address.
-				      offset & 0xf0000) >> 4,
-				     (unsigned short __user *)(d + 8));
+						  offset & 0xf0000) >> 4,
+						 (unsigned short __user *)(d + 8));
 			FPU_put_user((operand_address.offset & 0xf0000) >> 4,
-				     (unsigned short __user *)(d + 0x0c));
-		} else {
-			FPU_put_user(instruction_address.selector,
-				     (unsigned short __user *)(d + 8));
-			FPU_put_user(operand_address.selector,
-				     (unsigned short __user *)(d + 0x0c));
+						 (unsigned short __user *)(d + 0x0c));
 		}
+		else
+		{
+			FPU_put_user(instruction_address.selector,
+						 (unsigned short __user *)(d + 8));
+			FPU_put_user(operand_address.selector,
+						 (unsigned short __user *)(d + 0x0c));
+		}
+
 		RE_ENTRANT_CHECK_ON;
 		d += 0x0e;
-	} else {
+	}
+	else
+	{
 		RE_ENTRANT_CHECK_OFF;
 		FPU_access_ok(VERIFY_WRITE, d, 7 * 4);
 #ifdef PECULIAR_486
@@ -1183,8 +1568,12 @@ u_char __user *fstenv(fpu_addr_modes addr_modes, u_char __user *d)
 		I387->soft.fcs &= ~0xf8000000;
 		I387->soft.fos |= 0xffff0000;
 #endif /* PECULIAR_486 */
+
 		if (__copy_to_user(d, &control_word, 7 * 4))
+		{
 			FPU_abort;
+		}
+
 		RE_ENTRANT_CHECK_ON;
 		d += 0x1c;
 	}
@@ -1207,10 +1596,16 @@ void fsave(fpu_addr_modes addr_modes, u_char __user *data_address)
 
 	/* Copy all registers in stack order. */
 	if (__copy_to_user(d, register_base + offset, other))
+	{
 		FPU_abort;
+	}
+
 	if (offset)
 		if (__copy_to_user(d + other, register_base, offset))
+		{
 			FPU_abort;
+		}
+
 	RE_ENTRANT_CHECK_ON;
 
 	finit();

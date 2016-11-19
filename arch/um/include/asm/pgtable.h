@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
  * Copyright 2003 PathScale, Inc.
  * Derived from include/asm-i386/pgtable.h
@@ -22,9 +22,9 @@
 				   pte_present gives true */
 
 #ifdef CONFIG_3_LEVEL_PGTABLES
-#include <asm/pgtable-3level.h>
+	#include <asm/pgtable-3level.h>
 #else
-#include <asm/pgtable-2level.h>
+	#include <asm/pgtable-2level.h>
 #endif
 
 extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
@@ -56,7 +56,7 @@ extern unsigned long end_iomem;
 #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED | _PAGE_DIRTY)
 #define _PAGE_CHG_MASK	(PAGE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY)
 #define __PAGE_KERNEL_EXEC                                              \
-	 (_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | _PAGE_ACCESSED)
+	(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | _PAGE_ACCESSED)
 #define PAGE_NONE	__pgprot(_PAGE_PROTNONE | _PAGE_ACCESSED)
 #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER | _PAGE_ACCESSED)
 #define PAGE_COPY	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_ACCESSED)
@@ -130,20 +130,21 @@ static inline int pte_none(pte_t pte)
  * Undefined behaviour if not..
  */
 static inline int pte_read(pte_t pte)
-{ 
-	return((pte_get_bits(pte, _PAGE_USER)) &&
-	       !(pte_get_bits(pte, _PAGE_PROTNONE)));
+{
+	return ((pte_get_bits(pte, _PAGE_USER)) &&
+			!(pte_get_bits(pte, _PAGE_PROTNONE)));
 }
 
-static inline int pte_exec(pte_t pte){
-	return((pte_get_bits(pte, _PAGE_USER)) &&
-	       !(pte_get_bits(pte, _PAGE_PROTNONE)));
+static inline int pte_exec(pte_t pte)
+{
+	return ((pte_get_bits(pte, _PAGE_USER)) &&
+			!(pte_get_bits(pte, _PAGE_PROTNONE)));
 }
 
 static inline int pte_write(pte_t pte)
 {
-	return((pte_get_bits(pte, _PAGE_RW)) &&
-	       !(pte_get_bits(pte, _PAGE_PROTNONE)));
+	return ((pte_get_bits(pte, _PAGE_RW)) &&
+			!(pte_get_bits(pte, _PAGE_PROTNONE)));
 }
 
 static inline int pte_dirty(pte_t pte)
@@ -162,8 +163,8 @@ static inline int pte_newpage(pte_t pte)
 }
 
 static inline int pte_newprot(pte_t pte)
-{ 
-	return(pte_present(pte) && (pte_get_bits(pte, _PAGE_NEWPROT)));
+{
+	return (pte_present(pte) && (pte_get_bits(pte, _PAGE_NEWPROT)));
 }
 
 static inline int pte_special(pte_t pte)
@@ -180,68 +181,72 @@ static inline int pte_special(pte_t pte)
 static inline pte_t pte_mknewprot(pte_t pte)
 {
 	pte_set_bits(pte, _PAGE_NEWPROT);
-	return(pte);
+	return (pte);
 }
 
 static inline pte_t pte_mkclean(pte_t pte)
 {
 	pte_clear_bits(pte, _PAGE_DIRTY);
-	return(pte);
+	return (pte);
 }
 
-static inline pte_t pte_mkold(pte_t pte)	
-{ 
+static inline pte_t pte_mkold(pte_t pte)
+{
 	pte_clear_bits(pte, _PAGE_ACCESSED);
-	return(pte);
+	return (pte);
 }
 
 static inline pte_t pte_wrprotect(pte_t pte)
-{ 
+{
 	pte_clear_bits(pte, _PAGE_RW);
-	return(pte_mknewprot(pte)); 
+	return (pte_mknewprot(pte));
 }
 
 static inline pte_t pte_mkread(pte_t pte)
-{ 
+{
 	pte_set_bits(pte, _PAGE_USER);
-	return(pte_mknewprot(pte)); 
+	return (pte_mknewprot(pte));
 }
 
 static inline pte_t pte_mkdirty(pte_t pte)
-{ 
+{
 	pte_set_bits(pte, _PAGE_DIRTY);
-	return(pte);
+	return (pte);
 }
 
 static inline pte_t pte_mkyoung(pte_t pte)
 {
 	pte_set_bits(pte, _PAGE_ACCESSED);
-	return(pte);
+	return (pte);
 }
 
-static inline pte_t pte_mkwrite(pte_t pte)	
+static inline pte_t pte_mkwrite(pte_t pte)
 {
 	pte_set_bits(pte, _PAGE_RW);
-	return(pte_mknewprot(pte)); 
+	return (pte_mknewprot(pte));
 }
 
-static inline pte_t pte_mkuptodate(pte_t pte)	
+static inline pte_t pte_mkuptodate(pte_t pte)
 {
 	pte_clear_bits(pte, _PAGE_NEWPAGE);
-	if(pte_present(pte))
+
+	if (pte_present(pte))
+	{
 		pte_clear_bits(pte, _PAGE_NEWPROT);
-	return(pte); 
+	}
+
+	return (pte);
 }
 
 static inline pte_t pte_mknewpage(pte_t pte)
 {
 	pte_set_bits(pte, _PAGE_NEWPAGE);
-	return(pte);
+	return (pte);
 }
 
 static inline pte_t pte_mkspecial(pte_t pte)
 {
-	return(pte);
+	return (pte);
 }
 
 static inline void set_pte(pte_t *pteptr, pte_t pteval)
@@ -254,7 +259,8 @@ static inline void set_pte(pte_t *pteptr, pte_t pteval)
 	 */
 
 	*pteptr = pte_mknewpage(*pteptr);
-	if(pte_present(*pteptr)) *pteptr = pte_mknewprot(*pteptr);
+
+	if (pte_present(*pteptr)) { *pteptr = pte_mknewprot(*pteptr); }
 }
 #define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
 
@@ -276,16 +282,16 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
 
 #define mk_pte(page, pgprot) \
 	({ pte_t pte;					\
-							\
-	pte_set_val(pte, page_to_phys(page), (pgprot));	\
-	if (pte_present(pte))				\
-		pte_mknewprot(pte_mknewpage(pte));	\
-	pte;})
+		\
+		pte_set_val(pte, page_to_phys(page), (pgprot));	\
+		if (pte_present(pte))				\
+			pte_mknewprot(pte_mknewpage(pte));	\
+		pte;})
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
 	pte_set_val(pte, (pte_val(pte) & _PAGE_CHG_MASK), newprot);
-	return pte; 
+	return pte;
 }
 
 /*
@@ -354,9 +360,9 @@ extern pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr);
 
 /* Clear a kernel PTE and flush it from the TLB */
 #define kpte_clear_flush(ptep, vaddr)		\
-do {						\
-	pte_clear(&init_mm, (vaddr), (ptep));	\
-	__flush_tlb_one((vaddr));		\
-} while (0)
+	do {						\
+		pte_clear(&init_mm, (vaddr), (ptep));	\
+		__flush_tlb_one((vaddr));		\
+	} while (0)
 
 #endif

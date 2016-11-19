@@ -3,7 +3,8 @@
 
 #include "slip_common.h"
 
-struct slip_data {
+struct slip_data
+{
 	void *dev;
 	char name[sizeof("slnnnnn\0")];
 	char *addr;

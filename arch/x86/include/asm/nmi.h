@@ -16,15 +16,16 @@ extern void release_evntsel_nmi(unsigned int);
 
 struct ctl_table;
 extern int proc_nmi_enabled(struct ctl_table *, int ,
-			void __user *, size_t *, loff_t *);
+							void __user *, size_t *, loff_t *);
 extern int unknown_nmi_panic;
 
 #endif /* CONFIG_X86_LOCAL_APIC */
 
 #define NMI_FLAG_FIRST	1
 
-enum {
-	NMI_LOCAL=0,
+enum
+{
+	NMI_LOCAL = 0,
 	NMI_UNKNOWN,
 	NMI_SERR,
 	NMI_IO_CHECK,
@@ -36,7 +37,8 @@ enum {
 
 typedef int (*nmi_handler_t)(unsigned int, struct pt_regs *);
 
-struct nmiaction {
+struct nmiaction
+{
 	struct list_head	list;
 	nmi_handler_t		handler;
 	u64			max_duration;
@@ -46,14 +48,14 @@ struct nmiaction {
 };
 
 #define register_nmi_handler(t, fn, fg, n, init...)	\
-({							\
-	static struct nmiaction init fn##_na = {	\
-		.handler = (fn),			\
-		.name = (n),				\
-		.flags = (fg),				\
-	};						\
-	__register_nmi_handler((t), &fn##_na);		\
-})
+	({							\
+		static struct nmiaction init fn##_na = {	\
+			.handler = (fn),			\
+					   .name = (n),				\
+							   .flags = (fg),				\
+		};						\
+		__register_nmi_handler((t), &fn##_na);		\
+	})
 
 int __register_nmi_handler(unsigned int, struct nmiaction *);
 

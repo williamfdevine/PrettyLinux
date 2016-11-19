@@ -33,9 +33,9 @@ static inline bool variable_test_bit(int nr, const void *addr)
 }
 
 #define test_bit(nr,addr) \
-(__builtin_constant_p(nr) ? \
- constant_test_bit((nr),(addr)) : \
- variable_test_bit((nr),(addr)))
+	(__builtin_constant_p(nr) ? \
+	 constant_test_bit((nr),(addr)) : \
+	 variable_test_bit((nr),(addr)))
 
 static inline void set_bit(int nr, void *addr)
 {

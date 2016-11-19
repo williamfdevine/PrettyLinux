@@ -297,12 +297,15 @@ static int call_test_func(long (*func)(long, long), bool check_test_regs)
 	test_regs_ok = false;
 
 	ret = (*func)(FUNC_ARG1, FUNC_ARG2);
-	if (ret != FUNC_ARG1 + FUNC_ARG2) {
+
+	if (ret != FUNC_ARG1 + FUNC_ARG2)
+	{
 		pr_err("FAIL: call_test_func: func returned %lx\n", ret);
 		return false;
 	}
 
-	if (check_test_regs && !test_regs_ok) {
+	if (check_test_regs && !test_regs_ok)
+	{
 		pr_err("FAIL: test regs not OK\n");
 		return false;
 	}
@@ -313,20 +316,28 @@ static int call_test_func(long (*func)(long, long), bool check_test_regs)
 static int __kprobes pre_handler(struct kprobe *p, struct pt_regs *regs)
 {
 	pre_handler_called = test_func_instance;
+
 	if (regs->ARM_r0 == FUNC_ARG1 && regs->ARM_r1 == FUNC_ARG2)
+	{
 		test_regs_ok = true;
+	}
+
 	return 0;
 }
 
 static void __kprobes post_handler(struct kprobe *p, struct pt_regs *regs,
-				unsigned long flags)
+								   unsigned long flags)
 {
 	post_handler_called = test_func_instance;
+
 	if (regs->ARM_r0 != FUNC_ARG1 + FUNC_ARG2 || regs->ARM_r1 != FUNC_ARG2)
+	{
 		test_regs_ok = false;
+	}
 }
 
-static struct kprobe the_kprobe = {
+static struct kprobe the_kprobe =
+{
 	.addr		= 0,
 	.pre_handler	= pre_handler,
 	.post_handler	= post_handler
@@ -338,7 +349,9 @@ static int test_kprobe(long (*func)(long, long))
 
 	the_kprobe.addr = (kprobe_opcode_t *)func;
 	ret = register_kprobe(&the_kprobe);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("FAIL: register_kprobe failed with %d\n", ret);
 		return ret;
 	}
@@ -349,19 +362,30 @@ static int test_kprobe(long (*func)(long, long))
 	the_kprobe.flags = 0; /* Clear disable flag to allow reuse */
 
 	if (!ret)
+	{
 		return -EINVAL;
-	if (pre_handler_called != test_func_instance) {
+	}
+
+	if (pre_handler_called != test_func_instance)
+	{
 		pr_err("FAIL: kprobe pre_handler not called\n");
 		return -EINVAL;
 	}
-	if (post_handler_called != test_func_instance) {
+
+	if (post_handler_called != test_func_instance)
+	{
 		pr_err("FAIL: kprobe post_handler not called\n");
 		return -EINVAL;
 	}
+
 	if (!call_test_func(func, false))
+	{
 		return -EINVAL;
+	}
+
 	if (pre_handler_called == test_func_instance ||
-				post_handler_called == test_func_instance) {
+		post_handler_called == test_func_instance)
+	{
 		pr_err("FAIL: probe called after unregistering\n");
 		return -EINVAL;
 	}
@@ -372,12 +396,17 @@ static int test_kprobe(long (*func)(long, long))
 static void __kprobes jprobe_func(long r0, long r1)
 {
 	jprobe_func_called = test_func_instance;
+
 	if (r0 == FUNC_ARG1 && r1 == FUNC_ARG2)
+	{
 		test_regs_ok = true;
+	}
+
 	jprobe_return();
 }
 
-static struct jprobe the_jprobe = {
+static struct jprobe the_jprobe =
+{
 	.entry		= jprobe_func,
 };
 
@@ -387,7 +416,9 @@ static int test_jprobe(long (*func)(long, long))
 
 	the_jprobe.kp.addr = (kprobe_opcode_t *)func;
 	ret = register_jprobe(&the_jprobe);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("FAIL: register_jprobe failed with %d\n", ret);
 		return ret;
 	}
@@ -398,14 +429,23 @@ static int test_jprobe(long (*func)(long, long))
 	the_jprobe.kp.flags = 0; /* Clear disable flag to allow reuse */
 
 	if (!ret)
+	{
 		return -EINVAL;
-	if (jprobe_func_called != test_func_instance) {
+	}
+
+	if (jprobe_func_called != test_func_instance)
+	{
 		pr_err("FAIL: jprobe handler function not called\n");
 		return -EINVAL;
 	}
+
 	if (!call_test_func(func, false))
+	{
 		return -EINVAL;
-	if (jprobe_func_called == test_func_instance) {
+	}
+
+	if (jprobe_func_called == test_func_instance)
+	{
 		pr_err("FAIL: probe called after unregistering\n");
 		return -EINVAL;
 	}
@@ -417,12 +457,17 @@ static int __kprobes
 kretprobe_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
 {
 	kretprobe_handler_called = test_func_instance;
+
 	if (regs_return_value(regs) == FUNC_ARG1 + FUNC_ARG2)
+	{
 		test_regs_ok = true;
+	}
+
 	return 0;
 }
 
-static struct kretprobe the_kretprobe = {
+static struct kretprobe the_kretprobe =
+{
 	.handler	= kretprobe_handler,
 };
 
@@ -432,7 +477,9 @@ static int test_kretprobe(long (*func)(long, long))
 
 	the_kretprobe.kp.addr = (kprobe_opcode_t *)func;
 	ret = register_kretprobe(&the_kretprobe);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("FAIL: register_kretprobe failed with %d\n", ret);
 		return ret;
 	}
@@ -443,14 +490,23 @@ static int test_kretprobe(long (*func)(long, long))
 	the_kretprobe.kp.flags = 0; /* Clear disable flag to allow reuse */
 
 	if (!ret)
+	{
 		return -EINVAL;
-	if (kretprobe_handler_called != test_func_instance) {
+	}
+
+	if (kretprobe_handler_called != test_func_instance)
+	{
 		pr_err("FAIL: kretprobe handler not called\n");
 		return -EINVAL;
 	}
+
 	if (!call_test_func(func, false))
+	{
 		return -EINVAL;
-	if (jprobe_func_called == test_func_instance) {
+	}
+
+	if (jprobe_func_called == test_func_instance)
+	{
 		pr_err("FAIL: kretprobe called after unregistering\n");
 		return -EINVAL;
 	}
@@ -464,25 +520,37 @@ static int run_api_tests(long (*func)(long, long))
 
 	pr_info("    kprobe\n");
 	ret = test_kprobe(func);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pr_info("    jprobe\n");
 	ret = test_jprobe(func);
 #if defined(CONFIG_THUMB2_KERNEL) && !defined(MODULE)
-	if (ret == -EINVAL) {
+
+	if (ret == -EINVAL)
+	{
 		pr_err("FAIL: Known longtime bug with jprobe on Thumb kernels\n");
 		tests_failed = ret;
 		ret = 0;
 	}
+
 #endif
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pr_info("    kretprobe\n");
 	ret = test_kretprobe(func);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -503,9 +571,9 @@ static void __naked benchmark_nop(void)
 }
 
 #ifdef CONFIG_THUMB2_KERNEL
-#define wide ".w"
+	#define wide ".w"
 #else
-#define wide
+	#define wide
 #endif
 
 static void __naked benchmark_pushpop1(void)
@@ -563,26 +631,38 @@ static int benchmark(void(*fn)(void))
 {
 	unsigned n, i, t, t0;
 
-	for (n = 1000; ; n *= 2) {
+	for (n = 1000; ; n *= 2)
+	{
 		t0 = sched_clock();
+
 		for (i = n; i > 0; --i)
+		{
 			fn();
+		}
+
 		t = sched_clock() - t0;
+
 		if (t >= 250000000)
-			break; /* Stop once we took more than 0.25 seconds */
+		{
+			break;    /* Stop once we took more than 0.25 seconds */
+		}
 	}
+
 	return t / n; /* Time for one iteration in nanoseconds */
 };
 
 static int kprobe_benchmark(void(*fn)(void), unsigned offset)
 {
-	struct kprobe k = {
+	struct kprobe k =
+	{
 		.addr		= (kprobe_opcode_t *)((uintptr_t)fn + offset),
 		.pre_handler	= benchmark_pre_handler,
 	};
 
 	int ret = register_kprobe(&k);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("FAIL: register_kprobe failed with %d\n", ret);
 		return ret;
 	}
@@ -593,7 +673,8 @@ static int kprobe_benchmark(void(*fn)(void), unsigned offset)
 	return ret;
 };
 
-struct benchmarks {
+struct benchmarks
+{
 	void		(*fn)(void);
 	unsigned	offset;
 	const char	*title;
@@ -602,7 +683,8 @@ struct benchmarks {
 static int run_benchmarks(void)
 {
 	int ret;
-	struct benchmarks list[] = {
+	struct benchmarks list[] =
+	{
 		{&benchmark_nop, 0, "nop"},
 		/*
 		 * benchmark_pushpop{1,3} will have the optimised
@@ -625,10 +707,16 @@ static int run_benchmarks(void)
 	};
 
 	struct benchmarks *b;
-	for (b = list; b->fn; ++b) {
+
+	for (b = list; b->fn; ++b)
+	{
 		ret = kprobe_benchmark(b->fn, b->offset);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		pr_info("    %dns for kprobe %s\n", ret, b->title);
 	}
 
@@ -643,7 +731,8 @@ static int run_benchmarks(void)
  * Decoding table self-consistency tests
  */
 
-static const int decode_struct_sizes[NUM_DECODE_TYPES] = {
+static const int decode_struct_sizes[NUM_DECODE_TYPES] =
+{
 	[DECODE_TYPE_TABLE]	= sizeof(struct decode_table),
 	[DECODE_TYPE_CUSTOM]	= sizeof(struct decode_custom),
 	[DECODE_TYPE_SIMULATE]	= sizeof(struct decode_simulate),
@@ -653,21 +742,27 @@ static const int decode_struct_sizes[NUM_DECODE_TYPES] = {
 };
 
 static int table_iter(const union decode_item *table,
-			int (*fn)(const struct decode_header *, void *),
-			void *args)
+					  int (*fn)(const struct decode_header *, void *),
+					  void *args)
 {
 	const struct decode_header *h = (struct decode_header *)table;
 	int result;
 
-	for (;;) {
+	for (;;)
+	{
 		enum decode_type type = h->type_regs.bits & DECODE_TYPE_MASK;
 
 		if (type == DECODE_TYPE_END)
+		{
 			return 0;
+		}
 
 		result = fn(h, args);
+
 		if (result)
+		{
 			return result;
+		}
 
 		h = (struct decode_header *)
 			((uintptr_t)h + decode_struct_sizes[type]);
@@ -675,15 +770,16 @@ static int table_iter(const union decode_item *table,
 	}
 }
 
-static int table_test_fail(const struct decode_header *h, const char* message)
+static int table_test_fail(const struct decode_header *h, const char *message)
 {
 
 	pr_err("FAIL: kprobes test failure \"%s\" (mask %08x, value %08x)\n",
-					message, h->mask.bits, h->value.bits);
+		   message, h->mask.bits, h->value.bits);
 	return -EINVAL;
 }
 
-struct table_test_args {
+struct table_test_args
+{
 	const union decode_item *root_table;
 	u32			parent_mask;
 	u32			parent_value;
@@ -695,15 +791,22 @@ static int table_test_fn(const struct decode_header *h, void *args)
 	enum decode_type type = h->type_regs.bits & DECODE_TYPE_MASK;
 
 	if (h->value.bits & ~h->mask.bits)
+	{
 		return table_test_fail(h, "Match value has bits not in mask");
+	}
 
 	if ((h->mask.bits & a->parent_mask) != a->parent_mask)
+	{
 		return table_test_fail(h, "Mask has bits not in parent mask");
+	}
 
 	if ((h->value.bits ^ a->parent_value) & a->parent_mask)
+	{
 		return table_test_fail(h, "Value is inconsistent with parent");
+	}
 
-	if (type == DECODE_TYPE_TABLE) {
+	if (type == DECODE_TYPE_TABLE)
+	{
 		struct decode_table *d = (struct decode_table *)h;
 		struct table_test_args args2 = *a;
 		args2.parent_mask = h->mask.bits;
@@ -716,7 +819,8 @@ static int table_test_fn(const struct decode_header *h, void *args)
 
 static int table_test(const union decode_item *table)
 {
-	struct table_test_args args = {
+	struct table_test_args args =
+	{
 		.root_table	= table,
 		.parent_mask	= 0,
 		.parent_value	= 0
@@ -746,14 +850,16 @@ bool coverage_fail;
 
 #define MAX_COVERAGE_ENTRIES 256
 
-struct coverage_entry {
+struct coverage_entry
+{
 	const struct decode_header	*header;
 	unsigned			regs;
 	unsigned			nesting;
 	char				matched;
 };
 
-struct coverage_table {
+struct coverage_table
+{
 	struct coverage_entry	*base;
 	unsigned		num_entries;
 	unsigned		nesting;
@@ -766,7 +872,8 @@ struct coverage_table coverage;
 #define COVERAGE_PC		(1<<2)
 #define COVERAGE_PCWB		(1<<3)
 
-static const char coverage_register_lookup[16] = {
+static const char coverage_register_lookup[16] =
+{
 	[REG_TYPE_ANY]		= COVERAGE_ANY_REG | COVERAGE_SP | COVERAGE_PC,
 	[REG_TYPE_SAMEAS16]	= COVERAGE_ANY_REG,
 	[REG_TYPE_SP]		= COVERAGE_SP,
@@ -783,10 +890,13 @@ unsigned coverage_start_registers(const struct decode_header *h)
 {
 	unsigned regs = 0;
 	int i;
-	for (i = 0; i < 20; i += 4) {
+
+	for (i = 0; i < 20; i += 4)
+	{
 		int r = (h->type_regs.bits >> (DECODE_TYPE_BITS + i)) & 0xf;
 		regs |= coverage_register_lookup[r] << i;
 	}
+
 	return regs;
 }
 
@@ -796,7 +906,8 @@ static int coverage_start_fn(const struct decode_header *h, void *args)
 	enum decode_type type = h->type_regs.bits & DECODE_TYPE_MASK;
 	struct coverage_entry *entry = coverage->base + coverage->num_entries;
 
-	if (coverage->num_entries == MAX_COVERAGE_ENTRIES - 1) {
+	if (coverage->num_entries == MAX_COVERAGE_ENTRIES - 1)
+	{
 		pr_err("FAIL: Out of space for test coverage data");
 		return -ENOMEM;
 	}
@@ -808,7 +919,8 @@ static int coverage_start_fn(const struct decode_header *h, void *args)
 	entry->nesting = coverage->nesting;
 	entry->matched = false;
 
-	if (type == DECODE_TYPE_TABLE) {
+	if (type == DECODE_TYPE_TABLE)
+	{
 		struct decode_table *d = (struct decode_table *)h;
 		int ret;
 		++coverage->nesting;
@@ -823,7 +935,7 @@ static int coverage_start_fn(const struct decode_header *h, void *args)
 static int coverage_start(const union decode_item *table)
 {
 	coverage.base = kmalloc(MAX_COVERAGE_ENTRIES *
-				sizeof(struct coverage_entry), GFP_KERNEL);
+							sizeof(struct coverage_entry), GFP_KERNEL);
 	coverage.num_entries = 0;
 	coverage.nesting = 0;
 	return table_iter(table, coverage_start_fn, &coverage);
@@ -834,64 +946,96 @@ coverage_add_registers(struct coverage_entry *entry, kprobe_opcode_t insn)
 {
 	int regs = entry->header->type_regs.bits >> DECODE_TYPE_BITS;
 	int i;
-	for (i = 0; i < 20; i += 4) {
+
+	for (i = 0; i < 20; i += 4)
+	{
 		enum decode_reg_type reg_type = (regs >> i) & 0xf;
 		int reg = (insn >> i) & 0xf;
 		int flag;
 
 		if (!reg_type)
+		{
 			continue;
+		}
 
 		if (reg == 13)
+		{
 			flag = COVERAGE_SP;
+		}
 		else if (reg == 15)
+		{
 			flag = COVERAGE_PC;
+		}
 		else
+		{
 			flag = COVERAGE_ANY_REG;
+		}
+
 		entry->regs &= ~(flag << i);
 
-		switch (reg_type) {
+		switch (reg_type)
+		{
 
-		case REG_TYPE_NONE:
-		case REG_TYPE_ANY:
-		case REG_TYPE_SAMEAS16:
-			break;
-
-		case REG_TYPE_SP:
-			if (reg != 13)
-				return;
-			break;
-
-		case REG_TYPE_PC:
-			if (reg != 15)
-				return;
-			break;
-
-		case REG_TYPE_NOSP:
-			if (reg == 13)
-				return;
-			break;
-
-		case REG_TYPE_NOSPPC:
-		case REG_TYPE_NOSPPCX:
-			if (reg == 13 || reg == 15)
-				return;
-			break;
-
-		case REG_TYPE_NOPCWB:
-			if (!is_writeback(insn))
+			case REG_TYPE_NONE:
+			case REG_TYPE_ANY:
+			case REG_TYPE_SAMEAS16:
 				break;
-			if (reg == 15) {
-				entry->regs &= ~(COVERAGE_PCWB << i);
-				return;
-			}
-			break;
 
-		case REG_TYPE_NOPC:
-		case REG_TYPE_NOPCX:
-			if (reg == 15)
-				return;
-			break;
+			case REG_TYPE_SP:
+				if (reg != 13)
+				{
+					return;
+				}
+
+				break;
+
+			case REG_TYPE_PC:
+				if (reg != 15)
+				{
+					return;
+				}
+
+				break;
+
+			case REG_TYPE_NOSP:
+				if (reg == 13)
+				{
+					return;
+				}
+
+				break;
+
+			case REG_TYPE_NOSPPC:
+			case REG_TYPE_NOSPPCX:
+				if (reg == 13 || reg == 15)
+				{
+					return;
+				}
+
+				break;
+
+			case REG_TYPE_NOPCWB:
+				if (!is_writeback(insn))
+				{
+					break;
+				}
+
+				if (reg == 15)
+				{
+					entry->regs &= ~(COVERAGE_PCWB << i);
+					return;
+				}
+
+				break;
+
+			case REG_TYPE_NOPC:
+			case REG_TYPE_NOPCX:
+				if (reg == 15)
+				{
+					return;
+				}
+
+				break;
 		}
 
 	}
@@ -904,41 +1048,51 @@ static void coverage_add(kprobe_opcode_t insn)
 	bool matched = false;
 	unsigned nesting = 0;
 
-	for (; entry < end; ++entry) {
+	for (; entry < end; ++entry)
+	{
 		const struct decode_header *h = entry->header;
 		enum decode_type type = h->type_regs.bits & DECODE_TYPE_MASK;
 
 		if (entry->nesting > nesting)
-			continue; /* Skip sub-table we didn't match */
+		{
+			continue;    /* Skip sub-table we didn't match */
+		}
 
 		if (entry->nesting < nesting)
-			break; /* End of sub-table we were scanning */
+		{
+			break;    /* End of sub-table we were scanning */
+		}
 
-		if (!matched) {
+		if (!matched)
+		{
 			if ((insn & h->mask.bits) != h->value.bits)
+			{
 				continue;
+			}
+
 			entry->matched = true;
 		}
 
-		switch (type) {
+		switch (type)
+		{
 
-		case DECODE_TYPE_TABLE:
-			++nesting;
-			break;
+			case DECODE_TYPE_TABLE:
+				++nesting;
+				break;
 
-		case DECODE_TYPE_CUSTOM:
-		case DECODE_TYPE_SIMULATE:
-		case DECODE_TYPE_EMULATE:
-			coverage_add_registers(entry, insn);
-			return;
+			case DECODE_TYPE_CUSTOM:
+			case DECODE_TYPE_SIMULATE:
+			case DECODE_TYPE_EMULATE:
+				coverage_add_registers(entry, insn);
+				return;
 
-		case DECODE_TYPE_OR:
-			matched = true;
-			break;
+			case DECODE_TYPE_OR:
+				matched = true;
+				break;
 
-		case DECODE_TYPE_REJECT:
-		default:
-			return;
+			case DECODE_TYPE_REJECT:
+			default:
+				return;
 		}
 
 	}
@@ -949,18 +1103,22 @@ static void coverage_end(void)
 	struct coverage_entry *entry = coverage.base;
 	struct coverage_entry *end = coverage.base + coverage.num_entries;
 
-	for (; entry < end; ++entry) {
+	for (; entry < end; ++entry)
+	{
 		u32 mask = entry->header->mask.bits;
 		u32 value = entry->header->value.bits;
 
-		if (entry->regs) {
+		if (entry->regs)
+		{
 			pr_err("FAIL: Register test coverage missing for %08x %08x (%05x)\n",
-				mask, value, entry->regs);
+				   mask, value, entry->regs);
 			coverage_fail = true;
 		}
-		if (!entry->matched) {
+
+		if (!entry->matched)
+		{
 			pr_err("FAIL: Test coverage entry missing for %08x %08x\n",
-				mask, value);
+				   mask, value);
 			coverage_fail = true;
 		}
 	}
@@ -1042,7 +1200,7 @@ static struct pt_regs initial_regs;
 static struct pt_regs expected_regs;
 static struct pt_regs result_regs;
 
-static u32 expected_memory[TEST_MEMORY_SIZE/sizeof(u32)];
+static u32 expected_memory[TEST_MEMORY_SIZE / sizeof(u32)];
 
 static const char *current_title;
 static struct test_arg *current_args;
@@ -1082,36 +1240,51 @@ static unsigned long test_context_cpsr(int scenario)
 	cpsr |= (scenario & 0xf) << 16; /* GE flags */
 	cpsr |= (scenario & 0x1) << 27; /* Toggle Q flag */
 
-	if (!test_case_is_thumb) {
+	if (!test_case_is_thumb)
+	{
 		/* Testing ARM code */
 		int cc = current_instruction >> 28;
 
 		probe_should_run = test_check_cc(cc, cpsr) != 0;
-		if (scenario == 15)
-			is_last_scenario = true;
 
-	} else if (kprobe_test_flags & TEST_FLAG_NO_ITBLOCK) {
+		if (scenario == 15)
+		{
+			is_last_scenario = true;
+		}
+
+	}
+	else if (kprobe_test_flags & TEST_FLAG_NO_ITBLOCK)
+	{
 		/* Testing Thumb code without setting ITSTATE */
-		if (kprobe_test_cc_position) {
+		if (kprobe_test_cc_position)
+		{
 			int cc = (current_instruction >> kprobe_test_cc_position) & 0xf;
 			probe_should_run = test_check_cc(cc, cpsr) != 0;
 		}
 
 		if (scenario == 15)
+		{
 			is_last_scenario = true;
+		}
 
-	} else if (kprobe_test_flags & TEST_FLAG_FULL_ITBLOCK) {
+	}
+	else if (kprobe_test_flags & TEST_FLAG_FULL_ITBLOCK)
+	{
 		/* Testing Thumb code with all combinations of ITSTATE */
 		unsigned x = (scenario >> 4);
 		unsigned cond_base = x % 7; /* ITSTATE<7:5> */
 		unsigned mask = x / 7 + 2;  /* ITSTATE<4:0>, bits reversed */
 
-		if (mask > 0x1f) {
+		if (mask > 0x1f)
+		{
 			/* Finish by testing state from instruction 'itt al' */
 			cond_base = 7;
 			mask = 0x4;
+
 			if ((scenario & 0xf) == 0xf)
+			{
 				is_last_scenario = true;
+			}
 		}
 
 		cpsr |= cond_base << 13;	/* ITSTATE<7:5> */
@@ -1123,24 +1296,30 @@ static unsigned long test_context_cpsr(int scenario)
 
 		probe_should_run = test_check_cc((cpsr >> 12) & 0xf, cpsr) != 0;
 
-	} else {
+	}
+	else
+	{
 		/* Testing Thumb code with several combinations of ITSTATE */
-		switch (scenario) {
-		case 16: /* Clear NZCV flags and 'it eq' state (false as Z=0) */
-			cpsr = 0x00000800;
-			probe_should_run = 0;
-			break;
-		case 17: /* Set NZCV flags and 'it vc' state (false as V=1) */
-			cpsr = 0xf0007800;
-			probe_should_run = 0;
-			break;
-		case 18: /* Clear NZCV flags and 'it ls' state (true as C=0) */
-			cpsr = 0x00009800;
-			break;
-		case 19: /* Set NZCV flags and 'it cs' state (true as C=1) */
-			cpsr = 0xf0002800;
-			is_last_scenario = true;
-			break;
+		switch (scenario)
+		{
+			case 16: /* Clear NZCV flags and 'it eq' state (false as Z=0) */
+				cpsr = 0x00000800;
+				probe_should_run = 0;
+				break;
+
+			case 17: /* Set NZCV flags and 'it vc' state (false as V=1) */
+				cpsr = 0xf0007800;
+				probe_should_run = 0;
+				break;
+
+			case 18: /* Clear NZCV flags and 'it ls' state (true as C=0) */
+				cpsr = 0x00009800;
+				break;
+
+			case 19: /* Set NZCV flags and 'it cs' state (true as C=1) */
+				cpsr = 0xf0002800;
+				is_last_scenario = true;
+				break;
 		}
 	}
 
@@ -1149,7 +1328,7 @@ static unsigned long test_context_cpsr(int scenario)
 
 static void setup_test_context(struct pt_regs *regs)
 {
-	int scenario = test_case_run_count>>1;
+	int scenario = test_case_run_count >> 1;
 	unsigned long val;
 	struct test_arg *args;
 	int i;
@@ -1159,58 +1338,82 @@ static void setup_test_context(struct pt_regs *regs)
 
 	/* Initialise test memory on stack */
 	val = (scenario & 1) ? VALM : ~VALM;
+
 	for (i = 0; i < TEST_MEMORY_SIZE / sizeof(current_stack[0]); ++i)
+	{
 		current_stack[i] = val + (i << 8);
+	}
+
 	/* Put target of branch on stack for tests which load PC from memory */
 	if (current_branch_target)
+	{
 		current_stack[15] = current_branch_target;
+	}
+
 	/* Put a value for SP on stack for tests which load SP from memory */
 	current_stack[13] = (u32)current_stack + 120;
 
 	/* Initialise register values to their default state */
 	val = (scenario & 2) ? VALR : ~VALR;
+
 	for (i = 0; i < 13; ++i)
+	{
 		regs->uregs[i] = val ^ (i << 8);
+	}
+
 	regs->ARM_lr = val ^ (14 << 8);
 	regs->ARM_cpsr &= ~(APSR_MASK | PSR_IT_MASK);
 	regs->ARM_cpsr |= test_context_cpsr(scenario);
 
 	/* Perform testcase specific register setup  */
 	args = current_args;
+
 	for (; args[0].type != ARG_TYPE_END; ++args)
-		switch (args[0].type) {
-		case ARG_TYPE_REG: {
-			struct test_arg_regptr *arg =
-				(struct test_arg_regptr *)args;
-			regs->uregs[arg->reg] = arg->val;
-			break;
-		}
-		case ARG_TYPE_PTR: {
-			struct test_arg_regptr *arg =
-				(struct test_arg_regptr *)args;
-			regs->uregs[arg->reg] =
-				(unsigned long)current_stack + arg->val;
-			memory_needs_checking = true;
-			/*
-			 * Test memory at an address below SP is in danger of
-			 * being altered by an interrupt occurring and pushing
-			 * data onto the stack. Disable interrupts to stop this.
-			 */
-			if (arg->reg == 13)
-				regs->ARM_cpsr |= PSR_I_BIT;
-			break;
-		}
-		case ARG_TYPE_MEM: {
-			struct test_arg_mem *arg = (struct test_arg_mem *)args;
-			current_stack[arg->index] = arg->val;
-			break;
-		}
-		default:
-			break;
+		switch (args[0].type)
+		{
+			case ARG_TYPE_REG:
+				{
+					struct test_arg_regptr *arg =
+						(struct test_arg_regptr *)args;
+					regs->uregs[arg->reg] = arg->val;
+					break;
+				}
+
+			case ARG_TYPE_PTR:
+				{
+					struct test_arg_regptr *arg =
+						(struct test_arg_regptr *)args;
+					regs->uregs[arg->reg] =
+						(unsigned long)current_stack + arg->val;
+					memory_needs_checking = true;
+
+					/*
+					 * Test memory at an address below SP is in danger of
+					 * being altered by an interrupt occurring and pushing
+					 * data onto the stack. Disable interrupts to stop this.
+					 */
+					if (arg->reg == 13)
+					{
+						regs->ARM_cpsr |= PSR_I_BIT;
+					}
+
+					break;
+				}
+
+			case ARG_TYPE_MEM:
+				{
+					struct test_arg_mem *arg = (struct test_arg_mem *)args;
+					current_stack[arg->index] = arg->val;
+					break;
+				}
+
+			default:
+				break;
 		}
 }
 
-struct test_probe {
+struct test_probe
+{
 	struct kprobe	kprobe;
 	bool		registered;
 	int		hit;
@@ -1218,10 +1421,12 @@ struct test_probe {
 
 static void unregister_test_probe(struct test_probe *probe)
 {
-	if (probe->registered) {
+	if (probe->registered)
+	{
 		unregister_kprobe(&probe->kprobe);
 		probe->kprobe.flags = 0; /* Clear disable flag to allow reuse */
 	}
+
 	probe->registered = false;
 }
 
@@ -1230,13 +1435,18 @@ static int register_test_probe(struct test_probe *probe)
 	int ret;
 
 	if (probe->registered)
+	{
 		BUG();
+	}
 
 	ret = register_kprobe(&probe->kprobe);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		probe->registered = true;
 		probe->hit = -1;
 	}
+
 	return ret;
 }
 
@@ -1249,7 +1459,7 @@ test_before_pre_handler(struct kprobe *p, struct pt_regs *regs)
 
 static void __kprobes
 test_before_post_handler(struct kprobe *p, struct pt_regs *regs,
-							unsigned long flags)
+						 unsigned long flags)
 {
 	setup_test_context(regs);
 	initial_regs = *regs;
@@ -1269,14 +1479,18 @@ test_after_pre_handler(struct kprobe *p, struct pt_regs *regs)
 	struct test_arg *args;
 
 	if (container_of(p, struct test_probe, kprobe)->hit == test_instance)
-		return 0; /* Already run for this test instance */
+	{
+		return 0;    /* Already run for this test instance */
+	}
 
 	result_regs = *regs;
 
 	/* Mask out results which are indeterminate */
 	result_regs.ARM_cpsr &= ~PSR_IGNORE_BITS;
+
 	for (args = current_args; args[0].type != ARG_TYPE_END; ++args)
-		if (args[0].type == ARG_TYPE_REG_MASKED) {
+		if (args[0].type == ARG_TYPE_REG_MASKED)
+		{
 			struct test_arg_regptr *arg =
 				(struct test_arg_regptr *)args;
 			result_regs.uregs[arg->reg] &= arg->val;
@@ -1291,20 +1505,24 @@ test_after_pre_handler(struct kprobe *p, struct pt_regs *regs)
 	return 0;
 }
 
-static struct test_probe test_before_probe = {
+static struct test_probe test_before_probe =
+{
 	.kprobe.pre_handler	= test_before_pre_handler,
 	.kprobe.post_handler	= test_before_post_handler,
 };
 
-static struct test_probe test_case_probe = {
+static struct test_probe test_case_probe =
+{
 	.kprobe.pre_handler	= test_case_pre_handler,
 };
 
-static struct test_probe test_after_probe = {
+static struct test_probe test_after_probe =
+{
 	.kprobe.pre_handler	= test_after_pre_handler,
 };
 
-static struct test_probe test_after2_probe = {
+static struct test_probe test_after2_probe =
+{
 	.kprobe.pre_handler	= test_after_pre_handler,
 };
 
@@ -1319,30 +1537,35 @@ static void test_case_cleanup(void)
 static void print_registers(struct pt_regs *regs)
 {
 	pr_err("r0  %08lx | r1  %08lx | r2  %08lx | r3  %08lx\n",
-		regs->ARM_r0, regs->ARM_r1, regs->ARM_r2, regs->ARM_r3);
+		   regs->ARM_r0, regs->ARM_r1, regs->ARM_r2, regs->ARM_r3);
 	pr_err("r4  %08lx | r5  %08lx | r6  %08lx | r7  %08lx\n",
-		regs->ARM_r4, regs->ARM_r5, regs->ARM_r6, regs->ARM_r7);
+		   regs->ARM_r4, regs->ARM_r5, regs->ARM_r6, regs->ARM_r7);
 	pr_err("r8  %08lx | r9  %08lx | r10 %08lx | r11 %08lx\n",
-		regs->ARM_r8, regs->ARM_r9, regs->ARM_r10, regs->ARM_fp);
+		   regs->ARM_r8, regs->ARM_r9, regs->ARM_r10, regs->ARM_fp);
 	pr_err("r12 %08lx | sp  %08lx | lr  %08lx | pc  %08lx\n",
-		regs->ARM_ip, regs->ARM_sp, regs->ARM_lr, regs->ARM_pc);
+		   regs->ARM_ip, regs->ARM_sp, regs->ARM_lr, regs->ARM_pc);
 	pr_err("cpsr %08lx\n", regs->ARM_cpsr);
 }
 
 static void print_memory(u32 *mem, size_t size)
 {
 	int i;
+
 	for (i = 0; i < size / sizeof(u32); i += 4)
-		pr_err("%08x %08x %08x %08x\n", mem[i], mem[i+1],
-						mem[i+2], mem[i+3]);
+		pr_err("%08x %08x %08x %08x\n", mem[i], mem[i + 1],
+			   mem[i + 2], mem[i + 3]);
 }
 
 static size_t expected_memory_size(u32 *sp)
 {
 	size_t size = sizeof(expected_memory);
 	int offset = (uintptr_t)sp - (uintptr_t)current_stack;
+
 	if (offset > 0)
+	{
 		size -= offset;
+	}
+
 	return size;
 }
 
@@ -1358,12 +1581,15 @@ static void test_case_failed(const char *message)
 static unsigned long next_instruction(unsigned long pc)
 {
 #ifdef CONFIG_THUMB2_KERNEL
+
 	if ((pc & 1) &&
-	    !is_wide_instruction(__mem_to_opcode_thumb16(*(u16 *)(pc - 1))))
+		!is_wide_instruction(__mem_to_opcode_thumb16(*(u16 *)(pc - 1))))
+	{
 		return pc + 2;
+	}
 	else
 #endif
-	return pc + 4;
+		return pc + 4;
 }
 
 static uintptr_t __used kprobes_test_case_start(const char **title, void *stack)
@@ -1380,20 +1606,29 @@ static uintptr_t __used kprobes_test_case_start(const char **title, void *stack)
 	++test_try_count;
 
 	while (args->type != ARG_TYPE_END)
+	{
 		++args;
+	}
+
 	end_arg = (struct test_arg_end *)args;
 
 	test_code = (unsigned long)(args + 1); /* Code starts after args */
 
 	test_case_is_thumb = end_arg->flags & ARG_FLAG_THUMB;
+
 	if (test_case_is_thumb)
+	{
 		test_code |= 1;
+	}
 
 	current_code_start = test_code;
 
 	current_branch_target = 0;
+
 	if (end_arg->branch_offset != end_arg->end_offset)
+	{
 		current_branch_target = test_code + end_arg->branch_offset;
+	}
 
 	test_code += end_arg->code_offset;
 	test_before_probe.kprobe.addr = (kprobe_opcode_t *)test_code;
@@ -1401,69 +1636,96 @@ static uintptr_t __used kprobes_test_case_start(const char **title, void *stack)
 	test_code = next_instruction(test_code);
 	test_case_probe.kprobe.addr = (kprobe_opcode_t *)test_code;
 
-	if (test_case_is_thumb) {
+	if (test_case_is_thumb)
+	{
 		u16 *p = (u16 *)(test_code & ~1);
 		current_instruction = __mem_to_opcode_thumb16(p[0]);
-		if (is_wide_instruction(current_instruction)) {
+
+		if (is_wide_instruction(current_instruction))
+		{
 			u16 instr2 = __mem_to_opcode_thumb16(p[1]);
 			current_instruction = __opcode_thumb32_compose(current_instruction, instr2);
 		}
-	} else {
+	}
+	else
+	{
 		current_instruction = __mem_to_opcode_arm(*(u32 *)test_code);
 	}
 
 	if (current_title[0] == '.')
+	{
 		verbose("%s\n", current_title);
+	}
 	else
 		verbose("%s\t@ %0*x\n", current_title,
-					test_case_is_thumb ? 4 : 8,
-					current_instruction);
+				test_case_is_thumb ? 4 : 8,
+				current_instruction);
 
 	test_code = next_instruction(test_code);
 	test_after_probe.kprobe.addr = (kprobe_opcode_t *)test_code;
 
-	if (kprobe_test_flags & TEST_FLAG_NARROW_INSTR) {
+	if (kprobe_test_flags & TEST_FLAG_NARROW_INSTR)
+	{
 		if (!test_case_is_thumb ||
-			is_wide_instruction(current_instruction)) {
-				test_case_failed("expected 16-bit instruction");
-				goto fail;
+			is_wide_instruction(current_instruction))
+		{
+			test_case_failed("expected 16-bit instruction");
+			goto fail;
 		}
-	} else {
+	}
+	else
+	{
 		if (test_case_is_thumb &&
-			!is_wide_instruction(current_instruction)) {
-				test_case_failed("expected 32-bit instruction");
-				goto fail;
+			!is_wide_instruction(current_instruction))
+		{
+			test_case_failed("expected 32-bit instruction");
+			goto fail;
 		}
 	}
 
 	coverage_add(current_instruction);
 
-	if (end_arg->flags & ARG_FLAG_UNSUPPORTED) {
+	if (end_arg->flags & ARG_FLAG_UNSUPPORTED)
+	{
 		if (register_test_probe(&test_case_probe) < 0)
+		{
 			goto pass;
+		}
+
 		test_case_failed("registered probe for unsupported instruction");
 		goto fail;
 	}
 
-	if (end_arg->flags & ARG_FLAG_SUPPORTED) {
+	if (end_arg->flags & ARG_FLAG_SUPPORTED)
+	{
 		if (register_test_probe(&test_case_probe) >= 0)
+		{
 			goto pass;
+		}
+
 		test_case_failed("couldn't register probe for supported instruction");
 		goto fail;
 	}
 
-	if (register_test_probe(&test_before_probe) < 0) {
+	if (register_test_probe(&test_before_probe) < 0)
+	{
 		test_case_failed("register test_before_probe failed");
 		goto fail;
 	}
-	if (register_test_probe(&test_after_probe) < 0) {
+
+	if (register_test_probe(&test_after_probe) < 0)
+	{
 		test_case_failed("register test_after_probe failed");
 		goto fail;
 	}
-	if (current_branch_target) {
+
+	if (current_branch_target)
+	{
 		test_after2_probe.kprobe.addr =
-				(kprobe_opcode_t *)current_branch_target;
-		if (register_test_probe(&test_after2_probe) < 0) {
+			(kprobe_opcode_t *)current_branch_target;
+
+		if (register_test_probe(&test_after2_probe) < 0)
+		{
 			test_case_failed("register test_after2_probe failed");
 			goto fail;
 		}
@@ -1486,15 +1748,19 @@ static bool check_test_results(void)
 	size_t mem_size = 0;
 	u32 *mem = 0;
 
-	if (memcmp(&expected_regs, &result_regs, sizeof(expected_regs))) {
+	if (memcmp(&expected_regs, &result_regs, sizeof(expected_regs)))
+	{
 		test_case_failed("registers differ");
 		goto fail;
 	}
 
-	if (memory_needs_checking) {
+	if (memory_needs_checking)
+	{
 		mem = (u32 *)result_regs.ARM_sp;
 		mem_size = expected_memory_size(mem);
-		if (memcmp(expected_memory, mem, mem_size)) {
+
+		if (memcmp(expected_memory, mem, mem_size))
+		{
 			test_case_failed("test memory differs");
 			goto fail;
 		}
@@ -1510,7 +1776,8 @@ fail:
 	pr_err("result_regs:\n");
 	print_registers(&result_regs);
 
-	if (mem) {
+	if (mem)
+	{
 		pr_err("current_stack=%p\n", current_stack);
 		pr_err("expected_memory:\n");
 		print_memory(expected_memory, mem_size);
@@ -1523,22 +1790,29 @@ fail:
 
 static uintptr_t __used kprobes_test_case_end(void)
 {
-	if (test_case_run_count < 0) {
+	if (test_case_run_count < 0)
+	{
 		if (test_case_run_count == TEST_CASE_PASSED)
 			/* kprobes_test_case_start did all the needed testing */
+		{
 			goto pass;
+		}
 		else
 			/* kprobes_test_case_start failed */
+		{
 			goto fail;
+		}
 	}
 
-	if (test_before_probe.hit != test_instance) {
+	if (test_before_probe.hit != test_instance)
+	{
 		test_case_failed("test_before_handler not run");
 		goto fail;
 	}
 
 	if (test_after_probe.hit != test_instance &&
-				test_after2_probe.hit != test_instance) {
+		test_after2_probe.hit != test_instance)
+	{
 		test_case_failed("test_after_handler not run");
 		goto fail;
 	}
@@ -1548,26 +1822,35 @@ static uintptr_t __used kprobes_test_case_end(void)
 	 * we can gather reference results. The subsequent odd numbered run
 	 * will have the probe inserted.
 	*/
-	if ((test_case_run_count & 1) == 0) {
+	if ((test_case_run_count & 1) == 0)
+	{
 		/* Save results from run without probe */
 		u32 *mem = (u32 *)result_regs.ARM_sp;
 		expected_regs = result_regs;
 		memcpy(expected_memory, mem, expected_memory_size(mem));
 
 		/* Insert probe onto test case instruction */
-		if (register_test_probe(&test_case_probe) < 0) {
+		if (register_test_probe(&test_case_probe) < 0)
+		{
 			test_case_failed("register test_case_probe failed");
 			goto fail;
 		}
-	} else {
+	}
+	else
+	{
 		/* Check probe ran as expected */
-		if (probe_should_run == 1) {
-			if (test_case_probe.hit != test_instance) {
+		if (probe_should_run == 1)
+		{
+			if (test_case_probe.hit != test_instance)
+			{
 				test_case_failed("test_case_handler not run");
 				goto fail;
 			}
-		} else if (probe_should_run == 0) {
-			if (test_case_probe.hit == test_instance) {
+		}
+		else if (probe_should_run == 0)
+		{
+			if (test_case_probe.hit == test_instance)
+			{
 				test_case_failed("test_case_handler ran");
 				goto fail;
 			}
@@ -1577,10 +1860,14 @@ static uintptr_t __used kprobes_test_case_end(void)
 		unregister_test_probe(&test_case_probe);
 
 		if (!check_test_results())
+		{
 			goto fail;
+		}
 
 		if (is_last_scenario)
+		{
 			goto pass;
+		}
 	}
 
 	/* Do next test run */
@@ -1608,13 +1895,19 @@ static int run_test_cases(void (*tests)(void), const union decode_item *table)
 
 	pr_info("    Check decoding tables\n");
 	ret = table_test(table);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pr_info("    Run test cases\n");
 	ret = coverage_start(table);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	tests();
 
@@ -1633,47 +1926,71 @@ static int __init run_all_tests(void)
 
 	pr_info("Probe ARM code\n");
 	ret = run_api_tests(arm_func);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	pr_info("ARM instruction simulation\n");
 	ret = run_test_cases(kprobe_arm_test_cases, probes_decode_arm_table);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 #else /* CONFIG_THUMB2_KERNEL */
 
 	pr_info("Probe 16-bit Thumb code\n");
 	ret = run_api_tests(thumb16_func);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	pr_info("Probe 32-bit Thumb code, even halfword\n");
 	ret = run_api_tests(thumb32even_func);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	pr_info("Probe 32-bit Thumb code, odd halfword\n");
 	ret = run_api_tests(thumb32odd_func);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	pr_info("16-bit Thumb instruction simulation\n");
 	ret = run_test_cases(kprobe_thumb16_test_cases,
-				probes_decode_thumb16_table);
+						 probes_decode_thumb16_table);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	pr_info("32-bit Thumb instruction simulation\n");
 	ret = run_test_cases(kprobe_thumb32_test_cases,
-				probes_decode_thumb32_table);
+						 probes_decode_thumb32_table);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 #endif
 
 	pr_info("Total instruction simulation tests=%d, pass=%d fail=%d\n",
-		test_try_count, test_pass_count, test_fail_count);
-	if (test_fail_count) {
+			test_try_count, test_pass_count, test_fail_count);
+
+	if (test_fail_count)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -1681,26 +1998,41 @@ static int __init run_all_tests(void)
 #if BENCHMARKING
 	pr_info("Benchmarks\n");
 	ret = run_benchmarks();
+
 	if (ret)
+	{
 		goto out;
+	}
+
 #endif
 
 #if __LINUX_ARM_ARCH__ >= 7
+
 	/* We are able to run all test cases so coverage should be complete */
-	if (coverage_fail) {
+	if (coverage_fail)
+	{
 		pr_err("FAIL: Test coverage checks failed\n");
 		ret = -EINVAL;
 		goto out;
 	}
+
 #endif
 
 out:
+
 	if (ret == 0)
+	{
 		ret = tests_failed;
+	}
+
 	if (ret == 0)
+	{
 		pr_info("Finished kprobe tests OK\n");
+	}
 	else
+	{
 		pr_err("kprobe tests failed\n");
+	}
 
 	return ret;
 }

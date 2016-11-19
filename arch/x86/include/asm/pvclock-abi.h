@@ -22,7 +22,8 @@
  * and after reading them.
  */
 
-struct pvclock_vcpu_time_info {
+struct pvclock_vcpu_time_info
+{
 	u32   version;
 	u32   pad0;
 	u64   tsc_timestamp;
@@ -33,7 +34,8 @@ struct pvclock_vcpu_time_info {
 	u8    pad[2];
 } __attribute__((__packed__)); /* 32 bytes */
 
-struct pvclock_wall_clock {
+struct pvclock_wall_clock
+{
 	u32   version;
 	u32   sec;
 	u32   nsec;

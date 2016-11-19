@@ -1,11 +1,13 @@
 #include <linux/device.h>
 #include <linux/mod_devicetable.h>
 
-struct gio_device_id {
+struct gio_device_id
+{
 	__u8 id;
 };
 
-struct gio_device {
+struct gio_device
+{
 	struct device	dev;
 	struct resource resource;
 	unsigned int	irq;
@@ -13,12 +15,13 @@ struct gio_device {
 
 	const char	*name;
 	struct gio_device_id id;
-	unsigned	id32:1;
-	unsigned	gio64:1;
+	unsigned	id32: 1;
+	unsigned	gio64: 1;
 };
 #define to_gio_device(d) container_of(d, struct gio_device, dev)
 
-struct gio_driver {
+struct gio_driver
+{
 	const char    *name;
 	struct module *owner;
 	const struct gio_device_id *id_table;
@@ -32,7 +35,7 @@ struct gio_driver {
 #define to_gio_driver(drv) container_of(drv, struct gio_driver, driver)
 
 extern const struct gio_device_id *gio_match_device(const struct gio_device_id *,
-						    const struct gio_device *);
+		const struct gio_device *);
 extern struct gio_device *gio_dev_get(struct gio_device *);
 extern void gio_dev_put(struct gio_device *);
 

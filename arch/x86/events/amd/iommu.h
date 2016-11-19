@@ -35,6 +35,6 @@ extern u8 amd_iommu_pc_get_max_banks(u16 devid);
 extern u8 amd_iommu_pc_get_max_counters(u16 devid);
 
 extern int amd_iommu_pc_get_set_reg_val(u16 devid, u8 bank, u8 cntr,
-			u8 fxn, u64 *value, bool is_write);
+										u8 fxn, u64 *value, bool is_write);
 
 #endif /*_PERF_EVENT_AMD_IOMMU_H_*/

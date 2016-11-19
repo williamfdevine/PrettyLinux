@@ -27,11 +27,13 @@ struct task_struct;
 
 #include <asm/types.h>
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
-struct cpu_context_save {
+struct cpu_context_save
+{
 	__u32	r4;
 	__u32	r5;
 	__u32	r6;
@@ -64,10 +66,11 @@ struct cpu_context_save {
  * low level task data that entry.S needs immediate access to.
  * __switch_to() assumes cpu_context follows immediately after cpu_domain.
  */
-struct thread_info {
+struct thread_info
+{
 	unsigned long		flags;		/* low level flags */
 	int			preempt_count;	/* 0 => preemptable */
-						/* <0 => bug */
+	/* <0 => bug */
 	mm_segment_t		addr_limit;	/* address limit */
 	struct task_struct	*task;		/* main task structure */
 	__u32			cpu;		/* cpu */
@@ -80,12 +83,12 @@ struct thread_info {
 };
 
 #define INIT_THREAD_INFO(tsk)						\
-{									\
-	.task		= &tsk,						\
-	.flags		= 0,						\
-	.preempt_count	= INIT_PREEMPT_COUNT,				\
-	.addr_limit	= KERNEL_DS,					\
-}
+	{									\
+		.task		= &tsk,						\
+					  .flags		= 0,						\
+									.preempt_count	= INIT_PREEMPT_COUNT,				\
+											.addr_limit	= KERNEL_DS,					\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)

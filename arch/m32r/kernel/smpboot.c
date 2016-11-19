@@ -56,9 +56,9 @@
 
 #define DEBUG_SMP
 #ifdef DEBUG_SMP
-#define Dprintk(x...) printk(x)
+	#define Dprintk(x...) printk(x)
 #else
-#define Dprintk(x...)
+	#define Dprintk(x...)
 #endif
 
 extern cpumask_t cpu_initialized;
@@ -85,8 +85,9 @@ struct cpuinfo_m32r cpu_data[NR_CPUS] __cacheline_aligned;
 static int cpucount;
 static cpumask_t smp_commenced_mask;
 
-extern struct {
-	void * spi;
+extern struct
+{
+	void *spi;
 	unsigned short ss;
 } stack_start;
 
@@ -166,13 +167,19 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 	unsigned long nr_cpu;
 
 	nr_cpu = inl(M32R_FPGA_NUM_OF_CPUS_PORTL);
-	if (nr_cpu > NR_CPUS) {
+
+	if (nr_cpu > NR_CPUS)
+	{
 		printk(KERN_INFO "NUM_OF_CPUS reg. value [%ld] > NR_CPU [%d]",
-			nr_cpu, NR_CPUS);
+			   nr_cpu, NR_CPUS);
 		goto smp_done;
 	}
+
 	for (phys_id = 0 ; phys_id < nr_cpu ; phys_id++)
+	{
 		physid_set(phys_id, phys_cpu_present_map);
+	}
+
 #ifndef CONFIG_HOTPLUG_CPU
 	init_cpu_present(cpu_possible_mask);
 #endif
@@ -189,7 +196,8 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 	/*
 	 * If SMP should be disabled, then really disable it!
 	 */
-	if (!max_cpus) {
+	if (!max_cpus)
+	{
 		printk(KERN_INFO "SMP mode deactivated by commandline.\n");
 		goto smp_done;
 	}
@@ -199,28 +207,36 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 	 */
 	Dprintk("CPU present map : %lx\n", physids_coerce(phys_cpu_present_map));
 
-	for (phys_id = 0 ; phys_id < NR_CPUS ; phys_id++) {
+	for (phys_id = 0 ; phys_id < NR_CPUS ; phys_id++)
+	{
 		/*
 		 * Don't even attempt to start the boot CPU!
 		 */
 		if (phys_id == bsp_phys_id)
+		{
 			continue;
+		}
 
 		if (!physid_isset(phys_id, phys_cpu_present_map))
+		{
 			continue;
+		}
 
 		if (max_cpus <= cpucount + 1)
+		{
 			continue;
+		}
 
 		do_boot_cpu(phys_id);
 
 		/*
 		 * Make sure we unmap all failed CPUs
 		 */
-		if (physid_to_cpu(phys_id) == -1) {
+		if (physid_to_cpu(phys_id) == -1)
+		{
 			physid_clear(phys_id, phys_cpu_present_map);
 			printk("phys CPU#%d not responding - " \
-				"cannot use it.\n", phys_id);
+				   "cannot use it.\n", phys_id);
 		}
 	}
 
@@ -236,7 +252,9 @@ static void __init init_ipi_lock(void)
 	int ipi;
 
 	for (ipi = 0 ; ipi < NR_IPIS ; ipi++)
+	{
 		spin_lock_init(&ipi_lock[ipi]);
+	}
 }
 
 /*==========================================================================*
@@ -269,8 +287,11 @@ static void __init do_boot_cpu(int phys_id)
 	 * reschedule the child.
 	 */
 	idle = fork_idle(cpu_id);
+
 	if (IS_ERR(idle))
+	{
 		panic("failed fork for CPU#%d.", cpu_id);
+	}
 
 	idle->thread.lr = (unsigned long)start_secondary;
 
@@ -299,15 +320,18 @@ static void __init do_boot_cpu(int phys_id)
 	timeout = 0;
 
 	/* Wait 100[ms] */
-	do {
+	do
+	{
 		Dprintk("+");
 		udelay(1000);
 		send_status = !cpumask_test_cpu(phys_id, &cpu_bootin_map);
-	} while (send_status && (timeout++ < 100));
+	}
+	while (send_status && (timeout++ < 100));
 
 	Dprintk("After Startup.\n");
 
-	if (!send_status) {
+	if (!send_status)
+	{
 		/*
 		 * allow APs to start initializing.
 		 */
@@ -318,23 +342,34 @@ static void __init do_boot_cpu(int phys_id)
 		/*
 		 * Wait 5s total for a response
 		 */
-		for (timeout = 0; timeout < 5000; timeout++) {
+		for (timeout = 0; timeout < 5000; timeout++)
+		{
 			if (cpumask_test_cpu(cpu_id, &cpu_callin_map))
-				break;	/* It has booted */
+			{
+				break;    /* It has booted */
+			}
+
 			udelay(1000);
 		}
 
-		if (cpumask_test_cpu(cpu_id, &cpu_callin_map)) {
+		if (cpumask_test_cpu(cpu_id, &cpu_callin_map))
+		{
 			/* number CPUs logically, starting from 1 (BSP is 0) */
 			Dprintk("OK.\n");
-		} else {
+		}
+		else
+		{
 			boot_status = 1;
 			printk("Not responding.\n");
 		}
-	} else
+	}
+	else
+	{
 		printk("IPI never delivered???\n");
+	}
 
-	if (send_status || boot_status) {
+	if (send_status || boot_status)
+	{
 		unmap_cpu_to_physid(cpu_id, phys_id);
 		cpumask_clear_cpu(cpu_id, &cpu_callout_map);
 		cpumask_clear_cpu(cpu_id, &cpu_callin_map);
@@ -352,13 +387,20 @@ int __cpu_up(unsigned int cpu_id, struct task_struct *tidle)
 	/*
 	 * Wait 5s total for a response
 	 */
-	for (timeout = 0; timeout < 5000; timeout++) {
+	for (timeout = 0; timeout < 5000; timeout++)
+	{
 		if (cpu_online(cpu_id))
+		{
 			break;
+		}
+
 		udelay(1000);
 	}
+
 	if (!cpu_online(cpu_id))
+	{
 		BUG();
+	}
 
 	return 0;
 }
@@ -368,29 +410,38 @@ void __init smp_cpus_done(unsigned int max_cpus)
 	int cpu_id, timeout;
 	unsigned long bogosum = 0;
 
-	for (timeout = 0; timeout < 5000; timeout++) {
+	for (timeout = 0; timeout < 5000; timeout++)
+	{
 		if (cpumask_equal(&cpu_callin_map, cpu_online_mask))
+		{
 			break;
+		}
+
 		udelay(1000);
 	}
+
 	if (!cpumask_equal(&cpu_callin_map, cpu_online_mask))
+	{
 		BUG();
+	}
 
 	for_each_online_cpu(cpu_id)
-		show_cpu_info(cpu_id);
+	show_cpu_info(cpu_id);
 
 	/*
 	 * Allow the user to impress friends.
 	 */
 	Dprintk("Before bogomips.\n");
-	if (cpucount) {
-		for_each_cpu(cpu_id,cpu_online_mask)
-			bogosum += cpu_data[cpu_id].loops_per_jiffy;
+
+	if (cpucount)
+	{
+		for_each_cpu(cpu_id, cpu_online_mask)
+		bogosum += cpu_data[cpu_id].loops_per_jiffy;
 
 		printk(KERN_INFO "Total of %d processors activated " \
-			"(%lu.%02lu BogoMIPS).\n", cpucount + 1,
-			bogosum / (500000 / HZ),
-			(bogosum / (5000 / HZ)) % 100);
+			   "(%lu.%02lu BogoMIPS).\n", cpucount + 1,
+			   bogosum / (500000 / HZ),
+			   (bogosum / (5000 / HZ)) % 100);
 		Dprintk("Before bogocount - setting activated=1.\n");
 	}
 }
@@ -421,8 +472,11 @@ int __init start_secondary(void *unused)
 	cpu_init();
 	preempt_disable();
 	smp_callin();
+
 	while (!cpumask_test_cpu(smp_processor_id(), &smp_commenced_mask))
+	{
 		cpu_relax();
+	}
 
 	smp_online();
 
@@ -459,25 +513,33 @@ static void __init smp_callin(void)
 	int cpu_id = smp_processor_id();
 	unsigned long timeout;
 
-	if (cpumask_test_cpu(cpu_id, &cpu_callin_map)) {
+	if (cpumask_test_cpu(cpu_id, &cpu_callin_map))
+	{
 		printk("huh, phys CPU#%d, CPU#%d already present??\n",
-			phys_id, cpu_id);
+			   phys_id, cpu_id);
 		BUG();
 	}
+
 	Dprintk("CPU#%d (phys ID: %d) waiting for CALLOUT\n", cpu_id, phys_id);
 
 	/* Waiting 2s total for startup (udelay is not yet working) */
 	timeout = jiffies + (2 * HZ);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		/* Has the boot CPU finished it's STARTUP sequence ? */
 		if (cpumask_test_cpu(cpu_id, &cpu_callout_map))
+		{
 			break;
+		}
+
 		cpu_relax();
 	}
 
-	if (!time_before(jiffies, timeout)) {
+	if (!time_before(jiffies, timeout))
+	{
 		printk("BUG: CPU#%d started up but did not get a callout!\n",
-			cpu_id);
+			   cpu_id);
 		BUG();
 	}
 
@@ -497,7 +559,7 @@ static void __init smp_online(void)
 	calibrate_delay();
 
 	/* Save our processor parameters */
- 	smp_store_cpu_info(cpu_id);
+	smp_store_cpu_info(cpu_id);
 
 	set_cpu_online(cpu_id, true);
 }
@@ -515,28 +577,45 @@ static void __init show_mp_info(int nr_cpu)
 	strncpy(cpu_ver, (char *)M32R_FPGA_VERSION_ADDR, 8);
 
 	cpu_model0[16] = '\0';
-	for (i = 15 ; i >= 0 ; i--) {
+
+	for (i = 15 ; i >= 0 ; i--)
+	{
 		if (cpu_model0[i] != ' ')
+		{
 			break;
+		}
+
 		cpu_model0[i] = '\0';
 	}
+
 	cpu_model1[16] = '\0';
-	for (i = 15 ; i >= 0 ; i--) {
+
+	for (i = 15 ; i >= 0 ; i--)
+	{
 		if (cpu_model1[i] != ' ')
+		{
 			break;
+		}
+
 		cpu_model1[i] = '\0';
 	}
+
 	cpu_ver[8] = '\0';
-	for (i = 7 ; i >= 0 ; i--) {
+
+	for (i = 7 ; i >= 0 ; i--)
+	{
 		if (cpu_ver[i] != ' ')
+		{
 			break;
+		}
+
 		cpu_ver[i] = '\0';
 	}
 
 	printk(KERN_INFO "M32R-mp information\n");
 	printk(KERN_INFO "  On-chip CPUs : %d\n", nr_cpu);
 	printk(KERN_INFO "  CPU model : %s/%s(%s)\n", cpu_model0,
-		cpu_model1, cpu_ver);
+		   cpu_model1, cpu_ver);
 }
 
 /*
@@ -559,7 +638,7 @@ static void __init show_cpu_info(int cpu_id)
 
 #define PRINT_CLOCK(name, value) \
 	printk(name " clock %d.%02dMHz", \
-		((value) / 1000000), ((value) % 1000000) / 10000)
+		   ((value) / 1000000), ((value) % 1000000) / 10000)
 
 	PRINT_CLOCK("CPU", (int)ci->cpu_clock);
 	PRINT_CLOCK(", Bus", (int)ci->bus_clock);
@@ -580,7 +659,9 @@ int setup_profiling_timer(unsigned int multiplier)
 	 * irqs flooding us]
 	 */
 	if ( (!multiplier) || (calibration_result / multiplier < 500))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Set the new multiplier for each CPU. CPUs don't start using the
@@ -589,7 +670,7 @@ int setup_profiling_timer(unsigned int multiplier)
 	 * accordingly.
 	 */
 	for_each_possible_cpu(i)
-		per_cpu(prof_multiplier, i) = multiplier;
+	per_cpu(prof_multiplier, i) = multiplier;
 
 	return 0;
 }
@@ -599,7 +680,8 @@ static void __init init_cpu_to_physid(void)
 {
 	int  i;
 
-	for (i = 0 ; i < NR_CPUS ; i++) {
+	for (i = 0 ; i < NR_CPUS ; i++)
+	{
 		cpu_2_physid[i] = -1;
 		physid_2_cpu[i] = -1;
 	}

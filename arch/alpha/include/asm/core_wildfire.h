@@ -9,7 +9,7 @@
 #define WILDFIRE_IRQ_PER_PCA	64
 
 #define WILDFIRE_NR_IRQS \
-  (WILDFIRE_MAX_QBB * WILDFIRE_PCA_PER_QBB * WILDFIRE_IRQ_PER_PCA)
+	(WILDFIRE_MAX_QBB * WILDFIRE_PCA_PER_QBB * WILDFIRE_IRQ_PER_PCA)
 
 extern unsigned char wildfire_hard_qbb_map[WILDFIRE_MAX_QBB];
 extern unsigned char wildfire_soft_qbb_map[WILDFIRE_MAX_QBB];
@@ -30,21 +30,25 @@ extern unsigned long wildfire_mem_mask;
 #define WILDFIRE_MEM_EXISTS(qbbno) (wildfire_mem_mask & (0xf << ((qbbno) << 2)))
 
 #define WILDFIRE_PCA_EXISTS(qbbno, pcano) \
-		(wildfire_pca_mask & (1 << (((qbbno) << 2) + (pcano))))
+	(wildfire_pca_mask & (1 << (((qbbno) << 2) + (pcano))))
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned long csr __attribute__((aligned(64)));
 } wildfire_64;
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned long csr __attribute__((aligned(256)));
 } wildfire_256;
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned long csr __attribute__((aligned(2048)));
 } wildfire_2k;
 
-typedef struct {
+typedef struct
+{
 	wildfire_64	qsd_whami;
 	wildfire_64	qsd_rev;
 	wildfire_64	qsd_port_present;
@@ -64,7 +68,8 @@ typedef struct {
 	wildfire_64	qsd_diag;
 } wildfire_qsd;
 
-typedef struct {
+typedef struct
+{
 	wildfire_256	qsd_whami;
 	wildfire_256	__pad1;
 	wildfire_256	ce_sum;
@@ -75,7 +80,8 @@ typedef struct {
 	wildfire_256	se_sum;
 } wildfire_fast_qsd;
 
-typedef struct {
+typedef struct
+{
 	wildfire_2k	qsa_qbb_id;
 	wildfire_2k	__pad1;
 	wildfire_2k	qsa_port_ena;
@@ -103,14 +109,16 @@ typedef struct {
 	wildfire_2k	qsa_arr_mask[8];
 } wildfire_qsa;
 
-typedef struct {
+typedef struct
+{
 	wildfire_64	ioa_config;
 	wildfire_64	iod_config;
 	wildfire_64	iop_switch_credits;
 	wildfire_64	__pad1;
 	wildfire_64	iop_hose_credits;
 	wildfire_64	__pad2[11];
-	struct {
+	struct
+	{
 		wildfire_64	__pad3;
 		wildfire_64	init;
 	} iop_hose[4];
@@ -122,7 +130,8 @@ typedef struct {
 	wildfire_64	iod_hose_2_ctrl;
 	wildfire_64	ioa_hose_3_ctrl;
 	wildfire_64	iod_hose_3_ctrl;
-	struct {
+	struct
+	{
 		wildfire_64	target;
 		wildfire_64	__pad4;
 	} iop_dev_int[4];
@@ -145,7 +154,8 @@ typedef struct {
 	wildfire_64	iod_scratch;
 } wildfire_iop;
 
-typedef struct {
+typedef struct
+{
 	wildfire_2k	gpa_qbb_map[4];
 	wildfire_2k	gpa_mem_pop_map;
 	wildfire_2k	gpa_scratch;
@@ -157,7 +167,8 @@ typedef struct {
 	/* not complete */
 } wildfire_gp;
 
-typedef struct {
+typedef struct
+{
 	wildfire_64	pca_what_am_i;
 	wildfire_64	pca_err_sum;
 	wildfire_64	pca_diag_force_err;
@@ -171,7 +182,8 @@ typedef struct {
 	wildfire_64	__pad1;
 	wildfire_64	pca_stdio_edge_level;
 	wildfire_64	__pad2[52];
-	struct {
+	struct
+	{
 		wildfire_64	target;
 		wildfire_64	enable;
 	} pca_int[4];
@@ -179,17 +191,20 @@ typedef struct {
 	wildfire_64	pca_alt_sent_int[32];
 } wildfire_pca;
 
-typedef struct {
+typedef struct
+{
 	wildfire_64	ne_what_am_i;
 	/* not complete */
 } wildfire_ne;
 
-typedef struct {
+typedef struct
+{
 	wildfire_64	fe_what_am_i;
 	/* not complete */
 } wildfire_fe;
 
-typedef struct {
+typedef struct
+{
 	wildfire_64	pci_io_addr_ext;
 	wildfire_64	pci_ctrl;
 	wildfire_64	pci_err_sum;
@@ -200,7 +215,8 @@ typedef struct {
 	wildfire_64	pci_pend_int;
 	wildfire_64	pci_sent_int;
 	wildfire_64	__pad2[54];
-	struct {
+	struct
+	{
 		wildfire_64	wbase;
 		wildfire_64	wmask;
 		wildfire_64	tbase;
@@ -234,31 +250,31 @@ typedef struct {
 #define WILDFIRE_IO(q,h)	(WILDFIRE_QBB_HOSE(q,h) | 0x1FF000000UL)
 
 #define WILDFIRE_qsd(q) \
- ((wildfire_qsd *)(WILDFIRE_QBB_IO(q)|WILDFIRE_QSD_ENTITY_SLOW|(((1UL<<13)-1)<<23)))
+	((wildfire_qsd *)(WILDFIRE_QBB_IO(q)|WILDFIRE_QSD_ENTITY_SLOW|(((1UL<<13)-1)<<23)))
 
 #define WILDFIRE_fast_qsd() \
- ((wildfire_fast_qsd *)(WILDFIRE_QBB_IO(0)|WILDFIRE_QSD_ENTITY_FAST|(((1UL<<13)-1)<<23)))
+	((wildfire_fast_qsd *)(WILDFIRE_QBB_IO(0)|WILDFIRE_QSD_ENTITY_FAST|(((1UL<<13)-1)<<23)))
 
 #define WILDFIRE_qsa(q) \
- ((wildfire_qsa *)(WILDFIRE_QBB_IO(q)|WILDFIRE_QSA_ENTITY|(((1UL<<13)-1)<<23)))
+	((wildfire_qsa *)(WILDFIRE_QBB_IO(q)|WILDFIRE_QSA_ENTITY|(((1UL<<13)-1)<<23)))
 
 #define WILDFIRE_iop(q) \
- ((wildfire_iop *)(WILDFIRE_QBB_IO(q)|WILDFIRE_IOP_ENTITY|(((1UL<<13)-1)<<23)))
+	((wildfire_iop *)(WILDFIRE_QBB_IO(q)|WILDFIRE_IOP_ENTITY|(((1UL<<13)-1)<<23)))
 
 #define WILDFIRE_gp(q) \
- ((wildfire_gp *)(WILDFIRE_QBB_IO(q)|WILDFIRE_GP_ENTITY|(((1UL<<13)-1)<<23)))
+	((wildfire_gp *)(WILDFIRE_QBB_IO(q)|WILDFIRE_GP_ENTITY|(((1UL<<13)-1)<<23)))
 
 #define WILDFIRE_pca(q,pca) \
- ((wildfire_pca *)(WILDFIRE_QBB_IO(q)|WILDFIRE_PCA_ENTITY(pca)|(((1UL<<13)-1)<<23)))
+	((wildfire_pca *)(WILDFIRE_QBB_IO(q)|WILDFIRE_PCA_ENTITY(pca)|(((1UL<<13)-1)<<23)))
 
 #define WILDFIRE_ne(q,pca) \
- ((wildfire_ne *)(WILDFIRE_QBB_IO(q)|WILDFIRE_PCA_ENTITY(pca)|(((1UL<<13)-1)<<23)|(1UL<<16)))
+	((wildfire_ne *)(WILDFIRE_QBB_IO(q)|WILDFIRE_PCA_ENTITY(pca)|(((1UL<<13)-1)<<23)|(1UL<<16)))
 
 #define WILDFIRE_fe(q,pca) \
- ((wildfire_fe *)(WILDFIRE_QBB_IO(q)|WILDFIRE_PCA_ENTITY(pca)|(((1UL<<13)-1)<<23)|(3UL<<15)))
+	((wildfire_fe *)(WILDFIRE_QBB_IO(q)|WILDFIRE_PCA_ENTITY(pca)|(((1UL<<13)-1)<<23)|(3UL<<15)))
 
 #define WILDFIRE_pci(q,h) \
- ((wildfire_pci *)(WILDFIRE_QBB_IO(q)|WILDFIRE_PCA_ENTITY(((h)&6)>>1)|((((h)&1)|2)<<16)|(((1UL<<13)-1)<<23)))
+	((wildfire_pci *)(WILDFIRE_QBB_IO(q)|WILDFIRE_PCA_ENTITY(((h)&6)>>1)|((((h)&1)|2)<<16)|(((1UL<<13)-1)<<23)))
 
 #define WILDFIRE_IO_BIAS        WILDFIRE_IO(0,0)
 #define WILDFIRE_MEM_BIAS       WILDFIRE_MEM(0,0) /* ??? */
@@ -269,8 +285,8 @@ typedef struct {
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -282,8 +298,8 @@ __EXTERN_INLINE void __iomem *wildfire_ioportmap(unsigned long addr)
 	return (void __iomem *)(addr + WILDFIRE_IO_BIAS);
 }
 
-__EXTERN_INLINE void __iomem *wildfire_ioremap(unsigned long addr, 
-					       unsigned long size)
+__EXTERN_INLINE void __iomem *wildfire_ioremap(unsigned long addr,
+		unsigned long size)
 {
 	return (void __iomem *)(addr + WILDFIRE_MEM_BIAS);
 }
@@ -309,8 +325,8 @@ __EXTERN_INLINE int wildfire_is_mmio(const volatile void __iomem *xaddr)
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

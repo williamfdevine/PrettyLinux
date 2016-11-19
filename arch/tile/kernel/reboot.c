@@ -22,7 +22,7 @@
 #include <hv/hypervisor.h>
 
 #ifndef CONFIG_SMP
-#define smp_send_stop()
+	#define smp_send_stop()
 #endif
 
 void machine_halt(void)

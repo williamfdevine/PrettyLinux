@@ -29,27 +29,27 @@
 /***************************************************************************/
 
 #if defined(CONFIG_DRAGEN2)
-/* with a 33.16 MHz clock, this will give usec resolution to the time functions */
-#define CLOCK_SOURCE	TCTL_CLKSOURCE_SYSCLK
-#define CLOCK_PRE	7
-#define TICKS_PER_JIFFY	41450
+	/* with a 33.16 MHz clock, this will give usec resolution to the time functions */
+	#define CLOCK_SOURCE	TCTL_CLKSOURCE_SYSCLK
+	#define CLOCK_PRE	7
+	#define TICKS_PER_JIFFY	41450
 
 #elif defined(CONFIG_XCOPILOT_BUGS)
-/*
- * The only thing I know is that CLK32 is not available on Xcopilot
- * I have little idea about what frequency SYSCLK has on Xcopilot.
- * The values for prescaler and compare registers were simply
- * taken from the original source
- */
-#define CLOCK_SOURCE	TCTL_CLKSOURCE_SYSCLK
-#define CLOCK_PRE	2
-#define TICKS_PER_JIFFY	0xd7e4
+	/*
+	* The only thing I know is that CLK32 is not available on Xcopilot
+	* I have little idea about what frequency SYSCLK has on Xcopilot.
+	* The values for prescaler and compare registers were simply
+	* taken from the original source
+	*/
+	#define CLOCK_SOURCE	TCTL_CLKSOURCE_SYSCLK
+	#define CLOCK_PRE	2
+	#define TICKS_PER_JIFFY	0xd7e4
 
 #else
-/* default to using the 32Khz clock */
-#define CLOCK_SOURCE	TCTL_CLKSOURCE_32KHZ
-#define CLOCK_PRE	31
-#define TICKS_PER_JIFFY	10
+	/* default to using the 32Khz clock */
+	#define CLOCK_SOURCE	TCTL_CLKSOURCE_32KHZ
+	#define CLOCK_PRE	31
+	#define TICKS_PER_JIFFY	10
 #endif
 
 static u32 m68328_tick_cnt;
@@ -68,7 +68,8 @@ static irqreturn_t hw_tick(int irq, void *dummy)
 
 /***************************************************************************/
 
-static struct irqaction m68328_timer_irq = {
+static struct irqaction m68328_timer_irq =
+{
 	.name	 = "timer",
 	.flags	 = IRQF_TIMER,
 	.handler = hw_tick,
@@ -90,7 +91,8 @@ static cycle_t m68328_read_clk(struct clocksource *cs)
 
 /***************************************************************************/
 
-static struct clocksource m68328_clk = {
+static struct clocksource m68328_clk =
+{
 	.name	= "timer",
 	.rating	= 250,
 	.read	= m68328_read_clk,
@@ -115,7 +117,7 @@ void hw_timer_init(irq_handler_t handler)
 
 	/* Enable timer 1 */
 	TCTL |= TCTL_TEN;
-	clocksource_register_hz(&m68328_clk, TICKS_PER_JIFFY*HZ);
+	clocksource_register_hz(&m68328_clk, TICKS_PER_JIFFY * HZ);
 	timer_interrupt = handler;
 }
 
@@ -123,7 +125,8 @@ void hw_timer_init(irq_handler_t handler)
 
 int m68328_hwclk(int set, struct rtc_time *t)
 {
-	if (!set) {
+	if (!set)
+	{
 		long now = RTCTIME;
 		t->tm_year = t->tm_mon = t->tm_mday = 1;
 		t->tm_hour = (now >> 24) % 24;

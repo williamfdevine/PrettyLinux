@@ -12,26 +12,26 @@
 #define _ASM_CPU_REGS_H
 
 #ifndef __ASSEMBLY__
-#include <linux/types.h>
+	#include <linux/types.h>
 #endif
 
 /* we tell the compiler to pretend to be AM33 so that it doesn't try and use
  * the FP regs, but tell the assembler that we're actually allowed AM33v2
  * instructions */
 #ifndef __ASSEMBLY__
-asm(" .am33_2\n");
+	asm(" .am33_2\n");
 #else
-.am33_2
+	.am33_2
 #endif
 
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-#define __SYSREG(ADDR, TYPE) (*(volatile TYPE *)(ADDR))
-#define __SYSREGC(ADDR, TYPE) (*(const volatile TYPE *)(ADDR))
+	#define __SYSREG(ADDR, TYPE) (*(volatile TYPE *)(ADDR))
+	#define __SYSREGC(ADDR, TYPE) (*(const volatile TYPE *)(ADDR))
 #else
-#define __SYSREG(ADDR, TYPE) ADDR
-#define __SYSREGC(ADDR, TYPE) ADDR
+	#define __SYSREG(ADDR, TYPE) ADDR
+	#define __SYSREGC(ADDR, TYPE) ADDR
 #endif
 
 /* CPU registers */
@@ -184,18 +184,18 @@ asm(" .am33_2\n");
 #define CHCTR_DCWMD		0xf000		/* data cache way mode */
 
 #ifdef CONFIG_AM34_2
-#define ICIVCR			__SYSREG(0xc0000c00, u32)	/* icache area invalidate control */
-#define ICIVCR_ICIVBSY		0x00000008			/* icache area invalidate busy */
-#define ICIVCR_ICI		0x00000001			/* icache area invalidate */
+	#define ICIVCR			__SYSREG(0xc0000c00, u32)	/* icache area invalidate control */
+	#define ICIVCR_ICIVBSY		0x00000008			/* icache area invalidate busy */
+	#define ICIVCR_ICI		0x00000001			/* icache area invalidate */
 
-#define ICIVMR			__SYSREG(0xc0000c04, u32)	/* icache area invalidate mask */
+	#define ICIVMR			__SYSREG(0xc0000c04, u32)	/* icache area invalidate mask */
 
-#define	DCPGCR			__SYSREG(0xc0000c10, u32)	/* data cache area purge control */
-#define	DCPGCR_DCPGBSY		0x00000008			/* data cache area purge busy */
-#define	DCPGCR_DCP		0x00000002			/* data cache area purge */
-#define	DCPGCR_DCI		0x00000001			/* data cache area invalidate */
+	#define	DCPGCR			__SYSREG(0xc0000c10, u32)	/* data cache area purge control */
+	#define	DCPGCR_DCPGBSY		0x00000008			/* data cache area purge busy */
+	#define	DCPGCR_DCP		0x00000002			/* data cache area purge */
+	#define	DCPGCR_DCI		0x00000001			/* data cache area invalidate */
 
-#define	DCPGMR			__SYSREG(0xc0000c14, u32)	/* data cache area purge mask */
+	#define	DCPGMR			__SYSREG(0xc0000c14, u32)	/* data cache area purge mask */
 #endif /* CONFIG_AM34_2 */
 
 /* MMU control registers */
@@ -222,7 +222,7 @@ asm(" .am33_2\n");
 #define MMUCTR_DTL_LOCK0_7	0x04000000	/* - entry 0-7 locked */
 #define MMUCTR_DTL_LOCK0_15	0x05000000	/* - entry 0-15 locked */
 #ifdef CONFIG_AM34_2
-#define MMUCTR_WTE		0x80000000	/* write-through cache TLB entry bit enable */
+	#define MMUCTR_WTE		0x80000000	/* write-through cache TLB entry bit enable */
 #endif
 
 #define PIDR			__SYSREG(0xc0000094, u16)	/* PID register */

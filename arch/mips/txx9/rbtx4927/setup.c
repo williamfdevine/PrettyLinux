@@ -75,9 +75,13 @@ static void __init tx4927_pci_setup(void)
 	writeb(1, rbtx4927_pcireset_addr);
 	/* Reset PCIC */
 	txx9_set64(&tx4927_ccfgptr->clkctr, TX4927_CLKCTR_PCIRST);
+
 	if ((txx9_pci_option & TXX9_PCI_OPT_CLK_MASK) ==
-	    TXX9_PCI_OPT_CLK_66)
+		TXX9_PCI_OPT_CLK_66)
+	{
 		tx4927_pciclk66_setup();
+	}
+
 	mdelay(10);
 	/* clear PCIC reset */
 	txx9_clear64(&tx4927_ccfgptr->clkctr, TX4927_CLKCTR_PCIRST);
@@ -86,9 +90,11 @@ static void __init tx4927_pci_setup(void)
 
 	tx4927_report_pciclk();
 	tx4927_pcic_setup(tx4927_pcicptr, c, extarb);
+
 	if ((txx9_pci_option & TXX9_PCI_OPT_CLK_MASK) ==
-	    TXX9_PCI_OPT_CLK_AUTO &&
-	    txx9_pci66_check(c, 0, 0)) {
+		TXX9_PCI_OPT_CLK_AUTO &&
+		txx9_pci66_check(c, 0, 0))
+	{
 		/* Reset PCI Bus */
 		writeb(1, rbtx4927_pcireset_addr);
 		/* Reset PCIC */
@@ -103,6 +109,7 @@ static void __init tx4927_pci_setup(void)
 		tx4927_report_pciclk();
 		tx4927_pcic_setup(tx4927_pcicptr, c, extarb);
 	}
+
 	tx4927_setup_pcierr_irq();
 }
 
@@ -122,9 +129,13 @@ static void __init tx4937_pci_setup(void)
 	writeb(1, rbtx4927_pcireset_addr);
 	/* Reset PCIC */
 	txx9_set64(&tx4938_ccfgptr->clkctr, TX4938_CLKCTR_PCIRST);
+
 	if ((txx9_pci_option & TXX9_PCI_OPT_CLK_MASK) ==
-	    TXX9_PCI_OPT_CLK_66)
+		TXX9_PCI_OPT_CLK_66)
+	{
 		tx4938_pciclk66_setup();
+	}
+
 	mdelay(10);
 	/* clear PCIC reset */
 	txx9_clear64(&tx4938_ccfgptr->clkctr, TX4938_CLKCTR_PCIRST);
@@ -133,9 +144,11 @@ static void __init tx4937_pci_setup(void)
 
 	tx4938_report_pciclk();
 	tx4927_pcic_setup(tx4938_pcicptr, c, extarb);
+
 	if ((txx9_pci_option & TXX9_PCI_OPT_CLK_MASK) ==
-	    TXX9_PCI_OPT_CLK_AUTO &&
-	    txx9_pci66_check(c, 0, 0)) {
+		TXX9_PCI_OPT_CLK_AUTO &&
+		txx9_pci66_check(c, 0, 0))
+	{
 		/* Reset PCI Bus */
 		writeb(1, rbtx4927_pcireset_addr);
 		/* Reset PCIC */
@@ -150,6 +163,7 @@ static void __init tx4937_pci_setup(void)
 		tx4938_report_pciclk();
 		tx4927_pcic_setup(tx4938_pcicptr, c, extarb);
 	}
+
 	tx4938_setup_pcierr_irq();
 }
 #else
@@ -205,10 +219,13 @@ static void __init rbtx4937_clock_init(void);
 
 static void __init rbtx4927_mem_setup(void)
 {
-	if (TX4927_REV_PCODE() == 0x4927) {
+	if (TX4927_REV_PCODE() == 0x4927)
+	{
 		rbtx4927_clock_init();
 		tx4927_setup();
-	} else {
+	}
+	else
+	{
 		rbtx4937_clock_init();
 		tx4938_setup();
 	}
@@ -217,8 +234,8 @@ static void __init rbtx4927_mem_setup(void)
 
 #ifdef CONFIG_PCI
 	txx9_alloc_pci_controller(&txx9_primary_pcic,
-				  RBTX4927_PCIMEM, RBTX4927_PCIMEM_SIZE,
-				  RBTX4927_PCIIO, RBTX4927_PCIIO_SIZE);
+							  RBTX4927_PCIMEM, RBTX4927_PCIMEM_SIZE,
+							  RBTX4927_PCIIO, RBTX4927_PCIIO_SIZE);
 	txx9_board_pcibios_setup = tx4927_pcibios_setup;
 #else
 	set_io_port_base(KSEG1 + RBTX4927_ISA_IO_OFFSET);
@@ -239,13 +256,15 @@ static void __init rbtx4927_clock_init(void)
 	 * i.e. S9[3]: ON (83MHz), OFF (100MHz)
 	 */
 	switch ((unsigned long)__raw_readq(&tx4927_ccfgptr->ccfg) &
-		TX4927_CCFG_PCIDIVMODE_MASK) {
-	case TX4927_CCFG_PCIDIVMODE_2_5:
-	case TX4927_CCFG_PCIDIVMODE_5:
-		txx9_cpu_clock = 166666666;	/* 166MHz */
-		break;
-	default:
-		txx9_cpu_clock = 200000000;	/* 200MHz */
+			TX4927_CCFG_PCIDIVMODE_MASK)
+	{
+		case TX4927_CCFG_PCIDIVMODE_2_5:
+		case TX4927_CCFG_PCIDIVMODE_5:
+			txx9_cpu_clock = 166666666;	/* 166MHz */
+			break;
+
+		default:
+			txx9_cpu_clock = 200000000;	/* 200MHz */
 	}
 }
 
@@ -265,17 +284,20 @@ static void __init rbtx4937_clock_init(void)
 	 * CPU 333MHz: PCI 66MHz : PCIDIVMODE: 101 (1/5)
 	 */
 	switch ((unsigned long)__raw_readq(&tx4938_ccfgptr->ccfg) &
-		TX4938_CCFG_PCIDIVMODE_MASK) {
-	case TX4938_CCFG_PCIDIVMODE_8:
-	case TX4938_CCFG_PCIDIVMODE_4:
-		txx9_cpu_clock = 266666666;	/* 266MHz */
-		break;
-	case TX4938_CCFG_PCIDIVMODE_9:
-	case TX4938_CCFG_PCIDIVMODE_4_5:
-		txx9_cpu_clock = 300000000;	/* 300MHz */
-		break;
-	default:
-		txx9_cpu_clock = 333333333;	/* 333MHz */
+			TX4938_CCFG_PCIDIVMODE_MASK)
+	{
+		case TX4938_CCFG_PCIDIVMODE_8:
+		case TX4938_CCFG_PCIDIVMODE_4:
+			txx9_cpu_clock = 266666666;	/* 266MHz */
+			break;
+
+		case TX4938_CCFG_PCIDIVMODE_9:
+		case TX4938_CCFG_PCIDIVMODE_4_5:
+			txx9_cpu_clock = 300000000;	/* 300MHz */
+			break;
+
+		default:
+			txx9_cpu_clock = 333333333;	/* 333MHz */
 	}
 }
 
@@ -286,7 +308,8 @@ static void __init rbtx4927_time_init(void)
 
 static void __init toshiba_rbtx4927_rtc_init(void)
 {
-	struct resource res = {
+	struct resource res =
+	{
 		.start	= RBTX4927_BRAMRTC_BASE - IO_BASE,
 		.end	= RBTX4927_BRAMRTC_BASE - IO_BASE + 0x800 - 1,
 		.flags	= IORESOURCE_MEM,
@@ -296,7 +319,8 @@ static void __init toshiba_rbtx4927_rtc_init(void)
 
 static void __init rbtx4927_ne_init(void)
 {
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start	= RBTX4927_RTL_8019_BASE,
 			.end	= RBTX4927_RTL_8019_BASE + 0x20 - 1,
@@ -314,26 +338,36 @@ static void __init rbtx4927_mtd_init(void)
 	int i;
 
 	for (i = 0; i < 2; i++)
+	{
 		tx4927_mtd_init(i);
+	}
 }
 
 static void __init rbtx4927_gpioled_init(void)
 {
-	static struct gpio_led leds[] = {
+	static struct gpio_led leds[] =
+	{
 		{ .name = "gpioled:green:0", .gpio = 0, .active_low = 1, },
 		{ .name = "gpioled:green:1", .gpio = 1, .active_low = 1, },
 	};
-	static struct gpio_led_platform_data pdata = {
+	static struct gpio_led_platform_data pdata =
+	{
 		.num_leds = ARRAY_SIZE(leds),
 		.leds = leds,
 	};
 	struct platform_device *pdev = platform_device_alloc("leds-gpio", 0);
 
 	if (!pdev)
+	{
 		return;
+	}
+
 	pdev->dev.platform_data = &pdata;
+
 	if (platform_device_add(pdev))
+	{
 		platform_device_put(pdev);
+	}
 }
 
 static void __init rbtx4927_device_init(void)
@@ -342,19 +376,25 @@ static void __init rbtx4927_device_init(void)
 	rbtx4927_ne_init();
 	tx4927_wdt_init();
 	rbtx4927_mtd_init();
-	if (TX4927_REV_PCODE() == 0x4927) {
+
+	if (TX4927_REV_PCODE() == 0x4927)
+	{
 		tx4927_dmac_init(2);
 		tx4927_aclc_init(0, 1);
-	} else {
+	}
+	else
+	{
 		tx4938_dmac_init(0, 2);
 		tx4938_aclc_init();
 	}
+
 	platform_device_register_simple("txx9aclc-generic", -1, NULL, 0);
 	txx9_iocled_init(RBTX4927_LED_ADDR - IO_BASE, -1, 3, 1, "green", NULL);
 	rbtx4927_gpioled_init();
 }
 
-struct txx9_board_vec rbtx4927_vec __initdata = {
+struct txx9_board_vec rbtx4927_vec __initdata =
+{
 	.system = "Toshiba RBTX4927",
 	.prom_init = rbtx4927_prom_init,
 	.mem_setup = rbtx4927_mem_setup,
@@ -366,7 +406,8 @@ struct txx9_board_vec rbtx4927_vec __initdata = {
 	.pci_map_irq = rbtx4927_pci_map_irq,
 #endif
 };
-struct txx9_board_vec rbtx4937_vec __initdata = {
+struct txx9_board_vec rbtx4937_vec __initdata =
+{
 	.system = "Toshiba RBTX4937",
 	.prom_init = rbtx4927_prom_init,
 	.mem_setup = rbtx4927_mem_setup,

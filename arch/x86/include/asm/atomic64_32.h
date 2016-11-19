@@ -7,7 +7,8 @@
 
 /* An 64bit atomic type */
 
-typedef struct {
+typedef struct
+{
 	u64 __aligned(8) counter;
 } atomic64_t;
 
@@ -24,13 +25,13 @@ typedef struct {
 #ifdef CONFIG_X86_CMPXCHG64
 #define __alternative_atomic64(f, g, out, in...) \
 	asm volatile("call %P[func]" \
-		     : out : [func] "i" (atomic64_##g##_cx8), ## in)
+				 : out : [func] "i" (atomic64_##g##_cx8), ## in)
 
 #define ATOMIC64_DECL(sym) ATOMIC64_DECL_ONE(sym##_cx8)
 #else
 #define __alternative_atomic64(f, g, out, in...) \
 	alternative_call(atomic64_##f##_386, atomic64_##g##_cx8, \
-			 X86_FEATURE_CX8, ASM_OUTPUT2(out), ## in)
+					 X86_FEATURE_CX8, ASM_OUTPUT2(out), ## in)
 
 #define ATOMIC64_DECL(sym) ATOMIC64_DECL_ONE(sym##_cx8); \
 	ATOMIC64_DECL_ONE(sym##_386)
@@ -89,8 +90,8 @@ static inline long long atomic64_xchg(atomic64_t *v, long long n)
 	unsigned high = (unsigned)(n >> 32);
 	unsigned low = (unsigned)n;
 	alternative_atomic64(xchg, "=&A" (o),
-			     "S" (v), "b" (low), "c" (high)
-			     : "memory");
+						 "S" (v), "b" (low), "c" (high)
+						 : "memory");
 	return o;
 }
 
@@ -106,8 +107,8 @@ static inline void atomic64_set(atomic64_t *v, long long i)
 	unsigned high = (unsigned)(i >> 32);
 	unsigned low = (unsigned)i;
 	alternative_atomic64(set, /* no output */,
-			     "S" (v), "b" (low), "c" (high)
-			     : "eax", "edx", "memory");
+						 "S" (v), "b" (low), "c" (high)
+						 : "eax", "edx", "memory");
 }
 
 /**
@@ -121,7 +122,7 @@ static inline long long atomic64_read(const atomic64_t *v)
 	long long r;
 	alternative_atomic64(read, "=&A" (r), "c" (v) : "memory");
 	return r;
- }
+}
 
 /**
  * atomic64_add_return - add and return
@@ -133,8 +134,8 @@ static inline long long atomic64_read(const atomic64_t *v)
 static inline long long atomic64_add_return(long long i, atomic64_t *v)
 {
 	alternative_atomic64(add_return,
-			     ASM_OUTPUT2("+A" (i), "+c" (v)),
-			     ASM_NO_INPUT_CLOBBER("memory"));
+						 ASM_OUTPUT2("+A" (i), "+c" (v)),
+						 ASM_NO_INPUT_CLOBBER("memory"));
 	return i;
 }
 
@@ -144,8 +145,8 @@ static inline long long atomic64_add_return(long long i, atomic64_t *v)
 static inline long long atomic64_sub_return(long long i, atomic64_t *v)
 {
 	alternative_atomic64(sub_return,
-			     ASM_OUTPUT2("+A" (i), "+c" (v)),
-			     ASM_NO_INPUT_CLOBBER("memory"));
+						 ASM_OUTPUT2("+A" (i), "+c" (v)),
+						 ASM_NO_INPUT_CLOBBER("memory"));
 	return i;
 }
 
@@ -153,7 +154,7 @@ static inline long long atomic64_inc_return(atomic64_t *v)
 {
 	long long a;
 	alternative_atomic64(inc_return, "=&A" (a),
-			     "S" (v) : "memory", "ecx");
+						 "S" (v) : "memory", "ecx");
 	return a;
 }
 
@@ -161,7 +162,7 @@ static inline long long atomic64_dec_return(atomic64_t *v)
 {
 	long long a;
 	alternative_atomic64(dec_return, "=&A" (a),
-			     "S" (v) : "memory", "ecx");
+						 "S" (v) : "memory", "ecx");
 	return a;
 }
 
@@ -175,8 +176,8 @@ static inline long long atomic64_dec_return(atomic64_t *v)
 static inline long long atomic64_add(long long i, atomic64_t *v)
 {
 	__alternative_atomic64(add, add_return,
-			       ASM_OUTPUT2("+A" (i), "+c" (v)),
-			       ASM_NO_INPUT_CLOBBER("memory"));
+						   ASM_OUTPUT2("+A" (i), "+c" (v)),
+						   ASM_NO_INPUT_CLOBBER("memory"));
 	return i;
 }
 
@@ -190,8 +191,8 @@ static inline long long atomic64_add(long long i, atomic64_t *v)
 static inline long long atomic64_sub(long long i, atomic64_t *v)
 {
 	__alternative_atomic64(sub, sub_return,
-			       ASM_OUTPUT2("+A" (i), "+c" (v)),
-			       ASM_NO_INPUT_CLOBBER("memory"));
+						   ASM_OUTPUT2("+A" (i), "+c" (v)),
+						   ASM_NO_INPUT_CLOBBER("memory"));
 	return i;
 }
 
@@ -218,7 +219,7 @@ static inline int atomic64_sub_and_test(long long i, atomic64_t *v)
 static inline void atomic64_inc(atomic64_t *v)
 {
 	__alternative_atomic64(inc, inc_return, /* no output */,
-			       "S" (v) : "memory", "eax", "ecx", "edx");
+						   "S" (v) : "memory", "eax", "ecx", "edx");
 }
 
 /**
@@ -230,7 +231,7 @@ static inline void atomic64_inc(atomic64_t *v)
 static inline void atomic64_dec(atomic64_t *v)
 {
 	__alternative_atomic64(dec, dec_return, /* no output */,
-			       "S" (v) : "memory", "eax", "ecx", "edx");
+						   "S" (v) : "memory", "eax", "ecx", "edx");
 }
 
 /**
@@ -287,8 +288,8 @@ static inline int atomic64_add_unless(atomic64_t *v, long long a, long long u)
 	unsigned low = (unsigned)u;
 	unsigned high = (unsigned)(u >> 32);
 	alternative_atomic64(add_unless,
-			     ASM_OUTPUT2("+A" (a), "+c" (low), "+D" (high)),
-			     "S" (v) : "memory");
+						 ASM_OUTPUT2("+A" (a), "+c" (low), "+D" (high)),
+						 "S" (v) : "memory");
 	return (int)a;
 }
 
@@ -297,7 +298,7 @@ static inline int atomic64_inc_not_zero(atomic64_t *v)
 {
 	int r;
 	alternative_atomic64(inc_not_zero, "=&a" (r),
-			     "S" (v) : "ecx", "edx", "memory");
+						 "S" (v) : "ecx", "edx", "memory");
 	return r;
 }
 
@@ -305,7 +306,7 @@ static inline long long atomic64_dec_if_positive(atomic64_t *v)
 {
 	long long r;
 	alternative_atomic64(dec_if_positive, "=&A" (r),
-			     "S" (v) : "ecx", "memory");
+						 "S" (v) : "ecx", "memory");
 	return r;
 }
 
@@ -313,21 +314,21 @@ static inline long long atomic64_dec_if_positive(atomic64_t *v)
 #undef __alternative_atomic64
 
 #define ATOMIC64_OP(op, c_op)						\
-static inline void atomic64_##op(long long i, atomic64_t *v)		\
-{									\
-	long long old, c = 0;						\
-	while ((old = atomic64_cmpxchg(v, c, c c_op i)) != c)		\
-		c = old;						\
-}
+	static inline void atomic64_##op(long long i, atomic64_t *v)		\
+	{									\
+		long long old, c = 0;						\
+		while ((old = atomic64_cmpxchg(v, c, c c_op i)) != c)		\
+			c = old;						\
+	}
 
 #define ATOMIC64_FETCH_OP(op, c_op)					\
-static inline long long atomic64_fetch_##op(long long i, atomic64_t *v)	\
-{									\
-	long long old, c = 0;						\
-	while ((old = atomic64_cmpxchg(v, c, c c_op i)) != c)		\
-		c = old;						\
-	return old;							\
-}
+	static inline long long atomic64_fetch_##op(long long i, atomic64_t *v)	\
+	{									\
+		long long old, c = 0;						\
+		while ((old = atomic64_cmpxchg(v, c, c c_op i)) != c)		\
+			c = old;						\
+		return old;							\
+	}
 
 ATOMIC64_FETCH_OP(add, +)
 
@@ -337,8 +338,8 @@ ATOMIC64_FETCH_OP(add, +)
 	ATOMIC64_OP(op, c_op)						\
 	ATOMIC64_FETCH_OP(op, c_op)
 
-ATOMIC64_OPS(and, &)
-ATOMIC64_OPS(or, |)
+ATOMIC64_OPS( and , &)
+ATOMIC64_OPS( or , | )
 ATOMIC64_OPS(xor, ^)
 
 #undef ATOMIC64_OPS

@@ -1,7 +1,8 @@
 /*
  * Some ECOFF definitions.
  */
-typedef struct filehdr {
+typedef struct filehdr
+{
 	unsigned short	f_magic;	/* magic number */
 	unsigned short	f_nscns;	/* number of sections */
 	long		f_timdat;	/* time & date stamp */
@@ -15,7 +16,8 @@ typedef struct filehdr {
 #define MIPSEBMAGIC	0x160
 #define MIPSELMAGIC	0x162
 
-typedef struct scnhdr {
+typedef struct scnhdr
+{
 	char		s_name[8];	/* section name */
 	long		s_paddr;	/* physical address, aliased s_nlib */
 	long		s_vaddr;	/* virtual address */
@@ -30,7 +32,8 @@ typedef struct scnhdr {
 #define SCNHSZ		sizeof(SCNHDR)
 #define SCNROUND	((long)16)
 
-typedef struct aouthdr {
+typedef struct aouthdr
+{
 	short	magic;		/* see above				*/
 	short	vstamp;		/* version stamp			*/
 	long	tsize;		/* text size in bytes, padded to DW bdry*/
@@ -53,9 +56,9 @@ typedef struct aouthdr {
 #define LIBMAGIC	0443
 
 #define N_TXTOFF(f, a) \
- ((a).magic == ZMAGIC || (a).magic == LIBMAGIC ? 0 : \
-  ((a).vstamp < 23 ? \
-   ((FILHSZ + AOUTHSZ + (f).f_nscns * SCNHSZ + 7) & 0xfffffff8) : \
-   ((FILHSZ + AOUTHSZ + (f).f_nscns * SCNHSZ + SCNROUND-1) & ~(SCNROUND-1)) ) )
+	((a).magic == ZMAGIC || (a).magic == LIBMAGIC ? 0 : \
+	 ((a).vstamp < 23 ? \
+	  ((FILHSZ + AOUTHSZ + (f).f_nscns * SCNHSZ + 7) & 0xfffffff8) : \
+	  ((FILHSZ + AOUTHSZ + (f).f_nscns * SCNHSZ + SCNROUND-1) & ~(SCNROUND-1)) ) )
 #define N_DATOFF(f, a) \
-  N_TXTOFF(f, a) + (a).tsize;
+	N_TXTOFF(f, a) + (a).tsize;

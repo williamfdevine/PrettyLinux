@@ -60,12 +60,17 @@ static int avic_set_irq_fiq(unsigned int hwirq, unsigned int type)
 	unsigned int irqt;
 
 	if (hwirq >= AVIC_NUM_IRQS)
+	{
 		return -EINVAL;
+	}
 
-	if (hwirq < AVIC_NUM_IRQS / 2) {
+	if (hwirq < AVIC_NUM_IRQS / 2)
+	{
 		irqt = imx_readl(avic_base + AVIC_INTTYPEL) & ~(1 << hwirq);
 		imx_writel(irqt | (!!type << hwirq), avic_base + AVIC_INTTYPEL);
-	} else {
+	}
+	else
+	{
 		hwirq -= AVIC_NUM_IRQS / 2;
 		irqt = imx_readl(avic_base + AVIC_INTTYPEH) & ~(1 << hwirq);
 		imx_writel(irqt | (!!type << hwirq), avic_base + AVIC_INTTYPEH);
@@ -76,7 +81,8 @@ static int avic_set_irq_fiq(unsigned int hwirq, unsigned int type)
 #endif /* CONFIG_FIQ */
 
 
-static struct mxc_extra_irq avic_extra_irq = {
+static struct mxc_extra_irq avic_extra_irq =
+{
 #ifdef CONFIG_FIQ
 	.set_irq_fiq = avic_set_irq_fiq,
 #endif
@@ -115,7 +121,7 @@ static __init void avic_init_gc(int idx, unsigned int irq_start)
 	struct irq_chip_type *ct;
 
 	gc = irq_alloc_generic_chip("mxc-avic", 1, irq_start, avic_base,
-				    handle_level_irq);
+								handle_level_irq);
 	gc->private = &avic_extra_irq;
 	gc->wake_enabled = IRQ_MSK(32);
 
@@ -136,13 +142,18 @@ static void __exception_irq_entry avic_handle_irq(struct pt_regs *regs)
 {
 	u32 nivector;
 
-	do {
+	do
+	{
 		nivector = imx_readl(avic_base + AVIC_NIVECSR) >> 16;
+
 		if (nivector == 0xffff)
+		{
 			break;
+		}
 
 		handle_domain_irq(domain, nivector, regs);
-	} while (1);
+	}
+	while (1);
 }
 
 /*
@@ -177,15 +188,19 @@ void __init mxc_init_irq(void __iomem *irqbase)
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,avic");
 	domain = irq_domain_add_legacy(np, AVIC_NUM_IRQS, irq_base, 0,
-				       &irq_domain_simple_ops, NULL);
+								   &irq_domain_simple_ops, NULL);
 	WARN_ON(!domain);
 
 	for (i = 0; i < AVIC_NUM_IRQS / 32; i++, irq_base += 32)
+	{
 		avic_init_gc(i, irq_base);
+	}
 
 	/* Set default priority value (0) for all IRQ's */
 	for (i = 0; i < 8; i++)
+	{
 		imx_writel(0, avic_base + AVIC_NIPRIORITY(i));
+	}
 
 	set_handle_irq(avic_handle_irq);
 

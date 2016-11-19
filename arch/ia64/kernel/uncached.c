@@ -31,7 +31,8 @@
 
 extern void __init efi_memmap_walk_uc(efi_freemem_callback_t, void *);
 
-struct uncached_pool {
+struct uncached_pool
+{
 	struct gen_pool *pool;
 	struct mutex add_chunk_mutex;	/* serialize adding a converted chunk */
 	int nchunks_added;		/* #of converted chunks added to pool */
@@ -49,9 +50,12 @@ static void uncached_ipi_visibility(void *data)
 	struct uncached_pool *uc_pool = (struct uncached_pool *)data;
 
 	status = ia64_pal_prefetch_visibility(PAL_VISIBILITY_PHYSICAL);
+
 	if ((status != PAL_VISIBILITY_OK) &&
-	    (status != PAL_VISIBILITY_OK_REMOTE_NEEDED))
+		(status != PAL_VISIBILITY_OK_REMOTE_NEEDED))
+	{
 		atomic_inc(&uc_pool->status);
+	}
 }
 
 
@@ -61,8 +65,11 @@ static void uncached_ipi_mc_drain(void *data)
 	struct uncached_pool *uc_pool = (struct uncached_pool *)data;
 
 	status = ia64_pal_mc_drain();
+
 	if (status != PAL_STATUS_SUCCESS)
+	{
 		atomic_inc(&uc_pool->status);
+	}
 }
 
 
@@ -82,15 +89,19 @@ static int uncached_add_chunk(struct uncached_pool *uc_pool, int nid)
 	unsigned long c_addr, uc_addr;
 
 	if (mutex_lock_interruptible(&uc_pool->add_chunk_mutex) != 0)
-		return -1;	/* interrupted by a signal */
+	{
+		return -1;    /* interrupted by a signal */
+	}
 
-	if (uc_pool->nchunks_added > nchunks_added) {
+	if (uc_pool->nchunks_added > nchunks_added)
+	{
 		/* someone added a new chunk while we were waiting */
 		mutex_unlock(&uc_pool->add_chunk_mutex);
 		return 0;
 	}
 
-	if (uc_pool->nchunks_added >= MAX_CONVERTED_CHUNKS_PER_NODE) {
+	if (uc_pool->nchunks_added >= MAX_CONVERTED_CHUNKS_PER_NODE)
+	{
 		mutex_unlock(&uc_pool->add_chunk_mutex);
 		return -1;
 	}
@@ -98,9 +109,11 @@ static int uncached_add_chunk(struct uncached_pool *uc_pool, int nid)
 	/* attempt to allocate a granule's worth of cached memory pages */
 
 	page = __alloc_pages_node(nid,
-				GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
-				IA64_GRANULE_SHIFT-PAGE_SHIFT);
-	if (!page) {
+							  GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
+							  IA64_GRANULE_SHIFT - PAGE_SHIFT);
+
+	if (!page)
+	{
 		mutex_unlock(&uc_pool->add_chunk_mutex);
 		return -1;
 	}
@@ -116,25 +129,39 @@ static int uncached_add_chunk(struct uncached_pool *uc_pool, int nid)
 	 * to uncached - not sure it's really worth bothering about
 	 */
 	for (i = 0; i < (IA64_GRANULE_SIZE / PAGE_SIZE); i++)
+	{
 		SetPageUncached(&page[i]);
+	}
 
 	flush_tlb_kernel_range(uc_addr, uc_addr + IA64_GRANULE_SIZE);
 
 	status = ia64_pal_prefetch_visibility(PAL_VISIBILITY_PHYSICAL);
-	if (status == PAL_VISIBILITY_OK_REMOTE_NEEDED) {
+
+	if (status == PAL_VISIBILITY_OK_REMOTE_NEEDED)
+	{
 		atomic_set(&uc_pool->status, 0);
 		status = smp_call_function(uncached_ipi_visibility, uc_pool, 1);
+
 		if (status || atomic_read(&uc_pool->status))
+		{
 			goto failed;
-	} else if (status != PAL_VISIBILITY_OK)
+		}
+	}
+	else if (status != PAL_VISIBILITY_OK)
+	{
 		goto failed;
+	}
 
 	preempt_disable();
 
 	if (ia64_platform_is("sn2"))
+	{
 		sn_flush_all_caches(uc_addr, IA64_GRANULE_SIZE);
+	}
 	else
+	{
 		flush_icache_range(uc_addr, uc_addr + IA64_GRANULE_SIZE);
+	}
 
 	/* flush the just introduced uncached translation from the TLB */
 	local_flush_tlb_all();
@@ -142,20 +169,30 @@ static int uncached_add_chunk(struct uncached_pool *uc_pool, int nid)
 	preempt_enable();
 
 	status = ia64_pal_mc_drain();
+
 	if (status != PAL_STATUS_SUCCESS)
+	{
 		goto failed;
+	}
+
 	atomic_set(&uc_pool->status, 0);
 	status = smp_call_function(uncached_ipi_mc_drain, uc_pool, 1);
+
 	if (status || atomic_read(&uc_pool->status))
+	{
 		goto failed;
+	}
 
 	/*
 	 * The chunk of memory pages has been converted to uncached so now we
 	 * can add it to the pool.
 	 */
 	status = gen_pool_add(uc_pool->pool, uc_addr, IA64_GRANULE_SIZE, nid);
+
 	if (status)
+	{
 		goto failed;
+	}
 
 	uc_pool->nchunks_added++;
 	mutex_unlock(&uc_pool->add_chunk_mutex);
@@ -163,10 +200,13 @@ static int uncached_add_chunk(struct uncached_pool *uc_pool, int nid)
 
 	/* failed to convert or add the chunk so give it back to the kernel */
 failed:
-	for (i = 0; i < (IA64_GRANULE_SIZE / PAGE_SIZE); i++)
-		ClearPageUncached(&page[i]);
 
-	free_pages(c_addr, IA64_GRANULE_SHIFT-PAGE_SHIFT);
+	for (i = 0; i < (IA64_GRANULE_SIZE / PAGE_SIZE); i++)
+	{
+		ClearPageUncached(&page[i]);
+	}
+
+	free_pages(c_addr, IA64_GRANULE_SHIFT - PAGE_SHIFT);
 	mutex_unlock(&uc_pool->add_chunk_mutex);
 	return -1;
 }
@@ -189,26 +229,45 @@ unsigned long uncached_alloc_page(int starting_nid, int n_pages)
 	int nid;
 
 	if (unlikely(starting_nid >= MAX_NUMNODES))
+	{
 		return 0;
+	}
 
 	if (starting_nid < 0)
+	{
 		starting_nid = numa_node_id();
+	}
+
 	nid = starting_nid;
 
-	do {
+	do
+	{
 		if (!node_state(nid, N_HIGH_MEMORY))
+		{
 			continue;
-		uc_pool = &uncached_pools[nid];
-		if (uc_pool->pool == NULL)
-			continue;
-		do {
-			uc_addr = gen_pool_alloc(uc_pool->pool,
-						 n_pages * PAGE_SIZE);
-			if (uc_addr != 0)
-				return uc_addr;
-		} while (uncached_add_chunk(uc_pool, nid) == 0);
+		}
 
-	} while ((nid = (nid + 1) % MAX_NUMNODES) != starting_nid);
+		uc_pool = &uncached_pools[nid];
+
+		if (uc_pool->pool == NULL)
+		{
+			continue;
+		}
+
+		do
+		{
+			uc_addr = gen_pool_alloc(uc_pool->pool,
+									 n_pages * PAGE_SIZE);
+
+			if (uc_addr != 0)
+			{
+				return uc_addr;
+			}
+		}
+		while (uncached_add_chunk(uc_pool, nid) == 0);
+
+	}
+	while ((nid = (nid + 1) % MAX_NUMNODES) != starting_nid);
 
 	return 0;
 }
@@ -229,10 +288,14 @@ void uncached_free_page(unsigned long uc_addr, int n_pages)
 	struct gen_pool *pool = uncached_pools[nid].pool;
 
 	if (unlikely(pool == NULL))
+	{
 		return;
+	}
 
 	if ((uc_addr & (0XFUL << 60)) != __IA64_UNCACHED_OFFSET)
+	{
 		panic("uncached_free_page invalid address %lx\n", uc_addr);
+	}
 
 	gen_pool_free(pool, uc_addr, n_pages * PAGE_SIZE);
 }
@@ -257,10 +320,12 @@ static int __init uncached_build_memmap(u64 uc_start, u64 uc_end, void *arg)
 
 	touch_softlockup_watchdog();
 
-	if (pool != NULL) {
+	if (pool != NULL)
+	{
 		memset((char *)uc_start, 0, size);
 		(void) gen_pool_add(pool, uc_start, size, nid);
 	}
+
 	return 0;
 }
 
@@ -269,7 +334,8 @@ static int __init uncached_init(void)
 {
 	int nid;
 
-	for_each_node_state(nid, N_ONLINE) {
+	for_each_node_state(nid, N_ONLINE)
+	{
 		uncached_pools[nid].pool = gen_pool_create(PAGE_SHIFT, nid);
 		mutex_init(&uncached_pools[nid].add_chunk_mutex);
 	}

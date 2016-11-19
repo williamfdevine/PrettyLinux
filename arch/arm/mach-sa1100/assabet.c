@@ -114,17 +114,25 @@ static void adv7171_send(unsigned byte)
 {
 	unsigned i;
 
-	for (i = 0; i < 8; i++, byte <<= 1) {
+	for (i = 0; i < 8; i++, byte <<= 1)
+	{
 		GPCR = SCK;
 		udelay(1);
+
 		if (byte & 0x80)
+		{
 			GPSR = SDA;
+		}
 		else
+		{
 			GPCR = SDA;
+		}
+
 		udelay(1);
 		GPSR = SCK;
 		udelay(1);
 	}
+
 	GPCR = SCK;
 	udelay(1);
 	GPSR = SDA;
@@ -132,8 +140,12 @@ static void adv7171_send(unsigned byte)
 	GPDR &= ~SDA;
 	GPSR = SCK;
 	udelay(1);
+
 	if (GPLR & SDA)
+	{
 		printk(KERN_WARNING "No ACK from ADV7171\n");
+	}
+
 	udelay(1);
 	GPCR = SCK | SDA;
 	udelay(1);
@@ -152,8 +164,12 @@ static void adv7171_write(unsigned reg, unsigned val)
 	GPCR = SDA | SCK | MOD; /* clear L3 mode to ensure UDA1341 doesn't respond */
 	GPDR = (GPDR | SCK | MOD) & ~SDA;
 	udelay(10);
+
 	if (!(GPLR & SDA))
+	{
 		printk(KERN_WARNING "Something dragging SDA down?\n");
+	}
+
 	GPDR |= SDA;
 
 	adv7171_start();
@@ -183,26 +199,36 @@ static void assabet_codec_reset(unsigned mask, int set)
 
 	local_irq_save(flags);
 	old = !codec_nreset;
-	if (set)
-		codec_nreset &= ~mask;
-	else
-		codec_nreset |= mask;
 
-	if (old != !codec_nreset) {
-		if (codec_nreset) {
+	if (set)
+	{
+		codec_nreset &= ~mask;
+	}
+	else
+	{
+		codec_nreset |= mask;
+	}
+
+	if (old != !codec_nreset)
+	{
+		if (codec_nreset)
+		{
 			ASSABET_BCR_set(ASSABET_BCR_NCODEC_RST);
 			adv7171_sleep();
-		} else {
+		}
+		else
+		{
 			ASSABET_BCR_clear(ASSABET_BCR_NCODEC_RST);
 		}
 	}
+
 	local_irq_restore(flags);
 }
 
 static void assabet_ucb1x00_reset(enum ucb1x00_reset state)
 {
 	int set = state == UCB_RST_REMOVE || state == UCB_RST_SUSPEND ||
-		state == UCB_RST_PROBE_FAIL;
+			  state == UCB_RST_PROBE_FAIL;
 	assabet_codec_reset(RST_UCB1X00, set);
 }
 
@@ -221,7 +247,8 @@ EXPORT_SYMBOL(assabet_uda1341_reset);
 /*
  * Phase 4 Assabet has two 28F160B3 flash parts in bank 0:
  */
-static struct mtd_partition assabet_partitions[] = {
+static struct mtd_partition assabet_partitions[] =
+{
 	{
 		.name		= "bootloader",
 		.size		= 0x00020000,
@@ -242,7 +269,8 @@ static struct mtd_partition assabet_partitions[] = {
 /*
  * Phase 5 Assabet has two 28F128J3A flash parts in bank 0:
  */
-static struct mtd_partition assabet_partitions[] = {
+static struct mtd_partition assabet_partitions[] =
+{
 	{
 		.name		= "bootloader",
 		.size		= 0x00040000,
@@ -261,13 +289,15 @@ static struct mtd_partition assabet_partitions[] = {
 };
 #endif
 
-static struct flash_platform_data assabet_flash_data = {
+static struct flash_platform_data assabet_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.parts		= assabet_partitions,
 	.nr_parts	= ARRAY_SIZE(assabet_partitions),
 };
 
-static struct resource assabet_flash_resources[] = {
+static struct resource assabet_flash_resources[] =
+{
 	DEFINE_RES_MEM(SA1100_CS0_PHYS, SZ_32M),
 	DEFINE_RES_MEM(SA1100_CS1_PHYS, SZ_32M),
 };
@@ -279,39 +309,48 @@ static struct resource assabet_flash_resources[] = {
 
 static int assabet_irda_set_power(struct device *dev, unsigned int state)
 {
-	static unsigned int bcr_state[4] = {
+	static unsigned int bcr_state[4] =
+	{
 		ASSABET_BCR_IRDA_MD0,
-		ASSABET_BCR_IRDA_MD1|ASSABET_BCR_IRDA_MD0,
+		ASSABET_BCR_IRDA_MD1 | ASSABET_BCR_IRDA_MD0,
 		ASSABET_BCR_IRDA_MD1,
 		0
 	};
 
 	if (state < 4)
 		ASSABET_BCR_frob(ASSABET_BCR_IRDA_MD1 | ASSABET_BCR_IRDA_MD0,
-				 bcr_state[state]);
+						 bcr_state[state]);
+
 	return 0;
 }
 
 static void assabet_irda_set_speed(struct device *dev, unsigned int speed)
 {
 	if (speed < 4000000)
+	{
 		ASSABET_BCR_clear(ASSABET_BCR_IRDA_FSEL);
+	}
 	else
+	{
 		ASSABET_BCR_set(ASSABET_BCR_IRDA_FSEL);
+	}
 }
 
-static struct irda_platform_data assabet_irda_data = {
+static struct irda_platform_data assabet_irda_data =
+{
 	.set_power	= assabet_irda_set_power,
 	.set_speed	= assabet_irda_set_speed,
 };
 
-static struct ucb1x00_plat_data assabet_ucb1x00_data = {
+static struct ucb1x00_plat_data assabet_ucb1x00_data =
+{
 	.reset		= assabet_ucb1x00_reset,
 	.gpio_base	= -1,
 	.can_wakeup	= 1,
 };
 
-static struct mcp_plat_data assabet_mcp_data = {
+static struct mcp_plat_data assabet_mcp_data =
+{
 	.mccr0		= MCCR0_ADM,
 	.sclk_rate	= 11981000,
 	.codec_pdata	= &assabet_ucb1x00_data,
@@ -321,18 +360,31 @@ static void assabet_lcd_set_visual(u32 visual)
 {
 	u_int is_true_color = visual == FB_VISUAL_TRUECOLOR;
 
-	if (machine_is_assabet()) {
+	if (machine_is_assabet())
+	{
 #if 1		// phase 4 or newer Assabet's
+
 		if (is_true_color)
+		{
 			ASSABET_BCR_set(ASSABET_BCR_LCD_12RGB);
+		}
 		else
+		{
 			ASSABET_BCR_clear(ASSABET_BCR_LCD_12RGB);
+		}
+
 #else
+
 		// older Assabet's
 		if (is_true_color)
+		{
 			ASSABET_BCR_clear(ASSABET_BCR_LCD_12RGB);
+		}
 		else
+		{
 			ASSABET_BCR_set(ASSABET_BCR_LCD_12RGB);
+		}
+
 #endif
 	}
 }
@@ -341,9 +393,13 @@ static void assabet_lcd_set_visual(u32 visual)
 static void assabet_lcd_backlight_power(int on)
 {
 	if (on)
+	{
 		ASSABET_BCR_set(ASSABET_BCR_LIGHT_ON);
+	}
 	else
+	{
 		ASSABET_BCR_clear(ASSABET_BCR_LIGHT_ON);
+	}
 }
 
 /*
@@ -353,11 +409,15 @@ static void assabet_lcd_backlight_power(int on)
  */
 static void assabet_lcd_power(int on)
 {
-	if (on) {
+	if (on)
+	{
 		ASSABET_BCR_set(ASSABET_BCR_LCD_ON);
 		udelay(500);
-	} else
+	}
+	else
+	{
 		ASSABET_BCR_clear(ASSABET_BCR_LCD_ON);
+	}
 }
 
 /*
@@ -365,7 +425,8 @@ static void assabet_lcd_power(int on)
  * takes an RGB666 signal, but we provide it with an RGB565 signal
  * instead (def_rgb_16).
  */
-static struct sa1100fb_mach_info lq039q2ds54_info = {
+static struct sa1100fb_mach_info lq039q2ds54_info =
+{
 	.pixclock	= 171521,	.bpp		= 16,
 	.xres		= 320,		.yres		= 240,
 
@@ -393,7 +454,8 @@ static void assabet_pal_power(int on)
 	ASSABET_BCR_clear(ASSABET_BCR_LCD_ON);
 }
 
-static struct sa1100fb_mach_info pal_info = {
+static struct sa1100fb_mach_info pal_info =
+{
 	.pixclock	= 67797,	.bpp		= 16,
 	.xres		= 640,		.yres		= 512,
 
@@ -411,7 +473,8 @@ static struct sa1100fb_mach_info pal_info = {
 #endif
 
 #ifdef CONFIG_ASSABET_NEPONSET
-static struct resource neponset_resources[] = {
+static struct resource neponset_resources[] =
+{
 	DEFINE_RES_MEM(0x10000000, 0x08000000),
 	DEFINE_RES_MEM(0x18000000, 0x04000000),
 	DEFINE_RES_MEM(0x40000000, SZ_8K),
@@ -456,7 +519,8 @@ static void __init assabet_init(void)
 
 	sa11x0_ppc_configure_mcp();
 
-	if (machine_has_neponset()) {
+	if (machine_has_neponset())
+	{
 		/*
 		 * Angel sets this, but other bootloaders may not.
 		 *
@@ -467,10 +531,10 @@ static void __init assabet_init(void)
 
 #ifndef CONFIG_ASSABET_NEPONSET
 		printk( "Warning: Neponset detected but full support "
-			"hasn't been configured in the kernel\n" );
+				"hasn't been configured in the kernel\n" );
 #else
 		platform_device_register_simple("neponset", 0,
-			neponset_resources, ARRAY_SIZE(neponset_resources));
+										neponset_resources, ARRAY_SIZE(neponset_resources));
 #endif
 	}
 
@@ -480,7 +544,7 @@ static void __init assabet_init(void)
 	sa11x0_register_lcd(&pal_video);
 #endif
 	sa11x0_register_mtd(&assabet_flash_data, assabet_flash_resources,
-			    ARRAY_SIZE(assabet_flash_resources));
+						ARRAY_SIZE(assabet_flash_resources));
 	sa11x0_register_irda(&assabet_irda_data);
 	sa11x0_register_mcp(&assabet_mcp_data);
 }
@@ -523,8 +587,12 @@ static void __init get_assabet_scr(void)
 	GPDR |= 0x3fc;			/* Configure GPIO 9:2 as outputs */
 	GPSR = 0x3fc;			/* Write 0xFF to GPIO 9:2 */
 	GPDR &= ~(0x3fc);		/* Configure GPIO 9:2 as inputs */
-	for(i = 100; i--; )		/* Read GPIO 9:2 */
+
+	for (i = 100; i--; )		/* Read GPIO 9:2 */
+	{
 		scr = GPLR;
+	}
+
 	GPDR |= 0x3fc;			/*  restore correct pin direction */
 	scr &= 0x3fc;			/* save as system configuration byte. */
 	SCR_value = scr;
@@ -538,21 +606,24 @@ fixup_assabet(struct tag *tags, char **cmdline)
 	get_assabet_scr();
 
 	if (machine_has_neponset())
+	{
 		printk("Neponset expansion board detected\n");
+	}
 }
 
 
 static void assabet_uart_pm(struct uart_port *port, u_int state, u_int oldstate)
 {
-	if (port->mapbase == _Ser1UTCR0) {
+	if (port->mapbase == _Ser1UTCR0)
+	{
 		if (state)
 			ASSABET_BCR_clear(ASSABET_BCR_RS232EN |
-					  ASSABET_BCR_COM_RTS |
-					  ASSABET_BCR_COM_DTR);
+							  ASSABET_BCR_COM_RTS |
+							  ASSABET_BCR_COM_DTR);
 		else
 			ASSABET_BCR_set(ASSABET_BCR_RS232EN |
-					ASSABET_BCR_COM_RTS |
-					ASSABET_BCR_COM_DTR);
+							ASSABET_BCR_COM_RTS |
+							ASSABET_BCR_COM_DTR);
 	}
 }
 
@@ -562,18 +633,27 @@ static void assabet_uart_pm(struct uart_port *port, u_int state, u_int oldstate)
  */
 static void assabet_set_mctrl(struct uart_port *port, u_int mctrl)
 {
-	if (port->mapbase == _Ser1UTCR0) {
+	if (port->mapbase == _Ser1UTCR0)
+	{
 		u_int set = 0, clear = 0;
 
 		if (mctrl & TIOCM_RTS)
+		{
 			clear |= ASSABET_BCR_COM_RTS;
+		}
 		else
+		{
 			set |= ASSABET_BCR_COM_RTS;
+		}
 
 		if (mctrl & TIOCM_DTR)
+		{
 			clear |= ASSABET_BCR_COM_DTR;
+		}
 		else
+		{
 			set |= ASSABET_BCR_COM_DTR;
+		}
 
 		ASSABET_BCR_clear(clear);
 		ASSABET_BCR_set(set);
@@ -588,37 +668,63 @@ static u_int assabet_get_mctrl(struct uart_port *port)
 	/* need 2 reads to read current value */
 	bsr = ASSABET_BSR;
 
-	if (port->mapbase == _Ser1UTCR0) {
+	if (port->mapbase == _Ser1UTCR0)
+	{
 		if (bsr & ASSABET_BSR_COM_DCD)
+		{
 			ret |= TIOCM_CD;
+		}
+
 		if (bsr & ASSABET_BSR_COM_CTS)
+		{
 			ret |= TIOCM_CTS;
+		}
+
 		if (bsr & ASSABET_BSR_COM_DSR)
+		{
 			ret |= TIOCM_DSR;
-	} else if (port->mapbase == _Ser3UTCR0) {
+		}
+	}
+	else if (port->mapbase == _Ser3UTCR0)
+	{
 		if (bsr & ASSABET_BSR_RAD_DCD)
+		{
 			ret |= TIOCM_CD;
+		}
+
 		if (bsr & ASSABET_BSR_RAD_CTS)
+		{
 			ret |= TIOCM_CTS;
+		}
+
 		if (bsr & ASSABET_BSR_RAD_DSR)
+		{
 			ret |= TIOCM_DSR;
+		}
+
 		if (bsr & ASSABET_BSR_RAD_RI)
+		{
 			ret |= TIOCM_RI;
-	} else {
+		}
+	}
+	else
+	{
 		ret = TIOCM_CD | TIOCM_CTS | TIOCM_DSR;
 	}
 
 	return ret;
 }
 
-static struct sa1100_port_fns assabet_port_fns __initdata = {
+static struct sa1100_port_fns assabet_port_fns __initdata =
+{
 	.set_mctrl	= assabet_set_mctrl,
 	.get_mctrl	= assabet_get_mctrl,
 	.pm		= assabet_uart_pm,
 };
 
-static struct map_desc assabet_io_desc[] __initdata = {
-  	{	/* Board Control Register */
+static struct map_desc assabet_io_desc[] __initdata =
+{
+	{	/* Board Control Register */
 		.virtual	=  0xf1000000,
 		.pfn		= __phys_to_pfn(0x12000000),
 		.length		= 0x00100000,
@@ -642,11 +748,13 @@ static void __init assabet_map_io(void)
 	 */
 	Ser1SDCR0 |= SDCR0_SUS;
 	MSC1 = (MSC1 & ~0xffff) |
-		MSC_NonBrst | MSC_32BitStMem |
-		MSC_RdAcc(2) | MSC_WrAcc(2) | MSC_Rec(0);
+		   MSC_NonBrst | MSC_32BitStMem |
+		   MSC_RdAcc(2) | MSC_WrAcc(2) | MSC_Rec(0);
 
 	if (!machine_has_neponset())
+	{
 		sa1100_register_uart_fns(&assabet_port_fns);
+	}
 
 	/*
 	 * When Neponset is attached, the first UART should be
@@ -666,7 +774,8 @@ static void __init assabet_map_io(void)
 
 /* LEDs */
 #if defined(CONFIG_NEW_LEDS) && defined(CONFIG_LEDS_CLASS)
-struct assabet_led {
+struct assabet_led
+{
 	struct led_classdev cdev;
 	u32 mask;
 };
@@ -675,10 +784,12 @@ struct assabet_led {
  * The triggers lines up below will only be used if the
  * LED triggers are compiled in.
  */
-static const struct {
+static const struct
+{
 	const char *name;
 	const char *trigger;
-} assabet_leds[] = {
+} assabet_leds[] =
+{
 	{ "assabet:red", "cpu0",},
 	{ "assabet:green", "heartbeat", },
 };
@@ -689,21 +800,25 @@ static const struct {
  *  - clearing bit means turn on LED
  */
 static void assabet_led_set(struct led_classdev *cdev,
-		enum led_brightness b)
+							enum led_brightness b)
 {
 	struct assabet_led *led = container_of(cdev,
-			struct assabet_led, cdev);
+										   struct assabet_led, cdev);
 
 	if (b != LED_OFF)
+	{
 		ASSABET_BCR_clear(led->mask);
+	}
 	else
+	{
 		ASSABET_BCR_set(led->mask);
+	}
 }
 
 static enum led_brightness assabet_led_get(struct led_classdev *cdev)
 {
 	struct assabet_led *led = container_of(cdev,
-			struct assabet_led, cdev);
+										   struct assabet_led, cdev);
 
 	return (ASSABET_BCR & led->mask) ? LED_OFF : LED_FULL;
 }
@@ -713,14 +828,20 @@ static int __init assabet_leds_init(void)
 	int i;
 
 	if (!machine_is_assabet())
+	{
 		return -ENODEV;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(assabet_leds); i++) {
+	for (i = 0; i < ARRAY_SIZE(assabet_leds); i++)
+	{
 		struct assabet_led *led;
 
 		led = kzalloc(sizeof(*led), GFP_KERNEL);
+
 		if (!led)
+		{
 			break;
+		}
 
 		led->cdev.name = assabet_leds[i].name;
 		led->cdev.brightness_set = assabet_led_set;
@@ -728,11 +849,16 @@ static int __init assabet_leds_init(void)
 		led->cdev.default_trigger = assabet_leds[i].trigger;
 
 		if (!i)
+		{
 			led->mask = ASSABET_BCR_LED_RED;
+		}
 		else
+		{
 			led->mask = ASSABET_BCR_LED_GREEN;
+		}
 
-		if (led_classdev_register(NULL, &led->cdev) < 0) {
+		if (led_classdev_register(NULL, &led->cdev) < 0)
+		{
 			kfree(led);
 			break;
 		}
@@ -749,16 +875,16 @@ fs_initcall(assabet_leds_init);
 #endif
 
 MACHINE_START(ASSABET, "Intel-Assabet")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.fixup		= fixup_assabet,
-	.map_io		= assabet_map_io,
-	.nr_irqs	= SA1100_NR_IRQS,
-	.init_irq	= sa1100_init_irq,
-	.init_time	= sa1100_timer_init,
-	.init_machine	= assabet_init,
-	.init_late	= sa11x0_init_late,
+		 .map_io		= assabet_map_io,
+			 .nr_irqs	= SA1100_NR_IRQS,
+				 .init_irq	= sa1100_init_irq,
+					.init_time	= sa1100_timer_init,
+					  .init_machine	= assabet_init,
+						 .init_late	= sa11x0_init_late,
 #ifdef CONFIG_SA1111
 	.dma_zone_size	= SZ_1M,
 #endif
-	.restart	= sa11x0_restart,
-MACHINE_END
+						   .restart	= sa11x0_restart,
+							   MACHINE_END

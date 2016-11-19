@@ -4,13 +4,13 @@
 #include <asm/parisc-device.h>
 
 #ifdef CONFIG_64BIT
-/* "low end" PA8800 machines use ZX1 chipset: PAT PDC and only run 64-bit */
-#define ZX1_SUPPORT
+	/* "low end" PA8800 machines use ZX1 chipset: PAT PDC and only run 64-bit */
+	#define ZX1_SUPPORT
 #endif
 
 #ifdef CONFIG_PROC_FS
-/* depends on proc fs support. But costs CPU performance */
-#undef SBA_COLLECT_STATS
+	/* depends on proc fs support. But costs CPU performance */
+	#undef SBA_COLLECT_STATS
 #endif
 
 /*
@@ -25,7 +25,8 @@
 #define MAX_IOC		2	/* per Ike. Pluto/Astro only have 1. */
 #define ROPES_PER_IOC	8	/* per Ike half or Pluto/Astro */
 
-struct ioc {
+struct ioc
+{
 	void __iomem	*ioc_hpa;	/* I/O MMU base address */
 	char		*res_map;	/* resource map, bit == pdir entry */
 	u64		*pdir_base;	/* physical base address */
@@ -39,16 +40,17 @@ struct ioc {
 	unsigned int	res_bitshift;	/* from the LEFT! */
 	unsigned int	res_size;	/* size of resource map in bytes */
 #ifdef SBA_HINT_SUPPORT
-/* FIXME : DMA HINTs not used */
+	/* FIXME : DMA HINTs not used */
 	unsigned long	hint_mask_pdir; /* bits used for DMA hints */
 	unsigned int	hint_shift_pdir;
 #endif
 #if DELAYED_RESOURCE_CNT > 0
 	int		saved_cnt;
-	struct sba_dma_pair {
-			dma_addr_t	iova;
-			size_t		size;
-        } saved[DELAYED_RESOURCE_CNT];
+	struct sba_dma_pair
+	{
+		dma_addr_t	iova;
+		size_t		size;
+	} saved[DELAYED_RESOURCE_CNT];
 #endif
 
 #ifdef SBA_COLLECT_STATS
@@ -65,11 +67,12 @@ struct ioc {
 	unsigned long	usg_calls;
 	unsigned long	usg_pages;
 #endif
-        /* STUFF We don't need in performance path */
+	/* STUFF We don't need in performance path */
 	unsigned int	pdir_size;	/* in bytes, determined by IOV Space size */
 };
 
-struct sba_device {
+struct sba_device
+{
 	struct sba_device	*next;  /* list of SBA's in system */
 	struct parisc_device	*dev;   /* dev found in bus walk */
 	const char		*name;
@@ -91,15 +94,18 @@ struct sba_device {
 #define REOG_MERCED_PORT	0x805
 #define PLUTO_MCKINLEY_PORT	0x880
 
-static inline int IS_ASTRO(struct parisc_device *d) {
+static inline int IS_ASTRO(struct parisc_device *d)
+{
 	return d->id.hversion == ASTRO_RUNWAY_PORT;
 }
 
-static inline int IS_IKE(struct parisc_device *d) {
+static inline int IS_IKE(struct parisc_device *d)
+{
 	return d->id.hversion == IKE_MERCED_PORT;
 }
 
-static inline int IS_PLUTO(struct parisc_device *d) {
+static inline int IS_PLUTO(struct parisc_device *d)
+{
 	return d->id.hversion == PLUTO_MCKINLEY_PORT;
 }
 
@@ -203,7 +209,8 @@ static inline int IS_PLUTO(struct parisc_device *d) {
 /*
 ** lba_device: Per instance Elroy data structure
 */
-struct lba_device {
+struct lba_device
+{
 	struct pci_hba_data	hba;
 
 	spinlock_t		lba_lock;
@@ -221,24 +228,31 @@ struct lba_device {
 #define MERCURY_HVERS		0x783
 #define QUICKSILVER_HVERS	0x784
 
-static inline int IS_ELROY(struct parisc_device *d) {
+static inline int IS_ELROY(struct parisc_device *d)
+{
 	return (d->id.hversion == ELROY_HVERS);
 }
 
-static inline int IS_MERCURY(struct parisc_device *d) {
+static inline int IS_MERCURY(struct parisc_device *d)
+{
 	return (d->id.hversion == MERCURY_HVERS);
 }
 
-static inline int IS_QUICKSILVER(struct parisc_device *d) {
+static inline int IS_QUICKSILVER(struct parisc_device *d)
+{
 	return (d->id.hversion == QUICKSILVER_HVERS);
 }
 
-static inline int agp_mode_mercury(void __iomem *hpa) {
+static inline int agp_mode_mercury(void __iomem *hpa)
+{
 	u64 bus_mode;
 
 	bus_mode = readl(hpa + 0x0620);
+
 	if (bus_mode & 1)
+	{
 		return 1;
+	}
 
 	return 0;
 }

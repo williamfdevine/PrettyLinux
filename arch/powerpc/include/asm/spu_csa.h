@@ -60,7 +60,8 @@
 /**
  * spu_reg128 - generic 128-bit register definition.
  */
-struct spu_reg128 {
+struct spu_reg128
+{
 	u32 slot[4];
 };
 
@@ -81,7 +82,8 @@ struct spu_reg128 {
  * The LSCSA represents state that is primarily saved and
  * restored by SPU-side code.
  */
-struct spu_lscsa {
+struct spu_lscsa
+{
 	struct spu_reg128 gprs[128];
 	struct spu_reg128 fpcr;
 	struct spu_reg128 decr;
@@ -107,7 +109,8 @@ struct spu_lscsa {
 /*
  * struct spu_problem_collapsed - condensed problem state area, w/o pads.
  */
-struct spu_problem_collapsed {
+struct spu_problem_collapsed
+{
 	u64 spc_mssync_RW;
 	u32 mfc_lsa_W;
 	u32 unused_pad0;
@@ -132,7 +135,8 @@ struct spu_problem_collapsed {
 /*
  * struct spu_priv1_collapsed - condensed privileged 1 area, w/o pads.
  */
-struct spu_priv1_collapsed {
+struct spu_priv1_collapsed
+{
 	u64 mfc_sr1_RW;
 	u64 mfc_lpid_RW;
 	u64 spu_idr_RW;
@@ -196,7 +200,8 @@ struct spu_priv1_collapsed {
 /*
  * struct spu_priv2_collapsed - condensed privileged 2 area, w/o pads.
  */
-struct spu_priv2_collapsed {
+struct spu_priv2_collapsed
+{
 	u64 slb_index_W;
 	u64 slb_esid_RW;
 	u64 slb_vsid_RW;
@@ -239,7 +244,8 @@ struct spu_priv2_collapsed {
  * pinned or mapped to/from application memory, as
  * appropriate for the OS environment.
  */
-struct spu_state {
+struct spu_state
+{
 	struct spu_lscsa *lscsa;
 	struct spu_problem_collapsed prob;
 	struct spu_priv1_collapsed priv1;

@@ -24,9 +24,9 @@
 #define IOP_ADMA_SLOT_SIZE 32
 #define IOP_ADMA_THRESHOLD 4
 #ifdef DEBUG
-#define IOP_PARANOIA 1
+	#define IOP_PARANOIA 1
 #else
-#define IOP_PARANOIA 0
+	#define IOP_PARANOIA 0
 #endif
 #define iop_paranoia(x) BUG_ON(IOP_PARANOIA && (x))
 
@@ -38,7 +38,8 @@
  * @dma_desc_pool_virt: base of DMA descriptor region (CPU address)
  * @common: embedded struct dma_device
  */
-struct iop_adma_device {
+struct iop_adma_device
+{
 	struct platform_device *pdev;
 	int id;
 	dma_addr_t dma_desc_pool;
@@ -59,7 +60,8 @@ struct iop_adma_device {
  * @slots_allocated: records the actual size of the descriptor slot pool
  * @irq_tasklet: bottom half where iop_adma_slot_cleanup runs
  */
-struct iop_adma_chan {
+struct iop_adma_chan
+{
 	int pending;
 	spinlock_t lock; /* protects the descriptor slot pool */
 	void __iomem *mmr_base;
@@ -89,7 +91,8 @@ struct iop_adma_chan {
  * @xor_check_result: result of zero sum
  * @crc32_result: result crc calculation
  */
-struct iop_adma_desc_slot {
+struct iop_adma_desc_slot
+{
 	struct list_head slot_node;
 	struct list_head chain_node;
 	void *hw_desc;
@@ -99,14 +102,16 @@ struct iop_adma_desc_slot {
 	u16 idx;
 	struct list_head tx_list;
 	struct dma_async_tx_descriptor async_tx;
-	union {
+	union
+	{
 		u32 *xor_check_result;
 		u32 *crc32_result;
 		u32 *pq_check_result;
 	};
 };
 
-struct iop_adma_platform_data {
+struct iop_adma_platform_data
+{
 	int hw_id;
 	dma_cap_mask_t cap_mask;
 	size_t pool_size;

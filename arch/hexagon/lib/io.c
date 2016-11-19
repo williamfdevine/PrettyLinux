@@ -34,10 +34,14 @@ void __raw_readsw(const void __iomem *addr, void *data, int len)
 	short int *dst = (short int *) data;
 
 	if ((u32)data & 0x1)
+	{
 		panic("unaligned pointer to readsw");
+	}
 
 	while (len-- > 0)
+	{
 		*dst++ = *src;
+	}
 
 }
 
@@ -53,10 +57,14 @@ void __raw_writesw(void __iomem *addr, const void *data, int len)
 	volatile short int *dst = (short int *)addr;
 
 	if ((u32)data & 0x1)
+	{
 		panic("unaligned pointer to writesw");
+	}
 
 	while (len-- > 0)
+	{
 		*dst = *src++;
+	}
 
 
 }
@@ -68,10 +76,14 @@ void __raw_readsl(const void __iomem *addr, void *data, int len)
 	long *dst = (long *) data;
 
 	if ((u32)data & 0x3)
+	{
 		panic("unaligned pointer to readsl");
+	}
 
 	while (len-- > 0)
+	{
 		*dst++ = *src;
+	}
 
 
 }
@@ -82,10 +94,14 @@ void __raw_writesl(void __iomem *addr, const void *data, int len)
 	volatile long *dst = (long *)addr;
 
 	if ((u32)data & 0x3)
+	{
 		panic("unaligned pointer to writesl");
+	}
 
 	while (len-- > 0)
+	{
 		*dst = *src++;
+	}
 
 
 }

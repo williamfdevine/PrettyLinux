@@ -207,44 +207,58 @@ static irqreturn_t sabre_ue_intr(int irq, void *dev_id)
 
 	/* Clear the primary/secondary error status bits. */
 	error_bits = afsr &
-		(SABRE_UEAFSR_PDRD | SABRE_UEAFSR_PDWR |
-		 SABRE_UEAFSR_SDRD | SABRE_UEAFSR_SDWR |
-		 SABRE_UEAFSR_SDTE | SABRE_UEAFSR_PDTE);
+				 (SABRE_UEAFSR_PDRD | SABRE_UEAFSR_PDWR |
+				  SABRE_UEAFSR_SDRD | SABRE_UEAFSR_SDWR |
+				  SABRE_UEAFSR_SDTE | SABRE_UEAFSR_PDTE);
+
 	if (!error_bits)
+	{
 		return IRQ_NONE;
+	}
+
 	upa_writeq(error_bits, afsr_reg);
 
 	/* Log the error. */
 	printk("%s: Uncorrectable Error, primary error type[%s%s]\n",
-	       pbm->name,
-	       ((error_bits & SABRE_UEAFSR_PDRD) ?
-		"DMA Read" :
-		((error_bits & SABRE_UEAFSR_PDWR) ?
-		 "DMA Write" : "???")),
-	       ((error_bits & SABRE_UEAFSR_PDTE) ?
-		":Translation Error" : ""));
+		   pbm->name,
+		   ((error_bits & SABRE_UEAFSR_PDRD) ?
+			"DMA Read" :
+			((error_bits & SABRE_UEAFSR_PDWR) ?
+			 "DMA Write" : "???")),
+		   ((error_bits & SABRE_UEAFSR_PDTE) ?
+			":Translation Error" : ""));
 	printk("%s: bytemask[%04lx] dword_offset[%lx] was_block(%d)\n",
-	       pbm->name,
-	       (afsr & SABRE_UEAFSR_BMSK) >> 32UL,
-	       (afsr & SABRE_UEAFSR_OFF) >> 29UL,
-	       ((afsr & SABRE_UEAFSR_BLK) ? 1 : 0));
+		   pbm->name,
+		   (afsr & SABRE_UEAFSR_BMSK) >> 32UL,
+		   (afsr & SABRE_UEAFSR_OFF) >> 29UL,
+		   ((afsr & SABRE_UEAFSR_BLK) ? 1 : 0));
 	printk("%s: UE AFAR [%016lx]\n", pbm->name, afar);
 	printk("%s: UE Secondary errors [", pbm->name);
 	reported = 0;
-	if (afsr & SABRE_UEAFSR_SDRD) {
+
+	if (afsr & SABRE_UEAFSR_SDRD)
+	{
 		reported++;
 		printk("(DMA Read)");
 	}
-	if (afsr & SABRE_UEAFSR_SDWR) {
+
+	if (afsr & SABRE_UEAFSR_SDWR)
+	{
 		reported++;
 		printk("(DMA Write)");
 	}
-	if (afsr & SABRE_UEAFSR_SDTE) {
+
+	if (afsr & SABRE_UEAFSR_SDTE)
+	{
 		reported++;
 		printk("(Translation Error)");
 	}
+
 	if (!reported)
+	{
 		printk("(none)");
+	}
+
 	printk("]\n");
 
 	/* Interrogate IOMMU for error status. */
@@ -267,43 +281,55 @@ static irqreturn_t sabre_ce_intr(int irq, void *dev_id)
 
 	/* Clear primary/secondary error status bits. */
 	error_bits = afsr &
-		(SABRE_CEAFSR_PDRD | SABRE_CEAFSR_PDWR |
-		 SABRE_CEAFSR_SDRD | SABRE_CEAFSR_SDWR);
+				 (SABRE_CEAFSR_PDRD | SABRE_CEAFSR_PDWR |
+				  SABRE_CEAFSR_SDRD | SABRE_CEAFSR_SDWR);
+
 	if (!error_bits)
+	{
 		return IRQ_NONE;
+	}
+
 	upa_writeq(error_bits, afsr_reg);
 
 	/* Log the error. */
 	printk("%s: Correctable Error, primary error type[%s]\n",
-	       pbm->name,
-	       ((error_bits & SABRE_CEAFSR_PDRD) ?
-		"DMA Read" :
-		((error_bits & SABRE_CEAFSR_PDWR) ?
-		 "DMA Write" : "???")));
+		   pbm->name,
+		   ((error_bits & SABRE_CEAFSR_PDRD) ?
+			"DMA Read" :
+			((error_bits & SABRE_CEAFSR_PDWR) ?
+			 "DMA Write" : "???")));
 
 	/* XXX Use syndrome and afar to print out module string just like
 	 * XXX UDB CE trap handler does... -DaveM
 	 */
 	printk("%s: syndrome[%02lx] bytemask[%04lx] dword_offset[%lx] "
-	       "was_block(%d)\n",
-	       pbm->name,
-	       (afsr & SABRE_CEAFSR_ESYND) >> 48UL,
-	       (afsr & SABRE_CEAFSR_BMSK) >> 32UL,
-	       (afsr & SABRE_CEAFSR_OFF) >> 29UL,
-	       ((afsr & SABRE_CEAFSR_BLK) ? 1 : 0));
+		   "was_block(%d)\n",
+		   pbm->name,
+		   (afsr & SABRE_CEAFSR_ESYND) >> 48UL,
+		   (afsr & SABRE_CEAFSR_BMSK) >> 32UL,
+		   (afsr & SABRE_CEAFSR_OFF) >> 29UL,
+		   ((afsr & SABRE_CEAFSR_BLK) ? 1 : 0));
 	printk("%s: CE AFAR [%016lx]\n", pbm->name, afar);
 	printk("%s: CE Secondary errors [", pbm->name);
 	reported = 0;
-	if (afsr & SABRE_CEAFSR_SDRD) {
+
+	if (afsr & SABRE_CEAFSR_SDRD)
+	{
 		reported++;
 		printk("(DMA Read)");
 	}
-	if (afsr & SABRE_CEAFSR_SDWR) {
+
+	if (afsr & SABRE_CEAFSR_SDWR)
+	{
 		reported++;
 		printk("(DMA Write)");
 	}
+
 	if (!reported)
+	{
 		printk("(none)");
+	}
+
 	printk("]\n");
 
 	return IRQ_HANDLED;
@@ -318,11 +344,16 @@ static void sabre_register_error_handlers(struct pci_pbm_info *pbm)
 	int err;
 
 	if (pbm->chip_type == PBM_CHIP_TYPE_SABRE)
+	{
 		dp = dp->parent;
+	}
 
 	op = of_find_device_by_node(dp);
+
 	if (!op)
+	{
 		return;
+	}
 
 	/* Sabre/Hummingbird IRQ property layout is:
 	 * 0: PCI ERR
@@ -331,36 +362,42 @@ static void sabre_register_error_handlers(struct pci_pbm_info *pbm)
 	 * 3: POWER FAIL
 	 */
 	if (op->archdata.num_irqs < 4)
+	{
 		return;
+	}
 
 	/* We clear the error bits in the appropriate AFSR before
 	 * registering the handler so that we don't get spurious
 	 * interrupts.
 	 */
 	upa_writeq((SABRE_UEAFSR_PDRD | SABRE_UEAFSR_PDWR |
-		    SABRE_UEAFSR_SDRD | SABRE_UEAFSR_SDWR |
-		    SABRE_UEAFSR_SDTE | SABRE_UEAFSR_PDTE),
-		   base + SABRE_UE_AFSR);
+				SABRE_UEAFSR_SDRD | SABRE_UEAFSR_SDWR |
+				SABRE_UEAFSR_SDTE | SABRE_UEAFSR_PDTE),
+			   base + SABRE_UE_AFSR);
 
 	err = request_irq(op->archdata.irqs[1], sabre_ue_intr, 0, "SABRE_UE", pbm);
+
 	if (err)
 		printk(KERN_WARNING "%s: Couldn't register UE, err=%d.\n",
-		       pbm->name, err);
+			   pbm->name, err);
 
 	upa_writeq((SABRE_CEAFSR_PDRD | SABRE_CEAFSR_PDWR |
-		    SABRE_CEAFSR_SDRD | SABRE_CEAFSR_SDWR),
-		   base + SABRE_CE_AFSR);
+				SABRE_CEAFSR_SDRD | SABRE_CEAFSR_SDWR),
+			   base + SABRE_CE_AFSR);
 
 
 	err = request_irq(op->archdata.irqs[2], sabre_ce_intr, 0, "SABRE_CE", pbm);
+
 	if (err)
 		printk(KERN_WARNING "%s: Couldn't register CE, err=%d.\n",
-		       pbm->name, err);
+			   pbm->name, err);
+
 	err = request_irq(op->archdata.irqs[0], psycho_pcierr_intr, 0,
-			  "SABRE_PCIERR", pbm);
+					  "SABRE_PCIERR", pbm);
+
 	if (err)
 		printk(KERN_WARNING "%s: Couldn't register PCIERR, err=%d.\n",
-		       pbm->name, err);
+			   pbm->name, err);
 
 	tmp = upa_readq(base + SABRE_PCICTRL);
 	tmp |= SABRE_PCICTRL_ERREN;
@@ -371,15 +408,17 @@ static void apb_init(struct pci_bus *sabre_bus)
 {
 	struct pci_dev *pdev;
 
-	list_for_each_entry(pdev, &sabre_bus->devices, bus_list) {
+	list_for_each_entry(pdev, &sabre_bus->devices, bus_list)
+	{
 		if (pdev->vendor == PCI_VENDOR_ID_SUN &&
-		    pdev->device == PCI_DEVICE_ID_SUN_SIMBA) {
+			pdev->device == PCI_DEVICE_ID_SUN_SIMBA)
+		{
 			u16 word16;
 
 			pci_read_config_word(pdev, PCI_COMMAND, &word16);
 			word16 |= PCI_COMMAND_SERR | PCI_COMMAND_PARITY |
-				PCI_COMMAND_MASTER | PCI_COMMAND_MEMORY |
-				PCI_COMMAND_IO;
+					  PCI_COMMAND_MASTER | PCI_COMMAND_MEMORY |
+					  PCI_COMMAND_IO;
 			pci_write_config_word(pdev, PCI_COMMAND, word16);
 
 			/* Status register bits are "write 1 to clear". */
@@ -396,9 +435,9 @@ static void apb_init(struct pci_bus *sabre_bus)
 			 * parity, and SERR.
 			 */
 			pci_write_config_byte(pdev, PCI_BRIDGE_CONTROL,
-					      (PCI_BRIDGE_CTL_PARITY |
-					       PCI_BRIDGE_CTL_SERR |
-					       PCI_BRIDGE_CTL_MASTER_ABORT));
+								  (PCI_BRIDGE_CTL_PARITY |
+								   PCI_BRIDGE_CTL_SERR |
+								   PCI_BRIDGE_CTL_MASTER_ABORT));
 		}
 	}
 }
@@ -415,9 +454,13 @@ static void sabre_scan_bus(struct pci_pbm_info *pbm, struct device *parent)
 	 * at 66MHZ.
 	 */
 	if (hummingbird_p)
+	{
 		pbm->is_66mhz_capable = 1;
+	}
 	else
+	{
 		pbm->is_66mhz_capable = 0;
+	}
 
 	/* This driver has not been verified to handle
 	 * multiple SABREs yet, so trap this.
@@ -425,15 +468,20 @@ static void sabre_scan_bus(struct pci_pbm_info *pbm, struct device *parent)
 	 * Also note that the SABRE host bridge is hardwired
 	 * to live at bus 0.
 	 */
-	if (once != 0) {
+	if (once != 0)
+	{
 		printk(KERN_ERR PFX "Multiple controllers unsupported.\n");
 		return;
 	}
+
 	once++;
 
 	pbm->pci_bus = pci_scan_one_pbm(pbm, parent);
+
 	if (!pbm->pci_bus)
+	{
 		return;
+	}
 
 	sabre_root_bus = pbm->pci_bus;
 
@@ -443,7 +491,7 @@ static void sabre_scan_bus(struct pci_pbm_info *pbm, struct device *parent)
 }
 
 static void sabre_pbm_init(struct pci_pbm_info *pbm,
-			   struct platform_device *op)
+						   struct platform_device *op)
 {
 	psycho_pbm_init_common(pbm, op, "SABRE", PBM_CHIP_TYPE_SABRE);
 	pbm->pci_afsr = pbm->controller_regs + SABRE_PIOAFSR;
@@ -467,27 +515,36 @@ static int sabre_probe(struct platform_device *op)
 
 	match = of_match_device(sabre_match, &op->dev);
 	hummingbird_p = match && (match->data != NULL);
-	if (!hummingbird_p) {
+
+	if (!hummingbird_p)
+	{
 		struct device_node *cpu_dp;
 
 		/* Of course, Sun has to encode things a thousand
 		 * different ways, inconsistently.
 		 */
-		for_each_node_by_type(cpu_dp, "cpu") {
+		for_each_node_by_type(cpu_dp, "cpu")
+		{
 			if (!strcmp(cpu_dp->name, "SUNW,UltraSPARC-IIe"))
+			{
 				hummingbird_p = 1;
+			}
 		}
 	}
 
 	err = -ENOMEM;
 	pbm = kzalloc(sizeof(*pbm), GFP_KERNEL);
-	if (!pbm) {
+
+	if (!pbm)
+	{
 		printk(KERN_ERR PFX "Cannot allocate pci_pbm_info.\n");
 		goto out_err;
 	}
 
 	iommu = kzalloc(sizeof(*iommu), GFP_KERNEL);
-	if (!iommu) {
+
+	if (!iommu)
+	{
 		printk(KERN_ERR PFX "Cannot allocate PBM iommu.\n");
 		goto out_free_controller;
 	}
@@ -501,10 +558,12 @@ static int sabre_probe(struct platform_device *op)
 	/*
 	 * Map in SABRE register set and report the presence of this SABRE.
 	 */
-	
+
 	pr_regs = of_get_property(dp, "reg", NULL);
 	err = -ENODEV;
-	if (!pr_regs) {
+
+	if (!pr_regs)
+	{
 		printk(KERN_ERR PFX "No reg property\n");
 		goto out_free_iommu;
 	}
@@ -518,32 +577,41 @@ static int sabre_probe(struct platform_device *op)
 
 	/* PCI first */
 	for (clear_irq = SABRE_ICLR_A_SLOT0; clear_irq < SABRE_ICLR_B_SLOT0 + 0x80; clear_irq += 8)
+	{
 		upa_writeq(0x0UL, pbm->controller_regs + clear_irq);
+	}
 
 	/* Then OBIO */
 	for (clear_irq = SABRE_ICLR_SCSI; clear_irq < SABRE_ICLR_SCSI + 0x80; clear_irq += 8)
+	{
 		upa_writeq(0x0UL, pbm->controller_regs + clear_irq);
+	}
 
 	/* Error interrupts are enabled later after the bus scan. */
 	upa_writeq((SABRE_PCICTRL_MRLEN   | SABRE_PCICTRL_SERR |
-		    SABRE_PCICTRL_ARBPARK | SABRE_PCICTRL_AEN),
-		   pbm->controller_regs + SABRE_PCICTRL);
+				SABRE_PCICTRL_ARBPARK | SABRE_PCICTRL_AEN),
+			   pbm->controller_regs + SABRE_PCICTRL);
 
 	/* Now map in PCI config space for entire SABRE. */
 	pbm->config_space = pbm->controller_regs + SABRE_CONFIGSPACE;
 
 	vdma = of_get_property(dp, "virtual-dma", NULL);
-	if (!vdma) {
+
+	if (!vdma)
+	{
 		printk(KERN_ERR PFX "No virtual-dma property\n");
 		goto out_free_iommu;
 	}
 
 	dma_mask = vdma[0];
-	switch(vdma[1]) {
+
+	switch (vdma[1])
+	{
 		case 0x20000000:
 			dma_mask |= 0x1fffffff;
 			tsbsize = 64;
 			break;
+
 		case 0x40000000:
 			dma_mask |= 0x3fffffff;
 			tsbsize = 128;
@@ -553,14 +621,18 @@ static int sabre_probe(struct platform_device *op)
 			dma_mask |= 0x7fffffff;
 			tsbsize = 128;
 			break;
+
 		default:
 			printk(KERN_ERR PFX "Strange virtual-dma size.\n");
 			goto out_free_iommu;
 	}
 
 	err = psycho_iommu_init(pbm, tsbsize, vdma[0], dma_mask, SABRE_WRSYNC);
+
 	if (err)
+	{
 		goto out_free_iommu;
+	}
 
 	/*
 	 * Look for APB underneath.
@@ -584,7 +656,8 @@ out_err:
 	return err;
 }
 
-static const struct of_device_id sabre_match[] = {
+static const struct of_device_id sabre_match[] =
+{
 	{
 		.name = "pci",
 		.compatible = "pci108e,a001",
@@ -597,7 +670,8 @@ static const struct of_device_id sabre_match[] = {
 	{},
 };
 
-static struct platform_driver sabre_driver = {
+static struct platform_driver sabre_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = sabre_match,

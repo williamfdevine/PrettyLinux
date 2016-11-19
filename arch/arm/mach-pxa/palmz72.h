@@ -68,7 +68,8 @@
 #define PALMZ72_PERIOD_NS		3500
 
 #ifdef CONFIG_PM
-struct palmz72_resume_info {
+struct palmz72_resume_info
+{
 	u32 magic0;		/* 0x0 */
 	u32 magic1;		/* 0x4 */
 	u32 resume_addr;	/* 0x8 */

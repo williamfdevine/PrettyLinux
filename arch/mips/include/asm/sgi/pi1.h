@@ -5,7 +5,8 @@
 #ifndef _SGI_PI1_H
 #define _SGI_PI1_H
 
-struct pi1_regs {
+struct pi1_regs
+{
 	u8 _data[3];
 	volatile u8 data;
 	u8 _ctrl[3];

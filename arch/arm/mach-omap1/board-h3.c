@@ -58,7 +58,8 @@
 
 #define H3_TS_GPIO	48
 
-static const unsigned int h3_keymap[] = {
+static const unsigned int h3_keymap[] =
+{
 	KEY(0, 0, KEY_LEFT),
 	KEY(1, 0, KEY_RIGHT),
 	KEY(2, 0, KEY_3),
@@ -97,50 +98,54 @@ static const unsigned int h3_keymap[] = {
 };
 
 
-static struct mtd_partition nor_partitions[] = {
+static struct mtd_partition nor_partitions[] =
+{
 	/* bootloader (U-Boot, etc) in first sector */
 	{
-	      .name		= "bootloader",
-	      .offset		= 0,
-	      .size		= SZ_128K,
-	      .mask_flags	= MTD_WRITEABLE, /* force read-only */
+		.name		= "bootloader",
+		.offset		= 0,
+		.size		= SZ_128K,
+		.mask_flags	= MTD_WRITEABLE, /* force read-only */
 	},
 	/* bootloader params in the next sector */
 	{
-	      .name		= "params",
-	      .offset		= MTDPART_OFS_APPEND,
-	      .size		= SZ_128K,
-	      .mask_flags	= 0,
+		.name		= "params",
+		.offset		= MTDPART_OFS_APPEND,
+		.size		= SZ_128K,
+		.mask_flags	= 0,
 	},
 	/* kernel */
 	{
-	      .name		= "kernel",
-	      .offset		= MTDPART_OFS_APPEND,
-	      .size		= SZ_2M,
-	      .mask_flags	= 0
+		.name		= "kernel",
+		.offset		= MTDPART_OFS_APPEND,
+		.size		= SZ_2M,
+		.mask_flags	= 0
 	},
 	/* file system */
 	{
-	      .name		= "filesystem",
-	      .offset		= MTDPART_OFS_APPEND,
-	      .size		= MTDPART_SIZ_FULL,
-	      .mask_flags	= 0
+		.name		= "filesystem",
+		.offset		= MTDPART_OFS_APPEND,
+		.size		= MTDPART_SIZ_FULL,
+		.mask_flags	= 0
 	}
 };
 
-static struct physmap_flash_data nor_data = {
+static struct physmap_flash_data nor_data =
+{
 	.width		= 2,
 	.set_vpp	= omap1_set_vpp,
 	.parts		= nor_partitions,
 	.nr_parts	= ARRAY_SIZE(nor_partitions),
 };
 
-static struct resource nor_resource = {
+static struct resource nor_resource =
+{
 	/* This is on CS3, wherever it's mapped */
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device nor_device = {
+static struct platform_device nor_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -150,7 +155,8 @@ static struct platform_device nor_device = {
 	.resource	= &nor_resource,
 };
 
-static struct mtd_partition nand_partitions[] = {
+static struct mtd_partition nand_partitions[] =
+{
 #if 0
 	/* REVISIT: enable these partitions if you make NAND BOOT work */
 	{
@@ -190,7 +196,8 @@ static int nand_dev_ready(struct mtd_info *mtd)
 	return gpio_get_value(H3_NAND_RB_GPIO_PIN);
 }
 
-static struct platform_nand_data nand_platdata = {
+static struct platform_nand_data nand_platdata =
+{
 	.chip	= {
 		.nr_chips		= 1,
 		.chip_offset		= 0,
@@ -205,11 +212,13 @@ static struct platform_nand_data nand_platdata = {
 	},
 };
 
-static struct resource nand_resource = {
+static struct resource nand_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device nand_device = {
+static struct platform_device nand_device =
+{
 	.name		= "gen_nand",
 	.id		= 0,
 	.dev		= {
@@ -219,13 +228,15 @@ static struct platform_device nand_device = {
 	.resource	= &nand_resource,
 };
 
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
 	.leda	= RPC_LED_100_10,
 	.ledb	= RPC_LED_TX_RX,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= OMAP1710_ETHR_START,		/* Physical */
 		.end	= OMAP1710_ETHR_START + 0xf,
@@ -236,7 +247,8 @@ static struct resource smc91x_resources[] = {
 	},
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.dev	= {
@@ -249,7 +261,9 @@ static struct platform_device smc91x_device = {
 static void __init h3_init_smc91x(void)
 {
 	omap_cfg_reg(W15_1710_GPIO40);
-	if (gpio_request(40, "SMC91x irq") < 0) {
+
+	if (gpio_request(40, "SMC91x irq") < 0)
+	{
 		printk("Error requesting gpio 40 for smc91x irq\n");
 		return;
 	}
@@ -259,7 +273,8 @@ static void __init h3_init_smc91x(void)
 #define GPTIMER_REGS(x)	(0xFFFB1400 + (x * 0x800))
 #define GPTIMER_REGS_SIZE	0x46
 
-static struct resource intlat_resources[] = {
+static struct resource intlat_resources[] =
+{
 	[0] = {
 		.start  = GPTIMER_REGS(0),	      /* Physical */
 		.end    = GPTIMER_REGS(0) + GPTIMER_REGS_SIZE,
@@ -272,14 +287,16 @@ static struct resource intlat_resources[] = {
 	},
 };
 
-static struct platform_device intlat_device = {
+static struct platform_device intlat_device =
+{
 	.name	   = "omap_intlat",
 	.id	     = 0,
 	.num_resources  = ARRAY_SIZE(intlat_resources),
 	.resource       = intlat_resources,
 };
 
-static struct resource h3_kp_resources[] = {
+static struct resource h3_kp_resources[] =
+{
 	[0] = {
 		.start	= INT_KEYBOARD,
 		.end	= INT_KEYBOARD,
@@ -287,12 +304,14 @@ static struct resource h3_kp_resources[] = {
 	},
 };
 
-static const struct matrix_keymap_data h3_keymap_data = {
+static const struct matrix_keymap_data h3_keymap_data =
+{
 	.keymap		= h3_keymap,
 	.keymap_size	= ARRAY_SIZE(h3_keymap),
 };
 
-static struct omap_kp_platform_data h3_kp_data = {
+static struct omap_kp_platform_data h3_kp_data =
+{
 	.rows		= 8,
 	.cols		= 8,
 	.keymap_data	= &h3_keymap_data,
@@ -301,7 +320,8 @@ static struct omap_kp_platform_data h3_kp_data = {
 	.dbounce	= true,
 };
 
-static struct platform_device h3_kp_device = {
+static struct platform_device h3_kp_device =
+{
 	.name		= "omap-keypad",
 	.id		= -1,
 	.dev		= {
@@ -311,12 +331,14 @@ static struct platform_device h3_kp_device = {
 	.resource	= h3_kp_resources,
 };
 
-static struct platform_device h3_lcd_device = {
+static struct platform_device h3_lcd_device =
+{
 	.name		= "lcd_h3",
 	.id		= -1,
 };
 
-static struct spi_board_info h3_spi_board_info[] __initdata = {
+static struct spi_board_info h3_spi_board_info[] __initdata =
+{
 	[0] = {
 		.modalias	= "tsc2101",
 		.bus_num	= 2,
@@ -326,7 +348,8 @@ static struct spi_board_info h3_spi_board_info[] __initdata = {
 	},
 };
 
-static struct gpio_led h3_gpio_led_pins[] = {
+static struct gpio_led h3_gpio_led_pins[] =
+{
 	{
 		.name		= "h3:red",
 		.default_trigger = "heartbeat",
@@ -339,12 +362,14 @@ static struct gpio_led h3_gpio_led_pins[] = {
 	},
 };
 
-static struct gpio_led_platform_data h3_gpio_led_data = {
+static struct gpio_led_platform_data h3_gpio_led_data =
+{
 	.leds		= h3_gpio_led_pins,
 	.num_leds	= ARRAY_SIZE(h3_gpio_led_pins),
 };
 
-static struct platform_device h3_gpio_leds = {
+static struct platform_device h3_gpio_leds =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -352,17 +377,19 @@ static struct platform_device h3_gpio_leds = {
 	},
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&nor_device,
 	&nand_device,
-        &smc91x_device,
+	&smc91x_device,
 	&intlat_device,
 	&h3_kp_device,
 	&h3_lcd_device,
 	&h3_gpio_leds,
 };
 
-static struct omap_usb_config h3_usb_config __initdata = {
+static struct omap_usb_config h3_usb_config __initdata =
+{
 	/* usb1 has a Mini-AB port and external isp1301 transceiver */
 	.otg	    = 2,
 
@@ -376,14 +403,16 @@ static struct omap_usb_config h3_usb_config __initdata = {
 	.pins[1]	= 3,
 };
 
-static struct omap_lcd_config h3_lcd_config __initdata = {
+static struct omap_lcd_config h3_lcd_config __initdata =
+{
 	.ctrl_name	= "internal",
 };
 
-static struct i2c_board_info __initdata h3_i2c_board_info[] = {
-       {
+static struct i2c_board_info __initdata h3_i2c_board_info[] =
+{
+	{
 		I2C_BOARD_INFO("tps65013", 0x48),
-       },
+	},
 	{
 		I2C_BOARD_INFO("isp1301_omap", 0x2d),
 	},
@@ -435,11 +464,11 @@ static void __init h3_init(void)
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 	h3_spi_board_info[0].irq = gpio_to_irq(H3_TS_GPIO);
 	spi_register_board_info(h3_spi_board_info,
-				ARRAY_SIZE(h3_spi_board_info));
+							ARRAY_SIZE(h3_spi_board_info));
 	omap_serial_init();
 	h3_i2c_board_info[1].irq = gpio_to_irq(14);
 	omap_register_i2c_bus(1, 100, h3_i2c_board_info,
-			      ARRAY_SIZE(h3_i2c_board_info));
+						  ARRAY_SIZE(h3_i2c_board_info));
 	omap1_usb_init(&h3_usb_config);
 	h3_mmc_init();
 
@@ -447,14 +476,14 @@ static void __init h3_init(void)
 }
 
 MACHINE_START(OMAP_H3, "TI OMAP1710 H3 board")
-	/* Maintainer: Texas Instruments, Inc. */
-	.atag_offset	= 0x100,
+/* Maintainer: Texas Instruments, Inc. */
+.atag_offset	= 0x100,
 	.map_io		= omap16xx_map_io,
-	.init_early     = omap1_init_early,
-	.init_irq	= omap1_init_irq,
-	.handle_irq	= omap1_handle_irq,
-	.init_machine	= h3_init,
-	.init_late	= omap1_init_late,
-	.init_time	= omap1_timer_init,
-	.restart	= omap1_restart,
-MACHINE_END
+		.init_early     = omap1_init_early,
+		 .init_irq	= omap1_init_irq,
+			.handle_irq	= omap1_handle_irq,
+			 .init_machine	= h3_init,
+				.init_late	= omap1_init_late,
+				  .init_time	= omap1_timer_init,
+					.restart	= omap1_restart,
+						MACHINE_END

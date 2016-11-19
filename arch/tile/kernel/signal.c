@@ -43,7 +43,7 @@
  */
 
 int restore_sigcontext(struct pt_regs *regs,
-		       struct sigcontext __user *sc)
+					   struct sigcontext __user *sc)
 {
 	int err;
 
@@ -67,7 +67,7 @@ int restore_sigcontext(struct pt_regs *regs,
 }
 
 void signal_fault(const char *type, struct pt_regs *regs,
-		  void __user *frame, int sig)
+				  void __user *frame, int sig)
 {
 	trace_unhandled_signal(type, regs, (unsigned long)frame, SIGSEGV);
 	force_sigsegv(sig, current);
@@ -82,17 +82,26 @@ SYSCALL_DEFINE0(rt_sigreturn)
 	sigset_t set;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
+
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return 0;
 
@@ -114,8 +123,8 @@ int setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs)
  * Determine which stack to use..
  */
 static inline void __user *get_sigframe(struct k_sigaction *ka,
-					struct pt_regs *regs,
-					size_t frame_size)
+										struct pt_regs *regs,
+										size_t frame_size)
 {
 	unsigned long sp;
 
@@ -128,12 +137,17 @@ static inline void __user *get_sigframe(struct k_sigaction *ka,
 	 * will die with SIGSEGV.
 	 */
 	if (on_sig_stack(sp) && !likely(on_sig_stack(sp - frame_size)))
-		return (void __user __force *)-1UL;
+	{
+		return (void __user __force *) - 1UL;
+	}
 
 	/* This is the X/Open sanctioned signal stack switching.  */
-	if (ka->sa.sa_flags & SA_ONSTACK) {
+	if (ka->sa.sa_flags & SA_ONSTACK)
+	{
 		if (sas_ss_flags(sp) == 0)
+		{
 			sp = current->sas_ss_sp + current->sas_ss_size;
+		}
 	}
 
 	sp -= frame_size;
@@ -146,7 +160,7 @@ static inline void __user *get_sigframe(struct k_sigaction *ka,
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	unsigned long restorer;
 	struct rt_sigframe __user *frame;
@@ -155,14 +169,19 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(&ksig->ka, regs, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		goto err;
+	}
 
 	/* Always write at least the signal number for the stack backtracer. */
-	if (ksig->ka.sa.sa_flags & SA_SIGINFO) {
+	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		/* At sigreturn time, restore the callee-save registers too. */
 		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 		regs->flags |= PT_FLAGS_RESTORE_REGS;
-	} else {
+	}
+	else
+	{
 		err |= __put_user(ksig->info.si_signo, &frame->info.si_signo);
 	}
 
@@ -173,12 +192,18 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __save_altstack(&frame->uc.uc_stack, regs->sp);
 	err |= setup_sigcontext(&frame->uc.uc_mcontext, regs);
 	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
+
 	if (err)
+	{
 		goto err;
+	}
 
 	restorer = VDSO_SYM(&__vdso_rt_sigreturn);
+
 	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		restorer = (unsigned long) ksig->ka.sa.sa_restorer;
+	}
 
 	/*
 	 * Set up registers for signal handler.
@@ -199,7 +224,7 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 
 err:
 	trace_unhandled_signal("bad sigreturn frame", regs,
-			      (unsigned long)frame, SIGSEGV);
+						   (unsigned long)frame, SIGSEGV);
 	return -EFAULT;
 }
 
@@ -213,32 +238,39 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	int ret;
 
 	/* Are we from a system call? */
-	if (regs->faultnum == INT_SWINT_1) {
+	if (regs->faultnum == INT_SWINT_1)
+	{
 		/* If so, check system call restarting.. */
-		switch (regs->regs[0]) {
-		case -ERESTART_RESTARTBLOCK:
-		case -ERESTARTNOHAND:
-			regs->regs[0] = -EINTR;
-			break;
-
-		case -ERESTARTSYS:
-			if (!(ksig->ka.sa.sa_flags & SA_RESTART)) {
+		switch (regs->regs[0])
+		{
+			case -ERESTART_RESTARTBLOCK:
+			case -ERESTARTNOHAND:
 				regs->regs[0] = -EINTR;
 				break;
-			}
+
+			case -ERESTARTSYS:
+				if (!(ksig->ka.sa.sa_flags & SA_RESTART))
+				{
+					regs->regs[0] = -EINTR;
+					break;
+				}
+
 			/* fallthrough */
-		case -ERESTARTNOINTR:
-			/* Reload caller-saves to restore r0..r5 and r10. */
-			regs->flags |= PT_FLAGS_CALLER_SAVES;
-			regs->regs[0] = regs->orig_r0;
-			regs->pc -= 8;
+			case -ERESTARTNOINTR:
+				/* Reload caller-saves to restore r0..r5 and r10. */
+				regs->flags |= PT_FLAGS_CALLER_SAVES;
+				regs->regs[0] = regs->orig_r0;
+				regs->pc -= 8;
 		}
 	}
 
 	/* Set up the stack frame */
 #ifdef CONFIG_COMPAT
+
 	if (is_compat_task())
+	{
 		ret = compat_setup_rt_frame(ksig, oldset, regs);
+	}
 	else
 #endif
 		ret = setup_rt_frame(ksig, oldset, regs);
@@ -262,29 +294,32 @@ void do_signal(struct pt_regs *regs)
 	 * helpful, we can reinstate the check on "!user_mode(regs)".
 	 */
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* Whee! Actually deliver the signal.  */
 		handle_signal(&ksig, regs);
 		goto done;
 	}
 
 	/* Did we come from a system call? */
-	if (regs->faultnum == INT_SWINT_1) {
+	if (regs->faultnum == INT_SWINT_1)
+	{
 		/* Restart the system call - no handlers present */
-		switch (regs->regs[0]) {
-		case -ERESTARTNOHAND:
-		case -ERESTARTSYS:
-		case -ERESTARTNOINTR:
-			regs->flags |= PT_FLAGS_CALLER_SAVES;
-			regs->regs[0] = regs->orig_r0;
-			regs->pc -= 8;
-			break;
+		switch (regs->regs[0])
+		{
+			case -ERESTARTNOHAND:
+			case -ERESTARTSYS:
+			case -ERESTARTNOINTR:
+				regs->flags |= PT_FLAGS_CALLER_SAVES;
+				regs->regs[0] = regs->orig_r0;
+				regs->pc -= 8;
+				break;
 
-		case -ERESTART_RESTARTBLOCK:
-			regs->flags |= PT_FLAGS_CALLER_SAVES;
-			regs->regs[TREG_SYSCALL_NR] = __NR_restart_syscall;
-			regs->pc -= 8;
-			break;
+			case -ERESTART_RESTARTBLOCK:
+				regs->flags |= PT_FLAGS_CALLER_SAVES;
+				regs->regs[TREG_SYSCALL_NR] = __NR_restart_syscall;
+				regs->pc -= 8;
+				break;
 		}
 	}
 
@@ -303,21 +338,29 @@ static int __init crashinfo(char *str)
 	const char *word;
 
 	if (*str == '\0')
+	{
 		show_unhandled_signals = 2;
-	else if (*str != '=' || kstrtoint(++str, 0, &show_unhandled_signals) != 0)
-		return 0;
-
-	switch (show_unhandled_signals) {
-	case 0:
-		word = "No";
-		break;
-	case 1:
-		word = "One-line";
-		break;
-	default:
-		word = "Detailed";
-		break;
 	}
+	else if (*str != '=' || kstrtoint(++str, 0, &show_unhandled_signals) != 0)
+	{
+		return 0;
+	}
+
+	switch (show_unhandled_signals)
+	{
+		case 0:
+			word = "No";
+			break;
+
+		case 1:
+			word = "One-line";
+			break;
+
+		default:
+			word = "Detailed";
+			break;
+	}
+
 	pr_info("%s crash reports will be generated on the console\n", word);
 	return 1;
 }
@@ -330,80 +373,108 @@ static void dump_mem(void __user *address)
 	int i, j, k;
 	int found_readable_mem = 0;
 
-	if (!access_ok(VERIFY_READ, address, 1)) {
+	if (!access_ok(VERIFY_READ, address, 1))
+	{
 		pr_err("Not dumping at address 0x%lx (kernel address)\n",
-		       (unsigned long)address);
+			   (unsigned long)address);
 		return;
 	}
 
 	addr = (void __user *)
-		(((unsigned long)address & -bytes_per_line) - region_size/2);
+		   (((unsigned long)address & -bytes_per_line) - region_size / 2);
+
 	if (addr > address)
+	{
 		addr = NULL;
+	}
+
 	for (i = 0; i < region_size;
-	     addr += bytes_per_line, i += bytes_per_line) {
+		 addr += bytes_per_line, i += bytes_per_line)
+	{
 		unsigned char buf[bytes_per_line];
 		char line[100];
+
 		if (copy_from_user(buf, addr, bytes_per_line))
+		{
 			continue;
-		if (!found_readable_mem) {
+		}
+
+		if (!found_readable_mem)
+		{
 			pr_err("Dumping memory around address 0x%lx:\n",
-			       (unsigned long)address);
+				   (unsigned long)address);
 			found_readable_mem = 1;
 		}
+
 		j = sprintf(line, REGFMT ":", (unsigned long)addr);
+
 		for (k = 0; k < bytes_per_line; ++k)
+		{
 			j += sprintf(&line[j], " %02x", buf[k]);
+		}
+
 		pr_err("%s\n", line);
 	}
+
 	if (!found_readable_mem)
 		pr_err("No readable memory around address 0x%lx\n",
-		       (unsigned long)address);
+			   (unsigned long)address);
 }
 
 void trace_unhandled_signal(const char *type, struct pt_regs *regs,
-			    unsigned long address, int sig)
+							unsigned long address, int sig)
 {
 	struct task_struct *tsk = current;
 
 	if (show_unhandled_signals == 0)
+	{
 		return;
+	}
 
 	/* If the signal is handled, don't show it here. */
-	if (!is_global_init(tsk)) {
+	if (!is_global_init(tsk))
+	{
 		void __user *handler =
-			tsk->sighand->action[sig-1].sa.sa_handler;
+			tsk->sighand->action[sig - 1].sa.sa_handler;
+
 		if (handler != SIG_IGN && handler != SIG_DFL)
+		{
 			return;
+		}
 	}
 
 	/* Rate-limit the one-line output, not the detailed output. */
 	if (show_unhandled_signals <= 1 && !printk_ratelimit())
+	{
 		return;
+	}
 
 	printk("%s%s[%d]: %s at %lx pc "REGFMT" signal %d",
-	       task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
-	       tsk->comm, task_pid_nr(tsk), type, address, regs->pc, sig);
+		   task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
+		   tsk->comm, task_pid_nr(tsk), type, address, regs->pc, sig);
 
 	print_vma_addr(KERN_CONT " in ", regs->pc);
 
 	printk(KERN_CONT "\n");
 
-	if (show_unhandled_signals > 1) {
-		switch (sig) {
-		case SIGILL:
-		case SIGFPE:
-		case SIGSEGV:
-		case SIGBUS:
-			pr_err("User crash: signal %d, trap %ld, address 0x%lx\n",
-			       sig, regs->faultnum, address);
-			show_regs(regs);
-			dump_mem((void __user *)address);
-			break;
-		default:
-			pr_err("User crash: signal %d, trap %ld\n",
-			       sig, regs->faultnum);
-			break;
+	if (show_unhandled_signals > 1)
+	{
+		switch (sig)
+		{
+			case SIGILL:
+			case SIGFPE:
+			case SIGSEGV:
+			case SIGBUS:
+				pr_err("User crash: signal %d, trap %ld, address 0x%lx\n",
+					   sig, regs->faultnum, address);
+				show_regs(regs);
+				dump_mem((void __user *)address);
+				break;
+
+			default:
+				pr_err("User crash: signal %d, trap %ld\n",
+					   sig, regs->faultnum);
+				break;
 		}
 	}
 }

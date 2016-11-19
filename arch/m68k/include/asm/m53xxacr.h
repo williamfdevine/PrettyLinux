@@ -52,13 +52,13 @@
  * Define the cache type and arrangement (needed for pushes).
  */
 #if defined(CONFIG_M5307)
-#define	CACHE_SIZE	0x2000		/* 8k of unified cache */
-#define	ICACHE_SIZE	CACHE_SIZE
-#define	DCACHE_SIZE	CACHE_SIZE
+	#define	CACHE_SIZE	0x2000		/* 8k of unified cache */
+	#define	ICACHE_SIZE	CACHE_SIZE
+	#define	DCACHE_SIZE	CACHE_SIZE
 #elif defined(CONFIG_M53xx)
-#define	CACHE_SIZE	0x4000		/* 16k of unified cache */
-#define	ICACHE_SIZE	CACHE_SIZE
-#define	DCACHE_SIZE	CACHE_SIZE
+	#define	CACHE_SIZE	0x4000		/* 16k of unified cache */
+	#define	ICACHE_SIZE	CACHE_SIZE
+	#define	DCACHE_SIZE	CACHE_SIZE
 #endif
 
 #define	CACHE_LINE_SIZE	16		/* 16 byte line size */
@@ -70,16 +70,16 @@
  * enabled on the regions we want (eg RAM).
  */
 #if defined(CONFIG_CACHE_COPYBACK)
-#define CACHE_TYPE	ACR_CM_CB
-#define CACHE_PUSH
+	#define CACHE_TYPE	ACR_CM_CB
+	#define CACHE_PUSH
 #else
-#define CACHE_TYPE	ACR_CM_WT
+	#define CACHE_TYPE	ACR_CM_WT
 #endif
 
 #ifdef CONFIG_COLDFIRE_SW_A7
-#define CACHE_MODE	(CACR_EC + CACR_ESB + CACR_DCM_PRE)
+	#define CACHE_MODE	(CACR_EC + CACR_ESB + CACR_DCM_PRE)
 #else
-#define CACHE_MODE	(CACR_EC + CACR_ESB + CACR_DCM_PRE + CACR_EUSP)
+	#define CACHE_MODE	(CACR_EC + CACR_ESB + CACR_DCM_PRE + CACR_EUSP)
 #endif
 
 /*
@@ -93,8 +93,8 @@
 #define CACHE_INVALIDATED CACR_CINVA
 
 #define ACR0_MODE	((CONFIG_RAMBASE & 0xff000000) + \
-			 (0x000f0000) + \
-			 (ACR_ENABLE + ACR_ANY + CACHE_TYPE))
+					 (0x000f0000) + \
+					 (ACR_ENABLE + ACR_ANY + CACHE_TYPE))
 #define ACR1_MODE	0
 
 /****************************************************************************/

@@ -84,7 +84,7 @@ static void mv64x60_mask_low(struct irq_data *d)
 	spin_lock_irqsave(&mv64x60_lock, flags);
 	mv64x60_cached_low_mask &= ~(1 << level2);
 	out_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_LO,
-		 mv64x60_cached_low_mask);
+			 mv64x60_cached_low_mask);
 	spin_unlock_irqrestore(&mv64x60_lock, flags);
 	(void)in_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_LO);
 }
@@ -97,12 +97,13 @@ static void mv64x60_unmask_low(struct irq_data *d)
 	spin_lock_irqsave(&mv64x60_lock, flags);
 	mv64x60_cached_low_mask |= 1 << level2;
 	out_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_LO,
-		 mv64x60_cached_low_mask);
+			 mv64x60_cached_low_mask);
 	spin_unlock_irqrestore(&mv64x60_lock, flags);
 	(void)in_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_LO);
 }
 
-static struct irq_chip mv64x60_chip_low = {
+static struct irq_chip mv64x60_chip_low =
+{
 	.name		= "mv64x60_low",
 	.irq_mask	= mv64x60_mask_low,
 	.irq_mask_ack	= mv64x60_mask_low,
@@ -121,7 +122,7 @@ static void mv64x60_mask_high(struct irq_data *d)
 	spin_lock_irqsave(&mv64x60_lock, flags);
 	mv64x60_cached_high_mask &= ~(1 << level2);
 	out_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_HI,
-		 mv64x60_cached_high_mask);
+			 mv64x60_cached_high_mask);
 	spin_unlock_irqrestore(&mv64x60_lock, flags);
 	(void)in_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_HI);
 }
@@ -134,12 +135,13 @@ static void mv64x60_unmask_high(struct irq_data *d)
 	spin_lock_irqsave(&mv64x60_lock, flags);
 	mv64x60_cached_high_mask |= 1 << level2;
 	out_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_HI,
-		 mv64x60_cached_high_mask);
+			 mv64x60_cached_high_mask);
 	spin_unlock_irqrestore(&mv64x60_lock, flags);
 	(void)in_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_HI);
 }
 
-static struct irq_chip mv64x60_chip_high = {
+static struct irq_chip mv64x60_chip_high =
+{
 	.name		= "mv64x60_high",
 	.irq_mask	= mv64x60_mask_high,
 	.irq_mask_ack	= mv64x60_mask_high,
@@ -158,7 +160,7 @@ static void mv64x60_mask_gpp(struct irq_data *d)
 	spin_lock_irqsave(&mv64x60_lock, flags);
 	mv64x60_cached_gpp_mask &= ~(1 << level2);
 	out_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_MASK,
-		 mv64x60_cached_gpp_mask);
+			 mv64x60_cached_gpp_mask);
 	spin_unlock_irqrestore(&mv64x60_lock, flags);
 	(void)in_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_MASK);
 }
@@ -171,9 +173,9 @@ static void mv64x60_mask_ack_gpp(struct irq_data *d)
 	spin_lock_irqsave(&mv64x60_lock, flags);
 	mv64x60_cached_gpp_mask &= ~(1 << level2);
 	out_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_MASK,
-		 mv64x60_cached_gpp_mask);
+			 mv64x60_cached_gpp_mask);
 	out_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_CAUSE,
-		 ~(1 << level2));
+			 ~(1 << level2));
 	spin_unlock_irqrestore(&mv64x60_lock, flags);
 	(void)in_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_CAUSE);
 }
@@ -186,12 +188,13 @@ static void mv64x60_unmask_gpp(struct irq_data *d)
 	spin_lock_irqsave(&mv64x60_lock, flags);
 	mv64x60_cached_gpp_mask |= 1 << level2;
 	out_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_MASK,
-		 mv64x60_cached_gpp_mask);
+			 mv64x60_cached_gpp_mask);
 	spin_unlock_irqrestore(&mv64x60_lock, flags);
 	(void)in_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_MASK);
 }
 
-static struct irq_chip mv64x60_chip_gpp = {
+static struct irq_chip mv64x60_chip_gpp =
+{
 	.name		= "mv64x60_gpp",
 	.irq_mask	= mv64x60_mask_gpp,
 	.irq_mask_ack	= mv64x60_mask_ack_gpp,
@@ -202,14 +205,15 @@ static struct irq_chip mv64x60_chip_gpp = {
  * mv64x60_host_ops functions
  */
 
-static struct irq_chip *mv64x60_chips[] = {
+static struct irq_chip *mv64x60_chips[] =
+{
 	[MV64x60_LEVEL1_LOW]  = &mv64x60_chip_low,
 	[MV64x60_LEVEL1_HIGH] = &mv64x60_chip_high,
 	[MV64x60_LEVEL1_GPP]  = &mv64x60_chip_gpp,
 };
 
 static int mv64x60_host_map(struct irq_domain *h, unsigned int virq,
-			  irq_hw_number_t hwirq)
+							irq_hw_number_t hwirq)
 {
 	int level1;
 
@@ -218,12 +222,13 @@ static int mv64x60_host_map(struct irq_domain *h, unsigned int virq,
 	level1 = (hwirq & MV64x60_LEVEL1_MASK) >> MV64x60_LEVEL1_OFFSET;
 	BUG_ON(level1 > MV64x60_LEVEL1_GPP);
 	irq_set_chip_and_handler(virq, mv64x60_chips[level1],
-				 handle_level_irq);
+							 handle_level_irq);
 
 	return 0;
 }
 
-static const struct irq_domain_ops mv64x60_host_ops = {
+static const struct irq_domain_ops mv64x60_host_ops =
+{
 	.map   = mv64x60_host_map,
 };
 
@@ -251,15 +256,15 @@ void __init mv64x60_init_irq(void)
 	mv64x60_irq_reg_base = ioremap(paddr, reg[1]);
 
 	mv64x60_irq_host = irq_domain_add_linear(np, MV64x60_NUM_IRQS,
-					  &mv64x60_host_ops, NULL);
+					   &mv64x60_host_ops, NULL);
 
 	spin_lock_irqsave(&mv64x60_lock, flags);
 	out_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_MASK,
-		 mv64x60_cached_gpp_mask);
+			 mv64x60_cached_gpp_mask);
 	out_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_LO,
-		 mv64x60_cached_low_mask);
+			 mv64x60_cached_low_mask);
 	out_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_INTR_MASK_HI,
-		 mv64x60_cached_high_mask);
+			 mv64x60_cached_high_mask);
 
 	out_le32(mv64x60_gpp_reg_base + MV64x60_GPP_INTR_CAUSE, 0);
 	out_le32(mv64x60_irq_reg_base + MV64X60_IC_MAIN_CAUSE_LO, 0);
@@ -275,20 +280,28 @@ unsigned int mv64x60_get_irq(void)
 	int virq = 0;
 
 	cause = in_le32(mv64x60_irq_reg_base + MV64X60_IC_CPU0_SELECT_CAUSE);
-	if (cause & MV64X60_SELECT_CAUSE_HIGH) {
+
+	if (cause & MV64X60_SELECT_CAUSE_HIGH)
+	{
 		cause &= mv64x60_cached_high_mask;
 		level1 = MV64x60_LEVEL1_HIGH;
-		if (cause & MV64X60_HIGH_GPP_GROUPS) {
+
+		if (cause & MV64X60_HIGH_GPP_GROUPS)
+		{
 			cause = in_le32(mv64x60_gpp_reg_base +
-					MV64x60_GPP_INTR_CAUSE);
+							MV64x60_GPP_INTR_CAUSE);
 			cause &= mv64x60_cached_gpp_mask;
 			level1 = MV64x60_LEVEL1_GPP;
 		}
-	} else {
+	}
+	else
+	{
 		cause &= mv64x60_cached_low_mask;
 		level1 = MV64x60_LEVEL1_LOW;
 	}
-	if (cause) {
+
+	if (cause)
+	{
 		hwirq = (level1 << MV64x60_LEVEL1_OFFSET) | __ilog2(cause);
 		virq = irq_linear_revmap(mv64x60_irq_host, hwirq);
 	}

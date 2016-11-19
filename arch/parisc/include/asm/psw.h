@@ -43,14 +43,14 @@
 #define	PSW_Y	0x80000000	/* PA1.x only */
 
 #ifdef CONFIG_64BIT
-#  define PSW_HI_CB 0x000000ff    /* PA2.0 only */
+	#define PSW_HI_CB 0x000000ff    /* PA2.0 only */
 #endif
 
 #ifdef CONFIG_64BIT
-#  define USER_PSW_HI_MASK	PSW_HI_CB
-#  define WIDE_PSW		PSW_W
-#else 
-#  define WIDE_PSW		0
+	#define USER_PSW_HI_MASK	PSW_HI_CB
+	#define WIDE_PSW		PSW_W
+#else
+	#define WIDE_PSW		0
 #endif
 
 /* Used when setting up for rfi */
@@ -62,40 +62,41 @@
 #ifndef __ASSEMBLY__
 
 /* The program status word as bitfields.  */
-struct pa_psw {
-	unsigned int y:1;
-	unsigned int z:1;
-	unsigned int rv:2;
-	unsigned int w:1;
-	unsigned int e:1;
-	unsigned int s:1;
-	unsigned int t:1;
+struct pa_psw
+{
+	unsigned int y: 1;
+	unsigned int z: 1;
+	unsigned int rv: 2;
+	unsigned int w: 1;
+	unsigned int e: 1;
+	unsigned int s: 1;
+	unsigned int t: 1;
 
-	unsigned int h:1;
-	unsigned int l:1;
-	unsigned int n:1;
-	unsigned int x:1;
-	unsigned int b:1;
-	unsigned int c:1;
-	unsigned int v:1;
-	unsigned int m:1;
+	unsigned int h: 1;
+	unsigned int l: 1;
+	unsigned int n: 1;
+	unsigned int x: 1;
+	unsigned int b: 1;
+	unsigned int c: 1;
+	unsigned int v: 1;
+	unsigned int m: 1;
 
-	unsigned int cb:8;
+	unsigned int cb: 8;
 
-	unsigned int o:1;
-	unsigned int g:1;
-	unsigned int f:1;
-	unsigned int r:1;
-	unsigned int q:1;
-	unsigned int p:1;
-	unsigned int d:1;
-	unsigned int i:1;
+	unsigned int o: 1;
+	unsigned int g: 1;
+	unsigned int f: 1;
+	unsigned int r: 1;
+	unsigned int q: 1;
+	unsigned int p: 1;
+	unsigned int d: 1;
+	unsigned int i: 1;
 };
 
 #ifdef CONFIG_64BIT
-#define pa_psw(task) ((struct pa_psw *) ((char *) (task) + TASK_PT_PSW + 4))
+	#define pa_psw(task) ((struct pa_psw *) ((char *) (task) + TASK_PT_PSW + 4))
 #else
-#define pa_psw(task) ((struct pa_psw *) ((char *) (task) + TASK_PT_PSW))
+	#define pa_psw(task) ((struct pa_psw *) ((char *) (task) + TASK_PT_PSW))
 #endif
 
 #endif /* !__ASSEMBLY__ */

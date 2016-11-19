@@ -25,7 +25,8 @@ static void __init bcm2835_init(void)
 	bcm2835_init_clocks();
 }
 
-static const char * const bcm2835_compat[] = {
+static const char *const bcm2835_compat[] =
+{
 #ifdef CONFIG_ARCH_MULTI_V6
 	"brcm,bcm2835",
 #endif
@@ -36,6 +37,6 @@ static const char * const bcm2835_compat[] = {
 };
 
 DT_MACHINE_START(BCM2835, "BCM2835")
-	.init_machine = bcm2835_init,
-	.dt_compat = bcm2835_compat
-MACHINE_END
+.init_machine = bcm2835_init,
+ .dt_compat = bcm2835_compat
+			  MACHINE_END

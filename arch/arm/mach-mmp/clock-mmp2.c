@@ -63,7 +63,8 @@ static void sdhc_clk_disable(struct clk *clk)
 	__raw_writel(clk_rst, clk->clk_rst);
 }
 
-struct clkops sdhc_clk_ops = {
+struct clkops sdhc_clk_ops =
+{
 	.enable		= sdhc_clk_enable,
 	.disable	= sdhc_clk_disable,
 };
@@ -87,7 +88,8 @@ static APMU_CLK_OPS(sdh1, SDH1, 0x1b, 200000000, &sdhc_clk_ops);
 static APMU_CLK_OPS(sdh2, SDH2, 0x1b, 200000000, &sdhc_clk_ops);
 static APMU_CLK_OPS(sdh3, SDH3, 0x1b, 200000000, &sdhc_clk_ops);
 
-static struct clk_lookup mmp2_clkregs[] = {
+static struct clk_lookup mmp2_clkregs[] =
+{
 	INIT_CLKREG(&clk_uart1, "pxa2xx-uart.0", NULL),
 	INIT_CLKREG(&clk_uart2, "pxa2xx-uart.1", NULL),
 	INIT_CLKREG(&clk_uart3, "pxa2xx-uart.2", NULL),
@@ -107,7 +109,7 @@ static struct clk_lookup mmp2_clkregs[] = {
 };
 
 void __init mmp2_clk_init(phys_addr_t mpmu_phys, phys_addr_t apmu_phys,
-			  phys_addr_t apbc_phys)
+						  phys_addr_t apbc_phys)
 {
 	clkdev_add_table(ARRAY_AND_SIZE(mmp2_clkregs));
 }

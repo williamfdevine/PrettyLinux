@@ -108,13 +108,13 @@ struct elf32_phdr;
 struct file;
 
 unsigned long __metag_elf_map(struct file *filep, unsigned long addr,
-			      struct elf32_phdr *eppnt, int prot, int type,
-			      unsigned long total_size);
+							  struct elf32_phdr *eppnt, int prot, int type,
+							  unsigned long total_size);
 
 static inline unsigned long metag_elf_map(struct file *filep,
-					  unsigned long addr,
-					  struct elf32_phdr *eppnt, int prot,
-					  int type, unsigned long total_size)
+		unsigned long addr,
+		struct elf32_phdr *eppnt, int prot,
+		int type, unsigned long total_size)
 {
 	return __metag_elf_map(filep, addr, eppnt, prot, type, total_size);
 }

@@ -30,7 +30,8 @@ static unsigned long pms_base;
 
 static u16 wakeup_mask = CS5536_PM_PWRBTN;
 
-static struct {
+static struct
+{
 	unsigned long address;
 	unsigned short segment;
 } ofw_bios_entry = { 0xF0000 + PAGE_OFFSET, __KERNEL_CS };
@@ -55,7 +56,9 @@ static int xo1_power_state_enter(suspend_state_t pm_state)
 
 	/* Only STR is supported */
 	if (pm_state != PM_SUSPEND_MEM)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Save SCI mask (this gets lost since PM1_EN is used as a mask for
@@ -84,11 +87,11 @@ asmlinkage __visible int xo1_do_sleep(u8 sleep_state)
 
 	__asm__("movl %0,%%eax" : : "r" (pgd_addr));
 	__asm__("call *(%%edi); cld"
-		: : "D" (&ofw_bios_entry));
+			: : "D" (&ofw_bios_entry));
 	__asm__("movb $0x34, %al\n\t"
-		"outb %al, $0x70\n\t"
-		"movb $0x30, %al\n\t"
-		"outb %al, $0x71\n\t");
+			"outb %al, $0x70\n\t"
+			"movb $0x30, %al\n\t"
+			"outb %al, $0x71\n\t");
 	return 0;
 }
 
@@ -116,7 +119,8 @@ static int xo1_power_state_valid(suspend_state_t pm_state)
 	return pm_state == PM_SUSPEND_MEM;
 }
 
-static const struct platform_suspend_ops xo1_suspend_ops = {
+static const struct platform_suspend_ops xo1_suspend_ops =
+{
 	.valid = xo1_power_state_valid,
 	.enter = xo1_power_state_enter,
 };
@@ -128,24 +132,37 @@ static int xo1_pm_probe(struct platform_device *pdev)
 
 	/* don't run on non-XOs */
 	if (!machine_is_olpc())
+	{
 		return -ENODEV;
+	}
 
 	err = mfd_cell_enable(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "can't fetch device resource info\n");
 		return -EIO;
 	}
+
 	if (strcmp(pdev->name, "cs5535-pms") == 0)
+	{
 		pms_base = res->start;
+	}
 	else if (strcmp(pdev->name, "olpc-xo1-pm-acpi") == 0)
+	{
 		acpi_base = res->start;
+	}
 
 	/* If we have both addresses, we can override the poweroff hook */
-	if (pms_base && acpi_base) {
+	if (pms_base && acpi_base)
+	{
 		suspend_set_ops(&xo1_suspend_ops);
 		pm_power_off = xo1_power_off;
 		printk(KERN_INFO "OLPC XO-1 support registered\n");
@@ -159,15 +176,20 @@ static int xo1_pm_remove(struct platform_device *pdev)
 	mfd_cell_disable(pdev);
 
 	if (strcmp(pdev->name, "cs5535-pms") == 0)
+	{
 		pms_base = 0;
+	}
 	else if (strcmp(pdev->name, "olpc-xo1-pm-acpi") == 0)
+	{
 		acpi_base = 0;
+	}
 
 	pm_power_off = NULL;
 	return 0;
 }
 
-static struct platform_driver cs5535_pms_driver = {
+static struct platform_driver cs5535_pms_driver =
+{
 	.driver = {
 		.name = "cs5535-pms",
 	},
@@ -175,7 +197,8 @@ static struct platform_driver cs5535_pms_driver = {
 	.remove = xo1_pm_remove,
 };
 
-static struct platform_driver cs5535_acpi_driver = {
+static struct platform_driver cs5535_acpi_driver =
+{
 	.driver = {
 		.name = "olpc-xo1-pm-acpi",
 	},
@@ -188,12 +211,18 @@ static int __init xo1_pm_init(void)
 	int r;
 
 	r = platform_driver_register(&cs5535_pms_driver);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = platform_driver_register(&cs5535_acpi_driver);
+
 	if (r)
+	{
 		platform_driver_unregister(&cs5535_pms_driver);
+	}
 
 	return r;
 }

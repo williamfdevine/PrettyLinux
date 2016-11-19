@@ -10,7 +10,8 @@
  * - 2 miscellaneous 64-bit values
  */
 
-struct msqid64_ds {
+struct msqid64_ds
+{
 	struct ipc64_perm msg_perm;
 	__kernel_time_t msg_stime;	/* last msgsnd time */
 	__kernel_time_t msg_rtime;	/* last msgrcv time */

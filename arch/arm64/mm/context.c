@@ -46,18 +46,21 @@ static u32 get_cpu_asid_bits(void)
 {
 	u32 asid;
 	int fld = cpuid_feature_extract_unsigned_field(read_cpuid(ID_AA64MMFR0_EL1),
-						ID_AA64MMFR0_ASID_SHIFT);
+			  ID_AA64MMFR0_ASID_SHIFT);
 
-	switch (fld) {
-	default:
-		pr_warn("CPU%d: Unknown ASID size (%d); assuming 8-bit\n",
+	switch (fld)
+	{
+		default:
+			pr_warn("CPU%d: Unknown ASID size (%d); assuming 8-bit\n",
 					smp_processor_id(),  fld);
+
 		/* Fallthrough */
-	case 0:
-		asid = 8;
-		break;
-	case 2:
-		asid = 16;
+		case 0:
+			asid = 8;
+			break;
+
+		case 2:
+			asid = 16;
 	}
 
 	return asid;
@@ -68,7 +71,8 @@ void verify_cpu_asid_bits(void)
 {
 	u32 asid = get_cpu_asid_bits();
 
-	if (asid < asid_bits) {
+	if (asid < asid_bits)
+	{
 		/*
 		 * We cannot decrease the ASID size at runtime, so panic if we support
 		 * fewer ASID bits than the boot CPU.
@@ -93,8 +97,10 @@ static void flush_context(unsigned int cpu)
 	 */
 	smp_wmb();
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		asid = atomic64_xchg_relaxed(&per_cpu(active_asids, i), 0);
+
 		/*
 		 * If this CPU has already been through a
 		 * rollover, but hasn't run another task in
@@ -103,7 +109,10 @@ static void flush_context(unsigned int cpu)
 		 * the process it is still running.
 		 */
 		if (asid == 0)
+		{
 			asid = per_cpu(reserved_asids, i);
+		}
+
 		__set_bit(asid & ~ASID_MASK, asid_map);
 		per_cpu(reserved_asids, i) = asid;
 	}
@@ -112,7 +121,9 @@ static void flush_context(unsigned int cpu)
 	cpumask_setall(&tlb_flush_pending);
 
 	if (icache_is_aivivt())
+	{
 		__flush_icache_all();
+	}
 }
 
 static bool check_update_reserved_asid(u64 asid, u64 newasid)
@@ -129,8 +140,10 @@ static bool check_update_reserved_asid(u64 asid, u64 newasid)
 	 * so could result in us missing the reserved ASID in a future
 	 * generation.
 	 */
-	for_each_possible_cpu(cpu) {
-		if (per_cpu(reserved_asids, cpu) == asid) {
+	for_each_possible_cpu(cpu)
+	{
+		if (per_cpu(reserved_asids, cpu) == asid)
+		{
 			hit = true;
 			per_cpu(reserved_asids, cpu) = newasid;
 		}
@@ -145,7 +158,8 @@ static u64 new_context(struct mm_struct *mm, unsigned int cpu)
 	u64 asid = atomic64_read(&mm->context.id);
 	u64 generation = atomic64_read(&asid_generation);
 
-	if (asid != 0) {
+	if (asid != 0)
+	{
 		u64 newasid = generation | (asid & ~ASID_MASK);
 
 		/*
@@ -153,15 +167,20 @@ static u64 new_context(struct mm_struct *mm, unsigned int cpu)
 		 * can continue to use it and this was just a false alarm.
 		 */
 		if (check_update_reserved_asid(asid, newasid))
+		{
 			return newasid;
+		}
 
 		/*
 		 * We had a valid ASID in a previous life, so try to re-use
 		 * it if possible.
 		 */
 		asid &= ~ASID_MASK;
+
 		if (!__test_and_set_bit(asid, asid_map))
+		{
 			return newasid;
+		}
 	}
 
 	/*
@@ -171,12 +190,15 @@ static u64 new_context(struct mm_struct *mm, unsigned int cpu)
 	 * reserved TTBR0 for the init_mm.
 	 */
 	asid = find_next_zero_bit(asid_map, NUM_USER_ASIDS, cur_idx);
+
 	if (asid != NUM_USER_ASIDS)
+	{
 		goto set_asid;
+	}
 
 	/* We're out of ASIDs, so increment the global generation count */
 	generation = atomic64_add_return_relaxed(ASID_FIRST_VERSION,
-						 &asid_generation);
+				 &asid_generation);
 	flush_context(cpu);
 
 	/* We have more ASIDs than CPUs, so this will always succeed */
@@ -203,19 +225,25 @@ void check_and_switch_context(struct mm_struct *mm, unsigned int cpu)
 	 * flush_context).
 	 */
 	if (!((asid ^ atomic64_read(&asid_generation)) >> asid_bits)
-	    && atomic64_xchg_relaxed(&per_cpu(active_asids, cpu), asid))
+		&& atomic64_xchg_relaxed(&per_cpu(active_asids, cpu), asid))
+	{
 		goto switch_mm_fastpath;
+	}
 
 	raw_spin_lock_irqsave(&cpu_asid_lock, flags);
 	/* Check that our ASID belongs to the current generation. */
 	asid = atomic64_read(&mm->context.id);
-	if ((asid ^ atomic64_read(&asid_generation)) >> asid_bits) {
+
+	if ((asid ^ atomic64_read(&asid_generation)) >> asid_bits)
+	{
 		asid = new_context(mm, cpu);
 		atomic64_set(&mm->context.id, asid);
 	}
 
 	if (cpumask_test_and_clear_cpu(cpu, &tlb_flush_pending))
+	{
 		local_flush_tlb_all();
+	}
 
 	atomic64_set(&per_cpu(active_asids, cpu), asid);
 	raw_spin_unlock_irqrestore(&cpu_asid_lock, flags);
@@ -234,10 +262,11 @@ static int asids_init(void)
 	WARN_ON(NUM_USER_ASIDS - 1 <= num_possible_cpus());
 	atomic64_set(&asid_generation, ASID_FIRST_VERSION);
 	asid_map = kzalloc(BITS_TO_LONGS(NUM_USER_ASIDS) * sizeof(*asid_map),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!asid_map)
 		panic("Failed to allocate bitmap for %lu ASIDs\n",
-		      NUM_USER_ASIDS);
+			  NUM_USER_ASIDS);
 
 	pr_info("ASID allocator initialised with %lu entries\n", NUM_USER_ASIDS);
 	return 0;

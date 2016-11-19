@@ -24,15 +24,15 @@ struct ccw_dev_id;
  * entry in your MODULE_DEVICE_TABLE and set the match_flag correctly */
 #define CCW_DEVICE(cu, cum) 						\
 	.cu_type=(cu), .cu_model=(cum),					\
-	.match_flags=(CCW_DEVICE_ID_MATCH_CU_TYPE			\
-		   | (cum ? CCW_DEVICE_ID_MATCH_CU_MODEL : 0))
+							 .match_flags=(CCW_DEVICE_ID_MATCH_CU_TYPE			\
+										   | (cum ? CCW_DEVICE_ID_MATCH_CU_MODEL : 0))
 
 #define CCW_DEVICE_DEVTYPE(cu, cum, dev, devm)				\
 	.cu_type=(cu), .cu_model=(cum), .dev_type=(dev), .dev_model=(devm),\
-	.match_flags=CCW_DEVICE_ID_MATCH_CU_TYPE			\
-		   | ((cum) ? CCW_DEVICE_ID_MATCH_CU_MODEL : 0) 	\
-		   | CCW_DEVICE_ID_MATCH_DEVICE_TYPE			\
-		   | ((devm) ? CCW_DEVICE_ID_MATCH_DEVICE_MODEL : 0)
+							 .match_flags=CCW_DEVICE_ID_MATCH_CU_TYPE			\
+										  | ((cum) ? CCW_DEVICE_ID_MATCH_CU_MODEL : 0) 	\
+										  | CCW_DEVICE_ID_MATCH_DEVICE_TYPE			\
+										  | ((devm) ? CCW_DEVICE_ID_MATCH_DEVICE_MODEL : 0)
 
 /* scan through an array of device ids and return the first
  * entry that matches the device.
@@ -41,26 +41,35 @@ struct ccw_dev_id;
  */
 static inline const struct ccw_device_id *
 ccw_device_id_match(const struct ccw_device_id *array,
-			const struct ccw_device_id *match)
+					const struct ccw_device_id *match)
 {
 	const struct ccw_device_id *id = array;
 
-	for (id = array; id->match_flags; id++) {
+	for (id = array; id->match_flags; id++)
+	{
 		if ((id->match_flags & CCW_DEVICE_ID_MATCH_CU_TYPE)
-		    && (id->cu_type != match->cu_type))
+			&& (id->cu_type != match->cu_type))
+		{
 			continue;
+		}
 
 		if ((id->match_flags & CCW_DEVICE_ID_MATCH_CU_MODEL)
-		    && (id->cu_model != match->cu_model))
+			&& (id->cu_model != match->cu_model))
+		{
 			continue;
+		}
 
 		if ((id->match_flags & CCW_DEVICE_ID_MATCH_DEVICE_TYPE)
-		    && (id->dev_type != match->dev_type))
+			&& (id->dev_type != match->dev_type))
+		{
 			continue;
+		}
 
 		if ((id->match_flags & CCW_DEVICE_ID_MATCH_DEVICE_MODEL)
-		    && (id->dev_model != match->dev_model))
+			&& (id->dev_model != match->dev_model))
+		{
 			continue;
+		}
 
 		return id;
 	}
@@ -81,16 +90,17 @@ ccw_device_id_match(const struct ccw_device_id *array,
  * can have different interrupt handlers for different ccw devices
  * (multi-subchannel drivers).
  */
-struct ccw_device {
-	spinlock_t *ccwlock;
-/* private: */
-	struct ccw_device_private *private;	/* cio private information */
-/* public: */
-	struct ccw_device_id id;
-	struct ccw_driver *drv;
-	struct device dev;
-	int online;
-	void (*handler) (struct ccw_device *, unsigned long, struct irb *);
+struct ccw_device
+{
+		spinlock_t *ccwlock;
+		/* private: */
+		struct ccw_device_private *private;	/* cio private information */
+		/* public: */
+		struct ccw_device_id id;
+		struct ccw_driver *drv;
+		struct device dev;
+		int online;
+		void (*handler) (struct ccw_device *, unsigned long, struct irb *);
 };
 
 /*
@@ -106,7 +116,8 @@ struct ccw_device {
 /*
  * Possible CIO actions triggered by the unit check handler.
  */
-enum uc_todo {
+enum uc_todo
+{
 	UC_TODO_RETRY,
 	UC_TODO_RETRY_ON_NEW_PATH,
 	UC_TODO_STOP
@@ -131,7 +142,8 @@ enum uc_todo {
  * @driver: embedded device driver structure
  * @int_class: interruption class to use for accounting interrupts
  */
-struct ccw_driver {
+struct ccw_driver
+{
 	struct ccw_device_id *ids;
 	int (*probe) (struct ccw_device *);
 	void (*remove) (struct ccw_device *);
@@ -151,7 +163,7 @@ struct ccw_driver {
 };
 
 extern struct ccw_device *get_ccwdev_by_busid(struct ccw_driver *cdrv,
-					      const char *bus_id);
+		const char *bus_id);
 
 /* devices drivers call these during module load and unload.
  * When a driver is registered, its probe method is called
@@ -179,29 +191,29 @@ int ccw_device_is_multipath(struct ccw_device *cdev);
 #define CCWDEV_DO_MULTIPATH		0x0010
 
 extern int ccw_device_start(struct ccw_device *, struct ccw1 *,
-			    unsigned long, __u8, unsigned long);
+							unsigned long, __u8, unsigned long);
 extern int ccw_device_start_timeout(struct ccw_device *, struct ccw1 *,
-				    unsigned long, __u8, unsigned long, int);
+									unsigned long, __u8, unsigned long, int);
 extern int ccw_device_start_key(struct ccw_device *, struct ccw1 *,
-				unsigned long, __u8, __u8, unsigned long);
+								unsigned long, __u8, __u8, unsigned long);
 extern int ccw_device_start_timeout_key(struct ccw_device *, struct ccw1 *,
-					unsigned long, __u8, __u8,
-					unsigned long, int);
+										unsigned long, __u8, __u8,
+										unsigned long, int);
 
 
 extern int ccw_device_resume(struct ccw_device *);
 extern int ccw_device_halt(struct ccw_device *, unsigned long);
 extern int ccw_device_clear(struct ccw_device *, unsigned long);
 int ccw_device_tm_start_key(struct ccw_device *cdev, struct tcw *tcw,
-			    unsigned long intparm, u8 lpm, u8 key);
+							unsigned long intparm, u8 lpm, u8 key);
 int ccw_device_tm_start_key(struct ccw_device *, struct tcw *,
-			    unsigned long, u8, u8);
+							unsigned long, u8, u8);
 int ccw_device_tm_start_timeout_key(struct ccw_device *, struct tcw *,
-			    unsigned long, u8, u8, int);
+									unsigned long, u8, u8, int);
 int ccw_device_tm_start(struct ccw_device *, struct tcw *,
-			    unsigned long, u8);
+						unsigned long, u8);
 int ccw_device_tm_start_timeout(struct ccw_device *, struct tcw *,
-			    unsigned long, u8, int);
+								unsigned long, u8, int);
 int ccw_device_tm_intrg(struct ccw_device *cdev);
 
 int ccw_device_get_mdc(struct ccw_device *cdev, u8 mask);

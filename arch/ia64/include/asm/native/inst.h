@@ -35,7 +35,7 @@
 	mov reg = cr.iha
 
 #define MOV_FROM_IPSR(pred, reg)	\
-(pred)	mov reg = cr.ipsr
+	(pred)	mov reg = cr.ipsr
 
 #define MOV_FROM_IIM(reg)	\
 	mov reg = cr.iim
@@ -47,25 +47,25 @@
 	mov reg = cr.ivr
 
 #define MOV_FROM_PSR(pred, reg, clob)	\
-(pred)	mov reg = psr
+	(pred)	mov reg = psr
 
 #define MOV_FROM_ITC(pred, pred_clob, reg, clob)	\
-(pred)	mov reg = ar.itc
+	(pred)	mov reg = ar.itc
 
 #define MOV_TO_IFA(reg, clob)	\
 	mov cr.ifa = reg
 
 #define MOV_TO_ITIR(pred, reg, clob)	\
-(pred)	mov cr.itir = reg
+	(pred)	mov cr.itir = reg
 
 #define MOV_TO_IHA(pred, reg, clob)	\
-(pred)	mov cr.iha = reg
+	(pred)	mov cr.iha = reg
 
 #define MOV_TO_IPSR(pred, reg, clob)		\
-(pred)	mov cr.ipsr = reg
+	(pred)	mov cr.ipsr = reg
 
 #define MOV_TO_IFS(pred, reg, clob)	\
-(pred)	mov cr.ifs = reg
+	(pred)	mov cr.ifs = reg
 
 #define MOV_TO_IIP(reg, clob)	\
 	mov cr.iip = reg
@@ -74,17 +74,17 @@
 	mov IA64_KR(kr) = reg
 
 #define ITC_I(pred, reg, clob)	\
-(pred)	itc.i reg
+	(pred)	itc.i reg
 
 #define ITC_D(pred, reg, clob)	\
-(pred)	itc.d reg
+	(pred)	itc.d reg
 
 #define ITC_I_AND_D(pred_i, pred_d, reg, clob)	\
-(pred_i) itc.i reg;				\
-(pred_d) itc.d reg
+	(pred_i) itc.i reg;				\
+	(pred_d) itc.d reg
 
 #define THASH(pred, reg0, reg1, clob)		\
-(pred)	thash reg0 = reg1
+	(pred)	thash reg0 = reg1
 
 #define SSM_PSR_IC_AND_DEFAULT_BITS_AND_SRLZ_I(clob0, clob1)		\
 	ssm psr.ic | PSR_DEFAULT_BITS					\
@@ -101,10 +101,10 @@
 	rsm psr.ic
 
 #define SSM_PSR_I(pred, pred_clob, clob)	\
-(pred)	ssm psr.i
+	(pred)	ssm psr.i
 
 #define RSM_PSR_I(pred, clob0, clob1)	\
-(pred)	rsm psr.i
+	(pred)	rsm psr.i
 
 #define RSM_PSR_I_IC(clob0, clob1, clob2)	\
 	rsm psr.i | psr.ic

@@ -26,7 +26,7 @@ static inline unsigned short twd_i387_to_fxsr(unsigned short twd)
 
 	/* Transform each pair of bits into 01 (valid) or 00 (empty) */
 	tmp = ~twd;
-	tmp = (tmp | (tmp>>1)) & 0x5555; /* 0V0V0V0V0V0V0V0V */
+	tmp = (tmp | (tmp >> 1)) & 0x5555; /* 0V0V0V0V0V0V0V0V */
 	/* and move the valid bits to the lower byte. */
 	tmp = (tmp | (tmp >> 1)) & 0x3333; /* 00VV00VV00VV00VV */
 	tmp = (tmp | (tmp >> 2)) & 0x0f0f; /* 0000VVVV0000VVVV */
@@ -44,43 +44,60 @@ static inline unsigned long twd_fxsr_to_i387(struct user_fxsr_struct *fxsave)
 
 #define FPREG_ADDR(f, n)	((char *)&(f)->st_space + (n) * 16)
 
-	for (i = 0; i < 8; i++) {
-		if (twd & 0x1) {
+	for (i = 0; i < 8; i++)
+	{
+		if (twd & 0x1)
+		{
 			st = (struct _fpxreg *) FPREG_ADDR(fxsave, i);
 
-			switch (st->exponent & 0x7fff) {
-			case 0x7fff:
-				tag = 2;		/* Special */
-				break;
-			case 0x0000:
-				if ( !st->significand[0] &&
-				     !st->significand[1] &&
-				     !st->significand[2] &&
-				     !st->significand[3] ) {
-					tag = 1;	/* Zero */
-				} else {
-					tag = 2;	/* Special */
-				}
-				break;
-			default:
-				if (st->significand[3] & 0x8000) {
-					tag = 0;	/* Valid */
-				} else {
-					tag = 2;	/* Special */
-				}
-				break;
+			switch (st->exponent & 0x7fff)
+			{
+				case 0x7fff:
+					tag = 2;		/* Special */
+					break;
+
+				case 0x0000:
+					if ( !st->significand[0] &&
+						 !st->significand[1] &&
+						 !st->significand[2] &&
+						 !st->significand[3] )
+					{
+						tag = 1;	/* Zero */
+					}
+					else
+					{
+						tag = 2;	/* Special */
+					}
+
+					break;
+
+				default:
+					if (st->significand[3] & 0x8000)
+					{
+						tag = 0;	/* Valid */
+					}
+					else
+					{
+						tag = 2;	/* Special */
+					}
+
+					break;
 			}
-		} else {
+		}
+		else
+		{
 			tag = 3;			/* Empty */
 		}
+
 		ret |= (tag << (2 * i));
 		twd = twd >> 1;
 	}
+
 	return ret;
 }
 
 static int convert_fxsr_to_user(struct _fpstate __user *buf,
-				struct user_fxsr_struct *fxsave)
+								struct user_fxsr_struct *fxsave)
 {
 	unsigned long env[7];
 	struct _fpreg __user *to;
@@ -96,24 +113,31 @@ static int convert_fxsr_to_user(struct _fpstate __user *buf,
 	env[6] = fxsave->fos;
 
 	if (__copy_to_user(buf, env, 7 * sizeof(unsigned long)))
+	{
 		return 1;
+	}
 
 	to = &buf->_st[0];
 	from = (struct _fpxreg *) &fxsave->st_space[0];
-	for (i = 0; i < 8; i++, to++, from++) {
+
+	for (i = 0; i < 8; i++, to++, from++)
+	{
 		unsigned long __user *t = (unsigned long __user *)to;
 		unsigned long *f = (unsigned long *)from;
 
 		if (__put_user(*f, t) ||
-				__put_user(*(f + 1), t + 1) ||
-				__put_user(from->exponent, &to->exponent))
+			__put_user(*(f + 1), t + 1) ||
+			__put_user(from->exponent, &to->exponent))
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
 static int convert_fxsr_from_user(struct user_fxsr_struct *fxsave,
-				  struct _fpstate __user *buf)
+								  struct _fpstate __user *buf)
 {
 	unsigned long env[7];
 	struct _fpxreg *to;
@@ -121,7 +145,9 @@ static int convert_fxsr_from_user(struct user_fxsr_struct *fxsave,
 	int i;
 
 	if (copy_from_user( env, buf, 7 * sizeof(long)))
+	{
 		return 1;
+	}
 
 	fxsave->cwd = (unsigned short)(env[0] & 0xffff);
 	fxsave->swd = (unsigned short)(env[1] & 0xffff);
@@ -134,15 +160,20 @@ static int convert_fxsr_from_user(struct user_fxsr_struct *fxsave,
 
 	to = (struct _fpxreg *) &fxsave->st_space[0];
 	from = &buf->_st[0];
-	for (i = 0; i < 8; i++, to++, from++) {
+
+	for (i = 0; i < 8; i++, to++, from++)
+	{
 		unsigned long *t = (unsigned long *)to;
 		unsigned long __user *f = (unsigned long __user *)from;
 
 		if (__get_user(*t, f) ||
-		    __get_user(*(t + 1), f + 1) ||
-		    __get_user(to->exponent, &from->exponent))
+			__get_user(*(t + 1), f + 1) ||
+			__get_user(to->exponent, &from->exponent))
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -151,7 +182,7 @@ extern int have_fpx_regs;
 #endif
 
 static int copy_sc_from_user(struct pt_regs *regs,
-			     struct sigcontext __user *from)
+							 struct sigcontext __user *from)
 {
 	struct sigcontext sc;
 	int err, pid;
@@ -160,8 +191,11 @@ static int copy_sc_from_user(struct pt_regs *regs,
 	current->restart_block.fn = do_no_restart_syscall;
 
 	err = copy_from_user(&sc, from, sizeof(sc));
+
 	if (err)
+	{
 		return err;
+	}
 
 #define GETREG(regno, regname) regs->regs.gp[HOST_##regno] = sc.regname
 
@@ -202,43 +236,58 @@ static int copy_sc_from_user(struct pt_regs *regs,
 
 	pid = userspace_pid[current_thread_info()->cpu];
 #ifdef CONFIG_X86_32
-	if (have_fpx_regs) {
+
+	if (have_fpx_regs)
+	{
 		struct user_fxsr_struct fpx;
 
 		err = copy_from_user(&fpx,
-			&((struct _fpstate __user *)sc.fpstate)->_fxsr_env[0],
-				     sizeof(struct user_fxsr_struct));
-		if (err)
-			return 1;
+							 &((struct _fpstate __user *)sc.fpstate)->_fxsr_env[0],
+							 sizeof(struct user_fxsr_struct));
 
-		err = convert_fxsr_from_user(&fpx, (void *)sc.fpstate);
 		if (err)
-			return 1;
-
-		err = restore_fpx_registers(pid, (unsigned long *) &fpx);
-		if (err < 0) {
-			printk(KERN_ERR "copy_sc_from_user - "
-			       "restore_fpx_registers failed, errno = %d\n",
-			       -err);
+		{
 			return 1;
 		}
-	} else
+
+		err = convert_fxsr_from_user(&fpx, (void *)sc.fpstate);
+
+		if (err)
+		{
+			return 1;
+		}
+
+		err = restore_fpx_registers(pid, (unsigned long *) &fpx);
+
+		if (err < 0)
+		{
+			printk(KERN_ERR "copy_sc_from_user - "
+				   "restore_fpx_registers failed, errno = %d\n",
+				   -err);
+			return 1;
+		}
+	}
+	else
 #endif
 	{
 		err = copy_from_user(regs->regs.fp, (void *)sc.fpstate,
-				     sizeof(struct _xstate));
+							 sizeof(struct _xstate));
+
 		if (err)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
 static int copy_sc_to_user(struct sigcontext __user *to,
-			   struct _xstate __user *to_fp, struct pt_regs *regs,
-			   unsigned long mask)
+						   struct _xstate __user *to_fp, struct pt_regs *regs,
+						   unsigned long mask)
 {
 	struct sigcontext sc;
-	struct faultinfo * fi = &current->thread.arch.faultinfo;
+	struct faultinfo *fi = &current->thread.arch.faultinfo;
 	int err, pid;
 	memset(&sc, 0, sizeof(struct sigcontext));
 
@@ -284,39 +333,57 @@ static int copy_sc_to_user(struct sigcontext __user *to,
 	sc.fpstate = (unsigned long)to_fp;
 
 	err = copy_to_user(to, &sc, sizeof(struct sigcontext));
+
 	if (err)
+	{
 		return 1;
+	}
 
 	pid = userspace_pid[current_thread_info()->cpu];
 
 #ifdef CONFIG_X86_32
-	if (have_fpx_regs) {
+
+	if (have_fpx_regs)
+	{
 		struct user_fxsr_struct fpx;
 
 		err = save_fpx_registers(pid, (unsigned long *) &fpx);
-		if (err < 0){
+
+		if (err < 0)
+		{
 			printk(KERN_ERR "copy_sc_to_user - save_fpx_registers "
-			       "failed, errno = %d\n", err);
+				   "failed, errno = %d\n", err);
 			return 1;
 		}
 
 		err = convert_fxsr_to_user(&to_fp->fpstate, &fpx);
+
 		if (err)
+		{
 			return 1;
+		}
 
 		err |= __put_user(fpx.swd, &to_fp->fpstate.status);
 		err |= __put_user(X86_FXSR_MAGIC, &to_fp->fpstate.magic);
+
 		if (err)
+		{
 			return 1;
+		}
 
 		if (copy_to_user(&to_fp->fpstate._fxsr_env[0], &fpx,
-				 sizeof(struct user_fxsr_struct)))
+						 sizeof(struct user_fxsr_struct)))
+		{
 			return 1;
-	} else
+		}
+	}
+	else
 #endif
 	{
 		if (copy_to_user(to_fp, regs->regs.fp, sizeof(struct _xstate)))
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -324,8 +391,8 @@ static int copy_sc_to_user(struct sigcontext __user *to,
 
 #ifdef CONFIG_X86_32
 static int copy_ucontext_to_user(struct ucontext __user *uc,
-				 struct _xstate __user *fp, sigset_t *set,
-				 unsigned long sp)
+								 struct _xstate __user *fp, sigset_t *set,
+								 unsigned long sp)
 {
 	int err = 0;
 
@@ -341,7 +408,7 @@ struct sigframe
 	int sig;
 	struct sigcontext sc;
 	struct _xstate fpstate;
-	unsigned long extramask[_NSIG_WORDS-1];
+	unsigned long extramask[_NSIG_WORDS - 1];
 	char retcode[8];
 };
 
@@ -358,7 +425,7 @@ struct rt_sigframe
 };
 
 int setup_signal_stack_sc(unsigned long stack_top, struct ksignal *ksig,
-			  struct pt_regs *regs, sigset_t *mask)
+						  struct pt_regs *regs, sigset_t *mask)
 {
 	struct sigframe __user *frame;
 	void __user *restorer;
@@ -367,19 +434,26 @@ int setup_signal_stack_sc(unsigned long stack_top, struct ksignal *ksig,
 	/* This is the same calculation as i386 - ((sp + 4) & 15) == 0 */
 	stack_top = ((stack_top + 4) & -16UL) - 4;
 	frame = (struct sigframe __user *) stack_top - 1;
+
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return 1;
+	}
 
 	restorer = frame->retcode;
+
 	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		restorer = ksig->ka.sa.sa_restorer;
+	}
 
 	err |= __put_user(restorer, &frame->pretcode);
 	err |= __put_user(sig, &frame->sig);
 	err |= copy_sc_to_user(&frame->sc, &frame->fpstate, regs, mask->sig[0]);
+
 	if (_NSIG_WORDS > 1)
 		err |= __copy_to_user(&frame->extramask, &mask->sig[1],
-				      sizeof(frame->extramask));
+							  sizeof(frame->extramask));
 
 	/*
 	 * This is popl %eax ; movl $,%eax ; int $0x80
@@ -388,12 +462,14 @@ int setup_signal_stack_sc(unsigned long stack_top, struct ksignal *ksig,
 	 * reasons and because gdb uses it as a signature to notice
 	 * signal handler stack frames.
 	 */
-	err |= __put_user(0xb858, (short __user *)(frame->retcode+0));
-	err |= __put_user(__NR_sigreturn, (int __user *)(frame->retcode+2));
-	err |= __put_user(0x80cd, (short __user *)(frame->retcode+6));
+	err |= __put_user(0xb858, (short __user *)(frame->retcode + 0));
+	err |= __put_user(__NR_sigreturn, (int __user *)(frame->retcode + 2));
+	err |= __put_user(0x80cd, (short __user *)(frame->retcode + 6));
 
 	if (err)
+	{
 		return err;
+	}
 
 	PT_REGS_SP(regs) = (unsigned long) frame;
 	PT_REGS_IP(regs) = (unsigned long) ksig->ka.sa.sa_handler;
@@ -404,7 +480,7 @@ int setup_signal_stack_sc(unsigned long stack_top, struct ksignal *ksig,
 }
 
 int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
-			  struct pt_regs *regs, sigset_t *mask)
+						  struct pt_regs *regs, sigset_t *mask)
 {
 	struct rt_sigframe __user *frame;
 	void __user *restorer;
@@ -412,12 +488,18 @@ int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
 
 	stack_top &= -8UL;
 	frame = (struct rt_sigframe __user *) stack_top - 1;
+
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return 1;
+	}
 
 	restorer = frame->retcode;
+
 	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		restorer = ksig->ka.sa.sa_restorer;
+	}
 
 	err |= __put_user(restorer, &frame->pretcode);
 	err |= __put_user(sig, &frame->sig);
@@ -425,7 +507,7 @@ int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
 	err |= __put_user(&frame->uc, &frame->puc);
 	err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 	err |= copy_ucontext_to_user(&frame->uc, &frame->fpstate, mask,
-					PT_REGS_SP(regs));
+								 PT_REGS_SP(regs));
 
 	/*
 	 * This is movl $,%eax ; int $0x80
@@ -434,12 +516,14 @@ int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
 	 * reasons and because gdb uses it as a signature to notice
 	 * signal handler stack frames.
 	 */
-	err |= __put_user(0xb8, (char __user *)(frame->retcode+0));
-	err |= __put_user(__NR_rt_sigreturn, (int __user *)(frame->retcode+1));
-	err |= __put_user(0x80cd, (short __user *)(frame->retcode+5));
+	err |= __put_user(0xb8, (char __user *)(frame->retcode + 0));
+	err |= __put_user(__NR_rt_sigreturn, (int __user *)(frame->retcode + 1));
+	err |= __put_user(0x80cd, (short __user *)(frame->retcode + 5));
 
 	if (err)
+	{
 		return err;
+	}
 
 	PT_REGS_SP(regs) = (unsigned long) frame;
 	PT_REGS_IP(regs) = (unsigned long) ksig->ka.sa.sa_handler;
@@ -458,19 +542,23 @@ long sys_sigreturn(void)
 	int sig_size = (_NSIG_WORDS - 1) * sizeof(unsigned long);
 
 	if (copy_from_user(&set.sig[0], &sc->oldmask, sizeof(set.sig[0])) ||
-	    copy_from_user(&set.sig[1], frame->extramask, sig_size))
+		copy_from_user(&set.sig[1], frame->extramask, sig_size))
+	{
 		goto segfault;
+	}
 
 	set_current_blocked(&set);
 
 	if (copy_sc_from_user(&current->thread.regs, sc))
+	{
 		goto segfault;
+	}
 
 	/* Avoid ERESTART handling */
 	PT_REGS_SYSCALL_NR(&current->thread.regs) = -1;
 	return PT_REGS_SYSCALL_RET(&current->thread.regs);
 
- segfault:
+segfault:
 	force_sig(SIGSEGV, current);
 	return 0;
 }
@@ -486,24 +574,30 @@ struct rt_sigframe
 };
 
 int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
-			  struct pt_regs *regs, sigset_t *set)
+						  struct pt_regs *regs, sigset_t *set)
 {
 	struct rt_sigframe __user *frame;
 	int err = 0, sig = ksig->sig;
 	unsigned long fp_to;
 
 	frame = (struct rt_sigframe __user *)
-		round_down(stack_top - sizeof(struct rt_sigframe), 16);
+			round_down(stack_top - sizeof(struct rt_sigframe), 16);
 	/* Subtract 128 for a red zone and 8 for proper alignment */
 	frame = (struct rt_sigframe __user *) ((unsigned long) frame - 128 - 8);
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		goto out;
+	}
 
-	if (ksig->ka.sa.sa_flags & SA_SIGINFO) {
+	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
 
 	/* Create the ucontext.  */
@@ -511,18 +605,20 @@ int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
 	err |= __put_user(0, &frame->uc.uc_link);
 	err |= __save_altstack(&frame->uc.uc_stack, PT_REGS_SP(regs));
 	err |= copy_sc_to_user(&frame->uc.uc_mcontext, &frame->fpstate, regs,
-			       set->sig[0]);
+						   set->sig[0]);
 
 	fp_to = (unsigned long)&frame->fpstate;
 
 	err |= __put_user(fp_to, &frame->uc.uc_mcontext.fpstate);
-	if (sizeof(*set) == 16) {
+
+	if (sizeof(*set) == 16)
+	{
 		err |= __put_user(set->sig[0], &frame->uc.uc_sigmask.sig[0]);
 		err |= __put_user(set->sig[1], &frame->uc.uc_sigmask.sig[1]);
 	}
 	else
 		err |= __copy_to_user(&frame->uc.uc_sigmask, set,
-				      sizeof(*set));
+							  sizeof(*set));
 
 	/*
 	 * Set up to return from userspace.  If provided, use a stub
@@ -531,13 +627,17 @@ int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
 	/* x86-64 should always use SA_RESTORER. */
 	if (ksig->ka.sa.sa_flags & SA_RESTORER)
 		err |= __put_user((void *)ksig->ka.sa.sa_restorer,
-				  &frame->pretcode);
+						  &frame->pretcode);
 	else
 		/* could use a vstub here */
+	{
 		return err;
+	}
 
 	if (err)
+	{
 		return err;
+	}
 
 	PT_REGS_SP(regs) = (unsigned long) frame;
 	PT_REGS_DI(regs) = sig;
@@ -551,7 +651,7 @@ int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
 	PT_REGS_SI(regs) = (unsigned long) &frame->info;
 	PT_REGS_DX(regs) = (unsigned long) &frame->uc;
 	PT_REGS_IP(regs) = (unsigned long) ksig->ka.sa.sa_handler;
- out:
+out:
 	return err;
 }
 #endif
@@ -565,18 +665,22 @@ long sys_rt_sigreturn(void)
 	sigset_t set;
 
 	if (copy_from_user(&set, &uc->uc_sigmask, sizeof(set)))
+	{
 		goto segfault;
+	}
 
 	set_current_blocked(&set);
 
 	if (copy_sc_from_user(&current->thread.regs, &uc->uc_mcontext))
+	{
 		goto segfault;
+	}
 
 	/* Avoid ERESTART handling */
 	PT_REGS_SYSCALL_NR(&current->thread.regs) = -1;
 	return PT_REGS_SYSCALL_RET(&current->thread.regs);
 
- segfault:
+segfault:
 	force_sig(SIGSEGV, current);
 	return 0;
 }

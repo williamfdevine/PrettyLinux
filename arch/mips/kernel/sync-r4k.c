@@ -44,10 +44,14 @@ void synchronise_count_master(int cpu)
 	 * two CPUs.
 	 */
 
-	for (i = 0; i < NR_LOOPS; i++) {
+	for (i = 0; i < NR_LOOPS; i++)
+	{
 		/* slaves loop on '!= 2' */
 		while (atomic_read(&count_count_start) != 1)
+		{
 			mb();
+		}
+
 		atomic_set(&count_count_stop, 0);
 		smp_wmb();
 
@@ -56,23 +60,31 @@ void synchronise_count_master(int cpu)
 
 		/* Count will be initialised to current timer */
 		if (i == 1)
+		{
 			initcount = read_c0_count();
+		}
 
 		/*
 		 * Everyone initialises count in the last loop:
 		 */
-		if (i == NR_LOOPS-1)
+		if (i == NR_LOOPS - 1)
+		{
 			write_c0_count(initcount);
+		}
 
 		/*
 		 * Wait for slave to leave the synchronization point:
 		 */
 		while (atomic_read(&count_count_stop) != 1)
+		{
 			mb();
+		}
+
 		atomic_set(&count_count_start, 0);
 		smp_wmb();
 		atomic_inc(&count_count_stop);
 	}
+
 	/* Arrange for an interrupt in a short while */
 	write_c0_compare(read_c0_count() + COUNTON);
 
@@ -95,21 +107,31 @@ void synchronise_count_slave(int cpu)
 	 * so we first wait for the master to say everyone is ready
 	 */
 
-	for (i = 0; i < NR_LOOPS; i++) {
+	for (i = 0; i < NR_LOOPS; i++)
+	{
 		atomic_inc(&count_count_start);
+
 		while (atomic_read(&count_count_start) != 2)
+		{
 			mb();
+		}
 
 		/*
 		 * Everyone initialises count in the last loop:
 		 */
-		if (i == NR_LOOPS-1)
+		if (i == NR_LOOPS - 1)
+		{
 			write_c0_count(initcount);
+		}
 
 		atomic_inc(&count_count_stop);
+
 		while (atomic_read(&count_count_stop) != 2)
+		{
 			mb();
+		}
 	}
+
 	/* Arrange for an interrupt in a short while */
 	write_c0_compare(read_c0_count() + COUNTON);
 }

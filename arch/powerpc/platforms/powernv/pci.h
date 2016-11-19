@@ -7,14 +7,16 @@
 
 struct pci_dn;
 
-enum pnv_phb_type {
+enum pnv_phb_type
+{
 	PNV_PHB_IODA1	= 0,
 	PNV_PHB_IODA2	= 1,
 	PNV_PHB_NPU	= 2,
 };
 
 /* Precise PHB model for error management */
-enum pnv_phb_model {
+enum pnv_phb_model
+{
 	PNV_PHB_MODEL_UNKNOWN,
 	PNV_PHB_MODEL_P7IOC,
 	PNV_PHB_MODEL_PHB3,
@@ -31,7 +33,8 @@ enum pnv_phb_model {
 
 /* Data associated with a PE, including IOMMU tracking etc.. */
 struct pnv_phb;
-struct pnv_ioda_pe {
+struct pnv_ioda_pe
+{
 	unsigned long		flags;
 	struct pnv_phb		*phb;
 	int			device_count;
@@ -78,7 +81,8 @@ struct pnv_ioda_pe {
 #define PNV_PHB_FLAG_EEH	(1 << 0)
 #define PNV_PHB_FLAG_CXL	(1 << 1) /* Real PHB supporting the cxl kernel API */
 
-struct pnv_phb {
+struct pnv_phb
+{
 	struct pci_controller	*hose;
 	enum pnv_phb_type	type;
 	enum pnv_phb_model	model;
@@ -101,19 +105,20 @@ struct pnv_phb {
 	struct msi_bitmap	msi_bmp;
 #endif
 	int (*msi_setup)(struct pnv_phb *phb, struct pci_dev *dev,
-			 unsigned int hwirq, unsigned int virq,
-			 unsigned int is_64, struct msi_msg *msg);
+					 unsigned int hwirq, unsigned int virq,
+					 unsigned int is_64, struct msi_msg *msg);
 	void (*dma_dev_setup)(struct pnv_phb *phb, struct pci_dev *pdev);
 	void (*fixup_phb)(struct pci_controller *hose);
 	int (*init_m64)(struct pnv_phb *phb);
 	void (*reserve_m64_pe)(struct pci_bus *bus,
-			       unsigned long *pe_bitmap, bool all);
+						   unsigned long *pe_bitmap, bool all);
 	struct pnv_ioda_pe *(*pick_m64_pe)(struct pci_bus *bus, bool all);
 	int (*get_pe_state)(struct pnv_phb *phb, int pe_no);
 	void (*freeze_pe)(struct pnv_phb *phb, int pe_no);
 	int (*unfreeze_pe)(struct pnv_phb *phb, int pe_no, int opt);
 
-	struct {
+	struct
+	{
 		/* Global bridge info */
 		unsigned int		total_pe_num;
 		unsigned int		reserved_pe_idx;
@@ -166,7 +171,8 @@ struct pnv_phb {
 	} ioda;
 
 	/* PHB and hub status structure */
-	union {
+	union
+	{
 		unsigned char			blob[PNV_PCI_DIAG_BUF_SIZE];
 		struct OpalIoP7IOCPhbErrorData	p7ioc;
 		struct OpalIoPhb3ErrorData	phb3;
@@ -180,19 +186,19 @@ struct pnv_phb {
 
 extern struct pci_ops pnv_pci_ops;
 extern int pnv_tce_build(struct iommu_table *tbl, long index, long npages,
-		unsigned long uaddr, enum dma_data_direction direction,
-		unsigned long attrs);
+						 unsigned long uaddr, enum dma_data_direction direction,
+						 unsigned long attrs);
 extern void pnv_tce_free(struct iommu_table *tbl, long index, long npages);
 extern int pnv_tce_xchg(struct iommu_table *tbl, long index,
-		unsigned long *hpa, enum dma_data_direction *direction);
+						unsigned long *hpa, enum dma_data_direction *direction);
 extern unsigned long pnv_tce_get(struct iommu_table *tbl, long index);
 
 void pnv_pci_dump_phb_diag_data(struct pci_controller *hose,
-				unsigned char *log_buff);
+								unsigned char *log_buff);
 int pnv_pci_cfg_read(struct pci_dn *pdn,
-		     int where, int size, u32 *val);
+					 int where, int size, u32 *val);
 int pnv_pci_cfg_write(struct pci_dn *pdn,
-		      int where, int size, u32 val);
+					  int where, int size, u32 val);
 extern struct iommu_table *pnv_pci_table_alloc(int nid);
 
 extern long pnv_pci_link_table_and_group(int node, int num,
@@ -201,8 +207,8 @@ extern long pnv_pci_link_table_and_group(int node, int num,
 extern void pnv_pci_unlink_table_and_group(struct iommu_table *tbl,
 		struct iommu_table_group *table_group);
 extern void pnv_pci_setup_iommu_table(struct iommu_table *tbl,
-				      void *tce_mem, u64 tce_size,
-				      u64 dma_offset, unsigned page_shift);
+									  void *tce_mem, u64 tce_size,
+									  u64 dma_offset, unsigned page_shift);
 extern void pnv_pci_init_ioda_hub(struct device_node *np);
 extern void pnv_pci_init_ioda2_phb(struct device_node *np);
 extern void pnv_pci_init_npu_phb(struct device_node *np);
@@ -218,7 +224,7 @@ extern void pnv_set_msi_irq_chip(struct pnv_phb *phb, unsigned int virq);
 extern bool pnv_pci_enable_device_hook(struct pci_dev *dev);
 
 extern void pe_level_printk(const struct pnv_ioda_pe *pe, const char *level,
-			    const char *fmt, ...);
+							const char *fmt, ...);
 #define pe_err(pe, fmt, ...)					\
 	pe_level_printk(pe, KERN_ERR, fmt, ##__VA_ARGS__)
 #define pe_warn(pe, fmt, ...)					\
@@ -231,7 +237,7 @@ extern void pnv_npu_try_dma_set_bypass(struct pci_dev *gpdev, bool bypass);
 extern void pnv_pci_phb3_tce_invalidate_entire(struct pnv_phb *phb, bool rm);
 extern struct pnv_ioda_pe *pnv_pci_npu_setup_iommu(struct pnv_ioda_pe *npe);
 extern long pnv_npu_set_window(struct pnv_ioda_pe *npe, int num,
-		struct iommu_table *tbl);
+							   struct iommu_table *tbl);
 extern long pnv_npu_unset_window(struct pnv_ioda_pe *npe, int num);
 extern void pnv_npu_take_ownership(struct pnv_ioda_pe *npe);
 extern void pnv_npu_release_ownership(struct pnv_ioda_pe *npe);

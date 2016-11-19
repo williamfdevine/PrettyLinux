@@ -32,9 +32,13 @@
 static inline bool cpu_have_feature(unsigned int num)
 {
 	if (num < 32)
+	{
 		return !!(cur_cpu_spec->cpu_user_features & 1UL << num);
+	}
 	else
+	{
 		return !!(cur_cpu_spec->cpu_user_features2 & 1UL << (num - 32));
+	}
 }
 
 #endif /* __ASM_POWERPC_CPUFEATURE_H */

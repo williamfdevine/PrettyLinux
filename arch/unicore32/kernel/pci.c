@@ -27,45 +27,56 @@ static int debug_pci;
 
 static int
 puv3_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-			int size, u32 *value)
+				 int size, u32 *value)
 {
 	writel(CONFIG_CMD(bus, devfn, where), PCICFG_ADDR);
-	switch (size) {
-	case 1:
-		*value = (readl(PCICFG_DATA) >> ((where & 3) * 8)) & 0xFF;
-		break;
-	case 2:
-		*value = (readl(PCICFG_DATA) >> ((where & 2) * 8)) & 0xFFFF;
-		break;
-	case 4:
-		*value = readl(PCICFG_DATA);
-		break;
+
+	switch (size)
+	{
+		case 1:
+			*value = (readl(PCICFG_DATA) >> ((where & 3) * 8)) & 0xFF;
+			break;
+
+		case 2:
+			*value = (readl(PCICFG_DATA) >> ((where & 2) * 8)) & 0xFFFF;
+			break;
+
+		case 4:
+			*value = readl(PCICFG_DATA);
+			break;
 	}
+
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int
 puv3_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-			int size, u32 value)
+				  int size, u32 value)
 {
 	writel(CONFIG_CMD(bus, devfn, where), PCICFG_ADDR);
-	switch (size) {
-	case 1:
-		writel((readl(PCICFG_DATA) & ~FMASK(8, (where&3)*8))
-			| FIELD(value, 8, (where&3)*8), PCICFG_DATA);
-		break;
-	case 2:
-		writel((readl(PCICFG_DATA) & ~FMASK(16, (where&2)*8))
-			| FIELD(value, 16, (where&2)*8), PCICFG_DATA);
-		break;
-	case 4:
-		writel(value, PCICFG_DATA);
-		break;
+
+	switch (size)
+	{
+		case 1:
+			writel((readl(PCICFG_DATA) & ~FMASK(8, (where & 3) * 8))
+				   | FIELD(value, 8, (where & 3) * 8), PCICFG_DATA);
+			break;
+
+		case 2:
+			writel((readl(PCICFG_DATA) & ~FMASK(16, (where & 2) * 8))
+				   | FIELD(value, 16, (where & 2) * 8), PCICFG_DATA);
+			break;
+
+		case 4:
+			writel(value, PCICFG_DATA);
+			break;
 	}
+
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops pci_puv3_ops = {
+struct pci_ops pci_puv3_ops =
+{
 	.read  = puv3_read_config,
 	.write = puv3_write_config,
 };
@@ -103,31 +114,55 @@ void pci_puv3_preinit(void)
 
 static int __init pci_puv3_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	if (dev->bus->number == 0) {
+	if (dev->bus->number == 0)
+	{
 #ifdef CONFIG_ARCH_FPGA /* 4 pci slots */
+
 		if      (dev->devfn == 0x00)
+		{
 			return IRQ_PCIINTA;
+		}
 		else if (dev->devfn == 0x08)
+		{
 			return IRQ_PCIINTB;
+		}
 		else if (dev->devfn == 0x10)
+		{
 			return IRQ_PCIINTC;
+		}
 		else if (dev->devfn == 0x18)
+		{
 			return IRQ_PCIINTD;
+		}
+
 #endif
 #ifdef CONFIG_PUV3_DB0913 /* 3 pci slots */
+
 		if      (dev->devfn == 0x30)
+		{
 			return IRQ_PCIINTB;
+		}
 		else if (dev->devfn == 0x60)
+		{
 			return IRQ_PCIINTC;
+		}
 		else if (dev->devfn == 0x58)
+		{
 			return IRQ_PCIINTD;
+		}
+
 #endif
 #if	defined(CONFIG_PUV3_NB0916) || defined(CONFIG_PUV3_SMW0919)
+
 		/* only support 2 pci devices */
 		if      (dev->devfn == 0x00)
-			return IRQ_PCIINTC; /* sata */
+		{
+			return IRQ_PCIINTC;    /* sata */
+		}
+
 #endif
 	}
+
 	return -1;
 }
 
@@ -138,7 +173,7 @@ static int __init pci_puv3_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
  * DMA-capable regions of memory.
  */
 void __init puv3_pci_adjust_zones(unsigned long *zone_size,
-	unsigned long *zhole_size)
+								  unsigned long *zhole_size)
 {
 	unsigned int sz = SZ_128M >> PAGE_SHIFT;
 
@@ -146,7 +181,9 @@ void __init puv3_pci_adjust_zones(unsigned long *zone_size,
 	 * Only adjust if > 128M on current system
 	 */
 	if (zone_size[0] <= sz)
+	{
 		return;
+	}
 
 	zone_size[1] = zone_size[0] - sz;
 	zone_size[0] = sz;
@@ -171,8 +208,8 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 {
 	struct pci_dev *dev;
 	u16 features = PCI_COMMAND_SERR
-		| PCI_COMMAND_PARITY
-		| PCI_COMMAND_FAST_BACK;
+				   | PCI_COMMAND_PARITY
+				   | PCI_COMMAND_FAST_BACK;
 
 	bus->resource[0] = &ioport_resource;
 	bus->resource[1] = &iomem_resource;
@@ -181,7 +218,8 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 	 * Walk the devices on this bus, working out what we can
 	 * and can't support.
 	 */
-	list_for_each_entry(dev, &bus->devices, bus_list) {
+	list_for_each_entry(dev, &bus->devices, bus_list)
+	{
 		u16 status;
 
 		pci_read_config_word(dev, PCI_STATUS, &status);
@@ -193,37 +231,41 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 		 * on saves us one PCI cycle per transaction.
 		 */
 		if (!(status & PCI_STATUS_FAST_BACK))
+		{
 			features &= ~PCI_COMMAND_FAST_BACK;
+		}
 
 		if (pdev_bad_for_parity(dev))
 			features &= ~(PCI_COMMAND_SERR
-					| PCI_COMMAND_PARITY);
+						  | PCI_COMMAND_PARITY);
 
-		switch (dev->class >> 8) {
-		case PCI_CLASS_BRIDGE_PCI:
-			pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &status);
-			status |= PCI_BRIDGE_CTL_PARITY
-				| PCI_BRIDGE_CTL_MASTER_ABORT;
-			status &= ~(PCI_BRIDGE_CTL_BUS_RESET
-				| PCI_BRIDGE_CTL_FAST_BACK);
-			pci_write_config_word(dev, PCI_BRIDGE_CONTROL, status);
-			break;
+		switch (dev->class >> 8)
+		{
+			case PCI_CLASS_BRIDGE_PCI:
+				pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &status);
+				status |= PCI_BRIDGE_CTL_PARITY
+						  | PCI_BRIDGE_CTL_MASTER_ABORT;
+				status &= ~(PCI_BRIDGE_CTL_BUS_RESET
+							| PCI_BRIDGE_CTL_FAST_BACK);
+				pci_write_config_word(dev, PCI_BRIDGE_CONTROL, status);
+				break;
 
-		case PCI_CLASS_BRIDGE_CARDBUS:
-			pci_read_config_word(dev, PCI_CB_BRIDGE_CONTROL,
-					&status);
-			status |= PCI_CB_BRIDGE_CTL_PARITY
-				| PCI_CB_BRIDGE_CTL_MASTER_ABORT;
-			pci_write_config_word(dev, PCI_CB_BRIDGE_CONTROL,
-					status);
-			break;
+			case PCI_CLASS_BRIDGE_CARDBUS:
+				pci_read_config_word(dev, PCI_CB_BRIDGE_CONTROL,
+									 &status);
+				status |= PCI_CB_BRIDGE_CTL_PARITY
+						  | PCI_CB_BRIDGE_CTL_MASTER_ABORT;
+				pci_write_config_word(dev, PCI_CB_BRIDGE_CONTROL,
+									  status);
+				break;
 		}
 	}
 
 	/*
 	 * Now walk the devices again, this time setting them up.
 	 */
-	list_for_each_entry(dev, &bus->devices, bus_list) {
+	list_for_each_entry(dev, &bus->devices, bus_list)
+	{
 		u16 cmd;
 
 		pci_read_config_word(dev, PCI_COMMAND, &cmd);
@@ -231,24 +273,30 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 		pci_write_config_word(dev, PCI_COMMAND, cmd);
 
 		pci_write_config_byte(dev, PCI_CACHE_LINE_SIZE,
-				      L1_CACHE_BYTES >> 2);
+							  L1_CACHE_BYTES >> 2);
 	}
 
 	/*
 	 * Propagate the flags to the PCI bridge.
 	 */
-	if (bus->self && bus->self->hdr_type == PCI_HEADER_TYPE_BRIDGE) {
+	if (bus->self && bus->self->hdr_type == PCI_HEADER_TYPE_BRIDGE)
+	{
 		if (features & PCI_COMMAND_FAST_BACK)
+		{
 			bus->bridge_ctl |= PCI_BRIDGE_CTL_FAST_BACK;
+		}
+
 		if (features & PCI_COMMAND_PARITY)
+		{
 			bus->bridge_ctl |= PCI_BRIDGE_CTL_PARITY;
+		}
 	}
 
 	/*
 	 * Report what we did for this bus
 	 */
 	printk(KERN_INFO "PCI: bus%d: Fast back to back transfers %sabled\n",
-		bus->number, (features & PCI_COMMAND_FAST_BACK) ? "en" : "dis");
+		   bus->number, (features & PCI_COMMAND_FAST_BACK) ? "en" : "dis");
 }
 EXPORT_SYMBOL(pcibios_fixup_bus);
 
@@ -261,7 +309,9 @@ static int __init pci_common_init(void)
 	puv3_bus = pci_scan_bus(0, &pci_puv3_ops, NULL);
 
 	if (!puv3_bus)
+	{
 		panic("PCI: unable to scan bus!");
+	}
 
 	pci_fixup_irqs(pci_common_swizzle, pci_puv3_map_irq);
 
@@ -272,12 +322,14 @@ static int __init pci_common_init(void)
 }
 subsys_initcall(pci_common_init);
 
-char * __init pcibios_setup(char *str)
+char *__init pcibios_setup(char *str)
 {
-	if (!strcmp(str, "debug")) {
+	if (!strcmp(str, "debug"))
+	{
 		debug_pci = 1;
 		return NULL;
 	}
+
 	return str;
 }
 
@@ -302,12 +354,14 @@ void pcibios_set_master(struct pci_dev *dev)
  * which might be mirrored at 0x0100-0x03ff..
  */
 resource_size_t pcibios_align_resource(void *data, const struct resource *res,
-				resource_size_t size, resource_size_t align)
+									   resource_size_t size, resource_size_t align)
 {
 	resource_size_t start = res->start;
 
 	if (res->flags & IORESOURCE_IO && start & 0x300)
+	{
 		start = (start + 0x3ff) & ~0x3ff;
+	}
 
 	start = (start + align - 1) & ~(align - 1);
 
@@ -326,44 +380,62 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
 
 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
 	old_cmd = cmd;
-	for (idx = 0; idx < 6; idx++) {
+
+	for (idx = 0; idx < 6; idx++)
+	{
 		/* Only set up the requested stuff */
 		if (!(mask & (1 << idx)))
+		{
 			continue;
+		}
 
 		r = dev->resource + idx;
-		if (!r->start && r->end) {
+
+		if (!r->start && r->end)
+		{
 			printk(KERN_ERR "PCI: Device %s not available because"
-			       " of resource collisions\n", pci_name(dev));
+				   " of resource collisions\n", pci_name(dev));
 			return -EINVAL;
 		}
+
 		if (r->flags & IORESOURCE_IO)
+		{
 			cmd |= PCI_COMMAND_IO;
+		}
+
 		if (r->flags & IORESOURCE_MEM)
+		{
 			cmd |= PCI_COMMAND_MEMORY;
+		}
 	}
 
 	/*
 	 * Bridges (eg, cardbus bridges) need to be fully enabled
 	 */
 	if ((dev->class >> 16) == PCI_BASE_CLASS_BRIDGE)
+	{
 		cmd |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY;
+	}
 
-	if (cmd != old_cmd) {
+	if (cmd != old_cmd)
+	{
 		printk("PCI: enabling device %s (%04x -> %04x)\n",
-		       pci_name(dev), old_cmd, cmd);
+			   pci_name(dev), old_cmd, cmd);
 		pci_write_config_word(dev, PCI_COMMAND, cmd);
 	}
+
 	return 0;
 }
 
 int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
-			enum pci_mmap_state mmap_state, int write_combine)
+						enum pci_mmap_state mmap_state, int write_combine)
 {
 	unsigned long phys;
 
 	if (mmap_state == pci_mmap_io)
+	{
 		return -EINVAL;
+	}
 
 	phys = vma->vm_pgoff;
 
@@ -373,9 +445,11 @@ int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
 	if (remap_pfn_range(vma, vma->vm_start, phys,
-			     vma->vm_end - vma->vm_start,
-			     vma->vm_page_prot))
+						vma->vm_end - vma->vm_start,
+						vma->vm_page_prot))
+	{
 		return -EAGAIN;
+	}
 
 	return 0;
 }

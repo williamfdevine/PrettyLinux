@@ -62,7 +62,8 @@ static APMU_CLK(eth, ETH, 0x09, 0);
 static APMU_CLK(usb, USB, 0x12, 0);
 
 /* device and clock bindings */
-static struct clk_lookup pxa168_clkregs[] = {
+static struct clk_lookup pxa168_clkregs[] =
+{
 	INIT_CLKREG(&clk_uart1, "pxa2xx-uart.0", NULL),
 	INIT_CLKREG(&clk_uart2, "pxa2xx-uart.1", NULL),
 	INIT_CLKREG(&clk_uart3, "pxa2xx-uart.2", NULL),
@@ -87,7 +88,7 @@ static struct clk_lookup pxa168_clkregs[] = {
 };
 
 void __init pxa168_clk_init(phys_addr_t mpmu_phys, phys_addr_t apmu_phys,
-			    phys_addr_t apbc_phys)
+							phys_addr_t apbc_phys)
 {
 	clkdev_add_table(ARRAY_AND_SIZE(pxa168_clkregs));
 }

@@ -60,9 +60,9 @@ typedef struct page *pgtable_t;
 #define __MEMORY_SIZE   CONFIG_MEMORY_SIZE
 
 #ifdef CONFIG_MMU
-#define __PAGE_OFFSET  (0x80000000)
+	#define __PAGE_OFFSET  (0x80000000)
 #else
-#define __PAGE_OFFSET  (0x00000000)
+	#define __PAGE_OFFSET  (0x00000000)
 #endif
 
 #define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
@@ -70,16 +70,16 @@ typedef struct page *pgtable_t;
 #define __va(x)			((void *)((unsigned long)(x) + PAGE_OFFSET))
 
 #ifndef CONFIG_DISCONTIGMEM
-#define PFN_BASE		(CONFIG_MEMORY_START >> PAGE_SHIFT)
-#define ARCH_PFN_OFFSET		PFN_BASE
-#define pfn_valid(pfn)		(((pfn) - PFN_BASE) < max_mapnr)
+	#define PFN_BASE		(CONFIG_MEMORY_START >> PAGE_SHIFT)
+	#define ARCH_PFN_OFFSET		PFN_BASE
+	#define pfn_valid(pfn)		(((pfn) - PFN_BASE) < max_mapnr)
 #endif  /* !CONFIG_DISCONTIGMEM */
 
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC )
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC )
 
 #define devmem_is_allowed(x) 1
 

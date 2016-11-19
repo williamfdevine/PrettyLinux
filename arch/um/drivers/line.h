@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
  * Licensed under the GPL
  */
@@ -16,7 +16,8 @@
 #include "mconsole_kern.h"
 
 /* There's only two modifiable fields in this - .mc.list and .driver */
-struct line_driver {
+struct line_driver
+{
 	const char *name;
 	const char *device_name;
 	const short major;
@@ -31,7 +32,8 @@ struct line_driver {
 	struct tty_driver *driver;
 };
 
-struct line {
+struct line
+{
 	struct tty_port port;
 	int valid;
 
@@ -56,18 +58,18 @@ struct line {
 	const struct line_driver *driver;
 };
 
-extern void line_close(struct tty_struct *tty, struct file * filp);
+extern void line_close(struct tty_struct *tty, struct file *filp);
 extern int line_open(struct tty_struct *tty, struct file *filp);
 extern int line_install(struct tty_driver *driver, struct tty_struct *tty,
-	struct line *line);
+						struct line *line);
 extern void line_cleanup(struct tty_struct *tty);
 extern void line_hangup(struct tty_struct *tty);
 extern int line_setup(char **conf, unsigned nlines, char **def,
-		      char *init, char *name);
+					  char *init, char *name);
 extern int line_write(struct tty_struct *tty, const unsigned char *buf,
-		      int len);
+					  int len);
 extern int line_put_char(struct tty_struct *tty, unsigned char ch);
-extern void line_set_termios(struct tty_struct *tty, struct ktermios * old);
+extern void line_set_termios(struct tty_struct *tty, struct ktermios *old);
 extern int line_chars_in_buffer(struct tty_struct *tty);
 extern void line_flush_buffer(struct tty_struct *tty);
 extern void line_flush_chars(struct tty_struct *tty);
@@ -77,23 +79,23 @@ extern void line_unthrottle(struct tty_struct *tty);
 
 extern char *add_xterm_umid(char *base);
 extern int line_setup_irq(int fd, int input, int output, struct line *line,
-			  void *data);
+						  void *data);
 extern void line_close_chan(struct line *line);
 extern int register_lines(struct line_driver *line_driver,
-			  const struct tty_operations *driver,
-			  struct line *lines, int nlines);
+						  const struct tty_operations *driver,
+						  struct line *lines, int nlines);
 extern int setup_one_line(struct line *lines, int n, char *init,
-			  const struct chan_opts *opts, char **error_out);
+						  const struct chan_opts *opts, char **error_out);
 extern void close_lines(struct line *lines, int nlines);
 
 extern int line_config(struct line *lines, unsigned int sizeof_lines,
-		       char *str, const struct chan_opts *opts,
-		       char **error_out);
+					   char *str, const struct chan_opts *opts,
+					   char **error_out);
 extern int line_id(char **str, int *start_out, int *end_out);
 extern int line_remove(struct line *lines, unsigned int sizeof_lines, int n,
-		       char **error_out);
+					   char **error_out);
 extern int line_get_config(char *dev, struct line *lines,
-			   unsigned int sizeof_lines, char *str,
-			   int size, char **error_out);
+						   unsigned int sizeof_lines, char *str,
+						   int size, char **error_out);
 
 #endif

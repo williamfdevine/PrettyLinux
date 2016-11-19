@@ -31,9 +31,13 @@ static void __init imr_self_test_result(int res, const char *fmt, ...)
 
 	/* Print pass/fail. */
 	if (res)
+	{
 		pr_info(SELFTEST "pass ");
+	}
 	else
+	{
 		pr_info(SELFTEST "fail ");
+	}
 
 	/* Print variable string. */
 	va_start(vlist, fmt);
@@ -79,13 +83,15 @@ static void __init imr_self_test(void)
 
 	/* Test that a 1 KiB IMR @ zero with read/write all will bomb out. */
 	ret = imr_add_range(0, IMR_ALIGN, IMR_READ_ACCESS_ALL,
-			    IMR_WRITE_ACCESS_ALL);
+						IMR_WRITE_ACCESS_ALL);
 	imr_self_test_result(ret < 0, "1KiB IMR @ 0x00000000 - access-all\n");
 
 	/* Test that a 1 KiB IMR @ zero with CPU only will work. */
 	ret = imr_add_range(0, IMR_ALIGN, IMR_CPU, IMR_CPU);
 	imr_self_test_result(ret >= 0, "1KiB IMR @ 0x00000000 - cpu-access\n");
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		ret = imr_remove_range(0, IMR_ALIGN);
 		imr_self_test_result(ret == 0, "teardown - cpu-access\n");
 	}
@@ -94,13 +100,16 @@ static void __init imr_self_test(void)
 	size = IMR_ALIGN * 2;
 	ret = imr_add_range(0, size, IMR_READ_ACCESS_ALL, IMR_WRITE_ACCESS_ALL);
 	imr_self_test_result(ret >= 0, "2KiB IMR @ 0x00000000\n");
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		ret = imr_remove_range(0, size);
 		imr_self_test_result(ret == 0, "teardown 2KiB\n");
 	}
 }
 
-static const struct x86_cpu_id imr_ids[] __initconst = {
+static const struct x86_cpu_id imr_ids[] __initconst =
+{
 	{ X86_VENDOR_INTEL, 5, 9 },	/* Intel Quark SoC X1000. */
 	{}
 };
@@ -113,7 +122,10 @@ static const struct x86_cpu_id imr_ids[] __initconst = {
 static int __init imr_self_test_init(void)
 {
 	if (x86_match_cpu(imr_ids))
+	{
 		imr_self_test();
+	}
+
 	return 0;
 }
 

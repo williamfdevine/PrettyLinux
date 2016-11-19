@@ -22,7 +22,8 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 	return addr;
 }
 
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 	/* No extra data needed for Blackfin */
 };
 
@@ -37,22 +38,29 @@ extern inline void *return_address(unsigned int level)
 	unsigned int current_level = 0;
 
 	if (level == 0)
+	{
 		return __builtin_return_address(0);
+	}
 
 	fp = (unsigned long *)__builtin_frame_address(0);
 	endstack = (unsigned long *)PAGE_ALIGN((unsigned long)&level);
 
 	while (((unsigned long)fp & 0x3) == 0 && fp &&
-	       (fp + 1) < endstack && current_level < level) {
+		   (fp + 1) < endstack && current_level < level)
+	{
 		fp = (unsigned long *)*fp;
 		current_level++;
 	}
 
 	if (((unsigned long)fp & 0x3) == 0 && fp &&
-	    (fp + 1) < endstack)
-		ret_addr = (unsigned long *)*(fp + 1);
+		(fp + 1) < endstack)
+	{
+		ret_addr = (unsigned long *) * (fp + 1);
+	}
 	else
+	{
 		ret_addr = NULL;
+	}
 
 	return ret_addr;
 }

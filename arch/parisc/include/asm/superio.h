@@ -49,7 +49,8 @@
 
 #define SUPERIO_NIRQS   8
 
-struct superio_device {
+struct superio_device
+{
 	u32 fdc_base;
 	u32 sp1_base;
 	u32 sp2_base;
@@ -76,9 +77,9 @@ struct superio_device {
 
 #define is_superio_device(x) \
 	(((x)->vendor == PCI_VENDOR_ID_NS) && \
-	(  ((x)->device == PCI_DEVICE_ID_NS_87415) \
-	|| ((x)->device == PCI_DEVICE_ID_NS_87560_LIO) \
-	|| ((x)->device == PCI_DEVICE_ID_NS_87560_USB) ) )
+	 (  ((x)->device == PCI_DEVICE_ID_NS_87415) \
+		|| ((x)->device == PCI_DEVICE_ID_NS_87560_LIO) \
+		|| ((x)->device == PCI_DEVICE_ID_NS_87560_USB) ) )
 
 extern int superio_fixup_irq(struct pci_dev *pcidev); /* called by iosapic */
 

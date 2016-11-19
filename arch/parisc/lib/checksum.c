@@ -24,10 +24,10 @@
 
 #define addc(_t,_r)                     \
 	__asm__ __volatile__ (          \
-"       add             %0, %1, %0\n"   \
-"       addc            %0, %%r0, %0\n" \
-	: "=r"(_t)                      \
-	: "r"(_r), "0"(_t));
+									"       add             %0, %1, %0\n"   \
+									"       addc            %0, %%r0, %0\n" \
+									: "=r"(_t)                      \
+									: "r"(_r), "0"(_t));
 
 static inline unsigned short from32to16(unsigned int x)
 {
@@ -38,30 +38,43 @@ static inline unsigned short from32to16(unsigned int x)
 	return (unsigned short)x;
 }
 
-static inline unsigned int do_csum(const unsigned char * buff, int len)
+static inline unsigned int do_csum(const unsigned char *buff, int len)
 {
 	int odd, count;
 	unsigned int result = 0;
 
 	if (len <= 0)
+	{
 		goto out;
+	}
+
 	odd = 1 & (unsigned long) buff;
-	if (odd) {
+
+	if (odd)
+	{
 		result = be16_to_cpu(*buff);
 		len--;
 		buff++;
 	}
+
 	count = len >> 1;		/* nr of 16-bit words.. */
-	if (count) {
-		if (2 & (unsigned long) buff) {
+
+	if (count)
+	{
+		if (2 & (unsigned long) buff)
+		{
 			result += *(unsigned short *) buff;
 			count--;
 			len -= 2;
 			buff += 2;
 		}
+
 		count >>= 1;		/* nr of 32-bit words.. */
-		if (count) {
-			while (count >= 4) {
+
+		if (count)
+		{
+			while (count >= 4)
+			{
 				unsigned int r1, r2, r3, r4;
 				r1 = *(unsigned int *)(buff + 0);
 				r2 = *(unsigned int *)(buff + 4);
@@ -74,24 +87,37 @@ static inline unsigned int do_csum(const unsigned char * buff, int len)
 				count -= 4;
 				buff += 16;
 			}
-			while (count) {
+
+			while (count)
+			{
 				unsigned int w = *(unsigned int *) buff;
 				count--;
 				buff += 4;
 				addc(result, w);
 			}
+
 			result = (result & 0xffff) + (result >> 16);
 		}
-		if (len & 2) {
+
+		if (len & 2)
+		{
 			result += *(unsigned short *) buff;
 			buff += 2;
 		}
 	}
+
 	if (len & 1)
+	{
 		result += le16_to_cpu(*buff);
+	}
+
 	result = from32to16(result);
+
 	if (odd)
+	{
 		result = swab16(result);
+	}
+
 out:
 	return result;
 }
@@ -115,7 +141,7 @@ EXPORT_SYMBOL(csum_partial);
  * copy while checksumming, otherwise like csum_partial
  */
 __wsum csum_partial_copy_nocheck(const void *src, void *dst,
-				       int len, __wsum sum)
+								 int len, __wsum sum)
 {
 	/*
 	 * It's 2:30 am and I don't feel like doing it real ...
@@ -133,17 +159,19 @@ EXPORT_SYMBOL(csum_partial_copy_nocheck);
  * then zero the rest of the buffer.
  */
 __wsum csum_partial_copy_from_user(const void __user *src,
-					void *dst, int len,
-					__wsum sum, int *err_ptr)
+								   void *dst, int len,
+								   __wsum sum, int *err_ptr)
 {
 	int missing;
 
 	missing = copy_from_user(dst, src, len);
-	if (missing) {
+
+	if (missing)
+	{
 		memset(dst + len - missing, 0, missing);
 		*err_ptr = -EFAULT;
 	}
-		
+
 	return csum_partial(dst, len, sum);
 }
 EXPORT_SYMBOL(csum_partial_copy_from_user);

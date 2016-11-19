@@ -375,6 +375,6 @@
 
 
 #ifndef __ASSEMBLER__
-int am33xx_cm_init(const struct omap_prcm_init_data *data);
+	int am33xx_cm_init(const struct omap_prcm_init_data *data);
 #endif /* ASSEMBLER */
 #endif

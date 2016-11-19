@@ -16,25 +16,37 @@
 static inline void scr_writew(u16 val, volatile u16 *addr)
 {
 	if (__is_ioaddr(addr))
+	{
 		__raw_writew(val, (volatile u16 __iomem *) addr);
+	}
 	else
+	{
 		*addr = val;
+	}
 }
 
 static inline u16 scr_readw(volatile const u16 *addr)
 {
 	if (__is_ioaddr(addr))
+	{
 		return __raw_readw((volatile const u16 __iomem *) addr);
+	}
 	else
+	{
 		return *addr;
+	}
 }
 
 static inline void scr_memsetw(u16 *s, u16 c, unsigned int count)
 {
 	if (__is_ioaddr(s))
+	{
 		memsetw_io((u16 __iomem *) s, c, count);
+	}
 	else
+	{
 		memsetw(s, c, count);
+	}
 }
 
 /* Do not trust that the usage will be correct; analyze the arguments.  */
@@ -60,14 +72,14 @@ extern struct pci_controller *pci_vga_hose;
 	(((a) >= 0xa0000) && ((a) <= 0xc0000))
 
 # define FIXUP_IOADDR_VGA(a) do {                       \
-	if (pci_vga_hose && __is_port_vga(a))     \
-		(a) += pci_vga_hose->io_space->start;	  \
- } while(0)
+		if (pci_vga_hose && __is_port_vga(a))     \
+			(a) += pci_vga_hose->io_space->start;	  \
+	} while(0)
 
 # define FIXUP_MEMADDR_VGA(a) do {                       \
-	if (pci_vga_hose && __is_mem_vga(a))     \
-		(a) += pci_vga_hose->mem_space->start; \
- } while(0)
+		if (pci_vga_hose && __is_mem_vga(a))     \
+			(a) += pci_vga_hose->mem_space->start; \
+	} while(0)
 
 #else /* CONFIG_VGA_HOSE */
 # define pci_vga_hose 0

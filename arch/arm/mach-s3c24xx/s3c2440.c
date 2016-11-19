@@ -42,7 +42,8 @@
 
 #include "common.h"
 
-static struct device s3c2440_dev = {
+static struct device s3c2440_dev =
+{
 	.bus		= &s3c2440_subsys,
 };
 

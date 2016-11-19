@@ -52,7 +52,8 @@
 #include "generic.h"
 #include "devices.h"
 
-static unsigned long lpd270_pin_config[] __initdata = {
+static unsigned long lpd270_pin_config[] __initdata =
+{
 	/* Chip Selects */
 	GPIO15_nCS_1,	/* Mainboard Flash */
 	GPIO78_nCS_2,	/* CPLD + Ethernet */
@@ -114,7 +115,8 @@ static void lpd270_unmask_irq(struct irq_data *d)
 	__raw_writew(lpd270_irq_enabled, LPD270_INT_MASK);
 }
 
-static struct irq_chip lpd270_irq_chip = {
+static struct irq_chip lpd270_irq_chip =
+{
 	.name		= "CPLD",
 	.irq_ack	= lpd270_mask_irq,
 	.irq_mask	= lpd270_mask_irq,
@@ -127,17 +129,22 @@ static void lpd270_irq_handler(struct irq_desc *desc)
 	unsigned long pending;
 
 	pending = __raw_readw(LPD270_INT_STATUS) & lpd270_irq_enabled;
-	do {
+
+	do
+	{
 		/* clear useless edge notification */
 		desc->irq_data.chip->irq_ack(&desc->irq_data);
-		if (likely(pending)) {
+
+		if (likely(pending))
+		{
 			irq = LPD270_IRQ(0) + __ffs(pending);
 			generic_handle_irq(irq);
 
 			pending = __raw_readw(LPD270_INT_STATUS) &
-						lpd270_irq_enabled;
+					  lpd270_irq_enabled;
 		}
-	} while (pending);
+	}
+	while (pending);
 }
 
 static void __init lpd270_init_irq(void)
@@ -150,11 +157,13 @@ static void __init lpd270_init_irq(void)
 	__raw_writew(0, LPD270_INT_STATUS);
 
 	/* setup extra LogicPD PXA270 irqs */
-	for (irq = LPD270_IRQ(2); irq <= LPD270_IRQ(4); irq++) {
+	for (irq = LPD270_IRQ(2); irq <= LPD270_IRQ(4); irq++)
+	{
 		irq_set_chip_and_handler(irq, &lpd270_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
+
 	irq_set_chained_handler(PXA_GPIO_TO_IRQ(0), lpd270_irq_handler);
 	irq_set_irq_type(PXA_GPIO_TO_IRQ(0), IRQ_TYPE_EDGE_FALLING);
 }
@@ -166,16 +175,19 @@ static void lpd270_irq_resume(void)
 	__raw_writew(lpd270_irq_enabled, LPD270_INT_MASK);
 }
 
-static struct syscore_ops lpd270_irq_syscore_ops = {
+static struct syscore_ops lpd270_irq_syscore_ops =
+{
 	.resume = lpd270_irq_resume,
 };
 
 static int __init lpd270_irq_device_init(void)
 {
-	if (machine_is_logicpd_pxa270()) {
+	if (machine_is_logicpd_pxa270())
+	{
 		register_syscore_ops(&lpd270_irq_syscore_ops);
 		return 0;
 	}
+
 	return -ENODEV;
 }
 
@@ -183,7 +195,8 @@ device_initcall(lpd270_irq_device_init);
 #endif
 
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= LPD270_ETH_PHYS,
 		.end	= (LPD270_ETH_PHYS + 0xfffff),
@@ -196,11 +209,13 @@ static struct resource smc91x_resources[] = {
 	},
 };
 
-struct smc91x_platdata smc91x_platdata = {
+struct smc91x_platdata smc91x_platdata =
+{
 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -208,7 +223,8 @@ static struct platform_device smc91x_device = {
 	.dev.platform_data = &smc91x_platdata,
 };
 
-static struct resource lpd270_flash_resources[] = {
+static struct resource lpd270_flash_resources[] =
+{
 	[0] = {
 		.start	= PXA_CS0_PHYS,
 		.end	= PXA_CS0_PHYS + SZ_64M - 1,
@@ -221,7 +237,8 @@ static struct resource lpd270_flash_resources[] = {
 	},
 };
 
-static struct mtd_partition lpd270_flash0_partitions[] = {
+static struct mtd_partition lpd270_flash0_partitions[] =
+{
 	{
 		.name =		"Bootloader",
 		.size =		0x00040000,
@@ -238,7 +255,8 @@ static struct mtd_partition lpd270_flash0_partitions[] = {
 	},
 };
 
-static struct flash_platform_data lpd270_flash_data[2] = {
+static struct flash_platform_data lpd270_flash_data[2] =
+{
 	{
 		.name		= "processor-flash",
 		.map_name	= "cfi_probe",
@@ -252,7 +270,8 @@ static struct flash_platform_data lpd270_flash_data[2] = {
 	}
 };
 
-static struct platform_device lpd270_flash_device[2] = {
+static struct platform_device lpd270_flash_device[2] =
+{
 	{
 		.name		= "pxa2xx-flash",
 		.id		= 0,
@@ -272,18 +291,21 @@ static struct platform_device lpd270_flash_device[2] = {
 	},
 };
 
-static struct pwm_lookup lpd270_pwm_lookup[] = {
+static struct pwm_lookup lpd270_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa27x-pwm.0", 0, "pwm-backlight.0", NULL, 78770,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data lpd270_backlight_data = {
+static struct platform_pwm_backlight_data lpd270_backlight_data =
+{
 	.max_brightness	= 1,
 	.dft_brightness	= 1,
 	.enable_gpio	= -1,
 };
 
-static struct platform_device lpd270_backlight_device = {
+static struct platform_device lpd270_backlight_device =
+{
 	.name		= "pwm-backlight",
 	.dev		= {
 		.parent	= &pxa27x_device_pwm0.dev,
@@ -292,7 +314,8 @@ static struct platform_device lpd270_backlight_device = {
 };
 
 /* 5.7" TFT QVGA (LoLo display number 1) */
-static struct pxafb_mode_info sharp_lq057q3dc02_mode = {
+static struct pxafb_mode_info sharp_lq057q3dc02_mode =
+{
 	.pixclock		= 150000,
 	.xres			= 320,
 	.yres			= 240,
@@ -306,15 +329,17 @@ static struct pxafb_mode_info sharp_lq057q3dc02_mode = {
 	.sync			= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mach_info sharp_lq057q3dc02 = {
+static struct pxafb_mach_info sharp_lq057q3dc02 =
+{
 	.modes			= &sharp_lq057q3dc02_mode,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL |
-				  LCD_ALTERNATE_MAPPING,
+	LCD_ALTERNATE_MAPPING,
 };
 
 /* 12.1" TFT SVGA (LoLo display number 2) */
-static struct pxafb_mode_info sharp_lq121s1dg31_mode = {
+static struct pxafb_mode_info sharp_lq121s1dg31_mode =
+{
 	.pixclock		= 50000,
 	.xres			= 800,
 	.yres			= 600,
@@ -328,15 +353,17 @@ static struct pxafb_mode_info sharp_lq121s1dg31_mode = {
 	.sync			= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mach_info sharp_lq121s1dg31 = {
+static struct pxafb_mach_info sharp_lq121s1dg31 =
+{
 	.modes			= &sharp_lq121s1dg31_mode,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL |
-				  LCD_ALTERNATE_MAPPING,
+	LCD_ALTERNATE_MAPPING,
 };
 
 /* 3.6" TFT QVGA (LoLo display number 3) */
-static struct pxafb_mode_info sharp_lq036q1da01_mode = {
+static struct pxafb_mode_info sharp_lq036q1da01_mode =
+{
 	.pixclock		= 150000,
 	.xres			= 320,
 	.yres			= 240,
@@ -350,15 +377,17 @@ static struct pxafb_mode_info sharp_lq036q1da01_mode = {
 	.sync			= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mach_info sharp_lq036q1da01 = {
+static struct pxafb_mach_info sharp_lq036q1da01 =
+{
 	.modes			= &sharp_lq036q1da01_mode,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL |
-				  LCD_ALTERNATE_MAPPING,
+	LCD_ALTERNATE_MAPPING,
 };
 
 /* 6.4" TFT VGA (LoLo display number 5) */
-static struct pxafb_mode_info sharp_lq64d343_mode = {
+static struct pxafb_mode_info sharp_lq64d343_mode =
+{
 	.pixclock		= 25000,
 	.xres			= 640,
 	.yres			= 480,
@@ -372,15 +401,17 @@ static struct pxafb_mode_info sharp_lq64d343_mode = {
 	.sync			= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mach_info sharp_lq64d343 = {
+static struct pxafb_mach_info sharp_lq64d343 =
+{
 	.modes			= &sharp_lq64d343_mode,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL |
-				  LCD_ALTERNATE_MAPPING,
+	LCD_ALTERNATE_MAPPING,
 };
 
 /* 10.4" TFT VGA (LoLo display number 7) */
-static struct pxafb_mode_info sharp_lq10d368_mode = {
+static struct pxafb_mode_info sharp_lq10d368_mode =
+{
 	.pixclock		= 25000,
 	.xres			= 640,
 	.yres			= 480,
@@ -394,15 +425,17 @@ static struct pxafb_mode_info sharp_lq10d368_mode = {
 	.sync			= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mach_info sharp_lq10d368 = {
+static struct pxafb_mach_info sharp_lq10d368 =
+{
 	.modes			= &sharp_lq10d368_mode,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL |
-				  LCD_ALTERNATE_MAPPING,
+	LCD_ALTERNATE_MAPPING,
 };
 
 /* 3.5" TFT QVGA (LoLo display number 8) */
-static struct pxafb_mode_info sharp_lq035q7db02_20_mode = {
+static struct pxafb_mode_info sharp_lq035q7db02_20_mode =
+{
 	.pixclock		= 150000,
 	.xres			= 240,
 	.yres			= 320,
@@ -416,30 +449,44 @@ static struct pxafb_mode_info sharp_lq035q7db02_20_mode = {
 	.sync			= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mach_info sharp_lq035q7db02_20 = {
+static struct pxafb_mach_info sharp_lq035q7db02_20 =
+{
 	.modes			= &sharp_lq035q7db02_20_mode,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL |
-				  LCD_ALTERNATE_MAPPING,
+	LCD_ALTERNATE_MAPPING,
 };
 
 static struct pxafb_mach_info *lpd270_lcd_to_use;
 
 static int __init lpd270_set_lcd(char *str)
 {
-	if (!strncasecmp(str, "lq057q3dc02", 11)) {
+	if (!strncasecmp(str, "lq057q3dc02", 11))
+	{
 		lpd270_lcd_to_use = &sharp_lq057q3dc02;
-	} else if (!strncasecmp(str, "lq121s1dg31", 11)) {
+	}
+	else if (!strncasecmp(str, "lq121s1dg31", 11))
+	{
 		lpd270_lcd_to_use = &sharp_lq121s1dg31;
-	} else if (!strncasecmp(str, "lq036q1da01", 11)) {
+	}
+	else if (!strncasecmp(str, "lq036q1da01", 11))
+	{
 		lpd270_lcd_to_use = &sharp_lq036q1da01;
-	} else if (!strncasecmp(str, "lq64d343", 8)) {
+	}
+	else if (!strncasecmp(str, "lq64d343", 8))
+	{
 		lpd270_lcd_to_use = &sharp_lq64d343;
-	} else if (!strncasecmp(str, "lq10d368", 8)) {
+	}
+	else if (!strncasecmp(str, "lq10d368", 8))
+	{
 		lpd270_lcd_to_use = &sharp_lq10d368;
-	} else if (!strncasecmp(str, "lq035q7db02-20", 14)) {
+	}
+	else if (!strncasecmp(str, "lq035q7db02-20", 14))
+	{
 		lpd270_lcd_to_use = &sharp_lq035q7db02_20;
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "lpd270: unknown lcd panel [%s]\n", str);
 	}
 
@@ -448,14 +495,16 @@ static int __init lpd270_set_lcd(char *str)
 
 __setup("lcd=", lpd270_set_lcd);
 
-static struct platform_device *platform_devices[] __initdata = {
+static struct platform_device *platform_devices[] __initdata =
+{
 	&smc91x_device,
 	&lpd270_backlight_device,
 	&lpd270_flash_device[0],
 	&lpd270_flash_device[1],
 };
 
-static struct pxaohci_platform_data lpd270_ohci_platform_data = {
+static struct pxaohci_platform_data lpd270_ohci_platform_data =
+{
 	.port_mode	= PMM_PERPORT_MODE,
 	.flags		= ENABLE_PORT_ALL | POWER_CONTROL_LOW | POWER_SENSE_LOW,
 };
@@ -484,13 +533,16 @@ static void __init lpd270_init(void)
 	pxa_set_ac97_info(NULL);
 
 	if (lpd270_lcd_to_use != NULL)
+	{
 		pxa_set_fb_info(NULL, lpd270_lcd_to_use);
+	}
 
 	pxa_set_ohci_info(&lpd270_ohci_platform_data);
 }
 
 
-static struct map_desc lpd270_io_desc[] __initdata = {
+static struct map_desc lpd270_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)LPD270_CPLD_VIRT,
 		.pfn		= __phys_to_pfn(LPD270_CPLD_PHYS),
@@ -510,13 +562,13 @@ static void __init lpd270_map_io(void)
 }
 
 MACHINE_START(LOGICPD_PXA270, "LogicPD PXA270 Card Engine")
-	/* Maintainer: Peter Barada */
-	.atag_offset	= 0x100,
+/* Maintainer: Peter Barada */
+.atag_offset	= 0x100,
 	.map_io		= lpd270_map_io,
-	.nr_irqs	= LPD270_NR_IRQS,
-	.init_irq	= lpd270_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= lpd270_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= LPD270_NR_IRQS,
+			.init_irq	= lpd270_init_irq,
+			   .handle_irq	= pxa27x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= lpd270_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

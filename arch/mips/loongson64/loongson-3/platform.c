@@ -24,11 +24,16 @@ static int __init loongson3_platform_init(void)
 	struct platform_device *pdev;
 
 	if (loongson_sysconf.ecname[0] != '\0')
+	{
 		platform_device_register_simple(loongson_sysconf.ecname, -1, NULL, 0);
+	}
 
-	for (i = 0; i < loongson_sysconf.nr_sensors; i++) {
+	for (i = 0; i < loongson_sysconf.nr_sensors; i++)
+	{
 		if (loongson_sysconf.sensors[i].type > SENSOR_FAN)
+		{
 			continue;
+		}
 
 		pdev = kzalloc(sizeof(struct platform_device), GFP_KERNEL);
 		pdev->name = loongson_sysconf.sensors[i].name;

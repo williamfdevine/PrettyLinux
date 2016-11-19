@@ -189,12 +189,12 @@
 #define SPR_DCFGR_WPCI     0x00000008  /* Watchpoint counters implemented */
 
 #define MATCHPOINTS_TO_NDP(n) (1 == n ? SPR_DCFGR_NDP1 : \
-                               2 == n ? SPR_DCFGR_NDP2 : \
-                               3 == n ? SPR_DCFGR_NDP3 : \
-                               4 == n ? SPR_DCFGR_NDP4 : \
-                               5 == n ? SPR_DCFGR_NDP5 : \
-                               6 == n ? SPR_DCFGR_NDP6 : \
-                               7 == n ? SPR_DCFGR_NDP7 : SPR_DCFGR_NDP8)
+							   2 == n ? SPR_DCFGR_NDP2 : \
+							   3 == n ? SPR_DCFGR_NDP3 : \
+							   4 == n ? SPR_DCFGR_NDP4 : \
+							   5 == n ? SPR_DCFGR_NDP5 : \
+							   6 == n ? SPR_DCFGR_NDP6 : \
+							   7 == n ? SPR_DCFGR_NDP7 : SPR_DCFGR_NDP8)
 #define MAX_MATCHPOINTS  8
 #define MAX_WATCHPOINTS  (MAX_MATCHPOINTS + 2)
 
@@ -578,8 +578,8 @@
 #define SPR_FPCSR_INF   0x00000400  /* Infinity Flag */
 #define SPR_FPCSR_DZF   0x00000800  /* Divide By Zero Flag */
 #define SPR_FPCSR_ALLF (SPR_FPCSR_OVF | SPR_FPCSR_UNF | SPR_FPCSR_SNF | \
-			SPR_FPCSR_QNF | SPR_FPCSR_ZF | SPR_FPCSR_IXF |  \
-			SPR_FPCSR_IVF | SPR_FPCSR_INF | SPR_FPCSR_DZF)
+						SPR_FPCSR_QNF | SPR_FPCSR_ZF | SPR_FPCSR_IXF |  \
+						SPR_FPCSR_IVF | SPR_FPCSR_INF | SPR_FPCSR_DZF)
 
 #define FPCSR_RM_RN (0<<1)
 #define FPCSR_RM_RZ (1<<1)

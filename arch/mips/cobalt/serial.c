@@ -26,7 +26,8 @@
 #include <cobalt.h>
 #include <irq.h>
 
-static struct resource cobalt_uart_resource[] __initdata = {
+static struct resource cobalt_uart_resource[] __initdata =
+{
 	{
 		.start	= 0x1c800000,
 		.end	= 0x1c800007,
@@ -39,7 +40,8 @@ static struct resource cobalt_uart_resource[] __initdata = {
 	},
 };
 
-static struct plat_serial8250_port cobalt_serial8250_port[] = {
+static struct plat_serial8250_port cobalt_serial8250_port[] =
+{
 	{
 		.irq		= SERIAL_IRQ,
 		.uartclk	= 18432000,
@@ -59,22 +61,33 @@ static __init int cobalt_uart_add(void)
 	 * Cobalt Qube1 has no UART.
 	 */
 	if (cobalt_board_id == COBALT_BRD_ID_QUBE1)
+	{
 		return 0;
+	}
 
 	pdev = platform_device_alloc("serial8250", -1);
+
 	if (!pdev)
+	{
 		return -ENOMEM;
+	}
 
 	pdev->id = PLAT8250_DEV_PLATFORM;
 	pdev->dev.platform_data = cobalt_serial8250_port;
 
 	retval = platform_device_add_resources(pdev, cobalt_uart_resource, ARRAY_SIZE(cobalt_uart_resource));
+
 	if (retval)
+	{
 		goto err_free_device;
+	}
 
 	retval = platform_device_add(pdev);
+
 	if (retval)
+	{
 		goto err_free_device;
+	}
 
 	return 0;
 

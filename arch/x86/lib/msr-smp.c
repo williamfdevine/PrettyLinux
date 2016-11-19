@@ -10,9 +10,13 @@ static void __rdmsr_on_cpu(void *info)
 	int this_cpu = raw_smp_processor_id();
 
 	if (rv->msrs)
+	{
 		reg = per_cpu_ptr(rv->msrs, this_cpu);
+	}
 	else
+	{
 		reg = &rv->reg;
+	}
 
 	rdmsr(rv->msr_no, reg->l, reg->h);
 }
@@ -24,9 +28,13 @@ static void __wrmsr_on_cpu(void *info)
 	int this_cpu = raw_smp_processor_id();
 
 	if (rv->msrs)
+	{
 		reg = per_cpu_ptr(rv->msrs, this_cpu);
+	}
 	else
+	{
 		reg = &rv->reg;
+	}
 
 	wrmsr(rv->msr_no, reg->l, reg->h);
 }
@@ -95,8 +103,8 @@ int wrmsrl_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
 EXPORT_SYMBOL(wrmsrl_on_cpu);
 
 static void __rwmsr_on_cpus(const struct cpumask *mask, u32 msr_no,
-			    struct msr *msrs,
-			    void (*msr_func) (void *info))
+							struct msr *msrs,
+							void (*msr_func) (void *info))
 {
 	struct msr_info rv;
 	int this_cpu;
@@ -109,7 +117,9 @@ static void __rwmsr_on_cpus(const struct cpumask *mask, u32 msr_no,
 	this_cpu = get_cpu();
 
 	if (cpumask_test_cpu(this_cpu, mask))
+	{
 		msr_func(&rv);
+	}
 
 	smp_call_function_many(mask, msr_func, &rv, 1);
 	put_cpu();

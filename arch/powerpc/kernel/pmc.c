@@ -22,7 +22,7 @@
 #include <asm/pmc.h>
 
 #ifndef MMCR0_PMAO
-#define MMCR0_PMAO	0
+	#define MMCR0_PMAO	0
 #endif
 
 static void dummy_perf(struct pt_regs *regs)
@@ -30,8 +30,12 @@ static void dummy_perf(struct pt_regs *regs)
 #if defined(CONFIG_FSL_EMB_PERFMON)
 	mtpmr(PMRN_PMGC0, mfpmr(PMRN_PMGC0) & ~PMGC0_PMIE);
 #elif defined(CONFIG_PPC64) || defined(CONFIG_6xx)
+
 	if (cur_cpu_spec->pmc_type == PPC_PMC_IBM)
-		mtspr(SPRN_MMCR0, mfspr(SPRN_MMCR0) & ~(MMCR0_PMXE|MMCR0_PMAO));
+	{
+		mtspr(SPRN_MMCR0, mfspr(SPRN_MMCR0) & ~(MMCR0_PMXE | MMCR0_PMAO));
+	}
+
 #else
 	mtspr(SPRN_MMCR0, mfspr(SPRN_MMCR0) & ~MMCR0_PMXE);
 #endif
@@ -48,10 +52,11 @@ int reserve_pmc_hardware(perf_irq_t new_perf_irq)
 
 	raw_spin_lock(&pmc_owner_lock);
 
-	if (pmc_owner_caller) {
+	if (pmc_owner_caller)
+	{
 		printk(KERN_WARNING "reserve_pmc_hardware: "
-		       "PMC hardware busy (reserved by caller %p)\n",
-		       pmc_owner_caller);
+			   "PMC hardware busy (reserved by caller %p)\n",
+			   pmc_owner_caller);
 		err = -EBUSY;
 		goto out;
 	}
@@ -59,7 +64,7 @@ int reserve_pmc_hardware(perf_irq_t new_perf_irq)
 	pmc_owner_caller = __builtin_return_address(0);
 	perf_irq = new_perf_irq ? new_perf_irq : dummy_perf;
 
- out:
+out:
 	raw_spin_unlock(&pmc_owner_lock);
 	return err;
 }

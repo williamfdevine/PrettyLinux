@@ -95,7 +95,7 @@ static int hpet_set_state_periodic(struct clock_event_device *evt)
 	cfg = hpet_read(HPET_T0_CFG);
 	cfg &= ~HPET_TN_LEVEL;
 	cfg |= HPET_TN_ENABLE | HPET_TN_PERIODIC | HPET_TN_SETVAL |
-		HPET_TN_32BIT;
+		   HPET_TN_32BIT;
 	hpet_write(HPET_T0_CFG, cfg);
 
 	/* set the comparator */
@@ -155,7 +155,7 @@ static int hpet_tick_resume(struct clock_event_device *evt)
 }
 
 static int hpet_next_event(unsigned long delta,
-		struct clock_event_device *evt)
+						   struct clock_event_device *evt)
 {
 	u32 cnt;
 	s32 res;
@@ -176,17 +176,21 @@ static irqreturn_t hpet_irq_handler(int irq, void *data)
 	unsigned int cpu = smp_processor_id();
 
 	is_irq = hpet_read(HPET_STATUS);
-	if (is_irq & HPET_T0_IRS) {
+
+	if (is_irq & HPET_T0_IRS)
+	{
 		/* clear the TIMER0 irq status register */
 		hpet_write(HPET_STATUS, HPET_T0_IRS);
 		cd = &per_cpu(hpet_clockevent_device, cpu);
 		cd->event_handler(cd);
 		return IRQ_HANDLED;
 	}
+
 	return IRQ_NONE;
 }
 
-static struct irqaction hpet_irq = {
+static struct irqaction hpet_irq =
+{
 	.handler = hpet_irq_handler,
 	.flags = IRQF_NOBALANCING | IRQF_TIMER,
 	.name = "hpet",
@@ -263,7 +267,8 @@ static void hpet_resume(struct clocksource *cs)
 	hpet_restart_counter();
 }
 
-static struct clocksource csrc_hpet = {
+static struct clocksource csrc_hpet =
+{
 	.name = "hpet",
 	/* mips clocksource rating is less than 300, so hpet is better. */
 	.rating = 300,

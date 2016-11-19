@@ -20,23 +20,24 @@
  */
 /*
  * BEGIN_DESC
- * 
- *  File: 
+ *
+ *  File:
  *      @(#)	pa/spmath/float.h		$Revision: 1.1 $
- * 
+ *
  *  Purpose:
  *      <<please update with a synopis of the functionality provided by this file>>
- * 
+ *
  *  BE header:  no
  *
  *  Shipped:  yes
  *	/usr/conf/pa/spmath/float.h
  *
- * END_DESC  
+ * END_DESC
 */
 
 #ifdef __NO_PA_HDRS
-    PA header file -- do not include this header file for non-PA builds.
+
+	PA header file -- do not include this header file for non - PA builds.
 #endif
 
 #include "fpbits.h"
@@ -52,8 +53,8 @@
 /*
  * Declare the basic structures for the 3 different
  * floating-point precisions.
- *        
- * Single number  
+ *
+ * Single number
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  * |s|       exp     |               mantissa                      |
  * +-------+-------+-------+-------+-------+-------+-------+-------+
@@ -89,7 +90,7 @@
 #define Deposit_smantissa(object,value) Bitfield_deposit(value,9,23,object)
 #define Deposit_shigh2mantissa(object,value) Bitfield_deposit(value,9,2,object)
 #define Deposit_sexponentmantissa(object,value) \
-    Bitfield_deposit(value,1,31,object)
+	Bitfield_deposit(value,1,31,object)
 #define Deposit_ssignexponent(object,value) Bitfield_deposit(value,0,9,object)
 #define Deposit_slow(object,value) Bitfield_deposit(value,31,1,object)
 #define Deposit_shigh4(object,value) Bitfield_deposit(value,0,4,object)
@@ -105,7 +106,7 @@
 #define	Is_sbit30(object) Bitfield_mask( 30,  1,object)
 #define	Is_sbit31(object) Bitfield_mask( 31,  1,object)
 
-/* 
+/*
  * Double number.
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  * |s|       exponent      |          mantissa part 1              |
@@ -142,7 +143,7 @@
 #define Deposit_dmantissap1(object,value) Bitfield_deposit(value,12,20,object)
 #define Deposit_dhigh2mantissa(object,value) Bitfield_deposit(value,12,2,object)
 #define Deposit_dexponentmantissap1(object,value) \
-    Bitfield_deposit(value,1,31,object)
+	Bitfield_deposit(value,1,31,object)
 #define Deposit_dsignexponent(object,value) Bitfield_deposit(value,0,12,object)
 #define Deposit_dlowp1(object,value) Bitfield_deposit(value,31,1,object)
 #define Deposit_dhigh4p1(object,value) Bitfield_deposit(value,0,4,object)
@@ -182,7 +183,7 @@
 #define Is_dbit30p2(object) Bitfield_mask( 30,  1,object)
 #define Is_dbit31p2(object) Bitfield_mask( 31,  1,object)
 
-/* 
+/*
  * Quad number.
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  * |s|          exponent           |      mantissa part 1          |
@@ -201,62 +202,62 @@
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  */
 typedef struct
-    {
-    union
+{
+	union
 	{
-	struct { unsigned qallp1; } u_qallp1;
-/* Not needed for now...
-	Bitfield_extract( 0,  1,u_qsign,qsign)
-	Bitfield_signed_extract( 0,  1,u_qsignedsign,qsignedsign)
-	Bitfield_extract( 1, 15,u_qexponent,qexponent)
-	Bitfield_extract(16, 16,u_qmantissap1,qmantissap1)
-	Bitfield_extract(16,  1,u_qsignaling,qsignaling)
-	Bitfield_extract(1,  16,u_qsignalingnan,qsignalingnan)
-	Bitfield_extract(16,  2,u_qhigh2mantissa,qhigh2mantissa)
-	Bitfield_extract( 1, 31,u_qexponentmantissap1,qexponentmantissap1)
-	Bitfield_extract( 0, 16,u_qsignexponent,qsignexponent)
-	Bitfield_extract(15,  1,u_qhidden,qhidden)
-	Bitfield_extract(14,  1,u_qhiddenoverflow,qhiddenoverflow)
-	Bitfield_extract(15,  8,u_qhiddenhigh7mantissa,qhiddenhigh7mantissa)
-	Bitfield_extract(15,  4,u_qhiddenhigh3mantissa,qhiddenhigh3mantissa)
-	Bitfield_extract(31,  1,u_qlowp1,qlowp1)
-	Bitfield_extract( 1, 31,u_qlow31p1,qlow31p1)
-	Bitfield_extract( 0,  1,u_qhighp1,qhighp1)
-	Bitfield_extract( 0,  4,u_qhigh4p1,qhigh4p1)
-	Bitfield_extract( 0, 31,u_qhigh31p1,qhigh31p1)
-  */
+		struct { unsigned qallp1; } u_qallp1;
+		/* Not needed for now...
+			Bitfield_extract( 0,  1,u_qsign,qsign)
+			Bitfield_signed_extract( 0,  1,u_qsignedsign,qsignedsign)
+			Bitfield_extract( 1, 15,u_qexponent,qexponent)
+			Bitfield_extract(16, 16,u_qmantissap1,qmantissap1)
+			Bitfield_extract(16,  1,u_qsignaling,qsignaling)
+			Bitfield_extract(1,  16,u_qsignalingnan,qsignalingnan)
+			Bitfield_extract(16,  2,u_qhigh2mantissa,qhigh2mantissa)
+			Bitfield_extract( 1, 31,u_qexponentmantissap1,qexponentmantissap1)
+			Bitfield_extract( 0, 16,u_qsignexponent,qsignexponent)
+			Bitfield_extract(15,  1,u_qhidden,qhidden)
+			Bitfield_extract(14,  1,u_qhiddenoverflow,qhiddenoverflow)
+			Bitfield_extract(15,  8,u_qhiddenhigh7mantissa,qhiddenhigh7mantissa)
+			Bitfield_extract(15,  4,u_qhiddenhigh3mantissa,qhiddenhigh3mantissa)
+			Bitfield_extract(31,  1,u_qlowp1,qlowp1)
+			Bitfield_extract( 1, 31,u_qlow31p1,qlow31p1)
+			Bitfield_extract( 0,  1,u_qhighp1,qhighp1)
+			Bitfield_extract( 0,  4,u_qhigh4p1,qhigh4p1)
+			Bitfield_extract( 0, 31,u_qhigh31p1,qhigh31p1)
+		  */
 	} quad_u1;
-    union
+	union
 	{
-	struct { unsigned qallp2; } u_qallp2;
-  /* Not needed for now...
-	Bitfield_extract(31,  1,u_qlowp2,qlowp2)
-	Bitfield_extract( 1, 31,u_qlow31p2,qlow31p2)
-	Bitfield_extract( 0,  1,u_qhighp2,qhighp2)
-	Bitfield_extract( 0, 31,u_qhigh31p2,qhigh31p2)
-   */
+		struct { unsigned qallp2; } u_qallp2;
+		/* Not needed for now...
+		Bitfield_extract(31,  1,u_qlowp2,qlowp2)
+		Bitfield_extract( 1, 31,u_qlow31p2,qlow31p2)
+		Bitfield_extract( 0,  1,u_qhighp2,qhighp2)
+		Bitfield_extract( 0, 31,u_qhigh31p2,qhigh31p2)
+		 */
 	} quad_u2;
-    union
+	union
 	{
-	struct { unsigned qallp3; } u_qallp3;
-  /* Not needed for now...
-	Bitfield_extract(31,  1,u_qlowp3,qlowp3)
-	Bitfield_extract( 1, 31,u_qlow31p3,qlow31p3)
-	Bitfield_extract( 0,  1,u_qhighp3,qhighp3)
-	Bitfield_extract( 0, 31,u_qhigh31p3,qhigh31p3)
-   */ 
+		struct { unsigned qallp3; } u_qallp3;
+		/* Not needed for now...
+		Bitfield_extract(31,  1,u_qlowp3,qlowp3)
+		Bitfield_extract( 1, 31,u_qlow31p3,qlow31p3)
+		Bitfield_extract( 0,  1,u_qhighp3,qhighp3)
+		Bitfield_extract( 0, 31,u_qhigh31p3,qhigh31p3)
+		 */
 	} quad_u3;
-    union
+	union
 	{
-	struct { unsigned qallp4; } u_qallp4;
-    /* Not need for now...
-	Bitfield_extract(31,  1,u_qlowp4,qlowp4)
-	Bitfield_extract( 1, 31,u_qlow31p4,qlow31p4)
-	Bitfield_extract( 0,  1,u_qhighp4,qhighp4)
-	Bitfield_extract( 0, 31,u_qhigh31p4,qhigh31p4)
-     */
+		struct { unsigned qallp4; } u_qallp4;
+		/* Not need for now...
+		Bitfield_extract(31,  1,u_qlowp4,qlowp4)
+		Bitfield_extract( 1, 31,u_qlow31p4,qlow31p4)
+		Bitfield_extract( 0,  1,u_qhighp4,qhighp4)
+		Bitfield_extract( 0, 31,u_qhigh31p4,qhigh31p4)
+		 */
 	} quad_u4;
-    } quad_floating_point;
+} quad_floating_point;
 
 /* Extension - An additional structure to hold the guard, round and
  *             sticky bits during computations.
@@ -297,15 +298,15 @@ typedef struct
 /*
  * Declare the basic structures for the 3 different
  * fixed-point precisions.
- *        
- * Single number  
+ *
+ * Single number
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  * |s|                    integer                                  |
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  */
 typedef int sgl_integer;
 
-/* 
+/*
  * Double number.
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  * |s|                     high integer                            |
@@ -315,17 +316,19 @@ typedef int sgl_integer;
  * |                       low integer                             |
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  */
-struct dint {
-        int  wd0;
-        unsigned int wd1;
+struct dint
+{
+	int  wd0;
+	unsigned int wd1;
 };
 
-struct dblwd {
-        unsigned int wd0;
-        unsigned int wd1;
+struct dblwd
+{
+	unsigned int wd0;
+	unsigned int wd1;
 };
 
-/* 
+/*
  * Quad number.
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  * |s|                  integer part1                              |
@@ -344,11 +347,12 @@ struct dblwd {
  * +-------+-------+-------+-------+-------+-------+-------+-------+
  */
 
-struct quadwd {
-        int  wd0;
-        unsigned int wd1;
-        unsigned int wd2;
-        unsigned int wd3;
+struct quadwd
+{
+	int  wd0;
+	unsigned int wd1;
+	unsigned int wd2;
+	unsigned int wd3;
 };
 
 typedef struct quadwd quad_integer;
@@ -360,7 +364,7 @@ typedef struct dblwd dbl_floating_point;
 typedef struct dint dbl_integer;
 typedef struct dblwd dbl_unsigned;
 
-/* 
+/*
  * Define the different precisions' parameters.
  */
 #define SGL_BITLENGTH 32
@@ -458,7 +462,7 @@ typedef int VOID;
 #define OPC_2E_UNDERFLOWEXCEPTION   0x0c
 #define OPC_2E_INEXACTEXCEPTION     0x12
 
-/* Declare exception registers equivalent to FPUs architecture 
+/* Declare exception registers equivalent to FPUs architecture
  *
  *  0 1 2 3 4 5 6 7 8 910 1 2 3 4 5 6 7 8 920 1 2 3 4 5 6 7 8 930 1
  * +-------+-------+-------+-------+-------+-------+-------+-------+
@@ -475,7 +479,7 @@ typedef int VOID;
 #define Set_exceptiontype(object,value) Bitfield_deposit(value, 0, 6,object)
 #define Set_parmfield(object,value) Bitfield_deposit(value, 23, 3,object)
 #define Set_exceptiontype_and_instr_field(exception,instruction,object) \
-    object = exception << 26 | instruction
+	object = exception << 26 | instruction
 
 /* Declare the condition field
  *
@@ -500,9 +504,9 @@ typedef int VOID;
 /* Rounding mode */
 #define Rounding_mode()  Roundingmode(Fpustatus_register)
 #define Is_rounding_mode(rmode) \
-    (Roundingmode(Fpustatus_register) == rmode)
+	(Roundingmode(Fpustatus_register) == rmode)
 #define Set_rounding_mode(value) \
-    Bitfield_deposit(value,21,2,Fpustatus_register)
+	Bitfield_deposit(value,21,2,Fpustatus_register)
 
 /* Boolean testing of the trap enable bits */
 #define Is_invalidtrap_enabled() Invalidtrap(Fpustatus_register)
@@ -527,7 +531,7 @@ typedef int VOID;
 #define Is_cbit_set() Cbit(Fpustatus_register)
 
 #define Set_status_cbit(value)  \
-        Bitfield_deposit(value,5,1,Fpustatus_register)
+	Bitfield_deposit(value,5,1,Fpustatus_register)
 
 /*******************************
  * Condition field referencing *
@@ -542,13 +546,13 @@ typedef int VOID;
 /* Defines for the extension */
 #define Ext_isone_sign(extent) (Extsign(extent))
 #define Ext_isnotzero(extent) \
-    (Extall(extent))
+	(Extall(extent))
 #define Ext_isnotzero_lower(extent) \
-    (Extlow31(extent))
+	(Extlow31(extent))
 #define Ext_leftshiftby1(extent) \
-    Extall(extent) <<= 1
+	Extall(extent) <<= 1
 #define Ext_negate(extent) \
-    (int )Extall(extent) = 0 - (int )Extall(extent)
+	(int )Extall(extent) = 0 - (int )Extall(extent)
 #define Ext_setone_low(extent) Bitfield_deposit(1,31,1,extent)
 #define Ext_setzero(extent) Extall(extent) = 0
 

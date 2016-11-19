@@ -67,7 +67,8 @@
  * 0x99 s data stalls sent to processor
  */
 
-static const int event_map[] = {
+static const int event_map[] =
+{
 	/* use CYCLES cpu register */
 	[PERF_COUNT_HW_CPU_CYCLES]          = -1,
 	[PERF_COUNT_HW_INSTRUCTIONS]        = 0x0D,
@@ -81,8 +82,8 @@ static const int event_map[] = {
 #define C(x)	PERF_COUNT_HW_CACHE_##x
 
 static const int cache_events[PERF_COUNT_HW_CACHE_MAX]
-                             [PERF_COUNT_HW_CACHE_OP_MAX]
-                             [PERF_COUNT_HW_CACHE_RESULT_MAX] =
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
 {
 	[C(L1D)] = {	/* Data bank A */
 		[C(OP_READ)] = {
@@ -202,13 +203,17 @@ static void bfin_pfmon_enable(struct hw_perf_event *hwc, int idx)
 	u32 val, mask;
 
 	val = PFPWR;
-	if (idx) {
+
+	if (idx)
+	{
 		mask = ~(PFCNT1 | PFMON1 | PFCEN1 | PEMUSW1);
 		/* The packed config is for event0, so shift it to event1 slots */
 		val |= (hwc->config << (PFMON1_P - PFMON0_P));
 		val |= (hwc->config & PFCNT0) << (PFCNT1_P - PFCNT0_P);
 		bfin_write_PFCNTR1(0);
-	} else {
+	}
+	else
+	{
 		mask = ~(PFCNT0 | PFMON0 | PFCEN0 | PEMUSW0);
 		val |= hwc->config;
 		bfin_write_PFCNTR0(0);
@@ -227,7 +232,8 @@ static void bfin_pfmon_enable_all(void)
 	bfin_write_PFCTL(bfin_read_PFCTL() | PFPWR);
 }
 
-struct cpu_hw_events {
+struct cpu_hw_events
+{
 	struct perf_event *events[MAX_HWEVENTS];
 	unsigned long used_mask[BITS_TO_LONGS(MAX_HWEVENTS)];
 };
@@ -244,21 +250,30 @@ static int hw_perf_cache_event(int config, int *evp)
 	result = (config >> 16) & 0xff;
 
 	if (type >= PERF_COUNT_HW_CACHE_MAX ||
-	    op >= PERF_COUNT_HW_CACHE_OP_MAX ||
-	    result >= PERF_COUNT_HW_CACHE_RESULT_MAX)
+		op >= PERF_COUNT_HW_CACHE_OP_MAX ||
+		result >= PERF_COUNT_HW_CACHE_RESULT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ev = cache_events[type][op][result];
+
 	if (ev == 0)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (ev == -1)
+	{
 		return -EINVAL;
+	}
+
 	*evp = ev;
 	return 0;
 }
 
 static void bfin_perf_event_update(struct perf_event *event,
-				   struct hw_perf_event *hwc, int idx)
+								   struct hw_perf_event *hwc, int idx)
 {
 	u64 prev_raw_count, new_raw_count;
 	s64 delta;
@@ -281,8 +296,10 @@ again:
 	new_raw_count = bfin_pfmon_read(idx);
 
 	if (local64_cmpxchg(&hwc->prev_count, prev_raw_count,
-			     new_raw_count) != prev_raw_count)
+						new_raw_count) != prev_raw_count)
+	{
 		goto again;
+	}
 
 	/*
 	 * Now we have the new raw value and have updated the prev
@@ -304,13 +321,15 @@ static void bfin_pmu_stop(struct perf_event *event, int flags)
 	struct hw_perf_event *hwc = &event->hw;
 	int idx = hwc->idx;
 
-	if (!(event->hw.state & PERF_HES_STOPPED)) {
+	if (!(event->hw.state & PERF_HES_STOPPED))
+	{
 		bfin_pfmon_disable(hwc, idx);
 		cpuc->events[idx] = NULL;
 		event->hw.state |= PERF_HES_STOPPED;
 	}
 
-	if ((flags & PERF_EF_UPDATE) && !(event->hw.state & PERF_HES_UPTODATE)) {
+	if ((flags & PERF_EF_UPDATE) && !(event->hw.state & PERF_HES_UPTODATE))
+	{
 		bfin_perf_event_update(event, &event->hw, idx);
 		event->hw.state |= PERF_HES_UPTODATE;
 	}
@@ -323,10 +342,14 @@ static void bfin_pmu_start(struct perf_event *event, int flags)
 	int idx = hwc->idx;
 
 	if (WARN_ON_ONCE(idx == -1))
+	{
 		return;
+	}
 
 	if (flags & PERF_EF_RELOAD)
+	{
 		WARN_ON_ONCE(!(event->hw.state & PERF_HES_UPTODATE));
+	}
 
 	cpuc->events[idx] = event;
 	event->hw.state = 0;
@@ -352,10 +375,14 @@ static int bfin_pmu_add(struct perf_event *event, int flags)
 
 	perf_pmu_disable(event->pmu);
 
-	if (__test_and_set_bit(idx, cpuc->used_mask)) {
+	if (__test_and_set_bit(idx, cpuc->used_mask))
+	{
 		idx = find_first_zero_bit(cpuc->used_mask, MAX_HWEVENTS);
+
 		if (idx == MAX_HWEVENTS)
+		{
 			goto out;
+		}
 
 		__set_bit(idx, cpuc->used_mask);
 		hwc->idx = idx;
@@ -364,8 +391,11 @@ static int bfin_pmu_add(struct perf_event *event, int flags)
 	bfin_pfmon_disable(hwc, idx);
 
 	event->hw.state = PERF_HES_UPTODATE | PERF_HES_STOPPED;
+
 	if (flags & PERF_EF_START)
+	{
 		bfin_pmu_start(event, PERF_EF_RELOAD);
+	}
 
 	perf_event_update_userpage(event);
 	ret = 0;
@@ -387,32 +417,47 @@ static int bfin_pmu_event_init(struct perf_event *event)
 	int ret;
 
 	if (attr->exclude_hv || attr->exclude_idle)
+	{
 		return -EPERM;
+	}
 
 	ret = 0;
-	switch (attr->type) {
-	case PERF_TYPE_RAW:
-		config = PFMON(0, attr->config & PFMON_MASK) |
-			PFCNT(0, !(attr->config & 0x100));
-		break;
-	case PERF_TYPE_HW_CACHE:
-		ret = hw_perf_cache_event(attr->config, &config);
-		break;
-	case PERF_TYPE_HARDWARE:
-		if (attr->config >= ARRAY_SIZE(event_map))
-			return -EINVAL;
 
-		config = event_map[attr->config];
-		break;
+	switch (attr->type)
+	{
+		case PERF_TYPE_RAW:
+			config = PFMON(0, attr->config & PFMON_MASK) |
+					 PFCNT(0, !(attr->config & 0x100));
+			break;
+
+		case PERF_TYPE_HW_CACHE:
+			ret = hw_perf_cache_event(attr->config, &config);
+			break;
+
+		case PERF_TYPE_HARDWARE:
+			if (attr->config >= ARRAY_SIZE(event_map))
+			{
+				return -EINVAL;
+			}
+
+			config = event_map[attr->config];
+			break;
 	}
 
 	if (config == -1)
+	{
 		return -EINVAL;
+	}
 
 	if (!attr->exclude_kernel)
+	{
 		config |= PFCEN(0, PFCEN_ENABLE_SUPV);
+	}
+
 	if (!attr->exclude_user)
+	{
 		config |= PFCEN(0, PFCEN_ENABLE_USER);
+	}
 
 	hwc->config |= config;
 
@@ -426,10 +471,15 @@ static void bfin_pmu_enable(struct pmu *pmu)
 	struct hw_perf_event *hwc;
 	int i;
 
-	for (i = 0; i < MAX_HWEVENTS; ++i) {
+	for (i = 0; i < MAX_HWEVENTS; ++i)
+	{
 		event = cpuc->events[i];
+
 		if (!event)
+		{
 			continue;
+		}
+
 		hwc = &event->hw;
 		bfin_pfmon_enable(hwc, hwc->idx);
 	}
@@ -442,7 +492,8 @@ static void bfin_pmu_disable(struct pmu *pmu)
 	bfin_pfmon_disable_all();
 }
 
-static struct pmu pmu = {
+static struct pmu pmu =
+{
 	.pmu_enable  = bfin_pmu_enable,
 	.pmu_disable = bfin_pmu_disable,
 	.event_init  = bfin_pmu_event_init,
@@ -474,9 +525,11 @@ static int __init bfin_pmu_init(void)
 	pmu.capabilities |= PERF_PMU_CAP_NO_INTERRUPT;
 
 	ret = perf_pmu_register(&pmu, "cpu", PERF_TYPE_RAW);
+
 	if (!ret)
 		cpuhp_setup_state(CPUHP_PERF_BFIN, "PERF_BFIN",
-				  bfin_pmu_prepare_cpu, NULL);
+						  bfin_pmu_prepare_cpu, NULL);
+
 	return ret;
 }
 early_initcall(bfin_pmu_init);

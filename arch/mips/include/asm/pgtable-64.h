@@ -18,9 +18,9 @@
 #include <asm/fixmap.h>
 
 #if defined(CONFIG_PAGE_SIZE_64KB) && !defined(CONFIG_MIPS_VA_BITS_48)
-#include <asm-generic/pgtable-nopmd.h>
+	#include <asm-generic/pgtable-nopmd.h>
 #else
-#include <asm-generic/pgtable-nopud.h>
+	#include <asm-generic/pgtable-nopud.h>
 #endif
 
 /*
@@ -45,16 +45,16 @@
 
 /* PGDIR_SHIFT determines what a third-level page table entry can map */
 #ifdef __PAGETABLE_PMD_FOLDED
-#define PGDIR_SHIFT	(PAGE_SHIFT + PAGE_SHIFT + PTE_ORDER - 3)
+	#define PGDIR_SHIFT	(PAGE_SHIFT + PAGE_SHIFT + PTE_ORDER - 3)
 #else
 
-/* PMD_SHIFT determines the size of the area a second-level page table can map */
-#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT + PTE_ORDER - 3))
-#define PMD_SIZE	(1UL << PMD_SHIFT)
-#define PMD_MASK	(~(PMD_SIZE-1))
+	/* PMD_SHIFT determines the size of the area a second-level page table can map */
+	#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT + PTE_ORDER - 3))
+	#define PMD_SIZE	(1UL << PMD_SHIFT)
+	#define PMD_MASK	(~(PMD_SIZE-1))
 
 
-#define PGDIR_SHIFT	(PMD_SHIFT + (PAGE_SHIFT + PMD_ORDER - 3))
+	#define PGDIR_SHIFT	(PMD_SHIFT + (PAGE_SHIFT + PMD_ORDER - 3))
 #endif
 #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
@@ -78,47 +78,47 @@
  * of virtual address space.
  */
 #ifdef CONFIG_PAGE_SIZE_4KB
-#define PGD_ORDER		1
-#define PUD_ORDER		aieeee_attempt_to_allocate_pud
-#define PMD_ORDER		0
-#define PTE_ORDER		0
+	#define PGD_ORDER		1
+	#define PUD_ORDER		aieeee_attempt_to_allocate_pud
+	#define PMD_ORDER		0
+	#define PTE_ORDER		0
 #endif
 #ifdef CONFIG_PAGE_SIZE_8KB
-#define PGD_ORDER		0
-#define PUD_ORDER		aieeee_attempt_to_allocate_pud
-#define PMD_ORDER		0
-#define PTE_ORDER		0
+	#define PGD_ORDER		0
+	#define PUD_ORDER		aieeee_attempt_to_allocate_pud
+	#define PMD_ORDER		0
+	#define PTE_ORDER		0
 #endif
 #ifdef CONFIG_PAGE_SIZE_16KB
-#ifdef CONFIG_MIPS_VA_BITS_48
-#define PGD_ORDER               1
-#else
-#define PGD_ORDER               0
-#endif
-#define PUD_ORDER		aieeee_attempt_to_allocate_pud
-#define PMD_ORDER		0
-#define PTE_ORDER		0
+	#ifdef CONFIG_MIPS_VA_BITS_48
+		#define PGD_ORDER               1
+	#else
+		#define PGD_ORDER               0
+	#endif
+	#define PUD_ORDER		aieeee_attempt_to_allocate_pud
+	#define PMD_ORDER		0
+	#define PTE_ORDER		0
 #endif
 #ifdef CONFIG_PAGE_SIZE_32KB
-#define PGD_ORDER		0
-#define PUD_ORDER		aieeee_attempt_to_allocate_pud
-#define PMD_ORDER		0
-#define PTE_ORDER		0
+	#define PGD_ORDER		0
+	#define PUD_ORDER		aieeee_attempt_to_allocate_pud
+	#define PMD_ORDER		0
+	#define PTE_ORDER		0
 #endif
 #ifdef CONFIG_PAGE_SIZE_64KB
-#define PGD_ORDER		0
-#define PUD_ORDER		aieeee_attempt_to_allocate_pud
-#ifdef CONFIG_MIPS_VA_BITS_48
-#define PMD_ORDER		0
-#else
-#define PMD_ORDER		aieeee_attempt_to_allocate_pmd
-#endif
-#define PTE_ORDER		0
+	#define PGD_ORDER		0
+	#define PUD_ORDER		aieeee_attempt_to_allocate_pud
+	#ifdef CONFIG_MIPS_VA_BITS_48
+		#define PMD_ORDER		0
+	#else
+		#define PMD_ORDER		aieeee_attempt_to_allocate_pmd
+	#endif
+	#define PTE_ORDER		0
 #endif
 
 #define PTRS_PER_PGD	((PAGE_SIZE << PGD_ORDER) / sizeof(pgd_t))
 #ifndef __PAGETABLE_PMD_FOLDED
-#define PTRS_PER_PMD	((PAGE_SIZE << PMD_ORDER) / sizeof(pmd_t))
+	#define PTRS_PER_PMD	((PAGE_SIZE << PMD_ORDER) / sizeof(pmd_t))
 #endif
 #define PTRS_PER_PTE	((PAGE_SIZE << PTE_ORDER) / sizeof(pte_t))
 
@@ -134,13 +134,13 @@
 #define VMALLOC_END	\
 	(MAP_BASE + \
 	 min(PTRS_PER_PGD * PTRS_PER_PMD * PTRS_PER_PTE * PAGE_SIZE, \
-	     (1UL << cpu_vmbits)) - (1UL << 32))
+		 (1UL << cpu_vmbits)) - (1UL << 32))
 
 #if defined(CONFIG_MODULES) && defined(KBUILD_64BIT_SYM32) && \
 	VMALLOC_START != CKSSEG
-/* Load modules into 32bit-compatible segment. */
-#define MODULE_START	CKSSEG
-#define MODULE_END	(FIXADDR_START-2*PAGE_SIZE)
+	/* Load modules into 32bit-compatible segment. */
+	#define MODULE_START	CKSSEG
+	#define MODULE_END	(FIXADDR_START-2*PAGE_SIZE)
 #endif
 
 #define pte_ERROR(e) \
@@ -180,13 +180,19 @@ static inline int pmd_none(pmd_t pmd)
 static inline int pmd_bad(pmd_t pmd)
 {
 #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+
 	/* pmd_huge(pmd) but inline */
 	if (unlikely(pmd_val(pmd) & _PAGE_HUGE))
+	{
 		return 0;
+	}
+
 #endif
 
 	if (unlikely(pmd_val(pmd) & ~PAGE_MASK))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -229,12 +235,12 @@ static inline void pud_clear(pud_t *pudp)
 #define pte_page(x)		pfn_to_page(pte_pfn(x))
 
 #ifdef CONFIG_CPU_VR41XX
-#define pte_pfn(x)		((unsigned long)((x).pte >> (PAGE_SHIFT + 2)))
-#define pfn_pte(pfn, prot)	__pte(((pfn) << (PAGE_SHIFT + 2)) | pgprot_val(prot))
+	#define pte_pfn(x)		((unsigned long)((x).pte >> (PAGE_SHIFT + 2)))
+	#define pfn_pte(pfn, prot)	__pte(((pfn) << (PAGE_SHIFT + 2)) | pgprot_val(prot))
 #else
-#define pte_pfn(x)		((unsigned long)((x).pte >> _PFN_SHIFT))
-#define pfn_pte(pfn, prot)	__pte(((pfn) << _PFN_SHIFT) | pgprot_val(prot))
-#define pfn_pmd(pfn, prot)	__pmd(((pfn) << _PFN_SHIFT) | pgprot_val(prot))
+	#define pte_pfn(x)		((unsigned long)((x).pte >> _PFN_SHIFT))
+	#define pfn_pte(pfn, prot)	__pte(((pfn) << _PFN_SHIFT) | pgprot_val(prot))
+	#define pfn_pmd(pfn, prot)	__pmd(((pfn) << _PFN_SHIFT) | pgprot_val(prot))
 #endif
 
 #define __pgd_offset(address)	pgd_index(address)
@@ -259,7 +265,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
 #define pud_page(pud)		(pfn_to_page(pud_phys(pud) >> PAGE_SHIFT))
 
 /* Find an entry in the second-level page table.. */
-static inline pmd_t *pmd_offset(pud_t * pud, unsigned long address)
+static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
 {
 	return (pmd_t *) pud_page_vaddr(*pud) + pmd_index(address);
 }

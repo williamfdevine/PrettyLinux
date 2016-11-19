@@ -8,13 +8,14 @@
 #include <asm/v7m.h>
 #include <asm/mach/arch.h>
 
-static const char *const stm32_compat[] __initconst = {
+static const char *const stm32_compat[] __initconst =
+{
 	"st,stm32f429",
 	"st,stm32f469",
 	NULL
 };
 
 DT_MACHINE_START(STM32DT, "STM32 (Device Tree Support)")
-	.dt_compat = stm32_compat,
-	.restart = armv7m_restart,
-MACHINE_END
+.dt_compat = stm32_compat,
+ .restart = armv7m_restart,
+  MACHINE_END

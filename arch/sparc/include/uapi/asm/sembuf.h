@@ -11,12 +11,13 @@
  * - 2 miscellaneous 32-bit values
  */
 #if defined(__sparc__) && defined(__arch64__)
-# define PADDING(x)
+	#define PADDING(x)
 #else
-# define PADDING(x) unsigned int x;
+	#define PADDING(x) unsigned int x;
 #endif
 
-struct semid64_ds {
+struct semid64_ds
+{
 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
 	PADDING(__pad1)
 	__kernel_time_t	sem_otime;		/* last semop time */

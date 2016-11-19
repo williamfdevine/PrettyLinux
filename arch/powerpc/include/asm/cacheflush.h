@@ -33,8 +33,8 @@ extern void flush_dcache_page(struct page *page);
 
 extern void flush_icache_range(unsigned long, unsigned long);
 extern void flush_icache_user_range(struct vm_area_struct *vma,
-				    struct page *page, unsigned long addr,
-				    int len);
+									struct page *page, unsigned long addr,
+									int len);
 extern void __flush_dcache_icache(void *page_va);
 extern void flush_dcache_icache_page(struct page *page);
 #if defined(CONFIG_PPC32) && !defined(CONFIG_BOOKE)
@@ -58,7 +58,10 @@ static inline void flush_dcache_range(unsigned long start, unsigned long stop)
 	unsigned long i;
 
 	for (i = 0; i < size >> L1_CACHE_SHIFT; i++, addr += L1_CACHE_BYTES)
+	{
 		dcbf(addr);
+	}
+
 	mb();	/* sync */
 }
 
@@ -74,7 +77,10 @@ static inline void clean_dcache_range(unsigned long start, unsigned long stop)
 	unsigned long i;
 
 	for (i = 0; i < size >> L1_CACHE_SHIFT; i++, addr += L1_CACHE_BYTES)
+	{
 		dcbst(addr);
+	}
+
 	mb();	/* sync */
 }
 
@@ -84,22 +90,25 @@ static inline void clean_dcache_range(unsigned long start, unsigned long stop)
  * from the CPM (no cache snooping here :-).
  */
 static inline void invalidate_dcache_range(unsigned long start,
-					   unsigned long stop)
+		unsigned long stop)
 {
 	void *addr = (void *)(start & ~(L1_CACHE_BYTES - 1));
 	unsigned long size = stop - (unsigned long)addr + (L1_CACHE_BYTES - 1);
 	unsigned long i;
 
 	for (i = 0; i < size >> L1_CACHE_SHIFT; i++, addr += L1_CACHE_BYTES)
+	{
 		dcbi(addr);
+	}
+
 	mb();	/* sync */
 }
 
 #endif /* CONFIG_PPC32 */
 #ifdef CONFIG_PPC64
-extern void flush_dcache_range(unsigned long start, unsigned long stop);
-extern void flush_inval_dcache_range(unsigned long start, unsigned long stop);
-extern void flush_dcache_phys_range(unsigned long start, unsigned long stop);
+	extern void flush_dcache_range(unsigned long start, unsigned long stop);
+	extern void flush_inval_dcache_range(unsigned long start, unsigned long stop);
+	extern void flush_dcache_phys_range(unsigned long start, unsigned long stop);
 #endif
 
 #define copy_to_user_page(vma, page, vaddr, dst, src, len) \

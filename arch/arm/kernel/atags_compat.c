@@ -39,49 +39,54 @@
  *
  * This is the old deprecated way to pass parameters to the kernel
  */
-struct param_struct {
-    union {
-	struct {
-	    unsigned long page_size;		/*  0 */
-	    unsigned long nr_pages;		/*  4 */
-	    unsigned long ramdisk_size;		/*  8 */
-	    unsigned long flags;		/* 12 */
+struct param_struct
+{
+	union
+	{
+		struct
+		{
+			unsigned long page_size;		/*  0 */
+			unsigned long nr_pages;		/*  4 */
+			unsigned long ramdisk_size;		/*  8 */
+			unsigned long flags;		/* 12 */
 #define FLAG_READONLY	1
 #define FLAG_RDLOAD	4
 #define FLAG_RDPROMPT	8
-	    unsigned long rootdev;		/* 16 */
-	    unsigned long video_num_cols;	/* 20 */
-	    unsigned long video_num_rows;	/* 24 */
-	    unsigned long video_x;		/* 28 */
-	    unsigned long video_y;		/* 32 */
-	    unsigned long memc_control_reg;	/* 36 */
-	    unsigned char sounddefault;		/* 40 */
-	    unsigned char adfsdrives;		/* 41 */
-	    unsigned char bytes_per_char_h;	/* 42 */
-	    unsigned char bytes_per_char_v;	/* 43 */
-	    unsigned long pages_in_bank[4];	/* 44 */
-	    unsigned long pages_in_vram;	/* 60 */
-	    unsigned long initrd_start;		/* 64 */
-	    unsigned long initrd_size;		/* 68 */
-	    unsigned long rd_start;		/* 72 */
-	    unsigned long system_rev;		/* 76 */
-	    unsigned long system_serial_low;	/* 80 */
-	    unsigned long system_serial_high;	/* 84 */
-	    unsigned long mem_fclk_21285;       /* 88 */
-	} s;
-	char unused[256];
-    } u1;
-    union {
-	char paths[8][128];
-	struct {
-	    unsigned long magic;
-	    char n[1024 - sizeof(unsigned long)];
-	} s;
-    } u2;
-    char commandline[COMMAND_LINE_SIZE];
+			unsigned long rootdev;		/* 16 */
+			unsigned long video_num_cols;	/* 20 */
+			unsigned long video_num_rows;	/* 24 */
+			unsigned long video_x;		/* 28 */
+			unsigned long video_y;		/* 32 */
+			unsigned long memc_control_reg;	/* 36 */
+			unsigned char sounddefault;		/* 40 */
+			unsigned char adfsdrives;		/* 41 */
+			unsigned char bytes_per_char_h;	/* 42 */
+			unsigned char bytes_per_char_v;	/* 43 */
+			unsigned long pages_in_bank[4];	/* 44 */
+			unsigned long pages_in_vram;	/* 60 */
+			unsigned long initrd_start;		/* 64 */
+			unsigned long initrd_size;		/* 68 */
+			unsigned long rd_start;		/* 72 */
+			unsigned long system_rev;		/* 76 */
+			unsigned long system_serial_low;	/* 80 */
+			unsigned long system_serial_high;	/* 84 */
+			unsigned long mem_fclk_21285;       /* 88 */
+		} s;
+		char unused[256];
+	} u1;
+	union
+	{
+		char paths[8][128];
+		struct
+		{
+			unsigned long magic;
+			char n[1024 - sizeof(unsigned long)];
+		} s;
+	} u2;
+	char commandline[COMMAND_LINE_SIZE];
 };
 
-static struct tag * __init memtag(struct tag *tag, unsigned long start, unsigned long size)
+static struct tag *__init memtag(struct tag *tag, unsigned long start, unsigned long size)
 {
 	tag = tag_next(tag);
 	tag->hdr.tag = ATAG_MEM;
@@ -96,7 +101,8 @@ static void __init build_tag_list(struct param_struct *params, void *taglist)
 {
 	struct tag *tag = taglist;
 
-	if (params->u1.s.page_size != PAGE_SIZE) {
+	if (params->u1.s.page_size != PAGE_SIZE)
+	{
 		pr_warn("Warning: bad configuration page, trying to continue\n");
 		return;
 	}
@@ -104,10 +110,12 @@ static void __init build_tag_list(struct param_struct *params, void *taglist)
 	printk(KERN_DEBUG "Converting old-style param struct to taglist\n");
 
 #ifdef CONFIG_ARCH_NETWINDER
+
 	if (params->u1.s.nr_pages != 0x02000 &&
-	    params->u1.s.nr_pages != 0x04000 &&
-	    params->u1.s.nr_pages != 0x08000 &&
-	    params->u1.s.nr_pages != 0x10000) {
+		params->u1.s.nr_pages != 0x04000 &&
+		params->u1.s.nr_pages != 0x08000 &&
+		params->u1.s.nr_pages != 0x10000)
+	{
 		pr_warn("Warning: bad NeTTrom parameters detected, using defaults\n");
 
 		params->u1.s.nr_pages = 0x1000;	/* 16MB */
@@ -117,6 +125,7 @@ static void __init build_tag_list(struct param_struct *params, void *taglist)
 		params->u1.s.initrd_size = 0;
 		params->u1.s.rd_start = 0;
 	}
+
 #endif
 
 	tag->hdr.tag  = ATAG_CORE;
@@ -129,7 +138,7 @@ static void __init build_tag_list(struct param_struct *params, void *taglist)
 	tag->hdr.tag = ATAG_RAMDISK;
 	tag->hdr.size = tag_size(tag_ramdisk);
 	tag->u.ramdisk.flags = (params->u1.s.flags & FLAG_RDLOAD ? 1 : 0) |
-			       (params->u1.s.flags & FLAG_RDPROMPT ? 2 : 0);
+						   (params->u1.s.flags & FLAG_RDPROMPT ? 2 : 0);
 	tag->u.ramdisk.size  = params->u1.s.ramdisk_size;
 	tag->u.ramdisk.start = params->u1.s.rd_start;
 
@@ -151,26 +160,35 @@ static void __init build_tag_list(struct param_struct *params, void *taglist)
 	tag->u.revision.rev = params->u1.s.system_rev;
 
 #ifdef CONFIG_ARCH_ACORN
-	if (machine_is_riscpc()) {
+
+	if (machine_is_riscpc())
+	{
 		int i;
+
 		for (i = 0; i < 4; i++)
 			tag = memtag(tag, PHYS_OFFSET + (i << 26),
-				 params->u1.s.pages_in_bank[i] * PAGE_SIZE);
-	} else
+						 params->u1.s.pages_in_bank[i] * PAGE_SIZE);
+	}
+	else
 #endif
-	tag = memtag(tag, PHYS_OFFSET, params->u1.s.nr_pages * PAGE_SIZE);
+		tag = memtag(tag, PHYS_OFFSET, params->u1.s.nr_pages * PAGE_SIZE);
 
 #ifdef CONFIG_FOOTBRIDGE
-	if (params->u1.s.mem_fclk_21285) {
+
+	if (params->u1.s.mem_fclk_21285)
+	{
 		tag = tag_next(tag);
 		tag->hdr.tag = ATAG_MEMCLK;
 		tag->hdr.size = tag_size(tag_memclk);
 		tag->u.memclk.fmemclk = params->u1.s.mem_fclk_21285;
 	}
+
 #endif
 
 #ifdef CONFIG_ARCH_EBSA285
-	if (machine_is_ebsa285()) {
+
+	if (machine_is_ebsa285())
+	{
 		tag = tag_next(tag);
 		tag->hdr.tag = ATAG_VIDEOTEXT;
 		tag->hdr.size = tag_size(tag_videotext);
@@ -184,6 +202,7 @@ static void __init build_tag_list(struct param_struct *params, void *taglist)
 		tag->u.videotext.video_isvga  = 1;
 		tag->u.videotext.video_points = 8;
 	}
+
 #endif
 
 #ifdef CONFIG_ARCH_ACORN
@@ -199,7 +218,7 @@ static void __init build_tag_list(struct param_struct *params, void *taglist)
 	tag = tag_next(tag);
 	tag->hdr.tag = ATAG_CMDLINE;
 	tag->hdr.size = (strlen(params->commandline) + 3 +
-			 sizeof(struct tag_header)) >> 2;
+					 sizeof(struct tag_header)) >> 2;
 	strcpy(tag->u.cmdline.cmdline, params->commandline);
 
 	tag = tag_next(tag);
@@ -207,7 +226,7 @@ static void __init build_tag_list(struct param_struct *params, void *taglist)
 	tag->hdr.size = 0;
 
 	memmove(params, taglist, ((int)tag) - ((int)taglist) +
-				 sizeof(struct tag_header));
+			sizeof(struct tag_header));
 }
 
 void __init convert_to_tag_list(struct tag *tags)

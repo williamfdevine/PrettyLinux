@@ -115,7 +115,8 @@ CPUMF_EVENT_ATTR(cf_zec12, TX_NC_TABORT, 0x00b1);
 CPUMF_EVENT_ATTR(cf_zec12, TX_C_TABORT_NO_SPECIAL, 0x00b2);
 CPUMF_EVENT_ATTR(cf_zec12, TX_C_TABORT_SPECIAL, 0x00b3);
 
-static struct attribute *cpumcf_pmu_event_attr[] = {
+static struct attribute *cpumcf_pmu_event_attr[] =
+{
 	CPUMF_EVENT_PTR(cf, CPU_CYCLES),
 	CPUMF_EVENT_PTR(cf, INSTRUCTIONS),
 	CPUMF_EVENT_PTR(cf, L1I_DIR_WRITES),
@@ -147,7 +148,8 @@ static struct attribute *cpumcf_pmu_event_attr[] = {
 	NULL,
 };
 
-static struct attribute *cpumcf_z10_pmu_event_attr[] __initdata = {
+static struct attribute *cpumcf_z10_pmu_event_attr[] __initdata =
+{
 	CPUMF_EVENT_PTR(cf_z10, L1I_L2_SOURCED_WRITES),
 	CPUMF_EVENT_PTR(cf_z10, L1D_L2_SOURCED_WRITES),
 	CPUMF_EVENT_PTR(cf_z10, L1I_L3_LOCAL_WRITES),
@@ -169,7 +171,8 @@ static struct attribute *cpumcf_z10_pmu_event_attr[] __initdata = {
 	NULL,
 };
 
-static struct attribute *cpumcf_z196_pmu_event_attr[] __initdata = {
+static struct attribute *cpumcf_z196_pmu_event_attr[] __initdata =
+{
 	CPUMF_EVENT_PTR(cf_z196, L1D_L2_SOURCED_WRITES),
 	CPUMF_EVENT_PTR(cf_z196, L1I_L2_SOURCED_WRITES),
 	CPUMF_EVENT_PTR(cf_z196, DTLB1_MISSES),
@@ -197,7 +200,8 @@ static struct attribute *cpumcf_z196_pmu_event_attr[] __initdata = {
 	NULL,
 };
 
-static struct attribute *cpumcf_zec12_pmu_event_attr[] __initdata = {
+static struct attribute *cpumcf_zec12_pmu_event_attr[] __initdata =
+{
 	CPUMF_EVENT_PTR(cf_zec12, DTLB1_MISSES),
 	CPUMF_EVENT_PTR(cf_zec12, ITLB1_MISSES),
 	CPUMF_EVENT_PTR(cf_zec12, L1D_L2I_SOURCED_WRITES),
@@ -238,24 +242,28 @@ static struct attribute *cpumcf_zec12_pmu_event_attr[] __initdata = {
 
 /* END: CPUM_CF COUNTER DEFINITIONS ===================================== */
 
-static struct attribute_group cpumsf_pmu_events_group = {
+static struct attribute_group cpumsf_pmu_events_group =
+{
 	.name = "events",
 	.attrs = cpumcf_pmu_event_attr,
 };
 
 PMU_FORMAT_ATTR(event, "config:0-63");
 
-static struct attribute *cpumsf_pmu_format_attr[] = {
+static struct attribute *cpumsf_pmu_format_attr[] =
+{
 	&format_attr_event.attr,
 	NULL,
 };
 
-static struct attribute_group cpumsf_pmu_format_group = {
+static struct attribute_group cpumsf_pmu_format_group =
+{
 	.name = "format",
 	.attrs = cpumsf_pmu_format_attr,
 };
 
-static const struct attribute_group *cpumsf_pmu_attr_groups[] = {
+static const struct attribute_group *cpumsf_pmu_attr_groups[] =
+{
 	&cpumsf_pmu_events_group,
 	&cpumsf_pmu_format_group,
 	NULL,
@@ -263,25 +271,40 @@ static const struct attribute_group *cpumsf_pmu_attr_groups[] = {
 
 
 static __init struct attribute **merge_attr(struct attribute **a,
-					    struct attribute **b)
+		struct attribute **b)
 {
 	struct attribute **new;
 	int j, i;
 
 	for (j = 0; a[j]; j++)
 		;
+
 	for (i = 0; b[i]; i++)
+	{
 		j++;
+	}
+
 	j++;
 
 	new = kmalloc(sizeof(struct attribute *) * j, GFP_KERNEL);
+
 	if (!new)
+	{
 		return NULL;
+	}
+
 	j = 0;
+
 	for (i = 0; a[i]; i++)
+	{
 		new[j++] = a[i];
+	}
+
 	for (i = 0; b[i]; i++)
+	{
 		new[j++] = b[i];
+	}
+
 	new[j] = NULL;
 
 	return new;
@@ -293,30 +316,41 @@ __init const struct attribute_group **cpumf_cf_event_group(void)
 	struct cpuid cpu_id;
 
 	get_cpu_id(&cpu_id);
-	switch (cpu_id.machine) {
-	case 0x2097:
-	case 0x2098:
-		model = cpumcf_z10_pmu_event_attr;
-		break;
-	case 0x2817:
-	case 0x2818:
-		model = cpumcf_z196_pmu_event_attr;
-		break;
-	case 0x2827:
-	case 0x2828:
-		model = cpumcf_zec12_pmu_event_attr;
-		break;
-	default:
-		model = NULL;
-		break;
+
+	switch (cpu_id.machine)
+	{
+		case 0x2097:
+		case 0x2098:
+			model = cpumcf_z10_pmu_event_attr;
+			break;
+
+		case 0x2817:
+		case 0x2818:
+			model = cpumcf_z196_pmu_event_attr;
+			break;
+
+		case 0x2827:
+		case 0x2828:
+			model = cpumcf_zec12_pmu_event_attr;
+			break;
+
+		default:
+			model = NULL;
+			break;
 	};
 
 	if (!model)
+	{
 		goto out;
+	}
 
 	combined = merge_attr(cpumcf_pmu_event_attr, model);
+
 	if (combined)
+	{
 		cpumsf_pmu_events_group.attrs = combined;
+	}
+
 out:
 	return cpumsf_pmu_attr_groups;
 }

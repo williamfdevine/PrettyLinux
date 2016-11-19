@@ -29,9 +29,9 @@
 #define UART_DM646X_SCR_TX_WATERMARK	0x08
 
 #ifndef __ASSEMBLY__
-#include <linux/platform_device.h>
+	#include <linux/platform_device.h>
 
-extern int davinci_serial_init(struct platform_device *);
+	extern int davinci_serial_init(struct platform_device *);
 #endif
 
 #endif /* __ASM_ARCH_SERIAL_H */

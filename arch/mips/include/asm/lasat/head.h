@@ -9,7 +9,8 @@
 
 #ifndef _LANGUAGE_ASSEMBLY
 #include <linux/types.h>
-struct bootloader_header {
+struct bootloader_header
+{
 	u32 magic[2];
 	u32 version;
 	u32 image_start;

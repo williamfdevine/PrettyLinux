@@ -15,16 +15,16 @@
 extern void phys_stext(void);
 
 #define lookup_exception_vector()		\
-({						\
-	unsigned long _vec;			\
-						\
-	__asm__ __volatile__ (			\
-		"getcon " __EXPEVT ", %0\n\t"	\
-		: "=r" (_vec)			\
-	);					\
-						\
-	_vec;					\
-})
+	({						\
+		unsigned long _vec;			\
+		\
+		__asm__ __volatile__ (			\
+										"getcon " __EXPEVT ", %0\n\t"	\
+										: "=r" (_vec)			\
+							 );					\
+		\
+		_vec;					\
+	})
 
 static inline void trigger_address_error(void)
 {
@@ -32,7 +32,7 @@ static inline void trigger_address_error(void)
 }
 
 #define BUILD_TRAP_HANDLER(name)	\
-asmlinkage void name##_trap_handler(unsigned int vec, struct pt_regs *regs)
+	asmlinkage void name##_trap_handler(unsigned int vec, struct pt_regs *regs)
 #define TRAP_HANDLER_DECL
 
 #endif /* __ASM_SH_TRAPS_64_H */

@@ -435,7 +435,8 @@
 /*
  * gpio pint registers layout
  */
-struct bfin_pint_regs {
+struct bfin_pint_regs
+{
 	u32 mask_set;
 	u32 mask_clear;
 	u32 request;

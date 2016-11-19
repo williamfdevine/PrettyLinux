@@ -24,7 +24,8 @@
 /* GPIO pin for spidev chipselect */
 #define MRFLD_SPIDEV_GPIO_CS		111
 
-static struct pxa2xx_spi_chip spidev_spi_chip = {
+static struct pxa2xx_spi_chip spidev_spi_chip =
+{
 	.dma_burst_size		= MRFLD_SPI_DEFAULT_DMA_BURST,
 	.timeout		= MRFLD_SPI_DEFAULT_TIMEOUT,
 	.gpio_cs		= MRFLD_SPIDEV_GPIO_CS,
@@ -40,7 +41,8 @@ static void __init *spidev_platform_data(void *info)
 	return NULL;
 }
 
-static const struct devs_id spidev_dev_id __initconst = {
+static const struct devs_id spidev_dev_id __initconst =
+{
 	.name			= "spidev",
 	.type			= SFI_DEV_TYPE_SPI,
 	.delay			= 0,

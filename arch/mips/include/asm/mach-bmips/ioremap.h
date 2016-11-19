@@ -11,16 +11,20 @@ static inline phys_addr_t fixup_bigphys_addr(phys_addr_t phys_addr, phys_addr_t 
 static inline int is_bmips_internal_registers(phys_addr_t offset)
 {
 	if (offset >= 0xfff80000)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 static inline void __iomem *plat_ioremap(phys_addr_t offset, unsigned long size,
-					 unsigned long flags)
+		unsigned long flags)
 {
 	if (is_bmips_internal_registers(offset))
+	{
 		return (void __iomem *)offset;
+	}
 
 	return NULL;
 }

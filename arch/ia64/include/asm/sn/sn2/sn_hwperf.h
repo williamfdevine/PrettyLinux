@@ -20,14 +20,18 @@
  * changing the corresponding SAL code.
  */
 #define SN_HWPERF_MAXSTRING		128
-struct sn_hwperf_object_info {
+struct sn_hwperf_object_info
+{
 	u32 id;
-	union {
-		struct {
-			u64 this_part:1;
-			u64 is_shared:1;
+	union
+	{
+		struct
+		{
+			u64 this_part: 1;
+			u64 is_shared: 1;
 		} fields;
-		struct {
+		struct
+		{
 			u64 flags;
 			u64 reserved;
 		} b;
@@ -49,32 +53,35 @@ struct sn_hwperf_object_info {
 #define SN_HWPERF_IS_NL4ROUTER(x)	((x) && strstr((x)->name, "NL4Router"))
 #define SN_HWPERF_IS_OLDROUTER(x)	((x) && strstr((x)->name, "Router"))
 #define SN_HWPERF_IS_ROUTER(x)		(SN_HWPERF_IS_NL3ROUTER(x) || 		\
-					 	SN_HWPERF_IS_NL4ROUTER(x) || 	\
-					 	SN_HWPERF_IS_OLDROUTER(x))
+									 SN_HWPERF_IS_NL4ROUTER(x) || 	\
+									 SN_HWPERF_IS_OLDROUTER(x))
 #define SN_HWPERF_FOREIGN(x)		((x) && !(x)->sn_hwp_this_part && !(x)->sn_hwp_is_shared)
 #define SN_HWPERF_SAME_OBJTYPE(x,y)	((SN_HWPERF_IS_NODE(x) && SN_HWPERF_IS_NODE(y)) ||\
-					(SN_HWPERF_IS_IONODE(x) && SN_HWPERF_IS_IONODE(y)) ||\
-					(SN_HWPERF_IS_ROUTER(x) && SN_HWPERF_IS_ROUTER(y)))
+									 (SN_HWPERF_IS_IONODE(x) && SN_HWPERF_IS_IONODE(y)) ||\
+									 (SN_HWPERF_IS_ROUTER(x) && SN_HWPERF_IS_ROUTER(y)))
 
 /* numa port structure, SN_HWPERF_ENUM_PORTS returns an array of these */
-struct sn_hwperf_port_info {
+struct sn_hwperf_port_info
+{
 	u32 port;
 	u32 conn_id;
 	u32 conn_port;
 };
 
 /* for HWPERF_{GET,SET}_MMRS */
-struct sn_hwperf_data {
+struct sn_hwperf_data
+{
 	u64 addr;
 	u64 data;
 };
 
 /* user ioctl() argument, see below */
-struct sn_hwperf_ioctl_args {
-        u64 arg;		/* argument, usually an object id */
-        u64 sz;                 /* size of transfer */
-        void *ptr;              /* pointer to source/target */
-        u32 v0;			/* second return value */
+struct sn_hwperf_ioctl_args
+{
+	u64 arg;		/* argument, usually an object id */
+	u64 sz;                 /* size of transfer */
+	void *ptr;              /* pointer to source/target */
+	u32 v0;			/* second return value */
 };
 
 /*
@@ -89,7 +96,7 @@ struct sn_hwperf_ioctl_args {
 #define SN_HWPERF_ARG_USE_IPI_MASK	0x8000000000000000ULL
 #define SN_HWPERF_ARG_OBJID_MASK	0x00000000ffffffffULL
 
-/* 
+/*
  * ioctl requests on the "sn_hwperf" misc device that call SAL.
  */
 #define SN_HWPERF_OP_MEM_COPYIN		0x1000
@@ -162,7 +169,7 @@ struct sn_hwperf_ioctl_args {
  */
 #define SN_HWPERF_SET_MMRS		(14|SN_HWPERF_OP_MEM_COPYIN)
 #define SN_HWPERF_GET_MMRS		(15|SN_HWPERF_OP_MEM_COPYOUT| \
-					    SN_HWPERF_OP_MEM_COPYIN)
+								 SN_HWPERF_OP_MEM_COPYIN)
 /*
  * Lock a shared object
  * arg	object id
@@ -192,7 +199,7 @@ struct sn_hwperf_ioctl_args {
  */
 
 /*
- * get cpu info as an array of hwperf_object_info_t. 
+ * get cpu info as an array of hwperf_object_info_t.
  * id is logical CPU number, name is description, location
  * is geoid (e.g. 001c04#1c). Special case if sz == 8,
  * returns the required buffer size.
@@ -226,7 +233,7 @@ struct sn_hwperf_ioctl_args {
  * Return 0 on success.
  */
 extern int sn_hwperf_get_nearest_node(cnodeid_t node,
-	cnodeid_t *near_mem, cnodeid_t *near_cpu);
+									  cnodeid_t *near_mem, cnodeid_t *near_cpu);
 
 /* return codes */
 #define SN_HWPERF_OP_OK			0

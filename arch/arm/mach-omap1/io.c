@@ -28,7 +28,8 @@
  * The machine specific code may provide the extra mapping besides the
  * default mapping provided here.
  */
-static struct map_desc omap_io_desc[] __initdata = {
+static struct map_desc omap_io_desc[] __initdata =
+{
 	{
 		.virtual	= OMAP1_IO_VIRT,
 		.pfn		= __phys_to_pfn(OMAP1_IO_PHYS),
@@ -38,7 +39,8 @@ static struct map_desc omap_io_desc[] __initdata = {
 };
 
 #if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
-static struct map_desc omap7xx_io_desc[] __initdata = {
+static struct map_desc omap7xx_io_desc[] __initdata =
+{
 	{
 		.virtual	= OMAP7XX_DSP_BASE,
 		.pfn		= __phys_to_pfn(OMAP7XX_DSP_START),
@@ -54,7 +56,8 @@ static struct map_desc omap7xx_io_desc[] __initdata = {
 #endif
 
 #ifdef CONFIG_ARCH_OMAP15XX
-static struct map_desc omap1510_io_desc[] __initdata = {
+static struct map_desc omap1510_io_desc[] __initdata =
+{
 	{
 		.virtual	= OMAP1510_DSP_BASE,
 		.pfn		= __phys_to_pfn(OMAP1510_DSP_START),
@@ -70,7 +73,8 @@ static struct map_desc omap1510_io_desc[] __initdata = {
 #endif
 
 #if defined(CONFIG_ARCH_OMAP16XX)
-static struct map_desc omap16xx_io_desc[] __initdata = {
+static struct map_desc omap16xx_io_desc[] __initdata =
+{
 	{
 		.virtual	= OMAP16XX_DSP_BASE,
 		.pfn		= __phys_to_pfn(OMAP16XX_DSP_START),

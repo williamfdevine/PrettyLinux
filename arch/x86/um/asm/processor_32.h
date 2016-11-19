@@ -12,13 +12,15 @@
 
 extern int host_has_cmov;
 
-struct uml_tls_struct {
+struct uml_tls_struct
+{
 	struct user_desc tls;
-	unsigned flushed:1;
-	unsigned present:1;
+	unsigned flushed: 1;
+	unsigned present: 1;
 };
 
-struct arch_thread {
+struct arch_thread
+{
 	struct uml_tls_struct tls_array[GDT_ENTRY_TLS_ENTRIES];
 	unsigned long debugregs[8];
 	int debugregs_seq;
@@ -26,12 +28,12 @@ struct arch_thread {
 };
 
 #define INIT_ARCH_THREAD { \
-	.tls_array  		= { [ 0 ... GDT_ENTRY_TLS_ENTRIES - 1 ] = \
-				    { .present = 0, .flushed = 0 } }, \
-	.debugregs  		= { [ 0 ... 7 ] = 0 }, \
-	.debugregs_seq		= 0, \
-	.faultinfo		= { 0, 0, 0 } \
-}
+		.tls_array  		= { [ 0 ... GDT_ENTRY_TLS_ENTRIES - 1 ] = \
+								{ .present = 0, .flushed = 0 } }, \
+							  .debugregs  		= { [ 0 ... 7 ] = 0 }, \
+									  .debugregs_seq		= 0, \
+											  .faultinfo		= { 0, 0, 0 } \
+	}
 
 #define STACKSLOTS_PER_LINE 8
 
@@ -42,9 +44,9 @@ static inline void arch_flush_thread(struct arch_thread *thread)
 }
 
 static inline void arch_copy_thread(struct arch_thread *from,
-                                    struct arch_thread *to)
+									struct arch_thread *to)
 {
-        memcpy(&to->tls_array, &from->tls_array, sizeof(from->tls_array));
+	memcpy(&to->tls_array, &from->tls_array, sizeof(from->tls_array));
 }
 
 /*

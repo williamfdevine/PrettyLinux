@@ -79,7 +79,7 @@ static int octeon_md5_init(struct shash_desc *desc)
 }
 
 static int octeon_md5_update(struct shash_desc *desc, const u8 *data,
-			     unsigned int len)
+							 unsigned int len)
 {
 	struct md5_state *mctx = shash_desc_ctx(desc);
 	const u32 avail = sizeof(mctx->block) - (mctx->byte_count & 0x3f);
@@ -88,14 +88,15 @@ static int octeon_md5_update(struct shash_desc *desc, const u8 *data,
 
 	mctx->byte_count += len;
 
-	if (avail > len) {
+	if (avail > len)
+	{
 		memcpy((char *)mctx->block + (sizeof(mctx->block) - avail),
-		       data, len);
+			   data, len);
 		return 0;
 	}
 
 	memcpy((char *)mctx->block + (sizeof(mctx->block) - avail), data,
-	       avail);
+		   avail);
 
 	flags = octeon_crypto_enable(&state);
 	octeon_md5_store_hash(mctx);
@@ -104,7 +105,8 @@ static int octeon_md5_update(struct shash_desc *desc, const u8 *data,
 	data += avail;
 	len -= avail;
 
-	while (len >= sizeof(mctx->block)) {
+	while (len >= sizeof(mctx->block))
+	{
 		octeon_md5_transform(data);
 		data += sizeof(mctx->block);
 		len -= sizeof(mctx->block);
@@ -132,7 +134,8 @@ static int octeon_md5_final(struct shash_desc *desc, u8 *out)
 	flags = octeon_crypto_enable(&state);
 	octeon_md5_store_hash(mctx);
 
-	if (padding < 0) {
+	if (padding < 0)
+	{
 		memset(p, 0x00, padding + sizeof(u64));
 		octeon_md5_transform(mctx->block);
 		p = (char *)mctx->block;
@@ -169,7 +172,8 @@ static int octeon_md5_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	MD5_DIGEST_SIZE,
 	.init		=	octeon_md5_init,
 	.update		=	octeon_md5_update,
@@ -180,7 +184,7 @@ static struct shash_alg alg = {
 	.statesize	=	sizeof(struct md5_state),
 	.base		=	{
 		.cra_name	=	"md5",
-		.cra_driver_name=	"octeon-md5",
+		.cra_driver_name =	"octeon-md5",
 		.cra_priority	=	OCTEON_CR_OPCODE_PRIORITY,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	MD5_HMAC_BLOCK_SIZE,
@@ -191,7 +195,10 @@ static struct shash_alg alg = {
 static int __init md5_mod_init(void)
 {
 	if (!octeon_has_crypto())
+	{
 		return -ENOTSUPP;
+	}
+
 	return crypto_register_shash(&alg);
 }
 

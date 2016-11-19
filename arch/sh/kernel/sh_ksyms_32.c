@@ -21,9 +21,9 @@ EXPORT_SYMBOL(copy_page);
 EXPORT_SYMBOL(__clear_user);
 EXPORT_SYMBOL(empty_zero_page);
 #ifdef CONFIG_FLATMEM
-/* need in pfn_valid macro */
-EXPORT_SYMBOL(min_low_pfn);
-EXPORT_SYMBOL(max_low_pfn);
+	/* need in pfn_valid macro */
+	EXPORT_SYMBOL(min_low_pfn);
+	EXPORT_SYMBOL(max_low_pfn);
 #endif
 
 #define DECLARE_EXPORT(name)		\
@@ -96,5 +96,5 @@ DECLARE_EXPORT(__udivsi3_i4);
 DECLARE_EXPORT(__sdivsi3_i4i);
 DECLARE_EXPORT(__udivsi3_i4i);
 #ifdef CONFIG_MCOUNT
-DECLARE_EXPORT(mcount);
+	DECLARE_EXPORT(mcount);
 #endif

@@ -13,9 +13,9 @@
 
 #ifdef __GNUC__
 
-#ifndef __powerpc64__
-#define __SWAB_64_THRU_32__
-#endif /* __powerpc64__ */
+	#ifndef __powerpc64__
+		#define __SWAB_64_THRU_32__
+	#endif /* __powerpc64__ */
 
 
 #endif /* __GNUC__ */

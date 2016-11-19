@@ -29,11 +29,11 @@ struct mm_struct;
  * instruction pointer ("program counter").
  */
 #define current_text_addr()			\
-({						\
-	void *__pc;				\
-	asm("mov pc,%0" : "=a"(__pc));		\
-	__pc;					\
-})
+	({						\
+		void *__pc;				\
+		asm("mov pc,%0" : "=a"(__pc));		\
+		__pc;					\
+	})
 
 extern void get_mem_info(unsigned long *mem_base, unsigned long *mem_size);
 
@@ -45,7 +45,8 @@ extern void show_registers(struct pt_regs *regs);
  *  before touching them. [mj]
  */
 
-struct mn10300_cpuinfo {
+struct mn10300_cpuinfo
+{
 	int		type;
 	unsigned long	loops_per_jiffy;
 	char		hard_math;
@@ -54,14 +55,14 @@ struct mn10300_cpuinfo {
 extern struct mn10300_cpuinfo boot_cpu_data;
 
 #ifdef CONFIG_SMP
-#if CONFIG_NR_CPUS < 2 || CONFIG_NR_CPUS > 8
-# error Sorry, NR_CPUS should be 2 to 8
-#endif
-extern struct mn10300_cpuinfo cpu_data[];
-#define current_cpu_data cpu_data[smp_processor_id()]
+	#if CONFIG_NR_CPUS < 2 || CONFIG_NR_CPUS > 8
+		# error Sorry, NR_CPUS should be 2 to 8
+	#endif
+	extern struct mn10300_cpuinfo cpu_data[];
+	#define current_cpu_data cpu_data[smp_processor_id()]
 #else  /* CONFIG_SMP */
-#define cpu_data &boot_cpu_data
-#define current_cpu_data boot_cpu_data
+	#define cpu_data &boot_cpu_data
+	#define current_cpu_data boot_cpu_data
 #endif /* CONFIG_SMP */
 
 extern void identify_cpu(struct mn10300_cpuinfo *);
@@ -87,12 +88,14 @@ extern void dodgy_tsc(void);
  */
 #define TASK_UNMAPPED_BASE	0x30000000
 
-struct fpu_state_struct {
+struct fpu_state_struct
+{
 	unsigned long	fs[32];		/* fpu registers */
 	unsigned long	fpcr;		/* fpu control register */
 };
 
-struct thread_struct {
+struct thread_struct
+{
 	struct pt_regs		*uregs;		/* userspace register frame */
 	unsigned long		pc;		/* kernel PC */
 	unsigned long		sp;		/* kernel SP */
@@ -106,23 +109,23 @@ struct thread_struct {
 };
 
 #define INIT_THREAD		\
-{				\
-	.uregs	= init_uregs,	\
-	.pc	= 0,		\
-	.sp	= 0,		\
-	.a3	= 0,		\
-	.wchan	= 0,		\
-}
+	{				\
+		.uregs	= init_uregs,	\
+				  .pc	= 0,		\
+						.sp	= 0,		\
+							  .a3	= 0,		\
+									.wchan	= 0,		\
+	}
 
 #define INIT_MMAP \
-{ &init_mm, 0, 0, NULL, PAGE_SHARED, VM_READ | VM_WRITE | VM_EXEC, 1, \
-  NULL, NULL }
+	{ &init_mm, 0, 0, NULL, PAGE_SHARED, VM_READ | VM_WRITE | VM_EXEC, 1, \
+		NULL, NULL }
 
 /*
  * do necessary setup to start up a newly executed thread
  */
 static inline void start_thread(struct pt_regs *regs,
-				unsigned long new_pc, unsigned long new_sp)
+								unsigned long new_pc, unsigned long new_sp)
 {
 	regs->epsw = EPSW_nSL | EPSW_IE | EPSW_IM;
 	regs->pc = new_pc;
@@ -145,9 +148,9 @@ unsigned long get_wchan(struct task_struct *p);
 #define KSTK_ESP(task) (task_pt_regs(task)->sp)
 
 #define KSTK_TOP(info)				\
-({						\
-	(unsigned long)(info) + THREAD_SIZE;	\
-})
+	({						\
+		(unsigned long)(info) + THREAD_SIZE;	\
+	})
 
 #define ARCH_HAS_PREFETCH
 #define ARCH_HAS_PREFETCHW

@@ -39,7 +39,8 @@
 /*
  * NOR Flash
  */
-static struct mtd_partition cns3420_nor_partitions[] = {
+static struct mtd_partition cns3420_nor_partitions[] =
+{
 	{
 		.name		= "uboot",
 		.size		= 0x00040000,
@@ -64,19 +65,22 @@ static struct mtd_partition cns3420_nor_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data cns3420_nor_pdata = {
+static struct physmap_flash_data cns3420_nor_pdata =
+{
 	.width = 2,
 	.parts = cns3420_nor_partitions,
 	.nr_parts = ARRAY_SIZE(cns3420_nor_partitions),
 };
 
-static struct resource cns3420_nor_res = {
+static struct resource cns3420_nor_res =
+{
 	.start = CNS3XXX_FLASH_BASE,
 	.end = CNS3XXX_FLASH_BASE + SZ_128M - 1,
 	.flags = IORESOURCE_MEM | IORESOURCE_MEM_32BIT,
 };
 
-static struct platform_device cns3420_nor_pdev = {
+static struct platform_device cns3420_nor_pdev =
+{
 	.name = "physmap-flash",
 	.id = 0,
 	.resource = &cns3420_nor_res,
@@ -92,7 +96,8 @@ static struct platform_device cns3420_nor_pdev = {
 static void __init cns3420_early_serial_setup(void)
 {
 #ifdef CONFIG_SERIAL_8250_CONSOLE
-	static struct uart_port cns3420_serial_port = {
+	static struct uart_port cns3420_serial_port =
+	{
 		.membase        = (void __iomem *)CNS3XXX_UART0_BASE_VIRT,
 		.mapbase        = CNS3XXX_UART0_BASE,
 		.irq            = IRQ_CNS3XXX_UART0,
@@ -112,7 +117,8 @@ static void __init cns3420_early_serial_setup(void)
 /*
  * USB
  */
-static struct resource cns3xxx_usb_ehci_resources[] = {
+static struct resource cns3xxx_usb_ehci_resources[] =
+{
 	[0] = {
 		.start = CNS3XXX_USB_BASE,
 		.end   = CNS3XXX_USB_BASE + SZ_16M - 1,
@@ -136,12 +142,13 @@ static int csn3xxx_usb_power_on(struct platform_device *pdev)
 	 *
 	 * Set USB AHB INCR length to 16
 	 */
-	if (atomic_inc_return(&usb_pwr_ref) == 1) {
+	if (atomic_inc_return(&usb_pwr_ref) == 1)
+	{
 		cns3xxx_pwr_power_up(1 << PM_PLL_HM_PD_CTRL_REG_OFFSET_PLL_USB);
 		cns3xxx_pwr_clk_en(1 << PM_CLK_GATE_REG_OFFSET_USB_HOST);
 		cns3xxx_pwr_soft_rst(1 << PM_SOFT_RST_REG_OFFST_USB_HOST);
 		__raw_writel((__raw_readl(MISC_CHIP_CONFIG_REG) | (0X2 << 24)),
-			MISC_CHIP_CONFIG_REG);
+					 MISC_CHIP_CONFIG_REG);
 	}
 
 	return 0;
@@ -156,15 +163,19 @@ static void csn3xxx_usb_power_off(struct platform_device *pdev)
 	 * power down at the last down device.
 	 */
 	if (atomic_dec_return(&usb_pwr_ref) == 0)
+	{
 		cns3xxx_pwr_clk_dis(1 << PM_CLK_GATE_REG_OFFSET_USB_HOST);
+	}
 }
 
-static struct usb_ehci_pdata cns3xxx_usb_ehci_pdata = {
+static struct usb_ehci_pdata cns3xxx_usb_ehci_pdata =
+{
 	.power_on	= csn3xxx_usb_power_on,
 	.power_off	= csn3xxx_usb_power_off,
 };
 
-static struct platform_device cns3xxx_usb_ehci_device = {
+static struct platform_device cns3xxx_usb_ehci_device =
+{
 	.name          = "ehci-platform",
 	.num_resources = ARRAY_SIZE(cns3xxx_usb_ehci_resources),
 	.resource      = cns3xxx_usb_ehci_resources,
@@ -175,7 +186,8 @@ static struct platform_device cns3xxx_usb_ehci_device = {
 	},
 };
 
-static struct resource cns3xxx_usb_ohci_resources[] = {
+static struct resource cns3xxx_usb_ohci_resources[] =
+{
 	[0] = {
 		.start = CNS3XXX_USB_OHCI_BASE,
 		.end   = CNS3XXX_USB_OHCI_BASE + SZ_16M - 1,
@@ -189,13 +201,15 @@ static struct resource cns3xxx_usb_ohci_resources[] = {
 
 static u64 cns3xxx_usb_ohci_dma_mask = DMA_BIT_MASK(32);
 
-static struct usb_ohci_pdata cns3xxx_usb_ohci_pdata = {
+static struct usb_ohci_pdata cns3xxx_usb_ohci_pdata =
+{
 	.num_ports	= 1,
 	.power_on	= csn3xxx_usb_power_on,
 	.power_off	= csn3xxx_usb_power_off,
 };
 
-static struct platform_device cns3xxx_usb_ohci_device = {
+static struct platform_device cns3xxx_usb_ohci_device =
+{
 	.name          = "ohci-platform",
 	.num_resources = ARRAY_SIZE(cns3xxx_usb_ohci_resources),
 	.resource      = cns3xxx_usb_ohci_resources,
@@ -209,7 +223,8 @@ static struct platform_device cns3xxx_usb_ohci_device = {
 /*
  * Initialization
  */
-static struct platform_device *cns3420_pdevs[] __initdata = {
+static struct platform_device *cns3420_pdevs[] __initdata =
+{
 	&cns3420_nor_pdev,
 	&cns3xxx_usb_ehci_device,
 	&cns3xxx_usb_ohci_device,
@@ -227,7 +242,8 @@ static void __init cns3420_init(void)
 	pm_power_off = cns3xxx_power_off;
 }
 
-static struct map_desc cns3420_io_desc[] __initdata = {
+static struct map_desc cns3420_io_desc[] __initdata =
+{
 	{
 		.virtual	= CNS3XXX_UART0_BASE_VIRT,
 		.pfn		= __phys_to_pfn(CNS3XXX_UART0_BASE),
@@ -245,11 +261,11 @@ static void __init cns3420_map_io(void)
 }
 
 MACHINE_START(CNS3420VB, "Cavium Networks CNS3420 Validation Board")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= cns3420_map_io,
-	.init_irq	= cns3xxx_init_irq,
-	.init_time	= cns3xxx_timer_init,
-	.init_machine	= cns3420_init,
-	.init_late      = cns3xxx_pcie_init_late,
-	.restart	= cns3xxx_restart,
-MACHINE_END
+		.init_irq	= cns3xxx_init_irq,
+		   .init_time	= cns3xxx_timer_init,
+			 .init_machine	= cns3420_init,
+				.init_late      = cns3xxx_pcie_init_late,
+				 .restart	= cns3xxx_restart,
+					 MACHINE_END

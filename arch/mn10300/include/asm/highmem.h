@@ -49,18 +49,30 @@ extern void kunmap_high(struct page *page);
 static inline unsigned long kmap(struct page *page)
 {
 	if (in_interrupt())
+	{
 		BUG();
+	}
+
 	if (page < highmem_start_page)
+	{
 		return page_address(page);
+	}
+
 	return kmap_high(page);
 }
 
 static inline void kunmap(struct page *page)
 {
 	if (in_interrupt())
+	{
 		BUG();
+	}
+
 	if (page < highmem_start_page)
+	{
 		return;
+	}
+
 	kunmap_high(page);
 }
 
@@ -77,15 +89,22 @@ static inline void *kmap_atomic(struct page *page)
 
 	preempt_disable();
 	pagefault_disable();
+
 	if (page < highmem_start_page)
+	{
 		return page_address(page);
+	}
 
 	type = kmap_atomic_idx_push();
 	idx = type + KM_TYPE_NR * smp_processor_id();
 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
 #if HIGHMEM_DEBUG
+
 	if (!pte_none(*(kmap_pte - idx)))
+	{
 		BUG();
+	}
+
 #endif
 	set_pte(kmap_pte - idx, mk_pte(page, kmap_prot));
 	local_flush_tlb_one(vaddr);
@@ -97,7 +116,8 @@ static inline void __kunmap_atomic(unsigned long vaddr)
 {
 	int type;
 
-	if (vaddr < FIXADDR_START) { /* FIXME */
+	if (vaddr < FIXADDR_START)   /* FIXME */
+	{
 		pagefault_enable();
 		preempt_enable();
 		return;
@@ -111,7 +131,9 @@ static inline void __kunmap_atomic(unsigned long vaddr)
 		idx = type + KM_TYPE_NR * smp_processor_id();
 
 		if (vaddr != __fix_to_virt(FIX_KMAP_BEGIN + idx))
+		{
 			BUG();
+		}
 
 		/*
 		 * force other mappings to Oops if they'll try to access

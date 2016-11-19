@@ -42,9 +42,9 @@ extern unsigned long asmlinkage efi_call_phys(void *, ...);
  * Wrap all the virtual calls in a way that forces the parameters on the stack.
  */
 #define arch_efi_call_virt(p, f, args...)				\
-({									\
-	((efi_##f##_t __attribute__((regparm(0)))*) p->f)(args);	\
-})
+	({									\
+		((efi_##f##_t __attribute__((regparm(0)))*) p->f)(args);	\
+	})
 
 #define efi_ioremap(addr, size, type, attr)	ioremap_cache(addr, size)
 
@@ -59,7 +59,8 @@ extern u64 asmlinkage efi_call(void *fp, ...);
 /*
  * Scratch space used for switching the pagetable in the EFI stub
  */
-struct efi_scratch {
+struct efi_scratch
+{
 	u64	r15;
 	u64	prev_cr3;
 	pgd_t	*efi_pgt;
@@ -68,45 +69,45 @@ struct efi_scratch {
 } __packed;
 
 #define arch_efi_call_virt_setup()					\
-({									\
-	efi_sync_low_kernel_mappings();					\
-	preempt_disable();						\
-	__kernel_fpu_begin();						\
-									\
-	if (efi_scratch.use_pgd) {					\
-		efi_scratch.prev_cr3 = read_cr3();			\
-		write_cr3((unsigned long)efi_scratch.efi_pgt);		\
-		__flush_tlb_all();					\
-	}								\
-})
+	({									\
+		efi_sync_low_kernel_mappings();					\
+		preempt_disable();						\
+		__kernel_fpu_begin();						\
+		\
+		if (efi_scratch.use_pgd) {					\
+			efi_scratch.prev_cr3 = read_cr3();			\
+			write_cr3((unsigned long)efi_scratch.efi_pgt);		\
+			__flush_tlb_all();					\
+		}								\
+	})
 
 #define arch_efi_call_virt(p, f, args...)				\
 	efi_call((void *)p->f, args)					\
 
 #define arch_efi_call_virt_teardown()					\
-({									\
-	if (efi_scratch.use_pgd) {					\
-		write_cr3(efi_scratch.prev_cr3);			\
-		__flush_tlb_all();					\
-	}								\
-									\
-	__kernel_fpu_end();						\
-	preempt_enable();						\
-})
+	({									\
+		if (efi_scratch.use_pgd) {					\
+			write_cr3(efi_scratch.prev_cr3);			\
+			__flush_tlb_all();					\
+		}								\
+		\
+		__kernel_fpu_end();						\
+		preempt_enable();						\
+	})
 
-extern void __iomem *__init efi_ioremap(unsigned long addr, unsigned long size,
-					u32 type, u64 attribute);
+	extern void __iomem *__init efi_ioremap(unsigned long addr, unsigned long size,
+											u32 type, u64 attribute);
 
 #ifdef CONFIG_KASAN
-/*
- * CONFIG_KASAN may redefine memset to __memset.  __memset function is present
- * only in kernel binary.  Since the EFI stub linked into a separate binary it
- * doesn't have __memset().  So we should use standard memset from
- * arch/x86/boot/compressed/string.c.  The same applies to memcpy and memmove.
- */
-#undef memcpy
-#undef memset
-#undef memmove
+	/*
+	* CONFIG_KASAN may redefine memset to __memset.  __memset function is present
+	* only in kernel binary.  Since the EFI stub linked into a separate binary it
+	* doesn't have __memset().  So we should use standard memset from
+	* arch/x86/boot/compressed/string.c.  The same applies to memcpy and memmove.
+	*/
+	#undef memcpy
+	#undef memset
+	#undef memmove
 #endif
 
 #endif /* CONFIG_X86_32 */
@@ -114,7 +115,7 @@ extern void __iomem *__init efi_ioremap(unsigned long addr, unsigned long size,
 extern struct efi_scratch efi_scratch;
 extern void __init efi_set_executable(efi_memory_desc_t *md, bool executable);
 extern int __init efi_memblock_x86_reserve_range(void);
-extern pgd_t * __init efi_call_phys_prolog(void);
+extern pgd_t *__init efi_call_phys_prolog(void);
 extern void __init efi_call_phys_epilog(pgd_t *save_pgd);
 extern void __init efi_print_memmap(void);
 extern void __init efi_memory_uc(u64 addr, unsigned long size);
@@ -131,7 +132,8 @@ extern void __init efi_apply_memmap_quirks(void);
 extern int __init efi_reuse_config(u64 tables, int nr_tables);
 extern void efi_delete_dummy_variable(void);
 
-struct efi_setup_data {
+struct efi_setup_data
+{
 	u64 fw_vendor;
 	u64 runtime;
 	u64 tables;
@@ -151,10 +153,14 @@ static inline bool efi_is_native(void)
 static inline bool efi_runtime_supported(void)
 {
 	if (efi_is_native())
+	{
 		return true;
+	}
 
 	if (IS_ENABLED(CONFIG_EFI_MIXED) && !efi_enabled(EFI_OLD_MEMMAP))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -188,7 +194,8 @@ static inline efi_status_t efi_thunk_set_virtual_address_map(
 
 /* arch specific definitions used by the stub code */
 
-struct efi_config {
+struct efi_config
+{
 	u64 image_handle;
 	u64 table;
 	u64 boot_services;
@@ -202,20 +209,24 @@ __pure const struct efi_config *__efi_early(void);
 static inline bool efi_is_64bit(void)
 {
 	if (!IS_ENABLED(CONFIG_X86_64))
+	{
 		return false;
+	}
 
 	if (!IS_ENABLED(CONFIG_EFI_MIXED))
+	{
 		return true;
+	}
 
 	return __efi_early()->is64;
 }
 
 #define efi_call_early(f, ...)						\
 	__efi_early()->call(efi_is_64bit() ?				\
-		((efi_boot_services_64_t *)(unsigned long)		\
-			__efi_early()->boot_services)->f :		\
-		((efi_boot_services_32_t *)(unsigned long)		\
-			__efi_early()->boot_services)->f, __VA_ARGS__)
+						((efi_boot_services_64_t *)(unsigned long)		\
+						 __efi_early()->boot_services)->f :		\
+						((efi_boot_services_32_t *)(unsigned long)		\
+						 __efi_early()->boot_services)->f, __VA_ARGS__)
 
 #define __efi_call_early(f, ...)					\
 	__efi_early()->call((unsigned long)f, __VA_ARGS__);

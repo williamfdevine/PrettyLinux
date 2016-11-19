@@ -24,21 +24,27 @@ static unsigned int __init orion5x_variant(void)
 	orion5x_pcie_id(&dev, &rev);
 
 	if (dev == MV88F5181_DEV_ID)
+	{
 		return MPP_F5181_MASK;
+	}
 
 	if (dev == MV88F5182_DEV_ID)
+	{
 		return MPP_F5182_MASK;
+	}
 
 	if (dev == MV88F5281_DEV_ID)
+	{
 		return MPP_F5281_MASK;
+	}
 
 	printk(KERN_ERR "MPP setup: unknown orion5x variant "
-	       "(dev %#x rev %#x)\n", dev, rev);
+		   "(dev %#x rev %#x)\n", dev, rev);
 	return 0;
 }
 
 void __init orion5x_mpp_conf(unsigned int *mpp_list)
 {
 	orion_mpp_conf(mpp_list, orion5x_variant(),
-		       MPP_MAX, ORION5X_DEV_BUS_VIRT_BASE);
+				   MPP_MAX, ORION5X_DEV_BUS_VIRT_BASE);
 }

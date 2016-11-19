@@ -97,7 +97,7 @@ static inline void fd_disable_irq(void)
 static inline int fd_request_irq(void)
 {
 	return request_irq(FLOPPY_IRQ, floppy_interrupt,
-			   0, "floppy", NULL);
+					   0, "floppy", NULL);
 }
 
 static inline void fd_free_irq(void)
@@ -126,7 +126,9 @@ static inline void fd_dma_mem_free(unsigned long addr, unsigned long size)
 static inline unsigned long fd_drive_type(unsigned long n)
 {
 	if (n == 0)
-		return 4;	/* 3,5", 1.44mb */
+	{
+		return 4;    /* 3,5", 1.44mb */
+	}
 
 	return 0;
 }

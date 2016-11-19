@@ -53,7 +53,8 @@
  * That makes the cache flush below easier.
  */
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	long dummy_er0;
 	long dummy_vector;
 #if defined(CONFIG_CPU_H8S)
@@ -110,17 +111,26 @@ asmlinkage int sys_rt_sigreturn(void)
 	int er0;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
+
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(&frame->uc.uc_mcontext, &er0))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return er0;
 
@@ -130,7 +140,7 @@ badframe:
 }
 
 static int setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
-			     unsigned long mask)
+							unsigned long mask)
 {
 	int err = 0;
 
@@ -156,7 +166,7 @@ get_sigframe(struct ksignal *ksig, struct pt_regs *regs, size_t frame_size)
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe *frame;
 	int err = 0;
@@ -165,10 +175,14 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(ksig, regs, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
+	}
 
 	/* Create the ucontext.  */
 	err |= __put_user(0, &frame->uc.uc_flags);
@@ -176,30 +190,40 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __save_altstack(&frame->uc.uc_stack, rdusp());
 	err |= setup_sigcontext(&frame->uc.uc_mcontext, regs, set->sig[0]);
 	err |= copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up to return from userspace.  */
 	ret = (unsigned char *)&frame->retcode;
+
 	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		ret = (unsigned char *)(ksig->ka.sa.sa_restorer);
-	else {
+	}
+	else
+	{
 		/* sub.l er0,er0; mov.b #__NR_rt_sigreturn,r0l; trapa #0 */
 		err |= __put_user(0x1a80f800 + (__NR_rt_sigreturn & 0xff),
-				  (unsigned long *)(frame->retcode + 0));
+						  (unsigned long *)(frame->retcode + 0));
 		err |= __put_user(0x5700,
-				  (unsigned short *)(frame->retcode + 4));
+						  (unsigned short *)(frame->retcode + 4));
 	}
+
 	err |= __put_user(ret, &frame->pretcode);
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up registers for signal handler */
 	regs->sp  = (unsigned long)frame;
 	regs->pc  = (unsigned long)ksig->ka.sa.sa_handler;
 	regs->er0 = ksig->sig;
-	regs->er1 = (unsigned long)&(frame->info);
+	regs->er1 = (unsigned long) & (frame->info);
 	regs->er2 = (unsigned long)&frame->uc;
 	regs->er5 = current->mm->start_data;	/* GOT base */
 
@@ -209,30 +233,43 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 static void
 handle_restart(struct pt_regs *regs, struct k_sigaction *ka)
 {
-	switch (regs->er0) {
-	case -ERESTARTNOHAND:
-		if (!ka)
-			goto do_restart;
-		regs->er0 = -EINTR;
-		break;
-	case -ERESTART_RESTARTBLOCK:
-		if (!ka) {
-			regs->er0 = __NR_restart_syscall;
-			regs->pc -= 2;
-		} else
-			regs->er0 = -EINTR;
-		break;
-	case -ERESTARTSYS:
-		if (!(ka->sa.sa_flags & SA_RESTART)) {
+	switch (regs->er0)
+	{
+		case -ERESTARTNOHAND:
+			if (!ka)
+			{
+				goto do_restart;
+			}
+
 			regs->er0 = -EINTR;
 			break;
-		}
+
+		case -ERESTART_RESTARTBLOCK:
+			if (!ka)
+			{
+				regs->er0 = __NR_restart_syscall;
+				regs->pc -= 2;
+			}
+			else
+			{
+				regs->er0 = -EINTR;
+			}
+
+			break;
+
+		case -ERESTARTSYS:
+			if (!(ka->sa.sa_flags & SA_RESTART))
+			{
+				regs->er0 = -EINTR;
+				break;
+			}
+
 		/* fallthrough */
-	case -ERESTARTNOINTR:
+		case -ERESTARTNOINTR:
 do_restart:
-		regs->er0 = regs->orig_er0;
-		regs->pc -= 2;
-		break;
+			regs->er0 = regs->orig_er0;
+			regs->pc -= 2;
+			break;
 	}
 }
 
@@ -244,9 +281,12 @@ handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 {
 	sigset_t *oldset = sigmask_to_save();
 	int ret;
+
 	/* are we from a system call? */
 	if (regs->orig_er0 >= 0)
+	{
 		handle_restart(regs, &ksig->ka);
+	}
 
 	ret = setup_rt_frame(ksig, oldset, regs);
 
@@ -264,14 +304,18 @@ static void do_signal(struct pt_regs *regs)
 
 	current->thread.esp0 = (unsigned long) regs;
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* Whee!  Actually deliver the signal.  */
 		handle_signal(&ksig, regs);
 		return;
 	}
+
 	/* Did we come from a system call? */
 	if (regs->orig_er0 >= 0)
+	{
 		handle_restart(regs, NULL);
+	}
 
 	/* If there's no signal to deliver, we just restore the saved mask.  */
 	restore_saved_sigmask();
@@ -280,9 +324,12 @@ static void do_signal(struct pt_regs *regs)
 asmlinkage void do_notify_resume(struct pt_regs *regs, u32 thread_info_flags)
 {
 	if (thread_info_flags & _TIF_SIGPENDING)
+	{
 		do_signal(regs);
+	}
 
-	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}

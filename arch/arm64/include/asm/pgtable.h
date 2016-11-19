@@ -76,9 +76,9 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
 #define pte_ng(pte)		(!!(pte_val(pte) & PTE_NG))
 
 #ifdef CONFIG_ARM64_HW_AFDBM
-#define pte_hw_dirty(pte)	(pte_write(pte) && !(pte_val(pte) & PTE_RDONLY))
+	#define pte_hw_dirty(pte)	(pte_write(pte) && !(pte_val(pte) & PTE_RDONLY))
 #else
-#define pte_hw_dirty(pte)	(0)
+	#define pte_hw_dirty(pte)	(0)
 #endif
 #define pte_sw_dirty(pte)	(!!(pte_val(pte) & PTE_DIRTY))
 #define pte_dirty(pte)		(pte_sw_dirty(pte) || pte_hw_dirty(pte))
@@ -178,7 +178,8 @@ static inline void set_pte(pte_t *ptep, pte_t pte)
 	 * Only if the new pte is valid and kernel, otherwise TLB maintenance
 	 * or update_mmu_cache() have the necessary barriers.
 	 */
-	if (pte_valid_global(pte)) {
+	if (pte_valid_global(pte))
+	{
 		dsb(ishst);
 		isb();
 	}
@@ -205,15 +206,23 @@ extern void __sync_icache_dcache(pte_t pteval, unsigned long addr);
  *   PTE_DIRTY || (PTE_WRITE && !PTE_RDONLY)
  */
 static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-			      pte_t *ptep, pte_t pte)
+							  pte_t *ptep, pte_t pte)
 {
-	if (pte_present(pte)) {
+	if (pte_present(pte))
+	{
 		if (pte_sw_dirty(pte) && pte_write(pte))
+		{
 			pte_val(pte) &= ~PTE_RDONLY;
+		}
 		else
+		{
 			pte_val(pte) |= PTE_RDONLY;
+		}
+
 		if (pte_ng(pte) && pte_exec(pte) && !pte_special(pte))
+		{
 			__sync_icache_dcache(pte, addr);
+		}
 	}
 
 	/*
@@ -222,13 +231,14 @@ static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
 	 * valid ptes without going through an invalid entry).
 	 */
 	if (IS_ENABLED(CONFIG_ARM64_HW_AFDBM) &&
-	    pte_valid(*ptep) && pte_valid(pte)) {
+		pte_valid(*ptep) && pte_valid(pte))
+	{
 		VM_WARN_ONCE(!pte_young(pte),
-			     "%s: racy access flag clearing: 0x%016llx -> 0x%016llx",
-			     __func__, pte_val(*ptep), pte_val(pte));
+					 "%s: racy access flag clearing: 0x%016llx -> 0x%016llx",
+					 __func__, pte_val(*ptep), pte_val(pte));
 		VM_WARN_ONCE(pte_write(*ptep) && !pte_dirty(pte),
-			     "%s: racy dirty state clearing: 0x%016llx -> 0x%016llx",
-			     __func__, pte_val(*ptep), pte_val(pte));
+					 "%s: racy dirty state clearing: 0x%016llx -> 0x%016llx",
+					 __func__, pte_val(*ptep), pte_val(pte));
 	}
 
 	set_pte(ptep, pte);
@@ -243,10 +253,14 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
 	rhs = pte_val(pte_b);
 
 	if (pte_present(pte_a))
+	{
 		lhs &= ~PTE_RDONLY;
+	}
 
 	if (pte_present(pte_b))
+	{
 		rhs &= ~PTE_RDONLY;
+	}
 
 	return (lhs == rhs);
 }
@@ -313,7 +327,7 @@ static inline int pmd_protnone(pmd_t pmd)
  */
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-#define pmd_trans_huge(pmd)	(pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT))
+	#define pmd_trans_huge(pmd)	(pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT))
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 #define pmd_present(pmd)	pte_present(pmd_pte(pmd))
@@ -358,25 +372,25 @@ static inline int pmd_protnone(pmd_t pmd)
 #define __HAVE_PHYS_MEM_ACCESS_PROT
 struct file;
 extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-				     unsigned long size, pgprot_t vma_prot);
+									 unsigned long size, pgprot_t vma_prot);
 
 #define pmd_none(pmd)		(!pmd_val(pmd))
 
 #define pmd_bad(pmd)		(!(pmd_val(pmd) & PMD_TABLE_BIT))
 
 #define pmd_table(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == \
-				 PMD_TYPE_TABLE)
+							 PMD_TYPE_TABLE)
 #define pmd_sect(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == \
-				 PMD_TYPE_SECT)
+							 PMD_TYPE_SECT)
 
 #if defined(CONFIG_ARM64_64K_PAGES) || CONFIG_PGTABLE_LEVELS < 3
 #define pud_sect(pud)		(0)
 #define pud_table(pud)		(1)
 #else
 #define pud_sect(pud)		((pud_val(pud) & PUD_TYPE_MASK) == \
-				 PUD_TYPE_SECT)
+							 PUD_TYPE_SECT)
 #define pud_table(pud)		((pud_val(pud) & PUD_TYPE_MASK) == \
-				 PUD_TYPE_TABLE)
+							 PUD_TYPE_TABLE)
 #endif
 
 static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
@@ -545,10 +559,14 @@ static inline phys_addr_t pgd_page_paddr(pgd_t pgd)
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
 	const pteval_t mask = PTE_USER | PTE_PXN | PTE_UXN | PTE_RDONLY |
-			      PTE_PROT_NONE | PTE_VALID | PTE_WRITE;
+						  PTE_PROT_NONE | PTE_VALID | PTE_WRITE;
+
 	/* preserve the hardware dirty information */
 	if (pte_hw_dirty(pte))
+	{
 		pte = pte_mkdirty(pte);
+	}
+
 	pte_val(pte) = (pte_val(pte) & ~mask) | (pgprot_val(newprot) & mask);
 	return pte;
 }
@@ -561,14 +579,14 @@ static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
 #ifdef CONFIG_ARM64_HW_AFDBM
 #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
 extern int ptep_set_access_flags(struct vm_area_struct *vma,
-				 unsigned long address, pte_t *ptep,
-				 pte_t entry, int dirty);
+								 unsigned long address, pte_t *ptep,
+								 pte_t entry, int dirty);
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 #define __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
 static inline int pmdp_set_access_flags(struct vm_area_struct *vma,
-					unsigned long address, pmd_t *pmdp,
-					pmd_t entry, int dirty)
+										unsigned long address, pmd_t *pmdp,
+										pmd_t entry, int dirty)
 {
 	return ptep_set_access_flags(vma, address, (pte_t *)pmdp, pmd_pte(entry), dirty);
 }
@@ -584,21 +602,21 @@ static inline int __ptep_test_and_clear_young(pte_t *ptep)
 	unsigned int tmp, res;
 
 	asm volatile("//	__ptep_test_and_clear_young\n"
-	"	prfm	pstl1strm, %2\n"
-	"1:	ldxr	%0, %2\n"
-	"	ubfx	%w3, %w0, %5, #1	// extract PTE_AF (young)\n"
-	"	and	%0, %0, %4		// clear PTE_AF\n"
-	"	stxr	%w1, %0, %2\n"
-	"	cbnz	%w1, 1b\n"
-	: "=&r" (pteval), "=&r" (tmp), "+Q" (pte_val(*ptep)), "=&r" (res)
-	: "L" (~PTE_AF), "I" (ilog2(PTE_AF)));
+				 "	prfm	pstl1strm, %2\n"
+				 "1:	ldxr	%0, %2\n"
+				 "	ubfx	%w3, %w0, %5, #1	// extract PTE_AF (young)\n"
+				 "	and	%0, %0, %4		// clear PTE_AF\n"
+				 "	stxr	%w1, %0, %2\n"
+				 "	cbnz	%w1, 1b\n"
+				 : "=&r" (pteval), "=&r" (tmp), "+Q" (pte_val(*ptep)), "=&r" (res)
+				 : "L" (~PTE_AF), "I" (ilog2(PTE_AF)));
 
 	return res;
 }
 
 static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
-					    unsigned long address,
-					    pte_t *ptep)
+		unsigned long address,
+		pte_t *ptep)
 {
 	return __ptep_test_and_clear_young(ptep);
 }
@@ -606,8 +624,8 @@ static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
 static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
-					    unsigned long address,
-					    pmd_t *pmdp)
+		unsigned long address,
+		pmd_t *pmdp)
 {
 	return ptep_test_and_clear_young(vma, address, (pte_t *)pmdp);
 }
@@ -615,17 +633,17 @@ static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
-				       unsigned long address, pte_t *ptep)
+									   unsigned long address, pte_t *ptep)
 {
 	pteval_t old_pteval;
 	unsigned int tmp;
 
 	asm volatile("//	ptep_get_and_clear\n"
-	"	prfm	pstl1strm, %2\n"
-	"1:	ldxr	%0, %2\n"
-	"	stxr	%w1, xzr, %2\n"
-	"	cbnz	%w1, 1b\n"
-	: "=&r" (old_pteval), "=&r" (tmp), "+Q" (pte_val(*ptep)));
+				 "	prfm	pstl1strm, %2\n"
+				 "1:	ldxr	%0, %2\n"
+				 "	stxr	%w1, xzr, %2\n"
+				 "	cbnz	%w1, 1b\n"
+				 : "=&r" (old_pteval), "=&r" (tmp), "+Q" (pte_val(*ptep)));
 
 	return __pte(old_pteval);
 }
@@ -633,7 +651,7 @@ static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 #define __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
 static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
-					    unsigned long address, pmd_t *pmdp)
+		unsigned long address, pmd_t *pmdp)
 {
 	return pte_pmd(ptep_get_and_clear(mm, address, (pte_t *)pmdp));
 }
@@ -650,23 +668,23 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addres
 	unsigned long tmp;
 
 	asm volatile("//	ptep_set_wrprotect\n"
-	"	prfm	pstl1strm, %2\n"
-	"1:	ldxr	%0, %2\n"
-	"	tst	%0, %4			// check for hw dirty (!PTE_RDONLY)\n"
-	"	csel	%1, %3, xzr, eq		// set PTE_DIRTY|PTE_RDONLY if dirty\n"
-	"	orr	%0, %0, %1		// if !dirty, PTE_RDONLY is already set\n"
-	"	and	%0, %0, %5		// clear PTE_WRITE/PTE_DBM\n"
-	"	stxr	%w1, %0, %2\n"
-	"	cbnz	%w1, 1b\n"
-	: "=&r" (pteval), "=&r" (tmp), "+Q" (pte_val(*ptep))
-	: "r" (PTE_DIRTY|PTE_RDONLY), "L" (PTE_RDONLY), "L" (~PTE_WRITE)
-	: "cc");
+				 "	prfm	pstl1strm, %2\n"
+				 "1:	ldxr	%0, %2\n"
+				 "	tst	%0, %4			// check for hw dirty (!PTE_RDONLY)\n"
+				 "	csel	%1, %3, xzr, eq		// set PTE_DIRTY|PTE_RDONLY if dirty\n"
+				 "	orr	%0, %0, %1		// if !dirty, PTE_RDONLY is already set\n"
+				 "	and	%0, %0, %5		// clear PTE_WRITE/PTE_DBM\n"
+				 "	stxr	%w1, %0, %2\n"
+				 "	cbnz	%w1, 1b\n"
+				 : "=&r" (pteval), "=&r" (tmp), "+Q" (pte_val(*ptep))
+				 : "r" (PTE_DIRTY|PTE_RDONLY), "L" (PTE_RDONLY), "L" (~PTE_WRITE)
+				 : "cc");
 }
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 #define __HAVE_ARCH_PMDP_SET_WRPROTECT
 static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-				      unsigned long address, pmd_t *pmdp)
+									  unsigned long address, pmd_t *pmdp)
 {
 	ptep_set_wrprotect(mm, address, (pte_t *)pmdp);
 }
@@ -714,7 +732,7 @@ void pgd_cache_init(void);
  * On AArch64, the cache coherency is handled via the set_pte_at() function.
  */
 static inline void update_mmu_cache(struct vm_area_struct *vma,
-				    unsigned long addr, pte_t *ptep)
+									unsigned long addr, pte_t *ptep)
 {
 	/*
 	 * We don't do anything here, so there's a very small chance of

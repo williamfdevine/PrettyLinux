@@ -7,7 +7,8 @@
 #ifndef __DS1603_H
 #define __DS1603_H
 
-struct ds_defs {
+struct ds_defs
+{
 	volatile u32 *reg;
 	volatile u32 *data_reg;
 	u32 rst;

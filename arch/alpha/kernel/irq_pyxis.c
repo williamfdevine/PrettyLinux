@@ -56,14 +56,15 @@ pyxis_mask_and_ack_irq(struct irq_data *d)
 	*(vulp)PYXIS_INT_MASK;
 }
 
-static struct irq_chip pyxis_irq_type = {
+static struct irq_chip pyxis_irq_type =
+{
 	.name		= "PYXIS",
 	.irq_mask_ack	= pyxis_mask_and_ack_irq,
 	.irq_mask	= pyxis_disable_irq,
 	.irq_unmask	= pyxis_enable_irq,
 };
 
-void 
+void
 pyxis_device_interrupt(unsigned long vector)
 {
 	unsigned long pld;
@@ -77,13 +78,19 @@ pyxis_device_interrupt(unsigned long vector)
 	 * Now for every possible bit set, work through them and call
 	 * the appropriate interrupt handler.
 	 */
-	while (pld) {
+	while (pld)
+	{
 		i = ffz(~pld);
 		pld &= pld - 1; /* clear least bit set */
+
 		if (i == 7)
+		{
 			isa_device_interrupt(vector);
+		}
 		else
-			handle_irq(16+i);
+		{
+			handle_irq(16 + i);
+		}
 	}
 }
 
@@ -99,12 +106,16 @@ init_pyxis_irqs(unsigned long ignore_mask)
 	/* Send -INTA pulses to clear any pending interrupts ...*/
 	*(vuip) CIA_IACK_SC;
 
-	for (i = 16; i < 48; ++i) {
+	for (i = 16; i < 48; ++i)
+	{
 		if ((ignore_mask >> i) & 1)
+		{
 			continue;
+		}
+
 		irq_set_chip_and_handler(i, &pyxis_irq_type, handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
 
-	setup_irq(16+7, &isa_cascade_irqaction);
+	setup_irq(16 + 7, &isa_cascade_irqaction);
 }

@@ -15,9 +15,9 @@
 
 #ifdef	CONFIG_ARCH_FPGA
 
-/* in FPGA, APB clock is 33M, and OST clock is 32K, */
-/* so, 1M is selected for timer interrupt correctly */
-#define	CLOCK_TICK_RATE		(32*1024)
+	/* in FPGA, APB clock is 33M, and OST clock is 32K, */
+	/* so, 1M is selected for timer interrupt correctly */
+	#define	CLOCK_TICK_RATE		(32*1024)
 
 #endif
 
@@ -25,7 +25,7 @@
 	|| defined(CONFIG_PUV3_NB0916)	\
 	|| defined(CONFIG_PUV3_SMW0919)
 
-#define  CLOCK_TICK_RATE         (14318000)
+	#define  CLOCK_TICK_RATE         (14318000)
 
 #endif
 

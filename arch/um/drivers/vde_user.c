@@ -20,10 +20,11 @@ static int vde_user_init(void *data, void *dev)
 
 	conn = vde_open(pri->vde_switch, pri->descr, pri->args);
 
-	if (conn == NULL) {
+	if (conn == NULL)
+	{
 		err = -errno;
 		printk(UM_KERN_ERR "vde_user_init: vde_open failed, "
-		       "errno = %d\n", errno);
+			   "errno = %d\n", errno);
 		return err;
 	}
 
@@ -39,7 +40,9 @@ static int vde_user_open(void *data)
 	struct vde_data *pri = data;
 
 	if (pri->conn != NULL)
+	{
 		return vde_datafd(pri->conn);
+	}
 
 	printk(UM_KERN_WARNING "vde_open - we have no VDECONN to open");
 	return -EINVAL;
@@ -49,7 +52,8 @@ static void vde_remove(void *data)
 {
 	struct vde_data *pri = data;
 
-	if (pri->conn != NULL) {
+	if (pri->conn != NULL)
+	{
 		printk(UM_KERN_INFO "vde backend - closing connection\n");
 		vde_close(pri->conn);
 		pri->conn = NULL;
@@ -61,7 +65,8 @@ static void vde_remove(void *data)
 	printk(UM_KERN_WARNING "vde_remove - we have no VDECONN to remove");
 }
 
-const struct net_user_info vde_user_info = {
+const struct net_user_info vde_user_info =
+{
 	.init		= vde_user_init,
 	.open		= vde_user_open,
 	.close	 	= NULL,
@@ -77,9 +82,11 @@ void vde_init_libstuff(struct vde_data *vpri, struct vde_init *init)
 	struct vde_open_args *args;
 
 	vpri->args = uml_kmalloc(sizeof(struct vde_open_args), UM_GFP_KERNEL);
-	if (vpri->args == NULL) {
+
+	if (vpri->args == NULL)
+	{
 		printk(UM_KERN_ERR "vde_init_libstuff - vde_open_args "
-		       "allocation failed");
+			   "allocation failed");
 		return;
 	}
 
@@ -90,7 +97,7 @@ void vde_init_libstuff(struct vde_data *vpri, struct vde_init *init)
 	args->mode = init->mode ? init->mode : 0700;
 
 	args->port ?  printk("port %d", args->port) :
-		printk("undefined port");
+	printk("undefined port");
 }
 
 int vde_user_read(void *conn, void *buf, int len)
@@ -99,16 +106,25 @@ int vde_user_read(void *conn, void *buf, int len)
 	int rv;
 
 	if (vconn == NULL)
+	{
 		return 0;
+	}
 
 	rv = vde_recv(vconn, buf, len, 0);
-	if (rv < 0) {
+
+	if (rv < 0)
+	{
 		if (errno == EAGAIN)
+		{
 			return 0;
+		}
+
 		return -errno;
 	}
 	else if (rv == 0)
+	{
 		return -ENOTCONN;
+	}
 
 	return rv;
 }
@@ -118,7 +134,9 @@ int vde_user_write(void *conn, void *buf, int len)
 	VDECONN *vconn = conn;
 
 	if (vconn == NULL)
+	{
 		return 0;
+	}
 
 	return vde_send(vconn, buf, len, 0);
 }

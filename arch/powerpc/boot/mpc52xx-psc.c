@@ -35,6 +35,7 @@ static int psc_open(void)
 static void psc_putc(unsigned char c)
 {
 	while (!(in_be16(psc + MPC52xx_PSC_SR) & MPC52xx_PSC_SR_TXRDY)) ;
+
 	out_8(psc + MPC52xx_PSC_BUFFER, c);
 }
 
@@ -46,6 +47,7 @@ static unsigned char psc_tstc(void)
 static unsigned char psc_getc(void)
 {
 	while (!(in_be16(psc + MPC52xx_PSC_SR) & MPC52xx_PSC_SR_RXRDY)) ;
+
 	return in_8(psc + MPC52xx_PSC_BUFFER);
 }
 
@@ -53,7 +55,9 @@ int mpc5200_psc_console_init(void *devp, struct serial_console_data *scdp)
 {
 	/* Get the base address of the psc registers */
 	if (dt_get_virtual_reg(devp, &psc, 1) < 1)
+	{
 		return -1;
+	}
 
 	scdp->open = psc_open;
 	scdp->putc = psc_putc;

@@ -41,15 +41,15 @@
 #define IRQ26_MODE	0x00000002
 #define SVC26_MODE	0x00000003
 #if defined(__KERNEL__) && defined(CONFIG_CPU_V7M)
-/*
- * Use 0 here to get code right that creates a userspace
- * or kernel space thread.
- */
-#define USR_MODE	0x00000000
-#define SVC_MODE	0x00000000
+	/*
+	* Use 0 here to get code right that creates a userspace
+	* or kernel space thread.
+	*/
+	#define USR_MODE	0x00000000
+	#define SVC_MODE	0x00000000
 #else
-#define USR_MODE	0x00000010
-#define SVC_MODE	0x00000013
+	#define USR_MODE	0x00000010
+	#define SVC_MODE	0x00000013
 #endif
 #define FIQ_MODE	0x00000011
 #define IRQ_MODE	0x00000012
@@ -63,10 +63,10 @@
 #define V4_PSR_T_BIT	0x00000020	/* >= V4T, but not V7M */
 #define V7M_PSR_T_BIT	0x01000000
 #if defined(__KERNEL__) && defined(CONFIG_CPU_V7M)
-#define PSR_T_BIT	V7M_PSR_T_BIT
+	#define PSR_T_BIT	V7M_PSR_T_BIT
 #else
-/* for compatibility */
-#define PSR_T_BIT	V4_PSR_T_BIT
+	/* for compatibility */
+	#define PSR_T_BIT	V4_PSR_T_BIT
 #endif
 
 #define PSR_F_BIT	0x00000040	/* >= V4, but not V7M */
@@ -100,12 +100,12 @@
  * Default endianness state
  */
 #ifdef CONFIG_CPU_ENDIAN_BE8
-#define PSR_ENDSTATE	PSR_E_BIT
+	#define PSR_ENDSTATE	PSR_E_BIT
 #else
-#define PSR_ENDSTATE	0
+	#define PSR_ENDSTATE	0
 #endif
 
-/* 
+/*
  * These are 'magic' values for PTRACE_PEEKUSR that return info about where a
  * process is located in memory.
  */
@@ -121,7 +121,8 @@
  * has to be a multiple of 8.
  */
 #ifndef __KERNEL__
-struct pt_regs {
+struct pt_regs
+{
 	long uregs[18];
 };
 #endif /* __KERNEL__ */

@@ -38,10 +38,12 @@ void __init init_pointer_table(unsigned long ptable)
 {
 	ptable_desc *dp;
 	unsigned long page = ptable & PAGE_MASK;
-	unsigned char mask = 1 << ((ptable - page)/PTABLE_SIZE);
+	unsigned char mask = 1 << ((ptable - page) / PTABLE_SIZE);
 
 	dp = PD_PTABLE(page);
-	if (!(PD_MARKBITS(dp) & mask)) {
+
+	if (!(PD_MARKBITS(dp) & mask))
+	{
 		PD_MARKBITS(dp) = 0xff;
 		list_add(dp, &ptable_list);
 	}
@@ -71,12 +73,15 @@ pmd_t *get_pointer_table (void)
 	 * page can hold 8 pointer tables.  The page is remapped in
 	 * virtual address space to be noncacheable.
 	 */
-	if (mask == 0) {
+	if (mask == 0)
+	{
 		void *page;
 		ptable_desc *new;
 
 		if (!(page = (void *)get_zeroed_page(GFP_KERNEL)))
+		{
 			return NULL;
+		}
 
 		flush_tlb_kernel_page(page);
 		nocache_page(page);
@@ -90,11 +95,15 @@ pmd_t *get_pointer_table (void)
 
 	for (tmp = 1, off = 0; (mask & tmp) == 0; tmp <<= 1, off += PTABLE_SIZE)
 		;
+
 	PD_MARKBITS(dp) = mask & ~tmp;
-	if (!PD_MARKBITS(dp)) {
+
+	if (!PD_MARKBITS(dp))
+	{
 		/* move to end of list */
 		list_move_tail(dp, &ptable_list);
 	}
+
 	return (pmd_t *) (page_address(PD_PAGE(dp)) + off);
 }
 
@@ -102,27 +111,34 @@ int free_pointer_table (pmd_t *ptable)
 {
 	ptable_desc *dp;
 	unsigned long page = (unsigned long)ptable & PAGE_MASK;
-	unsigned char mask = 1 << (((unsigned long)ptable - page)/PTABLE_SIZE);
+	unsigned char mask = 1 << (((unsigned long)ptable - page) / PTABLE_SIZE);
 
 	dp = PD_PTABLE(page);
+
 	if (PD_MARKBITS (dp) & mask)
+	{
 		panic ("table already free!");
+	}
 
 	PD_MARKBITS (dp) |= mask;
 
-	if (PD_MARKBITS(dp) == 0xff) {
+	if (PD_MARKBITS(dp) == 0xff)
+	{
 		/* all tables in page are free, free page */
 		list_del(dp);
 		cache_page((void *)page);
 		free_page (page);
 		return 1;
-	} else if (ptable_list.next != dp) {
+	}
+	else if (ptable_list.next != dp)
+	{
 		/*
 		 * move this descriptor to the front of the list, since
 		 * it has one or more free tables.
 		 */
 		list_move(dp, &ptable_list);
 	}
+
 	return 0;
 }
 
@@ -168,8 +184,12 @@ static inline void pushcl040(unsigned long paddr)
 
 	local_irq_save(flags);
 	push040(paddr);
+
 	if (CPU_IS_060)
+	{
 		clear040(paddr);
+	}
+
 	local_irq_restore(flags);
 }
 
@@ -202,41 +222,60 @@ static inline void pushcl040(unsigned long paddr)
 
 void cache_clear (unsigned long paddr, int len)
 {
-    if (CPU_IS_COLDFIRE) {
-	clear_cf_bcache(0, DCACHE_MAX_ADDR);
-    } else if (CPU_IS_040_OR_060) {
-	int tmp;
+	if (CPU_IS_COLDFIRE)
+	{
+		clear_cf_bcache(0, DCACHE_MAX_ADDR);
+	}
+	else if (CPU_IS_040_OR_060)
+	{
+		int tmp;
 
-	/*
-	 * We need special treatment for the first page, in case it
-	 * is not page-aligned. Page align the addresses to work
-	 * around bug I17 in the 68060.
-	 */
-	if ((tmp = -paddr & (PAGE_SIZE - 1))) {
-	    pushcl040(paddr & PAGE_MASK);
-	    if ((len -= tmp) <= 0)
-		return;
-	    paddr += tmp;
+		/*
+		 * We need special treatment for the first page, in case it
+		 * is not page-aligned. Page align the addresses to work
+		 * around bug I17 in the 68060.
+		 */
+		if ((tmp = -paddr & (PAGE_SIZE - 1)))
+		{
+			pushcl040(paddr & PAGE_MASK);
+
+			if ((len -= tmp) <= 0)
+			{
+				return;
+			}
+
+			paddr += tmp;
+		}
+
+		tmp = PAGE_SIZE;
+		paddr &= PAGE_MASK;
+
+		while ((len -= tmp) >= 0)
+		{
+			clear040(paddr);
+			paddr += tmp;
+		}
+
+		if ((len += tmp))
+			/* a page boundary gets crossed at the end */
+		{
+			pushcl040(paddr);
+		}
 	}
-	tmp = PAGE_SIZE;
-	paddr &= PAGE_MASK;
-	while ((len -= tmp) >= 0) {
-	    clear040(paddr);
-	    paddr += tmp;
-	}
-	if ((len += tmp))
-	    /* a page boundary gets crossed at the end */
-	    pushcl040(paddr);
-    }
-    else /* 68030 or 68020 */
-	asm volatile ("movec %/cacr,%/d0\n\t"
-		      "oriw %0,%/d0\n\t"
-		      "movec %/d0,%/cacr"
-		      : : "i" (FLUSH_I_AND_D)
-		      : "d0");
+	else /* 68030 or 68020 */
+		asm volatile ("movec %/cacr,%/d0\n\t"
+					  "oriw %0,%/d0\n\t"
+					  "movec %/d0,%/cacr"
+					  : : "i" (FLUSH_I_AND_D)
+					  : "d0");
+
 #ifdef CONFIG_M68K_L2_CACHE
-    if(mach_l2_flush)
-	mach_l2_flush(0);
+
+	if (mach_l2_flush)
+	{
+		mach_l2_flush(0);
+	}
+
 #endif
 }
 EXPORT_SYMBOL(cache_clear);
@@ -251,47 +290,57 @@ EXPORT_SYMBOL(cache_clear);
 
 void cache_push (unsigned long paddr, int len)
 {
-    if (CPU_IS_COLDFIRE) {
-	flush_cf_bcache(0, DCACHE_MAX_ADDR);
-    } else if (CPU_IS_040_OR_060) {
-	int tmp = PAGE_SIZE;
+	if (CPU_IS_COLDFIRE)
+	{
+		flush_cf_bcache(0, DCACHE_MAX_ADDR);
+	}
+	else if (CPU_IS_040_OR_060)
+	{
+		int tmp = PAGE_SIZE;
 
+		/*
+		     * on 68040 or 68060, push cache lines for pages in the range;
+		 * on the '040 this also invalidates the pushed lines, but not on
+		 * the '060!
+		 */
+		len += paddr & (PAGE_SIZE - 1);
+
+		/*
+		 * Work around bug I17 in the 68060 affecting some instruction
+		 * lines not being invalidated properly.
+		 */
+		paddr &= PAGE_MASK;
+
+		do
+		{
+			push040(paddr);
+			paddr += tmp;
+		}
+		while ((len -= tmp) > 0);
+	}
 	/*
-         * on 68040 or 68060, push cache lines for pages in the range;
-	 * on the '040 this also invalidates the pushed lines, but not on
-	 * the '060!
+	 * 68030/68020 have no writeback cache. On the other hand,
+	 * cache_push is actually a superset of cache_clear (the lines
+	 * get written back and invalidated), so we should make sure
+	 * to perform the corresponding actions. After all, this is getting
+	 * called in places where we've just loaded code, or whatever, so
+	 * flushing the icache is appropriate; flushing the dcache shouldn't
+	 * be required.
 	 */
-	len += paddr & (PAGE_SIZE - 1);
+	else /* 68030 or 68020 */
+		asm volatile ("movec %/cacr,%/d0\n\t"
+					  "oriw %0,%/d0\n\t"
+					  "movec %/d0,%/cacr"
+					  : : "i" (FLUSH_I)
+					  : "d0");
 
-	/*
-	 * Work around bug I17 in the 68060 affecting some instruction
-	 * lines not being invalidated properly.
-	 */
-	paddr &= PAGE_MASK;
-
-	do {
-	    push040(paddr);
-	    paddr += tmp;
-	} while ((len -= tmp) > 0);
-    }
-    /*
-     * 68030/68020 have no writeback cache. On the other hand,
-     * cache_push is actually a superset of cache_clear (the lines
-     * get written back and invalidated), so we should make sure
-     * to perform the corresponding actions. After all, this is getting
-     * called in places where we've just loaded code, or whatever, so
-     * flushing the icache is appropriate; flushing the dcache shouldn't
-     * be required.
-     */
-    else /* 68030 or 68020 */
-	asm volatile ("movec %/cacr,%/d0\n\t"
-		      "oriw %0,%/d0\n\t"
-		      "movec %/d0,%/cacr"
-		      : : "i" (FLUSH_I)
-		      : "d0");
 #ifdef CONFIG_M68K_L2_CACHE
-    if(mach_l2_flush)
-	mach_l2_flush(1);
+
+	if (mach_l2_flush)
+	{
+		mach_l2_flush(1);
+	}
+
 #endif
 }
 EXPORT_SYMBOL(cache_push);

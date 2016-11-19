@@ -13,7 +13,7 @@
  * Returns current instruction pointer ("program counter").
  */
 #define current_text_addr() \
-  ({ void *__pc; __asm__ ("br %0,.+4" : "=r"(__pc)); __pc; })
+	({ void *__pc; __asm__ ("br %0,.+4" : "=r"(__pc)); __pc; })
 
 /*
  * We have a 42-bit user address space: 4TB user VM...
@@ -21,7 +21,7 @@
 #define TASK_SIZE (0x40000000000UL)
 
 #define STACK_TOP \
-  (current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
+	(current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
 
 #define STACK_TOP_MAX	0x00120000000UL
 
@@ -29,9 +29,10 @@
  * space during mmap's.
  */
 #define TASK_UNMAPPED_BASE \
-  ((current->personality & ADDR_LIMIT_32BIT) ? 0x40000000 : TASK_SIZE / 2)
+	((current->personality & ADDR_LIMIT_32BIT) ? 0x40000000 : TASK_SIZE / 2)
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
@@ -55,7 +56,7 @@ unsigned long get_wchan(struct task_struct *p);
 #define KSTK_EIP(tsk) (task_pt_regs(tsk)->pc)
 
 #define KSTK_ESP(tsk) \
-  ((tsk) == current ? rdusp() : task_thread_info(tsk)->pcb.usp)
+	((tsk) == current ? rdusp() : task_thread_info(tsk)->pcb.usp)
 
 #define cpu_relax()	barrier()
 #define cpu_relax_lowlatency() cpu_relax()
@@ -65,22 +66,22 @@ unsigned long get_wchan(struct task_struct *p);
 #define ARCH_HAS_SPINLOCK_PREFETCH
 
 #ifndef CONFIG_SMP
-/* Nothing to prefetch. */
-#define spin_lock_prefetch(lock)  	do { } while (0)
+	/* Nothing to prefetch. */
+	#define spin_lock_prefetch(lock)  	do { } while (0)
 #endif
 
-extern inline void prefetch(const void *ptr)  
-{ 
+extern inline void prefetch(const void *ptr)
+{
 	__builtin_prefetch(ptr, 0, 3);
 }
 
-extern inline void prefetchw(const void *ptr)  
+extern inline void prefetchw(const void *ptr)
 {
 	__builtin_prefetch(ptr, 1, 3);
 }
 
 #ifdef CONFIG_SMP
-extern inline void spin_lock_prefetch(const void *ptr)  
+extern inline void spin_lock_prefetch(const void *ptr)
 {
 	__builtin_prefetch(ptr, 1, 3);
 }

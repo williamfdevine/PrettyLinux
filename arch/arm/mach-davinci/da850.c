@@ -48,19 +48,22 @@ static int da850_set_armrate(struct clk *clk, unsigned long rate);
 static int da850_round_armrate(struct clk *clk, unsigned long rate);
 static int da850_set_pll0rate(struct clk *clk, unsigned long armrate);
 
-static struct pll_data pll0_data = {
+static struct pll_data pll0_data =
+{
 	.num		= 1,
 	.phys_base	= DA8XX_PLL0_BASE,
 	.flags		= PLL_HAS_PREDIV | PLL_HAS_POSTDIV,
 };
 
-static struct clk ref_clk = {
+static struct clk ref_clk =
+{
 	.name		= "ref_clk",
 	.rate		= DA850_REF_FREQ,
 	.set_rate	= davinci_simple_set_rate,
 };
 
-static struct clk pll0_clk = {
+static struct clk pll0_clk =
+{
 	.name		= "pll0",
 	.parent		= &ref_clk,
 	.pll_data	= &pll0_data,
@@ -68,27 +71,31 @@ static struct clk pll0_clk = {
 	.set_rate	= da850_set_pll0rate,
 };
 
-static struct clk pll0_aux_clk = {
+static struct clk pll0_aux_clk =
+{
 	.name		= "pll0_aux_clk",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL | PRE_PLL,
 };
 
-static struct clk pll0_sysclk1 = {
+static struct clk pll0_sysclk1 =
+{
 	.name		= "pll0_sysclk1",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV1,
 };
 
-static struct clk pll0_sysclk2 = {
+static struct clk pll0_sysclk2 =
+{
 	.name		= "pll0_sysclk2",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV2,
 };
 
-static struct clk pll0_sysclk3 = {
+static struct clk pll0_sysclk3 =
+{
 	.name		= "pll0_sysclk3",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
@@ -97,61 +104,70 @@ static struct clk pll0_sysclk3 = {
 	.maxrate	= 100000000,
 };
 
-static struct clk pll0_sysclk4 = {
+static struct clk pll0_sysclk4 =
+{
 	.name		= "pll0_sysclk4",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV4,
 };
 
-static struct clk pll0_sysclk5 = {
+static struct clk pll0_sysclk5 =
+{
 	.name		= "pll0_sysclk5",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV5,
 };
 
-static struct clk pll0_sysclk6 = {
+static struct clk pll0_sysclk6 =
+{
 	.name		= "pll0_sysclk6",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV6,
 };
 
-static struct clk pll0_sysclk7 = {
+static struct clk pll0_sysclk7 =
+{
 	.name		= "pll0_sysclk7",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV7,
 };
 
-static struct pll_data pll1_data = {
+static struct pll_data pll1_data =
+{
 	.num		= 2,
 	.phys_base	= DA850_PLL1_BASE,
 	.flags		= PLL_HAS_POSTDIV,
 };
 
-static struct clk pll1_clk = {
+static struct clk pll1_clk =
+{
 	.name		= "pll1",
 	.parent		= &ref_clk,
 	.pll_data	= &pll1_data,
 	.flags		= CLK_PLL,
 };
 
-static struct clk pll1_aux_clk = {
+static struct clk pll1_aux_clk =
+{
 	.name		= "pll1_aux_clk",
 	.parent		= &pll1_clk,
 	.flags		= CLK_PLL | PRE_PLL,
 };
 
-static struct clk pll1_sysclk2 = {
+static struct clk pll1_sysclk2 =
+{
 	.name		= "pll1_sysclk2",
 	.parent		= &pll1_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV2,
 };
 
-static struct clk pll1_sysclk3 = {
+static struct clk pll1_sysclk3 =
+{
 	.name		= "pll1_sysclk3",
 	.parent		= &pll1_clk,
 	.flags		= CLK_PLL,
@@ -164,11 +180,16 @@ static int da850_async3_set_parent(struct clk *clk, struct clk *parent)
 
 	val = readl(DA8XX_SYSCFG0_VIRT(DA8XX_CFGCHIP3_REG));
 
-	if (parent == &pll0_sysclk2) {
+	if (parent == &pll0_sysclk2)
+	{
 		val &= ~CFGCHIP3_ASYNC3_CLKSRC;
-	} else if (parent == &pll1_sysclk2) {
+	}
+	else if (parent == &pll1_sysclk2)
+	{
 		val |= CFGCHIP3_ASYNC3_CLKSRC;
-	} else {
+	}
+	else
+	{
 		pr_err("Bad parent on async3 clock mux\n");
 		return -EINVAL;
 	}
@@ -178,56 +199,65 @@ static int da850_async3_set_parent(struct clk *clk, struct clk *parent)
 	return 0;
 }
 
-static struct clk async3_clk = {
+static struct clk async3_clk =
+{
 	.name		= "async3",
 	.parent		= &pll1_sysclk2,
 	.set_parent	= da850_async3_set_parent,
 };
 
-static struct clk i2c0_clk = {
+static struct clk i2c0_clk =
+{
 	.name		= "i2c0",
 	.parent		= &pll0_aux_clk,
 };
 
-static struct clk timerp64_0_clk = {
+static struct clk timerp64_0_clk =
+{
 	.name		= "timer0",
 	.parent		= &pll0_aux_clk,
 };
 
-static struct clk timerp64_1_clk = {
+static struct clk timerp64_1_clk =
+{
 	.name		= "timer1",
 	.parent		= &pll0_aux_clk,
 };
 
-static struct clk arm_rom_clk = {
+static struct clk arm_rom_clk =
+{
 	.name		= "arm_rom",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_ARM_RAM_ROM,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk tpcc0_clk = {
+static struct clk tpcc0_clk =
+{
 	.name		= "tpcc0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_TPCC,
 	.flags		= ALWAYS_ENABLED | CLK_PSC,
 };
 
-static struct clk tptc0_clk = {
+static struct clk tptc0_clk =
+{
 	.name		= "tptc0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_TPTC0,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk tptc1_clk = {
+static struct clk tptc1_clk =
+{
 	.name		= "tptc1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_TPTC1,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk tpcc1_clk = {
+static struct clk tpcc1_clk =
+{
 	.name		= "tpcc1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA850_LPSC1_TPCC1,
@@ -235,7 +265,8 @@ static struct clk tpcc1_clk = {
 	.flags		= CLK_PSC | ALWAYS_ENABLED,
 };
 
-static struct clk tptc2_clk = {
+static struct clk tptc2_clk =
+{
 	.name		= "tptc2",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA850_LPSC1_TPTC2,
@@ -243,54 +274,62 @@ static struct clk tptc2_clk = {
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk pruss_clk = {
+static struct clk pruss_clk =
+{
 	.name		= "pruss",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_PRUSS,
 };
 
-static struct clk uart0_clk = {
+static struct clk uart0_clk =
+{
 	.name		= "uart0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_UART0,
 };
 
-static struct clk uart1_clk = {
+static struct clk uart1_clk =
+{
 	.name		= "uart1",
 	.parent		= &async3_clk,
 	.lpsc		= DA8XX_LPSC1_UART1,
 	.gpsc		= 1,
 };
 
-static struct clk uart2_clk = {
+static struct clk uart2_clk =
+{
 	.name		= "uart2",
 	.parent		= &async3_clk,
 	.lpsc		= DA8XX_LPSC1_UART2,
 	.gpsc		= 1,
 };
 
-static struct clk aintc_clk = {
+static struct clk aintc_clk =
+{
 	.name		= "aintc",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC0_AINTC,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk gpio_clk = {
+static struct clk gpio_clk =
+{
 	.name		= "gpio",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC1_GPIO,
 	.gpsc		= 1,
 };
 
-static struct clk i2c1_clk = {
+static struct clk i2c1_clk =
+{
 	.name		= "i2c1",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC1_I2C,
 	.gpsc		= 1,
 };
 
-static struct clk emif3_clk = {
+static struct clk emif3_clk =
+{
 	.name		= "emif3",
 	.parent		= &pll0_sysclk5,
 	.lpsc		= DA8XX_LPSC1_EMIF3C,
@@ -298,7 +337,8 @@ static struct clk emif3_clk = {
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk arm_clk = {
+static struct clk arm_clk =
+{
 	.name		= "arm",
 	.parent		= &pll0_sysclk6,
 	.lpsc		= DA8XX_LPSC0_ARM,
@@ -307,101 +347,116 @@ static struct clk arm_clk = {
 	.round_rate	= da850_round_armrate,
 };
 
-static struct clk rmii_clk = {
+static struct clk rmii_clk =
+{
 	.name		= "rmii",
 	.parent		= &pll0_sysclk7,
 };
 
-static struct clk emac_clk = {
+static struct clk emac_clk =
+{
 	.name		= "emac",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC1_CPGMAC,
 	.gpsc		= 1,
 };
 
-static struct clk mcasp_clk = {
+static struct clk mcasp_clk =
+{
 	.name		= "mcasp",
 	.parent		= &async3_clk,
 	.lpsc		= DA8XX_LPSC1_McASP0,
 	.gpsc		= 1,
 };
 
-static struct clk mcbsp0_clk = {
+static struct clk mcbsp0_clk =
+{
 	.name		= "mcbsp0",
 	.parent		= &async3_clk,
 	.lpsc		= DA850_LPSC1_McBSP0,
 	.gpsc		= 1,
 };
 
-static struct clk mcbsp1_clk = {
+static struct clk mcbsp1_clk =
+{
 	.name		= "mcbsp1",
 	.parent		= &async3_clk,
 	.lpsc		= DA850_LPSC1_McBSP1,
 	.gpsc		= 1,
 };
 
-static struct clk lcdc_clk = {
+static struct clk lcdc_clk =
+{
 	.name		= "lcdc",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_LCDC,
 	.gpsc		= 1,
 };
 
-static struct clk mmcsd0_clk = {
+static struct clk mmcsd0_clk =
+{
 	.name		= "mmcsd0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_MMC_SD,
 };
 
-static struct clk mmcsd1_clk = {
+static struct clk mmcsd1_clk =
+{
 	.name		= "mmcsd1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA850_LPSC1_MMC_SD1,
 	.gpsc		= 1,
 };
 
-static struct clk aemif_clk = {
+static struct clk aemif_clk =
+{
 	.name		= "aemif",
 	.parent		= &pll0_sysclk3,
 	.lpsc		= DA8XX_LPSC0_EMIF25,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk usb11_clk = {
+static struct clk usb11_clk =
+{
 	.name		= "usb11",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC1_USB11,
 	.gpsc		= 1,
 };
 
-static struct clk usb20_clk = {
+static struct clk usb20_clk =
+{
 	.name		= "usb20",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_USB20,
 	.gpsc		= 1,
 };
 
-static struct clk spi0_clk = {
+static struct clk spi0_clk =
+{
 	.name		= "spi0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_SPI0,
 };
 
-static struct clk spi1_clk = {
+static struct clk spi1_clk =
+{
 	.name		= "spi1",
 	.parent		= &async3_clk,
 	.lpsc		= DA8XX_LPSC1_SPI1,
 	.gpsc		= 1,
 };
 
-static struct clk vpif_clk = {
+static struct clk vpif_clk =
+{
 	.name		= "vpif",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA850_LPSC1_VPIF,
 	.gpsc		= 1,
 };
 
-static struct clk sata_clk = {
+static struct clk sata_clk =
+{
 	.name		= "sata",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA850_LPSC1_SATA,
@@ -409,7 +464,8 @@ static struct clk sata_clk = {
 	.flags		= PSC_FORCE,
 };
 
-static struct clk dsp_clk = {
+static struct clk dsp_clk =
+{
 	.name		= "dsp",
 	.parent		= &pll0_sysclk1,
 	.domain		= DAVINCI_GPSC_DSPDOMAIN,
@@ -417,7 +473,8 @@ static struct clk dsp_clk = {
 	.flags		= PSC_LRST | PSC_FORCE,
 };
 
-static struct clk ehrpwm_clk = {
+static struct clk ehrpwm_clk =
+{
 	.name		= "ehrpwm",
 	.parent		= &async3_clk,
 	.lpsc		= DA8XX_LPSC1_PWM,
@@ -444,21 +501,24 @@ static void ehrpwm_tblck_disable(struct clk *clk)
 	writel(val, DA8XX_SYSCFG0_VIRT(DA8XX_CFGCHIP1_REG));
 }
 
-static struct clk ehrpwm_tbclk = {
+static struct clk ehrpwm_tbclk =
+{
 	.name		= "ehrpwm_tbclk",
 	.parent		= &ehrpwm_clk,
 	.clk_enable	= ehrpwm_tblck_enable,
 	.clk_disable	= ehrpwm_tblck_disable,
 };
 
-static struct clk ecap_clk = {
+static struct clk ecap_clk =
+{
 	.name		= "ecap",
 	.parent		= &async3_clk,
 	.lpsc		= DA8XX_LPSC1_ECAP,
 	.gpsc		= 1,
 };
 
-static struct clk_lookup da850_clks[] = {
+static struct clk_lookup da850_clks[] =
+{
 	CLK(NULL,		"ref",		&ref_clk),
 	CLK(NULL,		"pll0",		&pll0_clk),
 	CLK(NULL,		"pll0_aux",	&pll0_aux_clk),
@@ -522,7 +582,8 @@ static struct clk_lookup da850_clks[] = {
  *		soc	description	mux	mode	mode	mux	dbg
  *					reg	offset	mask	mode
  */
-static const struct mux_config da850_pins[] = {
+static const struct mux_config da850_pins[] =
+{
 #ifdef CONFIG_DAVINCI_MUX
 	/* UART0 function */
 	MUX_CFG(DA850, NUART0_CTS,	3,	24,	15,	2,	false)
@@ -731,17 +792,20 @@ static const struct mux_config da850_pins[] = {
 #endif
 };
 
-const short da850_i2c0_pins[] __initconst = {
+const short da850_i2c0_pins[] __initconst =
+{
 	DA850_I2C0_SDA, DA850_I2C0_SCL,
 	-1
 };
 
-const short da850_i2c1_pins[] __initconst = {
+const short da850_i2c1_pins[] __initconst =
+{
 	DA850_I2C1_SCL, DA850_I2C1_SDA,
 	-1
 };
 
-const short da850_lcdcntl_pins[] __initconst = {
+const short da850_lcdcntl_pins[] __initconst =
+{
 	DA850_LCD_D_0, DA850_LCD_D_1, DA850_LCD_D_2, DA850_LCD_D_3,
 	DA850_LCD_D_4, DA850_LCD_D_5, DA850_LCD_D_6, DA850_LCD_D_7,
 	DA850_LCD_D_8, DA850_LCD_D_9, DA850_LCD_D_10, DA850_LCD_D_11,
@@ -750,7 +814,8 @@ const short da850_lcdcntl_pins[] __initconst = {
 	-1
 };
 
-const short da850_vpif_capture_pins[] __initconst = {
+const short da850_vpif_capture_pins[] __initconst =
+{
 	DA850_VPIF_DIN0, DA850_VPIF_DIN1, DA850_VPIF_DIN2, DA850_VPIF_DIN3,
 	DA850_VPIF_DIN4, DA850_VPIF_DIN5, DA850_VPIF_DIN6, DA850_VPIF_DIN7,
 	DA850_VPIF_DIN8, DA850_VPIF_DIN9, DA850_VPIF_DIN10, DA850_VPIF_DIN11,
@@ -760,7 +825,8 @@ const short da850_vpif_capture_pins[] __initconst = {
 	-1
 };
 
-const short da850_vpif_display_pins[] __initconst = {
+const short da850_vpif_display_pins[] __initconst =
+{
 	DA850_VPIF_DOUT0, DA850_VPIF_DOUT1, DA850_VPIF_DOUT2, DA850_VPIF_DOUT3,
 	DA850_VPIF_DOUT4, DA850_VPIF_DOUT5, DA850_VPIF_DOUT6, DA850_VPIF_DOUT7,
 	DA850_VPIF_DOUT8, DA850_VPIF_DOUT9, DA850_VPIF_DOUT10,
@@ -771,7 +837,8 @@ const short da850_vpif_display_pins[] __initconst = {
 };
 
 /* FIQ are pri 0-1; otherwise 2-7, with 7 lowest priority */
-static u8 da850_default_priorities[DA850_N_CP_INTC_IRQ] = {
+static u8 da850_default_priorities[DA850_N_CP_INTC_IRQ] =
+{
 	[IRQ_DA8XX_COMMTX]		= 7,
 	[IRQ_DA8XX_COMMRX]		= 7,
 	[IRQ_DA8XX_NINT]		= 7,
@@ -875,7 +942,8 @@ static u8 da850_default_priorities[DA850_N_CP_INTC_IRQ] = {
 	[IRQ_DA8XX_ARMCLKSTOPREQ]	= 7,
 };
 
-static struct map_desc da850_io_desc[] = {
+static struct map_desc da850_io_desc[] =
+{
 	{
 		.virtual	= IO_VIRT,
 		.pfn		= __phys_to_pfn(IO_PHYS),
@@ -893,7 +961,8 @@ static struct map_desc da850_io_desc[] = {
 static u32 da850_psc_bases[] = { DA8XX_PSC0_BASE, DA8XX_PSC1_BASE };
 
 /* Contents of JTAG ID register used to identify exact cpu type */
-static struct davinci_id da850_ids[] = {
+static struct davinci_id da850_ids[] =
+{
 	{
 		.variant	= 0x0,
 		.part_no	= 0xb7d1,
@@ -910,7 +979,8 @@ static struct davinci_id da850_ids[] = {
 	},
 };
 
-static struct davinci_timer_instance da850_timer_instance[4] = {
+static struct davinci_timer_instance da850_timer_instance[4] =
+{
 	{
 		.base		= DA8XX_TIMER64P0_BASE,
 		.bottom_irq	= IRQ_DA8XX_TINT12_0,
@@ -938,7 +1008,8 @@ static struct davinci_timer_instance da850_timer_instance[4] = {
  * T0_TOP: Timer 0, top			: Used for clocksource
  * T1_BOT, T1_TOP: Timer 1, bottom & top: Used for watchdog timer
  */
-static struct davinci_timer_info da850_timer_info = {
+static struct davinci_timer_info da850_timer_info =
+{
 	.timers		= da850_timer_instance,
 	.clockevent_id	= T0_BOT,
 	.clocksource_id	= T0_TOP,
@@ -952,7 +1023,8 @@ static struct davinci_timer_info da850_timer_info = {
  *
  * The output of the PLLM must be between 300 to 600 MHz.
  */
-struct da850_opp {
+struct da850_opp
+{
 	unsigned int	freq;	/* in KHz */
 	unsigned int	prediv;
 	unsigned int	mult;
@@ -961,7 +1033,8 @@ struct da850_opp {
 	unsigned int	cvdd_max; /* in uV */
 };
 
-static const struct da850_opp da850_opp_456 = {
+static const struct da850_opp da850_opp_456 =
+{
 	.freq		= 456000,
 	.prediv		= 1,
 	.mult		= 19,
@@ -970,7 +1043,8 @@ static const struct da850_opp da850_opp_456 = {
 	.cvdd_max	= 1350000,
 };
 
-static const struct da850_opp da850_opp_408 = {
+static const struct da850_opp da850_opp_408 =
+{
 	.freq		= 408000,
 	.prediv		= 1,
 	.mult		= 17,
@@ -979,7 +1053,8 @@ static const struct da850_opp da850_opp_408 = {
 	.cvdd_max	= 1350000,
 };
 
-static const struct da850_opp da850_opp_372 = {
+static const struct da850_opp da850_opp_372 =
+{
 	.freq		= 372000,
 	.prediv		= 2,
 	.mult		= 31,
@@ -988,7 +1063,8 @@ static const struct da850_opp da850_opp_372 = {
 	.cvdd_max	= 1320000,
 };
 
-static const struct da850_opp da850_opp_300 = {
+static const struct da850_opp da850_opp_300 =
+{
 	.freq		= 300000,
 	.prediv		= 1,
 	.mult		= 25,
@@ -997,7 +1073,8 @@ static const struct da850_opp da850_opp_300 = {
 	.cvdd_max	= 1320000,
 };
 
-static const struct da850_opp da850_opp_200 = {
+static const struct da850_opp da850_opp_200 =
+{
 	.freq		= 200000,
 	.prediv		= 1,
 	.mult		= 25,
@@ -1006,7 +1083,8 @@ static const struct da850_opp da850_opp_200 = {
 	.cvdd_max	= 1160000,
 };
 
-static const struct da850_opp da850_opp_96 = {
+static const struct da850_opp da850_opp_96 =
+{
 	.freq		= 96000,
 	.prediv		= 1,
 	.mult		= 20,
@@ -1018,10 +1096,11 @@ static const struct da850_opp da850_opp_96 = {
 #define OPP(freq) 		\
 	{				\
 		.driver_data = (unsigned int) &da850_opp_##freq,	\
-		.frequency = freq * 1000, \
+					   .frequency = freq * 1000, \
 	}
 
-static struct cpufreq_frequency_table da850_freq_table[] = {
+static struct cpufreq_frequency_table da850_freq_table[] =
+{
 	OPP(456),
 	OPP(408),
 	OPP(372),
@@ -1035,11 +1114,12 @@ static struct cpufreq_frequency_table da850_freq_table[] = {
 };
 
 #ifdef CONFIG_REGULATOR
-static int da850_set_voltage(unsigned int index);
-static int da850_regulator_init(void);
+	static int da850_set_voltage(unsigned int index);
+	static int da850_regulator_init(void);
 #endif
 
-static struct davinci_cpufreq_config cpufreq_info = {
+static struct davinci_cpufreq_config cpufreq_info =
+{
 	.freq_table = da850_freq_table,
 #ifdef CONFIG_REGULATOR
 	.init = da850_regulator_init,
@@ -1055,7 +1135,9 @@ static int da850_set_voltage(unsigned int index)
 	struct da850_opp *opp;
 
 	if (!cvdd)
+	{
 		return -ENODEV;
+	}
 
 	opp = (struct da850_opp *) cpufreq_info.freq_table[index].driver_data;
 
@@ -1065,8 +1147,10 @@ static int da850_set_voltage(unsigned int index)
 static int da850_regulator_init(void)
 {
 	cvdd = regulator_get(NULL, "cvdd");
+
 	if (WARN(IS_ERR(cvdd), "Unable to obtain voltage regulator for CVDD;"
-					" voltage scaling unsupported\n")) {
+			 " voltage scaling unsupported\n"))
+	{
 		return PTR_ERR(cvdd);
 	}
 
@@ -1074,7 +1158,8 @@ static int da850_regulator_init(void)
 }
 #endif
 
-static struct platform_device da850_cpufreq_device = {
+static struct platform_device da850_cpufreq_device =
+{
 	.name			= "cpufreq-davinci",
 	.dev = {
 		.platform_data	= &cpufreq_info,
@@ -1091,9 +1176,12 @@ int da850_register_cpufreq(char *async_clk)
 	/* cpufreq driver can help keep an "async" clock constant */
 	if (async_clk)
 		clk_add_alias("async", da850_cpufreq_device.name,
-							async_clk, NULL);
-	for (i = 0; i < ARRAY_SIZE(da850_freq_table); i++) {
-		if (da850_freq_table[i].frequency <= da850_max_speed) {
+					  async_clk, NULL);
+
+	for (i = 0; i < ARRAY_SIZE(da850_freq_table); i++)
+	{
+		if (da850_freq_table[i].frequency <= da850_max_speed)
+		{
 			cpufreq_info.freq_table = &da850_freq_table[i];
 			break;
 		}
@@ -1105,18 +1193,23 @@ int da850_register_cpufreq(char *async_clk)
 static int da850_round_armrate(struct clk *clk, unsigned long rate)
 {
 	int ret = 0, diff;
-	unsigned int best = (unsigned int) -1;
+	unsigned int best = (unsigned int) - 1;
 	struct cpufreq_frequency_table *table = cpufreq_info.freq_table;
 	struct cpufreq_frequency_table *pos;
 
 	rate /= 1000; /* convert to kHz */
 
-	cpufreq_for_each_entry(pos, table) {
+	cpufreq_for_each_entry(pos, table)
+	{
 		diff = pos->frequency - rate;
-		if (diff < 0)
-			diff = -diff;
 
-		if (diff < best) {
+		if (diff < 0)
+		{
+			diff = -diff;
+		}
+
+		if (diff < best)
+		{
 			best = diff;
 			ret = pos->frequency;
 		}
@@ -1145,8 +1238,11 @@ static int da850_set_pll0rate(struct clk *clk, unsigned long index)
 	postdiv = opp->postdiv;
 
 	ret = davinci_set_pllrate(pll, prediv, mult, postdiv);
+
 	if (WARN_ON(ret))
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -1178,25 +1274,35 @@ int __init da850_register_pm(struct platform_device *pdev)
 	struct davinci_pm_config *pdata = pdev->dev.platform_data;
 
 	ret = davinci_cfg_reg(DA850_RTC_ALARM);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pdata->ddr2_ctlr_base = da8xx_get_mem_ctlr();
 	pdata->deepsleep_reg = DA8XX_SYSCFG1_VIRT(DA8XX_DEEPSLEEP_REG);
 	pdata->ddrpsc_num = DA8XX_LPSC1_EMIF3C;
 
 	pdata->cpupll_reg_base = ioremap(DA8XX_PLL0_BASE, SZ_4K);
+
 	if (!pdata->cpupll_reg_base)
+	{
 		return -ENOMEM;
+	}
 
 	pdata->ddrpll_reg_base = ioremap(DA850_PLL1_BASE, SZ_4K);
-	if (!pdata->ddrpll_reg_base) {
+
+	if (!pdata->ddrpll_reg_base)
+	{
 		ret = -ENOMEM;
 		goto no_ddrpll_mem;
 	}
 
 	pdata->ddrpsc_reg_base = ioremap(DA8XX_PSC1_BASE, SZ_4K);
-	if (!pdata->ddrpsc_reg_base) {
+
+	if (!pdata->ddrpsc_reg_base)
+	{
 		ret = -ENOMEM;
 		goto no_ddrpsc_mem;
 	}
@@ -1213,7 +1319,8 @@ no_ddrpll_mem:
 /* VPIF resource, platform data */
 static u64 da850_vpif_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource da850_vpif_resource[] = {
+static struct resource da850_vpif_resource[] =
+{
 	{
 		.start = DA8XX_VPIF_BASE,
 		.end   = DA8XX_VPIF_BASE + 0xfff,
@@ -1221,7 +1328,8 @@ static struct resource da850_vpif_resource[] = {
 	}
 };
 
-static struct platform_device da850_vpif_dev = {
+static struct platform_device da850_vpif_dev =
+{
 	.name		= "vpif",
 	.id		= -1,
 	.dev		= {
@@ -1232,7 +1340,8 @@ static struct platform_device da850_vpif_dev = {
 	.num_resources	= ARRAY_SIZE(da850_vpif_resource),
 };
 
-static struct resource da850_vpif_display_resource[] = {
+static struct resource da850_vpif_display_resource[] =
+{
 	{
 		.start = IRQ_DA850_VPIFINT,
 		.end   = IRQ_DA850_VPIFINT,
@@ -1240,7 +1349,8 @@ static struct resource da850_vpif_display_resource[] = {
 	},
 };
 
-static struct platform_device da850_vpif_display_dev = {
+static struct platform_device da850_vpif_display_dev =
+{
 	.name		= "vpif_display",
 	.id		= -1,
 	.dev		= {
@@ -1251,7 +1361,8 @@ static struct platform_device da850_vpif_display_dev = {
 	.num_resources  = ARRAY_SIZE(da850_vpif_display_resource),
 };
 
-static struct resource da850_vpif_capture_resource[] = {
+static struct resource da850_vpif_capture_resource[] =
+{
 	{
 		.start = IRQ_DA850_VPIFINT,
 		.end   = IRQ_DA850_VPIFINT,
@@ -1264,7 +1375,8 @@ static struct resource da850_vpif_capture_resource[] = {
 	},
 };
 
-static struct platform_device da850_vpif_capture_dev = {
+static struct platform_device da850_vpif_capture_dev =
+{
 	.name		= "vpif_capture",
 	.id		= -1,
 	.dev		= {
@@ -1281,20 +1393,21 @@ int __init da850_register_vpif(void)
 }
 
 int __init da850_register_vpif_display(struct vpif_display_config
-						*display_config)
+									   *display_config)
 {
 	da850_vpif_display_dev.dev.platform_data = display_config;
 	return platform_device_register(&da850_vpif_display_dev);
 }
 
 int __init da850_register_vpif_capture(struct vpif_capture_config
-							*capture_config)
+									   *capture_config)
 {
 	da850_vpif_capture_dev.dev.platform_data = capture_config;
 	return platform_device_register(&da850_vpif_capture_dev);
 }
 
-static struct davinci_gpio_platform_data da850_gpio_platform_data = {
+static struct davinci_gpio_platform_data da850_gpio_platform_data =
+{
 	.ngpio = 144,
 };
 
@@ -1303,7 +1416,8 @@ int __init da850_register_gpio(void)
 	return da8xx_register_gpio(&da850_gpio_platform_data);
 }
 
-static struct davinci_soc_info davinci_soc_info_da850 = {
+static struct davinci_soc_info davinci_soc_info_da850 =
+{
 	.io_desc		= da850_io_desc,
 	.io_desc_num		= ARRAY_SIZE(da850_io_desc),
 	.jtag_id_reg		= DA8XX_SYSCFG0_BASE + DA8XX_JTAG_ID_REG,
@@ -1332,12 +1446,18 @@ void __init da850_init(void)
 	davinci_common_init(&davinci_soc_info_da850);
 
 	da8xx_syscfg0_base = ioremap(DA8XX_SYSCFG0_BASE, SZ_4K);
+
 	if (WARN(!da8xx_syscfg0_base, "Unable to map syscfg0 module"))
+	{
 		return;
+	}
 
 	da8xx_syscfg1_base = ioremap(DA8XX_SYSCFG1_BASE, SZ_4K);
+
 	if (WARN(!da8xx_syscfg1_base, "Unable to map syscfg1 module"))
+	{
 		return;
+	}
 
 	/* Unlock writing to PLL0 registers */
 	v = __raw_readl(DA8XX_SYSCFG0_VIRT(DA8XX_CFGCHIP0_REG));

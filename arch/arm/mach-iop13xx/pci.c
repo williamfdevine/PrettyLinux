@@ -59,84 +59,112 @@ void iop13xx_map_pci_memory(void)
 	struct pci_dev *dev;
 	resource_size_t end = 0;
 
-	for (atu = 0; atu < 2; atu++) {
+	for (atu = 0; atu < 2; atu++)
+	{
 		bus = atu ? pci_bus_atue : pci_bus_atux;
-		if (bus) {
-			list_for_each_entry(dev, &bus->devices, bus_list) {
+
+		if (bus)
+		{
+			list_for_each_entry(dev, &bus->devices, bus_list)
+			{
 				int i;
 				int max = 7;
 
 				if (dev->subordinate)
+				{
 					max = DEVICE_COUNT_RESOURCE;
+				}
 
-				for (i = 0; i < max; i++) {
+				for (i = 0; i < max; i++)
+				{
 					struct resource *res = &dev->resource[i];
+
 					if (res->flags & IORESOURCE_MEM)
+					{
 						end = max(res->end, end);
+					}
 				}
 			}
 
-			switch(atu) {
-			case 0:
-				iop13xx_atux_mem_size =
-					(end - IOP13XX_PCIX_LOWER_MEM_RA) + 1;
+			switch (atu)
+			{
+				case 0:
+					iop13xx_atux_mem_size =
+						(end - IOP13XX_PCIX_LOWER_MEM_RA) + 1;
 
-				/* 16MB align the request */
-				if (iop13xx_atux_mem_size & (SZ_16M - 1)) {
-					iop13xx_atux_mem_size &= ~(SZ_16M - 1);
-					iop13xx_atux_mem_size += SZ_16M;
-				}
-
-				if (end) {
-					iop13xx_atux_mem_base = __arm_ioremap_pfn(
-					__phys_to_pfn(IOP13XX_PCIX_LOWER_MEM_PA)
-					, 0, iop13xx_atux_mem_size, MT_DEVICE);
-					if (!iop13xx_atux_mem_base) {
-						printk("%s: atux allocation "
-						       "failed\n", __func__);
-						BUG();
+					/* 16MB align the request */
+					if (iop13xx_atux_mem_size & (SZ_16M - 1))
+					{
+						iop13xx_atux_mem_size &= ~(SZ_16M - 1);
+						iop13xx_atux_mem_size += SZ_16M;
 					}
-				} else
-					iop13xx_atux_mem_size = 0;
-				PRINTK("%s: atu: %d bus_size: %d mem_base: %p\n",
-				__func__, atu, iop13xx_atux_mem_size,
-				iop13xx_atux_mem_base);
-				break;
-			case 1:
-				iop13xx_atue_mem_size =
-					(end - IOP13XX_PCIE_LOWER_MEM_RA) + 1;
 
-				/* 16MB align the request */
-				if (iop13xx_atue_mem_size & (SZ_16M - 1)) {
-					iop13xx_atue_mem_size &= ~(SZ_16M - 1);
-					iop13xx_atue_mem_size += SZ_16M;
-				}
+					if (end)
+					{
+						iop13xx_atux_mem_base = __arm_ioremap_pfn(
+													__phys_to_pfn(IOP13XX_PCIX_LOWER_MEM_PA)
+													, 0, iop13xx_atux_mem_size, MT_DEVICE);
 
-				if (end) {
-					iop13xx_atue_mem_base = __arm_ioremap_pfn(
-					__phys_to_pfn(IOP13XX_PCIE_LOWER_MEM_PA)
-					, 0, iop13xx_atue_mem_size, MT_DEVICE);
-					if (!iop13xx_atue_mem_base) {
-						printk("%s: atue allocation "
-						       "failed\n", __func__);
-						BUG();
+						if (!iop13xx_atux_mem_base)
+						{
+							printk("%s: atux allocation "
+								   "failed\n", __func__);
+							BUG();
+						}
 					}
-				} else
-					iop13xx_atue_mem_size = 0;
-				PRINTK("%s: atu: %d bus_size: %d mem_base: %p\n",
-				__func__, atu, iop13xx_atue_mem_size,
-				iop13xx_atue_mem_base);
-				break;
+					else
+					{
+						iop13xx_atux_mem_size = 0;
+					}
+
+					PRINTK("%s: atu: %d bus_size: %d mem_base: %p\n",
+						   __func__, atu, iop13xx_atux_mem_size,
+						   iop13xx_atux_mem_base);
+					break;
+
+				case 1:
+					iop13xx_atue_mem_size =
+						(end - IOP13XX_PCIE_LOWER_MEM_RA) + 1;
+
+					/* 16MB align the request */
+					if (iop13xx_atue_mem_size & (SZ_16M - 1))
+					{
+						iop13xx_atue_mem_size &= ~(SZ_16M - 1);
+						iop13xx_atue_mem_size += SZ_16M;
+					}
+
+					if (end)
+					{
+						iop13xx_atue_mem_base = __arm_ioremap_pfn(
+													__phys_to_pfn(IOP13XX_PCIE_LOWER_MEM_PA)
+													, 0, iop13xx_atue_mem_size, MT_DEVICE);
+
+						if (!iop13xx_atue_mem_base)
+						{
+							printk("%s: atue allocation "
+								   "failed\n", __func__);
+							BUG();
+						}
+					}
+					else
+					{
+						iop13xx_atue_mem_size = 0;
+					}
+
+					PRINTK("%s: atu: %d bus_size: %d mem_base: %p\n",
+						   __func__, atu, iop13xx_atue_mem_size,
+						   iop13xx_atue_mem_base);
+					break;
 			}
 
 			printk("%s: Initialized (%uM @ resource/virtual: %08lx/%p)\n",
-			atu ? "ATUE" : "ATUX",
-			(atu ? iop13xx_atue_mem_size : iop13xx_atux_mem_size) /
-			SZ_1M,
-			atu ? IOP13XX_PCIE_LOWER_MEM_RA :
-			IOP13XX_PCIX_LOWER_MEM_RA,
-			atu ? iop13xx_atue_mem_base :
-			iop13xx_atux_mem_base);
+				   atu ? "ATUE" : "ATUX",
+				   (atu ? iop13xx_atue_mem_size : iop13xx_atux_mem_size) /
+				   SZ_1M,
+				   atu ? IOP13XX_PCIE_LOWER_MEM_RA :
+				   IOP13XX_PCIX_LOWER_MEM_RA,
+				   atu ? iop13xx_atue_mem_base :
+				   iop13xx_atux_mem_base);
 			end = 0;
 		}
 
@@ -146,25 +174,39 @@ void iop13xx_map_pci_memory(void)
 static int iop13xx_atu_function(int atu)
 {
 	int func = 0;
+
 	/* the function number depends on the value of the
 	 * IOP13XX_INTERFACE_SEL_PCIX reset strap
 	 * see C-Spec section 3.17
 	 */
-	switch(atu) {
-	case IOP13XX_INIT_ATU_ATUX:
-		if (__raw_readl(IOP13XX_ESSR0) & IOP13XX_INTERFACE_SEL_PCIX)
-			func = 5;
-		else
-			func = 0;
-		break;
-	case IOP13XX_INIT_ATU_ATUE:
-		if (__raw_readl(IOP13XX_ESSR0) & IOP13XX_INTERFACE_SEL_PCIX)
-			func = 0;
-		else
-			func = 5;
-		break;
-	default:
-		BUG();
+	switch (atu)
+	{
+		case IOP13XX_INIT_ATU_ATUX:
+			if (__raw_readl(IOP13XX_ESSR0) & IOP13XX_INTERFACE_SEL_PCIX)
+			{
+				func = 5;
+			}
+			else
+			{
+				func = 0;
+			}
+
+			break;
+
+		case IOP13XX_INIT_ATU_ATUE:
+			if (__raw_readl(IOP13XX_ESSR0) & IOP13XX_INTERFACE_SEL_PCIX)
+			{
+				func = 0;
+			}
+			else
+			{
+				func = 5;
+			}
+
+			break;
+
+		default:
+			BUG();
 	}
 
 	return func;
@@ -184,9 +226,13 @@ static u32 iop13xx_atux_cfg_address(struct pci_bus *bus, int devfn, int where)
 	u32 addr;
 
 	if (sys->busnr == bus->number)
+	{
 		addr = 1 << (PCI_SLOT(devfn) + 16) | (PCI_SLOT(devfn) << 11);
+	}
 	else
+	{
 		addr = bus->number << 16 | PCI_SLOT(devfn) << 11 | 1;
+	}
 
 	addr |=	PCI_FUNC(devfn) << 8 | ((where & 0xff) & ~3);
 	addr |= ((where & 0xf00) >> 8) << 24; /* upper register number */
@@ -207,14 +253,16 @@ static u32 iop13xx_atue_cfg_address(struct pci_bus *bus, int devfn, int where)
 	u32 addr;
 
 	PRINTK("iop13xx_atue_cfg_address: bus: %d dev: %d func: %d",
-		bus->number, PCI_SLOT(devfn), PCI_FUNC(devfn));
+		   bus->number, PCI_SLOT(devfn), PCI_FUNC(devfn));
 	addr = ((u32) bus->number)     << IOP13XX_ATUE_OCCAR_BUS_NUM |
 		   ((u32) PCI_SLOT(devfn)) << IOP13XX_ATUE_OCCAR_DEV_NUM |
 		   ((u32) PCI_FUNC(devfn)) << IOP13XX_ATUE_OCCAR_FUNC_NUM |
 		   (where & ~0x3);
 
 	if (sys->busnr != bus->number)
-		addr |= 1; /* type 1 access */
+	{
+		addr |= 1;    /* type 1 access */
+	}
 
 	return addr;
 }
@@ -234,23 +282,31 @@ static int iop13xx_atux_pci_status(int clear)
 	 * Check the status registers.
 	 */
 	status = __raw_readw(IOP13XX_ATUX_ATUSR);
+
 	if (status & IOP_PCI_STATUS_ERROR)
 	{
 		PRINTK("\t\t\tPCI error: ATUSR %#08x", status);
-		if(clear)
+
+		if (clear)
 			__raw_writew(status & IOP_PCI_STATUS_ERROR,
-				IOP13XX_ATUX_ATUSR);
+						 IOP13XX_ATUX_ATUSR);
+
 		err = 1;
 	}
+
 	status = __raw_readl(IOP13XX_ATUX_ATUISR);
+
 	if (status & IOP13XX_ATUX_ATUISR_ERROR)
 	{
 		PRINTK("\t\t\tPCI error interrupt:  ATUISR %#08x", status);
-		if(clear)
+
+		if (clear)
 			__raw_writel(status & IOP13XX_ATUX_ATUISR_ERROR,
-				IOP13XX_ATUX_ATUISR);
+						 IOP13XX_ATUX_ATUISR);
+
 		err = 1;
 	}
+
 	return err;
 }
 
@@ -277,14 +333,15 @@ static u32 iop13xx_atux_read(unsigned long addr)
  */
 static int
 iop13xx_atux_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		int size, u32 *value)
+						 int size, u32 *value)
 {
 	unsigned long addr = iop13xx_atux_cfg_address(bus, devfn, where);
 	u32 val = iop13xx_atux_read(addr) >> ((where & 3) * 8);
 
-	if (iop13xx_atux_pci_status(1) || is_atux_occdr_error()) {
+	if (iop13xx_atux_pci_status(1) || is_atux_occdr_error())
+	{
 		__raw_writel(__raw_readl(IOP13XX_XBG_BECSR) & 3,
-			IOP13XX_XBG_BECSR);
+					 IOP13XX_XBG_BECSR);
 		val = 0xffffffff;
 	}
 
@@ -295,25 +352,35 @@ iop13xx_atux_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 
 static int
 iop13xx_atux_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		int size, u32 value)
+						  int size, u32 value)
 {
 	unsigned long addr = iop13xx_atux_cfg_address(bus, devfn, where);
 	u32 val;
 
-	if (size != 4) {
+	if (size != 4)
+	{
 		val = iop13xx_atux_read(addr);
+
 		if (!iop13xx_atux_pci_status(1) == 0)
+		{
 			return PCIBIOS_SUCCESSFUL;
+		}
 
 		where = (where & 3) * 8;
 
 		if (size == 1)
+		{
 			val &= ~(0xff << where);
+		}
 		else
+		{
 			val &= ~(0xffff << where);
+		}
 
 		__raw_writel(val | value << where, IOP13XX_ATUX_OCCDR);
-	} else {
+	}
+	else
+	{
 		__raw_writel(addr, IOP13XX_ATUX_OCCAR);
 		__raw_writel(value, IOP13XX_ATUX_OCCDR);
 	}
@@ -321,7 +388,8 @@ iop13xx_atux_write_config(struct pci_bus *bus, unsigned int devfn, int where,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static struct pci_ops iop13xx_atux_ops = {
+static struct pci_ops iop13xx_atux_ops =
+{
 	.read	= iop13xx_atux_read_config,
 	.write	= iop13xx_atux_write_config,
 };
@@ -343,43 +411,57 @@ static int iop13xx_atue_pci_status(int clear)
 
 	/* standard pci status register */
 	status = __raw_readw(IOP13XX_ATUE_ATUSR);
-	if (status & IOP_PCI_STATUS_ERROR) {
+
+	if (status & IOP_PCI_STATUS_ERROR)
+	{
 		PRINTK("\t\t\tPCI error: ATUSR %#08x", status);
-		if(clear)
+
+		if (clear)
 			__raw_writew(status & IOP_PCI_STATUS_ERROR,
-				IOP13XX_ATUE_ATUSR);
+						 IOP13XX_ATUE_ATUSR);
+
 		err++;
 	}
 
 	/* check the normal status bits in the ATUISR */
 	status = __raw_readl(IOP13XX_ATUE_ATUISR);
-	if (status & IOP13XX_ATUE_ATUISR_ERROR)	{
+
+	if (status & IOP13XX_ATUE_ATUISR_ERROR)
+	{
 		PRINTK("\t\t\tPCI error: ATUISR %#08x", status);
+
 		if (clear)
 			__raw_writew(status & IOP13XX_ATUE_ATUISR_ERROR,
-				IOP13XX_ATUE_ATUISR);
+						 IOP13XX_ATUE_ATUISR);
+
 		err++;
 
 		/* check the PCI-E status if the ATUISR reports an interface error */
-		if (status & IOP13XX_ATUE_STAT_PCI_IFACE_ERR) {
+		if (status & IOP13XX_ATUE_STAT_PCI_IFACE_ERR)
+		{
 			/* get the unmasked errors */
 			status = __raw_readl(IOP13XX_ATUE_PIE_STS) &
-					~(__raw_readl(IOP13XX_ATUE_PIE_MSK));
+					 ~(__raw_readl(IOP13XX_ATUE_PIE_MSK));
 
-			if (status) {
+			if (status)
+			{
 				PRINTK("\t\t\tPCI-E error: ATUE_PIE_STS %#08x",
-					__raw_readl(IOP13XX_ATUE_PIE_STS));
+					   __raw_readl(IOP13XX_ATUE_PIE_STS));
 				err++;
-			} else {
+			}
+			else
+			{
 				PRINTK("\t\t\tPCI-E error: ATUE_PIE_STS %#08x",
-					__raw_readl(IOP13XX_ATUE_PIE_STS));
+					   __raw_readl(IOP13XX_ATUE_PIE_STS));
 				PRINTK("\t\t\tPCI-E error: ATUE_PIE_MSK %#08x",
-					__raw_readl(IOP13XX_ATUE_PIE_MSK));
+					   __raw_readl(IOP13XX_ATUE_PIE_MSK));
 				BUG();
 			}
 
-			if(clear)
+			if (clear)
+			{
 				__raw_writel(status, IOP13XX_ATUE_PIE_STS);
+			}
 		}
 	}
 
@@ -391,12 +473,17 @@ iop13xx_pcie_map_irq(const struct pci_dev *dev, u8 idsel, u8 pin)
 {
 	WARN_ON(idsel != 0);
 
-	switch (pin) {
-	case 1: return ATUE_INTA;
-	case 2: return ATUE_INTB;
-	case 3: return ATUE_INTC;
-	case 4: return ATUE_INTD;
-	default: return -1;
+	switch (pin)
+	{
+		case 1: return ATUE_INTA;
+
+		case 2: return ATUE_INTB;
+
+		case 3: return ATUE_INTC;
+
+		case 4: return ATUE_INTD;
+
+		default: return -1;
 	}
 }
 
@@ -417,23 +504,29 @@ static u32 iop13xx_atue_read(unsigned long addr)
  */
 static int
 iop13xx_atue_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		int size, u32 *value)
+						 int size, u32 *value)
 {
 	u32 val;
 	unsigned long addr = iop13xx_atue_cfg_address(bus, devfn, where);
 
 	/* Hide device numbers > 0 on the local PCI-E bus (Type 0 access) */
-	if (!PCI_SLOT(devfn) || (addr & 1)) {
+	if (!PCI_SLOT(devfn) || (addr & 1))
+	{
 		val = iop13xx_atue_read(addr) >> ((where & 3) * 8);
-		if( iop13xx_atue_pci_status(1) || is_atue_occdr_error() ) {
+
+		if ( iop13xx_atue_pci_status(1) || is_atue_occdr_error() )
+		{
 			__raw_writel(__raw_readl(IOP13XX_XBG_BECSR) & 3,
-				IOP13XX_XBG_BECSR);
+						 IOP13XX_XBG_BECSR);
 			val = 0xffffffff;
 		}
 
 		PRINTK("addr=%#0lx, val=%#010x", addr, val);
-	} else
+	}
+	else
+	{
 		val = 0xffffffff;
+	}
 
 	*value = val;
 
@@ -442,25 +535,35 @@ iop13xx_atue_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 
 static int
 iop13xx_atue_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		int size, u32 value)
+						  int size, u32 value)
 {
 	unsigned long addr = iop13xx_atue_cfg_address(bus, devfn, where);
 	u32 val;
 
-	if (size != 4) {
+	if (size != 4)
+	{
 		val = iop13xx_atue_read(addr);
+
 		if (!iop13xx_atue_pci_status(1) == 0)
+		{
 			return PCIBIOS_SUCCESSFUL;
+		}
 
 		where = (where & 3) * 8;
 
 		if (size == 1)
+		{
 			val &= ~(0xff << where);
+		}
 		else
+		{
 			val &= ~(0xffff << where);
+		}
 
 		__raw_writel(val | value << where, IOP13XX_ATUE_OCCDR);
-	} else {
+	}
+	else
+	{
 		__raw_writel(addr, IOP13XX_ATUE_OCCAR);
 		__raw_writel(value, IOP13XX_ATUE_OCCDR);
 	}
@@ -468,7 +571,8 @@ iop13xx_atue_write_config(struct pci_bus *bus, unsigned int devfn, int where,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static struct pci_ops iop13xx_atue_ops = {
+static struct pci_ops iop13xx_atue_ops =
+{
 	.read	= iop13xx_atue_read_config,
 	.write	= iop13xx_atue_write_config,
 };
@@ -483,8 +587,8 @@ int
 iop13xx_pci_abort(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 {
 	PRINTK("Data abort: address = 0x%08lx "
-		    "fsr = 0x%03x PC = 0x%08lx LR = 0x%08lx",
-		addr, fsr, regs->ARM_pc, regs->ARM_lr);
+		   "fsr = 0x%03x PC = 0x%08lx LR = 0x%08lx",
+		   addr, fsr, regs->ARM_pc, regs->ARM_lr);
 
 	PRINTK("IOP13XX_XBG_BECSR: %#10x", __raw_readl(IOP13XX_XBG_BECSR));
 	PRINTK("IOP13XX_XBG_BERAR: %#10x", __raw_readl(IOP13XX_XBG_BERAR));
@@ -494,12 +598,18 @@ iop13xx_pci_abort(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	 *  return address to be _after_ the instruction.
 	 */
 	if (fsr & (1 << 10))
+	{
 		regs->ARM_pc += 4;
+	}
 
 	if (is_atue_occdr_error() || is_atux_occdr_error())
+	{
 		return 0;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 /* Scan an IOP13XX PCI bus.  nr selects which ATU we use.
@@ -509,41 +619,50 @@ struct pci_bus *iop13xx_scan_bus(int nr, struct pci_sys_data *sys)
 	int which_atu;
 	struct pci_bus *bus = NULL;
 
-	switch (init_atu) {
-	case IOP13XX_INIT_ATU_ATUX:
-		which_atu = nr ? 0 : IOP13XX_INIT_ATU_ATUX;
-		break;
-	case IOP13XX_INIT_ATU_ATUE:
-		which_atu = nr ? 0 : IOP13XX_INIT_ATU_ATUE;
-		break;
-	case (IOP13XX_INIT_ATU_ATUX | IOP13XX_INIT_ATU_ATUE):
-		which_atu = nr ? IOP13XX_INIT_ATU_ATUE : IOP13XX_INIT_ATU_ATUX;
-		break;
-	default:
-		which_atu = 0;
+	switch (init_atu)
+	{
+		case IOP13XX_INIT_ATU_ATUX:
+			which_atu = nr ? 0 : IOP13XX_INIT_ATU_ATUX;
+			break;
+
+		case IOP13XX_INIT_ATU_ATUE:
+			which_atu = nr ? 0 : IOP13XX_INIT_ATU_ATUE;
+			break;
+
+		case (IOP13XX_INIT_ATU_ATUX | IOP13XX_INIT_ATU_ATUE):
+			which_atu = nr ? IOP13XX_INIT_ATU_ATUE : IOP13XX_INIT_ATU_ATUX;
+			break;
+
+		default:
+			which_atu = 0;
 	}
 
-	if (!which_atu) {
+	if (!which_atu)
+	{
 		BUG();
 		return NULL;
 	}
 
-	switch (which_atu) {
-	case IOP13XX_INIT_ATU_ATUX:
-		if (time_after_eq(jiffies + msecs_to_jiffies(1000),
-				  atux_trhfa_timeout))  /* ensure not wrap */
-			while(time_before(jiffies, atux_trhfa_timeout))
-				udelay(100);
+	switch (which_atu)
+	{
+		case IOP13XX_INIT_ATU_ATUX:
+			if (time_after_eq(jiffies + msecs_to_jiffies(1000),
+							  atux_trhfa_timeout))  /* ensure not wrap */
+				while (time_before(jiffies, atux_trhfa_timeout))
+				{
+					udelay(100);
+				}
 
-		bus = pci_bus_atux = pci_scan_root_bus(NULL, sys->busnr,
-						       &iop13xx_atux_ops,
-						       sys, &sys->resources);
-		break;
-	case IOP13XX_INIT_ATU_ATUE:
-		bus = pci_bus_atue = pci_scan_root_bus(NULL, sys->busnr,
-						       &iop13xx_atue_ops,
-						       sys, &sys->resources);
-		break;
+			bus = pci_bus_atux = pci_scan_root_bus(NULL, sys->busnr,
+												   &iop13xx_atux_ops,
+												   sys, &sys->resources);
+			break;
+
+		case IOP13XX_INIT_ATU_ATUE:
+			bus = pci_bus_atue = pci_scan_root_bus(NULL, sys->busnr,
+												   &iop13xx_atue_ops,
+												   sys, &sys->resources);
+			break;
 	}
 
 	return bus;
@@ -569,32 +688,32 @@ void __init iop13xx_atue_setup(void)
 	/* BAR 1 (1:1 mapping with Physical RAM) */
 	/* Set limit and enable */
 	__raw_writel(~(IOP13XX_MAX_RAM_SIZE - PHYS_OFFSET - 1) & ~0x1,
-			IOP13XX_ATUE_IALR1);
+				 IOP13XX_ATUE_IALR1);
 	__raw_writel(0x0, IOP13XX_ATUE_IAUBAR1);
 
 	/* Set base at the top of the reserved address space */
 	__raw_writel(PHYS_OFFSET | PCI_BASE_ADDRESS_MEM_TYPE_64 |
-			PCI_BASE_ADDRESS_MEM_PREFETCH, IOP13XX_ATUE_IABAR1);
+				 PCI_BASE_ADDRESS_MEM_PREFETCH, IOP13XX_ATUE_IABAR1);
 
 	/* 1:1 mapping with physical ram
 	 * (leave big endian byte swap disabled)
 	 */
-	 __raw_writel(0x0, IOP13XX_ATUE_IAUTVR1);
-	 __raw_writel(PHYS_OFFSET, IOP13XX_ATUE_IATVR1);
+	__raw_writel(0x0, IOP13XX_ATUE_IAUTVR1);
+	__raw_writel(PHYS_OFFSET, IOP13XX_ATUE_IATVR1);
 
 	/* Outbound window 1 (PCIX/PCIE memory window) */
 	/* 32 bit Address Space */
 	__raw_writel(0x0, IOP13XX_ATUE_OUMWTVR1);
 	/* PA[35:32] */
 	__raw_writel(IOP13XX_ATUE_OUMBAR_ENABLE |
-			(IOP13XX_PCIE_MEM_PHYS_OFFSET >> 32),
-			IOP13XX_ATUE_OUMBAR1);
+				 (IOP13XX_PCIE_MEM_PHYS_OFFSET >> 32),
+				 IOP13XX_ATUE_OUMBAR1);
 
 	/* Setup the I/O Bar
 	 * A[35-16] in 31-12
 	 */
 	__raw_writel(((IOP13XX_PCIE_LOWER_IO_PA >> 0x4) & 0xfffff000),
-		IOP13XX_ATUE_OIOBAR);
+				 IOP13XX_ATUE_OIOBAR);
 	__raw_writel(IOP13XX_PCIE_LOWER_IO_BA, IOP13XX_ATUE_OIOWTVR);
 
 	/* clear startup errors */
@@ -611,25 +730,25 @@ void __init iop13xx_atue_setup(void)
 	 */
 	reg_val = __raw_readl(IOP13XX_ATUE_OUMBAR0);
 	reg_val &= ~(IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK <<
-			IOP13XX_ATU_OUMBAR_FUNC_NUM);
+				 IOP13XX_ATU_OUMBAR_FUNC_NUM);
 	reg_val |= func << IOP13XX_ATU_OUMBAR_FUNC_NUM;
 	__raw_writel(reg_val, IOP13XX_ATUE_OUMBAR0);
 
 	reg_val = __raw_readl(IOP13XX_ATUE_OUMBAR1);
 	reg_val &= ~(IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK <<
-			IOP13XX_ATU_OUMBAR_FUNC_NUM);
+				 IOP13XX_ATU_OUMBAR_FUNC_NUM);
 	reg_val |= func << IOP13XX_ATU_OUMBAR_FUNC_NUM;
 	__raw_writel(reg_val, IOP13XX_ATUE_OUMBAR1);
 
 	reg_val = __raw_readl(IOP13XX_ATUE_OUMBAR2);
 	reg_val &= ~(IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK <<
-			IOP13XX_ATU_OUMBAR_FUNC_NUM);
+				 IOP13XX_ATU_OUMBAR_FUNC_NUM);
 	reg_val |= func << IOP13XX_ATU_OUMBAR_FUNC_NUM;
 	__raw_writel(reg_val, IOP13XX_ATUE_OUMBAR2);
 
 	reg_val = __raw_readl(IOP13XX_ATUE_OUMBAR3);
 	reg_val &= ~(IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK <<
-			IOP13XX_ATU_OUMBAR_FUNC_NUM);
+				 IOP13XX_ATU_OUMBAR_FUNC_NUM);
 	reg_val |= func << IOP13XX_ATU_OUMBAR_FUNC_NUM;
 	__raw_writel(reg_val, IOP13XX_ATUE_OUMBAR3);
 
@@ -637,12 +756,12 @@ void __init iop13xx_atue_setup(void)
 	 */
 	reg_val = __raw_readw(IOP13XX_ATUE_ATUCMD);
 	reg_val |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER |
-			PCI_COMMAND_PARITY | PCI_COMMAND_SERR;
+			   PCI_COMMAND_PARITY | PCI_COMMAND_SERR;
 	__raw_writew(reg_val, IOP13XX_ATUE_ATUCMD);
 
 	reg_val = __raw_readl(IOP13XX_ATUE_ATUCR);
 	reg_val |= IOP13XX_ATUE_ATUCR_OUT_EN |
-			IOP13XX_ATUE_ATUCR_IVM;
+			   IOP13XX_ATUE_ATUCR_IVM;
 	__raw_writel(reg_val, IOP13XX_ATUE_ATUCR);
 }
 
@@ -655,9 +774,11 @@ void __init iop13xx_atue_disable(void)
 
 	/* wait for cycles to quiesce */
 	while (__raw_readl(IOP13XX_ATUE_PCSR) & (IOP13XX_ATUE_PCSR_OUT_Q_BUSY |
-					     IOP13XX_ATUE_PCSR_IN_Q_BUSY |
-					     IOP13XX_ATUE_PCSR_LLRB_BUSY))
+			IOP13XX_ATUE_PCSR_IN_Q_BUSY |
+			IOP13XX_ATUE_PCSR_LLRB_BUSY))
+	{
 		cpu_relax();
+	}
 
 	/* BAR 0 ( Disabled ) */
 	__raw_writel(0x0, IOP13XX_ATUE_IAUBAR0);
@@ -698,7 +819,7 @@ void __init iop13xx_atue_disable(void)
 	 * A[35-16] in 31-12
 	 */
 	__raw_writel((IOP13XX_PCIE_LOWER_IO_PA >> 0x4) & 0xfffff000,
-			IOP13XX_ATUE_OIOBAR);
+				 IOP13XX_ATUE_OIOBAR);
 	__raw_writel(IOP13XX_PCIE_LOWER_IO_BA, IOP13XX_ATUE_OIOWTVR);
 }
 
@@ -717,15 +838,19 @@ void __init iop13xx_atux_setup(void)
 	 * This is rarely necessary and often ignored.
 	 */
 	reg_val = __raw_readl(IOP13XX_ATUX_PCSR);
-	if (reg_val & IOP13XX_ATUX_PCSR_P_RSTOUT) {
+
+	if (reg_val & IOP13XX_ATUX_PCSR_P_RSTOUT)
+	{
 		int msec = (reg_val >> IOP13XX_ATUX_PCSR_FREQ_OFFSET) & 0x7;
-		msec = 1000 / (8-msec); /* bits 100=133MHz, 111=>33MHz */
+		msec = 1000 / (8 - msec); /* bits 100=133MHz, 111=>33MHz */
 		__raw_writel(reg_val & ~IOP13XX_ATUX_PCSR_P_RSTOUT,
-				IOP13XX_ATUX_PCSR);
+					 IOP13XX_ATUX_PCSR);
 		atux_trhfa_timeout = jiffies + msecs_to_jiffies(msec);
 	}
 	else
+	{
 		atux_trhfa_timeout = jiffies;
+	}
 
 #ifdef CONFIG_PCI_MSI
 	/* BAR 0 (inbound msi window) */
@@ -738,12 +863,12 @@ void __init iop13xx_atux_setup(void)
 	/* BAR 1 (1:1 mapping with Physical RAM) */
 	/* Set limit and enable */
 	__raw_writel(~(IOP13XX_MAX_RAM_SIZE - PHYS_OFFSET - 1) & ~0x1,
-			IOP13XX_ATUX_IALR1);
+				 IOP13XX_ATUX_IALR1);
 	__raw_writel(0x0, IOP13XX_ATUX_IAUBAR1);
 
 	/* Set base at the top of the reserved address space */
 	__raw_writel(PHYS_OFFSET | PCI_BASE_ADDRESS_MEM_TYPE_64 |
-			PCI_BASE_ADDRESS_MEM_PREFETCH, IOP13XX_ATUX_IABAR1);
+				 PCI_BASE_ADDRESS_MEM_PREFETCH, IOP13XX_ATUX_IABAR1);
 
 	/* 1:1 mapping with physical ram
 	 * (leave big endian byte swap disabled)
@@ -756,14 +881,14 @@ void __init iop13xx_atux_setup(void)
 	__raw_writel(0x0, IOP13XX_ATUX_OUMWTVR1);
 	/* PA[35:32] */
 	__raw_writel(IOP13XX_ATUX_OUMBAR_ENABLE |
-			IOP13XX_PCIX_MEM_PHYS_OFFSET >> 32,
-			IOP13XX_ATUX_OUMBAR1);
+				 IOP13XX_PCIX_MEM_PHYS_OFFSET >> 32,
+				 IOP13XX_ATUX_OUMBAR1);
 
 	/* Setup the I/O Bar
 	 * A[35-16] in 31-12
 	 */
 	__raw_writel((IOP13XX_PCIX_LOWER_IO_PA >> 0x4) & 0xfffff000,
-		IOP13XX_ATUX_OIOBAR);
+				 IOP13XX_ATUX_OIOBAR);
 	__raw_writel(IOP13XX_PCIX_LOWER_IO_BA, IOP13XX_ATUX_OIOWTVR);
 
 	/* clear startup errors */
@@ -780,25 +905,25 @@ void __init iop13xx_atux_setup(void)
 	 */
 	reg_val = __raw_readl(IOP13XX_ATUX_OUMBAR0);
 	reg_val &= ~(IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK <<
-			IOP13XX_ATU_OUMBAR_FUNC_NUM);
+				 IOP13XX_ATU_OUMBAR_FUNC_NUM);
 	reg_val |= func << IOP13XX_ATU_OUMBAR_FUNC_NUM;
 	__raw_writel(reg_val, IOP13XX_ATUX_OUMBAR0);
 
 	reg_val = __raw_readl(IOP13XX_ATUX_OUMBAR1);
 	reg_val &= ~(IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK <<
-			IOP13XX_ATU_OUMBAR_FUNC_NUM);
+				 IOP13XX_ATU_OUMBAR_FUNC_NUM);
 	reg_val |= func << IOP13XX_ATU_OUMBAR_FUNC_NUM;
 	__raw_writel(reg_val, IOP13XX_ATUX_OUMBAR1);
 
 	reg_val = __raw_readl(IOP13XX_ATUX_OUMBAR2);
 	reg_val &= ~(IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK <<
-			IOP13XX_ATU_OUMBAR_FUNC_NUM);
+				 IOP13XX_ATU_OUMBAR_FUNC_NUM);
 	reg_val |= func << IOP13XX_ATU_OUMBAR_FUNC_NUM;
 	__raw_writel(reg_val, IOP13XX_ATUX_OUMBAR2);
 
 	reg_val = __raw_readl(IOP13XX_ATUX_OUMBAR3);
 	reg_val &= ~(IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK <<
-			IOP13XX_ATU_OUMBAR_FUNC_NUM);
+				 IOP13XX_ATU_OUMBAR_FUNC_NUM);
 	reg_val |= func << IOP13XX_ATU_OUMBAR_FUNC_NUM;
 	__raw_writel(reg_val, IOP13XX_ATUX_OUMBAR3);
 
@@ -806,7 +931,7 @@ void __init iop13xx_atux_setup(void)
 	 */
 	reg_val = __raw_readw(IOP13XX_ATUX_ATUCMD);
 	reg_val |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER |
-		        PCI_COMMAND_PARITY | PCI_COMMAND_SERR;
+			   PCI_COMMAND_PARITY | PCI_COMMAND_SERR;
 	__raw_writew(reg_val, IOP13XX_ATUX_ATUCMD);
 
 	reg_val = __raw_readl(IOP13XX_ATUX_ATUCR);
@@ -823,8 +948,10 @@ void __init iop13xx_atux_disable(void)
 
 	/* wait for cycles to quiesce */
 	while (__raw_readl(IOP13XX_ATUX_PCSR) & (IOP13XX_ATUX_PCSR_OUT_Q_BUSY |
-				     IOP13XX_ATUX_PCSR_IN_Q_BUSY))
+			IOP13XX_ATUX_PCSR_IN_Q_BUSY))
+	{
 		cpu_relax();
+	}
 
 	/* BAR 0 ( Disabled ) */
 	__raw_writel(0x0, IOP13XX_ATUX_IAUBAR0);
@@ -870,41 +997,46 @@ void __init iop13xx_atux_disable(void)
 	* A[35-16] in 31-12
 	*/
 	__raw_writel((IOP13XX_PCIX_LOWER_IO_PA >> 0x4) & 0xfffff000,
-			IOP13XX_ATUX_OIOBAR);
+				 IOP13XX_ATUX_OIOBAR);
 	__raw_writel(IOP13XX_PCIX_LOWER_IO_BA, IOP13XX_ATUX_OIOWTVR);
 }
 
 void __init iop13xx_set_atu_mmr_bases(void)
 {
 	/* Based on ESSR0, determine the ATU X/E offsets */
-	switch(__raw_readl(IOP13XX_ESSR0) &
-		(IOP13XX_CONTROLLER_ONLY | IOP13XX_INTERFACE_SEL_PCIX)) {
-	/* both asserted */
-	case 0:
-		iop13xx_atux_pmmr_offset = IOP13XX_ATU1_PMMR_OFFSET;
-		iop13xx_atue_pmmr_offset = IOP13XX_ATU2_PMMR_OFFSET;
-		break;
-	/* IOP13XX_CONTROLLER_ONLY = deasserted
-	 * IOP13XX_INTERFACE_SEL_PCIX = asserted
-	 */
-	case IOP13XX_CONTROLLER_ONLY:
-		iop13xx_atux_pmmr_offset = IOP13XX_ATU0_PMMR_OFFSET;
-		iop13xx_atue_pmmr_offset = IOP13XX_ATU2_PMMR_OFFSET;
-		break;
-	/* IOP13XX_CONTROLLER_ONLY = asserted
-	 * IOP13XX_INTERFACE_SEL_PCIX = deasserted
-	 */
-	case IOP13XX_INTERFACE_SEL_PCIX:
-		iop13xx_atux_pmmr_offset = IOP13XX_ATU1_PMMR_OFFSET;
-		iop13xx_atue_pmmr_offset = IOP13XX_ATU2_PMMR_OFFSET;
-		break;
-	/* both deasserted */
-	case IOP13XX_CONTROLLER_ONLY | IOP13XX_INTERFACE_SEL_PCIX:
-		iop13xx_atux_pmmr_offset = IOP13XX_ATU2_PMMR_OFFSET;
-		iop13xx_atue_pmmr_offset = IOP13XX_ATU0_PMMR_OFFSET;
-		break;
-	default:
-		BUG();
+	switch (__raw_readl(IOP13XX_ESSR0) &
+			(IOP13XX_CONTROLLER_ONLY | IOP13XX_INTERFACE_SEL_PCIX))
+	{
+		/* both asserted */
+		case 0:
+			iop13xx_atux_pmmr_offset = IOP13XX_ATU1_PMMR_OFFSET;
+			iop13xx_atue_pmmr_offset = IOP13XX_ATU2_PMMR_OFFSET;
+			break;
+
+		/* IOP13XX_CONTROLLER_ONLY = deasserted
+		 * IOP13XX_INTERFACE_SEL_PCIX = asserted
+		 */
+		case IOP13XX_CONTROLLER_ONLY:
+			iop13xx_atux_pmmr_offset = IOP13XX_ATU0_PMMR_OFFSET;
+			iop13xx_atue_pmmr_offset = IOP13XX_ATU2_PMMR_OFFSET;
+			break;
+
+		/* IOP13XX_CONTROLLER_ONLY = asserted
+		 * IOP13XX_INTERFACE_SEL_PCIX = deasserted
+		 */
+		case IOP13XX_INTERFACE_SEL_PCIX:
+			iop13xx_atux_pmmr_offset = IOP13XX_ATU1_PMMR_OFFSET;
+			iop13xx_atue_pmmr_offset = IOP13XX_ATU2_PMMR_OFFSET;
+			break;
+
+		/* both deasserted */
+		case IOP13XX_CONTROLLER_ONLY | IOP13XX_INTERFACE_SEL_PCIX:
+			iop13xx_atux_pmmr_offset = IOP13XX_ATU2_PMMR_OFFSET;
+			iop13xx_atue_pmmr_offset = IOP13XX_ATU0_PMMR_OFFSET;
+			break;
+
+		default:
+			BUG();
 	}
 }
 
@@ -916,49 +1048,64 @@ void __init iop13xx_atu_select(struct hw_pci *plat_pci)
 	 * note: if "iop13xx_init_atu=" is specified this autodetect
 	 * sequence will be bypassed
 	 */
-	if (init_atu == IOP13XX_INIT_ATU_DEFAULT) {
+	if (init_atu == IOP13XX_INIT_ATU_DEFAULT)
+	{
 		/* check for single/dual interface */
-		if (__raw_readl(IOP13XX_ESSR0) & IOP13XX_INTERFACE_SEL_PCIX) {
+		if (__raw_readl(IOP13XX_ESSR0) & IOP13XX_INTERFACE_SEL_PCIX)
+		{
 			/* ATUE must be present check the device id
 			 * to see if ATUX is present.
 			 */
 			init_atu |= IOP13XX_INIT_ATU_ATUE;
-			switch (__raw_readw(IOP13XX_ATUE_DID) & 0xf0) {
-			case 0x70:
-			case 0x80:
-			case 0xc0:
-				init_atu |= IOP13XX_INIT_ATU_ATUX;
-				break;
+
+			switch (__raw_readw(IOP13XX_ATUE_DID) & 0xf0)
+			{
+				case 0x70:
+				case 0x80:
+				case 0xc0:
+					init_atu |= IOP13XX_INIT_ATU_ATUX;
+					break;
 			}
-		} else {
+		}
+		else
+		{
 			/* ATUX must be present check the device id
 			 * to see if ATUE is present.
 			 */
 			init_atu |= IOP13XX_INIT_ATU_ATUX;
-			switch (__raw_readw(IOP13XX_ATUX_DID) & 0xf0) {
-			case 0x70:
-			case 0x80:
-			case 0xc0:
-				init_atu |= IOP13XX_INIT_ATU_ATUE;
-				break;
+
+			switch (__raw_readw(IOP13XX_ATUX_DID) & 0xf0)
+			{
+				case 0x70:
+				case 0x80:
+				case 0xc0:
+					init_atu |= IOP13XX_INIT_ATU_ATUE;
+					break;
 			}
 		}
 
 		/* check central resource and root complex capability */
 		if (init_atu & IOP13XX_INIT_ATU_ATUX)
 			if (!(__raw_readl(IOP13XX_ATUX_PCSR) &
-				IOP13XX_ATUX_PCSR_CENTRAL_RES))
+				  IOP13XX_ATUX_PCSR_CENTRAL_RES))
+			{
 				init_atu &= ~IOP13XX_INIT_ATU_ATUX;
+			}
 
 		if (init_atu & IOP13XX_INIT_ATU_ATUE)
 			if (__raw_readl(IOP13XX_ATUE_PCSR) &
 				IOP13XX_ATUE_PCSR_END_POINT)
+			{
 				init_atu &= ~IOP13XX_INIT_ATU_ATUE;
+			}
 	}
 
-	for (i = 0; i < 2; i++) {
-		if((init_atu & (1 << i)) == (1 << i))
+	for (i = 0; i < 2; i++)
+	{
+		if ((init_atu & (1 << i)) == (1 << i))
+		{
 			plat_pci->nr_controllers++;
+		}
 	}
 }
 
@@ -974,18 +1121,20 @@ void __init iop13xx_pci_init(void)
 	 * clear out its prior configuration,
 	 * otherwise do not touch the registers
 	 */
-	if (init_atu & IOP13XX_INIT_ATU_ATUE) {
+	if (init_atu & IOP13XX_INIT_ATU_ATUE)
+	{
 		iop13xx_atue_disable();
 		iop13xx_atue_setup();
 	}
 
-	if (init_atu & IOP13XX_INIT_ATU_ATUX) {
+	if (init_atu & IOP13XX_INIT_ATU_ATUX)
+	{
 		iop13xx_atux_disable();
 		iop13xx_atux_setup();
 	}
 
-	hook_fault_code(16+6, iop13xx_pci_abort, SIGBUS, 0,
-			"imprecise external abort");
+	hook_fault_code(16 + 6, iop13xx_pci_abort, SIGBUS, 0,
+					"imprecise external abort");
 }
 
 /* initialize the pci memory space.  handle any combination of
@@ -998,11 +1147,16 @@ int iop13xx_pci_setup(int nr, struct pci_sys_data *sys)
 	u32 pcixsr, pcsr;
 
 	if (nr > 1)
+	{
 		return 0;
+	}
 
 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+
 	if (!res)
+	{
 		panic("PCI: unable to alloc resources");
+	}
 
 
 	/* 'nr' assumptions:
@@ -1010,64 +1164,72 @@ int iop13xx_pci_setup(int nr, struct pci_sys_data *sys)
 	 * ATUE is 1 when ATUX is also enabled
 	 * ATUE is 0 when ATUX is disabled
 	 */
-	switch(init_atu) {
-	case IOP13XX_INIT_ATU_ATUX:
-		which_atu = nr ? 0 : IOP13XX_INIT_ATU_ATUX;
-		break;
-	case IOP13XX_INIT_ATU_ATUE:
-		which_atu = nr ? 0 : IOP13XX_INIT_ATU_ATUE;
-		break;
-	case (IOP13XX_INIT_ATU_ATUX | IOP13XX_INIT_ATU_ATUE):
-		which_atu = nr ? IOP13XX_INIT_ATU_ATUE : IOP13XX_INIT_ATU_ATUX;
-		break;
-	default:
-		which_atu = 0;
+	switch (init_atu)
+	{
+		case IOP13XX_INIT_ATU_ATUX:
+			which_atu = nr ? 0 : IOP13XX_INIT_ATU_ATUX;
+			break;
+
+		case IOP13XX_INIT_ATU_ATUE:
+			which_atu = nr ? 0 : IOP13XX_INIT_ATU_ATUE;
+			break;
+
+		case (IOP13XX_INIT_ATU_ATUX | IOP13XX_INIT_ATU_ATUE):
+			which_atu = nr ? IOP13XX_INIT_ATU_ATUE : IOP13XX_INIT_ATU_ATUX;
+			break;
+
+		default:
+			which_atu = 0;
 	}
 
-	if (!which_atu) {
+	if (!which_atu)
+	{
 		kfree(res);
 		return 0;
 	}
 
-	switch(which_atu) {
-	case IOP13XX_INIT_ATU_ATUX:
-		pcixsr = __raw_readl(IOP13XX_ATUX_PCIXSR);
-		pcixsr &= ~0xffff;
-		pcixsr |= sys->busnr << IOP13XX_ATUX_PCIXSR_BUS_NUM |
-			  0 << IOP13XX_ATUX_PCIXSR_DEV_NUM |
-			  iop13xx_atu_function(IOP13XX_INIT_ATU_ATUX)
-				  << IOP13XX_ATUX_PCIXSR_FUNC_NUM;
-		__raw_writel(pcixsr, IOP13XX_ATUX_PCIXSR);
+	switch (which_atu)
+	{
+		case IOP13XX_INIT_ATU_ATUX:
+			pcixsr = __raw_readl(IOP13XX_ATUX_PCIXSR);
+			pcixsr &= ~0xffff;
+			pcixsr |= sys->busnr << IOP13XX_ATUX_PCIXSR_BUS_NUM |
+					  0 << IOP13XX_ATUX_PCIXSR_DEV_NUM |
+					  iop13xx_atu_function(IOP13XX_INIT_ATU_ATUX)
+					  << IOP13XX_ATUX_PCIXSR_FUNC_NUM;
+			__raw_writel(pcixsr, IOP13XX_ATUX_PCIXSR);
 
-		pci_ioremap_io(0, IOP13XX_PCIX_LOWER_IO_PA);
+			pci_ioremap_io(0, IOP13XX_PCIX_LOWER_IO_PA);
 
-		res->start = IOP13XX_PCIX_LOWER_MEM_RA;
-		res->end   = IOP13XX_PCIX_UPPER_MEM_RA;
-		res->name  = "IQ81340 ATUX PCI Memory Space";
-		res->flags = IORESOURCE_MEM;
-		sys->mem_offset = IOP13XX_PCIX_MEM_OFFSET;
-		break;
-	case IOP13XX_INIT_ATU_ATUE:
-		/* Note: the function number field in the PCSR is ro */
-		pcsr = __raw_readl(IOP13XX_ATUE_PCSR);
-		pcsr &= ~(0xfff8 << 16);
-		pcsr |= sys->busnr << IOP13XX_ATUE_PCSR_BUS_NUM |
-				0 << IOP13XX_ATUE_PCSR_DEV_NUM;
+			res->start = IOP13XX_PCIX_LOWER_MEM_RA;
+			res->end   = IOP13XX_PCIX_UPPER_MEM_RA;
+			res->name  = "IQ81340 ATUX PCI Memory Space";
+			res->flags = IORESOURCE_MEM;
+			sys->mem_offset = IOP13XX_PCIX_MEM_OFFSET;
+			break;
 
-		__raw_writel(pcsr, IOP13XX_ATUE_PCSR);
+		case IOP13XX_INIT_ATU_ATUE:
+			/* Note: the function number field in the PCSR is ro */
+			pcsr = __raw_readl(IOP13XX_ATUE_PCSR);
+			pcsr &= ~(0xfff8 << 16);
+			pcsr |= sys->busnr << IOP13XX_ATUE_PCSR_BUS_NUM |
+					0 << IOP13XX_ATUE_PCSR_DEV_NUM;
 
-		pci_ioremap_io(SZ_64K, IOP13XX_PCIE_LOWER_IO_PA);
+			__raw_writel(pcsr, IOP13XX_ATUE_PCSR);
 
-		res->start = IOP13XX_PCIE_LOWER_MEM_RA;
-		res->end   = IOP13XX_PCIE_UPPER_MEM_RA;
-		res->name  = "IQ81340 ATUE PCI Memory Space";
-		res->flags = IORESOURCE_MEM;
-		sys->mem_offset = IOP13XX_PCIE_MEM_OFFSET;
-		sys->map_irq = iop13xx_pcie_map_irq;
-		break;
-	default:
-		kfree(res);
-		return 0;
+			pci_ioremap_io(SZ_64K, IOP13XX_PCIE_LOWER_IO_PA);
+
+			res->start = IOP13XX_PCIE_LOWER_MEM_RA;
+			res->end   = IOP13XX_PCIE_UPPER_MEM_RA;
+			res->name  = "IQ81340 ATUE PCI Memory Space";
+			res->flags = IORESOURCE_MEM;
+			sys->mem_offset = IOP13XX_PCIE_MEM_OFFSET;
+			sys->map_irq = iop13xx_pcie_map_irq;
+			break;
+
+		default:
+			kfree(res);
+			return 0;
 	}
 
 	request_resource(&iomem_resource, res);
@@ -1080,40 +1242,53 @@ int iop13xx_pci_setup(int nr, struct pci_sys_data *sys)
 u16 iop13xx_dev_id(void)
 {
 	if (__raw_readl(IOP13XX_ESSR0) & IOP13XX_INTERFACE_SEL_PCIX)
+	{
 		return __raw_readw(IOP13XX_ATUE_DID);
+	}
 	else
+	{
 		return __raw_readw(IOP13XX_ATUX_DID);
+	}
 }
 
 static int __init iop13xx_init_atu_setup(char *str)
 {
-        init_atu = IOP13XX_INIT_ATU_NONE;
-        if (str) {
-                while (*str != '\0') {
-                        switch (*str) {
-                        case 'x':
-                        case 'X':
-                                init_atu |= IOP13XX_INIT_ATU_ATUX;
-                                init_atu &= ~IOP13XX_INIT_ATU_NONE;
-                                break;
-                        case 'e':
-                        case 'E':
-                                init_atu |= IOP13XX_INIT_ATU_ATUE;
-                                init_atu &= ~IOP13XX_INIT_ATU_NONE;
-                                break;
-                        case ',':
-                        case '=':
-                                break;
-                        default:
-                                PRINTK("\"iop13xx_init_atu\" malformed at "
-                                            "character: \'%c\'", *str);
-                                *(str + 1) = '\0';
-                                init_atu = IOP13XX_INIT_ATU_DEFAULT;
-                        }
-                        str++;
-                }
-        }
-        return 1;
+	init_atu = IOP13XX_INIT_ATU_NONE;
+
+	if (str)
+	{
+		while (*str != '\0')
+		{
+			switch (*str)
+			{
+				case 'x':
+				case 'X':
+					init_atu |= IOP13XX_INIT_ATU_ATUX;
+					init_atu &= ~IOP13XX_INIT_ATU_NONE;
+					break;
+
+				case 'e':
+				case 'E':
+					init_atu |= IOP13XX_INIT_ATU_ATUE;
+					init_atu &= ~IOP13XX_INIT_ATU_NONE;
+					break;
+
+				case ',':
+				case '=':
+					break;
+
+				default:
+					PRINTK("\"iop13xx_init_atu\" malformed at "
+						   "character: \'%c\'", *str);
+					*(str + 1) = '\0';
+					init_atu = IOP13XX_INIT_ATU_DEFAULT;
+			}
+
+			str++;
+		}
+	}
+
+	return 1;
 }
 
 __setup("iop13xx_init_atu", iop13xx_init_atu_setup);

@@ -26,9 +26,9 @@ static int iommu_sac_force __read_mostly;
 
 int no_iommu __read_mostly;
 #ifdef CONFIG_IOMMU_DEBUG
-int force_iommu __read_mostly = 1;
+	int force_iommu __read_mostly = 1;
 #else
-int force_iommu __read_mostly;
+	int force_iommu __read_mostly;
 #endif
 
 int iommu_pass_through;
@@ -38,7 +38,9 @@ extern struct dma_map_ops intel_dma_ops;
 static int __init pci_iommu_init(void)
 {
 	if (iommu_detected)
+	{
 		intel_iommu_init();
+	}
 
 	return 0;
 }
@@ -63,7 +65,9 @@ int iommu_dma_supported(struct device *dev, u64 mask)
 	   only work for pci_alloc_coherent.
 	   The caller just has to use GFP_DMA in this case. */
 	if (mask < DMA_BIT_MASK(24))
+	{
 		return 0;
+	}
 
 	/* Tell the device to use SAC when IOMMU force is on.  This
 	   allows the driver to use cheaper accesses in some cases.
@@ -77,7 +81,8 @@ int iommu_dma_supported(struct device *dev, u64 mask)
 	   SAC for these.  Assume all masks <= 40 bits are of this
 	   type. Normally this doesn't make any difference, but gives
 	   more gentle handling of IOMMU overflow. */
-	if (iommu_sac_force && (mask >= DMA_BIT_MASK(40))) {
+	if (iommu_sac_force && (mask >= DMA_BIT_MASK(40)))
+	{
 		dev_info(dev, "Force SAC with mask %llx\n", mask);
 		return 0;
 	}

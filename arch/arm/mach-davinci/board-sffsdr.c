@@ -44,7 +44,8 @@
 #include "davinci.h"
 
 #define SFFSDR_PHY_ID		"davinci_mdio-0:01"
-static struct mtd_partition davinci_sffsdr_nandflash_partition[] = {
+static struct mtd_partition davinci_sffsdr_nandflash_partition[] =
+{
 	/* U-Boot Environment: Block 0
 	 * UBL:                Block 1
 	 * U-Boot:             Blocks 6-7 (256 kb)
@@ -65,12 +66,14 @@ static struct mtd_partition davinci_sffsdr_nandflash_partition[] = {
 	},
 };
 
-static struct flash_platform_data davinci_sffsdr_nandflash_data = {
+static struct flash_platform_data davinci_sffsdr_nandflash_data =
+{
 	.parts		= davinci_sffsdr_nandflash_partition,
 	.nr_parts	= ARRAY_SIZE(davinci_sffsdr_nandflash_partition),
 };
 
-static struct resource davinci_sffsdr_nandflash_resource[] = {
+static struct resource davinci_sffsdr_nandflash_resource[] =
+{
 	{
 		.start		= DM644X_ASYNC_EMIF_DATA_CE0_BASE,
 		.end		= DM644X_ASYNC_EMIF_DATA_CE0_BASE + SZ_16M - 1,
@@ -82,7 +85,8 @@ static struct resource davinci_sffsdr_nandflash_resource[] = {
 	},
 };
 
-static struct platform_device davinci_sffsdr_nandflash_device = {
+static struct platform_device davinci_sffsdr_nandflash_device =
+{
 	.name		= "davinci_nand", /* Name of driver */
 	.id		= 0,
 	.dev		= {
@@ -92,13 +96,15 @@ static struct platform_device davinci_sffsdr_nandflash_device = {
 	.resource	= davinci_sffsdr_nandflash_resource,
 };
 
-static struct at24_platform_data eeprom_info = {
-	.byte_len	= (64*1024) / 8,
+static struct at24_platform_data eeprom_info =
+{
+	.byte_len	= (64 * 1024) / 8,
 	.page_size	= 32,
 	.flags		= AT24_FLAG_ADDR16,
 };
 
-static struct i2c_board_info __initdata i2c_info[] =  {
+static struct i2c_board_info __initdata i2c_info[] =
+{
 	{
 		I2C_BOARD_INFO("24lc64", 0x50),
 		.platform_data	= &eeprom_info,
@@ -110,7 +116,8 @@ static struct i2c_board_info __initdata i2c_info[] =  {
 	 */
 };
 
-static struct davinci_i2c_platform_data i2c_pdata = {
+static struct davinci_i2c_platform_data i2c_pdata =
+{
 	.bus_freq	= 20 /* kHz */,
 	.bus_delay	= 100 /* usec */,
 };
@@ -121,7 +128,8 @@ static void __init sffsdr_init_i2c(void)
 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
 }
 
-static struct platform_device *davinci_sffsdr_devices[] __initdata = {
+static struct platform_device *davinci_sffsdr_devices[] __initdata =
+{
 	&davinci_sffsdr_nandflash_device,
 };
 
@@ -135,7 +143,7 @@ static __init void davinci_sffsdr_init(void)
 	struct davinci_soc_info *soc_info = &davinci_soc_info;
 
 	platform_add_devices(davinci_sffsdr_devices,
-			     ARRAY_SIZE(davinci_sffsdr_devices));
+						 ARRAY_SIZE(davinci_sffsdr_devices));
 	sffsdr_init_i2c();
 	davinci_serial_init(dm644x_serial_device);
 	soc_info->emac_pdata->phy_id = SFFSDR_PHY_ID;
@@ -147,12 +155,12 @@ static __init void davinci_sffsdr_init(void)
 }
 
 MACHINE_START(SFFSDR, "Lyrtech SFFSDR")
-	.atag_offset  = 0x100,
-	.map_io	      = davinci_sffsdr_map_io,
-	.init_irq     = davinci_irq_init,
-	.init_time	= davinci_timer_init,
-	.init_machine = davinci_sffsdr_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= davinci_restart,
-MACHINE_END
+.atag_offset  = 0x100,
+ .map_io	      = davinci_sffsdr_map_io,
+  .init_irq     = davinci_irq_init,
+   .init_time	= davinci_timer_init,
+	 .init_machine = davinci_sffsdr_init,
+	  .init_late	= davinci_init_late,
+		.dma_zone_size	= SZ_128M,
+		  .restart	= davinci_restart,
+			  MACHINE_END

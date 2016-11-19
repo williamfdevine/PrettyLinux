@@ -8,7 +8,8 @@
  * struct cpu_suspend_ctx must be 16-byte aligned since it is allocated on
  * the stack, which must be 16-byte aligned on v8
  */
-struct cpu_suspend_ctx {
+struct cpu_suspend_ctx
+{
 	/*
 	 * This struct must be kept in sync with
 	 * cpu_do_{suspend/resume} in mm/proc.S
@@ -29,7 +30,8 @@ struct cpu_suspend_ctx {
  * returns, and the data would be subsequently corrupted by the call to the
  * finisher.
  */
-struct sleep_stack_data {
+struct sleep_stack_data
+{
 	struct cpu_suspend_ctx	system_regs;
 	unsigned long		callee_saved_regs[NR_CALLEE_SAVED_REGS];
 };

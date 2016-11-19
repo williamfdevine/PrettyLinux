@@ -23,9 +23,9 @@
 #define BRANCH_ABSOLUTE	0x2
 
 unsigned int create_branch(const unsigned int *addr,
-			   unsigned long target, int flags);
+						   unsigned long target, int flags);
 unsigned int create_cond_branch(const unsigned int *addr,
-				unsigned long target, int flags);
+								unsigned long target, int flags);
 int patch_branch(unsigned int *addr, unsigned long target, int flags);
 int patch_instruction(unsigned int *addr, unsigned int instr);
 
@@ -33,13 +33,13 @@ int instr_is_relative_branch(unsigned int instr);
 int instr_is_branch_to_addr(const unsigned int *instr, unsigned long addr);
 unsigned long branch_target(const unsigned int *instr);
 unsigned int translate_branch(const unsigned int *dest,
-			      const unsigned int *src);
+							  const unsigned int *src);
 #ifdef CONFIG_PPC_BOOK3E_64
 void __patch_exception(int exc, unsigned long addr);
 #define patch_exception(exc, name) do { \
-	extern unsigned int name; \
-	__patch_exception((exc), (unsigned long)&name); \
-} while (0)
+		extern unsigned int name; \
+		__patch_exception((exc), (unsigned long)&name); \
+	} while (0)
 #endif
 
 #define OP_RT_RA_MASK	0xffff0000UL
@@ -69,11 +69,16 @@ static inline unsigned long ppc_function_entry(void *func)
 	 * addi  r2,r2,XXXX
 	 */
 	if ((((*insn & OP_RT_RA_MASK) == ADDIS_R2_R12) ||
-	     ((*insn & OP_RT_RA_MASK) == LIS_R2)) &&
-	    ((*(insn+1) & OP_RT_RA_MASK) == ADDI_R2_R2))
+		 ((*insn & OP_RT_RA_MASK) == LIS_R2)) &&
+		((*(insn + 1) & OP_RT_RA_MASK) == ADDI_R2_R2))
+	{
 		return (unsigned long)(insn + 2);
+	}
 	else
+	{
 		return (unsigned long)func;
+	}
+
 #elif defined(PPC64_ELF_ABI_v1)
 	/*
 	 * On PPC64 ABIv1 the function pointer actually points to the
@@ -105,17 +110,17 @@ static inline unsigned long ppc_global_function_entry(void *func)
 
 /* This must match the definition of STK_GOT in <asm/ppc_asm.h> */
 #ifdef PPC64_ELF_ABI_v2
-#define R2_STACK_OFFSET         24
+	#define R2_STACK_OFFSET         24
 #else
-#define R2_STACK_OFFSET         40
+	#define R2_STACK_OFFSET         40
 #endif
 
 #define PPC_INST_LD_TOC		(PPC_INST_LD  | ___PPC_RT(__REG_R2) | \
-				 ___PPC_RA(__REG_R1) | R2_STACK_OFFSET)
+							 ___PPC_RA(__REG_R1) | R2_STACK_OFFSET)
 
 /* usually preceded by a mflr r0 */
 #define PPC_INST_STD_LR		(PPC_INST_STD | ___PPC_RS(__REG_R0) | \
-				 ___PPC_RA(__REG_R1) | PPC_LR_STKOFF)
+							 ___PPC_RA(__REG_R1) | PPC_LR_STKOFF)
 #endif /* CONFIG_PPC64 */
 
 #endif /* _ASM_POWERPC_CODE_PATCHING_H */

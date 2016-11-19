@@ -32,7 +32,8 @@
 #include <linux/cpu.h>
 #include <linux/smp.h>
 
-struct trusted_foundations_platform_data {
+struct trusted_foundations_platform_data
+{
 	unsigned int version_major;
 	unsigned int version_minor;
 };
@@ -45,7 +46,7 @@ void of_register_trusted_foundations(void);
 #else /* CONFIG_TRUSTED_FOUNDATIONS */
 
 static inline void register_trusted_foundations(
-				   struct trusted_foundations_platform_data *pd)
+	struct trusted_foundations_platform_data *pd)
 {
 	/*
 	 * If the system requires TF and we cannot provide it, continue booting
@@ -66,7 +67,9 @@ static inline void of_register_trusted_foundations(void)
 	 * fail as the system won't be able to do much anyway
 	 */
 	if (of_find_compatible_node(NULL, NULL, "tlm,trusted-foundations"))
+	{
 		register_trusted_foundations(NULL);
+	}
 }
 #endif /* CONFIG_TRUSTED_FOUNDATIONS */
 

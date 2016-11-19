@@ -10,8 +10,10 @@ typedef u64	pudval_t;
 typedef u64	pgdval_t;
 typedef u64	pgprotval_t;
 
-typedef union {
-	struct {
+typedef union
+{
+	struct
+	{
 		unsigned long pte_low, pte_high;
 	};
 	pteval_t pte;
@@ -19,9 +21,9 @@ typedef union {
 #endif	/* !__ASSEMBLY__ */
 
 #ifdef CONFIG_PARAVIRT
-#define SHARED_KERNEL_PMD	(pv_info.shared_kernel_pmd)
+	#define SHARED_KERNEL_PMD	(pv_info.shared_kernel_pmd)
 #else
-#define SHARED_KERNEL_PMD	1
+	#define SHARED_KERNEL_PMD	1
 #endif
 
 /*

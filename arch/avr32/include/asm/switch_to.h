@@ -36,13 +36,13 @@
 struct cpu_context;
 struct task_struct;
 extern struct task_struct *__switch_to(struct task_struct *,
-				       struct cpu_context *,
-				       struct cpu_context *);
+									   struct cpu_context *,
+									   struct cpu_context *);
 #define switch_to(prev, next, last)					\
 	do {								\
 		ocd_switch(prev, next);					\
 		last = __switch_to(prev, &prev->thread.cpu_context + 1,	\
-				   &next->thread.cpu_context);		\
+						   &next->thread.cpu_context);		\
 	} while (0)
 
 

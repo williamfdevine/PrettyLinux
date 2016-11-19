@@ -10,9 +10,9 @@
 #define __ARCH_MXS_PM_H
 
 #ifdef CONFIG_PM
-void mxs_pm_init(void);
+	void mxs_pm_init(void);
 #else
-#define mxs_pm_init NULL
+	#define mxs_pm_init NULL
 #endif
 
 #endif

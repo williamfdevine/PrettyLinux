@@ -16,7 +16,7 @@
 #include <asm/cevt-r4k.h>
 
 static int mips_next_event(unsigned long delta,
-			   struct clock_event_device *evt)
+						   struct clock_event_device *evt)
 {
 	unsigned int cnt;
 	int res;
@@ -55,8 +55,10 @@ static unsigned int calculate_min_delta(void)
 	 * Calculate the median of 5 75th percentiles of 5 samples of how long
 	 * it takes to set CP0_Compare = CP0_Count + delta.
 	 */
-	for (i = 0; i < 5; ++i) {
-		for (j = 0; j < 5; ++j) {
+	for (i = 0; i < 5; ++i)
+	{
+		for (j = 0; j < 5; ++j)
+		{
 			/*
 			 * This is like the code in mips_next_event(), and
 			 * directly measures the borderline "safe" delta.
@@ -66,31 +68,49 @@ static unsigned int calculate_min_delta(void)
 			cnt = read_c0_count() - cnt;
 
 			/* Sorted insert into buf1 */
-			for (k = 0; k < j; ++k) {
-				if (cnt < buf1[k]) {
+			for (k = 0; k < j; ++k)
+			{
+				if (cnt < buf1[k])
+				{
 					l = min_t(unsigned int,
-						  j, ARRAY_SIZE(buf1) - 1);
+							  j, ARRAY_SIZE(buf1) - 1);
+
 					for (; l > k; --l)
+					{
 						buf1[l] = buf1[l - 1];
+					}
+
 					break;
 				}
 			}
+
 			if (k < ARRAY_SIZE(buf1))
+			{
 				buf1[k] = cnt;
+			}
 		}
 
 		/* Sorted insert of 75th percentile into buf2 */
-		for (k = 0; k < i; ++k) {
-			if (buf1[ARRAY_SIZE(buf1) - 1] < buf2[k]) {
+		for (k = 0; k < i; ++k)
+		{
+			if (buf1[ARRAY_SIZE(buf1) - 1] < buf2[k])
+			{
 				l = min_t(unsigned int,
-					  i, ARRAY_SIZE(buf2) - 1);
+						  i, ARRAY_SIZE(buf2) - 1);
+
 				for (; l > k; --l)
+				{
 					buf2[l] = buf2[l - 1];
+				}
+
 				break;
 			}
 		}
+
 		if (k < ARRAY_SIZE(buf2))
+		{
 			buf2[k] = buf1[ARRAY_SIZE(buf1) - 1];
+		}
 	}
 
 	/* Use 2 * median of 75th percentiles */
@@ -98,10 +118,12 @@ static unsigned int calculate_min_delta(void)
 
 	/* Don't go too low */
 	if (min_delta < 0x300)
+	{
 		min_delta = 0x300;
+	}
 
 	pr_debug("%s: median 75th percentile=%#x, min_delta=%#x\n",
-		 __func__, buf2[ARRAY_SIZE(buf2) - 1], min_delta);
+			 __func__, buf2[ARRAY_SIZE(buf2) - 1], min_delta);
 	return min_delta;
 }
 
@@ -122,8 +144,8 @@ static inline int handle_perf_irq(int r2)
 	 * happened (!r2) then don't check for a timer interrupt.
 	 */
 	return (cp0_perfcount_irq < 0) &&
-		perf_irq() == IRQ_HANDLED &&
-		!r2;
+		   perf_irq() == IRQ_HANDLED &&
+		   !r2;
 }
 
 irqreturn_t c0_compare_interrupt(int irq, void *dev_id)
@@ -139,14 +161,17 @@ irqreturn_t c0_compare_interrupt(int irq, void *dev_id)
 	 * the performance counter interrupt handler anyway.
 	 */
 	if (handle_perf_irq(r2))
+	{
 		return IRQ_HANDLED;
+	}
 
 	/*
 	 * The same applies to performance counter interrupts.	But with the
 	 * above we now know that the reason we got here must be a timer
 	 * interrupt.  Being the paranoiacs we are we check anyway.
 	 */
-	if (!r2 || (read_c0_cause() & CAUSEF_TI)) {
+	if (!r2 || (read_c0_cause() & CAUSEF_TI))
+	{
 		/* Clear Count/Compare Interrupt */
 		write_c0_compare(read_c0_compare());
 		cd = &per_cpu(mips_clockevent_device, cpu);
@@ -158,7 +183,8 @@ irqreturn_t c0_compare_interrupt(int irq, void *dev_id)
 	return IRQ_NONE;
 }
 
-struct irqaction c0_compare_irqaction = {
+struct irqaction c0_compare_irqaction =
+{
 	.handler = c0_compare_interrupt,
 	/*
 	 * IRQF_SHARED: The timer interrupt may be shared with other interrupts
@@ -195,30 +221,42 @@ int c0_compare_int_usable(void)
 	unsigned int cnt;
 
 #ifdef CONFIG_KVM_GUEST
-    return 1;
+	return 1;
 #endif
 
 	/*
 	 * IP7 already pending?	 Try to clear it by acking the timer.
 	 */
-	if (c0_compare_int_pending()) {
+	if (c0_compare_int_pending())
+	{
 		cnt = read_c0_count();
 		write_c0_compare(cnt);
 		back_to_back_c0_hazard();
+
 		while (read_c0_count() < (cnt  + COMPARE_INT_SEEN_TICKS))
 			if (!c0_compare_int_pending())
+			{
 				break;
+			}
+
 		if (c0_compare_int_pending())
+		{
 			return 0;
+		}
 	}
 
-	for (delta = 0x10; delta <= 0x400000; delta <<= 1) {
+	for (delta = 0x10; delta <= 0x400000; delta <<= 1)
+	{
 		cnt = read_c0_count();
 		cnt += delta;
 		write_c0_compare(cnt);
 		back_to_back_c0_hazard();
+
 		if ((int)(read_c0_count() - cnt) < 0)
-		    break;
+		{
+			break;
+		}
+
 		/* increase delta if the timer was already expired */
 	}
 
@@ -227,17 +265,29 @@ int c0_compare_int_usable(void)
 
 	while (read_c0_count() < (cnt + COMPARE_INT_SEEN_TICKS))
 		if (c0_compare_int_pending())
+		{
 			break;
+		}
+
 	if (!c0_compare_int_pending())
+	{
 		return 0;
+	}
+
 	cnt = read_c0_count();
 	write_c0_compare(cnt);
 	back_to_back_c0_hazard();
+
 	while (read_c0_count() < (cnt + COMPARE_INT_SEEN_TICKS))
 		if (!c0_compare_int_pending())
+		{
 			break;
+		}
+
 	if (c0_compare_int_pending())
+	{
 		return 0;
+	}
 
 	/*
 	 * Feels like a real count / compare timer.
@@ -257,10 +307,14 @@ int r4k_clockevent_init(void)
 	unsigned int irq, min_delta;
 
 	if (!cpu_has_counter || !mips_hpt_frequency)
+	{
 		return -ENXIO;
+	}
 
 	if (!c0_compare_int_usable())
+	{
 		return -ENXIO;
+	}
 
 	/*
 	 * With vectored interrupts things are getting platform specific.
@@ -273,8 +327,8 @@ int r4k_clockevent_init(void)
 
 	cd->name		= "MIPS";
 	cd->features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_C3STOP |
-				  CLOCK_EVT_FEAT_PERCPU;
+						  CLOCK_EVT_FEAT_C3STOP |
+						  CLOCK_EVT_FEAT_PERCPU;
 
 	min_delta		= calculate_min_delta();
 
@@ -287,7 +341,9 @@ int r4k_clockevent_init(void)
 	clockevents_config_and_register(cd, mips_hpt_frequency, min_delta, 0x7fffffff);
 
 	if (cp0_timer_irq_installed)
+	{
 		return 0;
+	}
 
 	cp0_timer_irq_installed = 1;
 

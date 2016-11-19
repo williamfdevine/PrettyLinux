@@ -22,7 +22,8 @@
 
 #define NR_IPI	6
 
-typedef struct {
+typedef struct
+{
 	unsigned int __softirq_pending;
 	unsigned int ipi_irqs[NR_IPI];
 } ____cacheline_aligned irq_cpustat_t;

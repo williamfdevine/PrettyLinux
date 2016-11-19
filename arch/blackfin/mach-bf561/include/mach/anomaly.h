@@ -18,7 +18,7 @@
 
 /* We do not support 0.1, 0.2, or 0.4 silicon - sorry */
 #if __SILICON_REVISION__ < 3 || __SILICON_REVISION__ == 4
-# error will not work on BF561 silicon version 0.0, 0.1, 0.2, or 0.4
+	# error will not work on BF561 silicon version 0.0, 0.1, 0.2, or 0.4
 #endif
 
 /* Multi-Issue Instruction with dsp32shiftimm in slot1 and P-reg Store in slot2 Not Supported */

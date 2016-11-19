@@ -49,15 +49,18 @@ static char *serial_name = "ISS serial driver";
 
 static void rs_poll(unsigned long);
 
-static int rs_open(struct tty_struct *tty, struct file * filp)
+static int rs_open(struct tty_struct *tty, struct file *filp)
 {
 	tty->port = &serial_port;
 	spin_lock_bh(&timer_lock);
-	if (tty->count == 1) {
+
+	if (tty->count == 1)
+	{
 		setup_timer(&serial_timer, rs_poll,
-				(unsigned long)&serial_port);
+					(unsigned long)&serial_port);
 		mod_timer(&serial_timer, jiffies + SERIAL_TIMER_VALUE);
 	}
+
 	spin_unlock_bh(&timer_lock);
 
 	return 0;
@@ -74,17 +77,21 @@ static int rs_open(struct tty_struct *tty, struct file * filp)
  * that IRQ if nothing is left in the chain.
  * ------------------------------------------------------------
  */
-static void rs_close(struct tty_struct *tty, struct file * filp)
+static void rs_close(struct tty_struct *tty, struct file *filp)
 {
 	spin_lock_bh(&timer_lock);
+
 	if (tty->count == 1)
+	{
 		del_timer_sync(&serial_timer);
+	}
+
 	spin_unlock_bh(&timer_lock);
 }
 
 
-static int rs_write(struct tty_struct * tty,
-		    const unsigned char *buf, int count)
+static int rs_write(struct tty_struct *tty,
+					const unsigned char *buf, int count)
 {
 	/* see drivers/char/serialX.c to reference original version */
 
@@ -101,18 +108,29 @@ static void rs_poll(unsigned long priv)
 
 	spin_lock(&timer_lock);
 
-	while (simc_poll(0)) {
+	while (simc_poll(0))
+	{
 		rd = simc_read(0, &c, 1);
+
 		if (rd <= 0)
+		{
 			break;
+		}
+
 		tty_insert_flip_char(port, c, TTY_NORMAL);
 		i++;
 	}
 
 	if (i)
+	{
 		tty_flip_buffer_push(port);
+	}
+
 	if (rd)
+	{
 		mod_timer(&serial_timer, jiffies + SERIAL_TIMER_VALUE);
+	}
+
 	spin_unlock(&timer_lock);
 }
 
@@ -159,7 +177,8 @@ static int rs_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, rs_proc_show, NULL);
 }
 
-static const struct file_operations rs_proc_fops = {
+static const struct file_operations rs_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= rs_proc_open,
 	.read		= seq_read,
@@ -167,7 +186,8 @@ static const struct file_operations rs_proc_fops = {
 	.release	= single_release,
 };
 
-static const struct tty_operations serial_ops = {
+static const struct tty_operations serial_ops =
+{
 	.open = rs_open,
 	.close = rs_close,
 	.write = rs_write,
@@ -205,7 +225,10 @@ int __init rs_init(void)
 	tty_port_link_device(&serial_port, serial_driver, 0);
 
 	if (tty_register_driver(serial_driver))
+	{
 		panic("Couldn't register serial driver\n");
+	}
+
 	return 0;
 }
 
@@ -216,7 +239,8 @@ static __exit void rs_exit(void)
 
 	if ((error = tty_unregister_driver(serial_driver)))
 		printk("ISS_SERIAL: failed to unregister serial driver (%d)\n",
-		       error);
+			   error);
+
 	put_tty_driver(serial_driver);
 	tty_port_destroy(&serial_port);
 }
@@ -241,17 +265,20 @@ static void iss_console_write(struct console *co, const char *s, unsigned count)
 	int len = strlen(s);
 
 	if (s != 0 && *s != 0)
+	{
 		simc_write(1, s, count < len ? count : len);
+	}
 }
 
-static struct tty_driver* iss_console_device(struct console *c, int *index)
+static struct tty_driver *iss_console_device(struct console *c, int *index)
 {
 	*index = c->index;
 	return serial_driver;
 }
 
 
-static struct console sercons = {
+static struct console sercons =
+{
 	.name = "ttyS",
 	.write = iss_console_write,
 	.device = iss_console_device,

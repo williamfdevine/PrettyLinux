@@ -25,13 +25,13 @@
 static struct pt_regs *get_user_regs(struct task_struct *tsk)
 {
 	return (struct pt_regs *)((unsigned long)task_stack_page(tsk) +
-				  THREAD_SIZE - sizeof(struct pt_regs));
+							  THREAD_SIZE - sizeof(struct pt_regs));
 }
 
 void user_enable_single_step(struct task_struct *tsk)
 {
 	pr_debug("user_enable_single_step: pid=%u, PC=0x%08lx, SR=0x%08lx\n",
-		 tsk->pid, task_pt_regs(tsk)->pc, task_pt_regs(tsk)->sr);
+			 tsk->pid, task_pt_regs(tsk)->pc, task_pt_regs(tsk)->sr);
 
 	/*
 	 * We can't schedule in Debug mode, so when TIF_BREAKPOINT is
@@ -71,12 +71,13 @@ void ptrace_disable(struct task_struct *child)
  * actually access the pt_regs struct stored on the kernel stack.
  */
 static int ptrace_read_user(struct task_struct *tsk, unsigned long offset,
-			    unsigned long __user *data)
+							unsigned long __user *data)
 {
 	unsigned long *regs;
 	unsigned long value;
 
-	if (offset & 3 || offset >= sizeof(struct user)) {
+	if (offset & 3 || offset >= sizeof(struct user))
+	{
 		printk("ptrace_read_user: invalid offset 0x%08lx\n", offset);
 		return -EIO;
 	}
@@ -84,11 +85,14 @@ static int ptrace_read_user(struct task_struct *tsk, unsigned long offset,
 	regs = (unsigned long *)get_user_regs(tsk);
 
 	value = 0;
+
 	if (offset < sizeof(struct pt_regs))
+	{
 		value = regs[offset / sizeof(regs[0])];
+	}
 
 	pr_debug("ptrace_read_user(%s[%u], %#lx, %p) -> %#lx\n",
-		 tsk->comm, tsk->pid, offset, data, value);
+			 tsk->comm, tsk->pid, offset, data, value);
 
 	return put_user(value, data);
 }
@@ -99,20 +103,23 @@ static int ptrace_read_user(struct task_struct *tsk, unsigned long offset,
  * stack.
  */
 static int ptrace_write_user(struct task_struct *tsk, unsigned long offset,
-			     unsigned long value)
+							 unsigned long value)
 {
 	unsigned long *regs;
 
 	pr_debug("ptrace_write_user(%s[%u], %#lx, %#lx)\n",
-			tsk->comm, tsk->pid, offset, value);
+			 tsk->comm, tsk->pid, offset, value);
 
-	if (offset & 3 || offset >= sizeof(struct user)) {
+	if (offset & 3 || offset >= sizeof(struct user))
+	{
 		pr_debug("  invalid offset 0x%08lx\n", offset);
 		return -EIO;
 	}
 
 	if (offset >= sizeof(struct pt_regs))
+	{
 		return 0;
+	}
 
 	regs = (unsigned long *)get_user_regs(tsk);
 	regs[offset / sizeof(regs[0])] = value;
@@ -133,11 +140,15 @@ static int ptrace_setregs(struct task_struct *tsk, const void __user *uregs)
 	int ret;
 
 	ret = -EFAULT;
-	if (copy_from_user(&newregs, uregs, sizeof(newregs)) == 0) {
+
+	if (copy_from_user(&newregs, uregs, sizeof(newregs)) == 0)
+	{
 		struct pt_regs *regs = get_user_regs(tsk);
 
 		ret = -EINVAL;
-		if (valid_user_regs(&newregs)) {
+
+		if (valid_user_regs(&newregs))
+		{
 			*regs = newregs;
 			ret = 0;
 		}
@@ -147,43 +158,44 @@ static int ptrace_setregs(struct task_struct *tsk, const void __user *uregs)
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	int ret;
 	void __user *datap = (void __user *) data;
 
-	switch (request) {
-	/* Read the word at location addr in the child process */
-	case PTRACE_PEEKTEXT:
-	case PTRACE_PEEKDATA:
-		ret = generic_ptrace_peekdata(child, addr, data);
-		break;
+	switch (request)
+	{
+		/* Read the word at location addr in the child process */
+		case PTRACE_PEEKTEXT:
+		case PTRACE_PEEKDATA:
+			ret = generic_ptrace_peekdata(child, addr, data);
+			break;
 
-	case PTRACE_PEEKUSR:
-		ret = ptrace_read_user(child, addr, datap);
-		break;
+		case PTRACE_PEEKUSR:
+			ret = ptrace_read_user(child, addr, datap);
+			break;
 
-	/* Write the word in data at location addr */
-	case PTRACE_POKETEXT:
-	case PTRACE_POKEDATA:
-		ret = generic_ptrace_pokedata(child, addr, data);
-		break;
+		/* Write the word in data at location addr */
+		case PTRACE_POKETEXT:
+		case PTRACE_POKEDATA:
+			ret = generic_ptrace_pokedata(child, addr, data);
+			break;
 
-	case PTRACE_POKEUSR:
-		ret = ptrace_write_user(child, addr, data);
-		break;
+		case PTRACE_POKEUSR:
+			ret = ptrace_write_user(child, addr, data);
+			break;
 
-	case PTRACE_GETREGS:
-		ret = ptrace_getregs(child, datap);
-		break;
+		case PTRACE_GETREGS:
+			ret = ptrace_getregs(child, datap);
+			break;
 
-	case PTRACE_SETREGS:
-		ret = ptrace_setregs(child, datap);
-		break;
+		case PTRACE_SETREGS:
+			ret = ptrace_setregs(child, datap);
+			break;
 
-	default:
-		ret = ptrace_request(child, request, addr, data);
-		break;
+		default:
+			ret = ptrace_request(child, request, addr, data);
+			break;
 	}
 
 	return ret;
@@ -192,23 +204,29 @@ long arch_ptrace(struct task_struct *child, long request,
 asmlinkage void syscall_trace(void)
 {
 	if (!test_thread_flag(TIF_SYSCALL_TRACE))
+	{
 		return;
+	}
+
 	if (!(current->ptrace & PT_PTRACED))
+	{
 		return;
+	}
 
 	/* The 0x80 provides a way for the tracing parent to
 	 * distinguish between a syscall stop and SIGTRAP delivery */
 	ptrace_notify(SIGTRAP | ((current->ptrace & PT_TRACESYSGOOD)
-				 ? 0x80 : 0));
+							 ? 0x80 : 0));
 
 	/*
 	 * this isn't the same as continuing with a signal, but it
 	 * will do for normal use.  strace only continues with a
 	 * signal if the stopping signal is not SIGTRAP.  -brl
 	 */
-	if (current->exit_code) {
+	if (current->exit_code)
+	{
 		pr_debug("syscall_trace: sending signal %d to PID %u\n",
-			 current->exit_code, current->pid);
+				 current->exit_code, current->pid);
 		send_sig(current->exit_code, current, 1);
 		current->exit_code = 0;
 	}
@@ -244,21 +262,27 @@ asmlinkage struct pt_regs *do_debug(struct pt_regs *regs)
 	code = TRAP_BRKPT;
 
 	pr_debug("do_debug: status=0x%08x PC=0x%08lx SR=0x%08lx tif=0x%08lx\n",
-			status, regs->pc, regs->sr, ti->flags);
+			 status, regs->pc, regs->sr, ti->flags);
 
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		unsigned long	die_val = DIE_BREAKPOINT;
 
 		if (status & (1 << OCD_DS_SSS_BIT))
+		{
 			die_val = DIE_SSTEP;
+		}
 
 		if (notify_die(die_val, "ptrace", regs, 0, 0, SIGTRAP)
-				== NOTIFY_STOP)
+			== NOTIFY_STOP)
+		{
 			return regs;
+		}
 
 		if ((status & (1 << OCD_DS_SWB_BIT))
-				&& test_and_clear_ti_thread_flag(
-					ti, TIF_BREAKPOINT)) {
+			&& test_and_clear_ti_thread_flag(
+				ti, TIF_BREAKPOINT))
+		{
 			/*
 			 * Explicit breakpoint from trampoline or
 			 * exception/syscall/interrupt handler.
@@ -268,11 +292,12 @@ asmlinkage struct pt_regs *do_debug(struct pt_regs *regs)
 			 */
 			regs++;
 			pr_debug("  -> TIF_BREAKPOINT done, adjusted regs:"
-					"PC=0x%08lx SR=0x%08lx\n",
-					regs->pc, regs->sr);
+					 "PC=0x%08lx SR=0x%08lx\n",
+					 regs->pc, regs->sr);
 			BUG_ON(!user_mode(regs));
 
-			if (test_thread_flag(TIF_SINGLE_STEP)) {
+			if (test_thread_flag(TIF_SINGLE_STEP))
+			{
 				pr_debug("Going to do single step...\n");
 				return regs;
 			}
@@ -282,11 +307,13 @@ asmlinkage struct pt_regs *do_debug(struct pt_regs *regs)
 			 * stepping over a syscall. Do the trap now.
 			 */
 			code = TRAP_TRACE;
-		} else if ((status & (1 << OCD_DS_SSS_BIT))
-				&& test_ti_thread_flag(ti, TIF_SINGLE_STEP)) {
+		}
+		else if ((status & (1 << OCD_DS_SSS_BIT))
+				 && test_ti_thread_flag(ti, TIF_SINGLE_STEP))
+		{
 
 			pr_debug("Stepped into something, "
-					"setting TIF_BREAKPOINT...\n");
+					 "setting TIF_BREAKPOINT...\n");
 			set_ti_thread_flag(ti, TIF_BREAKPOINT);
 
 			/*
@@ -300,7 +327,8 @@ asmlinkage struct pt_regs *do_debug(struct pt_regs *regs)
 			 * save (which also means that it'll check for
 			 * pending work later.)
 			 */
-			if ((regs->sr & MODE_MASK) == MODE_EXCEPTION) {
+			if ((regs->sr & MODE_MASK) == MODE_EXCEPTION)
+			{
 				trampoline_addr
 					= (unsigned long)&debug_trampoline;
 
@@ -309,7 +337,7 @@ asmlinkage struct pt_regs *do_debug(struct pt_regs *regs)
 				ti->rsr_saved = sysreg_read(RSR_EX);
 				sysreg_write(RAR_EX, trampoline_addr);
 				sysreg_write(RSR_EX, (MODE_EXCEPTION
-							| SR_EM | SR_GM));
+									  | SR_EM | SR_GM));
 				BUG_ON(ti->rsr_saved & MODE_MASK);
 			}
 
@@ -320,7 +348,8 @@ asmlinkage struct pt_regs *do_debug(struct pt_regs *regs)
 			 * "scall" instruction we were told to step
 			 * over.
 			 */
-			if ((regs->sr & MODE_MASK) == MODE_SUPERVISOR) {
+			if ((regs->sr & MODE_MASK) == MODE_SUPERVISOR)
+			{
 				pr_debug("Supervisor; no single step\n");
 				clear_ti_thread_flag(ti, TIF_SINGLE_STEP);
 			}
@@ -330,14 +359,18 @@ asmlinkage struct pt_regs *do_debug(struct pt_regs *regs)
 			ocd_write(DC, ctrl);
 
 			return regs;
-		} else {
+		}
+		else
+		{
 			printk(KERN_ERR "Unexpected OCD_DS value: 0x%08x\n",
-					status);
+				   status);
 			printk(KERN_ERR "Thread flags: 0x%08lx\n", ti->flags);
 			die("Unhandled debug trap in kernel mode",
-					regs, SIGTRAP);
+				regs, SIGTRAP);
 		}
-	} else if (status & (1 << OCD_DS_SSS_BIT)) {
+	}
+	else if (status & (1 << OCD_DS_SSS_BIT))
+	{
 		/* Single step in user mode */
 		code = TRAP_TRACE;
 
@@ -347,7 +380,7 @@ asmlinkage struct pt_regs *do_debug(struct pt_regs *regs)
 	}
 
 	pr_debug("Sending SIGTRAP: code=%d PC=0x%08lx SR=0x%08lx\n",
-			code, regs->pc, regs->sr);
+			 code, regs->pc, regs->sr);
 
 	clear_thread_flag(TIF_SINGLE_STEP);
 	_exception(SIGTRAP, regs, code, instruction_pointer(regs));

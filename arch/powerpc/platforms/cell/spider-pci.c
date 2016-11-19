@@ -31,7 +31,8 @@
 
 #define SPIDER_PCI_DISABLE_PREFETCH
 
-struct spiderpci_iowa_private {
+struct spiderpci_iowa_private
+{
 	void __iomem *regs;
 };
 
@@ -46,20 +47,20 @@ static void spiderpci_io_flush(struct iowa_bus *bus)
 }
 
 #define SPIDER_PCI_MMIO_READ(name, ret)					\
-static ret spiderpci_##name(const PCI_IO_ADDR addr)			\
-{									\
-	ret val = __do_##name(addr);					\
-	spiderpci_io_flush(iowa_mem_find_bus(addr));			\
-	return val;							\
-}
+	static ret spiderpci_##name(const PCI_IO_ADDR addr)			\
+	{									\
+		ret val = __do_##name(addr);					\
+		spiderpci_io_flush(iowa_mem_find_bus(addr));			\
+		return val;							\
+	}
 
 #define SPIDER_PCI_MMIO_READ_STR(name)					\
-static void spiderpci_##name(const PCI_IO_ADDR addr, void *buf, 	\
-			     unsigned long count)			\
-{									\
-	__do_##name(addr, buf, count);					\
-	spiderpci_io_flush(iowa_mem_find_bus(addr));			\
-}
+	static void spiderpci_##name(const PCI_IO_ADDR addr, void *buf, 	\
+								 unsigned long count)			\
+	{									\
+		__do_##name(addr, buf, count);					\
+		spiderpci_io_flush(iowa_mem_find_bus(addr));			\
+	}
 
 SPIDER_PCI_MMIO_READ(readb, u8)
 SPIDER_PCI_MMIO_READ(readw, u16)
@@ -73,14 +74,14 @@ SPIDER_PCI_MMIO_READ_STR(readsw)
 SPIDER_PCI_MMIO_READ_STR(readsl)
 
 static void spiderpci_memcpy_fromio(void *dest, const PCI_IO_ADDR src,
-				    unsigned long n)
+									unsigned long n)
 {
 	__do_memcpy_fromio(dest, src, n);
 	spiderpci_io_flush(iowa_mem_find_bus(src));
 }
 
 static int __init spiderpci_pci_setup_chip(struct pci_controller *phb,
-					   void __iomem *regs)
+		void __iomem *regs)
 {
 	void *dummy_page_va;
 	dma_addr_t dummy_page_da;
@@ -104,14 +105,18 @@ static int __init spiderpci_pci_setup_chip(struct pci_controller *phb,
 	 * Celleb does not have this problem, because it has only one XDR.
 	 */
 	dummy_page_va = kmalloc(PAGE_SIZE, GFP_KERNEL);
-	if (!dummy_page_va) {
+
+	if (!dummy_page_va)
+	{
 		pr_err("SPIDERPCI-IOWA:Alloc dummy_page_va failed.\n");
 		return -1;
 	}
 
 	dummy_page_da = dma_map_single(phb->parent, dummy_page_va,
-				       PAGE_SIZE, DMA_FROM_DEVICE);
-	if (dma_mapping_error(phb->parent, dummy_page_da)) {
+								   PAGE_SIZE, DMA_FROM_DEVICE);
+
+	if (dma_mapping_error(phb->parent, dummy_page_da))
+	{
 		pr_err("SPIDER-IOWA:Map dummy page filed.\n");
 		kfree(dummy_page_va);
 		return -1;
@@ -131,30 +136,38 @@ int __init spiderpci_iowa_init(struct iowa_bus *bus, void *data)
 	unsigned long offset = (unsigned long)data;
 
 	pr_debug("SPIDERPCI-IOWA:Bus initialize for spider(%s)\n",
-		 np->full_name);
+			 np->full_name);
 
 	priv = kzalloc(sizeof(struct spiderpci_iowa_private), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		pr_err("SPIDERPCI-IOWA:"
-		       "Can't allocate struct spiderpci_iowa_private");
+			   "Can't allocate struct spiderpci_iowa_private");
 		return -1;
 	}
 
-	if (of_address_to_resource(np, 0, &r)) {
+	if (of_address_to_resource(np, 0, &r))
+	{
 		pr_err("SPIDERPCI-IOWA:Can't get resource.\n");
 		goto error;
 	}
 
 	regs = ioremap(r.start + offset, SPIDER_PCI_REG_SIZE);
-	if (!regs) {
+
+	if (!regs)
+	{
 		pr_err("SPIDERPCI-IOWA:ioremap failed.\n");
 		goto error;
 	}
+
 	priv->regs = regs;
 	bus->private = priv;
 
 	if (spiderpci_pci_setup_chip(bus->phb, regs))
+	{
 		goto error;
+	}
 
 	return 0;
 
@@ -163,12 +176,15 @@ error:
 	bus->private = NULL;
 
 	if (regs)
+	{
 		iounmap(regs);
+	}
 
 	return -1;
 }
 
-struct ppc_pci_io spiderpci_ops = {
+struct ppc_pci_io spiderpci_ops =
+{
 	.readb = spiderpci_readb,
 	.readw = spiderpci_readw,
 	.readl = spiderpci_readl,

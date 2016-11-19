@@ -17,7 +17,8 @@
 #ifndef __ASSEMBLY__
 
 /* IRQ IDs presented to drivers */
-enum {
+enum
+{
 	IRQ_FPGA_PUSH_BUTTON_SW1_5		= IRQ_BASE_FPGA + 8,
 	IRQ_FPGA_ROCKER_C_SW8			= IRQ_BASE_FPGA + 9,
 	IRQ_FPGA_ROCKER_C_SW9			= IRQ_BASE_FPGA + 10,

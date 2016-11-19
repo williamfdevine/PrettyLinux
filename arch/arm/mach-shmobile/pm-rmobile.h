@@ -12,7 +12,8 @@
 
 #include <linux/pm_domain.h>
 
-struct rmobile_pm_domain {
+struct rmobile_pm_domain
+{
 	struct generic_pm_domain genpd;
 	struct dev_power_governor *gov;
 	int (*suspend)(void);

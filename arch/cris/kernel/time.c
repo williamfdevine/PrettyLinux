@@ -39,14 +39,14 @@
 extern unsigned long loops_per_jiffy; /* init/main.c */
 unsigned long loops_per_usec;
 
-extern void cris_profile_sample(struct pt_regs* regs);
+extern void cris_profile_sample(struct pt_regs *regs);
 
 void
-cris_do_profile(struct pt_regs* regs)
+cris_do_profile(struct pt_regs *regs)
 {
 
 #ifdef CONFIG_SYSTEM_PROFILER
-        cris_profile_sample(regs);
+	cris_profile_sample(regs);
 #endif
 
 #ifdef CONFIG_PROFILING
@@ -58,7 +58,7 @@ cris_do_profile(struct pt_regs* regs)
 unsigned long long sched_clock(void)
 {
 	return (unsigned long long)jiffies * (NSEC_PER_SEC / HZ) +
-		get_ns_in_jiffie();
+		   get_ns_in_jiffie();
 }
 #endif
 

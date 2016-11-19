@@ -54,7 +54,8 @@
 
 #ifndef __ASSEMBLY__
 
-enum VM_CACHE_OPS {
+enum VM_CACHE_OPS
+{
 	hvmc_ickill,
 	hvmc_dckill,
 	hvmc_l2kill,
@@ -64,7 +65,8 @@ enum VM_CACHE_OPS {
 	hvmc_fetch_cfg
 };
 
-enum VM_INT_OPS {
+enum VM_INT_OPS
+{
 	hvmi_nop,
 	hvmi_globen,
 	hvmi_globdis,
@@ -122,7 +124,7 @@ static inline long __vmcache_icinva(unsigned long addr, unsigned long len)
 }
 
 static inline long __vmcache_idsync(unsigned long addr,
-					   unsigned long len)
+									unsigned long len)
 {
 	return __vmcache(hvmc_idsync, addr, len);
 }

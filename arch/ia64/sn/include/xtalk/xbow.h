@@ -21,12 +21,13 @@
 #define MAX_XBOW_NAME 	16
 
 /* Register set for each xbow link */
-typedef volatile struct xb_linkregs_s {
-/*
- * we access these through synergy unswizzled space, so the address
- * gets twiddled (i.e. references to 0x4 actually go to 0x0 and vv.)
- * That's why we put the register first and filler second.
- */
+typedef volatile struct xb_linkregs_s
+{
+	/*
+	 * we access these through synergy unswizzled space, so the address
+	 * gets twiddled (i.e. references to 0x4 actually go to 0x0 and vv.)
+	 * That's why we put the register first and filler second.
+	 */
 	u32 link_ibf;
 	u32 filler0;	/* filler for proper alignment */
 	u32 link_control;
@@ -45,7 +46,8 @@ typedef volatile struct xb_linkregs_s {
 	u32 filler7;
 } xb_linkregs_t;
 
-typedef volatile struct xbow_s {
+typedef volatile struct xbow_s
+{
 	/* standard widget configuration 0x000000-0x000057 */
 	struct widget_cfg xb_widget;  /* 0x000000 */
 
@@ -63,11 +65,11 @@ typedef volatile struct xbow_s {
 #define xb_wid_llp 		xb_widget.w_llp_cfg
 #define xb_wid_stat_clr 	xb_widget.w_tflush
 
-/*
- * we access these through synergy unswizzled space, so the address
- * gets twiddled (i.e. references to 0x4 actually go to 0x0 and vv.)
- * That's why we put the register first and filler second.
- */
+	/*
+	 * we access these through synergy unswizzled space, so the address
+	 * gets twiddled (i.e. references to 0x4 actually go to 0x0 and vv.)
+	 * That's why we put the register first and filler second.
+	 */
 	/* xbow-specific widget configuration    0x000058-0x0000FF */
 	u32 xb_wid_arb_reload; /* 0x00005C */
 	u32 _pad_000058;
@@ -154,8 +156,8 @@ typedef volatile struct xbow_s {
 #define	XBOW_LE_RST_FNC		0x0000b4
 #define	XBOW_LF_RST_FNC		0x0000bc
 #define XBOW_RESET_FENCE(x) ((x) > 7 && (x) < 16) ? \
-				(XBOW_W0_RST_FNC + ((x) - 7) * 8) : \
-				((x) == 0) ? XBOW_W0_RST_FNC : 0
+	(XBOW_W0_RST_FNC + ((x) - 7) * 8) : \
+	((x) == 0) ? XBOW_W0_RST_FNC : 0
 #define XBOW_LOCK		0x0000c4
 #define XBOW_LOCK_CLR		0x0000cc
 /* End of Xbridge only */
@@ -290,11 +292,11 @@ typedef volatile struct xbow_s {
 
 #define IS_XBRIDGE_XBOW(wid) \
 	(XWIDGET_PART_NUM(wid) == XXBOW_WIDGET_PART_NUM && \
-	XWIDGET_MFG_NUM(wid) == XXBOW_WIDGET_MFGR_NUM)
+	 XWIDGET_MFG_NUM(wid) == XXBOW_WIDGET_MFGR_NUM)
 
 #define IS_PIC_XBOW(wid) \
 	(XWIDGET_PART_NUM(wid) == PXBOW_WIDGET_PART_NUM && \
-	XWIDGET_MFG_NUM(wid) == XXBOW_WIDGET_MFGR_NUM)
+	 XWIDGET_MFG_NUM(wid) == XXBOW_WIDGET_MFGR_NUM)
 
 #define XBOW_WAR_ENABLED(pv, widid) ((1 << XWIDGET_REV_NUM(widid)) & pv)
 

@@ -33,7 +33,9 @@ int notrace unwind_frame(struct stackframe *frame)
 
 	/* check current frame pointer is within bounds */
 	if (fp < low + 12 || fp > high - 4)
+	{
 		return -EINVAL;
+	}
 
 	/* restore the registers from the stack frame */
 	frame->fp = *(unsigned long *)(fp - 12);
@@ -45,22 +47,30 @@ int notrace unwind_frame(struct stackframe *frame)
 #endif
 
 void notrace walk_stackframe(struct stackframe *frame,
-		     int (*fn)(struct stackframe *, void *), void *data)
+							 int (*fn)(struct stackframe *, void *), void *data)
 {
-	while (1) {
+	while (1)
+	{
 		int ret;
 
 		if (fn(frame, data))
+		{
 			break;
+		}
+
 		ret = unwind_frame(frame);
+
 		if (ret < 0)
+		{
 			break;
+		}
 	}
 }
 EXPORT_SYMBOL(walk_stackframe);
 
 #ifdef CONFIG_STACKTRACE
-struct stack_trace_data {
+struct stack_trace_data
+{
 	struct stack_trace *trace;
 	unsigned long last_pc;
 	unsigned int no_sched_functions;
@@ -75,8 +85,12 @@ static int save_trace(struct stackframe *frame, void *d)
 	unsigned long addr = frame->pc;
 
 	if (data->no_sched_functions && in_sched_functions(addr))
+	{
 		return 0;
-	if (data->skip) {
+	}
+
+	if (data->skip)
+	{
 		data->skip--;
 		return 0;
 	}
@@ -84,7 +98,9 @@ static int save_trace(struct stackframe *frame, void *d)
 	trace->entries[trace->nr_entries++] = addr;
 
 	if (trace->nr_entries >= trace->max_entries)
+	{
 		return 1;
+	}
 
 	/*
 	 * in_exception_text() is designed to test if the PC is one of
@@ -95,8 +111,11 @@ static int save_trace(struct stackframe *frame, void *d)
 	 */
 	addr = data->last_pc;
 	data->last_pc = frame->pc;
+
 	if (!in_exception_text(addr))
+	{
 		return 0;
+	}
 
 	regs = (struct pt_regs *)frame->sp;
 
@@ -107,7 +126,7 @@ static int save_trace(struct stackframe *frame, void *d)
 
 /* This must be noinline to so that our skip calculation works correctly */
 static noinline void __save_stack_trace(struct task_struct *tsk,
-	struct stack_trace *trace, unsigned int nosched)
+										struct stack_trace *trace, unsigned int nosched)
 {
 	struct stack_trace_data data;
 	struct stackframe frame;
@@ -117,15 +136,20 @@ static noinline void __save_stack_trace(struct task_struct *tsk,
 	data.skip = trace->skip;
 	data.no_sched_functions = nosched;
 
-	if (tsk != current) {
+	if (tsk != current)
+	{
 #ifdef CONFIG_SMP
+
 		/*
 		 * What guarantees do we have here that 'tsk' is not
 		 * running on another CPU?  For now, ignore it as we
 		 * can't guarantee we won't explode.
 		 */
 		if (trace->nr_entries < trace->max_entries)
+		{
 			trace->entries[trace->nr_entries++] = ULONG_MAX;
+		}
+
 		return;
 #else
 		frame.fp = thread_saved_fp(tsk);
@@ -133,7 +157,9 @@ static noinline void __save_stack_trace(struct task_struct *tsk,
 		frame.lr = 0;		/* recovered from the stack */
 		frame.pc = thread_saved_pc(tsk);
 #endif
-	} else {
+	}
+	else
+	{
 		/* We don't want this function nor the caller */
 		data.skip += 2;
 		frame.fp = (unsigned long)__builtin_frame_address(0);
@@ -143,8 +169,11 @@ static noinline void __save_stack_trace(struct task_struct *tsk,
 	}
 
 	walk_stackframe(&frame, save_trace, &data);
+
 	if (trace->nr_entries < trace->max_entries)
+	{
 		trace->entries[trace->nr_entries++] = ULONG_MAX;
+	}
 }
 
 void save_stack_trace_regs(struct pt_regs *regs, struct stack_trace *trace)
@@ -162,8 +191,11 @@ void save_stack_trace_regs(struct pt_regs *regs, struct stack_trace *trace)
 	frame.pc = regs->ARM_pc;
 
 	walk_stackframe(&frame, save_trace, &data);
+
 	if (trace->nr_entries < trace->max_entries)
+	{
 		trace->entries[trace->nr_entries++] = ULONG_MAX;
+	}
 }
 
 void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)

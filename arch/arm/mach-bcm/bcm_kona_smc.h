@@ -24,9 +24,9 @@
 extern int __init bcm_kona_smc_init(void);
 
 extern unsigned bcm_kona_smc(unsigned service_id,
-			     unsigned arg0,
-			     unsigned arg1,
-			     unsigned arg2,
-			     unsigned arg3);
+							 unsigned arg0,
+							 unsigned arg1,
+							 unsigned arg2,
+							 unsigned arg3);
 
 #endif /* BCM_KONA_SMC_H */

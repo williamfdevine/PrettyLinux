@@ -19,20 +19,28 @@ int fb_is_primary_device(struct fb_info *info)
 	struct resource *res;
 
 	if (!device || !dev_is_pci(device))
+	{
 		return 0;
+	}
 
 	pci_dev = to_pci_dev(device);
 
-	if (default_device) {
+	if (default_device)
+	{
 		if (pci_dev == default_device)
+		{
 			return 1;
+		}
+
 		return 0;
 	}
 
 	res = pci_dev->resource + PCI_ROM_RESOURCE;
 
 	if (res->flags & IORESOURCE_ROM_SHADOW)
+	{
 		return 1;
+	}
 
 	return 0;
 }

@@ -21,14 +21,16 @@
  * ppc32 kernels. This used to match what is in prom.h, but not anymore
  * so we now define it here
  */
-struct bootx_dt_prop {
+struct bootx_dt_prop
+{
 	u32	name;
 	int	length;
 	u32	value;
 	u32	next;
 };
 
-struct bootx_dt_node {
+struct bootx_dt_node
+{
 	u32	unused0;
 	u32	unused1;
 	u32	phandle;	/* not really available */

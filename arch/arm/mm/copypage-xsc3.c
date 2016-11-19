@@ -66,12 +66,12 @@ xsc3_mc_copy_user_page(void *kto, const void *kfrom)
 	beq	2b				\n\
 						\n\
 	ldmfd	sp!, {r4, r5, pc}"
-	:
-	: "r" (kto), "r" (kfrom), "I" (PAGE_SIZE / 64 - 1));
+		:
+		: "r" (kto), "r" (kfrom), "I" (PAGE_SIZE / 64 - 1));
 }
 
 void xsc3_mc_copy_user_highpage(struct page *to, struct page *from,
-	unsigned long vaddr, struct vm_area_struct *vma)
+								unsigned long vaddr, struct vm_area_struct *vma)
 {
 	void *kto, *kfrom;
 
@@ -102,13 +102,14 @@ void xsc3_mc_clear_user_highpage(struct page *page, unsigned long vaddr)
 	strd	r2, [%0], #8			\n\
 	subs	r1, r1, #1			\n\
 	bne	1b"
-	: "=r" (ptr)
-	: "0" (kaddr), "I" (PAGE_SIZE / 32)
-	: "r1", "r2", "r3");
+				  : "=r" (ptr)
+				  : "0" (kaddr), "I" (PAGE_SIZE / 32)
+				  : "r1", "r2", "r3");
 	kunmap_atomic(kaddr);
 }
 
-struct cpu_user_fns xsc3_mc_user_fns __initdata = {
+struct cpu_user_fns xsc3_mc_user_fns __initdata =
+{
 	.cpu_clear_user_highpage = xsc3_mc_clear_user_highpage,
 	.cpu_copy_user_highpage	= xsc3_mc_copy_user_highpage,
 };

@@ -41,43 +41,45 @@
 #define CVMX_RST_SOFT_PRSTX(offset) (CVMX_ADD_IO_SEG(0x00011800060016C0ull) + ((offset) & 3) * 8)
 #define CVMX_RST_SOFT_RST (CVMX_ADD_IO_SEG(0x0001180006001680ull))
 
-union cvmx_rst_boot {
+union cvmx_rst_boot
+{
 	uint64_t u64;
-	struct cvmx_rst_boot_s {
+	struct cvmx_rst_boot_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t chipkill:1;
-		uint64_t jtcsrdis:1;
-		uint64_t ejtagdis:1;
-		uint64_t romen:1;
-		uint64_t ckill_ppdis:1;
-		uint64_t jt_tstmode:1;
-		uint64_t vrm_err:1;
-		uint64_t reserved_37_56:20;
-		uint64_t c_mul:7;
-		uint64_t pnr_mul:6;
-		uint64_t reserved_21_23:3;
-		uint64_t lboot_oci:3;
-		uint64_t lboot_ext:6;
-		uint64_t lboot:10;
-		uint64_t rboot:1;
-		uint64_t rboot_pin:1;
+		uint64_t chipkill: 1;
+		uint64_t jtcsrdis: 1;
+		uint64_t ejtagdis: 1;
+		uint64_t romen: 1;
+		uint64_t ckill_ppdis: 1;
+		uint64_t jt_tstmode: 1;
+		uint64_t vrm_err: 1;
+		uint64_t reserved_37_56: 20;
+		uint64_t c_mul: 7;
+		uint64_t pnr_mul: 6;
+		uint64_t reserved_21_23: 3;
+		uint64_t lboot_oci: 3;
+		uint64_t lboot_ext: 6;
+		uint64_t lboot: 10;
+		uint64_t rboot: 1;
+		uint64_t rboot_pin: 1;
 #else
-		uint64_t rboot_pin:1;
-		uint64_t rboot:1;
-		uint64_t lboot:10;
-		uint64_t lboot_ext:6;
-		uint64_t lboot_oci:3;
-		uint64_t reserved_21_23:3;
-		uint64_t pnr_mul:6;
-		uint64_t c_mul:7;
-		uint64_t reserved_37_56:20;
-		uint64_t vrm_err:1;
-		uint64_t jt_tstmode:1;
-		uint64_t ckill_ppdis:1;
-		uint64_t romen:1;
-		uint64_t ejtagdis:1;
-		uint64_t jtcsrdis:1;
-		uint64_t chipkill:1;
+		uint64_t rboot_pin: 1;
+		uint64_t rboot: 1;
+		uint64_t lboot: 10;
+		uint64_t lboot_ext: 6;
+		uint64_t lboot_oci: 3;
+		uint64_t reserved_21_23: 3;
+		uint64_t pnr_mul: 6;
+		uint64_t c_mul: 7;
+		uint64_t reserved_37_56: 20;
+		uint64_t vrm_err: 1;
+		uint64_t jt_tstmode: 1;
+		uint64_t ckill_ppdis: 1;
+		uint64_t romen: 1;
+		uint64_t ejtagdis: 1;
+		uint64_t jtcsrdis: 1;
+		uint64_t chipkill: 1;
 #endif
 	} s;
 	struct cvmx_rst_boot_s cn70xx;
@@ -85,21 +87,23 @@ union cvmx_rst_boot {
 	struct cvmx_rst_boot_s cn78xx;
 };
 
-union cvmx_rst_cfg {
+union cvmx_rst_cfg
+{
 	uint64_t u64;
-	struct cvmx_rst_cfg_s {
+	struct cvmx_rst_cfg_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t bist_delay:58;
-		uint64_t reserved_3_5:3;
-		uint64_t cntl_clr_bist:1;
-		uint64_t warm_clr_bist:1;
-		uint64_t soft_clr_bist:1;
+		uint64_t bist_delay: 58;
+		uint64_t reserved_3_5: 3;
+		uint64_t cntl_clr_bist: 1;
+		uint64_t warm_clr_bist: 1;
+		uint64_t soft_clr_bist: 1;
 #else
-		uint64_t soft_clr_bist:1;
-		uint64_t warm_clr_bist:1;
-		uint64_t cntl_clr_bist:1;
-		uint64_t reserved_3_5:3;
-		uint64_t bist_delay:58;
+		uint64_t soft_clr_bist: 1;
+		uint64_t warm_clr_bist: 1;
+		uint64_t cntl_clr_bist: 1;
+		uint64_t reserved_3_5: 3;
+		uint64_t bist_delay: 58;
 #endif
 	} s;
 	struct cvmx_rst_cfg_s cn70xx;
@@ -107,15 +111,17 @@ union cvmx_rst_cfg {
 	struct cvmx_rst_cfg_s cn78xx;
 };
 
-union cvmx_rst_ckill {
+union cvmx_rst_ckill
+{
 	uint64_t u64;
-	struct cvmx_rst_ckill_s {
+	struct cvmx_rst_ckill_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_47_63:17;
-		uint64_t timer:47;
+		uint64_t reserved_47_63: 17;
+		uint64_t timer: 47;
 #else
-		uint64_t timer:47;
-		uint64_t reserved_47_63:17;
+		uint64_t timer: 47;
+		uint64_t reserved_47_63: 17;
 #endif
 	} s;
 	struct cvmx_rst_ckill_s cn70xx;
@@ -123,31 +129,33 @@ union cvmx_rst_ckill {
 	struct cvmx_rst_ckill_s cn78xx;
 };
 
-union cvmx_rst_ctlx {
+union cvmx_rst_ctlx
+{
 	uint64_t u64;
-	struct cvmx_rst_ctlx_s {
+	struct cvmx_rst_ctlx_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_10_63:54;
-		uint64_t prst_link:1;
-		uint64_t rst_done:1;
-		uint64_t rst_link:1;
-		uint64_t host_mode:1;
-		uint64_t reserved_4_5:2;
-		uint64_t rst_drv:1;
-		uint64_t rst_rcv:1;
-		uint64_t rst_chip:1;
-		uint64_t rst_val:1;
+		uint64_t reserved_10_63: 54;
+		uint64_t prst_link: 1;
+		uint64_t rst_done: 1;
+		uint64_t rst_link: 1;
+		uint64_t host_mode: 1;
+		uint64_t reserved_4_5: 2;
+		uint64_t rst_drv: 1;
+		uint64_t rst_rcv: 1;
+		uint64_t rst_chip: 1;
+		uint64_t rst_val: 1;
 #else
-		uint64_t rst_val:1;
-		uint64_t rst_chip:1;
-		uint64_t rst_rcv:1;
-		uint64_t rst_drv:1;
-		uint64_t reserved_4_5:2;
-		uint64_t host_mode:1;
-		uint64_t rst_link:1;
-		uint64_t rst_done:1;
-		uint64_t prst_link:1;
-		uint64_t reserved_10_63:54;
+		uint64_t rst_val: 1;
+		uint64_t rst_chip: 1;
+		uint64_t rst_rcv: 1;
+		uint64_t rst_drv: 1;
+		uint64_t reserved_4_5: 2;
+		uint64_t host_mode: 1;
+		uint64_t rst_link: 1;
+		uint64_t rst_done: 1;
+		uint64_t prst_link: 1;
+		uint64_t reserved_10_63: 54;
 #endif
 	} s;
 	struct cvmx_rst_ctlx_s cn70xx;
@@ -155,17 +163,19 @@ union cvmx_rst_ctlx {
 	struct cvmx_rst_ctlx_s cn78xx;
 };
 
-union cvmx_rst_delay {
+union cvmx_rst_delay
+{
 	uint64_t u64;
-	struct cvmx_rst_delay_s {
+	struct cvmx_rst_delay_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_32_63:32;
-		uint64_t warm_rst_dly:16;
-		uint64_t soft_rst_dly:16;
+		uint64_t reserved_32_63: 32;
+		uint64_t warm_rst_dly: 16;
+		uint64_t soft_rst_dly: 16;
 #else
-		uint64_t soft_rst_dly:16;
-		uint64_t warm_rst_dly:16;
-		uint64_t reserved_32_63:32;
+		uint64_t soft_rst_dly: 16;
+		uint64_t warm_rst_dly: 16;
+		uint64_t reserved_32_63: 32;
 #endif
 	} s;
 	struct cvmx_rst_delay_s cn70xx;
@@ -173,113 +183,127 @@ union cvmx_rst_delay {
 	struct cvmx_rst_delay_s cn78xx;
 };
 
-union cvmx_rst_eco {
+union cvmx_rst_eco
+{
 	uint64_t u64;
-	struct cvmx_rst_eco_s {
+	struct cvmx_rst_eco_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_32_63:32;
-		uint64_t eco_rw:32;
+		uint64_t reserved_32_63: 32;
+		uint64_t eco_rw: 32;
 #else
-		uint64_t eco_rw:32;
-		uint64_t reserved_32_63:32;
+		uint64_t eco_rw: 32;
+		uint64_t reserved_32_63: 32;
 #endif
 	} s;
 	struct cvmx_rst_eco_s cn78xx;
 };
 
-union cvmx_rst_int {
+union cvmx_rst_int
+{
 	uint64_t u64;
-	struct cvmx_rst_int_s {
+	struct cvmx_rst_int_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_12_63:52;
-		uint64_t perst:4;
-		uint64_t reserved_4_7:4;
-		uint64_t rst_link:4;
+		uint64_t reserved_12_63: 52;
+		uint64_t perst: 4;
+		uint64_t reserved_4_7: 4;
+		uint64_t rst_link: 4;
 #else
-		uint64_t rst_link:4;
-		uint64_t reserved_4_7:4;
-		uint64_t perst:4;
-		uint64_t reserved_12_63:52;
+		uint64_t rst_link: 4;
+		uint64_t reserved_4_7: 4;
+		uint64_t perst: 4;
+		uint64_t reserved_12_63: 52;
 #endif
 	} s;
-	struct cvmx_rst_int_cn70xx {
+	struct cvmx_rst_int_cn70xx
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_11_63:53;
-		uint64_t perst:3;
-		uint64_t reserved_3_7:5;
-		uint64_t rst_link:3;
+		uint64_t reserved_11_63: 53;
+		uint64_t perst: 3;
+		uint64_t reserved_3_7: 5;
+		uint64_t rst_link: 3;
 #else
-		uint64_t rst_link:3;
-		uint64_t reserved_3_7:5;
-		uint64_t perst:3;
-		uint64_t reserved_11_63:53;
+		uint64_t rst_link: 3;
+		uint64_t reserved_3_7: 5;
+		uint64_t perst: 3;
+		uint64_t reserved_11_63: 53;
 #endif
 	} cn70xx;
 	struct cvmx_rst_int_cn70xx cn70xxp1;
 	struct cvmx_rst_int_s cn78xx;
 };
 
-union cvmx_rst_ocx {
+union cvmx_rst_ocx
+{
 	uint64_t u64;
-	struct cvmx_rst_ocx_s {
+	struct cvmx_rst_ocx_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_3_63:61;
-		uint64_t rst_link:3;
+		uint64_t reserved_3_63: 61;
+		uint64_t rst_link: 3;
 #else
-		uint64_t rst_link:3;
-		uint64_t reserved_3_63:61;
+		uint64_t rst_link: 3;
+		uint64_t reserved_3_63: 61;
 #endif
 	} s;
 	struct cvmx_rst_ocx_s cn78xx;
 };
 
-union cvmx_rst_power_dbg {
+union cvmx_rst_power_dbg
+{
 	uint64_t u64;
-	struct cvmx_rst_power_dbg_s {
+	struct cvmx_rst_power_dbg_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_3_63:61;
-		uint64_t str:3;
+		uint64_t reserved_3_63: 61;
+		uint64_t str: 3;
 #else
-		uint64_t str:3;
-		uint64_t reserved_3_63:61;
+		uint64_t str: 3;
+		uint64_t reserved_3_63: 61;
 #endif
 	} s;
 	struct cvmx_rst_power_dbg_s cn78xx;
 };
 
-union cvmx_rst_pp_power {
+union cvmx_rst_pp_power
+{
 	uint64_t u64;
-	struct cvmx_rst_pp_power_s {
+	struct cvmx_rst_pp_power_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_48_63:16;
-		uint64_t gate:48;
+		uint64_t reserved_48_63: 16;
+		uint64_t gate: 48;
 #else
-		uint64_t gate:48;
-		uint64_t reserved_48_63:16;
+		uint64_t gate: 48;
+		uint64_t reserved_48_63: 16;
 #endif
 	} s;
-	struct cvmx_rst_pp_power_cn70xx {
+	struct cvmx_rst_pp_power_cn70xx
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_4_63:60;
-		uint64_t gate:4;
+		uint64_t reserved_4_63: 60;
+		uint64_t gate: 4;
 #else
-		uint64_t gate:4;
-		uint64_t reserved_4_63:60;
+		uint64_t gate: 4;
+		uint64_t reserved_4_63: 60;
 #endif
 	} cn70xx;
 	struct cvmx_rst_pp_power_cn70xx cn70xxp1;
 	struct cvmx_rst_pp_power_s cn78xx;
 };
 
-union cvmx_rst_soft_prstx {
+union cvmx_rst_soft_prstx
+{
 	uint64_t u64;
-	struct cvmx_rst_soft_prstx_s {
+	struct cvmx_rst_soft_prstx_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_1_63:63;
-		uint64_t soft_prst:1;
+		uint64_t reserved_1_63: 63;
+		uint64_t soft_prst: 1;
 #else
-		uint64_t soft_prst:1;
-		uint64_t reserved_1_63:63;
+		uint64_t soft_prst: 1;
+		uint64_t reserved_1_63: 63;
 #endif
 	} s;
 	struct cvmx_rst_soft_prstx_s cn70xx;
@@ -287,15 +311,17 @@ union cvmx_rst_soft_prstx {
 	struct cvmx_rst_soft_prstx_s cn78xx;
 };
 
-union cvmx_rst_soft_rst {
+union cvmx_rst_soft_rst
+{
 	uint64_t u64;
-	struct cvmx_rst_soft_rst_s {
+	struct cvmx_rst_soft_rst_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_1_63:63;
-		uint64_t soft_rst:1;
+		uint64_t reserved_1_63: 63;
+		uint64_t soft_rst: 1;
 #else
-		uint64_t soft_rst:1;
-		uint64_t reserved_1_63:63;
+		uint64_t soft_rst: 1;
+		uint64_t reserved_1_63: 63;
 #endif
 	} s;
 	struct cvmx_rst_soft_rst_s cn70xx;

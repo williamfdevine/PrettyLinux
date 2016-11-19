@@ -39,7 +39,8 @@
  * This is deprecated.  As soon as we have a decent OPP API, we should
  * move all this stuff to it.
  */
-struct prcm_config {
+struct prcm_config
+{
 	unsigned long xtal_speed;	/* crystal rate */
 	unsigned long dpll_speed;	/* dpll: out*xtal*M/(N-1)table_recalc */
 	unsigned long mpu_speed;	/* speed of MPU */
@@ -69,8 +70,8 @@ struct prcm_config {
 #define R1_CLKSEL_L4			(2 << 5)
 #define R1_CLKSEL_USB			(4 << 25)
 #define R1_CM_CLKSEL1_CORE_VAL		(R1_CLKSEL_USB | RX_CLKSEL_SSI | \
-					 RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
-					 R1_CLKSEL_L4 | R1_CLKSEL_L3)
+									 RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
+									 R1_CLKSEL_L4 | R1_CLKSEL_L3)
 #define R1_CLKSEL_MPU			(2 << 0)
 #define R1_CM_CLKSEL_MPU_VAL		R1_CLKSEL_MPU
 #define R1_CLKSEL_DSP			(2 << 0)
@@ -86,8 +87,8 @@ struct prcm_config {
 #define R2_CLKSEL_L4			(2 << 5)
 #define R2_CLKSEL_USB			(2 << 25)
 #define R2_CM_CLKSEL1_CORE_VAL		(R2_CLKSEL_USB | RX_CLKSEL_SSI | \
-					 RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
-					 R2_CLKSEL_L4 | R2_CLKSEL_L3)
+									 RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
+									 R2_CLKSEL_L4 | R2_CLKSEL_L3)
 #define R2_CLKSEL_MPU			(2 << 0)
 #define R2_CM_CLKSEL_MPU_VAL		R2_CLKSEL_MPU
 #define R2_CLKSEL_DSP			(2 << 0)
@@ -103,8 +104,8 @@ struct prcm_config {
 #define RB_CLKSEL_L4			(1 << 5)
 #define RB_CLKSEL_USB			(1 << 25)
 #define RB_CM_CLKSEL1_CORE_VAL		(RB_CLKSEL_USB | RX_CLKSEL_SSI | \
-					 RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
-					 RB_CLKSEL_L4 | RB_CLKSEL_L3)
+									 RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
+									 RB_CLKSEL_L4 | RB_CLKSEL_L3)
 #define RB_CLKSEL_MPU			(1 << 0)
 #define RB_CM_CLKSEL_MPU_VAL		RB_CLKSEL_MPU
 #define RB_CLKSEL_DSP			(1 << 0)
@@ -124,9 +125,9 @@ struct prcm_config {
 #define RIII_CLKSEL_L4			(2 << 5)	/* 66.5MHz */
 #define RIII_CLKSEL_USB			(4 << 25)	/* 33.25MHz */
 #define RIII_CM_CLKSEL1_CORE_VAL	(RIII_CLKSEL_USB | RXX_CLKSEL_SSI | \
-					 RXX_CLKSEL_VLYNQ | RX_CLKSEL_DSS2 | \
-					 RX_CLKSEL_DSS1 | RIII_CLKSEL_L4 | \
-					 RIII_CLKSEL_L3)
+									 RXX_CLKSEL_VLYNQ | RX_CLKSEL_DSS2 | \
+									 RX_CLKSEL_DSS1 | RIII_CLKSEL_L4 | \
+									 RIII_CLKSEL_L3)
 #define RIII_CLKSEL_MPU			(2 << 0)	/* 266MHz */
 #define RIII_CM_CLKSEL_MPU_VAL		RIII_CLKSEL_MPU
 #define RIII_CLKSEL_DSP			(3 << 0)	/* c5x - 177.3MHz */
@@ -135,8 +136,8 @@ struct prcm_config {
 #define RIII_CLKSEL_IVA			(6 << 8)	/* iva1 - 88.67MHz */
 #define RIII_SYNC_IVA			(1 << 13)	/* Enable sync */
 #define RIII_CM_CLKSEL_DSP_VAL		(RIII_SYNC_IVA | RIII_CLKSEL_IVA | \
-					 RIII_SYNC_DSP | RIII_CLKSEL_DSP_IF | \
-					 RIII_CLKSEL_DSP)
+									 RIII_SYNC_DSP | RIII_CLKSEL_DSP_IF | \
+									 RIII_CLKSEL_DSP)
 #define RIII_CLKSEL_GFX			(2 << 0)	/* 66.5MHz */
 #define RIII_CM_CLKSEL_GFX_VAL		RIII_CLKSEL_GFX
 
@@ -145,9 +146,9 @@ struct prcm_config {
 #define RII_CLKSEL_L4			(2 << 5)	/* 50MHz */
 #define RII_CLKSEL_USB			(2 << 25)	/* 50MHz */
 #define RII_CM_CLKSEL1_CORE_VAL		(RII_CLKSEL_USB | RXX_CLKSEL_SSI | \
-					 RXX_CLKSEL_VLYNQ | RX_CLKSEL_DSS2 | \
-					 RX_CLKSEL_DSS1 | RII_CLKSEL_L4 | \
-					 RII_CLKSEL_L3)
+									 RXX_CLKSEL_VLYNQ | RX_CLKSEL_DSS2 | \
+									 RX_CLKSEL_DSS1 | RII_CLKSEL_L4 | \
+									 RII_CLKSEL_L3)
 #define RII_CLKSEL_MPU			(2 << 0)	/* 300MHz */
 #define RII_CM_CLKSEL_MPU_VAL		RII_CLKSEL_MPU
 #define RII_CLKSEL_DSP			(3 << 0)	/* c5x - 200MHz */
@@ -156,8 +157,8 @@ struct prcm_config {
 #define RII_CLKSEL_IVA			(3 << 8)	/* iva1 - 200MHz */
 #define RII_SYNC_IVA			(0 << 13)	/* Bypass sync */
 #define RII_CM_CLKSEL_DSP_VAL		(RII_SYNC_IVA | RII_CLKSEL_IVA | \
-					 RII_SYNC_DSP | RII_CLKSEL_DSP_IF | \
-					 RII_CLKSEL_DSP)
+									 RII_SYNC_DSP | RII_CLKSEL_DSP_IF | \
+									 RII_CLKSEL_DSP)
 #define RII_CLKSEL_GFX			(2 << 0)	/* 50MHz */
 #define RII_CM_CLKSEL_GFX_VAL		RII_CLKSEL_GFX
 
@@ -166,9 +167,9 @@ struct prcm_config {
 #define RI_CLKSEL_L4			(2 << 5)	/* 82.5MHz */
 #define RI_CLKSEL_USB			(4 << 25)	/* 41.25MHz */
 #define RI_CM_CLKSEL1_CORE_VAL		(RI_CLKSEL_USB |		\
-					 RXX_CLKSEL_SSI | RXX_CLKSEL_VLYNQ | \
-					 RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
-					 RI_CLKSEL_L4 | RI_CLKSEL_L3)
+									 RXX_CLKSEL_SSI | RXX_CLKSEL_VLYNQ | \
+									 RX_CLKSEL_DSS2 | RX_CLKSEL_DSS1 | \
+									 RI_CLKSEL_L4 | RI_CLKSEL_L3)
 #define RI_CLKSEL_MPU			(2 << 0)	/* 330MHz */
 #define RI_CM_CLKSEL_MPU_VAL		RI_CLKSEL_MPU
 #define RI_CLKSEL_DSP			(3 << 0)	/* c5x - 220MHz */
@@ -177,8 +178,8 @@ struct prcm_config {
 #define RI_CLKSEL_IVA			(4 << 8)	/* iva1 - 165MHz */
 #define RI_SYNC_IVA			(0 << 13)	/* Bypass sync */
 #define RI_CM_CLKSEL_DSP_VAL		(RI_SYNC_IVA | RI_CLKSEL_IVA |	\
-					 RI_SYNC_DSP | RI_CLKSEL_DSP_IF | \
-					 RI_CLKSEL_DSP)
+									 RI_SYNC_DSP | RI_CLKSEL_DSP_IF | \
+									 RI_CLKSEL_DSP)
 #define RI_CLKSEL_GFX			(1 << 0)	/* 165MHz */
 #define RI_CM_CLKSEL_GFX_VAL		RI_CLKSEL_GFX
 
@@ -192,9 +193,9 @@ struct prcm_config {
 #define RVII_CLKSEL_USB			(1 << 25)
 
 #define RVII_CM_CLKSEL1_CORE_VAL	(RVII_CLKSEL_USB | RVII_CLKSEL_SSI | \
-					 RVII_CLKSEL_VLYNQ | \
-					 RVII_CLKSEL_DSS2 | RVII_CLKSEL_DSS1 | \
-					 RVII_CLKSEL_L4 | RVII_CLKSEL_L3)
+									 RVII_CLKSEL_VLYNQ | \
+									 RVII_CLKSEL_DSS2 | RVII_CLKSEL_DSS1 | \
+									 RVII_CLKSEL_L4 | RVII_CLKSEL_L3)
 
 #define RVII_CLKSEL_MPU			(1 << 0) /* all divide by 1 */
 #define RVII_CM_CLKSEL_MPU_VAL		RVII_CLKSEL_MPU
@@ -205,8 +206,8 @@ struct prcm_config {
 #define RVII_CLKSEL_IVA			(1 << 8)
 #define RVII_SYNC_IVA			(0 << 13)
 #define RVII_CM_CLKSEL_DSP_VAL		(RVII_SYNC_IVA | RVII_CLKSEL_IVA | \
-					 RVII_SYNC_DSP | RVII_CLKSEL_DSP_IF | \
-					 RVII_CLKSEL_DSP)
+									 RVII_SYNC_DSP | RVII_CLKSEL_DSP_IF | \
+									 RVII_CLKSEL_DSP)
 
 #define RVII_CLKSEL_GFX			(1 << 0)
 #define RVII_CM_CLKSEL_GFX_VAL		RVII_CLKSEL_GFX
@@ -231,55 +232,55 @@ struct prcm_config {
 #define M5A_DPLL_MULT_12		(133 << 12)
 #define M5A_DPLL_DIV_12			(5 << 8)
 #define M5A_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M5A_DPLL_DIV_12 | M5A_DPLL_MULT_12 | \
-					 MX_APLLS_CLIKIN_12)
+									 M5A_DPLL_DIV_12 | M5A_DPLL_MULT_12 | \
+									 MX_APLLS_CLIKIN_12)
 #define M5A_DPLL_MULT_13		(61 << 12)
 #define M5A_DPLL_DIV_13			(2 << 8)
 #define M5A_CM_CLKSEL1_PLL_13_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M5A_DPLL_DIV_13 | M5A_DPLL_MULT_13 | \
-					 MX_APLLS_CLIKIN_13)
+									 M5A_DPLL_DIV_13 | M5A_DPLL_MULT_13 | \
+									 MX_APLLS_CLIKIN_13)
 #define M5A_DPLL_MULT_19		(55 << 12)
 #define M5A_DPLL_DIV_19			(3 << 8)
 #define M5A_CM_CLKSEL1_PLL_19_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M5A_DPLL_DIV_19 | M5A_DPLL_MULT_19 | \
-					 MX_APLLS_CLIKIN_19_2)
+									 M5A_DPLL_DIV_19 | M5A_DPLL_MULT_19 | \
+									 MX_APLLS_CLIKIN_19_2)
 /* #5b	(ratio1) target DPLL = 200*2 = 400MHz */
 #define M5B_DPLL_MULT_12		(50 << 12)
 #define M5B_DPLL_DIV_12			(2 << 8)
 #define M5B_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M5B_DPLL_DIV_12 | M5B_DPLL_MULT_12 | \
-					 MX_APLLS_CLIKIN_12)
+									 M5B_DPLL_DIV_12 | M5B_DPLL_MULT_12 | \
+									 MX_APLLS_CLIKIN_12)
 #define M5B_DPLL_MULT_13		(200 << 12)
 #define M5B_DPLL_DIV_13			(12 << 8)
 
 #define M5B_CM_CLKSEL1_PLL_13_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M5B_DPLL_DIV_13 | M5B_DPLL_MULT_13 | \
-					 MX_APLLS_CLIKIN_13)
+									 M5B_DPLL_DIV_13 | M5B_DPLL_MULT_13 | \
+									 MX_APLLS_CLIKIN_13)
 #define M5B_DPLL_MULT_19		(125 << 12)
 #define M5B_DPLL_DIV_19			(31 << 8)
 #define M5B_CM_CLKSEL1_PLL_19_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M5B_DPLL_DIV_19 | M5B_DPLL_MULT_19 | \
-					 MX_APLLS_CLIKIN_19_2)
+									 M5B_DPLL_DIV_19 | M5B_DPLL_MULT_19 | \
+									 MX_APLLS_CLIKIN_19_2)
 /*
  * #4	(ratio2), DPLL = 399*2 = 798MHz, L3=133MHz
  */
 #define M4_DPLL_MULT_12			(133 << 12)
 #define M4_DPLL_DIV_12			(3 << 8)
 #define M4_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M4_DPLL_DIV_12 | M4_DPLL_MULT_12 | \
-					 MX_APLLS_CLIKIN_12)
+									 M4_DPLL_DIV_12 | M4_DPLL_MULT_12 | \
+									 MX_APLLS_CLIKIN_12)
 
 #define M4_DPLL_MULT_13			(399 << 12)
 #define M4_DPLL_DIV_13			(12 << 8)
 #define M4_CM_CLKSEL1_PLL_13_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M4_DPLL_DIV_13 | M4_DPLL_MULT_13 | \
-					 MX_APLLS_CLIKIN_13)
+									 M4_DPLL_DIV_13 | M4_DPLL_MULT_13 | \
+									 MX_APLLS_CLIKIN_13)
 
 #define M4_DPLL_MULT_19			(145 << 12)
 #define M4_DPLL_DIV_19			(6 << 8)
 #define M4_CM_CLKSEL1_PLL_19_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M4_DPLL_DIV_19 | M4_DPLL_MULT_19 | \
-					 MX_APLLS_CLIKIN_19_2)
+									 M4_DPLL_DIV_19 | M4_DPLL_MULT_19 | \
+									 MX_APLLS_CLIKIN_19_2)
 
 /*
  * #3	(ratio2) baseport-target, target DPLL = 330*2 = 660MHz
@@ -287,18 +288,18 @@ struct prcm_config {
 #define M3_DPLL_MULT_12			(55 << 12)
 #define M3_DPLL_DIV_12			(1 << 8)
 #define M3_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M3_DPLL_DIV_12 | M3_DPLL_MULT_12 | \
-					 MX_APLLS_CLIKIN_12)
+									 M3_DPLL_DIV_12 | M3_DPLL_MULT_12 | \
+									 MX_APLLS_CLIKIN_12)
 #define M3_DPLL_MULT_13			(76 << 12)
 #define M3_DPLL_DIV_13			(2 << 8)
 #define M3_CM_CLKSEL1_PLL_13_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M3_DPLL_DIV_13 | M3_DPLL_MULT_13 | \
-					 MX_APLLS_CLIKIN_13)
+									 M3_DPLL_DIV_13 | M3_DPLL_MULT_13 | \
+									 MX_APLLS_CLIKIN_13)
 #define M3_DPLL_MULT_19			(17 << 12)
 #define M3_DPLL_DIV_19			(0 << 8)
 #define M3_CM_CLKSEL1_PLL_19_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M3_DPLL_DIV_19 | M3_DPLL_MULT_19 | \
-					 MX_APLLS_CLIKIN_19_2)
+									 M3_DPLL_DIV_19 | M3_DPLL_MULT_19 | \
+									 MX_APLLS_CLIKIN_19_2)
 
 /*
  * #2   (ratio1) DPLL = 330*2 = 660MHz, L3=165MHz
@@ -306,8 +307,8 @@ struct prcm_config {
 #define M2_DPLL_MULT_12		        (55 << 12)
 #define M2_DPLL_DIV_12		        (1 << 8)
 #define M2_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M2_DPLL_DIV_12 | M2_DPLL_MULT_12 | \
-					 MX_APLLS_CLIKIN_12)
+									 M2_DPLL_DIV_12 | M2_DPLL_MULT_12 | \
+									 MX_APLLS_CLIKIN_12)
 
 /* Speed changes - Used 658.7MHz instead of 660MHz for LP-Refresh M=76 N=2,
  * relock time issue */
@@ -315,29 +316,29 @@ struct prcm_config {
 #define M2_DPLL_MULT_13		        (76 << 12)
 #define M2_DPLL_DIV_13		        (2 << 8)
 #define M2_CM_CLKSEL1_PLL_13_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M2_DPLL_DIV_13 | M2_DPLL_MULT_13 | \
-					 MX_APLLS_CLIKIN_13)
+									 M2_DPLL_DIV_13 | M2_DPLL_MULT_13 | \
+									 MX_APLLS_CLIKIN_13)
 
 #define M2_DPLL_MULT_19		        (17 << 12)
 #define M2_DPLL_DIV_19		        (0 << 8)
 #define M2_CM_CLKSEL1_PLL_19_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 M2_DPLL_DIV_19 | M2_DPLL_MULT_19 | \
-					 MX_APLLS_CLIKIN_19_2)
+									 M2_DPLL_DIV_19 | M2_DPLL_MULT_19 | \
+									 MX_APLLS_CLIKIN_19_2)
 
 /* boot (boot) */
 #define MB_DPLL_MULT			(1 << 12)
 #define MB_DPLL_DIV			(0 << 8)
 #define MB_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 MB_DPLL_DIV | MB_DPLL_MULT | \
-					 MX_APLLS_CLIKIN_12)
+									 MB_DPLL_DIV | MB_DPLL_MULT | \
+									 MX_APLLS_CLIKIN_12)
 
 #define MB_CM_CLKSEL1_PLL_13_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 MB_DPLL_DIV | MB_DPLL_MULT | \
-					 MX_APLLS_CLIKIN_13)
+									 MB_DPLL_DIV | MB_DPLL_MULT | \
+									 MX_APLLS_CLIKIN_13)
 
 #define MB_CM_CLKSEL1_PLL_19_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 MB_DPLL_DIV | MB_DPLL_MULT | \
-					 MX_APLLS_CLIKIN_19)
+									 MB_DPLL_DIV | MB_DPLL_MULT | \
+									 MX_APLLS_CLIKIN_19)
 
 /*
  * 2430 - chassis (sedna)
@@ -353,8 +354,8 @@ struct prcm_config {
 #define MI_DPLL_MULT_12			(55 << 12)
 #define MI_DPLL_DIV_12			(1 << 8)
 #define MI_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC | \
-					 MI_DPLL_DIV_12 | MI_DPLL_MULT_12 | \
-					 MX_APLLS_CLIKIN_12)
+									 MI_DPLL_DIV_12 | MI_DPLL_MULT_12 | \
+									 MX_APLLS_CLIKIN_12)
 
 /*
  * 2420 Equivalent - mode registers
@@ -363,25 +364,25 @@ struct prcm_config {
 #define MII_DPLL_MULT_12		(50 << 12)
 #define MII_DPLL_DIV_12			(1 << 8)
 #define MII_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC |	\
-					 MII_DPLL_DIV_12 | MII_DPLL_MULT_12 | \
-					 MX_APLLS_CLIKIN_12)
+									 MII_DPLL_DIV_12 | MII_DPLL_MULT_12 | \
+									 MX_APLLS_CLIKIN_12)
 #define MII_DPLL_MULT_13		(300 << 12)
 #define MII_DPLL_DIV_13			(12 << 8)
 #define MII_CM_CLKSEL1_PLL_13_VAL	(MX_48M_SRC | MX_54M_SRC |	\
-					 MII_DPLL_DIV_13 | MII_DPLL_MULT_13 | \
-					 MX_APLLS_CLIKIN_13)
+									 MII_DPLL_DIV_13 | MII_DPLL_MULT_13 | \
+									 MX_APLLS_CLIKIN_13)
 
 /* PRCM III target DPLL = 2*266 = 532MHz*/
 #define MIII_DPLL_MULT_12		(133 << 12)
 #define MIII_DPLL_DIV_12		(5 << 8)
 #define MIII_CM_CLKSEL1_PLL_12_VAL	(MX_48M_SRC | MX_54M_SRC |	\
-					 MIII_DPLL_DIV_12 | \
-					 MIII_DPLL_MULT_12 | MX_APLLS_CLIKIN_12)
+									 MIII_DPLL_DIV_12 | \
+									 MIII_DPLL_MULT_12 | MX_APLLS_CLIKIN_12)
 #define MIII_DPLL_MULT_13		(266 << 12)
 #define MIII_DPLL_DIV_13		(12 << 8)
 #define MIII_CM_CLKSEL1_PLL_13_VAL	(MX_48M_SRC | MX_54M_SRC |	\
-					 MIII_DPLL_DIV_13 | \
-					 MIII_DPLL_MULT_13 | MX_APLLS_CLIKIN_13)
+									 MIII_DPLL_DIV_13 | \
+									 MIII_DPLL_MULT_13 | MX_APLLS_CLIKIN_13)
 
 /* PRCM VII (boot bypass) */
 #define MVII_CM_CLKSEL1_PLL_12_VAL	MB_CM_CLKSEL1_PLL_12_VAL
@@ -419,9 +420,9 @@ struct prcm_config {
 extern const struct prcm_config omap2420_rate_table[];
 
 #ifdef CONFIG_SOC_OMAP2430
-extern const struct prcm_config omap2430_rate_table[];
+	extern const struct prcm_config omap2430_rate_table[];
 #else
-#define omap2430_rate_table	NULL
+	#define omap2430_rate_table	NULL
 #endif
 extern const struct prcm_config *rate_table;
 extern const struct prcm_config *curr_prcm_set;

@@ -26,7 +26,7 @@
  * @set: Pointer to the platform data to fill in.
  */
 extern void s3c_sdhci_set_platdata(struct s3c_sdhci_platdata *pd,
-				    struct s3c_sdhci_platdata *set);
+								   struct s3c_sdhci_platdata *set);
 
 /**
  * s3c_sdhci0_set_platdata - Set platform data for S3C SDHCI device.
@@ -138,29 +138,35 @@ static inline void s3c6400_default_sdhci2(void) { }
 
 static inline void s3c_sdhci_setname(int id, char *name)
 {
-	switch (id) {
+	switch (id)
+	{
 #ifdef CONFIG_S3C_DEV_HSMMC
-	case 0:
-		s3c_device_hsmmc0.name = name;
-		break;
+
+		case 0:
+			s3c_device_hsmmc0.name = name;
+			break;
 #endif
 #ifdef CONFIG_S3C_DEV_HSMMC1
-	case 1:
-		s3c_device_hsmmc1.name = name;
-		break;
+
+		case 1:
+			s3c_device_hsmmc1.name = name;
+			break;
 #endif
 #ifdef CONFIG_S3C_DEV_HSMMC2
-	case 2:
-		s3c_device_hsmmc2.name = name;
-		break;
+
+		case 2:
+			s3c_device_hsmmc2.name = name;
+			break;
 #endif
 #ifdef CONFIG_S3C_DEV_HSMMC3
-	case 3:
-		s3c_device_hsmmc3.name = name;
-		break;
+
+		case 3:
+			s3c_device_hsmmc3.name = name;
+			break;
 #endif
-	default:
-		break;
+
+		default:
+			break;
 	}
 }
 #endif /* __PLAT_S3C_SDHCI_H */

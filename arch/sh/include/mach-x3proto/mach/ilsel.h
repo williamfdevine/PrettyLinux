@@ -1,7 +1,8 @@
 #ifndef __ASM_SH_ILSEL_H
 #define __ASM_SH_ILSEL_H
 
-typedef enum {
+typedef enum
+{
 	ILSEL_NONE,
 	ILSEL_LAN,
 	ILSEL_USBH_I,

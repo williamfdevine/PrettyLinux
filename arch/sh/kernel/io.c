@@ -24,7 +24,8 @@ void memcpy_fromio(void *to, const volatile void __iomem *from, unsigned long co
 	 */
 #ifdef CONFIG_CPU_SH4
 	if ((count >= 0x20) &&
-	     (((u32)to & 0x1f) == 0) && (((u32)from & 0x3) == 0)) {
+		(((u32)to & 0x1f) == 0) && (((u32)from & 0x3) == 0))
+	{
 		int tmp2, tmp3, tmp4, tmp5, tmp6;
 
 		__asm__ __volatile__(
@@ -51,22 +52,26 @@ void memcpy_fromio(void *to, const volatile void __iomem *from, unsigned long co
 			"bf.s	1b		\n\t"
 			" add	#0x20, %0	\n\t"
 			: "=&r" (to), "=&r" (count),
-			  "=&r" (tmp2), "=&r" (tmp3), "=&r" (tmp4),
-			  "=&r" (tmp5), "=&r" (tmp6), "=&r" (from)
+			"=&r" (tmp2), "=&r" (tmp3), "=&r" (tmp4),
+			"=&r" (tmp5), "=&r" (tmp6), "=&r" (from)
 			: "7"(from), "0" (to), "1" (count)
 			: "r0", "r7", "t", "memory");
 	}
+
 #endif
 
-	if ((((u32)to | (u32)from) & 0x3) == 0) {
-		for (; count > 3; count -= 4) {
+	if ((((u32)to | (u32)from) & 0x3) == 0)
+	{
+		for (; count > 3; count -= 4)
+		{
 			*(u32 *)to = *(volatile u32 *)from;
 			to += 4;
 			from += 4;
 		}
 	}
 
-	for (; count > 0; count--) {
+	for (; count > 0; count--)
+	{
 		*(u8 *)to = *(volatile u8 *)from;
 		to++;
 		from++;
@@ -81,15 +86,18 @@ EXPORT_SYMBOL(memcpy_fromio);
  */
 void memcpy_toio(volatile void __iomem *to, const void *from, unsigned long count)
 {
-	if ((((u32)to | (u32)from) & 0x3) == 0) {
-		for ( ; count > 3; count -= 4) {
+	if ((((u32)to | (u32)from) & 0x3) == 0)
+	{
+		for ( ; count > 3; count -= 4)
+		{
 			*(volatile u32 *)to = *(u32 *)from;
 			to += 4;
 			from += 4;
 		}
 	}
 
-	for (; count > 0; count--) {
+	for (; count > 0; count--)
+	{
 		*(volatile u8 *)to = *(u8 *)from;
 		to++;
 		from++;
@@ -105,10 +113,11 @@ EXPORT_SYMBOL(memcpy_toio);
  */
 void memset_io(volatile void __iomem *dst, int c, unsigned long count)
 {
-        while (count) {
-                count--;
-                writeb(c, dst);
-                dst++;
-        }
+	while (count)
+	{
+		count--;
+		writeb(c, dst);
+		dst++;
+	}
 }
 EXPORT_SYMBOL(memset_io);

@@ -34,16 +34,16 @@
 #include <asm/hw_irq.h>
 
 #if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE)
-/* this needs a better home */
-DEFINE_SPINLOCK(rtc_lock);
+	/* this needs a better home */
+	DEFINE_SPINLOCK(rtc_lock);
 
-#ifdef CONFIG_RTC_DRV_CMOS_MODULE
-EXPORT_SYMBOL(rtc_lock);
-#endif
+	#ifdef CONFIG_RTC_DRV_CMOS_MODULE
+		EXPORT_SYMBOL(rtc_lock);
+	#endif
 #endif  /* pc-style 'CMOS' RTC support */
 
 #ifdef CONFIG_SMP
-extern void smp_local_timer_interrupt(void);
+	extern void smp_local_timer_interrupt(void);
 #endif
 
 #define TICK_SIZE	(tick_nsec / 1000)
@@ -72,7 +72,9 @@ static u32 m32r_gettimeoffset(void)
 	count = inl(M32R_MFT2CUT_PORTL);
 
 	if (inl(M32R_ICU_CR18_PORTL) & 0x00000100)	/* underflow check */
+	{
 		count = 0;
+	}
 
 	count = (latch - count) * TICK_SIZE;
 	elapsed_time = DIV_ROUND_CLOSEST(count, latch);
@@ -87,7 +89,9 @@ static u32 m32r_gettimeoffset(void)
 	count = inl(M32R_MFT2CUT_PORTL);
 
 	if (jiffies == p_jiffies && count > p_count)
+	{
 		count = 0;
+	}
 
 	p_jiffies = jiffies;
 	p_count = count;
@@ -132,7 +136,8 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction irq0 = {
+static struct irqaction irq0 =
+{
 	.handler = timer_interrupt,
 	.name = "MFT2",
 };
@@ -152,9 +157,14 @@ void read_persistent_clock(struct timespec *ts)
 	   so no stupid things will happen to timekeeping.  Who knows, maybe
 	   Ultrix also uses 1952 as epoch ...  */
 	if (year > 10 && year < 44)
+	{
 		epoch = 1980;
+	}
 	else if (year < 96)
+	{
 		epoch = 1952;
+	}
+
 	year += epoch;
 
 	ts->tv_sec = mktime(year, mon, day, hour, min, sec);
@@ -178,16 +188,16 @@ void __init time_init(void)
 
 		bus_clock = boot_cpu_data.bus_clock;
 		divide = boot_cpu_data.timer_divide;
-		latch = DIV_ROUND_CLOSEST(bus_clock/divide, HZ);
+		latch = DIV_ROUND_CLOSEST(bus_clock / divide, HZ);
 
 		printk("Timer start : latch = %ld\n", latch);
 
 		outl((M32R_MFTMOD_CC_MASK | M32R_MFTMOD_TCCR \
-			|M32R_MFTMOD_CSSEL011), M32R_MFT2MOD_PORTL);
+			  | M32R_MFTMOD_CSSEL011), M32R_MFT2MOD_PORTL);
 		outl(latch, M32R_MFT2RLD_PORTL);
 		outl(latch, M32R_MFT2CUT_PORTL);
 		outl(0, M32R_MFT2CMPRLD_PORTL);
-		outl((M32R_MFTCR_MFT2MSK|M32R_MFTCR_MFT2EN), M32R_MFTCR_PORTL);
+		outl((M32R_MFTCR_MFT2MSK | M32R_MFTCR_MFT2EN), M32R_MFTCR_PORTL);
 	}
 
 #elif defined(CONFIG_CHIP_M32310)

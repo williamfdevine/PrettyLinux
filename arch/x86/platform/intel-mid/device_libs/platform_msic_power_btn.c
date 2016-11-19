@@ -25,7 +25,8 @@ static void __init *msic_power_btn_platform_data(void *info)
 	return msic_generic_platform_data(info, INTEL_MSIC_BLOCK_POWER_BTN);
 }
 
-static const struct devs_id msic_power_btn_dev_id __initconst = {
+static const struct devs_id msic_power_btn_dev_id __initconst =
+{
 	.name = "msic_power_btn",
 	.type = SFI_DEV_TYPE_IPC,
 	.delay = 1,

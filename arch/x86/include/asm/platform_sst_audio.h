@@ -19,7 +19,8 @@
 #define MAX_NUM_STREAMS_MRFLD	25
 #define MAX_NUM_STREAMS	MAX_NUM_STREAMS_MRFLD
 
-enum sst_audio_task_id_mrfld {
+enum sst_audio_task_id_mrfld
+{
 	SST_TASK_ID_NONE = 0,
 	SST_TASK_ID_SBA = 1,
 	SST_TASK_ID_MEDIA = 3,
@@ -28,7 +29,8 @@ enum sst_audio_task_id_mrfld {
 
 /* Device IDs for Merrifield are Pipe IDs,
  * ref: DSP spec v0.75 */
-enum sst_audio_device_id_mrfld {
+enum sst_audio_device_id_mrfld
+{
 	/* Output pipeline IDs */
 	PIPE_ID_OUT_START = 0x0,
 	PIPE_CODEC_OUT0 = 0x2,
@@ -42,7 +44,7 @@ enum sst_audio_device_id_mrfld {
 	PIPE_PCM2_OUT = 0xF,
 	PIPE_MEDIA0_OUT = 0x12,
 	PIPE_MEDIA1_OUT = 0x13,
-/* Input Pipeline IDs */
+	/* Input Pipeline IDs */
 	PIPE_ID_IN_START = 0x80,
 	PIPE_CODEC_IN0 = 0x82,
 	PIPE_CODEC_IN1 = 0x83,
@@ -62,7 +64,8 @@ enum sst_audio_device_id_mrfld {
 /* The stream map for each platform consists of an array of the below
  * stream map structure.
  */
-struct sst_dev_stream_map {
+struct sst_dev_stream_map
+{
 	u8 dev_num;		/* device id */
 	u8 subdev_num;		/* substream */
 	u8 direction;
@@ -71,13 +74,15 @@ struct sst_dev_stream_map {
 	u8 status;
 };
 
-struct sst_platform_data {
+struct sst_platform_data
+{
 	/* Intel software platform id*/
 	struct sst_dev_stream_map *pdev_strm_map;
 	unsigned int strm_map_size;
 };
 
-struct sst_info {
+struct sst_info
+{
 	u32 iram_start;
 	u32 iram_end;
 	bool iram_use;
@@ -95,7 +100,8 @@ struct sst_info {
 	u8 num_probes;
 };
 
-struct sst_lib_dnld_info {
+struct sst_lib_dnld_info
+{
 	unsigned int mod_base;
 	unsigned int mod_end;
 	unsigned int mod_table_offset;
@@ -103,7 +109,8 @@ struct sst_lib_dnld_info {
 	bool mod_ddr_dnld;
 };
 
-struct sst_res_info {
+struct sst_res_info
+{
 	unsigned int shim_offset;
 	unsigned int shim_size;
 	unsigned int shim_phy_addr;
@@ -124,12 +131,14 @@ struct sst_res_info {
 	unsigned int acpi_ipc_irq_index;
 };
 
-struct sst_ipc_info {
+struct sst_ipc_info
+{
 	int ipc_offset;
 	unsigned int mbox_recv_off;
 };
 
-struct sst_platform_info {
+struct sst_platform_info
+{
 	const struct sst_info *probe_data;
 	const struct sst_ipc_info *ipc_info;
 	const struct sst_res_info *res_info;

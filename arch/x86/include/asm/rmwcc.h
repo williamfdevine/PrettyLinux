@@ -6,14 +6,14 @@
 /* Use asm goto */
 
 #define __GEN_RMWcc(fullop, var, cc, ...)				\
-do {									\
-	asm_volatile_goto (fullop "; j" #cc " %l[cc_label]"		\
-			: : "m" (var), ## __VA_ARGS__ 			\
-			: "memory" : cc_label);				\
-	return 0;							\
-cc_label:								\
-	return 1;							\
-} while (0)
+	do {									\
+		asm_volatile_goto (fullop "; j" #cc " %l[cc_label]"		\
+						   : : "m" (var), ## __VA_ARGS__ 			\
+						   : "memory" : cc_label);				\
+		return 0;							\
+	cc_label:								\
+		return 1;							\
+	} while (0)
 
 #define GEN_UNARY_RMWcc(op, var, arg0, cc) 				\
 	__GEN_RMWcc(op " " arg0, var, cc)
@@ -26,13 +26,13 @@ cc_label:								\
 /* Use flags output or a set instruction */
 
 #define __GEN_RMWcc(fullop, var, cc, ...)				\
-do {									\
-	bool c;								\
-	asm volatile (fullop ";" CC_SET(cc)				\
-			: "+m" (var), CC_OUT(cc) (c)			\
-			: __VA_ARGS__ : "memory");			\
-	return c;							\
-} while (0)
+	do {									\
+		bool c;								\
+		asm volatile (fullop ";" CC_SET(cc)				\
+					  : "+m" (var), CC_OUT(cc) (c)			\
+					  : __VA_ARGS__ : "memory");			\
+		return c;							\
+	} while (0)
 
 #define GEN_UNARY_RMWcc(op, var, arg0, cc)				\
 	__GEN_RMWcc(op " " arg0, var, cc)

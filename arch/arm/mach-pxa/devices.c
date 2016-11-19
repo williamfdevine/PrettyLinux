@@ -30,24 +30,30 @@ void __init pxa_register_device(struct platform_device *dev, void *data)
 	dev->dev.platform_data = data;
 
 	ret = platform_device_register(dev);
+
 	if (ret)
+	{
 		dev_err(&dev->dev, "unable to register device: %d\n", ret);
+	}
 }
 
-static struct resource pxa_resource_pmu = {
+static struct resource pxa_resource_pmu =
+{
 	.start	= IRQ_PMU,
 	.end	= IRQ_PMU,
 	.flags	= IORESOURCE_IRQ,
 };
 
-struct platform_device pxa_device_pmu = {
+struct platform_device pxa_device_pmu =
+{
 	.name		= "xscale-pmu",
 	.id		= -1,
 	.resource	= &pxa_resource_pmu,
 	.num_resources	= 1,
 };
 
-static struct resource pxamci_resources[] = {
+static struct resource pxamci_resources[] =
+{
 	[0] = {
 		.start	= 0x41100000,
 		.end	= 0x41100fff,
@@ -72,7 +78,8 @@ static struct resource pxamci_resources[] = {
 
 static u64 pxamci_dmamask = 0xffffffffUL;
 
-struct platform_device pxa_device_mci = {
+struct platform_device pxa_device_mci =
+{
 	.name		= "pxa2xx-mci",
 	.id		= 0,
 	.dev		= {
@@ -89,16 +96,18 @@ void __init pxa_set_mci_info(struct pxamci_platform_data *info)
 }
 
 
-static struct pxa2xx_udc_mach_info pxa_udc_info = {
+static struct pxa2xx_udc_mach_info pxa_udc_info =
+{
 	.gpio_pullup = -1,
 };
 
 void __init pxa_set_udc_info(struct pxa2xx_udc_mach_info *info)
 {
-	memcpy(&pxa_udc_info, info, sizeof *info);
+	memcpy(&pxa_udc_info, info, sizeof * info);
 }
 
-static struct resource pxa2xx_udc_resources[] = {
+static struct resource pxa2xx_udc_resources[] =
+{
 	[0] = {
 		.start	= 0x40600000,
 		.end	= 0x4060ffff,
@@ -113,7 +122,8 @@ static struct resource pxa2xx_udc_resources[] = {
 
 static u64 udc_dma_mask = ~(u32)0;
 
-struct platform_device pxa25x_device_udc = {
+struct platform_device pxa25x_device_udc =
+{
 	.name		= "pxa25x-udc",
 	.id		= -1,
 	.resource	= pxa2xx_udc_resources,
@@ -124,7 +134,8 @@ struct platform_device pxa25x_device_udc = {
 	}
 };
 
-struct platform_device pxa27x_device_udc = {
+struct platform_device pxa27x_device_udc =
+{
 	.name		= "pxa27x-udc",
 	.id		= -1,
 	.resource	= pxa2xx_udc_resources,
@@ -136,7 +147,8 @@ struct platform_device pxa27x_device_udc = {
 };
 
 #ifdef CONFIG_PXA3xx
-static struct resource pxa3xx_u2d_resources[] = {
+static struct resource pxa3xx_u2d_resources[] =
+{
 	[0] = {
 		.start	= 0x54100000,
 		.end	= 0x54100fff,
@@ -149,7 +161,8 @@ static struct resource pxa3xx_u2d_resources[] = {
 	},
 };
 
-struct platform_device pxa3xx_device_u2d = {
+struct platform_device pxa3xx_device_u2d =
+{
 	.name		= "pxa3xx-u2d",
 	.id		= -1,
 	.resource	= pxa3xx_u2d_resources,
@@ -162,7 +175,8 @@ void __init pxa3xx_set_u2d_info(struct pxa3xx_u2d_platform_data *info)
 }
 #endif /* CONFIG_PXA3xx */
 
-static struct resource pxafb_resources[] = {
+static struct resource pxafb_resources[] =
+{
 	[0] = {
 		.start	= 0x44000000,
 		.end	= 0x4400ffff,
@@ -177,7 +191,8 @@ static struct resource pxafb_resources[] = {
 
 static u64 fb_dma_mask = ~(u64)0;
 
-struct platform_device pxa_device_fb = {
+struct platform_device pxa_device_fb =
+{
 	.name		= "pxa2xx-fb",
 	.id		= -1,
 	.dev		= {
@@ -194,7 +209,8 @@ void __init pxa_set_fb_info(struct device *parent, struct pxafb_mach_info *info)
 	pxa_register_device(&pxa_device_fb, info);
 }
 
-static struct resource pxa_resource_ffuart[] = {
+static struct resource pxa_resource_ffuart[] =
+{
 	{
 		.start	= 0x40100000,
 		.end	= 0x40100023,
@@ -206,7 +222,8 @@ static struct resource pxa_resource_ffuart[] = {
 	}
 };
 
-struct platform_device pxa_device_ffuart = {
+struct platform_device pxa_device_ffuart =
+{
 	.name		= "pxa2xx-uart",
 	.id		= 0,
 	.resource	= pxa_resource_ffuart,
@@ -218,7 +235,8 @@ void __init pxa_set_ffuart_info(void *info)
 	pxa_register_device(&pxa_device_ffuart, info);
 }
 
-static struct resource pxa_resource_btuart[] = {
+static struct resource pxa_resource_btuart[] =
+{
 	{
 		.start	= 0x40200000,
 		.end	= 0x40200023,
@@ -230,7 +248,8 @@ static struct resource pxa_resource_btuart[] = {
 	}
 };
 
-struct platform_device pxa_device_btuart = {
+struct platform_device pxa_device_btuart =
+{
 	.name		= "pxa2xx-uart",
 	.id		= 1,
 	.resource	= pxa_resource_btuart,
@@ -242,7 +261,8 @@ void __init pxa_set_btuart_info(void *info)
 	pxa_register_device(&pxa_device_btuart, info);
 }
 
-static struct resource pxa_resource_stuart[] = {
+static struct resource pxa_resource_stuart[] =
+{
 	{
 		.start	= 0x40700000,
 		.end	= 0x40700023,
@@ -254,7 +274,8 @@ static struct resource pxa_resource_stuart[] = {
 	}
 };
 
-struct platform_device pxa_device_stuart = {
+struct platform_device pxa_device_stuart =
+{
 	.name		= "pxa2xx-uart",
 	.id		= 2,
 	.resource	= pxa_resource_stuart,
@@ -266,7 +287,8 @@ void __init pxa_set_stuart_info(void *info)
 	pxa_register_device(&pxa_device_stuart, info);
 }
 
-static struct resource pxa_resource_hwuart[] = {
+static struct resource pxa_resource_hwuart[] =
+{
 	{
 		.start	= 0x41600000,
 		.end	= 0x4160002F,
@@ -278,7 +300,8 @@ static struct resource pxa_resource_hwuart[] = {
 	}
 };
 
-struct platform_device pxa_device_hwuart = {
+struct platform_device pxa_device_hwuart =
+{
 	.name		= "pxa2xx-uart",
 	.id		= 3,
 	.resource	= pxa_resource_hwuart,
@@ -288,12 +311,17 @@ struct platform_device pxa_device_hwuart = {
 void __init pxa_set_hwuart_info(void *info)
 {
 	if (cpu_is_pxa255())
+	{
 		pxa_register_device(&pxa_device_hwuart, info);
+	}
 	else
+	{
 		pr_info("UART: Ignoring attempt to register HWUART on non-PXA255 hardware");
+	}
 }
 
-static struct resource pxai2c_resources[] = {
+static struct resource pxai2c_resources[] =
+{
 	{
 		.start	= 0x40301680,
 		.end	= 0x403016a3,
@@ -305,7 +333,8 @@ static struct resource pxai2c_resources[] = {
 	},
 };
 
-struct platform_device pxa_device_i2c = {
+struct platform_device pxa_device_i2c =
+{
 	.name		= "pxa2xx-i2c",
 	.id		= 0,
 	.resource	= pxai2c_resources,
@@ -318,7 +347,8 @@ void __init pxa_set_i2c_info(struct i2c_pxa_platform_data *info)
 }
 
 #ifdef CONFIG_PXA27x
-static struct resource pxa27x_resources_i2c_power[] = {
+static struct resource pxa27x_resources_i2c_power[] =
+{
 	{
 		.start	= 0x40f00180,
 		.end	= 0x40f001a3,
@@ -330,7 +360,8 @@ static struct resource pxa27x_resources_i2c_power[] = {
 	},
 };
 
-struct platform_device pxa27x_device_i2c_power = {
+struct platform_device pxa27x_device_i2c_power =
+{
 	.name		= "pxa2xx-i2c",
 	.id		= 1,
 	.resource	= pxa27x_resources_i2c_power,
@@ -338,7 +369,8 @@ struct platform_device pxa27x_device_i2c_power = {
 };
 #endif
 
-static struct resource pxai2s_resources[] = {
+static struct resource pxai2s_resources[] =
+{
 	{
 		.start	= 0x40400000,
 		.end	= 0x40400083,
@@ -350,41 +382,48 @@ static struct resource pxai2s_resources[] = {
 	},
 };
 
-struct platform_device pxa_device_i2s = {
+struct platform_device pxa_device_i2s =
+{
 	.name		= "pxa2xx-i2s",
 	.id		= -1,
 	.resource	= pxai2s_resources,
 	.num_resources	= ARRAY_SIZE(pxai2s_resources),
 };
 
-struct platform_device pxa_device_asoc_ssp1 = {
+struct platform_device pxa_device_asoc_ssp1 =
+{
 	.name		= "pxa-ssp-dai",
 	.id		= 0,
 };
 
-struct platform_device pxa_device_asoc_ssp2= {
+struct platform_device pxa_device_asoc_ssp2 =
+{
 	.name		= "pxa-ssp-dai",
 	.id		= 1,
 };
 
-struct platform_device pxa_device_asoc_ssp3 = {
+struct platform_device pxa_device_asoc_ssp3 =
+{
 	.name		= "pxa-ssp-dai",
 	.id		= 2,
 };
 
-struct platform_device pxa_device_asoc_ssp4 = {
+struct platform_device pxa_device_asoc_ssp4 =
+{
 	.name		= "pxa-ssp-dai",
 	.id		= 3,
 };
 
-struct platform_device pxa_device_asoc_platform = {
+struct platform_device pxa_device_asoc_platform =
+{
 	.name		= "pxa-pcm-audio",
 	.id		= -1,
 };
 
 static u64 pxaficp_dmamask = ~(u32)0;
 
-static struct resource pxa_ir_resources[] = {
+static struct resource pxa_ir_resources[] =
+{
 	[0] = {
 		.start  = IRQ_STUART,
 		.end    = IRQ_STUART,
@@ -417,7 +456,8 @@ static struct resource pxa_ir_resources[] = {
 	},
 };
 
-struct platform_device pxa_device_ficp = {
+struct platform_device pxa_device_ficp =
+{
 	.name		= "pxa2xx-ir",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pxa_ir_resources),
@@ -433,7 +473,8 @@ void __init pxa_set_ficp_info(struct pxaficp_platform_data *info)
 	pxa_register_device(&pxa_device_ficp, info);
 }
 
-static struct resource pxa_rtc_resources[] = {
+static struct resource pxa_rtc_resources[] =
+{
 	[0] = {
 		.start  = 0x40900000,
 		.end	= 0x40900000 + 0x3b,
@@ -453,21 +494,24 @@ static struct resource pxa_rtc_resources[] = {
 	},
 };
 
-struct platform_device pxa_device_rtc = {
+struct platform_device pxa_device_rtc =
+{
 	.name		= "pxa-rtc",
 	.id		= -1,
 	.num_resources  = ARRAY_SIZE(pxa_rtc_resources),
 	.resource       = pxa_rtc_resources,
 };
 
-struct platform_device sa1100_device_rtc = {
+struct platform_device sa1100_device_rtc =
+{
 	.name		= "sa1100-rtc",
 	.id		= -1,
 	.num_resources  = ARRAY_SIZE(pxa_rtc_resources),
 	.resource       = pxa_rtc_resources,
 };
 
-static struct resource pxa_ac97_resources[] = {
+static struct resource pxa_ac97_resources[] =
+{
 	[0] = {
 		.start  = 0x40500000,
 		.end	= 0x40500000 + 0xfff,
@@ -482,7 +526,8 @@ static struct resource pxa_ac97_resources[] = {
 
 static u64 pxa_ac97_dmamask = 0xffffffffUL;
 
-struct platform_device pxa_device_ac97 = {
+struct platform_device pxa_device_ac97 =
+{
 	.name           = "pxa2xx-ac97",
 	.id             = -1,
 	.dev            = {
@@ -500,7 +545,8 @@ void __init pxa_set_ac97_info(pxa2xx_audio_ops_t *ops)
 
 #ifdef CONFIG_PXA25x
 
-static struct resource pxa25x_resource_pwm0[] = {
+static struct resource pxa25x_resource_pwm0[] =
+{
 	[0] = {
 		.start	= 0x40b00000,
 		.end	= 0x40b0000f,
@@ -508,14 +554,16 @@ static struct resource pxa25x_resource_pwm0[] = {
 	},
 };
 
-struct platform_device pxa25x_device_pwm0 = {
+struct platform_device pxa25x_device_pwm0 =
+{
 	.name		= "pxa25x-pwm",
 	.id		= 0,
 	.resource	= pxa25x_resource_pwm0,
 	.num_resources	= ARRAY_SIZE(pxa25x_resource_pwm0),
 };
 
-static struct resource pxa25x_resource_pwm1[] = {
+static struct resource pxa25x_resource_pwm1[] =
+{
 	[0] = {
 		.start	= 0x40c00000,
 		.end	= 0x40c0000f,
@@ -523,7 +571,8 @@ static struct resource pxa25x_resource_pwm1[] = {
 	},
 };
 
-struct platform_device pxa25x_device_pwm1 = {
+struct platform_device pxa25x_device_pwm1 =
+{
 	.name		= "pxa25x-pwm",
 	.id		= 1,
 	.resource	= pxa25x_resource_pwm1,
@@ -532,7 +581,8 @@ struct platform_device pxa25x_device_pwm1 = {
 
 static u64 pxa25x_ssp_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource pxa25x_resource_ssp[] = {
+static struct resource pxa25x_resource_ssp[] =
+{
 	[0] = {
 		.start	= 0x41000000,
 		.end	= 0x4100001f,
@@ -557,7 +607,8 @@ static struct resource pxa25x_resource_ssp[] = {
 	},
 };
 
-struct platform_device pxa25x_device_ssp = {
+struct platform_device pxa25x_device_ssp =
+{
 	.name		= "pxa25x-ssp",
 	.id		= 0,
 	.dev		= {
@@ -570,7 +621,8 @@ struct platform_device pxa25x_device_ssp = {
 
 static u64 pxa25x_nssp_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource pxa25x_resource_nssp[] = {
+static struct resource pxa25x_resource_nssp[] =
+{
 	[0] = {
 		.start	= 0x41400000,
 		.end	= 0x4140002f,
@@ -595,7 +647,8 @@ static struct resource pxa25x_resource_nssp[] = {
 	},
 };
 
-struct platform_device pxa25x_device_nssp = {
+struct platform_device pxa25x_device_nssp =
+{
 	.name		= "pxa25x-nssp",
 	.id		= 1,
 	.dev		= {
@@ -608,7 +661,8 @@ struct platform_device pxa25x_device_nssp = {
 
 static u64 pxa25x_assp_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource pxa25x_resource_assp[] = {
+static struct resource pxa25x_resource_assp[] =
+{
 	[0] = {
 		.start	= 0x41500000,
 		.end	= 0x4150002f,
@@ -633,7 +687,8 @@ static struct resource pxa25x_resource_assp[] = {
 	},
 };
 
-struct platform_device pxa25x_device_assp = {
+struct platform_device pxa25x_device_assp =
+{
 	/* ASSP is basically equivalent to NSSP */
 	.name		= "pxa25x-nssp",
 	.id		= 2,
@@ -647,7 +702,8 @@ struct platform_device pxa25x_device_assp = {
 #endif /* CONFIG_PXA25x */
 
 #if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
-static struct resource pxa27x_resource_camera[] = {
+static struct resource pxa27x_resource_camera[] =
+{
 	[0] = {
 		.start	= 0x50000000,
 		.end	= 0x50000fff,
@@ -662,7 +718,8 @@ static struct resource pxa27x_resource_camera[] = {
 
 static u64 pxa27x_dma_mask_camera = DMA_BIT_MASK(32);
 
-static struct platform_device pxa27x_device_camera = {
+static struct platform_device pxa27x_device_camera =
+{
 	.name		= "pxa27x-camera",
 	.id		= 0, /* This is used to put cameras on this interface */
 	.dev		= {
@@ -680,7 +737,8 @@ void __init pxa_set_camera_info(struct pxacamera_platform_data *info)
 
 static u64 pxa27x_ohci_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource pxa27x_resource_ohci[] = {
+static struct resource pxa27x_resource_ohci[] =
+{
 	[0] = {
 		.start  = 0x4C000000,
 		.end    = 0x4C00ff6f,
@@ -693,7 +751,8 @@ static struct resource pxa27x_resource_ohci[] = {
 	},
 };
 
-struct platform_device pxa27x_device_ohci = {
+struct platform_device pxa27x_device_ohci =
+{
 	.name		= "pxa27x-ohci",
 	.id		= -1,
 	.dev		= {
@@ -711,7 +770,8 @@ void __init pxa_set_ohci_info(struct pxaohci_platform_data *info)
 #endif /* CONFIG_PXA27x || CONFIG_PXA3xx */
 
 #if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
-static struct resource pxa27x_resource_keypad[] = {
+static struct resource pxa27x_resource_keypad[] =
+{
 	[0] = {
 		.start	= 0x41500000,
 		.end	= 0x4150004c,
@@ -724,7 +784,8 @@ static struct resource pxa27x_resource_keypad[] = {
 	},
 };
 
-struct platform_device pxa27x_device_keypad = {
+struct platform_device pxa27x_device_keypad =
+{
 	.name		= "pxa27x-keypad",
 	.id		= -1,
 	.resource	= pxa27x_resource_keypad,
@@ -738,7 +799,8 @@ void __init pxa_set_keypad_info(struct pxa27x_keypad_platform_data *info)
 
 static u64 pxa27x_ssp1_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource pxa27x_resource_ssp1[] = {
+static struct resource pxa27x_resource_ssp1[] =
+{
 	[0] = {
 		.start	= 0x41000000,
 		.end	= 0x4100003f,
@@ -763,7 +825,8 @@ static struct resource pxa27x_resource_ssp1[] = {
 	},
 };
 
-struct platform_device pxa27x_device_ssp1 = {
+struct platform_device pxa27x_device_ssp1 =
+{
 	.name		= "pxa27x-ssp",
 	.id		= 0,
 	.dev		= {
@@ -776,7 +839,8 @@ struct platform_device pxa27x_device_ssp1 = {
 
 static u64 pxa27x_ssp2_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource pxa27x_resource_ssp2[] = {
+static struct resource pxa27x_resource_ssp2[] =
+{
 	[0] = {
 		.start	= 0x41700000,
 		.end	= 0x4170003f,
@@ -801,7 +865,8 @@ static struct resource pxa27x_resource_ssp2[] = {
 	},
 };
 
-struct platform_device pxa27x_device_ssp2 = {
+struct platform_device pxa27x_device_ssp2 =
+{
 	.name		= "pxa27x-ssp",
 	.id		= 1,
 	.dev		= {
@@ -814,7 +879,8 @@ struct platform_device pxa27x_device_ssp2 = {
 
 static u64 pxa27x_ssp3_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource pxa27x_resource_ssp3[] = {
+static struct resource pxa27x_resource_ssp3[] =
+{
 	[0] = {
 		.start	= 0x41900000,
 		.end	= 0x4190003f,
@@ -839,7 +905,8 @@ static struct resource pxa27x_resource_ssp3[] = {
 	},
 };
 
-struct platform_device pxa27x_device_ssp3 = {
+struct platform_device pxa27x_device_ssp3 =
+{
 	.name		= "pxa27x-ssp",
 	.id		= 2,
 	.dev		= {
@@ -850,7 +917,8 @@ struct platform_device pxa27x_device_ssp3 = {
 	.num_resources	= ARRAY_SIZE(pxa27x_resource_ssp3),
 };
 
-static struct resource pxa27x_resource_pwm0[] = {
+static struct resource pxa27x_resource_pwm0[] =
+{
 	[0] = {
 		.start	= 0x40b00000,
 		.end	= 0x40b0001f,
@@ -858,14 +926,16 @@ static struct resource pxa27x_resource_pwm0[] = {
 	},
 };
 
-struct platform_device pxa27x_device_pwm0 = {
+struct platform_device pxa27x_device_pwm0 =
+{
 	.name		= "pxa27x-pwm",
 	.id		= 0,
 	.resource	= pxa27x_resource_pwm0,
 	.num_resources	= ARRAY_SIZE(pxa27x_resource_pwm0),
 };
 
-static struct resource pxa27x_resource_pwm1[] = {
+static struct resource pxa27x_resource_pwm1[] =
+{
 	[0] = {
 		.start	= 0x40c00000,
 		.end	= 0x40c0001f,
@@ -873,7 +943,8 @@ static struct resource pxa27x_resource_pwm1[] = {
 	},
 };
 
-struct platform_device pxa27x_device_pwm1 = {
+struct platform_device pxa27x_device_pwm1 =
+{
 	.name		= "pxa27x-pwm",
 	.id		= 1,
 	.resource	= pxa27x_resource_pwm1,
@@ -882,7 +953,8 @@ struct platform_device pxa27x_device_pwm1 = {
 #endif /* CONFIG_PXA27x || CONFIG_PXA3xx */
 
 #ifdef CONFIG_PXA3xx
-static struct resource pxa3xx_resources_mci2[] = {
+static struct resource pxa3xx_resources_mci2[] =
+{
 	[0] = {
 		.start	= 0x42000000,
 		.end	= 0x42000fff,
@@ -905,7 +977,8 @@ static struct resource pxa3xx_resources_mci2[] = {
 	},
 };
 
-struct platform_device pxa3xx_device_mci2 = {
+struct platform_device pxa3xx_device_mci2 =
+{
 	.name		= "pxa2xx-mci",
 	.id		= 1,
 	.dev		= {
@@ -921,7 +994,8 @@ void __init pxa3xx_set_mci2_info(struct pxamci_platform_data *info)
 	pxa_register_device(&pxa3xx_device_mci2, info);
 }
 
-static struct resource pxa3xx_resources_mci3[] = {
+static struct resource pxa3xx_resources_mci3[] =
+{
 	[0] = {
 		.start	= 0x42500000,
 		.end	= 0x42500fff,
@@ -944,7 +1018,8 @@ static struct resource pxa3xx_resources_mci3[] = {
 	},
 };
 
-struct platform_device pxa3xx_device_mci3 = {
+struct platform_device pxa3xx_device_mci3 =
+{
 	.name		= "pxa2xx-mci",
 	.id		= 2,
 	.dev		= {
@@ -960,7 +1035,8 @@ void __init pxa3xx_set_mci3_info(struct pxamci_platform_data *info)
 	pxa_register_device(&pxa3xx_device_mci3, info);
 }
 
-static struct resource pxa3xx_resources_gcu[] = {
+static struct resource pxa3xx_resources_gcu[] =
+{
 	{
 		.start	= 0x54000000,
 		.end	= 0x54000fff,
@@ -975,7 +1051,8 @@ static struct resource pxa3xx_resources_gcu[] = {
 
 static u64 pxa3xx_gcu_dmamask = DMA_BIT_MASK(32);
 
-struct platform_device pxa3xx_device_gcu = {
+struct platform_device pxa3xx_device_gcu =
+{
 	.name		= "pxa3xx-gcu",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pxa3xx_resources_gcu),
@@ -989,7 +1066,8 @@ struct platform_device pxa3xx_device_gcu = {
 #endif /* CONFIG_PXA3xx */
 
 #if defined(CONFIG_PXA3xx)
-static struct resource pxa3xx_resources_i2c_power[] = {
+static struct resource pxa3xx_resources_i2c_power[] =
+{
 	{
 		.start  = 0x40f500c0,
 		.end    = 0x40f500d3,
@@ -1001,14 +1079,16 @@ static struct resource pxa3xx_resources_i2c_power[] = {
 	},
 };
 
-struct platform_device pxa3xx_device_i2c_power = {
+struct platform_device pxa3xx_device_i2c_power =
+{
 	.name		= "pxa3xx-pwri2c",
 	.id		= 1,
 	.resource	= pxa3xx_resources_i2c_power,
 	.num_resources	= ARRAY_SIZE(pxa3xx_resources_i2c_power),
 };
 
-static struct resource pxa3xx_resources_nand[] = {
+static struct resource pxa3xx_resources_nand[] =
+{
 	[0] = {
 		.start	= 0x43100000,
 		.end	= 0x43100053,
@@ -1035,7 +1115,8 @@ static struct resource pxa3xx_resources_nand[] = {
 
 static u64 pxa3xx_nand_dma_mask = DMA_BIT_MASK(32);
 
-struct platform_device pxa3xx_device_nand = {
+struct platform_device pxa3xx_device_nand =
+{
 	.name		= "pxa3xx-nand",
 	.id		= -1,
 	.dev		= {
@@ -1053,7 +1134,8 @@ void __init pxa3xx_set_nand_info(struct pxa3xx_nand_platform_data *info)
 
 static u64 pxa3xx_ssp4_dma_mask = DMA_BIT_MASK(32);
 
-static struct resource pxa3xx_resource_ssp4[] = {
+static struct resource pxa3xx_resource_ssp4[] =
+{
 	[0] = {
 		.start	= 0x41a00000,
 		.end	= 0x41a0003f,
@@ -1084,7 +1166,8 @@ static struct resource pxa3xx_resource_ssp4[] = {
  * make the driver set the correct internal type, hence we provide specific
  * platform_devices for each of them.
  */
-struct platform_device pxa3xx_device_ssp1 = {
+struct platform_device pxa3xx_device_ssp1 =
+{
 	.name		= "pxa3xx-ssp",
 	.id		= 0,
 	.dev		= {
@@ -1095,7 +1178,8 @@ struct platform_device pxa3xx_device_ssp1 = {
 	.num_resources	= ARRAY_SIZE(pxa27x_resource_ssp1),
 };
 
-struct platform_device pxa3xx_device_ssp2 = {
+struct platform_device pxa3xx_device_ssp2 =
+{
 	.name		= "pxa3xx-ssp",
 	.id		= 1,
 	.dev		= {
@@ -1106,7 +1190,8 @@ struct platform_device pxa3xx_device_ssp2 = {
 	.num_resources	= ARRAY_SIZE(pxa27x_resource_ssp2),
 };
 
-struct platform_device pxa3xx_device_ssp3 = {
+struct platform_device pxa3xx_device_ssp3 =
+{
 	.name		= "pxa3xx-ssp",
 	.id		= 2,
 	.dev		= {
@@ -1117,7 +1202,8 @@ struct platform_device pxa3xx_device_ssp3 = {
 	.num_resources	= ARRAY_SIZE(pxa27x_resource_ssp3),
 };
 
-struct platform_device pxa3xx_device_ssp4 = {
+struct platform_device pxa3xx_device_ssp4 =
+{
 	.name		= "pxa3xx-ssp",
 	.id		= 3,
 	.dev		= {
@@ -1129,7 +1215,8 @@ struct platform_device pxa3xx_device_ssp4 = {
 };
 #endif /* CONFIG_PXA3xx */
 
-struct resource pxa_resource_gpio[] = {
+struct resource pxa_resource_gpio[] =
+{
 	{
 		.start	= 0x40e00000,
 		.end	= 0x40e0ffff,
@@ -1152,7 +1239,8 @@ struct resource pxa_resource_gpio[] = {
 	},
 };
 
-struct platform_device pxa25x_device_gpio = {
+struct platform_device pxa25x_device_gpio =
+{
 #ifdef CONFIG_CPU_PXA26x
 	.name		= "pxa26x-gpio",
 #else
@@ -1163,21 +1251,24 @@ struct platform_device pxa25x_device_gpio = {
 	.resource	= pxa_resource_gpio,
 };
 
-struct platform_device pxa27x_device_gpio = {
+struct platform_device pxa27x_device_gpio =
+{
 	.name		= "pxa27x-gpio",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pxa_resource_gpio),
 	.resource	= pxa_resource_gpio,
 };
 
-struct platform_device pxa3xx_device_gpio = {
+struct platform_device pxa3xx_device_gpio =
+{
 	.name		= "pxa3xx-gpio",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pxa_resource_gpio),
 	.resource	= pxa_resource_gpio,
 };
 
-struct platform_device pxa93x_device_gpio = {
+struct platform_device pxa93x_device_gpio =
+{
 	.name		= "pxa93x-gpio",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pxa_resource_gpio),
@@ -1191,9 +1282,11 @@ void __init pxa2xx_set_spi_info(unsigned id, struct pxa2xx_spi_master *info)
 	struct platform_device *pd;
 
 	pd = platform_device_alloc("pxa2xx-spi", id);
-	if (pd == NULL) {
+
+	if (pd == NULL)
+	{
 		printk(KERN_ERR "pxa2xx-spi: failed to allocate device id %d\n",
-		       id);
+			   id);
 		return;
 	}
 
@@ -1201,12 +1294,14 @@ void __init pxa2xx_set_spi_info(unsigned id, struct pxa2xx_spi_master *info)
 	platform_device_add(pd);
 }
 
-static struct mmp_dma_platdata pxa_dma_pdata = {
+static struct mmp_dma_platdata pxa_dma_pdata =
+{
 	.dma_channels	= 0,
 	.nb_requestors	= 0,
 };
 
-static struct resource pxa_dma_resource[] = {
+static struct resource pxa_dma_resource[] =
+{
 	[0] = {
 		.start	= 0x40000000,
 		.end	= 0x4000ffff,
@@ -1221,7 +1316,8 @@ static struct resource pxa_dma_resource[] = {
 
 static u64 pxadma_dmamask = 0xffffffffUL;
 
-static struct platform_device pxa2xx_pxa_dma = {
+static struct platform_device pxa2xx_pxa_dma =
+{
 	.name		= "pxa-dma",
 	.id		= 0,
 	.dev		= {

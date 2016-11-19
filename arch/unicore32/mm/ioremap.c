@@ -46,10 +46,10 @@
 #define VM_UNICORE_SECTION_MAPPING	0x80000000
 
 int ioremap_page(unsigned long virt, unsigned long phys,
-		 const struct mem_type *mtype)
+				 const struct mem_type *mtype)
 {
 	return ioremap_page_range(virt, virt + PAGE_SIZE, phys,
-				  __pgprot(mtype->prot_pte));
+							  __pgprot(mtype->prot_pte));
 }
 EXPORT_SYMBOL(ioremap_page);
 
@@ -70,11 +70,15 @@ static void unmap_area_sections(unsigned long virt, unsigned long size)
 
 	flush_cache_vunmap(addr, end);
 	pgd = pgd_offset_k(addr);
-	do {
+
+	do
+	{
 		pmd_t pmd, *pmdp = pmd_offset((pud_t *)pgd, addr);
 
 		pmd = *pmdp;
-		if (!pmd_none(pmd)) {
+
+		if (!pmd_none(pmd))
+		{
 			/*
 			 * Clear the PMD from the page table, and
 			 * increment the kvm sequence so others
@@ -88,19 +92,22 @@ static void unmap_area_sections(unsigned long virt, unsigned long size)
 			 * Free the page table, if there was one.
 			 */
 			if ((pmd_val(pmd) & PMD_TYPE_MASK) == PMD_TYPE_TABLE)
+			{
 				pte_free_kernel(&init_mm, pmd_page_vaddr(pmd));
+			}
 		}
 
 		addr += PGDIR_SIZE;
 		pgd++;
-	} while (addr < end);
+	}
+	while (addr < end);
 
 	flush_tlb_kernel_range(virt, end);
 }
 
 static int
 remap_area_sections(unsigned long virt, unsigned long pfn,
-		    size_t size, const struct mem_type *type)
+					size_t size, const struct mem_type *type)
 {
 	unsigned long addr = virt, end = virt + size;
 	pgd_t *pgd;
@@ -112,7 +119,9 @@ remap_area_sections(unsigned long virt, unsigned long pfn,
 	unmap_area_sections(virt, size);
 
 	pgd = pgd_offset_k(addr);
-	do {
+
+	do
+	{
 		pmd_t *pmd = pmd_offset((pud_t *)pgd, addr);
 
 		set_pmd(pmd, __pmd(__pfn_to_phys(pfn) | type->prot_sect));
@@ -121,13 +130,14 @@ remap_area_sections(unsigned long virt, unsigned long pfn,
 
 		addr += PGDIR_SIZE;
 		pgd++;
-	} while (addr < end);
+	}
+	while (addr < end);
 
 	return 0;
 }
 
 void __iomem *__uc32_ioremap_pfn_caller(unsigned long pfn,
-	unsigned long offset, size_t size, unsigned int mtype, void *caller)
+										unsigned long offset, size_t size, unsigned int mtype, void *caller)
 {
 	const struct mem_type *type;
 	int err;
@@ -138,22 +148,28 @@ void __iomem *__uc32_ioremap_pfn_caller(unsigned long pfn,
 	 * High mappings must be section aligned
 	 */
 	if (pfn >= 0x100000 && (__pfn_to_phys(pfn) & ~SECTION_MASK))
+	{
 		return NULL;
+	}
 
 	/*
 	 * Don't allow RAM to be mapped
 	 */
-	if (pfn_valid(pfn)) {
+	if (pfn_valid(pfn))
+	{
 		WARN(1, "BUG: Your driver calls ioremap() on\n"
-			"system memory.  This leads to architecturally\n"
-			"unpredictable behaviour, and ioremap() will fail in\n"
-			"the next kernel release. Please fix your driver.\n");
+			 "system memory.  This leads to architecturally\n"
+			 "unpredictable behaviour, and ioremap() will fail in\n"
+			 "the next kernel release. Please fix your driver.\n");
 		return NULL;
 	}
 
 	type = get_mem_type(mtype);
+
 	if (!type)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Page align the mapping size, taking account of any offset.
@@ -161,18 +177,25 @@ void __iomem *__uc32_ioremap_pfn_caller(unsigned long pfn,
 	size = PAGE_ALIGN(offset + size);
 
 	area = get_vm_area_caller(size, VM_IOREMAP, caller);
+
 	if (!area)
+	{
 		return NULL;
+	}
+
 	addr = (unsigned long)area->addr;
 
-	if (!((__pfn_to_phys(pfn) | size | addr) & ~PMD_MASK)) {
+	if (!((__pfn_to_phys(pfn) | size | addr) & ~PMD_MASK))
+	{
 		area->flags |= VM_UNICORE_SECTION_MAPPING;
 		err = remap_area_sections(addr, pfn, size, type);
-	} else
+	}
+	else
 		err = ioremap_page_range(addr, addr + size, __pfn_to_phys(pfn),
-					 __pgprot(type->prot_pte));
+								 __pgprot(type->prot_pte));
 
-	if (err) {
+	if (err)
+	{
 		vunmap((void *)addr);
 		return NULL;
 	}
@@ -182,7 +205,7 @@ void __iomem *__uc32_ioremap_pfn_caller(unsigned long pfn,
 }
 
 void __iomem *__uc32_ioremap_caller(unsigned long phys_addr, size_t size,
-	unsigned int mtype, void *caller)
+									unsigned int mtype, void *caller)
 {
 	unsigned long last_addr;
 	unsigned long offset = phys_addr & ~PAGE_MASK;
@@ -192,8 +215,11 @@ void __iomem *__uc32_ioremap_caller(unsigned long phys_addr, size_t size,
 	 * Don't allow wraparound or zero size
 	 */
 	last_addr = phys_addr + size - 1;
+
 	if (!size || last_addr < phys_addr)
+	{
 		return NULL;
+	}
 
 	return __uc32_ioremap_pfn_caller(pfn, offset, size, mtype, caller);
 }
@@ -209,10 +235,10 @@ void __iomem *__uc32_ioremap_caller(unsigned long phys_addr, size_t size,
  */
 void __iomem *
 __uc32_ioremap_pfn(unsigned long pfn, unsigned long offset, size_t size,
-		  unsigned int mtype)
+				   unsigned int mtype)
 {
 	return __uc32_ioremap_pfn_caller(pfn, offset, size, mtype,
-			__builtin_return_address(0));
+									 __builtin_return_address(0));
 }
 EXPORT_SYMBOL(__uc32_ioremap_pfn);
 
@@ -220,7 +246,7 @@ void __iomem *
 __uc32_ioremap(unsigned long phys_addr, size_t size)
 {
 	return __uc32_ioremap_caller(phys_addr, size, MT_DEVICE,
-			__builtin_return_address(0));
+								 __builtin_return_address(0));
 }
 EXPORT_SYMBOL(__uc32_ioremap);
 
@@ -228,7 +254,7 @@ void __iomem *
 __uc32_ioremap_cached(unsigned long phys_addr, size_t size)
 {
 	return __uc32_ioremap_caller(phys_addr, size, MT_DEVICE_CACHED,
-			__builtin_return_address(0));
+								 __builtin_return_address(0));
 }
 EXPORT_SYMBOL(__uc32_ioremap_cached);
 
@@ -245,9 +271,12 @@ void __uc32_iounmap(volatile void __iomem *io_addr)
 	 * by someone else.
 	 */
 	vm = find_vm_area(addr);
+
 	if (vm && (vm->flags & VM_IOREMAP) &&
 		(vm->flags & VM_UNICORE_SECTION_MAPPING))
+	{
 		unmap_area_sections((unsigned long)vm->addr, vm->size);
+	}
 
 	vunmap(addr);
 }

@@ -41,7 +41,9 @@ DEFINE_PER_CPU(int, cpu_state) = { 0 };
 void register_smp_ops(struct plat_smp_ops *ops)
 {
 	if (mp_ops)
+	{
 		printk(KERN_WARNING "Overriding previously set SMP ops\n");
+	}
 
 	mp_ops = ops;
 }
@@ -86,11 +88,16 @@ void native_cpu_die(unsigned int cpu)
 {
 	unsigned int i;
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		smp_rmb();
-		if (per_cpu(cpu_state, cpu) == CPU_DEAD) {
+
+		if (per_cpu(cpu_state, cpu) == CPU_DEAD)
+		{
 			if (system_state == SYSTEM_RUNNING)
+			{
 				pr_info("CPU %u is now offline\n", cpu);
+			}
 
 			return;
 		}
@@ -127,8 +134,11 @@ int __cpu_disable(void)
 	int ret;
 
 	ret = mp_ops->cpu_disable(cpu);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * Take this CPU offline.  Once we clear this, we can't return,
@@ -204,7 +214,8 @@ asmlinkage void start_secondary(void)
 	cpu_startup_entry(CPUHP_AP_ONLINE_IDLE);
 }
 
-extern struct {
+extern struct
+{
 	unsigned long sp;
 	unsigned long bss_start;
 	unsigned long bss_end;
@@ -226,22 +237,28 @@ int __cpu_up(unsigned int cpu, struct task_struct *tsk)
 	stack_start.start_kernel_fn = start_secondary;
 
 	flush_icache_range((unsigned long)&stack_start,
-			   (unsigned long)&stack_start + sizeof(stack_start));
+					   (unsigned long)&stack_start + sizeof(stack_start));
 	wmb();
 
 	mp_ops->start_cpu(cpu, (unsigned long)_stext);
 
 	timeout = jiffies + HZ;
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		if (cpu_online(cpu))
+		{
 			break;
+		}
 
 		udelay(10);
 		barrier();
 	}
 
 	if (cpu_online(cpu))
+	{
 		return 0;
+	}
 
 	return -ENOENT;
 }
@@ -252,12 +269,12 @@ void __init smp_cpus_done(unsigned int max_cpus)
 	int cpu;
 
 	for_each_online_cpu(cpu)
-		bogosum += cpu_data[cpu].loops_per_jiffy;
+	bogosum += cpu_data[cpu].loops_per_jiffy;
 
 	printk(KERN_INFO "SMP: Total of %d processors activated "
-	       "(%lu.%02lu BogoMIPS).\n", num_online_cpus(),
-	       bogosum / (500000/HZ),
-	       (bogosum / (5000/HZ)) % 100);
+		   "(%lu.%02lu BogoMIPS).\n", num_online_cpus(),
+		   bogosum / (500000 / HZ),
+		   (bogosum / (5000 / HZ)) % 100);
 }
 
 void smp_send_reschedule(int cpu)
@@ -275,7 +292,7 @@ void arch_send_call_function_ipi_mask(const struct cpumask *mask)
 	int cpu;
 
 	for_each_cpu(cpu, mask)
-		mp_ops->send_ipi(cpu, SMP_MSG_FUNCTION);
+	mp_ops->send_ipi(cpu, SMP_MSG_FUNCTION);
 }
 
 void arch_send_call_function_single_ipi(int cpu)
@@ -289,7 +306,7 @@ void tick_broadcast(const struct cpumask *mask)
 	int cpu;
 
 	for_each_cpu(cpu, mask)
-		mp_ops->send_ipi(cpu, SMP_MSG_TIMER);
+	mp_ops->send_ipi(cpu, SMP_MSG_TIMER);
 }
 
 static void ipi_timer(void)
@@ -302,25 +319,30 @@ static void ipi_timer(void)
 
 void smp_message_recv(unsigned int msg)
 {
-	switch (msg) {
-	case SMP_MSG_FUNCTION:
-		generic_smp_call_function_interrupt();
-		break;
-	case SMP_MSG_RESCHEDULE:
-		scheduler_ipi();
-		break;
-	case SMP_MSG_FUNCTION_SINGLE:
-		generic_smp_call_function_single_interrupt();
-		break;
+	switch (msg)
+	{
+		case SMP_MSG_FUNCTION:
+			generic_smp_call_function_interrupt();
+			break;
+
+		case SMP_MSG_RESCHEDULE:
+			scheduler_ipi();
+			break;
+
+		case SMP_MSG_FUNCTION_SINGLE:
+			generic_smp_call_function_single_interrupt();
+			break;
 #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
-	case SMP_MSG_TIMER:
-		ipi_timer();
-		break;
+
+		case SMP_MSG_TIMER:
+			ipi_timer();
+			break;
 #endif
-	default:
-		printk(KERN_WARNING "SMP %d: %s(): unknown IPI %d\n",
-		       smp_processor_id(), __func__, msg);
-		break;
+
+		default:
+			printk(KERN_WARNING "SMP %d: %s(): unknown IPI %d\n",
+				   smp_processor_id(), __func__, msg);
+			break;
 	}
 }
 
@@ -363,20 +385,28 @@ void flush_tlb_mm(struct mm_struct *mm)
 {
 	preempt_disable();
 
-	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm)) {
+	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm))
+	{
 		smp_call_function(flush_tlb_mm_ipi, (void *)mm, 1);
-	} else {
+	}
+	else
+	{
 		int i;
 		for_each_online_cpu(i)
-			if (smp_processor_id() != i)
-				cpu_context(i, mm) = 0;
+
+		if (smp_processor_id() != i)
+		{
+			cpu_context(i, mm) = 0;
+		}
 	}
+
 	local_flush_tlb_mm(mm);
 
 	preempt_enable();
 }
 
-struct flush_tlb_data {
+struct flush_tlb_data
+{
 	struct vm_area_struct *vma;
 	unsigned long addr1;
 	unsigned long addr2;
@@ -390,24 +420,32 @@ static void flush_tlb_range_ipi(void *info)
 }
 
 void flush_tlb_range(struct vm_area_struct *vma,
-		     unsigned long start, unsigned long end)
+					 unsigned long start, unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 
 	preempt_disable();
-	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm)) {
+
+	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm))
+	{
 		struct flush_tlb_data fd;
 
 		fd.vma = vma;
 		fd.addr1 = start;
 		fd.addr2 = end;
 		smp_call_function(flush_tlb_range_ipi, (void *)&fd, 1);
-	} else {
+	}
+	else
+	{
 		int i;
 		for_each_online_cpu(i)
-			if (smp_processor_id() != i)
-				cpu_context(i, mm) = 0;
+
+		if (smp_processor_id() != i)
+		{
+			cpu_context(i, mm) = 0;
+		}
 	}
+
 	local_flush_tlb_range(vma, start, end);
 	preempt_enable();
 }
@@ -438,19 +476,27 @@ static void flush_tlb_page_ipi(void *info)
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 {
 	preempt_disable();
+
 	if ((atomic_read(&vma->vm_mm->mm_users) != 1) ||
-	    (current->mm != vma->vm_mm)) {
+		(current->mm != vma->vm_mm))
+	{
 		struct flush_tlb_data fd;
 
 		fd.vma = vma;
 		fd.addr1 = page;
 		smp_call_function(flush_tlb_page_ipi, (void *)&fd, 1);
-	} else {
+	}
+	else
+	{
 		int i;
 		for_each_online_cpu(i)
-			if (smp_processor_id() != i)
-				cpu_context(i, vma->vm_mm) = 0;
+
+		if (smp_processor_id() != i)
+		{
+			cpu_context(i, vma->vm_mm) = 0;
+		}
 	}
+
 	local_flush_tlb_page(vma, page);
 	preempt_enable();
 }

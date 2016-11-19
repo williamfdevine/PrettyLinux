@@ -75,8 +75,8 @@
 #define IO_READ_INBITS   0x10 /* *arg is result of reading the input pins */
 #define IO_READ_OUTBITS  0x11 /* *arg is result of reading the output shadow */
 #define IO_SETGET_INPUT  0x12 /* bits set in *arg is set to input, */
-			      /* *arg updated with current input pins. */
+/* *arg updated with current input pins. */
 #define IO_SETGET_OUTPUT 0x13 /* bits set in *arg is set to output, */
-			      /* *arg updated with current output pins. */
+/* *arg updated with current output pins. */
 
 #endif

@@ -22,9 +22,9 @@
  * Virtual -> physical identity mapping starts at this offset
  */
 #ifdef USE_48_BIT_KSEG
-#define IDENT_ADDR     0xffff800000000000UL
+	#define IDENT_ADDR     0xffff800000000000UL
 #else
-#define IDENT_ADDR     0xfffffc0000000000UL
+	#define IDENT_ADDR     0xfffffc0000000000UL
 #endif
 
 /*
@@ -53,7 +53,9 @@ extern inline void __set_hae(unsigned long new_hae)
 extern inline void set_hae(unsigned long new_hae)
 {
 	if (new_hae != alpha_mv.hae_cache)
+	{
 		__set_hae(new_hae);
+	}
 }
 
 /*
@@ -65,28 +67,28 @@ static inline unsigned long virt_to_phys(void *address)
 	return (unsigned long)address - IDENT_ADDR;
 }
 
-static inline void * phys_to_virt(unsigned long address)
+static inline void *phys_to_virt(unsigned long address)
 {
 	return (void *) (address + IDENT_ADDR);
 }
 #else
 static inline unsigned long virt_to_phys(void *address)
 {
-        unsigned long phys = (unsigned long)address;
+	unsigned long phys = (unsigned long)address;
 
 	/* Sign-extend from bit 41.  */
 	phys <<= (64 - 41);
 	phys = (long)phys >> (64 - 41);
 
 	/* Crop to the physical address width of the processor.  */
-        phys &= (1ul << hwrpb->pa_bits) - 1;
+	phys &= (1ul << hwrpb->pa_bits) - 1;
 
-        return phys;
+	return phys;
 }
 
-static inline void * phys_to_virt(unsigned long address)
+static inline void *phys_to_virt(unsigned long address)
 {
-        return (void *)(IDENT_ADDR + (address & ((1ul << 41) - 1)));
+	return (void *)(IDENT_ADDR + (address & ((1ul << 41) - 1)));
 }
 #endif
 
@@ -105,7 +107,7 @@ static inline dma_addr_t __deprecated isa_page_to_bus(struct page *page)
  * seen by a device (bus), and vice versa.
  *
  * Note that this only works for a limited range of kernel addresses,
- * and very well may not span all memory.  Consider this interface 
+ * and very well may not span all memory.  Consider this interface
  * deprecated in favour of the DMA-mapping API.
  */
 extern unsigned long __direct_map_base;
@@ -119,7 +121,7 @@ static inline unsigned long __deprecated virt_to_bus(void *address)
 }
 #define isa_virt_to_bus virt_to_bus
 
-static inline void * __deprecated bus_to_virt(unsigned long address)
+static inline void *__deprecated bus_to_virt(unsigned long address)
 {
 	void *virt;
 
@@ -144,16 +146,16 @@ static inline void * __deprecated bus_to_virt(unsigned long address)
 /* In a generic kernel, we always go through the machine vector.  */
 
 #define REMAP1(TYPE, NAME, QUAL)					\
-static inline TYPE generic_##NAME(QUAL void __iomem *addr)		\
-{									\
-	return alpha_mv.mv_##NAME(addr);				\
-}
+	static inline TYPE generic_##NAME(QUAL void __iomem *addr)		\
+	{									\
+		return alpha_mv.mv_##NAME(addr);				\
+	}
 
 #define REMAP2(TYPE, NAME, QUAL)					\
-static inline void generic_##NAME(TYPE b, QUAL void __iomem *addr)	\
-{									\
-	alpha_mv.mv_##NAME(b, addr);					\
-}
+	static inline void generic_##NAME(TYPE b, QUAL void __iomem *addr)	\
+	{									\
+		alpha_mv.mv_##NAME(b, addr);					\
+	}
 
 REMAP1(unsigned int, ioread8, /**/)
 REMAP1(unsigned int, ioread16, /**/)
@@ -209,31 +211,31 @@ static inline int generic_is_mmio(const volatile void __iomem *a)
 #else
 
 #if defined(CONFIG_ALPHA_APECS)
-# include <asm/core_apecs.h>
+	#include <asm/core_apecs.h>
 #elif defined(CONFIG_ALPHA_CIA)
-# include <asm/core_cia.h>
+	#include <asm/core_cia.h>
 #elif defined(CONFIG_ALPHA_IRONGATE)
-# include <asm/core_irongate.h>
+	#include <asm/core_irongate.h>
 #elif defined(CONFIG_ALPHA_JENSEN)
-# include <asm/jensen.h>
+	#include <asm/jensen.h>
 #elif defined(CONFIG_ALPHA_LCA)
-# include <asm/core_lca.h>
+	#include <asm/core_lca.h>
 #elif defined(CONFIG_ALPHA_MARVEL)
-# include <asm/core_marvel.h>
+	#include <asm/core_marvel.h>
 #elif defined(CONFIG_ALPHA_MCPCIA)
-# include <asm/core_mcpcia.h>
+	#include <asm/core_mcpcia.h>
 #elif defined(CONFIG_ALPHA_POLARIS)
-# include <asm/core_polaris.h>
+	#include <asm/core_polaris.h>
 #elif defined(CONFIG_ALPHA_T2)
-# include <asm/core_t2.h>
+	#include <asm/core_t2.h>
 #elif defined(CONFIG_ALPHA_TSUNAMI)
-# include <asm/core_tsunami.h>
+	#include <asm/core_tsunami.h>
 #elif defined(CONFIG_ALPHA_TITAN)
-# include <asm/core_titan.h>
+	#include <asm/core_titan.h>
 #elif defined(CONFIG_ALPHA_WILDFIRE)
-# include <asm/core_wildfire.h>
+	#include <asm/core_wildfire.h>
 #else
-#error "What system is this?"
+	#error "What system is this?"
 #endif
 
 #endif /* GENERIC */
@@ -275,7 +277,7 @@ extern void		__raw_writeq(u64 b, volatile void __iomem *addr);
    the same declaration.  */
 extern inline void __iomem *ioport_map(unsigned long port, unsigned int size)
 {
-	return IO_CONCAT(__IO_PREFIX,ioportmap) (port);
+	return IO_CONCAT(__IO_PREFIX, ioportmap) (port);
 }
 
 extern inline void ioport_unmap(void __iomem *addr)
@@ -284,17 +286,17 @@ extern inline void ioport_unmap(void __iomem *addr)
 
 static inline void __iomem *ioremap(unsigned long port, unsigned long size)
 {
-	return IO_CONCAT(__IO_PREFIX,ioremap) (port, size);
+	return IO_CONCAT(__IO_PREFIX, ioremap) (port, size);
 }
 
 static inline void __iomem *__ioremap(unsigned long port, unsigned long size,
-				      unsigned long flags)
+									  unsigned long flags)
 {
 	return ioremap(port, size);
 }
 
-static inline void __iomem * ioremap_nocache(unsigned long offset,
-					     unsigned long size)
+static inline void __iomem *ioremap_nocache(unsigned long offset,
+		unsigned long size)
 {
 	return ioremap(offset, size);
 }
@@ -303,18 +305,18 @@ static inline void __iomem * ioremap_nocache(unsigned long offset,
 
 static inline void iounmap(volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,iounmap)(addr);
+	IO_CONCAT(__IO_PREFIX, iounmap)(addr);
 }
 
 static inline int __is_ioaddr(unsigned long addr)
 {
-	return IO_CONCAT(__IO_PREFIX,is_ioaddr)(addr);
+	return IO_CONCAT(__IO_PREFIX, is_ioaddr)(addr);
 }
 #define __is_ioaddr(a)		__is_ioaddr((unsigned long)(a))
 
 static inline int __is_mmio(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,is_mmio)(addr);
+	return IO_CONCAT(__IO_PREFIX, is_mmio)(addr);
 }
 
 
@@ -325,27 +327,27 @@ static inline int __is_mmio(const volatile void __iomem *addr)
 #if IO_CONCAT(__IO_PREFIX,trivial_io_bw)
 extern inline unsigned int ioread8(void __iomem *addr)
 {
-	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread8)(addr);
+	unsigned int ret = IO_CONCAT(__IO_PREFIX, ioread8)(addr);
 	mb();
 	return ret;
 }
 
 extern inline unsigned int ioread16(void __iomem *addr)
 {
-	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread16)(addr);
+	unsigned int ret = IO_CONCAT(__IO_PREFIX, ioread16)(addr);
 	mb();
 	return ret;
 }
 
 extern inline void iowrite8(u8 b, void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,iowrite8)(b, addr);
+	IO_CONCAT(__IO_PREFIX, iowrite8)(b, addr);
 	mb();
 }
 
 extern inline void iowrite16(u16 b, void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,iowrite16)(b, addr);
+	IO_CONCAT(__IO_PREFIX, iowrite16)(b, addr);
 	mb();
 }
 
@@ -373,14 +375,14 @@ extern inline void outw(u16 b, unsigned long port)
 #if IO_CONCAT(__IO_PREFIX,trivial_io_lq)
 extern inline unsigned int ioread32(void __iomem *addr)
 {
-	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread32)(addr);
+	unsigned int ret = IO_CONCAT(__IO_PREFIX, ioread32)(addr);
 	mb();
 	return ret;
 }
 
 extern inline void iowrite32(u32 b, void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,iowrite32)(b, addr);
+	IO_CONCAT(__IO_PREFIX, iowrite32)(b, addr);
 	mb();
 }
 
@@ -398,22 +400,22 @@ extern inline void outl(u32 b, unsigned long port)
 #if IO_CONCAT(__IO_PREFIX,trivial_rw_bw) == 1
 extern inline u8 __raw_readb(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,readb)(addr);
+	return IO_CONCAT(__IO_PREFIX, readb)(addr);
 }
 
 extern inline u16 __raw_readw(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,readw)(addr);
+	return IO_CONCAT(__IO_PREFIX, readw)(addr);
 }
 
 extern inline void __raw_writeb(u8 b, volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,writeb)(b, addr);
+	IO_CONCAT(__IO_PREFIX, writeb)(b, addr);
 }
 
 extern inline void __raw_writew(u16 b, volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,writew)(b, addr);
+	IO_CONCAT(__IO_PREFIX, writew)(b, addr);
 }
 
 extern inline u8 readb(const volatile void __iomem *addr)
@@ -446,22 +448,22 @@ extern inline void writew(u16 b, volatile void __iomem *addr)
 #if IO_CONCAT(__IO_PREFIX,trivial_rw_lq) == 1
 extern inline u32 __raw_readl(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,readl)(addr);
+	return IO_CONCAT(__IO_PREFIX, readl)(addr);
 }
 
 extern inline u64 __raw_readq(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,readq)(addr);
+	return IO_CONCAT(__IO_PREFIX, readq)(addr);
 }
 
 extern inline void __raw_writel(u32 b, volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,writel)(b, addr);
+	IO_CONCAT(__IO_PREFIX, writel)(b, addr);
 }
 
 extern inline void __raw_writeq(u64 b, volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,writeq)(b, addr);
+	IO_CONCAT(__IO_PREFIX, writeq)(b, addr);
 }
 
 extern inline u32 readl(const volatile void __iomem *addr)
@@ -550,13 +552,13 @@ extern void outsl (unsigned long port, const void *src, unsigned long count);
  */
 
 #ifdef CONFIG_ALPHA_GENERIC
-# define RTC_PORT(x)	((x) + alpha_mv.rtc_port)
+	#define RTC_PORT(x)	((x) + alpha_mv.rtc_port)
 #else
-# ifdef CONFIG_ALPHA_JENSEN
-#  define RTC_PORT(x)	(0x170+(x))
-# else
-#  define RTC_PORT(x)	(0x70 + (x))
-# endif
+	#ifdef CONFIG_ALPHA_JENSEN
+		#define RTC_PORT(x)	(0x170+(x))
+	#else
+		#define RTC_PORT(x)	(0x70 + (x))
+	#endif
 #endif
 #define RTC_ALWAYS_BCD	0
 

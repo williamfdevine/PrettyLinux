@@ -5,15 +5,16 @@
 
 #define _NSIG		64
 #ifdef __powerpc64__
-#define _NSIG_BPW	64
+	#define _NSIG_BPW	64
 #else
-#define _NSIG_BPW	32
+	#define _NSIG_BPW	32
 #endif
 #define _NSIG_WORDS	(_NSIG / _NSIG_BPW)
 
 typedef unsigned long old_sigset_t;		/* at least 32 bits */
 
-typedef struct {
+typedef struct
+{
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
 
@@ -91,14 +92,16 @@ typedef struct {
 #include <asm-generic/signal-defs.h>
 
 #ifndef __KERNEL__
-struct old_sigaction {
+struct old_sigaction
+{
 	__sighandler_t sa_handler;
 	old_sigset_t sa_mask;
 	unsigned long sa_flags;
 	__sigrestore_t sa_restorer;
 };
 
-struct sigaction {
+struct sigaction
+{
 	__sighandler_t sa_handler;
 	unsigned long sa_flags;
 	__sigrestore_t sa_restorer;
@@ -106,7 +109,8 @@ struct sigaction {
 };
 #endif
 
-typedef struct sigaltstack {
+typedef struct sigaltstack
+{
 	void __user *ss_sp;
 	int ss_flags;
 	size_t ss_size;
@@ -122,7 +126,8 @@ typedef struct sigaltstack {
  * array of struct sig_dbg_op, which has the debug operations to
  * perform before returning from the signal.
  */
-struct sig_dbg_op {
+struct sig_dbg_op
+{
 	int dbg_type;
 	unsigned long dbg_value;
 };

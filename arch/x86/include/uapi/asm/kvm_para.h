@@ -41,7 +41,8 @@
 #define MSR_KVM_STEAL_TIME  0x4b564d03
 #define MSR_KVM_PV_EOI_EN      0x4b564d04
 
-struct kvm_steal_time {
+struct kvm_steal_time
+{
 	__u64 steal;
 	__u32 version;
 	__u32 flags;
@@ -63,22 +64,26 @@ struct kvm_steal_time {
 #define KVM_MMU_OP_RELEASE_PT	        3
 
 /* Payload for KVM_HC_MMU_OP */
-struct kvm_mmu_op_header {
+struct kvm_mmu_op_header
+{
 	__u32 op;
 	__u32 pad;
 };
 
-struct kvm_mmu_op_write_pte {
+struct kvm_mmu_op_write_pte
+{
 	struct kvm_mmu_op_header header;
 	__u64 pte_phys;
 	__u64 pte_val;
 };
 
-struct kvm_mmu_op_flush_tlb {
+struct kvm_mmu_op_flush_tlb
+{
 	struct kvm_mmu_op_header header;
 };
 
-struct kvm_mmu_op_release_pt {
+struct kvm_mmu_op_release_pt
+{
 	struct kvm_mmu_op_header header;
 	__u64 pt_phys;
 };
@@ -86,7 +91,8 @@ struct kvm_mmu_op_release_pt {
 #define KVM_PV_REASON_PAGE_NOT_PRESENT 1
 #define KVM_PV_REASON_PAGE_READY 2
 
-struct kvm_vcpu_pv_apf_data {
+struct kvm_vcpu_pv_apf_data
+{
 	__u32 reason;
 	__u8 pad[60];
 	__u32 enabled;

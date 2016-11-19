@@ -23,14 +23,17 @@
 
 #define IA64_MCA_RENDEZ_TIMEOUT		(20 * 1000)	/* value in milliseconds - 20 seconds */
 
-typedef struct ia64_fptr {
+typedef struct ia64_fptr
+{
 	unsigned long fp;
 	unsigned long gp;
 } ia64_fptr_t;
 
-typedef union cmcv_reg_u {
+typedef union cmcv_reg_u
+{
 	u64	cmcv_regval;
-	struct	{
+	struct
+	{
 		u64	cmcr_vector		: 8;
 		u64	cmcr_reserved1		: 4;
 		u64	cmcr_ignored1		: 1;
@@ -44,7 +47,8 @@ typedef union cmcv_reg_u {
 #define cmcv_mask		cmcv_reg_s.cmcr_mask
 #define cmcv_vector		cmcv_reg_s.cmcr_vector
 
-enum {
+enum
+{
 	IA64_MCA_RENDEZ_CHECKIN_NOTDONE	=	0x0,
 	IA64_MCA_RENDEZ_CHECKIN_DONE	=	0x1,
 	IA64_MCA_RENDEZ_CHECKIN_INIT	=	0x2,
@@ -52,7 +56,8 @@ enum {
 };
 
 /* Information maintained by the MC infrastructure */
-typedef struct ia64_mc_info_s {
+typedef struct ia64_mc_info_s
+{
 	u64		imi_mca_handler;
 	size_t		imi_mca_handler_size;
 	u64		imi_monarch_init_handler;
@@ -69,7 +74,8 @@ typedef struct ia64_mc_info_s {
  * Note: mca_asm.S depends on the precise layout of this structure.
  */
 
-struct ia64_sal_os_state {
+struct ia64_sal_os_state
+{
 
 	/* SAL to OS */
 	unsigned long		os_gp;			/* GP of the os registered with the SAL, physical */
@@ -113,28 +119,32 @@ struct ia64_sal_os_state {
 	unsigned long		ifs;
 };
 
-enum {
+enum
+{
 	IA64_MCA_CORRECTED	=	0x0,	/* Error has been corrected by OS_MCA */
 	IA64_MCA_WARM_BOOT	=	-1,	/* Warm boot of the system need from SAL */
 	IA64_MCA_COLD_BOOT	=	-2,	/* Cold boot of the system need from SAL */
 	IA64_MCA_HALT		=	-3	/* System to be halted by SAL */
 };
 
-enum {
+enum
+{
 	IA64_INIT_RESUME	=	0x0,	/* Resume after return from INIT */
 	IA64_INIT_WARM_BOOT	=	-1,	/* Warm boot of the system need from SAL */
 };
 
-enum {
+enum
+{
 	IA64_MCA_SAME_CONTEXT	=	0x0,	/* SAL to return to same context */
 	IA64_MCA_NEW_CONTEXT	=	-1	/* SAL to return to new context */
 };
 
 /* Per-CPU MCA state that is too big for normal per-CPU variables.  */
 
-struct ia64_mca_cpu {
-	u64 mca_stack[KERNEL_STACK_SIZE/8];
-	u64 init_stack[KERNEL_STACK_SIZE/8];
+struct ia64_mca_cpu
+{
+	u64 mca_stack[KERNEL_STACK_SIZE / 8];
+	u64 init_stack[KERNEL_STACK_SIZE / 8];
 };
 
 /* Array of physical addresses of each CPU's MCA area.  */
@@ -149,8 +159,8 @@ extern void ia64_os_mca_dispatch(void);
 extern void ia64_os_mca_dispatch_end(void);
 extern void ia64_mca_ucmc_handler(struct pt_regs *, struct ia64_sal_os_state *);
 extern void ia64_init_handler(struct pt_regs *,
-			      struct switch_stack *,
-			      struct ia64_sal_os_state *);
+							  struct switch_stack *,
+							  struct ia64_sal_os_state *);
 extern void ia64_os_init_on_kdump(void);
 extern void ia64_monarch_init_handler(void);
 extern void ia64_slave_init_handler(void);
@@ -159,10 +169,11 @@ extern int  ia64_reg_MCA_extension(int (*fn)(void *, struct ia64_sal_os_state *)
 extern void ia64_unreg_MCA_extension(void);
 extern unsigned long ia64_get_rnat(unsigned long *);
 extern void ia64_set_psr_mc(void);
-extern void ia64_mca_printk(const char * fmt, ...)
-	 __attribute__ ((format (printf, 1, 2)));
+extern void ia64_mca_printk(const char *fmt, ...)
+__attribute__ ((format (printf, 1, 2)));
 
-struct ia64_mca_notify_die {
+struct ia64_mca_notify_die
+{
 	struct ia64_sal_os_state *sos;
 	int *monarch_cpu;
 	int *data;

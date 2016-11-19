@@ -38,7 +38,8 @@
 
 static void __iomem *gpio_regs;
 
-struct gpio_priv {
+struct gpio_priv
+{
 	int mdc_pin;
 	int mdio_pin;
 };
@@ -48,7 +49,7 @@ struct gpio_priv {
 
 static inline void mdio_lo(struct mii_bus *bus)
 {
-	out_le32(gpio_regs+0x10, 1 << MDIO_PIN(bus));
+	out_le32(gpio_regs + 0x10, 1 << MDIO_PIN(bus));
 }
 
 static inline void mdio_hi(struct mii_bus *bus)
@@ -58,7 +59,7 @@ static inline void mdio_hi(struct mii_bus *bus)
 
 static inline void mdc_lo(struct mii_bus *bus)
 {
-	out_le32(gpio_regs+0x10, 1 << MDC_PIN(bus));
+	out_le32(gpio_regs + 0x10, 1 << MDC_PIN(bus));
 }
 
 static inline void mdc_hi(struct mii_bus *bus)
@@ -68,25 +69,30 @@ static inline void mdc_hi(struct mii_bus *bus)
 
 static inline void mdio_active(struct mii_bus *bus)
 {
-	out_le32(gpio_regs+0x20, (1 << MDC_PIN(bus)) | (1 << MDIO_PIN(bus)));
+	out_le32(gpio_regs + 0x20, (1 << MDC_PIN(bus)) | (1 << MDIO_PIN(bus)));
 }
 
 static inline void mdio_tristate(struct mii_bus *bus)
 {
-	out_le32(gpio_regs+0x30, (1 << MDIO_PIN(bus)));
+	out_le32(gpio_regs + 0x30, (1 << MDIO_PIN(bus)));
 }
 
 static inline int mdio_read(struct mii_bus *bus)
 {
-	return !!(in_le32(gpio_regs+0x40) & (1 << MDIO_PIN(bus)));
+	return !!(in_le32(gpio_regs + 0x40) & (1 << MDIO_PIN(bus)));
 }
 
 static void clock_out(struct mii_bus *bus, int bit)
 {
 	if (bit)
+	{
 		mdio_hi(bus);
+	}
 	else
+	{
 		mdio_lo(bus);
+	}
+
 	udelay(DELAY);
 	mdc_hi(bus);
 	udelay(DELAY);
@@ -100,7 +106,9 @@ static void bitbang_pre(struct mii_bus *bus, int read, u8 addr, u8 reg)
 
 	/* CFE uses a really long preamble (40 bits). We'll do the same. */
 	mdio_active(bus);
-	for (i = 0; i < 40; i++) {
+
+	for (i = 0; i < 40; i++)
+	{
 		clock_out(bus, 1);
 	}
 
@@ -112,13 +120,15 @@ static void bitbang_pre(struct mii_bus *bus, int read, u8 addr, u8 reg)
 	clock_out(bus, !read);
 
 	/* send the PHY address */
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		clock_out(bus, (addr & 0x10) != 0);
 		addr <<= 1;
 	}
 
 	/* send the register address */
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		clock_out(bus, (reg & 0x10) != 0);
 		reg <<= 1;
 	}
@@ -142,7 +152,9 @@ static int gpio_mdio_read(struct mii_bus *bus, int phy_id, int location)
 
 	/* read 16 bits of register data, MSB first */
 	rdreg = 0;
-	for (i = 0; i < 16; i++) {
+
+	for (i = 0; i < 16; i++)
+	{
 		mdc_lo(bus);
 		udelay(DELAY);
 		mdc_hi(bus);
@@ -186,12 +198,19 @@ static int gpio_mdio_write(struct mii_bus *bus, int phy_id, int location, u16 va
 	udelay(DELAY);
 
 	/* write 16 bits of register data, MSB first */
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		mdc_lo(bus);
+
 		if (value & 0x8000)
+		{
 			mdio_hi(bus);
+		}
 		else
+		{
 			mdio_lo(bus);
+		}
+
 		udelay(DELAY);
 		mdc_hi(bus);
 		udelay(DELAY);
@@ -227,13 +246,18 @@ static int gpio_mdio_probe(struct platform_device *ofdev)
 
 	err = -ENOMEM;
 	priv = kzalloc(sizeof(struct gpio_priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		goto out;
+	}
 
 	new_bus = mdiobus_alloc();
 
 	if (!new_bus)
+	{
 		goto out_free_priv;
+	}
 
 	new_bus->name = "pasemi gpio mdio bus";
 	new_bus->read = &gpio_mdio_read;
@@ -255,9 +279,10 @@ static int gpio_mdio_probe(struct platform_device *ofdev)
 
 	err = of_mdiobus_register(new_bus, np);
 
-	if (err != 0) {
+	if (err != 0)
+	{
 		printk(KERN_ERR "%s: Cannot register as MDIO bus, err %d\n",
-				new_bus->name, err);
+			   new_bus->name, err);
 		goto out_free_irq;
 	}
 
@@ -311,16 +336,23 @@ static int gpio_mdio_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "1682m-gpio");
+
 	if (!np)
 		np = of_find_compatible_node(NULL, NULL,
-					     "pasemi,pwrficient-gpio");
+									 "pasemi,pwrficient-gpio");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
+
 	gpio_regs = of_iomap(np, 0);
 	of_node_put(np);
 
 	if (!gpio_regs)
+	{
 		return -ENODEV;
+	}
 
 	return platform_driver_register(&gpio_mdio_driver);
 }
@@ -329,8 +361,11 @@ module_init(gpio_mdio_init);
 static void gpio_mdio_exit(void)
 {
 	platform_driver_unregister(&gpio_mdio_driver);
+
 	if (gpio_regs)
+	{
 		iounmap(gpio_regs);
+	}
 }
 module_exit(gpio_mdio_exit);
 

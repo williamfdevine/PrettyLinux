@@ -41,8 +41,12 @@ struct pci_controller *init_phb_dynamic(struct device_node *dn)
 	pr_debug("PCI: Initializing new hotplug PHB %s\n", dn->full_name);
 
 	phb = pcibios_alloc_controller(dn);
+
 	if (!phb)
+	{
 		return NULL;
+	}
+
 	rtas_setup_phb(phb);
 	pci_process_bridge_OF_ranges(phb, dn, 0);
 	phb->controller_ops = pseries_pci_controller_ops;
@@ -53,7 +57,9 @@ struct pci_controller *init_phb_dynamic(struct device_node *dn)
 	eeh_dev_phb_init_dynamic(phb);
 
 	if (dn->child)
+	{
 		eeh_add_device_tree_early(PCI_DN(dn));
+	}
 
 	pcibios_scan_phb(phb);
 	pcibios_finish_adding_to_bus(phb->bus);
@@ -70,21 +76,27 @@ int remove_phb_dynamic(struct pci_controller *phb)
 	int rc, i;
 
 	pr_debug("PCI: Removing PHB %04x:%02x...\n",
-		 pci_domain_nr(b), b->number);
+			 pci_domain_nr(b), b->number);
 
 	/* We cannot to remove a root bus that has children */
 	if (!(list_empty(&b->children) && list_empty(&b->devices)))
+	{
 		return -EBUSY;
+	}
 
 	/* We -know- there aren't any child devices anymore at this stage
 	 * and thus, we can safely unmap the IO space as it's not in use
 	 */
 	res = &phb->io_resource;
-	if (res->flags & IORESOURCE_IO) {
+
+	if (res->flags & IORESOURCE_IO)
+	{
 		rc = pcibios_unmap_io_space(b);
-		if (rc) {
+
+		if (rc)
+		{
 			printk(KERN_ERR "%s: failed to unmap IO on bus %s\n",
-			       __func__, b->name);
+				   __func__, b->name);
 			return 1;
 		}
 	}
@@ -96,13 +108,20 @@ int remove_phb_dynamic(struct pci_controller *phb)
 
 	/* Now release the IO resource */
 	if (res->flags & IORESOURCE_IO)
+	{
 		release_resource(res);
+	}
 
 	/* Release memory resources */
-	for (i = 0; i < 3; ++i) {
+	for (i = 0; i < 3; ++i)
+	{
 		res = &phb->mem_resources[i];
+
 		if (!(res->flags & IORESOURCE_MEM))
+		{
 			continue;
+		}
+
 		release_resource(res);
 	}
 

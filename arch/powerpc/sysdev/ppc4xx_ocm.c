@@ -35,7 +35,8 @@
 #define OCM_DISABLED	0
 #define OCM_ENABLED		1
 
-struct ocm_block {
+struct ocm_block
+{
 	struct list_head	list;
 	void __iomem		*addr;
 	int					size;
@@ -43,7 +44,8 @@ struct ocm_block {
 };
 
 /* non-cached or cached region */
-struct ocm_region {
+struct ocm_region
+{
 	phys_addr_t			phys;
 	void __iomem		*virt;
 
@@ -54,7 +56,8 @@ struct ocm_region {
 	struct list_head	list;
 };
 
-struct ocm_info {
+struct ocm_info
+{
 	int					index;
 	int					status;
 	int					ready;
@@ -74,7 +77,8 @@ static int ocm_count;
 
 static struct ocm_info *ocm_get_node(unsigned int index)
 {
-	if (index >= ocm_count) {
+	if (index >= ocm_count)
+	{
 		printk(KERN_ERR "PPC4XX OCM: invalid index");
 		return NULL;
 	}
@@ -88,10 +92,14 @@ static int ocm_free_region(struct ocm_region *ocm_reg, const void *addr)
 	unsigned long offset;
 
 	if (!ocm_reg->virt)
+	{
 		return 0;
+	}
 
-	list_for_each_entry_safe(blk, tmp, &ocm_reg->list, list) {
-		if (blk->addr == addr) {
+	list_for_each_entry_safe(blk, tmp, &ocm_reg->list, list)
+	{
+		if (blk->addr == addr)
+		{
 			offset = addr - ocm_reg->virt;
 			ocm_reg->memfree += blk->size;
 			rh_free(ocm_reg->rh, offset);
@@ -118,22 +126,31 @@ static void __init ocm_init_node(int count, struct device_node *node)
 	ocm = ocm_get_node(count);
 
 	cell_index = of_get_property(node, "cell-index", &len);
-	if (!cell_index) {
+
+	if (!cell_index)
+	{
 		printk(KERN_ERR "PPC4XX OCM: missing cell-index property");
 		return;
 	}
+
 	ocm->index = *cell_index;
 
 	if (of_device_is_available(node))
+	{
 		ocm->status = OCM_ENABLED;
+	}
 
 	cache_size = of_get_property(node, "cached-region-size", &len);
-	if (cache_size)
-		ocm->cache_size = *cache_size;
 
-	if (of_address_to_resource(node, 0, &rsrc)) {
+	if (cache_size)
+	{
+		ocm->cache_size = *cache_size;
+	}
+
+	if (of_address_to_resource(node, 0, &rsrc))
+	{
 		printk(KERN_ERR "PPC4XX OCM%d: could not get resource address\n",
-			ocm->index);
+			   ocm->index);
 		return;
 	}
 
@@ -141,17 +158,20 @@ static void __init ocm_init_node(int count, struct device_node *node)
 	ocm->memtotal = (rsrc.end - rsrc.start + 1);
 
 	printk(KERN_INFO "PPC4XX OCM%d: %d Bytes (%s)\n",
-		ocm->index, ocm->memtotal,
-		(ocm->status == OCM_DISABLED) ? "disabled" : "enabled");
+		   ocm->index, ocm->memtotal,
+		   (ocm->status == OCM_DISABLED) ? "disabled" : "enabled");
 
 	if (ocm->status == OCM_DISABLED)
+	{
 		return;
+	}
 
 	/* request region */
 
-	if (!request_mem_region(ocm->phys, ocm->memtotal, "ppc4xx_ocm")) {
+	if (!request_mem_region(ocm->phys, ocm->memtotal, "ppc4xx_ocm"))
+	{
 		printk(KERN_ERR "PPC4XX OCM%d: could not request region\n",
-			ocm->index);
+			   ocm->index);
 		return;
 	}
 
@@ -166,27 +186,33 @@ static void __init ocm_init_node(int count, struct device_node *node)
 	ocm->c.memfree = ocm->c.memtotal;
 
 	if (ocm->nc.memtotal == 0)
+	{
 		ocm->nc.phys = 0;
+	}
 
 	if (ocm->c.memtotal == 0)
+	{
 		ocm->c.phys = 0;
+	}
 
 	printk(KERN_INFO "PPC4XX OCM%d: %d Bytes (non-cached)\n",
-		ocm->index, ocm->nc.memtotal);
+		   ocm->index, ocm->nc.memtotal);
 
 	printk(KERN_INFO "PPC4XX OCM%d: %d Bytes (cached)\n",
-		ocm->index, ocm->c.memtotal);
+		   ocm->index, ocm->c.memtotal);
 
 	/* ioremap the non-cached region */
-	if (ocm->nc.memtotal) {
+	if (ocm->nc.memtotal)
+	{
 		ioflags = _PAGE_NO_CACHE | _PAGE_GUARDED | _PAGE_EXEC;
 		ocm->nc.virt = __ioremap(ocm->nc.phys, ocm->nc.memtotal,
-					  ioflags);
+								 ioflags);
 
-		if (!ocm->nc.virt) {
+		if (!ocm->nc.virt)
+		{
 			printk(KERN_ERR
-			       "PPC4XX OCM%d: failed to ioremap non-cached memory\n",
-			       ocm->index);
+				   "PPC4XX OCM%d: failed to ioremap non-cached memory\n",
+				   ocm->index);
 			ocm->nc.memfree = 0;
 			return;
 		}
@@ -194,15 +220,17 @@ static void __init ocm_init_node(int count, struct device_node *node)
 
 	/* ioremap the cached region */
 
-	if (ocm->c.memtotal) {
+	if (ocm->c.memtotal)
+	{
 		ioflags = _PAGE_EXEC;
 		ocm->c.virt = __ioremap(ocm->c.phys, ocm->c.memtotal,
-					 ioflags);
+								ioflags);
 
-		if (!ocm->c.virt) {
+		if (!ocm->c.virt)
+		{
 			printk(KERN_ERR
-			       "PPC4XX OCM%d: failed to ioremap cached memory\n",
-			       ocm->index);
+				   "PPC4XX OCM%d: failed to ioremap cached memory\n",
+				   ocm->index);
 			ocm->c.memfree = 0;
 			return;
 		}
@@ -212,12 +240,14 @@ static void __init ocm_init_node(int count, struct device_node *node)
 
 	ocm->alignment = 4; /* default 4 byte alignment */
 
-	if (ocm->nc.virt) {
+	if (ocm->nc.virt)
+	{
 		ocm->nc.rh = rh_create(ocm->alignment);
 		rh_attach_region(ocm->nc.rh, 0, ocm->nc.memtotal);
 	}
 
-	if (ocm->c.virt) {
+	if (ocm->c.virt)
+	{
 		ocm->c.rh = rh_create(ocm->alignment);
 		rh_attach_region(ocm->c.rh, 0, ocm->c.memtotal);
 	}
@@ -235,11 +265,14 @@ static int ocm_debugfs_show(struct seq_file *m, void *v)
 	struct ocm_block *blk, *tmp;
 	unsigned int i;
 
-	for (i = 0; i < ocm_count; i++) {
+	for (i = 0; i < ocm_count; i++)
+	{
 		struct ocm_info *ocm = ocm_get_node(i);
 
 		if (!ocm || !ocm->ready)
+		{
 			continue;
+		}
 
 		seq_printf(m, "PPC4XX OCM   : %d\n", ocm->index);
 		seq_printf(m, "PhysAddr     : 0x%llx\n", ocm->phys);
@@ -254,9 +287,10 @@ static int ocm_debugfs_show(struct seq_file *m, void *v)
 		seq_printf(m, "NC.MemTotal  : %d Bytes\n", ocm->nc.memtotal);
 		seq_printf(m, "NC.MemFree   : %d Bytes\n", ocm->nc.memfree);
 
-		list_for_each_entry_safe(blk, tmp, &ocm->nc.list, list) {
+		list_for_each_entry_safe(blk, tmp, &ocm->nc.list, list)
+		{
 			seq_printf(m, "NC.MemUsed   : %d Bytes (%s)\n",
-							blk->size, blk->owner);
+					   blk->size, blk->owner);
 		}
 
 		seq_printf(m, "\n");
@@ -266,9 +300,10 @@ static int ocm_debugfs_show(struct seq_file *m, void *v)
 		seq_printf(m, "C.MemTotal   : %d Bytes\n", ocm->c.memtotal);
 		seq_printf(m, "C.MemFree    : %d Bytes\n", ocm->c.memfree);
 
-		list_for_each_entry_safe(blk, tmp, &ocm->c.list, list) {
+		list_for_each_entry_safe(blk, tmp, &ocm->c.list, list)
+		{
 			seq_printf(m, "C.MemUsed    : %d Bytes (%s)\n",
-						blk->size, blk->owner);
+					   blk->size, blk->owner);
 		}
 
 		seq_printf(m, "\n");
@@ -282,7 +317,8 @@ static int ocm_debugfs_open(struct inode *inode, struct file *file)
 	return single_open(file, ocm_debugfs_show, NULL);
 }
 
-static const struct file_operations ocm_debugfs_fops = {
+static const struct file_operations ocm_debugfs_fops =
+{
 	.open = ocm_debugfs_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -294,12 +330,15 @@ static int ocm_debugfs_init(void)
 	struct dentry *junk;
 
 	junk = debugfs_create_dir("ppc4xx_ocm", 0);
-	if (!junk) {
+
+	if (!junk)
+	{
 		printk(KERN_ALERT "debugfs ppc4xx ocm: failed to create dir\n");
 		return -1;
 	}
 
-	if (debugfs_create_file("info", 0644, junk, NULL, &ocm_debugfs_fops)) {
+	if (debugfs_create_file("info", 0644, junk, NULL, &ocm_debugfs_fops))
+	{
 		printk(KERN_ALERT "debugfs ppc4xx ocm: failed to create file\n");
 		return -1;
 	}
@@ -308,7 +347,7 @@ static int ocm_debugfs_init(void)
 }
 
 void *ppc4xx_ocm_alloc(phys_addr_t *phys, int size, int align,
-			int flags, const char *owner)
+					   int flags, const char *owner)
 {
 	void __iomem *addr = NULL;
 	unsigned long offset;
@@ -317,30 +356,45 @@ void *ppc4xx_ocm_alloc(phys_addr_t *phys, int size, int align,
 	struct ocm_block *ocm_blk;
 	int i;
 
-	for (i = 0; i < ocm_count; i++) {
+	for (i = 0; i < ocm_count; i++)
+	{
 		ocm = ocm_get_node(i);
 
 		if (!ocm || !ocm->ready)
+		{
 			continue;
+		}
 
 		if (flags == PPC4XX_OCM_NON_CACHED)
+		{
 			ocm_reg = &ocm->nc;
+		}
 		else
+		{
 			ocm_reg = &ocm->c;
+		}
 
 		if (!ocm_reg->virt)
+		{
 			continue;
+		}
 
 		if (align < ocm->alignment)
+		{
 			align = ocm->alignment;
+		}
 
 		offset = rh_alloc_align(ocm_reg->rh, size, align, NULL);
 
 		if (IS_ERR_VALUE(offset))
+		{
 			continue;
+		}
 
 		ocm_blk = kzalloc(sizeof(struct ocm_block), GFP_KERNEL);
-		if (!ocm_blk) {
+
+		if (!ocm_blk)
+		{
 			printk(KERN_ERR "PPC4XX OCM: could not allocate ocm block");
 			rh_free(ocm_reg->rh, offset);
 			break;
@@ -368,17 +422,24 @@ void ppc4xx_ocm_free(const void *addr)
 	int i;
 
 	if (!addr)
+	{
 		return;
+	}
 
-	for (i = 0; i < ocm_count; i++) {
+	for (i = 0; i < ocm_count; i++)
+	{
 		struct ocm_info *ocm = ocm_get_node(i);
 
 		if (!ocm || !ocm->ready)
+		{
 			continue;
+		}
 
 		if (ocm_free_region(&ocm->nc, addr) ||
 			ocm_free_region(&ocm->c, addr))
+		{
 			return;
+		}
 	}
 }
 
@@ -389,13 +450,17 @@ static int __init ppc4xx_ocm_init(void)
 
 	count = 0;
 	for_each_compatible_node(np, NULL, "ibm,ocm")
-		count++;
+	count++;
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	ocm_nodes = kzalloc((count * sizeof(struct ocm_info)), GFP_KERNEL);
-	if (!ocm_nodes) {
+
+	if (!ocm_nodes)
+	{
 		printk(KERN_ERR "PPC4XX OCM: failed to allocate OCM nodes!\n");
 		return -ENOMEM;
 	}
@@ -403,7 +468,8 @@ static int __init ppc4xx_ocm_init(void)
 	ocm_count = count;
 	count = 0;
 
-	for_each_compatible_node(np, NULL, "ibm,ocm") {
+	for_each_compatible_node(np, NULL, "ibm,ocm")
+	{
 		ocm_init_node(count, np);
 		count++;
 	}

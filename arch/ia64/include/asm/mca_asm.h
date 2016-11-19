@@ -53,7 +53,7 @@
 
 #define GET_THIS_PADDR(reg, var)		\
 	mov	reg = IA64_KR(PER_CPU_DATA);;	\
-        addl	reg = THIS_CPU(var), reg
+	addl	reg = THIS_CPU(var), reg
 
 /*
  * This macro jumps to the instruction at the given virtual address
@@ -83,7 +83,7 @@
 	mov	old_psr = psr;								\
 	;;										\
 	dep	old_psr = 0, old_psr, 32, 32;						\
-											\
+	\
 	mov	ar.rsc = 0 ;								\
 	;;										\
 	srlz.d;										\
@@ -99,7 +99,7 @@
 	mov	temp1 = psr;								\
 	mov	temp2 = psr;								\
 	;;										\
-											\
+	\
 	dep	temp2 = 0, temp2, PSR_IC, 2;						\
 	;;										\
 	mov	psr.l = temp2;								\
@@ -195,13 +195,13 @@
 	;;							\
 	dep	temp1 = temp2, temp1, PSR_BN, 1;		\
 	;;							\
-								\
+	\
 	mov     cr.ipsr = temp1;				\
 	movl	temp2 = start_addr;				\
 	;;							\
 	mov	cr.iip = temp2;					\
 	movl	gp = __gp					\
-	;;							\
+				 ;;							\
 	DATA_PA_TO_VA(sp, temp1);				\
 	srlz.i;							\
 	;;							\

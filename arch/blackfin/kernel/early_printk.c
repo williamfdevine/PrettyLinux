@@ -19,10 +19,10 @@
 
 #ifdef CONFIG_SERIAL_BFIN
 extern struct console *bfin_earlyserial_init(unsigned int port,
-						unsigned int cflag);
+		unsigned int cflag);
 #endif
 #ifdef CONFIG_BFIN_JTAG_COMM
-extern struct console *bfin_jc_early_init(void);
+	extern struct console *bfin_jc_early_init(void);
 #endif
 
 /* Default console */
@@ -34,7 +34,7 @@ extern struct console *bfin_jc_early_init(void);
 
 #ifdef CONFIG_SERIAL_CORE
 /* What should get here is "0,57600" */
-static struct console * __init earlyserial_init(char *buf)
+static struct console *__init earlyserial_init(char *buf)
 {
 	int baud, bit;
 	char parity;
@@ -46,56 +46,73 @@ static struct console * __init earlyserial_init(char *buf)
 
 	cflag = 0;
 	baud = simple_strtoul(buf, &buf, 10);
-	switch (baud) {
-	case 1200:
-		cflag |= B1200;
-		break;
-	case 2400:
-		cflag |= B2400;
-		break;
-	case 4800:
-		cflag |= B4800;
-		break;
-	case 9600:
-		cflag |= B9600;
-		break;
-	case 19200:
-		cflag |= B19200;
-		break;
-	case 38400:
-		cflag |= B38400;
-		break;
-	case 115200:
-		cflag |= B115200;
-		break;
-	default:
-		cflag |= B57600;
+
+	switch (baud)
+	{
+		case 1200:
+			cflag |= B1200;
+			break;
+
+		case 2400:
+			cflag |= B2400;
+			break;
+
+		case 4800:
+			cflag |= B4800;
+			break;
+
+		case 9600:
+			cflag |= B9600;
+			break;
+
+		case 19200:
+			cflag |= B19200;
+			break;
+
+		case 38400:
+			cflag |= B38400;
+			break;
+
+		case 115200:
+			cflag |= B115200;
+			break;
+
+		default:
+			cflag |= B57600;
 	}
 
 	parity = buf[0];
 	buf++;
-	switch (parity) {
-	case 'e':
-		cflag |= PARENB;
-		break;
-	case 'o':
-		cflag |= PARODD;
-		break;
+
+	switch (parity)
+	{
+		case 'e':
+			cflag |= PARENB;
+			break;
+
+		case 'o':
+			cflag |= PARODD;
+			break;
 	}
 
 	bit = simple_strtoul(buf, &buf, 10);
-	switch (bit) {
-	case 5:
-		cflag |= CS5;
-		break;
-	case 6:
-		cflag |= CS6;
-		break;
-	case 7:
-		cflag |= CS7;
-		break;
-	default:
-		cflag |= CS8;
+
+	switch (bit)
+	{
+		case 5:
+			cflag |= CS5;
+			break;
+
+		case 6:
+			cflag |= CS6;
+			break;
+
+		case 7:
+			cflag |= CS7;
+			break;
+
+		default:
+			cflag |= CS8;
 	}
 
 #ifdef CONFIG_SERIAL_BFIN
@@ -114,41 +131,54 @@ int __init setup_early_printk(char *buf)
 	   and the pointer before we start using it
 	 */
 	if (!buf)
+	{
 		return 0;
+	}
 
 	if (!*buf)
+	{
 		return 0;
+	}
 
 	if (early_console != NULL)
+	{
 		return 0;
+	}
 
 #ifdef CONFIG_SERIAL_BFIN
+
 	/* Check for Blackfin Serial */
-	if (!strncmp(buf, "serial,uart", 11)) {
+	if (!strncmp(buf, "serial,uart", 11))
+	{
 		buf += 11;
 		early_console = earlyserial_init(buf);
 	}
+
 #endif
 
 #ifdef CONFIG_BFIN_JTAG_COMM
+
 	/* Check for Blackfin JTAG */
-	if (!strncmp(buf, "jtag", 4)) {
+	if (!strncmp(buf, "jtag", 4))
+	{
 		buf += 4;
 		early_console = bfin_jc_early_init();
 	}
+
 #endif
 
 #ifdef CONFIG_FB
-		/* TODO: add framebuffer console support */
+	/* TODO: add framebuffer console support */
 #endif
 
-	if (likely(early_console)) {
+	if (likely(early_console))
+	{
 		early_console->flags |= CON_BOOT;
 
 		register_console(early_console);
 		printk(KERN_INFO "early printk enabled on %s%d\n",
-			early_console->name,
-			early_console->index);
+			   early_console->name,
+			   early_console->index);
 	}
 
 	return 0;
@@ -173,7 +203,8 @@ asmlinkage void __init init_early_exception_vectors(void)
 	early_shadow_puts(linux_banner);
 	early_shadow_stamp();
 
-	if (CPUID != bfin_cpuid()) {
+	if (CPUID != bfin_cpuid())
+	{
 		early_shadow_puts("Running on wrong machine type, expected");
 		early_shadow_reg(CPUID, 16);
 		early_shadow_puts(", but running on");
@@ -186,7 +217,10 @@ asmlinkage void __init init_early_exception_vectors(void)
 	 * evt1 - reset
 	 */
 	for (evt = EVT2; evt <= EVT15; evt += 4)
+	{
 		bfin_write32(evt, early_trap);
+	}
+
 	CSYNC();
 
 	/* Set all the return from interrupt, exception, NMI to a known place
@@ -209,56 +243,81 @@ asmlinkage void __init early_trap_c(struct pt_regs *fp, void *retaddr)
 	 * end up in the __buf_log.
 	 */
 	if (likely(early_console == NULL) && CPUID == bfin_cpuid())
+	{
 		setup_early_printk(DEFAULT_EARLY_PORT);
+	}
 
-	if (!shadow_console_enabled()) {
+	if (!shadow_console_enabled())
+	{
 		/* crap - we crashed before setup_arch() */
 		early_shadow_puts("panic before setup_arch\n");
 		early_shadow_puts("IPEND:");
 		early_shadow_reg(fp->ipend, 16);
-		if (fp->seqstat & SEQSTAT_EXCAUSE) {
+
+		if (fp->seqstat & SEQSTAT_EXCAUSE)
+		{
 			early_shadow_puts("\nEXCAUSE:");
 			early_shadow_reg(fp->seqstat & SEQSTAT_EXCAUSE, 8);
 		}
-		if (fp->seqstat & SEQSTAT_HWERRCAUSE) {
+
+		if (fp->seqstat & SEQSTAT_HWERRCAUSE)
+		{
 			early_shadow_puts("\nHWERRCAUSE:");
 			early_shadow_reg(
 				(fp->seqstat & SEQSTAT_HWERRCAUSE) >> 14, 8);
 		}
+
 		early_shadow_puts("\nErr @");
+
 		if (fp->ipend & EVT_EVX)
+		{
 			early_shadow_reg(fp->retx, 32);
+		}
 		else
+		{
 			early_shadow_reg(fp->pc, 32);
+		}
+
 #ifdef CONFIG_DEBUG_BFIN_HWTRACE_ON
 		early_shadow_puts("\nTrace:");
-		if (likely(bfin_read_TBUFSTAT() & TBUFCNT)) {
-			while (bfin_read_TBUFSTAT() & TBUFCNT) {
+
+		if (likely(bfin_read_TBUFSTAT() & TBUFCNT))
+		{
+			while (bfin_read_TBUFSTAT() & TBUFCNT)
+			{
 				early_shadow_puts("\nT  :");
 				early_shadow_reg(bfin_read_TBUF(), 32);
 				early_shadow_puts("\n S :");
 				early_shadow_reg(bfin_read_TBUF(), 32);
 			}
 		}
+
 #endif
 		early_shadow_puts("\nUse bfin-elf-addr2line to determine "
-			"function names\n");
+						  "function names\n");
+
 		/*
 		 * We should panic(), but we can't - since panic calls printk,
 		 * and printk uses memcpy.
 		 * we want to reboot, but if the machine type is different,
 		 * can't due to machine specific reboot sequences
 		 */
-		if (CPUID == bfin_cpuid()) {
+		if (CPUID == bfin_cpuid())
+		{
 			early_shadow_puts("Trying to restart\n");
 			machine_restart("");
 		}
 
 		early_shadow_puts("Halting, since it is not safe to restart\n");
-		while (1)
-			asm volatile ("EMUEXCPT; IDLE;\n");
 
-	} else {
+		while (1)
+		{
+			asm volatile ("EMUEXCPT; IDLE;\n");
+		}
+
+	}
+	else
+	{
 		printk(KERN_EMERG "Early panic\n");
 		show_regs(fp);
 		dump_bfin_trace_buffer();

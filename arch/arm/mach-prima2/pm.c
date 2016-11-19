@@ -33,23 +33,23 @@ static void sirfsoc_set_wakeup_source(void)
 {
 	u32 pwr_trigger_en_reg;
 	pwr_trigger_en_reg = sirfsoc_rtc_iobrg_readl(sirfsoc_pwrc_base +
-		SIRFSOC_PWRC_TRIGGER_EN);
+						 SIRFSOC_PWRC_TRIGGER_EN);
 #define X_ON_KEY_B (1 << 0)
 #define RTC_ALARM0_B (1 << 2)
 #define RTC_ALARM1_B (1 << 3)
 	sirfsoc_rtc_iobrg_writel(pwr_trigger_en_reg | X_ON_KEY_B |
-		RTC_ALARM0_B | RTC_ALARM1_B,
-		sirfsoc_pwrc_base + SIRFSOC_PWRC_TRIGGER_EN);
+							 RTC_ALARM0_B | RTC_ALARM1_B,
+							 sirfsoc_pwrc_base + SIRFSOC_PWRC_TRIGGER_EN);
 }
 
 static void sirfsoc_set_sleep_mode(u32 mode)
 {
 	u32 sleep_mode = sirfsoc_rtc_iobrg_readl(sirfsoc_pwrc_base +
-		SIRFSOC_PWRC_PDN_CTRL);
+					 SIRFSOC_PWRC_PDN_CTRL);
 	sleep_mode &= ~(SIRFSOC_SLEEP_MODE_MASK << 1);
 	sleep_mode |= mode << 1;
 	sirfsoc_rtc_iobrg_writel(sleep_mode, sirfsoc_pwrc_base +
-		SIRFSOC_PWRC_PDN_CTRL);
+							 SIRFSOC_PWRC_PDN_CTRL);
 }
 
 static int sirfsoc_pre_suspend_power_off(void)
@@ -57,7 +57,7 @@ static int sirfsoc_pre_suspend_power_off(void)
 	u32 wakeup_entry = virt_to_phys(cpu_resume);
 
 	sirfsoc_rtc_iobrg_writel(wakeup_entry, sirfsoc_pwrc_base +
-		SIRFSOC_PWRC_SCRATCH_PAD1);
+							 SIRFSOC_PWRC_SCRATCH_PAD1);
 
 	sirfsoc_set_wakeup_source();
 
@@ -68,27 +68,32 @@ static int sirfsoc_pre_suspend_power_off(void)
 
 static int sirfsoc_pm_enter(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_MEM:
-		sirfsoc_pre_suspend_power_off();
+	switch (state)
+	{
+		case PM_SUSPEND_MEM:
+			sirfsoc_pre_suspend_power_off();
 
-		outer_disable();
-		/* go zzz */
-		cpu_suspend(0, sirfsoc_finish_suspend);
-		outer_resume();
-		break;
-	default:
-		return -EINVAL;
+			outer_disable();
+			/* go zzz */
+			cpu_suspend(0, sirfsoc_finish_suspend);
+			outer_resume();
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
-static const struct platform_suspend_ops sirfsoc_pm_ops = {
+static const struct platform_suspend_ops sirfsoc_pm_ops =
+{
 	.enter = sirfsoc_pm_enter,
 	.valid = suspend_valid_only_mem,
 };
 
-static const struct of_device_id pwrc_ids[] = {
+static const struct of_device_id pwrc_ids[] =
+{
 	{ .compatible = "sirf,prima2-pwrc" },
 	{}
 };
@@ -98,7 +103,9 @@ static int __init sirfsoc_of_pwrc_init(void)
 	struct device_node *np;
 
 	np = of_find_matching_node(NULL, pwrc_ids);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("unable to find compatible sirf pwrc node in dtb\n");
 		return -ENOENT;
 	}
@@ -109,14 +116,17 @@ static int __init sirfsoc_of_pwrc_init(void)
 	 * offset for pwrc. then of_iomap is not suitable here.
 	 */
 	if (of_property_read_u32(np, "reg", &sirfsoc_pwrc_base))
+	{
 		panic("unable to find base address of pwrc node in dtb\n");
+	}
 
 	of_node_put(np);
 
 	return 0;
 }
 
-static const struct of_device_id memc_ids[] = {
+static const struct of_device_id memc_ids[] =
+{
 	{ .compatible = "sirf,prima2-memc" },
 	{}
 };
@@ -126,13 +136,17 @@ static int sirfsoc_memc_probe(struct platform_device *op)
 	struct device_node *np = op->dev.of_node;
 
 	sirfsoc_memc_base = of_iomap(np, 0);
+
 	if (!sirfsoc_memc_base)
+	{
 		panic("unable to map memc registers\n");
+	}
 
 	return 0;
 }
 
-static struct platform_driver sirfsoc_memc_driver = {
+static struct platform_driver sirfsoc_memc_driver =
+{
 	.probe		= sirfsoc_memc_probe,
 	.driver = {
 		.name = "sirfsoc-memc",

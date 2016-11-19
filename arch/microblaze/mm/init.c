@@ -30,11 +30,11 @@
 int mem_init_done;
 
 #ifndef CONFIG_MMU
-unsigned int __page_offset;
-EXPORT_SYMBOL(__page_offset);
+	unsigned int __page_offset;
+	EXPORT_SYMBOL(__page_offset);
 
 #else
-static int init_bootmem_done;
+	static int init_bootmem_done;
 #endif /* CONFIG_MMU */
 
 char *klimit = _end;
@@ -58,7 +58,7 @@ EXPORT_SYMBOL(kmap_prot);
 static inline pte_t *virt_to_kpte(unsigned long vaddr)
 {
 	return pte_offset_kernel(pmd_offset(pgd_offset_k(vaddr),
-			vaddr), vaddr);
+										vaddr), vaddr);
 }
 
 static void __init highmem_init(void)
@@ -75,12 +75,15 @@ static void highmem_setup(void)
 {
 	unsigned long pfn;
 
-	for (pfn = max_low_pfn; pfn < max_pfn; ++pfn) {
+	for (pfn = max_low_pfn; pfn < max_pfn; ++pfn)
+	{
 		struct page *page = pfn_to_page(pfn);
 
 		/* FIXME not sure about */
 		if (!memblock_is_reserved(pfn << PAGE_SHIFT))
+		{
 			free_highmem_page(page);
+		}
 	}
 }
 #endif /* CONFIG_HIGHMEM */
@@ -96,7 +99,10 @@ static void __init paging_init(void)
 
 	/* Setup fixmaps */
 	for (idx = 0; idx < __end_of_fixed_addresses; idx++)
+	{
 		clear_fixmap(idx);
+	}
+
 #endif
 
 	/* Clean every zones */
@@ -124,23 +130,27 @@ void __init setup_memory(void)
 	u32 kernel_align_start, kernel_align_size;
 
 	/* Find main memory where is the kernel */
-	for_each_memblock(memory, reg) {
+	for_each_memblock(memory, reg)
+	{
 		memory_start = (u32)reg->base;
 		lowmem_size = reg->size;
+
 		if ((memory_start <= (u32)_text) &&
-			((u32)_text <= (memory_start + lowmem_size - 1))) {
+			((u32)_text <= (memory_start + lowmem_size - 1)))
+		{
 			memory_size = lowmem_size;
 			PAGE_OFFSET = memory_start;
 			pr_info("%s: Main mem: 0x%x, size 0x%08x\n",
-				__func__, (u32) memory_start,
+					__func__, (u32) memory_start,
 					(u32) memory_size);
 			break;
 		}
 	}
 
-	if (!memory_start || !memory_size) {
+	if (!memory_start || !memory_size)
+	{
 		panic("%s: Missing memory setting 0x%08x, size=0x%08x\n",
-			__func__, (u32) memory_start, (u32) memory_size);
+			  __func__, (u32) memory_start, (u32) memory_size);
 	}
 
 	/* reservation of region where is the kernel */
@@ -148,7 +158,7 @@ void __init setup_memory(void)
 	/* ALIGN can be remove because _end in vmlinux.lds.S is align */
 	kernel_align_size = PAGE_UP((u32)klimit) - kernel_align_start;
 	pr_info("%s: kernel addr:0x%08x-0x%08x size=0x%08x\n",
-		__func__, kernel_align_start, kernel_align_start
+			__func__, kernel_align_start, kernel_align_start
 			+ kernel_align_size, kernel_align_size);
 	memblock_reserve(kernel_align_start, kernel_align_size);
 #endif
@@ -182,36 +192,41 @@ void __init setup_memory(void)
 	 * (in case the address isn't page-aligned).
 	 */
 	map_size = init_bootmem_node(NODE_DATA(0),
-		PFN_UP(TOPHYS((u32)klimit)), min_low_pfn, max_low_pfn);
+								 PFN_UP(TOPHYS((u32)klimit)), min_low_pfn, max_low_pfn);
 	memblock_reserve(PFN_UP(TOPHYS((u32)klimit)) << PAGE_SHIFT, map_size);
 
 	/* Add active regions with valid PFNs */
-	for_each_memblock(memory, reg) {
+	for_each_memblock(memory, reg)
+	{
 		unsigned long start_pfn, end_pfn;
 
 		start_pfn = memblock_region_memory_base_pfn(reg);
 		end_pfn = memblock_region_memory_end_pfn(reg);
 		memblock_set_node(start_pfn << PAGE_SHIFT,
-				  (end_pfn - start_pfn) << PAGE_SHIFT,
-				  &memblock.memory, 0);
+						  (end_pfn - start_pfn) << PAGE_SHIFT,
+						  &memblock.memory, 0);
 	}
 
 	/* free bootmem is whole main memory */
 	free_bootmem_with_active_regions(0, max_low_pfn);
 
 	/* reserve allocate blocks */
-	for_each_memblock(reserved, reg) {
+	for_each_memblock(reserved, reg)
+	{
 		unsigned long top = reg->base + reg->size - 1;
 
 		pr_debug("reserved - 0x%08x-0x%08x, %lx, %lx\n",
-			 (u32) reg->base, (u32) reg->size, top,
-						memory_start + lowmem_size - 1);
+				 (u32) reg->base, (u32) reg->size, top,
+				 memory_start + lowmem_size - 1);
 
-		if (top <= (memory_start + lowmem_size - 1)) {
+		if (top <= (memory_start + lowmem_size - 1))
+		{
 			reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
-		} else if (reg->base < (memory_start + lowmem_size - 1)) {
+		}
+		else if (reg->base < (memory_start + lowmem_size - 1))
+		{
 			unsigned long trunc_size = memory_start + lowmem_size -
-								reg->base;
+									   reg->base;
 			reserve_bootmem(reg->base, trunc_size, BOOTMEM_DEFAULT);
 		}
 	}
@@ -253,12 +268,12 @@ void __init mem_init(void)
 	pr_info("  * 0x%08lx..0x%08lx  : fixmap\n", FIXADDR_START, FIXADDR_TOP);
 #ifdef CONFIG_HIGHMEM
 	pr_info("  * 0x%08lx..0x%08lx  : highmem PTEs\n",
-		PKMAP_BASE, PKMAP_ADDR(LAST_PKMAP));
+			PKMAP_BASE, PKMAP_ADDR(LAST_PKMAP));
 #endif /* CONFIG_HIGHMEM */
 	pr_info("  * 0x%08lx..0x%08lx  : early ioremap\n",
-		ioremap_bot, ioremap_base);
+			ioremap_bot, ioremap_base);
 	pr_info("  * 0x%08lx..0x%08lx  : vmalloc & ioremap\n",
-		(unsigned long)VMALLOC_START, VMALLOC_END);
+			(unsigned long)VMALLOC_START, VMALLOC_END);
 #endif
 	mem_init_done = 1;
 }
@@ -284,10 +299,14 @@ static void mm_cmdline_setup(void)
 
 	/* Look for mem= option on command line */
 	p = strstr(cmd_line, "mem=");
-	if (p) {
+
+	if (p)
+	{
 		p += 4;
 		maxmem = memparse(p, &p);
-		if (maxmem && memory_size > maxmem) {
+
+		if (maxmem && memory_size > maxmem)
+		{
 			memory_size = maxmem;
 			memblock.memory.regions[0].size = memory_size;
 		}
@@ -312,8 +331,8 @@ static void __init mmu_init_hw(void)
 	 * kernel access as indicated in the PTE.
 	 */
 	__asm__ __volatile__ ("ori r11, r0, 0x10000000;" \
-			"mts rzpr, r11;"
-			: : : "r11");
+						  "mts rzpr, r11;"
+						  : : : "r11");
 }
 
 /*
@@ -327,17 +346,20 @@ asmlinkage void __init mmu_init(void)
 {
 	unsigned int kstart, ksize;
 
-	if (!memblock.reserved.cnt) {
+	if (!memblock.reserved.cnt)
+	{
 		pr_emerg("Error memory count\n");
 		machine_restart(NULL);
 	}
 
-	if ((u32) memblock.memory.regions[0].size < 0x400000) {
+	if ((u32) memblock.memory.regions[0].size < 0x400000)
+	{
 		pr_emerg("Memory must be greater than 4MB\n");
 		machine_restart(NULL);
 	}
 
-	if ((u32) memblock.memory.regions[0].size < kernel_tlb) {
+	if ((u32) memblock.memory.regions[0].size < kernel_tlb)
+	{
 		pr_emerg("Kernel size is greater than memory node\n");
 		machine_restart(NULL);
 	}
@@ -346,7 +368,8 @@ asmlinkage void __init mmu_init(void)
 	memory_start = (u32) memblock.memory.regions[0].base;
 	lowmem_size = memory_size = (u32) memblock.memory.regions[0].size;
 
-	if (lowmem_size > CONFIG_LOWMEM_SIZE) {
+	if (lowmem_size > CONFIG_LOWMEM_SIZE)
+	{
 		lowmem_size = CONFIG_LOWMEM_SIZE;
 #ifndef CONFIG_HIGHMEM
 		memory_size = lowmem_size;
@@ -365,12 +388,15 @@ asmlinkage void __init mmu_init(void)
 	memblock_reserve(kstart, ksize);
 
 #if defined(CONFIG_BLK_DEV_INITRD)
+
 	/* Remove the init RAM disk from the available memory. */
-	if (initrd_start) {
+	if (initrd_start)
+	{
 		unsigned long size;
 		size = initrd_end - initrd_start;
 		memblock_reserve(__virt_to_phys(initrd_start), size);
 	}
+
 #endif /* CONFIG_BLK_DEV_INITRD */
 
 	/* Initialize the MMU hardware */
@@ -399,39 +425,55 @@ asmlinkage void __init mmu_init(void)
 void __init *early_get_page(void)
 {
 	void *p;
-	if (init_bootmem_done) {
+
+	if (init_bootmem_done)
+	{
 		p = alloc_bootmem_pages(PAGE_SIZE);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Mem start + kernel_tlb -> here is limit
 		 * because of mem mapping from head.S
 		 */
 		p = __va(memblock_alloc_base(PAGE_SIZE, PAGE_SIZE,
-					memory_start + kernel_tlb));
+									 memory_start + kernel_tlb));
 	}
+
 	return p;
 }
 
 #endif /* CONFIG_MMU */
 
-void * __ref alloc_maybe_bootmem(size_t size, gfp_t mask)
+void *__ref alloc_maybe_bootmem(size_t size, gfp_t mask)
 {
 	if (mem_init_done)
+	{
 		return kmalloc(size, mask);
+	}
 	else
+	{
 		return alloc_bootmem(size);
+	}
 }
 
-void * __ref zalloc_maybe_bootmem(size_t size, gfp_t mask)
+void *__ref zalloc_maybe_bootmem(size_t size, gfp_t mask)
 {
 	void *p;
 
 	if (mem_init_done)
+	{
 		p = kzalloc(size, mask);
-	else {
-		p = alloc_bootmem(size);
-		if (p)
-			memset(p, 0, size);
 	}
+	else
+	{
+		p = alloc_bootmem(size);
+
+		if (p)
+		{
+			memset(p, 0, size);
+		}
+	}
+
 	return p;
 }

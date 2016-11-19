@@ -87,12 +87,12 @@ static inline int board_is_ts7400(void)
 static inline int is_max197_installed(void)
 {
 	return !!(__raw_readb(TS72XX_OPTIONS_VIRT_BASE) &
-					TS72XX_OPTIONS_MAX197);
+			  TS72XX_OPTIONS_MAX197);
 }
 
 static inline int is_ts9420_installed(void)
 {
 	return !!(__raw_readb(TS72XX_OPTIONS2_VIRT_BASE) &
-					TS72XX_OPTIONS2_TS9420);
+			  TS72XX_OPTIONS2_TS9420);
 }
 #endif

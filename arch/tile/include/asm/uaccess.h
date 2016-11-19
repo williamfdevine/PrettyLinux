@@ -53,11 +53,11 @@
  * user-accessible semantics for memory at 0xfc000000 and above 0xfc004000.
  */
 static inline int is_arch_mappable_range(unsigned long addr,
-					 unsigned long size)
+		unsigned long size)
 {
 	return (addr >= MEM_USER_INTRPT &&
-		addr < (MEM_USER_INTRPT + INTRPT_SIZE) &&
-		size <= (MEM_USER_INTRPT + INTRPT_SIZE) - addr);
+			addr < (MEM_USER_INTRPT + INTRPT_SIZE) &&
+			size <= (MEM_USER_INTRPT + INTRPT_SIZE) - addr);
 }
 #define is_arch_mappable_range is_arch_mappable_range
 #else
@@ -98,9 +98,9 @@ int __range_ok(unsigned long addr, unsigned long size);
  * this function, memory access functions may still return -EFAULT.
  */
 #define access_ok(type, addr, size) ({ \
-	__chk_user_ptr(addr); \
-	likely(__range_ok((unsigned long)(addr), (size)) == 0);	\
-})
+		__chk_user_ptr(addr); \
+		likely(__range_ok((unsigned long)(addr), (size)) == 0);	\
+	})
 
 /*
  * The exception table consists of pairs of addresses: the first is the
@@ -115,7 +115,8 @@ int __range_ok(unsigned long addr, unsigned long size);
  * on our cache or tlb entries.
  */
 
-struct exception_table_entry {
+struct exception_table_entry
+{
 	unsigned long insn, fixup;
 };
 
@@ -134,25 +135,25 @@ extern int fixup_exception(struct pt_regs *regs);
  */
 
 #ifdef __LP64__
-#define _ASM_PTR	".quad"
-#define _ASM_ALIGN	".align 8"
+	#define _ASM_PTR	".quad"
+	#define _ASM_ALIGN	".align 8"
 #else
-#define _ASM_PTR	".long"
-#define _ASM_ALIGN	".align 4"
+	#define _ASM_PTR	".long"
+	#define _ASM_ALIGN	".align 4"
 #endif
 
 #define __get_user_asm(OP, x, ptr, ret)					\
 	asm volatile("1: {" #OP " %1, %2; movei %0, 0 }\n"		\
-		     ".pushsection .fixup,\"ax\"\n"			\
-		     "0: { movei %1, 0; movei %0, %3 }\n"		\
-		     "j 9f\n"						\
-		     ".section __ex_table,\"a\"\n"			\
-		     _ASM_ALIGN "\n"					\
-		     _ASM_PTR " 1b, 0b\n"				\
-		     ".popsection\n"					\
-		     "9:"						\
-		     : "=r" (ret), "=r" (x)				\
-		     : "r" (ptr), "i" (-EFAULT))
+				 ".pushsection .fixup,\"ax\"\n"			\
+				 "0: { movei %1, 0; movei %0, %3 }\n"		\
+				 "j 9f\n"						\
+				 ".section __ex_table,\"a\"\n"			\
+				 _ASM_ALIGN "\n"					\
+				 _ASM_PTR " 1b, 0b\n"				\
+				 ".popsection\n"					\
+				 "9:"						\
+				 : "=r" (ret), "=r" (x)				\
+				 : "r" (ptr), "i" (-EFAULT))
 
 #ifdef __tilegx__
 #define __get_user_1(x, ptr, ret) __get_user_asm(ld1u, x, ptr, ret)
@@ -164,36 +165,36 @@ extern int fixup_exception(struct pt_regs *regs);
 #define __get_user_2(x, ptr, ret) __get_user_asm(lh_u, x, ptr, ret)
 #define __get_user_4(x, ptr, ret) __get_user_asm(lw, x, ptr, ret)
 #ifdef __LITTLE_ENDIAN
-#define __lo32(a, b) a
-#define __hi32(a, b) b
+	#define __lo32(a, b) a
+	#define __hi32(a, b) b
 #else
-#define __lo32(a, b) b
-#define __hi32(a, b) a
+	#define __lo32(a, b) b
+	#define __hi32(a, b) a
 #endif
 #define __get_user_8(x, ptr, ret)					\
 	({								\
 		unsigned int __a, __b;					\
 		asm volatile("1: { lw %1, %3; addi %2, %3, 4 }\n"	\
-			     "2: { lw %2, %2; movei %0, 0 }\n"		\
-			     ".pushsection .fixup,\"ax\"\n"		\
-			     "0: { movei %1, 0; movei %2, 0 }\n"	\
-			     "{ movei %0, %4; j 9f }\n"			\
-			     ".section __ex_table,\"a\"\n"		\
-			     ".align 4\n"				\
-			     ".word 1b, 0b\n"				\
-			     ".word 2b, 0b\n"				\
-			     ".popsection\n"				\
-			     "9:"					\
-			     : "=r" (ret), "=r" (__a), "=&r" (__b)	\
-			     : "r" (ptr), "i" (-EFAULT));		\
+					 "2: { lw %2, %2; movei %0, 0 }\n"		\
+					 ".pushsection .fixup,\"ax\"\n"		\
+					 "0: { movei %1, 0; movei %2, 0 }\n"	\
+					 "{ movei %0, %4; j 9f }\n"			\
+					 ".section __ex_table,\"a\"\n"		\
+					 ".align 4\n"				\
+					 ".word 1b, 0b\n"				\
+					 ".word 2b, 0b\n"				\
+					 ".popsection\n"				\
+					 "9:"					\
+					 : "=r" (ret), "=r" (__a), "=&r" (__b)	\
+					 : "r" (ptr), "i" (-EFAULT));		\
 		(x) = (__force __typeof(x))(__inttype(x))		\
-			(((u64)__hi32(__a, __b) << 32) |		\
-			 __lo32(__a, __b));				\
+			  (((u64)__hi32(__a, __b) << 32) |		\
+			   __lo32(__a, __b));				\
 	})
 #endif
 
 extern int __get_user_bad(void)
-  __attribute__((warning("sizeof __get_user argument not 1, 2, 4 or 8")));
+__attribute__((warning("sizeof __get_user argument not 1, 2, 4 or 8")));
 
 /**
  * __get_user: - Get a simple variable from user space, with less checking.
@@ -222,11 +223,11 @@ extern int __get_user_bad(void)
 		typeof(x) _x;						\
 		__chk_user_ptr(ptr);					\
 		switch (sizeof(*(ptr))) {				\
-		case 1: __get_user_1(_x, ptr, __ret); break;		\
-		case 2: __get_user_2(_x, ptr, __ret); break;		\
-		case 4: __get_user_4(_x, ptr, __ret); break;		\
-		case 8: __get_user_8(_x, ptr, __ret); break;		\
-		default: __ret = __get_user_bad(); break;		\
+			case 1: __get_user_1(_x, ptr, __ret); break;		\
+			case 2: __get_user_2(_x, ptr, __ret); break;		\
+			case 4: __get_user_4(_x, ptr, __ret); break;		\
+			case 8: __get_user_8(_x, ptr, __ret); break;		\
+			default: __ret = __get_user_bad(); break;		\
 		}							\
 		(x) = (typeof(*(ptr))) _x;				\
 		__ret;							\
@@ -236,15 +237,15 @@ extern int __get_user_bad(void)
 
 #define __put_user_asm(OP, x, ptr, ret)			\
 	asm volatile("1: {" #OP " %1, %2; movei %0, 0 }\n"		\
-		     ".pushsection .fixup,\"ax\"\n"			\
-		     "0: { movei %0, %3; j 9f }\n"			\
-		     ".section __ex_table,\"a\"\n"			\
-		     _ASM_ALIGN "\n"					\
-		     _ASM_PTR " 1b, 0b\n"				\
-		     ".popsection\n"					\
-		     "9:"						\
-		     : "=r" (ret)					\
-		     : "r" (ptr), "r" (x), "i" (-EFAULT))
+				 ".pushsection .fixup,\"ax\"\n"			\
+				 "0: { movei %0, %3; j 9f }\n"			\
+				 ".section __ex_table,\"a\"\n"			\
+				 _ASM_ALIGN "\n"					\
+				 _ASM_PTR " 1b, 0b\n"				\
+				 ".popsection\n"					\
+				 "9:"						\
+				 : "=r" (ret)					\
+				 : "r" (ptr), "r" (x), "i" (-EFAULT))
 
 #ifdef __tilegx__
 #define __put_user_1(x, ptr, ret) __put_user_asm(st1, x, ptr, ret)
@@ -260,23 +261,23 @@ extern int __get_user_bad(void)
 		u64 __x = (__force __inttype(x))(x);			\
 		int __lo = (int) __x, __hi = (int) (__x >> 32);		\
 		asm volatile("1: { sw %1, %2; addi %0, %1, 4 }\n"	\
-			     "2: { sw %0, %3; movei %0, 0 }\n"		\
-			     ".pushsection .fixup,\"ax\"\n"		\
-			     "0: { movei %0, %4; j 9f }\n"		\
-			     ".section __ex_table,\"a\"\n"		\
-			     ".align 4\n"				\
-			     ".word 1b, 0b\n"				\
-			     ".word 2b, 0b\n"				\
-			     ".popsection\n"				\
-			     "9:"					\
-			     : "=&r" (ret)				\
-			     : "r" (ptr), "r" (__lo32(__lo, __hi)),	\
-			     "r" (__hi32(__lo, __hi)), "i" (-EFAULT));	\
+					 "2: { sw %0, %3; movei %0, 0 }\n"		\
+					 ".pushsection .fixup,\"ax\"\n"		\
+					 "0: { movei %0, %4; j 9f }\n"		\
+					 ".section __ex_table,\"a\"\n"		\
+					 ".align 4\n"				\
+					 ".word 1b, 0b\n"				\
+					 ".word 2b, 0b\n"				\
+					 ".popsection\n"				\
+					 "9:"					\
+					 : "=&r" (ret)				\
+					 : "r" (ptr), "r" (__lo32(__lo, __hi)),	\
+					 "r" (__hi32(__lo, __hi)), "i" (-EFAULT));	\
 	})
 #endif
 
 extern int __put_user_bad(void)
-  __attribute__((warning("sizeof __put_user argument not 1, 2, 4 or 8")));
+__attribute__((warning("sizeof __put_user argument not 1, 2, 4 or 8")));
 
 /**
  * __put_user: - Write a simple value into user space, with less checking.
@@ -299,19 +300,19 @@ extern int __put_user_bad(void)
  * Returns zero on success, or -EFAULT on error.
  */
 #define __put_user(x, ptr)						\
-({									\
-	int __ret;							\
-	typeof(*(ptr)) _x = (x);					\
-	__chk_user_ptr(ptr);						\
-	switch (sizeof(*(ptr))) {					\
-	case 1: __put_user_1(_x, ptr, __ret); break;			\
-	case 2: __put_user_2(_x, ptr, __ret); break;			\
-	case 4: __put_user_4(_x, ptr, __ret); break;			\
-	case 8: __put_user_8(_x, ptr, __ret); break;			\
-	default: __ret = __put_user_bad(); break;			\
-	}								\
-	__ret;								\
-})
+	({									\
+		int __ret;							\
+		typeof(*(ptr)) _x = (x);					\
+		__chk_user_ptr(ptr);						\
+		switch (sizeof(*(ptr))) {					\
+			case 1: __put_user_1(_x, ptr, __ret); break;			\
+			case 2: __put_user_2(_x, ptr, __ret); break;			\
+			case 4: __put_user_4(_x, ptr, __ret); break;			\
+			case 8: __put_user_8(_x, ptr, __ret); break;			\
+			default: __ret = __put_user_bad(); break;			\
+		}								\
+		__ret;								\
+	})
 
 /*
  * The versions of get_user and put_user without initial underscores
@@ -319,20 +320,20 @@ extern int __put_user_bad(void)
  * in kernel space.
  */
 #define put_user(x, ptr)						\
-({									\
-	__typeof__(*(ptr)) __user *__Pu_addr = (ptr);			\
-	access_ok(VERIFY_WRITE, (__Pu_addr), sizeof(*(__Pu_addr))) ?	\
+	({									\
+		__typeof__(*(ptr)) __user *__Pu_addr = (ptr);			\
+		access_ok(VERIFY_WRITE, (__Pu_addr), sizeof(*(__Pu_addr))) ?	\
 		__put_user((x), (__Pu_addr)) :				\
 		-EFAULT;						\
-})
+	})
 
 #define get_user(x, ptr)						\
-({									\
-	__typeof__(*(ptr)) const __user *__Gu_addr = (ptr);		\
-	access_ok(VERIFY_READ, (__Gu_addr), sizeof(*(__Gu_addr))) ?	\
+	({									\
+		__typeof__(*(ptr)) const __user *__Gu_addr = (ptr);		\
+		access_ok(VERIFY_READ, (__Gu_addr), sizeof(*(__Gu_addr))) ?	\
 		__get_user((x), (__Gu_addr)) :				\
 		((x) = 0, -EFAULT);					\
-})
+	})
 
 /**
  * __copy_to_user() - copy data into user space, with less checking.
@@ -367,7 +368,10 @@ static inline unsigned long __must_check
 copy_to_user(void __user *to, const void *from, unsigned long n)
 {
 	if (access_ok(VERIFY_WRITE, to, n))
+	{
 		n = __copy_to_user(to, from, n);
+	}
+
 	return n;
 }
 
@@ -402,17 +406,22 @@ extern unsigned long __must_check __copy_from_user_zeroing(
 static inline unsigned long __must_check
 __copy_from_user(void *to, const void __user *from, unsigned long n)
 {
-       might_fault();
-       return __copy_from_user_zeroing(to, from, n);
+	might_fault();
+	return __copy_from_user_zeroing(to, from, n);
 }
 
 static inline unsigned long __must_check
 _copy_from_user(void *to, const void __user *from, unsigned long n)
 {
 	if (access_ok(VERIFY_READ, from, n))
+	{
 		n = __copy_from_user(to, from, n);
+	}
 	else
+	{
 		memset(to, 0, n);
+	}
+
 	return n;
 }
 
@@ -425,17 +434,23 @@ static inline void copy_user_overflow(int size, unsigned long count)
 }
 
 static inline unsigned long __must_check copy_from_user(void *to,
-					  const void __user *from,
-					  unsigned long n)
+		const void __user *from,
+		unsigned long n)
 {
 	int sz = __compiletime_object_size(to);
 
 	if (likely(sz == -1 || sz >= n))
+	{
 		n = _copy_from_user(to, from, n);
+	}
 	else if (!__builtin_constant_p(n))
+	{
 		copy_user_overflow(sz, n);
+	}
 	else
+	{
 		__bad_copy_user();
+	}
 
 	return n;
 }
@@ -470,7 +485,10 @@ static inline unsigned long __must_check
 copy_in_user(void __user *to, const void __user *from, unsigned long n)
 {
 	if (access_ok(VERIFY_WRITE, to, n) && access_ok(VERIFY_READ, from, n))
+	{
 		n = __copy_in_user(to, from, n);
+	}
+
 	return n;
 }
 #endif
@@ -501,7 +519,10 @@ static inline unsigned long __must_check clear_user(
 	void __user *mem, unsigned long len)
 {
 	if (access_ok(VERIFY_WRITE, mem, len))
+	{
 		return __clear_user(mem, len);
+	}
+
 	return len;
 }
 
@@ -529,7 +550,10 @@ static inline unsigned long __must_check flush_user(
 	void __user *mem, unsigned long len)
 {
 	if (access_ok(VERIFY_WRITE, mem, len))
+	{
 		return __flush_user(mem, len);
+	}
+
 	return len;
 }
 
@@ -556,7 +580,10 @@ static inline unsigned long __must_check finv_user(
 	void __user *mem, unsigned long len)
 {
 	if (access_ok(VERIFY_WRITE, mem, len))
+	{
 		return __finv_user(mem, len);
+	}
+
 	return len;
 }
 

@@ -43,38 +43,50 @@ void arch_cpu_idle(void)
 	 * interrupts enabled.
 	 */
 	asm volatile ("   mvc .s2 CSR,%0\n"
-		      "   or  .d2 1,%0,%0\n"
-		      "   mvc .s2 %0,CSR\n"
-		      "|| idle\n"
-		      : "=b"(tmp));
+				  "   or  .d2 1,%0,%0\n"
+				  "   mvc .s2 %0,CSR\n"
+				  "|| idle\n"
+				  : "=b"(tmp));
 }
 
 static void halt_loop(void)
 {
 	printk(KERN_EMERG "System Halted, OK to turn off power\n");
 	local_irq_disable();
+
 	while (1)
+	{
 		asm volatile("idle\n");
+	}
 }
 
 void machine_restart(char *__unused)
 {
 	if (c6x_restart)
+	{
 		c6x_restart();
+	}
+
 	halt_loop();
 }
 
 void machine_halt(void)
 {
 	if (c6x_halt)
+	{
 		c6x_halt();
+	}
+
 	halt_loop();
 }
 
 void machine_power_off(void)
 {
 	if (pm_power_off)
+	{
 		pm_power_off();
+	}
+
 	halt_loop();
 }
 
@@ -107,25 +119,32 @@ void start_thread(struct pt_regs *regs, unsigned int pc, unsigned long usp)
  * Copy a new thread context in its stack.
  */
 int copy_thread(unsigned long clone_flags, unsigned long usp,
-		unsigned long ustk_size,
-		struct task_struct *p)
+				unsigned long ustk_size,
+				struct task_struct *p)
 {
 	struct pt_regs *childregs;
 
 	childregs = task_pt_regs(p);
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		/* case of  __kernel_thread: we return to supervisor space */
 		memset(childregs, 0, sizeof(struct pt_regs));
 		childregs->sp = (unsigned long)(childregs + 1);
 		p->thread.pc = (unsigned long) ret_from_kernel_thread;
 		childregs->a0 = usp;		/* function */
 		childregs->a1 = ustk_size;	/* argument */
-	} else {
+	}
+	else
+	{
 		/* Otherwise use the given stack */
 		*childregs = *current_pt_regs();
+
 		if (usp)
+		{
 			childregs->sp = usp;
+		}
+
 		p->thread.pc = (unsigned long) ret_from_fork;
 	}
 
@@ -140,8 +159,11 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 		asm volatile ("mv .S2 b14,%0\n" : "=b"(dp));
 
 		thread_saved_dp(p) = dp;
+
 		if (usp == -1)
+		{
 			childregs->dp = dp;
+		}
 	}
 #endif
 	return 0;

@@ -206,9 +206,9 @@
 #define vSR	0x1400  /* [VIA only] Shift register. */
 #define vACR	0x1600  /* [VIA only] Auxiliary control register. */
 #define vPCR	0x1800  /* [VIA only] Peripheral control register. */
-                        /*            CHRP sez never ever to *write* this.
-			 *            Mac family says never to *change* this.
-			 * In fact we need to initialize it once at start. */
+/*            CHRP sez never ever to *write* this.
+*            Mac family says never to *change* this.
+		 * In fact we need to initialize it once at start. */
 #define vIFR	0x1a00  /* [VIA/RBV]  Interrupt flag register. */
 #define vIER	0x1c00  /* [VIA/RBV]  Interrupt enable register. */
 #define vBufA	0x1e00  /* [VIA/RBV] register A (no handshake) */
@@ -251,8 +251,8 @@
 
 #ifndef __ASSEMBLY__
 
-extern volatile __u8 *via1,*via2;
-extern int rbv_present,via_alt_mapping;
+extern volatile __u8 *via1, *via2;
+extern int rbv_present, via_alt_mapping;
 
 struct irq_desc;
 
@@ -267,8 +267,10 @@ extern int via2_scsi_drq_pending(void);
 
 static inline int rbv_set_video_bpp(int bpp)
 {
-	char val = (bpp==1)?0:(bpp==2)?1:(bpp==4)?2:(bpp==8)?3:-1;
-	if (!rbv_present || val<0) return -1;
+	char val = (bpp == 1) ? 0 : (bpp == 2) ? 1 : (bpp == 4) ? 2 : (bpp == 8) ? 3 : -1;
+
+	if (!rbv_present || val < 0) { return -1; }
+
 	via2[rMonP] = (via2[rMonP] & ~RBV_DEPTH) | val;
 	return 0;
 }

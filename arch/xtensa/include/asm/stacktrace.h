@@ -12,7 +12,8 @@
 
 #include <linux/sched.h>
 
-struct stackframe {
+struct stackframe
+{
 	unsigned long pc;
 	unsigned long sp;
 };
@@ -22,23 +23,27 @@ static __always_inline unsigned long *stack_pointer(struct task_struct *task)
 	unsigned long *sp;
 
 	if (!task || task == current)
+	{
 		__asm__ __volatile__ ("mov %0, a1\n" : "=a"(sp));
+	}
 	else
+	{
 		sp = (unsigned long *)task->thread.sp;
+	}
 
 	return sp;
 }
 
 void walk_stackframe(unsigned long *sp,
-		int (*fn)(struct stackframe *frame, void *data),
-		void *data);
+					 int (*fn)(struct stackframe *frame, void *data),
+					 void *data);
 
 void xtensa_backtrace_kernel(struct pt_regs *regs, unsigned int depth,
-			     int (*kfn)(struct stackframe *frame, void *data),
-			     int (*ufn)(struct stackframe *frame, void *data),
-			     void *data);
+							 int (*kfn)(struct stackframe *frame, void *data),
+							 int (*ufn)(struct stackframe *frame, void *data),
+							 void *data);
 void xtensa_backtrace_user(struct pt_regs *regs, unsigned int depth,
-			   int (*ufn)(struct stackframe *frame, void *data),
-			   void *data);
+						   int (*ufn)(struct stackframe *frame, void *data),
+						   void *data);
 
 #endif /* _XTENSA_STACKTRACE_H */

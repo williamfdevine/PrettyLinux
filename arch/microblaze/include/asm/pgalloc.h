@@ -29,7 +29,8 @@
  * as well - it gives us quite a speedup.
  * -- Cort
  */
-extern struct pgtable_cache_struct {
+extern struct pgtable_cache_struct
+{
 	unsigned long *pgd_cache;
 	unsigned long *pte_cache;
 	unsigned long pgtable_cache_sz;
@@ -65,8 +66,12 @@ static inline pgd_t *get_pgd_slow(void)
 	pgd_t *ret;
 
 	ret = (pgd_t *)__get_free_pages(GFP_KERNEL, PGDIR_ORDER);
+
 	if (ret != NULL)
+	{
 		clear_page(ret);
+	}
+
 	return ret;
 }
 
@@ -75,12 +80,18 @@ static inline pgd_t *get_pgd_fast(void)
 	unsigned long *ret;
 
 	ret = pgd_quicklist;
-	if (ret != NULL) {
+
+	if (ret != NULL)
+	{
 		pgd_quicklist = (unsigned long *)(*ret);
 		ret[0] = 0;
 		pgtable_cache_size--;
-	} else
+	}
+	else
+	{
 		ret = (unsigned long *)get_pgd_slow();
+	}
+
 	return (pgd_t *)ret;
 }
 
@@ -122,27 +133,37 @@ static inline struct page *pte_alloc_one(struct mm_struct *mm,
 #endif
 
 	ptepage = alloc_pages(flags, 0);
+
 	if (!ptepage)
+	{
 		return NULL;
+	}
+
 	clear_highpage(ptepage);
-	if (!pgtable_page_ctor(ptepage)) {
+
+	if (!pgtable_page_ctor(ptepage))
+	{
 		__free_page(ptepage);
 		return NULL;
 	}
+
 	return ptepage;
 }
 
 static inline pte_t *pte_alloc_one_fast(struct mm_struct *mm,
-		unsigned long address)
+										unsigned long address)
 {
 	unsigned long *ret;
 
 	ret = pte_quicklist;
-	if (ret != NULL) {
+
+	if (ret != NULL)
+	{
 		pte_quicklist = (unsigned long *)(*ret);
 		ret[0] = 0;
 		pgtable_cache_size--;
 	}
+
 	return (pte_t *)ret;
 }
 
@@ -172,10 +193,10 @@ static inline void pte_free(struct mm_struct *mm, struct page *ptepage)
 #define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, (pte))
 
 #define pmd_populate(mm, pmd, pte) \
-			(pmd_val(*(pmd)) = (unsigned long)page_address(pte))
+	(pmd_val(*(pmd)) = (unsigned long)page_address(pte))
 
 #define pmd_populate_kernel(mm, pmd, pte) \
-		(pmd_val(*(pmd)) = (unsigned long) (pte))
+	(pmd_val(*(pmd)) = (unsigned long) (pte))
 
 /*
  * We don't have any real pmd's, and this code never triggers because

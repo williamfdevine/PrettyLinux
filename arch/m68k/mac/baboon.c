@@ -20,7 +20,7 @@ int baboon_present;
 static volatile struct baboon *baboon;
 
 #if 0
-extern int macide_ack_intr(struct ata_channel *);
+	extern int macide_ack_intr(struct ata_channel *);
 #endif
 
 /*
@@ -29,7 +29,8 @@ extern int macide_ack_intr(struct ata_channel *);
 
 void __init baboon_init(void)
 {
-	if (macintosh_config->ident != MAC_MODEL_PB190) {
+	if (macintosh_config->ident != MAC_MODEL_PB190)
+	{
 		baboon = NULL;
 		baboon_present = 0;
 		return;
@@ -52,26 +53,37 @@ static void baboon_irq(struct irq_desc *desc)
 
 #ifdef DEBUG_IRQS
 	printk("baboon_irq: mb_control %02X mb_ifr %02X mb_status %02X\n",
-		(uint) baboon->mb_control, (uint) baboon->mb_ifr,
-		(uint) baboon->mb_status);
+		   (uint) baboon->mb_control, (uint) baboon->mb_ifr,
+		   (uint) baboon->mb_status);
 #endif
 
 	events = baboon->mb_ifr & 0x07;
+
 	if (!events)
+	{
 		return;
+	}
 
 	irq_num = IRQ_BABOON_0;
 	irq_bit = 1;
-	do {
-	        if (events & irq_bit) {
+
+	do
+	{
+		if (events & irq_bit)
+		{
 			baboon->mb_ifr &= ~irq_bit;
 			generic_handle_irq(irq_num);
 		}
+
 		irq_bit <<= 1;
 		irq_num++;
-	} while(events >= irq_bit);
+	}
+	while (events >= irq_bit);
+
 #if 0
-	if (baboon->mb_ifr & 0x02) macide_ack_intr(NULL);
+
+	if (baboon->mb_ifr & 0x02) { macide_ack_intr(NULL); }
+
 	/* for now we need to smash all interrupts */
 	baboon->mb_ifr &= ~events;
 #endif

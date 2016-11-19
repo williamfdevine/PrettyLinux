@@ -32,7 +32,8 @@
 #define dma_eth0 dma_eth
 #define dma_eth1 dma_eth
 
-enum dma_owner {
+enum dma_owner
+{
 	dma_eth,
 	dma_ser0,
 	dma_ser1,
@@ -47,7 +48,7 @@ enum dma_owner {
 };
 
 int crisv32_request_dma(unsigned int dmanr, const char *device_id,
-	unsigned options, unsigned bandwidth, enum dma_owner owner);
+						unsigned options, unsigned bandwidth, enum dma_owner owner);
 void crisv32_free_dma(unsigned int dmanr);
 
 /* Masks used by crisv32_request_dma options: */

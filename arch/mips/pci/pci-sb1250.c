@@ -65,11 +65,11 @@ static int sb1250_bus_status;
 #define LDT_BRIDGE_DEVICE  1
 
 #ifdef CONFIG_SIBYTE_HAS_LDT
-/*
- * HT's level-sensitive interrupts require EOI, which is generated
- * through a 4MB memory-mapped region
- */
-unsigned long ldt_eoi_space;
+	/*
+	* HT's level-sensitive interrupts require EOI, which is generated
+	* through a 4MB memory-mapped region
+	*/
+	unsigned long ldt_eoi_space;
 #endif
 
 /*
@@ -106,18 +106,31 @@ static int sb1250_pci_can_access(struct pci_bus *bus, int devfn)
 	u32 devno;
 
 	if (!(sb1250_bus_status & (PCI_BUS_ENABLED | PCI_DEVICE_MODE)))
+	{
 		return 0;
+	}
 
-	if (bus->number == 0) {
+	if (bus->number == 0)
+	{
 		devno = PCI_SLOT(devfn);
+
 		if (devno == LDT_BRIDGE_DEVICE)
+		{
 			return (sb1250_bus_status & LDT_BUS_ENABLED) != 0;
+		}
 		else if (sb1250_bus_status & PCI_DEVICE_MODE)
+		{
 			return 0;
+		}
 		else
+		{
 			return 1;
-	} else
+		}
+	}
+	else
+	{
 		return 1;
+	}
 }
 
 /*
@@ -127,80 +140,106 @@ static int sb1250_pci_can_access(struct pci_bus *bus, int devfn)
  */
 
 static int sb1250_pcibios_read(struct pci_bus *bus, unsigned int devfn,
-			       int where, int size, u32 * val)
+							   int where, int size, u32 *val)
 {
 	u32 data = 0;
 
 	if ((size == 2) && (where & 1))
+	{
 		return PCIBIOS_BAD_REGISTER_NUMBER;
+	}
 	else if ((size == 4) && (where & 3))
+	{
 		return PCIBIOS_BAD_REGISTER_NUMBER;
+	}
 
 	if (sb1250_pci_can_access(bus, devfn))
+	{
 		data = READCFG32(CFGADDR(bus, devfn, where));
+	}
 	else
+	{
 		data = 0xFFFFFFFF;
+	}
 
 	if (size == 1)
+	{
 		*val = (data >> ((where & 3) << 3)) & 0xff;
+	}
 	else if (size == 2)
+	{
 		*val = (data >> ((where & 3) << 3)) & 0xffff;
+	}
 	else
+	{
 		*val = data;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int sb1250_pcibios_write(struct pci_bus *bus, unsigned int devfn,
-				int where, int size, u32 val)
+								int where, int size, u32 val)
 {
 	u32 cfgaddr = CFGADDR(bus, devfn, where);
 	u32 data = 0;
 
 	if ((size == 2) && (where & 1))
+	{
 		return PCIBIOS_BAD_REGISTER_NUMBER;
+	}
 	else if ((size == 4) && (where & 3))
+	{
 		return PCIBIOS_BAD_REGISTER_NUMBER;
+	}
 
 	if (!sb1250_pci_can_access(bus, devfn))
+	{
 		return PCIBIOS_BAD_REGISTER_NUMBER;
+	}
 
 	data = READCFG32(cfgaddr);
 
 	if (size == 1)
 		data = (data & ~(0xff << ((where & 3) << 3))) |
-		    (val << ((where & 3) << 3));
+			   (val << ((where & 3) << 3));
 	else if (size == 2)
 		data = (data & ~(0xffff << ((where & 3) << 3))) |
-		    (val << ((where & 3) << 3));
+			   (val << ((where & 3) << 3));
 	else
+	{
 		data = val;
+	}
 
 	WRITECFG32(cfgaddr, data);
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops sb1250_pci_ops = {
+struct pci_ops sb1250_pci_ops =
+{
 	.read	= sb1250_pcibios_read,
 	.write	= sb1250_pcibios_write,
 };
 
-static struct resource sb1250_mem_resource = {
+static struct resource sb1250_mem_resource =
+{
 	.name	= "SB1250 PCI MEM",
 	.start	= 0x40000000UL,
 	.end	= 0x5fffffffUL,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct resource sb1250_io_resource = {
+static struct resource sb1250_io_resource =
+{
 	.name	= "SB1250 PCI I/O",
 	.start	= 0x00000000UL,
 	.end	= 0x01ffffffUL,
 	.flags	= IORESOURCE_IO,
 };
 
-struct pci_controller sb1250_controller = {
+struct pci_controller sb1250_controller =
+{
 	.pci_ops	= &sb1250_pci_ops,
 	.mem_resource	= &sb1250_mem_resource,
 	.io_resource	= &sb1250_io_resource,
@@ -224,25 +263,32 @@ static int __init sb1250_pcibios_init(void)
 	iomem_resource.end = 0xffffffffUL;	/* no HT support yet */
 
 	cfg_space =
-	    ioremap(A_PHYS_LDTPCI_CFG_MATCH_BITS, 16 * 1024 * 1024);
+		ioremap(A_PHYS_LDTPCI_CFG_MATCH_BITS, 16 * 1024 * 1024);
 
 	/*
 	 * See if the PCI bus has been configured by the firmware.
 	 */
 	reg = __raw_readq(IOADDR(A_SCD_SYSTEM_CFG));
-	if (!(reg & M_SYS_PCI_HOST)) {
+
+	if (!(reg & M_SYS_PCI_HOST))
+	{
 		sb1250_bus_status |= PCI_DEVICE_MODE;
-	} else {
+	}
+	else
+	{
 		cmdreg =
-		    READCFG32(CFGOFFSET
-			      (0, PCI_DEVFN(PCI_BRIDGE_DEVICE, 0),
-			       PCI_COMMAND));
-		if (!(cmdreg & PCI_COMMAND_MASTER)) {
+			READCFG32(CFGOFFSET
+					  (0, PCI_DEVFN(PCI_BRIDGE_DEVICE, 0),
+					   PCI_COMMAND));
+
+		if (!(cmdreg & PCI_COMMAND_MASTER))
+		{
 			printk
-			    ("PCI: Skipping PCI probe.	Bus is not initialized.\n");
+			("PCI: Skipping PCI probe.	Bus is not initialized.\n");
 			iounmap(cfg_space);
 			return 0;
 		}
+
 		sb1250_bus_status |= PCI_BUS_ENABLED;
 	}
 
@@ -265,8 +311,10 @@ static int __init sb1250_pcibios_init(void)
 	 */
 
 	cmdreg = READCFG32(CFGOFFSET(0, PCI_DEVFN(LDT_BRIDGE_DEVICE, 0),
-				     PCI_COMMAND));
-	if (cmdreg & PCI_COMMAND_MASTER) {
+								 PCI_COMMAND));
+
+	if (cmdreg & PCI_COMMAND_MASTER)
+	{
 		sb1250_bus_status |= LDT_BUS_ENABLED;
 
 		/*
@@ -275,9 +323,10 @@ static int __init sb1250_pcibios_init(void)
 		 * (Kseg2/Kseg3) for 32-bit kernel.
 		 */
 		ldt_eoi_space = (unsigned long)
-		    ioremap(A_PHYS_LDT_SPECIAL_MATCH_BYTES,
-			    4 * 1024 * 1024);
+						ioremap(A_PHYS_LDT_SPECIAL_MATCH_BYTES,
+								4 * 1024 * 1024);
 	}
+
 #endif
 
 	register_pci_controller(&sb1250_controller);

@@ -23,11 +23,14 @@
  * struct sigcontext has the same shape as struct pt_regs,
  * but is simplified since we know the fault is from userspace.
  */
-struct sigcontext {
-	__extension__ union {
+struct sigcontext
+{
+	__extension__ union
+	{
 		/* General-purpose registers.  */
 		__uint_reg_t gregs[56];
-		__extension__ struct {
+		__extension__ struct
+		{
 			__uint_reg_t __gregs[53];
 			__uint_reg_t tp;	/* Aliases gregs[TREG_TP].  */
 			__uint_reg_t sp;	/* Aliases gregs[TREG_SP].  */

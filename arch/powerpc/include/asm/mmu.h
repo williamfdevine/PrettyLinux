@@ -108,32 +108,33 @@
 #define MMU_FTRS_POWER8		MMU_FTRS_POWER4 | MMU_FTR_LOCKLESS_TLBIE
 #define MMU_FTRS_POWER9		MMU_FTRS_POWER4 | MMU_FTR_LOCKLESS_TLBIE
 #define MMU_FTRS_CELL		MMU_FTRS_DEFAULT_HPTE_ARCH_V2 | \
-				MMU_FTR_CI_LARGE_PAGE
+	MMU_FTR_CI_LARGE_PAGE
 #define MMU_FTRS_PA6T		MMU_FTRS_DEFAULT_HPTE_ARCH_V2 | \
-				MMU_FTR_CI_LARGE_PAGE | MMU_FTR_NO_SLBIE_B
+	MMU_FTR_CI_LARGE_PAGE | MMU_FTR_NO_SLBIE_B
 #ifndef __ASSEMBLY__
 #include <linux/bug.h>
 #include <asm/cputable.h>
 
 #ifdef CONFIG_PPC_FSL_BOOK3E
-#include <asm/percpu.h>
-DECLARE_PER_CPU(int, next_tlbcam_idx);
+	#include <asm/percpu.h>
+	DECLARE_PER_CPU(int, next_tlbcam_idx);
 #endif
 
-enum {
+enum
+{
 	MMU_FTRS_POSSIBLE = MMU_FTR_HPTE_TABLE | MMU_FTR_TYPE_8xx |
-		MMU_FTR_TYPE_40x | MMU_FTR_TYPE_44x | MMU_FTR_TYPE_FSL_E |
-		MMU_FTR_TYPE_47x | MMU_FTR_USE_HIGH_BATS | MMU_FTR_BIG_PHYS |
-		MMU_FTR_USE_TLBIVAX_BCAST | MMU_FTR_USE_TLBILX |
-		MMU_FTR_LOCK_BCAST_INVAL | MMU_FTR_NEED_DTLB_SW_LRU |
-		MMU_FTR_USE_TLBRSRV | MMU_FTR_USE_PAIRED_MAS |
-		MMU_FTR_NO_SLBIE_B | MMU_FTR_16M_PAGE | MMU_FTR_TLBIEL |
-		MMU_FTR_LOCKLESS_TLBIE | MMU_FTR_CI_LARGE_PAGE |
-		MMU_FTR_1T_SEGMENT | MMU_FTR_TLBIE_CROP_VA |
+						MMU_FTR_TYPE_40x | MMU_FTR_TYPE_44x | MMU_FTR_TYPE_FSL_E |
+						MMU_FTR_TYPE_47x | MMU_FTR_USE_HIGH_BATS | MMU_FTR_BIG_PHYS |
+						MMU_FTR_USE_TLBIVAX_BCAST | MMU_FTR_USE_TLBILX |
+						MMU_FTR_LOCK_BCAST_INVAL | MMU_FTR_NEED_DTLB_SW_LRU |
+						MMU_FTR_USE_TLBRSRV | MMU_FTR_USE_PAIRED_MAS |
+						MMU_FTR_NO_SLBIE_B | MMU_FTR_16M_PAGE | MMU_FTR_TLBIEL |
+						MMU_FTR_LOCKLESS_TLBIE | MMU_FTR_CI_LARGE_PAGE |
+						MMU_FTR_1T_SEGMENT | MMU_FTR_TLBIE_CROP_VA |
 #ifdef CONFIG_PPC_RADIX_MMU
-		MMU_FTR_TYPE_RADIX |
+						MMU_FTR_TYPE_RADIX |
 #endif
-		0,
+						0,
 };
 
 static inline bool early_mmu_has_feature(unsigned long feature)
@@ -157,15 +158,20 @@ static __always_inline bool mmu_has_feature(unsigned long feature)
 	BUILD_BUG_ON(!__builtin_constant_p(feature));
 
 #ifdef CONFIG_JUMP_LABEL_FEATURE_CHECK_DEBUG
-	if (!static_key_initialized) {
+
+	if (!static_key_initialized)
+	{
 		printk("Warning! mmu_has_feature() used prior to jump label init!\n");
 		dump_stack();
 		return early_mmu_has_feature(feature);
 	}
+
 #endif
 
 	if (!(MMU_FTRS_POSSIBLE & feature))
+	{
 		return false;
+	}
 
 	i = __builtin_ctzl(feature);
 	return static_branch_likely(&mmu_feature_keys[i]);
@@ -200,14 +206,14 @@ static inline void mmu_clear_feature(unsigned long feature)
 extern unsigned int __start___mmu_ftr_fixup, __stop___mmu_ftr_fixup;
 
 #ifdef CONFIG_PPC64
-/* This is our real memory area size on ppc64 server, on embedded, we
- * make it match the size our of bolted TLB area
- */
-extern u64 ppc64_rma_size;
+	/* This is our real memory area size on ppc64 server, on embedded, we
+	* make it match the size our of bolted TLB area
+	*/
+	extern u64 ppc64_rma_size;
 
-/* Cleanup function used by kexec */
-extern void mmu_cleanup_all(void);
-extern void radix__mmu_cleanup_all(void);
+	/* Cleanup function used by kexec */
+	extern void mmu_cleanup_all(void);
+	extern void radix__mmu_cleanup_all(void);
 #endif /* CONFIG_PPC64 */
 
 struct mm_struct;
@@ -287,26 +293,26 @@ static inline bool early_radix_enabled(void)
 extern void early_init_mmu(void);
 extern void early_init_mmu_secondary(void);
 extern void setup_initial_memory_limit(phys_addr_t first_memblock_base,
-				       phys_addr_t first_memblock_size);
+									   phys_addr_t first_memblock_size);
 static inline void mmu_early_init_devtree(void) { }
 #endif /* __ASSEMBLY__ */
 #endif
 
 #if defined(CONFIG_PPC_STD_MMU_32)
-/* 32-bit classic hash table MMU */
-#include <asm/book3s/32/mmu-hash.h>
+	/* 32-bit classic hash table MMU */
+	#include <asm/book3s/32/mmu-hash.h>
 #elif defined(CONFIG_40x)
-/* 40x-style software loaded TLB */
-#  include <asm/mmu-40x.h>
+	/* 40x-style software loaded TLB */
+	#include <asm/mmu-40x.h>
 #elif defined(CONFIG_44x)
-/* 44x-style software loaded TLB */
-#  include <asm/mmu-44x.h>
+	/* 44x-style software loaded TLB */
+	#include <asm/mmu-44x.h>
 #elif defined(CONFIG_PPC_BOOK3E_MMU)
-/* Freescale Book-E software loaded TLB or Book-3e (ISA 2.06+) MMU */
-#  include <asm/mmu-book3e.h>
+	/* Freescale Book-E software loaded TLB or Book-3e (ISA 2.06+) MMU */
+	#include <asm/mmu-book3e.h>
 #elif defined (CONFIG_PPC_8xx)
-/* Motorola/Freescale 8xx software loaded TLB */
-#  include <asm/mmu-8xx.h>
+	/* Motorola/Freescale 8xx software loaded TLB */
+	#include <asm/mmu-8xx.h>
 #endif
 
 #endif /* __KERNEL__ */

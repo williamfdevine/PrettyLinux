@@ -16,7 +16,8 @@
 struct pci_reg __iomem *pci_reg;
 EXPORT_SYMBOL(pci_reg);
 
-static struct resource pci0_res[] = {
+static struct resource pci0_res[] =
+{
 	{
 		.name = "pci_reg0",
 		.start = PCI0_BASE_ADDR,
@@ -35,7 +36,9 @@ static void rb_machine_restart(char *command)
 static void rb_machine_halt(void)
 {
 	for (;;)
+	{
 		continue;
+	}
 }
 
 void __init plat_mem_setup(void)
@@ -49,8 +52,10 @@ void __init plat_mem_setup(void)
 	set_io_port_base(KSEG1);
 
 	pci_reg = ioremap_nocache(pci0_res[0].start,
-				pci0_res[0].end - pci0_res[0].start);
-	if (!pci_reg) {
+							  pci0_res[0].end - pci0_res[0].start);
+
+	if (!pci_reg)
+	{
 		printk(KERN_ERR "Could not remap PCI registers\n");
 		return;
 	}
@@ -69,12 +74,14 @@ void __init plat_mem_setup(void)
 
 const char *get_system_type(void)
 {
-	switch (mips_machtype) {
-	case MACH_MIKROTIK_RB532A:
-		return "Mikrotik RB532A";
-		break;
-	default:
-		return "Mikrotik RB532";
-		break;
+	switch (mips_machtype)
+	{
+		case MACH_MIKROTIK_RB532A:
+			return "Mikrotik RB532A";
+			break;
+
+		default:
+			return "Mikrotik RB532";
+			break;
 	}
 }

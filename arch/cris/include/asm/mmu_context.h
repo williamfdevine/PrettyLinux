@@ -7,7 +7,7 @@ extern int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
 extern void get_mmu_context(struct mm_struct *mm);
 extern void destroy_context(struct mm_struct *mm);
 extern void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-		      struct task_struct *tsk);
+					  struct task_struct *tsk);
 
 #define deactivate_mm(tsk,mm)	do { } while (0)
 
@@ -20,7 +20,7 @@ static inline void activate_mm(struct mm_struct *prev, struct mm_struct *next)
 	local_irq_restore(flags);
 }
 
-/* current active pgd - this is similar to other processors pgd 
+/* current active pgd - this is similar to other processors pgd
  * registers like cr3 on the i386
  */
 

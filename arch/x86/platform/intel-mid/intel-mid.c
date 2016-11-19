@@ -97,21 +97,27 @@ static void __init intel_mid_time_init(void)
 {
 	sfi_table_parse(SFI_SIG_MTMR, NULL, NULL, sfi_parse_mtmr);
 
-	switch (intel_mid_timer_options) {
-	case INTEL_MID_TIMER_APBT_ONLY:
-		break;
-	case INTEL_MID_TIMER_LAPIC_APBT:
-		/* Use apbt and local apic */
-		x86_init.timers.setup_percpu_clockev = intel_mid_setup_bp_timer;
-		x86_cpuinit.setup_percpu_clockev = setup_secondary_APIC_clock;
-		return;
-	default:
-		if (!boot_cpu_has(X86_FEATURE_ARAT))
+	switch (intel_mid_timer_options)
+	{
+		case INTEL_MID_TIMER_APBT_ONLY:
 			break;
-		/* Lapic only, no apbt */
-		x86_init.timers.setup_percpu_clockev = setup_boot_APIC_clock;
-		x86_cpuinit.setup_percpu_clockev = setup_secondary_APIC_clock;
-		return;
+
+		case INTEL_MID_TIMER_LAPIC_APBT:
+			/* Use apbt and local apic */
+			x86_init.timers.setup_percpu_clockev = intel_mid_setup_bp_timer;
+			x86_cpuinit.setup_percpu_clockev = setup_secondary_APIC_clock;
+			return;
+
+		default:
+			if (!boot_cpu_has(X86_FEATURE_ARAT))
+			{
+				break;
+			}
+
+			/* Lapic only, no apbt */
+			x86_init.timers.setup_percpu_clockev = setup_boot_APIC_clock;
+			x86_cpuinit.setup_percpu_clockev = setup_secondary_APIC_clock;
+			return;
 	}
 
 	x86_init.timers.setup_percpu_clockev = apbt_time_init;
@@ -119,37 +125,47 @@ static void __init intel_mid_time_init(void)
 
 static void intel_mid_arch_setup(void)
 {
-	if (boot_cpu_data.x86 != 6) {
+	if (boot_cpu_data.x86 != 6)
+	{
 		pr_err("Unknown Intel MID CPU (%d:%d), default to Penwell\n",
-			boot_cpu_data.x86, boot_cpu_data.x86_model);
+			   boot_cpu_data.x86, boot_cpu_data.x86_model);
 		__intel_mid_cpu_chip = INTEL_MID_CPU_CHIP_PENWELL;
 		goto out;
 	}
 
-	switch (boot_cpu_data.x86_model) {
-	case 0x35:
-		__intel_mid_cpu_chip = INTEL_MID_CPU_CHIP_CLOVERVIEW;
-		break;
-	case 0x3C:
-	case 0x4A:
-		__intel_mid_cpu_chip = INTEL_MID_CPU_CHIP_TANGIER;
-		break;
-	case 0x27:
-	default:
-		__intel_mid_cpu_chip = INTEL_MID_CPU_CHIP_PENWELL;
-		break;
+	switch (boot_cpu_data.x86_model)
+	{
+		case 0x35:
+			__intel_mid_cpu_chip = INTEL_MID_CPU_CHIP_CLOVERVIEW;
+			break;
+
+		case 0x3C:
+		case 0x4A:
+			__intel_mid_cpu_chip = INTEL_MID_CPU_CHIP_TANGIER;
+			break;
+
+		case 0x27:
+		default:
+			__intel_mid_cpu_chip = INTEL_MID_CPU_CHIP_PENWELL;
+			break;
 	}
 
 	if (__intel_mid_cpu_chip < MAX_CPU_OPS(get_intel_mid_ops))
+	{
 		intel_mid_ops = get_intel_mid_ops[__intel_mid_cpu_chip]();
-	else {
+	}
+	else
+	{
 		intel_mid_ops = get_intel_mid_ops[INTEL_MID_CPU_CHIP_PENWELL]();
 		pr_info("ARCH: Unknown SoC, assuming Penwell!\n");
 	}
 
 out:
+
 	if (intel_mid_ops->arch_setup)
+	{
 		intel_mid_ops->arch_setup();
+	}
 
 	/*
 	 * Intel MID platforms are using explicitly defined regulators.
@@ -222,17 +238,25 @@ void __init x86_intel_mid_early_setup(void)
 static inline int __init setup_x86_intel_mid_timer(char *arg)
 {
 	if (!arg)
-		return -EINVAL;
-
-	if (strcmp("apbt_only", arg) == 0)
-		intel_mid_timer_options = INTEL_MID_TIMER_APBT_ONLY;
-	else if (strcmp("lapic_and_apbt", arg) == 0)
-		intel_mid_timer_options = INTEL_MID_TIMER_LAPIC_APBT;
-	else {
-		pr_warn("X86 INTEL_MID timer option %s not recognised use x86_intel_mid_timer=apbt_only or lapic_and_apbt\n",
-			arg);
+	{
 		return -EINVAL;
 	}
+
+	if (strcmp("apbt_only", arg) == 0)
+	{
+		intel_mid_timer_options = INTEL_MID_TIMER_APBT_ONLY;
+	}
+	else if (strcmp("lapic_and_apbt", arg) == 0)
+	{
+		intel_mid_timer_options = INTEL_MID_TIMER_LAPIC_APBT;
+	}
+	else
+	{
+		pr_warn("X86 INTEL_MID timer option %s not recognised use x86_intel_mid_timer=apbt_only or lapic_and_apbt\n",
+				arg);
+		return -EINVAL;
+	}
+
 	return 0;
 }
 __setup("x86_intel_mid_timer=", setup_x86_intel_mid_timer);

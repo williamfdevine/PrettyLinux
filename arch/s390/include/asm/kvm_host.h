@@ -48,32 +48,38 @@
 #define SIGP_CTRL_C		0x80
 #define SIGP_CTRL_SCN_MASK	0x3f
 
-union bsca_sigp_ctrl {
+union bsca_sigp_ctrl
+{
 	__u8 value;
-	struct {
+	struct
+	{
 		__u8 c : 1;
 		__u8 r : 1;
 		__u8 scn : 6;
 	};
 } __packed;
 
-union esca_sigp_ctrl {
+union esca_sigp_ctrl
+{
 	__u16 value;
-	struct {
+	struct
+	{
 		__u8 c : 1;
 		__u8 reserved: 7;
 		__u8 scn;
 	};
 } __packed;
 
-struct esca_entry {
+struct esca_entry
+{
 	union esca_sigp_ctrl sigp_ctrl;
 	__u16   reserved1[3];
 	__u64   sda;
 	__u64   reserved2[6];
 } __packed;
 
-struct bsca_entry {
+struct bsca_entry
+{
 	__u8	reserved0;
 	union bsca_sigp_ctrl	sigp_ctrl;
 	__u16	reserved[3];
@@ -81,16 +87,19 @@ struct bsca_entry {
 	__u64	reserved2[2];
 } __attribute__((packed));
 
-union ipte_control {
+union ipte_control
+{
 	unsigned long val;
-	struct {
+	struct
+	{
 		unsigned long k  : 1;
 		unsigned long kh : 31;
 		unsigned long kg : 32;
 	};
 };
 
-struct bsca_block {
+struct bsca_block
+{
 	union ipte_control ipte_control;
 	__u64	reserved[5];
 	__u64	mcn;
@@ -98,7 +107,8 @@ struct bsca_block {
 	struct bsca_entry cpu[KVM_S390_BSCA_CPU_SLOTS];
 } __attribute__((packed));
 
-struct esca_block {
+struct esca_block
+{
 	union ipte_control ipte_control;
 	__u64   reserved1[7];
 	__u64   mcn[4];
@@ -129,7 +139,8 @@ struct esca_block {
 #define CPUSTAT_J          0x00000002
 #define CPUSTAT_P          0x00000001
 
-struct kvm_s390_sie_block {
+struct kvm_s390_sie_block
+{
 	atomic_t cpuflags;		/* 0x0000 */
 	__u32 : 1;			/* 0x0004 */
 	__u32 prefix : 18;
@@ -233,18 +244,21 @@ struct kvm_s390_sie_block {
 	__u64	gvrd;			/* 0x01f8 */
 } __attribute__((packed));
 
-struct kvm_s390_itdb {
+struct kvm_s390_itdb
+{
 	__u8	data[256];
 } __packed;
 
-struct sie_page {
+struct sie_page
+{
 	struct kvm_s390_sie_block sie_block;
 	__u8 reserved200[1024];		/* 0x0200 */
 	struct kvm_s390_itdb itdb;	/* 0x0600 */
 	__u8 reserved700[2304];		/* 0x0700 */
 } __packed;
 
-struct kvm_vcpu_stat {
+struct kvm_vcpu_stat
+{
 	u64 exit_userspace;
 	u64 exit_null;
 	u64 exit_external_request;
@@ -368,7 +382,8 @@ struct kvm_vcpu_stat {
 #define PGM_CRYPTO_OPERATION		0x119
 
 /* irq types in order of priority */
-enum irq_types {
+enum irq_types
+{
 	IRQ_PEND_MCHK_EX = 0,
 	IRQ_PEND_SVC,
 	IRQ_PEND_PROG,
@@ -412,8 +427,8 @@ enum irq_types {
 #define MCHK_DEGR_BIT 56
 #define MCHK_WARN_BIT 55
 #define MCHK_REP_MASK ((1UL << MCHK_DEGR_BIT) | \
-		       (1UL << MCHK_EXTD_BIT) | \
-		       (1UL << MCHK_WARN_BIT))
+					   (1UL << MCHK_EXTD_BIT) | \
+					   (1UL << MCHK_WARN_BIT))
 
 /* Exigent machine check interrupts subclass bits in MCIC */
 #define MCHK_SD_BIT 63
@@ -421,34 +436,36 @@ enum irq_types {
 #define MCHK_EX_MASK ((1UL << MCHK_SD_BIT) | (1UL << MCHK_PD_BIT))
 
 #define IRQ_PEND_EXT_MASK ((1UL << IRQ_PEND_EXT_IRQ_KEY)    | \
-			   (1UL << IRQ_PEND_EXT_CLOCK_COMP) | \
-			   (1UL << IRQ_PEND_EXT_CPU_TIMER)  | \
-			   (1UL << IRQ_PEND_EXT_MALFUNC)    | \
-			   (1UL << IRQ_PEND_EXT_EMERGENCY)  | \
-			   (1UL << IRQ_PEND_EXT_EXTERNAL)   | \
-			   (1UL << IRQ_PEND_EXT_TIMING)     | \
-			   (1UL << IRQ_PEND_EXT_HOST)       | \
-			   (1UL << IRQ_PEND_EXT_SERVICE)    | \
-			   (1UL << IRQ_PEND_VIRTIO)         | \
-			   (1UL << IRQ_PEND_PFAULT_INIT)    | \
-			   (1UL << IRQ_PEND_PFAULT_DONE))
+						   (1UL << IRQ_PEND_EXT_CLOCK_COMP) | \
+						   (1UL << IRQ_PEND_EXT_CPU_TIMER)  | \
+						   (1UL << IRQ_PEND_EXT_MALFUNC)    | \
+						   (1UL << IRQ_PEND_EXT_EMERGENCY)  | \
+						   (1UL << IRQ_PEND_EXT_EXTERNAL)   | \
+						   (1UL << IRQ_PEND_EXT_TIMING)     | \
+						   (1UL << IRQ_PEND_EXT_HOST)       | \
+						   (1UL << IRQ_PEND_EXT_SERVICE)    | \
+						   (1UL << IRQ_PEND_VIRTIO)         | \
+						   (1UL << IRQ_PEND_PFAULT_INIT)    | \
+						   (1UL << IRQ_PEND_PFAULT_DONE))
 
 #define IRQ_PEND_IO_MASK ((1UL << IRQ_PEND_IO_ISC_0) | \
-			  (1UL << IRQ_PEND_IO_ISC_1) | \
-			  (1UL << IRQ_PEND_IO_ISC_2) | \
-			  (1UL << IRQ_PEND_IO_ISC_3) | \
-			  (1UL << IRQ_PEND_IO_ISC_4) | \
-			  (1UL << IRQ_PEND_IO_ISC_5) | \
-			  (1UL << IRQ_PEND_IO_ISC_6) | \
-			  (1UL << IRQ_PEND_IO_ISC_7))
+						  (1UL << IRQ_PEND_IO_ISC_1) | \
+						  (1UL << IRQ_PEND_IO_ISC_2) | \
+						  (1UL << IRQ_PEND_IO_ISC_3) | \
+						  (1UL << IRQ_PEND_IO_ISC_4) | \
+						  (1UL << IRQ_PEND_IO_ISC_5) | \
+						  (1UL << IRQ_PEND_IO_ISC_6) | \
+						  (1UL << IRQ_PEND_IO_ISC_7))
 
 #define IRQ_PEND_MCHK_MASK ((1UL << IRQ_PEND_MCHK_REP) | \
-			    (1UL << IRQ_PEND_MCHK_EX))
+							(1UL << IRQ_PEND_MCHK_EX))
 
-struct kvm_s390_interrupt_info {
+struct kvm_s390_interrupt_info
+{
 	struct list_head list;
 	u64	type;
-	union {
+	union
+	{
 		struct kvm_s390_io_info io;
 		struct kvm_s390_ext_info ext;
 		struct kvm_s390_pgm_info pgm;
@@ -460,7 +477,8 @@ struct kvm_s390_interrupt_info {
 	};
 };
 
-struct kvm_s390_irq_payload {
+struct kvm_s390_irq_payload
+{
 	struct kvm_s390_io_info io;
 	struct kvm_s390_ext_info ext;
 	struct kvm_s390_pgm_info pgm;
@@ -471,7 +489,8 @@ struct kvm_s390_irq_payload {
 	struct kvm_s390_mchk_info mchk;
 };
 
-struct kvm_s390_local_interrupt {
+struct kvm_s390_local_interrupt
+{
 	spinlock_t lock;
 	struct kvm_s390_float_interrupt *float_int;
 	struct swait_queue_head *wq;
@@ -498,7 +517,8 @@ struct kvm_s390_local_interrupt {
 #define FIRQ_CNTR_PFAULT   3
 #define FIRQ_MAX_COUNT     4
 
-struct kvm_s390_float_interrupt {
+struct kvm_s390_float_interrupt
+{
 	unsigned long pending_irqs;
 	spinlock_t lock;
 	struct list_head lists[FIRQ_LIST_COUNT];
@@ -509,14 +529,16 @@ struct kvm_s390_float_interrupt {
 	unsigned long idle_mask[BITS_TO_LONGS(KVM_MAX_VCPUS)];
 };
 
-struct kvm_hw_wp_info_arch {
+struct kvm_hw_wp_info_arch
+{
 	unsigned long addr;
 	unsigned long phys_addr;
 	int len;
 	char *old_data;
 };
 
-struct kvm_hw_bp_info_arch {
+struct kvm_hw_bp_info_arch
+{
 	unsigned long addr;
 	int len;
 };
@@ -529,15 +551,16 @@ struct kvm_hw_bp_info_arch {
 #define KVM_GUESTDBG_EXIT_PENDING 0x10000000
 
 #define guestdbg_enabled(vcpu) \
-		(vcpu->guest_debug & KVM_GUESTDBG_ENABLE)
+	(vcpu->guest_debug & KVM_GUESTDBG_ENABLE)
 #define guestdbg_sstep_enabled(vcpu) \
-		(vcpu->guest_debug & KVM_GUESTDBG_SINGLESTEP)
+	(vcpu->guest_debug & KVM_GUESTDBG_SINGLESTEP)
 #define guestdbg_hw_bp_enabled(vcpu) \
-		(vcpu->guest_debug & KVM_GUESTDBG_USE_HW_BP)
+	(vcpu->guest_debug & KVM_GUESTDBG_USE_HW_BP)
 #define guestdbg_exit_pending(vcpu) (guestdbg_enabled(vcpu) && \
-		(vcpu->guest_debug & KVM_GUESTDBG_EXIT_PENDING))
+									 (vcpu->guest_debug & KVM_GUESTDBG_EXIT_PENDING))
 
-struct kvm_guestdbg_info_arch {
+struct kvm_guestdbg_info_arch
+{
 	unsigned long cr0;
 	unsigned long cr9;
 	unsigned long cr10;
@@ -549,7 +572,8 @@ struct kvm_guestdbg_info_arch {
 	unsigned long last_bp;
 };
 
-struct kvm_vcpu_arch {
+struct kvm_vcpu_arch
+{
 	struct kvm_s390_sie_block *sie_block;
 	/* if vsie is active, currently executed shadow sie control block */
 	struct kvm_s390_sie_block *vsie_block;
@@ -576,21 +600,25 @@ struct kvm_vcpu_arch {
 	__u64 cputm_start;
 };
 
-struct kvm_vm_stat {
+struct kvm_vm_stat
+{
 	ulong remote_tlb_flush;
 };
 
-struct kvm_arch_memory_slot {
+struct kvm_arch_memory_slot
+{
 };
 
-struct s390_map_info {
+struct s390_map_info
+{
 	struct list_head list;
 	__u64 guest_addr;
 	__u64 addr;
 	struct page *page;
 };
 
-struct s390_io_adapter {
+struct s390_io_adapter
+{
 	unsigned int id;
 	int isc;
 	bool maskable;
@@ -612,7 +640,8 @@ struct s390_io_adapter {
 #define S390_ARCH_FAC_MASK_SIZE_U64 \
 	(S390_ARCH_FAC_MASK_SIZE_BYTE / sizeof(u64))
 
-struct kvm_s390_cpu_model {
+struct kvm_s390_cpu_model
+{
 	/* facility mask supported by kvm & hosting machine */
 	__u64 fac_mask[S390_ARCH_FAC_LIST_SIZE_U64];
 	/* facility list requested by guest (in dma page) */
@@ -621,14 +650,16 @@ struct kvm_s390_cpu_model {
 	unsigned short ibc;
 };
 
-struct kvm_s390_crypto {
+struct kvm_s390_crypto
+{
 	struct kvm_s390_crypto_cb *crycb;
 	__u32 crycbd;
 	__u8 aes_kw;
 	__u8 dea_kw;
 };
 
-struct kvm_s390_crypto_cb {
+struct kvm_s390_crypto_cb
+{
 	__u8    reserved00[72];                 /* 0x0000 */
 	__u8    dea_wrapping_key_mask[24];      /* 0x0048 */
 	__u8    aes_wrapping_key_mask[32];      /* 0x0060 */
@@ -639,13 +670,15 @@ struct kvm_s390_crypto_cb {
  * sie_page2 has to be allocated as DMA because fac_list and crycb need
  * 31bit addresses in the sie control block.
  */
-struct sie_page2 {
+struct sie_page2
+{
 	__u64 fac_list[S390_ARCH_FAC_LIST_SIZE_U64];	/* 0x0000 */
 	struct kvm_s390_crypto_cb crycb;		/* 0x0800 */
 	u8 reserved900[0x1000 - 0x900];			/* 0x0900 */
 } __packed;
 
-struct kvm_s390_vsie {
+struct kvm_s390_vsie
+{
 	struct mutex mutex;
 	struct radix_tree_root addr_to_page;
 	int page_count;
@@ -653,7 +686,8 @@ struct kvm_s390_vsie {
 	struct page *pages[KVM_MAX_VCPUS];
 };
 
-struct kvm_arch{
+struct kvm_arch
+{
 	void *sca;
 	int use_esca;
 	rwlock_t sca_lock;
@@ -693,20 +727,21 @@ static inline bool kvm_is_error_hva(unsigned long addr)
 }
 
 #define ASYNC_PF_PER_VCPU	64
-struct kvm_arch_async_pf {
+struct kvm_arch_async_pf
+{
 	unsigned long pfault_token;
 };
 
 bool kvm_arch_can_inject_async_page_present(struct kvm_vcpu *vcpu);
 
 void kvm_arch_async_page_ready(struct kvm_vcpu *vcpu,
-			       struct kvm_async_pf *work);
+							   struct kvm_async_pf *work);
 
 void kvm_arch_async_page_not_present(struct kvm_vcpu *vcpu,
-				     struct kvm_async_pf *work);
+									 struct kvm_async_pf *work);
 
 void kvm_arch_async_page_present(struct kvm_vcpu *vcpu,
-				 struct kvm_async_pf *work);
+								 struct kvm_async_pf *work);
 
 extern int sie64a(struct kvm_s390_sie_block *, u64 *);
 extern char sie_exit;

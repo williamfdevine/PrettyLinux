@@ -33,24 +33,28 @@
 #define CP  0xc3d7404040404040UL
 #define IFL 0xc9c6d34040404040UL
 
-enum hdr_flags {
+enum hdr_flags
+{
 	HDR_NOT_LPAR   = 0x10,
 	HDR_STACK_INCM = 0x20,
 	HDR_STSI_UNAV  = 0x40,
 	HDR_PERF_UNAV  = 0x80,
 };
 
-enum mac_validity {
+enum mac_validity
+{
 	MAC_NAME_VLD = 0x20,
 	MAC_ID_VLD   = 0x40,
 	MAC_CNT_VLD  = 0x80,
 };
 
-enum par_flag {
+enum par_flag
+{
 	PAR_MT_EN = 0x80,
 };
 
-enum par_validity {
+enum par_validity
+{
 	PAR_GRP_VLD  = 0x08,
 	PAR_ID_VLD   = 0x10,
 	PAR_ABS_VLD  = 0x20,
@@ -58,7 +62,8 @@ enum par_validity {
 	PAR_PCNT_VLD  = 0x80,
 };
 
-struct hdr_sctn {
+struct hdr_sctn
+{
 	u8 infhflg1;
 	u8 infhflg2; /* reserved */
 	u8 infhval1; /* reserved */
@@ -86,7 +91,8 @@ struct hdr_sctn {
 	u8 reserved2[4];
 } __packed;
 
-struct mac_sctn {
+struct mac_sctn
+{
 	u8 infmflg1; /* reserved */
 	u8 infmflg2; /* reserved */
 	u8 infmval1;
@@ -103,7 +109,8 @@ struct mac_sctn {
 	u8 reserved[4];
 } __packed;
 
-struct par_sctn {
+struct par_sctn
+{
 	u8 infpflg1;
 	u8 infpflg2; /* reserved */
 	u8 infpval1;
@@ -124,13 +131,15 @@ struct par_sctn {
 	u32 infplgif;
 } __packed;
 
-struct sthyi_sctns {
+struct sthyi_sctns
+{
 	struct hdr_sctn hdr;
 	struct mac_sctn mac;
 	struct par_sctn par;
 } __packed;
 
-struct cpu_inf {
+struct cpu_inf
+{
 	u64 lpar_cap;
 	u64 lpar_grp_cap;
 	u64 lpar_weight;
@@ -139,7 +148,8 @@ struct cpu_inf {
 	int cpu_num_shd;
 };
 
-struct lpar_cpu_inf {
+struct lpar_cpu_inf
+{
 	struct cpu_inf cp;
 	struct cpu_inf ifl;
 };
@@ -172,10 +182,12 @@ static void fill_hdr(struct sthyi_sctns *sctns)
 }
 
 static void fill_stsi_mac(struct sthyi_sctns *sctns,
-			  struct sysinfo_1_1_1 *sysinfo)
+						  struct sysinfo_1_1_1 *sysinfo)
 {
 	if (stsi(sysinfo, 1, 1, 1))
+	{
 		return;
+	}
 
 	sclp_ocf_cpc_name_copy(sctns->mac.infmname);
 
@@ -188,10 +200,12 @@ static void fill_stsi_mac(struct sthyi_sctns *sctns,
 }
 
 static void fill_stsi_par(struct sthyi_sctns *sctns,
-			  struct sysinfo_2_2_2 *sysinfo)
+						  struct sysinfo_2_2_2 *sysinfo)
 {
 	if (stsi(sysinfo, 2, 2, 2))
+	{
 		return;
+	}
 
 	sctns->par.infppnum = sysinfo->lpar_number;
 	memcpy(sctns->par.infppnam, sysinfo->name, sizeof(sctns->par.infppnam));
@@ -205,8 +219,11 @@ static void fill_stsi(struct sthyi_sctns *sctns)
 
 	/* Errors are handled through the validity bits in the response. */
 	sysinfo = (void *)__get_free_page(GFP_KERNEL);
+
 	if (!sysinfo)
+	{
 		return;
+	}
 
 	fill_stsi_mac(sctns, sysinfo);
 	fill_stsi_par(sctns, sysinfo);
@@ -215,75 +232,111 @@ static void fill_stsi(struct sthyi_sctns *sctns)
 }
 
 static void fill_diag_mac(struct sthyi_sctns *sctns,
-			  struct diag204_x_phys_block *block,
-			  void *diag224_buf)
+						  struct diag204_x_phys_block *block,
+						  void *diag224_buf)
 {
 	int i;
 
-	for (i = 0; i < block->hdr.cpus; i++) {
-		switch (cpu_id(block->cpus[i].ctidx, diag224_buf)) {
-		case CP:
-			if (block->cpus[i].weight == DED_WEIGHT)
-				sctns->mac.infmdcps++;
-			else
-				sctns->mac.infmscps++;
-			break;
-		case IFL:
-			if (block->cpus[i].weight == DED_WEIGHT)
-				sctns->mac.infmdifl++;
-			else
-				sctns->mac.infmsifl++;
-			break;
+	for (i = 0; i < block->hdr.cpus; i++)
+	{
+		switch (cpu_id(block->cpus[i].ctidx, diag224_buf))
+		{
+			case CP:
+				if (block->cpus[i].weight == DED_WEIGHT)
+				{
+					sctns->mac.infmdcps++;
+				}
+				else
+				{
+					sctns->mac.infmscps++;
+				}
+
+				break;
+
+			case IFL:
+				if (block->cpus[i].weight == DED_WEIGHT)
+				{
+					sctns->mac.infmdifl++;
+				}
+				else
+				{
+					sctns->mac.infmsifl++;
+				}
+
+				break;
 		}
 	}
+
 	sctns->mac.infmval1 |= MAC_CNT_VLD;
 }
 
 /* Returns a pointer to the the next partition block. */
 static struct diag204_x_part_block *lpar_cpu_inf(struct lpar_cpu_inf *part_inf,
-						 bool this_lpar,
-						 void *diag224_buf,
-						 struct diag204_x_part_block *block)
+		bool this_lpar,
+		void *diag224_buf,
+		struct diag204_x_part_block *block)
 {
 	int i, capped = 0, weight_cp = 0, weight_ifl = 0;
 	struct cpu_inf *cpu_inf;
 
-	for (i = 0; i < block->hdr.rcpus; i++) {
+	for (i = 0; i < block->hdr.rcpus; i++)
+	{
 		if (!(block->cpus[i].cflag & DIAG204_CPU_ONLINE))
-			continue;
-
-		switch (cpu_id(block->cpus[i].ctidx, diag224_buf)) {
-		case CP:
-			cpu_inf = &part_inf->cp;
-			if (block->cpus[i].cur_weight < DED_WEIGHT)
-				weight_cp |= block->cpus[i].cur_weight;
-			break;
-		case IFL:
-			cpu_inf = &part_inf->ifl;
-			if (block->cpus[i].cur_weight < DED_WEIGHT)
-				weight_ifl |= block->cpus[i].cur_weight;
-			break;
-		default:
+		{
 			continue;
 		}
 
+		switch (cpu_id(block->cpus[i].ctidx, diag224_buf))
+		{
+			case CP:
+				cpu_inf = &part_inf->cp;
+
+				if (block->cpus[i].cur_weight < DED_WEIGHT)
+				{
+					weight_cp |= block->cpus[i].cur_weight;
+				}
+
+				break;
+
+			case IFL:
+				cpu_inf = &part_inf->ifl;
+
+				if (block->cpus[i].cur_weight < DED_WEIGHT)
+				{
+					weight_ifl |= block->cpus[i].cur_weight;
+				}
+
+				break;
+
+			default:
+				continue;
+		}
+
 		if (!this_lpar)
+		{
 			continue;
+		}
 
 		capped |= block->cpus[i].cflag & DIAG204_CPU_CAPPED;
 		cpu_inf->lpar_cap |= block->cpus[i].cpu_type_cap;
 		cpu_inf->lpar_grp_cap |= block->cpus[i].group_cpu_type_cap;
 
 		if (block->cpus[i].weight == DED_WEIGHT)
+		{
 			cpu_inf->cpu_num_ded += 1;
+		}
 		else
+		{
 			cpu_inf->cpu_num_shd += 1;
+		}
 	}
 
-	if (this_lpar && capped) {
+	if (this_lpar && capped)
+	{
 		part_inf->cp.lpar_weight = weight_cp;
 		part_inf->ifl.lpar_weight = weight_ifl;
 	}
+
 	part_inf->cp.all_weight += weight_cp;
 	part_inf->ifl.all_weight += weight_ifl;
 	return (struct diag204_x_part_block *)&block->cpus[i];
@@ -302,27 +355,40 @@ static void fill_diag(struct sthyi_sctns *sctns)
 
 	/* Errors are handled through the validity bits in the response. */
 	pages = diag204((unsigned long)DIAG204_SUBC_RSI |
-			(unsigned long)DIAG204_INFO_EXT, 0, NULL);
+					(unsigned long)DIAG204_INFO_EXT, 0, NULL);
+
 	if (pages <= 0)
+	{
 		return;
+	}
 
 	diag204_buf = vmalloc(PAGE_SIZE * pages);
+
 	if (!diag204_buf)
+	{
 		return;
+	}
 
 	r = diag204((unsigned long)DIAG204_SUBC_STIB7 |
-		    (unsigned long)DIAG204_INFO_EXT, pages, diag204_buf);
+				(unsigned long)DIAG204_INFO_EXT, pages, diag204_buf);
+
 	if (r < 0)
+	{
 		goto out;
+	}
 
 	diag224_buf = (void *)__get_free_page(GFP_KERNEL | GFP_DMA);
+
 	if (!diag224_buf || diag224(diag224_buf))
+	{
 		goto out;
+	}
 
 	ti_hdr = diag204_buf;
 	part_block = diag204_buf + sizeof(*ti_hdr);
 
-	for (i = 0; i < ti_hdr->npar; i++) {
+	for (i = 0; i < ti_hdr->npar; i++)
+	{
 		/*
 		 * For the calling lpar we also need to get the cpu
 		 * caps and weights. The time information block header
@@ -331,19 +397,22 @@ static void fill_diag(struct sthyi_sctns *sctns)
 		 */
 		this_lpar = (void *)part_block - diag204_buf == ti_hdr->this_part;
 		part_block = lpar_cpu_inf(&lpar_inf, this_lpar, diag224_buf,
-					  part_block);
+								  part_block);
 	}
 
 	phys_block = (struct diag204_x_phys_block *)part_block;
 	part_block = diag204_buf + ti_hdr->this_part;
+
 	if (part_block->hdr.mtid)
+	{
 		sctns->par.infpflg1 = PAR_MT_EN;
+	}
 
 	sctns->par.infpval1 |= PAR_GRP_VLD;
 	sctns->par.infplgcp = scale_cap(lpar_inf.cp.lpar_grp_cap);
 	sctns->par.infplgif = scale_cap(lpar_inf.ifl.lpar_grp_cap);
 	memcpy(sctns->par.infplgnm, part_block->hdr.hardware_group_name,
-	       sizeof(sctns->par.infplgnm));
+		   sizeof(sctns->par.infplgnm));
 
 	sctns->par.infpscps = lpar_inf.cp.cpu_num_shd;
 	sctns->par.infpdcps = lpar_inf.cp.cpu_num_ded;
@@ -359,22 +428,26 @@ static void fill_diag(struct sthyi_sctns *sctns)
 	 * Everything below needs global performance data to be
 	 * meaningful.
 	 */
-	if (!(ti_hdr->flags & DIAG204_LPAR_PHYS_FLG)) {
+	if (!(ti_hdr->flags & DIAG204_LPAR_PHYS_FLG))
+	{
 		sctns->hdr.infhflg1 |= HDR_PERF_UNAV;
 		goto out;
 	}
 
 	fill_diag_mac(sctns, phys_block, diag224_buf);
 
-	if (lpar_inf.cp.lpar_weight) {
+	if (lpar_inf.cp.lpar_weight)
+	{
 		sctns->par.infpwbcp = sctns->mac.infmscps * 0x10000 *
-			lpar_inf.cp.lpar_weight / lpar_inf.cp.all_weight;
+							  lpar_inf.cp.lpar_weight / lpar_inf.cp.all_weight;
 	}
 
-	if (lpar_inf.ifl.lpar_weight) {
+	if (lpar_inf.ifl.lpar_weight)
+	{
 		sctns->par.infpwbif = sctns->mac.infmsifl * 0x10000 *
-			lpar_inf.ifl.lpar_weight / lpar_inf.ifl.all_weight;
+							  lpar_inf.ifl.lpar_weight / lpar_inf.ifl.all_weight;
 	}
+
 	sctns->par.infpval1 |= PAR_WGHT_VLD;
 
 out:
@@ -409,7 +482,8 @@ int handle_sthyi(struct kvm_vcpu *vcpu)
 	 * and is very computational/memory expensive. Therefore we
 	 * ratelimit the executions per VM.
 	 */
-	if (!__ratelimit(&vcpu->kvm->arch.sthyi_limit)) {
+	if (!__ratelimit(&vcpu->kvm->arch.sthyi_limit))
+	{
 		kvm_s390_retry_instr(vcpu);
 		return 0;
 	}
@@ -423,9 +497,12 @@ int handle_sthyi(struct kvm_vcpu *vcpu)
 	trace_kvm_s390_handle_sthyi(vcpu, code, addr);
 
 	if (reg1 == reg2 || reg1 & 1 || reg2 & 1 || addr & ~PAGE_MASK)
+	{
 		return kvm_s390_inject_program_int(vcpu, PGM_SPECIFICATION);
+	}
 
-	if (code & 0xffff) {
+	if (code & 0xffff)
+	{
 		cc = 3;
 		goto out;
 	}
@@ -435,18 +512,25 @@ int handle_sthyi(struct kvm_vcpu *vcpu)
 	 * now and not after all the expensive calculations.
 	 */
 	r = write_guest(vcpu, addr, reg2, &cc, 1);
+
 	if (r)
+	{
 		return kvm_s390_inject_prog_cond(vcpu, r);
+	}
 
 	sctns = (void *)get_zeroed_page(GFP_KERNEL);
+
 	if (!sctns)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * If we are a guest, we don't want to emulate an emulated
 	 * instruction. We ask the hypervisor to provide the data.
 	 */
-	if (test_facility(74)) {
+	if (test_facility(74))
+	{
 		cc = sthyi((u64)sctns);
 		goto out;
 	}
@@ -456,9 +540,13 @@ int handle_sthyi(struct kvm_vcpu *vcpu)
 	fill_diag(sctns);
 
 out:
-	if (!cc) {
+
+	if (!cc)
+	{
 		r = write_guest(vcpu, addr, reg2, sctns, PAGE_SIZE);
-		if (r) {
+
+		if (r)
+		{
 			free_page((unsigned long)sctns);
 			return kvm_s390_inject_prog_cond(vcpu, r);
 		}

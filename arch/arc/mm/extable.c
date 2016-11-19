@@ -16,7 +16,9 @@ int fixup_exception(struct pt_regs *regs)
 	const struct exception_table_entry *fixup;
 
 	fixup = search_exception_tables(instruction_pointer(regs));
-	if (fixup) {
+
+	if (fixup)
+	{
 		regs->ret = fixup->fixup;
 
 		return 1;
@@ -28,28 +30,28 @@ int fixup_exception(struct pt_regs *regs)
 #ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 
 long arc_copy_from_user_noinline(void *to, const void __user *from,
-		unsigned long n)
+								 unsigned long n)
 {
 	return __arc_copy_from_user(to, from, n);
 }
 EXPORT_SYMBOL(arc_copy_from_user_noinline);
 
 long arc_copy_to_user_noinline(void __user *to, const void *from,
-		unsigned long n)
+							   unsigned long n)
 {
 	return __arc_copy_to_user(to, from, n);
 }
 EXPORT_SYMBOL(arc_copy_to_user_noinline);
 
 unsigned long arc_clear_user_noinline(void __user *to,
-		unsigned long n)
+									  unsigned long n)
 {
 	return __arc_clear_user(to, n);
 }
 EXPORT_SYMBOL(arc_clear_user_noinline);
 
 long arc_strncpy_from_user_noinline(char *dst, const char __user *src,
-		long count)
+									long count)
 {
 	return __arc_strncpy_from_user(dst, src, count);
 }

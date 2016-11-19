@@ -152,7 +152,7 @@ void __init paging_init(void)
 }
 
 #ifndef DMA_RESERVE
-#define DMA_RESERVE		(4)
+	#define DMA_RESERVE		(4)
 #endif
 
 #define DMA_CHUNKSIZE		(1<<22)
@@ -196,7 +196,7 @@ void __init setup_arch_memory(void)
 
 	/* Memory size needs to be a multiple of 16M */
 	bootmem_lastpg = PFN_DOWN((bootmem_lastpg << PAGE_SHIFT) &
-		~((BIG_KERNEL_PAGE_SIZE) - 1));
+							  ~((BIG_KERNEL_PAGE_SIZE) - 1));
 
 	/*
 	 * Reserve the top DMA_RESERVE bytes of RAM for DMA (uncached)
@@ -223,39 +223,43 @@ void __init setup_arch_memory(void)
 	segtable = segtable + (PAGE_OFFSET >> 22);
 
 	/*  this actually only goes to the end of the first gig  */
-	segtable_end = segtable + (1<<(30-22));
+	segtable_end = segtable + (1 << (30 - 22));
 
 	/*
 	 * Move forward to the start of empty pages; take into account
 	 * phys_offset shift.
 	 */
 
-	segtable += (bootmem_lastpg-ARCH_PFN_OFFSET)>>(22-PAGE_SHIFT);
+	segtable += (bootmem_lastpg - ARCH_PFN_OFFSET) >> (22 - PAGE_SHIFT);
 	{
 		int i;
 
 		for (i = 1 ; i <= DMA_RESERVE ; i++)
 			segtable[-i] = ((segtable[-i] & __HVM_PTE_PGMASK_4MB)
-				| __HVM_PTE_R | __HVM_PTE_W | __HVM_PTE_X
-				| __HEXAGON_C_UNC << 6
-				| __HVM_PDE_S_4MB);
+							| __HVM_PTE_R | __HVM_PTE_W | __HVM_PTE_X
+							| __HEXAGON_C_UNC << 6
+							| __HVM_PDE_S_4MB);
 	}
 
 	printk(KERN_INFO "clearing segtable from %p to %p\n", segtable,
-		segtable_end);
-	while (segtable < (segtable_end-8))
+		   segtable_end);
+
+	while (segtable < (segtable_end - 8))
+	{
 		*(segtable++) = __HVM_PDE_S_INVALID;
+	}
+
 	/* stop the pointer at the device I/O 4MB page  */
 
 	printk(KERN_INFO "segtable = %p (should be equal to _K_io_map)\n",
-		segtable);
+		   segtable);
 
 #if 0
 	/*  Other half of the early device table from vm_init_segtable. */
 	printk(KERN_INFO "&_K_init_devicetable = 0x%08x\n",
-		(unsigned long) _K_init_devicetable-PAGE_OFFSET);
-	*segtable = ((u32) (unsigned long) _K_init_devicetable-PAGE_OFFSET) |
-		__HVM_PDE_S_4KB;
+		   (unsigned long) _K_init_devicetable - PAGE_OFFSET);
+	*segtable = ((u32) (unsigned long) _K_init_devicetable - PAGE_OFFSET) |
+				__HVM_PDE_S_4KB;
 	printk(KERN_INFO "*segtable = 0x%08x\n", *segtable);
 #endif
 
@@ -264,8 +268,8 @@ void __init setup_arch_memory(void)
 	 * reserve, or kernel itself.
 	 */
 	free_bootmem(PFN_PHYS(bootmem_startpg) + bootmap_size,
-		     PFN_PHYS(bootmem_lastpg - bootmem_startpg) - bootmap_size -
-		     DMA_RESERVED_BYTES);
+				 PFN_PHYS(bootmem_lastpg - bootmem_startpg) - bootmap_size -
+				 DMA_RESERVED_BYTES);
 
 	/*
 	 *  The bootmem allocator seemingly just lives to feed memory

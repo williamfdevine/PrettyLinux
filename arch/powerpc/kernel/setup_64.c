@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Common boot and setup code.
  *
  * Copyright (C) 2001 PPC64 Team, IBM Corp
@@ -69,9 +69,9 @@
 #include <asm/cputhreads.h>
 
 #ifdef DEBUG
-#define DBG(fmt...) udbg_printf(fmt)
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 int spinning_secondaries;
@@ -80,7 +80,8 @@ u64 ppc64_pft_size;
 /* Pick defaults since we might want to patch instructions
  * before we've read this from the device tree.
  */
-struct ppc64_caches ppc64_caches = {
+struct ppc64_caches ppc64_caches =
+{
 	.dline_size = 0x40,
 	.log_dline_size = 6,
 	.iline_size = 0x40,
@@ -103,7 +104,8 @@ void __init setup_tlb_core_data(void)
 
 	BUILD_BUG_ON(offsetof(struct tlb_core_data, lock) != 0);
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		int first = cpu_first_thread_sibling(cpu);
 
 		/*
@@ -112,7 +114,9 @@ void __init setup_tlb_core_data(void)
 		 * set up this TLB.
 		 */
 		if (cpu_first_thread_sibling(boot_cpuid) == first)
+		{
 			first = boot_cpuid;
+		}
 
 		paca[cpu].tcd_ptr = &paca[first].tcd;
 
@@ -122,11 +126,12 @@ void __init setup_tlb_core_data(void)
 		 * will be racy and could produce duplicate entries.
 		 */
 		if (smt_enabled_at_boot >= 2 &&
-		    !mmu_has_feature(MMU_FTR_USE_TLBRSRV) &&
-		    book3e_htw_mode != PPC_HTW_E6500) {
+			!mmu_has_feature(MMU_FTR_USE_TLBRSRV) &&
+			book3e_htw_mode != PPC_HTW_E6500)
+		{
 			/* Should we panic instead? */
 			WARN_ONCE("%s: unsupported MMU configuration -- expect problems\n",
-				  __func__);
+					  __func__);
 		}
 	}
 }
@@ -146,31 +151,47 @@ void __init check_smt_enabled(void)
 	smt_enabled_at_boot = threads_per_core;
 
 	/* Allow the command line to overrule the OF option */
-	if (smt_enabled_cmdline) {
+	if (smt_enabled_cmdline)
+	{
 		if (!strcmp(smt_enabled_cmdline, "on"))
+		{
 			smt_enabled_at_boot = threads_per_core;
+		}
 		else if (!strcmp(smt_enabled_cmdline, "off"))
+		{
 			smt_enabled_at_boot = 0;
-		else {
+		}
+		else
+		{
 			int smt;
 			int rc;
 
 			rc = kstrtoint(smt_enabled_cmdline, 10, &smt);
+
 			if (!rc)
 				smt_enabled_at_boot =
 					min(threads_per_core, smt);
 		}
-	} else {
+	}
+	else
+	{
 		dn = of_find_node_by_path("/options");
-		if (dn) {
-			smt_option = of_get_property(dn, "ibm,smt-enabled",
-						     NULL);
 
-			if (smt_option) {
+		if (dn)
+		{
+			smt_option = of_get_property(dn, "ibm,smt-enabled",
+										 NULL);
+
+			if (smt_option)
+			{
 				if (!strcmp(smt_option, "on"))
+				{
 					smt_enabled_at_boot = threads_per_core;
+				}
 				else if (!strcmp(smt_option, "off"))
+				{
 					smt_enabled_at_boot = 0;
+				}
 			}
 
 			of_node_put(dn);
@@ -206,7 +227,8 @@ static void __init configure_exceptions(void)
 	setup_kdump_trampoline();
 
 	/* Under a PAPR hypervisor, we need hypercalls */
-	if (firmware_has_feature(FW_FEATURE_SET_MODE)) {
+	if (firmware_has_feature(FW_FEATURE_SET_MODE))
+	{
 		/* Enable AIL if possible */
 		pseries_enable_reloc_on_exc();
 
@@ -221,14 +243,19 @@ static void __init configure_exceptions(void)
 #ifdef __LITTLE_ENDIAN__
 		pseries_little_endian_exceptions();
 #endif
-	} else {
+	}
+	else
+	{
 		/* Set endian mode using OPAL */
 		if (firmware_has_feature(FW_FEATURE_OPAL))
+		{
 			opal_configure_cores();
+		}
 
 		/* Enable AIL if supported, and we are in hypervisor mode */
 		if (early_cpu_has_feature(CPU_FTR_HVMODE) &&
-		    early_cpu_has_feature(CPU_FTR_ARCH_207S)) {
+			early_cpu_has_feature(CPU_FTR_ARCH_207S))
+		{
 			unsigned long lpcr = mfspr(SPRN_LPCR);
 			mtspr(SPRN_LPCR, lpcr | LPCR_AIL_3);
 		}
@@ -279,7 +306,7 @@ void __init early_setup(unsigned long dt_ptr)
 	/* Enable early debugging if any specified (see udbg.h) */
 	udbg_early_init();
 
- 	DBG(" -> early_setup(), dt_ptr: 0x%lx\n", dt_ptr);
+	DBG(" -> early_setup(), dt_ptr: 0x%lx\n", dt_ptr);
 
 	/*
 	 * Do early initialization using the flattened device
@@ -350,7 +377,9 @@ void early_setup_secondary(void)
 static bool use_spinloop(void)
 {
 	if (!IS_ENABLED(CONFIG_PPC_BOOK3E))
+	{
 		return true;
+	}
 
 	/*
 	 * When book3e boots from kexec, the ePAPR spin table does
@@ -365,7 +394,9 @@ void smp_release_cpus(void)
 	int i;
 
 	if (!use_spinloop())
+	{
 		return;
+	}
 
 	DBG(" -> smp_release_cpus()\n");
 
@@ -376,17 +407,23 @@ void smp_release_cpus(void)
 	 */
 
 	ptr  = (unsigned long *)((unsigned long)&__secondary_hold_spinloop
-			- PHYSICAL_START);
+							 - PHYSICAL_START);
 	*ptr = ppc_function_entry(generic_secondary_smp_init);
 
 	/* And wait a bit for them to catch up */
-	for (i = 0; i < 100000; i++) {
+	for (i = 0; i < 100000; i++)
+	{
 		mb();
 		HMT_low();
+
 		if (spinning_secondaries == 0)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
+
 	DBG("spinning_secondaries = %d\n", spinning_secondaries);
 
 	DBG(" <- smp_release_cpus()\n");
@@ -407,34 +444,45 @@ void __init initialize_cache_info(void)
 
 	DBG(" -> initialize_cache_info()\n");
 
-	for_each_node_by_type(np, "cpu") {
+	for_each_node_by_type(np, "cpu")
+	{
 		num_cpus += 1;
 
 		/*
 		 * We're assuming *all* of the CPUs have the same
 		 * d-cache and i-cache sizes... -Peter
 		 */
-		if (num_cpus == 1) {
+		if (num_cpus == 1)
+		{
 			const __be32 *sizep, *lsizep;
 			u32 size, lsize;
 
 			size = 0;
 			lsize = cur_cpu_spec->dcache_bsize;
 			sizep = of_get_property(np, "d-cache-size", NULL);
+
 			if (sizep != NULL)
+			{
 				size = be32_to_cpu(*sizep);
+			}
+
 			lsizep = of_get_property(np, "d-cache-block-size",
-						 NULL);
+									 NULL);
+
 			/* fallback if block size missing */
 			if (lsizep == NULL)
 				lsizep = of_get_property(np,
-							 "d-cache-line-size",
-							 NULL);
+										 "d-cache-line-size",
+										 NULL);
+
 			if (lsizep != NULL)
+			{
 				lsize = be32_to_cpu(*lsizep);
+			}
+
 			if (sizep == NULL || lsizep == NULL)
 				DBG("Argh, can't find dcache properties ! "
-				    "sizep: %p, lsizep: %p\n", sizep, lsizep);
+					"sizep: %p, lsizep: %p\n", sizep, lsizep);
 
 			ppc64_caches.dsize = size;
 			ppc64_caches.dline_size = lsize;
@@ -444,19 +492,28 @@ void __init initialize_cache_info(void)
 			size = 0;
 			lsize = cur_cpu_spec->icache_bsize;
 			sizep = of_get_property(np, "i-cache-size", NULL);
+
 			if (sizep != NULL)
+			{
 				size = be32_to_cpu(*sizep);
+			}
+
 			lsizep = of_get_property(np, "i-cache-block-size",
-						 NULL);
+									 NULL);
+
 			if (lsizep == NULL)
 				lsizep = of_get_property(np,
-							 "i-cache-line-size",
-							 NULL);
+										 "i-cache-line-size",
+										 NULL);
+
 			if (lsizep != NULL)
+			{
 				lsize = be32_to_cpu(*lsizep);
+			}
+
 			if (sizep == NULL || lsizep == NULL)
 				DBG("Argh, can't find icache properties ! "
-				    "sizep: %p, lsizep: %p\n", sizep, lsizep);
+					"sizep: %p, lsizep: %p\n", sizep, lsizep);
 
 			ppc64_caches.isize = size;
 			ppc64_caches.iline_size = lsize;
@@ -480,15 +537,23 @@ void __init initialize_cache_info(void)
 static __init u64 safe_stack_limit(void)
 {
 #ifdef CONFIG_PPC_BOOK3E
+
 	/* Freescale BookE bolts the entire linear mapping */
 	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E))
+	{
 		return linear_map_top;
+	}
+
 	/* Other BookE, we assume the first GB is bolted */
 	return 1ul << 30;
 #else
+
 	/* BookS, the first segment is bolted */
 	if (mmu_has_feature(MMU_FTR_1T_SEGMENT))
+	{
 		return 1UL << SID_SHIFT_1T;
+	}
+
 	return 1UL << SID_SHIFT;
 #endif
 }
@@ -502,13 +567,14 @@ void __init irqstack_early_init(void)
 	 * Interrupt stacks must be in the first segment since we
 	 * cannot afford to take SLB misses on them.
 	 */
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		softirq_ctx[i] = (struct thread_info *)
-			__va(memblock_alloc_base(THREAD_SIZE,
-					    THREAD_SIZE, limit));
+						 __va(memblock_alloc_base(THREAD_SIZE,
+								 THREAD_SIZE, limit));
 		hardirq_ctx[i] = (struct thread_info *)
-			__va(memblock_alloc_base(THREAD_SIZE,
-					    THREAD_SIZE, limit));
+						 __va(memblock_alloc_base(THREAD_SIZE,
+								 THREAD_SIZE, limit));
 	}
 }
 
@@ -518,7 +584,8 @@ void __init exc_lvl_early_init(void)
 	unsigned int i;
 	unsigned long sp;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		sp = memblock_alloc(THREAD_SIZE, THREAD_SIZE);
 		critirq_ctx[i] = (struct thread_info *)__va(sp);
 		paca[i].crit_kstack = __va(sp + THREAD_SIZE);
@@ -533,7 +600,9 @@ void __init exc_lvl_early_init(void)
 	}
 
 	if (cpu_has_feature(CPU_FTR_DEBUG_LVL_EXC))
+	{
 		patch_exception(0x040, exc_debug_debug_book3e);
+	}
 }
 #endif
 
@@ -558,7 +627,8 @@ void __init emergency_stack_init(void)
 	 */
 	limit = min(safe_stack_limit(), ppc64_rma_size);
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		struct thread_info *ti;
 		ti = __va(memblock_alloc_base(THREAD_SIZE, THREAD_SIZE, limit));
 		klp_init_thread_info(ti);
@@ -576,10 +646,10 @@ void __init emergency_stack_init(void)
 #ifdef CONFIG_SMP
 #define PCPU_DYN_SIZE		()
 
-static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size, size_t align)
+static void *__init pcpu_fc_alloc(unsigned int cpu, size_t size, size_t align)
 {
 	return __alloc_bootmem_node(NODE_DATA(cpu_to_node(cpu)), size, align,
-				    __pa(MAX_DMA_ADDRESS));
+								__pa(MAX_DMA_ADDRESS));
 }
 
 static void __init pcpu_fc_free(void *ptr, size_t size)
@@ -590,9 +660,13 @@ static void __init pcpu_fc_free(void *ptr, size_t size)
 static int pcpu_cpu_distance(unsigned int from, unsigned int to)
 {
 	if (cpu_to_node(from) == cpu_to_node(to))
+	{
 		return LOCAL_DISTANCE;
+	}
 	else
+	{
 		return REMOTE_DISTANCE;
+	}
 }
 
 unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
@@ -612,18 +686,26 @@ void __init setup_per_cpu_areas(void)
 	 * should be large enough to contain a number of units.
 	 */
 	if (mmu_linear_psize == MMU_PAGE_4K)
+	{
 		atom_size = PAGE_SIZE;
+	}
 	else
+	{
 		atom_size = 1 << 20;
+	}
 
 	rc = pcpu_embed_first_chunk(0, dyn_size, atom_size, pcpu_cpu_distance,
-				    pcpu_fc_alloc, pcpu_fc_free);
+								pcpu_fc_alloc, pcpu_fc_free);
+
 	if (rc < 0)
+	{
 		panic("cannot initialize percpu area (err=%d)", rc);
+	}
 
 	delta = (unsigned long)pcpu_base_addr - (unsigned long)__per_cpu_start;
-	for_each_possible_cpu(cpu) {
-                __per_cpu_offset[cpu] = delta + pcpu_unit_offsets[cpu];
+	for_each_possible_cpu(cpu)
+	{
+		__per_cpu_offset[cpu] = delta + pcpu_unit_offsets[cpu];
 		paca[cpu].data_offset = __per_cpu_offset[cpu];
 	}
 }
@@ -633,15 +715,17 @@ void __init setup_per_cpu_areas(void)
 unsigned long memory_block_size_bytes(void)
 {
 	if (ppc_md.memory_block_size)
+	{
 		return ppc_md.memory_block_size();
+	}
 
 	return MIN_MEMORY_BLOCK_SIZE;
 }
 #endif
 
 #if defined(CONFIG_PPC_INDIRECT_PIO) || defined(CONFIG_PPC_INDIRECT_MMIO)
-struct ppc_pci_io ppc_pci_io;
-EXPORT_SYMBOL(ppc_pci_io);
+	struct ppc_pci_io ppc_pci_io;
+	EXPORT_SYMBOL(ppc_pci_io);
 #endif
 
 #ifdef CONFIG_HARDLOCKUP_DETECTOR

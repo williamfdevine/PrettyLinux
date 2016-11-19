@@ -28,7 +28,8 @@ struct task_struct;
 
 typedef unsigned long mm_segment_t;
 
-struct cpu_context_save {
+struct cpu_context_save
+{
 	__u32	r4;
 	__u32	r5;
 	__u32	r6;
@@ -46,7 +47,8 @@ struct cpu_context_save {
  * low level task data that entry.S needs immediate access to.
  * __switch_to() assumes cpu_context follows immediately after cpu_domain.
  */
-struct thread_info {
+struct thread_info
+{
 	unsigned long		flags;		/* low level flags */
 	int			preempt_count;	/* 0 => preemptable, <0 => bug */
 	mm_segment_t		addr_limit;	/* address limit */
@@ -68,12 +70,12 @@ struct thread_info {
 };
 
 #define INIT_THREAD_INFO(tsk)						\
-{									\
-	.task		= &tsk,						\
-	.flags		= 0,						\
-	.preempt_count	= INIT_PREEMPT_COUNT,				\
-	.addr_limit	= KERNEL_DS,					\
-}
+	{									\
+		.task		= &tsk,						\
+					  .flags		= 0,						\
+									.preempt_count	= INIT_PREEMPT_COUNT,				\
+											.addr_limit	= KERNEL_DS,					\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -91,7 +93,7 @@ static inline struct thread_info *current_thread_info(void) __attribute_const__;
 static inline struct thread_info *current_thread_info(void)
 {
 	return (struct thread_info *)
-		(current_stack_pointer & ~(THREAD_SIZE - 1));
+		   (current_stack_pointer & ~(THREAD_SIZE - 1));
 }
 
 #define thread_saved_pc(tsk)	\
@@ -125,9 +127,9 @@ struct user_vfp;
 struct user_vfp_exc;
 
 extern int vfp_preserve_user_clear_hwstate(struct user_vfp __user *,
-					   struct user_vfp_exc __user *);
+		struct user_vfp_exc __user *);
 extern int vfp_restore_user_hwstate(struct user_vfp __user *,
-				    struct user_vfp_exc __user *);
+									struct user_vfp_exc __user *);
 #endif
 
 /*
@@ -161,13 +163,13 @@ extern int vfp_restore_user_hwstate(struct user_vfp __user *,
 
 /* Checks for any syscall work in entry-common.S */
 #define _TIF_SYSCALL_WORK (_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | \
-			   _TIF_SYSCALL_TRACEPOINT | _TIF_SECCOMP)
+						   _TIF_SYSCALL_TRACEPOINT | _TIF_SECCOMP)
 
 /*
  * Change these and you break ASM code in entry-common.S
  */
 #define _TIF_WORK_MASK		(_TIF_NEED_RESCHED | _TIF_SIGPENDING | \
-				 _TIF_NOTIFY_RESUME | _TIF_UPROBE)
+							 _TIF_NOTIFY_RESUME | _TIF_UPROBE)
 
 #endif /* __KERNEL__ */
 #endif /* __ASM_ARM_THREAD_INFO_H */

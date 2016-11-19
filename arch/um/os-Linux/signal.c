@@ -17,7 +17,8 @@
 #include <sysdep/mcontext.h>
 #include <um_malloc.h>
 
-void (*sig_info[NSIG])(int, struct siginfo *, struct uml_pt_regs *) = {
+void (*sig_info[NSIG])(int, struct siginfo *, struct uml_pt_regs *) =
+{
 	[SIGTRAP]	= relay_signal,
 	[SIGFPE]	= relay_signal,
 	[SIGILL]	= relay_signal,
@@ -34,11 +35,16 @@ static void sig_handler_common(int sig, struct siginfo *si, mcontext_t *mc)
 	int save_errno = errno;
 
 	r = uml_kmalloc(sizeof(struct uml_pt_regs), UM_GFP_ATOMIC);
+
 	if (!r)
+	{
 		panic("out of memory");
+	}
 
 	r->is_user = 0;
-	if (sig == SIGSEGV) {
+
+	if (sig == SIGSEGV)
+	{
 		/* For segfaults, we want the data from the sigcontext. */
 		get_regs_from_mc(r, mc);
 		GET_FAULTINFO_FROM_MC(r->faultinfo, mc);
@@ -46,7 +52,9 @@ static void sig_handler_common(int sig, struct siginfo *si, mcontext_t *mc)
 
 	/* enable signals if sig isn't IRQ signal */
 	if ((sig != SIGIO) && (sig != SIGWINCH) && (sig != SIGALRM))
+	{
 		unblock_signals();
+	}
 
 	(*sig_info[sig])(sig, si, r);
 
@@ -76,7 +84,9 @@ void sig_handler(int sig, struct siginfo *si, mcontext_t *mc)
 	int enabled;
 
 	enabled = signals_enabled;
-	if (!enabled && (sig == SIGIO)) {
+
+	if (!enabled && (sig == SIGIO))
+	{
 		signals_pending |= SIGIO_MASK;
 		return;
 	}
@@ -93,11 +103,17 @@ static void timer_real_alarm_handler(mcontext_t *mc)
 	struct uml_pt_regs *regs;
 
 	regs = uml_kmalloc(sizeof(struct uml_pt_regs), UM_GFP_ATOMIC);
+
 	if (!regs)
+	{
 		panic("out of memory");
+	}
 
 	if (mc != NULL)
+	{
 		get_regs_from_mc(regs, mc);
+	}
+
 	timer_handler(SIGALRM, NULL, regs);
 
 	free(regs);
@@ -108,7 +124,9 @@ void timer_alarm_handler(int sig, struct siginfo *unused_si, mcontext_t *mc)
 	int enabled;
 
 	enabled = signals_enabled;
-	if (!signals_enabled) {
+
+	if (!signals_enabled)
+	{
 		signals_pending |= SIGALRM_MASK;
 		return;
 	}
@@ -124,8 +142,9 @@ void timer_alarm_handler(int sig, struct siginfo *unused_si, mcontext_t *mc)
 	set_signals(enabled);
 }
 
-void deliver_alarm(void) {
-    timer_alarm_handler(SIGALRM, NULL, NULL);
+void deliver_alarm(void)
+{
+	timer_alarm_handler(SIGALRM, NULL, NULL);
 }
 
 void timer_set_signal_handler(void)
@@ -135,17 +154,21 @@ void timer_set_signal_handler(void)
 
 void set_sigstack(void *sig_stack, int size)
 {
-	stack_t stack = {
+	stack_t stack =
+	{
 		.ss_flags = 0,
 		.ss_sp = sig_stack,
 		.ss_size = size - sizeof(void *)
 	};
 
 	if (sigaltstack(&stack, NULL) != 0)
+	{
 		panic("enabling signal stack failed, errno = %d\n", errno);
+	}
 }
 
-static void (*handlers[_NSIG])(int sig, struct siginfo *si, mcontext_t *mc) = {
+static void (*handlers[_NSIG])(int sig, struct siginfo *si, mcontext_t *mc) =
+{
 	[SIGSEGV] = sig_handler,
 	[SIGBUS] = sig_handler,
 	[SIGILL] = sig_handler,
@@ -163,7 +186,8 @@ static void hard_handler(int sig, siginfo_t *si, void *p)
 	mcontext_t *mc = &uc->uc_mcontext;
 	unsigned long pending = 1UL << sig;
 
-	do {
+	do
+	{
 		int nested, bail;
 
 		/*
@@ -177,13 +201,17 @@ static void hard_handler(int sig, siginfo_t *si, void *p)
 		 * with this interrupt.
 		 */
 		bail = to_irq_stack(&pending);
+
 		if (bail)
+		{
 			return;
+		}
 
 		nested = pending & 1;
 		pending &= ~1;
 
-		while ((sig = ffs(pending)) != 0){
+		while ((sig = ffs(pending)) != 0)
+		{
 			sig--;
 			pending &= ~(1 << sig);
 			(*handlers[sig])(sig, (struct siginfo *)si, mc);
@@ -196,8 +224,11 @@ static void hard_handler(int sig, siginfo_t *si, void *p)
 		 * again, and handle the new interrupts.
 		 */
 		if (!nested)
+		{
 			pending = from_irq_stack(nested);
-	} while (pending);
+		}
+	}
+	while (pending);
 }
 
 void set_handler(int sig)
@@ -215,20 +246,30 @@ void set_handler(int sig)
 	sigaddset(&action.sa_mask, SIGALRM);
 
 	if (sig == SIGSEGV)
+	{
 		flags |= SA_NODEFER;
+	}
 
 	if (sigismember(&action.sa_mask, sig))
-		flags |= SA_RESTART; /* if it's an irq signal */
+	{
+		flags |= SA_RESTART;    /* if it's an irq signal */
+	}
 
 	action.sa_flags = flags;
 	action.sa_restorer = NULL;
+
 	if (sigaction(sig, &action, NULL) < 0)
+	{
 		panic("sigaction failed - errno = %d\n", errno);
+	}
 
 	sigemptyset(&sig_mask);
 	sigaddset(&sig_mask, sig);
+
 	if (sigprocmask(SIG_UNBLOCK, &sig_mask, NULL) < 0)
+	{
 		panic("sigprocmask failed - errno = %d\n", errno);
+	}
 }
 
 int change_sig(int signal, int on)
@@ -237,8 +278,11 @@ int change_sig(int signal, int on)
 
 	sigemptyset(&sigset);
 	sigaddset(&sigset, signal);
+
 	if (sigprocmask(on ? SIG_UNBLOCK : SIG_BLOCK, &sigset, NULL) < 0)
+	{
 		return -errno;
+	}
 
 	return 0;
 }
@@ -260,14 +304,17 @@ void unblock_signals(void)
 	int save_pending;
 
 	if (signals_enabled == 1)
+	{
 		return;
+	}
 
 	/*
 	 * We loop because the IRQ handler returns with interrupts off.  So,
 	 * interrupts may have arrived and we need to re-enable them and
 	 * recheck signals_pending.
 	 */
-	while (1) {
+	while (1)
+	{
 		/*
 		 * Save and reset save_pending after enabling signals.  This
 		 * way, signals_pending won't be changed while we're reading it.
@@ -281,8 +328,11 @@ void unblock_signals(void)
 		barrier();
 
 		save_pending = signals_pending;
+
 		if (save_pending == 0)
+		{
 			return;
+		}
 
 		signals_pending = 0;
 
@@ -303,17 +353,23 @@ void unblock_signals(void)
 		 * so they can be NULL.
 		 */
 		if (save_pending & SIGIO_MASK)
+		{
 			sig_handler_common(SIGIO, NULL, NULL);
+		}
 
 		/* Do not reenter the handler */
 
 		if ((save_pending & SIGALRM_MASK) && (!(signals_active & SIGALRM_MASK)))
+		{
 			timer_real_alarm_handler(NULL);
+		}
 
 		/* Rerun the loop only if there is still pending SIGIO and not in TIMER handler */
 
 		if (!(signals_pending & SIGIO_MASK) && (signals_active & SIGALRM_MASK))
+		{
 			return;
+		}
 
 	}
 }
@@ -326,13 +382,19 @@ int get_signals(void)
 int set_signals(int enable)
 {
 	int ret;
+
 	if (signals_enabled == enable)
+	{
 		return enable;
+	}
 
 	ret = signals_enabled;
+
 	if (enable)
+	{
 		unblock_signals();
-	else block_signals();
+	}
+	else { block_signals(); }
 
 	return ret;
 }

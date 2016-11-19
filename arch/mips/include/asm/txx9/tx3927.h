@@ -22,19 +22,23 @@
 #define TX3927_SIO_REG(ch)	(TX3927_REG_BASE + 0xf300 + (ch) * 0x100)
 #define TX3927_PIO_REG		(TX3927_REG_BASE + 0xf500)
 
-struct tx3927_sdramc_reg {
+struct tx3927_sdramc_reg
+{
 	volatile unsigned long cr[8];
 	volatile unsigned long tr[3];
 	volatile unsigned long cmd;
 	volatile unsigned long smrs[2];
 };
 
-struct tx3927_romc_reg {
+struct tx3927_romc_reg
+{
 	volatile unsigned long cr[8];
 };
 
-struct tx3927_dma_reg {
-	struct tx3927_dma_ch_reg {
+struct tx3927_dma_reg
+{
+	struct tx3927_dma_ch_reg
+	{
 		volatile unsigned long cha;
 		volatile unsigned long sar;
 		volatile unsigned long dar;
@@ -72,7 +76,8 @@ struct tx3927_dma_reg {
 	volatile unsigned char e4, e3, e2, e1
 #endif
 
-struct tx3927_pcic_reg {
+struct tx3927_pcic_reg
+{
 	endian_def_s2(did, vid);
 	endian_def_s2(pcistat, pcicmd);
 	endian_def_b4(cc, scc, rpli, rid);
@@ -139,7 +144,8 @@ struct tx3927_pcic_reg {
 	volatile unsigned long ipcibe;
 };
 
-struct tx3927_ccfg_reg {
+struct tx3927_ccfg_reg
+{
 	volatile unsigned long ccfg;
 	volatile unsigned long crir;
 	volatile unsigned long pcfg;
@@ -333,7 +339,7 @@ void tx3927_time_init(unsigned int evt_tmrnr, unsigned int src_tmrnr);
 void tx3927_sio_init(unsigned int sclk, unsigned int cts_mask);
 struct pci_controller;
 void tx3927_pcic_setup(struct pci_controller *channel,
-		       unsigned long sdram_size, int extarb);
+					   unsigned long sdram_size, int extarb);
 void tx3927_setup_pcierr_irq(void);
 void tx3927_irq_init(void);
 void tx3927_mtd_init(int ch);

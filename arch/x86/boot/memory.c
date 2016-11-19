@@ -44,7 +44,8 @@ static int detect_memory_e820(void)
 	 * attribute bits deployed in a meaningful way in the future.
 	 */
 
-	do {
+	do
+	{
 		intcall(0x15, &ireg, &oreg);
 		ireg.ebx = oreg.ebx; /* for next iteration... */
 
@@ -52,21 +53,25 @@ static int detect_memory_e820(void)
 		   to %ebx = 0 don't always report the SMAP signature on
 		   the final, failing, probe. */
 		if (oreg.eflags & X86_EFLAGS_CF)
+		{
 			break;
+		}
 
 		/* Some BIOSes stop returning SMAP in the middle of
 		   the search loop.  We don't know exactly how the BIOS
 		   screwed up the map at that point, we might have a
 		   partial map, the full map, or complete garbage, so
 		   just return failure. */
-		if (oreg.eax != SMAP) {
+		if (oreg.eax != SMAP)
+		{
 			count = 0;
 			break;
 		}
 
 		*desc++ = buf;
 		count++;
-	} while (ireg.ebx && count < ARRAY_SIZE(boot_params.e820_map));
+	}
+	while (ireg.ebx && count < ARRAY_SIZE(boot_params.e820_map));
 
 	return boot_params.e820_entries = count;
 }
@@ -80,19 +85,27 @@ static int detect_memory_e801(void)
 	intcall(0x15, &ireg, &oreg);
 
 	if (oreg.eflags & X86_EFLAGS_CF)
+	{
 		return -1;
+	}
 
 	/* Do we really need to do this? */
-	if (oreg.cx || oreg.dx) {
+	if (oreg.cx || oreg.dx)
+	{
 		oreg.ax = oreg.cx;
 		oreg.bx = oreg.dx;
 	}
 
-	if (oreg.ax > 15*1024) {
+	if (oreg.ax > 15 * 1024)
+	{
 		return -1;	/* Bogus! */
-	} else if (oreg.ax == 15*1024) {
+	}
+	else if (oreg.ax == 15 * 1024)
+	{
 		boot_params.alt_mem_k = (oreg.bx << 6) + oreg.ax;
-	} else {
+	}
+	else
+	{
 		/*
 		 * This ignores memory above 16MB if we have a memory
 		 * hole there.  If someone actually finds a machine
@@ -124,13 +137,19 @@ int detect_memory(void)
 	int err = -1;
 
 	if (detect_memory_e820() > 0)
+	{
 		err = 0;
+	}
 
 	if (!detect_memory_e801())
+	{
 		err = 0;
+	}
 
 	if (!detect_memory_88())
+	{
 		err = 0;
+	}
 
 	return err;
 }

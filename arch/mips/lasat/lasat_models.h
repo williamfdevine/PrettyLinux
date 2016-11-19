@@ -3,12 +3,14 @@
  */
 #include <linux/kernel.h>
 
-struct product_info {
+struct product_info
+{
 	const char     *pi_name;
 	const char     *pi_type;
 };
 
-struct vendor_info {
+struct vendor_info
+{
 	const char     *vi_name;
 	const struct product_info *vi_product_info;
 };
@@ -16,7 +18,8 @@ struct vendor_info {
 /*
  * Base models
  */
-static const char * const txt_base_models[] = {
+static const char *const txt_base_models[] =
+{
 	"MQ 2", "MQ Pro", "SP 25", "SP 50", "SP 100", "SP 5000", "SP 7000",
 	"SP 1000", "Unknown"
 };
@@ -28,7 +31,8 @@ static const char * const txt_base_models[] = {
 static const char txt_en_mq[] = "Masquerade";
 static const char txt_en_sp[] = "Safepipe";
 
-static const struct product_info product_info_eicon[] = {
+static const struct product_info product_info_eicon[] =
+{
 	{ txt_en_mq, "II"   }, /*  0 */
 	{ txt_en_mq, "Pro"  }, /*  1 */
 	{ txt_en_sp, "25"   }, /*  2 */
@@ -60,7 +64,8 @@ static const struct product_info product_info_eicon[] = {
 /*
  * The vendor table
  */
-static struct vendor_info const vendor_info_table[] = {
+static struct vendor_info const vendor_info_table[] =
+{
 	{ "Eicon Networks",	product_info_eicon   },
 };
 

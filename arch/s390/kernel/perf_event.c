@@ -28,7 +28,10 @@
 const char *perf_pmu_name(void)
 {
 	if (cpum_cf_avail() || cpum_sf_avail())
+	{
 		return "CPU-Measurement Facilities (CPU-MF)";
+	}
+
 	return "pmu";
 }
 EXPORT_SYMBOL(perf_pmu_name);
@@ -38,9 +41,14 @@ int perf_num_counters(void)
 	int num = 0;
 
 	if (cpum_cf_avail())
+	{
 		num += PERF_CPUM_CF_MAX_CTR;
+	}
+
 	if (cpum_sf_avail())
+	{
 		num += PERF_CPUM_SF_MAX_CTR;
+	}
 
 	return num;
 }
@@ -51,7 +59,9 @@ static struct kvm_s390_sie_block *sie_block(struct pt_regs *regs)
 	struct stack_frame *stack = (struct stack_frame *) regs->gprs[15];
 
 	if (!stack)
+	{
 		return NULL;
+	}
 
 	return (struct kvm_s390_sie_block *) stack->empty1[0];
 }
@@ -59,7 +69,10 @@ static struct kvm_s390_sie_block *sie_block(struct pt_regs *regs)
 static bool is_in_guest(struct pt_regs *regs)
 {
 	if (user_mode(regs))
+	{
 		return false;
+	}
+
 #if IS_ENABLED(CONFIG_KVM)
 	return instruction_pointer(regs) == (unsigned long) &sie_exit;
 #else
@@ -80,13 +93,13 @@ static unsigned long instruction_pointer_guest(struct pt_regs *regs)
 unsigned long perf_instruction_pointer(struct pt_regs *regs)
 {
 	return is_in_guest(regs) ? instruction_pointer_guest(regs)
-				 : instruction_pointer(regs);
+		   : instruction_pointer(regs);
 }
 
 static unsigned long perf_misc_guest_flags(struct pt_regs *regs)
 {
 	return guest_is_user_mode(regs) ? PERF_RECORD_MISC_GUEST_USER
-					: PERF_RECORD_MISC_GUEST_KERNEL;
+		   : PERF_RECORD_MISC_GUEST_KERNEL;
 }
 
 static unsigned long perf_misc_flags_sf(struct pt_regs *regs)
@@ -95,12 +108,14 @@ static unsigned long perf_misc_flags_sf(struct pt_regs *regs)
 	unsigned long flags;
 
 	sde_regs = (struct perf_sf_sde_regs *) &regs->int_parm_long;
+
 	if (sde_regs->in_guest)
 		flags = user_mode(regs) ? PERF_RECORD_MISC_GUEST_USER
-					: PERF_RECORD_MISC_GUEST_KERNEL;
+				: PERF_RECORD_MISC_GUEST_KERNEL;
 	else
 		flags = user_mode(regs) ? PERF_RECORD_MISC_USER
-					: PERF_RECORD_MISC_KERNEL;
+				: PERF_RECORD_MISC_KERNEL;
+
 	return flags;
 }
 
@@ -112,13 +127,17 @@ unsigned long perf_misc_flags(struct pt_regs *regs)
 	 */
 	if (regs->int_code == 0x1407 && regs->int_parm == CPU_MF_INT_SF_PRA)
 		if (!regs->gprs[15])
+		{
 			return perf_misc_flags_sf(regs);
+		}
 
 	if (is_in_guest(regs))
+	{
 		return perf_misc_guest_flags(regs);
+	}
 
 	return user_mode(regs) ? PERF_RECORD_MISC_USER
-			       : PERF_RECORD_MISC_KERNEL;
+		   : PERF_RECORD_MISC_KERNEL;
 }
 
 static void print_debug_cf(void)
@@ -127,10 +146,11 @@ static void print_debug_cf(void)
 	int cpu = smp_processor_id();
 
 	memset(&cf_info, 0, sizeof(cf_info));
+
 	if (!qctri(&cf_info))
 		pr_info("CPU[%i] CPUM_CF: ver=%u.%u A=%04x E=%04x C=%04x\n",
-			cpu, cf_info.cfvn, cf_info.csvn,
-			cf_info.auth_ctl, cf_info.enable_ctl, cf_info.act_ctl);
+				cpu, cf_info.cfvn, cf_info.csvn,
+				cf_info.auth_ctl, cf_info.enable_ctl, cf_info.act_ctl);
 }
 
 static void print_debug_sf(void)
@@ -139,21 +159,25 @@ static void print_debug_sf(void)
 	int cpu = smp_processor_id();
 
 	memset(&si, 0, sizeof(si));
+
 	if (qsi(&si))
+	{
 		return;
+	}
 
 	pr_info("CPU[%i] CPUM_SF: basic=%i diag=%i min=%lu max=%lu cpu_speed=%u\n",
-		cpu, si.as, si.ad, si.min_sampl_rate, si.max_sampl_rate,
-		si.cpu_speed);
+			cpu, si.as, si.ad, si.min_sampl_rate, si.max_sampl_rate,
+			si.cpu_speed);
 
 	if (si.as)
 		pr_info("CPU[%i] CPUM_SF: Basic-sampling: a=%i e=%i c=%i"
-			" bsdes=%i tear=%016lx dear=%016lx\n", cpu,
-			si.as, si.es, si.cs, si.bsdes, si.tear, si.dear);
+				" bsdes=%i tear=%016lx dear=%016lx\n", cpu,
+				si.as, si.es, si.cs, si.bsdes, si.tear, si.dear);
+
 	if (si.ad)
 		pr_info("CPU[%i] CPUM_SF: Diagnostic-sampling: a=%i e=%i c=%i"
-			" dsdes=%i tear=%016lx dear=%016lx\n", cpu,
-			si.ad, si.ed, si.cd, si.dsdes, si.tear, si.dear);
+				" dsdes=%i tear=%016lx dear=%016lx\n", cpu,
+				si.ad, si.ed, si.cd, si.dsdes, si.tear, si.dear);
 }
 
 void perf_event_print_debug(void)
@@ -161,10 +185,17 @@ void perf_event_print_debug(void)
 	unsigned long flags;
 
 	local_irq_save(flags);
+
 	if (cpum_cf_avail())
+	{
 		print_debug_cf();
+	}
+
 	if (cpum_sf_avail())
+	{
 		print_debug_sf();
+	}
+
 	local_irq_restore(flags);
 }
 
@@ -174,11 +205,14 @@ static void sl_print_counter(struct seq_file *m)
 	struct cpumf_ctr_info ci;
 
 	memset(&ci, 0, sizeof(ci));
+
 	if (qctri(&ci))
+	{
 		return;
+	}
 
 	seq_printf(m, "CPU-MF: Counter facility: version=%u.%u "
-		   "authorization=%04x\n", ci.cfvn, ci.csvn, ci.auth_ctl);
+			   "authorization=%04x\n", ci.cfvn, ci.csvn, ci.auth_ctl);
 }
 
 static void sl_print_sampling(struct seq_file *m)
@@ -186,33 +220,46 @@ static void sl_print_sampling(struct seq_file *m)
 	struct hws_qsi_info_block si;
 
 	memset(&si, 0, sizeof(si));
+
 	if (qsi(&si))
+	{
 		return;
+	}
 
 	if (!si.as && !si.ad)
+	{
 		return;
+	}
 
 	seq_printf(m, "CPU-MF: Sampling facility: min_rate=%lu max_rate=%lu"
-		   " cpu_speed=%u\n", si.min_sampl_rate, si.max_sampl_rate,
-		   si.cpu_speed);
+			   " cpu_speed=%u\n", si.min_sampl_rate, si.max_sampl_rate,
+			   si.cpu_speed);
+
 	if (si.as)
 		seq_printf(m, "CPU-MF: Sampling facility: mode=basic"
-			   " sample_size=%u\n", si.bsdes);
+				   " sample_size=%u\n", si.bsdes);
+
 	if (si.ad)
 		seq_printf(m, "CPU-MF: Sampling facility: mode=diagnostic"
-			   " sample_size=%u\n", si.dsdes);
+				   " sample_size=%u\n", si.dsdes);
 }
 
 static void service_level_perf_print(struct seq_file *m,
-				     struct service_level *sl)
+									 struct service_level *sl)
 {
 	if (cpum_cf_avail())
+	{
 		sl_print_counter(m);
+	}
+
 	if (cpum_sf_avail())
+	{
 		sl_print_sampling(m);
+	}
 }
 
-static struct service_level service_level_perf = {
+static struct service_level service_level_perf =
+{
 	.seq_print = service_level_perf_print,
 };
 
@@ -231,20 +278,23 @@ static int __perf_callchain_kernel(void *data, unsigned long address, int reliab
 }
 
 void perf_callchain_kernel(struct perf_callchain_entry_ctx *entry,
-			   struct pt_regs *regs)
+						   struct pt_regs *regs)
 {
 	if (user_mode(regs))
+	{
 		return;
+	}
+
 	dump_trace(__perf_callchain_kernel, entry, NULL, regs->gprs[15]);
 }
 
 /* Perf definitions for PMU event attributes in sysfs */
 ssize_t cpumf_events_sysfs_show(struct device *dev,
-				struct device_attribute *attr, char *page)
+								struct device_attribute *attr, char *page)
 {
 	struct perf_pmu_events_attr *pmu_attr;
 
 	pmu_attr = container_of(attr, struct perf_pmu_events_attr, attr);
 	return sprintf(page, "event=0x%04llx,name=%s\n",
-		       pmu_attr->id, attr->attr.name);
+				   pmu_attr->id, attr->attr.name);
 }

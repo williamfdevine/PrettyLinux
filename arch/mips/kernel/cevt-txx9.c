@@ -22,7 +22,8 @@
 #define TIMER_CCD	0	/* 1/2 */
 #define TIMER_CLK(imclk)	((imclk) / (2 << TIMER_CCD))
 
-struct txx9_clocksource {
+struct txx9_clocksource
+{
 	struct clocksource cs;
 	struct txx9_tmr_reg __iomem *tmrptr;
 };
@@ -37,7 +38,8 @@ static cycle_t txx9_cs_read(struct clocksource *cs)
 /* Use 1 bit smaller width to use full bits in that width */
 #define TXX9_CLOCKSOURCE_BITS (TXX9_TIMER_BITS - 1)
 
-static struct txx9_clocksource txx9_clocksource = {
+static struct txx9_clocksource txx9_clocksource =
+{
 	.cs = {
 		.name		= "TXx9",
 		.rating		= 200,
@@ -53,7 +55,7 @@ static u64 notrace txx9_read_sched_clock(void)
 }
 
 void __init txx9_clocksource_init(unsigned long baseaddr,
-				  unsigned int imbusclk)
+								  unsigned int imbusclk)
 {
 	struct txx9_tmr_reg __iomem *tmrptr;
 
@@ -69,10 +71,11 @@ void __init txx9_clocksource_init(unsigned long baseaddr,
 	txx9_clocksource.tmrptr = tmrptr;
 
 	sched_clock_register(txx9_read_sched_clock, TXX9_CLOCKSOURCE_BITS,
-			     TIMER_CLK(imbusclk));
+						 TIMER_CLK(imbusclk));
 }
 
-struct txx9_clock_event_device {
+struct txx9_clock_event_device
+{
 	struct clock_event_device cd;
 	struct txx9_tmr_reg __iomem *tmrptr;
 };
@@ -96,7 +99,7 @@ static int txx9tmr_set_state_periodic(struct clock_event_device *evt)
 	__raw_writel(TXx9_TMITMR_TIIE | TXx9_TMITMR_TZCE, &tmrptr->itmr);
 	/* start timer */
 	__raw_writel(((u64)(NSEC_PER_SEC / HZ) * evt->mult) >> evt->shift,
-		     &tmrptr->cpra);
+				 &tmrptr->cpra);
 	__raw_writel(TCR_BASE | TXx9_TMTCR_TCE, &tmrptr->tcr);
 	return 0;
 }
@@ -136,7 +139,7 @@ static int txx9tmr_tick_resume(struct clock_event_device *evt)
 }
 
 static int txx9tmr_set_next_event(unsigned long delta,
-				  struct clock_event_device *evt)
+								  struct clock_event_device *evt)
 {
 	struct txx9_clock_event_device *txx9_cd =
 		container_of(evt, struct txx9_clock_event_device, cd);
@@ -149,11 +152,12 @@ static int txx9tmr_set_next_event(unsigned long delta,
 	return 0;
 }
 
-static struct txx9_clock_event_device txx9_clock_event_device = {
+static struct txx9_clock_event_device txx9_clock_event_device =
+{
 	.cd = {
 		.name			= "TXx9",
 		.features		= CLOCK_EVT_FEAT_PERIODIC |
-					  CLOCK_EVT_FEAT_ONESHOT,
+		CLOCK_EVT_FEAT_ONESHOT,
 		.rating			= 200,
 		.set_state_shutdown	= txx9tmr_set_state_shutdown,
 		.set_state_periodic	= txx9tmr_set_state_periodic,
@@ -174,7 +178,8 @@ static irqreturn_t txx9tmr_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction txx9tmr_irq = {
+static struct irqaction txx9tmr_irq =
+{
 	.handler	= txx9tmr_interrupt,
 	.flags		= IRQF_PERCPU | IRQF_TIMER,
 	.name		= "txx9tmr",
@@ -182,7 +187,7 @@ static struct irqaction txx9tmr_irq = {
 };
 
 void __init txx9_clockevent_init(unsigned long baseaddr, int irq,
-				 unsigned int imbusclk)
+								 unsigned int imbusclk)
 {
 	struct clock_event_device *cd = &txx9_clock_event_device.cd;
 	struct txx9_tmr_reg __iomem *tmrptr;
@@ -199,10 +204,10 @@ void __init txx9_clockevent_init(unsigned long baseaddr, int irq,
 	cd->min_delta_ns = clockevent_delta2ns(0xf, cd);
 	cd->irq = irq;
 	cd->cpumask = cpumask_of(0),
-	clockevents_register_device(cd);
+		clockevents_register_device(cd);
 	setup_irq(irq, &txx9tmr_irq);
 	printk(KERN_INFO "TXx9: clockevent device at 0x%lx, irq %d\n",
-	       baseaddr, irq);
+		   baseaddr, irq);
 }
 
 void __init txx9_tmr_init(unsigned long baseaddr)

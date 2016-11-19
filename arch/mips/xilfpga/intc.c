@@ -14,7 +14,8 @@
 
 #include <asm/irq_cpu.h>
 
-static struct of_device_id of_irq_ids[] __initdata = {
+static struct of_device_id of_irq_ids[] __initdata =
+{
 	{ .compatible = "mti,cpu-interrupt-controller", .data = mips_cpu_irq_of_init },
 	{},
 };

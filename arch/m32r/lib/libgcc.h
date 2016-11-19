@@ -4,18 +4,21 @@
 #include <asm/byteorder.h>
 
 #ifdef __BIG_ENDIAN
-struct DWstruct {
+struct DWstruct
+{
 	int high, low;
 };
 #elif defined(__LITTLE_ENDIAN)
-struct DWstruct {
+struct DWstruct
+{
 	int low, high;
 };
 #else
 #error I feel sick.
 #endif
 
-typedef union {
+typedef union
+{
 	struct DWstruct s;
 	long long ll;
 } DWunion;

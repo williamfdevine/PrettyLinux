@@ -45,14 +45,16 @@ static unsigned long iospace;
  * bridge). We should only access the well defined possible devices in
  * use, ignore aliases and the like.
  */
-static unsigned char mcf_host_slot2sid[32] = {
+static unsigned char mcf_host_slot2sid[32] =
+{
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 1, 2, 0, 3, 4, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static unsigned char mcf_host_irq[] = {
+static unsigned char mcf_host_irq[] =
+{
 	0, 69, 69, 71, 71,
 };
 
@@ -73,15 +75,18 @@ static unsigned long mcf_mk_pcicar(int bus, unsigned int devfn, int where)
 }
 
 static int mcf_pci_readconfig(struct pci_bus *bus, unsigned int devfn,
-	int where, int size, u32 *value)
+							  int where, int size, u32 *value)
 {
 	unsigned long addr;
 
 	*value = 0xffffffff;
 
-	if (bus->number == 0) {
+	if (bus->number == 0)
+	{
 		if (mcf_host_slot2sid[PCI_SLOT(devfn)] == 0)
+		{
 			return PCIBIOS_SUCCESSFUL;
+		}
 	}
 
 	syncio();
@@ -89,16 +94,19 @@ static int mcf_pci_readconfig(struct pci_bus *bus, unsigned int devfn,
 	__raw_writel(PCICAR_E | addr, PCICAR);
 	addr = iospace + (where & 0x3);
 
-	switch (size) {
-	case 1:
-		*value = __raw_readb(addr);
-		break;
-	case 2:
-		*value = le16_to_cpu(__raw_readw(addr));
-		break;
-	default:
-		*value = le32_to_cpu(__raw_readl(addr));
-		break;
+	switch (size)
+	{
+		case 1:
+			*value = __raw_readb(addr);
+			break;
+
+		case 2:
+			*value = le16_to_cpu(__raw_readw(addr));
+			break;
+
+		default:
+			*value = le32_to_cpu(__raw_readl(addr));
+			break;
 	}
 
 	syncio();
@@ -107,13 +115,16 @@ static int mcf_pci_readconfig(struct pci_bus *bus, unsigned int devfn,
 }
 
 static int mcf_pci_writeconfig(struct pci_bus *bus, unsigned int devfn,
-	int where, int size, u32 value)
+							   int where, int size, u32 value)
 {
 	unsigned long addr;
 
-	if (bus->number == 0) {
+	if (bus->number == 0)
+	{
 		if (mcf_host_slot2sid[PCI_SLOT(devfn)] == 0)
+		{
 			return PCIBIOS_SUCCESSFUL;
+		}
 	}
 
 	syncio();
@@ -121,16 +132,19 @@ static int mcf_pci_writeconfig(struct pci_bus *bus, unsigned int devfn,
 	__raw_writel(PCICAR_E | addr, PCICAR);
 	addr = iospace + (where & 0x3);
 
-	switch (size) {
-	case 1:
-		 __raw_writeb(value, addr);
-		break;
-	case 2:
-		__raw_writew(cpu_to_le16(value), addr);
-		break;
-	default:
-		__raw_writel(cpu_to_le32(value), addr);
-		break;
+	switch (size)
+	{
+		case 1:
+			__raw_writeb(value, addr);
+			break;
+
+		case 2:
+			__raw_writew(cpu_to_le16(value), addr);
+			break;
+
+		default:
+			__raw_writel(cpu_to_le32(value), addr);
+			break;
 	}
 
 	syncio();
@@ -138,7 +152,8 @@ static int mcf_pci_writeconfig(struct pci_bus *bus, unsigned int devfn,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static struct pci_ops mcf_pci_ops = {
+static struct pci_ops mcf_pci_ops =
+{
 	.read	= mcf_pci_readconfig,
 	.write	= mcf_pci_writeconfig,
 };
@@ -169,21 +184,27 @@ EXPORT_SYMBOL(mcf_pci_inl);
 void mcf_pci_insb(u32 addr, u8 *buf, u32 len)
 {
 	for (; len; len--)
+	{
 		*buf++ = mcf_pci_inb(addr);
+	}
 }
 EXPORT_SYMBOL(mcf_pci_insb);
 
 void mcf_pci_insw(u32 addr, u16 *buf, u32 len)
 {
 	for (; len; len--)
+	{
 		*buf++ = mcf_pci_inw(addr);
+	}
 }
 EXPORT_SYMBOL(mcf_pci_insw);
 
 void mcf_pci_insl(u32 addr, u32 *buf, u32 len)
 {
 	for (; len; len--)
+	{
 		*buf++ = mcf_pci_inl(addr);
+	}
 }
 EXPORT_SYMBOL(mcf_pci_insl);
 
@@ -208,35 +229,43 @@ EXPORT_SYMBOL(mcf_pci_outl);
 void mcf_pci_outsb(u32 addr, const u8 *buf, u32 len)
 {
 	for (; len; len--)
+	{
 		mcf_pci_outb(*buf++, addr);
+	}
 }
 EXPORT_SYMBOL(mcf_pci_outsb);
 
 void mcf_pci_outsw(u32 addr, const u16 *buf, u32 len)
 {
 	for (; len; len--)
+	{
 		mcf_pci_outw(*buf++, addr);
+	}
 }
 EXPORT_SYMBOL(mcf_pci_outsw);
 
 void mcf_pci_outsl(u32 addr, const u32 *buf, u32 len)
 {
 	for (; len; len--)
+	{
 		mcf_pci_outl(*buf++, addr);
+	}
 }
 EXPORT_SYMBOL(mcf_pci_outsl);
 
 /*
  * Initialize the PCI bus registers, and scan the bus.
  */
-static struct resource mcf_pci_mem = {
+static struct resource mcf_pci_mem =
+{
 	.name	= "PCI Memory space",
 	.start	= PCI_MEM_PA,
 	.end	= PCI_MEM_PA + PCI_MEM_SIZE - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct resource mcf_pci_io = {
+static struct resource mcf_pci_io =
+{
 	.name	= "PCI IO space",
 	.start	= 0x400,
 	.end	= 0x10000 - 1,
@@ -251,8 +280,12 @@ static int mcf_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	int sid;
 
 	sid = mcf_host_slot2sid[slot];
+
 	if (sid)
+	{
 		return mcf_host_irq[sid];
+	}
+
 	return 0;
 }
 
@@ -269,7 +302,7 @@ static int __init mcf_pci_init(void)
 
 	/* Configure PCI arbiter */
 	__raw_writel(PACR_INTMPRI | PACR_INTMINTE | PACR_EXTMPRI(0x1f) |
-		PACR_EXTMINTE(0x1f), PACR);
+				 PACR_EXTMINTE(0x1f), PACR);
 
 	/* Set required multi-function pins for PCI bus use */
 	__raw_writew(0x3ff, MCFGPIO_PAR_PCIBG);
@@ -277,7 +310,7 @@ static int __init mcf_pci_init(void)
 
 	/* Set up config space for local host bus controller */
 	__raw_writel(PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER |
-		PCI_COMMAND_INVALIDATE, PCISCR);
+				 PCI_COMMAND_INVALIDATE, PCISCR);
 	__raw_writel(PCICR1_LT(32) | PCICR1_CL(8), PCICR1);
 	__raw_writel(0, PCICR2);
 
@@ -287,11 +320,11 @@ static int __init mcf_pci_init(void)
 	 * PCI memory and IO address spaces.
 	 */
 	__raw_writel(WXBTAR(PCI_MEM_PA, PCI_MEM_BA, PCI_MEM_SIZE),
-		PCIIW0BTAR);
+				 PCIIW0BTAR);
 	__raw_writel(WXBTAR(PCI_IO_PA, PCI_IO_BA, PCI_IO_SIZE),
-		PCIIW1BTAR);
+				 PCIIW1BTAR);
 	__raw_writel(PCIIWCR_W0_MEM /*| PCIIWCR_W0_MRDL*/ | PCIIWCR_W0_E |
-		PCIIWCR_W1_IO | PCIIWCR_W1_E, PCIIWCR);
+				 PCIIWCR_W1_IO | PCIIWCR_W1_E, PCIIWCR);
 
 	/*
 	 * Set up the target windows for access from the PCI bus back to the
@@ -302,10 +335,14 @@ static int __init mcf_pci_init(void)
 
 	/* Keep a virtual mapping to IO/config space active */
 	iospace = (unsigned long) ioremap(PCI_IO_PA, PCI_IO_SIZE);
+
 	if (iospace == 0)
+	{
 		return -ENODEV;
+	}
+
 	pr_info("Coldfire: PCI IO/config window mapped to 0x%x\n",
-		(u32) iospace);
+			(u32) iospace);
 
 	/* Turn of PCI reset, and wait for devices to settle */
 	__raw_writel(0, PCIGSCR);
@@ -313,8 +350,11 @@ static int __init mcf_pci_init(void)
 	schedule_timeout(msecs_to_jiffies(200));
 
 	rootbus = pci_scan_bus(0, &mcf_pci_ops, NULL);
+
 	if (!rootbus)
+	{
 		return -ENODEV;
+	}
 
 	rootbus->resource[0] = &mcf_pci_io;
 	rootbus->resource[1] = &mcf_pci_mem;

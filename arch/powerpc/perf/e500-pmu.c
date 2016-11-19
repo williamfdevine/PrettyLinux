@@ -18,7 +18,8 @@
  * Map of generic hardware event types to hardware events
  * Zero if unsupported
  */
-static int e500_generic_events[] = {
+static int e500_generic_events[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES] = 1,
 	[PERF_COUNT_HW_INSTRUCTIONS] = 2,
 	[PERF_COUNT_HW_CACHE_MISSES] = 41, /* Data L1 cache reloads */
@@ -35,7 +36,8 @@ static int e500_generic_events[] = {
  * 0 means not supported, -1 means nonsensical, other values
  * are event codes.
  */
-static int e500_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
+static int e500_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] =
+{
 	/*
 	 * D-cache misses are not split into read/write/prefetch;
 	 * use raw event 41.
@@ -93,16 +95,21 @@ static u64 e500_xlate_event(u64 event_id)
 	u64 ret;
 
 	if (event_low >= num_events)
+	{
 		return 0;
+	}
 
 	ret = FSL_EMB_EVENT_VALID;
 
-	if (event_low >= 76 && event_low <= 81) {
+	if (event_low >= 76 && event_low <= 81)
+	{
 		ret |= FSL_EMB_EVENT_RESTRICTED;
 		ret |= event_id &
-		       (FSL_EMB_EVENT_THRESHMUL | FSL_EMB_EVENT_THRESH);
-	} else if (event_id &
-	           (FSL_EMB_EVENT_THRESHMUL | FSL_EMB_EVENT_THRESH)) {
+			   (FSL_EMB_EVENT_THRESHMUL | FSL_EMB_EVENT_THRESH);
+	}
+	else if (event_id &
+			 (FSL_EMB_EVENT_THRESHMUL | FSL_EMB_EVENT_THRESH))
+	{
 		/* Threshold requested on non-threshold event */
 		return 0;
 	}
@@ -110,7 +117,8 @@ static u64 e500_xlate_event(u64 event_id)
 	return ret;
 }
 
-static struct fsl_emb_pmu e500_pmu = {
+static struct fsl_emb_pmu e500_pmu =
+{
 	.name			= "e500 family",
 	.n_counter		= 4,
 	.n_restricted		= 2,
@@ -123,12 +131,18 @@ static struct fsl_emb_pmu e500_pmu = {
 static int init_e500_pmu(void)
 {
 	if (!cur_cpu_spec->oprofile_cpu_type)
+	{
 		return -ENODEV;
+	}
 
 	if (!strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc/e500mc"))
+	{
 		num_events = 256;
+	}
 	else if (strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc/e500"))
+	{
 		return -ENODEV;
+	}
 
 	return register_fsl_emb_pmu(&e500_pmu);
 }

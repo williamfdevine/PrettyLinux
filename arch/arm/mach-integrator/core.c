@@ -64,10 +64,11 @@ void cm_clear_irqs(void)
 {
 	/* disable core module IRQs */
 	writel(0xffffffffU, cm_base + INTEGRATOR_HDR_IC_OFFSET +
-		IRQ_ENABLE_CLEAR);
+		   IRQ_ENABLE_CLEAR);
 }
 
-static const struct of_device_id cm_match[] = {
+static const struct of_device_id cm_match[] =
+{
 	{ .compatible = "arm,core-module-integrator"},
 	{ },
 };
@@ -76,15 +77,20 @@ void cm_init(void)
 {
 	struct device_node *cm = of_find_matching_node(NULL, cm_match);
 
-	if (!cm) {
+	if (!cm)
+	{
 		pr_crit("no core module node found in device tree\n");
 		return;
 	}
+
 	cm_base = of_iomap(cm, 0);
-	if (!cm_base) {
+
+	if (!cm_base)
+	{
 		pr_crit("could not remap core module\n");
 		return;
 	}
+
 	cm_clear_irqs();
 }
 

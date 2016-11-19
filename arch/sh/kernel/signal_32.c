@@ -31,7 +31,8 @@
 #include <asm/syscalls.h>
 #include <asm/fpu.h>
 
-struct fdpic_func_descriptor {
+struct fdpic_func_descriptor
+{
 	unsigned long	text;
 	unsigned long	GOT;
 };
@@ -52,16 +53,16 @@ struct fdpic_func_descriptor {
 
 #define MOVW(n)	 (0x9300|((n)-2))	/* Move mem word at PC+n to R3 */
 #if defined(CONFIG_CPU_SH2)
-#define TRAP_NOARG 0xc320		/* Syscall w/no args (NR in R3) */
+	#define TRAP_NOARG 0xc320		/* Syscall w/no args (NR in R3) */
 #else
-#define TRAP_NOARG 0xc310		/* Syscall w/no args (NR in R3) */
+	#define TRAP_NOARG 0xc310		/* Syscall w/no args (NR in R3) */
 #endif
 #define OR_R0_R0 0x200b			/* or r0,r0 (insert to avoid hardware bug) */
 
 struct sigframe
 {
 	struct sigcontext sc;
-	unsigned long extramask[_NSIG_WORDS-1];
+	unsigned long extramask[_NSIG_WORDS - 1];
 	u16 retcode[8];
 };
 
@@ -78,26 +79,34 @@ static inline int restore_sigcontext_fpu(struct sigcontext __user *sc)
 	struct task_struct *tsk = current;
 
 	if (!(boot_cpu_data.flags & CPU_HAS_FPU))
+	{
 		return 0;
+	}
 
 	set_used_math();
 	return __copy_from_user(&tsk->thread.xstate->hardfpu, &sc->sc_fpregs[0],
-				sizeof(long)*(16*2+2));
+							sizeof(long) * (16 * 2 + 2));
 }
 
 static inline int save_sigcontext_fpu(struct sigcontext __user *sc,
-				      struct pt_regs *regs)
+									  struct pt_regs *regs)
 {
 	struct task_struct *tsk = current;
 
 	if (!(boot_cpu_data.flags & CPU_HAS_FPU))
+	{
 		return 0;
+	}
 
 	if (!used_math())
+	{
 		return __put_user(0, &sc->sc_ownedfp);
+	}
 
 	if (__put_user(1, &sc->sc_ownedfp))
+	{
 		return -EFAULT;
+	}
 
 	/* This will cause a "finit" to be triggered by the next
 	   attempted FPU operation by the 'current' process.
@@ -106,7 +115,7 @@ static inline int save_sigcontext_fpu(struct sigcontext __user *sc,
 
 	unlazy_fpu(tsk, regs);
 	return __copy_to_user(&sc->sc_fpregs[0], &tsk->thread.xstate->hardfpu,
-			      sizeof(long)*(16*2+2));
+						  sizeof(long) * (16 * 2 + 2));
 }
 #endif /* CONFIG_SH_FPU */
 
@@ -116,7 +125,7 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc, int *r0_p
 	unsigned int err = 0;
 
 #define COPY(x)		err |= __get_user(regs->x, &sc->sc_##x)
-			COPY(regs[1]);
+	COPY(regs[1]);
 	COPY(regs[2]);	COPY(regs[3]);
 	COPY(regs[4]);	COPY(regs[5]);
 	COPY(regs[6]);	COPY(regs[7]);
@@ -130,7 +139,9 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc, int *r0_p
 #undef COPY
 
 #ifdef CONFIG_SH_FPU
-	if (boot_cpu_data.flags & CPU_HAS_FPU) {
+
+	if (boot_cpu_data.flags & CPU_HAS_FPU)
+	{
 		int owned_fp;
 		struct task_struct *tsk = current;
 
@@ -138,9 +149,13 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc, int *r0_p
 		clear_fpu(tsk, regs);
 		clear_used_math();
 		err |= __get_user (owned_fp, &sc->sc_ownedfp);
+
 		if (owned_fp)
+		{
 			err |= restore_sigcontext_fpu(sc);
+		}
 	}
+
 #endif
 
 	regs->tra = -1;		/* disable syscall checks */
@@ -155,22 +170,29 @@ asmlinkage int sys_sigreturn(void)
 	sigset_t set;
 	int r0;
 
-        /* Always make any pending restarted system calls return -EINTR */
+	/* Always make any pending restarted system calls return -EINTR */
 	current->restart_block.fn = do_no_restart_syscall;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__get_user(set.sig[0], &frame->sc.oldmask)
-	    || (_NSIG_WORDS > 1
-		&& __copy_from_user(&set.sig[1], &frame->extramask,
-				    sizeof(frame->extramask))))
+		|| (_NSIG_WORDS > 1
+			&& __copy_from_user(&set.sig[1], &frame->extramask,
+								sizeof(frame->extramask))))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->sc, &r0))
+	{
 		goto badframe;
+	}
+
 	return r0;
 
 badframe:
@@ -189,18 +211,26 @@ asmlinkage int sys_rt_sigreturn(void)
 	current->restart_block.fn = do_no_restart_syscall;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext, &r0))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return r0;
 
@@ -215,7 +245,7 @@ badframe:
 
 static int
 setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
-		 unsigned long mask)
+				 unsigned long mask)
 {
 	int err = 0;
 
@@ -249,12 +279,15 @@ setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
 static inline void __user *
 get_sigframe(struct k_sigaction *ka, unsigned long sp, size_t frame_size)
 {
-	if (ka->sa.sa_flags & SA_ONSTACK) {
+	if (ka->sa.sa_flags & SA_ONSTACK)
+	{
 		if (sas_ss_flags(sp) == 0)
+		{
 			sp = current->sas_ss_sp + current->sas_ss_size;
+		}
 	}
 
-	return (void __user *)((sp - (frame_size+UNWINDGUARD)) & -8ul);
+	return (void __user *)((sp - (frame_size + UNWINDGUARD)) & -8ul);
 }
 
 /* These symbols are defined with the addresses in the vsyscall page.
@@ -263,7 +296,7 @@ extern void __kernel_sigreturn(void);
 extern void __kernel_rt_sigreturn(void);
 
 static int setup_frame(struct ksignal *ksig, sigset_t *set,
-		       struct pt_regs *regs)
+					   struct pt_regs *regs)
 {
 	struct sigframe __user *frame;
 	int err = 0, sig = ksig->sig;
@@ -271,23 +304,30 @@ static int setup_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(&ksig->ka, regs->regs[15], sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	err |= setup_sigcontext(&frame->sc, regs, set->sig[0]);
 
 	if (_NSIG_WORDS > 1)
 		err |= __copy_to_user(frame->extramask, &set->sig[1],
-				      sizeof(frame->extramask));
+							  sizeof(frame->extramask));
 
 	/* Set up to return from userspace.  If provided, use a stub
 	   already in userspace.  */
-	if (ksig->ka.sa.sa_flags & SA_RESTORER) {
+	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		regs->pr = (unsigned long) ksig->ka.sa.sa_restorer;
 #ifdef CONFIG_VSYSCALL
-	} else if (likely(current->mm->context.vdso)) {
+	}
+	else if (likely(current->mm->context.vdso))
+	{
 		regs->pr = VDSO_SYM(&__kernel_sigreturn);
 #endif
-	} else {
+	}
+	else
+	{
 		/* Generate return code (system call to sigreturn) */
 		err |= __put_user(MOVW(7), &frame->retcode[0]);
 		err |= __put_user(TRAP_NOARG, &frame->retcode[1]);
@@ -302,7 +342,9 @@ static int setup_frame(struct ksignal *ksig, sigset_t *set,
 	}
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up registers for signal handler */
 	regs->regs[15] = (unsigned long) frame;
@@ -310,26 +352,32 @@ static int setup_frame(struct ksignal *ksig, sigset_t *set,
 	regs->regs[5] = 0;
 	regs->regs[6] = (unsigned long) &frame->sc;
 
-	if (current->personality & FDPIC_FUNCPTRS) {
+	if (current->personality & FDPIC_FUNCPTRS)
+	{
 		struct fdpic_func_descriptor __user *funcptr =
 			(struct fdpic_func_descriptor __user *)ksig->ka.sa.sa_handler;
 
 		err |= __get_user(regs->pc, &funcptr->text);
 		err |= __get_user(regs->regs[12], &funcptr->GOT);
-	} else
+	}
+	else
+	{
 		regs->pc = (unsigned long)ksig->ka.sa.sa_handler;
+	}
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	pr_debug("SIG deliver (%s:%d): sp=%p pc=%08lx pr=%08lx\n",
-		 current->comm, task_pid_nr(current), frame, regs->pc, regs->pr);
+			 current->comm, task_pid_nr(current), frame, regs->pc, regs->pr);
 
 	return 0;
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame;
 	int err = 0, sig = ksig->sig;
@@ -337,7 +385,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(&ksig->ka, regs->regs[15], sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 
@@ -346,18 +396,23 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __put_user(NULL, &frame->uc.uc_link);
 	err |= __save_altstack(&frame->uc.uc_stack, regs->regs[15]);
 	err |= setup_sigcontext(&frame->uc.uc_mcontext,
-			        regs, set->sig[0]);
+							regs, set->sig[0]);
 	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
 
 	/* Set up to return from userspace.  If provided, use a stub
 	   already in userspace.  */
-	if (ksig->ka.sa.sa_flags & SA_RESTORER) {
+	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		regs->pr = (unsigned long) ksig->ka.sa.sa_restorer;
 #ifdef CONFIG_VSYSCALL
-	} else if (likely(current->mm->context.vdso)) {
+	}
+	else if (likely(current->mm->context.vdso))
+	{
 		regs->pr = VDSO_SYM(&__kernel_rt_sigreturn);
 #endif
-	} else {
+	}
+	else
+	{
 		/* Generate return code (system call to rt_sigreturn) */
 		err |= __put_user(MOVW(7), &frame->retcode[0]);
 		err |= __put_user(TRAP_NOARG, &frame->retcode[1]);
@@ -372,7 +427,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	}
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up registers for signal handler */
 	regs->regs[15] = (unsigned long) frame;
@@ -380,43 +437,55 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	regs->regs[5] = (unsigned long) &frame->info;
 	regs->regs[6] = (unsigned long) &frame->uc;
 
-	if (current->personality & FDPIC_FUNCPTRS) {
+	if (current->personality & FDPIC_FUNCPTRS)
+	{
 		struct fdpic_func_descriptor __user *funcptr =
 			(struct fdpic_func_descriptor __user *)ksig->ka.sa.sa_handler;
 
 		err |= __get_user(regs->pc, &funcptr->text);
 		err |= __get_user(regs->regs[12], &funcptr->GOT);
-	} else
+	}
+	else
+	{
 		regs->pc = (unsigned long)ksig->ka.sa.sa_handler;
+	}
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	pr_debug("SIG deliver (%s:%d): sp=%p pc=%08lx pr=%08lx\n",
-		 current->comm, task_pid_nr(current), frame, regs->pc, regs->pr);
+			 current->comm, task_pid_nr(current), frame, regs->pc, regs->pr);
 
 	return 0;
 }
 
 static inline void
 handle_syscall_restart(unsigned long save_r0, struct pt_regs *regs,
-		       struct sigaction *sa)
+					   struct sigaction *sa)
 {
 	/* If we're not from a syscall, bail out */
 	if (regs->tra < 0)
+	{
 		return;
+	}
 
 	/* check for system call restart.. */
-	switch (regs->regs[0]) {
+	switch (regs->regs[0])
+	{
 		case -ERESTART_RESTARTBLOCK:
 		case -ERESTARTNOHAND:
-		no_system_call_restart:
+no_system_call_restart:
 			regs->regs[0] = -EINTR;
 			break;
 
 		case -ERESTARTSYS:
 			if (!(sa->sa_flags & SA_RESTART))
+			{
 				goto no_system_call_restart;
+			}
+
 		/* fallthrough */
 		case -ERESTARTNOINTR:
 			regs->regs[0] = save_r0;
@@ -436,9 +505,13 @@ handle_signal(struct ksignal *ksig, struct pt_regs *regs, unsigned int save_r0)
 
 	/* Set up the stack frame */
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		ret = setup_rt_frame(ksig, oldset, regs);
+	}
 	else
+	{
 		ret = setup_frame(ksig, oldset, regs);
+	}
 
 	signal_setup_done(ret, ksig, test_thread_flag(TIF_SINGLESTEP));
 }
@@ -463,9 +536,12 @@ static void do_signal(struct pt_regs *regs, unsigned int save_r0)
 	 * if so.
 	 */
 	if (!user_mode(regs))
+	{
 		return;
+	}
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		handle_syscall_restart(save_r0, regs, &ksig.ka.sa);
 
 		/* Whee!  Actually deliver the signal.  */
@@ -474,14 +550,18 @@ static void do_signal(struct pt_regs *regs, unsigned int save_r0)
 	}
 
 	/* Did we come from a system call? */
-	if (regs->tra >= 0) {
+	if (regs->tra >= 0)
+	{
 		/* Restart the system call - no handlers present */
 		if (regs->regs[0] == -ERESTARTNOHAND ||
-		    regs->regs[0] == -ERESTARTSYS ||
-		    regs->regs[0] == -ERESTARTNOINTR) {
+			regs->regs[0] == -ERESTARTSYS ||
+			regs->regs[0] == -ERESTARTNOINTR)
+		{
 			regs->regs[0] = save_r0;
 			regs->pc -= instruction_size(__raw_readw(regs->pc - 4));
-		} else if (regs->regs[0] == -ERESTART_RESTARTBLOCK) {
+		}
+		else if (regs->regs[0] == -ERESTART_RESTARTBLOCK)
+		{
 			regs->pc -= instruction_size(__raw_readw(regs->pc - 4));
 			regs->regs[3] = __NR_restart_syscall;
 		}
@@ -495,13 +575,16 @@ static void do_signal(struct pt_regs *regs, unsigned int save_r0)
 }
 
 asmlinkage void do_notify_resume(struct pt_regs *regs, unsigned int save_r0,
-				 unsigned long thread_info_flags)
+								 unsigned long thread_info_flags)
 {
 	/* deal with pending signal delivery */
 	if (thread_info_flags & _TIF_SIGPENDING)
+	{
 		do_signal(regs, save_r0);
+	}
 
-	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}

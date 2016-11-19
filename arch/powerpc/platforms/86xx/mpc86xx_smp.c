@@ -41,13 +41,15 @@ smp_86xx_release_core(int nr)
 	unsigned long pcr;
 
 	if (nr < 0 || nr >= NR_CPUS)
+	{
 		return;
+	}
 
 	/*
 	 * Startup Core #nr.
 	 */
 	mcm_vaddr = ioremap(get_immrbase() + MPC86xx_MCM_OFFSET,
-			    MPC86xx_MCM_SIZE);
+						MPC86xx_MCM_SIZE);
 	pcr = in_be32(mcm_vaddr + (MCM_PORT_CONFIG_OFFSET >> 2));
 	pcr |= 1 << (nr + 24);
 	out_be32(mcm_vaddr + (MCM_PORT_CONFIG_OFFSET >> 2), pcr);
@@ -65,7 +67,9 @@ smp_86xx_kick_cpu(int nr)
 	unsigned int *vector = (unsigned int *)(KERNELBASE + 0x100);
 
 	if (nr < 0 || nr >= NR_CPUS)
+	{
 		return -ENOENT;
+	}
 
 	pr_debug("smp_86xx_kick_cpu: kick CPU #%d\n", nr);
 
@@ -83,7 +87,9 @@ smp_86xx_kick_cpu(int nr)
 
 	/* Wait a bit for the CPU to take the exception. */
 	while ((__secondary_hold_acknowledge != nr) && (n++, n < 1000))
+	{
 		mdelay(1);
+	}
 
 	/* Restore the exception vector */
 	*vector = save_vector;
@@ -104,7 +110,8 @@ smp_86xx_setup_cpu(int cpu_nr)
 }
 
 
-struct smp_ops_t smp_86xx_ops = {
+struct smp_ops_t smp_86xx_ops =
+{
 	.message_pass = smp_mpic_message_pass,
 	.probe = smp_mpic_probe,
 	.kick_cpu = smp_86xx_kick_cpu,

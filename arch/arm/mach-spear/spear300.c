@@ -20,7 +20,8 @@
 #include <mach/spear.h>
 
 /* DMAC platform data's slave info */
-struct pl08x_channel_data spear300_dma_info[] = {
+struct pl08x_channel_data spear300_dma_info[] =
+{
 	{
 		.bus_id = "uart0_rx",
 		.min_signal = 2,
@@ -181,11 +182,12 @@ struct pl08x_channel_data spear300_dma_info[] = {
 };
 
 /* Add SPEAr300 auxdata to pass platform data */
-static struct of_dev_auxdata spear300_auxdata_lookup[] __initdata = {
+static struct of_dev_auxdata spear300_auxdata_lookup[] __initdata =
+{
 	OF_DEV_AUXDATA("arm,pl022", SPEAR3XX_ICM1_SSP_BASE, NULL,
-			&pl022_plat_data),
+	&pl022_plat_data),
 	OF_DEV_AUXDATA("arm,pl080", SPEAR_ICM3_DMA_BASE, NULL,
-			&pl080_plat_data),
+	&pl080_plat_data),
 	{}
 };
 
@@ -197,7 +199,8 @@ static void __init spear300_dt_init(void)
 	of_platform_default_populate(NULL, spear300_auxdata_lookup, NULL);
 }
 
-static const char * const spear300_dt_board_compat[] = {
+static const char *const spear300_dt_board_compat[] =
+{
 	"st,spear300",
 	"st,spear300-evb",
 	NULL,
@@ -209,9 +212,9 @@ static void __init spear300_map_io(void)
 }
 
 DT_MACHINE_START(SPEAR300_DT, "ST SPEAr300 SoC with Flattened Device Tree")
-	.map_io		=	spear300_map_io,
+.map_io		=	spear300_map_io,
 	.init_time	=	spear3xx_timer_init,
-	.init_machine	=	spear300_dt_init,
-	.restart	=	spear_restart,
-	.dt_compat	=	spear300_dt_board_compat,
-MACHINE_END
+	  .init_machine	=	spear300_dt_init,
+		 .restart	=	spear_restart,
+			 .dt_compat	=	spear300_dt_board_compat,
+			   MACHINE_END

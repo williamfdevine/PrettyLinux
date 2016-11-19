@@ -14,19 +14,22 @@
 #include <linux/mc146818rtc.h>
 #include <linux/platform_device.h>
 
-static struct resource dec_rtc_resources[] = {
+static struct resource dec_rtc_resources[] =
+{
 	{
 		.name = "rtc",
 		.flags = IORESOURCE_MEM,
 	},
 };
 
-static struct cmos_rtc_board_info dec_rtc_info = {
+static struct cmos_rtc_board_info dec_rtc_info =
+{
 	.flags = CMOS_RTC_FLAGS_NOFREQ,
 	.address_space = 64,
 };
 
-static struct platform_device dec_rtc_device = {
+static struct platform_device dec_rtc_device =
+{
 	.name = "rtc_cmos",
 	.id = PLATFORM_DEVID_NONE,
 	.dev.platform_data = &dec_rtc_info,

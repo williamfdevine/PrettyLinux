@@ -66,9 +66,9 @@ static inline unsigned long native_read_cr4(void)
 	 * that CR4 == 0 on CPUs that don't have CR4.
 	 */
 	asm volatile("1: mov %%cr4, %0\n"
-		     "2:\n"
-		     _ASM_EXTABLE(1b, 2b)
-		     : "=r" (val), "=m" (__force_order) : "0" (0));
+				 "2:\n"
+				 _ASM_EXTABLE(1b, 2b)
+				 : "=r" (val), "=m" (__force_order) : "0" (0));
 #else
 	/* CR4 always exists on x86_64. */
 	asm volatile("mov %%cr4,%0\n\t" : "=r" (val), "=m" (__force_order));
@@ -106,8 +106,8 @@ static inline u32 __read_pkru(void)
 	 * clears EDX and requires that ecx=0.
 	 */
 	asm volatile(".byte 0x0f,0x01,0xee\n\t"
-		     : "=a" (pkru), "=d" (edx)
-		     : "c" (ecx));
+				 : "=a" (pkru), "=d" (edx)
+				 : "c" (ecx));
 	return pkru;
 }
 
@@ -120,7 +120,7 @@ static inline void __write_pkru(u32 pkru)
 	 * requires that ecx = edx = 0.
 	 */
 	asm volatile(".byte 0x0f,0x01,0xef\n\t"
-		     : : "a" (pkru), "c"(ecx), "d"(edx));
+				 : : "a" (pkru), "c"(ecx), "d"(edx));
 }
 #else
 static inline u32 __read_pkru(void)
@@ -226,9 +226,9 @@ static inline void clflush(volatile void *__p)
 static inline void clflushopt(volatile void *__p)
 {
 	alternative_io(".byte " __stringify(NOP_DS_PREFIX) "; clflush %P0",
-		       ".byte 0x66; clflush %P0",
-		       X86_FEATURE_CLFLUSHOPT,
-		       "+m" (*(volatile char __force *)__p));
+				   ".byte 0x66; clflush %P0",
+				   X86_FEATURE_CLFLUSHOPT,
+				   "+m" (*(volatile char __force *)__p));
 }
 
 static inline void clwb(volatile void *__p)
@@ -236,13 +236,13 @@ static inline void clwb(volatile void *__p)
 	volatile struct { char x[64]; } *p = __p;
 
 	asm volatile(ALTERNATIVE_2(
-		".byte " __stringify(NOP_DS_PREFIX) "; clflush (%[pax])",
-		".byte 0x66; clflush (%[pax])", /* clflushopt (%%rax) */
-		X86_FEATURE_CLFLUSHOPT,
-		".byte 0x66, 0x0f, 0xae, 0x30",  /* clwb (%%rax) */
-		X86_FEATURE_CLWB)
-		: [p] "+m" (*p)
-		: [pax] "a" (p));
+					 ".byte " __stringify(NOP_DS_PREFIX) "; clflush (%[pax])",
+					 ".byte 0x66; clflush (%[pax])", /* clflushopt (%%rax) */
+					 X86_FEATURE_CLFLUSHOPT,
+					 ".byte 0x66, 0x0f, 0xae, 0x30",  /* clwb (%%rax) */
+					 X86_FEATURE_CLWB)
+				 : [p] "+m" (*p)
+				 : [pax] "a" (p));
 }
 
 #define nop() asm volatile ("nop")

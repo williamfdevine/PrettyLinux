@@ -23,12 +23,14 @@ struct task_struct;	/* forward declaration for elf.h */
 
 #include "ssc.h"
 
-struct disk_req {
+struct disk_req
+{
 	unsigned long addr;
 	unsigned len;
 };
 
-struct disk_stat {
+struct disk_stat
+{
 	int fd;
 	unsigned count;
 };
@@ -42,10 +44,14 @@ cons_write (const char *buf)
 {
 	unsigned long ch;
 
-	while ((ch = *buf++) != '\0') {
+	while ((ch = *buf++) != '\0')
+	{
 		ssc(ch, 0, 0, 0, SSC_PUTCHAR);
+
 		if (ch == '\n')
-		  ssc('\r', 0, 0, 0, SSC_PUTCHAR);
+		{
+			ssc('\r', 0, 0, 0, SSC_PUTCHAR);
+		}
 	}
 }
 
@@ -73,7 +79,7 @@ start_bootloader (void)
 	 * S.Eranian: extract the commandline argument from the simulator
 	 *
 	 * The expected format is as follows:
-         *
+	     *
 	 *	kernelname args...
 	 *
 	 * Both are optional but you can't have the second one without the first.
@@ -82,26 +88,38 @@ start_bootloader (void)
 
 	kpath = "vmlinux";
 	args = buffer;
-	if (arglen > 0) {
+
+	if (arglen > 0)
+	{
 		kpath = buffer;
+
 		while (*args != ' ' && *args != '\0')
+		{
 			++args, --arglen;
+		}
+
 		if (*args == ' ')
+		{
 			*args++ = '\0', --arglen;
+		}
 	}
 
-	if (arglen <= 0) {
+	if (arglen <= 0)
+	{
 		args = "";
 		arglen = 1;
 	}
 
 	fd = ssc((long) kpath, 1, 0, 0, SSC_OPEN);
 
-	if (fd < 0) {
+	if (fd < 0)
+	{
 		cons_write(kpath);
 		cons_write(": file not found, reboot now\n");
-		for(;;);
+
+		for (;;);
 	}
+
 	stat.fd = fd;
 	off = 0;
 
@@ -111,15 +129,21 @@ start_bootloader (void)
 	ssc((long) &stat, 0, 0, 0, SSC_WAIT_COMPLETION);
 
 	elf = (struct elfhdr *) mem;
-	if (elf->e_ident[0] == 0x7f && strncmp(elf->e_ident + 1, "ELF", 3) != 0) {
+
+	if (elf->e_ident[0] == 0x7f && strncmp(elf->e_ident + 1, "ELF", 3) != 0)
+	{
 		cons_write("not an ELF file\n");
 		return;
 	}
-	if (elf->e_type != ET_EXEC) {
+
+	if (elf->e_type != ET_EXEC)
+	{
 		cons_write("not an ELF executable\n");
 		return;
 	}
-	if (!elf_check_arch(elf)) {
+
+	if (!elf_check_arch(elf))
+	{
 		cons_write("kernel not for this processor\n");
 		return;
 	}
@@ -132,29 +156,36 @@ start_bootloader (void)
 	cons_write(kpath);
 	cons_write("...\n");
 
-	for (i = 0; i < e_phnum; ++i) {
+	for (i = 0; i < e_phnum; ++i)
+	{
 		req.len = sizeof(*elf_phdr);
 		req.addr = (long) mem;
 		ssc(fd, 1, (long) &req, e_phoff, SSC_READ);
 		ssc((long) &stat, 0, 0, 0, SSC_WAIT_COMPLETION);
-		if (stat.count != sizeof(*elf_phdr)) {
+
+		if (stat.count != sizeof(*elf_phdr))
+		{
 			cons_write("failed to read phdr\n");
 			return;
 		}
+
 		e_phoff += sizeof(*elf_phdr);
 
 		elf_phdr = (struct elf_phdr *) mem;
 
 		if (elf_phdr->p_type != PT_LOAD)
+		{
 			continue;
+		}
 
 		req.len = elf_phdr->p_filesz;
 		req.addr = __pa(elf_phdr->p_paddr);
 		ssc(fd, 1, (long) &req, elf_phdr->p_offset, SSC_READ);
 		ssc((long) &stat, 0, 0, 0, SSC_WAIT_COMPLETION);
 		memset((char *)__pa(elf_phdr->p_paddr) + elf_phdr->p_filesz, 0,
-		       elf_phdr->p_memsz - elf_phdr->p_filesz);
+			   elf_phdr->p_memsz - elf_phdr->p_filesz);
 	}
+
 	ssc(fd, 0, 0, 0, SSC_CLOSE);
 
 	cons_write("starting kernel...\n");

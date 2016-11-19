@@ -41,7 +41,8 @@
  * This stuff is needed below in the little boot notes parser to
  * extract the command line so we can pass it to the hypervisor.
  */
-struct Elf32_Bhdr {
+struct Elf32_Bhdr
+{
 	Elf32_Word b_signature;
 	Elf32_Word b_size;
 	Elf32_Half b_checksum;
@@ -76,16 +77,20 @@ void machine_crash_shutdown(struct pt_regs *regs)
 
 int machine_kexec_prepare(struct kimage *image)
 {
-	if (num_online_cpus() > 1) {
+	if (num_online_cpus() > 1)
+	{
 		pr_warn("%s: detected attempt to kexec with num_online_cpus() > 1\n",
-			__func__);
+				__func__);
 		return -ENOSYS;
 	}
-	if (image->type != KEXEC_TYPE_DEFAULT) {
+
+	if (image->type != KEXEC_TYPE_DEFAULT)
+	{
 		pr_warn("%s: detected attempt to kexec with unsupported type: %d\n",
-			__func__, image->type);
+				__func__, image->type);
 		return -ENOSYS;
 	}
+
 	return 0;
 }
 
@@ -119,23 +124,28 @@ static unsigned char *kexec_bn2cl(void *pg)
 	 * sure to quietly ignore every impossible page.
 	 */
 	if (bhdrp->b_signature != ELF_BOOT_MAGIC ||
-	    bhdrp->b_size > PAGE_SIZE)
+		bhdrp->b_size > PAGE_SIZE)
+	{
 		return 0;
+	}
 
 	/*
 	 * If we get a checksum mismatch, warn with the checksum
 	 * so we can diagnose better.
 	 */
 	csum = ip_compute_csum(pg, bhdrp->b_size);
-	if (csum != 0) {
+
+	if (csum != 0)
+	{
 		pr_warn("%s: bad checksum %#x (size %d)\n",
-			__func__, csum, bhdrp->b_size);
+				__func__, csum, bhdrp->b_size);
 		return 0;
 	}
 
 	nhdrp = (Elf32_Nhdr *) (bhdrp + 1);
 
-	while (nhdrp->n_type != EBN_COMMAND_LINE) {
+	while (nhdrp->n_type != EBN_COMMAND_LINE)
+	{
 
 		desc = (unsigned char *) (nhdrp + 1);
 		desc += roundupsz(nhdrp->n_descsz);
@@ -144,7 +154,8 @@ static unsigned char *kexec_bn2cl(void *pg)
 
 		/* still in bounds? */
 		if ((unsigned char *) (nhdrp + 1) >
-		    ((unsigned char *) pg) + bhdrp->b_size) {
+			((unsigned char *) pg) + bhdrp->b_size)
+		{
 
 			pr_info("%s: out of bounds\n", __func__);
 			return 0;
@@ -154,9 +165,12 @@ static unsigned char *kexec_bn2cl(void *pg)
 	command_line = (unsigned char *) (nhdrp + 1);
 	desc = command_line;
 
-	while (*desc != '\0') {
+	while (*desc != '\0')
+	{
 		desc++;
-		if (((unsigned long)desc & PAGE_MASK) != (unsigned long)pg) {
+
+		if (((unsigned long)desc & PAGE_MASK) != (unsigned long)pg)
+		{
 			pr_info("%s: ran off end of page\n", __func__);
 			return 0;
 		}
@@ -174,35 +188,44 @@ static void kexec_find_and_set_command_line(struct kimage *image)
 	HV_Errno hverr;
 
 	for (ptr = &image->head;
-	     (entry = *ptr) && !(entry & IND_DONE);
-	     ptr = (entry & IND_INDIRECTION) ?
-		     phys_to_virt((entry & PAGE_MASK)) : ptr + 1) {
+		 (entry = *ptr) && !(entry & IND_DONE);
+		 ptr = (entry & IND_INDIRECTION) ?
+			   phys_to_virt((entry & PAGE_MASK)) : ptr + 1)
+	{
 
-		if ((entry & IND_SOURCE)) {
+		if ((entry & IND_SOURCE))
+		{
 			void *va =
 				kmap_atomic_pfn(entry >> PAGE_SHIFT);
 			r = kexec_bn2cl(va);
-			if (r) {
+
+			if (r)
+			{
 				command_line = r;
 				break;
 			}
+
 			kunmap_atomic(va);
 		}
 	}
 
-	if (command_line != 0) {
+	if (command_line != 0)
+	{
 		pr_info("setting new command line to \"%s\"\n", command_line);
 
 		hverr = hv_set_command_line(
-			(HV_VirtAddr) command_line, strlen(command_line));
+					(HV_VirtAddr) command_line, strlen(command_line));
 		kunmap_atomic(command_line);
-	} else {
+	}
+	else
+	{
 		pr_info("%s: no command line found; making empty\n", __func__);
 		hverr = hv_set_command_line((HV_VirtAddr) command_line, 0);
 	}
+
 	if (hverr)
 		pr_warn("%s: hv_set_command_line returned error: %d\n",
-			__func__, hverr);
+				__func__, hverr);
 }
 
 /*
@@ -225,9 +248,9 @@ struct page *kimage_alloc_pages_arch(gfp_t gfp_mask, unsigned int order)
  * table which we assume has been allocated and is undoubtedly large enough.
  */
 #ifndef __tilegx__
-#define	QUASI_VA_IS_PA_ADDR_RANGE PAGE_OFFSET
+	#define	QUASI_VA_IS_PA_ADDR_RANGE PAGE_OFFSET
 #else
-#define	QUASI_VA_IS_PA_ADDR_RANGE PGDIR_SIZE
+	#define	QUASI_VA_IS_PA_ADDR_RANGE PGDIR_SIZE
 #endif
 
 static void setup_quasi_va_is_pa(void)
@@ -248,7 +271,9 @@ static void setup_quasi_va_is_pa(void)
 	 */
 	pte = hv_pte(_PAGE_KERNEL | _PAGE_HUGE_PAGE);
 	pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_NO_L3);
-	for (i = 0; i < (QUASI_VA_IS_PA_ADDR_RANGE >> HPAGE_SHIFT); i++) {
+
+	for (i = 0; i < (QUASI_VA_IS_PA_ADDR_RANGE >> HPAGE_SHIFT); i++)
+	{
 		unsigned long vaddr = i << HPAGE_SHIFT;
 		pgd_t *pgd = pgd_offset(current->mm, vaddr);
 		pud_t *pud = pud_offset(pgd, vaddr);
@@ -256,7 +281,9 @@ static void setup_quasi_va_is_pa(void)
 		unsigned long pfn = i << (HPAGE_SHIFT - PAGE_SHIFT);
 
 		if (pfn_valid(pfn))
+		{
 			__set_pte(ptep, pfn_pte(pfn, pte));
+		}
 	}
 }
 
@@ -266,7 +293,7 @@ void machine_kexec(struct kimage *image)
 	void *reboot_code_buffer;
 	pte_t *ptep;
 	void (*rnk)(unsigned long, void *, unsigned long)
-		__noreturn;
+	__noreturn;
 
 	/* Mask all interrupts before starting to reboot. */
 	interrupt_mask_set_mask(~0ULL);
@@ -279,13 +306,13 @@ void machine_kexec(struct kimage *image)
 	 * code page, which we map in the vmalloc area.
 	 */
 	homecache_change_page_home(image->control_code_page, 0,
-				   smp_processor_id());
+							   smp_processor_id());
 	reboot_code_buffer = page_address(image->control_code_page);
 	BUG_ON(reboot_code_buffer == NULL);
 	ptep = virt_to_pte(NULL, (unsigned long)reboot_code_buffer);
 	__set_pte(ptep, pte_mkexec(*ptep));
 	memcpy(reboot_code_buffer, relocate_new_kernel,
-	       relocate_new_kernel_size);
+		   relocate_new_kernel_size);
 	__flush_icache_range(
 		(unsigned long) reboot_code_buffer,
 		(unsigned long) reboot_code_buffer + relocate_new_kernel_size);

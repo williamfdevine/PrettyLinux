@@ -25,14 +25,15 @@
 #include <asm/pci-bridge.h>
 
 /* Bus info */
-struct iowa_bus {
-	struct pci_controller *phb;
-	struct ppc_pci_io *ops;
-	void   *private;
+struct iowa_bus
+{
+		struct pci_controller *phb;
+		struct ppc_pci_io *ops;
+		void   *private;
 };
 
 void iowa_register_bus(struct pci_controller *, struct ppc_pci_io *,
-		       int (*)(struct iowa_bus *, void *), void *);
+					   int (*)(struct iowa_bus *, void *), void *);
 struct iowa_bus *iowa_mem_find_bus(const PCI_IO_ADDR);
 struct iowa_bus *iowa_pio_find_bus(unsigned long);
 

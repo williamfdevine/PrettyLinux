@@ -9,9 +9,11 @@
 static inline int cpu_to_node(int cpu)
 {
 	int node;
-	
+
 	if (!alpha_mv.cpuid_to_nid)
+	{
 		return 0;
+	}
 
 	node = alpha_mv.cpuid_to_nid(cpu);
 
@@ -29,13 +31,18 @@ static const struct cpumask *cpumask_of_node(int node)
 	int cpu;
 
 	if (node == -1)
+	{
 		return cpu_all_mask;
+	}
 
 	cpumask_clear(&node_to_cpumask_map[node]);
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cpu_to_node(cpu) == node)
+		{
 			cpumask_set_cpu(cpu, node_to_cpumask_map[node]);
+		}
 	}
 
 	return &node_to_cpumask_map[node];

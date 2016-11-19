@@ -64,17 +64,17 @@ void __show_regs(struct pt_regs *regs, int all)
 	printk(KERN_DEFAULT "RIP: %04lx:[<%016lx>] ", regs->cs & 0xffff, regs->ip);
 	printk_address(regs->ip);
 	printk(KERN_DEFAULT "RSP: %04lx:%016lx  EFLAGS: %08lx\n", regs->ss,
-			regs->sp, regs->flags);
+		   regs->sp, regs->flags);
 	printk(KERN_DEFAULT "RAX: %016lx RBX: %016lx RCX: %016lx\n",
-	       regs->ax, regs->bx, regs->cx);
+		   regs->ax, regs->bx, regs->cx);
 	printk(KERN_DEFAULT "RDX: %016lx RSI: %016lx RDI: %016lx\n",
-	       regs->dx, regs->si, regs->di);
+		   regs->dx, regs->si, regs->di);
 	printk(KERN_DEFAULT "RBP: %016lx R08: %016lx R09: %016lx\n",
-	       regs->bp, regs->r8, regs->r9);
+		   regs->bp, regs->r8, regs->r9);
 	printk(KERN_DEFAULT "R10: %016lx R11: %016lx R12: %016lx\n",
-	       regs->r10, regs->r11, regs->r12);
+		   regs->r10, regs->r11, regs->r12);
 	printk(KERN_DEFAULT "R13: %016lx R14: %016lx R15: %016lx\n",
-	       regs->r13, regs->r14, regs->r15);
+		   regs->r13, regs->r14, regs->r15);
 
 	asm("movl %%ds,%0" : "=r" (ds));
 	asm("movl %%cs,%0" : "=r" (cs));
@@ -87,7 +87,9 @@ void __show_regs(struct pt_regs *regs, int all)
 	rdmsrl(MSR_KERNEL_GS_BASE, shadowgs);
 
 	if (!all)
+	{
 		return;
+	}
 
 	cr0 = read_cr0();
 	cr2 = read_cr2();
@@ -95,11 +97,11 @@ void __show_regs(struct pt_regs *regs, int all)
 	cr4 = __read_cr4();
 
 	printk(KERN_DEFAULT "FS:  %016lx(%04x) GS:%016lx(%04x) knlGS:%016lx\n",
-	       fs, fsindex, gs, gsindex, shadowgs);
+		   fs, fsindex, gs, gsindex, shadowgs);
 	printk(KERN_DEFAULT "CS:  %04x DS: %04x ES: %04x CR0: %016lx\n", cs, ds,
-			es, cr0);
+		   es, cr0);
 	printk(KERN_DEFAULT "CR2: %016lx CR3: %016lx CR4: %016lx\n", cr2, cr3,
-			cr4);
+		   cr4);
 
 	get_debugreg(d0, 0);
 	get_debugreg(d1, 1);
@@ -110,34 +112,41 @@ void __show_regs(struct pt_regs *regs, int all)
 
 	/* Only print out debug registers if they are in their non-default state. */
 	if (!((d0 == 0) && (d1 == 0) && (d2 == 0) && (d3 == 0) &&
-	    (d6 == DR6_RESERVED) && (d7 == 0x400))) {
+		  (d6 == DR6_RESERVED) && (d7 == 0x400)))
+	{
 		printk(KERN_DEFAULT "DR0: %016lx DR1: %016lx DR2: %016lx\n",
-		       d0, d1, d2);
+			   d0, d1, d2);
 		printk(KERN_DEFAULT "DR3: %016lx DR6: %016lx DR7: %016lx\n",
-		       d3, d6, d7);
+			   d3, d6, d7);
 	}
 
 	if (boot_cpu_has(X86_FEATURE_OSPKE))
+	{
 		printk(KERN_DEFAULT "PKRU: %08x\n", read_pkru());
+	}
 }
 
 void release_thread(struct task_struct *dead_task)
 {
-	if (dead_task->mm) {
+	if (dead_task->mm)
+	{
 #ifdef CONFIG_MODIFY_LDT_SYSCALL
-		if (dead_task->mm->context.ldt) {
+
+		if (dead_task->mm->context.ldt)
+		{
 			pr_warn("WARNING: dead process %s still has LDT? <%p/%d>\n",
-				dead_task->comm,
-				dead_task->mm->context.ldt->entries,
-				dead_task->mm->context.ldt->size);
+					dead_task->comm,
+					dead_task->mm->context.ldt->entries,
+					dead_task->mm->context.ldt->size);
 			BUG();
 		}
+
 #endif
 	}
 }
 
 int copy_thread_tls(unsigned long clone_flags, unsigned long sp,
-		unsigned long arg, struct task_struct *p, unsigned long tls)
+					unsigned long arg, struct task_struct *p, unsigned long tls)
 {
 	int err;
 	struct pt_regs *childregs;
@@ -162,48 +171,66 @@ int copy_thread_tls(unsigned long clone_flags, unsigned long sp,
 	savesegment(ds, p->thread.ds);
 	memset(p->thread.ptrace_bps, 0, sizeof(p->thread.ptrace_bps));
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		/* kernel thread */
 		memset(childregs, 0, sizeof(struct pt_regs));
 		frame->bx = sp;		/* function */
 		frame->r12 = arg;
 		return 0;
 	}
+
 	frame->bx = 0;
 	*childregs = *current_pt_regs();
 
 	childregs->ax = 0;
+
 	if (sp)
+	{
 		childregs->sp = sp;
+	}
 
 	err = -ENOMEM;
-	if (unlikely(test_tsk_thread_flag(me, TIF_IO_BITMAP))) {
+
+	if (unlikely(test_tsk_thread_flag(me, TIF_IO_BITMAP)))
+	{
 		p->thread.io_bitmap_ptr = kmemdup(me->thread.io_bitmap_ptr,
-						  IO_BITMAP_BYTES, GFP_KERNEL);
-		if (!p->thread.io_bitmap_ptr) {
+										  IO_BITMAP_BYTES, GFP_KERNEL);
+
+		if (!p->thread.io_bitmap_ptr)
+		{
 			p->thread.io_bitmap_max = 0;
 			return -ENOMEM;
 		}
+
 		set_tsk_thread_flag(p, TIF_IO_BITMAP);
 	}
 
 	/*
 	 * Set a new TLS for the child thread?
 	 */
-	if (clone_flags & CLONE_SETTLS) {
+	if (clone_flags & CLONE_SETTLS)
+	{
 #ifdef CONFIG_IA32_EMULATION
+
 		if (in_ia32_syscall())
 			err = do_set_thread_area(p, -1,
-				(struct user_desc __user *)tls, 0);
+									 (struct user_desc __user *)tls, 0);
 		else
 #endif
 			err = do_arch_prctl(p, ARCH_SET_FS, tls);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
+
 	err = 0;
 out:
-	if (err && p->thread.io_bitmap_ptr) {
+
+	if (err && p->thread.io_bitmap_ptr)
+	{
 		kfree(p->thread.io_bitmap_ptr);
 		p->thread.io_bitmap_max = 0;
 	}
@@ -213,8 +240,8 @@ out:
 
 static void
 start_thread_common(struct pt_regs *regs, unsigned long new_ip,
-		    unsigned long new_sp,
-		    unsigned int _cs, unsigned int _ss, unsigned int _ds)
+					unsigned long new_sp,
+					unsigned int _cs, unsigned int _ss, unsigned int _ds)
 {
 	loadsegment(fs, 0);
 	loadsegment(es, _ds);
@@ -232,16 +259,16 @@ void
 start_thread(struct pt_regs *regs, unsigned long new_ip, unsigned long new_sp)
 {
 	start_thread_common(regs, new_ip, new_sp,
-			    __USER_CS, __USER_DS, 0);
+						__USER_CS, __USER_DS, 0);
 }
 
 #ifdef CONFIG_COMPAT
 void compat_start_thread(struct pt_regs *regs, u32 new_ip, u32 new_sp)
 {
 	start_thread_common(regs, new_ip, new_sp,
-			    test_thread_flag(TIF_X32)
-			    ? __USER_CS : __USER32_CS,
-			    __USER_DS, __USER_DS);
+						test_thread_flag(TIF_X32)
+						? __USER_CS : __USER32_CS,
+						__USER_DS, __USER_DS);
 }
 #endif
 
@@ -307,12 +334,18 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 	 * those are saved and restored as part of pt_regs.
 	 */
 	savesegment(es, prev->es);
+
 	if (unlikely(next->es | prev->es))
+	{
 		loadsegment(es, next->es);
+	}
 
 	savesegment(ds, prev->ds);
+
 	if (unlikely(next->ds | prev->ds))
+	{
 		loadsegment(ds, next->ds);
+	}
 
 	/*
 	 * Switch FS and GS.
@@ -333,35 +366,50 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 	 * (fsbase != 0 && fsindex != 0) || (gsbase != 0 && gsindex != 0) is
 	 * impossible.
 	 */
-	if (next->fsindex) {
+	if (next->fsindex)
+	{
 		/* Loading a nonzero value into FS sets the index and base. */
 		loadsegment(fs, next->fsindex);
-	} else {
-		if (next->fsbase) {
+	}
+	else
+	{
+		if (next->fsbase)
+		{
 			/* Next index is zero but next base is nonzero. */
 			if (prev_fsindex)
+			{
 				loadsegment(fs, 0);
+			}
+
 			wrmsrl(MSR_FS_BASE, next->fsbase);
-		} else {
+		}
+		else
+		{
 			/* Next base and index are both zero. */
-			if (static_cpu_has_bug(X86_BUG_NULL_SEG)) {
+			if (static_cpu_has_bug(X86_BUG_NULL_SEG))
+			{
 				/*
 				 * We don't know the previous base and can't
 				 * find out without RDMSR.  Forcibly clear it.
 				 */
 				loadsegment(fs, __USER_DS);
 				loadsegment(fs, 0);
-			} else {
+			}
+			else
+			{
 				/*
 				 * If the previous index is zero and ARCH_SET_FS
 				 * didn't change the base, then the base is
 				 * also zero and we don't need to do anything.
 				 */
 				if (prev->fsbase || prev_fsindex)
+				{
 					loadsegment(fs, 0);
+				}
 			}
 		}
 	}
+
 	/*
 	 * Save the old state and preserve the invariant.
 	 * NB: if prev_fsindex == 0, then we can't reliably learn the base
@@ -370,21 +418,34 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 	 * us.
 	 */
 	if (prev_fsindex)
+	{
 		prev->fsbase = 0;
+	}
+
 	prev->fsindex = prev_fsindex;
 
-	if (next->gsindex) {
+	if (next->gsindex)
+	{
 		/* Loading a nonzero value into GS sets the index and base. */
 		load_gs_index(next->gsindex);
-	} else {
-		if (next->gsbase) {
+	}
+	else
+	{
+		if (next->gsbase)
+		{
 			/* Next index is zero but next base is nonzero. */
 			if (prev_gsindex)
+			{
 				load_gs_index(0);
+			}
+
 			wrmsrl(MSR_KERNEL_GS_BASE, next->gsbase);
-		} else {
+		}
+		else
+		{
 			/* Next base and index are both zero. */
-			if (static_cpu_has_bug(X86_BUG_NULL_SEG)) {
+			if (static_cpu_has_bug(X86_BUG_NULL_SEG))
+			{
 				/*
 				 * We don't know the previous base and can't
 				 * find out without RDMSR.  Forcibly clear it.
@@ -395,17 +456,22 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 				 */
 				load_gs_index(__USER_DS);
 				load_gs_index(0);
-			} else {
+			}
+			else
+			{
 				/*
 				 * If the previous index is zero and ARCH_SET_GS
 				 * didn't change the base, then the base is
 				 * also zero and we don't need to do anything.
 				 */
 				if (prev->gsbase || prev_gsindex)
+				{
 					load_gs_index(0);
+				}
 			}
 		}
 	}
+
 	/*
 	 * Save the old state and preserve the invariant.
 	 * NB: if prev_gsindex == 0, then we can't reliably learn the base
@@ -414,7 +480,10 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 	 * us.
 	 */
 	if (prev_gsindex)
+	{
 		prev->gsbase = 0;
+	}
+
 	prev->gsindex = prev_gsindex;
 
 	switch_fpu_finish(next_fpu, fpu_switch);
@@ -431,21 +500,28 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 	 * Now maybe reload the debug registers and handle I/O bitmaps
 	 */
 	if (unlikely(task_thread_info(next_p)->flags & _TIF_WORK_CTXSW_NEXT ||
-		     task_thread_info(prev_p)->flags & _TIF_WORK_CTXSW_PREV))
+				 task_thread_info(prev_p)->flags & _TIF_WORK_CTXSW_PREV))
+	{
 		__switch_to_xtra(prev_p, next_p, tss);
+	}
 
 #ifdef CONFIG_XEN
+
 	/*
 	 * On Xen PV, IOPL bits in pt_regs->flags have no effect, and
 	 * current_pt_regs()->flags may not match the current task's
 	 * intended IOPL.  We need to switch it manually.
 	 */
 	if (unlikely(static_cpu_has(X86_FEATURE_XENPV) &&
-		     prev->iopl != next->iopl))
+				 prev->iopl != next->iopl))
+	{
 		xen_set_iopl_mask(next->iopl);
+	}
+
 #endif
 
-	if (static_cpu_has_bug(X86_BUG_SYSRET_SS_ATTRS)) {
+	if (static_cpu_has_bug(X86_BUG_SYSRET_SS_ATTRS))
+	{
 		/*
 		 * AMD CPUs have a misfeature: SYSRET sets the SS selector but
 		 * does not update the cached descriptor.  As a result, if we
@@ -469,8 +545,11 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 		 */
 		unsigned short ss_sel;
 		savesegment(ss, ss_sel);
+
 		if (ss_sel != __KERNEL_DS)
+		{
 			loadsegment(ss, __KERNEL_DS);
+		}
 	}
 
 	return prev_p;
@@ -487,7 +566,9 @@ void set_personality_64bit(void)
 
 	/* Ensure the corresponding mm is not marked. */
 	if (current->mm)
+	{
 		current->mm->context.ia32_compat = 0;
+	}
 
 	/* TBD: overwrites user setup. Should have two bits.
 	   But 64bit processes have always behaved this way,
@@ -504,20 +585,31 @@ void set_personality_ia32(bool x32)
 	set_thread_flag(TIF_ADDR32);
 
 	/* Mark the associated mm as containing 32-bit tasks. */
-	if (x32) {
+	if (x32)
+	{
 		clear_thread_flag(TIF_IA32);
 		set_thread_flag(TIF_X32);
+
 		if (current->mm)
+		{
 			current->mm->context.ia32_compat = TIF_X32;
+		}
+
 		current->personality &= ~READ_IMPLIES_EXEC;
 		/* in_compat_syscall() uses the presence of the x32
 		   syscall bit flag to determine compat status */
 		current->thread.status &= ~TS_COMPAT;
-	} else {
+	}
+	else
+	{
 		set_thread_flag(TIF_IA32);
 		clear_thread_flag(TIF_X32);
+
 		if (current->mm)
+		{
 			current->mm->context.ia32_compat = TIF_IA32;
+		}
+
 		current->personality |= force_personality32;
 		/* Prepare the first "return" to user space */
 		current->thread.status |= TS_COMPAT;
@@ -531,8 +623,11 @@ static long prctl_map_vdso(const struct vdso_image *image, unsigned long addr)
 	int ret;
 
 	ret = map_vdso_once(image, addr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return (long)image->size;
 }
@@ -544,69 +639,103 @@ long do_arch_prctl(struct task_struct *task, int code, unsigned long addr)
 	int doit = task == current;
 	int cpu;
 
-	switch (code) {
-	case ARCH_SET_GS:
-		if (addr >= TASK_SIZE_MAX)
-			return -EPERM;
-		cpu = get_cpu();
-		task->thread.gsindex = 0;
-		task->thread.gsbase = addr;
-		if (doit) {
-			load_gs_index(0);
-			ret = wrmsrl_safe(MSR_KERNEL_GS_BASE, addr);
-		}
-		put_cpu();
-		break;
-	case ARCH_SET_FS:
-		/* Not strictly needed for fs, but do it for symmetry
-		   with gs */
-		if (addr >= TASK_SIZE_MAX)
-			return -EPERM;
-		cpu = get_cpu();
-		task->thread.fsindex = 0;
-		task->thread.fsbase = addr;
-		if (doit) {
-			/* set the selector to 0 to not confuse __switch_to */
-			loadsegment(fs, 0);
-			ret = wrmsrl_safe(MSR_FS_BASE, addr);
-		}
-		put_cpu();
-		break;
-	case ARCH_GET_FS: {
-		unsigned long base;
-		if (doit)
-			rdmsrl(MSR_FS_BASE, base);
-		else
-			base = task->thread.fsbase;
-		ret = put_user(base, (unsigned long __user *)addr);
-		break;
-	}
-	case ARCH_GET_GS: {
-		unsigned long base;
-		if (doit)
-			rdmsrl(MSR_KERNEL_GS_BASE, base);
-		else
-			base = task->thread.gsbase;
-		ret = put_user(base, (unsigned long __user *)addr);
-		break;
-	}
+	switch (code)
+	{
+		case ARCH_SET_GS:
+			if (addr >= TASK_SIZE_MAX)
+			{
+				return -EPERM;
+			}
+
+			cpu = get_cpu();
+			task->thread.gsindex = 0;
+			task->thread.gsbase = addr;
+
+			if (doit)
+			{
+				load_gs_index(0);
+				ret = wrmsrl_safe(MSR_KERNEL_GS_BASE, addr);
+			}
+
+			put_cpu();
+			break;
+
+		case ARCH_SET_FS:
+
+			/* Not strictly needed for fs, but do it for symmetry
+			   with gs */
+			if (addr >= TASK_SIZE_MAX)
+			{
+				return -EPERM;
+			}
+
+			cpu = get_cpu();
+			task->thread.fsindex = 0;
+			task->thread.fsbase = addr;
+
+			if (doit)
+			{
+				/* set the selector to 0 to not confuse __switch_to */
+				loadsegment(fs, 0);
+				ret = wrmsrl_safe(MSR_FS_BASE, addr);
+			}
+
+			put_cpu();
+			break;
+
+		case ARCH_GET_FS:
+			{
+				unsigned long base;
+
+				if (doit)
+				{
+					rdmsrl(MSR_FS_BASE, base);
+				}
+				else
+				{
+					base = task->thread.fsbase;
+				}
+
+				ret = put_user(base, (unsigned long __user *)addr);
+				break;
+			}
+
+		case ARCH_GET_GS:
+			{
+				unsigned long base;
+
+				if (doit)
+				{
+					rdmsrl(MSR_KERNEL_GS_BASE, base);
+				}
+				else
+				{
+					base = task->thread.gsbase;
+				}
+
+				ret = put_user(base, (unsigned long __user *)addr);
+				break;
+			}
 
 #ifdef CONFIG_CHECKPOINT_RESTORE
 # ifdef CONFIG_X86_X32_ABI
-	case ARCH_MAP_VDSO_X32:
-		return prctl_map_vdso(&vdso_image_x32, addr);
+
+		case ARCH_MAP_VDSO_X32:
+			return prctl_map_vdso(&vdso_image_x32, addr);
 # endif
 # if defined CONFIG_X86_32 || defined CONFIG_IA32_EMULATION
-	case ARCH_MAP_VDSO_32:
-		return prctl_map_vdso(&vdso_image_32, addr);
+
+		case ARCH_MAP_VDSO_32:
+			return prctl_map_vdso(&vdso_image_32, addr);
 # endif
-	case ARCH_MAP_VDSO_64:
-		return prctl_map_vdso(&vdso_image_64, addr);
+
+		case ARCH_MAP_VDSO_64:
+			return prctl_map_vdso(&vdso_image_64, addr);
 #endif
 
-	default:
-		ret = -EINVAL;
-		break;
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;

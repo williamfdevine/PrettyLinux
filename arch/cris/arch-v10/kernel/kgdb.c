@@ -28,7 +28,7 @@
  *  kgdb usage notes:
  *  -----------------
  *
- * If you select CONFIG_ETRAX_KGDB in the configuration, the kernel will be 
+ * If you select CONFIG_ETRAX_KGDB in the configuration, the kernel will be
  * built with different gcc flags: "-g" is added to get debug infos, and
  * "-fomit-frame-pointer" is omitted to make debugging easier. Since the
  * resulting kernel will be quite big (approx. > 7 MB), it will be stripped
@@ -121,7 +121,7 @@
  *  call to kgdb_init() is necessary in order to allow any breakpoints
  *  or error conditions to be properly intercepted and reported to gdb.
  *  Two, a breakpoint needs to be generated to begin communication.  This
- *  is most easily accomplished by a call to breakpoint(). 
+ *  is most easily accomplished by a call to breakpoint().
  *
  *    The following gdb commands are supported:
  *
@@ -212,15 +212,15 @@ struct register_image
 	unsigned int     sp;   /* 0x38 Stack pointer */
 	unsigned int     pc;   /* 0x3C Program counter */
 
-        unsigned char    p0;   /* 0x40 8-bit zero-register */
+	unsigned char    p0;   /* 0x40 8-bit zero-register */
 	unsigned char    vr;   /* 0x41 Version register */
 
-        unsigned short   p4;   /* 0x42 16-bit zero-register */
+	unsigned short   p4;   /* 0x42 16-bit zero-register */
 	unsigned short  ccr;   /* 0x44 Condition code register */
-	
+
 	unsigned int    mof;   /* 0x46 Multiply overflow register */
-	
-        unsigned int     p8;   /* 0x4A 32-bit zero-register */
+
+	unsigned int     p8;   /* 0x4A 32-bit zero-register */
 	unsigned int    ibr;   /* 0x4E Interrupt base register */
 	unsigned int    irp;   /* 0x52 Interrupt return pointer */
 	unsigned int    srp;   /* 0x56 Subroutine return pointer */
@@ -358,13 +358,14 @@ static unsigned char __used is_dyn_brkp;
 /* Single-step over library functions creates trap loops. */
 
 /* Copy char s2[] to s1[]. */
-static char*
+static char *
 gdb_cris_strcpy (char *s1, const char *s2)
 {
 	char *s = s1;
-	
+
 	for (s = s1; (*s++ = *s2++) != '\0'; )
 		;
+
 	return (s1);
 }
 
@@ -373,22 +374,26 @@ static int
 gdb_cris_strlen (const char *s)
 {
 	const char *sc;
-	
+
 	for (sc = s; *sc != '\0'; sc++)
 		;
+
 	return (sc - s);
 }
 
 /* Find first occurrence of c in s[n]. */
-static void*
+static void *
 gdb_cris_memchr (const void *s, int c, int n)
 {
 	const unsigned char uc = c;
 	const unsigned char *su;
-	
+
 	for (su = s; 0 < n; ++su, --n)
 		if (*su == uc)
+		{
 			return ((void *)su);
+		}
+
 	return (NULL);
 }
 /******************************* Standard library ****************************/
@@ -400,16 +405,18 @@ gdb_cris_strtol (const char *s, char **endptr, int base)
 	char *s1;
 	char *sd;
 	int x = 0;
-	
-	for (s1 = (char*)s; (sd = gdb_cris_memchr(hex_asc, *s1, base)) != NULL; ++s1)
+
+	for (s1 = (char *)s; (sd = gdb_cris_memchr(hex_asc, *s1, base)) != NULL; ++s1)
+	{
 		x = x * base + (sd - hex_asc);
-        
-        if (endptr)
-        {
-                /* Unconverted suffix is stored in endptr unless endptr is NULL. */
-                *endptr = s1;
-        }
-        
+	}
+
+	if (endptr)
+	{
+		/* Unconverted suffix is stored in endptr unless endptr is NULL. */
+		*endptr = s1;
+	}
+
 	return x;
 }
 
@@ -424,22 +431,27 @@ mem2hex(char *buf, unsigned char *mem, int count)
 {
 	int i;
 	int ch;
-        
-        if (mem == NULL) {
-                /* Bogus read from m0. FIXME: What constitutes a valid address? */
-                for (i = 0; i < count; i++) {
-                        *buf++ = '0';
-                        *buf++ = '0';
-                }
-        } else {
-                /* Valid mem address. */
-                for (i = 0; i < count; i++) {
-                        ch = *mem++;
+
+	if (mem == NULL)
+	{
+		/* Bogus read from m0. FIXME: What constitutes a valid address? */
+		for (i = 0; i < count; i++)
+		{
+			*buf++ = '0';
+			*buf++ = '0';
+		}
+	}
+	else
+	{
+		/* Valid mem address. */
+		for (i = 0; i < count; i++)
+		{
+			ch = *mem++;
 			buf = hex_byte_pack(buf, ch);
-                }
-        }
-        
-        /* Terminate properly. */
+		}
+	}
+
+	/* Terminate properly. */
 	*buf = '\0';
 	return (buf);
 }
@@ -448,24 +460,30 @@ mem2hex(char *buf, unsigned char *mem, int count)
    into memory pointed to by mem, and return a pointer to the character after
    the last byte written.
    Gdb will escape $, #, and the escape char (0x7d). */
-static unsigned char*
+static unsigned char *
 bin2mem (unsigned char *mem, unsigned char *buf, int count)
 {
 	int i;
 	unsigned char *next;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		/* Check for any escaped characters. Be paranoid and
 		   only unescape chars that should be escaped. */
-		if (*buf == 0x7d) {
+		if (*buf == 0x7d)
+		{
 			next = buf + 1;
+
 			if (*next == 0x3 || *next == 0x4 || *next == 0x5D) /* #, $, ESC */
-				{
-					buf++;
-					*buf += 0x20;
-				}
+			{
+				buf++;
+				*buf += 0x20;
+			}
 		}
+
 		*mem++ = *buf++;
 	}
+
 	return (mem);
 }
 
@@ -479,45 +497,65 @@ getpacket (char *buffer)
 	int i;
 	int count;
 	char ch;
-	do {
+
+	do
+	{
 		while ((ch = getDebugChar ()) != '$')
 			/* Wait for the start character $ and ignore all other characters */;
+
 		checksum = 0;
 		xmitcsum = -1;
 		count = 0;
+
 		/* Read until a # or the end of the buffer is reached */
-		while (count < BUFMAX - 1) {
+		while (count < BUFMAX - 1)
+		{
 			ch = getDebugChar ();
+
 			if (ch == '#')
+			{
 				break;
+			}
+
 			checksum = checksum + ch;
 			buffer[count] = ch;
 			count = count + 1;
 		}
+
 		buffer[count] = '\0';
-		
-		if (ch == '#') {
+
+		if (ch == '#')
+		{
 			xmitcsum = hex_to_bin(getDebugChar()) << 4;
 			xmitcsum += hex_to_bin(getDebugChar());
-			if (checksum != xmitcsum) {
+
+			if (checksum != xmitcsum)
+			{
 				/* Wrong checksum */
 				putDebugChar ('-');
 			}
-			else {
+			else
+			{
 				/* Correct checksum */
 				putDebugChar ('+');
+
 				/* If sequence characters are received, reply with them */
-				if (buffer[2] == ':') {
+				if (buffer[2] == ':')
+				{
 					putDebugChar (buffer[0]);
 					putDebugChar (buffer[1]);
 					/* Remove the sequence characters from the buffer */
 					count = gdb_cris_strlen (buffer);
+
 					for (i = 3; i <= count; i++)
+					{
 						buffer[i - 3] = buffer[i];
+					}
 				}
 			}
 		}
-	} while (checksum != xmitcsum);
+	}
+	while (checksum != xmitcsum);
 }
 
 /* Send $<data>#<checksum> from the <data> in the array buffer. */
@@ -528,20 +566,27 @@ putpacket(char *buffer)
 	int checksum;
 	int runlen;
 	int encode;
-	
-	do {
+
+	do
+	{
 		char *src = buffer;
 		putDebugChar ('$');
 		checksum = 0;
-		while (*src) {
+
+		while (*src)
+		{
 			/* Do run length encoding */
 			putDebugChar (*src);
 			checksum += *src;
 			runlen = 0;
-			while (runlen < RUNLENMAX && *src == src[runlen]) {
+
+			while (runlen < RUNLENMAX && *src == src[runlen])
+			{
 				runlen++;
 			}
-			if (runlen > 3) {
+
+			if (runlen > 3)
+			{
 				/* Got a useful amount */
 				putDebugChar ('*');
 				checksum += '*';
@@ -550,14 +595,17 @@ putpacket(char *buffer)
 				checksum += encode;
 				src += runlen;
 			}
-			else {
+			else
+			{
 				src++;
 			}
 		}
+
 		putDebugChar('#');
 		putDebugChar(hex_asc_hi(checksum));
 		putDebugChar(hex_asc_lo(checksum));
-	} while(kgdb_started && (getDebugChar() != '+'));
+	}
+	while (kgdb_started && (getDebugChar() != '+'));
 }
 
 /* The string str is prepended with the GDB printout token and sent. Required
@@ -565,9 +613,9 @@ putpacket(char *buffer)
 void
 putDebugString (const unsigned char *str, int length)
 {
-        remcomOutBuffer[0] = 'O';
-        mem2hex(&remcomOutBuffer[1], (unsigned char *)str, length);
-        putpacket(remcomOutBuffer);
+	remcomOutBuffer[0] = 'O';
+	mem2hex(&remcomOutBuffer[1], (unsigned char *)str, length);
+	putpacket(remcomOutBuffer);
 }
 
 /********************************* Register image ****************************/
@@ -579,33 +627,45 @@ write_register (int regno, char *val)
 	int status = SUCCESS;
 	registers *current_reg = &cris_reg;
 
-        if (regno >= R0 && regno <= PC) {
+	if (regno >= R0 && regno <= PC)
+	{
 		/* 32-bit register with simple offset. */
 		if (hex2bin((unsigned char *)current_reg + regno * sizeof(unsigned int),
-			    val, sizeof(unsigned int)))
+					val, sizeof(unsigned int)))
+		{
 			status = E08;
+		}
 	}
-        else if (regno == P0 || regno == VR || regno == P4 || regno == P8) {
+	else if (regno == P0 || regno == VR || regno == P4 || regno == P8)
+	{
 		/* Do not support read-only registers. */
 		status = E02;
 	}
-        else if (regno == CCR) {
-		/* 16 bit register with complex offset. (P4 is read-only, P6 is not implemented, 
-                   and P7 (MOF) is 32 bits in ETRAX 100LX. */
-		if (hex2bin((unsigned char *)&(current_reg->ccr) + (regno-CCR) * sizeof(unsigned short),
-			    val, sizeof(unsigned short)))
+	else if (regno == CCR)
+	{
+		/* 16 bit register with complex offset. (P4 is read-only, P6 is not implemented,
+		           and P7 (MOF) is 32 bits in ETRAX 100LX. */
+		if (hex2bin((unsigned char *) & (current_reg->ccr) + (regno - CCR) * sizeof(unsigned short),
+					val, sizeof(unsigned short)))
+		{
 			status = E08;
+		}
 	}
-	else if (regno >= MOF && regno <= USP) {
+	else if (regno >= MOF && regno <= USP)
+	{
 		/* 32 bit register with complex offset.  (P8 has been taken care of.) */
-		if (hex2bin((unsigned char *)&(current_reg->ibr) + (regno-IBR) * sizeof(unsigned int),
-			    val, sizeof(unsigned int)))
+		if (hex2bin((unsigned char *) & (current_reg->ibr) + (regno - IBR) * sizeof(unsigned int),
+					val, sizeof(unsigned int)))
+		{
 			status = E08;
-	} 
-        else {
+		}
+	}
+	else
+	{
 		/* Do not support nonexisting or unimplemented registers (P2, P3, and P6). */
 		status = E05;
 	}
+
 	return status;
 }
 
@@ -618,30 +678,35 @@ read_register (char regno, unsigned int *valptr)
 {
 	registers *current_reg = &cris_reg;
 
-	if (regno >= R0 && regno <= PC) {
+	if (regno >= R0 && regno <= PC)
+	{
 		/* 32-bit register with simple offset. */
 		*valptr = *(unsigned int *)((char *)current_reg + regno * sizeof(unsigned int));
-                return SUCCESS;
+		return SUCCESS;
 	}
-	else if (regno == P0 || regno == VR) {
+	else if (regno == P0 || regno == VR)
+	{
 		/* 8 bit register with complex offset. */
 		*valptr = (unsigned int)(*(unsigned char *)
-                                         ((char *)&(current_reg->p0) + (regno-P0) * sizeof(char)));
-                return SUCCESS;
+								 ((char *) & (current_reg->p0) + (regno - P0) * sizeof(char)));
+		return SUCCESS;
 	}
-	else if (regno == P4 || regno == CCR) {
+	else if (regno == P4 || regno == CCR)
+	{
 		/* 16 bit register with complex offset. */
 		*valptr = (unsigned int)(*(unsigned short *)
-                                         ((char *)&(current_reg->p4) + (regno-P4) * sizeof(unsigned short)));
-                return SUCCESS;
+								 ((char *) & (current_reg->p4) + (regno - P4) * sizeof(unsigned short)));
+		return SUCCESS;
 	}
-	else if (regno >= MOF && regno <= USP) {
+	else if (regno >= MOF && regno <= USP)
+	{
 		/* 32 bit register with complex offset. */
-		*valptr = *(unsigned int *)((char *)&(current_reg->p8)
-                                            + (regno-P8) * sizeof(unsigned int));
-                return SUCCESS;
+		*valptr = *(unsigned int *)((char *) & (current_reg->p8)
+									+ (regno - P8) * sizeof(unsigned int));
+		return SUCCESS;
 	}
-	else {
+	else
+	{
 		/* Do not support nonexisting or unimplemented registers (P2, P3, and P6). */
 		consistency_status = E05;
 		return E05;
@@ -667,7 +732,7 @@ stub_is_stopped(int sigval)
 
 	unsigned int reg_cont;
 	int status;
-        
+
 	/* Send trap type (converted to signal) */
 
 	*ptr++ = 'T';
@@ -677,21 +742,23 @@ stub_is_stopped(int sigval)
 	 * PC, frame pointer and stack pointer here. Other registers will be
 	 * explicitly asked for. But for now, send all.
 	 */
-	
-	for (regno = R0; regno <= USP; regno++) {
+
+	for (regno = R0; regno <= USP; regno++)
+	{
 		/* Store n...:r...; for the registers in the buffer. */
 
-                status = read_register (regno, &reg_cont);
-                
-		if (status == SUCCESS) {
-			ptr = hex_byte_pack(ptr, regno);
-                        *ptr++ = ':';
+		status = read_register (regno, &reg_cont);
 
-                        ptr = mem2hex(ptr, (unsigned char *)&reg_cont,
-                                      register_size[regno]);
-                        *ptr++ = ';';
-                }
-                
+		if (status == SUCCESS)
+		{
+			ptr = hex_byte_pack(ptr, regno);
+			*ptr++ = ':';
+
+			ptr = mem2hex(ptr, (unsigned char *)&reg_cont,
+						  register_size[regno]);
+			*ptr++ = ';';
+		}
+
 	}
 
 	/* null-terminate and send it off */
@@ -717,31 +784,40 @@ handle_exception (int sigval)
 
 	stub_is_stopped (sigval);
 
-	for (;;) {
+	for (;;)
+	{
 		remcomOutBuffer[0] = '\0';
 		getpacket (remcomInBuffer);
-		switch (remcomInBuffer[0]) {
+
+		switch (remcomInBuffer[0])
+		{
 			case 'g':
 				/* Read registers: g
 				   Success: Each byte of register data is described by two hex digits.
 				   Registers are in the internal order for GDB, and the bytes
 				   in a register  are in the same order the machine uses.
 				   Failure: void. */
-				
+
 				mem2hex(remcomOutBuffer, (char *)&cris_reg, sizeof(registers));
 				break;
-				
+
 			case 'G':
+
 				/* Write registers. GXX..XX
 				   Each byte of register data  is described by two hex digits.
 				   Success: OK
 				   Failure: E08. */
 				if (hex2bin((char *)&cris_reg, &remcomInBuffer[1], sizeof(registers)))
+				{
 					gdb_cris_strcpy (remcomOutBuffer, error_message[E08]);
+				}
 				else
+				{
 					gdb_cris_strcpy (remcomOutBuffer, "OK");
+				}
+
 				break;
-				
+
 			case 'P':
 				/* Write register. Pn...=r...
 				   Write register n..., hex value without 0x, with value r...,
@@ -754,25 +830,30 @@ handle_exception (int sigval)
 					char *suffix;
 					int regno = gdb_cris_strtol (&remcomInBuffer[1], &suffix, 16);
 					int status;
-					status = write_register (regno, suffix+1);
+					status = write_register (regno, suffix + 1);
 
-					switch (status) {
+					switch (status)
+					{
 						case E02:
 							/* Do not support read-only registers. */
 							gdb_cris_strcpy (remcomOutBuffer, error_message[E02]);
 							break;
+
 						case E05:
 							/* Do not support non-existing registers. */
 							gdb_cris_strcpy (remcomOutBuffer, error_message[E05]);
 							break;
+
 						case E07:
 							/* Do not support non-existing registers on the stack. */
 							gdb_cris_strcpy (remcomOutBuffer, error_message[E07]);
 							break;
+
 						case E08:
 							/* Invalid parameter. */
 							gdb_cris_strcpy (remcomOutBuffer, error_message[E08]);
 							break;
+
 						default:
 							/* Valid register number. */
 							gdb_cris_strcpy (remcomOutBuffer, "OK");
@@ -780,7 +861,7 @@ handle_exception (int sigval)
 					}
 				}
 				break;
-				
+
 			case 'm':
 				/* Read from memory. mAA..AA,LLLL
 				   AA..AA is the address and LLLL is the length.
@@ -789,20 +870,21 @@ handle_exception (int sigval)
 				   retrieve 108 byte from base address 6000120a.
 				   Failure: void. */
 				{
-                                        char *suffix;
+					char *suffix;
 					unsigned char *addr = (unsigned char *)gdb_cris_strtol(&remcomInBuffer[1],
-                                                                                               &suffix, 16);                                        int length = gdb_cris_strtol(suffix+1, 0, 16);
-                                        
-                                        mem2hex(remcomOutBuffer, addr, length);
-                                }
+										  &suffix, 16);                                        int length = gdb_cris_strtol(suffix + 1, 0, 16);
+
+					mem2hex(remcomOutBuffer, addr, length);
+				}
 				break;
-				
+
 			case 'X':
-				/* Write to memory. XAA..AA,LLLL:XX..XX
-				   AA..AA is the start address,  LLLL is the number of bytes, and
-				   XX..XX is the binary data.
-				   Success: OK
-				   Failure: void. */
+
+			/* Write to memory. XAA..AA,LLLL:XX..XX
+			   AA..AA is the start address,  LLLL is the number of bytes, and
+			   XX..XX is the binary data.
+			   Success: OK
+			   Failure: void. */
 			case 'M':
 				/* Write to memory. MAA..AA,LLLL:XX..XX
 				   AA..AA is the start address,  LLLL is the number of bytes, and
@@ -813,48 +895,62 @@ handle_exception (int sigval)
 					char *lenptr;
 					char *dataptr;
 					unsigned char *addr = (unsigned char *)gdb_cris_strtol(&remcomInBuffer[1],
-										      &lenptr, 16);
-					int length = gdb_cris_strtol(lenptr+1, &dataptr, 16);
-					if (*lenptr == ',' && *dataptr == ':') {
-						if (remcomInBuffer[0] == 'M') {
+										  &lenptr, 16);
+					int length = gdb_cris_strtol(lenptr + 1, &dataptr, 16);
+
+					if (*lenptr == ',' && *dataptr == ':')
+					{
+						if (remcomInBuffer[0] == 'M')
+						{
 							if (hex2bin(addr, dataptr + 1, length))
+							{
 								gdb_cris_strcpy (remcomOutBuffer, error_message[E08]);
+							}
 							else
+							{
 								gdb_cris_strcpy (remcomOutBuffer, "OK");
-						} else /* X */ {
+							}
+						}
+						else /* X */
+						{
 							bin2mem(addr, dataptr + 1, length);
 							gdb_cris_strcpy (remcomOutBuffer, "OK");
 						}
-					} else {
+					}
+					else
+					{
 						gdb_cris_strcpy (remcomOutBuffer, error_message[E06]);
 					}
 				}
 				break;
-				
+
 			case 'c':
+
 				/* Continue execution. cAA..AA
 				   AA..AA is the address where execution is resumed. If AA..AA is
 				   omitted, resume at the present address.
 				   Success: return to the executing thread.
 				   Failure: will never know. */
-				if (remcomInBuffer[1] != '\0') {
+				if (remcomInBuffer[1] != '\0')
+				{
 					cris_reg.pc = gdb_cris_strtol (&remcomInBuffer[1], 0, 16);
 				}
+
 				enableDebugIRQ();
 				return;
-				
+
 			case 's':
 				/* Step. sAA..AA
 				   AA..AA is the address where execution is resumed. If AA..AA is
 				   omitted, resume at the present address. Success: return to the
 				   executing thread. Failure: will never know.
-				   
+
 				   Should never be invoked. The single-step is implemented on
 				   the host side. If ever invoked, it is an internal error E04. */
 				gdb_cris_strcpy (remcomOutBuffer, error_message[E04]);
 				putpacket (remcomOutBuffer);
 				return;
-				
+
 			case '?':
 				/* The last signal which caused a stop. ?
 				   Success: SAA, where AA is the signal number.
@@ -864,14 +960,14 @@ handle_exception (int sigval)
 				remcomOutBuffer[2] = hex_asc_lo(sigval);
 				remcomOutBuffer[3] = 0;
 				break;
-				
+
 			case 'D':
 				/* Detach from host. D
 				   Success: OK, and return to the executing thread.
 				   Failure: will never know */
 				putpacket ("OK");
 				return;
-				
+
 			case 'k':
 			case 'r':
 				/* kill request or reset request.
@@ -879,7 +975,7 @@ handle_exception (int sigval)
 				   Failure: will never know. */
 				kill_restart ();
 				break;
-				
+
 			case 'C':
 			case 'S':
 			case '!':
@@ -894,7 +990,7 @@ handle_exception (int sigval)
 				   Not supported: E04 */
 				gdb_cris_strcpy (remcomOutBuffer, error_message[E04]);
 				break;
-				
+
 			default:
 				/* The stub should ignore other request and send an empty
 				   response ($#<checksum>). This way we can extend the protocol and GDB
@@ -902,6 +998,7 @@ handle_exception (int sigval)
 				remcomOutBuffer[0] = 0;
 				break;
 		}
+
 		putpacket(remcomOutBuffer);
 	}
 }
@@ -916,92 +1013,92 @@ handle_exception (int sigval)
 void kgdb_handle_breakpoint(void);
 
 asm ("\n"
-"  .global kgdb_handle_breakpoint\n"
-"kgdb_handle_breakpoint:\n"
-";;\n"
-";; Response to the break-instruction\n"
-";;\n"
-";; Create a register image of the caller\n"
-";;\n"
-"  move     $dccr,[cris_reg+0x5E] ; Save the flags in DCCR before disable interrupts\n"
-"  di                        ; Disable interrupts\n"
-"  move.d   $r0,[cris_reg]        ; Save R0\n"
-"  move.d   $r1,[cris_reg+0x04]   ; Save R1\n"
-"  move.d   $r2,[cris_reg+0x08]   ; Save R2\n"
-"  move.d   $r3,[cris_reg+0x0C]   ; Save R3\n"
-"  move.d   $r4,[cris_reg+0x10]   ; Save R4\n"
-"  move.d   $r5,[cris_reg+0x14]   ; Save R5\n"
-"  move.d   $r6,[cris_reg+0x18]   ; Save R6\n"
-"  move.d   $r7,[cris_reg+0x1C]   ; Save R7\n"
-"  move.d   $r8,[cris_reg+0x20]   ; Save R8\n"
-"  move.d   $r9,[cris_reg+0x24]   ; Save R9\n"
-"  move.d   $r10,[cris_reg+0x28]  ; Save R10\n"
-"  move.d   $r11,[cris_reg+0x2C]  ; Save R11\n"
-"  move.d   $r12,[cris_reg+0x30]  ; Save R12\n"
-"  move.d   $r13,[cris_reg+0x34]  ; Save R13\n"
-"  move.d   $sp,[cris_reg+0x38]   ; Save SP (R14)\n"
-";; Due to the old assembler-versions BRP might not be recognized\n"
-"  .word 0xE670              ; move brp,$r0\n"
-"  subq     2,$r0             ; Set to address of previous instruction.\n"
-"  move.d   $r0,[cris_reg+0x3c]   ; Save the address in PC (R15)\n"
-"  clear.b  [cris_reg+0x40]      ; Clear P0\n"
-"  move     $vr,[cris_reg+0x41]   ; Save special register P1\n"
-"  clear.w  [cris_reg+0x42]      ; Clear P4\n"
-"  move     $ccr,[cris_reg+0x44]  ; Save special register CCR\n"
-"  move     $mof,[cris_reg+0x46]  ; P7\n"
-"  clear.d  [cris_reg+0x4A]      ; Clear P8\n"
-"  move     $ibr,[cris_reg+0x4E]  ; P9,\n"
-"  move     $irp,[cris_reg+0x52]  ; P10,\n"
-"  move     $srp,[cris_reg+0x56]  ; P11,\n"
-"  move     $bar,[cris_reg+0x5A]  ; P12,\n"
-"                            ; P13, register DCCR already saved\n"
-";; Due to the old assembler-versions BRP might not be recognized\n"
-"  .word 0xE670              ; move brp,r0\n"
-";; Static (compiled) breakpoints must return to the next instruction in order\n"
-";; to avoid infinite loops. Dynamic (gdb-invoked) must restore the instruction\n"
-";; in order to execute it when execution is continued.\n"
-"  test.b   [is_dyn_brkp]    ; Is this a dynamic breakpoint?\n"
-"  beq      is_static         ; No, a static breakpoint\n"
-"  nop\n"
-"  subq     2,$r0              ; rerun the instruction the break replaced\n"
-"is_static:\n"
-"  moveq    1,$r1\n"
-"  move.b   $r1,[is_dyn_brkp] ; Set the state variable to dynamic breakpoint\n"
-"  move.d   $r0,[cris_reg+0x62]    ; Save the return address in BRP\n"
-"  move     $usp,[cris_reg+0x66]   ; USP\n"
-";;\n"
-";; Handle the communication\n"
-";;\n"
-"  move.d   internal_stack+1020,$sp ; Use the internal stack which grows upward\n"
-"  moveq    5,$r10                   ; SIGTRAP\n"
-"  jsr      handle_exception       ; Interactive routine\n"
-";;\n"
-";; Return to the caller\n"
-";;\n"
-"   move.d  [cris_reg],$r0         ; Restore R0\n"
-"   move.d  [cris_reg+0x04],$r1    ; Restore R1\n"
-"   move.d  [cris_reg+0x08],$r2    ; Restore R2\n"
-"   move.d  [cris_reg+0x0C],$r3    ; Restore R3\n"
-"   move.d  [cris_reg+0x10],$r4    ; Restore R4\n"
-"   move.d  [cris_reg+0x14],$r5    ; Restore R5\n"
-"   move.d  [cris_reg+0x18],$r6    ; Restore R6\n"
-"   move.d  [cris_reg+0x1C],$r7    ; Restore R7\n"
-"   move.d  [cris_reg+0x20],$r8    ; Restore R8\n"
-"   move.d  [cris_reg+0x24],$r9    ; Restore R9\n"
-"   move.d  [cris_reg+0x28],$r10   ; Restore R10\n"
-"   move.d  [cris_reg+0x2C],$r11   ; Restore R11\n"
-"   move.d  [cris_reg+0x30],$r12   ; Restore R12\n"
-"   move.d  [cris_reg+0x34],$r13   ; Restore R13\n"
-";;\n"
-";; FIXME: Which registers should be restored?\n"
-";;\n"
-"   move.d  [cris_reg+0x38],$sp    ; Restore SP (R14)\n"
-"   move    [cris_reg+0x56],$srp   ; Restore the subroutine return pointer.\n"
-"   move    [cris_reg+0x5E],$dccr  ; Restore DCCR\n"
-"   move    [cris_reg+0x66],$usp   ; Restore USP\n"
-"   jump    [cris_reg+0x62]       ; A jump to the content in register BRP works.\n"
-"   nop                       ;\n"
-"\n");
+	 "  .global kgdb_handle_breakpoint\n"
+	 "kgdb_handle_breakpoint:\n"
+	 ";;\n"
+	 ";; Response to the break-instruction\n"
+	 ";;\n"
+	 ";; Create a register image of the caller\n"
+	 ";;\n"
+	 "  move     $dccr,[cris_reg+0x5E] ; Save the flags in DCCR before disable interrupts\n"
+	 "  di                        ; Disable interrupts\n"
+	 "  move.d   $r0,[cris_reg]        ; Save R0\n"
+	 "  move.d   $r1,[cris_reg+0x04]   ; Save R1\n"
+	 "  move.d   $r2,[cris_reg+0x08]   ; Save R2\n"
+	 "  move.d   $r3,[cris_reg+0x0C]   ; Save R3\n"
+	 "  move.d   $r4,[cris_reg+0x10]   ; Save R4\n"
+	 "  move.d   $r5,[cris_reg+0x14]   ; Save R5\n"
+	 "  move.d   $r6,[cris_reg+0x18]   ; Save R6\n"
+	 "  move.d   $r7,[cris_reg+0x1C]   ; Save R7\n"
+	 "  move.d   $r8,[cris_reg+0x20]   ; Save R8\n"
+	 "  move.d   $r9,[cris_reg+0x24]   ; Save R9\n"
+	 "  move.d   $r10,[cris_reg+0x28]  ; Save R10\n"
+	 "  move.d   $r11,[cris_reg+0x2C]  ; Save R11\n"
+	 "  move.d   $r12,[cris_reg+0x30]  ; Save R12\n"
+	 "  move.d   $r13,[cris_reg+0x34]  ; Save R13\n"
+	 "  move.d   $sp,[cris_reg+0x38]   ; Save SP (R14)\n"
+	 ";; Due to the old assembler-versions BRP might not be recognized\n"
+	 "  .word 0xE670              ; move brp,$r0\n"
+	 "  subq     2,$r0             ; Set to address of previous instruction.\n"
+	 "  move.d   $r0,[cris_reg+0x3c]   ; Save the address in PC (R15)\n"
+	 "  clear.b  [cris_reg+0x40]      ; Clear P0\n"
+	 "  move     $vr,[cris_reg+0x41]   ; Save special register P1\n"
+	 "  clear.w  [cris_reg+0x42]      ; Clear P4\n"
+	 "  move     $ccr,[cris_reg+0x44]  ; Save special register CCR\n"
+	 "  move     $mof,[cris_reg+0x46]  ; P7\n"
+	 "  clear.d  [cris_reg+0x4A]      ; Clear P8\n"
+	 "  move     $ibr,[cris_reg+0x4E]  ; P9,\n"
+	 "  move     $irp,[cris_reg+0x52]  ; P10,\n"
+	 "  move     $srp,[cris_reg+0x56]  ; P11,\n"
+	 "  move     $bar,[cris_reg+0x5A]  ; P12,\n"
+	 "                            ; P13, register DCCR already saved\n"
+	 ";; Due to the old assembler-versions BRP might not be recognized\n"
+	 "  .word 0xE670              ; move brp,r0\n"
+	 ";; Static (compiled) breakpoints must return to the next instruction in order\n"
+	 ";; to avoid infinite loops. Dynamic (gdb-invoked) must restore the instruction\n"
+	 ";; in order to execute it when execution is continued.\n"
+	 "  test.b   [is_dyn_brkp]    ; Is this a dynamic breakpoint?\n"
+	 "  beq      is_static         ; No, a static breakpoint\n"
+	 "  nop\n"
+	 "  subq     2,$r0              ; rerun the instruction the break replaced\n"
+	 "is_static:\n"
+	 "  moveq    1,$r1\n"
+	 "  move.b   $r1,[is_dyn_brkp] ; Set the state variable to dynamic breakpoint\n"
+	 "  move.d   $r0,[cris_reg+0x62]    ; Save the return address in BRP\n"
+	 "  move     $usp,[cris_reg+0x66]   ; USP\n"
+	 ";;\n"
+	 ";; Handle the communication\n"
+	 ";;\n"
+	 "  move.d   internal_stack+1020,$sp ; Use the internal stack which grows upward\n"
+	 "  moveq    5,$r10                   ; SIGTRAP\n"
+	 "  jsr      handle_exception       ; Interactive routine\n"
+	 ";;\n"
+	 ";; Return to the caller\n"
+	 ";;\n"
+	 "   move.d  [cris_reg],$r0         ; Restore R0\n"
+	 "   move.d  [cris_reg+0x04],$r1    ; Restore R1\n"
+	 "   move.d  [cris_reg+0x08],$r2    ; Restore R2\n"
+	 "   move.d  [cris_reg+0x0C],$r3    ; Restore R3\n"
+	 "   move.d  [cris_reg+0x10],$r4    ; Restore R4\n"
+	 "   move.d  [cris_reg+0x14],$r5    ; Restore R5\n"
+	 "   move.d  [cris_reg+0x18],$r6    ; Restore R6\n"
+	 "   move.d  [cris_reg+0x1C],$r7    ; Restore R7\n"
+	 "   move.d  [cris_reg+0x20],$r8    ; Restore R8\n"
+	 "   move.d  [cris_reg+0x24],$r9    ; Restore R9\n"
+	 "   move.d  [cris_reg+0x28],$r10   ; Restore R10\n"
+	 "   move.d  [cris_reg+0x2C],$r11   ; Restore R11\n"
+	 "   move.d  [cris_reg+0x30],$r12   ; Restore R12\n"
+	 "   move.d  [cris_reg+0x34],$r13   ; Restore R13\n"
+	 ";;\n"
+	 ";; FIXME: Which registers should be restored?\n"
+	 ";;\n"
+	 "   move.d  [cris_reg+0x38],$sp    ; Restore SP (R14)\n"
+	 "   move    [cris_reg+0x56],$srp   ; Restore the subroutine return pointer.\n"
+	 "   move    [cris_reg+0x5E],$dccr  ; Restore DCCR\n"
+	 "   move    [cris_reg+0x66],$usp   ; Restore USP\n"
+	 "   jump    [cris_reg+0x62]       ; A jump to the content in register BRP works.\n"
+	 "   nop                       ;\n"
+	 "\n");
 
 /* The hook for an interrupt generated by GDB. An internal stack is used
    by the stub. The register image of the caller is stored in the structure
@@ -1013,93 +1110,93 @@ asm ("\n"
 void kgdb_handle_serial(void);
 
 asm ("\n"
-"  .global kgdb_handle_serial\n"
-"kgdb_handle_serial:\n"
-";;\n"
-";; Response to a serial interrupt\n"
-";;\n"
-"\n"
-"  move     $dccr,[cris_reg+0x5E] ; Save the flags in DCCR\n"
-"  di                        ; Disable interrupts\n"
-"  move.d   $r0,[cris_reg]        ; Save R0\n"
-"  move.d   $r1,[cris_reg+0x04]   ; Save R1\n"
-"  move.d   $r2,[cris_reg+0x08]   ; Save R2\n"
-"  move.d   $r3,[cris_reg+0x0C]   ; Save R3\n"
-"  move.d   $r4,[cris_reg+0x10]   ; Save R4\n"
-"  move.d   $r5,[cris_reg+0x14]   ; Save R5\n"
-"  move.d   $r6,[cris_reg+0x18]   ; Save R6\n"
-"  move.d   $r7,[cris_reg+0x1C]   ; Save R7\n"
-"  move.d   $r8,[cris_reg+0x20]   ; Save R8\n"
-"  move.d   $r9,[cris_reg+0x24]   ; Save R9\n"
-"  move.d   $r10,[cris_reg+0x28]  ; Save R10\n"
-"  move.d   $r11,[cris_reg+0x2C]  ; Save R11\n"
-"  move.d   $r12,[cris_reg+0x30]  ; Save R12\n"
-"  move.d   $r13,[cris_reg+0x34]  ; Save R13\n"
-"  move.d   $sp,[cris_reg+0x38]   ; Save SP (R14)\n"
-"  move     $irp,[cris_reg+0x3c]  ; Save the address in PC (R15)\n"
-"  clear.b  [cris_reg+0x40]      ; Clear P0\n"
-"  move     $vr,[cris_reg+0x41]   ; Save special register P1,\n"
-"  clear.w  [cris_reg+0x42]      ; Clear P4\n"
-"  move     $ccr,[cris_reg+0x44]  ; Save special register CCR\n"
-"  move     $mof,[cris_reg+0x46]  ; P7\n"
-"  clear.d  [cris_reg+0x4A]      ; Clear P8\n"
-"  move     $ibr,[cris_reg+0x4E]  ; P9,\n"
-"  move     $irp,[cris_reg+0x52]  ; P10,\n"
-"  move     $srp,[cris_reg+0x56]  ; P11,\n"
-"  move     $bar,[cris_reg+0x5A]  ; P12,\n"
-"                            ; P13, register DCCR already saved\n"
-";; Due to the old assembler-versions BRP might not be recognized\n"
-"  .word 0xE670              ; move brp,r0\n"
-"  move.d   $r0,[cris_reg+0x62]   ; Save the return address in BRP\n"
-"  move     $usp,[cris_reg+0x66]  ; USP\n"
-"\n"
-";; get the serial character (from debugport.c) and check if it is a ctrl-c\n"
-"\n"
-"  jsr getDebugChar\n"
-"  cmp.b 3, $r10\n"
-"  bne goback\n"
-"  nop\n"
-"\n"
-"  move.d  [cris_reg+0x5E], $r10		; Get DCCR\n"
-"  btstq	   8, $r10			; Test the U-flag.\n"
-"  bmi	   goback\n"
-"  nop\n"
-"\n"
-";;\n"
-";; Handle the communication\n"
-";;\n"
-"  move.d   internal_stack+1020,$sp ; Use the internal stack\n"
-"  moveq    2,$r10                   ; SIGINT\n"
-"  jsr      handle_exception       ; Interactive routine\n"
-"\n"
-"goback:\n"
-";;\n"
-";; Return to the caller\n"
-";;\n"
-"   move.d  [cris_reg],$r0         ; Restore R0\n"
-"   move.d  [cris_reg+0x04],$r1    ; Restore R1\n"
-"   move.d  [cris_reg+0x08],$r2    ; Restore R2\n"
-"   move.d  [cris_reg+0x0C],$r3    ; Restore R3\n"
-"   move.d  [cris_reg+0x10],$r4    ; Restore R4\n"
-"   move.d  [cris_reg+0x14],$r5    ; Restore R5\n"
-"   move.d  [cris_reg+0x18],$r6    ; Restore R6\n"
-"   move.d  [cris_reg+0x1C],$r7    ; Restore R7\n"
-"   move.d  [cris_reg+0x20],$r8    ; Restore R8\n"
-"   move.d  [cris_reg+0x24],$r9    ; Restore R9\n"
-"   move.d  [cris_reg+0x28],$r10   ; Restore R10\n"
-"   move.d  [cris_reg+0x2C],$r11   ; Restore R11\n"
-"   move.d  [cris_reg+0x30],$r12   ; Restore R12\n"
-"   move.d  [cris_reg+0x34],$r13   ; Restore R13\n"
-";;\n"
-";; FIXME: Which registers should be restored?\n"
-";;\n"
-"   move.d  [cris_reg+0x38],$sp    ; Restore SP (R14)\n"
-"   move    [cris_reg+0x56],$srp   ; Restore the subroutine return pointer.\n"
-"   move    [cris_reg+0x5E],$dccr  ; Restore DCCR\n"
-"   move    [cris_reg+0x66],$usp   ; Restore USP\n"
-"   reti                      ; Return from the interrupt routine\n"
-"   nop\n"
-"\n");
+	 "  .global kgdb_handle_serial\n"
+	 "kgdb_handle_serial:\n"
+	 ";;\n"
+	 ";; Response to a serial interrupt\n"
+	 ";;\n"
+	 "\n"
+	 "  move     $dccr,[cris_reg+0x5E] ; Save the flags in DCCR\n"
+	 "  di                        ; Disable interrupts\n"
+	 "  move.d   $r0,[cris_reg]        ; Save R0\n"
+	 "  move.d   $r1,[cris_reg+0x04]   ; Save R1\n"
+	 "  move.d   $r2,[cris_reg+0x08]   ; Save R2\n"
+	 "  move.d   $r3,[cris_reg+0x0C]   ; Save R3\n"
+	 "  move.d   $r4,[cris_reg+0x10]   ; Save R4\n"
+	 "  move.d   $r5,[cris_reg+0x14]   ; Save R5\n"
+	 "  move.d   $r6,[cris_reg+0x18]   ; Save R6\n"
+	 "  move.d   $r7,[cris_reg+0x1C]   ; Save R7\n"
+	 "  move.d   $r8,[cris_reg+0x20]   ; Save R8\n"
+	 "  move.d   $r9,[cris_reg+0x24]   ; Save R9\n"
+	 "  move.d   $r10,[cris_reg+0x28]  ; Save R10\n"
+	 "  move.d   $r11,[cris_reg+0x2C]  ; Save R11\n"
+	 "  move.d   $r12,[cris_reg+0x30]  ; Save R12\n"
+	 "  move.d   $r13,[cris_reg+0x34]  ; Save R13\n"
+	 "  move.d   $sp,[cris_reg+0x38]   ; Save SP (R14)\n"
+	 "  move     $irp,[cris_reg+0x3c]  ; Save the address in PC (R15)\n"
+	 "  clear.b  [cris_reg+0x40]      ; Clear P0\n"
+	 "  move     $vr,[cris_reg+0x41]   ; Save special register P1,\n"
+	 "  clear.w  [cris_reg+0x42]      ; Clear P4\n"
+	 "  move     $ccr,[cris_reg+0x44]  ; Save special register CCR\n"
+	 "  move     $mof,[cris_reg+0x46]  ; P7\n"
+	 "  clear.d  [cris_reg+0x4A]      ; Clear P8\n"
+	 "  move     $ibr,[cris_reg+0x4E]  ; P9,\n"
+	 "  move     $irp,[cris_reg+0x52]  ; P10,\n"
+	 "  move     $srp,[cris_reg+0x56]  ; P11,\n"
+	 "  move     $bar,[cris_reg+0x5A]  ; P12,\n"
+	 "                            ; P13, register DCCR already saved\n"
+	 ";; Due to the old assembler-versions BRP might not be recognized\n"
+	 "  .word 0xE670              ; move brp,r0\n"
+	 "  move.d   $r0,[cris_reg+0x62]   ; Save the return address in BRP\n"
+	 "  move     $usp,[cris_reg+0x66]  ; USP\n"
+	 "\n"
+	 ";; get the serial character (from debugport.c) and check if it is a ctrl-c\n"
+	 "\n"
+	 "  jsr getDebugChar\n"
+	 "  cmp.b 3, $r10\n"
+	 "  bne goback\n"
+	 "  nop\n"
+	 "\n"
+	 "  move.d  [cris_reg+0x5E], $r10		; Get DCCR\n"
+	 "  btstq	   8, $r10			; Test the U-flag.\n"
+	 "  bmi	   goback\n"
+	 "  nop\n"
+	 "\n"
+	 ";;\n"
+	 ";; Handle the communication\n"
+	 ";;\n"
+	 "  move.d   internal_stack+1020,$sp ; Use the internal stack\n"
+	 "  moveq    2,$r10                   ; SIGINT\n"
+	 "  jsr      handle_exception       ; Interactive routine\n"
+	 "\n"
+	 "goback:\n"
+	 ";;\n"
+	 ";; Return to the caller\n"
+	 ";;\n"
+	 "   move.d  [cris_reg],$r0         ; Restore R0\n"
+	 "   move.d  [cris_reg+0x04],$r1    ; Restore R1\n"
+	 "   move.d  [cris_reg+0x08],$r2    ; Restore R2\n"
+	 "   move.d  [cris_reg+0x0C],$r3    ; Restore R3\n"
+	 "   move.d  [cris_reg+0x10],$r4    ; Restore R4\n"
+	 "   move.d  [cris_reg+0x14],$r5    ; Restore R5\n"
+	 "   move.d  [cris_reg+0x18],$r6    ; Restore R6\n"
+	 "   move.d  [cris_reg+0x1C],$r7    ; Restore R7\n"
+	 "   move.d  [cris_reg+0x20],$r8    ; Restore R8\n"
+	 "   move.d  [cris_reg+0x24],$r9    ; Restore R9\n"
+	 "   move.d  [cris_reg+0x28],$r10   ; Restore R10\n"
+	 "   move.d  [cris_reg+0x2C],$r11   ; Restore R11\n"
+	 "   move.d  [cris_reg+0x30],$r12   ; Restore R12\n"
+	 "   move.d  [cris_reg+0x34],$r13   ; Restore R13\n"
+	 ";;\n"
+	 ";; FIXME: Which registers should be restored?\n"
+	 ";;\n"
+	 "   move.d  [cris_reg+0x38],$sp    ; Restore SP (R14)\n"
+	 "   move    [cris_reg+0x56],$srp   ; Restore the subroutine return pointer.\n"
+	 "   move    [cris_reg+0x5E],$dccr  ; Restore DCCR\n"
+	 "   move    [cris_reg+0x66],$usp   ; Restore USP\n"
+	 "   reti                      ; Return from the interrupt routine\n"
+	 "   nop\n"
+	 "\n");
 
 /* Use this static breakpoint in the start-up only. */
 
@@ -1118,9 +1215,9 @@ kgdb_init(void)
 {
 	/* could initialize debug port as well but it's done in head.S already... */
 
-        /* breakpoint handler is now set in irq.c */
+	/* breakpoint handler is now set in irq.c */
 	set_int_vector(8, kgdb_handle_serial);
-	
+
 	enableDebugIRQ();
 }
 

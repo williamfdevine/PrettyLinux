@@ -44,7 +44,8 @@
  * any types other than those listed.
  */
 
-enum spe_type {
+enum spe_type
+{
 	SPE_TYPE_LOGICAL = 0,
 };
 
@@ -54,24 +55,25 @@ enum spe_type {
  * Read-only shadow of spe registers.
  */
 
-struct spe_shadow {
+struct spe_shadow
+{
 	u8 padding_0140[0x0140];
 	u64 int_status_class0_RW;       /* 0x0140 */
 	u64 int_status_class1_RW;       /* 0x0148 */
 	u64 int_status_class2_RW;       /* 0x0150 */
-	u8 padding_0158[0x0610-0x0158];
+	u8 padding_0158[0x0610 - 0x0158];
 	u64 mfc_dsisr_RW;               /* 0x0610 */
-	u8 padding_0618[0x0620-0x0618];
+	u8 padding_0618[0x0620 - 0x0618];
 	u64 mfc_dar_RW;                 /* 0x0620 */
-	u8 padding_0628[0x0800-0x0628];
+	u8 padding_0628[0x0800 - 0x0628];
 	u64 mfc_dsipr_R;                /* 0x0800 */
-	u8 padding_0808[0x0810-0x0808];
+	u8 padding_0808[0x0810 - 0x0808];
 	u64 mfc_lscrr_R;                /* 0x0810 */
-	u8 padding_0818[0x0c00-0x0818];
+	u8 padding_0818[0x0c00 - 0x0818];
 	u64 mfc_cer_R;                  /* 0x0c00 */
-	u8 padding_0c08[0x0f00-0x0c08];
+	u8 padding_0c08[0x0f00 - 0x0c08];
 	u64 spe_execution_status;       /* 0x0f00 */
-	u8 padding_0f08[0x1000-0x0f08];
+	u8 padding_0f08[0x1000 - 0x0f08];
 };
 
 /**
@@ -84,7 +86,8 @@ struct spe_shadow {
  * struct spe_shadow:spe_execution_status.
  */
 
-enum spe_ex_state {
+enum spe_ex_state
+{
 	SPE_EX_STATE_UNEXECUTABLE = 0,
 	SPE_EX_STATE_EXECUTABLE = 2,
 	SPE_EX_STATE_EXECUTED = 3,
@@ -97,7 +100,8 @@ enum spe_ex_state {
  * @tclass_id: Cached mfc_tclass_id register.
  */
 
-struct priv1_cache {
+struct priv1_cache
+{
 	u64 masks[3];
 	u64 sr1;
 	u64 tclass_id;
@@ -116,7 +120,8 @@ struct priv1_cache {
  * @cache: Cached values of priv1 registers.
  */
 
-struct spu_pdata {
+struct spu_pdata
+{
 	u64 spe_id;
 	u64 resource_id;
 	u64 priv2_addr;
@@ -133,8 +138,8 @@ static struct spu_pdata *spu_pdata(struct spu *spu)
 #define dump_areas(_a, _b, _c, _d, _e) \
 	_dump_areas(_a, _b, _c, _d, _e, __func__, __LINE__)
 static void _dump_areas(unsigned int spe_id, unsigned long priv2,
-	unsigned long problem, unsigned long ls, unsigned long shadow,
-	const char* func, int line)
+						unsigned long problem, unsigned long ls, unsigned long shadow,
+						const char *func, int line)
 {
 	pr_debug("%s:%d: spe_id:  %xh (%u)\n", func, line, spe_id, spe_id);
 	pr_debug("%s:%d: priv2:   %lxh\n", func, line, priv2);
@@ -167,17 +172,18 @@ static int __init construct_spu(struct spu *spu)
 	u64 local_store_phys;
 
 	result = lv1_construct_logical_spe(PAGE_SHIFT, PAGE_SHIFT, PAGE_SHIFT,
-		PAGE_SHIFT, PAGE_SHIFT, get_vas_id(), SPE_TYPE_LOGICAL,
-		&spu_pdata(spu)->priv2_addr, &problem_phys,
-		&local_store_phys, &unused,
-		&spu_pdata(spu)->shadow_addr,
-		&spu_pdata(spu)->spe_id);
+									   PAGE_SHIFT, PAGE_SHIFT, get_vas_id(), SPE_TYPE_LOGICAL,
+									   &spu_pdata(spu)->priv2_addr, &problem_phys,
+									   &local_store_phys, &unused,
+									   &spu_pdata(spu)->shadow_addr,
+									   &spu_pdata(spu)->spe_id);
 	spu->problem_phys = problem_phys;
 	spu->local_store_phys = local_store_phys;
 
-	if (result) {
+	if (result)
+	{
 		pr_debug("%s:%d: lv1_construct_logical_spe failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				 __func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
@@ -204,48 +210,53 @@ static void spu_unmap(struct spu *spu)
 
 static int __init setup_areas(struct spu *spu)
 {
-	struct table {char* name; unsigned long addr; unsigned long size;};
+	struct table {char *name; unsigned long addr; unsigned long size;};
 	unsigned long shadow_flags = pgprot_val(pgprot_noncached_wc(PAGE_KERNEL_RO));
 
 	spu_pdata(spu)->shadow = __ioremap(spu_pdata(spu)->shadow_addr,
-					   sizeof(struct spe_shadow),
-					   shadow_flags);
-	if (!spu_pdata(spu)->shadow) {
+									   sizeof(struct spe_shadow),
+									   shadow_flags);
+
+	if (!spu_pdata(spu)->shadow)
+	{
 		pr_debug("%s:%d: ioremap shadow failed\n", __func__, __LINE__);
 		goto fail_ioremap;
 	}
 
 	spu->local_store = (__force void *)ioremap_prot(spu->local_store_phys,
-		LS_SIZE, pgprot_val(pgprot_noncached_wc(__pgprot(0))));
+					   LS_SIZE, pgprot_val(pgprot_noncached_wc(__pgprot(0))));
 
-	if (!spu->local_store) {
+	if (!spu->local_store)
+	{
 		pr_debug("%s:%d: ioremap local_store failed\n",
-			__func__, __LINE__);
+				 __func__, __LINE__);
 		goto fail_ioremap;
 	}
 
 	spu->problem = ioremap(spu->problem_phys,
-		sizeof(struct spu_problem));
+						   sizeof(struct spu_problem));
 
-	if (!spu->problem) {
+	if (!spu->problem)
+	{
 		pr_debug("%s:%d: ioremap problem failed\n", __func__, __LINE__);
 		goto fail_ioremap;
 	}
 
 	spu->priv2 = ioremap(spu_pdata(spu)->priv2_addr,
-		sizeof(struct spu_priv2));
+						 sizeof(struct spu_priv2));
 
-	if (!spu->priv2) {
+	if (!spu->priv2)
+	{
 		pr_debug("%s:%d: ioremap priv2 failed\n", __func__, __LINE__);
 		goto fail_ioremap;
 	}
 
 	dump_areas(spu_pdata(spu)->spe_id, spu_pdata(spu)->priv2_addr,
-		spu->problem_phys, spu->local_store_phys,
-		spu_pdata(spu)->shadow_addr);
+			   spu->problem_phys, spu->local_store_phys,
+			   spu_pdata(spu)->shadow_addr);
 	dump_areas(spu_pdata(spu)->spe_id, (unsigned long)spu->priv2,
-		(unsigned long)spu->problem, (unsigned long)spu->local_store,
-		(unsigned long)spu_pdata(spu)->shadow);
+			   (unsigned long)spu->problem, (unsigned long)spu->local_store,
+			   (unsigned long)spu_pdata(spu)->shadow);
 
 	return 0;
 
@@ -260,22 +271,28 @@ static int __init setup_interrupts(struct spu *spu)
 	int result;
 
 	result = ps3_spe_irq_setup(PS3_BINDING_CPU_ANY, spu_pdata(spu)->spe_id,
-		0, &spu->irqs[0]);
+							   0, &spu->irqs[0]);
 
 	if (result)
+	{
 		goto fail_alloc_0;
+	}
 
 	result = ps3_spe_irq_setup(PS3_BINDING_CPU_ANY, spu_pdata(spu)->spe_id,
-		1, &spu->irqs[1]);
+							   1, &spu->irqs[1]);
 
 	if (result)
+	{
 		goto fail_alloc_1;
+	}
 
 	result = ps3_spe_irq_setup(PS3_BINDING_CPU_ANY, spu_pdata(spu)->spe_id,
-		2, &spu->irqs[2]);
+							   2, &spu->irqs[2]);
 
 	if (result)
+	{
 		goto fail_alloc_2;
+	}
 
 	return result;
 
@@ -293,23 +310,28 @@ static int __init enable_spu(struct spu *spu)
 	int result;
 
 	result = lv1_enable_logical_spe(spu_pdata(spu)->spe_id,
-		spu_pdata(spu)->resource_id);
+									spu_pdata(spu)->resource_id);
 
-	if (result) {
+	if (result)
+	{
 		pr_debug("%s:%d: lv1_enable_logical_spe failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				 __func__, __LINE__, ps3_result(result));
 		goto fail_enable;
 	}
 
 	result = setup_areas(spu);
 
 	if (result)
+	{
 		goto fail_areas;
+	}
 
 	result = setup_interrupts(spu);
 
 	if (result)
+	{
 		goto fail_interrupts;
+	}
 
 	return 0;
 
@@ -354,9 +376,10 @@ static int __init ps3_create_spu(struct spu *spu, void *data)
 	pr_debug("%s:%d spu_%d\n", __func__, __LINE__, spu->number);
 
 	spu->pdata = kzalloc(sizeof(struct spu_pdata),
-		GFP_KERNEL);
+						 GFP_KERNEL);
 
-	if (!spu->pdata) {
+	if (!spu->pdata)
+	{
 		result = -ENOMEM;
 		goto fail_malloc;
 	}
@@ -370,21 +393,27 @@ static int __init ps3_create_spu(struct spu *spu, void *data)
 	result = construct_spu(spu);
 
 	if (result)
+	{
 		goto fail_construct;
+	}
 
 	/* For now, just go ahead and enable it. */
 
 	result = enable_spu(spu);
 
 	if (result)
+	{
 		goto fail_enable;
+	}
 
 	/* Make sure the spu is in SPE_EX_STATE_EXECUTED. */
 
 	/* need something better here!!! */
 	while (in_be64(&spu_pdata(spu)->shadow->spe_execution_status)
-		!= SPE_EX_STATE_EXECUTED)
+		   != SPE_EX_STATE_EXECUTED)
+	{
 		(void)0;
+	}
 
 	return result;
 
@@ -404,34 +433,41 @@ static int __init ps3_enumerate_spus(int (*fn)(void *data))
 	result = ps3_repository_read_num_spu_resource_id(&num_resource_id);
 
 	pr_debug("%s:%d: num_resource_id %u\n", __func__, __LINE__,
-		num_resource_id);
+			 num_resource_id);
 
 	/*
 	 * For now, just create logical spus equal to the number
 	 * of physical spus reserved for the partition.
 	 */
 
-	for (i = 0; i < num_resource_id; i++) {
+	for (i = 0; i < num_resource_id; i++)
+	{
 		enum ps3_spu_resource_type resource_type;
 		unsigned int resource_id;
 
 		result = ps3_repository_read_spu_resource_id(i,
-			&resource_type, &resource_id);
+				 &resource_type, &resource_id);
 
 		if (result)
+		{
 			break;
+		}
 
-		if (resource_type == PS3_SPU_RESOURCE_TYPE_EXCLUSIVE) {
-			result = fn((void*)(unsigned long)resource_id);
+		if (resource_type == PS3_SPU_RESOURCE_TYPE_EXCLUSIVE)
+		{
+			result = fn((void *)(unsigned long)resource_id);
 
 			if (result)
+			{
 				break;
+			}
 		}
 	}
 
-	if (result) {
+	if (result)
+	{
 		printk(KERN_WARNING "%s:%d: Error initializing spus\n",
-			__func__, __LINE__);
+			   __func__, __LINE__);
 		return result;
 	}
 
@@ -465,7 +501,8 @@ static void ps3_disable_spu(struct spu_context *ctx)
 	ctx->ops->runcntl_stop(ctx);
 }
 
-const struct spu_management_ops spu_management_ps3_ops = {
+const struct spu_management_ops spu_management_ps3_ops =
+{
 	.enumerate_spus = ps3_enumerate_spus,
 	.create_spu = ps3_create_spu,
 	.destroy_spu = ps3_destroy_spu,
@@ -497,7 +534,7 @@ static void int_mask_set(struct spu *spu, int class, u64 mask)
 {
 	spu_pdata(spu)->cache.masks[class] = mask;
 	lv1_set_spe_interrupt_mask(spu_pdata(spu)->spe_id, class,
-		spu_pdata(spu)->cache.masks[class]);
+							   spu_pdata(spu)->cache.masks[class]);
 }
 
 static u64 int_mask_get(struct spu *spu, int class)
@@ -510,7 +547,7 @@ static void int_stat_clear(struct spu *spu, int class, u64 stat)
 	/* Note that MFC_DSISR will be cleared when class1[MF] is set. */
 
 	lv1_clear_spe_interrupt_status(spu_pdata(spu)->spe_id, class,
-		stat, 0);
+								   stat, 0);
 }
 
 static u64 int_stat_get(struct spu *spu, int class)
@@ -551,7 +588,7 @@ static void mfc_sr1_set(struct spu *spu, u64 sr1)
 	/* Check bits allowed by HV. */
 
 	static const u64 allowed = ~(MFC_STATE1_LOCAL_STORAGE_DECODE_MASK
-		| MFC_STATE1_PROBLEM_STATE_MASK);
+								 | MFC_STATE1_PROBLEM_STATE_MASK);
 
 	BUG_ON((sr1 & allowed) != (spu_pdata(spu)->cache.sr1 & allowed));
 
@@ -606,7 +643,8 @@ static u64 resource_allocation_enable_get(struct spu *spu)
 	return 0; /* No support. */
 }
 
-const struct spu_priv1_ops spu_priv1_ps3_ops = {
+const struct spu_priv1_ops spu_priv1_ps3_ops =
+{
 	.int_mask_and = int_mask_and,
 	.int_mask_or = int_mask_or,
 	.int_mask_set = int_mask_set,

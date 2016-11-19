@@ -15,9 +15,9 @@
 #define _UAPI_SPARC_UNISTD_H
 
 #ifndef __32bit_syscall_numbers__
-#ifndef __arch64__
-#define __32bit_syscall_numbers__
-#endif
+	#ifndef __arch64__
+		#define __32bit_syscall_numbers__
+	#endif
 #endif
 
 #define __NR_restart_syscall      0 /* Linux Specific				   */
@@ -52,13 +52,13 @@
 #define __NR_pause               29 /* Is sigblock(0)->sigpause() in SunOS         */
 #define __NR_utime               30 /* Implemented via utimes() under SunOS        */
 #ifdef __32bit_syscall_numbers__
-#define __NR_lchown32            31 /* Linux sparc32 specific                      */
-#define __NR_fchown32            32 /* Linux sparc32 specific                      */
+	#define __NR_lchown32            31 /* Linux sparc32 specific                      */
+	#define __NR_fchown32            32 /* Linux sparc32 specific                      */
 #endif
 #define __NR_access              33 /* Common                                      */
 #define __NR_nice                34 /* Implemented via get/setpriority() in SunOS  */
 #ifdef __32bit_syscall_numbers__
-#define __NR_chown32             35 /* Linux sparc32 specific                      */
+	#define __NR_chown32             35 /* Linux sparc32 specific                      */
 #endif
 #define __NR_sync                36 /* Common                                      */
 #define __NR_kill                37 /* Common                                      */
@@ -69,7 +69,7 @@
 #define __NR_pipe                42 /* Common                                      */
 #define __NR_times               43 /* Implemented via getrusage() in SunOS        */
 #ifdef __32bit_syscall_numbers__
-#define __NR_getuid32            44 /* Linux sparc32 specific                      */
+	#define __NR_getuid32            44 /* Linux sparc32 specific                      */
 #endif
 #define __NR_umount2             45 /* Linux Specific                              */
 #define __NR_setgid              46 /* Implemented via setregid() in SunOS         */
@@ -79,14 +79,14 @@
 #define __NR_getegid             50 /* SunOS calls getgid()                        */
 #define __NR_acct                51 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_getgid32            53 /* Linux sparc32 specific                      */
+	#define __NR_getgid32            53 /* Linux sparc32 specific                      */
 #else
-#define __NR_memory_ordering	 52 /* Linux Specific				   */
+	#define __NR_memory_ordering	 52 /* Linux Specific				   */
 #endif
 #define __NR_ioctl               54 /* Common                                      */
 #define __NR_reboot              55 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_mmap2		 56 /* Linux sparc32 Specific			   */
+	#define __NR_mmap2		 56 /* Linux sparc32 Specific			   */
 #endif
 #define __NR_symlink             57 /* Common                                      */
 #define __NR_readlink            58 /* Common                                      */
@@ -101,48 +101,48 @@
 #define __NR_pread64             67 /* Linux Specific                              */
 #define __NR_pwrite64            68 /* Linux Specific                              */
 #ifdef __32bit_syscall_numbers__
-#define __NR_geteuid32           69 /* Linux sparc32, sbrk under SunOS             */
-#define __NR_getegid32           70 /* Linux sparc32, sstk under SunOS             */
+	#define __NR_geteuid32           69 /* Linux sparc32, sbrk under SunOS             */
+	#define __NR_getegid32           70 /* Linux sparc32, sstk under SunOS             */
 #endif
 #define __NR_mmap                71 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_setreuid32          72 /* Linux sparc32, vadvise under SunOS          */
+	#define __NR_setreuid32          72 /* Linux sparc32, vadvise under SunOS          */
 #endif
 #define __NR_munmap              73 /* Common                                      */
 #define __NR_mprotect            74 /* Common                                      */
 #define __NR_madvise             75 /* Common                                      */
 #define __NR_vhangup             76 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_truncate64		 77 /* Linux sparc32 Specific			   */
+	#define __NR_truncate64		 77 /* Linux sparc32 Specific			   */
 #endif
 #define __NR_mincore             78 /* Common                                      */
 #define __NR_getgroups           79 /* Common                                      */
 #define __NR_setgroups           80 /* Common                                      */
 #define __NR_getpgrp             81 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_setgroups32         82 /* Linux sparc32, setpgrp under SunOS          */
+	#define __NR_setgroups32         82 /* Linux sparc32, setpgrp under SunOS          */
 #endif
 #define __NR_setitimer           83 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_ftruncate64	 84 /* Linux sparc32 Specific			   */
+	#define __NR_ftruncate64	 84 /* Linux sparc32 Specific			   */
 #endif
 #define __NR_swapon              85 /* Common                                      */
 #define __NR_getitimer           86 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_setuid32            87 /* Linux sparc32, gethostname under SunOS      */
+	#define __NR_setuid32            87 /* Linux sparc32, gethostname under SunOS      */
 #endif
 #define __NR_sethostname         88 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_setgid32            89 /* Linux sparc32, getdtablesize under SunOS    */
+	#define __NR_setgid32            89 /* Linux sparc32, getdtablesize under SunOS    */
 #endif
 #define __NR_dup2                90 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_setfsuid32          91 /* Linux sparc32, getdopt under SunOS          */
+	#define __NR_setfsuid32          91 /* Linux sparc32, getdopt under SunOS          */
 #endif
 #define __NR_fcntl               92 /* Common                                      */
 #define __NR_select              93 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_setfsgid32          94 /* Linux sparc32, setdopt under SunOS          */
+	#define __NR_setfsgid32          94 /* Linux sparc32, setdopt under SunOS          */
 #endif
 #define __NR_fsync               95 /* Common                                      */
 #define __NR_setpriority         96 /* Common                                      */
@@ -158,21 +158,21 @@
 #define __NR_rt_sigqueueinfo    106 /* Linux Specific                              */
 #define __NR_rt_sigsuspend      107 /* Linux Specific                              */
 #ifdef __32bit_syscall_numbers__
-#define __NR_setresuid32        108 /* Linux Specific, sigvec under SunOS	   */
-#define __NR_getresuid32        109 /* Linux Specific, sigblock under SunOS	   */
-#define __NR_setresgid32        110 /* Linux Specific, sigsetmask under SunOS	   */
-#define __NR_getresgid32        111 /* Linux Specific, sigpause under SunOS	   */
-#define __NR_setregid32         112 /* Linux sparc32, sigstack under SunOS         */
+	#define __NR_setresuid32        108 /* Linux Specific, sigvec under SunOS	   */
+	#define __NR_getresuid32        109 /* Linux Specific, sigblock under SunOS	   */
+	#define __NR_setresgid32        110 /* Linux Specific, sigsetmask under SunOS	   */
+	#define __NR_getresgid32        111 /* Linux Specific, sigpause under SunOS	   */
+	#define __NR_setregid32         112 /* Linux sparc32, sigstack under SunOS         */
 #else
-#define __NR_setresuid          108 /* Linux Specific, sigvec under SunOS	   */
-#define __NR_getresuid          109 /* Linux Specific, sigblock under SunOS	   */
-#define __NR_setresgid          110 /* Linux Specific, sigsetmask under SunOS	   */
-#define __NR_getresgid          111 /* Linux Specific, sigpause under SunOS	   */
+	#define __NR_setresuid          108 /* Linux Specific, sigvec under SunOS	   */
+	#define __NR_getresuid          109 /* Linux Specific, sigblock under SunOS	   */
+	#define __NR_setresgid          110 /* Linux Specific, sigsetmask under SunOS	   */
+	#define __NR_getresgid          111 /* Linux Specific, sigpause under SunOS	   */
 #endif
 #define __NR_recvmsg            113 /* Common                                      */
 #define __NR_sendmsg            114 /* Common                                      */
 #ifdef __32bit_syscall_numbers__
-#define __NR_getgroups32        115 /* Linux sparc32, vtrace under SunOS           */
+	#define __NR_getgroups32        115 /* Linux sparc32, vtrace under SunOS           */
 #endif
 #define __NR_gettimeofday       116 /* Common                                      */
 #define __NR_getrusage          117 /* Common                                      */
@@ -214,7 +214,7 @@
 #define __NR_poll               153 /* Common                                      */
 #define __NR_getdents64		154 /* Linux specific				   */
 #ifdef __32bit_syscall_numbers__
-#define __NR_fcntl64		155 /* Linux sparc32 Specific                      */
+	#define __NR_fcntl64		155 /* Linux sparc32 Specific                      */
 #endif
 #define __NR_inotify_rm_watch   156 /* Linux specific				   */
 #define __NR_statfs             157 /* Common                                      */
@@ -225,7 +225,7 @@
 #define __NR_getdomainname      162 /* SunOS Specific                              */
 #define __NR_setdomainname      163 /* Common                                      */
 #ifndef __32bit_syscall_numbers__
-#define __NR_utrap_install	164 /* SYSV ABI/v9 required			   */
+	#define __NR_utrap_install	164 /* SYSV ABI/v9 required			   */
 #endif
 #define __NR_quotactl           165 /* Common                                      */
 #define __NR_set_tid_address    166 /* Linux specific, exportfs under SunOS        */
@@ -294,7 +294,7 @@
 #define __NR_setfsgid           229 /* Linux Specific                              */
 #define __NR__newselect         230 /* Linux Specific                              */
 #ifdef __32bit_syscall_numbers__
-#define __NR_time               231 /* Linux Specific                              */
+	#define __NR_time               231 /* Linux Specific                              */
 #else
 #endif
 #define __NR_splice             232 /* Linux Specific                              */
@@ -432,14 +432,14 @@
 #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
 
 #ifdef __32bit_syscall_numbers__
-/* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
- * it never had the plain ones and there is no value to adding those
- * old versions into the syscall table.
- */
-#define __IGNORE_setresuid
-#define __IGNORE_getresuid
-#define __IGNORE_setresgid
-#define __IGNORE_getresgid
+	/* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
+	* it never had the plain ones and there is no value to adding those
+	* old versions into the syscall table.
+	*/
+	#define __IGNORE_setresuid
+	#define __IGNORE_getresuid
+	#define __IGNORE_setresgid
+	#define __IGNORE_getresgid
 #endif
 
 #endif /* _UAPI_SPARC_UNISTD_H */

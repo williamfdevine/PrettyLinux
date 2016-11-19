@@ -71,9 +71,9 @@ static inline void metag_fence(void)
 #endif
 
 #ifdef CONFIG_SMP
-#define fence()		metag_fence()
+	#define fence()		metag_fence()
 #else
-#define fence()		do { } while (0)
+	#define fence()		do { } while (0)
 #endif
 
 #define __smp_mb__before_atomic()	barrier()

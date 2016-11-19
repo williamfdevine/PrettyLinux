@@ -4,7 +4,7 @@
 #include <linux/reboot.h>
 #include <linux/module.h>
 #ifdef CONFIG_SUPERH32
-#include <asm/watchdog.h>
+	#include <asm/watchdog.h>
 #endif
 #include <asm/addrspace.h>
 #include <asm/reboot.h>
@@ -22,7 +22,7 @@ static void watchdog_trigger_immediate(void)
 }
 #endif
 
-static void native_machine_restart(char * __unused)
+static void native_machine_restart(char *__unused)
 {
 	local_irq_disable();
 
@@ -41,7 +41,9 @@ static void native_machine_restart(char * __unused)
 	 * Give up and sleep.
 	 */
 	while (1)
+	{
 		cpu_sleep();
+	}
 }
 
 static void native_machine_shutdown(void)
@@ -52,7 +54,9 @@ static void native_machine_shutdown(void)
 static void native_machine_power_off(void)
 {
 	if (pm_power_off)
+	{
 		pm_power_off();
+	}
 }
 
 static void native_machine_halt(void)
@@ -64,7 +68,8 @@ static void native_machine_halt(void)
 	stop_this_cpu(NULL);
 }
 
-struct machine_ops machine_ops = {
+struct machine_ops machine_ops =
+{
 	.power_off	= native_machine_power_off,
 	.shutdown	= native_machine_shutdown,
 	.restart	= native_machine_restart,

@@ -40,7 +40,7 @@
  */
 #define MODULES_VADDR		(PAGE_OFFSET - 16*1024*1024)
 #if TASK_SIZE > MODULES_VADDR
-#error Top of user space clashes with start of module space
+	#error Top of user space clashes with start of module space
 #endif
 
 #define MODULES_END		(PAGE_OFFSET)
@@ -56,8 +56,8 @@
  * files.  Use virt_to_phys/phys_to_virt/__pa/__va instead.
  */
 #ifndef __virt_to_phys
-#define __virt_to_phys(x)	((x) - PAGE_OFFSET + PHYS_OFFSET)
-#define __phys_to_virt(x)	((x) - PHYS_OFFSET + PAGE_OFFSET)
+	#define __virt_to_phys(x)	((x) - PAGE_OFFSET + PHYS_OFFSET)
+	#define __phys_to_virt(x)	((x) - PHYS_OFFSET + PAGE_OFFSET)
 #endif
 
 /*
@@ -69,7 +69,7 @@
 #ifndef __ASSEMBLY__
 
 #ifndef arch_adjust_zones
-#define arch_adjust_zones(size, holes) do { } while (0)
+	#define arch_adjust_zones(size, holes) do { } while (0)
 #endif
 
 /*
@@ -102,7 +102,7 @@
 
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 #define virt_addr_valid(kaddr)	((unsigned long)(kaddr) >= PAGE_OFFSET && \
-		(unsigned long)(kaddr) < (unsigned long)high_memory)
+								 (unsigned long)(kaddr) < (unsigned long)high_memory)
 
 #endif
 

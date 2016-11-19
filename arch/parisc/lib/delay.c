@@ -36,10 +36,15 @@ static void __cr16_delay(unsigned long __loops)
 	preempt_disable();
 	cpu = smp_processor_id();
 	bclock = mfctl(16);
-	for (;;) {
+
+	for (;;)
+	{
 		now = mfctl(16);
+
 		if ((now - bclock) >= loops)
+		{
 			break;
+		}
 
 		/* Allow RT tasks to run */
 		preempt_enable();
@@ -56,12 +61,14 @@ static void __cr16_delay(unsigned long __loops)
 		 * make sure we waited long enough. Rebalance the
 		 * counter for this CPU.
 		 */
-		if (unlikely(cpu != smp_processor_id())) {
+		if (unlikely(cpu != smp_processor_id()))
+		{
 			loops -= (now - bclock);
 			cpu = smp_processor_id();
 			bclock = mfctl(16);
 		}
 	}
+
 	preempt_enable();
 }
 

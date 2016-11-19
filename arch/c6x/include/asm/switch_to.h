@@ -18,14 +18,14 @@
 struct task_struct;
 struct thread_struct;
 asmlinkage void *__switch_to(struct thread_struct *prev,
-			     struct thread_struct *next,
-			     struct task_struct *tsk);
+							 struct thread_struct *next,
+							 struct task_struct *tsk);
 
 #define switch_to(prev, next, last)				\
 	do {							\
 		current->thread.wchan = (u_long) __builtin_return_address(0); \
 		(last) = __switch_to(&(prev)->thread,		\
-				     &(next)->thread, (prev));	\
+							 &(next)->thread, (prev));	\
 		mb();						\
 		current->thread.wchan = 0;			\
 	} while (0)

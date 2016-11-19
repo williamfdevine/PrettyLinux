@@ -16,8 +16,12 @@ static inline int atomic_dec_if_positive(atomic_t *v)
 
 	local_irq_save(flags);
 	res = v->counter - 1;
+
 	if (res >= 0)
+	{
 		v->counter = res;
+	}
+
 	local_irq_restore(flags);
 
 	return res;

@@ -13,7 +13,8 @@
 
 #include <linux/sched.h>
 
-struct arc700_regs {
+struct arc700_regs
+{
 	unsigned long r0;
 	unsigned long r1;
 	unsigned long r2;
@@ -49,10 +50,11 @@ struct arc700_regs {
 	unsigned long r63;	/* pc */
 };
 
-struct unwind_frame_info {
+struct unwind_frame_info
+{
 	struct arc700_regs regs;
 	struct task_struct *task;
-	unsigned call_frame:1;
+	unsigned call_frame: 1;
 };
 
 #define UNW_PC(frame)		((frame)->regs.r63)
@@ -61,13 +63,13 @@ struct unwind_frame_info {
 
 /* Rajesh FIXME */
 #ifdef CONFIG_FRAME_POINTER
-#define UNW_FP(frame)		((frame)->regs.r27)
-#define FRAME_RETADDR_OFFSET	4
-#define FRAME_LINK_OFFSET	0
-#define STACK_BOTTOM_UNW(tsk)	STACK_LIMIT((tsk)->thread.ksp)
-#define STACK_TOP_UNW(tsk)	((tsk)->thread.ksp)
+	#define UNW_FP(frame)		((frame)->regs.r27)
+	#define FRAME_RETADDR_OFFSET	4
+	#define FRAME_LINK_OFFSET	0
+	#define STACK_BOTTOM_UNW(tsk)	STACK_LIMIT((tsk)->thread.ksp)
+	#define STACK_TOP_UNW(tsk)	((tsk)->thread.ksp)
 #else
-#define UNW_FP(frame)		((void)(frame), 0)
+	#define UNW_FP(frame)		((void)(frame), 0)
 #endif
 
 #define STACK_LIMIT(ptr)	(((ptr) - 1) & ~(THREAD_SIZE - 1))
@@ -113,14 +115,14 @@ struct unwind_frame_info {
 extern int arc_unwind(struct unwind_frame_info *frame);
 extern void arc_unwind_init(void);
 extern void *unwind_add_table(struct module *module, const void *table_start,
-			      unsigned long table_size);
+							  unsigned long table_size);
 extern void unwind_remove_table(void *handle, int init_only);
 
 static inline int
 arch_unwind_init_running(struct unwind_frame_info *info,
-			 int (*callback) (struct unwind_frame_info *info,
-					  void *arg),
-			 void *arg)
+						 int (*callback) (struct unwind_frame_info *info,
+								 void *arg),
+						 void *arg)
 {
 	return 0;
 }
@@ -136,7 +138,7 @@ static inline void arch_unw_init_blocked(struct unwind_frame_info *info)
 }
 
 static inline void arch_unw_init_frame_info(struct unwind_frame_info *info,
-					    struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	return;
 }

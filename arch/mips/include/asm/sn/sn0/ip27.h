@@ -21,14 +21,14 @@
 
 #ifndef __ASSEMBLY__
 
-#define CAUSE_BERRINTR		IE_IRQ5
+	#define CAUSE_BERRINTR		IE_IRQ5
 
-#define ECCF_CACHE_ERR	0
-#define ECCF_TAGLO	1
-#define ECCF_ECC	2
-#define ECCF_ERROREPC	3
-#define ECCF_PADDR	4
-#define ECCF_SIZE	(5 * sizeof(long))
+	#define ECCF_CACHE_ERR	0
+	#define ECCF_TAGLO	1
+	#define ECCF_ECC	2
+	#define ECCF_ERROREPC	3
+	#define ECCF_PADDR	4
+	#define ECCF_SIZE	(5 * sizeof(long))
 
 #endif /* !__ASSEMBLY__ */
 
@@ -80,6 +80,6 @@
 #define LED_CYCLE_SHFT	4
 
 #define SEND_NMI(_nasid, _slice)	\
-	  REMOTE_HUB_S((_nasid),  (PI_NMI_A + ((_slice) * PI_NMI_OFFSET)), 1)
+	REMOTE_HUB_S((_nasid),  (PI_NMI_A + ((_slice) * PI_NMI_OFFSET)), 1)
 
 #endif /* _ASM_SN_SN0_IP27_H */

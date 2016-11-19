@@ -66,7 +66,7 @@
 #define sysctl_w32(m, x, y)	ltq_w32((x), sysctl_membase[m] + (y))
 #define sysctl_r32(m, x)	ltq_r32(sysctl_membase[m] + (x))
 #define sysctl_w32_mask(m, clear, set, reg)	\
-		sysctl_w32(m, (sysctl_r32(m, reg) & ~(clear)) | (set), reg)
+	sysctl_w32(m, (sysctl_r32(m, reg) & ~(clear)) | (set), reg)
 
 #define status_w32(x, y)	ltq_w32((x), status_membase + (y))
 #define status_r32(x)		ltq_r32(status_membase + (x))
@@ -80,16 +80,18 @@ void falcon_trigger_hrst(int level)
 }
 
 static inline void sysctl_wait(struct clk *clk,
-		unsigned int test, unsigned int reg)
+							   unsigned int test, unsigned int reg)
 {
 	int err = 1000000;
 
-	do {} while (--err && ((sysctl_r32(clk->module, reg)
-					& clk->bits) != test));
+	do {}
+	while (--err && ((sysctl_r32(clk->module, reg)
+					  & clk->bits) != test));
+
 	if (!err)
 		pr_err("module de/activation failed %d %08X %08X %08X\n",
-			clk->module, clk->bits, test,
-			sysctl_r32(clk->module, reg) & clk->bits);
+			   clk->module, clk->bits, test,
+			   sysctl_r32(clk->module, reg) & clk->bits);
 }
 
 static int sysctl_activate(struct clk *clk)
@@ -128,11 +130,14 @@ static void sysctl_reboot(struct clk *clk)
 
 	act = sysctl_r32(clk->module, SYSCTL_ACT);
 	bits = ~act & clk->bits;
-	if (bits != 0) {
+
+	if (bits != 0)
+	{
 		sysctl_w32(clk->module, bits, SYSCTL_CLKEN);
 		sysctl_w32(clk->module, bits, SYSCTL_ACT);
 		sysctl_wait(clk, bits, SYSCTL_ACTS);
 	}
+
 	sysctl_w32(clk->module, act & clk->bits, SYSCTL_RBT);
 	sysctl_wait(clk, clk->bits, SYSCTL_ACTS);
 }
@@ -145,18 +150,24 @@ static void falcon_gpe_enable(void)
 
 	/* if if the clock is already enabled */
 	status = sysctl_r32(SYSCTL_SYS1, SYS1_INFRAC);
+
 	if (status & (1 << (GPPC_OFFSET + 1)))
+	{
 		return;
+	}
 
 	freq = (status_r32(STATUS_CONFIG) &
-		GPEFREQ_MASK) >>
-		GPEFREQ_OFFSET;
+			GPEFREQ_MASK) >>
+		   GPEFREQ_OFFSET;
+
 	if (freq == 0)
-		freq = 1; /* use 625MHz on unfused chip */
+	{
+		freq = 1;    /* use 625MHz on unfused chip */
+	}
 
 	/* apply new frequency */
 	sysctl_w32_mask(SYSCTL_SYS1, 7 << (GPPC_OFFSET + 1),
-		freq << (GPPC_OFFSET + 2) , SYS1_INFRAC);
+					freq << (GPPC_OFFSET + 2) , SYS1_INFRAC);
 	udelay(1);
 
 	/* enable new frequency */
@@ -165,7 +176,7 @@ static void falcon_gpe_enable(void)
 }
 
 static inline void clkdev_add_sys(const char *dev, unsigned int module,
-					unsigned int bits)
+								  unsigned int bits)
 {
 	struct clk *clk = kzalloc(sizeof(struct clk), GFP_KERNEL);
 
@@ -199,53 +210,70 @@ void __init ltq_soc_init(void)
 
 	/* check if all the core register ranges are available */
 	if (!np_status || !np_ebu || !np_sys1 || !np_syseth || !np_sysgpe)
+	{
 		panic("Failed to load core nodes from devicetree");
+	}
 
 	if (of_address_to_resource(np_status, 0, &res_status) ||
-			of_address_to_resource(np_ebu, 0, &res_ebu) ||
-			of_address_to_resource(np_sys1, 0, &res_sys[0]) ||
-			of_address_to_resource(np_syseth, 0, &res_sys[1]) ||
-			of_address_to_resource(np_sysgpe, 0, &res_sys[2]))
+		of_address_to_resource(np_ebu, 0, &res_ebu) ||
+		of_address_to_resource(np_sys1, 0, &res_sys[0]) ||
+		of_address_to_resource(np_syseth, 0, &res_sys[1]) ||
+		of_address_to_resource(np_sysgpe, 0, &res_sys[2]))
+	{
 		panic("Failed to get core resources");
+	}
 
 	if ((request_mem_region(res_status.start, resource_size(&res_status),
-				res_status.name) < 0) ||
+							res_status.name) < 0) ||
 		(request_mem_region(res_ebu.start, resource_size(&res_ebu),
-				res_ebu.name) < 0) ||
+							res_ebu.name) < 0) ||
 		(request_mem_region(res_sys[0].start,
-				resource_size(&res_sys[0]),
-				res_sys[0].name) < 0) ||
+							resource_size(&res_sys[0]),
+							res_sys[0].name) < 0) ||
 		(request_mem_region(res_sys[1].start,
-				resource_size(&res_sys[1]),
-				res_sys[1].name) < 0) ||
+							resource_size(&res_sys[1]),
+							res_sys[1].name) < 0) ||
 		(request_mem_region(res_sys[2].start,
-				resource_size(&res_sys[2]),
-				res_sys[2].name) < 0))
+							resource_size(&res_sys[2]),
+							res_sys[2].name) < 0))
+	{
 		pr_err("Failed to request core resources");
+	}
 
 	status_membase = ioremap_nocache(res_status.start,
-					resource_size(&res_status));
+									 resource_size(&res_status));
 	ltq_ebu_membase = ioremap_nocache(res_ebu.start,
-					resource_size(&res_ebu));
+									  resource_size(&res_ebu));
 
 	if (!status_membase || !ltq_ebu_membase)
+	{
 		panic("Failed to remap core resources");
-
-	for (i = 0; i < 3; i++) {
-		sysctl_membase[i] = ioremap_nocache(res_sys[i].start,
-						resource_size(&res_sys[i]));
-		if (!sysctl_membase[i])
-			panic("Failed to remap sysctrl resources");
 	}
+
+	for (i = 0; i < 3; i++)
+	{
+		sysctl_membase[i] = ioremap_nocache(res_sys[i].start,
+											resource_size(&res_sys[i]));
+
+		if (!sysctl_membase[i])
+		{
+			panic("Failed to remap sysctrl resources");
+		}
+	}
+
 	ltq_sys1_membase = sysctl_membase[0];
 
 	falcon_gpe_enable();
 
 	/* get our 3 static rates for cpu, fpi and io clocks */
 	if (ltq_sys1_r32(SYS1_CPU0CC) & CPU0CC_CPUDIV)
+	{
 		clkdev_add_static(CLOCK_200M, CLOCK_100M, CLOCK_200M, 0);
+	}
 	else
+	{
 		clkdev_add_static(CLOCK_400M, CLOCK_100M, CLOCK_200M, 0);
+	}
 
 	/* add our clock domains */
 	clkdev_add_sys("1d810000.gpio", SYSCTL_SYSETH, ACTS_P0);

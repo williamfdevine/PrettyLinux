@@ -38,7 +38,7 @@
 #define IOMEM(x)        ((void __force __iomem *)(x))
 
 extern int remap_area_pages(unsigned long start, unsigned long phys_addr,
-				unsigned long end, unsigned long flags);
+							unsigned long end, unsigned long flags);
 
 extern void __iounmap(const volatile void __iomem *addr);
 
@@ -205,13 +205,13 @@ static inline void iounmap(volatile void __iomem *addr)
 #define __raw_writel writel
 
 static inline void memcpy_fromio(void *dst, const volatile void __iomem *src,
-	int count)
+								 int count)
 {
 	memcpy(dst, (void *) src, count);
 }
 
 static inline void memcpy_toio(volatile void __iomem *dst, const void *src,
-	int count)
+							   int count)
 {
 	memcpy((void *) dst, src, count);
 }
@@ -269,64 +269,88 @@ static inline void outl(u32 data, unsigned long port)
 
 static inline void insb(unsigned long port, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u8 *buf = buffer;
-		do {
+
+		do
+		{
 			u8 x = inb(port);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void insw(unsigned long port, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u16 *buf = buffer;
-		do {
+
+		do
+		{
 			u16 x = inw(port);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void insl(unsigned long port, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u32 *buf = buffer;
-		do {
+
+		do
+		{
 			u32 x = inw(port);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void outsb(unsigned long port, const void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		const u8 *buf = buffer;
-		do {
+
+		do
+		{
 			outb(*buf++, port);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void outsw(unsigned long port, const void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		const u16 *buf = buffer;
-		do {
+
+		do
+		{
 			outw(*buf++, port);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void outsl(unsigned long port, const void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		const u32 *buf = buffer;
-		do {
+
+		do
+		{
 			outl(*buf++, port);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 

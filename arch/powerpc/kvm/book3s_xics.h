@@ -26,13 +26,14 @@
  */
 #define KVMPPC_XICS_FIRST_IRQ	16
 #define KVMPPC_XICS_NR_IRQS	((KVMPPC_XICS_MAX_ICS_ID + 1) * \
-				 KVMPPC_XICS_IRQ_PER_ICS)
+							 KVMPPC_XICS_IRQ_PER_ICS)
 
 /* Priority value to use for disabling an interrupt */
 #define MASKED	0xff
 
 /* State for one irq source */
-struct ics_irq_state {
+struct ics_irq_state
+{
 	u32 number;
 	u32 server;
 	u8  priority;
@@ -47,11 +48,13 @@ struct ics_irq_state {
 };
 
 /* Atomic ICP state, updated with a single compare & swap */
-union kvmppc_icp_state {
+union kvmppc_icp_state
+{
 	unsigned long raw;
-	struct {
-		u8 out_ee:1;
-		u8 need_resend:1;
+	struct
+	{
+		u8 out_ee: 1;
+		u8 need_resend: 1;
 		u8 cppr;
 		u8 mfrr;
 		u8 pending_pri;
@@ -62,7 +65,8 @@ union kvmppc_icp_state {
 /* One bit per ICS */
 #define ICP_RESEND_MAP_SIZE	(KVMPPC_XICS_MAX_ICS_ID / BITS_PER_LONG + 1)
 
-struct kvmppc_icp {
+struct kvmppc_icp
+{
 	struct kvm_vcpu *vcpu;
 	unsigned long server_num;
 	union kvmppc_icp_state state;
@@ -95,13 +99,15 @@ struct kvmppc_icp {
 	struct kvm_vcpu *rm_dbgtgt;
 };
 
-struct kvmppc_ics {
+struct kvmppc_ics
+{
 	arch_spinlock_t lock;
 	u16 icsid;
 	struct ics_irq_state irq_state[KVMPPC_XICS_IRQ_PER_ICS];
 };
 
-struct kvmppc_xics {
+struct kvmppc_xics
+{
 	struct kvm *kvm;
 	struct kvm_device *dev;
 	struct dentry *dentry;
@@ -114,32 +120,45 @@ struct kvmppc_xics {
 };
 
 static inline struct kvmppc_icp *kvmppc_xics_find_server(struct kvm *kvm,
-							 u32 nr)
+		u32 nr)
 {
 	struct kvm_vcpu *vcpu = NULL;
 	int i;
 
-	kvm_for_each_vcpu(i, vcpu, kvm) {
+	kvm_for_each_vcpu(i, vcpu, kvm)
+	{
 		if (vcpu->arch.icp && nr == vcpu->arch.icp->server_num)
+		{
 			return vcpu->arch.icp;
+		}
 	}
 	return NULL;
 }
 
 static inline struct kvmppc_ics *kvmppc_xics_find_ics(struct kvmppc_xics *xics,
-						      u32 irq, u16 *source)
+		u32 irq, u16 *source)
 {
 	u32 icsid = irq >> KVMPPC_XICS_ICS_SHIFT;
 	u16 src = irq & KVMPPC_XICS_SRC_MASK;
 	struct kvmppc_ics *ics;
 
 	if (source)
+	{
 		*source = src;
+	}
+
 	if (icsid > KVMPPC_XICS_MAX_ICS_ID)
+	{
 		return NULL;
+	}
+
 	ics = xics->ics[icsid];
+
 	if (!ics)
+	{
 		return NULL;
+	}
+
 	return ics;
 }
 

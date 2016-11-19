@@ -55,24 +55,28 @@ static int pci_fire_pbm_iommu_init(struct pci_pbm_info *pbm)
 	upa_writeq(~(u64)0, iommu->iommu_flushinv);
 
 	err = iommu_table_init(iommu, tsbsize * 8 * 1024, vdma[0], dma_mask,
-			       pbm->numa_node);
+						   pbm->numa_node);
+
 	if (err)
+	{
 		return err;
+	}
 
 	upa_writeq(__pa(iommu->page_table) | 0x7UL, iommu->iommu_tsbbase);
 
 	control = upa_readq(iommu->iommu_control);
 	control |= (0x00000400 /* TSB cache snoop enable */	|
-		    0x00000300 /* Cache mode */			|
-		    0x00000002 /* Bypass enable */		|
-		    0x00000001 /* Translation enable */);
+				0x00000300 /* Cache mode */			|
+				0x00000002 /* Bypass enable */		|
+				0x00000001 /* Translation enable */);
 	upa_writeq(control, iommu->iommu_control);
 
 	return 0;
 }
 
 #ifdef CONFIG_PCI_MSI
-struct pci_msiq_entry {
+struct pci_msiq_entry
+{
 	u64		word0;
 #define MSIQ_WORD0_RESV			0x8000000000000000UL
 #define MSIQ_WORD0_FMT_TYPE		0x7f00000000000000UL
@@ -146,14 +150,14 @@ struct pci_msiq_entry {
 #define  MSI_64BIT_ADDR_VAL		0xffffffffffff0000UL
 
 static int pci_fire_get_head(struct pci_pbm_info *pbm, unsigned long msiqid,
-			     unsigned long *head)
+							 unsigned long *head)
 {
 	*head = upa_readq(pbm->pbm_regs + EVENT_QUEUE_HEAD(msiqid));
 	return 0;
 }
 
 static int pci_fire_dequeue_msi(struct pci_pbm_info *pbm, unsigned long msiqid,
-				unsigned long *head, unsigned long *msi)
+								unsigned long *head, unsigned long *msi)
 {
 	unsigned long type_fmt, type, msi_num;
 	struct pci_msiq_entry *base, *ep;
@@ -162,17 +166,22 @@ static int pci_fire_dequeue_msi(struct pci_pbm_info *pbm, unsigned long msiqid,
 	ep = &base[*head];
 
 	if ((ep->word0 & MSIQ_WORD0_FMT_TYPE) == 0)
+	{
 		return 0;
+	}
 
 	type_fmt = ((ep->word0 & MSIQ_WORD0_FMT_TYPE) >>
-		    MSIQ_WORD0_FMT_TYPE_SHIFT);
+				MSIQ_WORD0_FMT_TYPE_SHIFT);
 	type = (type_fmt >> 3);
+
 	if (unlikely(type != MSIQ_TYPE_MSI32 &&
-		     type != MSIQ_TYPE_MSI64))
+				 type != MSIQ_TYPE_MSI64))
+	{
 		return -EINVAL;
+	}
 
 	*msi = msi_num = ((ep->word0 & MSIQ_WORD0_DATA0) >>
-			  MSIQ_WORD0_DATA0_SHIFT);
+					  MSIQ_WORD0_DATA0_SHIFT);
 
 	upa_writeq(MSI_CLEAR_EQWR_N, pbm->pbm_regs + MSI_CLEAR(msi_num));
 
@@ -181,21 +190,24 @@ static int pci_fire_dequeue_msi(struct pci_pbm_info *pbm, unsigned long msiqid,
 
 	/* Go to next entry in ring.  */
 	(*head)++;
+
 	if (*head >= pbm->msiq_ent_count)
+	{
 		*head = 0;
+	}
 
 	return 1;
 }
 
 static int pci_fire_set_head(struct pci_pbm_info *pbm, unsigned long msiqid,
-			     unsigned long head)
+							 unsigned long head)
 {
 	upa_writeq(head, pbm->pbm_regs + EVENT_QUEUE_HEAD(msiqid));
 	return 0;
 }
 
 static int pci_fire_msi_setup(struct pci_pbm_info *pbm, unsigned long msiqid,
-			      unsigned long msi, int is_msi64)
+							  unsigned long msi, int is_msi64)
 {
 	u64 val;
 
@@ -232,17 +244,20 @@ static int pci_fire_msiq_alloc(struct pci_pbm_info *pbm)
 
 	order = get_order(512 * 1024);
 	pages = __get_free_pages(GFP_KERNEL | __GFP_COMP, order);
-	if (pages == 0UL) {
+
+	if (pages == 0UL)
+	{
 		printk(KERN_ERR "MSI: Cannot allocate MSI queues (o=%lu).\n",
-		       order);
+			   order);
 		return -ENOMEM;
 	}
+
 	memset((char *)pages, 0, PAGE_SIZE << order);
 	pbm->msi_queues = (void *) pages;
 
 	upa_writeq((EVENT_QUEUE_BASE_ADDR_ALL_ONES |
-		    __pa(pbm->msi_queues)),
-		   pbm->pbm_regs + EVENT_QUEUE_BASE_ADDR_REG);
+				__pa(pbm->msi_queues)),
+			   pbm->pbm_regs + EVENT_QUEUE_BASE_ADDR_REG);
 
 	upa_writeq(pbm->portid << 6, pbm->pbm_regs + IMONDO_DATA0);
 	upa_writeq(0, pbm->pbm_regs + IMONDO_DATA1);
@@ -250,7 +265,8 @@ static int pci_fire_msiq_alloc(struct pci_pbm_info *pbm)
 	upa_writeq(pbm->msi32_start, pbm->pbm_regs + MSI_32BIT_ADDR);
 	upa_writeq(pbm->msi64_start, pbm->pbm_regs + MSI_64BIT_ADDR);
 
-	for (i = 0; i < pbm->msiq_num; i++) {
+	for (i = 0; i < pbm->msiq_num; i++)
+	{
 		upa_writeq(0, pbm->pbm_regs + EVENT_QUEUE_HEAD(i));
 		upa_writeq(0, pbm->pbm_regs + EVENT_QUEUE_TAIL(i));
 	}
@@ -271,8 +287,8 @@ static void pci_fire_msiq_free(struct pci_pbm_info *pbm)
 }
 
 static int pci_fire_msiq_build_irq(struct pci_pbm_info *pbm,
-				   unsigned long msiqid,
-				   unsigned long devino)
+								   unsigned long msiqid,
+								   unsigned long devino)
 {
 	unsigned long cregs = (unsigned long) pbm->pbm_regs;
 	unsigned long imap_reg, iclr_reg, int_ctrlr;
@@ -293,16 +309,20 @@ static int pci_fire_msiq_build_irq(struct pci_pbm_info *pbm,
 	fixup = ((pbm->portid << 6) | devino) - int_ctrlr;
 
 	irq = build_irq(fixup, iclr_reg, imap_reg);
+
 	if (!irq)
+	{
 		return -ENOMEM;
+	}
 
 	upa_writeq(EVENT_QUEUE_CONTROL_SET_EN,
-		   pbm->pbm_regs + EVENT_QUEUE_CONTROL_SET(msiqid));
+			   pbm->pbm_regs + EVENT_QUEUE_CONTROL_SET(msiqid));
 
 	return irq;
 }
 
-static const struct sparc64_msiq_ops pci_fire_msiq_ops = {
+static const struct sparc64_msiq_ops pci_fire_msiq_ops =
+{
 	.get_head	=	pci_fire_get_head,
 	.dequeue_msi	=	pci_fire_dequeue_msi,
 	.set_head	=	pci_fire_set_head,
@@ -366,39 +386,39 @@ static void pci_fire_hw_init(struct pci_pbm_info *pbm)
 	u64 val;
 
 	upa_writeq(FIRE_PARITY_ENAB,
-		   pbm->controller_regs + FIRE_PARITY_CONTROL);
+			   pbm->controller_regs + FIRE_PARITY_CONTROL);
 
 	upa_writeq((FIRE_FATAL_RESET_SPARE |
-		    FIRE_FATAL_RESET_MB |
-		    FIRE_FATAL_RESET_CPE |
-		    FIRE_FATAL_RESET_APE |
-		    FIRE_FATAL_RESET_PIO |
-		    FIRE_FATAL_RESET_JW |
-		    FIRE_FATAL_RESET_JI |
-		    FIRE_FATAL_RESET_JR),
-		   pbm->controller_regs + FIRE_FATAL_RESET_CTL);
+				FIRE_FATAL_RESET_MB |
+				FIRE_FATAL_RESET_CPE |
+				FIRE_FATAL_RESET_APE |
+				FIRE_FATAL_RESET_PIO |
+				FIRE_FATAL_RESET_JW |
+				FIRE_FATAL_RESET_JI |
+				FIRE_FATAL_RESET_JR),
+			   pbm->controller_regs + FIRE_FATAL_RESET_CTL);
 
 	upa_writeq(~(u64)0, pbm->controller_regs + FIRE_CORE_INTR_ENABLE);
 
 	val = upa_readq(pbm->pbm_regs + FIRE_TLU_CTRL);
 	val |= (FIRE_TLU_CTRL_TIM |
-		FIRE_TLU_CTRL_QDET |
-		FIRE_TLU_CTRL_CFG);
+			FIRE_TLU_CTRL_QDET |
+			FIRE_TLU_CTRL_CFG);
 	upa_writeq(val, pbm->pbm_regs + FIRE_TLU_CTRL);
 	upa_writeq(0, pbm->pbm_regs + FIRE_TLU_DEV_CTRL);
 	upa_writeq(FIRE_TLU_LINK_CTRL_CLK,
-		   pbm->pbm_regs + FIRE_TLU_LINK_CTRL);
+			   pbm->pbm_regs + FIRE_TLU_LINK_CTRL);
 
 	upa_writeq(0, pbm->pbm_regs + FIRE_LPU_RESET);
 	upa_writeq(FIRE_LPU_LLCFG_VC0, pbm->pbm_regs + FIRE_LPU_LLCFG);
 	upa_writeq((FIRE_LPU_FCTRL_UCTRL_N | FIRE_LPU_FCTRL_UCTRL_P),
-		   pbm->pbm_regs + FIRE_LPU_FCTRL_UCTRL);
+			   pbm->pbm_regs + FIRE_LPU_FCTRL_UCTRL);
 	upa_writeq(((0xffff << 16) | (0x0000 << 0)),
-		   pbm->pbm_regs + FIRE_LPU_TXL_FIFOP);
+			   pbm->pbm_regs + FIRE_LPU_TXL_FIFOP);
 	upa_writeq(3000000, pbm->pbm_regs + FIRE_LPU_LTSSM_CFG2);
 	upa_writeq(500000, pbm->pbm_regs + FIRE_LPU_LTSSM_CFG3);
 	upa_writeq((2 << 16) | (140 << 8),
-		   pbm->pbm_regs + FIRE_LPU_LTSSM_CFG4);
+			   pbm->pbm_regs + FIRE_LPU_LTSSM_CFG4);
 	upa_writeq(0, pbm->pbm_regs + FIRE_LPU_LTSSM_CFG5);
 
 	upa_writeq(~(u64)0, pbm->pbm_regs + FIRE_DMC_IENAB);
@@ -409,7 +429,7 @@ static void pci_fire_hw_init(struct pci_pbm_info *pbm)
 }
 
 static int pci_fire_pbm_init(struct pci_pbm_info *pbm,
-			     struct platform_device *op, u32 portid)
+							 struct platform_device *op, u32 portid)
 {
 	const struct linux_prom64_registers *regs;
 	struct device_node *dp = op->dev.of_node;
@@ -439,8 +459,11 @@ static int pci_fire_pbm_init(struct pci_pbm_info *pbm,
 	pci_fire_hw_init(pbm);
 
 	err = pci_fire_pbm_iommu_init(pbm);
+
 	if (err)
+	{
 		return err;
+	}
 
 	pci_fire_msi_init(pbm);
 
@@ -466,13 +489,17 @@ static int fire_probe(struct platform_device *op)
 
 	err = -ENOMEM;
 	pbm = kzalloc(sizeof(*pbm), GFP_KERNEL);
-	if (!pbm) {
+
+	if (!pbm)
+	{
 		printk(KERN_ERR PFX "Cannot allocate pci_pbminfo.\n");
 		goto out_err;
 	}
 
 	iommu = kzalloc(sizeof(struct iommu), GFP_KERNEL);
-	if (!iommu) {
+
+	if (!iommu)
+	{
 		printk(KERN_ERR PFX "Cannot allocate PBM iommu.\n");
 		goto out_free_controller;
 	}
@@ -480,8 +507,11 @@ static int fire_probe(struct platform_device *op)
 	pbm->iommu = iommu;
 
 	err = pci_fire_pbm_init(pbm, op, portid);
+
 	if (err)
+	{
 		goto out_free_iommu;
+	}
 
 	dev_set_drvdata(&op->dev, pbm);
 
@@ -489,7 +519,7 @@ static int fire_probe(struct platform_device *op)
 
 out_free_iommu:
 	kfree(pbm->iommu);
-			
+
 out_free_controller:
 	kfree(pbm);
 
@@ -497,7 +527,8 @@ out_err:
 	return err;
 }
 
-static const struct of_device_id fire_match[] = {
+static const struct of_device_id fire_match[] =
+{
 	{
 		.name = "pci",
 		.compatible = "pciex108e,80f0",
@@ -505,7 +536,8 @@ static const struct of_device_id fire_match[] = {
 	{},
 };
 
-static struct platform_driver fire_driver = {
+static struct platform_driver fire_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = fire_match,

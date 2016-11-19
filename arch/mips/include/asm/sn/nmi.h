@@ -50,7 +50,8 @@
 
 #ifndef __ASSEMBLY__
 
-typedef struct nmi_s {
+typedef struct nmi_s
+{
 	volatile unsigned long	 magic;		/* Magic number */
 	volatile unsigned long	 flags;		/* Combination of flags above */
 	volatile void *call_addr;	/* Routine for slave to call	    */
@@ -67,7 +68,8 @@ typedef struct nmi_s {
  */
 #ifndef __ASSEMBLY__
 
-struct reg_struct {
+struct reg_struct
+{
 	unsigned long	gpr[32];
 	unsigned long	sr;
 	unsigned long	cause;

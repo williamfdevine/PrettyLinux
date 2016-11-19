@@ -9,7 +9,8 @@
 #ifndef __S390_NUMA_MODE_H
 #define __S390_NUMA_MODE_H
 
-struct numa_mode {
+struct numa_mode
+{
 	char *name;				/* Name of mode */
 	void (*setup)(void);			/* Initizalize mode */
 	void (*update_cpu_topology)(void);	/* Called by topology code */

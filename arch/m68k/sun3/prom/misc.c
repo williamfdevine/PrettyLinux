@@ -58,7 +58,8 @@ prom_get_idprom(char *idbuf, int num_bytes)
 	int i, oldsfc;
 	GET_SFC(oldsfc);
 	SET_SFC(FC_CONTROL);
-	for(i=0;i<num_bytes; i++)
+
+	for (i = 0; i < num_bytes; i++)
 	{
 		/* There is a problem with the GET_CONTROL_BYTE
 		macro; defining the extra variable
@@ -68,6 +69,7 @@ prom_get_idprom(char *idbuf, int num_bytes)
 		GET_CONTROL_BYTE(SUN3_IDPROM_BASE + i, c);
 		idbuf[i] = c;
 	}
+
 	SET_SFC(oldsfc);
 	return idbuf[0];
 }

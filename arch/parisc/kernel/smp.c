@@ -4,7 +4,7 @@
 ** Copyright (C) 1999 Walt Drummond <drummond@valinux.com>
 ** Copyright (C) 1999 David Mosberger-Tang <davidm@hpl.hp.com>
 ** Copyright (C) 2001,2004 Grant Grundler <grundler@parisc-linux.org>
-** 
+**
 ** Lots of stuff stolen from arch/alpha/kernel/smp.c
 ** ...and then parisc stole from arch/ia64/kernel/smp.c. Thanks David! :^)
 **
@@ -53,8 +53,8 @@
 #ifdef DEBUG_SMP
 static int smp_debug_lvl = 0;
 #define smp_debug(lvl, printargs...)		\
-		if (lvl >= smp_debug_lvl)	\
-			printk(printargs);
+	if (lvl >= smp_debug_lvl)	\
+		printk(printargs);
 #else
 #define smp_debug(lvl, ...)	do { } while(0)
 #endif /* DEBUG_SMP */
@@ -68,9 +68,10 @@ static int parisc_max_cpus = 1;
 
 static DEFINE_PER_CPU(spinlock_t, ipi_lock);
 
-enum ipi_message_type {
-	IPI_NOP=0,
-	IPI_RESCHEDULE=1,
+enum ipi_message_type
+{
+	IPI_NOP = 0,
+	IPI_RESCHEDULE = 1,
 	IPI_CALL_FUNC,
 	IPI_CPU_START,
 	IPI_CPU_STOP,
@@ -91,7 +92,7 @@ ipi_init(int cpuid)
 {
 #error verify IRQ_OFFSET(IPI_IRQ) is ipi_interrupt() in new IRQ region
 
-	if(cpu_online(cpuid) )
+	if (cpu_online(cpuid) )
 	{
 		switch_to_idle_task(current);
 	}
@@ -102,30 +103,32 @@ ipi_init(int cpuid)
 
 
 /*
-** Yoink this CPU from the runnable list... 
+** Yoink this CPU from the runnable list...
 **
 */
 static void
-halt_processor(void) 
+halt_processor(void)
 {
 	/* REVISIT : redirect I/O Interrupts to another CPU? */
 	/* REVISIT : does PM *know* this CPU isn't available? */
 	set_cpu_online(smp_processor_id(), false);
 	local_irq_disable();
+
 	for (;;)
 		;
 }
 
 
 irqreturn_t __irq_entry
-ipi_interrupt(int irq, void *dev_id) 
+ipi_interrupt(int irq, void *dev_id)
 {
 	int this_cpu = smp_processor_id();
 	struct cpuinfo_parisc *p = &per_cpu(cpu_data, this_cpu);
 	unsigned long ops;
 	unsigned long flags;
 
-	for (;;) {
+	for (;;)
+	{
 		spinlock_t *lock = &per_cpu(ipi_lock, this_cpu);
 		spin_lock_irqsave(lock, flags);
 		ops = p->pending_ipi;
@@ -135,52 +138,58 @@ ipi_interrupt(int irq, void *dev_id)
 		mb(); /* Order bit clearing and data access. */
 
 		if (!ops)
-		    break;
+		{
+			break;
+		}
 
-		while (ops) {
+		while (ops)
+		{
 			unsigned long which = ffz(~ops);
 
 			ops &= ~(1 << which);
 
-			switch (which) {
-			case IPI_NOP:
-				smp_debug(100, KERN_DEBUG "CPU%d IPI_NOP\n", this_cpu);
-				break;
-				
-			case IPI_RESCHEDULE:
-				smp_debug(100, KERN_DEBUG "CPU%d IPI_RESCHEDULE\n", this_cpu);
-				inc_irq_stat(irq_resched_count);
-				scheduler_ipi();
-				break;
+			switch (which)
+			{
+				case IPI_NOP:
+					smp_debug(100, KERN_DEBUG "CPU%d IPI_NOP\n", this_cpu);
+					break;
 
-			case IPI_CALL_FUNC:
-				smp_debug(100, KERN_DEBUG "CPU%d IPI_CALL_FUNC\n", this_cpu);
-				generic_smp_call_function_interrupt();
-				break;
+				case IPI_RESCHEDULE:
+					smp_debug(100, KERN_DEBUG "CPU%d IPI_RESCHEDULE\n", this_cpu);
+					inc_irq_stat(irq_resched_count);
+					scheduler_ipi();
+					break;
 
-			case IPI_CPU_START:
-				smp_debug(100, KERN_DEBUG "CPU%d IPI_CPU_START\n", this_cpu);
-				break;
+				case IPI_CALL_FUNC:
+					smp_debug(100, KERN_DEBUG "CPU%d IPI_CALL_FUNC\n", this_cpu);
+					generic_smp_call_function_interrupt();
+					break;
 
-			case IPI_CPU_STOP:
-				smp_debug(100, KERN_DEBUG "CPU%d IPI_CPU_STOP\n", this_cpu);
-				halt_processor();
-				break;
+				case IPI_CPU_START:
+					smp_debug(100, KERN_DEBUG "CPU%d IPI_CPU_START\n", this_cpu);
+					break;
 
-			case IPI_CPU_TEST:
-				smp_debug(100, KERN_DEBUG "CPU%d is alive!\n", this_cpu);
-				break;
+				case IPI_CPU_STOP:
+					smp_debug(100, KERN_DEBUG "CPU%d IPI_CPU_STOP\n", this_cpu);
+					halt_processor();
+					break;
 
-			default:
-				printk(KERN_CRIT "Unknown IPI num on CPU%d: %lu\n",
-					this_cpu, which);
-				return IRQ_NONE;
+				case IPI_CPU_TEST:
+					smp_debug(100, KERN_DEBUG "CPU%d is alive!\n", this_cpu);
+					break;
+
+				default:
+					printk(KERN_CRIT "Unknown IPI num on CPU%d: %lu\n",
+						   this_cpu, which);
+					return IRQ_NONE;
 			} /* Switch */
-		/* let in any pending interrupts */
-		local_irq_enable();
-		local_irq_disable();
+
+			/* let in any pending interrupts */
+			local_irq_enable();
+			local_irq_disable();
 		} /* while (ops) */
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -204,7 +213,7 @@ send_IPI_mask(const struct cpumask *mask, enum ipi_message_type op)
 	int cpu;
 
 	for_each_cpu(cpu, mask)
-		ipi_send(cpu, op);
+	ipi_send(cpu, op);
 }
 
 static inline void
@@ -219,18 +228,21 @@ static inline void
 send_IPI_allbutself(enum ipi_message_type op)
 {
 	int i;
-	
-	for_each_online_cpu(i) {
+
+	for_each_online_cpu(i)
+	{
 		if (i != smp_processor_id())
+		{
 			send_IPI_single(i, op);
+		}
 	}
 }
 
 
-inline void 
+inline void
 smp_send_stop(void)	{ send_IPI_allbutself(IPI_CPU_STOP); }
 
-void 
+void
 smp_send_reschedule(int cpu) { send_IPI_single(cpu, IPI_RESCHEDULE); }
 
 void
@@ -267,7 +279,8 @@ smp_cpu_init(int cpunum)
 	mb();
 
 	/* Well, support 2.4 linux scheme as well. */
-	if (cpu_online(cpunum))	{
+	if (cpu_online(cpunum))
+	{
 		extern void machine_halt(void); /* arch/parisc.../process.c */
 
 		printk(KERN_CRIT "CPU#%d already initialized!\n", cpunum);
@@ -326,7 +339,7 @@ int smp_boot_one_cpu(int cpuid, struct task_struct *idle)
 	*/
 	cpu_now_booting = cpuid;
 
-	/* 
+	/*
 	** boot strap code needs to know the task address since
 	** it also contains the process stack.
 	*/
@@ -339,36 +352,40 @@ int smp_boot_one_cpu(int cpuid, struct task_struct *idle)
 	** This gets PDC to release the CPU from a very tight loop.
 	**
 	** From the PA-RISC 2.0 Firmware Architecture Reference Specification:
-	** "The MEM_RENDEZ vector specifies the location of OS_RENDEZ which 
-	** is executed after receiving the rendezvous signal (an interrupt to 
-	** EIR{0}). MEM_RENDEZ is valid only when it is nonzero and the 
+	** "The MEM_RENDEZ vector specifies the location of OS_RENDEZ which
+	** is executed after receiving the rendezvous signal (an interrupt to
+	** EIR{0}). MEM_RENDEZ is valid only when it is nonzero and the
 	** contents of memory are valid."
 	*/
 	gsc_writel(TIMER_IRQ - CPU_IRQ_BASE, p->hpa);
 	mb();
 
-	/* 
-	 * OK, wait a bit for that CPU to finish staggering about. 
+	/*
+	 * OK, wait a bit for that CPU to finish staggering about.
 	 * Slave will set a bit when it reaches smp_cpu_init().
 	 * Once the "monarch CPU" sees the bit change, it can move on.
 	 */
-	for (timeout = 0; timeout < 10000; timeout++) {
-		if(cpu_online(cpuid)) {
+	for (timeout = 0; timeout < 10000; timeout++)
+	{
+		if (cpu_online(cpuid))
+		{
 			/* Which implies Slave has started up */
 			cpu_now_booting = 0;
 			smp_init_current_idle_task = NULL;
 			goto alive ;
 		}
+
 		udelay(100);
 		barrier();
 	}
+
 	printk(KERN_CRIT "SMP: CPU:%d is stuck.\n", cpuid);
 	return -1;
 
 alive:
 	/* Remember the Slave data */
 	smp_debug(100, KERN_DEBUG "SMP: CPU:%d came alive after %ld _us\n",
-		cpuid, timeout * 100);
+			  cpuid, timeout * 100);
 	return 0;
 }
 
@@ -394,13 +411,16 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 	int cpu;
 
 	for_each_possible_cpu(cpu)
-		spin_lock_init(&per_cpu(ipi_lock, cpu));
+	spin_lock_init(&per_cpu(ipi_lock, cpu));
 
 	init_cpu_present(cpumask_of(0));
 
 	parisc_max_cpus = max_cpus;
+
 	if (!max_cpus)
+	{
 		printk(KERN_INFO "SMP mode deactivated.\n");
+	}
 }
 
 
@@ -413,7 +433,9 @@ void smp_cpus_done(unsigned int cpu_max)
 int __cpu_up(unsigned int cpu, struct task_struct *tidle)
 {
 	if (cpu != 0 && cpu < parisc_max_cpus && smp_boot_one_cpu(cpu, tidle))
+	{
 		return -ENOSYS;
+	}
 
 	return cpu_online(cpu) ? 0 : -ENOSYS;
 }

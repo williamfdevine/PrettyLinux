@@ -14,7 +14,8 @@
 #define __ASM_PLAT_SAMSUNG_TIME_H __FILE__
 
 /* SAMSUNG HR-Timer Clock mode */
-enum samsung_timer_mode {
+enum samsung_timer_mode
+{
 	SAMSUNG_PWM0,
 	SAMSUNG_PWM1,
 	SAMSUNG_PWM2,
@@ -23,7 +24,7 @@ enum samsung_timer_mode {
 };
 
 extern void __init samsung_set_timer_source(enum samsung_timer_mode event,
-					enum samsung_timer_mode source);
+		enum samsung_timer_mode source);
 
 extern void __init samsung_timer_init(void);
 

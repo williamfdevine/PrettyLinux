@@ -34,14 +34,16 @@ struct pci_ops *pci_root_ops;
  *
  * These are configured and inserted by pcibios_init().
  */
-static struct resource pci_ioport_resource = {
+static struct resource pci_ioport_resource =
+{
 	.name	= "PCI IO",
 	.start	= 0xbe000000,
 	.end	= 0xbe03ffff,
 	.flags	= IORESOURCE_IO,
 };
 
-static struct resource pci_iomem_resource = {
+static struct resource pci_iomem_resource =
+{
 	.name	= "PCI mem",
 	.start	= 0xb8000000,
 	.end	= 0xbbffffff,
@@ -71,7 +73,7 @@ static inline int __query(const struct pci_bus *bus, unsigned int devfn)
 	return bus->number == 0 && (devfn == PCI_DEVFN(0, 0));
 	return bus->number == 1;
 	return bus->number == 0 &&
-		(devfn == PCI_DEVFN(2, 0) || devfn == PCI_DEVFN(3, 0));
+		   (devfn == PCI_DEVFN(2, 0) || devfn == PCI_DEVFN(3, 0));
 #endif
 	return 1;
 }
@@ -80,19 +82,25 @@ static inline int __query(const struct pci_bus *bus, unsigned int devfn)
  *
  */
 static int pci_ampci_read_config_byte(struct pci_bus *bus, unsigned int devfn,
-				      int where, u32 *_value)
+									  int where, u32 *_value)
 {
 	u32 rawval, value;
 
-	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0)) {
+	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0))
+	{
 		value = BRIDGEREGB(where);
 		__pcbdebug("=> %02hx", &BRIDGEREGL(where), value);
-	} else {
+	}
+	else
+	{
 		CONFIG_ADDRESS = CONFIG_CMD(bus, devfn, where);
 		rawval = CONFIG_ADDRESS;
 		value = CONFIG_DATAB(where);
+
 		if (__query(bus, devfn))
+		{
 			__pcidebug("=> %02hx", bus, devfn, where, value);
+		}
 	}
 
 	*_value = value;
@@ -100,19 +108,25 @@ static int pci_ampci_read_config_byte(struct pci_bus *bus, unsigned int devfn,
 }
 
 static int pci_ampci_read_config_word(struct pci_bus *bus, unsigned int devfn,
-				      int where, u32 *_value)
+									  int where, u32 *_value)
 {
 	u32 rawval, value;
 
-	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0)) {
+	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0))
+	{
 		value = BRIDGEREGW(where);
 		__pcbdebug("=> %04hx", &BRIDGEREGL(where), value);
-	} else {
+	}
+	else
+	{
 		CONFIG_ADDRESS = CONFIG_CMD(bus, devfn, where);
 		rawval = CONFIG_ADDRESS;
 		value = CONFIG_DATAW(where);
+
 		if (__query(bus, devfn))
+		{
 			__pcidebug("=> %04hx", bus, devfn, where, value);
+		}
 	}
 
 	*_value = value;
@@ -120,19 +134,25 @@ static int pci_ampci_read_config_word(struct pci_bus *bus, unsigned int devfn,
 }
 
 static int pci_ampci_read_config_dword(struct pci_bus *bus, unsigned int devfn,
-				       int where, u32 *_value)
+									   int where, u32 *_value)
 {
 	u32 rawval, value;
 
-	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0)) {
+	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0))
+	{
 		value = BRIDGEREGL(where);
 		__pcbdebug("=> %08x", &BRIDGEREGL(where), value);
-	} else {
+	}
+	else
+	{
 		CONFIG_ADDRESS = CONFIG_CMD(bus, devfn, where);
 		rawval = CONFIG_ADDRESS;
 		value = CONFIG_DATAL(where);
+
 		if (__query(bus, devfn))
+		{
 			__pcidebug("=> %08x", bus, devfn, where, value);
+		}
 	}
 
 	*_value = value;
@@ -140,94 +160,124 @@ static int pci_ampci_read_config_dword(struct pci_bus *bus, unsigned int devfn,
 }
 
 static int pci_ampci_write_config_byte(struct pci_bus *bus, unsigned int devfn,
-				       int where, u8 value)
+									   int where, u8 value)
 {
 	u32 rawval;
 
-	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0)) {
+	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0))
+	{
 		__pcbdebug("<= %02x", &BRIDGEREGB(where), value);
 		BRIDGEREGB(where) = value;
-	} else {
+	}
+	else
+	{
 		if (bus->number == 0 &&
-		    (devfn == PCI_DEVFN(2, 0) || devfn == PCI_DEVFN(3, 0))
-		    )
+			(devfn == PCI_DEVFN(2, 0) || devfn == PCI_DEVFN(3, 0))
+		   )
+		{
 			__pcidebug("<= %02x", bus, devfn, where, value);
+		}
+
 		CONFIG_ADDRESS = CONFIG_CMD(bus, devfn, where);
 		rawval = CONFIG_ADDRESS;
 		CONFIG_DATAB(where) = value;
 	}
+
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int pci_ampci_write_config_word(struct pci_bus *bus, unsigned int devfn,
-				       int where, u16 value)
+									   int where, u16 value)
 {
 	u32 rawval;
 
-	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0)) {
+	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0))
+	{
 		__pcbdebug("<= %04hx", &BRIDGEREGW(where), value);
 		BRIDGEREGW(where) = value;
-	} else {
+	}
+	else
+	{
 		if (__query(bus, devfn))
+		{
 			__pcidebug("<= %04hx", bus, devfn, where, value);
+		}
+
 		CONFIG_ADDRESS = CONFIG_CMD(bus, devfn, where);
 		rawval = CONFIG_ADDRESS;
 		CONFIG_DATAW(where) = value;
 	}
+
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int pci_ampci_write_config_dword(struct pci_bus *bus, unsigned int devfn,
-					int where, u32 value)
+										int where, u32 value)
 {
 	u32 rawval;
 
-	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0)) {
+	if (bus->number == 0 && devfn == PCI_DEVFN(0, 0))
+	{
 		__pcbdebug("<= %08x", &BRIDGEREGL(where), value);
 		BRIDGEREGL(where) = value;
-	} else {
+	}
+	else
+	{
 		if (__query(bus, devfn))
+		{
 			__pcidebug("<= %08x", bus, devfn, where, value);
+		}
+
 		CONFIG_ADDRESS = CONFIG_CMD(bus, devfn, where);
 		rawval = CONFIG_ADDRESS;
 		CONFIG_DATAL(where) = value;
 	}
+
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int pci_ampci_read_config(struct pci_bus *bus, unsigned int devfn,
-				 int where, int size, u32 *val)
+								 int where, int size, u32 *val)
 {
-	switch (size) {
-	case 1:
-		return pci_ampci_read_config_byte(bus, devfn, where, val);
-	case 2:
-		return pci_ampci_read_config_word(bus, devfn, where, val);
-	case 4:
-		return pci_ampci_read_config_dword(bus, devfn, where, val);
-	default:
-		BUG();
-		return -EOPNOTSUPP;
+	switch (size)
+	{
+		case 1:
+			return pci_ampci_read_config_byte(bus, devfn, where, val);
+
+		case 2:
+			return pci_ampci_read_config_word(bus, devfn, where, val);
+
+		case 4:
+			return pci_ampci_read_config_dword(bus, devfn, where, val);
+
+		default:
+			BUG();
+			return -EOPNOTSUPP;
 	}
 }
 
 static int pci_ampci_write_config(struct pci_bus *bus, unsigned int devfn,
-				  int where, int size, u32 val)
+								  int where, int size, u32 val)
 {
-	switch (size) {
-	case 1:
-		return pci_ampci_write_config_byte(bus, devfn, where, val);
-	case 2:
-		return pci_ampci_write_config_word(bus, devfn, where, val);
-	case 4:
-		return pci_ampci_write_config_dword(bus, devfn, where, val);
-	default:
-		BUG();
-		return -EOPNOTSUPP;
+	switch (size)
+	{
+		case 1:
+			return pci_ampci_write_config_byte(bus, devfn, where, val);
+
+		case 2:
+			return pci_ampci_write_config_word(bus, devfn, where, val);
+
+		case 4:
+			return pci_ampci_write_config_dword(bus, devfn, where, val);
+
+		default:
+			BUG();
+			return -EOPNOTSUPP;
 	}
 }
 
-static struct pci_ops pci_direct_ampci = {
+static struct pci_ops pci_direct_ampci =
+{
 	.read = pci_ampci_read_config,
 	.write = pci_ampci_write_config,
 };
@@ -250,10 +300,12 @@ static int __init pci_sanity_check(struct pci_ops *o)
 	bus.number = 0;
 
 	if ((!o->read(&bus, 0, PCI_CLASS_DEVICE, 2, &x) &&
-	     (x == PCI_CLASS_BRIDGE_HOST || x == PCI_CLASS_DISPLAY_VGA)) ||
-	    (!o->read(&bus, 0, PCI_VENDOR_ID, 2, &x) &&
-	     (x == PCI_VENDOR_ID_INTEL || x == PCI_VENDOR_ID_COMPAQ)))
+		 (x == PCI_CLASS_BRIDGE_HOST || x == PCI_CLASS_DISPLAY_VGA)) ||
+		(!o->read(&bus, 0, PCI_VENDOR_ID, 2, &x) &&
+		 (x == PCI_VENDOR_ID_INTEL || x == PCI_VENDOR_ID_COMPAQ)))
+	{
 		return 1;
+	}
 
 	printk(KERN_ERR "PCI: Sanity check failed\n");
 	return 0;
@@ -268,7 +320,8 @@ static int __init pci_check_direct(void)
 	/*
 	 * Check if access works.
 	 */
-	if (pci_sanity_check(&pci_direct_ampci)) {
+	if (pci_sanity_check(&pci_direct_ampci))
+	{
 		local_irq_restore(flags);
 		printk(KERN_INFO "PCI: Using configuration ampci\n");
 		request_mem_region(0xBE040000, 256, "AMPCI bridge");
@@ -286,13 +339,18 @@ static void pcibios_fixup_device_resources(struct pci_dev *dev)
 	int idx;
 
 	if (!dev->bus)
+	{
 		return;
+	}
 
-	for (idx = 0; idx < PCI_BRIDGE_RESOURCES; idx++) {
+	for (idx = 0; idx < PCI_BRIDGE_RESOURCES; idx++)
+	{
 		struct resource *r = &dev->resource[idx];
 
 		if (!r->flags || r->parent || !r->start)
+		{
 			continue;
+		}
 
 		pci_claim_resource(dev, idx);
 	}
@@ -303,13 +361,18 @@ static void pcibios_fixup_bridge_resources(struct pci_dev *dev)
 	int idx;
 
 	if (!dev->bus)
+	{
 		return;
+	}
 
-	for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++) {
+	for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++)
+	{
 		struct resource *r = &dev->resource[idx];
 
 		if (!r->flags || r->parent || !r->start)
+		{
 			continue;
+		}
 
 		pci_claim_bridge_resource(dev, idx);
 	}
@@ -323,13 +386,14 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 {
 	struct pci_dev *dev;
 
-	if (bus->self) {
+	if (bus->self)
+	{
 		pci_read_bridge_bases(bus);
 		pcibios_fixup_bridge_resources(bus->self);
 	}
 
 	list_for_each_entry(dev, &bus->devices, bus_list)
-		pcibios_fixup_device_resources(dev);
+	pcibios_fixup_device_resources(dev);
 }
 
 /*
@@ -350,31 +414,42 @@ static int __init pcibios_init(void)
 	iomem_resource.end	= 0xDFFFFFFF;
 
 	if (insert_resource(&iomem_resource, &pci_iomem_resource) < 0)
+	{
 		panic("Unable to insert PCI IOMEM resource\n");
+	}
+
 	if (insert_resource(&ioport_resource, &pci_ioport_resource) < 0)
+	{
 		panic("Unable to insert PCI IOPORT resource\n");
+	}
 
 	if (!pci_probe)
+	{
 		return 0;
+	}
 
-	if (pci_check_direct() < 0) {
+	if (pci_check_direct() < 0)
+	{
 		printk(KERN_WARNING "PCI: No PCI bus detected\n");
 		return 0;
 	}
 
 	printk(KERN_INFO "PCI: Probing PCI hardware [mempage %08x]\n",
-	       MEM_PAGING_REG);
+		   MEM_PAGING_REG);
 
 	io_offset = pci_ioport_resource.start -
-	    (pci_ioport_resource.start & 0x00ffffff);
+				(pci_ioport_resource.start & 0x00ffffff);
 	mem_offset = pci_iomem_resource.start -
-	    ((pci_iomem_resource.start & 0x03ffffff) | MEM_PAGING_REG);
+				 ((pci_iomem_resource.start & 0x03ffffff) | MEM_PAGING_REG);
 
 	pci_add_resource_offset(&resources, &pci_ioport_resource, io_offset);
 	pci_add_resource_offset(&resources, &pci_iomem_resource, mem_offset);
 	bus = pci_scan_root_bus(NULL, 0, &pci_direct_ampci, NULL, &resources);
+
 	if (!bus)
+	{
 		return 0;
+	}
 
 	pcibios_irq_init();
 	pcibios_fixup_irqs();
@@ -387,7 +462,8 @@ arch_initcall(pcibios_init);
 
 char *__init pcibios_setup(char *str)
 {
-	if (!strcmp(str, "off")) {
+	if (!strcmp(str, "off"))
+	{
 		pci_probe = 0;
 		return NULL;
 	}
@@ -400,8 +476,12 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
 	int err;
 
 	err = pci_enable_resources(dev, mask);
+
 	if (err == 0)
+	{
 		pcibios_enable_irq(dev);
+	}
+
 	return err;
 }
 
@@ -417,8 +497,8 @@ static void __init unit_disable_pcnet(struct pci_bus *bus, struct pci_ops *o)
 	o->read (bus, PCI_DEVFN(2, 0), PCI_VENDOR_ID,		4, &x);
 	o->read (bus, PCI_DEVFN(2, 0), PCI_COMMAND,		2, &x);
 	x |= PCI_COMMAND_MASTER |
-		PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
-		PCI_COMMAND_SERR | PCI_COMMAND_PARITY;
+		 PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
+		 PCI_COMMAND_SERR | PCI_COMMAND_PARITY;
 	o->write(bus, PCI_DEVFN(2, 0), PCI_COMMAND,		2, x);
 	o->read (bus, PCI_DEVFN(2, 0), PCI_COMMAND,		2, &x);
 	o->write(bus, PCI_DEVFN(2, 0), PCI_BASE_ADDRESS_0,	4, 0x00030001);
@@ -437,7 +517,9 @@ static void __init unit_disable_pcnet(struct pci_bus *bus, struct pci_ops *o)
 	BUG_ON(__get_RDP() != 0x5003);
 
 	for (x = 0; x < 100; x++)
+	{
 		asm volatile("nop");
+	}
 
 	__set_RDP(0x0004);	/* CSR0 = STOP */
 }
@@ -483,8 +565,8 @@ asmlinkage void __init unit_pci_init(void)
 	/* IO: 0x00000000-0x00020000 */
 	o->read (&bus, PCI_DEVFN(3, 0), PCI_COMMAND,		2, &x);
 	x |= PCI_COMMAND_MASTER |
-		PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
-		PCI_COMMAND_SERR | PCI_COMMAND_PARITY;
+		 PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
+		 PCI_COMMAND_SERR | PCI_COMMAND_PARITY;
 	o->write(&bus, PCI_DEVFN(3, 0), PCI_COMMAND,		2, x);
 
 	o->read (&bus, PCI_DEVFN(3, 0), PCI_IO_BASE,		1, &x);

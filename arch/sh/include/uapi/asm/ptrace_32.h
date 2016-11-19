@@ -41,7 +41,8 @@
  * This struct defines the way the registers are stored on the
  * kernel stack during a system call or other kernel entry.
  */
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long regs[16];
 	unsigned long pc;
 	unsigned long pr;
@@ -56,7 +57,8 @@ struct pt_regs {
  * This struct defines the way the DSP registers are stored on the
  * kernel stack during a system call or other kernel entry.
  */
-struct pt_dspregs {
+struct pt_dspregs
+{
 	unsigned long	a1;
 	unsigned long	a0g;
 	unsigned long	a1g;

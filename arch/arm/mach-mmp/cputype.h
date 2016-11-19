@@ -25,7 +25,7 @@ extern unsigned int mmp_chip_id;
 static inline int cpu_is_pxa168(void)
 {
 	return (((read_cpuid_id() >> 8) & 0xff) == 0x84) &&
-		((mmp_chip_id & 0xfff) == 0x168);
+		   ((mmp_chip_id & 0xfff) == 0x168);
 }
 #else
 #define cpu_is_pxa168()	(0)
@@ -36,8 +36,8 @@ static inline int cpu_is_pxa168(void)
 static inline int cpu_is_pxa910(void)
 {
 	return (((read_cpuid_id() >> 8) & 0xff) == 0x84) &&
-		(((mmp_chip_id & 0xfff) == 0x910) ||
-		 ((mmp_chip_id & 0xfff) == 0x920));
+		   (((mmp_chip_id & 0xfff) == 0x910) ||
+			((mmp_chip_id & 0xfff) == 0x920));
 }
 #else
 #define cpu_is_pxa910()	(0)

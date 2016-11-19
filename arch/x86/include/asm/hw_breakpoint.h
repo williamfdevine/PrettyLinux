@@ -10,7 +10,8 @@
  * a higher level. While dealing with the user
  * (display/resolving)
  */
-struct arch_hw_breakpoint {
+struct arch_hw_breakpoint
+{
 	unsigned long	address;
 	unsigned long	mask;
 	u8		len;
@@ -28,7 +29,7 @@ struct arch_hw_breakpoint {
 #define X86_BREAKPOINT_LEN_4		0x4c
 
 #ifdef CONFIG_X86_64
-#define X86_BREAKPOINT_LEN_8		0x48
+	#define X86_BREAKPOINT_LEN_8		0x48
 #endif
 
 /* Available HW breakpoint type encodings */
@@ -54,7 +55,7 @@ struct pmu;
 extern int arch_check_bp_in_kernelspace(struct perf_event *bp);
 extern int arch_validate_hwbkpt_settings(struct perf_event *bp);
 extern int hw_breakpoint_exceptions_notify(struct notifier_block *unused,
-					   unsigned long val, void *data);
+		unsigned long val, void *data);
 
 
 int arch_install_hw_breakpoint(struct perf_event *bp);
@@ -69,7 +70,7 @@ unsigned long encode_dr7(int drnum, unsigned int len, unsigned int type);
 int decode_dr7(unsigned long dr7, int bpnum, unsigned *len, unsigned *type);
 
 extern int arch_bp_generic_fields(int x86_len, int x86_type,
-				  int *gen_len, int *gen_type);
+								  int *gen_len, int *gen_type);
 
 extern struct pmu perf_ops_bp;
 

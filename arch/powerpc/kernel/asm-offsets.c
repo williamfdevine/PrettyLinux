@@ -24,8 +24,8 @@
 #include <linux/suspend.h>
 #include <linux/hrtimer.h>
 #ifdef CONFIG_PPC64
-#include <linux/time.h>
-#include <linux/hardirq.h>
+	#include <linux/time.h>
+	#include <linux/hardirq.h>
 #endif
 #include <linux/kbuild.h>
 
@@ -39,37 +39,37 @@
 #include <asm/vdso_datapage.h>
 #include <asm/dbell.h>
 #ifdef CONFIG_PPC64
-#include <asm/paca.h>
-#include <asm/lppaca.h>
-#include <asm/cache.h>
-#include <asm/compat.h>
-#include <asm/mmu.h>
-#include <asm/hvcall.h>
-#include <asm/xics.h>
+	#include <asm/paca.h>
+	#include <asm/lppaca.h>
+	#include <asm/cache.h>
+	#include <asm/compat.h>
+	#include <asm/mmu.h>
+	#include <asm/hvcall.h>
+	#include <asm/xics.h>
 #endif
 #ifdef CONFIG_PPC_POWERNV
-#include <asm/opal.h>
+	#include <asm/opal.h>
 #endif
 #if defined(CONFIG_KVM) || defined(CONFIG_KVM_GUEST)
-#include <linux/kvm_host.h>
+	#include <linux/kvm_host.h>
 #endif
 #if defined(CONFIG_KVM) && defined(CONFIG_PPC_BOOK3S)
-#include <asm/kvm_book3s.h>
-#include <asm/kvm_ppc.h>
+	#include <asm/kvm_book3s.h>
+	#include <asm/kvm_ppc.h>
 #endif
 
 #ifdef CONFIG_PPC32
-#if defined(CONFIG_BOOKE) || defined(CONFIG_40x)
-#include "head_booke.h"
-#endif
+	#if defined(CONFIG_BOOKE) || defined(CONFIG_40x)
+		#include "head_booke.h"
+	#endif
 #endif
 
 #if defined(CONFIG_PPC_FSL_BOOK3E)
-#include "../mm/mmu_decl.h"
+	#include "../mm/mmu_decl.h"
 #endif
 
 #ifdef CONFIG_PPC_8xx
-#include <asm/fixmap.h>
+	#include <asm/fixmap.h>
 #endif
 
 int main(void)
@@ -143,14 +143,14 @@ int main(void)
 	DEFINE(THREAD_TM_DSCR, offsetof(struct thread_struct, tm_dscr));
 	DEFINE(PT_CKPT_REGS, offsetof(struct thread_struct, ckpt_regs));
 	DEFINE(THREAD_CKVRSTATE, offsetof(struct thread_struct,
-						 ckvr_state));
+									  ckvr_state));
 	DEFINE(THREAD_CKVRSAVE, offsetof(struct thread_struct,
-					    ckvrsave));
+									 ckvrsave));
 	DEFINE(THREAD_CKFPSTATE, offsetof(struct thread_struct,
-						 ckfp_state));
+									  ckfp_state));
 	/* Local pt_regs on stack for Transactional Memory funcs. */
 	DEFINE(TM_FRAME_SIZE, STACK_FRAME_OVERHEAD +
-	       sizeof(struct pt_regs) + 16);
+		   sizeof(struct pt_regs) + 16);
 #endif /* CONFIG_PPC_TRANSACTIONAL_MEM */
 
 	DEFINE(TI_FLAGS, offsetof(struct thread_info, flags));
@@ -184,9 +184,9 @@ int main(void)
 	DEFINE(PACACONTEXTID, offsetof(struct paca_struct, mm_ctx_id));
 #ifdef CONFIG_PPC_MM_SLICES
 	DEFINE(PACALOWSLICESPSIZE, offsetof(struct paca_struct,
-					    mm_ctx_low_slices_psize));
+										mm_ctx_low_slices_psize));
 	DEFINE(PACAHIGHSLICEPSIZE, offsetof(struct paca_struct,
-					    mm_ctx_high_slices_psize));
+										mm_ctx_high_slices_psize));
 	DEFINE(MMUPSIZEDEFSIZE, sizeof(struct mmu_psize_def));
 #endif /* CONFIG_PPC_MM_SLICES */
 #endif
@@ -205,11 +205,11 @@ int main(void)
 	DEFINE(PACA_TCD_PTR, offsetof(struct paca_struct, tcd_ptr));
 
 	DEFINE(TCD_ESEL_NEXT,
-		offsetof(struct tlb_core_data, esel_next));
+		   offsetof(struct tlb_core_data, esel_next));
 	DEFINE(TCD_ESEL_MAX,
-		offsetof(struct tlb_core_data, esel_max));
+		   offsetof(struct tlb_core_data, esel_max));
 	DEFINE(TCD_ESEL_FIRST,
-		offsetof(struct tlb_core_data, esel_first));
+		   offsetof(struct tlb_core_data, esel_first));
 #endif /* CONFIG_PPC_BOOK3E */
 
 #ifdef CONFIG_PPC_STD_MMU_64
@@ -227,9 +227,9 @@ int main(void)
 	DEFINE(PACALPPACAPTR, offsetof(struct paca_struct, lppaca_ptr));
 	DEFINE(PACA_SLBSHADOWPTR, offsetof(struct paca_struct, slb_shadow_ptr));
 	DEFINE(SLBSHADOW_STACKVSID,
-	       offsetof(struct slb_shadow, save_area[SLB_NUM_BOLTED - 1].vsid));
+		   offsetof(struct slb_shadow, save_area[SLB_NUM_BOLTED - 1].vsid));
 	DEFINE(SLBSHADOW_STACKESID,
-	       offsetof(struct slb_shadow, save_area[SLB_NUM_BOLTED - 1].esid));
+		   offsetof(struct slb_shadow, save_area[SLB_NUM_BOLTED - 1].esid));
 	DEFINE(SLBSHADOW_SAVEAREA, offsetof(struct slb_shadow, save_area));
 	DEFINE(LPPACA_PMCINUSE, offsetof(struct lppaca, pmcregs_in_use));
 	DEFINE(LPPACA_DTLIDX, offsetof(struct lppaca, dtl_idx));
@@ -245,26 +245,26 @@ int main(void)
 	DEFINE(PACAKEXECSTATE, offsetof(struct paca_struct, kexec_state));
 	DEFINE(PACA_DSCR_DEFAULT, offsetof(struct paca_struct, dscr_default));
 	DEFINE(ACCOUNT_STARTTIME,
-	       offsetof(struct paca_struct, accounting.starttime));
+		   offsetof(struct paca_struct, accounting.starttime));
 	DEFINE(ACCOUNT_STARTTIME_USER,
-	       offsetof(struct paca_struct, accounting.starttime_user));
+		   offsetof(struct paca_struct, accounting.starttime_user));
 	DEFINE(ACCOUNT_USER_TIME,
-	       offsetof(struct paca_struct, accounting.user_time));
+		   offsetof(struct paca_struct, accounting.user_time));
 	DEFINE(ACCOUNT_SYSTEM_TIME,
-	       offsetof(struct paca_struct, accounting.system_time));
+		   offsetof(struct paca_struct, accounting.system_time));
 	DEFINE(PACA_TRAP_SAVE, offsetof(struct paca_struct, trap_save));
 	DEFINE(PACA_NAPSTATELOST, offsetof(struct paca_struct, nap_state_lost));
 	DEFINE(PACA_SPRG_VDSO, offsetof(struct paca_struct, sprg_vdso));
 #else /* CONFIG_PPC64 */
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
 	DEFINE(ACCOUNT_STARTTIME,
-	       offsetof(struct thread_info, accounting.starttime));
+		   offsetof(struct thread_info, accounting.starttime));
 	DEFINE(ACCOUNT_STARTTIME_USER,
-	       offsetof(struct thread_info, accounting.starttime_user));
+		   offsetof(struct thread_info, accounting.starttime_user));
 	DEFINE(ACCOUNT_USER_TIME,
-	       offsetof(struct thread_info, accounting.user_time));
+		   offsetof(struct thread_info, accounting.user_time));
 	DEFINE(ACCOUNT_SYSTEM_TIME,
-	       offsetof(struct thread_info, accounting.system_time));
+		   offsetof(struct thread_info, accounting.system_time));
 #endif
 #endif /* CONFIG_PPC64 */
 
@@ -280,38 +280,38 @@ int main(void)
 	DEFINE(PROM_FRAME_SIZE, STACK_FRAME_OVERHEAD + sizeof(struct pt_regs) + 16);
 	DEFINE(RTAS_FRAME_SIZE, STACK_FRAME_OVERHEAD + sizeof(struct pt_regs) + 16);
 #endif /* CONFIG_PPC64 */
-	DEFINE(GPR0, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[0]));
-	DEFINE(GPR1, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[1]));
-	DEFINE(GPR2, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[2]));
-	DEFINE(GPR3, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[3]));
-	DEFINE(GPR4, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[4]));
-	DEFINE(GPR5, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[5]));
-	DEFINE(GPR6, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[6]));
-	DEFINE(GPR7, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[7]));
-	DEFINE(GPR8, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[8]));
-	DEFINE(GPR9, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[9]));
-	DEFINE(GPR10, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[10]));
-	DEFINE(GPR11, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[11]));
-	DEFINE(GPR12, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[12]));
-	DEFINE(GPR13, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[13]));
+	DEFINE(GPR0, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[0]));
+	DEFINE(GPR1, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[1]));
+	DEFINE(GPR2, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[2]));
+	DEFINE(GPR3, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[3]));
+	DEFINE(GPR4, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[4]));
+	DEFINE(GPR5, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[5]));
+	DEFINE(GPR6, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[6]));
+	DEFINE(GPR7, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[7]));
+	DEFINE(GPR8, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[8]));
+	DEFINE(GPR9, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[9]));
+	DEFINE(GPR10, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[10]));
+	DEFINE(GPR11, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[11]));
+	DEFINE(GPR12, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[12]));
+	DEFINE(GPR13, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[13]));
 #ifndef CONFIG_PPC64
-	DEFINE(GPR14, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, gpr[14]));
+	DEFINE(GPR14, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, gpr[14]));
 #endif /* CONFIG_PPC64 */
 	/*
 	 * Note: these symbols include _ because they overlap with special
 	 * register names
 	 */
-	DEFINE(_NIP, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, nip));
-	DEFINE(_MSR, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, msr));
-	DEFINE(_CTR, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, ctr));
-	DEFINE(_LINK, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, link));
-	DEFINE(_CCR, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, ccr));
-	DEFINE(_XER, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, xer));
-	DEFINE(_DAR, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, dar));
-	DEFINE(_DSISR, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, dsisr));
-	DEFINE(ORIG_GPR3, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, orig_gpr3));
-	DEFINE(RESULT, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, result));
-	DEFINE(_TRAP, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, trap));
+	DEFINE(_NIP, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, nip));
+	DEFINE(_MSR, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, msr));
+	DEFINE(_CTR, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, ctr));
+	DEFINE(_LINK, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, link));
+	DEFINE(_CCR, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, ccr));
+	DEFINE(_XER, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, xer));
+	DEFINE(_DAR, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, dar));
+	DEFINE(_DSISR, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, dsisr));
+	DEFINE(ORIG_GPR3, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, orig_gpr3));
+	DEFINE(RESULT, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, result));
+	DEFINE(_TRAP, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, trap));
 #ifndef CONFIG_PPC64
 	/*
 	 * The PowerPC 400-class & Book-E processors have neither the DAR
@@ -319,34 +319,34 @@ int main(void)
 	 * DEAR and ESR SPRs for such processors.  For critical interrupts
 	 * we use them to hold SRR0 and SRR1.
 	 */
-	DEFINE(_DEAR, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, dar));
-	DEFINE(_ESR, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, dsisr));
+	DEFINE(_DEAR, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, dar));
+	DEFINE(_ESR, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, dsisr));
 #else /* CONFIG_PPC64 */
-	DEFINE(SOFTE, STACK_FRAME_OVERHEAD+offsetof(struct pt_regs, softe));
+	DEFINE(SOFTE, STACK_FRAME_OVERHEAD + offsetof(struct pt_regs, softe));
 
 	/* These _only_ to be used with {PROM,RTAS}_FRAME_SIZE!!! */
-	DEFINE(_SRR0, STACK_FRAME_OVERHEAD+sizeof(struct pt_regs));
-	DEFINE(_SRR1, STACK_FRAME_OVERHEAD+sizeof(struct pt_regs)+8);
+	DEFINE(_SRR0, STACK_FRAME_OVERHEAD + sizeof(struct pt_regs));
+	DEFINE(_SRR1, STACK_FRAME_OVERHEAD + sizeof(struct pt_regs) + 8);
 #endif /* CONFIG_PPC64 */
 
 #if defined(CONFIG_PPC32)
 #if defined(CONFIG_BOOKE) || defined(CONFIG_40x)
 	DEFINE(EXC_LVL_SIZE, STACK_EXC_LVL_FRAME_SIZE);
-	DEFINE(MAS0, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, mas0));
+	DEFINE(MAS0, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, mas0));
 	/* we overload MMUCR for 44x on MAS0 since they are mutually exclusive */
-	DEFINE(MMUCR, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, mas0));
-	DEFINE(MAS1, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, mas1));
-	DEFINE(MAS2, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, mas2));
-	DEFINE(MAS3, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, mas3));
-	DEFINE(MAS6, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, mas6));
-	DEFINE(MAS7, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, mas7));
-	DEFINE(_SRR0, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, srr0));
-	DEFINE(_SRR1, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, srr1));
-	DEFINE(_CSRR0, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, csrr0));
-	DEFINE(_CSRR1, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, csrr1));
-	DEFINE(_DSRR0, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, dsrr0));
-	DEFINE(_DSRR1, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, dsrr1));
-	DEFINE(SAVED_KSP_LIMIT, STACK_INT_FRAME_SIZE+offsetof(struct exception_regs, saved_ksp_limit));
+	DEFINE(MMUCR, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, mas0));
+	DEFINE(MAS1, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, mas1));
+	DEFINE(MAS2, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, mas2));
+	DEFINE(MAS3, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, mas3));
+	DEFINE(MAS6, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, mas6));
+	DEFINE(MAS7, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, mas7));
+	DEFINE(_SRR0, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, srr0));
+	DEFINE(_SRR1, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, srr1));
+	DEFINE(_CSRR0, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, csrr0));
+	DEFINE(_CSRR1, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, csrr1));
+	DEFINE(_DSRR0, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, dsrr0));
+	DEFINE(_DSRR1, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, dsrr1));
+	DEFINE(SAVED_KSP_LIMIT, STACK_INT_FRAME_SIZE + offsetof(struct exception_regs, saved_ksp_limit));
 #endif
 #endif
 
@@ -365,7 +365,7 @@ int main(void)
 
 #ifndef CONFIG_PPC64
 	DEFINE(TASK_SIZE, TASK_SIZE);
-	DEFINE(NUM_USER_SEGMENTS, TASK_SIZE>>28);
+	DEFINE(NUM_USER_SEGMENTS, TASK_SIZE >> 28);
 #endif /* ! CONFIG_PPC64 */
 
 	/* datapage offsets for use by vdso */
@@ -691,16 +691,16 @@ int main(void)
 
 #ifdef CONFIG_KVM_GUEST
 	DEFINE(KVM_MAGIC_SCRATCH1, offsetof(struct kvm_vcpu_arch_shared,
-					    scratch1));
+										scratch1));
 	DEFINE(KVM_MAGIC_SCRATCH2, offsetof(struct kvm_vcpu_arch_shared,
-					    scratch2));
+										scratch2));
 	DEFINE(KVM_MAGIC_SCRATCH3, offsetof(struct kvm_vcpu_arch_shared,
-					    scratch3));
+										scratch3));
 	DEFINE(KVM_MAGIC_INT, offsetof(struct kvm_vcpu_arch_shared,
-				       int_pending));
+								   int_pending));
 	DEFINE(KVM_MAGIC_MSR, offsetof(struct kvm_vcpu_arch_shared, msr));
 	DEFINE(KVM_MAGIC_CRITICAL, offsetof(struct kvm_vcpu_arch_shared,
-					    critical));
+										critical));
 	DEFINE(KVM_MAGIC_SR, offsetof(struct kvm_vcpu_arch_shared, sr));
 #endif
 
@@ -731,24 +731,24 @@ int main(void)
 
 #ifdef CONFIG_KVM_EXIT_TIMING
 	DEFINE(VCPU_TIMING_EXIT_TBU, offsetof(struct kvm_vcpu,
-						arch.timing_exit.tv32.tbu));
+										  arch.timing_exit.tv32.tbu));
 	DEFINE(VCPU_TIMING_EXIT_TBL, offsetof(struct kvm_vcpu,
-						arch.timing_exit.tv32.tbl));
+										  arch.timing_exit.tv32.tbl));
 	DEFINE(VCPU_TIMING_LAST_ENTER_TBU, offsetof(struct kvm_vcpu,
-					arch.timing_last_enter.tv32.tbu));
+			arch.timing_last_enter.tv32.tbu));
 	DEFINE(VCPU_TIMING_LAST_ENTER_TBL, offsetof(struct kvm_vcpu,
-					arch.timing_last_enter.tv32.tbl));
+			arch.timing_last_enter.tv32.tbl));
 #endif
 
 #ifdef CONFIG_PPC_POWERNV
 	DEFINE(PACA_CORE_IDLE_STATE_PTR,
-			offsetof(struct paca_struct, core_idle_state_ptr));
+		   offsetof(struct paca_struct, core_idle_state_ptr));
 	DEFINE(PACA_THREAD_IDLE_STATE,
-			offsetof(struct paca_struct, thread_idle_state));
+		   offsetof(struct paca_struct, thread_idle_state));
 	DEFINE(PACA_THREAD_MASK,
-			offsetof(struct paca_struct, thread_mask));
+		   offsetof(struct paca_struct, thread_mask));
 	DEFINE(PACA_SUBCORE_SIBLING_MASK,
-			offsetof(struct paca_struct, subcore_sibling_mask));
+		   offsetof(struct paca_struct, subcore_sibling_mask));
 #endif
 
 	DEFINE(PPC_DBELL_SERVER, PPC_DBELL_SERVER);

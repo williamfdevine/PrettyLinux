@@ -33,14 +33,14 @@ static __always_inline void *__memcpy(void *to, const void *from, size_t n)
 {
 	int d0, d1, d2;
 	asm volatile("rep ; movsl\n\t"
-		     "movl %4,%%ecx\n\t"
-		     "andl $3,%%ecx\n\t"
-		     "jz 1f\n\t"
-		     "rep ; movsb\n\t"
-		     "1:"
-		     : "=&c" (d0), "=&D" (d1), "=&S" (d2)
-		     : "0" (n / 4), "g" (n), "1" ((long)to), "2" ((long)from)
-		     : "memory");
+				 "movl %4,%%ecx\n\t"
+				 "andl $3,%%ecx\n\t"
+				 "jz 1f\n\t"
+				 "rep ; movsb\n\t"
+				 "1:"
+				 : "=&c" (d0), "=&D" (d1), "=&S" (d2)
+				 : "0" (n / 4), "g" (n), "1" ((long)to), "2" ((long)from)
+				 : "memory");
 	return to;
 }
 
@@ -49,95 +49,117 @@ static __always_inline void *__memcpy(void *to, const void *from, size_t n)
  * as the count is constant.
  */
 static __always_inline void *__constant_memcpy(void *to, const void *from,
-					       size_t n)
+		size_t n)
 {
 	long esi, edi;
-	if (!n)
-		return to;
 
-	switch (n) {
-	case 1:
-		*(char *)to = *(char *)from;
+	if (!n)
+	{
 		return to;
-	case 2:
-		*(short *)to = *(short *)from;
-		return to;
-	case 4:
-		*(int *)to = *(int *)from;
-		return to;
-	case 3:
-		*(short *)to = *(short *)from;
-		*((char *)to + 2) = *((char *)from + 2);
-		return to;
-	case 5:
-		*(int *)to = *(int *)from;
-		*((char *)to + 4) = *((char *)from + 4);
-		return to;
-	case 6:
-		*(int *)to = *(int *)from;
-		*((short *)to + 2) = *((short *)from + 2);
-		return to;
-	case 8:
-		*(int *)to = *(int *)from;
-		*((int *)to + 1) = *((int *)from + 1);
-		return to;
+	}
+
+	switch (n)
+	{
+		case 1:
+			*(char *)to = *(char *)from;
+			return to;
+
+		case 2:
+			*(short *)to = *(short *)from;
+			return to;
+
+		case 4:
+			*(int *)to = *(int *)from;
+			return to;
+
+		case 3:
+			*(short *)to = *(short *)from;
+			*((char *)to + 2) = *((char *)from + 2);
+			return to;
+
+		case 5:
+			*(int *)to = *(int *)from;
+			*((char *)to + 4) = *((char *)from + 4);
+			return to;
+
+		case 6:
+			*(int *)to = *(int *)from;
+			*((short *)to + 2) = *((short *)from + 2);
+			return to;
+
+		case 8:
+			*(int *)to = *(int *)from;
+			*((int *)to + 1) = *((int *)from + 1);
+			return to;
 	}
 
 	esi = (long)from;
 	edi = (long)to;
-	if (n >= 5 * 4) {
+
+	if (n >= 5 * 4)
+	{
 		/* large block: use rep prefix */
 		int ecx;
 		asm volatile("rep ; movsl"
-			     : "=&c" (ecx), "=&D" (edi), "=&S" (esi)
-			     : "0" (n / 4), "1" (edi), "2" (esi)
-			     : "memory"
-		);
-	} else {
+					 : "=&c" (ecx), "=&D" (edi), "=&S" (esi)
+					 : "0" (n / 4), "1" (edi), "2" (esi)
+					 : "memory"
+					);
+	}
+	else
+	{
 		/* small block: don't clobber ecx + smaller code */
 		if (n >= 4 * 4)
 			asm volatile("movsl"
-				     : "=&D"(edi), "=&S"(esi)
-				     : "0"(edi), "1"(esi)
-				     : "memory");
+						 : "=&D"(edi), "=&S"(esi)
+						 : "0"(edi), "1"(esi)
+						 : "memory");
+
 		if (n >= 3 * 4)
 			asm volatile("movsl"
-				     : "=&D"(edi), "=&S"(esi)
-				     : "0"(edi), "1"(esi)
-				     : "memory");
+						 : "=&D"(edi), "=&S"(esi)
+						 : "0"(edi), "1"(esi)
+						 : "memory");
+
 		if (n >= 2 * 4)
 			asm volatile("movsl"
-				     : "=&D"(edi), "=&S"(esi)
-				     : "0"(edi), "1"(esi)
-				     : "memory");
+						 : "=&D"(edi), "=&S"(esi)
+						 : "0"(edi), "1"(esi)
+						 : "memory");
+
 		if (n >= 1 * 4)
 			asm volatile("movsl"
-				     : "=&D"(edi), "=&S"(esi)
-				     : "0"(edi), "1"(esi)
-				     : "memory");
+						 : "=&D"(edi), "=&S"(esi)
+						 : "0"(edi), "1"(esi)
+						 : "memory");
 	}
-	switch (n % 4) {
+
+	switch (n % 4)
+	{
 		/* tail */
-	case 0:
-		return to;
-	case 1:
-		asm volatile("movsb"
-			     : "=&D"(edi), "=&S"(esi)
-			     : "0"(edi), "1"(esi)
-			     : "memory");
-		return to;
-	case 2:
-		asm volatile("movsw"
-			     : "=&D"(edi), "=&S"(esi)
-			     : "0"(edi), "1"(esi)
-			     : "memory");
-		return to;
-	default:
-		asm volatile("movsw\n\tmovsb"
-			     : "=&D"(edi), "=&S"(esi)
-			     : "0"(edi), "1"(esi)
-			     : "memory");
-		return to;
+		case 0:
+			return to;
+
+		case 1:
+			asm volatile("movsb"
+						 : "=&D"(edi), "=&S"(esi)
+						 : "0"(edi), "1"(esi)
+						 : "memory");
+			return to;
+
+		case 2:
+			asm volatile("movsw"
+						 : "=&D"(edi), "=&S"(esi)
+						 : "0"(edi), "1"(esi)
+						 : "memory");
+			return to;
+
+		default:
+			asm volatile("movsw\n\tmovsb"
+						 : "=&D"(edi), "=&S"(esi)
+						 : "0"(edi), "1"(esi)
+						 : "memory");
+			return to;
 	}
 }
 
@@ -154,14 +176,20 @@ static __always_inline void *__constant_memcpy(void *to, const void *from,
 static inline void *__constant_memcpy3d(void *to, const void *from, size_t len)
 {
 	if (len < 512)
+	{
 		return __constant_memcpy(to, from, len);
+	}
+
 	return _mmx_memcpy(to, from, len);
 }
 
 static inline void *__memcpy3d(void *to, const void *from, size_t len)
 {
 	if (len < 512)
+	{
 		return __memcpy(to, from, len);
+	}
+
 	return _mmx_memcpy(to, from, len);
 }
 
@@ -208,10 +236,10 @@ static inline void *__memset_generic(void *s, char c, size_t count)
 {
 	int d0, d1;
 	asm volatile("rep\n\t"
-		     "stosb"
-		     : "=&c" (d0), "=&D" (d1)
-		     : "a" (c), "1" (s), "0" (count)
-		     : "memory");
+				 "stosb"
+				 : "=&c" (d0), "=&D" (d1)
+				 : "a" (c), "1" (s), "0" (count)
+				 : "memory");
 	return s;
 }
 
@@ -228,16 +256,16 @@ void *__constant_c_memset(void *s, unsigned long c, size_t count)
 {
 	int d0, d1;
 	asm volatile("rep ; stosl\n\t"
-		     "testb $2,%b3\n\t"
-		     "je 1f\n\t"
-		     "stosw\n"
-		     "1:\ttestb $1,%b3\n\t"
-		     "je 2f\n\t"
-		     "stosb\n"
-		     "2:"
-		     : "=&c" (d0), "=&D" (d1)
-		     : "a" (c), "q" (count), "0" (count/4), "1" ((long)s)
-		     : "memory");
+				 "testb $2,%b3\n\t"
+				 "je 1f\n\t"
+				 "stosw\n"
+				 "1:\ttestb $1,%b3\n\t"
+				 "je 2f\n\t"
+				 "stosb\n"
+				 "2:"
+				 : "=&c" (d0), "=&D" (d1)
+				 : "a" (c), "q" (count), "0" (count/4), "1" ((long)s)
+				 : "memory");
 	return s;
 }
 
@@ -255,32 +283,37 @@ extern char *strstr(const char *cs, const char *ct);
  */
 static __always_inline
 void *__constant_c_and_count_memset(void *s, unsigned long pattern,
-				    size_t count)
+									size_t count)
 {
-	switch (count) {
-	case 0:
-		return s;
-	case 1:
-		*(unsigned char *)s = pattern & 0xff;
-		return s;
-	case 2:
-		*(unsigned short *)s = pattern & 0xffff;
-		return s;
-	case 3:
-		*(unsigned short *)s = pattern & 0xffff;
-		*((unsigned char *)s + 2) = pattern & 0xff;
-		return s;
-	case 4:
-		*(unsigned long *)s = pattern;
-		return s;
+	switch (count)
+	{
+		case 0:
+			return s;
+
+		case 1:
+			*(unsigned char *)s = pattern & 0xff;
+			return s;
+
+		case 2:
+			*(unsigned short *)s = pattern & 0xffff;
+			return s;
+
+		case 3:
+			*(unsigned short *)s = pattern & 0xffff;
+			*((unsigned char *)s + 2) = pattern & 0xff;
+			return s;
+
+		case 4:
+			*(unsigned long *)s = pattern;
+			return s;
 	}
 
 #define COMMON(x)							\
 	asm volatile("rep ; stosl"					\
-		     x							\
-		     : "=&c" (d0), "=&D" (d1)				\
-		     : "a" (eax), "0" (count/4), "1" ((long)s)	\
-		     : "memory")
+				 x							\
+				 : "=&c" (d0), "=&D" (d1)				\
+				 : "a" (eax), "0" (count/4), "1" ((long)s)	\
+				 : "memory")
 
 	{
 		int d0, d1;
@@ -291,19 +324,23 @@ void *__constant_c_and_count_memset(void *s, unsigned long pattern,
 		unsigned long eax = pattern;
 #endif
 
-		switch (count % 4) {
-		case 0:
-			COMMON("");
-			return s;
-		case 1:
-			COMMON("\n\tstosb");
-			return s;
-		case 2:
-			COMMON("\n\tstosw");
-			return s;
-		default:
-			COMMON("\n\tstosw\n\tstosb");
-			return s;
+		switch (count % 4)
+		{
+			case 0:
+				COMMON("");
+				return s;
+
+			case 1:
+				COMMON("\n\tstosb");
+				return s;
+
+			case 2:
+				COMMON("\n\tstosw");
+				return s;
+
+			default:
+				COMMON("\n\tstosw\n\tstosb");
+				return s;
 		}
 	}
 
@@ -327,7 +364,7 @@ void *__constant_c_and_count_memset(void *s, unsigned long pattern,
 #define memset(s, c, count)						\
 	(__builtin_constant_p(c)					\
 	 ? __constant_c_x_memset((s), (0x01010101UL * (unsigned char)(c)), \
-				 (count))				\
+							 (count))				\
 	 : __memset((s), (c), (count)))
 #endif
 

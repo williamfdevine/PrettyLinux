@@ -38,18 +38,25 @@ static int __init memsize(void)
 	u32 *kernel_end = (u32 *)KSEG1ADDR(CPHYSADDR((u32)&_end));
 	u32 *tmpaddr = addr;
 
-	while (tmpaddr > kernel_end) {
+	while (tmpaddr > kernel_end)
+	{
 		*tmpaddr = (u32)tmpaddr;
 		size >>= 1;
 		tmpaddr -= size >> 2;
 	}
 
-	do {
+	do
+	{
 		tmpaddr += size >> 2;
+
 		if (*tmpaddr != (u32)tmpaddr)
+		{
 			break;
+		}
+
 		size <<= 1;
-	} while (size < (64 << 20));
+	}
+	while (size < (64 << 20));
 
 	writel((u32)tmpaddr, &addr);
 

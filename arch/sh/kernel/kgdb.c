@@ -21,17 +21,17 @@
 #define OPCODE_BT(op)		(((op) & 0xff00) == 0x8900)
 #define OPCODE_BF(op)		(((op) & 0xff00) == 0x8b00)
 #define OPCODE_BTF_DISP(op)	(((op) & 0x80) ? (((op) | 0xffffff80) << 1) : \
-				 (((op) & 0x7f ) << 1))
+							 (((op) & 0x7f ) << 1))
 #define OPCODE_BFS(op)		(((op) & 0xff00) == 0x8f00)
 #define OPCODE_BTS(op)		(((op) & 0xff00) == 0x8d00)
 #define OPCODE_BRA(op)		(((op) & 0xf000) == 0xa000)
 #define OPCODE_BRA_DISP(op)	(((op) & 0x800) ? (((op) | 0xfffff800) << 1) : \
-				 (((op) & 0x7ff) << 1))
+							 (((op) & 0x7ff) << 1))
 #define OPCODE_BRAF(op)		(((op) & 0xf0ff) == 0x0023)
 #define OPCODE_BRAF_REG(op)	(((op) & 0x0f00) >> 8)
 #define OPCODE_BSR(op)		(((op) & 0xf000) == 0xb000)
 #define OPCODE_BSR_DISP(op)	(((op) & 0x800) ? (((op) | 0xfffff800) << 1) : \
-				 (((op) & 0x7ff) << 1))
+							 (((op) & 0x7ff) << 1))
 #define OPCODE_BSRF(op)		(((op) & 0xf0ff) == 0x0003)
 #define OPCODE_BSRF_REG(op)	(((op) >> 8) & 0xf)
 #define OPCODE_JMP(op)		(((op) & 0xf0ff) == 0x402b)
@@ -51,74 +51,108 @@ static short *get_step_address(struct pt_regs *linux_regs)
 	long addr;
 
 	/* BT */
-	if (OPCODE_BT(op)) {
+	if (OPCODE_BT(op))
+	{
 		if (linux_regs->sr & SR_T_BIT_MASK)
+		{
 			addr = linux_regs->pc + 4 + OPCODE_BTF_DISP(op);
+		}
 		else
+		{
 			addr = linux_regs->pc + 2;
+		}
 	}
 
 	/* BTS */
-	else if (OPCODE_BTS(op)) {
+	else if (OPCODE_BTS(op))
+	{
 		if (linux_regs->sr & SR_T_BIT_MASK)
+		{
 			addr = linux_regs->pc + 4 + OPCODE_BTF_DISP(op);
+		}
 		else
-			addr = linux_regs->pc + 4;	/* Not in delay slot */
+		{
+			addr = linux_regs->pc + 4;    /* Not in delay slot */
+		}
 	}
 
 	/* BF */
-	else if (OPCODE_BF(op)) {
+	else if (OPCODE_BF(op))
+	{
 		if (!(linux_regs->sr & SR_T_BIT_MASK))
+		{
 			addr = linux_regs->pc + 4 + OPCODE_BTF_DISP(op);
+		}
 		else
+		{
 			addr = linux_regs->pc + 2;
+		}
 	}
 
 	/* BFS */
-	else if (OPCODE_BFS(op)) {
+	else if (OPCODE_BFS(op))
+	{
 		if (!(linux_regs->sr & SR_T_BIT_MASK))
+		{
 			addr = linux_regs->pc + 4 + OPCODE_BTF_DISP(op);
+		}
 		else
-			addr = linux_regs->pc + 4;	/* Not in delay slot */
+		{
+			addr = linux_regs->pc + 4;    /* Not in delay slot */
+		}
 	}
 
 	/* BRA */
 	else if (OPCODE_BRA(op))
+	{
 		addr = linux_regs->pc + 4 + OPCODE_BRA_DISP(op);
+	}
 
 	/* BRAF */
 	else if (OPCODE_BRAF(op))
 		addr = linux_regs->pc + 4
-		    + linux_regs->regs[OPCODE_BRAF_REG(op)];
+			   + linux_regs->regs[OPCODE_BRAF_REG(op)];
 
 	/* BSR */
 	else if (OPCODE_BSR(op))
+	{
 		addr = linux_regs->pc + 4 + OPCODE_BSR_DISP(op);
+	}
 
 	/* BSRF */
 	else if (OPCODE_BSRF(op))
 		addr = linux_regs->pc + 4
-		    + linux_regs->regs[OPCODE_BSRF_REG(op)];
+			   + linux_regs->regs[OPCODE_BSRF_REG(op)];
 
 	/* JMP */
 	else if (OPCODE_JMP(op))
+	{
 		addr = linux_regs->regs[OPCODE_JMP_REG(op)];
+	}
 
 	/* JSR */
 	else if (OPCODE_JSR(op))
+	{
 		addr = linux_regs->regs[OPCODE_JSR_REG(op)];
+	}
 
 	/* RTS */
 	else if (OPCODE_RTS(op))
+	{
 		addr = linux_regs->pr;
+	}
 
 	/* RTE */
 	else if (OPCODE_RTE(op))
+	{
 		addr = linux_regs->regs[15];
+	}
 
 	/* Other */
 	else
+	{
 		addr = linux_regs->pc + instruction_size(op);
+	}
 
 	flush_icache_range(addr, addr + instruction_size(op));
 	return (short *)addr;
@@ -149,7 +183,7 @@ static void do_single_step(struct pt_regs *linux_regs)
 
 	/* Flush and return */
 	flush_icache_range((long)addr, (long)addr +
-			   instruction_size(stepped_opcode));
+					   instruction_size(stepped_opcode));
 }
 
 /* Undo a single step */
@@ -157,7 +191,8 @@ static void undo_single_step(struct pt_regs *linux_regs)
 {
 	/* If we have stepped, put back the old instruction */
 	/* Use stepped_address in case we stopped elsewhere */
-	if (stepped_opcode != 0) {
+	if (stepped_opcode != 0)
+	{
 		__raw_writew(stepped_opcode, stepped_address);
 		flush_icache_range(stepped_address, stepped_address + 2);
 	}
@@ -165,7 +200,8 @@ static void undo_single_step(struct pt_regs *linux_regs)
 	stepped_opcode = 0;
 }
 
-struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] = {
+struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] =
+{
 	{ "r0",		GDB_SIZEOF_REG, offsetof(struct pt_regs, regs[0]) },
 	{ "r1",		GDB_SIZEOF_REG, offsetof(struct pt_regs, regs[1]) },
 	{ "r2",		GDB_SIZEOF_REG, offsetof(struct pt_regs, regs[2]) },
@@ -194,11 +230,13 @@ struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] = {
 int dbg_set_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno < 0 || regno >= DBG_MAX_REG_NUM)
+	{
 		return -EINVAL;
+	}
 
 	if (dbg_reg_def[regno].offset != -1)
 		memcpy((void *)regs + dbg_reg_def[regno].offset, mem,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 
 	return 0;
 }
@@ -206,16 +244,19 @@ int dbg_set_reg(int regno, void *mem, struct pt_regs *regs)
 char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return NULL;
+	}
 
 	if (dbg_reg_def[regno].size != -1)
 		memcpy(mem, (void *)regs + dbg_reg_def[regno].offset,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 
-	switch (regno) {
-	case GDB_VBR:
-		__asm__ __volatile__ ("stc vbr, %0" : "=r" (mem));
-		break;
+	switch (regno)
+	{
+		case GDB_VBR:
+			__asm__ __volatile__ ("stc vbr, %0" : "=r" (mem));
+			break;
 	}
 
 	return dbg_reg_def[regno].name;
@@ -228,7 +269,9 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 
 	/* Initialize to zero */
 	for (reg = 0; reg < DBG_MAX_REG_NUM; reg++)
+	{
 		gdb_regs[reg] = 0;
+	}
 
 	/*
 	 * Copy out GP regs 8 to 14.
@@ -238,7 +281,9 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 	 * fetch from the thread info directly.
 	 */
 	for (reg = GDB_R8; reg < GDB_R15; reg++)
+	{
 		gdb_regs[reg] = thread_regs->regs[reg];
+	}
 
 	gdb_regs[GDB_R15] = p->thread.sp;
 	gdb_regs[GDB_PC] = p->thread.pc;
@@ -251,8 +296,8 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 }
 
 int kgdb_arch_handle_exception(int e_vector, int signo, int err_code,
-			       char *remcomInBuffer, char *remcomOutBuffer,
-			       struct pt_regs *linux_regs)
+							   char *remcomInBuffer, char *remcomOutBuffer,
+							   struct pt_regs *linux_regs)
 {
 	unsigned long addr;
 	char *ptr;
@@ -260,26 +305,32 @@ int kgdb_arch_handle_exception(int e_vector, int signo, int err_code,
 	/* Undo any stepping we may have done */
 	undo_single_step(linux_regs);
 
-	switch (remcomInBuffer[0]) {
-	case 'c':
-	case 's':
-		/* try to read optional parameter, pc unchanged if no parm */
-		ptr = &remcomInBuffer[1];
-		if (kgdb_hex2long(&ptr, &addr))
-			linux_regs->pc = addr;
-	case 'D':
-	case 'k':
-		atomic_set(&kgdb_cpu_doing_single_step, -1);
+	switch (remcomInBuffer[0])
+	{
+		case 'c':
+		case 's':
+			/* try to read optional parameter, pc unchanged if no parm */
+			ptr = &remcomInBuffer[1];
 
-		if (remcomInBuffer[0] == 's') {
-			do_single_step(linux_regs);
-			kgdb_single_step = 1;
+			if (kgdb_hex2long(&ptr, &addr))
+			{
+				linux_regs->pc = addr;
+			}
 
-			atomic_set(&kgdb_cpu_doing_single_step,
-				   raw_smp_processor_id());
-		}
+		case 'D':
+		case 'k':
+			atomic_set(&kgdb_cpu_doing_single_step, -1);
 
-		return 0;
+			if (remcomInBuffer[0] == 's')
+			{
+				do_single_step(linux_regs);
+				kgdb_single_step = 1;
+
+				atomic_set(&kgdb_cpu_doing_single_step,
+						   raw_smp_processor_id());
+			}
+
+			return 0;
 	}
 
 	/* this means that we do not want to exit from the handler: */
@@ -289,7 +340,10 @@ int kgdb_arch_handle_exception(int e_vector, int signo, int err_code,
 unsigned long kgdb_arch_pc(int exception, struct pt_regs *regs)
 {
 	if (exception == 60)
+	{
 		return instruction_pointer(regs) - 2;
+	}
+
 	return instruction_pointer(regs);
 }
 
@@ -328,21 +382,28 @@ static int __kgdb_notify(struct die_args *args, unsigned long cmd)
 {
 	int ret;
 
-	switch (cmd) {
-	case DIE_BREAKPOINT:
-		/*
-		 * This means a user thread is single stepping
-		 * a system call which should be ignored
-		 */
-		if (test_thread_flag(TIF_SINGLESTEP))
-			return NOTIFY_DONE;
+	switch (cmd)
+	{
+		case DIE_BREAKPOINT:
 
-		ret = kgdb_handle_exception(args->trapnr & 0xff, args->signr,
-					    args->err, args->regs);
-		if (ret)
-			return NOTIFY_DONE;
+			/*
+			 * This means a user thread is single stepping
+			 * a system call which should be ignored
+			 */
+			if (test_thread_flag(TIF_SINGLESTEP))
+			{
+				return NOTIFY_DONE;
+			}
 
-		break;
+			ret = kgdb_handle_exception(args->trapnr & 0xff, args->signr,
+										args->err, args->regs);
+
+			if (ret)
+			{
+				return NOTIFY_DONE;
+			}
+
+			break;
 	}
 
 	return NOTIFY_STOP;
@@ -361,7 +422,8 @@ kgdb_notify(struct notifier_block *self, unsigned long cmd, void *ptr)
 	return ret;
 }
 
-static struct notifier_block kgdb_notifier = {
+static struct notifier_block kgdb_notifier =
+{
 	.notifier_call	= kgdb_notify,
 
 	/*
@@ -380,7 +442,8 @@ void kgdb_arch_exit(void)
 	unregister_die_notifier(&kgdb_notifier);
 }
 
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 	/* Breakpoint instruction: trapa #0x3c */
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
 	.gdb_bpt_instr		= { 0x3c, 0xc3 },

@@ -25,12 +25,12 @@ extern asmlinkage void fpu_disabled(void);
 #ifdef CONFIG_FPU
 
 #ifdef CONFIG_LAZY_SAVE_FPU
-/* the task that currently owns the FPU state */
-extern struct task_struct *fpu_state_owner;
+	/* the task that currently owns the FPU state */
+	extern struct task_struct *fpu_state_owner;
 #endif
 
 #if (THREAD_USING_FPU & ~0xff)
-#error THREAD_USING_FPU must be smaller than 0x100.
+	#error THREAD_USING_FPU must be smaller than 0x100.
 #endif
 
 static inline void set_using_fpu(struct task_struct *tsk)
@@ -64,14 +64,21 @@ static inline void unlazy_fpu(struct task_struct *tsk)
 {
 	preempt_disable();
 #ifndef CONFIG_LAZY_SAVE_FPU
-	if (tsk->thread.fpu_flags & THREAD_HAS_FPU) {
+
+	if (tsk->thread.fpu_flags & THREAD_HAS_FPU)
+	{
 		fpu_save(&tsk->thread.fpu_state);
 		tsk->thread.fpu_flags &= ~THREAD_HAS_FPU;
 		tsk->thread.uregs->epsw &= ~EPSW_FE;
 	}
+
 #else
+
 	if (fpu_state_owner == tsk)
+	{
 		fpu_save(&tsk->thread.fpu_state);
+	}
+
 #endif
 	preempt_enable();
 }
@@ -80,8 +87,12 @@ static inline void exit_fpu(struct task_struct *tsk)
 {
 #ifdef CONFIG_LAZY_SAVE_FPU
 	preempt_disable();
+
 	if (fpu_state_owner == tsk)
+	{
 		fpu_state_owner = NULL;
+	}
+
 	preempt_enable();
 #endif
 }
@@ -92,15 +103,21 @@ static inline void flush_fpu(void)
 
 	preempt_disable();
 #ifndef CONFIG_LAZY_SAVE_FPU
-	if (tsk->thread.fpu_flags & THREAD_HAS_FPU) {
+
+	if (tsk->thread.fpu_flags & THREAD_HAS_FPU)
+	{
 		tsk->thread.fpu_flags &= ~THREAD_HAS_FPU;
 		tsk->thread.uregs->epsw &= ~EPSW_FE;
 	}
+
 #else
-	if (fpu_state_owner == tsk) {
+
+	if (fpu_state_owner == tsk)
+	{
 		fpu_state_owner = NULL;
 		tsk->thread.uregs->epsw &= ~EPSW_FE;
 	}
+
 #endif
 	preempt_enable();
 	clear_using_fpu(tsk);

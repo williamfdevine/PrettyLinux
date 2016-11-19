@@ -27,20 +27,20 @@
  */
 static inline unsigned short _swapw(volatile unsigned short v)
 {
-    return ((v << 8) | (v >> 8));
+	return ((v << 8) | (v >> 8));
 }
 
 static inline unsigned int _swapl(volatile unsigned long v)
 {
-    return ((v << 24) | ((v & 0xff00) << 8) | ((v & 0xff0000) >> 8) | (v >> 24));
+	return ((v << 24) | ((v & 0xff00) << 8) | ((v & 0xff0000) >> 8) | (v >> 24));
 }
 
 #define readb(addr) \
-    ({ unsigned char __v = (*(volatile unsigned char *) (addr)); __v; })
+	({ unsigned char __v = (*(volatile unsigned char *) (addr)); __v; })
 #define readw(addr) \
-    ({ unsigned short __v = (*(volatile unsigned short *) (addr)); __v; })
+	({ unsigned short __v = (*(volatile unsigned short *) (addr)); __v; })
 #define readl(addr) \
-    ({ unsigned int __v = (*(volatile unsigned int *) (addr)); __v; })
+	({ unsigned int __v = (*(volatile unsigned int *) (addr)); __v; })
 
 #define writeb(b,addr) (void)((*(volatile unsigned char *) (addr)) = (b))
 #define writew(b,addr) (void)((*(volatile unsigned short *) (addr)) = (b))
@@ -57,48 +57,66 @@ static inline void io_outsb(unsigned int addr, const void *buf, int len)
 {
 	volatile unsigned char *ap = (volatile unsigned char *) addr;
 	unsigned char *bp = (unsigned char *) buf;
+
 	while (len--)
+	{
 		*ap = *bp++;
+	}
 }
 
 static inline void io_outsw(unsigned int addr, const void *buf, int len)
 {
 	volatile unsigned short *ap = (volatile unsigned short *) addr;
 	unsigned short *bp = (unsigned short *) buf;
+
 	while (len--)
+	{
 		*ap = _swapw(*bp++);
+	}
 }
 
 static inline void io_outsl(unsigned int addr, const void *buf, int len)
 {
 	volatile unsigned int *ap = (volatile unsigned int *) addr;
 	unsigned int *bp = (unsigned int *) buf;
+
 	while (len--)
+	{
 		*ap = _swapl(*bp++);
+	}
 }
 
 static inline void io_insb(unsigned int addr, void *buf, int len)
 {
 	volatile unsigned char *ap = (volatile unsigned char *) addr;
 	unsigned char *bp = (unsigned char *) buf;
+
 	while (len--)
+	{
 		*bp++ = *ap;
+	}
 }
 
 static inline void io_insw(unsigned int addr, void *buf, int len)
 {
 	volatile unsigned short *ap = (volatile unsigned short *) addr;
 	unsigned short *bp = (unsigned short *) buf;
+
 	while (len--)
+	{
 		*bp++ = _swapw(*ap);
+	}
 }
 
 static inline void io_insl(unsigned int addr, void *buf, int len)
 {
 	volatile unsigned int *ap = (volatile unsigned int *) addr;
 	unsigned int *bp = (unsigned int *) buf;
+
 	while (len--)
+	{
 		*bp++ = _swapl(*ap);
+	}
 }
 
 #define mmiowb()

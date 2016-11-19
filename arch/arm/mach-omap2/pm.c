@@ -33,11 +33,11 @@
 #include "twl-common.h"
 
 #ifdef CONFIG_SUSPEND
-/*
- * omap_pm_suspend: points to a function that does the SoC-specific
- * suspend work
- */
-static int (*omap_pm_suspend)(void);
+	/*
+	* omap_pm_suspend: points to a function that does the SoC-specific
+	* suspend work
+	*/
+	static int (*omap_pm_suspend)(void);
 #endif
 
 #ifdef CONFIG_PM
@@ -46,12 +46,14 @@ static int (*omap_pm_suspend)(void);
  * @startup_time: oscillator startup latency
  * @shutdown_time: oscillator shutdown latency
  */
-struct omap2_oscillator {
+struct omap2_oscillator
+{
 	u32 startup_time;
 	u32 shutdown_time;
 };
 
-static struct omap2_oscillator oscillator = {
+static struct omap2_oscillator oscillator =
+{
 	.startup_time = ULONG_MAX,
 	.shutdown_time = ULONG_MAX,
 };
@@ -65,7 +67,9 @@ void omap_pm_setup_oscillator(u32 tstart, u32 tshut)
 void omap_pm_get_oscillator(u32 *tstart, u32 *tshut)
 {
 	if (!tstart || !tshut)
+	{
 		return;
+	}
 
 	*tstart = oscillator.startup_time;
 	*tshut = oscillator.shutdown_time;
@@ -78,14 +82,20 @@ static int __init _init_omap_device(char *name)
 	struct platform_device *pdev;
 
 	oh = omap_hwmod_lookup(name);
+
 	if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
-		 __func__, name))
+			 __func__, name))
+	{
 		return -ENODEV;
+	}
 
 	pdev = omap_device_build(oh->name, 0, oh, NULL, 0);
+
 	if (WARN(IS_ERR(pdev), "%s: could not build omap_device for %s\n",
-		 __func__, name))
+			 __func__, name))
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -96,14 +106,20 @@ static int __init _init_omap_device(char *name)
 static void __init omap2_init_processor_devices(void)
 {
 	_init_omap_device("mpu");
-	if (omap3_has_iva())
-		_init_omap_device("iva");
 
-	if (cpu_is_omap44xx()) {
+	if (omap3_has_iva())
+	{
+		_init_omap_device("iva");
+	}
+
+	if (cpu_is_omap44xx())
+	{
 		_init_omap_device("l3_main_1");
 		_init_omap_device("dsp");
 		_init_omap_device("iva");
-	} else {
+	}
+	else
+	{
 		_init_omap_device("l3_main");
 	}
 }
@@ -123,7 +139,7 @@ int __init omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
  * in the opp entry
  */
 static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
-					 const char *oh_name)
+		const char *oh_name)
 {
 	struct voltagedomain *voltdm;
 	struct clk *clk;
@@ -131,35 +147,45 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
 	unsigned long freq, bootup_volt;
 	struct device *dev;
 
-	if (!vdd_name || !clk_name || !oh_name) {
+	if (!vdd_name || !clk_name || !oh_name)
+	{
 		pr_err("%s: invalid parameters\n", __func__);
 		goto exit;
 	}
 
 	if (!strncmp(oh_name, "mpu", 3))
-		/* 
+		/*
 		 * All current OMAPs share voltage rail and clock
 		 * source, so CPU0 is used to represent the MPU-SS.
 		 */
+	{
 		dev = get_cpu_device(0);
+	}
 	else
+	{
 		dev = omap_device_get_by_hwmod_name(oh_name);
+	}
 
-	if (IS_ERR(dev)) {
+	if (IS_ERR(dev))
+	{
 		pr_err("%s: Unable to get dev pointer for hwmod %s\n",
-			__func__, oh_name);
+			   __func__, oh_name);
 		goto exit;
 	}
 
 	voltdm = voltdm_lookup(vdd_name);
-	if (!voltdm) {
+
+	if (!voltdm)
+	{
 		pr_err("%s: unable to get vdd pointer for vdd_%s\n",
-			__func__, vdd_name);
+			   __func__, vdd_name);
 		goto exit;
 	}
 
 	clk =  clk_get(NULL, clk_name);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("%s: unable to get clk %s\n", __func__, clk_name);
 		goto exit;
 	}
@@ -169,18 +195,22 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
 
 	rcu_read_lock();
 	opp = dev_pm_opp_find_freq_ceil(dev, &freq);
-	if (IS_ERR(opp)) {
+
+	if (IS_ERR(opp))
+	{
 		rcu_read_unlock();
 		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
-			__func__, vdd_name);
+			   __func__, vdd_name);
 		goto exit;
 	}
 
 	bootup_volt = dev_pm_opp_get_voltage(opp);
 	rcu_read_unlock();
-	if (!bootup_volt) {
+
+	if (!bootup_volt)
+	{
 		pr_err("%s: unable to find voltage corresponding to the bootup OPP for vdd_%s\n",
-		       __func__, vdd_name);
+			   __func__, vdd_name);
 		goto exit;
 	}
 
@@ -198,15 +228,19 @@ static int omap_pm_enter(suspend_state_t suspend_state)
 	int ret = 0;
 
 	if (!omap_pm_suspend)
-		return -ENOENT; /* XXX doublecheck */
+	{
+		return -ENOENT;    /* XXX doublecheck */
+	}
 
-	switch (suspend_state) {
-	case PM_SUSPEND_STANDBY:
-	case PM_SUSPEND_MEM:
-		ret = omap_pm_suspend();
-		break;
-	default:
-		ret = -EINVAL;
+	switch (suspend_state)
+	{
+		case PM_SUSPEND_STANDBY:
+		case PM_SUSPEND_MEM:
+			ret = omap_pm_suspend();
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
@@ -215,8 +249,12 @@ static int omap_pm_enter(suspend_state_t suspend_state)
 static int omap_pm_begin(suspend_state_t state)
 {
 	cpu_idle_poll_ctrl(true);
+
 	if (cpu_is_omap34xx())
+	{
 		omap_prcm_irq_prepare();
+	}
+
 	return 0;
 }
 
@@ -228,10 +266,13 @@ static void omap_pm_end(void)
 static void omap_pm_finish(void)
 {
 	if (cpu_is_omap34xx())
+	{
 		omap_prcm_irq_complete();
+	}
 }
 
-static const struct platform_suspend_ops omap_pm_ops = {
+static const struct platform_suspend_ops omap_pm_ops =
+{
 	.begin		= omap_pm_begin,
 	.end		= omap_pm_end,
 	.enter		= omap_pm_enter,
@@ -253,7 +294,9 @@ void omap_common_suspend_init(void *pm_suspend)
 static void __init omap3_init_voltages(void)
 {
 	if (!cpu_is_omap34xx())
+	{
 		return;
+	}
 
 	omap2_set_init_voltage("mpu_iva", "dpll1_ck", "mpu");
 	omap2_set_init_voltage("core", "l3_ick", "l3_main");
@@ -262,7 +305,9 @@ static void __init omap3_init_voltages(void)
 static void __init omap4_init_voltages(void)
 {
 	if (!cpu_is_omap44xx())
+	{
 		return;
+	}
 
 	omap2_set_init_voltage("mpu", "dpll_mpu_ck", "mpu");
 	omap2_set_init_voltage("core", "l3_div_ck", "l3_main_1");
@@ -274,13 +319,18 @@ static inline void omap_init_cpufreq(void)
 	struct platform_device_info devinfo = { .name = "omap-cpufreq" };
 
 	if (!of_have_populated_dt())
+	{
 		platform_device_register_full(&devinfo);
+	}
 }
 
 static int __init omap2_common_pm_init(void)
 {
 	if (!of_have_populated_dt())
+	{
 		omap2_init_processor_devices();
+	}
+
 	omap_pm_if_init();
 
 	return 0;
@@ -289,7 +339,8 @@ omap_postcore_initcall(omap2_common_pm_init);
 
 int __init omap2_common_pm_late_init(void)
 {
-	if (of_have_populated_dt()) {
+	if (of_have_populated_dt())
+	{
 		omap3_twl_init();
 		omap4_twl_init();
 	}

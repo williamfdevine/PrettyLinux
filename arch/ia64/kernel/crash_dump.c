@@ -32,19 +32,29 @@
  */
 ssize_t
 copy_oldmem_page(unsigned long pfn, char *buf,
-		size_t csize, unsigned long offset, int userbuf)
+				 size_t csize, unsigned long offset, int userbuf)
 {
 	void  *vaddr;
 
 	if (!csize)
+	{
 		return 0;
-	vaddr = __va(pfn<<PAGE_SHIFT);
-	if (userbuf) {
-		if (copy_to_user(buf, (vaddr + offset), csize)) {
+	}
+
+	vaddr = __va(pfn << PAGE_SHIFT);
+
+	if (userbuf)
+	{
+		if (copy_to_user(buf, (vaddr + offset), csize))
+		{
 			return -EFAULT;
 		}
-	} else
+	}
+	else
+	{
 		memcpy(buf, (vaddr + offset), csize);
+	}
+
 	return csize;
 }
 

@@ -38,24 +38,26 @@
 #define UPT_ES(r) REGS_ES((r)->gp)
 
 #ifdef __i386__
-#include "ptrace_32.h"
+	#include "ptrace_32.h"
 #else
-#include "ptrace_64.h"
+	#include "ptrace_64.h"
 #endif
 
-struct syscall_args {
+struct syscall_args
+{
 	unsigned long args[6];
 };
 
 #define SYSCALL_ARGS(r) ((struct syscall_args) \
-			 { .args = { UPT_SYSCALL_ARG1(r),	 \
-				     UPT_SYSCALL_ARG2(r),	 \
-				     UPT_SYSCALL_ARG3(r),	 \
-				     UPT_SYSCALL_ARG4(r),	 \
-				     UPT_SYSCALL_ARG5(r),	 \
-				     UPT_SYSCALL_ARG6(r) } } )
+{ .args = { UPT_SYSCALL_ARG1(r),	 \
+			UPT_SYSCALL_ARG2(r),	 \
+			UPT_SYSCALL_ARG3(r),	 \
+			UPT_SYSCALL_ARG4(r),	 \
+			UPT_SYSCALL_ARG5(r),	 \
+			UPT_SYSCALL_ARG6(r) } } )
 
-struct uml_pt_regs {
+struct uml_pt_regs
+{
 	unsigned long gp[MAX_REG_NR];
 	unsigned long fp[MAX_FP_NR];
 	struct faultinfo faultinfo;

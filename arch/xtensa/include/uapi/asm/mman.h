@@ -56,10 +56,10 @@
 #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
 #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
 #ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
-# define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be
-					 * uninitialized */
+	#define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be
+	* uninitialized */
 #else
-# define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
+	#define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
 #endif
 
 /*
@@ -120,6 +120,6 @@
 #define PKEY_DISABLE_ACCESS	0x1
 #define PKEY_DISABLE_WRITE	0x2
 #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-				 PKEY_DISABLE_WRITE)
+							 PKEY_DISABLE_WRITE)
 
 #endif /* _XTENSA_MMAN_H */

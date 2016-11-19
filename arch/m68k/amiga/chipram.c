@@ -23,7 +23,8 @@
 unsigned long amiga_chip_size;
 EXPORT_SYMBOL(amiga_chip_size);
 
-static struct resource chipram_res = {
+static struct resource chipram_res =
+{
 	.name = "Chip RAM", .start = CHIP_PHYSADDR
 };
 static atomic_t chipavail;
@@ -32,7 +33,9 @@ static atomic_t chipavail;
 void __init amiga_chip_init(void)
 {
 	if (!AMIGAHW_PRESENT(CHIP_RAM))
+	{
 		return;
+	}
 
 	chipram_res.end = CHIP_PHYSADDR + amiga_chip_size - 1;
 	request_resource(&iomem_resource, &chipram_res);
@@ -47,12 +50,17 @@ void *amiga_chip_alloc(unsigned long size, const char *name)
 	void *p;
 
 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+
 	if (!res)
+	{
 		return NULL;
+	}
 
 	res->name = name;
 	p = amiga_chip_alloc_res(size, res);
-	if (!p) {
+
+	if (!p)
+	{
 		kfree(res);
 		return NULL;
 	}
@@ -62,12 +70,12 @@ void *amiga_chip_alloc(unsigned long size, const char *name)
 EXPORT_SYMBOL(amiga_chip_alloc);
 
 
-	/*
-	 *  Warning:
-	 *  amiga_chip_alloc_res is meant only for drivers that need to
-	 *  allocate Chip RAM before kmalloc() is functional. As a consequence,
-	 *  those drivers must not free that Chip RAM afterwards.
-	 */
+/*
+ *  Warning:
+ *  amiga_chip_alloc_res is meant only for drivers that need to
+ *  allocate Chip RAM before kmalloc() is functional. As a consequence,
+ *  those drivers must not free that Chip RAM afterwards.
+ */
 
 void *amiga_chip_alloc_res(unsigned long size, struct resource *res)
 {
@@ -78,10 +86,12 @@ void *amiga_chip_alloc_res(unsigned long size, struct resource *res)
 
 	pr_debug("amiga_chip_alloc_res: allocate %lu bytes\n", size);
 	error = allocate_resource(&chipram_res, res, size, 0, UINT_MAX,
-				  PAGE_SIZE, NULL, NULL);
-	if (error < 0) {
+							  PAGE_SIZE, NULL, NULL);
+
+	if (error < 0)
+	{
 		pr_err("amiga_chip_alloc_res: allocate_resource() failed %d!\n",
-		       error);
+			   error);
 		return NULL;
 	}
 
@@ -97,9 +107,11 @@ void amiga_chip_free(void *ptr)
 	unsigned long size;
 
 	res = lookup_resource(&chipram_res, start);
-	if (!res) {
+
+	if (!res)
+	{
 		pr_err("amiga_chip_free: trying to free nonexistent region at "
-		       "%p\n", ptr);
+			   "%p\n", ptr);
 		return;
 	}
 

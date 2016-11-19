@@ -33,7 +33,8 @@
 /* This is the old layout of "struct pt_regs" as of Linux 1.x, and
    is still the layout used by user (the new pt_regs doesn't have
    all registers). */
-struct user_regs_struct {
+struct user_regs_struct
+{
 	long er1, er2, er3, er4, er5, er6;
 	long er0;
 	long usp;
@@ -45,12 +46,13 @@ struct user_regs_struct {
 /* When the kernel dumps core, it starts by dumping the user struct -
    this will be used by gdb to figure out where the data and stack segments
    are within the file, and what virtual addresses to use. */
-struct user {
-/* We start with the registers, to mimic the way that "memory" is returned
-   from the ptrace(3,...) function.  */
+struct user
+{
+	/* We start with the registers, to mimic the way that "memory" is returned
+	   from the ptrace(3,...) function.  */
 	struct user_regs_struct regs;	/* Where the registers are actually stored */
-/* ptrace does not yet supply these.  Someday.... */
-/* The rest of this junk is to help gdb figure out what goes where */
+	/* ptrace does not yet supply these.  Someday.... */
+	/* The rest of this junk is to help gdb figure out what goes where */
 	unsigned long int u_tsize;	/* Text segment size (pages). */
 	unsigned long int u_dsize;	/* Data segment size (pages). */
 	unsigned long int u_ssize;	/* Stack segment size (pages). */

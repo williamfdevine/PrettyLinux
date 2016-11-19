@@ -44,20 +44,22 @@
 /*
  * Do a signal return; undo the signal stack.
  */
-struct sigframe {
+struct sigframe
+{
 	struct sigcontext sc;
-	unsigned long extramask[_NSIG_WORDS-1];
+	unsigned long extramask[_NSIG_WORDS - 1];
 	unsigned long tramp[2];	/* signal trampoline */
 };
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo info;
 	struct ucontext uc;
 	unsigned long tramp[2];	/* signal trampoline */
 };
 
 static int restore_sigcontext(struct pt_regs *regs,
-				struct sigcontext __user *sc, int *rval_p)
+							  struct sigcontext __user *sc, int *rval_p)
 {
 	unsigned int err = 0;
 
@@ -92,18 +94,26 @@ asmlinkage long sys_rt_sigreturn(struct pt_regs *regs)
 	current->restart_block.fn = do_no_restart_syscall;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext, &rval))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return rval;
 
@@ -118,7 +128,7 @@ badframe:
 
 static int
 setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
-		unsigned long mask)
+				 unsigned long mask)
 {
 	int err = 0;
 
@@ -154,7 +164,7 @@ get_sigframe(struct ksignal *ksig, struct pt_regs *regs, size_t frame_size)
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame;
 	int err = 0, sig = ksig->sig;
@@ -167,17 +177,21 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(ksig, regs, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
+	}
 
 	/* Create the ucontext. */
 	err |= __put_user(0, &frame->uc.uc_flags);
 	err |= __put_user(NULL, &frame->uc.uc_link);
 	err |= __save_altstack(&frame->uc.uc_stack, regs->r1);
 	err |= setup_sigcontext(&frame->uc.uc_mcontext,
-			regs, set->sig[0]);
+							regs, set->sig[0]);
 	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
 
 	/* Set up to return from userspace. If provided, use a stub
@@ -185,23 +199,25 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	/* minus 8 is offset to cater for "rtsd r15,8" */
 	/* addi r12, r0, __NR_sigreturn */
 	err |= __put_user(0x31800000 | __NR_rt_sigreturn ,
-			frame->tramp + 0);
+					  frame->tramp + 0);
 	/* brki r14, 0x8 */
 	err |= __put_user(0xb9cc0008, frame->tramp + 1);
 
 	/* Return from sighandler will jump to the tramp.
 	 Negative 8 offset because return is rtsd r15, 8 */
-	regs->r15 = ((unsigned long)frame->tramp)-8;
+	regs->r15 = ((unsigned long)frame->tramp) - 8;
 
 	address = ((unsigned long)frame->tramp);
 #ifdef CONFIG_MMU
 	pmdp = pmd_offset(pud_offset(
-			pgd_offset(current->mm, address),
-					address), address);
+						  pgd_offset(current->mm, address),
+						  address), address);
 
 	preempt_disable();
 	ptep = pte_offset_map(pmdp, address);
-	if (pte_present(*ptep)) {
+
+	if (pte_present(*ptep))
+	{
 		address = (unsigned long) page_address(pte_page(*ptep));
 		/* MS: I need add offset in page */
 		address += ((unsigned long)frame->tramp) & ~PAGE_MASK;
@@ -210,14 +226,18 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 		invalidate_icache_range(address, address + 8);
 		flush_dcache_range(address, address + 8);
 	}
+
 	pte_unmap(ptep);
 	preempt_enable();
 #else
 	flush_icache_range(address, address + 8);
 	flush_dcache_range(address, address + 8);
 #endif
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up registers for signal handler */
 	regs->r1 = (unsigned long) frame;
@@ -231,7 +251,7 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 
 #ifdef DEBUG_SIG
 	pr_info("SIG deliver (%s:%d): sp=%p pc=%08lx\n",
-		current->comm, current->pid, frame, regs->pc);
+			current->comm, current->pid, frame, regs->pc);
 #endif
 
 	return 0;
@@ -241,24 +261,31 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 static inline void
 handle_restart(struct pt_regs *regs, struct k_sigaction *ka, int has_handler)
 {
-	switch (regs->r3) {
-	case -ERESTART_RESTARTBLOCK:
-	case -ERESTARTNOHAND:
-		if (!has_handler)
-			goto do_restart;
-		regs->r3 = -EINTR;
-		break;
-	case -ERESTARTSYS:
-		if (has_handler && !(ka->sa.sa_flags & SA_RESTART)) {
+	switch (regs->r3)
+	{
+		case -ERESTART_RESTARTBLOCK:
+		case -ERESTARTNOHAND:
+			if (!has_handler)
+			{
+				goto do_restart;
+			}
+
 			regs->r3 = -EINTR;
 			break;
-	}
-	/* fallthrough */
-	case -ERESTARTNOINTR:
+
+		case -ERESTARTSYS:
+			if (has_handler && !(ka->sa.sa_flags & SA_RESTART))
+			{
+				regs->r3 = -EINTR;
+				break;
+			}
+
+		/* fallthrough */
+		case -ERESTARTNOINTR:
 do_restart:
-		/* offset of 4 bytes to re-execute trap (brki) instruction */
-		regs->pc -= 4;
-		break;
+			/* offset of 4 bytes to re-execute trap (brki) instruction */
+			regs->pc -= 4;
+			break;
 	}
 }
 
@@ -297,16 +324,22 @@ static void do_signal(struct pt_regs *regs, int in_syscall)
 			regs->r12, current_thread_info()->flags);
 #endif
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* Whee! Actually deliver the signal. */
 		if (in_syscall)
+		{
 			handle_restart(regs, &ksig.ka, 1);
+		}
+
 		handle_signal(&ksig, regs);
 		return;
 	}
 
 	if (in_syscall)
+	{
 		handle_restart(regs, NULL, 0);
+	}
 
 	/*
 	 * If there's no signal to deliver, we just put the saved sigmask
@@ -318,8 +351,12 @@ static void do_signal(struct pt_regs *regs, int in_syscall)
 asmlinkage void do_notify_resume(struct pt_regs *regs, int in_syscall)
 {
 	if (test_thread_flag(TIF_SIGPENDING))
+	{
 		do_signal(regs, in_syscall);
+	}
 
 	if (test_and_clear_thread_flag(TIF_NOTIFY_RESUME))
+	{
 		tracehook_notify_resume(regs);
+	}
 }

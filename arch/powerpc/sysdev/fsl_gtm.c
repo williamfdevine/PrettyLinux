@@ -38,7 +38,8 @@
 #define GTMDR_ORI		(1 << 4)
 #define GTMDR_SPS(x)		((x) << 8)
 
-struct gtm_timers_regs {
+struct gtm_timers_regs
+{
 	u8	gtcfr1;		/* Timer 1, Timer 2 global config register */
 	u8	res0[0x3];
 	u8	gtcfr2;		/* Timer 3, timer 4 global config register */
@@ -70,7 +71,8 @@ struct gtm_timers_regs {
 	u8 res2[0x40];
 } __attribute__ ((packed));
 
-struct gtm {
+struct gtm
+{
 	unsigned int clock;
 	struct gtm_timers_regs __iomem *regs;
 	struct gtm_timer timers[4];
@@ -93,11 +95,14 @@ struct gtm_timer *gtm_get_timer16(void)
 	struct gtm *gtm = NULL;
 	int i;
 
-	list_for_each_entry(gtm, &gtms, list_node) {
+	list_for_each_entry(gtm, &gtms, list_node)
+	{
 		spin_lock_irq(&gtm->lock);
 
-		for (i = 0; i < ARRAY_SIZE(gtm->timers); i++) {
-			if (!gtm->timers[i].requested) {
+		for (i = 0; i < ARRAY_SIZE(gtm->timers); i++)
+		{
+			if (!gtm->timers[i].requested)
+			{
 				gtm->timers[i].requested = true;
 				spin_unlock_irq(&gtm->lock);
 				return &gtm->timers[i];
@@ -108,7 +113,10 @@ struct gtm_timer *gtm_get_timer16(void)
 	}
 
 	if (gtm)
+	{
 		return ERR_PTR(-EBUSY);
+	}
+
 	return ERR_PTR(-ENODEV);
 }
 EXPORT_SYMBOL(gtm_get_timer16);
@@ -124,17 +132,21 @@ EXPORT_SYMBOL(gtm_get_timer16);
  * to manage timer interrupt.
  */
 struct gtm_timer *gtm_get_specific_timer16(struct gtm *gtm,
-					   unsigned int timer)
+		unsigned int timer)
 {
 	struct gtm_timer *ret = ERR_PTR(-EBUSY);
 
 	if (timer > 3)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	spin_lock_irq(&gtm->lock);
 
 	if (gtm->timers[timer].requested)
+	{
 		goto out;
+	}
 
 	ret = &gtm->timers[timer];
 	ret->requested = true;
@@ -167,7 +179,7 @@ EXPORT_SYMBOL(gtm_put_timer16);
  * timer in reference mode.
  */
 static int gtm_set_ref_timer16(struct gtm_timer *tmr, int frequency,
-			       int reference_value, bool free_run)
+							   int reference_value, bool free_run)
 {
 	struct gtm *gtm = tmr->gtm;
 	int num = tmr - &gtm->timers[0];
@@ -180,26 +192,35 @@ static int gtm_set_ref_timer16(struct gtm_timer *tmr, int frequency,
 
 	/* CPM2 doesn't have primary prescaler */
 	if (!tmr->gtpsr)
+	{
 		max_prescaler /= 256;
+	}
 
 	prescaler = gtm->clock / frequency;
+
 	/*
 	 * We have two 8 bit prescalers -- primary and secondary (psr, sps),
 	 * plus "slow go" mode (clk / 16). So, total prescale value is
 	 * 16 * (psr + 1) * (sps + 1). Though, for CPM2 GTMs we losing psr.
 	 */
 	if (prescaler > max_prescaler)
+	{
 		return -EINVAL;
+	}
 
-	if (prescaler > max_prescaler / 16) {
+	if (prescaler > max_prescaler / 16)
+	{
 		iclk = GTMDR_ICLK_SLGO;
 		prescaler /= 16;
 	}
 
-	if (prescaler <= 256) {
+	if (prescaler <= 256)
+	{
 		psr = 0;
 		sps = prescaler - 1;
-	} else {
+	}
+	else
+	{
 		psr = 256 - 1;
 		sps = prescaler / 256 - 1;
 	}
@@ -216,9 +237,12 @@ static int gtm_set_ref_timer16(struct gtm_timer *tmr, int frequency,
 	setbits8(tmr->gtcfr, GTCFR_STP(num));
 
 	if (tmr->gtpsr)
+	{
 		out_be16(tmr->gtpsr, psr);
+	}
+
 	clrsetbits_be16(tmr->gtmdr, 0xFFFF, iclk | GTMDR_SPS(sps) |
-			GTMDR_ORI | (free_run ? GTMDR_FRR : 0));
+					GTMDR_ORI | (free_run ? GTMDR_FRR : 0));
 	out_be16(tmr->gtcnr, 0);
 	out_be16(tmr->gtrfr, reference_value);
 	out_be16(tmr->gtevr, 0xFFFF);
@@ -251,13 +275,17 @@ int gtm_set_timer16(struct gtm_timer *tmr, unsigned long usec, bool reload)
 	unsigned int bit;
 
 	bit = fls_long(usec);
-	if (bit > 15) {
+
+	if (bit > 15)
+	{
 		freq >>= bit - 15;
 		usec >>= bit - 15;
 	}
 
 	if (!freq)
+	{
 		return -EINVAL;
+	}
 
 	return gtm_set_ref_timer16(tmr, freq, usec, reload);
 }
@@ -334,8 +362,8 @@ void gtm_ack_timer16(struct gtm_timer *tmr, u16 events)
 EXPORT_SYMBOL(gtm_ack_timer16);
 
 static void __init gtm_set_shortcuts(struct device_node *np,
-				     struct gtm_timer *timers,
-				     struct gtm_timers_regs __iomem *regs)
+									 struct gtm_timer *timers,
+									 struct gtm_timers_regs __iomem *regs)
 {
 	/*
 	 * Yeah, I don't like this either, but timers' registers a bit messed,
@@ -368,7 +396,8 @@ static void __init gtm_set_shortcuts(struct device_node *np,
 	timers[3].gtevr = &regs->gtevr4;
 
 	/* CPM2 doesn't have primary prescaler */
-	if (!of_device_is_compatible(np, "fsl,cpm2-gtm")) {
+	if (!of_device_is_compatible(np, "fsl,cpm2-gtm"))
+	{
 		timers[0].gtpsr = &regs->gtpsr1;
 		timers[1].gtpsr = &regs->gtpsr2;
 		timers[2].gtpsr = &regs->gtpsr3;
@@ -380,45 +409,57 @@ static int __init fsl_gtm_init(void)
 {
 	struct device_node *np;
 
-	for_each_compatible_node(np, NULL, "fsl,gtm") {
+	for_each_compatible_node(np, NULL, "fsl,gtm")
+	{
 		int i;
 		struct gtm *gtm;
 		const u32 *clock;
 		int size;
 
 		gtm = kzalloc(sizeof(*gtm), GFP_KERNEL);
-		if (!gtm) {
+
+		if (!gtm)
+		{
 			pr_err("%s: unable to allocate memory\n",
-				np->full_name);
+				   np->full_name);
 			continue;
 		}
 
 		spin_lock_init(&gtm->lock);
 
 		clock = of_get_property(np, "clock-frequency", &size);
-		if (!clock || size != sizeof(*clock)) {
+
+		if (!clock || size != sizeof(*clock))
+		{
 			pr_err("%s: no clock-frequency\n", np->full_name);
 			goto err;
 		}
+
 		gtm->clock = *clock;
 
-		for (i = 0; i < ARRAY_SIZE(gtm->timers); i++) {
+		for (i = 0; i < ARRAY_SIZE(gtm->timers); i++)
+		{
 			unsigned int irq;
 
 			irq = irq_of_parse_and_map(np, i);
-			if (!irq) {
+
+			if (!irq)
+			{
 				pr_err("%s: not enough interrupts specified\n",
-				       np->full_name);
+					   np->full_name);
 				goto err;
 			}
+
 			gtm->timers[i].irq = irq;
 			gtm->timers[i].gtm = gtm;
 		}
 
 		gtm->regs = of_iomap(np, 0);
-		if (!gtm->regs) {
+
+		if (!gtm->regs)
+		{
 			pr_err("%s: unable to iomap registers\n",
-			       np->full_name);
+				   np->full_name);
 			goto err;
 		}
 

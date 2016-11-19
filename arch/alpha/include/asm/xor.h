@@ -15,22 +15,22 @@
 
 extern void xor_alpha_2(unsigned long, unsigned long *, unsigned long *);
 extern void xor_alpha_3(unsigned long, unsigned long *, unsigned long *,
-		        unsigned long *);
+						unsigned long *);
 extern void xor_alpha_4(unsigned long, unsigned long *, unsigned long *,
-		        unsigned long *, unsigned long *);
+						unsigned long *, unsigned long *);
 extern void xor_alpha_5(unsigned long, unsigned long *, unsigned long *,
-		        unsigned long *, unsigned long *, unsigned long *);
+						unsigned long *, unsigned long *, unsigned long *);
 
 extern void xor_alpha_prefetch_2(unsigned long, unsigned long *,
-				 unsigned long *);
+								 unsigned long *);
 extern void xor_alpha_prefetch_3(unsigned long, unsigned long *,
-				 unsigned long *, unsigned long *);
+								 unsigned long *, unsigned long *);
 extern void xor_alpha_prefetch_4(unsigned long, unsigned long *,
-				 unsigned long *, unsigned long *,
-				 unsigned long *);
+								 unsigned long *, unsigned long *,
+								 unsigned long *);
 extern void xor_alpha_prefetch_5(unsigned long, unsigned long *,
-				 unsigned long *, unsigned long *,
-				 unsigned long *, unsigned long *);
+								 unsigned long *, unsigned long *,
+								 unsigned long *, unsigned long *);
 
 asm("								\n\
 	.text							\n\
@@ -821,7 +821,8 @@ xor_alpha_prefetch_5:						\n\
 	.end xor_alpha_prefetch_5				\n\
 ");
 
-static struct xor_block_template xor_block_alpha = {
+static struct xor_block_template xor_block_alpha =
+{
 	.name	= "alpha",
 	.do_2	= xor_alpha_2,
 	.do_3	= xor_alpha_3,
@@ -829,7 +830,8 @@ static struct xor_block_template xor_block_alpha = {
 	.do_5	= xor_alpha_5,
 };
 
-static struct xor_block_template xor_block_alpha_prefetch = {
+static struct xor_block_template xor_block_alpha_prefetch =
+{
 	.name	= "alpha prefetch",
 	.do_2	= xor_alpha_prefetch_2,
 	.do_3	= xor_alpha_prefetch_3,

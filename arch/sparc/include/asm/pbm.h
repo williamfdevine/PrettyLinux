@@ -24,7 +24,8 @@
 #include <asm/oplib.h>
 #include <asm/prom.h>
 
-struct linux_pbm_info {
+struct linux_pbm_info
+{
 	int		prom_node;
 	char		prom_name[64];
 	/* struct linux_prom_pci_ranges	pbm_ranges[PROMREG_MAX]; */
@@ -39,7 +40,8 @@ struct linux_pbm_info {
  * sysdata member.  This makes OBP aware PCI device drivers easier to
  * code.
  */
-struct pcidev_cookie {
+struct pcidev_cookie
+{
 	struct linux_pbm_info		*pbm;
 	struct device_node		*prom_node;
 };

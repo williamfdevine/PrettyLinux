@@ -18,12 +18,13 @@
 
 #include <cpu/pfc.h>
 
-static struct platform_device sh_pfc_device = {
+static struct platform_device sh_pfc_device =
+{
 	.id		= -1,
 };
 
 int __init sh_pfc_register(const char *name,
-			   struct resource *resource, u32 num_resources)
+						   struct resource *resource, u32 num_resources)
 {
 	sh_pfc_device.name = name;
 	sh_pfc_device.num_resources = num_resources;

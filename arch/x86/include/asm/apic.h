@@ -66,7 +66,9 @@ static inline void __inquire_remote_apic(int apicid)
 static inline void default_inquire_remote_apic(int apicid)
 {
 	if (apic_verbosity >= APIC_DEBUG)
+	{
 		__inquire_remote_apic(apicid);
+	}
 }
 
 /*
@@ -86,7 +88,7 @@ static inline bool apic_from_smp_config(void)
  * Basic functions accessing APICs.
  */
 #ifdef CONFIG_PARAVIRT
-#include <asm/paravirt.h>
+	#include <asm/paravirt.h>
 #endif
 
 extern int setup_profiling_timer(unsigned int);
@@ -96,8 +98,8 @@ static inline void native_apic_mem_write(u32 reg, u32 v)
 	volatile u32 *addr = (volatile u32 *)(APIC_BASE + reg);
 
 	alternative_io("movl %0, %P1", "xchgl %0, %P1", X86_BUG_11AP,
-		       ASM_OUTPUT2("=r" (v), "=m" (*addr)),
-		       ASM_OUTPUT2("0" (v), "m" (*addr)));
+				   ASM_OUTPUT2("=r" (v), "=m" (*addr)),
+				   ASM_OUTPUT2("0" (v), "m" (*addr)));
 }
 
 static inline u32 native_apic_mem_read(u32 reg)
@@ -115,7 +117,10 @@ static inline bool apic_is_x2apic_enabled(void)
 	u64 msr;
 
 	if (rdmsrl_safe(MSR_IA32_APICBASE, &msr))
+	{
 		return false;
+	}
+
 	return msr & X2APIC_ENABLE;
 }
 
@@ -188,8 +193,10 @@ static inline void x2apic_wrmsr_fence(void)
 static inline void native_apic_msr_write(u32 reg, u32 v)
 {
 	if (reg == APIC_DFR || reg == APIC_ID || reg == APIC_LDR ||
-	    reg == APIC_LVR)
+		reg == APIC_LVR)
+	{
 		return;
+	}
 
 	wrmsr(APIC_BASE_MSR + (reg >> 4), v, 0);
 }
@@ -204,7 +211,9 @@ static inline u32 native_apic_msr_read(u32 reg)
 	u64 msr;
 
 	if (reg == APIC_DFR)
+	{
 		return -1;
+	}
 
 	rdmsrl(APIC_BASE_MSR + (reg >> 4), msr);
 	return (u32)msr;
@@ -255,7 +264,7 @@ static inline int x2apic_enabled(void) { return 0; }
 #endif /* !CONFIG_X86_X2APIC */
 
 #ifdef CONFIG_X86_64
-#define	SET_APIC_ID(x)		(apic->set_apic_id(x))
+	#define	SET_APIC_ID(x)		(apic->set_apic_id(x))
 #else
 
 #endif
@@ -270,7 +279,8 @@ static inline int x2apic_enabled(void) { return 0; }
  * Martin Bligh, Andi Kleen, James Bottomley, John Stultz, and
  * James Cleverdon.
  */
-struct apic {
+struct apic
+{
 	char *name;
 
 	int (*probe)(void);
@@ -289,7 +299,7 @@ struct apic {
 	unsigned long (*check_apicid_used)(physid_mask_t *map, int apicid);
 
 	void (*vector_allocation_domain)(int cpu, struct cpumask *retmask,
-					 const struct cpumask *mask);
+									 const struct cpumask *mask);
 	void (*init_apic_ldr)(void);
 
 	void (*ioapic_phys_id_map)(physid_mask_t *phys_map, physid_mask_t *retmap);
@@ -304,14 +314,14 @@ struct apic {
 	unsigned long (*set_apic_id)(unsigned int id);
 
 	int (*cpu_mask_to_apicid_and)(const struct cpumask *cpumask,
-				      const struct cpumask *andmask,
-				      unsigned int *apicid);
+								  const struct cpumask *andmask,
+								  unsigned int *apicid);
 
 	/* ipi */
 	void (*send_IPI)(int cpu, int vector);
 	void (*send_IPI_mask)(const struct cpumask *mask, int vector);
 	void (*send_IPI_mask_allbutself)(const struct cpumask *mask,
-					 int vector);
+									 int vector);
 	void (*send_IPI_allbutself)(int vector);
 	void (*send_IPI_all)(int vector);
 	void (*send_IPI_self)(int vector);
@@ -383,7 +393,7 @@ extern struct apic *__apicdrivers[], *__apicdrivers_end[];
  * APIC functionality to boot other CPUs - only used on SMP:
  */
 #ifdef CONFIG_SMP
-extern int wakeup_secondary_cpu_via_nmi(int apicid, unsigned long start_eip);
+	extern int wakeup_secondary_cpu_via_nmi(int apicid, unsigned long start_eip);
 #endif
 
 #ifdef CONFIG_X86_LOCAL_APIC
@@ -452,9 +462,13 @@ static inline unsigned default_get_apic_id(unsigned long x)
 	unsigned int ver = GET_APIC_VERSION(apic_read(APIC_LVR));
 
 	if (APIC_XAPIC(ver) || boot_cpu_has(X86_FEATURE_EXTD_APICID))
+	{
 		return (x >> 24) & 0xFF;
+	}
 	else
+	{
 		return (x >> 24) & 0x0F;
+	}
 }
 
 /*
@@ -464,12 +478,12 @@ static inline unsigned default_get_apic_id(unsigned long x)
 #define TRAMPOLINE_PHYS_HIGH		0x469
 
 #ifdef CONFIG_X86_64
-extern void apic_send_IPI_self(int vector);
+	extern void apic_send_IPI_self(int vector);
 
-DECLARE_PER_CPU(int, x2apic_extra_bits);
+	DECLARE_PER_CPU(int, x2apic_extra_bits);
 
-extern int default_cpu_present_to_apicid(int mps_cpu);
-extern int default_check_phys_apicid_present(int phys_apicid);
+	extern int default_cpu_present_to_apicid(int mps_cpu);
+	extern int default_check_phys_apicid_present(int phys_apicid);
 #endif
 
 extern void generic_bigsmp_probe(void);
@@ -548,30 +562,33 @@ static inline int default_phys_pkg_id(int cpuid_apic, int index_msb)
 
 static inline int
 flat_cpu_mask_to_apicid_and(const struct cpumask *cpumask,
-			    const struct cpumask *andmask,
-			    unsigned int *apicid)
+							const struct cpumask *andmask,
+							unsigned int *apicid)
 {
 	unsigned long cpu_mask = cpumask_bits(cpumask)[0] &
-				 cpumask_bits(andmask)[0] &
-				 cpumask_bits(cpu_online_mask)[0] &
-				 APIC_ALL_CPUS;
+							 cpumask_bits(andmask)[0] &
+							 cpumask_bits(cpu_online_mask)[0] &
+							 APIC_ALL_CPUS;
 
-	if (likely(cpu_mask)) {
+	if (likely(cpu_mask))
+	{
 		*apicid = (unsigned int)cpu_mask;
 		return 0;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 }
 
 extern int
 default_cpu_mask_to_apicid_and(const struct cpumask *cpumask,
-			       const struct cpumask *andmask,
-			       unsigned int *apicid);
+							   const struct cpumask *andmask,
+							   unsigned int *apicid);
 
 static inline void
 flat_vector_allocation_domain(int cpu, struct cpumask *retmask,
-			      const struct cpumask *mask)
+							  const struct cpumask *mask)
 {
 	/* Careful. Some cpus do not strictly honor the set of cpus
 	 * specified in the interrupt destination when using lowest
@@ -587,7 +604,7 @@ flat_vector_allocation_domain(int cpu, struct cpumask *retmask,
 
 static inline void
 default_vector_allocation_domain(int cpu, struct cpumask *retmask,
-				 const struct cpumask *mask)
+								 const struct cpumask *mask)
 {
 	cpumask_copy(retmask, cpumask_of(cpu));
 }
@@ -605,9 +622,13 @@ static inline void default_ioapic_phys_id_map(physid_mask_t *phys_map, physid_ma
 static inline int __default_cpu_present_to_apicid(int mps_cpu)
 {
 	if (mps_cpu < nr_cpu_ids && cpu_present(mps_cpu))
+	{
 		return (int)per_cpu(x86_bios_cpu_apicid, mps_cpu);
+	}
 	else
+	{
 		return BAD_APICID;
+	}
 }
 
 static inline int

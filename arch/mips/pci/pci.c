@@ -49,8 +49,8 @@ static int __init pcibios_set_cache_line_size(void)
 arch_initcall(pcibios_set_cache_line_size);
 
 void pci_resource_to_user(const struct pci_dev *dev, int bar,
-			  const struct resource *rsrc, resource_size_t *start,
-			  resource_size_t *end)
+						  const struct resource *rsrc, resource_size_t *start,
+						  resource_size_t *end)
 {
 	phys_addr_t size = resource_size(rsrc);
 
@@ -59,7 +59,7 @@ void pci_resource_to_user(const struct pci_dev *dev, int bar,
 }
 
 int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
-			enum pci_mmap_state mmap_state, int write_combine)
+						enum pci_mmap_state mmap_state, int write_combine)
 {
 	unsigned long prot;
 
@@ -69,7 +69,9 @@ int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
 	 * drivers should not do this anyway.
 	 */
 	if (mmap_state == pci_mmap_io)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Ignore write-combine; for now only return uncached mappings.
@@ -79,5 +81,5 @@ int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
 	vma->vm_page_prot = __pgprot(prot);
 
 	return remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
-		vma->vm_end - vma->vm_start, vma->vm_page_prot);
+						   vma->vm_end - vma->vm_start, vma->vm_page_prot);
 }

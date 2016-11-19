@@ -15,14 +15,14 @@
 
 #include "prcm-common.h"
 
-# ifndef __ASSEMBLER__
-extern void __iomem *prm_base;
-extern u16 prm_features;
-extern void omap2_set_globals_prm(void __iomem *prm);
-int omap_prcm_init(void);
-int omap2_prm_base_init(void);
-int omap2_prcm_base_init(void);
-# endif
+#ifndef __ASSEMBLER__
+	extern void __iomem *prm_base;
+	extern u16 prm_features;
+	extern void omap2_set_globals_prm(void __iomem *prm);
+	int omap_prcm_init(void);
+	int omap2_prm_base_init(void);
+	int omap2_prcm_base_init(void);
+#endif
 
 /*
  * prm_features flag values
@@ -121,7 +121,8 @@ int omap2_prcm_base_init(void);
  *
  * The fields are signed because -1 is used as a terminator.
  */
-struct prm_reset_src_map {
+struct prm_reset_src_map
+{
 	s8 reg_shift;
 	s8 std_shift;
 };
@@ -138,16 +139,17 @@ struct prm_reset_src_map {
  * XXX @was_any_context_lost_old and @clear_context_loss_flags_old are
  * deprecated.
  */
-struct prm_ll_data {
+struct prm_ll_data
+{
 	u32 (*read_reset_sources)(void);
 	bool (*was_any_context_lost_old)(u8 part, s16 inst, u16 idx);
 	void (*clear_context_loss_flags_old)(u8 part, s16 inst, u16 idx);
 	int (*late_init)(void);
 	int (*assert_hardreset)(u8 shift, u8 part, s16 prm_mod, u16 offset);
 	int (*deassert_hardreset)(u8 shift, u8 st_shift, u8 part, s16 prm_mod,
-				  u16 offset, u16 st_offset);
+							  u16 offset, u16 st_offset);
 	int (*is_hardreset_asserted)(u8 shift, u8 part, s16 prm_mod,
-				     u16 offset);
+								 u16 offset);
 	void (*reset_system)(void);
 	int (*clear_mod_irqs)(s16 module, u8 regs, u32 wkst_mask);
 	u32 (*vp_check_txdone)(u8 vp_id);
@@ -159,7 +161,7 @@ extern int prm_unregister(struct prm_ll_data *pld);
 
 int omap_prm_assert_hardreset(u8 shift, u8 part, s16 prm_mod, u16 offset);
 int omap_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 prm_mod,
-				u16 offset, u16 st_offset);
+								u16 offset, u16 st_offset);
 int omap_prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset);
 extern u32 prm_read_reset_sources(void);
 extern bool prm_was_any_context_lost_old(u8 part, s16 inst, u16 idx);

@@ -26,14 +26,16 @@
  */
 
 /* Default input for PLL1 */
-struct clk clkin1 = {
+struct clk clkin1 =
+{
 	.name = "clkin1",
 	.node = LIST_HEAD_INIT(clkin1.node),
 	.children = LIST_HEAD_INIT(clkin1.children),
 	.childnode = LIST_HEAD_INIT(clkin1.childnode),
 };
 
-struct pll_data c6x_soc_pll1 = {
+struct pll_data c6x_soc_pll1 =
+{
 	.num	   = 1,
 	.sysclks   = {
 		{
@@ -126,34 +128,41 @@ struct pll_data c6x_soc_pll1 = {
 };
 
 /* CPU core clock */
-struct clk c6x_core_clk = {
+struct clk c6x_core_clk =
+{
 	.name = "core",
 };
 
 /* miscellaneous IO clocks */
-struct clk c6x_i2c_clk = {
+struct clk c6x_i2c_clk =
+{
 	.name = "i2c",
 };
 
-struct clk c6x_watchdog_clk = {
+struct clk c6x_watchdog_clk =
+{
 	.name = "watchdog",
 };
 
-struct clk c6x_mcbsp1_clk = {
+struct clk c6x_mcbsp1_clk =
+{
 	.name = "mcbsp1",
 };
 
-struct clk c6x_mcbsp2_clk = {
+struct clk c6x_mcbsp2_clk =
+{
 	.name = "mcbsp2",
 };
 
-struct clk c6x_mdio_clk = {
+struct clk c6x_mdio_clk =
+{
 	.name = "mdio",
 };
 
 
 #ifdef CONFIG_SOC_TMS320C6455
-static struct clk_lookup c6455_clks[] = {
+static struct clk_lookup c6455_clks[] =
+{
 	CLK(NULL, "pll1", &c6x_soc_pll1.sysclks[0]),
 	CLK(NULL, "pll1_sysclk2", &c6x_soc_pll1.sysclks[2]),
 	CLK(NULL, "pll1_sysclk3", &c6x_soc_pll1.sysclks[3]),
@@ -191,7 +200,8 @@ static void __init c6455_setup_clocks(struct device_node *node)
 #endif /* CONFIG_SOC_TMS320C6455 */
 
 #ifdef CONFIG_SOC_TMS320C6457
-static struct clk_lookup c6457_clks[] = {
+static struct clk_lookup c6457_clks[] =
+{
 	CLK(NULL, "pll1", &c6x_soc_pll1.sysclks[0]),
 	CLK(NULL, "pll1_sysclk1", &c6x_soc_pll1.sysclks[1]),
 	CLK(NULL, "pll1_sysclk2", &c6x_soc_pll1.sysclks[2]),
@@ -231,7 +241,8 @@ static void __init c6457_setup_clocks(struct device_node *node)
 #endif /* CONFIG_SOC_TMS320C6455 */
 
 #ifdef CONFIG_SOC_TMS320C6472
-static struct clk_lookup c6472_clks[] = {
+static struct clk_lookup c6472_clks[] =
+{
 	CLK(NULL, "pll1", &c6x_soc_pll1.sysclks[0]),
 	CLK(NULL, "pll1_sysclk1", &c6x_soc_pll1.sysclks[1]),
 	CLK(NULL, "pll1_sysclk2", &c6x_soc_pll1.sysclks[2]),
@@ -263,7 +274,8 @@ static void __init c6472_setup_clocks(struct device_node *node)
 
 	pll->flags = PLL_HAS_MUL;
 
-	for (i = 1; i <= 6; i++) {
+	for (i = 1; i <= 6; i++)
+	{
 		sysclks[i].flags |= FIXED_DIV_PLL;
 		sysclks[i].div = 1;
 	}
@@ -287,7 +299,8 @@ static void __init c6472_setup_clocks(struct device_node *node)
 
 
 #ifdef CONFIG_SOC_TMS320C6474
-static struct clk_lookup c6474_clks[] = {
+static struct clk_lookup c6474_clks[] =
+{
 	CLK(NULL, "pll1", &c6x_soc_pll1.sysclks[0]),
 	CLK(NULL, "pll1_sysclk7", &c6x_soc_pll1.sysclks[7]),
 	CLK(NULL, "pll1_sysclk9", &c6x_soc_pll1.sysclks[9]),
@@ -336,7 +349,8 @@ static void __init c6474_setup_clocks(struct device_node *node)
 #endif /* CONFIG_SOC_TMS320C6474 */
 
 #ifdef CONFIG_SOC_TMS320C6678
-static struct clk_lookup c6678_clks[] = {
+static struct clk_lookup c6678_clks[] =
+{
 	CLK(NULL, "pll1", &c6x_soc_pll1.sysclks[0]),
 	CLK(NULL, "pll1_refclk", &c6x_soc_pll1.sysclks[1]),
 	CLK(NULL, "pll1_sysclk2", &c6x_soc_pll1.sysclks[2]),
@@ -397,7 +411,8 @@ static void __init c6678_setup_clocks(struct device_node *node)
 }
 #endif /* CONFIG_SOC_TMS320C6678 */
 
-static struct of_device_id c6x_clkc_match[] __initdata = {
+static struct of_device_id c6x_clkc_match[] __initdata =
+{
 #ifdef CONFIG_SOC_TMS320C6455
 	{ .compatible = "ti,c6455-pll", .data = c6455_setup_clocks },
 #endif
@@ -419,7 +434,7 @@ static struct of_device_id c6x_clkc_match[] __initdata = {
 
 void __init c64x_setup_clocks(void)
 {
-	void (*__setup_clocks)(struct device_node *np);
+	void (*__setup_clocks)(struct device_node * np);
 	struct pll_data *pll = &c6x_soc_pll1;
 	struct device_node *node;
 	const struct of_device_id *id;
@@ -427,39 +442,62 @@ void __init c64x_setup_clocks(void)
 	u32 val;
 
 	node = of_find_matching_node(NULL, c6x_clkc_match);
+
 	if (!node)
+	{
 		return;
+	}
 
 	pll->base = of_iomap(node, 0);
+
 	if (!pll->base)
+	{
 		goto out;
+	}
 
 	err = of_property_read_u32(node, "clock-frequency", &val);
-	if (err || val == 0) {
+
+	if (err || val == 0)
+	{
 		pr_err("%s: no clock-frequency found! Using %dMHz\n",
-		       node->full_name, (int)val / 1000000);
+			   node->full_name, (int)val / 1000000);
 		val = 25000000;
 	}
+
 	clkin1.rate = val;
 
 	err = of_property_read_u32(node, "ti,c64x+pll-bypass-delay", &val);
+
 	if (err)
+	{
 		val = 5000;
+	}
+
 	pll->bypass_delay = val;
 
 	err = of_property_read_u32(node, "ti,c64x+pll-reset-delay", &val);
+
 	if (err)
+	{
 		val = 30000;
+	}
+
 	pll->reset_delay = val;
 
 	err = of_property_read_u32(node, "ti,c64x+pll-lock-delay", &val);
+
 	if (err)
+	{
 		val = 30000;
+	}
+
 	pll->lock_delay = val;
 
 	/* id->data is a pointer to SoC-specific setup */
 	id = of_match_node(c6x_clkc_match, node);
-	if (id && id->data) {
+
+	if (id && id->data)
+	{
 		__setup_clocks = id->data;
 		__setup_clocks(node);
 	}

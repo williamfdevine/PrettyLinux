@@ -3,36 +3,45 @@
 #include <linux/audit.h>
 #include <asm/unistd.h>
 
-static unsigned dir_class[] = {
+static unsigned dir_class[] =
+{
 #include <asm-generic/audit_dir_write.h>
-~0U
+	~0U
 };
 
-static unsigned read_class[] = {
+static unsigned read_class[] =
+{
 #include <asm-generic/audit_read.h>
-~0U
+	~0U
 };
 
-static unsigned write_class[] = {
+static unsigned write_class[] =
+{
 #include <asm-generic/audit_write.h>
-~0U
+	~0U
 };
 
-static unsigned chattr_class[] = {
+static unsigned chattr_class[] =
+{
 #include <asm-generic/audit_change_attr.h>
-~0U
+	~0U
 };
 
-static unsigned signal_class[] = {
+static unsigned signal_class[] =
+{
 #include <asm-generic/audit_signal.h>
-~0U
+	~0U
 };
 
 int audit_classify_arch(int arch)
 {
 #ifdef CONFIG_IA32_EMULATION
+
 	if (arch == AUDIT_ARCH_I386)
+	{
 		return 1;
+	}
+
 #endif
 	return 0;
 }
@@ -41,19 +50,28 @@ int audit_classify_syscall(int abi, unsigned syscall)
 {
 #ifdef CONFIG_IA32_EMULATION
 	extern int ia32_classify_syscall(unsigned);
+
 	if (abi == AUDIT_ARCH_I386)
+	{
 		return ia32_classify_syscall(syscall);
+	}
+
 #endif
-	switch(syscall) {
-	case __NR_open:
-		return 2;
-	case __NR_openat:
-		return 3;
-	case __NR_execve:
-	case __NR_execveat:
-		return 5;
-	default:
-		return 0;
+
+	switch (syscall)
+	{
+		case __NR_open:
+			return 2;
+
+		case __NR_openat:
+			return 3;
+
+		case __NR_execve:
+		case __NR_execveat:
+			return 5;
+
+		default:
+			return 0;
 	}
 }
 

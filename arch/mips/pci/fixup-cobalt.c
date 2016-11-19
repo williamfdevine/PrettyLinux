@@ -39,7 +39,8 @@
 static void qube_raq_galileo_early_fixup(struct pci_dev *dev)
 {
 	if (dev->devfn == PCI_DEVFN(0, 0) &&
-		(dev->class >> 8) == PCI_CLASS_MEMORY_OTHER) {
+		(dev->class >> 8) == PCI_CLASS_MEMORY_OTHER)
+	{
 
 		dev->class = (PCI_CLASS_BRIDGE_HOST << 8) | (dev->class & 0xff);
 
@@ -48,7 +49,7 @@ static void qube_raq_galileo_early_fixup(struct pci_dev *dev)
 }
 
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_MARVELL, PCI_DEVICE_ID_MARVELL_GT64111,
-	 qube_raq_galileo_early_fixup);
+						qube_raq_galileo_early_fixup);
 
 static void qube_raq_via_bmIDE_fixup(struct pci_dev *dev)
 {
@@ -65,18 +66,24 @@ static void qube_raq_via_bmIDE_fixup(struct pci_dev *dev)
 
 	/* Set latency timer to reasonable value. */
 	pci_read_config_byte(dev, PCI_LATENCY_TIMER, &lt);
+
 	if (lt < 64)
+	{
 		pci_write_config_byte(dev, PCI_LATENCY_TIMER, 64);
+	}
+
 	pci_write_config_byte(dev, PCI_CACHE_LINE_SIZE, 8);
 }
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_1,
-	 qube_raq_via_bmIDE_fixup);
+						 qube_raq_via_bmIDE_fixup);
 
 static void qube_raq_galileo_fixup(struct pci_dev *dev)
 {
 	if (dev->devfn != PCI_DEVFN(0, 0))
+	{
 		return;
+	}
 
 	/* Fix PCI latency-timer and cache-line-size values in Galileo
 	 * host bridge.
@@ -103,10 +110,13 @@ static void qube_raq_galileo_fixup(struct pci_dev *dev)
 	printk(KERN_INFO "Galileo: revision %u\n", dev->revision);
 
 #if 0
-	if (dev->revision >= 0x10) {
+
+	if (dev->revision >= 0x10)
+	{
 		/* New Galileo, assumes PCI stop line to VIA is connected. */
 		GT_WRITE(GT_PCI0_TOR_OFS, 0x4020);
-	} else if (dev->revision == 0x1 || dev->revision == 0x2)
+	}
+	else if (dev->revision == 0x1 || dev->revision == 0x2)
 #endif
 	{
 		signed int timeo;
@@ -114,9 +124,9 @@ static void qube_raq_galileo_fixup(struct pci_dev *dev)
 		timeo = GT_READ(GT_PCI0_TOR_OFS);
 		/* Old Galileo, assumes PCI STOP line to VIA is disconnected. */
 		GT_WRITE(GT_PCI0_TOR_OFS,
-			(0xff << 16) |		/* retry count */
-			(0xff << 8) |		/* timeout 1   */
-			0xff);			/* timeout 0   */
+				 (0xff << 16) |		/* retry count */
+				 (0xff << 8) |		/* timeout 1   */
+				 0xff);			/* timeout 0   */
 
 		/* enable PCI retry exceeded interrupt */
 		GT_WRITE(GT_INTRMASK_OFS, GT_INTR_RETRYCTR0_MSK | GT_READ(GT_INTRMASK_OFS));
@@ -124,7 +134,7 @@ static void qube_raq_galileo_fixup(struct pci_dev *dev)
 }
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_MARVELL, PCI_DEVICE_ID_MARVELL_GT64111,
-	 qube_raq_galileo_fixup);
+						 qube_raq_galileo_fixup);
 
 int cobalt_board_id;
 
@@ -134,7 +144,9 @@ static void qube_raq_via_board_id_fixup(struct pci_dev *dev)
 	int retval;
 
 	retval = pci_read_config_byte(dev, VIA_COBALT_BRD_ID_REG, &id);
-	if (retval) {
+
+	if (retval)
+	{
 		panic("Cannot read board ID");
 		return;
 	}
@@ -145,42 +157,49 @@ static void qube_raq_via_board_id_fixup(struct pci_dev *dev)
 }
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_0,
-	 qube_raq_via_board_id_fixup);
+						 qube_raq_via_board_id_fixup);
 
-static char irq_tab_qube1[] __initdata = {
-  [COBALT_PCICONF_CPU]	   = 0,
-  [COBALT_PCICONF_ETH0]	   = QUBE1_ETH0_IRQ,
-  [COBALT_PCICONF_RAQSCSI] = SCSI_IRQ,
-  [COBALT_PCICONF_VIA]	   = 0,
-  [COBALT_PCICONF_PCISLOT] = PCISLOT_IRQ,
-  [COBALT_PCICONF_ETH1]	   = 0
+static char irq_tab_qube1[] __initdata =
+{
+	[COBALT_PCICONF_CPU]	   = 0,
+	[COBALT_PCICONF_ETH0]	   = QUBE1_ETH0_IRQ,
+	[COBALT_PCICONF_RAQSCSI] = SCSI_IRQ,
+	[COBALT_PCICONF_VIA]	   = 0,
+	[COBALT_PCICONF_PCISLOT] = PCISLOT_IRQ,
+	[COBALT_PCICONF_ETH1]	   = 0
 };
 
-static char irq_tab_cobalt[] __initdata = {
-  [COBALT_PCICONF_CPU]	   = 0,
-  [COBALT_PCICONF_ETH0]	   = ETH0_IRQ,
-  [COBALT_PCICONF_RAQSCSI] = SCSI_IRQ,
-  [COBALT_PCICONF_VIA]	   = 0,
-  [COBALT_PCICONF_PCISLOT] = PCISLOT_IRQ,
-  [COBALT_PCICONF_ETH1]	   = ETH1_IRQ
+static char irq_tab_cobalt[] __initdata =
+{
+	[COBALT_PCICONF_CPU]	   = 0,
+	[COBALT_PCICONF_ETH0]	   = ETH0_IRQ,
+	[COBALT_PCICONF_RAQSCSI] = SCSI_IRQ,
+	[COBALT_PCICONF_VIA]	   = 0,
+	[COBALT_PCICONF_PCISLOT] = PCISLOT_IRQ,
+	[COBALT_PCICONF_ETH1]	   = ETH1_IRQ
 };
 
-static char irq_tab_raq2[] __initdata = {
-  [COBALT_PCICONF_CPU]	   = 0,
-  [COBALT_PCICONF_ETH0]	   = ETH0_IRQ,
-  [COBALT_PCICONF_RAQSCSI] = RAQ2_SCSI_IRQ,
-  [COBALT_PCICONF_VIA]	   = 0,
-  [COBALT_PCICONF_PCISLOT] = PCISLOT_IRQ,
-  [COBALT_PCICONF_ETH1]	   = ETH1_IRQ
+static char irq_tab_raq2[] __initdata =
+{
+	[COBALT_PCICONF_CPU]	   = 0,
+	[COBALT_PCICONF_ETH0]	   = ETH0_IRQ,
+	[COBALT_PCICONF_RAQSCSI] = RAQ2_SCSI_IRQ,
+	[COBALT_PCICONF_VIA]	   = 0,
+	[COBALT_PCICONF_PCISLOT] = PCISLOT_IRQ,
+	[COBALT_PCICONF_ETH1]	   = ETH1_IRQ
 };
 
 int __init pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	if (cobalt_board_id <= COBALT_BRD_ID_QUBE1)
+	{
 		return irq_tab_qube1[slot];
+	}
 
 	if (cobalt_board_id == COBALT_BRD_ID_RAQ2)
+	{
 		return irq_tab_raq2[slot];
+	}
 
 	return irq_tab_cobalt[slot];
 }

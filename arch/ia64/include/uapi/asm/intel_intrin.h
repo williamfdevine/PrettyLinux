@@ -79,20 +79,20 @@
 #define ia64_cmpxchg8_acq	_InterlockedCompareExchange64_acq
 
 #define __ia64_set_dbr(index, val)	\
-		__setIndReg(_IA64_REG_INDR_DBR, index, val)
+	__setIndReg(_IA64_REG_INDR_DBR, index, val)
 #define ia64_set_ibr(index, val)	\
-		__setIndReg(_IA64_REG_INDR_IBR, index, val)
+	__setIndReg(_IA64_REG_INDR_IBR, index, val)
 #define ia64_set_pkr(index, val)	\
-		__setIndReg(_IA64_REG_INDR_PKR, index, val)
+	__setIndReg(_IA64_REG_INDR_PKR, index, val)
 #define ia64_set_pmc(index, val)	\
-		__setIndReg(_IA64_REG_INDR_PMC, index, val)
+	__setIndReg(_IA64_REG_INDR_PMC, index, val)
 #define ia64_set_pmd(index, val)	\
-		__setIndReg(_IA64_REG_INDR_PMD, index, val)
+	__setIndReg(_IA64_REG_INDR_PMD, index, val)
 #define ia64_native_set_rr(index, val)	\
-		__setIndReg(_IA64_REG_INDR_RR, index, val)
+	__setIndReg(_IA64_REG_INDR_RR, index, val)
 
 #define ia64_native_get_cpuid(index)	\
-		__getIndReg(_IA64_REG_INDR_CPUID, index)
+	__getIndReg(_IA64_REG_INDR_CPUID, index)
 #define __ia64_get_dbr(index)		__getIndReg(_IA64_REG_INDR_DBR, index)
 #define ia64_get_ibr(index)		__getIndReg(_IA64_REG_INDR_IBR, index)
 #define ia64_get_pkr(index)		__getIndReg(_IA64_REG_INDR_PKR, index)
@@ -147,14 +147,14 @@
 #define ia64_lfetch_fault_excl	__lfetch_fault_excl
 
 #define ia64_native_intrin_local_irq_restore(x)		\
-do {							\
-	if ((x) != 0) {					\
-		ia64_native_ssm(IA64_PSR_I);		\
-		ia64_srlz_d();				\
-	} else {					\
-		ia64_native_rsm(IA64_PSR_I);		\
-	}						\
-} while (0)
+	do {							\
+		if ((x) != 0) {					\
+			ia64_native_ssm(IA64_PSR_I);		\
+			ia64_srlz_d();				\
+		} else {					\
+			ia64_native_rsm(IA64_PSR_I);		\
+		}						\
+	} while (0)
 
 #define __builtin_trap()	__break(0);
 

@@ -18,20 +18,22 @@
 
 /* XXX: Do we need to conditionalize on this?  */
 #ifdef USE_48_BIT_KSEG
-#define TI_BIAS 0x80000000000UL
+	#define TI_BIAS 0x80000000000UL
 #else
-#define TI_BIAS 0x10000000000UL
+	#define TI_BIAS 0x10000000000UL
 #endif
 
 /*
  * CChip, DChip, and PChip registers
  */
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned long csr __attribute__((aligned(64)));
 } titan_64;
 
-typedef struct {
+typedef struct
+{
 	titan_64	csc;
 	titan_64	mtr;
 	titan_64	misc;
@@ -70,22 +72,26 @@ typedef struct {
 	titan_64	cpen;
 } titan_cchip;
 
-typedef struct {
+typedef struct
+{
 	titan_64	dsc;
 	titan_64	str;
 	titan_64	drev;
 	titan_64	dsc2;
 } titan_dchip;
 
-typedef struct {
+typedef struct
+{
 	titan_64	wsba[4];
 	titan_64	wsm[4];
 	titan_64	tba[4];
 	titan_64	pctl;
 	titan_64	plat;
 	titan_64	reserved0[2];
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			titan_64	serror;
 			titan_64	serren;
 			titan_64	serrset;
@@ -100,7 +106,8 @@ typedef struct {
 			titan_64	sctl;
 			titan_64	reserved3[3];
 		} g;
-		struct {
+		struct
+		{
 			titan_64	agperror;
 			titan_64	agperren;
 			titan_64	agperrset;
@@ -118,7 +125,8 @@ typedef struct {
 	titan_64	reserved1[31];
 } titan_pachip_port;
 
-typedef struct {
+typedef struct
+{
 	titan_pachip_port	g_port;
 	titan_pachip_port	a_port;
 } titan_pachip;
@@ -134,25 +142,27 @@ extern int TITAN_bootcpu;
  * TITAN PA-chip Window Space Base Address register.
  * (WSBA[0-2])
  */
-#define wsba_m_ena 0x1                
+#define wsba_m_ena 0x1
 #define wsba_m_sg 0x2
-#define wsba_m_addr 0xFFF00000  
-#define wmask_k_sz1gb 0x3FF00000                   
-union TPAchipWSBA {
-	struct  {
+#define wsba_m_addr 0xFFF00000
+#define wmask_k_sz1gb 0x3FF00000
+union TPAchipWSBA
+{
+	struct
+	{
 		unsigned wsba_v_ena : 1;
 		unsigned wsba_v_sg : 1;
 		unsigned wsba_v_rsvd1 : 18;
 		unsigned wsba_v_addr : 12;
 		unsigned wsba_v_rsvd2 : 32;
-        } wsba_r_bits;
+	} wsba_r_bits;
 	int wsba_q_whole [2];
 };
 
 /*
  * TITAN PA-chip Control Register
  * This definition covers both the G-Port GPCTL and the A-PORT APCTL.
- * Bits <51:0> are the same in both cases. APCTL<63:52> are only 
+ * Bits <51:0> are the same in both cases. APCTL<63:52> are only
  * applicable to AGP.
  */
 #define pctl_m_fbtb 			0x00000001
@@ -180,8 +190,10 @@ union TPAchipWSBA {
 #define apctl_agp_hp_rd		0x1C00000000000000UL
 #define apctl_agp_lp_rd		0xE000000000000000UL
 #define gpctl_m_rsvd		0xFFFFFFF800000000UL
-union TPAchipPCTL {
-	struct {
+union TPAchipPCTL
+{
+	struct
+	{
 		unsigned pctl_v_fbtb : 1;		/* A/G [0]     */
 		unsigned pctl_v_thdis : 1;		/* A/G [1]     */
 		unsigned pctl_v_chaindis : 1;		/* A/G [2]     */
@@ -197,7 +209,7 @@ union TPAchipPCTL {
 		unsigned pctl_v_dpcen : 1;		/* A/G [30]    */
 		unsigned pctl_v_apcen : 1;		/* A/G [31]    */
 		unsigned pctl_v_dcrtv : 2;		/* A/G [33:32] */
-		unsigned pctl_v_en_stepping :1;		/* A/G [34]    */
+		unsigned pctl_v_en_stepping : 1;		/* A/G [34]    */
 		unsigned apctl_v_rsvd1 : 17;		/* A   [51:35] */
 		unsigned apctl_v_agp_rate : 2;		/* A   [53:52] */
 		unsigned apctl_v_agp_sba_en : 1;	/* A   [54]    */
@@ -214,8 +226,10 @@ union TPAchipPCTL {
 /*
  * SERROR / SERREN / SERRSET
  */
-union TPAchipSERR {
-	struct {
+union TPAchipSERR
+{
+	struct
+	{
 		unsigned serr_v_lost_uecc : 1;		/* [0]		*/
 		unsigned serr_v_uecc : 1;		/* [1]  	*/
 		unsigned serr_v_cre : 1;		/* [2]		*/
@@ -235,8 +249,10 @@ union TPAchipSERR {
 /*
  * GPERROR / APERROR / GPERREN / APERREN / GPERRSET / APERRSET
  */
-union TPAchipPERR {
-	struct {
+union TPAchipPERR
+{
+	struct
+	{
 		unsigned long perr_v_lost : 1;	     	/* [0]		*/
 		unsigned long perr_v_serr : 1;		/* [1]		*/
 		unsigned long perr_v_perr : 1;		/* [2]		*/
@@ -263,8 +279,10 @@ union TPAchipPERR {
 /*
  * AGPERROR / AGPERREN / AGPERRSET
  */
-union TPAchipAGPERR {
-	struct {
+union TPAchipAGPERR
+{
+	struct
+	{
 		unsigned agperr_v_lost : 1;		/* [0]		*/
 		unsigned agperr_v_lpqfull : 1;		/* [1]		*/
 		unsigned apgerr_v_hpqfull : 1;		/* [2]		*/
@@ -293,7 +311,7 @@ union TPAchipAGPERR {
  * 		2 - pachip 0 / A Port
  *      	3 - pachip 1 / A Port
  */
-#define TITAN_HOSE_SHIFT       (33) 
+#define TITAN_HOSE_SHIFT       (33)
 #define TITAN_HOSE(h)		(((unsigned long)(h)) << TITAN_HOSE_SHIFT)
 #define TITAN_BASE		(IDENT_ADDR + TI_BIAS)
 #define TITAN_MEM(h)	     	(TITAN_BASE+TITAN_HOSE(h)+0x000000000UL)
@@ -304,7 +322,7 @@ union TPAchipAGPERR {
 #define TITAN_HOSE_MASK		TITAN_HOSE(3)
 #define TITAN_IACK_SC	     	_TITAN_IACK_SC(0) /* hack! */
 
-/* 
+/*
  * The canonical non-remaped I/O and MEM addresses have these values
  * subtracted out.  This is arranged so that folks manipulating ISA
  * devices can use their familiar numbers and have them map to bus 0.
@@ -331,7 +349,8 @@ union TPAchipAGPERR {
 #define SCB_Q_SYSMCHK	0x660
 #define SCB_Q_PROCMCHK	0x670
 #define SCB_Q_SYSEVENT	0x680	/* environmental / system management */
-struct el_TITAN_sysdata_mcheck {
+struct el_TITAN_sysdata_mcheck
+{
 	u64 summary;	/* 0x00 */
 	u64 c_dirx;	/* 0x08 */
 	u64 c_misc;	/* 0x10 */
@@ -346,9 +365,10 @@ struct el_TITAN_sysdata_mcheck {
 };
 
 /*
- * System area for a privateer 680 environmental/system management mcheck 
+ * System area for a privateer 680 environmental/system management mcheck
  */
-struct el_PRIVATEER_envdata_mcheck {
+struct el_PRIVATEER_envdata_mcheck
+{
 	u64 summary;	/* 0x00 */
 	u64 c_dirx;	/* 0x08 */
 	u64 smir;	/* 0x10 */
@@ -365,8 +385,8 @@ struct el_PRIVATEER_envdata_mcheck {
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -400,8 +420,8 @@ extern int titan_is_mmio(const volatile void __iomem *addr);
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

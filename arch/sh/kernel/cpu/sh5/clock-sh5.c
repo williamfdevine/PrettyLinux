@@ -28,7 +28,8 @@ static void master_clk_init(struct clk *clk)
 	clk->rate *= ifc_table[idx];
 }
 
-static struct sh_clk_ops sh5_master_clk_ops = {
+static struct sh_clk_ops sh5_master_clk_ops =
+{
 	.init		= master_clk_init,
 };
 
@@ -38,7 +39,8 @@ static unsigned long module_clk_recalc(struct clk *clk)
 	return clk->parent->rate / ifc_table[idx];
 }
 
-static struct sh_clk_ops sh5_module_clk_ops = {
+static struct sh_clk_ops sh5_module_clk_ops =
+{
 	.recalc		= module_clk_recalc,
 };
 
@@ -48,7 +50,8 @@ static unsigned long bus_clk_recalc(struct clk *clk)
 	return clk->parent->rate / ifc_table[idx];
 }
 
-static struct sh_clk_ops sh5_bus_clk_ops = {
+static struct sh_clk_ops sh5_bus_clk_ops =
+{
 	.recalc		= bus_clk_recalc,
 };
 
@@ -58,11 +61,13 @@ static unsigned long cpu_clk_recalc(struct clk *clk)
 	return clk->parent->rate / ifc_table[idx];
 }
 
-static struct sh_clk_ops sh5_cpu_clk_ops = {
+static struct sh_clk_ops sh5_cpu_clk_ops =
+{
 	.recalc		= cpu_clk_recalc,
 };
 
-static struct sh_clk_ops *sh5_clk_ops[] = {
+static struct sh_clk_ops *sh5_clk_ops[] =
+{
 	&sh5_master_clk_ops,
 	&sh5_module_clk_ops,
 	&sh5_bus_clk_ops,
@@ -75,5 +80,7 @@ void __init arch_init_clk_ops(struct sh_clk_ops **ops, int idx)
 	BUG_ON(!cprc_base);
 
 	if (idx < ARRAY_SIZE(sh5_clk_ops))
+	{
 		*ops = sh5_clk_ops[idx];
+	}
 }

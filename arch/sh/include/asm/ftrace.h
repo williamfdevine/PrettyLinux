@@ -20,7 +20,8 @@ extern void mcount(void);
 #define MCOUNT_INSN_OFFSET	((STUB_ADDR - CALL_ADDR) - 4)
 #define GRAPH_INSN_OFFSET	((CALLER_ADDR - GRAPH_ADDR) - 4)
 
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 	/* No extra data needed on sh */
 };
 
@@ -37,10 +38,10 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 
 #ifndef __ASSEMBLY__
 
-/* arch/sh/kernel/return_address.c */
-extern void *return_address(unsigned int);
+	/* arch/sh/kernel/return_address.c */
+	extern void *return_address(unsigned int);
 
-#define ftrace_return_address(n) return_address(n)
+	#define ftrace_return_address(n) return_address(n)
 
 #endif /* __ASSEMBLY__ */
 

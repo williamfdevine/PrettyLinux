@@ -22,18 +22,21 @@
 #define HVSI_MAX_OUTGOING_DATA 12
 #define HVSI_VERSION 1
 
-struct hvsi_header {
+struct hvsi_header
+{
 	uint8_t  type;
 	uint8_t  len;
 	__be16 seqno;
 } __attribute__((packed));
 
-struct hvsi_data {
+struct hvsi_data
+{
 	struct hvsi_header hdr;
 	uint8_t  data[HVSI_MAX_OUTGOING_DATA];
 } __attribute__((packed));
 
-struct hvsi_control {
+struct hvsi_control
+{
 	struct hvsi_header hdr;
 	__be16 verb;
 	/* optional depending on verb: */
@@ -41,16 +44,19 @@ struct hvsi_control {
 	__be32 mask;
 } __attribute__((packed));
 
-struct hvsi_query {
+struct hvsi_query
+{
 	struct hvsi_header hdr;
 	__be16 verb;
 } __attribute__((packed));
 
-struct hvsi_query_response {
+struct hvsi_query_response
+{
 	struct hvsi_header hdr;
 	__be16 verb;
 	__be16 query_seqno;
-	union {
+	union
+	{
 		uint8_t  version;
 		__be32 mctrl_word;
 	} u;
@@ -59,16 +65,17 @@ struct hvsi_query_response {
 /* hvsi lib struct definitions */
 #define HVSI_INBUF_SIZE		255
 struct tty_struct;
-struct hvsi_priv {
+struct hvsi_priv
+{
 	unsigned int	inbuf_len;	/* data in input buffer */
 	unsigned char	inbuf[HVSI_INBUF_SIZE];
 	unsigned int	inbuf_cur;	/* Cursor in input buffer */
 	unsigned int	inbuf_pktlen;	/* packet lenght from cursor */
 	atomic_t	seqno;		/* packet sequence number */
-	unsigned int	opened:1;	/* driver opened */
-	unsigned int	established:1;	/* protocol established */
-	unsigned int 	is_console:1;	/* used as a kernel console device */
-	unsigned int	mctrl_update:1;	/* modem control updated */
+	unsigned int	opened: 1;	/* driver opened */
+	unsigned int	established: 1;	/* protocol established */
+	unsigned int 	is_console: 1;	/* used as a kernel console device */
+	unsigned int	mctrl_update: 1;	/* modem control updated */
 	unsigned short	mctrl;		/* modem control */
 	struct tty_struct *tty;		/* tty structure */
 	int (*get_chars)(uint32_t termno, char *buf, int count);
@@ -79,10 +86,10 @@ struct hvsi_priv {
 /* hvsi lib functions */
 struct hvc_struct;
 extern void hvsilib_init(struct hvsi_priv *pv,
-			 int (*get_chars)(uint32_t termno, char *buf, int count),
-			 int (*put_chars)(uint32_t termno, const char *buf,
-					  int count),
-			 int termno, int is_console);
+						 int (*get_chars)(uint32_t termno, char *buf, int count),
+						 int (*put_chars)(uint32_t termno, const char *buf,
+								 int count),
+						 int termno, int is_console);
 extern int hvsilib_open(struct hvsi_priv *pv, struct hvc_struct *hp);
 extern void hvsilib_close(struct hvsi_priv *pv, struct hvc_struct *hp);
 extern int hvsilib_read_mctrl(struct hvsi_priv *pv);

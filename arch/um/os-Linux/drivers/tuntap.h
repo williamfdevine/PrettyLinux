@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
  * Licensed under the GPL
  */
@@ -8,7 +8,8 @@
 
 #include <net_user.h>
 
-struct tuntap_data {
+struct tuntap_data
+{
 	char *dev_name;
 	int fixed_config;
 	char *gate_addr;

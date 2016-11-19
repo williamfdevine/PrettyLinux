@@ -9,8 +9,8 @@
 #ifndef __ASSEMBLY__
 /* Performance Monitor Registers */
 #define mfpmr(rn)	({unsigned int rval; \
-			asm volatile("mfpmr %0," __stringify(rn) \
-				     : "=r" (rval)); rval;})
+		asm volatile("mfpmr %0," __stringify(rn) \
+					 : "=r" (rval)); rval;})
 #define mtpmr(rn, v)	asm volatile("mtpmr " __stringify(rn) ",%0" : : "r" (v))
 #endif /* __ASSEMBLY__ */
 

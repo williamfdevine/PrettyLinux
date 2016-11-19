@@ -22,7 +22,8 @@
 #ifndef __PF_H_
 #define __PF_H_
 
-enum reason_type {
+enum reason_type
+{
 	NOT_ME,	/* page fault is not in regions */
 	NOTHING,	/* access others point in regions */
 	REG_READ,	/* read from addr to reg */

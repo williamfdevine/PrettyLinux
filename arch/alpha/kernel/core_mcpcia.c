@@ -23,7 +23,7 @@
 #include "pci_impl.h"
 
 /*
- * NOTE: Herein lie back-to-back mb instructions.  They are magic. 
+ * NOTE: Herein lie back-to-back mb instructions.  They are magic.
  * One plausible explanation is that the i/o controller does not properly
  * handle the system transaction.  Another involves timing.  Ho hum.
  */
@@ -35,9 +35,9 @@
 #define DEBUG_CFG 0
 
 #if DEBUG_CFG
-# define DBG_CFG(args)	printk args
+	#define DBG_CFG(args)	printk args
 #else
-# define DBG_CFG(args)
+	#define DBG_CFG(args)
 #endif
 
 /*
@@ -49,7 +49,7 @@
  *
  * Type 0:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | |D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|0|
@@ -61,7 +61,7 @@
  *
  * Type 1:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | | | | | | | | | |B|B|B|B|B|B|B|B|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|1|
@@ -72,11 +72,11 @@
  *	15:11	Device number (5 bits)
  *	10:8	function number
  *	 7:2	register number
- *  
+ *
  * Notes:
- *	The function number selects which function of a multi-function device 
+ *	The function number selects which function of a multi-function device
  *	(e.g., SCSI and Ethernet).
- * 
+ *
  *	The register selects a DWORD (32 bit) register offset.  Hence it
  *	doesn't get shifted by 2 bits as we want to "drop" the bottom two
  *	bits.
@@ -84,7 +84,7 @@
 
 static unsigned int
 conf_read(unsigned long addr, unsigned char type1,
-	  struct pci_controller *hose)
+		  struct pci_controller *hose)
 {
 	unsigned long flags;
 	unsigned long mid = MCPCIA_HOSE2MID(hose->index);
@@ -95,7 +95,7 @@ conf_read(unsigned long addr, unsigned char type1,
 	local_irq_save(flags);
 
 	DBG_CFG(("conf_read(addr=0x%lx, type1=%d, hose=%d)\n",
-		 addr, type1, mid));
+			 addr, type1, mid));
 
 	/* Reset status register to avoid losing errors.  */
 	stat0 = *(vuip)MCPCIA_CAP_ERR(mid);
@@ -116,11 +116,13 @@ conf_read(unsigned long addr, unsigned char type1,
 	mb();
 	mb();  /* magic */
 
-	if (mcheck_taken(cpu)) {
+	if (mcheck_taken(cpu))
+	{
 		mcheck_taken(cpu) = 0;
 		value = 0xffffffffU;
 		mb();
 	}
+
 	mcheck_expected(cpu) = 0;
 	mb();
 
@@ -132,7 +134,7 @@ conf_read(unsigned long addr, unsigned char type1,
 
 static void
 conf_write(unsigned long addr, unsigned int value, unsigned char type1,
-	   struct pci_controller *hose)
+		   struct pci_controller *hose)
 {
 	unsigned long flags;
 	unsigned long mid = MCPCIA_HOSE2MID(hose->index);
@@ -167,21 +169,24 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1,
 
 static int
 mk_conf_addr(struct pci_bus *pbus, unsigned int devfn, int where,
-	     struct pci_controller *hose, unsigned long *pci_addr,
-	     unsigned char *type1)
+			 struct pci_controller *hose, unsigned long *pci_addr,
+			 unsigned char *type1)
 {
 	u8 bus = pbus->number;
 	unsigned long addr;
 
 	DBG_CFG(("mk_conf_addr(bus=%d,devfn=0x%x,hose=%d,where=0x%x,"
-		 " pci_addr=0x%p, type1=0x%p)\n",
-		 bus, devfn, hose->index, where, pci_addr, type1));
+			 " pci_addr=0x%p, type1=0x%p)\n",
+			 bus, devfn, hose->index, where, pci_addr, type1));
 
 	/* Type 1 configuration cycle for *ALL* busses.  */
 	*type1 = 1;
 
 	if (!pbus->parent) /* No parent means peer PCI bus. */
+	{
 		bus = 0;
+	}
+
 	addr = (bus << 16) | (devfn << 8) | (where);
 	addr <<= 5; /* swizzle for SPARSE */
 	addr |= hose->config_space_base;
@@ -193,41 +198,50 @@ mk_conf_addr(struct pci_bus *pbus, unsigned int devfn, int where,
 
 static int
 mcpcia_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		   int size, u32 *value)
+				   int size, u32 *value)
 {
 	struct pci_controller *hose = bus->sysdata;
 	unsigned long addr, w;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, hose, &addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	addr |= (size - 1) * 8;
 	w = conf_read(addr, type1, hose);
-	switch (size) {
-	case 1:
-		*value = __kernel_extbl(w, where & 3);
-		break;
-	case 2:
-		*value = __kernel_extwl(w, where & 3);
-		break;
-	case 4:
-		*value = w;
-		break;
+
+	switch (size)
+	{
+		case 1:
+			*value = __kernel_extbl(w, where & 3);
+			break;
+
+		case 2:
+			*value = __kernel_extwl(w, where & 3);
+			break;
+
+		case 4:
+			*value = w;
+			break;
 	}
+
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int
 mcpcia_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		    int size, u32 value)
+					int size, u32 value)
 {
 	struct pci_controller *hose = bus->sysdata;
 	unsigned long addr;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, hose, &addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	addr |= (size - 1) * 8;
 	value = __kernel_insql(value, where & 3);
@@ -235,7 +249,7 @@ mcpcia_write_config(struct pci_bus *bus, unsigned int devfn, int where,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops mcpcia_pci_ops = 
+struct pci_ops mcpcia_pci_ops =
 {
 	.read =		mcpcia_read_config,
 	.write =	mcpcia_write_config,
@@ -273,11 +287,14 @@ mcpcia_probe_hose(int h)
 
 	mb();
 	mb();  /* magic */
-	if (mcheck_taken(cpu)) {
+
+	if (mcheck_taken(cpu))
+	{
 		mcheck_taken(cpu) = 0;
 		pci_rev = 0xffffffff;
 		mb();
 	}
+
 	mcheck_expected(cpu) = 0;
 	mb();
 
@@ -292,12 +309,16 @@ mcpcia_new_hose(int h)
 	int mid = MCPCIA_HOSE2MID(h);
 
 	hose = alloc_pci_controller();
+
 	if (h == 0)
+	{
 		pci_isa_hose = hose;
+	}
+
 	io = alloc_resource();
 	mem = alloc_resource();
 	hae_mem = alloc_resource();
-			
+
 	hose->io_space = io;
 	hose->mem_space = hae_mem;
 	hose->sparse_mem_base = MCPCIA_SPARSE(mid) - IDENT_ADDR;
@@ -323,11 +344,19 @@ mcpcia_new_hose(int h)
 	hae_mem->flags = IORESOURCE_MEM;
 
 	if (request_resource(&ioport_resource, io) < 0)
+	{
 		printk(KERN_ERR "Failed to request IO on hose %d\n", h);
+	}
+
 	if (request_resource(&iomem_resource, mem) < 0)
+	{
 		printk(KERN_ERR "Failed to request MEM on hose %d\n", h);
+	}
+
 	if (request_resource(mem, hae_mem) < 0)
+	{
 		printk(KERN_ERR "Failed to request HAE_MEM on hose %d\n", h);
+	}
 }
 
 static void
@@ -347,7 +376,7 @@ mcpcia_startup_hose(struct pci_controller *hose)
 
 	mcpcia_pci_clr_err(mid);
 
-	/* 
+	/*
 	 * Set up error reporting.
 	 */
 	tmp = *(vuip)MCPCIA_CAP_ERR(mid);
@@ -365,7 +394,7 @@ mcpcia_startup_hose(struct pci_controller *hose)
 	 */
 	hose->sg_isa = iommu_arena_new(hose, 0x00800000, 0x00800000, 0);
 	hose->sg_pci = iommu_arena_new(hose, 0x40000000,
-				       size_for_memory(0x40000000), 0);
+								   size_for_memory(0x40000000), 0);
 
 	__direct_map_base = 0x80000000;
 	__direct_map_size = 0x80000000;
@@ -423,10 +452,16 @@ mcpcia_init_hoses(void)
 
 	/* First, find how many hoses we have.  */
 	hose_count = 0;
-	for (h = 0; h < MCPCIA_MAX_HOSES; ++h) {
-		if (mcpcia_probe_hose(h)) {
+
+	for (h = 0; h < MCPCIA_MAX_HOSES; ++h)
+	{
+		if (mcpcia_probe_hose(h))
+		{
 			if (h != 0)
+			{
 				mcpcia_new_hose(h);
+			}
+
 			hose_count++;
 		}
 	}
@@ -435,7 +470,9 @@ mcpcia_init_hoses(void)
 
 	/* Now do init for each hose.  */
 	for (hose = hose_head; hose; hose = hose->next)
+	{
 		mcpcia_startup_hose(hose);
+	}
 }
 
 static void
@@ -447,67 +484,78 @@ mcpcia_print_uncorrectable(struct el_MCPCIA_uncorrected_frame_mcheck *logout)
 	frame = &logout->procdata;
 
 	/* Print PAL fields */
-	for (i = 0; i < 24; i += 2) {
+	for (i = 0; i < 24; i += 2)
+	{
 		printk("  paltmp[%d-%d] = %16lx %16lx\n",
-		       i, i+1, frame->paltemp[i], frame->paltemp[i+1]);
+			   i, i + 1, frame->paltemp[i], frame->paltemp[i + 1]);
 	}
-	for (i = 0; i < 8; i += 2) {
+
+	for (i = 0; i < 8; i += 2)
+	{
 		printk("  shadow[%d-%d] = %16lx %16lx\n",
-		       i, i+1, frame->shadow[i], 
-		       frame->shadow[i+1]);
+			   i, i + 1, frame->shadow[i],
+			   frame->shadow[i + 1]);
 	}
+
 	printk("  Addr of excepting instruction  = %16lx\n",
-	       frame->exc_addr);
+		   frame->exc_addr);
 	printk("  Summary of arithmetic traps    = %16lx\n",
-	       frame->exc_sum);
+		   frame->exc_sum);
 	printk("  Exception mask                 = %16lx\n",
-	       frame->exc_mask);
+		   frame->exc_mask);
 	printk("  Base address for PALcode       = %16lx\n",
-	       frame->pal_base);
+		   frame->pal_base);
 	printk("  Interrupt Status Reg           = %16lx\n",
-	       frame->isr);
+		   frame->isr);
 	printk("  CURRENT SETUP OF EV5 IBOX      = %16lx\n",
-	       frame->icsr);
+		   frame->icsr);
 	printk("  I-CACHE Reg %s parity error   = %16lx\n",
-	       (frame->ic_perr_stat & 0x800L) ? 
-	       "Data" : "Tag", 
-	       frame->ic_perr_stat); 
+		   (frame->ic_perr_stat & 0x800L) ?
+		   "Data" : "Tag",
+		   frame->ic_perr_stat);
 	printk("  D-CACHE error Reg              = %16lx\n",
-	       frame->dc_perr_stat);
-	if (frame->dc_perr_stat & 0x2) {
-		switch (frame->dc_perr_stat & 0x03c) {
-		case 8:
-			printk("    Data error in bank 1\n");
-			break;
-		case 4:
-			printk("    Data error in bank 0\n");
-			break;
-		case 20:
-			printk("    Tag error in bank 1\n");
-			break;
-		case 10:
-			printk("    Tag error in bank 0\n");
-			break;
+		   frame->dc_perr_stat);
+
+	if (frame->dc_perr_stat & 0x2)
+	{
+		switch (frame->dc_perr_stat & 0x03c)
+		{
+			case 8:
+				printk("    Data error in bank 1\n");
+				break;
+
+			case 4:
+				printk("    Data error in bank 0\n");
+				break;
+
+			case 20:
+				printk("    Tag error in bank 1\n");
+				break;
+
+			case 10:
+				printk("    Tag error in bank 0\n");
+				break;
 		}
 	}
+
 	printk("  Effective VA                   = %16lx\n",
-	       frame->va);
+		   frame->va);
 	printk("  Reason for D-stream            = %16lx\n",
-	       frame->mm_stat);
+		   frame->mm_stat);
 	printk("  EV5 SCache address             = %16lx\n",
-	       frame->sc_addr);
+		   frame->sc_addr);
 	printk("  EV5 SCache TAG/Data parity     = %16lx\n",
-	       frame->sc_stat);
+		   frame->sc_stat);
 	printk("  EV5 BC_TAG_ADDR                = %16lx\n",
-	       frame->bc_tag_addr);
+		   frame->bc_tag_addr);
 	printk("  EV5 EI_ADDR: Phys addr of Xfer = %16lx\n",
-	       frame->ei_addr);
+		   frame->ei_addr);
 	printk("  Fill Syndrome                  = %16lx\n",
-	       frame->fill_syndrome);
+		   frame->fill_syndrome);
 	printk("  EI_STAT reg                    = %16lx\n",
-	       frame->ei_stat);
+		   frame->ei_stat);
 	printk("  LD_LOCK                        = %16lx\n",
-	       frame->ld_lock);
+		   frame->ld_lock);
 }
 
 static void
@@ -516,56 +564,58 @@ mcpcia_print_system_area(unsigned long la_ptr)
 	struct el_common *frame;
 	struct pci_controller *hose;
 
-	struct IOD_subpacket {
-	  unsigned long base;
-	  unsigned int whoami;
-	  unsigned int rsvd1;
-	  unsigned int pci_rev;
-	  unsigned int cap_ctrl;
-	  unsigned int hae_mem;
-	  unsigned int hae_io;
-	  unsigned int int_ctl;
-	  unsigned int int_reg;
-	  unsigned int int_mask0;
-	  unsigned int int_mask1;
-	  unsigned int mc_err0;
-	  unsigned int mc_err1;
-	  unsigned int cap_err;
-	  unsigned int rsvd2;
-	  unsigned int pci_err1;
-	  unsigned int mdpa_stat;
-	  unsigned int mdpa_syn;
-	  unsigned int mdpb_stat;
-	  unsigned int mdpb_syn;
-	  unsigned int rsvd3;
-	  unsigned int rsvd4;
-	  unsigned int rsvd5;
+	struct IOD_subpacket
+	{
+		unsigned long base;
+		unsigned int whoami;
+		unsigned int rsvd1;
+		unsigned int pci_rev;
+		unsigned int cap_ctrl;
+		unsigned int hae_mem;
+		unsigned int hae_io;
+		unsigned int int_ctl;
+		unsigned int int_reg;
+		unsigned int int_mask0;
+		unsigned int int_mask1;
+		unsigned int mc_err0;
+		unsigned int mc_err1;
+		unsigned int cap_err;
+		unsigned int rsvd2;
+		unsigned int pci_err1;
+		unsigned int mdpa_stat;
+		unsigned int mdpa_syn;
+		unsigned int mdpb_stat;
+		unsigned int mdpb_syn;
+		unsigned int rsvd3;
+		unsigned int rsvd4;
+		unsigned int rsvd5;
 	} *iodpp;
 
 	frame = (struct el_common *)la_ptr;
 	iodpp = (struct IOD_subpacket *) (la_ptr + frame->sys_offset);
 
-	for (hose = hose_head; hose; hose = hose->next, iodpp++) {
+	for (hose = hose_head; hose; hose = hose->next, iodpp++)
+	{
 
-	  printk("IOD %d Register Subpacket - Bridge Base Address %16lx\n",
-		 hose->index, iodpp->base);
-	  printk("  WHOAMI      = %8x\n", iodpp->whoami);
-	  printk("  PCI_REV     = %8x\n", iodpp->pci_rev);
-	  printk("  CAP_CTRL    = %8x\n", iodpp->cap_ctrl);
-	  printk("  HAE_MEM     = %8x\n", iodpp->hae_mem);
-	  printk("  HAE_IO      = %8x\n", iodpp->hae_io);
-	  printk("  INT_CTL     = %8x\n", iodpp->int_ctl);
-	  printk("  INT_REG     = %8x\n", iodpp->int_reg);
-	  printk("  INT_MASK0   = %8x\n", iodpp->int_mask0);
-	  printk("  INT_MASK1   = %8x\n", iodpp->int_mask1);
-	  printk("  MC_ERR0     = %8x\n", iodpp->mc_err0);
-	  printk("  MC_ERR1     = %8x\n", iodpp->mc_err1);
-	  printk("  CAP_ERR     = %8x\n", iodpp->cap_err);
-	  printk("  PCI_ERR1    = %8x\n", iodpp->pci_err1);
-	  printk("  MDPA_STAT   = %8x\n", iodpp->mdpa_stat);
-	  printk("  MDPA_SYN    = %8x\n", iodpp->mdpa_syn);
-	  printk("  MDPB_STAT   = %8x\n", iodpp->mdpb_stat);
-	  printk("  MDPB_SYN    = %8x\n", iodpp->mdpb_syn);
+		printk("IOD %d Register Subpacket - Bridge Base Address %16lx\n",
+			   hose->index, iodpp->base);
+		printk("  WHOAMI      = %8x\n", iodpp->whoami);
+		printk("  PCI_REV     = %8x\n", iodpp->pci_rev);
+		printk("  CAP_CTRL    = %8x\n", iodpp->cap_ctrl);
+		printk("  HAE_MEM     = %8x\n", iodpp->hae_mem);
+		printk("  HAE_IO      = %8x\n", iodpp->hae_io);
+		printk("  INT_CTL     = %8x\n", iodpp->int_ctl);
+		printk("  INT_REG     = %8x\n", iodpp->int_reg);
+		printk("  INT_MASK0   = %8x\n", iodpp->int_mask0);
+		printk("  INT_MASK1   = %8x\n", iodpp->int_mask1);
+		printk("  MC_ERR0     = %8x\n", iodpp->mc_err0);
+		printk("  MC_ERR1     = %8x\n", iodpp->mc_err1);
+		printk("  CAP_ERR     = %8x\n", iodpp->cap_err);
+		printk("  PCI_ERR1    = %8x\n", iodpp->pci_err1);
+		printk("  MDPA_STAT   = %8x\n", iodpp->mdpa_stat);
+		printk("  MDPA_SYN    = %8x\n", iodpp->mdpa_syn);
+		printk("  MDPB_STAT   = %8x\n", iodpp->mdpb_stat);
+		printk("  MDPB_SYN    = %8x\n", iodpp->mdpb_syn);
 	}
 }
 
@@ -583,30 +633,39 @@ mcpcia_machine_check(unsigned long vector, unsigned long la_ptr)
 	mb();  /* magic */
 	draina();
 
-	switch (expected) {
-	case 0:
-	    {
-		/* FIXME: how do we figure out which hose the
-		   error was on?  */	
-		struct pci_controller *hose;
-		for (hose = hose_head; hose; hose = hose->next)
-			mcpcia_pci_clr_err(MCPCIA_HOSE2MID(hose->index));
-		break;
-	    }
-	case 1:
-		mcpcia_pci_clr_err(mcheck_extra(cpu));
-		break;
-	default:
-		/* Otherwise, we're being called from mcpcia_probe_hose
-		   and there's no hose clear an error from.  */
-		break;
+	switch (expected)
+	{
+		case 0:
+			{
+				/* FIXME: how do we figure out which hose the
+				   error was on?  */
+				struct pci_controller *hose;
+
+				for (hose = hose_head; hose; hose = hose->next)
+				{
+					mcpcia_pci_clr_err(MCPCIA_HOSE2MID(hose->index));
+				}
+
+				break;
+			}
+
+		case 1:
+			mcpcia_pci_clr_err(mcheck_extra(cpu));
+			break;
+
+		default:
+			/* Otherwise, we're being called from mcpcia_probe_hose
+			   and there's no hose clear an error from.  */
+			break;
 	}
 
 	wrmces(0x7);
 	mb();
 
 	process_mcheck_info(vector, la_ptr, "MCPCIA", expected != 0);
-	if (!expected && vector != 0x620 && vector != 0x630) {
+
+	if (!expected && vector != 0x620 && vector != 0x630)
+	{
 		mcpcia_print_uncorrectable(mchk_logout);
 		mcpcia_print_system_area(la_ptr);
 	}

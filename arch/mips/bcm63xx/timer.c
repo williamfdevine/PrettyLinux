@@ -21,7 +21,8 @@ static DEFINE_RAW_SPINLOCK(timer_reg_lock);
 static DEFINE_RAW_SPINLOCK(timer_data_lock);
 static struct clk *periph_clk;
 
-static struct timer_data {
+static struct timer_data
+{
 	void	(*cb)(void *);
 	void	*data;
 } timer_data[BCM63XX_TIMER_COUNT];
@@ -36,12 +37,17 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	bcm_timer_writel(stat, TIMER_IRQSTAT_REG);
 	raw_spin_unlock(&timer_reg_lock);
 
-	for (i = 0; i < BCM63XX_TIMER_COUNT; i++) {
+	for (i = 0; i < BCM63XX_TIMER_COUNT; i++)
+	{
 		if (!(stat & TIMER_IRQSTAT_TIMER_CAUSE(i)))
+		{
 			continue;
+		}
 
 		raw_spin_lock(&timer_data_lock);
-		if (!timer_data[i].cb) {
+
+		if (!timer_data[i].cb)
+		{
 			raw_spin_unlock(&timer_data_lock);
 			continue;
 		}
@@ -59,7 +65,9 @@ int bcm63xx_timer_enable(int id)
 	unsigned long flags;
 
 	if (id >= BCM63XX_TIMER_COUNT)
+	{
 		return -EINVAL;
+	}
 
 	raw_spin_lock_irqsave(&timer_reg_lock, flags);
 
@@ -83,7 +91,9 @@ int bcm63xx_timer_disable(int id)
 	unsigned long flags;
 
 	if (id >= BCM63XX_TIMER_COUNT)
+	{
 		return -EINVAL;
+	}
 
 	raw_spin_lock_irqsave(&timer_reg_lock, flags);
 
@@ -107,11 +117,15 @@ int bcm63xx_timer_register(int id, void (*callback)(void *data), void *data)
 	int ret;
 
 	if (id >= BCM63XX_TIMER_COUNT || !callback)
+	{
 		return -EINVAL;
+	}
 
 	ret = 0;
 	raw_spin_lock_irqsave(&timer_data_lock, flags);
-	if (timer_data[id].cb) {
+
+	if (timer_data[id].cb)
+	{
 		ret = -EBUSY;
 		goto out;
 	}
@@ -131,7 +145,9 @@ void bcm63xx_timer_unregister(int id)
 	unsigned long flags;
 
 	if (id >= BCM63XX_TIMER_COUNT)
+	{
 		return;
+	}
 
 	raw_spin_lock_irqsave(&timer_data_lock, flags);
 	timer_data[id].cb = NULL;
@@ -153,19 +169,28 @@ int bcm63xx_timer_set(int id, int monotonic, unsigned int countdown_us)
 	unsigned long flags;
 
 	if (id >= BCM63XX_TIMER_COUNT)
+	{
 		return -EINVAL;
+	}
 
 	countdown = bcm63xx_timer_countdown(countdown_us);
+
 	if (countdown & ~TIMER_CTL_COUNTDOWN_MASK)
+	{
 		return -EINVAL;
+	}
 
 	raw_spin_lock_irqsave(&timer_reg_lock, flags);
 	reg = bcm_timer_readl(TIMER_CTLx_REG(id));
 
 	if (monotonic)
+	{
 		reg &= ~TIMER_CTL_MONOTONIC_MASK;
+	}
 	else
+	{
 		reg |= TIMER_CTL_MONOTONIC_MASK;
+	}
 
 	reg &= ~TIMER_CTL_COUNTDOWN_MASK;
 	reg |= countdown;
@@ -189,12 +214,17 @@ int bcm63xx_timer_init(void)
 	bcm_timer_writel(reg, TIMER_IRQSTAT_REG);
 
 	periph_clk = clk_get(NULL, "periph");
+
 	if (IS_ERR(periph_clk))
+	{
 		return -ENODEV;
+	}
 
 	irq = bcm63xx_get_irq_number(IRQ_TIMER);
 	ret = request_irq(irq, timer_interrupt, 0, "bcm63xx_timer", NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: failed to register irq\n", __func__);
 		return ret;
 	}

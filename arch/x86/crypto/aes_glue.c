@@ -32,7 +32,8 @@ static void aes_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	aes_dec_blk(crypto_tfm_ctx(tfm), dst, src);
 }
 
-static struct crypto_alg aes_alg = {
+static struct crypto_alg aes_alg =
+{
 	.cra_name		= "aes",
 	.cra_driver_name	= "aes-asm",
 	.cra_priority		= 200,

@@ -9,7 +9,8 @@
 /*
  * on board ethernet platform data
  */
-struct bcm63xx_enet_platform_data {
+struct bcm63xx_enet_platform_data
+{
 	char mac_addr[ETH_ALEN];
 
 	int has_phy;
@@ -35,10 +36,10 @@ struct bcm63xx_enet_platform_data {
 	/* if !has_phy, set callback to perform mii device
 	 * init/remove */
 	int (*mii_config)(struct net_device *dev, int probe,
-			  int (*mii_read)(struct net_device *dev,
-					  int phy_id, int reg),
-			  void (*mii_write)(struct net_device *dev,
-					    int phy_id, int reg, int val));
+					  int (*mii_read)(struct net_device *dev,
+									  int phy_id, int reg),
+					  void (*mii_write)(struct net_device *dev,
+										int phy_id, int reg, int val));
 
 	/* DMA channel enable mask */
 	u32 dma_chan_en_mask;
@@ -65,7 +66,8 @@ struct bcm63xx_enet_platform_data {
 
 #define ENETSW_RGMII_PORT0	4
 
-struct bcm63xx_enetsw_port {
+struct bcm63xx_enetsw_port
+{
 	int		used;
 	int		phy_id;
 
@@ -76,7 +78,8 @@ struct bcm63xx_enetsw_port {
 	const char	*name;
 };
 
-struct bcm63xx_enetsw_platform_data {
+struct bcm63xx_enetsw_platform_data
+{
 	char mac_addr[ETH_ALEN];
 	int num_ports;
 	struct bcm63xx_enetsw_port used_ports[ENETSW_MAX_PORT];
@@ -95,11 +98,12 @@ struct bcm63xx_enetsw_platform_data {
 };
 
 int __init bcm63xx_enet_register(int unit,
-				 const struct bcm63xx_enet_platform_data *pd);
+								 const struct bcm63xx_enet_platform_data *pd);
 
 int bcm63xx_enetsw_register(const struct bcm63xx_enetsw_platform_data *pd);
 
-enum bcm63xx_regs_enetdmac {
+enum bcm63xx_regs_enetdmac
+{
 	ENETDMAC_CHANCFG,
 	ENETDMAC_IR,
 	ENETDMAC_IRMASK,

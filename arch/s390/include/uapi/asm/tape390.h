@@ -29,17 +29,19 @@
  *
  */
 
-typedef struct display_struct {
-        char cntrl;
-        char message1[8];
-        char message2[8];
+typedef struct display_struct
+{
+	char cntrl;
+	char message1[8];
+	char message2[8];
 } display_struct;
 
 /*
  * Tape encryption support
  */
 
-struct tape390_crypt_info {
+struct tape390_crypt_info
+{
 	char capability;
 	char status;
 	char medium_status;
@@ -79,13 +81,15 @@ struct tape390_crypt_info {
 #define TAPE390_KEKL_TYPE_LABEL 1
 #define TAPE390_KEKL_TYPE_HASH 2
 
-struct tape390_kekl {
+struct tape390_kekl
+{
 	unsigned char type;
 	unsigned char type_on_tape;
 	char label[65];
 } __attribute__ ((packed));
 
-struct tape390_kekl_pair {
+struct tape390_kekl_pair
+{
 	struct tape390_kekl kekl[2];
 } __attribute__ ((packed));
 
@@ -99,4 +103,4 @@ struct tape390_kekl_pair {
  */
 #define TAPE390_KEKL_QUERY _IOR('d', 5, struct tape390_kekl_pair)
 
-#endif 
+#endif

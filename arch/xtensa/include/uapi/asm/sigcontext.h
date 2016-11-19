@@ -12,7 +12,8 @@
 #define _XTENSA_SIGCONTEXT_H
 
 
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long sc_pc;
 	unsigned long sc_ps;
 	unsigned long sc_lbeg;

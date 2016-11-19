@@ -19,7 +19,8 @@
 /*
  * Descriptor for a cache
  */
-struct cache_desc {
+struct cache_desc
+{
 	unsigned int waysize;	/* Bytes per way */
 	unsigned short sets;	/* Number of lines per set */
 	unsigned char ways;	/* Number of ways */
@@ -28,7 +29,8 @@ struct cache_desc {
 	unsigned char flags;	/* Flags describing cache properties */
 };
 
-struct guest_info {
+struct guest_info
+{
 	unsigned long		ases;
 	unsigned long		ases_dyn;
 	unsigned long long	options;
@@ -47,7 +49,8 @@ struct guest_info {
 #define MIPS_IC_SNOOPS_REMOTE	0x00000010	/* Ic snoops remote stores */
 #define MIPS_CACHE_PINDEX	0x00000020	/* Physically indexed cache */
 
-struct cpuinfo_mips {
+struct cpuinfo_mips
+{
 	unsigned long		asid_cache;
 #ifdef CONFIG_MIPS_ASID_BITS_VARIABLE
 	unsigned long		asid_mask;
@@ -129,24 +132,25 @@ extern int register_proc_cpuinfo_notifier(struct notifier_block *nb);
 extern int proc_cpuinfo_notifier_call_chain(unsigned long val, void *v);
 
 #define proc_cpuinfo_notifier(fn, pri)					\
-({									\
-	static struct notifier_block fn##_nb = {			\
-		.notifier_call = fn,					\
-		.priority = pri						\
-	};								\
-									\
-	register_proc_cpuinfo_notifier(&fn##_nb);			\
-})
+	({									\
+		static struct notifier_block fn##_nb = {			\
+			.notifier_call = fn,					\
+							 .priority = pri						\
+		};								\
+		\
+		register_proc_cpuinfo_notifier(&fn##_nb);			\
+	})
 
-struct proc_cpuinfo_notifier_args {
+struct proc_cpuinfo_notifier_args
+{
 	struct seq_file *m;
 	unsigned long n;
 };
 
 #if defined(CONFIG_MIPS_MT_SMP) || defined(CONFIG_CPU_MIPSR6)
-# define cpu_vpe_id(cpuinfo)	((cpuinfo)->vpe_id)
+	#define cpu_vpe_id(cpuinfo)	((cpuinfo)->vpe_id)
 #else
-# define cpu_vpe_id(cpuinfo)	({ (void)cpuinfo; 0; })
+	#define cpu_vpe_id(cpuinfo)	({ (void)cpuinfo; 0; })
 #endif
 
 static inline unsigned long cpu_asid_inc(void)
@@ -163,7 +167,7 @@ static inline unsigned long cpu_asid_mask(struct cpuinfo_mips *cpuinfo)
 }
 
 static inline void set_cpu_asid_mask(struct cpuinfo_mips *cpuinfo,
-				     unsigned long asid_mask)
+									 unsigned long asid_mask)
 {
 #ifdef CONFIG_MIPS_ASID_BITS_VARIABLE
 	cpuinfo->asid_mask = asid_mask;

@@ -13,7 +13,8 @@
 
 #define STAT_HAVE_NSEC 1
 
-struct stat {
+struct stat
+{
 	unsigned long	st_dev;
 	unsigned long	st_ino;
 	unsigned int	st_mode;
@@ -34,7 +35,8 @@ struct stat {
 	unsigned long	__unused5;
 };
 
-struct stat64  {
+struct stat64
+{
 	unsigned long long st_dev;	/* Device */
 	unsigned long long st_ino;	/* File serial number */
 	unsigned int  st_mode;		/* File mode. */

@@ -113,18 +113,26 @@ static int wait_pciephy_busy(void)
 {
 	unsigned long reg_value = 0x0, retry = 0;
 
-	while (1) {
+	while (1)
+	{
 		reg_value = pcie_r32(PCIEPHY0_CFG);
 
 		if (reg_value & BUSY)
+		{
 			mdelay(100);
+		}
 		else
+		{
 			break;
-		if (retry++ > WAITRETRY_MAX) {
+		}
+
+		if (retry++ > WAITRETRY_MAX)
+		{
 			printk(KERN_WARN "PCIE-PHY retry failed.\n");
 			return -1;
 		}
 	}
+
 	return 0;
 }
 
@@ -132,13 +140,13 @@ static void pcie_phy(unsigned long addr, unsigned long val)
 {
 	wait_pciephy_busy();
 	pcie_w32(WRITE_MODE | (val << DATA_SHIFT) | (addr << ADDR_SHIFT),
-		 PCIEPHY0_CFG);
+			 PCIEPHY0_CFG);
 	mdelay(1);
 	wait_pciephy_busy();
 }
 
 static int pci_config_read(struct pci_bus *bus, unsigned int devfn, int where,
-			   int size, u32 *val)
+						   int size, u32 *val)
 {
 	unsigned int slot = PCI_SLOT(devfn);
 	u8 func = PCI_FUNC(devfn);
@@ -147,30 +155,35 @@ static int pci_config_read(struct pci_bus *bus, unsigned int devfn, int where,
 	u32 num = 0;
 
 	if (bus)
+	{
 		num = bus->number;
+	}
 
 	address = (((where & 0xF00) >> 8) << 24) | (num << 16) | (slot << 11) |
-		  (func << 8) | (where & 0xfc) | 0x80000000;
+			  (func << 8) | (where & 0xfc) | 0x80000000;
 	bridge_w32(address, RALINK_PCI_CONFIG_ADDR);
 	data = bridge_r32(RALINK_PCI_CONFIG_DATA_VIRT_REG);
 
-	switch (size) {
-	case 1:
-		*val = (data >> ((where & 3) << 3)) & 0xff;
-		break;
-	case 2:
-		*val = (data >> ((where & 3) << 3)) & 0xffff;
-		break;
-	case 4:
-		*val = data;
-		break;
+	switch (size)
+	{
+		case 1:
+			*val = (data >> ((where & 3) << 3)) & 0xff;
+			break;
+
+		case 2:
+			*val = (data >> ((where & 3) << 3)) & 0xffff;
+			break;
+
+		case 4:
+			*val = data;
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int pci_config_write(struct pci_bus *bus, unsigned int devfn, int where,
-			    int size, u32 val)
+							int size, u32 val)
 {
 	unsigned int slot = PCI_SLOT(devfn);
 	u8 func = PCI_FUNC(devfn);
@@ -179,25 +192,30 @@ static int pci_config_write(struct pci_bus *bus, unsigned int devfn, int where,
 	u32 num = 0;
 
 	if (bus)
+	{
 		num = bus->number;
+	}
 
 	address = (((where & 0xF00) >> 8) << 24) | (num << 16) | (slot << 11) |
-		  (func << 8) | (where & 0xfc) | 0x80000000;
+			  (func << 8) | (where & 0xfc) | 0x80000000;
 	bridge_w32(address, RALINK_PCI_CONFIG_ADDR);
 	data = bridge_r32(RALINK_PCI_CONFIG_DATA_VIRT_REG);
 
-	switch (size) {
-	case 1:
-		data = (data & ~(0xff << ((where & 3) << 3))) |
-			(val << ((where & 3) << 3));
-		break;
-	case 2:
-		data = (data & ~(0xffff << ((where & 3) << 3))) |
-			(val << ((where & 3) << 3));
-		break;
-	case 4:
-		data = val;
-		break;
+	switch (size)
+	{
+		case 1:
+			data = (data & ~(0xff << ((where & 3) << 3))) |
+				   (val << ((where & 3) << 3));
+			break;
+
+		case 2:
+			data = (data & ~(0xffff << ((where & 3) << 3))) |
+				   (val << ((where & 3) << 3));
+			break;
+
+		case 4:
+			data = val;
+			break;
 	}
 
 	bridge_w32(data, RALINK_PCI_CONFIG_DATA_VIRT_REG);
@@ -205,14 +223,16 @@ static int pci_config_write(struct pci_bus *bus, unsigned int devfn, int where,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops mt7620_pci_ops = {
+struct pci_ops mt7620_pci_ops =
+{
 	.read	= pci_config_read,
 	.write	= pci_config_write,
 };
 
 static struct resource mt7620_res_pci_mem1;
 static struct resource mt7620_res_pci_io1;
-struct pci_controller mt7620_controller = {
+struct pci_controller mt7620_controller =
+{
 	.pci_ops	= &mt7620_pci_ops,
 	.mem_resource	= &mt7620_res_pci_mem1,
 	.mem_offset	= 0x00000000UL,
@@ -243,7 +263,8 @@ static int mt7620_pci_hw_init(struct platform_device *pdev)
 	rt_sysc_m32(0, RALINK_PCIE0_CLK_EN, RALINK_CLKCFG1);
 	mdelay(100);
 
-	if (!(rt_sysc_r32(PPLL_CFG1) & PDRV_SW_SET)) {
+	if (!(rt_sysc_r32(PPLL_CFG1) & PDRV_SW_SET))
+	{
 		dev_err(&pdev->dev, "MT7620 PPLL unlock\n");
 		reset_control_assert(rstpcie0);
 		rt_sysc_m32(RALINK_PCIE0_CLK_EN, 0, RALINK_CLKCFG1);
@@ -252,7 +273,7 @@ static int mt7620_pci_hw_init(struct platform_device *pdev)
 
 	/* power up the bus */
 	rt_sysc_m32(LC_CKDRVHZ | LC_CKDRVOHZ, LC_CKDRVPD | PDRV_SW_SET,
-		    PPLL_DRV);
+				PPLL_DRV);
 
 	return 0;
 }
@@ -286,22 +307,31 @@ static int mt7628_pci_hw_init(struct platform_device *pdev)
 static int mt7620_pci_probe(struct platform_device *pdev)
 {
 	struct resource *bridge_res = platform_get_resource(pdev,
-							    IORESOURCE_MEM, 0);
+								  IORESOURCE_MEM, 0);
 	struct resource *pcie_res = platform_get_resource(pdev,
-							  IORESOURCE_MEM, 1);
+								IORESOURCE_MEM, 1);
 	u32 val = 0;
 
 	rstpcie0 = devm_reset_control_get(&pdev->dev, "pcie0");
+
 	if (IS_ERR(rstpcie0))
+	{
 		return PTR_ERR(rstpcie0);
+	}
 
 	bridge_base = devm_ioremap_resource(&pdev->dev, bridge_res);
+
 	if (IS_ERR(bridge_base))
+	{
 		return PTR_ERR(bridge_base);
+	}
 
 	pcie_base = devm_ioremap_resource(&pdev->dev, pcie_res);
+
 	if (IS_ERR(pcie_base))
+	{
 		return PTR_ERR(pcie_base);
+	}
 
 	iomem_resource.start = 0;
 	iomem_resource.end = ~0;
@@ -309,21 +339,29 @@ static int mt7620_pci_probe(struct platform_device *pdev)
 	ioport_resource.end = ~0;
 
 	/* bring up the pci core */
-	switch (ralink_soc) {
-	case MT762X_SOC_MT7620A:
-		if (mt7620_pci_hw_init(pdev))
-			return -1;
-		break;
+	switch (ralink_soc)
+	{
+		case MT762X_SOC_MT7620A:
+			if (mt7620_pci_hw_init(pdev))
+			{
+				return -1;
+			}
 
-	case MT762X_SOC_MT7628AN:
-		if (mt7628_pci_hw_init(pdev))
-			return -1;
-		break;
+			break;
 
-	default:
-		dev_err(&pdev->dev, "pcie is not supported on this hardware\n");
-		return -1;
+		case MT762X_SOC_MT7628AN:
+			if (mt7628_pci_hw_init(pdev))
+			{
+				return -1;
+			}
+
+			break;
+
+		default:
+			dev_err(&pdev->dev, "pcie is not supported on this hardware\n");
+			return -1;
 	}
+
 	mdelay(50);
 
 	/* enable write access */
@@ -331,11 +369,16 @@ static int mt7620_pci_probe(struct platform_device *pdev)
 	mdelay(100);
 
 	/* check if there is a card present */
-	if ((pcie_r32(RALINK_PCI0_STATUS) & PCIE_LINK_UP_ST) == 0) {
+	if ((pcie_r32(RALINK_PCI0_STATUS) & PCIE_LINK_UP_ST) == 0)
+	{
 		reset_control_assert(rstpcie0);
 		rt_sysc_m32(RALINK_PCIE0_CLK_EN, 0, RALINK_CLKCFG1);
+
 		if (ralink_soc == MT762X_SOC_MT7620A)
+		{
 			rt_sysc_m32(LC_CKDRVPD, PDRV_SW_SET, PPLL_DRV);
+		}
+
 		dev_err(&pdev->dev, "PCIE0 no card, disable it(RST&CLK)\n");
 		return -1;
 	}
@@ -367,20 +410,26 @@ int __init pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	u32 val;
 	int irq = 0;
 
-	if ((dev->bus->number == 0) && (slot == 0)) {
+	if ((dev->bus->number == 0) && (slot == 0))
+	{
 		pcie_w32(0x7FFF0001, RALINK_PCI0_BAR0SETUP_ADDR);
 		pci_config_write(dev->bus, 0, PCI_BASE_ADDRESS_0, 4,
-				 RALINK_PCI_MEMORY_BASE);
+						 RALINK_PCI_MEMORY_BASE);
 		pci_config_read(dev->bus, 0, PCI_BASE_ADDRESS_0, 4, &val);
-	} else if ((dev->bus->number == 1) && (slot == 0x0)) {
+	}
+	else if ((dev->bus->number == 1) && (slot == 0x0))
+	{
 		irq = RALINK_INT_PCIE0;
-	} else {
+	}
+	else
+	{
 		dev_err(&dev->dev, "no irq found - bus=0x%x, slot = 0x%x\n",
-			dev->bus->number, slot);
+				dev->bus->number, slot);
 		return 0;
 	}
+
 	dev_err(&dev->dev, "card - bus=0x%x, slot = 0x%x irq=%d\n",
-		dev->bus->number, slot, irq);
+			dev->bus->number, slot, irq);
 
 	/* configure the cache line size to 0x14 */
 	pci_write_config_byte(dev, PCI_CACHE_LINE_SIZE, 0x14);
@@ -402,12 +451,14 @@ int pcibios_plat_dev_init(struct pci_dev *dev)
 	return 0;
 }
 
-static const struct of_device_id mt7620_pci_ids[] = {
+static const struct of_device_id mt7620_pci_ids[] =
+{
 	{ .compatible = "mediatek,mt7620-pci" },
 	{},
 };
 
-static struct platform_driver mt7620_pci_driver = {
+static struct platform_driver mt7620_pci_driver =
+{
 	.probe = mt7620_pci_probe,
 	.driver = {
 		.name = "mt7620-pci",

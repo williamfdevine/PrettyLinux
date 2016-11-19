@@ -40,13 +40,15 @@ int __init start_uml(void)
 	init_task.thread.request.u.thread.proc = start_kernel_proc;
 	init_task.thread.request.u.thread.arg = NULL;
 	return start_idle_thread(task_stack_page(&init_task),
-				 &init_task.thread.switch_buf);
+							 &init_task.thread.switch_buf);
 }
 
 unsigned long current_stub_stack(void)
 {
 	if (current->mm == NULL)
+	{
 		return 0;
+	}
 
 	return current->mm->context.id.stack;
 }

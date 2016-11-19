@@ -25,7 +25,8 @@
 #define OMAP1510_GPIO_BASE		0xFFFCE000
 
 /* gpio1 */
-static struct resource omap15xx_mpu_gpio_resources[] = {
+static struct resource omap15xx_mpu_gpio_resources[] =
+{
 	{
 		.start	= OMAP1_MPUIO_VBASE,
 		.end	= OMAP1_MPUIO_VBASE + SZ_2K - 1,
@@ -37,7 +38,8 @@ static struct resource omap15xx_mpu_gpio_resources[] = {
 	},
 };
 
-static struct omap_gpio_reg_offs omap15xx_mpuio_regs = {
+static struct omap_gpio_reg_offs omap15xx_mpuio_regs =
+{
 	.revision       = USHRT_MAX,
 	.direction	= OMAP_MPUIO_IO_CNTL,
 	.datain		= OMAP_MPUIO_INPUT_LATCH,
@@ -48,14 +50,16 @@ static struct omap_gpio_reg_offs omap15xx_mpuio_regs = {
 	.irqctrl	= OMAP_MPUIO_GPIO_INT_EDGE,
 };
 
-static struct omap_gpio_platform_data omap15xx_mpu_gpio_config = {
+static struct omap_gpio_platform_data omap15xx_mpu_gpio_config =
+{
 	.is_mpuio		= true,
 	.bank_width		= 16,
 	.bank_stride		= 1,
 	.regs			= &omap15xx_mpuio_regs,
 };
 
-static struct platform_device omap15xx_mpu_gpio = {
+static struct platform_device omap15xx_mpu_gpio =
+{
 	.name           = "omap_gpio",
 	.id             = 0,
 	.dev            = {
@@ -66,7 +70,8 @@ static struct platform_device omap15xx_mpu_gpio = {
 };
 
 /* gpio2 */
-static struct resource omap15xx_gpio_resources[] = {
+static struct resource omap15xx_gpio_resources[] =
+{
 	{
 		.start	= OMAP1510_GPIO_BASE,
 		.end	= OMAP1510_GPIO_BASE + SZ_2K - 1,
@@ -78,7 +83,8 @@ static struct resource omap15xx_gpio_resources[] = {
 	},
 };
 
-static struct omap_gpio_reg_offs omap15xx_gpio_regs = {
+static struct omap_gpio_reg_offs omap15xx_gpio_regs =
+{
 	.revision	= USHRT_MAX,
 	.direction	= OMAP1510_GPIO_DIR_CONTROL,
 	.datain		= OMAP1510_GPIO_DATA_INPUT,
@@ -90,12 +96,14 @@ static struct omap_gpio_reg_offs omap15xx_gpio_regs = {
 	.pinctrl	= OMAP1510_GPIO_PIN_CONTROL,
 };
 
-static struct omap_gpio_platform_data omap15xx_gpio_config = {
+static struct omap_gpio_platform_data omap15xx_gpio_config =
+{
 	.bank_width		= 16,
 	.regs                   = &omap15xx_gpio_regs,
 };
 
-static struct platform_device omap15xx_gpio = {
+static struct platform_device omap15xx_gpio =
+{
 	.name           = "omap_gpio",
 	.id             = 1,
 	.dev            = {
@@ -113,7 +121,9 @@ static struct platform_device omap15xx_gpio = {
 static int __init omap15xx_gpio_init(void)
 {
 	if (!cpu_is_omap15xx())
+	{
 		return -EINVAL;
+	}
 
 	platform_device_register(&omap15xx_mpu_gpio);
 	platform_device_register(&omap15xx_gpio);

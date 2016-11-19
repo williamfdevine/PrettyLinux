@@ -13,7 +13,8 @@ static inline void ack_bad_irq(unsigned int irq)
 }
 
 /* entry.S is sensitive to the offsets of these fields */
-typedef struct {
+typedef struct
+{
 	unsigned int __softirq_pending;
 } ____cacheline_aligned irq_cpustat_t;
 

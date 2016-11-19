@@ -58,17 +58,20 @@ static inline int test_and_set_bit(unsigned int bit, volatile unsigned long *p)
 
 	__global_lock1(flags);
 	old = *p;
-	if (!(old & mask)) {
+
+	if (!(old & mask))
+	{
 		fence();
 		*p = old | mask;
 	}
+
 	__global_unlock1(flags);
 
 	return (old & mask) != 0;
 }
 
 static inline int test_and_clear_bit(unsigned int bit,
-				     volatile unsigned long *p)
+									 volatile unsigned long *p)
 {
 	unsigned long flags;
 	unsigned long old;
@@ -78,17 +81,20 @@ static inline int test_and_clear_bit(unsigned int bit,
 
 	__global_lock1(flags);
 	old = *p;
-	if (old & mask) {
+
+	if (old & mask)
+	{
 		fence();
 		*p = old & ~mask;
 	}
+
 	__global_unlock1(flags);
 
 	return (old & mask) != 0;
 }
 
 static inline int test_and_change_bit(unsigned int bit,
-				      volatile unsigned long *p)
+									  volatile unsigned long *p)
 {
 	unsigned long flags;
 	unsigned long old;

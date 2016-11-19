@@ -24,7 +24,8 @@
 #include "cm-regbits-34xx.h"
 #include "clockdomain.h"
 
-static const u8 omap3xxx_cm_idlest_offs[] = {
+static const u8 omap3xxx_cm_idlest_offs[] =
+{
 	CM_IDLEST1, CM_IDLEST2, OMAP2430_CM_IDLEST3
 };
 
@@ -89,14 +90,16 @@ static void omap3xxx_cm_clkdm_force_wakeup(s16 module, u32 mask)
  * success or -EBUSY if the module doesn't enable in time.
  */
 static int omap3xxx_cm_wait_module_ready(u8 part, s16 prcm_mod, u16 idlest_id,
-					 u8 idlest_shift)
+		u8 idlest_shift)
 {
 	int ena = 0, i = 0;
 	u8 cm_idlest_reg;
 	u32 mask;
 
 	if (!idlest_id || (idlest_id > ARRAY_SIZE(omap3xxx_cm_idlest_offs)))
+	{
 		return -EINVAL;
+	}
 
 	cm_idlest_reg = omap3xxx_cm_idlest_offs[idlest_id - 1];
 
@@ -104,7 +107,7 @@ static int omap3xxx_cm_wait_module_ready(u8 part, s16 prcm_mod, u16 idlest_id,
 	ena = 0;
 
 	omap_test_timeout(((omap2_cm_read_mod_reg(prcm_mod, cm_idlest_reg) &
-			    mask) == ena), MAX_MODULE_READY_TIME, i);
+						mask) == ena), MAX_MODULE_READY_TIME, i);
 
 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
 }
@@ -119,27 +122,34 @@ static int omap3xxx_cm_wait_module_ready(u8 part, s16 prcm_mod, u16 idlest_id,
  * removed from the OMAP struct clk records.
  */
 static int omap3xxx_cm_split_idlest_reg(void __iomem *idlest_reg,
-					s16 *prcm_inst,
-					u8 *idlest_reg_id)
+										s16 *prcm_inst,
+										u8 *idlest_reg_id)
 {
 	unsigned long offs;
 	u8 idlest_offs;
 	int i;
 
 	if (idlest_reg < (cm_base + OMAP3430_IVA2_MOD) ||
-	    idlest_reg > (cm_base + 0x1ffff))
+		idlest_reg > (cm_base + 0x1ffff))
+	{
 		return -EINVAL;
+	}
 
 	idlest_offs = (unsigned long)idlest_reg & 0xff;
-	for (i = 0; i < ARRAY_SIZE(omap3xxx_cm_idlest_offs); i++) {
-		if (idlest_offs == omap3xxx_cm_idlest_offs[i]) {
+
+	for (i = 0; i < ARRAY_SIZE(omap3xxx_cm_idlest_offs); i++)
+	{
+		if (idlest_offs == omap3xxx_cm_idlest_offs[i])
+		{
 			*idlest_reg_id = i + 1;
 			break;
 		}
 	}
 
 	if (i == ARRAY_SIZE(omap3xxx_cm_idlest_offs))
+	{
 		return -EINVAL;
+	}
 
 	offs = idlest_reg - cm_base;
 	offs &= 0xff00;
@@ -151,29 +161,29 @@ static int omap3xxx_cm_split_idlest_reg(void __iomem *idlest_reg,
 /* Clockdomain low-level operations */
 
 static int omap3xxx_clkdm_add_sleepdep(struct clockdomain *clkdm1,
-				       struct clockdomain *clkdm2)
+									   struct clockdomain *clkdm2)
 {
 	omap2_cm_set_mod_reg_bits((1 << clkdm2->dep_bit),
-				  clkdm1->pwrdm.ptr->prcm_offs,
-				  OMAP3430_CM_SLEEPDEP);
+							  clkdm1->pwrdm.ptr->prcm_offs,
+							  OMAP3430_CM_SLEEPDEP);
 	return 0;
 }
 
 static int omap3xxx_clkdm_del_sleepdep(struct clockdomain *clkdm1,
-				       struct clockdomain *clkdm2)
+									   struct clockdomain *clkdm2)
 {
 	omap2_cm_clear_mod_reg_bits((1 << clkdm2->dep_bit),
-				    clkdm1->pwrdm.ptr->prcm_offs,
-				    OMAP3430_CM_SLEEPDEP);
+								clkdm1->pwrdm.ptr->prcm_offs,
+								OMAP3430_CM_SLEEPDEP);
 	return 0;
 }
 
 static int omap3xxx_clkdm_read_sleepdep(struct clockdomain *clkdm1,
-					struct clockdomain *clkdm2)
+										struct clockdomain *clkdm2)
 {
 	return omap2_cm_read_mod_bits_shift(clkdm1->pwrdm.ptr->prcm_offs,
-					    OMAP3430_CM_SLEEPDEP,
-					    (1 << clkdm2->dep_bit));
+										OMAP3430_CM_SLEEPDEP,
+										(1 << clkdm2->dep_bit));
 }
 
 static int omap3xxx_clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
@@ -181,48 +191,56 @@ static int omap3xxx_clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
 	struct clkdm_dep *cd;
 	u32 mask = 0;
 
-	for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++) {
+	for (cd = clkdm->sleepdep_srcs; cd && cd->clkdm_name; cd++)
+	{
 		if (!cd->clkdm)
-			continue; /* only happens if data is erroneous */
+		{
+			continue;    /* only happens if data is erroneous */
+		}
 
 		mask |= 1 << cd->clkdm->dep_bit;
 		cd->sleepdep_usecount = 0;
 	}
+
 	omap2_cm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
-				    OMAP3430_CM_SLEEPDEP);
+								OMAP3430_CM_SLEEPDEP);
 	return 0;
 }
 
 static int omap3xxx_clkdm_sleep(struct clockdomain *clkdm)
 {
 	omap3xxx_cm_clkdm_force_sleep(clkdm->pwrdm.ptr->prcm_offs,
-				      clkdm->clktrctrl_mask);
+								  clkdm->clktrctrl_mask);
 	return 0;
 }
 
 static int omap3xxx_clkdm_wakeup(struct clockdomain *clkdm)
 {
 	omap3xxx_cm_clkdm_force_wakeup(clkdm->pwrdm.ptr->prcm_offs,
-				       clkdm->clktrctrl_mask);
+								   clkdm->clktrctrl_mask);
 	return 0;
 }
 
 static void omap3xxx_clkdm_allow_idle(struct clockdomain *clkdm)
 {
 	if (clkdm->usecount > 0)
+	{
 		clkdm_add_autodeps(clkdm);
+	}
 
 	omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-				       clkdm->clktrctrl_mask);
+								   clkdm->clktrctrl_mask);
 }
 
 static void omap3xxx_clkdm_deny_idle(struct clockdomain *clkdm)
 {
 	omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-					clkdm->clktrctrl_mask);
+									clkdm->clktrctrl_mask);
 
 	if (clkdm->usecount > 0)
+	{
 		clkdm_del_autodeps(clkdm);
+	}
 }
 
 static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
@@ -230,7 +248,9 @@ static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
 	bool hwsup = false;
 
 	if (!clkdm->clktrctrl_mask)
+	{
 		return 0;
+	}
 
 	/*
 	 * The CLKDM_MISSING_IDLE_REPORTING flag documentation has
@@ -238,24 +258,30 @@ static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
 	 * around
 	 */
 	if ((clkdm->flags & CLKDM_MISSING_IDLE_REPORTING) &&
-	    (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)) {
+		(clkdm->flags & CLKDM_CAN_FORCE_WAKEUP))
+	{
 		omap3xxx_clkdm_wakeup(clkdm);
 		return 0;
 	}
 
 	hwsup = omap3xxx_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-					      clkdm->clktrctrl_mask);
+										  clkdm->clktrctrl_mask);
 
-	if (hwsup) {
+	if (hwsup)
+	{
 		/* Disable HW transitions when we are changing deps */
 		omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-						clkdm->clktrctrl_mask);
+										clkdm->clktrctrl_mask);
 		clkdm_add_autodeps(clkdm);
 		omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-					       clkdm->clktrctrl_mask);
-	} else {
+									   clkdm->clktrctrl_mask);
+	}
+	else
+	{
 		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
+		{
 			omap3xxx_clkdm_wakeup(clkdm);
+		}
 	}
 
 	return 0;
@@ -266,7 +292,9 @@ static int omap3xxx_clkdm_clk_disable(struct clockdomain *clkdm)
 	bool hwsup = false;
 
 	if (!clkdm->clktrctrl_mask)
+	{
 		return 0;
+	}
 
 	/*
 	 * The CLKDM_MISSING_IDLE_REPORTING flag documentation has
@@ -274,31 +302,38 @@ static int omap3xxx_clkdm_clk_disable(struct clockdomain *clkdm)
 	 * around
 	 */
 	if (clkdm->flags & CLKDM_MISSING_IDLE_REPORTING &&
-	    !(clkdm->flags & CLKDM_CAN_FORCE_SLEEP)) {
+		!(clkdm->flags & CLKDM_CAN_FORCE_SLEEP))
+	{
 		omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-					       clkdm->clktrctrl_mask);
+									   clkdm->clktrctrl_mask);
 		return 0;
 	}
 
 	hwsup = omap3xxx_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-					      clkdm->clktrctrl_mask);
+										  clkdm->clktrctrl_mask);
 
-	if (hwsup) {
+	if (hwsup)
+	{
 		/* Disable HW transitions when we are changing deps */
 		omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-						clkdm->clktrctrl_mask);
+										clkdm->clktrctrl_mask);
 		clkdm_del_autodeps(clkdm);
 		omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-					       clkdm->clktrctrl_mask);
-	} else {
+									   clkdm->clktrctrl_mask);
+	}
+	else
+	{
 		if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
+		{
 			omap3xxx_clkdm_sleep(clkdm);
+		}
 	}
 
 	return 0;
 }
 
-struct clkdm_ops omap3_clkdm_operations = {
+struct clkdm_ops omap3_clkdm_operations =
+{
 	.clkdm_add_wkdep	= omap2_clkdm_add_wkdep,
 	.clkdm_del_wkdep	= omap2_clkdm_del_wkdep,
 	.clkdm_read_wkdep	= omap2_clkdm_read_wkdep,
@@ -318,7 +353,8 @@ struct clkdm_ops omap3_clkdm_operations = {
 /*
  * Context save/restore code - OMAP3 only
  */
-struct omap3_cm_regs {
+struct omap3_cm_regs
+{
 	u32 iva2_cm_clksel1;
 	u32 iva2_cm_clksel2;
 	u32 cm_sysconfig;
@@ -481,7 +517,7 @@ void omap3_cm_save_context(void)
 		omap2_cm_read_mod_reg(OMAP3430_NEON_MOD, OMAP2_CM_CLKSTCTRL);
 	cm_context.usbhost_cm_clkstctrl =
 		omap2_cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-				      OMAP2_CM_CLKSTCTRL);
+							  OMAP2_CM_CLKSTCTRL);
 	cm_context.core_cm_autoidle1 =
 		omap2_cm_read_mod_reg(CORE_MOD, CM_AUTOIDLE1);
 	cm_context.core_cm_autoidle2 =
@@ -500,7 +536,7 @@ void omap3_cm_save_context(void)
 		omap2_cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_AUTOIDLE);
 	cm_context.sgx_cm_sleepdep =
 		omap2_cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
-				      OMAP3430_CM_SLEEPDEP);
+							  OMAP3430_CM_SLEEPDEP);
 	cm_context.dss_cm_sleepdep =
 		omap2_cm_read_mod_reg(OMAP3430_DSS_MOD, OMAP3430_CM_SLEEPDEP);
 	cm_context.cam_cm_sleepdep =
@@ -509,135 +545,135 @@ void omap3_cm_save_context(void)
 		omap2_cm_read_mod_reg(OMAP3430_PER_MOD, OMAP3430_CM_SLEEPDEP);
 	cm_context.usbhost_cm_sleepdep =
 		omap2_cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-				      OMAP3430_CM_SLEEPDEP);
+							  OMAP3430_CM_SLEEPDEP);
 	cm_context.cm_clkout_ctrl =
 		omap2_cm_read_mod_reg(OMAP3430_CCR_MOD,
-				      OMAP3_CM_CLKOUT_CTRL_OFFSET);
+							  OMAP3_CM_CLKOUT_CTRL_OFFSET);
 }
 
 void omap3_cm_restore_context(void)
 {
 	omap2_cm_write_mod_reg(cm_context.iva2_cm_clksel1, OMAP3430_IVA2_MOD,
-			       CM_CLKSEL1);
+						   CM_CLKSEL1);
 	omap2_cm_write_mod_reg(cm_context.iva2_cm_clksel2, OMAP3430_IVA2_MOD,
-			       CM_CLKSEL2);
+						   CM_CLKSEL2);
 	omap2_cm_write_mod_reg(cm_context.cm_sysconfig, OCP_MOD,
-			       OMAP3430_CM_SYSCONFIG);
+						   OMAP3430_CM_SYSCONFIG);
 	omap2_cm_write_mod_reg(cm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
-			       CM_CLKSEL);
+						   CM_CLKSEL);
 	omap2_cm_write_mod_reg(cm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
-			       CM_CLKSEL);
+						   CM_CLKSEL);
 	omap2_cm_write_mod_reg(cm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
-			       CM_CLKSEL);
+						   CM_CLKSEL);
 	omap2_cm_write_mod_reg(cm_context.per_cm_clksel, OMAP3430_PER_MOD,
-			       CM_CLKSEL);
+						   CM_CLKSEL);
 	omap2_cm_write_mod_reg(cm_context.emu_cm_clksel, OMAP3430_EMU_MOD,
-			       CM_CLKSEL1);
+						   CM_CLKSEL1);
 	omap2_cm_write_mod_reg(cm_context.emu_cm_clkstctrl, OMAP3430_EMU_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	/*
 	 * As per erratum i671, ROM code does not respect the PER DPLL
 	 * programming scheme if CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL == 1.
 	 * In this case, we need to restore AUTO_PERIPH_DPLL by ourselves.
 	 */
 	omap2_cm_write_mod_reg(cm_context.pll_cm_autoidle, PLL_MOD,
-			       CM_AUTOIDLE);
+						   CM_AUTOIDLE);
 	omap2_cm_write_mod_reg(cm_context.pll_cm_autoidle2, PLL_MOD,
-			       CM_AUTOIDLE2);
+						   CM_AUTOIDLE2);
 	omap2_cm_write_mod_reg(cm_context.pll_cm_clksel4, PLL_MOD,
-			       OMAP3430ES2_CM_CLKSEL4);
+						   OMAP3430ES2_CM_CLKSEL4);
 	omap2_cm_write_mod_reg(cm_context.pll_cm_clksel5, PLL_MOD,
-			       OMAP3430ES2_CM_CLKSEL5);
+						   OMAP3430ES2_CM_CLKSEL5);
 	omap2_cm_write_mod_reg(cm_context.pll_cm_clken2, PLL_MOD,
-			       OMAP3430ES2_CM_CLKEN2);
+						   OMAP3430ES2_CM_CLKEN2);
 	omap2_cm_write_mod_reg(cm_context.cm_polctrl, OCP_MOD,
-			       OMAP3430_CM_POLCTRL);
+						   OMAP3430_CM_POLCTRL);
 	omap2_cm_write_mod_reg(cm_context.iva2_cm_fclken, OMAP3430_IVA2_MOD,
-			       CM_FCLKEN);
+						   CM_FCLKEN);
 	omap2_cm_write_mod_reg(cm_context.iva2_cm_clken_pll, OMAP3430_IVA2_MOD,
-			       OMAP3430_CM_CLKEN_PLL);
+						   OMAP3430_CM_CLKEN_PLL);
 	omap2_cm_write_mod_reg(cm_context.core_cm_fclken1, CORE_MOD,
-			       CM_FCLKEN1);
+						   CM_FCLKEN1);
 	omap2_cm_write_mod_reg(cm_context.core_cm_fclken3, CORE_MOD,
-			       OMAP3430ES2_CM_FCLKEN3);
+						   OMAP3430ES2_CM_FCLKEN3);
 	omap2_cm_write_mod_reg(cm_context.sgx_cm_fclken, OMAP3430ES2_SGX_MOD,
-			       CM_FCLKEN);
+						   CM_FCLKEN);
 	omap2_cm_write_mod_reg(cm_context.wkup_cm_fclken, WKUP_MOD, CM_FCLKEN);
 	omap2_cm_write_mod_reg(cm_context.dss_cm_fclken, OMAP3430_DSS_MOD,
-			       CM_FCLKEN);
+						   CM_FCLKEN);
 	omap2_cm_write_mod_reg(cm_context.cam_cm_fclken, OMAP3430_CAM_MOD,
-			       CM_FCLKEN);
+						   CM_FCLKEN);
 	omap2_cm_write_mod_reg(cm_context.per_cm_fclken, OMAP3430_PER_MOD,
-			       CM_FCLKEN);
+						   CM_FCLKEN);
 	omap2_cm_write_mod_reg(cm_context.usbhost_cm_fclken,
-			       OMAP3430ES2_USBHOST_MOD, CM_FCLKEN);
+						   OMAP3430ES2_USBHOST_MOD, CM_FCLKEN);
 	omap2_cm_write_mod_reg(cm_context.core_cm_iclken1, CORE_MOD,
-			       CM_ICLKEN1);
+						   CM_ICLKEN1);
 	omap2_cm_write_mod_reg(cm_context.core_cm_iclken2, CORE_MOD,
-			       CM_ICLKEN2);
+						   CM_ICLKEN2);
 	omap2_cm_write_mod_reg(cm_context.core_cm_iclken3, CORE_MOD,
-			       CM_ICLKEN3);
+						   CM_ICLKEN3);
 	omap2_cm_write_mod_reg(cm_context.sgx_cm_iclken, OMAP3430ES2_SGX_MOD,
-			       CM_ICLKEN);
+						   CM_ICLKEN);
 	omap2_cm_write_mod_reg(cm_context.wkup_cm_iclken, WKUP_MOD, CM_ICLKEN);
 	omap2_cm_write_mod_reg(cm_context.dss_cm_iclken, OMAP3430_DSS_MOD,
-			       CM_ICLKEN);
+						   CM_ICLKEN);
 	omap2_cm_write_mod_reg(cm_context.cam_cm_iclken, OMAP3430_CAM_MOD,
-			       CM_ICLKEN);
+						   CM_ICLKEN);
 	omap2_cm_write_mod_reg(cm_context.per_cm_iclken, OMAP3430_PER_MOD,
-			       CM_ICLKEN);
+						   CM_ICLKEN);
 	omap2_cm_write_mod_reg(cm_context.usbhost_cm_iclken,
-			       OMAP3430ES2_USBHOST_MOD, CM_ICLKEN);
+						   OMAP3430ES2_USBHOST_MOD, CM_ICLKEN);
 	omap2_cm_write_mod_reg(cm_context.iva2_cm_autoidle2, OMAP3430_IVA2_MOD,
-			       CM_AUTOIDLE2);
+						   CM_AUTOIDLE2);
 	omap2_cm_write_mod_reg(cm_context.mpu_cm_autoidle2, MPU_MOD,
-			       CM_AUTOIDLE2);
+						   CM_AUTOIDLE2);
 	omap2_cm_write_mod_reg(cm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.mpu_cm_clkstctrl, MPU_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.core_cm_clkstctrl, CORE_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.sgx_cm_clkstctrl, OMAP3430ES2_SGX_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.dss_cm_clkstctrl, OMAP3430_DSS_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.cam_cm_clkstctrl, OMAP3430_CAM_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.per_cm_clkstctrl, OMAP3430_PER_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.neon_cm_clkstctrl, OMAP3430_NEON_MOD,
-			       OMAP2_CM_CLKSTCTRL);
+						   OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.usbhost_cm_clkstctrl,
-			       OMAP3430ES2_USBHOST_MOD, OMAP2_CM_CLKSTCTRL);
+						   OMAP3430ES2_USBHOST_MOD, OMAP2_CM_CLKSTCTRL);
 	omap2_cm_write_mod_reg(cm_context.core_cm_autoidle1, CORE_MOD,
-			       CM_AUTOIDLE1);
+						   CM_AUTOIDLE1);
 	omap2_cm_write_mod_reg(cm_context.core_cm_autoidle2, CORE_MOD,
-			       CM_AUTOIDLE2);
+						   CM_AUTOIDLE2);
 	omap2_cm_write_mod_reg(cm_context.core_cm_autoidle3, CORE_MOD,
-			       CM_AUTOIDLE3);
+						   CM_AUTOIDLE3);
 	omap2_cm_write_mod_reg(cm_context.wkup_cm_autoidle, WKUP_MOD,
-			       CM_AUTOIDLE);
+						   CM_AUTOIDLE);
 	omap2_cm_write_mod_reg(cm_context.dss_cm_autoidle, OMAP3430_DSS_MOD,
-			       CM_AUTOIDLE);
+						   CM_AUTOIDLE);
 	omap2_cm_write_mod_reg(cm_context.cam_cm_autoidle, OMAP3430_CAM_MOD,
-			       CM_AUTOIDLE);
+						   CM_AUTOIDLE);
 	omap2_cm_write_mod_reg(cm_context.per_cm_autoidle, OMAP3430_PER_MOD,
-			       CM_AUTOIDLE);
+						   CM_AUTOIDLE);
 	omap2_cm_write_mod_reg(cm_context.usbhost_cm_autoidle,
-			       OMAP3430ES2_USBHOST_MOD, CM_AUTOIDLE);
+						   OMAP3430ES2_USBHOST_MOD, CM_AUTOIDLE);
 	omap2_cm_write_mod_reg(cm_context.sgx_cm_sleepdep, OMAP3430ES2_SGX_MOD,
-			       OMAP3430_CM_SLEEPDEP);
+						   OMAP3430_CM_SLEEPDEP);
 	omap2_cm_write_mod_reg(cm_context.dss_cm_sleepdep, OMAP3430_DSS_MOD,
-			       OMAP3430_CM_SLEEPDEP);
+						   OMAP3430_CM_SLEEPDEP);
 	omap2_cm_write_mod_reg(cm_context.cam_cm_sleepdep, OMAP3430_CAM_MOD,
-			       OMAP3430_CM_SLEEPDEP);
+						   OMAP3430_CM_SLEEPDEP);
 	omap2_cm_write_mod_reg(cm_context.per_cm_sleepdep, OMAP3430_PER_MOD,
-			       OMAP3430_CM_SLEEPDEP);
+						   OMAP3430_CM_SLEEPDEP);
 	omap2_cm_write_mod_reg(cm_context.usbhost_cm_sleepdep,
-			       OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
+						   OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
 	omap2_cm_write_mod_reg(cm_context.cm_clkout_ctrl, OMAP3430_CCR_MOD,
-			       OMAP3_CM_CLKOUT_CTRL_OFFSET);
+						   OMAP3_CM_CLKOUT_CTRL_OFFSET);
 }
 
 void omap3_cm_save_scratchpad_contents(u32 *ptr)
@@ -652,7 +688,7 @@ void omap3_cm_save_scratchpad_contents(u32 *ptr)
 	 * Then,  in any case, clear these bits to avoid extra latencies.
 	 */
 	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE) &
-		~OMAP3430_AUTO_PERIPH_DPLL_MASK;
+			 ~OMAP3430_AUTO_PERIPH_DPLL_MASK;
 	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
 	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL2_PLL);
 	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL3);
@@ -666,7 +702,8 @@ void omap3_cm_save_scratchpad_contents(u32 *ptr)
  *
  */
 
-static struct cm_ll_data omap3xxx_cm_ll_data = {
+static struct cm_ll_data omap3xxx_cm_ll_data =
+{
 	.split_idlest_reg	= &omap3xxx_cm_split_idlest_reg,
 	.wait_module_ready	= &omap3xxx_cm_wait_module_ready,
 };

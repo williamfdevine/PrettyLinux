@@ -26,7 +26,8 @@
  * GPIO_FN_xx - GPIO used to select pin function
  * GPIO_Pxx - GPIO mapped to real I/O pin on CPU
  */
-enum {
+enum
+{
 	/* PA */
 	GPIO_PA7, GPIO_PA6, GPIO_PA5, GPIO_PA4,
 	GPIO_PA3, GPIO_PA2, GPIO_PA1, GPIO_PA0,

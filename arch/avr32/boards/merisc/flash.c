@@ -15,7 +15,8 @@
 #include <mach/smc.h>
 
 /* Will be translated to units of 14.3 ns, rounded up */
-static struct smc_timing flash_timing __initdata = {
+static struct smc_timing flash_timing __initdata =
+{
 	.ncs_read_setup		= 1 * 14,
 	.nrd_setup		= 5 * 14,
 	.ncs_write_setup	= 1 * 14,
@@ -30,7 +31,8 @@ static struct smc_timing flash_timing __initdata = {
 	.write_cycle		= 10 * 14,
 };
 
-static struct smc_config flash_config __initdata = {
+static struct smc_config flash_config __initdata =
+{
 	.bus_width	= 2,
 	.nrd_controlled	= 1,
 	.nwe_controlled	= 1,
@@ -38,7 +40,8 @@ static struct smc_config flash_config __initdata = {
 	.tdf_cycles	= 3,
 };
 
-static struct mtd_partition flash_0_parts[] = {
+static struct mtd_partition flash_0_parts[] =
+{
 	{
 		.name		= "boot",
 		.offset		= 0x00000000,
@@ -59,7 +62,8 @@ static struct mtd_partition flash_0_parts[] = {
 	},
 };
 
-static struct mtd_partition flash_1_parts[] = {
+static struct mtd_partition flash_1_parts[] =
+{
 	{
 		.name		= "2ndflash",
 		.offset		= 0x00000000,
@@ -68,7 +72,8 @@ static struct mtd_partition flash_1_parts[] = {
 	},
 };
 
-static struct physmap_flash_data flash_data[] = {
+static struct physmap_flash_data flash_data[] =
+{
 	{
 		.width		= 2,
 		.nr_parts	= ARRAY_SIZE(flash_0_parts),
@@ -81,7 +86,8 @@ static struct physmap_flash_data flash_data[] = {
 	}
 };
 
-static struct resource flash_resource[] = {
+static struct resource flash_resource[] =
+{
 	{
 		.start		= 0x00000000,
 		.end		= 0x03ffffff,
@@ -94,7 +100,8 @@ static struct resource flash_resource[] = {
 	},
 };
 
-static struct platform_device flash_device[] = {
+static struct platform_device flash_device[] =
+{
 	{
 		.name		= "physmap-flash",
 		.id		= 0,
@@ -121,13 +128,17 @@ static int __init merisc_flash_init(void)
 	smc_set_timing(&flash_config, &flash_timing);
 
 	ret = smc_set_configuration(0, &flash_config);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "Merisc: failed to set NOR flash timing #0\n");
 		return ret;
 	}
 
 	ret = smc_set_configuration(4, &flash_config);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "Merisc: failed to set NOR flash timing #1\n");
 		return ret;
 	}

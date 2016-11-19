@@ -25,7 +25,8 @@ void read_persistent_clock(struct timespec *ts)
 
 	spin_lock_irqsave(&rtc_lock, flags);
 
-	do {
+	do
+	{
 		sec = CMOS_READ(RTC_SECONDS);
 		min = CMOS_READ(RTC_MINUTES);
 		hour = CMOS_READ(RTC_HOURS);
@@ -38,11 +39,13 @@ void read_persistent_clock(struct timespec *ts)
 		 * of unused BBU RAM locations.
 		 */
 		real_year = CMOS_READ(RTC_DEC_YEAR);
-	} while (sec != CMOS_READ(RTC_SECONDS));
+	}
+	while (sec != CMOS_READ(RTC_SECONDS));
 
 	spin_unlock_irqrestore(&rtc_lock, flags);
 
-	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+	{
 		sec = bcd2bin(sec);
 		min = bcd2bin(min);
 		hour = bcd2bin(hour);
@@ -81,8 +84,11 @@ int rtc_mips_set_mmss(unsigned long nowtime)
 	CMOS_WRITE((save_freq_select | RTC_DIV_RESET2), RTC_FREQ_SELECT);
 
 	cmos_minutes = CMOS_READ(RTC_MINUTES);
+
 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+	{
 		cmos_minutes = bcd2bin(cmos_minutes);
+	}
 
 	/*
 	 * since we're only adjusting minutes and seconds,
@@ -92,21 +98,30 @@ int rtc_mips_set_mmss(unsigned long nowtime)
 	 */
 	real_seconds = nowtime % 60;
 	real_minutes = nowtime / 60;
+
 	if (((abs(real_minutes - cmos_minutes) + 15) / 30) & 1)
-		real_minutes += 30;	/* correct for half hour time zone */
+	{
+		real_minutes += 30;    /* correct for half hour time zone */
+	}
+
 	real_minutes %= 60;
 
-	if (abs(real_minutes - cmos_minutes) < 30) {
-		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+	if (abs(real_minutes - cmos_minutes) < 30)
+	{
+		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+		{
 			real_seconds = bin2bcd(real_seconds);
 			real_minutes = bin2bcd(real_minutes);
 		}
+
 		CMOS_WRITE(real_seconds, RTC_SECONDS);
 		CMOS_WRITE(real_minutes, RTC_MINUTES);
-	} else {
+	}
+	else
+	{
 		printk_once(KERN_NOTICE
-		       "set_rtc_mmss: can't update from %d to %d\n",
-		       cmos_minutes, real_minutes);
+					"set_rtc_mmss: can't update from %d to %d\n",
+					cmos_minutes, real_minutes);
 		retval = -1;
 	}
 
@@ -134,9 +149,14 @@ void __init plat_time_init(void)
 
 	/* On some I/O ASIC systems we have the I/O ASIC's counter.  */
 	if (IOASIC)
+	{
 		ioasic_clock = dec_ioasic_clocksource_init() == 0;
-	if (cpu_has_counter) {
+	}
+
+	if (cpu_has_counter)
+	{
 		ds1287_timer_state();
+
 		while (!ds1287_timer_state())
 			;
 
@@ -150,7 +170,7 @@ void __init plat_time_init(void)
 
 		mips_hpt_frequency = (end - start) * 8;
 		printk(KERN_INFO "MIPS counter frequency %dHz\n",
-			mips_hpt_frequency);
+			   mips_hpt_frequency);
 
 		/*
 		 * All R4k DECstations suffer from the CP0 Count erratum,
@@ -161,7 +181,8 @@ void __init plat_time_init(void)
 		 * if there's no I/O ASIC counter available to serve as a
 		 * clock source.
 		 */
-		if (!ioasic_clock) {
+		if (!ioasic_clock)
+		{
 			init_r4k_clocksource();
 			mips_hpt_frequency = 0;
 		}

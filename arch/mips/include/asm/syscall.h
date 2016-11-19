@@ -23,89 +23,102 @@
 #include <asm/unistd.h>
 
 #ifndef __NR_syscall /* Only defined if _MIPS_SIM == _MIPS_SIM_ABI32 */
-#define __NR_syscall 4000
+	#define __NR_syscall 4000
 #endif
 
 static inline long syscall_get_nr(struct task_struct *task,
-				  struct pt_regs *regs)
+								  struct pt_regs *regs)
 {
 	return current_thread_info()->syscall;
 }
 
 static inline unsigned long mips_get_syscall_arg(unsigned long *arg,
-	struct task_struct *task, struct pt_regs *regs, unsigned int n)
+		struct task_struct *task, struct pt_regs *regs, unsigned int n)
 {
 	unsigned long usp __maybe_unused = regs->regs[29];
 
-	switch (n) {
-	case 0: case 1: case 2: case 3:
-		*arg = regs->regs[4 + n];
+	switch (n)
+	{
+		case 0: case 1: case 2: case 3:
+			*arg = regs->regs[4 + n];
 
-		return 0;
+			return 0;
 
 #ifdef CONFIG_32BIT
-	case 4: case 5: case 6: case 7:
-		return get_user(*arg, (int *)usp + n);
+
+		case 4: case 5: case 6: case 7:
+			return get_user(*arg, (int *)usp + n);
 #endif
 
 #ifdef CONFIG_64BIT
-	case 4: case 5: case 6: case 7:
+
+		case 4: case 5: case 6: case 7:
 #ifdef CONFIG_MIPS32_O32
-		if (test_thread_flag(TIF_32BIT_REGS))
-			return get_user(*arg, (int *)usp + n);
-		else
+			if (test_thread_flag(TIF_32BIT_REGS))
+			{
+				return get_user(*arg, (int *)usp + n);
+			}
+			else
 #endif
-			*arg = regs->regs[4 + n];
+				*arg = regs->regs[4 + n];
 
-		return 0;
+			return 0;
 #endif
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 
 	unreachable();
 }
 
 static inline long syscall_get_return_value(struct task_struct *task,
-					    struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	return regs->regs[2];
 }
 
 static inline void syscall_rollback(struct task_struct *task,
-				    struct pt_regs *regs)
+									struct pt_regs *regs)
 {
 	/* Do nothing */
 }
 
 static inline void syscall_set_return_value(struct task_struct *task,
-					    struct pt_regs *regs,
-					    int error, long val)
+		struct pt_regs *regs,
+		int error, long val)
 {
-	if (error) {
+	if (error)
+	{
 		regs->regs[2] = -error;
 		regs->regs[7] = -1;
-	} else {
+	}
+	else
+	{
 		regs->regs[2] = val;
 		regs->regs[7] = 0;
 	}
 }
 
 static inline void syscall_get_arguments(struct task_struct *task,
-					 struct pt_regs *regs,
-					 unsigned int i, unsigned int n,
-					 unsigned long *args)
+		struct pt_regs *regs,
+		unsigned int i, unsigned int n,
+		unsigned long *args)
 {
 	int ret;
+
 	/* O32 ABI syscall() - Either 64-bit with O32 or 32-bit */
 	if ((IS_ENABLED(CONFIG_32BIT) ||
-	    test_tsk_thread_flag(task, TIF_32BIT_REGS)) &&
-	    (regs->regs[2] == __NR_syscall))
+		 test_tsk_thread_flag(task, TIF_32BIT_REGS)) &&
+		(regs->regs[2] == __NR_syscall))
+	{
 		i++;
+	}
 
 	while (n--)
+	{
 		ret |= mips_get_syscall_arg(args++, task, regs, i++);
+	}
 
 	/*
 	 * No way to communicate an error because this is a void function.
@@ -123,12 +136,18 @@ static inline int syscall_get_arch(void)
 {
 	int arch = AUDIT_ARCH_MIPS;
 #ifdef CONFIG_64BIT
-	if (!test_thread_flag(TIF_32BIT_REGS)) {
+
+	if (!test_thread_flag(TIF_32BIT_REGS))
+	{
 		arch |= __AUDIT_ARCH_64BIT;
+
 		/* N32 sets only TIF_32BIT_ADDR */
 		if (test_thread_flag(TIF_32BIT_ADDR))
+		{
 			arch |= __AUDIT_ARCH_CONVENTION_MIPS64_N32;
+		}
 	}
+
 #endif
 #if defined(__LITTLE_ENDIAN)
 	arch |=  __AUDIT_ARCH_LE;

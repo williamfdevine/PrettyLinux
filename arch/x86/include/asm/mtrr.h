@@ -36,9 +36,9 @@ extern u8 mtrr_type_lookup(u64 addr, u64 end, u8 *uniform);
 extern void mtrr_save_fixed_ranges(void *);
 extern void mtrr_save_state(void);
 extern int mtrr_add(unsigned long base, unsigned long size,
-		    unsigned int type, bool increment);
+					unsigned int type, bool increment);
 extern int mtrr_add_page(unsigned long base, unsigned long size,
-			 unsigned int type, bool increment);
+						 unsigned int type, bool increment);
 extern int mtrr_del(int reg, unsigned long base, unsigned long size);
 extern int mtrr_del_page(int reg, unsigned long base, unsigned long size);
 extern void mtrr_centaur_report_mcr(int mcr, u32 lo, u32 hi);
@@ -60,22 +60,22 @@ static inline u8 mtrr_type_lookup(u64 addr, u64 end, u8 *uniform)
 #define mtrr_save_fixed_ranges(arg) do {} while (0)
 #define mtrr_save_state() do {} while (0)
 static inline int mtrr_add(unsigned long base, unsigned long size,
-			   unsigned int type, bool increment)
+						   unsigned int type, bool increment)
 {
-    return -ENODEV;
+	return -ENODEV;
 }
 static inline int mtrr_add_page(unsigned long base, unsigned long size,
-				unsigned int type, bool increment)
+								unsigned int type, bool increment)
 {
-    return -ENODEV;
+	return -ENODEV;
 }
 static inline int mtrr_del(int reg, unsigned long base, unsigned long size)
 {
-    return -ENODEV;
+	return -ENODEV;
 }
 static inline int mtrr_del_page(int reg, unsigned long base, unsigned long size)
 {
-    return -ENODEV;
+	return -ENODEV;
 }
 static inline int mtrr_trim_uncached_memory(unsigned long end_pfn)
 {
@@ -98,17 +98,19 @@ static inline void mtrr_bp_init(void)
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
 
-struct mtrr_sentry32 {
-    compat_ulong_t base;    /*  Base address     */
-    compat_uint_t size;    /*  Size of region   */
-    compat_uint_t type;     /*  Type of region   */
+struct mtrr_sentry32
+{
+	compat_ulong_t base;    /*  Base address     */
+	compat_uint_t size;    /*  Size of region   */
+	compat_uint_t type;     /*  Type of region   */
 };
 
-struct mtrr_gentry32 {
-    compat_ulong_t regnum;   /*  Register number  */
-    compat_uint_t base;    /*  Base address     */
-    compat_uint_t size;    /*  Size of region   */
-    compat_uint_t type;     /*  Type of region   */
+struct mtrr_gentry32
+{
+	compat_ulong_t regnum;   /*  Register number  */
+	compat_uint_t base;    /*  Base address     */
+	compat_uint_t size;    /*  Size of region   */
+	compat_uint_t type;     /*  Type of region   */
 };
 
 #define MTRR_IOCTL_BASE 'M'
@@ -123,7 +125,7 @@ struct mtrr_gentry32 {
 #define MTRRIOC32_DEL_PAGE_ENTRY _IOW(MTRR_IOCTL_BASE,  7, struct mtrr_sentry32)
 #define MTRRIOC32_GET_PAGE_ENTRY _IOWR(MTRR_IOCTL_BASE, 8, struct mtrr_gentry32)
 #define MTRRIOC32_KILL_PAGE_ENTRY		\
-				 _IOW(MTRR_IOCTL_BASE,  9, struct mtrr_sentry32)
+	_IOW(MTRR_IOCTL_BASE,  9, struct mtrr_sentry32)
 #endif /* CONFIG_COMPAT */
 
 /* Bit fields for enabled in struct mtrr_state_type */

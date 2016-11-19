@@ -48,7 +48,7 @@
 #define MI_EPNMASK	0xfffff000	/* Effective page number for entry */
 #define MI_EVALID	0x00000200	/* Entry is valid */
 #define MI_ASIDMASK	0x0000000f	/* ASID match value */
-					/* Reset value is undefined */
+/* Reset value is undefined */
 
 /* A "level 1" or "segment" or whatever you want to call it register.
  * For the instruction TLB, it contains bits that get loaded into the
@@ -62,7 +62,7 @@
 #define MI_PS512K	0x00000004	/* 512K page size */
 #define MI_PS4K_16K	0x00000000	/* 4K or 16K page size */
 #define MI_SVALID	0x00000001	/* Segment entry is valid */
-					/* Reset value is undefined */
+/* Reset value is undefined */
 
 /* Real page number.  Defined by the pte.  Writing this register
  * causes a TLB entry to be created for the instruction TLB, using
@@ -121,7 +121,7 @@
 #define MD_EPNMASK	0xfffff000	/* Effective page number for entry */
 #define MD_EVALID	0x00000200	/* Entry is valid */
 #define MD_ASIDMASK	0x0000000f	/* ASID match value */
-					/* Reset value is undefined */
+/* Reset value is undefined */
 
 /* The pointer to the base address of the first level page table.
  * During a software tablewalk, reading this register provides the address
@@ -130,7 +130,7 @@
 #define SPRN_M_TWB	796
 #define	M_L1TB		0xfffff000	/* Level 1 table base address */
 #define M_L1INDX	0x00000ffc	/* Level 1 index, when read */
-					/* Reset value is undefined */
+/* Reset value is undefined */
 
 /* A "level 1" or "segment" or whatever you want to call it register.
  * For the data TLB, it contains bits that get loaded into the TLB entry
@@ -148,7 +148,7 @@
 #define MD_PS4K_16K	0x00000000	/* 4K or 16K page size */
 #define MD_WT		0x00000002	/* Use writethrough page attribute */
 #define MD_SVALID	0x00000001	/* Segment entry is valid */
-					/* Reset value is undefined */
+/* Reset value is undefined */
 
 
 /* Real page number.  Defined by the pte.  Writing this register
@@ -164,7 +164,8 @@
 #define SPRN_M_TW	799
 
 #ifndef __ASSEMBLY__
-typedef struct {
+typedef struct
+{
 	unsigned int id;
 	unsigned int active;
 	unsigned long vdso_base;
@@ -175,11 +176,11 @@ typedef struct {
 #endif /* !__ASSEMBLY__ */
 
 #if defined(CONFIG_PPC_4K_PAGES)
-#define mmu_virtual_psize	MMU_PAGE_4K
+	#define mmu_virtual_psize	MMU_PAGE_4K
 #elif defined(CONFIG_PPC_16K_PAGES)
-#define mmu_virtual_psize	MMU_PAGE_16K
+	#define mmu_virtual_psize	MMU_PAGE_16K
 #else
-#error "Unsupported PAGE_SIZE"
+	#error "Unsupported PAGE_SIZE"
 #endif
 
 #define mmu_linear_psize	MMU_PAGE_8M

@@ -19,9 +19,9 @@
  */
 #define TXUCT_ID    0x0     /* Control unit regs */
 #ifdef METAC_1_2
-#define     TXUCT_MASK  0xFF0FFFFF  /* Valid regs 0..31  */
+	#define     TXUCT_MASK  0xFF0FFFFF  /* Valid regs 0..31  */
 #else
-#define     TXUCT_MASK  0xFF1FFFFF  /* Valid regs 0..31  */
+	#define     TXUCT_MASK  0xFF1FFFFF  /* Valid regs 0..31  */
 #endif
 #define     TGUCT_MASK  0x00000000  /* No global regs    */
 #define TXUD0_ID    0x1     /* Data unit regs */
@@ -42,36 +42,36 @@
 #define     TXUTR_MASK  0x0000005F  /* Valid regs   0-3,4,6 */
 #define     TGUTR_MASK  0x00000000  /* No global regs    */
 #ifdef METAC_2_1
-#define TXUTT_ID    0x8
-#define     TXUTT_MASK  0x0000000F  /* Valid regs   0-3 */
-#define     TGUTT_MASK  0x00000010  /* Global reg   4   */
-#define TXUFP_ID    0x9     /* FPU regs */
-#define     TXUFP_MASK  0x0000FFFF  /* Valid regs   0-15 */
-#define     TGUFP_MASK  0x00000000  /* No global regs    */
+	#define TXUTT_ID    0x8
+	#define     TXUTT_MASK  0x0000000F  /* Valid regs   0-3 */
+	#define     TGUTT_MASK  0x00000010  /* Global reg   4   */
+	#define TXUFP_ID    0x9     /* FPU regs */
+	#define     TXUFP_MASK  0x0000FFFF  /* Valid regs   0-15 */
+	#define     TGUFP_MASK  0x00000000  /* No global regs    */
 #endif /* METAC_2_1 */
 
 #ifdef METAC_1_2
 #define TXUXX_MASKS { TXUCT_MASK, TXUDX_MASK, TXUDX_MASK, TXUAX_MASK, \
-		      TXUAX_MASK, TXUPC_MASK,          0, TXUTR_MASK, \
-		      0, 0, 0, 0, 0, 0, 0, 0                          }
+		TXUAX_MASK, TXUPC_MASK,          0, TXUTR_MASK, \
+		0, 0, 0, 0, 0, 0, 0, 0                          }
 #define TGUXX_MASKS { TGUCT_MASK, TGUDX_MASK, TGUDX_MASK, TGUAX_MASK, \
-		      TGUAX_MASK, TGUPC_MASK,          0, TGUTR_MASK, \
-		      0, 0, 0, 0, 0, 0, 0, 0                          }
+		TGUAX_MASK, TGUPC_MASK,          0, TGUTR_MASK, \
+		0, 0, 0, 0, 0, 0, 0, 0                          }
 #else /* METAC_1_2 */
 #define TXUXX_MASKS { TXUCT_MASK, TXUDX_MASK, TXUDX_MASK, TXUAX_MASK, \
-		      TXUAX_MASK, TXUPC_MASK,          0, TXUTR_MASK, \
-		      TXUTT_MASK, TXUFP_MASK,          0,          0, \
-			       0,          0,          0,          0  }
+		TXUAX_MASK, TXUPC_MASK,          0, TXUTR_MASK, \
+		TXUTT_MASK, TXUFP_MASK,          0,          0, \
+		0,          0,          0,          0  }
 #define TGUXX_MASKS { TGUCT_MASK, TGUDX_MASK, TGUDX_MASK, TGUAX_MASK, \
-		      TGUAX_MASK, TGUPC_MASK,          0, TGUTR_MASK, \
-		      TGUTT_MASK, TGUFP_MASK,          0,          0, \
-			       0,          0,          0,          0  }
+		TGUAX_MASK, TGUPC_MASK,          0, TGUTR_MASK, \
+		TGUTT_MASK, TGUFP_MASK,          0,          0, \
+		0,          0,          0,          0  }
 #endif /* !METAC_1_2 */
 
 #define TXUXXDSP_MASKS { 0, TXUDXDSP_MASK, TXUDXDSP_MASK, 0, 0, 0, 0, 0, \
-			 0, 0, 0, 0, 0, 0, 0, 0                          }
+		0, 0, 0, 0, 0, 0, 0, 0                          }
 #define TGUXXDSP_MASKS { 0, TGUDXDSP_MASK, TGUDXDSP_MASK, 0, 0, 0, 0, 0, \
-			 0, 0, 0, 0, 0, 0, 0, 0                          }
+		0, 0, 0, 0, 0, 0, 0, 0                          }
 
 /* -------------------------------------------------------------------------
 ;                          DATA AND ADDRESS UNIT REGISTERS
@@ -151,11 +151,11 @@
 /*   A1.6  */
 /*   A1.7  */
 #ifdef METAC_2_1
-/* Renameable registers for use with Fast Interrupts */
-/* The interrupt stack pointer (usually a global register) */
-#define A0IStP A0IReg
-/* The interrupt global pointer (usually a global register) */
-#define A1IGbP A1IReg
+	/* Renameable registers for use with Fast Interrupts */
+	/* The interrupt stack pointer (usually a global register) */
+	#define A0IStP A0IReg
+	/* The interrupt global pointer (usually a global register) */
+	#define A1IGbP A1IReg
 #endif
 /*
    Further registers may be globally allocated via linkage/loading tools,
@@ -333,8 +333,8 @@
 #define TXCATCH3    CT.19
 
 #ifdef METAC_2_1
-#define TXDEFR      CT.20
-#define TXCPRS      CT.21
+	#define TXDEFR      CT.20
+	#define TXCPRS      CT.21
 #endif
 
 #define TXINTERN0   CT.23
@@ -415,8 +415,8 @@
 #define     TXPRIVEXT_COPRO_BITS    0xFF000000 /* Co-processor 0-7 */
 #define     TXPRIVEXT_COPRO_S       24
 #ifndef METAC_1_2
-#define     TXPRIVEXT_TXTIMER_BIT   0x00080000 /* TXTIMER   priv */
-#define     TXPRIVEXT_TRACE_BIT     0x00040000 /* TTEXEC|TTCTRL|GTEXEC */
+	#define     TXPRIVEXT_TXTIMER_BIT   0x00080000 /* TXTIMER   priv */
+	#define     TXPRIVEXT_TRACE_BIT     0x00040000 /* TTEXEC|TTCTRL|GTEXEC */
 #endif
 #define     TXPRIVEXT_TXTRIGGER_BIT 0x00020000 /* TXSTAT|TXMASK|TXPOLL */
 #define     TXPRIVEXT_TXGBLCREG_BIT 0x00010000 /* Global common regs */
@@ -429,9 +429,9 @@
 #define     TXPRIVEXT_TXSTATUS_BIT  0x00000200 /* TXSTATUS  priv */
 #define     TXPRIVEXT_TXDISABLE_BIT 0x00000100 /* TXENABLE  priv */
 #ifndef METAC_1_2
-#define     TXPRIVEXT_MINIMON_BIT   0x00000080 /* Enable Minim features */
-#define     TXPRIVEXT_OLDBCCON_BIT  0x00000020 /* Restore Static predictions */
-#define     TXPRIVEXT_ALIGNREW_BIT  0x00000010 /* Align & precise checks */
+	#define     TXPRIVEXT_MINIMON_BIT   0x00000080 /* Enable Minim features */
+	#define     TXPRIVEXT_OLDBCCON_BIT  0x00000020 /* Restore Static predictions */
+	#define     TXPRIVEXT_ALIGNREW_BIT  0x00000010 /* Align & precise checks */
 #endif
 #define     TXPRIVEXT_KEEPPRI_BIT   0x00000008 /* Use AMA_Priority if ISTAT=1*/
 #define     TXPRIVEXT_TXTOGGLEI_BIT 0x00000001 /* TX.....I  priv */
@@ -458,11 +458,11 @@
 
 
 #ifndef METAC_1_2
-/*
- * Allow co-processor hardware to replace the read pipeline data source in
- * appropriate cases.
- */
-#define TXMODE_RDCPEN_BIT       0x00800000
+	/*
+	* Allow co-processor hardware to replace the read pipeline data source in
+	* appropriate cases.
+	*/
+	#define TXMODE_RDCPEN_BIT       0x00800000
 #endif
 
 /*
@@ -539,7 +539,7 @@
 #define     TXDRCTRL_D0RSZAND_S     4
 /* Given extracted RAMSZPOW and DnRSZAND fields this returns the size */
 #define     TXDRCTRL_DXSIZE(Pow, AndBits) \
-				((((~(AndBits)) & 0x0f) + 1) << ((Pow)-4))
+	((((~(AndBits)) & 0x0f) + 1) << ((Pow)-4))
 
 /*
  * TXDRSIZE register provides modulo addressing options for each DSP RAM
@@ -600,24 +600,24 @@
 #define     TXAMAREG0_DLINEDIS_BIT    0x02000000
 #define     TXAMAREG0_CYCSTRICT_BIT   0x01000000
 #define     TXAMAREG0_CTRL_BITS       (TXAMAREG0_RCOFF_BIT |    \
-				       TXAMAREG0_DLINEHLT_BIT | \
-				       TXAMAREG0_DLINEDIS_BIT | \
-				       TXAMAREG0_CYCSTRICT_BIT)
+									   TXAMAREG0_DLINEHLT_BIT | \
+									   TXAMAREG0_DLINEDIS_BIT | \
+									   TXAMAREG0_CYCSTRICT_BIT)
 #endif /* !METAC_1_2 */
 #define     TXAMAREG0_CTRL_S           24
 #define     TXAMAREG0_MDM_BIT         0x00400000
 #define     TXAMAREG0_MPF_BIT         0x00200000
 #define     TXAMAREG0_MPE_BIT         0x00100000
 #define     TXAMAREG0_MASK_BITS       (TXAMAREG0_MDM_BIT | \
-				       TXAMAREG0_MPF_BIT | \
-				       TXAMAREG0_MPE_BIT)
+									   TXAMAREG0_MPF_BIT | \
+									   TXAMAREG0_MPE_BIT)
 #define     TXAMAREG0_MASK_S          20
 #define     TXAMAREG0_SDM_BIT         0x00040000
 #define     TXAMAREG0_SPF_BIT         0x00020000
 #define     TXAMAREG0_SPE_BIT         0x00010000
 #define     TXAMAREG0_STATUS_BITS     (TXAMAREG0_SDM_BIT | \
-				       TXAMAREG0_SPF_BIT | \
-				       TXAMAREG0_SPE_BIT)
+									   TXAMAREG0_SPF_BIT | \
+									   TXAMAREG0_SPE_BIT)
 #define     TXAMAREG0_STATUS_S        16
 #define     TXAMAREG0_PRIORITY_BITS   0x0000FF00
 #define     TXAMAREG0_PRIORITY_S      8
@@ -630,13 +630,13 @@
 
 #define TXAMAREG2_REGNUM 26
 #ifdef METAC_1_2
-#define     TXAMAREG2_DLINEC_BITS     0x00FFFFFF
-#define     TXAMAREG2_DLINEC_S        0
+	#define     TXAMAREG2_DLINEC_BITS     0x00FFFFFF
+	#define     TXAMAREG2_DLINEC_S        0
 #else /* METAC_1_2 */
-#define     TXAMAREG2_IRQPRIORITY_BIT 0xFF000000
-#define     TXAMAREG2_IRQPRIORITY_S   24
-#define     TXAMAREG2_DLINEC_BITS     0x00FFFFF0
-#define     TXAMAREG2_DLINEC_S        4
+	#define     TXAMAREG2_IRQPRIORITY_BIT 0xFF000000
+	#define     TXAMAREG2_IRQPRIORITY_S   24
+	#define     TXAMAREG2_DLINEC_BITS     0x00FFFFF0
+	#define     TXAMAREG2_DLINEC_S        4
 #endif /* !METAC_1_2 */
 
 #define TXAMAREG3_REGNUM 27
@@ -731,11 +731,11 @@
 #define METAG_FPU_FE_INVALID   0x10
 #define METAG_FPU_FE_DENORMAL  0x20
 #define METAG_FPU_FE_ALL_EXCEPT (METAG_FPU_FE_INEXACT   | \
-				 METAG_FPU_FE_UNDERFLOW | \
-				 METAG_FPU_FE_OVERFLOW  | \
-				 METAG_FPU_FE_DIVBYZERO | \
-				 METAG_FPU_FE_INVALID   | \
-				 METAG_FPU_FE_DENORMAL)
+								 METAG_FPU_FE_UNDERFLOW | \
+								 METAG_FPU_FE_OVERFLOW  | \
+								 METAG_FPU_FE_DIVBYZERO | \
+								 METAG_FPU_FE_INVALID   | \
+								 METAG_FPU_FE_DENORMAL)
 
 /*****************************************************************************
  *             THREAD CONTROL, ERROR, OR INTERRUPT STATE EXTENSIONS
@@ -828,7 +828,7 @@
 #define         TXCATCH0_LDDST_TMPLT 0x100
 #define         TXCATCH0_LDDST_TR    0x080
 #ifdef METAC_2_1
-#define         TXCATCH0_LDDST_FPU   0x040
+	#define         TXCATCH0_LDDST_FPU   0x040
 #endif
 #define         TXCATCH0_LDDST_PC    0x020
 #define         TXCATCH0_LDDST_A1    0x010
@@ -837,7 +837,7 @@
 #define         TXCATCH0_LDDST_D0    0x002
 #define         TXCATCH0_LDDST_CT    0x001
 #ifdef METAC_2_1
-#define     TXCATCH0_WATCHSTOP_BIT 0x00004000  /* Set if Data Watch set fault */
+	#define     TXCATCH0_WATCHSTOP_BIT 0x00004000  /* Set if Data Watch set fault */
 #endif
 #define     TXCATCH0_WATCHS_BIT  0x00004000  /* Set if Data Watch set fault */
 #define     TXCATCH0_WATCH1_BIT  0x00002000  /* Set if Data Watch 1 matches */
@@ -848,9 +848,9 @@
 #define     TXCATCH0_READ_BIT    0x00000100  /* Set for Read or Load cases  */
 
 #ifdef METAC_2_1
-/* LNKGET Marker bit in TXCATCH0 */
-#define   TXCATCH0_LNKGET_MARKER_BIT 0x00000008
-#define       TXCATCH0_PREPROC_BIT  0x00000004
+	/* LNKGET Marker bit in TXCATCH0 */
+	#define   TXCATCH0_LNKGET_MARKER_BIT 0x00000008
+	#define       TXCATCH0_PREPROC_BIT  0x00000004
 #endif
 
 /* Loads are indicated by one of the LDDST bits being set */
@@ -868,63 +868,63 @@
 
 #ifdef METAC_2_1
 
-/* When a FPU exception is signalled then FPUSPEC == FPUSPEC_TAG */
-#define     TXCATCH0_FPURDREG_BITS    0xF8000000
-#define     TXCATCH0_FPURDREG_S       27
-#define     TXCATCH0_FPUR1REG_BITS    0x07C00000
-#define     TXCATCH0_FPUR1REG_S       22
-#define     TXCATCH0_FPUSPEC_BITS     0x000F0000
-#define     TXCATCH0_FPUSPEC_S        16
-#define         TXCATCH0_FPUSPEC_TAG      0xF
-#define     TXCATCH0_FPUINSTA_BIT     0x00001000
-#define     TXCATCH0_FPUINSTQ_BIT     0x00000800
-#define     TXCATCH0_FPUINSTZ_BIT     0x00000400
-#define     TXCATCH0_FPUINSTN_BIT     0x00000200
-#define     TXCATCH0_FPUINSTO3O_BIT   0x00000100
-#define     TXCATCH0_FPUWIDTH_BITS    0x000000C0
-#define     TXCATCH0_FPUWIDTH_S       6
-#define         TXCATCH0_FPUWIDTH_FLOAT   0
-#define         TXCATCH0_FPUWIDTH_DOUBLE  1
-#define         TXCATCH0_FPUWIDTH_PAIRED  2
-#define     TXCATCH0_FPUOPENC_BITS    0x0000003F
-#define     TXCATCH0_FPUOPENC_S       0
-#define         TXCATCH0_FPUOPENC_ADD     0  /* rop1=Rs1, rop3=Rs2 */
-#define         TXCATCH0_FPUOPENC_SUB     1  /* rop1=Rs1, rop3=Rs2 */
-#define         TXCATCH0_FPUOPENC_MUL     2  /* rop1=Rs1, rop2=Rs2 */
-#define         TXCATCH0_FPUOPENC_ATOI    3  /* rop3=Rs */
-#define         TXCATCH0_FPUOPENC_ATOX    4  /* rop3=Rs, uses #Imm */
-#define         TXCATCH0_FPUOPENC_ITOA    5  /* rop3=Rs */
-#define         TXCATCH0_FPUOPENC_XTOA    6  /* rop3=Rs, uses #Imm */
-#define         TXCATCH0_FPUOPENC_ATOH    7  /* rop2=Rs */
-#define         TXCATCH0_FPUOPENC_HTOA    8  /* rop2=Rs */
-#define         TXCATCH0_FPUOPENC_DTOF    9  /* rop3=Rs */
-#define         TXCATCH0_FPUOPENC_FTOD    10 /* rop3=Rs */
-#define         TXCATCH0_FPUOPENC_DTOL    11 /* rop3=Rs */
-#define         TXCATCH0_FPUOPENC_LTOD    12 /* rop3=Rs */
-#define         TXCATCH0_FPUOPENC_DTOXL   13 /* rop3=Rs, uses #imm */
-#define         TXCATCH0_FPUOPENC_XLTOD   14 /* rop3=Rs, uses #imm */
-#define         TXCATCH0_FPUOPENC_CMP     15 /* rop1=Rs1, rop2=Rs2 */
-#define         TXCATCH0_FPUOPENC_MIN     16 /* rop1=Rs1, rop2=Rs2 */
-#define         TXCATCH0_FPUOPENC_MAX     17 /* rop1=Rs1, rop2=Rs2 */
-#define         TXCATCH0_FPUOPENC_ADDRE   18 /* rop1=Rs1, rop3=Rs2 */
-#define         TXCATCH0_FPUOPENC_SUBRE   19 /* rop1=Rs1, rop3=Rs2 */
-#define         TXCATCH0_FPUOPENC_MULRE   20 /* rop1=Rs1, rop2=Rs2 */
-#define         TXCATCH0_FPUOPENC_MXA     21 /* rop1=Rs1, rop2=Rs2, rop3=Rs3*/
-#define         TXCATCH0_FPUOPENC_MXAS    22 /* rop1=Rs1, rop2=Rs2, rop3=Rs3*/
-#define         TXCATCH0_FPUOPENC_MAR     23 /* rop1=Rs1, rop2=Rs2 */
-#define         TXCATCH0_FPUOPENC_MARS    24 /* rop1=Rs1, rop2=Rs2 */
-#define         TXCATCH0_FPUOPENC_MUZ     25 /* rop1=Rs1, rop2=Rs2, rop3=Rs3*/
-#define         TXCATCH0_FPUOPENC_MUZS    26 /* rop1=Rs1, rop2=Rs2, rop3=Rs3*/
-#define         TXCATCH0_FPUOPENC_RCP     27 /* rop2=Rs */
-#define         TXCATCH0_FPUOPENC_RSQ     28 /* rop2=Rs */
+	/* When a FPU exception is signalled then FPUSPEC == FPUSPEC_TAG */
+	#define     TXCATCH0_FPURDREG_BITS    0xF8000000
+	#define     TXCATCH0_FPURDREG_S       27
+	#define     TXCATCH0_FPUR1REG_BITS    0x07C00000
+	#define     TXCATCH0_FPUR1REG_S       22
+	#define     TXCATCH0_FPUSPEC_BITS     0x000F0000
+	#define     TXCATCH0_FPUSPEC_S        16
+	#define         TXCATCH0_FPUSPEC_TAG      0xF
+	#define     TXCATCH0_FPUINSTA_BIT     0x00001000
+	#define     TXCATCH0_FPUINSTQ_BIT     0x00000800
+	#define     TXCATCH0_FPUINSTZ_BIT     0x00000400
+	#define     TXCATCH0_FPUINSTN_BIT     0x00000200
+	#define     TXCATCH0_FPUINSTO3O_BIT   0x00000100
+	#define     TXCATCH0_FPUWIDTH_BITS    0x000000C0
+	#define     TXCATCH0_FPUWIDTH_S       6
+	#define         TXCATCH0_FPUWIDTH_FLOAT   0
+	#define         TXCATCH0_FPUWIDTH_DOUBLE  1
+	#define         TXCATCH0_FPUWIDTH_PAIRED  2
+	#define     TXCATCH0_FPUOPENC_BITS    0x0000003F
+	#define     TXCATCH0_FPUOPENC_S       0
+	#define         TXCATCH0_FPUOPENC_ADD     0  /* rop1=Rs1, rop3=Rs2 */
+	#define         TXCATCH0_FPUOPENC_SUB     1  /* rop1=Rs1, rop3=Rs2 */
+	#define         TXCATCH0_FPUOPENC_MUL     2  /* rop1=Rs1, rop2=Rs2 */
+	#define         TXCATCH0_FPUOPENC_ATOI    3  /* rop3=Rs */
+	#define         TXCATCH0_FPUOPENC_ATOX    4  /* rop3=Rs, uses #Imm */
+	#define         TXCATCH0_FPUOPENC_ITOA    5  /* rop3=Rs */
+	#define         TXCATCH0_FPUOPENC_XTOA    6  /* rop3=Rs, uses #Imm */
+	#define         TXCATCH0_FPUOPENC_ATOH    7  /* rop2=Rs */
+	#define         TXCATCH0_FPUOPENC_HTOA    8  /* rop2=Rs */
+	#define         TXCATCH0_FPUOPENC_DTOF    9  /* rop3=Rs */
+	#define         TXCATCH0_FPUOPENC_FTOD    10 /* rop3=Rs */
+	#define         TXCATCH0_FPUOPENC_DTOL    11 /* rop3=Rs */
+	#define         TXCATCH0_FPUOPENC_LTOD    12 /* rop3=Rs */
+	#define         TXCATCH0_FPUOPENC_DTOXL   13 /* rop3=Rs, uses #imm */
+	#define         TXCATCH0_FPUOPENC_XLTOD   14 /* rop3=Rs, uses #imm */
+	#define         TXCATCH0_FPUOPENC_CMP     15 /* rop1=Rs1, rop2=Rs2 */
+	#define         TXCATCH0_FPUOPENC_MIN     16 /* rop1=Rs1, rop2=Rs2 */
+	#define         TXCATCH0_FPUOPENC_MAX     17 /* rop1=Rs1, rop2=Rs2 */
+	#define         TXCATCH0_FPUOPENC_ADDRE   18 /* rop1=Rs1, rop3=Rs2 */
+	#define         TXCATCH0_FPUOPENC_SUBRE   19 /* rop1=Rs1, rop3=Rs2 */
+	#define         TXCATCH0_FPUOPENC_MULRE   20 /* rop1=Rs1, rop2=Rs2 */
+	#define         TXCATCH0_FPUOPENC_MXA     21 /* rop1=Rs1, rop2=Rs2, rop3=Rs3*/
+	#define         TXCATCH0_FPUOPENC_MXAS    22 /* rop1=Rs1, rop2=Rs2, rop3=Rs3*/
+	#define         TXCATCH0_FPUOPENC_MAR     23 /* rop1=Rs1, rop2=Rs2 */
+	#define         TXCATCH0_FPUOPENC_MARS    24 /* rop1=Rs1, rop2=Rs2 */
+	#define         TXCATCH0_FPUOPENC_MUZ     25 /* rop1=Rs1, rop2=Rs2, rop3=Rs3*/
+	#define         TXCATCH0_FPUOPENC_MUZS    26 /* rop1=Rs1, rop2=Rs2, rop3=Rs3*/
+	#define         TXCATCH0_FPUOPENC_RCP     27 /* rop2=Rs */
+	#define         TXCATCH0_FPUOPENC_RSQ     28 /* rop2=Rs */
 
-/* For floating point exceptions TXCATCH1 is used to carry extra data */
-#define     TXCATCH1_FPUR2REG_BITS    0xF8000000
-#define     TXCATCH1_FPUR2REG_S       27
-#define     TXCATCH1_FPUR3REG_BITS    0x07C00000  /* Undefined if O3O set */
-#define     TXCATCH1_FPUR3REG_S       22
-#define     TXCATCH1_FPUIMM16_BITS    0x0000FFFF
-#define     TXCATCH1_FPUIMM16_S       0
+	/* For floating point exceptions TXCATCH1 is used to carry extra data */
+	#define     TXCATCH1_FPUR2REG_BITS    0xF8000000
+	#define     TXCATCH1_FPUR2REG_S       27
+	#define     TXCATCH1_FPUR3REG_BITS    0x07C00000  /* Undefined if O3O set */
+	#define     TXCATCH1_FPUR3REG_S       22
+	#define     TXCATCH1_FPUIMM16_BITS    0x0000FFFF
+	#define     TXCATCH1_FPUIMM16_S       0
 
 #endif /* METAC_2_1 */
 
@@ -1072,8 +1072,8 @@
 #define     TTCTRL_TRACEALL_BITS        0x00002000
 #define     TTCTRL_TRACEALL_S           13
 #ifdef METAC_2_1
-#define     TTCTRL_TRACEALLTAG_BITS     0x00000400
-#define     TTCTRL_TRACEALLTAG_S        10
+	#define     TTCTRL_TRACEALLTAG_BITS     0x00000400
+	#define     TTCTRL_TRACEALLTAG_S        10
 #endif /* METAC_2_1 */
 #define     TTCTRL_TRACETAG_BITS        0x00000200
 #define     TTCTRL_TRACETAG_S           9
@@ -1089,13 +1089,13 @@
 #define     TTCTRL_TRACEPC_S            1
 
 #ifdef METAC_2_1
-#define TTMARK_REGNUM   2
-#define TTMARK_BITS                 0xFFFFFFFF
-#define TTMARK_S                    0x0
+	#define TTMARK_REGNUM   2
+	#define TTMARK_BITS                 0xFFFFFFFF
+	#define TTMARK_S                    0x0
 
-#define TTREC_REGNUM    3
-#define TTREC_BITS                  0xFFFFFFFFFFFFFFFF
-#define TTREC_S                     0x0
+	#define TTREC_REGNUM    3
+	#define TTREC_BITS                  0xFFFFFFFFFFFFFFFF
+	#define TTREC_S                     0x0
 #endif /* METAC_2_1 */
 
 #define GTEXEC_REGNUM               4
@@ -1115,70 +1115,70 @@
 #define     GTEXEC_METRICTH_S           0
 
 #ifdef METAC_2_1
-/*
- * Clock Control registers
- * -----------------------
- */
-#define TXCLKCTRL_REGNUM        22
+	/*
+	* Clock Control registers
+	* -----------------------
+	*/
+	#define TXCLKCTRL_REGNUM        22
 
-/*
- * Default setting is with clocks always on (DEFON), turning all clocks off
- * can only be done from external devices (OFF), enabling automatic clock
- * gating will allow clocks to stop as units fall idle.
- */
-#define TXCLKCTRL_ALL_OFF       0x02222222
-#define TXCLKCTRL_ALL_DEFON     0x01111111
-#define TXCLKCTRL_ALL_AUTO      0x02222222
+	/*
+	* Default setting is with clocks always on (DEFON), turning all clocks off
+	* can only be done from external devices (OFF), enabling automatic clock
+	* gating will allow clocks to stop as units fall idle.
+	*/
+	#define TXCLKCTRL_ALL_OFF       0x02222222
+	#define TXCLKCTRL_ALL_DEFON     0x01111111
+	#define TXCLKCTRL_ALL_AUTO      0x02222222
 
-/*
- * Individual fields control caches, floating point and main data/addr units
- */
-#define TXCLKCTRL_CLOCKIC_BITS  0x03000000
-#define TXCLKCTRL_CLOCKIC_S     24
-#define TXCLKCTRL_CLOCKDC_BITS  0x00300000
-#define TXCLKCTRL_CLOCKDC_S     20
-#define TXCLKCTRL_CLOCKFP_BITS  0x00030000
-#define TXCLKCTRL_CLOCKFP_S     16
-#define TXCLKCTRL_CLOCKD1_BITS  0x00003000
-#define TXCLKCTRL_CLOCKD1_S     12
-#define TXCLKCTRL_CLOCKD0_BITS  0x00000300
-#define TXCLKCTRL_CLOCKD0_S     8
-#define TXCLKCTRL_CLOCKA1_BITS  0x00000030
-#define TXCLKCTRL_CLOCKA1_S     4
-#define TXCLKCTRL_CLOCKA0_BITS  0x00000003
-#define TXCLKCTRL_CLOCKA0_S     0
+	/*
+	* Individual fields control caches, floating point and main data/addr units
+	*/
+	#define TXCLKCTRL_CLOCKIC_BITS  0x03000000
+	#define TXCLKCTRL_CLOCKIC_S     24
+	#define TXCLKCTRL_CLOCKDC_BITS  0x00300000
+	#define TXCLKCTRL_CLOCKDC_S     20
+	#define TXCLKCTRL_CLOCKFP_BITS  0x00030000
+	#define TXCLKCTRL_CLOCKFP_S     16
+	#define TXCLKCTRL_CLOCKD1_BITS  0x00003000
+	#define TXCLKCTRL_CLOCKD1_S     12
+	#define TXCLKCTRL_CLOCKD0_BITS  0x00000300
+	#define TXCLKCTRL_CLOCKD0_S     8
+	#define TXCLKCTRL_CLOCKA1_BITS  0x00000030
+	#define TXCLKCTRL_CLOCKA1_S     4
+	#define TXCLKCTRL_CLOCKA0_BITS  0x00000003
+	#define TXCLKCTRL_CLOCKA0_S     0
 
-/*
- * Individual settings for each field are common
- */
-#define TXCLKCTRL_CLOCKxx_OFF   0
-#define TXCLKCTRL_CLOCKxx_DEFON 1
-#define TXCLKCTRL_CLOCKxx_AUTO  2
+	/*
+	* Individual settings for each field are common
+	*/
+	#define TXCLKCTRL_CLOCKxx_OFF   0
+	#define TXCLKCTRL_CLOCKxx_DEFON 1
+	#define TXCLKCTRL_CLOCKxx_AUTO  2
 
 #endif /* METAC_2_1 */
 
 #ifdef METAC_2_1
-/*
- * Fast interrupt new bits
- * ------------------------------------
- */
-#define TXSTATUS_IPTOGGLE_BIT           0x80000000 /* Prev PToggle of TXPRIVEXT */
-#define TXSTATUS_ISTATE_BIT             0x40000000 /* IState bit */
-#define TXSTATUS_IWAIT_BIT              0x20000000 /* wait indefinitely in decision step*/
-#define TXSTATUS_IEXCEPT_BIT            0x10000000 /* Indicate an exception occurred */
-#define TXSTATUS_IRPCOUNT_BITS          0x0E000000 /* Number of 'dirty' date entries*/
-#define TXSTATUS_IRPCOUNT_S             25
-#define TXSTATUS_IRQSTAT_BITS           0x0000F000 /* IRQEnc bits, trigger or interrupts */
-#define TXSTATUS_IRQSTAT_S              12
-#define TXSTATUS_LNKSETOK_BIT           0x00000020 /* LNKSetOK bit, successful LNKSET */
+	/*
+	* Fast interrupt new bits
+	* ------------------------------------
+	*/
+	#define TXSTATUS_IPTOGGLE_BIT           0x80000000 /* Prev PToggle of TXPRIVEXT */
+	#define TXSTATUS_ISTATE_BIT             0x40000000 /* IState bit */
+	#define TXSTATUS_IWAIT_BIT              0x20000000 /* wait indefinitely in decision step*/
+	#define TXSTATUS_IEXCEPT_BIT            0x10000000 /* Indicate an exception occurred */
+	#define TXSTATUS_IRPCOUNT_BITS          0x0E000000 /* Number of 'dirty' date entries*/
+	#define TXSTATUS_IRPCOUNT_S             25
+	#define TXSTATUS_IRQSTAT_BITS           0x0000F000 /* IRQEnc bits, trigger or interrupts */
+	#define TXSTATUS_IRQSTAT_S              12
+	#define TXSTATUS_LNKSETOK_BIT           0x00000020 /* LNKSetOK bit, successful LNKSET */
 
-/* New fields in TXDE for fast interrupt system */
-#define TXDIVTIME_IACTIVE_BIT           0x00008000 /* Enable new interrupt system */
-#define TXDIVTIME_INONEST_BIT           0x00004000 /* Gate nested interrupt */
-#define TXDIVTIME_IREGIDXGATE_BIT       0x00002000 /* gate of the IRegIdex field */
-#define TXDIVTIME_IREGIDX_BITS          0x00001E00 /* Index of A0.0/1 replaces */
-#define TXDIVTIME_IREGIDX_S             9
-#define TXDIVTIME_NOST_BIT              0x00000100 /* disable superthreading bit */
+	/* New fields in TXDE for fast interrupt system */
+	#define TXDIVTIME_IACTIVE_BIT           0x00008000 /* Enable new interrupt system */
+	#define TXDIVTIME_INONEST_BIT           0x00004000 /* Gate nested interrupt */
+	#define TXDIVTIME_IREGIDXGATE_BIT       0x00002000 /* gate of the IRegIdex field */
+	#define TXDIVTIME_IREGIDX_BITS          0x00001E00 /* Index of A0.0/1 replaces */
+	#define TXDIVTIME_IREGIDX_S             9
+	#define TXDIVTIME_NOST_BIT              0x00000100 /* disable superthreading bit */
 #endif
 
 #endif /* _ASM_METAG_REGS_H_ */

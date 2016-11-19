@@ -22,10 +22,10 @@
 #include <asm/rtas.h>
 
 #ifdef DEBUG
-#include <asm/udbg.h>
-#define DBG(fmt...) udbg_printf(fmt)
+	#include <asm/udbg.h>
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 #ifndef CONFIG_NONSTATIC_KERNEL
@@ -56,7 +56,8 @@ void __init setup_kdump_trampoline(void)
 
 	DBG(" -> setup_kdump_trampoline()\n");
 
-	for (i = KDUMP_TRAMPOLINE_START; i < KDUMP_TRAMPOLINE_END; i += 8) {
+	for (i = KDUMP_TRAMPOLINE_START; i < KDUMP_TRAMPOLINE_END; i += 8)
+	{
 		create_trampoline(i);
 	}
 
@@ -70,13 +71,19 @@ void __init setup_kdump_trampoline(void)
 #endif /* CONFIG_NONSTATIC_KERNEL */
 
 static size_t copy_oldmem_vaddr(void *vaddr, char *buf, size_t csize,
-                               unsigned long offset, int userbuf)
+								unsigned long offset, int userbuf)
 {
-	if (userbuf) {
+	if (userbuf)
+	{
 		if (copy_to_user((char __user *)buf, (vaddr + offset), csize))
+		{
 			return -EFAULT;
-	} else
+		}
+	}
+	else
+	{
 		memcpy(buf, (vaddr + offset), csize);
+	}
 
 	return csize;
 }
@@ -95,21 +102,26 @@ static size_t copy_oldmem_vaddr(void *vaddr, char *buf, size_t csize,
  * in the current kernel. We stitch up a pte, similar to kmap_atomic.
  */
 ssize_t copy_oldmem_page(unsigned long pfn, char *buf,
-			size_t csize, unsigned long offset, int userbuf)
+						 size_t csize, unsigned long offset, int userbuf)
 {
 	void  *vaddr;
 	phys_addr_t paddr;
 
 	if (!csize)
+	{
 		return 0;
+	}
 
 	csize = min_t(size_t, csize, PAGE_SIZE);
 	paddr = pfn << PAGE_SHIFT;
 
-	if (memblock_is_region_memory(paddr, csize)) {
+	if (memblock_is_region_memory(paddr, csize))
+	{
 		vaddr = __va(paddr);
 		csize = copy_oldmem_vaddr(vaddr, buf, csize, offset, userbuf);
-	} else {
+	}
+	else
+	{
 		vaddr = __ioremap(paddr, PAGE_SIZE, 0);
 		csize = copy_oldmem_vaddr(vaddr, buf, csize, offset, userbuf);
 		iounmap(vaddr);
@@ -132,15 +144,19 @@ void crash_free_reserved_phys_range(unsigned long begin, unsigned long end)
 	basep = of_get_property(rtas.dev, "linux,rtas-base", NULL);
 	sizep = of_get_property(rtas.dev, "rtas-size", NULL);
 
-	if (basep && sizep) {
+	if (basep && sizep)
+	{
 		rtas_start = be32_to_cpup(basep);
 		rtas_end = rtas_start + be32_to_cpup(sizep);
 	}
 
-	for (addr = begin; addr < end; addr += PAGE_SIZE) {
+	for (addr = begin; addr < end; addr += PAGE_SIZE)
+	{
 		/* Does this page overlap with the RTAS region? */
 		if (addr <= rtas_end && ((addr + PAGE_SIZE) > rtas_start))
+		{
 			continue;
+		}
 
 		free_reserved_page(pfn_to_page(addr >> PAGE_SHIFT));
 	}

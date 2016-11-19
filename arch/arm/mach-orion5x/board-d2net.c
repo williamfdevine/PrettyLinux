@@ -54,7 +54,8 @@
 #define D2NET_GPIO_BLUE_LED_BLINK_CTRL	16
 #define D2NET_GPIO_BLUE_LED_OFF		23
 
-static struct gpio_led d2net_leds[] = {
+static struct gpio_led d2net_leds[] =
+{
 	{
 		.name = "d2net:blue:sata",
 		.default_trigger = "default-on",
@@ -67,12 +68,14 @@ static struct gpio_led d2net_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data d2net_led_data = {
+static struct gpio_led_platform_data d2net_led_data =
+{
 	.num_leds = ARRAY_SIZE(d2net_leds),
 	.leds = d2net_leds,
 };
 
-static struct platform_device d2net_gpio_leds = {
+static struct platform_device d2net_gpio_leds =
+{
 	.name           = "leds-gpio",
 	.id             = -1,
 	.dev            = {
@@ -86,13 +89,21 @@ static void __init d2net_gpio_leds_init(void)
 
 	/* Configure register blink_ctrl to allow SATA activity LED blinking. */
 	err = gpio_request(D2NET_GPIO_BLUE_LED_BLINK_CTRL, "blue LED blink");
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		err = gpio_direction_output(D2NET_GPIO_BLUE_LED_BLINK_CTRL, 1);
+
 		if (err)
+		{
 			gpio_free(D2NET_GPIO_BLUE_LED_BLINK_CTRL);
+		}
 	}
+
 	if (err)
+	{
 		pr_err("d2net: failed to configure blue LED blink GPIO\n");
+	}
 
 	platform_device_register(&d2net_gpio_leds);
 }

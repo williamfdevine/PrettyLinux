@@ -25,9 +25,9 @@
  * Base address of an interrupt handler that the INT_DEFERRED_FIQ belongs to.
  */
 #if (INT_DEFERRED_FIQ < IH2_BASE)
-#define DEFERRED_FIQ_IH_BASE	OMAP_IH1_BASE
+	#define DEFERRED_FIQ_IH_BASE	OMAP_IH1_BASE
 #else
-#define DEFERRED_FIQ_IH_BASE	OMAP_IH2_BASE
+	#define DEFERRED_FIQ_IH_BASE	OMAP_IH2_BASE
 #endif
 
 /*
@@ -70,10 +70,10 @@
 #define FIQ_CIRC_BUFF		30      /*Start of circular buffer */
 
 #ifndef __ASSEMBLER__
-extern unsigned int fiq_buffer[];
-extern unsigned char qwerty_fiqin_start, qwerty_fiqin_end;
+	extern unsigned int fiq_buffer[];
+	extern unsigned char qwerty_fiqin_start, qwerty_fiqin_end;
 
-extern void __init ams_delta_init_fiq(void);
+	extern void __init ams_delta_init_fiq(void);
 #endif
 
 #endif

@@ -34,7 +34,7 @@
 #define BPF_PPC_STACK_LOCALS	16
 /* Ensure this is quadword aligned */
 #define BPF_PPC_STACKFRAME	(STACK_FRAME_MIN_SIZE + MAX_BPF_STACK + \
-				 BPF_PPC_STACK_LOCALS + BPF_PPC_STACK_SAVE)
+							 BPF_PPC_STACK_LOCALS + BPF_PPC_STACK_SAVE)
 
 #ifndef __ASSEMBLY__
 
@@ -45,7 +45,8 @@
 #define TMP_REG_2	(MAX_BPF_JIT_REG + 3)
 
 /* BPF to ppc register mappings */
-static const int b2p[] = {
+static const int b2p[] =
+{
 	/* function return value */
 	[BPF_REG_0] = 8,
 	/* function arguments */
@@ -74,24 +75,25 @@ static const int b2p[] = {
 
 /* Assembly helpers */
 #define DECLARE_LOAD_FUNC(func)	u64 func(u64 r3, u64 r4);			\
-				u64 func##_negative_offset(u64 r3, u64 r4);	\
-				u64 func##_positive_offset(u64 r3, u64 r4);
+	u64 func##_negative_offset(u64 r3, u64 r4);	\
+	u64 func##_positive_offset(u64 r3, u64 r4);
 
 DECLARE_LOAD_FUNC(sk_load_word);
 DECLARE_LOAD_FUNC(sk_load_half);
 DECLARE_LOAD_FUNC(sk_load_byte);
 
 #define CHOOSE_LOAD_FUNC(imm, func)						\
-			(imm < 0 ?						\
-			(imm >= SKF_LL_OFF ? func##_negative_offset : func) :	\
-			func##_positive_offset)
+	(imm < 0 ?						\
+	 (imm >= SKF_LL_OFF ? func##_negative_offset : func) :	\
+	 func##_positive_offset)
 
 #define SEEN_FUNC	0x1000 /* might call external helpers */
 #define SEEN_STACK	0x2000 /* uses BPF stack */
 #define SEEN_SKB	0x4000 /* uses sk_buff */
 #define SEEN_TAILCALL	0x8000 /* uses tail calls */
 
-struct codegen_context {
+struct codegen_context
+{
 	/*
 	 * This is used to track register usage as well
 	 * as calls to external helpers.

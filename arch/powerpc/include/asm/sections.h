@@ -17,7 +17,9 @@ extern char __prom_init_toc_end[];
 static inline int in_kernel_text(unsigned long addr)
 {
 	if (addr >= (unsigned long)_stext && addr < (unsigned long)__init_end)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -35,20 +37,20 @@ static inline unsigned long kernel_toc_addr(void)
 }
 
 static inline int overlaps_interrupt_vector_text(unsigned long start,
-							unsigned long end)
+		unsigned long end)
 {
 	unsigned long real_start, real_end;
 	real_start = __start_interrupts - _stext;
 	real_end = __end_interrupts - _stext;
 
 	return start < (unsigned long)__va(real_end) &&
-		(unsigned long)__va(real_start) < end;
+		   (unsigned long)__va(real_start) < end;
 }
 
 static inline int overlaps_kernel_text(unsigned long start, unsigned long end)
 {
 	return start < (unsigned long)__init_end &&
-		(unsigned long)_stext < end;
+		   (unsigned long)_stext < end;
 }
 
 static inline int overlaps_kvm_tmp(unsigned long start, unsigned long end)
@@ -56,7 +58,7 @@ static inline int overlaps_kvm_tmp(unsigned long start, unsigned long end)
 #ifdef CONFIG_KVM_GUEST
 	extern char kvm_tmp[];
 	return start < (unsigned long)kvm_tmp &&
-		(unsigned long)&kvm_tmp[1024 * 1024] < end;
+		   (unsigned long)&kvm_tmp[1024 * 1024] < end;
 #else
 	return 0;
 #endif
@@ -70,7 +72,10 @@ static inline void *dereference_function_descriptor(void *ptr)
 	void *p;
 
 	if (!probe_kernel_address(&desc->funcaddr, p))
+	{
 		ptr = p;
+	}
+
 	return ptr;
 }
 #endif /* PPC64_ELF_ABI_v1 */

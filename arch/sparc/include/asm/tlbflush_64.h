@@ -7,7 +7,8 @@
 
 #define TLB_BATCH_NR	192
 
-struct tlb_batch {
+struct tlb_batch
+{
 	bool huge;
 	struct mm_struct *mm;
 	unsigned long tlb_nr;
@@ -26,12 +27,12 @@ static inline void flush_tlb_mm(struct mm_struct *mm)
 }
 
 static inline void flush_tlb_page(struct vm_area_struct *vma,
-				  unsigned long vmaddr)
+								  unsigned long vmaddr)
 {
 }
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 }
 

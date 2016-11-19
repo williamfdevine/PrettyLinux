@@ -18,8 +18,8 @@
 
 /* NOTE: the CBR register returns a PA, and it can be above 0xff00_0000 */
 #define BMIPS_GET_CBR()			((void __iomem *)(CKSEG1 | \
-					 (unsigned long) \
-					 ((read_c0_brcm_cbr() >> 18) << 18)))
+								 (unsigned long) \
+								 ((read_c0_brcm_cbr() >> 18) << 18)))
 
 #define BMIPS_RAC_CONFIG		0x00000000
 #define BMIPS_RAC_ADDRESS_RANGE		0x00000004
@@ -54,19 +54,24 @@ extern struct plat_smp_ops bmips5000_smp_ops;
 static inline int register_bmips_smp_ops(void)
 {
 #if IS_ENABLED(CONFIG_CPU_BMIPS) && IS_ENABLED(CONFIG_SMP)
-	switch (current_cpu_type()) {
-	case CPU_BMIPS32:
-	case CPU_BMIPS3300:
-		return register_up_smp_ops();
-	case CPU_BMIPS4350:
-	case CPU_BMIPS4380:
-		register_smp_ops(&bmips43xx_smp_ops);
-		break;
-	case CPU_BMIPS5000:
-		register_smp_ops(&bmips5000_smp_ops);
-		break;
-	default:
-		return -ENODEV;
+
+	switch (current_cpu_type())
+	{
+		case CPU_BMIPS32:
+		case CPU_BMIPS3300:
+			return register_up_smp_ops();
+
+		case CPU_BMIPS4350:
+		case CPU_BMIPS4380:
+			register_smp_ops(&bmips43xx_smp_ops);
+			break;
+
+		case CPU_BMIPS5000:
+			register_smp_ops(&bmips5000_smp_ops);
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	return 0;
@@ -129,9 +134,11 @@ static inline void bmips_post_dma_flush(struct device *dev)
 	u32 cfg;
 
 	if (boot_cpu_type() != CPU_BMIPS3300 &&
-	    boot_cpu_type() != CPU_BMIPS4350 &&
-	    boot_cpu_type() != CPU_BMIPS4380)
+		boot_cpu_type() != CPU_BMIPS4350 &&
+		boot_cpu_type() != CPU_BMIPS4380)
+	{
 		return;
+	}
 
 	/* Flush stale data out of the readahead cache */
 	cfg = __raw_readl(cbr + BMIPS_RAC_CONFIG);

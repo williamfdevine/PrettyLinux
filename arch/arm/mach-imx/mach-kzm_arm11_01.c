@@ -42,9 +42,9 @@
 #include "iomux-mx3.h"
 
 #define KZM_ARM11_IO_ADDRESS(x) (IOMEM(					\
-	IMX_IO_P2V_MODULE(x, MX31_CS4) ?:				\
-	IMX_IO_P2V_MODULE(x, MX31_CS5)) ?:				\
-	MX31_IO_ADDRESS(x))
+								 IMX_IO_P2V_MODULE(x, MX31_CS4) ?:				\
+								 IMX_IO_P2V_MODULE(x, MX31_CS5)) ?:				\
+								 MX31_IO_ADDRESS(x))
 
 /*
  *  KZM-ARM11-01 Board Control Registers on FPGA
@@ -67,7 +67,8 @@
 /*
  * KZM-ARM11-01 has an external UART on FPGA
  */
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	{
 		.membase	= KZM_ARM11_IO_ADDRESS(KZM_ARM11_16550),
 		.mapbase	= KZM_ARM11_16550,
@@ -77,12 +78,13 @@ static struct plat_serial8250_port serial_platform_data[] = {
 		.regshift	= 0,
 		.iotype		= UPIO_MEM,
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST |
-				  UPF_BUGGY_UART,
+		UPF_BUGGY_UART,
 	},
 	{},
 };
 
-static struct resource serial8250_resources[] = {
+static struct resource serial8250_resources[] =
+{
 	{
 		.start	= KZM_ARM11_16550,
 		.end	= KZM_ARM11_16550 + 0x10,
@@ -94,12 +96,13 @@ static struct resource serial8250_resources[] = {
 	},
 };
 
-static struct platform_device serial_device = {
+static struct platform_device serial_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev		= {
-				.platform_data = serial_platform_data,
-			  },
+		.platform_data = serial_platform_data,
+	},
 	.num_resources	= ARRAY_SIZE(serial8250_resources),
 	.resource	= serial8250_resources,
 };
@@ -123,11 +126,11 @@ static int __init kzm_init_ext_uart(void)
 	__raw_writeb(tmp, KZM_ARM11_IO_ADDRESS(KZM_ARM11_CTL1));
 
 	serial_platform_data[0].irq =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_1));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_1));
 	serial8250_resources[1].start =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_1));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_1));
 	serial8250_resources[1].end =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_1));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_1));
 
 	return platform_device_register(&serial_device);
 }
@@ -142,14 +145,16 @@ static inline int kzm_init_ext_uart(void)
  * SMSC LAN9118
  */
 #if IS_ENABLED(CONFIG_SMSC911X)
-static struct smsc911x_platform_config kzm_smsc9118_config = {
+static struct smsc911x_platform_config kzm_smsc9118_config =
+{
 	.phy_interface	= PHY_INTERFACE_MODE_MII,
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_HIGH,
 	.irq_type	= SMSC911X_IRQ_TYPE_PUSH_PULL,
 	.flags		= SMSC911X_USE_32BIT | SMSC911X_SAVE_MAC_ADDRESS,
 };
 
-static struct resource kzm_smsc9118_resources[] = {
+static struct resource kzm_smsc9118_resources[] =
+{
 	{
 		.start	= MX31_CS5_BASE_ADDR,
 		.end	= MX31_CS5_BASE_ADDR + SZ_128K - 1,
@@ -161,17 +166,19 @@ static struct resource kzm_smsc9118_resources[] = {
 	},
 };
 
-static struct platform_device kzm_smsc9118_device = {
+static struct platform_device kzm_smsc9118_device =
+{
 	.name		= "smsc911x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(kzm_smsc9118_resources),
 	.resource	= kzm_smsc9118_resources,
 	.dev		= {
-				.platform_data = &kzm_smsc9118_config,
-			  },
+		.platform_data = &kzm_smsc9118_config,
+	},
 };
 
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vdd33a", "smsc911x"),
 	REGULATOR_SUPPLY("vddvario", "smsc911x"),
 };
@@ -188,9 +195,9 @@ static int __init kzm_init_smsc9118(void)
 	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
 
 	kzm_smsc9118_resources[1].start =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_2));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_2));
 	kzm_smsc9118_resources[1].end =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_2));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_2));
 
 	return platform_device_register(&kzm_smsc9118_device);
 }
@@ -202,7 +209,8 @@ static inline int kzm_init_smsc9118(void)
 #endif
 
 #if IS_ENABLED(CONFIG_SERIAL_IMX)
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
@@ -217,7 +225,8 @@ static inline void kzm_init_imx_uart(void)
 }
 #endif
 
-static int kzm_pins[] __initdata = {
+static int kzm_pins[] __initdata =
+{
 	MX31_PIN_CTS1__CTS1,
 	MX31_PIN_RTS1__RTS1,
 	MX31_PIN_TXD1__TXD1,
@@ -244,7 +253,7 @@ static void __init kzm_board_init(void)
 	imx31_soc_init();
 
 	mxc_iomux_setup_multiple_pins(kzm_pins,
-				      ARRAY_SIZE(kzm_pins), "kzm");
+								  ARRAY_SIZE(kzm_pins), "kzm");
 	kzm_init_imx_uart();
 
 	pr_info("Clock input source is 26MHz\n");
@@ -259,7 +268,8 @@ static void __init kzm_late_init(void)
 /*
  * This structure defines static mappings for the kzm-arm11-01 board.
  */
-static struct map_desc kzm_io_desc[] __initdata = {
+static struct map_desc kzm_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)MX31_CS4_BASE_ADDR_VIRT,
 		.pfn		= __phys_to_pfn(MX31_CS4_BASE_ADDR),
@@ -289,12 +299,12 @@ static void __init kzm_timer_init(void)
 }
 
 MACHINE_START(KZM_ARM11_01, "Kyoto Microcomputer Co., Ltd. KZM-ARM11-01")
-	.atag_offset = 0x100,
-	.map_io = kzm_map_io,
-	.init_early = imx31_init_early,
-	.init_irq = mx31_init_irq,
+.atag_offset = 0x100,
+ .map_io = kzm_map_io,
+  .init_early = imx31_init_early,
+   .init_irq = mx31_init_irq,
 	.init_time	= kzm_timer_init,
-	.init_machine = kzm_board_init,
-	.init_late	= kzm_late_init,
-	.restart	= mxc_restart,
-MACHINE_END
+	  .init_machine = kzm_board_init,
+	   .init_late	= kzm_late_init,
+		 .restart	= mxc_restart,
+			 MACHINE_END

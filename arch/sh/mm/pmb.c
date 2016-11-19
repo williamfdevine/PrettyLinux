@@ -33,7 +33,8 @@
 
 struct pmb_entry;
 
-struct pmb_entry {
+struct pmb_entry
+{
 	unsigned long vpn;
 	unsigned long ppn;
 	unsigned long flags;
@@ -51,10 +52,12 @@ struct pmb_entry {
 	struct pmb_entry *link;
 };
 
-static struct {
+static struct
+{
 	unsigned long size;
 	int flag;
-} pmb_sizes[] = {
+} pmb_sizes[] =
+{
 	{ .size	= SZ_512M, .flag = PMB_SZ_512M, },
 	{ .size = SZ_128M, .flag = PMB_SZ_128M, },
 	{ .size = SZ_64M,  .flag = PMB_SZ_64M,  },
@@ -120,9 +123,14 @@ static inline unsigned long pgprot_to_pmb_flags(pgprot_t prot)
 	u64 flags = pgprot_val(prot);
 
 	if (flags & _PAGE_CACHABLE)
+	{
 		pmb_flags |= PMB_C;
+	}
+
 	if (flags & _PAGE_WT)
+	{
 		pmb_flags |= PMB_WT | PMB_UB;
+	}
 
 	return pmb_flags;
 }
@@ -130,23 +138,26 @@ static inline unsigned long pgprot_to_pmb_flags(pgprot_t prot)
 static inline bool pmb_can_merge(struct pmb_entry *a, struct pmb_entry *b)
 {
 	return (b->vpn == (a->vpn + a->size)) &&
-	       (b->ppn == (a->ppn + a->size)) &&
-	       (b->flags == a->flags);
+		   (b->ppn == (a->ppn + a->size)) &&
+		   (b->flags == a->flags);
 }
 
 static bool pmb_mapping_exists(unsigned long vaddr, phys_addr_t phys,
-			       unsigned long size)
+							   unsigned long size)
 {
 	int i;
 
 	read_lock(&pmb_rwlock);
 
-	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++)
+	{
 		struct pmb_entry *pmbe, *iter;
 		unsigned long span;
 
 		if (!test_bit(i, pmb_map))
+		{
 			continue;
+		}
 
 		pmbe = &pmb_entry_list[i];
 
@@ -154,14 +165,20 @@ static bool pmb_mapping_exists(unsigned long vaddr, phys_addr_t phys,
 		 * See if VPN and PPN are bounded by an existing mapping.
 		 */
 		if ((vaddr < pmbe->vpn) || (vaddr >= (pmbe->vpn + pmbe->size)))
+		{
 			continue;
+		}
+
 		if ((phys < pmbe->ppn) || (phys >= (pmbe->ppn + pmbe->size)))
+		{
 			continue;
+		}
 
 		/*
 		 * Now see if we're in range of a simple mapping.
 		 */
-		if (size <= pmbe->size) {
+		if (size <= pmbe->size)
+		{
 			read_unlock(&pmb_rwlock);
 			return true;
 		}
@@ -173,12 +190,15 @@ static bool pmb_mapping_exists(unsigned long vaddr, phys_addr_t phys,
 		 * the chain.
 		 */
 		for (iter = pmbe->link; iter; iter = iter->link)
+		{
 			span += iter->size;
+		}
 
 		/*
 		 * Nothing else to do if the range requirements are met.
 		 */
-		if (size <= span) {
+		if (size <= span)
+		{
 			read_unlock(&pmb_rwlock);
 			return true;
 		}
@@ -194,7 +214,9 @@ static bool pmb_size_valid(unsigned long size)
 
 	for (i = 0; i < ARRAY_SIZE(pmb_sizes); i++)
 		if (pmb_sizes[i].size == size)
+		{
 			return true;
+		}
 
 	return false;
 }
@@ -215,7 +237,9 @@ static int pmb_size_to_flags(unsigned long size)
 
 	for (i = 0; i < ARRAY_SIZE(pmb_sizes); i++)
 		if (pmb_sizes[i].size == size)
+		{
 			return pmb_sizes[i].flag;
+		}
 
 	return 0;
 }
@@ -225,16 +249,21 @@ static int pmb_alloc_entry(void)
 	int pos;
 
 	pos = find_first_zero_bit(pmb_map, NR_PMB_ENTRIES);
+
 	if (pos >= 0 && pos < NR_PMB_ENTRIES)
+	{
 		__set_bit(pos, pmb_map);
+	}
 	else
+	{
 		pos = -ENOSPC;
+	}
 
 	return pos;
 }
 
 static struct pmb_entry *pmb_alloc(unsigned long vpn, unsigned long ppn,
-				   unsigned long flags, int entry)
+								   unsigned long flags, int entry)
 {
 	struct pmb_entry *pmbe;
 	unsigned long irqflags;
@@ -243,14 +272,20 @@ static struct pmb_entry *pmb_alloc(unsigned long vpn, unsigned long ppn,
 
 	write_lock_irqsave(&pmb_rwlock, irqflags);
 
-	if (entry == PMB_NO_ENTRY) {
+	if (entry == PMB_NO_ENTRY)
+	{
 		pos = pmb_alloc_entry();
-		if (unlikely(pos < 0)) {
+
+		if (unlikely(pos < 0))
+		{
 			ret = ERR_PTR(pos);
 			goto out;
 		}
-	} else {
-		if (__test_and_set_bit(entry, pmb_map)) {
+	}
+	else
+	{
+		if (__test_and_set_bit(entry, pmb_map))
+		{
 			ret = ERR_PTR(-ENOSPC);
 			goto out;
 		}
@@ -333,7 +368,7 @@ static void set_pmb_entry(struct pmb_entry *pmbe)
 #endif /* CONFIG_PM */
 
 int pmb_bolt_mapping(unsigned long vaddr, phys_addr_t phys,
-		     unsigned long size, pgprot_t prot)
+					 unsigned long size, pgprot_t prot)
 {
 	struct pmb_entry *pmbp, *pmbe;
 	unsigned long orig_addr, orig_size;
@@ -341,11 +376,19 @@ int pmb_bolt_mapping(unsigned long vaddr, phys_addr_t phys,
 	int i, mapped;
 
 	if (size < SZ_16M)
+	{
 		return -EINVAL;
+	}
+
 	if (!pmb_addr_valid(vaddr, size))
+	{
 		return -EFAULT;
+	}
+
 	if (pmb_mapping_exists(vaddr, phys, size))
+	{
 		return 0;
+	}
 
 	orig_addr = vaddr;
 	orig_size = size;
@@ -355,14 +398,20 @@ int pmb_bolt_mapping(unsigned long vaddr, phys_addr_t phys,
 	pmb_flags = pgprot_to_pmb_flags(prot);
 	pmbp = NULL;
 
-	do {
-		for (i = mapped = 0; i < ARRAY_SIZE(pmb_sizes); i++) {
+	do
+	{
+		for (i = mapped = 0; i < ARRAY_SIZE(pmb_sizes); i++)
+		{
 			if (size < pmb_sizes[i].size)
+			{
 				continue;
+			}
 
 			pmbe = pmb_alloc(vaddr, phys, pmb_flags |
-					 pmb_sizes[i].flag, PMB_NO_ENTRY);
-			if (IS_ERR(pmbe)) {
+							 pmb_sizes[i].flag, PMB_NO_ENTRY);
+
+			if (IS_ERR(pmbe))
+			{
 				pmb_unmap_entry(pmbp, mapped);
 				return PTR_ERR(pmbe);
 			}
@@ -381,9 +430,10 @@ int pmb_bolt_mapping(unsigned long vaddr, phys_addr_t phys,
 			 * Link adjacent entries that span multiple PMB
 			 * entries for easier tear-down.
 			 */
-			if (likely(pmbp)) {
+			if (likely(pmbp))
+			{
 				raw_spin_lock_nested(&pmbp->lock,
-						     SINGLE_DEPTH_NESTING);
+									 SINGLE_DEPTH_NESTING);
 				pmbp->link = pmbe;
 				raw_spin_unlock(&pmbp->lock);
 			}
@@ -400,7 +450,8 @@ int pmb_bolt_mapping(unsigned long vaddr, phys_addr_t phys,
 
 			raw_spin_unlock_irqrestore(&pmbe->lock, flags);
 		}
-	} while (size >= SZ_16M);
+	}
+	while (size >= SZ_16M);
 
 	flush_cache_vmap(orig_addr, orig_addr + orig_size);
 
@@ -408,7 +459,7 @@ int pmb_bolt_mapping(unsigned long vaddr, phys_addr_t phys,
 }
 
 void __iomem *pmb_remap_caller(phys_addr_t phys, unsigned long size,
-			       pgprot_t prot, void *caller)
+							   pgprot_t prot, void *caller)
 {
 	unsigned long vaddr;
 	phys_addr_t offset, last_addr;
@@ -418,19 +469,28 @@ void __iomem *pmb_remap_caller(phys_addr_t phys, unsigned long size,
 	int i, ret;
 
 	if (!pmb_iomapping_enabled)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Small mappings need to go through the TLB.
 	 */
 	if (size < SZ_16M)
+	{
 		return ERR_PTR(-EINVAL);
+	}
+
 	if (!pmb_prot_valid(prot))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	for (i = 0; i < ARRAY_SIZE(pmb_sizes); i++)
 		if (size >= pmb_sizes[i].size)
+		{
 			break;
+		}
 
 	last_addr = phys + size;
 	align_mask = ~(pmb_sizes[i].size - 1);
@@ -444,16 +504,22 @@ void __iomem *pmb_remap_caller(phys_addr_t phys, unsigned long size,
 	 * 0xb000...0xc000 range.
 	 */
 	area = __get_vm_area_caller(aligned, VM_IOREMAP, 0xb0000000,
-				    P3SEG, caller);
+								P3SEG, caller);
+
 	if (!area)
+	{
 		return NULL;
+	}
 
 	area->phys_addr = phys;
 	vaddr = (unsigned long)area->addr;
 
 	ret = pmb_bolt_mapping(vaddr, phys, size, prot);
+
 	if (unlikely(ret != 0))
+	{
 		return ERR_PTR(ret);
+	}
 
 	return (void __iomem *)(offset + (char *)vaddr);
 }
@@ -466,10 +532,14 @@ int pmb_unmap(void __iomem *addr)
 
 	read_lock(&pmb_rwlock);
 
-	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++) {
-		if (test_bit(i, pmb_map)) {
+	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++)
+	{
+		if (test_bit(i, pmb_map))
+		{
 			pmbe = &pmb_entry_list[i];
-			if (pmbe->vpn == vaddr) {
+
+			if (pmbe->vpn == vaddr)
+			{
 				found = 1;
 				break;
 			}
@@ -478,7 +548,8 @@ int pmb_unmap(void __iomem *addr)
 
 	read_unlock(&pmb_rwlock);
 
-	if (found) {
+	if (found)
+	{
 		pmb_unmap_entry(pmbe, NR_PMB_ENTRIES);
 		return 0;
 	}
@@ -488,7 +559,8 @@ int pmb_unmap(void __iomem *addr)
 
 static void __pmb_unmap_entry(struct pmb_entry *pmbe, int depth)
 {
-	do {
+	do
+	{
 		struct pmb_entry *pmblink = pmbe;
 
 		/*
@@ -508,7 +580,8 @@ static void __pmb_unmap_entry(struct pmb_entry *pmbe, int depth)
 		pmbe = pmblink->link;
 
 		pmb_free(pmblink);
-	} while (pmbe && --depth);
+	}
+	while (pmbe && --depth);
 }
 
 static void pmb_unmap_entry(struct pmb_entry *pmbe, int depth)
@@ -516,7 +589,9 @@ static void pmb_unmap_entry(struct pmb_entry *pmbe, int depth)
 	unsigned long flags;
 
 	if (unlikely(!pmbe))
+	{
 		return;
+	}
 
 	write_lock_irqsave(&pmb_rwlock, flags);
 	__pmb_unmap_entry(pmbe, depth);
@@ -531,17 +606,20 @@ static void __init pmb_notify(void)
 
 	read_lock(&pmb_rwlock);
 
-	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++)
+	{
 		struct pmb_entry *pmbe;
 
 		if (!test_bit(i, pmb_map))
+		{
 			continue;
+		}
 
 		pmbe = &pmb_entry_list[i];
 
 		pr_info("       0x%08lx -> 0x%08lx [ %4ldMB %2scached ]\n",
-			pmbe->vpn >> PAGE_SHIFT, pmbe->ppn >> PAGE_SHIFT,
-			pmbe->size >> 20, (pmbe->flags & PMB_C) ? "" : "un");
+				pmbe->vpn >> PAGE_SHIFT, pmbe->ppn >> PAGE_SHIFT,
+				pmbe->size >> 20, (pmbe->flags & PMB_C) ? "" : "un");
 	}
 
 	read_unlock(&pmb_rwlock);
@@ -573,7 +651,8 @@ static void __init pmb_synchronize(void)
 	 * jumping between the cached and uncached mappings and tearing
 	 * down alternating mappings while executing from the other.
 	 */
-	for (i = 0; i < NR_PMB_ENTRIES; i++) {
+	for (i = 0; i < NR_PMB_ENTRIES; i++)
+	{
 		unsigned long addr, data;
 		unsigned long addr_val, data_val;
 		unsigned long ppn, vpn, flags;
@@ -591,7 +670,9 @@ static void __init pmb_synchronize(void)
 		 * Skip over any bogus entries
 		 */
 		if (!(data_val & PMB_V) || !(addr_val & PMB_V))
+		{
 			continue;
+		}
 
 		ppn = data_val & PMB_PFN_MASK;
 		vpn = addr_val & PMB_PFN_MASK;
@@ -599,7 +680,8 @@ static void __init pmb_synchronize(void)
 		/*
 		 * Only preserve in-range mappings.
 		 */
-		if (!pmb_ppn_in_range(ppn)) {
+		if (!pmb_ppn_in_range(ppn))
+		{
 			/*
 			 * Invalidate anything out of bounds.
 			 */
@@ -611,7 +693,8 @@ static void __init pmb_synchronize(void)
 		/*
 		 * Update the caching attributes if necessary
 		 */
-		if (data_val & PMB_C) {
+		if (data_val & PMB_C)
+		{
 			data_val &= ~PMB_CACHE_MASK;
 			data_val |= pmb_cache_flags();
 
@@ -622,7 +705,9 @@ static void __init pmb_synchronize(void)
 		flags = size | (data_val & PMB_CACHE_MASK);
 
 		pmbe = pmb_alloc(vpn, ppn, flags, i);
-		if (IS_ERR(pmbe)) {
+
+		if (IS_ERR(pmbe))
+		{
 			WARN_ON_ONCE(1);
 			continue;
 		}
@@ -631,10 +716,14 @@ static void __init pmb_synchronize(void)
 
 		for (j = 0; j < ARRAY_SIZE(pmb_sizes); j++)
 			if (pmb_sizes[j].flag == size)
+			{
 				pmbe->size = pmb_sizes[j].size;
+			}
 
-		if (pmbp) {
+		if (pmbp)
+		{
 			raw_spin_lock_nested(&pmbp->lock, SINGLE_DEPTH_NESTING);
+
 			/*
 			 * Compare the previous entry against the current one to
 			 * see if the entries span a contiguous mapping. If so,
@@ -642,7 +731,10 @@ static void __init pmb_synchronize(void)
 			 * are later coalesced.
 			 */
 			if (pmb_can_merge(pmbp, pmbe))
+			{
 				pmbp->link = pmbe;
+			}
+
 			raw_spin_unlock(&pmbp->lock);
 		}
 
@@ -661,17 +753,22 @@ static void __init pmb_merge(struct pmb_entry *head)
 	span = newsize = head->size;
 
 	tail = head->link;
-	while (tail) {
+
+	while (tail)
+	{
 		span += tail->size;
 
-		if (pmb_size_valid(span)) {
+		if (pmb_size_valid(span))
+		{
 			newsize = span;
 			depth = i;
 		}
 
 		/* This is the end of the line.. */
 		if (!tail->link)
+		{
 			break;
+		}
 
 		tail = tail->link;
 		i++;
@@ -681,7 +778,9 @@ static void __init pmb_merge(struct pmb_entry *head)
 	 * The merged page size must be valid.
 	 */
 	if (!depth || !pmb_size_valid(newsize))
+	{
 		return;
+	}
 
 	head->flags &= ~PMB_SZ_MASK;
 	head->flags |= pmb_size_to_flags(newsize);
@@ -699,11 +798,14 @@ static void __init pmb_coalesce(void)
 
 	write_lock_irqsave(&pmb_rwlock, flags);
 
-	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++)
+	{
 		struct pmb_entry *pmbe;
 
 		if (!test_bit(i, pmb_map))
+		{
 			continue;
+		}
 
 		pmbe = &pmb_entry_list[i];
 
@@ -711,14 +813,18 @@ static void __init pmb_coalesce(void)
 		 * We're only interested in compound mappings
 		 */
 		if (!pmbe->link)
+		{
 			continue;
+		}
 
 		/*
 		 * Nothing to do if it already uses the largest possible
 		 * page size.
 		 */
 		if (pmbe->size == SZ_512M)
+		{
 			continue;
+		}
 
 		pmb_merge(pmbe);
 	}
@@ -736,21 +842,28 @@ static void __init pmb_resize(void)
 	 * already be a reasonable size.
 	 */
 	if (uncached_size == SZ_16M)
+	{
 		return;
+	}
 
 	read_lock(&pmb_rwlock);
 
-	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++)
+	{
 		struct pmb_entry *pmbe;
 		unsigned long flags;
 
 		if (!test_bit(i, pmb_map))
+		{
 			continue;
+		}
 
 		pmbe = &pmb_entry_list[i];
 
 		if (pmbe->vpn != uncached_start)
+		{
 			continue;
+		}
 
 		/*
 		 * Found it, now resize it.
@@ -775,10 +888,14 @@ static void __init pmb_resize(void)
 static int __init early_pmb(char *p)
 {
 	if (!p)
+	{
 		return 0;
+	}
 
 	if (strstr(p, "iomap"))
+	{
 		pmb_iomapping_enabled = 1;
+	}
 
 	return 0;
 }
@@ -809,7 +926,7 @@ void __init pmb_init(void)
 
 bool __in_29bit_mode(void)
 {
-        return (__raw_readl(PMB_PASCR) & PASCR_SE) == 0;
+	return (__raw_readl(PMB_PASCR) & PASCR_SE) == 0;
 }
 
 static int pmb_seq_show(struct seq_file *file, void *iter)
@@ -817,10 +934,11 @@ static int pmb_seq_show(struct seq_file *file, void *iter)
 	int i;
 
 	seq_printf(file, "V: Valid, C: Cacheable, WT: Write-Through\n"
-			 "CB: Copy-Back, B: Buffered, UB: Unbuffered\n");
+			   "CB: Copy-Back, B: Buffered, UB: Unbuffered\n");
 	seq_printf(file, "ety   vpn  ppn  size   flags\n");
 
-	for (i = 0; i < NR_PMB_ENTRIES; i++) {
+	for (i = 0; i < NR_PMB_ENTRIES; i++)
+	{
 		unsigned long addr, data;
 		unsigned int size;
 		char *sz_str = NULL;
@@ -829,18 +947,18 @@ static int pmb_seq_show(struct seq_file *file, void *iter)
 		data = __raw_readl(mk_pmb_data(i));
 
 		size = data & PMB_SZ_MASK;
-		sz_str = (size == PMB_SZ_16M)  ? " 16MB":
-			 (size == PMB_SZ_64M)  ? " 64MB":
-			 (size == PMB_SZ_128M) ? "128MB":
-					         "512MB";
+		sz_str = (size == PMB_SZ_16M)  ? " 16MB" :
+				 (size == PMB_SZ_64M)  ? " 64MB" :
+				 (size == PMB_SZ_128M) ? "128MB" :
+				 "512MB";
 
 		/* 02: V 0x88 0x08 128MB C CB  B */
 		seq_printf(file, "%02d: %c 0x%02lx 0x%02lx %s %c %s %s\n",
-			   i, ((addr & PMB_V) && (data & PMB_V)) ? 'V' : ' ',
-			   (addr >> 24) & 0xff, (data >> 24) & 0xff,
-			   sz_str, (data & PMB_C) ? 'C' : ' ',
-			   (data & PMB_WT) ? "WT" : "CB",
-			   (data & PMB_UB) ? "UB" : " B");
+				   i, ((addr & PMB_V) && (data & PMB_V)) ? 'V' : ' ',
+				   (addr >> 24) & 0xff, (data >> 24) & 0xff,
+				   sz_str, (data & PMB_C) ? 'C' : ' ',
+				   (data & PMB_WT) ? "WT" : "CB",
+				   (data & PMB_UB) ? "UB" : " B");
 	}
 
 	return 0;
@@ -851,7 +969,8 @@ static int pmb_debugfs_open(struct inode *inode, struct file *file)
 	return single_open(file, pmb_seq_show, NULL);
 }
 
-static const struct file_operations pmb_debugfs_fops = {
+static const struct file_operations pmb_debugfs_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= pmb_debugfs_open,
 	.read		= seq_read,
@@ -864,9 +983,12 @@ static int __init pmb_debugfs_init(void)
 	struct dentry *dentry;
 
 	dentry = debugfs_create_file("pmb", S_IFREG | S_IRUGO,
-				     arch_debugfs_dir, NULL, &pmb_debugfs_fops);
+								 arch_debugfs_dir, NULL, &pmb_debugfs_fops);
+
 	if (!dentry)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -880,8 +1002,10 @@ static void pmb_syscore_resume(void)
 
 	read_lock(&pmb_rwlock);
 
-	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++) {
-		if (test_bit(i, pmb_map)) {
+	for (i = 0; i < ARRAY_SIZE(pmb_entry_list); i++)
+	{
+		if (test_bit(i, pmb_map))
+		{
 			pmbe = &pmb_entry_list[i];
 			set_pmb_entry(pmbe);
 		}
@@ -890,7 +1014,8 @@ static void pmb_syscore_resume(void)
 	read_unlock(&pmb_rwlock);
 }
 
-static struct syscore_ops pmb_syscore_ops = {
+static struct syscore_ops pmb_syscore_ops =
+{
 	.resume = pmb_syscore_resume,
 };
 

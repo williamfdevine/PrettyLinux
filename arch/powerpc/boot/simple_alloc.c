@@ -18,7 +18,8 @@
 #define	ENTRY_BEEN_USED	0x01
 #define	ENTRY_IN_USE	0x02
 
-static struct alloc_info {
+static struct alloc_info
+{
 	unsigned long	flags;
 	unsigned long	base;
 	unsigned long	size;
@@ -40,13 +41,17 @@ static void *simple_malloc(unsigned long size)
 	struct alloc_info *p = alloc_tbl;
 
 	if (size == 0)
+	{
 		goto err_out;
+	}
 
 	size = _ALIGN_UP(size, alloc_min);
 
-	for (i=0; i<tbl_entries; i++, p++)
-		if (!(p->flags & ENTRY_BEEN_USED)) { /* never been used */
-			if (size <= space_left) {
+	for (i = 0; i < tbl_entries; i++, p++)
+		if (!(p->flags & ENTRY_BEEN_USED))   /* never been used */
+		{
+			if (size <= space_left)
+			{
 				p->base = next_base;
 				p->size = size;
 				p->flags = ENTRY_BEEN_USED | ENTRY_IN_USE;
@@ -54,13 +59,16 @@ static void *simple_malloc(unsigned long size)
 				space_left -= size;
 				return (void *)p->base;
 			}
+
 			goto err_out; /* not enough space left */
 		}
-		/* reuse an entry keeping same base & size */
-		else if (!(p->flags & ENTRY_IN_USE) && (size <= p->size)) {
+	/* reuse an entry keeping same base & size */
+		else if (!(p->flags & ENTRY_IN_USE) && (size <= p->size))
+		{
 			p->flags |= ENTRY_IN_USE;
 			return (void *)p->base;
 		}
+
 err_out:
 	return NULL;
 }
@@ -70,13 +78,20 @@ static struct alloc_info *simple_find_entry(void *ptr)
 	unsigned long i;
 	struct alloc_info *p = alloc_tbl;
 
-	for (i=0; i<tbl_entries; i++,p++) {
+	for (i = 0; i < tbl_entries; i++, p++)
+	{
 		if (!(p->flags & ENTRY_BEEN_USED))
+		{
 			break;
+		}
+
 		if ((p->flags & ENTRY_IN_USE) &&
-		    (p->base == (unsigned long)ptr))
+			(p->base == (unsigned long)ptr))
+		{
 			return p;
+		}
 	}
+
 	return NULL;
 }
 
@@ -85,7 +100,9 @@ static void simple_free(void *ptr)
 	struct alloc_info *p = simple_find_entry(ptr);
 
 	if (p != NULL)
+	{
 		p->flags &= ~ENTRY_IN_USE;
+	}
 }
 
 /*
@@ -99,19 +116,28 @@ static void *simple_realloc(void *ptr, unsigned long size)
 	struct alloc_info *p;
 	void *new;
 
-	if (size == 0) {
+	if (size == 0)
+	{
 		simple_free(ptr);
 		return NULL;
 	}
 
 	if (ptr == NULL)
+	{
 		return simple_malloc(size);
+	}
 
 	p = simple_find_entry(ptr);
+
 	if (p == NULL) /* ptr not from simple_malloc/simple_realloc */
+	{
 		return NULL;
+	}
+
 	if (size <= p->size) /* fits in current block */
+	{
 		return ptr;
+	}
 
 	new = simple_malloc(size);
 	memcpy(new, ptr, p->size);
@@ -124,7 +150,7 @@ static void *simple_realloc(void *ptr, unsigned long size)
  * too much space.  If so, change args & try again.
  */
 void *simple_alloc_init(char *base, unsigned long heap_size,
-			unsigned long granularity, unsigned long max_allocs)
+						unsigned long granularity, unsigned long max_allocs)
 {
 	unsigned long heap_base, tbl_size;
 

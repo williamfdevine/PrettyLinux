@@ -31,7 +31,8 @@
 #include <linux/cache.h>
 #include <linux/types.h>
 
-enum interruption_class {
+enum interruption_class
+{
 	IRQEXT_CLK,
 	IRQEXT_EXC,
 	IRQEXT_EMS,
@@ -66,7 +67,8 @@ enum interruption_class {
 	NR_ARCH_IRQS
 };
 
-struct irq_stat {
+struct irq_stat
+{
 	unsigned int irqs[NR_ARCH_IRQS];
 };
 
@@ -77,7 +79,8 @@ static __always_inline void inc_irq_stat(enum interruption_class irq)
 	__this_cpu_inc(irq_stat.irqs[irq]);
 }
 
-struct ext_code {
+struct ext_code
+{
 	unsigned short subcode;
 	unsigned short code;
 };
@@ -87,7 +90,8 @@ typedef void (*ext_int_handler_t)(struct ext_code, unsigned int, unsigned long);
 int register_external_irq(u16 code, ext_int_handler_t handler);
 int unregister_external_irq(u16 code, ext_int_handler_t handler);
 
-enum irq_subclass {
+enum irq_subclass
+{
 	IRQ_SUBCLASS_MEASUREMENT_ALERT = 5,
 	IRQ_SUBCLASS_SERVICE_SIGNAL = 9,
 };

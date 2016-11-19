@@ -4,7 +4,7 @@
  *	m5206sim.h -- ColdFire 5206 System Integration Module support.
  *
  *	(C) Copyright 1999, Greg Ungerer (gerg@snapgear.com)
- * 	(C) Copyright 2000, Lineo Inc. (www.lineo.com) 
+ * 	(C) Copyright 2000, Lineo Inc. (www.lineo.com)
  */
 
 /****************************************************************************/
@@ -36,8 +36,8 @@
 #define	MCFSIM_ICR12		(MCF_MBAR + 0x1f)	/* Intr Ctrl reg 12 */
 #define	MCFSIM_ICR13		(MCF_MBAR + 0x20)	/* Intr Ctrl reg 13 */
 #ifdef CONFIG_M5206e
-#define	MCFSIM_ICR14		(MCF_MBAR + 0x21)	/* Intr Ctrl reg 14 */
-#define	MCFSIM_ICR15		(MCF_MBAR + 0x22)	/* Intr Ctrl reg 15 */
+	#define	MCFSIM_ICR14		(MCF_MBAR + 0x21)	/* Intr Ctrl reg 14 */
+	#define	MCFSIM_ICR15		(MCF_MBAR + 0x22)	/* Intr Ctrl reg 15 */
 #endif
 
 #define	MCFSIM_IMR		(MCF_MBAR + 0x36)	/* Interrupt Mask */
@@ -85,9 +85,9 @@
 #define	MCFSIM_DMCR		(MCF_MBAR + 0xc6)	/* Default control */
 
 #ifdef CONFIG_M5206e
-#define	MCFSIM_PAR		(MCF_MBAR + 0xca)	/* Pin Assignment */
+	#define	MCFSIM_PAR		(MCF_MBAR + 0xca)	/* Pin Assignment */
 #else
-#define	MCFSIM_PAR		(MCF_MBAR + 0xcb)	/* Pin Assignment */
+	#define	MCFSIM_PAR		(MCF_MBAR + 0xcb)	/* Pin Assignment */
 #endif
 
 #define	MCFTIMER_BASE1		(MCF_MBAR + 0x100)	/* Base of TIMER1 */
@@ -100,11 +100,11 @@
 #define	MCFDMA_BASE1		(MCF_MBAR + 0x240)	/* Base address DMA 1 */
 
 #if defined(CONFIG_NETtel)
-#define	MCFUART_BASE0		(MCF_MBAR + 0x180)	/* Base address UART0 */
-#define	MCFUART_BASE1		(MCF_MBAR + 0x140)	/* Base address UART1 */
+	#define	MCFUART_BASE0		(MCF_MBAR + 0x180)	/* Base address UART0 */
+	#define	MCFUART_BASE1		(MCF_MBAR + 0x140)	/* Base address UART1 */
 #else
-#define	MCFUART_BASE0		(MCF_MBAR + 0x140)	/* Base address UART0 */
-#define	MCFUART_BASE1		(MCF_MBAR + 0x180)	/* Base address UART1 */
+	#define	MCFUART_BASE0		(MCF_MBAR + 0x140)	/* Base address UART0 */
+	#define	MCFUART_BASE1		(MCF_MBAR + 0x180)	/* Base address UART1 */
 #endif
 
 /*
@@ -126,10 +126,10 @@
  *	Some symbol defines for the Parallel Port Pin Assignment Register
  */
 #ifdef CONFIG_M5206e
-#define MCFSIM_PAR_DREQ0        0x100           /* Set to select DREQ0 input */
-                                                /* Clear to select T0 input */
-#define MCFSIM_PAR_DREQ1        0x200           /* Select DREQ1 input */
-                                                /* Clear to select T0 output */
+	#define MCFSIM_PAR_DREQ0        0x100           /* Set to select DREQ0 input */
+	/* Clear to select T0 input */
+	#define MCFSIM_PAR_DREQ1        0x200           /* Select DREQ1 input */
+	/* Clear to select T0 output */
 #endif
 
 /*
@@ -141,8 +141,8 @@
 #define	MCFSIM_UART1ICR		MCFSIM_ICR12	/* UART 1 ICR */
 #define	MCFSIM_UART2ICR		MCFSIM_ICR13	/* UART 2 ICR */
 #ifdef CONFIG_M5206e
-#define	MCFSIM_DMA1ICR		MCFSIM_ICR14	/* DMA 1 ICR */
-#define	MCFSIM_DMA2ICR		MCFSIM_ICR15	/* DMA 2 ICR */
+	#define	MCFSIM_DMA1ICR		MCFSIM_ICR14	/* DMA 1 ICR */
+	#define	MCFSIM_DMA2ICR		MCFSIM_ICR15	/* DMA 2 ICR */
 #endif
 
 /****************************************************************************/

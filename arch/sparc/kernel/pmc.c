@@ -56,8 +56,10 @@ static void pmc_swift_idle(void)
 static int pmc_probe(struct platform_device *op)
 {
 	regs = of_ioremap(&op->resource[0], 0,
-			  resource_size(&op->resource[0]), PMC_OBPNAME);
-	if (!regs) {
+					  resource_size(&op->resource[0]), PMC_OBPNAME);
+
+	if (!regs)
+	{
 		printk(KERN_ERR "%s: unable to map registers\n", PMC_DEVNAME);
 		return -ENODEV;
 	}
@@ -71,7 +73,8 @@ static int pmc_probe(struct platform_device *op)
 	return 0;
 }
 
-static struct of_device_id pmc_match[] = {
+static struct of_device_id pmc_match[] =
+{
 	{
 		.name = PMC_OBPNAME,
 	},
@@ -79,7 +82,8 @@ static struct of_device_id pmc_match[] = {
 };
 MODULE_DEVICE_TABLE(of, pmc_match);
 
-static struct platform_driver pmc_driver = {
+static struct platform_driver pmc_driver =
+{
 	.driver = {
 		.name = "pmc",
 		.of_match_table = pmc_match,

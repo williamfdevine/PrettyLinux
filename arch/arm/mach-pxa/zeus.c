@@ -59,7 +59,8 @@
 
 static unsigned long zeus_irq_enabled_mask;
 static const int zeus_isa_irqs[] = { 3, 4, 5, 6, 7, 10, 11, 12, };
-static const int zeus_isa_irq_map[] = {
+static const int zeus_isa_irq_map[] =
+{
 	0,		/* ISA irq #0, invalid */
 	0,		/* ISA irq #1, invalid */
 	0,		/* ISA irq #2, invalid */
@@ -111,20 +112,26 @@ static void zeus_irq_handler(struct irq_desc *desc)
 	unsigned long pending;
 
 	pending = zeus_irq_pending();
-	do {
+
+	do
+	{
 		/* we're in a chained irq handler,
 		 * so ack the interrupt by hand */
 		desc->irq_data.chip->irq_ack(&desc->irq_data);
 
-		if (likely(pending)) {
+		if (likely(pending))
+		{
 			irq = zeus_bit_to_irq(__ffs(pending));
 			generic_handle_irq(irq);
 		}
+
 		pending = zeus_irq_pending();
-	} while (pending);
+	}
+	while (pending);
 }
 
-static struct irq_chip zeus_irq_chip = {
+static struct irq_chip zeus_irq_chip =
+{
 	.name		= "ISA",
 	.irq_ack	= zeus_ack_irq,
 	.irq_mask	= zeus_mask_irq,
@@ -144,14 +151,15 @@ static void __init zeus_init_irq(void)
 	irq_set_irq_type(gpio_to_irq(ZEUS_WAKEUP_GPIO), IRQ_TYPE_EDGE_RISING);
 	irq_set_irq_type(gpio_to_irq(ZEUS_PTT_GPIO), IRQ_TYPE_EDGE_RISING);
 	irq_set_irq_type(gpio_to_irq(ZEUS_EXTGPIO_GPIO),
-			 IRQ_TYPE_EDGE_FALLING);
+					 IRQ_TYPE_EDGE_FALLING);
 	irq_set_irq_type(gpio_to_irq(ZEUS_CAN_GPIO), IRQ_TYPE_EDGE_FALLING);
 
 	/* Setup ISA IRQs */
-	for (level = 0; level < ARRAY_SIZE(zeus_isa_irqs); level++) {
+	for (level = 0; level < ARRAY_SIZE(zeus_isa_irqs); level++)
+	{
 		isa_irq = zeus_bit_to_irq(level);
 		irq_set_chip_and_handler(isa_irq, &zeus_irq_chip,
-					 handle_edge_irq);
+								 handle_edge_irq);
 		irq_clear_status_flags(isa_irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
 
@@ -165,7 +173,8 @@ static void __init zeus_init_irq(void)
  */
 
 /* Flash */
-static struct resource zeus_mtd_resources[] = {
+static struct resource zeus_mtd_resources[] =
+{
 	[0] = { /* NOR Flash (up to 64MB) */
 		.start	= ZEUS_FLASH_PHYS,
 		.end	= ZEUS_FLASH_PHYS + SZ_64M - 1,
@@ -178,7 +187,8 @@ static struct resource zeus_mtd_resources[] = {
 	},
 };
 
-static struct physmap_flash_data zeus_flash_data[] = {
+static struct physmap_flash_data zeus_flash_data[] =
+{
 	[0] = {
 		.width		= 2,
 		.parts		= NULL,
@@ -186,7 +196,8 @@ static struct physmap_flash_data zeus_flash_data[] = {
 	},
 };
 
-static struct platform_device zeus_mtd_devices[] = {
+static struct platform_device zeus_mtd_devices[] =
+{
 	[0] = {
 		.name		= "physmap-flash",
 		.id		= 0,
@@ -199,7 +210,8 @@ static struct platform_device zeus_mtd_devices[] = {
 };
 
 /* Serial */
-static struct resource zeus_serial_resources[] = {
+static struct resource zeus_serial_resources[] =
+{
 	{
 		.start	= 0x10000000,
 		.end	= 0x1000000f,
@@ -232,7 +244,8 @@ static struct resource zeus_serial_resources[] = {
 	},
 };
 
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	/* External UARTs */
 	/* FIXME: Shared IRQs on COM1-COM4 will not work properly on v1i1 hardware. */
 	{ /* COM1 */
@@ -273,7 +286,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	},
 	/* Internal UARTs */
 	{ /* FFUART */
-		.membase	= (void *)&FFUART,
+		.membase	= (void *) &FFUART,
 		.mapbase	= __PREG(FFUART),
 		.irq		= IRQ_FFUART,
 		.uartclk	= 921600 * 16,
@@ -282,7 +295,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
 		.iotype		= UPIO_MEM,
 	},
 	{ /* BTUART */
-		.membase	= (void *)&BTUART,
+		.membase	= (void *) &BTUART,
 		.mapbase	= __PREG(BTUART),
 		.irq		= IRQ_BTUART,
 		.uartclk	= 921600 * 16,
@@ -291,7 +304,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
 		.iotype		= UPIO_MEM,
 	},
 	{ /* STUART */
-		.membase	= (void *)&STUART,
+		.membase	= (void *) &STUART,
 		.mapbase	= __PREG(STUART),
 		.irq		= IRQ_STUART,
 		.uartclk	= 921600 * 16,
@@ -302,7 +315,8 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	{ },
 };
 
-static struct platform_device zeus_serial_device = {
+static struct platform_device zeus_serial_device =
+{
 	.name = "serial8250",
 	.id   = PLAT8250_DEV_PLATFORM,
 	.dev  = {
@@ -313,7 +327,8 @@ static struct platform_device zeus_serial_device = {
 };
 
 /* Ethernet */
-static struct resource zeus_dm9k0_resource[] = {
+static struct resource zeus_dm9k0_resource[] =
+{
 	[0] = {
 		.start = ZEUS_ETH0_PHYS,
 		.end   = ZEUS_ETH0_PHYS + 1,
@@ -331,7 +346,8 @@ static struct resource zeus_dm9k0_resource[] = {
 	},
 };
 
-static struct resource zeus_dm9k1_resource[] = {
+static struct resource zeus_dm9k1_resource[] =
+{
 	[0] = {
 		.start = ZEUS_ETH1_PHYS,
 		.end   = ZEUS_ETH1_PHYS + 1,
@@ -349,11 +365,13 @@ static struct resource zeus_dm9k1_resource[] = {
 	},
 };
 
-static struct dm9000_plat_data zeus_dm9k_platdata = {
+static struct dm9000_plat_data zeus_dm9k_platdata =
+{
 	.flags		= DM9000_PLATF_16BITONLY,
 };
 
-static struct platform_device zeus_dm9k0_device = {
+static struct platform_device zeus_dm9k0_device =
+{
 	.name		= "dm9000",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(zeus_dm9k0_resource),
@@ -363,7 +381,8 @@ static struct platform_device zeus_dm9k0_device = {
 	}
 };
 
-static struct platform_device zeus_dm9k1_device = {
+static struct platform_device zeus_dm9k1_device =
+{
 	.name		= "dm9000",
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(zeus_dm9k1_resource),
@@ -374,13 +393,15 @@ static struct platform_device zeus_dm9k1_device = {
 };
 
 /* External SRAM */
-static struct resource zeus_sram_resource = {
+static struct resource zeus_sram_resource =
+{
 	.start		= ZEUS_SRAM_PHYS,
 	.end		= ZEUS_SRAM_PHYS + ZEUS_SRAM_SIZE * 2 - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device zeus_sram_device = {
+static struct platform_device zeus_sram_device =
+{
 	.name		= "pxa2xx-8bit-sram",
 	.id		= 0,
 	.num_resources	= 1,
@@ -388,7 +409,8 @@ static struct platform_device zeus_sram_device = {
 };
 
 /* SPI interface on SSP3 */
-static struct pxa2xx_spi_master pxa2xx_spi_ssp3_master_info = {
+static struct pxa2xx_spi_master pxa2xx_spi_ssp3_master_info =
+{
 	.num_chipselect = 1,
 	.enable_dma     = 1,
 };
@@ -397,7 +419,8 @@ static struct pxa2xx_spi_master pxa2xx_spi_ssp3_master_info = {
 static struct regulator_consumer_supply can_regulator_consumer =
 	REGULATOR_SUPPLY("vdd", "spi3.0");
 
-static struct regulator_init_data can_regulator_init_data = {
+static struct regulator_init_data can_regulator_init_data =
+{
 	.constraints	= {
 		.valid_ops_mask	= REGULATOR_CHANGE_STATUS,
 	},
@@ -405,14 +428,16 @@ static struct regulator_init_data can_regulator_init_data = {
 	.num_consumer_supplies	= 1,
 };
 
-static struct fixed_voltage_config can_regulator_pdata = {
+static struct fixed_voltage_config can_regulator_pdata =
+{
 	.supply_name	= "CAN_SHDN",
 	.microvolts	= 3300000,
 	.gpio		= ZEUS_CAN_SHDN_GPIO,
 	.init_data	= &can_regulator_init_data,
 };
 
-static struct platform_device can_regulator_device = {
+static struct platform_device can_regulator_device =
+{
 	.name	= "reg-fixed-voltage",
 	.id	= 0,
 	.dev	= {
@@ -420,16 +445,18 @@ static struct platform_device can_regulator_device = {
 	},
 };
 
-static struct mcp251x_platform_data zeus_mcp2515_pdata = {
-	.oscillator_frequency	= 16*1000*1000,
+static struct mcp251x_platform_data zeus_mcp2515_pdata =
+{
+	.oscillator_frequency	= 16 * 1000 * 1000,
 };
 
-static struct spi_board_info zeus_spi_board_info[] = {
+static struct spi_board_info zeus_spi_board_info[] =
+{
 	[0] = {
 		.modalias	= "mcp2515",
 		.platform_data	= &zeus_mcp2515_pdata,
 		.irq		= PXA_GPIO_TO_IRQ(ZEUS_CAN_GPIO),
-		.max_speed_hz	= 1*1000*1000,
+		.max_speed_hz	= 1 * 1000 * 1000,
 		.bus_num	= 3,
 		.mode		= SPI_MODE_0,
 		.chip_select	= 0,
@@ -437,7 +464,8 @@ static struct spi_board_info zeus_spi_board_info[] = {
 };
 
 /* Leds */
-static struct gpio_led zeus_leds[] = {
+static struct gpio_led zeus_leds[] =
+{
 	[0] = {
 		.name		 = "zeus:yellow:1",
 		.default_trigger = "heartbeat",
@@ -458,12 +486,14 @@ static struct gpio_led zeus_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data zeus_leds_info = {
+static struct gpio_led_platform_data zeus_leds_info =
+{
 	.leds		= zeus_leds,
 	.num_leds	= ARRAY_SIZE(zeus_leds),
 };
 
-static struct platform_device zeus_leds_device = {
+static struct platform_device zeus_leds_device =
+{
 	.name		= "leds-gpio",
 	.id		= -1,
 	.dev		= {
@@ -476,21 +506,27 @@ static void zeus_cf_reset(int state)
 	u16 cpld_state = __raw_readw(ZEUS_CPLD_CONTROL);
 
 	if (state)
+	{
 		cpld_state |= ZEUS_CPLD_CONTROL_CF_RST;
+	}
 	else
+	{
 		cpld_state &= ~ZEUS_CPLD_CONTROL_CF_RST;
+	}
 
 	__raw_writew(cpld_state, ZEUS_CPLD_CONTROL);
 }
 
-static struct arcom_pcmcia_pdata zeus_pcmcia_info = {
+static struct arcom_pcmcia_pdata zeus_pcmcia_info =
+{
 	.cd_gpio	= ZEUS_CF_CD_GPIO,
 	.rdy_gpio	= ZEUS_CF_RDY_GPIO,
 	.pwr_gpio	= ZEUS_CF_PWEN_GPIO,
 	.reset		= zeus_cf_reset,
 };
 
-static struct platform_device zeus_pcmcia_device = {
+static struct platform_device zeus_pcmcia_device =
+{
 	.name		= "zeus-pcmcia",
 	.id		= -1,
 	.dev		= {
@@ -498,13 +534,15 @@ static struct platform_device zeus_pcmcia_device = {
 	},
 };
 
-static struct resource zeus_max6369_resource = {
+static struct resource zeus_max6369_resource =
+{
 	.start		= ZEUS_CPLD_EXTWDOG_PHYS,
 	.end		= ZEUS_CPLD_EXTWDOG_PHYS,
 	.flags		= IORESOURCE_MEM,
 };
 
-struct platform_device zeus_max6369_device = {
+struct platform_device zeus_max6369_device =
+{
 	.name		= "max6369_wdt",
 	.id		= -1,
 	.resource	= &zeus_max6369_resource,
@@ -512,7 +550,8 @@ struct platform_device zeus_max6369_device = {
 };
 
 /* AC'97 */
-static pxa2xx_audio_ops_t zeus_ac97_info = {
+static pxa2xx_audio_ops_t zeus_ac97_info =
+{
 	.reset_gpio = 95,
 };
 
@@ -521,11 +560,13 @@ static pxa2xx_audio_ops_t zeus_ac97_info = {
  * USB host
  */
 
-static struct regulator_consumer_supply zeus_ohci_regulator_supplies[] = {
+static struct regulator_consumer_supply zeus_ohci_regulator_supplies[] =
+{
 	REGULATOR_SUPPLY("vbus2", "pxa27x-ohci"),
 };
 
-static struct regulator_init_data zeus_ohci_regulator_data = {
+static struct regulator_init_data zeus_ohci_regulator_data =
+{
 	.constraints = {
 		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
 	},
@@ -533,7 +574,8 @@ static struct regulator_init_data zeus_ohci_regulator_data = {
 	.consumer_supplies	= zeus_ohci_regulator_supplies,
 };
 
-static struct fixed_voltage_config zeus_ohci_regulator_config = {
+static struct fixed_voltage_config zeus_ohci_regulator_config =
+{
 	.supply_name		= "vbus2",
 	.microvolts		= 5000000, /* 5.0V */
 	.gpio			= ZEUS_USB2_PWREN_GPIO,
@@ -542,7 +584,8 @@ static struct fixed_voltage_config zeus_ohci_regulator_config = {
 	.init_data		= &zeus_ohci_regulator_data,
 };
 
-static struct platform_device zeus_ohci_regulator_device = {
+static struct platform_device zeus_ohci_regulator_device =
+{
 	.name		= "reg-fixed-voltage",
 	.id		= 1,
 	.dev = {
@@ -550,7 +593,8 @@ static struct platform_device zeus_ohci_regulator_device = {
 	},
 };
 
-static struct pxaohci_platform_data zeus_ohci_platform_data = {
+static struct pxaohci_platform_data zeus_ohci_platform_data =
+{
 	.port_mode	= PMM_NPS_MODE,
 	/* Clear Power Control Polarity Low and set Power Sense
 	 * Polarity Low. Supply power to USB ports. */
@@ -584,16 +628,24 @@ static int zeus_setup_fb_gpios(void)
 	int err;
 
 	if ((err = gpio_request(ZEUS_LCD_EN_GPIO, "LCD_EN")))
+	{
 		goto out_err;
+	}
 
 	if ((err = gpio_direction_output(ZEUS_LCD_EN_GPIO, 0)))
+	{
 		goto out_err_lcd;
+	}
 
 	if ((err = gpio_request(ZEUS_BKLEN_GPIO, "BKLEN")))
+	{
 		goto out_err_lcd;
+	}
 
 	if ((err = gpio_direction_output(ZEUS_BKLEN_GPIO, 0)))
+	{
 		goto out_err_bkl;
+	}
 
 	return 0;
 
@@ -605,7 +657,8 @@ out_err:
 	return err;
 }
 
-static struct pxafb_mode_info zeus_fb_mode_info[] = {
+static struct pxafb_mode_info zeus_fb_mode_info[] =
+{
 	{
 		.pixclock       = 39722,
 
@@ -626,7 +679,8 @@ static struct pxafb_mode_info zeus_fb_mode_info[] = {
 	},
 };
 
-static struct pxafb_mach_info zeus_fb_info = {
+static struct pxafb_mach_info zeus_fb_info =
+{
 	.modes			= zeus_fb_mode_info,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
@@ -641,8 +695,9 @@ static struct pxafb_mach_info zeus_fb_info = {
  * to give the card a chance to fully insert/eject.
  */
 
-static struct pxamci_platform_data zeus_mci_platform_data = {
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct pxamci_platform_data zeus_mci_platform_data =
+{
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.detect_delay_ms	= 250,
 	.gpio_card_detect       = ZEUS_MMC_CD_GPIO,
 	.gpio_card_ro           = ZEUS_MMC_WP_GPIO,
@@ -655,24 +710,27 @@ static struct pxamci_platform_data zeus_mci_platform_data = {
  */
 static void zeus_udc_command(int cmd)
 {
-	switch (cmd) {
-	case PXA2XX_UDC_CMD_DISCONNECT:
-		pr_info("zeus: disconnecting USB client\n");
-		UP2OCR = UP2OCR_HXOE | UP2OCR_HXS | UP2OCR_DMPDE | UP2OCR_DPPDE;
-		break;
+	switch (cmd)
+	{
+		case PXA2XX_UDC_CMD_DISCONNECT:
+			pr_info("zeus: disconnecting USB client\n");
+			UP2OCR = UP2OCR_HXOE | UP2OCR_HXS | UP2OCR_DMPDE | UP2OCR_DPPDE;
+			break;
 
-	case PXA2XX_UDC_CMD_CONNECT:
-		pr_info("zeus: connecting USB client\n");
-		UP2OCR = UP2OCR_HXOE | UP2OCR_DPPUE;
-		break;
+		case PXA2XX_UDC_CMD_CONNECT:
+			pr_info("zeus: connecting USB client\n");
+			UP2OCR = UP2OCR_HXOE | UP2OCR_DPPUE;
+			break;
 	}
 }
 
-static struct pxa2xx_udc_mach_info zeus_udc_info = {
+static struct pxa2xx_udc_mach_info zeus_udc_info =
+{
 	.udc_command = zeus_udc_command,
 };
 
-static struct platform_device *zeus_devices[] __initdata = {
+static struct platform_device *zeus_devices[] __initdata =
+{
 	&zeus_serial_device,
 	&zeus_mtd_devices[0],
 	&zeus_dm9k0_device,
@@ -715,20 +773,23 @@ static inline void zeus_setup_apm(void)
 #endif
 
 static int zeus_get_pcb_info(struct i2c_client *client, unsigned gpio,
-			     unsigned ngpio, void *context)
+							 unsigned ngpio, void *context)
 {
 	int i;
 	u8 pcb_info = 0;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		int pcb_bit = gpio + i + 8;
 
-		if (gpio_request(pcb_bit, "pcb info")) {
+		if (gpio_request(pcb_bit, "pcb info"))
+		{
 			dev_err(&client->dev, "Can't request pcb info %d\n", i);
 			continue;
 		}
 
-		if (gpio_direction_input(pcb_bit)) {
+		if (gpio_direction_input(pcb_bit))
+		{
 			dev_err(&client->dev, "Can't read pcb info %d\n", i);
 			gpio_free(pcb_bit);
 			continue;
@@ -740,12 +801,13 @@ static int zeus_get_pcb_info(struct i2c_client *client, unsigned gpio,
 	}
 
 	dev_info(&client->dev, "Zeus PCB version %d issue %d\n",
-		 pcb_info >> 4, pcb_info & 0xf);
+			 pcb_info >> 4, pcb_info & 0xf);
 
 	return 0;
 }
 
-static struct pca953x_platform_data zeus_pca953x_pdata[] = {
+static struct pca953x_platform_data zeus_pca953x_pdata[] =
+{
 	[0] = { .gpio_base	= ZEUS_EXT0_GPIO_BASE, },
 	[1] = {
 		.gpio_base	= ZEUS_EXT1_GPIO_BASE,
@@ -754,7 +816,8 @@ static struct pca953x_platform_data zeus_pca953x_pdata[] = {
 	[2] = { .gpio_base = ZEUS_USER_GPIO_BASE, },
 };
 
-static struct i2c_board_info __initdata zeus_i2c_devices[] = {
+static struct i2c_board_info __initdata zeus_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("pca9535",	0x21),
 		.platform_data	= &zeus_pca953x_pdata[0],
@@ -773,7 +836,8 @@ static struct i2c_board_info __initdata zeus_i2c_devices[] = {
 	{ I2C_BOARD_INFO("isl1208",	0x6f) },
 };
 
-static mfp_cfg_t zeus_pin_config[] __initdata = {
+static mfp_cfg_t zeus_pin_config[] __initdata =
+{
 	/* AC97 */
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
@@ -858,9 +922,13 @@ static void __init zeus_init(void)
 	zeus_register_ohci();
 
 	if (zeus_setup_fb_gpios())
+	{
 		pr_err("Failed to setup fb gpios\n");
+	}
 	else
+	{
 		pxa_set_fb_info(NULL, &zeus_fb_info);
+	}
 
 	pxa_set_mci_info(&zeus_mci_platform_data);
 	pxa_set_udc_info(&zeus_udc_info);
@@ -873,7 +941,8 @@ static void __init zeus_init(void)
 	regulator_has_full_constraints();
 }
 
-static struct map_desc zeus_io_desc[] __initdata = {
+static struct map_desc zeus_io_desc[] __initdata =
+{
 	{
 		.virtual = (unsigned long)ZEUS_CPLD_VERSION,
 		.pfn     = __phys_to_pfn(ZEUS_CPLD_VERSION_PHYS),
@@ -918,14 +987,14 @@ static void __init zeus_map_io(void)
 }
 
 MACHINE_START(ARCOM_ZEUS, "Arcom/Eurotech ZEUS")
-	/* Maintainer: Marc Zyngier <maz@misterjones.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Marc Zyngier <maz@misterjones.org> */
+.atag_offset	= 0x100,
 	.map_io		= zeus_map_io,
-	.nr_irqs	= ZEUS_NR_IRQS,
-	.init_irq	= zeus_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= zeus_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= ZEUS_NR_IRQS,
+			.init_irq	= zeus_init_irq,
+			   .handle_irq	= pxa27x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= zeus_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END
 

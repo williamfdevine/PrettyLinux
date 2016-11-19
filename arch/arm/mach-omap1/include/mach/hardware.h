@@ -61,13 +61,13 @@ extern void omap_writel(u32 v, u32 pa);
 static inline u32 omap_cs0m_phys(void)
 {
 	return (omap_readl(EMIFS_CONFIG) & OMAP_EMIFS_CONFIG_BM)
-			?  OMAP_CS3_PHYS : 0;
+		   ?  OMAP_CS3_PHYS : 0;
 }
 
 static inline u32 omap_cs3_phys(void)
 {
 	return (omap_readl(EMIFS_CONFIG) & OMAP_EMIFS_CONFIG_BM)
-			? 0 : OMAP_CS3_PHYS;
+		   ? 0 : OMAP_CS3_PHYS;
 }
 
 #endif	/* ifndef __ASSEMBLER__ */
@@ -178,38 +178,38 @@ static inline u32 omap_cs3_phys(void)
  */
 #ifdef CONFIG_ARCH_OMAP1
 
-/*
- * XXX: These probably want to be moved to arch/arm/mach-omap/omap1/irq.c
- * or something similar.. -- PFM.
- */
+	/*
+	* XXX: These probably want to be moved to arch/arm/mach-omap/omap1/irq.c
+	* or something similar.. -- PFM.
+	*/
 
-#define OMAP_IH1_BASE		0xfffecb00
-#define OMAP_IH2_BASE		0xfffe0000
+	#define OMAP_IH1_BASE		0xfffecb00
+	#define OMAP_IH2_BASE		0xfffe0000
 
-#define OMAP_IH1_ITR		(OMAP_IH1_BASE + 0x00)
-#define OMAP_IH1_MIR		(OMAP_IH1_BASE + 0x04)
-#define OMAP_IH1_SIR_IRQ	(OMAP_IH1_BASE + 0x10)
-#define OMAP_IH1_SIR_FIQ	(OMAP_IH1_BASE + 0x14)
-#define OMAP_IH1_CONTROL	(OMAP_IH1_BASE + 0x18)
-#define OMAP_IH1_ILR0		(OMAP_IH1_BASE + 0x1c)
-#define OMAP_IH1_ISR		(OMAP_IH1_BASE + 0x9c)
+	#define OMAP_IH1_ITR		(OMAP_IH1_BASE + 0x00)
+	#define OMAP_IH1_MIR		(OMAP_IH1_BASE + 0x04)
+	#define OMAP_IH1_SIR_IRQ	(OMAP_IH1_BASE + 0x10)
+	#define OMAP_IH1_SIR_FIQ	(OMAP_IH1_BASE + 0x14)
+	#define OMAP_IH1_CONTROL	(OMAP_IH1_BASE + 0x18)
+	#define OMAP_IH1_ILR0		(OMAP_IH1_BASE + 0x1c)
+	#define OMAP_IH1_ISR		(OMAP_IH1_BASE + 0x9c)
 
-#define OMAP_IH2_ITR		(OMAP_IH2_BASE + 0x00)
-#define OMAP_IH2_MIR		(OMAP_IH2_BASE + 0x04)
-#define OMAP_IH2_SIR_IRQ	(OMAP_IH2_BASE + 0x10)
-#define OMAP_IH2_SIR_FIQ	(OMAP_IH2_BASE + 0x14)
-#define OMAP_IH2_CONTROL	(OMAP_IH2_BASE + 0x18)
-#define OMAP_IH2_ILR0		(OMAP_IH2_BASE + 0x1c)
-#define OMAP_IH2_ISR		(OMAP_IH2_BASE + 0x9c)
+	#define OMAP_IH2_ITR		(OMAP_IH2_BASE + 0x00)
+	#define OMAP_IH2_MIR		(OMAP_IH2_BASE + 0x04)
+	#define OMAP_IH2_SIR_IRQ	(OMAP_IH2_BASE + 0x10)
+	#define OMAP_IH2_SIR_FIQ	(OMAP_IH2_BASE + 0x14)
+	#define OMAP_IH2_CONTROL	(OMAP_IH2_BASE + 0x18)
+	#define OMAP_IH2_ILR0		(OMAP_IH2_BASE + 0x1c)
+	#define OMAP_IH2_ISR		(OMAP_IH2_BASE + 0x9c)
 
-#define IRQ_ITR_REG_OFFSET	0x00
-#define IRQ_MIR_REG_OFFSET	0x04
-#define IRQ_SIR_IRQ_REG_OFFSET	0x10
-#define IRQ_SIR_FIQ_REG_OFFSET	0x14
-#define IRQ_CONTROL_REG_OFFSET	0x18
-#define IRQ_ISR_REG_OFFSET	0x9c
-#define IRQ_ILR0_REG_OFFSET	0x1c
-#define IRQ_GMR_REG_OFFSET	0xa0
+	#define IRQ_ITR_REG_OFFSET	0x00
+	#define IRQ_MIR_REG_OFFSET	0x04
+	#define IRQ_SIR_IRQ_REG_OFFSET	0x10
+	#define IRQ_SIR_FIQ_REG_OFFSET	0x14
+	#define IRQ_CONTROL_REG_OFFSET	0x18
+	#define IRQ_ISR_REG_OFFSET	0x9c
+	#define IRQ_ILR0_REG_OFFSET	0x1c
+	#define IRQ_GMR_REG_OFFSET	0xa0
 
 #endif
 

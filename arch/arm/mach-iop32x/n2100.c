@@ -56,7 +56,8 @@ static void __init n2100_timer_init(void)
 /*
  * N2100 I/O.
  */
-static struct map_desc n2100_io_desc[] __initdata = {
+static struct map_desc n2100_io_desc[] __initdata =
+{
 	{	/* on-board devices */
 		.virtual	= N2100_UART,
 		.pfn		= __phys_to_pfn(N2100_UART),
@@ -80,38 +81,54 @@ n2100_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 
-	if (PCI_SLOT(dev->devfn) == 1) {
+	if (PCI_SLOT(dev->devfn) == 1)
+	{
 		/* RTL8110SB #1 */
 		irq = IRQ_IOP32X_XINT0;
-	} else if (PCI_SLOT(dev->devfn) == 2) {
+	}
+	else if (PCI_SLOT(dev->devfn) == 2)
+	{
 		/* RTL8110SB #2 */
 		irq = IRQ_IOP32X_XINT3;
-	} else if (PCI_SLOT(dev->devfn) == 3) {
+	}
+	else if (PCI_SLOT(dev->devfn) == 3)
+	{
 		/* Sil3512 */
 		irq = IRQ_IOP32X_XINT2;
-	} else if (PCI_SLOT(dev->devfn) == 4 && pin == 1) {
+	}
+	else if (PCI_SLOT(dev->devfn) == 4 && pin == 1)
+	{
 		/* VT6212 INTA */
 		irq = IRQ_IOP32X_XINT1;
-	} else if (PCI_SLOT(dev->devfn) == 4 && pin == 2) {
+	}
+	else if (PCI_SLOT(dev->devfn) == 4 && pin == 2)
+	{
 		/* VT6212 INTB */
 		irq = IRQ_IOP32X_XINT0;
-	} else if (PCI_SLOT(dev->devfn) == 4 && pin == 3) {
+	}
+	else if (PCI_SLOT(dev->devfn) == 4 && pin == 3)
+	{
 		/* VT6212 INTC */
 		irq = IRQ_IOP32X_XINT2;
-	} else if (PCI_SLOT(dev->devfn) == 5) {
+	}
+	else if (PCI_SLOT(dev->devfn) == 5)
+	{
 		/* Mini-PCI slot */
 		irq = IRQ_IOP32X_XINT3;
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "n2100_pci_map_irq() called for unknown "
-			"device PCI:%d:%d:%d\n", dev->bus->number,
-			PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
+			   "device PCI:%d:%d:%d\n", dev->bus->number,
+			   PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
 		irq = -1;
 	}
 
 	return irq;
 }
 
-static struct hw_pci n2100_pci __initdata = {
+static struct hw_pci n2100_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &iop3xx_ops,
 	.setup		= iop3xx_pci_setup,
@@ -127,16 +144,20 @@ static struct hw_pci n2100_pci __initdata = {
 static void n2100_fixup_r8169(struct pci_dev *dev)
 {
 	if (dev->bus->number == 0 &&
-	    (dev->devfn == PCI_DEVFN(1, 0) ||
-	     dev->devfn == PCI_DEVFN(2, 0)))
+		(dev->devfn == PCI_DEVFN(1, 0) ||
+		 dev->devfn == PCI_DEVFN(2, 0)))
+	{
 		dev->broken_parity_status = 1;
+	}
 }
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_REALTEK, PCI_ANY_ID, n2100_fixup_r8169);
 
 static int __init n2100_pci_init(void)
 {
 	if (machine_is_n2100())
+	{
 		pci_common_init(&n2100_pci);
+	}
 
 	return 0;
 }
@@ -147,17 +168,20 @@ subsys_initcall(n2100_pci_init);
 /*
  * N2100 machine initialisation.
  */
-static struct physmap_flash_data n2100_flash_data = {
+static struct physmap_flash_data n2100_flash_data =
+{
 	.width		= 2,
 };
 
-static struct resource n2100_flash_resource = {
+static struct resource n2100_flash_resource =
+{
 	.start		= 0xf0000000,
 	.end		= 0xf0ffffff,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device n2100_flash_device = {
+static struct platform_device n2100_flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -168,7 +192,8 @@ static struct platform_device n2100_flash_device = {
 };
 
 
-static struct plat_serial8250_port n2100_serial_port[] = {
+static struct plat_serial8250_port n2100_serial_port[] =
+{
 	{
 		.mapbase	= N2100_UART,
 		.membase	= (char *)N2100_UART,
@@ -181,13 +206,15 @@ static struct plat_serial8250_port n2100_serial_port[] = {
 	{ },
 };
 
-static struct resource n2100_uart_resource = {
+static struct resource n2100_uart_resource =
+{
 	.start		= N2100_UART,
 	.end		= N2100_UART + 7,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device n2100_serial_device = {
+static struct platform_device n2100_serial_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev		= {
@@ -197,59 +224,69 @@ static struct platform_device n2100_serial_device = {
 	.resource	= &n2100_uart_resource,
 };
 
-static struct f75375s_platform_data n2100_f75375s = {
+static struct f75375s_platform_data n2100_f75375s =
+{
 	.pwm		= { 255, 255 },
 	.pwm_enable = { 0, 0 },
 };
 
-static struct pca9532_platform_data n2100_leds = {
+static struct pca9532_platform_data n2100_leds =
+{
 	.leds = {
-	{	.name = "n2100:red:satafail0",
-		.state = PCA9532_OFF,
-		.type = PCA9532_TYPE_LED,
-	},
-	{	.name = "n2100:red:satafail1",
-		.state = PCA9532_OFF,
-		.type = PCA9532_TYPE_LED,
-	},
-	{	.name = "n2100:blue:usb",
-		.state = PCA9532_OFF,
-		.type = PCA9532_TYPE_LED,
-	},
-	{ 	.type = PCA9532_TYPE_NONE },
+		{
+			.name = "n2100:red:satafail0",
+			.state = PCA9532_OFF,
+			.type = PCA9532_TYPE_LED,
+		},
+		{
+			.name = "n2100:red:satafail1",
+			.state = PCA9532_OFF,
+			.type = PCA9532_TYPE_LED,
+		},
+		{
+			.name = "n2100:blue:usb",
+			.state = PCA9532_OFF,
+			.type = PCA9532_TYPE_LED,
+		},
+		{ 	.type = PCA9532_TYPE_NONE },
 
-	{ 	.type = PCA9532_TYPE_NONE },
-	{ 	.type = PCA9532_TYPE_NONE },
-	{ 	.type = PCA9532_TYPE_NONE },
-	{	.name = "n2100:red:usb",
-		.state = PCA9532_OFF,
-		.type = PCA9532_TYPE_LED,
-	},
+		{ 	.type = PCA9532_TYPE_NONE },
+		{ 	.type = PCA9532_TYPE_NONE },
+		{ 	.type = PCA9532_TYPE_NONE },
+		{
+			.name = "n2100:red:usb",
+			.state = PCA9532_OFF,
+			.type = PCA9532_TYPE_LED,
+		},
 
-	{	.type = PCA9532_TYPE_NONE }, /* power OFF gpio */
-	{	.type = PCA9532_TYPE_NONE }, /* reset gpio */
-	{	.type = PCA9532_TYPE_NONE },
-	{	.type = PCA9532_TYPE_NONE },
+		{	.type = PCA9532_TYPE_NONE }, /* power OFF gpio */
+		{	.type = PCA9532_TYPE_NONE }, /* reset gpio */
+		{	.type = PCA9532_TYPE_NONE },
+		{	.type = PCA9532_TYPE_NONE },
 
-	{	.type = PCA9532_TYPE_NONE },
-	{	.name = "n2100:orange:system",
-		.state = PCA9532_OFF,
-		.type = PCA9532_TYPE_LED,
-	},
-	{	.name = "n2100:red:system",
-		.state = PCA9532_OFF,
-		.type = PCA9532_TYPE_LED,
-	},
-	{	.name = "N2100 beeper"  ,
-		.state =  PCA9532_OFF,
-		.type = PCA9532_TYPE_N2100_BEEP,
-	},
+		{	.type = PCA9532_TYPE_NONE },
+		{
+			.name = "n2100:orange:system",
+			.state = PCA9532_OFF,
+			.type = PCA9532_TYPE_LED,
+		},
+		{
+			.name = "n2100:red:system",
+			.state = PCA9532_OFF,
+			.type = PCA9532_TYPE_LED,
+		},
+		{
+			.name = "N2100 beeper"  ,
+			.state =  PCA9532_OFF,
+			.type = PCA9532_TYPE_N2100_BEEP,
+		},
 	},
 	.psc = { 0, 0 },
 	.pwm = { 0, 0 },
 };
 
-static struct i2c_board_info __initdata n2100_i2c_devices[] = {
+static struct i2c_board_info __initdata n2100_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("rs5c372b", 0x32),
 	},
@@ -293,10 +330,13 @@ static void n2100_restart(enum reboot_mode mode, const char *cmd)
 	int ret;
 
 	ret = gpio_direction_output(N2100_HARDWARE_RESET, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_crit("could not drive reset GPIO low\n");
 		return;
 	}
+
 	/* Wait for reset to happen */
 	while (1)
 		;
@@ -307,7 +347,8 @@ static struct timer_list power_button_poll_timer;
 
 static void power_button_poll(unsigned long dummy)
 {
-	if (gpio_get_value(N2100_POWER_BUTTON) == 0) {
+	if (gpio_get_value(N2100_POWER_BUTTON) == 0)
+	{
 		ctrl_alt_del();
 		return;
 	}
@@ -321,20 +362,33 @@ static int __init n2100_request_gpios(void)
 	int ret;
 
 	if (!machine_is_n2100())
+	{
 		return 0;
+	}
 
 	ret = gpio_request(N2100_HARDWARE_RESET, "reset");
+
 	if (ret)
+	{
 		pr_err("could not request reset GPIO\n");
+	}
 
 	ret = gpio_request(N2100_POWER_BUTTON, "power");
+
 	if (ret)
+	{
 		pr_err("could not request power GPIO\n");
-	else {
-		ret = gpio_direction_input(N2100_POWER_BUTTON);
-		if (ret)
-			pr_err("could not set power GPIO as input\n");
 	}
+	else
+	{
+		ret = gpio_direction_input(N2100_POWER_BUTTON);
+
+		if (ret)
+		{
+			pr_err("could not set power GPIO as input\n");
+		}
+	}
+
 	/* Set up power button poll timer */
 	init_timer(&power_button_poll_timer);
 	power_button_poll_timer.function = power_button_poll;
@@ -354,17 +408,17 @@ static void __init n2100_init_machine(void)
 	platform_device_register(&iop3xx_dma_1_channel);
 
 	i2c_register_board_info(0, n2100_i2c_devices,
-		ARRAY_SIZE(n2100_i2c_devices));
+							ARRAY_SIZE(n2100_i2c_devices));
 
 	pm_power_off = n2100_power_off;
 }
 
 MACHINE_START(N2100, "Thecus N2100")
-	/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
+.atag_offset	= 0x100,
 	.map_io		= n2100_map_io,
-	.init_irq	= iop32x_init_irq,
-	.init_time	= n2100_timer_init,
-	.init_machine	= n2100_init_machine,
-	.restart	= n2100_restart,
-MACHINE_END
+		.init_irq	= iop32x_init_irq,
+		   .init_time	= n2100_timer_init,
+			 .init_machine	= n2100_init_machine,
+				.restart	= n2100_restart,
+					MACHINE_END

@@ -1,7 +1,8 @@
 #ifndef __BCM47XX_BOARD_H
 #define __BCM47XX_BOARD_H
 
-enum bcm47xx_board {
+enum bcm47xx_board
+{
 	BCM47XX_BOARD_ASUS_RTAC66U,
 	BCM47XX_BOARD_ASUS_RTN10,
 	BCM47XX_BOARD_ASUS_RTN10D,

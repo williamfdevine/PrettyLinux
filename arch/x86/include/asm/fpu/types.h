@@ -8,7 +8,8 @@
  * The legacy x87 FPU state format, as saved by FSAVE and
  * restored by the FRSTOR instructions:
  */
-struct fregs_state {
+struct fregs_state
+{
 	u32			cwd;	/* FPU Control Word		*/
 	u32			swd;	/* FPU Status Word		*/
 	u32			twd;	/* FPU Tag Word			*/
@@ -30,17 +31,21 @@ struct fregs_state {
  * format, but differs in some areas, plus has extensions at
  * the end for the XMM registers.
  */
-struct fxregs_state {
+struct fxregs_state
+{
 	u16			cwd; /* Control Word			*/
 	u16			swd; /* Status Word			*/
 	u16			twd; /* Tag Word			*/
 	u16			fop; /* Last Instruction Opcode		*/
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u64	rip; /* Instruction Pointer		*/
 			u64	rdp; /* Data Pointer			*/
 		};
-		struct {
+		struct
+		{
 			u32	fip; /* FPU IP Offset			*/
 			u32	fcs; /* FPU IP Selector			*/
 			u32	foo; /* FPU Operand Offset		*/
@@ -58,7 +63,8 @@ struct fxregs_state {
 
 	u32			padding[12];
 
-	union {
+	union
+	{
 		u32		padding1[12];
 		u32		sw_reserved[12];
 	};
@@ -72,7 +78,8 @@ struct fxregs_state {
  * Software based FPU emulation state. This is arbitrary really,
  * it matches the x87 format to make it easier to understand:
  */
-struct swregs_state {
+struct swregs_state
+{
 	u32			cwd;
 	u32			swd;
 	u32			twd;
@@ -95,7 +102,8 @@ struct swregs_state {
 /*
  * List of XSAVE features Linux knows about:
  */
-enum xfeature {
+enum xfeature
+{
 	XFEATURE_FP,
 	XFEATURE_SSE,
 	/*
@@ -127,19 +135,22 @@ enum xfeature {
 
 #define XFEATURE_MASK_FPSSE		(XFEATURE_MASK_FP | XFEATURE_MASK_SSE)
 #define XFEATURE_MASK_AVX512		(XFEATURE_MASK_OPMASK \
-					 | XFEATURE_MASK_ZMM_Hi256 \
-					 | XFEATURE_MASK_Hi16_ZMM)
+									 | XFEATURE_MASK_ZMM_Hi256 \
+									 | XFEATURE_MASK_Hi16_ZMM)
 
 #define FIRST_EXTENDED_XFEATURE	XFEATURE_YMM
 
-struct reg_128_bit {
-	u8      regbytes[128/8];
+struct reg_128_bit
+{
+	u8      regbytes[128 / 8];
 };
-struct reg_256_bit {
-	u8	regbytes[256/8];
+struct reg_256_bit
+{
+	u8	regbytes[256 / 8];
 };
-struct reg_512_bit {
-	u8	regbytes[512/8];
+struct reg_512_bit
+{
+	u8	regbytes[512 / 8];
 };
 
 /*
@@ -152,20 +163,23 @@ struct reg_512_bit {
  *
  * The high 128 bits are stored here.
  */
-struct ymmh_struct {
+struct ymmh_struct
+{
 	struct reg_128_bit              hi_ymm[16];
 } __packed;
 
 /* Intel MPX support: */
 
-struct mpx_bndreg {
+struct mpx_bndreg
+{
 	u64				lower_bound;
 	u64				upper_bound;
 } __packed;
 /*
  * State component 3 is used for the 4 128-bit bounds registers
  */
-struct mpx_bndreg_state {
+struct mpx_bndreg_state
+{
 	struct mpx_bndreg		bndreg[4];
 } __packed;
 
@@ -174,7 +188,8 @@ struct mpx_bndreg_state {
  * configuration register BNDCFGU and the 64-bit MPX status
  * register BNDSTATUS.  We call the pair "BNDCSR".
  */
-struct mpx_bndcsr {
+struct mpx_bndcsr
+{
 	u64				bndcfgu;
 	u64				bndstatus;
 } __packed;
@@ -182,8 +197,10 @@ struct mpx_bndcsr {
 /*
  * The BNDCSR state is padded out to be 64-bytes in size.
  */
-struct mpx_bndcsr_state {
-	union {
+struct mpx_bndcsr_state
+{
+	union
+	{
 		struct mpx_bndcsr		bndcsr;
 		u8				pad_to_64_bytes[64];
 	};
@@ -195,7 +212,8 @@ struct mpx_bndcsr_state {
  * State component 5 is used for the 8 64-bit opmask registers
  * k0-k7 (opmask state).
  */
-struct avx_512_opmask_state {
+struct avx_512_opmask_state
+{
 	u64				opmask_reg[8];
 } __packed;
 
@@ -204,7 +222,8 @@ struct avx_512_opmask_state {
  * registers ZMM0-ZMM15. These 16 256-bit values are denoted
  * ZMM0_H-ZMM15_H (ZMM_Hi256 state).
  */
-struct avx_512_zmm_uppers_state {
+struct avx_512_zmm_uppers_state
+{
 	struct reg_256_bit		zmm_upper[16];
 } __packed;
 
@@ -212,7 +231,8 @@ struct avx_512_zmm_uppers_state {
  * State component 7 is used for the 16 512-bit registers
  * ZMM16-ZMM31 (Hi16_ZMM state).
  */
-struct avx_512_hi16_state {
+struct avx_512_hi16_state
+{
 	struct reg_512_bit		hi16_zmm[16];
 } __packed;
 
@@ -220,12 +240,14 @@ struct avx_512_hi16_state {
  * State component 9: 32-bit PKRU register.  The state is
  * 8 bytes long but only 4 bytes is used currently.
  */
-struct pkru_state {
+struct pkru_state
+{
 	u32				pkru;
 	u32				pad;
 } __packed;
 
-struct xstate_header {
+struct xstate_header
+{
 	u64				xfeatures;
 	u64				xcomp_bv;
 	u64				reserved[6];
@@ -246,7 +268,8 @@ struct xstate_header {
  * support all the extensions, so the size of the extended area
  * can vary quite a bit between CPUs.
  */
-struct xregs_state {
+struct xregs_state
+{
 	struct fxregs_state		i387;
 	struct xstate_header		header;
 	u8				extended_state_area[0];
@@ -261,7 +284,8 @@ struct xregs_state {
  * to ensure that statically-allocated task_structs (just
  * the init_task today) have enough space.
  */
-union fpregs_state {
+union fpregs_state
+{
 	struct fregs_state		fsave;
 	struct fxregs_state		fxsave;
 	struct swregs_state		soft;
@@ -274,7 +298,8 @@ union fpregs_state {
  * contains the FPU register state plus various FPU
  * state fields:
  */
-struct fpu {
+struct fpu
+{
 	/*
 	 * @last_cpu:
 	 *

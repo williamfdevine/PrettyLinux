@@ -79,9 +79,9 @@
 #define __OLD_NSIG	32
 #define __NEW_NSIG      64
 #ifdef __arch64__
-#define _NSIG_BPW       64
+	#define _NSIG_BPW       64
 #else
-#define _NSIG_BPW       32
+	#define _NSIG_BPW       32
 #endif
 #define _NSIG_WORDS     (__NEW_NSIG / _NSIG_BPW)
 
@@ -89,31 +89,33 @@
 #define SIGRTMAX       __NEW_NSIG
 
 #if defined(__KERNEL__) || defined(__WANT_POSIX1B_SIGNALS__)
-#define _NSIG			__NEW_NSIG
-#define __new_sigset_t		sigset_t
-#define __new_sigaction		sigaction
-#define __new_sigaction32	sigaction32
-#define __old_sigset_t		old_sigset_t
-#define __old_sigaction		old_sigaction
-#define __old_sigaction32	old_sigaction32
+	#define _NSIG			__NEW_NSIG
+	#define __new_sigset_t		sigset_t
+	#define __new_sigaction		sigaction
+	#define __new_sigaction32	sigaction32
+	#define __old_sigset_t		old_sigset_t
+	#define __old_sigaction		old_sigaction
+	#define __old_sigaction32	old_sigaction32
 #else
-#define _NSIG			__OLD_NSIG
-#define NSIG			_NSIG
-#define __old_sigset_t		sigset_t
-#define __old_sigaction		sigaction
-#define __old_sigaction32	sigaction32
+	#define _NSIG			__OLD_NSIG
+	#define NSIG			_NSIG
+	#define __old_sigset_t		sigset_t
+	#define __old_sigaction		sigaction
+	#define __old_sigaction32	sigaction32
 #endif
 
 #ifndef __ASSEMBLY__
 
 typedef unsigned long __old_sigset_t;            /* at least 32 bits */
 
-typedef struct {
-       unsigned long sig[_NSIG_WORDS];
+typedef struct
+{
+	unsigned long sig[_NSIG_WORDS];
 } __new_sigset_t;
 
 /* A SunOS sigstack */
-struct sigstack {
+struct sigstack
+{
 	/* XXX 32-bit pointers pinhead XXX */
 	char *the_stack;
 	int   cur_status;
@@ -154,14 +156,16 @@ struct sigstack {
 #include <asm-generic/signal-defs.h>
 
 #ifndef __KERNEL__
-struct __new_sigaction {
+struct __new_sigaction
+{
 	__sighandler_t		sa_handler;
 	unsigned long		sa_flags;
 	__sigrestore_t		sa_restorer;  /* not used by Linux/SPARC yet */
 	__new_sigset_t		sa_mask;
 };
 
-struct __old_sigaction {
+struct __old_sigaction
+{
 	__sighandler_t		sa_handler;
 	__old_sigset_t		sa_mask;
 	unsigned long		sa_flags;
@@ -169,7 +173,8 @@ struct __old_sigaction {
 };
 #endif
 
-typedef struct sigaltstack {
+typedef struct sigaltstack
+{
 	void			__user *ss_sp;
 	int			ss_flags;
 	size_t			ss_size;

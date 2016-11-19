@@ -57,23 +57,37 @@ void __init rcar_gen2_pm_init(void)
 	u32 syscier = 0;
 
 	if (once++)
+	{
 		return;
+	}
 
 	cpus = of_find_node_by_path("/cpus");
-	if (!cpus)
-		return;
 
-	for_each_child_of_node(cpus, np) {
+	if (!cpus)
+	{
+		return;
+	}
+
+	for_each_child_of_node(cpus, np)
+	{
 		if (of_device_is_compatible(np, "arm,cortex-a15"))
+		{
 			has_a15 = true;
+		}
 		else if (of_device_is_compatible(np, "arm,cortex-a7"))
+		{
 			has_a7 = true;
+		}
 	}
 
 	if (of_machine_is_compatible("renesas,r8a7790"))
+	{
 		syscier = 0x013111ef;
+	}
 	else if (of_machine_is_compatible("renesas,r8a7791"))
+	{
 		syscier = 0x00111003;
+	}
 
 	/* RAM for jump stub, because BAR requires 256KB aligned address */
 	p = ioremap_nocache(boot_vector_addr, shmobile_boot_size);
@@ -83,22 +97,27 @@ void __init rcar_gen2_pm_init(void)
 	/* setup reset vectors */
 	p = ioremap_nocache(RST, 0x63);
 	bar = (boot_vector_addr >> 8) & 0xfffffc00;
-	if (has_a15) {
+
+	if (has_a15)
+	{
 		writel_relaxed(bar, p + CA15BAR);
 		writel_relaxed(bar | 0x10, p + CA15BAR);
 
 		/* de-assert reset for CA15 CPUs */
 		writel_relaxed((readl_relaxed(p + CA15RESCNT) & ~0x0f) |
-				0xa5a50000, p + CA15RESCNT);
+					   0xa5a50000, p + CA15RESCNT);
 	}
-	if (has_a7) {
+
+	if (has_a7)
+	{
 		writel_relaxed(bar, p + CA7BAR);
 		writel_relaxed(bar | 0x10, p + CA7BAR);
 
 		/* de-assert reset for CA7 CPUs */
 		writel_relaxed((readl_relaxed(p + CA7RESCNT) & ~0x0f) |
-				0x5a5a0000, p + CA7RESCNT);
+					   0x5a5a0000, p + CA7RESCNT);
 	}
+
 	iounmap(p);
 
 	rcar_gen2_sysc_init(syscier);

@@ -11,15 +11,15 @@
 #include <asm/page.h>
 
 unsigned long __must_check __copy_to_user_ll
-		(void __user *to, const void *from, unsigned long n);
+(void __user *to, const void *from, unsigned long n);
 unsigned long __must_check __copy_from_user_ll
-		(void *to, const void __user *from, unsigned long n);
+(void *to, const void __user *from, unsigned long n);
 unsigned long __must_check __copy_from_user_ll_nozero
-		(void *to, const void __user *from, unsigned long n);
+(void *to, const void __user *from, unsigned long n);
 unsigned long __must_check __copy_from_user_ll_nocache
-		(void *to, const void __user *from, unsigned long n);
+(void *to, const void __user *from, unsigned long n);
 unsigned long __must_check __copy_from_user_ll_nocache_nozero
-		(void *to, const void __user *from, unsigned long n);
+(void *to, const void __user *from, unsigned long n);
 
 /**
  * __copy_to_user_inatomic: - Copy a block of data into user space, with less checking.
@@ -97,63 +97,75 @@ __copy_from_user(void *to, const void __user *from, unsigned long n)
 {
 	might_fault();
 	check_object_size(to, n, false);
-	if (__builtin_constant_p(n)) {
+
+	if (__builtin_constant_p(n))
+	{
 		unsigned long ret;
 
-		switch (n) {
-		case 1:
-			__uaccess_begin();
-			__get_user_size(*(u8 *)to, from, 1, ret, 1);
-			__uaccess_end();
-			return ret;
-		case 2:
-			__uaccess_begin();
-			__get_user_size(*(u16 *)to, from, 2, ret, 2);
-			__uaccess_end();
-			return ret;
-		case 4:
-			__uaccess_begin();
-			__get_user_size(*(u32 *)to, from, 4, ret, 4);
-			__uaccess_end();
-			return ret;
+		switch (n)
+		{
+			case 1:
+				__uaccess_begin();
+				__get_user_size(*(u8 *)to, from, 1, ret, 1);
+				__uaccess_end();
+				return ret;
+
+			case 2:
+				__uaccess_begin();
+				__get_user_size(*(u16 *)to, from, 2, ret, 2);
+				__uaccess_end();
+				return ret;
+
+			case 4:
+				__uaccess_begin();
+				__get_user_size(*(u32 *)to, from, 4, ret, 4);
+				__uaccess_end();
+				return ret;
 		}
 	}
+
 	return __copy_from_user_ll(to, from, n);
 }
 
 static __always_inline unsigned long __copy_from_user_nocache(void *to,
-				const void __user *from, unsigned long n)
+		const void __user *from, unsigned long n)
 {
 	might_fault();
-	if (__builtin_constant_p(n)) {
+
+	if (__builtin_constant_p(n))
+	{
 		unsigned long ret;
 
-		switch (n) {
-		case 1:
-			__uaccess_begin();
-			__get_user_size(*(u8 *)to, from, 1, ret, 1);
-			__uaccess_end();
-			return ret;
-		case 2:
-			__uaccess_begin();
-			__get_user_size(*(u16 *)to, from, 2, ret, 2);
-			__uaccess_end();
-			return ret;
-		case 4:
-			__uaccess_begin();
-			__get_user_size(*(u32 *)to, from, 4, ret, 4);
-			__uaccess_end();
-			return ret;
+		switch (n)
+		{
+			case 1:
+				__uaccess_begin();
+				__get_user_size(*(u8 *)to, from, 1, ret, 1);
+				__uaccess_end();
+				return ret;
+
+			case 2:
+				__uaccess_begin();
+				__get_user_size(*(u16 *)to, from, 2, ret, 2);
+				__uaccess_end();
+				return ret;
+
+			case 4:
+				__uaccess_begin();
+				__get_user_size(*(u32 *)to, from, 4, ret, 4);
+				__uaccess_end();
+				return ret;
 		}
 	}
+
 	return __copy_from_user_ll_nocache(to, from, n);
 }
 
 static __always_inline unsigned long
 __copy_from_user_inatomic_nocache(void *to, const void __user *from,
-				  unsigned long n)
+								  unsigned long n)
 {
-       return __copy_from_user_ll_nocache_nozero(to, from, n);
+	return __copy_from_user_ll_nocache_nozero(to, from, n);
 }
 
 #endif /* _ASM_X86_UACCESS_32_H */

@@ -62,7 +62,8 @@
  *   6 = add/and event (PMC1 -> bits 2 & 6),
  *   7 = add/and event (PMC1 -> bits 3 & 7).
  */
-static unsigned char direct_event_is_marked[0x60 >> 1] = {
+static unsigned char direct_event_is_marked[0x60 >> 1] =
+{
 	0,	/* 00 */
 	0,	/* 02 */
 	0,	/* 04 */
@@ -117,7 +118,8 @@ static unsigned char direct_event_is_marked[0x60 >> 1] = {
  * Masks showing for each unit which bits are marked events.
  * These masks are in LE order, i.e. 0x00000001 is byte 0, bit 0.
  */
-static u32 marked_bus_events[16] = {
+static u32 marked_bus_events[16] =
+{
 	0x01000000,	/* direct events set 1: byte 3 bit 0 */
 	0x00010000,	/* direct events set 2: byte 2 bit 0 */
 	0, 0, 0, 0,	/* IDU, IFU, nest: nothing */
@@ -144,26 +146,48 @@ static int power6_marked_instr_event(u64 event)
 
 	pmc = (event >> PM_PMC_SH) & PM_PMC_MSK;
 	psel = (event & PM_PMCSEL_MSK) >> 1;	/* drop edge/level bit */
+
 	if (pmc >= 5)
+	{
 		return 0;
+	}
 
 	bit = -1;
-	if (psel < sizeof(direct_event_is_marked)) {
+
+	if (psel < sizeof(direct_event_is_marked))
+	{
 		ptype = direct_event_is_marked[psel];
+
 		if (pmc == 0 || !(ptype & (1 << (pmc - 1))))
+		{
 			return 0;
+		}
+
 		ptype >>= 4;
+
 		if (ptype == 0)
+		{
 			return 1;
+		}
+
 		if (ptype == 1)
+		{
 			bit = 0;
+		}
 		else
+		{
 			bit = ptype ^ (pmc - 1);
-	} else if ((psel & 0x48) == 0x40)
+		}
+	}
+	else if ((psel & 0x48) == 0x40)
+	{
 		bit = psel & 7;
+	}
 
 	if (!(event & PM_BUSEVENT_MSK) || bit == -1)
+	{
 		return 0;
+	}
 
 	byte = (event >> PM_BYTE_SH) & PM_BYTE_MSK;
 	unit = (event >> PM_UNIT_SH) & PM_UNIT_MSK;
@@ -175,7 +199,7 @@ static int power6_marked_instr_event(u64 event)
  * Assign PMC numbers and compute MMCR1 value for a set of events
  */
 static int p6_compute_mmcr(u64 event[], int n_ev,
-			   unsigned int hwc[], unsigned long mmcr[], struct perf_event *pevents[])
+						   unsigned int hwc[], unsigned long mmcr[], struct perf_event *pevents[])
 {
 	unsigned long mmcr1 = 0;
 	unsigned long mmcra = MMCRA_SDAR_DCACHE_MISS | MMCRA_SDAR_ERAT_MISS;
@@ -185,73 +209,133 @@ static int p6_compute_mmcr(u64 event[], int n_ev,
 	unsigned int pmc_inuse = 0;
 
 	if (n_ev > 6)
+	{
 		return -1;
-	for (i = 0; i < n_ev; ++i) {
+	}
+
+	for (i = 0; i < n_ev; ++i)
+	{
 		pmc = (event[i] >> PM_PMC_SH) & PM_PMC_MSK;
-		if (pmc) {
+
+		if (pmc)
+		{
 			if (pmc_inuse & (1 << (pmc - 1)))
-				return -1;	/* collision! */
+			{
+				return -1;    /* collision! */
+			}
+
 			pmc_inuse |= 1 << (pmc - 1);
 		}
 	}
-	for (i = 0; i < n_ev; ++i) {
+
+	for (i = 0; i < n_ev; ++i)
+	{
 		ev = event[i];
 		pmc = (ev >> PM_PMC_SH) & PM_PMC_MSK;
-		if (pmc) {
+
+		if (pmc)
+		{
 			--pmc;
-		} else {
+		}
+		else
+		{
 			/* can go on any PMC; find a free one */
 			for (pmc = 0; pmc < 4; ++pmc)
 				if (!(pmc_inuse & (1 << pmc)))
+				{
 					break;
+				}
+
 			if (pmc >= 4)
+			{
 				return -1;
+			}
+
 			pmc_inuse |= 1 << pmc;
 		}
+
 		hwc[i] = pmc;
 		psel = ev & PM_PMCSEL_MSK;
-		if (ev & PM_BUSEVENT_MSK) {
+
+		if (ev & PM_BUSEVENT_MSK)
+		{
 			/* this event uses the event bus */
 			b = (ev >> PM_BYTE_SH) & PM_BYTE_MSK;
 			u = (ev >> PM_UNIT_SH) & PM_UNIT_MSK;
+
 			/* check for conflict on this byte of event bus */
 			if ((ttmset & (1 << b)) && MMCR1_TTMSEL(mmcr1, b) != u)
+			{
 				return -1;
+			}
+
 			mmcr1 |= (unsigned long)u << MMCR1_TTMSEL_SH(b);
 			ttmset |= 1 << b;
-			if (u == 5) {
+
+			if (u == 5)
+			{
 				/* Nest events have a further mux */
 				s = (ev >> PM_SUBUNIT_SH) & PM_SUBUNIT_MSK;
+
 				if ((ttmset & 0x10) &&
-				    MMCR1_NESTSEL(mmcr1) != s)
+					MMCR1_NESTSEL(mmcr1) != s)
+				{
 					return -1;
+				}
+
 				ttmset |= 0x10;
 				mmcr1 |= (unsigned long)s << MMCR1_NESTSEL_SH;
 			}
-			if (0x30 <= psel && psel <= 0x3d) {
+
+			if (0x30 <= psel && psel <= 0x3d)
+			{
 				/* these need the PMCx_ADDR_SEL bits */
 				if (b >= 2)
+				{
 					mmcr1 |= MMCR1_PMC1_ADDR_SEL >> pmc;
+				}
 			}
+
 			/* bus select values are different for PMC3/4 */
 			if (pmc >= 2 && (psel & 0x90) == 0x80)
+			{
 				psel ^= 0x20;
+			}
 		}
-		if (ev & PM_LLA) {
+
+		if (ev & PM_LLA)
+		{
 			mmcr1 |= MMCR1_PMC1_LLA >> pmc;
+
 			if (ev & PM_LLAV)
+			{
 				mmcr1 |= MMCR1_PMC1_LLA_VALUE >> pmc;
+			}
 		}
+
 		if (power6_marked_instr_event(event[i]))
+		{
 			mmcra |= MMCRA_SAMPLE_ENABLE;
+		}
+
 		if (pmc < 4)
+		{
 			mmcr1 |= (unsigned long)psel << MMCR1_PMCSEL_SH(pmc);
+		}
 	}
+
 	mmcr[0] = 0;
+
 	if (pmc_inuse & 1)
+	{
 		mmcr[0] = MMCR0_PMC1CE;
+	}
+
 	if (pmc_inuse & 0xe)
+	{
 		mmcr[0] |= MMCR0_PMCjCE;
+	}
+
 	mmcr[1] = mmcr1;
 	mmcr[2] = mmcra;
 	return 0;
@@ -268,34 +352,46 @@ static int p6_compute_mmcr(u64 event[], int n_ev,
  *	32-34	select field: nest (subunit) event selector
  */
 static int p6_get_constraint(u64 event, unsigned long *maskp,
-			     unsigned long *valp)
+							 unsigned long *valp)
 {
 	int pmc, byte, sh, subunit;
 	unsigned long mask = 0, value = 0;
 
 	pmc = (event >> PM_PMC_SH) & PM_PMC_MSK;
-	if (pmc) {
+
+	if (pmc)
+	{
 		if (pmc > 4 && !(event == 0x500009 || event == 0x600005))
+		{
 			return -1;
+		}
+
 		sh = (pmc - 1) * 2;
 		mask |= 2 << sh;
 		value |= 1 << sh;
 	}
-	if (event & PM_BUSEVENT_MSK) {
+
+	if (event & PM_BUSEVENT_MSK)
+	{
 		byte = (event >> PM_BYTE_SH) & PM_BYTE_MSK;
 		sh = byte * 4 + (16 - PM_UNIT_SH);
 		mask |= PM_UNIT_MSKS << sh;
 		value |= (unsigned long)(event & PM_UNIT_MSKS) << sh;
-		if ((event & PM_UNIT_MSKS) == (5 << PM_UNIT_SH)) {
+
+		if ((event & PM_UNIT_MSKS) == (5 << PM_UNIT_SH))
+		{
 			subunit = (event >> PM_SUBUNIT_SH) & PM_SUBUNIT_MSK;
 			mask  |= (unsigned long)PM_SUBUNIT_MSK << 32;
 			value |= (unsigned long)subunit << 32;
 		}
 	}
-	if (pmc <= 4) {
+
+	if (pmc <= 4)
+	{
 		mask  |= 0x8000;	/* add field for count of PMC1-4 uses */
 		value |= 0x1000;
 	}
+
 	*maskp = mask;
 	*valp = value;
 	return 0;
@@ -310,7 +406,8 @@ static int p6_limited_pmc_event(u64 event)
 
 #define MAX_ALT	4	/* at most 4 alternatives for any event */
 
-static const unsigned int event_alternatives[][MAX_ALT] = {
+static const unsigned int event_alternatives[][MAX_ALT] =
+{
 	{ 0x0130e8, 0x2000f6, 0x3000fc },	/* PM_PTEG_RELOAD_VALID */
 	{ 0x080080, 0x10000d, 0x30000c, 0x4000f0 }, /* PM_LD_MISS_L1 */
 	{ 0x080088, 0x200054, 0x3000f0 },	/* PM_ST_MISS_L1 */
@@ -345,17 +442,29 @@ static int find_alternatives_list(u64 event)
 	int i, j;
 	unsigned int alt;
 
-	for (i = 0; i < ARRAY_SIZE(event_alternatives); ++i) {
+	for (i = 0; i < ARRAY_SIZE(event_alternatives); ++i)
+	{
 		if (event < event_alternatives[i][0])
+		{
 			return -1;
-		for (j = 0; j < MAX_ALT; ++j) {
+		}
+
+		for (j = 0; j < MAX_ALT; ++j)
+		{
 			alt = event_alternatives[i][j];
+
 			if (!alt || event < alt)
+			{
 				break;
+			}
+
 			if (event == alt)
+			{
 				return i;
+			}
 		}
 	}
+
 	return -1;
 }
 
@@ -371,33 +480,47 @@ static int p6_get_alternatives(u64 event, unsigned int flags, u64 alt[])
 
 	/* check the alternatives table */
 	i = find_alternatives_list(event);
-	if (i >= 0) {
+
+	if (i >= 0)
+	{
 		/* copy out alternatives from list */
-		for (j = 0; j < MAX_ALT; ++j) {
+		for (j = 0; j < MAX_ALT; ++j)
+		{
 			aevent = event_alternatives[i][j];
+
 			if (!aevent)
+			{
 				break;
+			}
+
 			if (aevent != event)
+			{
 				alt[nalt++] = aevent;
+			}
+
 			nlim += p6_limited_pmc_event(aevent);
 		}
 
-	} else {
+	}
+	else
+	{
 		/* Check for alternative ways of computing sum events */
 		/* PMCSEL 0x32 counter N == PMCSEL 0x34 counter 5-N */
 		psel = event & (PM_PMCSEL_MSK & ~1);	/* ignore edge bit */
 		pmc = (event >> PM_PMC_SH) & PM_PMC_MSK;
+
 		if (pmc && (psel == 0x32 || psel == 0x34))
 			alt[nalt++] = ((event ^ 0x6) & ~PM_PMC_MSKS) |
-				((5 - pmc) << PM_PMC_SH);
+						  ((5 - pmc) << PM_PMC_SH);
 
 		/* PMCSEL 0x38 counter N == PMCSEL 0x3a counter N+/-2 */
 		if (pmc && (psel == 0x38 || psel == 0x3a))
 			alt[nalt++] = ((event ^ 0x2) & ~PM_PMC_MSKS) |
-				((pmc > 2? pmc - 2: pmc + 2) << PM_PMC_SH);
+						  ((pmc > 2 ? pmc - 2 : pmc + 2) << PM_PMC_SH);
 	}
 
-	if (flags & PPMU_ONLY_COUNT_RUN) {
+	if (flags & PPMU_ONLY_COUNT_RUN)
+	{
 		/*
 		 * We're only counting in RUN state,
 		 * so PM_CYC is equivalent to PM_RUN_CYC,
@@ -409,52 +532,72 @@ static int p6_get_alternatives(u64 event, unsigned int flags, u64 alt[])
 		 * we never end up with more than 4 alternatives for any event.
 		 */
 		j = nalt;
-		for (i = 0; i < nalt; ++i) {
-			switch (alt[i]) {
-			case 0x1e:	/* PM_CYC */
-				alt[j++] = 0x600005;	/* PM_RUN_CYC */
-				++nlim;
-				break;
-			case 0x10000a:	/* PM_RUN_CYC */
-				alt[j++] = 0x1e;	/* PM_CYC */
-				break;
-			case 2:		/* PM_INST_CMPL */
-				alt[j++] = 0x500009;	/* PM_RUN_INST_CMPL */
-				++nlim;
-				break;
-			case 0x500009:	/* PM_RUN_INST_CMPL */
-				alt[j++] = 2;		/* PM_INST_CMPL */
-				break;
-			case 0x10000e:	/* PM_PURR */
-				alt[j++] = 0x4000f4;	/* PM_RUN_PURR */
-				break;
-			case 0x4000f4:	/* PM_RUN_PURR */
-				alt[j++] = 0x10000e;	/* PM_PURR */
-				break;
+
+		for (i = 0; i < nalt; ++i)
+		{
+			switch (alt[i])
+			{
+				case 0x1e:	/* PM_CYC */
+					alt[j++] = 0x600005;	/* PM_RUN_CYC */
+					++nlim;
+					break;
+
+				case 0x10000a:	/* PM_RUN_CYC */
+					alt[j++] = 0x1e;	/* PM_CYC */
+					break;
+
+				case 2:		/* PM_INST_CMPL */
+					alt[j++] = 0x500009;	/* PM_RUN_INST_CMPL */
+					++nlim;
+					break;
+
+				case 0x500009:	/* PM_RUN_INST_CMPL */
+					alt[j++] = 2;		/* PM_INST_CMPL */
+					break;
+
+				case 0x10000e:	/* PM_PURR */
+					alt[j++] = 0x4000f4;	/* PM_RUN_PURR */
+					break;
+
+				case 0x4000f4:	/* PM_RUN_PURR */
+					alt[j++] = 0x10000e;	/* PM_PURR */
+					break;
 			}
 		}
+
 		nalt = j;
 	}
 
-	if (!(flags & PPMU_LIMITED_PMC_OK) && nlim) {
+	if (!(flags & PPMU_LIMITED_PMC_OK) && nlim)
+	{
 		/* remove the limited PMC events */
 		j = 0;
-		for (i = 0; i < nalt; ++i) {
-			if (!p6_limited_pmc_event(alt[i])) {
+
+		for (i = 0; i < nalt; ++i)
+		{
+			if (!p6_limited_pmc_event(alt[i]))
+			{
 				alt[j] = alt[i];
 				++j;
 			}
 		}
+
 		nalt = j;
-	} else if ((flags & PPMU_LIMITED_PMC_REQD) && nlim < nalt) {
+	}
+	else if ((flags & PPMU_LIMITED_PMC_REQD) && nlim < nalt)
+	{
 		/* remove all but the limited PMC events */
 		j = 0;
-		for (i = 0; i < nalt; ++i) {
-			if (p6_limited_pmc_event(alt[i])) {
+
+		for (i = 0; i < nalt; ++i)
+		{
+			if (p6_limited_pmc_event(alt[i]))
+			{
 				alt[j] = alt[i];
 				++j;
 			}
 		}
+
 		nalt = j;
 	}
 
@@ -465,10 +608,13 @@ static void p6_disable_pmc(unsigned int pmc, unsigned long mmcr[])
 {
 	/* Set PMCxSEL to 0 to disable PMCx */
 	if (pmc <= 3)
+	{
 		mmcr[1] &= ~(0xffUL << MMCR1_PMCSEL_SH(pmc));
+	}
 }
 
-static int power6_generic_events[] = {
+static int power6_generic_events[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES]		= 0x1e,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= 2,
 	[PERF_COUNT_HW_CACHE_REFERENCES]	= 0x280030, /* LD_REF_L1 */
@@ -485,7 +631,8 @@ static int power6_generic_events[] = {
  * are event codes.
  * The "DTLB" and "ITLB" events relate to the DERAT and IERAT.
  */
-static int power6_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
+static int power6_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] =
+{
 	[C(L1D)] = {		/* 	RESULT_ACCESS	RESULT_MISS */
 		[C(OP_READ)] = {	0x280030,	0x80080		},
 		[C(OP_WRITE)] = {	0x180032,	0x80088		},
@@ -523,7 +670,8 @@ static int power6_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
 	},
 };
 
-static struct power_pmu power6_pmu = {
+static struct power_pmu power6_pmu =
+{
 	.name			= "POWER6",
 	.n_counter		= 6,
 	.max_alternatives	= MAX_ALT,
@@ -543,8 +691,10 @@ static struct power_pmu power6_pmu = {
 static int __init init_power6_pmu(void)
 {
 	if (!cur_cpu_spec->oprofile_cpu_type ||
-	    strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc64/power6"))
+		strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc64/power6"))
+	{
 		return -ENODEV;
+	}
 
 	return register_power_pmu(&power6_pmu);
 }

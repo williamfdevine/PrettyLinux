@@ -46,12 +46,14 @@ void local_flush_tlb_all(void)
 	pectx_set(0);			/* invalid */
 	entry = tlblock_get();		/* skip locked entries*/
 
-	for (; entry < TLBSIZE; entry++) {
+	for (; entry < TLBSIZE; entry++)
+	{
 		tlbpt_set(entry);
 		pevn_set(KSEG1);
 		barrier();
 		tlb_write_indexed();
 	}
+
 	pevn_set(old_ASID);
 	local_irq_restore(flags);
 }
@@ -74,28 +76,36 @@ drop_mmu_context(struct mm_struct *mm)
 void local_flush_tlb_mm(struct mm_struct *mm)
 {
 	if (mm->context != 0)
+	{
 		drop_mmu_context(mm);
+	}
 }
 
 void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-	unsigned long end)
+						   unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	unsigned long vma_mm_context = mm->context;
-	if (mm->context != 0) {
+
+	if (mm->context != 0)
+	{
 		unsigned long flags;
 		int size;
 
 		local_irq_save(flags);
 		size = (end - start + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
-		if (size <= TLBSIZE) {
+
+		if (size <= TLBSIZE)
+		{
 			int oldpid = pevn_get() & ASID_MASK;
 			int newpid = vma_mm_context & ASID_MASK;
 
 			start &= PAGE_MASK;
 			end += (PAGE_SIZE - 1);
 			end &= PAGE_MASK;
-			while (start < end) {
+
+			while (start < end)
+			{
 				int idx;
 
 				pevn_set(start | newpid);
@@ -105,17 +115,28 @@ void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 				idx = tlbpt_get();
 				pectx_set(0);
 				pevn_set(KSEG1);
+
 				if (idx < 0)
+				{
 					continue;
+				}
+
 				tlb_write_indexed();
 			}
+
 			pevn_set(oldpid);
-		} else {
+		}
+		else
+		{
 			/* Bigger than TLBSIZE, get new ASID directly */
 			get_new_mmu_context(mm);
+
 			if (mm == current->active_mm)
+			{
 				pevn_set(vma_mm_context & ASID_MASK);
+			}
 		}
+
 		local_irq_restore(flags);
 	}
 }
@@ -127,29 +148,39 @@ void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 
 	local_irq_save(flags);
 	size = (end - start + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
-	if (size <= TLBSIZE) {
+
+	if (size <= TLBSIZE)
+	{
 		int pid = pevn_get();
 
 		start &= PAGE_MASK;
 		end += PAGE_SIZE - 1;
 		end &= PAGE_MASK;
 
-		while (start < end) {
+		while (start < end)
+		{
 			long idx;
 
 			pevn_set(start);
 			start += PAGE_SIZE;
 			tlb_probe();
 			idx = tlbpt_get();
+
 			if (idx < 0)
+			{
 				continue;
+			}
+
 			pectx_set(0);
 			pevn_set(KSEG1);
 			barrier();
 			tlb_write_indexed();
 		}
+
 		pevn_set(pid);
-	} else {
+	}
+	else
+	{
 		local_flush_tlb_all();
 	}
 
@@ -158,7 +189,8 @@ void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 
 void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 {
-	if (vma && vma->vm_mm->context != 0) {
+	if (vma && vma->vm_mm->context != 0)
+	{
 		unsigned long flags;
 		int oldpid, newpid, idx;
 		unsigned long vma_ASID = vma->vm_mm->context;
@@ -173,8 +205,12 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 		idx = tlbpt_get();
 		pectx_set(0);
 		pevn_set(KSEG1);
+
 		if (idx < 0)		/* p_bit(31) - 1: miss, 0: hit*/
+		{
 			goto finish;
+		}
+
 		barrier();
 		tlb_write_indexed();
 finish:
@@ -200,12 +236,15 @@ void local_flush_tlb_one(unsigned long page)
 	tlb_probe();
 	idx = tlbpt_get();
 	pectx_set(0);
-	if (idx >= 0) {
+
+	if (idx >= 0)
+	{
 		/* Make sure all entries differ. */
 		pevn_set(KSEG1);
 		barrier();
 		tlb_write_indexed();
 	}
+
 	pevn_set(oldpid);
 	local_irq_restore(flags);
 }
@@ -219,7 +258,9 @@ void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
 	 * Handle debugger faulting in for debugee.
 	 */
 	if (current->active_mm != vma->vm_mm)
+	{
 		return;
+	}
 
 	pid = pevn_get() & ASID_MASK;
 
@@ -231,10 +272,15 @@ void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
 	idx = tlbpt_get();
 	pectx_set(pte_val(pte));
 	pevn_set(address | pid);
+
 	if (idx < 0)
+	{
 		tlb_write_random();
+	}
 	else
+	{
 		tlb_write_indexed();
+	}
 
 	pevn_set(pid);
 	local_irq_restore(flags);
@@ -245,7 +291,7 @@ void tlb_init(void)
 	tlblock_set(0);
 	local_flush_tlb_all();
 	memcpy((void *)(EXCEPTION_VECTOR_BASE_ADDR + 0x100),
-			&score7_FTLB_refill_Handler, 0xFC);
+		   &score7_FTLB_refill_Handler, 0xFC);
 	flush_icache_range(EXCEPTION_VECTOR_BASE_ADDR + 0x100,
-			EXCEPTION_VECTOR_BASE_ADDR + 0x1FC);
+					   EXCEPTION_VECTOR_BASE_ADDR + 0x1FC);
 }

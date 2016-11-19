@@ -28,7 +28,8 @@
  * 2) NCR 82077 controller manual
  * 3) Intel 82077 controller manual
  */
-struct sun_flpy_controller {
+struct sun_flpy_controller
+{
 	volatile unsigned char status_82072;  /* Main Status reg. */
 #define dcr_82072              status_82072   /* Digital Control reg. */
 #define status1_82077          status_82072   /* Auxiliary Status reg. 1 */
@@ -51,7 +52,8 @@ struct sun_flpy_controller {
 /* You'll only ever find one controller on a SparcStation anyways. */
 static struct sun_flpy_controller *sun_fdc = NULL;
 
-struct sun_floppy_ops {
+struct sun_floppy_ops
+{
 	unsigned char (*fd_inb)(int port);
 	void (*fd_outb)(unsigned char value, int port);
 };
@@ -74,8 +76,8 @@ static struct sun_floppy_ops sun_fdops;
 #define fd_request_irq()          sun_fd_request_irq()
 #define fd_free_irq()             /* nothing... */
 #if 0  /* P3: added by Alain, these cause a MMU corruption. 19960524 XXX */
-#define fd_dma_mem_alloc(size)    ((unsigned long) vmalloc(size))
-#define fd_dma_mem_free(addr,size) (vfree((void *)(addr)))
+	#define fd_dma_mem_alloc(size)    ((unsigned long) vmalloc(size))
+	#define fd_dma_mem_free(addr,size) (vfree((void *)(addr)))
 #endif
 
 /* XXX This isn't really correct. XXX */
@@ -103,7 +105,9 @@ static struct sun_floppy_ops sun_fdops;
 static void sun_set_dor(unsigned char value, int fdc_82077)
 {
 	if (fdc_82077)
+	{
 		sun_fdc->dor_82077 = value;
+	}
 }
 
 static unsigned char sun_read_dir(void)
@@ -114,91 +118,122 @@ static unsigned char sun_read_dir(void)
 static unsigned char sun_82072_fd_inb(int port)
 {
 	udelay(5);
-	switch(port & 7) {
-	default:
-		printk("floppy: Asked to read unknown port %d\n", port);
-		panic("floppy: Port bolixed.");
-	case 4: /* FD_STATUS */
-		return sun_fdc->status_82072 & ~STATUS_DMA;
-	case 5: /* FD_DATA */
-		return sun_fdc->data_82072;
-	case 7: /* FD_DIR */
-		return sun_read_dir();
+
+	switch (port & 7)
+	{
+		default:
+			printk("floppy: Asked to read unknown port %d\n", port);
+			panic("floppy: Port bolixed.");
+
+		case 4: /* FD_STATUS */
+			return sun_fdc->status_82072 & ~STATUS_DMA;
+
+		case 5: /* FD_DATA */
+			return sun_fdc->data_82072;
+
+		case 7: /* FD_DIR */
+			return sun_read_dir();
 	}
+
 	panic("sun_82072_fd_inb: How did I get here?");
 }
 
 static void sun_82072_fd_outb(unsigned char value, int port)
 {
 	udelay(5);
-	switch(port & 7) {
-	default:
-		printk("floppy: Asked to write to unknown port %d\n", port);
-		panic("floppy: Port bolixed.");
-	case 2: /* FD_DOR */
-		sun_set_dor(value, 0);
-		break;
-	case 5: /* FD_DATA */
-		sun_fdc->data_82072 = value;
-		break;
-	case 7: /* FD_DCR */
-		sun_fdc->dcr_82072 = value;
-		break;
-	case 4: /* FD_STATUS */
-		sun_fdc->status_82072 = value;
-		break;
+
+	switch (port & 7)
+	{
+		default:
+			printk("floppy: Asked to write to unknown port %d\n", port);
+			panic("floppy: Port bolixed.");
+
+		case 2: /* FD_DOR */
+			sun_set_dor(value, 0);
+			break;
+
+		case 5: /* FD_DATA */
+			sun_fdc->data_82072 = value;
+			break;
+
+		case 7: /* FD_DCR */
+			sun_fdc->dcr_82072 = value;
+			break;
+
+		case 4: /* FD_STATUS */
+			sun_fdc->status_82072 = value;
+			break;
 	}
+
 	return;
 }
 
 static unsigned char sun_82077_fd_inb(int port)
 {
 	udelay(5);
-	switch(port & 7) {
-	default:
-		printk("floppy: Asked to read unknown port %d\n", port);
-		panic("floppy: Port bolixed.");
-	case 0: /* FD_STATUS_0 */
-		return sun_fdc->status1_82077;
-	case 1: /* FD_STATUS_1 */
-		return sun_fdc->status2_82077;
-	case 2: /* FD_DOR */
-		return sun_fdc->dor_82077;
-	case 3: /* FD_TDR */
-		return sun_fdc->tapectl_82077;
-	case 4: /* FD_STATUS */
-		return sun_fdc->status_82077 & ~STATUS_DMA;
-	case 5: /* FD_DATA */
-		return sun_fdc->data_82077;
-	case 7: /* FD_DIR */
-		return sun_read_dir();
+
+	switch (port & 7)
+	{
+		default:
+			printk("floppy: Asked to read unknown port %d\n", port);
+			panic("floppy: Port bolixed.");
+
+		case 0: /* FD_STATUS_0 */
+			return sun_fdc->status1_82077;
+
+		case 1: /* FD_STATUS_1 */
+			return sun_fdc->status2_82077;
+
+		case 2: /* FD_DOR */
+			return sun_fdc->dor_82077;
+
+		case 3: /* FD_TDR */
+			return sun_fdc->tapectl_82077;
+
+		case 4: /* FD_STATUS */
+			return sun_fdc->status_82077 & ~STATUS_DMA;
+
+		case 5: /* FD_DATA */
+			return sun_fdc->data_82077;
+
+		case 7: /* FD_DIR */
+			return sun_read_dir();
 	}
+
 	panic("sun_82077_fd_inb: How did I get here?");
 }
 
 static void sun_82077_fd_outb(unsigned char value, int port)
 {
 	udelay(5);
-	switch(port & 7) {
-	default:
-		printk("floppy: Asked to write to unknown port %d\n", port);
-		panic("floppy: Port bolixed.");
-	case 2: /* FD_DOR */
-		sun_set_dor(value, 1);
-		break;
-	case 5: /* FD_DATA */
-		sun_fdc->data_82077 = value;
-		break;
-	case 7: /* FD_DCR */
-		sun_fdc->dcr_82077 = value;
-		break;
-	case 4: /* FD_STATUS */
-		sun_fdc->status_82077 = value;
-		break;
-	case 3: /* FD_TDR */
-		sun_fdc->tapectl_82077 = value;
-		break;
+
+	switch (port & 7)
+	{
+		default:
+			printk("floppy: Asked to write to unknown port %d\n", port);
+			panic("floppy: Port bolixed.");
+
+		case 2: /* FD_DOR */
+			sun_set_dor(value, 1);
+			break;
+
+		case 5: /* FD_DATA */
+			sun_fdc->data_82077 = value;
+			break;
+
+		case 7: /* FD_DCR */
+			sun_fdc->dcr_82077 = value;
+			break;
+
+		case 4: /* FD_STATUS */
+			sun_fdc->status_82077 = value;
+			break;
+
+		case 3: /* FD_TDR */
+			sun_fdc->tapectl_82077 = value;
+			break;
 	}
+
 	return;
 }
 
@@ -227,16 +262,19 @@ static inline void sun_fd_disable_dma(void)
 
 static inline void sun_fd_set_dma_mode(int mode)
 {
-	switch(mode) {
-	case DMA_MODE_READ:
-		doing_pdma = 1;
-		break;
-	case DMA_MODE_WRITE:
-		doing_pdma = 2;
-		break;
-	default:
-		printk("Unknown dma mode %d\n", mode);
-		panic("floppy: Giving up...");
+	switch (mode)
+	{
+		case DMA_MODE_READ:
+			doing_pdma = 1;
+			break;
+
+		case DMA_MODE_WRITE:
+			doing_pdma = 2;
+			break;
+
+		default:
+			printk("Unknown dma mode %d\n", mode);
+			panic("floppy: Giving up...");
 	}
 }
 
@@ -262,10 +300,13 @@ static int sun_fd_request_irq(void)
 {
 	static int once = 0;
 
-	if (!once) {
+	if (!once)
+	{
 		once = 1;
 		return sparc_floppy_request_irq(FLOPPY_IRQ, floppy_interrupt);
-	} else {
+	}
+	else
+	{
 		return 0;
 	}
 }
@@ -287,29 +328,40 @@ static int sun_floppy_init(void)
 	/* Forget it if we aren't on a machine that could possibly
 	 * ever have a floppy drive.
 	 */
-	if (sparc_cpu_model != sun4m) {
+	if (sparc_cpu_model != sun4m)
+	{
 		/* We certainly don't have a floppy controller. */
 		goto no_sun_fdc;
 	}
+
 	/* Well, try to find one. */
 	tnode = prom_getchild(prom_root_node);
 	fd_node = prom_searchsiblings(tnode, "obio");
-	if (fd_node != 0) {
+
+	if (fd_node != 0)
+	{
 		tnode = prom_getchild(fd_node);
 		fd_node = prom_searchsiblings(tnode, "SUNW,fdtwo");
-	} else {
+	}
+	else
+	{
 		fd_node = prom_searchsiblings(tnode, "fd");
 	}
-	if (fd_node == 0) {
+
+	if (fd_node == 0)
+	{
 		goto no_sun_fdc;
 	}
 
 	/* The sun4m lets us know if the controller is actually usable. */
-	if (prom_getproperty(fd_node, "status", state, sizeof(state)) != -1) {
-		if(!strcmp(state, "disabled")) {
+	if (prom_getproperty(fd_node, "status", state, sizeof(state)) != -1)
+	{
+		if (!strcmp(state, "disabled"))
+		{
 			goto no_sun_fdc;
 		}
 	}
+
 	num_regs = prom_getproperty(fd_node, "reg", (char *) fd_regs, sizeof(fd_regs));
 	num_regs = (num_regs / sizeof(fd_regs[0]));
 	prom_apply_obio_ranges(fd_regs, num_regs);
@@ -322,25 +374,39 @@ static int sun_floppy_init(void)
 	 * We try "SUNW,fdtwo" and "fd"
 	 */
 	op = NULL;
-	for_each_node_by_name(dp, "SUNW,fdtwo") {
+	for_each_node_by_name(dp, "SUNW,fdtwo")
+	{
 		op = of_find_device_by_node(dp);
+
 		if (op)
+		{
 			break;
-	}
-	if (!op) {
-		for_each_node_by_name(dp, "fd") {
-			op = of_find_device_by_node(dp);
-			if (op)
-				break;
 		}
 	}
+
 	if (!op)
+	{
+		for_each_node_by_name(dp, "fd")
+		{
+			op = of_find_device_by_node(dp);
+
+			if (op)
+			{
+				break;
+			}
+		}
+	}
+
+	if (!op)
+	{
 		goto no_sun_fdc;
+	}
 
 	FLOPPY_IRQ = op->archdata.irqs[0];
 
 	/* Last minute sanity check... */
-	if (sun_fdc->status_82072 == 0xff) {
+	if (sun_fdc->status_82072 == 0xff)
+	{
 		sun_fdc = NULL;
 		goto no_sun_fdc;
 	}
@@ -349,9 +415,12 @@ static int sun_floppy_init(void)
 	sun_fdops.fd_outb = sun_82077_fd_outb;
 	fdc_status = &sun_fdc->status_82077;
 
-	if (sun_fdc->dor_82077 == 0x80) {
+	if (sun_fdc->dor_82077 == 0x80)
+	{
 		sun_fdc->dor_82077 = 0x02;
-		if (sun_fdc->dor_82077 == 0x80) {
+
+		if (sun_fdc->dor_82077 == 0x80)
+		{
 			sun_fdops.fd_inb = sun_82072_fd_inb;
 			sun_fdops.fd_outb = sun_82072_fd_outb;
 			fdc_status = &sun_fdc->status_82072;
@@ -382,10 +451,10 @@ static int sparc_eject(void)
 static DEFINE_SPINLOCK(dma_spin_lock);
 
 #define claim_dma_lock() \
-({	unsigned long flags; \
-	spin_lock_irqsave(&dma_spin_lock, flags); \
-	flags; \
-})
+	({	unsigned long flags; \
+		spin_lock_irqsave(&dma_spin_lock, flags); \
+		flags; \
+	})
 
 #define release_dma_lock(__flags) \
 	spin_unlock_irqrestore(&dma_spin_lock, __flags);

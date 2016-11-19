@@ -10,13 +10,14 @@
 
 #include <asm/mach/arch.h>
 
-static const char *const bcm5301x_dt_compat[] __initconst = {
+static const char *const bcm5301x_dt_compat[] __initconst =
+{
 	"brcm,bcm4708",
 	NULL,
 };
 
 DT_MACHINE_START(BCM5301X, "BCM5301X")
-	.l2c_aux_val	= 0,
+.l2c_aux_val	= 0,
 	.l2c_aux_mask	= ~0,
-	.dt_compat	= bcm5301x_dt_compat,
-MACHINE_END
+	   .dt_compat	= bcm5301x_dt_compat,
+		 MACHINE_END

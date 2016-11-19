@@ -18,20 +18,20 @@
 #ifdef CONFIG_CEVT_CSRC_LS1X
 
 #if defined(CONFIG_TIMER_USE_PWM1)
-#define LS1X_TIMER_BASE	LS1X_PWM1_BASE
-#define LS1X_TIMER_IRQ	LS1X_PWM1_IRQ
+	#define LS1X_TIMER_BASE	LS1X_PWM1_BASE
+	#define LS1X_TIMER_IRQ	LS1X_PWM1_IRQ
 
 #elif defined(CONFIG_TIMER_USE_PWM2)
-#define LS1X_TIMER_BASE	LS1X_PWM2_BASE
-#define LS1X_TIMER_IRQ	LS1X_PWM2_IRQ
+	#define LS1X_TIMER_BASE	LS1X_PWM2_BASE
+	#define LS1X_TIMER_IRQ	LS1X_PWM2_IRQ
 
 #elif defined(CONFIG_TIMER_USE_PWM3)
-#define LS1X_TIMER_BASE	LS1X_PWM3_BASE
-#define LS1X_TIMER_IRQ	LS1X_PWM3_IRQ
+	#define LS1X_TIMER_BASE	LS1X_PWM3_BASE
+	#define LS1X_TIMER_IRQ	LS1X_PWM3_IRQ
 
 #else
-#define LS1X_TIMER_BASE	LS1X_PWM0_BASE
-#define LS1X_TIMER_IRQ	LS1X_PWM0_IRQ
+	#define LS1X_TIMER_BASE	LS1X_PWM0_BASE
+	#define LS1X_TIMER_IRQ	LS1X_PWM0_IRQ
 #endif
 
 DEFINE_RAW_SPINLOCK(ls1x_timer_lock);
@@ -54,8 +54,11 @@ static inline void ls1x_pwmtimer_restart(void)
 void __init ls1x_pwmtimer_init(void)
 {
 	timer_reg_base = ioremap_nocache(LS1X_TIMER_BASE, SZ_16);
+
 	if (!timer_reg_base)
+	{
 		panic("Failed to remap timer registers");
+	}
 
 	ls1x_jiffies_per_tick = DIV_ROUND_CLOSEST(mips_hpt_frequency, HZ);
 
@@ -100,7 +103,9 @@ static cycle_t ls1x_clocksource_read(struct clocksource *cs)
 	 * we just do the simple thing now.
 	 */
 	if (count < old_count && jifs == old_jifs)
+	{
 		count = old_count;
+	}
 
 	old_count = count;
 	old_jifs = jifs;
@@ -110,7 +115,8 @@ static cycle_t ls1x_clocksource_read(struct clocksource *cs)
 	return (cycle_t) (jifs * ls1x_jiffies_per_tick) + count;
 }
 
-static struct clocksource ls1x_clocksource = {
+static struct clocksource ls1x_clocksource =
+{
 	.name		= "ls1x-pwmtimer",
 	.read		= ls1x_clocksource_read,
 	.mask		= CLOCKSOURCE_MASK(24),
@@ -151,14 +157,14 @@ static int ls1x_clockevent_set_state_shutdown(struct clock_event_device *cd)
 {
 	raw_spin_lock(&ls1x_timer_lock);
 	__raw_writel(__raw_readl(timer_reg_base + PWM_CTRL) & ~CNT_EN,
-		     timer_reg_base + PWM_CTRL);
+				 timer_reg_base + PWM_CTRL);
 	raw_spin_unlock(&ls1x_timer_lock);
 
 	return 0;
 }
 
 static int ls1x_clockevent_set_next(unsigned long evt,
-				    struct clock_event_device *cd)
+									struct clock_event_device *cd)
 {
 	raw_spin_lock(&ls1x_timer_lock);
 	ls1x_pwmtimer_set_period(evt);
@@ -168,7 +174,8 @@ static int ls1x_clockevent_set_next(unsigned long evt,
 	return 0;
 }
 
-static struct clock_event_device ls1x_clockevent = {
+static struct clock_event_device ls1x_clockevent =
+{
 	.name			= "ls1x-pwmtimer",
 	.features		= CLOCK_EVT_FEAT_PERIODIC,
 	.rating			= 300,
@@ -180,7 +187,8 @@ static struct clock_event_device ls1x_clockevent = {
 	.tick_resume		= ls1x_clockevent_tick_resume,
 };
 
-static struct irqaction ls1x_pwmtimer_irqaction = {
+static struct irqaction ls1x_pwmtimer_irqaction =
+{
 	.name		= "ls1x-pwmtimer",
 	.handler	= ls1x_clockevent_isr,
 	.dev_id		= &ls1x_clockevent,
@@ -193,7 +201,9 @@ static void __init ls1x_time_init(void)
 	int ret;
 
 	if (!mips_hpt_frequency)
+	{
 		panic("Invalid timer clock rate");
+	}
 
 	ls1x_pwmtimer_init();
 
@@ -205,8 +215,11 @@ static void __init ls1x_time_init(void)
 
 	ls1x_clocksource.rating = 200 + mips_hpt_frequency / 10000000;
 	ret = clocksource_register_hz(&ls1x_clocksource, mips_hpt_frequency);
+
 	if (ret)
+	{
 		panic(KERN_ERR "Failed to register clocksource: %d\n", ret);
+	}
 
 	setup_irq(LS1X_TIMER_IRQ, &ls1x_pwmtimer_irqaction);
 }
@@ -222,16 +235,22 @@ void __init plat_time_init(void)
 #ifdef CONFIG_CEVT_CSRC_LS1X
 	/* setup LS1X PWM timer */
 	clk = clk_get(NULL, "ls1x-pwmtimer");
+
 	if (IS_ERR(clk))
+	{
 		panic("unable to get timer clock, err=%ld", PTR_ERR(clk));
+	}
 
 	mips_hpt_frequency = clk_get_rate(clk);
 	ls1x_time_init();
 #else
 	/* setup mips r4k timer */
 	clk = clk_get(NULL, "cpu_clk");
+
 	if (IS_ERR(clk))
+	{
 		panic("unable to get cpu clock, err=%ld", PTR_ERR(clk));
+	}
 
 	mips_hpt_frequency = clk_get_rate(clk) / 2;
 #endif /* CONFIG_CEVT_CSRC_LS1X */

@@ -9,7 +9,8 @@
 #ifndef __ASM_SPINLOCK_TYPES_H
 #define __ASM_SPINLOCK_TYPES_H
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned int slock;
 } arch_spinlock_t;
 
@@ -24,7 +25,8 @@ typedef struct {
  * Read lock(s) : 0x00FF_FFFF to 0x01  (Multiple Readers decrement it)
  * Write lock   : 0x0, but only if prior value is "unlocked" 0x0100_0000
  */
-typedef struct {
+typedef struct
+{
 	volatile unsigned int	counter;
 #ifndef CONFIG_ARC_HAS_LLSC
 	arch_spinlock_t		lock_mutex;

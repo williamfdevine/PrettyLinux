@@ -21,8 +21,9 @@
 #define INTB   MACEPCI_SHARED0_IRQ
 #define INTC   MACEPCI_SHARED1_IRQ
 #define INTD   MACEPCI_SHARED2_IRQ
-static char irq_tab_mace[][5] __initdata = {
-      /* Dummy	INT#A  INT#B  INT#C  INT#D */
+static char irq_tab_mace[][5] __initdata =
+{
+	/* Dummy	INT#A  INT#B  INT#C  INT#D */
 	{0,	    0,	   0,	  0,	 0}, /* This is placeholder row - never used */
 	{0,	SCSI0, SCSI0, SCSI0, SCSI0},
 	{0,	SCSI1, SCSI1, SCSI1, SCSI1},

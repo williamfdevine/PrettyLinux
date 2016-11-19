@@ -9,9 +9,9 @@
 
 #define COMPAT_USER_HZ		100
 #ifdef __BIG_ENDIAN__
-#define COMPAT_UTS_MACHINE	"ppc\0\0"
+	#define COMPAT_UTS_MACHINE	"ppc\0\0"
 #else
-#define COMPAT_UTS_MACHINE	"ppcle\0\0"
+	#define COMPAT_UTS_MACHINE	"ppcle\0\0"
 #endif
 
 typedef u32		compat_size_t;
@@ -44,17 +44,20 @@ typedef u32		compat_ulong_t;
 typedef u64		compat_u64;
 typedef u32		compat_uptr_t;
 
-struct compat_timespec {
+struct compat_timespec
+{
 	compat_time_t	tv_sec;
 	s32		tv_nsec;
 };
 
-struct compat_timeval {
+struct compat_timeval
+{
 	compat_time_t	tv_sec;
 	s32		tv_usec;
 };
 
-struct compat_stat {
+struct compat_stat
+{
 	compat_dev_t	st_dev;
 	compat_ino_t	st_ino;
 	compat_mode_t	st_mode;
@@ -74,7 +77,8 @@ struct compat_stat {
 	u32		__unused4[2];
 };
 
-struct compat_flock {
+struct compat_flock
+{
 	short		l_type;
 	short		l_whence;
 	compat_off_t	l_start;
@@ -86,7 +90,8 @@ struct compat_flock {
 #define F_SETLK64	13
 #define F_SETLKW64	14
 
-struct compat_flock64 {
+struct compat_flock64
+{
 	short		l_type;
 	short		l_whence;
 	compat_loff_t	l_start;
@@ -94,7 +99,8 @@ struct compat_flock64 {
 	compat_pid_t	l_pid;
 };
 
-struct compat_statfs {
+struct compat_statfs
+{
 	int		f_type;
 	int		f_bsize;
 	int		f_blocks;
@@ -119,29 +125,34 @@ typedef u32		compat_old_sigset_t;
 
 typedef u32		compat_sigset_word;
 
-typedef union compat_sigval {
+typedef union compat_sigval
+{
 	compat_int_t	sival_int;
 	compat_uptr_t	sival_ptr;
 } compat_sigval_t;
 
 #define SI_PAD_SIZE32	(128/sizeof(int) - 3)
 
-typedef struct compat_siginfo {
+typedef struct compat_siginfo
+{
 	int si_signo;
 	int si_errno;
 	int si_code;
 
-	union {
+	union
+	{
 		int _pad[SI_PAD_SIZE32];
 
 		/* kill() */
-		struct {
+		struct
+		{
 			compat_pid_t _pid;		/* sender's pid */
 			__compat_uid_t _uid;		/* sender's uid */
 		} _kill;
 
 		/* POSIX.1b timers */
-		struct {
+		struct
+		{
 			compat_timer_t _tid;		/* timer id */
 			int _overrun;			/* overrun count */
 			compat_sigval_t _sigval;	/* same as below */
@@ -149,14 +160,16 @@ typedef struct compat_siginfo {
 		} _timer;
 
 		/* POSIX.1b signals */
-		struct {
+		struct
+		{
 			compat_pid_t _pid;		/* sender's pid */
 			__compat_uid_t _uid;		/* sender's uid */
 			compat_sigval_t _sigval;
 		} _rt;
 
 		/* SIGCHLD */
-		struct {
+		struct
+		{
 			compat_pid_t _pid;		/* which child */
 			__compat_uid_t _uid;		/* sender's uid */
 			int _status;			/* exit code */
@@ -165,18 +178,21 @@ typedef struct compat_siginfo {
 		} _sigchld;
 
 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGEMT */
-		struct {
+		struct
+		{
 			unsigned int _addr; /* faulting insn/memory ref. */
 		} _sigfault;
 
 		/* SIGPOLL */
-		struct {
+		struct
+		{
 			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
 			int _fd;
 		} _sigpoll;
 
 		/* SIGSYS */
-		struct {
+		struct
+		{
 			unsigned int _call_addr; /* calling insn */
 			int _syscall;		 /* triggering system call number */
 			unsigned int _arch;	 /* AUDIT_ARCH_* of syscall */
@@ -215,7 +231,9 @@ static inline void __user *arch_compat_alloc_user_space(long len)
 	 * or 512 bytes with the new ELFv2 little-endian ABI.
 	 */
 	if (!is_32bit_task())
+	{
 		usp -= USER_REDZONE_SIZE;
+	}
 
 	return (void __user *) (usp - len);
 }
@@ -224,7 +242,8 @@ static inline void __user *arch_compat_alloc_user_space(long len)
  * ipc64_perm is actually 32/64bit clean but since the compat layer refers to
  * it we may as well define it.
  */
-struct compat_ipc64_perm {
+struct compat_ipc64_perm
+{
 	compat_key_t key;
 	__compat_uid_t uid;
 	__compat_gid_t gid;
@@ -237,7 +256,8 @@ struct compat_ipc64_perm {
 	unsigned long __unused2;
 };
 
-struct compat_semid64_ds {
+struct compat_semid64_ds
+{
 	struct compat_ipc64_perm sem_perm;
 	unsigned int __unused1;
 	compat_time_t sem_otime;
@@ -248,7 +268,8 @@ struct compat_semid64_ds {
 	compat_ulong_t __unused4;
 };
 
-struct compat_msqid64_ds {
+struct compat_msqid64_ds
+{
 	struct compat_ipc64_perm msg_perm;
 	unsigned int __unused1;
 	compat_time_t msg_stime;
@@ -265,7 +286,8 @@ struct compat_msqid64_ds {
 	compat_ulong_t __unused5;
 };
 
-struct compat_shmid64_ds {
+struct compat_shmid64_ds
+{
 	struct compat_ipc64_perm shm_perm;
 	unsigned int __unused1;
 	compat_time_t shm_atime;

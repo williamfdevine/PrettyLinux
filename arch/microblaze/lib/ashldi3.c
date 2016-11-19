@@ -8,15 +8,20 @@ long long __ashldi3(long long u, word_type b)
 	word_type bm;
 
 	if (b == 0)
+	{
 		return u;
+	}
 
 	uu.ll = u;
 	bm = 32 - b;
 
-	if (bm <= 0) {
+	if (bm <= 0)
+	{
 		w.s.low = 0;
 		w.s.high = (unsigned int) uu.s.low << -bm;
-	} else {
+	}
+	else
+	{
 		const unsigned int carries = (unsigned int) uu.s.low >> bm;
 
 		w.s.low = (unsigned int) uu.s.low << b;

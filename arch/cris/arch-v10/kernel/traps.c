@@ -25,30 +25,31 @@ show_registers(struct pt_regs *regs)
 	unsigned long usp = rdusp();
 
 	printk("IRP: %08lx SRP: %08lx DCCR: %08lx USP: %08lx MOF: %08lx\n",
-	       regs->irp, regs->srp, regs->dccr, usp, regs->mof);
+		   regs->irp, regs->srp, regs->dccr, usp, regs->mof);
 
 	printk(" r0: %08lx  r1: %08lx   r2: %08lx  r3: %08lx\n",
-	       regs->r0, regs->r1, regs->r2, regs->r3);
+		   regs->r0, regs->r1, regs->r2, regs->r3);
 
 	printk(" r4: %08lx  r5: %08lx   r6: %08lx  r7: %08lx\n",
-	       regs->r4, regs->r5, regs->r6, regs->r7);
+		   regs->r4, regs->r5, regs->r6, regs->r7);
 
 	printk(" r8: %08lx  r9: %08lx  r10: %08lx r11: %08lx\n",
-	       regs->r8, regs->r9, regs->r10, regs->r11);
+		   regs->r8, regs->r9, regs->r10, regs->r11);
 
 	printk("r12: %08lx r13: %08lx oR10: %08lx  sp: %08lx\n",
-	       regs->r12, regs->r13, regs->orig_r10, (long unsigned)regs);
+		   regs->r12, regs->r13, regs->orig_r10, (long unsigned)regs);
 
 	printk("R_MMU_CAUSE: %08lx\n", (unsigned long)*R_MMU_CAUSE);
 
 	printk("Process %s (pid: %d, stackpage=%08lx)\n",
-	       current->comm, current->pid, (unsigned long)current);
+		   current->comm, current->pid, (unsigned long)current);
 
 	/*
 	 * When in-kernel, we also print out the stack and code at the
 	 * time of the fault..
 	 */
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		int i;
 
 		show_stack(NULL, (unsigned long *)usp);
@@ -58,12 +59,16 @@ show_registers(struct pt_regs *regs)
 		 * kernel stack now.
 		 */
 		if (usp != 0)
+		{
 			show_stack(NULL, NULL);
+		}
 
 		printk("\nCode: ");
 
 		if (regs->irp < PAGE_OFFSET)
+		{
 			goto bad_value;
+		}
 
 		/*
 		 * Quite often the value at regs->irp doesn't point to the
@@ -74,20 +79,27 @@ show_registers(struct pt_regs *regs)
 		 * location is pointed out in a ksymoops-friendly way by
 		 * wrapping the byte for that address in parenthesises.
 		 */
-		for (i = -12; i < 12; i++) {
+		for (i = -12; i < 12; i++)
+		{
 			unsigned char c;
 
-			if (__get_user(c, &((unsigned char *)regs->irp)[i])) {
+			if (__get_user(c, &((unsigned char *)regs->irp)[i]))
+			{
 bad_value:
 				printk(" Bad IP value.");
 				break;
 			}
 
 			if (i == 0)
+			{
 				printk("(%02x) ", c);
+			}
 			else
+			{
 				printk("%02x ", c);
+			}
 		}
+
 		printk("\n");
 	}
 }
@@ -102,7 +114,9 @@ extern void (*nmi_handler)(struct pt_regs *);
 void handle_nmi(struct pt_regs *regs)
 {
 	if (nmi_handler)
+	{
 		nmi_handler(regs);
+	}
 
 	/* Wait until nmi is no longer active. (We enable NMI immediately after
 	   returning from this function, and we don't want it happening while
@@ -120,11 +134,19 @@ handle_BUG(struct pt_regs *regs)
 	unsigned long irp = regs->irp;
 
 	if (__copy_from_user(&f, (const void __user *)(irp - 8), sizeof f))
+	{
 		return;
+	}
+
 	if (f.prefix != BUG_PREFIX || f.magic != BUG_MAGIC)
+	{
 		return;
+	}
+
 	if (__get_user(c, f.filename))
+	{
 		f.filename = "<bad filename>";
+	}
 
 	printk("kernel BUG at %s:%d!\n", f.filename, f.line);
 }

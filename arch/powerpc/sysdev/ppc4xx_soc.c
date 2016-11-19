@@ -37,6 +37,7 @@ static inline u32 l2c_diag(u32 addr)
 {
 	mtdcr(dcrbase_l2c + DCRN_L2C0_ADDR, addr);
 	mtdcr(dcrbase_l2c + DCRN_L2C0_CMD, L2C_CMD_DIAG);
+
 	while (!(mfdcr(dcrbase_l2c + DCRN_L2C0_SR) & L2C_SR_CC))
 		;
 
@@ -47,24 +48,30 @@ static irqreturn_t l2c_error_handler(int irq, void *dev)
 {
 	u32 sr = mfdcr(dcrbase_l2c + DCRN_L2C0_SR);
 
-	if (sr & L2C_SR_CPE) {
+	if (sr & L2C_SR_CPE)
+	{
 		/* Read cache trapped address */
 		u32 addr = l2c_diag(0x42000000);
 		printk(KERN_EMERG "L2C: Cache Parity Error, addr[16:26] = 0x%08x\n",
-		       addr);
+			   addr);
 	}
-	if (sr & L2C_SR_TPE) {
+
+	if (sr & L2C_SR_TPE)
+	{
 		/* Read tag trapped address */
 		u32 addr = l2c_diag(0x82000000) >> 16;
 		printk(KERN_EMERG "L2C: Tag Parity Error, addr[16:26] = 0x%08x\n",
-		       addr);
+			   addr);
 	}
 
 	/* Clear parity errors */
-	if (sr & (L2C_SR_CPE | L2C_SR_TPE)){
+	if (sr & (L2C_SR_CPE | L2C_SR_TPE))
+	{
 		mtdcr(dcrbase_l2c + DCRN_L2C0_ADDR, 0);
 		mtdcr(dcrbase_l2c + DCRN_L2C0_CMD, L2C_CMD_CCP | L2C_CMD_CTE);
-	} else {
+	}
+	else
+	{
 		printk(KERN_EMERG "L2C: LRU error\n");
 	}
 
@@ -84,41 +91,53 @@ static int __init ppc4xx_l2c_probe(void)
 	u32 l2_size;
 
 	np = of_find_compatible_node(NULL, NULL, "ibm,l2-cache");
+
 	if (!np)
+	{
 		return 0;
+	}
 
 	/* Get l2 cache size */
 	prop = of_get_property(np, "cache-size", NULL);
-	if (prop == NULL) {
+
+	if (prop == NULL)
+	{
 		printk(KERN_ERR "%s: Can't get cache-size!\n", np->full_name);
 		of_node_put(np);
 		return -ENODEV;
 	}
+
 	l2_size = prop[0];
 
 	/* Map DCRs */
 	dcrreg = of_get_property(np, "dcr-reg", &len);
-	if (!dcrreg || (len != 4 * sizeof(u32))) {
+
+	if (!dcrreg || (len != 4 * sizeof(u32)))
+	{
 		printk(KERN_ERR "%s: Can't get DCR register base !",
-		       np->full_name);
+			   np->full_name);
 		of_node_put(np);
 		return -ENODEV;
 	}
+
 	dcrbase_isram = dcrreg[0];
 	dcrbase_l2c = dcrreg[2];
 
 	/* Get and map irq number from device tree */
 	irq = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		printk(KERN_ERR "irq_of_parse_and_map failed\n");
 		of_node_put(np);
 		return -ENODEV;
 	}
 
 	/* Install error handler */
-	if (request_irq(irq, l2c_error_handler, 0, "L2C", 0) < 0) {
+	if (request_irq(irq, l2c_error_handler, 0, "L2C", 0) < 0)
+	{
 		printk(KERN_ERR "Cannot install L2C error handler"
-		       ", cache is not enabled\n");
+			   ", cache is not enabled\n");
 		of_node_put(np);
 		return -ENODEV;
 	}
@@ -128,15 +147,15 @@ static int __init ppc4xx_l2c_probe(void)
 
 	/* Disable SRAM */
 	mtdcr(dcrbase_isram + DCRN_SRAM0_DPC,
-	      mfdcr(dcrbase_isram + DCRN_SRAM0_DPC) & ~SRAM_DPC_ENABLE);
+		  mfdcr(dcrbase_isram + DCRN_SRAM0_DPC) & ~SRAM_DPC_ENABLE);
 	mtdcr(dcrbase_isram + DCRN_SRAM0_SB0CR,
-	      mfdcr(dcrbase_isram + DCRN_SRAM0_SB0CR) & ~SRAM_SBCR_BU_MASK);
+		  mfdcr(dcrbase_isram + DCRN_SRAM0_SB0CR) & ~SRAM_SBCR_BU_MASK);
 	mtdcr(dcrbase_isram + DCRN_SRAM0_SB1CR,
-	      mfdcr(dcrbase_isram + DCRN_SRAM0_SB1CR) & ~SRAM_SBCR_BU_MASK);
+		  mfdcr(dcrbase_isram + DCRN_SRAM0_SB1CR) & ~SRAM_SBCR_BU_MASK);
 	mtdcr(dcrbase_isram + DCRN_SRAM0_SB2CR,
-	      mfdcr(dcrbase_isram + DCRN_SRAM0_SB2CR) & ~SRAM_SBCR_BU_MASK);
+		  mfdcr(dcrbase_isram + DCRN_SRAM0_SB2CR) & ~SRAM_SBCR_BU_MASK);
 	mtdcr(dcrbase_isram + DCRN_SRAM0_SB3CR,
-	      mfdcr(dcrbase_isram + DCRN_SRAM0_SB3CR) & ~SRAM_SBCR_BU_MASK);
+		  mfdcr(dcrbase_isram + DCRN_SRAM0_SB3CR) & ~SRAM_SBCR_BU_MASK);
 
 	/* Enable L2_MODE without ICU/DCU */
 	r = mfdcr(dcrbase_l2c + DCRN_L2C0_CFG) &
@@ -148,6 +167,7 @@ static int __init ppc4xx_l2c_probe(void)
 
 	/* Hardware Clear Command */
 	mtdcr(dcrbase_l2c + DCRN_L2C0_CMD, L2C_CMD_HCC);
+
 	while (!(mfdcr(dcrbase_l2c + DCRN_L2C0_SR) & L2C_SR_CC))
 		;
 
@@ -170,14 +190,16 @@ static int __init ppc4xx_l2c_probe(void)
 	/* Enable ICU/DCU ports */
 	r = mfdcr(dcrbase_l2c + DCRN_L2C0_CFG);
 	r &= ~(L2C_CFG_DCW_MASK | L2C_CFG_PMUX_MASK | L2C_CFG_PMIM
-	       | L2C_CFG_TPEI | L2C_CFG_CPEI | L2C_CFG_NAM | L2C_CFG_NBRM);
+		   | L2C_CFG_TPEI | L2C_CFG_CPEI | L2C_CFG_NAM | L2C_CFG_NBRM);
 	r |= L2C_CFG_ICU | L2C_CFG_DCU | L2C_CFG_TPC | L2C_CFG_CPC | L2C_CFG_FRAN
-		| L2C_CFG_CPIM | L2C_CFG_TPIM | L2C_CFG_LIM | L2C_CFG_SMCM;
+		 | L2C_CFG_CPIM | L2C_CFG_TPIM | L2C_CFG_LIM | L2C_CFG_SMCM;
 
 	/* Check for 460EX/GT special handling */
 	if (of_device_is_compatible(np, "ibm,l2-cache-460ex") ||
-	    of_device_is_compatible(np, "ibm,l2-cache-460gt"))
+		of_device_is_compatible(np, "ibm,l2-cache-460gt"))
+	{
 		r |= L2C_CFG_RDBW;
+	}
 
 	mtdcr(dcrbase_l2c + DCRN_L2C0_CFG, r);
 
@@ -202,7 +224,9 @@ void ppc4xx_reset_system(char *cmd)
 	const u32 *prop;
 
 	np = of_find_node_by_type(NULL, "cpu");
-	if (np) {
+
+	if (np)
+	{
 		prop = of_get_property(np, "reset-type", NULL);
 
 		/*
@@ -212,7 +236,9 @@ void ppc4xx_reset_system(char *cmd)
 		 * 3 - PPC4xx system reset (default)
 		 */
 		if ((prop) && ((prop[0] >= 1) && (prop[0] <= 3)))
+		{
 			reset_type = prop[0] << 28;
+		}
 	}
 
 	mtspr(SPRN_DBCR0, mfspr(SPRN_DBCR0) | reset_type);

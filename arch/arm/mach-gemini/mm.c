@@ -17,10 +17,11 @@
 #include <mach/hardware.h>
 
 /* Page table mapping for I/O region */
-static struct map_desc gemini_io_desc[] __initdata = {
+static struct map_desc gemini_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)IO_ADDRESS(GEMINI_GLOBAL_BASE),
-		.pfn		=__phys_to_pfn(GEMINI_GLOBAL_BASE),
+		.pfn		= __phys_to_pfn(GEMINI_GLOBAL_BASE),
 		.length		= SZ_512K,
 		.type 		= MT_DEVICE,
 	}, {

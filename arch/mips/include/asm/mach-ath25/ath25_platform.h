@@ -9,7 +9,8 @@
  * The main reason we need it is in order to extract the ethernet MAC
  * address(es).
  */
-struct ath25_boarddata {
+struct ath25_boarddata
+{
 	u32 magic;                   /* board data is valid */
 #define ATH25_BD_MAGIC 0x35333131    /* "5311", for all 531x/231x platforms */
 	u16 cksum;                   /* checksum (starting with BD_REV 2) */
@@ -60,7 +61,8 @@ struct ath25_boarddata {
 /*
  * Platform device information for the Wireless MAC
  */
-struct ar231x_board_config {
+struct ar231x_board_config
+{
 	u16 devid;
 
 	/* board config data */

@@ -75,7 +75,7 @@ static void nlm_usb_intr_en(int node, int port)
 	port_addr = nlm_get_usb_regbase(node, port);
 	val = nlm_read_usb_reg(port_addr, USB_INT_EN);
 	val = USB_CTRL_INTERRUPT_EN  | USB_OHCI_INTERRUPT_EN |
-		USB_OHCI_INTERRUPT1_EN | USB_OHCI_INTERRUPT2_EN;
+		  USB_OHCI_INTERRUPT1_EN | USB_OHCI_INTERRUPT2_EN;
 	nlm_write_usb_reg(port_addr, USB_INT_EN, val);
 }
 
@@ -100,7 +100,9 @@ static void nlm_usb_hw_reset(int node, int port)
 static int __init nlm_platform_usb_init(void)
 {
 	if (cpu_is_xlpii())
+	{
 		return 0;
+	}
 
 	pr_info("Initializing USB Interface\n");
 	nlm_usb_hw_reset(0, 0);
@@ -122,28 +124,35 @@ static void nlm_usb_fixup_final(struct pci_dev *dev)
 {
 	dev->dev.dma_mask		= &xlp_usb_dmamask;
 	dev->dev.coherent_dma_mask	= DMA_BIT_MASK(32);
-	switch (dev->devfn) {
-	case 0x10:
-		dev->irq = PIC_EHCI_0_IRQ;
-		break;
-	case 0x11:
-		dev->irq = PIC_OHCI_0_IRQ;
-		break;
-	case 0x12:
-		dev->irq = PIC_OHCI_1_IRQ;
-		break;
-	case 0x13:
-		dev->irq = PIC_EHCI_1_IRQ;
-		break;
-	case 0x14:
-		dev->irq = PIC_OHCI_2_IRQ;
-		break;
-	case 0x15:
-		dev->irq = PIC_OHCI_3_IRQ;
-		break;
+
+	switch (dev->devfn)
+	{
+		case 0x10:
+			dev->irq = PIC_EHCI_0_IRQ;
+			break;
+
+		case 0x11:
+			dev->irq = PIC_OHCI_0_IRQ;
+			break;
+
+		case 0x12:
+			dev->irq = PIC_OHCI_1_IRQ;
+			break;
+
+		case 0x13:
+			dev->irq = PIC_EHCI_1_IRQ;
+			break;
+
+		case 0x14:
+			dev->irq = PIC_OHCI_2_IRQ;
+			break;
+
+		case 0x15:
+			dev->irq = PIC_OHCI_3_IRQ;
+			break;
 	}
 }
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_NETLOGIC, PCI_DEVICE_ID_NLM_EHCI,
-		nlm_usb_fixup_final);
+						nlm_usb_fixup_final);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_NETLOGIC, PCI_DEVICE_ID_NLM_OHCI,
-		nlm_usb_fixup_final);
+						nlm_usb_fixup_final);

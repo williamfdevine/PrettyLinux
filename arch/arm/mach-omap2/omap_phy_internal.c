@@ -50,10 +50,14 @@ static int __init omap4430_phy_power_down(void)
 	void __iomem *ctrl_base;
 
 	if (!cpu_is_omap44xx())
+	{
 		return 0;
+	}
 
 	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
-	if (!ctrl_base) {
+
+	if (!ctrl_base)
+	{
 		pr_err("control module ioremap failed\n");
 		return -ENOMEM;
 	}
@@ -88,7 +92,8 @@ void am35x_musb_phy_power(u8 on)
 	unsigned long timeout = jiffies + msecs_to_jiffies(100);
 	u32 devconf2;
 
-	if (on) {
+	if (on)
+	{
 		/*
 		 * Start the on-chip PHY and its PLL.
 		 */
@@ -100,16 +105,21 @@ void am35x_musb_phy_power(u8 on)
 		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
 
 		pr_info("Waiting for PHY clock good...\n");
+
 		while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
-				& CONF2_PHYCLKGD)) {
+				 & CONF2_PHYCLKGD))
+		{
 			cpu_relax();
 
-			if (time_after(jiffies, timeout)) {
+			if (time_after(jiffies, timeout))
+			{
 				pr_err("musb PHY clock good timed out\n");
 				break;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Power down the on-chip PHY.
 		 */
@@ -136,18 +146,23 @@ void am35x_set_mode(u8 musb_mode)
 	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
 
 	devconf2 &= ~CONF2_OTGMODE;
-	switch (musb_mode) {
-	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
-		devconf2 |= CONF2_FORCE_HOST;
-		break;
-	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
-		devconf2 |= CONF2_FORCE_DEVICE;
-		break;
-	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
-		devconf2 |= CONF2_NO_OVERRIDE;
-		break;
-	default:
-		pr_info("Unsupported mode %u\n", musb_mode);
+
+	switch (musb_mode)
+	{
+		case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
+			devconf2 |= CONF2_FORCE_HOST;
+			break;
+
+		case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
+			devconf2 |= CONF2_FORCE_DEVICE;
+			break;
+
+		case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
+			devconf2 |= CONF2_NO_OVERRIDE;
+			break;
+
+		default:
+			pr_info("Unsupported mode %u\n", musb_mode);
 	}
 
 	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);

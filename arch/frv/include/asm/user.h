@@ -52,7 +52,8 @@
  * this will be used by gdb to figure out where the data and stack segments
  *  are within the file, and what virtual addresses to use.
  */
-struct user {
+struct user
+{
 	/* We start with the registers, to mimic the way that "memory" is returned
 	 * from the ptrace(3,...) function.  */
 	struct user_context	regs;

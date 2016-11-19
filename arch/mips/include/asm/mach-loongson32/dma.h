@@ -16,7 +16,8 @@
 #define LS1X_DMA_CHANNEL1	1
 #define LS1X_DMA_CHANNEL2	2
 
-struct plat_ls1x_dma {
+struct plat_ls1x_dma
+{
 	int nr_channels;
 };
 

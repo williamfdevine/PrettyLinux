@@ -55,7 +55,8 @@
 /* eeek, signed "pointers" */
 typedef s64 cfe_xptr_t;
 
-struct xiocb_buffer {
+struct xiocb_buffer
+{
 	u64 buf_offset;		/* offset on device (bytes) */
 	cfe_xptr_t  buf_ptr;		/* pointer to a buffer */
 	u64 buf_length;		/* length of this buffer */
@@ -63,11 +64,13 @@ struct xiocb_buffer {
 	u64 buf_ioctlcmd;	/* IOCTL command (used only for IOCTLs) */
 };
 
-struct xiocb_inpstat {
+struct xiocb_inpstat
+{
 	u64 inp_status;		/* 1 means input available */
 };
 
-struct xiocb_envbuf {
+struct xiocb_envbuf
+{
 	s64 enum_idx;		/* 0-based enumeration index */
 	cfe_xptr_t name_ptr;		/* name string buffer */
 	s64 name_length;		/* size of name buffer */
@@ -75,7 +78,8 @@ struct xiocb_envbuf {
 	s64 val_length;		/* size of value string buffer */
 };
 
-struct xiocb_cpuctl {
+struct xiocb_cpuctl
+{
 	u64 cpu_number;		/* cpu number to control */
 	u64 cpu_command;	/* command to issue to CPU */
 	u64 start_addr;		/* CPU start address */
@@ -84,22 +88,26 @@ struct xiocb_cpuctl {
 	u64 a1_val;		/* starting A1 value */
 };
 
-struct xiocb_time {
+struct xiocb_time
+{
 	s64 ticks;		/* current time in ticks */
 };
 
-struct xiocb_exitstat{
+struct xiocb_exitstat
+{
 	s64 status;
 };
 
-struct xiocb_meminfo {
+struct xiocb_meminfo
+{
 	s64 mi_idx;		/* 0-based enumeration index */
 	s64 mi_type;		/* type of memory block */
 	u64 mi_addr;		/* physical start address */
 	u64 mi_size;		/* block size */
 };
 
-struct xiocb_fwinfo {
+struct xiocb_fwinfo
+{
 	s64 fwi_version;		/* major, minor, eco version */
 	s64 fwi_totalmem;	/* total installed mem */
 	s64 fwi_flags;		/* various flags */
@@ -112,13 +120,15 @@ struct xiocb_fwinfo {
 	s64 fwi_reserved3;
 };
 
-struct cfe_xiocb {
+struct cfe_xiocb
+{
 	u64 xiocb_fcode;	/* IOCB function code */
 	s64 xiocb_status;	/* return status */
 	s64 xiocb_handle;	/* file/device handle */
 	u64 xiocb_flags;	/* flags for this IOCB */
 	u64 xiocb_psize;	/* size of parameter list */
-	union {
+	union
+	{
 		/* buffer parameters */
 		struct xiocb_buffer xiocb_buffer;
 

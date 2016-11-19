@@ -29,7 +29,8 @@
  * book:
  * http://oss.software.ibm.com/developerworks/opensource/linux390/index.shtml
  */
-struct appldata_net_sum_data {
+struct appldata_net_sum_data
+{
 	u64 timestamp;
 	u32 sync_count_1;	/* after VM collected the record data, */
 	u32 sync_count_2;	/* sync_count_1 and sync_count_2 should be the
@@ -40,7 +41,7 @@ struct appldata_net_sum_data {
 	u32 nr_interfaces;	/* nr. of network interfaces being monitored */
 
 	u32 padding;		/* next value is 64-bit aligned, so these */
-				/* 4 byte would be padded out by compiler */
+	/* 4 byte would be padded out by compiler */
 
 	u64 rx_packets;		/* total packets received        */
 	u64 tx_packets;		/* total packets transmitted     */
@@ -65,7 +66,7 @@ static void appldata_get_net_sum_data(void *data)
 	struct appldata_net_sum_data *net_data;
 	struct net_device *dev;
 	unsigned long rx_packets, tx_packets, rx_bytes, tx_bytes, rx_errors,
-			tx_errors, rx_dropped, tx_dropped, collisions;
+			 tx_errors, rx_dropped, tx_dropped, collisions;
 
 	net_data = data;
 	net_data->sync_count_1++;
@@ -82,7 +83,8 @@ static void appldata_get_net_sum_data(void *data)
 	collisions = 0;
 
 	rcu_read_lock();
-	for_each_netdev_rcu(&init_net, dev) {
+	for_each_netdev_rcu(&init_net, dev)
+	{
 		const struct rtnl_link_stats64 *stats;
 		struct rtnl_link_stats64 temp;
 
@@ -116,7 +118,8 @@ static void appldata_get_net_sum_data(void *data)
 }
 
 
-static struct appldata_ops ops = {
+static struct appldata_ops ops =
+{
 	.name	   = "net_sum",
 	.record_nr = APPLDATA_RECORD_NET_SUM_ID,
 	.size	   = sizeof(struct appldata_net_sum_data),
@@ -136,12 +139,18 @@ static int __init appldata_net_init(void)
 	int ret;
 
 	ops.data = kzalloc(sizeof(struct appldata_net_sum_data), GFP_KERNEL);
+
 	if (!ops.data)
+	{
 		return -ENOMEM;
+	}
 
 	ret = appldata_register_ops(&ops);
+
 	if (ret)
+	{
 		kfree(ops.data);
+	}
 
 	return ret;
 }

@@ -42,11 +42,11 @@
 #undef DEBUG_LAST_STEPS
 
 extern unsigned long switch_to_osf_pal(unsigned long nr,
-	struct pcb_struct * pcb_va, struct pcb_struct * pcb_pa,
-	unsigned long *vptb);
+									   struct pcb_struct *pcb_va, struct pcb_struct *pcb_pa,
+									   unsigned long *vptb);
 
-extern int decompress_kernel(void* destination, void *source,
-			     size_t ksize, size_t kzsize);
+extern int decompress_kernel(void *destination, void *source,
+							 size_t ksize, size_t kzsize);
 
 extern void move_stack(unsigned long new_stack);
 
@@ -70,32 +70,35 @@ find_pa(unsigned long address)
 	result <<= 13;
 	result |= address & 0x1fff;
 	return result;
-}	
+}
 
 int
 check_range(unsigned long vstart, unsigned long vend,
-	    unsigned long kstart, unsigned long kend)
+			unsigned long kstart, unsigned long kend)
 {
 	unsigned long vaddr, kaddr;
 
 #ifdef DEBUG_CHECK_RANGE
 	srm_printk("check_range: V[0x%lx:0x%lx] K[0x%lx:0x%lx]\n",
-		   vstart, vend, kstart, kend);
+			   vstart, vend, kstart, kend);
 #endif
+
 	/* do some range checking for detecting an overlap... */
 	for (vaddr = vstart; vaddr <= vend; vaddr += PAGE_SIZE)
 	{
 		kaddr = (find_pa(vaddr) | PAGE_OFFSET);
+
 		if (kaddr >= kstart && kaddr <= kend)
 		{
 #ifdef DEBUG_CHECK_RANGE
 			srm_printk("OVERLAP: vaddr 0x%lx kaddr 0x%lx"
-				   " [0x%lx:0x%lx]\n",
-				   vaddr, kaddr, kstart, kend);
+					   " [0x%lx:0x%lx]\n",
+					   vaddr, kaddr, kstart, kend);
 #endif
 			return 1;
 		}
 	}
+
 	return 0;
 }
 
@@ -116,8 +119,8 @@ void
 pal_init(void)
 {
 	unsigned long i, rev;
-	struct percpu_struct * percpu;
-	struct pcb_struct * pcb_pa;
+	struct percpu_struct *percpu;
+	struct pcb_struct *pcb_pa;
 
 	/* Create the dummy PCB.  */
 	pcb_va->ksp = 0;
@@ -141,13 +144,15 @@ pal_init(void)
 	srm_printk("Switching to OSF PAL-code... ");
 
 	i = switch_to_osf_pal(2, pcb_va, pcb_pa, VPTB);
-	if (i) {
+
+	if (i)
+	{
 		srm_printk("failed, code %ld\n", i);
 		__halt();
 	}
 
 	percpu = (struct percpu_struct *)
-		(INIT_HWRPB->processor_offset + (unsigned long) INIT_HWRPB);
+			 (INIT_HWRPB->processor_offset + (unsigned long) INIT_HWRPB);
 	rev = percpu->pal_revision = percpu->palcode_avail[2];
 
 	srm_printk("OK (rev %lx)\n", rev);
@@ -183,9 +188,9 @@ extern char _end;
 #define NEXT_PAGE(a)	(((a) | (PAGE_SIZE - 1)) + 1)
 
 #ifdef INITRD_IMAGE_SIZE
-# define REAL_INITRD_SIZE INITRD_IMAGE_SIZE
+	#define REAL_INITRD_SIZE INITRD_IMAGE_SIZE
 #else
-# define REAL_INITRD_SIZE 0
+	#define REAL_INITRD_SIZE 0
 #endif
 
 /* Defines from include/asm-alpha/system.h
@@ -199,14 +204,14 @@ extern char _end;
 
 	START_ADDR	KSEG address of the entry point of kernel code.
 
-	ZERO_PGE	KSEG address of page full of zeroes, but 
+	ZERO_PGE	KSEG address of page full of zeroes, but
 			upon entry to kerne cvan be expected
 			to hold the parameter list and possible
 			INTRD information.
 
    These are used in the local defines below.
 */
-  
+
 
 /* Virtual addresses for the BOOTP image. Note that this includes the
    bootstrapper code as well as the compressed kernel image, and
@@ -252,11 +257,11 @@ extern char _end;
 #define K_COPY_IMAGE_START	NEXT_PAGE(K_KERNEL_IMAGE_END)
 /* Reserve one page below INITRD for the new stack. */
 #define K_INITRD_START \
-    NEXT_PAGE(K_COPY_IMAGE_START + KERNEL_SIZE + PAGE_SIZE)
+	NEXT_PAGE(K_COPY_IMAGE_START + KERNEL_SIZE + PAGE_SIZE)
 #define K_COPY_IMAGE_END \
-    (K_INITRD_START + REAL_INITRD_SIZE + MALLOC_AREA_SIZE)
+	(K_INITRD_START + REAL_INITRD_SIZE + MALLOC_AREA_SIZE)
 #define K_COPY_IMAGE_SIZE \
-    NEXT_PAGE(K_COPY_IMAGE_END - K_COPY_IMAGE_START)
+	NEXT_PAGE(K_COPY_IMAGE_END - K_COPY_IMAGE_START)
 
 void
 start_kernel(void)
@@ -294,14 +299,17 @@ start_kernel(void)
 	srm_printk("Linux/Alpha BOOTPZ Loader for Linux " UTS_RELEASE "\n");
 
 	/* Validity check the HWRPB. */
-	if (INIT_HWRPB->pagesize != 8192) {
+	if (INIT_HWRPB->pagesize != 8192)
+	{
 		srm_printk("Expected 8kB pages, got %ldkB\n",
-		           INIT_HWRPB->pagesize >> 10);
+				   INIT_HWRPB->pagesize >> 10);
 		return;
 	}
-	if (INIT_HWRPB->vptb != (unsigned long) VPTB) {
+
+	if (INIT_HWRPB->vptb != (unsigned long) VPTB)
+	{
 		srm_printk("Expected vptb at %p, got %p\n",
-			   VPTB, (void *)INIT_HWRPB->vptb);
+				   VPTB, (void *)INIT_HWRPB->vptb);
 		return;
 	}
 
@@ -310,9 +318,12 @@ start_kernel(void)
 
 	/* Get the parameter list from the console environment variable. */
 	nbytes = callback_getenv(ENV_BOOTED_OSFLAGS, envval, sizeof(envval));
-	if (nbytes < 0 || nbytes >= sizeof(envval)) {
+
+	if (nbytes < 0 || nbytes >= sizeof(envval))
+	{
 		nbytes = 0;
 	}
+
 	envval[nbytes] = '\0';
 
 #ifdef DEBUG_ADDRESSES
@@ -346,7 +357,7 @@ start_kernel(void)
 	   in conflict.
 	 */
 	if (check_range(V_BOOTSTRAPPER_START, V_BOOTSTRAPPER_END,
-			K_KERNEL_DATA_START, K_KERNEL_IMAGE_END))
+					K_KERNEL_DATA_START, K_KERNEL_IMAGE_END))
 	{
 		srm_printk("FATAL ERROR: overlap of bootstrapper code\n");
 		__halt();
@@ -359,7 +370,7 @@ start_kernel(void)
 	   execution.
 	 */
 	if (check_range(V_DATA_START, V_DATA_END,
-			K_KERNEL_IMAGE_START, K_COPY_IMAGE_END))
+					K_KERNEL_IMAGE_START, K_COPY_IMAGE_END))
 	{
 #ifdef DEBUG_ADDRESSES
 		srm_printk("OVERLAP: cannot decompress in place\n");
@@ -375,8 +386,8 @@ start_kernel(void)
 		   decompression.
 		*/
 		while (check_range(V_DATA_START, V_DATA_END,
-				   uncompressed_image_start,
-				   uncompressed_image_end))
+						   uncompressed_image_start,
+						   uncompressed_image_end))
 		{
 #if 0
 			uncompressed_image_start += K_COPY_IMAGE_SIZE;
@@ -395,14 +406,14 @@ start_kernel(void)
 
 #ifdef DEBUG_ADDRESSES
 	srm_printk("Decompressing the kernel...\n"
-		   "...from 0x%lx to 0x%lx size 0x%x\n",
-		   V_DATA_START,
-		   uncompressed_image_start,
-		   KERNEL_SIZE);
+			   "...from 0x%lx to 0x%lx size 0x%x\n",
+			   V_DATA_START,
+			   uncompressed_image_start,
+			   KERNEL_SIZE);
 #endif
-        decompress_kernel((void *)uncompressed_image_start,
-			  (void *)V_DATA_START,
-			  KERNEL_SIZE, KERNEL_Z_SIZE);
+	decompress_kernel((void *)uncompressed_image_start,
+					  (void *)V_DATA_START,
+					  KERNEL_SIZE, KERNEL_Z_SIZE);
 
 	/*
 	 * Now, move things to their final positions, if/as required.
@@ -413,26 +424,27 @@ start_kernel(void)
 	/* First, we always move the INITRD image, if present. */
 #ifdef DEBUG_ADDRESSES
 	srm_printk("Moving the INITRD image...\n"
-		   " from 0x%lx to 0x%lx size 0x%x\n",
-		   V_INITRD_START,
-		   initrd_image_start,
-		   INITRD_IMAGE_SIZE);
+			   " from 0x%lx to 0x%lx size 0x%x\n",
+			   V_INITRD_START,
+			   initrd_image_start,
+			   INITRD_IMAGE_SIZE);
 #endif
 	memcpy((void *)initrd_image_start, (void *)V_INITRD_START,
-	       INITRD_IMAGE_SIZE);
+		   INITRD_IMAGE_SIZE);
 
 #endif /* INITRD_IMAGE_SIZE */
 
 	/* Next, we may have to move the uncompressed kernel to the
 	   final destination.
 	 */
-	if (must_move) {
+	if (must_move)
+	{
 #ifdef DEBUG_ADDRESSES
 		srm_printk("Moving the uncompressed kernel...\n"
-			   "...from 0x%lx to 0x%lx size 0x%x\n",
-			   uncompressed_image_start,
-			   K_KERNEL_IMAGE_START,
-			   (unsigned)KERNEL_SIZE);
+				   "...from 0x%lx to 0x%lx size 0x%x\n",
+				   uncompressed_image_start,
+				   K_KERNEL_IMAGE_START,
+				   (unsigned)KERNEL_SIZE);
 #endif
 		/*
 		 * Move the stack to a safe place to ensure it won't be
@@ -441,15 +453,15 @@ start_kernel(void)
 		move_stack(initrd_image_start - PAGE_SIZE);
 
 		memcpy((void *)K_KERNEL_IMAGE_START,
-		       (void *)uncompressed_image_start, KERNEL_SIZE);
+			   (void *)uncompressed_image_start, KERNEL_SIZE);
 	}
-	
+
 	/* Clear the zero page, then move the argument list in. */
 #ifdef DEBUG_LAST_STEPS
 	srm_printk("Preparing ZERO_PGE...\n");
 #endif
-	memset((char*)ZERO_PGE, 0, PAGE_SIZE);
-	strcpy((char*)ZERO_PGE, envval);
+	memset((char *)ZERO_PGE, 0, PAGE_SIZE);
+	strcpy((char *)ZERO_PGE, envval);
 
 #ifdef INITRD_IMAGE_SIZE
 
@@ -457,8 +469,8 @@ start_kernel(void)
 	srm_printk("Preparing INITRD info...\n");
 #endif
 	/* Finally, set the INITRD paramenters for the kernel. */
-	((long *)(ZERO_PGE+256))[0] = initrd_image_start;
-	((long *)(ZERO_PGE+256))[1] = INITRD_IMAGE_SIZE;
+	((long *)(ZERO_PGE + 256))[0] = initrd_image_start;
+	((long *)(ZERO_PGE + 256))[1] = INITRD_IMAGE_SIZE;
 
 #endif /* INITRD_IMAGE_SIZE */
 
@@ -468,7 +480,7 @@ start_kernel(void)
 	runkernel();
 }
 
- /* dummy function, should never be called. */
+/* dummy function, should never be called. */
 void *__kmalloc(size_t size, gfp_t flags)
 {
 	return (void *)NULL;

@@ -30,14 +30,14 @@ static inline void __set_CLKC(unsigned long v)
 	int tmp;
 
 	asm volatile("	st%I0.p	%2,%M0		\n"
-		     "	setlos	%3,%1		\n"
-		     "	membar			\n"
-		     "0:			\n"
-		     "	subicc	%1,#1,%1,icc0	\n"
-		     "	bnc	icc0,#1,0b	\n"
-		     : "=m"(*(volatile unsigned long *) 0xfeff9a00), "=r"(tmp)
-		     : "r"(v), "i"(256)
-		     : "icc0");
+				 "	setlos	%3,%1		\n"
+				 "	membar			\n"
+				 "0:			\n"
+				 "	subicc	%1,#1,%1,icc0	\n"
+				 "	bnc	icc0,#1,0b	\n"
+				 : "=m"(*(volatile unsigned long *) 0xfeff9a00), "=r"(tmp)
+				 : "r"(v), "i"(256)
+				 : "icc0");
 }
 
 #define __get_TCTR()	({ *(volatile unsigned long *)(0xfeff9418); })
@@ -52,10 +52,10 @@ static inline void __set_CLKC(unsigned long v)
 #define __set_TPRV(V)	do { *(volatile unsigned long *)(0xfeff9420) = (V) << 24; mb(); } while(0)
 #define __set_TPRCKSL(V) do { *(volatile unsigned long *)(0xfeff9428) = (V); mb(); } while(0)
 #define __set_TCSR(T,V)	\
-do { *(volatile unsigned long *)(0xfeff9400 + 8 * (T)) = (V); mb(); } while(0)
+	do { *(volatile unsigned long *)(0xfeff9400 + 8 * (T)) = (V); mb(); } while(0)
 
 #define __set_TxCKSL(T,V) \
-do { *(volatile unsigned long *)(0xfeff9430 + 8 * (T)) = (V); mb(); } while(0)
+	do { *(volatile unsigned long *)(0xfeff9430 + 8 * (T)) = (V); mb(); } while(0)
 
 #define __set_TCSR_DATA(T,V) __set_TCSR(T, (V) << 24)
 #define __set_TxCKSL_DATA(T,V) __set_TxCKSL(T, TxCKSL_EIGHT | __TxCKSL_SELECT((V)))

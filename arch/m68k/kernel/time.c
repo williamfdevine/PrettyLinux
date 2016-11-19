@@ -45,27 +45,35 @@ static irqreturn_t timer_interrupt(int irq, void *dummy)
 	profile_tick(CPU_PROFILING);
 
 #ifdef CONFIG_HEARTBEAT
+
 	/* use power LED as a heartbeat instead -- much more useful
 	   for debugging -- based on the version for PReP by Cort */
 	/* acts like an actual heart beat -- ie thump-thump-pause... */
-	if (mach_heartbeat) {
-	    static unsigned cnt = 0, period = 0, dist = 0;
+	if (mach_heartbeat)
+	{
+		static unsigned cnt = 0, period = 0, dist = 0;
 
-	    if (cnt == 0 || cnt == dist)
-		mach_heartbeat( 1 );
-	    else if (cnt == 7 || cnt == dist+7)
-		mach_heartbeat( 0 );
+		if (cnt == 0 || cnt == dist)
+		{
+			mach_heartbeat( 1 );
+		}
+		else if (cnt == 7 || cnt == dist + 7)
+		{
+			mach_heartbeat( 0 );
+		}
 
-	    if (++cnt > period) {
-		cnt = 0;
-		/* The hyperbolic function below modifies the heartbeat period
-		 * length in dependency of the current (5min) load. It goes
-		 * through the points f(0)=126, f(1)=86, f(5)=51,
-		 * f(inf)->30. */
-		period = ((672<<FSHIFT)/(5*avenrun[0]+(7<<FSHIFT))) + 30;
-		dist = period / 4;
-	    }
+		if (++cnt > period)
+		{
+			cnt = 0;
+			/* The hyperbolic function below modifies the heartbeat period
+			 * length in dependency of the current (5min) load. It goes
+			 * through the points f(0)=126, f(1)=86, f(5)=51,
+			 * f(inf)->30. */
+			period = ((672 << FSHIFT) / (5 * avenrun[0] + (7 << FSHIFT))) + 30;
+			dist = period / 4;
+		}
 	}
+
 #endif /* CONFIG_HEARTBEAT */
 	return IRQ_HANDLED;
 }
@@ -76,13 +84,17 @@ void read_persistent_clock(struct timespec *ts)
 	ts->tv_sec = 0;
 	ts->tv_nsec = 0;
 
-	if (mach_hwclk) {
+	if (mach_hwclk)
+	{
 		mach_hwclk(0, &time);
 
 		if ((time.tm_year += 1900) < 1970)
+		{
 			time.tm_year += 100;
+		}
+
 		ts->tv_sec = mktime(time.tm_year, time.tm_mon, time.tm_mday,
-				      time.tm_hour, time.tm_min, time.tm_sec);
+							time.tm_hour, time.tm_min, time.tm_sec);
 	}
 }
 
@@ -96,7 +108,10 @@ static int rtc_generic_get_time(struct device *dev, struct rtc_time *tm)
 static int rtc_generic_set_time(struct device *dev, struct rtc_time *tm)
 {
 	if (mach_hwclk(1, tm) < 0)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	return 0;
 }
 
@@ -105,26 +120,40 @@ static int rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
 	struct rtc_pll_info pll;
 	struct rtc_pll_info __user *argp = (void __user *)arg;
 
-	switch (cmd) {
-	case RTC_PLL_GET:
-		if (!mach_get_rtc_pll || mach_get_rtc_pll(&pll))
-			return -EINVAL;
-		return copy_to_user(argp, &pll, sizeof pll) ? -EFAULT : 0;
+	switch (cmd)
+	{
+		case RTC_PLL_GET:
+			if (!mach_get_rtc_pll || mach_get_rtc_pll(&pll))
+			{
+				return -EINVAL;
+			}
 
-	case RTC_PLL_SET:
-		if (!mach_set_rtc_pll)
-			return -EINVAL;
-		if (!capable(CAP_SYS_TIME))
-			return -EACCES;
-		if (copy_from_user(&pll, argp, sizeof(pll)))
-			return -EFAULT;
-		return mach_set_rtc_pll(&pll);
+			return copy_to_user(argp, &pll, sizeof pll) ? -EFAULT : 0;
+
+		case RTC_PLL_SET:
+			if (!mach_set_rtc_pll)
+			{
+				return -EINVAL;
+			}
+
+			if (!capable(CAP_SYS_TIME))
+			{
+				return -EACCES;
+			}
+
+			if (copy_from_user(&pll, argp, sizeof(pll)))
+			{
+				return -EFAULT;
+			}
+
+			return mach_set_rtc_pll(&pll);
 	}
 
 	return -ENOIOCTLCMD;
 }
 
-static const struct rtc_class_ops generic_rtc_ops = {
+static const struct rtc_class_ops generic_rtc_ops =
+{
 	.ioctl = rtc_ioctl,
 	.read_time = rtc_generic_get_time,
 	.set_time = rtc_generic_set_time,
@@ -135,11 +164,13 @@ static int __init rtc_init(void)
 	struct platform_device *pdev;
 
 	if (!mach_hwclk)
+	{
 		return -ENODEV;
+	}
 
 	pdev = platform_device_register_data(NULL, "rtc-generic", -1,
-					     &generic_rtc_ops,
-					     sizeof(generic_rtc_ops));
+										 &generic_rtc_ops,
+										 sizeof(generic_rtc_ops));
 	return PTR_ERR_OR_ZERO(pdev);
 }
 

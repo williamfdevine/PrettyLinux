@@ -32,43 +32,65 @@ static void early_vga_write(struct console *con, const char *str, unsigned n)
 	char c;
 	int  i, k, j;
 
-	while ((c = *str++) != '\0' && n-- > 0) {
-		if (current_ypos >= max_ypos) {
+	while ((c = *str++) != '\0' && n-- > 0)
+	{
+		if (current_ypos >= max_ypos)
+		{
 			/* scroll 1 line up */
-			for (k = 1, j = 0; k < max_ypos; k++, j++) {
-				for (i = 0; i < max_xpos; i++) {
-					writew(readw(VGABASE+2*(max_xpos*k+i)),
-					       VGABASE + 2*(max_xpos*j + i));
+			for (k = 1, j = 0; k < max_ypos; k++, j++)
+			{
+				for (i = 0; i < max_xpos; i++)
+				{
+					writew(readw(VGABASE + 2 * (max_xpos * k + i)),
+						   VGABASE + 2 * (max_xpos * j + i));
 				}
 			}
+
 			for (i = 0; i < max_xpos; i++)
-				writew(0x720, VGABASE + 2*(max_xpos*j + i));
-			current_ypos = max_ypos-1;
+			{
+				writew(0x720, VGABASE + 2 * (max_xpos * j + i));
+			}
+
+			current_ypos = max_ypos - 1;
 		}
+
 #ifdef CONFIG_KGDB_KDB
-		if (c == '\b') {
+
+		if (c == '\b')
+		{
 			if (current_xpos > 0)
+			{
 				current_xpos--;
-		} else if (c == '\r') {
+			}
+		}
+		else if (c == '\r')
+		{
 			current_xpos = 0;
-		} else
+		}
+		else
 #endif
-		if (c == '\n') {
-			current_xpos = 0;
-			current_ypos++;
-		} else if (c != '\r')  {
-			writew(((0x7 << 8) | (unsigned short) c),
-			       VGABASE + 2*(max_xpos*current_ypos +
-						current_xpos++));
-			if (current_xpos >= max_xpos) {
+			if (c == '\n')
+			{
 				current_xpos = 0;
 				current_ypos++;
 			}
-		}
+			else if (c != '\r')
+			{
+				writew(((0x7 << 8) | (unsigned short) c),
+					   VGABASE + 2 * (max_xpos * current_ypos +
+									  current_xpos++));
+
+				if (current_xpos >= max_xpos)
+				{
+					current_xpos = 0;
+					current_ypos++;
+				}
+			}
 	}
 }
 
-static struct console early_vga_console = {
+static struct console early_vga_console =
+{
 	.name =		"earlyvga",
 	.write =	early_vga_write,
 	.flags =	CON_PRINTBUFFER,
@@ -113,16 +135,23 @@ static int early_serial_putc(unsigned char ch)
 	unsigned timeout = 0xffff;
 
 	while ((serial_in(early_serial_base, LSR) & XMTRDY) == 0 && --timeout)
+	{
 		cpu_relax();
+	}
+
 	serial_out(early_serial_base, TXR, ch);
 	return timeout ? 0 : -1;
 }
 
 static void early_serial_write(struct console *con, const char *s, unsigned n)
 {
-	while (*s && n-- > 0) {
+	while (*s && n-- > 0)
+	{
 		if (*s == '\n')
+		{
 			early_serial_putc('\r');
+		}
+
 		early_serial_putc(*s);
 		s++;
 	}
@@ -153,32 +182,53 @@ static __init void early_serial_init(char *s)
 	char *e;
 
 	if (*s == ',')
+	{
 		++s;
+	}
 
-	if (*s) {
+	if (*s)
+	{
 		unsigned port;
-		if (!strncmp(s, "0x", 2)) {
+
+		if (!strncmp(s, "0x", 2))
+		{
 			early_serial_base = simple_strtoul(s, &e, 16);
-		} else {
+		}
+		else
+		{
 			static const int __initconst bases[] = { 0x3f8, 0x2f8 };
 
 			if (!strncmp(s, "ttyS", 4))
+			{
 				s += 4;
+			}
+
 			port = simple_strtoul(s, &e, 10);
+
 			if (port > 1 || s == e)
+			{
 				port = 0;
+			}
+
 			early_serial_base = bases[port];
 		}
+
 		s += strcspn(s, ",");
+
 		if (*s == ',')
+		{
 			s++;
+		}
 	}
 
-	if (*s) {
+	if (*s)
+	{
 		baud = simple_strtoull(s, &e, 0);
 
 		if (baud == 0 || s == e)
+		{
 			baud = DEFAULT_BAUD;
+		}
 	}
 
 	/* Convert from baud to divisor value */
@@ -228,27 +278,41 @@ static __init void early_pci_serial_init(char *s)
 	 * First, part the param to get the BDF values
 	 */
 	if (*s == ',')
+	{
 		++s;
+	}
 
 	if (*s == 0)
+	{
 		return;
+	}
 
 	bus = (u8)simple_strtoul(s, &e, 16);
 	s = e;
+
 	if (*s != ':')
+	{
 		return;
+	}
+
 	++s;
 	slot = (u8)simple_strtoul(s, &e, 16);
 	s = e;
+
 	if (*s != '.')
+	{
 		return;
+	}
+
 	++s;
 	func = (u8)simple_strtoul(s, &e, 16);
 	s = e;
 
 	/* A baud might be following */
 	if (*s == ',')
+	{
 		s++;
+	}
 
 	/*
 	 * Second, find the device from the BDF
@@ -261,21 +325,26 @@ static __init void early_pci_serial_init(char *s)
 	 * Verify it is a UART type device
 	 */
 	if (((classcode >> 16 != PCI_CLASS_COMMUNICATION_MODEM) &&
-	     (classcode >> 16 != PCI_CLASS_COMMUNICATION_SERIAL)) ||
-	   (((classcode >> 8) & 0xff) != 0x02)) /* 16550 I/F at BAR0 */
+		 (classcode >> 16 != PCI_CLASS_COMMUNICATION_SERIAL)) ||
+		(((classcode >> 8) & 0xff) != 0x02)) /* 16550 I/F at BAR0 */
+	{
 		return;
+	}
 
 	/*
 	 * Determine if it is IO or memory mapped
 	 */
-	if (bar0 & 0x01) {
+	if (bar0 & 0x01)
+	{
 		/* it is IO mapped */
 		serial_in = io_serial_in;
 		serial_out = io_serial_out;
-		early_serial_base = bar0&0xfffffffc;
+		early_serial_base = bar0 & 0xfffffffc;
 		write_pci_config(bus, slot, func, PCI_COMMAND,
-						cmdreg|PCI_COMMAND_IO);
-	} else {
+						 cmdreg | PCI_COMMAND_IO);
+	}
+	else
+	{
 		/* It is memory mapped - assume 32-bit alignment */
 		serial_in = mem32_serial_in;
 		serial_out = mem32_serial_out;
@@ -283,22 +352,28 @@ static __init void early_pci_serial_init(char *s)
 		early_serial_base =
 			(unsigned long)early_ioremap(bar0 & 0xfffffff0, 0x10);
 		write_pci_config(bus, slot, func, PCI_COMMAND,
-						cmdreg|PCI_COMMAND_MEMORY);
+						 cmdreg | PCI_COMMAND_MEMORY);
 	}
 
 	/*
 	 * Lastly, initialize the hardware
 	 */
-	if (*s) {
+	if (*s)
+	{
 		if (strcmp(s, "nocfg") == 0)
 			/* Sometimes, we want to leave the UART alone
 			 * and assume the BIOS has set it up correctly.
 			 * "nocfg" tells us this is the case, and we
 			 * should do no more setup.
 			 */
+		{
 			return;
+		}
+
 		if (kstrtoul(s, 0, &baud) < 0 || baud == 0)
+		{
 			baud = DEFAULT_BAUD;
+		}
 	}
 
 	/* Convert from baud to divisor value */
@@ -309,7 +384,8 @@ static __init void early_pci_serial_init(char *s)
 }
 #endif
 
-static struct console early_serial_console = {
+static struct console early_serial_console =
+{
 	.name =		"earlyser",
 	.write =	early_serial_write,
 	.flags =	CON_PRINTBUFFER,
@@ -318,16 +394,24 @@ static struct console early_serial_console = {
 
 static void early_console_register(struct console *con, int keep_early)
 {
-	if (con->index != -1) {
+	if (con->index != -1)
+	{
 		printk(KERN_CRIT "ERROR: earlyprintk= %s already used\n",
-		       con->name);
+			   con->name);
 		return;
 	}
+
 	early_console = con;
+
 	if (keep_early)
+	{
 		early_console->flags &= ~CON_BOOT;
+	}
 	else
+	{
 		early_console->flags |= CON_BOOT;
+	}
+
 	register_console(early_console);
 }
 
@@ -336,54 +420,85 @@ static int __init setup_early_printk(char *buf)
 	int keep;
 
 	if (!buf)
+	{
 		return 0;
+	}
 
 	if (early_console)
+	{
 		return 0;
+	}
 
 	keep = (strstr(buf, "keep") != NULL);
 
-	while (*buf != '\0') {
-		if (!strncmp(buf, "serial", 6)) {
+	while (*buf != '\0')
+	{
+		if (!strncmp(buf, "serial", 6))
+		{
 			buf += 6;
 			early_serial_init(buf);
 			early_console_register(&early_serial_console, keep);
+
 			if (!strncmp(buf, ",ttyS", 5))
+			{
 				buf += 5;
+			}
 		}
-		if (!strncmp(buf, "ttyS", 4)) {
+
+		if (!strncmp(buf, "ttyS", 4))
+		{
 			early_serial_init(buf + 4);
 			early_console_register(&early_serial_console, keep);
 		}
+
 #ifdef CONFIG_PCI
-		if (!strncmp(buf, "pciserial", 9)) {
+
+		if (!strncmp(buf, "pciserial", 9))
+		{
 			early_pci_serial_init(buf + 9);
 			early_console_register(&early_serial_console, keep);
 			buf += 9; /* Keep from match the above "serial" */
 		}
+
 #endif
+
 		if (!strncmp(buf, "vga", 3) &&
-		    boot_params.screen_info.orig_video_isVGA == 1) {
+			boot_params.screen_info.orig_video_isVGA == 1)
+		{
 			max_xpos = boot_params.screen_info.orig_video_cols;
 			max_ypos = boot_params.screen_info.orig_video_lines;
 			current_ypos = boot_params.screen_info.orig_y;
 			early_console_register(&early_vga_console, keep);
 		}
+
 #ifdef CONFIG_EARLY_PRINTK_DBGP
+
 		if (!strncmp(buf, "dbgp", 4) && !early_dbgp_init(buf + 4))
+		{
 			early_console_register(&early_dbgp_console, keep);
+		}
+
 #endif
 #ifdef CONFIG_HVC_XEN
+
 		if (!strncmp(buf, "xen", 3))
+		{
 			early_console_register(&xenboot_console, keep);
+		}
+
 #endif
 #ifdef CONFIG_EARLY_PRINTK_EFI
+
 		if (!strncmp(buf, "efi", 3))
+		{
 			early_console_register(&early_efi_console, keep);
+		}
+
 #endif
 
 		buf++;
 	}
+
 	return 0;
 }
 

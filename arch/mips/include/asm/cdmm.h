@@ -19,7 +19,8 @@
  * @type:	Device type identifier.
  * @rev:	Device revision number.
  */
-struct mips_cdmm_device {
+struct mips_cdmm_device
+{
 	struct device		dev;
 	unsigned int		cpu;
 	struct resource		res;
@@ -39,7 +40,8 @@ struct mips_cdmm_device {
  *		CPU pinned threads/timers can be restarted.
  * @id_table:	Table for CDMM IDs to match against.
  */
-struct mips_cdmm_driver {
+struct mips_cdmm_driver
+{
 	struct device_driver	drv;
 	int			(*probe)(struct mips_cdmm_device *);
 	int			(*remove)(struct mips_cdmm_device *);
@@ -82,7 +84,7 @@ void mips_cdmm_driver_unregister(struct mips_cdmm_driver *);
  */
 #define module_mips_cdmm_driver(__mips_cdmm_driver) \
 	module_driver(__mips_cdmm_driver, mips_cdmm_driver_register, \
-			mips_cdmm_driver_unregister)
+				  mips_cdmm_driver_unregister)
 
 /*
  * builtin_mips_cdmm_driver() - Helper macro for drivers that don't do anything

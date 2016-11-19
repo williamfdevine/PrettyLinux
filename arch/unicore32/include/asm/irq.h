@@ -78,26 +78,26 @@
 #define IRQ_GPIO27		0x3b
 
 #ifdef CONFIG_ARCH_FPGA
-#define IRQ_PCIINTA             IRQ_GPIOLOW2
-#define IRQ_PCIINTB             IRQ_GPIOLOW1
-#define IRQ_PCIINTC             IRQ_GPIOLOW0
-#define IRQ_PCIINTD             IRQ_GPIOLOW6
+	#define IRQ_PCIINTA             IRQ_GPIOLOW2
+	#define IRQ_PCIINTB             IRQ_GPIOLOW1
+	#define IRQ_PCIINTC             IRQ_GPIOLOW0
+	#define IRQ_PCIINTD             IRQ_GPIOLOW6
 #endif
 
 #if defined(CONFIG_PUV3_DB0913) || defined(CONFIG_PUV3_NB0916)	\
 	|| defined(CONFIG_PUV3_SMW0919)
-#define IRQ_PCIINTA             IRQ_GPIOLOW1
-#define IRQ_PCIINTB             IRQ_GPIOLOW2
-#define IRQ_PCIINTC             IRQ_GPIOLOW3
-#define IRQ_PCIINTD             IRQ_GPIOLOW4
+	#define IRQ_PCIINTA             IRQ_GPIOLOW1
+	#define IRQ_PCIINTB             IRQ_GPIOLOW2
+	#define IRQ_PCIINTC             IRQ_GPIOLOW3
+	#define IRQ_PCIINTD             IRQ_GPIOLOW4
 #endif
 
 #define IRQ_SD_CD               IRQ_GPIO6 /* falling or rising trigger */
 
 #ifndef __ASSEMBLY__
-struct pt_regs;
+	struct pt_regs;
 
-extern void asm_do_IRQ(unsigned int, struct pt_regs *);
+	extern void asm_do_IRQ(unsigned int, struct pt_regs *);
 
 #endif
 

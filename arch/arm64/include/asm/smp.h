@@ -71,7 +71,8 @@ asmlinkage void secondary_start_kernel(void);
  * @status - Result passed back from the secondary CPU to
  *           indicate failure.
  */
-struct secondary_data {
+struct secondary_data
+{
 	void *stack;
 	long status;
 };
@@ -100,7 +101,8 @@ extern void cpu_die_early(void);
 
 static inline void cpu_park_loop(void)
 {
-	for (;;) {
+	for (;;)
+	{
 		wfe();
 		wfi();
 	}

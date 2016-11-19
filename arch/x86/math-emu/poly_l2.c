@@ -18,7 +18,7 @@
 #include "poly.h"
 
 static void log2_kernel(FPU_REG const *arg, u_char argsign,
-			Xsig * accum_result, long int *expon);
+						Xsig *accum_result, long int *expon);
 
 /*--- poly_l2() -------------------------------------------------------------+
  |   Base 2 logarithm by a polynomial approximation.                         |
@@ -34,43 +34,62 @@ void poly_l2(FPU_REG *st0_ptr, FPU_REG *st1_ptr, u_char st1_sign)
 	exponent = exponent16(st0_ptr);
 
 	/* From st0_ptr, make a number > sqrt(2)/2 and < sqrt(2) */
-	if (st0_ptr->sigh > (unsigned)0xb504f334) {
+	if (st0_ptr->sigh > (unsigned)0xb504f334)
+	{
 		/* Treat as  sqrt(2)/2 < st0_ptr < 1 */
 		significand(&x) = -significand(st0_ptr);
 		setexponent16(&x, -1);
 		exponent++;
 		argsign = SIGN_NEG;
-	} else {
+	}
+	else
+	{
 		/* Treat as  1 <= st0_ptr < sqrt(2) */
 		x.sigh = st0_ptr->sigh - 0x80000000;
 		x.sigl = st0_ptr->sigl;
 		setexponent16(&x, 0);
 		argsign = SIGN_POS;
 	}
+
 	tag = FPU_normalize_nuo(&x);
 
-	if (tag == TAG_Zero) {
+	if (tag == TAG_Zero)
+	{
 		expon = 0;
 		accumulator.msw = accumulator.midw = accumulator.lsw = 0;
-	} else {
+	}
+	else
+	{
 		log2_kernel(&x, argsign, &accumulator, &expon);
 	}
 
-	if (exponent < 0) {
+	if (exponent < 0)
+	{
 		sign = SIGN_NEG;
 		exponent = -exponent;
-	} else
+	}
+	else
+	{
 		sign = SIGN_POS;
+	}
+
 	expon_accum.msw = exponent;
 	expon_accum.midw = expon_accum.lsw = 0;
-	if (exponent) {
+
+	if (exponent)
+	{
 		expon_expon = 31 + norm_Xsig(&expon_accum);
 		shr_Xsig(&accumulator, expon_expon - expon);
 
 		if (sign ^ argsign)
+		{
 			negate_Xsig(&accumulator);
+		}
+
 		add_Xsig_Xsig(&accumulator, &expon_accum);
-	} else {
+	}
+	else
+	{
 		expon_expon = expon;
 		sign = argsign;
 	}
@@ -81,7 +100,8 @@ void poly_l2(FPU_REG *st0_ptr, FPU_REG *st1_ptr, u_char st1_sign)
 
 	expon_expon += round_Xsig(&accumulator);
 
-	if (accumulator.msw == 0) {
+	if (accumulator.msw == 0)
+	{
 		FPU_copy_to_reg1(&CONST_Z, TAG_Zero);
 		return;
 	}
@@ -103,13 +123,14 @@ void poly_l2(FPU_REG *st0_ptr, FPU_REG *st1_ptr, u_char st1_sign)
  |   log2(x+1)                                                               |
  +---------------------------------------------------------------------------*/
 int poly_l2p1(u_char sign0, u_char sign1,
-	      FPU_REG * st0_ptr, FPU_REG * st1_ptr, FPU_REG * dest)
+			  FPU_REG *st0_ptr, FPU_REG *st1_ptr, FPU_REG *dest)
 {
 	u_char tag;
 	long int exponent;
 	Xsig accumulator, yaccum;
 
-	if (exponent16(st0_ptr) < 0) {
+	if (exponent16(st0_ptr) < 0)
+	{
 		log2_kernel(st0_ptr, sign0, &accumulator, &exponent);
 
 		yaccum.lsw = 0;
@@ -119,8 +140,11 @@ int poly_l2p1(u_char sign0, u_char sign1,
 		exponent += round_Xsig(&accumulator);
 
 		exponent += exponent16(st1_ptr) + 1;
+
 		if (exponent < EXP_WAY_UNDER)
+		{
 			exponent = EXP_WAY_UNDER;
+		}
 
 		significand(dest) = XSIG_LL(accumulator);
 		setexponent16(dest, exponent);
@@ -129,29 +153,44 @@ int poly_l2p1(u_char sign0, u_char sign1,
 		FPU_settagi(1, tag);
 
 		if (tag == TAG_Valid)
-			set_precision_flag_up();	/* 80486 appears to always do this */
-	} else {
+		{
+			set_precision_flag_up();    /* 80486 appears to always do this */
+		}
+	}
+	else
+	{
 		/* The magnitude of st0_ptr is far too large. */
 
-		if (sign0 != SIGN_POS) {
+		if (sign0 != SIGN_POS)
+		{
 			/* Trying to get the log of a negative number. */
 #ifdef PECULIAR_486		/* Stupid 80486 doesn't worry about log(negative). */
 			changesign(st1_ptr);
 #else
+
 			if (arith_invalid(1) < 0)
+			{
 				return 1;
+			}
+
 #endif /* PECULIAR_486 */
 		}
 
 		/* 80486 appears to do this */
 		if (sign0 == SIGN_NEG)
+		{
 			set_precision_flag_down();
+		}
 		else
+		{
 			set_precision_flag_up();
+		}
 	}
 
 	if (exponent(dest) <= EXP_UNDER)
+	{
 		EXCEPTION(EX_Underflow);
+	}
 
 	return 0;
 
@@ -159,7 +198,8 @@ int poly_l2p1(u_char sign0, u_char sign1,
 
 #undef HIPOWER
 #define	HIPOWER	10
-static const unsigned long long logterms[HIPOWER] = {
+static const unsigned long long logterms[HIPOWER] =
+{
 	0x2a8eca5705fc2ef0LL,
 	0xf6384ee1d01febceLL,
 	0x093bb62877cdf642LL,
@@ -179,7 +219,7 @@ static const unsigned long leadterm = 0xb8000000;
  |   log2(x+1)                                                               |
  +---------------------------------------------------------------------------*/
 static void log2_kernel(FPU_REG const *arg, u_char argsign, Xsig *accum_result,
-			long int *expon)
+						long int *expon)
 {
 	long int exponent, adj;
 	unsigned long long Xsq;
@@ -188,17 +228,25 @@ static void log2_kernel(FPU_REG const *arg, u_char argsign, Xsig *accum_result,
 	exponent = exponent16(arg);
 	Numer.lsw = Denom.lsw = 0;
 	XSIG_LL(Numer) = XSIG_LL(Denom) = significand(arg);
-	if (argsign == SIGN_POS) {
+
+	if (argsign == SIGN_POS)
+	{
 		shr_Xsig(&Denom, 2 - (1 + exponent));
 		Denom.msw |= 0x80000000;
 		div_Xsig(&Numer, &Denom, &argSignif);
-	} else {
+	}
+	else
+	{
 		shr_Xsig(&Denom, 1 - (1 + exponent));
 		negate_Xsig(&Denom);
-		if (Denom.msw & 0x80000000) {
+
+		if (Denom.msw & 0x80000000)
+		{
 			div_Xsig(&Numer, &Denom, &argSignif);
 			exponent++;
-		} else {
+		}
+		else
+		{
 			/* Denom must be 1.0 */
 			argSignif.lsw = Numer.lsw;
 			argSignif.midw = Numer.midw;
@@ -207,12 +255,16 @@ static void log2_kernel(FPU_REG const *arg, u_char argsign, Xsig *accum_result,
 	}
 
 #ifndef PECULIAR_486
+
 	/* Should check here that  |local_arg|  is within the valid range */
-	if (exponent >= -2) {
-		if ((exponent > -2) || (argSignif.msw > (unsigned)0xafb0ccc0)) {
+	if (exponent >= -2)
+	{
+		if ((exponent > -2) || (argSignif.msw > (unsigned)0xafb0ccc0))
+		{
 			/* The argument is too large */
 		}
 	}
+
 #endif /* PECULIAR_486 */
 
 	arg_signif.lsw = argSignif.lsw;
@@ -223,8 +275,11 @@ static void log2_kernel(FPU_REG const *arg, u_char argsign, Xsig *accum_result,
 	mul_Xsig_Xsig(&accumulator, &accumulator);
 	shr_Xsig(&accumulator, 2 * (-1 - (1 + exponent + adj)));
 	Xsq = XSIG_LL(accumulator);
+
 	if (accumulator.lsw & 0x80000000)
+	{
 		Xsq++;
+	}
 
 	accumulator.msw = accumulator.midw = accumulator.lsw = 0;
 	/* Do the basic fixed point polynomial evaluation */

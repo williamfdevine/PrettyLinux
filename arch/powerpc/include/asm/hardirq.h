@@ -4,7 +4,8 @@
 #include <linux/threads.h>
 #include <linux/irq.h>
 
-typedef struct {
+typedef struct
+{
 	unsigned int __softirq_pending;
 	unsigned int timer_irqs_event;
 	unsigned int timer_irqs_others;

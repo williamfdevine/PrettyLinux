@@ -25,8 +25,8 @@
 #include "regs-syscon-power.h"
 
 static int s3c64xx_enter_idle(struct cpuidle_device *dev,
-			      struct cpuidle_driver *drv,
-			      int index)
+							  struct cpuidle_driver *drv,
+							  int index)
 {
 	unsigned long tmp;
 
@@ -41,7 +41,8 @@ static int s3c64xx_enter_idle(struct cpuidle_device *dev,
 	return index;
 }
 
-static struct cpuidle_driver s3c64xx_cpuidle_driver = {
+static struct cpuidle_driver s3c64xx_cpuidle_driver =
+{
 	.name	= "s3c64xx_cpuidle",
 	.owner  = THIS_MODULE,
 	.states = {
@@ -59,7 +60,10 @@ static struct cpuidle_driver s3c64xx_cpuidle_driver = {
 static int __init s3c64xx_init_cpuidle(void)
 {
 	if (soc_is_s3c64xx())
+	{
 		return cpuidle_register(&s3c64xx_cpuidle_driver, NULL);
+	}
+
 	return 0;
 }
 device_initcall(s3c64xx_init_cpuidle);

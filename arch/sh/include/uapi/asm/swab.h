@@ -45,8 +45,9 @@ static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
 
 static inline __u64 __arch_swab64(__u64 val)
 {
-	union {
-		struct { __u32 a,b; } s;
+	union
+	{
+		struct { __u32 a, b; } s;
 		__u64 u;
 	} v, w;
 	v.u = val;

@@ -34,13 +34,18 @@ void __init ixdpg425_pci_preinit(void)
 static int __init ixdpg425_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	if (slot == 12 || slot == 13)
+	{
 		return IRQ_IXP4XX_GPIO7;
+	}
 	else if (slot == 14)
+	{
 		return IRQ_IXP4XX_GPIO6;
-	else return -1;
+	}
+	else { return -1; }
 }
 
-struct hw_pci ixdpg425_pci __initdata = {
+struct hw_pci ixdpg425_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &ixp4xx_ops,
 	.preinit =        ixdpg425_pci_preinit,
@@ -51,7 +56,10 @@ struct hw_pci ixdpg425_pci __initdata = {
 int __init ixdpg425_pci_init(void)
 {
 	if (machine_is_ixdpg425())
+	{
 		pci_common_init(&ixdpg425_pci);
+	}
+
 	return 0;
 }
 

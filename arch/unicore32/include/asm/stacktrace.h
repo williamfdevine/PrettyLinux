@@ -13,7 +13,8 @@
 #ifndef __UNICORE_STACKTRACE_H__
 #define __UNICORE_STACKTRACE_H__
 
-struct stackframe {
+struct stackframe
+{
 	unsigned long fp;
 	unsigned long sp;
 	unsigned long lr;
@@ -21,11 +22,11 @@ struct stackframe {
 };
 
 #ifdef CONFIG_FRAME_POINTER
-extern int unwind_frame(struct stackframe *frame);
+	extern int unwind_frame(struct stackframe *frame);
 #else
-#define unwind_frame(f) (-EINVAL)
+	#define unwind_frame(f) (-EINVAL)
 #endif
 extern void walk_stackframe(struct stackframe *frame,
-			    int (*fn)(struct stackframe *, void *), void *data);
+							int (*fn)(struct stackframe *, void *), void *data);
 
 #endif	/* __UNICORE_STACKTRACE_H__ */

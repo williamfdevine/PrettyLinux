@@ -8,7 +8,8 @@
 #include "../../../drivers/lguest/lg.h"
 
 #define __SYSCALL_I386(nr, sym, qual) [nr] = 1,
-static char syscalls[] = {
+static char syscalls[] =
+{
 #include <asm/syscalls_32.h>
 };
 
@@ -50,7 +51,7 @@ void foo(void)
 
 	/* Offset from the sysenter stack to tss.sp0 */
 	DEFINE(TSS_sysenter_sp0, offsetof(struct tss_struct, x86_tss.sp0) -
-	       offsetofend(struct tss_struct, SYSENTER_stack));
+		   offsetofend(struct tss_struct, SYSENTER_stack));
 
 	/* Offset from cpu_tss to SYSENTER_stack */
 	OFFSET(CPU_TSS_SYSENTER_stack, tss_struct, SYSENTER_stack);
@@ -72,8 +73,8 @@ void foo(void)
 	OFFSET(LGUEST_PAGES_host_idt_desc, lguest_pages, state.host_idt_desc);
 	OFFSET(LGUEST_PAGES_host_cr3, lguest_pages, state.host_cr3);
 	OFFSET(LGUEST_PAGES_host_sp, lguest_pages, state.host_sp);
-	OFFSET(LGUEST_PAGES_guest_gdt_desc, lguest_pages,state.guest_gdt_desc);
-	OFFSET(LGUEST_PAGES_guest_idt_desc, lguest_pages,state.guest_idt_desc);
+	OFFSET(LGUEST_PAGES_guest_gdt_desc, lguest_pages, state.guest_gdt_desc);
+	OFFSET(LGUEST_PAGES_guest_idt_desc, lguest_pages, state.guest_idt_desc);
 	OFFSET(LGUEST_PAGES_guest_gdt, lguest_pages, state.guest_gdt);
 	OFFSET(LGUEST_PAGES_regs_trapnum, lguest_pages, regs.trapnum);
 	OFFSET(LGUEST_PAGES_regs_errcode, lguest_pages, regs.errcode);

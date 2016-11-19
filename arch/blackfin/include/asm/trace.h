@@ -15,9 +15,9 @@
 
 #define BFIN_TRACE_INIT ((CONFIG_DEBUG_BFIN_HWTRACE_COMPRESSION << 4) | 0x03)
 #ifdef CONFIG_DEBUG_BFIN_HWTRACE_EXPAND
-#define BFIN_TRACE_ON   (BFIN_TRACE_INIT | (CONFIG_DEBUG_BFIN_HWTRACE_EXPAND << 2))
+	#define BFIN_TRACE_ON   (BFIN_TRACE_INIT | (CONFIG_DEBUG_BFIN_HWTRACE_EXPAND << 2))
 #else
-#define BFIN_TRACE_ON   (BFIN_TRACE_INIT)
+	#define BFIN_TRACE_ON   (BFIN_TRACE_INIT)
 #endif
 
 #ifndef __ASSEMBLY__
@@ -94,11 +94,11 @@ static inline bool get_instruction(unsigned int *val, unsigned short *address) {
 #endif /* CONFIG_DEBUG_BFIN_HWTRACE_ON */
 
 #ifdef CONFIG_DEBUG_BFIN_NO_KERN_HWTRACE
-# define DEBUG_HWTRACE_SAVE(preg, dreg)    trace_buffer_save(preg, dreg)
-# define DEBUG_HWTRACE_RESTORE(preg, dreg) trace_buffer_restore(preg, dreg)
+	#define DEBUG_HWTRACE_SAVE(preg, dreg)    trace_buffer_save(preg, dreg)
+	#define DEBUG_HWTRACE_RESTORE(preg, dreg) trace_buffer_restore(preg, dreg)
 #else
-# define DEBUG_HWTRACE_SAVE(preg, dreg)
-# define DEBUG_HWTRACE_RESTORE(preg, dreg)
+	#define DEBUG_HWTRACE_SAVE(preg, dreg)
+	#define DEBUG_HWTRACE_RESTORE(preg, dreg)
 #endif
 
 #endif /* __ASSEMBLY__ */

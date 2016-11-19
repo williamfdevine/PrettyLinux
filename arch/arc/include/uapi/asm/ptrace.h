@@ -30,17 +30,20 @@
  * save/restore for signal handling. However gdb also uses the same struct
  * hence callee regs need to be in there too.
 */
-struct user_regs_struct {
+struct user_regs_struct
+{
 
 	unsigned long pad;
-	struct {
+	struct
+	{
 		unsigned long bta, lp_start, lp_end, lp_count;
 		unsigned long status32, ret, blink, fp, gp;
 		unsigned long r12, r11, r10, r9, r8, r7, r6, r5, r4, r3, r2, r1, r0;
 		unsigned long sp;
 	} scratch;
 	unsigned long pad2;
-	struct {
+	struct
+	{
 		unsigned long r25, r24, r23, r22, r21, r20;
 		unsigned long r19, r18, r17, r16, r15, r14, r13;
 	} callee;

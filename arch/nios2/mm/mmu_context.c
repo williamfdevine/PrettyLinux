@@ -62,7 +62,8 @@ static mm_context_t get_new_context(void)
 
 	/* If the pid field wraps around we increase the version and
 	 * flush the tlb */
-	if (unlikely(CTX_PID(next_mmu_context) == 0)) {
+	if (unlikely(CTX_PID(next_mmu_context) == 0))
+	{
 		/* Version is incremented since the pid increment above
 		 * overflows info version */
 		flush_cache_all();
@@ -72,13 +73,15 @@ static mm_context_t get_new_context(void)
 	/* If the version wraps we start over with the first generation, we do
 	 * not need to flush the tlb here since it's always done above */
 	if (unlikely(CTX_VERSION(next_mmu_context) == 0))
+	{
 		next_mmu_context = FIRST_CTX;
+	}
 
 	return next_mmu_context;
 }
 
 void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-	       struct task_struct *tsk)
+			   struct task_struct *tsk)
 {
 	unsigned long flags;
 
@@ -87,8 +90,10 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	/* If the process context we are swapping in has a different context
 	 * generation then we have it should get a new generation/pid */
 	if (unlikely(CTX_VERSION(next->context) !=
-		CTX_VERSION(next_mmu_context)))
+				 CTX_VERSION(next_mmu_context)))
+	{
 		next->context = get_new_context();
+	}
 
 	/* Save the current pgd so the fast tlb handler can find it */
 	pgd_current = next->pgd;

@@ -15,7 +15,8 @@
 /* Per-perfctr configuration as set via
  * oprofilefs.
  */
-struct op_counter_config {
+struct op_counter_config
+{
 	unsigned long count;
 	unsigned long enabled;
 	unsigned long event;

@@ -40,7 +40,7 @@
 #include <asm/txx9/jmr3927.h>
 
 #if JMR3927_IRQ_END > NR_IRQS
-#error JMR3927_IRQ_END > NR_IRQS
+	#error JMR3927_IRQ_END > NR_IRQS
 #endif
 
 /*
@@ -73,10 +73,14 @@ static int jmr3927_ioc_irqroute(void)
 	unsigned char istat = jmr3927_ioc_reg_in(JMR3927_IOC_INTS2_ADDR);
 	int i;
 
-	for (i = 0; i < JMR3927_NR_IRQ_IOC; i++) {
+	for (i = 0; i < JMR3927_NR_IRQ_IOC; i++)
+	{
 		if (istat & (1 << i))
+		{
 			return JMR3927_IRQ_IOC + i;
+		}
 	}
+
 	return -1;
 }
 
@@ -85,15 +89,23 @@ static int jmr3927_irq_dispatch(int pending)
 	int irq;
 
 	if ((pending & CAUSEF_IP7) == 0)
+	{
 		return -1;
+	}
+
 	irq = (pending >> CAUSEB_IP2) & 0x0f;
 	irq += JMR3927_IRQ_IRC;
+
 	if (irq == JMR3927_IRQ_IOCINT)
+	{
 		irq = jmr3927_ioc_irqroute();
+	}
+
 	return irq;
 }
 
-static struct irq_chip jmr3927_irq_ioc = {
+static struct irq_chip jmr3927_irq_ioc =
+{
 	.name = "jmr3927_ioc",
 	.irq_mask = mask_irq_ioc,
 	.irq_unmask = unmask_irq_ioc,
@@ -119,9 +131,10 @@ void __init jmr3927_irq_setup(void)
 	jmr3927_ioc_reg_out(0, JMR3927_IOC_RESET_ADDR);
 
 	tx3927_irq_init();
+
 	for (i = JMR3927_IRQ_IOC; i < JMR3927_IRQ_IOC + JMR3927_NR_IRQ_IOC; i++)
 		irq_set_chip_and_handler(i, &jmr3927_irq_ioc,
-					 handle_level_irq);
+								 handle_level_irq);
 
 	/* setup IOC interrupt 1 (PCI, MODEM) */
 	irq_set_chained_handler(JMR3927_IRQ_IOCINT, handle_simple_irq);

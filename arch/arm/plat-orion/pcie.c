@@ -104,11 +104,14 @@ void __init orion_pcie_reset(void __iomem *base)
 	reg |= PCIE_DEBUG_SOFT_RESET;
 	writel(reg, base + PCIE_DEBUG_CTRL);
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		mdelay(10);
 
 		if (orion_pcie_link_up(base))
+		{
 			break;
+		}
 	}
 
 	reg &= ~(PCIE_DEBUG_SOFT_RESET);
@@ -131,13 +134,15 @@ static void __init orion_pcie_setup_wins(void __iomem *base)
 	/*
 	 * First, disable and clear BARs and windows.
 	 */
-	for (i = 1; i <= 2; i++) {
+	for (i = 1; i <= 2; i++)
+	{
 		writel(0, base + PCIE_BAR_CTRL_OFF(i));
 		writel(0, base + PCIE_BAR_LO_OFF(i));
 		writel(0, base + PCIE_BAR_HI_OFF(i));
 	}
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		writel(0, base + PCIE_WIN04_CTRL_OFF(i));
 		writel(0, base + PCIE_WIN04_BASE_OFF(i));
 		writel(0, base + PCIE_WIN04_REMAP_OFF(i));
@@ -151,15 +156,17 @@ static void __init orion_pcie_setup_wins(void __iomem *base)
 	 * Setup windows for DDR banks.  Count total DDR size on the fly.
 	 */
 	size = 0;
-	for (i = 0; i < dram->num_cs; i++) {
+
+	for (i = 0; i < dram->num_cs; i++)
+	{
 		const struct mbus_dram_window *cs = dram->cs + i;
 
 		writel(cs->base & 0xffff0000, base + PCIE_WIN04_BASE_OFF(i));
 		writel(0, base + PCIE_WIN04_REMAP_OFF(i));
 		writel(((cs->size - 1) & 0xffff0000) |
-			(cs->mbus_attr << 8) |
-			(dram->mbus_dram_target_id << 4) | 1,
-				base + PCIE_WIN04_CTRL_OFF(i));
+			   (cs->mbus_attr << 8) |
+			   (dram->mbus_dram_target_id << 4) | 1,
+			   base + PCIE_WIN04_CTRL_OFF(i));
 
 		size += cs->size;
 	}
@@ -168,7 +175,9 @@ static void __init orion_pcie_setup_wins(void __iomem *base)
 	 * Round up 'size' to the nearest power of two.
 	 */
 	if ((size & (size - 1)) != 0)
+	{
 		size = 1 << fls(size);
+	}
 
 	/*
 	 * Setup BAR[1] to all DRAM banks.
@@ -206,81 +215,102 @@ void __init orion_pcie_setup(void __iomem *base)
 }
 
 int orion_pcie_rd_conf(void __iomem *base, struct pci_bus *bus,
-		       u32 devfn, int where, int size, u32 *val)
+					   u32 devfn, int where, int size, u32 *val)
 {
 	writel(PCIE_CONF_BUS(bus->number) |
-		PCIE_CONF_DEV(PCI_SLOT(devfn)) |
-		PCIE_CONF_FUNC(PCI_FUNC(devfn)) |
-		PCIE_CONF_REG(where) | PCIE_CONF_ADDR_EN,
-			base + PCIE_CONF_ADDR_OFF);
+		   PCIE_CONF_DEV(PCI_SLOT(devfn)) |
+		   PCIE_CONF_FUNC(PCI_FUNC(devfn)) |
+		   PCIE_CONF_REG(where) | PCIE_CONF_ADDR_EN,
+		   base + PCIE_CONF_ADDR_OFF);
 
 	*val = readl(base + PCIE_CONF_DATA_OFF);
 
 	if (size == 1)
+	{
 		*val = (*val >> (8 * (where & 3))) & 0xff;
+	}
 	else if (size == 2)
+	{
 		*val = (*val >> (8 * (where & 3))) & 0xffff;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 int orion_pcie_rd_conf_tlp(void __iomem *base, struct pci_bus *bus,
-			   u32 devfn, int where, int size, u32 *val)
+						   u32 devfn, int where, int size, u32 *val)
 {
 	writel(PCIE_CONF_BUS(bus->number) |
-		PCIE_CONF_DEV(PCI_SLOT(devfn)) |
-		PCIE_CONF_FUNC(PCI_FUNC(devfn)) |
-		PCIE_CONF_REG(where) | PCIE_CONF_ADDR_EN,
-			base + PCIE_CONF_ADDR_OFF);
+		   PCIE_CONF_DEV(PCI_SLOT(devfn)) |
+		   PCIE_CONF_FUNC(PCI_FUNC(devfn)) |
+		   PCIE_CONF_REG(where) | PCIE_CONF_ADDR_EN,
+		   base + PCIE_CONF_ADDR_OFF);
 
 	*val = readl(base + PCIE_CONF_DATA_OFF);
 
 	if (bus->number != orion_pcie_get_local_bus_nr(base) ||
-	    PCI_FUNC(devfn) != 0)
+		PCI_FUNC(devfn) != 0)
+	{
 		*val = readl(base + PCIE_HEADER_LOG_4_OFF);
+	}
 
 	if (size == 1)
+	{
 		*val = (*val >> (8 * (where & 3))) & 0xff;
+	}
 	else if (size == 2)
+	{
 		*val = (*val >> (8 * (where & 3))) & 0xffff;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 int orion_pcie_rd_conf_wa(void __iomem *wa_base, struct pci_bus *bus,
-			  u32 devfn, int where, int size, u32 *val)
+						  u32 devfn, int where, int size, u32 *val)
 {
 	*val = readl(wa_base + (PCIE_CONF_BUS(bus->number) |
-				PCIE_CONF_DEV(PCI_SLOT(devfn)) |
-				PCIE_CONF_FUNC(PCI_FUNC(devfn)) |
-				PCIE_CONF_REG(where)));
+							PCIE_CONF_DEV(PCI_SLOT(devfn)) |
+							PCIE_CONF_FUNC(PCI_FUNC(devfn)) |
+							PCIE_CONF_REG(where)));
 
 	if (size == 1)
+	{
 		*val = (*val >> (8 * (where & 3))) & 0xff;
+	}
 	else if (size == 2)
+	{
 		*val = (*val >> (8 * (where & 3))) & 0xffff;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 int orion_pcie_wr_conf(void __iomem *base, struct pci_bus *bus,
-		       u32 devfn, int where, int size, u32 val)
+					   u32 devfn, int where, int size, u32 val)
 {
 	int ret = PCIBIOS_SUCCESSFUL;
 
 	writel(PCIE_CONF_BUS(bus->number) |
-		PCIE_CONF_DEV(PCI_SLOT(devfn)) |
-		PCIE_CONF_FUNC(PCI_FUNC(devfn)) |
-		PCIE_CONF_REG(where) | PCIE_CONF_ADDR_EN,
-			base + PCIE_CONF_ADDR_OFF);
+		   PCIE_CONF_DEV(PCI_SLOT(devfn)) |
+		   PCIE_CONF_FUNC(PCI_FUNC(devfn)) |
+		   PCIE_CONF_REG(where) | PCIE_CONF_ADDR_EN,
+		   base + PCIE_CONF_ADDR_OFF);
 
-	if (size == 4) {
+	if (size == 4)
+	{
 		writel(val, base + PCIE_CONF_DATA_OFF);
-	} else if (size == 2) {
+	}
+	else if (size == 2)
+	{
 		writew(val, base + PCIE_CONF_DATA_OFF + (where & 3));
-	} else if (size == 1) {
+	}
+	else if (size == 1)
+	{
 		writeb(val, base + PCIE_CONF_DATA_OFF + (where & 3));
-	} else {
+	}
+	else
+	{
 		ret = PCIBIOS_BAD_REGISTER_NUMBER;
 	}
 

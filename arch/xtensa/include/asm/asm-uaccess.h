@@ -45,15 +45,15 @@
  * On Exit:
  * 	<ad>	contains current->thread.current_ds
  */
-	.macro	get_fs	ad, sp
-	GET_CURRENT(\ad,\sp)
+.macro	get_fs	ad, sp
+GET_CURRENT(\ad, \sp)
 #if THREAD_CURRENT_DS > 1020
 	addi	\ad, \ad, TASK_THREAD
 	l32i	\ad, \ad, THREAD_CURRENT_DS - TASK_THREAD
 #else
 	l32i	\ad, \ad, THREAD_CURRENT_DS
 #endif
-	.endm
+.endm
 
 /*
  * set_fs sets current->thread.current_ds to some value.
@@ -65,10 +65,10 @@
  *	<at>	destroyed (actually, current)
  *	<av>	preserved, value to write
  */
-	.macro	set_fs	at, av, sp
-	GET_CURRENT(\at,\sp)
-	s32i	\av, \at, THREAD_CURRENT_DS
-	.endm
+.macro	set_fs	at, av, sp
+GET_CURRENT(\at, \sp)
+s32i	\av, \at, THREAD_CURRENT_DS
+.endm
 
 /*
  * kernel_ok determines whether we should bypass addr/size checking.
@@ -91,12 +91,12 @@
  */
 
 #if ((KERNEL_DS != 0) || (USER_DS == 0))
-# error Assembly macro kernel_ok fails
+	# error Assembly macro kernel_ok fails
 #endif
-	.macro	kernel_ok  at, sp, success
-	get_fs	\at, \sp
-	beqz	\at, \success
-	.endm
+.macro	kernel_ok  at, sp, success
+get_fs	\at, \sp
+beqz	\at, \success
+.endm
 
 /*
  * user_ok determines whether the access to user-space memory is allowed.
@@ -121,12 +121,12 @@
  * 	<as>	preserved
  * 	<at>	destroyed (actually, (TASK_SIZE + 1 - size))
  */
-	.macro	user_ok	aa, as, at, error
-	movi	\at, __XTENSA_UL_CONST(TASK_SIZE)
-	bgeu	\as, \at, \error
-	sub	\at, \at, \as
-	bgeu	\aa, \at, \error
-	.endm
+.macro	user_ok	aa, as, at, error
+movi	\at, __XTENSA_UL_CONST(TASK_SIZE)
+bgeu	\as, \at, \error
+sub	\at, \at, \as
+bgeu	\aa, \at, \error
+.endm
 
 /*
  * access_ok determines whether a memory access is allowed.  See the
@@ -151,10 +151,10 @@
  * 	<as>	preserved
  * 	<at>	destroyed
  */
-	.macro	access_ok  aa, as, at, sp, error
-	kernel_ok  \at, \sp, .Laccess_ok_\@
-	user_ok    \aa, \as, \at, \error
+.macro	access_ok  aa, as, at, sp, error
+kernel_ok  \at, \sp, .Laccess_ok_\@
+user_ok    \aa, \as, \at, \error
 .Laccess_ok_\@:
-	.endm
+.endm
 
 #endif	/* _XTENSA_ASM_UACCESS_H */

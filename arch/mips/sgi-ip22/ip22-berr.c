@@ -44,38 +44,46 @@ static void save_and_clear_buserr(void)
 static void print_buserr(void)
 {
 	if (extio_stat & EXTIO_MC_BUSERR)
+	{
 		printk(KERN_ERR "MC Bus Error\n");
+	}
+
 	if (extio_stat & EXTIO_HPC3_BUSERR)
 		printk(KERN_ERR "HPC3 Bus Error 0x%x:<id=0x%x,%s,lane=0x%x>\n",
-			hpc3_berr_stat,
-			(hpc3_berr_stat & HPC3_BESTAT_PIDMASK) >>
-					  HPC3_BESTAT_PIDSHIFT,
-			(hpc3_berr_stat & HPC3_BESTAT_CTYPE) ? "PIO" : "DMA",
-			hpc3_berr_stat & HPC3_BESTAT_BLMASK);
+			   hpc3_berr_stat,
+			   (hpc3_berr_stat & HPC3_BESTAT_PIDMASK) >>
+			   HPC3_BESTAT_PIDSHIFT,
+			   (hpc3_berr_stat & HPC3_BESTAT_CTYPE) ? "PIO" : "DMA",
+			   hpc3_berr_stat & HPC3_BESTAT_BLMASK);
+
 	if (extio_stat & EXTIO_EISA_BUSERR)
+	{
 		printk(KERN_ERR "EISA Bus Error\n");
+	}
+
 	if (cpu_err_stat & CPU_ERRMASK)
 		printk(KERN_ERR "CPU error 0x%x<%s%s%s%s%s%s> @ 0x%08x\n",
-			cpu_err_stat,
-			cpu_err_stat & SGIMC_CSTAT_RD ? "RD " : "",
-			cpu_err_stat & SGIMC_CSTAT_PAR ? "PAR " : "",
-			cpu_err_stat & SGIMC_CSTAT_ADDR ? "ADDR " : "",
-			cpu_err_stat & SGIMC_CSTAT_SYSAD_PAR ? "SYSAD " : "",
-			cpu_err_stat & SGIMC_CSTAT_SYSCMD_PAR ? "SYSCMD " : "",
-			cpu_err_stat & SGIMC_CSTAT_BAD_DATA ? "BAD_DATA " : "",
-			cpu_err_addr);
+			   cpu_err_stat,
+			   cpu_err_stat & SGIMC_CSTAT_RD ? "RD " : "",
+			   cpu_err_stat & SGIMC_CSTAT_PAR ? "PAR " : "",
+			   cpu_err_stat & SGIMC_CSTAT_ADDR ? "ADDR " : "",
+			   cpu_err_stat & SGIMC_CSTAT_SYSAD_PAR ? "SYSAD " : "",
+			   cpu_err_stat & SGIMC_CSTAT_SYSCMD_PAR ? "SYSCMD " : "",
+			   cpu_err_stat & SGIMC_CSTAT_BAD_DATA ? "BAD_DATA " : "",
+			   cpu_err_addr);
+
 	if (gio_err_stat & GIO_ERRMASK)
 		printk(KERN_ERR "GIO error 0x%x:<%s%s%s%s%s%s%s%s> @ 0x%08x\n",
-			gio_err_stat,
-			gio_err_stat & SGIMC_GSTAT_RD ? "RD " : "",
-			gio_err_stat & SGIMC_GSTAT_WR ? "WR " : "",
-			gio_err_stat & SGIMC_GSTAT_TIME ? "TIME " : "",
-			gio_err_stat & SGIMC_GSTAT_PROM ? "PROM " : "",
-			gio_err_stat & SGIMC_GSTAT_ADDR ? "ADDR " : "",
-			gio_err_stat & SGIMC_GSTAT_BC ? "BC " : "",
-			gio_err_stat & SGIMC_GSTAT_PIO_RD ? "PIO_RD " : "",
-			gio_err_stat & SGIMC_GSTAT_PIO_WR ? "PIO_WR " : "",
-			gio_err_addr);
+			   gio_err_stat,
+			   gio_err_stat & SGIMC_GSTAT_RD ? "RD " : "",
+			   gio_err_stat & SGIMC_GSTAT_WR ? "WR " : "",
+			   gio_err_stat & SGIMC_GSTAT_TIME ? "TIME " : "",
+			   gio_err_stat & SGIMC_GSTAT_PROM ? "PROM " : "",
+			   gio_err_stat & SGIMC_GSTAT_ADDR ? "ADDR " : "",
+			   gio_err_stat & SGIMC_GSTAT_BC ? "BC " : "",
+			   gio_err_stat & SGIMC_GSTAT_PIO_RD ? "PIO_RD " : "",
+			   gio_err_stat & SGIMC_GSTAT_PIO_WR ? "PIO_WR " : "",
+			   gio_err_addr);
 }
 
 /*
@@ -93,8 +101,8 @@ void ip22_be_interrupt(int irq)
 	save_and_clear_buserr();
 	print_buserr();
 	printk(KERN_ALERT "%s bus error, epc == %0*lx, ra == %0*lx\n",
-	       (regs->cp0_cause & 4) ? "Data" : "Instruction",
-	       field, regs->cp0_epc, field, regs->regs[31]);
+		   (regs->cp0_cause & 4) ? "Data" : "Instruction",
+		   field, regs->cp0_epc, field, regs->regs[31]);
 	/* Assume it would be too dangerous to continue ... */
 	die_if_kernel("Oops", regs);
 	force_sig(SIGBUS, current);
@@ -103,8 +111,12 @@ void ip22_be_interrupt(int irq)
 static int ip22_be_handler(struct pt_regs *regs, int is_fixup)
 {
 	save_and_clear_buserr();
+
 	if (is_fixup)
+	{
 		return MIPS_BE_FIXUP;
+	}
+
 	print_buserr();
 	return MIPS_BE_FATAL;
 }

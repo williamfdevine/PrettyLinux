@@ -46,7 +46,7 @@ struct vtoc_volume_label_cdl
 	struct vtoc_cchhb vtoc;	/* VTOC address */
 	char res1[5];		/* reserved */
 	char cisize[4];		/* CI-size for FBA,... */
-				/* ...blanks for CKD */
+	/* ...blanks for CKD */
 	char blkperci[4];	/* no of blocks per CI (FBA), blanks for CKD */
 	char labperci[4];	/* no of labels per CI (FBA), blanks for CKD */
 	char res2[4];		/* reserved */
@@ -54,7 +54,8 @@ struct vtoc_volume_label_cdl
 	char res3[29];		/* reserved */
 } __attribute__ ((packed));
 
-struct vtoc_volume_label_ldl {
+struct vtoc_volume_label_ldl
+{
 	char vollbl[4];		/* volume label */
 	char volid[6];		/* volume identifier */
 	char res3[69];		/* reserved */
@@ -186,7 +187,8 @@ struct vtoc_format7_label
 	struct vtoc_cchhb DS7PTRDS; /* pointer to next FMT7 DSCB */
 } __attribute__ ((packed));
 
-struct vtoc_cms_label {
+struct vtoc_cms_label
+{
 	__u8 label_id[4];		/* Label identifier */
 	__u8 vol_id[6];		/* Volid */
 	__u16 version_id;		/* Version identifier */

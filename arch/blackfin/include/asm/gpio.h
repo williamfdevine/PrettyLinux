@@ -20,7 +20,7 @@
 #define GPIO_USAGE 0
 
 #ifndef BFIN_GPIO_PINT
-# define BFIN_GPIO_PINT 0
+	#define BFIN_GPIO_PINT 0
 #endif
 
 #ifndef __ASSEMBLY__
@@ -83,7 +83,8 @@ unsigned short get_gpiop_maska(unsigned);
 unsigned short get_gpiop_maskb(unsigned);
 unsigned short get_gpiop_data(unsigned);
 
-struct gpio_port_t {
+struct gpio_port_t
+{
 	unsigned short data;
 	unsigned short dummy1;
 	unsigned short data_clear;
@@ -120,12 +121,12 @@ struct gpio_port_t {
 };
 
 #ifdef BFIN_SPECIAL_GPIO_BANKS
-void bfin_special_gpio_free(unsigned gpio);
-int bfin_special_gpio_request(unsigned gpio, const char *label);
-# ifdef CONFIG_PM
-void bfin_special_gpio_pm_hibernate_restore(void);
-void bfin_special_gpio_pm_hibernate_suspend(void);
-# endif
+	void bfin_special_gpio_free(unsigned gpio);
+	int bfin_special_gpio_request(unsigned gpio, const char *label);
+	#ifdef CONFIG_PM
+		void bfin_special_gpio_pm_hibernate_restore(void);
+		void bfin_special_gpio_pm_hibernate_suspend(void);
+	#endif
 #endif
 
 #ifdef CONFIG_PM
@@ -145,7 +146,8 @@ static inline void bfin_pm_standby_restore(void)
 }
 
 
-struct gpio_port_s {
+struct gpio_port_s
+{
 	unsigned short data;
 	unsigned short maska;
 	unsigned short maskb;

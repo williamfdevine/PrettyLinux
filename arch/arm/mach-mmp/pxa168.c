@@ -52,12 +52,13 @@ void __init pxa168_init_irq(void)
 
 static int __init pxa168_init(void)
 {
-	if (cpu_is_pxa168()) {
+	if (cpu_is_pxa168())
+	{
 		mfp_init_base(MFPR_VIRT_BASE);
 		mfp_init_addr(pxa168_mfp_addr_map);
 		pxa168_clk_init(APB_PHYS_BASE + 0x50000,
-				AXI_PHYS_BASE + 0x82800,
-				APB_PHYS_BASE + 0x15000);
+						AXI_PHYS_BASE + 0x82800,
+						APB_PHYS_BASE + 0x15000);
 	}
 
 	return 0;
@@ -112,7 +113,8 @@ PXA168_DEVICE(fb, "pxa168-fb", -1, LCD, 0xd420b000, 0x1c8);
 PXA168_DEVICE(keypad, "pxa27x-keypad", -1, KEYPAD, 0xd4012000, 0x4c);
 PXA168_DEVICE(eth, "pxa168-eth", -1, MFU, 0xc0800000, 0x0fff);
 
-struct resource pxa168_resource_gpio[] = {
+struct resource pxa168_resource_gpio[] =
+{
 	{
 		.start	= 0xd4019000,
 		.end	= 0xd4019fff,
@@ -125,14 +127,16 @@ struct resource pxa168_resource_gpio[] = {
 	},
 };
 
-struct platform_device pxa168_device_gpio = {
+struct platform_device pxa168_device_gpio =
+{
 	.name		= "mmp-gpio",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pxa168_resource_gpio),
 	.resource	= pxa168_resource_gpio,
 };
 
-struct resource pxa168_usb_host_resources[] = {
+struct resource pxa168_usb_host_resources[] =
+{
 	/* USB Host conroller register base */
 	[0] = {
 		.start	= PXA168_U2H_REGBASE + U2x_CAPREGS_OFFSET,
@@ -155,7 +159,8 @@ struct resource pxa168_usb_host_resources[] = {
 };
 
 static u64 pxa168_usb_host_dmamask = DMA_BIT_MASK(32);
-struct platform_device pxa168_device_usb_host = {
+struct platform_device pxa168_device_usb_host =
+{
 	.name = "pxa-sph",
 	.id   = -1,
 	.dev  = {

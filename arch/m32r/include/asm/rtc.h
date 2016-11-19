@@ -1,7 +1,7 @@
 #ifndef __RTC_H__
 #define __RTC_H__
 
-   /* Dallas DS1302 clock/calendar register numbers. */
+/* Dallas DS1302 clock/calendar register numbers. */
 #  define RTC_SECONDS      0
 #  define RTC_MINUTES      1
 #  define RTC_HOURS        2
@@ -11,11 +11,11 @@
 #  define RTC_YEAR         6
 #  define RTC_CONTROL      7
 
-   /* Bits in CONTROL register. */
+/* Bits in CONTROL register. */
 #  define RTC_CONTROL_WRITEPROTECT 	0x80
 #  define RTC_TRICKLECHARGER 		8
 
-  /* Bits in TRICKLECHARGER register TCS TCS TCS TCS DS DS RS RS. */
+/* Bits in TRICKLECHARGER register TCS TCS TCS TCS DS DS RS RS. */
 #  define RTC_TCR_PATTERN 	0xA0	/* 1010xxxx */
 #  define RTC_TCR_1DIOD 	0x04	/* xxxx01xx */
 #  define RTC_TCR_2DIOD 	0x08	/* xxxx10xx */
@@ -25,17 +25,17 @@
 #  define RTC_TCR_8KOHM 	0x03	/* xxxxxx11 8kOhm */
 
 #ifdef CONFIG_DS1302
-extern unsigned char ds1302_readreg(int reg);
-extern void ds1302_writereg(int reg, unsigned char val);
-extern int ds1302_init(void);
-#  define CMOS_READ(x) ds1302_readreg(x)
-#  define CMOS_WRITE(val,reg) ds1302_writereg(reg,val)
-#  define RTC_INIT() ds1302_init()
+	extern unsigned char ds1302_readreg(int reg);
+	extern void ds1302_writereg(int reg, unsigned char val);
+	extern int ds1302_init(void);
+	#define CMOS_READ(x) ds1302_readreg(x)
+	#define CMOS_WRITE(val,reg) ds1302_writereg(reg,val)
+	#define RTC_INIT() ds1302_init()
 #else
-  /* No RTC configured so we shouldn't try to access any. */
-#  define CMOS_READ(x) 42
-#  define CMOS_WRITE(x,y)
-#  define RTC_INIT() (-1)
+	/* No RTC configured so we shouldn't try to access any. */
+	#define CMOS_READ(x) 42
+	#define CMOS_WRITE(x,y)
+	#define RTC_INIT() (-1)
 #endif
 
 /*
@@ -43,7 +43,8 @@ extern int ds1302_init(void);
  * struct tm in <time.h>, but it needs to be here so that the kernel
  * source is self contained, allowing cross-compiles, etc. etc.
  */
-struct rtc_time {
+struct rtc_time
+{
 	int tm_sec;
 	int tm_min;
 	int tm_hour;

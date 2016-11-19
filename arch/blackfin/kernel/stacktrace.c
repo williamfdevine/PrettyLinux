@@ -12,7 +12,8 @@
 
 register unsigned long current_frame_pointer asm("FP");
 
-struct stackframe {
+struct stackframe
+{
 	unsigned long fp;
 	unsigned long rets;
 };
@@ -31,15 +32,22 @@ void save_stack_trace(struct stack_trace *trace)
 	high = low + THREAD_SIZE;
 	fp = current_frame_pointer;
 
-	while (fp >= low && fp <= (high - sizeof(*frame))) {
+	while (fp >= low && fp <= (high - sizeof(*frame)))
+	{
 		frame = (struct stackframe *)fp;
 
-		if (skip) {
+		if (skip)
+		{
 			skip--;
-		} else {
+		}
+		else
+		{
 			trace->entries[trace->nr_entries++] = frame->rets;
+
 			if (trace->nr_entries >= trace->max_entries)
+			{
 				break;
+			}
 		}
 
 		/*

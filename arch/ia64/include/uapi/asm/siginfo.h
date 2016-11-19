@@ -16,23 +16,27 @@
 
 #include <asm-generic/siginfo.h>
 
-typedef struct siginfo {
+typedef struct siginfo
+{
 	int si_signo;
 	int si_errno;
 	int si_code;
 	int __pad0;
 
-	union {
+	union
+	{
 		int _pad[SI_PAD_SIZE];
 
 		/* kill() */
-		struct {
+		struct
+		{
 			pid_t _pid;		/* sender's pid */
 			uid_t _uid;		/* sender's uid */
 		} _kill;
 
 		/* POSIX.1b timers */
-		struct {
+		struct
+		{
 			timer_t _tid;		/* timer id */
 			int _overrun;		/* overrun count */
 			char _pad[sizeof(__ARCH_SI_UID_T) - sizeof(int)];
@@ -41,14 +45,16 @@ typedef struct siginfo {
 		} _timer;
 
 		/* POSIX.1b signals */
-		struct {
+		struct
+		{
 			pid_t _pid;		/* sender's pid */
 			uid_t _uid;		/* sender's uid */
 			sigval_t _sigval;
 		} _rt;
 
 		/* SIGCHLD */
-		struct {
+		struct
+		{
 			pid_t _pid;		/* which child */
 			uid_t _uid;		/* sender's uid */
 			int _status;		/* exit code */
@@ -57,15 +63,18 @@ typedef struct siginfo {
 		} _sigchld;
 
 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-		struct {
+		struct
+		{
 			void __user *_addr;	/* faulting insn/memory ref. */
 			int _imm;		/* immediate value for "break" */
 			unsigned int _flags;	/* see below */
 			unsigned long _isr;	/* isr */
 			short _addr_lsb;	/* lsb of faulting address */
-			union {
+			union
+			{
 				/* used when si_code=SEGV_BNDERR */
-				struct {
+				struct
+				{
 					void __user *_lower;
 					void __user *_upper;
 				} _addr_bnd;
@@ -75,7 +84,8 @@ typedef struct siginfo {
 		} _sigfault;
 
 		/* SIGPOLL */
-		struct {
+		struct
+		{
 			long _band;	/* POLL_IN, POLL_OUT, POLL_MSG (XPG requires a "long") */
 			int _fd;
 		} _sigpoll;

@@ -65,7 +65,8 @@ struct ucode_cpu_info		ucode_cpu_info[NR_CPUS];
  * Operations that are run on a target cpu:
  */
 
-struct cpu_info_ctx {
+struct cpu_info_ctx
+{
 	struct cpu_signature	*cpu_sig;
 	int			err;
 };
@@ -86,7 +87,9 @@ static bool __init check_loader_disabled_bsp(void)
 #endif
 
 	if (cmdline_find_option_bool(cmdline, option))
+	{
 		*res = true;
+	}
 
 	return *res;
 }
@@ -99,13 +102,16 @@ bool get_builtin_firmware(struct cpio_data *cd, const char *name)
 #ifdef CONFIG_FW_LOADER
 	struct builtin_fw *b_fw;
 
-	for (b_fw = __start_builtin_fw; b_fw != __end_builtin_fw; b_fw++) {
-		if (!strcmp(name, b_fw->name)) {
+	for (b_fw = __start_builtin_fw; b_fw != __end_builtin_fw; b_fw++)
+	{
+		if (!strcmp(name, b_fw->name))
+		{
 			cd->size = b_fw->size;
 			cd->data = b_fw->data;
 			return true;
 		}
 	}
+
 #endif
 	return false;
 }
@@ -116,25 +122,38 @@ void __init load_ucode_bsp(void)
 	unsigned int family;
 
 	if (check_loader_disabled_bsp())
+	{
 		return;
+	}
 
 	if (!have_cpuid_p())
+	{
 		return;
+	}
 
 	vendor = x86_cpuid_vendor();
 	family = x86_cpuid_family();
 
-	switch (vendor) {
-	case X86_VENDOR_INTEL:
-		if (family >= 6)
-			load_ucode_intel_bsp();
-		break;
-	case X86_VENDOR_AMD:
-		if (family >= 0x10)
-			load_ucode_amd_bsp(family);
-		break;
-	default:
-		break;
+	switch (vendor)
+	{
+		case X86_VENDOR_INTEL:
+			if (family >= 6)
+			{
+				load_ucode_intel_bsp();
+			}
+
+			break;
+
+		case X86_VENDOR_AMD:
+			if (family >= 0x10)
+			{
+				load_ucode_amd_bsp(family);
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -152,25 +171,38 @@ void load_ucode_ap(void)
 	int vendor, family;
 
 	if (check_loader_disabled_ap())
+	{
 		return;
+	}
 
 	if (!have_cpuid_p())
+	{
 		return;
+	}
 
 	vendor = x86_cpuid_vendor();
 	family = x86_cpuid_family();
 
-	switch (vendor) {
-	case X86_VENDOR_INTEL:
-		if (family >= 6)
-			load_ucode_intel_ap();
-		break;
-	case X86_VENDOR_AMD:
-		if (family >= 0x10)
-			load_ucode_amd_ap();
-		break;
-	default:
-		break;
+	switch (vendor)
+	{
+		case X86_VENDOR_INTEL:
+			if (family >= 6)
+			{
+				load_ucode_intel_ap();
+			}
+
+			break;
+
+		case X86_VENDOR_AMD:
+			if (family >= 0x10)
+			{
+				load_ucode_amd_ap();
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -178,17 +210,26 @@ static int __init save_microcode_in_initrd(void)
 {
 	struct cpuinfo_x86 *c = &boot_cpu_data;
 
-	switch (c->x86_vendor) {
-	case X86_VENDOR_INTEL:
-		if (c->x86 >= 6)
-			return save_microcode_in_initrd_intel();
-		break;
-	case X86_VENDOR_AMD:
-		if (c->x86 >= 0x10)
-			return save_microcode_in_initrd_amd();
-		break;
-	default:
-		break;
+	switch (c->x86_vendor)
+	{
+		case X86_VENDOR_INTEL:
+			if (c->x86 >= 6)
+			{
+				return save_microcode_in_initrd_intel();
+			}
+
+			break;
+
+		case X86_VENDOR_AMD:
+			if (c->x86 >= 0x10)
+			{
+				return save_microcode_in_initrd_amd();
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
@@ -201,17 +242,26 @@ void reload_early_microcode(void)
 	vendor = x86_cpuid_vendor();
 	family = x86_cpuid_family();
 
-	switch (vendor) {
-	case X86_VENDOR_INTEL:
-		if (family >= 6)
-			reload_ucode_intel();
-		break;
-	case X86_VENDOR_AMD:
-		if (family >= 0x10)
-			reload_ucode_amd();
-		break;
-	default:
-		break;
+	switch (vendor)
+	{
+		case X86_VENDOR_INTEL:
+			if (family >= 6)
+			{
+				reload_ucode_intel();
+			}
+
+			break;
+
+		case X86_VENDOR_AMD:
+			if (family >= 0x10)
+			{
+				reload_ucode_amd();
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -220,7 +270,7 @@ static void collect_cpu_info_local(void *arg)
 	struct cpu_info_ctx *ctx = arg;
 
 	ctx->err = microcode_ops->collect_cpu_info(smp_processor_id(),
-						   ctx->cpu_sig);
+			   ctx->cpu_sig);
 }
 
 static int collect_cpu_info_on_target(int cpu, struct cpu_signature *cpu_sig)
@@ -229,8 +279,11 @@ static int collect_cpu_info_on_target(int cpu, struct cpu_signature *cpu_sig)
 	int ret;
 
 	ret = smp_call_function_single(cpu, collect_cpu_info_local, &ctx, 1);
+
 	if (!ret)
+	{
 		ret = ctx.err;
+	}
 
 	return ret;
 }
@@ -243,13 +296,17 @@ static int collect_cpu_info(int cpu)
 	memset(uci, 0, sizeof(*uci));
 
 	ret = collect_cpu_info_on_target(cpu, &uci->cpu_sig);
+
 	if (!ret)
+	{
 		uci->valid = 1;
+	}
 
 	return ret;
 }
 
-struct apply_microcode_ctx {
+struct apply_microcode_ctx
+{
 	int err;
 };
 
@@ -266,8 +323,11 @@ static int apply_microcode_on_target(int cpu)
 	int ret;
 
 	ret = smp_call_function_single(cpu, apply_microcode_local, &ctx, 1);
+
 	if (!ret)
+	{
 		ret = ctx.err;
+	}
 
 	return ret;
 }
@@ -278,19 +338,27 @@ static int do_microcode_update(const void __user *buf, size_t size)
 	int error = 0;
 	int cpu;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
 		enum ucode_state ustate;
 
 		if (!uci->valid)
+		{
 			continue;
+		}
 
 		ustate = microcode_ops->request_microcode_user(cpu, buf, size);
-		if (ustate == UCODE_ERROR) {
+
+		if (ustate == UCODE_ERROR)
+		{
 			error = -1;
 			break;
-		} else if (ustate == UCODE_OK)
+		}
+		else if (ustate == UCODE_OK)
+		{
 			apply_microcode_on_target(cpu);
+		}
 	}
 
 	return error;
@@ -302,11 +370,12 @@ static int microcode_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t microcode_write(struct file *file, const char __user *buf,
-			       size_t len, loff_t *ppos)
+							   size_t len, loff_t *ppos)
 {
 	ssize_t ret = -EINVAL;
 
-	if ((len >> PAGE_SHIFT) > totalram_pages) {
+	if ((len >> PAGE_SHIFT) > totalram_pages)
+	{
 		pr_err("too much data (max %ld pages)\n", totalram_pages);
 		return ret;
 	}
@@ -315,10 +384,14 @@ static ssize_t microcode_write(struct file *file, const char __user *buf,
 	mutex_lock(&microcode_mutex);
 
 	if (do_microcode_update(buf, len) == 0)
+	{
 		ret = (ssize_t)len;
+	}
 
 	if (ret > 0)
+	{
 		perf_check_microcode();
+	}
 
 	mutex_unlock(&microcode_mutex);
 	put_online_cpus();
@@ -326,14 +399,16 @@ static ssize_t microcode_write(struct file *file, const char __user *buf,
 	return ret;
 }
 
-static const struct file_operations microcode_fops = {
+static const struct file_operations microcode_fops =
+{
 	.owner			= THIS_MODULE,
 	.write			= microcode_write,
 	.open			= microcode_open,
 	.llseek		= no_llseek,
 };
 
-static struct miscdevice microcode_dev = {
+static struct miscdevice microcode_dev =
+{
 	.minor			= MICROCODE_MINOR,
 	.name			= "microcode",
 	.nodename		= "cpu/microcode",
@@ -345,7 +420,9 @@ static int __init microcode_dev_init(void)
 	int error;
 
 	error = misc_register(&microcode_dev);
-	if (error) {
+
+	if (error)
+	{
 		pr_err("can't misc_register on minor=%d\n", MICROCODE_MINOR);
 		return error;
 	}
@@ -372,56 +449,80 @@ static int reload_for_cpu(int cpu)
 	int err = 0;
 
 	if (!uci->valid)
+	{
 		return err;
+	}
 
 	ustate = microcode_ops->request_microcode_fw(cpu, &microcode_pdev->dev, true);
+
 	if (ustate == UCODE_OK)
+	{
 		apply_microcode_on_target(cpu);
-	else
-		if (ustate == UCODE_ERROR)
-			err = -EINVAL;
+	}
+	else if (ustate == UCODE_ERROR)
+	{
+		err = -EINVAL;
+	}
+
 	return err;
 }
 
 static ssize_t reload_store(struct device *dev,
-			    struct device_attribute *attr,
-			    const char *buf, size_t size)
+							struct device_attribute *attr,
+							const char *buf, size_t size)
 {
 	unsigned long val;
 	int cpu;
 	ssize_t ret = 0, tmp_ret;
 
 	ret = kstrtoul(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val != 1)
+	{
 		return size;
+	}
 
 	get_online_cpus();
 	mutex_lock(&microcode_mutex);
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		tmp_ret = reload_for_cpu(cpu);
+
 		if (tmp_ret != 0)
+		{
 			pr_warn("Error reloading microcode on CPU %d\n", cpu);
+		}
 
 		/* save retval of the first encountered reload error */
 		if (!ret)
+		{
 			ret = tmp_ret;
+		}
 	}
+
 	if (!ret)
+	{
 		perf_check_microcode();
+	}
+
 	mutex_unlock(&microcode_mutex);
 	put_online_cpus();
 
 	if (!ret)
+	{
 		ret = size;
+	}
 
 	return ret;
 }
 
 static ssize_t version_show(struct device *dev,
-			struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	struct ucode_cpu_info *uci = ucode_cpu_info + dev->id;
 
@@ -429,7 +530,7 @@ static ssize_t version_show(struct device *dev,
 }
 
 static ssize_t pf_show(struct device *dev,
-			struct device_attribute *attr, char *buf)
+					   struct device_attribute *attr, char *buf)
 {
 	struct ucode_cpu_info *uci = ucode_cpu_info + dev->id;
 
@@ -440,13 +541,15 @@ static DEVICE_ATTR(reload, 0200, NULL, reload_store);
 static DEVICE_ATTR(version, 0400, version_show, NULL);
 static DEVICE_ATTR(processor_flags, 0400, pf_show, NULL);
 
-static struct attribute *mc_default_attrs[] = {
+static struct attribute *mc_default_attrs[] =
+{
 	&dev_attr_version.attr,
 	&dev_attr_processor_flags.attr,
 	NULL
 };
 
-static struct attribute_group mc_attr_group = {
+static struct attribute_group mc_attr_group =
+{
 	.attrs			= mc_default_attrs,
 	.name			= "microcode",
 };
@@ -461,7 +564,9 @@ static enum ucode_state microcode_resume_cpu(int cpu)
 	pr_debug("CPU%d updated upon resume\n", cpu);
 
 	if (apply_microcode_on_target(cpu))
+	{
 		return UCODE_ERROR;
+	}
 
 	return UCODE_OK;
 }
@@ -472,19 +577,26 @@ static enum ucode_state microcode_init_cpu(int cpu, bool refresh_fw)
 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
 
 	if (uci->valid)
+	{
 		return UCODE_OK;
+	}
 
 	if (collect_cpu_info(cpu))
+	{
 		return UCODE_ERROR;
+	}
 
 	/* --dimm. Trigger a delayed update? */
 	if (system_state != SYSTEM_RUNNING)
+	{
 		return UCODE_NFOUND;
+	}
 
 	ustate = microcode_ops->request_microcode_fw(cpu, &microcode_pdev->dev,
-						     refresh_fw);
+			 refresh_fw);
 
-	if (ustate == UCODE_OK) {
+	if (ustate == UCODE_OK)
+	{
 		pr_debug("CPU%d updated upon init\n", cpu);
 		apply_microcode_on_target(cpu);
 	}
@@ -497,7 +609,9 @@ static enum ucode_state microcode_update_cpu(int cpu)
 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
 
 	if (uci->valid)
+	{
 		return microcode_resume_cpu(cpu);
+	}
 
 	return microcode_init_cpu(cpu, false);
 }
@@ -507,16 +621,23 @@ static int mc_device_add(struct device *dev, struct subsys_interface *sif)
 	int err, cpu = dev->id;
 
 	if (!cpu_online(cpu))
+	{
 		return 0;
+	}
 
 	pr_debug("CPU%d added\n", cpu);
 
 	err = sysfs_create_group(&dev->kobj, &mc_attr_group);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (microcode_init_cpu(cpu, true) == UCODE_ERROR)
+	{
 		return -EINVAL;
+	}
 
 	return err;
 }
@@ -526,14 +647,17 @@ static void mc_device_remove(struct device *dev, struct subsys_interface *sif)
 	int cpu = dev->id;
 
 	if (!cpu_online(cpu))
+	{
 		return;
+	}
 
 	pr_debug("CPU%d removed\n", cpu);
 	microcode_fini_cpu(cpu);
 	sysfs_remove_group(&dev->kobj, &mc_attr_group);
 }
 
-static struct subsys_interface mc_cpu_interface = {
+static struct subsys_interface mc_cpu_interface =
+{
 	.name			= "microcode",
 	.subsys			= &cpu_subsys,
 	.add_dev		= mc_device_add,
@@ -549,12 +673,17 @@ static void mc_bp_resume(void)
 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
 
 	if (uci->valid && uci->mc)
+	{
 		microcode_ops->apply_microcode(cpu);
+	}
 	else if (!uci->mc)
+	{
 		reload_early_microcode();
+	}
 }
 
-static struct syscore_ops mc_syscore_ops = {
+static struct syscore_ops mc_syscore_ops =
+{
 	.resume			= mc_bp_resume,
 };
 
@@ -567,7 +696,10 @@ static int mc_cpu_online(unsigned int cpu)
 	pr_debug("CPU%d added\n", cpu);
 
 	if (sysfs_create_group(&dev->kobj, &mc_attr_group))
+	{
 		pr_err("Failed to create group for CPU%d\n", cpu);
+	}
+
 	return 0;
 }
 
@@ -588,12 +720,14 @@ static int mc_cpu_down_prep(unsigned int cpu)
 	return 0;
 }
 
-static struct attribute *cpu_root_microcode_attrs[] = {
+static struct attribute *cpu_root_microcode_attrs[] =
+{
 	&dev_attr_reload.attr,
 	NULL
 };
 
-static struct attribute_group cpu_root_microcode_group = {
+static struct attribute_group cpu_root_microcode_group =
+{
 	.name  = "microcode",
 	.attrs = cpu_root_microcode_attrs,
 };
@@ -604,61 +738,84 @@ int __init microcode_init(void)
 	int error;
 
 	if (dis_ucode_ldr)
+	{
 		return -EINVAL;
+	}
 
 	if (c->x86_vendor == X86_VENDOR_INTEL)
+	{
 		microcode_ops = init_intel_microcode();
+	}
 	else if (c->x86_vendor == X86_VENDOR_AMD)
+	{
 		microcode_ops = init_amd_microcode();
+	}
 	else
+	{
 		pr_err("no support for this CPU vendor\n");
+	}
 
 	if (!microcode_ops)
+	{
 		return -ENODEV;
+	}
 
 	microcode_pdev = platform_device_register_simple("microcode", -1,
-							 NULL, 0);
+					 NULL, 0);
+
 	if (IS_ERR(microcode_pdev))
+	{
 		return PTR_ERR(microcode_pdev);
+	}
 
 	get_online_cpus();
 	mutex_lock(&microcode_mutex);
 
 	error = subsys_interface_register(&mc_cpu_interface);
+
 	if (!error)
+	{
 		perf_check_microcode();
+	}
+
 	mutex_unlock(&microcode_mutex);
 	put_online_cpus();
 
 	if (error)
+	{
 		goto out_pdev;
+	}
 
 	error = sysfs_create_group(&cpu_subsys.dev_root->kobj,
-				   &cpu_root_microcode_group);
+							   &cpu_root_microcode_group);
 
-	if (error) {
+	if (error)
+	{
 		pr_err("Error creating microcode group!\n");
 		goto out_driver;
 	}
 
 	error = microcode_dev_init();
+
 	if (error)
+	{
 		goto out_ucode_group;
+	}
 
 	register_syscore_ops(&mc_syscore_ops);
 	cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN, "x86/microcode:online",
-				  mc_cpu_online, mc_cpu_down_prep);
+							  mc_cpu_online, mc_cpu_down_prep);
 
 	pr_info("Microcode Update Driver: v" MICROCODE_VERSION
-		" <tigran@aivazian.fsnet.co.uk>, Peter Oruba\n");
+			" <tigran@aivazian.fsnet.co.uk>, Peter Oruba\n");
 
 	return 0;
 
- out_ucode_group:
+out_ucode_group:
 	sysfs_remove_group(&cpu_subsys.dev_root->kobj,
-			   &cpu_root_microcode_group);
+					   &cpu_root_microcode_group);
 
- out_driver:
+out_driver:
 	get_online_cpus();
 	mutex_lock(&microcode_mutex);
 
@@ -667,7 +824,7 @@ int __init microcode_init(void)
 	mutex_unlock(&microcode_mutex);
 	put_online_cpus();
 
- out_pdev:
+out_pdev:
 	platform_device_unregister(microcode_pdev);
 	return error;
 

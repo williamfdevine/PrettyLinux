@@ -51,7 +51,8 @@
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg ncp_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg ncp_uartcfgs[] __initdata =
+{
 	/* REVISIT: NCP uses only serial 1, 2 */
 	[0] = {
 		.hwport	     = 0,
@@ -76,7 +77,8 @@ static struct s3c2410_uartcfg ncp_uartcfgs[] __initdata = {
 	},
 };
 
-static struct platform_device *ncp_devices[] __initdata = {
+static struct platform_device *ncp_devices[] __initdata =
+{
 	&s3c_device_hsmmc1,
 	&s3c_device_i2c0,
 };
@@ -99,12 +101,12 @@ static void __init ncp_machine_init(void)
 }
 
 MACHINE_START(NCP, "NCP")
-	/* Maintainer: Samsung Electronics */
-	.atag_offset	= 0x100,
+/* Maintainer: Samsung Electronics */
+.atag_offset	= 0x100,
 	.nr_irqs	= S3C64XX_NR_IRQS,
-	.init_irq	= s3c6410_init_irq,
-	.map_io		= ncp_map_io,
-	.init_machine	= ncp_machine_init,
-	.init_time	= samsung_timer_init,
-	.restart	= s3c64xx_restart,
-MACHINE_END
+		.init_irq	= s3c6410_init_irq,
+		   .map_io		= ncp_map_io,
+			   .init_machine	= ncp_machine_init,
+				  .init_time	= samsung_timer_init,
+					.restart	= s3c64xx_restart,
+						MACHINE_END

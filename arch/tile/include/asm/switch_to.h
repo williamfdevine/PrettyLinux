@@ -39,12 +39,12 @@ void _prepare_arch_switch(struct task_struct *next);
 struct task_struct;
 #define switch_to(prev, next, last) ((last) = _switch_to((prev), (next)))
 extern struct task_struct *_switch_to(struct task_struct *prev,
-				      struct task_struct *next);
+									  struct task_struct *next);
 
 /* Helper function for _switch_to(). */
 extern struct task_struct *__switch_to(struct task_struct *prev,
-				       struct task_struct *next,
-				       unsigned long new_system_save_k_0);
+									   struct task_struct *next,
+									   unsigned long new_system_save_k_0);
 
 /* Address that switched-away from tasks are at. */
 extern unsigned long get_switch_to_pc(void);
@@ -56,12 +56,12 @@ extern unsigned long get_switch_to_pc(void);
  * We defer homecache migration until the runqueue lock is released.
  */
 #define finish_arch_post_lock_switch() do {                               \
-	__insn_mtspr(SPR_SIM_CONTROL, SIM_CONTROL_OS_SWITCH |             \
-		(current->pid << _SIM_CONTROL_OPERATOR_BITS));            \
-	if (current->mm == NULL && !kstack_hash &&                        \
-	    current_thread_info()->homecache_cpu != raw_smp_processor_id()) \
-		homecache_migrate_kthread();                              \
-} while (0)
+		__insn_mtspr(SPR_SIM_CONTROL, SIM_CONTROL_OS_SWITCH |             \
+					 (current->pid << _SIM_CONTROL_OPERATOR_BITS));            \
+		if (current->mm == NULL && !kstack_hash &&                        \
+			current_thread_info()->homecache_cpu != raw_smp_processor_id()) \
+			homecache_migrate_kthread();                              \
+	} while (0)
 
 /* Support function for forking a new task. */
 void ret_from_fork(void);

@@ -44,14 +44,15 @@ static int __init asp834x_probe(void)
 	return of_machine_is_compatible("analogue-and-micro,asp8347e");
 }
 
-define_machine(asp834x) {
+define_machine(asp834x)
+{
 	.name			= "ASP8347E",
-	.probe			= asp834x_probe,
-	.setup_arch		= asp834x_setup_arch,
-	.init_IRQ		= mpc83xx_ipic_init_IRQ,
-	.get_irq		= ipic_get_irq,
-	.restart		= mpc83xx_restart,
-	.time_init		= mpc83xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= asp834x_probe,
+					 .setup_arch		= asp834x_setup_arch,
+						 .init_IRQ		= mpc83xx_ipic_init_IRQ,
+							   .get_irq		= ipic_get_irq,
+									  .restart		= mpc83xx_restart,
+											 .time_init		= mpc83xx_time_init,
+												  .calibrate_decr		= generic_calibrate_decr,
+													  .progress		= udbg_progress,
 };

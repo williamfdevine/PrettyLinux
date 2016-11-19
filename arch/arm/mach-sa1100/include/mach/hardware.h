@@ -32,9 +32,9 @@
 #define PIO_START       0x80000000	/* physical start of IO space */
 
 #define io_p2v( x )             \
-   IOMEM( (((x)&0x00ffffff) | (((x)&0x30000000)>>VIO_SHIFT)) + VIO_BASE )
+	IOMEM( (((x)&0x00ffffff) | (((x)&0x30000000)>>VIO_SHIFT)) + VIO_BASE )
 #define io_v2p( x )             \
-   ( (((x)&0x00ffffff) | (((x)&(0x30000000>>VIO_SHIFT))<<VIO_SHIFT)) + PIO_START )
+	( (((x)&0x00ffffff) | (((x)&(0x30000000>>VIO_SHIFT))<<VIO_SHIFT)) + PIO_START )
 
 #define __MREG(x)	IOMEM(io_p2v(x))
 
@@ -57,7 +57,7 @@ static inline unsigned long get_clock_tick_rate(void)
 #include "SA-1100.h"
 
 #ifdef CONFIG_SA1101
-#include "SA-1101.h"
+	#include "SA-1101.h"
 #endif
 
 #endif  /* _ASM_ARCH_HARDWARE_H */

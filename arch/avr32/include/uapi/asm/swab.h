@@ -10,8 +10,8 @@
 #define __SWAB_64_THRU_32__
 
 #ifdef __CHECKER__
-extern unsigned long __builtin_bswap_32(unsigned long x);
-extern unsigned short __builtin_bswap_16(unsigned short x);
+	extern unsigned long __builtin_bswap_32(unsigned long x);
+	extern unsigned short __builtin_bswap_16(unsigned short x);
 #endif
 
 /*

@@ -16,8 +16,8 @@
 #define NOT_COHERENT_CACHE
 
 static void *dma_direct_alloc_coherent(struct device *dev, size_t size,
-				       dma_addr_t *dma_handle, gfp_t flag,
-				       unsigned long attrs)
+									   dma_addr_t *dma_handle, gfp_t flag,
+									   unsigned long attrs)
 {
 #ifdef NOT_COHERENT_CACHE
 	return consistent_alloc(flag, size, dma_handle);
@@ -30,8 +30,12 @@ static void *dma_direct_alloc_coherent(struct device *dev, size_t size,
 	flag  &= ~(__GFP_HIGHMEM);
 
 	page = alloc_pages_node(node, flag, get_order(size));
+
 	if (page == NULL)
+	{
 		return NULL;
+	}
+
 	ret = page_address(page);
 	memset(ret, 0, size);
 	*dma_handle = virt_to_phys(ret);
@@ -41,8 +45,8 @@ static void *dma_direct_alloc_coherent(struct device *dev, size_t size,
 }
 
 static void dma_direct_free_coherent(struct device *dev, size_t size,
-				     void *vaddr, dma_addr_t dma_handle,
-				     unsigned long attrs)
+									 void *vaddr, dma_addr_t dma_handle,
+									 unsigned long attrs)
 {
 #ifdef NOT_COHERENT_CACHE
 	consistent_free(size, vaddr);
@@ -52,17 +56,18 @@ static void dma_direct_free_coherent(struct device *dev, size_t size,
 }
 
 static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
-			     int nents, enum dma_data_direction direction,
-			     unsigned long attrs)
+							 int nents, enum dma_data_direction direction,
+							 unsigned long attrs)
 {
 	struct scatterlist *sg;
 	int i;
 
 	/* FIXME this part of code is untested */
-	for_each_sg(sgl, sg, nents, i) {
+	for_each_sg(sgl, sg, nents, i)
+	{
 		sg->dma_address = sg_phys(sg);
 		__dma_sync(page_to_phys(sg_page(sg)) + sg->offset,
-							sg->length, direction);
+				   sg->length, direction);
 	}
 
 	return nents;
@@ -74,34 +79,34 @@ static int dma_direct_dma_supported(struct device *dev, u64 mask)
 }
 
 static inline dma_addr_t dma_direct_map_page(struct device *dev,
-					     struct page *page,
-					     unsigned long offset,
-					     size_t size,
-					     enum dma_data_direction direction,
-					     unsigned long attrs)
+		struct page *page,
+		unsigned long offset,
+		size_t size,
+		enum dma_data_direction direction,
+		unsigned long attrs)
 {
 	__dma_sync(page_to_phys(page) + offset, size, direction);
 	return page_to_phys(page) + offset;
 }
 
 static inline void dma_direct_unmap_page(struct device *dev,
-					 dma_addr_t dma_address,
-					 size_t size,
-					 enum dma_data_direction direction,
-					 unsigned long attrs)
+		dma_addr_t dma_address,
+		size_t size,
+		enum dma_data_direction direction,
+		unsigned long attrs)
 {
-/* There is not necessary to do cache cleanup
- *
- * phys_to_virt is here because in __dma_sync_page is __virt_to_phys and
- * dma_address is physical address
- */
+	/* There is not necessary to do cache cleanup
+	 *
+	 * phys_to_virt is here because in __dma_sync_page is __virt_to_phys and
+	 * dma_address is physical address
+	 */
 	__dma_sync(dma_address, size, direction);
 }
 
 static inline void
 dma_direct_sync_single_for_cpu(struct device *dev,
-			       dma_addr_t dma_handle, size_t size,
-			       enum dma_data_direction direction)
+							   dma_addr_t dma_handle, size_t size,
+							   enum dma_data_direction direction)
 {
 	/*
 	 * It's pointless to flush the cache as the memory segment
@@ -109,13 +114,15 @@ dma_direct_sync_single_for_cpu(struct device *dev,
 	 */
 
 	if (direction == DMA_FROM_DEVICE)
+	{
 		__dma_sync(dma_handle, size, direction);
+	}
 }
 
 static inline void
 dma_direct_sync_single_for_device(struct device *dev,
-				  dma_addr_t dma_handle, size_t size,
-				  enum dma_data_direction direction)
+								  dma_addr_t dma_handle, size_t size,
+								  enum dma_data_direction direction)
 {
 	/*
 	 * It's pointless to invalidate the cache if the device isn't
@@ -123,13 +130,15 @@ dma_direct_sync_single_for_device(struct device *dev,
 	 */
 
 	if (direction == DMA_TO_DEVICE)
+	{
 		__dma_sync(dma_handle, size, direction);
+	}
 }
 
 static inline void
 dma_direct_sync_sg_for_cpu(struct device *dev,
-			   struct scatterlist *sgl, int nents,
-			   enum dma_data_direction direction)
+						   struct scatterlist *sgl, int nents,
+						   enum dma_data_direction direction)
 {
 	struct scatterlist *sg;
 	int i;
@@ -137,13 +146,13 @@ dma_direct_sync_sg_for_cpu(struct device *dev,
 	/* FIXME this part of code is untested */
 	if (direction == DMA_FROM_DEVICE)
 		for_each_sg(sgl, sg, nents, i)
-			__dma_sync(sg->dma_address, sg->length, direction);
+		__dma_sync(sg->dma_address, sg->length, direction);
 }
 
 static inline void
 dma_direct_sync_sg_for_device(struct device *dev,
-			      struct scatterlist *sgl, int nents,
-			      enum dma_data_direction direction)
+							  struct scatterlist *sgl, int nents,
+							  enum dma_data_direction direction)
 {
 	struct scatterlist *sg;
 	int i;
@@ -151,13 +160,13 @@ dma_direct_sync_sg_for_device(struct device *dev,
 	/* FIXME this part of code is untested */
 	if (direction == DMA_TO_DEVICE)
 		for_each_sg(sgl, sg, nents, i)
-			__dma_sync(sg->dma_address, sg->length, direction);
+		__dma_sync(sg->dma_address, sg->length, direction);
 }
 
 static
 int dma_direct_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
-			     void *cpu_addr, dma_addr_t handle, size_t size,
-			     unsigned long attrs)
+							 void *cpu_addr, dma_addr_t handle, size_t size,
+							 unsigned long attrs)
 {
 #ifdef CONFIG_MMU
 	unsigned long user_count = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
@@ -166,7 +175,9 @@ int dma_direct_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
 	unsigned long pfn;
 
 	if (off >= count || user_count > (count - off))
+	{
 		return -ENXIO;
+	}
 
 #ifdef NOT_COHERENT_CACHE
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
@@ -175,13 +186,14 @@ int dma_direct_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
 	pfn = virt_to_pfn(cpu_addr);
 #endif
 	return remap_pfn_range(vma, vma->vm_start, pfn + off,
-			       vma->vm_end - vma->vm_start, vma->vm_page_prot);
+						   vma->vm_end - vma->vm_start, vma->vm_page_prot);
 #else
 	return -ENXIO;
 #endif
 }
 
-struct dma_map_ops dma_direct_ops = {
+struct dma_map_ops dma_direct_ops =
+{
 	.alloc		= dma_direct_alloc_coherent,
 	.free		= dma_direct_free_coherent,
 	.mmap		= dma_direct_mmap_coherent,

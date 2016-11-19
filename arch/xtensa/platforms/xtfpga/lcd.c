@@ -67,7 +67,9 @@ void lcd_disp_at_pos(char *str, unsigned char pos)
 {
 	lcd_put_byte(LCD_INSTR_ADDR, LCD_DISPLAY_POS | pos);
 	udelay(100);
-	while (*str != 0) {
+
+	while (*str != 0)
+	{
 		lcd_put_byte(LCD_DATA_ADDR, *str);
 		udelay(200);
 		str++;

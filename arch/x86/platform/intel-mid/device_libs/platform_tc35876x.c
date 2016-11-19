@@ -27,7 +27,8 @@ static void *tc35876x_platform_data(void *data)
 	return &pdata;
 }
 
-static const struct devs_id tc35876x_dev_id __initconst = {
+static const struct devs_id tc35876x_dev_id __initconst =
+{
 	.name = "i2c_disp_brig",
 	.type = SFI_DEV_TYPE_I2C,
 	.get_platform_data = &tc35876x_platform_data,

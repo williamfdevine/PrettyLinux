@@ -12,7 +12,7 @@
 
 extern char __phys_per_cpu_start[];
 #ifdef	CONFIG_SMP
-extern char __cpu0_per_cpu[];
+	extern char __cpu0_per_cpu[];
 #endif
 extern char __start___vtop_patchlist[], __end___vtop_patchlist[];
 extern char __start___rse_patchlist[], __end___rse_patchlist[];
@@ -33,7 +33,10 @@ static inline void *dereference_function_descriptor(void *ptr)
 	void *p;
 
 	if (!probe_kernel_address(&desc->ip, p))
+	{
 		ptr = p;
+	}
+
 	return ptr;
 }
 

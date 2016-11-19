@@ -21,15 +21,15 @@
 #include <asm/byteorder.h>
 
 #ifdef __LITTLE_ENDIAN
-#define MASK(x) (__insn_shl(1ULL, (x << 3)) - 1)
-#define NULMASK(x) ((2ULL << x) - 1)
-#define CFZ(x) __insn_ctz(x)
-#define REVCZ(x) __insn_clz(x)
+	#define MASK(x) (__insn_shl(1ULL, (x << 3)) - 1)
+	#define NULMASK(x) ((2ULL << x) - 1)
+	#define CFZ(x) __insn_ctz(x)
+	#define REVCZ(x) __insn_clz(x)
 #else
-#define MASK(x) (__insn_shl(-2LL, ((-x << 3) - 1)))
-#define NULMASK(x) (-2LL << (63 - x))
-#define CFZ(x) __insn_clz(x)
-#define REVCZ(x) __insn_ctz(x)
+	#define MASK(x) (__insn_shl(-2LL, ((-x << 3) - 1)))
+	#define NULMASK(x) (-2LL << (63 - x))
+	#define CFZ(x) __insn_clz(x)
+	#define REVCZ(x) __insn_ctz(x)
 #endif
 
 /*

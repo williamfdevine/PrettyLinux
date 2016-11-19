@@ -55,7 +55,7 @@
 	beq	44f;				\
 	stb	__rA,PACASOFTIRQEN(r13);	\
 	TRACE_DISABLE_INTS;			\
-44:
+	44:
 
 #else
 #define TRACE_ENABLE_INTS

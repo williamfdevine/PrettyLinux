@@ -20,10 +20,10 @@ static inline unsigned long __ffs(unsigned long x)
 	int ret;
 
 	__asm__ ("l.ff1 %0,%1"
-		 : "=r" (ret)
-		 : "r" (x));
+			 : "=r" (ret)
+			 : "r" (x));
 
-	return ret-1;
+	return ret - 1;
 }
 
 #else

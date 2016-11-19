@@ -44,7 +44,8 @@
 /*****************************************************************************
  * VLYNQ Bus
  ****************************************************************************/
-struct plat_vlynq_data {
+struct plat_vlynq_data
+{
 	struct plat_vlynq_ops ops;
 	int gpio_bit;
 	int reset_bit;
@@ -56,22 +57,34 @@ static int vlynq_on(struct vlynq_device *dev)
 	struct plat_vlynq_data *pdata = dev->dev.platform_data;
 
 	ret = gpio_request(pdata->gpio_bit, "vlynq");
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ar7_device_reset(pdata->reset_bit);
 
 	ret = ar7_gpio_disable(pdata->gpio_bit);
+
 	if (ret)
+	{
 		goto out_enabled;
+	}
 
 	ret = ar7_gpio_enable(pdata->gpio_bit);
+
 	if (ret)
+	{
 		goto out_enabled;
+	}
 
 	ret = gpio_direction_output(pdata->gpio_bit, 0);
+
 	if (ret)
+	{
 		goto out_gpio_enabled;
+	}
 
 	msleep(50);
 
@@ -99,7 +112,8 @@ static void vlynq_off(struct vlynq_device *dev)
 	ar7_device_disable(pdata->reset_bit);
 }
 
-static struct resource vlynq_low_res[] = {
+static struct resource vlynq_low_res[] =
+{
 	{
 		.name	= "regs",
 		.flags	= IORESOURCE_MEM,
@@ -126,7 +140,8 @@ static struct resource vlynq_low_res[] = {
 	},
 };
 
-static struct resource vlynq_high_res[] = {
+static struct resource vlynq_high_res[] =
+{
 	{
 		.name	= "regs",
 		.flags	= IORESOURCE_MEM,
@@ -153,7 +168,8 @@ static struct resource vlynq_high_res[] = {
 	},
 };
 
-static struct plat_vlynq_data vlynq_low_data = {
+static struct plat_vlynq_data vlynq_low_data =
+{
 	.ops = {
 		.on	= vlynq_on,
 		.off	= vlynq_off,
@@ -162,7 +178,8 @@ static struct plat_vlynq_data vlynq_low_data = {
 	.gpio_bit	= 18,
 };
 
-static struct plat_vlynq_data vlynq_high_data = {
+static struct plat_vlynq_data vlynq_high_data =
+{
 	.ops = {
 		.on	= vlynq_on,
 		.off	= vlynq_off,
@@ -171,7 +188,8 @@ static struct plat_vlynq_data vlynq_high_data = {
 	.gpio_bit	= 19,
 };
 
-static struct platform_device vlynq_low = {
+static struct platform_device vlynq_low =
+{
 	.id		= 0,
 	.name		= "vlynq",
 	.dev = {
@@ -181,7 +199,8 @@ static struct platform_device vlynq_low = {
 	.num_resources	= ARRAY_SIZE(vlynq_low_res),
 };
 
-static struct platform_device vlynq_high = {
+static struct platform_device vlynq_high =
+{
 	.id		= 1,
 	.name		= "vlynq",
 	.dev = {
@@ -194,7 +213,8 @@ static struct platform_device vlynq_high = {
 /*****************************************************************************
  * Flash
  ****************************************************************************/
-static struct resource physmap_flash_resource = {
+static struct resource physmap_flash_resource =
+{
 	.name	= "mem",
 	.flags	= IORESOURCE_MEM,
 	.start	= 0x10000000,
@@ -203,12 +223,14 @@ static struct resource physmap_flash_resource = {
 
 static const char *ar7_probe_types[] = { "ar7part", NULL };
 
-static struct physmap_flash_data physmap_flash_data = {
+static struct physmap_flash_data physmap_flash_data =
+{
 	.width	= 2,
 	.part_probe_types = ar7_probe_types,
 };
 
-static struct platform_device physmap_flash = {
+static struct platform_device physmap_flash =
+{
 	.name		= "physmap-flash",
 	.dev = {
 		.platform_data	= &physmap_flash_data,
@@ -220,7 +242,8 @@ static struct platform_device physmap_flash = {
 /*****************************************************************************
  * Ethernet
  ****************************************************************************/
-static struct resource cpmac_low_res[] = {
+static struct resource cpmac_low_res[] =
+{
 	{
 		.name	= "regs",
 		.flags	= IORESOURCE_MEM,
@@ -235,7 +258,8 @@ static struct resource cpmac_low_res[] = {
 	},
 };
 
-static struct resource cpmac_high_res[] = {
+static struct resource cpmac_high_res[] =
+{
 	{
 		.name	= "regs",
 		.flags	= IORESOURCE_MEM,
@@ -250,19 +274,22 @@ static struct resource cpmac_high_res[] = {
 	},
 };
 
-static struct fixed_phy_status fixed_phy_status __initdata = {
+static struct fixed_phy_status fixed_phy_status __initdata =
+{
 	.link		= 1,
 	.speed		= 100,
 	.duplex		= 1,
 };
 
-static struct plat_cpmac_data cpmac_low_data = {
+static struct plat_cpmac_data cpmac_low_data =
+{
 	.reset_bit	= 17,
 	.power_bit	= 20,
 	.phy_mask	= 0x80000000,
 };
 
-static struct plat_cpmac_data cpmac_high_data = {
+static struct plat_cpmac_data cpmac_high_data =
+{
 	.reset_bit	= 21,
 	.power_bit	= 22,
 	.phy_mask	= 0x7fffffff,
@@ -270,7 +297,8 @@ static struct plat_cpmac_data cpmac_high_data = {
 
 static u64 cpmac_dma_mask = DMA_BIT_MASK(32);
 
-static struct platform_device cpmac_low = {
+static struct platform_device cpmac_low =
+{
 	.id		= 0,
 	.name		= "cpmac",
 	.dev = {
@@ -282,7 +310,8 @@ static struct platform_device cpmac_low = {
 	.num_resources	= ARRAY_SIZE(cpmac_low_res),
 };
 
-static struct platform_device cpmac_high = {
+static struct platform_device cpmac_high =
+{
 	.id		= 1,
 	.name		= "cpmac",
 	.dev = {
@@ -300,24 +329,32 @@ static void __init cpmac_get_mac(int instance, unsigned char *dev_addr)
 
 	sprintf(name, "mac%c", 'a' + instance);
 	mac = prom_getenv(name);
-	if (!mac && instance) {
+
+	if (!mac && instance)
+	{
 		sprintf(name, "mac%c", 'a');
 		mac = prom_getenv(name);
 	}
 
-	if (mac) {
-		if (!mac_pton(mac, dev_addr)) {
+	if (mac)
+	{
+		if (!mac_pton(mac, dev_addr))
+		{
 			pr_warn("cannot parse mac address, using random address\n");
 			eth_random_addr(dev_addr);
 		}
-	} else
+	}
+	else
+	{
 		eth_random_addr(dev_addr);
+	}
 }
 
 /*****************************************************************************
  * USB
  ****************************************************************************/
-static struct resource usb_res[] = {
+static struct resource usb_res[] =
+{
 	{
 		.name	= "regs",
 		.flags	= IORESOURCE_MEM,
@@ -338,7 +375,8 @@ static struct resource usb_res[] = {
 	},
 };
 
-static struct platform_device ar7_udc = {
+static struct platform_device ar7_udc =
+{
 	.name		= "ar7_udc",
 	.resource	= usb_res,
 	.num_resources	= ARRAY_SIZE(usb_res),
@@ -347,7 +385,8 @@ static struct platform_device ar7_udc = {
 /*****************************************************************************
  * LEDs
  ****************************************************************************/
-static struct gpio_led default_leds[] = {
+static struct gpio_led default_leds[] =
+{
 	{
 		.name			= "status",
 		.gpio			= 8,
@@ -355,12 +394,14 @@ static struct gpio_led default_leds[] = {
 	},
 };
 
-static struct gpio_led titan_leds[] = {
+static struct gpio_led titan_leds[] =
+{
 	{ .name = "status", .gpio = 8, .active_low = 1, },
 	{ .name = "wifi", .gpio = 13, .active_low = 1, },
 };
 
-static struct gpio_led dsl502t_leds[] = {
+static struct gpio_led dsl502t_leds[] =
+{
 	{
 		.name			= "status",
 		.gpio			= 9,
@@ -378,7 +419,8 @@ static struct gpio_led dsl502t_leds[] = {
 	},
 };
 
-static struct gpio_led dg834g_leds[] = {
+static struct gpio_led dg834g_leds[] =
+{
 	{
 		.name			= "ppp",
 		.gpio			= 6,
@@ -407,7 +449,8 @@ static struct gpio_led dg834g_leds[] = {
 	},
 };
 
-static struct gpio_led fb_sl_leds[] = {
+static struct gpio_led fb_sl_leds[] =
+{
 	{
 		.name			= "1",
 		.gpio			= 7,
@@ -434,7 +477,8 @@ static struct gpio_led fb_sl_leds[] = {
 	},
 };
 
-static struct gpio_led fb_fon_leds[] = {
+static struct gpio_led fb_fon_leds[] =
+{
 	{
 		.name			= "1",
 		.gpio			= 8,
@@ -460,7 +504,8 @@ static struct gpio_led fb_fon_leds[] = {
 	},
 };
 
-static struct gpio_led gt701_leds[] = {
+static struct gpio_led gt701_leds[] =
+{
 	{
 		.name			= "inet:green",
 		.gpio			= 13,
@@ -496,7 +541,8 @@ static struct gpio_led gt701_leds[] = {
 
 static struct gpio_led_platform_data ar7_led_data;
 
-static struct platform_device ar7_gpio_leds = {
+static struct platform_device ar7_gpio_leds =
+{
 	.name = "leds-gpio",
 	.dev = {
 		.platform_data = &ar7_led_data,
@@ -517,25 +563,38 @@ static void __init detect_leds(void)
 
 	/* If we can't get the product id from PROM, use the default LEDs */
 	if (!prid)
+	{
 		return;
+	}
 
-	if (strstr(prid, "Fritz_Box_FON")) {
+	if (strstr(prid, "Fritz_Box_FON"))
+	{
 		ar7_led_data.num_leds = ARRAY_SIZE(fb_fon_leds);
 		ar7_led_data.leds = fb_fon_leds;
-	} else if (strstr(prid, "Fritz_Box_")) {
+	}
+	else if (strstr(prid, "Fritz_Box_"))
+	{
 		ar7_led_data.num_leds = ARRAY_SIZE(fb_sl_leds);
 		ar7_led_data.leds = fb_sl_leds;
-	} else if ((!strcmp(prid, "AR7RD") || !strcmp(prid, "AR7DB"))
-		&& usb_prod != NULL && strstr(usb_prod, "DSL-502T")) {
+	}
+	else if ((!strcmp(prid, "AR7RD") || !strcmp(prid, "AR7DB"))
+			 && usb_prod != NULL && strstr(usb_prod, "DSL-502T"))
+	{
 		ar7_led_data.num_leds = ARRAY_SIZE(dsl502t_leds);
 		ar7_led_data.leds = dsl502t_leds;
-	} else if (strstr(prid, "DG834")) {
+	}
+	else if (strstr(prid, "DG834"))
+	{
 		ar7_led_data.num_leds = ARRAY_SIZE(dg834g_leds);
 		ar7_led_data.leds = dg834g_leds;
-	} else if (strstr(prid, "CYWM") || strstr(prid, "CYWL")) {
+	}
+	else if (strstr(prid, "CYWM") || strstr(prid, "CYWL"))
+	{
 		ar7_led_data.num_leds = ARRAY_SIZE(titan_leds);
 		ar7_led_data.leds = titan_leds;
-	} else if (strstr(prid, "GT701")) {
+	}
+	else if (strstr(prid, "GT701"))
+	{
 		ar7_led_data.num_leds = ARRAY_SIZE(gt701_leds);
 		ar7_led_data.leds = gt701_leds;
 	}
@@ -544,14 +603,16 @@ static void __init detect_leds(void)
 /*****************************************************************************
  * Watchdog
  ****************************************************************************/
-static struct resource ar7_wdt_res = {
+static struct resource ar7_wdt_res =
+{
 	.name		= "regs",
 	.flags		= IORESOURCE_MEM,
 	.start		= -1,	/* Filled at runtime */
 	.end		= -1,	/* Filled at runtime */
 };
 
-static struct platform_device ar7_wdt = {
+static struct platform_device ar7_wdt =
+{
 	.name		= "ar7_wdt",
 	.resource	= &ar7_wdt_res,
 	.num_resources	= 1,
@@ -570,8 +631,11 @@ static int __init ar7_register_uarts(void)
 	memset(&uart_port, 0, sizeof(struct uart_port));
 
 	bus_clk = clk_get(NULL, "bus");
+
 	if (IS_ERR(bus_clk))
+	{
 		panic("unable to get bus clk");
+	}
 
 	uart_port.type		= PORT_AR7;
 	uart_port.uartclk	= clk_get_rate(bus_clk) / 2;
@@ -584,20 +648,28 @@ static int __init ar7_register_uarts(void)
 	uart_port.membase	= ioremap(uart_port.mapbase, 256);
 
 	res = early_serial_setup(&uart_port);
+
 	if (res)
+	{
 		return res;
+	}
 
 	/* Only TNETD73xx have a second serial port */
-	if (ar7_has_second_uart()) {
+	if (ar7_has_second_uart())
+	{
 		uart_port.line		= 1;
 		uart_port.irq		= AR7_IRQ_UART1;
 		uart_port.mapbase	= UR8_REGS_UART1;
 		uart_port.membase	= ioremap(uart_port.mapbase, 256);
 
 		res = early_serial_setup(&uart_port);
+
 		if (res)
+		{
 			return res;
+		}
 	}
+
 #endif
 
 	return 0;
@@ -655,75 +727,123 @@ static int __init ar7_register_devices(void)
 	int res;
 
 	res = ar7_register_uarts();
+
 	if (res)
+	{
 		pr_err("unable to setup uart(s): %d\n", res);
+	}
 
 	res = platform_device_register(&physmap_flash);
+
 	if (res)
+	{
 		pr_warn("unable to register physmap-flash: %d\n", res);
+	}
 
 	if (ar7_is_titan())
+	{
 		titan_fixup_devices();
+	}
 
 	ar7_device_disable(vlynq_low_data.reset_bit);
 	res = platform_device_register(&vlynq_low);
-	if (res)
-		pr_warn("unable to register vlynq-low: %d\n", res);
 
-	if (ar7_has_high_vlynq()) {
-		ar7_device_disable(vlynq_high_data.reset_bit);
-		res = platform_device_register(&vlynq_high);
-		if (res)
-			pr_warn("unable to register vlynq-high: %d\n", res);
+	if (res)
+	{
+		pr_warn("unable to register vlynq-low: %d\n", res);
 	}
 
-	if (ar7_has_high_cpmac()) {
+	if (ar7_has_high_vlynq())
+	{
+		ar7_device_disable(vlynq_high_data.reset_bit);
+		res = platform_device_register(&vlynq_high);
+
+		if (res)
+		{
+			pr_warn("unable to register vlynq-high: %d\n", res);
+		}
+	}
+
+	if (ar7_has_high_cpmac())
+	{
 		res = fixed_phy_add(PHY_POLL, cpmac_high.id,
-				    &fixed_phy_status, -1);
-		if (!res) {
+							&fixed_phy_status, -1);
+
+		if (!res)
+		{
 			cpmac_get_mac(1, cpmac_high_data.dev_addr);
 
 			res = platform_device_register(&cpmac_high);
+
 			if (res)
 				pr_warn("unable to register cpmac-high: %d\n",
-					res);
-		} else
+						res);
+		}
+		else
+		{
 			pr_warn("unable to add cpmac-high phy: %d\n", res);
-	} else
+		}
+	}
+	else
+	{
 		cpmac_low_data.phy_mask = 0xffffffff;
+	}
 
 	res = fixed_phy_add(PHY_POLL, cpmac_low.id, &fixed_phy_status, -1);
-	if (!res) {
+
+	if (!res)
+	{
 		cpmac_get_mac(0, cpmac_low_data.dev_addr);
 		res = platform_device_register(&cpmac_low);
+
 		if (res)
+		{
 			pr_warn("unable to register cpmac-low: %d\n", res);
-	} else
+		}
+	}
+	else
+	{
 		pr_warn("unable to add cpmac-low phy: %d\n", res);
+	}
 
 	detect_leds();
 	res = platform_device_register(&ar7_gpio_leds);
+
 	if (res)
+	{
 		pr_warn("unable to register leds: %d\n", res);
+	}
 
 	res = platform_device_register(&ar7_udc);
+
 	if (res)
+	{
 		pr_warn("unable to register usb slave: %d\n", res);
+	}
 
 	/* Register watchdog only if enabled in hardware */
 	bootcr = ioremap_nocache(AR7_REGS_DCL, 4);
 	val = readl(bootcr);
 	iounmap(bootcr);
-	if (val & AR7_WDT_HW_ENA) {
+
+	if (val & AR7_WDT_HW_ENA)
+	{
 		if (ar7_has_high_vlynq())
+		{
 			ar7_wdt_res.start = UR8_REGS_WDT;
+		}
 		else
+		{
 			ar7_wdt_res.start = AR7_REGS_WDT;
+		}
 
 		ar7_wdt_res.end = ar7_wdt_res.start + 0x20;
 		res = platform_device_register(&ar7_wdt);
+
 		if (res)
+		{
 			pr_warn("unable to register watchdog: %d\n", res);
+		}
 	}
 
 	return 0;

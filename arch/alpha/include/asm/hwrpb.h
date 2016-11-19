@@ -74,7 +74,8 @@
 #define ST_API_BIAS		200
 #define ST_API_NAUTILUS		201	/* UP1000 systype	*/
 
-struct pcb_struct {
+struct pcb_struct
+{
 	unsigned long ksp;
 	unsigned long usp;
 	unsigned long ptbr;
@@ -85,7 +86,8 @@ struct pcb_struct {
 	unsigned long res1, res2;
 };
 
-struct percpu_struct {
+struct percpu_struct
+{
 	unsigned long hwpcb[16];
 	unsigned long flags;
 	unsigned long pal_mem_size;
@@ -115,29 +117,33 @@ struct percpu_struct {
 	unsigned long bcache_info;
 };
 
-struct procdesc_struct {
+struct procdesc_struct
+{
 	unsigned long weird_vms_stuff;
 	unsigned long address;
 };
 
-struct vf_map_struct {
+struct vf_map_struct
+{
 	unsigned long va;
 	unsigned long pa;
 	unsigned long count;
 };
 
-struct crb_struct {
-	struct procdesc_struct * dispatch_va;
-	struct procdesc_struct * dispatch_pa;
-	struct procdesc_struct * fixup_va;
-	struct procdesc_struct * fixup_pa;
+struct crb_struct
+{
+	struct procdesc_struct *dispatch_va;
+	struct procdesc_struct *dispatch_pa;
+	struct procdesc_struct *fixup_va;
+	struct procdesc_struct *fixup_pa;
 	/* virtual->physical map */
 	unsigned long map_entries;
 	unsigned long map_pages;
 	struct vf_map_struct map[1];
 };
 
-struct memclust_struct {
+struct memclust_struct
+{
 	unsigned long start_pfn;
 	unsigned long numpages;
 	unsigned long numtested;
@@ -147,23 +153,26 @@ struct memclust_struct {
 	unsigned long usage;
 };
 
-struct memdesc_struct {
+struct memdesc_struct
+{
 	unsigned long chksum;
 	unsigned long optional_pa;
 	unsigned long numclusters;
 	struct memclust_struct cluster[0];
 };
 
-struct dsr_struct {
+struct dsr_struct
+{
 	long smm;			/* SMM nubber used by LMF       */
 	unsigned long  lurt_off;	/* offset to LURT table         */
 	unsigned long  sysname_off;	/* offset to sysname char count */
 };
 
-struct hwrpb_struct {
+struct hwrpb_struct
+{
 	unsigned long phys_addr;	/* check: physical address of the hwrpb */
 	unsigned long id;		/* check: "HWRPB\0\0\0" */
-	unsigned long revision;	
+	unsigned long revision;
 	unsigned long size;		/* size of hwrpb */
 	unsigned long cpuid;
 	unsigned long pagesize;		/* 8192, I hope */
@@ -210,9 +219,13 @@ static inline void
 hwrpb_update_checksum(struct hwrpb_struct *h)
 {
 	unsigned long sum = 0, *l;
-        for (l = (unsigned long *) h; l < (unsigned long *) &h->chksum; ++l)
-                sum += *l;
-        h->chksum = sum;
+
+	for (l = (unsigned long *) h; l < (unsigned long *) &h->chksum; ++l)
+	{
+		sum += *l;
+	}
+
+	h->chksum = sum;
 }
 
 #endif /* __KERNEL__ */

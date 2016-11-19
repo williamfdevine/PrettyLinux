@@ -43,7 +43,8 @@
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg smdk6400_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg smdk6400_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -70,12 +71,14 @@ static void __init smdk6400_map_io(void)
 	samsung_set_timer_source(SAMSUNG_PWM3, SAMSUNG_PWM4);
 }
 
-static struct platform_device *smdk6400_devices[] __initdata = {
+static struct platform_device *smdk6400_devices[] __initdata =
+{
 	&s3c_device_hsmmc1,
 	&s3c_device_i2c0,
 };
 
-static struct i2c_board_info i2c_devs[] __initdata = {
+static struct i2c_board_info i2c_devs[] __initdata =
+{
 	{ I2C_BOARD_INFO("wm8753", 0x1A), },
 	{ I2C_BOARD_INFO("24c08", 0x50), },
 };
@@ -87,12 +90,12 @@ static void __init smdk6400_machine_init(void)
 }
 
 MACHINE_START(SMDK6400, "SMDK6400")
-	/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
+.atag_offset	= 0x100,
 	.nr_irqs	= S3C64XX_NR_IRQS,
-	.init_irq	= s3c6400_init_irq,
-	.map_io		= smdk6400_map_io,
-	.init_machine	= smdk6400_machine_init,
-	.init_time	= samsung_timer_init,
-	.restart	= s3c64xx_restart,
-MACHINE_END
+		.init_irq	= s3c6400_init_irq,
+		   .map_io		= smdk6400_map_io,
+			   .init_machine	= smdk6400_machine_init,
+				  .init_time	= samsung_timer_init,
+					.restart	= s3c64xx_restart,
+						MACHINE_END

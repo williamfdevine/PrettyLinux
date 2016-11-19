@@ -13,9 +13,11 @@
 #include "gaccess.h"
 #include <asm/switch_to.h>
 
-union asce {
+union asce
+{
 	unsigned long val;
-	struct {
+	struct
+	{
 		unsigned long origin : 52; /* Region- or Segment-Table Origin */
 		unsigned long	 : 2;
 		unsigned long g  : 1; /* Subspace Group Control */
@@ -29,16 +31,19 @@ union asce {
 	};
 };
 
-enum {
+enum
+{
 	ASCE_TYPE_SEGMENT = 0,
 	ASCE_TYPE_REGION3 = 1,
 	ASCE_TYPE_REGION2 = 2,
 	ASCE_TYPE_REGION1 = 3
 };
 
-union region1_table_entry {
+union region1_table_entry
+{
 	unsigned long val;
-	struct {
+	struct
+	{
 		unsigned long rto: 52;/* Region-Table Origin */
 		unsigned long	 : 2;
 		unsigned long p  : 1; /* DAT-Protection Bit */
@@ -51,9 +56,11 @@ union region1_table_entry {
 	};
 };
 
-union region2_table_entry {
+union region2_table_entry
+{
 	unsigned long val;
-	struct {
+	struct
+	{
 		unsigned long rto: 52;/* Region-Table Origin */
 		unsigned long	 : 2;
 		unsigned long p  : 1; /* DAT-Protection Bit */
@@ -66,7 +73,8 @@ union region2_table_entry {
 	};
 };
 
-struct region3_table_entry_fc0 {
+struct region3_table_entry_fc0
+{
 	unsigned long sto: 52;/* Segment-Table Origin */
 	unsigned long	 : 1;
 	unsigned long fc : 1; /* Format-Control */
@@ -79,7 +87,8 @@ struct region3_table_entry_fc0 {
 	unsigned long tl : 2; /* Segment-Table Length */
 };
 
-struct region3_table_entry_fc1 {
+struct region3_table_entry_fc1
+{
 	unsigned long rfaa : 33; /* Region-Frame Absolute Address */
 	unsigned long	 : 14;
 	unsigned long av : 1; /* ACCF-Validity Control */
@@ -95,11 +104,13 @@ struct region3_table_entry_fc1 {
 	unsigned long	 : 2;
 };
 
-union region3_table_entry {
+union region3_table_entry
+{
 	unsigned long val;
 	struct region3_table_entry_fc0 fc0;
 	struct region3_table_entry_fc1 fc1;
-	struct {
+	struct
+	{
 		unsigned long	 : 53;
 		unsigned long fc : 1; /* Format-Control */
 		unsigned long	 : 4;
@@ -110,7 +121,8 @@ union region3_table_entry {
 	};
 };
 
-struct segment_entry_fc0 {
+struct segment_entry_fc0
+{
 	unsigned long pto: 53;/* Page-Table Origin */
 	unsigned long fc : 1; /* Format-Control */
 	unsigned long p  : 1; /* DAT-Protection Bit */
@@ -121,7 +133,8 @@ struct segment_entry_fc0 {
 	unsigned long	 : 2;
 };
 
-struct segment_entry_fc1 {
+struct segment_entry_fc1
+{
 	unsigned long sfaa : 44; /* Segment-Frame Absolute Address */
 	unsigned long	 : 3;
 	unsigned long av : 1; /* ACCF-Validity Control */
@@ -137,11 +150,13 @@ struct segment_entry_fc1 {
 	unsigned long	 : 2;
 };
 
-union segment_table_entry {
+union segment_table_entry
+{
 	unsigned long val;
 	struct segment_entry_fc0 fc0;
 	struct segment_entry_fc1 fc1;
-	struct {
+	struct
+	{
 		unsigned long	 : 53;
 		unsigned long fc : 1; /* Format-Control */
 		unsigned long	 : 4;
@@ -152,16 +167,19 @@ union segment_table_entry {
 	};
 };
 
-enum {
+enum
+{
 	TABLE_TYPE_SEGMENT = 0,
 	TABLE_TYPE_REGION3 = 1,
 	TABLE_TYPE_REGION2 = 2,
 	TABLE_TYPE_REGION1 = 3
 };
 
-union page_table_entry {
+union page_table_entry
+{
 	unsigned long val;
-	struct {
+	struct
+	{
 		unsigned long pfra : 52; /* Page-Frame Real Address */
 		unsigned long z  : 1; /* Zero Bit */
 		unsigned long i  : 1; /* Page-Invalid Bit */
@@ -175,9 +193,11 @@ union page_table_entry {
  * vaddress union in order to easily decode a virtual address into its
  * region first index, region second index etc. parts.
  */
-union vaddress {
+union vaddress
+{
 	unsigned long addr;
-	struct {
+	struct
+	{
 		unsigned long rfx : 11;
 		unsigned long rsx : 11;
 		unsigned long rtx : 11;
@@ -185,7 +205,8 @@ union vaddress {
 		unsigned long px  : 8;
 		unsigned long bx  : 12;
 	};
-	struct {
+	struct
+	{
 		unsigned long rfx01 : 2;
 		unsigned long	    : 9;
 		unsigned long rsx01 : 2;
@@ -202,16 +223,19 @@ union vaddress {
  * after a page table walk. The rfaa, sfaa and pfra members are used to
  * simply assign them the value of a region, segment or page table entry.
  */
-union raddress {
+union raddress
+{
 	unsigned long addr;
 	unsigned long rfaa : 33; /* Region-Frame Absolute Address */
 	unsigned long sfaa : 44; /* Segment-Frame Absolute Address */
 	unsigned long pfra : 52; /* Page-Frame Real Address */
 };
 
-union alet {
+union alet
+{
 	u32 val;
-	struct {
+	struct
+	{
 		u32 reserved : 7;
 		u32 p        : 1;
 		u32 alesn    : 8;
@@ -219,16 +243,19 @@ union alet {
 	};
 };
 
-union ald {
+union ald
+{
 	u32 val;
-	struct {
+	struct
+	{
 		u32     : 1;
 		u32 alo : 24;
 		u32 all : 7;
 	};
 };
 
-struct ale {
+struct ale
+{
 	unsigned long i      : 1; /* ALEN-Invalid Bit */
 	unsigned long        : 5;
 	unsigned long fo     : 1; /* Fetch-Only Bit */
@@ -242,7 +269,8 @@ struct ale {
 	unsigned long astesn : 32; /* ASTE Sequence Number */
 } __packed;
 
-struct aste {
+struct aste
+{
 	unsigned long i      : 1; /* ASX-Invalid Bit */
 	unsigned long ato    : 29; /* Authority-Table Origin */
 	unsigned long        : 1;
@@ -260,7 +288,8 @@ struct aste {
 
 int ipte_lock_held(struct kvm_vcpu *vcpu)
 {
-	if (vcpu->arch.sie_block->eca & 1) {
+	if (vcpu->arch.sie_block->eca & 1)
+	{
 		int rc;
 
 		read_lock(&vcpu->kvm->arch.sca_lock);
@@ -268,6 +297,7 @@ int ipte_lock_held(struct kvm_vcpu *vcpu)
 		read_unlock(&vcpu->kvm->arch.sca_lock);
 		return rc;
 	}
+
 	return vcpu->kvm->arch.ipte_lock_count != 0;
 }
 
@@ -277,21 +307,32 @@ static void ipte_lock_simple(struct kvm_vcpu *vcpu)
 
 	mutex_lock(&vcpu->kvm->arch.ipte_mutex);
 	vcpu->kvm->arch.ipte_lock_count++;
+
 	if (vcpu->kvm->arch.ipte_lock_count > 1)
+	{
 		goto out;
+	}
+
 retry:
 	read_lock(&vcpu->kvm->arch.sca_lock);
 	ic = kvm_s390_get_ipte_control(vcpu->kvm);
-	do {
+
+	do
+	{
 		old = READ_ONCE(*ic);
-		if (old.k) {
+
+		if (old.k)
+		{
 			read_unlock(&vcpu->kvm->arch.sca_lock);
 			cond_resched();
 			goto retry;
 		}
+
 		new = old;
 		new.k = 1;
-	} while (cmpxchg(&ic->val, old.val, new.val) != old.val);
+	}
+	while (cmpxchg(&ic->val, old.val, new.val) != old.val);
+
 	read_unlock(&vcpu->kvm->arch.sca_lock);
 out:
 	mutex_unlock(&vcpu->kvm->arch.ipte_mutex);
@@ -303,15 +344,23 @@ static void ipte_unlock_simple(struct kvm_vcpu *vcpu)
 
 	mutex_lock(&vcpu->kvm->arch.ipte_mutex);
 	vcpu->kvm->arch.ipte_lock_count--;
+
 	if (vcpu->kvm->arch.ipte_lock_count)
+	{
 		goto out;
+	}
+
 	read_lock(&vcpu->kvm->arch.sca_lock);
 	ic = kvm_s390_get_ipte_control(vcpu->kvm);
-	do {
+
+	do
+	{
 		old = READ_ONCE(*ic);
 		new = old;
 		new.k = 0;
-	} while (cmpxchg(&ic->val, old.val, new.val) != old.val);
+	}
+	while (cmpxchg(&ic->val, old.val, new.val) != old.val);
+
 	read_unlock(&vcpu->kvm->arch.sca_lock);
 	wake_up(&vcpu->kvm->arch.ipte_wq);
 out:
@@ -325,17 +374,24 @@ static void ipte_lock_siif(struct kvm_vcpu *vcpu)
 retry:
 	read_lock(&vcpu->kvm->arch.sca_lock);
 	ic = kvm_s390_get_ipte_control(vcpu->kvm);
-	do {
+
+	do
+	{
 		old = READ_ONCE(*ic);
-		if (old.kg) {
+
+		if (old.kg)
+		{
 			read_unlock(&vcpu->kvm->arch.sca_lock);
 			cond_resched();
 			goto retry;
 		}
+
 		new = old;
 		new.k = 1;
 		new.kh++;
-	} while (cmpxchg(&ic->val, old.val, new.val) != old.val);
+	}
+	while (cmpxchg(&ic->val, old.val, new.val) != old.val);
+
 	read_unlock(&vcpu->kvm->arch.sca_lock);
 }
 
@@ -345,36 +401,54 @@ static void ipte_unlock_siif(struct kvm_vcpu *vcpu)
 
 	read_lock(&vcpu->kvm->arch.sca_lock);
 	ic = kvm_s390_get_ipte_control(vcpu->kvm);
-	do {
+
+	do
+	{
 		old = READ_ONCE(*ic);
 		new = old;
 		new.kh--;
+
 		if (!new.kh)
+		{
 			new.k = 0;
-	} while (cmpxchg(&ic->val, old.val, new.val) != old.val);
+		}
+	}
+	while (cmpxchg(&ic->val, old.val, new.val) != old.val);
+
 	read_unlock(&vcpu->kvm->arch.sca_lock);
+
 	if (!new.kh)
+	{
 		wake_up(&vcpu->kvm->arch.ipte_wq);
+	}
 }
 
 void ipte_lock(struct kvm_vcpu *vcpu)
 {
 	if (vcpu->arch.sie_block->eca & 1)
+	{
 		ipte_lock_siif(vcpu);
+	}
 	else
+	{
 		ipte_lock_simple(vcpu);
+	}
 }
 
 void ipte_unlock(struct kvm_vcpu *vcpu)
 {
 	if (vcpu->arch.sie_block->eca & 1)
+	{
 		ipte_unlock_siif(vcpu);
+	}
 	else
+	{
 		ipte_unlock_simple(vcpu);
+	}
 }
 
 static int ar_translation(struct kvm_vcpu *vcpu, union asce *asce, ar_t ar,
-			  enum gacc_mode mode)
+						  enum gacc_mode mode)
 {
 	union alet alet;
 	struct ale ale;
@@ -385,84 +459,132 @@ static int ar_translation(struct kvm_vcpu *vcpu, union asce *asce, ar_t ar,
 	u8 authority_table;
 
 	if (ar >= NUM_ACRS)
+	{
 		return -EINVAL;
+	}
 
 	save_access_regs(vcpu->run->s.regs.acrs);
 	alet.val = vcpu->run->s.regs.acrs[ar];
 
-	if (ar == 0 || alet.val == 0) {
+	if (ar == 0 || alet.val == 0)
+	{
 		asce->val = vcpu->arch.sie_block->gcr[1];
 		return 0;
-	} else if (alet.val == 1) {
+	}
+	else if (alet.val == 1)
+	{
 		asce->val = vcpu->arch.sie_block->gcr[7];
 		return 0;
 	}
 
 	if (alet.reserved)
+	{
 		return PGM_ALET_SPECIFICATION;
+	}
 
 	if (alet.p)
+	{
 		ald_addr = vcpu->arch.sie_block->gcr[5];
+	}
 	else
+	{
 		ald_addr = vcpu->arch.sie_block->gcr[2];
+	}
+
 	ald_addr &= 0x7fffffc0;
 
 	rc = read_guest_real(vcpu, ald_addr + 16, &ald.val, sizeof(union ald));
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (alet.alen / 8 > ald.all)
+	{
 		return PGM_ALEN_TRANSLATION;
+	}
 
 	if (0x7fffffff - ald.alo * 128 < alet.alen * 16)
+	{
 		return PGM_ADDRESSING;
+	}
 
 	rc = read_guest_real(vcpu, ald.alo * 128 + alet.alen * 16, &ale,
-			     sizeof(struct ale));
+						 sizeof(struct ale));
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (ale.i == 1)
+	{
 		return PGM_ALEN_TRANSLATION;
+	}
+
 	if (ale.alesn != alet.alesn)
+	{
 		return PGM_ALE_SEQUENCE;
+	}
 
 	rc = read_guest_real(vcpu, ale.asteo * 64, &aste, sizeof(struct aste));
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (aste.i)
+	{
 		return PGM_ASTE_VALIDITY;
-	if (aste.astesn != ale.astesn)
-		return PGM_ASTE_SEQUENCE;
+	}
 
-	if (ale.p == 1) {
+	if (aste.astesn != ale.astesn)
+	{
+		return PGM_ASTE_SEQUENCE;
+	}
+
+	if (ale.p == 1)
+	{
 		eax = (vcpu->arch.sie_block->gcr[8] >> 16) & 0xffff;
-		if (ale.aleax != eax) {
+
+		if (ale.aleax != eax)
+		{
 			if (eax / 16 > aste.atl)
+			{
 				return PGM_EXTENDED_AUTHORITY;
+			}
 
 			authority_table_addr = aste.ato * 4 + eax / 4;
 
 			rc = read_guest_real(vcpu, authority_table_addr,
-					     &authority_table,
-					     sizeof(u8));
+								 &authority_table,
+								 sizeof(u8));
+
 			if (rc)
+			{
 				return rc;
+			}
 
 			if ((authority_table & (0x40 >> ((eax & 3) * 2))) == 0)
+			{
 				return PGM_EXTENDED_AUTHORITY;
+			}
 		}
 	}
 
 	if (ale.fo == 1 && mode == GACC_STORE)
+	{
 		return PGM_PROTECTION;
+	}
 
 	asce->val = aste.asce;
 	return 0;
 }
 
-struct trans_exc_code_bits {
+struct trans_exc_code_bits
+{
 	unsigned long addr : 52; /* Translation-exception Address */
 	unsigned long fsi  : 2;  /* Access Exception Fetch/Store Indication */
 	unsigned long	   : 6;
@@ -471,13 +593,15 @@ struct trans_exc_code_bits {
 	unsigned long as   : 2;  /* ASCE Identifier */
 };
 
-enum {
+enum
+{
 	FSI_UNKNOWN = 0, /* Unknown wether fetch or store */
 	FSI_STORE   = 1, /* Exception was due to store operation */
 	FSI_FETCH   = 2  /* Exception was due to fetch operation */
 };
 
-enum prot_type {
+enum prot_type
+{
 	PROT_TYPE_LA   = 0,
 	PROT_TYPE_KEYC = 1,
 	PROT_TYPE_ALC  = 2,
@@ -485,7 +609,7 @@ enum prot_type {
 };
 
 static int trans_exc(struct kvm_vcpu *vcpu, int code, unsigned long gva,
-		     ar_t ar, enum gacc_mode mode, enum prot_type prot)
+					 ar_t ar, enum gacc_mode mode, enum prot_type prot)
 {
 	struct kvm_s390_pgm_info *pgm = &vcpu->arch.pgm;
 	struct trans_exc_code_bits *tec;
@@ -494,81 +618,100 @@ static int trans_exc(struct kvm_vcpu *vcpu, int code, unsigned long gva,
 	pgm->code = code;
 	tec = (struct trans_exc_code_bits *)&pgm->trans_exc_code;
 
-	switch (code) {
-	case PGM_PROTECTION:
-		switch (prot) {
-		case PROT_TYPE_ALC:
-			tec->b60 = 1;
-			/* FALL THROUGH */
-		case PROT_TYPE_DAT:
-			tec->b61 = 1;
+	switch (code)
+	{
+		case PGM_PROTECTION:
+			switch (prot)
+			{
+				case PROT_TYPE_ALC:
+					tec->b60 = 1;
+
+				/* FALL THROUGH */
+				case PROT_TYPE_DAT:
+					tec->b61 = 1;
+					break;
+
+				default: /* LA and KEYC set b61 to 0, other params undefined */
+					return code;
+			}
+
+		/* FALL THROUGH */
+		case PGM_ASCE_TYPE:
+		case PGM_PAGE_TRANSLATION:
+		case PGM_REGION_FIRST_TRANS:
+		case PGM_REGION_SECOND_TRANS:
+		case PGM_REGION_THIRD_TRANS:
+		case PGM_SEGMENT_TRANSLATION:
+			/*
+			 * op_access_id only applies to MOVE_PAGE -> set bit 61
+			 * exc_access_id has to be set to 0 for some instructions. Both
+			 * cases have to be handled by the caller.
+			 */
+			tec->addr = gva >> PAGE_SHIFT;
+			tec->fsi = mode == GACC_STORE ? FSI_STORE : FSI_FETCH;
+			tec->as = psw_bits(vcpu->arch.sie_block->gpsw).as;
+
+		/* FALL THROUGH */
+		case PGM_ALEN_TRANSLATION:
+		case PGM_ALE_SEQUENCE:
+		case PGM_ASTE_VALIDITY:
+		case PGM_ASTE_SEQUENCE:
+		case PGM_EXTENDED_AUTHORITY:
+			/*
+			 * We can always store exc_access_id, as it is
+			 * undefined for non-ar cases. It is undefined for
+			 * most DAT protection exceptions.
+			 */
+			pgm->exc_access_id = ar;
 			break;
-		default: /* LA and KEYC set b61 to 0, other params undefined */
-			return code;
-		}
-		/* FALL THROUGH */
-	case PGM_ASCE_TYPE:
-	case PGM_PAGE_TRANSLATION:
-	case PGM_REGION_FIRST_TRANS:
-	case PGM_REGION_SECOND_TRANS:
-	case PGM_REGION_THIRD_TRANS:
-	case PGM_SEGMENT_TRANSLATION:
-		/*
-		 * op_access_id only applies to MOVE_PAGE -> set bit 61
-		 * exc_access_id has to be set to 0 for some instructions. Both
-		 * cases have to be handled by the caller.
-		 */
-		tec->addr = gva >> PAGE_SHIFT;
-		tec->fsi = mode == GACC_STORE ? FSI_STORE : FSI_FETCH;
-		tec->as = psw_bits(vcpu->arch.sie_block->gpsw).as;
-		/* FALL THROUGH */
-	case PGM_ALEN_TRANSLATION:
-	case PGM_ALE_SEQUENCE:
-	case PGM_ASTE_VALIDITY:
-	case PGM_ASTE_SEQUENCE:
-	case PGM_EXTENDED_AUTHORITY:
-		/*
-		 * We can always store exc_access_id, as it is
-		 * undefined for non-ar cases. It is undefined for
-		 * most DAT protection exceptions.
-		 */
-		pgm->exc_access_id = ar;
-		break;
 	}
+
 	return code;
 }
 
 static int get_vcpu_asce(struct kvm_vcpu *vcpu, union asce *asce,
-			 unsigned long ga, ar_t ar, enum gacc_mode mode)
+						 unsigned long ga, ar_t ar, enum gacc_mode mode)
 {
 	int rc;
 	struct psw_bits psw = psw_bits(vcpu->arch.sie_block->gpsw);
 
-	if (!psw.t) {
+	if (!psw.t)
+	{
 		asce->val = 0;
 		asce->r = 1;
 		return 0;
 	}
 
 	if (mode == GACC_IFETCH)
+	{
 		psw.as = psw.as == PSW_AS_HOME ? PSW_AS_HOME : PSW_AS_PRIMARY;
-
-	switch (psw.as) {
-	case PSW_AS_PRIMARY:
-		asce->val = vcpu->arch.sie_block->gcr[1];
-		return 0;
-	case PSW_AS_SECONDARY:
-		asce->val = vcpu->arch.sie_block->gcr[7];
-		return 0;
-	case PSW_AS_HOME:
-		asce->val = vcpu->arch.sie_block->gcr[13];
-		return 0;
-	case PSW_AS_ACCREG:
-		rc = ar_translation(vcpu, asce, ar, mode);
-		if (rc > 0)
-			return trans_exc(vcpu, rc, ga, ar, mode, PROT_TYPE_ALC);
-		return rc;
 	}
+
+	switch (psw.as)
+	{
+		case PSW_AS_PRIMARY:
+			asce->val = vcpu->arch.sie_block->gcr[1];
+			return 0;
+
+		case PSW_AS_SECONDARY:
+			asce->val = vcpu->arch.sie_block->gcr[7];
+			return 0;
+
+		case PSW_AS_HOME:
+			asce->val = vcpu->arch.sie_block->gcr[13];
+			return 0;
+
+		case PSW_AS_ACCREG:
+			rc = ar_translation(vcpu, asce, ar, mode);
+
+			if (rc > 0)
+			{
+				return trans_exc(vcpu, rc, ga, ar, mode, PROT_TYPE_ALC);
+			}
+
+			return rc;
+	}
+
 	return 0;
 }
 
@@ -598,8 +741,8 @@ static int deref_table(struct kvm *kvm, unsigned long gpa, unsigned long *val)
  *	      by the architecture
  */
 static unsigned long guest_translate(struct kvm_vcpu *vcpu, unsigned long gva,
-				     unsigned long *gpa, const union asce asce,
-				     enum gacc_mode mode)
+									 unsigned long *gpa, const union asce asce,
+									 enum gacc_mode mode)
 {
 	union vaddress vaddr = {.addr = gva};
 	union raddress raddr = {.addr = gva};
@@ -612,142 +755,283 @@ static unsigned long guest_translate(struct kvm_vcpu *vcpu, unsigned long gva,
 	ctlreg0.val = vcpu->arch.sie_block->gcr[0];
 	edat1 = ctlreg0.edat && test_kvm_facility(vcpu->kvm, 8);
 	edat2 = edat1 && test_kvm_facility(vcpu->kvm, 78);
+
 	if (asce.r)
+	{
 		goto real_address;
+	}
+
 	ptr = asce.origin * 4096;
-	switch (asce.dt) {
-	case ASCE_TYPE_REGION1:
-		if (vaddr.rfx01 > asce.tl)
-			return PGM_REGION_FIRST_TRANS;
-		ptr += vaddr.rfx * 8;
-		break;
-	case ASCE_TYPE_REGION2:
-		if (vaddr.rfx)
-			return PGM_ASCE_TYPE;
-		if (vaddr.rsx01 > asce.tl)
-			return PGM_REGION_SECOND_TRANS;
-		ptr += vaddr.rsx * 8;
-		break;
-	case ASCE_TYPE_REGION3:
-		if (vaddr.rfx || vaddr.rsx)
-			return PGM_ASCE_TYPE;
-		if (vaddr.rtx01 > asce.tl)
-			return PGM_REGION_THIRD_TRANS;
-		ptr += vaddr.rtx * 8;
-		break;
-	case ASCE_TYPE_SEGMENT:
-		if (vaddr.rfx || vaddr.rsx || vaddr.rtx)
-			return PGM_ASCE_TYPE;
-		if (vaddr.sx01 > asce.tl)
-			return PGM_SEGMENT_TRANSLATION;
-		ptr += vaddr.sx * 8;
-		break;
-	}
-	switch (asce.dt) {
-	case ASCE_TYPE_REGION1:	{
-		union region1_table_entry rfte;
 
-		if (kvm_is_error_gpa(vcpu->kvm, ptr))
-			return PGM_ADDRESSING;
-		if (deref_table(vcpu->kvm, ptr, &rfte.val))
-			return -EFAULT;
-		if (rfte.i)
-			return PGM_REGION_FIRST_TRANS;
-		if (rfte.tt != TABLE_TYPE_REGION1)
-			return PGM_TRANSLATION_SPEC;
-		if (vaddr.rsx01 < rfte.tf || vaddr.rsx01 > rfte.tl)
-			return PGM_REGION_SECOND_TRANS;
-		if (edat1)
-			dat_protection |= rfte.p;
-		ptr = rfte.rto * 4096 + vaddr.rsx * 8;
+	switch (asce.dt)
+	{
+		case ASCE_TYPE_REGION1:
+			if (vaddr.rfx01 > asce.tl)
+			{
+				return PGM_REGION_FIRST_TRANS;
+			}
+
+			ptr += vaddr.rfx * 8;
+			break;
+
+		case ASCE_TYPE_REGION2:
+			if (vaddr.rfx)
+			{
+				return PGM_ASCE_TYPE;
+			}
+
+			if (vaddr.rsx01 > asce.tl)
+			{
+				return PGM_REGION_SECOND_TRANS;
+			}
+
+			ptr += vaddr.rsx * 8;
+			break;
+
+		case ASCE_TYPE_REGION3:
+			if (vaddr.rfx || vaddr.rsx)
+			{
+				return PGM_ASCE_TYPE;
+			}
+
+			if (vaddr.rtx01 > asce.tl)
+			{
+				return PGM_REGION_THIRD_TRANS;
+			}
+
+			ptr += vaddr.rtx * 8;
+			break;
+
+		case ASCE_TYPE_SEGMENT:
+			if (vaddr.rfx || vaddr.rsx || vaddr.rtx)
+			{
+				return PGM_ASCE_TYPE;
+			}
+
+			if (vaddr.sx01 > asce.tl)
+			{
+				return PGM_SEGMENT_TRANSLATION;
+			}
+
+			ptr += vaddr.sx * 8;
+			break;
 	}
+
+	switch (asce.dt)
+	{
+		case ASCE_TYPE_REGION1:
+			{
+				union region1_table_entry rfte;
+
+				if (kvm_is_error_gpa(vcpu->kvm, ptr))
+				{
+					return PGM_ADDRESSING;
+				}
+
+				if (deref_table(vcpu->kvm, ptr, &rfte.val))
+				{
+					return -EFAULT;
+				}
+
+				if (rfte.i)
+				{
+					return PGM_REGION_FIRST_TRANS;
+				}
+
+				if (rfte.tt != TABLE_TYPE_REGION1)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (vaddr.rsx01 < rfte.tf || vaddr.rsx01 > rfte.tl)
+				{
+					return PGM_REGION_SECOND_TRANS;
+				}
+
+				if (edat1)
+				{
+					dat_protection |= rfte.p;
+				}
+
+				ptr = rfte.rto * 4096 + vaddr.rsx * 8;
+			}
+
 		/* fallthrough */
-	case ASCE_TYPE_REGION2: {
-		union region2_table_entry rste;
+		case ASCE_TYPE_REGION2:
+			{
+				union region2_table_entry rste;
 
-		if (kvm_is_error_gpa(vcpu->kvm, ptr))
-			return PGM_ADDRESSING;
-		if (deref_table(vcpu->kvm, ptr, &rste.val))
-			return -EFAULT;
-		if (rste.i)
-			return PGM_REGION_SECOND_TRANS;
-		if (rste.tt != TABLE_TYPE_REGION2)
-			return PGM_TRANSLATION_SPEC;
-		if (vaddr.rtx01 < rste.tf || vaddr.rtx01 > rste.tl)
-			return PGM_REGION_THIRD_TRANS;
-		if (edat1)
-			dat_protection |= rste.p;
-		ptr = rste.rto * 4096 + vaddr.rtx * 8;
-	}
+				if (kvm_is_error_gpa(vcpu->kvm, ptr))
+				{
+					return PGM_ADDRESSING;
+				}
+
+				if (deref_table(vcpu->kvm, ptr, &rste.val))
+				{
+					return -EFAULT;
+				}
+
+				if (rste.i)
+				{
+					return PGM_REGION_SECOND_TRANS;
+				}
+
+				if (rste.tt != TABLE_TYPE_REGION2)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (vaddr.rtx01 < rste.tf || vaddr.rtx01 > rste.tl)
+				{
+					return PGM_REGION_THIRD_TRANS;
+				}
+
+				if (edat1)
+				{
+					dat_protection |= rste.p;
+				}
+
+				ptr = rste.rto * 4096 + vaddr.rtx * 8;
+			}
+
 		/* fallthrough */
-	case ASCE_TYPE_REGION3: {
-		union region3_table_entry rtte;
+		case ASCE_TYPE_REGION3:
+			{
+				union region3_table_entry rtte;
 
-		if (kvm_is_error_gpa(vcpu->kvm, ptr))
-			return PGM_ADDRESSING;
-		if (deref_table(vcpu->kvm, ptr, &rtte.val))
-			return -EFAULT;
-		if (rtte.i)
-			return PGM_REGION_THIRD_TRANS;
-		if (rtte.tt != TABLE_TYPE_REGION3)
-			return PGM_TRANSLATION_SPEC;
-		if (rtte.cr && asce.p && edat2)
-			return PGM_TRANSLATION_SPEC;
-		if (rtte.fc && edat2) {
-			dat_protection |= rtte.fc1.p;
-			raddr.rfaa = rtte.fc1.rfaa;
-			goto absolute_address;
-		}
-		if (vaddr.sx01 < rtte.fc0.tf)
-			return PGM_SEGMENT_TRANSLATION;
-		if (vaddr.sx01 > rtte.fc0.tl)
-			return PGM_SEGMENT_TRANSLATION;
-		if (edat1)
-			dat_protection |= rtte.fc0.p;
-		ptr = rtte.fc0.sto * 4096 + vaddr.sx * 8;
-	}
+				if (kvm_is_error_gpa(vcpu->kvm, ptr))
+				{
+					return PGM_ADDRESSING;
+				}
+
+				if (deref_table(vcpu->kvm, ptr, &rtte.val))
+				{
+					return -EFAULT;
+				}
+
+				if (rtte.i)
+				{
+					return PGM_REGION_THIRD_TRANS;
+				}
+
+				if (rtte.tt != TABLE_TYPE_REGION3)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (rtte.cr && asce.p && edat2)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (rtte.fc && edat2)
+				{
+					dat_protection |= rtte.fc1.p;
+					raddr.rfaa = rtte.fc1.rfaa;
+					goto absolute_address;
+				}
+
+				if (vaddr.sx01 < rtte.fc0.tf)
+				{
+					return PGM_SEGMENT_TRANSLATION;
+				}
+
+				if (vaddr.sx01 > rtte.fc0.tl)
+				{
+					return PGM_SEGMENT_TRANSLATION;
+				}
+
+				if (edat1)
+				{
+					dat_protection |= rtte.fc0.p;
+				}
+
+				ptr = rtte.fc0.sto * 4096 + vaddr.sx * 8;
+			}
+
 		/* fallthrough */
-	case ASCE_TYPE_SEGMENT: {
-		union segment_table_entry ste;
+		case ASCE_TYPE_SEGMENT:
+			{
+				union segment_table_entry ste;
 
-		if (kvm_is_error_gpa(vcpu->kvm, ptr))
-			return PGM_ADDRESSING;
-		if (deref_table(vcpu->kvm, ptr, &ste.val))
-			return -EFAULT;
-		if (ste.i)
-			return PGM_SEGMENT_TRANSLATION;
-		if (ste.tt != TABLE_TYPE_SEGMENT)
-			return PGM_TRANSLATION_SPEC;
-		if (ste.cs && asce.p)
-			return PGM_TRANSLATION_SPEC;
-		if (ste.fc && edat1) {
-			dat_protection |= ste.fc1.p;
-			raddr.sfaa = ste.fc1.sfaa;
-			goto absolute_address;
-		}
-		dat_protection |= ste.fc0.p;
-		ptr = ste.fc0.pto * 2048 + vaddr.px * 8;
+				if (kvm_is_error_gpa(vcpu->kvm, ptr))
+				{
+					return PGM_ADDRESSING;
+				}
+
+				if (deref_table(vcpu->kvm, ptr, &ste.val))
+				{
+					return -EFAULT;
+				}
+
+				if (ste.i)
+				{
+					return PGM_SEGMENT_TRANSLATION;
+				}
+
+				if (ste.tt != TABLE_TYPE_SEGMENT)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (ste.cs && asce.p)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (ste.fc && edat1)
+				{
+					dat_protection |= ste.fc1.p;
+					raddr.sfaa = ste.fc1.sfaa;
+					goto absolute_address;
+				}
+
+				dat_protection |= ste.fc0.p;
+				ptr = ste.fc0.pto * 2048 + vaddr.px * 8;
+			}
 	}
-	}
+
 	if (kvm_is_error_gpa(vcpu->kvm, ptr))
+	{
 		return PGM_ADDRESSING;
+	}
+
 	if (deref_table(vcpu->kvm, ptr, &pte.val))
+	{
 		return -EFAULT;
+	}
+
 	if (pte.i)
+	{
 		return PGM_PAGE_TRANSLATION;
+	}
+
 	if (pte.z)
+	{
 		return PGM_TRANSLATION_SPEC;
+	}
+
 	if (pte.co && !edat1)
+	{
 		return PGM_TRANSLATION_SPEC;
+	}
+
 	dat_protection |= pte.p;
 	raddr.pfra = pte.pfra;
 real_address:
 	raddr.addr = kvm_s390_real_to_abs(vcpu, raddr.addr);
 absolute_address:
+
 	if (mode == GACC_STORE && dat_protection)
+	{
 		return PGM_PROTECTION;
+	}
+
 	if (kvm_is_error_gpa(vcpu->kvm, raddr.addr))
+	{
 		return PGM_ADDRESSING;
+	}
+
 	*gpa = raddr.addr;
 	return 0;
 }
@@ -759,52 +1043,77 @@ static inline int is_low_address(unsigned long ga)
 }
 
 static int low_address_protection_enabled(struct kvm_vcpu *vcpu,
-					  const union asce asce)
+		const union asce asce)
 {
 	union ctlreg0 ctlreg0 = {.val = vcpu->arch.sie_block->gcr[0]};
 	psw_t *psw = &vcpu->arch.sie_block->gpsw;
 
 	if (!ctlreg0.lap)
+	{
 		return 0;
+	}
+
 	if (psw_bits(*psw).t && asce.p)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
 static int guest_page_range(struct kvm_vcpu *vcpu, unsigned long ga, ar_t ar,
-			    unsigned long *pages, unsigned long nr_pages,
-			    const union asce asce, enum gacc_mode mode)
+							unsigned long *pages, unsigned long nr_pages,
+							const union asce asce, enum gacc_mode mode)
 {
 	psw_t *psw = &vcpu->arch.sie_block->gpsw;
 	int lap_enabled, rc = 0;
 
 	lap_enabled = low_address_protection_enabled(vcpu, asce);
-	while (nr_pages) {
+
+	while (nr_pages)
+	{
 		ga = kvm_s390_logical_to_effective(vcpu, ga);
+
 		if (mode == GACC_STORE && lap_enabled && is_low_address(ga))
 			return trans_exc(vcpu, PGM_PROTECTION, ga, ar, mode,
-					 PROT_TYPE_LA);
+							 PROT_TYPE_LA);
+
 		ga &= PAGE_MASK;
-		if (psw_bits(*psw).t) {
+
+		if (psw_bits(*psw).t)
+		{
 			rc = guest_translate(vcpu, ga, pages, asce, mode);
+
 			if (rc < 0)
+			{
 				return rc;
-		} else {
-			*pages = kvm_s390_real_to_abs(vcpu, ga);
-			if (kvm_is_error_gpa(vcpu->kvm, *pages))
-				rc = PGM_ADDRESSING;
+			}
 		}
+		else
+		{
+			*pages = kvm_s390_real_to_abs(vcpu, ga);
+
+			if (kvm_is_error_gpa(vcpu->kvm, *pages))
+			{
+				rc = PGM_ADDRESSING;
+			}
+		}
+
 		if (rc)
+		{
 			return trans_exc(vcpu, rc, ga, ar, mode, PROT_TYPE_DAT);
+		}
+
 		ga += PAGE_SIZE;
 		pages++;
 		nr_pages--;
 	}
+
 	return 0;
 }
 
 int access_guest(struct kvm_vcpu *vcpu, unsigned long ga, ar_t ar, void *data,
-		 unsigned long len, enum gacc_mode mode)
+				 unsigned long len, enum gacc_mode mode)
 {
 	psw_t *psw = &vcpu->arch.sie_block->gpsw;
 	unsigned long _len, nr_pages, gpa, idx;
@@ -815,56 +1124,97 @@ int access_guest(struct kvm_vcpu *vcpu, unsigned long ga, ar_t ar, void *data,
 	int rc;
 
 	if (!len)
+	{
 		return 0;
+	}
+
 	ga = kvm_s390_logical_to_effective(vcpu, ga);
 	rc = get_vcpu_asce(vcpu, &asce, ga, ar, mode);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	nr_pages = (((ga & ~PAGE_MASK) + len - 1) >> PAGE_SHIFT) + 1;
 	pages = pages_array;
+
 	if (nr_pages > ARRAY_SIZE(pages_array))
+	{
 		pages = vmalloc(nr_pages * sizeof(unsigned long));
+	}
+
 	if (!pages)
+	{
 		return -ENOMEM;
+	}
+
 	need_ipte_lock = psw_bits(*psw).t && !asce.r;
+
 	if (need_ipte_lock)
+	{
 		ipte_lock(vcpu);
+	}
+
 	rc = guest_page_range(vcpu, ga, ar, pages, nr_pages, asce, mode);
-	for (idx = 0; idx < nr_pages && !rc; idx++) {
+
+	for (idx = 0; idx < nr_pages && !rc; idx++)
+	{
 		gpa = *(pages + idx) + (ga & ~PAGE_MASK);
 		_len = min(PAGE_SIZE - (gpa & ~PAGE_MASK), len);
+
 		if (mode == GACC_STORE)
+		{
 			rc = kvm_write_guest(vcpu->kvm, gpa, data, _len);
+		}
 		else
+		{
 			rc = kvm_read_guest(vcpu->kvm, gpa, data, _len);
+		}
+
 		len -= _len;
 		ga += _len;
 		data += _len;
 	}
+
 	if (need_ipte_lock)
+	{
 		ipte_unlock(vcpu);
+	}
+
 	if (nr_pages > ARRAY_SIZE(pages_array))
+	{
 		vfree(pages);
+	}
+
 	return rc;
 }
 
 int access_guest_real(struct kvm_vcpu *vcpu, unsigned long gra,
-		      void *data, unsigned long len, enum gacc_mode mode)
+					  void *data, unsigned long len, enum gacc_mode mode)
 {
 	unsigned long _len, gpa;
 	int rc = 0;
 
-	while (len && !rc) {
+	while (len && !rc)
+	{
 		gpa = kvm_s390_real_to_abs(vcpu, gra);
 		_len = min(PAGE_SIZE - (gpa & ~PAGE_MASK), len);
+
 		if (mode)
+		{
 			rc = write_guest_abs(vcpu, gpa, data, _len);
+		}
 		else
+		{
 			rc = read_guest_abs(vcpu, gpa, data, _len);
+		}
+
 		len -= _len;
 		gra += _len;
 		data += _len;
 	}
+
 	return rc;
 }
 
@@ -878,7 +1228,7 @@ int access_guest_real(struct kvm_vcpu *vcpu, unsigned long gra,
  * has to take care of this.
  */
 int guest_translate_address(struct kvm_vcpu *vcpu, unsigned long gva, ar_t ar,
-			    unsigned long *gpa, enum gacc_mode mode)
+							unsigned long *gpa, enum gacc_mode mode)
 {
 	psw_t *psw = &vcpu->arch.sie_block->gpsw;
 	union asce asce;
@@ -886,22 +1236,36 @@ int guest_translate_address(struct kvm_vcpu *vcpu, unsigned long gva, ar_t ar,
 
 	gva = kvm_s390_logical_to_effective(vcpu, gva);
 	rc = get_vcpu_asce(vcpu, &asce, gva, ar, mode);
+
 	if (rc)
+	{
 		return rc;
-	if (is_low_address(gva) && low_address_protection_enabled(vcpu, asce)) {
-		if (mode == GACC_STORE)
-			return trans_exc(vcpu, PGM_PROTECTION, gva, 0,
-					 mode, PROT_TYPE_LA);
 	}
 
-	if (psw_bits(*psw).t && !asce.r) {	/* Use DAT? */
+	if (is_low_address(gva) && low_address_protection_enabled(vcpu, asce))
+	{
+		if (mode == GACC_STORE)
+			return trans_exc(vcpu, PGM_PROTECTION, gva, 0,
+							 mode, PROT_TYPE_LA);
+	}
+
+	if (psw_bits(*psw).t && !asce.r)  	/* Use DAT? */
+	{
 		rc = guest_translate(vcpu, gva, gpa, asce, mode);
+
 		if (rc > 0)
+		{
 			return trans_exc(vcpu, rc, gva, 0, mode, PROT_TYPE_DAT);
-	} else {
+		}
+	}
+	else
+	{
 		*gpa = kvm_s390_real_to_abs(vcpu, gva);
+
 		if (kvm_is_error_gpa(vcpu->kvm, *gpa))
+		{
 			return trans_exc(vcpu, rc, gva, PGM_ADDRESSING, mode, 0);
+		}
 	}
 
 	return rc;
@@ -911,19 +1275,22 @@ int guest_translate_address(struct kvm_vcpu *vcpu, unsigned long gva, ar_t ar,
  * check_gva_range - test a range of guest virtual addresses for accessibility
  */
 int check_gva_range(struct kvm_vcpu *vcpu, unsigned long gva, ar_t ar,
-		    unsigned long length, enum gacc_mode mode)
+					unsigned long length, enum gacc_mode mode)
 {
 	unsigned long gpa;
 	unsigned long currlen;
 	int rc = 0;
 
 	ipte_lock(vcpu);
-	while (length > 0 && !rc) {
+
+	while (length > 0 && !rc)
+	{
 		currlen = min(length, PAGE_SIZE - (gva % PAGE_SIZE));
 		rc = guest_translate_address(vcpu, gva, ar, &gpa, mode);
 		gva += currlen;
 		length -= currlen;
 	}
+
 	ipte_unlock(vcpu);
 
 	return rc;
@@ -943,7 +1310,10 @@ int kvm_s390_check_low_addr_prot_real(struct kvm_vcpu *vcpu, unsigned long gra)
 	union ctlreg0 ctlreg0 = {.val = vcpu->arch.sie_block->gcr[0]};
 
 	if (!ctlreg0.lap || !is_low_address(gra))
+	{
 		return 0;
+	}
+
 	return trans_exc(vcpu, PGM_PROTECTION, gra, 0, GACC_STORE, PROT_TYPE_LA);
 }
 
@@ -955,8 +1325,8 @@ int kvm_s390_check_low_addr_prot_real(struct kvm_vcpu *vcpu, unsigned long gra)
  * @fake: pgt references contiguous guest memory block, not a pgtable
  */
 static int kvm_s390_shadow_tables(struct gmap *sg, unsigned long saddr,
-				  unsigned long *pgt, int *dat_protection,
-				  int *fake)
+								  unsigned long *pgt, int *dat_protection,
+								  int *fake)
 {
 	struct gmap *parent;
 	union asce asce;
@@ -970,161 +1340,290 @@ static int kvm_s390_shadow_tables(struct gmap *sg, unsigned long saddr,
 	vaddr.addr = saddr;
 	asce.val = sg->orig_asce;
 	ptr = asce.origin * 4096;
-	if (asce.r) {
+
+	if (asce.r)
+	{
 		*fake = 1;
 		asce.dt = ASCE_TYPE_REGION1;
 	}
-	switch (asce.dt) {
-	case ASCE_TYPE_REGION1:
-		if (vaddr.rfx01 > asce.tl && !asce.r)
-			return PGM_REGION_FIRST_TRANS;
-		break;
-	case ASCE_TYPE_REGION2:
-		if (vaddr.rfx)
-			return PGM_ASCE_TYPE;
-		if (vaddr.rsx01 > asce.tl)
-			return PGM_REGION_SECOND_TRANS;
-		break;
-	case ASCE_TYPE_REGION3:
-		if (vaddr.rfx || vaddr.rsx)
-			return PGM_ASCE_TYPE;
-		if (vaddr.rtx01 > asce.tl)
-			return PGM_REGION_THIRD_TRANS;
-		break;
-	case ASCE_TYPE_SEGMENT:
-		if (vaddr.rfx || vaddr.rsx || vaddr.rtx)
-			return PGM_ASCE_TYPE;
-		if (vaddr.sx01 > asce.tl)
-			return PGM_SEGMENT_TRANSLATION;
-		break;
+
+	switch (asce.dt)
+	{
+		case ASCE_TYPE_REGION1:
+			if (vaddr.rfx01 > asce.tl && !asce.r)
+			{
+				return PGM_REGION_FIRST_TRANS;
+			}
+
+			break;
+
+		case ASCE_TYPE_REGION2:
+			if (vaddr.rfx)
+			{
+				return PGM_ASCE_TYPE;
+			}
+
+			if (vaddr.rsx01 > asce.tl)
+			{
+				return PGM_REGION_SECOND_TRANS;
+			}
+
+			break;
+
+		case ASCE_TYPE_REGION3:
+			if (vaddr.rfx || vaddr.rsx)
+			{
+				return PGM_ASCE_TYPE;
+			}
+
+			if (vaddr.rtx01 > asce.tl)
+			{
+				return PGM_REGION_THIRD_TRANS;
+			}
+
+			break;
+
+		case ASCE_TYPE_SEGMENT:
+			if (vaddr.rfx || vaddr.rsx || vaddr.rtx)
+			{
+				return PGM_ASCE_TYPE;
+			}
+
+			if (vaddr.sx01 > asce.tl)
+			{
+				return PGM_SEGMENT_TRANSLATION;
+			}
+
+			break;
 	}
 
-	switch (asce.dt) {
-	case ASCE_TYPE_REGION1: {
-		union region1_table_entry rfte;
+	switch (asce.dt)
+	{
+		case ASCE_TYPE_REGION1:
+			{
+				union region1_table_entry rfte;
 
-		if (*fake) {
-			/* offset in 16EB guest memory block */
-			ptr = ptr + ((unsigned long) vaddr.rsx << 53UL);
-			rfte.val = ptr;
-			goto shadow_r2t;
-		}
-		rc = gmap_read_table(parent, ptr + vaddr.rfx * 8, &rfte.val);
-		if (rc)
-			return rc;
-		if (rfte.i)
-			return PGM_REGION_FIRST_TRANS;
-		if (rfte.tt != TABLE_TYPE_REGION1)
-			return PGM_TRANSLATION_SPEC;
-		if (vaddr.rsx01 < rfte.tf || vaddr.rsx01 > rfte.tl)
-			return PGM_REGION_SECOND_TRANS;
-		if (sg->edat_level >= 1)
-			*dat_protection |= rfte.p;
-		ptr = rfte.rto << 12UL;
+				if (*fake)
+				{
+					/* offset in 16EB guest memory block */
+					ptr = ptr + ((unsigned long) vaddr.rsx << 53UL);
+					rfte.val = ptr;
+					goto shadow_r2t;
+				}
+
+				rc = gmap_read_table(parent, ptr + vaddr.rfx * 8, &rfte.val);
+
+				if (rc)
+				{
+					return rc;
+				}
+
+				if (rfte.i)
+				{
+					return PGM_REGION_FIRST_TRANS;
+				}
+
+				if (rfte.tt != TABLE_TYPE_REGION1)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (vaddr.rsx01 < rfte.tf || vaddr.rsx01 > rfte.tl)
+				{
+					return PGM_REGION_SECOND_TRANS;
+				}
+
+				if (sg->edat_level >= 1)
+				{
+					*dat_protection |= rfte.p;
+				}
+
+				ptr = rfte.rto << 12UL;
 shadow_r2t:
-		rc = gmap_shadow_r2t(sg, saddr, rfte.val, *fake);
-		if (rc)
-			return rc;
-		/* fallthrough */
-	}
-	case ASCE_TYPE_REGION2: {
-		union region2_table_entry rste;
+				rc = gmap_shadow_r2t(sg, saddr, rfte.val, *fake);
 
-		if (*fake) {
-			/* offset in 8PB guest memory block */
-			ptr = ptr + ((unsigned long) vaddr.rtx << 42UL);
-			rste.val = ptr;
-			goto shadow_r3t;
-		}
-		rc = gmap_read_table(parent, ptr + vaddr.rsx * 8, &rste.val);
-		if (rc)
-			return rc;
-		if (rste.i)
-			return PGM_REGION_SECOND_TRANS;
-		if (rste.tt != TABLE_TYPE_REGION2)
-			return PGM_TRANSLATION_SPEC;
-		if (vaddr.rtx01 < rste.tf || vaddr.rtx01 > rste.tl)
-			return PGM_REGION_THIRD_TRANS;
-		if (sg->edat_level >= 1)
-			*dat_protection |= rste.p;
-		ptr = rste.rto << 12UL;
+				if (rc)
+				{
+					return rc;
+				}
+
+				/* fallthrough */
+			}
+
+		case ASCE_TYPE_REGION2:
+			{
+				union region2_table_entry rste;
+
+				if (*fake)
+				{
+					/* offset in 8PB guest memory block */
+					ptr = ptr + ((unsigned long) vaddr.rtx << 42UL);
+					rste.val = ptr;
+					goto shadow_r3t;
+				}
+
+				rc = gmap_read_table(parent, ptr + vaddr.rsx * 8, &rste.val);
+
+				if (rc)
+				{
+					return rc;
+				}
+
+				if (rste.i)
+				{
+					return PGM_REGION_SECOND_TRANS;
+				}
+
+				if (rste.tt != TABLE_TYPE_REGION2)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (vaddr.rtx01 < rste.tf || vaddr.rtx01 > rste.tl)
+				{
+					return PGM_REGION_THIRD_TRANS;
+				}
+
+				if (sg->edat_level >= 1)
+				{
+					*dat_protection |= rste.p;
+				}
+
+				ptr = rste.rto << 12UL;
 shadow_r3t:
-		rste.p |= *dat_protection;
-		rc = gmap_shadow_r3t(sg, saddr, rste.val, *fake);
-		if (rc)
-			return rc;
-		/* fallthrough */
-	}
-	case ASCE_TYPE_REGION3: {
-		union region3_table_entry rtte;
+				rste.p |= *dat_protection;
+				rc = gmap_shadow_r3t(sg, saddr, rste.val, *fake);
 
-		if (*fake) {
-			/* offset in 4TB guest memory block */
-			ptr = ptr + ((unsigned long) vaddr.sx << 31UL);
-			rtte.val = ptr;
-			goto shadow_sgt;
-		}
-		rc = gmap_read_table(parent, ptr + vaddr.rtx * 8, &rtte.val);
-		if (rc)
-			return rc;
-		if (rtte.i)
-			return PGM_REGION_THIRD_TRANS;
-		if (rtte.tt != TABLE_TYPE_REGION3)
-			return PGM_TRANSLATION_SPEC;
-		if (rtte.cr && asce.p && sg->edat_level >= 2)
-			return PGM_TRANSLATION_SPEC;
-		if (rtte.fc && sg->edat_level >= 2) {
-			*dat_protection |= rtte.fc0.p;
-			*fake = 1;
-			ptr = rtte.fc1.rfaa << 31UL;
-			rtte.val = ptr;
-			goto shadow_sgt;
-		}
-		if (vaddr.sx01 < rtte.fc0.tf || vaddr.sx01 > rtte.fc0.tl)
-			return PGM_SEGMENT_TRANSLATION;
-		if (sg->edat_level >= 1)
-			*dat_protection |= rtte.fc0.p;
-		ptr = rtte.fc0.sto << 12UL;
+				if (rc)
+				{
+					return rc;
+				}
+
+				/* fallthrough */
+			}
+
+		case ASCE_TYPE_REGION3:
+			{
+				union region3_table_entry rtte;
+
+				if (*fake)
+				{
+					/* offset in 4TB guest memory block */
+					ptr = ptr + ((unsigned long) vaddr.sx << 31UL);
+					rtte.val = ptr;
+					goto shadow_sgt;
+				}
+
+				rc = gmap_read_table(parent, ptr + vaddr.rtx * 8, &rtte.val);
+
+				if (rc)
+				{
+					return rc;
+				}
+
+				if (rtte.i)
+				{
+					return PGM_REGION_THIRD_TRANS;
+				}
+
+				if (rtte.tt != TABLE_TYPE_REGION3)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (rtte.cr && asce.p && sg->edat_level >= 2)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (rtte.fc && sg->edat_level >= 2)
+				{
+					*dat_protection |= rtte.fc0.p;
+					*fake = 1;
+					ptr = rtte.fc1.rfaa << 31UL;
+					rtte.val = ptr;
+					goto shadow_sgt;
+				}
+
+				if (vaddr.sx01 < rtte.fc0.tf || vaddr.sx01 > rtte.fc0.tl)
+				{
+					return PGM_SEGMENT_TRANSLATION;
+				}
+
+				if (sg->edat_level >= 1)
+				{
+					*dat_protection |= rtte.fc0.p;
+				}
+
+				ptr = rtte.fc0.sto << 12UL;
 shadow_sgt:
-		rtte.fc0.p |= *dat_protection;
-		rc = gmap_shadow_sgt(sg, saddr, rtte.val, *fake);
-		if (rc)
-			return rc;
-		/* fallthrough */
-	}
-	case ASCE_TYPE_SEGMENT: {
-		union segment_table_entry ste;
+				rtte.fc0.p |= *dat_protection;
+				rc = gmap_shadow_sgt(sg, saddr, rtte.val, *fake);
 
-		if (*fake) {
-			/* offset in 2G guest memory block */
-			ptr = ptr + ((unsigned long) vaddr.sx << 20UL);
-			ste.val = ptr;
-			goto shadow_pgt;
-		}
-		rc = gmap_read_table(parent, ptr + vaddr.sx * 8, &ste.val);
-		if (rc)
-			return rc;
-		if (ste.i)
-			return PGM_SEGMENT_TRANSLATION;
-		if (ste.tt != TABLE_TYPE_SEGMENT)
-			return PGM_TRANSLATION_SPEC;
-		if (ste.cs && asce.p)
-			return PGM_TRANSLATION_SPEC;
-		*dat_protection |= ste.fc0.p;
-		if (ste.fc && sg->edat_level >= 1) {
-			*fake = 1;
-			ptr = ste.fc1.sfaa << 20UL;
-			ste.val = ptr;
-			goto shadow_pgt;
-		}
-		ptr = ste.fc0.pto << 11UL;
+				if (rc)
+				{
+					return rc;
+				}
+
+				/* fallthrough */
+			}
+
+		case ASCE_TYPE_SEGMENT:
+			{
+				union segment_table_entry ste;
+
+				if (*fake)
+				{
+					/* offset in 2G guest memory block */
+					ptr = ptr + ((unsigned long) vaddr.sx << 20UL);
+					ste.val = ptr;
+					goto shadow_pgt;
+				}
+
+				rc = gmap_read_table(parent, ptr + vaddr.sx * 8, &ste.val);
+
+				if (rc)
+				{
+					return rc;
+				}
+
+				if (ste.i)
+				{
+					return PGM_SEGMENT_TRANSLATION;
+				}
+
+				if (ste.tt != TABLE_TYPE_SEGMENT)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				if (ste.cs && asce.p)
+				{
+					return PGM_TRANSLATION_SPEC;
+				}
+
+				*dat_protection |= ste.fc0.p;
+
+				if (ste.fc && sg->edat_level >= 1)
+				{
+					*fake = 1;
+					ptr = ste.fc1.sfaa << 20UL;
+					ste.val = ptr;
+					goto shadow_pgt;
+				}
+
+				ptr = ste.fc0.pto << 11UL;
 shadow_pgt:
-		ste.fc0.p |= *dat_protection;
-		rc = gmap_shadow_pgt(sg, saddr, ste.val, *fake);
-		if (rc)
-			return rc;
+				ste.fc0.p |= *dat_protection;
+				rc = gmap_shadow_pgt(sg, saddr, ste.val, *fake);
+
+				if (rc)
+				{
+					return rc;
+				}
+			}
 	}
-	}
+
 	/* Return the parent address of the page table */
 	*pgt = ptr;
 	return 0;
@@ -1143,7 +1642,7 @@ shadow_pgt:
  *	    - -ENOMEM if out of memory
  */
 int kvm_s390_shadow_fault(struct kvm_vcpu *vcpu, struct gmap *sg,
-			  unsigned long saddr)
+						  unsigned long saddr)
 {
 	union vaddress vaddr;
 	union page_table_entry pte;
@@ -1160,26 +1659,43 @@ int kvm_s390_shadow_fault(struct kvm_vcpu *vcpu, struct gmap *sg,
 	ipte_lock(vcpu);
 
 	rc = gmap_shadow_pgt_lookup(sg, saddr, &pgt, &dat_protection, &fake);
+
 	if (rc)
 		rc = kvm_s390_shadow_tables(sg, saddr, &pgt, &dat_protection,
-					    &fake);
+									&fake);
 
 	vaddr.addr = saddr;
-	if (fake) {
+
+	if (fake)
+	{
 		/* offset in 1MB guest memory block */
 		pte.val = pgt + ((unsigned long) vaddr.px << 12UL);
 		goto shadow_page;
 	}
+
 	if (!rc)
+	{
 		rc = gmap_read_table(sg->parent, pgt + vaddr.px * 8, &pte.val);
+	}
+
 	if (!rc && pte.i)
+	{
 		rc = PGM_PAGE_TRANSLATION;
+	}
+
 	if (!rc && (pte.z || (pte.co && sg->edat_level < 1)))
+	{
 		rc = PGM_TRANSLATION_SPEC;
+	}
+
 shadow_page:
 	pte.p |= dat_protection;
+
 	if (!rc)
+	{
 		rc = gmap_shadow_page(sg, saddr, __pte(pte.val));
+	}
+
 	ipte_unlock(vcpu);
 	up_read(&sg->mm->mmap_sem);
 	return rc;

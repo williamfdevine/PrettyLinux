@@ -55,7 +55,7 @@
  * interrupts at all, and have only normal PCI interrupts from
  * devices.  Happily it's easy enough to do a sane mapping from the
  * Jensen.
- * 
+ *
  * Note that this means that we may have to do a hardware
  * "local_op" to a different interrupt than we report to the rest of the
  * world.
@@ -66,7 +66,9 @@ jensen_local_enable(struct irq_data *d)
 {
 	/* the parport is really hw IRQ 1, silly Jensen.  */
 	if (d->irq == 7)
+	{
 		i8259a_enable_irq(d);
+	}
 }
 
 static void
@@ -74,7 +76,9 @@ jensen_local_disable(struct irq_data *d)
 {
 	/* the parport is really hw IRQ 1, silly Jensen.  */
 	if (d->irq == 7)
+	{
 		i8259a_disable_irq(d);
+	}
 }
 
 static void
@@ -82,84 +86,100 @@ jensen_local_mask_ack(struct irq_data *d)
 {
 	/* the parport is really hw IRQ 1, silly Jensen.  */
 	if (d->irq == 7)
+	{
 		i8259a_mask_and_ack_irq(d);
+	}
 }
 
-static struct irq_chip jensen_local_irq_type = {
+static struct irq_chip jensen_local_irq_type =
+{
 	.name		= "LOCAL",
 	.irq_unmask	= jensen_local_enable,
 	.irq_mask	= jensen_local_disable,
 	.irq_mask_ack	= jensen_local_mask_ack,
 };
 
-static void 
+static void
 jensen_device_interrupt(unsigned long vector)
 {
 	int irq;
 
-	switch (vector) {
-	case 0x660:
-		printk("Whee.. NMI received. Probable hardware error\n");
-		printk("61=%02x, 461=%02x\n", inb(0x61), inb(0x461));
-		return;
-
-	/* local device interrupts: */
-	case 0x900: irq = 4; break;		/* com1 -> irq 4 */
-	case 0x920: irq = 3; break;		/* com2 -> irq 3 */
-	case 0x980: irq = 1; break;		/* kbd -> irq 1 */
-	case 0x990: irq = 9; break;		/* mouse -> irq 9 */
-
-	default:
-		if (vector > 0x900) {
-			printk("Unknown local interrupt %lx\n", vector);
+	switch (vector)
+	{
+		case 0x660:
+			printk("Whee.. NMI received. Probable hardware error\n");
+			printk("61=%02x, 461=%02x\n", inb(0x61), inb(0x461));
 			return;
-		}
 
-		irq = (vector - 0x800) >> 4;
-		if (irq == 1)
-			irq = 7;
-		break;
+		/* local device interrupts: */
+		case 0x900: irq = 4; break;		/* com1 -> irq 4 */
+
+		case 0x920: irq = 3; break;		/* com2 -> irq 3 */
+
+		case 0x980: irq = 1; break;		/* kbd -> irq 1 */
+
+		case 0x990: irq = 9; break;		/* mouse -> irq 9 */
+
+		default:
+			if (vector > 0x900)
+			{
+				printk("Unknown local interrupt %lx\n", vector);
+				return;
+			}
+
+			irq = (vector - 0x800) >> 4;
+
+			if (irq == 1)
+			{
+				irq = 7;
+			}
+
+			break;
 	}
 
 	/* If there is no handler yet... */
-	if (!irq_has_action(irq)) {
-	    /* If it is a local interrupt that cannot be masked... */
-	    if (vector >= 0x900)
-	    {
-	        /* Clear keyboard/mouse state */
-	    	inb(0x64);
-		inb(0x60);
-		/* Reset serial ports */
-		inb(0x3fa);
-		inb(0x2fa);
-		outb(0x0c, 0x3fc);
-		outb(0x0c, 0x2fc);
-		/* Clear NMI */
-		outb(0,0x61);
-		outb(0,0x461);
-	    }
+	if (!irq_has_action(irq))
+	{
+		/* If it is a local interrupt that cannot be masked... */
+		if (vector >= 0x900)
+		{
+			/* Clear keyboard/mouse state */
+			inb(0x64);
+			inb(0x60);
+			/* Reset serial ports */
+			inb(0x3fa);
+			inb(0x2fa);
+			outb(0x0c, 0x3fc);
+			outb(0x0c, 0x2fc);
+			/* Clear NMI */
+			outb(0, 0x61);
+			outb(0, 0x461);
+		}
 	}
 
 #if 0
-        /* A useful bit of code to find out if an interrupt is going wild.  */
-        {
-          static unsigned int last_msg = 0, last_cc = 0;
-          static int last_irq = -1, count = 0;
-          unsigned int cc;
+	/* A useful bit of code to find out if an interrupt is going wild.  */
+	{
+		static unsigned int last_msg = 0, last_cc = 0;
+		static int last_irq = -1, count = 0;
+		unsigned int cc;
 
-          __asm __volatile("rpcc %0" : "=r"(cc));
-          ++count;
+		__asm __volatile("rpcc %0" : "=r"(cc));
+		++count;
 #define JENSEN_CYCLES_PER_SEC	(150000000)
-          if (cc - last_msg > ((JENSEN_CYCLES_PER_SEC) * 3) ||
-	      irq != last_irq) {
-                printk(KERN_CRIT " irq %d count %d cc %u @ %lx\n",
-                       irq, count, cc-last_cc, get_irq_regs()->pc);
-                count = 0;
-                last_msg = cc;
-                last_irq = irq;
-          }
-          last_cc = cc;
-        }
+
+		if (cc - last_msg > ((JENSEN_CYCLES_PER_SEC) * 3) ||
+			irq != last_irq)
+		{
+			printk(KERN_CRIT " irq %d count %d cc %u @ %lx\n",
+				   irq, count, cc - last_cc, get_irq_regs()->pc);
+			count = 0;
+			last_msg = cc;
+			last_irq = irq;
+		}
+
+		last_cc = cc;
+	}
 #endif
 
 	handle_irq(irq);
@@ -217,10 +237,11 @@ jensen_machine_check(unsigned long vector, unsigned long la)
  * The System Vector
  */
 
-struct alpha_machine_vector jensen_mv __initmv = {
+struct alpha_machine_vector jensen_mv __initmv =
+{
 	.vector_name		= "Jensen",
 	DO_EV4_MMU,
-	IO_LITE(JENSEN,jensen),
+	IO_LITE(JENSEN, jensen),
 	.machine_check		= jensen_machine_check,
 	.max_isa_dma_address	= ALPHA_MAX_ISA_DMA_ADDRESS,
 	.rtc_port		= 0x170,

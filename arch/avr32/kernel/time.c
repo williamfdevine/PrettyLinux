@@ -32,7 +32,8 @@ static cycle_t read_cycle_count(struct clocksource *cs)
  * Their duration also changes if cpufreq changes the CPU clock rate.
  * So we rate the clocksource using COUNT as very low quality.
  */
-static struct clocksource counter = {
+static struct clocksource counter =
+{
 	.name		= "avr32_counter",
 	.rating		= 50,
 	.read		= read_cycle_count,
@@ -45,7 +46,9 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	struct clock_event_device *evdev = dev_id;
 
 	if (unlikely(!(intc_get_pending(0) & 1)))
+	{
 		return IRQ_NONE;
+	}
 
 	/*
 	 * Disable the interrupt until the clockevent subsystem
@@ -57,7 +60,8 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction timer_irqaction = {
+static struct irqaction timer_irqaction =
+{
 	.handler	= timer_interrupt,
 	/* Oprofile uses the same irq as the timer, so allow it to be shared */
 	.flags		= IRQF_TIMER | IRQF_SHARED,
@@ -65,7 +69,7 @@ static struct irqaction timer_irqaction = {
 };
 
 static int comparator_next_event(unsigned long delta,
-		struct clock_event_device *evdev)
+								 struct clock_event_device *evdev)
 {
 	unsigned long	flags;
 
@@ -86,7 +90,8 @@ static int comparator_shutdown(struct clock_event_device *evdev)
 	pr_debug("%s: %s\n", __func__, evdev->name);
 	sysreg_write(COMPARE, 0);
 
-	if (disable_cpu_idle_poll) {
+	if (disable_cpu_idle_poll)
+	{
 		disable_cpu_idle_poll = false;
 		/*
 		 * Only disable idle poll if we have forced that
@@ -94,6 +99,7 @@ static int comparator_shutdown(struct clock_event_device *evdev)
 		 */
 		cpu_idle_poll_ctrl(false);
 	}
+
 	return 0;
 }
 
@@ -111,7 +117,8 @@ static int comparator_set_oneshot(struct clock_event_device *evdev)
 	return 0;
 }
 
-static struct clock_event_device comparator = {
+static struct clock_event_device comparator =
+{
 	.name			= "avr32_comparator",
 	.features		= CLOCK_EVT_FEAT_ONESHOT,
 	.shift			= 16,
@@ -136,8 +143,11 @@ void __init time_init(void)
 	/* figure rate for counter */
 	counter_hz = clk_get_rate(boot_cpu_data.clk);
 	ret = clocksource_register_hz(&counter, counter_hz);
+
 	if (ret)
+	{
 		pr_debug("timer: could not register clocksource: %d\n", ret);
+	}
 
 	/* setup COMPARE clockevent */
 	comparator.mult = div_sc(counter_hz, NSEC_PER_SEC, comparator.shift);
@@ -149,9 +159,13 @@ void __init time_init(void)
 	timer_irqaction.dev_id = &comparator;
 
 	ret = setup_irq(0, &timer_irqaction);
+
 	if (ret)
+	{
 		pr_debug("timer: could not request IRQ 0: %d\n", ret);
-	else {
+	}
+	else
+	{
 		clockevents_register_device(&comparator);
 
 		pr_info("%s: irq 0, %lu.%03lu MHz\n", comparator.name,

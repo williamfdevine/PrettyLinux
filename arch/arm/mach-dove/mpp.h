@@ -2,10 +2,10 @@
 #define __ARCH_DOVE_MPP_CODED_H
 
 #define MPP(_num, _sel, _in, _out) ( \
-	/* MPP number */		((_num) & 0xff) | \
-	/* MPP select value */		(((_sel) & 0xf) << 8) | \
-	/* may be input signal */	((!!(_in)) << 12) | \
-	/* may be output signal */	((!!(_out)) << 13))
+									 /* MPP number */		((_num) & 0xff) | \
+									 /* MPP select value */		(((_sel) & 0xf) << 8) | \
+									 /* may be input signal */	((!!(_in)) << 12) | \
+									 /* may be output signal */	((!!(_out)) << 13))
 
 #define MPP0_GPIO0		MPP(0, 0x0, 1, 1)
 #define MPP0_UA2_RTSn		MPP(0, 0x2, 0, 0)
@@ -147,7 +147,8 @@
 #define MPP_GRP(_grp, _mode)	MPP((_grp), (_mode), 0, 0)
 
 /* for MPP groups _num is a group index */
-enum dove_mpp_grp_idx {
+enum dove_mpp_grp_idx
+{
 	MPP_24_39 = 2,
 	MPP_40_45 = 0,
 	MPP_46_51 = 1,
@@ -189,8 +190,8 @@ enum dove_mpp_grp_idx {
 #define MPP_GRP_AU1_52_57_SSP_TW	0xf
 
 void dove_mpp_conf(unsigned int *mpp_list,
-		   unsigned int *mpp_grp_list,
-		   unsigned int grp_au1_52_57,
-		   unsigned int grp_nfc_64_71);
+				   unsigned int *mpp_grp_list,
+				   unsigned int grp_au1_52_57,
+				   unsigned int grp_nfc_64_71);
 
 #endif	/* __ARCH_DOVE_MPP_CODED_H */

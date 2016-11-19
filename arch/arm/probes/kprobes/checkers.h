@@ -22,14 +22,15 @@
 extern probes_check_t checker_stack_use_none;
 extern probes_check_t checker_stack_use_unknown;
 #ifdef CONFIG_THUMB2_KERNEL
-extern probes_check_t checker_stack_use_imm_0xx;
+	extern probes_check_t checker_stack_use_imm_0xx;
 #else
-extern probes_check_t checker_stack_use_imm_x0x;
+	extern probes_check_t checker_stack_use_imm_x0x;
 #endif
 extern probes_check_t checker_stack_use_imm_xxx;
 extern probes_check_t checker_stack_use_stmdx;
 
-enum {
+enum
+{
 	STACK_USE_NONE,
 	STACK_USE_UNKNOWN,
 #ifdef CONFIG_THUMB2_KERNEL
@@ -46,8 +47,8 @@ enum {
 extern const union decode_action stack_check_actions[];
 
 #ifndef CONFIG_THUMB2_KERNEL
-extern const struct decode_checker arm_stack_checker[];
-extern const struct decode_checker arm_regs_checker[];
+	extern const struct decode_checker arm_stack_checker[];
+	extern const struct decode_checker arm_regs_checker[];
 #else
 #endif
 extern const struct decode_checker t32_stack_checker[];

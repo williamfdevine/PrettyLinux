@@ -44,11 +44,16 @@ asmlinkage void ret_from_kernel_thread(void);
 unsigned long thread_saved_pc(struct task_struct *tsk)
 {
 	struct switch_stack *sw = (struct switch_stack *)tsk->thread.ksp;
+
 	/* Check whether the thread is blocked in resume() */
 	if (in_sched_functions(sw->retpc))
+	{
 		return ((unsigned long *)sw->a6)[1];
+	}
 	else
+	{
 		return sw->retpc;
+	}
 }
 
 void arch_cpu_idle(void)
@@ -61,53 +66,68 @@ void arch_cpu_idle(void)
 #endif
 }
 
-void machine_restart(char * __unused)
+void machine_restart(char *__unused)
 {
 	if (mach_reset)
+	{
 		mach_reset();
+	}
+
 	for (;;);
 }
 
 void machine_halt(void)
 {
 	if (mach_halt)
+	{
 		mach_halt();
+	}
+
 	for (;;);
 }
 
 void machine_power_off(void)
 {
 	if (mach_power_off)
+	{
 		mach_power_off();
+	}
+
 	for (;;);
 }
 
 void (*pm_power_off)(void) = machine_power_off;
 EXPORT_SYMBOL(pm_power_off);
 
-void show_regs(struct pt_regs * regs)
+void show_regs(struct pt_regs *regs)
 {
 	printk("\n");
 	printk("Format %02x  Vector: %04x  PC: %08lx  Status: %04x    %s\n",
-	       regs->format, regs->vector, regs->pc, regs->sr, print_tainted());
+		   regs->format, regs->vector, regs->pc, regs->sr, print_tainted());
 	printk("ORIG_D0: %08lx  D0: %08lx  A2: %08lx  A1: %08lx\n",
-	       regs->orig_d0, regs->d0, regs->a2, regs->a1);
+		   regs->orig_d0, regs->d0, regs->a2, regs->a1);
 	printk("A0: %08lx  D5: %08lx  D4: %08lx\n",
-	       regs->a0, regs->d5, regs->d4);
+		   regs->a0, regs->d5, regs->d4);
 	printk("D3: %08lx  D2: %08lx  D1: %08lx\n",
-	       regs->d3, regs->d2, regs->d1);
+		   regs->d3, regs->d2, regs->d1);
+
 	if (!(regs->sr & PS_S))
+	{
 		printk("USP: %08lx\n", rdusp());
+	}
 }
 
 void flush_thread(void)
 {
 	current->thread.fs = __USER_DS;
 #ifdef CONFIG_FPU
-	if (!FPU_IS_EMU) {
+
+	if (!FPU_IS_EMU)
+	{
 		unsigned long zero = 0;
 		asm volatile("frestore %0": :"m" (zero));
 	}
+
 #endif
 }
 
@@ -126,13 +146,14 @@ asmlinkage int m68k_clone(struct pt_regs *regs)
 {
 	/* regs will be equal to current_pt_regs() */
 	return do_fork(regs->d1, regs->d2, 0,
-		       (int __user *)regs->d3, (int __user *)regs->d4);
+				   (int __user *)regs->d3, (int __user *)regs->d4);
 }
 
 int copy_thread(unsigned long clone_flags, unsigned long usp,
-		 unsigned long arg, struct task_struct *p)
+				unsigned long arg, struct task_struct *p)
 {
-	struct fork_frame {
+	struct fork_frame
+	{
 		struct switch_stack sw;
 		struct pt_regs regs;
 	} *frame;
@@ -148,7 +169,8 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	 */
 	p->thread.fs = get_fs().seg;
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		/* kernel thread */
 		memset(frame, 0, sizeof(struct fork_frame));
 		frame->regs.sr = PS_S;
@@ -158,45 +180,55 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 		p->thread.usp = 0;
 		return 0;
 	}
+
 	memcpy(frame, container_of(current_pt_regs(), struct fork_frame, regs),
-		sizeof(struct fork_frame));
+		   sizeof(struct fork_frame));
 	frame->regs.d0 = 0;
 	frame->sw.retpc = (unsigned long)ret_from_fork;
-	p->thread.usp = usp ?: rdusp();
+	p->thread.usp = usp ? : rdusp();
 
 	if (clone_flags & CLONE_SETTLS)
+	{
 		task_thread_info(p)->tp_value = frame->regs.d5;
+	}
 
 #ifdef CONFIG_FPU
-	if (!FPU_IS_EMU) {
+
+	if (!FPU_IS_EMU)
+	{
 		/* Copy the current fpu state */
 		asm volatile ("fsave %0" : : "m" (p->thread.fpstate[0]) : "memory");
 
-		if (!CPU_IS_060 ? p->thread.fpstate[0] : p->thread.fpstate[2]) {
-			if (CPU_IS_COLDFIRE) {
+		if (!CPU_IS_060 ? p->thread.fpstate[0] : p->thread.fpstate[2])
+		{
+			if (CPU_IS_COLDFIRE)
+			{
 				asm volatile ("fmovemd %/fp0-%/fp7,%0\n\t"
-					      "fmovel %/fpiar,%1\n\t"
-					      "fmovel %/fpcr,%2\n\t"
-					      "fmovel %/fpsr,%3"
-					      :
-					      : "m" (p->thread.fp[0]),
-						"m" (p->thread.fpcntl[0]),
-						"m" (p->thread.fpcntl[1]),
-						"m" (p->thread.fpcntl[2])
-					      : "memory");
-			} else {
+							  "fmovel %/fpiar,%1\n\t"
+							  "fmovel %/fpcr,%2\n\t"
+							  "fmovel %/fpsr,%3"
+							  :
+							  : "m" (p->thread.fp[0]),
+							  "m" (p->thread.fpcntl[0]),
+							  "m" (p->thread.fpcntl[1]),
+							  "m" (p->thread.fpcntl[2])
+							  : "memory");
+			}
+			else
+			{
 				asm volatile ("fmovemx %/fp0-%/fp7,%0\n\t"
-					      "fmoveml %/fpiar/%/fpcr/%/fpsr,%1"
-					      :
-					      : "m" (p->thread.fp[0]),
-						"m" (p->thread.fpcntl[0])
-					      : "memory");
+							  "fmoveml %/fpiar/%/fpcr/%/fpsr,%1"
+							  :
+							  : "m" (p->thread.fp[0]),
+							  "m" (p->thread.fpcntl[0])
+							  : "memory");
 			}
 		}
 
 		/* Restore the state in case the fpu was busy */
 		asm volatile ("frestore %0" : : "m" (p->thread.fpstate[0]));
 	}
+
 #endif /* CONFIG_FPU */
 
 	return 0;
@@ -205,48 +237,58 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 /* Fill in the fpu structure for a core dump.  */
 int dump_fpu (struct pt_regs *regs, struct user_m68kfp_struct *fpu)
 {
-	if (FPU_IS_EMU) {
+	if (FPU_IS_EMU)
+	{
 		int i;
 
 		memcpy(fpu->fpcntl, current->thread.fpcntl, 12);
 		memcpy(fpu->fpregs, current->thread.fp, 96);
+
 		/* Convert internal fpu reg representation
 		 * into long double format
 		 */
 		for (i = 0; i < 24; i += 3)
 			fpu->fpregs[i] = ((fpu->fpregs[i] & 0xffff0000) << 15) |
-			                 ((fpu->fpregs[i] & 0x0000ffff) << 16);
+							 ((fpu->fpregs[i] & 0x0000ffff) << 16);
+
 		return 1;
 	}
 
-	if (IS_ENABLED(CONFIG_FPU)) {
+	if (IS_ENABLED(CONFIG_FPU))
+	{
 		char fpustate[216];
 
 		/* First dump the fpu context to avoid protocol violation.  */
 		asm volatile ("fsave %0" :: "m" (fpustate[0]) : "memory");
-		if (!CPU_IS_060 ? !fpustate[0] : !fpustate[2])
-			return 0;
 
-		if (CPU_IS_COLDFIRE) {
+		if (!CPU_IS_060 ? !fpustate[0] : !fpustate[2])
+		{
+			return 0;
+		}
+
+		if (CPU_IS_COLDFIRE)
+		{
 			asm volatile ("fmovel %/fpiar,%0\n\t"
-				      "fmovel %/fpcr,%1\n\t"
-				      "fmovel %/fpsr,%2\n\t"
-				      "fmovemd %/fp0-%/fp7,%3"
-				      :
-				      : "m" (fpu->fpcntl[0]),
-					"m" (fpu->fpcntl[1]),
-					"m" (fpu->fpcntl[2]),
-					"m" (fpu->fpregs[0])
-				      : "memory");
-		} else {
+						  "fmovel %/fpcr,%1\n\t"
+						  "fmovel %/fpsr,%2\n\t"
+						  "fmovemd %/fp0-%/fp7,%3"
+						  :
+						  : "m" (fpu->fpcntl[0]),
+						  "m" (fpu->fpcntl[1]),
+						  "m" (fpu->fpcntl[2]),
+						  "m" (fpu->fpregs[0])
+						  : "memory");
+		}
+		else
+		{
 			asm volatile ("fmovem %/fpiar/%/fpcr/%/fpsr,%0"
-				      :
-				      : "m" (fpu->fpcntl[0])
-				      : "memory");
+						  :
+						  : "m" (fpu->fpcntl[0])
+						  : "memory");
 			asm volatile ("fmovemx %/fp0-%/fp7,%0"
-				      :
-				      : "m" (fpu->fpregs[0])
-				      : "memory");
+						  :
+						  : "m" (fpu->fpregs[0])
+						  : "memory");
 		}
 	}
 
@@ -259,19 +301,33 @@ unsigned long get_wchan(struct task_struct *p)
 	unsigned long fp, pc;
 	unsigned long stack_page;
 	int count = 0;
+
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	stack_page = (unsigned long)task_stack_page(p);
 	fp = ((struct switch_stack *)p->thread.ksp)->a6;
-	do {
-		if (fp < stack_page+sizeof(struct thread_info) ||
-		    fp >= 8184+stack_page)
+
+	do
+	{
+		if (fp < stack_page + sizeof(struct thread_info) ||
+			fp >= 8184 + stack_page)
+		{
 			return 0;
+		}
+
 		pc = ((unsigned long *)fp)[1];
+
 		if (!in_sched_functions(pc))
+		{
 			return pc;
+		}
+
 		fp = *(unsigned long *) fp;
-	} while (count++ < 16);
+	}
+	while (count++ < 16);
+
 	return 0;
 }

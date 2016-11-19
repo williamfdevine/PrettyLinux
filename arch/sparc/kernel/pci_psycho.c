@@ -143,50 +143,67 @@ static irqreturn_t psycho_ue_intr(int irq, void *dev_id)
 
 	/* Clear the primary/secondary error status bits. */
 	error_bits = afsr &
-		(PSYCHO_UEAFSR_PPIO | PSYCHO_UEAFSR_PDRD | PSYCHO_UEAFSR_PDWR |
-		 PSYCHO_UEAFSR_SPIO | PSYCHO_UEAFSR_SDRD | PSYCHO_UEAFSR_SDWR);
+				 (PSYCHO_UEAFSR_PPIO | PSYCHO_UEAFSR_PDRD | PSYCHO_UEAFSR_PDWR |
+				  PSYCHO_UEAFSR_SPIO | PSYCHO_UEAFSR_SDRD | PSYCHO_UEAFSR_SDWR);
+
 	if (!error_bits)
+	{
 		return IRQ_NONE;
+	}
+
 	upa_writeq(error_bits, afsr_reg);
 
 	/* Log the error. */
 	printk("%s: Uncorrectable Error, primary error type[%s]\n",
-	       pbm->name,
-	       (((error_bits & PSYCHO_UEAFSR_PPIO) ?
-		 "PIO" :
-		 ((error_bits & PSYCHO_UEAFSR_PDRD) ?
-		  "DMA Read" :
-		  ((error_bits & PSYCHO_UEAFSR_PDWR) ?
-		   "DMA Write" : "???")))));
+		   pbm->name,
+		   (((error_bits & PSYCHO_UEAFSR_PPIO) ?
+			 "PIO" :
+			 ((error_bits & PSYCHO_UEAFSR_PDRD) ?
+			  "DMA Read" :
+			  ((error_bits & PSYCHO_UEAFSR_PDWR) ?
+			   "DMA Write" : "???")))));
 	printk("%s: bytemask[%04lx] dword_offset[%lx] UPA_MID[%02lx] was_block(%d)\n",
-	       pbm->name,
-	       (afsr & PSYCHO_UEAFSR_BMSK) >> 32UL,
-	       (afsr & PSYCHO_UEAFSR_DOFF) >> 29UL,
-	       (afsr & PSYCHO_UEAFSR_MID) >> 24UL,
-	       ((afsr & PSYCHO_UEAFSR_BLK) ? 1 : 0));
+		   pbm->name,
+		   (afsr & PSYCHO_UEAFSR_BMSK) >> 32UL,
+		   (afsr & PSYCHO_UEAFSR_DOFF) >> 29UL,
+		   (afsr & PSYCHO_UEAFSR_MID) >> 24UL,
+		   ((afsr & PSYCHO_UEAFSR_BLK) ? 1 : 0));
 	printk("%s: UE AFAR [%016lx]\n", pbm->name, afar);
 	printk("%s: UE Secondary errors [", pbm->name);
 	reported = 0;
-	if (afsr & PSYCHO_UEAFSR_SPIO) {
+
+	if (afsr & PSYCHO_UEAFSR_SPIO)
+	{
 		reported++;
 		printk("(PIO)");
 	}
-	if (afsr & PSYCHO_UEAFSR_SDRD) {
+
+	if (afsr & PSYCHO_UEAFSR_SDRD)
+	{
 		reported++;
 		printk("(DMA Read)");
 	}
-	if (afsr & PSYCHO_UEAFSR_SDWR) {
+
+	if (afsr & PSYCHO_UEAFSR_SDWR)
+	{
 		reported++;
 		printk("(DMA Write)");
 	}
+
 	if (!reported)
+	{
 		printk("(none)");
+	}
+
 	printk("]\n");
 
 	/* Interrogate both IOMMUs for error status. */
 	psycho_check_iommu_error(pbm, afsr, afar, UE_ERR);
+
 	if (pbm->sibling)
+	{
 		psycho_check_iommu_error(pbm->sibling, afsr, afar, UE_ERR);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -222,50 +239,64 @@ static irqreturn_t psycho_ce_intr(int irq, void *dev_id)
 
 	/* Clear primary/secondary error status bits. */
 	error_bits = afsr &
-		(PSYCHO_CEAFSR_PPIO | PSYCHO_CEAFSR_PDRD | PSYCHO_CEAFSR_PDWR |
-		 PSYCHO_CEAFSR_SPIO | PSYCHO_CEAFSR_SDRD | PSYCHO_CEAFSR_SDWR);
+				 (PSYCHO_CEAFSR_PPIO | PSYCHO_CEAFSR_PDRD | PSYCHO_CEAFSR_PDWR |
+				  PSYCHO_CEAFSR_SPIO | PSYCHO_CEAFSR_SDRD | PSYCHO_CEAFSR_SDWR);
+
 	if (!error_bits)
+	{
 		return IRQ_NONE;
+	}
+
 	upa_writeq(error_bits, afsr_reg);
 
 	/* Log the error. */
 	printk("%s: Correctable Error, primary error type[%s]\n",
-	       pbm->name,
-	       (((error_bits & PSYCHO_CEAFSR_PPIO) ?
-		 "PIO" :
-		 ((error_bits & PSYCHO_CEAFSR_PDRD) ?
-		  "DMA Read" :
-		  ((error_bits & PSYCHO_CEAFSR_PDWR) ?
-		   "DMA Write" : "???")))));
+		   pbm->name,
+		   (((error_bits & PSYCHO_CEAFSR_PPIO) ?
+			 "PIO" :
+			 ((error_bits & PSYCHO_CEAFSR_PDRD) ?
+			  "DMA Read" :
+			  ((error_bits & PSYCHO_CEAFSR_PDWR) ?
+			   "DMA Write" : "???")))));
 
 	/* XXX Use syndrome and afar to print out module string just like
 	 * XXX UDB CE trap handler does... -DaveM
 	 */
 	printk("%s: syndrome[%02lx] bytemask[%04lx] dword_offset[%lx] "
-	       "UPA_MID[%02lx] was_block(%d)\n",
-	       pbm->name,
-	       (afsr & PSYCHO_CEAFSR_ESYND) >> 48UL,
-	       (afsr & PSYCHO_CEAFSR_BMSK) >> 32UL,
-	       (afsr & PSYCHO_CEAFSR_DOFF) >> 29UL,
-	       (afsr & PSYCHO_CEAFSR_MID) >> 24UL,
-	       ((afsr & PSYCHO_CEAFSR_BLK) ? 1 : 0));
+		   "UPA_MID[%02lx] was_block(%d)\n",
+		   pbm->name,
+		   (afsr & PSYCHO_CEAFSR_ESYND) >> 48UL,
+		   (afsr & PSYCHO_CEAFSR_BMSK) >> 32UL,
+		   (afsr & PSYCHO_CEAFSR_DOFF) >> 29UL,
+		   (afsr & PSYCHO_CEAFSR_MID) >> 24UL,
+		   ((afsr & PSYCHO_CEAFSR_BLK) ? 1 : 0));
 	printk("%s: CE AFAR [%016lx]\n", pbm->name, afar);
 	printk("%s: CE Secondary errors [", pbm->name);
 	reported = 0;
-	if (afsr & PSYCHO_CEAFSR_SPIO) {
+
+	if (afsr & PSYCHO_CEAFSR_SPIO)
+	{
 		reported++;
 		printk("(PIO)");
 	}
-	if (afsr & PSYCHO_CEAFSR_SDRD) {
+
+	if (afsr & PSYCHO_CEAFSR_SDRD)
+	{
 		reported++;
 		printk("(DMA Read)");
 	}
-	if (afsr & PSYCHO_CEAFSR_SDWR) {
+
+	if (afsr & PSYCHO_CEAFSR_SDWR)
+	{
 		reported++;
 		printk("(DMA Write)");
 	}
+
 	if (!reported)
+	{
 		printk("(none)");
+	}
+
 	printk("]\n");
 
 	return IRQ_HANDLED;
@@ -292,7 +323,9 @@ static void psycho_register_error_handlers(struct pci_pbm_info *pbm)
 	int err;
 
 	if (!op)
+	{
 		return;
+	}
 
 	/* Psycho interrupt property order is:
 	 * 0: PCIERR INO for this PBM
@@ -304,46 +337,49 @@ static void psycho_register_error_handlers(struct pci_pbm_info *pbm)
 	 */
 
 	if (op->archdata.num_irqs < 6)
+	{
 		return;
+	}
 
 	/* We really mean to ignore the return result here.  Two
 	 * PCI controller share the same interrupt numbers and
 	 * drive the same front-end hardware.
 	 */
 	err = request_irq(op->archdata.irqs[1], psycho_ue_intr, IRQF_SHARED,
-			  "PSYCHO_UE", pbm);
+					  "PSYCHO_UE", pbm);
 	err = request_irq(op->archdata.irqs[2], psycho_ce_intr, IRQF_SHARED,
-			  "PSYCHO_CE", pbm);
+					  "PSYCHO_CE", pbm);
 
 	/* This one, however, ought not to fail.  We can just warn
 	 * about it since the system can still operate properly even
 	 * if this fails.
 	 */
 	err = request_irq(op->archdata.irqs[0], psycho_pcierr_intr, IRQF_SHARED,
-			  "PSYCHO_PCIERR", pbm);
+					  "PSYCHO_PCIERR", pbm);
+
 	if (err)
 		printk(KERN_WARNING "%s: Could not register PCIERR, "
-		       "err=%d\n", pbm->name, err);
+			   "err=%d\n", pbm->name, err);
 
 	/* Enable UE and CE interrupts for controller. */
 	upa_writeq((PSYCHO_ECCCTRL_EE |
-		    PSYCHO_ECCCTRL_UE |
-		    PSYCHO_ECCCTRL_CE), base + PSYCHO_ECC_CTRL);
+				PSYCHO_ECCCTRL_UE |
+				PSYCHO_ECCCTRL_CE), base + PSYCHO_ECC_CTRL);
 
 	/* Enable PCI Error interrupts and clear error
 	 * bits for each PBM.
 	 */
 	tmp = upa_readq(base + PSYCHO_PCIA_CTRL);
 	tmp |= (PSYCHO_PCICTRL_SERR |
-		PSYCHO_PCICTRL_SBH_ERR |
-		PSYCHO_PCICTRL_EEN);
+			PSYCHO_PCICTRL_SBH_ERR |
+			PSYCHO_PCICTRL_EEN);
 	tmp &= ~(PSYCHO_PCICTRL_SBH_INT);
 	upa_writeq(tmp, base + PSYCHO_PCIA_CTRL);
-		     
+
 	tmp = upa_readq(base + PSYCHO_PCIB_CTRL);
 	tmp |= (PSYCHO_PCICTRL_SERR |
-		PSYCHO_PCICTRL_SBH_ERR |
-		PSYCHO_PCICTRL_EEN);
+			PSYCHO_PCICTRL_SBH_ERR |
+			PSYCHO_PCICTRL_EEN);
 	tmp &= ~(PSYCHO_PCICTRL_SBH_INT);
 	upa_writeq(tmp, base + PSYCHO_PCIB_CTRL);
 }
@@ -357,17 +393,17 @@ static void pbm_config_busmastering(struct pci_pbm_info *pbm)
 	 * a nop but I do it for completeness.
 	 */
 	addr = psycho_pci_config_mkaddr(pbm, pbm->pci_first_busno,
-					0, PCI_CACHE_LINE_SIZE);
+									0, PCI_CACHE_LINE_SIZE);
 	pci_config_write8(addr, 64 / sizeof(u32));
 
 	/* Set PBM latency timer to 64 PCI clocks. */
 	addr = psycho_pci_config_mkaddr(pbm, pbm->pci_first_busno,
-					0, PCI_LATENCY_TIMER);
+									0, PCI_LATENCY_TIMER);
 	pci_config_write8(addr, 64);
 }
 
 static void psycho_scan_bus(struct pci_pbm_info *pbm,
-			    struct device *parent)
+							struct device *parent)
 {
 	pbm_config_busmastering(pbm);
 	pbm->is_66mhz_capable = 0;
@@ -420,36 +456,40 @@ static void psycho_controller_hwinit(struct pci_pbm_info *pbm)
 }
 
 static void psycho_pbm_strbuf_init(struct pci_pbm_info *pbm,
-				   int is_pbm_a)
+								   int is_pbm_a)
 {
 	unsigned long base = pbm->controller_regs;
 	u64 control;
 
-	if (is_pbm_a) {
+	if (is_pbm_a)
+	{
 		pbm->stc.strbuf_control  = base + PSYCHO_STRBUF_CONTROL_A;
 		pbm->stc.strbuf_pflush   = base + PSYCHO_STRBUF_FLUSH_A;
 		pbm->stc.strbuf_fsync    = base + PSYCHO_STRBUF_FSYNC_A;
 		pbm->stc.strbuf_err_stat = base + PSYCHO_STC_ERR_A;
 		pbm->stc.strbuf_tag_diag = base + PSYCHO_STC_TAG_A;
-		pbm->stc.strbuf_line_diag= base + PSYCHO_STC_LINE_A;
-	} else {
+		pbm->stc.strbuf_line_diag = base + PSYCHO_STC_LINE_A;
+	}
+	else
+	{
 		pbm->stc.strbuf_control  = base + PSYCHO_STRBUF_CONTROL_B;
 		pbm->stc.strbuf_pflush   = base + PSYCHO_STRBUF_FLUSH_B;
 		pbm->stc.strbuf_fsync    = base + PSYCHO_STRBUF_FSYNC_B;
 		pbm->stc.strbuf_err_stat = base + PSYCHO_STC_ERR_B;
 		pbm->stc.strbuf_tag_diag = base + PSYCHO_STC_TAG_B;
-		pbm->stc.strbuf_line_diag= base + PSYCHO_STC_LINE_B;
+		pbm->stc.strbuf_line_diag = base + PSYCHO_STC_LINE_B;
 	}
+
 	/* PSYCHO's streaming buffer lacks ctx flushing. */
 	pbm->stc.strbuf_ctxflush      = 0;
 	pbm->stc.strbuf_ctxmatch_base = 0;
 
 	pbm->stc.strbuf_flushflag = (volatile unsigned long *)
-		((((unsigned long)&pbm->stc.__flushflag_buf[0])
-		  + 63UL)
-		 & ~63UL);
+								((((unsigned long)&pbm->stc.__flushflag_buf[0])
+								  + 63UL)
+								 & ~63UL);
 	pbm->stc.strbuf_flushflag_pa = (unsigned long)
-		__pa(pbm->stc.strbuf_flushflag);
+								   __pa(pbm->stc.strbuf_flushflag);
 
 	/* Enable the streaming buffer.  We have to be careful
 	 * just in case OBP left it with LRU locking enabled.
@@ -484,7 +524,7 @@ static void psycho_pbm_strbuf_init(struct pci_pbm_info *pbm,
 #define PSYCHO_MEMSPACE_SIZE	0x07fffffffUL
 
 static void psycho_pbm_init(struct pci_pbm_info *pbm,
-			    struct platform_device *op, int is_pbm_a)
+							struct platform_device *op, int is_pbm_a)
 {
 	psycho_pbm_init_common(pbm, op, "PSYCHO", PBM_CHIP_TYPE_PSYCHO);
 	psycho_pbm_strbuf_init(pbm, is_pbm_a);
@@ -495,10 +535,14 @@ static struct pci_pbm_info *psycho_find_sibling(u32 upa_portid)
 {
 	struct pci_pbm_info *pbm;
 
-	for (pbm = pci_pbm_root; pbm; pbm = pbm->next) {
+	for (pbm = pci_pbm_root; pbm; pbm = pbm->next)
+	{
 		if (pbm->portid == upa_portid)
+		{
 			return pbm;
+		}
 	}
+
 	return NULL;
 }
 
@@ -517,17 +561,25 @@ static int psycho_probe(struct platform_device *op)
 
 	err = -ENOMEM;
 	pbm = kzalloc(sizeof(*pbm), GFP_KERNEL);
-	if (!pbm) {
+
+	if (!pbm)
+	{
 		printk(KERN_ERR PFX "Cannot allocate pci_pbm_info.\n");
 		goto out_err;
 	}
 
 	pbm->sibling = psycho_find_sibling(upa_portid);
-	if (pbm->sibling) {
+
+	if (pbm->sibling)
+	{
 		iommu = pbm->sibling->iommu;
-	} else {
+	}
+	else
+	{
 		iommu = kzalloc(sizeof(struct iommu), GFP_KERNEL);
-		if (!iommu) {
+
+		if (!iommu)
+		{
 			printk(KERN_ERR PFX "Cannot allocate PBM iommu.\n");
 			goto out_free_controller;
 		}
@@ -538,7 +590,9 @@ static int psycho_probe(struct platform_device *op)
 
 	pr_regs = of_get_property(dp, "reg", NULL);
 	err = -ENODEV;
-	if (!pr_regs) {
+
+	if (!pr_regs)
+	{
 		printk(KERN_ERR PFX "No reg property.\n");
 		goto out_free_iommu;
 	}
@@ -548,26 +602,36 @@ static int psycho_probe(struct platform_device *op)
 	pbm->controller_regs = pr_regs[2].phys_addr;
 	pbm->config_space = (pr_regs[2].phys_addr + PSYCHO_CONFIGSPACE);
 
-	if (is_pbm_a) {
+	if (is_pbm_a)
+	{
 		pbm->pci_afsr = pbm->controller_regs + PSYCHO_PCI_AFSR_A;
 		pbm->pci_afar = pbm->controller_regs + PSYCHO_PCI_AFAR_A;
 		pbm->pci_csr  = pbm->controller_regs + PSYCHO_PCIA_CTRL;
-	} else {
+	}
+	else
+	{
 		pbm->pci_afsr = pbm->controller_regs + PSYCHO_PCI_AFSR_B;
 		pbm->pci_afar = pbm->controller_regs + PSYCHO_PCI_AFAR_B;
 		pbm->pci_csr  = pbm->controller_regs + PSYCHO_PCIB_CTRL;
 	}
 
 	psycho_controller_hwinit(pbm);
-	if (!pbm->sibling) {
+
+	if (!pbm->sibling)
+	{
 		err = psycho_iommu_init(pbm, 128, 0xc0000000,
-					0xffffffff, PSYCHO_CONTROL);
+								0xffffffff, PSYCHO_CONTROL);
+
 		if (err)
+		{
 			goto out_free_iommu;
+		}
 
 		/* If necessary, hook us up for starfire IRQ translations. */
 		if (this_is_starfire)
+		{
 			starfire_hookup(pbm->portid);
+		}
 	}
 
 	psycho_pbm_init(pbm, op, is_pbm_a);
@@ -576,15 +640,20 @@ static int psycho_probe(struct platform_device *op)
 	pci_pbm_root = pbm;
 
 	if (pbm->sibling)
+	{
 		pbm->sibling->sibling = pbm;
+	}
 
 	dev_set_drvdata(&op->dev, pbm);
 
 	return 0;
 
 out_free_iommu:
+
 	if (!pbm->sibling)
+	{
 		kfree(pbm->iommu);
+	}
 
 out_free_controller:
 	kfree(pbm);
@@ -593,7 +662,8 @@ out_err:
 	return err;
 }
 
-static const struct of_device_id psycho_match[] = {
+static const struct of_device_id psycho_match[] =
+{
 	{
 		.name = "pci",
 		.compatible = "pci108e,8000",
@@ -601,7 +671,8 @@ static const struct of_device_id psycho_match[] = {
 	{},
 };
 
-static struct platform_driver psycho_driver = {
+static struct platform_driver psycho_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = psycho_match,

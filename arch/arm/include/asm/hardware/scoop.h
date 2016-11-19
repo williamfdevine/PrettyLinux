@@ -40,7 +40,8 @@
 #define SCOOP_GPCR_PA12	(1 << 2)
 #define SCOOP_GPCR_PA11	(1 << 1)
 
-struct scoop_config {
+struct scoop_config
+{
 	unsigned short io_out;
 	unsigned short io_dir;
 	unsigned short suspend_clr;
@@ -49,7 +50,8 @@ struct scoop_config {
 };
 
 /* Structure for linking scoop devices to PCMCIA sockets */
-struct scoop_pcmcia_dev {
+struct scoop_pcmcia_dev
+{
 	struct device *dev;     /* Pointer to this socket's scoop device */
 	int	irq;                /* irq for socket */
 	int cd_irq;
@@ -58,7 +60,8 @@ struct scoop_pcmcia_dev {
 	unsigned char keep_rd;
 };
 
-struct scoop_pcmcia_config {
+struct scoop_pcmcia_config
+{
 	struct scoop_pcmcia_dev *devs;
 	int num_devs;
 	void (*power_ctrl)(struct device *scoop, unsigned short cpr, int nr);

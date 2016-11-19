@@ -72,16 +72,24 @@ int  __cpcmd(const char *cmd, char *response, int rlen, int *response_code)
 	ASCEBC(cpcmd_buf, cmdlen);
 
 	diag_stat_inc(DIAG_STAT_X008);
-	if (response) {
+
+	if (response)
+	{
 		memset(response, 0, rlen);
 		response_len = rlen;
 		rc = diag8_response(cmdlen, response, &rlen);
 		EBCASC(response, response_len);
-        } else {
+	}
+	else
+	{
 		rc = diag8_noresponse(cmdlen);
-        }
+	}
+
 	if (response_code)
+	{
 		*response_code = rc;
+	}
+
 	return rlen;
 }
 EXPORT_SYMBOL(__cpcmd);
@@ -93,22 +101,29 @@ int cpcmd(const char *cmd, char *response, int rlen, int *response_code)
 	unsigned long flags;
 
 	if ((virt_to_phys(response) != (unsigned long) response) ||
-			(((unsigned long)response + rlen) >> 31)) {
+		(((unsigned long)response + rlen) >> 31))
+	{
 		lowbuf = kmalloc(rlen, GFP_KERNEL | GFP_DMA);
-		if (!lowbuf) {
+
+		if (!lowbuf)
+		{
 			pr_warn("The cpcmd kernel function failed to allocate a response buffer\n");
 			return -ENOMEM;
 		}
+
 		spin_lock_irqsave(&cpcmd_lock, flags);
 		len = __cpcmd(cmd, lowbuf, rlen, response_code);
 		spin_unlock_irqrestore(&cpcmd_lock, flags);
 		memcpy(response, lowbuf, rlen);
 		kfree(lowbuf);
-	} else {
+	}
+	else
+	{
 		spin_lock_irqsave(&cpcmd_lock, flags);
 		len = __cpcmd(cmd, response, rlen, response_code);
 		spin_unlock_irqrestore(&cpcmd_lock, flags);
 	}
+
 	return len;
 }
 EXPORT_SYMBOL(cpcmd);

@@ -9,7 +9,8 @@
 
 #include <linux/mm_types.h>
 
-struct vdso_image {
+struct vdso_image
+{
 	void *data;
 	unsigned long size;   /* Always a multiple of PAGE_SIZE */
 
@@ -28,15 +29,15 @@ struct vdso_image {
 };
 
 #ifdef CONFIG_X86_64
-extern const struct vdso_image vdso_image_64;
+	extern const struct vdso_image vdso_image_64;
 #endif
 
 #ifdef CONFIG_X86_X32
-extern const struct vdso_image vdso_image_x32;
+	extern const struct vdso_image vdso_image_x32;
 #endif
 
 #if defined CONFIG_X86_32 || defined CONFIG_COMPAT
-extern const struct vdso_image vdso_image_32;
+	extern const struct vdso_image vdso_image_32;
 #endif
 
 extern void __init init_vdso_image(const struct vdso_image *image);

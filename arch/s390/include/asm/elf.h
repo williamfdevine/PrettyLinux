@@ -142,7 +142,7 @@ extern unsigned int vdso_enabled;
  */
 #define elf_check_arch(x) \
 	(((x)->e_machine == EM_S390 || (x)->e_machine == EM_S390_OLD) \
-         && (x)->e_ident[EI_CLASS] == ELF_CLASS) 
+	 && (x)->e_ident[EI_CLASS] == ELF_CLASS)
 #define compat_elf_check_arch(x) \
 	(((x)->e_machine == EM_S390 || (x)->e_machine == EM_S390_OLD) \
 	 && (x)->e_ident[EI_CLASS] == ELF_CLASS)
@@ -164,8 +164,8 @@ extern unsigned int vdso_enabled;
    that it will "exec", and that there is sufficient room for the brk. 64-bit
    tasks are aligned to 4GB. */
 #define ELF_ET_DYN_BASE (is_compat_task() ? \
-				(STACK_TOP / 3 * 2) : \
-				(STACK_TOP / 3 * 2) & ~((1UL << 32) - 1))
+						 (STACK_TOP / 3 * 2) : \
+						 (STACK_TOP / 3 * 2) & ~((1UL << 32) - 1))
 
 /* This yields a mask that user programs can use to figure out what
    instruction set this CPU supports. */
@@ -190,28 +190,28 @@ extern char elf_platform[];
 
 #ifndef CONFIG_COMPAT
 #define SET_PERSONALITY(ex) \
-do {								\
-	set_personality(PER_LINUX |				\
-		(current->personality & (~PER_MASK)));		\
-	current_thread_info()->sys_call_table = 		\
-		(unsigned long) &sys_call_table;		\
-} while (0)
+	do {								\
+		set_personality(PER_LINUX |				\
+						(current->personality & (~PER_MASK)));		\
+		current_thread_info()->sys_call_table = 		\
+				(unsigned long) &sys_call_table;		\
+	} while (0)
 #else /* CONFIG_COMPAT */
 #define SET_PERSONALITY(ex)					\
-do {								\
-	if (personality(current->personality) != PER_LINUX32)	\
-		set_personality(PER_LINUX |			\
-			(current->personality & ~PER_MASK));	\
-	if ((ex).e_ident[EI_CLASS] == ELFCLASS32) {		\
-		set_thread_flag(TIF_31BIT);			\
-		current_thread_info()->sys_call_table =		\
-			(unsigned long)	&sys_call_table_emu;	\
-	} else {						\
-		clear_thread_flag(TIF_31BIT);			\
-		current_thread_info()->sys_call_table =		\
-			(unsigned long) &sys_call_table;	\
-	}							\
-} while (0)
+	do {								\
+		if (personality(current->personality) != PER_LINUX32)	\
+			set_personality(PER_LINUX |			\
+							(current->personality & ~PER_MASK));	\
+		if ((ex).e_ident[EI_CLASS] == ELFCLASS32) {		\
+			set_thread_flag(TIF_31BIT);			\
+			current_thread_info()->sys_call_table =		\
+					(unsigned long)	&sys_call_table_emu;	\
+		} else {						\
+			clear_thread_flag(TIF_31BIT);			\
+			current_thread_info()->sys_call_table =		\
+					(unsigned long) &sys_call_table;	\
+		}							\
+	} while (0)
 #endif /* CONFIG_COMPAT */
 
 /*
@@ -227,11 +227,11 @@ do {								\
 
 /* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
 #define ARCH_DLINFO							    \
-do {									    \
-	if (vdso_enabled)						    \
-		NEW_AUX_ENT(AT_SYSINFO_EHDR,				    \
-			    (unsigned long)current->mm->context.vdso_base); \
-} while (0)
+	do {									    \
+		if (vdso_enabled)						    \
+			NEW_AUX_ENT(AT_SYSINFO_EHDR,				    \
+						(unsigned long)current->mm->context.vdso_base); \
+	} while (0)
 
 struct linux_binprm;
 

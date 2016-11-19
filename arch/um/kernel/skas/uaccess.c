@@ -21,19 +21,30 @@ pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
 	pmd_t *pmd;
 
 	if (mm == NULL)
+	{
 		return NULL;
+	}
 
 	pgd = pgd_offset(mm, addr);
+
 	if (!pgd_present(*pgd))
+	{
 		return NULL;
+	}
 
 	pud = pud_offset(pgd, addr);
+
 	if (!pud_present(*pud))
+	{
 		return NULL;
+	}
 
 	pmd = pmd_offset(pud, addr);
+
 	if (!pmd_present(*pmd))
+	{
 		return NULL;
+	}
 
 	return pte_offset_kernel(pmd, addr);
 }
@@ -44,20 +55,28 @@ static pte_t *maybe_map(unsigned long virt, int is_write)
 	int err, dummy_code;
 
 	if ((pte == NULL) || !pte_present(*pte) ||
-	    (is_write && !pte_write(*pte))) {
+		(is_write && !pte_write(*pte)))
+	{
 		err = handle_page_fault(virt, 0, is_write, 1, &dummy_code);
+
 		if (err)
+		{
 			return NULL;
+		}
+
 		pte = virt_to_pte(current->mm, virt);
 	}
+
 	if (!pte_present(*pte))
+	{
 		pte = NULL;
+	}
 
 	return pte;
 }
 
 static int do_op_one_page(unsigned long addr, int len, int is_write,
-		 int (*op)(unsigned long addr, int len, void *arg), void *arg)
+						  int (*op)(unsigned long addr, int len, void *arg), void *arg)
 {
 	jmp_buf buf;
 	struct page *page;
@@ -65,20 +84,28 @@ static int do_op_one_page(unsigned long addr, int len, int is_write,
 	int n, faulted;
 
 	pte = maybe_map(addr, is_write);
+
 	if (pte == NULL)
+	{
 		return -1;
+	}
 
 	page = pte_page(*pte);
 	addr = (unsigned long) kmap_atomic(page) +
-		(addr & ~PAGE_MASK);
+		   (addr & ~PAGE_MASK);
 
 	current->thread.fault_catcher = &buf;
 
 	faulted = UML_SETJMP(&buf);
+
 	if (faulted == 0)
+	{
 		n = (*op)(addr, len, arg);
+	}
 	else
+	{
 		n = -1;
+	}
 
 	current->thread.fault_catcher = NULL;
 
@@ -88,7 +115,7 @@ static int do_op_one_page(unsigned long addr, int len, int is_write,
 }
 
 static long buffer_op(unsigned long addr, int len, int is_write,
-		      int (*op)(unsigned long, int, void *), void *arg)
+					  int (*op)(unsigned long, int, void *), void *arg)
 {
 	long size, remain, n;
 
@@ -96,19 +123,27 @@ static long buffer_op(unsigned long addr, int len, int is_write,
 	remain = len;
 
 	n = do_op_one_page(addr, size, is_write, op, arg);
-	if (n != 0) {
+
+	if (n != 0)
+	{
 		remain = (n < 0 ? remain : 0);
 		goto out;
 	}
 
 	addr += size;
 	remain -= size;
-	if (remain == 0)
-		goto out;
 
-	while (addr < ((addr + remain) & PAGE_MASK)) {
+	if (remain == 0)
+	{
+		goto out;
+	}
+
+	while (addr < ((addr + remain) & PAGE_MASK))
+	{
 		n = do_op_one_page(addr, PAGE_SIZE, is_write, op, arg);
-		if (n != 0) {
+
+		if (n != 0)
+		{
 			remain = (n < 0 ? remain : 0);
 			goto out;
 		}
@@ -116,17 +151,22 @@ static long buffer_op(unsigned long addr, int len, int is_write,
 		addr += PAGE_SIZE;
 		remain -= PAGE_SIZE;
 	}
+
 	if (remain == 0)
+	{
 		goto out;
+	}
 
 	n = do_op_one_page(addr, remain, is_write, op, arg);
-	if (n != 0) {
+
+	if (n != 0)
+	{
 		remain = (n < 0 ? remain : 0);
 		goto out;
 	}
 
 	return 0;
- out:
+out:
 	return remain;
 }
 
@@ -141,8 +181,9 @@ static int copy_chunk_from_user(unsigned long from, int len, void *arg)
 
 long __copy_from_user(void *to, const void __user *from, unsigned long n)
 {
-	if (segment_eq(get_fs(), KERNEL_DS)) {
-		memcpy(to, (__force void*)from, n);
+	if (segment_eq(get_fs(), KERNEL_DS))
+	{
+		memcpy(to, (__force void *)from, n);
 		return 0;
 	}
 
@@ -161,7 +202,8 @@ static int copy_chunk_to_user(unsigned long to, int len, void *arg)
 
 long __copy_to_user(void __user *to, const void *from, unsigned long n)
 {
-	if (segment_eq(get_fs(), KERNEL_DS)) {
+	if (segment_eq(get_fs(), KERNEL_DS))
+	{
 		memcpy((__force void *) to, from, n);
 		return 0;
 	}
@@ -180,7 +222,10 @@ static int strncpy_chunk_from_user(unsigned long from, int len, void *arg)
 	*to_ptr += n;
 
 	if (n < len)
-	        return 1;
+	{
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -189,15 +234,20 @@ long __strncpy_from_user(char *dst, const char __user *src, long count)
 	long n;
 	char *ptr = dst;
 
-	if (segment_eq(get_fs(), KERNEL_DS)) {
+	if (segment_eq(get_fs(), KERNEL_DS))
+	{
 		strncpy(dst, (__force void *) src, count);
 		return strnlen(dst, count);
 	}
 
 	n = buffer_op((unsigned long) src, count, 0, strncpy_chunk_from_user,
-		      &ptr);
+				  &ptr);
+
 	if (n != 0)
+	{
 		return -EFAULT;
+	}
+
 	return strnlen(dst, count);
 }
 EXPORT_SYMBOL(__strncpy_from_user);
@@ -210,8 +260,9 @@ static int clear_chunk(unsigned long addr, int len, void *unused)
 
 unsigned long __clear_user(void __user *mem, unsigned long len)
 {
-	if (segment_eq(get_fs(), KERNEL_DS)) {
-		memset((__force void*)mem, 0, len);
+	if (segment_eq(get_fs(), KERNEL_DS))
+	{
+		memset((__force void *)mem, 0, len);
 		return 0;
 	}
 
@@ -227,7 +278,10 @@ static int strnlen_chunk(unsigned long str, int len, void *arg)
 	*len_ptr += n;
 
 	if (n < len)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -236,11 +290,17 @@ long __strnlen_user(const void __user *str, long len)
 	int count = 0, n;
 
 	if (segment_eq(get_fs(), KERNEL_DS))
-		return strnlen((__force char*)str, len) + 1;
+	{
+		return strnlen((__force char *)str, len) + 1;
+	}
 
 	n = buffer_op((unsigned long) str, len, 0, strnlen_chunk, &count);
+
 	if (n == 0)
+	{
 		return count + 1;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(__strnlen_user);

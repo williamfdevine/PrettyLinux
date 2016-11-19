@@ -122,8 +122,12 @@ static int toshiba_rbtx4927_irq_nested(int sw_irq)
 	u8 level3;
 
 	level3 = readb(rbtx4927_imstat_addr) & 0x1f;
+
 	if (unlikely(!level3))
+	{
 		return -1;
+	}
+
 	return RBTX4927_IRQ_IOC + __fls8(level3);
 }
 
@@ -147,7 +151,8 @@ static void toshiba_rbtx4927_irq_ioc_disable(struct irq_data *d)
 }
 
 #define TOSHIBA_RBTX4927_IOC_NAME "RBTX4927-IOC"
-static struct irq_chip toshiba_rbtx4927_irq_ioc_type = {
+static struct irq_chip toshiba_rbtx4927_irq_ioc_type =
+{
 	.name = TOSHIBA_RBTX4927_IOC_NAME,
 	.irq_mask = toshiba_rbtx4927_irq_ioc_disable,
 	.irq_unmask = toshiba_rbtx4927_irq_ioc_enable,
@@ -163,9 +168,10 @@ static void __init toshiba_rbtx4927_irq_ioc_init(void)
 	writeb(0, rbtx4927_softint_addr);
 
 	for (i = RBTX4927_IRQ_IOC;
-	     i < RBTX4927_IRQ_IOC + RBTX4927_NR_IRQ_IOC; i++)
+		 i < RBTX4927_IRQ_IOC + RBTX4927_NR_IRQ_IOC; i++)
 		irq_set_chip_and_handler(i, &toshiba_rbtx4927_irq_ioc_type,
-					 handle_level_irq);
+								 handle_level_irq);
+
 	irq_set_chained_handler(RBTX4927_IRQ_IOCINT, handle_simple_irq);
 }
 
@@ -174,17 +180,31 @@ static int rbtx4927_irq_dispatch(int pending)
 	int irq;
 
 	if (pending & STATUSF_IP7)			/* cpu timer */
+	{
 		irq = MIPS_CPU_IRQ_BASE + 7;
-	else if (pending & STATUSF_IP2) {		/* tx4927 pic */
+	}
+	else if (pending & STATUSF_IP2)  		/* tx4927 pic */
+	{
 		irq = txx9_irq();
+
 		if (irq == RBTX4927_IRQ_IOCINT)
+		{
 			irq = toshiba_rbtx4927_irq_nested(irq);
-	} else if (pending & STATUSF_IP0)		/* user line 0 */
+		}
+	}
+	else if (pending & STATUSF_IP0)		/* user line 0 */
+	{
 		irq = MIPS_CPU_IRQ_BASE + 0;
+	}
 	else if (pending & STATUSF_IP1)			/* user line 1 */
+	{
 		irq = MIPS_CPU_IRQ_BASE + 1;
+	}
 	else
+	{
 		irq = -1;
+	}
+
 	return irq;
 }
 

@@ -21,13 +21,13 @@
  * Cache of MMU context last used.
  */
 #ifndef CONFIG_SMP
-extern unsigned long mmu_context_cache_dat;
-#define mmu_context_cache	mmu_context_cache_dat
-#define mm_context(mm)		mm->context
+	extern unsigned long mmu_context_cache_dat;
+	#define mmu_context_cache	mmu_context_cache_dat
+	#define mm_context(mm)		mm->context
 #else /* not CONFIG_SMP */
-extern unsigned long mmu_context_cache_dat[];
-#define mmu_context_cache	mmu_context_cache_dat[smp_processor_id()]
-#define mm_context(mm)		mm->context[smp_processor_id()]
+	extern unsigned long mmu_context_cache_dat[];
+	#define mmu_context_cache	mmu_context_cache_dat[smp_processor_id()]
+	#define mm_context(mm)		mm->context[smp_processor_id()]
 #endif /* not CONFIG_SMP */
 
 #define set_tlb_tag(entry, tag)		(*entry = (tag & PAGE_MASK)|get_asid())
@@ -40,15 +40,20 @@ static inline void get_new_mmu_context(struct mm_struct *mm)
 {
 	unsigned long mc = ++mmu_context_cache;
 
-	if (!(mc & MMU_CONTEXT_ASID_MASK)) {
+	if (!(mc & MMU_CONTEXT_ASID_MASK))
+	{
 		/* We exhaust ASID of this version.
 		   Flush all TLB and start new cycle. */
 		local_flush_tlb_all();
+
 		/* Fix version if needed.
 		   Note that we avoid version #0 to distinguish NO_CONTEXT. */
 		if (!mc)
+		{
 			mmu_context_cache = mc = MMU_CONTEXT_FIRST_VERSION;
+		}
 	}
+
 	mm_context(mm) = mc;
 }
 
@@ -57,13 +62,16 @@ static inline void get_new_mmu_context(struct mm_struct *mm)
  */
 static inline void get_mmu_context(struct mm_struct *mm)
 {
-	if (mm) {
+	if (mm)
+	{
 		unsigned long mc = mmu_context_cache;
 
 		/* Check if we have old version of context.
 		   If it's old, we need to get new context with new version. */
 		if ((mm_context(mm) ^ mc) & MMU_CONTEXT_VERSION_MASK)
+		{
 			get_new_mmu_context(mm);
+		}
 	}
 }
 
@@ -72,7 +80,7 @@ static inline void get_mmu_context(struct mm_struct *mm)
  * instance.
  */
 static inline int init_new_context(struct task_struct *tsk,
-	struct mm_struct *mm)
+								   struct mm_struct *mm)
 {
 #ifndef CONFIG_SMP
 	mm->context = NO_CONTEXT;
@@ -81,7 +89,10 @@ static inline int init_new_context(struct task_struct *tsk,
 	int i;
 
 	for (i = 0 ; i < num_cpus ; i++)
+	{
 		mm->context[i] = NO_CONTEXT;
+	}
+
 #endif /* CONFIG_SMP */
 
 	return 0;
@@ -119,13 +130,14 @@ static inline void activate_context(struct mm_struct *mm)
 }
 
 static inline void switch_mm(struct mm_struct *prev,
-	struct mm_struct *next, struct task_struct *tsk)
+							 struct mm_struct *next, struct task_struct *tsk)
 {
 #ifdef CONFIG_SMP
 	int cpu = smp_processor_id();
 #endif	/* CONFIG_SMP */
 
-	if (prev != next) {
+	if (prev != next)
+	{
 #ifdef CONFIG_SMP
 		cpumask_set_cpu(cpu, mm_cpumask(next));
 #endif /* CONFIG_SMP */
@@ -133,10 +145,13 @@ static inline void switch_mm(struct mm_struct *prev,
 		*(volatile unsigned long *)MPTB = (unsigned long)next->pgd;
 		activate_context(next);
 	}
+
 #ifdef CONFIG_SMP
-	else
-		if (!cpumask_test_and_set_cpu(cpu, mm_cpumask(next)))
-			activate_context(next);
+	else if (!cpumask_test_and_set_cpu(cpu, mm_cpumask(next)))
+	{
+		activate_context(next);
+	}
+
 #endif /* CONFIG_SMP */
 }
 

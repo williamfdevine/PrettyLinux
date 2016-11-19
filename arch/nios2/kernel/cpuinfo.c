@@ -48,21 +48,29 @@ void __init setup_cpuinfo(void)
 	int len;
 
 	cpu = of_find_node_by_type(NULL, "cpu");
+
 	if (!cpu)
+	{
 		panic("%s: No CPU found in devicetree!\n", __func__);
+	}
 
 	if (!of_property_read_bool(cpu, "altr,has-initda"))
 		panic("initda instruction is unimplemented. Please update your "
-			"hardware system to have more than 4-byte line data "
-			"cache\n");
+			  "hardware system to have more than 4-byte line data "
+			  "cache\n");
 
 	cpuinfo.cpu_clock_freq = fcpu(cpu, "clock-frequency");
 
 	str = of_get_property(cpu, "altr,implementation", &len);
+
 	if (str)
+	{
 		strlcpy(cpuinfo.cpu_impl, str, sizeof(cpuinfo.cpu_impl));
+	}
 	else
+	{
 		strcpy(cpuinfo.cpu_impl, "<unknown>");
+	}
 
 	cpuinfo.has_div = of_property_read_bool(cpu, "altr,has-div");
 	cpuinfo.has_mul = of_property_read_bool(cpu, "altr,has-mul");
@@ -70,38 +78,50 @@ void __init setup_cpuinfo(void)
 	cpuinfo.mmu = of_property_read_bool(cpu, "altr,has-mmu");
 
 	if (IS_ENABLED(CONFIG_NIOS2_HW_DIV_SUPPORT) && !cpuinfo.has_div)
+	{
 		err_cpu("DIV");
+	}
 
 	if (IS_ENABLED(CONFIG_NIOS2_HW_MUL_SUPPORT) && !cpuinfo.has_mul)
+	{
 		err_cpu("MUL");
+	}
 
 	if (IS_ENABLED(CONFIG_NIOS2_HW_MULX_SUPPORT) && !cpuinfo.has_mulx)
+	{
 		err_cpu("MULX");
+	}
 
 	cpuinfo.tlb_num_ways = fcpu(cpu, "altr,tlb-num-ways");
+
 	if (!cpuinfo.tlb_num_ways)
 		panic("altr,tlb-num-ways can't be 0. Please check your hardware "
-			"system\n");
+			  "system\n");
+
 	cpuinfo.icache_line_size = fcpu(cpu, "icache-line-size");
 	cpuinfo.icache_size = fcpu(cpu, "icache-size");
+
 	if (CONFIG_NIOS2_ICACHE_SIZE != cpuinfo.icache_size)
 		pr_warn("Warning: icache size configuration mismatch "
-		"(0x%x vs 0x%x) of CONFIG_NIOS2_ICACHE_SIZE vs "
-		"device tree icache-size\n",
-		CONFIG_NIOS2_ICACHE_SIZE, cpuinfo.icache_size);
+				"(0x%x vs 0x%x) of CONFIG_NIOS2_ICACHE_SIZE vs "
+				"device tree icache-size\n",
+				CONFIG_NIOS2_ICACHE_SIZE, cpuinfo.icache_size);
 
 	cpuinfo.dcache_line_size = fcpu(cpu, "dcache-line-size");
+
 	if (CONFIG_NIOS2_DCACHE_LINE_SIZE != cpuinfo.dcache_line_size)
 		pr_warn("Warning: dcache line size configuration mismatch "
-		"(0x%x vs 0x%x) of CONFIG_NIOS2_DCACHE_LINE_SIZE vs "
-		"device tree dcache-line-size\n",
-		CONFIG_NIOS2_DCACHE_LINE_SIZE, cpuinfo.dcache_line_size);
+				"(0x%x vs 0x%x) of CONFIG_NIOS2_DCACHE_LINE_SIZE vs "
+				"device tree dcache-line-size\n",
+				CONFIG_NIOS2_DCACHE_LINE_SIZE, cpuinfo.dcache_line_size);
+
 	cpuinfo.dcache_size = fcpu(cpu, "dcache-size");
+
 	if (CONFIG_NIOS2_DCACHE_SIZE != cpuinfo.dcache_size)
 		pr_warn("Warning: dcache size configuration mismatch "
-			"(0x%x vs 0x%x) of CONFIG_NIOS2_DCACHE_SIZE vs "
-			"device tree dcache-size\n",
-			CONFIG_NIOS2_DCACHE_SIZE, cpuinfo.dcache_size);
+				"(0x%x vs 0x%x) of CONFIG_NIOS2_DCACHE_SIZE vs "
+				"device tree dcache-size\n",
+				CONFIG_NIOS2_DCACHE_SIZE, cpuinfo.dcache_size);
 
 	cpuinfo.tlb_pid_num_bits = fcpu(cpu, "altr,pid-num-bits");
 	cpuinfo.tlb_num_ways_log2 = ilog2(cpuinfo.tlb_num_ways);
@@ -124,43 +144,43 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	const u32 clockfreq = cpuinfo.cpu_clock_freq;
 
 	seq_printf(m,
-		   "CPU:\t\tNios II/%s\n"
-		   "MMU:\t\t%s\n"
-		   "FPU:\t\tnone\n"
-		   "Clocking:\t%u.%02u MHz\n"
-		   "BogoMips:\t%lu.%02lu\n"
-		   "Calibration:\t%lu loops\n",
-		   cpuinfo.cpu_impl,
-		   cpuinfo.mmu ? "present" : "none",
-		   clockfreq / 1000000, (clockfreq / 100000) % 10,
-		   (loops_per_jiffy * HZ) / 500000,
-		   ((loops_per_jiffy * HZ) / 5000) % 100,
-		   (loops_per_jiffy * HZ));
+			   "CPU:\t\tNios II/%s\n"
+			   "MMU:\t\t%s\n"
+			   "FPU:\t\tnone\n"
+			   "Clocking:\t%u.%02u MHz\n"
+			   "BogoMips:\t%lu.%02lu\n"
+			   "Calibration:\t%lu loops\n",
+			   cpuinfo.cpu_impl,
+			   cpuinfo.mmu ? "present" : "none",
+			   clockfreq / 1000000, (clockfreq / 100000) % 10,
+			   (loops_per_jiffy * HZ) / 500000,
+			   ((loops_per_jiffy * HZ) / 5000) % 100,
+			   (loops_per_jiffy * HZ));
 
 	seq_printf(m,
-		   "HW:\n"
-		   " MUL:\t\t%s\n"
-		   " MULX:\t\t%s\n"
-		   " DIV:\t\t%s\n",
-		   cpuinfo.has_mul ? "yes" : "no",
-		   cpuinfo.has_mulx ? "yes" : "no",
-		   cpuinfo.has_div ? "yes" : "no");
+			   "HW:\n"
+			   " MUL:\t\t%s\n"
+			   " MULX:\t\t%s\n"
+			   " DIV:\t\t%s\n",
+			   cpuinfo.has_mul ? "yes" : "no",
+			   cpuinfo.has_mulx ? "yes" : "no",
+			   cpuinfo.has_div ? "yes" : "no");
 
 	seq_printf(m,
-		   "Icache:\t\t%ukB, line length: %u\n",
-		   cpuinfo.icache_size >> 10,
-		   cpuinfo.icache_line_size);
+			   "Icache:\t\t%ukB, line length: %u\n",
+			   cpuinfo.icache_size >> 10,
+			   cpuinfo.icache_line_size);
 
 	seq_printf(m,
-		   "Dcache:\t\t%ukB, line length: %u\n",
-		   cpuinfo.dcache_size >> 10,
-		   cpuinfo.dcache_line_size);
+			   "Dcache:\t\t%ukB, line length: %u\n",
+			   cpuinfo.dcache_size >> 10,
+			   cpuinfo.dcache_line_size);
 
 	seq_printf(m,
-		   "TLB:\t\t%u ways, %u entries, %u PID bits\n",
-		   cpuinfo.tlb_num_ways,
-		   cpuinfo.tlb_num_entries,
-		   cpuinfo.tlb_pid_num_bits);
+			   "TLB:\t\t%u ways, %u entries, %u PID bits\n",
+			   cpuinfo.tlb_num_ways,
+			   cpuinfo.tlb_num_entries,
+			   cpuinfo.tlb_pid_num_bits);
 
 	return 0;
 }
@@ -182,7 +202,8 @@ static void cpuinfo_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= cpuinfo_start,
 	.next	= cpuinfo_next,
 	.stop	= cpuinfo_stop,

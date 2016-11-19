@@ -2,7 +2,8 @@
 
 // Streamcop meta-data configuration structs
 
-struct strcop_meta_out {
+struct strcop_meta_out
+{
 	unsigned char  csumsel  : 3;
 	unsigned char  ciphsel  : 3;
 	unsigned char  ciphconf : 2;
@@ -14,7 +15,8 @@ struct strcop_meta_out {
 	unsigned char  cbcmode  : 1;
 };
 
-struct strcop_meta_in {
+struct strcop_meta_in
+{
 	unsigned char  dmasel     : 3;
 	unsigned char  sync       : 1;
 	unsigned char  res1       : 5;
@@ -23,7 +25,8 @@ struct strcop_meta_in {
 
 // Source definitions
 
-enum {
+enum
+{
 	src_none = 0,
 	src_dma  = 1,
 	src_des  = 2,
@@ -36,7 +39,8 @@ enum {
 
 // Cipher definitions
 
-enum {
+enum
+{
 	ciph_des = 0,
 	ciph_3des = 1,
 	ciph_aes = 2
@@ -44,12 +48,14 @@ enum {
 
 // Hash definitions
 
-enum {
+enum
+{
 	hash_sha1 = 0,
 	hash_md5 = 1
 };
 
-enum {
+enum
+{
 	hash_noiv = 0,
 	hash_iv = 1
 };

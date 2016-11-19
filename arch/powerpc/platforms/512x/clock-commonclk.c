@@ -27,7 +27,8 @@
 #include "mpc512x.h"		/* our public mpc5121_clk_init() API */
 
 /* helpers to keep the MCLK intermediates "somewhere" in our table */
-enum {
+enum
+{
 	MCLK_IDX_MUX0,
 	MCLK_IDX_EN0,
 	MCLK_IDX_DIV0,
@@ -41,7 +42,8 @@ enum {
 #define NR_MCLKS		(NR_PSCS + NR_MSCANS + NR_SPDIFS + NR_OUTCLK)
 
 /* extend the public set of clocks by adding internal slots for management */
-enum {
+enum
+{
 	/* arrange for adjacent numbers after the public set */
 	MPC512x_CLK_START_PRIVATE = MPC512x_CLK_LAST_PUBLIC,
 	/* clocks which aren't announced to the public */
@@ -65,7 +67,7 @@ enum {
 	/* intermediates for the mux+gate+div+mux MCLK generation */
 	MPC512x_CLK_MCLKS_FIRST,
 	MPC512x_CLK_MCLKS_LAST = MPC512x_CLK_MCLKS_FIRST
-				+ NR_MCLKS * MCLK_MAX_IDX,
+							 + NR_MCLKS * MCLK_MAX_IDX,
 	/* internal, symbolic spec for the number of slots */
 	MPC512x_CLK_LAST_PRIVATE,
 };
@@ -95,7 +97,8 @@ static DEFINE_SPINLOCK(clklock);
  * code and don't warrant a separate highly redundant implementation
  */
 
-static enum soc_type {
+static enum soc_type
+{
 	MPC512x_SOC_MPC5121,
 	MPC512x_SOC_MPC5123,
 	MPC512x_SOC_MPC5125,
@@ -103,15 +106,20 @@ static enum soc_type {
 
 static void mpc512x_clk_determine_soc(void)
 {
-	if (of_machine_is_compatible("fsl,mpc5121")) {
+	if (of_machine_is_compatible("fsl,mpc5121"))
+	{
 		soc = MPC512x_SOC_MPC5121;
 		return;
 	}
-	if (of_machine_is_compatible("fsl,mpc5123")) {
+
+	if (of_machine_is_compatible("fsl,mpc5123"))
+	{
 		soc = MPC512x_SOC_MPC5123;
 		return;
 	}
-	if (of_machine_is_compatible("fsl,mpc5125")) {
+
+	if (of_machine_is_compatible("fsl,mpc5125"))
+	{
 		soc = MPC512x_SOC_MPC5125;
 		return;
 	}
@@ -120,98 +128,140 @@ static void mpc512x_clk_determine_soc(void)
 static bool soc_has_mbx(void)
 {
 	if (soc == MPC512x_SOC_MPC5121)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static bool soc_has_axe(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static bool soc_has_viu(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static bool soc_has_spdif(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static bool soc_has_pata(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static bool soc_has_sata(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static bool soc_has_pci(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static bool soc_has_fec2(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static int soc_max_pscnum(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return 10;
+	}
+
 	return 12;
 }
 
 static bool soc_has_sdhc2(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static bool soc_has_nfc_5125(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static bool soc_has_outclk(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static bool soc_has_cpmf_0_bypass(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static bool soc_has_mclk_mux0_canin(void)
 {
 	if (soc == MPC512x_SOC_MPC5125)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -232,7 +282,7 @@ static inline struct clk *mpc512x_clk_factor(
 
 	clkflags = CLK_SET_RATE_PARENT;
 	return clk_register_fixed_factor(NULL, name, parent_name, clkflags,
-					 mul, div);
+									 mul, div);
 }
 
 static inline struct clk *mpc512x_clk_divider(
@@ -240,7 +290,7 @@ static inline struct clk *mpc512x_clk_divider(
 	u32 __iomem *reg, u8 pos, u8 len, int divflags)
 {
 	return clk_register_divider(NULL, name, parent_name, clkflags,
-				    reg, pos, len, divflags, &clklock);
+								reg, pos, len, divflags, &clklock);
 }
 
 static inline struct clk *mpc512x_clk_divtable(
@@ -252,8 +302,8 @@ static inline struct clk *mpc512x_clk_divtable(
 
 	divflags = 0;
 	return clk_register_divider_table(NULL, name, parent_name, 0,
-					  reg, pos, len, divflags,
-					  divtab, &clklock);
+									  reg, pos, len, divflags,
+									  divtab, &clklock);
 }
 
 static inline struct clk *mpc512x_clk_gated(
@@ -264,12 +314,12 @@ static inline struct clk *mpc512x_clk_gated(
 
 	clkflags = CLK_SET_RATE_PARENT;
 	return clk_register_gate(NULL, name, parent_name, clkflags,
-				 reg, pos, 0, &clklock);
+							 reg, pos, 0, &clklock);
 }
 
 static inline struct clk *mpc512x_clk_muxed(const char *name,
-	const char **parent_names, int parent_count,
-	u32 __iomem *reg, u8 pos, u8 len)
+		const char **parent_names, int parent_count,
+		u32 __iomem *reg, u8 pos, u8 len)
 {
 	int clkflags;
 	u8 muxflags;
@@ -277,8 +327,8 @@ static inline struct clk *mpc512x_clk_muxed(const char *name,
 	clkflags = CLK_SET_RATE_PARENT;
 	muxflags = 0;
 	return clk_register_mux(NULL, name,
-				parent_names, parent_count, clkflags,
-				reg, pos, len, muxflags, &clklock);
+							parent_names, parent_count, clkflags,
+							reg, pos, len, muxflags, &clklock);
 }
 
 /* }}} common clk API wrappers */
@@ -297,7 +347,8 @@ static inline int get_bit_field(uint32_t __iomem *reg, uint8_t pos, uint8_t len)
 /* get the SPMF and translate it into the "sys pll" multiplier */
 static int get_spmf_mult(void)
 {
-	static int spmf_to_mult[] = {
+	static int spmf_to_mult[] =
+	{
 		68, 1, 12, 16, 20, 24, 28, 32,
 		36, 40, 44, 48, 52, 56, 60, 64,
 	};
@@ -315,7 +366,8 @@ static int get_spmf_mult(void)
  */
 static int get_sys_div_x2(void)
 {
-	static int sysdiv_code_to_x2[] = {
+	static int sysdiv_code_to_x2[] =
+	{
 		4, 5, 6, 7, 8, 9, 10, 14,
 		12, 16, 18, 22, 20, 24, 26, 30,
 		28, 32, 34, 38, 36, 40, 42, 46,
@@ -336,11 +388,13 @@ static int get_sys_div_x2(void)
  */
 static int get_cpmf_mult_x2(void)
 {
-	static int cpmf_to_mult_x36[] = {
+	static int cpmf_to_mult_x36[] =
+	{
 		/* 0b000 is "times 36" */
 		72, 2, 2, 3, 4, 5, 6, 7,
 	};
-	static int cpmf_to_mult_0by[] = {
+	static int cpmf_to_mult_0by[] =
+	{
 		/* 0b000 is "bypass" */
 		2, 2, 2, 3, 4, 5, 6, 7,
 	};
@@ -349,10 +403,16 @@ static int get_cpmf_mult_x2(void)
 	int cpmf;
 
 	cpmf = get_bit_field(&clkregs->spmr, 16, 4);
+
 	if (soc_has_cpmf_0_bypass())
+	{
 		cpmf_to_mult = cpmf_to_mult_0by;
+	}
 	else
+	{
 		cpmf_to_mult = cpmf_to_mult_x36;
+	}
+
 	return cpmf_to_mult[cpmf];
 }
 
@@ -363,7 +423,8 @@ static int get_cpmf_mult_x2(void)
  */
 
 /* applies to the IPS_DIV, and PCI_DIV values */
-static struct clk_div_table divtab_2346[] = {
+static struct clk_div_table divtab_2346[] =
+{
 	{ .val = 2, .div = 2, },
 	{ .val = 3, .div = 3, },
 	{ .val = 4, .div = 4, },
@@ -372,7 +433,8 @@ static struct clk_div_table divtab_2346[] = {
 };
 
 /* applies to the MBX_DIV, LPC_DIV, and NFC_DIV values */
-static struct clk_div_table divtab_1234[] = {
+static struct clk_div_table divtab_1234[] =
+{
 	{ .val = 1, .div = 1, },
 	{ .val = 2, .div = 2, },
 	{ .val = 3, .div = 3, },
@@ -388,12 +450,19 @@ static int get_freq_from_dt(char *propname)
 
 	val = 0;
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc5121-immr");
-	if (np) {
+
+	if (np)
+	{
 		prop = of_get_property(np, propname, NULL);
+
 		if (prop)
+		{
 			val = *prop;
-	    of_node_put(np);
+		}
+
+		of_node_put(np);
 	}
+
 	return val;
 }
 
@@ -402,7 +471,9 @@ static void mpc512x_clk_preset_data(void)
 	size_t i;
 
 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+	{
 		clks[i] = ERR_PTR(-ENODEV);
+	}
 }
 
 /*
@@ -420,8 +491,8 @@ static void mpc512x_clk_preset_data(void)
  *   values
  */
 static void mpc512x_clk_setup_ref_clock(struct device_node *np, int bus_freq,
-					int *sys_mul, int *sys_div,
-					int *ips_div)
+										int *sys_mul, int *sys_div,
+										int *ips_div)
 {
 	struct clk *osc_clk;
 	int calc_freq;
@@ -443,17 +514,21 @@ static void mpc512x_clk_setup_ref_clock(struct device_node *np, int bus_freq,
 	 * in either case the REF clock gets created here and the
 	 * remainder of the clock tree can get spanned from there
 	 */
-	if (!IS_ERR(osc_clk)) {
+	if (!IS_ERR(osc_clk))
+	{
 		clks[MPC512x_CLK_REF] = mpc512x_clk_factor("ref", "osc", 1, 1);
 		calc_freq = clk_get_rate(clks[MPC512x_CLK_REF]);
 		calc_freq *= *sys_mul;
 		calc_freq /= *sys_div;
 		calc_freq /= 2;
 		calc_freq /= *ips_div;
+
 		if (bus_freq && calc_freq != bus_freq)
 			pr_warn("calc rate %d != OF spec %d\n",
-				calc_freq, bus_freq);
-	} else {
+					calc_freq, bus_freq);
+	}
+	else
+	{
 		calc_freq = bus_freq;	/* start with IPS */
 		calc_freq *= *ips_div;	/* IPS -> CSB */
 		calc_freq *= 2;		/* CSB -> SYS */
@@ -498,22 +573,26 @@ static void mpc512x_clk_setup_ref_clock(struct device_node *np, int bus_freq,
  * it's the very data type dictated by <linux/clk-provider.h>,
  * "fixing" this warning will break compilation
  */
-static const char *parent_names_mux0_spdif[] = {
+static const char *parent_names_mux0_spdif[] =
+{
 	"sys", "ref", "psc-mclk-in", "spdif-tx",
 };
 
-static const char *parent_names_mux0_canin[] = {
+static const char *parent_names_mux0_canin[] =
+{
 	"sys", "ref", "psc-mclk-in", "can-clk-in",
 };
 
-enum mclk_type {
+enum mclk_type
+{
 	MCLK_TYPE_PSC,
 	MCLK_TYPE_MSCAN,
 	MCLK_TYPE_SPDIF,
 	MCLK_TYPE_OUTCLK,
 };
 
-struct mclk_setup_data {
+struct mclk_setup_data
+{
 	enum mclk_type type;
 	bool has_mclk1;
 	const char *name_mux0;
@@ -524,42 +603,43 @@ struct mclk_setup_data {
 };
 
 #define MCLK_SETUP_DATA_PSC(id) { \
-	MCLK_TYPE_PSC, 0, \
-	"psc" #id "-mux0", \
-	"psc" #id "-en0", \
-	"psc" #id "_mclk_div", \
-	{ "psc" #id "_mclk_div", "dummy", }, \
-	"psc" #id "_mclk", \
-}
+		MCLK_TYPE_PSC, 0, \
+		"psc" #id "-mux0", \
+		"psc" #id "-en0", \
+		"psc" #id "_mclk_div", \
+		{ "psc" #id "_mclk_div", "dummy", }, \
+		"psc" #id "_mclk", \
+	}
 
 #define MCLK_SETUP_DATA_MSCAN(id) { \
-	MCLK_TYPE_MSCAN, 0, \
-	"mscan" #id "-mux0", \
-	"mscan" #id "-en0", \
-	"mscan" #id "_mclk_div", \
-	{ "mscan" #id "_mclk_div", "dummy", }, \
-	"mscan" #id "_mclk", \
-}
+		MCLK_TYPE_MSCAN, 0, \
+		"mscan" #id "-mux0", \
+		"mscan" #id "-en0", \
+		"mscan" #id "_mclk_div", \
+		{ "mscan" #id "_mclk_div", "dummy", }, \
+		"mscan" #id "_mclk", \
+	}
 
 #define MCLK_SETUP_DATA_SPDIF { \
-	MCLK_TYPE_SPDIF, 1, \
-	"spdif-mux0", \
-	"spdif-en0", \
-	"spdif_mclk_div", \
-	{ "spdif_mclk_div", "spdif-rx", }, \
-	"spdif_mclk", \
-}
+		MCLK_TYPE_SPDIF, 1, \
+		"spdif-mux0", \
+		"spdif-en0", \
+		"spdif_mclk_div", \
+		{ "spdif_mclk_div", "spdif-rx", }, \
+		"spdif_mclk", \
+	}
 
 #define MCLK_SETUP_DATA_OUTCLK(id) { \
-	MCLK_TYPE_OUTCLK, 0, \
-	"out" #id "-mux0", \
-	"out" #id "-en0", \
-	"out" #id "_mclk_div", \
-	{ "out" #id "_mclk_div", "dummy", }, \
-	"out" #id "_clk", \
-}
+		MCLK_TYPE_OUTCLK, 0, \
+		"out" #id "-mux0", \
+		"out" #id "-en0", \
+		"out" #id "_mclk_div", \
+		{ "out" #id "_mclk_div", "dummy", }, \
+		"out" #id "_clk", \
+	}
 
-static struct mclk_setup_data mclk_psc_data[] = {
+static struct mclk_setup_data mclk_psc_data[] =
+{
 	MCLK_SETUP_DATA_PSC(0),
 	MCLK_SETUP_DATA_PSC(1),
 	MCLK_SETUP_DATA_PSC(2),
@@ -574,18 +654,21 @@ static struct mclk_setup_data mclk_psc_data[] = {
 	MCLK_SETUP_DATA_PSC(11),
 };
 
-static struct mclk_setup_data mclk_mscan_data[] = {
+static struct mclk_setup_data mclk_mscan_data[] =
+{
 	MCLK_SETUP_DATA_MSCAN(0),
 	MCLK_SETUP_DATA_MSCAN(1),
 	MCLK_SETUP_DATA_MSCAN(2),
 	MCLK_SETUP_DATA_MSCAN(3),
 };
 
-static struct mclk_setup_data mclk_spdif_data[] = {
+static struct mclk_setup_data mclk_spdif_data[] =
+{
 	MCLK_SETUP_DATA_SPDIF,
 };
 
-static struct mclk_setup_data mclk_outclk_data[] = {
+static struct mclk_setup_data mclk_outclk_data[] =
+{
 	MCLK_SETUP_DATA_OUTCLK(0),
 	MCLK_SETUP_DATA_OUTCLK(1),
 	MCLK_SETUP_DATA_OUTCLK(2),
@@ -600,34 +683,39 @@ static void mpc512x_clk_setup_mclk(struct mclk_setup_data *entry, size_t idx)
 	int div;
 
 	/* derive a few parameters from the component type and index */
-	switch (entry->type) {
-	case MCLK_TYPE_PSC:
-		clks_idx_pub = MPC512x_CLK_PSC0_MCLK + idx;
-		clks_idx_int = MPC512x_CLK_MCLKS_FIRST
-			     + (idx) * MCLK_MAX_IDX;
-		mccr_reg = &clkregs->psc_ccr[idx];
-		break;
-	case MCLK_TYPE_MSCAN:
-		clks_idx_pub = MPC512x_CLK_MSCAN0_MCLK + idx;
-		clks_idx_int = MPC512x_CLK_MCLKS_FIRST
-			     + (NR_PSCS + idx) * MCLK_MAX_IDX;
-		mccr_reg = &clkregs->mscan_ccr[idx];
-		break;
-	case MCLK_TYPE_SPDIF:
-		clks_idx_pub = MPC512x_CLK_SPDIF_MCLK;
-		clks_idx_int = MPC512x_CLK_MCLKS_FIRST
-			     + (NR_PSCS + NR_MSCANS) * MCLK_MAX_IDX;
-		mccr_reg = &clkregs->spccr;
-		break;
-	case MCLK_TYPE_OUTCLK:
-		clks_idx_pub = MPC512x_CLK_OUT0_CLK + idx;
-		clks_idx_int = MPC512x_CLK_MCLKS_FIRST
-			     + (NR_PSCS + NR_MSCANS + NR_SPDIFS + idx)
-			     * MCLK_MAX_IDX;
-		mccr_reg = &clkregs->out_ccr[idx];
-		break;
-	default:
-		return;
+	switch (entry->type)
+	{
+		case MCLK_TYPE_PSC:
+			clks_idx_pub = MPC512x_CLK_PSC0_MCLK + idx;
+			clks_idx_int = MPC512x_CLK_MCLKS_FIRST
+						   + (idx) * MCLK_MAX_IDX;
+			mccr_reg = &clkregs->psc_ccr[idx];
+			break;
+
+		case MCLK_TYPE_MSCAN:
+			clks_idx_pub = MPC512x_CLK_MSCAN0_MCLK + idx;
+			clks_idx_int = MPC512x_CLK_MCLKS_FIRST
+						   + (NR_PSCS + idx) * MCLK_MAX_IDX;
+			mccr_reg = &clkregs->mscan_ccr[idx];
+			break;
+
+		case MCLK_TYPE_SPDIF:
+			clks_idx_pub = MPC512x_CLK_SPDIF_MCLK;
+			clks_idx_int = MPC512x_CLK_MCLKS_FIRST
+						   + (NR_PSCS + NR_MSCANS) * MCLK_MAX_IDX;
+			mccr_reg = &clkregs->spccr;
+			break;
+
+		case MCLK_TYPE_OUTCLK:
+			clks_idx_pub = MPC512x_CLK_OUT0_CLK + idx;
+			clks_idx_int = MPC512x_CLK_MCLKS_FIRST
+						   + (NR_PSCS + NR_MSCANS + NR_SPDIFS + idx)
+						   * MCLK_MAX_IDX;
+			mccr_reg = &clkregs->out_ccr[idx];
+			break;
+
+		default:
+			return;
 	}
 
 	/*
@@ -675,28 +763,32 @@ static void mpc512x_clk_setup_mclk(struct mclk_setup_data *entry, size_t idx)
 	clks[clks_idx_int + MCLK_IDX_MUX0] = mpc512x_clk_muxed(
 			entry->name_mux0,
 			soc_has_mclk_mux0_canin()
-				? &parent_names_mux0_canin[0]
-				: &parent_names_mux0_spdif[0],
+			? &parent_names_mux0_canin[0]
+			: &parent_names_mux0_spdif[0],
 			ARRAY_SIZE(parent_names_mux0_spdif),
 			mccr_reg, 14, 2);
 	clks[clks_idx_int + MCLK_IDX_EN0] = mpc512x_clk_gated(
-			entry->name_en0, entry->name_mux0,
-			mccr_reg, 16);
+											entry->name_en0, entry->name_mux0,
+											mccr_reg, 16);
 	clks[clks_idx_int + MCLK_IDX_DIV0] = mpc512x_clk_divider(
 			entry->name_div0,
 			entry->name_en0, CLK_SET_RATE_GATE,
 			mccr_reg, 17, 15, 0);
-	if (entry->has_mclk1) {
+
+	if (entry->has_mclk1)
+	{
 		clks[clks_idx_pub] = mpc512x_clk_muxed(
-				entry->name_mclk,
-				&entry->parent_names_mux1[0],
-				ARRAY_SIZE(entry->parent_names_mux1),
-				mccr_reg, 7, 1);
-	} else {
+								 entry->name_mclk,
+								 &entry->parent_names_mux1[0],
+								 ARRAY_SIZE(entry->parent_names_mux1),
+								 mccr_reg, 7, 1);
+	}
+	else
+	{
 		clks[clks_idx_pub] = mpc512x_clk_factor(
-				entry->name_mclk,
-				entry->parent_names_mux1[0],
-				1, 1);
+								 entry->name_mclk,
+								 entry->parent_names_mux1[0],
+								 1, 1);
 	}
 }
 
@@ -734,11 +826,11 @@ static void mpc512x_clk_setup_clock_tree(struct device_node *np, int busfreq)
 
 	/* now setup the REF -> SYS -> CSB -> IPS hierarchy */
 	clks[MPC512x_CLK_SYS] = mpc512x_clk_factor("sys", "ref",
-						   sys_mul, sys_div);
+							sys_mul, sys_div);
 	clks[MPC512x_CLK_CSB] = mpc512x_clk_factor("csb", "sys", 1, 2);
 	clks[MPC512x_CLK_IPS] = mpc512x_clk_divtable("ips", "csb",
-						     &clkregs->scfr1, 23, 3,
-						     divtab_2346);
+							&clkregs->scfr1, 23, 3,
+							divtab_2346);
 	/* now setup anything below SYS and CSB and IPS */
 
 	clks[MPC512x_CLK_DDR_UG] = mpc512x_clk_factor("ddr-ug", "sys", 1, 2);
@@ -756,18 +848,20 @@ static void mpc512x_clk_setup_clock_tree(struct device_node *np, int busfreq)
 	 */
 	clks[MPC512x_CLK_SDHC_x4] = mpc512x_clk_factor("sdhc-x4", "csb", 2, 1);
 	clks[MPC512x_CLK_SDHC_UG] = mpc512x_clk_divider("sdhc-ug", "sdhc-x4", 0,
-							&clkregs->scfr2, 1, 7,
-							CLK_DIVIDER_ONE_BASED);
-	if (soc_has_sdhc2()) {
+								&clkregs->scfr2, 1, 7,
+								CLK_DIVIDER_ONE_BASED);
+
+	if (soc_has_sdhc2())
+	{
 		clks[MPC512x_CLK_SDHC2_UG] = mpc512x_clk_divider(
-				"sdhc2-ug", "sdhc-x4", 0, &clkregs->scfr2,
-				9, 7, CLK_DIVIDER_ONE_BASED);
+										 "sdhc2-ug", "sdhc-x4", 0, &clkregs->scfr2,
+										 9, 7, CLK_DIVIDER_ONE_BASED);
 	}
 
 	clks[MPC512x_CLK_DIU_x4] = mpc512x_clk_factor("diu-x4", "csb", 4, 1);
 	clks[MPC512x_CLK_DIU_UG] = mpc512x_clk_divider("diu-ug", "diu-x4", 0,
-						       &clkregs->scfr1, 0, 8,
-						       CLK_DIVIDER_ONE_BASED);
+							   &clkregs->scfr1, 0, 8,
+							   CLK_DIVIDER_ONE_BASED);
 
 	/*
 	 * the "power architecture PLL" was setup from data which was
@@ -780,121 +874,162 @@ static void mpc512x_clk_setup_clock_tree(struct device_node *np, int busfreq)
 	div = 2;	/* compensate for the fractional factor */
 	clks[MPC512x_CLK_E300] = mpc512x_clk_factor("e300", "csb", mul, div);
 
-	if (soc_has_mbx()) {
+	if (soc_has_mbx())
+	{
 		clks[MPC512x_CLK_MBX_BUS_UG] = mpc512x_clk_factor(
-				"mbx-bus-ug", "csb", 1, 2);
+										   "mbx-bus-ug", "csb", 1, 2);
 		clks[MPC512x_CLK_MBX_UG] = mpc512x_clk_divtable(
-				"mbx-ug", "mbx-bus-ug", &clkregs->scfr1,
-				14, 3, divtab_1234);
+									   "mbx-ug", "mbx-bus-ug", &clkregs->scfr1,
+									   14, 3, divtab_1234);
 		clks[MPC512x_CLK_MBX_3D_UG] = mpc512x_clk_factor(
-				"mbx-3d-ug", "mbx-ug", 1, 1);
+										  "mbx-3d-ug", "mbx-ug", 1, 1);
 	}
-	if (soc_has_pci()) {
+
+	if (soc_has_pci())
+	{
 		clks[MPC512x_CLK_PCI_UG] = mpc512x_clk_divtable(
-				"pci-ug", "csb", &clkregs->scfr1,
-				20, 3, divtab_2346);
+									   "pci-ug", "csb", &clkregs->scfr1,
+									   20, 3, divtab_2346);
 	}
-	if (soc_has_nfc_5125()) {
+
+	if (soc_has_nfc_5125())
+	{
 		/*
 		 * XXX TODO implement 5125 NFC clock setup logic,
 		 * with high/low period counters in clkregs->scfr3,
 		 * currently there are no users so it's ENOIMPL
 		 */
 		clks[MPC512x_CLK_NFC_UG] = ERR_PTR(-ENOTSUPP);
-	} else {
-		clks[MPC512x_CLK_NFC_UG] = mpc512x_clk_divtable(
-				"nfc-ug", "ips", &clkregs->scfr1,
-				8, 3, divtab_1234);
 	}
+	else
+	{
+		clks[MPC512x_CLK_NFC_UG] = mpc512x_clk_divtable(
+									   "nfc-ug", "ips", &clkregs->scfr1,
+									   8, 3, divtab_1234);
+	}
+
 	clks[MPC512x_CLK_LPC_UG] = mpc512x_clk_divtable("lpc-ug", "ips",
-							&clkregs->scfr1, 11, 3,
-							divtab_1234);
+							   &clkregs->scfr1, 11, 3,
+							   divtab_1234);
 
 	clks[MPC512x_CLK_LPC] = mpc512x_clk_gated("lpc", "lpc-ug",
-						  &clkregs->sccr1, 30);
+							&clkregs->sccr1, 30);
 	clks[MPC512x_CLK_NFC] = mpc512x_clk_gated("nfc", "nfc-ug",
-						  &clkregs->sccr1, 29);
-	if (soc_has_pata()) {
+							&clkregs->sccr1, 29);
+
+	if (soc_has_pata())
+	{
 		clks[MPC512x_CLK_PATA] = mpc512x_clk_gated(
-				"pata", "ips", &clkregs->sccr1, 28);
+									 "pata", "ips", &clkregs->sccr1, 28);
 	}
+
 	/* for PSCs there is a "registers" gate and a bitrate MCLK subtree */
-	for (mclk_idx = 0; mclk_idx < soc_max_pscnum(); mclk_idx++) {
+	for (mclk_idx = 0; mclk_idx < soc_max_pscnum(); mclk_idx++)
+	{
 		char name[12];
 		snprintf(name, sizeof(name), "psc%d", mclk_idx);
 		clks[MPC512x_CLK_PSC0 + mclk_idx] = mpc512x_clk_gated(
-				name, "ips", &clkregs->sccr1, 27 - mclk_idx);
+												name, "ips", &clkregs->sccr1, 27 - mclk_idx);
 		mpc512x_clk_setup_mclk(&mclk_psc_data[mclk_idx], mclk_idx);
 	}
+
 	clks[MPC512x_CLK_PSC_FIFO] = mpc512x_clk_gated("psc-fifo", "ips",
-						       &clkregs->sccr1, 15);
-	if (soc_has_sata()) {
+								 &clkregs->sccr1, 15);
+
+	if (soc_has_sata())
+	{
 		clks[MPC512x_CLK_SATA] = mpc512x_clk_gated(
-				"sata", "ips", &clkregs->sccr1, 14);
+									 "sata", "ips", &clkregs->sccr1, 14);
 	}
+
 	clks[MPC512x_CLK_FEC] = mpc512x_clk_gated("fec", "ips",
-						  &clkregs->sccr1, 13);
-	if (soc_has_pci()) {
+							&clkregs->sccr1, 13);
+
+	if (soc_has_pci())
+	{
 		clks[MPC512x_CLK_PCI] = mpc512x_clk_gated(
-				"pci", "pci-ug", &clkregs->sccr1, 11);
+									"pci", "pci-ug", &clkregs->sccr1, 11);
 	}
+
 	clks[MPC512x_CLK_DDR] = mpc512x_clk_gated("ddr", "ddr-ug",
-						  &clkregs->sccr1, 10);
-	if (soc_has_fec2()) {
+							&clkregs->sccr1, 10);
+
+	if (soc_has_fec2())
+	{
 		clks[MPC512x_CLK_FEC2] = mpc512x_clk_gated(
-				"fec2", "ips", &clkregs->sccr1, 9);
+									 "fec2", "ips", &clkregs->sccr1, 9);
 	}
 
 	clks[MPC512x_CLK_DIU] = mpc512x_clk_gated("diu", "diu-ug",
-						  &clkregs->sccr2, 31);
-	if (soc_has_axe()) {
+							&clkregs->sccr2, 31);
+
+	if (soc_has_axe())
+	{
 		clks[MPC512x_CLK_AXE] = mpc512x_clk_gated(
-				"axe", "csb", &clkregs->sccr2, 30);
-	}
-	clks[MPC512x_CLK_MEM] = mpc512x_clk_gated("mem", "ips",
-						  &clkregs->sccr2, 29);
-	clks[MPC512x_CLK_USB1] = mpc512x_clk_gated("usb1", "csb",
-						   &clkregs->sccr2, 28);
-	clks[MPC512x_CLK_USB2] = mpc512x_clk_gated("usb2", "csb",
-						   &clkregs->sccr2, 27);
-	clks[MPC512x_CLK_I2C] = mpc512x_clk_gated("i2c", "ips",
-						  &clkregs->sccr2, 26);
-	/* MSCAN differs from PSC with just one gate for multiple components */
-	clks[MPC512x_CLK_BDLC] = mpc512x_clk_gated("bdlc", "ips",
-						   &clkregs->sccr2, 25);
-	for (mclk_idx = 0; mclk_idx < ARRAY_SIZE(mclk_mscan_data); mclk_idx++)
-		mpc512x_clk_setup_mclk(&mclk_mscan_data[mclk_idx], mclk_idx);
-	clks[MPC512x_CLK_SDHC] = mpc512x_clk_gated("sdhc", "sdhc-ug",
-						   &clkregs->sccr2, 24);
-	/* there is only one SPDIF component, which shares MCLK support code */
-	if (soc_has_spdif()) {
-		clks[MPC512x_CLK_SPDIF] = mpc512x_clk_gated(
-				"spdif", "ips", &clkregs->sccr2, 23);
-		mpc512x_clk_setup_mclk(&mclk_spdif_data[0], 0);
-	}
-	if (soc_has_mbx()) {
-		clks[MPC512x_CLK_MBX_BUS] = mpc512x_clk_gated(
-				"mbx-bus", "mbx-bus-ug", &clkregs->sccr2, 22);
-		clks[MPC512x_CLK_MBX] = mpc512x_clk_gated(
-				"mbx", "mbx-ug", &clkregs->sccr2, 21);
-		clks[MPC512x_CLK_MBX_3D] = mpc512x_clk_gated(
-				"mbx-3d", "mbx-3d-ug", &clkregs->sccr2, 20);
-	}
-	clks[MPC512x_CLK_IIM] = mpc512x_clk_gated("iim", "csb",
-						  &clkregs->sccr2, 19);
-	if (soc_has_viu()) {
-		clks[MPC512x_CLK_VIU] = mpc512x_clk_gated(
-				"viu", "csb", &clkregs->sccr2, 18);
-	}
-	if (soc_has_sdhc2()) {
-		clks[MPC512x_CLK_SDHC2] = mpc512x_clk_gated(
-				"sdhc-2", "sdhc2-ug", &clkregs->sccr2, 17);
+									"axe", "csb", &clkregs->sccr2, 30);
 	}
 
-	if (soc_has_outclk()) {
+	clks[MPC512x_CLK_MEM] = mpc512x_clk_gated("mem", "ips",
+							&clkregs->sccr2, 29);
+	clks[MPC512x_CLK_USB1] = mpc512x_clk_gated("usb1", "csb",
+							 &clkregs->sccr2, 28);
+	clks[MPC512x_CLK_USB2] = mpc512x_clk_gated("usb2", "csb",
+							 &clkregs->sccr2, 27);
+	clks[MPC512x_CLK_I2C] = mpc512x_clk_gated("i2c", "ips",
+							&clkregs->sccr2, 26);
+	/* MSCAN differs from PSC with just one gate for multiple components */
+	clks[MPC512x_CLK_BDLC] = mpc512x_clk_gated("bdlc", "ips",
+							 &clkregs->sccr2, 25);
+
+	for (mclk_idx = 0; mclk_idx < ARRAY_SIZE(mclk_mscan_data); mclk_idx++)
+	{
+		mpc512x_clk_setup_mclk(&mclk_mscan_data[mclk_idx], mclk_idx);
+	}
+
+	clks[MPC512x_CLK_SDHC] = mpc512x_clk_gated("sdhc", "sdhc-ug",
+							 &clkregs->sccr2, 24);
+
+	/* there is only one SPDIF component, which shares MCLK support code */
+	if (soc_has_spdif())
+	{
+		clks[MPC512x_CLK_SPDIF] = mpc512x_clk_gated(
+									  "spdif", "ips", &clkregs->sccr2, 23);
+		mpc512x_clk_setup_mclk(&mclk_spdif_data[0], 0);
+	}
+
+	if (soc_has_mbx())
+	{
+		clks[MPC512x_CLK_MBX_BUS] = mpc512x_clk_gated(
+										"mbx-bus", "mbx-bus-ug", &clkregs->sccr2, 22);
+		clks[MPC512x_CLK_MBX] = mpc512x_clk_gated(
+									"mbx", "mbx-ug", &clkregs->sccr2, 21);
+		clks[MPC512x_CLK_MBX_3D] = mpc512x_clk_gated(
+									   "mbx-3d", "mbx-3d-ug", &clkregs->sccr2, 20);
+	}
+
+	clks[MPC512x_CLK_IIM] = mpc512x_clk_gated("iim", "csb",
+							&clkregs->sccr2, 19);
+
+	if (soc_has_viu())
+	{
+		clks[MPC512x_CLK_VIU] = mpc512x_clk_gated(
+									"viu", "csb", &clkregs->sccr2, 18);
+	}
+
+	if (soc_has_sdhc2())
+	{
+		clks[MPC512x_CLK_SDHC2] = mpc512x_clk_gated(
+									  "sdhc-2", "sdhc2-ug", &clkregs->sccr2, 17);
+	}
+
+	if (soc_has_outclk())
+	{
 		size_t idx;	/* used as mclk_idx, just to trim line length */
+
 		for (idx = 0; idx < ARRAY_SIZE(mclk_outclk_data); idx++)
+		{
 			mpc512x_clk_setup_mclk(&mclk_outclk_data[idx], idx);
+		}
 	}
 
 	/*
@@ -902,20 +1037,28 @@ static void mpc512x_clk_setup_clock_tree(struct device_node *np, int busfreq)
 	 * device tree may specify values which otherwise were unknown)
 	 */
 	freq = get_freq_from_dt("psc_mclk_in");
+
 	if (!freq)
+	{
 		freq = 25000000;
+	}
+
 	clks[MPC512x_CLK_PSC_MCLK_IN] = mpc512x_clk_fixed("psc_mclk_in", freq);
-	if (soc_has_mclk_mux0_canin()) {
+
+	if (soc_has_mclk_mux0_canin())
+	{
 		freq = get_freq_from_dt("can_clk_in");
 		clks[MPC512x_CLK_CAN_CLK_IN] = mpc512x_clk_fixed(
-				"can_clk_in", freq);
-	} else {
+										   "can_clk_in", freq);
+	}
+	else
+	{
 		freq = get_freq_from_dt("spdif_tx_in");
 		clks[MPC512x_CLK_SPDIF_TX_IN] = mpc512x_clk_fixed(
-				"spdif_tx_in", freq);
+											"spdif_tx_in", freq);
 		freq = get_freq_from_dt("spdif_rx_in");
 		clks[MPC512x_CLK_SPDIF_TX_IN] = mpc512x_clk_fixed(
-				"spdif_rx_in", freq);
+											"spdif_rx_in", freq);
 	}
 
 	/* fixed frequency for AC97, always 24.567MHz */
@@ -971,8 +1114,11 @@ static void mpc5121_clk_provide_migration_support(void)
 	 * unused and so it gets disabled
 	 */
 	clk_prepare_enable(clks[MPC512x_CLK_PSC3_MCLK]);/* serial console */
+
 	if (of_find_compatible_node(NULL, "pci", "fsl,mpc5121-pci"))
+	{
 		clk_prepare_enable(clks[MPC512x_CLK_PCI]);
+	}
 }
 
 /*
@@ -984,25 +1130,25 @@ static void mpc5121_clk_provide_migration_support(void)
 	for_each_compatible_node(np, NULL, compatname)
 
 #define NODE_PREP do { \
-	of_address_to_resource(np, 0, &res); \
-	snprintf(devname, sizeof(devname), "%08x.%s", res.start, np->name); \
-} while (0)
+		of_address_to_resource(np, 0, &res); \
+		snprintf(devname, sizeof(devname), "%08x.%s", res.start, np->name); \
+	} while (0)
 
 #define NODE_CHK(clkname, clkitem, regnode, regflag) do { \
-	struct clk *clk; \
-	clk = of_clk_get_by_name(np, clkname); \
-	if (IS_ERR(clk)) { \
-		clk = clkitem; \
-		clk_register_clkdev(clk, clkname, devname); \
-		if (regnode) \
-			clk_register_clkdev(clk, clkname, np->name); \
-		did_register |= DID_REG_ ## regflag; \
-		pr_debug("clock alias name '%s' for dev '%s' pointer %p\n", \
-			 clkname, devname, clk); \
-	} else { \
-		clk_put(clk); \
-	} \
-} while (0)
+		struct clk *clk; \
+		clk = of_clk_get_by_name(np, clkname); \
+		if (IS_ERR(clk)) { \
+			clk = clkitem; \
+			clk_register_clkdev(clk, clkname, devname); \
+			if (regnode) \
+				clk_register_clkdev(clk, clkname, np->name); \
+			did_register |= DID_REG_ ## regflag; \
+			pr_debug("clock alias name '%s' for dev '%s' pointer %p\n", \
+					 clkname, devname, clk); \
+		} else { \
+			clk_put(clk); \
+		} \
+	} while (0)
 
 /*
  * register source code provided fallback results for clock lookups,
@@ -1012,7 +1158,8 @@ static void mpc5121_clk_provide_migration_support(void)
  */
 static void mpc5121_clk_provide_backwards_compat(void)
 {
-	enum did_reg_flags {
+	enum did_reg_flags
+	{
 		DID_REG_PSC	= BIT(0),
 		DID_REG_PSCFIFO	= BIT(1),
 		DID_REG_NFC	= BIT(2),
@@ -1033,24 +1180,28 @@ static void mpc5121_clk_provide_backwards_compat(void)
 
 	did_register = 0;
 
-	FOR_NODES(mpc512x_select_psc_compat()) {
+	FOR_NODES(mpc512x_select_psc_compat())
+	{
 		NODE_PREP;
 		idx = (res.start >> 8) & 0xf;
 		NODE_CHK("ipg", clks[MPC512x_CLK_PSC0 + idx], 0, PSC);
 		NODE_CHK("mclk", clks[MPC512x_CLK_PSC0_MCLK + idx], 0, PSC);
 	}
 
-	FOR_NODES("fsl,mpc5121-psc-fifo") {
+	FOR_NODES("fsl,mpc5121-psc-fifo")
+	{
 		NODE_PREP;
 		NODE_CHK("ipg", clks[MPC512x_CLK_PSC_FIFO], 1, PSCFIFO);
 	}
 
-	FOR_NODES("fsl,mpc5121-nfc") {
+	FOR_NODES("fsl,mpc5121-nfc")
+	{
 		NODE_PREP;
 		NODE_CHK("ipg", clks[MPC512x_CLK_NFC], 0, NFC);
 	}
 
-	FOR_NODES("fsl,mpc5121-mscan") {
+	FOR_NODES("fsl,mpc5121-mscan")
+	{
 		NODE_PREP;
 		idx = 0;
 		idx += (res.start & 0x2000) ? 2 : 0;
@@ -1064,13 +1215,15 @@ static void mpc5121_clk_provide_backwards_compat(void)
 	 * instead of inside each individual CAN node, as there is no
 	 * potential for a name conflict (in contrast to 'ipg' and 'mclk')
 	 */
-	if (did_register & DID_REG_CAN) {
+	if (did_register & DID_REG_CAN)
+	{
 		clk_register_clkdev(clks[MPC512x_CLK_IPS], "ips", NULL);
 		clk_register_clkdev(clks[MPC512x_CLK_SYS], "sys", NULL);
 		clk_register_clkdev(clks[MPC512x_CLK_REF], "ref", NULL);
 	}
 
-	FOR_NODES("fsl,mpc5121-i2c") {
+	FOR_NODES("fsl,mpc5121-i2c")
+	{
 		NODE_PREP;
 		NODE_CHK("ipg", clks[MPC512x_CLK_I2C], 0, I2C);
 	}
@@ -1091,14 +1244,18 @@ static void mpc5121_clk_provide_backwards_compat(void)
 	 * workaround obsolete
 	 */
 	if (did_register & DID_REG_I2C)
+	{
 		clk_prepare_enable(clks[MPC512x_CLK_I2C]);
+	}
 
-	FOR_NODES("fsl,mpc5121-diu") {
+	FOR_NODES("fsl,mpc5121-diu")
+	{
 		NODE_PREP;
 		NODE_CHK("ipg", clks[MPC512x_CLK_DIU], 1, DIU);
 	}
 
-	FOR_NODES("fsl,mpc5121-viu") {
+	FOR_NODES("fsl,mpc5121-viu")
+	{
 		NODE_PREP;
 		NODE_CHK("ipg", clks[MPC512x_CLK_VIU], 0, VIU);
 	}
@@ -1110,11 +1267,13 @@ static void mpc5121_clk_provide_backwards_compat(void)
 	 * but just something to keep in mind when doing compatibility
 	 * registration, it's a non-issue with up-to-date device tree data
 	 */
-	FOR_NODES("fsl,mpc5121-fec") {
+	FOR_NODES("fsl,mpc5121-fec")
+	{
 		NODE_PREP;
 		NODE_CHK("per", clks[MPC512x_CLK_FEC], 0, FEC);
 	}
-	FOR_NODES("fsl,mpc5121-fec-mdio") {
+	FOR_NODES("fsl,mpc5121-fec-mdio")
+	{
 		NODE_PREP;
 		NODE_CHK("per", clks[MPC512x_CLK_FEC], 0, FEC);
 	}
@@ -1124,22 +1283,31 @@ static void mpc5121_clk_provide_backwards_compat(void)
 	 * added only later and was not allowed to shift all other
 	 * clock item indices, so the numbers aren't adjacent
 	 */
-	FOR_NODES("fsl,mpc5125-fec") {
+	FOR_NODES("fsl,mpc5125-fec")
+	{
 		NODE_PREP;
+
 		if (res.start & 0x4000)
+		{
 			idx = MPC512x_CLK_FEC2;
+		}
 		else
+		{
 			idx = MPC512x_CLK_FEC;
+		}
+
 		NODE_CHK("per", clks[idx], 0, FEC);
 	}
 
-	FOR_NODES("fsl,mpc5121-usb2-dr") {
+	FOR_NODES("fsl,mpc5121-usb2-dr")
+	{
 		NODE_PREP;
 		idx = (res.start & 0x4000) ? 1 : 0;
 		NODE_CHK("ipg", clks[MPC512x_CLK_USB1 + idx], 0, USB);
 	}
 
-	FOR_NODES("fsl,mpc5121-pata") {
+	FOR_NODES("fsl,mpc5121-pata")
+	{
 		NODE_PREP;
 		NODE_CHK("ipg", clks[MPC512x_CLK_PATA], 0, PATA);
 	}
@@ -1151,20 +1319,23 @@ static void mpc5121_clk_provide_backwards_compat(void)
 	 * compatibility to old DTBs is a requirement, updates may be
 	 * desirable or preferrable but are not at all mandatory
 	 */
-	if (did_register) {
+	if (did_register)
+	{
 		pr_notice("device tree lacks clock specs, adding fallbacks (0x%x,%s%s%s%s%s%s%s%s%s%s)\n",
-			  did_register,
-			  (did_register & DID_REG_PSC) ? " PSC" : "",
-			  (did_register & DID_REG_PSCFIFO) ? " PSCFIFO" : "",
-			  (did_register & DID_REG_NFC) ? " NFC" : "",
-			  (did_register & DID_REG_CAN) ? " CAN" : "",
-			  (did_register & DID_REG_I2C) ? " I2C" : "",
-			  (did_register & DID_REG_DIU) ? " DIU" : "",
-			  (did_register & DID_REG_VIU) ? " VIU" : "",
-			  (did_register & DID_REG_FEC) ? " FEC" : "",
-			  (did_register & DID_REG_USB) ? " USB" : "",
-			  (did_register & DID_REG_PATA) ? " PATA" : "");
-	} else {
+				  did_register,
+				  (did_register & DID_REG_PSC) ? " PSC" : "",
+				  (did_register & DID_REG_PSCFIFO) ? " PSCFIFO" : "",
+				  (did_register & DID_REG_NFC) ? " NFC" : "",
+				  (did_register & DID_REG_CAN) ? " CAN" : "",
+				  (did_register & DID_REG_I2C) ? " I2C" : "",
+				  (did_register & DID_REG_DIU) ? " DIU" : "",
+				  (did_register & DID_REG_VIU) ? " VIU" : "",
+				  (did_register & DID_REG_FEC) ? " FEC" : "",
+				  (did_register & DID_REG_USB) ? " USB" : "",
+				  (did_register & DID_REG_PATA) ? " PATA" : "");
+	}
+	else
+	{
 		pr_debug("device tree has clock specs, no fallbacks added\n");
 	}
 }
@@ -1181,8 +1352,12 @@ int __init mpc5121_clk_init(void)
 
 	/* map the clock control registers */
 	clk_np = of_find_compatible_node(NULL, NULL, "fsl,mpc5121-clock");
+
 	if (!clk_np)
+	{
 		return -ENODEV;
+	}
+
 	clkregs = of_iomap(clk_np, 0);
 	WARN_ON(!clkregs);
 

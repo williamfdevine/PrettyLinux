@@ -79,7 +79,8 @@
 #define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB)
 #define UFCON (S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE)
 
-static struct s3c2410_uartcfg crag6410_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg crag6410_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport		= 0,
 		.flags		= 0,
@@ -110,18 +111,21 @@ static struct s3c2410_uartcfg crag6410_uartcfgs[] __initdata = {
 	},
 };
 
-static struct pwm_lookup crag6410_pwm_lookup[] = {
+static struct pwm_lookup crag6410_pwm_lookup[] =
+{
 	PWM_LOOKUP("samsung-pwm", 0, "pwm-backlight", NULL, 100000,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data crag6410_backlight_data = {
+static struct platform_pwm_backlight_data crag6410_backlight_data =
+{
 	.max_brightness	= 1000,
 	.dft_brightness	= 600,
 	.enable_gpio	= -1,
 };
 
-static struct platform_device crag6410_backlight_device = {
+static struct platform_device crag6410_backlight_device =
+{
 	.name		= "pwm-backlight",
 	.id		= -1,
 	.dev		= {
@@ -134,27 +138,33 @@ static void crag6410_lcd_power_set(struct plat_lcd_data *pd, unsigned int power)
 {
 	pr_debug("%s: setting power %d\n", __func__, power);
 
-	if (power) {
+	if (power)
+	{
 		gpio_set_value(S3C64XX_GPB(0), 1);
 		msleep(1);
 		s3c_gpio_cfgpin(S3C64XX_GPF(14), S3C_GPIO_SFN(2));
-	} else {
+	}
+	else
+	{
 		gpio_direction_output(S3C64XX_GPF(14), 0);
 		gpio_set_value(S3C64XX_GPB(0), 0);
 	}
 }
 
-static struct platform_device crag6410_lcd_powerdev = {
+static struct platform_device crag6410_lcd_powerdev =
+{
 	.name			= "platform-lcd",
 	.id			= -1,
 	.dev.parent		= &s3c_device_fb.dev,
-	.dev.platform_data	= &(struct plat_lcd_data) {
+	.dev.platform_data	= &(struct plat_lcd_data)
+	{
 		.set_power	= crag6410_lcd_power_set,
 	},
 };
 
 /* 640x480 URT */
-static struct s3c_fb_pd_win crag6410_fb_win0 = {
+static struct s3c_fb_pd_win crag6410_fb_win0 =
+{
 	.max_bpp	= 32,
 	.default_bpp	= 16,
 	.xres		= 640,
@@ -163,7 +173,8 @@ static struct s3c_fb_pd_win crag6410_fb_win0 = {
 	.virtual_x	= 640,
 };
 
-static struct fb_videomode crag6410_lcd_timing = {
+static struct fb_videomode crag6410_lcd_timing =
+{
 	.left_margin	= 150,
 	.right_margin	= 80,
 	.upper_margin	= 40,
@@ -175,7 +186,8 @@ static struct fb_videomode crag6410_lcd_timing = {
 };
 
 /* 405566 clocks per frame => 60Hz refresh requires 24333960Hz clock */
-static struct s3c_fb_platdata crag6410_lcd_pdata = {
+static struct s3c_fb_platdata crag6410_lcd_pdata =
+{
 	.setup_gpio	= s3c64xx_fb_gpio_setup_24bpp,
 	.vtiming	= &crag6410_lcd_timing,
 	.win[0]		= &crag6410_fb_win0,
@@ -185,7 +197,8 @@ static struct s3c_fb_platdata crag6410_lcd_pdata = {
 
 /* 2x6 keypad */
 
-static uint32_t crag6410_keymap[] = {
+static uint32_t crag6410_keymap[] =
+{
 	/* KEY(row, col, keycode) */
 	KEY(0, 0, KEY_VOLUMEUP),
 	KEY(0, 1, KEY_HOME),
@@ -201,18 +214,21 @@ static uint32_t crag6410_keymap[] = {
 	KEY(1, 5, KEY_CAMERA),
 };
 
-static struct matrix_keymap_data crag6410_keymap_data = {
+static struct matrix_keymap_data crag6410_keymap_data =
+{
 	.keymap		= crag6410_keymap,
 	.keymap_size	= ARRAY_SIZE(crag6410_keymap),
 };
 
-static struct samsung_keypad_platdata crag6410_keypad_data = {
+static struct samsung_keypad_platdata crag6410_keypad_data =
+{
 	.keymap_data	= &crag6410_keymap_data,
 	.rows		= 2,
 	.cols		= 6,
 };
 
-static struct gpio_keys_button crag6410_gpio_keys[] = {
+static struct gpio_keys_button crag6410_gpio_keys[] =
+{
 	[0] = {
 		.code	= KEY_SUSPEND,
 		.gpio	= S3C64XX_GPL(10),	/* EINT 18 */
@@ -227,29 +243,34 @@ static struct gpio_keys_button crag6410_gpio_keys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data crag6410_gpio_keydata = {
+static struct gpio_keys_platform_data crag6410_gpio_keydata =
+{
 	.buttons	= crag6410_gpio_keys,
 	.nbuttons	= ARRAY_SIZE(crag6410_gpio_keys),
 };
 
-static struct platform_device crag6410_gpio_keydev = {
+static struct platform_device crag6410_gpio_keydev =
+{
 	.name		= "gpio-keys",
 	.id		= 0,
 	.dev.platform_data = &crag6410_gpio_keydata,
 };
 
-static struct resource crag6410_dm9k_resource[] = {
+static struct resource crag6410_dm9k_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C64XX_PA_XM0CSN5, 2),
 	[1] = DEFINE_RES_MEM(S3C64XX_PA_XM0CSN5 + (1 << 8), 2),
 	[2] = DEFINE_RES_NAMED(S3C_EINT(17), 1, NULL, IORESOURCE_IRQ \
-				| IORESOURCE_IRQ_HIGHLEVEL),
+	| IORESOURCE_IRQ_HIGHLEVEL),
 };
 
-static struct dm9000_plat_data mini6410_dm9k_pdata = {
+static struct dm9000_plat_data mini6410_dm9k_pdata =
+{
 	.flags	= DM9000_PLATF_16BITONLY,
 };
 
-static struct platform_device crag6410_dm9k_device = {
+static struct platform_device crag6410_dm9k_device =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(crag6410_dm9k_resource),
@@ -257,56 +278,67 @@ static struct platform_device crag6410_dm9k_device = {
 	.dev.platform_data = &mini6410_dm9k_pdata,
 };
 
-static struct resource crag6410_mmgpio_resource[] = {
+static struct resource crag6410_mmgpio_resource[] =
+{
 	[0] = DEFINE_RES_MEM_NAMED(S3C64XX_PA_XM0CSN4, 1, "dat"),
 };
 
-static struct platform_device crag6410_mmgpio = {
+static struct platform_device crag6410_mmgpio =
+{
 	.name		= "basic-mmio-gpio",
 	.id		= -1,
 	.resource	= crag6410_mmgpio_resource,
 	.num_resources	= ARRAY_SIZE(crag6410_mmgpio_resource),
-	.dev.platform_data = &(struct bgpio_pdata) {
+	.dev.platform_data = &(struct bgpio_pdata)
+	{
 		.base	= MMGPIO_GPIO_BASE,
 	},
 };
 
-static struct platform_device speyside_device = {
+static struct platform_device speyside_device =
+{
 	.name		= "speyside",
 	.id		= -1,
 };
 
-static struct platform_device lowland_device = {
+static struct platform_device lowland_device =
+{
 	.name		= "lowland",
 	.id		= -1,
 };
 
-static struct platform_device tobermory_device = {
+static struct platform_device tobermory_device =
+{
 	.name		= "tobermory",
 	.id		= -1,
 };
 
-static struct platform_device littlemill_device = {
+static struct platform_device littlemill_device =
+{
 	.name		= "littlemill",
 	.id		= -1,
 };
 
-static struct platform_device bells_wm2200_device = {
+static struct platform_device bells_wm2200_device =
+{
 	.name		= "bells",
 	.id		= 0,
 };
 
-static struct platform_device bells_wm5102_device = {
+static struct platform_device bells_wm5102_device =
+{
 	.name		= "bells",
 	.id		= 1,
 };
 
-static struct platform_device bells_wm5110_device = {
+static struct platform_device bells_wm5110_device =
+{
 	.name		= "bells",
 	.id		= 2,
 };
 
-static struct regulator_consumer_supply wallvdd_consumers[] = {
+static struct regulator_consumer_supply wallvdd_consumers[] =
+{
 	REGULATOR_SUPPLY("SPKVDD", "1-001a"),
 	REGULATOR_SUPPLY("SPKVDD1", "1-001a"),
 	REGULATOR_SUPPLY("SPKVDD2", "1-001a"),
@@ -345,7 +377,8 @@ static struct regulator_consumer_supply wallvdd_consumers[] = {
 	REGULATOR_SUPPLY("LDO11VDD", "1-0034"),
 };
 
-static struct regulator_init_data wallvdd_data = {
+static struct regulator_init_data wallvdd_data =
+{
 	.constraints = {
 		.always_on = 1,
 	},
@@ -353,14 +386,16 @@ static struct regulator_init_data wallvdd_data = {
 	.consumer_supplies = wallvdd_consumers,
 };
 
-static struct fixed_voltage_config wallvdd_pdata = {
+static struct fixed_voltage_config wallvdd_pdata =
+{
 	.supply_name = "WALLVDD",
 	.microvolts = 5000000,
 	.init_data = &wallvdd_data,
 	.gpio = -EINVAL,
 };
 
-static struct platform_device wallvdd_device = {
+static struct platform_device wallvdd_device =
+{
 	.name		= "reg-fixed-voltage",
 	.id		= -1,
 	.dev = {
@@ -368,7 +403,8 @@ static struct platform_device wallvdd_device = {
 	},
 };
 
-static struct platform_device *crag6410_devices[] __initdata = {
+static struct platform_device *crag6410_devices[] __initdata =
+{
 	&s3c_device_hsmmc0,
 	&s3c_device_hsmmc2,
 	&s3c_device_i2c0,
@@ -396,22 +432,26 @@ static struct platform_device *crag6410_devices[] __initdata = {
 	&wallvdd_device,
 };
 
-static struct pca953x_platform_data crag6410_pca_data = {
+static struct pca953x_platform_data crag6410_pca_data =
+{
 	.gpio_base	= PCA935X_GPIO_BASE,
 	.irq_base	= -1,
 };
 
 /* VDDARM is controlled by DVS1 connected to GPK(0) */
-static struct wm831x_buckv_pdata vddarm_pdata = {
+static struct wm831x_buckv_pdata vddarm_pdata =
+{
 	.dvs_control_src = 1,
 	.dvs_gpio = S3C64XX_GPK(0),
 };
 
-static struct regulator_consumer_supply vddarm_consumers[] = {
+static struct regulator_consumer_supply vddarm_consumers[] =
+{
 	REGULATOR_SUPPLY("vddarm", NULL),
 };
 
-static struct regulator_init_data vddarm = {
+static struct regulator_init_data vddarm =
+{
 	.constraints = {
 		.name = "VDDARM",
 		.min_uV = 1000000,
@@ -425,11 +465,13 @@ static struct regulator_init_data vddarm = {
 	.driver_data = &vddarm_pdata,
 };
 
-static struct regulator_consumer_supply vddint_consumers[] = {
+static struct regulator_consumer_supply vddint_consumers[] =
+{
 	REGULATOR_SUPPLY("vddint", NULL),
 };
 
-static struct regulator_init_data vddint = {
+static struct regulator_init_data vddint =
+{
 	.constraints = {
 		.name = "VDDINT",
 		.min_uV = 1000000,
@@ -442,27 +484,31 @@ static struct regulator_init_data vddint = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddmem = {
+static struct regulator_init_data vddmem =
+{
 	.constraints = {
 		.name = "VDDMEM",
 		.always_on = 1,
 	},
 };
 
-static struct regulator_init_data vddsys = {
+static struct regulator_init_data vddsys =
+{
 	.constraints = {
 		.name = "VDDSYS,VDDEXT,VDDPCM,VDDSS",
 		.always_on = 1,
 	},
 };
 
-static struct regulator_consumer_supply vddmmc_consumers[] = {
+static struct regulator_consumer_supply vddmmc_consumers[] =
+{
 	REGULATOR_SUPPLY("vmmc", "s3c-sdhci.0"),
 	REGULATOR_SUPPLY("vmmc", "s3c-sdhci.1"),
 	REGULATOR_SUPPLY("vmmc", "s3c-sdhci.2"),
 };
 
-static struct regulator_init_data vddmmc = {
+static struct regulator_init_data vddmmc =
+{
 	.constraints = {
 		.name = "VDDMMC,UH",
 		.always_on = 1,
@@ -472,7 +518,8 @@ static struct regulator_init_data vddmmc = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddotgi = {
+static struct regulator_init_data vddotgi =
+{
 	.constraints = {
 		.name = "VDDOTGi",
 		.always_on = 1,
@@ -480,7 +527,8 @@ static struct regulator_init_data vddotgi = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddotg = {
+static struct regulator_init_data vddotg =
+{
 	.constraints = {
 		.name = "VDDOTG",
 		.always_on = 1,
@@ -488,7 +536,8 @@ static struct regulator_init_data vddotg = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddhi = {
+static struct regulator_init_data vddhi =
+{
 	.constraints = {
 		.name = "VDDHI",
 		.always_on = 1,
@@ -496,7 +545,8 @@ static struct regulator_init_data vddhi = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddadc = {
+static struct regulator_init_data vddadc =
+{
 	.constraints = {
 		.name = "VDDADC,VDDDAC",
 		.always_on = 1,
@@ -504,7 +554,8 @@ static struct regulator_init_data vddadc = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddmem0 = {
+static struct regulator_init_data vddmem0 =
+{
 	.constraints = {
 		.name = "VDDMEM0",
 		.always_on = 1,
@@ -512,7 +563,8 @@ static struct regulator_init_data vddmem0 = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddpll = {
+static struct regulator_init_data vddpll =
+{
 	.constraints = {
 		.name = "VDDPLL",
 		.always_on = 1,
@@ -520,7 +572,8 @@ static struct regulator_init_data vddpll = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddlcd = {
+static struct regulator_init_data vddlcd =
+{
 	.constraints = {
 		.name = "VDDLCD",
 		.always_on = 1,
@@ -528,7 +581,8 @@ static struct regulator_init_data vddlcd = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct regulator_init_data vddalive = {
+static struct regulator_init_data vddalive =
+{
 	.constraints = {
 		.name = "VDDALIVE",
 		.always_on = 1,
@@ -536,28 +590,33 @@ static struct regulator_init_data vddalive = {
 	.supply_regulator = "WALLVDD",
 };
 
-static struct wm831x_backup_pdata banff_backup_pdata = {
+static struct wm831x_backup_pdata banff_backup_pdata =
+{
 	.charger_enable = 1,
 	.vlim = 2500,  /* mV */
 	.ilim = 200,   /* uA */
 };
 
-static struct wm831x_status_pdata banff_red_led = {
+static struct wm831x_status_pdata banff_red_led =
+{
 	.name = "banff:red:",
 	.default_src = WM831X_STATUS_MANUAL,
 };
 
-static struct wm831x_status_pdata banff_green_led = {
+static struct wm831x_status_pdata banff_green_led =
+{
 	.name = "banff:green:",
 	.default_src = WM831X_STATUS_MANUAL,
 };
 
-static struct wm831x_touch_pdata touch_pdata = {
+static struct wm831x_touch_pdata touch_pdata =
+{
 	.data_irq = S3C_EINT(26),
 	.pd_irq = S3C_EINT(27),
 };
 
-static struct wm831x_pdata crag_pmic_pdata = {
+static struct wm831x_pdata crag_pmic_pdata =
+{
 	.wm831x_num = 1,
 	.irq_base = BANFF_PMIC_IRQ_BASE,
 	.gpio_base = BANFF_PMIC_GPIO_BASE,
@@ -602,28 +661,34 @@ static struct wm831x_pdata crag_pmic_pdata = {
 	.touch = &touch_pdata,
 };
 
-static struct i2c_board_info i2c_devs0[] = {
+static struct i2c_board_info i2c_devs0[] =
+{
 	{ I2C_BOARD_INFO("24c08", 0x50), },
-	{ I2C_BOARD_INFO("tca6408", 0x20),
-	  .platform_data = &crag6410_pca_data,
+	{
+		I2C_BOARD_INFO("tca6408", 0x20),
+		.platform_data = &crag6410_pca_data,
 	},
-	{ I2C_BOARD_INFO("wm8312", 0x34),
-	  .platform_data = &crag_pmic_pdata,
-	  .irq = S3C_EINT(23),
+	{
+		I2C_BOARD_INFO("wm8312", 0x34),
+		.platform_data = &crag_pmic_pdata,
+		.irq = S3C_EINT(23),
 	},
 };
 
-static struct s3c2410_platform_i2c i2c0_pdata = {
+static struct s3c2410_platform_i2c i2c0_pdata =
+{
 	.frequency = 400000,
 };
 
-static struct regulator_consumer_supply pvdd_1v2_consumers[] = {
+static struct regulator_consumer_supply pvdd_1v2_consumers[] =
+{
 	REGULATOR_SUPPLY("DCVDD", "spi0.0"),
 	REGULATOR_SUPPLY("AVDD", "spi0.0"),
 	REGULATOR_SUPPLY("AVDD", "spi0.1"),
 };
 
-static struct regulator_init_data pvdd_1v2 = {
+static struct regulator_init_data pvdd_1v2 =
+{
 	.constraints = {
 		.name = "PVDD_1V2",
 		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
@@ -633,7 +698,8 @@ static struct regulator_init_data pvdd_1v2 = {
 	.num_consumer_supplies = ARRAY_SIZE(pvdd_1v2_consumers),
 };
 
-static struct regulator_consumer_supply pvdd_1v8_consumers[] = {
+static struct regulator_consumer_supply pvdd_1v8_consumers[] =
+{
 	REGULATOR_SUPPLY("LDOVDD", "1-001a"),
 	REGULATOR_SUPPLY("PLLVDD", "1-001a"),
 	REGULATOR_SUPPLY("DBVDD", "1-001a"),
@@ -657,7 +723,8 @@ static struct regulator_consumer_supply pvdd_1v8_consumers[] = {
 	REGULATOR_SUPPLY("CPVDD", "spi0.1"),
 };
 
-static struct regulator_init_data pvdd_1v8 = {
+static struct regulator_init_data pvdd_1v8 =
+{
 	.constraints = {
 		.name = "PVDD_1V8",
 		.always_on = 1,
@@ -667,12 +734,14 @@ static struct regulator_init_data pvdd_1v8 = {
 	.num_consumer_supplies = ARRAY_SIZE(pvdd_1v8_consumers),
 };
 
-static struct regulator_consumer_supply pvdd_3v3_consumers[] = {
+static struct regulator_consumer_supply pvdd_3v3_consumers[] =
+{
 	REGULATOR_SUPPLY("MICVDD", "1-001a"),
 	REGULATOR_SUPPLY("AVDD1", "1-001a"),
 };
 
-static struct regulator_init_data pvdd_3v3 = {
+static struct regulator_init_data pvdd_3v3 =
+{
 	.constraints = {
 		.name = "PVDD_3V3",
 		.always_on = 1,
@@ -682,7 +751,8 @@ static struct regulator_init_data pvdd_3v3 = {
 	.num_consumer_supplies = ARRAY_SIZE(pvdd_3v3_consumers),
 };
 
-static struct wm831x_pdata glenfarclas_pmic_pdata = {
+static struct wm831x_pdata glenfarclas_pmic_pdata =
+{
 	.wm831x_num = 2,
 	.irq_base = GLENFARCLAS_PMIC_IRQ_BASE,
 	.gpio_base = GLENFARCLAS_PMIC_GPIO_BASE,
@@ -704,7 +774,8 @@ static struct wm831x_pdata glenfarclas_pmic_pdata = {
 	.disable_touch = true,
 };
 
-static struct wm1250_ev1_pdata wm1250_ev1_pdata = {
+static struct wm1250_ev1_pdata wm1250_ev1_pdata =
+{
 	.gpios = {
 		[WM1250_EV1_GPIO_CLK_ENA] = S3C64XX_GPN(12),
 		[WM1250_EV1_GPIO_CLK_SEL0] = S3C64XX_GPL(12),
@@ -714,10 +785,13 @@ static struct wm1250_ev1_pdata wm1250_ev1_pdata = {
 	},
 };
 
-static struct i2c_board_info i2c_devs1[] = {
-	{ I2C_BOARD_INFO("wm8311", 0x34),
-	  .irq = S3C_EINT(0),
-	  .platform_data = &glenfarclas_pmic_pdata },
+static struct i2c_board_info i2c_devs1[] =
+{
+	{
+		I2C_BOARD_INFO("wm8311", 0x34),
+		.irq = S3C_EINT(0),
+		.platform_data = &glenfarclas_pmic_pdata
+	},
 
 	{ I2C_BOARD_INFO("wlf-gf-module", 0x20) },
 	{ I2C_BOARD_INFO("wlf-gf-module", 0x22) },
@@ -725,11 +799,14 @@ static struct i2c_board_info i2c_devs1[] = {
 	{ I2C_BOARD_INFO("wlf-gf-module", 0x25) },
 	{ I2C_BOARD_INFO("wlf-gf-module", 0x26) },
 
-	{ I2C_BOARD_INFO("wm1250-ev1", 0x27),
-	  .platform_data = &wm1250_ev1_pdata },
+	{
+		I2C_BOARD_INFO("wm1250-ev1", 0x27),
+		.platform_data = &wm1250_ev1_pdata
+	},
 };
 
-static struct s3c2410_platform_i2c i2c1_pdata = {
+static struct s3c2410_platform_i2c i2c1_pdata =
+{
 	.frequency = 400000,
 	.bus_num = 1,
 };
@@ -744,7 +821,8 @@ static void __init crag6410_map_io(void)
 	/* LCD type and Bypass set by bootloader */
 }
 
-static struct s3c_sdhci_platdata crag6410_hsmmc2_pdata = {
+static struct s3c_sdhci_platdata crag6410_hsmmc2_pdata =
+{
 	.max_width		= 4,
 	.cd_type		= S3C_SDHCI_CD_PERMANENT,
 	.host_caps		= MMC_CAP_POWER_OFF_CARD,
@@ -759,14 +837,16 @@ static void crag6410_cfg_sdhci0(struct platform_device *dev, int width)
 	s3c_gpio_setpull(S3C64XX_GPG(6), S3C_GPIO_PULL_DOWN);
 }
 
-static struct s3c_sdhci_platdata crag6410_hsmmc0_pdata = {
+static struct s3c_sdhci_platdata crag6410_hsmmc0_pdata =
+{
 	.max_width		= 4,
 	.cd_type		= S3C_SDHCI_CD_INTERNAL,
 	.cfg_gpio		= crag6410_cfg_sdhci0,
 	.host_caps		= MMC_CAP_POWER_OFF_CARD,
 };
 
-static const struct gpio_led gpio_leds[] = {
+static const struct gpio_led gpio_leds[] =
+{
 	{
 		.name = "d13:green:",
 		.gpio = MMGPIO_GPIO_BASE + 0,
@@ -809,7 +889,8 @@ static const struct gpio_led gpio_leds[] = {
 	},
 };
 
-static const struct gpio_led_platform_data gpio_leds_pdata = {
+static const struct gpio_led_platform_data gpio_leds_pdata =
+{
 	.leds = gpio_leds,
 	.num_leds = ARRAY_SIZE(gpio_leds),
 };
@@ -859,12 +940,12 @@ static void __init crag6410_machine_init(void)
 }
 
 MACHINE_START(WLF_CRAGG_6410, "Wolfson Cragganmore 6410")
-	/* Maintainer: Mark Brown <broonie@opensource.wolfsonmicro.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Mark Brown <broonie@opensource.wolfsonmicro.com> */
+.atag_offset	= 0x100,
 	.nr_irqs	= S3C64XX_NR_IRQS,
-	.init_irq	= s3c6410_init_irq,
-	.map_io		= crag6410_map_io,
-	.init_machine	= crag6410_machine_init,
-	.init_time	= samsung_timer_init,
-	.restart	= s3c64xx_restart,
-MACHINE_END
+		.init_irq	= s3c6410_init_irq,
+		   .map_io		= crag6410_map_io,
+			   .init_machine	= crag6410_machine_init,
+				  .init_time	= samsung_timer_init,
+					.restart	= s3c64xx_restart,
+						MACHINE_END

@@ -28,19 +28,22 @@ int __init pcibios_map_platform_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	   the 1ary bridge.
 	   */
 
-	struct slot_pin {
+	struct slot_pin
+	{
 		int slot;
 		int pin;
 	} path[4];
-	int i=0;
+	int i = 0;
 
-	while (dev->bus->number > 0) {
+	while (dev->bus->number > 0)
+	{
 
 		slot = path[i].slot = PCI_SLOT(dev->devfn);
 		pin = path[i].pin = pci_swizzle_interrupt_pin(dev, pin);
 		dev = dev->bus->self;
 		i++;
-		if (i > 3) panic("PCI path to root bus too long!\n");
+
+		if (i > 3) { panic("PCI path to root bus too long!\n"); }
 	}
 
 	slot = PCI_SLOT(dev->devfn);
@@ -48,25 +51,35 @@ int __init pcibios_map_platform_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	   reachable. */
 
 	/* Now work back up. */
-	if ((slot < 3) || (i == 0)) {
+	if ((slot < 3) || (i == 0))
+	{
 		/* Bus 0 (incl. PCI-PCI bridge itself) : perform the final
 		   swizzle now. */
 		result = IRQ_INTA + pci_swizzle_interrupt_pin(dev, pin) - 1;
-	} else {
+	}
+	else
+	{
 		i--;
 		slot = path[i].slot;
 		pin  = path[i].pin;
-		if (slot > 0) {
+
+		if (slot > 0)
+		{
 			panic("PCI expansion bus device found - not handled!\n");
-		} else {
-			if (i > 0) {
+		}
+		else
+		{
+			if (i > 0)
+			{
 				/* 5V slots */
 				i--;
 				slot = path[i].slot;
 				pin  = path[i].pin;
 				/* 'pin' was swizzled earlier wrt slot, don't do it again. */
 				result = IRQ_P2INTA + (pin - 1);
-			} else {
+			}
+			else
+			{
 				/* IRQ for 2ary PCI-PCI bridge : unused */
 				result = -1;
 			}

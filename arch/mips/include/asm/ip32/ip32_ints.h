@@ -17,7 +17,8 @@
  * priority.  This differs from irix.
  */
 
-enum ip32_irq_no {
+enum ip32_irq_no
+{
 	/*
 	 * CPU interrupts are 0 ... 7
 	 */

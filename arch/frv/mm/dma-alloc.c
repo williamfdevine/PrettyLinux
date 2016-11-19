@@ -62,7 +62,9 @@ static int map_page(unsigned long va, unsigned long pa, pgprot_t prot)
 
 	/* Use middle 10 bits of VA to index the second-level map */
 	pte = pte_alloc_kernel(pme, va);
-	if (pte != 0) {
+
+	if (pte != 0)
+	{
 		err = 0;
 		set_pte(pte, mk_pte_phys(pa & PAGE_MASK, prot));
 	}
@@ -86,24 +88,31 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
 	int order, err, i;
 
 	if (in_interrupt())
+	{
 		BUG();
+	}
 
 	/* only allocate page size areas */
 	size = PAGE_ALIGN(size);
 	order = get_order(size);
 
 	page = __get_free_pages(gfp, order);
-	if (!page) {
+
+	if (!page)
+	{
 		BUG();
 		return NULL;
 	}
 
 	/* allocate some common virtual space to map the new pages */
 	area = get_vm_area(size, VM_ALLOC);
-	if (area == 0) {
+
+	if (area == 0)
+	{
 		free_pages(page, order);
 		return NULL;
 	}
+
 	va = VMALLOC_VMADDR(area->addr);
 	ret = (void *) va;
 
@@ -113,16 +122,21 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
 	/* set refcount=1 on all pages in an order>0 allocation so that vfree() will actually free
 	 * all pages that were allocated.
 	 */
-	if (order > 0) {
+	if (order > 0)
+	{
 		struct page *rpage = virt_to_page(page);
 		split_page(rpage, order);
 	}
 
 	err = 0;
-	for (i = 0; i < size && err == 0; i += PAGE_SIZE)
-		err = map_page(va + i, pa + i, PAGE_KERNEL_NOCACHE);
 
-	if (err) {
+	for (i = 0; i < size && err == 0; i += PAGE_SIZE)
+	{
+		err = map_page(va + i, pa + i, PAGE_KERNEL_NOCACHE);
+	}
+
+	if (err)
+	{
 		vfree((void *) va);
 		return NULL;
 	}
@@ -141,7 +155,10 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
 void consistent_free(void *vaddr)
 {
 	if (in_interrupt())
+	{
 		BUG();
+	}
+
 	vfree(vaddr);
 }
 
@@ -153,18 +170,22 @@ void consistent_sync(void *vaddr, size_t size, int direction)
 	unsigned long start = (unsigned long) vaddr;
 	unsigned long end   = start + size;
 
-	switch (direction) {
-	case PCI_DMA_NONE:
-		BUG();
-	case PCI_DMA_FROMDEVICE:	/* invalidate only */
-		frv_cache_invalidate(start, end);
-		break;
-	case PCI_DMA_TODEVICE:		/* writeback only */
-		frv_dcache_writeback(start, end);
-		break;
-	case PCI_DMA_BIDIRECTIONAL:	/* writeback and invalidate */
-		frv_dcache_writeback(start, end);
-		break;
+	switch (direction)
+	{
+		case PCI_DMA_NONE:
+			BUG();
+
+		case PCI_DMA_FROMDEVICE:	/* invalidate only */
+			frv_cache_invalidate(start, end);
+			break;
+
+		case PCI_DMA_TODEVICE:		/* writeback only */
+			frv_dcache_writeback(start, end);
+			break;
+
+		case PCI_DMA_BIDIRECTIONAL:	/* writeback and invalidate */
+			frv_dcache_writeback(start, end);
+			break;
 	}
 }
 
@@ -174,7 +195,7 @@ void consistent_sync(void *vaddr, size_t size, int direction)
  */
 
 void consistent_sync_page(struct page *page, unsigned long offset,
-			  size_t size, int direction)
+						  size_t size, int direction)
 {
 	void *start;
 

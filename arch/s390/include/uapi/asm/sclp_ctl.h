@@ -11,7 +11,8 @@
 
 #include <linux/types.h>
 
-struct sclp_ctl_sccb {
+struct sclp_ctl_sccb
+{
 	__u32	cmdw;
 	__u64	sccb;
 } __attribute__((packed));

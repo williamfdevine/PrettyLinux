@@ -48,7 +48,7 @@ typedef unsigned int   u32;
 #define SETUP_SECT_MAX 64
 
 /* This must be large enough to hold the entire setup */
-u8 buf[SETUP_SECT_MAX*512];
+u8 buf[SETUP_SECT_MAX * 512];
 
 #define PECOFF_RELOC_RESERVE 0x20
 
@@ -59,7 +59,8 @@ unsigned long startup_64;
 
 /*----------------------------------------------------------------------*/
 
-static const u32 crctab32[] = {
+static const u32 crctab32[] =
+{
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419,
 	0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4,
 	0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07,
@@ -122,11 +123,14 @@ static u32 partial_crc32_one(u8 c, u32 crc)
 static u32 partial_crc32(const u8 *s, int len, u32 crc)
 {
 	while (len--)
+	{
 		crc = partial_crc32_one(*s++, crc);
+	}
+
 	return crc;
 }
 
-static void die(const char * str, ...)
+static void die(const char *str, ...)
 {
 	va_list args;
 	va_start(args, str);
@@ -157,8 +161,10 @@ static void update_pecoff_section_header_fields(char *section_name, u32 vma, u32
 	section = &buf[pe_header + 0xb8];
 #endif
 
-	while (num_sections > 0) {
-		if (strncmp((char*)section, section_name, 8) == 0) {
+	while (num_sections > 0)
+	{
+		if (strncmp((char *)section, section_name, 8) == 0)
+		{
 			/* section header size field */
 			put_unaligned_le32(size, section + 0x8);
 
@@ -173,6 +179,7 @@ static void update_pecoff_section_header_fields(char *section_name, u32 vma, u32
 
 			break;
 		}
+
 		section += 0x28;
 		num_sections--;
 	}
@@ -240,7 +247,7 @@ static void update_pecoff_bss(unsigned int file_sz, unsigned int init_sz)
 static int reserve_pecoff_reloc_section(int c)
 {
 	/* Reserve 0x20 bytes for .reloc section */
-	memset(buf+c, 0, PECOFF_RELOC_RESERVE);
+	memset(buf + c, 0, PECOFF_RELOC_RESERVE);
 	return PECOFF_RELOC_RESERVE;
 }
 
@@ -265,8 +272,12 @@ static void efi_stub_entry_update(void)
 #endif
 
 #ifdef CONFIG_EFI_MIXED
+
 	if (efi32_stub_entry != addr)
+	{
 		die("32-bit and 64-bit EFI entry points do not match\n");
+	}
+
 #endif
 	put_unaligned_le32(addr, &buf[0x264]);
 }
@@ -275,9 +286,9 @@ static void efi_stub_entry_update(void)
 
 static inline void update_pecoff_setup_and_reloc(unsigned int size) {}
 static inline void update_pecoff_text(unsigned int text_start,
-				      unsigned int file_sz) {}
+									  unsigned int file_sz) {}
 static inline void update_pecoff_bss(unsigned int file_sz,
-				     unsigned int init_sz) {}
+									 unsigned int init_sz) {}
 static inline void efi_stub_defaults(void) {}
 static inline void efi_stub_entry_update(void) {}
 
@@ -294,9 +305,9 @@ static inline int reserve_pecoff_reloc_section(int c)
  * not as if parsing it is hard...
  */
 #define PARSE_ZOFS(p, sym) do { \
-	if (!strncmp(p, "#define ZO_" #sym " ", 11+sizeof(#sym)))	\
-		sym = strtoul(p + 11 + sizeof(#sym), NULL, 16);		\
-} while (0)
+		if (!strncmp(p, "#define ZO_" #sym " ", 11+sizeof(#sym)))	\
+			sym = strtoul(p + 11 + sizeof(#sym), NULL, 16);		\
+	} while (0)
 
 static void parse_zoffset(char *fname)
 {
@@ -305,29 +316,41 @@ static void parse_zoffset(char *fname)
 	int c;
 
 	file = fopen(fname, "r");
+
 	if (!file)
+	{
 		die("Unable to open `%s': %m", fname);
+	}
+
 	c = fread(buf, 1, sizeof(buf) - 1, file);
+
 	if (ferror(file))
+	{
 		die("read-error on `zoffset.h'");
+	}
+
 	fclose(file);
 	buf[c] = 0;
 
 	p = (char *)buf;
 
-	while (p && *p) {
+	while (p && *p)
+	{
 		PARSE_ZOFS(p, efi32_stub_entry);
 		PARSE_ZOFS(p, efi64_stub_entry);
 		PARSE_ZOFS(p, efi_pe_entry);
 		PARSE_ZOFS(p, startup_64);
 
 		p = strchr(p, '\n');
+
 		while (p && (*p == '\r' || *p == '\n'))
+		{
 			p++;
+		}
 	}
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
 	unsigned int i, sz, setup_sectors, init_sz;
 	int c;
@@ -341,34 +364,58 @@ int main(int argc, char ** argv)
 	efi_stub_defaults();
 
 	if (argc != 5)
+	{
 		usage();
+	}
+
 	parse_zoffset(argv[3]);
 
 	dest = fopen(argv[4], "w");
+
 	if (!dest)
+	{
 		die("Unable to write `%s': %m", argv[4]);
+	}
 
 	/* Copy the setup code */
 	file = fopen(argv[1], "r");
+
 	if (!file)
+	{
 		die("Unable to open `%s': %m", argv[1]);
+	}
+
 	c = fread(buf, 1, sizeof(buf), file);
+
 	if (ferror(file))
+	{
 		die("read-error on `setup'");
+	}
+
 	if (c < 1024)
+	{
 		die("The setup must be at least 1024 bytes");
+	}
+
 	if (get_unaligned_le16(&buf[510]) != 0xAA55)
+	{
 		die("Boot block hasn't got boot flag (0xAA55)");
+	}
+
 	fclose(file);
 
 	c += reserve_pecoff_reloc_section(c);
 
 	/* Pad unused space with zeros */
 	setup_sectors = (c + 511) / 512;
+
 	if (setup_sectors < SETUP_SECT_MIN)
+	{
 		setup_sectors = SETUP_SECT_MIN;
-	i = setup_sectors*512;
-	memset(buf+c, 0, i-c);
+	}
+
+	i = setup_sectors * 512;
+	memset(buf + c, 0, i - c);
 
 	update_pecoff_setup_and_reloc(i);
 
@@ -379,20 +426,31 @@ int main(int argc, char ** argv)
 
 	/* Open and stat the kernel file */
 	fd = open(argv[2], O_RDONLY);
+
 	if (fd < 0)
+	{
 		die("Unable to open `%s': %m", argv[2]);
+	}
+
 	if (fstat(fd, &sb))
+	{
 		die("Unable to stat `%s': %m", argv[2]);
+	}
+
 	sz = sb.st_size;
-	printf("System is %d kB\n", (sz+1023)/1024);
+	printf("System is %d kB\n", (sz + 1023) / 1024);
 	kernel = mmap(NULL, sz, PROT_READ, MAP_SHARED, fd, 0);
+
 	if (kernel == MAP_FAILED)
+	{
 		die("Unable to mmap '%s': %m", argv[2]);
+	}
+
 	/* Number of 16-byte paragraphs, including space for a 4-byte CRC */
 	sys_size = (sz + 15 + 4) / 16;
 
 	/* Patch the setup code with the appropriate size parameters */
-	buf[0x1f1] = setup_sectors-1;
+	buf[0x1f1] = setup_sectors - 1;
 	put_unaligned_le32(sys_size, &buf[0x1f4]);
 
 	update_pecoff_text(setup_sectors * 512, i + (sys_size * 16));
@@ -402,30 +460,45 @@ int main(int argc, char ** argv)
 	efi_stub_entry_update();
 
 	crc = partial_crc32(buf, i, crc);
+
 	if (fwrite(buf, 1, i, dest) != i)
+	{
 		die("Writing setup failed");
+	}
 
 	/* Copy the kernel code */
 	crc = partial_crc32(kernel, sz, crc);
+
 	if (fwrite(kernel, 1, sz, dest) != sz)
+	{
 		die("Writing kernel failed");
+	}
 
 	/* Add padding leaving 4 bytes for the checksum */
-	while (sz++ < (sys_size*16) - 4) {
+	while (sz++ < (sys_size * 16) - 4)
+	{
 		crc = partial_crc32_one('\0', crc);
+
 		if (fwrite("\0", 1, 1, dest) != 1)
+		{
 			die("Writing padding failed");
+		}
 	}
 
 	/* Write the CRC */
 	printf("CRC %x\n", crc);
 	put_unaligned_le32(crc, buf);
+
 	if (fwrite(buf, 1, 4, dest) != 4)
+	{
 		die("Writing CRC failed");
+	}
 
 	/* Catch any delayed write failures */
 	if (fclose(dest))
+	{
 		die("Writing image failed");
+	}
 
 	close(fd);
 

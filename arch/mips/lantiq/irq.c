@@ -62,7 +62,7 @@
 #define MIPS_CPU_IRQ_CASCADE		8
 
 #ifdef CONFIG_MIPS_MT_SMP
-int gic_present;
+	int gic_present;
 #endif
 
 static int exin_avail;
@@ -75,7 +75,10 @@ static int ltq_perfcount_irq;
 int ltq_eiu_get_irq(int exin)
 {
 	if (exin < exin_avail)
+	{
 		return ltq_eiu_irq[exin];
+	}
+
 	return -1;
 }
 
@@ -125,43 +128,54 @@ static int ltq_eiu_settype(struct irq_data *d, unsigned int type)
 {
 	int i;
 
-	for (i = 0; i < exin_avail; i++) {
-		if (d->hwirq == ltq_eiu_irq[i]) {
+	for (i = 0; i < exin_avail; i++)
+	{
+		if (d->hwirq == ltq_eiu_irq[i])
+		{
 			int val = 0;
 			int edge = 0;
 
-			switch (type) {
-			case IRQF_TRIGGER_NONE:
-				break;
-			case IRQF_TRIGGER_RISING:
-				val = 1;
-				edge = 1;
-				break;
-			case IRQF_TRIGGER_FALLING:
-				val = 2;
-				edge = 1;
-				break;
-			case IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING:
-				val = 3;
-				edge = 1;
-				break;
-			case IRQF_TRIGGER_HIGH:
-				val = 5;
-				break;
-			case IRQF_TRIGGER_LOW:
-				val = 6;
-				break;
-			default:
-				pr_err("invalid type %d for irq %ld\n",
-					type, d->hwirq);
-				return -EINVAL;
+			switch (type)
+			{
+				case IRQF_TRIGGER_NONE:
+					break;
+
+				case IRQF_TRIGGER_RISING:
+					val = 1;
+					edge = 1;
+					break;
+
+				case IRQF_TRIGGER_FALLING:
+					val = 2;
+					edge = 1;
+					break;
+
+				case IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING:
+					val = 3;
+					edge = 1;
+					break;
+
+				case IRQF_TRIGGER_HIGH:
+					val = 5;
+					break;
+
+				case IRQF_TRIGGER_LOW:
+					val = 6;
+					break;
+
+				default:
+					pr_err("invalid type %d for irq %ld\n",
+						   type, d->hwirq);
+					return -EINVAL;
 			}
 
 			if (edge)
+			{
 				irq_set_handler(d->hwirq, handle_edge_irq);
+			}
 
 			ltq_eiu_w32(ltq_eiu_r32(LTQ_EIU_EXIN_C) |
-				(val << (i * 4)), LTQ_EIU_EXIN_C);
+						(val << (i * 4)), LTQ_EIU_EXIN_C);
 		}
 	}
 
@@ -173,16 +187,19 @@ static unsigned int ltq_startup_eiu_irq(struct irq_data *d)
 	int i;
 
 	ltq_enable_irq(d);
-	for (i = 0; i < exin_avail; i++) {
-		if (d->hwirq == ltq_eiu_irq[i]) {
+
+	for (i = 0; i < exin_avail; i++)
+	{
+		if (d->hwirq == ltq_eiu_irq[i])
+		{
 			/* by default we are low level triggered */
 			ltq_eiu_settype(d, IRQF_TRIGGER_LOW);
 			/* clear all pending */
 			ltq_eiu_w32(ltq_eiu_r32(LTQ_EIU_EXIN_INC) & ~BIT(i),
-				LTQ_EIU_EXIN_INC);
+						LTQ_EIU_EXIN_INC);
 			/* enable */
 			ltq_eiu_w32(ltq_eiu_r32(LTQ_EIU_EXIN_INEN) | BIT(i),
-				LTQ_EIU_EXIN_INEN);
+						LTQ_EIU_EXIN_INEN);
 			break;
 		}
 	}
@@ -195,17 +212,21 @@ static void ltq_shutdown_eiu_irq(struct irq_data *d)
 	int i;
 
 	ltq_disable_irq(d);
-	for (i = 0; i < exin_avail; i++) {
-		if (d->hwirq == ltq_eiu_irq[i]) {
+
+	for (i = 0; i < exin_avail; i++)
+	{
+		if (d->hwirq == ltq_eiu_irq[i])
+		{
 			/* disable */
 			ltq_eiu_w32(ltq_eiu_r32(LTQ_EIU_EXIN_INEN) & ~BIT(i),
-				LTQ_EIU_EXIN_INEN);
+						LTQ_EIU_EXIN_INEN);
 			break;
 		}
 	}
 }
 
-static struct irq_chip ltq_irq_type = {
+static struct irq_chip ltq_irq_type =
+{
 	.name = "icu",
 	.irq_enable = ltq_enable_irq,
 	.irq_disable = ltq_disable_irq,
@@ -215,7 +236,8 @@ static struct irq_chip ltq_irq_type = {
 	.irq_mask_ack = ltq_mask_and_ack_irq,
 };
 
-static struct irq_chip ltq_eiu_type = {
+static struct irq_chip ltq_eiu_type =
+{
 	.name = "eiu",
 	.irq_startup = ltq_startup_eiu_irq,
 	.irq_shutdown = ltq_shutdown_eiu_irq,
@@ -233,8 +255,11 @@ static void ltq_hw_irqdispatch(int module)
 	u32 irq;
 
 	irq = ltq_icu_r32(module, LTQ_ICU_IM0_IOSR);
+
 	if (irq == 0)
+	{
 		return;
+	}
 
 	/*
 	 * silicon bug causes only the msb set to 1 to be valid. all
@@ -246,7 +271,7 @@ static void ltq_hw_irqdispatch(int module)
 	/* if this is a EBU irq, we need to ack it or get a deadlock */
 	if ((irq == LTQ_ICU_EBU_IRQ) && (module == 0) && LTQ_EBU_PCC_ISTAT)
 		ltq_ebu_w32(ltq_ebu_r32(LTQ_EBU_PCC_ISTAT) | 0x10,
-			LTQ_EBU_PCC_ISTAT);
+					LTQ_EBU_PCC_ISTAT);
 }
 
 #define DEFINE_HWx_IRQDISPATCH(x)					\
@@ -297,13 +322,15 @@ static irqreturn_t ipi_call_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction irq_resched = {
+static struct irqaction irq_resched =
+{
 	.handler	= ipi_resched_interrupt,
 	.flags		= IRQF_PERCPU,
 	.name		= "IPI_resched"
 };
 
-static struct irqaction irq_call = {
+static struct irqaction irq_call =
+{
 	.handler	= ipi_call_interrupt,
 	.flags		= IRQF_PERCPU,
 	.name		= "IPI_call"
@@ -315,17 +342,23 @@ asmlinkage void plat_irq_dispatch(void)
 	unsigned int pending = read_c0_status() & read_c0_cause() & ST0_IM;
 	unsigned int i;
 
-	if ((MIPS_CPU_TIMER_IRQ == 7) && (pending & CAUSEF_IP7)) {
+	if ((MIPS_CPU_TIMER_IRQ == 7) && (pending & CAUSEF_IP7))
+	{
 		do_IRQ(MIPS_CPU_TIMER_IRQ);
 		goto out;
-	} else {
-		for (i = 0; i < MAX_IM; i++) {
-			if (pending & (CAUSEF_IP2 << i)) {
+	}
+	else
+	{
+		for (i = 0; i < MAX_IM; i++)
+		{
+			if (pending & (CAUSEF_IP2 << i))
+			{
 				ltq_hw_irqdispatch(i);
 				goto out;
 			}
 		}
 	}
+
 	pr_alert("Spurious IRQ: CAUSE=0x%08x\n", read_c0_status());
 
 out:
@@ -338,23 +371,29 @@ static int icu_map(struct irq_domain *d, unsigned int irq, irq_hw_number_t hw)
 	int i;
 
 	if (hw < MIPS_CPU_IRQ_CASCADE)
+	{
 		return 0;
+	}
 
 	for (i = 0; i < exin_avail; i++)
 		if (hw == ltq_eiu_irq[i])
+		{
 			chip = &ltq_eiu_type;
+		}
 
 	irq_set_chip_and_handler(irq, chip, handle_level_irq);
 
 	return 0;
 }
 
-static const struct irq_domain_ops irq_domain_ops = {
+static const struct irq_domain_ops irq_domain_ops =
+{
 	.xlate = irq_domain_xlate_onetwocell,
 	.map = icu_map,
 };
 
-static struct irqaction cascade = {
+static struct irqaction cascade =
+{
 	.handler = no_action,
 	.name = "cascade",
 };
@@ -365,22 +404,31 @@ int __init icu_of_init(struct device_node *node, struct device_node *parent)
 	struct resource res;
 	int i, ret;
 
-	for (i = 0; i < MAX_IM; i++) {
+	for (i = 0; i < MAX_IM; i++)
+	{
 		if (of_address_to_resource(node, i, &res))
+		{
 			panic("Failed to get icu memory range");
+		}
 
 		if (!request_mem_region(res.start, resource_size(&res),
-					res.name))
+								res.name))
+		{
 			pr_err("Failed to request icu memory");
+		}
 
 		ltq_icu_membase[i] = ioremap_nocache(res.start,
-					resource_size(&res));
+											 resource_size(&res));
+
 		if (!ltq_icu_membase[i])
+		{
 			panic("Failed to remap icu memory");
+		}
 	}
 
 	/* turn off all irqs by default */
-	for (i = 0; i < MAX_IM; i++) {
+	for (i = 0; i < MAX_IM; i++)
+	{
 		/* make sure all irqs are turned off by default */
 		ltq_icu_w32(i, 0, LTQ_ICU_IM0_IER);
 		/* clear all possibly pending interrupts */
@@ -390,9 +438,12 @@ int __init icu_of_init(struct device_node *node, struct device_node *parent)
 	mips_cpu_irq_init();
 
 	for (i = 0; i < MAX_IM; i++)
+	{
 		setup_irq(i + 2, &cascade);
+	}
 
-	if (cpu_has_vint) {
+	if (cpu_has_vint)
+	{
 		pr_info("Setting up vectored interrupts\n");
 		set_vi_handler(2, ltq_hw0_irqdispatch);
 		set_vi_handler(3, ltq_hw1_irqdispatch);
@@ -403,26 +454,29 @@ int __init icu_of_init(struct device_node *node, struct device_node *parent)
 	}
 
 	ltq_domain = irq_domain_add_linear(node,
-		(MAX_IM * INT_NUM_IM_OFFSET) + MIPS_CPU_IRQ_CASCADE,
-		&irq_domain_ops, 0);
+									   (MAX_IM * INT_NUM_IM_OFFSET) + MIPS_CPU_IRQ_CASCADE,
+									   &irq_domain_ops, 0);
 
 #if defined(CONFIG_MIPS_MT_SMP)
-	if (cpu_has_vint) {
+
+	if (cpu_has_vint)
+	{
 		pr_info("Setting up IPI vectored interrupts\n");
 		set_vi_handler(MIPS_CPU_IPI_RESCHED_IRQ, ltq_sw0_irqdispatch);
 		set_vi_handler(MIPS_CPU_IPI_CALL_IRQ, ltq_sw1_irqdispatch);
 	}
+
 	arch_init_ipiirq(MIPS_CPU_IRQ_BASE + MIPS_CPU_IPI_RESCHED_IRQ,
-		&irq_resched);
+					 &irq_resched);
 	arch_init_ipiirq(MIPS_CPU_IRQ_BASE + MIPS_CPU_IPI_CALL_IRQ, &irq_call);
 #endif
 
 #ifndef CONFIG_MIPS_MT_SMP
 	set_c0_status(IE_IRQ0 | IE_IRQ1 | IE_IRQ2 |
-		IE_IRQ3 | IE_IRQ4 | IE_IRQ5);
+				  IE_IRQ3 | IE_IRQ4 | IE_IRQ5);
 #else
 	set_c0_status(IE_SW0 | IE_SW1 | IE_IRQ0 | IE_IRQ1 |
-		IE_IRQ2 | IE_IRQ3 | IE_IRQ4 | IE_IRQ5);
+				  IE_IRQ2 | IE_IRQ3 | IE_IRQ4 | IE_IRQ5);
 #endif
 
 	/* tell oprofile which irq to use */
@@ -433,31 +487,45 @@ int __init icu_of_init(struct device_node *node, struct device_node *parent)
 	 * create a mapping
 	 */
 	if (MIPS_CPU_TIMER_IRQ != 7)
+	{
 		irq_create_mapping(ltq_domain, MIPS_CPU_TIMER_IRQ);
+	}
 
 	/* the external interrupts are optional and xway only */
 	eiu_node = of_find_compatible_node(NULL, NULL, "lantiq,eiu-xway");
-	if (eiu_node && !of_address_to_resource(eiu_node, 0, &res)) {
+
+	if (eiu_node && !of_address_to_resource(eiu_node, 0, &res))
+	{
 		/* find out how many external irq sources we have */
 		exin_avail = of_property_count_u32_elems(eiu_node,
-							 "lantiq,eiu-irqs");
+					 "lantiq,eiu-irqs");
 
 		if (exin_avail > MAX_EIU)
+		{
 			exin_avail = MAX_EIU;
+		}
 
 		ret = of_property_read_u32_array(eiu_node, "lantiq,eiu-irqs",
-						ltq_eiu_irq, exin_avail);
+										 ltq_eiu_irq, exin_avail);
+
 		if (ret)
+		{
 			panic("failed to load external irq resources");
+		}
 
 		if (!request_mem_region(res.start, resource_size(&res),
-							res.name))
+								res.name))
+		{
 			pr_err("Failed to request eiu memory");
+		}
 
 		ltq_eiu_membase = ioremap_nocache(res.start,
-							resource_size(&res));
+										  resource_size(&res));
+
 		if (!ltq_eiu_membase)
+		{
 			panic("Failed to remap eiu memory");
+		}
 	}
 
 	return 0;
@@ -474,7 +542,8 @@ unsigned int get_c0_compare_int(void)
 	return MIPS_CPU_TIMER_IRQ;
 }
 
-static struct of_device_id __initdata of_irq_ids[] = {
+static struct of_device_id __initdata of_irq_ids[] =
+{
 	{ .compatible = "lantiq,icu", .data = icu_of_init },
 	{},
 };

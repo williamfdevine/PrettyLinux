@@ -10,7 +10,9 @@ struct msr *msrs_alloc(void)
 	struct msr *msrs = NULL;
 
 	msrs = alloc_percpu(struct msr);
-	if (!msrs) {
+
+	if (!msrs)
+	{
 		pr_warn("%s: error allocating msrs\n", __func__);
 		return NULL;
 	}
@@ -41,8 +43,11 @@ int msr_read(u32 msr, struct msr *m)
 	u64 val;
 
 	err = rdmsrl_safe(msr, &val);
+
 	if (!err)
+	{
 		m->q = val;
+	}
 
 	return err;
 }
@@ -64,24 +69,39 @@ static inline int __flip_bit(u32 msr, u8 bit, bool set)
 	int err = -EINVAL;
 
 	if (bit > 63)
+	{
 		return err;
+	}
 
 	err = msr_read(msr, &m);
+
 	if (err)
+	{
 		return err;
+	}
 
 	m1 = m;
+
 	if (set)
+	{
 		m1.q |=  BIT_64(bit);
+	}
 	else
+	{
 		m1.q &= ~BIT_64(bit);
+	}
 
 	if (m1.q == m.q)
+	{
 		return 0;
+	}
 
 	err = msr_write(msr, &m1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 1;
 }

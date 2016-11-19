@@ -36,9 +36,9 @@
 //#define printd(x...) printk(x)
 #define printd(x...) do { } while(0)
 
-/* 
+/*
  * Note:
- * The kernel provides one architecture bit PG_arch_1 in the page flags that 
+ * The kernel provides one architecture bit PG_arch_1 in the page flags that
  * can be used for cache coherency.
  *
  * I$-D$ coherency.
@@ -54,39 +54,46 @@
  * With cache aliasing, we have to always flush the cache when pages are
  * unmapped (see tlb_start_vma(). So, we use this flag to indicate a dirty
  * page.
- * 
+ *
  *
  *
  */
 
 #if (DCACHE_WAY_SIZE > PAGE_SIZE)
 static inline void kmap_invalidate_coherent(struct page *page,
-					    unsigned long vaddr)
+		unsigned long vaddr)
 {
-	if (!DCACHE_ALIAS_EQ(page_to_phys(page), vaddr)) {
+	if (!DCACHE_ALIAS_EQ(page_to_phys(page), vaddr))
+	{
 		unsigned long kvaddr;
 
-		if (!PageHighMem(page)) {
+		if (!PageHighMem(page))
+		{
 			kvaddr = (unsigned long)page_to_virt(page);
 
 			__invalidate_dcache_page(kvaddr);
-		} else {
+		}
+		else
+		{
 			kvaddr = TLBTEMP_BASE_1 +
-				(page_to_phys(page) & DCACHE_ALIAS_MASK);
+					 (page_to_phys(page) & DCACHE_ALIAS_MASK);
 
 			__invalidate_dcache_page_alias(kvaddr,
-						       page_to_phys(page));
+										   page_to_phys(page));
 		}
 	}
 }
 
 static inline void *coherent_kvaddr(struct page *page, unsigned long base,
-				    unsigned long vaddr, unsigned long *paddr)
+									unsigned long vaddr, unsigned long *paddr)
 {
-	if (PageHighMem(page) || !DCACHE_ALIAS_EQ(page_to_phys(page), vaddr)) {
+	if (PageHighMem(page) || !DCACHE_ALIAS_EQ(page_to_phys(page), vaddr))
+	{
 		*paddr = page_to_phys(page);
 		return (void *)(base + (vaddr & DCACHE_ALIAS_MASK));
-	} else {
+	}
+	else
+	{
 		*paddr = 0;
 		return page_to_virt(page);
 	}
@@ -105,13 +112,13 @@ void clear_user_highpage(struct page *page, unsigned long vaddr)
 }
 
 void copy_user_highpage(struct page *dst, struct page *src,
-			unsigned long vaddr, struct vm_area_struct *vma)
+						unsigned long vaddr, struct vm_area_struct *vma)
 {
 	unsigned long dst_paddr, src_paddr;
 	void *dst_vaddr = coherent_kvaddr(dst, TLBTEMP_BASE_1, vaddr,
-					  &dst_paddr);
+									  &dst_paddr);
 	void *src_vaddr = coherent_kvaddr(src, TLBTEMP_BASE_2, vaddr,
-					  &src_paddr);
+									  &src_paddr);
 
 	preempt_disable();
 	kmap_invalidate_coherent(dst, vaddr);
@@ -136,23 +143,29 @@ void flush_dcache_page(struct page *page)
 
 	/*
 	 * If we have a mapping but the page is not mapped to user-space
-	 * yet, we simply mark this page dirty and defer flushing the 
+	 * yet, we simply mark this page dirty and defer flushing the
 	 * caches until update_mmu().
 	 */
 
-	if (mapping && !mapping_mapped(mapping)) {
+	if (mapping && !mapping_mapped(mapping))
+	{
 		if (!test_bit(PG_arch_1, &page->flags))
+		{
 			set_bit(PG_arch_1, &page->flags);
+		}
+
 		return;
 
-	} else {
+	}
+	else
+	{
 
 		unsigned long phys = page_to_phys(page);
 		unsigned long temp = page->index << PAGE_SHIFT;
 		unsigned long alias = !(DCACHE_ALIAS_EQ(temp, phys));
 		unsigned long virt;
 
-		/* 
+		/*
 		 * Flush the page in kernel space and user space.
 		 * Note that we can omit that step if aliasing is not
 		 * an issue, but we do have to synchronize I$ and D$
@@ -160,7 +173,9 @@ void flush_dcache_page(struct page *page)
 		 */
 
 		if (!alias && !mapping)
+		{
 			return;
+		}
 
 		virt = TLBTEMP_BASE_1 + (phys & DCACHE_ALIAS_MASK);
 		__flush_invalidate_dcache_page_alias(virt, phys);
@@ -168,10 +183,14 @@ void flush_dcache_page(struct page *page)
 		virt = TLBTEMP_BASE_1 + (temp & DCACHE_ALIAS_MASK);
 
 		if (alias)
+		{
 			__flush_invalidate_dcache_page_alias(virt, phys);
+		}
 
 		if (mapping)
+		{
 			__invalidate_icache_page_alias(virt, phys);
+		}
 	}
 
 	/* There shouldn't be an entry in the cache for this page anymore. */
@@ -183,21 +202,21 @@ void flush_dcache_page(struct page *page)
  */
 
 void local_flush_cache_range(struct vm_area_struct *vma,
-		       unsigned long start, unsigned long end)
+							 unsigned long start, unsigned long end)
 {
 	__flush_invalidate_dcache_all();
 	__invalidate_icache_all();
 }
 
-/* 
- * Remove any entry in the cache for this page. 
+/*
+ * Remove any entry in the cache for this page.
  *
  * Note that this function is only called for user pages, so use the
  * alias versions of the cache flush functions.
  */
 
 void local_flush_cache_page(struct vm_area_struct *vma, unsigned long address,
-		      unsigned long pfn)
+							unsigned long pfn)
 {
 	/* Note that we have to use the 'alias' address to avoid multi-hit */
 
@@ -211,13 +230,15 @@ void local_flush_cache_page(struct vm_area_struct *vma, unsigned long address,
 #endif
 
 void
-update_mmu_cache(struct vm_area_struct * vma, unsigned long addr, pte_t *ptep)
+update_mmu_cache(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
 {
 	unsigned long pfn = pte_pfn(*ptep);
 	struct page *page;
 
 	if (!pfn_valid(pfn))
+	{
 		return;
+	}
 
 	page = pfn_to_page(pfn);
 
@@ -227,7 +248,8 @@ update_mmu_cache(struct vm_area_struct * vma, unsigned long addr, pte_t *ptep)
 
 #if (DCACHE_WAY_SIZE > PAGE_SIZE) && XCHAL_DCACHE_IS_WRITEBACK
 
-	if (!PageReserved(page) && test_bit(PG_arch_1, &page->flags)) {
+	if (!PageReserved(page) && test_bit(PG_arch_1, &page->flags))
+	{
 		unsigned long phys = page_to_phys(page);
 		unsigned long tmp;
 
@@ -239,15 +261,19 @@ update_mmu_cache(struct vm_area_struct * vma, unsigned long addr, pte_t *ptep)
 
 		clear_bit(PG_arch_1, &page->flags);
 	}
+
 #else
+
 	if (!PageReserved(page) && !test_bit(PG_arch_1, &page->flags)
-	    && (vma->vm_flags & VM_EXEC) != 0) {
+		&& (vma->vm_flags & VM_EXEC) != 0)
+	{
 		unsigned long paddr = (unsigned long)kmap_atomic(page);
 		__flush_dcache_page(paddr);
 		__invalidate_icache_page(paddr);
 		set_bit(PG_arch_1, &page->flags);
 		kunmap_atomic((void *)paddr);
 	}
+
 #endif
 }
 
@@ -259,54 +285,62 @@ update_mmu_cache(struct vm_area_struct * vma, unsigned long addr, pte_t *ptep)
 #if (DCACHE_WAY_SIZE > PAGE_SIZE) && XCHAL_DCACHE_IS_WRITEBACK
 
 void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
-		unsigned long vaddr, void *dst, const void *src,
-		unsigned long len)
+					   unsigned long vaddr, void *dst, const void *src,
+					   unsigned long len)
 {
 	unsigned long phys = page_to_phys(page);
 	unsigned long alias = !(DCACHE_ALIAS_EQ(vaddr, phys));
 
 	/* Flush and invalidate user page if aliased. */
 
-	if (alias) {
+	if (alias)
+	{
 		unsigned long t = TLBTEMP_BASE_1 + (vaddr & DCACHE_ALIAS_MASK);
 		__flush_invalidate_dcache_page_alias(t, phys);
 	}
 
 	/* Copy data */
-	
+
 	memcpy(dst, src, len);
 
 	/*
-	 * Flush and invalidate kernel page if aliased and synchronize 
-	 * data and instruction caches for executable pages. 
+	 * Flush and invalidate kernel page if aliased and synchronize
+	 * data and instruction caches for executable pages.
 	 */
 
-	if (alias) {
+	if (alias)
+	{
 		unsigned long t = TLBTEMP_BASE_1 + (vaddr & DCACHE_ALIAS_MASK);
 
 		__flush_invalidate_dcache_range((unsigned long) dst, len);
-		if ((vma->vm_flags & VM_EXEC) != 0)
-			__invalidate_icache_page_alias(t, phys);
 
-	} else if ((vma->vm_flags & VM_EXEC) != 0) {
-		__flush_dcache_range((unsigned long)dst,len);
+		if ((vma->vm_flags & VM_EXEC) != 0)
+		{
+			__invalidate_icache_page_alias(t, phys);
+		}
+
+	}
+	else if ((vma->vm_flags & VM_EXEC) != 0)
+	{
+		__flush_dcache_range((unsigned long)dst, len);
 		__invalidate_icache_range((unsigned long) dst, len);
 	}
 }
 
 extern void copy_from_user_page(struct vm_area_struct *vma, struct page *page,
-		unsigned long vaddr, void *dst, const void *src,
-		unsigned long len)
+								unsigned long vaddr, void *dst, const void *src,
+								unsigned long len)
 {
 	unsigned long phys = page_to_phys(page);
 	unsigned long alias = !(DCACHE_ALIAS_EQ(vaddr, phys));
 
 	/*
-	 * Flush user page if aliased. 
-	 * (Note: a simply flush would be sufficient) 
+	 * Flush user page if aliased.
+	 * (Note: a simply flush would be sufficient)
 	 */
 
-	if (alias) {
+	if (alias)
+	{
 		unsigned long t = TLBTEMP_BASE_1 + (vaddr & DCACHE_ALIAS_MASK);
 		__flush_invalidate_dcache_page_alias(t, phys);
 	}

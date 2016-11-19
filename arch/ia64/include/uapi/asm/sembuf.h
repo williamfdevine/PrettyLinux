@@ -10,7 +10,8 @@
  * - 2 miscellaneous 64-bit values
  */
 
-struct semid64_ds {
+struct semid64_ds
+{
 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
 	__kernel_time_t	sem_otime;		/* last semop time */
 	__kernel_time_t	sem_ctime;		/* last change time */

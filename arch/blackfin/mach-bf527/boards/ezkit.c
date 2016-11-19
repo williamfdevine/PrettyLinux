@@ -33,9 +33,9 @@
  * Name the Board for the /proc/cpuinfo
  */
 #ifdef CONFIG_BFIN527_EZKIT_V2
-const char bfin_board_name[] = "ADI BF527-EZKIT V2";
+	const char bfin_board_name[] = "ADI BF527-EZKIT V2";
 #else
-const char bfin_board_name[] = "ADI BF527-EZKIT";
+	const char bfin_board_name[] = "ADI BF527-EZKIT";
 #endif
 
 /*
@@ -44,7 +44,8 @@ const char bfin_board_name[] = "ADI BF527-EZKIT";
 
 #if IS_ENABLED(CONFIG_USB_ISP1760_HCD)
 #include <linux/usb/isp1760.h>
-static struct resource bfin_isp1760_resources[] = {
+static struct resource bfin_isp1760_resources[] =
+{
 	[0] = {
 		.start  = 0x203C0000,
 		.end    = 0x203C0000 + 0x000fffff,
@@ -57,7 +58,8 @@ static struct resource bfin_isp1760_resources[] = {
 	},
 };
 
-static struct isp1760_platform_data isp1760_priv = {
+static struct isp1760_platform_data isp1760_priv =
+{
 	.is_isp1761 = 0,
 	.bus_width_16 = 1,
 	.port1_otg = 0,
@@ -66,7 +68,8 @@ static struct isp1760_platform_data isp1760_priv = {
 	.dreq_polarity_high = 0,
 };
 
-static struct platform_device bfin_isp1760_device = {
+static struct platform_device bfin_isp1760_device =
+{
 	.name           = "isp1760",
 	.id             = 0,
 	.dev = {
@@ -78,7 +81,8 @@ static struct platform_device bfin_isp1760_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_USB_MUSB_HDRC)
-static struct resource musb_resources[] = {
+static struct resource musb_resources[] =
+{
 	[0] = {
 		.start	= 0xffc03800,
 		.end	= 0xffc03cff,
@@ -98,7 +102,8 @@ static struct resource musb_resources[] = {
 	},
 };
 
-static struct musb_hdrc_config musb_config = {
+static struct musb_hdrc_config musb_config =
+{
 	.multipoint	= 0,
 	.dyn_fifo	= 0,
 	.soft_con	= 1,
@@ -113,7 +118,8 @@ static struct musb_hdrc_config musb_config = {
 	.clkin          = 24,           /* musb CLKIN in MHZ */
 };
 
-static struct musb_hdrc_platform_data musb_plat = {
+static struct musb_hdrc_platform_data musb_plat =
+{
 #if defined(CONFIG_USB_MUSB_HDRC) && defined(CONFIG_USB_GADGET_MUSB_HDRC)
 	.mode		= MUSB_OTG,
 #elif defined(CONFIG_USB_MUSB_HDRC)
@@ -126,7 +132,8 @@ static struct musb_hdrc_platform_data musb_plat = {
 
 static u64 musb_dmamask = ~(u32)0;
 
-static struct platform_device musb_device = {
+static struct platform_device musb_device =
+{
 	.name		= "musb-blackfin",
 	.id		= 0,
 	.dev = {
@@ -141,7 +148,8 @@ static struct platform_device musb_device = {
 
 #if IS_ENABLED(CONFIG_FB_BFIN_T350MCQB)
 
-static struct resource bf52x_t350mcqb_resources[] = {
+static struct resource bf52x_t350mcqb_resources[] =
+{
 	{
 		.start = IRQ_PPI_ERROR,
 		.end = IRQ_PPI_ERROR,
@@ -149,7 +157,8 @@ static struct resource bf52x_t350mcqb_resources[] = {
 	},
 };
 
-static struct platform_device bf52x_t350mcqb_device = {
+static struct platform_device bf52x_t350mcqb_device =
+{
 	.name		= "bfin-t350mcqb",
 	.id		= -1,
 	.num_resources 	= ARRAY_SIZE(bf52x_t350mcqb_resources),
@@ -160,12 +169,14 @@ static struct platform_device bf52x_t350mcqb_device = {
 #if IS_ENABLED(CONFIG_FB_BFIN_LQ035Q1)
 #include <asm/bfin-lq035q1.h>
 
-static struct bfin_lq035q1fb_disp_info bfin_lq035q1_data = {
+static struct bfin_lq035q1fb_disp_info bfin_lq035q1_data =
+{
 	.mode = LQ035_NORM | LQ035_RGB | LQ035_RL | LQ035_TB,
 	.ppi_mode = USE_RGB565_8_BIT_PPI,
 };
 
-static struct resource bfin_lq035q1_resources[] = {
+static struct resource bfin_lq035q1_resources[] =
+{
 	{
 		.start = IRQ_PPI_ERROR,
 		.end = IRQ_PPI_ERROR,
@@ -173,7 +184,8 @@ static struct resource bfin_lq035q1_resources[] = {
 	},
 };
 
-static struct platform_device bfin_lq035q1_device = {
+static struct platform_device bfin_lq035q1_device =
+{
 	.name		= "bfin-lq035q1",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(bfin_lq035q1_resources),
@@ -185,7 +197,8 @@ static struct platform_device bfin_lq035q1_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_MTD_PHYSMAP)
-static struct mtd_partition ezkit_partitions[] = {
+static struct mtd_partition ezkit_partitions[] =
+{
 	{
 		.name       = "bootloader(nor)",
 		.size       = 0x40000,
@@ -201,19 +214,22 @@ static struct mtd_partition ezkit_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data ezkit_flash_data = {
+static struct physmap_flash_data ezkit_flash_data =
+{
 	.width      = 2,
 	.parts      = ezkit_partitions,
 	.nr_parts   = ARRAY_SIZE(ezkit_partitions),
 };
 
-static struct resource ezkit_flash_resource = {
+static struct resource ezkit_flash_resource =
+{
 	.start = 0x20000000,
 	.end   = 0x203fffff,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platform_device ezkit_flash_device = {
+static struct platform_device ezkit_flash_device =
+{
 	.name          = "physmap-flash",
 	.id            = 0,
 	.dev = {
@@ -225,7 +241,8 @@ static struct platform_device ezkit_flash_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_MTD_NAND_BF5XX)
-static struct mtd_partition partition_info[] = {
+static struct mtd_partition partition_info[] =
+{
 	{
 		.name = "bootloader(nand)",
 		.offset = 0,
@@ -242,7 +259,8 @@ static struct mtd_partition partition_info[] = {
 	},
 };
 
-static struct bf5xx_nand_platform bf5xx_nand_platform = {
+static struct bf5xx_nand_platform bf5xx_nand_platform =
+{
 	.data_width = NFC_NWIDTH_8,
 	.partitions = partition_info,
 	.nr_partitions = ARRAY_SIZE(partition_info),
@@ -250,7 +268,8 @@ static struct bf5xx_nand_platform bf5xx_nand_platform = {
 	.wr_dly = 3,
 };
 
-static struct resource bf5xx_nand_resources[] = {
+static struct resource bf5xx_nand_resources[] =
+{
 	{
 		.start = NFC_CTL,
 		.end = NFC_DATA_RD + 2,
@@ -263,7 +282,8 @@ static struct resource bf5xx_nand_resources[] = {
 	},
 };
 
-static struct platform_device bf5xx_nand_device = {
+static struct platform_device bf5xx_nand_device =
+{
 	.name = "bf5xx-nand",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bf5xx_nand_resources),
@@ -275,7 +295,8 @@ static struct platform_device bf5xx_nand_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_BFIN_CFPCMCIA)
-static struct resource bfin_pcmcia_cf_resources[] = {
+static struct resource bfin_pcmcia_cf_resources[] =
+{
 	{
 		.start = 0x20310000, /* IO PORT */
 		.end = 0x20312000,
@@ -295,7 +316,8 @@ static struct resource bfin_pcmcia_cf_resources[] = {
 	},
 };
 
-static struct platform_device bfin_pcmcia_cf_device = {
+static struct platform_device bfin_pcmcia_cf_device =
+{
 	.name = "bfin_cf_pcmcia",
 	.id = -1,
 	.num_resources = ARRAY_SIZE(bfin_pcmcia_cf_resources),
@@ -304,7 +326,8 @@ static struct platform_device bfin_pcmcia_cf_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_RTC_DRV_BFIN)
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name = "rtc-bfin",
 	.id   = -1,
 };
@@ -313,13 +336,15 @@ static struct platform_device rtc_device = {
 #if IS_ENABLED(CONFIG_SMC91X)
 #include <linux/smc91x.h>
 
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
 	.leda = RPC_LED_100_10,
 	.ledb = RPC_LED_TX_RX,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	{
 		.name = "smc91x-regs",
 		.start = 0x20300300,
@@ -332,7 +357,8 @@ static struct resource smc91x_resources[] = {
 		.flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
 	},
 };
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name = "smc91x",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(smc91x_resources),
@@ -344,7 +370,8 @@ static struct platform_device smc91x_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_DM9000)
-static struct resource dm9000_resources[] = {
+static struct resource dm9000_resources[] =
+{
 	[0] = {
 		.start	= 0x203FB800,
 		.end	= 0x203FB800 + 1,
@@ -362,7 +389,8 @@ static struct resource dm9000_resources[] = {
 	},
 };
 
-static struct platform_device dm9000_device = {
+static struct platform_device dm9000_device =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(dm9000_resources),
@@ -374,28 +402,32 @@ static struct platform_device dm9000_device = {
 #include <linux/bfin_mac.h>
 static const unsigned short bfin_mac_peripherals[] = P_RMII0;
 
-static struct bfin_phydev_platform_data bfin_phydev_data[] = {
+static struct bfin_phydev_platform_data bfin_phydev_data[] =
+{
 	{
 		.addr = 1,
 		.irq = IRQ_MAC_PHYINT,
 	},
 };
 
-static struct bfin_mii_bus_platform_data bfin_mii_bus_data = {
+static struct bfin_mii_bus_platform_data bfin_mii_bus_data =
+{
 	.phydev_number = 1,
 	.phydev_data = bfin_phydev_data,
 	.phy_mode = PHY_INTERFACE_MODE_RMII,
 	.mac_peripherals = bfin_mac_peripherals,
 };
 
-static struct platform_device bfin_mii_bus = {
+static struct platform_device bfin_mii_bus =
+{
 	.name = "bfin_mii_bus",
 	.dev = {
 		.platform_data = &bfin_mii_bus_data,
 	}
 };
 
-static struct platform_device bfin_mac_device = {
+static struct platform_device bfin_mac_device =
+{
 	.name = "bfin_mac",
 	.dev = {
 		.platform_data = &bfin_mii_bus,
@@ -404,7 +436,8 @@ static struct platform_device bfin_mac_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_USB_NET2272)
-static struct resource net2272_bfin_resources[] = {
+static struct resource net2272_bfin_resources[] =
+{
 	{
 		.start = 0x20300000,
 		.end = 0x20300000 + 0x100,
@@ -419,7 +452,8 @@ static struct resource net2272_bfin_resources[] = {
 	},
 };
 
-static struct platform_device net2272_bfin_device = {
+static struct platform_device net2272_bfin_device =
+{
 	.name = "net2272",
 	.id = -1,
 	.num_resources = ARRAY_SIZE(net2272_bfin_resources),
@@ -428,7 +462,8 @@ static struct platform_device net2272_bfin_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_MTD_M25P80)
-static struct mtd_partition bfin_spi_flash_partitions[] = {
+static struct mtd_partition bfin_spi_flash_partitions[] =
+{
 	{
 		.name = "bootloader(spi)",
 		.size = 0x00040000,
@@ -441,7 +476,8 @@ static struct mtd_partition bfin_spi_flash_partitions[] = {
 	}
 };
 
-static struct flash_platform_data bfin_spi_flash_data = {
+static struct flash_platform_data bfin_spi_flash_data =
+{
 	.name = "m25p80",
 	.parts = bfin_spi_flash_partitions,
 	.nr_parts = ARRAY_SIZE(bfin_spi_flash_partitions),
@@ -449,19 +485,22 @@ static struct flash_platform_data bfin_spi_flash_data = {
 };
 
 /* SPI flash chip (m25p64) */
-static struct bfin5xx_spi_chip spi_flash_chip_info = {
+static struct bfin5xx_spi_chip spi_flash_chip_info =
+{
 	.enable_dma = 0,         /* use dma transfer with this chip*/
 };
 #endif
 
 #if IS_ENABLED(CONFIG_MMC_SPI)
-static struct bfin5xx_spi_chip  mmc_spi_chip_info = {
+static struct bfin5xx_spi_chip  mmc_spi_chip_info =
+{
 	.enable_dma = 0,
 };
 #endif
 
 #if IS_ENABLED(CONFIG_TOUCHSCREEN_AD7877)
-static const struct ad7877_platform_data bfin_ad7877_ts_info = {
+static const struct ad7877_platform_data bfin_ad7877_ts_info =
+{
 	.model			= 7877,
 	.vref_delay_usecs	= 50,	/* internal, no capacitor */
 	.x_plate_ohms		= 419,
@@ -478,7 +517,8 @@ static const struct ad7877_platform_data bfin_ad7877_ts_info = {
 
 #if IS_ENABLED(CONFIG_TOUCHSCREEN_AD7879)
 #include <linux/platform_data/ad7879.h>
-static const struct ad7879_platform_data bfin_ad7879_ts_info = {
+static const struct ad7879_platform_data bfin_ad7879_ts_info =
+{
 	.model			= 7879,	/* Model = AD7879 */
 	.x_plate_ohms		= 620,	/* 620 Ohm from the touch datasheet */
 	.pressure_max		= 10000,
@@ -494,14 +534,20 @@ static const struct ad7879_platform_data bfin_ad7879_ts_info = {
 
 #if IS_ENABLED(CONFIG_SND_BF5XX_I2S)
 
-static const u16 bfin_snd_pin[][7] = {
-	{P_SPORT0_DTPRI, P_SPORT0_TSCLK, P_SPORT0_RFS,
-		P_SPORT0_DRPRI, P_SPORT0_RSCLK, 0, 0},
-	{P_SPORT1_DTPRI, P_SPORT1_TSCLK, P_SPORT1_RFS,
-		P_SPORT1_DRPRI, P_SPORT1_RSCLK, P_SPORT1_TFS, 0},
+static const u16 bfin_snd_pin[][7] =
+{
+	{
+		P_SPORT0_DTPRI, P_SPORT0_TSCLK, P_SPORT0_RFS,
+		P_SPORT0_DRPRI, P_SPORT0_RSCLK, 0, 0
+	},
+	{
+		P_SPORT1_DTPRI, P_SPORT1_TSCLK, P_SPORT1_RFS,
+		P_SPORT1_DRPRI, P_SPORT1_RSCLK, P_SPORT1_TFS, 0
+	},
 };
 
-static struct bfin_snd_platform_data bfin_snd_data[] = {
+static struct bfin_snd_platform_data bfin_snd_data[] =
+{
 	{
 		.pin_req = &bfin_snd_pin[0][0],
 	},
@@ -512,50 +558,54 @@ static struct bfin_snd_platform_data bfin_snd_data[] = {
 
 #define BFIN_SND_RES(x) \
 	[x] = { \
-		{ \
-			.start = SPORT##x##_TCR1, \
-			.end = SPORT##x##_TCR1, \
-			.flags = IORESOURCE_MEM \
-		}, \
-		{ \
-			.start = CH_SPORT##x##_RX, \
-			.end = CH_SPORT##x##_RX, \
-			.flags = IORESOURCE_DMA, \
-		}, \
-		{ \
-			.start = CH_SPORT##x##_TX, \
-			.end = CH_SPORT##x##_TX, \
-			.flags = IORESOURCE_DMA, \
-		}, \
-		{ \
-			.start = IRQ_SPORT##x##_ERROR, \
-			.end = IRQ_SPORT##x##_ERROR, \
-			.flags = IORESOURCE_IRQ, \
-		} \
-	}
+			{ \
+			  .start = SPORT##x##_TCR1, \
+			  .end = SPORT##x##_TCR1, \
+			  .flags = IORESOURCE_MEM \
+			}, \
+			{ \
+			  .start = CH_SPORT##x##_RX, \
+			  .end = CH_SPORT##x##_RX, \
+			  .flags = IORESOURCE_DMA, \
+			}, \
+			{ \
+			  .start = CH_SPORT##x##_TX, \
+			  .end = CH_SPORT##x##_TX, \
+			  .flags = IORESOURCE_DMA, \
+			}, \
+			{ \
+			  .start = IRQ_SPORT##x##_ERROR, \
+			  .end = IRQ_SPORT##x##_ERROR, \
+			  .flags = IORESOURCE_IRQ, \
+			} \
+		  }
 
-static struct resource bfin_snd_resources[][4] = {
+static struct resource bfin_snd_resources[][4] =
+{
 	BFIN_SND_RES(0),
 	BFIN_SND_RES(1),
 };
 #endif
 
 #if IS_ENABLED(CONFIG_SND_BF5XX_I2S)
-static struct platform_device bfin_i2s_pcm = {
+static struct platform_device bfin_i2s_pcm =
+{
 	.name = "bfin-i2s-pcm-audio",
 	.id = -1,
 };
 #endif
 
 #if IS_ENABLED(CONFIG_SND_BF5XX_AC97)
-static struct platform_device bfin_ac97_pcm = {
+static struct platform_device bfin_ac97_pcm =
+{
 	.name = "bfin-ac97-pcm-audio",
 	.id = -1,
 };
 #endif
 
 #if IS_ENABLED(CONFIG_SND_BF5XX_I2S)
-static struct platform_device bfin_i2s = {
+static struct platform_device bfin_i2s =
+{
 	.name = "bfin-i2s",
 	.id = CONFIG_SND_BF5XX_SPORT_NUM,
 	.num_resources = ARRAY_SIZE(bfin_snd_resources[CONFIG_SND_BF5XX_SPORT_NUM]),
@@ -567,11 +617,13 @@ static struct platform_device bfin_i2s = {
 #endif
 
 #if IS_ENABLED(CONFIG_SND_BF5XX_SOC_AD1836)
-static const char * const ad1836_link[] = {
+static const char *const ad1836_link[] =
+{
 	"bfin-i2s.0",
 	"spi0.4",
 };
-static struct platform_device bfin_ad1836_machine = {
+static struct platform_device bfin_ad1836_machine =
+{
 	.name = "bfin-snd-ad1836",
 	.id = -1,
 	.dev = {
@@ -580,7 +632,8 @@ static struct platform_device bfin_ad1836_machine = {
 };
 #endif
 
-static struct spi_board_info bfin_spi_board_info[] __initdata = {
+static struct spi_board_info bfin_spi_board_info[] __initdata =
+{
 #if IS_ENABLED(CONFIG_MTD_M25P80)
 	{
 		/* the modalias must be the same as spi device driver name */
@@ -657,19 +710,21 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 
 #if IS_ENABLED(CONFIG_SPI_BFIN5XX)
 /* SPI controller data */
-static struct bfin5xx_spi_master bfin_spi0_info = {
+static struct bfin5xx_spi_master bfin_spi0_info =
+{
 	.num_chipselect = 8,
 	.enable_dma = 1,  /* master has the ability to do dma transfer */
 	.pin_req = {P_SPI0_SCK, P_SPI0_MISO, P_SPI0_MOSI, 0},
 };
 
 /* SPI (0) */
-static struct resource bfin_spi0_resource[] = {
+static struct resource bfin_spi0_resource[] =
+{
 	[0] = {
 		.start = SPI0_REGBASE,
 		.end   = SPI0_REGBASE + 0xFF,
 		.flags = IORESOURCE_MEM,
-		},
+	},
 	[1] = {
 		.start = CH_SPI,
 		.end   = CH_SPI,
@@ -682,7 +737,8 @@ static struct resource bfin_spi0_resource[] = {
 	},
 };
 
-static struct platform_device bfin_spi0_device = {
+static struct platform_device bfin_spi0_device =
+{
 	.name = "bfin-spi",
 	.id = 0, /* Bus number */
 	.num_resources = ARRAY_SIZE(bfin_spi0_resource),
@@ -695,10 +751,11 @@ static struct platform_device bfin_spi0_device = {
 
 #if IS_ENABLED(CONFIG_SERIAL_BFIN)
 #ifdef CONFIG_SERIAL_BFIN_UART0
-static struct resource bfin_uart0_resources[] = {
+static struct resource bfin_uart0_resources[] =
+{
 	{
 		.start = UART0_THR,
-		.end = UART0_GCTL+2,
+		.end = UART0_GCTL + 2,
 		.flags = IORESOURCE_MEM,
 	},
 	{
@@ -728,11 +785,13 @@ static struct resource bfin_uart0_resources[] = {
 	},
 };
 
-static unsigned short bfin_uart0_peripherals[] = {
+static unsigned short bfin_uart0_peripherals[] =
+{
 	P_UART0_TX, P_UART0_RX, 0
 };
 
-static struct platform_device bfin_uart0_device = {
+static struct platform_device bfin_uart0_device =
+{
 	.name = "bfin-uart",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_uart0_resources),
@@ -743,10 +802,11 @@ static struct platform_device bfin_uart0_device = {
 };
 #endif
 #ifdef CONFIG_SERIAL_BFIN_UART1
-static struct resource bfin_uart1_resources[] = {
+static struct resource bfin_uart1_resources[] =
+{
 	{
 		.start = UART1_THR,
-		.end = UART1_GCTL+2,
+		.end = UART1_GCTL + 2,
 		.flags = IORESOURCE_MEM,
 	},
 	{
@@ -788,11 +848,13 @@ static struct resource bfin_uart1_resources[] = {
 #endif
 };
 
-static unsigned short bfin_uart1_peripherals[] = {
+static unsigned short bfin_uart1_peripherals[] =
+{
 	P_UART1_TX, P_UART1_RX, 0
 };
 
-static struct platform_device bfin_uart1_device = {
+static struct platform_device bfin_uart1_device =
+{
 	.name = "bfin-uart",
 	.id = 1,
 	.num_resources = ARRAY_SIZE(bfin_uart1_resources),
@@ -806,7 +868,8 @@ static struct platform_device bfin_uart1_device = {
 
 #if IS_ENABLED(CONFIG_BFIN_SIR)
 #ifdef CONFIG_BFIN_SIR0
-static struct resource bfin_sir0_resources[] = {
+static struct resource bfin_sir0_resources[] =
+{
 	{
 		.start = 0xFFC00400,
 		.end = 0xFFC004FF,
@@ -814,17 +877,18 @@ static struct resource bfin_sir0_resources[] = {
 	},
 	{
 		.start = IRQ_UART0_RX,
-		.end = IRQ_UART0_RX+1,
+		.end = IRQ_UART0_RX + 1,
 		.flags = IORESOURCE_IRQ,
 	},
 	{
 		.start = CH_UART0_RX,
-		.end = CH_UART0_RX+1,
+		.end = CH_UART0_RX + 1,
 		.flags = IORESOURCE_DMA,
 	},
 };
 
-static struct platform_device bfin_sir0_device = {
+static struct platform_device bfin_sir0_device =
+{
 	.name = "bfin_sir",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_sir0_resources),
@@ -832,7 +896,8 @@ static struct platform_device bfin_sir0_device = {
 };
 #endif
 #ifdef CONFIG_BFIN_SIR1
-static struct resource bfin_sir1_resources[] = {
+static struct resource bfin_sir1_resources[] =
+{
 	{
 		.start = 0xFFC02000,
 		.end = 0xFFC020FF,
@@ -840,17 +905,18 @@ static struct resource bfin_sir1_resources[] = {
 	},
 	{
 		.start = IRQ_UART1_RX,
-		.end = IRQ_UART1_RX+1,
+		.end = IRQ_UART1_RX + 1,
 		.flags = IORESOURCE_IRQ,
 	},
 	{
 		.start = CH_UART1_RX,
-		.end = CH_UART1_RX+1,
+		.end = CH_UART1_RX + 1,
 		.flags = IORESOURCE_DMA,
 	},
 };
 
-static struct platform_device bfin_sir1_device = {
+static struct platform_device bfin_sir1_device =
+{
 	.name = "bfin_sir",
 	.id = 1,
 	.num_resources = ARRAY_SIZE(bfin_sir1_resources),
@@ -862,7 +928,8 @@ static struct platform_device bfin_sir1_device = {
 #if IS_ENABLED(CONFIG_I2C_BLACKFIN_TWI)
 static const u16 bfin_twi0_pins[] = {P_TWI0_SCL, P_TWI0_SDA, 0};
 
-static struct resource bfin_twi0_resource[] = {
+static struct resource bfin_twi0_resource[] =
+{
 	[0] = {
 		.start = TWI0_REGBASE,
 		.end   = TWI0_REGBASE,
@@ -875,7 +942,8 @@ static struct resource bfin_twi0_resource[] = {
 	},
 };
 
-static struct platform_device i2c_bfin_twi_device = {
+static struct platform_device i2c_bfin_twi_device =
+{
 	.name = "i2c-bfin-twi",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_twi0_resource),
@@ -889,11 +957,12 @@ static struct platform_device i2c_bfin_twi_device = {
 #if IS_ENABLED(CONFIG_PMIC_ADP5520)
 #include <linux/mfd/adp5520.h>
 
-	/*
-	 *  ADP5520/5501 LEDs Data
-	 */
+/*
+ *  ADP5520/5501 LEDs Data
+ */
 
-static struct led_info adp5520_leds[] = {
+static struct led_info adp5520_leds[] =
+{
 	{
 		.name = "adp5520-led1",
 		.default_trigger = "none",
@@ -901,7 +970,8 @@ static struct led_info adp5520_leds[] = {
 	},
 };
 
-static struct adp5520_leds_platform_data adp5520_leds_data = {
+static struct adp5520_leds_platform_data adp5520_leds_data =
+{
 	.num_leds = ARRAY_SIZE(adp5520_leds),
 	.leds = adp5520_leds,
 	.fade_in = ADP5520_FADE_T_600ms,
@@ -909,11 +979,12 @@ static struct adp5520_leds_platform_data adp5520_leds_data = {
 	.led_on_time = ADP5520_LED_ONT_600ms,
 };
 
-	/*
-	 *  ADP5520 Keypad Data
-	 */
+/*
+ *  ADP5520 Keypad Data
+ */
 
-static const unsigned short adp5520_keymap[ADP5520_KEYMAPSIZE] = {
+static const unsigned short adp5520_keymap[ADP5520_KEYMAPSIZE] =
+{
 	[ADP5520_KEY(3, 3)]	= KEY_1,
 	[ADP5520_KEY(2, 3)]	= KEY_2,
 	[ADP5520_KEY(1, 3)]	= KEY_3,
@@ -932,7 +1003,8 @@ static const unsigned short adp5520_keymap[ADP5520_KEYMAPSIZE] = {
 	[ADP5520_KEY(0, 0)]	= KEY_ENTER,
 };
 
-static struct adp5520_keys_platform_data adp5520_keys_data = {
+static struct adp5520_keys_platform_data adp5520_keys_data =
+{
 	.rows_en_mask	= ADP5520_ROW_R3 | ADP5520_ROW_R2 | ADP5520_ROW_R1 | ADP5520_ROW_R0,
 	.cols_en_mask	= ADP5520_COL_C3 | ADP5520_COL_C2 | ADP5520_COL_C1 | ADP5520_COL_C0,
 	.keymap		= adp5520_keymap,
@@ -940,18 +1012,20 @@ static struct adp5520_keys_platform_data adp5520_keys_data = {
 	.repeat		= 0,
 };
 
-	/*
-	 *  ADP5520/5501 Multifunction Device Init Data
-	 */
+/*
+ *  ADP5520/5501 Multifunction Device Init Data
+ */
 
-static struct adp5520_platform_data adp5520_pdev_data = {
+static struct adp5520_platform_data adp5520_pdev_data =
+{
 	.leds = &adp5520_leds_data,
 	.keys = &adp5520_keys_data,
 };
 
 #endif
 
-static struct i2c_board_info __initdata bfin_i2c_board_info[] = {
+static struct i2c_board_info __initdata bfin_i2c_board_info[] =
+{
 #if IS_ENABLED(CONFIG_BFIN_TWI_LCD)
 	{
 		I2C_BOARD_INFO("pcf8574_lcd", 0x22),
@@ -972,14 +1046,14 @@ static struct i2c_board_info __initdata bfin_i2c_board_info[] = {
 	{
 		I2C_BOARD_INFO("ad7879", 0x2C),
 		.irq = IRQ_PF8,
-		.platform_data = (void *)&bfin_ad7879_ts_info,
+		.platform_data = (void *) &bfin_ad7879_ts_info,
 	},
 #endif
 #if IS_ENABLED(CONFIG_PMIC_ADP5520)
 	{
 		I2C_BOARD_INFO("pmic-adp5520", 0x32),
 		.irq = IRQ_PF9,
-		.platform_data = (void *)&adp5520_pdev_data,
+		.platform_data = (void *) &adp5520_pdev_data,
 	},
 #endif
 #if IS_ENABLED(CONFIG_SND_SOC_SSM2602)
@@ -1001,15 +1075,16 @@ static struct i2c_board_info __initdata bfin_i2c_board_info[] = {
 
 #if IS_ENABLED(CONFIG_SERIAL_BFIN_SPORT)
 #ifdef CONFIG_SERIAL_BFIN_SPORT0_UART
-static struct resource bfin_sport0_uart_resources[] = {
+static struct resource bfin_sport0_uart_resources[] =
+{
 	{
 		.start = SPORT0_TCR1,
-		.end = SPORT0_MRCS3+4,
+		.end = SPORT0_MRCS3 + 4,
 		.flags = IORESOURCE_MEM,
 	},
 	{
 		.start = IRQ_SPORT0_RX,
-		.end = IRQ_SPORT0_RX+1,
+		.end = IRQ_SPORT0_RX + 1,
 		.flags = IORESOURCE_IRQ,
 	},
 	{
@@ -1019,12 +1094,14 @@ static struct resource bfin_sport0_uart_resources[] = {
 	},
 };
 
-static unsigned short bfin_sport0_peripherals[] = {
+static unsigned short bfin_sport0_peripherals[] =
+{
 	P_SPORT0_TFS, P_SPORT0_DTPRI, P_SPORT0_TSCLK, P_SPORT0_RFS,
 	P_SPORT0_DRPRI, P_SPORT0_RSCLK, 0
 };
 
-static struct platform_device bfin_sport0_uart_device = {
+static struct platform_device bfin_sport0_uart_device =
+{
 	.name = "bfin-sport-uart",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_sport0_uart_resources),
@@ -1035,15 +1112,16 @@ static struct platform_device bfin_sport0_uart_device = {
 };
 #endif
 #ifdef CONFIG_SERIAL_BFIN_SPORT1_UART
-static struct resource bfin_sport1_uart_resources[] = {
+static struct resource bfin_sport1_uart_resources[] =
+{
 	{
 		.start = SPORT1_TCR1,
-		.end = SPORT1_MRCS3+4,
+		.end = SPORT1_MRCS3 + 4,
 		.flags = IORESOURCE_MEM,
 	},
 	{
 		.start = IRQ_SPORT1_RX,
-		.end = IRQ_SPORT1_RX+1,
+		.end = IRQ_SPORT1_RX + 1,
 		.flags = IORESOURCE_IRQ,
 	},
 	{
@@ -1053,12 +1131,14 @@ static struct resource bfin_sport1_uart_resources[] = {
 	},
 };
 
-static unsigned short bfin_sport1_peripherals[] = {
+static unsigned short bfin_sport1_peripherals[] =
+{
 	P_SPORT1_TFS, P_SPORT1_DTPRI, P_SPORT1_TSCLK, P_SPORT1_RFS,
 	P_SPORT1_DRPRI, P_SPORT1_RSCLK, 0
 };
 
-static struct platform_device bfin_sport1_uart_device = {
+static struct platform_device bfin_sport1_uart_device =
+{
 	.name = "bfin-sport-uart",
 	.id = 1,
 	.num_resources = ARRAY_SIZE(bfin_sport1_uart_resources),
@@ -1073,17 +1153,20 @@ static struct platform_device bfin_sport1_uart_device = {
 #if IS_ENABLED(CONFIG_KEYBOARD_GPIO)
 #include <linux/gpio_keys.h>
 
-static struct gpio_keys_button bfin_gpio_keys_table[] = {
+static struct gpio_keys_button bfin_gpio_keys_table[] =
+{
 	{BTN_0, GPIO_PG0, 1, "gpio-keys: BTN0"},
 	{BTN_1, GPIO_PG13, 1, "gpio-keys: BTN1"},
 };
 
-static struct gpio_keys_platform_data bfin_gpio_keys_data = {
+static struct gpio_keys_platform_data bfin_gpio_keys_data =
+{
 	.buttons        = bfin_gpio_keys_table,
 	.nbuttons       = ARRAY_SIZE(bfin_gpio_keys_table),
 };
 
-static struct platform_device bfin_device_gpiokeys = {
+static struct platform_device bfin_device_gpiokeys =
+{
 	.name      = "gpio-keys",
 	.dev = {
 		.platform_data = &bfin_gpio_keys_data,
@@ -1094,14 +1177,16 @@ static struct platform_device bfin_device_gpiokeys = {
 #if IS_ENABLED(CONFIG_INPUT_BFIN_ROTARY)
 #include <linux/platform_data/bfin_rotary.h>
 
-static const u16 per_cnt[] = {
+static const u16 per_cnt[] =
+{
 	P_CNT_CUD,
 	P_CNT_CDG,
 	P_CNT_CZM,
 	0
 };
 
-static struct bfin_rotary_platform_data bfin_rotary_data = {
+static struct bfin_rotary_platform_data bfin_rotary_data =
+{
 	/*.rotary_up_key     = KEY_UP,*/
 	/*.rotary_down_key   = KEY_DOWN,*/
 	.rotary_rel_code   = REL_WHEEL,
@@ -1112,7 +1197,8 @@ static struct bfin_rotary_platform_data bfin_rotary_data = {
 	.pin_list	   = per_cnt,
 };
 
-static struct resource bfin_rotary_resources[] = {
+static struct resource bfin_rotary_resources[] =
+{
 	{
 		.start = CNT_CONFIG,
 		.end   = CNT_CONFIG + 0xff,
@@ -1125,7 +1211,8 @@ static struct resource bfin_rotary_resources[] = {
 	},
 };
 
-static struct platform_device bfin_rotary_device = {
+static struct platform_device bfin_rotary_device =
+{
 	.name		= "bfin-rotary",
 	.id		= -1,
 	.num_resources 	= ARRAY_SIZE(bfin_rotary_resources),
@@ -1145,20 +1232,23 @@ static const unsigned int cclk_vlev_datasheet[] =
 	VRPAIR(VLEV_120, 600000000),
 };
 
-static struct bfin_dpmc_platform_data bfin_dmpc_vreg_data = {
+static struct bfin_dpmc_platform_data bfin_dmpc_vreg_data =
+{
 	.tuple_tab = cclk_vlev_datasheet,
 	.tabsize = ARRAY_SIZE(cclk_vlev_datasheet),
 	.vr_settling_time = 25 /* us */,
 };
 
-static struct platform_device bfin_dpmc = {
+static struct platform_device bfin_dpmc =
+{
 	.name = "bfin dpmc",
 	.dev = {
 		.platform_data = &bfin_dmpc_vreg_data,
 	},
 };
 
-static struct platform_device *stamp_devices[] __initdata = {
+static struct platform_device *stamp_devices[] __initdata =
+{
 
 	&bfin_dpmc,
 
@@ -1275,7 +1365,7 @@ static int __init ezkit_init(void)
 {
 	printk(KERN_INFO "%s(): registering device resources\n", __func__);
 	i2c_register_board_info(0, bfin_i2c_board_info,
-				ARRAY_SIZE(bfin_i2c_board_info));
+							ARRAY_SIZE(bfin_i2c_board_info));
 	platform_add_devices(stamp_devices, ARRAY_SIZE(stamp_devices));
 	spi_register_board_info(bfin_spi_board_info, ARRAY_SIZE(bfin_spi_board_info));
 	return 0;
@@ -1283,7 +1373,8 @@ static int __init ezkit_init(void)
 
 arch_initcall(ezkit_init);
 
-static struct platform_device *ezkit_early_devices[] __initdata = {
+static struct platform_device *ezkit_early_devices[] __initdata =
+{
 #if defined(CONFIG_SERIAL_BFIN_CONSOLE) || defined(CONFIG_EARLY_PRINTK)
 #ifdef CONFIG_SERIAL_BFIN_UART0
 	&bfin_uart0_device,
@@ -1307,14 +1398,16 @@ void __init native_machine_early_platform_add_devices(void)
 {
 	printk(KERN_INFO "register early platform devices\n");
 	early_platform_add_devices(ezkit_early_devices,
-		ARRAY_SIZE(ezkit_early_devices));
+							   ARRAY_SIZE(ezkit_early_devices));
 }
 
 void native_machine_restart(char *cmd)
 {
 	/* workaround reboot hang when booting from SPI */
 	if ((bfin_read_SYSCR() & 0x7) == 0x3)
+	{
 		bfin_reset_boot_spi_cs(P_DEFAULT_BOOT_SPI_CS);
+	}
 }
 
 int bfin_get_ether_addr(char *addr)
@@ -1322,14 +1415,20 @@ int bfin_get_ether_addr(char *addr)
 	/* the MAC is stored in OTP memory page 0xDF */
 	u32 ret;
 	u64 otp_mac;
-	u32 (*otp_read)(u32 page, u32 flags, u64 *page_content) = (void *)0xEF00001A;
+	u32 (*otp_read)(u32 page, u32 flags, u64 * page_content) = (void *)0xEF00001A;
 
 	ret = otp_read(0xDF, 0x00, &otp_mac);
-	if (!(ret & 0x1)) {
+
+	if (!(ret & 0x1))
+	{
 		char *otp_mac_p = (char *)&otp_mac;
+
 		for (ret = 0; ret < 6; ++ret)
+		{
 			addr[ret] = otp_mac_p[5 - ret];
+		}
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(bfin_get_ether_addr);

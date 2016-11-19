@@ -22,7 +22,7 @@
 
 unsigned long
 arch_get_unmapped_area (struct file *filp, unsigned long addr, unsigned long len,
-			unsigned long pgoff, unsigned long flags)
+						unsigned long pgoff, unsigned long flags)
 {
 	long map_shared = (flags & MAP_SHARED);
 	unsigned long align_mask = 0;
@@ -30,21 +30,34 @@ arch_get_unmapped_area (struct file *filp, unsigned long addr, unsigned long len
 	struct vm_unmapped_area_info info;
 
 	if (len > RGN_MAP_LIMIT)
+	{
 		return -ENOMEM;
+	}
 
 	/* handle fixed mapping: prevent overlap with huge pages */
-	if (flags & MAP_FIXED) {
+	if (flags & MAP_FIXED)
+	{
 		if (is_hugepage_only_range(mm, addr, len))
+		{
 			return -EINVAL;
+		}
+
 		return addr;
 	}
 
 #ifdef CONFIG_HUGETLB_PAGE
+
 	if (REGION_NUMBER(addr) == RGN_HPAGE)
+	{
 		addr = 0;
+	}
+
 #endif
+
 	if (!addr)
+	{
 		addr = TASK_UNMAPPED_BASE;
+	}
 
 	if (map_shared && (TASK_SIZE > 0xfffffffful))
 		/*
@@ -53,7 +66,9 @@ arch_get_unmapped_area (struct file *filp, unsigned long addr, unsigned long len
 		 * tasks, we prefer to avoid exhausting the address space too quickly by
 		 * limiting alignment to a single page.
 		 */
+	{
 		align_mask = PAGE_MASK & (SHMLBA - 1);
+	}
 
 	info.flags = 0;
 	info.length = len;
@@ -70,10 +85,13 @@ ia64_getpriority (int which, int who)
 	long prio;
 
 	prio = sys_getpriority(which, who);
-	if (prio >= 0) {
+
+	if (prio >= 0)
+	{
 		force_successful_syscall_return();
 		prio = 20 - prio;
 	}
+
 	return prio;
 }
 
@@ -104,16 +122,20 @@ sys_ia64_pipe (void)
 	int retval;
 
 	retval = do_pipe_flags(fd, 0);
+
 	if (retval)
+	{
 		goto out;
+	}
+
 	retval = fd[0];
 	regs->r9 = fd[1];
-  out:
+out:
 	return retval;
 }
 
 int ia64_mmap_check(unsigned long addr, unsigned long len,
-		unsigned long flags)
+					unsigned long flags)
 {
 	unsigned long roff;
 
@@ -123,8 +145,12 @@ int ia64_mmap_check(unsigned long addr, unsigned long len,
 	 * equal to 2^n-PAGE_SIZE (for some integer n <= 61) and len > 0.
 	 */
 	roff = REGION_OFFSET(addr);
+
 	if ((len > RGN_MAP_LIMIT) || (roff > (RGN_MAP_LIMIT - len)))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -137,8 +163,12 @@ asmlinkage unsigned long
 sys_mmap2 (unsigned long addr, unsigned long len, int prot, int flags, int fd, long pgoff)
 {
 	addr = sys_mmap_pgoff(addr, len, prot, flags, fd, pgoff);
+
 	if (!IS_ERR((void *) addr))
+	{
 		force_successful_syscall_return();
+	}
+
 	return addr;
 }
 
@@ -146,21 +176,31 @@ asmlinkage unsigned long
 sys_mmap (unsigned long addr, unsigned long len, int prot, int flags, int fd, long off)
 {
 	if (offset_in_page(off) != 0)
+	{
 		return -EINVAL;
+	}
 
 	addr = sys_mmap_pgoff(addr, len, prot, flags, fd, off >> PAGE_SHIFT);
+
 	if (!IS_ERR((void *) addr))
+	{
 		force_successful_syscall_return();
+	}
+
 	return addr;
 }
 
 asmlinkage unsigned long
 ia64_mremap (unsigned long addr, unsigned long old_len, unsigned long new_len, unsigned long flags,
-	     unsigned long new_addr)
+			 unsigned long new_addr)
 {
 	addr = sys_mremap(addr, old_len, new_len, flags, new_addr);
+
 	if (!IS_ERR((void *) addr))
+	{
 		force_successful_syscall_return();
+	}
+
 	return addr;
 }
 
@@ -168,14 +208,14 @@ ia64_mremap (unsigned long addr, unsigned long old_len, unsigned long new_len, u
 
 asmlinkage long
 sys_pciconfig_read (unsigned long bus, unsigned long dfn, unsigned long off, unsigned long len,
-		    void *buf)
+					void *buf)
 {
 	return -ENOSYS;
 }
 
 asmlinkage long
 sys_pciconfig_write (unsigned long bus, unsigned long dfn, unsigned long off, unsigned long len,
-		     void *buf)
+					 void *buf)
 {
 	return -ENOSYS;
 }

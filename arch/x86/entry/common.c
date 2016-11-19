@@ -45,14 +45,17 @@ static inline void enter_from_user_mode(void) {}
 static void do_audit_syscall_entry(struct pt_regs *regs, u32 arch)
 {
 #ifdef CONFIG_X86_64
-	if (arch == AUDIT_ARCH_X86_64) {
+
+	if (arch == AUDIT_ARCH_X86_64)
+	{
 		audit_syscall_entry(regs->orig_ax, regs->di,
-				    regs->si, regs->dx, regs->r10);
-	} else
+							regs->si, regs->dx, regs->r10);
+	}
+	else
 #endif
 	{
 		audit_syscall_entry(regs->orig_ax, regs->bx,
-				    regs->cx, regs->dx, regs->si);
+							regs->cx, regs->dx, regs->si);
 	}
 }
 
@@ -70,39 +73,52 @@ static long syscall_trace_enter(struct pt_regs *regs)
 	u32 work;
 
 	if (IS_ENABLED(CONFIG_DEBUG_ENTRY))
+	{
 		BUG_ON(regs != task_pt_regs(current));
+	}
 
 	work = ACCESS_ONCE(ti->flags) & _TIF_WORK_SYSCALL_ENTRY;
 
 	if (unlikely(work & _TIF_SYSCALL_EMU))
+	{
 		emulated = true;
+	}
 
 	if ((emulated || (work & _TIF_SYSCALL_TRACE)) &&
-	    tracehook_report_syscall_entry(regs))
+		tracehook_report_syscall_entry(regs))
+	{
 		return -1L;
+	}
 
 	if (emulated)
+	{
 		return -1L;
+	}
 
 #ifdef CONFIG_SECCOMP
+
 	/*
 	 * Do seccomp after ptrace, to catch any tracer changes.
 	 */
-	if (work & _TIF_SECCOMP) {
+	if (work & _TIF_SECCOMP)
+	{
 		struct seccomp_data sd;
 
 		sd.arch = arch;
 		sd.nr = regs->orig_ax;
 		sd.instruction_pointer = regs->ip;
 #ifdef CONFIG_X86_64
-		if (arch == AUDIT_ARCH_X86_64) {
+
+		if (arch == AUDIT_ARCH_X86_64)
+		{
 			sd.args[0] = regs->di;
 			sd.args[1] = regs->si;
 			sd.args[2] = regs->dx;
 			sd.args[3] = regs->r10;
 			sd.args[4] = regs->r8;
 			sd.args[5] = regs->r9;
-		} else
+		}
+		else
 #endif
 		{
 			sd.args[0] = regs->bx;
@@ -114,17 +130,23 @@ static long syscall_trace_enter(struct pt_regs *regs)
 		}
 
 		ret = __secure_computing(&sd);
+
 		if (ret == -1)
+		{
 			return ret;
+		}
 	}
+
 #endif
 
 	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
+	{
 		trace_sys_enter(regs, regs->orig_ax);
+	}
 
 	do_audit_syscall_entry(regs, arch);
 
-	return ret ?: regs->orig_ax;
+	return ret ? : regs->orig_ax;
 }
 
 #define EXIT_TO_USERMODE_LOOP_FLAGS				\
@@ -141,27 +163,37 @@ static void exit_to_usermode_loop(struct pt_regs *regs, u32 cached_flags)
 	 * so we need to loop.  Disabling preemption wouldn't help: doing the
 	 * work to clear some of the flags can sleep.
 	 */
-	while (true) {
+	while (true)
+	{
 		/* We have work to do. */
 		local_irq_enable();
 
 		if (cached_flags & _TIF_NEED_RESCHED)
+		{
 			schedule();
+		}
 
 		if (cached_flags & _TIF_UPROBE)
+		{
 			uprobe_notify_resume(regs);
+		}
 
 		/* deal with pending signal delivery */
 		if (cached_flags & _TIF_SIGPENDING)
+		{
 			do_signal(regs);
+		}
 
-		if (cached_flags & _TIF_NOTIFY_RESUME) {
+		if (cached_flags & _TIF_NOTIFY_RESUME)
+		{
 			clear_thread_flag(TIF_NOTIFY_RESUME);
 			tracehook_notify_resume(regs);
 		}
 
 		if (cached_flags & _TIF_USER_RETURN_NOTIFY)
+		{
 			fire_user_return_notifiers();
+		}
 
 		/* Disable IRQs and retry */
 		local_irq_disable();
@@ -169,7 +201,9 @@ static void exit_to_usermode_loop(struct pt_regs *regs, u32 cached_flags)
 		cached_flags = READ_ONCE(current_thread_info()->flags);
 
 		if (!(cached_flags & EXIT_TO_USERMODE_LOOP_FLAGS))
+		{
 			break;
+		}
 	}
 }
 
@@ -180,14 +214,18 @@ __visible inline void prepare_exit_to_usermode(struct pt_regs *regs)
 	u32 cached_flags;
 
 	if (IS_ENABLED(CONFIG_PROVE_LOCKING) && WARN_ON(!irqs_disabled()))
+	{
 		local_irq_disable();
+	}
 
 	lockdep_sys_exit();
 
 	cached_flags = READ_ONCE(ti->flags);
 
 	if (unlikely(cached_flags & EXIT_TO_USERMODE_LOOP_FLAGS))
+	{
 		exit_to_usermode_loop(regs, cached_flags);
+	}
 
 #ifdef CONFIG_COMPAT
 	/*
@@ -201,7 +239,7 @@ __visible inline void prepare_exit_to_usermode(struct pt_regs *regs)
 	 * special case only applies after poking regs and before the
 	 * very next return to user mode.
 	 */
-	current->thread.status &= ~(TS_COMPAT|TS_I386_REGS_POKED);
+	current->thread.status &= ~(TS_COMPAT | TS_I386_REGS_POKED);
 #endif
 
 	user_enter_irqoff();
@@ -218,7 +256,9 @@ static void syscall_slow_exit_work(struct pt_regs *regs, u32 cached_flags)
 	audit_syscall_exit(regs);
 
 	if (cached_flags & _TIF_SYSCALL_TRACEPOINT)
+	{
 		trace_sys_exit(regs, regs->ax);
+	}
 
 	/*
 	 * If TIF_SYSCALL_EMU is set, we only get here because of
@@ -227,10 +267,13 @@ static void syscall_slow_exit_work(struct pt_regs *regs, u32 cached_flags)
 	 * syscall_trace_enter().
 	 */
 	step = unlikely(
-		(cached_flags & (_TIF_SINGLESTEP | _TIF_SYSCALL_EMU))
-		== _TIF_SINGLESTEP);
+			   (cached_flags & (_TIF_SINGLESTEP | _TIF_SYSCALL_EMU))
+			   == _TIF_SINGLESTEP);
+
 	if (step || cached_flags & _TIF_SYSCALL_TRACE)
+	{
 		tracehook_report_syscall_exit(regs, step);
+	}
 }
 
 /*
@@ -245,15 +288,19 @@ __visible inline void syscall_return_slowpath(struct pt_regs *regs)
 	CT_WARN_ON(ct_state() != CONTEXT_KERNEL);
 
 	if (IS_ENABLED(CONFIG_PROVE_LOCKING) &&
-	    WARN(irqs_disabled(), "syscall %ld left IRQs disabled", regs->orig_ax))
+		WARN(irqs_disabled(), "syscall %ld left IRQs disabled", regs->orig_ax))
+	{
 		local_irq_enable();
+	}
 
 	/*
 	 * First do one-time work.  If these work items are enabled, we
 	 * want to run them exactly once per syscall exit with IRQs on.
 	 */
 	if (unlikely(cached_flags & SYSCALL_EXIT_WORK_FLAGS))
+	{
 		syscall_slow_exit_work(regs, cached_flags);
+	}
 
 	local_irq_disable();
 	prepare_exit_to_usermode(regs);
@@ -269,17 +316,20 @@ __visible void do_syscall_64(struct pt_regs *regs)
 	local_irq_enable();
 
 	if (READ_ONCE(ti->flags) & _TIF_WORK_SYSCALL_ENTRY)
+	{
 		nr = syscall_trace_enter(regs);
+	}
 
 	/*
 	 * NB: Native and x32 syscalls are dispatched from the same
 	 * table.  The only functional difference is the x32 bit in
 	 * regs->orig_ax, which changes the behavior of some syscalls.
 	 */
-	if (likely((nr & __SYSCALL_MASK) < NR_syscalls)) {
+	if (likely((nr & __SYSCALL_MASK) < NR_syscalls))
+	{
 		regs->ax = sys_call_table[nr & __SYSCALL_MASK](
-			regs->di, regs->si, regs->dx,
-			regs->r10, regs->r8, regs->r9);
+					   regs->di, regs->si, regs->dx,
+					   regs->r10, regs->r8, regs->r9);
 	}
 
 	syscall_return_slowpath(regs);
@@ -302,7 +352,8 @@ static __always_inline void do_syscall_32_irqs_on(struct pt_regs *regs)
 	current->thread.status |= TS_COMPAT;
 #endif
 
-	if (READ_ONCE(ti->flags) & _TIF_WORK_SYSCALL_ENTRY) {
+	if (READ_ONCE(ti->flags) & _TIF_WORK_SYSCALL_ENTRY)
+	{
 		/*
 		 * Subtlety here: if ptrace pokes something larger than
 		 * 2^32-1 into orig_ax, this truncates it.  This may or
@@ -312,7 +363,8 @@ static __always_inline void do_syscall_32_irqs_on(struct pt_regs *regs)
 		nr = syscall_trace_enter(regs);
 	}
 
-	if (likely(nr < IA32_NR_syscalls)) {
+	if (likely(nr < IA32_NR_syscalls))
+	{
 		/*
 		 * It's possible that a 32-bit syscall implementation
 		 * takes a 64-bit parameter but nonetheless assumes that
@@ -320,9 +372,9 @@ static __always_inline void do_syscall_32_irqs_on(struct pt_regs *regs)
 		 * of the args.
 		 */
 		regs->ax = ia32_sys_call_table[nr](
-			(unsigned int)regs->bx, (unsigned int)regs->cx,
-			(unsigned int)regs->dx, (unsigned int)regs->si,
-			(unsigned int)regs->di, (unsigned int)regs->bp);
+					   (unsigned int)regs->bx, (unsigned int)regs->cx,
+					   (unsigned int)regs->dx, (unsigned int)regs->si,
+					   (unsigned int)regs->di, (unsigned int)regs->bp);
 	}
 
 	syscall_return_slowpath(regs);
@@ -345,7 +397,7 @@ __visible long do_fast_syscall_32(struct pt_regs *regs)
 	 */
 
 	unsigned long landing_pad = (unsigned long)current->mm->context.vdso +
-		vdso_image_32.sym_int80_landing_pad;
+								vdso_image_32.sym_int80_landing_pad;
 
 	/*
 	 * SYSENTER loses EIP, and even SYSCALL32 needs us to skip forward
@@ -366,12 +418,13 @@ __visible long do_fast_syscall_32(struct pt_regs *regs)
 		 * 32 bits, so it can't be out of range.
 		 */
 		__get_user(*(u32 *)&regs->bp,
-			    (u32 __user __force *)(unsigned long)(u32)regs->sp)
+				   (u32 __user __force *)(unsigned long)(u32)regs->sp)
 #else
 		get_user(*(u32 *)&regs->bp,
-			 (u32 __user __force *)(unsigned long)(u32)regs->sp)
+				 (u32 __user __force *)(unsigned long)(u32)regs->sp)
 #endif
-		) {
+	)
+	{
 
 		/* User code screwed up. */
 		local_irq_disable();
@@ -394,8 +447,8 @@ __visible long do_fast_syscall_32(struct pt_regs *regs)
 	 * never the case.
 	 */
 	return regs->cs == __USER32_CS && regs->ss == __USER_DS &&
-		regs->ip == landing_pad &&
-		(regs->flags & (X86_EFLAGS_RF | X86_EFLAGS_TF)) == 0;
+		   regs->ip == landing_pad &&
+		   (regs->flags & (X86_EFLAGS_RF | X86_EFLAGS_TF)) == 0;
 #else
 	/*
 	 * Opportunistic SYSEXIT: if possible, try to return using SYSEXIT.
@@ -408,9 +461,9 @@ __visible long do_fast_syscall_32(struct pt_regs *regs)
 	 * need to check VM, because we might be returning from sys_vm86.
 	 */
 	return static_cpu_has(X86_FEATURE_SEP) &&
-		regs->cs == __USER_CS && regs->ss == __USER_DS &&
-		regs->ip == landing_pad &&
-		(regs->flags & (X86_EFLAGS_RF | X86_EFLAGS_TF | X86_EFLAGS_VM)) == 0;
+		   regs->cs == __USER_CS && regs->ss == __USER_DS &&
+		   regs->ip == landing_pad &&
+		   (regs->flags & (X86_EFLAGS_RF | X86_EFLAGS_TF | X86_EFLAGS_VM)) == 0;
 #endif
 }
 #endif

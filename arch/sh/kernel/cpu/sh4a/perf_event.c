@@ -23,23 +23,23 @@
 #define CCBR_PPCE	(1 << 0)
 
 #ifdef CONFIG_CPU_SHX3
-/*
- * The PMCAT location for SH-X3 CPUs was quietly moved, while the CCBR
- * and PMCTR locations remains tentatively constant. This change remains
- * wholly undocumented, and was simply found through trial and error.
- *
- * Early cuts of SH-X3 still appear to use the SH-X/SH-X2 locations, and
- * it's unclear when this ceased to be the case. For now we always use
- * the new location (if future parts keep up with this trend then
- * scanning for them at runtime also remains a viable option.)
- *
- * The gap in the register space also suggests that there are other
- * undocumented counters, so this will need to be revisited at a later
- * point in time.
- */
-#define PPC_PMCAT	0xfc100240
+	/*
+	* The PMCAT location for SH-X3 CPUs was quietly moved, while the CCBR
+	* and PMCTR locations remains tentatively constant. This change remains
+	* wholly undocumented, and was simply found through trial and error.
+	*
+	* Early cuts of SH-X3 still appear to use the SH-X/SH-X2 locations, and
+	* it's unclear when this ceased to be the case. For now we always use
+	* the new location (if future parts keep up with this trend then
+	* scanning for them at runtime also remains a viable option.)
+	*
+	* The gap in the register space also suggests that there are other
+	* undocumented counters, so this will need to be revisited at a later
+	* point in time.
+	*/
+	#define PPC_PMCAT	0xfc100240
 #else
-#define PPC_PMCAT	0xfc100080
+	#define PPC_PMCAT	0xfc100080
 #endif
 
 #define PMCAT_OVF3	(1 << 27)
@@ -99,7 +99,8 @@ static struct sh_pmu sh4a_pmu;
  */
 #define PMCAT_EMU_CLR_MASK	((1 << 24) | (1 << 16) | (1 << 8) | (1 << 0))
 
-static const int sh4a_general_events[] = {
+static const int sh4a_general_events[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES]		= 0x0000,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= 0x0202,
 	[PERF_COUNT_HW_CACHE_REFERENCES]	= 0x0029,	/* I-cache */
@@ -112,9 +113,9 @@ static const int sh4a_general_events[] = {
 #define C(x)	PERF_COUNT_HW_CACHE_##x
 
 static const int sh4a_cache_events
-			[PERF_COUNT_HW_CACHE_MAX]
-			[PERF_COUNT_HW_CACHE_OP_MAX]
-			[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+[PERF_COUNT_HW_CACHE_MAX]
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
 {
 	[ C(L1D) ] = {
 		[ C(OP_READ) ] = {
@@ -262,7 +263,9 @@ static void sh4a_pmu_disable_all(void)
 	int i;
 
 	for (i = 0; i < sh4a_pmu.num_events; i++)
+	{
 		__raw_writel(__raw_readl(PPC_CCBR(i)) & ~CCBR_DUC, PPC_CCBR(i));
+	}
 }
 
 static void sh4a_pmu_enable_all(void)
@@ -270,10 +273,13 @@ static void sh4a_pmu_enable_all(void)
 	int i;
 
 	for (i = 0; i < sh4a_pmu.num_events; i++)
+	{
 		__raw_writel(__raw_readl(PPC_CCBR(i)) | CCBR_DUC, PPC_CCBR(i));
+	}
 }
 
-static struct sh_pmu sh4a_pmu = {
+static struct sh_pmu sh4a_pmu =
+{
 	.name		= "sh4a",
 	.num_events	= 2,
 	.event_map	= sh4a_event_map,
@@ -292,7 +298,8 @@ static int __init sh4a_pmu_init(void)
 	/*
 	 * Make sure this CPU actually has perf counters.
 	 */
-	if (!(boot_cpu_data.flags & CPU_HAS_PERF_COUNTER)) {
+	if (!(boot_cpu_data.flags & CPU_HAS_PERF_COUNTER))
+	{
 		pr_notice("HW perf events unsupported, software events only.\n");
 		return -ENODEV;
 	}

@@ -33,7 +33,8 @@
 #define HAMMERHEAD_FPGA_PERIPH_SCK	0x00000020
 #define HAMMERHEAD_FPGA_PERIPH_EXTINT3	0x10000000
 
-static struct smc_timing flash_timing __initdata = {
+static struct smc_timing flash_timing __initdata =
+{
 	.ncs_read_setup		= 0,
 	.nrd_setup		= 40,
 	.ncs_write_setup	= 0,
@@ -48,14 +49,16 @@ static struct smc_timing flash_timing __initdata = {
 	.write_cycle		= 120,
 };
 
-static struct smc_config flash_config __initdata = {
+static struct smc_config flash_config __initdata =
+{
 	.bus_width		= 2,
 	.nrd_controlled		= 1,
 	.nwe_controlled		= 1,
 	.byte_write		= 1,
 };
 
-static struct mtd_partition flash_parts[] = {
+static struct mtd_partition flash_parts[] =
+{
 	{
 		.name		= "u-boot",
 		.offset		= 0x00000000,
@@ -75,19 +78,22 @@ static struct mtd_partition flash_parts[] = {
 	},
 };
 
-static struct physmap_flash_data flash_data = {
+static struct physmap_flash_data flash_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(flash_parts),
 	.parts		= flash_parts,
 };
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.start		= 0x00000000,
 	.end		= 0x007fffff,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device flash_device = {
+static struct platform_device flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.resource	= &flash_resource,
@@ -97,7 +103,8 @@ static struct platform_device flash_device = {
 
 #ifdef CONFIG_BOARD_HAMMERHEAD_USB
 
-static struct smc_timing isp1160_timing __initdata = {
+static struct smc_timing isp1160_timing __initdata =
+{
 	.ncs_read_setup		= 75,
 	.nrd_setup		= 75,
 	.ncs_write_setup	= 75,
@@ -115,7 +122,8 @@ static struct smc_timing isp1160_timing __initdata = {
 	.write_cycle		= 225, /* min. 136ns */
 };
 
-static struct smc_config isp1160_config __initdata = {
+static struct smc_config isp1160_config __initdata =
+{
 	.bus_width		= 2,
 	.nrd_controlled		= 1,
 	.nwe_controlled		= 1,
@@ -131,10 +139,13 @@ static struct smc_config isp1160_config __initdata = {
 void isp116x_delay(struct device *dev, int delay)
 {
 	if (delay > 150)
+	{
 		ndelay(delay - 150);
+	}
 }
 
-static struct  isp116x_platform_data isp1160_data = {
+static struct  isp116x_platform_data isp1160_data =
+{
 	.sel15Kres		= 1,	/* use internal downstream resistors */
 	.oc_enable		= 0,	/* external overcurrent detection */
 	.int_edge_triggered	= 0,	/* interrupt is level triggered */
@@ -142,7 +153,8 @@ static struct  isp116x_platform_data isp1160_data = {
 	.delay = isp116x_delay,		/* platform delay function */
 };
 
-static struct resource isp1160_resource[] = {
+static struct resource isp1160_resource[] =
+{
 	{
 		.start		= 0x08000000,
 		.end		= 0x08000001,
@@ -159,7 +171,8 @@ static struct resource isp1160_resource[] = {
 	},
 };
 
-static struct platform_device isp1160_device = {
+static struct platform_device isp1160_device =
+{
 	.name		= "isp116x-hcd",
 	.id		= 0,
 	.resource	= isp1160_resource,
@@ -182,27 +195,34 @@ static int __init hammerhead_usbh_init(void)
 	smc_set_timing(&isp1160_config, &isp1160_timing);
 	ret = smc_set_configuration(2, &isp1160_config);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		printk(KERN_ERR
-		       "hammerhead: failed to set ISP1160 USBH timing\n");
+			   "hammerhead: failed to set ISP1160 USBH timing\n");
 		return ret;
 	}
 
 	/* setup gclk0 to run from osc1 */
 	gclk = clk_get(NULL, "gclk0");
-	if (IS_ERR(gclk)) {
+
+	if (IS_ERR(gclk))
+	{
 		ret = PTR_ERR(gclk);
 		goto err_gclk;
 	}
 
 	osc = clk_get(NULL, "osc1");
-	if (IS_ERR(osc)) {
+
+	if (IS_ERR(osc))
+	{
 		ret = PTR_ERR(osc);
 		goto err_osc;
 	}
 
 	ret = clk_set_parent(gclk, osc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_debug("hammerhead: failed to set osc1 for USBH clock\n");
 		goto err_set_clk;
 	}
@@ -215,33 +235,34 @@ static int __init hammerhead_usbh_init(void)
 
 	/* select GCLK0 peripheral function */
 	at32_select_periph(GPIO_PIOA_BASE, HAMMERHEAD_USB_PERIPH_GCLK0,
-			   GPIO_PERIPH_A, 0);
+					   GPIO_PERIPH_A, 0);
 
 	/* enable CS2 peripheral function */
 	at32_select_periph(GPIO_PIOE_BASE, HAMMERHEAD_USB_PERIPH_CS2,
-			   GPIO_PERIPH_A, 0);
+					   GPIO_PERIPH_A, 0);
 
 	/* H_WAKEUP must be driven low */
 	at32_select_gpio(GPIO_PIN_PA(8), AT32_GPIOF_OUTPUT);
 
 	/* Select EXTINT0 for PB25 */
 	at32_select_periph(GPIO_PIOB_BASE, HAMMERHEAD_USB_PERIPH_EXTINT0,
-			   GPIO_PERIPH_A, 0);
+					   GPIO_PERIPH_A, 0);
 
 	/* register usbh device driver */
 	platform_device_register(&isp1160_device);
 
- err_set_clk:
+err_set_clk:
 	clk_put(osc);
- err_osc:
+err_osc:
 	clk_put(gclk);
- err_gclk:
+err_gclk:
 	return ret;
 }
 #endif
 
 #ifdef CONFIG_BOARD_HAMMERHEAD_FPGA
-static struct smc_timing fpga_timing __initdata = {
+static struct smc_timing fpga_timing __initdata =
+{
 	.ncs_read_setup		= 16,
 	.nrd_setup		= 32,
 	.ncs_read_pulse		= 48,
@@ -255,14 +276,16 @@ static struct smc_timing fpga_timing __initdata = {
 	.write_cycle		= 64,
 };
 
-static struct smc_config fpga_config __initdata = {
+static struct smc_config fpga_config __initdata =
+{
 	.bus_width		= 4,
 	.nrd_controlled		= 1,
 	.nwe_controlled		= 1,
 	.byte_write		= 0,
 };
 
-static struct resource hh_fpga0_resource[] = {
+static struct resource hh_fpga0_resource[] =
+{
 	{
 		.start		= 0xffe00400,
 		.end		= 0xffe00400 + 0x3ff,
@@ -286,7 +309,8 @@ static struct resource hh_fpga0_resource[] = {
 };
 
 static u64 hh_fpga0_dma_mask = DMA_BIT_MASK(32);
-static struct platform_device hh_fpga0_device = {
+static struct platform_device hh_fpga0_device =
+{
 	.name		= "hh_fpga",
 	.id		= 0,
 	.dev		= {
@@ -297,7 +321,8 @@ static struct platform_device hh_fpga0_device = {
 	.num_resources	= ARRAY_SIZE(hh_fpga0_resource),
 };
 
-static struct clk hh_fpga0_spi_clk = {
+static struct clk hh_fpga0_spi_clk =
+{
 	.name		= "spi_clk",
 	.dev		= &hh_fpga0_device.dev,
 	.mode		= pba_clk_mode,
@@ -309,9 +334,9 @@ struct platform_device *__init at32_add_device_hh_fpga(void)
 {
 	/* Select peripheral functionallity for SPI SCK and MOSI */
 	at32_select_periph(GPIO_PIOB_BASE, HAMMERHEAD_FPGA_PERIPH_SCK,
-			   GPIO_PERIPH_B, 0);
+					   GPIO_PERIPH_B, 0);
 	at32_select_periph(GPIO_PIOB_BASE, HAMMERHEAD_FPGA_PERIPH_MOSI,
-			   GPIO_PERIPH_B, 0);
+					   GPIO_PERIPH_B, 0);
 
 	/* reserve all other needed gpio
 	 * We have on board pull ups, so there is no need
@@ -330,7 +355,7 @@ struct platform_device *__init at32_add_device_hh_fpga(void)
 
 	/* Select EXTINT3 for PB28 (Interrupt from FPGA) */
 	at32_select_periph(GPIO_PIOB_BASE, HAMMERHEAD_FPGA_PERIPH_EXTINT3,
-			   GPIO_PERIPH_A, 0);
+					   GPIO_PERIPH_A, 0);
 
 	/* Get our parent clock */
 	hh_fpga0_spi_clk.parent = clk_get(NULL, "pba");
@@ -352,7 +377,8 @@ static int __init hammerhead_flash_init(void)
 	smc_set_timing(&flash_config, &flash_timing);
 	ret = smc_set_configuration(0, &flash_config);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		printk(KERN_ERR "hammerhead: failed to set NOR flash timing\n");
 		return ret;
 	}
@@ -370,7 +396,8 @@ static int __init hammerhead_flash_init(void)
 #endif
 
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		printk(KERN_ERR "hammerhead: failed to set FPGA timing\n");
 		return ret;
 	}

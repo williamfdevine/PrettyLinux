@@ -43,7 +43,7 @@ dig_setup (char **cmdline_p)
 	memset(&screen_info, 0, sizeof(screen_info));
 
 	if (!ia64_boot_param->console_info.num_rows
-	    || !ia64_boot_param->console_info.num_cols)
+		|| !ia64_boot_param->console_info.num_cols)
 	{
 		printk(KERN_WARNING "dig_setup: warning: invalid screen-info, guessing 80x25\n");
 		orig_x = 0;
@@ -51,7 +51,9 @@ dig_setup (char **cmdline_p)
 		num_cols = 80;
 		num_rows = 25;
 		font_height = 16;
-	} else {
+	}
+	else
+	{
 		orig_x = ia64_boot_param->console_info.orig_x;
 		orig_y = ia64_boot_param->console_info.orig_y;
 		num_cols = ia64_boot_param->console_info.num_cols;

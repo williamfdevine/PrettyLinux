@@ -1,7 +1,8 @@
 #ifndef __PCR_H
 #define __PCR_H
 
-struct pcr_ops {
+struct pcr_ops
+{
 	u64 (*read_pcr)(unsigned long);
 	void (*write_pcr)(unsigned long, u64);
 	u64 (*read_pic)(unsigned long);

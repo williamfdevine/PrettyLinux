@@ -63,7 +63,8 @@ static int sha256_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg sha256_alg = {
+static struct shash_alg sha256_alg =
+{
 	.digestsize	=	SHA256_DIGEST_SIZE,
 	.init		=	sha256_init,
 	.update		=	s390_sha_update,
@@ -74,7 +75,7 @@ static struct shash_alg sha256_alg = {
 	.statesize	=	sizeof(struct sha256_state),
 	.base		=	{
 		.cra_name	=	"sha256",
-		.cra_driver_name=	"sha256-s390",
+		.cra_driver_name =	"sha256-s390",
 		.cra_priority	=	300,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA256_BLOCK_SIZE,
@@ -100,7 +101,8 @@ static int sha224_init(struct shash_desc *desc)
 	return 0;
 }
 
-static struct shash_alg sha224_alg = {
+static struct shash_alg sha224_alg =
+{
 	.digestsize	=	SHA224_DIGEST_SIZE,
 	.init		=	sha224_init,
 	.update		=	s390_sha_update,
@@ -111,7 +113,7 @@ static struct shash_alg sha224_alg = {
 	.statesize	=	sizeof(struct sha256_state),
 	.base		=	{
 		.cra_name	=	"sha224",
-		.cra_driver_name=	"sha224-s390",
+		.cra_driver_name =	"sha224-s390",
 		.cra_priority	=	300,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA224_BLOCK_SIZE,
@@ -124,13 +126,24 @@ static int __init sha256_s390_init(void)
 	int ret;
 
 	if (!cpacf_query_func(CPACF_KIMD, CPACF_KIMD_SHA_256))
+	{
 		return -EOPNOTSUPP;
+	}
+
 	ret = crypto_register_shash(&sha256_alg);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
+
 	ret = crypto_register_shash(&sha224_alg);
+
 	if (ret < 0)
+	{
 		crypto_unregister_shash(&sha256_alg);
+	}
+
 out:
 	return ret;
 }

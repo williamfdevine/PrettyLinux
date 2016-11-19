@@ -27,9 +27,9 @@ extern unsigned int cacheid;
  */
 #if __LINUX_ARM_ARCH__ >= 7
 #define __CACHEID_ARCH_MIN	(CACHEID_VIPT_NONALIASING |\
-				 CACHEID_ASID_TAGGED |\
-				 CACHEID_VIPT_I_ALIASING |\
-				 CACHEID_PIPT)
+							 CACHEID_ASID_TAGGED |\
+							 CACHEID_VIPT_I_ALIASING |\
+							 CACHEID_PIPT)
 #elif __LINUX_ARM_ARCH__ >= 6
 #define	__CACHEID_ARCH_MIN	(~CACHEID_VIVT)
 #else
@@ -40,20 +40,20 @@ extern unsigned int cacheid;
  * Mask out support which isn't configured
  */
 #if defined(CONFIG_CPU_CACHE_VIVT) && !defined(CONFIG_CPU_CACHE_VIPT)
-#define __CACHEID_ALWAYS	(CACHEID_VIVT)
-#define __CACHEID_NEVER		(~CACHEID_VIVT)
+	#define __CACHEID_ALWAYS	(CACHEID_VIVT)
+	#define __CACHEID_NEVER		(~CACHEID_VIVT)
 #elif !defined(CONFIG_CPU_CACHE_VIVT) && defined(CONFIG_CPU_CACHE_VIPT)
-#define __CACHEID_ALWAYS	(0)
-#define __CACHEID_NEVER		(CACHEID_VIVT)
+	#define __CACHEID_ALWAYS	(0)
+	#define __CACHEID_NEVER		(CACHEID_VIVT)
 #else
-#define __CACHEID_ALWAYS	(0)
-#define __CACHEID_NEVER		(0)
+	#define __CACHEID_ALWAYS	(0)
+	#define __CACHEID_NEVER		(0)
 #endif
 
 static inline unsigned int __attribute__((pure)) cacheid_is(unsigned int mask)
 {
 	return (__CACHEID_ALWAYS & mask) |
-	       (~__CACHEID_NEVER & __CACHEID_ARCH_MIN & mask & cacheid);
+		   (~__CACHEID_NEVER & __CACHEID_ARCH_MIN & mask & cacheid);
 }
 
 #define CSSELR_ICACHE	1

@@ -82,8 +82,12 @@ static void pSeries_show_cpuinfo(struct seq_file *m)
 	const char *model = "";
 
 	root = of_find_node_by_path("/");
+
 	if (root)
+	{
 		model = of_get_property(root, "model", NULL);
+	}
+
 	seq_printf(m, "machine\t\t: CHRP %s\n", model);
 	of_node_put(root);
 }
@@ -96,8 +100,11 @@ static void __init fwnmi_init(void)
 	unsigned long system_reset_addr, machine_check_addr;
 
 	int ibm_nmi_register = rtas_token("ibm,nmi-register");
+
 	if (ibm_nmi_register == RTAS_UNKNOWN_SERVICE)
+	{
 		return;
+	}
 
 	/* If the kernel's not linked at zero we point the firmware at low
 	 * addresses anyway, and use a trampoline to get to the real code. */
@@ -105,8 +112,10 @@ static void __init fwnmi_init(void)
 	machine_check_addr = __pa(machine_check_fwnmi) - PHYSICAL_START;
 
 	if (0 == rtas_call(ibm_nmi_register, 2, 1, NULL, system_reset_addr,
-				machine_check_addr))
+					   machine_check_addr))
+	{
 		fwnmi_active = 1;
+	}
 }
 
 static void pseries_8259_cascade(struct irq_desc *desc)
@@ -115,7 +124,9 @@ static void pseries_8259_cascade(struct irq_desc *desc)
 	unsigned int cascade_irq = i8259_irq();
 
 	if (cascade_irq)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	chip->irq_eoi(&desc->irq_data);
 }
@@ -128,42 +139,67 @@ static void __init pseries_setup_i8259_cascade(void)
 	unsigned long intack = 0;
 	int naddr;
 
-	for_each_node_by_type(np, "interrupt-controller") {
-		if (of_device_is_compatible(np, "chrp,iic")) {
+	for_each_node_by_type(np, "interrupt-controller")
+	{
+		if (of_device_is_compatible(np, "chrp,iic"))
+		{
 			found = np;
 			break;
 		}
 	}
 
-	if (found == NULL) {
+	if (found == NULL)
+	{
 		printk(KERN_DEBUG "pic: no ISA interrupt controller\n");
 		return;
 	}
 
 	cascade = irq_of_parse_and_map(found, 0);
-	if (!cascade) {
+
+	if (!cascade)
+	{
 		printk(KERN_ERR "pic: failed to map cascade interrupt");
 		return;
 	}
+
 	pr_debug("pic: cascade mapped to irq %d\n", cascade);
 
-	for (old = of_node_get(found); old != NULL ; old = np) {
+	for (old = of_node_get(found); old != NULL ; old = np)
+	{
 		np = of_get_parent(old);
 		of_node_put(old);
+
 		if (np == NULL)
+		{
 			break;
+		}
+
 		if (strcmp(np->name, "pci") != 0)
+		{
 			continue;
+		}
+
 		addrp = of_get_property(np, "8259-interrupt-acknowledge", NULL);
+
 		if (addrp == NULL)
+		{
 			continue;
+		}
+
 		naddr = of_n_addr_cells(np);
-		intack = addrp[naddr-1];
+		intack = addrp[naddr - 1];
+
 		if (naddr > 1)
-			intack |= ((unsigned long)addrp[naddr-2]) << 32;
+		{
+			intack |= ((unsigned long)addrp[naddr - 2]) << 32;
+		}
 	}
+
 	if (intack)
+	{
 		printk(KERN_DEBUG "pic: PCI 8259 intack at 0x%016lx\n", intack);
+	}
+
 	i8259_init(found, intack);
 	of_node_put(found);
 	irq_set_chained_handler(cascade, pseries_8259_cascade);
@@ -191,28 +227,40 @@ static int pci_dn_reconfig_notifier(struct notifier_block *nb, unsigned long act
 	struct pci_dn *pdn;
 	int err = NOTIFY_OK;
 
-	switch (action) {
-	case OF_RECONFIG_ATTACH_NODE:
-		parent = of_get_parent(np);
-		pdn = parent ? PCI_DN(parent) : NULL;
-		if (pdn)
-			pci_add_device_node_info(pdn->phb, np);
+	switch (action)
+	{
+		case OF_RECONFIG_ATTACH_NODE:
+			parent = of_get_parent(np);
+			pdn = parent ? PCI_DN(parent) : NULL;
 
-		of_node_put(parent);
-		break;
-	case OF_RECONFIG_DETACH_NODE:
-		pdn = PCI_DN(np);
-		if (pdn)
-			list_del(&pdn->list);
-		break;
-	default:
-		err = NOTIFY_DONE;
-		break;
+			if (pdn)
+			{
+				pci_add_device_node_info(pdn->phb, np);
+			}
+
+			of_node_put(parent);
+			break;
+
+		case OF_RECONFIG_DETACH_NODE:
+			pdn = PCI_DN(np);
+
+			if (pdn)
+			{
+				list_del(&pdn->list);
+			}
+
+			break;
+
+		default:
+			err = NOTIFY_DONE;
+			break;
 	}
+
 	return err;
 }
 
-static struct notifier_block pci_dn_reconfig_nb = {
+static struct notifier_block pci_dn_reconfig_nb =
+{
 	.notifier_call = pci_dn_reconfig_notifier,
 };
 
@@ -231,17 +279,24 @@ static int alloc_dispatch_logs(void)
 	struct dtl_entry *dtl;
 
 	if (!firmware_has_feature(FW_FEATURE_SPLPAR))
+	{
 		return 0;
+	}
 
 	if (!dtl_cache)
+	{
 		return 0;
+	}
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		pp = &paca[cpu];
 		dtl = kmem_cache_alloc(dtl_cache, GFP_KERNEL);
-		if (!dtl) {
+
+		if (!dtl)
+		{
 			pr_warn("Failed to allocate dispatch trace log for cpu %d\n",
-				cpu);
+					cpu);
 			pr_warn("Stolen time statistics will be unreliable\n");
 			break;
 		}
@@ -261,10 +316,12 @@ static int alloc_dispatch_logs(void)
 	/* hypervisor reads buffer length from this field */
 	dtl->enqueue_to_dispatch_time = cpu_to_be32(DISPATCH_LOG_BYTES);
 	ret = register_dtl(hard_smp_processor_id(), __pa(dtl));
+
 	if (ret)
 		pr_err("WARNING: DTL registration of cpu %d (hw %d) failed "
-		       "with %d\n", smp_processor_id(),
-		       hard_smp_processor_id(), ret);
+			   "with %d\n", smp_processor_id(),
+			   hard_smp_processor_id(), ret);
+
 	get_paca()->lppaca_ptr->dtl_enable_mask = 2;
 
 	return 0;
@@ -279,8 +336,10 @@ static inline int alloc_dispatch_logs(void)
 static int alloc_dispatch_log_kmem_cache(void)
 {
 	dtl_cache = kmem_cache_create("dtl", DISPATCH_LOG_BYTES,
-						DISPATCH_LOG_BYTES, 0, NULL);
-	if (!dtl_cache) {
+								  DISPATCH_LOG_BYTES, 0, NULL);
+
+	if (!dtl_cache)
+	{
 		pr_warn("Failed to create dispatch trace log buffer cache\n");
 		pr_warn("Stolen time statistics will be unreliable\n");
 		return 0;
@@ -324,25 +383,34 @@ void pseries_enable_reloc_on_exc(void)
 	long rc;
 	unsigned int delay, total_delay = 0;
 
-	while (1) {
+	while (1)
+	{
 		rc = enable_reloc_on_exceptions();
-		if (!H_IS_LONG_BUSY(rc)) {
-			if (rc == H_P2) {
+
+		if (!H_IS_LONG_BUSY(rc))
+		{
+			if (rc == H_P2)
+			{
 				pr_info("Relocation on exceptions not"
-					" supported\n");
-			} else if (rc != H_SUCCESS) {
-				pr_warn("Unable to enable relocation"
-					" on exceptions: %ld\n", rc);
+						" supported\n");
 			}
+			else if (rc != H_SUCCESS)
+			{
+				pr_warn("Unable to enable relocation"
+						" on exceptions: %ld\n", rc);
+			}
+
 			break;
 		}
 
 		delay = get_longbusy_msecs(rc);
 		total_delay += delay;
-		if (total_delay > 1000) {
+
+		if (total_delay > 1000)
+		{
 			pr_warn("Warning: Giving up waiting to enable "
-				"relocation on exceptions (%u msec)!\n",
-				total_delay);
+					"relocation on exceptions (%u msec)!\n",
+					total_delay);
 			return;
 		}
 
@@ -355,15 +423,21 @@ void pseries_disable_reloc_on_exc(void)
 {
 	long rc;
 
-	while (1) {
+	while (1)
+	{
 		rc = disable_reloc_on_exceptions();
+
 		if (!H_IS_LONG_BUSY(rc))
+		{
 			break;
+		}
+
 		mdelay(get_longbusy_msecs(rc));
 	}
+
 	if (rc != H_SUCCESS)
 		pr_warning("Warning: Failed to disable relocation on "
-			   "exceptions: %ld\n", rc);
+				   "exceptions: %ld\n", rc);
 }
 EXPORT_SYMBOL(pseries_disable_reloc_on_exc);
 
@@ -371,7 +445,9 @@ EXPORT_SYMBOL(pseries_disable_reloc_on_exc);
 static void pSeries_machine_kexec(struct kimage *image)
 {
 	if (firmware_has_feature(FW_FEATURE_SET_MODE))
+	{
 		pseries_disable_reloc_on_exc();
+	}
 
 	default_machine_kexec(image);
 }
@@ -382,10 +458,15 @@ void pseries_big_endian_exceptions(void)
 {
 	long rc;
 
-	while (1) {
+	while (1)
+	{
 		rc = enable_big_endian_exceptions();
+
 		if (!H_IS_LONG_BUSY(rc))
+		{
 			break;
+		}
+
 		mdelay(get_longbusy_msecs(rc));
 	}
 
@@ -401,20 +482,29 @@ void pseries_big_endian_exceptions(void)
 	 * it usually is.
 	 */
 	if (rc && !kdump_in_progress())
+	{
 		panic("Could not enable big endian exceptions");
+	}
 }
 
 void pseries_little_endian_exceptions(void)
 {
 	long rc;
 
-	while (1) {
+	while (1)
+	{
 		rc = enable_little_endian_exceptions();
+
 		if (!H_IS_LONG_BUSY(rc))
+		{
 			break;
+		}
+
 		mdelay(get_longbusy_msecs(rc));
 	}
-	if (rc) {
+
+	if (rc)
+	{
 		ppc_md.progress("H_SET_MODE LE exception fail", 0);
 		panic("Could not enable little endian exceptions");
 	}
@@ -427,14 +517,21 @@ static void __init find_and_init_phbs(void)
 	struct pci_controller *phb;
 	struct device_node *root = of_find_node_by_path("/");
 
-	for_each_child_of_node(root, node) {
+	for_each_child_of_node(root, node)
+	{
 		if (node->type == NULL || (strcmp(node->type, "pci") != 0 &&
-					   strcmp(node->type, "pciex") != 0))
+								   strcmp(node->type, "pciex") != 0))
+		{
 			continue;
+		}
 
 		phb = pcibios_alloc_controller(node);
+
 		if (!phb)
+		{
 			continue;
+		}
+
 		rtas_setup_phb(phb);
 		pci_process_bridge_OF_ranges(phb, node, 0);
 		isa_bridge_find_early(phb);
@@ -477,11 +574,14 @@ static void __init pSeries_setup_arch(void)
 
 	pSeries_nvram_init();
 
-	if (firmware_has_feature(FW_FEATURE_LPAR)) {
+	if (firmware_has_feature(FW_FEATURE_LPAR))
+	{
 		vpa_init(boot_cpuid);
 		ppc_md.power_save = pseries_lpar_idle;
 		ppc_md.enable_pmcs = pseries_lpar_enable_pmcs;
-	} else {
+	}
+	else
+	{
 		/* No special idle routine */
 		ppc_md.enable_pmcs = power4_enable_pmcs;
 	}
@@ -512,7 +612,10 @@ static int pseries_set_xdabr(unsigned long dabr, unsigned long dabrx)
 {
 	/* Have to set at least one bit in the DABRX according to PAPR */
 	if (dabrx == 0 && dabr == 0)
+	{
 		dabrx = DABRX_USER;
+	}
+
 	/* PAPR says we can only set kernel and user bits */
 	dabrx &= DABRX_KERNEL | DABRX_USER;
 
@@ -535,9 +638,13 @@ void pSeries_coalesce_init(void)
 	struct hvcall_mpp_x_data mpp_x_data;
 
 	if (firmware_has_feature(FW_FEATURE_CMO) && !h_get_mpp_x(&mpp_x_data))
+	{
 		powerpc_firmware_features |= FW_FEATURE_XCMO;
+	}
 	else
+	{
 		powerpc_firmware_features &= ~FW_FEATURE_XCMO;
+	}
 }
 
 /**
@@ -554,12 +661,13 @@ static void pSeries_cmo_feature_init(void)
 	spin_lock(&rtas_data_buf_lock);
 	memset(rtas_data_buf, 0, RTAS_DATA_BUF_SIZE);
 	call_status = rtas_call(rtas_token("ibm,get-system-parameter"), 3, 1,
-				NULL,
-				CMO_CHARACTERISTICS_TOKEN,
-				__pa(rtas_data_buf),
-				RTAS_DATA_BUF_SIZE);
+							NULL,
+							CMO_CHARACTERISTICS_TOKEN,
+							__pa(rtas_data_buf),
+							RTAS_DATA_BUF_SIZE);
 
-	if (call_status != 0) {
+	if (call_status != 0)
+	{
 		spin_unlock(&rtas_data_buf_lock);
 		pr_debug("CMO not available\n");
 		pr_debug(" <- fw_cmo_feature_init()\n");
@@ -570,31 +678,44 @@ static void pSeries_cmo_feature_init(void)
 	ptr = rtas_data_buf + 2;	/* step over strlen value */
 	key = value = ptr;
 
-	while (*ptr && (ptr <= end)) {
+	while (*ptr && (ptr <= end))
+	{
 		/* Separate the key and value by replacing '=' with '\0' and
 		 * point the value at the string after the '='
 		 */
-		if (ptr[0] == '=') {
+		if (ptr[0] == '=')
+		{
 			ptr[0] = '\0';
 			value = ptr + 1;
-		} else if (ptr[0] == '\0' || ptr[0] == ',') {
+		}
+		else if (ptr[0] == '\0' || ptr[0] == ',')
+		{
 			/* Terminate the string containing the key/value pair */
 			ptr[0] = '\0';
 
-			if (key == value) {
+			if (key == value)
+			{
 				pr_debug("Malformed key/value pair\n");
 				/* Never found a '=', end processing */
 				break;
 			}
 
 			if (0 == strcmp(key, "CMOPageSize"))
+			{
 				page_order = simple_strtol(value, NULL, 10);
+			}
 			else if (0 == strcmp(key, "PrPSP"))
+			{
 				CMO_PrPSP = simple_strtol(value, NULL, 10);
+			}
 			else if (0 == strcmp(key, "SecPSP"))
+			{
 				CMO_SecPSP = simple_strtol(value, NULL, 10);
+			}
+
 			value = key = ptr + 1;
 		}
+
 		ptr++;
 	}
 
@@ -604,15 +725,18 @@ static void pSeries_cmo_feature_init(void)
 	CMO_PageSize = 1 << page_order;
 	pr_debug("CMO_PageSize = %lu\n", CMO_PageSize);
 
-	if (CMO_PrPSP != -1 || CMO_SecPSP != -1) {
+	if (CMO_PrPSP != -1 || CMO_SecPSP != -1)
+	{
 		pr_info("CMO enabled\n");
 		pr_debug("CMO enabled, PrPSP=%d, SecPSP=%d\n", CMO_PrPSP,
-		         CMO_SecPSP);
+				 CMO_SecPSP);
 		powerpc_firmware_features |= FW_FEATURE_CMO;
 		pSeries_coalesce_init();
-	} else
+	}
+	else
 		pr_debug("CMO not enabled, PrPSP=%d, SecPSP=%d\n", CMO_PrPSP,
-		         CMO_SecPSP);
+				 CMO_SecPSP);
+
 	spin_unlock(&rtas_data_buf_lock);
 	pr_debug(" <- fw_cmo_feature_init()\n");
 }
@@ -625,16 +749,27 @@ static void __init pseries_init(void)
 	pr_debug(" -> pseries_init()\n");
 
 #ifdef CONFIG_HVC_CONSOLE
+
 	if (firmware_has_feature(FW_FEATURE_LPAR))
+	{
 		hvc_vio_init_early();
+	}
+
 #endif
+
 	if (firmware_has_feature(FW_FEATURE_XDABR))
+	{
 		ppc_md.set_dabr = pseries_set_xdabr;
+	}
 	else if (firmware_has_feature(FW_FEATURE_DABR))
+	{
 		ppc_md.set_dabr = pseries_set_dabr;
+	}
 
 	if (firmware_has_feature(FW_FEATURE_SET_MODE))
+	{
 		ppc_md.set_dawr = pseries_set_dawr;
+	}
 
 	pSeries_cmo_feature_init();
 	iommu_init_early_pSeries();
@@ -657,16 +792,22 @@ static void pseries_power_off(void)
 	int rtas_poweroff_ups_token = rtas_token("ibm,power-off-ups");
 
 	if (rtas_flash_term_hook)
+	{
 		rtas_flash_term_hook(SYS_POWER_OFF);
+	}
 
 	if (rtas_poweron_auto == 0 ||
-		rtas_poweroff_ups_token == RTAS_UNKNOWN_SERVICE) {
+		rtas_poweroff_ups_token == RTAS_UNKNOWN_SERVICE)
+	{
 		rc = rtas_call(rtas_token("power-off"), 2, 1, NULL, -1, -1);
 		printk(KERN_INFO "RTAS power-off returned %d\n", rc);
-	} else {
+	}
+	else
+	{
 		rc = rtas_call(rtas_poweroff_ups_token, 0, 1, NULL);
 		printk(KERN_INFO "RTAS ibm,power-off-ups returned %d\n", rc);
 	}
+
 	for (;;);
 }
 
@@ -674,22 +815,29 @@ static int __init pSeries_probe(void)
 {
 	const char *dtype = of_get_property(of_root, "device_type", NULL);
 
- 	if (dtype == NULL)
- 		return 0;
- 	if (strcmp(dtype, "chrp"))
+	if (dtype == NULL)
+	{
 		return 0;
+	}
+
+	if (strcmp(dtype, "chrp"))
+	{
+		return 0;
+	}
 
 	/* Cell blades firmware claims to be chrp while it's not. Until this
 	 * is fixed, we need to avoid those here.
 	 */
 	if (of_machine_is_compatible("IBM,CPBW-1.0") ||
-	    of_machine_is_compatible("IBM,CBEA"))
+		of_machine_is_compatible("IBM,CBEA"))
+	{
 		return 0;
+	}
 
 	pm_power_off = pseries_power_off;
 
 	pr_debug("Machine is%s LPAR !\n",
-	         (powerpc_firmware_features & FW_FEATURE_LPAR) ? "" : " not");
+			 (powerpc_firmware_features & FW_FEATURE_LPAR) ? "" : " not");
 
 	pseries_init();
 
@@ -699,37 +847,42 @@ static int __init pSeries_probe(void)
 static int pSeries_pci_probe_mode(struct pci_bus *bus)
 {
 	if (firmware_has_feature(FW_FEATURE_LPAR))
+	{
 		return PCI_PROBE_DEVTREE;
+	}
+
 	return PCI_PROBE_NORMAL;
 }
 
-struct pci_controller_ops pseries_pci_controller_ops = {
+struct pci_controller_ops pseries_pci_controller_ops =
+{
 	.probe_mode		= pSeries_pci_probe_mode,
 };
 
-define_machine(pseries) {
+define_machine(pseries)
+{
 	.name			= "pSeries",
-	.probe			= pSeries_probe,
-	.setup_arch		= pSeries_setup_arch,
-	.init_IRQ		= pseries_init_irq,
-	.show_cpuinfo		= pSeries_show_cpuinfo,
-	.log_error		= pSeries_log_error,
-	.pcibios_fixup		= pSeries_final_fixup,
-	.restart		= rtas_restart,
-	.halt			= rtas_halt,
-	.panic			= rtas_os_term,
-	.get_boot_time		= rtas_get_boot_time,
-	.get_rtc_time		= rtas_get_rtc_time,
-	.set_rtc_time		= rtas_set_rtc_time,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= rtas_progress,
-	.system_reset_exception = pSeries_system_reset_exception,
-	.machine_check_exception = pSeries_machine_check_exception,
+			 .probe			= pSeries_probe,
+					 .setup_arch		= pSeries_setup_arch,
+						 .init_IRQ		= pseries_init_irq,
+							   .show_cpuinfo		= pSeries_show_cpuinfo,
+									 .log_error		= pSeries_log_error,
+										  .pcibios_fixup		= pSeries_final_fixup,
+											   .restart		= rtas_restart,
+													  .halt			= rtas_halt,
+															   .panic			= rtas_os_term,
+																	   .get_boot_time		= rtas_get_boot_time,
+																			.get_rtc_time		= rtas_get_rtc_time,
+																				  .set_rtc_time		= rtas_set_rtc_time,
+																						.calibrate_decr		= generic_calibrate_decr,
+																							.progress		= rtas_progress,
+																								  .system_reset_exception = pSeries_system_reset_exception,
+																								   .machine_check_exception = pSeries_machine_check_exception,
 #ifdef CONFIG_KEXEC
-	.machine_kexec          = pSeries_machine_kexec,
-	.kexec_cpu_down         = pseries_kexec_cpu_down,
+																									.machine_kexec          = pSeries_machine_kexec,
+																									 .kexec_cpu_down         = pseries_kexec_cpu_down,
 #endif
 #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
-	.memory_block_size	= pseries_memory_block_size,
+																									  .memory_block_size	= pseries_memory_block_size,
 #endif
 };

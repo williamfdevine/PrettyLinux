@@ -110,15 +110,15 @@ extern void debug_to_serial(const char *p, int n);
 extern void console_set_baud(unsigned baud);
 
 #ifdef GDBSTUB_DEBUG_IO
-#define gdbstub_io(FMT,...) gdbstub_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_io(FMT,...) gdbstub_printk(FMT, ##__VA_ARGS__)
 #else
-#define gdbstub_io(FMT,...) ({ 0; })
+	#define gdbstub_io(FMT,...) ({ 0; })
 #endif
 
 #ifdef GDBSTUB_DEBUG_PROTOCOL
-#define gdbstub_proto(FMT,...) gdbstub_printk(FMT,##__VA_ARGS__)
+	#define gdbstub_proto(FMT,...) gdbstub_printk(FMT,##__VA_ARGS__)
 #else
-#define gdbstub_proto(FMT,...) ({ 0; })
+	#define gdbstub_proto(FMT,...) ({ 0; })
 #endif
 
 /*
@@ -133,7 +133,8 @@ register struct frv_frame0 *__debug_frame0 asm("gr31");
 #define __debug_regs		(&__debug_frame0->debug)
 #define __debug_reg(X)		((unsigned long *) ((unsigned long) &__debug_frame0 + (X)))
 
-struct frv_debug_status {
+struct frv_debug_status
+{
 	unsigned long		bpsr;
 	unsigned long		dcr;
 	unsigned long		brr;

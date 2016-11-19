@@ -30,11 +30,14 @@ static void early_hv_write(struct console *con, const char *s, unsigned n)
 	 * We assume newlines are at the ends of strings, which turns out
 	 * to be good enough for early boot console output.
 	 */
-	if (n && s[n-1] == '\n')
+	if (n && s[n - 1] == '\n')
+	{
 		tile_console_write("\r", 1);
+	}
 }
 
-static struct console early_hv_console = {
+static struct console early_hv_console =
+{
 	.name =		"earlyhv",
 	.write =	early_hv_write,
 	.flags =	CON_PRINTBUFFER | CON_BOOT,
@@ -64,7 +67,9 @@ void early_panic(const char *fmt, ...)
 static int __init setup_early_printk(char *str)
 {
 	if (early_console)
+	{
 		return 1;
+	}
 
 	early_console = &early_hv_console;
 	register_console(early_console);

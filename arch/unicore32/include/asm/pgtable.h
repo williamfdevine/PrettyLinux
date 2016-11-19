@@ -33,7 +33,7 @@
 #ifndef VMALLOC_START
 #define VMALLOC_OFFSET		SZ_8M
 #define VMALLOC_START		(((unsigned long)high_memory + VMALLOC_OFFSET) \
-					& ~(VMALLOC_OFFSET-1))
+							 & ~(VMALLOC_OFFSET-1))
 #define VMALLOC_END		(0xff000000UL)
 #endif
 
@@ -46,11 +46,11 @@
 #define PGDIR_SHIFT		22
 
 #ifndef __ASSEMBLY__
-extern void __pte_error(const char *file, int line, unsigned long val);
-extern void __pgd_error(const char *file, int line, unsigned long val);
+	extern void __pte_error(const char *file, int line, unsigned long val);
+	extern void __pgd_error(const char *file, int line, unsigned long val);
 
-#define pte_ERROR(pte)		__pte_error(__FILE__, __LINE__, pte_val(pte))
-#define pgd_ERROR(pgd)		__pgd_error(__FILE__, __LINE__, pgd_val(pgd))
+	#define pte_ERROR(pte)		__pte_error(__FILE__, __LINE__, pte_val(pte))
+	#define pgd_ERROR(pgd)		__pgd_error(__FILE__, __LINE__, pgd_val(pgd))
 #endif /* !__ASSEMBLY__ */
 
 #define PGDIR_SIZE		(1UL << PGDIR_SHIFT)
@@ -87,31 +87,31 @@ extern pgprot_t pgprot_kernel;
 
 #define PAGE_NONE		pgprot_user
 #define PAGE_SHARED		__pgprot(pgprot_val(pgprot_user | PTE_READ \
-								| PTE_WRITE))
+								 | PTE_WRITE))
 #define PAGE_SHARED_EXEC	__pgprot(pgprot_val(pgprot_user | PTE_READ \
-								| PTE_WRITE \
-								| PTE_EXEC))
+									 | PTE_WRITE \
+									 | PTE_EXEC))
 #define PAGE_COPY		__pgprot(pgprot_val(pgprot_user | PTE_READ)
 #define PAGE_COPY_EXEC		__pgprot(pgprot_val(pgprot_user | PTE_READ \
-								| PTE_EXEC))
+									 | PTE_EXEC))
 #define PAGE_READONLY		__pgprot(pgprot_val(pgprot_user | PTE_READ))
 #define PAGE_READONLY_EXEC	__pgprot(pgprot_val(pgprot_user | PTE_READ \
-								| PTE_EXEC))
+									 | PTE_EXEC))
 #define PAGE_KERNEL		pgprot_kernel
 #define PAGE_KERNEL_EXEC	__pgprot(pgprot_val(pgprot_kernel | PTE_EXEC))
 
 #define __PAGE_NONE		__pgprot(_PTE_DEFAULT)
 #define __PAGE_SHARED		__pgprot(_PTE_DEFAULT | PTE_READ \
-							| PTE_WRITE)
+									 | PTE_WRITE)
 #define __PAGE_SHARED_EXEC	__pgprot(_PTE_DEFAULT | PTE_READ \
-							| PTE_WRITE \
-							| PTE_EXEC)
+									 | PTE_WRITE \
+									 | PTE_EXEC)
 #define __PAGE_COPY		__pgprot(_PTE_DEFAULT | PTE_READ)
 #define __PAGE_COPY_EXEC	__pgprot(_PTE_DEFAULT | PTE_READ \
-							| PTE_EXEC)
+									 | PTE_EXEC)
 #define __PAGE_READONLY		__pgprot(_PTE_DEFAULT | PTE_READ)
 #define __PAGE_READONLY_EXEC	__pgprot(_PTE_DEFAULT | PTE_READ \
-							| PTE_EXEC)
+		| PTE_EXEC)
 
 #endif /* __ASSEMBLY__ */
 
@@ -151,16 +151,16 @@ extern struct page *empty_zero_page;
 
 #define pte_pfn(pte)			(pte_val(pte) >> PAGE_SHIFT)
 #define pfn_pte(pfn, prot)		(__pte(((pfn) << PAGE_SHIFT) \
-						| pgprot_val(prot)))
+									   | pgprot_val(prot)))
 
 #define pte_none(pte)			(!pte_val(pte))
 #define pte_clear(mm, addr, ptep)	set_pte(ptep, __pte(0))
 #define pte_page(pte)			(pfn_to_page(pte_pfn(pte)))
 #define pte_offset_kernel(dir, addr)	(pmd_page_vaddr(*(dir)) \
-						+ __pte_index(addr))
+		+ __pte_index(addr))
 
 #define pte_offset_map(dir, addr)	(pmd_page_vaddr(*(dir)) \
-						+ __pte_index(addr))
+									 + __pte_index(addr))
 #define pte_unmap(pte)			do { } while (0)
 
 #define set_pte(ptep, pte)	cpu_set_pte(ptep, pte)
@@ -182,7 +182,7 @@ extern struct page *empty_zero_page;
 #define pte_special(pte)	(0)
 
 #define PTE_BIT_FUNC(fn, op) \
-static inline pte_t pte_##fn(pte_t pte) { pte_val(pte) op; return pte; }
+	static inline pte_t pte_##fn(pte_t pte) { pte_val(pte) op; return pte; }
 
 PTE_BIT_FUNC(wrprotect, &= ~PTE_WRITE);
 PTE_BIT_FUNC(mkwrite,   |= PTE_WRITE);
@@ -206,8 +206,8 @@ static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
 #define pmd_none(pmd)		(!pmd_val(pmd))
 #define pmd_present(pmd)	(pmd_val(pmd) & PMD_PRESENT)
 #define pmd_bad(pmd)		(((pmd_val(pmd) &		\
-				(PMD_PRESENT | PMD_TYPE_MASK))	\
-				!= (PMD_PRESENT | PMD_TYPE_TABLE)))
+							   (PMD_PRESENT | PMD_TYPE_MASK))	\
+							  != (PMD_PRESENT | PMD_TYPE_TABLE)))
 
 #define set_pmd(pmdpd, pmdval)		\
 	do {				\
@@ -266,11 +266,11 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
 #define __SWP_OFFSET_SHIFT	(__SWP_TYPE_BITS + __SWP_TYPE_SHIFT)
 
 #define __swp_type(x)		(((x).val >> __SWP_TYPE_SHIFT)		\
-				& __SWP_TYPE_MASK)
+							 & __SWP_TYPE_MASK)
 #define __swp_offset(x)		((x).val >> __SWP_OFFSET_SHIFT)
 #define __swp_entry(type, offset) ((swp_entry_t) {			\
-				((type) << __SWP_TYPE_SHIFT) |		\
-				((offset) << __SWP_OFFSET_SHIFT) })
+		((type) << __SWP_TYPE_SHIFT) |		\
+		((offset) << __SWP_OFFSET_SHIFT) })
 
 #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
 #define __swp_entry_to_pte(swp)	((pte_t) { (swp).val })

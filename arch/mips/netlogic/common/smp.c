@@ -46,15 +46,15 @@
 #include <asm/netlogic/common.h>
 
 #if defined(CONFIG_CPU_XLP)
-#include <asm/netlogic/xlp-hal/iomap.h>
-#include <asm/netlogic/xlp-hal/xlp.h>
-#include <asm/netlogic/xlp-hal/pic.h>
+	#include <asm/netlogic/xlp-hal/iomap.h>
+	#include <asm/netlogic/xlp-hal/xlp.h>
+	#include <asm/netlogic/xlp-hal/pic.h>
 #elif defined(CONFIG_CPU_XLR)
-#include <asm/netlogic/xlr/iomap.h>
-#include <asm/netlogic/xlr/pic.h>
-#include <asm/netlogic/xlr/xlr.h>
+	#include <asm/netlogic/xlr/iomap.h>
+	#include <asm/netlogic/xlr/pic.h>
+	#include <asm/netlogic/xlr/xlr.h>
 #else
-#error "Unknown CPU"
+	#error "Unknown CPU"
 #endif
 
 void nlm_send_ipi_single(int logical_cpu, unsigned int action)
@@ -67,16 +67,22 @@ void nlm_send_ipi_single(int logical_cpu, unsigned int action)
 	picbase = nlm_get_node(nlm_hwtid_to_node(hwtid))->picbase;
 
 	if (action & SMP_CALL_FUNCTION)
+	{
 		nlm_pic_send_ipi(picbase, hwtid, IRQ_IPI_SMP_FUNCTION, 0);
+	}
+
 	if (action & SMP_RESCHEDULE_YOURSELF)
+	{
 		nlm_pic_send_ipi(picbase, hwtid, IRQ_IPI_SMP_RESCHEDULE, 0);
+	}
 }
 
 void nlm_send_ipi_mask(const struct cpumask *mask, unsigned int action)
 {
 	int cpu;
 
-	for_each_cpu(cpu, mask) {
+	for_each_cpu(cpu, mask)
+	{
 		nlm_send_ipi_single(cpu, action);
 	}
 }
@@ -177,12 +183,15 @@ void __init nlm_smp_setup(void)
 	set_cpu_possible(0, true);
 
 	num_cpus = 1;
-	for (i = 0; i < NR_CPUS; i++) {
+
+	for (i = 0; i < NR_CPUS; i++)
+	{
 		/*
 		 * cpu_ready array is not set for the boot_cpu,
 		 * it is only set for ASPs (see smpboot.S)
 		 */
-		if (cpu_ready[i]) {
+		if (cpu_ready[i])
+		{
 			cpumask_set_cpu(i, &phys_cpu_present_mask);
 			__cpu_number_map[i] = num_cpus;
 			__cpu_logical_map[num_cpus] = i;
@@ -194,16 +203,18 @@ void __init nlm_smp_setup(void)
 	}
 
 	pr_info("Physical CPU mask: %*pb\n",
-		cpumask_pr_args(&phys_cpu_present_mask));
+			cpumask_pr_args(&phys_cpu_present_mask));
 	pr_info("Possible CPU mask: %*pb\n",
-		cpumask_pr_args(cpu_possible_mask));
+			cpumask_pr_args(cpu_possible_mask));
 
 	/* check with the cores we have woken up */
 	for (ncore = 0, i = 0; i < NLM_NR_NODES; i++)
+	{
 		ncore += hweight32(nlm_get_node(i)->coremask);
+	}
 
 	pr_info("Detected (%dc%dt) %d Slave CPU(s)\n", ncore,
-		nlm_threads_per_core, num_cpus);
+			nlm_threads_per_core, num_cpus);
 
 	/* switch NMI handler to boot CPUs */
 	nlm_set_nmi_handler(nlm_boot_secondary_cpus);
@@ -215,35 +226,51 @@ static int nlm_parse_cpumask(cpumask_t *wakeup_mask)
 	int threadmode, i, j;
 
 	core0_thr_mask = 0;
+
 	for (i = 0; i < NLM_THREADS_PER_CORE; i++)
 		if (cpumask_test_cpu(i, wakeup_mask))
+		{
 			core0_thr_mask |= (1 << i);
-	switch (core0_thr_mask) {
-	case 1:
-		nlm_threads_per_core = 1;
-		threadmode = 0;
-		break;
-	case 3:
-		nlm_threads_per_core = 2;
-		threadmode = 2;
-		break;
-	case 0xf:
-		nlm_threads_per_core = 4;
-		threadmode = 3;
-		break;
-	default:
-		goto unsupp;
+		}
+
+	switch (core0_thr_mask)
+	{
+		case 1:
+			nlm_threads_per_core = 1;
+			threadmode = 0;
+			break;
+
+		case 3:
+			nlm_threads_per_core = 2;
+			threadmode = 2;
+			break;
+
+		case 0xf:
+			nlm_threads_per_core = 4;
+			threadmode = 3;
+			break;
+
+		default:
+			goto unsupp;
 	}
 
 	/* Verify other cores CPU masks */
-	for (i = 0; i < NR_CPUS; i += NLM_THREADS_PER_CORE) {
+	for (i = 0; i < NR_CPUS; i += NLM_THREADS_PER_CORE)
+	{
 		core_thr_mask = 0;
+
 		for (j = 0; j < NLM_THREADS_PER_CORE; j++)
 			if (cpumask_test_cpu(i + j, wakeup_mask))
+			{
 				core_thr_mask |= (1 << j);
+			}
+
 		if (core_thr_mask != 0 && core_thr_mask != core0_thr_mask)
-				goto unsupp;
+		{
+			goto unsupp;
+		}
 	}
+
 	return threadmode;
 
 unsupp:
@@ -271,7 +298,8 @@ int nlm_wakeup_secondary_cpus(void)
 	return 0;
 }
 
-struct plat_smp_ops nlm_smp_ops = {
+struct plat_smp_ops nlm_smp_ops =
+{
 	.send_ipi_single	= nlm_send_ipi_single,
 	.send_ipi_mask		= nlm_send_ipi_mask,
 	.init_secondary		= nlm_init_secondary,

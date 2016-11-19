@@ -41,14 +41,15 @@
 
 void mpc83xx_enter_deep_sleep(phys_addr_t immrbase);
 
-struct mpc83xx_pmc {
+struct mpc83xx_pmc
+{
 	u32 config;
 #define PMCCR_DLPEN 2 /* DDR SDRAM low power enable */
 #define PMCCR_SLPEN 1 /* System low power enable */
 
 	u32 event;
 	u32 mask;
-/* All but PMCI are deep-sleep only */
+	/* All but PMCI are deep-sleep only */
 #define PMCER_GPIO   0x100
 #define PMCER_PCI    0x080
 #define PMCER_USB    0x040
@@ -71,34 +72,39 @@ struct mpc83xx_pmc {
 	u32 config2;
 };
 
-struct mpc83xx_rcw {
+struct mpc83xx_rcw
+{
 	u32 rcwlr;
 	u32 rcwhr;
 };
 
-struct mpc83xx_clock {
+struct mpc83xx_clock
+{
 	u32 spmr;
 	u32 occr;
 	u32 sccr;
 };
 
-struct mpc83xx_syscr {
+struct mpc83xx_syscr
+{
 	__be32 sgprl;
 	__be32 sgprh;
 	__be32 spridr;
-	__be32 :32;
+	__be32 : 32;
 	__be32 spcr;
 	__be32 sicrl;
 	__be32 sicrh;
 };
 
-struct mpc83xx_saved {
+struct mpc83xx_saved
+{
 	u32 sicrl;
 	u32 sicrh;
 	u32 sccr;
 };
 
-struct pmc_type {
+struct pmc_type
+{
 	int has_deep_sleep;
 };
 
@@ -125,12 +131,14 @@ static int mpc83xx_change_state(void)
 	u32 curr_state;
 	u32 reg_cfg1 = in_be32(&pmc_regs->config1);
 
-	if (is_pci_agent) {
+	if (is_pci_agent)
+	{
 		pci_pm_state = (reg_cfg1 & PMCCR1_NEXT_STATE) >>
-		               PMCCR1_NEXT_STATE_SHIFT;
+					   PMCCR1_NEXT_STATE_SHIFT;
 		curr_state = reg_cfg1 & PMCCR1_CURR_STATE;
 
-		if (curr_state != pci_pm_state) {
+		if (curr_state != pci_pm_state)
+		{
 			reg_cfg1 &= ~PMCCR1_CURR_STATE;
 			reg_cfg1 |= pci_pm_state;
 			out_be32(&pmc_regs->config1, reg_cfg1);
@@ -149,9 +157,12 @@ static irqreturn_t pmc_irq_handler(int irq, void *dev_id)
 	int ret = IRQ_NONE;
 
 	if (mpc83xx_change_state())
+	{
 		ret = IRQ_HANDLED;
+	}
 
-	if (event) {
+	if (event)
+	{
 		out_be32(&pmc_regs->event, event);
 		ret = IRQ_HANDLED;
 	}
@@ -181,12 +192,15 @@ static int mpc83xx_suspend_enter(suspend_state_t state)
 	 * between the agent thread checking it and the PM code disabling
 	 * interrupts.
 	 */
-	if (wake_from_pci) {
+	if (wake_from_pci)
+	{
 		if (pci_pm_state != (deep_sleeping ? 3 : 2))
+		{
 			goto out;
+		}
 
 		out_be32(&pmc_regs->config1,
-		         in_be32(&pmc_regs->config1) | PMCCR1_PME_EN);
+				 in_be32(&pmc_regs->config1) | PMCCR1_PME_EN);
 	}
 
 	/* Put the system into low-power mode and the RAM
@@ -201,25 +215,28 @@ static int mpc83xx_suspend_enter(suspend_state_t state)
 	 * require going through the boot firmware upon a wakeup event.
 	 */
 
-	if (deep_sleeping) {
+	if (deep_sleeping)
+	{
 		mpc83xx_suspend_save_regs();
 
 		out_be32(&pmc_regs->mask, PMCER_ALL);
 
 		out_be32(&pmc_regs->config1,
-		         in_be32(&pmc_regs->config1) | PMCCR1_POWER_OFF);
+				 in_be32(&pmc_regs->config1) | PMCCR1_POWER_OFF);
 
 		enable_kernel_fp();
 
 		mpc83xx_enter_deep_sleep(immrbase);
 
 		out_be32(&pmc_regs->config1,
-		         in_be32(&pmc_regs->config1) & ~PMCCR1_POWER_OFF);
+				 in_be32(&pmc_regs->config1) & ~PMCCR1_POWER_OFF);
 
 		out_be32(&pmc_regs->mask, PMCER_PMCI);
 
 		mpc83xx_suspend_restore_regs();
-	} else {
+	}
+	else
+	{
 		out_be32(&pmc_regs->mask, PMCER_PMCI);
 
 		mpc6xx_enter_standby();
@@ -229,7 +246,7 @@ static int mpc83xx_suspend_enter(suspend_state_t state)
 
 out:
 	out_be32(&pmc_regs->config1,
-	         in_be32(&pmc_regs->config1) & ~PMCCR1_PME_EN);
+			 in_be32(&pmc_regs->config1) & ~PMCCR1_PME_EN);
 
 	return ret;
 }
@@ -246,14 +263,17 @@ static int mpc83xx_suspend_valid(suspend_state_t state)
 
 static int mpc83xx_suspend_begin(suspend_state_t state)
 {
-	switch (state) {
+	switch (state)
+	{
 		case PM_SUSPEND_STANDBY:
 			deep_sleeping = 0;
 			return 0;
 
 		case PM_SUSPEND_MEM:
 			if (has_deep_sleep)
+			{
 				deep_sleeping = 1;
+			}
 
 			return 0;
 
@@ -264,12 +284,15 @@ static int mpc83xx_suspend_begin(suspend_state_t state)
 
 static int agent_thread_fn(void *data)
 {
-	while (1) {
+	while (1)
+	{
 		wait_event_interruptible(agent_wq, pci_pm_state >= 2);
 		try_to_freeze();
 
 		if (signal_pending(current) || pci_pm_state < 2)
+		{
 			continue;
+		}
 
 		/* With a preemptible kernel (or SMP), this could race with
 		 * a userspace-driven suspend request.  It's probably best
@@ -281,7 +304,7 @@ static int agent_thread_fn(void *data)
 		wake_from_pci = 1;
 
 		pm_suspend(pci_pm_state == 3 ? PM_SUSPEND_MEM :
-		                               PM_SUSPEND_STANDBY);
+				   PM_SUSPEND_STANDBY);
 
 		wake_from_pci = 0;
 	}
@@ -303,10 +326,12 @@ static int mpc83xx_is_pci_agent(void)
 	int ret;
 
 	rcw_regs = ioremap(get_immrbase() + IMMR_RCW_OFFSET,
-	                   sizeof(struct mpc83xx_rcw));
+					   sizeof(struct mpc83xx_rcw));
 
 	if (!rcw_regs)
+	{
 		return -ENOMEM;
+	}
 
 	ret = !(in_be32(&rcw_regs->rcwhr) & RCW_PCI_HOST);
 
@@ -314,7 +339,8 @@ static int mpc83xx_is_pci_agent(void)
 	return ret;
 }
 
-static const struct platform_suspend_ops mpc83xx_suspend_ops = {
+static const struct platform_suspend_ops mpc83xx_suspend_ops =
+{
 	.valid = mpc83xx_suspend_valid,
 	.begin = mpc83xx_suspend_begin,
 	.enter = mpc83xx_suspend_enter,
@@ -331,66 +357,90 @@ static int pmc_probe(struct platform_device *ofdev)
 	int ret = 0;
 
 	match = of_match_device(pmc_match, &ofdev->dev);
+
 	if (!match)
+	{
 		return -EINVAL;
+	}
 
 	type = match->data;
 
 	if (!of_device_is_available(np))
+	{
 		return -ENODEV;
+	}
 
 	has_deep_sleep = type->has_deep_sleep;
 	immrbase = get_immrbase();
 	pmc_dev = ofdev;
 
 	is_pci_agent = mpc83xx_is_pci_agent();
+
 	if (is_pci_agent < 0)
+	{
 		return is_pci_agent;
+	}
 
 	ret = of_address_to_resource(np, 0, &res);
+
 	if (ret)
+	{
 		return -ENODEV;
+	}
 
 	pmc_irq = irq_of_parse_and_map(np, 0);
-	if (pmc_irq) {
+
+	if (pmc_irq)
+	{
 		ret = request_irq(pmc_irq, pmc_irq_handler, IRQF_SHARED,
-		                  "pmc", ofdev);
+						  "pmc", ofdev);
 
 		if (ret)
+		{
 			return -EBUSY;
+		}
 	}
 
 	pmc_regs = ioremap(res.start, sizeof(struct mpc83xx_pmc));
 
-	if (!pmc_regs) {
+	if (!pmc_regs)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	ret = of_address_to_resource(np, 1, &res);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = -ENODEV;
 		goto out_pmc;
 	}
 
 	clock_regs = ioremap(res.start, sizeof(struct mpc83xx_pmc));
 
-	if (!clock_regs) {
+	if (!clock_regs)
+	{
 		ret = -ENOMEM;
 		goto out_pmc;
 	}
 
-	if (has_deep_sleep) {
+	if (has_deep_sleep)
+	{
 		syscr_regs = ioremap(immrbase + IMMR_SYSCR_OFFSET,
-				     sizeof(*syscr_regs));
-		if (!syscr_regs) {
+							 sizeof(*syscr_regs));
+
+		if (!syscr_regs)
+		{
 			ret = -ENOMEM;
 			goto out_syscr;
 		}
 	}
 
 	if (is_pci_agent)
+	{
 		mpc83xx_set_agent();
+	}
 
 	suspend_set_ops(&mpc83xx_suspend_ops);
 	return 0;
@@ -400,8 +450,11 @@ out_syscr:
 out_pmc:
 	iounmap(pmc_regs);
 out:
+
 	if (pmc_irq)
+	{
 		free_irq(pmc_irq, ofdev);
+	}
 
 	return ret;
 }
@@ -411,7 +464,8 @@ static int pmc_remove(struct platform_device *ofdev)
 	return -EPERM;
 };
 
-static struct pmc_type pmc_types[] = {
+static struct pmc_type pmc_types[] =
+{
 	{
 		.has_deep_sleep = 1,
 	},
@@ -420,7 +474,8 @@ static struct pmc_type pmc_types[] = {
 	}
 };
 
-static const struct of_device_id pmc_match[] = {
+static const struct of_device_id pmc_match[] =
+{
 	{
 		.compatible = "fsl,mpc8313-pmc",
 		.data = &pmc_types[0],
@@ -432,7 +487,8 @@ static const struct of_device_id pmc_match[] = {
 	{}
 };
 
-static struct platform_driver pmc_driver = {
+static struct platform_driver pmc_driver =
+{
 	.driver = {
 		.name = "mpc83xx-pmc",
 		.of_match_table = pmc_match,

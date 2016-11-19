@@ -19,7 +19,8 @@
 #ifndef __INC_MACH_MUX_H
 #define __INC_MACH_MUX_H
 
-struct mux_config {
+struct mux_config
+{
 	const char *name;
 	const char *mux_reg_name;
 	const unsigned char mux_reg;
@@ -29,7 +30,8 @@ struct mux_config {
 	bool debug;
 };
 
-enum davinci_dm644x_index {
+enum davinci_dm644x_index
+{
 	/* ATA and HDDIR functions */
 	DM644X_HDIREN,
 	DM644X_ATAEN,
@@ -95,7 +97,8 @@ enum davinci_dm644x_index {
 	DM644X_LFLDEN,
 };
 
-enum davinci_dm646x_index {
+enum davinci_dm646x_index
+{
 	/* ATA function */
 	DM646X_ATAEN,
 
@@ -121,7 +124,8 @@ enum davinci_dm646x_index {
 	DM646X_PTSIMUX_SERIAL,
 };
 
-enum davinci_dm355_index {
+enum davinci_dm355_index
+{
 	/* MMC/SD 0 */
 	DM355_MMCSD0,
 
@@ -177,7 +181,8 @@ enum davinci_dm355_index {
 	DM355_VIN_CINH_EN,
 };
 
-enum davinci_dm365_index {
+enum davinci_dm365_index
+{
 	/* MMC/SD 0 */
 	DM365_MMCSD0,
 
@@ -344,7 +349,8 @@ enum davinci_dm365_index {
 	DM365_EVT26_MMC0_RX,
 };
 
-enum da830_index {
+enum da830_index
+{
 	DA830_GPIO7_14,
 	DA830_RTCK,
 	DA830_GPIO7_15,
@@ -748,7 +754,8 @@ enum da830_index {
 	DA830_GPIO2_10,
 };
 
-enum davinci_da850_index {
+enum davinci_da850_index
+{
 	/* UART0 function */
 	DA850_NUART0_CTS,
 	DA850_NUART0_RTS,

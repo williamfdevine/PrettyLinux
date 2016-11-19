@@ -73,10 +73,14 @@ static bool kernel_fpu_disabled(void)
 static bool interrupted_kernel_fpu_idle(void)
 {
 	if (kernel_fpu_disabled())
+	{
 		return false;
+	}
 
 	if (use_eager_fpu())
+	{
 		return true;
+	}
 
 	return !current->thread.fpu.fpregs_active && (read_cr0() & X86_CR0_TS);
 }
@@ -105,8 +109,8 @@ static bool interrupted_user_mode(void)
 bool irq_fpu_usable(void)
 {
 	return !in_interrupt() ||
-		interrupted_user_mode() ||
-		interrupted_kernel_fpu_idle();
+		   interrupted_user_mode() ||
+		   interrupted_kernel_fpu_idle();
 }
 EXPORT_SYMBOL(irq_fpu_usable);
 
@@ -118,13 +122,16 @@ void __kernel_fpu_begin(void)
 
 	kernel_fpu_disable();
 
-	if (fpu->fpregs_active) {
+	if (fpu->fpregs_active)
+	{
 		/*
 		 * Ignore return value -- we don't care if reg state
 		 * is clobbered.
 		 */
 		copy_fpregs_to_fpstate(fpu);
-	} else {
+	}
+	else
+	{
 		this_cpu_write(fpu_fpregs_owner_ctx, NULL);
 		__fpregs_activate_hw();
 	}
@@ -136,9 +143,13 @@ void __kernel_fpu_end(void)
 	struct fpu *fpu = &current->thread.fpu;
 
 	if (fpu->fpregs_active)
+	{
 		copy_kernel_to_fpregs(&fpu->state);
+	}
 	else
+	{
 		__fpregs_deactivate_hw();
+	}
 
 	kernel_fpu_enable();
 }
@@ -169,9 +180,12 @@ int irq_ts_save(void)
 	 * or some heavy lifting like kernel_fpu_begin()
 	 */
 	if (!in_atomic())
+	{
 		return 0;
+	}
 
-	if (read_cr0() & X86_CR0_TS) {
+	if (read_cr0() & X86_CR0_TS)
+	{
 		clts();
 		return 1;
 	}
@@ -183,7 +197,9 @@ EXPORT_SYMBOL_GPL(irq_ts_save);
 void irq_ts_restore(int TS_state)
 {
 	if (TS_state)
+	{
 		stts();
+	}
 }
 EXPORT_SYMBOL_GPL(irq_ts_restore);
 
@@ -198,14 +214,22 @@ void fpu__save(struct fpu *fpu)
 
 	preempt_disable();
 	trace_x86_fpu_before_save(fpu);
-	if (fpu->fpregs_active) {
-		if (!copy_fpregs_to_fpstate(fpu)) {
+
+	if (fpu->fpregs_active)
+	{
+		if (!copy_fpregs_to_fpstate(fpu))
+		{
 			if (use_eager_fpu())
+			{
 				copy_kernel_to_fpregs(&fpu->state);
+			}
 			else
+			{
 				fpregs_deactivate(fpu);
+			}
 		}
 	}
+
 	trace_x86_fpu_after_save(fpu);
 	preempt_enable();
 }
@@ -224,7 +248,8 @@ static inline void fpstate_init_fstate(struct fregs_state *fp)
 
 void fpstate_init(union fpregs_state *state)
 {
-	if (!static_cpu_has(X86_FEATURE_FPU)) {
+	if (!static_cpu_has(X86_FEATURE_FPU))
+	{
 		fpstate_init_soft(&state->soft);
 		return;
 	}
@@ -236,12 +261,18 @@ void fpstate_init(union fpregs_state *state)
 	 * it will #GP. Make sure it is replaced after the memset().
 	 */
 	if (static_cpu_has(X86_FEATURE_XSAVES))
+	{
 		state->xsave.header.xcomp_bv = XCOMP_BV_COMPACTED_FORMAT;
+	}
 
 	if (static_cpu_has(X86_FEATURE_FXSR))
+	{
 		fpstate_init_fxstate(&state->fxsave);
+	}
 	else
+	{
 		fpstate_init_fstate(&state->fsave);
+	}
 }
 EXPORT_SYMBOL_GPL(fpstate_init);
 
@@ -252,7 +283,9 @@ int fpu__copy(struct fpu *dst_fpu, struct fpu *src_fpu)
 	dst_fpu->last_cpu = -1;
 
 	if (!src_fpu->fpstate_active || !static_cpu_has(X86_FEATURE_FPU))
+	{
 		return 0;
+	}
 
 	WARN_ON_FPU(src_fpu != &current->thread.fpu);
 
@@ -261,7 +294,9 @@ int fpu__copy(struct fpu *dst_fpu, struct fpu *src_fpu)
 	 * leak into the child task:
 	 */
 	if (use_eager_fpu())
+	{
 		memset(&dst_fpu->state.xsave, 0, fpu_kernel_xstate_size);
+	}
 
 	/*
 	 * Save current FPU registers directly into the child
@@ -279,15 +314,22 @@ int fpu__copy(struct fpu *dst_fpu, struct fpu *src_fpu)
 	 * fast in terms of critical section length.
 	 */
 	preempt_disable();
-	if (!copy_fpregs_to_fpstate(dst_fpu)) {
+
+	if (!copy_fpregs_to_fpstate(dst_fpu))
+	{
 		memcpy(&src_fpu->state, &dst_fpu->state,
-		       fpu_kernel_xstate_size);
+			   fpu_kernel_xstate_size);
 
 		if (use_eager_fpu())
+		{
 			copy_kernel_to_fpregs(&src_fpu->state);
+		}
 		else
+		{
 			fpregs_deactivate(src_fpu);
+		}
 	}
+
 	preempt_enable();
 
 	trace_x86_fpu_copy_src(src_fpu);
@@ -304,7 +346,8 @@ void fpu__activate_curr(struct fpu *fpu)
 {
 	WARN_ON_FPU(fpu != &current->thread.fpu);
 
-	if (!fpu->fpstate_active) {
+	if (!fpu->fpstate_active)
+	{
 		fpstate_init(&fpu->state);
 		trace_x86_fpu_init_state(fpu);
 
@@ -329,10 +372,14 @@ void fpu__activate_fpstate_read(struct fpu *fpu)
 	 * If fpregs are active (in the current CPU), then
 	 * copy them to the fpstate:
 	 */
-	if (fpu->fpregs_active) {
+	if (fpu->fpregs_active)
+	{
 		fpu__save(fpu);
-	} else {
-		if (!fpu->fpstate_active) {
+	}
+	else
+	{
+		if (!fpu->fpstate_active)
+		{
 			fpstate_init(&fpu->state);
 			trace_x86_fpu_init_state(fpu);
 
@@ -364,10 +411,13 @@ void fpu__activate_fpstate_write(struct fpu *fpu)
 	 */
 	WARN_ON_FPU(fpu == &current->thread.fpu);
 
-	if (fpu->fpstate_active) {
+	if (fpu->fpstate_active)
+	{
 		/* Invalidate any lazy state: */
 		fpu->last_cpu = -1;
-	} else {
+	}
+	else
+	{
 		fpstate_init(&fpu->state);
 		trace_x86_fpu_init_state(fpu);
 
@@ -431,7 +481,9 @@ void fpu__current_fpstate_write_end(void)
 	 * an XRSTOR if they are active.
 	 */
 	if (fpregs_active())
+	{
 		copy_kernel_to_fpregs(&fpu->state);
+	}
 
 	/*
 	 * Our update is done and the fpregs/fpstate are in sync
@@ -479,11 +531,12 @@ void fpu__drop(struct fpu *fpu)
 	preempt_disable();
 	fpu->counter = 0;
 
-	if (fpu->fpregs_active) {
+	if (fpu->fpregs_active)
+	{
 		/* Ignore delayed exceptions from user space */
 		asm volatile("1: fwait\n"
-			     "2:\n"
-			     _ASM_EXTABLE(1b, 2b));
+					 "2:\n"
+					 _ASM_EXTABLE(1b, 2b));
 		fpregs_deactivate(fpu);
 	}
 
@@ -501,14 +554,22 @@ void fpu__drop(struct fpu *fpu)
 static inline void copy_init_fpstate_to_fpregs(void)
 {
 	if (use_xsave())
+	{
 		copy_kernel_to_xregs(&init_fpstate.xsave, -1);
+	}
 	else if (static_cpu_has(X86_FEATURE_FXSR))
+	{
 		copy_kernel_to_fxregs(&init_fpstate.fxsave);
+	}
 	else
+	{
 		copy_kernel_to_fregs(&init_fpstate.fsave);
+	}
 
 	if (boot_cpu_has(X86_FEATURE_OSPKE))
+	{
 		copy_init_pkru_to_fpregs();
+	}
 }
 
 /*
@@ -521,14 +582,19 @@ void fpu__clear(struct fpu *fpu)
 {
 	WARN_ON_FPU(fpu != &current->thread.fpu); /* Almost certainly an anomaly */
 
-	if (!use_eager_fpu() || !static_cpu_has(X86_FEATURE_FPU)) {
+	if (!use_eager_fpu() || !static_cpu_has(X86_FEATURE_FPU))
+	{
 		/* FPU state will be reallocated lazily at the first use. */
 		fpu__drop(fpu);
-	} else {
-		if (!fpu->fpstate_active) {
+	}
+	else
+	{
+		if (!fpu->fpstate_active)
+		{
 			fpu__activate_curr(fpu);
 			user_fpu_begin();
 		}
+
 		copy_init_fpstate_to_fpregs();
 	}
 }
@@ -541,8 +607,10 @@ int fpu__exception_code(struct fpu *fpu, int trap_nr)
 {
 	int err;
 
-	if (trap_nr == X86_TRAP_MF) {
+	if (trap_nr == X86_TRAP_MF)
+	{
 		unsigned short cwd, swd;
+
 		/*
 		 * (~cwd & swd) will mask out exceptions that are not set to unmasked
 		 * status.  0x3f is the exception bits in these regs, 0x200 is the
@@ -553,16 +621,21 @@ int fpu__exception_code(struct fpu *fpu, int trap_nr)
 		 * and it will suffer the consequences since we won't be able to
 		 * fully reproduce the context of the exception.
 		 */
-		if (boot_cpu_has(X86_FEATURE_FXSR)) {
+		if (boot_cpu_has(X86_FEATURE_FXSR))
+		{
 			cwd = fpu->state.fxsave.cwd;
 			swd = fpu->state.fxsave.swd;
-		} else {
+		}
+		else
+		{
 			cwd = (unsigned short)fpu->state.fsave.cwd;
 			swd = (unsigned short)fpu->state.fsave.swd;
 		}
 
 		err = swd & ~cwd;
-	} else {
+	}
+	else
+	{
 		/*
 		 * The SIMD FPU exceptions are handled a little differently, as there
 		 * is only a single status/control register.  Thus, to determine which
@@ -572,25 +645,36 @@ int fpu__exception_code(struct fpu *fpu, int trap_nr)
 		unsigned short mxcsr = MXCSR_DEFAULT;
 
 		if (boot_cpu_has(X86_FEATURE_XMM))
+		{
 			mxcsr = fpu->state.fxsave.mxcsr;
+		}
 
 		err = ~(mxcsr >> 7) & mxcsr;
 	}
 
-	if (err & 0x001) {	/* Invalid op */
+	if (err & 0x001)  	/* Invalid op */
+	{
 		/*
 		 * swd & 0x240 == 0x040: Stack Underflow
 		 * swd & 0x240 == 0x240: Stack Overflow
 		 * User must clear the SF bit (0x40) if set
 		 */
 		return FPE_FLTINV;
-	} else if (err & 0x004) { /* Divide by Zero */
+	}
+	else if (err & 0x004)     /* Divide by Zero */
+	{
 		return FPE_FLTDIV;
-	} else if (err & 0x008) { /* Overflow */
+	}
+	else if (err & 0x008)     /* Overflow */
+	{
 		return FPE_FLTOVF;
-	} else if (err & 0x012) { /* Denormal, Underflow */
+	}
+	else if (err & 0x012)     /* Denormal, Underflow */
+	{
 		return FPE_FLTUND;
-	} else if (err & 0x020) { /* Precision */
+	}
+	else if (err & 0x020)     /* Precision */
+	{
 		return FPE_FLTRES;
 	}
 

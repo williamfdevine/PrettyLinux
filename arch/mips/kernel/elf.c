@@ -21,7 +21,8 @@ bool mips_use_nan_legacy;
 bool mips_use_nan_2008;
 
 /* FPU modes */
-enum {
+enum
+{
 	FP_FRE,
 	FP_FR0,
 	FP_FR1,
@@ -49,7 +50,8 @@ enum {
  *
  */
 
-struct mode_req {
+struct mode_req
+{
 	bool single;
 	bool soft;
 	bool fr1;
@@ -57,7 +59,8 @@ struct mode_req {
 	bool fre;
 };
 
-static const struct mode_req fpu_reqs[] = {
+static const struct mode_req fpu_reqs[] =
+{
 	[MIPS_ABI_FP_ANY]    = { true,  true,  true,  true,  true  },
 	[MIPS_ABI_FP_DOUBLE] = { false, false, false, true,  true  },
 	[MIPS_ABI_FP_SINGLE] = { true,  false, false, false, false },
@@ -75,9 +78,10 @@ static const struct mode_req fpu_reqs[] = {
 static struct mode_req none_req = { true, true, false, true, true };
 
 int arch_elf_pt_proc(void *_ehdr, void *_phdr, struct file *elf,
-		     bool is_interp, struct arch_elf_state *state)
+					 bool is_interp, struct arch_elf_state *state)
 {
-	union {
+	union
+	{
 		struct elf32_hdr e32;
 		struct elf64_hdr e64;
 	} *ehdr = _ehdr;
@@ -92,59 +96,88 @@ int arch_elf_pt_proc(void *_ehdr, void *_phdr, struct file *elf,
 	flags = elf32 ? ehdr->e32.e_flags : ehdr->e64.e_flags;
 
 	/* Let's see if this is an O32 ELF */
-	if (elf32) {
-		if (flags & EF_MIPS_FP64) {
+	if (elf32)
+	{
+		if (flags & EF_MIPS_FP64)
+		{
 			/*
 			 * Set MIPS_ABI_FP_OLD_64 for EF_MIPS_FP64. We will override it
 			 * later if needed
 			 */
 			if (is_interp)
+			{
 				state->interp_fp_abi = MIPS_ABI_FP_OLD_64;
+			}
 			else
+			{
 				state->fp_abi = MIPS_ABI_FP_OLD_64;
+			}
 		}
+
 		if (phdr32->p_type != PT_MIPS_ABIFLAGS)
+		{
 			return 0;
+		}
 
 		if (phdr32->p_filesz < sizeof(abiflags))
+		{
 			return -EINVAL;
+		}
 
 		ret = kernel_read(elf, phdr32->p_offset,
-				  (char *)&abiflags,
-				  sizeof(abiflags));
-	} else {
+						  (char *)&abiflags,
+						  sizeof(abiflags));
+	}
+	else
+	{
 		if (phdr64->p_type != PT_MIPS_ABIFLAGS)
+		{
 			return 0;
+		}
+
 		if (phdr64->p_filesz < sizeof(abiflags))
+		{
 			return -EINVAL;
+		}
 
 		ret = kernel_read(elf, phdr64->p_offset,
-				  (char *)&abiflags,
-				  sizeof(abiflags));
+						  (char *)&abiflags,
+						  sizeof(abiflags));
 	}
 
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (ret != sizeof(abiflags))
+	{
 		return -EIO;
+	}
 
 	/* Record the required FP ABIs for use by mips_check_elf */
 	if (is_interp)
+	{
 		state->interp_fp_abi = abiflags.fp_abi;
+	}
 	else
+	{
 		state->fp_abi = abiflags.fp_abi;
+	}
 
 	return 0;
 }
 
 int arch_check_elf(void *_ehdr, bool has_interpreter, void *_interp_ehdr,
-		   struct arch_elf_state *state)
+				   struct arch_elf_state *state)
 {
-	union {
+	union
+	{
 		struct elf32_hdr e32;
 		struct elf64_hdr e64;
 	} *ehdr = _ehdr;
-	union {
+	union
+	{
 		struct elf32_hdr e32;
 		struct elf64_hdr e64;
 	} *iehdr = _interp_ehdr;
@@ -160,18 +193,31 @@ int arch_check_elf(void *_ehdr, bool has_interpreter, void *_interp_ehdr,
 	 * Determine the NaN personality, reject the binary if not allowed.
 	 * Also ensure that any interpreter matches the executable.
 	 */
-	if (flags & EF_MIPS_NAN2008) {
+	if (flags & EF_MIPS_NAN2008)
+	{
 		if (mips_use_nan_2008)
+		{
 			state->nan_2008 = 1;
+		}
 		else
+		{
 			return -ENOEXEC;
-	} else {
-		if (mips_use_nan_legacy)
-			state->nan_2008 = 0;
-		else
-			return -ENOEXEC;
+		}
 	}
-	if (has_interpreter) {
+	else
+	{
+		if (mips_use_nan_legacy)
+		{
+			state->nan_2008 = 0;
+		}
+		else
+		{
+			return -ENOEXEC;
+		}
+	}
+
+	if (has_interpreter)
+	{
 		bool ielf32;
 		u32 iflags;
 
@@ -179,30 +225,40 @@ int arch_check_elf(void *_ehdr, bool has_interpreter, void *_interp_ehdr,
 		iflags = ielf32 ? iehdr->e32.e_flags : iehdr->e64.e_flags;
 
 		if ((flags ^ iflags) & EF_MIPS_NAN2008)
+		{
 			return -ELIBBAD;
+		}
 	}
 
 	if (!IS_ENABLED(CONFIG_MIPS_O32_FP64_SUPPORT))
+	{
 		return 0;
+	}
 
 	fp_abi = state->fp_abi;
 
-	if (has_interpreter) {
+	if (has_interpreter)
+	{
 		interp_fp_abi = state->interp_fp_abi;
 
 		abi0 = min(fp_abi, interp_fp_abi);
 		abi1 = max(fp_abi, interp_fp_abi);
-	} else {
+	}
+	else
+	{
 		abi0 = abi1 = fp_abi;
 	}
 
-	if (elf32 && !(flags & EF_MIPS_ABI2)) {
+	if (elf32 && !(flags & EF_MIPS_ABI2))
+	{
 		/* Default to a mode capable of running code expecting FR=0 */
 		state->overall_fp_mode = cpu_has_mips_r6 ? FP_FRE : FP_FR0;
 
 		/* Allow all ABIs we know about */
 		max_abi = MIPS_ABI_FP_64A;
-	} else {
+	}
+	else
+	{
 		/* MIPS64 code always uses FR=1, thus the default is easy */
 		state->overall_fp_mode = FP_FR1;
 
@@ -211,8 +267,10 @@ int arch_check_elf(void *_ehdr, bool has_interpreter, void *_interp_ehdr,
 	}
 
 	if ((abi0 > max_abi && abi0 != MIPS_ABI_FP_UNKNOWN) ||
-	    (abi1 > max_abi && abi1 != MIPS_ABI_FP_UNKNOWN))
+		(abi1 > max_abi && abi1 != MIPS_ABI_FP_UNKNOWN))
+	{
 		return -ELIBBAD;
+	}
 
 	/* It's time to determine the FPU mode requirements */
 	prog_req = (abi0 == MIPS_ABI_FP_UNKNOWN) ? none_req : fpu_reqs[abi0];
@@ -253,18 +311,24 @@ int arch_check_elf(void *_ehdr, bool has_interpreter, void *_interp_ehdr,
 	 * - Return with -ELIBADD if we can't find a matching FPU mode.
 	 */
 	if (prog_req.fre && !prog_req.frdefault && !prog_req.fr1)
+	{
 		state->overall_fp_mode = FP_FRE;
+	}
 	else if ((prog_req.fr1 && prog_req.frdefault) ||
-		 (prog_req.single && !prog_req.frdefault))
+			 (prog_req.single && !prog_req.frdefault))
 		/* Make sure 64-bit MIPS III/IV/64R1 will not pick FR1 */
 		state->overall_fp_mode = ((current_cpu_data.fpu_id & MIPS_FPIR_F64) &&
-					  cpu_has_mips_r2_r6) ?
-					  FP_FR1 : FP_FR0;
+								  cpu_has_mips_r2_r6) ?
+								 FP_FR1 : FP_FR0;
 	else if (prog_req.fr1)
+	{
 		state->overall_fp_mode = FP_FR1;
+	}
 	else  if (!prog_req.fre && !prog_req.frdefault &&
-		  !prog_req.fr1 && !prog_req.single && !prog_req.soft)
+			  !prog_req.fr1 && !prog_req.single && !prog_req.soft)
+	{
 		return -ELIBBAD;
+	}
 
 	return 0;
 }
@@ -272,13 +336,22 @@ int arch_check_elf(void *_ehdr, bool has_interpreter, void *_interp_ehdr,
 static inline void set_thread_fp_mode(int hybrid, int regs32)
 {
 	if (hybrid)
+	{
 		set_thread_flag(TIF_HYBRID_FPREGS);
+	}
 	else
+	{
 		clear_thread_flag(TIF_HYBRID_FPREGS);
+	}
+
 	if (regs32)
+	{
 		set_thread_flag(TIF_32BIT_FPREGS);
+	}
 	else
+	{
 		clear_thread_flag(TIF_32BIT_FPREGS);
+	}
 }
 
 void mips_set_personality_fp(struct arch_elf_state *state)
@@ -289,20 +362,26 @@ void mips_set_personality_fp(struct arch_elf_state *state)
 	 */
 
 	if (!IS_ENABLED(CONFIG_MIPS_O32_FP64_SUPPORT))
+	{
 		return;
+	}
 
-	switch (state->overall_fp_mode) {
-	case FP_FRE:
-		set_thread_fp_mode(1, 0);
-		break;
-	case FP_FR0:
-		set_thread_fp_mode(0, 1);
-		break;
-	case FP_FR1:
-		set_thread_fp_mode(0, 0);
-		break;
-	default:
-		BUG();
+	switch (state->overall_fp_mode)
+	{
+		case FP_FRE:
+			set_thread_fp_mode(1, 0);
+			break;
+
+		case FP_FR0:
+			set_thread_fp_mode(0, 1);
+			break;
+
+		case FP_FR1:
+			set_thread_fp_mode(0, 0);
+			break;
+
+		default:
+			BUG();
 	}
 }
 
@@ -316,28 +395,40 @@ void mips_set_personality_nan(struct arch_elf_state *state)
 	struct task_struct *t = current;
 
 	t->thread.fpu.fcr31 = c->fpu_csr31;
-	switch (state->nan_2008) {
-	case 0:
-		break;
-	case 1:
-		if (!(c->fpu_msk31 & FPU_CSR_NAN2008))
-			t->thread.fpu.fcr31 |= FPU_CSR_NAN2008;
-		if (!(c->fpu_msk31 & FPU_CSR_ABS2008))
-			t->thread.fpu.fcr31 |= FPU_CSR_ABS2008;
-		break;
-	default:
-		BUG();
+
+	switch (state->nan_2008)
+	{
+		case 0:
+			break;
+
+		case 1:
+			if (!(c->fpu_msk31 & FPU_CSR_NAN2008))
+			{
+				t->thread.fpu.fcr31 |= FPU_CSR_NAN2008;
+			}
+
+			if (!(c->fpu_msk31 & FPU_CSR_ABS2008))
+			{
+				t->thread.fpu.fcr31 |= FPU_CSR_ABS2008;
+			}
+
+			break;
+
+		default:
+			BUG();
 	}
 }
 
 int mips_elf_read_implies_exec(void *elf_ex, int exstack)
 {
-	if (exstack != EXSTACK_DISABLE_X) {
+	if (exstack != EXSTACK_DISABLE_X)
+	{
 		/* The binary doesn't request a non-executable stack */
 		return 1;
 	}
 
-	if (!cpu_has_rixi) {
+	if (!cpu_has_rixi)
+	{
 		/* The CPU doesn't support non-executable memory */
 		return 1;
 	}

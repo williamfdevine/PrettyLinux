@@ -105,7 +105,8 @@ static long gta02_panic_blink(int state)
 }
 
 
-static struct map_desc gta02_iodesc[] __initdata = {
+static struct map_desc gta02_iodesc[] __initdata =
+{
 	{
 		.virtual	= 0xe0000000,
 		.pfn		= __phys_to_pfn(S3C2410_CS3 + 0x01000000),
@@ -118,7 +119,8 @@ static struct map_desc gta02_iodesc[] __initdata = {
 #define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB)
 #define UFCON (S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE)
 
-static struct s3c2410_uartcfg gta02_uartcfgs[] = {
+static struct s3c2410_uartcfg gta02_uartcfgs[] =
+{
 	[0] = {
 		.hwport		= 0,
 		.flags		= 0,
@@ -161,7 +163,8 @@ gta02_configure_pmu_for_charger(struct pcf50633 *pcf, void *unused, int res)
 	int  ma;
 
 	/* Interpret charger type */
-	if (res < ((ADC_NOM_CHG_DETECT_USB + ADC_NOM_CHG_DETECT_1A) / 2)) {
+	if (res < ((ADC_NOM_CHG_DETECT_USB + ADC_NOM_CHG_DETECT_1A) / 2))
+	{
 
 		/*
 		 * Sanity - stop GPO driving out now that we have a 1A charger
@@ -170,8 +173,11 @@ gta02_configure_pmu_for_charger(struct pcf50633 *pcf, void *unused, int res)
 		pcf50633_gpio_set(pcf, PCF50633_GPO, 0);
 
 		ma = 1000;
-	} else
+	}
+	else
+	{
 		ma = 100;
+	}
 
 	pcf50633_mbc_usb_curlim_set(pcf, ma);
 }
@@ -182,17 +188,18 @@ static int gta02_usb_vbus_draw;
 
 static void gta02_charger_worker(struct work_struct *work)
 {
-	if (gta02_usb_vbus_draw) {
+	if (gta02_usb_vbus_draw)
+	{
 		pcf50633_mbc_usb_curlim_set(gta02_pcf, gta02_usb_vbus_draw);
 		return;
 	}
 
 #ifdef CONFIG_PCF50633_ADC
 	pcf50633_adc_async_read(gta02_pcf,
-				PCF50633_ADCC1_MUX_ADCIN1,
-				PCF50633_ADCC1_AVERAGE_16,
-				gta02_configure_pmu_for_charger,
-				NULL);
+							PCF50633_ADCC1_MUX_ADCIN1,
+							PCF50633_ADCC1_AVERAGE_16,
+							gta02_configure_pmu_for_charger,
+							NULL);
 #else
 	/*
 	 * If the PCF50633 ADC is disabled we fallback to a
@@ -206,14 +213,16 @@ static void gta02_charger_worker(struct work_struct *work)
 
 static void gta02_pmu_event_callback(struct pcf50633 *pcf, int irq)
 {
-	if (irq == PCF50633_IRQ_USBINS) {
+	if (irq == PCF50633_IRQ_USBINS)
+	{
 		schedule_delayed_work(&gta02_charger_work,
-				      GTA02_CHARGER_CONFIGURE_TIMEOUT);
+							  GTA02_CHARGER_CONFIGURE_TIMEOUT);
 
 		return;
 	}
 
-	if (irq == PCF50633_IRQ_USBREM) {
+	if (irq == PCF50633_IRQ_USBREM)
+	{
 		cancel_delayed_work_sync(&gta02_charger_work);
 		gta02_usb_vbus_draw = 0;
 	}
@@ -222,12 +231,14 @@ static void gta02_pmu_event_callback(struct pcf50633 *pcf, int irq)
 static void gta02_udc_vbus_draw(unsigned int ma)
 {
 	if (!gta02_pcf)
+	{
 		return;
+	}
 
 	gta02_usb_vbus_draw = ma;
 
 	schedule_delayed_work(&gta02_charger_work,
-			      GTA02_CHARGER_CONFIGURE_TIMEOUT);
+						  GTA02_CHARGER_CONFIGURE_TIMEOUT);
 }
 #else /* !CONFIG_CHARGER_PCF50633 */
 #define gta02_pmu_event_callback	NULL
@@ -245,26 +256,29 @@ static void gta02_udc_vbus_draw(unsigned int ma)
 static void gta02_pmu_attach_child_devices(struct pcf50633 *pcf);
 
 
-static char *gta02_batteries[] = {
+static char *gta02_batteries[] =
+{
 	"battery",
 };
 
-static struct pcf50633_bl_platform_data gta02_backlight_data = {
+static struct pcf50633_bl_platform_data gta02_backlight_data =
+{
 	.default_brightness = 0x3f,
 	.default_brightness_limit = 0,
 	.ramp_time = 5,
 };
 
-static struct pcf50633_platform_data gta02_pcf_pdata = {
+static struct pcf50633_platform_data gta02_pcf_pdata =
+{
 	.resumers = {
 		[0] =	PCF50633_INT1_USBINS |
-			PCF50633_INT1_USBREM |
-			PCF50633_INT1_ALARM,
+		PCF50633_INT1_USBREM |
+		PCF50633_INT1_ALARM,
 		[1] =	PCF50633_INT2_ONKEYF,
 		[2] =	PCF50633_INT3_ONKEY1S,
 		[3] =	PCF50633_INT4_LOWSYS |
-			PCF50633_INT4_LOWBAT |
-			PCF50633_INT4_HIGHTMP,
+		PCF50633_INT4_LOWBAT |
+		PCF50633_INT4_HIGHTMP,
 	},
 
 	.batteries = gta02_batteries,
@@ -308,7 +322,7 @@ static struct pcf50633_platform_data gta02_pcf_pdata = {
 				.max_uV = 3300000,
 				.valid_modes_mask = REGULATOR_MODE_NORMAL,
 				.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |
-						REGULATOR_CHANGE_STATUS,
+				REGULATOR_CHANGE_STATUS,
 			},
 		},
 		[PCF50633_REGULATOR_LDO1] = {
@@ -380,14 +394,16 @@ static struct pcf50633_platform_data gta02_pcf_pdata = {
 #define GTA02_FLASH_BASE	0x18000000 /* GCS3 */
 #define GTA02_FLASH_SIZE	0x200000 /* 2MBytes */
 
-static struct physmap_flash_data gta02_nor_flash_data = {
+static struct physmap_flash_data gta02_nor_flash_data =
+{
 	.width		= 2,
 };
 
 static struct resource gta02_nor_flash_resource =
 	DEFINE_RES_MEM(GTA02_FLASH_BASE, GTA02_FLASH_SIZE);
 
-static struct platform_device gta02_nor_flash = {
+static struct platform_device gta02_nor_flash =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -398,16 +414,19 @@ static struct platform_device gta02_nor_flash = {
 };
 
 
-static struct platform_device s3c24xx_pwm_device = {
+static struct platform_device s3c24xx_pwm_device =
+{
 	.name		= "s3c24xx_pwm",
 	.num_resources	= 0,
 };
 
-static struct platform_device gta02_dfbmcs320_device = {
+static struct platform_device gta02_dfbmcs320_device =
+{
 	.name = "dfbmcs320",
 };
 
-static struct i2c_board_info gta02_i2c_devs[] __initdata = {
+static struct i2c_board_info gta02_i2c_devs[] __initdata =
+{
 	{
 		I2C_BOARD_INFO("pcf50633", 0x73),
 		.irq = GTA02_IRQ_PCF50633,
@@ -418,7 +437,8 @@ static struct i2c_board_info gta02_i2c_devs[] __initdata = {
 	},
 };
 
-static struct s3c2410_nand_set __initdata gta02_nand_sets[] = {
+static struct s3c2410_nand_set __initdata gta02_nand_sets[] =
+{
 	[0] = {
 		/*
 		 * This name is also hard-coded in the boot loaders, so
@@ -437,7 +457,8 @@ static struct s3c2410_nand_set __initdata gta02_nand_sets[] = {
  * data sheet (K5D2G13ACM-D075 MCP Memory).
  */
 
-static struct s3c2410_platform_nand __initdata gta02_nand_info = {
+static struct s3c2410_platform_nand __initdata gta02_nand_info =
+{
 	.tacls		= 0,
 	.twrph0		= 25,
 	.twrph1		= 15,
@@ -447,13 +468,15 @@ static struct s3c2410_platform_nand __initdata gta02_nand_info = {
 
 
 /* Get PMU to set USB current limit accordingly. */
-static struct s3c2410_udc_mach_info gta02_udc_cfg __initdata = {
+static struct s3c2410_udc_mach_info gta02_udc_cfg __initdata =
+{
 	.vbus_draw	= gta02_udc_vbus_draw,
 	.pullup_pin = GTA02_GPIO_USB_PULLUP,
 };
 
 /* USB */
-static struct s3c2410_hcd_info gta02_usb_info __initdata = {
+static struct s3c2410_hcd_info gta02_usb_info __initdata =
+{
 	.port[0]	= {
 		.flags	= S3C_HCDFLG_USED,
 	},
@@ -463,14 +486,16 @@ static struct s3c2410_hcd_info gta02_usb_info __initdata = {
 };
 
 /* Touchscreen */
-static struct s3c2410_ts_mach_info gta02_ts_info = {
+static struct s3c2410_ts_mach_info gta02_ts_info =
+{
 	.delay			= 10000,
 	.presc			= 0xff, /* slow as we can go */
 	.oversampling_shift	= 2,
 };
 
 /* Buttons */
-static struct gpio_keys_button gta02_buttons[] = {
+static struct gpio_keys_button gta02_buttons[] =
+{
 	{
 		.gpio = GTA02_GPIO_AUX_KEY,
 		.code = KEY_PHONE,
@@ -487,12 +512,14 @@ static struct gpio_keys_button gta02_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data gta02_buttons_pdata = {
+static struct gpio_keys_platform_data gta02_buttons_pdata =
+{
 	.buttons = gta02_buttons,
 	.nbuttons = ARRAY_SIZE(gta02_buttons),
 };
 
-static struct platform_device gta02_buttons_device = {
+static struct platform_device gta02_buttons_device =
+{
 	.name = "gpio-keys",
 	.id = -1,
 	.dev = {
@@ -510,7 +537,8 @@ static void __init gta02_map_io(void)
 
 /* These are the guys that don't need to be children of PMU. */
 
-static struct platform_device *gta02_devices[] __initdata = {
+static struct platform_device *gta02_devices[] __initdata =
+{
 	&s3c_device_ohci,
 	&s3c_device_wdt,
 	&s3c_device_sdi,
@@ -528,7 +556,8 @@ static struct platform_device *gta02_devices[] __initdata = {
 
 /* These guys DO need to be children of PMU. */
 
-static struct platform_device *gta02_devices_pmu_children[] = {
+static struct platform_device *gta02_devices_pmu_children[] =
+{
 };
 
 
@@ -550,10 +579,12 @@ static void gta02_pmu_attach_child_devices(struct pcf50633 *pcf)
 	gta02_pcf = pcf;
 
 	for (n = 0; n < ARRAY_SIZE(gta02_devices_pmu_children); n++)
+	{
 		gta02_devices_pmu_children[n]->dev.parent = pcf->dev;
+	}
 
 	platform_add_devices(gta02_devices_pmu_children,
-			     ARRAY_SIZE(gta02_devices_pmu_children));
+						 ARRAY_SIZE(gta02_devices_pmu_children));
 }
 
 static void gta02_poweroff(void)
@@ -593,10 +624,10 @@ static void __init gta02_init_time(void)
 }
 
 MACHINE_START(NEO1973_GTA02, "GTA02")
-	/* Maintainer: Nelson Castillo <arhuaco@freaks-unidos.net> */
-	.atag_offset	= 0x100,
+/* Maintainer: Nelson Castillo <arhuaco@freaks-unidos.net> */
+.atag_offset	= 0x100,
 	.map_io		= gta02_map_io,
-	.init_irq	= s3c2442_init_irq,
-	.init_machine	= gta02_machine_init,
-	.init_time	= gta02_init_time,
-MACHINE_END
+		.init_irq	= s3c2442_init_irq,
+		   .init_machine	= gta02_machine_init,
+			  .init_time	= gta02_init_time,
+				MACHINE_END

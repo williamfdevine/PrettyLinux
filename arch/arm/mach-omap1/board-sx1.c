@@ -54,8 +54,12 @@ int sx1_i2c_write_byte(u8 devaddr, u8 regoffset, u8 value)
 	unsigned char data[2];
 
 	adap = i2c_get_adapter(0);
+
 	if (!adap)
+	{
 		return -ENODEV;
+	}
+
 	msg->addr = devaddr;	/* I2C address of chip */
 	msg->flags = 0;
 	msg->len = 2;
@@ -64,8 +68,12 @@ int sx1_i2c_write_byte(u8 devaddr, u8 regoffset, u8 value)
 	data[1] = value;		/* register data */
 	err = i2c_transfer(adap, msg, 1);
 	i2c_put_adapter(adap);
+
 	if (err >= 0)
+	{
 		return 0;
+	}
+
 	return err;
 }
 
@@ -78,8 +86,11 @@ int sx1_i2c_read_byte(u8 devaddr, u8 regoffset, u8 *value)
 	unsigned char data[2];
 
 	adap = i2c_get_adapter(0);
+
 	if (!adap)
+	{
 		return -ENODEV;
+	}
 
 	msg->addr = devaddr;	/* I2C address of chip */
 	msg->flags = 0;
@@ -97,18 +108,24 @@ int sx1_i2c_read_byte(u8 devaddr, u8 regoffset, u8 *value)
 	i2c_put_adapter(adap);
 
 	if (err >= 0)
+	{
 		return 0;
+	}
+
 	return err;
 }
 /* set keyboard backlight intensity */
 int sx1_setkeylight(u8 keylight)
 {
 	if (keylight > SOFIA_MAX_LIGHT_VAL)
+	{
 		keylight = SOFIA_MAX_LIGHT_VAL;
+	}
+
 	return sx1_i2c_write_byte(SOFIA_I2C_ADDR, SOFIA_KEYLIGHT_REG, keylight);
 }
 /* get current keylight intensity */
-int sx1_getkeylight(u8 * keylight)
+int sx1_getkeylight(u8 *keylight)
 {
 	return sx1_i2c_read_byte(SOFIA_I2C_ADDR, SOFIA_KEYLIGHT_REG, keylight);
 }
@@ -116,15 +133,18 @@ int sx1_getkeylight(u8 * keylight)
 int sx1_setbacklight(u8 backlight)
 {
 	if (backlight > SOFIA_MAX_LIGHT_VAL)
+	{
 		backlight = SOFIA_MAX_LIGHT_VAL;
+	}
+
 	return sx1_i2c_write_byte(SOFIA_I2C_ADDR, SOFIA_BACKLIGHT_REG,
-				  backlight);
+							  backlight);
 }
 /* get current LCD backlight intensity */
-int sx1_getbacklight (u8 * backlight)
+int sx1_getbacklight (u8 *backlight)
 {
 	return sx1_i2c_read_byte(SOFIA_I2C_ADDR, SOFIA_BACKLIGHT_REG,
-				 backlight);
+							 backlight);
 }
 /* set LCD backlight power on/off */
 int sx1_setmmipower(u8 onoff)
@@ -132,12 +152,21 @@ int sx1_setmmipower(u8 onoff)
 	int err;
 	u8 dat = 0;
 	err = sx1_i2c_read_byte(SOFIA_I2C_ADDR, SOFIA_POWER1_REG, &dat);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	if (onoff)
+	{
 		dat |= SOFIA_MMILIGHT_POWER;
+	}
 	else
+	{
 		dat &= ~SOFIA_MMILIGHT_POWER;
+	}
+
 	return sx1_i2c_write_byte(SOFIA_I2C_ADDR, SOFIA_POWER1_REG, dat);
 }
 
@@ -147,12 +176,21 @@ int sx1_setusbpower(u8 onoff)
 	int err;
 	u8 dat = 0;
 	err = sx1_i2c_read_byte(SOFIA_I2C_ADDR, SOFIA_POWER1_REG, &dat);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	if (onoff)
+	{
 		dat |= SOFIA_USB_POWER;
+	}
 	else
+	{
 		dat &= ~SOFIA_USB_POWER;
+	}
+
 	return sx1_i2c_write_byte(SOFIA_I2C_ADDR, SOFIA_POWER1_REG, dat);
 }
 
@@ -165,7 +203,8 @@ EXPORT_SYMBOL(sx1_setusbpower);
 
 /*----------- Keypad -------------------------*/
 
-static const unsigned int sx1_keymap[] = {
+static const unsigned int sx1_keymap[] =
+{
 	KEY(3, 5, GROUP_0 | 117), /* camera Qt::Key_F17 */
 	KEY(4, 0, GROUP_0 | 114), /* voice memo Qt::Key_F14 */
 	KEY(4, 1, GROUP_2 | 114), /* voice memo */
@@ -196,7 +235,8 @@ static const unsigned int sx1_keymap[] = {
 	KEY(2, 0, GROUP_1 | KEY_F7),	/* menu Qt::Key_Menu */
 };
 
-static struct resource sx1_kp_resources[] = {
+static struct resource sx1_kp_resources[] =
+{
 	[0] = {
 		.start	= INT_KEYBOARD,
 		.end	= INT_KEYBOARD,
@@ -204,19 +244,22 @@ static struct resource sx1_kp_resources[] = {
 	},
 };
 
-static const struct matrix_keymap_data sx1_keymap_data = {
+static const struct matrix_keymap_data sx1_keymap_data =
+{
 	.keymap		= sx1_keymap,
 	.keymap_size	= ARRAY_SIZE(sx1_keymap),
 };
 
-static struct omap_kp_platform_data sx1_kp_data = {
+static struct omap_kp_platform_data sx1_kp_data =
+{
 	.rows		= 6,
 	.cols		= 6,
 	.keymap_data	= &sx1_keymap_data,
 	.delay	= 80,
 };
 
-static struct platform_device sx1_kp_device = {
+static struct platform_device sx1_kp_device =
+{
 	.name		= "omap-keypad",
 	.id		= -1,
 	.dev		= {
@@ -228,7 +271,8 @@ static struct platform_device sx1_kp_device = {
 
 /*----------- MTD -------------------------*/
 
-static struct mtd_partition sx1_partitions[] = {
+static struct mtd_partition sx1_partitions[] =
+{
 	/* bootloader (U-Boot, etc) in first sector */
 	{
 		.name		= "bootloader",
@@ -259,7 +303,8 @@ static struct mtd_partition sx1_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data sx1_flash_data = {
+static struct physmap_flash_data sx1_flash_data =
+{
 	.width		= 2,
 	.set_vpp	= omap1_set_vpp,
 	.parts		= sx1_partitions,
@@ -267,13 +312,15 @@ static struct physmap_flash_data sx1_flash_data = {
 };
 
 /* MTD Intel 4000 flash - new flashes */
-static struct resource sx1_new_flash_resource = {
+static struct resource sx1_new_flash_resource =
+{
 	.start		= OMAP_CS0_PHYS,
 	.end		= OMAP_CS0_PHYS + SZ_32M - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device sx1_flash_device = {
+static struct platform_device sx1_flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -285,7 +332,8 @@ static struct platform_device sx1_flash_device = {
 
 /*----------- USB -------------------------*/
 
-static struct omap_usb_config sx1_usb_config __initdata = {
+static struct omap_usb_config sx1_usb_config __initdata =
+{
 	.otg		= 0,
 	.register_dev	= 1,
 	.register_host	= 0,
@@ -297,12 +345,14 @@ static struct omap_usb_config sx1_usb_config __initdata = {
 
 /*----------- LCD -------------------------*/
 
-static struct omap_lcd_config sx1_lcd_config __initdata = {
+static struct omap_lcd_config sx1_lcd_config __initdata =
+{
 	.ctrl_name	= "internal",
 };
 
 /*-----------------------------------------*/
-static struct platform_device *sx1_devices[] __initdata = {
+static struct platform_device *sx1_devices[] __initdata =
+{
 	&sx1_flash_device,
 	&sx1_kp_device,
 };
@@ -339,13 +389,13 @@ static void __init omap_sx1_init(void)
 }
 
 MACHINE_START(SX1, "OMAP310 based Siemens SX1")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= omap15xx_map_io,
-	.init_early     = omap1_init_early,
-	.init_irq	= omap1_init_irq,
-	.handle_irq	= omap1_handle_irq,
-	.init_machine	= omap_sx1_init,
-	.init_late	= omap1_init_late,
-	.init_time	= omap1_timer_init,
-	.restart	= omap1_restart,
-MACHINE_END
+		.init_early     = omap1_init_early,
+		 .init_irq	= omap1_init_irq,
+			.handle_irq	= omap1_handle_irq,
+			 .init_machine	= omap_sx1_init,
+				.init_late	= omap1_init_late,
+				  .init_time	= omap1_timer_init,
+					.restart	= omap1_restart,
+						MACHINE_END

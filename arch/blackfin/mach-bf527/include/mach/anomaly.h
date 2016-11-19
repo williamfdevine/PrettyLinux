@@ -19,18 +19,18 @@
 
 /* We do not support old silicon - sorry */
 #if __SILICON_REVISION__ < 0
-# error will not work on BF526/BF527 silicon version
+	# error will not work on BF526/BF527 silicon version
 #endif
 
 #if defined(__ADSPBF522__) || defined(__ADSPBF524__) || defined(__ADSPBF526__)
-# define ANOMALY_BF526 1
+	#define ANOMALY_BF526 1
 #else
-# define ANOMALY_BF526 0
+	#define ANOMALY_BF526 0
 #endif
 #if defined(__ADSPBF523__) || defined(__ADSPBF525__) || defined(__ADSPBF527__)
-# define ANOMALY_BF527 1
+	#define ANOMALY_BF527 1
 #else
-# define ANOMALY_BF527 0
+	#define ANOMALY_BF527 0
 #endif
 
 #define _ANOMALY_BF526(rev526) (ANOMALY_BF526 && __SILICON_REVISION__ rev526)

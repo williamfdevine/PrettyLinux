@@ -26,7 +26,7 @@
 #define SA1111_v2p( x )         ((x) - SA1111_VBASE + SA1111_BASE)
 
 #ifndef __ASSEMBLY__
-#define _SA1111(x)	((x) + sa1111->resource.start)
+	#define _SA1111(x)	((x) + sa1111->resource.start)
 #endif
 
 #define sa1111_writel(val,addr)	__raw_writel(val, addr)
@@ -197,91 +197,91 @@
 
 #ifndef CONFIG_ARCH_PXA
 
-#define SACR0_ENB	(1<<0)
-#define SACR0_BCKD	(1<<2)
-#define SACR0_RST	(1<<3)
+	#define SACR0_ENB	(1<<0)
+	#define SACR0_BCKD	(1<<2)
+	#define SACR0_RST	(1<<3)
 
-#define SACR1_AMSL	(1<<0)
-#define SACR1_L3EN	(1<<1)
-#define SACR1_L3MB	(1<<2)
-#define SACR1_DREC	(1<<3)
-#define SACR1_DRPL	(1<<4)
-#define SACR1_ENLBF	(1<<5)
+	#define SACR1_AMSL	(1<<0)
+	#define SACR1_L3EN	(1<<1)
+	#define SACR1_L3MB	(1<<2)
+	#define SACR1_DREC	(1<<3)
+	#define SACR1_DRPL	(1<<4)
+	#define SACR1_ENLBF	(1<<5)
 
-#define SACR2_TS3V	(1<<0)
-#define SACR2_TS4V	(1<<1)
-#define SACR2_WKUP	(1<<2)
-#define SACR2_DREC	(1<<3)
-#define SACR2_DRPL	(1<<4)
-#define SACR2_ENLBF	(1<<5)
-#define SACR2_RESET	(1<<6)
+	#define SACR2_TS3V	(1<<0)
+	#define SACR2_TS4V	(1<<1)
+	#define SACR2_WKUP	(1<<2)
+	#define SACR2_DREC	(1<<3)
+	#define SACR2_DRPL	(1<<4)
+	#define SACR2_ENLBF	(1<<5)
+	#define SACR2_RESET	(1<<6)
 
-#define SASR0_TNF	(1<<0)
-#define SASR0_RNE	(1<<1)
-#define SASR0_BSY	(1<<2)
-#define SASR0_TFS	(1<<3)
-#define SASR0_RFS	(1<<4)
-#define SASR0_TUR	(1<<5)
-#define SASR0_ROR	(1<<6)
-#define SASR0_L3WD	(1<<16)
-#define SASR0_L3RD	(1<<17)
+	#define SASR0_TNF	(1<<0)
+	#define SASR0_RNE	(1<<1)
+	#define SASR0_BSY	(1<<2)
+	#define SASR0_TFS	(1<<3)
+	#define SASR0_RFS	(1<<4)
+	#define SASR0_TUR	(1<<5)
+	#define SASR0_ROR	(1<<6)
+	#define SASR0_L3WD	(1<<16)
+	#define SASR0_L3RD	(1<<17)
 
-#define SASR1_TNF	(1<<0)
-#define SASR1_RNE	(1<<1)
-#define SASR1_BSY	(1<<2)
-#define SASR1_TFS	(1<<3)
-#define SASR1_RFS	(1<<4)
-#define SASR1_TUR	(1<<5)
-#define SASR1_ROR	(1<<6)
-#define SASR1_CADT	(1<<16)
-#define SASR1_SADR	(1<<17)
-#define SASR1_RSTO	(1<<18)
-#define SASR1_CLPM	(1<<19)
-#define SASR1_CRDY	(1<<20)
-#define SASR1_RS3V	(1<<21)
-#define SASR1_RS4V	(1<<22)
+	#define SASR1_TNF	(1<<0)
+	#define SASR1_RNE	(1<<1)
+	#define SASR1_BSY	(1<<2)
+	#define SASR1_TFS	(1<<3)
+	#define SASR1_RFS	(1<<4)
+	#define SASR1_TUR	(1<<5)
+	#define SASR1_ROR	(1<<6)
+	#define SASR1_CADT	(1<<16)
+	#define SASR1_SADR	(1<<17)
+	#define SASR1_RSTO	(1<<18)
+	#define SASR1_CLPM	(1<<19)
+	#define SASR1_CRDY	(1<<20)
+	#define SASR1_RS3V	(1<<21)
+	#define SASR1_RS4V	(1<<22)
 
-#define SASCR_TUR	(1<<5)
-#define SASCR_ROR	(1<<6)
-#define SASCR_DTS	(1<<16)
-#define SASCR_RDD	(1<<17)
-#define SASCR_STO	(1<<18)
+	#define SASCR_TUR	(1<<5)
+	#define SASCR_ROR	(1<<6)
+	#define SASCR_DTS	(1<<16)
+	#define SASCR_RDD	(1<<17)
+	#define SASCR_STO	(1<<18)
 
-#define SADTCS_TDEN	(1<<0)
-#define SADTCS_TDIE	(1<<1)
-#define SADTCS_TDBDA	(1<<3)
-#define SADTCS_TDSTA	(1<<4)
-#define SADTCS_TDBDB	(1<<5)
-#define SADTCS_TDSTB	(1<<6)
-#define SADTCS_TBIU	(1<<7)
+	#define SADTCS_TDEN	(1<<0)
+	#define SADTCS_TDIE	(1<<1)
+	#define SADTCS_TDBDA	(1<<3)
+	#define SADTCS_TDSTA	(1<<4)
+	#define SADTCS_TDBDB	(1<<5)
+	#define SADTCS_TDSTB	(1<<6)
+	#define SADTCS_TBIU	(1<<7)
 
-#define SADRCS_RDEN	(1<<0)
-#define SADRCS_RDIE	(1<<1)
-#define SADRCS_RDBDA	(1<<3)
-#define SADRCS_RDSTA	(1<<4)
-#define SADRCS_RDBDB	(1<<5)
-#define SADRCS_RDSTB	(1<<6)
-#define SADRCS_RBIU	(1<<7)
+	#define SADRCS_RDEN	(1<<0)
+	#define SADRCS_RDIE	(1<<1)
+	#define SADRCS_RDBDA	(1<<3)
+	#define SADRCS_RDSTA	(1<<4)
+	#define SADRCS_RDBDB	(1<<5)
+	#define SADRCS_RDSTB	(1<<6)
+	#define SADRCS_RBIU	(1<<7)
 
-#define SAD_CS_DEN	(1<<0)
-#define SAD_CS_DIE	(1<<1)	/* Not functional on metal 1 */
-#define SAD_CS_DBDA	(1<<3)	/* Not functional on metal 1 */
-#define SAD_CS_DSTA	(1<<4)
-#define SAD_CS_DBDB	(1<<5)	/* Not functional on metal 1 */
-#define SAD_CS_DSTB	(1<<6)
-#define SAD_CS_BIU	(1<<7)	/* Not functional on metal 1 */
+	#define SAD_CS_DEN	(1<<0)
+	#define SAD_CS_DIE	(1<<1)	/* Not functional on metal 1 */
+	#define SAD_CS_DBDA	(1<<3)	/* Not functional on metal 1 */
+	#define SAD_CS_DSTA	(1<<4)
+	#define SAD_CS_DBDB	(1<<5)	/* Not functional on metal 1 */
+	#define SAD_CS_DSTB	(1<<6)
+	#define SAD_CS_BIU	(1<<7)	/* Not functional on metal 1 */
 
-#define SAITR_TFS	(1<<0)
-#define SAITR_RFS	(1<<1)
-#define SAITR_TUR	(1<<2)
-#define SAITR_ROR	(1<<3)
-#define SAITR_CADT	(1<<4)
-#define SAITR_SADR	(1<<5)
-#define SAITR_RSTO	(1<<6)
-#define SAITR_TDBDA	(1<<8)
-#define SAITR_TDBDB	(1<<9)
-#define SAITR_RDBDA	(1<<10)
-#define SAITR_RDBDB	(1<<11)
+	#define SAITR_TFS	(1<<0)
+	#define SAITR_RFS	(1<<1)
+	#define SAITR_TUR	(1<<2)
+	#define SAITR_ROR	(1<<3)
+	#define SAITR_CADT	(1<<4)
+	#define SAITR_SADR	(1<<5)
+	#define SAITR_RSTO	(1<<6)
+	#define SAITR_TDBDA	(1<<8)
+	#define SAITR_TDBDB	(1<<9)
+	#define SAITR_RDBDA	(1<<10)
+	#define SAITR_RDBDB	(1<<11)
 
 #endif  /* !CONFIG_ARCH_PXA */
 
@@ -410,7 +410,8 @@ extern struct bus_type sa1111_bus_type;
 #define SA1111_DEVID_INT	(1 << 8)
 #define SA1111_DEVID_PCMCIA	(1 << 9)
 
-struct sa1111_dev {
+struct sa1111_dev
+{
 	struct device	dev;
 	unsigned int	devid;
 	struct resource	res;
@@ -425,7 +426,8 @@ struct sa1111_dev {
 #define sa1111_get_drvdata(d)	dev_get_drvdata(&(d)->dev)
 #define sa1111_set_drvdata(d,p)	dev_set_drvdata(&(d)->dev, p)
 
-struct sa1111_driver {
+struct sa1111_driver
+{
 	struct device_driver	drv;
 	unsigned int		devid;
 	int (*probe)(struct sa1111_dev *);
@@ -466,7 +468,8 @@ void sa1111_set_io_dir(struct sa1111_dev *sadev, unsigned int bits, unsigned int
 void sa1111_set_io(struct sa1111_dev *sadev, unsigned int bits, unsigned int v);
 void sa1111_set_sleep_io(struct sa1111_dev *sadev, unsigned int bits, unsigned int v);
 
-struct sa1111_platform_data {
+struct sa1111_platform_data
+{
 	int	irq_base;	/* base for cascaded on-chip IRQs */
 	unsigned disable_devs;
 	void	*data;

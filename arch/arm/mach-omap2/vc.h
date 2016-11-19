@@ -41,7 +41,8 @@ struct voltagedomain;
  * XXX One of cmd_on_mask and cmd_on_shift are not needed
  * XXX VALID should probably be a shift, not a mask
  */
-struct omap_vc_common {
+struct omap_vc_common
+{
 	u32 cmd_on_mask;
 	u32 valid;
 	u8 bypass_val_reg;
@@ -83,7 +84,8 @@ struct omap_vc_common {
  * @cfg_channel_sa_shift: bit shift for slave address cfg_channel register
  * @flags: VC channel-specific flags (optional)
  */
-struct omap_vc_channel {
+struct omap_vc_channel
+{
 	/* channel state */
 	u16 i2c_slave_addr;
 	u16 volt_reg_addr;
@@ -124,13 +126,13 @@ void omap3_vc_set_pmic_signaling(int core_next_state);
 
 void omap_vc_init_channel(struct voltagedomain *voltdm);
 int omap_vc_pre_scale(struct voltagedomain *voltdm,
-		      unsigned long target_volt,
-		      u8 *target_vsel, u8 *current_vsel);
+					  unsigned long target_volt,
+					  u8 *target_vsel, u8 *current_vsel);
 void omap_vc_post_scale(struct voltagedomain *voltdm,
-			unsigned long target_volt,
-			u8 target_vsel, u8 current_vsel);
+						unsigned long target_volt,
+						u8 target_vsel, u8 current_vsel);
 int omap_vc_bypass_scale(struct voltagedomain *voltdm,
-			 unsigned long target_volt);
+						 unsigned long target_volt);
 
 #endif
 

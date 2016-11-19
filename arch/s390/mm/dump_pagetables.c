@@ -7,12 +7,14 @@
 
 static unsigned long max_addr;
 
-struct addr_marker {
+struct addr_marker
+{
 	unsigned long start_address;
 	const char *name;
 };
 
-enum address_markers_idx {
+enum address_markers_idx
+{
 	IDENTITY_NR = 0,
 	KERNEL_START_NR,
 	KERNEL_END_NR,
@@ -21,17 +23,19 @@ enum address_markers_idx {
 	MODULES_NR,
 };
 
-static struct addr_marker address_markers[] = {
+static struct addr_marker address_markers[] =
+{
 	[IDENTITY_NR]	  = {0, "Identity Mapping"},
-	[KERNEL_START_NR] = {(unsigned long)&_stext, "Kernel Image Start"},
-	[KERNEL_END_NR]	  = {(unsigned long)&_end, "Kernel Image End"},
+	[KERNEL_START_NR] = {(unsigned long) &_stext, "Kernel Image Start"},
+	[KERNEL_END_NR]	  = {(unsigned long) &_end, "Kernel Image End"},
 	[VMEMMAP_NR]	  = {0, "vmemmap Area"},
 	[VMALLOC_NR]	  = {0, "vmalloc Area"},
 	[MODULES_NR]	  = {0, "Modules Area"},
 	{ -1, NULL }
 };
 
-struct pg_state {
+struct pg_state
+{
 	int level;
 	unsigned int current_prot;
 	unsigned long start_address;
@@ -41,20 +45,23 @@ struct pg_state {
 
 static void print_prot(struct seq_file *m, unsigned int pr, int level)
 {
-	static const char * const level_name[] =
-		{ "ASCE", "PGD", "PUD", "PMD", "PTE" };
+	static const char *const level_name[] =
+	{ "ASCE", "PGD", "PUD", "PMD", "PTE" };
 
 	seq_printf(m, "%s ", level_name[level]);
-	if (pr & _PAGE_INVALID) {
+
+	if (pr & _PAGE_INVALID)
+	{
 		seq_printf(m, "I\n");
 		return;
 	}
+
 	seq_printf(m, "%s", pr & _PAGE_PROTECT ? "RO " : "RW ");
 	seq_putc(m, '\n');
 }
 
 static void note_page(struct seq_file *m, struct pg_state *st,
-		     unsigned int new_prot, int level)
+					  unsigned int new_prot, int level)
 {
 	static const char units[] = "KMGTPE";
 	int width = sizeof(unsigned long) * 2;
@@ -70,29 +77,38 @@ static void note_page(struct seq_file *m, struct pg_state *st,
 	prot = new_prot;
 	cur = st->current_prot;
 
-	if (!st->level) {
+	if (!st->level)
+	{
 		/* First entry */
 		st->current_prot = new_prot;
 		st->level = level;
 		st->marker = address_markers;
 		seq_printf(m, "---[ %s ]---\n", st->marker->name);
-	} else if (prot != cur || level != st->level ||
-		   st->current_address >= st->marker[1].start_address) {
+	}
+	else if (prot != cur || level != st->level ||
+			 st->current_address >= st->marker[1].start_address)
+	{
 		/* Print the actual finished series */
 		seq_printf(m, "0x%0*lx-0x%0*lx",
-			   width, st->start_address,
-			   width, st->current_address);
+				   width, st->start_address,
+				   width, st->current_address);
 		delta = (st->current_address - st->start_address) >> 10;
-		while (!(delta & 0x3ff) && unit[1]) {
+
+		while (!(delta & 0x3ff) && unit[1])
+		{
 			delta >>= 10;
 			unit++;
 		}
+
 		seq_printf(m, "%9lu%c ", delta, *unit);
 		print_prot(m, st->current_prot, st->level);
-		if (st->current_address >= st->marker[1].start_address) {
+
+		if (st->current_address >= st->marker[1].start_address)
+		{
 			st->marker++;
 			seq_printf(m, "---[ %s ]---\n", st->marker->name);
 		}
+
 		st->start_address = st->current_address;
 		st->current_prot = new_prot;
 		st->level = level;
@@ -108,13 +124,14 @@ static void note_page(struct seq_file *m, struct pg_state *st,
  * contains an invalid or read-only entry.
  */
 static void walk_pte_level(struct seq_file *m, struct pg_state *st,
-			   pmd_t *pmd, unsigned long addr)
+						   pmd_t *pmd, unsigned long addr)
 {
 	unsigned int prot;
 	pte_t *pte;
 	int i;
 
-	for (i = 0; i < PTRS_PER_PTE && addr < max_addr; i++) {
+	for (i = 0; i < PTRS_PER_PTE && addr < max_addr; i++)
+	{
 		st->current_address = addr;
 		pte = pte_offset_kernel(pmd, addr);
 		prot = pte_val(*pte) & (_PAGE_PROTECT | _PAGE_INVALID);
@@ -124,45 +141,65 @@ static void walk_pte_level(struct seq_file *m, struct pg_state *st,
 }
 
 static void walk_pmd_level(struct seq_file *m, struct pg_state *st,
-			   pud_t *pud, unsigned long addr)
+						   pud_t *pud, unsigned long addr)
 {
 	unsigned int prot;
 	pmd_t *pmd;
 	int i;
 
-	for (i = 0; i < PTRS_PER_PMD && addr < max_addr; i++) {
+	for (i = 0; i < PTRS_PER_PMD && addr < max_addr; i++)
+	{
 		st->current_address = addr;
 		pmd = pmd_offset(pud, addr);
-		if (!pmd_none(*pmd)) {
-			if (pmd_large(*pmd)) {
+
+		if (!pmd_none(*pmd))
+		{
+			if (pmd_large(*pmd))
+			{
 				prot = pmd_val(*pmd) & _SEGMENT_ENTRY_PROTECT;
 				note_page(m, st, prot, 3);
-			} else
+			}
+			else
+			{
 				walk_pte_level(m, st, pmd, addr);
-		} else
+			}
+		}
+		else
+		{
 			note_page(m, st, _PAGE_INVALID, 3);
+		}
+
 		addr += PMD_SIZE;
 	}
 }
 
 static void walk_pud_level(struct seq_file *m, struct pg_state *st,
-			   pgd_t *pgd, unsigned long addr)
+						   pgd_t *pgd, unsigned long addr)
 {
 	unsigned int prot;
 	pud_t *pud;
 	int i;
 
-	for (i = 0; i < PTRS_PER_PUD && addr < max_addr; i++) {
+	for (i = 0; i < PTRS_PER_PUD && addr < max_addr; i++)
+	{
 		st->current_address = addr;
 		pud = pud_offset(pgd, addr);
+
 		if (!pud_none(*pud))
-			if (pud_large(*pud)) {
+			if (pud_large(*pud))
+			{
 				prot = pud_val(*pud) & _REGION_ENTRY_PROTECT;
 				note_page(m, st, prot, 2);
-			} else
+			}
+			else
+			{
 				walk_pmd_level(m, st, pud, addr);
+			}
 		else
+		{
 			note_page(m, st, _PAGE_INVALID, 2);
+		}
+
 		addr += PUD_SIZE;
 	}
 }
@@ -175,15 +212,24 @@ static void walk_pgd_level(struct seq_file *m)
 	int i;
 
 	memset(&st, 0, sizeof(st));
-	for (i = 0; i < PTRS_PER_PGD && addr < max_addr; i++) {
+
+	for (i = 0; i < PTRS_PER_PGD && addr < max_addr; i++)
+	{
 		st.current_address = addr;
 		pgd = pgd_offset_k(addr);
+
 		if (!pgd_none(*pgd))
+		{
 			walk_pud_level(m, &st, pgd, addr);
+		}
 		else
+		{
 			note_page(m, &st, _PAGE_INVALID, 1);
+		}
+
 		addr += PGDIR_SIZE;
 	}
+
 	/* Flush out the last page */
 	st.current_address = max_addr;
 	note_page(m, &st, 0, 0);
@@ -200,7 +246,8 @@ static int ptdump_open(struct inode *inode, struct file *filp)
 	return single_open(filp, ptdump_show, NULL);
 }
 
-static const struct file_operations ptdump_fops = {
+static const struct file_operations ptdump_fops =
+{
 	.open		= ptdump_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

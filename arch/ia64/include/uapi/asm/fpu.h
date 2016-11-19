@@ -46,16 +46,18 @@
 /* This default value is the same as HP-UX uses.  Don't change it
    without a very good reason.  */
 #define FPSR_DEFAULT	(FPSR_TRAP_VD | FPSR_TRAP_DD | FPSR_TRAP_ZD	\
-			 | FPSR_TRAP_OD | FPSR_TRAP_UD | FPSR_TRAP_ID	\
-			 | FPSR_S0 (FPSF_DEFAULT)			\
-			 | FPSR_S1 (FPSF_DEFAULT | FPSF_TD | FPSF_WRE)	\
-			 | FPSR_S2 (FPSF_DEFAULT | FPSF_TD)		\
-			 | FPSR_S3 (FPSF_DEFAULT | FPSF_TD))
+						 | FPSR_TRAP_OD | FPSR_TRAP_UD | FPSR_TRAP_ID	\
+						 | FPSR_S0 (FPSF_DEFAULT)			\
+						 | FPSR_S1 (FPSF_DEFAULT | FPSF_TD | FPSF_WRE)	\
+						 | FPSR_S2 (FPSF_DEFAULT | FPSF_TD)		\
+						 | FPSR_S3 (FPSF_DEFAULT | FPSF_TD))
 
 # ifndef __ASSEMBLY__
 
-struct ia64_fpreg {
-	union {
+struct ia64_fpreg
+{
+	union
+	{
 		unsigned long bits[2];
 		long double __dummy;	/* force 16-byte alignment */
 	} u;

@@ -56,7 +56,7 @@
 #define ltq_dma_r32(x)			ltq_r32(ltq_dma_membase + (x))
 #define ltq_dma_w32(x, y)		ltq_w32(x, ltq_dma_membase + (y))
 #define ltq_dma_w32_mask(x, y, z)	ltq_w32_mask(x, y, \
-						ltq_dma_membase + (z))
+		ltq_dma_membase + (z))
 
 static void __iomem *ltq_dma_membase;
 
@@ -129,8 +129,8 @@ ltq_dma_alloc(struct ltq_dma_channel *ch)
 
 	ch->desc = 0;
 	ch->desc_base = dma_alloc_coherent(NULL,
-				LTQ_DESC_NUM * LTQ_DESC_SIZE,
-				&ch->phys, GFP_ATOMIC);
+									   LTQ_DESC_NUM * LTQ_DESC_SIZE,
+									   &ch->phys, GFP_ATOMIC);
 	memset(ch->desc_base, 0, LTQ_DESC_NUM * LTQ_DESC_SIZE);
 
 	local_irq_save(flags);
@@ -140,8 +140,10 @@ ltq_dma_alloc(struct ltq_dma_channel *ch)
 	ltq_dma_w32_mask(DMA_CHAN_ON, 0, LTQ_DMA_CCTRL);
 	wmb();
 	ltq_dma_w32_mask(0, DMA_CHAN_RST, LTQ_DMA_CCTRL);
+
 	while (ltq_dma_r32(LTQ_DMA_CCTRL) & DMA_CHAN_RST)
 		;
+
 	local_irq_restore(flags);
 }
 
@@ -179,10 +181,13 @@ void
 ltq_dma_free(struct ltq_dma_channel *ch)
 {
 	if (!ch->desc_base)
+	{
 		return;
+	}
+
 	ltq_dma_close(ch);
 	dma_free_coherent(NULL, LTQ_DESC_NUM * LTQ_DESC_SIZE,
-		ch->desc_base, ch->phys);
+					  ch->desc_base, ch->phys);
 }
 EXPORT_SYMBOL_GPL(ltq_dma_free);
 
@@ -190,23 +195,25 @@ void
 ltq_dma_init_port(int p)
 {
 	ltq_dma_w32(p, LTQ_DMA_PS);
-	switch (p) {
-	case DMA_PORT_ETOP:
-		/*
-		 * Tell the DMA engine to swap the endianness of data frames and
-		 * drop packets if the channel arbitration fails.
-		 */
-		ltq_dma_w32_mask(0, DMA_ETOP_ENDIANNESS | DMA_PDEN,
-			LTQ_DMA_PCTRL);
-		break;
 
-	case DMA_PORT_DEU:
-		ltq_dma_w32((DMA_2W_BURST << 4) | (DMA_2W_BURST << 2),
-			LTQ_DMA_PCTRL);
-		break;
+	switch (p)
+	{
+		case DMA_PORT_ETOP:
+			/*
+			 * Tell the DMA engine to swap the endianness of data frames and
+			 * drop packets if the channel arbitration fails.
+			 */
+			ltq_dma_w32_mask(0, DMA_ETOP_ENDIANNESS | DMA_PDEN,
+							 LTQ_DMA_PCTRL);
+			break;
 
-	default:
-		break;
+		case DMA_PORT_DEU:
+			ltq_dma_w32((DMA_2W_BURST << 4) | (DMA_2W_BURST << 2),
+						LTQ_DMA_PCTRL);
+			break;
+
+		default:
+			break;
 	}
 }
 EXPORT_SYMBOL_GPL(ltq_dma_init_port);
@@ -221,13 +228,19 @@ ltq_dma_init(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ltq_dma_membase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ltq_dma_membase))
+	{
 		panic("Failed to remap dma resource");
+	}
 
 	/* power up and reset the dma engine */
 	clk = clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(clk))
+	{
 		panic("Failed to get dma clock");
+	}
 
 	clk_enable(clk);
 	ltq_dma_w32_mask(0, DMA_RESET, LTQ_DMA_CTRL);
@@ -236,7 +249,8 @@ ltq_dma_init(struct platform_device *pdev)
 	ltq_dma_w32(0, LTQ_DMA_IRNEN);
 
 	/* reset/configure each channel */
-	for (i = 0; i < DMA_MAX_CHANNEL; i++) {
+	for (i = 0; i < DMA_MAX_CHANNEL; i++)
+	{
 		ltq_dma_w32(i, LTQ_DMA_CS);
 		ltq_dma_w32(DMA_CHAN_RST, LTQ_DMA_CCTRL);
 		ltq_dma_w32(DMA_POLL | DMA_CLK_DIV4, LTQ_DMA_CPOLL);
@@ -245,19 +259,21 @@ ltq_dma_init(struct platform_device *pdev)
 
 	id = ltq_dma_r32(LTQ_DMA_ID);
 	dev_info(&pdev->dev,
-		"Init done - hw rev: %X, ports: %d, channels: %d\n",
-		id & 0x1f, (id >> 16) & 0xf, id >> 20);
+			 "Init done - hw rev: %X, ports: %d, channels: %d\n",
+			 id & 0x1f, (id >> 16) & 0xf, id >> 20);
 
 	return 0;
 }
 
-static const struct of_device_id dma_match[] = {
+static const struct of_device_id dma_match[] =
+{
 	{ .compatible = "lantiq,dma-xway" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, dma_match);
 
-static struct platform_driver dma_driver = {
+static struct platform_driver dma_driver =
+{
 	.probe = ltq_dma_init,
 	.driver = {
 		.name = "dma-xway",

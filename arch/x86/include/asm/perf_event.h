@@ -73,7 +73,7 @@
 #define ARCH_PERFMON_UNHALTED_CORE_CYCLES_UMASK		(0x00 << 8)
 #define ARCH_PERFMON_UNHALTED_CORE_CYCLES_INDEX		0
 #define ARCH_PERFMON_UNHALTED_CORE_CYCLES_PRESENT \
-		(1 << (ARCH_PERFMON_UNHALTED_CORE_CYCLES_INDEX))
+	(1 << (ARCH_PERFMON_UNHALTED_CORE_CYCLES_INDEX))
 
 #define ARCH_PERFMON_BRANCH_MISSES_RETIRED		6
 #define ARCH_PERFMON_EVENTS_COUNT			7
@@ -82,39 +82,46 @@
  * Intel "Architectural Performance Monitoring" CPUID
  * detection/enumeration details:
  */
-union cpuid10_eax {
-	struct {
-		unsigned int version_id:8;
-		unsigned int num_counters:8;
-		unsigned int bit_width:8;
-		unsigned int mask_length:8;
+union cpuid10_eax
+{
+	struct
+	{
+		unsigned int version_id: 8;
+		unsigned int num_counters: 8;
+		unsigned int bit_width: 8;
+		unsigned int mask_length: 8;
 	} split;
 	unsigned int full;
 };
 
-union cpuid10_ebx {
-	struct {
-		unsigned int no_unhalted_core_cycles:1;
-		unsigned int no_instructions_retired:1;
-		unsigned int no_unhalted_reference_cycles:1;
-		unsigned int no_llc_reference:1;
-		unsigned int no_llc_misses:1;
-		unsigned int no_branch_instruction_retired:1;
-		unsigned int no_branch_misses_retired:1;
+union cpuid10_ebx
+{
+	struct
+	{
+		unsigned int no_unhalted_core_cycles: 1;
+		unsigned int no_instructions_retired: 1;
+		unsigned int no_unhalted_reference_cycles: 1;
+		unsigned int no_llc_reference: 1;
+		unsigned int no_llc_misses: 1;
+		unsigned int no_branch_instruction_retired: 1;
+		unsigned int no_branch_misses_retired: 1;
 	} split;
 	unsigned int full;
 };
 
-union cpuid10_edx {
-	struct {
-		unsigned int num_counters_fixed:5;
-		unsigned int bit_width_fixed:8;
-		unsigned int reserved:19;
+union cpuid10_edx
+{
+	struct
+	{
+		unsigned int num_counters_fixed: 5;
+		unsigned int bit_width_fixed: 8;
+		unsigned int reserved: 19;
 	} split;
 	unsigned int full;
 };
 
-struct x86_pmu_capability {
+struct x86_pmu_capability
+{
 	int		version;
 	int		num_counters_gp;
 	int		num_counters_fixed;
@@ -190,8 +197,8 @@ struct x86_pmu_capability {
 #define IBS_CAPS_OPDATA4		(1U<<10)
 
 #define IBS_CAPS_DEFAULT		(IBS_CAPS_AVAIL		\
-					 | IBS_CAPS_FETCHSAM	\
-					 | IBS_CAPS_OPSAM)
+								 | IBS_CAPS_FETCHSAM	\
+								 | IBS_CAPS_OPSAM)
 
 /*
  * IBS APIC setup
@@ -250,18 +257,19 @@ extern unsigned long perf_misc_flags(struct pt_regs *regs);
  * and the comment with PERF_EFLAGS_EXACT.
  */
 #define perf_arch_fetch_caller_regs(regs, __ip)		{	\
-	(regs)->ip = (__ip);					\
-	(regs)->bp = caller_frame_pointer();			\
-	(regs)->cs = __KERNEL_CS;				\
-	regs->flags = 0;					\
-	asm volatile(						\
-		_ASM_MOV "%%"_ASM_SP ", %0\n"			\
-		: "=m" ((regs)->sp)				\
-		:: "memory"					\
-	);							\
-}
+		(regs)->ip = (__ip);					\
+		(regs)->bp = caller_frame_pointer();			\
+		(regs)->cs = __KERNEL_CS;				\
+		regs->flags = 0;					\
+		asm volatile(						\
+											_ASM_MOV "%%"_ASM_SP ", %0\n"			\
+											: "=m" ((regs)->sp)				\
+											:: "memory"					\
+					);							\
+	}
 
-struct perf_guest_switch_msr {
+struct perf_guest_switch_msr
+{
 	unsigned msr;
 	u64 host, guest;
 };
@@ -286,15 +294,15 @@ static inline void perf_check_microcode(void) { }
 #endif
 
 #ifdef CONFIG_CPU_SUP_INTEL
- extern void intel_pt_handle_vmx(int on);
+	extern void intel_pt_handle_vmx(int on);
 #endif
 
 #if defined(CONFIG_PERF_EVENTS) && defined(CONFIG_CPU_SUP_AMD)
- extern void amd_pmu_enable_virt(void);
- extern void amd_pmu_disable_virt(void);
+extern void amd_pmu_enable_virt(void);
+extern void amd_pmu_disable_virt(void);
 #else
- static inline void amd_pmu_enable_virt(void) { }
- static inline void amd_pmu_disable_virt(void) { }
+static inline void amd_pmu_enable_virt(void) { }
+static inline void amd_pmu_disable_virt(void) { }
 #endif
 
 #define arch_perf_out_copy_user copy_from_user_nmi

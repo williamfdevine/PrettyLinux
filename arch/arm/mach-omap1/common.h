@@ -84,7 +84,7 @@ void omap1_restart(enum reboot_mode, const char *);
 extern void __init omap_check_revision(void);
 
 extern void omap1_nand_cmd_ctl(struct mtd_info *mtd, int cmd,
-			       unsigned int ctrl);
+							   unsigned int ctrl);
 
 extern void omap1_timer_init(void);
 #ifdef CONFIG_OMAP_32K_TIMER

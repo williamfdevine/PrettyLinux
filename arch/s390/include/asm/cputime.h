@@ -90,7 +90,7 @@ static inline cputime_t timespec_to_cputime(const struct timespec *value)
 }
 
 static inline void cputime_to_timespec(const cputime_t cputime,
-				       struct timespec *value)
+									   struct timespec *value)
 {
 	unsigned long long __cputime = (__force unsigned long long) cputime;
 	value->tv_nsec = (__cputime % CPUTIME_PER_SEC) * NSEC_PER_USEC / CPUTIME_PER_USEC;
@@ -109,7 +109,7 @@ static inline cputime_t timeval_to_cputime(const struct timeval *value)
 }
 
 static inline void cputime_to_timeval(const cputime_t cputime,
-				      struct timeval *value)
+									  struct timeval *value)
 {
 	unsigned long long __cputime = (__force unsigned long long) cputime;
 	value->tv_usec = (__cputime % CPUTIME_PER_SEC) / CPUTIME_PER_USEC;

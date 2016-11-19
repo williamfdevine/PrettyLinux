@@ -50,7 +50,8 @@
 #define CREATE_TRACE_POINTS
 #include "sputrace.h"
 
-struct spu_prio_array {
+struct spu_prio_array
+{
 	DECLARE_BITMAP(bitmap, MAX_PRIO);
 	struct list_head runq[MAX_PRIO];
 	spinlock_t runq_lock;
@@ -97,9 +98,13 @@ static struct timer_list spuloadavg_timer;
 void spu_set_timeslice(struct spu_context *ctx)
 {
 	if (ctx->prio < NORMAL_PRIO)
+	{
 		ctx->time_slice = SCALE_PRIO(DEF_SPU_TIMESLICE * 4, ctx->prio);
+	}
 	else
+	{
 		ctx->time_slice = SCALE_PRIO(DEF_SPU_TIMESLICE, ctx->prio);
+	}
 }
 
 /*
@@ -127,9 +132,14 @@ void __spu_update_sched_info(struct spu_context *ctx)
 	 * policy so we have to look at ->prio in this case.
 	 */
 	if (rt_prio(current->prio))
+	{
 		ctx->prio = current->prio;
+	}
 	else
+	{
 		ctx->prio = current->static_prio;
+	}
+
 	ctx->policy = current->policy;
 
 	/*
@@ -150,7 +160,8 @@ void spu_update_sched_info(struct spu_context *ctx)
 {
 	int node;
 
-	if (ctx->state == SPU_STATE_RUNNABLE) {
+	if (ctx->state == SPU_STATE_RUNNABLE)
+	{
 		node = ctx->spu->node;
 
 		/*
@@ -159,18 +170,23 @@ void spu_update_sched_info(struct spu_context *ctx)
 		mutex_lock(&cbe_spu_info[node].list_mutex);
 		__spu_update_sched_info(ctx);
 		mutex_unlock(&cbe_spu_info[node].list_mutex);
-	} else {
+	}
+	else
+	{
 		__spu_update_sched_info(ctx);
 	}
 }
 
 static int __node_allowed(struct spu_context *ctx, int node)
 {
-	if (nr_cpus_node(node)) {
+	if (nr_cpus_node(node))
+	{
 		const struct cpumask *mask = cpumask_of_node(node);
 
 		if (cpumask_intersects(mask, &ctx->cpus_allowed))
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -197,15 +213,18 @@ void do_notify_spus_active(void)
 	 * When the awakened processes see their "notify_active" flag is set,
 	 * they will call spu_switch_notify().
 	 */
-	for_each_online_node(node) {
+	for_each_online_node(node)
+	{
 		struct spu *spu;
 
 		mutex_lock(&cbe_spu_info[node].list_mutex);
-		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list) {
-			if (spu->alloc_state != SPU_FREE) {
+		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list)
+		{
+			if (spu->alloc_state != SPU_FREE)
+			{
 				struct spu_context *ctx = spu->ctx;
 				set_bit(SPU_SCHED_NOTIFY_ACTIVE,
-					&ctx->sched_flags);
+						&ctx->sched_flags);
 				mb();
 				wake_up_all(&ctx->stop_wq);
 			}
@@ -226,7 +245,9 @@ static void spu_bind_context(struct spu *spu, struct spu_context *ctx)
 	spuctx_switch_state(ctx, SPU_UTIL_SYSTEM);
 
 	if (ctx->flags & SPU_CREATE_NOSCHED)
+	{
 		atomic_inc(&cbe_spu_info[spu->node].reserved_spus);
+	}
 
 	ctx->stats.slb_flt_base = spu->stats.slb_flt;
 	ctx->stats.class2_intr_base = spu->stats.class2_intr;
@@ -271,9 +292,12 @@ static void aff_merge_remaining_ctxs(struct spu_gang *gang)
 {
 	struct spu_context *ctx;
 
-	list_for_each_entry(ctx, &gang->aff_list_head, aff_list) {
+	list_for_each_entry(ctx, &gang->aff_list_head, aff_list)
+	{
 		if (list_empty(&ctx->aff_list))
+		{
 			list_add(&ctx->aff_list, &gang->aff_list_head);
+		}
 	}
 	gang->aff_flags |= AFF_MERGED;
 }
@@ -285,16 +309,24 @@ static void aff_set_offsets(struct spu_gang *gang)
 
 	offset = -1;
 	list_for_each_entry_reverse(ctx, &gang->aff_ref_ctx->aff_list,
-								aff_list) {
+								aff_list)
+	{
 		if (&ctx->aff_list == &gang->aff_list_head)
+		{
 			break;
+		}
+
 		ctx->aff_offset = offset--;
 	}
 
 	offset = 0;
-	list_for_each_entry(ctx, gang->aff_ref_ctx->aff_list.prev, aff_list) {
+	list_for_each_entry(ctx, gang->aff_ref_ctx->aff_list.prev, aff_list)
+	{
 		if (&ctx->aff_list == &gang->aff_list_head)
+		{
 			break;
+		}
+
 		ctx->aff_offset = offset++;
 	}
 
@@ -302,7 +334,7 @@ static void aff_set_offsets(struct spu_gang *gang)
 }
 
 static struct spu *aff_ref_location(struct spu_context *ctx, int mem_aff,
-		 int group_size, int lowest_offset)
+									int group_size, int lowest_offset)
 {
 	struct spu *spu;
 	int node, n;
@@ -312,7 +344,9 @@ static struct spu *aff_ref_location(struct spu_context *ctx, int mem_aff,
 	 *       used as reference location for the ctxs chain.
 	 */
 	node = cpu_to_node(raw_smp_processor_id());
-	for (n = 0; n < MAX_NUMNODES; n++, node++) {
+
+	for (n = 0; n < MAX_NUMNODES; n++, node++)
+	{
 		/*
 		 * "available_spus" counts how many spus are not potentially
 		 * going to be used by other affinity gangs whose reference
@@ -325,31 +359,43 @@ static struct spu *aff_ref_location(struct spu_context *ctx, int mem_aff,
 		int available_spus;
 
 		node = (node < MAX_NUMNODES) ? node : 0;
+
 		if (!node_allowed(ctx, node))
+		{
 			continue;
+		}
 
 		available_spus = 0;
 		mutex_lock(&cbe_spu_info[node].list_mutex);
-		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list) {
+		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list)
+		{
 			if (spu->ctx && spu->ctx->gang && !spu->ctx->aff_offset
-					&& spu->ctx->gang->aff_ref_spu)
+				&& spu->ctx->gang->aff_ref_spu)
+			{
 				available_spus -= spu->ctx->gang->contexts;
+			}
+
 			available_spus++;
 		}
-		if (available_spus < ctx->gang->contexts) {
+
+		if (available_spus < ctx->gang->contexts)
+		{
 			mutex_unlock(&cbe_spu_info[node].list_mutex);
 			continue;
 		}
 
-		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list) {
+		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list)
+		{
 			if ((!mem_aff || spu->has_mem_affinity) &&
-							sched_spu(spu)) {
+				sched_spu(spu))
+			{
 				mutex_unlock(&cbe_spu_info[node].list_mutex);
 				return spu;
 			}
 		}
 		mutex_unlock(&cbe_spu_info[node].list_mutex);
 	}
+
 	return NULL;
 }
 
@@ -364,17 +410,21 @@ static void aff_set_ref_point_location(struct spu_gang *gang)
 	gs = 0;
 
 	list_for_each_entry(tmp, &gang->aff_list_head, aff_list)
-		gs++;
+	gs++;
 
 	list_for_each_entry_reverse(ctx, &gang->aff_ref_ctx->aff_list,
-								aff_list) {
+								aff_list)
+	{
 		if (&ctx->aff_list == &gang->aff_list_head)
+		{
 			break;
+		}
+
 		lowest_offset = ctx->aff_offset;
 	}
 
 	gang->aff_ref_spu = aff_ref_location(gang->aff_ref_ctx, mem_aff, gs,
-							lowest_offset);
+										 lowest_offset);
 }
 
 static struct spu *ctx_location(struct spu *ref, int offset, int node)
@@ -382,21 +432,39 @@ static struct spu *ctx_location(struct spu *ref, int offset, int node)
 	struct spu *spu;
 
 	spu = NULL;
-	if (offset >= 0) {
-		list_for_each_entry(spu, ref->aff_list.prev, aff_list) {
+
+	if (offset >= 0)
+	{
+		list_for_each_entry(spu, ref->aff_list.prev, aff_list)
+		{
 			BUG_ON(spu->node != node);
+
 			if (offset == 0)
+			{
 				break;
+			}
+
 			if (sched_spu(spu))
+			{
 				offset--;
+			}
 		}
-	} else {
-		list_for_each_entry_reverse(spu, ref->aff_list.next, aff_list) {
+	}
+	else
+	{
+		list_for_each_entry_reverse(spu, ref->aff_list.next, aff_list)
+		{
 			BUG_ON(spu->node != node);
+
 			if (offset == 0)
+			{
 				break;
+			}
+
 			if (sched_spu(spu))
+			{
 				offset++;
+			}
 		}
 	}
 
@@ -412,16 +480,27 @@ static int has_affinity(struct spu_context *ctx)
 	struct spu_gang *gang = ctx->gang;
 
 	if (list_empty(&ctx->aff_list))
+	{
 		return 0;
+	}
 
 	if (atomic_read(&ctx->gang->aff_sched_count) == 0)
+	{
 		ctx->gang->aff_ref_spu = NULL;
+	}
 
-	if (!gang->aff_ref_spu) {
+	if (!gang->aff_ref_spu)
+	{
 		if (!(gang->aff_flags & AFF_MERGED))
+		{
 			aff_merge_remaining_ctxs(gang);
+		}
+
 		if (!(gang->aff_flags & AFF_OFFSETS_SET))
+		{
 			aff_set_offsets(gang);
+		}
+
 		aff_set_ref_point_location(gang);
 	}
 
@@ -441,8 +520,10 @@ static void spu_unbind_context(struct spu *spu, struct spu_context *ctx)
 
 	spuctx_switch_state(ctx, SPU_UTIL_SYSTEM);
 
- 	if (spu->ctx->flags & SPU_CREATE_NOSCHED)
+	if (spu->ctx->flags & SPU_CREATE_NOSCHED)
+	{
 		atomic_dec(&cbe_spu_info[spu->node].reserved_spus);
+	}
 
 	if (ctx->gang)
 		/*
@@ -450,7 +531,9 @@ static void spu_unbind_context(struct spu *spu, struct spu_context *ctx)
 		 * being considered in this gang. Using atomic_dec_if_positive
 		 * allow us to skip an explicit check for affinity in this gang
 		 */
+	{
 		atomic_dec_if_positive(&ctx->gang->aff_sched_count);
+	}
 
 	spu_switch_notify(spu, NULL);
 	spu_unmap_mappings(ctx);
@@ -483,7 +566,9 @@ static void spu_unbind_context(struct spu *spu, struct spu_context *ctx)
 	ctx->spu = NULL;
 
 	if (spu_stopped(ctx, &status))
+	{
 		wake_up_all(&ctx->stop_wq);
+	}
 }
 
 /**
@@ -505,11 +590,15 @@ static void __spu_add_to_rq(struct spu_context *ctx)
 	 * threads through the owner thread so that spu_run is in control
 	 * of all the scheduling activity for a given context.
 	 */
-	if (list_empty(&ctx->rq)) {
+	if (list_empty(&ctx->rq))
+	{
 		list_add_tail(&ctx->rq, &spu_prio->runq[ctx->prio]);
 		set_bit(ctx->prio, spu_prio->bitmap);
+
 		if (!spu_prio->nr_waiting++)
+		{
 			mod_timer(&spusched_timer, jiffies + SPUSCHED_TICK);
+		}
 	}
 }
 
@@ -524,13 +613,19 @@ static void __spu_del_from_rq(struct spu_context *ctx)
 {
 	int prio = ctx->prio;
 
-	if (!list_empty(&ctx->rq)) {
+	if (!list_empty(&ctx->rq))
+	{
 		if (!--spu_prio->nr_waiting)
+		{
 			del_timer(&spusched_timer);
+		}
+
 		list_del_init(&ctx->rq);
 
 		if (list_empty(&spu_prio->runq[prio]))
+		{
 			clear_bit(prio, spu_prio->bitmap);
+		}
 	}
 }
 
@@ -554,7 +649,9 @@ static void spu_prio_wait(struct spu_context *ctx)
 
 	spin_lock(&spu_prio->runq_lock);
 	prepare_to_wait_exclusive(&ctx->stop_wq, &wait, TASK_INTERRUPTIBLE);
-	if (!signal_pending(current)) {
+
+	if (!signal_pending(current))
+	{
 		__spu_add_to_rq(ctx);
 		spin_unlock(&spu_prio->runq_lock);
 		mutex_unlock(&ctx->state_mutex);
@@ -563,6 +660,7 @@ static void spu_prio_wait(struct spu_context *ctx)
 		spin_lock(&spu_prio->runq_lock);
 		__spu_del_from_rq(ctx);
 	}
+
 	spin_unlock(&spu_prio->runq_lock);
 	__set_current_state(TASK_RUNNING);
 	remove_wait_queue(&ctx->stop_wq, &wait);
@@ -575,9 +673,12 @@ static struct spu *spu_get_idle(struct spu_context *ctx)
 
 	spu_context_nospu_trace(spu_get_idle__enter, ctx);
 
-	if (ctx->gang) {
+	if (ctx->gang)
+	{
 		mutex_lock(&ctx->gang->aff_mutex);
-		if (has_affinity(ctx)) {
+
+		if (has_affinity(ctx))
+		{
 			aff_ref_spu = ctx->gang->aff_ref_spu;
 			atomic_inc(&ctx->gang->aff_sched_count);
 			mutex_unlock(&ctx->gang->aff_mutex);
@@ -585,34 +686,48 @@ static struct spu *spu_get_idle(struct spu_context *ctx)
 
 			mutex_lock(&cbe_spu_info[node].list_mutex);
 			spu = ctx_location(aff_ref_spu, ctx->aff_offset, node);
+
 			if (spu && spu->alloc_state == SPU_FREE)
+			{
 				goto found;
+			}
+
 			mutex_unlock(&cbe_spu_info[node].list_mutex);
 
 			atomic_dec(&ctx->gang->aff_sched_count);
 			goto not_found;
 		}
+
 		mutex_unlock(&ctx->gang->aff_mutex);
 	}
+
 	node = cpu_to_node(raw_smp_processor_id());
-	for (n = 0; n < MAX_NUMNODES; n++, node++) {
+
+	for (n = 0; n < MAX_NUMNODES; n++, node++)
+	{
 		node = (node < MAX_NUMNODES) ? node : 0;
+
 		if (!node_allowed(ctx, node))
+		{
 			continue;
+		}
 
 		mutex_lock(&cbe_spu_info[node].list_mutex);
-		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list) {
+		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list)
+		{
 			if (spu->alloc_state == SPU_FREE)
+			{
 				goto found;
+			}
 		}
 		mutex_unlock(&cbe_spu_info[node].list_mutex);
 	}
 
- not_found:
+not_found:
 	spu_context_nospu_trace(spu_get_idle__not_found, ctx);
 	return NULL;
 
- found:
+found:
 	spu->alloc_state = SPU_USED;
 	mutex_unlock(&cbe_spu_info[node].list_mutex);
 	spu_context_trace(spu_get_idle__found, ctx, spu);
@@ -641,28 +756,40 @@ static struct spu *find_victim(struct spu_context *ctx)
 	 * a strong node affinity.  We might want to fine-tune this in
 	 * the future.
 	 */
- restart:
+restart:
 	node = cpu_to_node(raw_smp_processor_id());
-	for (n = 0; n < MAX_NUMNODES; n++, node++) {
+
+	for (n = 0; n < MAX_NUMNODES; n++, node++)
+	{
 		node = (node < MAX_NUMNODES) ? node : 0;
+
 		if (!node_allowed(ctx, node))
+		{
 			continue;
+		}
 
 		mutex_lock(&cbe_spu_info[node].list_mutex);
-		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list) {
+		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list)
+		{
 			struct spu_context *tmp = spu->ctx;
 
 			if (tmp && tmp->prio > ctx->prio &&
-			    !(tmp->flags & SPU_CREATE_NOSCHED) &&
-			    (!victim || tmp->prio > victim->prio)) {
+				!(tmp->flags & SPU_CREATE_NOSCHED) &&
+				(!victim || tmp->prio > victim->prio))
+			{
 				victim = spu->ctx;
 			}
 		}
+
 		if (victim)
+		{
 			get_spu_context(victim);
+		}
+
 		mutex_unlock(&cbe_spu_info[node].list_mutex);
 
-		if (victim) {
+		if (victim)
+		{
 			/*
 			 * This nests ctx->state_mutex, but we always lock
 			 * higher priority contexts before lower priority
@@ -673,14 +800,17 @@ static struct spu *find_victim(struct spu_context *ctx)
 			 * this can loop a long time.  Might be better to
 			 * look at another context or give up after X retries.
 			 */
-			if (!mutex_trylock(&victim->state_mutex)) {
+			if (!mutex_trylock(&victim->state_mutex))
+			{
 				put_spu_context(victim);
 				victim = NULL;
 				goto restart;
 			}
 
 			spu = victim->spu;
-			if (!spu || victim->prio <= ctx->prio) {
+
+			if (!spu || victim->prio <= ctx->prio)
+			{
 				/*
 				 * This race can happen because we've dropped
 				 * the active list mutex.  Not a problem, just
@@ -701,8 +831,11 @@ static struct spu *find_victim(struct spu_context *ctx)
 
 			victim->stats.invol_ctx_switch++;
 			spu->stats.invol_ctx_switch++;
+
 			if (test_bit(SPU_SCHED_SPU_RUN, &victim->sched_flags))
+			{
 				spu_add_to_rq(victim);
+			}
 
 			mutex_unlock(&victim->state_mutex);
 			put_spu_context(victim);
@@ -722,18 +855,25 @@ static void __spu_schedule(struct spu *spu, struct spu_context *ctx)
 	spu_set_timeslice(ctx);
 
 	mutex_lock(&cbe_spu_info[node].list_mutex);
-	if (spu->ctx == NULL) {
+
+	if (spu->ctx == NULL)
+	{
 		spu_bind_context(spu, ctx);
 		cbe_spu_info[node].nr_active++;
 		spu->alloc_state = SPU_USED;
 		success = 1;
 	}
+
 	mutex_unlock(&cbe_spu_info[node].list_mutex);
 
 	if (success)
+	{
 		wake_up_all(&ctx->run_wq);
+	}
 	else
+	{
 		spu_add_to_rq(ctx);
+	}
 }
 
 static void spu_schedule(struct spu *spu, struct spu_context *ctx)
@@ -741,8 +881,12 @@ static void spu_schedule(struct spu *spu, struct spu_context *ctx)
 	/* not a candidate for interruptible because it's called either
 	   from the scheduler thread or from spu_deactivate */
 	mutex_lock(&ctx->state_mutex);
+
 	if (ctx->state == SPU_STATE_SAVED)
+	{
 		__spu_schedule(spu, ctx);
+	}
+
 	spu_release(ctx);
 }
 
@@ -760,14 +904,18 @@ static void spu_schedule(struct spu *spu, struct spu_context *ctx)
  * Should be called with ctx->state_mutex held.
  */
 static void spu_unschedule(struct spu *spu, struct spu_context *ctx,
-		int free_spu)
+						   int free_spu)
 {
 	int node = spu->node;
 
 	mutex_lock(&cbe_spu_info[node].list_mutex);
 	cbe_spu_info[node].nr_active--;
+
 	if (free_spu)
+	{
 		spu->alloc_state = SPU_FREE;
+	}
+
 	spu_unbind_context(spu, ctx);
 	ctx->stats.invol_ctx_switch++;
 	spu->stats.invol_ctx_switch++;
@@ -794,31 +942,45 @@ int spu_activate(struct spu_context *ctx, unsigned long flags)
 	 * already is in runnable state.
 	 */
 	if (ctx->spu)
+	{
 		return 0;
+	}
 
 spu_activate_top:
+
 	if (signal_pending(current))
+	{
 		return -ERESTARTSYS;
+	}
 
 	spu = spu_get_idle(ctx);
+
 	/*
 	 * If this is a realtime thread we try to get it running by
 	 * preempting a lower priority thread.
 	 */
 	if (!spu && rt_prio(ctx->prio))
+	{
 		spu = find_victim(ctx);
-	if (spu) {
+	}
+
+	if (spu)
+	{
 		unsigned long runcntl;
 
 		runcntl = ctx->ops->runcntl_read(ctx);
 		__spu_schedule(spu, ctx);
+
 		if (runcntl & SPU_RUNCNTL_RUNNABLE)
+		{
 			spuctx_switch_state(ctx, SPU_UTIL_USER);
+		}
 
 		return 0;
 	}
 
-	if (ctx->flags & SPU_CREATE_NOSCHED) {
+	if (ctx->flags & SPU_CREATE_NOSCHED)
+	{
 		spu_prio_wait(ctx);
 		goto spu_activate_top;
 	}
@@ -841,20 +1003,25 @@ static struct spu_context *grab_runnable_context(int prio, int node)
 
 	spin_lock(&spu_prio->runq_lock);
 	best = find_first_bit(spu_prio->bitmap, prio);
-	while (best < prio) {
+
+	while (best < prio)
+	{
 		struct list_head *rq = &spu_prio->runq[best];
 
-		list_for_each_entry(ctx, rq, rq) {
+		list_for_each_entry(ctx, rq, rq)
+		{
 			/* XXX(hch): check for affinity here as well */
-			if (__node_allowed(ctx, node)) {
+			if (__node_allowed(ctx, node))
+			{
 				__spu_del_from_rq(ctx);
 				goto found;
 			}
 		}
 		best++;
 	}
+
 	ctx = NULL;
- found:
+found:
 	spin_unlock(&spu_prio->runq_lock);
 	return ctx;
 }
@@ -864,14 +1031,22 @@ static int __spu_deactivate(struct spu_context *ctx, int force, int max_prio)
 	struct spu *spu = ctx->spu;
 	struct spu_context *new = NULL;
 
-	if (spu) {
+	if (spu)
+	{
 		new = grab_runnable_context(max_prio, spu->node);
-		if (new || force) {
+
+		if (new || force)
+		{
 			spu_unschedule(spu, ctx, new == NULL);
-			if (new) {
+
+			if (new)
+			{
 				if (new->flags & SPU_CREATE_NOSCHED)
+				{
 					wake_up(&new->stop_wq);
-				else {
+				}
+				else
+				{
 					spu_release(ctx);
 					spu_schedule(spu, new);
 					/* this one can't easily be made
@@ -909,7 +1084,9 @@ void spu_deactivate(struct spu_context *ctx)
 void spu_yield(struct spu_context *ctx)
 {
 	spu_context_nospu_trace(spu_yield__enter, ctx);
-	if (!(ctx->flags & SPU_CREATE_NOSCHED)) {
+
+	if (!(ctx->flags & SPU_CREATE_NOSCHED))
+	{
 		mutex_lock(&ctx->state_mutex);
 		__spu_deactivate(ctx, 0, MAX_PRIO);
 		mutex_unlock(&ctx->state_mutex);
@@ -922,37 +1099,62 @@ static noinline void spusched_tick(struct spu_context *ctx)
 	struct spu *spu = NULL;
 
 	if (spu_acquire(ctx))
-		BUG();	/* a kernel thread never has signals pending */
+	{
+		BUG();    /* a kernel thread never has signals pending */
+	}
 
 	if (ctx->state != SPU_STATE_RUNNABLE)
+	{
 		goto out;
+	}
+
 	if (ctx->flags & SPU_CREATE_NOSCHED)
+	{
 		goto out;
+	}
+
 	if (ctx->policy == SCHED_FIFO)
+	{
 		goto out;
+	}
 
 	if (--ctx->time_slice && test_bit(SPU_SCHED_SPU_RUN, &ctx->sched_flags))
+	{
 		goto out;
+	}
 
 	spu = ctx->spu;
 
 	spu_context_trace(spusched_tick__preempt, ctx, spu);
 
 	new = grab_runnable_context(ctx->prio + 1, spu->node);
-	if (new) {
+
+	if (new)
+	{
 		spu_unschedule(spu, ctx, 0);
+
 		if (test_bit(SPU_SCHED_SPU_RUN, &ctx->sched_flags))
+		{
 			spu_add_to_rq(ctx);
-	} else {
-		spu_context_nospu_trace(spusched_tick__newslice, ctx);
-		if (!ctx->time_slice)
-			ctx->time_slice++;
+		}
 	}
+	else
+	{
+		spu_context_nospu_trace(spusched_tick__newslice, ctx);
+
+		if (!ctx->time_slice)
+		{
+			ctx->time_slice++;
+		}
+	}
+
 out:
 	spu_release(ctx);
 
 	if (new)
+	{
 		spu_schedule(spu, new);
+	}
 }
 
 /**
@@ -969,7 +1171,10 @@ static unsigned long count_active_contexts(void)
 	int nr_active = 0, node;
 
 	for (node = 0; node < MAX_NUMNODES; node++)
+	{
 		nr_active += cbe_spu_info[node].nr_active;
+	}
+
 	nr_active += spu_prio->nr_waiting;
 
 	return nr_active;
@@ -1008,18 +1213,23 @@ static int spusched_thread(void *unused)
 	struct spu *spu;
 	int node;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule();
-		for (node = 0; node < MAX_NUMNODES; node++) {
+
+		for (node = 0; node < MAX_NUMNODES; node++)
+		{
 			struct mutex *mtx = &cbe_spu_info[node].list_mutex;
 
 			mutex_lock(mtx);
 			list_for_each_entry(spu, &cbe_spu_info[node].spus,
-					cbe_list) {
+								cbe_list)
+			{
 				struct spu_context *ctx = spu->ctx;
 
-				if (ctx) {
+				if (ctx)
+				{
 					get_spu_context(ctx);
 					mutex_unlock(mtx);
 					spusched_tick(ctx);
@@ -1035,7 +1245,7 @@ static int spusched_thread(void *unused)
 }
 
 void spuctx_switch_state(struct spu_context *ctx,
-		enum spu_utilization_state new_state)
+						 enum spu_utilization_state new_state)
 {
 	unsigned long long curtime;
 	signed long long delta;
@@ -1057,16 +1267,23 @@ void spuctx_switch_state(struct spu_context *ctx,
 	/*
 	 * Update the physical SPU utilization statistics.
 	 */
-	if (spu) {
+	if (spu)
+	{
 		ctx->stats.times[old_state] += delta;
 		spu->stats.times[old_state] += delta;
 		spu->stats.util_state = new_state;
 		spu->stats.tstamp = curtime;
 		node = spu->node;
+
 		if (old_state == SPU_UTIL_USER)
+		{
 			atomic_dec(&cbe_spu_info[node].busy_spus);
+		}
+
 		if (new_state == SPU_UTIL_USER)
+		{
 			atomic_inc(&cbe_spu_info[node].busy_spus);
+		}
 	}
 }
 
@@ -1077,9 +1294,9 @@ static int show_spu_loadavg(struct seq_file *s, void *private)
 {
 	int a, b, c;
 
-	a = spu_avenrun[0] + (FIXED_1/200);
-	b = spu_avenrun[1] + (FIXED_1/200);
-	c = spu_avenrun[2] + (FIXED_1/200);
+	a = spu_avenrun[0] + (FIXED_1 / 200);
+	b = spu_avenrun[1] + (FIXED_1 / 200);
+	c = spu_avenrun[2] + (FIXED_1 / 200);
 
 	/*
 	 * Note that last_pid doesn't really make much sense for the
@@ -1087,12 +1304,12 @@ static int show_spu_loadavg(struct seq_file *s, void *private)
 	 * but we include it here to have a 100% compatible interface.
 	 */
 	seq_printf(s, "%d.%02d %d.%02d %d.%02d %ld/%d %d\n",
-		LOAD_INT(a), LOAD_FRAC(a),
-		LOAD_INT(b), LOAD_FRAC(b),
-		LOAD_INT(c), LOAD_FRAC(c),
-		count_active_contexts(),
-		atomic_read(&nr_spu_contexts),
-		task_active_pid_ns(current)->last_pid);
+			   LOAD_INT(a), LOAD_FRAC(a),
+			   LOAD_INT(b), LOAD_FRAC(b),
+			   LOAD_INT(c), LOAD_FRAC(c),
+			   count_active_contexts(),
+			   atomic_read(&nr_spu_contexts),
+			   task_active_pid_ns(current)->last_pid);
 	return 0;
 }
 
@@ -1101,7 +1318,8 @@ static int spu_loadavg_open(struct inode *inode, struct file *file)
 	return single_open(file, show_spu_loadavg, NULL);
 }
 
-static const struct file_operations spu_loadavg_fops = {
+static const struct file_operations spu_loadavg_fops =
+{
 	.open		= spu_loadavg_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -1114,20 +1332,27 @@ int __init spu_sched_init(void)
 	int err = -ENOMEM, i;
 
 	spu_prio = kzalloc(sizeof(struct spu_prio_array), GFP_KERNEL);
-	if (!spu_prio)
-		goto out;
 
-	for (i = 0; i < MAX_PRIO; i++) {
+	if (!spu_prio)
+	{
+		goto out;
+	}
+
+	for (i = 0; i < MAX_PRIO; i++)
+	{
 		INIT_LIST_HEAD(&spu_prio->runq[i]);
 		__clear_bit(i, spu_prio->bitmap);
 	}
+
 	spin_lock_init(&spu_prio->runq_lock);
 
 	setup_timer(&spusched_timer, spusched_wake, 0);
 	setup_timer(&spuloadavg_timer, spuloadavg_wake, 0);
 
 	spusched_task = kthread_run(spusched_thread, NULL, "spusched");
-	if (IS_ERR(spusched_task)) {
+
+	if (IS_ERR(spusched_task))
+	{
 		err = PTR_ERR(spusched_task);
 		goto out_free_spu_prio;
 	}
@@ -1135,18 +1360,21 @@ int __init spu_sched_init(void)
 	mod_timer(&spuloadavg_timer, 0);
 
 	entry = proc_create("spu_loadavg", 0, NULL, &spu_loadavg_fops);
+
 	if (!entry)
+	{
 		goto out_stop_kthread;
+	}
 
 	pr_debug("spusched: tick: %d, min ticks: %d, default ticks: %d\n",
-			SPUSCHED_TICK, MIN_SPU_TIMESLICE, DEF_SPU_TIMESLICE);
+			 SPUSCHED_TICK, MIN_SPU_TIMESLICE, DEF_SPU_TIMESLICE);
 	return 0;
 
- out_stop_kthread:
+out_stop_kthread:
 	kthread_stop(spusched_task);
- out_free_spu_prio:
+out_free_spu_prio:
 	kfree(spu_prio);
- out:
+out:
 	return err;
 }
 
@@ -1161,12 +1389,18 @@ void spu_sched_exit(void)
 	del_timer_sync(&spuloadavg_timer);
 	kthread_stop(spusched_task);
 
-	for (node = 0; node < MAX_NUMNODES; node++) {
+	for (node = 0; node < MAX_NUMNODES; node++)
+	{
 		mutex_lock(&cbe_spu_info[node].list_mutex);
 		list_for_each_entry(spu, &cbe_spu_info[node].spus, cbe_list)
-			if (spu->alloc_state != SPU_FREE)
-				spu->alloc_state = SPU_FREE;
+
+		if (spu->alloc_state != SPU_FREE)
+		{
+			spu->alloc_state = SPU_FREE;
+		}
+
 		mutex_unlock(&cbe_spu_info[node].list_mutex);
 	}
+
 	kfree(spu_prio);
 }

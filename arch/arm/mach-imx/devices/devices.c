@@ -25,11 +25,13 @@
 #include "../common.h"
 #include "devices-common.h"
 
-struct device mxc_aips_bus = {
+struct device mxc_aips_bus =
+{
 	.init_name	= "mxc_aips",
 };
 
-struct device mxc_ahb_bus = {
+struct device mxc_ahb_bus =
+{
 	.init_name	= "mxc_ahb",
 };
 
@@ -38,8 +40,11 @@ int __init mxc_device_init(void)
 	int ret;
 
 	ret = device_register(&mxc_aips_bus);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = device_register(&mxc_ahb_bus);
 

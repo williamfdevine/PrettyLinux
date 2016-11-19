@@ -20,10 +20,13 @@
 #define SPEAR13XX_SYS_SW_RES			(VA_MISC_BASE + 0x204)
 void spear_restart(enum reboot_mode mode, const char *cmd)
 {
-	if (mode == REBOOT_SOFT) {
+	if (mode == REBOOT_SOFT)
+	{
 		/* software reset, Jump into ROM at address 0 */
 		soft_restart(0);
-	} else {
+	}
+	else
+	{
 		/* hardware reset, Use on-chip reset capability */
 #ifdef CONFIG_ARCH_SPEAR13XX
 		writel_relaxed(0x01, SPEAR13XX_SYS_SW_RES);

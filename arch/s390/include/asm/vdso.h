@@ -17,7 +17,8 @@
  * itself and may change without notice.
  */
 
-struct vdso_data {
+struct vdso_data
+{
 	__u64 tb_update_count;		/* Timebase atomicity ctr	0x00 */
 	__u64 xtime_tod_stamp;		/* TOD clock for xtime		0x08 */
 	__u64 xtime_clock_sec;		/* Kernel time			0x10 */
@@ -35,7 +36,8 @@ struct vdso_data {
 	__u32 tk_shift;			/* Shift used for xtime_nsec	0x60 */
 };
 
-struct vdso_per_cpu_data {
+struct vdso_per_cpu_data
+{
 	__u64 ectg_timer_base;
 	__u64 ectg_user_time;
 	__u32 cpu_nr;

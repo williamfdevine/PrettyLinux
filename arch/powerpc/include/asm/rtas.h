@@ -47,15 +47,17 @@
 
 typedef __be32 rtas_arg_t;
 
-struct rtas_args {
+struct rtas_args
+{
 	__be32 token;
 	__be32 nargs;
-	__be32 nret; 
+	__be32 nret;
 	rtas_arg_t args[16];
 	rtas_arg_t *rets;     /* Pointer to return values in args[]. */
-};  
+};
 
-struct rtas_t {
+struct rtas_t
+{
 	unsigned long entry;		/* physical address pointer */
 	unsigned long base;		/* physical address pointer */
 	unsigned long size;
@@ -64,7 +66,8 @@ struct rtas_t {
 	struct device_node *dev;	/* virtual address pointer */
 };
 
-struct rtas_suspend_me_data {
+struct rtas_suspend_me_data
+{
 	atomic_t working; /* number of cpus accessing this struct */
 	atomic_t done;
 	int token; /* ibm,suspend-me */
@@ -125,7 +128,7 @@ struct rtas_suspend_me_data {
 #define RTAS_TYPE_INFO			0xE2
 #define RTAS_TYPE_DEALLOC		0xE3
 #define RTAS_TYPE_DUMP			0xE4
-/* I don't add PowerMGM events right now, this is a different topic */ 
+/* I don't add PowerMGM events right now, this is a different topic */
 #define RTAS_TYPE_PMGM_POWER_SW_ON	0x60
 #define RTAS_TYPE_PMGM_POWER_SW_OFF	0x61
 #define RTAS_TYPE_PMGM_LID_OPEN		0x62
@@ -150,7 +153,8 @@ struct rtas_suspend_me_data {
 /* RTAS check-exception vector offset */
 #define RTAS_VECTOR_EXTERNAL_INTERRUPT	0x500
 
-struct rtas_error_log {
+struct rtas_error_log
+{
 	/* Byte 0 */
 	uint8_t		byte0;			/* Architectural version */
 
@@ -172,7 +176,7 @@ struct rtas_error_log {
 	uint8_t		byte3;			/* General event or error*/
 	__be32		extended_log_length;	/* length in bytes */
 	unsigned char	buffer[1];		/* Start of extended log */
-						/* Variable length.      */
+	/* Variable length.      */
 };
 
 static inline uint8_t rtas_error_severity(const struct rtas_error_log *elog)
@@ -205,7 +209,8 @@ uint32_t rtas_error_extended_log_length(const struct rtas_error_log *elog)
 /* RTAS general extended event log, Version 6. The extended log starts
  * from "buffer" field of struct rtas_error_log defined above.
  */
-struct rtas_ext_event_log_v6 {
+struct rtas_ext_event_log_v6
+{
 	/* Byte 0 */
 	uint8_t byte0;
 	/* XXXXXXXX
@@ -236,11 +241,11 @@ struct rtas_ext_event_log_v6 {
 	uint8_t reserved[8];		/* reserved */
 	/* Byte 12-15 */
 	__be32  company_id;		/* Company ID of the company	*/
-					/* that defines the format for	*/
-					/* the vendor specific log type	*/
+	/* that defines the format for	*/
+	/* the vendor specific log type	*/
 	/* Byte 16-end of log */
 	uint8_t vendor_log[1];		/* Start of vendor specific log	*/
-					/* Variable length.		*/
+	/* Variable length.		*/
 };
 
 static
@@ -277,7 +282,8 @@ inline uint32_t rtas_ext_event_company_id(struct rtas_ext_event_log_v6 *ext_log)
 #define PSERIES_ELOG_SECT_ID_HOTPLUG		(('H' << 8) | 'P')
 
 /* Vendor specific Platform Event Log Format, Version 6, section header */
-struct pseries_errorlog {
+struct pseries_errorlog
+{
 	__be16 id;			/* 0x00 2-byte ASCII section ID	*/
 	__be16 length;			/* 0x02 Section length in bytes	*/
 	uint8_t version;		/* 0x04 Section version		*/
@@ -299,12 +305,14 @@ inline uint16_t pseries_errorlog_length(struct pseries_errorlog *sect)
 }
 
 /* RTAS pseries hotplug errorlog section */
-struct pseries_hp_errorlog {
+struct pseries_hp_errorlog
+{
 	u8	resource;
 	u8	action;
 	u8	id_type;
 	u8	reserved;
-	union {
+	union
+	{
 		__be32	drc_index;
 		__be32	drc_count;
 		char	drc_name[1];
@@ -324,7 +332,7 @@ struct pseries_hp_errorlog {
 #define PSERIES_HP_ELOG_ID_DRC_COUNT	3
 
 struct pseries_errorlog *get_pseries_errorlog(struct rtas_error_log *log,
-					      uint16_t section_id);
+		uint16_t section_id);
 
 /*
  * This can be set by the rtas_flash module so that it can get called
@@ -338,7 +346,7 @@ extern int rtas_token(const char *service);
 extern int rtas_service_present(const char *service);
 extern int rtas_call(int token, int, int, int *, ...);
 void rtas_call_unlocked(struct rtas_args *args, int token, int nargs,
-			int nret, ...);
+						int nret, ...);
 extern void __noreturn rtas_restart(char *cmd);
 extern void rtas_power_off(void);
 extern void __noreturn rtas_halt(void);
@@ -366,7 +374,7 @@ extern unsigned int rtas_busy_delay_time(int status);
 extern unsigned int rtas_busy_delay(int status);
 
 extern int early_init_dt_scan_rtas(unsigned long node,
-		const char *uname, int depth, void *data);
+								   const char *uname, int depth, void *data);
 
 extern void pSeries_log_error(char *buf, unsigned int err_type, int fatal);
 
@@ -397,7 +405,7 @@ static inline void rtas_cancel_event_scan(void) { }
 	(ERR_TYPE_RTAS_LOG | ERR_TYPE_KERNEL_PANIC | ERR_TYPE_KERNEL_PANIC_GZ)
 
 #define RTAS_DEBUG KERN_DEBUG "RTAS: "
- 
+
 #define RTAS_ERROR_LOG_MAX 2048
 
 /*
@@ -441,7 +449,7 @@ extern unsigned long rtas_rmo_buf;
 static inline u32 rtas_config_addr(int busno, int devfn, int reg)
 {
 	return ((reg & 0xf00) << 20) | ((busno & 0xff) << 16) |
-			(devfn << 8) | (reg & 0xff);
+		   (devfn << 8) | (reg & 0xff);
 }
 
 extern void rtas_give_timebase(void);
@@ -451,8 +459,12 @@ extern void rtas_take_timebase(void);
 static inline int page_is_rtas_user_buf(unsigned long pfn)
 {
 	unsigned long paddr = (pfn << PAGE_SHIFT);
+
 	if (paddr >= rtas_rmo_buf && paddr < (rtas_rmo_buf + RTAS_RMOBUF_MAX))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 

@@ -26,7 +26,8 @@
  * - if the contents of this structure are changed, the assembly constants
  *   must also be changed
  */
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	unsigned long		tp_value;	/* thread pointer */
@@ -50,12 +51,12 @@ struct thread_info {
  * preempt_count needs to be 1 initially, until the scheduler is functional.
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.cpu		= 0,			\
-	.preempt_count	= 1,			\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .cpu		= 0,			\
+									.preempt_count	= 1,			\
+											.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)

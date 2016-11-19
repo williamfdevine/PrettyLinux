@@ -102,7 +102,7 @@ static int octeon_sha256_init(struct shash_desc *desc)
 }
 
 static void __octeon_sha256_update(struct sha256_state *sctx, const u8 *data,
-				   unsigned int len)
+								   unsigned int len)
 {
 	unsigned int partial;
 	unsigned int done;
@@ -113,27 +113,32 @@ static void __octeon_sha256_update(struct sha256_state *sctx, const u8 *data,
 	done = 0;
 	src = data;
 
-	if ((partial + len) >= SHA256_BLOCK_SIZE) {
-		if (partial) {
+	if ((partial + len) >= SHA256_BLOCK_SIZE)
+	{
+		if (partial)
+		{
 			done = -partial;
 			memcpy(sctx->buf + partial, data,
-			       done + SHA256_BLOCK_SIZE);
+				   done + SHA256_BLOCK_SIZE);
 			src = sctx->buf;
 		}
 
-		do {
+		do
+		{
 			octeon_sha256_transform(src);
 			done += SHA256_BLOCK_SIZE;
 			src = data + done;
-		} while (done + SHA256_BLOCK_SIZE <= len);
+		}
+		while (done + SHA256_BLOCK_SIZE <= len);
 
 		partial = 0;
 	}
+
 	memcpy(sctx->buf + partial, src, len - done);
 }
 
 static int octeon_sha256_update(struct shash_desc *desc, const u8 *data,
-				unsigned int len)
+								unsigned int len)
 {
 	struct sha256_state *sctx = shash_desc_ctx(desc);
 	struct octeon_cop2_state state;
@@ -145,7 +150,9 @@ static int octeon_sha256_update(struct shash_desc *desc, const u8 *data,
 	 * octeon_crypto_disable().
 	 */
 	if ((sctx->count % SHA256_BLOCK_SIZE) + len < SHA256_BLOCK_SIZE)
+	{
 		return crypto_sha256_update(desc, data, len);
+	}
 
 	flags = octeon_crypto_enable(&state);
 	octeon_sha256_store_hash(sctx);
@@ -175,7 +182,7 @@ static int octeon_sha256_final(struct shash_desc *desc, u8 *out)
 
 	/* Pad out to 56 mod 64. */
 	index = sctx->count & 0x3f;
-	pad_len = (index < 56) ? (56 - index) : ((64+56) - index);
+	pad_len = (index < 56) ? (56 - index) : ((64 + 56) - index);
 
 	flags = octeon_crypto_enable(&state);
 	octeon_sha256_store_hash(sctx);
@@ -190,7 +197,9 @@ static int octeon_sha256_final(struct shash_desc *desc, u8 *out)
 
 	/* Store state in digest */
 	for (i = 0; i < 8; i++)
+	{
 		dst[i] = cpu_to_be32(sctx->state[i]);
+	}
 
 	/* Zeroize sensitive information. */
 	memset(sctx, 0, sizeof(*sctx));
@@ -227,49 +236,53 @@ static int octeon_sha256_import(struct shash_desc *desc, const void *in)
 }
 
 static struct shash_alg octeon_sha256_algs[2] = { {
-	.digestsize	=	SHA256_DIGEST_SIZE,
-	.init		=	octeon_sha256_init,
-	.update		=	octeon_sha256_update,
-	.final		=	octeon_sha256_final,
-	.export		=	octeon_sha256_export,
-	.import		=	octeon_sha256_import,
-	.descsize	=	sizeof(struct sha256_state),
-	.statesize	=	sizeof(struct sha256_state),
-	.base		=	{
-		.cra_name	=	"sha256",
-		.cra_driver_name=	"octeon-sha256",
-		.cra_priority	=	OCTEON_CR_OPCODE_PRIORITY,
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	SHA256_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
+		.digestsize	=	SHA256_DIGEST_SIZE,
+		.init		=	octeon_sha256_init,
+		.update		=	octeon_sha256_update,
+		.final		=	octeon_sha256_final,
+		.export		=	octeon_sha256_export,
+		.import		=	octeon_sha256_import,
+		.descsize	=	sizeof(struct sha256_state),
+		.statesize	=	sizeof(struct sha256_state),
+		.base		=	{
+			.cra_name	=	"sha256",
+			.cra_driver_name =	"octeon-sha256",
+			.cra_priority	=	OCTEON_CR_OPCODE_PRIORITY,
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	SHA256_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
+	}, {
+		.digestsize	=	SHA224_DIGEST_SIZE,
+		.init		=	octeon_sha224_init,
+		.update		=	octeon_sha256_update,
+		.final		=	octeon_sha224_final,
+		.descsize	=	sizeof(struct sha256_state),
+		.base		=	{
+			.cra_name	=	"sha224",
+			.cra_driver_name =	"octeon-sha224",
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	SHA224_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
 	}
-}, {
-	.digestsize	=	SHA224_DIGEST_SIZE,
-	.init		=	octeon_sha224_init,
-	.update		=	octeon_sha256_update,
-	.final		=	octeon_sha224_final,
-	.descsize	=	sizeof(struct sha256_state),
-	.base		=	{
-		.cra_name	=	"sha224",
-		.cra_driver_name=	"octeon-sha224",
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	SHA224_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
-	}
-} };
+};
 
 static int __init octeon_sha256_mod_init(void)
 {
 	if (!octeon_has_crypto())
+	{
 		return -ENOTSUPP;
+	}
+
 	return crypto_register_shashes(octeon_sha256_algs,
-				       ARRAY_SIZE(octeon_sha256_algs));
+								   ARRAY_SIZE(octeon_sha256_algs));
 }
 
 static void __exit octeon_sha256_mod_fini(void)
 {
 	crypto_unregister_shashes(octeon_sha256_algs,
-				  ARRAY_SIZE(octeon_sha256_algs));
+							  ARRAY_SIZE(octeon_sha256_algs));
 }
 
 module_init(octeon_sha256_mod_init);

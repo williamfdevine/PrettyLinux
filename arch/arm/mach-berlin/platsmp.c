@@ -46,7 +46,9 @@ static inline void berlin_perform_reset_cpu(unsigned int cpu)
 static int berlin_boot_secondary(unsigned int cpu, struct task_struct *idle)
 {
 	if (!cpu_ctrl)
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Reset the CPU, making it to execute the instruction in the reset
@@ -66,18 +68,27 @@ static void __init berlin_smp_prepare_cpus(unsigned int max_cpus)
 	np = of_find_compatible_node(NULL, NULL, "arm,cortex-a9-scu");
 	scu_base = of_iomap(np, 0);
 	of_node_put(np);
+
 	if (!scu_base)
+	{
 		return;
+	}
 
 	np = of_find_compatible_node(NULL, NULL, "marvell,berlin-cpu-ctrl");
 	cpu_ctrl = of_iomap(np, 0);
 	of_node_put(np);
+
 	if (!cpu_ctrl)
+	{
 		goto unmap_scu;
+	}
 
 	vectors_base = ioremap(CONFIG_VECTORS_BASE, SZ_32K);
+
 	if (!vectors_base)
+	{
 		goto unmap_scu;
+	}
 
 	scu_enable(scu_base);
 	flush_cache_all();
@@ -103,8 +114,11 @@ unmap_scu:
 static void berlin_cpu_die(unsigned int cpu)
 {
 	v7_exit_coherency_flush(louis);
+
 	while (1)
+	{
 		cpu_do_idle();
+	}
 }
 
 static int berlin_cpu_kill(unsigned int cpu)
@@ -119,7 +133,8 @@ static int berlin_cpu_kill(unsigned int cpu)
 }
 #endif
 
-static const struct smp_operations berlin_smp_ops __initconst = {
+static const struct smp_operations berlin_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= berlin_smp_prepare_cpus,
 	.smp_boot_secondary	= berlin_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU

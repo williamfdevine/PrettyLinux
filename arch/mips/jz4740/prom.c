@@ -30,16 +30,23 @@ static __init void jz4740_init_cmdline(int argc, char *argv[])
 	char *dst = &(arcs_cmdline[0]);
 	char *src;
 
-	for (i = 1; i < argc && count; ++i) {
+	for (i = 1; i < argc && count; ++i)
+	{
 		src = argv[i];
-		while (*src && count) {
+
+		while (*src && count)
+		{
 			*dst++ = *src++;
 			--count;
 		}
+
 		*dst++ = ' ';
 	}
+
 	if (i > 1)
+	{
 		--dst;
+	}
 
 	*dst = 0;
 }

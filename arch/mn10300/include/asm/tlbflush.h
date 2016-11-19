@@ -14,7 +14,8 @@
 #include <linux/mm.h>
 #include <asm/processor.h>
 
-struct tlb_state {
+struct tlb_state
+{
 	struct mm_struct	*active_mm;
 	int			state;
 };
@@ -69,18 +70,27 @@ void local_flush_tlb_page(struct mm_struct *mm, unsigned long addr)
 #ifdef CONFIG_MN10300_TLB_USE_PIDR
 	cnx = mm->context.tlbpid[smp_processor_id()];
 #endif
-	if (cnx) {
+
+	if (cnx)
+	{
 		pteu = addr;
 #ifdef CONFIG_MN10300_TLB_USE_PIDR
 		pteu |= cnx & xPTEU_PID;
 #endif
 		IPTEU = pteu;
 		DPTEU = pteu;
+
 		if (IPTEL & xPTEL_V)
+		{
 			IPTEL = 0;
+		}
+
 		if (DPTEL & xPTEL_V)
+		{
 			DPTEL = 0;
+		}
 	}
+
 	local_irq_restore(flags);
 }
 
@@ -106,7 +116,7 @@ extern void flush_tlb_page(struct vm_area_struct *, unsigned long);
 #define flush_tlb()		flush_tlb_current_task()
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	flush_tlb_mm(vma->vm_mm);
 }
@@ -128,7 +138,7 @@ static inline void flush_tlb_mm(struct mm_struct *mm)
 }
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	preempt_disable();
 	local_flush_tlb_all();
@@ -141,13 +151,13 @@ static inline void flush_tlb_range(struct vm_area_struct *vma,
 #endif /* CONFIG_SMP */
 
 static inline void flush_tlb_kernel_range(unsigned long start,
-					  unsigned long end)
+		unsigned long end)
 {
 	flush_tlb_all();
 }
 
 static inline void flush_tlb_pgtables(struct mm_struct *mm,
-				      unsigned long start, unsigned long end)
+									  unsigned long start, unsigned long end)
 {
 }
 

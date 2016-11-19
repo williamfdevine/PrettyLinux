@@ -25,9 +25,9 @@
 #include <arch/opcode.h>
 
 #ifdef MODULE_DEBUG
-#define DEBUGP printk
+	#define DEBUGP printk
 #else
-#define DEBUGP(fmt...)
+	#define DEBUGP(fmt...)
 #endif
 
 /*
@@ -44,21 +44,34 @@ void *module_alloc(unsigned long size)
 
 	npages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 	pages = kmalloc(npages * sizeof(struct page *), GFP_KERNEL);
+
 	if (pages == NULL)
+	{
 		return NULL;
-	for (; i < npages; ++i) {
+	}
+
+	for (; i < npages; ++i)
+	{
 		pages[i] = alloc_page(GFP_KERNEL | __GFP_HIGHMEM);
+
 		if (!pages[i])
+		{
 			goto error;
+		}
 	}
 
 	area = __get_vm_area(size, VM_ALLOC, MEM_MODULE_START, MEM_MODULE_END);
+
 	if (!area)
+	{
 		goto error;
+	}
+
 	area->nr_pages = npages;
 	area->pages = pages;
 
-	if (map_vm_area(area, prot_rwx, pages)) {
+	if (map_vm_area(area, prot_rwx, pages))
+	{
 		vunmap(area->addr);
 		goto error;
 	}
@@ -66,8 +79,12 @@ void *module_alloc(unsigned long size)
 	return area->addr;
 
 error:
+
 	while (--i >= 0)
+	{
 		__free_page(pages[i]);
+	}
+
 	kfree(pages);
 	return NULL;
 }
@@ -80,7 +97,7 @@ void module_memfree(void *module_region)
 
 	/* Globally flush the L1 icache. */
 	flush_remote(0, HV_FLUSH_EVICT_L1I, cpu_online_mask,
-		     0, 0, 0, NULL, NULL, 0);
+				 0, 0, 0, NULL, NULL, 0);
 
 	/*
 	 * FIXME: Add module_arch_freeing_init to trim exception
@@ -95,11 +112,13 @@ void module_memfree(void *module_region)
  */
 static int validate_hw2_last(long value, struct module *me)
 {
-	if (((value << 16) >> 16) != value) {
+	if (((value << 16) >> 16) != value)
+	{
 		pr_warn("module %s: Out of range HW2_LAST value %#lx\n",
-			me->name, value);
+				me->name, value);
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -120,10 +139,10 @@ static int validate_jumpoff(long value)
 #endif
 
 int apply_relocate_add(Elf_Shdr *sechdrs,
-		       const char *strtab,
-		       unsigned int symindex,
-		       unsigned int relsec,
-		       struct module *me)
+					   const char *strtab,
+					   unsigned int symindex,
+					   unsigned int relsec,
+					   struct module *me)
 {
 	unsigned int i;
 	Elf_Rela *rel = (void *)sechdrs[relsec].sh_addr;
@@ -132,101 +151,128 @@ int apply_relocate_add(Elf_Shdr *sechdrs,
 	unsigned long value;
 
 	DEBUGP("Applying relocate section %u to %u\n", relsec,
-	       sechdrs[relsec].sh_info);
-	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++) {
+		   sechdrs[relsec].sh_info);
+
+	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++)
+	{
 		/* This is where to make the change */
 		location = (void *)sechdrs[sechdrs[relsec].sh_info].sh_addr
-			+ rel[i].r_offset;
+				   + rel[i].r_offset;
 		/*
 		 * This is the symbol it is referring to.
 		 * Note that all undefined symbols have been resolved.
 		 */
 		sym = (Elf_Sym *)sechdrs[symindex].sh_addr
-			+ ELF_R_SYM(rel[i].r_info);
+			  + ELF_R_SYM(rel[i].r_info);
 		value = sym->st_value + rel[i].r_addend;
 
-		switch (ELF_R_TYPE(rel[i].r_info)) {
+		switch (ELF_R_TYPE(rel[i].r_info))
+		{
 
 #ifdef __LITTLE_ENDIAN
 # define MUNGE(func) \
 	(*location = ((*location & ~func(-1)) | func(value)))
 #else
-/*
- * Instructions are always little-endian, so when we read them as data,
- * we have to swap them around before and after modifying them.
- */
+				/*
+				 * Instructions are always little-endian, so when we read them as data,
+				 * we have to swap them around before and after modifying them.
+				 */
 # define MUNGE(func) \
 	(*location = swab64((swab64(*location) & ~func(-1)) | func(value)))
 #endif
 
 #ifndef __tilegx__
-		case R_TILE_32:
-			*(uint32_t *)location = value;
-			break;
-		case R_TILE_IMM16_X0_HA:
-			value = (value + 0x8000) >> 16;
+
+			case R_TILE_32:
+				*(uint32_t *)location = value;
+				break;
+
+			case R_TILE_IMM16_X0_HA:
+				value = (value + 0x8000) >> 16;
+
 			/*FALLTHROUGH*/
-		case R_TILE_IMM16_X0_LO:
-			MUNGE(create_Imm16_X0);
-			break;
-		case R_TILE_IMM16_X1_HA:
-			value = (value + 0x8000) >> 16;
+			case R_TILE_IMM16_X0_LO:
+				MUNGE(create_Imm16_X0);
+				break;
+
+			case R_TILE_IMM16_X1_HA:
+				value = (value + 0x8000) >> 16;
+
 			/*FALLTHROUGH*/
-		case R_TILE_IMM16_X1_LO:
-			MUNGE(create_Imm16_X1);
-			break;
-		case R_TILE_JOFFLONG_X1:
-			value -= (unsigned long) location;  /* pc-relative */
-			value = (long) value >> 3;     /* count by instrs */
-			MUNGE(create_JOffLong_X1);
-			break;
+			case R_TILE_IMM16_X1_LO:
+				MUNGE(create_Imm16_X1);
+				break;
+
+			case R_TILE_JOFFLONG_X1:
+				value -= (unsigned long) location;  /* pc-relative */
+				value = (long) value >> 3;     /* count by instrs */
+				MUNGE(create_JOffLong_X1);
+				break;
 #else
-		case R_TILEGX_64:
-			*location = value;
-			break;
-		case R_TILEGX_IMM16_X0_HW2_LAST:
-			if (!validate_hw2_last(value, me))
-				return -ENOEXEC;
-			value >>= 16;
+
+			case R_TILEGX_64:
+				*location = value;
+				break;
+
+			case R_TILEGX_IMM16_X0_HW2_LAST:
+				if (!validate_hw2_last(value, me))
+				{
+					return -ENOEXEC;
+				}
+
+				value >>= 16;
+
 			/*FALLTHROUGH*/
-		case R_TILEGX_IMM16_X0_HW1:
-			value >>= 16;
+			case R_TILEGX_IMM16_X0_HW1:
+				value >>= 16;
+
 			/*FALLTHROUGH*/
-		case R_TILEGX_IMM16_X0_HW0:
-			MUNGE(create_Imm16_X0);
-			break;
-		case R_TILEGX_IMM16_X1_HW2_LAST:
-			if (!validate_hw2_last(value, me))
-				return -ENOEXEC;
-			value >>= 16;
+			case R_TILEGX_IMM16_X0_HW0:
+				MUNGE(create_Imm16_X0);
+				break;
+
+			case R_TILEGX_IMM16_X1_HW2_LAST:
+				if (!validate_hw2_last(value, me))
+				{
+					return -ENOEXEC;
+				}
+
+				value >>= 16;
+
 			/*FALLTHROUGH*/
-		case R_TILEGX_IMM16_X1_HW1:
-			value >>= 16;
+			case R_TILEGX_IMM16_X1_HW1:
+				value >>= 16;
+
 			/*FALLTHROUGH*/
-		case R_TILEGX_IMM16_X1_HW0:
-			MUNGE(create_Imm16_X1);
-			break;
-		case R_TILEGX_JUMPOFF_X1:
-			value -= (unsigned long) location;  /* pc-relative */
-			value = (long) value >> 3;     /* count by instrs */
-			if (!validate_jumpoff(value)) {
-				pr_warn("module %s: Out of range jump to %#llx at %#llx (%p)\n",
-					me->name,
-					sym->st_value + rel[i].r_addend,
-					rel[i].r_offset, location);
-				return -ENOEXEC;
-			}
-			MUNGE(create_JumpOff_X1);
-			break;
+			case R_TILEGX_IMM16_X1_HW0:
+				MUNGE(create_Imm16_X1);
+				break;
+
+			case R_TILEGX_JUMPOFF_X1:
+				value -= (unsigned long) location;  /* pc-relative */
+				value = (long) value >> 3;     /* count by instrs */
+
+				if (!validate_jumpoff(value))
+				{
+					pr_warn("module %s: Out of range jump to %#llx at %#llx (%p)\n",
+							me->name,
+							sym->st_value + rel[i].r_addend,
+							rel[i].r_offset, location);
+					return -ENOEXEC;
+				}
+
+				MUNGE(create_JumpOff_X1);
+				break;
 #endif
 
 #undef MUNGE
 
-		default:
-			pr_err("module %s: Unknown relocation: %d\n",
-			       me->name, (int) ELF_R_TYPE(rel[i].r_info));
-			return -ENOEXEC;
+			default:
+				pr_err("module %s: Unknown relocation: %d\n",
+					   me->name, (int) ELF_R_TYPE(rel[i].r_info));
+				return -ENOEXEC;
 		}
 	}
+
 	return 0;
 }

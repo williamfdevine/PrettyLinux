@@ -80,7 +80,7 @@
 #define rbtx4938_sfvol_addr	((__u8 __iomem *)RBTX4938_SFVOL_ADDR)
 #define rbtx4938_softreset_addr ((__u8 __iomem *)RBTX4938_SOFTRESET_ADDR)
 #define rbtx4938_softresetlock_addr	\
-				((__u8 __iomem *)RBTX4938_SOFTRESETLOCK_ADDR)
+	((__u8 __iomem *)RBTX4938_SOFTRESETLOCK_ADDR)
 #define rbtx4938_pcireset_addr	((__u8 __iomem *)RBTX4938_PCIRESET_ADDR)
 
 /*

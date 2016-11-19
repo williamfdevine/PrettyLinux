@@ -40,17 +40,20 @@
  * 256KB NOR Flash on BOOT Device
  ****************************************************************************/
 
-static struct physmap_flash_data ls_hgl_nor_flash_data = {
+static struct physmap_flash_data ls_hgl_nor_flash_data =
+{
 	.width		= 1,
 };
 
-static struct resource ls_hgl_nor_flash_resource = {
+static struct resource ls_hgl_nor_flash_resource =
+{
 	.flags	= IORESOURCE_MEM,
 	.start	= LS_HGL_NOR_BOOT_BASE,
 	.end	= LS_HGL_NOR_BOOT_BASE + LS_HGL_NOR_BOOT_SIZE - 1,
 };
 
-static struct platform_device ls_hgl_nor_flash = {
+static struct platform_device ls_hgl_nor_flash =
+{
 	.name			= "physmap-flash",
 	.id			= 0,
 	.dev		= {
@@ -64,7 +67,8 @@ static struct platform_device ls_hgl_nor_flash = {
  * Ethernet
  ****************************************************************************/
 
-static struct mv643xx_eth_platform_data ls_hgl_eth_data = {
+static struct mv643xx_eth_platform_data ls_hgl_eth_data =
+{
 	.phy_addr	= 8,
 };
 
@@ -72,7 +76,8 @@ static struct mv643xx_eth_platform_data ls_hgl_eth_data = {
  * RTC 5C372a on I2C bus
  ****************************************************************************/
 
-static struct i2c_board_info __initdata ls_hgl_i2c_rtc = {
+static struct i2c_board_info __initdata ls_hgl_i2c_rtc =
+{
 	I2C_BOARD_INFO("rs5c372a", 0x32),
 };
 
@@ -86,7 +91,8 @@ static struct i2c_board_info __initdata ls_hgl_i2c_rtc = {
 #define LS_HGL_GPIO_LED_PWR     0
 
 
-static struct gpio_led ls_hgl_led_pins[] = {
+static struct gpio_led ls_hgl_led_pins[] =
+{
 	{
 		.name	   = "alarm:red",
 		.gpio	   = LS_HGL_GPIO_LED_ALARM,
@@ -105,12 +111,14 @@ static struct gpio_led ls_hgl_led_pins[] = {
 	},
 };
 
-static struct gpio_led_platform_data ls_hgl_led_data = {
+static struct gpio_led_platform_data ls_hgl_led_data =
+{
 	.leds	   = ls_hgl_led_pins,
 	.num_leds       = ARRAY_SIZE(ls_hgl_led_pins),
 };
 
-static struct platform_device ls_hgl_leds = {
+static struct platform_device ls_hgl_leds =
+{
 	.name   = "leds-gpio",
 	.id     = -1,
 	.dev    = {
@@ -128,7 +136,8 @@ static struct platform_device ls_hgl_leds = {
 #define LS_HGL_SW_POWER     0x00
 #define LS_HGL_SW_AUTOPOWER 0x01
 
-static struct gpio_keys_button ls_hgl_buttons[] = {
+static struct gpio_keys_button ls_hgl_buttons[] =
+{
 	{
 		.code	   = KEY_OPTION,
 		.gpio	   = LS_HGL_GPIO_KEY_FUNC,
@@ -149,12 +158,14 @@ static struct gpio_keys_button ls_hgl_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data ls_hgl_button_data = {
+static struct gpio_keys_platform_data ls_hgl_button_data =
+{
 	.buttons	= ls_hgl_buttons,
 	.nbuttons       = ARRAY_SIZE(ls_hgl_buttons),
 };
 
-static struct platform_device ls_hgl_button_device = {
+static struct platform_device ls_hgl_button_device =
+{
 	.name	   = "gpio-keys",
 	.id	     = -1,
 	.num_resources  = 0,
@@ -167,7 +178,8 @@ static struct platform_device ls_hgl_button_device = {
 /*****************************************************************************
  * SATA
  ****************************************************************************/
-static struct mv_sata_platform_data ls_hgl_sata_data = {
+static struct mv_sata_platform_data ls_hgl_sata_data =
+{
 	.n_ports	= 2,
 };
 
@@ -199,7 +211,8 @@ static void ls_hgl_power_off(void)
 
 #define LS_HGL_GPIO_HDD_POWER	1
 
-static unsigned int ls_hgl_mpp_modes[] __initdata = {
+static unsigned int ls_hgl_mpp_modes[] __initdata =
+{
 	MPP0_GPIO, /* LED_PWR */
 	MPP1_GPIO, /* HDD_PWR */
 	MPP2_GPIO, /* LED_ALARM */
@@ -244,9 +257,9 @@ static void __init ls_hgl_init(void)
 	orion5x_xor_init();
 
 	mvebu_mbus_add_window_by_id(ORION_MBUS_DEVBUS_BOOT_TARGET,
-				    ORION_MBUS_DEVBUS_BOOT_ATTR,
-				    LS_HGL_NOR_BOOT_BASE,
-				    LS_HGL_NOR_BOOT_SIZE);
+								ORION_MBUS_DEVBUS_BOOT_ATTR,
+								LS_HGL_NOR_BOOT_BASE,
+								LS_HGL_NOR_BOOT_SIZE);
 	platform_device_register(&ls_hgl_nor_flash);
 
 	platform_device_register(&ls_hgl_button_device);
@@ -265,14 +278,14 @@ static void __init ls_hgl_init(void)
 }
 
 MACHINE_START(LINKSTATION_LS_HGL, "Buffalo Linkstation LS-HGL")
-	/* Maintainer: Zhu Qingsen <zhuqs@cn.fujistu.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Zhu Qingsen <zhuqs@cn.fujistu.com> */
+.atag_offset	= 0x100,
 	.nr_irqs	= ORION5X_NR_IRQS,
-	.init_machine	= ls_hgl_init,
-	.map_io		= orion5x_map_io,
-	.init_early	= orion5x_init_early,
-	.init_irq	= orion5x_init_irq,
-	.init_time	= orion5x_timer_init,
-	.fixup		= tag_fixup_mem32,
-	.restart	= orion5x_restart,
-MACHINE_END
+		.init_machine	= ls_hgl_init,
+		   .map_io		= orion5x_map_io,
+			   .init_early	= orion5x_init_early,
+				.init_irq	= orion5x_init_irq,
+				   .init_time	= orion5x_timer_init,
+					 .fixup		= tag_fixup_mem32,
+						  .restart	= orion5x_restart,
+							  MACHINE_END

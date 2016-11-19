@@ -37,8 +37,8 @@ EXPORT_SYMBOL(pci_dram_offset);
 
 void pcibios_make_OF_bus_map(void);
 
-static void fixup_cpc710_pci64(struct pci_dev* dev);
-static u8* pci_to_OF_bus_map;
+static void fixup_cpc710_pci64(struct pci_dev *dev);
+static u8 *pci_to_OF_bus_map;
 
 /* By default, we don't re-assign bus numbers. We do this only on
  * some pmacs
@@ -54,7 +54,7 @@ struct pci_dev *isa_bridge_pcidev;
 EXPORT_SYMBOL_GPL(isa_bridge_pcidev);
 
 static void
-fixup_cpc710_pci64(struct pci_dev* dev)
+fixup_cpc710_pci64(struct pci_dev *dev)
 {
 	/* Hide the PCI64 BARs from the kernel as their content doesn't
 	 * fit well in the resource management
@@ -70,42 +70,62 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_IBM,	PCI_DEVICE_ID_IBM_CPC710_PCI64,	fixu
  * Functions below are used on OpenFirmware machines.
  */
 static void
-make_one_node_map(struct device_node* node, u8 pci_bus)
+make_one_node_map(struct device_node *node, u8 pci_bus)
 {
 	const int *bus_range;
 	int len;
 
 	if (pci_bus >= pci_bus_count)
+	{
 		return;
-	bus_range = of_get_property(node, "bus-range", &len);
-	if (bus_range == NULL || len < 2 * sizeof(int)) {
-		printk(KERN_WARNING "Can't get bus-range for %s, "
-		       "assuming it starts at 0\n", node->full_name);
-		pci_to_OF_bus_map[pci_bus] = 0;
-	} else
-		pci_to_OF_bus_map[pci_bus] = bus_range[0];
+	}
 
-	for_each_child_of_node(node, node) {
-		struct pci_dev* dev;
+	bus_range = of_get_property(node, "bus-range", &len);
+
+	if (bus_range == NULL || len < 2 * sizeof(int))
+	{
+		printk(KERN_WARNING "Can't get bus-range for %s, "
+			   "assuming it starts at 0\n", node->full_name);
+		pci_to_OF_bus_map[pci_bus] = 0;
+	}
+	else
+	{
+		pci_to_OF_bus_map[pci_bus] = bus_range[0];
+	}
+
+	for_each_child_of_node(node, node)
+	{
+		struct pci_dev *dev;
 		const unsigned int *class_code, *reg;
-	
+
 		class_code = of_get_property(node, "class-code", NULL);
+
 		if (!class_code || ((*class_code >> 8) != PCI_CLASS_BRIDGE_PCI &&
-			(*class_code >> 8) != PCI_CLASS_BRIDGE_CARDBUS))
+							(*class_code >> 8) != PCI_CLASS_BRIDGE_CARDBUS))
+		{
 			continue;
+		}
+
 		reg = of_get_property(node, "reg", NULL);
+
 		if (!reg)
+		{
 			continue;
+		}
+
 		dev = pci_get_bus_and_slot(pci_bus, ((reg[0] >> 8) & 0xff));
-		if (!dev || !dev->subordinate) {
+
+		if (!dev || !dev->subordinate)
+		{
 			pci_dev_put(dev);
 			continue;
 		}
+
 		make_one_node_map(node, dev->subordinate->number);
 		pci_dev_put(dev);
 	}
 }
-	
+
 void
 pcibios_make_OF_bus_map(void)
 {
@@ -115,7 +135,9 @@ pcibios_make_OF_bus_map(void)
 	struct device_node *dn;
 
 	pci_to_OF_bus_map = kmalloc(pci_bus_count, GFP_KERNEL);
-	if (!pci_to_OF_bus_map) {
+
+	if (!pci_to_OF_bus_map)
+	{
 		printk(KERN_ERR "Can't allocate OF bus map !\n");
 		return;
 	}
@@ -123,31 +145,46 @@ pcibios_make_OF_bus_map(void)
 	/* We fill the bus map with invalid values, that helps
 	 * debugging.
 	 */
-	for (i=0; i<pci_bus_count; i++)
+	for (i = 0; i < pci_bus_count; i++)
+	{
 		pci_to_OF_bus_map[i] = 0xff;
+	}
 
 	/* For each hose, we begin searching bridges */
-	list_for_each_entry_safe(hose, tmp, &hose_list, list_node) {
-		struct device_node* node = hose->dn;
+	list_for_each_entry_safe(hose, tmp, &hose_list, list_node)
+	{
+		struct device_node *node = hose->dn;
 
 		if (!node)
+		{
 			continue;
+		}
+
 		make_one_node_map(node, hose->first_busno);
 	}
 	dn = of_find_node_by_path("/");
 	map_prop = of_find_property(dn, "pci-OF-bus-map", NULL);
-	if (map_prop) {
+
+	if (map_prop)
+	{
 		BUG_ON(pci_bus_count > map_prop->length);
 		memcpy(map_prop->value, pci_to_OF_bus_map, pci_bus_count);
 	}
+
 	of_node_put(dn);
 #ifdef DEBUG
 	printk("PCI->OF bus map:\n");
-	for (i=0; i<pci_bus_count; i++) {
+
+	for (i = 0; i < pci_bus_count; i++)
+	{
 		if (pci_to_OF_bus_map[i] == 0xff)
+		{
 			continue;
+		}
+
 		printk("%d -> %d\n", i, pci_to_OF_bus_map[i]);
 	}
+
 #endif
 }
 
@@ -163,11 +200,16 @@ int pci_device_from_OF_node(struct device_node *node, u8 *bus, u8 *devfn)
 
 	/* Check if it might have a chance to be a PCI device */
 	if (!pci_find_hose_for_OF_device(node))
+	{
 		return -ENODEV;
+	}
 
 	reg = of_get_property(node, "reg", &size);
+
 	if (!reg || size < 5 * sizeof(u32))
+	{
 		return -ENODEV;
+	}
 
 	*bus = (be32_to_cpup(&reg[0]) >> 16) & 0xff;
 	*devfn = (be32_to_cpup(&reg[0]) >> 8) & 0xff;
@@ -178,15 +220,19 @@ int pci_device_from_OF_node(struct device_node *node, u8 *bus, u8 *devfn)
 	 * may match the same OF bus number.
 	 */
 	if (!pci_to_OF_bus_map)
+	{
 		return 0;
+	}
 
 	for_each_pci_dev(dev)
-		if (pci_to_OF_bus_map[dev->bus->number] == *bus &&
-				dev->devfn == *devfn) {
-			*bus = dev->bus->number;
-			pci_dev_put(dev);
-			return 0;
-		}
+
+	if (pci_to_OF_bus_map[dev->bus->number] == *bus &&
+		dev->devfn == *devfn)
+	{
+		*bus = dev->bus->number;
+		pci_dev_put(dev);
+		return 0;
+	}
 
 	return -ENODEV;
 }
@@ -198,12 +244,14 @@ EXPORT_SYMBOL(pci_device_from_OF_node);
 void __init
 pci_create_OF_bus_map(void)
 {
-	struct property* of_prop;
+	struct property *of_prop;
 	struct device_node *dn;
 
 	of_prop = memblock_virt_alloc(sizeof(struct property) + 256, 0);
 	dn = of_find_node_by_path("/");
-	if (dn) {
+
+	if (dn)
+	{
 		memset(of_prop, -1, sizeof(struct property) + 256);
 		of_prop->name = "pci-OF-bus-map";
 		of_prop->length = 256;
@@ -232,17 +280,26 @@ static int __init pcibios_init(void)
 	printk(KERN_INFO "PCI: Probing PCI hardware\n");
 
 	if (pci_has_flag(PCI_REASSIGN_ALL_BUS))
+	{
 		pci_assign_all_buses = 1;
+	}
 
 	/* Scan all of the recorded PCI controllers.  */
-	list_for_each_entry_safe(hose, tmp, &hose_list, list_node) {
+	list_for_each_entry_safe(hose, tmp, &hose_list, list_node)
+	{
 		if (pci_assign_all_buses)
+		{
 			hose->first_busno = next_busno;
+		}
+
 		hose->last_busno = 0xff;
 		pcibios_scan_phb(hose);
 		pci_bus_add_devices(hose->bus);
+
 		if (pci_assign_all_buses || next_busno <= hose->last_busno)
+		{
 			next_busno = hose->last_busno + pcibios_assign_bus_offset;
+		}
 	}
 	pci_bus_count = next_busno;
 
@@ -251,28 +308,36 @@ static int __init pcibios_init(void)
 	 * remap them.
 	 */
 	if (pci_assign_all_buses)
+	{
 		pcibios_make_OF_bus_map();
+	}
 
 	/* Call common code to handle resource allocation */
 	pcibios_resource_survey();
 
 	/* Call machine dependent post-init code */
 	if (ppc_md.pcibios_after_init)
+	{
 		ppc_md.pcibios_after_init();
+	}
 
 	return 0;
 }
 
 subsys_initcall(pcibios_init);
 
-static struct pci_controller*
+static struct pci_controller *
 pci_bus_to_hose(int bus)
 {
 	struct pci_controller *hose, *tmp;
 
 	list_for_each_entry_safe(hose, tmp, &hose_list, list_node)
-		if (bus >= hose->first_busno && bus <= hose->last_busno)
-			return hose;
+
+	if (bus >= hose->first_busno && bus <= hose->last_busno)
+	{
+		return hose;
+	}
+
 	return NULL;
 }
 
@@ -284,24 +349,32 @@ pci_bus_to_hose(int bus)
 
 long sys_pciconfig_iobase(long which, unsigned long bus, unsigned long devfn)
 {
-	struct pci_controller* hose;
+	struct pci_controller *hose;
 	long result = -EOPNOTSUPP;
 
 	hose = pci_bus_to_hose(bus);
-	if (!hose)
-		return -ENODEV;
 
-	switch (which) {
-	case IOBASE_BRIDGE_NUMBER:
-		return (long)hose->first_busno;
-	case IOBASE_MEMORY:
-		return (long)hose->mem_offset[0];
-	case IOBASE_IO:
-		return (long)hose->io_base_phys;
-	case IOBASE_ISA_IO:
-		return (long)isa_io_base;
-	case IOBASE_ISA_MEM:
-		return (long)isa_mem_base;
+	if (!hose)
+	{
+		return -ENODEV;
+	}
+
+	switch (which)
+	{
+		case IOBASE_BRIDGE_NUMBER:
+			return (long)hose->first_busno;
+
+		case IOBASE_MEMORY:
+			return (long)hose->mem_offset[0];
+
+		case IOBASE_IO:
+			return (long)hose->io_base_phys;
+
+		case IOBASE_ISA_IO:
+			return (long)isa_io_base;
+
+		case IOBASE_ISA_MEM:
+			return (long)isa_mem_base;
 	}
 
 	return result;

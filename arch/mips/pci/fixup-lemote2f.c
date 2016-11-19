@@ -30,7 +30,8 @@
 #define PCID		7
 
 /* all the pci device has the PCIA pin, check the datasheet. */
-static char irq_tab[][5] __initdata = {
+static char irq_tab[][5] __initdata =
+{
 	/*	INTA	INTB	INTC	INTD */
 	{0, 0, 0, 0, 0},	/*  11: Unused */
 	{0, 0, 0, 0, 0},	/*  12: Unused */
@@ -56,34 +57,48 @@ int __init pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	int virq;
 
 	if ((PCI_SLOT(dev->devfn) != PCI_IDSEL_CS5536)
-	    && (PCI_SLOT(dev->devfn) < 32)) {
+		&& (PCI_SLOT(dev->devfn) < 32))
+	{
 		virq = irq_tab[slot][pin];
 		printk(KERN_INFO "slot: %d, pin: %d, irq: %d\n", slot, pin,
-		       virq + LOONGSON_IRQ_BASE);
+			   virq + LOONGSON_IRQ_BASE);
+
 		if (virq != 0)
+		{
 			return LOONGSON_IRQ_BASE + virq;
-		else
-			return 0;
-	} else if (PCI_SLOT(dev->devfn) == PCI_IDSEL_CS5536) {	/*  cs5536 */
-		switch (PCI_FUNC(dev->devfn)) {
-		case 2:
-			pci_write_config_byte(dev, PCI_INTERRUPT_LINE,
-					      CS5536_IDE_INTR);
-			return CS5536_IDE_INTR; /*  for IDE */
-		case 3:
-			pci_write_config_byte(dev, PCI_INTERRUPT_LINE,
-					      CS5536_ACC_INTR);
-			return CS5536_ACC_INTR; /*  for AUDIO */
-		case 4: /*  for OHCI */
-		case 5: /*  for EHCI */
-		case 6: /*  for UDC */
-		case 7: /*  for OTG */
-			pci_write_config_byte(dev, PCI_INTERRUPT_LINE,
-					      CS5536_USB_INTR);
-			return CS5536_USB_INTR;
 		}
+		else
+		{
+			return 0;
+		}
+	}
+	else if (PCI_SLOT(dev->devfn) == PCI_IDSEL_CS5536)  	/*  cs5536 */
+	{
+		switch (PCI_FUNC(dev->devfn))
+		{
+			case 2:
+				pci_write_config_byte(dev, PCI_INTERRUPT_LINE,
+									  CS5536_IDE_INTR);
+				return CS5536_IDE_INTR; /*  for IDE */
+
+			case 3:
+				pci_write_config_byte(dev, PCI_INTERRUPT_LINE,
+									  CS5536_ACC_INTR);
+				return CS5536_ACC_INTR; /*  for AUDIO */
+
+			case 4: /*  for OHCI */
+			case 5: /*  for EHCI */
+			case 6: /*  for UDC */
+			case 7: /*  for OTG */
+				pci_write_config_byte(dev, PCI_INTERRUPT_LINE,
+									  CS5536_USB_INTR);
+				return CS5536_USB_INTR;
+		}
+
 		return dev->irq;
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO " strange pci slot number.\n");
 		return 0;
 	}
@@ -107,7 +122,7 @@ static void loongson_cs5536_ide_fixup(struct pci_dev *pdev)
 {
 	/* setting the mutex pin as IDE function */
 	pci_write_config_dword(pdev, PCI_IDE_CFG_REG,
-			       CS5536_IDE_FLASH_SIGNATURE);
+						   CS5536_IDE_FLASH_SIGNATURE);
 }
 
 static void loongson_cs5536_acc_fixup(struct pci_dev *pdev)
@@ -147,14 +162,14 @@ static void loongson_nec_fixup(struct pci_dev *pdev)
 }
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA,
-			 loongson_cs5536_isa_fixup);
+						 loongson_cs5536_isa_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_OHC,
-			 loongson_cs5536_ohci_fixup);
+						 loongson_cs5536_ohci_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_EHC,
-			 loongson_cs5536_ehci_fixup);
+						 loongson_cs5536_ehci_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_AUDIO,
-			 loongson_cs5536_acc_fixup);
+						 loongson_cs5536_acc_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_IDE,
-			 loongson_cs5536_ide_fixup);
+						 loongson_cs5536_ide_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB,
-			 loongson_nec_fixup);
+						 loongson_nec_fixup);

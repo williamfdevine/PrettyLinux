@@ -31,7 +31,7 @@ HV_Topology smp_topology __write_once __aligned(sizeof(long));
 EXPORT_SYMBOL(smp_topology);
 
 #if CHIP_HAS_IPI()
-static unsigned long __iomem *ipi_mappings[NR_CPUS];
+	static unsigned long __iomem *ipi_mappings[NR_CPUS];
 #endif
 
 /* Does messaging work correctly to the local cpu? */
@@ -47,14 +47,22 @@ static int stopping_cpus;
 static void __send_IPI_many(HV_Recipient *recip, int nrecip, int tag)
 {
 	int sent = 0;
-	while (sent < nrecip) {
+
+	while (sent < nrecip)
+	{
 		int rc = hv_send_message(recip, nrecip,
-					 (HV_VirtAddr)&tag, sizeof(tag));
-		if (rc < 0) {
+								 (HV_VirtAddr)&tag, sizeof(tag));
+
+		if (rc < 0)
+		{
 			if (!stopping_cpus)  /* avoid recursive panic */
+			{
 				panic("hv_send_message returned %d", rc);
+			}
+
 			break;
 		}
+
 		WARN_ONCE(rc == 0, "hv_send_message() returned zero\n");
 		sent += rc;
 	}
@@ -62,7 +70,8 @@ static void __send_IPI_many(HV_Recipient *recip, int nrecip, int tag)
 
 void send_IPI_single(int cpu, int tag)
 {
-	HV_Recipient recip = {
+	HV_Recipient recip =
+	{
 		.y = cpu / smp_width,
 		.x = cpu % smp_width,
 		.state = HV_TO_BE_SENT
@@ -76,7 +85,8 @@ void send_IPI_many(const struct cpumask *mask, int tag)
 	int cpu;
 	int nrecip = 0;
 	int my_cpu = smp_processor_id();
-	for_each_cpu(cpu, mask) {
+	for_each_cpu(cpu, mask)
+	{
 		HV_Recipient *r;
 		BUG_ON(cpu == my_cpu);
 		r = &recip[nrecip++];
@@ -110,8 +120,11 @@ static void smp_stop_cpu_interrupt(void)
 {
 	arch_local_irq_disable_all();
 	set_cpu_online(smp_processor_id(), 0);
+
 	for (;;)
+	{
 		asm("nap; nop");
+	}
 }
 
 /* This function calls the 'stop' function on all other CPUs in the system. */
@@ -125,7 +138,9 @@ void smp_send_stop(void)
 void panic_smp_self_stop(void)
 {
 	while (1)
+	{
 		asm("nap; nop");
+	}
 }
 
 /*
@@ -133,30 +148,31 @@ void panic_smp_self_stop(void)
  */
 void evaluate_message(int tag)
 {
-	switch (tag) {
-	case MSG_TAG_START_CPU: /* Start up a cpu */
-		smp_start_cpu_interrupt();
-		break;
+	switch (tag)
+	{
+		case MSG_TAG_START_CPU: /* Start up a cpu */
+			smp_start_cpu_interrupt();
+			break;
 
-	case MSG_TAG_STOP_CPU: /* Sent to shut down slave CPU's */
-		smp_stop_cpu_interrupt();
-		break;
+		case MSG_TAG_STOP_CPU: /* Sent to shut down slave CPU's */
+			smp_stop_cpu_interrupt();
+			break;
 
-	case MSG_TAG_CALL_FUNCTION_MANY: /* Call function on cpumask */
-		generic_smp_call_function_interrupt();
-		break;
+		case MSG_TAG_CALL_FUNCTION_MANY: /* Call function on cpumask */
+			generic_smp_call_function_interrupt();
+			break;
 
-	case MSG_TAG_CALL_FUNCTION_SINGLE: /* Call function on one other CPU */
-		generic_smp_call_function_single_interrupt();
-		break;
+		case MSG_TAG_CALL_FUNCTION_SINGLE: /* Call function on one other CPU */
+			generic_smp_call_function_single_interrupt();
+			break;
 
-	case MSG_TAG_IRQ_WORK: /* Invoke IRQ work */
-		irq_work_run();
-		break;
+		case MSG_TAG_IRQ_WORK: /* Invoke IRQ work */
+			irq_work_run();
+			break;
 
-	default:
-		panic("Unknown IPI message tag %d", tag);
-		break;
+		default:
+			panic("Unknown IPI message tag %d", tag);
+			break;
 	}
 }
 
@@ -165,7 +181,8 @@ void evaluate_message(int tag)
  * flush_icache_range() code uses smp_call_function().
  */
 
-struct ipi_flush {
+struct ipi_flush
+{
 	unsigned long start;
 	unsigned long end;
 };
@@ -183,8 +200,9 @@ void flush_icache_range(unsigned long start, unsigned long end)
 	/* If invoked with irqs disabled, we can not issue IPIs. */
 	if (irqs_disabled())
 		flush_remote(0, HV_FLUSH_EVICT_L1I, NULL, 0, 0, 0,
-			NULL, NULL, 0);
-	else {
+					 NULL, NULL, 0);
+	else
+	{
 		preempt_disable();
 		on_each_cpu(ipi_flush_icache_range, &flush, 1);
 		preempt_enable();
@@ -197,7 +215,9 @@ EXPORT_SYMBOL(flush_icache_range);
 void arch_irq_work_raise(void)
 {
 	if (arch_irq_work_has_interrupt())
+	{
 		send_IPI_single(smp_processor_id(), MSG_TAG_IRQ_WORK);
+	}
 }
 #endif
 
@@ -211,7 +231,8 @@ static irqreturn_t handle_reschedule_ipi(int irq, void *token)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction resched_action = {
+static struct irqaction resched_action =
+{
 	.handler = handle_reschedule_ipi,
 	.name = "resched",
 	.dev_id = handle_reschedule_ipi /* unique token */,
@@ -221,7 +242,8 @@ void __init ipi_init(void)
 {
 	int cpu = smp_processor_id();
 	HV_Recipient recip = { .y = cpu_y(cpu), .x = cpu_x(cpu),
-			       .state = HV_TO_BE_SENT };
+						   .state = HV_TO_BE_SENT
+						 };
 	int tag = MSG_TAG_CALL_FUNCTION_SINGLE;
 
 	/*
@@ -230,21 +252,29 @@ void __init ipi_init(void)
 	 * in versions 4.3.4 and following.
 	 */
 	if (hv_send_message(&recip, 1, (HV_VirtAddr)&tag, sizeof(tag)) == 1)
+	{
 		self_interrupt_ok = true;
+	}
 	else
+	{
 		pr_warn("Older hypervisor: disabling fast irq_work_raise\n");
+	}
 
 #if CHIP_HAS_IPI()
 	/* Map IPI trigger MMIO addresses. */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		HV_Coord tile;
 		HV_PTE pte;
 		unsigned long offset;
 
 		tile.x = cpu_x(cpu);
 		tile.y = cpu_y(cpu);
+
 		if (hv_get_ipi_pte(tile, KERNEL_PL, &pte) != 0)
+		{
 			panic("Failed to initialize IPI for cpu %d\n", cpu);
+		}
 
 		offset = PFN_PHYS(pte_pfn(pte));
 		ipi_mappings[cpu] = ioremap_prot(offset, PAGE_SIZE, pte);

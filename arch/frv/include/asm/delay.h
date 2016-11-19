@@ -23,11 +23,11 @@ extern unsigned long __delay_loops_MHz;
 static inline void __delay(unsigned long loops)
 {
 	asm volatile("1:	subicc	%0,#1,%0,icc0	\n"
-		     "		bnc	icc0,#2,1b	\n"
-		     : "=r" (loops)
-		     : "0" (loops)
-		     : "icc0"
-		     );
+				 "		bnc	icc0,#2,1b	\n"
+				 : "=r" (loops)
+				 : "0" (loops)
+				 : "icc0"
+				);
 }
 
 /*

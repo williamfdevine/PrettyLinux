@@ -15,7 +15,8 @@
 #include <asm-generic/module.h>
 
 #ifdef CONFIG_ARC_DW2_UNWIND
-struct mod_arch_specific {
+struct mod_arch_specific
+{
 	void *unw_info;
 	int unw_sec_idx;
 	const char *secstr;

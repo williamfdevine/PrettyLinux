@@ -40,8 +40,8 @@
 #include <xen/interface/platform.h>
 
 long privcmd_call(unsigned call, unsigned long a1,
-		unsigned long a2, unsigned long a3,
-		unsigned long a4, unsigned long a5);
+				  unsigned long a2, unsigned long a3,
+				  unsigned long a4, unsigned long a5);
 int HYPERVISOR_xen_version(int cmd, void *arg);
 int HYPERVISOR_console_io(int cmd, int count, char *str);
 int HYPERVISOR_grant_table_op(unsigned int cmd, void *uop, unsigned int count);
@@ -72,14 +72,14 @@ HYPERVISOR_suspend(unsigned long start_info_mfn)
 
 static inline void
 MULTI_update_va_mapping(struct multicall_entry *mcl, unsigned long va,
-			unsigned int new_val, unsigned long flags)
+						unsigned int new_val, unsigned long flags)
 {
 	BUG();
 }
 
 static inline void
 MULTI_mmu_update(struct multicall_entry *mcl, struct mmu_update *req,
-		 int count, int *success_count, domid_t domid)
+				 int count, int *success_count, domid_t domid)
 {
 	BUG();
 }

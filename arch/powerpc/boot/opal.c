@@ -16,7 +16,8 @@
 #ifdef __powerpc64__
 
 /* Global OPAL struct used by opal-call.S */
-struct opal {
+struct opal
+{
 	u64 base;
 	u64 entry;
 } opal;
@@ -39,13 +40,19 @@ static void opal_con_putc(unsigned char c)
 	int64_t rc;
 	uint64_t olen, len;
 
-	do {
+	do
+	{
 		rc = opal_console_write_buffer_space(opal_con_id, &olen);
 		len = be64_to_cpu(olen);
+
 		if (rc)
+		{
 			return;
+		}
+
 		opal_poll_events(NULL);
-	} while (len < 1);
+	}
+	while (len < 1);
 
 
 	olen = cpu_to_be64(1);
@@ -62,13 +69,24 @@ static void opal_init(void)
 	void *opal_node;
 
 	opal_node = finddevice("/ibm,opal");
+
 	if (!opal_node)
+	{
 		return;
+	}
+
 	if (getprop(opal_node, "opal-base-address", &opal.base, sizeof(u64)) < 0)
+	{
 		return;
+	}
+
 	opal.base = be64_to_cpu(opal.base);
+
 	if (getprop(opal_node, "opal-entry-address", &opal.entry, sizeof(u64)) < 0)
+	{
 		return;
+	}
+
 	opal.entry = be64_to_cpu(opal.entry);
 }
 
@@ -76,13 +94,21 @@ int opal_console_init(void *devp, struct serial_console_data *scdp)
 {
 	opal_init();
 
-	if (devp) {
+	if (devp)
+	{
 		int n = getprop(devp, "reg", &opal_con_id, sizeof(u32));
+
 		if (n != sizeof(u32))
+		{
 			return -1;
+		}
+
 		opal_con_id = be32_to_cpu(opal_con_id);
-	} else
+	}
+	else
+	{
 		opal_con_id = 0;
+	}
 
 	scdp->open = opal_con_open;
 	scdp->putc = opal_con_putc;

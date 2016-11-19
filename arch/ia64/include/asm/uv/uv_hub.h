@@ -93,7 +93,8 @@
  * frequently referenced and are kept in the per-cpu data areas of each cpu.
  * They are kept together in a struct to minimize cache misses.
  */
-struct uv_hub_info_s {
+struct uv_hub_info_s
+{
 	unsigned long	global_mmr_base;
 	unsigned long	gpa_mask;
 	unsigned long	gnode_upper;
@@ -145,7 +146,10 @@ DECLARE_PER_CPU(struct uv_hub_info_s, __uv_hub_info);
 static inline unsigned long uv_soc_phys_ram_to_gpa(unsigned long paddr)
 {
 	if (paddr < uv_hub_info->lowmem_remap_top)
+	{
 		paddr += uv_hub_info->lowmem_remap_base;
+	}
+
 	return paddr | uv_hub_info->gnode_upper;
 }
 
@@ -180,20 +184,20 @@ static inline void *uv_pnode_offset_to_vaddr(int pnode, unsigned long offset)
  * faster MMR access but not all MMRs are accessible in this space.
  */
 static inline unsigned long *uv_global_mmr32_address(int pnode,
-				unsigned long offset)
+		unsigned long offset)
 {
 	return __va(UV_GLOBAL_MMR32_BASE |
-		       UV_GLOBAL_MMR32_PNODE_BITS(pnode) | offset);
+				UV_GLOBAL_MMR32_PNODE_BITS(pnode) | offset);
 }
 
 static inline void uv_write_global_mmr32(int pnode, unsigned long offset,
-				 unsigned long val)
+		unsigned long val)
 {
 	*uv_global_mmr32_address(pnode, offset) = val;
 }
 
 static inline unsigned long uv_read_global_mmr32(int pnode,
-						 unsigned long offset)
+		unsigned long offset)
 {
 	return *uv_global_mmr32_address(pnode, offset);
 }
@@ -203,20 +207,20 @@ static inline unsigned long uv_read_global_mmr32(int pnode,
  * memory.
  */
 static inline unsigned long *uv_global_mmr64_address(int pnode,
-				unsigned long offset)
+		unsigned long offset)
 {
 	return __va(UV_GLOBAL_MMR64_BASE |
-		    UV_GLOBAL_MMR64_PNODE_BITS(pnode) | offset);
+				UV_GLOBAL_MMR64_PNODE_BITS(pnode) | offset);
 }
 
 static inline void uv_write_global_mmr64(int pnode, unsigned long offset,
-				unsigned long val)
+		unsigned long val)
 {
 	*uv_global_mmr64_address(pnode, offset) = val;
 }
 
 static inline unsigned long uv_read_global_mmr64(int pnode,
-						 unsigned long offset)
+		unsigned long offset)
 {
 	return *uv_global_mmr64_address(pnode, offset);
 }

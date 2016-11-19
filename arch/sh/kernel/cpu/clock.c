@@ -26,17 +26,23 @@ int __init clk_init(void)
 
 #ifndef CONFIG_COMMON_CLK
 	ret = arch_clk_init();
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		pr_err("%s: CPU clock registration failed.\n", __func__);
 		return ret;
 	}
+
 #endif
 
-	if (sh_mv.mv_clk_init) {
+	if (sh_mv.mv_clk_init)
+	{
 		ret = sh_mv.mv_clk_init();
-		if (unlikely(ret)) {
+
+		if (unlikely(ret))
+		{
 			pr_err("%s: machvec clock initialization failed.\n",
-			       __func__);
+				   __func__);
 			return ret;
 		}
 	}

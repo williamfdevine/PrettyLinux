@@ -1,15 +1,15 @@
- /*
- * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
- *		http://www.samsung.com
- *
- * Cloned from linux/arch/arm/mach-vexpress/platsmp.c
- *
- *  Copyright (C) 2002 ARM Ltd.
- *  All Rights Reserved
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
+/*
+* Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
+*		http://www.samsung.com
+*
+* Cloned from linux/arch/arm/mach-vexpress/platsmp.c
+*
+*  Copyright (C) 2002 ARM Ltd.
+*  All Rights Reserved
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 2 as
+* published by the Free Software Foundation.
 */
 
 #include <linux/init.h>
@@ -39,15 +39,15 @@ static inline void cpu_leave_lowpower(u32 core_id)
 	unsigned int v;
 
 	asm volatile(
-	"mrc	p15, 0, %0, c1, c0, 0\n"
-	"	orr	%0, %0, %1\n"
-	"	mcr	p15, 0, %0, c1, c0, 0\n"
-	"	mrc	p15, 0, %0, c1, c0, 1\n"
-	"	orr	%0, %0, %2\n"
-	"	mcr	p15, 0, %0, c1, c0, 1\n"
-	  : "=&r" (v)
-	  : "Ir" (CR_C), "Ir" (0x40)
-	  : "cc");
+		"mrc	p15, 0, %0, c1, c0, 0\n"
+		"	orr	%0, %0, %1\n"
+		"	mcr	p15, 0, %0, c1, c0, 0\n"
+		"	mrc	p15, 0, %0, c1, c0, 1\n"
+		"	orr	%0, %0, %2\n"
+		"	mcr	p15, 0, %0, c1, c0, 1\n"
+		: "=&r" (v)
+		: "Ir" (CR_C), "Ir" (0x40)
+		: "cc");
 }
 
 static inline void platform_do_lowpower(unsigned int cpu, int *spurious)
@@ -55,14 +55,16 @@ static inline void platform_do_lowpower(unsigned int cpu, int *spurious)
 	u32 mpidr = cpu_logical_map(cpu);
 	u32 core_id = MPIDR_AFFINITY_LEVEL(mpidr, 0);
 
-	for (;;) {
+	for (;;)
+	{
 
 		/* Turn the CPU off on next WFI instruction. */
 		exynos_cpu_power_down(core_id);
 
 		wfi();
 
-		if (pen_release == core_id) {
+		if (pen_release == core_id)
+		{
 			/*
 			 * OK, proper wakeup, we're done
 			 */
@@ -93,7 +95,8 @@ void exynos_cpu_power_down(int cpu)
 {
 	u32 core_conf;
 
-	if (cpu == 0 && (soc_is_exynos5420() || soc_is_exynos5800())) {
+	if (cpu == 0 && (soc_is_exynos5420() || soc_is_exynos5800()))
+	{
 		/*
 		 * Bypass power down for CPU0 during suspend. Check for
 		 * the SYS_PWR_REG value to decide if we are suspending
@@ -102,7 +105,9 @@ void exynos_cpu_power_down(int cpu)
 		int val = pmu_raw_readl(EXYNOS5_ARM_CORE0_SYS_PWR_REG);
 
 		if (!(val & S5P_CORE_LOCAL_PWR_EN))
+		{
 			return;
+		}
 	}
 
 	core_conf = pmu_raw_readl(EXYNOS_ARM_CORE_CONFIGURATION(cpu));
@@ -121,10 +126,12 @@ void exynos_cpu_power_up(int cpu)
 	u32 core_conf = S5P_CORE_LOCAL_PWR_EN;
 
 	if (soc_is_exynos3250())
+	{
 		core_conf |= S5P_CORE_AUTOWAKEUP_EN;
+	}
 
 	pmu_raw_writel(core_conf,
-			EXYNOS_ARM_CORE_CONFIGURATION(cpu));
+				   EXYNOS_ARM_CORE_CONFIGURATION(cpu));
 }
 
 /**
@@ -154,7 +161,7 @@ void exynos_cluster_power_down(int cluster)
 void exynos_cluster_power_up(int cluster)
 {
 	pmu_raw_writel(S5P_CORE_LOCAL_PWR_EN,
-			EXYNOS_COMMON_CONFIGURATION(cluster));
+				   EXYNOS_COMMON_CONFIGURATION(cluster));
 }
 
 /**
@@ -165,13 +172,16 @@ void exynos_cluster_power_up(int cluster)
 int exynos_cluster_power_state(int cluster)
 {
 	return (pmu_raw_readl(EXYNOS_COMMON_STATUS(cluster)) &
-		S5P_CORE_LOCAL_PWR_EN);
+			S5P_CORE_LOCAL_PWR_EN);
 }
 
 static void __iomem *cpu_boot_reg_base(void)
 {
 	if (soc_is_exynos4210() && samsung_rev() == EXYNOS4210_REV_1_1)
+	{
 		return pmu_base_addr + S5P_INFORM5;
+	}
+
 	return sysram_base_addr;
 }
 
@@ -180,12 +190,21 @@ static inline void __iomem *cpu_boot_reg(int cpu)
 	void __iomem *boot_reg;
 
 	boot_reg = cpu_boot_reg_base();
+
 	if (!boot_reg)
+	{
 		return IOMEM_ERR_PTR(-ENODEV);
+	}
+
 	if (soc_is_exynos4412())
-		boot_reg += 4*cpu;
+	{
+		boot_reg += 4 * cpu;
+	}
 	else if (soc_is_exynos5420() || soc_is_exynos5800())
+	{
 		boot_reg += 4;
+	}
+
 	return boot_reg;
 }
 
@@ -199,10 +218,15 @@ void exynos_core_restart(u32 core_id)
 	u32 val;
 
 	if (!of_machine_is_compatible("samsung,exynos3250"))
+	{
 		return;
+	}
 
 	while (!pmu_raw_readl(S5P_PMU_SPARE2))
+	{
 		udelay(10);
+	}
+
 	udelay(10);
 
 	val = pmu_raw_readl(EXYNOS_ARM_CORE_STATUS(core_id));
@@ -255,18 +279,26 @@ int exynos_set_boot_addr(u32 core_id, unsigned long boot_addr)
 	 * and fall back to boot register if it fails.
 	 */
 	ret = call_firmware_op(set_cpu_boot_addr, core_id, boot_addr);
+
 	if (ret && ret != -ENOSYS)
+	{
 		goto fail;
-	if (ret == -ENOSYS) {
+	}
+
+	if (ret == -ENOSYS)
+	{
 		void __iomem *boot_reg = cpu_boot_reg(core_id);
 
-		if (IS_ERR(boot_reg)) {
+		if (IS_ERR(boot_reg))
+		{
 			ret = PTR_ERR(boot_reg);
 			goto fail;
 		}
+
 		writel_relaxed(boot_addr, boot_reg);
 		ret = 0;
 	}
+
 fail:
 	return ret;
 }
@@ -280,18 +312,26 @@ int exynos_get_boot_addr(u32 core_id, unsigned long *boot_addr)
 	 * and fall back to boot register if it fails.
 	 */
 	ret = call_firmware_op(get_cpu_boot_addr, core_id, boot_addr);
+
 	if (ret && ret != -ENOSYS)
+	{
 		goto fail;
-	if (ret == -ENOSYS) {
+	}
+
+	if (ret == -ENOSYS)
+	{
 		void __iomem *boot_reg = cpu_boot_reg(core_id);
 
-		if (IS_ERR(boot_reg)) {
+		if (IS_ERR(boot_reg))
+		{
 			ret = PTR_ERR(boot_reg);
 			goto fail;
 		}
+
 		*boot_addr = readl_relaxed(boot_reg);
 		ret = 0;
 	}
+
 fail:
 	return ret;
 }
@@ -319,20 +359,25 @@ static int exynos_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 */
 	write_pen_release(core_id);
 
-	if (!exynos_cpu_power_state(core_id)) {
+	if (!exynos_cpu_power_state(core_id))
+	{
 		exynos_cpu_power_up(core_id);
 		timeout = 10;
 
 		/* wait max 10 ms until cpu1 is on */
 		while (exynos_cpu_power_state(core_id)
-		       != S5P_CORE_LOCAL_PWR_EN) {
+			   != S5P_CORE_LOCAL_PWR_EN)
+		{
 			if (timeout-- == 0)
+			{
 				break;
+			}
 
 			mdelay(1);
 		}
 
-		if (timeout == 0) {
+		if (timeout == 0)
+		{
 			printk(KERN_ERR "cpu1 power enable failed");
 			spin_unlock(&boot_lock);
 			return -ETIMEDOUT;
@@ -348,7 +393,9 @@ static int exynos_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 */
 
 	timeout = jiffies + (1 * HZ);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		unsigned long boot_addr;
 
 		smp_rmb();
@@ -356,24 +403,35 @@ static int exynos_boot_secondary(unsigned int cpu, struct task_struct *idle)
 		boot_addr = virt_to_phys(exynos4_secondary_startup);
 
 		ret = exynos_set_boot_addr(core_id, boot_addr);
+
 		if (ret)
+		{
 			goto fail;
+		}
 
 		call_firmware_op(cpu_boot, core_id);
 
 		if (soc_is_exynos3250())
+		{
 			dsb_sev();
+		}
 		else
+		{
 			arch_send_wakeup_ipi_mask(cpumask_of(cpu));
+		}
 
 		if (pen_release == -1)
+		{
 			break;
+		}
 
 		udelay(10);
 	}
 
 	if (pen_release != -1)
+	{
 		ret = -ETIMEDOUT;
+	}
 
 	/*
 	 * now the secondary core is starting up let it run its
@@ -396,23 +454,30 @@ static void __init exynos_smp_init_cpus(void)
 	unsigned int i, ncores;
 
 	if (read_cpuid_part() == ARM_CPU_PART_CORTEX_A9)
+	{
 		ncores = scu_base ? scu_get_core_count(scu_base) : 1;
+	}
 	else
 		/*
 		 * CPU Nodes are passed thru DT and set_cpu_possible
 		 * is set by "arm_dt_init_cpu_maps".
 		 */
+	{
 		return;
+	}
 
 	/* sanity check */
-	if (ncores > nr_cpu_ids) {
+	if (ncores > nr_cpu_ids)
+	{
 		pr_warn("SMP: %u cores greater than maximum (%u), clipping\n",
-			ncores, nr_cpu_ids);
+				ncores, nr_cpu_ids);
 		ncores = nr_cpu_ids;
 	}
 
 	for (i = 0; i < ncores; i++)
+	{
 		set_cpu_possible(i, true);
+	}
 }
 
 static void __init exynos_smp_prepare_cpus(unsigned int max_cpus)
@@ -424,7 +489,9 @@ static void __init exynos_smp_prepare_cpus(unsigned int max_cpus)
 	exynos_set_delayed_reset_assertion(true);
 
 	if (read_cpuid_part() == ARM_CPU_PART_CORTEX_A9)
+	{
 		scu_enable(scu_base_addr());
+	}
 
 	/*
 	 * Write the address of secondary startup into the
@@ -435,7 +502,8 @@ static void __init exynos_smp_prepare_cpus(unsigned int max_cpus)
 	 * Try using firmware operation first and fall back to
 	 * boot register if it fails.
 	 */
-	for (i = 1; i < max_cpus; ++i) {
+	for (i = 1; i < max_cpus; ++i)
+	{
 		unsigned long boot_addr;
 		u32 mpidr;
 		u32 core_id;
@@ -446,8 +514,11 @@ static void __init exynos_smp_prepare_cpus(unsigned int max_cpus)
 		boot_addr = virt_to_phys(exynos4_secondary_startup);
 
 		ret = exynos_set_boot_addr(core_id, boot_addr);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 }
 
@@ -474,11 +545,14 @@ static void exynos_cpu_die(unsigned int cpu)
 	cpu_leave_lowpower(core_id);
 
 	if (spurious)
+	{
 		pr_warn("CPU%u: %u spurious wakeup calls\n", cpu, spurious);
+	}
 }
 #endif /* CONFIG_HOTPLUG_CPU */
 
-const struct smp_operations exynos_smp_ops __initconst = {
+const struct smp_operations exynos_smp_ops __initconst =
+{
 	.smp_init_cpus		= exynos_smp_init_cpus,
 	.smp_prepare_cpus	= exynos_smp_prepare_cpus,
 	.smp_secondary_init	= exynos_secondary_init,

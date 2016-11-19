@@ -35,7 +35,9 @@ static inline long get_reg(struct task_struct *task, int regno)
 	long *addr = (long *)task_pt_regs(task);
 
 	if (regno == PT_TSR || regno == PT_CSR)
+	{
 		return 0;
+	}
 
 	return addr[regno];
 }
@@ -44,13 +46,15 @@ static inline long get_reg(struct task_struct *task, int regno)
  * Write contents of register REGNO in task TASK.
  */
 static inline int put_reg(struct task_struct *task,
-			  int regno,
-			  unsigned long data)
+						  int regno,
+						  unsigned long data)
 {
 	unsigned long *addr = (unsigned long *)task_pt_regs(task);
 
 	if (regno != PT_TSR && regno != PT_CSR)
+	{
 		addr[regno] = data;
+	}
 
 	return 0;
 }
@@ -58,62 +62,76 @@ static inline int put_reg(struct task_struct *task,
 /* regset get/set implementations */
 
 static int gpr_get(struct task_struct *target,
-		   const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   void *kbuf, void __user *ubuf)
+				   const struct user_regset *regset,
+				   unsigned int pos, unsigned int count,
+				   void *kbuf, void __user *ubuf)
 {
 	struct pt_regs *regs = task_pt_regs(target);
 
 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				   regs,
-				   0, sizeof(*regs));
+							   regs,
+							   0, sizeof(*regs));
 }
 
 static int gpr_set(struct task_struct *target,
-		   const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   const void *kbuf, const void __user *ubuf)
+				   const struct user_regset *regset,
+				   unsigned int pos, unsigned int count,
+				   const void *kbuf, const void __user *ubuf)
 {
 	int ret;
 	struct pt_regs *regs = task_pt_regs(target);
 
 	/* Don't copyin TSR or CSR */
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 &regs,
-				 0, PT_TSR * sizeof(long));
+							 &regs,
+							 0, PT_TSR * sizeof(long));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-					PT_TSR * sizeof(long),
-					(PT_TSR + 1) * sizeof(long));
+									PT_TSR * sizeof(long),
+									(PT_TSR + 1) * sizeof(long));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 &regs,
-				 (PT_TSR + 1) * sizeof(long),
-				 PT_CSR * sizeof(long));
+							 &regs,
+							 (PT_TSR + 1) * sizeof(long),
+							 PT_CSR * sizeof(long));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-					PT_CSR * sizeof(long),
-					(PT_CSR + 1) * sizeof(long));
+									PT_CSR * sizeof(long),
+									(PT_CSR + 1) * sizeof(long));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 &regs,
-				 (PT_CSR + 1) * sizeof(long), -1);
+							 &regs,
+							 (PT_CSR + 1) * sizeof(long), -1);
 	return ret;
 }
 
-enum c6x_regset {
+enum c6x_regset
+{
 	REGSET_GPR,
 };
 
-static const struct user_regset c6x_regsets[] = {
+static const struct user_regset c6x_regsets[] =
+{
 	[REGSET_GPR] = {
 		.core_note_type = NT_PRSTATUS,
 		.n = ELF_NGREG,
@@ -124,7 +142,8 @@ static const struct user_regset c6x_regsets[] = {
 	},
 };
 
-static const struct user_regset_view user_c6x_native_view = {
+static const struct user_regset_view user_c6x_native_view =
+{
 	.name		= "tic6x",
 	.e_machine	= EM_TI_C6000,
 	.regsets	= c6x_regsets,
@@ -140,22 +159,28 @@ const struct user_regset_view *task_user_regset_view(struct task_struct *task)
  * Perform ptrace request
  */
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	int ret = 0;
 
-	switch (request) {
+	switch (request)
+	{
 		/*
 		 * write the word at location addr.
 		 */
-	case PTRACE_POKETEXT:
-		ret = generic_ptrace_pokedata(child, addr, data);
-		if (ret == 0 && request == PTRACE_POKETEXT)
-			flush_icache_range(addr, addr + 4);
-		break;
-	default:
-		ret = ptrace_request(child, request, addr, data);
-		break;
+		case PTRACE_POKETEXT:
+			ret = generic_ptrace_pokedata(child, addr, data);
+
+			if (ret == 0 && request == PTRACE_POKETEXT)
+			{
+				flush_icache_range(addr, addr + 4);
+			}
+
+			break;
+
+		default:
+			ret = ptrace_request(child, request, addr, data);
+			break;
 	}
 
 	return ret;
@@ -173,7 +198,9 @@ asmlinkage unsigned long syscall_trace_entry(struct pt_regs *regs)
 		 * error, but leave the original number in
 		 * regs->orig_a4
 		 */
+	{
 		return ULONG_MAX;
+	}
 
 	return regs->b0;
 }

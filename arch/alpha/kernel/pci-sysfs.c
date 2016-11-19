@@ -15,25 +15,29 @@
 #include <linux/pci.h>
 
 static int hose_mmap_page_range(struct pci_controller *hose,
-				struct vm_area_struct *vma,
-				enum pci_mmap_state mmap_type, int sparse)
+								struct vm_area_struct *vma,
+								enum pci_mmap_state mmap_type, int sparse)
 {
 	unsigned long base;
 
 	if (mmap_type == pci_mmap_mem)
+	{
 		base = sparse ? hose->sparse_mem_base : hose->dense_mem_base;
+	}
 	else
+	{
 		base = sparse ? hose->sparse_io_base : hose->dense_io_base;
+	}
 
 	vma->vm_pgoff += base >> PAGE_SHIFT;
 
 	return io_remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
-				  vma->vm_end - vma->vm_start,
-				  vma->vm_page_prot);
+							  vma->vm_end - vma->vm_start,
+							  vma->vm_page_prot);
 }
 
 static int __pci_mmap_fits(struct pci_dev *pdev, int num,
-			   struct vm_area_struct *vma, int sparse)
+						   struct vm_area_struct *vma, int sparse)
 {
 	unsigned long nr, start, size;
 	int shift = sparse ? 5 : 0;
@@ -43,11 +47,14 @@ static int __pci_mmap_fits(struct pci_dev *pdev, int num,
 	size = ((pci_resource_len(pdev, num) - 1) >> (PAGE_SHIFT - shift)) + 1;
 
 	if (start < size && size - start >= nr)
+	{
 		return 1;
+	}
+
 	WARN(1, "process \"%s\" tried to map%s 0x%08lx-0x%08lx on %s BAR %d "
-		"(size 0x%08lx)\n",
-		current->comm, sparse ? " sparse" : "", start, start + nr,
-		pci_name(pdev), num, size);
+		 "(size 0x%08lx)\n",
+		 current->comm, sparse ? " sparse" : "", start, start + nr,
+		 pci_name(pdev), num, size);
 	return 0;
 }
 
@@ -61,11 +68,11 @@ static int __pci_mmap_fits(struct pci_dev *pdev, int num,
  * Use the bus mapping routines to map a PCI resource into userspace.
  */
 static int pci_mmap_resource(struct kobject *kobj,
-			     struct bin_attribute *attr,
-			     struct vm_area_struct *vma, int sparse)
+							 struct bin_attribute *attr,
+							 struct vm_area_struct *vma, int sparse)
 {
 	struct pci_dev *pdev = to_pci_dev(container_of(kobj,
-						       struct device, kobj));
+									  struct device, kobj));
 	struct resource *res = attr->private;
 	enum pci_mmap_state mmap_type;
 	struct pci_bus_region bar;
@@ -73,15 +80,24 @@ static int pci_mmap_resource(struct kobject *kobj,
 
 	for (i = 0; i < PCI_ROM_RESOURCE; i++)
 		if (res == &pdev->resource[i])
+		{
 			break;
+		}
+
 	if (i >= PCI_ROM_RESOURCE)
+	{
 		return -ENODEV;
+	}
 
 	if (res->flags & IORESOURCE_MEM && iomem_is_exclusive(res->start))
+	{
 		return -EINVAL;
+	}
 
 	if (!__pci_mmap_fits(pdev, i, vma, sparse))
+	{
 		return -EINVAL;
+	}
 
 	pcibios_resource_to_bus(pdev->bus, &bar, res);
 	vma->vm_pgoff += bar.start >> (PAGE_SHIFT - (sparse ? 5 : 0));
@@ -91,15 +107,15 @@ static int pci_mmap_resource(struct kobject *kobj,
 }
 
 static int pci_mmap_resource_sparse(struct file *filp, struct kobject *kobj,
-				    struct bin_attribute *attr,
-				    struct vm_area_struct *vma)
+									struct bin_attribute *attr,
+									struct vm_area_struct *vma)
 {
 	return pci_mmap_resource(kobj, attr, vma, 1);
 }
 
 static int pci_mmap_resource_dense(struct file *filp, struct kobject *kobj,
-				   struct bin_attribute *attr,
-				   struct vm_area_struct *vma)
+								   struct bin_attribute *attr,
+								   struct vm_area_struct *vma)
 {
 	return pci_mmap_resource(kobj, attr, vma, 0);
 }
@@ -115,17 +131,22 @@ void pci_remove_resource_files(struct pci_dev *pdev)
 {
 	int i;
 
-	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
+	for (i = 0; i < PCI_ROM_RESOURCE; i++)
+	{
 		struct bin_attribute *res_attr;
 
 		res_attr = pdev->res_attr[i];
-		if (res_attr) {
+
+		if (res_attr)
+		{
 			sysfs_remove_bin_file(&pdev->dev.kobj, res_attr);
 			kfree(res_attr);
 		}
 
 		res_attr = pdev->res_attr_wc[i];
-		if (res_attr) {
+
+		if (res_attr)
+		{
 			sysfs_remove_bin_file(&pdev->dev.kobj, res_attr);
 			kfree(res_attr);
 		}
@@ -152,14 +173,14 @@ static int sparse_mem_mmap_fits(struct pci_dev *pdev, int num)
 }
 
 static int pci_create_one_attr(struct pci_dev *pdev, int num, char *name,
-			       char *suffix, struct bin_attribute *res_attr,
-			       unsigned long sparse)
+							   char *suffix, struct bin_attribute *res_attr,
+							   unsigned long sparse)
 {
 	size_t size = pci_resource_len(pdev, num);
 
 	sprintf(name, "resource%d%s", num, suffix);
 	res_attr->mmap = sparse ? pci_mmap_resource_sparse :
-				  pci_mmap_resource_dense;
+					 pci_mmap_resource_dense;
 	res_attr->attr.name = name;
 	res_attr->attr.mode = S_IRUSR | S_IWUSR;
 	res_attr->size = sparse ? size << 5 : size;
@@ -179,39 +200,53 @@ static int pci_create_attr(struct pci_dev *pdev, int num)
 	suffix = "";	/* Assume bwx machine, normal resourceN files. */
 	nlen1 = 10;
 
-	if (pdev->resource[num].flags & IORESOURCE_MEM) {
+	if (pdev->resource[num].flags & IORESOURCE_MEM)
+	{
 		sparse_base = hose->sparse_mem_base;
 		dense_base = hose->dense_mem_base;
-		if (sparse_base && !sparse_mem_mmap_fits(pdev, num)) {
+
+		if (sparse_base && !sparse_mem_mmap_fits(pdev, num))
+		{
 			sparse_base = 0;
 			suffix = "_dense";
 			nlen1 = 16;	/* resourceN_dense */
 		}
-	} else {
+	}
+	else
+	{
 		sparse_base = hose->sparse_io_base;
 		dense_base = hose->dense_io_base;
 	}
 
-	if (sparse_base) {
+	if (sparse_base)
+	{
 		suffix = "_sparse";
 		nlen1 = 17;
-		if (dense_base) {
+
+		if (dense_base)
+		{
 			nlen2 = 16;	/* resourceN_dense */
 			res_count = 2;
 		}
 	}
 
 	attr = kzalloc(sizeof(*attr) * res_count + nlen1 + nlen2, GFP_ATOMIC);
+
 	if (!attr)
+	{
 		return -ENOMEM;
+	}
 
 	/* Create bwx, sparse or single dense file */
 	attr_name = (char *)(attr + res_count);
 	pdev->res_attr[num] = attr;
 	retval = pci_create_one_attr(pdev, num, attr_name, suffix, attr,
-				     sparse_base);
+								 sparse_base);
+
 	if (retval || res_count == 1)
+	{
 		return retval;
+	}
 
 	/* Create dense file */
 	attr_name += nlen1;
@@ -232,26 +267,32 @@ int pci_create_resource_files(struct pci_dev *pdev)
 	int retval;
 
 	/* Expose the PCI resources from this device as files */
-	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
+	for (i = 0; i < PCI_ROM_RESOURCE; i++)
+	{
 
 		/* skip empty resources */
 		if (!pci_resource_len(pdev, i))
+		{
 			continue;
+		}
 
 		retval = pci_create_attr(pdev, i);
-		if (retval) {
+
+		if (retval)
+		{
 			pci_remove_resource_files(pdev);
 			return retval;
 		}
 	}
+
 	return 0;
 }
 
 /* Legacy I/O bus mapping stuff. */
 
 static int __legacy_mmap_fits(struct pci_controller *hose,
-			      struct vm_area_struct *vma,
-			      unsigned long res_size, int sparse)
+							  struct vm_area_struct *vma,
+							  unsigned long res_size, int sparse)
 {
 	unsigned long nr, start, size;
 
@@ -260,36 +301,42 @@ static int __legacy_mmap_fits(struct pci_controller *hose,
 	size = ((res_size - 1) >> PAGE_SHIFT) + 1;
 
 	if (start < size && size - start >= nr)
+	{
 		return 1;
+	}
+
 	WARN(1, "process \"%s\" tried to map%s 0x%08lx-0x%08lx on hose %d "
-		"(size 0x%08lx)\n",
-		current->comm, sparse ? " sparse" : "", start, start + nr,
-		hose->index, size);
+		 "(size 0x%08lx)\n",
+		 current->comm, sparse ? " sparse" : "", start, start + nr,
+		 hose->index, size);
 	return 0;
 }
 
 static inline int has_sparse(struct pci_controller *hose,
-			     enum pci_mmap_state mmap_type)
+							 enum pci_mmap_state mmap_type)
 {
 	unsigned long base;
 
 	base = (mmap_type == pci_mmap_mem) ? hose->sparse_mem_base :
-					     hose->sparse_io_base;
+		   hose->sparse_io_base;
 
 	return base != 0;
 }
 
 int pci_mmap_legacy_page_range(struct pci_bus *bus, struct vm_area_struct *vma,
-			       enum pci_mmap_state mmap_type)
+							   enum pci_mmap_state mmap_type)
 {
 	struct pci_controller *hose = bus->sysdata;
 	int sparse = has_sparse(hose, mmap_type);
 	unsigned long res_size;
 
 	res_size = (mmap_type == pci_mmap_mem) ? bus->legacy_mem->size :
-						 bus->legacy_io->size;
+			   bus->legacy_io->size;
+
 	if (!__legacy_mmap_fits(hose, vma, res_size, sparse))
+	{
 		return -EINVAL;
+	}
 
 	return hose_mmap_page_range(hose, vma, mmap_type, sparse);
 }
@@ -306,15 +353,21 @@ void pci_adjust_legacy_attr(struct pci_bus *bus, enum pci_mmap_state mmap_type)
 	struct pci_controller *hose = bus->sysdata;
 
 	if (!has_sparse(hose, mmap_type))
+	{
 		return;
+	}
 
-	if (mmap_type == pci_mmap_mem) {
+	if (mmap_type == pci_mmap_mem)
+	{
 		bus->legacy_mem->attr.name = "legacy_mem_sparse";
 		bus->legacy_mem->size <<= 5;
-	} else {
+	}
+	else
+	{
 		bus->legacy_io->attr.name = "legacy_io_sparse";
 		bus->legacy_io->size <<= 5;
 	}
+
 	return;
 }
 
@@ -325,21 +378,31 @@ int pci_legacy_read(struct pci_bus *bus, loff_t port, u32 *val, size_t size)
 
 	port += hose->io_space->start;
 
-	switch(size) {
-	case 1:
-		*((u8 *)val) = inb(port);
-		return 1;
-	case 2:
-		if (port & 1)
-			return -EINVAL;
-		*((u16 *)val) = inw(port);
-		return 2;
-	case 4:
-		if (port & 3)
-			return -EINVAL;
-		*((u32 *)val) = inl(port);
-		return 4;
+	switch (size)
+	{
+		case 1:
+			*((u8 *)val) = inb(port);
+			return 1;
+
+		case 2:
+			if (port & 1)
+			{
+				return -EINVAL;
+			}
+
+			*((u16 *)val) = inw(port);
+			return 2;
+
+		case 4:
+			if (port & 3)
+			{
+				return -EINVAL;
+			}
+
+			*((u32 *)val) = inl(port);
+			return 4;
 	}
+
 	return -EINVAL;
 }
 
@@ -349,20 +412,30 @@ int pci_legacy_write(struct pci_bus *bus, loff_t port, u32 val, size_t size)
 
 	port += hose->io_space->start;
 
-	switch(size) {
-	case 1:
-		outb(port, val);
-		return 1;
-	case 2:
-		if (port & 1)
-			return -EINVAL;
-		outw(port, val);
-		return 2;
-	case 4:
-		if (port & 3)
-			return -EINVAL;
-		outl(port, val);
-		return 4;
+	switch (size)
+	{
+		case 1:
+			outb(port, val);
+			return 1;
+
+		case 2:
+			if (port & 1)
+			{
+				return -EINVAL;
+			}
+
+			outw(port, val);
+			return 2;
+
+		case 4:
+			if (port & 3)
+			{
+				return -EINVAL;
+			}
+
+			outl(port, val);
+			return 4;
 	}
+
 	return -EINVAL;
 }

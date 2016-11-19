@@ -43,7 +43,9 @@ int notrace unwind_frame(struct stackframe *frame)
 
 	/* check current frame pointer is within bounds */
 	if (fp < (low + 12) || fp + 4 >= high)
+	{
 		return -EINVAL;
+	}
 
 	/* restore the registers from the stack frame */
 	frame->fp = *(unsigned long *)(fp - 12);
@@ -55,22 +57,30 @@ int notrace unwind_frame(struct stackframe *frame)
 #endif
 
 void notrace walk_stackframe(struct stackframe *frame,
-		     int (*fn)(struct stackframe *, void *), void *data)
+							 int (*fn)(struct stackframe *, void *), void *data)
 {
-	while (1) {
+	while (1)
+	{
 		int ret;
 
 		if (fn(frame, data))
+		{
 			break;
+		}
+
 		ret = unwind_frame(frame);
+
 		if (ret < 0)
+		{
 			break;
+		}
 	}
 }
 EXPORT_SYMBOL(walk_stackframe);
 
 #ifdef CONFIG_STACKTRACE
-struct stack_trace_data {
+struct stack_trace_data
+{
 	struct stack_trace *trace;
 	unsigned int no_sched_functions;
 	unsigned int skip;
@@ -83,8 +93,12 @@ static int save_trace(struct stackframe *frame, void *d)
 	unsigned long addr = frame->pc;
 
 	if (data->no_sched_functions && in_sched_functions(addr))
+	{
 		return 0;
-	if (data->skip) {
+	}
+
+	if (data->skip)
+	{
 		data->skip--;
 		return 0;
 	}
@@ -102,13 +116,16 @@ void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
 	data.trace = trace;
 	data.skip = trace->skip;
 
-	if (tsk != current) {
+	if (tsk != current)
+	{
 		data.no_sched_functions = 1;
 		frame.fp = thread_saved_fp(tsk);
 		frame.sp = thread_saved_sp(tsk);
 		frame.lr = 0;		/* recovered from the stack */
 		frame.pc = thread_saved_pc(tsk);
-	} else {
+	}
+	else
+	{
 		register unsigned long current_sp asm("sp");
 
 		data.no_sched_functions = 0;
@@ -119,8 +136,11 @@ void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
 	}
 
 	walk_stackframe(&frame, save_trace, &data);
+
 	if (trace->nr_entries < trace->max_entries)
+	{
 		trace->entries[trace->nr_entries++] = ULONG_MAX;
+	}
 }
 
 void save_stack_trace(struct stack_trace *trace)

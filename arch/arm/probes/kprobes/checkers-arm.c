@@ -27,7 +27,8 @@ static enum probes_insn __kprobes arm_check_stack(probes_opcode_t insn,
 	 * PROBES_STORE_EXTRA may get here. Simply mark all normal
 	 * insns as STACK_USE_NONE.
 	 */
-	static const union decode_item table[] = {
+	static const union decode_item table[] =
+	{
 		/*
 		 * 'STR{,D,B,H}, Rt, [Rn, Rm]' should be marked as UNKNOWN
 		 * if Rn or Rm is SP.
@@ -91,7 +92,8 @@ static enum probes_insn __kprobes arm_check_stack(probes_opcode_t insn,
 	return probes_decode_insn(insn, asi, table, false, false, stack_check_actions, NULL);
 }
 
-const struct decode_checker arm_stack_checker[NUM_PROBES_ARM_ACTIONS] = {
+const struct decode_checker arm_stack_checker[NUM_PROBES_ARM_ACTIONS] =
+{
 	[PROBES_LDRSTRD] = {.checker = arm_check_stack},
 	[PROBES_STORE_EXTRA] = {.checker = arm_check_stack},
 	[PROBES_STORE] = {.checker = arm_check_stack},
@@ -114,9 +116,12 @@ static enum probes_insn arm_check_regs_normal(probes_opcode_t insn,
 	int i;
 
 	asi->register_usage_flags = 0;
+
 	for (i = 0; i < 5; regs >>= 4, insn >>= 4, i++)
 		if (regs & 0xf)
+		{
 			asi->register_usage_flags |= 1 << (insn & 0xf);
+		}
 
 	return INSN_GOOD;
 }
@@ -137,7 +142,7 @@ static enum probes_insn arm_check_regs_mov_ip_sp(probes_opcode_t insn,
 		const struct decode_header *h)
 {
 	/* Instruction is 'mov ip, sp' i.e. 'mov r12, r13' */
-	asi->register_usage_flags = (1 << 12) | (1<< 13);
+	asi->register_usage_flags = (1 << 12) | (1 << 13);
 	return INSN_GOOD;
 }
 
@@ -164,7 +169,8 @@ static enum probes_insn arm_check_regs_ldrdstrd(probes_opcode_t insn,
 }
 
 
-const struct decode_checker arm_regs_checker[NUM_PROBES_ARM_ACTIONS] = {
+const struct decode_checker arm_regs_checker[NUM_PROBES_ARM_ACTIONS] =
+{
 	[PROBES_MRS] = {.checker = arm_check_regs_normal},
 	[PROBES_SATURATING_ARITHMETIC] = {.checker = arm_check_regs_normal},
 	[PROBES_MUL1] = {.checker = arm_check_regs_normal},

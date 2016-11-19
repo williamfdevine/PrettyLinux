@@ -21,7 +21,8 @@
 
 #include <linux/types.h>
 
-struct cpuinfo {
+struct cpuinfo
+{
 	/* Core CPU configuration */
 	char cpu_impl[12];
 	u32 cpu_clock_freq;

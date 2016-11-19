@@ -36,7 +36,7 @@
  */
 
 #ifndef _LINUX_RWSEM_H
-#error "please don't include asm/rwsem.h directly, use linux/rwsem.h instead"
+	#error "please don't include asm/rwsem.h directly, use linux/rwsem.h instead"
 #endif
 
 #define RWSEM_UNLOCKED_VALUE	0x0000000000000000L
@@ -62,8 +62,11 @@ static inline void __down_read(struct rw_semaphore *sem)
 		: "=&d" (old), "=&d" (new), "=Q" (sem->count)
 		: "Q" (sem->count), "i" (RWSEM_ACTIVE_READ_BIAS)
 		: "cc", "memory");
+
 	if (old < 0)
+	{
 		rwsem_down_read_failed(sem);
+	}
 }
 
 /*
@@ -111,14 +114,18 @@ static inline long ___down_write(struct rw_semaphore *sem)
 static inline void __down_write(struct rw_semaphore *sem)
 {
 	if (___down_write(sem))
+	{
 		rwsem_down_write_failed(sem);
+	}
 }
 
 static inline int __down_write_killable(struct rw_semaphore *sem)
 {
 	if (___down_write(sem))
 		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
+		{
 			return -EINTR;
+		}
 
 	return 0;
 }
@@ -159,9 +166,12 @@ static inline void __up_read(struct rw_semaphore *sem)
 		: "=&d" (old), "=&d" (new), "=Q" (sem->count)
 		: "Q" (sem->count), "i" (-RWSEM_ACTIVE_READ_BIAS)
 		: "cc", "memory");
+
 	if (new < 0)
 		if ((new & RWSEM_ACTIVE_MASK) == 0)
+		{
 			rwsem_wake(sem);
+		}
 }
 
 /*
@@ -181,9 +191,12 @@ static inline void __up_write(struct rw_semaphore *sem)
 		: "=&d" (old), "=&d" (new), "=Q" (sem->count)
 		: "Q" (sem->count), "m" (tmp)
 		: "cc", "memory");
+
 	if (new < 0)
 		if ((new & RWSEM_ACTIVE_MASK) == 0)
+		{
 			rwsem_wake(sem);
+		}
 }
 
 /*
@@ -203,8 +216,11 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
 		: "=&d" (old), "=&d" (new), "=Q" (sem->count)
 		: "Q" (sem->count), "m" (tmp)
 		: "cc", "memory");
+
 	if (new > 1)
+	{
 		rwsem_downgrade_wake(sem);
+	}
 }
 
 #endif /* _S390_RWSEM_H */

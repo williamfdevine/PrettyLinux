@@ -42,16 +42,16 @@
 #define IPIPE_PATCH_NUMBER    1
 
 #ifdef CONFIG_SMP
-#error "I-pipe/blackfin: SMP not implemented"
+	#error "I-pipe/blackfin: SMP not implemented"
 #else /* !CONFIG_SMP */
-#define ipipe_processor_id()	0
+	#define ipipe_processor_id()	0
 #endif	/* CONFIG_SMP */
 
 #define prepare_arch_switch(next)		\
-do {						\
-	ipipe_schedule_notify(current, next);	\
-	hard_local_irq_disable();			\
-} while (0)
+	do {						\
+		ipipe_schedule_notify(current, next);	\
+		hard_local_irq_disable();			\
+	} while (0)
 
 #define task_hijacked(p)						\
 	({								\
@@ -63,7 +63,8 @@ do {						\
 
 struct ipipe_domain;
 
-struct ipipe_sysinfo {
+struct ipipe_sysinfo
+{
 	int sys_nr_cpus;	/* Number of CPUs on board */
 	int sys_hrtimer_irq;	/* hrtimer device IRQ */
 	u64 sys_hrtimer_freq;	/* hrtimer device frequency */
@@ -73,17 +74,17 @@ struct ipipe_sysinfo {
 
 #define ipipe_read_tsc(t)					\
 	({							\
-	unsigned long __cy2;					\
-	__asm__ __volatile__ ("1: %0 = CYCLES2\n"		\
-				"%1 = CYCLES\n"			\
-				"%2 = CYCLES2\n"		\
-				"CC = %2 == %0\n"		\
-				"if ! CC jump 1b\n"		\
-				: "=d,a" (((unsigned long *)&t)[1]),	\
-				  "=d,a" (((unsigned long *)&t)[0]),	\
-				  "=d,a" (__cy2)				\
-				: /*no input*/ : "CC");			\
-	t;								\
+		unsigned long __cy2;					\
+		__asm__ __volatile__ ("1: %0 = CYCLES2\n"		\
+							  "%1 = CYCLES\n"			\
+							  "%2 = CYCLES2\n"		\
+							  "CC = %2 == %0\n"		\
+							  "if ! CC jump 1b\n"		\
+							  : "=d,a" (((unsigned long *)&t)[1]),	\
+							  "=d,a" (((unsigned long *)&t)[0]),	\
+							  "=d,a" (__cy2)				\
+							  : /*no input*/ : "CC");			\
+		t;								\
 	})
 
 #define ipipe_cpu_freq()	__ipipe_core_clock
@@ -105,10 +106,10 @@ extern struct ipipe_domain ipipe_root;
 /* enable/disable_irqdesc _must_ be used in pairs. */
 
 void __ipipe_enable_irqdesc(struct ipipe_domain *ipd,
-			    unsigned irq);
+							unsigned irq);
 
 void __ipipe_disable_irqdesc(struct ipipe_domain *ipd,
-			     unsigned irq);
+							 unsigned irq);
 
 #define __ipipe_enable_irq(irq)						\
 	do {								\
@@ -175,15 +176,15 @@ static inline unsigned long __ipipe_ffnz(unsigned long ul)
 	(ipipe_notifier_enabled_p(p) || (unsigned long)sc >= NR_syscalls)
 
 #ifdef CONFIG_BF561
-#define bfin_write_TIMER_DISABLE(val)	bfin_write_TMRS8_DISABLE(val)
-#define bfin_write_TIMER_ENABLE(val)	bfin_write_TMRS8_ENABLE(val)
-#define bfin_write_TIMER_STATUS(val)	bfin_write_TMRS8_STATUS(val)
-#define bfin_read_TIMER_STATUS()	bfin_read_TMRS8_STATUS()
+	#define bfin_write_TIMER_DISABLE(val)	bfin_write_TMRS8_DISABLE(val)
+	#define bfin_write_TIMER_ENABLE(val)	bfin_write_TMRS8_ENABLE(val)
+	#define bfin_write_TIMER_STATUS(val)	bfin_write_TMRS8_STATUS(val)
+	#define bfin_read_TIMER_STATUS()	bfin_read_TMRS8_STATUS()
 #elif defined(CONFIG_BF54x)
-#define bfin_write_TIMER_DISABLE(val)	bfin_write_TIMER_DISABLE0(val)
-#define bfin_write_TIMER_ENABLE(val)	bfin_write_TIMER_ENABLE0(val)
-#define bfin_write_TIMER_STATUS(val)	bfin_write_TIMER_STATUS0(val)
-#define bfin_read_TIMER_STATUS(val)	bfin_read_TIMER_STATUS0(val)
+	#define bfin_write_TIMER_DISABLE(val)	bfin_write_TIMER_DISABLE0(val)
+	#define bfin_write_TIMER_ENABLE(val)	bfin_write_TIMER_ENABLE0(val)
+	#define bfin_write_TIMER_STATUS(val)	bfin_write_TIMER_STATUS0(val)
+	#define bfin_read_TIMER_STATUS(val)	bfin_read_TIMER_STATUS0(val)
 #endif
 
 #define __ipipe_root_tick_p(regs)	((regs->ipend & 0x10) != 0)
@@ -197,11 +198,11 @@ static inline unsigned long __ipipe_ffnz(unsigned long ul)
 #endif /* !CONFIG_IPIPE */
 
 #ifdef CONFIG_TICKSOURCE_CORETMR
-#define IRQ_SYSTMR		IRQ_CORETMR
-#define IRQ_PRIOTMR		IRQ_CORETMR
+	#define IRQ_SYSTMR		IRQ_CORETMR
+	#define IRQ_PRIOTMR		IRQ_CORETMR
 #else
-#define IRQ_SYSTMR		IRQ_TIMER0
-#define IRQ_PRIOTMR		CONFIG_IRQ_TIMER0
+	#define IRQ_SYSTMR		IRQ_TIMER0
+	#define IRQ_PRIOTMR		CONFIG_IRQ_TIMER0
 #endif
 
 #define ipipe_update_tick_evtdev(evtdev)	do { } while (0)

@@ -18,13 +18,15 @@
 #define ALPINE_CPU_RESUME_H_
 
 /* Per-cpu regs */
-struct al_cpu_resume_regs_per_cpu {
+struct al_cpu_resume_regs_per_cpu
+{
 	uint32_t	flags;
 	uint32_t	resume_addr;
 };
 
 /* general regs */
-struct al_cpu_resume_regs {
+struct al_cpu_resume_regs
+{
 	/* Watermark for validating the CPU resume struct */
 	uint32_t watermark;
 	uint32_t flags;

@@ -39,7 +39,7 @@
 unsigned long highstart_pfn, highend_pfn;
 
 #ifdef CONFIG_MN10300_HAS_ATOMIC_OPS_UNIT
-static struct vm_struct user_iomap_vm;
+	static struct vm_struct user_iomap_vm;
 #endif
 
 /*
@@ -58,10 +58,12 @@ void __init paging_init(void)
 
 	/* load the VMALLOC area PTE table addresses into the kernel PGD */
 	ppte = kernel_vmalloc_ptes;
+
 	for (loop = VMALLOC_START / (PAGE_SIZE * PTRS_PER_PTE);
-	     loop < VMALLOC_END / (PAGE_SIZE * PTRS_PER_PTE);
-	     loop++
-	     ) {
+		 loop < VMALLOC_END / (PAGE_SIZE * PTRS_PER_PTE);
+		 loop++
+		)
+	{
 		set_pgd(swapper_pg_dir + loop, __pgd(__pa(ppte) | _PAGE_TABLE));
 		ppte += PAGE_SIZE / sizeof(pte_t);
 	}
@@ -88,7 +90,7 @@ void __init paging_init(void)
 	vm_area_register_early(&user_iomap_vm, PAGE_SIZE);
 	ppte = kernel_vmalloc_ptes;
 	set_pte(ppte, pfn_pte(USER_ATOMIC_OPS_PAGE_ADDR >> PAGE_SHIFT,
-			      PAGE_USERIO));
+						  PAGE_USERIO));
 #endif
 
 	local_flush_tlb_all();
@@ -131,6 +133,6 @@ void free_initmem(void)
 void free_initrd_mem(unsigned long start, unsigned long end)
 {
 	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
-			   "initrd");
+					   "initrd");
 }
 #endif

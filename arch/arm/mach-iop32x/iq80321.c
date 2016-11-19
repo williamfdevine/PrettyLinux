@@ -48,8 +48,9 @@ static void __init iq80321_timer_init(void)
 /*
  * IQ80321 I/O.
  */
-static struct map_desc iq80321_io_desc[] __initdata = {
- 	{	/* on-board devices */
+static struct map_desc iq80321_io_desc[] __initdata =
+{
+	{	/* on-board devices */
 		.virtual	= IQ80321_UART,
 		.pfn		= __phys_to_pfn(IQ80321_UART),
 		.length		= 0x00100000,
@@ -72,32 +73,44 @@ iq80321_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 
-	if ((slot == 2 || slot == 6) && pin == 1) {
+	if ((slot == 2 || slot == 6) && pin == 1)
+	{
 		/* PCI-X Slot INTA */
 		irq = IRQ_IOP32X_XINT2;
-	} else if ((slot == 2 || slot == 6) && pin == 2) {
+	}
+	else if ((slot == 2 || slot == 6) && pin == 2)
+	{
 		/* PCI-X Slot INTA */
 		irq = IRQ_IOP32X_XINT3;
-	} else if ((slot == 2 || slot == 6) && pin == 3) {
+	}
+	else if ((slot == 2 || slot == 6) && pin == 3)
+	{
 		/* PCI-X Slot INTA */
 		irq = IRQ_IOP32X_XINT0;
-	} else if ((slot == 2 || slot == 6) && pin == 4) {
+	}
+	else if ((slot == 2 || slot == 6) && pin == 4)
+	{
 		/* PCI-X Slot INTA */
 		irq = IRQ_IOP32X_XINT1;
-	} else if (slot == 4 || slot == 8) {
+	}
+	else if (slot == 4 || slot == 8)
+	{
 		/* Gig-E */
 		irq = IRQ_IOP32X_XINT0;
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "iq80321_pci_map_irq() called for unknown "
-			"device PCI:%d:%d:%d\n", dev->bus->number,
-			PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
+			   "device PCI:%d:%d:%d\n", dev->bus->number,
+			   PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
 		irq = -1;
 	}
 
 	return irq;
 }
 
-static struct hw_pci iq80321_pci __initdata = {
+static struct hw_pci iq80321_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &iop3xx_ops,
 	.setup		= iop3xx_pci_setup,
@@ -109,7 +122,9 @@ static int __init iq80321_pci_init(void)
 {
 	if ((iop3xx_get_init_atu() == IOP3XX_INIT_ATU_ENABLE) &&
 		machine_is_iq80321())
+	{
 		pci_common_init(&iq80321_pci);
+	}
 
 	return 0;
 }
@@ -120,17 +135,20 @@ subsys_initcall(iq80321_pci_init);
 /*
  * IQ80321 machine initialisation.
  */
-static struct physmap_flash_data iq80321_flash_data = {
+static struct physmap_flash_data iq80321_flash_data =
+{
 	.width		= 1,
 };
 
-static struct resource iq80321_flash_resource = {
+static struct resource iq80321_flash_resource =
+{
 	.start		= 0xf0000000,
 	.end		= 0xf07fffff,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device iq80321_flash_device = {
+static struct platform_device iq80321_flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -140,7 +158,8 @@ static struct platform_device iq80321_flash_device = {
 	.resource	= &iq80321_flash_resource,
 };
 
-static struct plat_serial8250_port iq80321_serial_port[] = {
+static struct plat_serial8250_port iq80321_serial_port[] =
+{
 	{
 		.mapbase	= IQ80321_UART,
 		.membase	= (char *)IQ80321_UART,
@@ -153,13 +172,15 @@ static struct plat_serial8250_port iq80321_serial_port[] = {
 	{ },
 };
 
-static struct resource iq80321_uart_resource = {
+static struct resource iq80321_uart_resource =
+{
 	.start		= IQ80321_UART,
 	.end		= IQ80321_UART + 7,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device iq80321_serial_device = {
+static struct platform_device iq80321_serial_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev		= {
@@ -182,11 +203,11 @@ static void __init iq80321_init_machine(void)
 }
 
 MACHINE_START(IQ80321, "Intel IQ80321")
-	/* Maintainer: Intel Corp. */
-	.atag_offset	= 0x100,
+/* Maintainer: Intel Corp. */
+.atag_offset	= 0x100,
 	.map_io		= iq80321_map_io,
-	.init_irq	= iop32x_init_irq,
-	.init_time	= iq80321_timer_init,
-	.init_machine	= iq80321_init_machine,
-	.restart	= iop3xx_restart,
-MACHINE_END
+		.init_irq	= iop32x_init_irq,
+		   .init_time	= iq80321_timer_init,
+			 .init_machine	= iq80321_init_machine,
+				.restart	= iop3xx_restart,
+					MACHINE_END

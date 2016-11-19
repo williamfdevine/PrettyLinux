@@ -34,7 +34,8 @@ static void fb_dma_disable(unsigned int chan, dma_t *dma)
 {
 }
 
-static struct dma_ops fb_dma_ops = {
+static struct dma_ops fb_dma_ops =
+{
 	.type		= "fb",
 	.request	= fb_dma_request,
 	.enable		= fb_dma_enable,
@@ -49,8 +50,12 @@ static int __init fb_dma_init(void)
 	dma[_DC21285_DMA(1)].d_ops = &fb_dma_ops;
 #endif
 #ifdef CONFIG_ISA_DMA
+
 	if (footbridge_cfn_mode())
+	{
 		isa_init_dma();
+	}
+
 #endif
 	return 0;
 }

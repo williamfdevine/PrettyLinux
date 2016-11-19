@@ -56,54 +56,54 @@
 
 #if (CONFIG_ARC_MMU_VER <= 2)
 
-#define _PAGE_ACCESSED      (1<<1)	/* Page is accessed (S) */
-#define _PAGE_CACHEABLE     (1<<2)	/* Page is cached (H) */
-#define _PAGE_EXECUTE       (1<<3)	/* Page has user execute perm (H) */
-#define _PAGE_WRITE         (1<<4)	/* Page has user write perm (H) */
-#define _PAGE_READ          (1<<5)	/* Page has user read perm (H) */
-#define _PAGE_DIRTY         (1<<6)	/* Page modified (dirty) (S) */
-#define _PAGE_SPECIAL       (1<<7)
-#define _PAGE_GLOBAL        (1<<8)	/* Page is global (H) */
-#define _PAGE_PRESENT       (1<<10)	/* TLB entry is valid (H) */
+	#define _PAGE_ACCESSED      (1<<1)	/* Page is accessed (S) */
+	#define _PAGE_CACHEABLE     (1<<2)	/* Page is cached (H) */
+	#define _PAGE_EXECUTE       (1<<3)	/* Page has user execute perm (H) */
+	#define _PAGE_WRITE         (1<<4)	/* Page has user write perm (H) */
+	#define _PAGE_READ          (1<<5)	/* Page has user read perm (H) */
+	#define _PAGE_DIRTY         (1<<6)	/* Page modified (dirty) (S) */
+	#define _PAGE_SPECIAL       (1<<7)
+	#define _PAGE_GLOBAL        (1<<8)	/* Page is global (H) */
+	#define _PAGE_PRESENT       (1<<10)	/* TLB entry is valid (H) */
 
 #else	/* MMU v3 onwards */
 
-#define _PAGE_CACHEABLE     (1<<0)	/* Page is cached (H) */
-#define _PAGE_EXECUTE       (1<<1)	/* Page has user execute perm (H) */
-#define _PAGE_WRITE         (1<<2)	/* Page has user write perm (H) */
-#define _PAGE_READ          (1<<3)	/* Page has user read perm (H) */
-#define _PAGE_ACCESSED      (1<<4)	/* Page is accessed (S) */
-#define _PAGE_DIRTY         (1<<5)	/* Page modified (dirty) (S) */
-#define _PAGE_SPECIAL       (1<<6)
+	#define _PAGE_CACHEABLE     (1<<0)	/* Page is cached (H) */
+	#define _PAGE_EXECUTE       (1<<1)	/* Page has user execute perm (H) */
+	#define _PAGE_WRITE         (1<<2)	/* Page has user write perm (H) */
+	#define _PAGE_READ          (1<<3)	/* Page has user read perm (H) */
+	#define _PAGE_ACCESSED      (1<<4)	/* Page is accessed (S) */
+	#define _PAGE_DIRTY         (1<<5)	/* Page modified (dirty) (S) */
+	#define _PAGE_SPECIAL       (1<<6)
 
-#if (CONFIG_ARC_MMU_VER >= 4)
-#define _PAGE_WTHRU         (1<<7)	/* Page cache mode write-thru (H) */
-#endif
+	#if (CONFIG_ARC_MMU_VER >= 4)
+		#define _PAGE_WTHRU         (1<<7)	/* Page cache mode write-thru (H) */
+	#endif
 
-#define _PAGE_GLOBAL        (1<<8)	/* Page is global (H) */
-#define _PAGE_PRESENT       (1<<9)	/* TLB entry is valid (H) */
+	#define _PAGE_GLOBAL        (1<<8)	/* Page is global (H) */
+	#define _PAGE_PRESENT       (1<<9)	/* TLB entry is valid (H) */
 
-#if (CONFIG_ARC_MMU_VER >= 4)
-#define _PAGE_HW_SZ         (1<<10)	/* Page Size indicator (H): 0 normal, 1 super */
-#endif
+	#if (CONFIG_ARC_MMU_VER >= 4)
+		#define _PAGE_HW_SZ         (1<<10)	/* Page Size indicator (H): 0 normal, 1 super */
+	#endif
 
-#define _PAGE_SHARED_CODE   (1<<11)	/* Shared Code page with cmn vaddr
-					   usable for shared TLB entries (H) */
+	#define _PAGE_SHARED_CODE   (1<<11)	/* Shared Code page with cmn vaddr
+	usable for shared TLB entries (H) */
 
-#define _PAGE_UNUSED_BIT    (1<<12)
+	#define _PAGE_UNUSED_BIT    (1<<12)
 #endif
 
 /* vmalloc permissions */
 #define _K_PAGE_PERMS  (_PAGE_EXECUTE | _PAGE_WRITE | _PAGE_READ | \
-			_PAGE_GLOBAL | _PAGE_PRESENT)
+						_PAGE_GLOBAL | _PAGE_PRESENT)
 
 #ifndef CONFIG_ARC_CACHE_PAGES
-#undef _PAGE_CACHEABLE
-#define _PAGE_CACHEABLE 0
+	#undef _PAGE_CACHEABLE
+	#define _PAGE_CACHEABLE 0
 #endif
 
 #ifndef _PAGE_HW_SZ
-#define _PAGE_HW_SZ	0
+	#define _PAGE_HW_SZ	0
 #endif
 
 /* Defaults for every user page */
@@ -118,7 +118,7 @@
 #define PAGE_U_W_R      __pgprot(___DEF | _PAGE_READ | _PAGE_WRITE)
 #define PAGE_U_X_R      __pgprot(___DEF | _PAGE_READ | _PAGE_EXECUTE)
 #define PAGE_U_X_W_R    __pgprot(___DEF | _PAGE_READ | _PAGE_WRITE | \
-						       _PAGE_EXECUTE)
+								 _PAGE_EXECUTE)
 
 #define PAGE_SHARED	PAGE_U_W_R
 
@@ -136,9 +136,9 @@
 #define PTE_BITS_RWX		(_PAGE_EXECUTE | _PAGE_WRITE | _PAGE_READ)
 
 #ifdef CONFIG_ARC_HAS_PAE40
-#define PTE_BITS_NON_RWX_IN_PD1	(0xff00000000 | PAGE_MASK | _PAGE_CACHEABLE)
+	#define PTE_BITS_NON_RWX_IN_PD1	(0xff00000000 | PAGE_MASK | _PAGE_CACHEABLE)
 #else
-#define PTE_BITS_NON_RWX_IN_PD1	(PAGE_MASK | _PAGE_CACHEABLE)
+	#define PTE_BITS_NON_RWX_IN_PD1	(PAGE_MASK | _PAGE_CACHEABLE)
 #endif
 
 /**************************************************************************
@@ -159,7 +159,7 @@
  *  2. Pvt Writable doesn't have Write Enabled initially: Pvt-W => !W
  *     This is to enable COW mechanism
  */
-	/* xwr */
+/* xwr */
 #define __P000  PAGE_U_NONE
 #define __P001  PAGE_U_R
 #define __P010  PAGE_U_R	/* Pvt-W => !W */
@@ -203,15 +203,15 @@
  */
 
 #if defined(CONFIG_ARC_HUGEPAGE_16M)
-#define PGDIR_SHIFT	24
+	#define PGDIR_SHIFT	24
 #elif defined(CONFIG_ARC_HUGEPAGE_2M)
-#define PGDIR_SHIFT	21
+	#define PGDIR_SHIFT	21
 #else
-/*
- * Only Normal page support so "hackable" (see comment above)
- * Default value provides 11:8:13 (8K), 11:9:12 (4K)
- */
-#define PGDIR_SHIFT	21
+	/*
+	* Only Normal page support so "hackable" (see comment above)
+	* Default value provides 11:8:13 (8K), 11:9:12 (4K)
+	*/
+	#define PGDIR_SHIFT	21
 #endif
 
 #define BITS_FOR_PTE	(PGDIR_SHIFT - PAGE_SHIFT)
@@ -291,7 +291,7 @@ static inline void pmd_set(pmd_t *pmdp, pte_t *ptep)
  * and returns ptr to PTE entry corresponding to @addr
  */
 #define pte_offset(dir, addr) ((pte_t *)(pmd_page_vaddr(*dir)) +\
-					 __pte_index(addr))
+							   __pte_index(addr))
 
 /* No mapping of Page Tables in high mem etc, so following same as above */
 #define pte_offset_kernel(dir, addr)		pte_offset(dir, addr)
@@ -330,7 +330,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 #define pgprot_noncached(prot)	(__pgprot(pgprot_val(prot) & ~_PAGE_CACHEABLE))
 
 static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-			      pte_t *ptep, pte_t pteval)
+							  pte_t *ptep, pte_t pteval)
 {
 	set_pte(ptep, pteval);
 }
@@ -357,24 +357,24 @@ static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
  */
 #ifndef CONFIG_SMP
 #define pgd_offset_fast(mm, addr)	\
-({					\
-	pgd_t *pgd_base = (pgd_t *) read_aux_reg(ARC_REG_SCRATCH_DATA0);  \
-	pgd_base + pgd_index(addr);	\
-})
+	({					\
+		pgd_t *pgd_base = (pgd_t *) read_aux_reg(ARC_REG_SCRATCH_DATA0);  \
+		pgd_base + pgd_index(addr);	\
+	})
 #else
 #define pgd_offset_fast(mm, addr)	pgd_offset(mm, addr)
 #endif
 
 extern pgd_t swapper_pg_dir[] __aligned(PAGE_SIZE);
 void update_mmu_cache(struct vm_area_struct *vma, unsigned long address,
-		      pte_t *ptep);
+					  pte_t *ptep);
 
 /* Encode swap {type,off} tuple into PTE
  * We reserve 13 bits for 5-bit @type, keeping bits 12-5 zero, ensuring that
  * PAGE_PRESENT is zero in a PTE holding swap "identifier"
  */
 #define __swp_entry(type, off)	((swp_entry_t) { \
-					((type) & 0x1f) | ((off) << 13) })
+		((type) & 0x1f) | ((off) << 13) })
 
 /* Decode a PTE containing swap "identifier "into constituents */
 #define __swp_type(pte_lookalike)	(((pte_lookalike).val) & 0x1f)
@@ -391,7 +391,7 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address,
  * into virtual address `from'
  */
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-#include <asm/hugepage.h>
+	#include <asm/hugepage.h>
 #endif
 
 #include <asm-generic/pgtable.h>

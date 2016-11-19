@@ -24,11 +24,11 @@
 
 #undef inl
 #define inl(addr)										\
-({												\
-	unsigned long __ioaddr = (unsigned long) addr;						\
-	uint32_t x = readl(__ioaddr);								\
-	((x & 0xff) << 24) | ((x & 0xff00) << 8) | ((x >> 8) & 0xff00) | ((x >> 24) & 0xff);	\
-})
+	({												\
+		unsigned long __ioaddr = (unsigned long) addr;						\
+		uint32_t x = readl(__ioaddr);								\
+		((x & 0xff) << 24) | ((x & 0xff00) << 8) | ((x >> 8) & 0xff00) | ((x >> 24) & 0xff);	\
+	})
 
 #undef insl
 #define insl(a,b,l)	__insl(a,b,l,0) /* don't byte-swap */

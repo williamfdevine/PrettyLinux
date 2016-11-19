@@ -66,7 +66,8 @@ eiger_disable_irq(struct irq_data *d)
 	eiger_update_irq_hw(irq, mask);
 }
 
-static struct irq_chip eiger_irq_type = {
+static struct irq_chip eiger_irq_type =
+{
 	.name		= "EIGER",
 	.irq_unmask	= eiger_enable_irq,
 	.irq_mask	= eiger_disable_irq,
@@ -95,17 +96,24 @@ eiger_device_interrupt(unsigned long vector)
 	 */
 
 	intstatus = inw(0x500) & 15;
-	if (intstatus) {
+
+	if (intstatus)
+	{
 		/*
 		 * This is a PCI interrupt. Check each bit and
 		 * despatch an interrupt if it's set.
 		 */
 
-		if (intstatus & 8) handle_irq(16+3);
-		if (intstatus & 4) handle_irq(16+2);
-		if (intstatus & 2) handle_irq(16+1);
-		if (intstatus & 1) handle_irq(16+0);
-	} else {
+		if (intstatus & 8) { handle_irq(16 + 3); }
+
+		if (intstatus & 4) { handle_irq(16 + 2); }
+
+		if (intstatus & 2) { handle_irq(16 + 1); }
+
+		if (intstatus & 1) { handle_irq(16 + 0); }
+	}
+	else
+	{
 		isa_device_interrupt(vector);
 	}
 }
@@ -128,14 +136,19 @@ eiger_init_irq(void)
 	outb(0, DMA2_MASK_REG);
 
 	if (alpha_using_srm)
+	{
 		alpha_mv.device_interrupt = eiger_srm_device_interrupt;
+	}
 
 	for (i = 16; i < 128; i += 16)
+	{
 		eiger_update_irq_hw(i, -1);
+	}
 
 	init_i8259a_irqs();
 
-	for (i = 16; i < 128; ++i) {
+	for (i = 16; i < 128; ++i)
+	{
 		irq_set_chip_and_handler(i, &eiger_irq_type, handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
@@ -170,28 +183,37 @@ eiger_swizzle(struct pci_dev *dev, u8 *pinp)
 
 	switch (backplane)
 	{
-	   case 0x00: bridge_count = 0; break; /* No bridges */
-	   case 0x01: bridge_count = 1; break; /* 1 */
-	   case 0x03: bridge_count = 2; break; /* 2 */
-	   case 0x07: bridge_count = 3; break; /* 3 */
-	   case 0x0f: bridge_count = 4; break; /* 4 */
+		case 0x00: bridge_count = 0; break; /* No bridges */
+
+		case 0x01: bridge_count = 1; break; /* 1 */
+
+		case 0x03: bridge_count = 2; break; /* 2 */
+
+		case 0x07: bridge_count = 3; break; /* 3 */
+
+		case 0x0f: bridge_count = 4; break; /* 4 */
 	};
 
 	slot = PCI_SLOT(dev->devfn);
-	while (dev->bus->self) {
+
+	while (dev->bus->self)
+	{
 		/* Check for built-in bridges on hose 0. */
 		if (hose->index == 0
-		    && (PCI_SLOT(dev->bus->self->devfn)
-			> 20 - bridge_count)) {
+			&& (PCI_SLOT(dev->bus->self->devfn)
+				> 20 - bridge_count))
+		{
 			slot = PCI_SLOT(dev->devfn);
 			break;
 		}
+
 		/* Must be a card-based bridge.  */
 		pin = pci_swizzle_interrupt_pin(dev, pin);
 
 		/* Move up the chain of bridges.  */
 		dev = dev->bus->self;
 	}
+
 	*pinp = pin;
 	return slot;
 }
@@ -200,7 +222,8 @@ eiger_swizzle(struct pci_dev *dev, u8 *pinp)
  * The System Vectors
  */
 
-struct alpha_machine_vector eiger_mv __initmv = {
+struct alpha_machine_vector eiger_mv __initmv =
+{
 	.vector_name		= "Eiger",
 	DO_EV6_MMU,
 	DO_DEFAULT_RTC,

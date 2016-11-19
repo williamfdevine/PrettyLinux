@@ -24,7 +24,8 @@
 /*
  * AHCI
  */
-static struct resource cns3xxx_ahci_resource[] = {
+static struct resource cns3xxx_ahci_resource[] =
+{
 	[0] = {
 		.start	= CNS3XXX_SATA2_BASE,
 		.end	= CNS3XXX_SATA2_BASE + CNS3XXX_SATA2_SIZE - 1,
@@ -39,7 +40,8 @@ static struct resource cns3xxx_ahci_resource[] = {
 
 static u64 cns3xxx_ahci_dmamask = DMA_BIT_MASK(32);
 
-static struct platform_device cns3xxx_ahci_pdev = {
+static struct platform_device cns3xxx_ahci_pdev =
+{
 	.name		= "ahci",
 	.id		= 0,
 	.resource	= cns3xxx_ahci_resource,
@@ -75,7 +77,8 @@ void __init cns3xxx_ahci_init(void)
 /*
  * SDHCI
  */
-static struct resource cns3xxx_sdhci_resources[] = {
+static struct resource cns3xxx_sdhci_resources[] =
+{
 	[0] = {
 		.start = CNS3XXX_SDIO_BASE,
 		.end   = CNS3XXX_SDIO_BASE + SZ_4K - 1,
@@ -88,7 +91,8 @@ static struct resource cns3xxx_sdhci_resources[] = {
 	},
 };
 
-static struct platform_device cns3xxx_sdhci_pdev = {
+static struct platform_device cns3xxx_sdhci_pdev =
+{
 	.name		= "sdhci-cns3xxx",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(cns3xxx_sdhci_resources),

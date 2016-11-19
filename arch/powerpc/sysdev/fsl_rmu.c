@@ -34,7 +34,7 @@
 #include "fsl_rio.h"
 
 #define GET_RMM_HANDLE(mport) \
-		(((struct rio_priv *)(mport->priv))->rmm_handle)
+	(((struct rio_priv *)(mport->priv))->rmm_handle)
 
 /* RapidIO definition irq, which read from OF-tree */
 #define IRQ_RIO_PW(m)		(((struct fsl_rio_pw *)(m))->pwirq)
@@ -104,7 +104,8 @@
 
 #define DOORBELL_MESSAGE_SIZE	0x08
 
-struct rio_msg_regs {
+struct rio_msg_regs
+{
 	u32 omr;
 	u32 osr;
 	u32 pad1;
@@ -125,7 +126,8 @@ struct rio_msg_regs {
 	u32 ifqepar;
 };
 
-struct rio_dbell_regs {
+struct rio_dbell_regs
+{
 	u32 odmr;
 	u32 odsr;
 	u32 pad1[4];
@@ -142,7 +144,8 @@ struct rio_dbell_regs {
 	u32 dqepar;
 };
 
-struct rio_pw_regs {
+struct rio_pw_regs
+{
 	u32 pwmr;
 	u32 pwsr;
 	u32 epwqbar;
@@ -150,7 +153,8 @@ struct rio_pw_regs {
 };
 
 
-struct rio_tx_desc {
+struct rio_tx_desc
+{
 	u32 pad1;
 	u32 saddr;
 	u32 dport;
@@ -161,7 +165,8 @@ struct rio_tx_desc {
 	u32 pad4;
 };
 
-struct rio_msg_tx_ring {
+struct rio_msg_tx_ring
+{
 	void *virt;
 	dma_addr_t phys;
 	void *virt_buffer[RIO_MAX_TX_RING_SIZE];
@@ -171,7 +176,8 @@ struct rio_msg_tx_ring {
 	void *dev_id;
 };
 
-struct rio_msg_rx_ring {
+struct rio_msg_rx_ring
+{
 	void *virt;
 	dma_addr_t phys;
 	void *virt_buffer[RIO_MAX_RX_RING_SIZE];
@@ -180,7 +186,8 @@ struct rio_msg_rx_ring {
 	void *dev_id;
 };
 
-struct fsl_rmu {
+struct fsl_rmu
+{
 	struct rio_msg_regs __iomem *msg_regs;
 	struct rio_msg_tx_ring msg_tx_ring;
 	struct rio_msg_rx_ring msg_rx_ring;
@@ -188,7 +195,8 @@ struct fsl_rmu {
 	int rxirq;
 };
 
-struct rio_dbell_msg {
+struct rio_dbell_msg
+{
 	u16 pad1;
 	u16 tid;
 	u16 sid;
@@ -212,26 +220,32 @@ fsl_rio_tx_handler(int irq, void *dev_instance)
 
 	osr = in_be32(&rmu->msg_regs->osr);
 
-	if (osr & RIO_MSG_OSR_TE) {
+	if (osr & RIO_MSG_OSR_TE)
+	{
 		pr_info("RIO: outbound message transmission error\n");
 		out_be32(&rmu->msg_regs->osr, RIO_MSG_OSR_TE);
 		goto out;
 	}
 
-	if (osr & RIO_MSG_OSR_QOI) {
+	if (osr & RIO_MSG_OSR_QOI)
+	{
 		pr_info("RIO: outbound message queue overflow\n");
 		out_be32(&rmu->msg_regs->osr, RIO_MSG_OSR_QOI);
 		goto out;
 	}
 
-	if (osr & RIO_MSG_OSR_EOMI) {
+	if (osr & RIO_MSG_OSR_EOMI)
+	{
 		u32 dqp = in_be32(&rmu->msg_regs->odqdpar);
 		int slot = (dqp - rmu->msg_tx_ring.phys) >> 5;
-		if (port->outb_msg[0].mcback != NULL) {
+
+		if (port->outb_msg[0].mcback != NULL)
+		{
 			port->outb_msg[0].mcback(port, rmu->msg_tx_ring.dev_id,
-					-1,
-					slot);
+									 -1,
+									 slot);
 		}
+
 		/* Ack the end-of-message interrupt */
 		out_be32(&rmu->msg_regs->osr, RIO_MSG_OSR_EOMI);
 	}
@@ -257,14 +271,16 @@ fsl_rio_rx_handler(int irq, void *dev_instance)
 
 	isr = in_be32(&rmu->msg_regs->isr);
 
-	if (isr & RIO_MSG_ISR_TE) {
+	if (isr & RIO_MSG_ISR_TE)
+	{
 		pr_info("RIO: inbound message reception error\n");
 		out_be32((void *)&rmu->msg_regs->isr, RIO_MSG_ISR_TE);
 		goto out;
 	}
 
 	/* XXX Need to check/dispatch until queue empty */
-	if (isr & RIO_MSG_ISR_DIQI) {
+	if (isr & RIO_MSG_ISR_DIQI)
+	{
 		/*
 		* Can receive messages for any mailbox/letter to that
 		* mailbox destination. So, make the callback with an
@@ -272,8 +288,8 @@ fsl_rio_rx_handler(int irq, void *dev_instance)
 		*/
 		if (port->inb_msg[0].mcback != NULL)
 			port->inb_msg[0].mcback(port, rmu->msg_rx_ring.dev_id,
-				-1,
-				-1);
+									-1,
+									-1);
 
 		/* Ack the queueing interrupt */
 		out_be32(&rmu->msg_regs->isr, RIO_MSG_ISR_DIQI);
@@ -300,59 +316,70 @@ fsl_rio_dbell_handler(int irq, void *dev_instance)
 
 	dsr = in_be32(&fsl_dbell->dbell_regs->dsr);
 
-	if (dsr & DOORBELL_DSR_TE) {
+	if (dsr & DOORBELL_DSR_TE)
+	{
 		pr_info("RIO: doorbell reception error\n");
 		out_be32(&fsl_dbell->dbell_regs->dsr, DOORBELL_DSR_TE);
 		goto out;
 	}
 
-	if (dsr & DOORBELL_DSR_QFI) {
+	if (dsr & DOORBELL_DSR_QFI)
+	{
 		pr_info("RIO: doorbell queue full\n");
 		out_be32(&fsl_dbell->dbell_regs->dsr, DOORBELL_DSR_QFI);
 	}
 
 	/* XXX Need to check/dispatch until queue empty */
-	if (dsr & DOORBELL_DSR_DIQI) {
+	if (dsr & DOORBELL_DSR_DIQI)
+	{
 		struct rio_dbell_msg *dmsg =
-			fsl_dbell->dbell_ring.virt +
+				fsl_dbell->dbell_ring.virt +
 			(in_be32(&fsl_dbell->dbell_regs->dqdpar) & 0xfff);
 		struct rio_dbell *dbell;
 		int found = 0;
 
 		pr_debug
-			("RIO: processing doorbell,"
-			" sid %2.2x tid %2.2x info %4.4x\n",
-			dmsg->sid, dmsg->tid, dmsg->info);
+		("RIO: processing doorbell,"
+		 " sid %2.2x tid %2.2x info %4.4x\n",
+		 dmsg->sid, dmsg->tid, dmsg->info);
 
-		for (i = 0; i < MAX_PORT_NUM; i++) {
-			if (fsl_dbell->mport[i]) {
+		for (i = 0; i < MAX_PORT_NUM; i++)
+		{
+			if (fsl_dbell->mport[i])
+			{
 				list_for_each_entry(dbell,
-					&fsl_dbell->mport[i]->dbells, node) {
+									&fsl_dbell->mport[i]->dbells, node)
+				{
 					if ((dbell->res->start
-						<= dmsg->info)
+						 <= dmsg->info)
 						&& (dbell->res->end
-						>= dmsg->info)) {
+							>= dmsg->info))
+					{
 						found = 1;
 						break;
 					}
 				}
-				if (found && dbell->dinb) {
+
+				if (found && dbell->dinb)
+				{
 					dbell->dinb(fsl_dbell->mport[i],
-						dbell->dev_id, dmsg->sid,
-						dmsg->tid,
-						dmsg->info);
+								dbell->dev_id, dmsg->sid,
+								dmsg->tid,
+								dmsg->info);
 					break;
 				}
 			}
 		}
 
-		if (!found) {
+		if (!found)
+		{
 			pr_debug
-				("RIO: spurious doorbell,"
-				" sid %2.2x tid %2.2x info %4.4x\n",
-				dmsg->sid, dmsg->tid,
-				dmsg->info);
+			("RIO: spurious doorbell,"
+			 " sid %2.2x tid %2.2x info %4.4x\n",
+			 dmsg->sid, dmsg->tid,
+			 dmsg->info);
 		}
+
 		setbits32(&fsl_dbell->dbell_regs->dmr, DOORBELL_DMR_DI);
 		out_be32(&fsl_dbell->dbell_regs->dsr, DOORBELL_DSR_DIQI);
 	}
@@ -394,40 +421,65 @@ fsl_rio_port_write_handler(int irq, void *dev_instance)
 	u32 epwisr, tmp;
 
 	epwisr = in_be32(rio_regs_win + RIO_EPWISR);
+
 	if (!(epwisr & RIO_EPWISR_PW))
+	{
 		goto pw_done;
+	}
 
 	ipwmr = in_be32(&pw->pw_regs->pwmr);
 	ipwsr = in_be32(&pw->pw_regs->pwsr);
 
 #ifdef DEBUG_PW
 	pr_debug("PW Int->IPWMR: 0x%08x IPWSR: 0x%08x (", ipwmr, ipwsr);
+
 	if (ipwsr & RIO_IPWSR_QF)
+	{
 		pr_debug(" QF");
+	}
+
 	if (ipwsr & RIO_IPWSR_TE)
+	{
 		pr_debug(" TE");
+	}
+
 	if (ipwsr & RIO_IPWSR_QFI)
+	{
 		pr_debug(" QFI");
+	}
+
 	if (ipwsr & RIO_IPWSR_PWD)
+	{
 		pr_debug(" PWD");
+	}
+
 	if (ipwsr & RIO_IPWSR_PWB)
+	{
 		pr_debug(" PWB");
+	}
+
 	pr_debug(" )\n");
 #endif
+
 	/* Schedule deferred processing if PW was received */
-	if (ipwsr & RIO_IPWSR_QFI) {
+	if (ipwsr & RIO_IPWSR_QFI)
+	{
 		/* Save PW message (if there is room in FIFO),
 		 * otherwise discard it.
 		 */
-		if (kfifo_avail(&pw->pw_fifo) >= RIO_PW_MSG_SIZE) {
+		if (kfifo_avail(&pw->pw_fifo) >= RIO_PW_MSG_SIZE)
+		{
 			pw->port_write_msg.msg_count++;
 			kfifo_in(&pw->pw_fifo, pw->port_write_msg.virt,
-				 RIO_PW_MSG_SIZE);
-		} else {
+					 RIO_PW_MSG_SIZE);
+		}
+		else
+		{
 			pw->port_write_msg.discard_count++;
 			pr_debug("RIO: ISR Discarded Port-Write Msg(s) (%d)\n",
-				 pw->port_write_msg.discard_count);
+					 pw->port_write_msg.discard_count);
 		}
+
 		/* Clear interrupt and issue Clear Queue command. This allows
 		 * another port-write to be received.
 		 */
@@ -437,10 +489,11 @@ fsl_rio_port_write_handler(int irq, void *dev_instance)
 		schedule_work(&pw->pw_work);
 	}
 
-	if ((ipwmr & RIO_IPWMR_EIE) && (ipwsr & RIO_IPWSR_TE)) {
+	if ((ipwmr & RIO_IPWMR_EIE) && (ipwsr & RIO_IPWSR_TE))
+	{
 		pw->port_write_msg.err_count++;
 		pr_debug("RIO: Port-Write Transaction Err (%d)\n",
-			 pw->port_write_msg.err_count);
+				 pw->port_write_msg.err_count);
 		/* Clear Transaction Error: port-write controller should be
 		 * disabled when clearing this error
 		 */
@@ -449,27 +502,32 @@ fsl_rio_port_write_handler(int irq, void *dev_instance)
 		out_be32(&pw->pw_regs->pwmr, ipwmr);
 	}
 
-	if (ipwsr & RIO_IPWSR_PWD) {
+	if (ipwsr & RIO_IPWSR_PWD)
+	{
 		pw->port_write_msg.discard_count++;
 		pr_debug("RIO: Port Discarded Port-Write Msg(s) (%d)\n",
-			 pw->port_write_msg.discard_count);
+				 pw->port_write_msg.discard_count);
 		out_be32(&pw->pw_regs->pwsr, RIO_IPWSR_PWD);
 	}
 
 pw_done:
-	if (epwisr & RIO_EPWISR_PINT1) {
+
+	if (epwisr & RIO_EPWISR_PINT1)
+	{
 		tmp = in_be32(rio_regs_win + RIO_LTLEDCSR);
 		pr_debug("RIO_LTLEDCSR = 0x%x\n", tmp);
 		fsl_rio_port_error_handler(0);
 	}
 
-	if (epwisr & RIO_EPWISR_PINT2) {
+	if (epwisr & RIO_EPWISR_PINT2)
+	{
 		tmp = in_be32(rio_regs_win + RIO_LTLEDCSR);
 		pr_debug("RIO_LTLEDCSR = 0x%x\n", tmp);
 		fsl_rio_port_error_handler(1);
 	}
 
-	if (epwisr & RIO_EPWISR_MU) {
+	if (epwisr & RIO_EPWISR_MU)
+	{
 		tmp = in_be32(rio_regs_win + RIO_LTLEDCSR);
 		pr_debug("RIO_LTLEDCSR = 0x%x\n", tmp);
 		msg_unit_error_handler();
@@ -488,26 +546,34 @@ static void fsl_pw_dpc(struct work_struct *work)
 	 * Process port-write messages
 	 */
 	while (kfifo_out_spinlocked(&pw->pw_fifo, (unsigned char *)&msg_buffer,
-			 RIO_PW_MSG_SIZE, &pw->pw_fifo_lock)) {
+								RIO_PW_MSG_SIZE, &pw->pw_fifo_lock))
+	{
 #ifdef DEBUG_PW
 		{
-		u32 i;
-		pr_debug("%s : Port-Write Message:", __func__);
-		for (i = 0; i < RIO_PW_MSG_SIZE/sizeof(u32); i++) {
-			if ((i%4) == 0)
-				pr_debug("\n0x%02x: 0x%08x", i*4,
-					 msg_buffer.raw[i]);
-			else
-				pr_debug(" 0x%08x", msg_buffer.raw[i]);
-		}
-		pr_debug("\n");
+			u32 i;
+			pr_debug("%s : Port-Write Message:", __func__);
+
+			for (i = 0; i < RIO_PW_MSG_SIZE / sizeof(u32); i++)
+			{
+				if ((i % 4) == 0)
+					pr_debug("\n0x%02x: 0x%08x", i * 4,
+					msg_buffer.raw[i]);
+				else
+				{
+					pr_debug(" 0x%08x", msg_buffer.raw[i]);
+				}
+			}
+
+			pr_debug("\n");
 		}
 #endif
+
 		/* Pass the port-write message to RIO core for processing */
-		for (i = 0; i < MAX_PORT_NUM; i++) {
+		for (i = 0; i < MAX_PORT_NUM; i++)
+		{
 			if (pw->mport[i])
 				rio_inb_pwrite_handler(pw->mport[i],
-						       &msg_buffer);
+									   &msg_buffer);
 		}
 	}
 }
@@ -524,9 +590,13 @@ int fsl_rio_pw_enable(struct rio_mport *mport, int enable)
 	rval = in_be32(&pw->pw_regs->pwmr);
 
 	if (enable)
+	{
 		rval |= RIO_IPWMR_PWE;
+	}
 	else
+	{
 		rval &= ~RIO_IPWMR_PWE;
+	}
 
 	out_be32(&pw->pw_regs->pwmr, rval);
 
@@ -548,13 +618,15 @@ int fsl_rio_port_write_init(struct fsl_rio_pw *pw)
 
 	/* Following configurations require a disabled port write controller */
 	out_be32(&pw->pw_regs->pwmr,
-		 in_be32(&pw->pw_regs->pwmr) & ~RIO_IPWMR_PWE);
+			 in_be32(&pw->pw_regs->pwmr) & ~RIO_IPWMR_PWE);
 
 	/* Initialize port write */
 	pw->port_write_msg.virt = dma_alloc_coherent(pw->dev,
-					RIO_PW_MSG_SIZE,
-					&pw->port_write_msg.phys, GFP_KERNEL);
-	if (!pw->port_write_msg.virt) {
+							  RIO_PW_MSG_SIZE,
+							  &pw->port_write_msg.phys, GFP_KERNEL);
+
+	if (!pw->port_write_msg.virt)
+	{
 		pr_err("RIO: unable allocate port write queue\n");
 		return -ENOMEM;
 	}
@@ -567,40 +639,45 @@ int fsl_rio_port_write_init(struct fsl_rio_pw *pw)
 	out_be32(&pw->pw_regs->pwqbar, (u32) pw->port_write_msg.phys);
 
 	pr_debug("EIPWQBAR: 0x%08x IPWQBAR: 0x%08x\n",
-		 in_be32(&pw->pw_regs->epwqbar),
-		 in_be32(&pw->pw_regs->pwqbar));
+			 in_be32(&pw->pw_regs->epwqbar),
+			 in_be32(&pw->pw_regs->pwqbar));
 
 	/* Clear interrupt status IPWSR */
 	out_be32(&pw->pw_regs->pwsr,
-		 (RIO_IPWSR_TE | RIO_IPWSR_QFI | RIO_IPWSR_PWD));
+			 (RIO_IPWSR_TE | RIO_IPWSR_QFI | RIO_IPWSR_PWD));
 
 	/* Configure port write controller for snooping enable all reporting,
 	   clear queue full */
 	out_be32(&pw->pw_regs->pwmr,
-		 RIO_IPWMR_SEN | RIO_IPWMR_QFIE | RIO_IPWMR_EIE | RIO_IPWMR_CQ);
+			 RIO_IPWMR_SEN | RIO_IPWMR_QFIE | RIO_IPWMR_EIE | RIO_IPWMR_CQ);
 
 
 	/* Hook up port-write handler */
 	rc = request_irq(IRQ_RIO_PW(pw), fsl_rio_port_write_handler,
-			IRQF_SHARED, "port-write", (void *)pw);
-	if (rc < 0) {
+					 IRQF_SHARED, "port-write", (void *)pw);
+
+	if (rc < 0)
+	{
 		pr_err("MPC85xx RIO: unable to request inbound doorbell irq");
 		goto err_out;
 	}
+
 	/* Enable Error Interrupt */
 	out_be32((u32 *)(rio_regs_win + RIO_LTLEECSR), LTLEECSR_ENABLE_ALL);
 
 	INIT_WORK(&pw->pw_work, fsl_pw_dpc);
 	spin_lock_init(&pw->pw_fifo_lock);
-	if (kfifo_alloc(&pw->pw_fifo, RIO_PW_MSG_SIZE * 32, GFP_KERNEL)) {
+
+	if (kfifo_alloc(&pw->pw_fifo, RIO_PW_MSG_SIZE * 32, GFP_KERNEL))
+	{
 		pr_err("FIFO allocation failed\n");
 		rc = -ENOMEM;
 		goto err_out_irq;
 	}
 
 	pr_debug("IPWMR: 0x%08x IPWSR: 0x%08x\n",
-		 in_be32(&pw->pw_regs->pwmr),
-		 in_be32(&pw->pw_regs->pwsr));
+			 in_be32(&pw->pw_regs->pwmr),
+			 in_be32(&pw->pw_regs->pwsr));
 
 	return rc;
 
@@ -608,8 +685,8 @@ err_out_irq:
 	free_irq(IRQ_RIO_PW(pw), (void *)pw);
 err_out:
 	dma_free_coherent(pw->dev, RIO_PW_MSG_SIZE,
-		pw->port_write_msg.virt,
-		pw->port_write_msg.phys);
+					  pw->port_write_msg.virt,
+					  pw->port_write_msg.phys);
 	return rc;
 }
 
@@ -624,10 +701,10 @@ err_out:
  * %-EINVAL on failure.
  */
 int fsl_rio_doorbell_send(struct rio_mport *mport,
-				int index, u16 destid, u16 data)
+						  int index, u16 destid, u16 data)
 {
 	pr_debug("fsl_doorbell_send: index %d destid %4.4x data %4.4x\n",
-		 index, destid, data);
+			 index, destid, data);
 
 	/* In the serial version silicons, such as MPC8548, MPC8641,
 	 * below operations is must be.
@@ -654,27 +731,30 @@ int fsl_rio_doorbell_send(struct rio_mport *mport,
  */
 int
 fsl_add_outb_message(struct rio_mport *mport, struct rio_dev *rdev, int mbox,
-			void *buffer, size_t len)
+					 void *buffer, size_t len)
 {
 	struct fsl_rmu *rmu = GET_RMM_HANDLE(mport);
 	u32 omr;
 	struct rio_tx_desc *desc = (struct rio_tx_desc *)rmu->msg_tx_ring.virt
-					+ rmu->msg_tx_ring.tx_slot;
+							   + rmu->msg_tx_ring.tx_slot;
 	int ret = 0;
 
 	pr_debug("RIO: fsl_add_outb_message(): destid %4.4x mbox %d buffer " \
-		 "%p len %8.8zx\n", rdev->destid, mbox, buffer, len);
-	if ((len < 8) || (len > RIO_MAX_MSG_SIZE)) {
+			 "%p len %8.8zx\n", rdev->destid, mbox, buffer, len);
+
+	if ((len < 8) || (len > RIO_MAX_MSG_SIZE))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	/* Copy and clear rest of buffer */
 	memcpy(rmu->msg_tx_ring.virt_buffer[rmu->msg_tx_ring.tx_slot], buffer,
-			len);
+		   len);
+
 	if (len < (RIO_MAX_MSG_SIZE - 4))
 		memset(rmu->msg_tx_ring.virt_buffer[rmu->msg_tx_ring.tx_slot]
-				+ len, 0, RIO_MAX_MSG_SIZE - len);
+			   + len, 0, RIO_MAX_MSG_SIZE - len);
 
 	/* Set mbox field for message, and set destid */
 	desc->dport = (rdev->destid << 16) | (mbox & 0x3);
@@ -687,7 +767,7 @@ fsl_add_outb_message(struct rio_mport *mport, struct rio_dev *rdev, int mbox,
 
 	/* Set snooping and source buffer address */
 	desc->saddr = 0x00000004
-		| rmu->msg_tx_ring.phys_buffer[rmu->msg_tx_ring.tx_slot];
+				  | rmu->msg_tx_ring.phys_buffer[rmu->msg_tx_ring.tx_slot];
 
 	/* Increment enqueue pointer */
 	omr = in_be32(&rmu->msg_regs->omr);
@@ -695,7 +775,9 @@ fsl_add_outb_message(struct rio_mport *mport, struct rio_dev *rdev, int mbox,
 
 	/* Go to next descriptor */
 	if (++rmu->msg_tx_ring.tx_slot == rmu->msg_tx_ring.size)
+	{
 		rmu->msg_tx_ring.tx_slot = 0;
+	}
 
 out:
 	return ret;
@@ -720,7 +802,8 @@ fsl_open_outb_mbox(struct rio_mport *mport, void *dev_id, int mbox, int entries)
 	struct fsl_rmu *rmu = GET_RMM_HANDLE(mport);
 
 	if ((entries < RIO_MIN_TX_RING_SIZE) ||
-		(entries > RIO_MAX_TX_RING_SIZE) || (!is_power_of_2(entries))) {
+		(entries > RIO_MAX_TX_RING_SIZE) || (!is_power_of_2(entries)))
+	{
 		rc = -EINVAL;
 		goto out;
 	}
@@ -729,34 +812,42 @@ fsl_open_outb_mbox(struct rio_mport *mport, void *dev_id, int mbox, int entries)
 	rmu->msg_tx_ring.dev_id = dev_id;
 	rmu->msg_tx_ring.size = entries;
 
-	for (i = 0; i < rmu->msg_tx_ring.size; i++) {
+	for (i = 0; i < rmu->msg_tx_ring.size; i++)
+	{
 		rmu->msg_tx_ring.virt_buffer[i] =
 			dma_alloc_coherent(priv->dev, RIO_MSG_BUFFER_SIZE,
-				&rmu->msg_tx_ring.phys_buffer[i], GFP_KERNEL);
-		if (!rmu->msg_tx_ring.virt_buffer[i]) {
+							   &rmu->msg_tx_ring.phys_buffer[i], GFP_KERNEL);
+
+		if (!rmu->msg_tx_ring.virt_buffer[i])
+		{
 			rc = -ENOMEM;
+
 			for (j = 0; j < rmu->msg_tx_ring.size; j++)
 				if (rmu->msg_tx_ring.virt_buffer[j])
 					dma_free_coherent(priv->dev,
-							RIO_MSG_BUFFER_SIZE,
-							rmu->msg_tx_ring.
-							virt_buffer[j],
-							rmu->msg_tx_ring.
-							phys_buffer[j]);
+									  RIO_MSG_BUFFER_SIZE,
+									  rmu->msg_tx_ring.
+									  virt_buffer[j],
+									  rmu->msg_tx_ring.
+									  phys_buffer[j]);
+
 			goto out;
 		}
 	}
 
 	/* Initialize outbound message descriptor ring */
 	rmu->msg_tx_ring.virt = dma_alloc_coherent(priv->dev,
-				rmu->msg_tx_ring.size * RIO_MSG_DESC_SIZE,
-				&rmu->msg_tx_ring.phys, GFP_KERNEL);
-	if (!rmu->msg_tx_ring.virt) {
+							rmu->msg_tx_ring.size * RIO_MSG_DESC_SIZE,
+							&rmu->msg_tx_ring.phys, GFP_KERNEL);
+
+	if (!rmu->msg_tx_ring.virt)
+	{
 		rc = -ENOMEM;
 		goto out_dma;
 	}
+
 	memset(rmu->msg_tx_ring.virt, 0,
-			rmu->msg_tx_ring.size * RIO_MSG_DESC_SIZE);
+		   rmu->msg_tx_ring.size * RIO_MSG_DESC_SIZE);
 	rmu->msg_tx_ring.tx_slot = 0;
 
 	/* Point dequeue/enqueue pointers at first entry in ring */
@@ -771,9 +862,12 @@ fsl_open_outb_mbox(struct rio_mport *mport, void *dev_id, int mbox, int entries)
 
 	/* Hook up outbound message handler */
 	rc = request_irq(IRQ_RIO_TX(mport), fsl_rio_tx_handler, 0,
-			 "msg_tx", (void *)mport);
+					 "msg_tx", (void *)mport);
+
 	if (rc < 0)
+	{
 		goto out_irq;
+	}
 
 	/*
 	 * Configure outbound message unit
@@ -786,8 +880,8 @@ fsl_open_outb_mbox(struct rio_mport *mport, void *dev_id, int mbox, int entries)
 
 	/* Set number of entries */
 	out_be32(&rmu->msg_regs->omr,
-		 in_be32(&rmu->msg_regs->omr) |
-		 ((get_bitmask_order(entries) - 2) << 12));
+			 in_be32(&rmu->msg_regs->omr) |
+			 ((get_bitmask_order(entries) - 2) << 12));
 
 	/* Now enable the unit */
 	out_be32(&rmu->msg_regs->omr, in_be32(&rmu->msg_regs->omr) | 0x1);
@@ -797,14 +891,15 @@ out:
 
 out_irq:
 	dma_free_coherent(priv->dev,
-		rmu->msg_tx_ring.size * RIO_MSG_DESC_SIZE,
-		rmu->msg_tx_ring.virt, rmu->msg_tx_ring.phys);
+					  rmu->msg_tx_ring.size * RIO_MSG_DESC_SIZE,
+					  rmu->msg_tx_ring.virt, rmu->msg_tx_ring.phys);
 
 out_dma:
+
 	for (i = 0; i < rmu->msg_tx_ring.size; i++)
 		dma_free_coherent(priv->dev, RIO_MSG_BUFFER_SIZE,
-		rmu->msg_tx_ring.virt_buffer[i],
-		rmu->msg_tx_ring.phys_buffer[i]);
+						  rmu->msg_tx_ring.virt_buffer[i],
+						  rmu->msg_tx_ring.phys_buffer[i]);
 
 	return rc;
 }
@@ -827,8 +922,8 @@ void fsl_close_outb_mbox(struct rio_mport *mport, int mbox)
 
 	/* Free ring */
 	dma_free_coherent(priv->dev,
-	rmu->msg_tx_ring.size * RIO_MSG_DESC_SIZE,
-	rmu->msg_tx_ring.virt, rmu->msg_tx_ring.phys);
+					  rmu->msg_tx_ring.size * RIO_MSG_DESC_SIZE,
+					  rmu->msg_tx_ring.virt, rmu->msg_tx_ring.phys);
 
 	/* Free interrupt */
 	free_irq(IRQ_RIO_TX(mport), (void *)mport);
@@ -853,7 +948,8 @@ fsl_open_inb_mbox(struct rio_mport *mport, void *dev_id, int mbox, int entries)
 	struct fsl_rmu *rmu = GET_RMM_HANDLE(mport);
 
 	if ((entries < RIO_MIN_RX_RING_SIZE) ||
-		(entries > RIO_MAX_RX_RING_SIZE) || (!is_power_of_2(entries))) {
+		(entries > RIO_MAX_RX_RING_SIZE) || (!is_power_of_2(entries)))
+	{
 		rc = -EINVAL;
 		goto out;
 	}
@@ -862,14 +958,19 @@ fsl_open_inb_mbox(struct rio_mport *mport, void *dev_id, int mbox, int entries)
 	rmu->msg_rx_ring.dev_id = dev_id;
 	rmu->msg_rx_ring.size = entries;
 	rmu->msg_rx_ring.rx_slot = 0;
+
 	for (i = 0; i < rmu->msg_rx_ring.size; i++)
+	{
 		rmu->msg_rx_ring.virt_buffer[i] = NULL;
+	}
 
 	/* Initialize inbound message ring */
 	rmu->msg_rx_ring.virt = dma_alloc_coherent(priv->dev,
-				rmu->msg_rx_ring.size * RIO_MAX_MSG_SIZE,
-				&rmu->msg_rx_ring.phys, GFP_KERNEL);
-	if (!rmu->msg_rx_ring.virt) {
+							rmu->msg_rx_ring.size * RIO_MAX_MSG_SIZE,
+							&rmu->msg_rx_ring.phys, GFP_KERNEL);
+
+	if (!rmu->msg_rx_ring.virt)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
@@ -883,11 +984,13 @@ fsl_open_inb_mbox(struct rio_mport *mport, void *dev_id, int mbox, int entries)
 
 	/* Hook up inbound message handler */
 	rc = request_irq(IRQ_RIO_RX(mport), fsl_rio_rx_handler, 0,
-			 "msg_rx", (void *)mport);
-	if (rc < 0) {
+					 "msg_rx", (void *)mport);
+
+	if (rc < 0)
+	{
 		dma_free_coherent(priv->dev,
-			rmu->msg_rx_ring.size * RIO_MAX_MSG_SIZE,
-			rmu->msg_rx_ring.virt, rmu->msg_rx_ring.phys);
+						  rmu->msg_rx_ring.size * RIO_MAX_MSG_SIZE,
+						  rmu->msg_rx_ring.virt, rmu->msg_rx_ring.phys);
 		goto out;
 	}
 
@@ -928,7 +1031,7 @@ void fsl_close_inb_mbox(struct rio_mport *mport, int mbox)
 
 	/* Free ring */
 	dma_free_coherent(priv->dev, rmu->msg_rx_ring.size * RIO_MAX_MSG_SIZE,
-	rmu->msg_rx_ring.virt, rmu->msg_rx_ring.phys);
+					  rmu->msg_rx_ring.virt, rmu->msg_rx_ring.phys);
 
 	/* Free interrupt */
 	free_irq(IRQ_RIO_RX(mport), (void *)mport);
@@ -949,19 +1052,23 @@ int fsl_add_inb_buffer(struct rio_mport *mport, int mbox, void *buf)
 	struct fsl_rmu *rmu = GET_RMM_HANDLE(mport);
 
 	pr_debug("RIO: fsl_add_inb_buffer(), msg_rx_ring.rx_slot %d\n",
-		 rmu->msg_rx_ring.rx_slot);
+			 rmu->msg_rx_ring.rx_slot);
 
-	if (rmu->msg_rx_ring.virt_buffer[rmu->msg_rx_ring.rx_slot]) {
+	if (rmu->msg_rx_ring.virt_buffer[rmu->msg_rx_ring.rx_slot])
+	{
 		printk(KERN_ERR
-			"RIO: error adding inbound buffer %d, buffer exists\n",
-			rmu->msg_rx_ring.rx_slot);
+			   "RIO: error adding inbound buffer %d, buffer exists\n",
+			   rmu->msg_rx_ring.rx_slot);
 		rc = -EINVAL;
 		goto out;
 	}
 
 	rmu->msg_rx_ring.virt_buffer[rmu->msg_rx_ring.rx_slot] = buf;
+
 	if (++rmu->msg_rx_ring.rx_slot == rmu->msg_rx_ring.size)
+	{
 		rmu->msg_rx_ring.rx_slot = 0;
+	}
 
 out:
 	return rc;
@@ -987,16 +1094,19 @@ void *fsl_get_inb_message(struct rio_mport *mport, int mbox)
 
 	/* If no more messages, then bail out */
 	if (phys_buf == in_be32(&rmu->msg_regs->ifqepar))
+	{
 		goto out2;
+	}
 
 	virt_buf = rmu->msg_rx_ring.virt + (phys_buf
-						- rmu->msg_rx_ring.phys);
+										- rmu->msg_rx_ring.phys);
 	buf_idx = (phys_buf - rmu->msg_rx_ring.phys) / RIO_MAX_MSG_SIZE;
 	buf = rmu->msg_rx_ring.virt_buffer[buf_idx];
 
-	if (!buf) {
+	if (!buf)
+	{
 		printk(KERN_ERR
-			"RIO: inbound message copy failed, no buffers\n");
+			   "RIO: inbound message copy failed, no buffers\n");
 		goto out1;
 	}
 
@@ -1027,8 +1137,10 @@ int fsl_rio_doorbell_init(struct fsl_rio_dbell *dbell)
 
 	/* Initialize inbound doorbells */
 	dbell->dbell_ring.virt = dma_alloc_coherent(dbell->dev, 512 *
-		DOORBELL_MESSAGE_SIZE, &dbell->dbell_ring.phys, GFP_KERNEL);
-	if (!dbell->dbell_ring.virt) {
+							 DOORBELL_MESSAGE_SIZE, &dbell->dbell_ring.phys, GFP_KERNEL);
+
+	if (!dbell->dbell_ring.virt)
+	{
 		printk(KERN_ERR "RIO: unable allocate inbound doorbell ring\n");
 		rc = -ENOMEM;
 		goto out;
@@ -1043,12 +1155,14 @@ int fsl_rio_doorbell_init(struct fsl_rio_dbell *dbell)
 
 	/* Hook up doorbell handler */
 	rc = request_irq(IRQ_RIO_BELL(dbell), fsl_rio_dbell_handler, 0,
-			 "dbell_rx", (void *)dbell);
-	if (rc < 0) {
+					 "dbell_rx", (void *)dbell);
+
+	if (rc < 0)
+	{
 		dma_free_coherent(dbell->dev, 512 * DOORBELL_MESSAGE_SIZE,
-			 dbell->dbell_ring.virt, dbell->dbell_ring.phys);
+						  dbell->dbell_ring.virt, dbell->dbell_ring.phys);
 		printk(KERN_ERR
-			"MPC85xx RIO: unable to request inbound doorbell irq");
+			   "MPC85xx RIO: unable to request inbound doorbell irq");
 		goto out;
 	}
 
@@ -1069,37 +1183,46 @@ int fsl_rio_setup_rmu(struct rio_mport *mport, struct device_node *node)
 	int aw;
 
 	if (!mport || !mport->priv)
+	{
 		return -EINVAL;
+	}
 
 	priv = mport->priv;
 
-	if (!node) {
+	if (!node)
+	{
 		dev_warn(priv->dev, "Can't get %s property 'fsl,rmu'\n",
-			priv->dev->of_node->full_name);
+				 priv->dev->of_node->full_name);
 		return -EINVAL;
 	}
 
 	rmu = kzalloc(sizeof(struct fsl_rmu), GFP_KERNEL);
+
 	if (!rmu)
+	{
 		return -ENOMEM;
+	}
 
 	aw = of_n_addr_cells(node);
 	msg_addr = of_get_property(node, "reg", &mlen);
-	if (!msg_addr) {
+
+	if (!msg_addr)
+	{
 		pr_err("%s: unable to find 'reg' property of message-unit\n",
-			node->full_name);
+			   node->full_name);
 		kfree(rmu);
 		return -ENOMEM;
 	}
+
 	msg_start = of_read_number(msg_addr, aw);
 
 	rmu->msg_regs = (struct rio_msg_regs *)
-			(rmu_regs_win + (u32)msg_start);
+					(rmu_regs_win + (u32)msg_start);
 
 	rmu->txirq = irq_of_parse_and_map(node, 0);
 	rmu->rxirq = irq_of_parse_and_map(node, 1);
 	printk(KERN_INFO "%s: txirq: %d, rxirq %d\n",
-		node->full_name, rmu->txirq, rmu->rxirq);
+		   node->full_name, rmu->txirq, rmu->rxirq);
 
 	priv->rmm_handle = rmu;
 

@@ -31,17 +31,19 @@ void __init prom_init(void)
 	_prom_argv = (LONG *) fw_arg1;
 	_prom_envp = (LONG *) fw_arg2;
 
-	if (pb->magic != 0x53435241) {
+	if (pb->magic != 0x53435241)
+	{
 		printk(KERN_CRIT "Aieee, bad prom vector magic %08lx\n",
-		       (unsigned long) pb->magic);
-		while(1)
+			   (unsigned long) pb->magic);
+
+		while (1)
 			;
 	}
 
 	prom_init_cmdline();
 	prom_identify_arch();
 	printk(KERN_INFO "PROMLIB: ARC firmware Version %d Revision %d\n",
-	       pb->ver, pb->rev);
+		   pb->ver, pb->rev);
 	prom_meminit();
 
 #ifdef DEBUG_PROM_INIT

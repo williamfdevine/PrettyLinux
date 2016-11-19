@@ -9,14 +9,14 @@
 #define __ASM_PARISC_PROCESSOR_H
 
 #ifndef __ASSEMBLY__
-#include <linux/threads.h>
+	#include <linux/threads.h>
 
-#include <asm/prefetch.h>
-#include <asm/hardware.h>
-#include <asm/pdc.h>
-#include <asm/ptrace.h>
-#include <asm/types.h>
-#include <asm/percpu.h>
+	#include <asm/prefetch.h>
+	#include <asm/hardware.h>
+	#include <asm/pdc.h>
+	#include <asm/ptrace.h>
+	#include <asm/types.h>
+	#include <asm/percpu.h>
 #endif /* __ASSEMBLY__ */
 
 /*
@@ -24,9 +24,9 @@
  * instruction pointer ("program counter").
  */
 #ifdef CONFIG_PA20
-#define current_ia(x)	__asm__("mfia %0" : "=r"(x))
+	#define current_ia(x)	__asm__("mfia %0" : "=r"(x))
 #else /* mfia added in pa2.0 */
-#define current_ia(x)	__asm__("blr 0,%0\n\tnop" : "=r"(x))
+	#define current_ia(x)	__asm__("blr 0,%0\n\tnop" : "=r"(x))
 #endif
 #define current_text_addr() ({ void *pc; current_ia(pc); pc; })
 
@@ -40,11 +40,11 @@
 #define DEFAULT_MAP_BASE32	(0x40000000UL)
 
 #ifdef CONFIG_64BIT
-#define DEFAULT_TASK_SIZE       (MAX_ADDRESS-0xf000000)
-#define DEFAULT_MAP_BASE        (0x200000000UL)
+	#define DEFAULT_TASK_SIZE       (MAX_ADDRESS-0xf000000)
+	#define DEFAULT_MAP_BASE        (0x200000000UL)
 #else
-#define DEFAULT_TASK_SIZE	DEFAULT_TASK_SIZE32
-#define DEFAULT_MAP_BASE	DEFAULT_MAP_BASE32
+	#define DEFAULT_TASK_SIZE	DEFAULT_TASK_SIZE32
+	#define DEFAULT_MAP_BASE	DEFAULT_MAP_BASE32
 #endif
 
 #ifdef __KERNEL__
@@ -57,8 +57,8 @@
 
 /* Allow bigger stacks for 64-bit processes */
 #define STACK_SIZE_MAX	(USER_WIDE_MODE					\
-			 ? (1 << 30)	/* 1 GB */			\
-			 : (CONFIG_MAX_STACK_SIZE_MB*1024*1024))
+						 ? (1 << 30)	/* 1 GB */			\
+						 : (CONFIG_MAX_STACK_SIZE_MB*1024*1024))
 
 #endif
 
@@ -70,14 +70,16 @@
  *
  * FIXME: some CPU rev info may be processor specific...
  */
-struct system_cpuinfo_parisc {
+struct system_cpuinfo_parisc
+{
 	unsigned int	cpu_count;
 	unsigned int	cpu_hz;
 	unsigned int	hversion;
 	unsigned int	sversion;
 	enum cpu_type	cpu_type;
 
-	struct {
+	struct
+	{
 		struct pdc_model model;
 		unsigned long versions;
 		unsigned long cpuid;
@@ -91,7 +93,8 @@ struct system_cpuinfo_parisc {
 
 
 /* Per CPU data structure - ie varies per CPU.  */
-struct cpuinfo_parisc {
+struct cpuinfo_parisc
+{
 	unsigned long it_value;     /* Interval Timer at last timer Intr */
 	unsigned long it_delta;     /* Interval delta (tic_10ms / HZ * 100) */
 	unsigned long irq_count;    /* number of IRQ's since boot */
@@ -117,18 +120,20 @@ DECLARE_PER_CPU(struct cpuinfo_parisc, cpu_data);
 
 #define CPU_HVERSION ((boot_cpu_data.hversion >> 4) & 0x0FFF)
 
-typedef struct {
-	int seg;  
+typedef struct
+{
+	int seg;
 } mm_segment_t;
 
 #define ARCH_MIN_TASKALIGN	8
 
-struct thread_struct {
+struct thread_struct
+{
 	struct pt_regs regs;
 	unsigned long  task_size;
 	unsigned long  map_base;
 	unsigned long  flags;
-}; 
+};
 
 #define task_pt_regs(tsk) ((struct pt_regs *)&((tsk)->thread.regs))
 
@@ -141,30 +146,30 @@ struct thread_struct {
 #define PARISC_UAC_MASK		(PARISC_UAC_NOPRINT|PARISC_UAC_SIGBUS)
 
 #define SET_UNALIGN_CTL(task,value)                                       \
-        ({                                                                \
-        (task)->thread.flags = (((task)->thread.flags & ~PARISC_UAC_MASK) \
-                                | (((value) << PARISC_UAC_SHIFT) &        \
-                                   PARISC_UAC_MASK));                     \
-        0;                                                                \
-        })
+	({                                                                \
+		(task)->thread.flags = (((task)->thread.flags & ~PARISC_UAC_MASK) \
+								| (((value) << PARISC_UAC_SHIFT) &        \
+								   PARISC_UAC_MASK));                     \
+		0;                                                                \
+	})
 
 #define GET_UNALIGN_CTL(task,addr)                                        \
-        ({                                                                \
-        put_user(((task)->thread.flags & PARISC_UAC_MASK)                 \
-                 >> PARISC_UAC_SHIFT, (int __user *) (addr));             \
-        })
+	({                                                                \
+		put_user(((task)->thread.flags & PARISC_UAC_MASK)                 \
+				 >> PARISC_UAC_SHIFT, (int __user *) (addr));             \
+	})
 
 #define INIT_THREAD { \
-	.regs = {	.gr	= { 0, }, \
-			.fr	= { 0, }, \
-			.sr	= { 0, }, \
-			.iasq	= { 0, }, \
-			.iaoq	= { 0, }, \
-			.cr27	= 0, \
-		}, \
-	.task_size	= DEFAULT_TASK_SIZE, \
-	.map_base	= DEFAULT_MAP_BASE, \
-	.flags		= 0 \
+		.regs = {	.gr	= { 0, }, \
+					.fr	= { 0, }, \
+					.sr	= { 0, }, \
+					.iasq	= { 0, }, \
+					.iaoq	= { 0, }, \
+					.cr27	= 0, \
+				}, \
+				.task_size	= DEFAULT_TASK_SIZE, \
+							  .map_base	= DEFAULT_MAP_BASE, \
+											.flags		= 0 \
 	}
 
 /*
@@ -263,39 +268,39 @@ on downward growing arches, it looks like this:
  */
 
 #ifdef CONFIG_64BIT
-#define USER_WIDE_MODE	(!test_thread_flag(TIF_32BIT))
+	#define USER_WIDE_MODE	(!test_thread_flag(TIF_32BIT))
 #else
-#define USER_WIDE_MODE	0
+	#define USER_WIDE_MODE	0
 #endif
 
 #define start_thread(regs, new_pc, new_sp) do {		\
-	elf_addr_t *sp = (elf_addr_t *)new_sp;		\
-	__u32 spaceid = (__u32)current->mm->context;	\
-	elf_addr_t pc = (elf_addr_t)new_pc | 3;		\
-	elf_caddr_t *argv = (elf_caddr_t *)bprm->exec + 1;	\
-							\
-	regs->iasq[0] = spaceid;			\
-	regs->iasq[1] = spaceid;			\
-	regs->iaoq[0] = pc;				\
-	regs->iaoq[1] = pc + 4;                         \
-	regs->sr[2] = LINUX_GATEWAY_SPACE;              \
-	regs->sr[3] = 0xffff;				\
-	regs->sr[4] = spaceid;				\
-	regs->sr[5] = spaceid;				\
-	regs->sr[6] = spaceid;				\
-	regs->sr[7] = spaceid;				\
-	regs->gr[ 0] = USER_PSW | (USER_WIDE_MODE ? PSW_W : 0); \
-	regs->fr[ 0] = 0LL;                            	\
-	regs->fr[ 1] = 0LL;                            	\
-	regs->fr[ 2] = 0LL;                            	\
-	regs->fr[ 3] = 0LL;                            	\
-	regs->gr[30] = (((unsigned long)sp + 63) &~ 63) | (USER_WIDE_MODE ? 1 : 0); \
-	regs->gr[31] = pc;				\
-							\
-	get_user(regs->gr[25], (argv - 1));		\
-	regs->gr[24] = (long) argv;			\
-	regs->gr[23] = 0;				\
-} while(0)
+		elf_addr_t *sp = (elf_addr_t *)new_sp;		\
+		__u32 spaceid = (__u32)current->mm->context;	\
+		elf_addr_t pc = (elf_addr_t)new_pc | 3;		\
+		elf_caddr_t *argv = (elf_caddr_t *)bprm->exec + 1;	\
+		\
+		regs->iasq[0] = spaceid;			\
+		regs->iasq[1] = spaceid;			\
+		regs->iaoq[0] = pc;				\
+		regs->iaoq[1] = pc + 4;                         \
+		regs->sr[2] = LINUX_GATEWAY_SPACE;              \
+		regs->sr[3] = 0xffff;				\
+		regs->sr[4] = spaceid;				\
+		regs->sr[5] = spaceid;				\
+		regs->sr[6] = spaceid;				\
+		regs->sr[7] = spaceid;				\
+		regs->gr[ 0] = USER_PSW | (USER_WIDE_MODE ? PSW_W : 0); \
+		regs->fr[ 0] = 0LL;                            	\
+		regs->fr[ 1] = 0LL;                            	\
+		regs->fr[ 2] = 0LL;                            	\
+		regs->fr[ 3] = 0LL;                            	\
+		regs->gr[30] = (((unsigned long)sp + 63) &~ 63) | (USER_WIDE_MODE ? 1 : 0); \
+		regs->gr[31] = pc;				\
+		\
+		get_user(regs->gr[25], (argv - 1));		\
+		regs->gr[24] = (long) argv;			\
+		regs->gr[23] = 0;				\
+	} while(0)
 
 struct task_struct;
 struct mm_struct;
@@ -317,10 +322,10 @@ extern unsigned long get_wchan(struct task_struct *p);
  * with different data, whether clean or not) to operate
  */
 #ifdef CONFIG_PA8X00
-extern int _parisc_requires_coherency;
-#define parisc_requires_coherency()	_parisc_requires_coherency
+	extern int _parisc_requires_coherency;
+	#define parisc_requires_coherency()	_parisc_requires_coherency
 #else
-#define parisc_requires_coherency()	(0)
+	#define parisc_requires_coherency()	(0)
 #endif
 
 #endif /* __ASSEMBLY__ */

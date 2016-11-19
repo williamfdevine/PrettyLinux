@@ -59,10 +59,13 @@ void __iomem *zynq_scu_base;
 static void __init zynq_memory_init(void)
 {
 	if (!__pa(PAGE_OFFSET))
+	{
 		memblock_reserve(__pa(PAGE_OFFSET), __pa(swapper_pg_dir));
+	}
 }
 
-static struct platform_device zynq_cpuidle_device = {
+static struct platform_device zynq_cpuidle_device =
+{
 	.name = "cpuidle-zynq",
 };
 
@@ -78,13 +81,17 @@ static int __init zynq_get_revision(void)
 	u32 revision;
 
 	np = of_find_compatible_node(NULL, NULL, "xlnx,zynq-devcfg-1.0");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("%s: no devcfg node found\n", __func__);
 		return -1;
 	}
 
 	zynq_devcfg_base = of_iomap(np, 0);
-	if (!zynq_devcfg_base) {
+
+	if (!zynq_devcfg_base)
+	{
 		pr_err("%s: Unable to map I/O memory\n", __func__);
 		return -1;
 	}
@@ -115,18 +122,23 @@ static void __init zynq_init_machine(void)
 	struct device *parent = NULL;
 
 	soc_dev_attr = kzalloc(sizeof(*soc_dev_attr), GFP_KERNEL);
+
 	if (!soc_dev_attr)
+	{
 		goto out;
+	}
 
 	system_rev = zynq_get_revision();
 
 	soc_dev_attr->family = kasprintf(GFP_KERNEL, "Xilinx Zynq");
 	soc_dev_attr->revision = kasprintf(GFP_KERNEL, "0x%x", system_rev);
 	soc_dev_attr->soc_id = kasprintf(GFP_KERNEL, "0x%x",
-					 zynq_slcr_get_device_id());
+									 zynq_slcr_get_device_id());
 
 	soc_dev = soc_device_register(soc_dev_attr);
-	if (IS_ERR(soc_dev)) {
+
+	if (IS_ERR(soc_dev))
+	{
 		kfree(soc_dev_attr->family);
 		kfree(soc_dev_attr->revision);
 		kfree(soc_dev_attr->soc_id);
@@ -153,7 +165,8 @@ static void __init zynq_timer_init(void)
 	clocksource_probe();
 }
 
-static struct map_desc zynq_cortex_a9_scu_map __initdata = {
+static struct map_desc zynq_cortex_a9_scu_map __initdata =
+{
 	.length	= SZ_256,
 	.type	= MT_DEVICE,
 };
@@ -186,21 +199,22 @@ static void __init zynq_irq_init(void)
 	irqchip_init();
 }
 
-static const char * const zynq_dt_match[] = {
+static const char *const zynq_dt_match[] =
+{
 	"xlnx,zynq-7000",
 	NULL
 };
 
 DT_MACHINE_START(XILINX_EP107, "Xilinx Zynq Platform")
-	/* 64KB way size, 8-way associativity, parity disabled */
-	.l2c_aux_val    = 0x00400000,
-	.l2c_aux_mask	= 0xffbfffff,
+/* 64KB way size, 8-way associativity, parity disabled */
+.l2c_aux_val    = 0x00400000,
+ .l2c_aux_mask	= 0xffbfffff,
 	.smp		= smp_ops(zynq_smp_ops),
-	.map_io		= zynq_map_io,
-	.init_irq	= zynq_irq_init,
-	.init_machine	= zynq_init_machine,
-	.init_late	= zynq_init_late,
-	.init_time	= zynq_timer_init,
-	.dt_compat	= zynq_dt_match,
-	.reserve	= zynq_memory_init,
-MACHINE_END
+		   .map_io		= zynq_map_io,
+			   .init_irq	= zynq_irq_init,
+				  .init_machine	= zynq_init_machine,
+					 .init_late	= zynq_init_late,
+					   .init_time	= zynq_timer_init,
+						 .dt_compat	= zynq_dt_match,
+						   .reserve	= zynq_memory_init,
+							   MACHINE_END

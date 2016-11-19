@@ -23,16 +23,20 @@ static u32 crc32c_vpmsum(u32 crc, unsigned char const *p, size_t len)
 	unsigned int tail;
 
 	if (len < (VECTOR_BREAKPOINT + VMX_ALIGN) || in_interrupt())
+	{
 		return __crc32c_le(crc, p, len);
+	}
 
-	if ((unsigned long)p & VMX_ALIGN_MASK) {
+	if ((unsigned long)p & VMX_ALIGN_MASK)
+	{
 		prealign = VMX_ALIGN - ((unsigned long)p & VMX_ALIGN_MASK);
 		crc = __crc32c_le(crc, p, prealign);
 		len -= prealign;
 		p += prealign;
 	}
 
-	if (len & ~VMX_ALIGN_MASK) {
+	if (len & ~VMX_ALIGN_MASK)
+	{
 		pagefault_disable();
 		enable_kernel_altivec();
 		crc = __crc32c_vpmsum(crc, p, len & ~VMX_ALIGN_MASK);
@@ -40,7 +44,9 @@ static u32 crc32c_vpmsum(u32 crc, unsigned char const *p, size_t len)
 	}
 
 	tail = len & VMX_ALIGN_MASK;
-	if (tail) {
+
+	if (tail)
+	{
 		p += len & ~VMX_ALIGN_MASK;
 		crc = __crc32c_le(crc, p, tail);
 	}
@@ -63,14 +69,16 @@ static int crc32c_vpmsum_cra_init(struct crypto_tfm *tfm)
  * the seed.
  */
 static int crc32c_vpmsum_setkey(struct crypto_shash *hash, const u8 *key,
-			       unsigned int keylen)
+								unsigned int keylen)
 {
 	u32 *mctx = crypto_shash_ctx(hash);
 
-	if (keylen != sizeof(u32)) {
+	if (keylen != sizeof(u32))
+	{
 		crypto_shash_set_flags(hash, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
+
 	*mctx = le32_to_cpup((__le32 *)key);
 	return 0;
 }
@@ -86,7 +94,7 @@ static int crc32c_vpmsum_init(struct shash_desc *desc)
 }
 
 static int crc32c_vpmsum_update(struct shash_desc *desc, const u8 *data,
-			       unsigned int len)
+								unsigned int len)
 {
 	u32 *crcp = shash_desc_ctx(desc);
 
@@ -96,7 +104,7 @@ static int crc32c_vpmsum_update(struct shash_desc *desc, const u8 *data,
 }
 
 static int __crc32c_vpmsum_finup(u32 *crcp, const u8 *data, unsigned int len,
-				u8 *out)
+								 u8 *out)
 {
 	*(__le32 *)out = ~cpu_to_le32(crc32c_vpmsum(*crcp, data, len));
 
@@ -104,7 +112,7 @@ static int __crc32c_vpmsum_finup(u32 *crcp, const u8 *data, unsigned int len,
 }
 
 static int crc32c_vpmsum_finup(struct shash_desc *desc, const u8 *data,
-			      unsigned int len, u8 *out)
+							   unsigned int len, u8 *out)
 {
 	return __crc32c_vpmsum_finup(shash_desc_ctx(desc), data, len, out);
 }
@@ -119,13 +127,14 @@ static int crc32c_vpmsum_final(struct shash_desc *desc, u8 *out)
 }
 
 static int crc32c_vpmsum_digest(struct shash_desc *desc, const u8 *data,
-			       unsigned int len, u8 *out)
+								unsigned int len, u8 *out)
 {
 	return __crc32c_vpmsum_finup(crypto_shash_ctx(desc->tfm), data, len,
-				     out);
+								 out);
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.setkey		= crc32c_vpmsum_setkey,
 	.init		= crc32c_vpmsum_init,
 	.update		= crc32c_vpmsum_update,
@@ -148,7 +157,9 @@ static struct shash_alg alg = {
 static int __init crc32c_vpmsum_mod_init(void)
 {
 	if (!cpu_has_feature(CPU_FTR_ARCH_207S))
+	{
 		return -ENODEV;
+	}
 
 	return crypto_register_shash(&alg);
 }

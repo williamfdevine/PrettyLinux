@@ -89,19 +89,19 @@ extern struct { char _entry[32]; } hypercall_page[];
 	[offset] "i" (__HYPERVISOR_##x * sizeof(hypercall_page[0]))
 
 #ifdef CONFIG_X86_32
-#define __HYPERCALL_RETREG	"eax"
-#define __HYPERCALL_ARG1REG	"ebx"
-#define __HYPERCALL_ARG2REG	"ecx"
-#define __HYPERCALL_ARG3REG	"edx"
-#define __HYPERCALL_ARG4REG	"esi"
-#define __HYPERCALL_ARG5REG	"edi"
+	#define __HYPERCALL_RETREG	"eax"
+	#define __HYPERCALL_ARG1REG	"ebx"
+	#define __HYPERCALL_ARG2REG	"ecx"
+	#define __HYPERCALL_ARG3REG	"edx"
+	#define __HYPERCALL_ARG4REG	"esi"
+	#define __HYPERCALL_ARG5REG	"edi"
 #else
-#define __HYPERCALL_RETREG	"rax"
-#define __HYPERCALL_ARG1REG	"rdi"
-#define __HYPERCALL_ARG2REG	"rsi"
-#define __HYPERCALL_ARG3REG	"rdx"
-#define __HYPERCALL_ARG4REG	"r10"
-#define __HYPERCALL_ARG5REG	"r8"
+	#define __HYPERCALL_RETREG	"rax"
+	#define __HYPERCALL_ARG1REG	"rdi"
+	#define __HYPERCALL_ARG2REG	"rsi"
+	#define __HYPERCALL_ARG3REG	"rdx"
+	#define __HYPERCALL_ARG4REG	"r10"
+	#define __HYPERCALL_ARG5REG	"r8"
 #endif
 
 #define __HYPERCALL_DECLS						\
@@ -140,84 +140,84 @@ extern struct { char _entry[32]; } hypercall_page[];
 #define __HYPERCALL_CLOBBER0	__HYPERCALL_CLOBBER1, __HYPERCALL_ARG1REG
 
 #define _hypercall0(type, name)						\
-({									\
-	__HYPERCALL_DECLS;						\
-	__HYPERCALL_0ARG();						\
-	asm volatile (__HYPERCALL					\
-		      : __HYPERCALL_0PARAM				\
-		      : __HYPERCALL_ENTRY(name)				\
-		      : __HYPERCALL_CLOBBER0);				\
-	(type)__res;							\
-})
+	({									\
+		__HYPERCALL_DECLS;						\
+		__HYPERCALL_0ARG();						\
+		asm volatile (__HYPERCALL					\
+					  : __HYPERCALL_0PARAM				\
+					  : __HYPERCALL_ENTRY(name)				\
+					  : __HYPERCALL_CLOBBER0);				\
+		(type)__res;							\
+	})
 
 #define _hypercall1(type, name, a1)					\
-({									\
-	__HYPERCALL_DECLS;						\
-	__HYPERCALL_1ARG(a1);						\
-	asm volatile (__HYPERCALL					\
-		      : __HYPERCALL_1PARAM				\
-		      : __HYPERCALL_ENTRY(name)				\
-		      : __HYPERCALL_CLOBBER1);				\
-	(type)__res;							\
-})
+	({									\
+		__HYPERCALL_DECLS;						\
+		__HYPERCALL_1ARG(a1);						\
+		asm volatile (__HYPERCALL					\
+					  : __HYPERCALL_1PARAM				\
+					  : __HYPERCALL_ENTRY(name)				\
+					  : __HYPERCALL_CLOBBER1);				\
+		(type)__res;							\
+	})
 
 #define _hypercall2(type, name, a1, a2)					\
-({									\
-	__HYPERCALL_DECLS;						\
-	__HYPERCALL_2ARG(a1, a2);					\
-	asm volatile (__HYPERCALL					\
-		      : __HYPERCALL_2PARAM				\
-		      : __HYPERCALL_ENTRY(name)				\
-		      : __HYPERCALL_CLOBBER2);				\
-	(type)__res;							\
-})
+	({									\
+		__HYPERCALL_DECLS;						\
+		__HYPERCALL_2ARG(a1, a2);					\
+		asm volatile (__HYPERCALL					\
+					  : __HYPERCALL_2PARAM				\
+					  : __HYPERCALL_ENTRY(name)				\
+					  : __HYPERCALL_CLOBBER2);				\
+		(type)__res;							\
+	})
 
 #define _hypercall3(type, name, a1, a2, a3)				\
-({									\
-	__HYPERCALL_DECLS;						\
-	__HYPERCALL_3ARG(a1, a2, a3);					\
-	asm volatile (__HYPERCALL					\
-		      : __HYPERCALL_3PARAM				\
-		      : __HYPERCALL_ENTRY(name)				\
-		      : __HYPERCALL_CLOBBER3);				\
-	(type)__res;							\
-})
+	({									\
+		__HYPERCALL_DECLS;						\
+		__HYPERCALL_3ARG(a1, a2, a3);					\
+		asm volatile (__HYPERCALL					\
+					  : __HYPERCALL_3PARAM				\
+					  : __HYPERCALL_ENTRY(name)				\
+					  : __HYPERCALL_CLOBBER3);				\
+		(type)__res;							\
+	})
 
 #define _hypercall4(type, name, a1, a2, a3, a4)				\
-({									\
-	__HYPERCALL_DECLS;						\
-	__HYPERCALL_4ARG(a1, a2, a3, a4);				\
-	asm volatile (__HYPERCALL					\
-		      : __HYPERCALL_4PARAM				\
-		      : __HYPERCALL_ENTRY(name)				\
-		      : __HYPERCALL_CLOBBER4);				\
-	(type)__res;							\
-})
+	({									\
+		__HYPERCALL_DECLS;						\
+		__HYPERCALL_4ARG(a1, a2, a3, a4);				\
+		asm volatile (__HYPERCALL					\
+					  : __HYPERCALL_4PARAM				\
+					  : __HYPERCALL_ENTRY(name)				\
+					  : __HYPERCALL_CLOBBER4);				\
+		(type)__res;							\
+	})
 
 #define _hypercall5(type, name, a1, a2, a3, a4, a5)			\
-({									\
-	__HYPERCALL_DECLS;						\
-	__HYPERCALL_5ARG(a1, a2, a3, a4, a5);				\
-	asm volatile (__HYPERCALL					\
-		      : __HYPERCALL_5PARAM				\
-		      : __HYPERCALL_ENTRY(name)				\
-		      : __HYPERCALL_CLOBBER5);				\
-	(type)__res;							\
-})
+	({									\
+		__HYPERCALL_DECLS;						\
+		__HYPERCALL_5ARG(a1, a2, a3, a4, a5);				\
+		asm volatile (__HYPERCALL					\
+					  : __HYPERCALL_5PARAM				\
+					  : __HYPERCALL_ENTRY(name)				\
+					  : __HYPERCALL_CLOBBER5);				\
+		(type)__res;							\
+	})
 
 static inline long
 privcmd_call(unsigned call,
-	     unsigned long a1, unsigned long a2,
-	     unsigned long a3, unsigned long a4,
-	     unsigned long a5)
+			 unsigned long a1, unsigned long a2,
+			 unsigned long a3, unsigned long a4,
+			 unsigned long a5)
 {
 	__HYPERCALL_DECLS;
 	__HYPERCALL_5ARG(a1, a2, a3, a4, a5);
 
 	asm volatile("call *%[call]"
-		     : __HYPERCALL_5PARAM
-		     : [call] "a" (&hypercall_page[call])
-		     : __HYPERCALL_CLOBBER5);
+				 : __HYPERCALL_5PARAM
+				 : [call] "a" (&hypercall_page[call])
+				 : __HYPERCALL_CLOBBER5);
 
 	return (long)__res;
 }
@@ -230,14 +230,14 @@ HYPERVISOR_set_trap_table(struct trap_info *table)
 
 static inline int
 HYPERVISOR_mmu_update(struct mmu_update *req, int count,
-		      int *success_count, domid_t domid)
+					  int *success_count, domid_t domid)
 {
 	return _hypercall4(int, mmu_update, req, count, success_count, domid);
 }
 
 static inline int
 HYPERVISOR_mmuext_op(struct mmuext_op *op, int count,
-		     int *success_count, domid_t domid)
+					 int *success_count, domid_t domid)
 {
 	return _hypercall4(int, mmuext_op, op, count, success_count, domid);
 }
@@ -257,23 +257,23 @@ HYPERVISOR_stack_switch(unsigned long ss, unsigned long esp)
 #ifdef CONFIG_X86_32
 static inline int
 HYPERVISOR_set_callbacks(unsigned long event_selector,
-			 unsigned long event_address,
-			 unsigned long failsafe_selector,
-			 unsigned long failsafe_address)
+						 unsigned long event_address,
+						 unsigned long failsafe_selector,
+						 unsigned long failsafe_address)
 {
 	return _hypercall4(int, set_callbacks,
-			   event_selector, event_address,
-			   failsafe_selector, failsafe_address);
+					   event_selector, event_address,
+					   failsafe_selector, failsafe_address);
 }
 #else  /* CONFIG_X86_64 */
 static inline int
 HYPERVISOR_set_callbacks(unsigned long event_address,
-			unsigned long failsafe_address,
-			unsigned long syscall_address)
+						 unsigned long failsafe_address,
+						 unsigned long syscall_address)
 {
 	return _hypercall3(int, set_callbacks,
-			   event_address, failsafe_address,
-			   syscall_address);
+					   event_address, failsafe_address,
+					   syscall_address);
 }
 #endif  /* CONFIG_X86_{32,64} */
 
@@ -298,7 +298,7 @@ HYPERVISOR_sched_op(int cmd, void *arg)
 static inline long
 HYPERVISOR_set_timer_op(u64 timeout)
 {
-	unsigned long timeout_hi = (unsigned long)(timeout>>32);
+	unsigned long timeout_hi = (unsigned long)(timeout >> 32);
 	unsigned long timeout_lo = (unsigned long)timeout;
 	return _hypercall2(long, set_timer_op, timeout_lo, timeout_hi);
 }
@@ -333,8 +333,11 @@ static inline int
 HYPERVISOR_update_descriptor(u64 ma, u64 desc)
 {
 	if (sizeof(u64) == sizeof(long))
+	{
 		return _hypercall2(int, update_descriptor, ma, desc);
-	return _hypercall4(int, update_descriptor, ma, ma>>32, desc, desc>>32);
+	}
+
+	return _hypercall4(int, update_descriptor, ma, ma >> 32, desc, desc >> 32);
 }
 
 static inline long
@@ -351,14 +354,14 @@ HYPERVISOR_multicall(void *call_list, uint32_t nr_calls)
 
 static inline int
 HYPERVISOR_update_va_mapping(unsigned long va, pte_t new_val,
-			     unsigned long flags)
+							 unsigned long flags)
 {
 	if (sizeof(new_val) == sizeof(long))
 		return _hypercall3(int, update_va_mapping, va,
-				   new_val.pte, flags);
+						   new_val.pte, flags);
 	else
 		return _hypercall4(int, update_va_mapping, va,
-				   new_val.pte, new_val.pte >> 32, flags);
+						   new_val.pte, new_val.pte >> 32, flags);
 }
 extern int __must_check xen_event_channel_op_compat(int, void *);
 
@@ -366,8 +369,12 @@ static inline int
 HYPERVISOR_event_channel_op(int cmd, void *arg)
 {
 	int rc = _hypercall2(int, event_channel_op, cmd, arg);
+
 	if (unlikely(rc == -ENOSYS))
+	{
 		rc = xen_event_channel_op_compat(cmd, arg);
+	}
+
 	return rc;
 }
 
@@ -389,8 +396,12 @@ static inline int
 HYPERVISOR_physdev_op(int cmd, void *arg)
 {
 	int rc = _hypercall2(int, physdev_op, cmd, arg);
+
 	if (unlikely(rc == -ENOSYS))
+	{
 		rc = xen_physdev_op_compat(cmd, arg);
+	}
+
 	return rc;
 }
 
@@ -402,15 +413,15 @@ HYPERVISOR_grant_table_op(unsigned int cmd, void *uop, unsigned int count)
 
 static inline int
 HYPERVISOR_update_va_mapping_otherdomain(unsigned long va, pte_t new_val,
-					 unsigned long flags, domid_t domid)
+		unsigned long flags, domid_t domid)
 {
 	if (sizeof(new_val) == sizeof(long))
 		return _hypercall4(int, update_va_mapping_otherdomain, va,
-				   new_val.pte, flags, domid);
+						   new_val.pte, flags, domid);
 	else
 		return _hypercall5(int, update_va_mapping_otherdomain, va,
-				   new_val.pte, new_val.pte >> 32,
-				   flags, domid);
+						   new_val.pte, new_val.pte >> 32,
+						   flags, domid);
 }
 
 static inline int
@@ -456,7 +467,7 @@ HYPERVISOR_nmi_op(unsigned long op, unsigned long arg)
 static inline unsigned long __must_check
 HYPERVISOR_hvm_op(int op, void *arg)
 {
-       return _hypercall2(unsigned long, hvm_op, op, arg);
+	return _hypercall2(unsigned long, hvm_op, op, arg);
 }
 
 static inline int
@@ -483,14 +494,18 @@ MULTI_fpu_taskswitch(struct multicall_entry *mcl, int set)
 
 static inline void
 MULTI_update_va_mapping(struct multicall_entry *mcl, unsigned long va,
-			pte_t new_val, unsigned long flags)
+						pte_t new_val, unsigned long flags)
 {
 	mcl->op = __HYPERVISOR_update_va_mapping;
 	mcl->args[0] = va;
-	if (sizeof(new_val) == sizeof(long)) {
+
+	if (sizeof(new_val) == sizeof(long))
+	{
 		mcl->args[1] = new_val.pte;
 		mcl->args[2] = flags;
-	} else {
+	}
+	else
+	{
 		mcl->args[1] = new_val.pte;
 		mcl->args[2] = new_val.pte >> 32;
 		mcl->args[3] = flags;
@@ -501,7 +516,7 @@ MULTI_update_va_mapping(struct multicall_entry *mcl, unsigned long va,
 
 static inline void
 MULTI_grant_table_op(struct multicall_entry *mcl, unsigned int cmd,
-		     void *uop, unsigned int count)
+					 void *uop, unsigned int count)
 {
 	mcl->op = __HYPERVISOR_grant_table_op;
 	mcl->args[0] = cmd;
@@ -513,16 +528,20 @@ MULTI_grant_table_op(struct multicall_entry *mcl, unsigned int cmd,
 
 static inline void
 MULTI_update_va_mapping_otherdomain(struct multicall_entry *mcl, unsigned long va,
-				    pte_t new_val, unsigned long flags,
-				    domid_t domid)
+									pte_t new_val, unsigned long flags,
+									domid_t domid)
 {
 	mcl->op = __HYPERVISOR_update_va_mapping_otherdomain;
 	mcl->args[0] = va;
-	if (sizeof(new_val) == sizeof(long)) {
+
+	if (sizeof(new_val) == sizeof(long))
+	{
 		mcl->args[1] = new_val.pte;
 		mcl->args[2] = flags;
 		mcl->args[3] = domid;
-	} else {
+	}
+	else
+	{
 		mcl->args[1] = new_val.pte;
 		mcl->args[2] = new_val.pte >> 32;
 		mcl->args[3] = flags;
@@ -534,13 +553,17 @@ MULTI_update_va_mapping_otherdomain(struct multicall_entry *mcl, unsigned long v
 
 static inline void
 MULTI_update_descriptor(struct multicall_entry *mcl, u64 maddr,
-			struct desc_struct desc)
+						struct desc_struct desc)
 {
 	mcl->op = __HYPERVISOR_update_descriptor;
-	if (sizeof(maddr) == sizeof(long)) {
+
+	if (sizeof(maddr) == sizeof(long))
+	{
 		mcl->args[0] = maddr;
 		mcl->args[1] = *(unsigned long *)&desc;
-	} else {
+	}
+	else
+	{
 		mcl->args[0] = maddr;
 		mcl->args[1] = maddr >> 32;
 		mcl->args[2] = desc.a;
@@ -562,7 +585,7 @@ MULTI_memory_op(struct multicall_entry *mcl, unsigned int cmd, void *arg)
 
 static inline void
 MULTI_mmu_update(struct multicall_entry *mcl, struct mmu_update *req,
-		 int count, int *success_count, domid_t domid)
+				 int count, int *success_count, domid_t domid)
 {
 	mcl->op = __HYPERVISOR_mmu_update;
 	mcl->args[0] = (unsigned long)req;
@@ -575,7 +598,7 @@ MULTI_mmu_update(struct multicall_entry *mcl, struct mmu_update *req,
 
 static inline void
 MULTI_mmuext_op(struct multicall_entry *mcl, struct mmuext_op *op, int count,
-		int *success_count, domid_t domid)
+				int *success_count, domid_t domid)
 {
 	mcl->op = __HYPERVISOR_mmuext_op;
 	mcl->args[0] = (unsigned long)op;
@@ -598,7 +621,7 @@ MULTI_set_gdt(struct multicall_entry *mcl, unsigned long *frames, int entries)
 
 static inline void
 MULTI_stack_switch(struct multicall_entry *mcl,
-		   unsigned long ss, unsigned long esp)
+				   unsigned long ss, unsigned long esp)
 {
 	mcl->op = __HYPERVISOR_stack_switch;
 	mcl->args[0] = ss;

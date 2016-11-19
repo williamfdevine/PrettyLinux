@@ -28,7 +28,8 @@
 /*
  * helper for sa1100fb
  */
-static struct gpio h3600_lcd_gpio[] = {
+static struct gpio h3600_lcd_gpio[] =
+{
 	{ H3XXX_EGPIO_LCD_ON,	GPIOF_OUT_INIT_LOW,	"LCD power" },
 	{ H3600_EGPIO_LCD_PCI,	GPIOF_OUT_INIT_LOW,	"LCD control" },
 	{ H3600_EGPIO_LCD_5V_ON, GPIOF_OUT_INIT_LOW,	"LCD 5v" },
@@ -41,13 +42,20 @@ static bool h3600_lcd_request(void)
 	int rc;
 
 	if (h3600_lcd_ok)
+	{
 		return true;
+	}
 
 	rc = gpio_request_array(h3600_lcd_gpio, ARRAY_SIZE(h3600_lcd_gpio));
+
 	if (rc)
+	{
 		pr_err("%s: can't request GPIOs\n", __func__);
+	}
 	else
+	{
 		h3600_lcd_ok = true;
+	}
 
 	return h3600_lcd_ok;
 }
@@ -55,7 +63,9 @@ static bool h3600_lcd_request(void)
 static void h3600_lcd_power(int enable)
 {
 	if (!h3600_lcd_request())
+	{
 		return;
+	}
 
 	gpio_direction_output(H3XXX_EGPIO_LCD_ON, enable);
 	gpio_direction_output(H3600_EGPIO_LCD_PCI, enable);
@@ -63,14 +73,16 @@ static void h3600_lcd_power(int enable)
 	gpio_direction_output(H3600_EGPIO_LVDD_ON, enable);
 }
 
-static const struct sa1100fb_rgb h3600_rgb_16 = {
+static const struct sa1100fb_rgb h3600_rgb_16 =
+{
 	.red	= { .offset = 12, .length = 4, },
 	.green	= { .offset = 7,  .length = 4, },
 	.blue	= { .offset = 1,  .length = 4, },
 	.transp	= { .offset = 0,  .length = 0, },
 };
 
-static struct sa1100fb_mach_info h3600_lcd_info = {
+static struct sa1100fb_mach_info h3600_lcd_info =
+{
 	.pixclock	= 174757, 	.bpp		= 16,
 	.xres		= 320,		.yres		= 240,
 
@@ -97,7 +109,8 @@ static void __init h3600_map_io(void)
 /*
  * This turns the IRDA power on or off on the Compaq H3600
  */
-static struct gpio h3600_irda_gpio[] = {
+static struct gpio h3600_irda_gpio[] =
+{
 	{ H3600_EGPIO_IR_ON,	GPIOF_OUT_INIT_LOW, "IrDA power" },
 	{ H3600_EGPIO_IR_FSEL,	GPIOF_OUT_INIT_LOW, "IrDA fsel" },
 };
@@ -123,7 +136,8 @@ static void h3600_irda_shutdown(struct device *dev)
 	return gpio_free_array(h3600_irda_gpio, sizeof(h3600_irda_gpio));
 }
 
-static struct irda_platform_data h3600_irda_data = {
+static struct irda_platform_data h3600_irda_data =
+{
 	.set_power	= h3600_irda_set_power,
 	.set_speed	= h3600_irda_set_speed,
 	.startup	= h3600_irda_startup,
@@ -139,13 +153,13 @@ static void __init h3600_mach_init(void)
 }
 
 MACHINE_START(H3600, "Compaq iPAQ H3600")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= h3600_map_io,
-	.nr_irqs	= SA1100_NR_IRQS,
-	.init_irq	= sa1100_init_irq,
-	.init_time	= sa1100_timer_init,
-	.init_machine	= h3600_mach_init,
-	.init_late	= sa11x0_init_late,
-	.restart	= sa11x0_restart,
-MACHINE_END
+		.nr_irqs	= SA1100_NR_IRQS,
+			.init_irq	= sa1100_init_irq,
+			   .init_time	= sa1100_timer_init,
+				 .init_machine	= h3600_mach_init,
+					.init_late	= sa11x0_init_late,
+					  .restart	= sa11x0_restart,
+						  MACHINE_END
 

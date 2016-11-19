@@ -10,7 +10,7 @@
 #include <asm/page.h>
 
 #ifdef __ASSEMBLY__
-#include <asm/thread_info.h>	/* TI_UWINMASK for WINDOW_FLUSH */
+	#include <asm/thread_info.h>	/* TI_UWINMASK for WINDOW_FLUSH */
 #endif
 
 /* Number of contexts is implementation-dependent; 64k is the most we support */
@@ -104,15 +104,15 @@
  * XXX But for now...
  */
 #define SRMMU_PAGE_NONE    __pgprot(SRMMU_CACHE | \
-				    SRMMU_PRIV | SRMMU_REF)
+									SRMMU_PRIV | SRMMU_REF)
 #define SRMMU_PAGE_SHARED  __pgprot(SRMMU_VALID | SRMMU_CACHE | \
-				    SRMMU_EXEC | SRMMU_WRITE | SRMMU_REF)
+									SRMMU_EXEC | SRMMU_WRITE | SRMMU_REF)
 #define SRMMU_PAGE_COPY    __pgprot(SRMMU_VALID | SRMMU_CACHE | \
-				    SRMMU_EXEC | SRMMU_REF)
+									SRMMU_EXEC | SRMMU_REF)
 #define SRMMU_PAGE_RDONLY  __pgprot(SRMMU_VALID | SRMMU_CACHE | \
-				    SRMMU_EXEC | SRMMU_REF)
+									SRMMU_EXEC | SRMMU_REF)
 #define SRMMU_PAGE_KERNEL  __pgprot(SRMMU_VALID | SRMMU_CACHE | SRMMU_PRIV | \
-				    SRMMU_DIRTY | SRMMU_REF)
+									SRMMU_DIRTY | SRMMU_REF)
 
 /* SRMMU Register addresses in ASI 0x4.  These are valid for all
  * current SRMMU implementations that exist.
@@ -125,14 +125,14 @@
 
 #define WINDOW_FLUSH(tmp1, tmp2)					\
 	mov	0, tmp1;						\
-98:	ld	[%g6 + TI_UWINMASK], tmp2;				\
+	98:	ld	[%g6 + TI_UWINMASK], tmp2;				\
 	orcc	%g0, tmp2, %g0;						\
 	add	tmp1, 1, tmp1;						\
 	bne	98b;							\
-	 save	%sp, -64, %sp;						\
-99:	subcc	tmp1, 1, tmp1;						\
+	save	%sp, -64, %sp;						\
+	99:	subcc	tmp1, 1, tmp1;						\
 	bne	99b;							\
-	 restore %g0, %g0, %g0;
+	restore %g0, %g0, %g0;
 
 #ifndef __ASSEMBLY__
 extern unsigned long last_valid_pfn;
@@ -157,8 +157,8 @@ unsigned int srmmu_get_faddr(void);
 static inline void srmmu_flush_whole_tlb(void)
 {
 	__asm__ __volatile__("sta %%g0, [%0] %1\n\t": :
-			     "r" (0x400),        /* Flush entire TLB!! */
-			     "i" (ASI_M_FLUSH_PROBE) : "memory");
+						 "r" (0x400),        /* Flush entire TLB!! */
+						 "i" (ASI_M_FLUSH_PROBE) : "memory");
 
 }
 
@@ -166,10 +166,10 @@ static inline int
 srmmu_get_pte (unsigned long addr)
 {
 	register unsigned long entry;
-        
+
 	__asm__ __volatile__("\n\tlda [%1] %2,%0\n\t" :
-				"=r" (entry):
-				"r" ((addr & 0xfffff000) | 0x400), "i" (ASI_M_FLUSH_PROBE));
+						 "=r" (entry):
+						 "r" ((addr & 0xfffff000) | 0x400), "i" (ASI_M_FLUSH_PROBE));
 	return entry;
 }
 

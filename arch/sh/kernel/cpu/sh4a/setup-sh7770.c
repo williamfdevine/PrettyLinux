@@ -15,18 +15,21 @@
 #include <linux/sh_intc.h>
 #include <linux/io.h>
 
-static struct plat_sci_port scif0_platform_data = {
+static struct plat_sci_port scif0_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif0_resources[] = {
+static struct resource scif0_resources[] =
+{
 	DEFINE_RES_MEM(0xff923000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0x9a0)),
 };
 
-static struct platform_device scif0_device = {
+static struct platform_device scif0_device =
+{
 	.name		= "sh-sci",
 	.id		= 0,
 	.resource	= scif0_resources,
@@ -36,18 +39,21 @@ static struct platform_device scif0_device = {
 	},
 };
 
-static struct plat_sci_port scif1_platform_data = {
+static struct plat_sci_port scif1_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif1_resources[] = {
+static struct resource scif1_resources[] =
+{
 	DEFINE_RES_MEM(0xff924000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0x9c0)),
 };
 
-static struct platform_device scif1_device = {
+static struct platform_device scif1_device =
+{
 	.name		= "sh-sci",
 	.id		= 1,
 	.resource	= scif1_resources,
@@ -57,18 +63,21 @@ static struct platform_device scif1_device = {
 	},
 };
 
-static struct plat_sci_port scif2_platform_data = {
+static struct plat_sci_port scif2_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif2_resources[] = {
+static struct resource scif2_resources[] =
+{
 	DEFINE_RES_MEM(0xff925000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0x9e0)),
 };
 
-static struct platform_device scif2_device = {
+static struct platform_device scif2_device =
+{
 	.name		= "sh-sci",
 	.id		= 2,
 	.resource	= scif2_resources,
@@ -78,18 +87,21 @@ static struct platform_device scif2_device = {
 	},
 };
 
-static struct plat_sci_port scif3_platform_data = {
+static struct plat_sci_port scif3_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif3_resources[] = {
+static struct resource scif3_resources[] =
+{
 	DEFINE_RES_MEM(0xff926000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xa00)),
 };
 
-static struct platform_device scif3_device = {
+static struct platform_device scif3_device =
+{
 	.name		= "sh-sci",
 	.id		= 3,
 	.resource	= scif3_resources,
@@ -99,18 +111,21 @@ static struct platform_device scif3_device = {
 	},
 };
 
-static struct plat_sci_port scif4_platform_data = {
+static struct plat_sci_port scif4_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif4_resources[] = {
+static struct resource scif4_resources[] =
+{
 	DEFINE_RES_MEM(0xff927000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xa20)),
 };
 
-static struct platform_device scif4_device = {
+static struct platform_device scif4_device =
+{
 	.name		= "sh-sci",
 	.id		= 4,
 	.resource	= scif4_resources,
@@ -120,18 +135,21 @@ static struct platform_device scif4_device = {
 	},
 };
 
-static struct plat_sci_port scif5_platform_data = {
+static struct plat_sci_port scif5_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif5_resources[] = {
+static struct resource scif5_resources[] =
+{
 	DEFINE_RES_MEM(0xff928000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xa40)),
 };
 
-static struct platform_device scif5_device = {
+static struct platform_device scif5_device =
+{
 	.name		= "sh-sci",
 	.id		= 5,
 	.resource	= scif5_resources,
@@ -141,18 +159,21 @@ static struct platform_device scif5_device = {
 	},
 };
 
-static struct plat_sci_port scif6_platform_data = {
+static struct plat_sci_port scif6_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif6_resources[] = {
+static struct resource scif6_resources[] =
+{
 	DEFINE_RES_MEM(0xff929000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xa60)),
 };
 
-static struct platform_device scif6_device = {
+static struct platform_device scif6_device =
+{
 	.name		= "sh-sci",
 	.id		= 6,
 	.resource	= scif6_resources,
@@ -162,18 +183,21 @@ static struct platform_device scif6_device = {
 	},
 };
 
-static struct plat_sci_port scif7_platform_data = {
+static struct plat_sci_port scif7_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif7_resources[] = {
+static struct resource scif7_resources[] =
+{
 	DEFINE_RES_MEM(0xff92a000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xa80)),
 };
 
-static struct platform_device scif7_device = {
+static struct platform_device scif7_device =
+{
 	.name		= "sh-sci",
 	.id		= 7,
 	.resource	= scif7_resources,
@@ -183,18 +207,21 @@ static struct platform_device scif7_device = {
 	},
 };
 
-static struct plat_sci_port scif8_platform_data = {
+static struct plat_sci_port scif8_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif8_resources[] = {
+static struct resource scif8_resources[] =
+{
 	DEFINE_RES_MEM(0xff92b000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xaa0)),
 };
 
-static struct platform_device scif8_device = {
+static struct platform_device scif8_device =
+{
 	.name		= "sh-sci",
 	.id		= 8,
 	.resource	= scif8_resources,
@@ -204,18 +231,21 @@ static struct platform_device scif8_device = {
 	},
 };
 
-static struct plat_sci_port scif9_platform_data = {
+static struct plat_sci_port scif9_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE | SCSCR_TOIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif9_resources[] = {
+static struct resource scif9_resources[] =
+{
 	DEFINE_RES_MEM(0xff92c000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xac0)),
 };
 
-static struct platform_device scif9_device = {
+static struct platform_device scif9_device =
+{
 	.name		= "sh-sci",
 	.id		= 9,
 	.resource	= scif9_resources,
@@ -225,18 +255,21 @@ static struct platform_device scif9_device = {
 	},
 };
 
-static struct sh_timer_config tmu0_platform_data = {
+static struct sh_timer_config tmu0_platform_data =
+{
 	.channels_mask = 7,
 };
 
-static struct resource tmu0_resources[] = {
+static struct resource tmu0_resources[] =
+{
 	DEFINE_RES_MEM(0xffd80000, 0x30),
 	DEFINE_RES_IRQ(evt2irq(0x400)),
 	DEFINE_RES_IRQ(evt2irq(0x420)),
 	DEFINE_RES_IRQ(evt2irq(0x440)),
 };
 
-static struct platform_device tmu0_device = {
+static struct platform_device tmu0_device =
+{
 	.name		= "sh-tmu",
 	.id		= 0,
 	.dev = {
@@ -246,18 +279,21 @@ static struct platform_device tmu0_device = {
 	.num_resources	= ARRAY_SIZE(tmu0_resources),
 };
 
-static struct sh_timer_config tmu1_platform_data = {
+static struct sh_timer_config tmu1_platform_data =
+{
 	.channels_mask = 7,
 };
 
-static struct resource tmu1_resources[] = {
+static struct resource tmu1_resources[] =
+{
 	DEFINE_RES_MEM(0xffd81000, 0x30),
 	DEFINE_RES_IRQ(evt2irq(0x460)),
 	DEFINE_RES_IRQ(evt2irq(0x480)),
 	DEFINE_RES_IRQ(evt2irq(0x4a0)),
 };
 
-static struct platform_device tmu1_device = {
+static struct platform_device tmu1_device =
+{
 	.name		= "sh-tmu",
 	.id		= 1,
 	.dev = {
@@ -267,18 +303,21 @@ static struct platform_device tmu1_device = {
 	.num_resources	= ARRAY_SIZE(tmu1_resources),
 };
 
-static struct sh_timer_config tmu2_platform_data = {
+static struct sh_timer_config tmu2_platform_data =
+{
 	.channels_mask = 7,
 };
 
-static struct resource tmu2_resources[] = {
+static struct resource tmu2_resources[] =
+{
 	DEFINE_RES_MEM(0xffd82000, 0x2c),
 	DEFINE_RES_IRQ(evt2irq(0x4c0)),
 	DEFINE_RES_IRQ(evt2irq(0x4e0)),
 	DEFINE_RES_IRQ(evt2irq(0x500)),
 };
 
-static struct platform_device tmu2_device = {
+static struct platform_device tmu2_device =
+{
 	.name		= "sh-tmu",
 	.id		= 2,
 	.dev = {
@@ -288,7 +327,8 @@ static struct platform_device tmu2_device = {
 	.num_resources	= ARRAY_SIZE(tmu2_resources),
 };
 
-static struct platform_device *sh7770_devices[] __initdata = {
+static struct platform_device *sh7770_devices[] __initdata =
+{
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
@@ -307,11 +347,12 @@ static struct platform_device *sh7770_devices[] __initdata = {
 static int __init sh7770_devices_setup(void)
 {
 	return platform_add_devices(sh7770_devices,
-				    ARRAY_SIZE(sh7770_devices));
+								ARRAY_SIZE(sh7770_devices));
 }
 arch_initcall(sh7770_devices_setup);
 
-static struct platform_device *sh7770_early_devices[] __initdata = {
+static struct platform_device *sh7770_early_devices[] __initdata =
+{
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
@@ -330,10 +371,11 @@ static struct platform_device *sh7770_early_devices[] __initdata = {
 void __init plat_early_device_setup(void)
 {
 	early_platform_add_devices(sh7770_early_devices,
-				   ARRAY_SIZE(sh7770_early_devices));
+							   ARRAY_SIZE(sh7770_early_devices));
 }
 
-enum {
+enum
+{
 	UNUSED = 0,
 
 	/* interrupt sources */
@@ -366,7 +408,8 @@ enum {
 	TMU, DMAC, I2S, SRC, GFX3D, SPI, SCIF, BBDMAC,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_VECT(GPIO, 0x3e0),
 	INTC_VECT(TMU0, 0x400), INTC_VECT(TMU1, 0x420),
 	INTC_VECT(TMU2, 0x440), INTC_VECT(TMU2_TICPI, 0x460),
@@ -415,9 +458,10 @@ static struct intc_vect vectors[] __initdata = {
 	INTC_VECT(BBDMAC_30, 0xf60), INTC_VECT(BBDMAC_31, 0xf80),
 };
 
-static struct intc_group groups[] __initdata = {
+static struct intc_group groups[] __initdata =
+{
 	INTC_GROUP(TMU, TMU0, TMU1, TMU2, TMU2_TICPI, TMU3, TMU4, TMU5,
-		   TMU5_TICPI, TMU6, TMU7, TMU8),
+	TMU5_TICPI, TMU6, TMU7, TMU8),
 	INTC_GROUP(DMAC, DMAC0_DMINT0, DMAC0_DMINT1, DMAC0_DMINT2),
 	INTC_GROUP(I2S, I2S0, I2S1, I2S2, I2S3),
 	INTC_GROUP(SRC, SRC_RX, SRC_TX, SRC_SPDIF),
@@ -425,19 +469,25 @@ static struct intc_group groups[] __initdata = {
 	INTC_GROUP(SPI, SPI0, SPI1),
 	INTC_GROUP(SCIF, SCIF089, SCIF1234, SCIF567),
 	INTC_GROUP(BBDMAC,
-		   BBDMAC_0_3, BBDMAC_4_7, BBDMAC_8_10, BBDMAC_11_14,
-		   BBDMAC_15_18, BBDMAC_19_22, BBDMAC_23_26, BBDMAC_27,
-		   BBDMAC_28, BBDMAC_29, BBDMAC_30, BBDMAC_31),
+	BBDMAC_0_3, BBDMAC_4_7, BBDMAC_8_10, BBDMAC_11_14,
+	BBDMAC_15_18, BBDMAC_19_22, BBDMAC_23_26, BBDMAC_27,
+	BBDMAC_28, BBDMAC_29, BBDMAC_30, BBDMAC_31),
 };
 
-static struct intc_mask_reg mask_registers[] __initdata = {
-	{ 0xffe00040, 0xffe00044, 32, /* INT2MSKR / INT2MSKCR */
-	  { 0, BBDMAC, ADC, SCIF, SPI, EXBUS_ATA, GFX3D, GFX2D,
-	    GPS, CAN, ATAPI, USB, YUV, REMOTE, VIDEO_IN, DU, SRC, I2S,
-	    DMAC, I2C, HUDI, SPDIF, IPI, HAC, TMU, GPIO } },
+static struct intc_mask_reg mask_registers[] __initdata =
+{
+	{
+		0xffe00040, 0xffe00044, 32, /* INT2MSKR / INT2MSKCR */
+		{
+			0, BBDMAC, ADC, SCIF, SPI, EXBUS_ATA, GFX3D, GFX2D,
+			GPS, CAN, ATAPI, USB, YUV, REMOTE, VIDEO_IN, DU, SRC, I2S,
+			DMAC, I2C, HUDI, SPDIF, IPI, HAC, TMU, GPIO
+		}
+	},
 };
 
-static struct intc_prio_reg prio_registers[] __initdata = {
+static struct intc_prio_reg prio_registers[] __initdata =
+{
 	{ 0xffe00000, 0, 32, 8, /* INT2PRI0 */ { GPIO, TMU0, 0, HAC } },
 	{ 0xffe00004, 0, 32, 8, /* INT2PRI1 */ { IPI, SPDIF, HUDI, I2C } },
 	{ 0xffe00008, 0, 32, 8, /* INT2PRI2 */ { DMAC, I2S, SRC, DU } },
@@ -446,51 +496,78 @@ static struct intc_prio_reg prio_registers[] __initdata = {
 	{ 0xffe00014, 0, 32, 8, /* INT2PRI5 */ { 0, GFX3D, EXBUS_ATA, SPI } },
 	{ 0xffe00018, 0, 32, 8, /* INT2PRI6 */ { SCIF1234, SCIF567, SCIF089 } },
 	{ 0xffe0001c, 0, 32, 8, /* INT2PRI7 */ { ADC, 0, 0, BBDMAC_0_3 } },
-	{ 0xffe00020, 0, 32, 8, /* INT2PRI8 */
-	  { BBDMAC_4_7, BBDMAC_8_10, BBDMAC_11_14, BBDMAC_15_18 } },
-	{ 0xffe00024, 0, 32, 8, /* INT2PRI9 */
-	  { BBDMAC_19_22, BBDMAC_23_26, BBDMAC_27, BBDMAC_28 } },
-	{ 0xffe00028, 0, 32, 8, /* INT2PRI10 */
-	  { BBDMAC_29, BBDMAC_30, BBDMAC_31 } },
-	{ 0xffe0002c, 0, 32, 8, /* INT2PRI11 */
-	  { TMU1, TMU2, TMU2_TICPI, TMU3 } },
-	{ 0xffe00030, 0, 32, 8, /* INT2PRI12 */
-	  { TMU4, TMU5, TMU5_TICPI, TMU6 } },
-	{ 0xffe00034, 0, 32, 8, /* INT2PRI13 */
-	  { TMU7, TMU8 } },
+	{
+		0xffe00020, 0, 32, 8, /* INT2PRI8 */
+		{ BBDMAC_4_7, BBDMAC_8_10, BBDMAC_11_14, BBDMAC_15_18 }
+	},
+	{
+		0xffe00024, 0, 32, 8, /* INT2PRI9 */
+		{ BBDMAC_19_22, BBDMAC_23_26, BBDMAC_27, BBDMAC_28 }
+	},
+	{
+		0xffe00028, 0, 32, 8, /* INT2PRI10 */
+		{ BBDMAC_29, BBDMAC_30, BBDMAC_31 }
+	},
+	{
+		0xffe0002c, 0, 32, 8, /* INT2PRI11 */
+		{ TMU1, TMU2, TMU2_TICPI, TMU3 }
+	},
+	{
+		0xffe00030, 0, 32, 8, /* INT2PRI12 */
+		{ TMU4, TMU5, TMU5_TICPI, TMU6 }
+	},
+	{
+		0xffe00034, 0, 32, 8, /* INT2PRI13 */
+		{ TMU7, TMU8 }
+	},
 };
 
 static DECLARE_INTC_DESC(intc_desc, "sh7770", vectors, groups,
-			 mask_registers, prio_registers, NULL);
+						 mask_registers, prio_registers, NULL);
 
 /* Support for external interrupt pins in IRQ mode */
-static struct intc_vect irq_vectors[] __initdata = {
+static struct intc_vect irq_vectors[] __initdata =
+{
 	INTC_VECT(IRQ0, 0x240), INTC_VECT(IRQ1, 0x280),
 	INTC_VECT(IRQ2, 0x2c0), INTC_VECT(IRQ3, 0x300),
 	INTC_VECT(IRQ4, 0x340), INTC_VECT(IRQ5, 0x380),
 };
 
-static struct intc_mask_reg irq_mask_registers[] __initdata = {
-	{ 0xffd00044, 0xffd00064, 32, /* INTMSK0 / INTMSKCLR0 */
-	  { IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, } },
+static struct intc_mask_reg irq_mask_registers[] __initdata =
+{
+	{
+		0xffd00044, 0xffd00064, 32, /* INTMSK0 / INTMSKCLR0 */
+		{ IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, }
+	},
 };
 
-static struct intc_prio_reg irq_prio_registers[] __initdata = {
-	{ 0xffd00010, 0, 32, 4, /* INTPRI */ { IRQ0, IRQ1, IRQ2, IRQ3,
-					       IRQ4, IRQ5, } },
+static struct intc_prio_reg irq_prio_registers[] __initdata =
+{
+	{
+		0xffd00010, 0, 32, 4, /* INTPRI */ {
+			IRQ0, IRQ1, IRQ2, IRQ3,
+			IRQ4, IRQ5,
+		}
+	},
 };
 
-static struct intc_sense_reg irq_sense_registers[] __initdata = {
-	{ 0xffd0001c, 32, 2, /* ICR1 */   { IRQ0, IRQ1, IRQ2, IRQ3,
-					    IRQ4, IRQ5, } },
+static struct intc_sense_reg irq_sense_registers[] __initdata =
+{
+	{
+		0xffd0001c, 32, 2, /* ICR1 */   {
+			IRQ0, IRQ1, IRQ2, IRQ3,
+			IRQ4, IRQ5,
+		}
+	},
 };
 
 static DECLARE_INTC_DESC(intc_irq_desc, "sh7770-irq", irq_vectors,
-			 NULL, irq_mask_registers, irq_prio_registers,
-			 irq_sense_registers);
+						 NULL, irq_mask_registers, irq_prio_registers,
+						 irq_sense_registers);
 
 /* External interrupt pins in IRL mode */
-static struct intc_vect irl_vectors[] __initdata = {
+static struct intc_vect irl_vectors[] __initdata =
+{
 	INTC_VECT(IRL_LLLL, 0x200), INTC_VECT(IRL_LLLH, 0x220),
 	INTC_VECT(IRL_LLHL, 0x240), INTC_VECT(IRL_LLHH, 0x260),
 	INTC_VECT(IRL_LHLL, 0x280), INTC_VECT(IRL_LHLH, 0x2a0),
@@ -501,28 +578,38 @@ static struct intc_vect irl_vectors[] __initdata = {
 	INTC_VECT(IRL_HHHL, 0x3c0),
 };
 
-static struct intc_mask_reg irl3210_mask_registers[] __initdata = {
-	{ 0xffd40080, 0xffd40084, 32, /* INTMSK2 / INTMSKCLR2 */
-	  { IRL_LLLL, IRL_LLLH, IRL_LLHL, IRL_LLHH,
-	    IRL_LHLL, IRL_LHLH, IRL_LHHL, IRL_LHHH,
-	    IRL_HLLL, IRL_HLLH, IRL_HLHL, IRL_HLHH,
-	    IRL_HHLL, IRL_HHLH, IRL_HHHL, } },
+static struct intc_mask_reg irl3210_mask_registers[] __initdata =
+{
+	{
+		0xffd40080, 0xffd40084, 32, /* INTMSK2 / INTMSKCLR2 */
+		{
+			IRL_LLLL, IRL_LLLH, IRL_LLHL, IRL_LLHH,
+			IRL_LHLL, IRL_LHLH, IRL_LHHL, IRL_LHHH,
+			IRL_HLLL, IRL_HLLH, IRL_HLHL, IRL_HLHH,
+			IRL_HHLL, IRL_HHLH, IRL_HHHL,
+		}
+	},
 };
 
-static struct intc_mask_reg irl7654_mask_registers[] __initdata = {
-	{ 0xffd40080, 0xffd40084, 32, /* INTMSK2 / INTMSKCLR2 */
-	  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	    IRL_LLLL, IRL_LLLH, IRL_LLHL, IRL_LLHH,
-	    IRL_LHLL, IRL_LHLH, IRL_LHHL, IRL_LHHH,
-	    IRL_HLLL, IRL_HLLH, IRL_HLHL, IRL_HLHH,
-	    IRL_HHLL, IRL_HHLH, IRL_HHHL, } },
+static struct intc_mask_reg irl7654_mask_registers[] __initdata =
+{
+	{
+		0xffd40080, 0xffd40084, 32, /* INTMSK2 / INTMSKCLR2 */
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			IRL_LLLL, IRL_LLLH, IRL_LLHL, IRL_LLHH,
+			IRL_LHLL, IRL_LHLH, IRL_LHHL, IRL_LHHH,
+			IRL_HLLL, IRL_HLLH, IRL_HLHL, IRL_HLHH,
+			IRL_HHLL, IRL_HHLH, IRL_HHHL,
+		}
+	},
 };
 
 static DECLARE_INTC_DESC(intc_irl7654_desc, "sh7780-irl7654", irl_vectors,
-			 NULL, irl7654_mask_registers, NULL, NULL);
+						 NULL, irl7654_mask_registers, NULL, NULL);
 
 static DECLARE_INTC_DESC(intc_irl3210_desc, "sh7780-irl3210", irl_vectors,
-			 NULL, irl3210_mask_registers, NULL, NULL);
+						 NULL, irl3210_mask_registers, NULL, NULL);
 
 #define INTC_ICR0	0xffd00000
 #define INTC_INTMSK0	0xffd00044
@@ -551,33 +638,39 @@ void __init plat_irq_setup(void)
 
 void __init plat_irq_setup_pins(int mode)
 {
-	switch (mode) {
-	case IRQ_MODE_IRQ:
-		/* select IRQ mode for IRL3-0 + IRL7-4 */
-		__raw_writel(__raw_readl(INTC_ICR0) | 0x00c00000, INTC_ICR0);
-		register_intc_controller(&intc_irq_desc);
-		break;
-	case IRQ_MODE_IRL7654:
-		/* enable IRL7-4 but don't provide any masking */
-		__raw_writel(0x40000000, INTC_INTMSKCLR1);
-		__raw_writel(0x0000fffe, INTC_INTMSKCLR2);
-		break;
-	case IRQ_MODE_IRL3210:
-		/* enable IRL0-3 but don't provide any masking */
-		__raw_writel(0x80000000, INTC_INTMSKCLR1);
-		__raw_writel(0xfffe0000, INTC_INTMSKCLR2);
-		break;
-	case IRQ_MODE_IRL7654_MASK:
-		/* enable IRL7-4 and mask using cpu intc controller */
-		__raw_writel(0x40000000, INTC_INTMSKCLR1);
-		register_intc_controller(&intc_irl7654_desc);
-		break;
-	case IRQ_MODE_IRL3210_MASK:
-		/* enable IRL0-3 and mask using cpu intc controller */
-		__raw_writel(0x80000000, INTC_INTMSKCLR1);
-		register_intc_controller(&intc_irl3210_desc);
-		break;
-	default:
-		BUG();
+	switch (mode)
+	{
+		case IRQ_MODE_IRQ:
+			/* select IRQ mode for IRL3-0 + IRL7-4 */
+			__raw_writel(__raw_readl(INTC_ICR0) | 0x00c00000, INTC_ICR0);
+			register_intc_controller(&intc_irq_desc);
+			break;
+
+		case IRQ_MODE_IRL7654:
+			/* enable IRL7-4 but don't provide any masking */
+			__raw_writel(0x40000000, INTC_INTMSKCLR1);
+			__raw_writel(0x0000fffe, INTC_INTMSKCLR2);
+			break;
+
+		case IRQ_MODE_IRL3210:
+			/* enable IRL0-3 but don't provide any masking */
+			__raw_writel(0x80000000, INTC_INTMSKCLR1);
+			__raw_writel(0xfffe0000, INTC_INTMSKCLR2);
+			break;
+
+		case IRQ_MODE_IRL7654_MASK:
+			/* enable IRL7-4 and mask using cpu intc controller */
+			__raw_writel(0x40000000, INTC_INTMSKCLR1);
+			register_intc_controller(&intc_irl7654_desc);
+			break;
+
+		case IRQ_MODE_IRL3210_MASK:
+			/* enable IRL0-3 and mask using cpu intc controller */
+			__raw_writel(0x80000000, INTC_INTMSKCLR1);
+			register_intc_controller(&intc_irl3210_desc);
+			break;
+
+		default:
+			BUG();
 	}
 }

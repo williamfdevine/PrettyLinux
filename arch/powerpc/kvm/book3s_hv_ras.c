@@ -44,16 +44,23 @@ static void reload_slb(struct kvm_vcpu *vcpu)
 
 	/* Do they have an SLB shadow buffer registered? */
 	slb = vcpu->arch.slb_shadow.pinned_addr;
+
 	if (!slb)
+	{
 		return;
+	}
 
 	/* Sanity check */
 	n = min_t(u32, be32_to_cpu(slb->persistent), SLB_MIN_SIZE);
+
 	if ((void *) &slb->save_area[n] > vcpu->arch.slb_shadow.pinned_end)
+	{
 		return;
+	}
 
 	/* Load up the SLB from that */
-	for (i = 0; i < n; ++i) {
+	for (i = 0; i < n; ++i)
+	{
 		unsigned long rb = be64_to_cpu(slb->save_area[i].esid);
 		unsigned long rs = be64_to_cpu(slb->save_area[i].vsid);
 
@@ -74,41 +81,58 @@ static long kvmppc_realmode_mc_power7(struct kvm_vcpu *vcpu)
 	struct machine_check_event mce_evt;
 	long handled = 1;
 
-	if (srr1 & SRR1_MC_LDSTERR) {
+	if (srr1 & SRR1_MC_LDSTERR)
+	{
 		/* error on load/store */
 		unsigned long dsisr = vcpu->arch.shregs.dsisr;
 
 		if (dsisr & (DSISR_MC_SLB_PARMULTI | DSISR_MC_SLB_MULTI |
-			     DSISR_MC_SLB_PARITY | DSISR_MC_DERAT_MULTI)) {
+					 DSISR_MC_SLB_PARITY | DSISR_MC_DERAT_MULTI))
+		{
 			/* flush and reload SLB; flushes D-ERAT too */
 			reload_slb(vcpu);
 			dsisr &= ~(DSISR_MC_SLB_PARMULTI | DSISR_MC_SLB_MULTI |
-				   DSISR_MC_SLB_PARITY | DSISR_MC_DERAT_MULTI);
+					   DSISR_MC_SLB_PARITY | DSISR_MC_DERAT_MULTI);
 		}
-		if (dsisr & DSISR_MC_TLB_MULTI) {
+
+		if (dsisr & DSISR_MC_TLB_MULTI)
+		{
 			if (cur_cpu_spec && cur_cpu_spec->flush_tlb)
+			{
 				cur_cpu_spec->flush_tlb(TLB_INVAL_SCOPE_LPID);
+			}
+
 			dsisr &= ~DSISR_MC_TLB_MULTI;
 		}
+
 		/* Any other errors we don't understand? */
 		if (dsisr & 0xffffffffUL)
+		{
 			handled = 0;
+		}
 	}
 
-	switch ((srr1 >> SRR1_MC_IFETCH_SH) & SRR1_MC_IFETCH_MASK) {
-	case 0:
-		break;
-	case SRR1_MC_IFETCH_SLBPAR:
-	case SRR1_MC_IFETCH_SLBMULTI:
-	case SRR1_MC_IFETCH_SLBPARMULTI:
-		reload_slb(vcpu);
-		break;
-	case SRR1_MC_IFETCH_TLBMULTI:
-		if (cur_cpu_spec && cur_cpu_spec->flush_tlb)
-			cur_cpu_spec->flush_tlb(TLB_INVAL_SCOPE_LPID);
-		break;
-	default:
-		handled = 0;
+	switch ((srr1 >> SRR1_MC_IFETCH_SH) & SRR1_MC_IFETCH_MASK)
+	{
+		case 0:
+			break;
+
+		case SRR1_MC_IFETCH_SLBPAR:
+		case SRR1_MC_IFETCH_SLBMULTI:
+		case SRR1_MC_IFETCH_SLBPARMULTI:
+			reload_slb(vcpu);
+			break;
+
+		case SRR1_MC_IFETCH_TLBMULTI:
+			if (cur_cpu_spec && cur_cpu_spec->flush_tlb)
+			{
+				cur_cpu_spec->flush_tlb(TLB_INVAL_SCOPE_LPID);
+			}
+
+			break;
+
+		default:
+			handled = 0;
 	}
 
 	/*
@@ -120,12 +144,16 @@ static long kvmppc_realmode_mc_power7(struct kvm_vcpu *vcpu)
 	 * we can log the MCE event info on host console.
 	 */
 	if (!get_mce_event(&mce_evt, MCE_EVENT_DONTRELEASE))
+	{
 		goto out;
+	}
 
 	if (mce_evt.version == MCE_V1 &&
-	    (mce_evt.severity == MCE_SEV_NO_ERROR ||
-	     mce_evt.disposition == MCE_DISPOSITION_RECOVERED))
+		(mce_evt.severity == MCE_SEV_NO_ERROR ||
+		 mce_evt.disposition == MCE_DISPOSITION_RECOVERED))
+	{
 		handled = 1;
+	}
 
 out:
 	/*
@@ -148,7 +176,9 @@ long kvmppc_realmode_machine_check(struct kvm_vcpu *vcpu)
 static inline int kvmppc_cur_subcore_size(void)
 {
 	if (local_paca->kvm_hstate.kvm_split_mode)
+	{
 		return local_paca->kvm_hstate.kvm_split_mode->subcore_size;
+	}
 
 	return threads_per_subcore;
 }
@@ -176,8 +206,10 @@ void kvmppc_subcore_exit_guest(void)
 static bool kvmppc_tb_resync_required(void)
 {
 	if (test_and_set_bit(CORE_TB_RESYNC_REQ_BIT,
-				&local_paca->sibling_subcore_state->flags))
+						 &local_paca->sibling_subcore_state->flags))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -185,7 +217,7 @@ static bool kvmppc_tb_resync_required(void)
 static void kvmppc_tb_resync_done(void)
 {
 	clear_bit(CORE_TB_RESYNC_REQ_BIT,
-			&local_paca->sibling_subcore_state->flags);
+			  &local_paca->sibling_subcore_state->flags);
 }
 
 /*
@@ -300,19 +332,25 @@ long kvmppc_realmode_hmi_handler(void)
 	 * switch. Now it is safe to call HMI handler.
 	 */
 	if (ppc_md.hmi_exception_early)
+	{
 		ppc_md.hmi_exception_early(NULL);
+	}
 
 	/*
 	 * Check if this thread is responsible to resync TB.
 	 * All other threads will wait until this thread completes the
 	 * TB resync.
 	 */
-	if (resync_req) {
+	if (resync_req)
+	{
 		opal_resync_timebase();
 		/* Reset TB resync req bit */
 		kvmppc_tb_resync_done();
-	} else {
+	}
+	else
+	{
 		wait_for_tb_resync();
 	}
+
 	return 0;
 }

@@ -13,7 +13,9 @@ static inline int pfn_to_nid(unsigned long pfn)
 
 	for (nid = 0; nid < MAX_NUMNODES; nid++)
 		if (pfn >= node_start_pfn(nid) && pfn <= node_end_pfn(nid))
+		{
 			break;
+		}
 
 	return nid;
 }

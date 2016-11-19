@@ -22,20 +22,26 @@ static inline void arch_spin_unlock_wait(arch_spinlock_t *x)
 }
 
 static inline void arch_spin_lock_flags(arch_spinlock_t *x,
-					 unsigned long flags)
+										unsigned long flags)
 {
 	volatile unsigned int *a;
 
 	mb();
 	a = __ldcw_align(x);
+
 	while (__ldcw(a) == 0)
 		while (*a == 0)
-			if (flags & PSW_SM_I) {
+			if (flags & PSW_SM_I)
+			{
 				local_irq_enable();
 				cpu_relax();
 				local_irq_disable();
-			} else
+			}
+			else
+			{
 				cpu_relax();
+			}
+
 	mb();
 }
 
@@ -55,7 +61,7 @@ static inline int arch_spin_trylock(arch_spinlock_t *x)
 
 	mb();
 	a = __ldcw_align(x);
-        ret = __ldcw(a) != 0;
+	ret = __ldcw(a) != 0;
 	mb();
 
 	return ret;
@@ -102,9 +108,11 @@ static  __inline__ void arch_read_unlock(arch_rwlock_t *rw)
 static __inline__ int arch_read_trylock(arch_rwlock_t *rw)
 {
 	unsigned long flags;
- retry:
+retry:
 	local_irq_save(flags);
-	if (arch_spin_trylock(&rw->lock)) {
+
+	if (arch_spin_trylock(&rw->lock))
+	{
 		rw->counter++;
 		arch_spin_unlock(&rw->lock);
 		local_irq_restore(flags);
@@ -112,13 +120,18 @@ static __inline__ int arch_read_trylock(arch_rwlock_t *rw)
 	}
 
 	local_irq_restore(flags);
+
 	/* If write-locked, we fail to acquire the lock */
 	if (rw->counter < 0)
+	{
 		return 0;
+	}
 
 	/* Wait until we have a realistic chance at the lock */
 	while (arch_spin_is_locked(&rw->lock) && rw->counter >= 0)
+	{
 		cpu_relax();
+	}
 
 	goto retry;
 }
@@ -132,12 +145,15 @@ retry:
 	local_irq_save(flags);
 	arch_spin_lock_flags(&rw->lock, flags);
 
-	if (rw->counter != 0) {
+	if (rw->counter != 0)
+	{
 		arch_spin_unlock(&rw->lock);
 		local_irq_restore(flags);
 
 		while (rw->counter != 0)
+		{
 			cpu_relax();
+		}
 
 		goto retry;
 	}
@@ -161,15 +177,21 @@ static __inline__ int arch_write_trylock(arch_rwlock_t *rw)
 	int result = 0;
 
 	local_irq_save(flags);
-	if (arch_spin_trylock(&rw->lock)) {
-		if (rw->counter == 0) {
+
+	if (arch_spin_trylock(&rw->lock))
+	{
+		if (rw->counter == 0)
+		{
 			rw->counter = -1;
 			result = 1;
-		} else {
+		}
+		else
+		{
 			/* Read-locked.  Oh well. */
 			arch_spin_unlock(&rw->lock);
 		}
 	}
+
 	local_irq_restore(flags);
 
 	return result;

@@ -62,5 +62,7 @@ void s3c2410_cpufreq_setrefresh(struct s3c_cpufreq_config *cfg)
 void s3c2410_set_fvco(struct s3c_cpufreq_config *cfg)
 {
 	if (!IS_ERR(cfg->mpll))
+	{
 		clk_set_rate(cfg->mpll, cfg->pll.frequency);
+	}
 }

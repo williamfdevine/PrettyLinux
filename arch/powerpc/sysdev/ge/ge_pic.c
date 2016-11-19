@@ -28,9 +28,9 @@
 #undef DEBUG
 
 #ifdef DEBUG
-#define DBG(fmt...) do { printk(KERN_DEBUG "gef_pic: " fmt); } while (0)
+	#define DBG(fmt...) do { printk(KERN_DEBUG "gef_pic: " fmt); } while (0)
 #else
-#define DBG(fmt...) do { } while (0)
+	#define DBG(fmt...) do { } while (0)
 #endif
 
 #define GEF_PIC_NUM_IRQS	32
@@ -103,7 +103,9 @@ static void gef_pic_cascade(struct irq_desc *desc)
 	cascade_irq = gef_pic_get_irq();
 
 	if (cascade_irq)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	chip->irq_eoi(&desc->irq_data);
 }
@@ -142,7 +144,8 @@ static void gef_pic_unmask(struct irq_data *d)
 	raw_spin_unlock_irqrestore(&gef_pic_lock, flags);
 }
 
-static struct irq_chip gef_pic_chip = {
+static struct irq_chip gef_pic_chip =
+{
 	.name		= "gefp",
 	.irq_mask	= gef_pic_mask,
 	.irq_mask_ack	= gef_pic_mask_ack,
@@ -154,7 +157,7 @@ static struct irq_chip gef_pic_chip = {
  * in deciding which irq_chip structure is used
  */
 static int gef_pic_host_map(struct irq_domain *h, unsigned int virq,
-			  irq_hw_number_t hwirq)
+							irq_hw_number_t hwirq)
 {
 	/* All interrupts are LEVEL sensitive */
 	irq_set_status_flags(virq, IRQ_LEVEL);
@@ -164,20 +167,26 @@ static int gef_pic_host_map(struct irq_domain *h, unsigned int virq,
 }
 
 static int gef_pic_host_xlate(struct irq_domain *h, struct device_node *ct,
-			    const u32 *intspec, unsigned int intsize,
-			    irq_hw_number_t *out_hwirq, unsigned int *out_flags)
+							  const u32 *intspec, unsigned int intsize,
+							  irq_hw_number_t *out_hwirq, unsigned int *out_flags)
 {
 
 	*out_hwirq = intspec[0];
+
 	if (intsize > 1)
+	{
 		*out_flags = intspec[1];
+	}
 	else
+	{
 		*out_flags = IRQ_TYPE_LEVEL_HIGH;
+	}
 
 	return 0;
 }
 
-static const struct irq_domain_ops gef_pic_host_ops = {
+static const struct irq_domain_ops gef_pic_host_ops =
+{
 	.map	= gef_pic_host_map,
 	.xlate	= gef_pic_host_xlate,
 };
@@ -206,16 +215,21 @@ void __init gef_pic_init(struct device_node *np)
 
 	/* Map controller */
 	gef_pic_cascade_irq = irq_of_parse_and_map(np, 0);
-	if (!gef_pic_cascade_irq) {
+
+	if (!gef_pic_cascade_irq)
+	{
 		printk(KERN_ERR "SBC610: failed to map cascade interrupt");
 		return;
 	}
 
 	/* Setup an irq_domain structure */
 	gef_pic_irq_host = irq_domain_add_linear(np, GEF_PIC_NUM_IRQS,
-					  &gef_pic_host_ops, NULL);
+					   &gef_pic_host_ops, NULL);
+
 	if (gef_pic_irq_host == NULL)
+	{
 		return;
+	}
 
 	/* Chain with parent controller */
 	irq_set_chained_handler(gef_pic_cascade_irq, gef_pic_cascade);
@@ -237,13 +251,18 @@ unsigned int gef_pic_get_irq(void)
 
 	active = cause & mask;
 
-	if (active) {
-		for (hwirq = GEF_PIC_NUM_IRQS - 1; hwirq > -1; hwirq--) {
+	if (active)
+	{
+		for (hwirq = GEF_PIC_NUM_IRQS - 1; hwirq > -1; hwirq--)
+		{
 			if (active & (0x1 << hwirq))
+			{
 				break;
+			}
 		}
+
 		virq = irq_linear_revmap(gef_pic_irq_host,
-			(irq_hw_number_t)hwirq);
+								 (irq_hw_number_t)hwirq);
 	}
 
 	return virq;

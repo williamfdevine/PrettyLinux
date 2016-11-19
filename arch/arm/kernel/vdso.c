@@ -49,16 +49,19 @@ static union vdso_data_store vdso_data_store __page_aligned_data;
 static struct vdso_data *vdso_data = &vdso_data_store.data;
 
 static struct page *vdso_data_page __ro_after_init;
-static const struct vm_special_mapping vdso_data_mapping = {
+static const struct vm_special_mapping vdso_data_mapping =
+{
 	.name = "[vvar]",
 	.pages = &vdso_data_page,
 };
 
-static struct vm_special_mapping vdso_text_mapping __ro_after_init = {
+static struct vm_special_mapping vdso_text_mapping __ro_after_init =
+{
 	.name = "[vdso]",
 };
 
-struct elfinfo {
+struct elfinfo
+{
 	Elf32_Ehdr	*hdr;		/* ptr to ELF */
 	Elf32_Sym	*dynsym;	/* ptr to .dynsym section */
 	unsigned long	dynsymsize;	/* size of .dynsym section */
@@ -76,18 +79,25 @@ static bool __init cntvct_functional(void)
 	bool ret = false;
 
 	if (!IS_ENABLED(CONFIG_ARM_ARCH_TIMER))
+	{
 		goto out;
+	}
 
 	/* The arm_arch_timer core should export
 	 * arch_timer_use_virtual or similar so we don't have to do
 	 * this.
 	 */
 	np = of_find_compatible_node(NULL, NULL, "arm,armv7-timer");
+
 	if (!np)
+	{
 		goto out_put;
+	}
 
 	if (of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
+	{
 		goto out_put;
+	}
 
 	ret = true;
 
@@ -97,8 +107,8 @@ out:
 	return ret;
 }
 
-static void * __init find_section(Elf32_Ehdr *ehdr, const char *name,
-				  unsigned long *size)
+static void *__init find_section(Elf32_Ehdr *ehdr, const char *name,
+								 unsigned long *size)
 {
 	Elf32_Shdr *sechdrs;
 	unsigned int i;
@@ -109,36 +119,55 @@ static void * __init find_section(Elf32_Ehdr *ehdr, const char *name,
 	secnames = (void *)ehdr + sechdrs[ehdr->e_shstrndx].sh_offset;
 
 	/* Find the section they want */
-	for (i = 1; i < ehdr->e_shnum; i++) {
-		if (strcmp(secnames + sechdrs[i].sh_name, name) == 0) {
+	for (i = 1; i < ehdr->e_shnum; i++)
+	{
+		if (strcmp(secnames + sechdrs[i].sh_name, name) == 0)
+		{
 			if (size)
+			{
 				*size = sechdrs[i].sh_size;
+			}
+
 			return (void *)ehdr + sechdrs[i].sh_offset;
 		}
 	}
 
 	if (size)
+	{
 		*size = 0;
+	}
+
 	return NULL;
 }
 
-static Elf32_Sym * __init find_symbol(struct elfinfo *lib, const char *symname)
+static Elf32_Sym *__init find_symbol(struct elfinfo *lib, const char *symname)
 {
 	unsigned int i;
 
-	for (i = 0; i < (lib->dynsymsize / sizeof(Elf32_Sym)); i++) {
+	for (i = 0; i < (lib->dynsymsize / sizeof(Elf32_Sym)); i++)
+	{
 		char name[MAX_SYMNAME], *c;
 
 		if (lib->dynsym[i].st_name == 0)
+		{
 			continue;
+		}
+
 		strlcpy(name, lib->dynstr + lib->dynsym[i].st_name,
-			MAX_SYMNAME);
+				MAX_SYMNAME);
 		c = strchr(name, '@');
+
 		if (c)
+		{
 			*c = 0;
+		}
+
 		if (strcmp(symname, name) == 0)
+		{
 			return &lib->dynsym[i];
+		}
 	}
+
 	return NULL;
 }
 
@@ -147,8 +176,11 @@ static void __init vdso_nullpatch_one(struct elfinfo *lib, const char *symname)
 	Elf32_Sym *sym;
 
 	sym = find_symbol(lib, symname);
+
 	if (!sym)
+	{
 		return;
+	}
 
 	sym->st_name = 0;
 }
@@ -157,7 +189,8 @@ static void __init patch_vdso(void *ehdr)
 {
 	struct elfinfo einfo;
 
-	einfo = (struct elfinfo) {
+	einfo = (struct elfinfo)
+	{
 		.hdr = ehdr,
 	};
 
@@ -168,7 +201,8 @@ static void __init patch_vdso(void *ehdr)
 	 * want programs to incur the slight additional overhead of
 	 * dispatching through the VDSO only to fall back to syscalls.
 	 */
-	if (!cntvct_ok) {
+	if (!cntvct_ok)
+	{
 		vdso_nullpatch_one(&einfo, "__vdso_gettimeofday");
 		vdso_nullpatch_one(&einfo, "__vdso_clock_gettime");
 	}
@@ -179,7 +213,8 @@ static int __init vdso_init(void)
 	unsigned int text_pages;
 	int i;
 
-	if (memcmp(&vdso_start, "\177ELF", 4)) {
+	if (memcmp(&vdso_start, "\177ELF", 4))
+	{
 		pr_err("VDSO is not a valid ELF object!\n");
 		return -ENOEXEC;
 	}
@@ -189,15 +224,19 @@ static int __init vdso_init(void)
 
 	/* Allocate the VDSO text pagelist */
 	vdso_text_pagelist = kcalloc(text_pages, sizeof(struct page *),
-				     GFP_KERNEL);
+								 GFP_KERNEL);
+
 	if (vdso_text_pagelist == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* Grab the VDSO data page. */
 	vdso_data_page = virt_to_page(vdso_data);
 
 	/* Grab the VDSO text pages. */
-	for (i = 0; i < text_pages; i++) {
+	for (i = 0; i < text_pages; i++)
+	{
 		struct page *page;
 
 		page = virt_to_page(&vdso_start + i * PAGE_SIZE);
@@ -222,8 +261,8 @@ static int install_vvar(struct mm_struct *mm, unsigned long addr)
 	struct vm_area_struct *vma;
 
 	vma = _install_special_mapping(mm, addr, PAGE_SIZE,
-				       VM_READ | VM_MAYREAD,
-				       &vdso_data_mapping);
+								   VM_READ | VM_MAYREAD,
+								   &vdso_data_mapping);
 
 	return PTR_ERR_OR_ZERO(vma);
 }
@@ -237,21 +276,27 @@ void arm_install_vdso(struct mm_struct *mm, unsigned long addr)
 	mm->context.vdso = 0;
 
 	if (vdso_text_pagelist == NULL)
+	{
 		return;
+	}
 
 	if (install_vvar(mm, addr))
+	{
 		return;
+	}
 
 	/* Account for vvar page. */
 	addr += PAGE_SIZE;
 	len = (vdso_total_pages - 1) << PAGE_SHIFT;
 
 	vma = _install_special_mapping(mm, addr, len,
-		VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
-		&vdso_text_mapping);
+								   VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+								   &vdso_text_mapping);
 
 	if (!IS_ERR(vma))
+	{
 		mm->context.vdso = addr;
+	}
 }
 
 static void vdso_write_begin(struct vdso_data *vdata)
@@ -269,10 +314,14 @@ static void vdso_write_end(struct vdso_data *vdata)
 static bool tk_is_cntvct(const struct timekeeper *tk)
 {
 	if (!IS_ENABLED(CONFIG_ARM_ARCH_TIMER))
+	{
 		return false;
+	}
 
 	if (!tk->tkr_mono.clock->archdata.vdso_direct)
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -299,7 +348,8 @@ void update_vsyscall(struct timekeeper *tk)
 {
 	struct timespec64 *wtm = &tk->wall_to_monotonic;
 
-	if (!cntvct_ok) {
+	if (!cntvct_ok)
+	{
 		/* The entry points have been zeroed, so there is no
 		 * point in updating the data page.
 		 */
@@ -311,11 +361,12 @@ void update_vsyscall(struct timekeeper *tk)
 	vdso_data->tk_is_cntvct			= tk_is_cntvct(tk);
 	vdso_data->xtime_coarse_sec		= tk->xtime_sec;
 	vdso_data->xtime_coarse_nsec		= (u32)(tk->tkr_mono.xtime_nsec >>
-							tk->tkr_mono.shift);
+										  tk->tkr_mono.shift);
 	vdso_data->wtm_clock_sec		= wtm->tv_sec;
 	vdso_data->wtm_clock_nsec		= wtm->tv_nsec;
 
-	if (vdso_data->tk_is_cntvct) {
+	if (vdso_data->tk_is_cntvct)
+	{
 		vdso_data->cs_cycle_last	= tk->tkr_mono.cycle_last;
 		vdso_data->xtime_clock_sec	= tk->xtime_sec;
 		vdso_data->xtime_clock_snsec	= tk->tkr_mono.xtime_nsec;

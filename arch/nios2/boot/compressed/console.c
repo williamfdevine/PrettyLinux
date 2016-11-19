@@ -40,14 +40,17 @@ static void jtag_putc(int ch)
 {
 	if (readl(uartbase + ALTERA_JTAGUART_CONTROL_REG) &
 		ALTERA_JTAGUART_CONTROL_WSPACE_MSK)
+	{
 		writeb(ch, uartbase + ALTERA_JTAGUART_DATA_REG);
+	}
 }
 #else
 static void jtag_putc(int ch)
 {
 	while ((readl(uartbase + ALTERA_JTAGUART_CONTROL_REG) &
-		ALTERA_JTAGUART_CONTROL_WSPACE_MSK) == 0)
+			ALTERA_JTAGUART_CONTROL_WSPACE_MSK) == 0)
 		;
+
 	writeb(ch, uartbase + ALTERA_JTAGUART_DATA_REG);
 }
 #endif
@@ -62,7 +65,7 @@ static void console_init(void)
 {
 	uartbase = my_ioremap((unsigned long) JTAG_UART_BASE);
 	writel(ALTERA_JTAGUART_CONTROL_AC_MSK,
-		uartbase + ALTERA_JTAGUART_CONTROL_REG);
+		   uartbase + ALTERA_JTAGUART_CONTROL_REG);
 }
 
 #elif defined(CONFIG_SERIAL_ALTERA_UART_CONSOLE) && defined(UART0_BASE)
@@ -78,19 +81,27 @@ static void uart_putc(int ch)
 {
 	int i;
 
-	for (i = 0; (i < 0x10000); i++) {
+	for (i = 0; (i < 0x10000); i++)
+	{
 		if (readw(uartbase + ALTERA_UART_STATUS_REG) &
 			ALTERA_UART_STATUS_TRDY_MSK)
+		{
 			break;
+		}
 	}
+
 	writeb(ch, uartbase + ALTERA_UART_TXDATA_REG);
 }
 
 static int putchar(int ch)
 {
 	uart_putc(ch);
+
 	if (ch == '\n')
+	{
 		uart_putc('\r');
+	}
+
 	return ch;
 }
 
@@ -120,6 +131,9 @@ static void console_init(void)
 static int puts(const char *s)
 {
 	while (*s)
+	{
 		putchar(*s++);
+	}
+
 	return 0;
 }

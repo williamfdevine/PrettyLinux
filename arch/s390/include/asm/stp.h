@@ -9,7 +9,8 @@
 extern struct atomic_notifier_head s390_epoch_delta_notifier;
 
 /* STP interruption parameter */
-struct stp_irq_parm {
+struct stp_irq_parm
+{
 	unsigned int _pad0	: 14;
 	unsigned int tsc	: 1;	/* Timing status change */
 	unsigned int lac	: 1;	/* Link availability change */
@@ -20,7 +21,8 @@ struct stp_irq_parm {
 #define STP_OP_SYNC	1
 #define STP_OP_CTRL	3
 
-struct stp_sstpi {
+struct stp_sstpi
+{
 	unsigned int rsvd0;
 	unsigned int rsvd1 : 8;
 	unsigned int stratum : 8;

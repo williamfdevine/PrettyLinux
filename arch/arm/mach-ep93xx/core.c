@@ -53,7 +53,8 @@
 /*************************************************************************
  * Static I/O mappings that are needed for all EP93xx platforms
  *************************************************************************/
-static struct map_desc ep93xx_io_desc[] __initdata = {
+static struct map_desc ep93xx_io_desc[] __initdata =
+{
 	{
 		.virtual	= EP93XX_AHB_VIRT_BASE,
 		.pfn		= __phys_to_pfn(EP93XX_AHB_PHYS_BASE),
@@ -139,11 +140,13 @@ EXPORT_SYMBOL_GPL(ep93xx_chip_revision);
 /*************************************************************************
  * EP93xx GPIO
  *************************************************************************/
-static struct resource ep93xx_gpio_resource[] = {
+static struct resource ep93xx_gpio_resource[] =
+{
 	DEFINE_RES_MEM(EP93XX_GPIO_PHYS_BASE, 0xcc),
 };
 
-static struct platform_device ep93xx_gpio_device = {
+static struct platform_device ep93xx_gpio_device =
+{
 	.name		= "gpio-ep93xx",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(ep93xx_gpio_resource),
@@ -156,37 +159,46 @@ static struct platform_device ep93xx_gpio_device = {
 #define EP93XX_UART_MCR_OFFSET		(0x0100)
 
 static void ep93xx_uart_set_mctrl(struct amba_device *dev,
-				  void __iomem *base, unsigned int mctrl)
+								  void __iomem *base, unsigned int mctrl)
 {
 	unsigned int mcr;
 
 	mcr = 0;
+
 	if (mctrl & TIOCM_RTS)
+	{
 		mcr |= 2;
+	}
+
 	if (mctrl & TIOCM_DTR)
+	{
 		mcr |= 1;
+	}
 
 	__raw_writel(mcr, base + EP93XX_UART_MCR_OFFSET);
 }
 
-static struct amba_pl010_data ep93xx_uart_data = {
+static struct amba_pl010_data ep93xx_uart_data =
+{
 	.set_mctrl	= ep93xx_uart_set_mctrl,
 };
 
 static AMBA_APB_DEVICE(uart1, "apb:uart1", 0x00041010, EP93XX_UART1_PHYS_BASE,
-	{ IRQ_EP93XX_UART1 }, &ep93xx_uart_data);
+{ IRQ_EP93XX_UART1 }, &ep93xx_uart_data);
 
 static AMBA_APB_DEVICE(uart2, "apb:uart2", 0x00041010, EP93XX_UART2_PHYS_BASE,
-	{ IRQ_EP93XX_UART2 }, NULL);
+{ IRQ_EP93XX_UART2 }, NULL);
 
 static AMBA_APB_DEVICE(uart3, "apb:uart3", 0x00041010, EP93XX_UART3_PHYS_BASE,
-	{ IRQ_EP93XX_UART3 }, &ep93xx_uart_data);
+{ IRQ_EP93XX_UART3 }, &ep93xx_uart_data);
 
-static struct resource ep93xx_rtc_resource[] = {
+static struct resource ep93xx_rtc_resource[] =
+{
 	DEFINE_RES_MEM(EP93XX_RTC_PHYS_BASE, 0x10c),
 };
 
-static struct platform_device ep93xx_rtc_device = {
+static struct platform_device ep93xx_rtc_device =
+{
 	.name		= "ep93xx-rtc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(ep93xx_rtc_resource),
@@ -201,10 +213,14 @@ static struct clk *ep93xx_ohci_host_clock;
 
 static int ep93xx_ohci_power_on(struct platform_device *pdev)
 {
-	if (!ep93xx_ohci_host_clock) {
+	if (!ep93xx_ohci_host_clock)
+	{
 		ep93xx_ohci_host_clock = devm_clk_get(&pdev->dev, NULL);
+
 		if (IS_ERR(ep93xx_ohci_host_clock))
+		{
 			return PTR_ERR(ep93xx_ohci_host_clock);
+		}
 	}
 
 	return clk_enable(ep93xx_ohci_host_clock);
@@ -215,20 +231,23 @@ static void ep93xx_ohci_power_off(struct platform_device *pdev)
 	clk_disable(ep93xx_ohci_host_clock);
 }
 
-static struct usb_ohci_pdata ep93xx_ohci_pdata = {
+static struct usb_ohci_pdata ep93xx_ohci_pdata =
+{
 	.power_on	= ep93xx_ohci_power_on,
 	.power_off	= ep93xx_ohci_power_off,
 	.power_suspend	= ep93xx_ohci_power_off,
 };
 
-static struct resource ep93xx_ohci_resources[] = {
+static struct resource ep93xx_ohci_resources[] =
+{
 	DEFINE_RES_MEM(EP93XX_USB_PHYS_BASE, 0x1000),
 	DEFINE_RES_IRQ(IRQ_EP93XX_USB),
 };
 
 static u64 ep93xx_ohci_dma_mask = DMA_BIT_MASK(32);
 
-static struct platform_device ep93xx_ohci_device = {
+static struct platform_device ep93xx_ohci_device =
+{
 	.name		= "ohci-platform",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(ep93xx_ohci_resources),
@@ -245,11 +264,13 @@ static struct platform_device ep93xx_ohci_device = {
  *************************************************************************/
 static struct physmap_flash_data ep93xx_flash_data;
 
-static struct resource ep93xx_flash_resource = {
+static struct resource ep93xx_flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device ep93xx_flash = {
+static struct platform_device ep93xx_flash =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -266,7 +287,7 @@ static struct platform_device ep93xx_flash = {
  * @size:	resource size
  */
 void __init ep93xx_register_flash(unsigned int width,
-				  resource_size_t start, resource_size_t size)
+								  resource_size_t start, resource_size_t size)
 {
 	ep93xx_flash_data.width		= width;
 
@@ -282,14 +303,16 @@ void __init ep93xx_register_flash(unsigned int width,
  *************************************************************************/
 static struct ep93xx_eth_data ep93xx_eth_data;
 
-static struct resource ep93xx_eth_resource[] = {
+static struct resource ep93xx_eth_resource[] =
+{
 	DEFINE_RES_MEM(EP93XX_ETHERNET_PHYS_BASE, 0x10000),
 	DEFINE_RES_IRQ(IRQ_EP93XX_ETHERNET),
 };
 
 static u64 ep93xx_eth_dma_mask = DMA_BIT_MASK(32);
 
-static struct platform_device ep93xx_eth_device = {
+static struct platform_device ep93xx_eth_device =
+{
 	.name		= "ep93xx-eth",
 	.id		= -1,
 	.dev		= {
@@ -310,7 +333,9 @@ static struct platform_device ep93xx_eth_device = {
 void __init ep93xx_register_eth(struct ep93xx_eth_data *data, int copy_addr)
 {
 	if (copy_addr)
+	{
 		memcpy_fromio(data->dev_addr, EP93XX_ETHERNET_BASE + 0x50, 6);
+	}
 
 	ep93xx_eth_data = *data;
 	platform_device_register(&ep93xx_eth_device);
@@ -322,7 +347,8 @@ void __init ep93xx_register_eth(struct ep93xx_eth_data *data, int copy_addr)
  *************************************************************************/
 static struct i2c_gpio_platform_data ep93xx_i2c_data;
 
-static struct platform_device ep93xx_i2c_device = {
+static struct platform_device ep93xx_i2c_device =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev		= {
@@ -337,7 +363,7 @@ static struct platform_device ep93xx_i2c_device = {
  * @num:	the number of devices on the i2c bus
  */
 void __init ep93xx_register_i2c(struct i2c_gpio_platform_data *data,
-				struct i2c_board_info *devices, int num)
+								struct i2c_board_info *devices, int num)
 {
 	/*
 	 * Set the EEPROM interface pin drive type control.
@@ -346,13 +372,18 @@ void __init ep93xx_register_i2c(struct i2c_gpio_platform_data *data,
 	 * CMOS driver.
 	 */
 	if (data->sda_is_open_drain && data->sda_pin != EP93XX_GPIO_LINE_EEDAT)
+	{
 		pr_warning("sda != EEDAT, open drain has no effect\n");
+	}
+
 	if (data->scl_is_open_drain && data->scl_pin != EP93XX_GPIO_LINE_EECLK)
+	{
 		pr_warning("scl != EECLK, open drain has no effect\n");
+	}
 
 	__raw_writel((data->sda_is_open_drain << 1) |
-		     (data->scl_is_open_drain << 0),
-		     EP93XX_GPIO_EEDRIVE);
+				 (data->scl_is_open_drain << 0),
+				 EP93XX_GPIO_EEDRIVE);
 
 	ep93xx_i2c_data = *data;
 	i2c_register_board_info(0, devices, num);
@@ -364,14 +395,16 @@ void __init ep93xx_register_i2c(struct i2c_gpio_platform_data *data,
  *************************************************************************/
 static struct ep93xx_spi_info ep93xx_spi_master_data;
 
-static struct resource ep93xx_spi_resources[] = {
+static struct resource ep93xx_spi_resources[] =
+{
 	DEFINE_RES_MEM(EP93XX_SPI_PHYS_BASE, 0x18),
 	DEFINE_RES_IRQ(IRQ_EP93XX_SSP),
 };
 
 static u64 ep93xx_spi_dma_mask = DMA_BIT_MASK(32);
 
-static struct platform_device ep93xx_spi_device = {
+static struct platform_device ep93xx_spi_device =
+{
 	.name		= "ep93xx-spi",
 	.id		= 0,
 	.dev		= {
@@ -393,7 +426,7 @@ static struct platform_device ep93xx_spi_device = {
  * also makes sure that SPI pins are muxed so that I2S is not using those pins.
  */
 void __init ep93xx_register_spi(struct ep93xx_spi_info *info,
-				struct spi_board_info *devices, int num)
+								struct spi_board_info *devices, int num)
 {
 	/*
 	 * When SPI is used, we need to make sure that I2S is muxed off from
@@ -409,7 +442,8 @@ void __init ep93xx_register_spi(struct ep93xx_spi_info *info,
 /*************************************************************************
  * EP93xx LEDs
  *************************************************************************/
-static const struct gpio_led ep93xx_led_pins[] __initconst = {
+static const struct gpio_led ep93xx_led_pins[] __initconst =
+{
 	{
 		.name	= "platform:grled",
 		.gpio	= EP93XX_GPIO_LINE_GRLED,
@@ -419,7 +453,8 @@ static const struct gpio_led ep93xx_led_pins[] __initconst = {
 	},
 };
 
-static const struct gpio_led_platform_data ep93xx_led_data __initconst = {
+static const struct gpio_led_platform_data ep93xx_led_data __initconst =
+{
 	.num_leds	= ARRAY_SIZE(ep93xx_led_pins),
 	.leds		= ep93xx_led_pins,
 };
@@ -427,22 +462,26 @@ static const struct gpio_led_platform_data ep93xx_led_data __initconst = {
 /*************************************************************************
  * EP93xx pwm peripheral handling
  *************************************************************************/
-static struct resource ep93xx_pwm0_resource[] = {
+static struct resource ep93xx_pwm0_resource[] =
+{
 	DEFINE_RES_MEM(EP93XX_PWM_PHYS_BASE, 0x10),
 };
 
-static struct platform_device ep93xx_pwm0_device = {
+static struct platform_device ep93xx_pwm0_device =
+{
 	.name		= "ep93xx-pwm",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(ep93xx_pwm0_resource),
 	.resource	= ep93xx_pwm0_resource,
 };
 
-static struct resource ep93xx_pwm1_resource[] = {
+static struct resource ep93xx_pwm1_resource[] =
+{
 	DEFINE_RES_MEM(EP93XX_PWM_PHYS_BASE + 0x20, 0x10),
 };
 
-static struct platform_device ep93xx_pwm1_device = {
+static struct platform_device ep93xx_pwm1_device =
+{
 	.name		= "ep93xx-pwm",
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(ep93xx_pwm1_resource),
@@ -452,31 +491,47 @@ static struct platform_device ep93xx_pwm1_device = {
 void __init ep93xx_register_pwm(int pwm0, int pwm1)
 {
 	if (pwm0)
+	{
 		platform_device_register(&ep93xx_pwm0_device);
+	}
 
 	/* NOTE: EP9307 does not have PWMOUT1 (pin EGPIO14) */
 	if (pwm1)
+	{
 		platform_device_register(&ep93xx_pwm1_device);
+	}
 }
 
 int ep93xx_pwm_acquire_gpio(struct platform_device *pdev)
 {
 	int err;
 
-	if (pdev->id == 0) {
+	if (pdev->id == 0)
+	{
 		err = 0;
-	} else if (pdev->id == 1) {
+	}
+	else if (pdev->id == 1)
+	{
 		err = gpio_request(EP93XX_GPIO_LINE_EGPIO14,
-				   dev_name(&pdev->dev));
+						   dev_name(&pdev->dev));
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = gpio_direction_output(EP93XX_GPIO_LINE_EGPIO14, 0);
+
 		if (err)
+		{
 			goto fail;
+		}
 
 		/* PWM 1 output on EGPIO[14] */
 		ep93xx_devcfg_set_bits(EP93XX_SYSCON_DEVCFG_PONG);
-	} else {
+	}
+	else
+	{
 		err = -ENODEV;
 	}
 
@@ -490,7 +545,8 @@ EXPORT_SYMBOL(ep93xx_pwm_acquire_gpio);
 
 void ep93xx_pwm_release_gpio(struct platform_device *pdev)
 {
-	if (pdev->id == 1) {
+	if (pdev->id == 1)
+	{
 		gpio_direction_input(EP93XX_GPIO_LINE_EGPIO14);
 		gpio_free(EP93XX_GPIO_LINE_EGPIO14);
 
@@ -506,11 +562,13 @@ EXPORT_SYMBOL(ep93xx_pwm_release_gpio);
  *************************************************************************/
 static struct ep93xxfb_mach_info ep93xxfb_data;
 
-static struct resource ep93xx_fb_resource[] = {
+static struct resource ep93xx_fb_resource[] =
+{
 	DEFINE_RES_MEM(EP93XX_RASTER_PHYS_BASE, 0x800),
 };
 
-static struct platform_device ep93xx_fb_device = {
+static struct platform_device ep93xx_fb_device =
+{
 	.name			= "ep93xx-fb",
 	.id			= -1,
 	.dev			= {
@@ -525,12 +583,14 @@ static struct platform_device ep93xx_fb_device = {
 /* The backlight use a single register in the framebuffer's register space */
 #define EP93XX_RASTER_REG_BRIGHTNESS 0x20
 
-static struct resource ep93xx_bl_resources[] = {
+static struct resource ep93xx_bl_resources[] =
+{
 	DEFINE_RES_MEM(EP93XX_RASTER_PHYS_BASE +
-		       EP93XX_RASTER_REG_BRIGHTNESS, 0x04),
+	EP93XX_RASTER_REG_BRIGHTNESS, 0x04),
 };
 
-static struct platform_device ep93xx_bl_device = {
+static struct platform_device ep93xx_bl_device =
+{
 	.name		= "ep93xx-bl",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(ep93xx_bl_resources),
@@ -554,12 +614,14 @@ void __init ep93xx_register_fb(struct ep93xxfb_mach_info *data)
  *************************************************************************/
 static struct ep93xx_keypad_platform_data ep93xx_keypad_data;
 
-static struct resource ep93xx_keypad_resource[] = {
+static struct resource ep93xx_keypad_resource[] =
+{
 	DEFINE_RES_MEM(EP93XX_KEY_MATRIX_PHYS_BASE, 0x0c),
 	DEFINE_RES_IRQ(IRQ_EP93XX_KEY),
 };
 
-static struct platform_device ep93xx_keypad_device = {
+static struct platform_device ep93xx_keypad_device =
+{
 	.name		= "ep93xx-keypad",
 	.id		= -1,
 	.dev		= {
@@ -584,28 +646,39 @@ int ep93xx_keypad_acquire_gpio(struct platform_device *pdev)
 	int err;
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		err = gpio_request(EP93XX_GPIO_LINE_C(i), dev_name(&pdev->dev));
+
 		if (err)
+		{
 			goto fail_gpio_c;
+		}
+
 		err = gpio_request(EP93XX_GPIO_LINE_D(i), dev_name(&pdev->dev));
+
 		if (err)
+		{
 			goto fail_gpio_d;
+		}
 	}
 
 	/* Enable the keypad controller; GPIO ports C and D used for keypad */
 	ep93xx_devcfg_clear_bits(EP93XX_SYSCON_DEVCFG_KEYS |
-				 EP93XX_SYSCON_DEVCFG_GONK);
+							 EP93XX_SYSCON_DEVCFG_GONK);
 
 	return 0;
 
 fail_gpio_d:
 	gpio_free(EP93XX_GPIO_LINE_C(i));
 fail_gpio_c:
-	for (--i; i >= 0; --i) {
+
+	for (--i; i >= 0; --i)
+	{
 		gpio_free(EP93XX_GPIO_LINE_C(i));
 		gpio_free(EP93XX_GPIO_LINE_D(i));
 	}
+
 	return err;
 }
 EXPORT_SYMBOL(ep93xx_keypad_acquire_gpio);
@@ -614,32 +687,36 @@ void ep93xx_keypad_release_gpio(struct platform_device *pdev)
 {
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		gpio_free(EP93XX_GPIO_LINE_C(i));
 		gpio_free(EP93XX_GPIO_LINE_D(i));
 	}
 
 	/* Disable the keypad controller; GPIO ports C and D used for GPIO */
 	ep93xx_devcfg_set_bits(EP93XX_SYSCON_DEVCFG_KEYS |
-			       EP93XX_SYSCON_DEVCFG_GONK);
+						   EP93XX_SYSCON_DEVCFG_GONK);
 }
 EXPORT_SYMBOL(ep93xx_keypad_release_gpio);
 
 /*************************************************************************
  * EP93xx I2S audio peripheral handling
  *************************************************************************/
-static struct resource ep93xx_i2s_resource[] = {
+static struct resource ep93xx_i2s_resource[] =
+{
 	DEFINE_RES_MEM(EP93XX_I2S_PHYS_BASE, 0x100),
 };
 
-static struct platform_device ep93xx_i2s_device = {
+static struct platform_device ep93xx_i2s_device =
+{
 	.name		= "ep93xx-i2s",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(ep93xx_i2s_resource),
 	.resource	= ep93xx_i2s_resource,
 };
 
-static struct platform_device ep93xx_pcm_device = {
+static struct platform_device ep93xx_pcm_device =
+{
 	.name		= "ep93xx-pcm-audio",
 	.id		= -1,
 };
@@ -651,22 +728,22 @@ void __init ep93xx_register_i2s(void)
 }
 
 #define EP93XX_SYSCON_DEVCFG_I2S_MASK	(EP93XX_SYSCON_DEVCFG_I2SONSSP | \
-					 EP93XX_SYSCON_DEVCFG_I2SONAC97)
+		EP93XX_SYSCON_DEVCFG_I2SONAC97)
 
 #define EP93XX_I2SCLKDIV_MASK		(EP93XX_SYSCON_I2SCLKDIV_ORIDE | \
-					 EP93XX_SYSCON_I2SCLKDIV_SPOL)
+									 EP93XX_SYSCON_I2SCLKDIV_SPOL)
 
 int ep93xx_i2s_acquire(void)
 {
 	unsigned val;
 
 	ep93xx_devcfg_set_clear(EP93XX_SYSCON_DEVCFG_I2SONAC97,
-			EP93XX_SYSCON_DEVCFG_I2S_MASK);
+							EP93XX_SYSCON_DEVCFG_I2S_MASK);
 
 	/*
-	 * This is potentially racy with the clock api for i2s_mclk, sclk and 
+	 * This is potentially racy with the clock api for i2s_mclk, sclk and
 	 * lrclk. Since the i2s driver is the only user of those clocks we
-	 * rely on it to prevent parallel use of this function and the 
+	 * rely on it to prevent parallel use of this function and the
 	 * clock api for the i2s clocks.
 	 */
 	val = __raw_readl(EP93XX_SYSCON_I2SCLKDIV);
@@ -687,12 +764,14 @@ EXPORT_SYMBOL(ep93xx_i2s_release);
 /*************************************************************************
  * EP93xx AC97 audio peripheral handling
  *************************************************************************/
-static struct resource ep93xx_ac97_resources[] = {
+static struct resource ep93xx_ac97_resources[] =
+{
 	DEFINE_RES_MEM(EP93XX_AAC_PHYS_BASE, 0xac),
 	DEFINE_RES_IRQ(IRQ_EP93XX_AACINTR),
 };
 
-static struct platform_device ep93xx_ac97_device = {
+static struct platform_device ep93xx_ac97_device =
+{
 	.name		= "ep93xx-ac97",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(ep93xx_ac97_resources),
@@ -713,11 +792,13 @@ void __init ep93xx_register_ac97(void)
 /*************************************************************************
  * EP93xx Watchdog
  *************************************************************************/
-static struct resource ep93xx_wdt_resources[] = {
+static struct resource ep93xx_wdt_resources[] =
+{
 	DEFINE_RES_MEM(EP93XX_WATCHDOG_PHYS_BASE, 0x08),
 };
 
-static struct platform_device ep93xx_wdt_device = {
+static struct platform_device ep93xx_wdt_device =
+{
 	.name		= "ep93xx-wdt",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(ep93xx_wdt_resources),
@@ -727,12 +808,14 @@ static struct platform_device ep93xx_wdt_device = {
 /*************************************************************************
  * EP93xx IDE
  *************************************************************************/
-static struct resource ep93xx_ide_resources[] = {
+static struct resource ep93xx_ide_resources[] =
+{
 	DEFINE_RES_MEM(EP93XX_IDE_PHYS_BASE, 0x38),
 	DEFINE_RES_IRQ(IRQ_EP93XX_EXT3),
 };
 
-static struct platform_device ep93xx_ide_device = {
+static struct platform_device ep93xx_ide_device =
+{
 	.name		= "ep93xx-ide",
 	.id		= -1,
 	.dev		= {
@@ -754,44 +837,78 @@ int ep93xx_ide_acquire_gpio(struct platform_device *pdev)
 	int i;
 
 	err = gpio_request(EP93XX_GPIO_LINE_EGPIO2, dev_name(&pdev->dev));
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = gpio_request(EP93XX_GPIO_LINE_EGPIO15, dev_name(&pdev->dev));
+
 	if (err)
+	{
 		goto fail_egpio15;
-	for (i = 2; i < 8; i++) {
+	}
+
+	for (i = 2; i < 8; i++)
+	{
 		err = gpio_request(EP93XX_GPIO_LINE_E(i), dev_name(&pdev->dev));
+
 		if (err)
+		{
 			goto fail_gpio_e;
+		}
 	}
-	for (i = 4; i < 8; i++) {
+
+	for (i = 4; i < 8; i++)
+	{
 		err = gpio_request(EP93XX_GPIO_LINE_G(i), dev_name(&pdev->dev));
+
 		if (err)
+		{
 			goto fail_gpio_g;
+		}
 	}
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		err = gpio_request(EP93XX_GPIO_LINE_H(i), dev_name(&pdev->dev));
+
 		if (err)
+		{
 			goto fail_gpio_h;
+		}
 	}
 
 	/* GPIO ports E[7:2], G[7:4] and H used by IDE */
 	ep93xx_devcfg_clear_bits(EP93XX_SYSCON_DEVCFG_EONIDE |
-				 EP93XX_SYSCON_DEVCFG_GONIDE |
-				 EP93XX_SYSCON_DEVCFG_HONIDE);
+							 EP93XX_SYSCON_DEVCFG_GONIDE |
+							 EP93XX_SYSCON_DEVCFG_HONIDE);
 	return 0;
 
 fail_gpio_h:
+
 	for (--i; i >= 0; --i)
+	{
 		gpio_free(EP93XX_GPIO_LINE_H(i));
+	}
+
 	i = 8;
 fail_gpio_g:
+
 	for (--i; i >= 4; --i)
+	{
 		gpio_free(EP93XX_GPIO_LINE_G(i));
+	}
+
 	i = 8;
 fail_gpio_e:
+
 	for (--i; i >= 2; --i)
+	{
 		gpio_free(EP93XX_GPIO_LINE_E(i));
+	}
+
 	gpio_free(EP93XX_GPIO_LINE_EGPIO15);
 fail_egpio15:
 	gpio_free(EP93XX_GPIO_LINE_EGPIO2);
@@ -804,19 +921,28 @@ void ep93xx_ide_release_gpio(struct platform_device *pdev)
 	int i;
 
 	for (i = 2; i < 8; i++)
+	{
 		gpio_free(EP93XX_GPIO_LINE_E(i));
+	}
+
 	for (i = 4; i < 8; i++)
+	{
 		gpio_free(EP93XX_GPIO_LINE_G(i));
+	}
+
 	for (i = 0; i < 8; i++)
+	{
 		gpio_free(EP93XX_GPIO_LINE_H(i));
+	}
+
 	gpio_free(EP93XX_GPIO_LINE_EGPIO15);
 	gpio_free(EP93XX_GPIO_LINE_EGPIO2);
 
 
 	/* GPIO ports E[7:2], G[7:4] and H used by GPIO */
 	ep93xx_devcfg_set_bits(EP93XX_SYSCON_DEVCFG_EONIDE |
-			       EP93XX_SYSCON_DEVCFG_GONIDE |
-			       EP93XX_SYSCON_DEVCFG_HONIDE);
+						   EP93XX_SYSCON_DEVCFG_GONIDE |
+						   EP93XX_SYSCON_DEVCFG_HONIDE);
 }
 EXPORT_SYMBOL(ep93xx_ide_release_gpio);
 
@@ -852,7 +978,9 @@ static const char __init *ep93xx_get_soc_id(void)
 	unsigned int id, id2, id3, id4, id5;
 
 	if (__raw_readl(EP93XX_SECURITY_UNIQVAL) != 1)
+	{
 		return "bad Hamming code";
+	}
 
 	id = __raw_readl(EP93XX_SECURITY_UNIQID);
 	id2 = __raw_readl(EP93XX_SECURITY_UNIQID2);
@@ -861,7 +989,9 @@ static const char __init *ep93xx_get_soc_id(void)
 	id5 = __raw_readl(EP93XX_SECURITY_UNIQID5);
 
 	if (id != id2)
+	{
 		return "invalid";
+	}
 
 	/* Toss the unique ID into the entropy pool */
 	add_device_randomness(&id2, 4);
@@ -870,7 +1000,7 @@ static const char __init *ep93xx_get_soc_id(void)
 	add_device_randomness(&id5, 4);
 
 	snprintf(ep93xx_soc_id, sizeof(ep93xx_soc_id),
-		 "%08x%08x%08x%08x", id2, id3, id4, id5);
+			 "%08x%08x%08x%08x", id2, id3, id4, id5);
 
 	return ep93xx_soc_id;
 }
@@ -879,25 +1009,31 @@ static const char __init *ep93xx_get_soc_rev(void)
 {
 	int rev = ep93xx_chip_revision();
 
-	switch (rev) {
-	case EP93XX_CHIP_REV_D0:
-		return "D0";
-	case EP93XX_CHIP_REV_D1:
-		return "D1";
-	case EP93XX_CHIP_REV_E0:
-		return "E0";
-	case EP93XX_CHIP_REV_E1:
-		return "E1";
-	case EP93XX_CHIP_REV_E2:
-		return "E2";
-	default:
-		return "unknown";
+	switch (rev)
+	{
+		case EP93XX_CHIP_REV_D0:
+			return "D0";
+
+		case EP93XX_CHIP_REV_D1:
+			return "D1";
+
+		case EP93XX_CHIP_REV_E0:
+			return "E0";
+
+		case EP93XX_CHIP_REV_E1:
+			return "E1";
+
+		case EP93XX_CHIP_REV_E2:
+			return "E2";
+
+		default:
+			return "unknown";
 	}
 }
 
 static const char __init *ep93xx_get_machine_name(void)
 {
-	return kasprintf(GFP_KERNEL,"%s", machine_desc->name);
+	return kasprintf(GFP_KERNEL, "%s", machine_desc->name);
 }
 
 static struct device __init *ep93xx_init_soc(void)
@@ -906,8 +1042,11 @@ static struct device __init *ep93xx_init_soc(void)
 	struct soc_device *soc_dev;
 
 	soc_dev_attr = kzalloc(sizeof(*soc_dev_attr), GFP_KERNEL);
+
 	if (!soc_dev_attr)
+	{
 		return NULL;
+	}
 
 	soc_dev_attr->machine = ep93xx_get_machine_name();
 	soc_dev_attr->family = "Cirrus Logic EP93xx";
@@ -915,7 +1054,9 @@ static struct device __init *ep93xx_init_soc(void)
 	soc_dev_attr->soc_id = ep93xx_get_soc_id();
 
 	soc_dev = soc_device_register(soc_dev_attr);
-	if (IS_ERR(soc_dev)) {
+
+	if (IS_ERR(soc_dev))
+	{
 		kfree(soc_dev_attr->machine);
 		kfree(soc_dev_attr);
 		return NULL;
@@ -933,10 +1074,10 @@ struct device __init *ep93xx_init_devices(void)
 
 	/* Default all ports to GPIO */
 	ep93xx_devcfg_set_bits(EP93XX_SYSCON_DEVCFG_KEYS |
-			       EP93XX_SYSCON_DEVCFG_GONK |
-			       EP93XX_SYSCON_DEVCFG_EONIDE |
-			       EP93XX_SYSCON_DEVCFG_GONIDE |
-			       EP93XX_SYSCON_DEVCFG_HONIDE);
+						   EP93XX_SYSCON_DEVCFG_GONK |
+						   EP93XX_SYSCON_DEVCFG_EONIDE |
+						   EP93XX_SYSCON_DEVCFG_GONIDE |
+						   EP93XX_SYSCON_DEVCFG_HONIDE);
 
 	parent = ep93xx_init_soc();
 

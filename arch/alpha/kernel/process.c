@@ -63,7 +63,8 @@ void arch_cpu_idle_dead(void)
 }
 #endif /* ALPHA_WTINT */
 
-struct halt_info {
+struct halt_info
+{
 	int mode;
 	char *restart_cmd;
 };
@@ -80,8 +81,8 @@ common_shutdown_1(void *generic_ptr)
 	local_irq_disable();
 
 	cpup = (struct percpu_struct *)
-			((unsigned long)hwrpb + hwrpb->processor_offset
-			 + hwrpb->processor_size * cpuid);
+		   ((unsigned long)hwrpb + hwrpb->processor_offset
+			+ hwrpb->processor_size * cpuid);
 	pflags = &cpup->flags;
 	flags = *pflags;
 
@@ -89,20 +90,27 @@ common_shutdown_1(void *generic_ptr)
 	flags &= ~0x00ff0001UL;
 
 #ifdef CONFIG_SMP
+
 	/* Secondaries halt here. */
-	if (cpuid != boot_cpuid) {
+	if (cpuid != boot_cpuid)
+	{
 		flags |= 0x00040000UL; /* "remain halted" */
 		*pflags = flags;
 		set_cpu_present(cpuid, false);
 		set_cpu_possible(cpuid, false);
 		halt();
 	}
+
 #endif
 
-	if (how->mode == LINUX_REBOOT_CMD_RESTART) {
-		if (!how->restart_cmd) {
+	if (how->mode == LINUX_REBOOT_CMD_RESTART)
+	{
+		if (!how->restart_cmd)
+		{
 			flags |= 0x00020000UL; /* "cold bootstrap" */
-		} else {
+		}
+		else
+		{
 			/* For SRM, we could probably set environment
 			   variables to get this to work.  We'd have to
 			   delay this until after srm_paging_stop unless
@@ -113,29 +121,41 @@ common_shutdown_1(void *generic_ptr)
 			   doing a "warm" bootstrap.  */
 			flags |= 0x00030000UL; /* "warm bootstrap" */
 		}
-	} else {
+	}
+	else
+	{
 		flags |= 0x00040000UL; /* "remain halted" */
 	}
+
 	*pflags = flags;
 
 #ifdef CONFIG_SMP
 	/* Wait for the secondaries to halt. */
 	set_cpu_present(boot_cpuid, false);
 	set_cpu_possible(boot_cpuid, false);
+
 	while (cpumask_weight(cpu_present_mask))
+	{
 		barrier();
+	}
+
 #endif
 
 	/* If booted from SRM, reset some of the original environment. */
-	if (alpha_using_srm) {
+	if (alpha_using_srm)
+	{
 #ifdef CONFIG_DUMMY_CONSOLE
+
 		/* If we've gotten here after SysRq-b, leave interrupt
 		   context before taking over the console. */
 		if (in_interrupt())
+		{
 			irq_exit();
+		}
+
 		/* This has the effect of resetting the VGA video origin.  */
 		console_lock();
-		do_take_over_console(&dummy_con, 0, MAX_NR_CONSOLES-1, 1);
+		do_take_over_console(&dummy_con, 0, MAX_NR_CONSOLES - 1, 1);
 		console_unlock();
 #endif
 		pci_restore_srm_config();
@@ -143,17 +163,22 @@ common_shutdown_1(void *generic_ptr)
 	}
 
 	if (alpha_mv.kill_arch)
+	{
 		alpha_mv.kill_arch(how->mode);
+	}
 
-	if (! alpha_using_srm && how->mode != LINUX_REBOOT_CMD_RESTART) {
+	if (! alpha_using_srm && how->mode != LINUX_REBOOT_CMD_RESTART)
+	{
 		/* Unfortunately, since MILO doesn't currently understand
-		   the hwrpb bits above, we can't reliably halt the 
+		   the hwrpb bits above, we can't reliably halt the
 		   processor and keep it halted.  So just loop.  */
 		return;
 	}
 
 	if (alpha_using_srm)
+	{
 		srm_paging_stop();
+	}
 
 	halt();
 }
@@ -202,7 +227,7 @@ show_regs(struct pt_regs *regs)
  * Re-start a thread when doing execve()
  */
 void
-start_thread(struct pt_regs * regs, unsigned long pc, unsigned long sp)
+start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 {
 	regs->pc = pc;
 	regs->ps = 8;
@@ -232,8 +257,8 @@ release_thread(struct task_struct *dead_task)
  */
 int
 copy_thread(unsigned long clone_flags, unsigned long usp,
-	    unsigned long kthread_arg,
-	    struct task_struct *p)
+			unsigned long kthread_arg,
+			struct task_struct *p)
 {
 	extern void ret_from_fork(void);
 	extern void ret_from_kernel_thread(void);
@@ -247,25 +272,30 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 	childti->pcb.ksp = (unsigned long) childstack;
 	childti->pcb.flags = 1;	/* set FEN, clear everything else */
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		/* kernel thread */
 		memset(childstack, 0,
-			sizeof(struct switch_stack) + sizeof(struct pt_regs));
+			   sizeof(struct switch_stack) + sizeof(struct pt_regs));
 		childstack->r26 = (unsigned long) ret_from_kernel_thread;
 		childstack->r9 = usp;	/* function */
 		childstack->r10 = kthread_arg;
 		childregs->hae = alpha_mv.hae_cache,
-		childti->pcb.usp = 0;
+				   childti->pcb.usp = 0;
 		return 0;
 	}
+
 	/* Note: if CLONE_SETTLS is not set, then we must inherit the
 	   value from the parent, which will have been set by the block
 	   copy in dup_task_struct.  This is non-intuitive, but is
 	   required for proper operation in the case of a threaded
 	   application calling fork.  */
 	if (clone_flags & CLONE_SETTLS)
+	{
 		childti->pcb.unique = regs->r20;
-	childti->pcb.usp = usp ?: rdusp();
+	}
+
+	childti->pcb.usp = usp ? : rdusp();
 	*childregs = *regs;
 	childregs->r0 = 0;
 	childregs->r19 = 0;
@@ -284,7 +314,7 @@ void
 dump_elf_thread(elf_greg_t *dest, struct pt_regs *pt, struct thread_info *ti)
 {
 	/* switch stack follows right below pt_regs: */
-	struct switch_stack * sw = ((struct switch_stack *) pt) - 1;
+	struct switch_stack *sw = ((struct switch_stack *) pt) - 1;
 
 	dest[ 0] = pt->r0;
 	dest[ 1] = pt->r1;
@@ -363,10 +393,14 @@ thread_saved_pc(struct task_struct *t)
 	unsigned long base = (unsigned long)task_stack_page(t);
 	unsigned long fp, sp = task_thread_info(t)->pcb.ksp;
 
-	if (sp > base && sp+6*8 < base + 16*1024) {
-		fp = ((unsigned long*)sp)[6];
-		if (fp > sp && fp < base + 16*1024)
+	if (sp > base && sp + 6 * 8 < base + 16 * 1024)
+	{
+		fp = ((unsigned long *)sp)[6];
+
+		if (fp > sp && fp < base + 16 * 1024)
+		{
 			return *(unsigned long *)fp;
+		}
 	}
 
 	return 0;
@@ -377,8 +411,12 @@ get_wchan(struct task_struct *p)
 {
 	unsigned long schedule_frame;
 	unsigned long pc;
+
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
+
 	/*
 	 * This one depends on the frame size of schedule().  Do a
 	 * "disass schedule" in gdb to find the frame size.  Also, the
@@ -390,9 +428,12 @@ get_wchan(struct task_struct *p)
 	 */
 
 	pc = thread_saved_pc(p);
-	if (in_sched_functions(pc)) {
+
+	if (in_sched_functions(pc))
+	{
 		schedule_frame = ((unsigned long *)task_thread_info(p)->pcb.ksp)[6];
 		return ((unsigned long *)schedule_frame)[12];
 	}
+
 	return pc;
 }

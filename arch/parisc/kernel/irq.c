@@ -1,4 +1,4 @@
-/* 
+/*
  * Code to handle x86 style IRQs plus some generic interrupt stuff.
  *
  * Copyright (C) 1992 Linus Torvalds
@@ -114,7 +114,9 @@ int cpu_check_affinity(struct irq_data *d, const struct cpumask *dest)
 
 	/* timer and ipi have to always be received on all CPUs */
 	if (irqd_is_per_cpu(d))
+	{
 		return -EINVAL;
+	}
 
 	/* whatever mask they set, we just allow one CPU */
 	cpu_dest = cpumask_first_and(dest, cpu_online_mask);
@@ -123,13 +125,16 @@ int cpu_check_affinity(struct irq_data *d, const struct cpumask *dest)
 }
 
 static int cpu_set_affinity_irq(struct irq_data *d, const struct cpumask *dest,
-				bool force)
+								bool force)
 {
 	int cpu_dest;
 
 	cpu_dest = cpu_check_affinity(d, dest);
+
 	if (cpu_dest < 0)
+	{
 		return -1;
+	}
 
 	cpumask_copy(irq_data_get_affinity_mask(d), dest);
 
@@ -137,7 +142,8 @@ static int cpu_set_affinity_irq(struct irq_data *d, const struct cpumask *dest,
 }
 #endif
 
-static struct irq_chip cpu_interrupt_type = {
+static struct irq_chip cpu_interrupt_type =
+{
 	.name			= "CPU",
 	.irq_mask		= cpu_mask_irq,
 	.irq_unmask		= cpu_unmask_irq,
@@ -165,32 +171,32 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 #ifdef CONFIG_DEBUG_STACKOVERFLOW
 	seq_printf(p, "%*s: ", prec, "STK");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->kernel_stack_usage);
+	seq_printf(p, "%10u ", irq_stats(j)->kernel_stack_usage);
 	seq_puts(p, "  Kernel stack usage\n");
 # ifdef CONFIG_IRQSTACKS
 	seq_printf(p, "%*s: ", prec, "IST");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_stack_usage);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_stack_usage);
 	seq_puts(p, "  Interrupt stack usage\n");
 # endif
 #endif
 #ifdef CONFIG_SMP
 	seq_printf(p, "%*s: ", prec, "RES");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_resched_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_resched_count);
 	seq_puts(p, "  Rescheduling interrupts\n");
 #endif
 	seq_printf(p, "%*s: ", prec, "UAH");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_unaligned_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_unaligned_count);
 	seq_puts(p, "  Unaligned access handler traps\n");
 	seq_printf(p, "%*s: ", prec, "FPA");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_fpassist_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_fpassist_count);
 	seq_puts(p, "  Floating point assist traps\n");
 	seq_printf(p, "%*s: ", prec, "TLB");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_tlb_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_tlb_count);
 	seq_puts(p, "  TLB shootdowns\n");
 	return 0;
 }
@@ -200,10 +206,11 @@ int show_interrupts(struct seq_file *p, void *v)
 	int i = *(loff_t *) v, j;
 	unsigned long flags;
 
-	if (i == 0) {
+	if (i == 0)
+	{
 		seq_puts(p, "    ");
 		for_each_online_cpu(j)
-			seq_printf(p, "       CPU%d", j);
+		seq_printf(p, "       CPU%d", j);
 
 #ifdef PARISC_IRQ_CR16_COUNTS
 		seq_printf(p, " [min/avg/max] (CPU cycle counts)");
@@ -211,18 +218,23 @@ int show_interrupts(struct seq_file *p, void *v)
 		seq_putc(p, '\n');
 	}
 
-	if (i < NR_IRQS) {
+	if (i < NR_IRQS)
+	{
 		struct irq_desc *desc = irq_to_desc(i);
 		struct irqaction *action;
 
 		raw_spin_lock_irqsave(&desc->lock, flags);
 		action = desc->action;
+
 		if (!action)
+		{
 			goto skip;
+		}
+
 		seq_printf(p, "%3d: ", i);
 #ifdef CONFIG_SMP
 		for_each_online_cpu(j)
-			seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
+		seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
 #else
 		seq_printf(p, "%10u ", kstat_irqs(i));
 #endif
@@ -232,38 +244,52 @@ int show_interrupts(struct seq_file *p, void *v)
 		seq_printf(p, "  %s", action->name);
 
 		while ((action = action->next))
+		{
 			seq_printf(p, ", %s", action->name);
+		}
+
 #else
-		for ( ;action; action = action->next) {
+
+		for ( ; action; action = action->next)
+		{
 			unsigned int k, avg, min, max;
 
 			min = max = action->cr16_hist[0];
 
-			for (avg = k = 0; k < PARISC_CR16_HIST_SIZE; k++) {
+			for (avg = k = 0; k < PARISC_CR16_HIST_SIZE; k++)
+			{
 				int hist = action->cr16_hist[k];
 
-				if (hist) {
+				if (hist)
+				{
 					avg += hist;
-				} else
+				}
+				else
+				{
 					break;
+				}
 
-				if (hist > max) max = hist;
-				if (hist < min) min = hist;
+				if (hist > max) { max = hist; }
+
+				if (hist < min) { min = hist; }
 			}
 
 			avg /= k;
 			seq_printf(p, " %s[%d/%d/%d]", action->name,
-					min,avg,max);
+					   min, avg, max);
 		}
+
 #endif
 
 		seq_putc(p, '\n');
- skip:
+skip:
 		raw_spin_unlock_irqrestore(&desc->lock, flags);
 	}
 
 	if (i == NR_IRQS)
+	{
 		arch_show_interrupts(p, 3);
+	}
 
 	return 0;
 }
@@ -281,16 +307,23 @@ int show_interrupts(struct seq_file *p, void *v)
 int cpu_claim_irq(unsigned int irq, struct irq_chip *type, void *data)
 {
 	if (irq_has_action(irq))
+	{
 		return -EBUSY;
+	}
+
 	if (irq_get_chip(irq) != &cpu_interrupt_type)
+	{
 		return -EBUSY;
+	}
 
 	/* for iosapic interrupts */
-	if (type) {
+	if (type)
+	{
 		irq_set_chip_and_handler(irq, type, handle_percpu_irq);
 		irq_set_chip_data(irq, data);
 		__cpu_unmask_irq(irq);
 	}
+
 	return 0;
 }
 
@@ -322,11 +355,18 @@ int txn_alloc_irq(unsigned int bits_wide)
 	int irq;
 
 	/* never return irq 0 cause that's the interval timer */
-	for (irq = CPU_IRQ_BASE + 1; irq <= CPU_IRQ_MAX; irq++) {
+	for (irq = CPU_IRQ_BASE + 1; irq <= CPU_IRQ_MAX; irq++)
+	{
 		if (cpu_claim_irq(irq, NULL, NULL) < 0)
+		{
 			continue;
+		}
+
 		if ((irq - CPU_IRQ_BASE) >= (1 << bits_wide))
+		{
 			continue;
+		}
+
 		return irq;
 	}
 
@@ -354,12 +394,16 @@ unsigned long txn_alloc_addr(unsigned int virt_irq)
 
 	/* validate entry */
 	while ((next_cpu < nr_cpu_ids) &&
-		(!per_cpu(cpu_data, next_cpu).txn_addr ||
-		 !cpu_online(next_cpu)))
+		   (!per_cpu(cpu_data, next_cpu).txn_addr ||
+			!cpu_online(next_cpu)))
+	{
 		next_cpu++;
+	}
 
-	if (next_cpu >= nr_cpu_ids) 
-		next_cpu = 0;	/* nothing else, assign monarch */
+	if (next_cpu >= nr_cpu_ids)
+	{
+		next_cpu = 0;    /* nothing else, assign monarch */
+	}
 
 	return txn_affinity_addr(virt_irq, next_cpu);
 }
@@ -382,15 +426,17 @@ static inline int eirr_to_irq(unsigned long eirr)
  */
 #define IRQ_STACK_SIZE      (4096 << 2) /* 16k irq stack size */
 
-union irq_stack_union {
-	unsigned long stack[IRQ_STACK_SIZE/sizeof(unsigned long)];
+union irq_stack_union
+{
+	unsigned long stack[IRQ_STACK_SIZE / sizeof(unsigned long)];
 	volatile unsigned int slock[4];
 	volatile unsigned int lock[1];
 };
 
-DEFINE_PER_CPU(union irq_stack_union, irq_stack_union) = {
-		.slock = { 1,1,1,1 },
-	};
+DEFINE_PER_CPU(union irq_stack_union, irq_stack_union) =
+{
+	.slock = { 1, 1, 1, 1 },
+};
 #endif
 
 
@@ -399,7 +445,7 @@ int sysctl_panic_on_stackoverflow = 1;
 static inline void stack_overflow_check(struct pt_regs *regs)
 {
 #ifdef CONFIG_DEBUG_STACKOVERFLOW
-	#define STACK_MARGIN	(256*6)
+#define STACK_MARGIN	(256*6)
 
 	/* Our stack starts directly behind the thread_info struct. */
 	unsigned long stack_start = (unsigned long) current_thread_info();
@@ -411,28 +457,38 @@ static inline void stack_overflow_check(struct pt_regs *regs)
 	/* if sr7 != 0, we interrupted a userspace process which we do not want
 	 * to check for stack overflow. We will only check the kernel stack. */
 	if (regs->sr[7])
+	{
 		return;
+	}
 
 	/* calculate kernel stack usage */
 	stack_usage = sp - stack_start;
 #ifdef CONFIG_IRQSTACKS
+
 	if (likely(stack_usage <= THREAD_SIZE))
-		goto check_kernel_stack; /* found kernel stack */
+	{
+		goto check_kernel_stack;    /* found kernel stack */
+	}
 
 	/* check irq stack usage */
 	stack_start = (unsigned long) &per_cpu(irq_stack_union, cpu).stack;
 	stack_usage = sp - stack_start;
 
 	last_usage = &per_cpu(irq_stat.irq_stack_usage, cpu);
+
 	if (unlikely(stack_usage > *last_usage))
+	{
 		*last_usage = stack_usage;
+	}
 
 	if (likely(stack_usage < (IRQ_STACK_SIZE - STACK_MARGIN)))
+	{
 		return;
+	}
 
 	pr_emerg("stackcheck: %s will most likely overflow irq stack "
-		 "(sp:%lx, stk bottom-top:%lx-%lx)\n",
-		current->comm, sp, stack_start, stack_start + IRQ_STACK_SIZE);
+			 "(sp:%lx, stk bottom-top:%lx-%lx)\n",
+			 current->comm, sp, stack_start, stack_start + IRQ_STACK_SIZE);
 	goto panic_check;
 
 check_kernel_stack:
@@ -442,20 +498,28 @@ check_kernel_stack:
 	last_usage = &per_cpu(irq_stat.kernel_stack_usage, cpu);
 
 	if (unlikely(stack_usage > *last_usage))
+	{
 		*last_usage = stack_usage;
+	}
 
 	if (likely(stack_usage < (THREAD_SIZE - STACK_MARGIN)))
+	{
 		return;
+	}
 
 	pr_emerg("stackcheck: %s will most likely overflow kernel stack "
-		 "(sp:%lx, stk bottom-top:%lx-%lx)\n",
-		current->comm, sp, stack_start, stack_start + THREAD_SIZE);
+			 "(sp:%lx, stk bottom-top:%lx-%lx)\n",
+			 current->comm, sp, stack_start, stack_start + THREAD_SIZE);
 
 #ifdef CONFIG_IRQSTACKS
 panic_check:
 #endif
+
 	if (sysctl_panic_on_stackoverflow)
+	{
 		panic("low stack detected by irq handler - check messages\n");
+	}
+
 #endif
 }
 
@@ -472,14 +536,16 @@ static void execute_on_irq_stack(void *func, unsigned long param1)
 	union_ptr = &per_cpu(irq_stack_union, smp_processor_id());
 	irq_stack = (unsigned long) &union_ptr->stack;
 	irq_stack = ALIGN(irq_stack + sizeof(irq_stack_union.slock),
-			 64); /* align for stack frame usage */
+					  64); /* align for stack frame usage */
 
 	/* We may be called recursive. If we are already using the irq stack,
 	 * just continue to use it. Use spinlocks to serialize
 	 * the irq stack usage.
 	 */
 	irq_stack_in_use = (volatile unsigned int *)__ldcw_align(union_ptr);
-	if (!__ldcw(irq_stack_in_use)) {
+
+	if (!__ldcw(irq_stack_in_use))
+	{
 		void (*direct_call)(unsigned long p1) = func;
 
 		/* We are using the IRQ stack already.
@@ -517,28 +583,37 @@ void do_cpu_irq_mask(struct pt_regs *regs)
 	irq_enter();
 
 	eirr_val = mfctl(23) & cpu_eiem & per_cpu(local_ack_eiem, cpu);
+
 	if (!eirr_val)
+	{
 		goto set_out;
+	}
+
 	irq = eirr_to_irq(eirr_val);
 
 	irq_data = irq_get_irq_data(irq);
 
 	/* Filter out spurious interrupts, mostly from serial port at bootup */
 	if (unlikely(!irq_desc_has_action(irq_data_to_desc(irq_data))))
+	{
 		goto set_out;
+	}
 
 #ifdef CONFIG_SMP
 	cpumask_copy(&dest, irq_data_get_affinity_mask(irq_data));
+
 	if (irqd_is_per_cpu(irq_data) &&
-	    !cpumask_test_cpu(smp_processor_id(), &dest)) {
+		!cpumask_test_cpu(smp_processor_id(), &dest))
+	{
 		int cpu = cpumask_first(&dest);
 
 		printk(KERN_DEBUG "redirecting irq %d from CPU %d to %d\n",
-		       irq, smp_processor_id(), cpu);
+			   irq, smp_processor_id(), cpu);
 		gsc_writel(irq + CPU_IRQ_BASE,
-			   per_cpu(cpu_data, cpu).hpa);
+				   per_cpu(cpu_data, cpu).hpa);
 		goto set_out;
 	}
+
 #endif
 	stack_overflow_check(regs);
 
@@ -548,24 +623,26 @@ void do_cpu_irq_mask(struct pt_regs *regs)
 	generic_handle_irq(irq);
 #endif /* CONFIG_IRQSTACKS */
 
- out:
+out:
 	irq_exit();
 	set_irq_regs(old_regs);
 	return;
 
- set_out:
+set_out:
 	set_eiem(cpu_eiem & per_cpu(local_ack_eiem, cpu));
 	goto out;
 }
 
-static struct irqaction timer_action = {
+static struct irqaction timer_action =
+{
 	.handler = timer_interrupt,
 	.name = "timer",
 	.flags = IRQF_TIMER | IRQF_PERCPU | IRQF_IRQPOLL,
 };
 
 #ifdef CONFIG_SMP
-static struct irqaction ipi_action = {
+static struct irqaction ipi_action =
+{
 	.handler = ipi_interrupt,
 	.name = "IPI",
 	.flags = IRQF_PERCPU,
@@ -575,9 +652,11 @@ static struct irqaction ipi_action = {
 static void claim_cpu_irqs(void)
 {
 	int i;
-	for (i = CPU_IRQ_BASE; i <= CPU_IRQ_MAX; i++) {
+
+	for (i = CPU_IRQ_BASE; i <= CPU_IRQ_MAX; i++)
+	{
 		irq_set_chip_and_handler(i, &cpu_interrupt_type,
-					 handle_percpu_irq);
+								 handle_percpu_irq);
 	}
 
 	irq_set_handler(TIMER_IRQ, handle_percpu_irq);
@@ -593,13 +672,16 @@ void __init init_IRQ(void)
 	local_irq_disable();	/* PARANOID - should already be disabled */
 	mtctl(~0UL, 23);	/* EIRR : clear all pending external intr */
 #ifdef CONFIG_SMP
-	if (!cpu_eiem) {
+
+	if (!cpu_eiem)
+	{
 		claim_cpu_irqs();
 		cpu_eiem = EIEM_MASK(IPI_IRQ) | EIEM_MASK(TIMER_IRQ);
 	}
+
 #else
 	claim_cpu_irqs();
 	cpu_eiem = EIEM_MASK(TIMER_IRQ);
 #endif
-        set_eiem(cpu_eiem);	/* EIEM : enable all external intr */
+	set_eiem(cpu_eiem);	/* EIEM : enable all external intr */
 }

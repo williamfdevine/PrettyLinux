@@ -14,15 +14,19 @@
 #include <asm/cacheflush.h>
 
 static void to_gdb_regs(unsigned long *gdb_regs, struct pt_regs *kernel_regs,
-			struct callee_regs *cregs)
+						struct callee_regs *cregs)
 {
 	int regno;
 
 	for (regno = 0; regno <= 26; regno++)
+	{
 		gdb_regs[_R0 + regno] = get_reg(regno, kernel_regs, cregs);
+	}
 
 	for (regno = 27; regno < GDB_MAX_REGS; regno++)
+	{
 		gdb_regs[regno] = 0;
+	}
 
 	gdb_regs[_FP]		= kernel_regs->fp;
 	gdb_regs[__SP]		= kernel_regs->sp;
@@ -37,12 +41,14 @@ static void to_gdb_regs(unsigned long *gdb_regs, struct pt_regs *kernel_regs,
 }
 
 static void from_gdb_regs(unsigned long *gdb_regs, struct pt_regs *kernel_regs,
-			struct callee_regs *cregs)
+						  struct callee_regs *cregs)
 {
 	int regno;
 
 	for (regno = 0; regno <= 26; regno++)
+	{
 		set_reg(regno, gdb_regs[regno + _R0], kernel_regs, cregs);
+	}
 
 	kernel_regs->fp		= gdb_regs[_FP];
 	kernel_regs->sp		= gdb_regs[__SP];
@@ -59,24 +65,25 @@ static void from_gdb_regs(unsigned long *gdb_regs, struct pt_regs *kernel_regs,
 void pt_regs_to_gdb_regs(unsigned long *gdb_regs, struct pt_regs *kernel_regs)
 {
 	to_gdb_regs(gdb_regs, kernel_regs, (struct callee_regs *)
-		current->thread.callee_reg);
+				current->thread.callee_reg);
 }
 
 void gdb_regs_to_pt_regs(unsigned long *gdb_regs, struct pt_regs *kernel_regs)
 {
 	from_gdb_regs(gdb_regs, kernel_regs, (struct callee_regs *)
-		current->thread.callee_reg);
+				  current->thread.callee_reg);
 }
 
 void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs,
-				 struct task_struct *task)
+								 struct task_struct *task)
 {
 	if (task)
 		to_gdb_regs(gdb_regs, task_pt_regs(task),
-			(struct callee_regs *) task->thread.callee_reg);
+					(struct callee_regs *) task->thread.callee_reg);
 }
 
-struct single_step_data_t {
+struct single_step_data_t
+{
 	uint16_t opcode[2];
 	unsigned long address[2];
 	int is_branch;
@@ -85,18 +92,21 @@ struct single_step_data_t {
 
 static void undo_single_step(struct pt_regs *regs)
 {
-	if (single_step_data.armed) {
+	if (single_step_data.armed)
+	{
 		int i;
 
-		for (i = 0; i < (single_step_data.is_branch ? 2 : 1); i++) {
+		for (i = 0; i < (single_step_data.is_branch ? 2 : 1); i++)
+		{
 			memcpy((void *) single_step_data.address[i],
-				&single_step_data.opcode[i],
-				BREAK_INSTR_SIZE);
+				   &single_step_data.opcode[i],
+				   BREAK_INSTR_SIZE);
 
 			flush_icache_range(single_step_data.address[i],
-				single_step_data.address[i] +
-				BREAK_INSTR_SIZE);
+							   single_step_data.address[i] +
+							   BREAK_INSTR_SIZE);
 		}
+
 		single_step_data.armed = 0;
 	}
 }
@@ -105,56 +115,63 @@ static void place_trap(unsigned long address, void *save)
 {
 	memcpy(save, (void *) address, BREAK_INSTR_SIZE);
 	memcpy((void *) address, &arch_kgdb_ops.gdb_bpt_instr,
-		BREAK_INSTR_SIZE);
+		   BREAK_INSTR_SIZE);
 	flush_icache_range(address, address + BREAK_INSTR_SIZE);
 }
 
 static void do_single_step(struct pt_regs *regs)
 {
 	single_step_data.is_branch = disasm_next_pc((unsigned long)
-		regs->ret, regs, (struct callee_regs *)
-		current->thread.callee_reg,
-		&single_step_data.address[0],
-		&single_step_data.address[1]);
+								 regs->ret, regs, (struct callee_regs *)
+								 current->thread.callee_reg,
+								 &single_step_data.address[0],
+								 &single_step_data.address[1]);
 
 	place_trap(single_step_data.address[0], &single_step_data.opcode[0]);
 
-	if (single_step_data.is_branch) {
+	if (single_step_data.is_branch)
+	{
 		place_trap(single_step_data.address[1],
-			&single_step_data.opcode[1]);
+				   &single_step_data.opcode[1]);
 	}
 
 	single_step_data.armed++;
 }
 
 int kgdb_arch_handle_exception(int e_vector, int signo, int err_code,
-			       char *remcomInBuffer, char *remcomOutBuffer,
-			       struct pt_regs *regs)
+							   char *remcomInBuffer, char *remcomOutBuffer,
+							   struct pt_regs *regs)
 {
 	unsigned long addr;
 	char *ptr;
 
 	undo_single_step(regs);
 
-	switch (remcomInBuffer[0]) {
-	case 's':
-	case 'c':
-		ptr = &remcomInBuffer[1];
-		if (kgdb_hex2long(&ptr, &addr))
-			regs->ret = addr;
+	switch (remcomInBuffer[0])
+	{
+		case 's':
+		case 'c':
+			ptr = &remcomInBuffer[1];
 
-	case 'D':
-	case 'k':
-		atomic_set(&kgdb_cpu_doing_single_step, -1);
+			if (kgdb_hex2long(&ptr, &addr))
+			{
+				regs->ret = addr;
+			}
 
-		if (remcomInBuffer[0] == 's') {
-			do_single_step(regs);
-			atomic_set(&kgdb_cpu_doing_single_step,
-				   smp_processor_id());
-		}
+		case 'D':
+		case 'k':
+			atomic_set(&kgdb_cpu_doing_single_step, -1);
 
-		return 0;
+			if (remcomInBuffer[0] == 's')
+			{
+				do_single_step(regs);
+				atomic_set(&kgdb_cpu_doing_single_step,
+						   smp_processor_id());
+			}
+
+			return 0;
 	}
+
 	return -1;
 }
 
@@ -177,7 +194,9 @@ void kgdb_trap(struct pt_regs *regs)
 	 * start after the breakpoint.
 	 */
 	if (regs->ecr_param == 3)
+	{
 		instruction_pointer(regs) -= BREAK_INSTR_SIZE;
+	}
 
 	kgdb_handle_exception(1, SIGTRAP, 0, regs);
 }
@@ -203,7 +222,8 @@ void kgdb_roundup_cpus(unsigned long flags)
 	local_irq_disable();
 }
 
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 	/* breakpoint instruction: TRAP_S 0x3 */
 #ifdef CONFIG_CPU_BIG_ENDIAN
 	.gdb_bpt_instr		= {0x78, 0x7e},

@@ -35,7 +35,7 @@ typedef struct
 static __inline__ int in_ivt_code(unsigned long pc)
 {
 	extern char ia64_ivt[];
-	return (pc >= (u_long)ia64_ivt && pc < (u_long)ia64_ivt+32768);
+	return (pc >= (u_long)ia64_ivt && pc < (u_long)ia64_ivt + 32768);
 }
 
 /*
@@ -49,7 +49,9 @@ static __inline__ int next_frame(ia64_backtrace_t *bt)
 	 * information.
 	 */
 	if (in_ivt_code(bt->frame.ip))
+	{
 		return 0;
+	}
 
 	/*
 	 * WAR for spinlock contention from leaf functions.  ia64_spinlock_contention_pre3_4
@@ -60,7 +62,10 @@ static __inline__ int next_frame(ia64_backtrace_t *bt)
 	 * leaf functions.
 	 */
 	if (bt->prev_pfs_loc && bt->regs && bt->frame.pfs_loc == bt->prev_pfs_loc)
+	{
 		bt->frame.pfs_loc = &bt->regs->ar_pfs;
+	}
+
 	bt->prev_pfs_loc = NULL;
 
 	return unw_unwind(&bt->frame) == 0;
@@ -74,26 +79,37 @@ static void do_ia64_backtrace(struct unw_frame_info *info, void *vdata)
 	int count = 0;
 	u_long pc, sp;
 
-	sw = (struct switch_stack *)(info+1);
+	sw = (struct switch_stack *)(info + 1);
 	/* padding from unw_init_running */
 	sw = (struct switch_stack *)(((unsigned long)sw + 15) & ~15);
 
 	unw_init_frame_info(&bt->frame, current, sw);
 
 	/* skip over interrupt frame and oprofile calls */
-	do {
+	do
+	{
 		unw_get_sp(&bt->frame, &sp);
+
 		if (sp >= (u_long)bt->regs)
+		{
 			break;
+		}
+
 		if (!next_frame(bt))
+		{
 			return;
-	} while (count++ < 200);
+		}
+	}
+	while (count++ < 200);
 
 	/* finally, grab the actual sample */
-	while (bt->depth-- && next_frame(bt)) {
+	while (bt->depth-- && next_frame(bt))
+	{
 		unw_get_ip(&bt->frame, &pc);
 		oprofile_add_trace(pc);
-		if (unw_is_intr_frame(&bt->frame)) {
+
+		if (unw_is_intr_frame(&bt->frame))
+		{
 			/*
 			 * Interrupt received on kernel stack; this can
 			 * happen when timer interrupt fires while processing
@@ -109,7 +125,7 @@ static void do_ia64_backtrace(struct unw_frame_info *info, void *vdata)
 }
 
 void
-ia64_backtrace(struct pt_regs * const regs, unsigned int depth)
+ia64_backtrace(struct pt_regs *const regs, unsigned int depth)
 {
 	ia64_backtrace_t bt;
 	unsigned long flags;
@@ -120,7 +136,9 @@ ia64_backtrace(struct pt_regs * const regs, unsigned int depth)
 	 * information from arbitrary user programs are extreme.
 	 */
 	if (user_mode(regs))
+	{
 		return;
+	}
 
 	bt.depth = depth;
 	bt.regs = regs;

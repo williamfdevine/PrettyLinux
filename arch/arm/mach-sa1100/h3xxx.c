@@ -32,7 +32,8 @@
 /*
  * H3xxx flash support
  */
-static struct mtd_partition h3xxx_partitions[] = {
+static struct mtd_partition h3xxx_partitions[] =
+{
 	{
 		.name		= "H3XXX boot firmware",
 		.size		= 0x00040000,
@@ -53,14 +54,19 @@ static void h3xxx_set_vpp(int vpp)
 static int h3xxx_flash_init(void)
 {
 	int err = gpio_request(H3XXX_EGPIO_VPP_ON, "Flash Vpp");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("%s: can't request H3XXX_EGPIO_VPP_ON\n", __func__);
 		return err;
 	}
 
 	err = gpio_direction_output(H3XXX_EGPIO_VPP_ON, 0);
+
 	if (err)
+	{
 		gpio_free(H3XXX_EGPIO_VPP_ON);
+	}
 
 	return err;
 }
@@ -70,7 +76,8 @@ static void h3xxx_flash_exit(void)
 	gpio_free(H3XXX_EGPIO_VPP_ON);
 }
 
-static struct flash_platform_data h3xxx_flash_data = {
+static struct flash_platform_data h3xxx_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.set_vpp	= h3xxx_set_vpp,
 	.init		= h3xxx_flash_init,
@@ -86,7 +93,8 @@ static struct resource h3xxx_flash_resource =
 /*
  * H3xxx uart support
  */
-static struct gpio h3xxx_uart_gpio[] = {
+static struct gpio h3xxx_uart_gpio[] =
+{
 	{ H3XXX_GPIO_COM_DCD,	GPIOF_IN,		"COM DCD" },
 	{ H3XXX_GPIO_COM_CTS,	GPIOF_IN,		"COM CTS" },
 	{ H3XXX_GPIO_COM_RTS,	GPIOF_OUT_INIT_LOW,	"COM RTS" },
@@ -98,22 +106,33 @@ static bool h3xxx_uart_request_gpios(void)
 	int rc;
 
 	if (h3xxx_uart_gpio_ok)
+	{
 		return true;
+	}
 
 	rc = gpio_request_array(h3xxx_uart_gpio, ARRAY_SIZE(h3xxx_uart_gpio));
+
 	if (rc)
+	{
 		pr_err("h3xxx_uart_request_gpios: error %d\n", rc);
+	}
 	else
+	{
 		h3xxx_uart_gpio_ok = true;
+	}
 
 	return h3xxx_uart_gpio_ok;
 }
 
 static void h3xxx_uart_set_mctrl(struct uart_port *port, u_int mctrl)
 {
-	if (port->mapbase == _Ser3UTCR0) {
+	if (port->mapbase == _Ser3UTCR0)
+	{
 		if (!h3xxx_uart_request_gpios())
+		{
 			return;
+		}
+
 		gpio_set_value(H3XXX_GPIO_COM_RTS, !(mctrl & TIOCM_RTS));
 	}
 }
@@ -122,16 +141,25 @@ static u_int h3xxx_uart_get_mctrl(struct uart_port *port)
 {
 	u_int ret = TIOCM_CD | TIOCM_CTS | TIOCM_DSR;
 
-	if (port->mapbase == _Ser3UTCR0) {
+	if (port->mapbase == _Ser3UTCR0)
+	{
 		if (!h3xxx_uart_request_gpios())
+		{
 			return ret;
+		}
+
 		/*
 		 * DCD and CTS bits are inverted in GPLR by RS232 transceiver
 		 */
 		if (gpio_get_value(H3XXX_GPIO_COM_DCD))
+		{
 			ret &= ~TIOCM_CD;
+		}
+
 		if (gpio_get_value(H3XXX_GPIO_COM_CTS))
+		{
 			ret &= ~TIOCM_CTS;
+		}
 	}
 
 	return ret;
@@ -139,13 +167,17 @@ static u_int h3xxx_uart_get_mctrl(struct uart_port *port)
 
 static void h3xxx_uart_pm(struct uart_port *port, u_int state, u_int oldstate)
 {
-	if (port->mapbase == _Ser3UTCR0) {
-		if (!gpio_request(H3XXX_EGPIO_RS232_ON, "RS232 transceiver")) {
+	if (port->mapbase == _Ser3UTCR0)
+	{
+		if (!gpio_request(H3XXX_EGPIO_RS232_ON, "RS232 transceiver"))
+		{
 			gpio_direction_output(H3XXX_EGPIO_RS232_ON, !state);
 			gpio_free(H3XXX_EGPIO_RS232_ON);
-		} else {
+		}
+		else
+		{
 			pr_err("%s: can't request H3XXX_EGPIO_RS232_ON\n",
-				__func__);
+				   __func__);
 		}
 	}
 }
@@ -158,17 +190,25 @@ static int h3xxx_uart_set_wake(struct uart_port *port, u_int enable)
 {
 	int err = -EINVAL;
 
-	if (port->mapbase == _Ser3UTCR0) {
+	if (port->mapbase == _Ser3UTCR0)
+	{
 		if (enable)
-			PWER |= PWER_GPIO23 | PWER_GPIO25; /* DCD and CTS */
+		{
+			PWER |= PWER_GPIO23 | PWER_GPIO25;    /* DCD and CTS */
+		}
 		else
-			PWER &= ~(PWER_GPIO23 | PWER_GPIO25); /* DCD and CTS */
+		{
+			PWER &= ~(PWER_GPIO23 | PWER_GPIO25);    /* DCD and CTS */
+		}
+
 		err = 0;
 	}
+
 	return err;
 }
 
-static struct sa1100_port_fns h3xxx_port_fns __initdata = {
+static struct sa1100_port_fns h3xxx_port_fns __initdata =
+{
 	.set_mctrl	= h3xxx_uart_set_mctrl,
 	.get_mctrl	= h3xxx_uart_get_mctrl,
 	.pm		= h3xxx_uart_pm,
@@ -179,11 +219,13 @@ static struct sa1100_port_fns h3xxx_port_fns __initdata = {
  * EGPIO
  */
 
-static struct resource egpio_resources[] = {
+static struct resource egpio_resources[] =
+{
 	[0] = DEFINE_RES_MEM(H3600_EGPIO_PHYS, 0x4),
 };
 
-static struct htc_egpio_chip egpio_chips[] = {
+static struct htc_egpio_chip egpio_chips[] =
+{
 	[0] = {
 		.reg_start	= 0,
 		.gpio_base	= H3XXX_EGPIO_BASE,
@@ -193,14 +235,16 @@ static struct htc_egpio_chip egpio_chips[] = {
 	},
 };
 
-static struct htc_egpio_platform_data egpio_info = {
+static struct htc_egpio_platform_data egpio_info =
+{
 	.reg_width	= 16,
 	.bus_width	= 16,
 	.chip		= egpio_chips,
 	.num_chips	= ARRAY_SIZE(egpio_chips),
 };
 
-static struct platform_device h3xxx_egpio = {
+static struct platform_device h3xxx_egpio =
+{
 	.name		= "htc-egpio",
 	.id		= -1,
 	.resource	= egpio_resources,
@@ -214,7 +258,8 @@ static struct platform_device h3xxx_egpio = {
  * GPIO keys
  */
 
-static struct gpio_keys_button h3xxx_button_table[] = {
+static struct gpio_keys_button h3xxx_button_table[] =
+{
 	{
 		.code		= KEY_POWER,
 		.gpio		= H3XXX_GPIO_PWR_BUTTON,
@@ -232,12 +277,14 @@ static struct gpio_keys_button h3xxx_button_table[] = {
 	},
 };
 
-static struct gpio_keys_platform_data h3xxx_keys_data = {
+static struct gpio_keys_platform_data h3xxx_keys_data =
+{
 	.buttons  = h3xxx_button_table,
 	.nbuttons = ARRAY_SIZE(h3xxx_button_table),
 };
 
-static struct platform_device h3xxx_keys = {
+static struct platform_device h3xxx_keys =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -245,20 +292,23 @@ static struct platform_device h3xxx_keys = {
 	},
 };
 
-static struct resource h3xxx_micro_resources[] = {
+static struct resource h3xxx_micro_resources[] =
+{
 	DEFINE_RES_MEM(0x80010000, SZ_4K),
 	DEFINE_RES_MEM(0x80020000, SZ_4K),
 	DEFINE_RES_IRQ(IRQ_Ser1UART),
 };
 
-struct platform_device h3xxx_micro_asic = {
+struct platform_device h3xxx_micro_asic =
+{
 	.name = "ipaq-h3xxx-micro",
 	.id = -1,
 	.resource = h3xxx_micro_resources,
 	.num_resources = ARRAY_SIZE(h3xxx_micro_resources),
 };
 
-static struct platform_device *h3xxx_devices[] = {
+static struct platform_device *h3xxx_devices[] =
+{
 	&h3xxx_egpio,
 	&h3xxx_keys,
 	&h3xxx_micro_asic,
@@ -271,7 +321,8 @@ void __init h3xxx_mach_init(void)
 	platform_add_devices(h3xxx_devices, ARRAY_SIZE(h3xxx_devices));
 }
 
-static struct map_desc h3600_io_desc[] __initdata = {
+static struct map_desc h3600_io_desc[] __initdata =
+{
 	{	/* static memory bank 2  CS#2 */
 		.virtual	=  H3600_BANK_2_VIRT,
 		.pfn		= __phys_to_pfn(SA1100_CS2_PHYS),
@@ -300,7 +351,7 @@ void __init h3xxx_map_io(void)
 	iotable_init(h3600_io_desc, ARRAY_SIZE(h3600_io_desc));
 
 	sa1100_register_uart(0, 3); /* Common serial port */
-//	sa1100_register_uart(1, 1); /* Microcontroller on 3100/3600 */
+	//	sa1100_register_uart(1, 1); /* Microcontroller on 3100/3600 */
 
 	/* Ensure those pins are outputs and driving low  */
 	PPDR |= PPC_TXD4 | PPC_SCLK | PPC_SFRM;

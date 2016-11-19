@@ -6,7 +6,8 @@
 #ifndef __UM_VDE_H__
 #define __UM_VDE_H__
 
-struct vde_data {
+struct vde_data
+{
 	char *vde_switch;
 	char *descr;
 	void *args;
@@ -14,7 +15,8 @@ struct vde_data {
 	void *dev;
 };
 
-struct vde_init {
+struct vde_init
+{
 	char *vde_switch;
 	char *descr;
 	int port;

@@ -91,19 +91,19 @@ extern void set_cpei_target_cpu(unsigned int cpu);
 extern unsigned int get_cpei_target_cpu(void);
 extern void prefill_possible_map(void);
 #ifdef CONFIG_ACPI_HOTPLUG_CPU
-extern int additional_cpus;
+	extern int additional_cpus;
 #else
-#define additional_cpus 0
+	#define additional_cpus 0
 #endif
 
 #ifdef CONFIG_ACPI_NUMA
-#if MAX_NUMNODES > 256
-#define MAX_PXM_DOMAINS MAX_NUMNODES
-#else
-#define MAX_PXM_DOMAINS (256)
-#endif
-extern int pxm_to_nid_map[MAX_PXM_DOMAINS];
-extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
+	#if MAX_NUMNODES > 256
+		#define MAX_PXM_DOMAINS MAX_NUMNODES
+	#else
+		#define MAX_PXM_DOMAINS (256)
+	#endif
+	extern int pxm_to_nid_map[MAX_PXM_DOMAINS];
+	extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
 #endif
 
 static inline bool arch_has_acpi_pdc(void) { return true; }
@@ -130,13 +130,19 @@ static inline void per_cpu_scan_finalize(int min_cpus, int reserve_cpus)
 	high_cpu = max(low_cpu, min_cpus);
 	high_cpu = min(high_cpu + reserve_cpus, NR_CPUS);
 
-	for (cpu = low_cpu; cpu < high_cpu; cpu++) {
+	for (cpu = low_cpu; cpu < high_cpu; cpu++)
+	{
 		cpumask_set_cpu(cpu, &early_cpu_possible_map);
-		if (node_cpuid[cpu].nid == NUMA_NO_NODE) {
+
+		if (node_cpuid[cpu].nid == NUMA_NO_NODE)
+		{
 			node_cpuid[cpu].nid = next_nid;
 			next_nid++;
+
 			if (next_nid >= num_online_nodes())
+			{
 				next_nid = 0;
+			}
 		}
 	}
 }

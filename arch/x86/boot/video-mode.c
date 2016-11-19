@@ -36,16 +36,24 @@ void probe_cards(int unsafe)
 	static u8 probed[2];
 
 	if (probed[unsafe])
+	{
 		return;
+	}
 
 	probed[unsafe] = 1;
 
-	for (card = video_cards; card < video_cards_end; card++) {
-		if (card->unsafe == unsafe) {
+	for (card = video_cards; card < video_cards_end; card++)
+	{
+		if (card->unsafe == unsafe)
+		{
 			if (card->probe)
+			{
 				card->nmodes = card->probe();
+			}
 			else
+			{
 				card->nmodes = 0;
+			}
 		}
 	}
 }
@@ -57,11 +65,16 @@ int mode_defined(u16 mode)
 	struct mode_info *mi;
 	int i;
 
-	for (card = video_cards; card < video_cards_end; card++) {
+	for (card = video_cards; card < video_cards_end; card++)
+	{
 		mi = card->modes;
-		for (i = 0; i < card->nmodes; i++, mi++) {
+
+		for (i = 0; i < card->nmodes; i++, mi++)
+		{
 			if (mi->mode == mode)
+			{
 				return 1;
+			}
 		}
 	}
 
@@ -80,27 +93,36 @@ static int raw_set_mode(u16 mode, u16 *real_mode)
 
 	/* Scan for mode based on fixed ID, position, or resolution */
 	nmode = 0;
-	for (card = video_cards; card < video_cards_end; card++) {
+
+	for (card = video_cards; card < video_cards_end; card++)
+	{
 		mi = card->modes;
-		for (i = 0; i < card->nmodes; i++, mi++) {
+
+		for (i = 0; i < card->nmodes; i++, mi++)
+		{
 			int visible = mi->x || mi->y;
 
 			if ((mode == nmode && visible) ||
-			    mode == mi->mode ||
-			    mode == (mi->y << 8)+mi->x) {
+				mode == mi->mode ||
+				mode == (mi->y << 8) + mi->x)
+			{
 				*real_mode = mi->mode;
 				return card->set_mode(mi);
 			}
 
 			if (visible)
+			{
 				nmode++;
+			}
 		}
 	}
 
 	/* Nothing found?  Is it an "exceptional" (unprobed) mode? */
-	for (card = video_cards; card < video_cards_end; card++) {
+	for (card = video_cards; card < video_cards_end; card++)
+	{
 		if (mode >= card->xmode_first &&
-		    mode < card->xmode_first+card->xmode_n) {
+			mode < card->xmode_first + card->xmode_n)
+		{
 			struct mode_info mix;
 			*real_mode = mix.mode = mode;
 			mix.x = mix.y = 0;
@@ -123,7 +145,7 @@ static void vga_recalc_vertical(void)
 
 	set_fs(0);
 	font_size = rdfs8(0x485); /* BIOS: font size (pixels) */
-	rows = force_y ? force_y : rdfs8(0x484)+1; /* Text rows */
+	rows = force_y ? force_y : rdfs8(0x484) + 1; /* Text rows */
 
 	rows *= font_size;	/* Visible scan lines */
 	rows--;			/* ... minus one */
@@ -138,8 +160,8 @@ static void vga_recalc_vertical(void)
 
 	ov = in_idx(crtc, 0x07); /* Overflow register */
 	ov &= 0xbd;
-	ov |= (rows >> (8-1)) & 0x02;
-	ov |= (rows >> (9-6)) & 0x40;
+	ov |= (rows >> (8 - 1)) & 0x02;
+	ov |= (rows >> (9 - 6)) & 0x40;
 	out_idx(ov, crtc, 0x07);
 }
 
@@ -151,18 +173,29 @@ int set_mode(u16 mode)
 
 	/* Very special mode numbers... */
 	if (mode == VIDEO_CURRENT_MODE)
-		return 0;	/* Nothing to do... */
+	{
+		return 0;    /* Nothing to do... */
+	}
 	else if (mode == NORMAL_VGA)
+	{
 		mode = VIDEO_80x25;
+	}
 	else if (mode == EXTENDED_VGA)
+	{
 		mode = VIDEO_8POINT;
+	}
 
 	rv = raw_set_mode(mode, &real_mode);
+
 	if (rv)
+	{
 		return rv;
+	}
 
 	if (mode & VIDEO_RECALC)
+	{
 		vga_recalc_vertical();
+	}
 
 	/* Save the canonical mode number for the kernel, not
 	   an alias, size specification or menu position */

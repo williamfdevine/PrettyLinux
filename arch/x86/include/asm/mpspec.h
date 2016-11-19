@@ -10,30 +10,30 @@ extern int pic_mode;
 
 #ifdef CONFIG_X86_32
 
-/*
- * Summit or generic (i.e. installer) kernels need lots of bus entries.
- * Maximum 256 PCI busses, plus 1 ISA bus in each of 4 cabinets.
- */
-#if CONFIG_BASE_SMALL == 0
-# define MAX_MP_BUSSES		260
-#else
-# define MAX_MP_BUSSES		32
-#endif
+	/*
+	* Summit or generic (i.e. installer) kernels need lots of bus entries.
+	* Maximum 256 PCI busses, plus 1 ISA bus in each of 4 cabinets.
+	*/
+	#if CONFIG_BASE_SMALL == 0
+		#define MAX_MP_BUSSES		260
+	#else
+		#define MAX_MP_BUSSES		32
+	#endif
 
-#define MAX_IRQ_SOURCES		256
+	#define MAX_IRQ_SOURCES		256
 
-extern unsigned int def_to_bigsmp;
+	extern unsigned int def_to_bigsmp;
 
 #else /* CONFIG_X86_64: */
 
-#define MAX_MP_BUSSES		256
-/* Each PCI slot may be a combo card with its own bus.  4 IRQ pins per slot. */
-#define MAX_IRQ_SOURCES		(MAX_MP_BUSSES * 4)
+	#define MAX_MP_BUSSES		256
+	/* Each PCI slot may be a combo card with its own bus.  4 IRQ pins per slot. */
+	#define MAX_IRQ_SOURCES		(MAX_MP_BUSSES * 4)
 
 #endif /* CONFIG_X86_64 */
 
 #ifdef CONFIG_EISA
-extern int mp_bus_id_to_type[MAX_MP_BUSSES];
+	extern int mp_bus_id_to_type[MAX_MP_BUSSES];
 #endif
 
 extern DECLARE_BITMAP(mp_bus_not_pci, MAX_MP_BUSSES);
@@ -43,9 +43,9 @@ extern u8 boot_cpu_apic_version;
 extern unsigned long mp_lapic_addr;
 
 #ifdef CONFIG_X86_LOCAL_APIC
-extern int smp_found_config;
+	extern int smp_found_config;
 #else
-# define smp_found_config 0
+	#define smp_found_config 0
 #endif
 
 static inline void get_smp_config(void)
@@ -68,11 +68,11 @@ extern void early_reserve_e820_mpc_new(void);
 extern int enable_update_mptable;
 extern int default_mpc_apic_id(struct mpc_cpu *m);
 extern void default_smp_read_mpc_oem(struct mpc_table *mpc);
-# ifdef CONFIG_X86_IO_APIC
-extern void default_mpc_oem_bus_info(struct mpc_bus *m, char *str);
-# else
-#  define default_mpc_oem_bus_info NULL
-# endif
+#ifdef CONFIG_X86_IO_APIC
+	extern void default_mpc_oem_bus_info(struct mpc_bus *m, char *str);
+#else
+	#define default_mpc_oem_bus_info NULL
+#endif
 extern void default_find_smp_config(void);
 extern void default_get_smp_config(unsigned int early);
 #else
@@ -90,7 +90,8 @@ int __generic_processor_info(int apicid, int version, bool enabled);
 
 #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_LOCAL_APIC)
 
-struct physid_mask {
+struct physid_mask
+{
 	unsigned long mask[PHYSID_ARRAY_SIZE];
 };
 

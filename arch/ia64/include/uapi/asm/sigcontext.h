@@ -31,7 +31,8 @@
  *
  */
 
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long		sc_flags;	/* see manifest constants above */
 	unsigned long		sc_nat;		/* bit i == 1 iff scratch reg gr[i] is a NaT */
 	stack_t			sc_stack;	/* previously active stack */

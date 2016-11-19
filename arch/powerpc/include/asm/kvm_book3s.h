@@ -24,7 +24,8 @@
 #include <linux/kvm_host.h>
 #include <asm/kvm_book3s_asm.h>
 
-struct kvmppc_bat {
+struct kvmppc_bat
+{
 	u64 raw;
 	u32 bepi;
 	u32 bepi_mask;
@@ -35,7 +36,8 @@ struct kvmppc_bat {
 	bool vp		: 1;
 };
 
-struct kvmppc_sid_map {
+struct kvmppc_sid_map
+{
 	u64 guest_vsid;
 	u64 guest_esid;
 	u64 host_vsid;
@@ -47,13 +49,14 @@ struct kvmppc_sid_map {
 #define SID_MAP_MASK    (SID_MAP_NUM - 1)
 
 #ifdef CONFIG_PPC_BOOK3S_64
-#define SID_CONTEXTS	1
+	#define SID_CONTEXTS	1
 #else
-#define SID_CONTEXTS	128
-#define VSID_POOL_SIZE	(SID_CONTEXTS * 16)
+	#define SID_CONTEXTS	128
+	#define VSID_POOL_SIZE	(SID_CONTEXTS * 16)
 #endif
 
-struct hpte_cache {
+struct hpte_cache
+{
 	struct hlist_node list_pte;
 	struct hlist_node list_pte_long;
 	struct hlist_node list_vpte;
@@ -76,7 +79,8 @@ struct hpte_cache {
  * next 8 bits.  This is so that we can atomically set the entry bit
  * iff the exit map is 0 without taking a lock.
  */
-struct kvmppc_vcore {
+struct kvmppc_vcore
+{
 	int n_runnable;
 	int num_threads;
 	int entry_exit_map;
@@ -106,9 +110,11 @@ struct kvmppc_vcore {
 	unsigned int halt_poll_ns;
 };
 
-struct kvmppc_vcpu_book3s {
+struct kvmppc_vcpu_book3s
+{
 	struct kvmppc_sid_map sid_map[SID_MAP_NUM];
-	struct {
+	struct
+	{
 		u64 esid;
 		u64 vsid;
 	} slb_shadow[64];
@@ -160,16 +166,16 @@ extern void kvmppc_mmu_book3s_64_init(struct kvm_vcpu *vcpu);
 extern void kvmppc_mmu_book3s_32_init(struct kvm_vcpu *vcpu);
 extern void kvmppc_mmu_book3s_hv_init(struct kvm_vcpu *vcpu);
 extern int kvmppc_mmu_map_page(struct kvm_vcpu *vcpu, struct kvmppc_pte *pte,
-			       bool iswrite);
+							   bool iswrite);
 extern void kvmppc_mmu_unmap_page(struct kvm_vcpu *vcpu, struct kvmppc_pte *pte);
 extern int kvmppc_mmu_map_segment(struct kvm_vcpu *vcpu, ulong eaddr);
 extern void kvmppc_mmu_flush_segment(struct kvm_vcpu *vcpu, ulong eaddr, ulong seg_size);
 extern void kvmppc_mmu_flush_segments(struct kvm_vcpu *vcpu);
 extern int kvmppc_book3s_hv_page_fault(struct kvm_run *run,
-			struct kvm_vcpu *vcpu, unsigned long addr,
-			unsigned long status);
+									   struct kvm_vcpu *vcpu, unsigned long addr,
+									   unsigned long status);
 extern long kvmppc_hv_find_lock_hpte(struct kvm *kvm, gva_t eaddr,
-			unsigned long slb_v, unsigned long valid);
+									 unsigned long slb_v, unsigned long valid);
 
 extern void kvmppc_mmu_hpte_cache_map(struct kvm_vcpu *vcpu, struct hpte_cache *pte);
 extern struct hpte_cache *kvmppc_mmu_hpte_cache_next(struct kvm_vcpu *vcpu);
@@ -186,35 +192,35 @@ extern int kvmppc_book3s_hcall_implemented(struct kvm *kvm, unsigned long hc);
 extern int kvmppc_ld(struct kvm_vcpu *vcpu, ulong *eaddr, int size, void *ptr, bool data);
 extern void kvmppc_book3s_queue_irqprio(struct kvm_vcpu *vcpu, unsigned int vec);
 extern void kvmppc_book3s_dequeue_irqprio(struct kvm_vcpu *vcpu,
-					  unsigned int vec);
+		unsigned int vec);
 extern void kvmppc_inject_interrupt(struct kvm_vcpu *vcpu, int vec, u64 flags);
 extern void kvmppc_set_bat(struct kvm_vcpu *vcpu, struct kvmppc_bat *bat,
-			   bool upper, u32 val);
+						   bool upper, u32 val);
 extern void kvmppc_giveup_ext(struct kvm_vcpu *vcpu, ulong msr);
 extern int kvmppc_emulate_paired_single(struct kvm_run *run, struct kvm_vcpu *vcpu);
 extern kvm_pfn_t kvmppc_gpa_to_pfn(struct kvm_vcpu *vcpu, gpa_t gpa,
-			bool writing, bool *writable);
+								   bool writing, bool *writable);
 extern void kvmppc_add_revmap_chain(struct kvm *kvm, struct revmap_entry *rev,
-			unsigned long *rmap, long pte_index, int realmode);
+									unsigned long *rmap, long pte_index, int realmode);
 extern void kvmppc_update_rmap_change(unsigned long *rmap, unsigned long psize);
 extern void kvmppc_invalidate_hpte(struct kvm *kvm, __be64 *hptep,
-			unsigned long pte_index);
+								   unsigned long pte_index);
 void kvmppc_clear_ref_hpte(struct kvm *kvm, __be64 *hptep,
-			unsigned long pte_index);
+						   unsigned long pte_index);
 extern void *kvmppc_pin_guest_page(struct kvm *kvm, unsigned long addr,
-			unsigned long *nb_ret);
+								   unsigned long *nb_ret);
 extern void kvmppc_unpin_guest_page(struct kvm *kvm, void *addr,
-			unsigned long gpa, bool dirty);
+									unsigned long gpa, bool dirty);
 extern long kvmppc_do_h_enter(struct kvm *kvm, unsigned long flags,
-			long pte_index, unsigned long pteh, unsigned long ptel,
-			pgd_t *pgdir, bool realmode, unsigned long *idx_ret);
+							  long pte_index, unsigned long pteh, unsigned long ptel,
+							  pgd_t *pgdir, bool realmode, unsigned long *idx_ret);
 extern long kvmppc_do_h_remove(struct kvm *kvm, unsigned long flags,
-			unsigned long pte_index, unsigned long avpn,
-			unsigned long *hpret);
+							   unsigned long pte_index, unsigned long avpn,
+							   unsigned long *hpret);
 extern long kvmppc_hv_get_dirty_log(struct kvm *kvm,
-			struct kvm_memory_slot *memslot, unsigned long *map);
+									struct kvm_memory_slot *memslot, unsigned long *map);
 extern void kvmppc_update_lpcr(struct kvm *kvm, unsigned long lpcr,
-			unsigned long mask);
+							   unsigned long mask);
 extern void kvmppc_set_fscr(struct kvm_vcpu *vcpu, u64 fscr);
 
 extern void kvmppc_entry_trampoline(void);
@@ -226,9 +232,9 @@ extern void kvmppc_pr_init_default_hcalls(struct kvm *kvm);
 extern int kvmppc_hcall_impl_pr(unsigned long cmd);
 extern int kvmppc_hcall_impl_hv_realmode(unsigned long cmd);
 extern void kvmppc_copy_to_svcpu(struct kvmppc_book3s_shadow_vcpu *svcpu,
-				 struct kvm_vcpu *vcpu);
+								 struct kvm_vcpu *vcpu);
 extern void kvmppc_copy_from_svcpu(struct kvm_vcpu *vcpu,
-				   struct kvmppc_book3s_shadow_vcpu *svcpu);
+								   struct kvmppc_book3s_shadow_vcpu *svcpu);
 extern int kvm_irq_bypass;
 
 static inline struct kvmppc_vcpu_book3s *to_book3s(struct kvm_vcpu *vcpu)
@@ -239,10 +245,10 @@ static inline struct kvmppc_vcpu_book3s *to_book3s(struct kvm_vcpu *vcpu)
 /* Also add subarch specific defines */
 
 #ifdef CONFIG_KVM_BOOK3S_32_HANDLER
-#include <asm/kvm_book3s_32.h>
+	#include <asm/kvm_book3s_32.h>
 #endif
 #ifdef CONFIG_KVM_BOOK3S_64_HANDLER
-#include <asm/kvm_book3s_64.h>
+	#include <asm/kvm_book3s_64.h>
 #endif
 
 static inline void kvmppc_set_gpr(struct kvm_vcpu *vcpu, int num, ulong val)

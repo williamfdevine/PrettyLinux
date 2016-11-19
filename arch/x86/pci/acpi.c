@@ -8,7 +8,8 @@
 #include <asm/numa.h>
 #include <asm/pci_x86.h>
 
-struct pci_root_info {
+struct pci_root_info
+{
 	struct acpi_pci_root_info common;
 	struct pci_sysdata sd;
 #ifdef	CONFIG_PCI_MMCONFIG
@@ -40,7 +41,8 @@ static int __init set_ignore_seg(const struct dmi_system_id *id)
 	return 0;
 }
 
-static const struct dmi_system_id pci_crs_quirks[] __initconst = {
+static const struct dmi_system_id pci_crs_quirks[] __initconst =
+{
 	/* http://bugzilla.kernel.org/show_bug.cgi?id=14183 */
 	{
 		.callback = set_use_crs,
@@ -52,13 +54,13 @@ static const struct dmi_system_id pci_crs_quirks[] __initconst = {
 	},
 	/* https://bugzilla.kernel.org/show_bug.cgi?id=16007 */
 	/* 2006 AMD HT/VIA system with two host bridges */
-        {
+	{
 		.callback = set_use_crs,
 		.ident = "ASRock ALiveSATA2-GLAN",
 		.matches = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "ALiveSATA2-GLAN"),
-                },
-        },
+		},
+	},
 	/* https://bugzilla.kernel.org/show_bug.cgi?id=30552 */
 	/* 2006 AMD HT/VIA system with two host bridges */
 	{
@@ -131,9 +133,12 @@ void __init pci_acpi_crs_quirks(void)
 {
 	int year;
 
-	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year < 2008) {
+	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year < 2008)
+	{
 		if (iomem_resource.end <= 0xffffffff)
+		{
 			pci_use_crs = false;
+		}
 	}
 
 	dmi_check_system(pci_crs_quirks);
@@ -143,24 +148,29 @@ void __init pci_acpi_crs_quirks(void)
 	 * takes precedence over anything we figured out above.
 	 */
 	if (pci_probe & PCI_ROOT_NO_CRS)
+	{
 		pci_use_crs = false;
+	}
 	else if (pci_probe & PCI_USE__CRS)
+	{
 		pci_use_crs = true;
+	}
 
 	printk(KERN_INFO "PCI: %s host bridge windows from ACPI; "
-	       "if necessary, use \"pci=%s\" and report a bug\n",
-	       pci_use_crs ? "Using" : "Ignoring",
-	       pci_use_crs ? "nocrs" : "use_crs");
+		   "if necessary, use \"pci=%s\" and report a bug\n",
+		   pci_use_crs ? "Using" : "Ignoring",
+		   pci_use_crs ? "nocrs" : "use_crs");
 }
 
 #ifdef	CONFIG_PCI_MMCONFIG
 static int check_segment(u16 seg, struct device *dev, char *estr)
 {
-	if (seg) {
+	if (seg)
+	{
 		dev_err(dev,
-			"%s can't access PCI configuration "
-			"space under this host bridge.\n",
-			estr);
+				"%s can't access PCI configuration "
+				"space under this host bridge.\n",
+				estr);
 		return -EIO;
 	}
 
@@ -170,9 +180,9 @@ static int check_segment(u16 seg, struct device *dev, char *estr)
 	 * devices under this host bridge.
 	 */
 	dev_warn(dev,
-		 "%s can't access extended PCI configuration "
-		 "space under this bridge.\n",
-		 estr);
+			 "%s can't access extended PCI configuration "
+			 "space under this bridge.\n",
+			 estr);
 
 	return 0;
 }
@@ -192,21 +202,31 @@ static int setup_mcfg_map(struct acpi_pci_root_info *ci)
 
 	/* return success if MMCFG is not in use */
 	if (raw_pci_ext_ops && raw_pci_ext_ops != &pci_mmcfg)
+	{
 		return 0;
+	}
 
 	if (!(pci_probe & PCI_PROBE_MMCONF))
+	{
 		return check_segment(seg, dev, "MMCONFIG is disabled,");
+	}
 
 	result = pci_mmconfig_insert(dev, seg, info->start_bus, info->end_bus,
-				     root->mcfg_addr);
-	if (result == 0) {
+								 root->mcfg_addr);
+
+	if (result == 0)
+	{
 		/* enable MMCFG if it hasn't been enabled yet */
 		if (raw_pci_ext_ops == NULL)
+		{
 			raw_pci_ext_ops = &pci_mmcfg;
+		}
+
 		info->mcfg_added = true;
-	} else if (result != -EEXIST)
+	}
+	else if (result != -EEXIST)
 		return check_segment(seg, dev,
-			 "fail to add MMCONFIG information,");
+							 "fail to add MMCONFIG information,");
 
 	return 0;
 }
@@ -216,9 +236,11 @@ static void teardown_mcfg_map(struct acpi_pci_root_info *ci)
 	struct pci_root_info *info;
 
 	info = container_of(ci, struct pci_root_info, common);
-	if (info->mcfg_added) {
+
+	if (info->mcfg_added)
+	{
 		pci_mmconfig_delete(info->sd.domain,
-				    info->start_bus, info->end_bus);
+							info->start_bus, info->end_bus);
 		info->mcfg_added = false;
 	}
 }
@@ -239,14 +261,20 @@ static int pci_acpi_root_get_node(struct acpi_pci_root *root)
 	struct acpi_device *device = root->device;
 	int node = acpi_get_node(device->handle);
 
-	if (node == NUMA_NO_NODE) {
+	if (node == NUMA_NO_NODE)
+	{
 		node = x86_pci_root_bus_node(busnum);
+
 		if (node != 0 && node != NUMA_NO_NODE)
-			dev_info(&device->dev, FW_BUG "no _PXM; falling back to node %d from hardware (may be inconsistent with ACPI node numbers)\n",
-				node);
+			dev_info(&device->dev, FW_BUG
+					 "no _PXM; falling back to node %d from hardware (may be inconsistent with ACPI node numbers)\n",
+					 node);
 	}
+
 	if (node != NUMA_NO_NODE && !node_online(node))
+	{
 		node = NUMA_NO_NODE;
+	}
 
 	return node;
 }
@@ -279,7 +307,7 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
 static bool resource_is_pcicfg_ioport(struct resource *res)
 {
 	return (res->flags & IORESOURCE_IO) &&
-		res->start == 0xCF8 && res->end == 0xCFF;
+		   res->start == 0xCF8 && res->end == 0xCFF;
 }
 
 static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
@@ -290,16 +318,23 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
 	int status;
 
 	status = acpi_pci_probe_root_resources(ci);
-	if (pci_use_crs) {
+
+	if (pci_use_crs)
+	{
 		resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
-			if (resource_is_pcicfg_ioport(entry->res))
-				resource_list_destroy_entry(entry);
+
+		if (resource_is_pcicfg_ioport(entry->res))
+		{
+			resource_list_destroy_entry(entry);
+		}
+
 		return status;
 	}
 
-	resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
+	resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
+	{
 		dev_printk(KERN_DEBUG, &device->dev,
-			   "host bridge window %pR (ignored)\n", entry->res);
+				   "host bridge window %pR (ignored)\n", entry->res);
 		resource_list_destroy_entry(entry);
 	}
 	x86_pci_root_bus_resources(busnum, &ci->resources);
@@ -307,7 +342,8 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
 	return 0;
 }
 
-static struct acpi_pci_root_ops acpi_pci_root_ops = {
+static struct acpi_pci_root_ops acpi_pci_root_ops =
+{
 	.pci_ops = &pci_root_ops,
 	.init_info = pci_acpi_root_init_info,
 	.release_info = pci_acpi_root_release_info,
@@ -322,52 +358,63 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
 	struct pci_bus *bus;
 
 	if (pci_ignore_seg)
+	{
 		root->segment = domain = 0;
+	}
 
-	if (domain && !pci_domains_supported) {
+	if (domain && !pci_domains_supported)
+	{
 		printk(KERN_WARNING "pci_bus %04x:%02x: "
-		       "ignored (multiple domains not supported)\n",
-		       domain, busnum);
+			   "ignored (multiple domains not supported)\n",
+			   domain, busnum);
 		return NULL;
 	}
 
 	bus = pci_find_bus(domain, busnum);
-	if (bus) {
+
+	if (bus)
+	{
 		/*
 		 * If the desired bus has been scanned already, replace
 		 * its bus->sysdata.
 		 */
-		struct pci_sysdata sd = {
+		struct pci_sysdata sd =
+		{
 			.domain = domain,
 			.node = node,
 			.companion = root->device
 		};
 
 		memcpy(bus->sysdata, &sd, sizeof(sd));
-	} else {
+	}
+	else
+	{
 		struct pci_root_info *info;
 
 		info = kzalloc_node(sizeof(*info), GFP_KERNEL, node);
+
 		if (!info)
 			dev_err(&root->device->dev,
-				"pci_bus %04x:%02x: ignored (out of memory)\n",
-				domain, busnum);
-		else {
+					"pci_bus %04x:%02x: ignored (out of memory)\n",
+					domain, busnum);
+		else
+		{
 			info->sd.domain = domain;
 			info->sd.node = node;
 			info->sd.companion = root->device;
 			bus = acpi_pci_root_create(root, &acpi_pci_root_ops,
-						   &info->common, &info->sd);
+									   &info->common, &info->sd);
 		}
 	}
 
 	/* After the PCI-E bus has been walked and all devices discovered,
 	 * configure any settings of the fabric that might be necessary.
 	 */
-	if (bus) {
+	if (bus)
+	{
 		struct pci_bus *child;
 		list_for_each_entry(child, &bus->children, node)
-			pcie_bus_configure_settings(child);
+		pcie_bus_configure_settings(child);
 	}
 
 	return bus;
@@ -381,10 +428,12 @@ int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
 	 * sysdata is likely to be different from what we expect.  Let it go in
 	 * that case.
 	 */
-	if (!bridge->dev.parent) {
+	if (!bridge->dev.parent)
+	{
 		struct pci_sysdata *sd = bridge->bus->sysdata;
 		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
 	}
+
 	return 0;
 }
 
@@ -393,7 +442,9 @@ int __init pci_acpi_init(void)
 	struct pci_dev *dev = NULL;
 
 	if (acpi_noirq)
+	{
 		return -ENODEV;
+	}
 
 	printk(KERN_INFO "PCI: Using ACPI for IRQ routing\n");
 	acpi_irq_penalty_init();
@@ -401,7 +452,8 @@ int __init pci_acpi_init(void)
 	pcibios_disable_irq = acpi_pci_irq_disable;
 	x86_init.pci.init_irq = x86_init_noop;
 
-	if (pci_routeirq) {
+	if (pci_routeirq)
+	{
 		/*
 		 * PCI IRQ routing is set up by pci_enable_device(), but we
 		 * also do it here in case there are still broken drivers that
@@ -409,7 +461,7 @@ int __init pci_acpi_init(void)
 		 */
 		printk(KERN_INFO "PCI: Routing PCI interrupts for all devices because \"pci=routeirq\" specified\n");
 		for_each_pci_dev(dev)
-			acpi_pci_irq_enable(dev);
+		acpi_pci_irq_enable(dev);
 	}
 
 	return 0;

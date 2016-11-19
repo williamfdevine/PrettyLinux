@@ -42,7 +42,8 @@
 #define GPIO19_WLAN_STRAP	(19)
 #define GPIO102_WLAN_RST	(102)
 
-static unsigned long cmx270_pin_config[] = {
+static unsigned long cmx270_pin_config[] =
+{
 	/* AC'97 */
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
@@ -126,7 +127,8 @@ static unsigned long cmx270_pin_config[] = {
 
 /* V3020 RTC */
 #if defined(CONFIG_RTC_DRV_V3020) || defined(CONFIG_RTC_DRV_V3020_MODULE)
-static struct resource cmx270_v3020_resource[] = {
+static struct resource cmx270_v3020_resource[] =
+{
 	[0] = {
 		.start = RTC_PHYS_BASE,
 		.end   = RTC_PHYS_BASE + 4,
@@ -134,11 +136,13 @@ static struct resource cmx270_v3020_resource[] = {
 	},
 };
 
-struct v3020_platform_data cmx270_v3020_pdata = {
+struct v3020_platform_data cmx270_v3020_pdata =
+{
 	.leftshift = 16,
 };
 
-static struct platform_device cmx270_rtc_device = {
+static struct platform_device cmx270_rtc_device =
+{
 	.name		= "v3020",
 	.num_resources	= ARRAY_SIZE(cmx270_v3020_resource),
 	.resource	= cmx270_v3020_resource,
@@ -160,7 +164,8 @@ static inline void cmx270_init_rtc(void) {}
 #if defined(CONFIG_FB_MBX) || defined(CONFIG_FB_MBX_MODULE)
 static u64 fb_dma_mask = ~(u64)0;
 
-static struct resource cmx270_2700G_resource[] = {
+static struct resource cmx270_2700G_resource[] =
+{
 	/* frame buffer memory including ODFB and External SDRAM */
 	[0] = {
 		.start = PXA_CS2_PHYS,
@@ -175,7 +180,8 @@ static struct resource cmx270_2700G_resource[] = {
 	},
 };
 
-static unsigned long cmx270_marathon_on[] = {
+static unsigned long cmx270_marathon_on[] =
+{
 	GPIO58_GPIO,
 	GPIO59_GPIO,
 	GPIO60_GPIO,
@@ -198,7 +204,8 @@ static unsigned long cmx270_marathon_on[] = {
 	GPIO77_GPIO,
 };
 
-static unsigned long cmx270_marathon_off[] = {
+static unsigned long cmx270_marathon_off[] =
+{
 	GPIOxx_LCD_TFT_16BPP,
 };
 
@@ -206,10 +213,15 @@ static int cmx270_marathon_probe(struct fb_info *fb)
 {
 	int gpio, err;
 
-	for (gpio = 58; gpio <= 77; gpio++) {
+	for (gpio = 58; gpio <= 77; gpio++)
+	{
 		err = gpio_request(gpio, "LCD");
+
 		if (err)
+		{
 			return err;
+		}
+
 		gpio_direction_input(gpio);
 	}
 
@@ -224,12 +236,15 @@ static int cmx270_marathon_remove(struct fb_info *fb)
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(cmx270_marathon_off));
 
 	for (gpio = 58; gpio <= 77; gpio++)
+	{
 		gpio_free(gpio);
+	}
 
 	return 0;
 }
 
-static struct mbxfb_platform_data cmx270_2700G_data = {
+static struct mbxfb_platform_data cmx270_2700G_data =
+{
 	.xres = {
 		.min = 240,
 		.max = 1200,
@@ -245,12 +260,13 @@ static struct mbxfb_platform_data cmx270_2700G_data = {
 		.max = 32,
 		.defval = 16,
 	},
-	.memsize = 8*1024*1024,
+	.memsize = 8 * 1024 * 1024,
 	.probe = cmx270_marathon_probe,
 	.remove = cmx270_marathon_remove,
 };
 
-static struct platform_device cmx270_2700G = {
+static struct platform_device cmx270_2700G =
+{
 	.name		= "mbx-fb",
 	.dev		= {
 		.platform_data	= &cmx270_2700G_data,
@@ -272,7 +288,8 @@ static inline void cmx270_init_2700G(void) {}
 
 /* PXA27x OHCI controller setup */
 #if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-static struct pxaohci_platform_data cmx270_ohci_platform_data = {
+static struct pxaohci_platform_data cmx270_ohci_platform_data =
+{
 	.port_mode	= PMM_PERPORT_MODE,
 	.flags		= ENABLE_PORT1 | ENABLE_PORT2 | POWER_CONTROL_LOW,
 };
@@ -286,8 +303,9 @@ static inline void cmx270_init_ohci(void) {}
 #endif
 
 #if defined(CONFIG_MMC) || defined(CONFIG_MMC_MODULE)
-static struct pxamci_platform_data cmx270_mci_platform_data = {
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct pxamci_platform_data cmx270_mci_platform_data =
+{
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO83_MMC_IRQ,
 	.gpio_card_ro		= -1,
 	.gpio_power		= GPIO105_MMC_POWER,
@@ -303,19 +321,22 @@ static inline void cmx270_init_mmc(void) {}
 #endif
 
 #if defined(CONFIG_SPI_PXA2XX) || defined(CONFIG_SPI_PXA2XX_MODULE)
-static struct pxa2xx_spi_master cm_x270_spi_info = {
+static struct pxa2xx_spi_master cm_x270_spi_info =
+{
 	.num_chipselect	= 1,
 	.enable_dma	= 1,
 };
 
-static struct pxa2xx_spi_chip cm_x270_libertas_chip = {
+static struct pxa2xx_spi_chip cm_x270_libertas_chip =
+{
 	.rx_threshold	= 1,
 	.tx_threshold	= 1,
 	.timeout	= 1000,
 	.gpio_cs	= 14,
 };
 
-static unsigned long cm_x270_libertas_pin_config[] = {
+static unsigned long cm_x270_libertas_pin_config[] =
+{
 	/* SSP2 */
 	GPIO19_SSP2_SCLK,
 	GPIO14_GPIO,
@@ -327,21 +348,35 @@ static unsigned long cm_x270_libertas_pin_config[] = {
 static int cm_x270_libertas_setup(struct spi_device *spi)
 {
 	int err = gpio_request(GPIO19_WLAN_STRAP, "WLAN STRAP");
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = gpio_request(GPIO102_WLAN_RST, "WLAN RST");
+
 	if (err)
+	{
 		goto err_free_strap;
+	}
 
 	err = gpio_direction_output(GPIO102_WLAN_RST, 0);
+
 	if (err)
+	{
 		goto err_free_strap;
+	}
+
 	msleep(100);
 
 	err = gpio_direction_output(GPIO19_WLAN_STRAP, 1);
+
 	if (err)
+	{
 		goto err_free_strap;
+	}
+
 	msleep(100);
 
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(cm_x270_libertas_pin_config));
@@ -369,13 +404,15 @@ static int cm_x270_libertas_teardown(struct spi_device *spi)
 	return 0;
 }
 
-struct libertas_spi_platform_data cm_x270_libertas_pdata = {
+struct libertas_spi_platform_data cm_x270_libertas_pdata =
+{
 	.use_dummy_writes	= 1,
 	.setup			= cm_x270_libertas_setup,
 	.teardown		= cm_x270_libertas_teardown,
 };
 
-static struct spi_board_info cm_x270_spi_devices[] __initdata = {
+static struct spi_board_info cm_x270_spi_devices[] __initdata =
+{
 	{
 		.modalias		= "libertas_spi",
 		.max_speed_hz		= 13000000,

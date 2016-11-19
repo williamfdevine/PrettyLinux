@@ -30,15 +30,15 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 	smp_mb();
 
 	__asm__ __volatile__(
-	"1:	llock	%[val], [%[slock]]	\n"
-	"	breq	%[val], %[LOCKED], 1b	\n"	/* spin while LOCKED */
-	"	scond	%[LOCKED], [%[slock]]	\n"	/* acquire */
-	"	bnz	1b			\n"
-	"					\n"
-	: [val]		"=&r"	(val)
-	: [slock]	"r"	(&(lock->slock)),
-	  [LOCKED]	"r"	(__ARCH_SPIN_LOCK_LOCKED__)
-	: "memory", "cc");
+		"1:	llock	%[val], [%[slock]]	\n"
+		"	breq	%[val], %[LOCKED], 1b	\n"	/* spin while LOCKED */
+		"	scond	%[LOCKED], [%[slock]]	\n"	/* acquire */
+		"	bnz	1b			\n"
+		"					\n"
+		: [val]		"=&r"	(val)
+		: [slock]	"r"	(&(lock->slock)),
+		[LOCKED]	"r"	(__ARCH_SPIN_LOCK_LOCKED__)
+		: "memory", "cc");
 
 	smp_mb();
 }
@@ -51,18 +51,18 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 	smp_mb();
 
 	__asm__ __volatile__(
-	"1:	llock	%[val], [%[slock]]	\n"
-	"	breq	%[val], %[LOCKED], 4f	\n"	/* already LOCKED, just bail */
-	"	scond	%[LOCKED], [%[slock]]	\n"	/* acquire */
-	"	bnz	1b			\n"
-	"	mov	%[got_it], 1		\n"
-	"4:					\n"
-	"					\n"
-	: [val]		"=&r"	(val),
-	  [got_it]	"+&r"	(got_it)
-	: [slock]	"r"	(&(lock->slock)),
-	  [LOCKED]	"r"	(__ARCH_SPIN_LOCK_LOCKED__)
-	: "memory", "cc");
+		"1:	llock	%[val], [%[slock]]	\n"
+		"	breq	%[val], %[LOCKED], 4f	\n"	/* already LOCKED, just bail */
+		"	scond	%[LOCKED], [%[slock]]	\n"	/* acquire */
+		"	bnz	1b			\n"
+		"	mov	%[got_it], 1		\n"
+		"4:					\n"
+		"					\n"
+		: [val]		"=&r"	(val),
+		[got_it]	"+&r"	(got_it)
+		: [slock]	"r"	(&(lock->slock)),
+		[LOCKED]	"r"	(__ARCH_SPIN_LOCK_LOCKED__)
+		: "memory", "cc");
 
 	smp_mb();
 
@@ -100,16 +100,16 @@ static inline void arch_read_lock(arch_rwlock_t *rw)
 	 */
 
 	__asm__ __volatile__(
-	"1:	llock	%[val], [%[rwlock]]	\n"
-	"	brls	%[val], %[WR_LOCKED], 1b\n"	/* <= 0: spin while write locked */
-	"	sub	%[val], %[val], 1	\n"	/* reader lock */
-	"	scond	%[val], [%[rwlock]]	\n"
-	"	bnz	1b			\n"
-	"					\n"
-	: [val]		"=&r"	(val)
-	: [rwlock]	"r"	(&(rw->counter)),
-	  [WR_LOCKED]	"ir"	(0)
-	: "memory", "cc");
+		"1:	llock	%[val], [%[rwlock]]	\n"
+		"	brls	%[val], %[WR_LOCKED], 1b\n"	/* <= 0: spin while write locked */
+		"	sub	%[val], %[val], 1	\n"	/* reader lock */
+		"	scond	%[val], [%[rwlock]]	\n"
+		"	bnz	1b			\n"
+		"					\n"
+		: [val]		"=&r"	(val)
+		: [rwlock]	"r"	(&(rw->counter)),
+		[WR_LOCKED]	"ir"	(0)
+		: "memory", "cc");
 
 	smp_mb();
 }
@@ -122,20 +122,20 @@ static inline int arch_read_trylock(arch_rwlock_t *rw)
 	smp_mb();
 
 	__asm__ __volatile__(
-	"1:	llock	%[val], [%[rwlock]]	\n"
-	"	brls	%[val], %[WR_LOCKED], 4f\n"	/* <= 0: already write locked, bail */
-	"	sub	%[val], %[val], 1	\n"	/* counter-- */
-	"	scond	%[val], [%[rwlock]]	\n"
-	"	bnz	1b			\n"	/* retry if collided with someone */
-	"	mov	%[got_it], 1		\n"
-	"					\n"
-	"4: ; --- done ---			\n"
+		"1:	llock	%[val], [%[rwlock]]	\n"
+		"	brls	%[val], %[WR_LOCKED], 4f\n"	/* <= 0: already write locked, bail */
+		"	sub	%[val], %[val], 1	\n"	/* counter-- */
+		"	scond	%[val], [%[rwlock]]	\n"
+		"	bnz	1b			\n"	/* retry if collided with someone */
+		"	mov	%[got_it], 1		\n"
+		"					\n"
+		"4: ; --- done ---			\n"
 
-	: [val]		"=&r"	(val),
-	  [got_it]	"+&r"	(got_it)
-	: [rwlock]	"r"	(&(rw->counter)),
-	  [WR_LOCKED]	"ir"	(0)
-	: "memory", "cc");
+		: [val]		"=&r"	(val),
+		[got_it]	"+&r"	(got_it)
+		: [rwlock]	"r"	(&(rw->counter)),
+		[WR_LOCKED]	"ir"	(0)
+		: "memory", "cc");
 
 	smp_mb();
 
@@ -161,17 +161,17 @@ static inline void arch_write_lock(arch_rwlock_t *rw)
 	 */
 
 	__asm__ __volatile__(
-	"1:	llock	%[val], [%[rwlock]]	\n"
-	"	brne	%[val], %[UNLOCKED], 1b	\n"	/* while !UNLOCKED spin */
-	"	mov	%[val], %[WR_LOCKED]	\n"
-	"	scond	%[val], [%[rwlock]]	\n"
-	"	bnz	1b			\n"
-	"					\n"
-	: [val]		"=&r"	(val)
-	: [rwlock]	"r"	(&(rw->counter)),
-	  [UNLOCKED]	"ir"	(__ARCH_RW_LOCK_UNLOCKED__),
-	  [WR_LOCKED]	"ir"	(0)
-	: "memory", "cc");
+		"1:	llock	%[val], [%[rwlock]]	\n"
+		"	brne	%[val], %[UNLOCKED], 1b	\n"	/* while !UNLOCKED spin */
+		"	mov	%[val], %[WR_LOCKED]	\n"
+		"	scond	%[val], [%[rwlock]]	\n"
+		"	bnz	1b			\n"
+		"					\n"
+		: [val]		"=&r"	(val)
+		: [rwlock]	"r"	(&(rw->counter)),
+		[UNLOCKED]	"ir"	(__ARCH_RW_LOCK_UNLOCKED__),
+		[WR_LOCKED]	"ir"	(0)
+		: "memory", "cc");
 
 	smp_mb();
 }
@@ -184,21 +184,21 @@ static inline int arch_write_trylock(arch_rwlock_t *rw)
 	smp_mb();
 
 	__asm__ __volatile__(
-	"1:	llock	%[val], [%[rwlock]]	\n"
-	"	brne	%[val], %[UNLOCKED], 4f	\n"	/* !UNLOCKED, bail */
-	"	mov	%[val], %[WR_LOCKED]	\n"
-	"	scond	%[val], [%[rwlock]]	\n"
-	"	bnz	1b			\n"	/* retry if collided with someone */
-	"	mov	%[got_it], 1		\n"
-	"					\n"
-	"4: ; --- done ---			\n"
+		"1:	llock	%[val], [%[rwlock]]	\n"
+		"	brne	%[val], %[UNLOCKED], 4f	\n"	/* !UNLOCKED, bail */
+		"	mov	%[val], %[WR_LOCKED]	\n"
+		"	scond	%[val], [%[rwlock]]	\n"
+		"	bnz	1b			\n"	/* retry if collided with someone */
+		"	mov	%[got_it], 1		\n"
+		"					\n"
+		"4: ; --- done ---			\n"
 
-	: [val]		"=&r"	(val),
-	  [got_it]	"+&r"	(got_it)
-	: [rwlock]	"r"	(&(rw->counter)),
-	  [UNLOCKED]	"ir"	(__ARCH_RW_LOCK_UNLOCKED__),
-	  [WR_LOCKED]	"ir"	(0)
-	: "memory", "cc");
+		: [val]		"=&r"	(val),
+		[got_it]	"+&r"	(got_it)
+		: [rwlock]	"r"	(&(rw->counter)),
+		[UNLOCKED]	"ir"	(__ARCH_RW_LOCK_UNLOCKED__),
+		[WR_LOCKED]	"ir"	(0)
+		: "memory", "cc");
 
 	smp_mb();
 
@@ -215,14 +215,14 @@ static inline void arch_read_unlock(arch_rwlock_t *rw)
 	 * rw->counter++;
 	 */
 	__asm__ __volatile__(
-	"1:	llock	%[val], [%[rwlock]]	\n"
-	"	add	%[val], %[val], 1	\n"
-	"	scond	%[val], [%[rwlock]]	\n"
-	"	bnz	1b			\n"
-	"					\n"
-	: [val]		"=&r"	(val)
-	: [rwlock]	"r"	(&(rw->counter))
-	: "memory", "cc");
+		"1:	llock	%[val], [%[rwlock]]	\n"
+		"	add	%[val], %[val], 1	\n"
+		"	scond	%[val], [%[rwlock]]	\n"
+		"	bnz	1b			\n"
+		"					\n"
+		: [val]		"=&r"	(val)
+		: [rwlock]	"r"	(&(rw->counter))
+		: "memory", "cc");
 
 	smp_mb();
 }
@@ -251,11 +251,11 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 	smp_mb();
 
 	__asm__ __volatile__(
-	"1:	ex  %0, [%1]		\n"
-	"	breq  %0, %2, 1b	\n"
-	: "+&r" (val)
-	: "r"(&(lock->slock)), "ir"(__ARCH_SPIN_LOCK_LOCKED__)
-	: "memory");
+		"1:	ex  %0, [%1]		\n"
+		"	breq  %0, %2, 1b	\n"
+		: "+&r" (val)
+		: "r"(&(lock->slock)), "ir"(__ARCH_SPIN_LOCK_LOCKED__)
+		: "memory");
 
 	/*
 	 * ACQUIRE barrier to ensure load/store after taking the lock
@@ -276,10 +276,10 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 	smp_mb();
 
 	__asm__ __volatile__(
-	"1:	ex  %0, [%1]		\n"
-	: "+r" (val)
-	: "r"(&(lock->slock))
-	: "memory");
+		"1:	ex  %0, [%1]		\n"
+		: "+r" (val)
+		: "r"(&(lock->slock))
+		: "memory");
 
 	smp_mb();
 
@@ -297,10 +297,10 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
 	smp_mb();
 
 	__asm__ __volatile__(
-	"	ex  %0, [%1]		\n"
-	: "+r" (val)
-	: "r"(&(lock->slock))
-	: "memory");
+		"	ex  %0, [%1]		\n"
+		: "+r" (val)
+		: "r"(&(lock->slock))
+		: "memory");
 
 	/*
 	 * superfluous, but keeping for now - see pairing version in
@@ -330,7 +330,8 @@ static inline int arch_read_trylock(arch_rwlock_t *rw)
 	 * zero means writer holds the lock exclusively, deny Reader.
 	 * Otherwise grant lock to first/subseq reader
 	 */
-	if (rw->counter > 0) {
+	if (rw->counter > 0)
+	{
 		rw->counter--;
 		ret = 1;
 	}
@@ -357,10 +358,12 @@ static inline int arch_write_trylock(arch_rwlock_t *rw)
 	 * Hence the claim that Linux rwlocks are unfair to writers.
 	 * (can be starved for an indefinite time by readers).
 	 */
-	if (rw->counter == __ARCH_RW_LOCK_UNLOCKED__) {
+	if (rw->counter == __ARCH_RW_LOCK_UNLOCKED__)
+	{
 		rw->counter = 0;
 		ret = 1;
 	}
+
 	arch_spin_unlock(&(rw->lock_mutex));
 	local_irq_restore(flags);
 
@@ -370,13 +373,17 @@ static inline int arch_write_trylock(arch_rwlock_t *rw)
 static inline void arch_read_lock(arch_rwlock_t *rw)
 {
 	while (!arch_read_trylock(rw))
+	{
 		cpu_relax();
+	}
 }
 
 static inline void arch_write_lock(arch_rwlock_t *rw)
 {
 	while (!arch_write_trylock(rw))
+	{
 		cpu_relax();
+	}
 }
 
 static inline void arch_read_unlock(arch_rwlock_t *rw)

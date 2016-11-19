@@ -14,12 +14,12 @@
  */
 
 #ifndef __ASSEMBLY__
-/*
- * C functions use non-cache address.
- */
-#define M32700UT_LAN_BASE	(0x10000000 /* + NONCACHE_OFFSET */)
+	/*
+	* C functions use non-cache address.
+	*/
+	#define M32700UT_LAN_BASE	(0x10000000 /* + NONCACHE_OFFSET */)
 #else
-#define M32700UT_LAN_BASE	(0x10000000 + NONCACHE_OFFSET)
+	#define M32700UT_LAN_BASE	(0x10000000 + NONCACHE_OFFSET)
 #endif /* __ASSEMBLY__ */
 
 /* ICU

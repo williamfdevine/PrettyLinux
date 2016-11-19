@@ -19,15 +19,15 @@
 #define TRIZEPS4_PIC_PHYS	(PXA_CS3_PHYS)	/* Logic chip on ConXS-Board */
 #define TRIZEPS4_SDRAM_BASE	0xa0000000      /* SDRAM region */
 
-				/* Logic on ConXS-board CSFR register*/
+/* Logic on ConXS-board CSFR register*/
 #define TRIZEPS4_CFSR_PHYS	(PXA_CS3_PHYS)
-				/* Logic on ConXS-board BOCR register*/
+/* Logic on ConXS-board BOCR register*/
 #define TRIZEPS4_BOCR_PHYS	(PXA_CS3_PHYS+0x02000000)
-				/* Logic on ConXS-board IRCR register*/
+/* Logic on ConXS-board IRCR register*/
 #define TRIZEPS4_IRCR_PHYS	(PXA_CS3_PHYS+0x02400000)
-				/* Logic on ConXS-board UPSR register*/
+/* Logic on ConXS-board UPSR register*/
 #define TRIZEPS4_UPSR_PHYS	(PXA_CS3_PHYS+0x02800000)
-				/* Logic on ConXS-board DICR register*/
+/* Logic on ConXS-board DICR register*/
 #define TRIZEPS4_DICR_PHYS	(PXA_CS3_PHYS+0x03800000)
 
 /* virtual memory regions */

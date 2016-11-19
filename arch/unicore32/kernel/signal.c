@@ -30,11 +30,13 @@
 #define KERN_SIGRETURN_CODE	(KUSER_VECPAGE_BASE + 0x00000500)
 #define KERN_RESTART_CODE	(KERN_SIGRETURN_CODE + sizeof(sigreturn_codes))
 
-const unsigned long sigreturn_codes[3] = {
+const unsigned long sigreturn_codes[3] =
+{
 	SWI_SYS_SIGRETURN, SWI_SYS_RT_SIGRETURN,
 };
 
-const unsigned long syscall_restart_code[2] = {
+const unsigned long syscall_restart_code[2] =
+{
 	SWI_SYS_RESTART,	/* swi	__NR_restart_syscall */
 	0x69efc004,		/* ldr	pc, [sp], #4 */
 };
@@ -42,12 +44,14 @@ const unsigned long syscall_restart_code[2] = {
 /*
  * Do a signal return; undo the signal stack.  These are aligned to 64-bit.
  */
-struct sigframe {
+struct sigframe
+{
 	struct ucontext uc;
 	unsigned long retcode[2];
 };
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo info;
 	struct sigframe sig;
 };
@@ -58,8 +62,11 @@ static int restore_sigframe(struct pt_regs *regs, struct sigframe __user *sf)
 	int err;
 
 	err = __copy_from_user(&set, &sf->uc.uc_sigmask, sizeof(set));
+
 	if (err == 0)
+	{
 		set_current_blocked(&set);
+	}
 
 	err |= __get_user(regs->UCreg_00, &sf->uc.uc_mcontext.regs.UCreg_00);
 	err |= __get_user(regs->UCreg_01, &sf->uc.uc_mcontext.regs.UCreg_01);
@@ -113,18 +120,26 @@ asmlinkage int __sys_rt_sigreturn(struct pt_regs *regs)
 	 * not, then the user is trying to mess with us.
 	 */
 	if (regs->UCreg_sp & 7)
+	{
 		goto badframe;
+	}
 
 	frame = (struct rt_sigframe __user *)regs->UCreg_sp;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (restore_sigframe(regs, &frame->sig))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->sig.uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return regs->UCreg_00;
 
@@ -134,7 +149,7 @@ badframe:
 }
 
 static int setup_sigframe(struct sigframe __user *sf, struct pt_regs *regs,
-		sigset_t *set)
+						  sigset_t *set)
 {
 	int err = 0;
 
@@ -173,11 +188,11 @@ static int setup_sigframe(struct sigframe __user *sf, struct pt_regs *regs,
 	err |= __put_user(regs->UCreg_asr, &sf->uc.uc_mcontext.regs.UCreg_asr);
 
 	err |= __put_user(current->thread.trap_no,
-			&sf->uc.uc_mcontext.trap_no);
+					  &sf->uc.uc_mcontext.trap_no);
 	err |= __put_user(current->thread.error_code,
-			&sf->uc.uc_mcontext.error_code);
+					  &sf->uc.uc_mcontext.error_code);
 	err |= __put_user(current->thread.address,
-			&sf->uc.uc_mcontext.fault_address);
+					  &sf->uc.uc_mcontext.fault_address);
 	err |= __put_user(set->sig[0], &sf->uc.uc_mcontext.oldmask);
 
 	err |= __copy_to_user(&sf->uc.uc_sigmask, set, sizeof(*set));
@@ -186,7 +201,7 @@ static int setup_sigframe(struct sigframe __user *sf, struct pt_regs *regs,
 }
 
 static inline void __user *get_sigframe(struct k_sigaction *ka,
-		struct pt_regs *regs, int framesize)
+										struct pt_regs *regs, int framesize)
 {
 	unsigned long sp = regs->UCreg_sp;
 	void __user *frame;
@@ -195,7 +210,9 @@ static inline void __user *get_sigframe(struct k_sigaction *ka,
 	 * This is the X/Open sanctioned signal stack switching.
 	 */
 	if ((ka->sa.sa_flags & SA_ONSTACK) && !sas_ss_flags(sp))
+	{
 		sp = current->sas_ss_sp + current->sas_ss_size;
+	}
 
 	/*
 	 * ATPCS B01 mandates 8-byte alignment
@@ -206,13 +223,15 @@ static inline void __user *get_sigframe(struct k_sigaction *ka,
 	 * Check that we can actually write to the signal frame.
 	 */
 	if (!access_ok(VERIFY_WRITE, frame, framesize))
+	{
 		frame = NULL;
+	}
 
 	return frame;
 }
 
 static int setup_return(struct pt_regs *regs, struct k_sigaction *ka,
-	     unsigned long __user *rc, void __user *frame, int usig)
+						unsigned long __user *rc, void __user *frame, int usig)
 {
 	unsigned long handler = (unsigned long)ka->sa.sa_handler;
 	unsigned long retcode;
@@ -221,11 +240,15 @@ static int setup_return(struct pt_regs *regs, struct k_sigaction *ka,
 	unsigned int idx = 0;
 
 	if (ka->sa.sa_flags & SA_SIGINFO)
+	{
 		idx += 1;
+	}
 
 	if (__put_user(sigreturn_codes[idx],   rc) ||
-	    __put_user(sigreturn_codes[idx+1], rc+1))
+		__put_user(sigreturn_codes[idx + 1], rc + 1))
+	{
 		return 1;
+	}
 
 	retcode = KERN_SIGRETURN_CODE + (idx << 2);
 
@@ -239,13 +262,15 @@ static int setup_return(struct pt_regs *regs, struct k_sigaction *ka,
 }
 
 static int setup_frame(struct ksignal *ksig, sigset_t *set,
-		       struct pt_regs *regs)
+					   struct pt_regs *regs)
 {
 	struct sigframe __user *frame = get_sigframe(&ksig->ka, regs, sizeof(*frame));
 	int err = 0;
 
 	if (!frame)
+	{
 		return 1;
+	}
 
 	/*
 	 * Set uc.uc_flags to a value which sc.trap_no would never have.
@@ -253,22 +278,25 @@ static int setup_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __put_user(0x5ac3c35a, &frame->uc.uc_flags);
 
 	err |= setup_sigframe(frame, regs, set);
+
 	if (err == 0)
 		err |= setup_return(regs, &ksig->ka, frame->retcode, frame,
-				    ksig->sig);
+							ksig->sig);
 
 	return err;
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame =
-			get_sigframe(&ksig->ka, regs, sizeof(*frame));
+		get_sigframe(&ksig->ka, regs, sizeof(*frame));
 	int err = 0;
 
 	if (!frame)
+	{
 		return 1;
+	}
 
 	err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 
@@ -276,11 +304,13 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __put_user(NULL, &frame->sig.uc.uc_link);
 	err |= __save_altstack(&frame->sig.uc.uc_stack, regs->UCreg_sp);
 	err |= setup_sigframe(&frame->sig, regs, set);
+
 	if (err == 0)
 		err |= setup_return(regs, &ksig->ka, frame->sig.retcode, frame,
-				    ksig->sig);
+							ksig->sig);
 
-	if (err == 0) {
+	if (err == 0)
+	{
 		/*
 		 * For realtime signals we must also set the second and third
 		 * arguments for the signal handler.
@@ -302,7 +332,7 @@ static inline void setup_syscall_restart(struct pt_regs *regs)
  * OK, we're invoking a handler
  */
 static void handle_signal(struct ksignal *ksig, struct pt_regs *regs,
-			  int syscall)
+						  int syscall)
 {
 	struct thread_info *thread = current_thread_info();
 	sigset_t *oldset = sigmask_to_save();
@@ -312,20 +342,25 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs,
 	/*
 	 * If we were from a system call, check for system call restarting...
 	 */
-	if (syscall) {
-		switch (regs->UCreg_00) {
-		case -ERESTART_RESTARTBLOCK:
-		case -ERESTARTNOHAND:
-			regs->UCreg_00 = -EINTR;
-			break;
-		case -ERESTARTSYS:
-			if (!(ksig->ka.sa.sa_flags & SA_RESTART)) {
+	if (syscall)
+	{
+		switch (regs->UCreg_00)
+		{
+			case -ERESTART_RESTARTBLOCK:
+			case -ERESTARTNOHAND:
 				regs->UCreg_00 = -EINTR;
 				break;
-			}
+
+			case -ERESTARTSYS:
+				if (!(ksig->ka.sa.sa_flags & SA_RESTART))
+				{
+					regs->UCreg_00 = -EINTR;
+					break;
+				}
+
 			/* fallthrough */
-		case -ERESTARTNOINTR:
-			setup_syscall_restart(regs);
+			case -ERESTARTNOINTR:
+				setup_syscall_restart(regs);
 		}
 	}
 
@@ -333,9 +368,13 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs,
 	 * Set up the stack frame
 	 */
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		ret = setup_rt_frame(ksig, oldset, regs);
+	}
 	else
+	{
 		ret = setup_frame(ksig, oldset, regs);
+	}
 
 	/*
 	 * Check that the resulting registers are actually sane.
@@ -365,9 +404,12 @@ static void do_signal(struct pt_regs *regs, int syscall)
 	 * if so.
 	 */
 	if (!user_mode(regs))
+	{
 		return;
+	}
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		handle_signal(&ksig, regs, syscall);
 		return;
 	}
@@ -375,26 +417,34 @@ static void do_signal(struct pt_regs *regs, int syscall)
 	/*
 	 * No signal to deliver to the process - restart the syscall.
 	 */
-	if (syscall) {
-		if (regs->UCreg_00 == -ERESTART_RESTARTBLOCK) {
-				u32 __user *usp;
+	if (syscall)
+	{
+		if (regs->UCreg_00 == -ERESTART_RESTARTBLOCK)
+		{
+			u32 __user *usp;
 
-				regs->UCreg_sp -= 4;
-				usp = (u32 __user *)regs->UCreg_sp;
+			regs->UCreg_sp -= 4;
+			usp = (u32 __user *)regs->UCreg_sp;
 
-				if (put_user(regs->UCreg_pc, usp) == 0) {
-					regs->UCreg_pc = KERN_RESTART_CODE;
-				} else {
-					regs->UCreg_sp += 4;
-					force_sigsegv(0, current);
-				}
+			if (put_user(regs->UCreg_pc, usp) == 0)
+			{
+				regs->UCreg_pc = KERN_RESTART_CODE;
+			}
+			else
+			{
+				regs->UCreg_sp += 4;
+				force_sigsegv(0, current);
+			}
 		}
+
 		if (regs->UCreg_00 == -ERESTARTNOHAND ||
-		    regs->UCreg_00 == -ERESTARTSYS ||
-		    regs->UCreg_00 == -ERESTARTNOINTR) {
+			regs->UCreg_00 == -ERESTARTSYS ||
+			regs->UCreg_00 == -ERESTARTNOINTR)
+		{
 			setup_syscall_restart(regs);
 		}
 	}
+
 	/* If there's no signal to deliver, we just put the saved
 	 * sigmask back.
 	 */
@@ -402,12 +452,15 @@ static void do_signal(struct pt_regs *regs, int syscall)
 }
 
 asmlinkage void do_notify_resume(struct pt_regs *regs,
-		unsigned int thread_flags, int syscall)
+								 unsigned int thread_flags, int syscall)
 {
 	if (thread_flags & _TIF_SIGPENDING)
+	{
 		do_signal(regs, syscall);
+	}
 
-	if (thread_flags & _TIF_NOTIFY_RESUME) {
+	if (thread_flags & _TIF_NOTIFY_RESUME)
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}
@@ -420,8 +473,8 @@ asmlinkage void do_notify_resume(struct pt_regs *regs,
 void __init early_signal_init(void)
 {
 	memcpy((void *)kuser_vecpage_to_vectors(KERN_SIGRETURN_CODE),
-			sigreturn_codes, sizeof(sigreturn_codes));
+		   sigreturn_codes, sizeof(sigreturn_codes));
 	memcpy((void *)kuser_vecpage_to_vectors(KERN_RESTART_CODE),
-			syscall_restart_code, sizeof(syscall_restart_code));
+		   syscall_restart_code, sizeof(syscall_restart_code));
 	/* Need not to flush icache, since early_trap_init will do it last. */
 }

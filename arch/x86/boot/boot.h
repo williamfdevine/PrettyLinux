@@ -181,14 +181,14 @@ static inline bool memcmp_fs(const void *s1, addr_t s2, size_t len)
 {
 	bool diff;
 	asm volatile("fs; repe; cmpsb" CC_SET(nz)
-		     : CC_OUT(nz) (diff), "+D" (s1), "+S" (s2), "+c" (len));
+				 : CC_OUT(nz) (diff), "+D" (s1), "+S" (s2), "+c" (len));
 	return diff;
 }
 static inline bool memcmp_gs(const void *s1, addr_t s2, size_t len)
 {
 	bool diff;
 	asm volatile("gs; repe; cmpsb" CC_SET(nz)
-		     : CC_OUT(nz) (diff), "+D" (s1), "+S" (s2), "+c" (len));
+				 : CC_OUT(nz) (diff), "+D" (s1), "+S" (s2), "+c" (len));
 	return diff;
 }
 
@@ -201,9 +201,9 @@ static inline char *__get_heap(size_t s, size_t a, size_t n)
 {
 	char *tmp;
 
-	HEAP = (char *)(((size_t)HEAP+(a-1)) & ~(a-1));
+	HEAP = (char *)(((size_t)HEAP + (a - 1)) & ~(a - 1));
 	tmp = HEAP;
-	HEAP += s*n;
+	HEAP += s * n;
 	return tmp;
 }
 #define GET_HEAP(type, n) \
@@ -211,7 +211,7 @@ static inline char *__get_heap(size_t s, size_t a, size_t n)
 
 static inline bool heap_free(size_t n)
 {
-	return (int)(heap_end-HEAP) >= (int)n;
+	return (int)(heap_end - HEAP) >= (int)n;
 }
 
 /* copy.S */
@@ -228,9 +228,12 @@ int enable_a20(void);
 int query_apm_bios(void);
 
 /* bioscall.c */
-struct biosregs {
-	union {
-		struct {
+struct biosregs
+{
+	union
+	{
+		struct
+		{
 			u32 edi;
 			u32 esi;
 			u32 ebp;
@@ -243,7 +246,8 @@ struct biosregs {
 			u32 _dses;
 			u32 eflags;
 		};
-		struct {
+		struct
+		{
 			u16 di, hdi;
 			u16 si, hsi;
 			u16 bp, hbp;
@@ -256,7 +260,8 @@ struct biosregs {
 			u16 es, ds;
 			u16 flags, hflags;
 		};
-		struct {
+		struct
+		{
 			u8 dil, dih, edi2, edi3;
 			u8 sil, sih, esi2, esi3;
 			u8 bpl, bph, ebp2, ebp3;
@@ -278,7 +283,9 @@ static inline int cmdline_find_option(const char *option, char *buffer, int bufs
 	unsigned long cmd_line_ptr = boot_params.hdr.cmd_line_ptr;
 
 	if (cmd_line_ptr >= 0x100000)
-		return -1;      /* inaccessible */
+	{
+		return -1;    /* inaccessible */
+	}
 
 	return __cmdline_find_option(cmd_line_ptr, option, buffer, bufsize);
 }
@@ -288,7 +295,9 @@ static inline int cmdline_find_option_bool(const char *option)
 	unsigned long cmd_line_ptr = boot_params.hdr.cmd_line_ptr;
 
 	if (cmd_line_ptr >= 0x100000)
-		return -1;      /* inaccessible */
+	{
+		return -1;    /* inaccessible */
+	}
 
 	return __cmdline_find_option_bool(cmd_line_ptr, option);
 }
@@ -316,7 +325,7 @@ void __attribute__((noreturn)) go_to_protected_mode(void);
 
 /* pmjump.S */
 void __attribute__((noreturn))
-	protected_mode_jump(u32 entrypoint, u32 bootparams);
+protected_mode_jump(u32 entrypoint, u32 bootparams);
 
 /* printf.c */
 int sprintf(char *buf, const char *fmt, ...);

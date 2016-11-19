@@ -72,26 +72,27 @@ MODULE_VERSION(CMM_DRIVER_VERSION);
 
 module_param_named(delay, delay, uint, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(delay, "Delay (in seconds) between polls to query hypervisor paging requests. "
-		 "[Default=" __stringify(CMM_DEFAULT_DELAY) "]");
+				 "[Default=" __stringify(CMM_DEFAULT_DELAY) "]");
 module_param_named(hotplug_delay, hotplug_delay, uint, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(delay, "Delay (in seconds) after memory hotplug remove "
-		 "before loaning resumes. "
-		 "[Default=" __stringify(CMM_HOTPLUG_DELAY) "]");
+				 "before loaning resumes. "
+				 "[Default=" __stringify(CMM_HOTPLUG_DELAY) "]");
 module_param_named(oom_kb, oom_kb, uint, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(oom_kb, "Amount of memory in kb to free on OOM. "
-		 "[Default=" __stringify(CMM_OOM_KB) "]");
+				 "[Default=" __stringify(CMM_OOM_KB) "]");
 module_param_named(min_mem_mb, min_mem_mb, ulong, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(min_mem_mb, "Minimum amount of memory (in MB) to not balloon. "
-		 "[Default=" __stringify(CMM_MIN_MEM_MB) "]");
+				 "[Default=" __stringify(CMM_MIN_MEM_MB) "]");
 module_param_named(debug, cmm_debug, uint, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(debug, "Enable module debugging logging. Set to 1 to enable. "
-		 "[Default=" __stringify(CMM_DEBUG) "]");
+				 "[Default=" __stringify(CMM_DEBUG) "]");
 
 #define CMM_NR_PAGES ((PAGE_SIZE - sizeof(void *) - sizeof(unsigned long)) / sizeof(unsigned long))
 
 #define cmm_dbg(...) if (cmm_debug) { printk(KERN_INFO "cmm: "__VA_ARGS__); }
 
-struct cmm_page_array {
+struct cmm_page_array
+{
 	struct cmm_page_array *next;
 	unsigned long index;
 	unsigned long page[CMM_NR_PAGES];
@@ -124,48 +125,68 @@ static long cmm_alloc_pages(long nr)
 
 	cmm_dbg("Begin request for %ld pages\n", nr);
 
-	while (nr) {
+	while (nr)
+	{
 		/* Exit if a hotplug operation is in progress or occurred */
-		if (mutex_trylock(&hotplug_mutex)) {
-			if (hotplug_occurred) {
+		if (mutex_trylock(&hotplug_mutex))
+		{
+			if (hotplug_occurred)
+			{
 				mutex_unlock(&hotplug_mutex);
 				break;
 			}
+
 			mutex_unlock(&hotplug_mutex);
-		} else {
+		}
+		else
+		{
 			break;
 		}
 
 		addr = __get_free_page(GFP_NOIO | __GFP_NOWARN |
-				       __GFP_NORETRY | __GFP_NOMEMALLOC);
+							   __GFP_NORETRY | __GFP_NOMEMALLOC);
+
 		if (!addr)
+		{
 			break;
+		}
+
 		spin_lock(&cmm_lock);
 		pa = cmm_page_list;
-		if (!pa || pa->index >= CMM_NR_PAGES) {
+
+		if (!pa || pa->index >= CMM_NR_PAGES)
+		{
 			/* Need a new page for the page list. */
 			spin_unlock(&cmm_lock);
 			npa = (struct cmm_page_array *)__get_free_page(
-					GFP_NOIO | __GFP_NOWARN |
-					__GFP_NORETRY | __GFP_NOMEMALLOC);
-			if (!npa) {
+					  GFP_NOIO | __GFP_NOWARN |
+					  __GFP_NORETRY | __GFP_NOMEMALLOC);
+
+			if (!npa)
+			{
 				pr_info("%s: Can not allocate new page list\n", __func__);
 				free_page(addr);
 				break;
 			}
+
 			spin_lock(&cmm_lock);
 			pa = cmm_page_list;
 
-			if (!pa || pa->index >= CMM_NR_PAGES) {
+			if (!pa || pa->index >= CMM_NR_PAGES)
+			{
 				npa->next = pa;
 				npa->index = 0;
 				pa = npa;
 				cmm_page_list = pa;
-			} else
+			}
+			else
+			{
 				free_page((unsigned long) npa);
+			}
 		}
 
-		if ((rc = plpar_page_set_loaned(__pa(addr)))) {
+		if ((rc = plpar_page_set_loaned(__pa(addr))))
+		{
 			pr_err("%s: Can not set page to loaned. rc=%ld\n", __func__, rc);
 			spin_unlock(&cmm_lock);
 			free_page(addr);
@@ -198,12 +219,18 @@ static long cmm_free_pages(long nr)
 	cmm_dbg("Begin free of %ld pages.\n", nr);
 	spin_lock(&cmm_lock);
 	pa = cmm_page_list;
-	while (nr) {
+
+	while (nr)
+	{
 		if (!pa || pa->index <= 0)
+		{
 			break;
+		}
+
 		addr = pa->page[--pa->index];
 
-		if (pa->index == 0) {
+		if (pa->index == 0)
+		{
 			pa = pa->next;
 			free_page((unsigned long) cmm_page_list);
 			cmm_page_list = pa;
@@ -215,6 +242,7 @@ static long cmm_free_pages(long nr)
 		nr--;
 		totalram_pages++;
 	}
+
 	spin_unlock(&cmm_lock);
 	cmm_dbg("End request with %ld pages unfulfilled\n", nr);
 	return nr;
@@ -230,7 +258,7 @@ static long cmm_free_pages(long nr)
  * 	NOTIFY_OK
  **/
 static int cmm_oom_notify(struct notifier_block *self,
-			  unsigned long dummy, void *parm)
+						  unsigned long dummy, void *parm)
 {
 	unsigned long *freed = parm;
 	long nr = KB2PAGES(oom_kb);
@@ -263,35 +291,48 @@ static void cmm_get_mpp(void)
 	rc = h_get_mpp(&mpp_data);
 
 	if (rc != H_SUCCESS)
+	{
 		return;
+	}
 
 	page_loan_request = div_s64((s64)mpp_data.loan_request, PAGE_SIZE);
 	target = page_loan_request + (signed long)loaned_pages;
 
 	if (target < 0 || total_pages < min_mem_pages)
+	{
 		target = 0;
+	}
 
 	if (target > oom_freed_pages)
+	{
 		target -= oom_freed_pages;
+	}
 	else
+	{
 		target = 0;
+	}
 
 	active_pages_target = total_pages - target;
 
 	if (min_mem_pages > active_pages_target)
+	{
 		target = total_pages - min_mem_pages;
+	}
 
 	if (target < 0)
+	{
 		target = 0;
+	}
 
 	loaned_pages_target = target;
 
 	cmm_dbg("delta = %ld, loaned = %lu, target = %lu, oom = %lu, totalram = %lu\n",
-		page_loan_request, loaned_pages, loaned_pages_target,
-		oom_freed_pages, totalram_pages);
+			page_loan_request, loaned_pages, loaned_pages_target,
+			oom_freed_pages, totalram_pages);
 }
 
-static struct notifier_block cmm_oom_nb = {
+static struct notifier_block cmm_oom_nb =
+{
 	.notifier_call = cmm_oom_notify
 };
 
@@ -306,14 +347,19 @@ static int cmm_thread(void *dummy)
 {
 	unsigned long timeleft;
 
-	while (1) {
+	while (1)
+	{
 		timeleft = msleep_interruptible(delay * 1000);
 
 		if (kthread_should_stop() || timeleft)
+		{
 			break;
+		}
 
-		if (mutex_trylock(&hotplug_mutex)) {
-			if (hotplug_occurred) {
+		if (mutex_trylock(&hotplug_mutex))
+		{
+			if (hotplug_occurred)
+			{
 				hotplug_occurred = 0;
 				mutex_unlock(&hotplug_mutex);
 				cmm_dbg("Hotplug operation has occurred, "
@@ -321,13 +367,20 @@ static int cmm_thread(void *dummy)
 						"for %d seconds.\n",
 						hotplug_delay);
 				timeleft = msleep_interruptible(hotplug_delay *
-						1000);
+												1000);
+
 				if (kthread_should_stop() || timeleft)
+				{
 					break;
+				}
+
 				continue;
 			}
+
 			mutex_unlock(&hotplug_mutex);
-		} else {
+		}
+		else
+		{
 			cmm_dbg("Hotplug operation in progress, activity "
 					"suspended\n");
 			continue;
@@ -335,19 +388,26 @@ static int cmm_thread(void *dummy)
 
 		cmm_get_mpp();
 
-		if (loaned_pages_target > loaned_pages) {
+		if (loaned_pages_target > loaned_pages)
+		{
 			if (cmm_alloc_pages(loaned_pages_target - loaned_pages))
+			{
 				loaned_pages_target = loaned_pages;
-		} else if (loaned_pages_target < loaned_pages)
+			}
+		}
+		else if (loaned_pages_target < loaned_pages)
+		{
 			cmm_free_pages(loaned_pages - loaned_pages_target);
+		}
 	}
+
 	return 0;
 }
 
 #define CMM_SHOW(name, format, args...)			\
 	static ssize_t show_##name(struct device *dev,	\
-				   struct device_attribute *attr,	\
-				   char *buf)			\
+							   struct device_attribute *attr,	\
+							   char *buf)			\
 	{							\
 		return sprintf(buf, format, ##args);		\
 	}							\
@@ -357,36 +417,43 @@ CMM_SHOW(loaned_kb, "%lu\n", PAGES2KB(loaned_pages));
 CMM_SHOW(loaned_target_kb, "%lu\n", PAGES2KB(loaned_pages_target));
 
 static ssize_t show_oom_pages(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%lu\n", PAGES2KB(oom_freed_pages));
 }
 
 static ssize_t store_oom_pages(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t count)
+							   struct device_attribute *attr,
+							   const char *buf, size_t count)
 {
 	unsigned long val = simple_strtoul (buf, NULL, 10);
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	if (val != 0)
+	{
 		return -EBADMSG;
+	}
 
 	oom_freed_pages = 0;
 	return count;
 }
 
 static DEVICE_ATTR(oom_freed_kb, S_IWUSR | S_IRUGO,
-		   show_oom_pages, store_oom_pages);
+				   show_oom_pages, store_oom_pages);
 
-static struct device_attribute *cmm_attrs[] = {
+static struct device_attribute *cmm_attrs[] =
+{
 	&dev_attr_loaned_kb,
 	&dev_attr_loaned_target_kb,
 	&dev_attr_oom_freed_kb,
 };
 
-static struct bus_type cmm_subsys = {
+static struct bus_type cmm_subsys =
+{
 	.name = "cmm",
 	.dev_name = "cmm",
 };
@@ -402,24 +469,35 @@ static int cmm_sysfs_register(struct device *dev)
 	int i, rc;
 
 	if ((rc = subsys_system_register(&cmm_subsys, NULL)))
+	{
 		return rc;
+	}
 
 	dev->id = 0;
 	dev->bus = &cmm_subsys;
 
 	if ((rc = device_register(dev)))
+	{
 		goto subsys_unregister;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(cmm_attrs); i++) {
+	for (i = 0; i < ARRAY_SIZE(cmm_attrs); i++)
+	{
 		if ((rc = device_create_file(dev, cmm_attrs[i])))
+		{
 			goto fail;
+		}
 	}
 
 	return 0;
 
 fail:
+
 	while (--i >= 0)
+	{
 		device_remove_file(dev, cmm_attrs[i]);
+	}
+
 	device_unregister(dev);
 subsys_unregister:
 	bus_unregister(&cmm_subsys);
@@ -435,7 +513,10 @@ static void cmm_unregister_sysfs(struct device *dev)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(cmm_attrs); i++)
+	{
 		device_remove_file(dev, cmm_attrs[i]);
+	}
+
 	device_unregister(dev);
 	bus_unregister(&cmm_subsys);
 }
@@ -445,18 +526,24 @@ static void cmm_unregister_sysfs(struct device *dev)
  *
  **/
 static int cmm_reboot_notifier(struct notifier_block *nb,
-			       unsigned long action, void *unused)
+							   unsigned long action, void *unused)
 {
-	if (action == SYS_RESTART) {
+	if (action == SYS_RESTART)
+	{
 		if (cmm_thread_ptr)
+		{
 			kthread_stop(cmm_thread_ptr);
+		}
+
 		cmm_thread_ptr = NULL;
 		cmm_free_pages(loaned_pages);
 	}
+
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block cmm_reboot_nb = {
+static struct notifier_block cmm_reboot_nb =
+{
 	.notifier_call = cmm_reboot_notifier,
 };
 
@@ -478,14 +565,23 @@ static unsigned long cmm_count_pages(void *arg)
 
 	spin_lock(&cmm_lock);
 	pa = cmm_page_list;
-	while (pa) {
+
+	while (pa)
+	{
 		if ((unsigned long)pa >= start && (unsigned long)pa < end)
+		{
 			marg->pages_found++;
+		}
+
 		for (idx = 0; idx < pa->index; idx++)
 			if (pa->page[idx] >= start && pa->page[idx] < end)
+			{
 				marg->pages_found++;
+			}
+
 		pa = pa->next;
 	}
+
 	spin_unlock(&cmm_lock);
 	return 0;
 }
@@ -500,17 +596,20 @@ static unsigned long cmm_count_pages(void *arg)
  *	NOTIFY_OK or notifier error based on subfunction return value
  **/
 static int cmm_memory_isolate_cb(struct notifier_block *self,
-				 unsigned long action, void *arg)
+								 unsigned long action, void *arg)
 {
 	int ret = 0;
 
 	if (action == MEM_ISOLATE_COUNT)
+	{
 		ret = cmm_count_pages(arg);
+	}
 
 	return notifier_from_errno(ret);
 }
 
-static struct notifier_block cmm_mem_isolate_nb = {
+static struct notifier_block cmm_mem_isolate_nb =
+{
 	.notifier_call = cmm_memory_isolate_cb,
 	.priority = CMM_MEM_ISOLATE_PRI
 };
@@ -537,11 +636,16 @@ static int cmm_mem_going_offline(void *arg)
 
 	/* Search the page list for pages in the range to be offlined */
 	pa_last = pa_curr = cmm_page_list;
-	while (pa_curr) {
-		for (idx = (pa_curr->index - 1); (idx + 1) > 0; idx--) {
+
+	while (pa_curr)
+	{
+		for (idx = (pa_curr->index - 1); (idx + 1) > 0; idx--)
+		{
 			if ((pa_curr->page[idx] < start_page) ||
-			    (pa_curr->page[idx] >= end_page))
+				(pa_curr->page[idx] >= end_page))
+			{
 				continue;
+			}
 
 			plpar_page_set_active(__pa(pa_curr->page[idx]));
 			free_page(pa_curr->page[idx]);
@@ -549,38 +653,57 @@ static int cmm_mem_going_offline(void *arg)
 			loaned_pages--;
 			totalram_pages++;
 			pa_curr->page[idx] = pa_last->page[--pa_last->index];
-			if (pa_last->index == 0) {
+
+			if (pa_last->index == 0)
+			{
 				if (pa_curr == pa_last)
+				{
 					pa_curr = pa_last->next;
+				}
+
 				pa_last = pa_last->next;
 				free_page((unsigned long)cmm_page_list);
 				cmm_page_list = pa_last;
 			}
 		}
+
 		pa_curr = pa_curr->next;
 	}
 
 	/* Search for page list structures in the range to be offlined */
 	pa_last = NULL;
 	pa_curr = cmm_page_list;
-	while (pa_curr) {
+
+	while (pa_curr)
+	{
 		if (((unsigned long)pa_curr >= start_page) &&
-				((unsigned long)pa_curr < end_page)) {
+			((unsigned long)pa_curr < end_page))
+		{
 			npa = (struct cmm_page_array *)__get_free_page(
-					GFP_NOIO | __GFP_NOWARN |
-					__GFP_NORETRY | __GFP_NOMEMALLOC);
-			if (!npa) {
+					  GFP_NOIO | __GFP_NOWARN |
+					  __GFP_NORETRY | __GFP_NOMEMALLOC);
+
+			if (!npa)
+			{
 				spin_unlock(&cmm_lock);
 				cmm_dbg("Failed to allocate memory for list "
 						"management. Memory hotplug "
 						"failed.\n");
 				return -ENOMEM;
 			}
+
 			memcpy(npa, pa_curr, PAGE_SIZE);
+
 			if (pa_curr == cmm_page_list)
+			{
 				cmm_page_list = npa;
+			}
+
 			if (pa_last)
+			{
 				pa_last->next = npa;
+			}
+
 			free_page((unsigned long) pa_curr);
 			freed++;
 			pa_curr = npa;
@@ -607,31 +730,35 @@ static int cmm_mem_going_offline(void *arg)
  *
  **/
 static int cmm_memory_cb(struct notifier_block *self,
-			unsigned long action, void *arg)
+						 unsigned long action, void *arg)
 {
 	int ret = 0;
 
-	switch (action) {
-	case MEM_GOING_OFFLINE:
-		mutex_lock(&hotplug_mutex);
-		hotplug_occurred = 1;
-		ret = cmm_mem_going_offline(arg);
-		break;
-	case MEM_OFFLINE:
-	case MEM_CANCEL_OFFLINE:
-		mutex_unlock(&hotplug_mutex);
-		cmm_dbg("Memory offline operation complete.\n");
-		break;
-	case MEM_GOING_ONLINE:
-	case MEM_ONLINE:
-	case MEM_CANCEL_ONLINE:
-		break;
+	switch (action)
+	{
+		case MEM_GOING_OFFLINE:
+			mutex_lock(&hotplug_mutex);
+			hotplug_occurred = 1;
+			ret = cmm_mem_going_offline(arg);
+			break;
+
+		case MEM_OFFLINE:
+		case MEM_CANCEL_OFFLINE:
+			mutex_unlock(&hotplug_mutex);
+			cmm_dbg("Memory offline operation complete.\n");
+			break;
+
+		case MEM_GOING_ONLINE:
+		case MEM_ONLINE:
+		case MEM_CANCEL_ONLINE:
+			break;
 	}
 
 	return notifier_from_errno(ret);
 }
 
-static struct notifier_block cmm_mem_nb = {
+static struct notifier_block cmm_mem_nb =
+{
 	.notifier_call = cmm_memory_cb,
 	.priority = CMM_MEM_HOTPLUG_PRI
 };
@@ -647,26 +774,40 @@ static int cmm_init(void)
 	int rc = -ENOMEM;
 
 	if (!firmware_has_feature(FW_FEATURE_CMO))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if ((rc = register_oom_notifier(&cmm_oom_nb)) < 0)
+	{
 		return rc;
+	}
 
 	if ((rc = register_reboot_notifier(&cmm_reboot_nb)))
+	{
 		goto out_oom_notifier;
+	}
 
 	if ((rc = cmm_sysfs_register(&cmm_dev)))
+	{
 		goto out_reboot_notifier;
+	}
 
 	if (register_memory_notifier(&cmm_mem_nb) ||
-	    register_memory_isolate_notifier(&cmm_mem_isolate_nb))
+		register_memory_isolate_notifier(&cmm_mem_isolate_nb))
+	{
 		goto out_unregister_notifier;
+	}
 
 	if (cmm_disabled)
+	{
 		return rc;
+	}
 
 	cmm_thread_ptr = kthread_run(cmm_thread, NULL, "cmmthread");
-	if (IS_ERR(cmm_thread_ptr)) {
+
+	if (IS_ERR(cmm_thread_ptr))
+	{
 		rc = PTR_ERR(cmm_thread_ptr);
 		goto out_unregister_notifier;
 	}
@@ -693,7 +834,10 @@ out_oom_notifier:
 static void cmm_exit(void)
 {
 	if (cmm_thread_ptr)
+	{
 		kthread_stop(cmm_thread_ptr);
+	}
+
 	unregister_oom_notifier(&cmm_oom_nb);
 	unregister_reboot_notifier(&cmm_reboot_nb);
 	unregister_memory_notifier(&cmm_mem_nb);
@@ -713,17 +857,28 @@ static int cmm_set_disable(const char *val, struct kernel_param *kp)
 	int disable = simple_strtoul(val, NULL, 10);
 
 	if (disable != 0 && disable != 1)
+	{
 		return -EINVAL;
+	}
 
-	if (disable && !cmm_disabled) {
+	if (disable && !cmm_disabled)
+	{
 		if (cmm_thread_ptr)
+		{
 			kthread_stop(cmm_thread_ptr);
+		}
+
 		cmm_thread_ptr = NULL;
 		cmm_free_pages(loaned_pages);
-	} else if (!disable && cmm_disabled) {
+	}
+	else if (!disable && cmm_disabled)
+	{
 		cmm_thread_ptr = kthread_run(cmm_thread, NULL, "cmmthread");
+
 		if (IS_ERR(cmm_thread_ptr))
+		{
 			return PTR_ERR(cmm_thread_ptr);
+		}
 	}
 
 	cmm_disabled = disable;
@@ -731,9 +886,9 @@ static int cmm_set_disable(const char *val, struct kernel_param *kp)
 }
 
 module_param_call(disable, cmm_set_disable, param_get_uint,
-		  &cmm_disabled, S_IRUGO | S_IWUSR);
+				  &cmm_disabled, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(disable, "Disable CMM. Set to 1 to disable. "
-		 "[Default=" __stringify(CMM_DISABLE) "]");
+				 "[Default=" __stringify(CMM_DISABLE) "]");
 
 module_init(cmm_init);
 module_exit(cmm_exit);

@@ -103,7 +103,7 @@ extern unsigned long empty_zero_page;
 static inline unsigned long srmmu_swap(unsigned long *addr, unsigned long value)
 {
 	__asm__ __volatile__("swap [%2], %0" :
-			"=&r" (value) : "0" (value), "r" (addr) : "memory");
+						 "=&r" (value) : "0" (value), "r" (addr) : "memory");
 	return value;
 }
 
@@ -127,15 +127,21 @@ static inline int srmmu_device_memory(unsigned long x)
 static inline struct page *pmd_page(pmd_t pmd)
 {
 	if (srmmu_device_memory(pmd_val(pmd)))
+	{
 		BUG();
-	return pfn_to_page((pmd_val(pmd) & SRMMU_PTD_PMASK) >> (PAGE_SHIFT-4));
+	}
+
+	return pfn_to_page((pmd_val(pmd) & SRMMU_PTD_PMASK) >> (PAGE_SHIFT - 4));
 }
 
 static inline unsigned long pgd_page_vaddr(pgd_t pgd)
 {
-	if (srmmu_device_memory(pgd_val(pgd))) {
+	if (srmmu_device_memory(pgd_val(pgd)))
+	{
 		return ~0;
-	} else {
+	}
+	else
+	{
 		unsigned long v = pgd_val(pgd) & SRMMU_PTD_PMASK;
 		return (unsigned long)__nocache_va(v << 4);
 	}
@@ -179,11 +185,14 @@ static inline int pmd_none(pmd_t pmd)
 static inline void pmd_clear(pmd_t *pmdp)
 {
 	int i;
-	for (i = 0; i < PTRS_PER_PTE/SRMMU_REAL_PTRS_PER_PTE; i++)
+
+	for (i = 0; i < PTRS_PER_PTE / SRMMU_REAL_PTRS_PER_PTE; i++)
+	{
 		set_pte((pte_t *)&pmdp->pmdv[i], __pte(0));
+	}
 }
 
-static inline int pgd_none(pgd_t pgd)          
+static inline int pgd_none(pgd_t pgd)
 {
 	return !(pgd_val(pgd) & 0xFFFFFFF);
 }
@@ -263,7 +272,8 @@ static inline pte_t pte_mkyoung(pte_t pte)
 
 static inline unsigned long pte_pfn(pte_t pte)
 {
-	if (srmmu_device_memory(pte_val(pte))) {
+	if (srmmu_device_memory(pte_val(pte)))
+	{
 		/* Just return something that will cause
 		 * pfn_valid() to return false.  This makes
 		 * copy_one_pte() to just directly copy to
@@ -271,7 +281,8 @@ static inline unsigned long pte_pfn(pte_t pte)
 		 */
 		return ~0UL;
 	}
-	return (pte_val(pte) & SRMMU_PTE_PMASK) >> (PAGE_SHIFT-4);
+
+	return (pte_val(pte) & SRMMU_PTE_PMASK) >> (PAGE_SHIFT - 4);
 }
 
 #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
@@ -282,7 +293,7 @@ static inline unsigned long pte_pfn(pte_t pte)
  */
 static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
 {
-	return __pte((page_to_pfn(page) << (PAGE_SHIFT-4)) | pgprot_val(pgprot));
+	return __pte((page_to_pfn(page) << (PAGE_SHIFT - 4)) | pgprot_val(pgprot));
 }
 
 static inline pte_t mk_pte_phys(unsigned long page, pgprot_t pgprot)
@@ -306,7 +317,7 @@ static pte_t pte_modify(pte_t pte, pgprot_t newprot) __attribute_const__;
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
 	return __pte((pte_val(pte) & SRMMU_CHG_MASK) |
-		pgprot_val(newprot));
+				 pgprot_val(newprot));
 }
 
 #define pgd_index(address) ((address) >> PGDIR_SHIFT)
@@ -318,14 +329,14 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 #define pgd_offset_k(address) pgd_offset(&init_mm, address)
 
 /* Find an entry in the second-level page table.. */
-static inline pmd_t *pmd_offset(pgd_t * dir, unsigned long address)
+static inline pmd_t *pmd_offset(pgd_t *dir, unsigned long address)
 {
 	return (pmd_t *) pgd_page_vaddr(*dir) +
-		((address >> PMD_SHIFT) & (PTRS_PER_PMD - 1));
+		   ((address >> PMD_SHIFT) & (PTRS_PER_PMD - 1));
 }
 
 /* Find an entry in the third-level page table.. */
-pte_t *pte_offset_kernel(pmd_t * dir, unsigned long address);
+pte_t *pte_offset_kernel(pmd_t *dir, unsigned long address);
 
 /*
  * This shortcut works on sun4m (and sun4d) because the nocache area is static.
@@ -344,7 +355,7 @@ void mmu_info(struct seq_file *m);
 #define update_mmu_cache(vma, address, ptep) do { } while (0)
 
 void srmmu_mapiorange(unsigned int bus, unsigned long xpa,
-                      unsigned long xva, unsigned int len);
+					  unsigned long xva, unsigned int len);
 void srmmu_unmapiorange(unsigned long virt_addr, unsigned int len);
 
 /* Encode and de-code a swap entry */
@@ -360,9 +371,11 @@ static inline unsigned long __swp_offset(swp_entry_t entry)
 
 static inline swp_entry_t __swp_entry(unsigned long type, unsigned long offset)
 {
-	return (swp_entry_t) {
+	return (swp_entry_t)
+	{
 		(type & SRMMU_SWP_TYPE_MASK) << SRMMU_SWP_TYPE_SHIFT
-		| (offset & SRMMU_SWP_OFF_MASK) << SRMMU_SWP_OFF_SHIFT };
+									 | (offset & SRMMU_SWP_OFF_MASK) << SRMMU_SWP_OFF_SHIFT
+	};
 }
 
 #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
@@ -371,24 +384,28 @@ static inline swp_entry_t __swp_entry(unsigned long type, unsigned long offset)
 static inline unsigned long
 __get_phys (unsigned long addr)
 {
-	switch (sparc_cpu_model){
-	case sun4m:
-	case sun4d:
-		return ((srmmu_get_pte (addr) & 0xffffff00) << 4);
-	default:
-		return 0;
+	switch (sparc_cpu_model)
+	{
+		case sun4m:
+		case sun4d:
+			return ((srmmu_get_pte (addr) & 0xffffff00) << 4);
+
+		default:
+			return 0;
 	}
 }
 
 static inline int
 __get_iospace (unsigned long addr)
 {
-	switch (sparc_cpu_model){
-	case sun4m:
-	case sun4d:
-		return (srmmu_get_pte (addr) >> 28);
-	default:
-		return -1;
+	switch (sparc_cpu_model)
+	{
+		case sun4m:
+		case sun4d:
+			return (srmmu_get_pte (addr) >> 28);
+
+		default:
+			return -1;
 	}
 }
 
@@ -407,11 +424,11 @@ extern unsigned long *sparc_valid_addr_bitmap;
 #define GET_PFN(pfn)			(pfn & 0x0fffffffUL)
 
 int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
-		    unsigned long, pgprot_t);
+					unsigned long, pgprot_t);
 
 static inline int io_remap_pfn_range(struct vm_area_struct *vma,
-				     unsigned long from, unsigned long pfn,
-				     unsigned long size, pgprot_t prot)
+									 unsigned long from, unsigned long pfn,
+									 unsigned long size, pgprot_t prot)
 {
 	unsigned long long offset, space, phys_base;
 
@@ -421,18 +438,18 @@ static inline int io_remap_pfn_range(struct vm_area_struct *vma,
 
 	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
 }
-#define io_remap_pfn_range io_remap_pfn_range 
+#define io_remap_pfn_range io_remap_pfn_range
 
 #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
 #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
-({									  \
-	int __changed = !pte_same(*(__ptep), __entry);			  \
-	if (__changed) {						  \
-		set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
-		flush_tlb_page(__vma, __address);			  \
-	}								  \
-	__changed;							  \
-})
+	({									  \
+		int __changed = !pte_same(*(__ptep), __entry);			  \
+		if (__changed) {						  \
+			set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
+			flush_tlb_page(__vma, __address);			  \
+		}								  \
+		__changed;							  \
+	})
 
 #include <asm-generic/pgtable.h>
 

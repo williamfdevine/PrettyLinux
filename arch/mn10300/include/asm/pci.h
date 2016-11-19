@@ -17,16 +17,16 @@
 #if 0
 #define __pcbdebug(FMT, ADDR, ...) \
 	printk(KERN_DEBUG "PCIBRIDGE[%08x]: "FMT"\n", \
-	       (u32)(ADDR), ##__VA_ARGS__)
+		   (u32)(ADDR), ##__VA_ARGS__)
 
 #define __pcidebug(FMT, BUS, DEVFN, WHERE,...)		\
-do {							\
-	printk(KERN_DEBUG "PCI[%02x:%02x.%x + %02x]: "FMT"\n",	\
-	       (BUS)->number,					\
-	       PCI_SLOT(DEVFN),					\
-	       PCI_FUNC(DEVFN),					\
-	       (u32)(WHERE), ##__VA_ARGS__);			\
-} while (0)
+	do {							\
+		printk(KERN_DEBUG "PCI[%02x:%02x.%x + %02x]: "FMT"\n",	\
+			   (BUS)->number,					\
+			   PCI_SLOT(DEVFN),					\
+			   PCI_FUNC(DEVFN),					\
+			   (u32)(WHERE), ##__VA_ARGS__);			\
+	} while (0)
 
 #else
 #define __pcbdebug(FMT, ADDR, ...)		do {} while (0)
@@ -38,10 +38,10 @@ do {							\
  * architectures with incomplete PCI setup by the loader */
 
 #ifdef CONFIG_PCI
-#define pcibios_assign_all_busses()	1
-extern void unit_pci_init(void);
+	#define pcibios_assign_all_busses()	1
+	extern void unit_pci_init(void);
 #else
-#define pcibios_assign_all_busses()	0
+	#define pcibios_assign_all_busses()	0
 #endif
 
 #define PCIBIOS_MIN_IO		0xBE000004
@@ -75,8 +75,8 @@ static inline int pci_controller_num(struct pci_dev *dev)
 
 #define HAVE_PCI_MMAP
 extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
-			       enum pci_mmap_state mmap_state,
-			       int write_combine);
+							   enum pci_mmap_state mmap_state,
+							   int write_combine);
 
 #endif /* __KERNEL__ */
 

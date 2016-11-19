@@ -123,9 +123,9 @@ static inline int hv_lotar_to_cpu(HV_LOTAR lotar)
 int bitmap_parselist_crop(const char *bp, unsigned long *maskp, int nmaskbits);
 
 #define cpulist_parse_crop(buf, dst) \
-			__cpulist_parse_crop((buf), (dst), NR_CPUS)
+	__cpulist_parse_crop((buf), (dst), NR_CPUS)
 static inline int __cpulist_parse_crop(const char *buf, struct cpumask *dstp,
-					int nbits)
+									   int nbits)
 {
 	return bitmap_parselist_crop(buf, cpumask_bits(dstp), nbits);
 }

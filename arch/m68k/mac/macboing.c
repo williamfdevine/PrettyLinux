@@ -25,7 +25,8 @@ static __u8 mac_asc_wave_tab[ 0x800 ];
  * Alan's original sine table; needs interpolating to 0x800
  * (hint: interpolate or hardwire [0 -> Pi/2[, it's symmetric)
  */
-static const signed char sine_data[] = {
+static const signed char sine_data[] =
+{
 	0,  39,  75,  103,  121,  127,  121,  103,  75,  39,
 	0, -39, -75, -103, -121, -127, -121, -103, -75, -39
 };
@@ -33,7 +34,7 @@ static const signed char sine_data[] = {
 /*
  * where the ASC hides ...
  */
-static volatile __u8* mac_asc_regs = ( void* )0x50F14000;
+static volatile __u8 *mac_asc_regs = ( void * )0x50F14000;
 
 /*
  * sample rate; is this a good default value?
@@ -80,17 +81,19 @@ static void mac_init_asc( void )
 			/*
 			 * The IIfx is always special ...
 			 */
-			mac_asc_regs = ( void* )0x50010000;
+			mac_asc_regs = ( void * )0x50010000;
 			break;
-			/*
-			 * not sure about how correct this list is
-			 * machines with the EASC enhanced apple sound chip
-			 */
+
+		/*
+		 * not sure about how correct this list is
+		 * machines with the EASC enhanced apple sound chip
+		 */
 		case MAC_MODEL_Q630:
 		case MAC_MODEL_P475:
 			mac_special_bell = mac_quadra_start_bell;
 			mac_asc_samplespersec = 22150;
 			break;
+
 		case MAC_MODEL_C660:
 		case MAC_MODEL_Q840:
 			/*
@@ -114,13 +117,14 @@ static void mac_init_asc( void )
 			 *   16-bit I/O functionality.  The PowerBook 500 series computers
 			 *   support 16-bit stereo output, but only mono input."
 			 *
-			 *   Technical Information Library (TIL) article number 16405. 
-			 *   http://support.apple.com/kb/TA32601 
+			 *   Technical Information Library (TIL) article number 16405.
+			 *   http://support.apple.com/kb/TA32601
 			 *
 			 * --David Kilzer
 			 */
 			mac_special_bell = mac_av_start_bell;
 			break;
+
 		case MAC_MODEL_Q650:
 		case MAC_MODEL_Q700:
 		case MAC_MODEL_Q800:
@@ -131,6 +135,7 @@ static void mac_init_asc( void )
 			 */
 			mac_special_bell = NULL;
 			break;
+
 		default:
 			/*
 			 * Every switch needs a default
@@ -148,6 +153,7 @@ static void mac_init_asc( void )
 		mac_asc_wave_tab[ i ] = i / 4;
 		mac_asc_wave_tab[ i + 0x400 ] = 0xFF - i / 4;
 	}
+
 	mac_asc_inited = 1;
 }
 
@@ -173,7 +179,9 @@ void mac_mksound( unsigned int freq, unsigned int length )
 	}
 
 	if ( !mac_asc_inited )
+	{
 		mac_init_asc();
+	}
 
 	if ( mac_special_bell )
 	{
@@ -192,12 +200,19 @@ void mac_mksound( unsigned int freq, unsigned int length )
 	del_timer( &mac_sound_timer );
 
 	for ( i = 0; i < 0x800; i++ )
+	{
 		mac_asc_regs[ i ] = 0;
+	}
+
 	for ( i = 0; i < 0x800; i++ )
+	{
 		mac_asc_regs[ i ] = mac_asc_wave_tab[ i ];
+	}
 
 	for ( i = 0; i < 8; i++ )
-		*( __u32* )( ( __u32 )mac_asc_regs + ASC_CONTROL + 0x814 + 8 * i ) = cfreq;
+	{
+		*( __u32 * )( ( __u32 )mac_asc_regs + ASC_CONTROL + 0x814 + 8 * i ) = cfreq;
+	}
 
 	mac_asc_regs[ 0x807 ] = 0;
 	mac_asc_regs[ ASC_VOLUME ] = 128;
@@ -292,11 +307,14 @@ static void mac_quadra_ring_bell( unsigned long ignored )
 			mac_bell_phase += mac_bell_phasepersample;
 			mac_asc_regs[ 0 ] = mac_asc_wave_tab[ mac_bell_phase & ( sizeof( mac_asc_wave_tab ) - 1 ) ];
 		}
+
 		mac_sound_timer.expires = jiffies + 1;
 		add_timer( &mac_sound_timer );
 	}
 	else
+	{
 		mac_asc_regs[ 0x801 ] = 0;
+	}
 
 	local_irq_restore(flags);
 }

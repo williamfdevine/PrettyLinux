@@ -28,7 +28,7 @@ __wsum csum_partial(const void *buff, int len, __wsum sum);
  */
 
 __wsum csum_partial_copy_nocheck(const void *src, void *dst,
-				       int len, __wsum sum);
+								 int len, __wsum sum);
 
 /*
  *	Fold a partial checksum into a word
@@ -43,8 +43,8 @@ static inline __sum16 csum_fold(__wsum csum)
 }
 
 extern __wsum csum_partial_copy_from_user(const void __user *src, void *dst,
-						int len, __wsum sum,
-						int *errptr);
+		int len, __wsum sum,
+		int *errptr);
 
 /*
  *	This is a version of ip_compute_csum() optimized for IP headers,
@@ -56,17 +56,17 @@ static inline __sum16 ip_fast_csum(const void *iph, unsigned int ihl)
 {
 	return csum_fold(csum_partial(iph, ihl * 4, 0));
 }
- 
+
 /*
  * computes the checksum of the TCP/UDP pseudo-header
  * returns a 16-bit checksum, already complemented
  */
 
 static inline __sum16 csum_tcpudp_magic(__be32 saddr, __be32 daddr,
-					__u32 len, __u8 proto,
-					__wsum sum)
+										__u32 len, __u8 proto,
+										__wsum sum)
 {
-	return csum_fold(csum_tcpudp_nofold(saddr,daddr,len,proto,sum));
+	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
 }
 
 /*

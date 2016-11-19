@@ -20,9 +20,9 @@
 unsigned int __VMALLOC_RESERVE = 128 << 20;
 
 /*
- * Associate a virtual page frame with a given physical page frame 
+ * Associate a virtual page frame with a given physical page frame
  * and protection flags for that frame.
- */ 
+ */
 void set_pte_vaddr(unsigned long vaddr, pte_t pteval)
 {
 	pgd_t *pgd;
@@ -31,25 +31,39 @@ void set_pte_vaddr(unsigned long vaddr, pte_t pteval)
 	pte_t *pte;
 
 	pgd = swapper_pg_dir + pgd_index(vaddr);
-	if (pgd_none(*pgd)) {
+
+	if (pgd_none(*pgd))
+	{
 		BUG();
 		return;
 	}
+
 	pud = pud_offset(pgd, vaddr);
-	if (pud_none(*pud)) {
+
+	if (pud_none(*pud))
+	{
 		BUG();
 		return;
 	}
+
 	pmd = pmd_offset(pud, vaddr);
-	if (pmd_none(*pmd)) {
+
+	if (pmd_none(*pmd))
+	{
 		BUG();
 		return;
 	}
+
 	pte = pte_offset_kernel(pmd, vaddr);
+
 	if (!pte_none(pteval))
+	{
 		set_pte_at(&init_mm, vaddr, pte, pteval);
+	}
 	else
+	{
 		pte_clear(&init_mm, vaddr, pte);
+	}
 
 	/*
 	 * It's enough to flush this one mapping.
@@ -69,7 +83,9 @@ EXPORT_SYMBOL(__FIXADDR_TOP);
 static int __init parse_vmalloc(char *arg)
 {
 	if (!arg)
+	{
 		return -EINVAL;
+	}
 
 	/* Add VMALLOC_OFFSET to the parsed value due to vm area guard hole*/
 	__VMALLOC_RESERVE = memparse(arg, &arg) + VMALLOC_OFFSET;
@@ -87,7 +103,9 @@ static int __init parse_reservetop(char *arg)
 	unsigned long address;
 
 	if (!arg)
+	{
 		return -EINVAL;
+	}
 
 	address = memparse(arg, &arg);
 	reserve_top_address(address);

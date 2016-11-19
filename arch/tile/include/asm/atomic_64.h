@@ -55,22 +55,22 @@ static inline int atomic_add_return(int i, atomic_t *v)
 }
 
 #define ATOMIC_OPS(op)							\
-static inline int atomic_fetch_##op(int i, atomic_t *v)			\
-{									\
-	int val;							\
-	smp_mb();							\
-	val = __insn_fetch##op##4((void *)&v->counter, i);		\
-	smp_mb();							\
-	return val;							\
-}									\
-static inline void atomic_##op(int i, atomic_t *v)			\
-{									\
-	__insn_fetch##op##4((void *)&v->counter, i);			\
-}
+	static inline int atomic_fetch_##op(int i, atomic_t *v)			\
+	{									\
+		int val;							\
+		smp_mb();							\
+		val = __insn_fetch##op##4((void *)&v->counter, i);		\
+		smp_mb();							\
+		return val;							\
+	}									\
+	static inline void atomic_##op(int i, atomic_t *v)			\
+	{									\
+		__insn_fetch##op##4((void *)&v->counter, i);			\
+	}
 
 ATOMIC_OPS(add)
-ATOMIC_OPS(and)
-ATOMIC_OPS(or)
+ATOMIC_OPS( and )
+ATOMIC_OPS( or )
 
 #undef ATOMIC_OPS
 
@@ -78,11 +78,15 @@ static inline int atomic_fetch_xor(int i, atomic_t *v)
 {
 	int guess, oldval = v->counter;
 	smp_mb();
-	do {
+
+	do
+	{
 		guess = oldval;
 		__insn_mtspr(SPR_CMPEXCH_VALUE, guess);
 		oldval = __insn_cmpexch4(&v->counter, guess ^ i);
-	} while (guess != oldval);
+	}
+	while (guess != oldval);
+
 	smp_mb();
 	return oldval;
 }
@@ -90,22 +94,32 @@ static inline int atomic_fetch_xor(int i, atomic_t *v)
 static inline void atomic_xor(int i, atomic_t *v)
 {
 	int guess, oldval = v->counter;
-	do {
+
+	do
+	{
 		guess = oldval;
 		__insn_mtspr(SPR_CMPEXCH_VALUE, guess);
 		oldval = __insn_cmpexch4(&v->counter, guess ^ i);
-	} while (guess != oldval);
+	}
+	while (guess != oldval);
 }
 
 static inline int __atomic_add_unless(atomic_t *v, int a, int u)
 {
 	int guess, oldval = v->counter;
-	do {
+
+	do
+	{
 		if (oldval == u)
+		{
 			break;
+		}
+
 		guess = oldval;
 		oldval = cmpxchg(&v->counter, guess, guess + a);
-	} while (guess != oldval);
+	}
+	while (guess != oldval);
+
 	return oldval;
 }
 
@@ -126,22 +140,22 @@ static inline long atomic64_add_return(long i, atomic64_t *v)
 }
 
 #define ATOMIC64_OPS(op)						\
-static inline long atomic64_fetch_##op(long i, atomic64_t *v)		\
-{									\
-	long val;							\
-	smp_mb();							\
-	val = __insn_fetch##op((void *)&v->counter, i);			\
-	smp_mb();							\
-	return val;							\
-}									\
-static inline void atomic64_##op(long i, atomic64_t *v)			\
-{									\
-	__insn_fetch##op((void *)&v->counter, i);			\
-}
+	static inline long atomic64_fetch_##op(long i, atomic64_t *v)		\
+	{									\
+		long val;							\
+		smp_mb();							\
+		val = __insn_fetch##op((void *)&v->counter, i);			\
+		smp_mb();							\
+		return val;							\
+	}									\
+	static inline void atomic64_##op(long i, atomic64_t *v)			\
+	{									\
+		__insn_fetch##op((void *)&v->counter, i);			\
+	}
 
 ATOMIC64_OPS(add)
-ATOMIC64_OPS(and)
-ATOMIC64_OPS(or)
+ATOMIC64_OPS( and )
+ATOMIC64_OPS( or )
 
 #undef ATOMIC64_OPS
 
@@ -149,11 +163,15 @@ static inline long atomic64_fetch_xor(long i, atomic64_t *v)
 {
 	long guess, oldval = v->counter;
 	smp_mb();
-	do {
+
+	do
+	{
 		guess = oldval;
 		__insn_mtspr(SPR_CMPEXCH_VALUE, guess);
 		oldval = __insn_cmpexch(&v->counter, guess ^ i);
-	} while (guess != oldval);
+	}
+	while (guess != oldval);
+
 	smp_mb();
 	return oldval;
 }
@@ -161,22 +179,32 @@ static inline long atomic64_fetch_xor(long i, atomic64_t *v)
 static inline void atomic64_xor(long i, atomic64_t *v)
 {
 	long guess, oldval = v->counter;
-	do {
+
+	do
+	{
 		guess = oldval;
 		__insn_mtspr(SPR_CMPEXCH_VALUE, guess);
 		oldval = __insn_cmpexch(&v->counter, guess ^ i);
-	} while (guess != oldval);
+	}
+	while (guess != oldval);
 }
 
 static inline long atomic64_add_unless(atomic64_t *v, long a, long u)
 {
 	long guess, oldval = v->counter;
-	do {
+
+	do
+	{
 		if (oldval == u)
+		{
 			break;
+		}
+
 		guess = oldval;
 		oldval = cmpxchg(&v->counter, guess, guess + a);
-	} while (guess != oldval);
+	}
+	while (guess != oldval);
+
 	return oldval != u;
 }
 

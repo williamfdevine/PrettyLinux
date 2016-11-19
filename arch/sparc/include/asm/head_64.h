@@ -3,11 +3,11 @@
 
 #include <asm/pstate.h>
 
-	/* wrpr	%g0, val, %gl */
+/* wrpr	%g0, val, %gl */
 #define SET_GL(val)	\
 	.word	0xa1902000 | val
 
-	/* rdpr %gl, %gN */
+/* rdpr %gl, %gN */
 #define GET_GL_GLOBAL(N)	\
 	.word	0x81540000 | (N << 25)
 
@@ -35,7 +35,7 @@
 	sethi	%hi(is_sun4v), %tmp1;		\
 	lduw	[%tmp1 + %lo(is_sun4v)], %tmp1; \
 	brnz,pn	%tmp1, label;			\
-	 nop
+	nop
 
 #define BRANCH_IF_CHEETAH_BASE(tmp1,tmp2,label)	\
 	rdpr	%ver, %tmp1;			\
@@ -44,7 +44,7 @@
 	or	%tmp2, %lo(__CHEETAH_ID), %tmp2;\
 	cmp	%tmp1, %tmp2;			\
 	be,pn	%icc, label;			\
-	 nop;
+	nop;
 
 #define BRANCH_IF_JALAPENO(tmp1,tmp2,label)	\
 	rdpr	%ver, %tmp1;			\
@@ -53,28 +53,28 @@
 	or	%tmp2, %lo(__JALAPENO_ID), %tmp2;\
 	cmp	%tmp1, %tmp2;			\
 	be,pn	%icc, label;			\
-	 nop;
+	nop;
 
 #define BRANCH_IF_CHEETAH_PLUS_OR_FOLLOWON(tmp1,tmp2,label)	\
 	rdpr	%ver, %tmp1;			\
 	srlx	%tmp1, (32 + 16), %tmp2;	\
 	cmp	%tmp2, CHEETAH_MANUF;		\
 	bne,pt	%xcc, 99f;			\
-	 sllx	%tmp1, 16, %tmp1;		\
+	sllx	%tmp1, 16, %tmp1;		\
 	srlx	%tmp1, (32 + 16), %tmp2;	\
 	cmp	%tmp2, CHEETAH_PLUS_IMPL;	\
 	bgeu,pt	%xcc, label;			\
-99:	 nop;
+	99:	 nop;
 
 #define BRANCH_IF_ANY_CHEETAH(tmp1,tmp2,label)	\
 	rdpr	%ver, %tmp1;			\
 	srlx	%tmp1, (32 + 16), %tmp2;	\
 	cmp	%tmp2, CHEETAH_MANUF;		\
 	bne,pt	%xcc, 99f;			\
-	 sllx	%tmp1, 16, %tmp1;		\
+	sllx	%tmp1, 16, %tmp1;		\
 	srlx	%tmp1, (32 + 16), %tmp2;	\
 	cmp	%tmp2, CHEETAH_IMPL;		\
 	bgeu,pt	%xcc, label;			\
-99:	 nop;
+	99:	 nop;
 
 #endif /* !(_SPARC64_HEAD_H) */

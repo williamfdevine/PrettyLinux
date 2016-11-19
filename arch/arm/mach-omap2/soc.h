@@ -88,60 +88,60 @@ static inline int soc_is_omap(void)
 #define GET_OMAP_CLASS	(omap_rev() & 0xff)
 
 #define IS_OMAP_CLASS(class, id)			\
-static inline int is_omap ##class (void)		\
-{							\
-	return (GET_OMAP_CLASS == (id)) ? 1 : 0;	\
-}
+	static inline int is_omap ##class (void)		\
+	{							\
+			return (GET_OMAP_CLASS == (id)) ? 1 : 0;	\
+	}
 
 #define GET_AM_CLASS	((omap_rev() >> 24) & 0xff)
 
 #define IS_AM_CLASS(class, id)				\
-static inline int is_am ##class (void)			\
-{							\
-	return (GET_AM_CLASS == (id)) ? 1 : 0;		\
-}
+	static inline int is_am ##class (void)			\
+	{							\
+			return (GET_AM_CLASS == (id)) ? 1 : 0;		\
+	}
 
 #define GET_TI_CLASS	((omap_rev() >> 24) & 0xff)
 
 #define IS_TI_CLASS(class, id)			\
-static inline int is_ti ##class (void)		\
-{							\
-	return (GET_TI_CLASS == (id)) ? 1 : 0;	\
-}
+	static inline int is_ti ##class (void)		\
+	{							\
+			return (GET_TI_CLASS == (id)) ? 1 : 0;	\
+	}
 
 #define GET_DRA_CLASS	((omap_rev() >> 24) & 0xff)
 
 #define IS_DRA_CLASS(class, id)				\
-static inline int is_dra ##class (void)			\
-{							\
-	return (GET_DRA_CLASS == (id)) ? 1 : 0;		\
-}
+	static inline int is_dra ##class (void)			\
+	{							\
+			return (GET_DRA_CLASS == (id)) ? 1 : 0;		\
+	}
 
 #define GET_OMAP_SUBCLASS	((omap_rev() >> 20) & 0x0fff)
 
 #define IS_OMAP_SUBCLASS(subclass, id)			\
-static inline int is_omap ##subclass (void)		\
-{							\
-	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-}
+	static inline int is_omap ##subclass (void)		\
+	{							\
+		return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
+	}
 
 #define IS_TI_SUBCLASS(subclass, id)			\
-static inline int is_ti ##subclass (void)		\
-{							\
-	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-}
+	static inline int is_ti ##subclass (void)		\
+	{							\
+		return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
+	}
 
 #define IS_AM_SUBCLASS(subclass, id)			\
-static inline int is_am ##subclass (void)		\
-{							\
-	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-}
+	static inline int is_am ##subclass (void)		\
+	{							\
+		return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
+	}
 
 #define IS_DRA_SUBCLASS(subclass, id)			\
-static inline int is_dra ##subclass (void)		\
-{							\
-	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-}
+	static inline int is_dra ##subclass (void)		\
+	{							\
+		return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
+	}
 
 IS_OMAP_CLASS(24xx, 0x24)
 IS_OMAP_CLASS(34xx, 0x34)
@@ -189,26 +189,26 @@ IS_DRA_SUBCLASS(72x, 0x72)
 #define soc_is_dra72x()			0
 
 #if defined(CONFIG_ARCH_OMAP2)
-# define soc_is_omap24xx()		is_omap24xx()
+	#define soc_is_omap24xx()		is_omap24xx()
 #else
-# define soc_is_omap24xx()		0
+	#define soc_is_omap24xx()		0
 #endif
 #if defined(CONFIG_SOC_OMAP2420)
-# define soc_is_omap242x()		is_omap242x()
+	#define soc_is_omap242x()		is_omap242x()
 #else
-# define soc_is_omap242x()		0
+	#define soc_is_omap242x()		0
 #endif
 #if defined(CONFIG_SOC_OMAP2430)
-# define soc_is_omap243x()		is_omap243x()
+	#define soc_is_omap243x()		is_omap243x()
 #else
-# define soc_is_omap243x()		0
+	#define soc_is_omap243x()		0
 #endif
 #if defined(CONFIG_ARCH_OMAP3)
-# define soc_is_omap34xx()		is_omap34xx()
-# define soc_is_omap343x()		is_omap343x()
+	#define soc_is_omap34xx()		is_omap34xx()
+	#define soc_is_omap343x()		is_omap343x()
 #else
-# define soc_is_omap34xx()		0
-# define soc_is_omap343x()		0
+	#define soc_is_omap34xx()		0
+	#define soc_is_omap343x()		0
 #endif
 
 /*
@@ -223,10 +223,10 @@ IS_DRA_SUBCLASS(72x, 0x72)
 #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
 
 #define IS_OMAP_TYPE(type, id)				\
-static inline int is_omap ##type (void)			\
-{							\
-	return (GET_OMAP_TYPE == (id)) ? 1 : 0;		\
-}
+	static inline int is_omap ##type (void)			\
+	{							\
+		return (GET_OMAP_TYPE == (id)) ? 1 : 0;		\
+	}
 
 IS_OMAP_TYPE(2420, 0x2420)
 IS_OMAP_TYPE(2422, 0x2422)
@@ -255,70 +255,70 @@ IS_OMAP_TYPE(3430, 0x3430)
 #define cpu_class_is_omap2()		1
 
 #if defined(CONFIG_ARCH_OMAP2)
-# undef  soc_is_omap2420
-# undef  soc_is_omap2422
-# undef  soc_is_omap2423
-# undef  soc_is_omap2430
-# define soc_is_omap2420()		is_omap2420()
-# define soc_is_omap2422()		is_omap2422()
-# define soc_is_omap2423()		is_omap2423()
-# define soc_is_omap2430()		is_omap2430()
+	#undef  soc_is_omap2420
+	#undef  soc_is_omap2422
+	#undef  soc_is_omap2423
+	#undef  soc_is_omap2430
+	#define soc_is_omap2420()		is_omap2420()
+	#define soc_is_omap2422()		is_omap2422()
+	#define soc_is_omap2423()		is_omap2423()
+	#define soc_is_omap2430()		is_omap2430()
 #endif
 
 #if defined(CONFIG_ARCH_OMAP3)
-# undef soc_is_omap3430
-# undef soc_is_ti81xx
-# undef soc_is_ti816x
-# undef soc_is_ti814x
-# undef soc_is_am35xx
-# define soc_is_omap3430()		is_omap3430()
-# undef soc_is_omap3630
-# define soc_is_omap3630()		is_omap363x()
-# define soc_is_ti81xx()		is_ti81xx()
-# define soc_is_ti816x()		is_ti816x()
-# define soc_is_ti814x()		is_ti814x()
-# define soc_is_am35xx()		is_am35xx()
+	#undef soc_is_omap3430
+	#undef soc_is_ti81xx
+	#undef soc_is_ti816x
+	#undef soc_is_ti814x
+	#undef soc_is_am35xx
+	#define soc_is_omap3430()		is_omap3430()
+	#undef soc_is_omap3630
+	#define soc_is_omap3630()		is_omap363x()
+	#define soc_is_ti81xx()		is_ti81xx()
+	#define soc_is_ti816x()		is_ti816x()
+	#define soc_is_ti814x()		is_ti814x()
+	#define soc_is_am35xx()		is_am35xx()
 #endif
 
-# if defined(CONFIG_SOC_AM33XX)
-# undef soc_is_am33xx
-# undef soc_is_am335x
-# define soc_is_am33xx()		is_am33xx()
-# define soc_is_am335x()		is_am335x()
+#if defined(CONFIG_SOC_AM33XX)
+	#undef soc_is_am33xx
+	#undef soc_is_am335x
+	#define soc_is_am33xx()		is_am33xx()
+	#define soc_is_am335x()		is_am335x()
 #endif
 
 #ifdef	CONFIG_SOC_AM43XX
-# undef soc_is_am43xx
-# undef soc_is_am437x
-# define soc_is_am43xx()		is_am43xx()
-# define soc_is_am437x()		is_am437x()
+	#undef soc_is_am43xx
+	#undef soc_is_am437x
+	#define soc_is_am43xx()		is_am43xx()
+	#define soc_is_am437x()		is_am437x()
 #endif
 
-# if defined(CONFIG_ARCH_OMAP4)
-# undef soc_is_omap44xx
-# undef soc_is_omap443x
-# undef soc_is_omap446x
-# undef soc_is_omap447x
-# define soc_is_omap44xx()		is_omap44xx()
-# define soc_is_omap443x()		is_omap443x()
-# define soc_is_omap446x()		is_omap446x()
-# define soc_is_omap447x()		is_omap447x()
-# endif
+#if defined(CONFIG_ARCH_OMAP4)
+	#undef soc_is_omap44xx
+	#undef soc_is_omap443x
+	#undef soc_is_omap446x
+	#undef soc_is_omap447x
+	#define soc_is_omap44xx()		is_omap44xx()
+	#define soc_is_omap443x()		is_omap443x()
+	#define soc_is_omap446x()		is_omap446x()
+	#define soc_is_omap447x()		is_omap447x()
+#endif
 
-# if defined(CONFIG_SOC_OMAP5)
-# undef soc_is_omap54xx
-# undef soc_is_omap543x
-# define soc_is_omap54xx()		is_omap54xx()
-# define soc_is_omap543x()		is_omap543x()
+#if defined(CONFIG_SOC_OMAP5)
+	#undef soc_is_omap54xx
+	#undef soc_is_omap543x
+	#define soc_is_omap54xx()		is_omap54xx()
+	#define soc_is_omap543x()		is_omap543x()
 #endif
 
 #if defined(CONFIG_SOC_DRA7XX)
-#undef soc_is_dra7xx
-#undef soc_is_dra74x
-#undef soc_is_dra72x
-#define soc_is_dra7xx()	is_dra7xx()
-#define soc_is_dra74x()	is_dra75x()
-#define soc_is_dra72x()	is_dra72x()
+	#undef soc_is_dra7xx
+	#undef soc_is_dra74x
+	#undef soc_is_dra72x
+	#define soc_is_dra7xx()	is_dra7xx()
+	#define soc_is_dra74x()	is_dra75x()
+	#define soc_is_dra72x()	is_dra72x()
 #endif
 
 /* Various silicon revisions for omap2 */
@@ -428,44 +428,44 @@ extern u32 omap_features;
 
 
 #define OMAP3_HAS_FEATURE(feat,flag)			\
-static inline unsigned int omap3_has_ ##feat(void)	\
-{							\
-	return omap_features & OMAP3_HAS_ ##flag;	\
-}							\
+	static inline unsigned int omap3_has_ ##feat(void)	\
+	{							\
+		return omap_features & OMAP3_HAS_ ##flag;	\
+	}							\
 
-OMAP3_HAS_FEATURE(l2cache, L2CACHE)
-OMAP3_HAS_FEATURE(sgx, SGX)
-OMAP3_HAS_FEATURE(iva, IVA)
-OMAP3_HAS_FEATURE(neon, NEON)
-OMAP3_HAS_FEATURE(isp, ISP)
-OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
-OMAP3_HAS_FEATURE(sdrc, SDRC)
-OMAP3_HAS_FEATURE(io_chain_ctrl, IO_CHAIN_CTRL)
+	OMAP3_HAS_FEATURE(l2cache, L2CACHE)
+	OMAP3_HAS_FEATURE(sgx, SGX)
+	OMAP3_HAS_FEATURE(iva, IVA)
+	OMAP3_HAS_FEATURE(neon, NEON)
+	OMAP3_HAS_FEATURE(isp, ISP)
+	OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+	OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
+	OMAP3_HAS_FEATURE(sdrc, SDRC)
+	OMAP3_HAS_FEATURE(io_chain_ctrl, IO_CHAIN_CTRL)
 
-/*
- * Runtime detection of OMAP4 features
- */
+	/*
+	 * Runtime detection of OMAP4 features
+	 */
 #define OMAP4_HAS_FEATURE(feat, flag)			\
-static inline unsigned int omap4_has_ ##feat(void)	\
-{							\
-	return omap_features & OMAP4_HAS_ ##flag;	\
-}							\
+	static inline unsigned int omap4_has_ ##feat(void)	\
+	{							\
+		return omap_features & OMAP4_HAS_ ##flag;	\
+	}							\
 
-OMAP4_HAS_FEATURE(perf_silicon, PERF_SILICON)
+	OMAP4_HAS_FEATURE(perf_silicon, PERF_SILICON)
 
-/*
- * We need to make sure omap initcalls don't run when
- * multiplatform kernels are booted on other SoCs.
- */
+	/*
+	 * We need to make sure omap initcalls don't run when
+	 * multiplatform kernels are booted on other SoCs.
+	 */
 #define omap_initcall(level, fn)		\
-static int __init __used __##fn(void)		\
-{						\
-	if (!soc_is_omap())			\
-		return 0;			\
-	return fn();				\
-}						\
-level(__##fn);
+	static int __init __used __##fn(void)		\
+	{						\
+		if (!soc_is_omap())			\
+			return 0;			\
+		return fn();				\
+	}						\
+	level(__##fn);
 
 #define omap_early_initcall(fn)		omap_initcall(early_initcall, fn)
 #define omap_core_initcall(fn)		omap_initcall(core_initcall, fn)
@@ -476,7 +476,7 @@ level(__##fn);
 #define omap_late_initcall(fn)		omap_initcall(late_initcall, fn)
 #define omap_late_initcall_sync(fn)	omap_initcall(late_initcall_sync, fn)
 
-/* Legacy defines, these can be removed when users are removed */
+	/* Legacy defines, these can be removed when users are removed */
 #define cpu_is_omap2420()	soc_is_omap2420()
 #define cpu_is_omap2422()	soc_is_omap2422()
 #define cpu_is_omap242x()	soc_is_omap242x()

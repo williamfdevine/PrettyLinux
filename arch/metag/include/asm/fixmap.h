@@ -15,8 +15,8 @@
 
 #include <asm/pgtable.h>
 #ifdef CONFIG_HIGHMEM
-#include <linux/threads.h>
-#include <asm/kmap_types.h>
+	#include <linux/threads.h>
+	#include <asm/kmap_types.h>
 #endif
 
 /*
@@ -37,12 +37,13 @@
  * TLB entries of such buffers will not be flushed across
  * task switches.
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 #define FIX_N_COLOURS 8
 #ifdef CONFIG_HIGHMEM
 	/* reserved pte's for temporary kernel mappings */
 	FIX_KMAP_BEGIN,
-	FIX_KMAP_END = FIX_KMAP_BEGIN+(KM_TYPE_NR*NR_CPUS)-1,
+	FIX_KMAP_END = FIX_KMAP_BEGIN + (KM_TYPE_NR * NR_CPUS) - 1,
 #endif
 	__end_of_fixed_addresses
 };
@@ -55,15 +56,15 @@ enum fixed_addresses {
 
 #define kmap_get_fixmap_pte(vaddr) \
 	pte_offset_kernel( \
-		pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr)), \
-		(vaddr) \
-	)
+					   pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr)), \
+					   (vaddr) \
+					 )
 
 /*
  * Called from pgtable_init()
  */
 extern void fixrange_init(unsigned long start, unsigned long end,
-	pgd_t *pgd_base);
+						  pgd_t *pgd_base);
 
 
 #endif

@@ -30,7 +30,9 @@ static inline void ppc_md5_clear_context(struct md5_state *sctx)
 
 	/* make sure we can clear the fast way */
 	BUILD_BUG_ON(sizeof(struct md5_state) % 4);
-	do { *ptr++ = 0; } while (--count);
+
+	do { *ptr++ = 0; }
+	while (--count);
 }
 
 static int ppc_md5_init(struct shash_desc *desc)
@@ -47,7 +49,7 @@ static int ppc_md5_init(struct shash_desc *desc)
 }
 
 static int ppc_md5_update(struct shash_desc *desc, const u8 *data,
-			unsigned int len)
+						  unsigned int len)
 {
 	struct md5_state *sctx = shash_desc_ctx(desc);
 	const unsigned int offset = sctx->byte_count & 0x3f;
@@ -56,19 +58,22 @@ static int ppc_md5_update(struct shash_desc *desc, const u8 *data,
 
 	sctx->byte_count += len;
 
-	if (avail > len) {
+	if (avail > len)
+	{
 		memcpy((char *)sctx->block + offset, src, len);
 		return 0;
 	}
 
-	if (offset) {
+	if (offset)
+	{
 		memcpy((char *)sctx->block + offset, src, avail);
 		ppc_md5_transform(sctx->hash, (const u8 *)sctx->block, 1);
 		len -= avail;
 		src += avail;
 	}
 
-	if (len > 63) {
+	if (len > 63)
+	{
 		ppc_md5_transform(sctx->hash, src, len >> 6);
 		src += len & ~0x3f;
 		len &= 0x3f;
@@ -90,7 +95,8 @@ static int ppc_md5_final(struct shash_desc *desc, u8 *out)
 
 	*p++ = 0x80;
 
-	if (padlen < 0) {
+	if (padlen < 0)
+	{
 		memset(p, 0x00, padlen + sizeof (u64));
 		ppc_md5_transform(sctx->hash, src, 1);
 		p = (char *)sctx->block;
@@ -126,7 +132,8 @@ static int ppc_md5_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	MD5_DIGEST_SIZE,
 	.init		=	ppc_md5_init,
 	.update		=	ppc_md5_update,
@@ -137,7 +144,7 @@ static struct shash_alg alg = {
 	.statesize	=	sizeof(struct md5_state),
 	.base		=	{
 		.cra_name	=	"md5",
-		.cra_driver_name=	"md5-ppc",
+		.cra_driver_name =	"md5-ppc",
 		.cra_priority	=	200,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	MD5_HMAC_BLOCK_SIZE,

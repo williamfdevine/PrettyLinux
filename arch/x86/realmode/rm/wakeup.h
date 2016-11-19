@@ -10,7 +10,8 @@
 #include <linux/types.h>
 
 /* This must match data at wakeup.S */
-struct wakeup_header {
+struct wakeup_header
+{
 	u16 video_mode;		/* Video mode number */
 	u32 pmode_entry;	/* Protected mode resume point, 32-bit only */
 	u16 pmode_cs;

@@ -23,10 +23,10 @@ char empty_zero_page[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
 EXPORT_SYMBOL(empty_zero_page);
 
 #ifndef CONFIG_EXCEPTION_L1_SCRATCH
-#if defined CONFIG_SYSCALL_TAB_L1
-__attribute__((l1_data))
-#endif
-static unsigned long exception_stack[NR_CPUS][1024];
+	#if defined CONFIG_SYSCALL_TAB_L1
+		__attribute__((l1_data))
+	#endif
+	static unsigned long exception_stack[NR_CPUS][1024];
 #endif
 
 struct blackfin_pda cpu_pda[NR_CPUS];
@@ -46,7 +46,8 @@ void __init paging_init(void)
 	 */
 	unsigned long end_mem = memory_end & PAGE_MASK;
 
-	unsigned long zones_size[MAX_NR_ZONES] = {
+	unsigned long zones_size[MAX_NR_ZONES] =
+	{
 		[0] = 0,
 		[ZONE_DMA] = (end_mem - CONFIG_PHY_RAM_BASE_ADDRESS) >> PAGE_SHIFT,
 		[ZONE_NORMAL] = 0,
@@ -59,9 +60,9 @@ void __init paging_init(void)
 	set_fs(KERNEL_DS);
 
 	pr_debug("free_area_init -> start_mem is %#lx virtual_end is %#lx\n",
-	        PAGE_ALIGN(memory_start), end_mem);
+			 PAGE_ALIGN(memory_start), end_mem);
 	free_area_init_node(0, zones_size,
-		CONFIG_PHY_RAM_BASE_ADDRESS >> PAGE_SHIFT, NULL);
+						CONFIG_PHY_RAM_BASE_ADDRESS >> PAGE_SHIFT, NULL);
 }
 
 asmlinkage void __init init_pda(void)
@@ -78,7 +79,7 @@ asmlinkage void __init init_pda(void)
 
 #ifdef CONFIG_EXCEPTION_L1_SCRATCH
 	cpu_pda[cpu].ex_stack = (unsigned long *)(L1_SCRATCH_START + \
-					L1_SCRATCH_LENGTH);
+							L1_SCRATCH_LENGTH);
 #else
 	cpu_pda[cpu].ex_stack = exception_stack[cpu + 1];
 #endif
@@ -116,7 +117,11 @@ void __ref free_initmem(void)
 {
 #if defined CONFIG_RAMKERNEL && !defined CONFIG_MPU
 	free_initmem_default(-1);
+
 	if (memory_start == (unsigned long)(&__init_end))
+	{
 		memory_start = (unsigned long)(&__init_begin);
+	}
+
 #endif
 }

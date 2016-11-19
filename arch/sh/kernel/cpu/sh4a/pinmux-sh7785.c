@@ -14,7 +14,8 @@
 #include <linux/ioport.h>
 #include <cpu/pfc.h>
 
-static struct resource sh7785_pfc_resources[] = {
+static struct resource sh7785_pfc_resources[] =
+{
 	[0] = {
 		.start	= 0xffe70000,
 		.end	= 0xffe7008f,
@@ -25,6 +26,6 @@ static struct resource sh7785_pfc_resources[] = {
 static int __init plat_pinmux_setup(void)
 {
 	return sh_pfc_register("pfc-sh7785", sh7785_pfc_resources,
-			       ARRAY_SIZE(sh7785_pfc_resources));
+						   ARRAY_SIZE(sh7785_pfc_resources));
 }
 arch_initcall(plat_pinmux_setup);

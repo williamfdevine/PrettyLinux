@@ -23,7 +23,9 @@ static void __init kmap_waitqueues_init(void)
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(pkmap_map_wait_arr); ++i)
+	{
 		init_waitqueue_head(pkmap_map_wait_arr + i);
+	}
 }
 #else
 static inline void kmap_waitqueues_init(void)
@@ -34,7 +36,7 @@ static inline void kmap_waitqueues_init(void)
 static inline enum fixed_addresses kmap_idx(int type, unsigned long color)
 {
 	return (type + KM_TYPE_NR * smp_processor_id()) * DCACHE_N_COLORS +
-		color;
+		   color;
 }
 
 void *kmap_atomic(struct page *page)
@@ -44,11 +46,14 @@ void *kmap_atomic(struct page *page)
 
 	preempt_disable();
 	pagefault_disable();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
 
 	idx = kmap_idx(kmap_atomic_idx_push(),
-		       DCACHE_ALIAS(page_to_phys(page)));
+				   DCACHE_ALIAS(page_to_phys(page)));
 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
 #ifdef CONFIG_DEBUG_HIGHMEM
 	BUG_ON(!pte_none(*(kmap_pte + idx)));
@@ -62,9 +67,10 @@ EXPORT_SYMBOL(kmap_atomic);
 void __kunmap_atomic(void *kvaddr)
 {
 	if (kvaddr >= (void *)FIXADDR_START &&
-	    kvaddr < (void *)FIXADDR_TOP) {
+		kvaddr < (void *)FIXADDR_TOP)
+	{
 		int idx = kmap_idx(kmap_atomic_idx(),
-				   DCACHE_ALIAS((unsigned long)kvaddr));
+						   DCACHE_ALIAS((unsigned long)kvaddr));
 
 		/*
 		 * Force other mappings to Oops if they'll try to access this
@@ -74,7 +80,7 @@ void __kunmap_atomic(void *kvaddr)
 		 */
 		pte_clear(&init_mm, kvaddr, kmap_pte + idx);
 		local_flush_tlb_kernel_range((unsigned long)kvaddr,
-					     (unsigned long)kvaddr + PAGE_SIZE);
+									 (unsigned long)kvaddr + PAGE_SIZE);
 
 		kmap_atomic_idx_pop();
 	}

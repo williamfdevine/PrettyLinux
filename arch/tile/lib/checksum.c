@@ -22,31 +22,46 @@ __wsum do_csum(const unsigned char *buff, int len)
 	unsigned long result = 0;
 
 	if (len <= 0)
+	{
 		goto out;
+	}
+
 	odd = 1 & (unsigned long) buff;
-	if (odd) {
+
+	if (odd)
+	{
 		result = (*buff << 8);
 		len--;
 		buff++;
 	}
+
 	count = len >> 1;		/* nr of 16-bit words.. */
-	if (count) {
-		if (2 & (unsigned long) buff) {
+
+	if (count)
+	{
+		if (2 & (unsigned long) buff)
+		{
 			result += *(const unsigned short *)buff;
 			count--;
 			len -= 2;
 			buff += 2;
 		}
+
 		count >>= 1;		/* nr of 32-bit words.. */
-		if (count) {
+
+		if (count)
+		{
 #ifdef __tilegx__
-			if (4 & (unsigned long) buff) {
+
+			if (4 & (unsigned long) buff)
+			{
 				unsigned int w = *(const unsigned int *)buff;
 				result = __insn_v2sadau(result, w, 0);
 				count--;
 				len -= 4;
 				buff += 4;
 			}
+
 			count >>= 1;		/* nr of 64-bit words.. */
 #endif
 
@@ -56,7 +71,8 @@ __wsum do_csum(const unsigned char *buff, int len)
 			 */
 			BUG_ON(count >= 65530);
 
-			while (count) {
+			while (count)
+			{
 				unsigned long w = *(const unsigned long *)buff;
 				count--;
 				buff += sizeof(w);
@@ -66,24 +82,38 @@ __wsum do_csum(const unsigned char *buff, int len)
 				result = __insn_sadah_u(result, w, 0);
 #endif
 			}
+
 #ifdef __tilegx__
-			if (len & 4) {
+
+			if (len & 4)
+			{
 				unsigned int w = *(const unsigned int *)buff;
 				result = __insn_v2sadau(result, w, 0);
 				buff += 4;
 			}
+
 #endif
 		}
-		if (len & 2) {
+
+		if (len & 2)
+		{
 			result += *(const unsigned short *) buff;
 			buff += 2;
 		}
 	}
+
 	if (len & 1)
+	{
 		result += *buff;
+	}
+
 	result = csum_long(result);
+
 	if (odd)
+	{
 		result = swab16(result);
+	}
+
 out:
 	return result;
 }

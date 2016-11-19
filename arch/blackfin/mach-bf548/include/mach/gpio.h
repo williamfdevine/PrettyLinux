@@ -176,7 +176,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct gpio_port_t {
+struct gpio_port_t
+{
 	unsigned short port_fer;
 	unsigned short dummy1;
 	unsigned short data;

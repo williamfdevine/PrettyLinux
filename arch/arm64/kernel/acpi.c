@@ -31,8 +31,8 @@
 #include <asm/smp_plat.h>
 
 #ifdef CONFIG_ACPI_APEI
-# include <linux/efi.h>
-# include <asm/pgtable.h>
+	#include <linux/efi.h>
+	#include <asm/pgtable.h>
 #endif
 
 int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
@@ -49,39 +49,55 @@ static bool param_acpi_force __initdata;
 static int __init parse_acpi(char *arg)
 {
 	if (!arg)
+	{
 		return -EINVAL;
+	}
 
 	/* "acpi=off" disables both ACPI table parsing and interpreter */
 	if (strcmp(arg, "off") == 0)
+	{
 		param_acpi_off = true;
+	}
 	else if (strcmp(arg, "on") == 0) /* prefer ACPI over DT */
+	{
 		param_acpi_on = true;
+	}
 	else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
+	{
 		param_acpi_force = true;
+	}
 	else
-		return -EINVAL;	/* Core will print when we return error */
+	{
+		return -EINVAL;    /* Core will print when we return error */
+	}
 
 	return 0;
 }
 early_param("acpi", parse_acpi);
 
 static int __init dt_scan_depth1_nodes(unsigned long node,
-				       const char *uname, int depth,
-				       void *data)
+									   const char *uname, int depth,
+									   void *data)
 {
 	/*
 	 * Ignore anything not directly under the root node; we'll
 	 * catch its parent instead.
 	 */
 	if (depth != 1)
+	{
 		return 0;
+	}
 
 	if (strcmp(uname, "chosen") == 0)
+	{
 		return 0;
+	}
 
 	if (strcmp(uname, "hypervisor") == 0 &&
-	    of_flat_dt_is_compatible(node, "xen,xen"))
+		of_flat_dt_is_compatible(node, "xen,xen"))
+	{
 		return 0;
+	}
 
 	/*
 	 * This node at depth 1 is neither a chosen node nor a xen node,
@@ -97,7 +113,9 @@ static int __init dt_scan_depth1_nodes(unsigned long node,
 char *__init __acpi_map_table(unsigned long phys, unsigned long size)
 {
 	if (!size)
+	{
 		return NULL;
+	}
 
 	return early_memremap(phys, size);
 }
@@ -105,7 +123,9 @@ char *__init __acpi_map_table(unsigned long phys, unsigned long size)
 void __init __acpi_unmap_table(char *map, unsigned long size)
 {
 	if (!map || !size)
+	{
 		return;
+	}
 
 	early_memunmap(map, size);
 }
@@ -140,7 +160,9 @@ static int __init acpi_fadt_sanity_check(void)
 	 * and carry out revision and ACPI HW reduced compliancy tests
 	 */
 	status = acpi_get_table_with_size(ACPI_SIG_FADT, 0, &table, &tbl_size);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		const char *msg = acpi_format_exception(status);
 
 		pr_err("Failed to get FADT table, %s\n", msg);
@@ -156,14 +178,16 @@ static int __init acpi_fadt_sanity_check(void)
 	 * boot protocol configuration data.
 	 */
 	if (table->revision < 5 ||
-	   (table->revision == 5 && fadt->minor_revision < 1)) {
+		(table->revision == 5 && fadt->minor_revision < 1))
+	{
 		pr_err("Unsupported FADT revision %d.%d, should be 5.1+\n",
-		       table->revision, fadt->minor_revision);
+			   table->revision, fadt->minor_revision);
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (!(fadt->flags & ACPI_FADT_HW_REDUCED)) {
+	if (!(fadt->flags & ACPI_FADT_HW_REDUCED))
+	{
 		pr_err("FADT not ACPI hardware reduced compliant\n");
 		ret = -EINVAL;
 	}
@@ -205,9 +229,11 @@ void __init acpi_boot_table_init(void)
 	 *   and ACPI has not been [force] enabled (acpi=on|force)
 	 */
 	if (param_acpi_off ||
-	    (!param_acpi_on && !param_acpi_force &&
-	     of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+		(!param_acpi_on && !param_acpi_force &&
+		 of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+	{
 		goto done;
+	}
 
 	/*
 	 * ACPI is disabled at this point. Enable it in order to parse
@@ -222,17 +248,27 @@ void __init acpi_boot_table_init(void)
 	 * If acpi=force was passed on the command line it forces ACPI
 	 * to be enabled even if its initialization failed.
 	 */
-	if (acpi_table_init() || acpi_fadt_sanity_check()) {
+	if (acpi_table_init() || acpi_fadt_sanity_check())
+	{
 		pr_err("Failed to init ACPI tables\n");
+
 		if (!param_acpi_force)
+		{
 			disable_acpi();
+		}
 	}
 
 done:
-	if (acpi_disabled) {
+
+	if (acpi_disabled)
+	{
 		if (earlycon_init_is_deferred)
+		{
 			early_init_dt_scan_chosen_stdout();
-	} else {
+		}
+	}
+	else
+	{
 		parse_spcr(earlycon_init_is_deferred);
 	}
 }
@@ -251,12 +287,22 @@ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
 	u64 attr;
 
 	attr = efi_mem_attributes(addr);
+
 	if (attr & EFI_MEMORY_WB)
+	{
 		return PAGE_KERNEL;
+	}
+
 	if (attr & EFI_MEMORY_WT)
+	{
 		return __pgprot(PROT_NORMAL_WT);
+	}
+
 	if (attr & EFI_MEMORY_WC)
+	{
 		return __pgprot(PROT_NORMAL_NC);
+	}
+
 	return __pgprot(PROT_DEVICE_nGnRnE);
 }
 #endif

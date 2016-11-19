@@ -43,69 +43,69 @@
 #define __smp_wmb()	dmb(ishst)
 
 #define __smp_store_release(p, v)						\
-do {									\
-	compiletime_assert_atomic_type(*p);				\
-	switch (sizeof(*p)) {						\
-	case 1:								\
-		asm volatile ("stlrb %w1, %0"				\
-				: "=Q" (*p) : "r" (v) : "memory");	\
-		break;							\
-	case 2:								\
-		asm volatile ("stlrh %w1, %0"				\
-				: "=Q" (*p) : "r" (v) : "memory");	\
-		break;							\
-	case 4:								\
-		asm volatile ("stlr %w1, %0"				\
-				: "=Q" (*p) : "r" (v) : "memory");	\
-		break;							\
-	case 8:								\
-		asm volatile ("stlr %1, %0"				\
-				: "=Q" (*p) : "r" (v) : "memory");	\
-		break;							\
-	}								\
-} while (0)
+	do {									\
+		compiletime_assert_atomic_type(*p);				\
+		switch (sizeof(*p)) {						\
+			case 1:								\
+				asm volatile ("stlrb %w1, %0"				\
+							  : "=Q" (*p) : "r" (v) : "memory");	\
+				break;							\
+			case 2:								\
+				asm volatile ("stlrh %w1, %0"				\
+							  : "=Q" (*p) : "r" (v) : "memory");	\
+				break;							\
+			case 4:								\
+				asm volatile ("stlr %w1, %0"				\
+							  : "=Q" (*p) : "r" (v) : "memory");	\
+				break;							\
+			case 8:								\
+				asm volatile ("stlr %1, %0"				\
+							  : "=Q" (*p) : "r" (v) : "memory");	\
+				break;							\
+		}								\
+	} while (0)
 
 #define __smp_load_acquire(p)						\
-({									\
-	union { typeof(*p) __val; char __c[1]; } __u;			\
-	compiletime_assert_atomic_type(*p);				\
-	switch (sizeof(*p)) {						\
-	case 1:								\
-		asm volatile ("ldarb %w0, %1"				\
-			: "=r" (*(__u8 *)__u.__c)			\
-			: "Q" (*p) : "memory");				\
-		break;							\
-	case 2:								\
-		asm volatile ("ldarh %w0, %1"				\
-			: "=r" (*(__u16 *)__u.__c)			\
-			: "Q" (*p) : "memory");				\
-		break;							\
-	case 4:								\
-		asm volatile ("ldar %w0, %1"				\
-			: "=r" (*(__u32 *)__u.__c)			\
-			: "Q" (*p) : "memory");				\
-		break;							\
-	case 8:								\
-		asm volatile ("ldar %0, %1"				\
-			: "=r" (*(__u64 *)__u.__c)			\
-			: "Q" (*p) : "memory");				\
-		break;							\
-	}								\
-	__u.__val;							\
-})
+	({									\
+		union { typeof(*p) __val; char __c[1]; } __u;			\
+		compiletime_assert_atomic_type(*p);				\
+		switch (sizeof(*p)) {						\
+			case 1:								\
+				asm volatile ("ldarb %w0, %1"				\
+							  : "=r" (*(__u8 *)__u.__c)			\
+							  : "Q" (*p) : "memory");				\
+				break;							\
+			case 2:								\
+				asm volatile ("ldarh %w0, %1"				\
+							  : "=r" (*(__u16 *)__u.__c)			\
+							  : "Q" (*p) : "memory");				\
+				break;							\
+			case 4:								\
+				asm volatile ("ldar %w0, %1"				\
+							  : "=r" (*(__u32 *)__u.__c)			\
+							  : "Q" (*p) : "memory");				\
+				break;							\
+			case 8:								\
+				asm volatile ("ldar %0, %1"				\
+							  : "=r" (*(__u64 *)__u.__c)			\
+							  : "Q" (*p) : "memory");				\
+				break;							\
+		}								\
+		__u.__val;							\
+	})
 
 #define smp_cond_load_acquire(ptr, cond_expr)				\
-({									\
-	typeof(ptr) __PTR = (ptr);					\
-	typeof(*ptr) VAL;						\
-	for (;;) {							\
-		VAL = smp_load_acquire(__PTR);				\
-		if (cond_expr)						\
-			break;						\
-		__cmpwait_relaxed(__PTR, VAL);				\
-	}								\
-	VAL;								\
-})
+	({									\
+		typeof(ptr) __PTR = (ptr);					\
+		typeof(*ptr) VAL;						\
+		for (;;) {							\
+			VAL = smp_load_acquire(__PTR);				\
+			if (cond_expr)						\
+				break;						\
+			__cmpwait_relaxed(__PTR, VAL);				\
+		}								\
+		VAL;								\
+	})
 
 #include <asm-generic/barrier.h>
 

@@ -53,7 +53,8 @@ static void pxa3xx_mfp_resume(void)
 #define pxa3xx_mfp_resume	NULL
 #endif
 
-struct syscore_ops pxa3xx_mfp_syscore_ops = {
+struct syscore_ops pxa3xx_mfp_syscore_ops =
+{
 	.suspend	= pxa3xx_mfp_suspend,
 	.resume		= pxa3xx_mfp_resume,
 };

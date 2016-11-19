@@ -19,7 +19,7 @@
 #include <asm/barrier.h>
 
 #ifdef CONFIG_SMP
-#error not SMP safe
+	#error not SMP safe
 #endif
 
 #include <asm/atomic_defs.h>
@@ -77,7 +77,8 @@ static inline void atomic_dec(atomic_t *v)
 /*
  * 64-bit atomic ops
  */
-typedef struct {
+typedef struct
+{
 	long long counter;
 } atomic64_t;
 
@@ -88,8 +89,8 @@ static inline long long atomic64_read(const atomic64_t *v)
 	long long counter;
 
 	asm("ldd%I1 %M1,%0"
-	    : "=e"(counter)
-	    : "m"(v->counter));
+		: "=e"(counter)
+		: "m"(v->counter));
 
 	return counter;
 }
@@ -97,8 +98,8 @@ static inline long long atomic64_read(const atomic64_t *v)
 static inline void atomic64_set(atomic64_t *v, long long i)
 {
 	asm volatile("std%I0 %1,%M0"
-		     : "=m"(v->counter)
-		     : "e"(i));
+				 : "=m"(v->counter)
+				 : "e"(i));
 }
 
 static inline long long atomic64_inc_return(atomic64_t *v)
@@ -150,38 +151,48 @@ static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
 {
 	int c, old;
 	c = atomic_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		if (unlikely(c == (u)))
+		{
 			break;
+		}
+
 		old = atomic_cmpxchg((v), c, c + (a));
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return c;
 }
 
 #define ATOMIC_OP(op)							\
-static inline int atomic_fetch_##op(int i, atomic_t *v)			\
-{									\
-	return __atomic32_fetch_##op(i, &v->counter);			\
-}									\
-static inline void atomic_##op(int i, atomic_t *v)			\
-{									\
-	(void)__atomic32_fetch_##op(i, &v->counter);			\
-}									\
-									\
-static inline long long atomic64_fetch_##op(long long i, atomic64_t *v)	\
-{									\
-	return __atomic64_fetch_##op(i, &v->counter);			\
-}									\
-static inline void atomic64_##op(long long i, atomic64_t *v)		\
-{									\
-	(void)__atomic64_fetch_##op(i, &v->counter);			\
-}
+	static inline int atomic_fetch_##op(int i, atomic_t *v)			\
+	{									\
+		return __atomic32_fetch_##op(i, &v->counter);			\
+	}									\
+	static inline void atomic_##op(int i, atomic_t *v)			\
+	{									\
+		(void)__atomic32_fetch_##op(i, &v->counter);			\
+	}									\
+	\
+	static inline long long atomic64_fetch_##op(long long i, atomic64_t *v)	\
+	{									\
+		return __atomic64_fetch_##op(i, &v->counter);			\
+	}									\
+	static inline void atomic64_##op(long long i, atomic64_t *v)		\
+	{									\
+		(void)__atomic64_fetch_##op(i, &v->counter);			\
+	}
 
-ATOMIC_OP(or)
-ATOMIC_OP(and)
+ATOMIC_OP( or )
+ATOMIC_OP( and )
 ATOMIC_OP(xor)
 ATOMIC_OP(add)
 ATOMIC_OP(sub)

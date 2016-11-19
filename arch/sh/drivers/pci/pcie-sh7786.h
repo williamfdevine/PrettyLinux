@@ -290,7 +290,7 @@
 /*	PCIEPCCTLR	*/
 #define SH4A_PCIEPCCTLR		(0x020180)		/* R/W - 0x0000 0000 32 */
 
-											// Rev1.18
+// Rev1.18
 /*	PCIELAR0	*/
 #define	SH4A_PCIELAR0		(0x020200)	/* R/W R/W 0x0000 0000 32 */
 #define		BITS_LARn	(20)

@@ -1,7 +1,7 @@
 #ifndef _S390_SHMBUF_H
 #define _S390_SHMBUF_H
 
-/* 
+/*
  * The shmid64_ds structure for S/390 architecture.
  * Note extra padding because this structure is passed back and forth
  * between kernel and user space.
@@ -11,7 +11,8 @@
  * - 2 miscellaneous 32-bit values
  */
 
-struct shmid64_ds {
+struct shmid64_ds
+{
 	struct ipc64_perm	shm_perm;	/* operation perms */
 	size_t			shm_segsz;	/* size of segment (bytes) */
 	__kernel_time_t		shm_atime;	/* last attach time */
@@ -33,7 +34,8 @@ struct shmid64_ds {
 	unsigned long		__unused5;
 };
 
-struct shminfo64 {
+struct shminfo64
+{
 	unsigned long	shmmax;
 	unsigned long	shmmin;
 	unsigned long	shmmni;

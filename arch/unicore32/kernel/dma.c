@@ -22,7 +22,8 @@
 #include <mach/hardware.h>
 #include <mach/dma.h>
 
-struct dma_channel {
+struct dma_channel
+{
 	char *name;
 	puv3_dma_prio prio;
 	void (*irq_handler)(int, void *);
@@ -33,39 +34,49 @@ struct dma_channel {
 static struct dma_channel dma_channels[MAX_DMA_CHANNELS];
 
 int puv3_request_dma(char *name, puv3_dma_prio prio,
-			 void (*irq_handler)(int, void *),
-			 void (*err_handler)(int, void *),
-			 void *data)
+					 void (*irq_handler)(int, void *),
+					 void (*err_handler)(int, void *),
+					 void *data)
 {
 	unsigned long flags;
 	int i, found = 0;
 
 	/* basic sanity checks */
 	if (!name)
+	{
 		return -EINVAL;
+	}
 
 	local_irq_save(flags);
 
-	do {
+	do
+	{
 		/* try grabbing a DMA channel with the requested priority */
-		for (i = 0; i < MAX_DMA_CHANNELS; i++) {
+		for (i = 0; i < MAX_DMA_CHANNELS; i++)
+		{
 			if ((dma_channels[i].prio == prio) &&
-			    !dma_channels[i].name) {
+				!dma_channels[i].name)
+			{
 				found = 1;
 				break;
 			}
 		}
-		/* if requested prio group is full, try a hier priority */
-	} while (!found && prio--);
 
-	if (found) {
+		/* if requested prio group is full, try a hier priority */
+	}
+	while (!found && prio--);
+
+	if (found)
+	{
 		dma_channels[i].name = name;
 		dma_channels[i].irq_handler = irq_handler;
 		dma_channels[i].err_handler = err_handler;
 		dma_channels[i].data = data;
-	} else {
+	}
+	else
+	{
 		printk(KERN_WARNING "No more available DMA channels for %s\n",
-				name);
+			   name);
 		i = -ENODEV;
 	}
 
@@ -78,10 +89,11 @@ void puv3_free_dma(int dma_ch)
 {
 	unsigned long flags;
 
-	if (!dma_channels[dma_ch].name) {
+	if (!dma_channels[dma_ch].name)
+	{
 		printk(KERN_CRIT
-			"%s: trying to free channel %d which is already freed\n",
-			__func__, dma_ch);
+			   "%s: trying to free channel %d which is already freed\n",
+			   __func__, dma_ch);
 		return;
 	}
 
@@ -97,26 +109,33 @@ static irqreturn_t dma_irq_handler(int irq, void *dev_id)
 	int i, dint;
 
 	dint = readl(DMAC_ITCSR);
-	for (i = 0; i < MAX_DMA_CHANNELS; i++) {
-		if (dint & DMAC_CHANNEL(i)) {
+
+	for (i = 0; i < MAX_DMA_CHANNELS; i++)
+	{
+		if (dint & DMAC_CHANNEL(i))
+		{
 			struct dma_channel *channel = &dma_channels[i];
 
 			/* Clear TC interrupt of channel i */
 			writel(DMAC_CHANNEL(i), DMAC_ITCCR);
 			writel(0, DMAC_ITCCR);
 
-			if (channel->name && channel->irq_handler) {
+			if (channel->name && channel->irq_handler)
+			{
 				channel->irq_handler(i, channel->data);
-			} else {
+			}
+			else
+			{
 				/*
 				 * IRQ for an unregistered DMA channel:
 				 * let's clear the interrupts and disable it.
 				 */
 				printk(KERN_WARNING "spurious IRQ for"
-						" DMA channel %d\n", i);
+					   " DMA channel %d\n", i);
 			}
 		}
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -125,26 +144,33 @@ static irqreturn_t dma_err_handler(int irq, void *dev_id)
 	int i, dint;
 
 	dint = readl(DMAC_IESR);
-	for (i = 0; i < MAX_DMA_CHANNELS; i++) {
-		if (dint & DMAC_CHANNEL(i)) {
+
+	for (i = 0; i < MAX_DMA_CHANNELS; i++)
+	{
+		if (dint & DMAC_CHANNEL(i))
+		{
 			struct dma_channel *channel = &dma_channels[i];
 
 			/* Clear Err interrupt of channel i */
 			writel(DMAC_CHANNEL(i), DMAC_IECR);
 			writel(0, DMAC_IECR);
 
-			if (channel->name && channel->err_handler) {
+			if (channel->name && channel->err_handler)
+			{
 				channel->err_handler(i, channel->data);
-			} else {
+			}
+			else
+			{
 				/*
 				 * IRQ for an unregistered DMA channel:
 				 * let's clear the interrupts and disable it.
 				 */
 				printk(KERN_WARNING "spurious IRQ for"
-						" DMA channel %d\n", i);
+					   " DMA channel %d\n", i);
 			}
 		}
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -157,20 +183,25 @@ int __init puv3_init_dma(void)
 	 * ch 2 - 3  <--> (1) DMA_PRIO_MEDIUM
 	 * ch 4 - 5  <--> (2) DMA_PRIO_LOW
 	 */
-	for (i = 0; i < MAX_DMA_CHANNELS; i++) {
+	for (i = 0; i < MAX_DMA_CHANNELS; i++)
+	{
 		puv3_stop_dma(i);
 		dma_channels[i].name = NULL;
 		dma_channels[i].prio = min((i & 0x7) >> 1, DMA_PRIO_LOW);
 	}
 
 	ret = request_irq(IRQ_DMA, dma_irq_handler, 0, "DMA", NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_CRIT "Can't register IRQ for DMA\n");
 		return ret;
 	}
 
 	ret = request_irq(IRQ_DMAERR, dma_err_handler, 0, "DMAERR", NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_CRIT "Can't register IRQ for DMAERR\n");
 		free_irq(IRQ_DMA, "DMA");
 		return ret;

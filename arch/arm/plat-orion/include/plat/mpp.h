@@ -20,15 +20,15 @@
    specific variant. */
 
 #define GENERIC_MPP(_num, _sel, _in, _out) ( \
-	/* MPP number */		((_num) & 0xff) | \
-	/* MPP select value */		(((_sel) & 0xf) << 8) | \
-	/* may be input signal */	((!!(_in)) << 12) | \
-	/* may be output signal */	((!!(_out)) << 13))
+		/* MPP number */		((_num) & 0xff) | \
+		/* MPP select value */		(((_sel) & 0xf) << 8) | \
+		/* may be input signal */	((!!(_in)) << 12) | \
+		/* may be output signal */	((!!(_out)) << 13))
 
 #define MPP_INPUT_MASK		GENERIC_MPP(0, 0x0, 1, 0)
 #define MPP_OUTPUT_MASK		GENERIC_MPP(0, 0x0, 0, 1)
 
 void __init orion_mpp_conf(unsigned int *mpp_list, unsigned int variant_mask,
-			   unsigned int mpp_max, void __iomem *dev_bus);
+						   unsigned int mpp_max, void __iomem *dev_bus);
 
 #endif

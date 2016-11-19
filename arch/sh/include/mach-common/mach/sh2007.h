@@ -95,13 +95,13 @@
 #define TEHB5		3
 
 #define CS5BCR_D	((IWW5<<28)|(IWRWD5<<24)|(IWRWS5<<20)|		\
-			(IWRRD5<<16)|(IWRRS5<<12)|(BST5<<10)|		\
-			(SZ5<<8)|(RDSPL5<<7)|(BW5<<4)|(MPX5<<3)|TYPE5)
+					 (IWRRD5<<16)|(IWRRS5<<12)|(BST5<<10)|		\
+					 (SZ5<<8)|(RDSPL5<<7)|(BW5<<4)|(MPX5<<3)|TYPE5)
 #define CS5WCR_D	((ADS5<<28)|(ADH5<<24)|(RDS5<<20)|	\
-			(RDH5<<16)|(WTS5<<12)|(WTH5<<8)|(BSH5<<4)|IW5)
+					 (RDH5<<16)|(WTS5<<12)|(WTH5<<8)|(BSH5<<4)|IW5)
 #define CS5PCR_D	((SAA5<<28)|(SAB5<<24)|(PCWA5<<22)|		\
-			(PCWB5<<20)|(PCIW5<<16)|(TEDA5<<12)|		\
-			(TEDB5<<8)|(TEHA5<<4)|TEHB5)
+					 (PCWB5<<20)|(PCIW5<<16)|(TEDA5<<12)|		\
+					 (TEDB5<<8)|(TEHA5<<4)|TEHB5)
 
 #define SMC0_BASE       0xb0800000      /* eth0 */
 #define SMC1_BASE       0xb0900000      /* eth1 */

@@ -27,10 +27,10 @@
 	(pmd_val(*(pmdp)) = ((unsigned long)page_to_virt(page)))
 #define pmd_pgtable(pmd) pmd_page(pmd)
 
-static inline pgd_t*
+static inline pgd_t *
 pgd_alloc(struct mm_struct *mm)
 {
-	return (pgd_t*) __get_free_pages(GFP_KERNEL | __GFP_ZERO, PGD_ORDER);
+	return (pgd_t *) __get_free_pages(GFP_KERNEL | __GFP_ZERO, PGD_ORDER);
 }
 
 static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
@@ -39,33 +39,47 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 }
 
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					 unsigned long address)
+		unsigned long address)
 {
 	pte_t *ptep;
 	int i;
 
 	ptep = (pte_t *)__get_free_page(GFP_KERNEL);
+
 	if (!ptep)
+	{
 		return NULL;
+	}
+
 	for (i = 0; i < 1024; i++)
+	{
 		pte_clear(NULL, 0, ptep + i);
+	}
+
 	return ptep;
 }
 
 static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
-					unsigned long addr)
+									  unsigned long addr)
 {
 	pte_t *pte;
 	struct page *page;
 
 	pte = pte_alloc_one_kernel(mm, addr);
+
 	if (!pte)
+	{
 		return NULL;
+	}
+
 	page = virt_to_page(pte);
-	if (!pgtable_page_ctor(page)) {
+
+	if (!pgtable_page_ctor(page))
+	{
 		__free_page(page);
 		return NULL;
 	}
+
 	return page;
 }
 

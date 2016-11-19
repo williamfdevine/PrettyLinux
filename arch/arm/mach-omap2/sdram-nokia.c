@@ -22,7 +22,8 @@
 #include "sdrc.h"
 
 /* In picoseconds, except for tREF (ns), tXP, tCKE, tWTR (clks) */
-struct sdram_timings {
+struct sdram_timings
+{
 	u32 casl;
 	u32 tDAL;
 	u32 tDPL;
@@ -41,7 +42,8 @@ struct sdram_timings {
 	u32 tWTR;
 };
 
-static const struct sdram_timings nokia_97dot6mhz_timings[] = {
+static const struct sdram_timings nokia_97dot6mhz_timings[] =
+{
 	{
 		.casl = 3,
 		.tDAL = 30725,
@@ -62,7 +64,8 @@ static const struct sdram_timings nokia_97dot6mhz_timings[] = {
 	},
 };
 
-static const struct sdram_timings nokia_166mhz_timings[] = {
+static const struct sdram_timings nokia_166mhz_timings[] =
+{
 	{
 		.casl = 3,
 		.tDAL = 33000,
@@ -83,7 +86,8 @@ static const struct sdram_timings nokia_166mhz_timings[] = {
 	},
 };
 
-static const struct sdram_timings nokia_195dot2mhz_timings[] = {
+static const struct sdram_timings nokia_195dot2mhz_timings[] =
+{
 	{
 		.casl = 3,
 		.tDAL = 30725,
@@ -104,7 +108,8 @@ static const struct sdram_timings nokia_195dot2mhz_timings[] = {
 	},
 };
 
-static const struct sdram_timings nokia_200mhz_timings[] = {
+static const struct sdram_timings nokia_200mhz_timings[] =
+{
 	{
 		.casl = 3,
 		.tDAL = 30000,
@@ -125,10 +130,12 @@ static const struct sdram_timings nokia_200mhz_timings[] = {
 	},
 };
 
-static const struct {
+static const struct
+{
 	long rate;
 	struct sdram_timings const *data;
-} nokia_timings[] = {
+} nokia_timings[] =
+{
 	{ 83000000, nokia_166mhz_timings },
 	{ 97600000, nokia_97dot6mhz_timings },
 	{ 100000000, nokia_200mhz_timings },
@@ -156,24 +163,28 @@ static unsigned int sdrc_ps_to_ticks(unsigned int time_ps, long rate)
 #undef DEBUG
 #ifdef DEBUG
 static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
-				int ticks, long rate, const char *name)
+								  int ticks, long rate, const char *name)
 #else
 static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
-			       int ticks)
+								  int ticks)
 #endif
 {
 	int mask, nr_bits;
 
 	nr_bits = end_bit - st_bit + 1;
+
 	if (ticks >= 1 << nr_bits)
+	{
 		return -1;
+	}
+
 	mask = (1 << nr_bits) - 1;
 	*regval &= ~(mask << st_bit);
 	*regval |= ticks << st_bit;
 #ifdef DEBUG
 	printk(KERN_INFO "SDRC %s: %i ticks %i ns\n", name, ticks,
-			(unsigned int)sdrc_get_fclk_period(rate) * ticks /
-			1000);
+		   (unsigned int)sdrc_get_fclk_period(rate) * ticks /
+		   1000);
 #endif
 
 	return 0;
@@ -182,34 +193,38 @@ static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
 #ifdef DEBUG
 #define SDRC_SET_ONE(reg, st, end, field, rate) \
 	if (set_sdrc_timing_regval((reg), (st), (end), \
-			memory_timings->field, (rate), #field) < 0) \
+							   memory_timings->field, (rate), #field) < 0) \
 		err = -1;
 #else
 #define SDRC_SET_ONE(reg, st, end, field, rate) \
 	if (set_sdrc_timing_regval((reg), (st), (end), \
-			memory_timings->field) < 0) \
+							   memory_timings->field) < 0) \
 		err = -1;
 #endif
 
 #ifdef DEBUG
 static int set_sdrc_timing_regval_ps(u32 *regval, int st_bit, int end_bit,
-				int time, long rate, const char *name)
+									 int time, long rate, const char *name)
 #else
 static int set_sdrc_timing_regval_ps(u32 *regval, int st_bit, int end_bit,
-				int time, long rate)
+									 int time, long rate)
 #endif
 {
 	int ticks, ret;
 	ret = 0;
 
 	if (time == 0)
+	{
 		ticks = 0;
+	}
 	else
+	{
 		ticks = sdrc_ps_to_ticks(time, rate);
+	}
 
 #ifdef DEBUG
 	ret = set_sdrc_timing_regval(regval, st_bit, end_bit, ticks,
-				     rate, name);
+								 rate, name);
 #else
 	ret = set_sdrc_timing_regval(regval, st_bit, end_bit, ticks);
 #endif
@@ -220,19 +235,19 @@ static int set_sdrc_timing_regval_ps(u32 *regval, int st_bit, int end_bit,
 #ifdef DEBUG
 #define SDRC_SET_ONE_PS(reg, st, end, field, rate) \
 	if (set_sdrc_timing_regval_ps((reg), (st), (end), \
-			memory_timings->field, \
-			(rate), #field) < 0) \
+								  memory_timings->field, \
+								  (rate), #field) < 0) \
 		err = -1;
 
 #else
 #define SDRC_SET_ONE_PS(reg, st, end, field, rate) \
 	if (set_sdrc_timing_regval_ps((reg), (st), (end), \
-			memory_timings->field, (rate)) < 0) \
+								  memory_timings->field, (rate)) < 0) \
 		err = -1;
 #endif
 
 static int sdrc_timings(int id, long rate,
-			const struct sdram_timings *memory_timings)
+						const struct sdram_timings *memory_timings)
 {
 	u32 ticks_per_ms;
 	u32 rfr, l;
@@ -258,10 +273,15 @@ static int sdrc_timings(int id, long rate,
 
 	ticks_per_ms = l3_rate;
 	rfr = memory_timings[0].tREF * ticks_per_ms / 1000000;
+
 	if (rfr > 65535 + 50)
+	{
 		rfr = 65535;
+	}
 	else
+	{
 		rfr -= 50;
+	}
 
 #ifdef DEBUG
 	printk(KERN_INFO "SDRC tREF: %i ticks\n", rfr);
@@ -286,12 +306,14 @@ struct omap_sdrc_params *nokia_get_sdram_timings(void)
 	int err = 0;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(nokia_timings); i++) {
+	for (i = 0; i < ARRAY_SIZE(nokia_timings); i++)
+	{
 		err |= sdrc_timings(i, nokia_timings[i].rate,
-				       nokia_timings[i].data);
+							nokia_timings[i].data);
+
 		if (err)
 			pr_err("%s: error with rate %ld: %d\n", __func__,
-			       nokia_timings[i].rate, err);
+				   nokia_timings[i].rate, err);
 	}
 
 	return err ? NULL : nokia_sdrc_params;

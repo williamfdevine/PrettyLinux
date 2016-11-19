@@ -19,7 +19,8 @@
 #ifndef __ASM_OPENRISC_CPUINFO_H
 #define __ASM_OPENRISC_CPUINFO_H
 
-struct cpuinfo {
+struct cpuinfo
+{
 	u32 clock_frequency;
 
 	u32 icache_size;

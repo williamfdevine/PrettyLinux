@@ -10,7 +10,8 @@
 #include <linux/irq.h>
 #include <asm/blackfin.h>
 
-u8 sec_int_priority[] = {
+u8 sec_int_priority[] =
+{
 	255,	/* IRQ_SEC_ERR */
 	255,	/* IRQ_CGU_EVT */
 	254,	/* IRQ_WATCH0 */

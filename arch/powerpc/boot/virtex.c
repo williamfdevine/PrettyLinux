@@ -33,24 +33,38 @@ static int virtex_ns16550_console_init(void *devp)
 	int n;
 
 	if (dt_get_virtual_reg(devp, (void **)&reg_base, 1) < 1)
+	{
 		return -1;
+	}
 
 	n = getprop(devp, "reg-offset", &reg_offset, sizeof(reg_offset));
+
 	if (n == sizeof(reg_offset))
+	{
 		reg_base += reg_offset;
+	}
 
 	n = getprop(devp, "reg-shift", &reg_shift, sizeof(reg_shift));
+
 	if (n != sizeof(reg_shift))
+	{
 		reg_shift = 0;
+	}
 
 	n = getprop(devp, "current-speed", (void *)&spd, sizeof(spd));
+
 	if (n != sizeof(spd))
+	{
 		spd = 9600;
+	}
 
 	/* should there be a default clock rate?*/
 	n = getprop(devp, "clock-frequency", (void *)&clk, sizeof(clk));
+
 	if (n != sizeof(clk))
+	{
 		return -1;
+	}
 
 	divisor = clk / (16 * spd);
 
@@ -69,7 +83,7 @@ static int virtex_ns16550_console_init(void *devp)
 
 	/* Clear transmitter and receiver */
 	out_8(reg_base + (UART_FCR << reg_shift),
-				UART_FCR_CLEAR_XMIT | UART_FCR_CLEAR_RCVR);
+		  UART_FCR_CLEAR_XMIT | UART_FCR_CLEAR_RCVR);
 	return 0;
 }
 
@@ -83,18 +97,28 @@ int platform_specific_init(void)
 	char path[MAX_PATH_LEN];
 
 	devp = finddevice("/chosen");
-	if (devp == NULL)
-		return -1;
 
-	if (getprop(devp, "linux,stdout-path", path, MAX_PATH_LEN) > 0) {
+	if (devp == NULL)
+	{
+		return -1;
+	}
+
+	if (getprop(devp, "linux,stdout-path", path, MAX_PATH_LEN) > 0)
+	{
 		devp = finddevice(path);
+
 		if (devp == NULL)
+		{
 			return -1;
+		}
 
 		if ((getprop(devp, "device_type", devtype, sizeof(devtype)) > 0)
-				&& !strcmp(devtype, "serial")
-				&& (dt_is_compatible(devp, "ns16550")))
-				virtex_ns16550_console_init(devp);
+			&& !strcmp(devtype, "serial")
+			&& (dt_is_compatible(devp, "ns16550")))
+		{
+			virtex_ns16550_console_init(devp);
+		}
 	}
+
 	return 0;
 }

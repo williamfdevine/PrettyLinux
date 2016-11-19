@@ -45,7 +45,8 @@ static floatx80 floatx80_rdv(struct roundingData *roundData, floatx80 rFn, float
 	return floatx80_div(roundData, rFm, rFn);
 }
 
-static floatx80 (*const dyadic_extended[16])(struct roundingData*, floatx80 rFn, floatx80 rFm) = {
+static floatx80 (*const dyadic_extended[16])(struct roundingData *, floatx80 rFn, floatx80 rFm) =
+{
 	[ADF_CODE >> 20] = floatx80_add,
 	[MUF_CODE >> 20] = floatx80_mul,
 	[SUF_CODE >> 20] = floatx80_sub,
@@ -77,7 +78,8 @@ static floatx80 floatx80_abs(struct roundingData *roundData, floatx80 rFm)
 	return rFm;
 }
 
-static floatx80 (*const monadic_extended[16])(struct roundingData*, floatx80 rFm) = {
+static floatx80 (*const monadic_extended[16])(struct roundingData *, floatx80 rFm) =
+{
 	[MVF_CODE >> 20] = floatx80_mvf,
 	[MNF_CODE >> 20] = floatx80_mnf,
 	[ABS_CODE >> 20] = floatx80_abs,
@@ -87,65 +89,81 @@ static floatx80 (*const monadic_extended[16])(struct roundingData*, floatx80 rFm
 	[NRM_CODE >> 20] = floatx80_mvf,
 };
 
-unsigned int ExtendedCPDO(struct roundingData *roundData, const unsigned int opcode, FPREG * rFd)
+unsigned int ExtendedCPDO(struct roundingData *roundData, const unsigned int opcode, FPREG *rFd)
 {
 	FPA11 *fpa11 = GET_FPA11();
 	floatx80 rFm;
 	unsigned int Fm, opc_mask_shift;
 
 	Fm = getFm(opcode);
-	if (CONSTANT_FM(opcode)) {
+
+	if (CONSTANT_FM(opcode))
+	{
 		rFm = getExtendedConstant(Fm);
-	} else {
-		switch (fpa11->fType[Fm]) {
-		case typeSingle:
-			rFm = float32_to_floatx80(fpa11->fpreg[Fm].fSingle);
-			break;
+	}
+	else
+	{
+		switch (fpa11->fType[Fm])
+		{
+			case typeSingle:
+				rFm = float32_to_floatx80(fpa11->fpreg[Fm].fSingle);
+				break;
 
-		case typeDouble:
-			rFm = float64_to_floatx80(fpa11->fpreg[Fm].fDouble);
-			break;
+			case typeDouble:
+				rFm = float64_to_floatx80(fpa11->fpreg[Fm].fDouble);
+				break;
 
-		case typeExtended:
-			rFm = fpa11->fpreg[Fm].fExtended;
-			break;
+			case typeExtended:
+				rFm = fpa11->fpreg[Fm].fExtended;
+				break;
 
-		default:
-			return 0;
+			default:
+				return 0;
 		}
 	}
 
 	opc_mask_shift = (opcode & MASK_ARITHMETIC_OPCODE) >> 20;
-	if (!MONADIC_INSTRUCTION(opcode)) {
+
+	if (!MONADIC_INSTRUCTION(opcode))
+	{
 		unsigned int Fn = getFn(opcode);
 		floatx80 rFn;
 
-		switch (fpa11->fType[Fn]) {
-		case typeSingle:
-			rFn = float32_to_floatx80(fpa11->fpreg[Fn].fSingle);
-			break;
+		switch (fpa11->fType[Fn])
+		{
+			case typeSingle:
+				rFn = float32_to_floatx80(fpa11->fpreg[Fn].fSingle);
+				break;
 
-		case typeDouble:
-			rFn = float64_to_floatx80(fpa11->fpreg[Fn].fDouble);
-			break;
+			case typeDouble:
+				rFn = float64_to_floatx80(fpa11->fpreg[Fn].fDouble);
+				break;
 
-		case typeExtended:
-			rFn = fpa11->fpreg[Fn].fExtended;
-			break;
+			case typeExtended:
+				rFn = fpa11->fpreg[Fn].fExtended;
+				break;
 
-		default:
-			return 0;
+			default:
+				return 0;
 		}
 
-		if (dyadic_extended[opc_mask_shift]) {
+		if (dyadic_extended[opc_mask_shift])
+		{
 			rFd->fExtended = dyadic_extended[opc_mask_shift](roundData, rFn, rFm);
-		} else {
+		}
+		else
+		{
 			return 0;
 		}
-	} else {
-		if (monadic_extended[opc_mask_shift]) {
+	}
+	else
+	{
+		if (monadic_extended[opc_mask_shift])
+		{
 			rFd->fExtended = monadic_extended[opc_mask_shift](roundData, rFm);
-		} else {
+		}
+		else
+		{
 			return 0;
 		}
 	}

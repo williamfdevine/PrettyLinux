@@ -68,14 +68,16 @@ static void bigsmp_init_apic_ldr(void)
 static void bigsmp_setup_apic_routing(void)
 {
 	printk(KERN_INFO
-		"Enabling APIC mode:  Physflat.  Using %d I/O APICs\n",
-		nr_ioapics);
+		   "Enabling APIC mode:  Physflat.  Using %d I/O APICs\n",
+		   nr_ioapics);
 }
 
 static int bigsmp_cpu_present_to_apicid(int mps_cpu)
 {
 	if (mps_cpu < nr_cpu_ids)
+	{
 		return (int) per_cpu(x86_bios_cpu_apicid, mps_cpu);
+	}
 
 	return BAD_APICID;
 }
@@ -117,15 +119,20 @@ static int hp_ht_bigsmp(const struct dmi_system_id *d)
 }
 
 
-static const struct dmi_system_id bigsmp_dmi_table[] = {
-	{ hp_ht_bigsmp, "HP ProLiant DL760 G2",
-		{	DMI_MATCH(DMI_BIOS_VENDOR, "HP"),
+static const struct dmi_system_id bigsmp_dmi_table[] =
+{
+	{
+		hp_ht_bigsmp, "HP ProLiant DL760 G2",
+		{
+			DMI_MATCH(DMI_BIOS_VENDOR, "HP"),
 			DMI_MATCH(DMI_BIOS_VERSION, "P44-"),
 		}
 	},
 
-	{ hp_ht_bigsmp, "HP ProLiant DL740",
-		{	DMI_MATCH(DMI_BIOS_VENDOR, "HP"),
+	{
+		hp_ht_bigsmp, "HP ProLiant DL740",
+		{
+			DMI_MATCH(DMI_BIOS_VENDOR, "HP"),
 			DMI_MATCH(DMI_BIOS_VERSION, "P47-"),
 		}
 	},
@@ -135,14 +142,19 @@ static const struct dmi_system_id bigsmp_dmi_table[] = {
 static int probe_bigsmp(void)
 {
 	if (def_to_bigsmp)
+	{
 		dmi_bigsmp = 1;
+	}
 	else
+	{
 		dmi_check_system(bigsmp_dmi_table);
+	}
 
 	return dmi_bigsmp;
 }
 
-static struct apic apic_bigsmp __ro_after_init = {
+static struct apic apic_bigsmp __ro_after_init =
+{
 
 	.name				= "bigsmp",
 	.probe				= probe_bigsmp,
@@ -199,14 +211,20 @@ void __init generic_bigsmp_probe(void)
 	unsigned int cpu;
 
 	if (!probe_bigsmp())
+	{
 		return;
+	}
 
 	apic = &apic_bigsmp;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		if (early_per_cpu(x86_cpu_to_logical_apicid,
-				  cpu) == BAD_APICID)
+						  cpu) == BAD_APICID)
+		{
 			continue;
+		}
+
 		early_per_cpu(x86_cpu_to_logical_apicid, cpu) =
 			bigsmp_early_logical_apicid(cpu);
 	}

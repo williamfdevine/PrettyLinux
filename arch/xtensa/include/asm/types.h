@@ -13,11 +13,11 @@
 #include <uapi/asm/types.h>
 
 #ifndef __ASSEMBLY__
-/*
- * These aren't exported outside the kernel to avoid name space clashes
- */
+	/*
+	* These aren't exported outside the kernel to avoid name space clashes
+	*/
 
-#define BITS_PER_LONG 32
+	#define BITS_PER_LONG 32
 
 #endif
 #endif	/* _XTENSA_TYPES_H */

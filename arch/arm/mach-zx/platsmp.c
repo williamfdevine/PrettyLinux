@@ -50,7 +50,9 @@ void __init zx_smp_prepare_cpus(unsigned int max_cpus)
 
 	base = scu_a9_get_base();
 	scu_base = ioremap(base, SZ_256);
-	if (!scu_base) {
+
+	if (!scu_base)
+	{
 		pr_err("%s: failed to map scu\n", __func__);
 		return;
 	}
@@ -58,13 +60,17 @@ void __init zx_smp_prepare_cpus(unsigned int max_cpus)
 	scu_enable(scu_base);
 
 	np = of_find_compatible_node(NULL, NULL, "zte,sysctrl");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("%s: failed to find sysctrl node\n", __func__);
 		return;
 	}
 
 	aonsysctrl_base = of_iomap(np, 0);
-	if (!aonsysctrl_base) {
+
+	if (!aonsysctrl_base)
+	{
 		pr_err("%s: failed to map aonsysctrl\n", __func__);
 		of_node_put(np);
 		return;
@@ -77,7 +83,7 @@ void __init zx_smp_prepare_cpus(unsigned int max_cpus)
 	 * secondary CPU branches to this address.
 	 */
 	__raw_writel(virt_to_phys(zx_secondary_startup),
-		     aonsysctrl_base + AON_SYS_CTRL_RESERVED1);
+				 aonsysctrl_base + AON_SYS_CTRL_RESERVED1);
 
 	iounmap(aonsysctrl_base);
 	of_node_put(np);
@@ -102,7 +108,8 @@ static int zx_boot_secondary(unsigned int cpu, struct task_struct *idle)
 {
 	static bool first_boot = true;
 
-	if (first_boot) {
+	if (first_boot)
+	{
 		arch_send_wakeup_ipi_mask(cpumask_of(cpu));
 		first_boot = false;
 		return 0;
@@ -116,7 +123,9 @@ static int zx_boot_secondary(unsigned int cpu, struct task_struct *idle)
 
 	/* Wait for power on ack */
 	while (readl_relaxed(pcu_base + PCU_CPU1_ST) & 0x4)
+	{
 		cpu_relax();
+	}
 
 	/* Swap back the mapping of IRAM and IROM */
 	writel_relaxed(0x0, matrix_base + BUS_MATRIX_REMAP_CONFIG);
@@ -131,19 +140,19 @@ static inline void cpu_enter_lowpower(void)
 
 	asm volatile(
 		"mcr	p15, 0, %1, c7, c5, 0\n"
-	"	mcr	p15, 0, %1, c7, c10, 4\n"
-	/*
-	 * Turn off coherency
-	 */
-	"	mrc	p15, 0, %0, c1, c0, 1\n"
-	"	bic	%0, %0, %3\n"
-	"	mcr	p15, 0, %0, c1, c0, 1\n"
-	"	mrc	p15, 0, %0, c1, c0, 0\n"
-	"	bic	%0, %0, %2\n"
-	"	mcr	p15, 0, %0, c1, c0, 0\n"
-	  : "=&r" (v)
-	  : "r" (0), "Ir" (CR_C), "Ir" (0x40)
-	  : "cc");
+		"	mcr	p15, 0, %1, c7, c10, 4\n"
+		/*
+		 * Turn off coherency
+		 */
+		"	mrc	p15, 0, %0, c1, c0, 1\n"
+		"	bic	%0, %0, %3\n"
+		"	mcr	p15, 0, %0, c1, c0, 1\n"
+		"	mrc	p15, 0, %0, c1, c0, 0\n"
+		"	bic	%0, %0, %2\n"
+		"	mcr	p15, 0, %0, c1, c0, 0\n"
+		: "=&r" (v)
+		: "r" (0), "Ir" (CR_C), "Ir" (0x40)
+		: "cc");
 }
 
 static int zx_cpu_kill(unsigned int cpu)
@@ -152,12 +161,15 @@ static int zx_cpu_kill(unsigned int cpu)
 
 	writel_relaxed(0x2, pcu_base + PCU_CPU1_CTRL);
 
-	while ((readl_relaxed(pcu_base + PCU_CPU1_ST) & 0x3) != 0x0) {
-		if (time_after(jiffies, timeout)) {
+	while ((readl_relaxed(pcu_base + PCU_CPU1_ST) & 0x3) != 0x0)
+	{
+		if (time_after(jiffies, timeout))
+		{
 			pr_err("*** cpu1 poweroff timeout\n");
 			break;
 		}
 	}
+
 	return 1;
 }
 
@@ -167,7 +179,9 @@ static void zx_cpu_die(unsigned int cpu)
 	cpu_enter_lowpower();
 
 	while (1)
+	{
 		cpu_do_idle();
+	}
 }
 #endif
 
@@ -176,7 +190,8 @@ static void zx_secondary_init(unsigned int cpu)
 	scu_power_mode(scu_base, SCU_PM_NORMAL);
 }
 
-static const struct smp_operations zx_smp_ops __initconst = {
+static const struct smp_operations zx_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= zx_smp_prepare_cpus,
 	.smp_secondary_init	= zx_secondary_init,
 	.smp_boot_secondary	= zx_boot_secondary,

@@ -5,7 +5,8 @@
 
 static unsigned pc873xx_probelist[] = {0x398, 0x26e, 0};
 
-static char *pc873xx_names[] = {
+static char *pc873xx_names[] =
+{
 	"PC87303", "PC87306", "PC87312", "PC87332", "PC87334"
 };
 
@@ -43,22 +44,33 @@ int __init pc873xx_probe(void)
 {
 	int val, index = 0;
 
-	while ((base = pc873xx_probelist[index++])) {
+	while ((base = pc873xx_probelist[index++]))
+	{
 
 		if (request_region(base, 2, "Super IO PC873xx") == NULL)
+		{
 			continue;
+		}
 
 		val = pc873xx_read(base, REG_SID);
-		if ((val & 0xf0) == 0x10) {
+
+		if ((val & 0xf0) == 0x10)
+		{
 			model = PC87332;
 			break;
-		} else if ((val & 0xf8) == 0x70) {
+		}
+		else if ((val & 0xf8) == 0x70)
+		{
 			model = PC87306;
 			break;
-		} else if ((val & 0xf8) == 0x50) {
+		}
+		else if ((val & 0xf8) == 0x50)
+		{
 			model = PC87334;
 			break;
-		} else if ((val & 0xf8) == 0x40) {
+		}
+		else if ((val & 0xf8) == 0x40)
+		{
 			model = PC87303;
 			break;
 		}

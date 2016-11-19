@@ -23,7 +23,8 @@
 /* This is an NTP setting */
 #define	TICK_SIZE (tick_nsec / 1000)
 
-static struct irqaction bfin_timer_irq = {
+static struct irqaction bfin_timer_irq =
+{
 	.name = "Blackfin Timer Tick",
 };
 
@@ -35,8 +36,11 @@ void __init setup_system_timer0(void)
 
 	disable_gptimers(TIMER0bit);
 	set_gptimer_status(0, TIMER_STATUS_TRUN0);
+
 	while (get_gptimer_status(0) & TIMER_STATUS_TRUN0)
+	{
 		udelay(10);
+	}
 
 	set_gptimer_config(0, 0x59); /* IRQ enable, periodic, PWM_OUT, SCLKed, OUT PAD disabled */
 	set_gptimer_period(TIMER0_id, get_sclk() / HZ);
@@ -93,19 +97,25 @@ static u32 blackfin_gettimeoffset(void)
 #if defined(CONFIG_IPIPE)
 	clocks_per_jiffy = bfin_read_TIMER0_PERIOD();
 	offset = bfin_read_TIMER0_COUNTER() / \
-		(((clocks_per_jiffy + 1) * HZ) / USEC_PER_SEC);
+			 (((clocks_per_jiffy + 1) * HZ) / USEC_PER_SEC);
 
 	if ((get_gptimer_status(0) & TIMER_STATUS_TIMIL0) && offset < (100000 / HZ / 2))
+	{
 		offset += (USEC_PER_SEC / HZ);
+	}
+
 #else
 	clocks_per_jiffy = bfin_read_TPERIOD();
 	offset = (clocks_per_jiffy - bfin_read_TCOUNT()) / \
-		(((clocks_per_jiffy + 1) * HZ) / USEC_PER_SEC);
+			 (((clocks_per_jiffy + 1) * HZ) / USEC_PER_SEC);
 
 	/* Check if we just wrapped the counters and maybe missed a tick */
 	if ((bfin_read_ILAT() & (1 << IRQ_CORETMR))
 		&& (offset < (100000 / HZ / 2)))
+	{
 		offset += (USEC_PER_SEC / HZ);
+	}
+
 #endif
 	return offset;
 }
@@ -116,7 +126,7 @@ static u32 blackfin_gettimeoffset(void)
  * as well as call the "xtime_update()" routine every clocktick
  */
 #ifdef CONFIG_CORE_TIMER_IRQ_L1
-__attribute__((l1_text))
+	__attribute__((l1_text))
 #endif
 irqreturn_t timer_interrupt(int irq, void *dummy)
 {
@@ -146,14 +156,17 @@ void __init time_init(void)
 #endif
 
 #ifdef CONFIG_RTC_DRV_BFIN
+
 	/* [#2663] hack to filter junk RTC values that would cause
 	 * userspace to have to deal with time values greater than
 	 * 2^31 seconds (which uClibc cannot cope with yet)
 	 */
-	if ((bfin_read_RTC_STAT() & 0xC0000000) == 0xC0000000) {
+	if ((bfin_read_RTC_STAT() & 0xC0000000) == 0xC0000000)
+	{
 		printk(KERN_NOTICE "bfin-rtc: invalid date; resetting\n");
 		bfin_write_RTC_STAT(0);
 	}
+
 #endif
 
 	time_sched_init(timer_interrupt);

@@ -40,14 +40,15 @@ static void __init imx53_init_late(void)
 	imx53_pm_init();
 }
 
-static const char * const imx53_dt_board_compat[] __initconst = {
+static const char *const imx53_dt_board_compat[] __initconst =
+{
 	"fsl,imx53",
 	NULL
 };
 
 DT_MACHINE_START(IMX53_DT, "Freescale i.MX53 (Device Tree Support)")
-	.init_early	= imx53_init_early,
-	.init_machine	= imx53_dt_init,
+.init_early	= imx53_init_early,
+ .init_machine	= imx53_dt_init,
 	.init_late	= imx53_init_late,
-	.dt_compat	= imx53_dt_board_compat,
-MACHINE_END
+	  .dt_compat	= imx53_dt_board_compat,
+		MACHINE_END

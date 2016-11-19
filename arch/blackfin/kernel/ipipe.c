@@ -40,7 +40,7 @@ asmlinkage void asm_do_IRQ(unsigned int irq, struct pt_regs *regs);
 
 static void __ipipe_no_irqtail(void);
 
-unsigned long __ipipe_irq_tail_hook = (unsigned long)&__ipipe_no_irqtail;
+unsigned long __ipipe_irq_tail_hook = (unsigned long) &__ipipe_no_irqtail;
 EXPORT_SYMBOL(__ipipe_irq_tail_hook);
 
 unsigned long __ipipe_core_clock;
@@ -72,11 +72,11 @@ void __ipipe_enable_pipeline(void)
 
 	for (irq = 0; irq < NR_IRQS; ++irq)
 		ipipe_virtualize_irq(ipipe_root_domain,
-				     irq,
-				     (ipipe_irq_handler_t)&asm_do_IRQ,
-				     NULL,
-				     &__ipipe_ack_irq,
-				     IPIPE_HANDLE_MASK | IPIPE_PASS_MASK);
+							 irq,
+							 (ipipe_irq_handler_t)&asm_do_IRQ,
+							 NULL,
+							 &__ipipe_ack_irq,
+							 IPIPE_HANDLE_MASK | IPIPE_PASS_MASK);
 }
 
 /*
@@ -103,17 +103,26 @@ void __ipipe_handle_irq(unsigned irq, struct pt_regs *regs)
 	idesc = &this_domain->irqs[irq];
 
 	if (unlikely(test_bit(IPIPE_STICKY_FLAG, &idesc->control)))
+	{
 		head = &this_domain->p_link;
-	else {
+	}
+	else
+	{
 		head = __ipipe_pipeline.next;
 		next_domain = list_entry(head, struct ipipe_domain, p_link);
 		idesc = &next_domain->irqs[irq];
-		if (likely(test_bit(IPIPE_WIRED_FLAG, &idesc->control))) {
+
+		if (likely(test_bit(IPIPE_WIRED_FLAG, &idesc->control)))
+		{
 			if (!m_ack && idesc->acknowledge != NULL)
+			{
 				idesc->acknowledge(irq, irq_to_desc(irq));
+			}
+
 			if (test_bit(IPIPE_SYNCDEFER_FLAG, &p->status))
 				s = __test_and_set_bit(IPIPE_STALL_FLAG,
-						       &p->status);
+									   &p->status);
+
 			__ipipe_dispatch_wired(next_domain, irq);
 			goto out;
 		}
@@ -122,18 +131,28 @@ void __ipipe_handle_irq(unsigned irq, struct pt_regs *regs)
 	/* Ack the interrupt. */
 
 	pos = head;
-	while (pos != &__ipipe_pipeline) {
+
+	while (pos != &__ipipe_pipeline)
+	{
 		next_domain = list_entry(pos, struct ipipe_domain, p_link);
 		idesc = &next_domain->irqs[irq];
-		if (test_bit(IPIPE_HANDLE_FLAG, &idesc->control)) {
+
+		if (test_bit(IPIPE_HANDLE_FLAG, &idesc->control))
+		{
 			__ipipe_set_irq_pending(next_domain, irq);
-			if (!m_ack && idesc->acknowledge != NULL) {
+
+			if (!m_ack && idesc->acknowledge != NULL)
+			{
 				idesc->acknowledge(irq, irq_to_desc(irq));
 				m_ack = 1;
 			}
 		}
+
 		if (!test_bit(IPIPE_PASS_FLAG, &idesc->control))
+		{
 			break;
+		}
+
 		pos = next_domain->p_link.next;
 	}
 
@@ -146,7 +165,9 @@ void __ipipe_handle_irq(unsigned irq, struct pt_regs *regs)
 	 * additional root stage lock (blackfin-specific).
 	 */
 	if (test_bit(IPIPE_SYNCDEFER_FLAG, &p->status))
+	{
 		s = __test_and_set_bit(IPIPE_STALL_FLAG, &p->status);
+	}
 
 	/*
 	 * If the interrupt preempted the head domain, then do not
@@ -154,13 +175,18 @@ void __ipipe_handle_irq(unsigned irq, struct pt_regs *regs)
 	 * pending for it.
 	 */
 	if (test_bit(IPIPE_AHEAD_FLAG, &this_domain->flags) &&
-	    !__ipipe_ipending_p(ipipe_head_cpudom_ptr()))
+		!__ipipe_ipending_p(ipipe_head_cpudom_ptr()))
+	{
 		goto out;
+	}
 
 	__ipipe_walk_pipeline(head);
 out:
+
 	if (!s)
+	{
 		__clear_bit(IPIPE_STALL_FLAG, &p->status);
+	}
 }
 
 void __ipipe_enable_irqdesc(struct ipipe_domain *ipd, unsigned irq)
@@ -169,9 +195,12 @@ void __ipipe_enable_irqdesc(struct ipipe_domain *ipd, unsigned irq)
 	int prio = __ipipe_get_irq_priority(irq);
 
 	desc->depth = 0;
+
 	if (ipd != &ipipe_root &&
-	    atomic_inc_return(&__ipipe_irq_lvdepth[prio]) == 1)
+		atomic_inc_return(&__ipipe_irq_lvdepth[prio]) == 1)
+	{
 		__set_bit(prio, &__ipipe_irq_lvmask);
+	}
 }
 EXPORT_SYMBOL(__ipipe_enable_irqdesc);
 
@@ -180,8 +209,10 @@ void __ipipe_disable_irqdesc(struct ipipe_domain *ipd, unsigned irq)
 	int prio = __ipipe_get_irq_priority(irq);
 
 	if (ipd != &ipipe_root &&
-	    atomic_dec_and_test(&__ipipe_irq_lvdepth[prio]))
+		atomic_dec_and_test(&__ipipe_irq_lvdepth[prio]))
+	{
 		__clear_bit(prio, &__ipipe_irq_lvmask);
+	}
 }
 EXPORT_SYMBOL(__ipipe_disable_irqdesc);
 
@@ -211,8 +242,10 @@ asmlinkage int __ipipe_syscall_root(struct pt_regs *regs)
 	 */
 
 	if (!__ipipe_syscall_watched_p(current, regs->orig_p0) ||
-	    !__ipipe_event_monitored_p(IPIPE_EVENT_SYSCALL))
+		!__ipipe_event_monitored_p(IPIPE_EVENT_SYSCALL))
+	{
 		return 0;
+	}
 
 	ret = __ipipe_dispatch_event(IPIPE_EVENT_SYSCALL, regs);
 
@@ -222,17 +255,24 @@ asmlinkage int __ipipe_syscall_root(struct pt_regs *regs)
 	 * This is the end of the syscall path, so we may
 	 * safely assume a valid Linux task stack here.
 	 */
-	if (current->ipipe_flags & PF_EVTRET) {
+	if (current->ipipe_flags & PF_EVTRET)
+	{
 		current->ipipe_flags &= ~PF_EVTRET;
 		__ipipe_dispatch_event(IPIPE_EVENT_RETURN, regs);
 	}
 
 	if (!__ipipe_root_domain_p)
+	{
 		ret = -1;
-	else {
+	}
+	else
+	{
 		p = ipipe_root_cpudom_ptr();
+
 		if (__ipipe_ipending_p(p))
+		{
 			__ipipe_sync_pipeline();
+		}
 	}
 
 	hard_local_irq_enable();
@@ -265,10 +305,14 @@ int ipipe_trigger_irq(unsigned irq)
 	unsigned long flags;
 
 #ifdef CONFIG_IPIPE_DEBUG
+
 	if (irq >= IPIPE_NR_IRQS ||
-	    (ipipe_virtual_irq_p(irq)
-	     && !test_bit(irq - IPIPE_VIRQ_BASE, &__ipipe_virtual_irq_map)))
+		(ipipe_virtual_irq_p(irq)
+		 && !test_bit(irq - IPIPE_VIRQ_BASE, &__ipipe_virtual_irq_map)))
+	{
 		return -EINVAL;
+	}
+
 #endif
 
 	flags = hard_local_irq_save();
@@ -289,13 +333,18 @@ asmlinkage void __ipipe_sync_root(void)
 	flags = hard_local_irq_save();
 
 	if (irq_tail_hook)
+	{
 		irq_tail_hook();
+	}
 
 	clear_thread_flag(TIF_IRQ_SYNC);
 
 	p = ipipe_root_cpudom_ptr();
+
 	if (__ipipe_ipending_p(p))
+	{
 		__ipipe_sync_pipeline();
+	}
 
 	hard_local_irq_restore(flags);
 }
@@ -303,8 +352,10 @@ asmlinkage void __ipipe_sync_root(void)
 void ___ipipe_sync_pipeline(void)
 {
 	if (__ipipe_root_domain_p &&
-	    test_bit(IPIPE_SYNCDEFER_FLAG, &ipipe_root_cpudom_var(status)))
+		test_bit(IPIPE_SYNCDEFER_FLAG, &ipipe_root_cpudom_var(status)))
+	{
 		return;
+	}
 
 	__ipipe_sync_stage();
 }

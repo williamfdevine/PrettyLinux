@@ -52,19 +52,19 @@ static int ar7_irq_base;
 static void ar7_unmask_irq(struct irq_data *d)
 {
 	writel(1 << ((d->irq - ar7_irq_base) % 32),
-	       REG(ESR_OFFSET(d->irq - ar7_irq_base)));
+		   REG(ESR_OFFSET(d->irq - ar7_irq_base)));
 }
 
 static void ar7_mask_irq(struct irq_data *d)
 {
 	writel(1 << ((d->irq - ar7_irq_base) % 32),
-	       REG(ECR_OFFSET(d->irq - ar7_irq_base)));
+		   REG(ECR_OFFSET(d->irq - ar7_irq_base)));
 }
 
 static void ar7_ack_irq(struct irq_data *d)
 {
 	writel(1 << ((d->irq - ar7_irq_base) % 32),
-	       REG(CR_OFFSET(d->irq - ar7_irq_base)));
+		   REG(CR_OFFSET(d->irq - ar7_irq_base)));
 }
 
 static void ar7_unmask_sec_irq(struct irq_data *d)
@@ -82,21 +82,24 @@ static void ar7_ack_sec_irq(struct irq_data *d)
 	writel(1 << (d->irq - ar7_irq_base - 40), REG(SEC_CR_OFFSET));
 }
 
-static struct irq_chip ar7_irq_type = {
+static struct irq_chip ar7_irq_type =
+{
 	.name = "AR7",
 	.irq_unmask = ar7_unmask_irq,
 	.irq_mask = ar7_mask_irq,
 	.irq_ack = ar7_ack_irq
 };
 
-static struct irq_chip ar7_sec_irq_type = {
+static struct irq_chip ar7_sec_irq_type =
+{
 	.name = "AR7",
 	.irq_unmask = ar7_unmask_sec_irq,
 	.irq_mask = ar7_mask_sec_irq,
 	.irq_ack = ar7_ack_sec_irq,
 };
 
-static struct irqaction ar7_cascade_action = {
+static struct irqaction ar7_cascade_action =
+{
 	.handler = no_action,
 	.name = "AR7 cascade interrupt",
 	.flags = IRQF_NO_THREAD,
@@ -117,16 +120,18 @@ static void __init ar7_irq_init(int base)
 
 	ar7_irq_base = base;
 
-	for (i = 0; i < 40; i++) {
+	for (i = 0; i < 40; i++)
+	{
 		writel(i, REG(CHNL_OFFSET(i)));
 		/* Primary IRQ's */
 		irq_set_chip_and_handler(base + i, &ar7_irq_type,
-					 handle_level_irq);
+								 handle_level_irq);
+
 		/* Secondary IRQ's */
 		if (i < 32)
 			irq_set_chip_and_handler(base + i + 40,
-						 &ar7_sec_irq_type,
-						 handle_level_irq);
+									 &ar7_sec_irq_type,
+									 handle_level_irq);
 	}
 
 	setup_irq(2, &ar7_cascade_action);
@@ -147,7 +152,9 @@ static void ar7_cascade(void)
 
 	/* Primary IRQ's */
 	irq = readl(REG(PIR_OFFSET)) & 0x3f;
-	if (irq) {
+
+	if (irq)
+	{
 		do_IRQ(ar7_irq_base + irq);
 		return;
 	}
@@ -155,11 +162,15 @@ static void ar7_cascade(void)
 	/* Secondary IRQ's are cascaded through primary '0' */
 	writel(1, REG(CR_OFFSET(irq)));
 	status = readl(REG(SEC_SR_OFFSET));
-	for (i = 0; i < 32; i++) {
-		if (status & 1) {
+
+	for (i = 0; i < 32; i++)
+	{
+		if (status & 1)
+		{
 			do_IRQ(ar7_irq_base + i + 40);
 			return;
 		}
+
 		status >>= 1;
 	}
 
@@ -169,10 +180,17 @@ static void ar7_cascade(void)
 asmlinkage void plat_irq_dispatch(void)
 {
 	unsigned int pending = read_c0_status() & read_c0_cause() & ST0_IM;
+
 	if (pending & STATUSF_IP7)		/* cpu timer */
+	{
 		do_IRQ(7);
+	}
 	else if (pending & STATUSF_IP2)		/* int0 hardware line */
+	{
 		ar7_cascade();
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }

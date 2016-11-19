@@ -21,7 +21,8 @@
 #include <asm/natfeat.h>
 #include <asm/virtconvert.h>
 
-enum {
+enum
+{
 	GET_VERSION = 0,/* no parameters, return NFAPI_VERSION in d0 */
 	XIF_INTLEVEL,	/* no parameters, return Interrupt Level in d0 */
 	XIF_IRQ,	/* acknowledge interrupt from host */
@@ -56,7 +57,8 @@ MODULE_PARM_DESC(nfeth_debug, "nfeth_debug level (1-2)");
 static long nfEtherID;
 static int nfEtherIRQ;
 
-struct nfeth_private {
+struct nfeth_private
+{
 	int ethX;
 };
 
@@ -102,16 +104,19 @@ static inline void recv_packet(struct net_device *dev)
 
 	netdev_dbg(dev, "%s: %u\n", __func__, pktlen);
 
-	if (!pktlen) {
+	if (!pktlen)
+	{
 		netdev_dbg(dev, "%s: pktlen == 0\n", __func__);
 		dev->stats.rx_errors++;
 		return;
 	}
 
 	skb = dev_alloc_skb(pktlen + 2);
-	if (!skb) {
+
+	if (!skb)
+	{
 		netdev_dbg(dev, "%s: out of mem (buf_alloc failed)\n",
-			   __func__);
+				   __func__);
 		dev->stats.rx_dropped++;
 		return;
 	}
@@ -120,7 +125,7 @@ static inline void recv_packet(struct net_device *dev)
 	skb_reserve(skb, 2);		/* 16 Byte align  */
 	skb_put(skb, pktlen);		/* make room */
 	nf_call(nfEtherID + XIF_READBLOCK, priv->ethX, virt_to_phys(skb->data),
-		pktlen);
+			pktlen);
 
 	skb->protocol = eth_type_trans(skb, dev);
 	netif_rx(skb);
@@ -137,12 +142,16 @@ static irqreturn_t nfeth_interrupt(int irq, void *dev_id)
 	int i, m, mask;
 
 	mask = nf_call(nfEtherID + XIF_IRQ, 0);
-	for (i = 0, m = 1; i < MAX_UNIT; m <<= 1, i++) {
-		if (mask & m && nfeth_dev[i]) {
+
+	for (i = 0, m = 1; i < MAX_UNIT; m <<= 1, i++)
+	{
+		if (mask & m && nfeth_dev[i])
+		{
 			recv_packet(nfeth_dev[i]);
 			nf_call(nfEtherID + XIF_IRQ, m);
 		}
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -154,7 +163,9 @@ static int nfeth_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	data = skb->data;
 	len = skb->len;
-	if (len < ETH_ZLEN) {
+
+	if (len < ETH_ZLEN)
+	{
 		memset(shortpkt, 0, ETH_ZLEN);
 		memcpy(shortpkt, data, len);
 		data = shortpkt;
@@ -163,7 +174,7 @@ static int nfeth_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	netdev_dbg(dev, "%s: send %u bytes\n", __func__, len);
 	nf_call(nfEtherID + XIF_WRITEBLOCK, priv->ethX, virt_to_phys(data),
-		len);
+			len);
 
 	dev->stats.tx_packets++;
 	dev->stats.tx_bytes += len;
@@ -178,7 +189,8 @@ static void nfeth_tx_timeout(struct net_device *dev)
 	netif_wake_queue(dev);
 }
 
-static const struct net_device_ops nfeth_netdev_ops = {
+static const struct net_device_ops nfeth_netdev_ops =
+{
 	.ndo_open		= nfeth_open,
 	.ndo_stop		= nfeth_stop,
 	.ndo_start_xmit		= nfeth_xmit,
@@ -188,7 +200,7 @@ static const struct net_device_ops nfeth_netdev_ops = {
 	.ndo_set_mac_address	= eth_mac_addr,
 };
 
-static struct net_device * __init nfeth_probe(int unit)
+static struct net_device *__init nfeth_probe(int unit)
 {
 	struct net_device *dev;
 	struct nfeth_private *priv;
@@ -196,12 +208,17 @@ static struct net_device * __init nfeth_probe(int unit)
 	int err;
 
 	if (!nf_call(nfEtherID + XIF_GET_MAC, unit, virt_to_phys(mac),
-		     ETH_ALEN))
+				 ETH_ALEN))
+	{
 		return NULL;
+	}
 
 	dev = alloc_etherdev(sizeof(struct nfeth_private));
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	dev->irq = nfEtherIRQ;
 	dev->netdev_ops = &nfeth_netdev_ops;
@@ -212,18 +229,20 @@ static struct net_device * __init nfeth_probe(int unit)
 	priv->ethX = unit;
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		free_netdev(dev);
 		return NULL;
 	}
 
 	nf_call(nfEtherID + XIF_GET_IPHOST, unit,
-		virt_to_phys(host_ip), sizeof(host_ip));
+			virt_to_phys(host_ip), sizeof(host_ip));
 	nf_call(nfEtherID + XIF_GET_IPATARI, unit,
-		virt_to_phys(local_ip), sizeof(local_ip));
+			virt_to_phys(local_ip), sizeof(local_ip));
 
 	netdev_info(dev, KBUILD_MODNAME " addr:%s (%s) HWaddr:%pM\n", host_ip,
-		    local_ip, mac);
+				local_ip, mac);
 
 	return dev;
 }
@@ -234,22 +253,29 @@ static int __init nfeth_init(void)
 	int error, i;
 
 	nfEtherID = nf_get_id("ETHERNET");
+
 	if (!nfEtherID)
+	{
 		return -ENODEV;
+	}
 
 	ver = nf_call(nfEtherID + GET_VERSION);
 	pr_info("API %lu\n", ver);
 
 	nfEtherIRQ = nf_call(nfEtherID + XIF_INTLEVEL);
 	error = request_irq(nfEtherIRQ, nfeth_interrupt, IRQF_SHARED,
-			    "eth emu", nfeth_interrupt);
-	if (error) {
+						"eth emu", nfeth_interrupt);
+
+	if (error)
+	{
 		pr_err("request for irq %d failed %d", nfEtherIRQ, error);
 		return error;
 	}
 
 	for (i = 0; i < MAX_UNIT; i++)
+	{
 		nfeth_dev[i] = nfeth_probe(i);
+	}
 
 	return 0;
 }
@@ -258,12 +284,15 @@ static void __exit nfeth_cleanup(void)
 {
 	int i;
 
-	for (i = 0; i < MAX_UNIT; i++) {
-		if (nfeth_dev[i]) {
+	for (i = 0; i < MAX_UNIT; i++)
+	{
+		if (nfeth_dev[i])
+		{
 			unregister_netdev(nfeth_dev[0]);
 			free_netdev(nfeth_dev[0]);
 		}
 	}
+
 	free_irq(nfEtherIRQ, nfeth_interrupt);
 }
 

@@ -28,10 +28,10 @@
 
 #define KERNEL_DS	MAKE_MM_SEG(~0UL)
 #ifdef __powerpc64__
-/* We use TASK_SIZE_USER64 as TASK_SIZE is not constant */
-#define USER_DS		MAKE_MM_SEG(TASK_SIZE_USER64 - 1)
+	/* We use TASK_SIZE_USER64 as TASK_SIZE is not constant */
+	#define USER_DS		MAKE_MM_SEG(TASK_SIZE_USER64 - 1)
 #else
-#define USER_DS		MAKE_MM_SEG(TASK_SIZE - 1)
+	#define USER_DS		MAKE_MM_SEG(TASK_SIZE - 1)
 #endif
 
 #define get_ds()	(KERNEL_DS)
@@ -75,7 +75,8 @@
  * on our cache or tlb entries.
  */
 
-struct exception_table_entry {
+struct exception_table_entry
+{
 	unsigned long insn;
 	unsigned long fixup;
 };
@@ -126,101 +127,101 @@ extern long __put_user_bad(void);
  */
 #define __put_user_asm(x, addr, err, op)			\
 	__asm__ __volatile__(					\
-		"1:	" op " %1,0(%2)	# put_user\n"		\
-		"2:\n"						\
-		".section .fixup,\"ax\"\n"			\
-		"3:	li %0,%3\n"				\
-		"	b 2b\n"					\
-		".previous\n"					\
-		".section __ex_table,\"a\"\n"			\
-			PPC_LONG_ALIGN "\n"			\
-			PPC_LONG "1b,3b\n"			\
-		".previous"					\
-		: "=r" (err)					\
-		: "r" (x), "b" (addr), "i" (-EFAULT), "0" (err))
+											"1:	" op " %1,0(%2)	# put_user\n"		\
+											"2:\n"						\
+											".section .fixup,\"ax\"\n"			\
+											"3:	li %0,%3\n"				\
+											"	b 2b\n"					\
+											".previous\n"					\
+											".section __ex_table,\"a\"\n"			\
+											PPC_LONG_ALIGN "\n"			\
+											PPC_LONG "1b,3b\n"			\
+											".previous"					\
+											: "=r" (err)					\
+											: "r" (x), "b" (addr), "i" (-EFAULT), "0" (err))
 
 #ifdef __powerpc64__
 #define __put_user_asm2(x, ptr, retval)				\
-	  __put_user_asm(x, ptr, retval, "std")
+	__put_user_asm(x, ptr, retval, "std")
 #else /* __powerpc64__ */
 #define __put_user_asm2(x, addr, err)				\
 	__asm__ __volatile__(					\
-		"1:	stw %1,0(%2)\n"				\
-		"2:	stw %1+1,4(%2)\n"			\
-		"3:\n"						\
-		".section .fixup,\"ax\"\n"			\
-		"4:	li %0,%3\n"				\
-		"	b 3b\n"					\
-		".previous\n"					\
-		".section __ex_table,\"a\"\n"			\
-			PPC_LONG_ALIGN "\n"			\
-			PPC_LONG "1b,4b\n"			\
-			PPC_LONG "2b,4b\n"			\
-		".previous"					\
-		: "=r" (err)					\
-		: "r" (x), "b" (addr), "i" (-EFAULT), "0" (err))
+											"1:	stw %1,0(%2)\n"				\
+											"2:	stw %1+1,4(%2)\n"			\
+											"3:\n"						\
+											".section .fixup,\"ax\"\n"			\
+											"4:	li %0,%3\n"				\
+											"	b 3b\n"					\
+											".previous\n"					\
+											".section __ex_table,\"a\"\n"			\
+											PPC_LONG_ALIGN "\n"			\
+											PPC_LONG "1b,4b\n"			\
+											PPC_LONG "2b,4b\n"			\
+											".previous"					\
+											: "=r" (err)					\
+											: "r" (x), "b" (addr), "i" (-EFAULT), "0" (err))
 #endif /* __powerpc64__ */
 
 #define __put_user_size(x, ptr, size, retval)			\
-do {								\
-	retval = 0;						\
-	switch (size) {						\
-	  case 1: __put_user_asm(x, ptr, retval, "stb"); break;	\
-	  case 2: __put_user_asm(x, ptr, retval, "sth"); break;	\
-	  case 4: __put_user_asm(x, ptr, retval, "stw"); break;	\
-	  case 8: __put_user_asm2(x, ptr, retval); break;	\
-	  default: __put_user_bad();				\
-	}							\
-} while (0)
+	do {								\
+		retval = 0;						\
+		switch (size) {						\
+			case 1: __put_user_asm(x, ptr, retval, "stb"); break;	\
+			case 2: __put_user_asm(x, ptr, retval, "sth"); break;	\
+			case 4: __put_user_asm(x, ptr, retval, "stw"); break;	\
+			case 8: __put_user_asm2(x, ptr, retval); break;	\
+			default: __put_user_bad();				\
+		}							\
+	} while (0)
 
 #define __put_user_nocheck(x, ptr, size)			\
-({								\
-	long __pu_err;						\
-	__typeof__(*(ptr)) __user *__pu_addr = (ptr);		\
-	if (!is_kernel_addr((unsigned long)__pu_addr))		\
-		might_fault();					\
-	__chk_user_ptr(ptr);					\
-	__put_user_size((x), __pu_addr, (size), __pu_err);	\
-	__pu_err;						\
-})
+	({								\
+		long __pu_err;						\
+		__typeof__(*(ptr)) __user *__pu_addr = (ptr);		\
+		if (!is_kernel_addr((unsigned long)__pu_addr))		\
+			might_fault();					\
+		__chk_user_ptr(ptr);					\
+		__put_user_size((x), __pu_addr, (size), __pu_err);	\
+		__pu_err;						\
+	})
 
 #define __put_user_check(x, ptr, size)					\
-({									\
-	long __pu_err = -EFAULT;					\
-	__typeof__(*(ptr)) __user *__pu_addr = (ptr);			\
-	might_fault();							\
-	if (access_ok(VERIFY_WRITE, __pu_addr, size))			\
-		__put_user_size((x), __pu_addr, (size), __pu_err);	\
-	__pu_err;							\
-})
+	({									\
+		long __pu_err = -EFAULT;					\
+		__typeof__(*(ptr)) __user *__pu_addr = (ptr);			\
+		might_fault();							\
+		if (access_ok(VERIFY_WRITE, __pu_addr, size))			\
+			__put_user_size((x), __pu_addr, (size), __pu_err);	\
+		__pu_err;							\
+	})
 
 #define __put_user_nosleep(x, ptr, size)			\
-({								\
-	long __pu_err;						\
-	__typeof__(*(ptr)) __user *__pu_addr = (ptr);		\
-	__chk_user_ptr(ptr);					\
-	__put_user_size((x), __pu_addr, (size), __pu_err);	\
-	__pu_err;						\
-})
+	({								\
+		long __pu_err;						\
+		__typeof__(*(ptr)) __user *__pu_addr = (ptr);		\
+		__chk_user_ptr(ptr);					\
+		__put_user_size((x), __pu_addr, (size), __pu_err);	\
+		__pu_err;						\
+	})
 
 
 extern long __get_user_bad(void);
 
 #define __get_user_asm(x, addr, err, op)		\
 	__asm__ __volatile__(				\
-		"1:	"op" %1,0(%2)	# get_user\n"	\
-		"2:\n"					\
-		".section .fixup,\"ax\"\n"		\
-		"3:	li %0,%3\n"			\
-		"	li %1,0\n"			\
-		"	b 2b\n"				\
-		".previous\n"				\
-		".section __ex_table,\"a\"\n"		\
-			PPC_LONG_ALIGN "\n"		\
-			PPC_LONG "1b,3b\n"		\
-		".previous"				\
-		: "=r" (err), "=r" (x)			\
-		: "b" (addr), "i" (-EFAULT), "0" (err))
+										"1:	"op" %1,0(%2)	# get_user\n"	\
+										"2:\n"					\
+										".section .fixup,\"ax\"\n"		\
+										"3:	li %0,%3\n"			\
+										"	li %1,0\n"			\
+										"	b 2b\n"				\
+										".previous\n"				\
+										".section __ex_table,\"a\"\n"		\
+										PPC_LONG_ALIGN "\n"		\
+										PPC_LONG "1b,3b\n"		\
+										".previous"				\
+										: "=r" (err), "=r" (x)			\
+										: "b" (addr), "i" (-EFAULT), "0" (err))
 
 #ifdef __powerpc64__
 #define __get_user_asm2(x, addr, err)			\
@@ -228,90 +229,92 @@ extern long __get_user_bad(void);
 #else /* __powerpc64__ */
 #define __get_user_asm2(x, addr, err)			\
 	__asm__ __volatile__(				\
-		"1:	lwz %1,0(%2)\n"			\
-		"2:	lwz %1+1,4(%2)\n"		\
-		"3:\n"					\
-		".section .fixup,\"ax\"\n"		\
-		"4:	li %0,%3\n"			\
-		"	li %1,0\n"			\
-		"	li %1+1,0\n"			\
-		"	b 3b\n"				\
-		".previous\n"				\
-		".section __ex_table,\"a\"\n"		\
-			PPC_LONG_ALIGN "\n"		\
-			PPC_LONG "1b,4b\n"		\
-			PPC_LONG "2b,4b\n"		\
-		".previous"				\
-		: "=r" (err), "=&r" (x)			\
-		: "b" (addr), "i" (-EFAULT), "0" (err))
+										"1:	lwz %1,0(%2)\n"			\
+										"2:	lwz %1+1,4(%2)\n"		\
+										"3:\n"					\
+										".section .fixup,\"ax\"\n"		\
+										"4:	li %0,%3\n"			\
+										"	li %1,0\n"			\
+										"	li %1+1,0\n"			\
+										"	b 3b\n"				\
+										".previous\n"				\
+										".section __ex_table,\"a\"\n"		\
+										PPC_LONG_ALIGN "\n"		\
+										PPC_LONG "1b,4b\n"		\
+										PPC_LONG "2b,4b\n"		\
+										".previous"				\
+										: "=r" (err), "=&r" (x)			\
+										: "b" (addr), "i" (-EFAULT), "0" (err))
 #endif /* __powerpc64__ */
 
 #define __get_user_size(x, ptr, size, retval)			\
-do {								\
-	retval = 0;						\
-	__chk_user_ptr(ptr);					\
-	if (size > sizeof(x))					\
-		(x) = __get_user_bad();				\
-	switch (size) {						\
-	case 1: __get_user_asm(x, ptr, retval, "lbz"); break;	\
-	case 2: __get_user_asm(x, ptr, retval, "lhz"); break;	\
-	case 4: __get_user_asm(x, ptr, retval, "lwz"); break;	\
-	case 8: __get_user_asm2(x, ptr, retval);  break;	\
-	default: (x) = __get_user_bad();			\
-	}							\
-} while (0)
+	do {								\
+		retval = 0;						\
+		__chk_user_ptr(ptr);					\
+		if (size > sizeof(x))					\
+			(x) = __get_user_bad();				\
+		switch (size) {						\
+			case 1: __get_user_asm(x, ptr, retval, "lbz"); break;	\
+			case 2: __get_user_asm(x, ptr, retval, "lhz"); break;	\
+			case 4: __get_user_asm(x, ptr, retval, "lwz"); break;	\
+			case 8: __get_user_asm2(x, ptr, retval);  break;	\
+			default: (x) = __get_user_bad();			\
+		}							\
+	} while (0)
 
 #define __get_user_nocheck(x, ptr, size)			\
-({								\
-	long __gu_err;						\
-	unsigned long __gu_val;					\
-	__typeof__(*(ptr)) __user *__gu_addr = (ptr);	\
-	__chk_user_ptr(ptr);					\
-	if (!is_kernel_addr((unsigned long)__gu_addr))		\
-		might_fault();					\
-	__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
-	(x) = (__typeof__(*(ptr)))__gu_val;			\
-	__gu_err;						\
-})
+	({								\
+		long __gu_err;						\
+		unsigned long __gu_val;					\
+		__typeof__(*(ptr)) __user *__gu_addr = (ptr);	\
+		__chk_user_ptr(ptr);					\
+		if (!is_kernel_addr((unsigned long)__gu_addr))		\
+			might_fault();					\
+		__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
+		(x) = (__typeof__(*(ptr)))__gu_val;			\
+		__gu_err;						\
+	})
 
 #define __get_user_check(x, ptr, size)					\
-({									\
-	long __gu_err = -EFAULT;					\
-	unsigned long  __gu_val = 0;					\
-	__typeof__(*(ptr)) __user *__gu_addr = (ptr);		\
-	might_fault();							\
-	if (access_ok(VERIFY_READ, __gu_addr, (size)))			\
-		__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
-	(x) = (__force __typeof__(*(ptr)))__gu_val;				\
-	__gu_err;							\
-})
+	({									\
+		long __gu_err = -EFAULT;					\
+		unsigned long  __gu_val = 0;					\
+		__typeof__(*(ptr)) __user *__gu_addr = (ptr);		\
+		might_fault();							\
+		if (access_ok(VERIFY_READ, __gu_addr, (size)))			\
+			__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
+		(x) = (__force __typeof__(*(ptr)))__gu_val;				\
+		__gu_err;							\
+	})
 
 #define __get_user_nosleep(x, ptr, size)			\
-({								\
-	long __gu_err;						\
-	unsigned long __gu_val;					\
-	__typeof__(*(ptr)) __user *__gu_addr = (ptr);	\
-	__chk_user_ptr(ptr);					\
-	__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
-	(x) = (__force __typeof__(*(ptr)))__gu_val;			\
-	__gu_err;						\
-})
+	({								\
+		long __gu_err;						\
+		unsigned long __gu_val;					\
+		__typeof__(*(ptr)) __user *__gu_addr = (ptr);	\
+		__chk_user_ptr(ptr);					\
+		__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
+		(x) = (__force __typeof__(*(ptr)))__gu_val;			\
+		__gu_err;						\
+	})
 
 
 /* more complex routines */
 
 extern unsigned long __copy_tofrom_user(void __user *to,
-		const void __user *from, unsigned long size);
+										const void __user *from, unsigned long size);
 
 #ifndef __powerpc64__
 
 static inline unsigned long copy_from_user(void *to,
 		const void __user *from, unsigned long n)
 {
-	if (likely(access_ok(VERIFY_READ, from, n))) {
+	if (likely(access_ok(VERIFY_READ, from, n)))
+	{
 		check_object_size(to, n, false);
 		return __copy_tofrom_user((__force void __user *)to, from, n);
 	}
+
 	memset(to, 0, n);
 	return n;
 }
@@ -319,10 +322,12 @@ static inline unsigned long copy_from_user(void *to,
 static inline unsigned long copy_to_user(void __user *to,
 		const void *from, unsigned long n)
 {
-	if (access_ok(VERIFY_WRITE, to, n)) {
+	if (access_ok(VERIFY_WRITE, to, n))
+	{
 		check_object_size(from, n, true);
 		return __copy_tofrom_user(to, (__force void __user *)from, n);
 	}
+
 	return n;
 }
 
@@ -332,36 +337,44 @@ static inline unsigned long copy_to_user(void __user *to,
 	__copy_tofrom_user((to), (from), (size))
 
 extern unsigned long copy_from_user(void *to, const void __user *from,
-				    unsigned long n);
+									unsigned long n);
 extern unsigned long copy_to_user(void __user *to, const void *from,
-				  unsigned long n);
+								  unsigned long n);
 extern unsigned long copy_in_user(void __user *to, const void __user *from,
-				  unsigned long n);
+								  unsigned long n);
 
 #endif /* __powerpc64__ */
 
 static inline unsigned long __copy_from_user_inatomic(void *to,
 		const void __user *from, unsigned long n)
 {
-	if (__builtin_constant_p(n) && (n <= 8)) {
+	if (__builtin_constant_p(n) && (n <= 8))
+	{
 		unsigned long ret = 1;
 
-		switch (n) {
-		case 1:
-			__get_user_size(*(u8 *)to, from, 1, ret);
-			break;
-		case 2:
-			__get_user_size(*(u16 *)to, from, 2, ret);
-			break;
-		case 4:
-			__get_user_size(*(u32 *)to, from, 4, ret);
-			break;
-		case 8:
-			__get_user_size(*(u64 *)to, from, 8, ret);
-			break;
+		switch (n)
+		{
+			case 1:
+				__get_user_size(*(u8 *)to, from, 1, ret);
+				break;
+
+			case 2:
+				__get_user_size(*(u16 *)to, from, 2, ret);
+				break;
+
+			case 4:
+				__get_user_size(*(u32 *)to, from, 4, ret);
+				break;
+
+			case 8:
+				__get_user_size(*(u64 *)to, from, 8, ret);
+				break;
 		}
+
 		if (ret == 0)
+		{
 			return 0;
+		}
 	}
 
 	check_object_size(to, n, false);
@@ -372,25 +385,33 @@ static inline unsigned long __copy_from_user_inatomic(void *to,
 static inline unsigned long __copy_to_user_inatomic(void __user *to,
 		const void *from, unsigned long n)
 {
-	if (__builtin_constant_p(n) && (n <= 8)) {
+	if (__builtin_constant_p(n) && (n <= 8))
+	{
 		unsigned long ret = 1;
 
-		switch (n) {
-		case 1:
-			__put_user_size(*(u8 *)from, (u8 __user *)to, 1, ret);
-			break;
-		case 2:
-			__put_user_size(*(u16 *)from, (u16 __user *)to, 2, ret);
-			break;
-		case 4:
-			__put_user_size(*(u32 *)from, (u32 __user *)to, 4, ret);
-			break;
-		case 8:
-			__put_user_size(*(u64 *)from, (u64 __user *)to, 8, ret);
-			break;
+		switch (n)
+		{
+			case 1:
+				__put_user_size(*(u8 *)from, (u8 __user *)to, 1, ret);
+				break;
+
+			case 2:
+				__put_user_size(*(u16 *)from, (u16 __user *)to, 2, ret);
+				break;
+
+			case 4:
+				__put_user_size(*(u32 *)from, (u32 __user *)to, 4, ret);
+				break;
+
+			case 8:
+				__put_user_size(*(u64 *)from, (u64 __user *)to, 8, ret);
+				break;
 		}
+
 		if (ret == 0)
+		{
 			return 0;
+		}
 	}
 
 	check_object_size(from, n, true);
@@ -417,8 +438,12 @@ extern unsigned long __clear_user(void __user *addr, unsigned long size);
 static inline unsigned long clear_user(void __user *addr, unsigned long size)
 {
 	might_fault();
+
 	if (likely(access_ok(VERIFY_WRITE, addr, size)))
+	{
 		return __clear_user(addr, size);
+	}
+
 	return size;
 }
 

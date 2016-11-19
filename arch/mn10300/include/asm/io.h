@@ -124,54 +124,74 @@ static inline void outl(u32 b, unsigned long addr)
 
 static inline void insb(unsigned long addr, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u8 *buf = buffer;
-		do {
+
+		do
+		{
 			u8 x = inb(addr);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void insw(unsigned long addr, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u16 *buf = buffer;
-		do {
+
+		do
+		{
 			u16 x = inw(addr);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void insl(unsigned long addr, void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		u32 *buf = buffer;
-		do {
+
+		do
+		{
 			u32 x = inl(addr);
 			*buf++ = x;
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void outsb(unsigned long addr, const void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		const u8 *buf = buffer;
-		do {
+
+		do
+		{
 			outb(*buf++, addr);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
 static inline void outsw(unsigned long addr, const void *buffer, int count)
 {
-	if (count) {
+	if (count)
+	{
 		const u16 *buf = buffer;
-		do {
+
+		do
+		{
 			outw(*buf++, addr);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
@@ -179,13 +199,19 @@ extern void __outsl(unsigned long addr, const void *buffer, int count);
 static inline void outsl(unsigned long addr, const void *buffer, int count)
 {
 	if ((unsigned long) buffer & 0x3)
+	{
 		return __outsl(addr, buffer, count);
+	}
 
-	if (count) {
+	if (count)
+	{
 		const u32 *buf = buffer;
-		do {
+
+		do
+		{
 			outl(*buf++, addr);
-		} while (--count);
+		}
+		while (--count);
 	}
 }
 
@@ -261,7 +287,7 @@ static inline void *phys_to_virt(unsigned long address)
  * Change "struct page" to physical address.
  */
 static inline void __iomem *__ioremap(unsigned long offset, unsigned long size,
-				      unsigned long flags)
+									  unsigned long flags)
 {
 	return (void __iomem *) offset;
 }

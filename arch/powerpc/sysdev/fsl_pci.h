@@ -40,7 +40,8 @@ struct platform_device;
 #define PME_DISR_EN_EXL23D	0x00001000
 
 /* PCI/PCI Express outbound window reg */
-struct pci_outbound_window_regs {
+struct pci_outbound_window_regs
+{
 	__be32	potar;	/* 0x.0 - Outbound translation address register */
 	__be32	potear;	/* 0x.4 - Outbound translation extended address register */
 	__be32	powbar;	/* 0x.8 - Outbound window base address register */
@@ -50,7 +51,8 @@ struct pci_outbound_window_regs {
 };
 
 /* PCI/PCI Express inbound window reg */
-struct pci_inbound_window_regs {
+struct pci_inbound_window_regs
+{
 	__be32	pitar;	/* 0x.0 - Inbound translation address register */
 	u8	res1[4];
 	__be32	piwbar;	/* 0x.8 - Inbound window base address register */
@@ -60,7 +62,8 @@ struct pci_inbound_window_regs {
 };
 
 /* PCI/PCI Express IO block registers for 85xx/86xx */
-struct ccsr_pci {
+struct ccsr_pci
+{
 	__be32	config_addr;		/* 0x.000 - PCI/PCIE Configuration Address Register */
 	__be32	config_data;		/* 0x.004 - PCI/PCIE Configuration Data Register */
 	__be32	int_ack;		/* 0x.008 - PCI Interrupt Acknowledge Register */
@@ -77,19 +80,19 @@ struct ccsr_pci {
 	__be32	block_rev1;	/* 0x.bf8 - PCIE Block Revision register 1 */
 	__be32	block_rev2;	/* 0x.bfc - PCIE Block Revision register 2 */
 
-/* PCI/PCI Express outbound window 0-4
- * Window 0 is the default window and is the only window enabled upon reset.
- * The default outbound register set is used when a transaction misses
- * in all of the other outbound windows.
- */
+	/* PCI/PCI Express outbound window 0-4
+	 * Window 0 is the default window and is the only window enabled upon reset.
+	 * The default outbound register set is used when a transaction misses
+	 * in all of the other outbound windows.
+	 */
 	struct pci_outbound_window_regs pow[5];
 	u8	res14[96];
 	struct pci_inbound_window_regs	pmit;	/* 0xd00 - 0xd9c Inbound MSI */
 	u8	res6[96];
-/* PCI/PCI Express inbound window 3-0
- * inbound window 1 supports only a 32-bit base address and does not
- * define an inbound window base extended address register.
- */
+	/* PCI/PCI Express inbound window 3-0
+	 * inbound window 1 supports only a 32-bit base address and does not
+	 * define an inbound window base extended address register.
+	 */
 	struct pci_inbound_window_regs piw[4];
 
 	__be32	pex_err_dr;		/* 0x.e00 - PCI/PCIE error detect register */

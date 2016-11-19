@@ -24,22 +24,22 @@
 #define SMC_IRQ_FLAGS		(0)
 
 #if SMC_CAN_USE_8BIT
-#define SMC_inb(a, r)		inb((unsigned long) ((a) + (r)))
-#define SMC_outb(v, a, r)	outb(v, (unsigned long) ((a) + (r)))
+	#define SMC_inb(a, r)		inb((unsigned long) ((a) + (r)))
+	#define SMC_outb(v, a, r)	outb(v, (unsigned long) ((a) + (r)))
 #endif
 
 #if SMC_CAN_USE_16BIT
-#define SMC_inw(a, r)		inw((unsigned long) ((a) + (r)))
-#define SMC_outw(v, a, r)	outw(v, (unsigned long) ((a) + (r)))
-#define SMC_insw(a, r, p, l)	insw((unsigned long) ((a) + (r)), (p), (l))
-#define SMC_outsw(a, r, p, l)	outsw((unsigned long) ((a) + (r)), (p), (l))
+	#define SMC_inw(a, r)		inw((unsigned long) ((a) + (r)))
+	#define SMC_outw(v, a, r)	outw(v, (unsigned long) ((a) + (r)))
+	#define SMC_insw(a, r, p, l)	insw((unsigned long) ((a) + (r)), (p), (l))
+	#define SMC_outsw(a, r, p, l)	outsw((unsigned long) ((a) + (r)), (p), (l))
 #endif
 
 #if SMC_CAN_USE_32BIT
-#define SMC_inl(a, r)		inl((unsigned long) ((a) + (r)))
-#define SMC_outl(v, a, r)	outl(v, (unsigned long) ((a) + (r)))
-#define SMC_insl(a, r, p, l)	insl((unsigned long) ((a) + (r)), (p), (l))
-#define SMC_outsl(a, r, p, l)	outsl((unsigned long) ((a) + (r)), (p), (l))
+	#define SMC_inl(a, r)		inl((unsigned long) ((a) + (r)))
+	#define SMC_outl(v, a, r)	outl(v, (unsigned long) ((a) + (r)))
+	#define SMC_insl(a, r, p, l)	insl((unsigned long) ((a) + (r)), (p), (l))
+	#define SMC_outsl(a, r, p, l)	outsl((unsigned long) ((a) + (r)), (p), (l))
 #endif
 
 #define RPC_LSA_DEFAULT		RPC_LED_100_10

@@ -29,11 +29,14 @@ static unsigned int count_relocs(const Elf32_Rela *rela, unsigned int num)
 	_count_relocs = 0;
 	r_info = 0;
 	r_addend = 0;
+
 	for (i = 0; i < num; i++)
+
 		/* Only count relbranch relocs, others don't need stubs */
 		if (ELF32_R_TYPE(rela[i].r_info) == R_METAG_RELBRANCH &&
-		    (r_info != ELF32_R_SYM(rela[i].r_info) ||
-		     r_addend != rela[i].r_addend)) {
+			(r_info != ELF32_R_SYM(rela[i].r_info) ||
+			 r_addend != rela[i].r_addend))
+		{
 			_count_relocs++;
 			r_info = ELF32_R_SYM(rela[i].r_info);
 			r_addend = rela[i].r_addend;
@@ -54,15 +57,25 @@ static int relacmp(const void *_x, const void *_y)
 	 * the counting algorithms' performance
 	 */
 	if (x->r_info < y->r_info)
+	{
 		return -1;
+	}
 	else if (x->r_info > y->r_info)
+	{
 		return 1;
+	}
 	else if (x->r_addend < y->r_addend)
+	{
 		return -1;
+	}
 	else if (x->r_addend > y->r_addend)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static void relaswap(void *_x, void *_y, int size)
@@ -73,7 +86,8 @@ static void relaswap(void *_x, void *_y, int size)
 	y = (uint32_t *)_x;
 	x = (uint32_t *)_y;
 
-	for (i = 0; i < sizeof(Elf32_Rela) / sizeof(uint32_t); i++) {
+	for (i = 0; i < sizeof(Elf32_Rela) / sizeof(uint32_t); i++)
+	{
 		tmp = x[i];
 		x[i] = y[i];
 		y[i] = tmp;
@@ -83,31 +97,37 @@ static void relaswap(void *_x, void *_y, int size)
 /* Get the potential trampolines size required of the init and
    non-init sections */
 static unsigned long get_plt_size(const Elf32_Ehdr *hdr,
-				  const Elf32_Shdr *sechdrs,
-				  const char *secstrings,
-				  int is_init)
+								  const Elf32_Shdr *sechdrs,
+								  const char *secstrings,
+								  int is_init)
 {
 	unsigned long ret = 0;
 	unsigned i;
 
 	/* Everything marked ALLOC (this includes the exported
 	   symbols) */
-	for (i = 1; i < hdr->e_shnum; i++) {
+	for (i = 1; i < hdr->e_shnum; i++)
+	{
 		/* If it's called *.init*, and we're not init, we're
 		   not interested */
 		if ((strstr(secstrings + sechdrs[i].sh_name, ".init") != NULL)
-		    != is_init)
+			!= is_init)
+		{
 			continue;
+		}
 
 		/* We don't want to look at debug sections. */
 		if (strstr(secstrings + sechdrs[i].sh_name, ".debug") != NULL)
+		{
 			continue;
+		}
 
-		if (sechdrs[i].sh_type == SHT_RELA) {
+		if (sechdrs[i].sh_type == SHT_RELA)
+		{
 			pr_debug("Found relocations in section %u\n", i);
 			pr_debug("Ptr: %p.  Number: %u\n",
-				 (void *)hdr + sechdrs[i].sh_offset,
-				 sechdrs[i].sh_size / sizeof(Elf32_Rela));
+					 (void *)hdr + sechdrs[i].sh_offset,
+					 sechdrs[i].sh_size / sizeof(Elf32_Rela));
 
 			/* Sort the relocation information based on a symbol and
 			 * addend key. This is a stable O(n*log n) complexity
@@ -115,14 +135,14 @@ static unsigned long get_plt_size(const Elf32_Ehdr *hdr,
 			 * count_relocs() to linear complexity O(n)
 			 */
 			sort((void *)hdr + sechdrs[i].sh_offset,
-			     sechdrs[i].sh_size / sizeof(Elf32_Rela),
-			     sizeof(Elf32_Rela), relacmp, relaswap);
+				 sechdrs[i].sh_size / sizeof(Elf32_Rela),
+				 sizeof(Elf32_Rela), relacmp, relaswap);
 
 			ret += count_relocs((void *)hdr
-					     + sechdrs[i].sh_offset,
-					     sechdrs[i].sh_size
-					     / sizeof(Elf32_Rela))
-				* sizeof(struct metag_plt_entry);
+								+ sechdrs[i].sh_offset,
+								sechdrs[i].sh_size
+								/ sizeof(Elf32_Rela))
+				   * sizeof(struct metag_plt_entry);
 		}
 	}
 
@@ -130,20 +150,27 @@ static unsigned long get_plt_size(const Elf32_Ehdr *hdr,
 }
 
 int module_frob_arch_sections(Elf32_Ehdr *hdr,
-			      Elf32_Shdr *sechdrs,
-			      char *secstrings,
-			      struct module *me)
+							  Elf32_Shdr *sechdrs,
+							  char *secstrings,
+							  struct module *me)
 {
 	unsigned int i;
 
 	/* Find .plt and .init.plt sections */
-	for (i = 0; i < hdr->e_shnum; i++) {
+	for (i = 0; i < hdr->e_shnum; i++)
+	{
 		if (strcmp(secstrings + sechdrs[i].sh_name, ".init.plt") == 0)
+		{
 			me->arch.init_plt_section = i;
+		}
 		else if (strcmp(secstrings + sechdrs[i].sh_name, ".plt") == 0)
+		{
 			me->arch.core_plt_section = i;
+		}
 	}
-	if (!me->arch.core_plt_section || !me->arch.init_plt_section) {
+
+	if (!me->arch.core_plt_section || !me->arch.init_plt_section)
+	{
 		pr_err("Module doesn't contain .plt or .init.plt sections.\n");
 		return -ENOEXEC;
 	}
@@ -160,7 +187,7 @@ int module_frob_arch_sections(Elf32_Ehdr *hdr,
 
 /* Set up a trampoline in the PLT to bounce us to the distant function */
 static uint32_t do_plt_call(void *location, Elf32_Addr val,
-			    Elf32_Shdr *sechdrs, struct module *mod)
+							Elf32_Shdr *sechdrs, struct module *mod)
 {
 	struct metag_plt_entry *entry;
 	/* Instructions used to do the indirect jump.  */
@@ -177,17 +204,25 @@ static uint32_t do_plt_call(void *location, Elf32_Addr val,
 
 	/* Init, or core PLT? */
 	if (location >= mod->core_layout.base
-	    && location < mod->core_layout.base + mod->core_layout.size)
+		&& location < mod->core_layout.base + mod->core_layout.size)
+	{
 		entry = (void *)sechdrs[mod->arch.core_plt_section].sh_addr;
+	}
 	else
+	{
 		entry = (void *)sechdrs[mod->arch.init_plt_section].sh_addr;
+	}
 
 	/* Find this entry, or if that fails, the next avail. entry */
 	while (entry->tramp[0])
 		if (entry->tramp[0] == tramp[0] && entry->tramp[1] == tramp[1])
+		{
 			return (uint32_t)entry;
+		}
 		else
+		{
 			entry++;
+		}
 
 	entry->tramp[0] = tramp[0];
 	entry->tramp[1] = tramp[1];
@@ -196,10 +231,10 @@ static uint32_t do_plt_call(void *location, Elf32_Addr val,
 }
 
 int apply_relocate_add(Elf32_Shdr *sechdrs,
-		   const char *strtab,
-		   unsigned int symindex,
-		   unsigned int relsec,
-		   struct module *me)
+					   const char *strtab,
+					   unsigned int symindex,
+					   unsigned int relsec,
+					   struct module *me)
 {
 	unsigned int i;
 	Elf32_Rela *rel = (void *)sechdrs[relsec].sh_addr;
@@ -209,76 +244,88 @@ int apply_relocate_add(Elf32_Shdr *sechdrs,
 	int32_t value;
 
 	pr_debug("Applying relocate section %u to %u\n", relsec,
-		 sechdrs[relsec].sh_info);
-	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++) {
+			 sechdrs[relsec].sh_info);
+
+	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++)
+	{
 		/* This is where to make the change */
 		location = (void *)sechdrs[sechdrs[relsec].sh_info].sh_addr
-			+ rel[i].r_offset;
+				   + rel[i].r_offset;
 		/* This is the symbol it is referring to.  Note that all
 		   undefined symbols have been resolved.  */
 		sym = (Elf32_Sym *)sechdrs[symindex].sh_addr
-			+ ELF32_R_SYM(rel[i].r_info);
+			  + ELF32_R_SYM(rel[i].r_info);
 		relocation = sym->st_value + rel[i].r_addend;
 
-		switch (ELF32_R_TYPE(rel[i].r_info)) {
-		case R_METAG_NONE:
-			break;
-		case R_METAG_HIADDR16:
-			relocation >>= 16;
-		case R_METAG_LOADDR16:
-			*location = (*location & 0xfff80007) |
-				((relocation & 0xffff) << 3);
-			break;
-		case R_METAG_ADDR32:
-			/*
-			 * Packed data structures may cause a misaligned
-			 * R_METAG_ADDR32 to be emitted.
-			 */
-			put_unaligned(relocation, location);
-			break;
-		case R_METAG_GETSETOFF:
-			*location += ((relocation & 0xfff) << 7);
-			break;
-		case R_METAG_RELBRANCH:
-			if (*location & (0x7ffff << 5)) {
-				pr_err("bad relbranch relocation\n");
+		switch (ELF32_R_TYPE(rel[i].r_info))
+		{
+			case R_METAG_NONE:
 				break;
-			}
 
-			/* This jump is too big for the offset slot. Build
-			 * a PLT to jump through to get to where we want to go.
-			 * NB: 21bit check - not scaled to 19bit yet
-			 */
-			if (((int32_t)(relocation -
-				       (uint32_t)location) > 0xfffff) ||
-			    ((int32_t)(relocation -
-				       (uint32_t)location) < -0xfffff)) {
-				relocation = do_plt_call(location, relocation,
-							 sechdrs, me);
-			}
+			case R_METAG_HIADDR16:
+				relocation >>= 16;
 
-			value = relocation - (uint32_t)location;
+			case R_METAG_LOADDR16:
+				*location = (*location & 0xfff80007) |
+							((relocation & 0xffff) << 3);
+				break;
 
-			/* branch instruction aligned */
-			value /= 4;
-
-			if ((value > 0x7ffff) || (value < -0x7ffff)) {
+			case R_METAG_ADDR32:
 				/*
-				 * this should have been caught by the code
-				 * above!
+				 * Packed data structures may cause a misaligned
+				 * R_METAG_ADDR32 to be emitted.
 				 */
-				pr_err("overflow of relbranch reloc\n");
-			}
+				put_unaligned(relocation, location);
+				break;
 
-			*location = (*location & (~(0x7ffff << 5))) |
-				((value & 0x7ffff) << 5);
-			break;
+			case R_METAG_GETSETOFF:
+				*location += ((relocation & 0xfff) << 7);
+				break;
 
-		default:
-			pr_err("module %s: Unknown relocation: %u\n",
-			       me->name, ELF32_R_TYPE(rel[i].r_info));
-			return -ENOEXEC;
+			case R_METAG_RELBRANCH:
+				if (*location & (0x7ffff << 5))
+				{
+					pr_err("bad relbranch relocation\n");
+					break;
+				}
+
+				/* This jump is too big for the offset slot. Build
+				 * a PLT to jump through to get to where we want to go.
+				 * NB: 21bit check - not scaled to 19bit yet
+				 */
+				if (((int32_t)(relocation -
+							   (uint32_t)location) > 0xfffff) ||
+					((int32_t)(relocation -
+							   (uint32_t)location) < -0xfffff))
+				{
+					relocation = do_plt_call(location, relocation,
+											 sechdrs, me);
+				}
+
+				value = relocation - (uint32_t)location;
+
+				/* branch instruction aligned */
+				value /= 4;
+
+				if ((value > 0x7ffff) || (value < -0x7ffff))
+				{
+					/*
+					 * this should have been caught by the code
+					 * above!
+					 */
+					pr_err("overflow of relbranch reloc\n");
+				}
+
+				*location = (*location & (~(0x7ffff << 5))) |
+							((value & 0x7ffff) << 5);
+				break;
+
+			default:
+				pr_err("module %s: Unknown relocation: %u\n",
+					   me->name, ELF32_R_TYPE(rel[i].r_info));
+				return -ENOEXEC;
 		}
 	}
+
 	return 0;
 }

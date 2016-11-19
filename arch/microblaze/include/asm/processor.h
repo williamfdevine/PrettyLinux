@@ -25,7 +25,7 @@ extern const struct seq_operations cpuinfo_op;
 # define cpu_relax_lowlatency()	cpu_relax()
 
 #define task_pt_regs(tsk) \
-		(((struct pt_regs *)(THREAD_SIZE + task_stack_page(tsk))) - 1)
+	(((struct pt_regs *)(THREAD_SIZE + task_stack_page(tsk))) - 1)
 
 /* Do necessary setup to start up a newly executed thread. */
 void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long usp);
@@ -104,7 +104,8 @@ extern unsigned long get_wchan(struct task_struct *p);
 /* If you change this, you must change the associated assembly-languages
  * constants defined below, THREAD_*.
  */
-struct thread_struct {
+struct thread_struct
+{
 	/* kernel stack pointer (must be first field in structure) */
 	unsigned long	ksp;
 	unsigned long	ksp_limit;	/* if ksp <= ksp_limit stack overflow */
@@ -113,9 +114,9 @@ struct thread_struct {
 };
 
 #  define INIT_THREAD { \
-	.ksp   = sizeof init_stack + (unsigned long)init_stack, \
-	.pgdir = swapper_pg_dir, \
-}
+		.ksp   = sizeof init_stack + (unsigned long)init_stack, \
+				 .pgdir = swapper_pg_dir, \
+	}
 
 /* Free all resources held by a thread. */
 static inline void release_thread(struct task_struct *dead_task)
@@ -151,7 +152,7 @@ unsigned long get_wchan(struct task_struct *p);
 #  define STACK_TOP_MAX	STACK_TOP
 
 #ifdef CONFIG_DEBUG_FS
-extern struct dentry *of_debugfs_root;
+	extern struct dentry *of_debugfs_root;
 #endif
 
 #  endif /* __ASSEMBLY__ */

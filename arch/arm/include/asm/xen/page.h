@@ -14,12 +14,14 @@
 #define phys_to_machine_mapping_valid(pfn) (1)
 
 /* Xen machine address */
-typedef struct xmaddr {
+typedef struct xmaddr
+{
 	phys_addr_t maddr;
 } xmaddr_t;
 
 /* Xen pseudo-physical address */
-typedef struct xpaddr {
+typedef struct xpaddr
+{
 	phys_addr_t paddr;
 } xpaddr_t;
 
@@ -58,10 +60,14 @@ static inline unsigned long pfn_to_bfn(unsigned long pfn)
 {
 	unsigned long mfn;
 
-	if (phys_to_mach.rb_node != NULL) {
+	if (phys_to_mach.rb_node != NULL)
+	{
 		mfn = __pfn_to_mfn(pfn);
+
 		if (mfn != INVALID_P2M_ENTRY)
+		{
 			return mfn;
+		}
 	}
 
 	return pfn;
@@ -95,16 +101,16 @@ static inline pte_t *lookup_address(unsigned long address, unsigned int *level)
 }
 
 extern int set_foreign_p2m_mapping(struct gnttab_map_grant_ref *map_ops,
-				   struct gnttab_map_grant_ref *kmap_ops,
-				   struct page **pages, unsigned int count);
+								   struct gnttab_map_grant_ref *kmap_ops,
+								   struct page **pages, unsigned int count);
 
 extern int clear_foreign_p2m_mapping(struct gnttab_unmap_grant_ref *unmap_ops,
-				     struct gnttab_unmap_grant_ref *kunmap_ops,
-				     struct page **pages, unsigned int count);
+									 struct gnttab_unmap_grant_ref *kunmap_ops,
+									 struct page **pages, unsigned int count);
 
 bool __set_phys_to_machine(unsigned long pfn, unsigned long mfn);
 bool __set_phys_to_machine_multi(unsigned long pfn, unsigned long mfn,
-		unsigned long nr_pages);
+								 unsigned long nr_pages);
 
 static inline bool set_phys_to_machine(unsigned long pfn, unsigned long mfn)
 {
@@ -115,8 +121,8 @@ static inline bool set_phys_to_machine(unsigned long pfn, unsigned long mfn)
 #define xen_unmap(cookie) iounmap((cookie))
 
 bool xen_arch_need_swiotlb(struct device *dev,
-			   phys_addr_t phys,
-			   dma_addr_t dev_addr);
+						   phys_addr_t phys,
+						   dma_addr_t dev_addr);
 unsigned long xen_get_swiotlb_free_pages(unsigned int order);
 
 #endif /* _ASM_ARM_XEN_PAGE_H */

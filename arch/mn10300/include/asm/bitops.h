@@ -24,16 +24,16 @@
  * set bit
  */
 #define __set_bit(nr, addr)					\
-({								\
-	volatile unsigned char *_a = (unsigned char *)(addr);	\
-	const unsigned shift = (nr) & 7;			\
-	_a += (nr) >> 3;					\
-								\
-	asm volatile("bset %2,(%1) # set_bit reg"		\
-		     : "=m"(*_a)				\
-		     : "a"(_a), "d"(1 << shift),  "m"(*_a)	\
-		     : "memory", "cc");				\
-})
+	({								\
+		volatile unsigned char *_a = (unsigned char *)(addr);	\
+		const unsigned shift = (nr) & 7;			\
+		_a += (nr) >> 3;					\
+		\
+		asm volatile("bset %2,(%1) # set_bit reg"		\
+					 : "=m"(*_a)				\
+					 : "a"(_a), "d"(1 << shift),  "m"(*_a)	\
+					 : "memory", "cc");				\
+	})
 
 #define set_bit(nr, addr) __set_bit((nr), (addr))
 
@@ -41,16 +41,16 @@
  * clear bit
  */
 #define ___clear_bit(nr, addr)					\
-({								\
-	volatile unsigned char *_a = (unsigned char *)(addr);	\
-	const unsigned shift = (nr) & 7;			\
-	_a += (nr) >> 3;					\
-								\
-	asm volatile("bclr %2,(%1) # clear_bit reg"		\
-		     : "=m"(*_a)				\
-		     : "a"(_a), "d"(1 << shift), "m"(*_a)	\
-		     : "memory", "cc");				\
-})
+	({								\
+		volatile unsigned char *_a = (unsigned char *)(addr);	\
+		const unsigned shift = (nr) & 7;			\
+		_a += (nr) >> 3;					\
+		\
+		asm volatile("bclr %2,(%1) # clear_bit reg"		\
+					 : "=m"(*_a)				\
+					 : "a"(_a), "d"(1 << shift), "m"(*_a)	\
+					 : "memory", "cc");				\
+	})
 
 #define clear_bit(nr, addr) ___clear_bit((nr), (addr))
 
@@ -92,20 +92,20 @@ extern void change_bit(unsigned long nr, volatile void *addr);
  * test and set bit
  */
 #define __test_and_set_bit(nr,addr)				\
-({								\
-	volatile unsigned char *_a = (unsigned char *)(addr);	\
-	const unsigned shift = (nr) & 7;			\
-	unsigned epsw;						\
-	_a += (nr) >> 3;					\
-								\
-	asm volatile("bset %3,(%2) # test_set_bit reg\n"	\
-		     "mov epsw,%1"				\
-		     : "=m"(*_a), "=d"(epsw)			\
-		     : "a"(_a), "d"(1 << shift), "m"(*_a)	\
-		     : "memory", "cc");				\
-								\
-	!(epsw & EPSW_FLAG_Z);					\
-})
+	({								\
+		volatile unsigned char *_a = (unsigned char *)(addr);	\
+		const unsigned shift = (nr) & 7;			\
+		unsigned epsw;						\
+		_a += (nr) >> 3;					\
+		\
+		asm volatile("bset %3,(%2) # test_set_bit reg\n"	\
+					 "mov epsw,%1"				\
+					 : "=m"(*_a), "=d"(epsw)			\
+					 : "a"(_a), "d"(1 << shift), "m"(*_a)	\
+					 : "memory", "cc");				\
+		\
+		!(epsw & EPSW_FLAG_Z);					\
+	})
 
 #define test_and_set_bit(nr, addr) __test_and_set_bit((nr), (addr))
 
@@ -113,20 +113,20 @@ extern void change_bit(unsigned long nr, volatile void *addr);
  * test and clear bit
  */
 #define __test_and_clear_bit(nr, addr)				\
-({								\
-        volatile unsigned char *_a = (unsigned char *)(addr);	\
-	const unsigned shift = (nr) & 7;			\
-	unsigned epsw;						\
-	_a += (nr) >> 3;					\
-								\
-	asm volatile("bclr %3,(%2) # test_clear_bit reg\n"	\
-		     "mov epsw,%1"				\
-		     : "=m"(*_a), "=d"(epsw)			\
-		     : "a"(_a), "d"(1 << shift), "m"(*_a)	\
-		     : "memory", "cc");				\
-								\
-	!(epsw & EPSW_FLAG_Z);					\
-})
+	({								\
+		volatile unsigned char *_a = (unsigned char *)(addr);	\
+		const unsigned shift = (nr) & 7;			\
+		unsigned epsw;						\
+		_a += (nr) >> 3;					\
+		\
+		asm volatile("bclr %3,(%2) # test_clear_bit reg\n"	\
+					 "mov epsw,%1"				\
+					 : "=m"(*_a), "=d"(epsw)			\
+					 : "a"(_a), "d"(1 << shift), "m"(*_a)	\
+					 : "memory", "cc");				\
+		\
+		!(epsw & EPSW_FLAG_Z);					\
+	})
 
 #define test_and_clear_bit(nr, addr) __test_and_clear_bit((nr), (addr))
 

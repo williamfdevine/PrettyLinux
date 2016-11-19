@@ -14,7 +14,8 @@
 /* Some R4000 / R4400 / R4600 / R5000 machines may have a non-dma-coherent,
    chipset implemented caches.	On machines with other CPUs the CPU does the
    cache thing itself. */
-struct bcache_ops {
+struct bcache_ops
+{
 	void (*bc_enable)(void);
 	void (*bc_disable)(void);
 	void (*bc_wback_inv)(unsigned long page, unsigned long size);
@@ -53,19 +54,25 @@ static inline void bc_inv(unsigned long page, unsigned long size)
 static inline void bc_prefetch_enable(void)
 {
 	if (bcops->bc_prefetch_enable)
+	{
 		bcops->bc_prefetch_enable();
+	}
 }
 
 static inline void bc_prefetch_disable(void)
 {
 	if (bcops->bc_prefetch_disable)
+	{
 		bcops->bc_prefetch_disable();
+	}
 }
 
 static inline bool bc_prefetch_is_enabled(void)
 {
 	if (bcops->bc_prefetch_is_enabled)
+	{
 		return bcops->bc_prefetch_is_enabled();
+	}
 
 	return false;
 }

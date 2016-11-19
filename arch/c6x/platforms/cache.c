@@ -111,16 +111,18 @@ static void __iomem *cache_base;
  */
 #define imcr_get(reg) soc_readl(cache_base + (reg))
 #define imcr_set(reg, value) \
-do {								\
-	soc_writel((value), cache_base + (reg));		\
-	soc_readl(cache_base + (reg));				\
-} while (0)
+	do {								\
+		soc_writel((value), cache_base + (reg));		\
+		soc_readl(cache_base + (reg));				\
+	} while (0)
 
 static void cache_block_operation_wait(unsigned int wc_reg)
 {
 	/* Wait for completion */
 	while (imcr_get(wc_reg))
+	{
 		cpu_relax();
+	}
 }
 
 static DEFINE_SPINLOCK(cache_lock);
@@ -130,9 +132,9 @@ static DEFINE_SPINLOCK(cache_lock);
  * invalidate or writeback/invalidate
  */
 static void cache_block_operation(unsigned int *start,
-				  unsigned int *end,
-				  unsigned int bar_reg,
-				  unsigned int wc_reg)
+								  unsigned int *end,
+								  unsigned int bar_reg,
+								  unsigned int wc_reg)
 {
 	unsigned long flags;
 	unsigned int wcnt =
@@ -140,14 +142,16 @@ static void cache_block_operation(unsigned int *start,
 		 - L2_CACHE_ALIGN_LOW((unsigned int) start)) >> 2;
 	unsigned int wc = 0;
 
-	for (; wcnt; wcnt -= wc, start += wc) {
+	for (; wcnt; wcnt -= wc, start += wc)
+	{
 loop:
 		spin_lock_irqsave(&cache_lock, flags);
 
 		/*
 		 * If another cache operation is occurring
 		 */
-		if (unlikely(imcr_get(wc_reg))) {
+		if (unlikely(imcr_get(wc_reg)))
+		{
 			spin_unlock_irqrestore(&cache_lock, flags);
 
 			/* Wait for previous operation completion */
@@ -160,9 +164,13 @@ loop:
 		imcr_set(bar_reg, L2_CACHE_ALIGN_LOW((unsigned int) start));
 
 		if (wcnt > 0xffff)
+		{
 			wc = 0xffff;
+		}
 		else
+		{
 			wc = wcnt;
+		}
 
 		/* Set word count value in the WC register */
 		imcr_set(wc_reg, wc & 0xffff);
@@ -175,9 +183,9 @@ loop:
 }
 
 static void cache_block_operation_nowait(unsigned int *start,
-					 unsigned int *end,
-					 unsigned int bar_reg,
-					 unsigned int wc_reg)
+		unsigned int *end,
+		unsigned int bar_reg,
+		unsigned int wc_reg)
 {
 	unsigned long flags;
 	unsigned int wcnt =
@@ -185,16 +193,21 @@ static void cache_block_operation_nowait(unsigned int *start,
 		 - L2_CACHE_ALIGN_LOW((unsigned int) start)) >> 2;
 	unsigned int wc = 0;
 
-	for (; wcnt; wcnt -= wc, start += wc) {
+	for (; wcnt; wcnt -= wc, start += wc)
+	{
 
 		spin_lock_irqsave(&cache_lock, flags);
 
 		imcr_set(bar_reg, L2_CACHE_ALIGN_LOW((unsigned int) start));
 
 		if (wcnt > 0xffff)
+		{
 			wc = 0xffff;
+		}
 		else
+		{
 			wc = wcnt;
+		}
 
 		/* Set word count value in the WC register */
 		imcr_set(wc_reg, wc & 0xffff);
@@ -203,7 +216,9 @@ static void cache_block_operation_nowait(unsigned int *start,
 
 		/* Don't wait for completion on last cache operation */
 		if (wcnt > 0xffff)
+		{
 			cache_block_operation_wait(wc_reg);
+		}
 	}
 }
 
@@ -246,8 +261,11 @@ void L1P_cache_global_invalidate(void)
 {
 	unsigned int set = 1;
 	imcr_set(IMCR_L1PINV, set);
+
 	while (imcr_get(IMCR_L1PINV) & 1)
+	{
 		cpu_relax();
+	}
 }
 
 /*
@@ -261,24 +279,33 @@ void L1D_cache_global_invalidate(void)
 {
 	unsigned int set = 1;
 	imcr_set(IMCR_L1DINV, set);
+
 	while (imcr_get(IMCR_L1DINV) & 1)
+	{
 		cpu_relax();
+	}
 }
 
 void L1D_cache_global_writeback(void)
 {
 	unsigned int set = 1;
 	imcr_set(IMCR_L1DWB, set);
+
 	while (imcr_get(IMCR_L1DWB) & 1)
+	{
 		cpu_relax();
+	}
 }
 
 void L1D_cache_global_writeback_invalidate(void)
 {
 	unsigned int set = 1;
 	imcr_set(IMCR_L1DWBINV, set);
+
 	while (imcr_get(IMCR_L1DWBINV) & 1)
+	{
 		cpu_relax();
+	}
 }
 
 /*
@@ -305,8 +332,11 @@ void L2_cache_set_mode(unsigned int mode)
 void L2_cache_global_writeback_invalidate(void)
 {
 	imcr_set(IMCR_L2WBINV, 1);
+
 	while (imcr_get(IMCR_L2WBINV))
+	{
 		cpu_relax();
+	}
 }
 
 /*
@@ -315,8 +345,11 @@ void L2_cache_global_writeback_invalidate(void)
 void L2_cache_global_writeback(void)
 {
 	imcr_set(IMCR_L2WB, 1);
+
 	while (imcr_get(IMCR_L2WB))
+	{
 		cpu_relax();
+	}
 }
 
 /*
@@ -328,7 +361,9 @@ void enable_caching(unsigned long start, unsigned long end)
 	unsigned int mar_e = IMCR_MAR_BASE + ((end >> 24) << 2);
 
 	for (; mar <= mar_e; mar += 4)
+	{
 		imcr_set(mar, imcr_get(mar) | 1);
+	}
 }
 
 void disable_caching(unsigned long start, unsigned long end)
@@ -337,7 +372,9 @@ void disable_caching(unsigned long start, unsigned long end)
 	unsigned int mar_e = IMCR_MAR_BASE + ((end >> 24) << 2);
 
 	for (; mar <= mar_e; mar += 4)
+	{
 		imcr_set(mar, imcr_get(mar) & ~1);
+	}
 }
 
 
@@ -347,30 +384,30 @@ void disable_caching(unsigned long start, unsigned long end)
 void L1P_cache_block_invalidate(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
-			      (unsigned int *) end,
-			      IMCR_L1PIBAR, IMCR_L1PIWC);
+						  (unsigned int *) end,
+						  IMCR_L1PIBAR, IMCR_L1PIWC);
 }
 EXPORT_SYMBOL(L1P_cache_block_invalidate);
 
 void L1D_cache_block_invalidate(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
-			      (unsigned int *) end,
-			      IMCR_L1DIBAR, IMCR_L1DIWC);
+						  (unsigned int *) end,
+						  IMCR_L1DIBAR, IMCR_L1DIWC);
 }
 
 void L1D_cache_block_writeback_invalidate(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
-			      (unsigned int *) end,
-			      IMCR_L1DWIBAR, IMCR_L1DWIWC);
+						  (unsigned int *) end,
+						  IMCR_L1DWIBAR, IMCR_L1DWIWC);
 }
 
 void L1D_cache_block_writeback(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
-			      (unsigned int *) end,
-			      IMCR_L1DWBAR, IMCR_L1DWWC);
+						  (unsigned int *) end,
+						  IMCR_L1DWBAR, IMCR_L1DWWC);
 }
 EXPORT_SYMBOL(L1D_cache_block_writeback);
 
@@ -380,44 +417,44 @@ EXPORT_SYMBOL(L1D_cache_block_writeback);
 void L2_cache_block_invalidate(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
-			      (unsigned int *) end,
-			      IMCR_L2IBAR, IMCR_L2IWC);
+						  (unsigned int *) end,
+						  IMCR_L2IBAR, IMCR_L2IWC);
 }
 
 void L2_cache_block_writeback(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
-			      (unsigned int *) end,
-			      IMCR_L2WBAR, IMCR_L2WWC);
+						  (unsigned int *) end,
+						  IMCR_L2WBAR, IMCR_L2WWC);
 }
 
 void L2_cache_block_writeback_invalidate(unsigned int start, unsigned int end)
 {
 	cache_block_operation((unsigned int *) start,
-			      (unsigned int *) end,
-			      IMCR_L2WIBAR, IMCR_L2WIWC);
+						  (unsigned int *) end,
+						  IMCR_L2WIBAR, IMCR_L2WIWC);
 }
 
 void L2_cache_block_invalidate_nowait(unsigned int start, unsigned int end)
 {
 	cache_block_operation_nowait((unsigned int *) start,
-				     (unsigned int *) end,
-				     IMCR_L2IBAR, IMCR_L2IWC);
+								 (unsigned int *) end,
+								 IMCR_L2IBAR, IMCR_L2IWC);
 }
 
 void L2_cache_block_writeback_nowait(unsigned int start, unsigned int end)
 {
 	cache_block_operation_nowait((unsigned int *) start,
-				     (unsigned int *) end,
-				     IMCR_L2WBAR, IMCR_L2WWC);
+								 (unsigned int *) end,
+								 IMCR_L2WBAR, IMCR_L2WWC);
 }
 
 void L2_cache_block_writeback_invalidate_nowait(unsigned int start,
-						unsigned int end)
+		unsigned int end)
 {
 	cache_block_operation_nowait((unsigned int *) start,
-				     (unsigned int *) end,
-				     IMCR_L2WIBAR, IMCR_L2WIWC);
+								 (unsigned int *) end,
+								 IMCR_L2WIBAR, IMCR_L2WIWC);
 }
 
 
@@ -429,15 +466,20 @@ void __init c6x_cache_init(void)
 	struct device_node *node;
 
 	node = of_find_compatible_node(NULL, NULL, "ti,c64x+cache");
+
 	if (!node)
+	{
 		return;
+	}
 
 	cache_base = of_iomap(node, 0);
 
 	of_node_put(node);
 
 	if (!cache_base)
+	{
 		return;
+	}
 
 	/* Set L2 caches on the the whole L2 SRAM memory */
 	L2_cache_set_mode(L2MODE_SIZE);

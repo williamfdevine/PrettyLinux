@@ -85,18 +85,29 @@ void __init init_IRQ(void)
 	int ret;
 
 	if (IS_ENABLED(CONFIG_OF) && !machine_desc->init_irq)
+	{
 		irqchip_init();
+	}
 	else
+	{
 		machine_desc->init_irq();
+	}
 
 	if (IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_CACHE_L2X0) &&
-	    (machine_desc->l2c_aux_mask || machine_desc->l2c_aux_val)) {
+		(machine_desc->l2c_aux_mask || machine_desc->l2c_aux_val))
+	{
 		if (!outer_cache.write_sec)
+		{
 			outer_cache.write_sec = machine_desc->l2c_write_sec;
+		}
+
 		ret = l2x0_of_init(machine_desc->l2c_aux_val,
-				   machine_desc->l2c_aux_mask);
+						   machine_desc->l2c_aux_mask);
+
 		if (ret && ret != -ENODEV)
+		{
 			pr_err("L2C: failed to init: %d\n", ret);
+		}
 	}
 
 	uniphier_cache_init();
@@ -106,7 +117,9 @@ void __init init_IRQ(void)
 void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
 {
 	if (handle_arch_irq)
+	{
 		return;
+	}
 
 	handle_arch_irq = handle_irq;
 }
@@ -133,18 +146,26 @@ static bool migrate_one_irq(struct irq_desc *desc)
 	 * include this CPU, then we have nothing to do.
 	 */
 	if (irqd_is_per_cpu(d) || !cpumask_test_cpu(smp_processor_id(), affinity))
+	{
 		return false;
+	}
 
-	if (cpumask_any_and(affinity, cpu_online_mask) >= nr_cpu_ids) {
+	if (cpumask_any_and(affinity, cpu_online_mask) >= nr_cpu_ids)
+	{
 		affinity = cpu_online_mask;
 		ret = true;
 	}
 
 	c = irq_data_get_irq_chip(d);
+
 	if (!c->irq_set_affinity)
+	{
 		pr_debug("IRQ%u: unable to set affinity\n", d->irq);
+	}
 	else if (c->irq_set_affinity(d, affinity, false) == IRQ_SET_MASK_OK && ret)
+	{
 		cpumask_copy(irq_data_get_affinity_mask(d), affinity);
+	}
 
 	return ret;
 }
@@ -165,7 +186,8 @@ void migrate_irqs(void)
 
 	local_irq_save(flags);
 
-	for_each_irq_desc(i, desc) {
+	for_each_irq_desc(i, desc)
+	{
 		bool affinity_broken;
 
 		raw_spin_lock(&desc->lock);
@@ -174,7 +196,7 @@ void migrate_irqs(void)
 
 		if (affinity_broken)
 			pr_warn_ratelimited("IRQ%u no longer affine to CPU%u\n",
-				i, smp_processor_id());
+								i, smp_processor_id());
 	}
 
 	local_irq_restore(flags);

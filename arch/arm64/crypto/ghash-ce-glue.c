@@ -22,41 +22,45 @@ MODULE_LICENSE("GPL v2");
 #define GHASH_BLOCK_SIZE	16
 #define GHASH_DIGEST_SIZE	16
 
-struct ghash_key {
+struct ghash_key
+{
 	u64 a;
 	u64 b;
 };
 
-struct ghash_desc_ctx {
-	u64 digest[GHASH_DIGEST_SIZE/sizeof(u64)];
+struct ghash_desc_ctx
+{
+	u64 digest[GHASH_DIGEST_SIZE / sizeof(u64)];
 	u8 buf[GHASH_BLOCK_SIZE];
 	u32 count;
 };
 
 asmlinkage void pmull_ghash_update(int blocks, u64 dg[], const char *src,
-				   struct ghash_key const *k, const char *head);
+								   struct ghash_key const *k, const char *head);
 
 static int ghash_init(struct shash_desc *desc)
 {
 	struct ghash_desc_ctx *ctx = shash_desc_ctx(desc);
 
-	*ctx = (struct ghash_desc_ctx){};
+	*ctx = (struct ghash_desc_ctx) {};
 	return 0;
 }
 
 static int ghash_update(struct shash_desc *desc, const u8 *src,
-			unsigned int len)
+						unsigned int len)
 {
 	struct ghash_desc_ctx *ctx = shash_desc_ctx(desc);
 	unsigned int partial = ctx->count % GHASH_BLOCK_SIZE;
 
 	ctx->count += len;
 
-	if ((partial + len) >= GHASH_BLOCK_SIZE) {
+	if ((partial + len) >= GHASH_BLOCK_SIZE)
+	{
 		struct ghash_key *key = crypto_shash_ctx(desc->tfm);
 		int blocks;
 
-		if (partial) {
+		if (partial)
+		{
 			int p = GHASH_BLOCK_SIZE - partial;
 
 			memcpy(ctx->buf + partial, src, p);
@@ -69,13 +73,17 @@ static int ghash_update(struct shash_desc *desc, const u8 *src,
 
 		kernel_neon_begin_partial(8);
 		pmull_ghash_update(blocks, ctx->digest, src, key,
-				   partial ? ctx->buf : NULL);
+						   partial ? ctx->buf : NULL);
 		kernel_neon_end();
 		src += blocks * GHASH_BLOCK_SIZE;
 		partial = 0;
 	}
+
 	if (len)
+	{
 		memcpy(ctx->buf + partial, src, len);
+	}
+
 	return 0;
 }
 
@@ -84,7 +92,8 @@ static int ghash_final(struct shash_desc *desc, u8 *dst)
 	struct ghash_desc_ctx *ctx = shash_desc_ctx(desc);
 	unsigned int partial = ctx->count % GHASH_BLOCK_SIZE;
 
-	if (partial) {
+	if (partial)
+	{
 		struct ghash_key *key = crypto_shash_ctx(desc->tfm);
 
 		memset(ctx->buf + partial, 0, GHASH_BLOCK_SIZE - partial);
@@ -93,20 +102,22 @@ static int ghash_final(struct shash_desc *desc, u8 *dst)
 		pmull_ghash_update(1, ctx->digest, ctx->buf, key, NULL);
 		kernel_neon_end();
 	}
+
 	put_unaligned_be64(ctx->digest[1], dst);
 	put_unaligned_be64(ctx->digest[0], dst + 8);
 
-	*ctx = (struct ghash_desc_ctx){};
+	*ctx = (struct ghash_desc_ctx) {};
 	return 0;
 }
 
 static int ghash_setkey(struct crypto_shash *tfm,
-			const u8 *inkey, unsigned int keylen)
+						const u8 *inkey, unsigned int keylen)
 {
 	struct ghash_key *key = crypto_shash_ctx(tfm);
 	u64 a, b;
 
-	if (keylen != GHASH_BLOCK_SIZE) {
+	if (keylen != GHASH_BLOCK_SIZE)
+	{
 		crypto_shash_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
@@ -119,12 +130,15 @@ static int ghash_setkey(struct crypto_shash *tfm,
 	key->b = (b << 1) | (a >> 63);
 
 	if (b >> 63)
+	{
 		key->b ^= 0xc200000000000000UL;
+	}
 
 	return 0;
 }
 
-static struct shash_alg ghash_alg = {
+static struct shash_alg ghash_alg =
+{
 	.digestsize	= GHASH_DIGEST_SIZE,
 	.init		= ghash_init,
 	.update		= ghash_update,

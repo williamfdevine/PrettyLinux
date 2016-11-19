@@ -45,12 +45,13 @@ static struct mm_struct *flush_mm;
 static unsigned long flush_va;
 static DEFINE_SPINLOCK(tlbstate_lock);
 
-DEFINE_PER_CPU_SHARED_ALIGNED(struct tlb_state, cpu_tlbstate) = {
+DEFINE_PER_CPU_SHARED_ALIGNED(struct tlb_state, cpu_tlbstate) =
+{
 	&init_mm, 0
 };
 
 static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
-			     unsigned long va);
+							 unsigned long va);
 static void do_flush_tlb_all(void *info);
 
 /**
@@ -71,12 +72,18 @@ void smp_flush_tlb(void *unused)
 		 *
 		 * BUG();
 		 */
+	{
 		goto out;
+	}
 
 	if (flush_va == FLUSH_ALL)
+	{
 		local_flush_tlb();
+	}
 	else
+	{
 		local_flush_tlb_page(flush_mm, flush_va);
+	}
 
 	smp_mb__before_atomic();
 	cpumask_clear_cpu(cpu_id, &flush_cpumask);
@@ -92,7 +99,7 @@ out:
  * @va: Virtual address to flush or FLUSH_ALL to flush everything.
  */
 static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
-			     unsigned long va)
+							 unsigned long va)
 {
 	cpumask_t tmp;
 
@@ -129,7 +136,9 @@ static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
 
 	while (!cpumask_empty(&flush_cpumask))
 		/* Lockup detection does not belong here */
+	{
 		smp_mb();
+	}
 
 	flush_mm = NULL;
 	flush_va = 0;
@@ -149,8 +158,11 @@ void flush_tlb_mm(struct mm_struct *mm)
 	cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
 
 	local_flush_tlb();
+
 	if (!cpumask_empty(&cpu_mask))
+	{
 		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
+	}
 
 	preempt_enable();
 }
@@ -168,8 +180,11 @@ void flush_tlb_current_task(void)
 	cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
 
 	local_flush_tlb();
+
 	if (!cpumask_empty(&cpu_mask))
+	{
 		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
+	}
 
 	preempt_enable();
 }
@@ -189,8 +204,11 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long va)
 	cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
 
 	local_flush_tlb_page(mm, va);
+
 	if (!cpumask_empty(&cpu_mask))
+	{
 		flush_tlb_others(cpu_mask, mm, va);
+	}
 
 	preempt_enable();
 }

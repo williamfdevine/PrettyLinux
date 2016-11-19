@@ -6,7 +6,8 @@
 struct pt_regs;
 
 /* Grossly misnamed. */
-enum die_val {
+enum die_val
+{
 	DIE_OOPS = 1,
 	DIE_INT3,
 	DIE_DEBUG,
@@ -22,7 +23,7 @@ enum die_val {
 };
 
 extern void printk_address(unsigned long address);
-extern void die(const char *, struct pt_regs *,long);
+extern void die(const char *, struct pt_regs *, long);
 extern int __must_check __die(const char *, struct pt_regs *, long);
 extern void show_stack_regs(struct pt_regs *regs);
 extern void __show_regs(struct pt_regs *regs, int all);

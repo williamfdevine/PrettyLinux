@@ -15,7 +15,8 @@
 
 #include <linux/types.h>
 
-struct mpu_rate {
+struct mpu_rate
+{
 	unsigned long		rate;
 	unsigned long		xtal;
 	unsigned long		pll_rate;

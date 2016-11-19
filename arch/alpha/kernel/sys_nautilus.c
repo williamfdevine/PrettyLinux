@@ -54,7 +54,8 @@
 static void __init
 nautilus_init_irq(void)
 {
-	if (alpha_using_srm) {
+	if (alpha_using_srm)
+	{
 		alpha_mv.device_interrupt = srm_device_interrupt;
 	}
 
@@ -68,12 +69,16 @@ nautilus_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	/* Preserve the IRQ set up by the console.  */
 
 	u8 irq;
+
 	/* UP1500: AGP INTA is actually routed to IRQ 5, not IRQ 10 as
 	   console reports. Check the device id of AGP bridge to distinguish
 	   UP1500 from UP1000/1100. Note: 'pin' is 2 due to bridge swizzle. */
 	if (slot == 1 && pin == 2 &&
-	    dev->bus->self && dev->bus->self->device == 0x700f)
+		dev->bus->self && dev->bus->self->device == 0x700f)
+	{
 		return 5;
+	}
+
 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
 	return irq;
 }
@@ -85,32 +90,38 @@ nautilus_kill_arch(int mode)
 	u32 pmuport;
 	int off;
 
-	switch (mode) {
-	case LINUX_REBOOT_CMD_RESTART:
-		if (! alpha_using_srm) {
-			u8 t8;
-			pci_bus_read_config_byte(bus, 0x38, 0x43, &t8);
-			pci_bus_write_config_byte(bus, 0x38, 0x43, t8 | 0x80);
-			outb(1, 0x92);
-			outb(0, 0x92);
-			/* NOTREACHED */
-		}
-		break;
+	switch (mode)
+	{
+		case LINUX_REBOOT_CMD_RESTART:
+			if (! alpha_using_srm)
+			{
+				u8 t8;
+				pci_bus_read_config_byte(bus, 0x38, 0x43, &t8);
+				pci_bus_write_config_byte(bus, 0x38, 0x43, t8 | 0x80);
+				outb(1, 0x92);
+				outb(0, 0x92);
+				/* NOTREACHED */
+			}
 
-	case LINUX_REBOOT_CMD_POWER_OFF:
-		/* Assume M1543C */
-		off = 0x2000;		/* SLP_TYPE = 0, SLP_EN = 1 */
-		pci_bus_read_config_dword(bus, 0x88, 0x10, &pmuport);
-		if (!pmuport) {
-			/* M1535D/D+ */
-			off = 0x3400;	/* SLP_TYPE = 5, SLP_EN = 1 */
-			pci_bus_read_config_dword(bus, 0x88, 0xe0, &pmuport);
-		}
-		pmuport &= 0xfffe;
-		outw(0xffff, pmuport);	/* Clear pending events. */
-		outw(off, pmuport + 4);
-		/* NOTREACHED */
-		break;
+			break;
+
+		case LINUX_REBOOT_CMD_POWER_OFF:
+			/* Assume M1543C */
+			off = 0x2000;		/* SLP_TYPE = 0, SLP_EN = 1 */
+			pci_bus_read_config_dword(bus, 0x88, 0x10, &pmuport);
+
+			if (!pmuport)
+			{
+				/* M1535D/D+ */
+				off = 0x3400;	/* SLP_TYPE = 5, SLP_EN = 1 */
+				pci_bus_read_config_dword(bus, 0x88, 0xe0, &pmuport);
+			}
+
+			pmuport &= 0xfffe;
+			outw(0xffff, pmuport);	/* Clear pending events. */
+			outw(off, pmuport + 4);
+			/* NOTREACHED */
+			break;
 	}
 }
 
@@ -118,7 +129,7 @@ nautilus_kill_arch(int mode)
 
 static void
 naut_sys_machine_check(unsigned long vector, unsigned long la_ptr,
-		       struct pt_regs *regs)
+					   struct pt_regs *regs)
 {
 	printk("PC %lx RA %lx\n", regs->pc, regs->r26);
 	irongate_pci_clr_err();
@@ -137,7 +148,8 @@ nautilus_machine_check(unsigned long vector, unsigned long la_ptr)
 	   Add to that the two levels of severity - correctable or not.  */
 
 	if (vector == SCB_Q_SYSMCHK
-	    && ((IRONGATE0->dramms & 0x300) == 0x300)) {
+		&& ((IRONGATE0->dramms & 0x300) == 0x300))
+	{
 		unsigned long nmi_ctl;
 
 		/* Clear ALI NMI */
@@ -164,17 +176,22 @@ nautilus_machine_check(unsigned long vector, unsigned long la_ptr)
 	}
 
 	if (vector == SCB_Q_SYSERR)
+	{
 		mchk_class = "Correctable";
+	}
 	else if (vector == SCB_Q_SYSMCHK)
+	{
 		mchk_class = "Fatal";
-	else {
+	}
+	else
+	{
 		ev6_machine_check(vector, la_ptr);
 		return;
 	}
 
 	printk(KERN_CRIT "NAUTILUS Machine check 0x%lx "
-			 "[%s System Machine Check (NMI)]\n",
-	       vector, mchk_class);
+		   "[%s System Machine Check (NMI)]\n",
+		   vector, mchk_class);
 
 	naut_sys_machine_check(vector, la_ptr, get_irq_regs());
 
@@ -186,11 +203,13 @@ nautilus_machine_check(unsigned long vector, unsigned long la_ptr)
 
 extern void pcibios_claim_one_bus(struct pci_bus *);
 
-static struct resource irongate_io = {
+static struct resource irongate_io =
+{
 	.name	= "Irongate PCI IO",
 	.flags	= IORESOURCE_IO,
 };
-static struct resource irongate_mem = {
+static struct resource irongate_mem =
+{
 	.name	= "Irongate PCI MEM",
 	.flags	= IORESOURCE_MEM,
 };
@@ -206,8 +225,11 @@ nautilus_init_pci(void)
 
 	/* Scan our single hose.  */
 	bus = pci_scan_bus(0, alpha_mv.pci_ops, hose);
+
 	if (!bus)
+	{
 		return;
+	}
 
 	hose->bus = bus;
 	pcibios_claim_one_bus(bus);
@@ -227,27 +249,39 @@ nautilus_init_pci(void)
 	   base must be at aligned to 16Mb. */
 	bus_align = bus->resource[1]->start;
 	bus_size = bus->resource[1]->end + 1 - bus_align;
+
 	if (bus_align < 0x1000000UL)
+	{
 		bus_align = 0x1000000UL;
+	}
 
 	pci_mem = (0x100000000UL - bus_size) & -bus_align;
 
 	bus->resource[1]->start = pci_mem;
 	bus->resource[1]->end = 0xffffffffUL;
+
 	if (request_resource(&iomem_resource, bus->resource[1]) < 0)
+	{
 		printk(KERN_ERR "Failed to request MEM on hose 0\n");
+	}
 
 	if (pci_mem < memtop)
+	{
 		memtop = pci_mem;
-	if (memtop > alpha_mv.min_mem_address) {
+	}
+
+	if (memtop > alpha_mv.min_mem_address)
+	{
 		free_reserved_area(__va(alpha_mv.min_mem_address),
-				   __va(memtop), -1, NULL);
+						   __va(memtop), -1, NULL);
 		printk("nautilus_init_pci: %ldk freed\n",
-			(memtop - alpha_mv.min_mem_address) >> 10);
+			   (memtop - alpha_mv.min_mem_address) >> 10);
 	}
 
 	if ((IRONGATE0->dev_vendor >> 16) > 0x7006)	/* Albacore? */
+	{
 		IRONGATE0->pci_mem = pci_mem;
+	}
 
 	pci_bus_assign_resources(bus);
 
@@ -262,7 +296,8 @@ nautilus_init_pci(void)
  * The System Vectors
  */
 
-struct alpha_machine_vector nautilus_mv __initmv = {
+struct alpha_machine_vector nautilus_mv __initmv =
+{
 	.vector_name		= "Nautilus",
 	DO_EV6_MMU,
 	DO_DEFAULT_RTC,

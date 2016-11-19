@@ -53,7 +53,8 @@ static int puv3_osmr0_shutdown(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device ckevt_puv3_osmr0 = {
+static struct clock_event_device ckevt_puv3_osmr0 =
+{
 	.name			= "osmr0",
 	.features		= CLOCK_EVT_FEAT_ONESHOT,
 	.rating			= 200,
@@ -67,7 +68,8 @@ static cycle_t puv3_read_oscr(struct clocksource *cs)
 	return readl(OST_OSCR);
 }
 
-static struct clocksource cksrc_puv3_oscr = {
+static struct clocksource cksrc_puv3_oscr =
+{
 	.name		= "oscr",
 	.rating		= 200,
 	.read		= puv3_read_oscr,
@@ -75,7 +77,8 @@ static struct clocksource cksrc_puv3_oscr = {
 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
 };
 
-static struct irqaction puv3_timer_irq = {
+static struct irqaction puv3_timer_irq =
+{
 	.name		= "ost0",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= puv3_ost0_interrupt,

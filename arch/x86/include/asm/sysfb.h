@@ -15,7 +15,8 @@
 #include <linux/platform_data/simplefb.h>
 #include <linux/screen_info.h>
 
-enum {
+enum
+{
 	M_I17,		/* 17-Inch iMac */
 	M_I20,		/* 20-Inch iMac */
 	M_I20_SR,	/* 20-Inch iMac (Santa Rosa) */
@@ -50,7 +51,8 @@ enum {
 	M_UNKNOWN	/* placeholder */
 };
 
-struct efifb_dmi_info {
+struct efifb_dmi_info
+{
 	char *optname;
 	unsigned long base;
 	int stride;
@@ -75,20 +77,20 @@ static inline void sysfb_apply_efi_quirks(void)
 #ifdef CONFIG_X86_SYSFB
 
 bool parse_mode(const struct screen_info *si,
-		struct simplefb_platform_data *mode);
+				struct simplefb_platform_data *mode);
 int create_simplefb(const struct screen_info *si,
-		    const struct simplefb_platform_data *mode);
+					const struct simplefb_platform_data *mode);
 
 #else /* CONFIG_X86_SYSFB */
 
 static inline bool parse_mode(const struct screen_info *si,
-			      struct simplefb_platform_data *mode)
+							  struct simplefb_platform_data *mode)
 {
 	return false;
 }
 
 static inline int create_simplefb(const struct screen_info *si,
-				  const struct simplefb_platform_data *mode)
+								  const struct simplefb_platform_data *mode)
 {
 	return -EINVAL;
 }

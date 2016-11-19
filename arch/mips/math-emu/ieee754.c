@@ -39,18 +39,19 @@
  * anonymous struct member.  Without an error will result.
  */
 #define xPCNST(s, b, m, ebias)						\
-{									\
-	{								\
-		.sign	= (s),						\
-		.bexp	= (b) + ebias,					\
-		.mant	= (m)						\
-	}								\
-}
+	{									\
+		{								\
+			.sign	= (s),						\
+					  .bexp	= (b) + ebias,					\
+								.mant	= (m)						\
+		}								\
+	}
 
 #define DPCNST(s, b, m)							\
 	xPCNST(s, b, m, DP_EBIAS)
 
-const union ieee754dp __ieee754dp_spcvals[] = {
+const union ieee754dp __ieee754dp_spcvals[] =
+{
 	DPCNST(0, DP_EMIN - 1, 0x0000000000000ULL),	/* + zero   */
 	DPCNST(1, DP_EMIN - 1, 0x0000000000000ULL),	/* - zero   */
 	DPCNST(0, 0,	       0x0000000000000ULL),	/* + 1.0   */
@@ -74,7 +75,8 @@ const union ieee754dp __ieee754dp_spcvals[] = {
 #define SPCNST(s, b, m)							\
 	xPCNST(s, b, m, SP_EBIAS)
 
-const union ieee754sp __ieee754sp_spcvals[] = {
+const union ieee754sp __ieee754sp_spcvals[] =
+{
 	SPCNST(0, SP_EMIN - 1, 0x000000),	/* + zero   */
 	SPCNST(1, SP_EMIN - 1, 0x000000),	/* - zero   */
 	SPCNST(0, 0,	       0x000000),	/* + 1.0   */

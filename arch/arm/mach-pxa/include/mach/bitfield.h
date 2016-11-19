@@ -16,9 +16,9 @@
 #define __BITFIELD_H
 
 #ifndef __ASSEMBLY__
-#define UData(Data)	((unsigned long) (Data))
+	#define UData(Data)	((unsigned long) (Data))
 #else
-#define UData(Data)	(Data)
+	#define UData(Data)	(Data)
 #endif
 
 
@@ -88,7 +88,7 @@
  */
 
 #define FInsrt(Value, Field) \
-                	(UData (Value) << FShft (Field))
+	(UData (Value) << FShft (Field))
 
 
 /*
@@ -107,7 +107,7 @@
  */
 
 #define FExtr(Data, Field) \
-                	((UData (Data) >> FShft (Field)) & FAlnMsk (Field))
+	((UData (Data) >> FShft (Field)) & FAlnMsk (Field))
 
 
 #endif /* __BITFIELD_H */

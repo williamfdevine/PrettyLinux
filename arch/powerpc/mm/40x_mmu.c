@@ -70,7 +70,7 @@ void __init MMU_init_hw(void)
 	 * kernel access as indicated in the PTE.
 	 */
 
-        mtspr(SPRN_ZPR, 0x10000000);
+	mtspr(SPRN_ZPR, 0x10000000);
 
 	flush_instruction_cache();
 
@@ -79,15 +79,15 @@ void __init MMU_init_hw(void)
 	 * handlers (which are run in real-mode).
 	 */
 
-        mtspr(SPRN_DCWR, 0x00000000);	/* All caching is write-back */
+	mtspr(SPRN_DCWR, 0x00000000);	/* All caching is write-back */
 
-        /*
-	 * Cache instruction and data space where the exception
+	/*
+	* Cache instruction and data space where the exception
 	 * vectors and the kernel live in real-mode.
 	 */
 
-        mtspr(SPRN_DCCR, 0xFFFF0000);	/* 2GByte of data space at 0x0. */
-        mtspr(SPRN_ICCR, 0xFFFF0000);	/* 2GByte of instr. space at 0x0. */
+	mtspr(SPRN_DCCR, 0xFFFF0000);	/* 2GByte of data space at 0x0. */
+	mtspr(SPRN_ICCR, 0xFFFF0000);	/* 2GByte of instr. space at 0x0. */
 }
 
 #define LARGE_PAGE_SIZE_16M	(1<<24)
@@ -103,9 +103,12 @@ unsigned long __init mmu_mapin_ram(unsigned long top)
 	s = total_lowmem;
 
 	if (__map_without_ltlbs)
+	{
 		return 0;
+	}
 
-	while (s >= LARGE_PAGE_SIZE_16M) {
+	while (s >= LARGE_PAGE_SIZE_16M)
+	{
 		pmd_t *pmdp;
 		unsigned long val = p | _PMD_SIZE_16M | _PAGE_EXEC | _PAGE_HWWRITE;
 
@@ -120,7 +123,8 @@ unsigned long __init mmu_mapin_ram(unsigned long top)
 		s -= LARGE_PAGE_SIZE_16M;
 	}
 
-	while (s >= LARGE_PAGE_SIZE_4M) {
+	while (s >= LARGE_PAGE_SIZE_4M)
+	{
 		pmd_t *pmdp;
 		unsigned long val = p | _PMD_SIZE_4M | _PAGE_EXEC | _PAGE_HWWRITE;
 
@@ -147,7 +151,7 @@ unsigned long __init mmu_mapin_ram(unsigned long top)
 }
 
 void setup_initial_memory_limit(phys_addr_t first_memblock_base,
-				phys_addr_t first_memblock_size)
+								phys_addr_t first_memblock_size)
 {
 	/* We don't currently support the first MEMBLOCK not mapping 0
 	 * physical on those processors

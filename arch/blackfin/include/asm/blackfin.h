@@ -17,6 +17,7 @@
 static inline void SSYNC(void)
 {
 	int _tmp;
+
 	if (ANOMALY_05000312 || ANOMALY_05000244)
 		__asm__ __volatile__(
 			"cli %0;"
@@ -28,13 +29,16 @@ static inline void SSYNC(void)
 			: "=d" (_tmp)
 		);
 	else
+	{
 		__asm__ __volatile__("ssync;");
+	}
 }
 
 /* CSYNC implementation for C file */
 static inline void CSYNC(void)
 {
 	int _tmp;
+
 	if (ANOMALY_05000312 || ANOMALY_05000244)
 		__asm__ __volatile__(
 			"cli %0;"
@@ -46,7 +50,9 @@ static inline void CSYNC(void)
 			: "=d" (_tmp)
 		);
 	else
+	{
 		__asm__ __volatile__("csync;");
+	}
 }
 
 #else  /* __ASSEMBLY__ */

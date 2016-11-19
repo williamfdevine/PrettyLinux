@@ -10,10 +10,12 @@
 
 #include <asm/sigcontext.h>
 
-struct fpu {
+struct fpu
+{
 	__u32 fpc;		/* Floating-point control */
 	void *regs;		/* Pointer to the current save area */
-	union {
+	union
+	{
 		/* Floating-point register save area */
 		freg_t fprs[__NUM_FPRS];
 		/* Vector register save area */
@@ -25,10 +27,12 @@ struct fpu {
 struct vx_array { __vector128 _[__NUM_VXRS]; };
 
 /* In-kernel FPU state structure */
-struct kernel_fpu {
+struct kernel_fpu
+{
 	u32	    mask;
 	u32	    fpc;
-	union {
+	union
+	{
 		freg_t fprs[__NUM_FPRS];
 		__vector128 vxrs[__NUM_VXRS];
 	};

@@ -25,7 +25,7 @@ static void disable_m32104ut_irq(unsigned int irq)
 	unsigned long port, data;
 
 	port = irq2port(irq);
-	data = icu_data[irq].icucr|M32R_ICUCR_ILEVEL7;
+	data = icu_data[irq].icucr | M32R_ICUCR_ILEVEL7;
 	outl(data, port);
 }
 
@@ -34,7 +34,7 @@ static void enable_m32104ut_irq(unsigned int irq)
 	unsigned long port, data;
 
 	port = irq2port(irq);
-	data = icu_data[irq].icucr|M32R_ICUCR_IEN|M32R_ICUCR_ILEVEL6;
+	data = icu_data[irq].icucr | M32R_ICUCR_IEN | M32R_ICUCR_ILEVEL6;
 	outl(data, port);
 }
 
@@ -69,14 +69,18 @@ void __init init_IRQ(void)
 	static int once = 0;
 
 	if (once)
+	{
 		return;
+	}
 	else
+	{
 		once++;
+	}
 
 #if defined(CONFIG_SMC91X)
 	/* INT#0: LAN controller on M32104UT-LAN (SMC91C111)*/
 	irq_set_chip_and_handler(M32R_IRQ_INT0, &m32104ut_irq_type,
-				 handle_level_irq);
+							 handle_level_irq);
 	/* "H" level sense */
 	cu_data[M32R_IRQ_INT0].icucr = M32R_ICUCR_IEN | M32R_ICUCR_ISMOD11;
 	disable_m32104ut_irq(M32R_IRQ_INT0);
@@ -84,20 +88,20 @@ void __init init_IRQ(void)
 
 	/* MFT2 : system timer */
 	irq_set_chip_and_handler(M32R_IRQ_MFT2, &m32104ut_irq_type,
-				 handle_level_irq);
+							 handle_level_irq);
 	icu_data[M32R_IRQ_MFT2].icucr = M32R_ICUCR_IEN;
 	disable_m32104ut_irq(M32R_IRQ_MFT2);
 
 #ifdef CONFIG_SERIAL_M32R_SIO
 	/* SIO0_R : uart receive data */
 	irq_set_chip_and_handler(M32R_IRQ_SIO0_R, &m32104ut_irq_type,
-				 handle_level_irq);
+							 handle_level_irq);
 	icu_data[M32R_IRQ_SIO0_R].icucr = M32R_ICUCR_IEN;
 	disable_m32104ut_irq(M32R_IRQ_SIO0_R);
 
 	/* SIO0_S : uart send data */
 	irq_set_chip_and_handler(M32R_IRQ_SIO0_S, &m32104ut_irq_type,
-				 handle_level_irq);
+							 handle_level_irq);
 	icu_data[M32R_IRQ_SIO0_S].icucr = M32R_ICUCR_IEN;
 	disable_m32104ut_irq(M32R_IRQ_SIO0_S);
 #endif /* CONFIG_SERIAL_M32R_SIO */
@@ -107,7 +111,8 @@ void __init init_IRQ(void)
 
 #define LAN_IOSTART     0x300
 #define LAN_IOEND       0x320
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start  = (LAN_IOSTART),
 		.end    = (LAN_IOEND),
@@ -120,7 +125,8 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.num_resources  = ARRAY_SIZE(smc91x_resources),

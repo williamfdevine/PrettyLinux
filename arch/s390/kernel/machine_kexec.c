@@ -39,22 +39,32 @@ extern const unsigned long long relocate_kernel_len;
  * PM notifier callback for kdump
  */
 static int machine_kdump_pm_cb(struct notifier_block *nb, unsigned long action,
-			       void *ptr)
+							   void *ptr)
 {
-	switch (action) {
-	case PM_SUSPEND_PREPARE:
-	case PM_HIBERNATION_PREPARE:
-		if (kexec_crash_image)
-			arch_kexec_unprotect_crashkres();
-		break;
-	case PM_POST_SUSPEND:
-	case PM_POST_HIBERNATION:
-		if (kexec_crash_image)
-			arch_kexec_protect_crashkres();
-		break;
-	default:
-		return NOTIFY_DONE;
+	switch (action)
+	{
+		case PM_SUSPEND_PREPARE:
+		case PM_HIBERNATION_PREPARE:
+			if (kexec_crash_image)
+			{
+				arch_kexec_unprotect_crashkres();
+			}
+
+			break;
+
+		case PM_POST_SUSPEND:
+		case PM_POST_HIBERNATION:
+			if (kexec_crash_image)
+			{
+				arch_kexec_protect_crashkres();
+			}
+
+			break;
+
+		default:
+			return NOTIFY_DONE;
 	}
+
 	return NOTIFY_OK;
 }
 
@@ -86,7 +96,7 @@ static void __do_machine_kdump(void *image)
 	 * prefix register of this CPU to zero
 	 */
 	memcpy((void *) __LC_FPREGS_SAVE_AREA,
-	       (void *)(prefix + __LC_FPREGS_SAVE_AREA), 512);
+		   (void *)(prefix + __LC_FPREGS_SAVE_AREA), 512);
 
 	__load_psw_mask(PSW_MASK_BASE | PSW_DEFAULT_KEY | PSW_MASK_EA | PSW_MASK_BA);
 	start_kdump = (void *)((struct kimage *) image)->start;
@@ -107,15 +117,25 @@ static noinline void __machine_kdump(void *image)
 	lgr_info_log();
 	/* Get status of the other CPUs */
 	this_cpu = smp_find_processor_id(stap());
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cpu == this_cpu)
+		{
 			continue;
+		}
+
 		if (smp_store_status(cpu))
+		{
 			continue;
+		}
 	}
+
 	/* Store status of the boot CPU */
 	if (MACHINE_HAS_VX)
+	{
 		save_vx_regs((void *) &S390_lowcore.vector_save_area);
+	}
+
 	/*
 	 * To create a good backchain for this CPU in the dump store_status
 	 * is passed the address of a function. The address is saved into
@@ -154,12 +174,20 @@ void crash_free_reserved_phys_range(unsigned long begin, unsigned long end)
 	unsigned long addr, size;
 
 	for (addr = begin; addr < end; addr += PAGE_SIZE)
+	{
 		free_reserved_page(pfn_to_page(addr >> PAGE_SHIFT));
+	}
+
 	size = begin - crashk_res.start;
+
 	if (size)
+	{
 		os_info_crashkernel_add(crashk_res.start, size);
+	}
 	else
+	{
 		os_info_crashkernel_add(0, 0);
+	}
 }
 
 static void crash_protect_pages(int protect)
@@ -167,12 +195,20 @@ static void crash_protect_pages(int protect)
 	unsigned long size;
 
 	if (!crashk_res.end)
+	{
 		return;
+	}
+
 	size = resource_size(&crashk_res);
+
 	if (protect)
+	{
 		set_memory_ro(crashk_res.start, size >> PAGE_SHIFT);
+	}
 	else
+	{
 		set_memory_rw(crashk_res.start, size >> PAGE_SHIFT);
+	}
 }
 
 void arch_kexec_protect_crashkres(void)
@@ -193,9 +229,11 @@ void arch_kexec_unprotect_crashkres(void)
 static int machine_kexec_prepare_kdump(void)
 {
 #ifdef CONFIG_CRASH_DUMP
+
 	if (MACHINE_IS_VM)
 		diag10_range(PFN_DOWN(crashk_res.start),
-			     PFN_DOWN(crashk_res.end - crashk_res.start + 1));
+					 PFN_DOWN(crashk_res.end - crashk_res.start + 1));
+
 	return 0;
 #else
 	return -EINVAL;
@@ -208,14 +246,20 @@ int machine_kexec_prepare(struct kimage *image)
 
 	/* Can't replace kernel image since it is read-only. */
 	if (ipl_flags & IPL_NSS_VALID)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (image->type == KEXEC_TYPE_CRASH)
+	{
 		return machine_kexec_prepare_kdump();
+	}
 
 	/* We don't support anything but the default image type for now. */
 	if (image->type != KEXEC_TYPE_DEFAULT)
+	{
 		return -EINVAL;
+	}
 
 	/* Get the destination where the assembler code should be copied to.*/
 	reboot_code_buffer = (void *) page_to_phys(image->control_code_page);
@@ -272,8 +316,12 @@ static void __machine_kexec(void *data)
 	tracing_off();
 	debug_locks_off();
 #ifdef CONFIG_CRASH_DUMP
+
 	if (((struct kimage *) data)->type == KEXEC_TYPE_CRASH)
+	{
 		__machine_kdump(data);
+	}
+
 #endif
 	__do_machine_kexec(data);
 }
@@ -285,7 +333,10 @@ static void __machine_kexec(void *data)
 void machine_kexec(struct kimage *image)
 {
 	if (image->type == KEXEC_TYPE_CRASH && !kdump_csum_valid(image))
+	{
 		return;
+	}
+
 	tracer_disable();
 	smp_send_stop();
 	smp_call_ipl_cpu(__machine_kexec, image);

@@ -67,9 +67,9 @@
 /* Match all cn7XXX Octeon models. */
 #define OM_MATCH_7XXX_FAMILY_MODELS     0x10000000
 #define OM_MATCH_FAMILY_MODELS		(OM_MATCH_5XXX_FAMILY_MODELS |	\
-					 OM_MATCH_6XXX_FAMILY_MODELS |	\
-					 OM_MATCH_F7XXX_FAMILY_MODELS | \
-					 OM_MATCH_7XXX_FAMILY_MODELS)
+									 OM_MATCH_6XXX_FAMILY_MODELS |	\
+									 OM_MATCH_F7XXX_FAMILY_MODELS | \
+									 OM_MATCH_7XXX_FAMILY_MODELS)
 /*
  * CN7XXX models with new revision encoding
  */
@@ -82,7 +82,7 @@
 #define OCTEON_CN73XX_PASS1_1	0x000d9701
 #define OCTEON_CN73XX		(OCTEON_CN73XX_PASS1_0 | OM_IGNORE_REVISION)
 #define OCTEON_CN73XX_PASS1_X	(OCTEON_CN73XX_PASS1_0 | \
-				 OM_IGNORE_MINOR_REVISION)
+								 OM_IGNORE_MINOR_REVISION)
 
 #define OCTEON_CN70XX_PASS1_0	0x000d9600
 #define OCTEON_CN70XX_PASS1_1	0x000d9601
@@ -92,9 +92,9 @@
 
 #define OCTEON_CN70XX		(OCTEON_CN70XX_PASS1_0 | OM_IGNORE_REVISION)
 #define OCTEON_CN70XX_PASS1_X	(OCTEON_CN70XX_PASS1_0 | \
-				 OM_IGNORE_MINOR_REVISION)
+								 OM_IGNORE_MINOR_REVISION)
 #define OCTEON_CN70XX_PASS2_X	(OCTEON_CN70XX_PASS2_0 | \
-				 OM_IGNORE_MINOR_REVISION)
+								 OM_IGNORE_MINOR_REVISION)
 
 #define OCTEON_CN71XX		OCTEON_CN70XX
 
@@ -104,9 +104,9 @@
 
 #define OCTEON_CN78XX		(OCTEON_CN78XX_PASS1_0 | OM_IGNORE_REVISION)
 #define OCTEON_CN78XX_PASS1_X	(OCTEON_CN78XX_PASS1_0 | \
-				 OM_IGNORE_MINOR_REVISION)
+								 OM_IGNORE_MINOR_REVISION)
 #define OCTEON_CN78XX_PASS2_X	(OCTEON_CN78XX_PASS2_0 | \
-				 OM_IGNORE_MINOR_REVISION)
+								 OM_IGNORE_MINOR_REVISION)
 
 #define OCTEON_CN76XX		(0x000d9540 | OM_CHECK_SUBMODEL)
 
@@ -274,9 +274,9 @@
 #define OCTEON_CN5XXX		(OCTEON_CN58XX_PASS1_0 | OM_MATCH_5XXX_FAMILY_MODELS)
 #define OCTEON_CN6XXX		(OCTEON_CN63XX_PASS1_0 | OM_MATCH_6XXX_FAMILY_MODELS)
 #define OCTEON_CNF7XXX		(OCTEON_CNF71XX_PASS1_0 | \
-				 OM_MATCH_F7XXX_FAMILY_MODELS)
+							 OM_MATCH_F7XXX_FAMILY_MODELS)
 #define OCTEON_CN7XXX		(OCTEON_CN78XX_PASS1_0 | \
-				 OM_MATCH_7XXX_FAMILY_MODELS)
+							 OM_MATCH_7XXX_FAMILY_MODELS)
 
 /* The revision byte (low byte) has two different encodings.
  * CN3XXX:
@@ -322,43 +322,43 @@ static inline uint64_t cvmx_read_csr(uint64_t csr_addr);
  */
 /* NOTE: This for internal use only! */
 #define __OCTEON_IS_MODEL_COMPILE__(arg_model, chip_model)		\
-((((arg_model & OCTEON_38XX_FAMILY_MASK) < OCTEON_CN58XX_PASS1_0)  && ( \
-		((((arg_model) & (OM_FLAG_MASK)) == (OM_IGNORE_REVISION | OM_CHECK_SUBMODEL)) \
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_38XX_MODEL_MASK)) || \
-		((((arg_model) & (OM_FLAG_MASK)) == 0)			\
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_38XX_FAMILY_REV_MASK)) || \
-		((((arg_model) & (OM_FLAG_MASK)) == OM_IGNORE_REVISION) \
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_38XX_FAMILY_MASK)) || \
-		((((arg_model) & (OM_FLAG_MASK)) == OM_CHECK_SUBMODEL)	\
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_38XX_MODEL_REV_MASK)) || \
-		((((arg_model) & (OM_MATCH_PREVIOUS_MODELS)) == OM_MATCH_PREVIOUS_MODELS) \
-			&& (((chip_model) & OCTEON_38XX_MODEL_MASK) < ((arg_model) & OCTEON_38XX_MODEL_MASK))) \
-		)) ||							\
-	(((arg_model & OCTEON_38XX_FAMILY_MASK) >= OCTEON_CN58XX_PASS1_0)  && ( \
-		((((arg_model) & (OM_FLAG_MASK)) == (OM_IGNORE_REVISION | OM_CHECK_SUBMODEL)) \
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_MODEL_MASK)) || \
-		((((arg_model) & (OM_FLAG_MASK)) == 0)			\
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_FAMILY_REV_MASK)) || \
-		((((arg_model) & (OM_FLAG_MASK)) == OM_IGNORE_MINOR_REVISION) \
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_MODEL_MINOR_REV_MASK)) || \
-		((((arg_model) & (OM_FLAG_MASK)) == OM_IGNORE_REVISION) \
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_FAMILY_MASK)) || \
-		((((arg_model) & (OM_FLAG_MASK)) == OM_CHECK_SUBMODEL)	\
-			&& __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_MODEL_MASK)) || \
-		((((arg_model) & (OM_MATCH_5XXX_FAMILY_MODELS)) == OM_MATCH_5XXX_FAMILY_MODELS) \
-			&& ((chip_model & OCTEON_PRID_MASK) >= OCTEON_CN58XX_PASS1_0) \
-			&& ((chip_model & OCTEON_PRID_MASK) < OCTEON_CN63XX_PASS1_0)) || \
-		((((arg_model) & (OM_MATCH_6XXX_FAMILY_MODELS)) == OM_MATCH_6XXX_FAMILY_MODELS) \
-			&& ((chip_model & OCTEON_PRID_MASK) >= OCTEON_CN63XX_PASS1_0) \
-			&& ((chip_model & OCTEON_PRID_MASK) < OCTEON_CNF71XX_PASS1_0)) || \
-		((((arg_model) & (OM_MATCH_F7XXX_FAMILY_MODELS)) == OM_MATCH_F7XXX_FAMILY_MODELS) \
-			&& ((chip_model & OCTEON_PRID_MASK) >= OCTEON_CNF71XX_PASS1_0) \
-			&& ((chip_model & OCTEON_PRID_MASK) < OCTEON_CN78XX_PASS1_0)) || \
-		((((arg_model) & (OM_MATCH_7XXX_FAMILY_MODELS)) == OM_MATCH_7XXX_FAMILY_MODELS) \
-			&& ((chip_model & OCTEON_PRID_MASK) >= OCTEON_CN78XX_PASS1_0)) || \
-		((((arg_model) & (OM_MATCH_PREVIOUS_MODELS)) == OM_MATCH_PREVIOUS_MODELS) \
-			&& (((chip_model) & OCTEON_58XX_MODEL_MASK) < ((arg_model) & OCTEON_58XX_MODEL_MASK))) \
-		)))
+	((((arg_model & OCTEON_38XX_FAMILY_MASK) < OCTEON_CN58XX_PASS1_0)  && ( \
+			((((arg_model) & (OM_FLAG_MASK)) == (OM_IGNORE_REVISION | OM_CHECK_SUBMODEL)) \
+			 && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_38XX_MODEL_MASK)) || \
+			((((arg_model) & (OM_FLAG_MASK)) == 0)			\
+			 && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_38XX_FAMILY_REV_MASK)) || \
+			((((arg_model) & (OM_FLAG_MASK)) == OM_IGNORE_REVISION) \
+			 && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_38XX_FAMILY_MASK)) || \
+			((((arg_model) & (OM_FLAG_MASK)) == OM_CHECK_SUBMODEL)	\
+			 && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_38XX_MODEL_REV_MASK)) || \
+			((((arg_model) & (OM_MATCH_PREVIOUS_MODELS)) == OM_MATCH_PREVIOUS_MODELS) \
+			 && (((chip_model) & OCTEON_38XX_MODEL_MASK) < ((arg_model) & OCTEON_38XX_MODEL_MASK))) \
+																		  )) ||							\
+	 (((arg_model & OCTEON_38XX_FAMILY_MASK) >= OCTEON_CN58XX_PASS1_0)  && ( \
+			 ((((arg_model) & (OM_FLAG_MASK)) == (OM_IGNORE_REVISION | OM_CHECK_SUBMODEL)) \
+			  && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_MODEL_MASK)) || \
+			 ((((arg_model) & (OM_FLAG_MASK)) == 0)			\
+			  && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_FAMILY_REV_MASK)) || \
+			 ((((arg_model) & (OM_FLAG_MASK)) == OM_IGNORE_MINOR_REVISION) \
+			  && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_MODEL_MINOR_REV_MASK)) || \
+			 ((((arg_model) & (OM_FLAG_MASK)) == OM_IGNORE_REVISION) \
+			  && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_FAMILY_MASK)) || \
+			 ((((arg_model) & (OM_FLAG_MASK)) == OM_CHECK_SUBMODEL)	\
+			  && __OCTEON_MATCH_MASK__((chip_model), (arg_model), OCTEON_58XX_MODEL_MASK)) || \
+			 ((((arg_model) & (OM_MATCH_5XXX_FAMILY_MODELS)) == OM_MATCH_5XXX_FAMILY_MODELS) \
+			  && ((chip_model & OCTEON_PRID_MASK) >= OCTEON_CN58XX_PASS1_0) \
+			  && ((chip_model & OCTEON_PRID_MASK) < OCTEON_CN63XX_PASS1_0)) || \
+			 ((((arg_model) & (OM_MATCH_6XXX_FAMILY_MODELS)) == OM_MATCH_6XXX_FAMILY_MODELS) \
+			  && ((chip_model & OCTEON_PRID_MASK) >= OCTEON_CN63XX_PASS1_0) \
+			  && ((chip_model & OCTEON_PRID_MASK) < OCTEON_CNF71XX_PASS1_0)) || \
+			 ((((arg_model) & (OM_MATCH_F7XXX_FAMILY_MODELS)) == OM_MATCH_F7XXX_FAMILY_MODELS) \
+			  && ((chip_model & OCTEON_PRID_MASK) >= OCTEON_CNF71XX_PASS1_0) \
+			  && ((chip_model & OCTEON_PRID_MASK) < OCTEON_CN78XX_PASS1_0)) || \
+			 ((((arg_model) & (OM_MATCH_7XXX_FAMILY_MODELS)) == OM_MATCH_7XXX_FAMILY_MODELS) \
+			  && ((chip_model & OCTEON_PRID_MASK) >= OCTEON_CN78XX_PASS1_0)) || \
+			 ((((arg_model) & (OM_MATCH_PREVIOUS_MODELS)) == OM_MATCH_PREVIOUS_MODELS) \
+			  && (((chip_model) & OCTEON_58XX_MODEL_MASK) < ((arg_model) & OCTEON_58XX_MODEL_MASK))) \
+																		   )))
 
 /* NOTE: This for internal use only!!!!! */
 static inline int __octeon_is_model_runtime__(uint32_t model)

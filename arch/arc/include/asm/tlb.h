@@ -10,10 +10,10 @@
 #define _ASM_ARC_TLB_H
 
 #define tlb_flush(tlb)				\
-do {						\
-	if (tlb->fullmm)			\
-		flush_tlb_mm((tlb)->mm);	\
-} while (0)
+	do {						\
+		if (tlb->fullmm)			\
+			flush_tlb_mm((tlb)->mm);	\
+	} while (0)
 
 /*
  * This pair is called at time of munmap/exit to flush cache and TLB entries
@@ -27,17 +27,17 @@ do {						\
 #define tlb_start_vma(tlb, vma)
 #else
 #define tlb_start_vma(tlb, vma)						\
-do {									\
-	if (!tlb->fullmm)						\
-		flush_cache_range(vma, vma->vm_start, vma->vm_end);	\
-} while(0)
+	do {									\
+		if (!tlb->fullmm)						\
+			flush_cache_range(vma, vma->vm_start, vma->vm_end);	\
+	} while(0)
 #endif
 
 #define tlb_end_vma(tlb, vma)						\
-do {									\
-	if (!tlb->fullmm)						\
-		flush_tlb_range(vma, vma->vm_start, vma->vm_end);	\
-} while (0)
+	do {									\
+		if (!tlb->fullmm)						\
+			flush_tlb_range(vma, vma->vm_start, vma->vm_end);	\
+	} while (0)
 
 #define __tlb_remove_tlb_entry(tlb, ptep, address)
 

@@ -11,7 +11,7 @@
 #include <linux/bootmem.h>
 #include <linux/memblock.h>
 #ifdef CONFIG_BLK_DEV_INITRD
-#include <linux/initrd.h>
+	#include <linux/initrd.h>
 #endif
 #include <linux/of_fdt.h>
 #include <linux/swap.h>
@@ -30,14 +30,14 @@ static const unsigned long low_mem_start = CONFIG_LINUX_LINK_BASE;
 static unsigned long low_mem_sz;
 
 #ifdef CONFIG_HIGHMEM
-static unsigned long min_high_pfn, max_high_pfn;
-static u64 high_mem_start;
-static u64 high_mem_sz;
+	static unsigned long min_high_pfn, max_high_pfn;
+	static u64 high_mem_start;
+	static u64 high_mem_sz;
 #endif
 
 #ifdef CONFIG_DISCONTIGMEM
-struct pglist_data node_data[MAX_NUMNODES] __read_mostly;
-EXPORT_SYMBOL(node_data);
+	struct pglist_data node_data[MAX_NUMNODES] __read_mostly;
+	EXPORT_SYMBOL(node_data);
 #endif
 
 /* User can over-ride above with "mem=nnn[KkMm]" in cmdline */
@@ -56,13 +56,18 @@ void __init early_init_dt_add_memory_arch(u64 base, u64 size)
 {
 	int in_use = 0;
 
-	if (!low_mem_sz) {
+	if (!low_mem_sz)
+	{
 		if (base != low_mem_start)
+		{
 			panic("CONFIG_LINUX_LINK_BASE != DT memory { }");
+		}
 
 		low_mem_sz = size;
 		in_use = 1;
-	} else {
+	}
+	else
+	{
 #ifdef CONFIG_HIGHMEM
 		high_mem_start = base;
 		high_mem_sz = size;
@@ -71,7 +76,7 @@ void __init early_init_dt_add_memory_arch(u64 base, u64 size)
 	}
 
 	pr_info("Memory @ %llx [%lldM] %s\n",
-		base, TO_MB(size), !in_use ? "Not used":"");
+			base, TO_MB(size), !in_use ? "Not used" : "");
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -81,12 +86,15 @@ static int __init early_initrd(char *p)
 	char *endp;
 
 	start = memparse(p, &endp);
-	if (*endp == ',') {
+
+	if (*endp == ',')
+	{
 		size = memparse(endp + 1, NULL);
 
 		initrd_start = (unsigned long)__va(start);
 		initrd_end = (unsigned long)__va(start + size);
 	}
+
 	return 0;
 }
 early_param("initrd", early_initrd);
@@ -136,8 +144,12 @@ void __init setup_arch_memory(void)
 	memblock_reserve(low_mem_start, __pa(_end) - low_mem_start);
 
 #ifdef CONFIG_BLK_DEV_INITRD
+
 	if (initrd_start)
+	{
 		memblock_reserve(__pa(initrd_start), initrd_end - initrd_start);
+	}
+
 #endif
 
 	early_init_fdt_reserve_self();
@@ -159,9 +171,9 @@ void __init setup_arch_memory(void)
 	 * PAGE_OFFSET != CONFIG_LINUX_LINK_BASE
 	 */
 	free_area_init_node(0,			/* node-id */
-			    zones_size,		/* num pages per zone */
-			    min_low_pfn,	/* first pfn of node */
-			    zones_holes);	/* holes */
+						zones_size,		/* num pages per zone */
+						min_low_pfn,	/* first pfn of node */
+						zones_holes);	/* holes */
 
 #ifdef CONFIG_HIGHMEM
 	/*
@@ -188,9 +200,9 @@ void __init setup_arch_memory(void)
 	zones_holes[ZONE_HIGHMEM] = 0;
 
 	free_area_init_node(1,			/* node-id */
-			    zones_size,		/* num pages per zone */
-			    min_high_pfn,	/* first pfn of node */
-			    zones_holes);	/* holes */
+						zones_size,		/* num pages per zone */
+						min_high_pfn,	/* first pfn of node */
+						zones_holes);	/* holes */
 
 	high_memory = (void *)(min_high_pfn << PAGE_SHIFT);
 	kmap_init();
@@ -209,8 +221,12 @@ void __init mem_init(void)
 	unsigned long tmp;
 
 	reset_all_zones_managed_pages();
+
 	for (tmp = min_high_pfn; tmp < max_high_pfn; tmp++)
+	{
 		free_highmem_page(pfn_to_page(tmp));
+	}
+
 #endif
 
 	free_all_bootmem();

@@ -38,7 +38,8 @@ static inline unsigned int get_bank_config(int bank)
 	return bank % 2 ? res & 0xffff : res >> 16;
 }
 
-struct mem {
+struct mem
+{
 	unsigned long addr;
 	unsigned long size;
 };
@@ -53,54 +54,67 @@ static void __init probe_memory(void)
 	struct mem space[2] = {{SGIMC_SEG0_BADDR, 0}, {SGIMC_SEG1_BADDR, 0}};
 
 	printk(KERN_INFO "MC: Probing memory configuration:\n");
-	for (i = 0; i < ARRAY_SIZE(bank); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(bank); i++)
+	{
 		unsigned int tmp = get_bank_config(i);
+
 		if (!(tmp & SGIMC_MCONFIG_BVALID))
+		{
 			continue;
+		}
 
 		bank[cnt].size = get_bank_size(tmp);
 		bank[cnt].addr = get_bank_addr(tmp);
 		printk(KERN_INFO " bank%d: %3ldM @ %08lx\n",
-			i, bank[cnt].size / 1024 / 1024, bank[cnt].addr);
+			   i, bank[cnt].size / 1024 / 1024, bank[cnt].addr);
 		cnt++;
 	}
 
 	/* And you thought bubble sort is dead algorithm... */
-	do {
+	do
+	{
 		unsigned long addr, size;
 
 		found = 0;
+
 		for (i = 1; i < cnt; i++)
-			if (bank[i-1].addr > bank[i].addr) {
+			if (bank[i - 1].addr > bank[i].addr)
+			{
 				addr = bank[i].addr;
 				size = bank[i].size;
-				bank[i].addr = bank[i-1].addr;
-				bank[i].size = bank[i-1].size;
-				bank[i-1].addr = addr;
-				bank[i-1].size = size;
+				bank[i].addr = bank[i - 1].addr;
+				bank[i].size = bank[i - 1].size;
+				bank[i - 1].addr = addr;
+				bank[i - 1].size = size;
 				found = 1;
 			}
-	} while (found);
+	}
+	while (found);
 
 	/* Figure out how are memory banks mapped into spaces */
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
+	{
 		found = 0;
+
 		for (j = 0; j < ARRAY_SIZE(space) && !found; j++)
-			if (space[j].addr + space[j].size == bank[i].addr) {
+			if (space[j].addr + space[j].size == bank[i].addr)
+			{
 				space[j].size += bank[i].size;
 				found = 1;
 			}
+
 		/* There is either hole or overlapping memory */
 		if (!found)
 			printk(KERN_CRIT "MC: Memory configuration mismatch "
-					 "(%08lx), expect Bus Error soon\n",
-					 bank[i].addr);
+				   "(%08lx), expect Bus Error soon\n",
+				   bank[i].addr);
 	}
 
 	for (i = 0; i < ARRAY_SIZE(space); i++)
 		if (space[i].size)
 			add_memory_region(space[i].addr, space[i].size,
-					  BOOT_MEM_RAM);
+							  BOOT_MEM_RAM);
 }
 
 void __init sgimc_init(void)
@@ -109,10 +123,10 @@ void __init sgimc_init(void)
 
 	/* ioremap can't fail */
 	sgimc = (struct sgimc_regs *)
-		ioremap(SGIMC_BASE, sizeof(struct sgimc_regs));
+			ioremap(SGIMC_BASE, sizeof(struct sgimc_regs));
 
 	printk(KERN_INFO "MC: SGI memory controller Revision %d\n",
-	       (int) sgimc->systemid & SGIMC_SYSID_MASKREV);
+		   (int) sgimc->systemid & SGIMC_SYSID_MASKREV);
 
 	/* Place the MC into a known state.  This must be done before
 	 * interrupts are first enabled etc.
@@ -180,24 +194,31 @@ void __init sgimc_init(void)
 	tmp |= SGIMC_GIOPAR_HPC64;	/* All 1st HPC's interface at 64bits */
 	tmp |= SGIMC_GIOPAR_ONEBUS;	/* Only one physical GIO bus exists */
 
-	if (ip22_is_fullhouse()) {
+	if (ip22_is_fullhouse())
+	{
 		/* Fullhouse specific settings. */
-		if (SGIOC_SYSID_BOARDREV(sgioc->sysid) < 2) {
+		if (SGIOC_SYSID_BOARDREV(sgioc->sysid) < 2)
+		{
 			tmp |= SGIMC_GIOPAR_HPC264;	/* 2nd HPC at 64bits */
 			tmp |= SGIMC_GIOPAR_PLINEEXP0;	/* exp0 pipelines */
 			tmp |= SGIMC_GIOPAR_MASTEREXP1; /* exp1 masters */
 			tmp |= SGIMC_GIOPAR_RTIMEEXP0;	/* exp0 is realtime */
-		} else {
+		}
+		else
+		{
 			tmp |= SGIMC_GIOPAR_HPC264;	/* 2nd HPC 64bits */
 			tmp |= SGIMC_GIOPAR_PLINEEXP0;	/* exp[01] pipelined */
 			tmp |= SGIMC_GIOPAR_PLINEEXP1;
 			tmp |= SGIMC_GIOPAR_MASTEREISA; /* EISA masters */
 		}
-	} else {
+	}
+	else
+	{
 		/* Guiness specific settings. */
 		tmp |= SGIMC_GIOPAR_EISA64;	/* MC talks to EISA at 64bits */
 		tmp |= SGIMC_GIOPAR_MASTEREISA; /* EISA bus can act as master */
 	}
+
 	sgimc->giopar = tmp;	/* poof */
 
 	probe_memory();

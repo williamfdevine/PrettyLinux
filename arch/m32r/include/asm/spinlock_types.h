@@ -2,16 +2,18 @@
 #define _ASM_M32R_SPINLOCK_TYPES_H
 
 #ifndef __LINUX_SPINLOCK_TYPES_H
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
-typedef struct {
+typedef struct
+{
 	volatile int slock;
 } arch_spinlock_t;
 
 #define __ARCH_SPIN_LOCK_UNLOCKED	{ 1 }
 
-typedef struct {
+typedef struct
+{
 	volatile int lock;
 } arch_rwlock_t;
 

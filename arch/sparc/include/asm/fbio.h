@@ -45,7 +45,8 @@
 #define CG14_CLUT3       0x6000  /* Color Look Up Table */
 #define CG14_AUTO	 0xf000
 
-struct  fbcmap32 {
+struct  fbcmap32
+{
 	int             index;          /* first element (0 origin) */
 	int             count;
 	u32		red;
@@ -56,7 +57,8 @@ struct  fbcmap32 {
 #define FBIOPUTCMAP32	_IOW('F', 3, struct fbcmap32)
 #define FBIOGETCMAP32	_IOW('F', 4, struct fbcmap32)
 
-struct fbcursor32 {
+struct fbcursor32
+{
 	short set;		/* what to set, choose from the list above */
 	short enable;		/* cursor on/off */
 	struct fbcurpos pos;	/* cursor position */

@@ -8,7 +8,8 @@
 #include <net_kern.h>
 #include "pcap_user.h"
 
-struct pcap_init {
+struct pcap_init
+{
 	char *host_if;
 	int promisc;
 	int optimize;
@@ -34,8 +35,8 @@ void pcap_init(struct net_device *dev, void *data)
 static int pcap_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
 {
 	return pcap_user_read(fd, skb_mac_header(skb),
-			      skb->dev->mtu + ETH_HEADER_OTHER,
-			      (struct pcap_data *) &lp->user);
+						  skb->dev->mtu + ETH_HEADER_OTHER,
+						  (struct pcap_data *) &lp->user);
 }
 
 static int pcap_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
@@ -43,7 +44,8 @@ static int pcap_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
 	return -EPERM;
 }
 
-static const struct net_kern_info pcap_kern_info = {
+static const struct net_kern_info pcap_kern_info =
+{
 	.init			= pcap_init,
 	.protocol		= eth_protocol,
 	.read			= pcap_read,
@@ -57,36 +59,55 @@ int pcap_setup(char *str, char **mac_out, void *data)
 	int i;
 
 	*init = ((struct pcap_init)
-		{ .host_if 	= "eth0",
-		  .promisc 	= 1,
-		  .optimize 	= 0,
-		  .filter 	= NULL });
+	{
+		.host_if 	= "eth0",
+		   .promisc 	= 1,
+			  .optimize 	= 0,
+				.filter 	= NULL
+	});
 
 	remain = split_if_spec(str, &host_if, &init->filter,
-			       &options[0], &options[1], mac_out, NULL);
-	if (remain != NULL) {
+						   &options[0], &options[1], mac_out, NULL);
+
+	if (remain != NULL)
+	{
 		printk(KERN_ERR "pcap_setup - Extra garbage on "
-		       "specification : '%s'\n", remain);
+			   "specification : '%s'\n", remain);
 		return 0;
 	}
 
 	if (host_if != NULL)
+	{
 		init->host_if = host_if;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(options); i++) {
+	for (i = 0; i < ARRAY_SIZE(options); i++)
+	{
 		if (options[i] == NULL)
+		{
 			continue;
+		}
+
 		if (!strcmp(options[i], "promisc"))
+		{
 			init->promisc = 1;
+		}
 		else if (!strcmp(options[i], "nopromisc"))
+		{
 			init->promisc = 0;
+		}
 		else if (!strcmp(options[i], "optimize"))
+		{
 			init->optimize = 1;
+		}
 		else if (!strcmp(options[i], "nooptimize"))
+		{
 			init->optimize = 0;
-		else {
+		}
+		else
+		{
 			printk(KERN_ERR "pcap_setup : bad option - '%s'\n",
-			       options[i]);
+				   options[i]);
 			return 0;
 		}
 	}
@@ -94,7 +115,8 @@ int pcap_setup(char *str, char **mac_out, void *data)
 	return 1;
 }
 
-static struct transport pcap_transport = {
+static struct transport pcap_transport =
+{
 	.list 		= LIST_HEAD_INIT(pcap_transport.list),
 	.name 		= "pcap",
 	.setup  	= pcap_setup,

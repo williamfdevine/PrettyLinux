@@ -107,46 +107,64 @@ void faddp_(void)
 	/* faddp st(i),st */
 	int i = FPU_rm;
 	clear_C1();
+
 	if (FPU_add(&st(i), FPU_gettagi(i), i, control_word) >= 0)
+	{
 		FPU_pop();
+	}
 }
 
 void fmulp_(void)
 {
 	/* fmulp st(i),st */
 	clear_C1();
+
 	if (FPU_mul(&st(0), FPU_gettag0(), FPU_rm, control_word) >= 0)
+	{
 		FPU_pop();
+	}
 }
 
 void fsubrp(void)
 {
 	/* fsubrp st(i),st */
 	clear_C1();
+
 	if (FPU_sub(DEST_RM, FPU_rm, control_word) >= 0)
+	{
 		FPU_pop();
+	}
 }
 
 void fsubp_(void)
 {
 	/* fsubp st(i),st */
 	clear_C1();
+
 	if (FPU_sub(REV | DEST_RM, FPU_rm, control_word) >= 0)
+	{
 		FPU_pop();
+	}
 }
 
 void fdivrp(void)
 {
 	/* fdivrp st(i),st */
 	clear_C1();
+
 	if (FPU_div(DEST_RM, FPU_rm, control_word) >= 0)
+	{
 		FPU_pop();
+	}
 }
 
 void fdivp_(void)
 {
 	/* fdivp st(i),st */
 	clear_C1();
+
 	if (FPU_div(REV | DEST_RM, FPU_rm, control_word) >= 0)
+	{
 		FPU_pop();
+	}
 }

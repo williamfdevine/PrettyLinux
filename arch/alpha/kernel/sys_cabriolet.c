@@ -56,14 +56,15 @@ cabriolet_disable_irq(struct irq_data *d)
 	cabriolet_update_irq_hw(d->irq, cached_irq_mask |= 1UL << d->irq);
 }
 
-static struct irq_chip cabriolet_irq_type = {
+static struct irq_chip cabriolet_irq_type =
+{
 	.name		= "CABRIOLET",
 	.irq_unmask	= cabriolet_enable_irq,
 	.irq_mask	= cabriolet_disable_irq,
 	.irq_mask_ack	= cabriolet_disable_irq,
 };
 
-static void 
+static void
 cabriolet_device_interrupt(unsigned long v)
 {
 	unsigned long pld;
@@ -76,12 +77,17 @@ cabriolet_device_interrupt(unsigned long v)
 	 * Now for every possible bit set, work through them and call
 	 * the appropriate interrupt handler.
 	 */
-	while (pld) {
+	while (pld)
+	{
 		i = ffz(~pld);
 		pld &= pld - 1;	/* clear least bit set */
-		if (i == 4) {
+
+		if (i == 4)
+		{
 			isa_device_interrupt(v);
-		} else {
+		}
+		else
+		{
 			handle_irq(16 + i);
 		}
 	}
@@ -92,26 +98,29 @@ common_init_irq(void (*srm_dev_int)(unsigned long v))
 {
 	init_i8259a_irqs();
 
-	if (alpha_using_srm) {
+	if (alpha_using_srm)
+	{
 		alpha_mv.device_interrupt = srm_dev_int;
 		init_srm_irqs(35, 0);
 	}
-	else {
+	else
+	{
 		long i;
 
 		outb(0xff, 0x804);
 		outb(0xff, 0x805);
 		outb(0xff, 0x806);
 
-		for (i = 16; i < 35; ++i) {
+		for (i = 16; i < 35; ++i)
+		{
 			irq_set_chip_and_handler(i, &cabriolet_irq_type,
-						 handle_level_irq);
+									 handle_level_irq);
 			irq_set_status_flags(i, IRQ_LEVEL);
 		}
 	}
 
 	common_init_isa_dma();
-	setup_irq(16+4, &isa_cascade_irqaction);
+	setup_irq(16 + 4, &isa_cascade_irqaction);
 }
 
 #ifndef CONFIG_ALPHA_PC164
@@ -130,7 +139,7 @@ cabriolet_init_irq(void)
 
    In an attempt to work around this, while processing interrupts,
    we do not allow the IPL to drop below what it is currently.  This
-   prevents the possibility of recursion.  
+   prevents the possibility of recursion.
 
    ??? Another option might be to force all PCI devices to use edge
    triggered rather than level triggered interrupts.  That might be
@@ -176,13 +185,14 @@ pc164_init_irq(void)
 static inline int __init
 eb66p_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[5][5] __initdata = {
+	static char irq_tab[5][5] __initdata =
+	{
 		/*INT  INTA  INTB  INTC   INTD */
-		{16+0, 16+0, 16+5,  16+9, 16+13},  /* IdSel 6,  slot 0, J25 */
-		{16+1, 16+1, 16+6, 16+10, 16+14},  /* IdSel 7,  slot 1, J26 */
+		{16 + 0, 16 + 0, 16 + 5,  16 + 9, 16 + 13}, /* IdSel 6,  slot 0, J25 */
+		{16 + 1, 16 + 1, 16 + 6, 16 + 10, 16 + 14}, /* IdSel 7,  slot 1, J26 */
 		{  -1,   -1,   -1,    -1,    -1},  /* IdSel 8,  SIO         */
-		{16+2, 16+2, 16+7, 16+11, 16+15},  /* IdSel 9,  slot 2, J27 */
-		{16+3, 16+3, 16+8, 16+12,  16+6}   /* IdSel 10, slot 3, J28 */
+		{16 + 2, 16 + 2, 16 + 7, 16 + 11, 16 + 15}, /* IdSel 9,  slot 2, J27 */
+		{16 + 3, 16 + 3, 16 + 8, 16 + 12,  16 + 6} /* IdSel 10, slot 3, J28 */
 	};
 	const long min_idsel = 6, max_idsel = 10, irqs_per_slot = 5;
 	return COMMON_TABLE_LOOKUP;
@@ -206,13 +216,14 @@ eb66p_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 static inline int __init
 cabriolet_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[5][5] __initdata = {
+	static char irq_tab[5][5] __initdata =
+	{
 		/*INT   INTA  INTB  INTC   INTD */
-		{ 16+2, 16+2, 16+7, 16+11, 16+15}, /* IdSel 5,  slot 2, J21 */
-		{ 16+0, 16+0, 16+5,  16+9, 16+13}, /* IdSel 6,  slot 0, J19 */
-		{ 16+1, 16+1, 16+6, 16+10, 16+14}, /* IdSel 7,  slot 1, J20 */
+		{ 16 + 2, 16 + 2, 16 + 7, 16 + 11, 16 + 15}, /* IdSel 5,  slot 2, J21 */
+		{ 16 + 0, 16 + 0, 16 + 5,  16 + 9, 16 + 13}, /* IdSel 6,  slot 0, J19 */
+		{ 16 + 1, 16 + 1, 16 + 6, 16 + 10, 16 + 14}, /* IdSel 7,  slot 1, J20 */
 		{   -1,   -1,   -1,    -1,    -1}, /* IdSel 8,  SIO         */
-		{ 16+3, 16+3, 16+8, 16+12, 16+16}  /* IdSel 9,  slot 3, J22 */
+		{ 16 + 3, 16 + 3, 16 + 8, 16 + 12, 16 + 16} /* IdSel 9,  slot 3, J22 */
 	};
 	const long min_idsel = 5, max_idsel = 9, irqs_per_slot = 5;
 	return COMMON_TABLE_LOOKUP;
@@ -221,11 +232,14 @@ cabriolet_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 static inline void __init
 cabriolet_enable_ide(void)
 {
-	if (pc873xx_probe() == -1) {
+	if (pc873xx_probe() == -1)
+	{
 		printk(KERN_ERR "Probing for PC873xx Super IO chip failed.\n");
-	 } else {
+	}
+	else
+	{
 		printk(KERN_INFO "Found %s Super IO chip at 0x%x\n",
-			pc873xx_get_model(), pc873xx_get_base());
+			   pc873xx_get_model(), pc873xx_get_base());
 
 		pc873xx_enable_ide();
 	}
@@ -248,21 +262,21 @@ cia_cab_init_pci(void)
 /*
  * The PC164 and LX164 have 19 PCI interrupts, four from each of the four
  * PCI slots, the SIO, PCI/IDE, and USB.
- * 
+ *
  * Each of the interrupts can be individually masked. This is
  * accomplished by setting the appropriate bit in the mask register.
  * A bit is set by writing a "1" to the desired position in the mask
  * register and cleared by writing a "0". There are 3 mask registers
  * located at ISA address 804h, 805h and 806h.
- * 
+ *
  * An I/O read at ISA address 804h, 805h, 806h will return the
  * state of the 11 PCI interrupts and not the state of the MASKED
  * interrupts.
- * 
+ *
  * Note: A write to I/O 804h, 805h, and 806h the mask register will be
  * updated.
- * 
- * 
+ *
+ *
  * 				ISA DATA<7:0>
  * ISA     +--------------------------------------------------------------+
  * ADDRESS |   7   |   6   |   5   |   4   |   3   |   2  |   1   |   0   |
@@ -275,8 +289,8 @@ cia_cab_init_pci(void)
  *         +--------------------------------------------------------------+
  *         * Rsrv = reserved bits
  *         Note: The mask register is write-only.
- * 
- * IdSel	
+ *
+ * IdSel
  *   5	 32 bit PCI option slot 2
  *   6	 64 bit PCI option slot 0
  *   7	 64 bit PCI option slot 1
@@ -284,21 +298,22 @@ cia_cab_init_pci(void)
  *   9	 32 bit PCI option slot 3
  *  10	 USB
  *  11	 IDE
- * 
+ *
  */
 
 static inline int __init
 alphapc164_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[7][5] __initdata = {
+	static char irq_tab[7][5] __initdata =
+	{
 		/*INT   INTA  INTB   INTC   INTD */
-		{ 16+2, 16+2, 16+9,  16+13, 16+17}, /* IdSel  5, slot 2, J20 */
-		{ 16+0, 16+0, 16+7,  16+11, 16+15}, /* IdSel  6, slot 0, J29 */
-		{ 16+1, 16+1, 16+8,  16+12, 16+16}, /* IdSel  7, slot 1, J26 */
+		{ 16 + 2, 16 + 2, 16 + 9,  16 + 13, 16 + 17}, /* IdSel  5, slot 2, J20 */
+		{ 16 + 0, 16 + 0, 16 + 7,  16 + 11, 16 + 15}, /* IdSel  6, slot 0, J29 */
+		{ 16 + 1, 16 + 1, 16 + 8,  16 + 12, 16 + 16}, /* IdSel  7, slot 1, J26 */
 		{   -1,   -1,   -1,    -1,    -1},  /* IdSel  8, SIO */
-		{ 16+3, 16+3, 16+10, 16+14, 16+18}, /* IdSel  9, slot 3, J19 */
-		{ 16+6, 16+6, 16+6,  16+6,  16+6},  /* IdSel 10, USB */
-		{ 16+5, 16+5, 16+5,  16+5,  16+5}   /* IdSel 11, IDE */
+		{ 16 + 3, 16 + 3, 16 + 10, 16 + 14, 16 + 18}, /* IdSel  9, slot 3, J19 */
+		{ 16 + 6, 16 + 6, 16 + 6,  16 + 6,  16 + 6}, /* IdSel 10, USB */
+		{ 16 + 5, 16 + 5, 16 + 5,  16 + 5,  16 + 5} /* IdSel 11, IDE */
 	};
 	const long min_idsel = 5, max_idsel = 11, irqs_per_slot = 5;
 	return COMMON_TABLE_LOOKUP;
@@ -317,7 +332,8 @@ alphapc164_init_pci(void)
  */
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_CABRIOLET)
-struct alpha_machine_vector cabriolet_mv __initmv = {
+struct alpha_machine_vector cabriolet_mv __initmv =
+{
 	.vector_name		= "Cabriolet",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -338,12 +354,13 @@ struct alpha_machine_vector cabriolet_mv __initmv = {
 	.pci_swizzle		= common_swizzle,
 };
 #ifndef CONFIG_ALPHA_EB64P
-ALIAS_MV(cabriolet)
+	ALIAS_MV(cabriolet)
 #endif
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_EB164)
-struct alpha_machine_vector eb164_mv __initmv = {
+struct alpha_machine_vector eb164_mv __initmv =
+{
 	.vector_name		= "EB164",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,
@@ -368,7 +385,8 @@ ALIAS_MV(eb164)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_EB66P)
-struct alpha_machine_vector eb66p_mv __initmv = {
+struct alpha_machine_vector eb66p_mv __initmv =
+{
 	.vector_name		= "EB66+",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -392,7 +410,8 @@ ALIAS_MV(eb66p)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_LX164)
-struct alpha_machine_vector lx164_mv __initmv = {
+struct alpha_machine_vector lx164_mv __initmv =
+{
 	.vector_name		= "LX164",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,
@@ -418,7 +437,8 @@ ALIAS_MV(lx164)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_PC164)
-struct alpha_machine_vector pc164_mv __initmv = {
+struct alpha_machine_vector pc164_mv __initmv =
+{
 	.vector_name		= "PC164",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,

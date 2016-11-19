@@ -40,7 +40,8 @@
 
 #define NR_PORTS	1	/* only one port for now */
 
-struct serial_state {
+struct serial_state
+{
 	struct tty_port port;
 	struct circ_buf xmit;
 	int irq;
@@ -58,32 +59,51 @@ static void receive_chars(struct tty_port *port)
 	unsigned char ch;
 	static unsigned char seen_esc = 0;
 
-	while ( (ch = ia64_ssc(0, 0, 0, 0, SSC_GETCHAR)) ) {
-		if (ch == 27 && seen_esc == 0) {
+	while ( (ch = ia64_ssc(0, 0, 0, 0, SSC_GETCHAR)) )
+	{
+		if (ch == 27 && seen_esc == 0)
+		{
 			seen_esc = 1;
 			continue;
-		} else if (seen_esc == 1 && ch == 'O') {
+		}
+		else if (seen_esc == 1 && ch == 'O')
+		{
 			seen_esc = 2;
 			continue;
-		} else if (seen_esc == 2) {
+		}
+		else if (seen_esc == 2)
+		{
 			if (ch == 'P') /* F1 */
+			{
 				show_state();
+			}
+
 #ifdef CONFIG_MAGIC_SYSRQ
-			if (ch == 'S') { /* F4 */
-				do {
+
+			if (ch == 'S')   /* F4 */
+			{
+				do
+				{
 					ch = ia64_ssc(0, 0, 0, 0, SSC_GETCHAR);
-				} while (!ch);
+				}
+				while (!ch);
+
 				handle_sysrq(ch);
 			}
+
 #endif
 			seen_esc = 0;
 			continue;
 		}
+
 		seen_esc = 0;
 
 		if (tty_insert_flip_char(port, ch, TTY_NORMAL) == 0)
+		{
 			break;
+		}
 	}
+
 	tty_flip_buffer_push(port);
 }
 
@@ -111,28 +131,34 @@ static int rs_put_char(struct tty_struct *tty, unsigned char ch)
 	unsigned long flags;
 
 	if (!info->xmit.buf)
+	{
 		return 0;
+	}
 
 	local_irq_save(flags);
-	if (CIRC_SPACE(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE) == 0) {
+
+	if (CIRC_SPACE(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE) == 0)
+	{
 		local_irq_restore(flags);
 		return 0;
 	}
+
 	info->xmit.buf[info->xmit.head] = ch;
-	info->xmit.head = (info->xmit.head + 1) & (SERIAL_XMIT_SIZE-1);
+	info->xmit.head = (info->xmit.head + 1) & (SERIAL_XMIT_SIZE - 1);
 	local_irq_restore(flags);
 	return 1;
 }
 
 static void transmit_chars(struct tty_struct *tty, struct serial_state *info,
-		int *intr_done)
+						   int *intr_done)
 {
 	int count;
 	unsigned long flags;
 
 	local_irq_save(flags);
 
-	if (info->x_char) {
+	if (info->x_char)
+	{
 		char c = info->x_char;
 
 		console->write(console, &c, 1);
@@ -142,13 +168,15 @@ static void transmit_chars(struct tty_struct *tty, struct serial_state *info,
 		goto out;
 	}
 
-	if (info->xmit.head == info->xmit.tail || tty->stopped) {
+	if (info->xmit.head == info->xmit.tail || tty->stopped)
+	{
 #ifdef SIMSERIAL_DEBUG
 		printk("transmit_chars: head=%d, tail=%d, stopped=%d\n",
-		       info->xmit.head, info->xmit.tail, tty->stopped);
+			   info->xmit.head, info->xmit.tail, tty->stopped);
 #endif
 		goto out;
 	}
+
 	/*
 	 * We removed the loop and try to do it in to chunks. We need
 	 * 2 operations maximum because it's a ring buffer.
@@ -158,19 +186,22 @@ static void transmit_chars(struct tty_struct *tty, struct serial_state *info,
 	 */
 
 	count = min(CIRC_CNT(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE),
-		    SERIAL_XMIT_SIZE - info->xmit.tail);
-	console->write(console, info->xmit.buf+info->xmit.tail, count);
+				SERIAL_XMIT_SIZE - info->xmit.tail);
+	console->write(console, info->xmit.buf + info->xmit.tail, count);
 
-	info->xmit.tail = (info->xmit.tail+count) & (SERIAL_XMIT_SIZE-1);
+	info->xmit.tail = (info->xmit.tail + count) & (SERIAL_XMIT_SIZE - 1);
 
 	/*
 	 * We have more at the beginning of the buffer
 	 */
 	count = CIRC_CNT(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE);
-	if (count) {
+
+	if (count)
+	{
 		console->write(console, info->xmit.buf, count);
 		info->xmit.tail += count;
 	}
+
 out:
 	local_irq_restore(flags);
 }
@@ -180,44 +211,60 @@ static void rs_flush_chars(struct tty_struct *tty)
 	struct serial_state *info = tty->driver_data;
 
 	if (info->xmit.head == info->xmit.tail || tty->stopped ||
-			!info->xmit.buf)
+		!info->xmit.buf)
+	{
 		return;
+	}
 
 	transmit_chars(tty, info, NULL);
 }
 
-static int rs_write(struct tty_struct * tty,
-		    const unsigned char *buf, int count)
+static int rs_write(struct tty_struct *tty,
+					const unsigned char *buf, int count)
 {
 	struct serial_state *info = tty->driver_data;
 	int	c, ret = 0;
 	unsigned long flags;
 
 	if (!info->xmit.buf)
+	{
 		return 0;
+	}
 
 	local_irq_save(flags);
-	while (1) {
+
+	while (1)
+	{
 		c = CIRC_SPACE_TO_END(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE);
+
 		if (count < c)
+		{
 			c = count;
-		if (c <= 0) {
+		}
+
+		if (c <= 0)
+		{
 			break;
 		}
+
 		memcpy(info->xmit.buf + info->xmit.head, buf, c);
 		info->xmit.head = ((info->xmit.head + c) &
-				   (SERIAL_XMIT_SIZE-1));
+						   (SERIAL_XMIT_SIZE - 1));
 		buf += c;
 		count -= c;
 		ret += c;
 	}
+
 	local_irq_restore(flags);
+
 	/*
 	 * Hey, we transmit directly from here in our case
 	 */
 	if (CIRC_CNT(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE) &&
-			!tty->stopped)
+		!tty->stopped)
+	{
 		transmit_chars(tty, info, NULL);
+	}
 
 	return ret;
 }
@@ -257,7 +304,9 @@ static void rs_send_xchar(struct tty_struct *tty, char ch)
 	struct serial_state *info = tty->driver_data;
 
 	info->x_char = ch;
-	if (ch) {
+
+	if (ch)
+	{
 		/*
 		 * I guess we could call console->write() directly but
 		 * let's do that for now.
@@ -274,51 +323,66 @@ static void rs_send_xchar(struct tty_struct *tty, char ch)
  * incoming characters should be throttled.
  * ------------------------------------------------------------
  */
-static void rs_throttle(struct tty_struct * tty)
+static void rs_throttle(struct tty_struct *tty)
 {
 	if (I_IXOFF(tty))
+	{
 		rs_send_xchar(tty, STOP_CHAR(tty));
+	}
 
 	printk(KERN_INFO "simrs_throttle called\n");
 }
 
-static void rs_unthrottle(struct tty_struct * tty)
+static void rs_unthrottle(struct tty_struct *tty)
 {
 	struct serial_state *info = tty->driver_data;
 
-	if (I_IXOFF(tty)) {
+	if (I_IXOFF(tty))
+	{
 		if (info->x_char)
+		{
 			info->x_char = 0;
+		}
 		else
+		{
 			rs_send_xchar(tty, START_CHAR(tty));
+		}
 	}
+
 	printk(KERN_INFO "simrs_unthrottle called\n");
 }
 
 static int rs_ioctl(struct tty_struct *tty, unsigned int cmd, unsigned long arg)
 {
 	if ((cmd != TIOCGSERIAL) && (cmd != TIOCSSERIAL) &&
-	    (cmd != TIOCSERCONFIG) && (cmd != TIOCSERGSTRUCT) &&
-	    (cmd != TIOCMIWAIT)) {
+		(cmd != TIOCSERCONFIG) && (cmd != TIOCSERGSTRUCT) &&
+		(cmd != TIOCMIWAIT))
+	{
 		if (tty_io_error(tty))
-		    return -EIO;
+		{
+			return -EIO;
+		}
 	}
 
-	switch (cmd) {
-	case TIOCGSERIAL:
-	case TIOCSSERIAL:
-	case TIOCSERGSTRUCT:
-	case TIOCMIWAIT:
-		return 0;
-	case TIOCSERCONFIG:
-	case TIOCSERGETLSR: /* Get line status register */
-		return -EINVAL;
-	case TIOCSERGWILD:
-	case TIOCSERSWILD:
-		/* "setserial -W" is called in Debian boot */
-		printk (KERN_INFO "TIOCSER?WILD ioctl obsolete, ignored.\n");
-		return 0;
+	switch (cmd)
+	{
+		case TIOCGSERIAL:
+		case TIOCSSERIAL:
+		case TIOCSERGSTRUCT:
+		case TIOCMIWAIT:
+			return 0;
+
+		case TIOCSERCONFIG:
+		case TIOCSERGETLSR: /* Get line status register */
+			return -EINVAL;
+
+		case TIOCSERGWILD:
+		case TIOCSERSWILD:
+			/* "setserial -W" is called in Debian boot */
+			printk (KERN_INFO "TIOCSER?WILD ioctl obsolete, ignored.\n");
+			return 0;
 	}
+
 	return -ENOIOCTLCMD;
 }
 
@@ -331,21 +395,26 @@ static int rs_ioctl(struct tty_struct *tty, unsigned int cmd, unsigned long arg)
 static void shutdown(struct tty_port *port)
 {
 	struct serial_state *info = container_of(port, struct serial_state,
-			port);
+								port);
 	unsigned long flags;
 
 	local_irq_save(flags);
-	if (info->irq)
-		free_irq(info->irq, info);
 
-	if (info->xmit.buf) {
+	if (info->irq)
+	{
+		free_irq(info->irq, info);
+	}
+
+	if (info->xmit.buf)
+	{
 		free_page((unsigned long) info->xmit.buf);
 		info->xmit.buf = NULL;
 	}
+
 	local_irq_restore(flags);
 }
 
-static void rs_close(struct tty_struct *tty, struct file * filp)
+static void rs_close(struct tty_struct *tty, struct file *filp)
 {
 	struct serial_state *info = tty->driver_data;
 
@@ -363,26 +432,37 @@ static void rs_hangup(struct tty_struct *tty)
 static int activate(struct tty_port *port, struct tty_struct *tty)
 {
 	struct serial_state *state = container_of(port, struct serial_state,
-			port);
+								 port);
 	unsigned long flags, page;
 	int retval = 0;
 
 	page = get_zeroed_page(GFP_KERNEL);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	local_irq_save(flags);
 
 	if (state->xmit.buf)
+	{
 		free_page(page);
+	}
 	else
+	{
 		state->xmit.buf = (unsigned char *) page;
+	}
 
-	if (state->irq) {
+	if (state->irq)
+	{
 		retval = request_irq(state->irq, rs_interrupt_single, 0,
-				"simserial", state);
+							 "simserial", state);
+
 		if (retval)
+		{
 			goto errout;
+		}
 	}
 
 	state->xmit.head = state->xmit.tail = 0;
@@ -391,13 +471,24 @@ static int activate(struct tty_port *port, struct tty_struct *tty)
 	 * Set up the tty->alt_speed kludge
 	 */
 	if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
+	{
 		tty->alt_speed = 57600;
+	}
+
 	if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_VHI)
+	{
 		tty->alt_speed = 115200;
+	}
+
 	if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_SHI)
+	{
 		tty->alt_speed = 230400;
+	}
+
 	if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_WARP)
+	{
 		tty->alt_speed = 460800;
+	}
 
 errout:
 	local_irq_restore(flags);
@@ -411,7 +502,7 @@ errout:
  * the IRQ chain.   It also performs the serial-specific
  * initialization for the tty structure.
  */
-static int rs_open(struct tty_struct *tty, struct file * filp)
+static int rs_open(struct tty_struct *tty, struct file *filp)
 {
 	struct serial_state *info = rs_table + tty->index;
 	struct tty_port *port = &info->port;
@@ -423,8 +514,11 @@ static int rs_open(struct tty_struct *tty, struct file * filp)
 	 * figure out which console to use (should be one already)
 	 */
 	console = console_drivers;
-	while (console) {
-		if ((console->flags & CON_ENABLED) && console->write) break;
+
+	while (console)
+	{
+		if ((console->flags & CON_ENABLED) && console->write) { break; }
+
 		console = console->next;
 	}
 
@@ -440,9 +534,11 @@ static int rs_proc_show(struct seq_file *m, void *v)
 	int i;
 
 	seq_printf(m, "simserinfo:1.0\n");
+
 	for (i = 0; i < NR_PORTS; i++)
 		seq_printf(m, "%d: uart:16550 port:3F8 irq:%d\n",
-		       i, rs_table[i].irq);
+				   i, rs_table[i].irq);
+
 	return 0;
 }
 
@@ -451,7 +547,8 @@ static int rs_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, rs_proc_show, NULL);
 }
 
-static const struct file_operations rs_proc_fops = {
+static const struct file_operations rs_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= rs_proc_open,
 	.read		= seq_read,
@@ -459,7 +556,8 @@ static const struct file_operations rs_proc_fops = {
 	.release	= single_release,
 };
 
-static const struct tty_operations hp_ops = {
+static const struct tty_operations hp_ops =
+{
 	.open = rs_open,
 	.close = rs_close,
 	.write = rs_write,
@@ -476,7 +574,8 @@ static const struct tty_operations hp_ops = {
 	.proc_fops = &rs_proc_fops,
 };
 
-static const struct tty_port_operations hp_port_ops = {
+static const struct tty_port_operations hp_port_ops =
+{
 	.activate = activate,
 	.shutdown = shutdown,
 };
@@ -487,11 +586,16 @@ static int __init simrs_init(void)
 	int retval;
 
 	if (!ia64_platform_is("hpsim"))
+	{
 		return -ENODEV;
+	}
 
 	hp_simserial_driver = alloc_tty_driver(NR_PORTS);
+
 	if (!hp_simserial_driver)
+	{
 		return -ENOMEM;
+	}
 
 	printk(KERN_INFO "SimSerial driver with no serial options enabled\n");
 
@@ -515,9 +619,11 @@ static int __init simrs_init(void)
 	state->port.close_delay = 0; /* XXX really 0? */
 
 	retval = hpsim_get_irq(KEYBOARD_INTR);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		printk(KERN_ERR "%s: out of interrupt vectors!\n",
-				__func__);
+			   __func__);
 		goto err_free_tty;
 	}
 
@@ -528,7 +634,9 @@ static int __init simrs_init(void)
 
 	tty_port_link_device(&state->port, hp_simserial_driver, 0);
 	retval = tty_register_driver(hp_simserial_driver);
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_ERR "Couldn't register simserial driver\n");
 		goto err_free_tty;
 	}

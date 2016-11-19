@@ -27,9 +27,9 @@
  * or config registers (on HTP/MTP)
  */
 static int dcache_set_shift = METAG_TBI_CACHE_SIZE_BASE_LOG2
-					- DEFAULT_CACHE_WAYS_LOG2;
+							  - DEFAULT_CACHE_WAYS_LOG2;
 static int icache_set_shift = METAG_TBI_CACHE_SIZE_BASE_LOG2
-					- DEFAULT_CACHE_WAYS_LOG2;
+							  - DEFAULT_CACHE_WAYS_LOG2;
 /*
  * The number of sets in the caches. Initialised for HTP/ATP, adjusted
  * according to NOMMU setting in config registers
@@ -82,33 +82,41 @@ static void __init metag_lnkget_probe(void)
 	__builtin_dcache_flush((void *)&lnkget_testdata[0]);
 
 #if defined(CONFIG_METAG_LNKGET_AROUND_CACHE)
+
 	/* if the cache is right, LNKGET_AROUND_CACHE is unnecessary */
 	if (temp == LNKGET_CONSTANT)
+	{
 		pr_info("LNKGET/SET go through cache but CONFIG_METAG_LNKGET_AROUND_CACHE=y\n");
+	}
+
 #elif defined(CONFIG_METAG_ATOMICITY_LNKGET)
 	/*
 	 * if the cache is wrong, LNKGET_AROUND_CACHE is really necessary
 	 * because the kernel is configured to use LNKGET/SET for atomicity
 	 */
 	WARN(temp != LNKGET_CONSTANT,
-	     "LNKGET/SET go around cache but CONFIG_METAG_LNKGET_AROUND_CACHE=n\n"
-	     "Expect kernel failure as it's used for atomicity primitives\n");
+		 "LNKGET/SET go around cache but CONFIG_METAG_LNKGET_AROUND_CACHE=n\n"
+		 "Expect kernel failure as it's used for atomicity primitives\n");
 #elif defined(CONFIG_SMP)
 	/*
 	 * if the cache is wrong, LNKGET_AROUND_CACHE should be used or the
 	 * gateway page won't flush and userland could break.
 	 */
 	WARN(temp != LNKGET_CONSTANT,
-	     "LNKGET/SET go around cache but CONFIG_METAG_LNKGET_AROUND_CACHE=n\n"
-	     "Expect userland failure as it's used for user gateway page\n");
+		 "LNKGET/SET go around cache but CONFIG_METAG_LNKGET_AROUND_CACHE=n\n"
+		 "Expect userland failure as it's used for user gateway page\n");
 #else
+
 	/*
 	 * if the cache is wrong, LNKGET_AROUND_CACHE is set wrong, but it
 	 * doesn't actually matter as it doesn't have any effect on !SMP &&
 	 * !ATOMICITY_LNKGET.
 	 */
 	if (temp != LNKGET_CONSTANT)
+	{
 		pr_warn("LNKGET/SET go around cache but CONFIG_METAG_LNKGET_AROUND_CACHE=n\n");
+	}
+
 #endif
 }
 #endif /* !CONFIG_METAG_META12 */
@@ -127,7 +135,8 @@ void __init metag_cache_probe(void)
 	int cfgcache = coreid & METAC_COREID_CFGCACHE_BITS;
 
 	if (cfgcache == METAC_COREID_CFGCACHE_TYPE0 ||
-	    cfgcache == METAC_COREID_CFGCACHE_PRIVNOMMU) {
+		cfgcache == METAC_COREID_CFGCACHE_PRIVNOMMU)
+	{
 		icache_sets_log2 = 1;
 		dcache_sets_log2 = 1;
 	}
@@ -135,15 +144,15 @@ void __init metag_cache_probe(void)
 	/* For normal size caches, the smallest size is 4Kb.
 	   For small caches, the smallest size is 64b */
 	icache_set_shift = (config & METAC_CORECFG2_ICSMALL_BIT)
-				? 6 : 12;
+					   ? 6 : 12;
 	icache_set_shift += (config & METAC_CORE_C2ICSZ_BITS)
-				>> METAC_CORE_C2ICSZ_S;
+						>> METAC_CORE_C2ICSZ_S;
 	icache_set_shift -= icache_sets_log2;
 
 	dcache_set_shift = (config & METAC_CORECFG2_DCSMALL_BIT)
-				? 6 : 12;
+					   ? 6 : 12;
 	dcache_set_shift += (config & METAC_CORECFG2_DCSZ_BITS)
-				>> METAC_CORECFG2_DCSZ_S;
+						>> METAC_CORECFG2_DCSZ_S;
 	dcache_set_shift -= dcache_sets_log2;
 
 	metag_lnkget_probe();
@@ -154,45 +163,54 @@ void __init metag_cache_probe(void)
 	PTBISEG seg;
 
 	seg = __TBIFindSeg(NULL, TBID_SEG(TBID_THREAD_GLOBAL,
-					  TBID_SEGSCOPE_GLOBAL,
-					  TBID_SEGTYPE_HEAP));
-	if (seg != NULL) {
+									  TBID_SEGSCOPE_GLOBAL,
+									  TBID_SEGTYPE_HEAP));
+
+	if (seg != NULL)
+	{
 		val = seg->Data[1];
 
 		/* Work out width of I-cache size bit-field */
 		u = ((unsigned long) METAG_TBI_ICACHE_SIZE_BITS)
-		       >> METAG_TBI_ICACHE_SIZE_S;
+			>> METAG_TBI_ICACHE_SIZE_S;
 		width = 0;
-		while (u & 1) {
+
+		while (u & 1)
+		{
 			width++;
 			u >>= 1;
 		}
+
 		/* Extract sign-extended size addend value */
 		shift = 32 - (METAG_TBI_ICACHE_SIZE_S + width);
 		addend = (long) ((val & METAG_TBI_ICACHE_SIZE_BITS)
-				 << shift)
-			>> (shift + METAG_TBI_ICACHE_SIZE_S);
+						 << shift)
+				 >> (shift + METAG_TBI_ICACHE_SIZE_S);
 		/* Now calculate I-cache set size */
 		icache_set_shift = (METAG_TBI_CACHE_SIZE_BASE_LOG2
-				    - DEFAULT_CACHE_WAYS_LOG2)
-					+ addend;
+							- DEFAULT_CACHE_WAYS_LOG2)
+						   + addend;
 
 		/* Similarly for D-cache */
 		u = ((unsigned long) METAG_TBI_DCACHE_SIZE_BITS)
-		       >> METAG_TBI_DCACHE_SIZE_S;
+			>> METAG_TBI_DCACHE_SIZE_S;
 		width = 0;
-		while (u & 1) {
+
+		while (u & 1)
+		{
 			width++;
 			u >>= 1;
 		}
+
 		shift = 32 - (METAG_TBI_DCACHE_SIZE_S + width);
 		addend = (long) ((val & METAG_TBI_DCACHE_SIZE_BITS)
-				 << shift)
-			>> (shift + METAG_TBI_DCACHE_SIZE_S);
+						 << shift)
+				 >> (shift + METAG_TBI_DCACHE_SIZE_S);
 		dcache_set_shift = (METAG_TBI_CACHE_SIZE_BASE_LOG2
-				    - DEFAULT_CACHE_WAYS_LOG2)
-					+ addend;
+							- DEFAULT_CACHE_WAYS_LOG2)
+						   + addend;
 	}
+
 #endif
 }
 
@@ -206,7 +224,7 @@ static void metag_phys_data_cache_flush(const void *start)
 
 	/* Use a sequence of writes to flush the cache region requested */
 	thread = (__core_reg_get(TXENABLE) & TXENABLE_THREAD_BITS)
-					  >> TXENABLE_THREAD_S;
+			 >> TXENABLE_THREAD_S;
 
 	/* Cache is broken into sets which lie in contiguous RAMs */
 	set_shift = dcache_set_shift;
@@ -217,21 +235,21 @@ static void metag_phys_data_cache_flush(const void *start)
 
 	/* Get partition data for this thread */
 	part = metag_in32(SYSC_DCPART0 +
-			      (SYSC_xCPARTn_STRIDE * thread));
+					  (SYSC_xCPARTn_STRIDE * thread));
 
 	if ((int)start < 0)
 		/* Access Global vs Local partition */
 		part >>= SYSC_xCPARTG_AND_S
-			- SYSC_xCPARTL_AND_S;
+				 - SYSC_xCPARTL_AND_S;
 
 	/* Extract offset and move SetOff */
 	offset = (part & SYSC_xCPARTL_OR_BITS)
-			>> SYSC_xCPARTL_OR_S;
+			 >> SYSC_xCPARTL_OR_S;
 	flush0 += (offset << (set_shift - 4));
 
 	/* Shrink size */
 	part = (part & SYSC_xCPARTL_AND_BITS)
-			>> SYSC_xCPARTL_AND_S;
+		   >> SYSC_xCPARTL_AND_S;
 	loops = ((part + 1) << (set_shift - 4));
 
 	/* Reduce loops by step of cache line size */
@@ -241,7 +259,8 @@ static void metag_phys_data_cache_flush(const void *start)
 	flush2 = flush0 + (2 << set_shift);
 	flush3 = flush0 + (3 << set_shift);
 
-	if (dcache_sets_log2 == 1) {
+	if (dcache_sets_log2 == 1)
+	{
 		flush2 = flush1;
 		flush3 = flush1 + step;
 		flush1 = flush0 + step;
@@ -250,7 +269,8 @@ static void metag_phys_data_cache_flush(const void *start)
 	}
 
 	/* Clear loops ways in cache */
-	while (loops-- != 0) {
+	while (loops-- != 0)
+	{
 		/* Clear the ways. */
 #if 0
 		/*
@@ -273,9 +293,9 @@ static void metag_phys_data_cache_flush(const void *start)
 			"SETB\t[%2+%4++],%5\n"
 			"SETB\t[%3+%4++],%5\n"
 			: "+e" (flush0),
-			  "+e" (flush1),
-			  "+e" (flush2),
-			  "+e" (flush3)
+			"+e" (flush1),
+			"+e" (flush2),
+			"+e" (flush3)
 			: "e" (step), "a" (0));
 #endif
 	}
@@ -285,7 +305,9 @@ void metag_data_cache_flush_all(const void *start)
 {
 	if ((metag_in32(SYSC_CACHE_MMU_CONFIG) & SYSC_CMMUCFG_DC_ON_BIT) == 0)
 		/* No need to flush the data cache it's not actually enabled */
+	{
 		return;
+	}
 
 	metag_phys_data_cache_flush(start);
 }
@@ -297,9 +319,12 @@ void metag_data_cache_flush(const void *start, int bytes)
 
 	if ((metag_in32(SYSC_CACHE_MMU_CONFIG) & SYSC_CMMUCFG_DC_ON_BIT) == 0)
 		/* No need to flush the data cache it's not actually enabled */
+	{
 		return;
+	}
 
-	if (bytes >= 4096) {
+	if (bytes >= 4096)
+	{
 		metag_phys_data_cache_flush(start);
 		return;
 	}
@@ -307,37 +332,44 @@ void metag_data_cache_flush(const void *start, int bytes)
 	/* Use linear cache flush mechanism on META IP */
 	flush0 = (int)start;
 	loops  = ((int)start & (DCACHE_LINE_BYTES - 1)) + bytes +
-					(DCACHE_LINE_BYTES - 1);
+			 (DCACHE_LINE_BYTES - 1);
 	loops  >>= DCACHE_LINE_S;
 
 #define PRIM_FLUSH(addr, offset) do {			\
-	int __addr = ((int) (addr)) + ((offset) * 64);	\
-	__builtin_dcache_flush((void *)(__addr));	\
+		int __addr = ((int) (addr)) + ((offset) * 64);	\
+		__builtin_dcache_flush((void *)(__addr));	\
 	} while (0)
 
 #define LOOP_INC (4*64)
 
-	do {
+	do
+	{
 		/* By default stop */
 		step = 0;
 
-		switch (loops) {
-		/* Drop Thru Cases! */
-		default:
-			PRIM_FLUSH(flush0, 3);
-			loops -= 4;
-			step = 1;
-		case 3:
-			PRIM_FLUSH(flush0, 2);
-		case 2:
-			PRIM_FLUSH(flush0, 1);
-		case 1:
-			PRIM_FLUSH(flush0, 0);
-			flush0 += LOOP_INC;
-		case 0:
-			break;
+		switch (loops)
+		{
+			/* Drop Thru Cases! */
+			default:
+				PRIM_FLUSH(flush0, 3);
+				loops -= 4;
+				step = 1;
+
+			case 3:
+				PRIM_FLUSH(flush0, 2);
+
+			case 2:
+				PRIM_FLUSH(flush0, 1);
+
+			case 1:
+				PRIM_FLUSH(flush0, 0);
+				flush0 += LOOP_INC;
+
+			case 0:
+				break;
 		}
-	} while (step);
+	}
+	while (step);
 }
 EXPORT_SYMBOL(metag_data_cache_flush);
 
@@ -351,7 +383,7 @@ static void metag_phys_code_cache_flush(const void *start, int bytes)
 
 	/* Use a sequence of writes to flush the cache region requested */
 	thread = (__core_reg_get(TXENABLE) & TXENABLE_THREAD_BITS)
-					  >> TXENABLE_THREAD_S;
+			 >> TXENABLE_THREAD_S;
 	set_shift = icache_set_shift;
 
 	/* Move to the base of the physical cache flush region */
@@ -360,20 +392,22 @@ static void metag_phys_code_cache_flush(const void *start, int bytes)
 
 	/* Get partition code for this thread */
 	part = metag_in32(SYSC_ICPART0 +
-			  (SYSC_xCPARTn_STRIDE * thread));
+					  (SYSC_xCPARTn_STRIDE * thread));
 
 	if ((int)start < 0)
 		/* Access Global vs Local partition */
-		part >>= SYSC_xCPARTG_AND_S-SYSC_xCPARTL_AND_S;
+	{
+		part >>= SYSC_xCPARTG_AND_S - SYSC_xCPARTL_AND_S;
+	}
 
 	/* Extract offset and move SetOff */
 	offset = (part & SYSC_xCPARTL_OR_BITS)
-			>> SYSC_xCPARTL_OR_S;
+			 >> SYSC_xCPARTL_OR_S;
 	flush0 += (offset << (set_shift - 4));
 
 	/* Shrink size */
 	part = (part & SYSC_xCPARTL_AND_BITS)
-			>> SYSC_xCPARTL_AND_S;
+		   >> SYSC_xCPARTL_AND_S;
 	loops = ((part + 1) << (set_shift - 4));
 
 	/* Where does the Set end? */
@@ -381,22 +415,26 @@ static void metag_phys_code_cache_flush(const void *start, int bytes)
 	set_size = loops;
 
 #ifdef CONFIG_METAG_META12
-	if ((bytes < 4096) && (bytes < loops)) {
+
+	if ((bytes < 4096) && (bytes < loops))
+	{
 		/* Unreachable on HTP/MTP */
 		/* Only target the sets that could be relavent */
 		flush0 += (loops - step) & ((int) start);
-		loops = (((int) start) & (step-1)) + bytes + step - 1;
+		loops = (((int) start) & (step - 1)) + bytes + step - 1;
 	}
+
 #endif
 
 	/* Reduce loops by step of cache line size */
 	loops /= step;
 
-	flush1 = flush0 + (1<<set_shift);
-	flush2 = flush0 + (2<<set_shift);
-	flush3 = flush0 + (3<<set_shift);
+	flush1 = flush0 + (1 << set_shift);
+	flush2 = flush0 + (2 << set_shift);
+	flush3 = flush0 + (3 << set_shift);
 
-	if (icache_sets_log2 == 1) {
+	if (icache_sets_log2 == 1)
+	{
 		flush2 = flush1;
 		flush3 = flush1 + step;
 		flush1 = flush0 + step;
@@ -413,7 +451,8 @@ static void metag_phys_code_cache_flush(const void *start, int bytes)
 	}
 
 	/* Clear loops ways in cache */
-	while (loops-- != 0) {
+	while (loops-- != 0)
+	{
 #if 0
 		/*
 		 * GCC doesn't generate very good code for this so we
@@ -436,13 +475,14 @@ static void metag_phys_code_cache_flush(const void *start, int bytes)
 			"SETB\t[%2+%4++],%5\n"
 			"SETB\t[%3+%4++],%5\n"
 			: "+e" (flush0),
-			  "+e" (flush1),
-			  "+e" (flush2),
-			  "+e" (flush3)
+			"+e" (flush1),
+			"+e" (flush2),
+			"+e" (flush3)
 			: "e" (step), "a" (0));
 #endif
 
-		if (flush0 == end_set) {
+		if (flush0 == end_set)
+		{
 			/* Wrap within Set 0 */
 			flush0 -= set_size;
 			flush1 -= set_size;
@@ -456,7 +496,9 @@ void metag_code_cache_flush_all(const void *start)
 {
 	if ((metag_in32(SYSC_CACHE_MMU_CONFIG) & SYSC_CMMUCFG_IC_ON_BIT) == 0)
 		/* No need to flush the code cache it's not actually enabled */
+	{
 		return;
+	}
 
 	metag_phys_code_cache_flush(start, 4096);
 }
@@ -471,23 +513,27 @@ void metag_code_cache_flush(const void *start, int bytes)
 
 	if ((metag_in32(SYSC_CACHE_MMU_CONFIG) & SYSC_CMMUCFG_IC_ON_BIT) == 0)
 		/* No need to flush the code cache it's not actually enabled */
+	{
 		return;
+	}
 
 #ifdef CONFIG_METAG_META12
 	/* CACHEWD isn't available on Meta1, so always do full cache flush */
 	metag_phys_code_cache_flush(start, bytes);
 
 #else /* CONFIG_METAG_META12 */
+
 	/* If large size do full physical cache flush */
-	if (bytes >= 4096) {
+	if (bytes >= 4096)
+	{
 		metag_phys_code_cache_flush(start, bytes);
 		return;
 	}
 
 	/* Use linear cache flush mechanism on META IP */
-	flush = (void *)((int)start & ~(ICACHE_LINE_BYTES-1));
-	loops  = ((int)start & (ICACHE_LINE_BYTES-1)) + bytes +
-		(ICACHE_LINE_BYTES-1);
+	flush = (void *)((int)start & ~(ICACHE_LINE_BYTES - 1));
+	loops  = ((int)start & (ICACHE_LINE_BYTES - 1)) + bytes +
+			 (ICACHE_LINE_BYTES - 1);
 	loops  >>= ICACHE_LINE_S;
 
 #define PRIM_IFLUSH(addr, offset) \
@@ -495,27 +541,35 @@ void metag_code_cache_flush(const void *start, int bytes)
 
 #define LOOP_INC (4*64)
 
-	do {
+	do
+	{
 		/* By default stop */
 		step = 0;
 
-		switch (loops) {
-		/* Drop Thru Cases! */
-		default:
-			PRIM_IFLUSH(flush, 3);
-			loops -= 4;
-			step = 1;
-		case 3:
-			PRIM_IFLUSH(flush, 2);
-		case 2:
-			PRIM_IFLUSH(flush, 1);
-		case 1:
-			PRIM_IFLUSH(flush, 0);
-			flush += LOOP_INC;
-		case 0:
-			break;
+		switch (loops)
+		{
+			/* Drop Thru Cases! */
+			default:
+				PRIM_IFLUSH(flush, 3);
+				loops -= 4;
+				step = 1;
+
+			case 3:
+				PRIM_IFLUSH(flush, 2);
+
+			case 2:
+				PRIM_IFLUSH(flush, 1);
+
+			case 1:
+				PRIM_IFLUSH(flush, 0);
+				flush += LOOP_INC;
+
+			case 0:
+				break;
 		}
-	} while (step);
+	}
+	while (step);
+
 #endif /* !CONFIG_METAG_META12 */
 }
 EXPORT_SYMBOL(metag_code_cache_flush);

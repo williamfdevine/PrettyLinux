@@ -76,12 +76,12 @@ static __inline__ void set_pte(pte_t *pteptr, pte_t pteval)
 
 /* PMD to PTE dereferencing */
 #define pte_index(address) \
-		((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
+	((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
 
 #define __pte_offset(address)	pte_index(address)
 
 #define pte_offset_kernel(dir, addr) \
-		((pte_t *) ((pmd_val(*(dir))) & PAGE_MASK) + pte_index((addr)))
+	((pte_t *) ((pmd_val(*(dir))) & PAGE_MASK) + pte_index((addr)))
 
 #define pte_offset_map(dir,addr)	pte_offset_kernel(dir, addr)
 #define pte_unmap(pte)		do { } while (0)
@@ -129,7 +129,7 @@ static __inline__ void set_pte(pte_t *pteptr, pte_t pteval)
 #define _PAGE_SPECIAL	_PAGE_EXT(0x002)
 
 #define _PAGE_CLEAR_FLAGS	(_PAGE_PRESENT | _PAGE_SHARED | \
-				 _PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_WIRED)
+							 _PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_WIRED)
 
 /* Mask which drops software flags */
 #define _PAGE_FLAGS_HARDWARE_MASK	(NEFF_MASK & ~(_PAGE_CLEAR_FLAGS))
@@ -138,11 +138,11 @@ static __inline__ void set_pte(pte_t *pteptr, pte_t pteval)
  * HugeTLB support
  */
 #if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
-#define _PAGE_SZHUGE	(_PAGE_SIZE0)
+	#define _PAGE_SZHUGE	(_PAGE_SIZE0)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_1MB)
-#define _PAGE_SZHUGE	(_PAGE_SIZE1)
+	#define _PAGE_SZHUGE	(_PAGE_SIZE1)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_512MB)
-#define _PAGE_SZHUGE	(_PAGE_SIZE0 | _PAGE_SIZE1)
+	#define _PAGE_SZHUGE	(_PAGE_SIZE0 | _PAGE_SIZE1)
 #endif
 
 /*
@@ -150,7 +150,7 @@ static __inline__ void set_pte(pte_t *pteptr, pte_t pteval)
  * to make pte_mkhuge() happy.
  */
 #ifndef _PAGE_SZHUGE
-# define _PAGE_SZHUGE	(0)
+	#define _PAGE_SZHUGE	(0)
 #endif
 
 /*
@@ -163,25 +163,25 @@ static __inline__ void set_pte(pte_t *pteptr, pte_t pteval)
  *
  */
 #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_READ | _PAGE_WRITE | \
-			 _PAGE_EXECUTE | \
-			 _PAGE_CACHABLE | _PAGE_ACCESSED | _PAGE_DIRTY | \
-			 _PAGE_SHARED)
+						 _PAGE_EXECUTE | \
+						 _PAGE_CACHABLE | _PAGE_ACCESSED | _PAGE_DIRTY | \
+						 _PAGE_SHARED)
 
 /* Default flags for a User page */
 #define _PAGE_TABLE	(_KERNPG_TABLE | _PAGE_USER)
 
 #define _PAGE_CHG_MASK	(PTE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY | \
-			 _PAGE_SPECIAL)
+						 _PAGE_SPECIAL)
 
 /*
  * We have full permissions (Read/Write/Execute/Shared).
  */
 #define _PAGE_COMMON	(_PAGE_PRESENT | _PAGE_USER | \
-			 _PAGE_CACHABLE | _PAGE_ACCESSED)
+						 _PAGE_CACHABLE | _PAGE_ACCESSED)
 
 #define PAGE_NONE	__pgprot(_PAGE_CACHABLE | _PAGE_ACCESSED)
 #define PAGE_SHARED	__pgprot(_PAGE_COMMON | _PAGE_READ | _PAGE_WRITE | \
-				 _PAGE_SHARED)
+							 _PAGE_SHARED)
 #define PAGE_EXECREAD	__pgprot(_PAGE_COMMON | _PAGE_READ | _PAGE_EXECUTE)
 
 /*
@@ -193,13 +193,13 @@ static __inline__ void set_pte(pte_t *pteptr, pte_t pteval)
 #define PAGE_READONLY	__pgprot(_PAGE_COMMON | _PAGE_READ)
 #define PAGE_WRITEONLY	__pgprot(_PAGE_COMMON | _PAGE_WRITE)
 #define PAGE_RWX	__pgprot(_PAGE_COMMON | _PAGE_READ | \
-				 _PAGE_WRITE | _PAGE_EXECUTE)
+							 _PAGE_WRITE | _PAGE_EXECUTE)
 #define PAGE_KERNEL	__pgprot(_KERNPG_TABLE)
 
 #define PAGE_KERNEL_NOCACHE \
-			__pgprot(_PAGE_PRESENT | _PAGE_READ | _PAGE_WRITE | \
-				 _PAGE_EXECUTE | _PAGE_ACCESSED | \
-				 _PAGE_DIRTY | _PAGE_SHARED)
+	__pgprot(_PAGE_PRESENT | _PAGE_READ | _PAGE_WRITE | \
+			 _PAGE_EXECUTE | _PAGE_ACCESSED | \
+			 _PAGE_DIRTY | _PAGE_SHARED)
 
 /* Make it a device mapping for maximum safety (e.g. for mapping device
    registers into user-space via /dev/map).  */
@@ -241,7 +241,7 @@ static __inline__ void set_pte(pte_t *pteptr, pte_t pteval)
  * a relative physical address and translate it to an index.
  */
 #define pte_pagenr(x)		(((unsigned long) (pte_val(x)) - \
-				 __MEMORY_START) >> PAGE_SHIFT)
+							  __MEMORY_START) >> PAGE_SHIFT)
 
 /*
  * Given a PTE, return the "struct page *".
@@ -260,7 +260,7 @@ static __inline__ void set_pte(pte_t *pteptr, pte_t pteval)
 static inline int pte_dirty(pte_t pte)  { return pte_val(pte) & _PAGE_DIRTY; }
 static inline int pte_young(pte_t pte)  { return pte_val(pte) & _PAGE_ACCESSED; }
 static inline int pte_write(pte_t pte)  { return pte_val(pte) & _PAGE_WRITE; }
-static inline int pte_special(pte_t pte){ return pte_val(pte) & _PAGE_SPECIAL; }
+static inline int pte_special(pte_t pte) { return pte_val(pte) & _PAGE_SPECIAL; }
 
 static inline pte_t pte_wrprotect(pte_t pte)	{ set_pte(&pte, __pte(pte_val(pte) & ~_PAGE_WRITE)); return pte; }
 static inline pte_t pte_mkclean(pte_t pte)	{ set_pte(&pte, __pte(pte_val(pte) & ~_PAGE_DIRTY)); return pte; }
@@ -277,20 +277,20 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ set_pte(&pte, __pte(pte_val(pte) 
  * extern pte_t mk_pte(struct page *page, pgprot_t pgprot)
  */
 #define mk_pte(page,pgprot)							\
-({										\
-	pte_t __pte;								\
-										\
-	set_pte(&__pte, __pte((((page)-mem_map) << PAGE_SHIFT) | 		\
-		__MEMORY_START | pgprot_val((pgprot))));			\
-	__pte;									\
-})
+	({										\
+		pte_t __pte;								\
+		\
+		set_pte(&__pte, __pte((((page)-mem_map) << PAGE_SHIFT) | 		\
+							  __MEMORY_START | pgprot_val((pgprot))));			\
+		__pte;									\
+	})
 
 /*
  * This takes a (absolute) physical page address that is used
  * by the remapping functions
  */
 #define mk_pte_phys(physpage, pgprot) \
-({ pte_t __pte; set_pte(&__pte, __pte(physpage | pgprot_val(pgprot))); __pte; })
+	({ pte_t __pte; set_pte(&__pte, __pte(physpage | pgprot_val(pgprot))); __pte; })
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 { set_pte(&pte, __pte((pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot))); return pte; }

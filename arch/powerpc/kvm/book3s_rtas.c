@@ -23,7 +23,8 @@ static void kvm_rtas_set_xive(struct kvm_vcpu *vcpu, struct rtas_args *args)
 	u32 irq, server, priority;
 	int rc;
 
-	if (be32_to_cpu(args->nargs) != 3 || be32_to_cpu(args->nret) != 1) {
+	if (be32_to_cpu(args->nargs) != 3 || be32_to_cpu(args->nret) != 1)
+	{
 		rc = -3;
 		goto out;
 	}
@@ -33,8 +34,12 @@ static void kvm_rtas_set_xive(struct kvm_vcpu *vcpu, struct rtas_args *args)
 	priority = be32_to_cpu(args->args[2]);
 
 	rc = kvmppc_xics_set_xive(vcpu->kvm, irq, server, priority);
+
 	if (rc)
+	{
 		rc = -3;
+	}
+
 out:
 	args->rets[0] = cpu_to_be32(rc);
 }
@@ -44,7 +49,8 @@ static void kvm_rtas_get_xive(struct kvm_vcpu *vcpu, struct rtas_args *args)
 	u32 irq, server, priority;
 	int rc;
 
-	if (be32_to_cpu(args->nargs) != 1 || be32_to_cpu(args->nret) != 3) {
+	if (be32_to_cpu(args->nargs) != 1 || be32_to_cpu(args->nret) != 3)
+	{
 		rc = -3;
 		goto out;
 	}
@@ -53,7 +59,9 @@ static void kvm_rtas_get_xive(struct kvm_vcpu *vcpu, struct rtas_args *args)
 
 	server = priority = 0;
 	rc = kvmppc_xics_get_xive(vcpu->kvm, irq, &server, &priority);
-	if (rc) {
+
+	if (rc)
+	{
 		rc = -3;
 		goto out;
 	}
@@ -69,7 +77,8 @@ static void kvm_rtas_int_off(struct kvm_vcpu *vcpu, struct rtas_args *args)
 	u32 irq;
 	int rc;
 
-	if (be32_to_cpu(args->nargs) != 1 || be32_to_cpu(args->nret) != 1) {
+	if (be32_to_cpu(args->nargs) != 1 || be32_to_cpu(args->nret) != 1)
+	{
 		rc = -3;
 		goto out;
 	}
@@ -77,8 +86,12 @@ static void kvm_rtas_int_off(struct kvm_vcpu *vcpu, struct rtas_args *args)
 	irq = be32_to_cpu(args->args[0]);
 
 	rc = kvmppc_xics_int_off(vcpu->kvm, irq);
+
 	if (rc)
+	{
 		rc = -3;
+	}
+
 out:
 	args->rets[0] = cpu_to_be32(rc);
 }
@@ -88,7 +101,8 @@ static void kvm_rtas_int_on(struct kvm_vcpu *vcpu, struct rtas_args *args)
 	u32 irq;
 	int rc;
 
-	if (be32_to_cpu(args->nargs) != 1 || be32_to_cpu(args->nret) != 1) {
+	if (be32_to_cpu(args->nargs) != 1 || be32_to_cpu(args->nret) != 1)
+	{
 		rc = -3;
 		goto out;
 	}
@@ -96,19 +110,25 @@ static void kvm_rtas_int_on(struct kvm_vcpu *vcpu, struct rtas_args *args)
 	irq = be32_to_cpu(args->args[0]);
 
 	rc = kvmppc_xics_int_on(vcpu->kvm, irq);
+
 	if (rc)
+	{
 		rc = -3;
+	}
+
 out:
 	args->rets[0] = cpu_to_be32(rc);
 }
 #endif /* CONFIG_KVM_XICS */
 
-struct rtas_handler {
+struct rtas_handler
+{
 	void (*handler)(struct kvm_vcpu *vcpu, struct rtas_args *args);
 	char *name;
 };
 
-static struct rtas_handler rtas_handlers[] = {
+static struct rtas_handler rtas_handlers[] =
+{
 #ifdef CONFIG_KVM_XICS
 	{ .name = "ibm,set-xive", .handler = kvm_rtas_set_xive },
 	{ .name = "ibm,get-xive", .handler = kvm_rtas_get_xive },
@@ -117,7 +137,8 @@ static struct rtas_handler rtas_handlers[] = {
 #endif
 };
 
-struct rtas_token_definition {
+struct rtas_token_definition
+{
 	struct list_head list;
 	struct rtas_handler *handler;
 	u64 token;
@@ -135,8 +156,10 @@ static int rtas_token_undefine(struct kvm *kvm, char *name)
 
 	lockdep_assert_held(&kvm->lock);
 
-	list_for_each_entry_safe(d, tmp, &kvm->arch.rtas_tokens, list) {
-		if (rtas_name_matches(d->handler->name, name)) {
+	list_for_each_entry_safe(d, tmp, &kvm->arch.rtas_tokens, list)
+	{
+		if (rtas_name_matches(d->handler->name, name))
+		{
 			list_del(&d->list);
 			kfree(d);
 			return 0;
@@ -156,26 +179,38 @@ static int rtas_token_define(struct kvm *kvm, char *name, u64 token)
 
 	lockdep_assert_held(&kvm->lock);
 
-	list_for_each_entry(d, &kvm->arch.rtas_tokens, list) {
+	list_for_each_entry(d, &kvm->arch.rtas_tokens, list)
+	{
 		if (d->token == token)
+		{
 			return -EEXIST;
+		}
 	}
 
 	found = false;
-	for (i = 0; i < ARRAY_SIZE(rtas_handlers); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(rtas_handlers); i++)
+	{
 		h = &rtas_handlers[i];
-		if (rtas_name_matches(h->name, name)) {
+
+		if (rtas_name_matches(h->name, name))
+		{
 			found = true;
 			break;
 		}
 	}
 
 	if (!found)
+	{
 		return -ENOENT;
+	}
 
 	d = kzalloc(sizeof(*d), GFP_KERNEL);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	d->handler = h;
 	d->token = token;
@@ -191,14 +226,20 @@ int kvm_vm_ioctl_rtas_define_token(struct kvm *kvm, void __user *argp)
 	int rc;
 
 	if (copy_from_user(&args, argp, sizeof(args)))
+	{
 		return -EFAULT;
+	}
 
 	mutex_lock(&kvm->lock);
 
 	if (args.token)
+	{
 		rc = rtas_token_define(kvm, args.name, args.token);
+	}
 	else
+	{
 		rc = rtas_token_undefine(kvm, args.name);
+	}
 
 	mutex_unlock(&kvm->lock);
 
@@ -220,8 +261,11 @@ int kvmppc_rtas_hcall(struct kvm_vcpu *vcpu)
 	args_phys = kvmppc_get_gpr(vcpu, 4) & KVM_PAM;
 
 	rc = kvm_read_guest(vcpu->kvm, args_phys, &args, sizeof(args));
+
 	if (rc)
+	{
 		goto fail;
+	}
 
 	/*
 	 * args->rets is a pointer into args->args. Now that we've
@@ -235,8 +279,10 @@ int kvmppc_rtas_hcall(struct kvm_vcpu *vcpu)
 	mutex_lock(&vcpu->kvm->lock);
 
 	rc = -ENOENT;
-	list_for_each_entry(d, &vcpu->kvm->arch.rtas_tokens, list) {
-		if (d->token == be32_to_cpu(args.token)) {
+	list_for_each_entry(d, &vcpu->kvm->arch.rtas_tokens, list)
+	{
+		if (d->token == be32_to_cpu(args.token))
+		{
 			d->handler->handler(vcpu, &args);
 			rc = 0;
 			break;
@@ -245,11 +291,15 @@ int kvmppc_rtas_hcall(struct kvm_vcpu *vcpu)
 
 	mutex_unlock(&vcpu->kvm->lock);
 
-	if (rc == 0) {
+	if (rc == 0)
+	{
 		args.rets = orig_rets;
 		rc = kvm_write_guest(vcpu->kvm, args_phys, &args, sizeof(args));
+
 		if (rc)
+		{
 			goto fail;
+		}
 	}
 
 	return rc;
@@ -271,7 +321,8 @@ void kvmppc_rtas_tokens_free(struct kvm *kvm)
 
 	lockdep_assert_held(&kvm->lock);
 
-	list_for_each_entry_safe(d, tmp, &kvm->arch.rtas_tokens, list) {
+	list_for_each_entry_safe(d, tmp, &kvm->arch.rtas_tokens, list)
+	{
 		list_del(&d->list);
 		kfree(d);
 	}

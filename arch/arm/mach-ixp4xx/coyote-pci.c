@@ -40,13 +40,18 @@ void __init coyote_pci_preinit(void)
 static int __init coyote_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	if (slot == SLOT0_DEVID)
+	{
 		return IXP4XX_GPIO_IRQ(SLOT0_INTA);
+	}
 	else if (slot == SLOT1_DEVID)
+	{
 		return IXP4XX_GPIO_IRQ(SLOT1_INTA);
-	else return -1;
+	}
+	else { return -1; }
 }
 
-struct hw_pci coyote_pci __initdata = {
+struct hw_pci coyote_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &ixp4xx_ops,
 	.preinit =        coyote_pci_preinit,
@@ -57,7 +62,10 @@ struct hw_pci coyote_pci __initdata = {
 int __init coyote_pci_init(void)
 {
 	if (machine_is_adi_coyote())
+	{
 		pci_common_init(&coyote_pci);
+	}
+
 	return 0;
 }
 

@@ -12,9 +12,9 @@
 /* PGDIR_SHIFT determines what a third-level page table entry can map */
 
 #ifdef CONFIG_64BIT
-#define PGDIR_SHIFT	30
+	#define PGDIR_SHIFT	30
 #else
-#define PGDIR_SHIFT	31
+	#define PGDIR_SHIFT	31
 #endif
 #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
@@ -33,25 +33,25 @@
 
 #define PTRS_PER_PTE 512
 #ifdef CONFIG_64BIT
-#define PTRS_PER_PMD 512
-#define PTRS_PER_PGD 512
+	#define PTRS_PER_PMD 512
+	#define PTRS_PER_PGD 512
 #else
-#define PTRS_PER_PMD 1024
-#define PTRS_PER_PGD 1024
+	#define PTRS_PER_PMD 1024
+	#define PTRS_PER_PGD 1024
 #endif
 
 #define USER_PTRS_PER_PGD ((TASK_SIZE + (PGDIR_SIZE - 1)) / PGDIR_SIZE)
 #define FIRST_USER_ADDRESS	0UL
 
 #define pte_ERROR(e) \
-        printk("%s:%d: bad pte %p(%016lx).\n", __FILE__, __LINE__, &(e), \
-	       pte_val(e))
+	printk("%s:%d: bad pte %p(%016lx).\n", __FILE__, __LINE__, &(e), \
+		   pte_val(e))
 #define pmd_ERROR(e) \
-        printk("%s:%d: bad pmd %p(%016lx).\n", __FILE__, __LINE__, &(e), \
-	       pmd_val(e))
+	printk("%s:%d: bad pmd %p(%016lx).\n", __FILE__, __LINE__, &(e), \
+		   pmd_val(e))
 #define pgd_ERROR(e) \
-        printk("%s:%d: bad pgd %p(%016lx).\n", __FILE__, __LINE__, &(e), \
-	       pgd_val(e))
+	printk("%s:%d: bad pgd %p(%016lx).\n", __FILE__, __LINE__, &(e), \
+		   pgd_val(e))
 
 #define pud_none(x)	(!(pud_val(x) & ~_PAGE_NEWPAGE))
 #define	pud_bad(x)	((pud_val(x) & (~PAGE_MASK & ~_PAGE_USER)) != _KERNPG_TABLE)
@@ -60,22 +60,22 @@
 	set_pud(pud, __pud(_PAGE_TABLE + __pa(pmd)))
 
 #ifdef CONFIG_64BIT
-#define set_pud(pudptr, pudval) set_64bit((u64 *) (pudptr), pud_val(pudval))
+	#define set_pud(pudptr, pudval) set_64bit((u64 *) (pudptr), pud_val(pudval))
 #else
-#define set_pud(pudptr, pudval) (*(pudptr) = (pudval))
+	#define set_pud(pudptr, pudval) (*(pudptr) = (pudval))
 #endif
 
 static inline int pgd_newpage(pgd_t pgd)
 {
-	return(pgd_val(pgd) & _PAGE_NEWPAGE);
+	return (pgd_val(pgd) & _PAGE_NEWPAGE);
 }
 
 static inline void pgd_mkuptodate(pgd_t pgd) { pgd_val(pgd) &= ~_PAGE_NEWPAGE; }
 
 #ifdef CONFIG_64BIT
-#define set_pmd(pmdptr, pmdval) set_64bit((u64 *) (pmdptr), pmd_val(pmdval))
+	#define set_pmd(pmdptr, pmdval) set_64bit((u64 *) (pmdptr), pmd_val(pmdval))
 #else
-#define set_pmd(pmdptr, pmdval) (*(pmdptr) = (pmdval))
+	#define set_pmd(pmdptr, pmdval) (*(pmdptr) = (pmdval))
 #endif
 
 struct mm_struct;
@@ -91,7 +91,7 @@ static inline void pud_clear (pud_t *pud)
 
 /* Find an entry in the second-level page table.. */
 #define pmd_offset(pud, address) ((pmd_t *) pud_page_vaddr(*(pud)) + \
-			pmd_index(address))
+								  pmd_index(address))
 
 static inline unsigned long pte_pfn(pte_t pte)
 {

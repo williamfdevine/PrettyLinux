@@ -9,7 +9,7 @@
  */
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <linux/compiler.h>
@@ -33,9 +33,9 @@ static inline void bset_reg_set_bit(int nr, volatile unsigned long *vaddr)
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 
 	__asm__ __volatile__ ("bset %1,(%0)"
-		:
-		: "a" (p), "di" (nr & 7)
-		: "memory");
+						  :
+						  : "a" (p), "di" (nr & 7)
+						  : "memory");
 }
 
 static inline void bset_mem_set_bit(int nr, volatile unsigned long *vaddr)
@@ -43,16 +43,16 @@ static inline void bset_mem_set_bit(int nr, volatile unsigned long *vaddr)
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 
 	__asm__ __volatile__ ("bset %1,%0"
-		: "+m" (*p)
-		: "di" (nr & 7));
+						  : "+m" (*p)
+						  : "di" (nr & 7));
 }
 
 static inline void bfset_mem_set_bit(int nr, volatile unsigned long *vaddr)
 {
 	__asm__ __volatile__ ("bfset %1{%0:#1}"
-		:
-		: "d" (nr ^ 31), "o" (*vaddr)
-		: "memory");
+						  :
+						  : "d" (nr ^ 31), "o" (*vaddr)
+						  : "memory");
 }
 
 #if defined(CONFIG_COLDFIRE)
@@ -61,8 +61,8 @@ static inline void bfset_mem_set_bit(int nr, volatile unsigned long *vaddr)
 #define	set_bit(nr, vaddr)	bset_mem_set_bit(nr, vaddr)
 #else
 #define set_bit(nr, vaddr)	(__builtin_constant_p(nr) ? \
-				bset_mem_set_bit(nr, vaddr) : \
-				bfset_mem_set_bit(nr, vaddr))
+							 bset_mem_set_bit(nr, vaddr) : \
+							 bfset_mem_set_bit(nr, vaddr))
 #endif
 
 #define __set_bit(nr, vaddr)	set_bit(nr, vaddr)
@@ -73,9 +73,9 @@ static inline void bclr_reg_clear_bit(int nr, volatile unsigned long *vaddr)
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 
 	__asm__ __volatile__ ("bclr %1,(%0)"
-		:
-		: "a" (p), "di" (nr & 7)
-		: "memory");
+						  :
+						  : "a" (p), "di" (nr & 7)
+						  : "memory");
 }
 
 static inline void bclr_mem_clear_bit(int nr, volatile unsigned long *vaddr)
@@ -83,16 +83,16 @@ static inline void bclr_mem_clear_bit(int nr, volatile unsigned long *vaddr)
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 
 	__asm__ __volatile__ ("bclr %1,%0"
-		: "+m" (*p)
-		: "di" (nr & 7));
+						  : "+m" (*p)
+						  : "di" (nr & 7));
 }
 
 static inline void bfclr_mem_clear_bit(int nr, volatile unsigned long *vaddr)
 {
 	__asm__ __volatile__ ("bfclr %1{%0:#1}"
-		:
-		: "d" (nr ^ 31), "o" (*vaddr)
-		: "memory");
+						  :
+						  : "d" (nr ^ 31), "o" (*vaddr)
+						  : "memory");
 }
 
 #if defined(CONFIG_COLDFIRE)
@@ -101,8 +101,8 @@ static inline void bfclr_mem_clear_bit(int nr, volatile unsigned long *vaddr)
 #define	clear_bit(nr, vaddr)	bclr_mem_clear_bit(nr, vaddr)
 #else
 #define clear_bit(nr, vaddr)	(__builtin_constant_p(nr) ? \
-				bclr_mem_clear_bit(nr, vaddr) : \
-				bfclr_mem_clear_bit(nr, vaddr))
+								 bclr_mem_clear_bit(nr, vaddr) : \
+								 bfclr_mem_clear_bit(nr, vaddr))
 #endif
 
 #define __clear_bit(nr, vaddr)	clear_bit(nr, vaddr)
@@ -113,9 +113,9 @@ static inline void bchg_reg_change_bit(int nr, volatile unsigned long *vaddr)
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 
 	__asm__ __volatile__ ("bchg %1,(%0)"
-		:
-		: "a" (p), "di" (nr & 7)
-		: "memory");
+						  :
+						  : "a" (p), "di" (nr & 7)
+						  : "memory");
 }
 
 static inline void bchg_mem_change_bit(int nr, volatile unsigned long *vaddr)
@@ -123,16 +123,16 @@ static inline void bchg_mem_change_bit(int nr, volatile unsigned long *vaddr)
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 
 	__asm__ __volatile__ ("bchg %1,%0"
-		: "+m" (*p)
-		: "di" (nr & 7));
+						  : "+m" (*p)
+						  : "di" (nr & 7));
 }
 
 static inline void bfchg_mem_change_bit(int nr, volatile unsigned long *vaddr)
 {
 	__asm__ __volatile__ ("bfchg %1{%0:#1}"
-		:
-		: "d" (nr ^ 31), "o" (*vaddr)
-		: "memory");
+						  :
+						  : "d" (nr ^ 31), "o" (*vaddr)
+						  : "memory");
 }
 
 #if defined(CONFIG_COLDFIRE)
@@ -141,8 +141,8 @@ static inline void bfchg_mem_change_bit(int nr, volatile unsigned long *vaddr)
 #define	change_bit(nr, vaddr)	bchg_mem_change_bit(nr, vaddr)
 #else
 #define change_bit(nr, vaddr)	(__builtin_constant_p(nr) ? \
-				bchg_mem_change_bit(nr, vaddr) : \
-				bfchg_mem_change_bit(nr, vaddr))
+								 bchg_mem_change_bit(nr, vaddr) : \
+								 bfchg_mem_change_bit(nr, vaddr))
 #endif
 
 #define __change_bit(nr, vaddr)	change_bit(nr, vaddr)
@@ -155,39 +155,39 @@ static inline int test_bit(int nr, const unsigned long *vaddr)
 
 
 static inline int bset_reg_test_and_set_bit(int nr,
-					    volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 	char retval;
 
 	__asm__ __volatile__ ("bset %2,(%1); sne %0"
-		: "=d" (retval)
-		: "a" (p), "di" (nr & 7)
-		: "memory");
+						  : "=d" (retval)
+						  : "a" (p), "di" (nr & 7)
+						  : "memory");
 	return retval;
 }
 
 static inline int bset_mem_test_and_set_bit(int nr,
-					    volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 	char retval;
 
 	__asm__ __volatile__ ("bset %2,%1; sne %0"
-		: "=d" (retval), "+m" (*p)
-		: "di" (nr & 7));
+						  : "=d" (retval), "+m" (*p)
+						  : "di" (nr & 7));
 	return retval;
 }
 
 static inline int bfset_mem_test_and_set_bit(int nr,
-					     volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char retval;
 
 	__asm__ __volatile__ ("bfset %2{%1:#1}; sne %0"
-		: "=d" (retval)
-		: "d" (nr ^ 31), "o" (*vaddr)
-		: "memory");
+						  : "=d" (retval)
+						  : "d" (nr ^ 31), "o" (*vaddr)
+						  : "memory");
 	return retval;
 }
 
@@ -197,47 +197,47 @@ static inline int bfset_mem_test_and_set_bit(int nr,
 #define	test_and_set_bit(nr, vaddr)	bset_mem_test_and_set_bit(nr, vaddr)
 #else
 #define test_and_set_bit(nr, vaddr)	(__builtin_constant_p(nr) ? \
-					bset_mem_test_and_set_bit(nr, vaddr) : \
-					bfset_mem_test_and_set_bit(nr, vaddr))
+									 bset_mem_test_and_set_bit(nr, vaddr) : \
+									 bfset_mem_test_and_set_bit(nr, vaddr))
 #endif
 
 #define __test_and_set_bit(nr, vaddr)	test_and_set_bit(nr, vaddr)
 
 
 static inline int bclr_reg_test_and_clear_bit(int nr,
-					      volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 	char retval;
 
 	__asm__ __volatile__ ("bclr %2,(%1); sne %0"
-		: "=d" (retval)
-		: "a" (p), "di" (nr & 7)
-		: "memory");
+						  : "=d" (retval)
+						  : "a" (p), "di" (nr & 7)
+						  : "memory");
 	return retval;
 }
 
 static inline int bclr_mem_test_and_clear_bit(int nr,
-					      volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 	char retval;
 
 	__asm__ __volatile__ ("bclr %2,%1; sne %0"
-		: "=d" (retval), "+m" (*p)
-		: "di" (nr & 7));
+						  : "=d" (retval), "+m" (*p)
+						  : "di" (nr & 7));
 	return retval;
 }
 
 static inline int bfclr_mem_test_and_clear_bit(int nr,
-					       volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char retval;
 
 	__asm__ __volatile__ ("bfclr %2{%1:#1}; sne %0"
-		: "=d" (retval)
-		: "d" (nr ^ 31), "o" (*vaddr)
-		: "memory");
+						  : "=d" (retval)
+						  : "d" (nr ^ 31), "o" (*vaddr)
+						  : "memory");
 	return retval;
 }
 
@@ -247,47 +247,47 @@ static inline int bfclr_mem_test_and_clear_bit(int nr,
 #define	test_and_clear_bit(nr, vaddr)	bclr_mem_test_and_clear_bit(nr, vaddr)
 #else
 #define test_and_clear_bit(nr, vaddr)	(__builtin_constant_p(nr) ? \
-					bclr_mem_test_and_clear_bit(nr, vaddr) : \
-					bfclr_mem_test_and_clear_bit(nr, vaddr))
+		bclr_mem_test_and_clear_bit(nr, vaddr) : \
+		bfclr_mem_test_and_clear_bit(nr, vaddr))
 #endif
 
 #define __test_and_clear_bit(nr, vaddr)	test_and_clear_bit(nr, vaddr)
 
 
 static inline int bchg_reg_test_and_change_bit(int nr,
-					       volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 	char retval;
 
 	__asm__ __volatile__ ("bchg %2,(%1); sne %0"
-		: "=d" (retval)
-		: "a" (p), "di" (nr & 7)
-		: "memory");
+						  : "=d" (retval)
+						  : "a" (p), "di" (nr & 7)
+						  : "memory");
 	return retval;
 }
 
 static inline int bchg_mem_test_and_change_bit(int nr,
-					       volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char *p = (char *)vaddr + (nr ^ 31) / 8;
 	char retval;
 
 	__asm__ __volatile__ ("bchg %2,%1; sne %0"
-		: "=d" (retval), "+m" (*p)
-		: "di" (nr & 7));
+						  : "=d" (retval), "+m" (*p)
+						  : "di" (nr & 7));
 	return retval;
 }
 
 static inline int bfchg_mem_test_and_change_bit(int nr,
-						volatile unsigned long *vaddr)
+		volatile unsigned long *vaddr)
 {
 	char retval;
 
 	__asm__ __volatile__ ("bfchg %2{%1:#1}; sne %0"
-		: "=d" (retval)
-		: "d" (nr ^ 31), "o" (*vaddr)
-		: "memory");
+						  : "=d" (retval)
+						  : "d" (nr ^ 31), "o" (*vaddr)
+						  : "memory");
 	return retval;
 }
 
@@ -297,8 +297,8 @@ static inline int bfchg_mem_test_and_change_bit(int nr,
 #define	test_and_change_bit(nr, vaddr)	bchg_mem_test_and_change_bit(nr, vaddr)
 #else
 #define test_and_change_bit(nr, vaddr)	(__builtin_constant_p(nr) ? \
-					bchg_mem_test_and_change_bit(nr, vaddr) : \
-					bfchg_mem_test_and_change_bit(nr, vaddr))
+		bchg_mem_test_and_change_bit(nr, vaddr) : \
+		bfchg_mem_test_and_change_bit(nr, vaddr))
 #endif
 
 #define __test_and_change_bit(nr, vaddr) test_and_change_bit(nr, vaddr)
@@ -316,7 +316,7 @@ static inline int bfchg_mem_test_and_change_bit(int nr,
 #else
 
 static inline int find_first_zero_bit(const unsigned long *vaddr,
-				      unsigned size)
+									  unsigned size)
 {
 	const unsigned long *p = vaddr;
 	int res = 32;
@@ -324,16 +324,22 @@ static inline int find_first_zero_bit(const unsigned long *vaddr,
 	unsigned long num;
 
 	if (!size)
+	{
 		return 0;
+	}
 
 	words = (size + 31) >> 5;
-	while (!(num = ~*p++)) {
+
+	while (!(num = ~*p++))
+	{
 		if (!--words)
+		{
 			goto out;
+		}
 	}
 
 	__asm__ __volatile__ ("bfffo %1{#0,#0},%0"
-			      : "=d" (res) : "d" (num & -num));
+						  : "=d" (res) : "d" (num & -num));
 	res ^= 31;
 out:
 	res += ((long)p - (long)vaddr - 4) * 8;
@@ -342,30 +348,39 @@ out:
 #define find_first_zero_bit find_first_zero_bit
 
 static inline int find_next_zero_bit(const unsigned long *vaddr, int size,
-				     int offset)
+									 int offset)
 {
 	const unsigned long *p = vaddr + (offset >> 5);
 	int bit = offset & 31UL, res;
 
 	if (offset >= size)
+	{
 		return size;
+	}
 
-	if (bit) {
+	if (bit)
+	{
 		unsigned long num = ~*p++ & (~0UL << bit);
 		offset -= bit;
 
 		/* Look for zero in first longword */
 		__asm__ __volatile__ ("bfffo %1{#0,#0},%0"
-				      : "=d" (res) : "d" (num & -num));
-		if (res < 32) {
+							  : "=d" (res) : "d" (num & -num));
+
+		if (res < 32)
+		{
 			offset += res ^ 31;
 			return offset < size ? offset : size;
 		}
+
 		offset += 32;
 
 		if (offset >= size)
+		{
 			return size;
+		}
 	}
+
 	/* No zero yet, search remaining full bytes for a zero */
 	return offset + find_first_zero_bit(p, size - offset);
 }
@@ -379,16 +394,22 @@ static inline int find_first_bit(const unsigned long *vaddr, unsigned size)
 	unsigned long num;
 
 	if (!size)
+	{
 		return 0;
+	}
 
 	words = (size + 31) >> 5;
-	while (!(num = *p++)) {
+
+	while (!(num = *p++))
+	{
 		if (!--words)
+		{
 			goto out;
+		}
 	}
 
 	__asm__ __volatile__ ("bfffo %1{#0,#0},%0"
-			      : "=d" (res) : "d" (num & -num));
+						  : "=d" (res) : "d" (num & -num));
 	res ^= 31;
 out:
 	res += ((long)p - (long)vaddr - 4) * 8;
@@ -397,30 +418,39 @@ out:
 #define find_first_bit find_first_bit
 
 static inline int find_next_bit(const unsigned long *vaddr, int size,
-				int offset)
+								int offset)
 {
 	const unsigned long *p = vaddr + (offset >> 5);
 	int bit = offset & 31UL, res;
 
 	if (offset >= size)
+	{
 		return size;
+	}
 
-	if (bit) {
+	if (bit)
+	{
 		unsigned long num = *p++ & (~0UL << bit);
 		offset -= bit;
 
 		/* Look for one in first longword */
 		__asm__ __volatile__ ("bfffo %1{#0,#0},%0"
-				      : "=d" (res) : "d" (num & -num));
-		if (res < 32) {
+							  : "=d" (res) : "d" (num & -num));
+
+		if (res < 32)
+		{
 			offset += res ^ 31;
 			return offset < size ? offset : size;
 		}
+
 		offset += 32;
 
 		if (offset >= size)
+		{
 			return size;
+		}
 	}
+
 	/* No one yet, search remaining full bytes for a one */
 	return offset + find_first_bit(p, size - offset);
 }
@@ -435,7 +465,7 @@ static inline unsigned long ffz(unsigned long word)
 	int res;
 
 	__asm__ __volatile__ ("bfffo %1{#0,#0},%0"
-			      : "=d" (res) : "d" (~word & -~word));
+						  : "=d" (res) : "d" (~word & -~word));
 	return res ^ 31;
 }
 
@@ -456,15 +486,18 @@ static inline unsigned long ffz(unsigned long word)
 static inline int __ffs(int x)
 {
 	__asm__ __volatile__ ("bitrev %0; ff1 %0"
-		: "=d" (x)
-		: "0" (x));
+						  : "=d" (x)
+						  : "0" (x));
 	return x;
 }
 
 static inline int ffs(int x)
 {
 	if (!x)
+	{
 		return 0;
+	}
+
 	return __ffs(x) + 1;
 }
 
@@ -488,8 +521,8 @@ static inline int ffs(int x)
 	int cnt;
 
 	__asm__ ("bfffo %1{#0:#0},%0"
-		: "=d" (cnt)
-		: "dm" (x & -x));
+			 : "=d" (cnt)
+			 : "dm" (x & -x));
 	return 32 - cnt;
 }
 #define __ffs(x) (ffs(x) - 1)
@@ -502,8 +535,8 @@ static inline int fls(int x)
 	int cnt;
 
 	__asm__ ("bfffo %1{#0,#0},%0"
-		: "=d" (cnt)
-		: "dm" (x));
+			 : "=d" (cnt)
+			 : "dm" (x));
 	return 32 - cnt;
 }
 

@@ -17,19 +17,21 @@
 #include <mach/hardware.h>
 #include <mach/generic.h>
 
-struct clkops {
+struct clkops
+{
 	void			(*enable)(struct clk *);
 	void			(*disable)(struct clk *);
 	unsigned long		(*get_rate)(struct clk *);
 };
 
-struct clk {
+struct clk
+{
 	const struct clkops	*ops;
 	unsigned int		enabled;
 };
 
 #define DEFINE_CLK(_name, _ops)				\
-struct clk clk_##_name = {				\
+	struct clk clk_##_name = {				\
 		.ops	= _ops,				\
 	}
 
@@ -70,10 +72,15 @@ int clk_enable(struct clk *clk)
 {
 	unsigned long flags;
 
-	if (clk) {
+	if (clk)
+	{
 		spin_lock_irqsave(&clocks_lock, flags);
+
 		if (clk->enabled++ == 0)
+		{
 			clk->ops->enable(clk);
+		}
+
 		spin_unlock_irqrestore(&clocks_lock, flags);
 	}
 
@@ -85,11 +92,16 @@ void clk_disable(struct clk *clk)
 {
 	unsigned long flags;
 
-	if (clk) {
+	if (clk)
+	{
 		WARN_ON(clk->enabled == 0);
 		spin_lock_irqsave(&clocks_lock, flags);
+
 		if (--clk->enabled == 0)
+		{
 			clk->ops->disable(clk);
+		}
+
 		spin_unlock_irqrestore(&clocks_lock, flags);
 	}
 }
@@ -98,18 +110,22 @@ EXPORT_SYMBOL(clk_disable);
 unsigned long clk_get_rate(struct clk *clk)
 {
 	if (clk && clk->ops && clk->ops->get_rate)
+	{
 		return clk->ops->get_rate(clk);
+	}
 
 	return 0;
 }
 EXPORT_SYMBOL(clk_get_rate);
 
-const struct clkops clk_gpio27_ops = {
+const struct clkops clk_gpio27_ops =
+{
 	.enable		= clk_gpio27_enable,
 	.disable	= clk_gpio27_disable,
 };
 
-const struct clkops clk_cpu_ops = {
+const struct clkops clk_cpu_ops =
+{
 	.enable		= clk_cpu_enable,
 	.disable	= clk_cpu_disable,
 	.get_rate	= clk_cpu_get_rate,
@@ -124,7 +140,8 @@ static unsigned long clk_36864_get_rate(struct clk *clk)
 	return 3686400;
 }
 
-static struct clkops clk_36864_ops = {
+static struct clkops clk_36864_ops =
+{
 	.enable		= clk_cpu_enable,
 	.disable	= clk_cpu_disable,
 	.get_rate	= clk_36864_get_rate,
@@ -132,7 +149,8 @@ static struct clkops clk_36864_ops = {
 
 static DEFINE_CLK(36864, &clk_36864_ops);
 
-static struct clk_lookup sa11xx_clkregs[] = {
+static struct clk_lookup sa11xx_clkregs[] =
+{
 	CLKDEV_INIT("sa1111.0", NULL, &clk_gpio27),
 	CLKDEV_INIT("sa1100-rtc", NULL, NULL),
 	CLKDEV_INIT("sa11x0-fb", NULL, &clk_cpu),

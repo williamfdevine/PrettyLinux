@@ -35,9 +35,9 @@
 #define wmb()  __asm__ __volatile__ ("sync" : : : "memory")
 
 #ifdef __SUBARCH_HAS_LWSYNC
-#    define SMPWMB      LWSYNC
+	#define SMPWMB      LWSYNC
 #else
-#    define SMPWMB      eieio
+	#define SMPWMB      eieio
 #endif
 
 #define __lwsync()	__asm__ __volatile__ (stringify_in_c(LWSYNC) : : :"memory")
@@ -60,19 +60,19 @@
 	asm volatile("twi 0,%0,0; isync" : : "r" (x) : "memory");
 
 #define __smp_store_release(p, v)						\
-do {									\
-	compiletime_assert_atomic_type(*p);				\
-	__smp_lwsync();							\
-	WRITE_ONCE(*p, v);						\
-} while (0)
+	do {									\
+		compiletime_assert_atomic_type(*p);				\
+		__smp_lwsync();							\
+		WRITE_ONCE(*p, v);						\
+	} while (0)
 
 #define __smp_load_acquire(p)						\
-({									\
-	typeof(*p) ___p1 = READ_ONCE(*p);				\
-	compiletime_assert_atomic_type(*p);				\
-	__smp_lwsync();							\
-	___p1;								\
-})
+	({									\
+		typeof(*p) ___p1 = READ_ONCE(*p);				\
+		compiletime_assert_atomic_type(*p);				\
+		__smp_lwsync();							\
+		___p1;								\
+	})
 
 #define smp_mb__before_spinlock()   smp_mb()
 

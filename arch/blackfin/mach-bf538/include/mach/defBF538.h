@@ -1293,33 +1293,33 @@
 #define	MDMA1_IRQ		MDMA1_1_IRQ
 
 #ifdef _MISRA_RULES
-#define	_MF15 0xFu
-#define	_MF7 7u
+	#define	_MF15 0xFu
+	#define	_MF7 7u
 #else
-#define	_MF15 0xF
-#define	_MF7 7
+	#define	_MF15 0xF
+	#define	_MF7 7
 #endif /* _MISRA_RULES */
 
 /* SIC_IMASKx Masks											 */
 #define	SIC_UNMASK_ALL	0x00000000					/* Unmask all peripheral interrupts */
 #define	SIC_MASK_ALL	0xFFFFFFFF					/* Mask	all peripheral interrupts */
 #ifdef _MISRA_RULES
-#define	SIC_MASK(x)		(1 << ((x)&0x1Fu))					/* Mask	Peripheral #x interrupt */
-#define	SIC_UNMASK(x)	(0xFFFFFFFFu ^ (1 << ((x)&0x1Fu)))	/* Unmask Peripheral #x	interrupt */
+	#define	SIC_MASK(x)		(1 << ((x)&0x1Fu))					/* Mask	Peripheral #x interrupt */
+	#define	SIC_UNMASK(x)	(0xFFFFFFFFu ^ (1 << ((x)&0x1Fu)))	/* Unmask Peripheral #x	interrupt */
 #else
-#define	SIC_MASK(x)		(1 << ((x)&0x1F))					/* Mask	Peripheral #x interrupt */
-#define	SIC_UNMASK(x)	(0xFFFFFFFF ^ (1 << ((x)&0x1F)))	/* Unmask Peripheral #x	interrupt */
+	#define	SIC_MASK(x)		(1 << ((x)&0x1F))					/* Mask	Peripheral #x interrupt */
+	#define	SIC_UNMASK(x)	(0xFFFFFFFF ^ (1 << ((x)&0x1F)))	/* Unmask Peripheral #x	interrupt */
 #endif /* _MISRA_RULES */
 
 /* SIC_IWRx Masks											 */
 #define	IWR_DISABLE_ALL	0x00000000					/* Wakeup Disable all peripherals */
 #define	IWR_ENABLE_ALL	0xFFFFFFFF					/* Wakeup Enable all peripherals */
 #ifdef _MISRA_RULES
-#define	IWR_ENABLE(x)	(1 << ((x)&0x1Fu))					/* Wakeup Enable Peripheral #x */
-#define	IWR_DISABLE(x)	(0xFFFFFFFFu ^ (1 << ((x)&0x1Fu)))	/* Wakeup Disable Peripheral #x */
+	#define	IWR_ENABLE(x)	(1 << ((x)&0x1Fu))					/* Wakeup Enable Peripheral #x */
+	#define	IWR_DISABLE(x)	(0xFFFFFFFFu ^ (1 << ((x)&0x1Fu)))	/* Wakeup Disable Peripheral #x */
 #else
-#define	IWR_ENABLE(x)	(1 << ((x)&0x1F))					/* Wakeup Enable Peripheral #x */
-#define	IWR_DISABLE(x)	(0xFFFFFFFF ^ (1 << ((x)&0x1F)))	/* Wakeup Disable Peripheral #x */
+	#define	IWR_ENABLE(x)	(1 << ((x)&0x1F))					/* Wakeup Enable Peripheral #x */
+	#define	IWR_DISABLE(x)	(0xFFFFFFFF ^ (1 << ((x)&0x1F)))	/* Wakeup Disable Peripheral #x */
 #endif /* _MISRA_RULES */
 
 /*  *********  PARALLEL	PERIPHERAL INTERFACE (PPI) MASKS ****************   */
@@ -1343,9 +1343,9 @@
 #define	DLEN_15		0x3000		/* Data	Length = 15 Bits */
 #define	DLEN_16		0x3800		/* Data	Length = 16 Bits */
 #ifdef _MISRA_RULES
-#define	DLEN(x)		((((x)-9u) & 0x07u) << 11)  /* PPI Data	Length (only works for x=10-->x=16) */
+	#define	DLEN(x)		((((x)-9u) & 0x07u) << 11)  /* PPI Data	Length (only works for x=10-->x=16) */
 #else
-#define	DLEN(x)		((((x)-9) & 0x07) << 11)  /* PPI Data Length (only works for x=10-->x=16) */
+	#define	DLEN(x)		((((x)-9) & 0x07) << 11)  /* PPI Data Length (only works for x=10-->x=16) */
 #endif /* _MISRA_RULES */
 #define	POL			0xC000	/* PPI Signal Polarities       */
 #define	POLC		0x4000		/* PPI Clock Polarity */
@@ -1459,9 +1459,9 @@
 #define	TOGGLE_HI		0x0100
 #define	EMU_RUN			0x0200
 #ifdef _MISRA_RULES
-#define	ERR_TYP(x)		(((x) &	0x03u) << 14)
+	#define	ERR_TYP(x)		(((x) &	0x03u) << 14)
 #else
-#define	ERR_TYP(x)		(((x) &	0x03) << 14)
+	#define	ERR_TYP(x)		(((x) &	0x03) << 14)
 #endif /* _MISRA_RULES */
 
 #define	TMODE_P0		0x00

@@ -30,11 +30,11 @@
 #define GXIO_UART_OP_CHECK_MMIO_OFFSET IORPC_OPCODE(IORPC_FORMAT_NONE_NOUSER, 0x8001)
 
 int gxio_uart_cfg_interrupt(gxio_uart_context_t *context, int inter_x,
-			    int inter_y, int inter_ipi, int inter_event);
+							int inter_y, int inter_ipi, int inter_event);
 
 int gxio_uart_get_mmio_base(gxio_uart_context_t *context, HV_PTE *base);
 
 int gxio_uart_check_mmio_offset(gxio_uart_context_t *context,
-				unsigned long offset, unsigned long size);
+								unsigned long offset, unsigned long size);
 
 #endif /* !__GXIO_UART_LINUX_RPC_H__ */

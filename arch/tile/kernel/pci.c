@@ -70,7 +70,7 @@ static struct pci_ops tile_cfg_ops;
  * We don't need to worry about the alignment of resources.
  */
 resource_size_t pcibios_align_resource(void *data, const struct resource *res,
-			    resource_size_t size, resource_size_t align)
+									   resource_size_t size, resource_size_t align)
 {
 	return res->start;
 }
@@ -108,27 +108,35 @@ static int tile_init_irqs(int controller_id, struct pci_controller *controller)
 
 	sprintf(filename, "pcie/%d/ctl", controller_id);
 	fd = hv_dev_open((HV_VirtAddr)filename, 0);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		pr_err("PCI: hv_dev_open(%s) failed\n", filename);
 		return -1;
 	}
+
 	ret = hv_dev_pread(fd, 0, (HV_VirtAddr)(&rc_config),
-			   sizeof(rc_config), PCIE_RC_CONFIG_MASK_OFF);
+					   sizeof(rc_config), PCIE_RC_CONFIG_MASK_OFF);
 	hv_dev_close(fd);
-	if (ret != sizeof(rc_config)) {
+
+	if (ret != sizeof(rc_config))
+	{
 		pr_err("PCI: wanted %zd bytes, got %d\n",
-		       sizeof(rc_config), ret);
+			   sizeof(rc_config), ret);
 		return -1;
 	}
+
 	/* Record irq_base so that we can map INTx to IRQ # later. */
 	controller->irq_base = rc_config.intr;
 
 	for (x = 0; x < 4; x++)
 		tile_irq_activate(rc_config.intr + x,
-				  TILE_IRQ_HW_CLEAR);
+						  TILE_IRQ_HW_CLEAR);
 
 	if (rc_config.plx_gen1)
+	{
 		controller->plx_gen1 = 1;
+	}
 
 	return 0;
 }
@@ -145,7 +153,8 @@ int __init tile_pci_init(void)
 {
 	int i;
 
-	if (!pci_probe) {
+	if (!pci_probe)
+	{
 		pr_info("PCI: disabled by boot argument\n");
 		return 0;
 	}
@@ -157,12 +166,14 @@ int __init tile_pci_init(void)
 
 	/* Do any configuration we need before using the PCIe */
 
-	for (i = 0; i < TILE_NUM_PCIE; i++) {
+	for (i = 0; i < TILE_NUM_PCIE; i++)
+	{
 		/*
 		 * To see whether we need a real config op based on
 		 * the results of pcibios_init(), to support PCIe hot-plug.
 		 */
-		if (pci_scan_flags[i] == 0) {
+		if (pci_scan_flags[i] == 0)
+		{
 			int hv_cfg_fd0 = -1;
 			int hv_cfg_fd1 = -1;
 			int hv_mem_fd = -1;
@@ -174,18 +185,26 @@ int __init tile_pci_init(void)
 			 * device doesn't exist.
 			 */
 			hv_cfg_fd0 = tile_pcie_open(i, 0);
+
 			if (hv_cfg_fd0 < 0)
+			{
 				continue;
+			}
+
 			hv_cfg_fd1 = tile_pcie_open(i, 1);
-			if (hv_cfg_fd1 < 0) {
+
+			if (hv_cfg_fd1 < 0)
+			{
 				pr_err("PCI: Couldn't open config fd to HV for controller %d\n",
-				       i);
+					   i);
 				goto err_cont;
 			}
 
 			sprintf(name, "pcie/%d/mem", i);
 			hv_mem_fd = hv_dev_open((HV_VirtAddr)name, 0);
-			if (hv_mem_fd < 0) {
+
+			if (hv_mem_fd < 0)
+			{
 				pr_err("PCI: Could not open mem fd to HV!\n");
 				goto err_cont;
 			}
@@ -205,12 +224,22 @@ int __init tile_pci_init(void)
 			continue;
 
 err_cont:
+
 			if (hv_cfg_fd0 >= 0)
+			{
 				hv_dev_close(hv_cfg_fd0);
+			}
+
 			if (hv_cfg_fd1 >= 0)
+			{
 				hv_dev_close(hv_cfg_fd1);
+			}
+
 			if (hv_mem_fd >= 0)
+			{
 				hv_dev_close(hv_mem_fd);
+			}
+
 			continue;
 		}
 	}
@@ -219,11 +248,14 @@ err_cont:
 	 * Before using the PCIe, see if we need to do any platform-specific
 	 * configuration, such as the PLX switch Gen 1 issue on TILEmpower.
 	 */
-	for (i = 0; i < num_controllers; i++) {
+	for (i = 0; i < num_controllers; i++)
+	{
 		struct pci_controller *controller = &controllers[i];
 
 		if (controller->plx_gen1)
+		{
 			tile_plx_gen1 = 1;
+		}
 	}
 
 	return num_controllers;
@@ -249,20 +281,25 @@ static void fixup_read_and_payload_sizes(void)
 	u16 new_values;
 
 	/* Scan for the smallest maximum payload size. */
-	for_each_pci_dev(dev) {
+	for_each_pci_dev(dev)
+	{
 		if (!pci_is_pcie(dev))
+		{
 			continue;
+		}
 
 		if (dev->pcie_mpss < smallest_max_payload)
+		{
 			smallest_max_payload = dev->pcie_mpss;
+		}
 	}
 
 	/* Now, set the max_payload_size for all devices to that value. */
 	new_values = max_read_size | (smallest_max_payload << 5);
 	for_each_pci_dev(dev)
-		pcie_capability_clear_and_set_word(dev, PCI_EXP_DEVCTL,
-				PCI_EXP_DEVCTL_PAYLOAD | PCI_EXP_DEVCTL_READRQ,
-				new_values);
+	pcie_capability_clear_and_set_word(dev, PCI_EXP_DEVCTL,
+									   PCI_EXP_DEVCTL_PAYLOAD | PCI_EXP_DEVCTL_READRQ,
+									   new_values);
 }
 
 
@@ -286,18 +323,21 @@ int __init pcibios_init(void)
 	msleep(250);
 
 	/* Scan all of the recorded PCI controllers.  */
-	for (i = 0; i < TILE_NUM_PCIE; i++) {
+	for (i = 0; i < TILE_NUM_PCIE; i++)
+	{
 		/*
 		 * Do real pcibios init ops if the controller is initialized
 		 * by tile_pci_init() successfully and not initialized by
 		 * pcibios_init() yet to support PCIe hot-plug.
 		 */
-		if (pci_scan_flags[i] == 0 && controllers[i].ops != NULL) {
+		if (pci_scan_flags[i] == 0 && controllers[i].ops != NULL)
+		{
 			struct pci_controller *controller = &controllers[i];
 			struct pci_bus *bus;
 			LIST_HEAD(resources);
 
-			if (tile_init_irqs(i, controller)) {
+			if (tile_init_irqs(i, controller))
+			{
 				pr_err("PCI: Could not initialize IRQs\n");
 				continue;
 			}
@@ -307,7 +347,7 @@ int __init pcibios_init(void)
 			pci_add_resource(&resources, &ioport_resource);
 			pci_add_resource(&resources, &iomem_resource);
 			bus = pci_scan_root_bus(NULL, 0, controller->ops,
-						controller, &resources);
+									controller, &resources);
 			controller->root_bus = bus;
 			controller->last_busno = bus->busn_res.end;
 		}
@@ -328,33 +368,37 @@ int __init pcibios_init(void)
 	fixup_read_and_payload_sizes();
 
 	/* Record the I/O resources in the PCI controller structure. */
-	for (i = 0; i < TILE_NUM_PCIE; i++) {
+	for (i = 0; i < TILE_NUM_PCIE; i++)
+	{
 		/*
 		 * Do real pcibios init ops if the controller is initialized
 		 * by tile_pci_init() successfully and not initialized by
 		 * pcibios_init() yet to support PCIe hot-plug.
 		 */
-		if (pci_scan_flags[i] == 0 && controllers[i].ops != NULL) {
+		if (pci_scan_flags[i] == 0 && controllers[i].ops != NULL)
+		{
 			struct pci_bus *root_bus = controllers[i].root_bus;
 			struct pci_bus *next_bus;
 			struct pci_dev *dev;
 
 			pci_bus_add_devices(root_bus);
 
-			list_for_each_entry(dev, &root_bus->devices, bus_list) {
+			list_for_each_entry(dev, &root_bus->devices, bus_list)
+			{
 				/*
 				 * Find the PCI host controller, ie. the 1st
 				 * bridge.
 				 */
 				if ((dev->class >> 8) == PCI_CLASS_BRIDGE_PCI &&
-					(PCI_SLOT(dev->devfn) == 0)) {
+					(PCI_SLOT(dev->devfn) == 0))
+				{
 					next_bus = dev->subordinate;
 					controllers[i].mem_resources[0] =
 						*next_bus->resource[0];
 					controllers[i].mem_resources[1] =
-						 *next_bus->resource[1];
+						*next_bus->resource[1];
 					controllers[i].mem_resources[2] =
-						 *next_bus->resource[2];
+						*next_bus->resource[2];
 
 					/* Setup flags. */
 					pci_scan_flags[i] = 1;
@@ -385,10 +429,12 @@ void pcibios_set_master(struct pci_dev *dev)
 /* Process any "pci=" kernel boot arguments. */
 char *__init pcibios_setup(char *str)
 {
-	if (!strcmp(str, "off")) {
+	if (!strcmp(str, "off"))
+	{
 		pci_probe = 0;
 		return NULL;
 	}
+
 	return str;
 }
 
@@ -410,29 +456,42 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
 
 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
 	old_cmd = cmd;
-	if ((header_type & 0x7F) == PCI_HEADER_TYPE_BRIDGE) {
+
+	if ((header_type & 0x7F) == PCI_HEADER_TYPE_BRIDGE)
+	{
 		/*
 		 * For bridges, we enable both memory and I/O decoding
 		 * in call cases.
 		 */
 		cmd |= PCI_COMMAND_IO;
 		cmd |= PCI_COMMAND_MEMORY;
-	} else {
+	}
+	else
+	{
 		/*
 		 * For endpoints, we enable memory and/or I/O decoding
 		 * only if they have a memory resource of that type.
 		 */
-		for (i = 0; i < 6; i++) {
+		for (i = 0; i < 6; i++)
+		{
 			r = &dev->resource[i];
-			if (r->flags & IORESOURCE_UNSET) {
+
+			if (r->flags & IORESOURCE_UNSET)
+			{
 				pr_err("PCI: Device %s not available because of resource collisions\n",
-				       pci_name(dev));
+					   pci_name(dev));
 				return -EINVAL;
 			}
+
 			if (r->flags & IORESOURCE_IO)
+			{
 				cmd |= PCI_COMMAND_IO;
+			}
+
 			if (r->flags & IORESOURCE_MEM)
+			{
 				cmd |= PCI_COMMAND_MEMORY;
+			}
 		}
 	}
 
@@ -440,7 +499,10 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
 	 * We only write the command if it changed.
 	 */
 	if (cmd != old_cmd)
+	{
 		pci_write_config_word(dev, PCI_COMMAND, cmd);
+	}
+
 	return 0;
 }
 
@@ -461,7 +523,7 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
  */
 
 static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
-			 int size, u32 *val)
+						 int size, u32 *val)
 {
 	struct pci_controller *controller = bus->sysdata;
 	int busnum = bus->number & 0xff;
@@ -477,15 +539,18 @@ static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
 	 * If we're talking to a bus other than zero then we
 	 * must have found a bridge.
 	 */
-	if (busnum == 0) {
+	if (busnum == 0)
+	{
 		/*
 		 * We fake an empty slot for (busnum == 0) && (slot > 0),
 		 * since there is only one slot on bus 0.
 		 */
-		if (slot) {
+		if (slot)
+		{
 			*val = 0xFFFFFFFF;
 			return 0;
 		}
+
 		config_mode = 0;
 	}
 
@@ -495,7 +560,7 @@ static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
 	addr |= (offset & 0xFFF);	/* byte address in 0:11 */
 
 	return hv_dev_pread(controller->hv_cfg_fd[config_mode], 0,
-			    (HV_VirtAddr)(val), size, addr);
+						(HV_VirtAddr)(val), size, addr);
 }
 
 
@@ -504,7 +569,7 @@ static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
  * Note that "val" is the value to write, not a pointer to that value.
  */
 static int tile_cfg_write(struct pci_bus *bus, unsigned int devfn, int offset,
-			  int size, u32 val)
+						  int size, u32 val)
 {
 	struct pci_controller *controller = bus->sysdata;
 	int busnum = bus->number & 0xff;
@@ -517,13 +582,17 @@ static int tile_cfg_write(struct pci_bus *bus, unsigned int devfn, int offset,
 	/*
 	 * For bus 0 slot 0 we use config 0 accesses.
 	 */
-	if (busnum == 0) {
+	if (busnum == 0)
+	{
 		/*
 		 * We fake an empty slot for (busnum == 0) && (slot > 0),
 		 * since there is only one slot on bus 0.
 		 */
 		if (slot)
+		{
 			return 0;
+		}
+
 		config_mode = 0;
 	}
 
@@ -538,11 +607,12 @@ static int tile_cfg_write(struct pci_bus *bus, unsigned int devfn, int offset,
 #endif
 
 	return hv_dev_pwrite(controller->hv_cfg_fd[config_mode], 0,
-			     valp, size, addr);
+						 valp, size, addr);
 }
 
 
-static struct pci_ops tile_cfg_ops = {
+static struct pci_ops tile_cfg_ops =
+{
 	.read =         tile_cfg_read,
 	.write =        tile_cfg_write,
 };
@@ -559,20 +629,20 @@ static struct pci_ops tile_cfg_ops = {
  * that should accept the PCI memory access.
  */
 #define TILE_READ(size, type)						\
-type _tile_read##size(unsigned long addr)				\
-{									\
-	type val;							\
-	int idx = 0;							\
-	if (addr > controllers[0].mem_resources[1].end &&		\
-	    addr > controllers[0].mem_resources[2].end)			\
-		idx = 1;                                                \
-	if (hv_dev_pread(controllers[idx].hv_mem_fd, 0,			\
-			 (HV_VirtAddr)(&val), sizeof(type), addr))	\
-		pr_err("PCI: read %zd bytes at 0x%lX failed\n",		\
-		       sizeof(type), addr);				\
-	return val;							\
-}									\
-EXPORT_SYMBOL(_tile_read##size)
+	type _tile_read##size(unsigned long addr)				\
+	{									\
+		type val;							\
+		int idx = 0;							\
+		if (addr > controllers[0].mem_resources[1].end &&		\
+			addr > controllers[0].mem_resources[2].end)			\
+			idx = 1;                                                \
+		if (hv_dev_pread(controllers[idx].hv_mem_fd, 0,			\
+						 (HV_VirtAddr)(&val), sizeof(type), addr))	\
+			pr_err("PCI: read %zd bytes at 0x%lX failed\n",		\
+				   sizeof(type), addr);				\
+		return val;							\
+	}									\
+	EXPORT_SYMBOL(_tile_read##size)
 
 TILE_READ(b, u8);
 TILE_READ(w, u16);
@@ -580,18 +650,18 @@ TILE_READ(l, u32);
 TILE_READ(q, u64);
 
 #define TILE_WRITE(size, type)						\
-void _tile_write##size(type val, unsigned long addr)			\
-{									\
-	int idx = 0;							\
-	if (addr > controllers[0].mem_resources[1].end &&		\
-	    addr > controllers[0].mem_resources[2].end)			\
-		idx = 1;                                                \
-	if (hv_dev_pwrite(controllers[idx].hv_mem_fd, 0,		\
-			  (HV_VirtAddr)(&val), sizeof(type), addr))	\
-		pr_err("PCI: write %zd bytes at 0x%lX failed\n",	\
-		       sizeof(type), addr);				\
-}									\
-EXPORT_SYMBOL(_tile_write##size)
+	void _tile_write##size(type val, unsigned long addr)			\
+	{									\
+		int idx = 0;							\
+		if (addr > controllers[0].mem_resources[1].end &&		\
+			addr > controllers[0].mem_resources[2].end)			\
+			idx = 1;                                                \
+		if (hv_dev_pwrite(controllers[idx].hv_mem_fd, 0,		\
+						  (HV_VirtAddr)(&val), sizeof(type), addr))	\
+			pr_err("PCI: write %zd bytes at 0x%lX failed\n",	\
+				   sizeof(type), addr);				\
+	}									\
+	EXPORT_SYMBOL(_tile_write##size)
 
 TILE_WRITE(b, u8);
 TILE_WRITE(w, u16);

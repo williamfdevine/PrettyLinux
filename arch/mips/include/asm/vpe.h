@@ -19,10 +19,10 @@
 
 /* grab the likely amount of memory we will need. */
 #ifdef CONFIG_MIPS_VPE_LOADER_TOM
-#define P_SIZE (2 * 1024 * 1024)
+	#define P_SIZE (2 * 1024 * 1024)
 #else
-/* add an overhead to the max kmalloc size for non-striped symbols/etc */
-#define P_SIZE (256 * 1024)
+	/* add an overhead to the max kmalloc size for non-striped symbols/etc */
+	#define P_SIZE (256 * 1024)
 #endif
 
 #define MAX_VPES 16
@@ -38,20 +38,23 @@ static inline int aprp_cpu_index(void)
 #endif
 }
 
-enum vpe_state {
+enum vpe_state
+{
 	VPE_STATE_UNUSED = 0,
 	VPE_STATE_INUSE,
 	VPE_STATE_RUNNING
 };
 
-enum tc_state {
+enum tc_state
+{
 	TC_STATE_UNUSED = 0,
 	TC_STATE_INUSE,
 	TC_STATE_RUNNING,
 	TC_STATE_DYNAMIC
 };
 
-struct vpe {
+struct vpe
+{
 	enum vpe_state state;
 
 	/* (device) minor associated with this vpe */
@@ -81,7 +84,8 @@ struct vpe {
 	unsigned int ntcs;
 };
 
-struct tc {
+struct tc
+{
 	enum tc_state state;
 	int index;
 
@@ -90,14 +94,16 @@ struct tc {
 	struct list_head list;	/* The global list of tc's */
 };
 
-struct vpe_notifications {
+struct vpe_notifications
+{
 	void (*start)(int vpe);
 	void (*stop)(int vpe);
 
 	struct list_head list;
 };
 
-struct vpe_control {
+struct vpe_control
+{
 	spinlock_t vpe_list_lock;
 	struct list_head vpe_list;      /* Virtual processing elements */
 	spinlock_t tc_list_lock;

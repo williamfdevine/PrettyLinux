@@ -14,7 +14,8 @@
 #define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
 
 #ifndef __ASSEMBLER__
-struct cache_info {
+struct cache_info
+{
 	unsigned int ways;
 	unsigned int sets;
 	unsigned int linesz;

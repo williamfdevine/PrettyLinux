@@ -38,7 +38,8 @@
  * book:
  * http://oss.software.ibm.com/developerworks/opensource/linux390/index.shtml
  */
-struct appldata_os_per_cpu {
+struct appldata_os_per_cpu
+{
 	u32 per_cpu_user;	/* timer ticks spent in user mode   */
 	u32 per_cpu_nice;	/* ... spent with modified priority */
 	u32 per_cpu_system;	/* ... spent in kernel mode         */
@@ -54,7 +55,8 @@ struct appldata_os_per_cpu {
 	u32 cpu_id;		/* number of this CPU		    */
 } __attribute__((packed));
 
-struct appldata_os_data {
+struct appldata_os_data
+{
 	u64 timestamp;
 	u32 sync_count_1;	/* after VM collected the record data, */
 	u32 sync_count_2;	/* sync_count_1 and sync_count_2 should be the
@@ -69,7 +71,7 @@ struct appldata_os_data {
 	u32 nr_running;		/* number of runnable threads      */
 	u32 nr_threads;		/* number of threads               */
 	u32 avenrun[3];		/* average nr. of running processes during */
-				/* the last 1, 5 and 15 minutes */
+	/* the last 1, 5 and 15 minutes */
 
 	/* New in 2.6 */
 	u32 nr_iowait;		/* number of blocked threads
@@ -81,7 +83,8 @@ struct appldata_os_data {
 
 static struct appldata_os_data *appldata_os_data;
 
-static struct appldata_ops ops = {
+static struct appldata_ops ops =
+{
 	.name	   = "os",
 	.record_nr = APPLDATA_RECORD_OS_ID,
 	.owner	   = THIS_MODULE,
@@ -106,12 +109,13 @@ static void appldata_get_os_data(void *data)
 	os_data->nr_threads = nr_threads;
 	os_data->nr_running = nr_running();
 	os_data->nr_iowait  = nr_iowait();
-	os_data->avenrun[0] = avenrun[0] + (FIXED_1/200);
-	os_data->avenrun[1] = avenrun[1] + (FIXED_1/200);
-	os_data->avenrun[2] = avenrun[2] + (FIXED_1/200);
+	os_data->avenrun[0] = avenrun[0] + (FIXED_1 / 200);
+	os_data->avenrun[1] = avenrun[1] + (FIXED_1 / 200);
+	os_data->avenrun[2] = avenrun[2] + (FIXED_1 / 200);
 
 	j = 0;
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		os_data->os_cpu[j].per_cpu_user =
 			cputime_to_jiffies(kcpustat_cpu(i).cpustat[CPUTIME_USER]);
 		os_data->os_cpu[j].per_cpu_nice =
@@ -135,27 +139,34 @@ static void appldata_get_os_data(void *data)
 	os_data->nr_cpus = j;
 
 	new_size = sizeof(struct appldata_os_data) +
-		   (os_data->nr_cpus * sizeof(struct appldata_os_per_cpu));
-	if (ops.size != new_size) {
-		if (ops.active) {
+			   (os_data->nr_cpus * sizeof(struct appldata_os_per_cpu));
+
+	if (ops.size != new_size)
+	{
+		if (ops.active)
+		{
 			rc = appldata_diag(APPLDATA_RECORD_OS_ID,
-					   APPLDATA_START_INTERVAL_REC,
-					   (unsigned long) ops.data, new_size,
-					   ops.mod_lvl);
+							   APPLDATA_START_INTERVAL_REC,
+							   (unsigned long) ops.data, new_size,
+							   ops.mod_lvl);
+
 			if (rc != 0)
 				pr_err("Starting a new OS data collection "
-				       "failed with rc=%d\n", rc);
+					   "failed with rc=%d\n", rc);
 
 			rc = appldata_diag(APPLDATA_RECORD_OS_ID,
-					   APPLDATA_STOP_REC,
-					   (unsigned long) ops.data, ops.size,
-					   ops.mod_lvl);
+							   APPLDATA_STOP_REC,
+							   (unsigned long) ops.data, ops.size,
+							   ops.mod_lvl);
+
 			if (rc != 0)
 				pr_err("Stopping a faulty OS data "
-				       "collection failed with rc=%d\n", rc);
+					   "collection failed with rc=%d\n", rc);
 		}
+
 		ops.size = new_size;
 	}
+
 	os_data->timestamp = get_tod_clock();
 	os_data->sync_count_2++;
 }
@@ -171,29 +182,37 @@ static int __init appldata_os_init(void)
 	int rc, max_size;
 
 	max_size = sizeof(struct appldata_os_data) +
-		   (num_possible_cpus() * sizeof(struct appldata_os_per_cpu));
-	if (max_size > APPLDATA_MAX_REC_SIZE) {
+			   (num_possible_cpus() * sizeof(struct appldata_os_per_cpu));
+
+	if (max_size > APPLDATA_MAX_REC_SIZE)
+	{
 		pr_err("Maximum OS record size %i exceeds the maximum "
-		       "record size %i\n", max_size, APPLDATA_MAX_REC_SIZE);
+			   "record size %i\n", max_size, APPLDATA_MAX_REC_SIZE);
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	appldata_os_data = kzalloc(max_size, GFP_KERNEL | GFP_DMA);
-	if (appldata_os_data == NULL) {
+
+	if (appldata_os_data == NULL)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	appldata_os_data->per_cpu_size = sizeof(struct appldata_os_per_cpu);
 	appldata_os_data->cpu_offset   = offsetof(struct appldata_os_data,
-							os_cpu);
+									 os_cpu);
 
 	ops.data = appldata_os_data;
 	ops.callback  = &appldata_get_os_data;
 	rc = appldata_register_ops(&ops);
+
 	if (rc != 0)
+	{
 		kfree(appldata_os_data);
+	}
+
 out:
 	return rc;
 }

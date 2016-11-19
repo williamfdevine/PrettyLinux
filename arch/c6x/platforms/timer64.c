@@ -18,7 +18,8 @@
 #include <asm/special_insns.h>
 #include <asm/timer64.h>
 
-struct timer_regs {
+struct timer_regs
+{
 	u32	reserved0;
 	u32	emumgt;
 	u32	reserved1;
@@ -93,7 +94,9 @@ static void timer64_enable(void)
 	u32 val;
 
 	if (timer64_devstate_id >= 0)
+	{
 		dscr_set_devstate(timer64_devstate_id, DSCR_DEVSTATE_ENABLED);
+	}
 
 	/* disable timer, reset count */
 	soc_writel(soc_readl(&timer->tcr) & ~TCR_ENAMODELO_MASK, &timer->tcr);
@@ -116,11 +119,13 @@ static void timer64_disable(void)
 	soc_writel(0, &timer->prdlo);
 
 	if (timer64_devstate_id >= 0)
+	{
 		dscr_set_devstate(timer64_devstate_id, DSCR_DEVSTATE_DISABLED);
+	}
 }
 
 static int next_event(unsigned long delta,
-		      struct clock_event_device *evt)
+					  struct clock_event_device *evt)
 {
 	timer64_config(delta);
 	return 0;
@@ -148,10 +153,11 @@ static int shutdown(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device t64_clockevent_device = {
+static struct clock_event_device t64_clockevent_device =
+{
 	.name			= "TIMER64_EVT32_TIMER",
 	.features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_PERIODIC,
+	CLOCK_EVT_FEAT_PERIODIC,
 	.rating			= 200,
 	.set_state_shutdown	= shutdown,
 	.set_state_periodic	= set_periodic,
@@ -168,7 +174,8 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction timer_iact = {
+static struct irqaction timer_iact =
+{
 	.name		= "timer",
 	.flags		= IRQF_TIMER,
 	.handler	= timer_interrupt,
@@ -182,35 +189,52 @@ void __init timer64_init(void)
 	u32 val;
 	int err, found = 0;
 
-	for_each_compatible_node(np, NULL, "ti,c64x+timer64") {
+	for_each_compatible_node(np, NULL, "ti,c64x+timer64")
+	{
 		err = of_property_read_u32(np, "ti,core-mask", &val);
-		if (!err) {
-			if (val & (1 << get_coreid())) {
+
+		if (!err)
+		{
+			if (val & (1 << get_coreid()))
+			{
 				found = 1;
 				break;
 			}
-		} else if (!first)
+		}
+		else if (!first)
+		{
 			first = np;
+		}
 	}
-	if (!found) {
+
+	if (!found)
+	{
 		/* try first one with no core-mask */
 		if (first)
+		{
 			np = of_node_get(first);
-		else {
+		}
+		else
+		{
 			pr_debug("Cannot find ti,c64x+timer64 timer.\n");
 			return;
 		}
 	}
 
 	timer = of_iomap(np, 0);
-	if (!timer) {
+
+	if (!timer)
+	{
 		pr_debug("%s: Cannot map timer registers.\n", np->full_name);
 		goto out;
 	}
+
 	pr_debug("%s: Timer registers=%p.\n", np->full_name, timer);
 
 	cd->irq	= irq_of_parse_and_map(np, 0);
-	if (cd->irq == NO_IRQ) {
+
+	if (cd->irq == NO_IRQ)
+	{
 		pr_debug("%s: Cannot find interrupt.\n", np->full_name);
 		iounmap(timer);
 		goto out;
@@ -218,7 +242,9 @@ void __init timer64_init(void)
 
 	/* If there is a device state control, save the ID. */
 	err = of_property_read_u32(np, "ti,dscr-dev-enable", &val);
-	if (!err) {
+
+	if (!err)
+	{
 		timer64_devstate_id = val;
 
 		/*

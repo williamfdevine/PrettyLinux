@@ -33,7 +33,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct adb_iopmsg {
+struct adb_iopmsg
+{
 	__u8 flags;		/* ADB flags         */
 	__u8 count;		/* no. of data bytes */
 	__u8 cmd;		/* ADB command       */

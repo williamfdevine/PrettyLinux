@@ -100,16 +100,16 @@
 #define PTRS_PER_PMD	(1UL << (PTRS_PER_PTD_SHIFT))
 
 #if CONFIG_PGTABLE_LEVELS == 4
-/*
- * Definitions for second level:
- *
- * PUD_SHIFT determines the size of the area a second-level page table
- * can map.
- */
-#define PUD_SHIFT	(PMD_SHIFT + (PTRS_PER_PTD_SHIFT))
-#define PUD_SIZE	(1UL << PUD_SHIFT)
-#define PUD_MASK	(~(PUD_SIZE-1))
-#define PTRS_PER_PUD	(1UL << (PTRS_PER_PTD_SHIFT))
+	/*
+	* Definitions for second level:
+	*
+	* PUD_SHIFT determines the size of the area a second-level page table
+	* can map.
+	*/
+	#define PUD_SHIFT	(PMD_SHIFT + (PTRS_PER_PTD_SHIFT))
+	#define PUD_SIZE	(1UL << PUD_SHIFT)
+	#define PUD_MASK	(~(PUD_SIZE-1))
+	#define PTRS_PER_PUD	(1UL << (PTRS_PER_PTD_SHIFT))
 #endif
 
 /*
@@ -118,9 +118,9 @@
  * PGDIR_SHIFT determines what a first-level page table entry can map.
  */
 #if CONFIG_PGTABLE_LEVELS == 4
-#define PGDIR_SHIFT		(PUD_SHIFT + (PTRS_PER_PTD_SHIFT))
+	#define PGDIR_SHIFT		(PUD_SHIFT + (PTRS_PER_PTD_SHIFT))
 #else
-#define PGDIR_SHIFT		(PMD_SHIFT + (PTRS_PER_PTD_SHIFT))
+	#define PGDIR_SHIFT		(PMD_SHIFT + (PTRS_PER_PTD_SHIFT))
 #endif
 #define PGDIR_SIZE		(__IA64_UL(1) << PGDIR_SHIFT)
 #define PGDIR_MASK		(~(PGDIR_SIZE-1))
@@ -143,7 +143,7 @@
 #define PAGE_KERNEL	__pgprot(__DIRTY_BITS  | _PAGE_PL_0 | _PAGE_AR_RWX)
 #define PAGE_KERNELRX	__pgprot(__ACCESS_BITS | _PAGE_PL_0 | _PAGE_AR_RX)
 #define PAGE_KERNEL_UC	__pgprot(__DIRTY_BITS  | _PAGE_PL_0 | _PAGE_AR_RWX | \
-				 _PAGE_MA_UC)
+								 _PAGE_MA_UC)
 
 # ifndef __ASSEMBLY__
 
@@ -160,7 +160,7 @@
  * In a private shared memory segment, we do a copy-on-write if a task
  * attempts to write to the page.
  */
-	/* xwr */
+/* xwr */
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY
 #define __P010	PAGE_READONLY	/* write to priv pg -> copy & make writable */
@@ -181,7 +181,7 @@
 
 #define pgd_ERROR(e)	printk("%s:%d: bad pgd %016lx.\n", __FILE__, __LINE__, pgd_val(e))
 #if CONFIG_PGTABLE_LEVELS == 4
-#define pud_ERROR(e)	printk("%s:%d: bad pud %016lx.\n", __FILE__, __LINE__, pud_val(e))
+	#define pud_ERROR(e)	printk("%s:%d: bad pud %016lx.\n", __FILE__, __LINE__, pud_val(e))
 #endif
 #define pmd_ERROR(e)	printk("%s:%d: bad pmd %016lx.\n", __FILE__, __LINE__, pmd_val(e))
 #define pte_ERROR(e)	printk("%s:%d: bad pte %016lx.\n", __FILE__, __LINE__, pte_val(e))
@@ -223,16 +223,16 @@ ia64_phys_addr_valid (unsigned long addr)
 
 #define VMALLOC_START		(RGN_BASE(RGN_GATE) + 0x200000000UL)
 #ifdef CONFIG_VIRTUAL_MEM_MAP
-# define VMALLOC_END_INIT	(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
-extern unsigned long VMALLOC_END;
+	#define VMALLOC_END_INIT	(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
+	extern unsigned long VMALLOC_END;
 #else
-#if defined(CONFIG_SPARSEMEM) && defined(CONFIG_SPARSEMEM_VMEMMAP)
-/* SPARSEMEM_VMEMMAP uses half of vmalloc... */
-# define VMALLOC_END		(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 10)))
-# define vmemmap		((struct page *)VMALLOC_END)
-#else
-# define VMALLOC_END		(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
-#endif
+	#if defined(CONFIG_SPARSEMEM) && defined(CONFIG_SPARSEMEM_VMEMMAP)
+		/* SPARSEMEM_VMEMMAP uses half of vmalloc... */
+		#define VMALLOC_END		(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 10)))
+		#define vmemmap		((struct page *)VMALLOC_END)
+	#else
+		#define VMALLOC_END		(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
+	#endif
 #endif
 
 /* fs/proc/kcore.c */
@@ -247,7 +247,7 @@ extern unsigned long VMALLOC_END;
  * table entry (pte).
  */
 #define pfn_pte(pfn, pgprot) \
-({ pte_t __pte; pte_val(__pte) = ((pfn) << PAGE_SHIFT) | pgprot_val(pgprot); __pte; })
+	({ pte_t __pte; pte_val(__pte) = ((pfn) << PAGE_SHIFT) | pgprot_val(pgprot); __pte; })
 
 /* Extract pfn from pte.  */
 #define pte_pfn(_pte)		((pte_val(_pte) & _PFN_MASK) >> PAGE_SHIFT)
@@ -256,7 +256,7 @@ extern unsigned long VMALLOC_END;
 
 /* This takes a physical page address that is used by the remapping functions */
 #define mk_pte_phys(physpage, pgprot) \
-({ pte_t __pte; pte_val(__pte) = physpage + pgprot_val(pgprot); __pte; })
+	({ pte_t __pte; pte_val(__pte) = physpage + pgprot_val(pgprot); __pte; })
 
 #define pte_modify(_pte, newprot) \
 	(__pte((pte_val(_pte) & ~_PAGE_CHG_MASK) | (pgprot_val(newprot) & _PAGE_CHG_MASK)))
@@ -282,12 +282,12 @@ extern unsigned long VMALLOC_END;
 #define pud_page(pud)			virt_to_page((pud_val(pud) + PAGE_OFFSET))
 
 #if CONFIG_PGTABLE_LEVELS == 4
-#define pgd_none(pgd)			(!pgd_val(pgd))
-#define pgd_bad(pgd)			(!ia64_phys_addr_valid(pgd_val(pgd)))
-#define pgd_present(pgd)		(pgd_val(pgd) != 0UL)
-#define pgd_clear(pgdp)			(pgd_val(*(pgdp)) = 0UL)
-#define pgd_page_vaddr(pgd)		((unsigned long) __va(pgd_val(pgd) & _PFN_MASK))
-#define pgd_page(pgd)			virt_to_page((pgd_val(pgd) + PAGE_OFFSET))
+	#define pgd_none(pgd)			(!pgd_val(pgd))
+	#define pgd_bad(pgd)			(!ia64_phys_addr_valid(pgd_val(pgd)))
+	#define pgd_present(pgd)		(pgd_val(pgd) != 0UL)
+	#define pgd_clear(pgdp)			(pgd_val(*(pgdp)) = 0UL)
+	#define pgd_page_vaddr(pgd)		((unsigned long) __va(pgd_val(pgd) & _PFN_MASK))
+	#define pgd_page(pgd)			virt_to_page((pgd_val(pgd) + PAGE_OFFSET))
 #endif
 
 /*
@@ -323,7 +323,7 @@ extern unsigned long VMALLOC_END;
  */
 #define pte_present_exec_user(pte)\
 	((pte_val(pte) & (_PAGE_P | _PAGE_PL_MASK | _PAGE_AR_RX)) == \
-		(_PAGE_P | _PAGE_PL_3 | _PAGE_AR_RX))
+	 (_PAGE_P | _PAGE_PL_3 | _PAGE_AR_RX))
 
 extern void __ia64_sync_icache_dcache(pte_t pteval);
 static inline void set_pte(pte_t *ptep, pte_t pteval)
@@ -333,10 +333,13 @@ static inline void set_pte(pte_t *ptep, pte_t pteval)
 	 *	|| copy_on_write with page copying.)
 	 */
 	if (pte_present_exec_user(pteval) &&
-	    (!pte_present(*ptep) ||
-		pte_pfn(*ptep) != pte_pfn(pteval)))
+		(!pte_present(*ptep) ||
+		 pte_pfn(*ptep) != pte_pfn(pteval)))
 		/* load_module() calles flush_icache_range() explicitly*/
+	{
 		__ia64_sync_icache_dcache(pteval);
+	}
+
 	*ptep = pteval;
 }
 
@@ -354,7 +357,7 @@ static inline void set_pte(pte_t *ptep, pte_t pteval)
 
 struct file;
 extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-				     unsigned long size, pgprot_t vma_prot);
+									 unsigned long size, pgprot_t vma_prot);
 #define __HAVE_PHYS_MEM_ACCESS_PROT
 
 static inline unsigned long
@@ -368,7 +371,7 @@ pgd_index (unsigned long address)
 
 /* The offset in the 1-level directory is given by the 3 region bits
    (61..63) and the level-1 bits.  */
-static inline pgd_t*
+static inline pgd_t *
 pgd_offset (const struct mm_struct *mm, unsigned long address)
 {
 	return mm->pgd + pgd_index(address);
@@ -409,13 +412,21 @@ static inline int
 ptep_test_and_clear_young (struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
 {
 #ifdef CONFIG_SMP
+
 	if (!pte_young(*ptep))
+	{
 		return 0;
+	}
+
 	return test_and_clear_bit(_PAGE_A_BIT, ptep);
 #else
 	pte_t pte = *ptep;
+
 	if (!pte_young(pte))
+	{
 		return 0;
+	}
+
 	set_pte_at(vma->vm_mm, addr, ptep, pte_mkold(pte));
 	return 1;
 #endif
@@ -439,10 +450,13 @@ ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
 #ifdef CONFIG_SMP
 	unsigned long new, old;
 
-	do {
+	do
+	{
 		old = pte_val(*ptep);
 		new = pte_val(pte_wrprotect(__pte (old)));
-	} while (cmpxchg((unsigned long *) ptep, old, new) != old);
+	}
+	while (cmpxchg((unsigned long *) ptep, old, new) != old);
+
 #else
 	pte_t old_pte = *ptep;
 	set_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
@@ -482,7 +496,7 @@ extern void paging_init (void);
  * ZERO_PAGE is a global shared page that is always zero: used
  * for zero-mapped memory areas etc..
  */
-extern unsigned long empty_zero_page[PAGE_SIZE/sizeof(unsigned long)];
+extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
 extern struct page *zero_page_memmap_ptr;
 #define ZERO_PAGE(vaddr) (zero_page_memmap_ptr)
 
@@ -490,9 +504,9 @@ extern struct page *zero_page_memmap_ptr;
 #define HAVE_ARCH_UNMAPPED_AREA
 
 #ifdef CONFIG_HUGETLB_PAGE
-#define HUGETLB_PGDIR_SHIFT	(HPAGE_SHIFT + 2*(PAGE_SHIFT-3))
-#define HUGETLB_PGDIR_SIZE	(__IA64_UL(1) << HUGETLB_PGDIR_SHIFT)
-#define HUGETLB_PGDIR_MASK	(~(HUGETLB_PGDIR_SIZE-1))
+	#define HUGETLB_PGDIR_SHIFT	(HPAGE_SHIFT + 2*(PAGE_SHIFT-3))
+	#define HUGETLB_PGDIR_SIZE	(__IA64_UL(1) << HUGETLB_PGDIR_SHIFT)
+	#define HUGETLB_PGDIR_MASK	(~(HUGETLB_PGDIR_SIZE-1))
 #endif
 
 
@@ -521,31 +535,31 @@ extern struct page *zero_page_memmap_ptr;
  */
 #ifdef CONFIG_SMP
 # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
-({									\
-	int __changed = !pte_same(*(__ptep), __entry);			\
-	if (__changed && __safely_writable) {				\
-		set_pte(__ptep, __entry);				\
-		flush_tlb_page(__vma, __addr);				\
-	}								\
-	__changed;							\
-})
+	({									\
+		int __changed = !pte_same(*(__ptep), __entry);			\
+		if (__changed && __safely_writable) {				\
+			set_pte(__ptep, __entry);				\
+			flush_tlb_page(__vma, __addr);				\
+		}								\
+		__changed;							\
+	})
 #else
 # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
-({									\
-	int __changed = !pte_same(*(__ptep), __entry);			\
-	if (__changed) {						\
-		set_pte_at((__vma)->vm_mm, (__addr), __ptep, __entry);	\
-		flush_tlb_page(__vma, __addr);				\
-	}								\
-	__changed;							\
-})
+	({									\
+		int __changed = !pte_same(*(__ptep), __entry);			\
+		if (__changed) {						\
+			set_pte_at((__vma)->vm_mm, (__addr), __ptep, __entry);	\
+			flush_tlb_page(__vma, __addr);				\
+		}								\
+		__changed;							\
+	})
 #endif
 
 #  ifdef CONFIG_VIRTUAL_MEM_MAP
-  /* arch mem_map init routine is needed due to holes in a virtual mem_map */
+/* arch mem_map init routine is needed due to holes in a virtual mem_map */
 #   define __HAVE_ARCH_MEMMAP_INIT
-    extern void memmap_init (unsigned long size, int nid, unsigned long zone,
-			     unsigned long start_pfn);
+extern void memmap_init (unsigned long size, int nid, unsigned long zone,
+						 unsigned long start_pfn);
 #  endif /* CONFIG_VIRTUAL_MEM_MAP */
 # endif /* !__ASSEMBLY__ */
 
@@ -555,9 +569,9 @@ extern struct page *zero_page_memmap_ptr;
  * know...
  */
 #if defined(CONFIG_IA64_GRANULE_64MB)
-# define IA64_GRANULE_SHIFT	_PAGE_SIZE_64M
+	#define IA64_GRANULE_SHIFT	_PAGE_SIZE_64M
 #elif defined(CONFIG_IA64_GRANULE_16MB)
-# define IA64_GRANULE_SHIFT	_PAGE_SIZE_16M
+	#define IA64_GRANULE_SHIFT	_PAGE_SIZE_16M
 #endif
 #define IA64_GRANULE_SIZE	(1 << IA64_GRANULE_SHIFT)
 /*
@@ -574,9 +588,9 @@ extern struct page *zero_page_memmap_ptr;
 /* These tell get_user_pages() that the first gate page is accessible from user-level.  */
 #define FIXADDR_USER_START	GATE_ADDR
 #ifdef HAVE_BUGGY_SEGREL
-# define FIXADDR_USER_END	(GATE_ADDR + 2*PAGE_SIZE)
+	#define FIXADDR_USER_END	(GATE_ADDR + 2*PAGE_SIZE)
 #else
-# define FIXADDR_USER_END	(GATE_ADDR + 2*PERCPU_PAGE_SIZE)
+	#define FIXADDR_USER_END	(GATE_ADDR + 2*PERCPU_PAGE_SIZE)
 #endif
 
 #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
@@ -587,7 +601,7 @@ extern struct page *zero_page_memmap_ptr;
 
 
 #if CONFIG_PGTABLE_LEVELS == 3
-#include <asm-generic/pgtable-nopud.h>
+	#include <asm-generic/pgtable-nopud.h>
 #endif
 #include <asm-generic/pgtable.h>
 

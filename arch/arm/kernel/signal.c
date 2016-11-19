@@ -47,11 +47,18 @@ static int restore_crunch_context(struct crunch_sigframe __user *frame)
 
 	/* the crunch context must be 64 bit aligned */
 	kframe = (struct crunch_sigframe *)((unsigned long)(kbuf + 8) & ~7);
+
 	if (__copy_from_user(kframe, frame, sizeof(*frame)))
+	{
 		return -1;
+	}
+
 	if (kframe->magic != CRUNCH_MAGIC ||
-	    kframe->size != CRUNCH_STORAGE_SIZE)
+		kframe->size != CRUNCH_STORAGE_SIZE)
+	{
 		return -1;
+	}
+
 	crunch_task_restore(current_thread_info(), &kframe->storage);
 	return 0;
 }
@@ -79,11 +86,18 @@ static int restore_iwmmxt_context(struct iwmmxt_sigframe *frame)
 
 	/* the iWMMXt context must be 64 bit aligned */
 	kframe = (struct iwmmxt_sigframe *)((unsigned long)(kbuf + 8) & ~7);
+
 	if (__copy_from_user(kframe, frame, sizeof(*frame)))
+	{
 		return -1;
+	}
+
 	if (kframe->magic != IWMMXT_MAGIC ||
-	    kframe->size != IWMMXT_STORAGE_SIZE)
+		kframe->size != IWMMXT_STORAGE_SIZE)
+	{
 		return -1;
+	}
+
 	iwmmxt_task_restore(current_thread_info(), &kframe->storage);
 	return 0;
 }
@@ -102,7 +116,9 @@ static int preserve_vfp_context(struct vfp_sigframe __user *frame)
 	__put_user_error(size, &frame->size, err);
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	return vfp_preserve_user_clear_hwstate(&frame->ufp, &frame->ufp_exc);
 }
@@ -117,9 +133,14 @@ static int restore_vfp_context(struct vfp_sigframe __user *frame)
 	__get_user_error(size, &frame->size, err);
 
 	if (err)
+	{
 		return -EFAULT;
+	}
+
 	if (magic != VFP_MAGIC || size != VFP_STORAGE_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	return vfp_restore_user_hwstate(&frame->ufp, &frame->ufp_exc);
 }
@@ -129,12 +150,14 @@ static int restore_vfp_context(struct vfp_sigframe __user *frame)
 /*
  * Do a signal return; undo the signal stack.  These are aligned to 64-bit.
  */
-struct sigframe {
+struct sigframe
+{
 	struct ucontext uc;
 	unsigned long retcode[2];
 };
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo info;
 	struct sigframe sig;
 };
@@ -146,8 +169,11 @@ static int restore_sigframe(struct pt_regs *regs, struct sigframe __user *sf)
 	int err;
 
 	err = __copy_from_user(&set, &sf->uc.uc_sigmask, sizeof(set));
+
 	if (err == 0)
+	{
 		set_current_blocked(&set);
+	}
 
 	__get_user_error(regs->ARM_r0, &sf->uc.uc_mcontext.arm_r0, err);
 	__get_user_error(regs->ARM_r1, &sf->uc.uc_mcontext.arm_r1, err);
@@ -171,16 +197,28 @@ static int restore_sigframe(struct pt_regs *regs, struct sigframe __user *sf)
 
 	aux = (struct aux_sigframe __user *) sf->uc.uc_regspace;
 #ifdef CONFIG_CRUNCH
+
 	if (err == 0)
+	{
 		err |= restore_crunch_context(&aux->crunch);
+	}
+
 #endif
 #ifdef CONFIG_IWMMXT
+
 	if (err == 0 && test_thread_flag(TIF_USING_IWMMXT))
+	{
 		err |= restore_iwmmxt_context(&aux->iwmmxt);
+	}
+
 #endif
 #ifdef CONFIG_VFP
+
 	if (err == 0)
+	{
 		err |= restore_vfp_context(&aux->vfp);
+	}
+
 #endif
 
 	return err;
@@ -199,15 +237,21 @@ asmlinkage int sys_sigreturn(struct pt_regs *regs)
 	 * not, then the user is trying to mess with us.
 	 */
 	if (regs->ARM_sp & 7)
+	{
 		goto badframe;
+	}
 
 	frame = (struct sigframe __user *)regs->ARM_sp;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof (*frame)))
+	{
 		goto badframe;
+	}
 
 	if (restore_sigframe(regs, frame))
+	{
 		goto badframe;
+	}
 
 	return regs->ARM_r0;
 
@@ -229,18 +273,26 @@ asmlinkage int sys_rt_sigreturn(struct pt_regs *regs)
 	 * not, then the user is trying to mess with us.
 	 */
 	if (regs->ARM_sp & 7)
+	{
 		goto badframe;
+	}
 
 	frame = (struct rt_sigframe __user *)regs->ARM_sp;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof (*frame)))
+	{
 		goto badframe;
+	}
 
 	if (restore_sigframe(regs, &frame->sig))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->sig.uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return regs->ARM_r0;
 
@@ -282,16 +334,28 @@ setup_sigframe(struct sigframe __user *sf, struct pt_regs *regs, sigset_t *set)
 
 	aux = (struct aux_sigframe __user *) sf->uc.uc_regspace;
 #ifdef CONFIG_CRUNCH
+
 	if (err == 0)
+	{
 		err |= preserve_crunch_context(&aux->crunch);
+	}
+
 #endif
 #ifdef CONFIG_IWMMXT
+
 	if (err == 0 && test_thread_flag(TIF_USING_IWMMXT))
+	{
 		err |= preserve_iwmmxt_context(&aux->iwmmxt);
+	}
+
 #endif
 #ifdef CONFIG_VFP
+
 	if (err == 0)
+	{
 		err |= preserve_vfp_context(&aux->vfp);
+	}
+
 #endif
 	__put_user_error(0, &aux->end_magic, err);
 
@@ -313,14 +377,16 @@ get_sigframe(struct ksignal *ksig, struct pt_regs *regs, int framesize)
 	 * Check that we can actually write to the signal frame.
 	 */
 	if (!access_ok(VERIFY_WRITE, frame, framesize))
+	{
 		frame = NULL;
+	}
 
 	return frame;
 }
 
 static int
 setup_return(struct pt_regs *regs, struct ksignal *ksig,
-	     unsigned long __user *rc, void __user *frame)
+			 unsigned long __user *rc, void __user *frame)
 {
 	unsigned long handler = (unsigned long)ksig->ka.sa.sa_handler;
 	unsigned long retcode;
@@ -333,10 +399,14 @@ setup_return(struct pt_regs *regs, struct ksignal *ksig,
 	 * Maybe we need to deliver a 32-bit signal to a 26-bit task.
 	 */
 	if (ksig->ka.sa.sa_flags & SA_THIRTYTWO)
+	{
 		cpsr = (cpsr & ~MODE_MASK) | USR_MODE;
+	}
 
 #ifdef CONFIG_ARM_THUMB
-	if (elf_hwcap & HWCAP_THUMB) {
+
+	if (elf_hwcap & HWCAP_THUMB)
+	{
 		/*
 		 * The LSB of the handler determines if we're going to
 		 * be using THUMB or ARM mode for this signal handler.
@@ -356,31 +426,45 @@ setup_return(struct pt_regs *regs, struct ksignal *ksig,
 		 */
 		cpsr &= ~PSR_IT_MASK;
 
-		if (thumb) {
+		if (thumb)
+		{
 			cpsr |= PSR_T_BIT;
-		} else
+		}
+		else
+		{
 			cpsr &= ~PSR_T_BIT;
+		}
 	}
+
 #endif
 
-	if (ksig->ka.sa.sa_flags & SA_RESTORER) {
+	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		retcode = (unsigned long)ksig->ka.sa.sa_restorer;
-	} else {
+	}
+	else
+	{
 		unsigned int idx = thumb << 1;
 
 		if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+		{
 			idx += 3;
+		}
 
 		/*
 		 * Put the sigreturn code on the stack no matter which return
 		 * mechanism we use in order to remain ABI compliant
 		 */
 		if (__put_user(sigreturn_codes[idx],   rc) ||
-		    __put_user(sigreturn_codes[idx+1], rc+1))
+			__put_user(sigreturn_codes[idx + 1], rc + 1))
+		{
 			return 1;
+		}
 
 #ifdef CONFIG_MMU
-		if (cpsr & MODE32_BIT) {
+
+		if (cpsr & MODE32_BIT)
+		{
 			struct mm_struct *mm = current->mm;
 
 			/*
@@ -389,8 +473,9 @@ setup_return(struct pt_regs *regs, struct ksignal *ksig,
 			 * page from PL0
 			 */
 			retcode = mm->context.sigpage + signal_return_offset +
-				  (idx << 2) + thumb;
-		} else
+					  (idx << 2) + thumb;
+		}
+		else
 #endif
 		{
 			/*
@@ -398,7 +483,7 @@ setup_return(struct pt_regs *regs, struct ksignal *ksig,
 			 * the return code written onto the stack.
 			 */
 			flush_icache_range((unsigned long)rc,
-					   (unsigned long)(rc + 2));
+							   (unsigned long)(rc + 2));
 
 			retcode = ((unsigned long)rc) + thumb;
 		}
@@ -420,7 +505,9 @@ setup_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	int err = 0;
 
 	if (!frame)
+	{
 		return 1;
+	}
 
 	/*
 	 * Set uc.uc_flags to a value which sc.trap_no would never have.
@@ -428,8 +515,11 @@ setup_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	__put_user_error(0x5ac3c35a, &frame->uc.uc_flags, err);
 
 	err |= setup_sigframe(frame, regs, set);
+
 	if (err == 0)
+	{
 		err = setup_return(regs, ksig, frame->retcode, frame);
+	}
 
 	return err;
 }
@@ -441,7 +531,9 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	int err = 0;
 
 	if (!frame)
+	{
 		return 1;
+	}
 
 	err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 
@@ -450,10 +542,14 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 
 	err |= __save_altstack(&frame->sig.uc.uc_stack, regs->ARM_sp);
 	err |= setup_sigframe(&frame->sig, regs, set);
-	if (err == 0)
-		err = setup_return(regs, ksig, frame->sig.retcode, frame);
 
-	if (err == 0) {
+	if (err == 0)
+	{
+		err = setup_return(regs, ksig, frame->sig.retcode, frame);
+	}
+
+	if (err == 0)
+	{
 		/*
 		 * For realtime signals we must also set the second and third
 		 * arguments for the signal handler.
@@ -468,7 +564,7 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 
 /*
  * OK, we're invoking a handler
- */	
+ */
 static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 {
 	sigset_t *oldset = sigmask_to_save();
@@ -478,9 +574,13 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	 * Set up the stack frame
 	 */
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		ret = setup_rt_frame(ksig, oldset, regs);
+	}
 	else
+	{
 		ret = setup_frame(ksig, oldset, regs);
+	}
 
 	/*
 	 * Check that the resulting registers are actually sane.
@@ -508,7 +608,8 @@ static int do_signal(struct pt_regs *regs, int syscall)
 	/*
 	 * If we were from a system call, check for system call restarting...
 	 */
-	if (syscall) {
+	if (syscall)
+	{
 		continue_addr = regs->ARM_pc;
 		restart_addr = continue_addr - (thumb_mode(regs) ? 2 : 4);
 		retval = regs->ARM_r0;
@@ -517,16 +618,18 @@ static int do_signal(struct pt_regs *regs, int syscall)
 		 * Prepare for system call restart.  We do this here so that a
 		 * debugger will see the already changed PSW.
 		 */
-		switch (retval) {
-		case -ERESTART_RESTARTBLOCK:
-			restart -= 2;
-		case -ERESTARTNOHAND:
-		case -ERESTARTSYS:
-		case -ERESTARTNOINTR:
-			restart++;
-			regs->ARM_r0 = regs->ARM_ORIG_r0;
-			regs->ARM_pc = restart_addr;
-			break;
+		switch (retval)
+		{
+			case -ERESTART_RESTARTBLOCK:
+				restart -= 2;
+
+			case -ERESTARTNOHAND:
+			case -ERESTARTSYS:
+			case -ERESTARTNOINTR:
+				restart++;
+				regs->ARM_r0 = regs->ARM_ORIG_r0;
+				regs->ARM_pc = restart_addr;
+				break;
 		}
 	}
 
@@ -539,26 +642,35 @@ static int do_signal(struct pt_regs *regs, int syscall)
 	 * decision to restart the system call.  But skip this if a
 	 * debugger has chosen to restart at a different PC.
 	 */
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* handler */
-		if (unlikely(restart) && regs->ARM_pc == restart_addr) {
+		if (unlikely(restart) && regs->ARM_pc == restart_addr)
+		{
 			if (retval == -ERESTARTNOHAND ||
-			    retval == -ERESTART_RESTARTBLOCK
-			    || (retval == -ERESTARTSYS
-				&& !(ksig.ka.sa.sa_flags & SA_RESTART))) {
+				retval == -ERESTART_RESTARTBLOCK
+				|| (retval == -ERESTARTSYS
+					&& !(ksig.ka.sa.sa_flags & SA_RESTART)))
+			{
 				regs->ARM_r0 = -EINTR;
 				regs->ARM_pc = continue_addr;
 			}
 		}
+
 		handle_signal(&ksig, regs);
-	} else {
+	}
+	else
+	{
 		/* no handler */
 		restore_saved_sigmask();
-		if (unlikely(restart) && regs->ARM_pc == restart_addr) {
+
+		if (unlikely(restart) && regs->ARM_pc == restart_addr)
+		{
 			regs->ARM_pc = continue_addr;
 			return restart;
 		}
 	}
+
 	return 0;
 }
 
@@ -571,16 +683,28 @@ do_work_pending(struct pt_regs *regs, unsigned int thread_flags, int syscall)
 	 * Update the trace code with the current status.
 	 */
 	trace_hardirqs_off();
-	do {
-		if (likely(thread_flags & _TIF_NEED_RESCHED)) {
+
+	do
+	{
+		if (likely(thread_flags & _TIF_NEED_RESCHED))
+		{
 			schedule();
-		} else {
+		}
+		else
+		{
 			if (unlikely(!user_mode(regs)))
+			{
 				return 0;
+			}
+
 			local_irq_enable();
-			if (thread_flags & _TIF_SIGPENDING) {
+
+			if (thread_flags & _TIF_SIGPENDING)
+			{
 				int restart = do_signal(regs, syscall);
-				if (unlikely(restart)) {
+
+				if (unlikely(restart))
+				{
 					/*
 					 * Restart without handlers.
 					 * Deal with it without leaving
@@ -588,17 +712,25 @@ do_work_pending(struct pt_regs *regs, unsigned int thread_flags, int syscall)
 					 */
 					return restart;
 				}
+
 				syscall = 0;
-			} else if (thread_flags & _TIF_UPROBE) {
+			}
+			else if (thread_flags & _TIF_UPROBE)
+			{
 				uprobe_notify_resume(regs);
-			} else {
+			}
+			else
+			{
 				clear_thread_flag(TIF_NOTIFY_RESUME);
 				tracehook_notify_resume(regs);
 			}
 		}
+
 		local_irq_disable();
 		thread_flags = current_thread_info()->flags;
-	} while (thread_flags & _TIF_WORK_MASK);
+	}
+	while (thread_flags & _TIF_WORK_MASK);
+
 	return 0;
 }
 
@@ -612,7 +744,9 @@ struct page *get_signal_page(void)
 	page = alloc_pages(GFP_KERNEL, 0);
 
 	if (!page)
+	{
 		return NULL;
+	}
 
 	addr = page_address(page);
 

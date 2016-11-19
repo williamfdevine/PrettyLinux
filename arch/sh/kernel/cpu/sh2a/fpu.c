@@ -33,29 +33,29 @@ void save_fpu(struct task_struct *tsk)
 
 	enable_fpu();
 	asm volatile("sts.l	fpul, @-%0\n\t"
-		     "sts.l	fpscr, @-%0\n\t"
-		     "fmov.s	fr15, @-%0\n\t"
-		     "fmov.s	fr14, @-%0\n\t"
-		     "fmov.s	fr13, @-%0\n\t"
-		     "fmov.s	fr12, @-%0\n\t"
-		     "fmov.s	fr11, @-%0\n\t"
-		     "fmov.s	fr10, @-%0\n\t"
-		     "fmov.s	fr9, @-%0\n\t"
-		     "fmov.s	fr8, @-%0\n\t"
-		     "fmov.s	fr7, @-%0\n\t"
-		     "fmov.s	fr6, @-%0\n\t"
-		     "fmov.s	fr5, @-%0\n\t"
-		     "fmov.s	fr4, @-%0\n\t"
-		     "fmov.s	fr3, @-%0\n\t"
-		     "fmov.s	fr2, @-%0\n\t"
-		     "fmov.s	fr1, @-%0\n\t"
-		     "fmov.s	fr0, @-%0\n\t"
-		     "lds	%3, fpscr\n\t"
-		     : "=r" (dummy)
-		     : "0" ((char *)(&tsk->thread.xstate->hardfpu.status)),
-		       "r" (FPSCR_RCHG),
-		       "r" (FPSCR_INIT)
-		     : "memory");
+				 "sts.l	fpscr, @-%0\n\t"
+				 "fmov.s	fr15, @-%0\n\t"
+				 "fmov.s	fr14, @-%0\n\t"
+				 "fmov.s	fr13, @-%0\n\t"
+				 "fmov.s	fr12, @-%0\n\t"
+				 "fmov.s	fr11, @-%0\n\t"
+				 "fmov.s	fr10, @-%0\n\t"
+				 "fmov.s	fr9, @-%0\n\t"
+				 "fmov.s	fr8, @-%0\n\t"
+				 "fmov.s	fr7, @-%0\n\t"
+				 "fmov.s	fr6, @-%0\n\t"
+				 "fmov.s	fr5, @-%0\n\t"
+				 "fmov.s	fr4, @-%0\n\t"
+				 "fmov.s	fr3, @-%0\n\t"
+				 "fmov.s	fr2, @-%0\n\t"
+				 "fmov.s	fr1, @-%0\n\t"
+				 "fmov.s	fr0, @-%0\n\t"
+				 "lds	%3, fpscr\n\t"
+				 : "=r" (dummy)
+				 : "0" ((char *)(&tsk->thread.xstate->hardfpu.status)),
+				 "r" (FPSCR_RCHG),
+				 "r" (FPSCR_INIT)
+				 : "memory");
 
 	disable_fpu();
 }
@@ -66,26 +66,26 @@ void restore_fpu(struct task_struct *tsk)
 
 	enable_fpu();
 	asm volatile("fmov.s	@%0+, fr0\n\t"
-		     "fmov.s	@%0+, fr1\n\t"
-		     "fmov.s	@%0+, fr2\n\t"
-		     "fmov.s	@%0+, fr3\n\t"
-		     "fmov.s	@%0+, fr4\n\t"
-		     "fmov.s	@%0+, fr5\n\t"
-		     "fmov.s	@%0+, fr6\n\t"
-		     "fmov.s	@%0+, fr7\n\t"
-		     "fmov.s	@%0+, fr8\n\t"
-		     "fmov.s	@%0+, fr9\n\t"
-		     "fmov.s	@%0+, fr10\n\t"
-		     "fmov.s	@%0+, fr11\n\t"
-		     "fmov.s	@%0+, fr12\n\t"
-		     "fmov.s	@%0+, fr13\n\t"
-		     "fmov.s	@%0+, fr14\n\t"
-		     "fmov.s	@%0+, fr15\n\t"
-		     "lds.l	@%0+, fpscr\n\t"
-		     "lds.l	@%0+, fpul\n\t"
-		     : "=r" (dummy)
-		     : "0" (tsk->thread.xstate), "r" (FPSCR_RCHG)
-		     : "memory");
+				 "fmov.s	@%0+, fr1\n\t"
+				 "fmov.s	@%0+, fr2\n\t"
+				 "fmov.s	@%0+, fr3\n\t"
+				 "fmov.s	@%0+, fr4\n\t"
+				 "fmov.s	@%0+, fr5\n\t"
+				 "fmov.s	@%0+, fr6\n\t"
+				 "fmov.s	@%0+, fr7\n\t"
+				 "fmov.s	@%0+, fr8\n\t"
+				 "fmov.s	@%0+, fr9\n\t"
+				 "fmov.s	@%0+, fr10\n\t"
+				 "fmov.s	@%0+, fr11\n\t"
+				 "fmov.s	@%0+, fr12\n\t"
+				 "fmov.s	@%0+, fr13\n\t"
+				 "fmov.s	@%0+, fr14\n\t"
+				 "fmov.s	@%0+, fr15\n\t"
+				 "lds.l	@%0+, fpscr\n\t"
+				 "lds.l	@%0+, fpul\n\t"
+				 : "=r" (dummy)
+				 : "0" (tsk->thread.xstate), "r" (FPSCR_RCHG)
+				 : "memory");
 	disable_fpu();
 }
 
@@ -102,8 +102,11 @@ static int denormal_mulf(int hx, int hy)
 
 	ix = hx & 0x7fffffff;
 	iy = hy & 0x7fffffff;
+
 	if (iy < 0x00800000 || ix == 0)
+	{
 		return ((hx ^ hy) & 0x80000000);
+	}
 
 	exp = (iy & 0x7f800000) >> 23;
 	ix &= 0x007fffff;
@@ -111,16 +114,24 @@ static int denormal_mulf(int hx, int hy)
 	m = (unsigned long long)ix * iy;
 	n = m;
 	w = -1;
+
 	while (n) { n >>= 1; w++; }
 
 	/* FIXME: use guard bits */
 	exp += w - 126 - 46;
+
 	if (exp > 0)
+	{
 		ix = ((int) (m >> (w - 23)) & 0x007fffff) | (exp << 23);
+	}
 	else if (exp + 22 >= 0)
+	{
 		ix = (int) (m >> (w - 22 - exp)) & 0x007fffff;
+	}
 	else
+	{
 		ix = 0;
+	}
 
 	ix |= (hx ^ hy) & 0x80000000;
 	return ix;
@@ -128,7 +139,7 @@ static int denormal_mulf(int hx, int hy)
 
 /* denormalized double * double */
 static void mult64(unsigned long long x, unsigned long long y,
-		unsigned long long *highp, unsigned long long *lowp)
+				   unsigned long long *highp, unsigned long long *lowp)
 {
 	unsigned long long sub0, sub1, sub2, sub3;
 	unsigned long long high, low;
@@ -140,12 +151,20 @@ static void mult64(unsigned long long x, unsigned long long y,
 	low = sub3;
 	high = 0LL;
 	sub3 += (sub1 << 32);
+
 	if (low > sub3)
+	{
 		high++;
+	}
+
 	low = sub3;
 	sub3 += (sub2 << 32);
+
 	if (low > sub3)
+	{
 		high++;
+	}
+
 	low = sub3;
 	high += (sub1 >> 32) + (sub2 >> 32);
 	high += sub0;
@@ -154,10 +173,13 @@ static void mult64(unsigned long long x, unsigned long long y,
 }
 
 static inline long long rshift64(unsigned long long mh,
-		unsigned long long ml, int n)
+								 unsigned long long ml, int n)
 {
 	if (n >= 64)
+	{
 		return mh >> (n - 64);
+	}
+
 	return (mh << (64 - n)) | (ml >> n);
 }
 
@@ -169,8 +191,11 @@ static long long denormal_muld(long long hx, long long hy)
 
 	ix = hx & 0x7fffffffffffffffLL;
 	iy = hy & 0x7fffffffffffffffLL;
+
 	if (iy < 0x0010000000000000LL || ix == 0)
+	{
 		return ((hx ^ hy) & 0x8000000000000000LL);
+	}
 
 	exp = (iy & 0x7ff0000000000000LL) >> 52;
 	ix &= 0x000fffffffffffffLL;
@@ -179,21 +204,30 @@ static long long denormal_muld(long long hx, long long hy)
 	nh = mh;
 	nl = ml;
 	w = -1;
-	if (nh) {
+
+	if (nh)
+	{
 		while (nh) { nh >>= 1; w++;}
+
 		w += 64;
-	} else
+	}
+	else
 		while (nl) { nl >>= 1; w++;}
 
 	/* FIXME: use guard bits */
 	exp += w - 1022 - 52 * 2;
+
 	if (exp > 0)
 		ix = (rshift64(mh, ml, w - 52) & 0x000fffffffffffffLL)
-			| ((long long)exp << 52);
+			 | ((long long)exp << 52);
 	else if (exp + 51 >= 0)
+	{
 		ix = rshift64(mh, ml, w - 51 - exp) & 0x000fffffffffffffLL;
+	}
 	else
+	{
 		ix = 0;
+	}
 
 	ix |= (hx ^ hy) & 0x8000000000000000LL;
 	return ix;
@@ -206,20 +240,34 @@ static int denormal_subf1(unsigned int ix, unsigned int iy)
 	int exp;
 
 	if (ix < 0x00800000)
+	{
 		return ix - iy;
+	}
 
 	exp = (ix & 0x7f800000) >> 23;
+
 	if (exp - 1 > 31)
+	{
 		return ix;
+	}
+
 	iy >>= exp - 1;
+
 	if (iy == 0)
+	{
 		return ix;
+	}
 
 	frac = (ix & 0x007fffff) | 0x00800000;
 	frac -= iy;
-	while (frac < 0x00800000) {
+
+	while (frac < 0x00800000)
+	{
 		if (--exp == 0)
+		{
 			return frac;
+		}
+
 		frac <<= 1;
 	}
 
@@ -233,18 +281,29 @@ static int denormal_addf1(unsigned int ix, unsigned int iy)
 	int exp;
 
 	if (ix < 0x00800000)
+	{
 		return ix + iy;
+	}
 
 	exp = (ix & 0x7f800000) >> 23;
+
 	if (exp - 1 > 31)
+	{
 		return ix;
+	}
+
 	iy >>= exp - 1;
+
 	if (iy == 0)
-	  return ix;
+	{
+		return ix;
+	}
 
 	frac = (ix & 0x007fffff) | 0x00800000;
 	frac += iy;
-	if (frac >= 0x01000000) {
+
+	if (frac >= 0x01000000)
+	{
 		frac >>= 1;
 		++exp;
 	}
@@ -257,28 +316,42 @@ static int denormal_addf(int hx, int hy)
 	unsigned int ix, iy;
 	int sign;
 
-	if ((hx ^ hy) & 0x80000000) {
+	if ((hx ^ hy) & 0x80000000)
+	{
 		sign = hx & 0x80000000;
 		ix = hx & 0x7fffffff;
 		iy = hy & 0x7fffffff;
-		if (iy < 0x00800000) {
+
+		if (iy < 0x00800000)
+		{
 			ix = denormal_subf1(ix, iy);
-			if ((int) ix < 0) {
+
+			if ((int) ix < 0)
+			{
 				ix = -ix;
 				sign ^= 0x80000000;
 			}
-		} else {
+		}
+		else
+		{
 			ix = denormal_subf1(iy, ix);
 			sign ^= 0x80000000;
 		}
-	} else {
+	}
+	else
+	{
 		sign = hx & 0x80000000;
 		ix = hx & 0x7fffffff;
 		iy = hy & 0x7fffffff;
+
 		if (iy < 0x00800000)
+		{
 			ix = denormal_addf1(ix, iy);
+		}
 		else
+		{
 			ix = denormal_addf1(iy, ix);
+		}
 	}
 
 	return sign | ix;
@@ -291,20 +364,34 @@ static long long denormal_subd1(unsigned long long ix, unsigned long long iy)
 	int exp;
 
 	if (ix < 0x0010000000000000LL)
+	{
 		return ix - iy;
+	}
 
 	exp = (ix & 0x7ff0000000000000LL) >> 52;
+
 	if (exp - 1 > 63)
+	{
 		return ix;
+	}
+
 	iy >>= exp - 1;
+
 	if (iy == 0)
+	{
 		return ix;
+	}
 
 	frac = (ix & 0x000fffffffffffffLL) | 0x0010000000000000LL;
 	frac -= iy;
-	while (frac < 0x0010000000000000LL) {
+
+	while (frac < 0x0010000000000000LL)
+	{
 		if (--exp == 0)
+		{
 			return frac;
+		}
+
 		frac <<= 1;
 	}
 
@@ -318,18 +405,29 @@ static long long denormal_addd1(unsigned long long ix, unsigned long long iy)
 	long long exp;
 
 	if (ix < 0x0010000000000000LL)
+	{
 		return ix + iy;
+	}
 
 	exp = (ix & 0x7ff0000000000000LL) >> 52;
+
 	if (exp - 1 > 63)
+	{
 		return ix;
+	}
+
 	iy >>= exp - 1;
+
 	if (iy == 0)
-	  return ix;
+	{
+		return ix;
+	}
 
 	frac = (ix & 0x000fffffffffffffLL) | 0x0010000000000000LL;
 	frac += iy;
-	if (frac >= 0x0020000000000000LL) {
+
+	if (frac >= 0x0020000000000000LL)
+	{
 		frac >>= 1;
 		++exp;
 	}
@@ -342,28 +440,42 @@ static long long denormal_addd(long long hx, long long hy)
 	unsigned long long ix, iy;
 	long long sign;
 
-	if ((hx ^ hy) & 0x8000000000000000LL) {
+	if ((hx ^ hy) & 0x8000000000000000LL)
+	{
 		sign = hx & 0x8000000000000000LL;
 		ix = hx & 0x7fffffffffffffffLL;
 		iy = hy & 0x7fffffffffffffffLL;
-		if (iy < 0x0010000000000000LL) {
+
+		if (iy < 0x0010000000000000LL)
+		{
 			ix = denormal_subd1(ix, iy);
-			if ((int) ix < 0) {
+
+			if ((int) ix < 0)
+			{
 				ix = -ix;
 				sign ^= 0x8000000000000000LL;
 			}
-		} else {
+		}
+		else
+		{
 			ix = denormal_subd1(iy, ix);
 			sign ^= 0x8000000000000000LL;
 		}
-	} else {
+	}
+	else
+	{
 		sign = hx & 0x8000000000000000LL;
 		ix = hx & 0x7fffffffffffffffLL;
 		iy = hy & 0x7fffffffffffffffLL;
+
 		if (iy < 0x0010000000000000LL)
+		{
 			ix = denormal_addd1(ix, iy);
+		}
 		else
+		{
 			ix = denormal_addd1(iy, ix);
+		}
 	}
 
 	return sign | ix;
@@ -383,18 +495,22 @@ denormal_to_double (struct sh_fpu_hard_struct *fpu, int n)
 	unsigned long x = fpu->fpul;
 	int exp = 1023 - 126;
 
-	if (x != 0 && (x & 0x7f800000) == 0) {
+	if (x != 0 && (x & 0x7f800000) == 0)
+	{
 		du = (x & 0x80000000);
-		while ((x & 0x00800000) == 0) {
+
+		while ((x & 0x00800000) == 0)
+		{
 			x <<= 1;
 			exp--;
 		}
+
 		x &= 0x007fffff;
 		du |= (exp << 20) | (x >> 3);
 		dl = x << 29;
 
 		fpu->fp_regs[n] = du;
-		fpu->fp_regs[n+1] = dl;
+		fpu->fp_regs[n + 1] = dl;
 	}
 }
 
@@ -411,61 +527,96 @@ ieee_fpe_handler (struct pt_regs *regs)
 	unsigned short insn = *(unsigned short *) regs->pc;
 	unsigned short finsn;
 	unsigned long nextpc;
-	int nib[4] = {
+	int nib[4] =
+	{
 		(insn >> 12) & 0xf,
 		(insn >> 8) & 0xf,
 		(insn >> 4) & 0xf,
-		insn & 0xf};
+		insn & 0xf
+	};
 
 	if (nib[0] == 0xb ||
-	    (nib[0] == 0x4 && nib[2] == 0x0 && nib[3] == 0xb)) /* bsr & jsr */
+		(nib[0] == 0x4 && nib[2] == 0x0 && nib[3] == 0xb)) /* bsr & jsr */
+	{
 		regs->pr = regs->pc + 4;
-	if (nib[0] == 0xa || nib[0] == 0xb) { /* bra & bsr */
+	}
+
+	if (nib[0] == 0xa || nib[0] == 0xb)   /* bra & bsr */
+	{
 		nextpc = regs->pc + 4 + ((short) ((insn & 0xfff) << 4) >> 3);
 		finsn = *(unsigned short *) (regs->pc + 2);
-	} else if (nib[0] == 0x8 && nib[1] == 0xd) { /* bt/s */
+	}
+	else if (nib[0] == 0x8 && nib[1] == 0xd)     /* bt/s */
+	{
 		if (regs->sr & 1)
+		{
 			nextpc = regs->pc + 4 + ((char) (insn & 0xff) << 1);
+		}
 		else
+		{
 			nextpc = regs->pc + 4;
+		}
+
 		finsn = *(unsigned short *) (regs->pc + 2);
-	} else if (nib[0] == 0x8 && nib[1] == 0xf) { /* bf/s */
+	}
+	else if (nib[0] == 0x8 && nib[1] == 0xf)     /* bf/s */
+	{
 		if (regs->sr & 1)
+		{
 			nextpc = regs->pc + 4;
+		}
 		else
+		{
 			nextpc = regs->pc + 4 + ((char) (insn & 0xff) << 1);
+		}
+
 		finsn = *(unsigned short *) (regs->pc + 2);
-	} else if (nib[0] == 0x4 && nib[3] == 0xb &&
-		 (nib[2] == 0x0 || nib[2] == 0x2)) { /* jmp & jsr */
+	}
+	else if (nib[0] == 0x4 && nib[3] == 0xb &&
+			 (nib[2] == 0x0 || nib[2] == 0x2))   /* jmp & jsr */
+	{
 		nextpc = regs->regs[nib[1]];
 		finsn = *(unsigned short *) (regs->pc + 2);
-	} else if (nib[0] == 0x0 && nib[3] == 0x3 &&
-		 (nib[2] == 0x0 || nib[2] == 0x2)) { /* braf & bsrf */
+	}
+	else if (nib[0] == 0x0 && nib[3] == 0x3 &&
+			 (nib[2] == 0x0 || nib[2] == 0x2))   /* braf & bsrf */
+	{
 		nextpc = regs->pc + 4 + regs->regs[nib[1]];
 		finsn = *(unsigned short *) (regs->pc + 2);
-	} else if (insn == 0x000b) { /* rts */
+	}
+	else if (insn == 0x000b)     /* rts */
+	{
 		nextpc = regs->pr;
 		finsn = *(unsigned short *) (regs->pc + 2);
-	} else {
+	}
+	else
+	{
 		nextpc = regs->pc + 2;
 		finsn = insn;
 	}
 
 #define FPSCR_FPU_ERROR (1 << 17)
 
-	if ((finsn & 0xf1ff) == 0xf0ad) { /* fcnvsd */
+	if ((finsn & 0xf1ff) == 0xf0ad)   /* fcnvsd */
+	{
 		struct task_struct *tsk = current;
 
-		if ((tsk->thread.xstate->hardfpu.fpscr & FPSCR_FPU_ERROR)) {
+		if ((tsk->thread.xstate->hardfpu.fpscr & FPSCR_FPU_ERROR))
+		{
 			/* FPU error */
 			denormal_to_double (&tsk->thread.xstate->hardfpu,
-					    (finsn >> 8) & 0xf);
-		} else
+								(finsn >> 8) & 0xf);
+		}
+		else
+		{
 			return 0;
+		}
 
 		regs->pc = nextpc;
 		return 1;
-	} else if ((finsn & 0xf00f) == 0xf002) { /* fmul */
+	}
+	else if ((finsn & 0xf00f) == 0xf002)     /* fmul */
+	{
 		struct task_struct *tsk = current;
 		int fpscr;
 		int n, m, prec;
@@ -479,36 +630,55 @@ ieee_fpe_handler (struct pt_regs *regs)
 		prec = fpscr & (1 << 19);
 
 		if ((fpscr & FPSCR_FPU_ERROR)
-		     && (prec && ((hx & 0x7fffffff) < 0x00100000
-				   || (hy & 0x7fffffff) < 0x00100000))) {
+			&& (prec && ((hx & 0x7fffffff) < 0x00100000
+						 || (hy & 0x7fffffff) < 0x00100000)))
+		{
 			long long llx, lly;
 
 			/* FPU error because of denormal */
 			llx = ((long long) hx << 32)
-			       | tsk->thread.xstate->hardfpu.fp_regs[n+1];
+				  | tsk->thread.xstate->hardfpu.fp_regs[n + 1];
 			lly = ((long long) hy << 32)
-			       | tsk->thread.xstate->hardfpu.fp_regs[m+1];
+				  | tsk->thread.xstate->hardfpu.fp_regs[m + 1];
+
 			if ((hx & 0x7fffffff) >= 0x00100000)
+			{
 				llx = denormal_muld(lly, llx);
+			}
 			else
+			{
 				llx = denormal_muld(llx, lly);
+			}
+
 			tsk->thread.xstate->hardfpu.fp_regs[n] = llx >> 32;
-			tsk->thread.xstate->hardfpu.fp_regs[n+1] = llx & 0xffffffff;
-		} else if ((fpscr & FPSCR_FPU_ERROR)
-		     && (!prec && ((hx & 0x7fffffff) < 0x00800000
-				   || (hy & 0x7fffffff) < 0x00800000))) {
+			tsk->thread.xstate->hardfpu.fp_regs[n + 1] = llx & 0xffffffff;
+		}
+		else if ((fpscr & FPSCR_FPU_ERROR)
+				 && (!prec && ((hx & 0x7fffffff) < 0x00800000
+							   || (hy & 0x7fffffff) < 0x00800000)))
+		{
 			/* FPU error because of denormal */
 			if ((hx & 0x7fffffff) >= 0x00800000)
+			{
 				hx = denormal_mulf(hy, hx);
+			}
 			else
+			{
 				hx = denormal_mulf(hx, hy);
+			}
+
 			tsk->thread.xstate->hardfpu.fp_regs[n] = hx;
-		} else
+		}
+		else
+		{
 			return 0;
+		}
 
 		regs->pc = nextpc;
 		return 1;
-	} else if ((finsn & 0xf00e) == 0xf000) { /* fadd, fsub */
+	}
+	else if ((finsn & 0xf00e) == 0xf000)     /* fadd, fsub */
+	{
 		struct task_struct *tsk = current;
 		int fpscr;
 		int n, m, prec;
@@ -522,32 +692,49 @@ ieee_fpe_handler (struct pt_regs *regs)
 		prec = fpscr & (1 << 19);
 
 		if ((fpscr & FPSCR_FPU_ERROR)
-		     && (prec && ((hx & 0x7fffffff) < 0x00100000
-				   || (hy & 0x7fffffff) < 0x00100000))) {
+			&& (prec && ((hx & 0x7fffffff) < 0x00100000
+						 || (hy & 0x7fffffff) < 0x00100000)))
+		{
 			long long llx, lly;
 
 			/* FPU error because of denormal */
 			llx = ((long long) hx << 32)
-			       | tsk->thread.xstate->hardfpu.fp_regs[n+1];
+				  | tsk->thread.xstate->hardfpu.fp_regs[n + 1];
 			lly = ((long long) hy << 32)
-			       | tsk->thread.xstate->hardfpu.fp_regs[m+1];
+				  | tsk->thread.xstate->hardfpu.fp_regs[m + 1];
+
 			if ((finsn & 0xf00f) == 0xf000)
+			{
 				llx = denormal_addd(llx, lly);
+			}
 			else
+			{
 				llx = denormal_addd(llx, lly ^ (1LL << 63));
+			}
+
 			tsk->thread.xstate->hardfpu.fp_regs[n] = llx >> 32;
-			tsk->thread.xstate->hardfpu.fp_regs[n+1] = llx & 0xffffffff;
-		} else if ((fpscr & FPSCR_FPU_ERROR)
-		     && (!prec && ((hx & 0x7fffffff) < 0x00800000
-				   || (hy & 0x7fffffff) < 0x00800000))) {
+			tsk->thread.xstate->hardfpu.fp_regs[n + 1] = llx & 0xffffffff;
+		}
+		else if ((fpscr & FPSCR_FPU_ERROR)
+				 && (!prec && ((hx & 0x7fffffff) < 0x00800000
+							   || (hy & 0x7fffffff) < 0x00800000)))
+		{
 			/* FPU error because of denormal */
 			if ((finsn & 0xf00f) == 0xf000)
+			{
 				hx = denormal_addf(hx, hy);
+			}
 			else
+			{
 				hx = denormal_addf(hx, hy ^ 0x80000000);
+			}
+
 			tsk->thread.xstate->hardfpu.fp_regs[n] = hx;
-		} else
+		}
+		else
+		{
 			return 0;
+		}
 
 		regs->pc = nextpc;
 		return 1;
@@ -562,7 +749,9 @@ BUILD_TRAP_HANDLER(fpu_error)
 	TRAP_HANDLER_DECL;
 
 	__unlazy_fpu(tsk, regs);
-	if (ieee_fpe_handler(regs)) {
+
+	if (ieee_fpe_handler(regs))
+	{
 		tsk->thread.xstate->hardfpu.fpscr &=
 			~(FPSCR_CAUSE_MASK | FPSCR_FLAG_MASK);
 		grab_fpu(regs);

@@ -60,7 +60,8 @@
 #define gptu_w32(x, y)	ltq_w32((x), gptu_membase + (y))
 #define gptu_r32(x)	ltq_r32(gptu_membase + (x))
 
-enum gptu_timer {
+enum gptu_timer
+{
 	TIMER1A = 0,
 	TIMER1B,
 	TIMER2A,
@@ -96,14 +97,16 @@ static void gptu_hwexit(void)
 static int gptu_enable(struct clk *clk)
 {
 	int ret = request_irq(irqres[clk->bits].start, timer_irq_handler,
-		IRQF_TIMER, "gtpu", NULL);
-	if (ret) {
+						  IRQF_TIMER, "gtpu", NULL);
+
+	if (ret)
+	{
 		pr_err("gptu: failed to request irq\n");
 		return ret;
 	}
 
 	gptu_w32(CON_CNT | CON_EDGE_ANY | CON_SYNC | CON_CLK_INT,
-		GPTU_CON(clk->bits));
+			 GPTU_CON(clk->bits));
 	gptu_w32(1, GPTU_RLD(clk->bits));
 	gptu_w32(gptu_r32(GPTU_IRNEN) | BIT(clk->bits), GPTU_IRNEN);
 	gptu_w32(RUN_SEN | RUN_RL, GPTU_RUN(clk->bits));
@@ -120,7 +123,7 @@ static void gptu_disable(struct clk *clk)
 }
 
 static inline void clkdev_add_gptu(struct device *dev, const char *con,
-							unsigned int timer)
+								   unsigned int timer)
 {
 	struct clk *clk = kzalloc(sizeof(struct clk), GFP_KERNEL);
 
@@ -138,7 +141,8 @@ static int gptu_probe(struct platform_device *pdev)
 	struct clk *clk;
 	struct resource *res;
 
-	if (of_irq_to_resource_table(pdev->dev.of_node, irqres, 6) != 6) {
+	if (of_irq_to_resource_table(pdev->dev.of_node, irqres, 6) != 6)
+	{
 		dev_err(&pdev->dev, "Failed to get IRQ list\n");
 		return -EINVAL;
 	}
@@ -147,22 +151,29 @@ static int gptu_probe(struct platform_device *pdev)
 
 	/* remap gptu register range */
 	gptu_membase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(gptu_membase))
+	{
 		return PTR_ERR(gptu_membase);
+	}
 
 	/* enable our clock */
 	clk = clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "Failed to get clock\n");
 		return -ENOENT;
 	}
+
 	clk_enable(clk);
 
 	/* power up the core */
 	gptu_hwinit();
 
 	/* the gptu has a ID register */
-	if (((gptu_r32(GPTU_ID) >> 8) & 0xff) != GPTU_MAGIC) {
+	if (((gptu_r32(GPTU_ID) >> 8) & 0xff) != GPTU_MAGIC)
+	{
 		dev_err(&pdev->dev, "Failed to find magic\n");
 		gptu_hwexit();
 		clk_disable(clk);
@@ -183,13 +194,15 @@ static int gptu_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id gptu_match[] = {
+static const struct of_device_id gptu_match[] =
+{
 	{ .compatible = "lantiq,gptu-xway" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, dma_match);
 
-static struct platform_driver dma_driver = {
+static struct platform_driver dma_driver =
+{
 	.probe = gptu_probe,
 	.driver = {
 		.name = "gptu-xway",
@@ -202,7 +215,10 @@ int __init gptu_init(void)
 	int ret = platform_driver_register(&dma_driver);
 
 	if (ret)
+	{
 		pr_info("gptu: Error registering platform driver\n");
+	}
+
 	return ret;
 }
 

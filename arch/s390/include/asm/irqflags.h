@@ -12,23 +12,23 @@
 
 /* store then OR system mask. */
 #define __arch_local_irq_stosm(__or)					\
-({									\
-	unsigned long __mask;						\
-	asm volatile(							\
-		"	stosm	%0,%1"					\
-		: "=Q" (__mask) : "i" (__or) : "memory");		\
-	__mask;								\
-})
+	({									\
+		unsigned long __mask;						\
+		asm volatile(							\
+												"	stosm	%0,%1"					\
+												: "=Q" (__mask) : "i" (__or) : "memory");		\
+		__mask;								\
+	})
 
 /* store then AND system mask. */
 #define __arch_local_irq_stnsm(__and)					\
-({									\
-	unsigned long __mask;						\
-	asm volatile(							\
-		"	stnsm	%0,%1"					\
-		: "=Q" (__mask) : "i" (__and) : "memory");		\
-	__mask;								\
-})
+	({									\
+		unsigned long __mask;						\
+		asm volatile(							\
+												"	stnsm	%0,%1"					\
+												: "=Q" (__mask) : "i" (__and) : "memory");		\
+		__mask;								\
+	})
 
 /* set system mask. */
 static inline notrace void __arch_local_irq_ssm(unsigned long flags)
@@ -61,7 +61,9 @@ static inline notrace void arch_local_irq_restore(unsigned long flags)
 {
 	/* only disabled->disabled and disabled->enabled is valid */
 	if (flags & ARCH_IRQ_ENABLED)
+	{
 		arch_local_irq_enable();
+	}
 }
 
 static inline notrace bool arch_irqs_disabled_flags(unsigned long flags)

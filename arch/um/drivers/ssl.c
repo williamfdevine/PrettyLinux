@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2000, 2002 Jeff Dike (jdike@karaya.com)
  * Licensed under the GPL
  */
@@ -25,11 +25,12 @@ static const int ssl_version = 1;
 static void ssl_announce(char *dev_name, int dev)
 {
 	printk(KERN_INFO "Serial line %d assigned device '%s'\n", dev,
-	       dev_name);
+		   dev_name);
 }
 
 /* Almost const, except that xterm_title may be changed in an initcall */
-static struct chan_opts opts = {
+static struct chan_opts opts =
+{
 	.announce 	= ssl_announce,
 	.xterm_title	= "Serial Line #%d",
 	.raw		= 1,
@@ -41,7 +42,8 @@ static int ssl_remove(int n, char **error_out);
 
 
 /* Const, except for .mc.list */
-static struct line_driver driver = {
+static struct line_driver driver =
+{
 	.name 			= "UML serial line",
 	.device_name 		= "ttyS",
 	.major 			= TTY_MAJOR,
@@ -72,19 +74,19 @@ static struct line serial_lines[NR_PORTS];
 static int ssl_config(char *str, char **error_out)
 {
 	return line_config(serial_lines, ARRAY_SIZE(serial_lines), str, &opts,
-			   error_out);
+					   error_out);
 }
 
 static int ssl_get_config(char *dev, char *str, int size, char **error_out)
 {
 	return line_get_config(dev, serial_lines, ARRAY_SIZE(serial_lines), str,
-			       size, error_out);
+						   size, error_out);
 }
 
 static int ssl_remove(int n, char **error_out)
 {
 	return line_remove(serial_lines, ARRAY_SIZE(serial_lines), n,
-			   error_out);
+					   error_out);
 }
 
 static int ssl_install(struct tty_driver *driver, struct tty_struct *tty)
@@ -92,7 +94,8 @@ static int ssl_install(struct tty_driver *driver, struct tty_struct *tty)
 	return line_install(driver, tty, &serial_lines[tty->index]);
 }
 
-static const struct tty_operations ssl_ops = {
+static const struct tty_operations ssl_ops =
+{
 	.open 	 		= line_open,
 	.close 	 		= line_close,
 	.write 	 		= line_write,
@@ -114,7 +117,7 @@ static const struct tty_operations ssl_ops = {
 static int ssl_init_done = 0;
 
 static void ssl_console_write(struct console *c, const char *string,
-			      unsigned len)
+							  unsigned len)
 {
 	struct line *line = &serial_lines[c->index];
 	unsigned long flags;
@@ -138,12 +141,13 @@ static int ssl_console_setup(struct console *co, char *options)
 }
 
 /* No locking for register_console call - relies on single-threaded initcalls */
-static struct console ssl_cons = {
+static struct console ssl_cons =
+{
 	.name		= "ttyS",
 	.write		= ssl_console_write,
 	.device		= ssl_console_device,
 	.setup		= ssl_console_setup,
-	.flags		= CON_PRINTBUFFER|CON_ANYTIME,
+	.flags		= CON_PRINTBUFFER | CON_ANYTIME,
 	.index		= -1,
 };
 
@@ -154,25 +158,36 @@ static int ssl_init(void)
 	int i;
 
 	printk(KERN_INFO "Initializing software serial port version %d\n",
-	       ssl_version);
+		   ssl_version);
 
 	err = register_lines(&driver, &ssl_ops, serial_lines,
-				    ARRAY_SIZE(serial_lines));
+						 ARRAY_SIZE(serial_lines));
+
 	if (err)
+	{
 		return err;
+	}
 
 	new_title = add_xterm_umid(opts.xterm_title);
-	if (new_title != NULL)
-		opts.xterm_title = new_title;
 
-	for (i = 0; i < NR_PORTS; i++) {
+	if (new_title != NULL)
+	{
+		opts.xterm_title = new_title;
+	}
+
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		char *error;
 		char *s = conf[i];
+
 		if (!s)
+		{
 			s = def_conf;
+		}
+
 		if (setup_one_line(serial_lines, i, s, &opts, &error))
 			printk(KERN_ERR "setup_one_line failed for "
-			       "device %d : %s\n", i, error);
+				   "device %d : %s\n", i, error);
 	}
 
 	ssl_init_done = 1;
@@ -184,7 +199,10 @@ late_initcall(ssl_init);
 static void ssl_exit(void)
 {
 	if (!ssl_init_done)
+	{
 		return;
+	}
+
 	close_lines(serial_lines, ARRAY_SIZE(serial_lines));
 }
 __uml_exitcall(ssl_exit);

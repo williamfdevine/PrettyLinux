@@ -10,7 +10,8 @@
 
 #include <linux/list.h>
 
-struct undef_hook {
+struct undef_hook
+{
 	struct list_head node;
 	u32 insn_mask;
 	u32 insn_val;

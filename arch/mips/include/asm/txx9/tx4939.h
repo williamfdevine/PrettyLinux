@@ -14,9 +14,9 @@
 #include <asm/txx9/tx4938.h>
 
 #ifdef CONFIG_64BIT
-#define TX4939_REG_BASE 0xffffffffff1f0000UL /* == TX4938_REG_BASE */
+	#define TX4939_REG_BASE 0xffffffffff1f0000UL /* == TX4938_REG_BASE */
 #else
-#define TX4939_REG_BASE 0xff1f0000UL /* == TX4938_REG_BASE */
+	#define TX4939_REG_BASE 0xff1f0000UL /* == TX4938_REG_BASE */
 #endif
 #define TX4939_REG_SIZE 0x00010000 /* == TX4938_REG_SIZE */
 
@@ -47,19 +47,22 @@
 
 #define TX4939_RNG_REG		(TX4939_CRYPTO_REG + 0xb0)
 
-struct tx4939_le_reg {
+struct tx4939_le_reg
+{
 	__u32 r;
 	__u32 unused;
 };
 
-struct tx4939_ddrc_reg {
+struct tx4939_ddrc_reg
+{
 	struct tx4939_le_reg ctl[47];
 	__u64 unused0[17];
 	__u64 winen;
 	__u64 win[4];
 };
 
-struct tx4939_ccfg_reg {
+struct tx4939_ccfg_reg
+{
 	__u64 ccfg;
 	__u64 crir;
 	__u64 pcfg;
@@ -74,13 +77,15 @@ struct tx4939_ccfg_reg {
 	__u64 mclkosc;
 	__u64 mclkctl;
 	__u64 unused3[17];
-	struct {
+	struct
+	{
 		__u64 mr;
 		__u64 dr;
 	} gpio[2];
 };
 
-struct tx4939_irc_reg {
+struct tx4939_irc_reg
+{
 	struct tx4939_le_reg den;
 	struct tx4939_le_reg scipb;
 	struct tx4939_le_reg dm[2];
@@ -101,39 +106,48 @@ struct tx4939_irc_reg {
 	struct tx4939_le_reg maskext;
 };
 
-struct tx4939_rtc_reg {
+struct tx4939_rtc_reg
+{
 	__u32 ctl;
 	__u32 adr;
 	__u32 dat;
 	__u32 tbc;
 };
 
-struct tx4939_crypto_reg {
+struct tx4939_crypto_reg
+{
 	struct tx4939_le_reg csr;
 	struct tx4939_le_reg idesptr;
 	struct tx4939_le_reg cdesptr;
 	struct tx4939_le_reg buserr;
 	struct tx4939_le_reg cip_tout;
 	struct tx4939_le_reg cir;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct tx4939_le_reg data[8];
 			struct tx4939_le_reg ctrl;
 		} gen;
-		struct {
-			struct {
+		struct
+		{
+			struct
+			{
 				struct tx4939_le_reg l;
 				struct tx4939_le_reg u;
 			} key[3], ini;
 			struct tx4939_le_reg ctrl;
 		} des;
-		struct {
+		struct
+		{
 			struct tx4939_le_reg key[4];
 			struct tx4939_le_reg ini[4];
 			struct tx4939_le_reg ctrl;
 		} aes;
-		struct {
-			struct {
+		struct
+		{
+			struct
+			{
 				struct tx4939_le_reg l;
 				struct tx4939_le_reg u;
 			} cnt;
@@ -152,7 +166,8 @@ struct tx4939_crypto_reg {
 	struct tx4939_le_reg xorsur;
 };
 
-struct tx4939_crypto_desc {
+struct tx4939_crypto_desc
+{
 	__u32 src;
 	__u32 dst;
 	__u32 next;
@@ -161,9 +176,11 @@ struct tx4939_crypto_desc {
 	__u32 xor;
 };
 
-struct tx4939_vpc_reg {
+struct tx4939_vpc_reg
+{
 	struct tx4939_le_reg csr;
-	struct {
+	struct
+	{
 		struct tx4939_le_reg ctrlA;
 		struct tx4939_le_reg ctrlB;
 		struct tx4939_le_reg idesptr;
@@ -172,7 +189,8 @@ struct tx4939_vpc_reg {
 	struct tx4939_le_reg buserr;
 };
 
-struct tx4939_vpc_desc {
+struct tx4939_vpc_desc
+{
 	__u32 src;
 	__u32 next;
 	__u32 ctrl1;
@@ -492,16 +510,16 @@ struct tx4939_vpc_desc {
 #define tx4939_ddrcptr	((struct tx4939_ddrc_reg __iomem *)TX4939_DDRC_REG)
 #define tx4939_ebuscptr		tx4938_ebuscptr
 #define tx4939_ircptr \
-		((struct tx4939_irc_reg __iomem *)TX4939_IRC_REG)
+	((struct tx4939_irc_reg __iomem *)TX4939_IRC_REG)
 #define tx4939_pcicptr		tx4938_pcicptr
 #define tx4939_pcic1ptr		tx4938_pcic1ptr
 #define tx4939_ccfgptr \
-		((struct tx4939_ccfg_reg __iomem *)TX4939_CCFG_REG)
+	((struct tx4939_ccfg_reg __iomem *)TX4939_CCFG_REG)
 #define tx4939_sramcptr		tx4938_sramcptr
 #define tx4939_rtcptr \
-		((struct tx4939_rtc_reg __iomem *)TX4939_RTC_REG)
+	((struct tx4939_rtc_reg __iomem *)TX4939_RTC_REG)
 #define tx4939_cryptoptr \
-		((struct tx4939_crypto_reg __iomem *)TX4939_CRYPTO_REG)
+	((struct tx4939_crypto_reg __iomem *)TX4939_CRYPTO_REG)
 #define tx4939_vpcptr	((struct tx4939_vpc_reg __iomem *)TX4939_VPC_REG)
 
 #define TX4939_REV_MAJ_MIN()	\
@@ -510,7 +528,7 @@ struct tx4939_vpc_desc {
 	((__u32)__raw_readq(&tx4939_ccfgptr->crir) >> 16)
 #define TX4939_CCFG_BCFG()	\
 	((__u32)((__raw_readq(&tx4939_ccfgptr->ccfg) & TX4939_CCFG_BCFG_MASK) \
-		 >> 32))
+			 >> 32))
 
 #define tx4939_ccfg_clear(bits) tx4938_ccfg_clear(bits)
 #define tx4939_ccfg_set(bits)	tx4938_ccfg_set(bits)
@@ -545,7 +563,7 @@ void tx4939_mtd_init(int ch);
 void tx4939_ata_init(void);
 void tx4939_rtc_init(void);
 void tx4939_ndfmc_init(unsigned int hold, unsigned int spw,
-		       unsigned char ch_mask, unsigned char wide_mask);
+					   unsigned char ch_mask, unsigned char wide_mask);
 void tx4939_dmac_init(int memcpy_chan0, int memcpy_chan1);
 void tx4939_aclc_init(void);
 void tx4939_sramc_init(void);

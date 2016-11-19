@@ -13,7 +13,7 @@ static inline void kvm_clear_exception_queue(struct kvm_vcpu *vcpu)
 }
 
 static inline void kvm_queue_interrupt(struct kvm_vcpu *vcpu, u8 vector,
-	bool soft)
+									   bool soft)
 {
 	vcpu->arch.interrupt.pending = true;
 	vcpu->arch.interrupt.soft = soft;
@@ -28,7 +28,7 @@ static inline void kvm_clear_interrupt_queue(struct kvm_vcpu *vcpu)
 static inline bool kvm_event_needs_reinjection(struct kvm_vcpu *vcpu)
 {
 	return vcpu->arch.exception.pending || vcpu->arch.interrupt.pending ||
-		vcpu->arch.nmi_injected;
+		   vcpu->arch.nmi_injected;
 }
 
 static inline bool kvm_exception_is_soft(unsigned int nr)
@@ -55,7 +55,10 @@ static inline bool is_64_bit_mode(struct kvm_vcpu *vcpu)
 	int cs_db, cs_l;
 
 	if (!is_long_mode(vcpu))
+	{
 		return false;
+	}
+
 	kvm_x86_ops->get_cs_db_l_bits(vcpu, &cs_db, &cs_l);
 	return cs_l;
 }
@@ -86,7 +89,7 @@ static inline u32 bit(int bitno)
 }
 
 static inline void vcpu_cache_mmio_info(struct kvm_vcpu *vcpu,
-					gva_t gva, gfn_t gfn, unsigned access)
+										gva_t gva, gfn_t gfn, unsigned access)
 {
 	vcpu->arch.mmio_gva = gva & PAGE_MASK;
 	vcpu->arch.access = access;
@@ -108,7 +111,9 @@ static inline bool vcpu_match_mmio_gen(struct kvm_vcpu *vcpu)
 static inline void vcpu_clear_mmio_info(struct kvm_vcpu *vcpu, gva_t gva)
 {
 	if (gva != MMIO_GVA_ANY && vcpu->arch.mmio_gva != (gva & PAGE_MASK))
+	{
 		return;
+	}
 
 	vcpu->arch.mmio_gva = 0;
 }
@@ -116,8 +121,10 @@ static inline void vcpu_clear_mmio_info(struct kvm_vcpu *vcpu, gva_t gva)
 static inline bool vcpu_match_mmio_gva(struct kvm_vcpu *vcpu, unsigned long gva)
 {
 	if (vcpu_match_mmio_gen(vcpu) && vcpu->arch.mmio_gva &&
-	      vcpu->arch.mmio_gva == (gva & PAGE_MASK))
+		vcpu->arch.mmio_gva == (gva & PAGE_MASK))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -125,14 +132,16 @@ static inline bool vcpu_match_mmio_gva(struct kvm_vcpu *vcpu, unsigned long gva)
 static inline bool vcpu_match_mmio_gpa(struct kvm_vcpu *vcpu, gpa_t gpa)
 {
 	if (vcpu_match_mmio_gen(vcpu) && vcpu->arch.mmio_gfn &&
-	      vcpu->arch.mmio_gfn == gpa >> PAGE_SHIFT)
+		vcpu->arch.mmio_gfn == gpa >> PAGE_SHIFT)
+	{
 		return true;
+	}
 
 	return false;
 }
 
 static inline unsigned long kvm_register_readl(struct kvm_vcpu *vcpu,
-					       enum kvm_reg reg)
+		enum kvm_reg reg)
 {
 	unsigned long val = kvm_register_read(vcpu, reg);
 
@@ -140,11 +149,14 @@ static inline unsigned long kvm_register_readl(struct kvm_vcpu *vcpu,
 }
 
 static inline void kvm_register_writel(struct kvm_vcpu *vcpu,
-				       enum kvm_reg reg,
-				       unsigned long val)
+									   enum kvm_reg reg,
+									   unsigned long val)
 {
 	if (!is_64_bit_mode(vcpu))
+	{
 		val = (u32)val;
+	}
+
 	return kvm_register_write(vcpu, reg, val);
 }
 
@@ -162,12 +174,12 @@ void kvm_write_tsc(struct kvm_vcpu *vcpu, struct msr_data *msr);
 u64 get_kvmclock_ns(struct kvm *kvm);
 
 int kvm_read_guest_virt(struct x86_emulate_ctxt *ctxt,
-	gva_t addr, void *val, unsigned int bytes,
-	struct x86_exception *exception);
+						gva_t addr, void *val, unsigned int bytes,
+						struct x86_exception *exception);
 
 int kvm_write_guest_virt_system(struct x86_emulate_ctxt *ctxt,
-	gva_t addr, void *val, unsigned int bytes,
-	struct x86_exception *exception);
+								gva_t addr, void *val, unsigned int bytes,
+								struct x86_exception *exception);
 
 void kvm_vcpu_mtrr_init(struct kvm_vcpu *vcpu);
 u8 kvm_mtrr_get_guest_memory_type(struct kvm_vcpu *vcpu, gfn_t gfn);
@@ -175,13 +187,13 @@ bool kvm_mtrr_valid(struct kvm_vcpu *vcpu, u32 msr, u64 data);
 int kvm_mtrr_set_msr(struct kvm_vcpu *vcpu, u32 msr, u64 data);
 int kvm_mtrr_get_msr(struct kvm_vcpu *vcpu, u32 msr, u64 *pdata);
 bool kvm_mtrr_check_gfn_range_consistency(struct kvm_vcpu *vcpu, gfn_t gfn,
-					  int page_num);
+		int page_num);
 bool kvm_vector_hashing_enabled(void);
 
 #define KVM_SUPPORTED_XCR0     (XFEATURE_MASK_FP | XFEATURE_MASK_SSE \
-				| XFEATURE_MASK_YMM | XFEATURE_MASK_BNDREGS \
-				| XFEATURE_MASK_BNDCSR | XFEATURE_MASK_AVX512 \
-				| XFEATURE_MASK_PKRU)
+								| XFEATURE_MASK_YMM | XFEATURE_MASK_BNDREGS \
+								| XFEATURE_MASK_BNDCSR | XFEATURE_MASK_AVX512 \
+								| XFEATURE_MASK_PKRU)
 extern u64 host_xcr0;
 
 extern u64 kvm_supported_xcr0(void);
@@ -195,7 +207,7 @@ extern struct static_key kvm_no_apic_vcpu;
 static inline u64 nsec_to_cycles(struct kvm_vcpu *vcpu, u64 nsec)
 {
 	return pvclock_scale_delta(nsec, vcpu->arch.virtual_tsc_mult,
-				   vcpu->arch.virtual_tsc_shift);
+							   vcpu->arch.virtual_tsc_shift);
 }
 
 /* Same "calling convention" as do_div:
@@ -205,11 +217,11 @@ static inline u64 nsec_to_cycles(struct kvm_vcpu *vcpu, u64 nsec)
  */
 #define do_shl32_div32(n, base)					\
 	({							\
-	    u32 __quot, __rem;					\
-	    asm("divl %2" : "=a" (__quot), "=d" (__rem)		\
+		u32 __quot, __rem;					\
+		asm("divl %2" : "=a" (__quot), "=d" (__rem)		\
 			: "rm" (base), "0" (0), "1" ((u32) n));	\
-	    n = __quot;						\
-	    __rem;						\
-	 })
+		n = __quot;						\
+		__rem;						\
+	})
 
 #endif

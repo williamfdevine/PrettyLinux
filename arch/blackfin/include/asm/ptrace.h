@@ -20,7 +20,7 @@
 #define current_user_stack_pointer() rdusp()
 
 extern int is_user_addr_valid(struct task_struct *child,
-			      unsigned long start, unsigned long len);
+							  unsigned long start, unsigned long len);
 
 /*
  * Get the address of the live pt_regs for the specified task.
@@ -33,8 +33,8 @@ extern int is_user_addr_valid(struct task_struct *child,
  */
 #define task_pt_regs(task) \
 	(struct pt_regs *) \
-	    ((unsigned long)task_stack_page(task) + \
-	     (THREAD_SIZE - sizeof(struct pt_regs)))
+	((unsigned long)task_stack_page(task) + \
+	 (THREAD_SIZE - sizeof(struct pt_regs)))
 
 #include <asm-generic/ptrace.h>
 

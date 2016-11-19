@@ -8,8 +8,8 @@
  */
 
 #ifndef __LP64__
-typedef unsigned short		__kernel_mode_t;
-#define __kernel_mode_t __kernel_mode_t
+	typedef unsigned short		__kernel_mode_t;
+	#define __kernel_mode_t __kernel_mode_t
 #endif
 
 typedef unsigned short		__kernel_ipc_pid_t;

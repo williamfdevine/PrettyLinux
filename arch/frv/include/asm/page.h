@@ -49,10 +49,10 @@ extern unsigned long min_low_pfn;
 extern unsigned long max_pfn;
 
 #ifdef CONFIG_MMU
-#define pfn_valid(pfn)		((pfn) < max_mapnr)
+	#define pfn_valid(pfn)		((pfn) < max_mapnr)
 #else
-#define ARCH_PFN_OFFSET		(PAGE_OFFSET >> PAGE_SHIFT)
-#define pfn_valid(pfn)		((pfn) >= min_low_pfn && (pfn) < max_low_pfn)
+	#define ARCH_PFN_OFFSET		(PAGE_OFFSET >> PAGE_SHIFT)
+	#define pfn_valid(pfn)		((pfn) >= min_low_pfn && (pfn) < max_low_pfn)
 
 #endif
 
@@ -62,8 +62,8 @@ extern unsigned long max_pfn;
 
 #define VM_DATA_DEFAULT_FLAGS \
 	(VM_READ | VM_WRITE | \
-	((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0 ) | \
-		 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+	 ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0 ) | \
+	 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #endif /* __ASSEMBLY__ */
 

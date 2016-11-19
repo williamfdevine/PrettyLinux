@@ -30,11 +30,13 @@
 #include "common-board-devices.h"
 
 #if IS_ENABLED(CONFIG_TOUCHSCREEN_ADS7846)
-static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+static struct omap2_mcspi_device_config ads7846_mcspi_config =
+{
 	.turbo_mode	= 0,
 };
 
-static struct ads7846_platform_data ads7846_config = {
+static struct ads7846_platform_data ads7846_config =
+{
 	.x_max			= 0x0fff,
 	.y_max			= 0x0fff,
 	.x_plate_ohms		= 180,
@@ -46,7 +48,8 @@ static struct ads7846_platform_data ads7846_config = {
 	.keep_vref_on		= 1,
 };
 
-static struct spi_board_info ads7846_spi_board_info __initdata = {
+static struct spi_board_info ads7846_spi_board_info __initdata =
+{
 	.modalias		= "ads7846",
 	.bus_num		= -EINVAL,
 	.chip_select		= 0,
@@ -57,7 +60,7 @@ static struct spi_board_info ads7846_spi_board_info __initdata = {
 };
 
 void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
-			      struct ads7846_platform_data *board_pdata)
+							  struct ads7846_platform_data *board_pdata)
 {
 	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
 	int err;
@@ -68,15 +71,20 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
 	 * If a board does not define the get_pendown_state() function, then
 	 * the ads7846 driver will setup the pendown GPIO itself.
 	 */
-	if (board_pdata && board_pdata->get_pendown_state) {
+	if (board_pdata && board_pdata->get_pendown_state)
+	{
 		err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
-		if (err) {
+
+		if (err)
+		{
 			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
 			return;
 		}
 
 		if (gpio_debounce)
+		{
 			gpio_set_debounce(gpio_pendown, gpio_debounce);
+		}
 
 		gpio_export(gpio_pendown, 0);
 	}
@@ -86,7 +94,8 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
 
 	ads7846_config.gpio_pendown = gpio_pendown;
 
-	if (board_pdata) {
+	if (board_pdata)
+	{
 		board_pdata->gpio_pendown = gpio_pendown;
 		board_pdata->gpio_pendown_debounce = gpio_debounce;
 		spi_bi->platform_data = board_pdata;
@@ -96,7 +105,7 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
 }
 #else
 void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
-			      struct ads7846_platform_data *board_pdata)
+							  struct ads7846_platform_data *board_pdata)
 {
 }
 #endif

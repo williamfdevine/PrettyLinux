@@ -25,7 +25,9 @@ EXPORT_SYMBOL(pm_power_off);
 void machine_power_off(void)
 {
 	if (strcmp(of_console_device->type, "serial") || scons_pwroff)
+	{
 		prom_halt_power_off();
+	}
 
 	prom_halt();
 }
@@ -41,12 +43,22 @@ void machine_restart(char *cmd)
 	char *p;
 
 	p = strchr(reboot_command, '\n');
+
 	if (p)
+	{
 		*p = 0;
+	}
+
 	if (cmd)
+	{
 		prom_reboot(cmd);
+	}
+
 	if (*reboot_command)
+	{
 		prom_reboot(reboot_command);
+	}
+
 	prom_reboot("");
 	panic("Reboot failed!");
 }

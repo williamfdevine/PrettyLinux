@@ -9,7 +9,7 @@
 #include <asm/special_insns.h>
 
 static inline void __invpcid(unsigned long pcid, unsigned long addr,
-			     unsigned long type)
+							 unsigned long type)
 {
 	struct { u64 d[2]; } desc = { { pcid, addr } };
 
@@ -23,7 +23,7 @@ static inline void __invpcid(unsigned long pcid, unsigned long addr,
 	 * invpcid (%rcx), %rax in long mode.
 	 */
 	asm volatile (".byte 0x66, 0x0f, 0x38, 0x82, 0x01"
-		      : : "m" (desc), "a" (type), "c" (&desc) : "memory");
+				  : : "m" (desc), "a" (type), "c" (&desc) : "memory");
 }
 
 #define INVPCID_TYPE_INDIV_ADDR		0
@@ -33,7 +33,7 @@ static inline void __invpcid(unsigned long pcid, unsigned long addr,
 
 /* Flush all mappings for a given pcid and addr, not including globals. */
 static inline void invpcid_flush_one(unsigned long pcid,
-				     unsigned long addr)
+									 unsigned long addr)
 {
 	__invpcid(pcid, addr, INVPCID_TYPE_INDIV_ADDR);
 }
@@ -57,14 +57,15 @@ static inline void invpcid_flush_all_nonglobals(void)
 }
 
 #ifdef CONFIG_PARAVIRT
-#include <asm/paravirt.h>
+	#include <asm/paravirt.h>
 #else
-#define __flush_tlb() __native_flush_tlb()
-#define __flush_tlb_global() __native_flush_tlb_global()
-#define __flush_tlb_single(addr) __native_flush_tlb_single(addr)
+	#define __flush_tlb() __native_flush_tlb()
+	#define __flush_tlb_global() __native_flush_tlb_global()
+	#define __flush_tlb_single(addr) __native_flush_tlb_single(addr)
 #endif
 
-struct tlb_state {
+struct tlb_state
+{
 #ifdef CONFIG_SMP
 	struct mm_struct *active_mm;
 	int state;
@@ -90,7 +91,9 @@ static inline void cr4_set_bits(unsigned long mask)
 	unsigned long cr4;
 
 	cr4 = this_cpu_read(cpu_tlbstate.cr4);
-	if ((cr4 | mask) != cr4) {
+
+	if ((cr4 | mask) != cr4)
+	{
 		cr4 |= mask;
 		this_cpu_write(cpu_tlbstate.cr4, cr4);
 		__write_cr4(cr4);
@@ -103,7 +106,9 @@ static inline void cr4_clear_bits(unsigned long mask)
 	unsigned long cr4;
 
 	cr4 = this_cpu_read(cpu_tlbstate.cr4);
-	if ((cr4 & ~mask) != cr4) {
+
+	if ((cr4 & ~mask) != cr4)
+	{
 		cr4 &= ~mask;
 		this_cpu_write(cpu_tlbstate.cr4, cr4);
 		__write_cr4(cr4);
@@ -128,8 +133,12 @@ extern u32 *trampoline_cr4_features;
 static inline void cr4_set_bits_and_update_boot(unsigned long mask)
 {
 	mmu_cr4_features |= mask;
+
 	if (trampoline_cr4_features)
+	{
 		*trampoline_cr4_features = mmu_cr4_features;
+	}
+
 	cr4_set_bits(mask);
 }
 
@@ -160,7 +169,8 @@ static inline void __native_flush_tlb_global(void)
 {
 	unsigned long flags;
 
-	if (static_cpu_has(X86_FEATURE_INVPCID)) {
+	if (static_cpu_has(X86_FEATURE_INVPCID))
+	{
 		/*
 		 * Using INVPCID is considerably faster than a pair of writes
 		 * to CR4 sandwiched inside an IRQ flag save/restore.
@@ -189,9 +199,13 @@ static inline void __native_flush_tlb_single(unsigned long addr)
 static inline void __flush_tlb_all(void)
 {
 	if (static_cpu_has(X86_FEATURE_PGE))
+	{
 		__flush_tlb_global();
+	}
 	else
+	{
 		__flush_tlb();
+	}
 }
 
 static inline void __flush_tlb_one(unsigned long addr)
@@ -250,34 +264,42 @@ static inline void local_flush_tlb(void)
 static inline void flush_tlb_mm(struct mm_struct *mm)
 {
 	if (mm == current->active_mm)
+	{
 		__flush_tlb_up();
+	}
 }
 
 static inline void flush_tlb_page(struct vm_area_struct *vma,
-				  unsigned long addr)
+								  unsigned long addr)
 {
 	if (vma->vm_mm == current->active_mm)
+	{
 		__flush_tlb_one(addr);
+	}
 }
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	if (vma->vm_mm == current->active_mm)
+	{
 		__flush_tlb_up();
+	}
 }
 
 static inline void flush_tlb_mm_range(struct mm_struct *mm,
-	   unsigned long start, unsigned long end, unsigned long vmflag)
+									  unsigned long start, unsigned long end, unsigned long vmflag)
 {
 	if (mm == current->active_mm)
+	{
 		__flush_tlb_up();
+	}
 }
 
 static inline void native_flush_tlb_others(const struct cpumask *cpumask,
-					   struct mm_struct *mm,
-					   unsigned long start,
-					   unsigned long end)
+		struct mm_struct *mm,
+		unsigned long start,
+		unsigned long end)
 {
 }
 
@@ -286,7 +308,7 @@ static inline void reset_lazy_tlbstate(void)
 }
 
 static inline void flush_tlb_kernel_range(unsigned long start,
-					  unsigned long end)
+		unsigned long end)
 {
 	flush_tlb_all();
 }
@@ -300,20 +322,20 @@ static inline void flush_tlb_kernel_range(unsigned long start,
 #define flush_tlb_mm(mm)	flush_tlb_mm_range(mm, 0UL, TLB_FLUSH_ALL, 0UL)
 
 #define flush_tlb_range(vma, start, end)	\
-		flush_tlb_mm_range(vma->vm_mm, start, end, vma->vm_flags)
+	flush_tlb_mm_range(vma->vm_mm, start, end, vma->vm_flags)
 
 extern void flush_tlb_all(void);
 extern void flush_tlb_current_task(void);
 extern void flush_tlb_page(struct vm_area_struct *, unsigned long);
 extern void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
-				unsigned long end, unsigned long vmflag);
+							   unsigned long end, unsigned long vmflag);
 extern void flush_tlb_kernel_range(unsigned long start, unsigned long end);
 
 #define flush_tlb()	flush_tlb_current_task()
 
 void native_flush_tlb_others(const struct cpumask *cpumask,
-				struct mm_struct *mm,
-				unsigned long start, unsigned long end);
+							 struct mm_struct *mm,
+							 unsigned long start, unsigned long end);
 
 #define TLBSTATE_OK	1
 #define TLBSTATE_LAZY	2

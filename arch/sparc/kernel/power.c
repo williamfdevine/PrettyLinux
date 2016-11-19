@@ -26,9 +26,14 @@ static irqreturn_t power_handler(int irq, void *dev_id)
 static int has_button_interrupt(unsigned int irq, struct device_node *dp)
 {
 	if (irq == 0xffffffff)
+	{
 		return 0;
+	}
+
 	if (!of_find_property(dp, "button", NULL))
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -41,25 +46,30 @@ static int power_probe(struct platform_device *op)
 	power_reg = of_ioremap(res, 0, 0x4, "power");
 
 	printk(KERN_INFO "%s: Control reg at %llx\n",
-	       op->dev.of_node->name, res->start);
+		   op->dev.of_node->name, res->start);
 
-	if (has_button_interrupt(irq, op->dev.of_node)) {
+	if (has_button_interrupt(irq, op->dev.of_node))
+	{
 		if (request_irq(irq,
-				power_handler, 0, "power", NULL) < 0)
+						power_handler, 0, "power", NULL) < 0)
+		{
 			printk(KERN_ERR "power: Cannot setup IRQ handler.\n");
+		}
 	}
 
 	return 0;
 }
 
-static const struct of_device_id power_match[] = {
+static const struct of_device_id power_match[] =
+{
 	{
 		.name = "power",
 	},
 	{},
 };
 
-static struct platform_driver power_driver = {
+static struct platform_driver power_driver =
+{
 	.probe		= power_probe,
 	.driver = {
 		.name = "power",

@@ -33,7 +33,10 @@ void *memset(void *s, int c, size_t n)
 	char *ss = s;
 
 	while (n--)
-	       	*ss++ = c;
+	{
+		*ss++ = c;
+	}
+
 	return s;
 }
 #endif
@@ -43,8 +46,11 @@ void *memcpy(void *dest, const void *src, size_t n)
 {
 	char *d = dest;
 	const char *s = src;
+
 	while (n--)
+	{
 		*d++ = *s++;
+	}
 
 	return dest;
 }
@@ -54,13 +60,13 @@ void *memcpy(void *dest, const void *src, size_t n)
 #endif
 
 #ifdef CONFIG_KERNEL_BZIP2
-#define BOOT_HEAP_SIZE             0x400000
-#include "../../../../lib/decompress_bunzip2.c"
+	#define BOOT_HEAP_SIZE             0x400000
+	#include "../../../../lib/decompress_bunzip2.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZMA
-#define BOOT_HEAP_SIZE             0x10000
-#include "../../../../lib/decompress_unlzma.c"
+	#define BOOT_HEAP_SIZE             0x10000
+	#include "../../../../lib/decompress_unlzma.c"
 #endif
 
 static void error(char *x)
@@ -69,24 +75,24 @@ static void error(char *x)
 	puts(x);
 	puts("\n\n -- System halted");
 
-	while(1);	/* Halt */
+	while (1);	/* Halt */
 }
 
 void
 decompress_kernel(int mmu_on, unsigned char *zimage_data,
-		  unsigned int zimage_len, unsigned long heap)
+				  unsigned int zimage_len, unsigned long heap)
 {
 	unsigned char *input_data = zimage_data;
 	int input_len = zimage_len;
 	unsigned char *output_data;
 
 	output_data = (unsigned char *)CONFIG_MEMORY_START + 0x2000
-		+ (mmu_on ? 0x80000000 : 0);
+				  + (mmu_on ? 0x80000000 : 0);
 	free_mem_ptr = heap;
 	free_mem_end_ptr = free_mem_ptr + BOOT_HEAP_SIZE;
 
 	puts("\nDecompressing Linux... ");
 	__decompress(input_data, input_len, NULL, NULL, output_data, 0,
-			NULL, error);
+				 NULL, error);
 	puts("done.\nBooting the kernel.\n");
 }

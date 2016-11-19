@@ -36,14 +36,14 @@
 #define SG_ENT_PHYS_ADDRESS(SG)	(__pa(sg_virt((SG))))
 
 static inline int is_span_boundary(unsigned long entry,
-				   unsigned long shift,
-				   unsigned long boundary_size,
-				   struct scatterlist *outs,
-				   struct scatterlist *sg)
+								   unsigned long shift,
+								   unsigned long boundary_size,
+								   struct scatterlist *outs,
+								   struct scatterlist *sg)
 {
 	unsigned long paddr = SG_ENT_PHYS_ADDRESS(outs);
 	int nr = iommu_num_pages(paddr, outs->dma_length + sg->length,
-				 IO_PAGE_SIZE);
+							 IO_PAGE_SIZE);
 
 	return iommu_is_span_boundary(entry, nr, shift, boundary_size);
 }

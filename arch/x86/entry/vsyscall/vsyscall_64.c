@@ -47,17 +47,26 @@ static enum { EMULATE, NATIVE, NONE } vsyscall_mode =
 	EMULATE;
 #endif
 
-static int __init vsyscall_setup(char *str)
+	static int __init vsyscall_setup(char *str)
 {
-	if (str) {
+	if (str)
+	{
 		if (!strcmp("emulate", str))
+		{
 			vsyscall_mode = EMULATE;
+		}
 		else if (!strcmp("native", str))
+		{
 			vsyscall_mode = NATIVE;
+		}
 		else if (!strcmp("none", str))
+		{
 			vsyscall_mode = NONE;
+		}
 		else
+		{
 			return -EINVAL;
+		}
 
 		return 0;
 	}
@@ -67,15 +76,17 @@ static int __init vsyscall_setup(char *str)
 early_param("vsyscall", vsyscall_setup);
 
 static void warn_bad_vsyscall(const char *level, struct pt_regs *regs,
-			      const char *message)
+							  const char *message)
 {
 	if (!show_unhandled_signals)
+	{
 		return;
+	}
 
 	printk_ratelimited("%s%s[%d] %s ip:%lx cs:%lx sp:%lx ax:%lx si:%lx di:%lx\n",
-			   level, current->comm, task_pid_nr(current),
-			   message, regs->ip, regs->cs,
-			   regs->sp, regs->ax, regs->si, regs->di);
+					   level, current->comm, task_pid_nr(current),
+					   message, regs->ip, regs->cs,
+					   regs->sp, regs->ax, regs->si, regs->di);
 }
 
 static int addr_to_vsyscall_nr(unsigned long addr)
@@ -83,11 +94,16 @@ static int addr_to_vsyscall_nr(unsigned long addr)
 	int nr;
 
 	if ((addr & ~0xC00UL) != VSYSCALL_ADDR)
+	{
 		return -EINVAL;
+	}
 
 	nr = (addr & 0xC00UL) >> 10;
+
 	if (nr >= 3)
+	{
 		return -EINVAL;
+	}
 
 	return nr;
 }
@@ -99,7 +115,8 @@ static bool write_ok_or_segv(unsigned long ptr, size_t size)
 	 * sig_on_uaccess_err, this could go away.
 	 */
 
-	if (!access_ok(VERIFY_WRITE, (void __user *)ptr, size)) {
+	if (!access_ok(VERIFY_WRITE, (void __user *)ptr, size))
+	{
 		siginfo_t info;
 		struct thread_struct *thread = &current->thread;
 
@@ -115,7 +132,9 @@ static bool write_ok_or_segv(unsigned long ptr, size_t size)
 
 		force_sig_info(SIGSEGV, &info, current);
 		return false;
-	} else {
+	}
+	else
+	{
 		return true;
 	}
 }
@@ -135,9 +154,10 @@ bool emulate_vsyscall(struct pt_regs *regs, unsigned long address)
 
 	WARN_ON_ONCE(address != regs->ip);
 
-	if (vsyscall_mode == NONE) {
+	if (vsyscall_mode == NONE)
+	{
 		warn_bad_vsyscall(KERN_INFO, regs,
-				  "vsyscall attempted with vsyscall=none");
+						  "vsyscall attempted with vsyscall=none");
 		return false;
 	}
 
@@ -145,15 +165,17 @@ bool emulate_vsyscall(struct pt_regs *regs, unsigned long address)
 
 	trace_emulate_vsyscall(vsyscall_nr);
 
-	if (vsyscall_nr < 0) {
+	if (vsyscall_nr < 0)
+	{
 		warn_bad_vsyscall(KERN_WARNING, regs,
-				  "misaligned vsyscall (exploit attempt or buggy program) -- look up the vsyscall kernel parameter if you need a workaround");
+						  "misaligned vsyscall (exploit attempt or buggy program) -- look up the vsyscall kernel parameter if you need a workaround");
 		goto sigsegv;
 	}
 
-	if (get_user(caller, (unsigned long __user *)regs->sp) != 0) {
+	if (get_user(caller, (unsigned long __user *)regs->sp) != 0)
+	{
 		warn_bad_vsyscall(KERN_WARNING, regs,
-				  "vsyscall with bad stack (exploit attempt?)");
+						  "vsyscall with bad stack (exploit attempt?)");
 		goto sigsegv;
 	}
 
@@ -167,35 +189,39 @@ bool emulate_vsyscall(struct pt_regs *regs, unsigned long address)
 	 * vsyscalls, NULL means "don't write anything" not "write it at
 	 * address 0".
 	 */
-	switch (vsyscall_nr) {
-	case 0:
-		if (!write_ok_or_segv(regs->di, sizeof(struct timeval)) ||
-		    !write_ok_or_segv(regs->si, sizeof(struct timezone))) {
-			ret = -EFAULT;
-			goto check_fault;
-		}
+	switch (vsyscall_nr)
+	{
+		case 0:
+			if (!write_ok_or_segv(regs->di, sizeof(struct timeval)) ||
+				!write_ok_or_segv(regs->si, sizeof(struct timezone)))
+			{
+				ret = -EFAULT;
+				goto check_fault;
+			}
 
-		syscall_nr = __NR_gettimeofday;
-		break;
+			syscall_nr = __NR_gettimeofday;
+			break;
 
-	case 1:
-		if (!write_ok_or_segv(regs->di, sizeof(time_t))) {
-			ret = -EFAULT;
-			goto check_fault;
-		}
+		case 1:
+			if (!write_ok_or_segv(regs->di, sizeof(time_t)))
+			{
+				ret = -EFAULT;
+				goto check_fault;
+			}
 
-		syscall_nr = __NR_time;
-		break;
+			syscall_nr = __NR_time;
+			break;
 
-	case 2:
-		if (!write_ok_or_segv(regs->di, sizeof(unsigned)) ||
-		    !write_ok_or_segv(regs->si, sizeof(unsigned))) {
-			ret = -EFAULT;
-			goto check_fault;
-		}
+		case 2:
+			if (!write_ok_or_segv(regs->di, sizeof(unsigned)) ||
+				!write_ok_or_segv(regs->si, sizeof(unsigned)))
+			{
+				ret = -EFAULT;
+				goto check_fault;
+			}
 
-		syscall_nr = __NR_getcpu;
-		break;
+			syscall_nr = __NR_getcpu;
+			break;
 	}
 
 	/*
@@ -208,14 +234,20 @@ bool emulate_vsyscall(struct pt_regs *regs, unsigned long address)
 	regs->orig_ax = syscall_nr;
 	regs->ax = -ENOSYS;
 	tmp = secure_computing(NULL);
-	if ((!tmp && regs->orig_ax != syscall_nr) || regs->ip != address) {
+
+	if ((!tmp && regs->orig_ax != syscall_nr) || regs->ip != address)
+	{
 		warn_bad_vsyscall(KERN_DEBUG, regs,
-				  "seccomp tried to change syscall nr or ip");
+						  "seccomp tried to change syscall nr or ip");
 		do_exit(SIGSYS);
 	}
+
 	regs->orig_ax = -1;
+
 	if (tmp)
-		goto do_ret;  /* skip requested */
+	{
+		goto do_ret;    /* skip requested */
+	}
 
 	/*
 	 * With a real vsyscall, page faults cause SIGSEGV.  We want to
@@ -225,39 +257,45 @@ bool emulate_vsyscall(struct pt_regs *regs, unsigned long address)
 	current->thread.sig_on_uaccess_err = 1;
 
 	ret = -EFAULT;
-	switch (vsyscall_nr) {
-	case 0:
-		ret = sys_gettimeofday(
-			(struct timeval __user *)regs->di,
-			(struct timezone __user *)regs->si);
-		break;
 
-	case 1:
-		ret = sys_time((time_t __user *)regs->di);
-		break;
+	switch (vsyscall_nr)
+	{
+		case 0:
+			ret = sys_gettimeofday(
+					  (struct timeval __user *)regs->di,
+					  (struct timezone __user *)regs->si);
+			break;
 
-	case 2:
-		ret = sys_getcpu((unsigned __user *)regs->di,
-				 (unsigned __user *)regs->si,
-				 NULL);
-		break;
+		case 1:
+			ret = sys_time((time_t __user *)regs->di);
+			break;
+
+		case 2:
+			ret = sys_getcpu((unsigned __user *)regs->di,
+							 (unsigned __user *)regs->si,
+							 NULL);
+			break;
 	}
 
 	current->thread.sig_on_uaccess_err = prev_sig_on_uaccess_err;
 
 check_fault:
-	if (ret == -EFAULT) {
+
+	if (ret == -EFAULT)
+	{
 		/* Bad news -- userspace fed a bad pointer to a vsyscall. */
 		warn_bad_vsyscall(KERN_INFO, regs,
-				  "vsyscall fault (exploit attempt?)");
+						  "vsyscall fault (exploit attempt?)");
 
 		/*
 		 * If we failed to generate a signal for any reason,
 		 * generate one here.  (This should be impossible.)
 		 */
 		if (WARN_ON_ONCE(!sigismember(&tsk->pending.signal, SIGBUS) &&
-				 !sigismember(&tsk->pending.signal, SIGSEGV)))
+						 !sigismember(&tsk->pending.signal, SIGSEGV)))
+		{
 			goto sigsegv;
+		}
 
 		return true;  /* Don't emulate the ret. */
 	}
@@ -284,10 +322,12 @@ static const char *gate_vma_name(struct vm_area_struct *vma)
 {
 	return "[vsyscall]";
 }
-static const struct vm_operations_struct gate_vma_ops = {
+static const struct vm_operations_struct gate_vma_ops =
+{
 	.name = gate_vma_name,
 };
-static struct vm_area_struct gate_vma = {
+static struct vm_area_struct gate_vma =
+{
 	.vm_start	= VSYSCALL_ADDR,
 	.vm_end		= VSYSCALL_ADDR + PAGE_SIZE,
 	.vm_page_prot	= PAGE_READONLY_EXEC,
@@ -298,11 +338,19 @@ static struct vm_area_struct gate_vma = {
 struct vm_area_struct *get_gate_vma(struct mm_struct *mm)
 {
 #ifdef CONFIG_COMPAT
+
 	if (!mm || mm->context.ia32_compat)
+	{
 		return NULL;
+	}
+
 #endif
+
 	if (vsyscall_mode == NONE)
+	{
 		return NULL;
+	}
+
 	return &gate_vma;
 }
 
@@ -311,7 +359,9 @@ int in_gate_area(struct mm_struct *mm, unsigned long addr)
 	struct vm_area_struct *vma = get_gate_vma(mm);
 
 	if (!vma)
+	{
 		return 0;
+	}
 
 	return (addr >= vma->vm_start) && (addr < vma->vm_end);
 }
@@ -333,10 +383,10 @@ void __init map_vsyscall(void)
 
 	if (vsyscall_mode != NONE)
 		__set_fixmap(VSYSCALL_PAGE, physaddr_vsyscall,
-			     vsyscall_mode == NATIVE
-			     ? PAGE_KERNEL_VSYSCALL
-			     : PAGE_KERNEL_VVAR);
+					 vsyscall_mode == NATIVE
+					 ? PAGE_KERNEL_VSYSCALL
+					 : PAGE_KERNEL_VVAR);
 
 	BUILD_BUG_ON((unsigned long)__fix_to_virt(VSYSCALL_PAGE) !=
-		     (unsigned long)VSYSCALL_ADDR);
+				 (unsigned long)VSYSCALL_ADDR);
 }

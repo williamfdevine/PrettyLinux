@@ -41,9 +41,9 @@
 
 
 #ifdef CONFIG_ARM_GIC_V3
-#define KVM_MAX_VCPUS VGIC_V3_MAX_CPUS
+	#define KVM_MAX_VCPUS VGIC_V3_MAX_CPUS
 #else
-#define KVM_MAX_VCPUS VGIC_V2_MAX_CPUS
+	#define KVM_MAX_VCPUS VGIC_V2_MAX_CPUS
 #endif
 
 #define KVM_REQ_VCPU_EXIT	8
@@ -53,7 +53,8 @@ int __attribute_const__ kvm_target_cpu(void);
 int kvm_reset_vcpu(struct kvm_vcpu *vcpu);
 void kvm_reset_coprocs(struct kvm_vcpu *vcpu);
 
-struct kvm_arch {
+struct kvm_arch
+{
 	/* VTTBR value associated with below pgd and vmid */
 	u64    vttbr;
 
@@ -86,12 +87,14 @@ struct kvm_arch {
  * We don't want allocation failures within the mmu code, so we preallocate
  * enough memory for a single page fault in a cache.
  */
-struct kvm_mmu_memory_cache {
+struct kvm_mmu_memory_cache
+{
 	int nobjs;
 	void *objects[KVM_NR_MEM_OBJS];
 };
 
-struct kvm_vcpu_fault_info {
+struct kvm_vcpu_fault_info
+{
 	u32 hsr;		/* Hyp Syndrome Register */
 	u32 hxfar;		/* Hyp Data/Inst. Fault Address Register */
 	u32 hpfar;		/* Hyp IPA Fault Address Register */
@@ -101,7 +104,8 @@ struct kvm_vcpu_fault_info {
  * 0 is reserved as an invalid value.
  * Order should be kept in sync with the save/restore code.
  */
-enum vcpu_sysreg {
+enum vcpu_sysreg
+{
 	__INVALID_SYSREG__,
 	c0_MPIDR,		/* MultiProcessor ID Register */
 	c0_CSSELR,		/* Cache Size Selection Register */
@@ -136,7 +140,8 @@ enum vcpu_sysreg {
 	NR_CP15_REGS		/* Number of regs (incl. invalid) */
 };
 
-struct kvm_cpu_context {
+struct kvm_cpu_context
+{
 	struct kvm_regs	gp_regs;
 	struct vfp_hard_struct vfp;
 	u32 cp15[NR_CP15_REGS];
@@ -144,7 +149,8 @@ struct kvm_cpu_context {
 
 typedef struct kvm_cpu_context kvm_cpu_context_t;
 
-struct kvm_vcpu_arch {
+struct kvm_vcpu_arch
+{
 	struct kvm_cpu_context ctxt;
 
 	int target; /* Processor target */
@@ -177,7 +183,7 @@ struct kvm_vcpu_arch {
 	/* vcpu power-off state */
 	bool power_off;
 
-	 /* Don't run the guest (internal implementation need) */
+	/* Don't run the guest (internal implementation need) */
 	bool pause;
 
 	/* IO related fields */
@@ -190,11 +196,13 @@ struct kvm_vcpu_arch {
 	bool has_run_once;
 };
 
-struct kvm_vm_stat {
+struct kvm_vm_stat
+{
 	ulong remote_tlb_flush;
 };
 
-struct kvm_vcpu_stat {
+struct kvm_vcpu_stat
+{
 	u64 halt_successful_poll;
 	u64 halt_attempted_poll;
 	u64 halt_poll_invalid;
@@ -220,7 +228,7 @@ void force_vm_exit(const cpumask_t *mask);
 #define KVM_ARCH_WANT_MMU_NOTIFIER
 int kvm_unmap_hva(struct kvm *kvm, unsigned long hva);
 int kvm_unmap_hva_range(struct kvm *kvm,
-			unsigned long start, unsigned long end);
+						unsigned long start, unsigned long end);
 void kvm_set_spte_hva(struct kvm *kvm, unsigned long hva, pte_t pte);
 
 unsigned long kvm_arm_num_regs(struct kvm_vcpu *vcpu);
@@ -230,7 +238,7 @@ int kvm_test_age_hva(struct kvm *kvm, unsigned long hva);
 
 /* We do not have shadow page tables, hence the empty hooks */
 static inline void kvm_arch_mmu_notifier_invalidate_page(struct kvm *kvm,
-							 unsigned long address)
+		unsigned long address)
 {
 }
 
@@ -247,11 +255,11 @@ int kvm_arm_coproc_get_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *);
 int kvm_arm_coproc_set_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *);
 
 int handle_exit(struct kvm_vcpu *vcpu, struct kvm_run *run,
-		int exception_index);
+				int exception_index);
 
 static inline void __cpu_init_hyp_mode(phys_addr_t pgd_ptr,
-				       unsigned long hyp_stack_ptr,
-				       unsigned long vector_ptr)
+									   unsigned long hyp_stack_ptr,
+									   unsigned long vector_ptr)
 {
 	/*
 	 * Call initialization code, and switch to the full blown HYP
@@ -266,7 +274,7 @@ static inline void __cpu_init_hyp_mode(phys_addr_t pgd_ptr,
 	 * compliant with the PCS!).
 	 */
 
-	kvm_call_hyp((void*)hyp_stack_ptr, vector_ptr, pgd_ptr);
+	kvm_call_hyp((void *)hyp_stack_ptr, vector_ptr, pgd_ptr);
 }
 
 static inline void __cpu_init_stage2(void)
@@ -275,7 +283,7 @@ static inline void __cpu_init_stage2(void)
 }
 
 static inline void __cpu_reset_hyp_mode(unsigned long vector_ptr,
-					phys_addr_t phys_idmap_start)
+										phys_addr_t phys_idmap_start)
 {
 	kvm_call_hyp((void *)virt_to_idmap(__kvm_hyp_reset), vector_ptr);
 }
@@ -303,17 +311,17 @@ static inline void kvm_arm_setup_debug(struct kvm_vcpu *vcpu) {}
 static inline void kvm_arm_clear_debug(struct kvm_vcpu *vcpu) {}
 static inline void kvm_arm_reset_debug_ptr(struct kvm_vcpu *vcpu) {}
 static inline int kvm_arm_vcpu_arch_set_attr(struct kvm_vcpu *vcpu,
-					     struct kvm_device_attr *attr)
+		struct kvm_device_attr *attr)
 {
 	return -ENXIO;
 }
 static inline int kvm_arm_vcpu_arch_get_attr(struct kvm_vcpu *vcpu,
-					     struct kvm_device_attr *attr)
+		struct kvm_device_attr *attr)
 {
 	return -ENXIO;
 }
 static inline int kvm_arm_vcpu_arch_has_attr(struct kvm_vcpu *vcpu,
-					     struct kvm_device_attr *attr)
+		struct kvm_device_attr *attr)
 {
 	return -ENXIO;
 }

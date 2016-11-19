@@ -40,12 +40,17 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
 	ops->backtrace = metag_backtrace;
 
 	if (perf_num_counters() == 0)
+	{
 		return -ENODEV;
+	}
 
 	metag_pmu_op_name = kasprintf(GFP_KERNEL, "metag/%s",
-				      perf_pmu_name());
+								  perf_pmu_name());
+
 	if (unlikely(!metag_pmu_op_name))
+	{
 		return -ENOMEM;
+	}
 
 	return oprofile_perf_init(ops);
 }

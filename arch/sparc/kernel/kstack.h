@@ -13,22 +13,35 @@ static inline bool kstack_valid(struct thread_info *tp, unsigned long sp)
 
 	/* Stack pointer must be 16-byte aligned.  */
 	if (sp & (16UL - 1))
+	{
 		return false;
+	}
 
 	if (sp >= (base + sizeof(struct thread_info)) &&
-	    sp <= (base + THREAD_SIZE - sizeof(struct sparc_stackf)))
+		sp <= (base + THREAD_SIZE - sizeof(struct sparc_stackf)))
+	{
 		return true;
-
-	if (hardirq_stack[tp->cpu]) {
-		base = (unsigned long) hardirq_stack[tp->cpu];
-		if (sp >= base &&
-		    sp <= (base + THREAD_SIZE - sizeof(struct sparc_stackf)))
-			return true;
-		base = (unsigned long) softirq_stack[tp->cpu];
-		if (sp >= base &&
-		    sp <= (base + THREAD_SIZE - sizeof(struct sparc_stackf)))
-			return true;
 	}
+
+	if (hardirq_stack[tp->cpu])
+	{
+		base = (unsigned long) hardirq_stack[tp->cpu];
+
+		if (sp >= base &&
+			sp <= (base + THREAD_SIZE - sizeof(struct sparc_stackf)))
+		{
+			return true;
+		}
+
+		base = (unsigned long) softirq_stack[tp->cpu];
+
+		if (sp >= base &&
+			sp <= (base + THREAD_SIZE - sizeof(struct sparc_stackf)))
+		{
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -39,24 +52,39 @@ static inline bool kstack_is_trap_frame(struct thread_info *tp, struct pt_regs *
 	unsigned long addr = (unsigned long) regs;
 
 	if (addr >= base &&
-	    addr <= (base + THREAD_SIZE - sizeof(*regs)))
+		addr <= (base + THREAD_SIZE - sizeof(*regs)))
+	{
 		goto check_magic;
-
-	if (hardirq_stack[tp->cpu]) {
-		base = (unsigned long) hardirq_stack[tp->cpu];
-		if (addr >= base &&
-		    addr <= (base + THREAD_SIZE - sizeof(*regs)))
-			goto check_magic;
-		base = (unsigned long) softirq_stack[tp->cpu];
-		if (addr >= base &&
-		    addr <= (base + THREAD_SIZE - sizeof(*regs)))
-			goto check_magic;
 	}
+
+	if (hardirq_stack[tp->cpu])
+	{
+		base = (unsigned long) hardirq_stack[tp->cpu];
+
+		if (addr >= base &&
+			addr <= (base + THREAD_SIZE - sizeof(*regs)))
+		{
+			goto check_magic;
+		}
+
+		base = (unsigned long) softirq_stack[tp->cpu];
+
+		if (addr >= base &&
+			addr <= (base + THREAD_SIZE - sizeof(*regs)))
+		{
+			goto check_magic;
+		}
+	}
+
 	return false;
 
 check_magic:
+
 	if ((regs->magic & ~0x1ff) == PT_REGS_MAGIC)
+	{
 		return true;
+	}
+
 	return false;
 
 }
@@ -66,8 +94,10 @@ static inline __attribute__((always_inline)) void *set_hardirq_stack(void)
 	void *orig_sp, *sp = hardirq_stack[smp_processor_id()];
 
 	__asm__ __volatile__("mov %%sp, %0" : "=r" (orig_sp));
+
 	if (orig_sp < sp ||
-	    orig_sp > (sp + THREAD_SIZE)) {
+		orig_sp > (sp + THREAD_SIZE))
+	{
 		sp += THREAD_SIZE - 192 - STACK_BIAS;
 		__asm__ __volatile__("mov %0, %%sp" : : "r" (sp));
 	}

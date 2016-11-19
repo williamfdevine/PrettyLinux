@@ -29,5 +29,7 @@ void __init check_bugs(void)
 	 * very little benefit for that case.
 	 */
 	if (!direct_gbpages)
+	{
 		set_memory_4k((unsigned long)__va(0), 1);
+	}
 }

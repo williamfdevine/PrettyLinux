@@ -31,22 +31,23 @@
  */
 
 #ifdef CONFIG_BLK_DEV_IDE_AU1XXX_MDMA2_DBDMA
-#define DMA_WAIT_TIMEOUT	100
-#define NUM_DESCRIPTORS		PRD_ENTRIES
+	#define DMA_WAIT_TIMEOUT	100
+	#define NUM_DESCRIPTORS		PRD_ENTRIES
 #else /* CONFIG_BLK_DEV_IDE_AU1XXX_PIO_DBDMA */
-#define NUM_DESCRIPTORS		2
+	#define NUM_DESCRIPTORS		2
 #endif
 
 #ifndef AU1XXX_ATA_RQSIZE
-#define AU1XXX_ATA_RQSIZE	128
+	#define AU1XXX_ATA_RQSIZE	128
 #endif
 
 /* Disable Burstable-Support for DBDMA */
 #ifndef CONFIG_BLK_DEV_IDE_AU1XXX_BURSTABLE_ON
-#define CONFIG_BLK_DEV_IDE_AU1XXX_BURSTABLE_ON	0
+	#define CONFIG_BLK_DEV_IDE_AU1XXX_BURSTABLE_ON	0
 #endif
 
-typedef struct {
+typedef struct
+{
 	u32			tx_dev_id, rx_dev_id, target_dev_id;
 	u32			tx_chan, rx_chan;
 	void			*tx_desc_head, *rx_desc_head;

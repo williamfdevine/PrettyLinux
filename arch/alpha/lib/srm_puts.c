@@ -11,7 +11,9 @@ srm_puts(const char *str, long len)
 	long remaining, written;
 
 	if (!callback_init_done)
+	{
 		return len;
+	}
 
 	for (remaining = len; remaining > 0; remaining -= written)
 	{
@@ -19,5 +21,6 @@ srm_puts(const char *str, long len)
 		written &= 0xffffffff;
 		str += written;
 	}
+
 	return len;
 }

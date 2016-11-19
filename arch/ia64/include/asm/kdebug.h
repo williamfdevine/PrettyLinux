@@ -25,7 +25,8 @@
  *		events.
  */
 
-enum die_val {
+enum die_val
+{
 	DIE_BREAK = 1,
 	DIE_FAULT,
 	DIE_OOPS,

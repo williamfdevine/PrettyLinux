@@ -44,7 +44,8 @@
 #define QUEUE_IRQ_SRC_NOT_NEARLY_FULL	6
 #define QUEUE_IRQ_SRC_NOT_FULL		7
 
-struct qmgr_regs {
+struct qmgr_regs
+{
 	u32 acc[QUEUES][MAX_QUEUE_LENGTH]; /* 0x000 - 0x3FF */
 	u32 stat1[4];		/* 0x400 - 0x40F */
 	u32 stat2[2];		/* 0x410 - 0x417 */
@@ -58,7 +59,7 @@ struct qmgr_regs {
 };
 
 void qmgr_set_irq(unsigned int queue, int src,
-		  void (*handler)(void *pdev), void *pdev);
+				  void (*handler)(void *pdev), void *pdev);
 void qmgr_enable_irq(unsigned int queue);
 void qmgr_disable_irq(unsigned int queue);
 
@@ -68,17 +69,17 @@ void qmgr_disable_irq(unsigned int queue);
 extern char qmgr_queue_descs[QUEUES][32];
 
 int qmgr_request_queue(unsigned int queue, unsigned int len /* dwords */,
-		       unsigned int nearly_empty_watermark,
-		       unsigned int nearly_full_watermark,
-		       const char *desc_format, const char* name);
+					   unsigned int nearly_empty_watermark,
+					   unsigned int nearly_full_watermark,
+					   const char *desc_format, const char *name);
 #else
 int __qmgr_request_queue(unsigned int queue, unsigned int len /* dwords */,
-			 unsigned int nearly_empty_watermark,
-			 unsigned int nearly_full_watermark);
+						 unsigned int nearly_empty_watermark,
+						 unsigned int nearly_full_watermark);
 #define qmgr_request_queue(queue, len, nearly_empty_watermark,		\
-			   nearly_full_watermark, desc_format, name)	\
-	__qmgr_request_queue(queue, len, nearly_empty_watermark,	\
-			     nearly_full_watermark)
+						   nearly_full_watermark, desc_format, name)	\
+__qmgr_request_queue(queue, len, nearly_empty_watermark,	\
+					 nearly_full_watermark)
 #endif
 
 void qmgr_release_queue(unsigned int queue);
@@ -91,7 +92,7 @@ static inline void qmgr_put_entry(unsigned int queue, u32 val)
 	BUG_ON(!qmgr_queue_descs[queue]); /* not yet requested */
 
 	printk(KERN_DEBUG "Queue %s(%i) put %X\n",
-	       qmgr_queue_descs[queue], queue, val);
+		   qmgr_queue_descs[queue], queue, val);
 #endif
 	__raw_writel(val, &qmgr_regs->acc[queue][0]);
 }
@@ -105,7 +106,7 @@ static inline u32 qmgr_get_entry(unsigned int queue)
 	BUG_ON(!qmgr_queue_descs[queue]); /* not yet requested */
 
 	printk(KERN_DEBUG "Queue %s(%i) get %X\n",
-	       qmgr_queue_descs[queue], queue, val);
+		   qmgr_queue_descs[queue], queue, val);
 #endif
 	return val;
 }
@@ -114,7 +115,7 @@ static inline int __qmgr_get_stat1(unsigned int queue)
 {
 	const struct qmgr_regs __iomem *qmgr_regs = IXP4XX_QMGR_BASE_VIRT;
 	return (__raw_readl(&qmgr_regs->stat1[queue >> 3])
-		>> ((queue & 7) << 2)) & 0xF;
+			>> ((queue & 7) << 2)) & 0xF;
 }
 
 static inline int __qmgr_get_stat2(unsigned int queue)
@@ -122,7 +123,7 @@ static inline int __qmgr_get_stat2(unsigned int queue)
 	const struct qmgr_regs __iomem *qmgr_regs = IXP4XX_QMGR_BASE_VIRT;
 	BUG_ON(queue >= HALF_QUEUES);
 	return (__raw_readl(&qmgr_regs->stat2[queue >> 4])
-		>> ((queue & 0xF) << 1)) & 0x3;
+			>> ((queue & 0xF) << 1)) & 0x3;
 }
 
 /**
@@ -146,9 +147,11 @@ static inline int qmgr_stat_empty(unsigned int queue)
 static inline int qmgr_stat_below_low_watermark(unsigned int queue)
 {
 	const struct qmgr_regs __iomem *qmgr_regs = IXP4XX_QMGR_BASE_VIRT;
+
 	if (queue >= HALF_QUEUES)
 		return (__raw_readl(&qmgr_regs->statne_h) >>
-			(queue - HALF_QUEUES)) & 0x01;
+				(queue - HALF_QUEUES)) & 0x01;
+
 	return __qmgr_get_stat1(queue) & QUEUE_STAT1_NEARLY_EMPTY;
 }
 
@@ -173,9 +176,11 @@ static inline int qmgr_stat_above_high_watermark(unsigned int queue)
 static inline int qmgr_stat_full(unsigned int queue)
 {
 	const struct qmgr_regs __iomem *qmgr_regs = IXP4XX_QMGR_BASE_VIRT;
+
 	if (queue >= HALF_QUEUES)
 		return (__raw_readl(&qmgr_regs->statf_h) >>
-			(queue - HALF_QUEUES)) & 0x01;
+				(queue - HALF_QUEUES)) & 0x01;
+
 	return __qmgr_get_stat1(queue) & QUEUE_STAT1_FULL;
 }
 

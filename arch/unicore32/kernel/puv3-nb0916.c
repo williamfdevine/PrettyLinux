@@ -27,17 +27,20 @@
 
 #include <mach/hardware.h>
 
-static struct physmap_flash_data physmap_flash_data = {
+static struct physmap_flash_data physmap_flash_data =
+{
 	.width		= 1,
 };
 
-static struct resource physmap_flash_resource = {
+static struct resource physmap_flash_resource =
+{
 	.start		= 0xFFF80000,
 	.end		= 0xFFFFFFFF,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct resource puv3_i2c_resources[] = {
+static struct resource puv3_i2c_resources[] =
+{
 	[0] = {
 		.start = io_v2p(PKUNITY_I2C_BASE),
 		.end   = io_v2p(PKUNITY_I2C_BASE) + 0xff,
@@ -50,18 +53,21 @@ static struct resource puv3_i2c_resources[] = {
 	}
 };
 
-static struct pwm_lookup nb0916_pwm_lookup[] = {
+static struct pwm_lookup nb0916_pwm_lookup[] =
+{
 	PWM_LOOKUP("PKUnity-v3-PWM", 0, "pwm-backlight", NULL, 70 * 1024,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data nb0916_backlight_data = {
+static struct platform_pwm_backlight_data nb0916_backlight_data =
+{
 	.max_brightness	= 100,
 	.dft_brightness	= 100,
 	.enable_gpio	= -1,
 };
 
-static struct gpio_keys_button nb0916_gpio_keys[] = {
+static struct gpio_keys_button nb0916_gpio_keys[] =
+{
 	{
 		.type	= EV_KEY,
 		.code	= KEY_POWER,
@@ -80,7 +86,8 @@ static struct gpio_keys_button nb0916_gpio_keys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data nb0916_gpio_button_data = {
+static struct gpio_keys_platform_data nb0916_gpio_button_data =
+{
 	.buttons	= nb0916_gpio_keys,
 	.nbuttons	= ARRAY_SIZE(nb0916_gpio_keys),
 };
@@ -88,9 +95,13 @@ static struct gpio_keys_platform_data nb0916_gpio_button_data = {
 static irqreturn_t nb0916_lcdcaseoff_handler(int irq, void *dev_id)
 {
 	if (gpio_get_value(GPI_LCD_CASE_OFF))
+	{
 		gpio_set_value(GPO_LCD_EN, 1);
+	}
 	else
+	{
 		gpio_set_value(GPO_LCD_EN, 0);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -102,7 +113,8 @@ static irqreturn_t nb0916_overheat_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct i2c_board_info __initdata puv3_i2c_devices[] = {
+static struct i2c_board_info __initdata puv3_i2c_devices[] =
+{
 	{	I2C_BOARD_INFO("lm75",		I2C_TAR_THERMAL),	},
 	{	I2C_BOARD_INFO("bq27200",	I2C_TAR_PWIC),		},
 	{	I2C_BOARD_INFO("24c02",		I2C_TAR_EEPROM),	},
@@ -111,38 +123,40 @@ static struct i2c_board_info __initdata puv3_i2c_devices[] = {
 int __init mach_nb0916_init(void)
 {
 	i2c_register_board_info(0, puv3_i2c_devices,
-			ARRAY_SIZE(puv3_i2c_devices));
+							ARRAY_SIZE(puv3_i2c_devices));
 
 	platform_device_register_simple("PKUnity-v3-I2C", -1,
-			puv3_i2c_resources, ARRAY_SIZE(puv3_i2c_resources));
+									puv3_i2c_resources, ARRAY_SIZE(puv3_i2c_resources));
 
 	pwm_add_table(nb0916_pwm_lookup, ARRAY_SIZE(nb0916_pwm_lookup));
 
 	platform_device_register_data(NULL, "pwm-backlight", -1,
-			&nb0916_backlight_data, sizeof(nb0916_backlight_data));
+								  &nb0916_backlight_data, sizeof(nb0916_backlight_data));
 
 	platform_device_register_data(NULL, "gpio-keys", -1,
-			&nb0916_gpio_button_data, sizeof(nb0916_gpio_button_data));
+								  &nb0916_gpio_button_data, sizeof(nb0916_gpio_button_data));
 
 	platform_device_register_resndata(NULL, "physmap-flash", -1,
-			&physmap_flash_resource, 1,
-			&physmap_flash_data, sizeof(physmap_flash_data));
+									  &physmap_flash_resource, 1,
+									  &physmap_flash_data, sizeof(physmap_flash_data));
 
 	if (request_irq(gpio_to_irq(GPI_LCD_CASE_OFF),
-		&nb0916_lcdcaseoff_handler,
-		IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-		"NB0916 lcd case off", NULL) < 0) {
+					&nb0916_lcdcaseoff_handler,
+					IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+					"NB0916 lcd case off", NULL) < 0)
+	{
 
 		printk(KERN_DEBUG "LCD-Case-OFF IRQ %d not available\n",
-			gpio_to_irq(GPI_LCD_CASE_OFF));
+			   gpio_to_irq(GPI_LCD_CASE_OFF));
 	}
 
 	if (request_irq(gpio_to_irq(GPI_OTP_INT), &nb0916_overheat_handler,
-		IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-		"NB0916 overheating protection", NULL) < 0) {
+					IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+					"NB0916 overheating protection", NULL) < 0)
+	{
 
 		printk(KERN_DEBUG "Overheating Protection IRQ %d not available\n",
-			gpio_to_irq(GPI_OTP_INT));
+			   gpio_to_irq(GPI_OTP_INT));
 	}
 
 	return 0;

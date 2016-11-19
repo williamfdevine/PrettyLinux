@@ -11,7 +11,8 @@
 #include <linux/cpumask.h>
 #include <linux/percpu.h>
 
-struct vmemmap_backing {
+struct vmemmap_backing
+{
 	struct vmemmap_backing *list;
 	unsigned long phys;
 	unsigned long virt_addr;
@@ -37,9 +38,9 @@ extern struct vmemmap_backing *vmemmap_list;
 
 extern struct kmem_cache *pgtable_cache[];
 #define PGT_CACHE(shift) ({				\
-			BUG_ON(!(shift));		\
-			pgtable_cache[(shift) - 1];	\
-		})
+		BUG_ON(!(shift));		\
+		pgtable_cache[(shift) - 1];	\
+	})
 
 #define PGALLOC_GFP GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO
 
@@ -47,7 +48,7 @@ extern pte_t *pte_fragment_alloc(struct mm_struct *, unsigned long, int);
 extern void pte_fragment_free(unsigned long *, int);
 extern void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift);
 #ifdef CONFIG_SMP
-extern void __tlb_remove_table(void *_table);
+	extern void __tlb_remove_table(void *_table);
 #endif
 
 static inline pgd_t *radix__pgd_alloc(struct mm_struct *mm)
@@ -57,8 +58,12 @@ static inline pgd_t *radix__pgd_alloc(struct mm_struct *mm)
 #else
 	struct page *page;
 	page = alloc_pages(PGALLOC_GFP | __GFP_REPEAT, 4);
+
 	if (!page)
+	{
 		return NULL;
+	}
+
 	return (pgd_t *) page_address(page);
 #endif
 }
@@ -75,14 +80,20 @@ static inline void radix__pgd_free(struct mm_struct *mm, pgd_t *pgd)
 static inline pgd_t *pgd_alloc(struct mm_struct *mm)
 {
 	if (radix_enabled())
+	{
 		return radix__pgd_alloc(mm);
+	}
+
 	return kmem_cache_alloc(PGT_CACHE(PGD_INDEX_SIZE), GFP_KERNEL);
 }
 
 static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 {
 	if (radix_enabled())
+	{
 		return radix__pgd_free(mm, pgd);
+	}
+
 	kmem_cache_free(PGT_CACHE(PGD_INDEX_SIZE), pgd);
 }
 
@@ -107,14 +118,14 @@ static inline void pud_populate(struct mm_struct *mm, pud_t *pud, pmd_t *pmd)
 }
 
 static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pud,
-                                  unsigned long address)
+								  unsigned long address)
 {
 	/*
 	 * By now all the pud entries should be none entries. So go
 	 * ahead and flush the page walk cache
 	 */
 	flush_tlb_pgtable(tlb, address);
-        pgtable_free_tlb(tlb, pud, PUD_INDEX_SIZE);
+	pgtable_free_tlb(tlb, pud, PUD_INDEX_SIZE);
 }
 
 static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
@@ -128,24 +139,24 @@ static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
 }
 
 static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd,
-                                  unsigned long address)
+								  unsigned long address)
 {
 	/*
 	 * By now all the pud entries should be none entries. So go
 	 * ahead and flush the page walk cache
 	 */
 	flush_tlb_pgtable(tlb, address);
-        return pgtable_free_tlb(tlb, pmd, PMD_CACHE_INDEX);
+	return pgtable_free_tlb(tlb, pmd, PMD_CACHE_INDEX);
 }
 
 static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
-				       pte_t *pte)
+									   pte_t *pte)
 {
 	pmd_set(pmd, __pgtable_ptr_val(pte) | PMD_VAL_BITS);
 }
 
 static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
-				pgtable_t pte_page)
+								pgtable_t pte_page)
 {
 	pmd_set(pmd, __pgtable_ptr_val(pte_page) | PMD_VAL_BITS);
 }
@@ -157,37 +168,44 @@ static inline pgtable_t pmd_pgtable(pmd_t pmd)
 
 #ifdef CONFIG_PPC_4K_PAGES
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					  unsigned long address)
+		unsigned long address)
 {
 	return (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
 }
 
 static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
-				      unsigned long address)
+									  unsigned long address)
 {
 	struct page *page;
 	pte_t *pte;
 
 	pte = pte_alloc_one_kernel(mm, address);
+
 	if (!pte)
+	{
 		return NULL;
+	}
+
 	page = virt_to_page(pte);
-	if (!pgtable_page_ctor(page)) {
+
+	if (!pgtable_page_ctor(page))
+	{
 		__free_page(page);
 		return NULL;
 	}
+
 	return pte;
 }
 #else /* if CONFIG_PPC_64K_PAGES */
 
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					  unsigned long address)
+		unsigned long address)
 {
 	return (pte_t *)pte_fragment_alloc(mm, address, 1);
 }
 
 static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
-				      unsigned long address)
+									  unsigned long address)
 {
 	return (pgtable_t)pte_fragment_alloc(mm, address, 0);
 }
@@ -204,7 +222,7 @@ static inline void pte_free(struct mm_struct *mm, pgtable_t ptepage)
 }
 
 static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t table,
-				  unsigned long address)
+								  unsigned long address)
 {
 	/*
 	 * By now all the pud entries should be none entries. So go

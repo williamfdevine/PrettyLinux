@@ -1,7 +1,8 @@
 #ifndef _ASM_SCORE_USER_H
 #define _ASM_SCORE_USER_H
 
-struct user_regs_struct {
+struct user_regs_struct
+{
 	unsigned long regs[32];
 
 	unsigned long cel;

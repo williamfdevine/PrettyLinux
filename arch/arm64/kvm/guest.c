@@ -36,7 +36,8 @@
 #define VM_STAT(x) { #x, offsetof(struct kvm, stat.x), KVM_STAT_VM }
 #define VCPU_STAT(x) { #x, offsetof(struct kvm_vcpu, stat.x), KVM_STAT_VCPU }
 
-struct kvm_stats_debugfs_item debugfs_entries[] = {
+struct kvm_stats_debugfs_item debugfs_entries[] =
+{
 	VCPU_STAT(hvc_exit_stat),
 	VCPU_STAT(wfe_exit_stat),
 	VCPU_STAT(wfi_exit_stat),
@@ -71,12 +72,17 @@ static int get_core_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg)
 
 	/* Our ID is an index into the kvm_regs struct. */
 	off = core_reg_offset_from_id(reg->id);
+
 	if (off >= nr_regs ||
-	    (off + (KVM_REG_SIZE(reg->id) / sizeof(__u32))) >= nr_regs)
+		(off + (KVM_REG_SIZE(reg->id) / sizeof(__u32))) >= nr_regs)
+	{
 		return -ENOENT;
+	}
 
 	if (copy_to_user(uaddr, ((u32 *)regs) + off, KVM_REG_SIZE(reg->id)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -93,34 +99,44 @@ static int set_core_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg)
 
 	/* Our ID is an index into the kvm_regs struct. */
 	off = core_reg_offset_from_id(reg->id);
+
 	if (off >= nr_regs ||
-	    (off + (KVM_REG_SIZE(reg->id) / sizeof(__u32))) >= nr_regs)
+		(off + (KVM_REG_SIZE(reg->id) / sizeof(__u32))) >= nr_regs)
+	{
 		return -ENOENT;
+	}
 
 	if (KVM_REG_SIZE(reg->id) > sizeof(tmp))
+	{
 		return -EINVAL;
+	}
 
-	if (copy_from_user(valp, uaddr, KVM_REG_SIZE(reg->id))) {
+	if (copy_from_user(valp, uaddr, KVM_REG_SIZE(reg->id)))
+	{
 		err = -EFAULT;
 		goto out;
 	}
 
-	if (off == KVM_REG_ARM_CORE_REG(regs.pstate)) {
+	if (off == KVM_REG_ARM_CORE_REG(regs.pstate))
+	{
 		u32 mode = (*(u32 *)valp) & COMPAT_PSR_MODE_MASK;
-		switch (mode) {
-		case COMPAT_PSR_MODE_USR:
-		case COMPAT_PSR_MODE_FIQ:
-		case COMPAT_PSR_MODE_IRQ:
-		case COMPAT_PSR_MODE_SVC:
-		case COMPAT_PSR_MODE_ABT:
-		case COMPAT_PSR_MODE_UND:
-		case PSR_MODE_EL0t:
-		case PSR_MODE_EL1t:
-		case PSR_MODE_EL1h:
-			break;
-		default:
-			err = -EINVAL;
-			goto out;
+
+		switch (mode)
+		{
+			case COMPAT_PSR_MODE_USR:
+			case COMPAT_PSR_MODE_FIQ:
+			case COMPAT_PSR_MODE_IRQ:
+			case COMPAT_PSR_MODE_SVC:
+			case COMPAT_PSR_MODE_ABT:
+			case COMPAT_PSR_MODE_UND:
+			case PSR_MODE_EL0t:
+			case PSR_MODE_EL1t:
+			case PSR_MODE_EL1h:
+				break;
+
+			default:
+				err = -EINVAL;
+				goto out;
 		}
 	}
 
@@ -152,25 +168,37 @@ static unsigned long num_core_regs(void)
 
 static bool is_timer_reg(u64 index)
 {
-	switch (index) {
-	case KVM_REG_ARM_TIMER_CTL:
-	case KVM_REG_ARM_TIMER_CNT:
-	case KVM_REG_ARM_TIMER_CVAL:
-		return true;
+	switch (index)
+	{
+		case KVM_REG_ARM_TIMER_CTL:
+		case KVM_REG_ARM_TIMER_CNT:
+		case KVM_REG_ARM_TIMER_CVAL:
+			return true;
 	}
+
 	return false;
 }
 
 static int copy_timer_indices(struct kvm_vcpu *vcpu, u64 __user *uindices)
 {
 	if (put_user(KVM_REG_ARM_TIMER_CTL, uindices))
+	{
 		return -EFAULT;
+	}
+
 	uindices++;
+
 	if (put_user(KVM_REG_ARM_TIMER_CNT, uindices))
+	{
 		return -EFAULT;
+	}
+
 	uindices++;
+
 	if (put_user(KVM_REG_ARM_TIMER_CVAL, uindices))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -182,8 +210,11 @@ static int set_timer_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg)
 	int ret;
 
 	ret = copy_from_user(&val, uaddr, KVM_REG_SIZE(reg->id));
+
 	if (ret != 0)
+	{
 		return -EFAULT;
+	}
 
 	return kvm_arm_timer_set_reg(vcpu, reg->id, val);
 }
@@ -205,7 +236,7 @@ static int get_timer_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg)
 unsigned long kvm_arm_num_regs(struct kvm_vcpu *vcpu)
 {
 	return num_core_regs() + kvm_arm_num_sys_reg_descs(vcpu)
-                + NUM_TIMER_REGS;
+		   + NUM_TIMER_REGS;
 }
 
 /**
@@ -219,15 +250,23 @@ int kvm_arm_copy_reg_indices(struct kvm_vcpu *vcpu, u64 __user *uindices)
 	const u64 core_reg = KVM_REG_ARM64 | KVM_REG_SIZE_U64 | KVM_REG_ARM_CORE;
 	int ret;
 
-	for (i = 0; i < sizeof(struct kvm_regs) / sizeof(__u32); i++) {
+	for (i = 0; i < sizeof(struct kvm_regs) / sizeof(__u32); i++)
+	{
 		if (put_user(core_reg | i, uindices))
+		{
 			return -EFAULT;
+		}
+
 		uindices++;
 	}
 
 	ret = copy_timer_indices(vcpu, uindices);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	uindices += NUM_TIMER_REGS;
 
 	return kvm_arm_copy_sys_reg_indices(vcpu, uindices);
@@ -237,14 +276,20 @@ int kvm_arm_get_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg)
 {
 	/* We currently use nothing arch-specific in upper 32 bits */
 	if ((reg->id & ~KVM_REG_SIZE_MASK) >> 32 != KVM_REG_ARM64 >> 32)
+	{
 		return -EINVAL;
+	}
 
 	/* Register group 16 means we want a core register. */
 	if ((reg->id & KVM_REG_ARM_COPROC_MASK) == KVM_REG_ARM_CORE)
+	{
 		return get_core_reg(vcpu, reg);
+	}
 
 	if (is_timer_reg(reg->id))
+	{
 		return get_timer_reg(vcpu, reg);
+	}
 
 	return kvm_arm_sys_reg_get_reg(vcpu, reg);
 }
@@ -253,26 +298,32 @@ int kvm_arm_set_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg)
 {
 	/* We currently use nothing arch-specific in upper 32 bits */
 	if ((reg->id & ~KVM_REG_SIZE_MASK) >> 32 != KVM_REG_ARM64 >> 32)
+	{
 		return -EINVAL;
+	}
 
 	/* Register group 16 means we set a core register. */
 	if ((reg->id & KVM_REG_ARM_COPROC_MASK) == KVM_REG_ARM_CORE)
+	{
 		return set_core_reg(vcpu, reg);
+	}
 
 	if (is_timer_reg(reg->id))
+	{
 		return set_timer_reg(vcpu, reg);
+	}
 
 	return kvm_arm_sys_reg_set_reg(vcpu, reg);
 }
 
 int kvm_arch_vcpu_ioctl_get_sregs(struct kvm_vcpu *vcpu,
-				  struct kvm_sregs *sregs)
+								  struct kvm_sregs *sregs)
 {
 	return -EINVAL;
 }
 
 int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
-				  struct kvm_sregs *sregs)
+								  struct kvm_sregs *sregs)
 {
 	return -EINVAL;
 }
@@ -282,25 +333,34 @@ int __attribute_const__ kvm_target_cpu(void)
 	unsigned long implementor = read_cpuid_implementor();
 	unsigned long part_number = read_cpuid_part_number();
 
-	switch (implementor) {
-	case ARM_CPU_IMP_ARM:
-		switch (part_number) {
-		case ARM_CPU_PART_AEM_V8:
-			return KVM_ARM_TARGET_AEM_V8;
-		case ARM_CPU_PART_FOUNDATION:
-			return KVM_ARM_TARGET_FOUNDATION_V8;
-		case ARM_CPU_PART_CORTEX_A53:
-			return KVM_ARM_TARGET_CORTEX_A53;
-		case ARM_CPU_PART_CORTEX_A57:
-			return KVM_ARM_TARGET_CORTEX_A57;
-		};
-		break;
-	case ARM_CPU_IMP_APM:
-		switch (part_number) {
-		case APM_CPU_PART_POTENZA:
-			return KVM_ARM_TARGET_XGENE_POTENZA;
-		};
-		break;
+	switch (implementor)
+	{
+		case ARM_CPU_IMP_ARM:
+			switch (part_number)
+			{
+				case ARM_CPU_PART_AEM_V8:
+					return KVM_ARM_TARGET_AEM_V8;
+
+				case ARM_CPU_PART_FOUNDATION:
+					return KVM_ARM_TARGET_FOUNDATION_V8;
+
+				case ARM_CPU_PART_CORTEX_A53:
+					return KVM_ARM_TARGET_CORTEX_A53;
+
+				case ARM_CPU_PART_CORTEX_A57:
+					return KVM_ARM_TARGET_CORTEX_A57;
+			};
+
+			break;
+
+		case ARM_CPU_IMP_APM:
+			switch (part_number)
+			{
+				case APM_CPU_PART_POTENZA:
+					return KVM_ARM_TARGET_XGENE_POTENZA;
+			};
+
+			break;
 	};
 
 	/* Return a default generic target */
@@ -312,7 +372,9 @@ int kvm_vcpu_preferred_target(struct kvm_vcpu_init *init)
 	int target = kvm_target_cpu();
 
 	if (target < 0)
+	{
 		return -ENODEV;
+	}
 
 	memset(init, 0, sizeof(*init));
 
@@ -338,15 +400,15 @@ int kvm_arch_vcpu_ioctl_set_fpu(struct kvm_vcpu *vcpu, struct kvm_fpu *fpu)
 }
 
 int kvm_arch_vcpu_ioctl_translate(struct kvm_vcpu *vcpu,
-				  struct kvm_translation *tr)
+								  struct kvm_translation *tr)
 {
 	return -EINVAL;
 }
 
 #define KVM_GUESTDBG_VALID_MASK (KVM_GUESTDBG_ENABLE |    \
-			    KVM_GUESTDBG_USE_SW_BP | \
-			    KVM_GUESTDBG_USE_HW | \
-			    KVM_GUESTDBG_SINGLESTEP)
+								 KVM_GUESTDBG_USE_SW_BP | \
+								 KVM_GUESTDBG_USE_HW | \
+								 KVM_GUESTDBG_SINGLESTEP)
 
 /**
  * kvm_arch_vcpu_ioctl_set_guest_debug - set up guest debugging
@@ -359,74 +421,87 @@ int kvm_arch_vcpu_ioctl_translate(struct kvm_vcpu *vcpu,
  * the structure.
  */
 int kvm_arch_vcpu_ioctl_set_guest_debug(struct kvm_vcpu *vcpu,
-					struct kvm_guest_debug *dbg)
+										struct kvm_guest_debug *dbg)
 {
 	trace_kvm_set_guest_debug(vcpu, dbg->control);
 
 	if (dbg->control & ~KVM_GUESTDBG_VALID_MASK)
+	{
 		return -EINVAL;
+	}
 
-	if (dbg->control & KVM_GUESTDBG_ENABLE) {
+	if (dbg->control & KVM_GUESTDBG_ENABLE)
+	{
 		vcpu->guest_debug = dbg->control;
 
 		/* Hardware assisted Break and Watch points */
-		if (vcpu->guest_debug & KVM_GUESTDBG_USE_HW) {
+		if (vcpu->guest_debug & KVM_GUESTDBG_USE_HW)
+		{
 			vcpu->arch.external_debug_state = dbg->arch;
 		}
 
-	} else {
+	}
+	else
+	{
 		/* If not enabled clear all flags */
 		vcpu->guest_debug = 0;
 	}
+
 	return 0;
 }
 
 int kvm_arm_vcpu_arch_set_attr(struct kvm_vcpu *vcpu,
-			       struct kvm_device_attr *attr)
+							   struct kvm_device_attr *attr)
 {
 	int ret;
 
-	switch (attr->group) {
-	case KVM_ARM_VCPU_PMU_V3_CTRL:
-		ret = kvm_arm_pmu_v3_set_attr(vcpu, attr);
-		break;
-	default:
-		ret = -ENXIO;
-		break;
+	switch (attr->group)
+	{
+		case KVM_ARM_VCPU_PMU_V3_CTRL:
+			ret = kvm_arm_pmu_v3_set_attr(vcpu, attr);
+			break;
+
+		default:
+			ret = -ENXIO;
+			break;
 	}
 
 	return ret;
 }
 
 int kvm_arm_vcpu_arch_get_attr(struct kvm_vcpu *vcpu,
-			       struct kvm_device_attr *attr)
+							   struct kvm_device_attr *attr)
 {
 	int ret;
 
-	switch (attr->group) {
-	case KVM_ARM_VCPU_PMU_V3_CTRL:
-		ret = kvm_arm_pmu_v3_get_attr(vcpu, attr);
-		break;
-	default:
-		ret = -ENXIO;
-		break;
+	switch (attr->group)
+	{
+		case KVM_ARM_VCPU_PMU_V3_CTRL:
+			ret = kvm_arm_pmu_v3_get_attr(vcpu, attr);
+			break;
+
+		default:
+			ret = -ENXIO;
+			break;
 	}
 
 	return ret;
 }
 
 int kvm_arm_vcpu_arch_has_attr(struct kvm_vcpu *vcpu,
-			       struct kvm_device_attr *attr)
+							   struct kvm_device_attr *attr)
 {
 	int ret;
 
-	switch (attr->group) {
-	case KVM_ARM_VCPU_PMU_V3_CTRL:
-		ret = kvm_arm_pmu_v3_has_attr(vcpu, attr);
-		break;
-	default:
-		ret = -ENXIO;
-		break;
+	switch (attr->group)
+	{
+		case KVM_ARM_VCPU_PMU_V3_CTRL:
+			ret = kvm_arm_pmu_v3_has_attr(vcpu, attr);
+			break;
+
+		default:
+			ret = -ENXIO;
+			break;
 	}
 
 	return ret;

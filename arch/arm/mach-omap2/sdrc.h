@@ -67,7 +67,8 @@ extern void omap2_set_globals_sdrc(void __iomem *sdrc, void __iomem *sms);
  * intended to be pre-computed and specified in an array in the board-*.c
  * files.  The structure is keyed off the 'rate' field.
  */
-struct omap_sdrc_params {
+struct omap_sdrc_params
+{
 	unsigned long rate;
 	u32 actim_ctrla;
 	u32 actim_ctrlb;
@@ -77,19 +78,20 @@ struct omap_sdrc_params {
 
 #ifdef CONFIG_SOC_HAS_OMAP2_SDRC
 void omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
-			    struct omap_sdrc_params *sdrc_cs1);
+					 struct omap_sdrc_params *sdrc_cs1);
 #else
 static inline void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
-					  struct omap_sdrc_params *sdrc_cs1) {};
+		struct omap_sdrc_params *sdrc_cs1) {};
 #endif
 
 int omap2_sdrc_get_params(unsigned long r,
-			  struct omap_sdrc_params **sdrc_cs0,
-			  struct omap_sdrc_params **sdrc_cs1);
+						  struct omap_sdrc_params **sdrc_cs0,
+						  struct omap_sdrc_params **sdrc_cs1);
 void omap2_sms_save_context(void);
 void omap2_sms_restore_context(void);
 
-struct memory_timings {
+struct memory_timings
+{
 	u32 m_type;		/* ddr = 1, sdr = 0 */
 	u32 dll_mode;		/* use lock mode = 1, unlock mode = 0 */
 	u32 slow_dll_ctrl;	/* unlock mode, dll value for slow speed */
@@ -106,11 +108,11 @@ u32 omap2xxx_sdrc_reprogram(u32 level, u32 force);
 
 #else
 #define OMAP242X_SDRC_REGADDR(reg)					\
-			OMAP2_L3_IO_ADDRESS(OMAP2420_SDRC_BASE + (reg))
+	OMAP2_L3_IO_ADDRESS(OMAP2420_SDRC_BASE + (reg))
 #define OMAP243X_SDRC_REGADDR(reg)					\
-			OMAP2_L3_IO_ADDRESS(OMAP243X_SDRC_BASE + (reg))
+	OMAP2_L3_IO_ADDRESS(OMAP243X_SDRC_BASE + (reg))
 #define OMAP34XX_SDRC_REGADDR(reg)					\
-			OMAP2_L3_IO_ADDRESS(OMAP343X_SDRC_BASE + (reg))
+	OMAP2_L3_IO_ADDRESS(OMAP343X_SDRC_BASE + (reg))
 
 #endif	/* __ASSEMBLER__ */
 
@@ -197,11 +199,11 @@ u32 omap2xxx_sdrc_reprogram(u32 level, u32 force);
  */
 
 #define OMAP242X_SMS_REGADDR(reg)					\
-		(void __iomem *)OMAP2_L3_IO_ADDRESS(OMAP2420_SMS_BASE + reg)
+	(void __iomem *)OMAP2_L3_IO_ADDRESS(OMAP2420_SMS_BASE + reg)
 #define OMAP243X_SMS_REGADDR(reg)					\
-		(void __iomem *)OMAP2_L3_IO_ADDRESS(OMAP243X_SMS_BASE + reg)
+	(void __iomem *)OMAP2_L3_IO_ADDRESS(OMAP243X_SMS_BASE + reg)
 #define OMAP343X_SMS_REGADDR(reg)					\
-		(void __iomem *)OMAP2_L3_IO_ADDRESS(OMAP343X_SMS_BASE + reg)
+	(void __iomem *)OMAP2_L3_IO_ADDRESS(OMAP343X_SMS_BASE + reg)
 
 /* SMS register offsets - read/write with sms_{read,write}_reg() */
 

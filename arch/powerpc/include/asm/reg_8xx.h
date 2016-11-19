@@ -59,16 +59,16 @@
 	do {								\
 		int _reg_cpu6 = rn_addr, _tmp_cpu6;		\
 		asm volatile("stw %0, %1;"				\
-			     "lwz %0, %1;"				\
-			     "mtspr " __stringify(rn) ",%2" :		\
-			     : "r" (_reg_cpu6), "m"(_tmp_cpu6),		\
-			       "r" ((unsigned long)(v))			\
-			     : "memory");				\
+					 "lwz %0, %1;"				\
+					 "mtspr " __stringify(rn) ",%2" :		\
+					 : "r" (_reg_cpu6), "m"(_tmp_cpu6),		\
+					 "r" ((unsigned long)(v))			\
+					 : "memory");				\
 	} while (0)
 
 #define do_mtspr(rn, v)	asm volatile("mtspr " __stringify(rn) ",%0" :	\
-				     : "r" ((unsigned long)(v))		\
-				     : "memory")
+									 : "r" ((unsigned long)(v))		\
+									 : "memory")
 #define mtspr(rn, v) \
 	do {								\
 		if (rn == SPRN_IMMR)					\

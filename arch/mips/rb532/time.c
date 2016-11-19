@@ -61,6 +61,6 @@ void __init plat_time_init(void)
 	est_freq += 5000;	/* round */
 	est_freq -= est_freq % 10000;
 	printk(KERN_INFO "CPU frequency %d.%02d MHz\n", est_freq / 1000000,
-	       (est_freq % 1000000) * 100 / 1000000);
+		   (est_freq % 1000000) * 100 / 1000000);
 	local_irq_restore(flags);
 }

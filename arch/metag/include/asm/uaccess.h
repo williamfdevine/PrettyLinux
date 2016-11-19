@@ -40,8 +40,8 @@
  * and the kernel half of the address space.
  */
 #define __user_bad(addr, size) (((addr) > 0 && (addr) < META_MEMORY_BASE) || \
-				((addr) > PAGE_OFFSET &&		\
-				 (addr) < LINCORE_BASE))
+								((addr) > PAGE_OFFSET &&		\
+								 (addr) < LINCORE_BASE))
 
 static inline int __access_ok(unsigned long addr, unsigned long size)
 {
@@ -49,7 +49,7 @@ static inline int __access_ok(unsigned long addr, unsigned long size)
 }
 
 #define access_ok(type, addr, size) __access_ok((unsigned long)(addr),	\
-						(unsigned long)(size))
+		(unsigned long)(size))
 
 static inline int verify_area(int type, const void *addr, unsigned long size)
 {
@@ -68,7 +68,8 @@ static inline int verify_area(int type, const void *addr, unsigned long size)
  * we don't even have to jump over them.  Further, they do not intrude
  * on our cache or tlb entries.
  */
-struct exception_table_entry {
+struct exception_table_entry
+{
 	unsigned long insn, fixup;
 };
 
@@ -87,20 +88,20 @@ extern int fixup_exception(struct pt_regs *regs);
 extern void __put_user_bad(void);
 
 #define __put_user_nocheck(x, ptr, size)		\
-({                                                      \
-	long __pu_err;                                  \
-	__put_user_size((x), (ptr), (size), __pu_err);	\
-	__pu_err;                                       \
-})
+	({                                                      \
+		long __pu_err;                                  \
+		__put_user_size((x), (ptr), (size), __pu_err);	\
+		__pu_err;                                       \
+	})
 
 #define __put_user_check(x, ptr, size)				\
-({                                                              \
-	long __pu_err = -EFAULT;                                \
-	__typeof__(*(ptr)) __user *__pu_addr = (ptr);           \
-	if (access_ok(VERIFY_WRITE, __pu_addr, size))		\
-		__put_user_size((x), __pu_addr, (size), __pu_err);	\
-	__pu_err;                                               \
-})
+	({                                                              \
+		long __pu_err = -EFAULT;                                \
+		__typeof__(*(ptr)) __user *__pu_addr = (ptr);           \
+		if (access_ok(VERIFY_WRITE, __pu_addr, size))		\
+			__put_user_size((x), __pu_addr, (size), __pu_err);	\
+		__pu_err;                                               \
+	})
 
 extern long __put_user_asm_b(unsigned int x, void __user *addr);
 extern long __put_user_asm_w(unsigned int x, void __user *addr);
@@ -108,26 +109,26 @@ extern long __put_user_asm_d(unsigned int x, void __user *addr);
 extern long __put_user_asm_l(unsigned long long x, void __user *addr);
 
 #define __put_user_size(x, ptr, size, retval)				\
-do {                                                                    \
-	retval = 0;                                                     \
-	switch (size) {                                                 \
-	case 1:								\
-		retval = __put_user_asm_b((__force unsigned int)x, ptr);\
-		break;							\
-	case 2:								\
-		retval = __put_user_asm_w((__force unsigned int)x, ptr);\
-		break;							\
-	case 4:								\
-		retval = __put_user_asm_d((__force unsigned int)x, ptr);\
-		break;							\
-	case 8:								\
-		retval = __put_user_asm_l((__force unsigned long long)x,\
-					  ptr);				\
-		break;							\
-	default:							\
-		__put_user_bad();					\
-	}								\
-} while (0)
+	do {                                                                    \
+		retval = 0;                                                     \
+		switch (size) {                                                 \
+			case 1:								\
+				retval = __put_user_asm_b((__force unsigned int)x, ptr);\
+				break;							\
+			case 2:								\
+				retval = __put_user_asm_w((__force unsigned int)x, ptr);\
+				break;							\
+			case 4:								\
+				retval = __put_user_asm_d((__force unsigned int)x, ptr);\
+				break;							\
+			case 8:								\
+				retval = __put_user_asm_l((__force unsigned long long)x,\
+										  ptr);				\
+				break;							\
+			default:							\
+				__put_user_bad();					\
+		}								\
+	} while (0)
 
 #define get_user(x, ptr) \
 	__get_user_check((x), (ptr), sizeof(*(ptr)))
@@ -137,41 +138,41 @@ do {                                                                    \
 extern long __get_user_bad(void);
 
 #define __get_user_nocheck(x, ptr, size)			\
-({                                                              \
-	long __gu_err, __gu_val;                                \
-	__get_user_size(__gu_val, (ptr), (size), __gu_err);	\
-	(x) = (__force __typeof__(*(ptr)))__gu_val;             \
-	__gu_err;                                               \
-})
+	({                                                              \
+		long __gu_err, __gu_val;                                \
+		__get_user_size(__gu_val, (ptr), (size), __gu_err);	\
+		(x) = (__force __typeof__(*(ptr)))__gu_val;             \
+		__gu_err;                                               \
+	})
 
 #define __get_user_check(x, ptr, size)					\
-({                                                                      \
-	long __gu_err = -EFAULT, __gu_val = 0;                          \
-	const __typeof__(*(ptr)) __user *__gu_addr = (ptr);		\
-	if (access_ok(VERIFY_READ, __gu_addr, size))			\
-		__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
-	(x) = (__force __typeof__(*(ptr)))__gu_val;                     \
-	__gu_err;                                                       \
-})
+	({                                                                      \
+		long __gu_err = -EFAULT, __gu_val = 0;                          \
+		const __typeof__(*(ptr)) __user *__gu_addr = (ptr);		\
+		if (access_ok(VERIFY_READ, __gu_addr, size))			\
+			__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
+		(x) = (__force __typeof__(*(ptr)))__gu_val;                     \
+		__gu_err;                                                       \
+	})
 
 extern unsigned char __get_user_asm_b(const void __user *addr, long *err);
 extern unsigned short __get_user_asm_w(const void __user *addr, long *err);
 extern unsigned int __get_user_asm_d(const void __user *addr, long *err);
 
 #define __get_user_size(x, ptr, size, retval)			\
-do {                                                            \
-	retval = 0;                                             \
-	switch (size) {                                         \
-	case 1:							\
-		x = __get_user_asm_b(ptr, &retval); break;	\
-	case 2:							\
-		x = __get_user_asm_w(ptr, &retval); break;	\
-	case 4:							\
-		x = __get_user_asm_d(ptr, &retval); break;	\
-	default:						\
-		(x) = __get_user_bad();				\
-	}                                                       \
-} while (0)
+	do {                                                            \
+		retval = 0;                                             \
+		switch (size) {                                         \
+			case 1:							\
+				x = __get_user_asm_b(ptr, &retval); break;	\
+			case 2:							\
+				x = __get_user_asm_w(ptr, &retval); break;	\
+			case 4:							\
+				x = __get_user_asm_d(ptr, &retval); break;	\
+			default:						\
+				(x) = __get_user_bad();				\
+		}                                                       \
+	} while (0)
 
 /*
  * Copy a null terminated string from userspace.
@@ -184,7 +185,7 @@ do {                                                            \
  */
 
 extern long __must_check __strncpy_from_user(char *dst, const char __user *src,
-					     long count);
+		long count);
 
 #define strncpy_from_user(dst, src, count) __strncpy_from_user(dst, src, count)
 
@@ -198,14 +199,17 @@ extern long __must_check strnlen_user(const char __user *src, long count);
 #define strlen_user(str) strnlen_user(str, 32767)
 
 extern unsigned long __must_check __copy_user_zeroing(void *to,
-						      const void __user *from,
-						      unsigned long n);
+		const void __user *from,
+		unsigned long n);
 
 static inline unsigned long
 copy_from_user(void *to, const void __user *from, unsigned long n)
 {
 	if (likely(access_ok(VERIFY_READ, from, n)))
+	{
 		return __copy_user_zeroing(to, from, n);
+	}
+
 	memset(to, 0, n);
 	return n;
 }
@@ -214,14 +218,17 @@ copy_from_user(void *to, const void __user *from, unsigned long n)
 #define __copy_from_user_inatomic __copy_from_user
 
 extern unsigned long __must_check __copy_user(void __user *to,
-					      const void *from,
-					      unsigned long n);
+		const void *from,
+		unsigned long n);
 
 static inline unsigned long copy_to_user(void __user *to, const void *from,
-					 unsigned long n)
+		unsigned long n)
 {
 	if (access_ok(VERIFY_WRITE, to, n))
+	{
 		return __copy_user(to, from, n);
+	}
+
 	return n;
 }
 
@@ -233,12 +240,15 @@ static inline unsigned long copy_to_user(void __user *to, const void *from,
  */
 
 extern unsigned long __must_check __do_clear_user(void __user *to,
-						  unsigned long n);
+		unsigned long n);
 
 static inline unsigned long clear_user(void __user *to, unsigned long n)
 {
 	if (access_ok(VERIFY_WRITE, to, n))
+	{
 		return __do_clear_user(to, n);
+	}
+
 	return n;
 }
 

@@ -51,25 +51,31 @@ static int get_hclk(void)
 	/*
 	 * HCLK tick rate is configured by DEV_D[7:5] pins.
 	 */
-	switch ((readl(SAMPLE_AT_RESET_LOW) >> 5) & 7) {
-	case 0:
-		hclk = 166666667;
-		break;
-	case 1:
-		hclk = 200000000;
-		break;
-	case 2:
-		hclk = 266666667;
-		break;
-	case 3:
-		hclk = 333333333;
-		break;
-	case 4:
-		hclk = 400000000;
-		break;
-	default:
-		panic("unknown HCLK PLL setting: %.8x\n",
-			readl(SAMPLE_AT_RESET_LOW));
+	switch ((readl(SAMPLE_AT_RESET_LOW) >> 5) & 7)
+	{
+		case 0:
+			hclk = 166666667;
+			break;
+
+		case 1:
+			hclk = 200000000;
+			break;
+
+		case 2:
+			hclk = 266666667;
+			break;
+
+		case 3:
+			hclk = 333333333;
+			break;
+
+		case 4:
+			hclk = 400000000;
+			break;
+
+		default:
+			panic("unknown HCLK PLL setting: %.8x\n",
+				  readl(SAMPLE_AT_RESET_LOW));
 	}
 
 	return hclk;
@@ -83,9 +89,12 @@ static void get_pclk_l2clk(int hclk, int core_index, int *pclk, int *l2clk)
 	 * Core #0 PCLK/L2CLK is configured by bits [13:8], core #1
 	 * PCLK/L2CLK by bits [19:14].
 	 */
-	if (core_index == 0) {
+	if (core_index == 0)
+	{
 		cfg = (readl(SAMPLE_AT_RESET_LOW) >> 8) & 0x3f;
-	} else {
+	}
+	else
+	{
 		cfg = (readl(SAMPLE_AT_RESET_LOW) >> 14) & 0x3f;
 	}
 
@@ -109,16 +118,19 @@ static int get_tclk(void)
 	/*
 	 * TCLK tick rate is configured by DEV_A[2:0] strap pins.
 	 */
-	switch ((readl(SAMPLE_AT_RESET_HIGH) >> 6) & 7) {
-	case 1:
-		tclk_freq = 166666667;
-		break;
-	case 3:
-		tclk_freq = 200000000;
-		break;
-	default:
-		panic("unknown TCLK PLL setting: %.8x\n",
-			readl(SAMPLE_AT_RESET_HIGH));
+	switch ((readl(SAMPLE_AT_RESET_HIGH) >> 6) & 7)
+	{
+		case 1:
+			tclk_freq = 166666667;
+			break;
+
+		case 3:
+			tclk_freq = 200000000;
+			break;
+
+		default:
+			panic("unknown TCLK PLL setting: %.8x\n",
+				  readl(SAMPLE_AT_RESET_HIGH));
 	}
 
 	return tclk_freq;
@@ -128,7 +140,8 @@ static int get_tclk(void)
 /*****************************************************************************
  * I/O Address Mapping
  ****************************************************************************/
-static struct map_desc mv78xx0_io_desc[] __initdata = {
+static struct map_desc mv78xx0_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long) MV78XX0_CORE_REGS_VIRT_BASE,
 		.pfn		= 0,
@@ -150,11 +163,15 @@ void __init mv78xx0_map_io(void)
 	 * Map the right set of per-core registers depending on
 	 * which core we are running on.
 	 */
-	if (mv78xx0_core_index() == 0) {
+	if (mv78xx0_core_index() == 0)
+	{
 		phys = MV78XX0_CORE0_REGS_PHYS_BASE;
-	} else {
+	}
+	else
+	{
 		phys = MV78XX0_CORE1_REGS_PHYS_BASE;
 	}
+
 	mv78xx0_io_desc[0].pfn = __phys_to_pfn(phys);
 
 	iotable_init(mv78xx0_io_desc, ARRAY_SIZE(mv78xx0_io_desc));
@@ -206,9 +223,9 @@ void __init mv78xx0_ehci2_init(void)
 void __init mv78xx0_ge00_init(struct mv643xx_eth_platform_data *eth_data)
 {
 	orion_ge00_init(eth_data,
-			GE00_PHYS_BASE, IRQ_MV78XX0_GE00_SUM,
-			IRQ_MV78XX0_GE_ERR,
-			MV643XX_TX_CSUM_DEFAULT_LIMIT);
+					GE00_PHYS_BASE, IRQ_MV78XX0_GE00_SUM,
+					IRQ_MV78XX0_GE_ERR,
+					MV643XX_TX_CSUM_DEFAULT_LIMIT);
 }
 
 
@@ -218,8 +235,8 @@ void __init mv78xx0_ge00_init(struct mv643xx_eth_platform_data *eth_data)
 void __init mv78xx0_ge01_init(struct mv643xx_eth_platform_data *eth_data)
 {
 	orion_ge01_init(eth_data,
-			GE01_PHYS_BASE, IRQ_MV78XX0_GE01_SUM,
-			MV643XX_TX_CSUM_DEFAULT_LIMIT);
+					GE01_PHYS_BASE, IRQ_MV78XX0_GE01_SUM,
+					MV643XX_TX_CSUM_DEFAULT_LIMIT);
 }
 
 
@@ -235,7 +252,9 @@ void __init mv78xx0_ge10_init(struct mv643xx_eth_platform_data *eth_data)
 	 * to back, and not brought out.
 	 */
 	mv78xx0_pcie_id(&dev, &rev);
-	if (dev == MV78X00_Z0_DEV_ID) {
+
+	if (dev == MV78X00_Z0_DEV_ID)
+	{
 		eth_data->phy_addr = MV643XX_ETH_PHY_NONE;
 		eth_data->speed = SPEED_1000;
 		eth_data->duplex = DUPLEX_FULL;
@@ -257,7 +276,9 @@ void __init mv78xx0_ge11_init(struct mv643xx_eth_platform_data *eth_data)
 	 * to back, and not brought out.
 	 */
 	mv78xx0_pcie_id(&dev, &rev);
-	if (dev == MV78X00_Z0_DEV_ID) {
+
+	if (dev == MV78X00_Z0_DEV_ID)
+	{
 		eth_data->phy_addr = MV643XX_ETH_PHY_NONE;
 		eth_data->speed = SPEED_1000;
 		eth_data->duplex = DUPLEX_FULL;
@@ -290,7 +311,7 @@ void __init mv78xx0_sata_init(struct mv_sata_platform_data *sata_data)
 void __init mv78xx0_uart0_init(void)
 {
 	orion_uart0_init(UART0_VIRT_BASE, UART0_PHYS_BASE,
-			 IRQ_MV78XX0_UART_0, tclk);
+					 IRQ_MV78XX0_UART_0, tclk);
 }
 
 
@@ -300,7 +321,7 @@ void __init mv78xx0_uart0_init(void)
 void __init mv78xx0_uart1_init(void)
 {
 	orion_uart1_init(UART1_VIRT_BASE, UART1_PHYS_BASE,
-			 IRQ_MV78XX0_UART_1, tclk);
+					 IRQ_MV78XX0_UART_1, tclk);
 }
 
 
@@ -310,7 +331,7 @@ void __init mv78xx0_uart1_init(void)
 void __init mv78xx0_uart2_init(void)
 {
 	orion_uart2_init(UART2_VIRT_BASE, UART2_PHYS_BASE,
-			 IRQ_MV78XX0_UART_2, tclk);
+					 IRQ_MV78XX0_UART_2, tclk);
 }
 
 /*****************************************************************************
@@ -319,7 +340,7 @@ void __init mv78xx0_uart2_init(void)
 void __init mv78xx0_uart3_init(void)
 {
 	orion_uart3_init(UART3_VIRT_BASE, UART3_PHYS_BASE,
-			 IRQ_MV78XX0_UART_3, tclk);
+					 IRQ_MV78XX0_UART_3, tclk);
 }
 
 /*****************************************************************************
@@ -328,50 +349,72 @@ void __init mv78xx0_uart3_init(void)
 void __init mv78xx0_init_early(void)
 {
 	orion_time_set_base(TIMER_VIRT_BASE);
+
 	if (mv78xx0_core_index() == 0)
 		mvebu_mbus_init("marvell,mv78xx0-mbus",
-				BRIDGE_WINS_CPU0_BASE, BRIDGE_WINS_SZ,
-				DDR_WINDOW_CPU0_BASE, DDR_WINDOW_CPU_SZ);
+						BRIDGE_WINS_CPU0_BASE, BRIDGE_WINS_SZ,
+						DDR_WINDOW_CPU0_BASE, DDR_WINDOW_CPU_SZ);
 	else
 		mvebu_mbus_init("marvell,mv78xx0-mbus",
-				BRIDGE_WINS_CPU1_BASE, BRIDGE_WINS_SZ,
-				DDR_WINDOW_CPU1_BASE, DDR_WINDOW_CPU_SZ);
+						BRIDGE_WINS_CPU1_BASE, BRIDGE_WINS_SZ,
+						DDR_WINDOW_CPU1_BASE, DDR_WINDOW_CPU_SZ);
 }
 
 void __ref mv78xx0_timer_init(void)
 {
 	orion_time_init(BRIDGE_VIRT_BASE, BRIDGE_INT_TIMER1_CLR,
-			IRQ_MV78XX0_TIMER_1, get_tclk());
+					IRQ_MV78XX0_TIMER_1, get_tclk());
 }
 
 
 /*****************************************************************************
  * General
  ****************************************************************************/
-static char * __init mv78xx0_id(void)
+static char *__init mv78xx0_id(void)
 {
 	u32 dev, rev;
 
 	mv78xx0_pcie_id(&dev, &rev);
 
-	if (dev == MV78X00_Z0_DEV_ID) {
+	if (dev == MV78X00_Z0_DEV_ID)
+	{
 		if (rev == MV78X00_REV_Z0)
+		{
 			return "MV78X00-Z0";
+		}
 		else
+		{
 			return "MV78X00-Rev-Unsupported";
-	} else if (dev == MV78100_DEV_ID) {
+		}
+	}
+	else if (dev == MV78100_DEV_ID)
+	{
 		if (rev == MV78100_REV_A0)
+		{
 			return "MV78100-A0";
+		}
 		else if (rev == MV78100_REV_A1)
+		{
 			return "MV78100-A1";
+		}
 		else
+		{
 			return "MV78100-Rev-Unsupported";
-	} else if (dev == MV78200_DEV_ID) {
+		}
+	}
+	else if (dev == MV78200_DEV_ID)
+	{
 		if (rev == MV78100_REV_A0)
+		{
 			return "MV78200-A0";
+		}
 		else
+		{
 			return "MV78200-Rev-Unsupported";
-	} else {
+		}
+	}
+	else
+	{
 		return "Device-Unknown";
 	}
 }
@@ -400,7 +443,9 @@ void __init mv78xx0_init(void)
 	printk("TCLK = %dMHz\n", (get_tclk() + 499999) / 1000000);
 
 	if (IS_ENABLED(CONFIG_CACHE_FEROCEON_L2))
+	{
 		feroceon_l2_init(is_l2_writethrough());
+	}
 
 	/* Setup root of clk tree */
 	clk_init();

@@ -11,7 +11,8 @@
 
 #include <linux/percpu.h>
 
-typedef struct {
+typedef struct
+{
 	unsigned long udelay_val;
 	unsigned long clock_tick;
 	unsigned int counter;

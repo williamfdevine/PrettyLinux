@@ -12,9 +12,9 @@ EXPORT_SYMBOL(clear_page);
 EXPORT_SYMBOL(copy_page);
 
 #ifdef CONFIG_FLATMEM
-/* needed for the pfn_valid macro */
-EXPORT_SYMBOL(max_pfn);
-EXPORT_SYMBOL(min_low_pfn);
+	/* needed for the pfn_valid macro */
+	EXPORT_SYMBOL(max_pfn);
+	EXPORT_SYMBOL(min_low_pfn);
 #endif
 
 /* Network checksum functions */
@@ -50,5 +50,5 @@ EXPORT_SYMBOL(memset);
 EXPORT_SYMBOL(memmove);
 
 #ifdef CONFIG_FUNCTION_TRACER
-EXPORT_SYMBOL(mcount_wrapper);
+	EXPORT_SYMBOL(mcount_wrapper);
 #endif

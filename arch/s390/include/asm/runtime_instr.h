@@ -4,7 +4,8 @@
 #define S390_RUNTIME_INSTR_START	0x1
 #define S390_RUNTIME_INSTR_STOP		0x2
 
-struct runtime_instr_cb {
+struct runtime_instr_cb
+{
 	__u64 buf_current;
 	__u64 buf_origin;
 	__u64 buf_limit;
@@ -61,28 +62,34 @@ extern struct runtime_instr_cb runtime_instr_empty_cb;
 static inline void load_runtime_instr_cb(struct runtime_instr_cb *cb)
 {
 	asm volatile(".insn	rsy,0xeb0000000060,0,0,%0"	/* LRIC */
-		: : "Q" (*cb));
+				 : : "Q" (*cb));
 }
 
 static inline void store_runtime_instr_cb(struct runtime_instr_cb *cb)
 {
 	asm volatile(".insn	rsy,0xeb0000000061,0,0,%0"	/* STRIC */
-		: "=Q" (*cb) : : "cc");
+				 : "=Q" (*cb) : : "cc");
 }
 
 static inline void save_ri_cb(struct runtime_instr_cb *cb_prev)
 {
 	if (cb_prev)
+	{
 		store_runtime_instr_cb(cb_prev);
+	}
 }
 
 static inline void restore_ri_cb(struct runtime_instr_cb *cb_next,
-				 struct runtime_instr_cb *cb_prev)
+								 struct runtime_instr_cb *cb_prev)
 {
 	if (cb_next)
+	{
 		load_runtime_instr_cb(cb_next);
+	}
 	else if (cb_prev)
+	{
 		load_runtime_instr_cb(&runtime_instr_empty_cb);
+	}
 }
 
 void exit_thread_runtime_instr(void);

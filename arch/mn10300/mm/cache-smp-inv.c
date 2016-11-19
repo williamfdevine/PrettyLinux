@@ -38,7 +38,7 @@ void mn10300_icache_inv_page(unsigned long start)
 {
 	unsigned long flags;
 
-	start &= ~(PAGE_SIZE-1);
+	start &= ~(PAGE_SIZE - 1);
 
 	flags = smp_lock_cache();
 	mn10300_local_icache_inv_page(start);
@@ -108,7 +108,7 @@ void mn10300_dcache_inv_page(unsigned long start)
 {
 	unsigned long flags;
 
-	start &= ~(PAGE_SIZE-1);
+	start &= ~(PAGE_SIZE - 1);
 
 	flags = smp_lock_cache();
 	mn10300_local_dcache_inv_page(start);

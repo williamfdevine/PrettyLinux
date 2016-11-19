@@ -26,27 +26,32 @@
 
 /* This arch has 2 Giga Ethernet */
 
-static struct mv643xx_eth_platform_data db78x00_ge00_data = {
+static struct mv643xx_eth_platform_data db78x00_ge00_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_ADDR(0),
 };
 
-static struct mv643xx_eth_platform_data db78x00_ge01_data = {
+static struct mv643xx_eth_platform_data db78x00_ge01_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_ADDR(8),
 };
 
 
 /* 2 SATA controller supporting HotPlug */
 
-static struct mv_sata_platform_data db78x00_sata_data = {
+static struct mv_sata_platform_data db78x00_sata_data =
+{
 	.n_ports	= 2,
 };
 
-static struct i2c_board_info __initdata db78x00_i2c_rtc = {
+static struct i2c_board_info __initdata db78x00_i2c_rtc =
+{
 	I2C_BOARD_INFO("ds1338", 0x68),
 };
 
 
-static unsigned int wxl_mpp_config[] __initdata = {
+static unsigned int wxl_mpp_config[] __initdata =
+{
 	MPP0_GE1_TXCLK,
 	MPP1_GE1_TXCTL,
 	MPP2_GE1_RXCTL,
@@ -128,15 +133,20 @@ static void __init wxl_init(void)
 
 static int __init wxl_pci_init(void)
 {
-	if (machine_is_terastation_wxl()) {
+	if (machine_is_terastation_wxl())
+	{
 		/*
 		 * Assign the x16 PCIe slot on the board to CPU core
 		 * #0, and let CPU core #1 have the four x1 slots.
 		 */
 		if (mv78xx0_core_index() == 0)
+		{
 			mv78xx0_pcie_init(0, 1);
+		}
 		else
+		{
 			mv78xx0_pcie_init(1, 0);
+		}
 	}
 
 	return 0;
@@ -144,13 +154,13 @@ static int __init wxl_pci_init(void)
 subsys_initcall(wxl_pci_init);
 
 MACHINE_START(TERASTATION_WXL, "Buffalo Nas WXL")
-	/* Maintainer: Sebastien Requiem <sebastien@requiem.fr> */
-	.atag_offset	= 0x100,
+/* Maintainer: Sebastien Requiem <sebastien@requiem.fr> */
+.atag_offset	= 0x100,
 	.nr_irqs	= MV78XX0_NR_IRQS,
-	.init_machine	= wxl_init,
-	.map_io		= mv78xx0_map_io,
-	.init_early	= mv78xx0_init_early,
-	.init_irq	= mv78xx0_init_irq,
-	.init_time	= mv78xx0_timer_init,
-	.restart	= mv78xx0_restart,
-MACHINE_END
+		.init_machine	= wxl_init,
+		   .map_io		= mv78xx0_map_io,
+			   .init_early	= mv78xx0_init_early,
+				.init_irq	= mv78xx0_init_irq,
+				   .init_time	= mv78xx0_timer_init,
+					 .restart	= mv78xx0_restart,
+						 MACHINE_END

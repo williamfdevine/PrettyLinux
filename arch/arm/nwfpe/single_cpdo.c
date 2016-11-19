@@ -46,7 +46,8 @@ static float32 float32_rdv(struct roundingData *roundData, float32 rFn, float32 
 	return float32_div(roundData, rFm, rFn);
 }
 
-static float32 (*const dyadic_single[16])(struct roundingData *, float32 rFn, float32 rFm) = {
+static float32 (*const dyadic_single[16])(struct roundingData *, float32 rFn, float32 rFm) =
+{
 	[ADF_CODE >> 20] = float32_add,
 	[MUF_CODE >> 20] = float32_mul,
 	[SUF_CODE >> 20] = float32_sub,
@@ -75,7 +76,8 @@ static float32 float32_abs(struct roundingData *roundData, float32 rFm)
 	return rFm & 0x7fffffff;
 }
 
-static float32 (*const monadic_single[16])(struct roundingData*, float32 rFm) = {
+static float32 (*const monadic_single[16])(struct roundingData *, float32 rFm) =
+{
 	[MVF_CODE >> 20] = float32_mvf,
 	[MNF_CODE >> 20] = float32_mnf,
 	[ABS_CODE >> 20] = float32_abs,
@@ -85,37 +87,53 @@ static float32 (*const monadic_single[16])(struct roundingData*, float32 rFm) = 
 	[NRM_CODE >> 20] = float32_mvf,
 };
 
-unsigned int SingleCPDO(struct roundingData *roundData, const unsigned int opcode, FPREG * rFd)
+unsigned int SingleCPDO(struct roundingData *roundData, const unsigned int opcode, FPREG *rFd)
 {
 	FPA11 *fpa11 = GET_FPA11();
 	float32 rFm;
 	unsigned int Fm, opc_mask_shift;
 
 	Fm = getFm(opcode);
-	if (CONSTANT_FM(opcode)) {
+
+	if (CONSTANT_FM(opcode))
+	{
 		rFm = getSingleConstant(Fm);
-	} else if (fpa11->fType[Fm] == typeSingle) {
+	}
+	else if (fpa11->fType[Fm] == typeSingle)
+	{
 		rFm = fpa11->fpreg[Fm].fSingle;
-	} else {
+	}
+	else
+	{
 		return 0;
 	}
 
 	opc_mask_shift = (opcode & MASK_ARITHMETIC_OPCODE) >> 20;
-	if (!MONADIC_INSTRUCTION(opcode)) {
+
+	if (!MONADIC_INSTRUCTION(opcode))
+	{
 		unsigned int Fn = getFn(opcode);
 		float32 rFn;
 
 		if (fpa11->fType[Fn] == typeSingle &&
-		    dyadic_single[opc_mask_shift]) {
+			dyadic_single[opc_mask_shift])
+		{
 			rFn = fpa11->fpreg[Fn].fSingle;
 			rFd->fSingle = dyadic_single[opc_mask_shift](roundData, rFn, rFm);
-		} else {
+		}
+		else
+		{
 			return 0;
 		}
-	} else {
-		if (monadic_single[opc_mask_shift]) {
+	}
+	else
+	{
+		if (monadic_single[opc_mask_shift])
+		{
 			rFd->fSingle = monadic_single[opc_mask_shift](roundData, rFm);
-		} else {
+		}
+		else
+		{
 			return 0;
 		}
 	}

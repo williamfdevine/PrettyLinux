@@ -75,10 +75,15 @@ int versatile_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
 
 	timeout = jiffies + (1 * HZ);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		smp_rmb();
+
 		if (pen_release == -1)
+		{
 			break;
+		}
 
 		udelay(10);
 	}

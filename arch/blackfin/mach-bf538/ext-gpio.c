@@ -13,9 +13,9 @@
 #include <asm/portmux.h>
 
 #define DEFINE_REG(reg, off) \
-static inline u16 read_##reg(void __iomem *port) \
+	static inline u16 read_##reg(void __iomem *port) \
 	{ return bfin_read16(port + off); } \
-static inline void write_##reg(void __iomem *port, u16 v) \
+	static inline void write_##reg(void __iomem *port, u16 v) \
 	{ bfin_write16(port + off, v); }
 
 DEFINE_REG(PORTIO, 0x00)
@@ -26,11 +26,14 @@ DEFINE_REG(PORTIO_INEN, 0x50)
 
 static void __iomem *gpio_chip_to_mmr(struct gpio_chip *chip)
 {
-	switch (chip->base) {
-	default: /* not really needed, but keeps gcc happy */
-	case GPIO_PC0: return (void __iomem *)PORTCIO;
-	case GPIO_PD0: return (void __iomem *)PORTDIO;
-	case GPIO_PE0: return (void __iomem *)PORTEIO;
+	switch (chip->base)
+	{
+		default: /* not really needed, but keeps gcc happy */
+		case GPIO_PC0: return (void __iomem *)PORTCIO;
+
+		case GPIO_PD0: return (void __iomem *)PORTDIO;
+
+		case GPIO_PE0: return (void __iomem *)PORTEIO;
 	}
 }
 
@@ -43,10 +46,15 @@ static int bf538_gpio_get_value(struct gpio_chip *chip, unsigned gpio)
 static void bf538_gpio_set_value(struct gpio_chip *chip, unsigned gpio, int value)
 {
 	void __iomem *port = gpio_chip_to_mmr(chip);
+
 	if (value)
+	{
 		write_PORTIO_SET(port, (1u << gpio));
+	}
 	else
+	{
 		write_PORTIO_CLEAR(port, (1u << gpio));
+	}
 }
 
 static int bf538_gpio_direction_input(struct gpio_chip *chip, unsigned gpio)
@@ -78,7 +86,8 @@ static void bf538_gpio_free(struct gpio_chip *chip, unsigned gpio)
 
 /* We don't set the irq fields as these banks cannot generate interrupts */
 
-static struct gpio_chip bf538_portc_chip = {
+static struct gpio_chip bf538_portc_chip =
+{
 	.label = "GPIO-PC",
 	.direction_input = bf538_gpio_direction_input,
 	.get = bf538_gpio_get_value,
@@ -90,7 +99,8 @@ static struct gpio_chip bf538_portc_chip = {
 	.ngpio = GPIO_PC9 - GPIO_PC0 + 1,
 };
 
-static struct gpio_chip bf538_portd_chip = {
+static struct gpio_chip bf538_portd_chip =
+{
 	.label = "GPIO-PD",
 	.direction_input = bf538_gpio_direction_input,
 	.get = bf538_gpio_get_value,
@@ -102,7 +112,8 @@ static struct gpio_chip bf538_portd_chip = {
 	.ngpio = GPIO_PD13 - GPIO_PD0 + 1,
 };
 
-static struct gpio_chip bf538_porte_chip = {
+static struct gpio_chip bf538_porte_chip =
+{
 	.label = "GPIO-PE",
 	.direction_input = bf538_gpio_direction_input,
 	.get = bf538_gpio_get_value,
@@ -117,17 +128,19 @@ static struct gpio_chip bf538_porte_chip = {
 static int __init bf538_extgpio_setup(void)
 {
 	return gpiochip_add_data(&bf538_portc_chip, NULL) |
-		gpiochip_add_data(&bf538_portd_chip, NULL) |
-		gpiochip_add_data(&bf538_porte_chip, NULL);
+		   gpiochip_add_data(&bf538_portd_chip, NULL) |
+		   gpiochip_add_data(&bf538_porte_chip, NULL);
 }
 arch_initcall(bf538_extgpio_setup);
 
 #ifdef CONFIG_PM
-static struct {
+static struct
+{
 	u16 data, dir, inen;
 } gpio_bank_saved[3];
 
-static void __iomem * const port_bases[3] = {
+static void __iomem *const port_bases[3] =
+{
 	(void *)PORTCIO,
 	(void *)PORTDIO,
 	(void *)PORTEIO,
@@ -137,7 +150,8 @@ void bfin_special_gpio_pm_hibernate_suspend(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(port_bases); ++i) {
+	for (i = 0; i < ARRAY_SIZE(port_bases); ++i)
+	{
 		gpio_bank_saved[i].data = read_PORTIO(port_bases[i]);
 		gpio_bank_saved[i].inen = read_PORTIO_INEN(port_bases[i]);
 		gpio_bank_saved[i].dir = read_PORTIO_DIR(port_bases[i]);
@@ -148,10 +162,11 @@ void bfin_special_gpio_pm_hibernate_restore(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(port_bases); ++i) {
+	for (i = 0; i < ARRAY_SIZE(port_bases); ++i)
+	{
 		write_PORTIO_INEN(port_bases[i], gpio_bank_saved[i].inen);
 		write_PORTIO_SET(port_bases[i],
-			gpio_bank_saved[i].data & gpio_bank_saved[i].dir);
+						 gpio_bank_saved[i].data & gpio_bank_saved[i].dir);
 		write_PORTIO_DIR(port_bases[i], gpio_bank_saved[i].dir);
 	}
 }

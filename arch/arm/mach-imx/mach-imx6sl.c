@@ -25,12 +25,16 @@ static void __init imx6sl_fec_init(void)
 
 	/* set FEC clock from internal PLL clock source */
 	gpr = syscon_regmap_lookup_by_compatible("fsl,imx6sl-iomuxc-gpr");
-	if (!IS_ERR(gpr)) {
+
+	if (!IS_ERR(gpr))
+	{
 		regmap_update_bits(gpr, IOMUXC_GPR1,
-			IMX6SL_GPR1_FEC_CLOCK_MUX2_SEL_MASK, 0);
+						   IMX6SL_GPR1_FEC_CLOCK_MUX2_SEL_MASK, 0);
 		regmap_update_bits(gpr, IOMUXC_GPR1,
-			IMX6SL_GPR1_FEC_CLOCK_MUX1_SEL_MASK, 0);
-	} else {
+						   IMX6SL_GPR1_FEC_CLOCK_MUX1_SEL_MASK, 0);
+	}
+	else
+	{
 		pr_err("failed to find fsl,imx6sl-iomux-gpr regmap\n");
 	}
 }
@@ -39,7 +43,9 @@ static void __init imx6sl_init_late(void)
 {
 	/* imx6sl reuses imx6q cpufreq driver */
 	if (IS_ENABLED(CONFIG_ARM_IMX6Q_CPUFREQ))
+	{
 		platform_device_register_simple("imx6q-cpufreq", -1, NULL, 0);
+	}
 
 	imx6sl_cpuidle_init();
 }
@@ -49,8 +55,11 @@ static void __init imx6sl_init_machine(void)
 	struct device *parent;
 
 	parent = imx_soc_device_init();
+
 	if (parent == NULL)
+	{
 		pr_warn("failed to initialize soc device\n");
+	}
 
 	of_platform_default_populate(NULL, NULL, parent);
 
@@ -69,16 +78,17 @@ static void __init imx6sl_init_irq(void)
 	imx6_pm_ccm_init("fsl,imx6sl-ccm");
 }
 
-static const char * const imx6sl_dt_compat[] __initconst = {
+static const char *const imx6sl_dt_compat[] __initconst =
+{
 	"fsl,imx6sl",
 	NULL,
 };
 
 DT_MACHINE_START(IMX6SL, "Freescale i.MX6 SoloLite (Device Tree)")
-	.l2c_aux_val 	= 0,
-	.l2c_aux_mask	= ~0,
-	.init_irq	= imx6sl_init_irq,
-	.init_machine	= imx6sl_init_machine,
-	.init_late      = imx6sl_init_late,
-	.dt_compat	= imx6sl_dt_compat,
-MACHINE_END
+.l2c_aux_val 	= 0,
+   .l2c_aux_mask	= ~0,
+	  .init_irq	= imx6sl_init_irq,
+		 .init_machine	= imx6sl_init_machine,
+			.init_late      = imx6sl_init_late,
+			 .dt_compat	= imx6sl_dt_compat,
+			   MACHINE_END

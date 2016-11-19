@@ -9,7 +9,8 @@
 #include <linux/types.h>
 #include <linux/init.h>
 
-struct sparc64_tick_ops {
+struct sparc64_tick_ops
+{
 	unsigned long long (*get_tick)(void);
 	int (*add_compare)(unsigned long);
 	unsigned long softint_mask;

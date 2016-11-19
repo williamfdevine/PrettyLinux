@@ -32,7 +32,8 @@
 #include "generic.h"
 
 /* Tavor EVB MFP configurations */
-static mfp_cfg_t tavorevb_mfp_cfg[] __initdata = {
+static mfp_cfg_t tavorevb_mfp_cfg[] __initdata =
+{
 	/* Ethernet */
 	DF_nCS1_nCS3,
 	GPIO47_GPIO,
@@ -79,7 +80,8 @@ static mfp_cfg_t tavorevb_mfp_cfg[] __initdata = {
 
 #define TAVOREVB_ETH_PHYS	(0x14000000)
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= (TAVOREVB_ETH_PHYS + 0x300),
 		.end	= (TAVOREVB_ETH_PHYS + 0xfffff),
@@ -92,11 +94,13 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct smc91x_platdata tavorevb_smc91x_info = {
+static struct smc91x_platdata tavorevb_smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_USE_DMA,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -107,7 +111,8 @@ static struct platform_device smc91x_device = {
 };
 
 #if defined(CONFIG_KEYBOARD_PXA27x) || defined(CONFIG_KEYBOARD_PXA27x_MODULE)
-static const unsigned int tavorevb_matrix_key_map[] = {
+static const unsigned int tavorevb_matrix_key_map[] =
+{
 	/* KEY(row, col, key_code) */
 	KEY(0, 4, KEY_A), KEY(0, 5, KEY_B), KEY(0, 6, KEY_C),
 	KEY(1, 4, KEY_E), KEY(1, 5, KEY_F), KEY(1, 6, KEY_G),
@@ -148,12 +153,14 @@ static const unsigned int tavorevb_matrix_key_map[] = {
 	KEY(3, 3, KEY_F23),	/* soft2 */
 };
 
-static struct matrix_keymap_data tavorevb_matrix_keymap_data = {
+static struct matrix_keymap_data tavorevb_matrix_keymap_data =
+{
 	.keymap		= tavorevb_matrix_key_map,
 	.keymap_size	= ARRAY_SIZE(tavorevb_matrix_key_map),
 };
 
-static struct pxa27x_keypad_platform_data tavorevb_keypad_info = {
+static struct pxa27x_keypad_platform_data tavorevb_keypad_info =
+{
 	.matrix_key_rows	= 7,
 	.matrix_key_cols	= 7,
 	.matrix_keymap_data	= &tavorevb_matrix_keymap_data,
@@ -169,14 +176,16 @@ static inline void tavorevb_init_keypad(void) {}
 #endif /* CONFIG_KEYBOARD_PXA27x || CONFIG_KEYBOARD_PXA27x_MODULE */
 
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static struct pwm_lookup tavorevb_pwm_lookup[] = {
+static struct pwm_lookup tavorevb_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa27x-pwm.0", 1, "pwm-backlight.0", NULL, 100000,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 	PWM_LOOKUP("pxa27x-pwm.0", 0, "pwm-backlight.1", NULL, 100000,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data tavorevb_backlight_data[] = {
+static struct platform_pwm_backlight_data tavorevb_backlight_data[] =
+{
 	[0] = {
 		/* primary backlight */
 		.max_brightness	= 100,
@@ -191,7 +200,8 @@ static struct platform_pwm_backlight_data tavorevb_backlight_data[] = {
 	},
 };
 
-static struct platform_device tavorevb_backlight_devices[] = {
+static struct platform_device tavorevb_backlight_devices[] =
+{
 	[0] = {
 		.name		= "pwm-backlight",
 		.id		= 0,
@@ -208,7 +218,8 @@ static struct platform_device tavorevb_backlight_devices[] = {
 	},
 };
 
-static uint16_t panel_init[] = {
+static uint16_t panel_init[] =
+{
 	/* DSTB OUT */
 	SMART_CMD(0x00),
 	SMART_CMD_NOOP,
@@ -349,7 +360,8 @@ static uint16_t panel_init[] = {
 	SMART_DAT(0x00), /* y1, 23 */
 };
 
-static uint16_t panel_on[] = {
+static uint16_t panel_on[] =
+{
 	/* Power-IC ON */
 	SMART_CMD(0x01),
 	SMART_CMD(0x02),
@@ -385,7 +397,8 @@ static uint16_t panel_on[] = {
 	SMART_DELAY(150),
 };
 
-static uint16_t panel_off[] = {
+static uint16_t panel_off[] =
+{
 	SMART_CMD(0x00),
 	SMART_CMD(0x1E),
 	SMART_DAT(0x00),
@@ -416,7 +429,8 @@ static uint16_t panel_off[] = {
 	SMART_DAT(0x10),
 };
 
-static uint16_t update_framedata[] = {
+static uint16_t update_framedata[] =
+{
 	/* write ram */
 	SMART_CMD(0x02),
 	SMART_CMD(0x02),
@@ -429,15 +443,20 @@ static void ltm020d550_lcd_power(int on, struct fb_var_screeninfo *var)
 {
 	struct fb_info *info = container_of(var, struct fb_info, var);
 
-	if (on) {
+	if (on)
+	{
 		pxafb_smart_queue(info, ARRAY_AND_SIZE(panel_init));
 		pxafb_smart_queue(info, ARRAY_AND_SIZE(panel_on));
-	} else {
+	}
+	else
+	{
 		pxafb_smart_queue(info, ARRAY_AND_SIZE(panel_off));
 	}
 
 	if (pxafb_smart_flush(info))
+	{
 		pr_err("%s: timed out\n", __func__);
+	}
 }
 
 static void ltm020d550_update(struct fb_info *info)
@@ -446,7 +465,8 @@ static void ltm020d550_update(struct fb_info *info)
 	pxafb_smart_flush(info);
 }
 
-static struct pxafb_mode_info toshiba_ltm020d550_modes[] = {
+static struct pxafb_mode_info toshiba_ltm020d550_modes[] =
+{
 	[0] = {
 		.xres			= 240,
 		.yres			= 320,
@@ -460,11 +480,12 @@ static struct pxafb_mode_info toshiba_ltm020d550_modes[] = {
 
 		/* L_LCLK_A0 and L_LCLK_RD active low */
 		.sync			= FB_SYNC_HOR_HIGH_ACT |
-					  FB_SYNC_VERT_HIGH_ACT,
+		FB_SYNC_VERT_HIGH_ACT,
 	},
 };
 
-static struct pxafb_mach_info tavorevb_lcd_info = {
+static struct pxafb_mach_info tavorevb_lcd_info =
+{
 	.modes			= toshiba_ltm020d550_modes,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_SMART_PANEL_8BPP | LCD_PCLK_EDGE_FALL,
@@ -499,13 +520,13 @@ static void __init tavorevb_init(void)
 }
 
 MACHINE_START(TAVOREVB, "PXA930 Evaluation Board (aka TavorEVB)")
-	/* Maintainer: Eric Miao <eric.miao@marvell.com> */
-	.atag_offset    = 0x100,
-	.map_io         = pxa3xx_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq       = pxa3xx_init_irq,
-	.handle_irq       = pxa3xx_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine   = tavorevb_init,
-	.restart	= pxa_restart,
-MACHINE_END
+/* Maintainer: Eric Miao <eric.miao@marvell.com> */
+.atag_offset    = 0x100,
+ .map_io         = pxa3xx_map_io,
+  .nr_irqs	= PXA_NR_IRQS,
+	  .init_irq       = pxa3xx_init_irq,
+	   .handle_irq       = pxa3xx_handle_irq,
+		.init_time	= pxa_timer_init,
+		  .init_machine   = tavorevb_init,
+		   .restart	= pxa_restart,
+			   MACHINE_END

@@ -30,9 +30,9 @@
 
 /* We currently allocate user L2 page tables by page (unlike kernel L2s). */
 #if L2_KERNEL_PGTABLE_SHIFT < PAGE_SHIFT
-#define L2_USER_PGTABLE_SHIFT PAGE_SHIFT
+	#define L2_USER_PGTABLE_SHIFT PAGE_SHIFT
 #else
-#define L2_USER_PGTABLE_SHIFT L2_KERNEL_PGTABLE_SHIFT
+	#define L2_USER_PGTABLE_SHIFT L2_KERNEL_PGTABLE_SHIFT
 #endif
 
 /* How many pages do we need, as an "order", for a user L2 page table? */
@@ -48,17 +48,17 @@ static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
 }
 
 static inline void pmd_populate_kernel(struct mm_struct *mm,
-				       pmd_t *pmd, pte_t *ptep)
+									   pmd_t *pmd, pte_t *ptep)
 {
 	set_pmd(pmd, ptfn_pmd(HV_CPA_TO_PTFN(__pa(ptep)),
-			      __pgprot(_PAGE_PRESENT)));
+						  __pgprot(_PAGE_PRESENT)));
 }
 
 static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
-				pgtable_t page)
+								pgtable_t page)
 {
 	set_pmd(pmd, ptfn_pmd(HV_CPA_TO_PTFN(PFN_PHYS(page_to_pfn(page))),
-			      __pgprot(_PAGE_PRESENT)));
+						  __pgprot(_PAGE_PRESENT)));
 }
 
 /*
@@ -69,11 +69,11 @@ extern pgd_t *pgd_alloc(struct mm_struct *mm);
 extern void pgd_free(struct mm_struct *mm, pgd_t *pgd);
 
 extern pgtable_t pgtable_alloc_one(struct mm_struct *mm, unsigned long address,
-				   int order);
+								   int order);
 extern void pgtable_free(struct mm_struct *mm, struct page *pte, int order);
 
 static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
-				      unsigned long address)
+									  unsigned long address)
 {
 	return pgtable_alloc_one(mm, address, L2_USER_PGTABLE_ORDER);
 }
@@ -93,14 +93,14 @@ pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
 
 static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
 {
-	BUG_ON((unsigned long)pte & (PAGE_SIZE-1));
+	BUG_ON((unsigned long)pte & (PAGE_SIZE - 1));
 	pte_free(mm, virt_to_page(pte));
 }
 
 extern void __pgtable_free_tlb(struct mmu_gather *tlb, struct page *pte,
-			       unsigned long address, int order);
+							   unsigned long address, int order);
 static inline void __pte_free_tlb(struct mmu_gather *tlb, struct page *pte,
-				  unsigned long address)
+								  unsigned long address)
 {
 	__pgtable_free_tlb(tlb, pte, address, L2_USER_PGTABLE_ORDER);
 }
@@ -123,7 +123,7 @@ void shatter_huge_page(unsigned long addr);
 #ifdef __tilegx__
 
 #define pud_populate(mm, pud, pmd) \
-  pmd_populate_kernel((mm), (pmd_t *)(pud), (pte_t *)(pmd))
+	pmd_populate_kernel((mm), (pmd_t *)(pud), (pte_t *)(pmd))
 
 /* Bits for the size of the L1 (intermediate) page table. */
 #define L1_KERNEL_PGTABLE_SHIFT _HV_LOG2_L1_SIZE(HPAGE_SHIFT)
@@ -133,9 +133,9 @@ void shatter_huge_page(unsigned long addr);
 
 /* We currently allocate L1 page tables by page. */
 #if L1_KERNEL_PGTABLE_SHIFT < PAGE_SHIFT
-#define L1_USER_PGTABLE_SHIFT PAGE_SHIFT
+	#define L1_USER_PGTABLE_SHIFT PAGE_SHIFT
 #else
-#define L1_USER_PGTABLE_SHIFT L1_KERNEL_PGTABLE_SHIFT
+	#define L1_USER_PGTABLE_SHIFT L1_KERNEL_PGTABLE_SHIFT
 #endif
 
 /* How many pages do we need, as an "order", for an L1 page table? */
@@ -153,10 +153,10 @@ static inline void pmd_free(struct mm_struct *mm, pmd_t *pmdp)
 }
 
 static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmdp,
-				  unsigned long address)
+								  unsigned long address)
 {
 	__pgtable_free_tlb(tlb, virt_to_page(pmdp), address,
-			   L1_USER_PGTABLE_ORDER);
+					   L1_USER_PGTABLE_ORDER);
 }
 
 #endif /* __tilegx__ */

@@ -5,7 +5,8 @@
  * fsyscall gettimeofday data
  */
 
-struct fsyscall_gtod_data_t {
+struct fsyscall_gtod_data_t
+{
 	seqcount_t	seq;
 	struct timespec	wall_time;
 	struct timespec monotonic_time;
@@ -16,7 +17,8 @@ struct fsyscall_gtod_data_t {
 	cycle_t		clk_cycle_last;
 } ____cacheline_aligned;
 
-struct itc_jitter_data_t {
+struct itc_jitter_data_t
+{
 	int		itc_jitter;
 	cycle_t		itc_lastcycle;
 } ____cacheline_aligned;

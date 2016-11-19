@@ -19,7 +19,7 @@ void __init set_real_mode_mem(phys_addr_t mem, size_t size)
 
 	real_mode_header = (struct real_mode_header *) base;
 	printk(KERN_DEBUG "Base memory trampoline at [%p] %llx size %zu\n",
-	       base, (unsigned long long)mem, size);
+		   base, (unsigned long long)mem, size);
 }
 
 void __init reserve_real_mode(void)
@@ -28,13 +28,17 @@ void __init reserve_real_mode(void)
 	size_t size = real_mode_size_needed();
 
 	if (!size)
+	{
 		return;
+	}
 
 	WARN_ON(slab_is_available());
 
 	/* Has to be under 1M so we can execute real-mode AP code. */
-	mem = memblock_find_in_range(0, 1<<20, size, PAGE_SIZE);
-	if (!mem) {
+	mem = memblock_find_in_range(0, 1 << 20, size, PAGE_SIZE);
+
+	if (!mem)
+	{
 		pr_info("No sub-1M memory is available for the trampoline\n");
 		return;
 	}
@@ -68,21 +72,25 @@ static void __init setup_real_mode(void)
 
 	/* 16-bit segment relocations. */
 	count = *rel++;
-	while (count--) {
+
+	while (count--)
+	{
 		u16 *seg = (u16 *) (base + *rel++);
 		*seg = real_mode_seg;
 	}
 
 	/* 32-bit linear relocations. */
 	count = *rel++;
-	while (count--) {
+
+	while (count--)
+	{
 		u32 *ptr = (u32 *) (base + *rel++);
 		*ptr += phys_base;
 	}
 
 	/* Must be perfomed *after* relocation. */
 	trampoline_header = (struct trampoline_header *)
-		__va(real_mode_header->trampoline_header);
+						__va(real_mode_header->trampoline_header);
 
 #ifdef CONFIG_X86_32
 	trampoline_header->start = __pa_symbol(startup_32_smp);
@@ -138,7 +146,9 @@ static void __init set_real_mode_permissions(void)
 static int __init init_real_mode(void)
 {
 	if (!real_mode_header)
+	{
 		panic("Real mode trampoline was not allocated");
+	}
 
 	setup_real_mode();
 	set_real_mode_permissions();

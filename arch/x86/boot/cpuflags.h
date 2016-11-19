@@ -4,7 +4,8 @@
 #include <asm/cpufeatures.h>
 #include <asm/processor-flags.h>
 
-struct cpu_features {
+struct cpu_features
+{
 	int level;		/* Family, or 64 for x86-64 */
 	int family;		/* Family, always */
 	int model;

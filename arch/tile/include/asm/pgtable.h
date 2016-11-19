@@ -39,7 +39,7 @@ struct vm_area_struct;
  * ZERO_PAGE is a global shared page that is always zero: used
  * for zero-mapped memory areas etc..
  */
-extern unsigned long empty_zero_page[PAGE_SIZE/sizeof(unsigned long)];
+extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
 #define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
 
 extern pgd_t swapper_pg_dir[];
@@ -57,11 +57,11 @@ extern struct list_head pgd_list;
  * spend a whole page on each pgd.
  */
 #define PGD_LIST_OFFSET \
-  ((PTRS_PER_PGD * sizeof(pgd_t)) - sizeof(struct list_head))
+	((PTRS_PER_PGD * sizeof(pgd_t)) - sizeof(struct list_head))
 #define pgd_to_list(pgd) \
-  ((struct list_head *)((char *)(pgd) + PGD_LIST_OFFSET))
+	((struct list_head *)((char *)(pgd) + PGD_LIST_OFFSET))
 #define list_to_pgd(list) \
-  ((pgd_t *)((char *)(list) - PGD_LIST_OFFSET))
+	((pgd_t *)((char *)(list) - PGD_LIST_OFFSET))
 
 extern void pgtable_cache_init(void);
 extern void paging_init(void);
@@ -86,44 +86,44 @@ extern void set_page_homes(void);
  * all the bits, and to mask away the cache control bits for mprotect.
  */
 #define _PAGE_ALL (\
-  _PAGE_PRESENT | \
-  _PAGE_HUGE_PAGE | \
-  _PAGE_SUPER_PAGE | \
-  _PAGE_READABLE | \
-  _PAGE_WRITABLE | \
-  _PAGE_EXECUTABLE | \
-  _PAGE_ACCESSED | \
-  _PAGE_DIRTY | \
-  _PAGE_GLOBAL | \
-  _PAGE_USER \
-)
+				   _PAGE_PRESENT | \
+				   _PAGE_HUGE_PAGE | \
+				   _PAGE_SUPER_PAGE | \
+				   _PAGE_READABLE | \
+				   _PAGE_WRITABLE | \
+				   _PAGE_EXECUTABLE | \
+				   _PAGE_ACCESSED | \
+				   _PAGE_DIRTY | \
+				   _PAGE_GLOBAL | \
+				   _PAGE_USER \
+				  )
 
 #define PAGE_NONE \
 	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
 #define PAGE_SHARED \
 	__pgprot(_PAGE_PRESENT | _PAGE_READABLE | _PAGE_WRITABLE | \
-		 _PAGE_USER | _PAGE_ACCESSED)
+			 _PAGE_USER | _PAGE_ACCESSED)
 
 #define PAGE_SHARED_EXEC \
 	__pgprot(_PAGE_PRESENT | _PAGE_READABLE | _PAGE_WRITABLE | \
-		 _PAGE_EXECUTABLE | _PAGE_USER | _PAGE_ACCESSED)
+			 _PAGE_EXECUTABLE | _PAGE_USER | _PAGE_ACCESSED)
 #define PAGE_COPY_NOEXEC \
 	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_ACCESSED | _PAGE_READABLE)
 #define PAGE_COPY_EXEC \
 	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_ACCESSED | \
-		 _PAGE_READABLE | _PAGE_EXECUTABLE)
+			 _PAGE_READABLE | _PAGE_EXECUTABLE)
 #define PAGE_COPY \
 	PAGE_COPY_NOEXEC
 #define PAGE_READONLY \
 	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_ACCESSED | _PAGE_READABLE)
 #define PAGE_READONLY_EXEC \
 	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_ACCESSED | \
-		 _PAGE_READABLE | _PAGE_EXECUTABLE)
+			 _PAGE_READABLE | _PAGE_EXECUTABLE)
 
 #define _PAGE_KERNEL_RO \
- (_PAGE_PRESENT | _PAGE_GLOBAL | _PAGE_READABLE | _PAGE_ACCESSED)
+	(_PAGE_PRESENT | _PAGE_GLOBAL | _PAGE_READABLE | _PAGE_ACCESSED)
 #define _PAGE_KERNEL \
- (_PAGE_KERNEL_RO | _PAGE_WRITABLE | _PAGE_DIRTY)
+	(_PAGE_KERNEL_RO | _PAGE_WRITABLE | _PAGE_DIRTY)
 #define _PAGE_KERNEL_EXEC       (_PAGE_KERNEL_RO | _PAGE_EXECUTABLE)
 
 #define PAGE_KERNEL		__pgprot(_PAGE_KERNEL)
@@ -163,7 +163,7 @@ extern void set_page_homes(void);
 
 /* Inherit the caching flags from the old protection bits. */
 #define pgprot_modify(oldprot, newprot) \
-  (pgprot_t) { ((oldprot).val & ~_PAGE_ALL) | (newprot).val }
+	(pgprot_t) { ((oldprot).val & ~_PAGE_ALL) | (newprot).val }
 
 /* Just setting the PFN to zero suffices. */
 #define pte_pgprot(x) hv_pte_set_pa((x), 0)
@@ -336,10 +336,10 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 
 /* Clear a non-executable kernel PTE and flush it from the TLB. */
 #define kpte_clear_flush(ptep, vaddr)		\
-do {						\
-	pte_clear(&init_mm, (vaddr), (ptep));	\
-	local_flush_tlb_page(FLUSH_NONEXEC, (vaddr), PAGE_SIZE); \
-} while (0)
+	do {						\
+		pte_clear(&init_mm, (vaddr), (ptep));	\
+		local_flush_tlb_page(FLUSH_NONEXEC, (vaddr), PAGE_SIZE); \
+	} while (0)
 
 /*
  * The kernel page tables contain what we need, and we flush when we
@@ -348,7 +348,7 @@ do {						\
 #define update_mmu_cache(vma, address, pte) do { } while (0)
 
 #ifdef CONFIG_FLATMEM
-#define kern_addr_valid(addr)	(1)
+	#define kern_addr_valid(addr)	(1)
 #endif /* CONFIG_FLATMEM */
 
 extern void vmalloc_sync_all(void);
@@ -356,9 +356,9 @@ extern void vmalloc_sync_all(void);
 #endif /* !__ASSEMBLY__ */
 
 #ifdef __tilegx__
-#include <asm/pgtable_64.h>
+	#include <asm/pgtable_64.h>
 #else
-#include <asm/pgtable_32.h>
+	#include <asm/pgtable_32.h>
 #endif
 
 #ifndef __ASSEMBLY__
@@ -400,15 +400,15 @@ static inline unsigned long pmd_index(unsigned long address)
 
 #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
 static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
-					    unsigned long address,
-					    pmd_t *pmdp)
+		unsigned long address,
+		pmd_t *pmdp)
 {
 	return ptep_test_and_clear_young(vma, address, pmdp_ptep(pmdp));
 }
 
 #define __HAVE_ARCH_PMDP_SET_WRPROTECT
 static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-				      unsigned long address, pmd_t *pmdp)
+									  unsigned long address, pmd_t *pmdp)
 {
 	ptep_set_wrprotect(mm, address, pmdp_ptep(pmdp));
 }
@@ -416,8 +416,8 @@ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
 
 #define __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
 static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
-					    unsigned long address,
-					    pmd_t *pmdp)
+		unsigned long address,
+		pmd_t *pmdp)
 {
 	return pte_pmd(ptep_get_and_clear(mm, address, pmdp_ptep(pmdp)));
 }
@@ -487,7 +487,7 @@ static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
 }
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-#define pmd_trans_huge pmd_huge_page
+	#define pmd_trans_huge pmd_huge_page
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 /*
@@ -503,7 +503,7 @@ static inline unsigned long pte_index(unsigned long address)
 
 static inline pte_t *pte_offset_kernel(pmd_t *pmd, unsigned long address)
 {
-       return (pte_t *)pmd_page_vaddr(*pmd) + pte_index(address);
+	return (pte_t *)pmd_page_vaddr(*pmd) + pte_index(address);
 }
 
 #include <asm-generic/pgtable.h>
@@ -511,8 +511,8 @@ static inline pte_t *pte_offset_kernel(pmd_t *pmd, unsigned long address)
 /* Support /proc/NN/pgtable API. */
 struct seq_file;
 int arch_proc_pgtable_show(struct seq_file *m, struct mm_struct *mm,
-			   unsigned long vaddr, unsigned long pagesize,
-			   pte_t *ptep, void **datap);
+						   unsigned long vaddr, unsigned long pagesize,
+						   pte_t *ptep, void **datap);
 
 #endif /* !__ASSEMBLY__ */
 

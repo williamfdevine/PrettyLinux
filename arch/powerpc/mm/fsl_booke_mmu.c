@@ -61,7 +61,8 @@ unsigned int tlbcam_index;
 #define NUM_TLBCAMS	(64)
 struct tlbcam TLBCAM[NUM_TLBCAMS];
 
-struct tlbcamrange {
+struct tlbcamrange
+{
 	unsigned long start;
 	unsigned long limit;
 	phys_addr_t phys;
@@ -79,9 +80,13 @@ unsigned long tlbcam_sz(int idx)
 phys_addr_t v_block_mapped(unsigned long va)
 {
 	int b;
+
 	for (b = 0; b < tlbcam_index; ++b)
 		if (va >= tlbcam_addrs[b].start && va < tlbcam_addrs[b].limit)
+		{
 			return tlbcam_addrs[b].phys + (va - tlbcam_addrs[b].start);
+		}
+
 	return 0;
 }
 
@@ -91,11 +96,15 @@ phys_addr_t v_block_mapped(unsigned long va)
 unsigned long p_block_mapped(phys_addr_t pa)
 {
 	int b;
+
 	for (b = 0; b < tlbcam_index; ++b)
 		if (pa >= tlbcam_addrs[b].phys
-			&& pa < (tlbcam_addrs[b].limit-tlbcam_addrs[b].start)
-		              +tlbcam_addrs[b].phys)
-			return tlbcam_addrs[b].start+(pa-tlbcam_addrs[b].phys);
+			&& pa < (tlbcam_addrs[b].limit - tlbcam_addrs[b].start)
+			+ tlbcam_addrs[b].phys)
+		{
+			return tlbcam_addrs[b].start + (pa - tlbcam_addrs[b].phys);
+		}
+
 	return 0;
 }
 #endif
@@ -108,18 +117,22 @@ unsigned long p_block_mapped(phys_addr_t pa)
  * size).
  */
 static void settlbcam(int index, unsigned long virt, phys_addr_t phys,
-		unsigned long size, unsigned long flags, unsigned int pid)
+					  unsigned long size, unsigned long flags, unsigned int pid)
 {
 	unsigned int tsize;
 
 	tsize = __ilog2(size) - 10;
 
 #if defined(CONFIG_SMP) || defined(CONFIG_PPC_E500MC)
+
 	if ((flags & _PAGE_NO_CACHE) == 0)
+	{
 		flags |= _PAGE_COHERENT;
+	}
+
 #endif
 
-	TLBCAM[index].MAS0 = MAS0_TLBSEL(1) | MAS0_ESEL(index) | MAS0_NV(index+1);
+	TLBCAM[index].MAS0 = MAS0_TLBSEL(1) | MAS0_ESEL(index) | MAS0_NV(index + 1);
 	TLBCAM[index].MAS1 = MAS1_VALID | MAS1_IPROT | MAS1_TSIZE(tsize) | MAS1_TID(pid);
 	TLBCAM[index].MAS2 = virt & PAGE_MASK;
 
@@ -131,13 +144,17 @@ static void settlbcam(int index, unsigned long virt, phys_addr_t phys,
 
 	TLBCAM[index].MAS3 = (phys & MAS3_RPN) | MAS3_SX | MAS3_SR;
 	TLBCAM[index].MAS3 |= ((flags & _PAGE_RW) ? MAS3_SW : 0);
+
 	if (mmu_has_feature(MMU_FTR_BIG_PHYS))
+	{
 		TLBCAM[index].MAS7 = (u64)phys >> 32;
+	}
 
 	/* Below is unlikely -- only for large user pages or similar */
-	if (pte_user(__pte(flags))) {
-	   TLBCAM[index].MAS3 |= MAS3_UX | MAS3_UR;
-	   TLBCAM[index].MAS3 |= ((flags & _PAGE_RW) ? MAS3_UW : 0);
+	if (pte_user(__pte(flags)))
+	{
+		TLBCAM[index].MAS3 |= MAS3_UX | MAS3_UR;
+		TLBCAM[index].MAS3 |= ((flags & _PAGE_RW) ? MAS3_UW : 0);
 	}
 
 	tlbcam_addrs[index].start = virt;
@@ -146,45 +163,55 @@ static void settlbcam(int index, unsigned long virt, phys_addr_t phys,
 }
 
 unsigned long calc_cam_sz(unsigned long ram, unsigned long virt,
-			  phys_addr_t phys)
+						  phys_addr_t phys)
 {
 	unsigned int camsize = __ilog2(ram);
 	unsigned int align = __ffs(virt | phys);
 	unsigned long max_cam;
 
-	if ((mfspr(SPRN_MMUCFG) & MMUCFG_MAVN) == MMUCFG_MAVN_V1) {
+	if ((mfspr(SPRN_MMUCFG) & MMUCFG_MAVN) == MMUCFG_MAVN_V1)
+	{
 		/* Convert (4^max) kB to (2^max) bytes */
 		max_cam = ((mfspr(SPRN_TLB1CFG) >> 16) & 0xf) * 2 + 10;
 		camsize &= ~1U;
 		align &= ~1U;
-	} else {
+	}
+	else
+	{
 		/* Convert (2^max) kB to (2^max) bytes */
 		max_cam = __ilog2(mfspr(SPRN_TLB1PS)) + 10;
 	}
 
 	if (camsize > align)
+	{
 		camsize = align;
+	}
+
 	if (camsize > max_cam)
+	{
 		camsize = max_cam;
+	}
 
 	return 1UL << camsize;
 }
 
 static unsigned long map_mem_in_cams_addr(phys_addr_t phys, unsigned long virt,
-					unsigned long ram, int max_cam_idx,
-					bool dryrun)
+		unsigned long ram, int max_cam_idx,
+		bool dryrun)
 {
 	int i;
 	unsigned long amount_mapped = 0;
 
 	/* Calculate CAM values */
-	for (i = 0; ram && i < max_cam_idx; i++) {
+	for (i = 0; ram && i < max_cam_idx; i++)
+	{
 		unsigned long cam_sz;
 
 		cam_sz = calc_cam_sz(ram, virt, phys);
+
 		if (!dryrun)
 			settlbcam(i, virt, phys, cam_sz,
-				  pgprot_val(PAGE_KERNEL_X), 0);
+					  pgprot_val(PAGE_KERNEL_X), 0);
 
 		ram -= cam_sz;
 		amount_mapped += cam_sz;
@@ -193,7 +220,9 @@ static unsigned long map_mem_in_cams_addr(phys_addr_t phys, unsigned long virt,
 	}
 
 	if (dryrun)
+	{
 		return amount_mapped;
+	}
 
 	loadcam_multi(0, i, max_cam_idx);
 	tlbcam_index = i;
@@ -218,7 +247,7 @@ unsigned long map_mem_in_cams(unsigned long ram, int max_cam_idx, bool dryrun)
 #ifdef CONFIG_PPC32
 
 #if defined(CONFIG_LOWMEM_CAM_NUM_BOOL) && (CONFIG_LOWMEM_CAM_NUM >= NUM_TLBCAMS)
-#error "LOWMEM_CAM_NUM must be less than NUM_TLBCAMS"
+	#error "LOWMEM_CAM_NUM must be less than NUM_TLBCAMS"
 #endif
 
 unsigned long __init mmu_mapin_ram(unsigned long top)
@@ -247,16 +276,20 @@ void __init adjust_total_lowmem(void)
 	restore_to_as0(i, 0, 0, 1);
 
 	pr_info("Memory CAM mapping: ");
+
 	for (i = 0; i < tlbcam_index - 1; i++)
+	{
 		pr_cont("%lu/", tlbcam_sz(i) >> 20);
+	}
+
 	pr_cont("%lu Mb, residual: %dMb\n", tlbcam_sz(tlbcam_index - 1) >> 20,
-	        (unsigned int)((total_lowmem - __max_low_memory) >> 20));
+			(unsigned int)((total_lowmem - __max_low_memory) >> 20));
 
 	memblock_set_current_limit(memstart_addr + __max_low_memory);
 }
 
 void setup_initial_memory_limit(phys_addr_t first_memblock_base,
-				phys_addr_t first_memblock_size)
+								phys_addr_t first_memblock_size)
 {
 	phys_addr_t limit = first_memblock_base + first_memblock_size;
 
@@ -271,7 +304,9 @@ notrace void __init relocate_init(u64 dt_ptr, phys_addr_t start)
 	unsigned long base = KERNELBASE;
 
 	kernstart_addr = start;
-	if (is_second_reloc) {
+
+	if (is_second_reloc)
+	{
 		virt_phys_offset = PAGE_OFFSET - memstart_addr;
 		return;
 	}
@@ -297,26 +332,30 @@ notrace void __init relocate_init(u64 dt_ptr, phys_addr_t start)
 	base &= ~0x3ffffff;
 	virt_phys_offset = base - start;
 	early_get_first_memblock_info(__va(dt_ptr), NULL);
+
 	/*
 	 * We now get the memstart_addr, then we should check if this
 	 * address is the same as what the PAGE_OFFSET map to now. If
 	 * not we have to change the map of PAGE_OFFSET to memstart_addr
 	 * and do a second relocation.
 	 */
-	if (start != memstart_addr) {
+	if (start != memstart_addr)
+	{
 		int n;
 		long offset = start - memstart_addr;
 
 		is_second_reloc = 1;
 		n = switch_to_as1();
+
 		/* map a 64M area for the second relocation */
 		if (memstart_addr > start)
 			map_mem_in_cams(0x4000000, CONFIG_LOWMEM_CAM_NUM,
-					false);
+							false);
 		else
 			map_mem_in_cams_addr(start, PAGE_OFFSET + offset,
-					0x4000000, CONFIG_LOWMEM_CAM_NUM,
-					false);
+								 0x4000000, CONFIG_LOWMEM_CAM_NUM,
+								 false);
+
 		restore_to_as0(n, offset, __va(dt_ptr), 1);
 		/* We should never reach here */
 		panic("Relocation error");

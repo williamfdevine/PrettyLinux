@@ -97,9 +97,9 @@ unsigned long xen_max_p2m_pfn __read_mostly;
 EXPORT_SYMBOL_GPL(xen_max_p2m_pfn);
 
 #ifdef CONFIG_XEN_BALLOON_MEMORY_HOTPLUG_LIMIT
-#define P2M_LIMIT CONFIG_XEN_BALLOON_MEMORY_HOTPLUG_LIMIT
+	#define P2M_LIMIT CONFIG_XEN_BALLOON_MEMORY_HOTPLUG_LIMIT
 #else
-#define P2M_LIMIT 0
+	#define P2M_LIMIT 0
 #endif
 
 static DEFINE_SPINLOCK(p2m_update_lock);
@@ -142,7 +142,9 @@ static void p2m_top_mfn_init(unsigned long *top)
 	unsigned i;
 
 	for (i = 0; i < P2M_TOP_PER_PAGE; i++)
+	{
 		top[i] = virt_to_mfn(p2m_mid_missing_mfn);
+	}
 }
 
 static void p2m_top_mfn_p_init(unsigned long **top)
@@ -150,7 +152,9 @@ static void p2m_top_mfn_p_init(unsigned long **top)
 	unsigned i;
 
 	for (i = 0; i < P2M_TOP_PER_PAGE; i++)
+	{
 		top[i] = p2m_mid_missing_mfn;
+	}
 }
 
 static void p2m_mid_mfn_init(unsigned long *mid, unsigned long *leaf)
@@ -158,7 +162,9 @@ static void p2m_mid_mfn_init(unsigned long *mid, unsigned long *leaf)
 	unsigned i;
 
 	for (i = 0; i < P2M_MID_PER_PAGE; i++)
+	{
 		mid[i] = virt_to_mfn(leaf);
+	}
 }
 
 static void p2m_init(unsigned long *p2m)
@@ -166,7 +172,9 @@ static void p2m_init(unsigned long *p2m)
 	unsigned i;
 
 	for (i = 0; i < P2M_PER_PAGE; i++)
+	{
 		p2m[i] = INVALID_P2M_ENTRY;
+	}
 }
 
 static void p2m_init_identity(unsigned long *p2m, unsigned long pfn)
@@ -174,20 +182,25 @@ static void p2m_init_identity(unsigned long *p2m, unsigned long pfn)
 	unsigned i;
 
 	for (i = 0; i < P2M_PER_PAGE; i++)
+	{
 		p2m[i] = IDENTITY_FRAME(pfn + i);
+	}
 }
 
-static void * __ref alloc_p2m_page(void)
+static void *__ref alloc_p2m_page(void)
 {
 	if (unlikely(!slab_is_available()))
+	{
 		return alloc_bootmem_align(PAGE_SIZE, PAGE_SIZE);
+	}
 
 	return (void *)__get_free_page(GFP_KERNEL);
 }
 
 static void __ref free_p2m_page(void *p)
 {
-	if (unlikely(!slab_is_available())) {
+	if (unlikely(!slab_is_available()))
+	{
 		free_bootmem((unsigned long)p, PAGE_SIZE);
 		return;
 	}
@@ -213,11 +226,14 @@ void __ref xen_build_mfn_list_list(void)
 	unsigned long *mid_mfn_p;
 
 	if (xen_feature(XENFEAT_auto_translated_physmap) ||
-	    xen_start_info->flags & SIF_VIRT_P2M_4TOOLS)
+		xen_start_info->flags & SIF_VIRT_P2M_4TOOLS)
+	{
 		return;
+	}
 
 	/* Pre-initialize p2m_top_mfn to be completely missing */
-	if (p2m_top_mfn == NULL) {
+	if (p2m_top_mfn == NULL)
+	{
 		p2m_mid_missing_mfn = alloc_p2m_page();
 		p2m_mid_mfn_init(p2m_mid_missing_mfn, p2m_missing);
 
@@ -226,19 +242,22 @@ void __ref xen_build_mfn_list_list(void)
 
 		p2m_top_mfn = alloc_p2m_page();
 		p2m_top_mfn_init(p2m_top_mfn);
-	} else {
+	}
+	else
+	{
 		/* Reinitialise, mfn's all change after migration */
 		p2m_mid_mfn_init(p2m_mid_missing_mfn, p2m_missing);
 	}
 
 	for (pfn = 0; pfn < xen_max_p2m_pfn && pfn < MAX_P2M_PFN;
-	     pfn += P2M_PER_PAGE) {
+		 pfn += P2M_PER_PAGE)
+	{
 		topidx = p2m_top_index(pfn);
 		mididx = p2m_mid_index(pfn);
 
 		mid_mfn_p = p2m_top_mfn_p[topidx];
 		ptep = lookup_address((unsigned long)(xen_p2m_addr + pfn),
-				      &level);
+							  &level);
 		BUG_ON(!ptep || level != PG_LEVEL_4K);
 		mfn = pte_mfn(*ptep);
 		ptep = (pte_t *)((unsigned long)ptep & ~(PAGE_SIZE - 1));
@@ -247,7 +266,8 @@ void __ref xen_build_mfn_list_list(void)
 		 * they're just missing, just update the stored mfn,
 		 * since all could have changed over a migrate.
 		 */
-		if (ptep == p2m_missing_pte || ptep == p2m_identity_pte) {
+		if (ptep == p2m_missing_pte || ptep == p2m_identity_pte)
+		{
 			BUG_ON(mididx);
 			BUG_ON(mid_mfn_p != p2m_mid_missing_mfn);
 			p2m_top_mfn[topidx] = virt_to_mfn(p2m_mid_missing_mfn);
@@ -255,7 +275,8 @@ void __ref xen_build_mfn_list_list(void)
 			continue;
 		}
 
-		if (mid_mfn_p == p2m_mid_missing_mfn) {
+		if (mid_mfn_p == p2m_mid_missing_mfn)
+		{
 			mid_mfn_p = alloc_p2m_page();
 			p2m_mid_mfn_init(mid_mfn_p, p2m_missing);
 
@@ -270,15 +291,20 @@ void __ref xen_build_mfn_list_list(void)
 void xen_setup_mfn_list_list(void)
 {
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return;
+	}
 
 	BUG_ON(HYPERVISOR_shared_info == &xen_dummy_shared_info);
 
 	if (xen_start_info->flags & SIF_VIRT_P2M_4TOOLS)
+	{
 		HYPERVISOR_shared_info->arch.pfn_to_mfn_frame_list_list = ~0UL;
+	}
 	else
 		HYPERVISOR_shared_info->arch.pfn_to_mfn_frame_list_list =
 			virt_to_mfn(p2m_top_mfn);
+
 	HYPERVISOR_shared_info->arch.max_pfn = xen_p2m_last_pfn;
 	HYPERVISOR_shared_info->arch.p2m_generation = 0;
 	HYPERVISOR_shared_info->arch.p2m_vaddr = (unsigned long)xen_p2m_addr;
@@ -291,14 +317,18 @@ void __init xen_build_dynamic_phys_to_machine(void)
 {
 	unsigned long pfn;
 
-	 if (xen_feature(XENFEAT_auto_translated_physmap))
+	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return;
+	}
 
 	xen_p2m_addr = (unsigned long *)xen_start_info->mfn_list;
 	xen_p2m_size = ALIGN(xen_start_info->nr_pages, P2M_PER_PAGE);
 
 	for (pfn = xen_start_info->nr_pages; pfn < xen_p2m_size; pfn++)
+	{
 		xen_p2m_addr[pfn] = INVALID_P2M_ENTRY;
+	}
 
 	xen_max_p2m_pfn = xen_p2m_size;
 }
@@ -313,15 +343,21 @@ static int xen_p2m_elem_type(unsigned long pfn)
 	unsigned long mfn;
 
 	if (pfn >= xen_p2m_size)
+	{
 		return P2M_TYPE_IDENTITY;
+	}
 
 	mfn = xen_p2m_addr[pfn];
 
 	if (mfn == INVALID_P2M_ENTRY)
+	{
 		return P2M_TYPE_MISSING;
+	}
 
 	if (mfn & IDENTITY_FRAME_BIT)
+	{
 		return P2M_TYPE_IDENTITY;
+	}
 
 	return P2M_TYPE_PFN;
 }
@@ -344,14 +380,17 @@ static void __init xen_rebuild_p2m_list(unsigned long *p2m)
 	paravirt_alloc_pte(&init_mm, __pa(p2m_missing_pte) >> PAGE_SHIFT);
 	p2m_identity_pte = alloc_p2m_page();
 	paravirt_alloc_pte(&init_mm, __pa(p2m_identity_pte) >> PAGE_SHIFT);
-	for (i = 0; i < PTRS_PER_PTE; i++) {
+
+	for (i = 0; i < PTRS_PER_PTE; i++)
+	{
 		set_pte(p2m_missing_pte + i,
-			pfn_pte(PFN_DOWN(__pa(p2m_missing)), PAGE_KERNEL_RO));
+				pfn_pte(PFN_DOWN(__pa(p2m_missing)), PAGE_KERNEL_RO));
 		set_pte(p2m_identity_pte + i,
-			pfn_pte(PFN_DOWN(__pa(p2m_identity)), PAGE_KERNEL_RO));
+				pfn_pte(PFN_DOWN(__pa(p2m_identity)), PAGE_KERNEL_RO));
 	}
 
-	for (pfn = 0; pfn < xen_max_p2m_pfn; pfn += chunk) {
+	for (pfn = 0; pfn < xen_max_p2m_pfn; pfn += chunk)
+	{
 		/*
 		 * Try to map missing/identity PMDs or p2m-pages if possible.
 		 * We have to respect the structure of the mfn_list_list
@@ -363,19 +402,26 @@ static void __init xen_rebuild_p2m_list(unsigned long *p2m)
 		 * kernels.
 		 */
 		chunk = (pfn & (P2M_PER_PAGE * P2M_MID_PER_PAGE - 1)) ?
-			P2M_PER_PAGE : P2M_PER_PAGE * P2M_MID_PER_PAGE;
+				P2M_PER_PAGE : P2M_PER_PAGE * P2M_MID_PER_PAGE;
 
 		type = xen_p2m_elem_type(pfn);
 		i = 0;
+
 		if (type != P2M_TYPE_PFN)
 			for (i = 1; i < chunk; i++)
 				if (xen_p2m_elem_type(pfn + i) != type)
+				{
 					break;
+				}
+
 		if (i < chunk)
 			/* Reset to minimal chunk size. */
+		{
 			chunk = P2M_PER_PAGE;
+		}
 
-		if (type == P2M_TYPE_PFN || i < chunk) {
+		if (type == P2M_TYPE_PFN || i < chunk)
+		{
 			/* Use initial p2m page contents. */
 #ifdef CONFIG_X86_64
 			mfns = alloc_p2m_page();
@@ -385,26 +431,29 @@ static void __init xen_rebuild_p2m_list(unsigned long *p2m)
 #endif
 			ptep = populate_extra_pte((unsigned long)(p2m + pfn));
 			set_pte(ptep,
-				pfn_pte(PFN_DOWN(__pa(mfns)), PAGE_KERNEL));
+					pfn_pte(PFN_DOWN(__pa(mfns)), PAGE_KERNEL));
 			continue;
 		}
 
-		if (chunk == P2M_PER_PAGE) {
+		if (chunk == P2M_PER_PAGE)
+		{
 			/* Map complete missing or identity p2m-page. */
 			mfns = (type == P2M_TYPE_MISSING) ?
-				p2m_missing : p2m_identity;
+				   p2m_missing : p2m_identity;
 			ptep = populate_extra_pte((unsigned long)(p2m + pfn));
 			set_pte(ptep,
-				pfn_pte(PFN_DOWN(__pa(mfns)), PAGE_KERNEL_RO));
+					pfn_pte(PFN_DOWN(__pa(mfns)), PAGE_KERNEL_RO));
 			continue;
 		}
 
 		/* Complete missing or identity PMD(s) can be mapped. */
 		ptep = (type == P2M_TYPE_MISSING) ?
-			p2m_missing_pte : p2m_identity_pte;
-		for (i = 0; i < PMDS_PER_MID_PAGE; i++) {
+			   p2m_missing_pte : p2m_identity_pte;
+
+		for (i = 0; i < PMDS_PER_MID_PAGE; i++)
+		{
 			pmdp = populate_extra_pmd(
-				(unsigned long)(p2m + pfn) + i * PMD_SIZE);
+					   (unsigned long)(p2m + pfn) + i * PMD_SIZE);
 			set_pmd(pmdp, __pmd(__pa(ptep) | _KERNPG_TABLE));
 		}
 	}
@@ -420,7 +469,7 @@ void __init xen_vmalloc_p2m_tree(void)
 	p2m_limit = (phys_addr_t)P2M_LIMIT * 1024 * 1024 * 1024 / PAGE_SIZE;
 	vm.flags = VM_ALLOC;
 	vm.size = ALIGN(sizeof(unsigned long) * max(xen_max_p2m_pfn, p2m_limit),
-			PMD_SIZE * PMDS_PER_MID_PAGE);
+					PMD_SIZE * PMDS_PER_MID_PAGE);
 	vm_area_register_early(&vm, PMD_SIZE * PMDS_PER_MID_PAGE);
 	pr_notice("p2m virtual area at %p, size is %lx\n", vm.addr, vm.size);
 
@@ -439,9 +488,12 @@ unsigned long get_phys_to_machine(unsigned long pfn)
 	pte_t *ptep;
 	unsigned int level;
 
-	if (unlikely(pfn >= xen_p2m_size)) {
+	if (unlikely(pfn >= xen_p2m_size))
+	{
 		if (pfn < xen_max_p2m_pfn)
+		{
 			return xen_chk_extra_mem(pfn);
+		}
 
 		return IDENTITY_FRAME(pfn);
 	}
@@ -455,7 +507,9 @@ unsigned long get_phys_to_machine(unsigned long pfn)
 	 * would be wrong.
 	 */
 	if (pte_pfn(*ptep) == PFN_DOWN(__pa(p2m_identity)))
+	{
 		return IDENTITY_FRAME(pfn);
+	}
 
 	return xen_p2m_addr[pfn];
 }
@@ -478,11 +532,16 @@ static pte_t *alloc_p2m_pmd(unsigned long addr, pte_t *pte_pg)
 	int i;
 
 	/* Do all allocations first to bail out in error case. */
-	for (i = 0; i < PMDS_PER_MID_PAGE; i++) {
+	for (i = 0; i < PMDS_PER_MID_PAGE; i++)
+	{
 		pte_newpg[i] = alloc_p2m_page();
-		if (!pte_newpg[i]) {
+
+		if (!pte_newpg[i])
+		{
 			for (i--; i >= 0; i--)
+			{
 				free_p2m_page(pte_newpg[i]);
+			}
 
 			return NULL;
 		}
@@ -490,7 +549,8 @@ static pte_t *alloc_p2m_pmd(unsigned long addr, pte_t *pte_pg)
 
 	vaddr = addr & ~(PMD_SIZE * PMDS_PER_MID_PAGE - 1);
 
-	for (i = 0; i < PMDS_PER_MID_PAGE; i++) {
+	for (i = 0; i < PMDS_PER_MID_PAGE; i++)
+	{
 		copy_page(pte_newpg[i], pte_pg);
 		paravirt_alloc_pte(&init_mm, __pa(pte_newpg[i]) >> PAGE_SHIFT);
 
@@ -500,11 +560,13 @@ static pte_t *alloc_p2m_pmd(unsigned long addr, pte_t *pte_pg)
 		spin_lock_irqsave(&p2m_update_lock, flags);
 
 		ptechk = lookup_address(vaddr, &level);
-		if (ptechk == pte_pg) {
+
+		if (ptechk == pte_pg)
+		{
 			HYPERVISOR_shared_info->arch.p2m_generation++;
 			wmb(); /* Tools are synchronizing via p2m_generation. */
 			set_pmd(pmdp,
-				__pmd(__pa(pte_newpg[i]) | _KERNPG_TABLE));
+					__pmd(__pa(pte_newpg[i]) | _KERNPG_TABLE));
 			wmb(); /* Tools are synchronizing via p2m_generation. */
 			HYPERVISOR_shared_info->arch.p2m_generation++;
 			pte_newpg[i] = NULL;
@@ -512,7 +574,8 @@ static pte_t *alloc_p2m_pmd(unsigned long addr, pte_t *pte_pg)
 
 		spin_unlock_irqrestore(&p2m_update_lock, flags);
 
-		if (pte_newpg[i]) {
+		if (pte_newpg[i])
+		{
 			paravirt_release_pte(__pa(pte_newpg[i]) >> PAGE_SHIFT);
 			free_p2m_page(pte_newpg[i]);
 		}
@@ -541,89 +604,123 @@ int xen_alloc_p2m_entry(unsigned long pfn)
 	unsigned long p2m_pfn;
 
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return 0;
+	}
 
 	ptep = lookup_address(addr, &level);
 	BUG_ON(!ptep || level != PG_LEVEL_4K);
 	pte_pg = (pte_t *)((unsigned long)ptep & ~(PAGE_SIZE - 1));
 
-	if (pte_pg == p2m_missing_pte || pte_pg == p2m_identity_pte) {
+	if (pte_pg == p2m_missing_pte || pte_pg == p2m_identity_pte)
+	{
 		/* PMD level is missing, allocate a new one */
 		ptep = alloc_p2m_pmd(addr, pte_pg);
+
 		if (!ptep)
+		{
 			return -ENOMEM;
+		}
 	}
 
-	if (p2m_top_mfn && pfn < MAX_P2M_PFN) {
+	if (p2m_top_mfn && pfn < MAX_P2M_PFN)
+	{
 		topidx = p2m_top_index(pfn);
 		top_mfn_p = &p2m_top_mfn[topidx];
 		mid_mfn = ACCESS_ONCE(p2m_top_mfn_p[topidx]);
 
 		BUG_ON(virt_to_mfn(mid_mfn) != *top_mfn_p);
 
-		if (mid_mfn == p2m_mid_missing_mfn) {
+		if (mid_mfn == p2m_mid_missing_mfn)
+		{
 			/* Separately check the mid mfn level */
 			unsigned long missing_mfn;
 			unsigned long mid_mfn_mfn;
 			unsigned long old_mfn;
 
 			mid_mfn = alloc_p2m_page();
+
 			if (!mid_mfn)
+			{
 				return -ENOMEM;
+			}
 
 			p2m_mid_mfn_init(mid_mfn, p2m_missing);
 
 			missing_mfn = virt_to_mfn(p2m_mid_missing_mfn);
 			mid_mfn_mfn = virt_to_mfn(mid_mfn);
 			old_mfn = cmpxchg(top_mfn_p, missing_mfn, mid_mfn_mfn);
-			if (old_mfn != missing_mfn) {
+
+			if (old_mfn != missing_mfn)
+			{
 				free_p2m_page(mid_mfn);
 				mid_mfn = mfn_to_virt(old_mfn);
-			} else {
+			}
+			else
+			{
 				p2m_top_mfn_p[topidx] = mid_mfn;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		mid_mfn = NULL;
 	}
 
 	p2m_pfn = pte_pfn(READ_ONCE(*ptep));
+
 	if (p2m_pfn == PFN_DOWN(__pa(p2m_identity)) ||
-	    p2m_pfn == PFN_DOWN(__pa(p2m_missing))) {
+		p2m_pfn == PFN_DOWN(__pa(p2m_missing)))
+	{
 		/* p2m leaf page is missing */
 		unsigned long *p2m;
 
 		p2m = alloc_p2m_page();
+
 		if (!p2m)
+		{
 			return -ENOMEM;
+		}
 
 		if (p2m_pfn == PFN_DOWN(__pa(p2m_missing)))
+		{
 			p2m_init(p2m);
+		}
 		else
+		{
 			p2m_init_identity(p2m, pfn & ~(P2M_PER_PAGE - 1));
+		}
 
 		spin_lock_irqsave(&p2m_update_lock, flags);
 
-		if (pte_pfn(*ptep) == p2m_pfn) {
+		if (pte_pfn(*ptep) == p2m_pfn)
+		{
 			HYPERVISOR_shared_info->arch.p2m_generation++;
 			wmb(); /* Tools are synchronizing via p2m_generation. */
 			set_pte(ptep,
-				pfn_pte(PFN_DOWN(__pa(p2m)), PAGE_KERNEL));
+					pfn_pte(PFN_DOWN(__pa(p2m)), PAGE_KERNEL));
 			wmb(); /* Tools are synchronizing via p2m_generation. */
 			HYPERVISOR_shared_info->arch.p2m_generation++;
+
 			if (mid_mfn)
+			{
 				mid_mfn[p2m_mid_index(pfn)] = virt_to_mfn(p2m);
+			}
+
 			p2m = NULL;
 		}
 
 		spin_unlock_irqrestore(&p2m_update_lock, flags);
 
 		if (p2m)
+		{
 			free_p2m_page(p2m);
+		}
 	}
 
 	/* Expanded the p2m? */
-	if (pfn > xen_p2m_last_pfn) {
+	if (pfn > xen_p2m_last_pfn)
+	{
 		xen_p2m_last_pfn = pfn;
 		HYPERVISOR_shared_info->arch.max_pfn = xen_p2m_last_pfn;
 	}
@@ -633,24 +730,34 @@ int xen_alloc_p2m_entry(unsigned long pfn)
 EXPORT_SYMBOL(xen_alloc_p2m_entry);
 
 unsigned long __init set_phys_range_identity(unsigned long pfn_s,
-				      unsigned long pfn_e)
+		unsigned long pfn_e)
 {
 	unsigned long pfn;
 
 	if (unlikely(pfn_s >= xen_p2m_size))
+	{
 		return 0;
+	}
 
 	if (unlikely(xen_feature(XENFEAT_auto_translated_physmap)))
+	{
 		return pfn_e - pfn_s;
+	}
 
 	if (pfn_s > pfn_e)
+	{
 		return 0;
+	}
 
 	if (pfn_e > xen_p2m_size)
+	{
 		pfn_e = xen_p2m_size;
+	}
 
 	for (pfn = pfn_s; pfn < pfn_e; pfn++)
+	{
 		xen_p2m_addr[pfn] = IDENTITY_FRAME(pfn);
+	}
 
 	return pfn - pfn_s;
 }
@@ -662,9 +769,12 @@ bool __set_phys_to_machine(unsigned long pfn, unsigned long mfn)
 
 	/* don't track P2M changes in autotranslate guests */
 	if (unlikely(xen_feature(XENFEAT_auto_translated_physmap)))
+	{
 		return true;
+	}
 
-	if (unlikely(pfn >= xen_p2m_size)) {
+	if (unlikely(pfn >= xen_p2m_size))
+	{
 		BUG_ON(mfn != INVALID_P2M_ENTRY);
 		return true;
 	}
@@ -675,28 +785,38 @@ bool __set_phys_to_machine(unsigned long pfn, unsigned long mfn)
 	 * store via asm().
 	 */
 	if (likely(!xen_safe_write_ulong(xen_p2m_addr + pfn, mfn)))
+	{
 		return true;
+	}
 
 	ptep = lookup_address((unsigned long)(xen_p2m_addr + pfn), &level);
 	BUG_ON(!ptep || level != PG_LEVEL_4K);
 
 	if (pte_pfn(*ptep) == PFN_DOWN(__pa(p2m_missing)))
+	{
 		return mfn == INVALID_P2M_ENTRY;
+	}
 
 	if (pte_pfn(*ptep) == PFN_DOWN(__pa(p2m_identity)))
+	{
 		return mfn == IDENTITY_FRAME(pfn);
+	}
 
 	return false;
 }
 
 bool set_phys_to_machine(unsigned long pfn, unsigned long mfn)
 {
-	if (unlikely(!__set_phys_to_machine(pfn, mfn))) {
+	if (unlikely(!__set_phys_to_machine(pfn, mfn)))
+	{
 		int ret;
 
 		ret = xen_alloc_p2m_entry(pfn);
+
 		if (ret < 0)
+		{
 			return false;
+		}
 
 		return __set_phys_to_machine(pfn, mfn);
 	}
@@ -705,41 +825,55 @@ bool set_phys_to_machine(unsigned long pfn, unsigned long mfn)
 }
 
 int set_foreign_p2m_mapping(struct gnttab_map_grant_ref *map_ops,
-			    struct gnttab_map_grant_ref *kmap_ops,
-			    struct page **pages, unsigned int count)
+							struct gnttab_map_grant_ref *kmap_ops,
+							struct page **pages, unsigned int count)
 {
 	int i, ret = 0;
 	pte_t *pte;
 
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return 0;
-
-	if (kmap_ops) {
-		ret = HYPERVISOR_grant_table_op(GNTTABOP_map_grant_ref,
-						kmap_ops, count);
-		if (ret)
-			goto out;
 	}
 
-	for (i = 0; i < count; i++) {
+	if (kmap_ops)
+	{
+		ret = HYPERVISOR_grant_table_op(GNTTABOP_map_grant_ref,
+										kmap_ops, count);
+
+		if (ret)
+		{
+			goto out;
+		}
+	}
+
+	for (i = 0; i < count; i++)
+	{
 		unsigned long mfn, pfn;
 
 		/* Do not add to override if the map failed. */
 		if (map_ops[i].status)
+		{
 			continue;
+		}
 
-		if (map_ops[i].flags & GNTMAP_contains_pte) {
+		if (map_ops[i].flags & GNTMAP_contains_pte)
+		{
 			pte = (pte_t *)(mfn_to_virt(PFN_DOWN(map_ops[i].host_addr)) +
-				(map_ops[i].host_addr & ~PAGE_MASK));
+							(map_ops[i].host_addr & ~PAGE_MASK));
 			mfn = pte_mfn(*pte);
-		} else {
+		}
+		else
+		{
 			mfn = PFN_DOWN(map_ops[i].dev_bus_addr);
 		}
+
 		pfn = page_to_pfn(pages[i]);
 
 		WARN(pfn_to_mfn(pfn) != INVALID_P2M_ENTRY, "page must be ballooned");
 
-		if (unlikely(!set_phys_to_machine(pfn, FOREIGN_FRAME(mfn)))) {
+		if (unlikely(!set_phys_to_machine(pfn, FOREIGN_FRAME(mfn))))
+		{
 			ret = -ENOMEM;
 			goto out;
 		}
@@ -751,28 +885,34 @@ out:
 EXPORT_SYMBOL_GPL(set_foreign_p2m_mapping);
 
 int clear_foreign_p2m_mapping(struct gnttab_unmap_grant_ref *unmap_ops,
-			      struct gnttab_unmap_grant_ref *kunmap_ops,
-			      struct page **pages, unsigned int count)
+							  struct gnttab_unmap_grant_ref *kunmap_ops,
+							  struct page **pages, unsigned int count)
 {
 	int i, ret = 0;
 
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return 0;
+	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		unsigned long mfn = __pfn_to_mfn(page_to_pfn(pages[i]));
 		unsigned long pfn = page_to_pfn(pages[i]);
 
-		if (mfn == INVALID_P2M_ENTRY || !(mfn & FOREIGN_FRAME_BIT)) {
+		if (mfn == INVALID_P2M_ENTRY || !(mfn & FOREIGN_FRAME_BIT))
+		{
 			ret = -EINVAL;
 			goto out;
 		}
 
 		set_phys_to_machine(pfn, INVALID_P2M_ENTRY);
 	}
+
 	if (kunmap_ops)
 		ret = HYPERVISOR_grant_table_op(GNTTABOP_unmap_grant_ref,
-						kunmap_ops, count);
+										kunmap_ops, count);
+
 out:
 	return ret;
 }
@@ -783,28 +923,34 @@ EXPORT_SYMBOL_GPL(clear_foreign_p2m_mapping);
 #include "debugfs.h"
 static int p2m_dump_show(struct seq_file *m, void *v)
 {
-	static const char * const type_name[] = {
-				[P2M_TYPE_IDENTITY] = "identity",
-				[P2M_TYPE_MISSING] = "missing",
-				[P2M_TYPE_PFN] = "pfn",
-				[P2M_TYPE_UNKNOWN] = "abnormal"};
+	static const char *const type_name[] =
+	{
+		[P2M_TYPE_IDENTITY] = "identity",
+		[P2M_TYPE_MISSING] = "missing",
+		[P2M_TYPE_PFN] = "pfn",
+		[P2M_TYPE_UNKNOWN] = "abnormal"
+	};
 	unsigned long pfn, first_pfn;
 	int type, prev_type;
 
 	prev_type = xen_p2m_elem_type(0);
 	first_pfn = 0;
 
-	for (pfn = 0; pfn < xen_p2m_size; pfn++) {
+	for (pfn = 0; pfn < xen_p2m_size; pfn++)
+	{
 		type = xen_p2m_elem_type(pfn);
-		if (type != prev_type) {
+
+		if (type != prev_type)
+		{
 			seq_printf(m, " [0x%lx->0x%lx] %s\n", first_pfn, pfn,
-				   type_name[prev_type]);
+					   type_name[prev_type]);
 			prev_type = type;
 			first_pfn = pfn;
 		}
 	}
+
 	seq_printf(m, " [0x%lx->0x%lx] %s\n", first_pfn, pfn,
-		   type_name[prev_type]);
+			   type_name[prev_type]);
 	return 0;
 }
 
@@ -813,7 +959,8 @@ static int p2m_dump_open(struct inode *inode, struct file *filp)
 	return single_open(filp, p2m_dump_show, NULL);
 }
 
-static const struct file_operations p2m_dump_fops = {
+static const struct file_operations p2m_dump_fops =
+{
 	.open		= p2m_dump_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -827,7 +974,9 @@ static int __init xen_p2m_debugfs(void)
 	struct dentry *d_xen = xen_init_debugfs();
 
 	if (d_xen == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	d_mmu_debug = debugfs_create_dir("mmu", d_xen);
 

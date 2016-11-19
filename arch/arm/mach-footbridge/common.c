@@ -55,7 +55,8 @@ __tagtable(ATAG_MEMCLK, parse_tag_memclk);
  * Footbridge IRQ translation table
  *  Converts from our IRQ numbers into FootBridge masks
  */
-static const int fb_irq_mask[] = {
+static const int fb_irq_mask[] =
+{
 	IRQ_MASK_UART_RX,	/*  0 */
 	IRQ_MASK_UART_TX,	/*  1 */
 	IRQ_MASK_TIMER1,	/*  2 */
@@ -88,7 +89,8 @@ static void fb_unmask_irq(struct irq_data *d)
 	*CSR_IRQ_ENABLE = fb_irq_mask[_DC21285_INR(d->irq)];
 }
 
-static struct irq_chip fb_chip = {
+static struct irq_chip fb_chip =
+{
 	.irq_ack	= fb_mask_irq,
 	.irq_mask	= fb_mask_irq,
 	.irq_unmask	= fb_unmask_irq,
@@ -104,7 +106,8 @@ static void __init __fb_init_irq(void)
 	*CSR_IRQ_DISABLE = -1;
 	*CSR_FIQ_DISABLE = -1;
 
-	for (irq = _DC21285_IRQ(0); irq < _DC21285_IRQ(20); irq++) {
+	for (irq = _DC21285_IRQ(0); irq < _DC21285_IRQ(20); irq++)
+	{
 		irq_set_chip_and_handler(irq, &fb_chip, handle_level_irq);
 		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
@@ -115,7 +118,9 @@ void __init footbridge_init_irq(void)
 	__fb_init_irq();
 
 	if (!footbridge_cfn_mode())
+	{
 		return;
+	}
 
 	if (machine_is_ebsa285())
 		/* The following is dependent on which slot
@@ -123,13 +128,19 @@ void __init footbridge_init_irq(void)
 		 * currently assume that you plug it into
 		 * the right-hand most slot.
 		 */
+	{
 		isa_init_irq(IRQ_PCI);
+	}
 
 	if (machine_is_cats())
+	{
 		isa_init_irq(IRQ_IN2);
+	}
 
 	if (machine_is_netwinder())
+	{
 		isa_init_irq(IRQ_IN3);
+	}
 }
 
 /*
@@ -137,7 +148,8 @@ void __init footbridge_init_irq(void)
  * commented out since there is a "No Fix" problem with it.  Not mapping
  * it means that we have extra bullet protection on our feet.
  */
-static struct map_desc fb_common_io_desc[] __initdata = {
+static struct map_desc fb_common_io_desc[] __initdata =
+{
 	{
 		.virtual	= ARMCSR_BASE,
 		.pfn		= __phys_to_pfn(DC21285_ARMCSR_BASE),
@@ -150,7 +162,8 @@ static struct map_desc fb_common_io_desc[] __initdata = {
  * The mapping when the footbridge is in host mode.  We don't map any of
  * this when we are in add-in mode.
  */
-static struct map_desc ebsa285_host_io_desc[] __initdata = {
+static struct map_desc ebsa285_host_io_desc[] __initdata =
+{
 #if defined(CONFIG_ARCH_FOOTBRIDGE) && defined(CONFIG_FOOTBRIDGE_HOST)
 	{
 		.virtual	= PCIMEM_BASE,
@@ -188,7 +201,8 @@ void __init footbridge_map_io(void)
 	 * Now, work out what we've got to map in addition on this
 	 * platform.
 	 */
-	if (footbridge_cfn_mode()) {
+	if (footbridge_cfn_mode())
+	{
 		iotable_init(ebsa285_host_io_desc, ARRAY_SIZE(ebsa285_host_io_desc));
 		pci_map_io_early(__phys_to_pfn(DC21285_PCI_IO));
 	}
@@ -198,10 +212,13 @@ void __init footbridge_map_io(void)
 
 void footbridge_restart(enum reboot_mode mode, const char *cmd)
 {
-	if (mode == REBOOT_SOFT) {
+	if (mode == REBOOT_SOFT)
+	{
 		/* Jump into the ROM */
 		soft_restart(0x41000000);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Force the watchdog to do a CPU reset.
 		 *
@@ -215,8 +232,8 @@ void footbridge_restart(enum reboot_mode mode, const char *cmd)
 		 */
 		*CSR_SA110_CNTL &= ~(1 << 13);
 		*CSR_TIMER4_CNTL = TIMER_CNTL_ENABLE |
-				   TIMER_CNTL_AUTORELOAD |
-				   TIMER_CNTL_DIV16;
+						   TIMER_CNTL_AUTORELOAD |
+						   TIMER_CNTL_DIV16;
 		*CSR_TIMER4_LOAD = 0x2;
 		*CSR_TIMER4_CLR  = 0;
 		*CSR_SA110_CNTL |= (1 << 13);

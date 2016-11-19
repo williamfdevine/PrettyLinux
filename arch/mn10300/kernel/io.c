@@ -21,7 +21,8 @@ void __outsl(unsigned long addr, const void *buffer, int count)
 	const unsigned char *buf = buffer;
 	unsigned long val;
 
-	while (count--) {
+	while (count--)
+	{
 		memcpy(&val, buf, 4);
 		outl(val, addr);
 		buf += 4;

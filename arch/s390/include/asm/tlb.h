@@ -28,14 +28,16 @@
 #include <asm/pgalloc.h>
 #include <asm/tlbflush.h>
 
-struct mmu_gather {
+struct mmu_gather
+{
 	struct mm_struct *mm;
 	struct mmu_table_batch *batch;
 	unsigned int fullmm;
 	unsigned long start, end;
 };
 
-struct mmu_table_batch {
+struct mmu_table_batch
+{
 	struct rcu_head		rcu;
 	unsigned int		nr;
 	void			*tables[0];
@@ -48,14 +50,14 @@ extern void tlb_table_flush(struct mmu_gather *tlb);
 extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
 
 static inline void tlb_gather_mmu(struct mmu_gather *tlb,
-				  struct mm_struct *mm,
-				  unsigned long start,
-				  unsigned long end)
+								  struct mm_struct *mm,
+								  unsigned long start,
+								  unsigned long end)
 {
 	tlb->mm = mm;
 	tlb->start = start;
 	tlb->end = end;
-	tlb->fullmm = !(start | (end+1));
+	tlb->fullmm = !(start | (end + 1));
 	tlb->batch = NULL;
 }
 
@@ -77,7 +79,7 @@ static inline void tlb_flush_mmu(struct mmu_gather *tlb)
 }
 
 static inline void tlb_finish_mmu(struct mmu_gather *tlb,
-				  unsigned long start, unsigned long end)
+								  unsigned long start, unsigned long end)
 {
 	tlb_flush_mmu(tlb);
 }
@@ -99,19 +101,19 @@ static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
 }
 
 static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
-					  struct page *page, int page_size)
+		struct page *page, int page_size)
 {
 	return __tlb_remove_page(tlb, page);
 }
 
 static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
-					 struct page *page)
+		struct page *page)
 {
 	return __tlb_remove_page(tlb, page);
 }
 
 static inline void tlb_remove_page_size(struct mmu_gather *tlb,
-					struct page *page, int page_size)
+										struct page *page, int page_size)
 {
 	return tlb_remove_page(tlb, page);
 }
@@ -121,7 +123,7 @@ static inline void tlb_remove_page_size(struct mmu_gather *tlb,
  * page table from the tlb.
  */
 static inline void pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
-				unsigned long address)
+								unsigned long address)
 {
 	page_table_free_rcu(tlb, (unsigned long *) pte, address);
 }
@@ -134,10 +136,13 @@ static inline void pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
  * to avoid the double free of the pmd in this case.
  */
 static inline void pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd,
-				unsigned long address)
+								unsigned long address)
 {
 	if (tlb->mm->context.asce_limit <= (1UL << 31))
+	{
 		return;
+	}
+
 	pgtable_pmd_page_dtor(virt_to_page(pmd));
 	tlb_remove_table(tlb, pmd);
 }
@@ -150,10 +155,13 @@ static inline void pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd,
  * to avoid the double free of the pud in this case.
  */
 static inline void pud_free_tlb(struct mmu_gather *tlb, pud_t *pud,
-				unsigned long address)
+								unsigned long address)
 {
 	if (tlb->mm->context.asce_limit <= (1UL << 42))
+	{
 		return;
+	}
+
 	tlb_remove_table(tlb, pud);
 }
 

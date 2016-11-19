@@ -2,16 +2,18 @@
 #define __ASM_SH_SPINLOCK_TYPES_H
 
 #ifndef __LINUX_SPINLOCK_TYPES_H
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned int lock;
 } arch_spinlock_t;
 
 #define __ARCH_SPIN_LOCK_UNLOCKED		{ 1 }
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned int lock;
 } arch_rwlock_t;
 

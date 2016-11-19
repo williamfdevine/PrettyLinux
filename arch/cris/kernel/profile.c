@@ -16,31 +16,42 @@ static int prof_running = 0;
 void cris_profile_sample(struct pt_regs *regs)
 {
 	if (!prof_running)
+	{
 		return;
+	}
 
 	if (user_mode(regs))
-		*(unsigned int*)sample_buffer_pos = current->pid;
+	{
+		*(unsigned int *)sample_buffer_pos = current->pid;
+	}
 	else
-		*(unsigned int*)sample_buffer_pos = 0;
+	{
+		*(unsigned int *)sample_buffer_pos = 0;
+	}
 
 	*(unsigned int *)(sample_buffer_pos + 4) = instruction_pointer(regs);
 	sample_buffer_pos += 8;
 
 	if (sample_buffer_pos == sample_buffer + SAMPLE_BUFFER_SIZE)
+	{
 		sample_buffer_pos = sample_buffer;
+	}
 }
 
 static ssize_t
 read_cris_profile(struct file *file, char __user *buf,
-		  size_t count, loff_t *ppos)
+				  size_t count, loff_t *ppos)
 {
 	unsigned long p = *ppos;
 	ssize_t ret;
 
 	ret = simple_read_from_buffer(buf, count, ppos, sample_buffer,
-						SAMPLE_BUFFER_SIZE);
+								  SAMPLE_BUFFER_SIZE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	memset(sample_buffer + p, 0, ret);
 
@@ -49,14 +60,15 @@ read_cris_profile(struct file *file, char __user *buf,
 
 static ssize_t
 write_cris_profile(struct file *file, const char __user *buf,
-		   size_t count, loff_t *ppos)
+				   size_t count, loff_t *ppos)
 {
 	sample_buffer_pos = sample_buffer;
 	memset(sample_buffer, 0, SAMPLE_BUFFER_SIZE);
 	return count < SAMPLE_BUFFER_SIZE ? count : SAMPLE_BUFFER_SIZE;
 }
 
-static const struct file_operations cris_proc_profile_operations = {
+static const struct file_operations cris_proc_profile_operations =
+{
 	.read		= read_cris_profile,
 	.write		= write_cris_profile,
 	.llseek		= default_llseek,
@@ -67,17 +79,22 @@ static int __init init_cris_profile(void)
 	struct proc_dir_entry *entry;
 
 	sample_buffer = kmalloc(SAMPLE_BUFFER_SIZE, GFP_KERNEL);
-	if (!sample_buffer) {
+
+	if (!sample_buffer)
+	{
 		return -ENOMEM;
 	}
 
 	sample_buffer_pos = sample_buffer;
 
 	entry = proc_create("system_profile", S_IWUSR | S_IRUGO, NULL,
-			    &cris_proc_profile_operations);
-	if (entry) {
+						&cris_proc_profile_operations);
+
+	if (entry)
+	{
 		proc_set_size(entry, SAMPLE_BUFFER_SIZE);
 	}
+
 	prof_running = 1;
 
 	return 0;

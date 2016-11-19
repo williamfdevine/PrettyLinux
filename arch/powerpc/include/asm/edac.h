@@ -22,7 +22,8 @@ static __inline__ void edac_atomic_scrub(void *va, u32 size)
 	unsigned int temp;
 	unsigned int i;
 
-	for (i = 0; i < size / sizeof(*virt_addr); i++, virt_addr++) {
+	for (i = 0; i < size / sizeof(*virt_addr); i++, virt_addr++)
+	{
 		/* Very carefully read and write to memory atomically
 		 * so we are interrupt, DMA and SMP safe.
 		 */
@@ -31,9 +32,9 @@ static __inline__ void edac_atomic_scrub(void *va, u32 size)
 					stwcx.	%0,0,%1\n\
 					bne-	1b\n\
 					isync"
-					: "=&r"(temp)
-					: "r"(virt_addr)
-					: "cr0", "memory");
+							  : "=&r"(temp)
+							  : "r"(virt_addr)
+							  : "cr0", "memory");
 	}
 }
 

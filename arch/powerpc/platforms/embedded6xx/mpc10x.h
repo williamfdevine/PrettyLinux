@@ -36,7 +36,7 @@
  * <linux/pci_ids.h>
  */
 #define	MPC10X_BRIDGE_106	((PCI_DEVICE_ID_MOTOROLA_MPC106 << 16) |  \
-				  PCI_VENDOR_ID_MOTOROLA)
+							 PCI_VENDOR_ID_MOTOROLA)
 #define	MPC10X_BRIDGE_8240	((0x0003 << 16) | PCI_VENDOR_ID_MOTOROLA)
 #define	MPC10X_BRIDGE_107	((0x0004 << 16) | PCI_VENDOR_ID_MOTOROLA)
 #define	MPC10X_BRIDGE_8245	((0x0006 << 16) | PCI_VENDOR_ID_MOTOROLA)
@@ -60,7 +60,7 @@
 #define	MPC10X_MAPA_PCI_MEM_END	       (0x20000000 - 1)
 
 #define	MPC10X_MAPA_PCI_MEM_OFFSET	(MPC10X_MAPA_ISA_MEM_BASE -	\
-					 MPC10X_MAPA_PCI_MEM_START)
+									 MPC10X_MAPA_PCI_MEM_START)
 
 /* Map B (CHRP Map) Defines */
 #define	MPC10X_MAPB_CNFG_ADDR		0xfec00000
@@ -77,7 +77,7 @@
 #define	MPC10X_MAPB_PCI_MEM_END	       (0xc0000000 - 1)
 
 #define	MPC10X_MAPB_PCI_MEM_OFFSET	(MPC10X_MAPB_ISA_MEM_BASE -	\
-					 MPC10X_MAPB_PCI_MEM_START)
+									 MPC10X_MAPB_PCI_MEM_START)
 
 /* Miscellaneous Configuration register offsets */
 #define	MPC10X_CFG_PIR_REG		0x09
@@ -136,7 +136,8 @@
 #define MPC10X_EUMB_WP_OFFSET		0x000ff000 /* Data path diagnostic, watchpoint reg offset */
 #define MPC10X_EUMB_WP_SIZE		0x00001000 /* Data path diagnostic, watchpoint reg size */
 
-enum ppc_sys_devices {
+enum ppc_sys_devices
+{
 	MPC10X_IIC1,
 	MPC10X_DMA0,
 	MPC10X_DMA1,
@@ -146,9 +147,9 @@ enum ppc_sys_devices {
 };
 
 int mpc10x_bridge_init(struct pci_controller *hose,
-		       uint current_map,
-		       uint new_map,
-		       uint phys_eumb_base);
+					   uint current_map,
+					   uint new_map,
+					   uint phys_eumb_base);
 unsigned long mpc10x_get_mem_size(uint mem_map);
 int mpc10x_enable_store_gathering(struct pci_controller *hose);
 int mpc10x_disable_store_gathering(struct pci_controller *hose);

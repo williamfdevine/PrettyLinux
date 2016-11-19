@@ -53,11 +53,13 @@
 
 #include "common.h"
 
-static struct map_desc n30_iodesc[] __initdata = {
+static struct map_desc n30_iodesc[] __initdata =
+{
 	/* nothing here yet */
 };
 
-static struct s3c2410_uartcfg n30_uartcfgs[] = {
+static struct s3c2410_uartcfg n30_uartcfgs[] =
+{
 	/* Normal serial port */
 	[0] = {
 		.hwport	     = 0,
@@ -86,13 +88,15 @@ static struct s3c2410_uartcfg n30_uartcfgs[] = {
 	},
 };
 
-static struct s3c2410_udc_mach_info n30_udc_cfg __initdata = {
+static struct s3c2410_udc_mach_info n30_udc_cfg __initdata =
+{
 	.vbus_pin		= S3C2410_GPG(1),
 	.vbus_pin_inverted	= 0,
 	.pullup_pin		= S3C2410_GPB(3),
 };
 
-static struct gpio_keys_button n30_buttons[] = {
+static struct gpio_keys_button n30_buttons[] =
+{
 	{
 		.gpio		= S3C2410_GPF(0),
 		.code		= KEY_POWER,
@@ -143,12 +147,14 @@ static struct gpio_keys_button n30_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data n30_button_data = {
+static struct gpio_keys_platform_data n30_button_data =
+{
 	.buttons	= n30_buttons,
 	.nbuttons	= ARRAY_SIZE(n30_buttons),
 };
 
-static struct platform_device n30_button_device = {
+static struct platform_device n30_button_device =
+{
 	.name		= "gpio-keys",
 	.id		= -1,
 	.dev		= {
@@ -156,7 +162,8 @@ static struct platform_device n30_button_device = {
 	}
 };
 
-static struct gpio_keys_button n35_buttons[] = {
+static struct gpio_keys_button n35_buttons[] =
+{
 	{
 		.gpio		= S3C2410_GPF(0),
 		.code		= KEY_POWER,
@@ -233,12 +240,14 @@ static struct gpio_keys_button n35_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data n35_button_data = {
+static struct gpio_keys_platform_data n35_button_data =
+{
 	.buttons	= n35_buttons,
 	.nbuttons	= ARRAY_SIZE(n35_buttons),
 };
 
-static struct platform_device n35_button_device = {
+static struct platform_device n35_button_device =
+{
 	.name		= "gpio-keys",
 	.id		= -1,
 	.num_resources	= 0,
@@ -248,7 +257,8 @@ static struct platform_device n35_button_device = {
 };
 
 /* This is the bluetooth LED on the device. */
-static struct s3c24xx_led_platdata n30_blue_led_pdata = {
+static struct s3c24xx_led_platdata n30_blue_led_pdata =
+{
 	.name		= "blue_led",
 	.gpio		= S3C2410_GPG(6),
 	.def_trigger	= "",
@@ -256,7 +266,8 @@ static struct s3c24xx_led_platdata n30_blue_led_pdata = {
 
 /* This is the blue LED on the device. Originally used to indicate GPS activity
  * by flashing. */
-static struct s3c24xx_led_platdata n35_blue_led_pdata = {
+static struct s3c24xx_led_platdata n35_blue_led_pdata =
+{
 	.name		= "blue_led",
 	.gpio		= S3C2410_GPD(8),
 	.def_trigger	= "",
@@ -266,21 +277,24 @@ static struct s3c24xx_led_platdata n35_blue_led_pdata = {
  * red, blinking green or solid green when the battery is low,
  * charging or full respectively.  By driving GPD9 low, it's possible
  * to force the LED to blink red, so call that warning LED.  */
-static struct s3c24xx_led_platdata n30_warning_led_pdata = {
+static struct s3c24xx_led_platdata n30_warning_led_pdata =
+{
 	.name		= "warning_led",
 	.flags          = S3C24XX_LEDF_ACTLOW,
 	.gpio		= S3C2410_GPD(9),
 	.def_trigger	= "",
 };
 
-static struct s3c24xx_led_platdata n35_warning_led_pdata = {
+static struct s3c24xx_led_platdata n35_warning_led_pdata =
+{
 	.name		= "warning_led",
 	.flags          = S3C24XX_LEDF_ACTLOW | S3C24XX_LEDF_TRISTATE,
 	.gpio		= S3C2410_GPD(9),
 	.def_trigger	= "",
 };
 
-static struct platform_device n30_blue_led = {
+static struct platform_device n30_blue_led =
+{
 	.name		= "s3c24xx_led",
 	.id		= 1,
 	.dev		= {
@@ -288,7 +302,8 @@ static struct platform_device n30_blue_led = {
 	},
 };
 
-static struct platform_device n35_blue_led = {
+static struct platform_device n35_blue_led =
+{
 	.name		= "s3c24xx_led",
 	.id		= 1,
 	.dev		= {
@@ -296,7 +311,8 @@ static struct platform_device n35_blue_led = {
 	},
 };
 
-static struct platform_device n30_warning_led = {
+static struct platform_device n30_warning_led =
+{
 	.name		= "s3c24xx_led",
 	.id		= 2,
 	.dev		= {
@@ -304,7 +320,8 @@ static struct platform_device n30_warning_led = {
 	},
 };
 
-static struct platform_device n35_warning_led = {
+static struct platform_device n35_warning_led =
+{
 	.name		= "s3c24xx_led",
 	.id		= 2,
 	.dev		= {
@@ -312,7 +329,8 @@ static struct platform_device n35_warning_led = {
 	},
 };
 
-static struct s3c2410fb_display n30_display __initdata = {
+static struct s3c2410fb_display n30_display __initdata =
+{
 	.type		= S3C2410_LCDCON1_TFT,
 	.width		= 240,
 	.height		= 320,
@@ -331,7 +349,8 @@ static struct s3c2410fb_display n30_display __initdata = {
 	.lcdcon5 = S3C2410_LCDCON5_INVVLINE | S3C2410_LCDCON5_INVVFRAME,
 };
 
-static struct s3c2410fb_mach_info n30_fb_info __initdata = {
+static struct s3c2410fb_mach_info n30_fb_info __initdata =
+{
 	.displays	= &n30_display,
 	.num_displays	= 1,
 	.default_display = 0,
@@ -340,26 +359,30 @@ static struct s3c2410fb_mach_info n30_fb_info __initdata = {
 
 static void n30_sdi_set_power(unsigned char power_mode, unsigned short vdd)
 {
-	switch (power_mode) {
-	case MMC_POWER_ON:
-	case MMC_POWER_UP:
-		gpio_set_value(S3C2410_GPG(4), 1);
-		break;
-	case MMC_POWER_OFF:
-	default:
-		gpio_set_value(S3C2410_GPG(4), 0);
-		break;
+	switch (power_mode)
+	{
+		case MMC_POWER_ON:
+		case MMC_POWER_UP:
+			gpio_set_value(S3C2410_GPG(4), 1);
+			break;
+
+		case MMC_POWER_OFF:
+		default:
+			gpio_set_value(S3C2410_GPG(4), 0);
+			break;
 	}
 }
 
-static struct s3c24xx_mci_pdata n30_mci_cfg __initdata = {
+static struct s3c24xx_mci_pdata n30_mci_cfg __initdata =
+{
 	.gpio_detect	= S3C2410_GPF(1),
 	.gpio_wprotect  = S3C2410_GPG(10),
 	.ocr_avail	= MMC_VDD_32_33,
 	.set_power	= n30_sdi_set_power,
 };
 
-static struct platform_device *n30_devices[] __initdata = {
+static struct platform_device *n30_devices[] __initdata =
+{
 	&s3c_device_lcd,
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
@@ -373,7 +396,8 @@ static struct platform_device *n30_devices[] __initdata = {
 	&n30_warning_led,
 };
 
-static struct platform_device *n35_devices[] __initdata = {
+static struct platform_device *n35_devices[] __initdata =
+{
 	&s3c_device_lcd,
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
@@ -386,10 +410,11 @@ static struct platform_device *n35_devices[] __initdata = {
 	&n35_warning_led,
 };
 
-static struct s3c2410_platform_i2c __initdata n30_i2ccfg = {
+static struct s3c2410_platform_i2c __initdata n30_i2ccfg =
+{
 	.flags		= 0,
 	.slave_addr	= 0x10,
-	.frequency	= 10*1000,
+	.frequency	= 10 * 1000,
 };
 
 /* Lots of hardcoded stuff, but it sets up the hardware in a useful
@@ -405,9 +430,15 @@ static void __init n30_hwinit(void)
 	 * to make it an output there too since it always driven to 0
 	 * as far as I can tell. */
 	if (machine_is_n30())
+	{
 		__raw_writel(0x007fffff, S3C2410_GPACON);
+	}
+
 	if (machine_is_n35())
+	{
 		__raw_writel(0x007fefff, S3C2410_GPACON);
+	}
+
 	__raw_writel(0x00000000, S3C2410_GPADAT);
 
 	/* GPB0 TOUT0 backlight level
@@ -506,9 +537,15 @@ static void __init n30_hwinit(void)
 	 * pullups that are enabled on any of the models.
 	 */
 	if (machine_is_n30())
+	{
 		__raw_writel(0xff0a956a, S3C2410_GPGCON);
+	}
+
 	if (machine_is_n35())
+	{
 		__raw_writel(0xff4aa92a, S3C2410_GPGCON);
+	}
+
 	__raw_writel(0x0000e800, S3C2410_GPGDAT);
 	__raw_writel(0x0000f86f, S3C2410_GPGUP);
 
@@ -559,20 +596,22 @@ static void __init n30_init(void)
 	 * selectable USB port to USB device mode. */
 
 	s3c2410_modify_misccr(S3C2410_MISCCR_USBHOST |
-			      S3C2410_MISCCR_USBSUSPND0 |
-			      S3C2410_MISCCR_USBSUSPND1, 0x0);
+						  S3C2410_MISCCR_USBSUSPND0 |
+						  S3C2410_MISCCR_USBSUSPND1, 0x0);
 
-	if (machine_is_n30()) {
+	if (machine_is_n30())
+	{
 		/* Turn off suspend on both USB ports, and switch the
 		 * selectable USB port to USB device mode. */
 		s3c2410_modify_misccr(S3C2410_MISCCR_USBHOST |
-				      S3C2410_MISCCR_USBSUSPND0 |
-				      S3C2410_MISCCR_USBSUSPND1, 0x0);
+							  S3C2410_MISCCR_USBSUSPND0 |
+							  S3C2410_MISCCR_USBSUSPND1, 0x0);
 
 		platform_add_devices(n30_devices, ARRAY_SIZE(n30_devices));
 	}
 
-	if (machine_is_n35()) {
+	if (machine_is_n35())
+	{
 		/* Turn off suspend and switch the selectable USB port
 		 * to USB device mode.  Turn on suspend for the host
 		 * port since it is not connected on the N35.
@@ -582,31 +621,31 @@ static void __init n30_init(void)
 		 * possible to add a USB device inside the N35 if you
 		 * are willing to do some hardware modifications. */
 		s3c2410_modify_misccr(S3C2410_MISCCR_USBHOST |
-				      S3C2410_MISCCR_USBSUSPND0 |
-				      S3C2410_MISCCR_USBSUSPND1,
-				      S3C2410_MISCCR_USBSUSPND0);
+							  S3C2410_MISCCR_USBSUSPND0 |
+							  S3C2410_MISCCR_USBSUSPND1,
+							  S3C2410_MISCCR_USBSUSPND0);
 
 		platform_add_devices(n35_devices, ARRAY_SIZE(n35_devices));
 	}
 }
 
 MACHINE_START(N30, "Acer-N30")
-	/* Maintainer: Christer Weinigel <christer@weinigel.se>,
-				Ben Dooks <ben-linux@fluff.org>
-	*/
-	.atag_offset	= 0x100,
+/* Maintainer: Christer Weinigel <christer@weinigel.se>,
+			Ben Dooks <ben-linux@fluff.org>
+*/
+.atag_offset	= 0x100,
 	.init_time	= n30_init_time,
-	.init_machine	= n30_init,
-	.init_irq	= s3c2410_init_irq,
-	.map_io		= n30_map_io,
-MACHINE_END
+	  .init_machine	= n30_init,
+		 .init_irq	= s3c2410_init_irq,
+			.map_io		= n30_map_io,
+				MACHINE_END
 
-MACHINE_START(N35, "Acer-N35")
-	/* Maintainer: Christer Weinigel <christer@weinigel.se>
-	*/
-	.atag_offset	= 0x100,
-	.init_time	= n30_init_time,
-	.init_machine	= n30_init,
-	.init_irq	= s3c2410_init_irq,
-	.map_io		= n30_map_io,
-MACHINE_END
+				MACHINE_START(N35, "Acer-N35")
+				/* Maintainer: Christer Weinigel <christer@weinigel.se>
+				*/
+				.atag_offset	= 0x100,
+					.init_time	= n30_init_time,
+					  .init_machine	= n30_init,
+						 .init_irq	= s3c2410_init_irq,
+							.map_io		= n30_map_io,
+								MACHINE_END

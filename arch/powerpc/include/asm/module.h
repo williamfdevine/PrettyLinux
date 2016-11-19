@@ -24,14 +24,16 @@
  * whenever that happens.
  */
 
-struct ppc_plt_entry {
+struct ppc_plt_entry
+{
 	/* 16 byte jump instruction sequence (4 instructions) */
 	unsigned int jump[4];
 };
 #endif	/* __powerpc64__ */
 
 
-struct mod_arch_specific {
+struct mod_arch_specific
+{
 #ifdef __powerpc64__
 	unsigned int stubs_section;	/* Index of stubs section in module */
 	unsigned int toc_section;	/* What section is the TOC? */
@@ -62,24 +64,24 @@ struct mod_arch_specific {
  */
 
 #ifdef __powerpc64__
-#    ifdef MODULE
-	asm(".section .stubs,\"ax\",@nobits; .align 3; .previous");
-#    endif
+	#ifdef MODULE
+		asm(".section .stubs,\"ax\",@nobits; .align 3; .previous");
+	#endif
 #else
-#    ifdef MODULE
-	asm(".section .plt,\"ax\",@nobits; .align 3; .previous");
-	asm(".section .init.plt,\"ax\",@nobits; .align 3; .previous");
-#    endif	/* MODULE */
+	#ifdef MODULE
+		asm(".section .plt,\"ax\",@nobits; .align 3; .previous");
+		asm(".section .init.plt,\"ax\",@nobits; .align 3; .previous");
+	#endif	/* MODULE */
 #endif
 
 #ifdef CONFIG_DYNAMIC_FTRACE
-#    ifdef MODULE
-	asm(".section .ftrace.tramp,\"ax\",@nobits; .align 3; .previous");
-#    endif	/* MODULE */
+	#ifdef MODULE
+		asm(".section .ftrace.tramp,\"ax\",@nobits; .align 3; .previous");
+	#endif	/* MODULE */
 #endif
 
 int module_trampoline_target(struct module *mod, unsigned long trampoline,
-			     unsigned long *target);
+							 unsigned long *target);
 
 #ifdef CONFIG_DYNAMIC_FTRACE
 int module_finalize_ftrace(struct module *mod, const Elf_Shdr *sechdrs);
@@ -92,11 +94,11 @@ static inline int module_finalize_ftrace(struct module *mod, const Elf_Shdr *sec
 
 struct exception_table_entry;
 void sort_ex_table(struct exception_table_entry *start,
-		   struct exception_table_entry *finish);
+				   struct exception_table_entry *finish);
 
 #if defined(CONFIG_MODVERSIONS) && defined(CONFIG_PPC64)
-#define ARCH_RELOCATES_KCRCTAB
-#define reloc_start PHYSICAL_START
+	#define ARCH_RELOCATES_KCRCTAB
+	#define reloc_start PHYSICAL_START
 #endif
 #endif /* __KERNEL__ */
 #endif	/* _ASM_POWERPC_MODULE_H */

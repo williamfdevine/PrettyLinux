@@ -27,9 +27,9 @@
 extern unsigned long SCR_value;
 
 #ifdef CONFIG_ASSABET_NEPONSET
-#define machine_has_neponset()  ((SCR_value & ASSABET_SCR_SA1111) == 0)
+	#define machine_has_neponset()  ((SCR_value & ASSABET_SCR_SA1111) == 0)
 #else
-#define machine_has_neponset()	(0)
+	#define machine_has_neponset()	(0)
 #endif
 
 /* Board Control Register */
@@ -64,9 +64,9 @@ extern unsigned long SCR_value;
 #define ASSABET_BCR_SPK_OFF	(1<<23)	/* 1 = Speaker amplifier power off */
 
 #ifdef CONFIG_SA1100_ASSABET
-extern void ASSABET_BCR_frob(unsigned int mask, unsigned int set);
+	extern void ASSABET_BCR_frob(unsigned int mask, unsigned int set);
 #else
-#define ASSABET_BCR_frob(x,y)	do { } while (0)
+	#define ASSABET_BCR_frob(x,y)	do { } while (0)
 #endif
 
 extern void assabet_uda1341_reset(int set);

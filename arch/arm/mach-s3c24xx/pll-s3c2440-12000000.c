@@ -21,7 +21,8 @@
 #include <plat/cpu-freq-core.h>
 
 /* This array should be sorted in ascending order of the frequencies */
-static struct cpufreq_frequency_table s3c2440_plls_12[] = {
+static struct cpufreq_frequency_table s3c2440_plls_12[] =
+{
 	{ .frequency = 75000000,	.driver_data = PLLVAL(0x75, 3, 3),  }, 	/* FVco 600.000000 */
 	{ .frequency = 80000000,	.driver_data = PLLVAL(0x98, 4, 3),  }, 	/* FVco 640.000000 */
 	{ .frequency = 90000000,	.driver_data = PLLVAL(0x70, 2, 3),  }, 	/* FVco 720.000000 */
@@ -57,22 +58,27 @@ static int s3c2440_plls12_add(struct device *dev, struct subsys_interface *sif)
 	unsigned long xtal;
 
 	xtal_clk = clk_get(NULL, "xtal");
+
 	if (IS_ERR(xtal_clk))
+	{
 		return PTR_ERR(xtal_clk);
+	}
 
 	xtal = clk_get_rate(xtal_clk);
 	clk_put(xtal_clk);
 
-	if (xtal == 12000000) {
+	if (xtal == 12000000)
+	{
 		printk(KERN_INFO "Using PLL table for 12MHz crystal\n");
 		return s3c_plltab_register(s3c2440_plls_12,
-					   ARRAY_SIZE(s3c2440_plls_12));
+								   ARRAY_SIZE(s3c2440_plls_12));
 	}
 
 	return 0;
 }
 
-static struct subsys_interface s3c2440_plls12_interface = {
+static struct subsys_interface s3c2440_plls12_interface =
+{
 	.name		= "s3c2440_plls12",
 	.subsys		= &s3c2440_subsys,
 	.add_dev	= s3c2440_plls12_add,
@@ -85,7 +91,8 @@ static int __init s3c2440_pll_12mhz(void)
 }
 arch_initcall(s3c2440_pll_12mhz);
 
-static struct subsys_interface s3c2442_plls12_interface = {
+static struct subsys_interface s3c2442_plls12_interface =
+{
 	.name		= "s3c2442_plls12",
 	.subsys		= &s3c2442_subsys,
 	.add_dev	= s3c2440_plls12_add,

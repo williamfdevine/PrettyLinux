@@ -24,20 +24,22 @@ fmuls(void *frD, void *frA, void *frB)
 
 #ifdef DEBUG
 	printk("A: %ld %lu %lu %ld (%ld) [%08lx.%08lx %lx]\n",
-	       A_s, A_f1, A_f0, A_e, A_c, A_f1, A_f0, A_e + 1023);
+		   A_s, A_f1, A_f0, A_e, A_c, A_f1, A_f0, A_e + 1023);
 	printk("B: %ld %lu %lu %ld (%ld) [%08lx.%08lx %lx]\n",
-	       B_s, B_f1, B_f0, B_e, B_c, B_f1, B_f0, B_e + 1023);
+		   B_s, B_f1, B_f0, B_e, B_c, B_f1, B_f0, B_e + 1023);
 #endif
 
 	if ((A_c == FP_CLS_INF && B_c == FP_CLS_ZERO) ||
-	    (A_c == FP_CLS_ZERO && B_c == FP_CLS_INF))
+		(A_c == FP_CLS_ZERO && B_c == FP_CLS_INF))
+	{
 		FP_SET_EXCEPTION(EFLAG_VXIMZ);
+	}
 
 	FP_MUL_D(R, A, B);
 
 #ifdef DEBUG
 	printk("D: %ld %lu %lu %ld (%ld) [%08lx.%08lx %lx]\n",
-	       R_s, R_f1, R_f0, R_e, R_c, R_f1, R_f0, R_e + 1023);
+		   R_s, R_f1, R_f0, R_e, R_c, R_f1, R_f0, R_e + 1023);
 #endif
 
 	__FP_PACK_DS(frD, R);

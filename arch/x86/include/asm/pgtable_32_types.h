@@ -7,11 +7,11 @@
  * newer 3-level PAE-mode page tables.
  */
 #ifdef CONFIG_X86_PAE
-# include <asm/pgtable-3level_types.h>
-# define PMD_SIZE	(1UL << PMD_SHIFT)
-# define PMD_MASK	(~(PMD_SIZE - 1))
+	#include <asm/pgtable-3level_types.h>
+	#define PMD_SIZE	(1UL << PMD_SHIFT)
+	#define PMD_MASK	(~(PMD_SIZE - 1))
 #else
-# include <asm/pgtable-2level_types.h>
+	#include <asm/pgtable-2level_types.h>
 #endif
 
 #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
@@ -27,23 +27,23 @@
 #define VMALLOC_OFFSET	(8 * 1024 * 1024)
 
 #ifndef __ASSEMBLY__
-extern bool __vmalloc_start_set; /* set once high_memory is set */
+	extern bool __vmalloc_start_set; /* set once high_memory is set */
 #endif
 
 #define VMALLOC_START	((unsigned long)high_memory + VMALLOC_OFFSET)
 #ifdef CONFIG_X86_PAE
-#define LAST_PKMAP 512
+	#define LAST_PKMAP 512
 #else
-#define LAST_PKMAP 1024
+	#define LAST_PKMAP 1024
 #endif
 
 #define PKMAP_BASE ((FIXADDR_START - PAGE_SIZE * (LAST_PKMAP + 1))	\
-		    & PMD_MASK)
+					& PMD_MASK)
 
 #ifdef CONFIG_HIGHMEM
-# define VMALLOC_END	(PKMAP_BASE - 2 * PAGE_SIZE)
+	#define VMALLOC_END	(PKMAP_BASE - 2 * PAGE_SIZE)
 #else
-# define VMALLOC_END	(FIXADDR_START - 2 * PAGE_SIZE)
+	#define VMALLOC_END	(FIXADDR_START - 2 * PAGE_SIZE)
 #endif
 
 #define MODULES_VADDR	VMALLOC_START

@@ -14,7 +14,8 @@
 #include <linux/io.h>
 #include <mach/highlander.h>
 
-enum {
+enum
+{
 	UNUSED = 0,
 
 	/* FPGA specific interrupt sources */
@@ -29,7 +30,8 @@ enum {
 	EXT0, EXT1, EXT2, EXT3, EXT4, EXT5, EXT6, EXT7,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_IRQ(CF, IRQ_CF),
 	INTC_IRQ(SMBUS, IRQ_SMBUS),
 	INTC_IRQ(TP, IRQ_TP),
@@ -45,16 +47,26 @@ static struct intc_vect vectors[] __initdata = {
 	INTC_IRQ(AX88796, IRQ_AX88796),
 };
 
-static struct intc_mask_reg mask_registers[] __initdata = {
-	{ 0xa4000010, 0, 16, /* IRLMCR1 */
-	  { 0, 0, 0, 0, CF, AX88796, SMBUS, TP,
-	    RTC, 0, TH_ALERT, 0, 0, 0, 0, 0 } },
-	{ 0xa4000012, 0, 16, /* IRLMCR2 */
-	  { 0, 0, 0, 0, 0, 0, 0, 0,
-	    EXT7, EXT6, EXT5, EXT4, EXT3, EXT2, EXT1, EXT0 } },
+static struct intc_mask_reg mask_registers[] __initdata =
+{
+	{
+		0xa4000010, 0, 16, /* IRLMCR1 */
+		{
+			0, 0, 0, 0, CF, AX88796, SMBUS, TP,
+			RTC, 0, TH_ALERT, 0, 0, 0, 0, 0
+		}
+	},
+	{
+		0xa4000012, 0, 16, /* IRLMCR2 */
+		{
+			0, 0, 0, 0, 0, 0, 0, 0,
+			EXT7, EXT6, EXT5, EXT4, EXT3, EXT2, EXT1, EXT0
+		}
+	},
 };
 
-static unsigned char irl2irq[HL_NR_IRL] __initdata = {
+static unsigned char irl2irq[HL_NR_IRL] __initdata =
+{
 	0, IRQ_CF, IRQ_EXT4, IRQ_EXT5,
 	IRQ_EXT6, IRQ_EXT7, IRQ_SMBUS, IRQ_TP,
 	IRQ_RTC, IRQ_TH_ALERT, IRQ_AX88796, IRQ_EXT0,
@@ -62,12 +74,14 @@ static unsigned char irl2irq[HL_NR_IRL] __initdata = {
 };
 
 static DECLARE_INTC_DESC(intc_desc, "r7785rp", vectors,
-			 NULL, mask_registers, NULL, NULL);
+						 NULL, mask_registers, NULL, NULL);
 
-unsigned char * __init highlander_plat_irq_setup(void)
+unsigned char *__init highlander_plat_irq_setup(void)
 {
 	if ((__raw_readw(0xa4000158) & 0xf000) != 0x1000)
+	{
 		return NULL;
+	}
 
 	printk(KERN_INFO "Using r7785rp interrupt controller.\n");
 

@@ -44,14 +44,16 @@ static void pxa3xx_smemc_resume(void)
 	__raw_writel(0x2, CSMSADRCFG);
 }
 
-static struct syscore_ops smemc_syscore_ops = {
+static struct syscore_ops smemc_syscore_ops =
+{
 	.suspend	= pxa3xx_smemc_suspend,
 	.resume		= pxa3xx_smemc_resume,
 };
 
 static int __init smemc_init(void)
 {
-	if (cpu_is_pxa3xx()) {
+	if (cpu_is_pxa3xx())
+	{
 		/*
 		 * The only documentation we have on the
 		 * Chip Select Configuration Register (CSMSADRCFG) is that

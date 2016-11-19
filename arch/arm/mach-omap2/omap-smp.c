@@ -40,7 +40,8 @@
 
 #define OMAP5_CORE_COUNT	0x2
 
-struct omap_smp_config {
+struct omap_smp_config
+{
 	unsigned long cpu1_rstctrl_pa;
 	void __iomem *cpu1_rstctrl_va;
 	void __iomem *scu_base;
@@ -49,17 +50,20 @@ struct omap_smp_config {
 
 static struct omap_smp_config cfg;
 
-static const struct omap_smp_config omap443x_cfg __initconst = {
+static const struct omap_smp_config omap443x_cfg __initconst =
+{
 	.cpu1_rstctrl_pa = 0x4824380c,
 	.startup_addr = omap4_secondary_startup,
 };
 
-static const struct omap_smp_config omap446x_cfg __initconst = {
+static const struct omap_smp_config omap446x_cfg __initconst =
+{
 	.cpu1_rstctrl_pa = 0x4824380c,
 	.startup_addr = omap4460_secondary_startup,
 };
 
-static const struct omap_smp_config omap5_cfg __initconst = {
+static const struct omap_smp_config omap5_cfg __initconst =
+{
 	.cpu1_rstctrl_pa = 0x48243810,
 	.startup_addr = omap5_secondary_startup,
 };
@@ -79,8 +83,11 @@ void omap5_erratum_workaround_801819(void)
 
 	/* REVIDR[3] indicates erratum fix available on silicon */
 	asm volatile ("mrc p15, 0, %0, c0, c0, 6" : "=r" (revidr));
+
 	if (revidr & (0x1 << 3))
+	{
 		return;
+	}
 
 	asm volatile ("mrc p15, 0, %0, c1, c0, 1" : "=r" (acr));
 	/*
@@ -90,15 +97,18 @@ void omap5_erratum_workaround_801819(void)
 	 * the L1 cache.
 	 */
 	acr_mask = (0x3 << 25) | (0x3 << 27);
+
 	/* do we already have it done.. if yes, skip expensive smc */
 	if ((acr & acr_mask) == acr_mask)
+	{
 		return;
+	}
 
 	acr |= acr_mask;
 	omap_smc1(OMAP5_DRA7_MON_SET_ACR_INDEX, acr);
 
 	pr_debug("%s: ARM erratum workaround 801819 applied on CPU%d\n",
-		 __func__, smp_processor_id());
+			 __func__, smp_processor_id());
 }
 #else
 static inline void omap5_erratum_workaround_801819(void) { }
@@ -116,9 +126,10 @@ static void omap4_secondary_init(unsigned int cpu)
 	 */
 	if (soc_is_omap443x() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
 		omap_secure_dispatcher(OMAP4_PPA_CPU_ACTRL_SMP_INDEX,
-							4, 0, 0, 0, 0, 0);
+							   4, 0, 0, 0, 0, 0);
 
-	if (soc_is_omap54xx() || soc_is_dra7xx()) {
+	if (soc_is_omap54xx() || soc_is_dra7xx())
+	{
 		/*
 		 * Configure the CNTFRQ register for the secondary cpu's which
 		 * indicates the frequency of the cpu local timers.
@@ -155,11 +166,16 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 * A barrier is added to ensure that write buffer is drained
 	 */
 	if (omap_secure_apis_support())
+	{
 		omap_modify_auxcoreboot0(0x200, 0xfffffdff);
+	}
 	else
+	{
 		writel_relaxed(0x20, base + OMAP_AUX_CORE_BOOT_0);
+	}
 
-	if (!cpu1_clkdm && !cpu1_pwrdm) {
+	if (!cpu1_clkdm && !cpu1_pwrdm)
+	{
 		cpu1_clkdm = clkdm_lookup("mpu1_clkdm");
 		cpu1_pwrdm = pwrdm_lookup("cpu1_pwrdm");
 	}
@@ -175,7 +191,8 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 * Section :
 	 *	4.3.4.2 Power States of CPU0 and CPU1
 	 */
-	if (booted && cpu1_pwrdm && cpu1_clkdm) {
+	if (booted && cpu1_pwrdm && cpu1_clkdm)
+	{
 		/*
 		 * GIC distributor control register has changed between
 		 * CortexA9 r1pX and r2pX. The Control Register secure
@@ -191,7 +208,8 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
 		 * 2) CPU1 must re-enable the GIC distributor on
 		 * it's wakeup path.
 		 */
-		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD)) {
+		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD))
+		{
 			local_irq_disable();
 			gic_dist_disable();
 		}
@@ -204,15 +222,20 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
 		pwrdm_set_next_pwrst(cpu1_pwrdm, PWRDM_POWER_ON);
 		clkdm_allow_idle_nolock(cpu1_clkdm);
 
-		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD)) {
-			while (gic_dist_disabled()) {
+		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD))
+		{
+			while (gic_dist_disabled())
+			{
 				udelay(1);
 				cpu_relax();
 			}
+
 			gic_timer_retrigger();
 			local_irq_enable();
 		}
-	} else {
+	}
+	else
+	{
 		dsb_sev();
 		booted = true;
 	}
@@ -238,7 +261,9 @@ static void __init omap4_smp_init_cpus(void)
 
 	/* Use ARM cpuid check here, as SoC detection will not work so early */
 	cpu_id = read_cpuid_id() & CPU_MASK;
-	if (cpu_id == CPU_CORTEX_A9) {
+
+	if (cpu_id == CPU_CORTEX_A9)
+	{
 		/*
 		 * Currently we can't call ioremap here because
 		 * SoC detection won't work until after init_early.
@@ -246,19 +271,24 @@ static void __init omap4_smp_init_cpus(void)
 		cfg.scu_base =  OMAP2_L4_IO_ADDRESS(scu_a9_get_base());
 		BUG_ON(!cfg.scu_base);
 		ncores = scu_get_core_count(cfg.scu_base);
-	} else if (cpu_id == CPU_CORTEX_A15) {
+	}
+	else if (cpu_id == CPU_CORTEX_A15)
+	{
 		ncores = OMAP5_CORE_COUNT;
 	}
 
 	/* sanity check */
-	if (ncores > nr_cpu_ids) {
+	if (ncores > nr_cpu_ids)
+	{
 		pr_warn("SMP: %u cores greater than maximum (%u), clipping\n",
-			ncores, nr_cpu_ids);
+				ncores, nr_cpu_ids);
 		ncores = nr_cpu_ids;
 	}
 
 	for (i = 0; i < ncores; i++)
+	{
 		set_cpu_possible(i, true);
+	}
 }
 
 static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
@@ -267,13 +297,20 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
 	const struct omap_smp_config *c = NULL;
 
 	if (soc_is_omap443x())
+	{
 		c = &omap443x_cfg;
+	}
 	else if (soc_is_omap446x())
+	{
 		c = &omap446x_cfg;
+	}
 	else if (soc_is_dra74x() || soc_is_omap54xx())
+	{
 		c = &omap5_cfg;
+	}
 
-	if (!c) {
+	if (!c)
+	{
 		pr_err("%s Unknown SMP SoC?\n", __func__);
 		return;
 	}
@@ -282,28 +319,38 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
 	cfg.cpu1_rstctrl_pa = c->cpu1_rstctrl_pa;
 	cfg.startup_addr = c->startup_addr;
 
-	if (soc_is_dra74x() || soc_is_omap54xx()) {
+	if (soc_is_dra74x() || soc_is_omap54xx())
+	{
 		if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
+		{
 			cfg.startup_addr = omap5_secondary_hyp_startup;
+		}
+
 		omap5_erratum_workaround_801819();
 	}
 
 	cfg.cpu1_rstctrl_va = ioremap(cfg.cpu1_rstctrl_pa, 4);
+
 	if (!cfg.cpu1_rstctrl_va)
+	{
 		return;
+	}
 
 	/*
 	 * Initialise the SCU and wake up the secondary core using
 	 * wakeup_secondary().
 	 */
 	if (cfg.scu_base)
+	{
 		scu_enable(cfg.scu_base);
+	}
 
 	/*
 	 * Reset CPU1 before configuring, otherwise kexec will
 	 * end up trying to use old kernel startup address.
 	 */
-	if (cfg.cpu1_rstctrl_va) {
+	if (cfg.cpu1_rstctrl_va)
+	{
 		writel_relaxed(1, cfg.cpu1_rstctrl_va);
 		readl_relaxed(cfg.cpu1_rstctrl_va);
 		writel_relaxed(0, cfg.cpu1_rstctrl_va);
@@ -316,13 +363,16 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
 	 * A barrier is added to ensure that write buffer is drained
 	 */
 	if (omap_secure_apis_support())
+	{
 		omap_auxcoreboot_addr(virt_to_phys(cfg.startup_addr));
+	}
 	else
 		writel_relaxed(virt_to_phys(cfg.startup_addr),
-			       base + OMAP_AUX_CORE_BOOT_1);
+					   base + OMAP_AUX_CORE_BOOT_1);
 }
 
-const struct smp_operations omap4_smp_ops __initconst = {
+const struct smp_operations omap4_smp_ops __initconst =
+{
 	.smp_init_cpus		= omap4_smp_init_cpus,
 	.smp_prepare_cpus	= omap4_smp_prepare_cpus,
 	.smp_secondary_init	= omap4_secondary_init,

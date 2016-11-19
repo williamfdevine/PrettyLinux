@@ -25,7 +25,8 @@
 
 #define	DRV_NAME		"ill_acc"
 
-static const char * const ill_acc_ids[] = {
+static const char *const ill_acc_ids[] =
+{
 	"cpu", "dma", "ppe", "pdma rx", "pdma tx", "pci/e", "wmac", "usb",
 };
 
@@ -36,10 +37,10 @@ static irqreturn_t ill_acc_irq_handler(int irq, void *_priv)
 	u32 type = rt_memc_r32(REG_ILL_ACC_TYPE);
 
 	dev_err(dev, "illegal %s access from %s - addr:0x%08x offset:%d len:%d\n",
-		(type & ILL_ACC_WRITE) ? ("write") : ("read"),
-		ill_acc_ids[(type >> ILL_ACC_ID_S) & ILL_ACC_ID_M],
-		addr, (type >> ILL_ACC_OFF_S) & ILL_ACC_OFF_M,
-		type & ILL_ACC_LEN_M);
+			(type & ILL_ACC_WRITE) ? ("write") : ("read"),
+			ill_acc_ids[(type >> ILL_ACC_ID_S) & ILL_ACC_ID_M],
+			addr, (type >> ILL_ACC_OFF_S) & ILL_ACC_OFF_M,
+			type & ILL_ACC_LEN_M);
 
 	rt_memc_w32(ILL_INT_STATUS, REG_ILL_ACC_TYPE);
 
@@ -54,25 +55,35 @@ static int __init ill_acc_of_setup(void)
 
 	/* somehow this driver breaks on RT5350 */
 	if (of_machine_is_compatible("ralink,rt5350-soc"))
+	{
 		return -EINVAL;
+	}
 
 	np = of_find_compatible_node(NULL, NULL, "ralink,rt3050-memc");
+
 	if (!np)
+	{
 		return -EINVAL;
+	}
 
 	pdev = of_find_device_by_node(np);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		pr_err("%s: failed to lookup pdev\n", np->name);
 		return -EINVAL;
 	}
 
 	irq = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(&pdev->dev, "failed to get irq\n");
 		return -EINVAL;
 	}
 
-	if (request_irq(irq, ill_acc_irq_handler, 0, "ill_acc", &pdev->dev)) {
+	if (request_irq(irq, ill_acc_irq_handler, 0, "ill_acc", &pdev->dev))
+	{
 		dev_err(&pdev->dev, "failed to request irq\n");
 		return -EINVAL;
 	}

@@ -12,8 +12,8 @@ extern const char xen_failsafe_callback[];
 
 void xen_sysenter_target(void);
 #ifdef CONFIG_X86_64
-void xen_syscall_target(void);
-void xen_syscall32_target(void);
+	void xen_syscall_target(void);
+	void xen_syscall32_target(void);
 #endif
 
 extern void *xen_initial_gdt;
@@ -41,7 +41,7 @@ void __init xen_pt_check_e820(void);
 void xen_mm_pin_all(void);
 void xen_mm_unpin_all(void);
 #ifdef CONFIG_X86_64
-void __init xen_relocate_p2m(void);
+	void __init xen_relocate_p2m(void);
 #endif
 
 bool __init xen_is_e820_reserved(phys_addr_t start, phys_addr_t size);
@@ -49,8 +49,8 @@ unsigned long __ref xen_chk_extra_mem(unsigned long pfn);
 void __init xen_inv_extra_mem(void);
 void __init xen_remap_memory(void);
 phys_addr_t __init xen_find_free_area(phys_addr_t size);
-char * __init xen_memory_setup(void);
-char * xen_auto_xlated_memory_setup(void);
+char *__init xen_memory_setup(void);
+char *xen_auto_xlated_memory_setup(void);
 void __init xen_arch_setup(void);
 void xen_enable_sysenter(void);
 void xen_enable_syscall(void);
@@ -111,7 +111,7 @@ struct dom0_vga_console_info;
 void __init xen_init_vga(const struct dom0_vga_console_info *, size_t size);
 #else
 static inline void __init xen_init_vga(const struct dom0_vga_console_info *info,
-				       size_t size)
+									   size_t size)
 {
 }
 #endif

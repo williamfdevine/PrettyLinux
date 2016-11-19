@@ -24,7 +24,7 @@
 #include "mm.h"
 
 #define minicache_pgprot __pgprot(L_PTE_PRESENT | L_PTE_YOUNG | \
-				  L_PTE_MT_MINICACHE)
+								  L_PTE_MT_MINICACHE)
 
 static DEFINE_RAW_SPINLOCK(minicache_lock);
 
@@ -44,7 +44,7 @@ mc_copy_user_page(void *from, void *to)
 	 * when prefetching destination as well.  (NP)
 	 */
 	asm volatile(
-	"stmfd	sp!, {r4, r5, lr}		\n\
+		"stmfd	sp!, {r4, r5, lr}		\n\
 	mov	lr, %2				\n\
 	pld	[r0, #0]			\n\
 	pld	[r0, #32]			\n\
@@ -80,17 +80,19 @@ mc_copy_user_page(void *from, void *to)
 	bgt	1b				\n\
 	beq	2b				\n\
 	ldmfd	sp!, {r4, r5, pc}		"
-	:
-	: "r" (from), "r" (to), "I" (PAGE_SIZE / 64 - 1));
+		:
+		: "r" (from), "r" (to), "I" (PAGE_SIZE / 64 - 1));
 }
 
 void xscale_mc_copy_user_highpage(struct page *to, struct page *from,
-	unsigned long vaddr, struct vm_area_struct *vma)
+								  unsigned long vaddr, struct vm_area_struct *vma)
 {
 	void *kto = kmap_atomic(to);
 
 	if (!test_and_set_bit(PG_dcache_clean, &from->flags))
+	{
 		__flush_dcache_page(page_mapping(from), from);
+	}
 
 	raw_spin_lock(&minicache_lock);
 
@@ -111,7 +113,7 @@ xscale_mc_clear_user_highpage(struct page *page, unsigned long vaddr)
 {
 	void *ptr, *kaddr = kmap_atomic(page);
 	asm volatile(
-	"mov	r1, %2				\n\
+		"mov	r1, %2				\n\
 	mov	r2, #0				\n\
 	mov	r3, #0				\n\
 1:	mov	ip, %0				\n\
@@ -123,13 +125,14 @@ xscale_mc_clear_user_highpage(struct page *page, unsigned long vaddr)
 	subs	r1, r1, #1			\n\
 	mcr	p15, 0, ip, c7, c6, 1		@ invalidate D line\n\
 	bne	1b"
-	: "=r" (ptr)
-	: "0" (kaddr), "I" (PAGE_SIZE / 32)
-	: "r1", "r2", "r3", "ip");
+		: "=r" (ptr)
+		: "0" (kaddr), "I" (PAGE_SIZE / 32)
+		: "r1", "r2", "r3", "ip");
 	kunmap_atomic(kaddr);
 }
 
-struct cpu_user_fns xscale_mc_user_fns __initdata = {
+struct cpu_user_fns xscale_mc_user_fns __initdata =
+{
 	.cpu_clear_user_highpage = xscale_mc_clear_user_highpage,
 	.cpu_copy_user_highpage	= xscale_mc_copy_user_highpage,
 };

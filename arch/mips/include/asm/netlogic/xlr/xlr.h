@@ -53,7 +53,7 @@ static inline unsigned int nlm_chip_is_xls(void)
 	uint32_t prid = read_c0_prid();
 
 	return ((prid & 0xf000) == 0x8000 || (prid & 0xf000) == 0x4000 ||
-		(prid & 0xf000) == 0xc000);
+			(prid & 0xf000) == 0xc000);
 }
 
 #endif /* _ASM_NLM_XLR_H */

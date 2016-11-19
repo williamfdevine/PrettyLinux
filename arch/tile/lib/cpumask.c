@@ -27,28 +27,52 @@ int bitmap_parselist_crop(const char *bp, unsigned long *maskp, int nmaskbits)
 	unsigned a, b;
 
 	bitmap_zero(maskp, nmaskbits);
-	do {
+
+	do
+	{
 		if (!isdigit(*bp))
+		{
 			return -EINVAL;
+		}
+
 		a = simple_strtoul(bp, (char **)&bp, 10);
 		b = a;
-		if (*bp == '-') {
+
+		if (*bp == '-')
+		{
 			bp++;
+
 			if (!isdigit(*bp))
+			{
 				return -EINVAL;
+			}
+
 			b = simple_strtoul(bp, (char **)&bp, 10);
 		}
+
 		if (!(a <= b))
+		{
 			return -EINVAL;
+		}
+
 		if (b >= nmaskbits)
-			b = nmaskbits-1;
-		while (a <= b) {
+		{
+			b = nmaskbits - 1;
+		}
+
+		while (a <= b)
+		{
 			set_bit(a, maskp);
 			a++;
 		}
+
 		if (*bp == ',')
+		{
 			bp++;
-	} while (*bp != '\0' && *bp != '\n');
+		}
+	}
+	while (*bp != '\0' && *bp != '\n');
+
 	return 0;
 }
 EXPORT_SYMBOL(bitmap_parselist_crop);

@@ -30,7 +30,8 @@
  * @init_late:		Late initcall level callback
  *
  */
-struct machine_desc {
+struct machine_desc
+{
 	const char		*name;
 	const char		**dt_compat;
 	void			(*init_early)(void);
@@ -57,13 +58,13 @@ extern const struct machine_desc __arch_info_begin[], __arch_info_end[];
  * This is built into a table by the linker.
  */
 #define MACHINE_START(_type, _name)			\
-static const struct machine_desc __mach_desc_##_type	\
-__used							\
-__attribute__((__section__(".arch.info.init"))) = {	\
-	.name		= _name,
+	static const struct machine_desc __mach_desc_##_type	\
+		__used							\
+	__attribute__((__section__(".arch.info.init"))) = {	\
+														.name		= _name,
 
 #define MACHINE_END				\
-};
+	};
 
 extern const struct machine_desc *setup_machine_fdt(void *dt);
 

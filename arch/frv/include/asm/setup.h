@@ -17,9 +17,9 @@
 
 #ifndef __ASSEMBLY__
 
-#ifdef CONFIG_MMU
-extern unsigned long __initdata num_mappedpages;
-#endif
+	#ifdef CONFIG_MMU
+		extern unsigned long __initdata num_mappedpages;
+	#endif
 
 #endif /* !__ASSEMBLY__ */
 

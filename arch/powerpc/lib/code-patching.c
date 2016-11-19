@@ -21,8 +21,12 @@ int patch_instruction(unsigned int *addr, unsigned int instr)
 	int err;
 
 	__put_user_size(instr, addr, 4, err);
+
 	if (err)
+	{
 		return err;
+	}
+
 	asm ("dcbst 0, %0; sync; icbi 0,%0; sync; isync" : : "r" (addr));
 	return 0;
 }
@@ -33,18 +37,23 @@ int patch_branch(unsigned int *addr, unsigned long target, int flags)
 }
 
 unsigned int create_branch(const unsigned int *addr,
-			   unsigned long target, int flags)
+						   unsigned long target, int flags)
 {
 	unsigned int instruction;
 	long offset;
 
 	offset = target;
+
 	if (! (flags & BRANCH_ABSOLUTE))
+	{
 		offset = offset - (unsigned long)addr;
+	}
 
 	/* Check we can represent the target in the instruction format */
 	if (offset < -0x2000000 || offset > 0x1fffffc || offset & 0x3)
+	{
 		return 0;
+	}
 
 	/* Mask out the flags and target, so they don't step on each other. */
 	instruction = 0x48000000 | (flags & 0x3) | (offset & 0x03FFFFFC);
@@ -53,18 +62,23 @@ unsigned int create_branch(const unsigned int *addr,
 }
 
 unsigned int create_cond_branch(const unsigned int *addr,
-				unsigned long target, int flags)
+								unsigned long target, int flags)
 {
 	unsigned int instruction;
 	long offset;
 
 	offset = target;
+
 	if (! (flags & BRANCH_ABSOLUTE))
+	{
 		offset = offset - (unsigned long)addr;
+	}
 
 	/* Check we can represent the target in the instruction format */
 	if (offset < -0x8000 || offset > 0x7FFF || offset & 0x3)
+	{
 		return 0;
+	}
 
 	/* Mask out the flags and target, so they don't step on each other. */
 	instruction = 0x40000000 | (flags & 0x3FF0003) | (offset & 0xFFFC);
@@ -90,7 +104,9 @@ static int instr_is_branch_bform(unsigned int instr)
 int instr_is_relative_branch(unsigned int instr)
 {
 	if (instr & BRANCH_ABSOLUTE)
+	{
 		return 0;
+	}
 
 	return instr_is_branch_iform(instr) || instr_is_branch_bform(instr);
 }
@@ -103,10 +119,14 @@ static unsigned long branch_iform_target(const unsigned int *instr)
 
 	/* If the top bit of the immediate value is set this is negative */
 	if (imm & 0x2000000)
+	{
 		imm -= 0x4000000;
+	}
 
 	if ((*instr & BRANCH_ABSOLUTE) == 0)
+	{
 		imm += (unsigned long)instr;
+	}
 
 	return (unsigned long)imm;
 }
@@ -119,10 +139,14 @@ static unsigned long branch_bform_target(const unsigned int *instr)
 
 	/* If the top bit of the immediate value is set this is negative */
 	if (imm & 0x8000)
+	{
 		imm -= 0x10000;
+	}
 
 	if ((*instr & BRANCH_ABSOLUTE) == 0)
+	{
 		imm += (unsigned long)instr;
+	}
 
 	return (unsigned long)imm;
 }
@@ -130,9 +154,13 @@ static unsigned long branch_bform_target(const unsigned int *instr)
 unsigned long branch_target(const unsigned int *instr)
 {
 	if (instr_is_branch_iform(*instr))
+	{
 		return branch_iform_target(instr);
+	}
 	else if (instr_is_branch_bform(*instr))
+	{
 		return branch_bform_target(instr);
+	}
 
 	return 0;
 }
@@ -140,7 +168,9 @@ unsigned long branch_target(const unsigned int *instr)
 int instr_is_branch_to_addr(const unsigned int *instr, unsigned long addr)
 {
 	if (instr_is_branch_iform(*instr) || instr_is_branch_bform(*instr))
+	{
 		return branch_target(instr) == addr;
+	}
 
 	return 0;
 }
@@ -152,9 +182,13 @@ unsigned int translate_branch(const unsigned int *dest, const unsigned int *src)
 	target = branch_target(src);
 
 	if (instr_is_branch_iform(*src))
+	{
 		return create_branch(dest, target, *src);
+	}
 	else if (instr_is_branch_bform(*src))
+	{
 		return create_cond_branch(dest, target, *src);
+	}
 
 	return 0;
 }
@@ -350,8 +384,11 @@ static void __init test_translate_branch(void)
 
 	buf = vmalloc(PAGE_ALIGN(0x2000000 + 1));
 	check(buf);
+
 	if (!buf)
+	{
 		return;
+	}
 
 	/* Simple case, branch to self moved a little */
 	p = buf;

@@ -40,12 +40,12 @@ static inline int pfifo_fill_level(int no)
 
 static inline int pfifo_full(int no)
 {
-	return readl(NETX_PFIFO_FULL) & (1<<no) ? 1 : 0;
+	return readl(NETX_PFIFO_FULL) & (1 << no) ? 1 : 0;
 }
 
 static inline int pfifo_empty(int no)
 {
-	return readl(NETX_PFIFO_EMPTY) & (1<<no) ? 1 : 0;
+	return readl(NETX_PFIFO_EMPTY) & (1 << no) ? 1 : 0;
 }
 
 int pfifo_request(unsigned int pfifo_mask);

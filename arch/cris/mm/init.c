@@ -29,7 +29,7 @@ void __init mem_init(void)
 	 * high_memory was also set in setup.c
 	 */
 	max_mapnr = max_low_pfn - min_low_pfn;
-        free_all_bootmem();
+	free_all_bootmem();
 	mem_init_print_info(NULL);
 }
 
@@ -39,7 +39,8 @@ void free_init_pages(const char *what, unsigned long begin, unsigned long end)
 {
 	unsigned long addr;
 
-	for (addr = begin; addr < end; addr += PAGE_SIZE) {
+	for (addr = begin; addr < end; addr += PAGE_SIZE)
+	{
 		ClearPageReserved(virt_to_page(addr));
 		init_page_count(virt_to_page(addr));
 		free_page(addr);
@@ -62,7 +63,7 @@ void free_initmem(void)
 void free_initrd_mem(unsigned long start, unsigned long end)
 {
 	free_init_pages("initrd memory",
-	                start,
-	                end);
+					start,
+					end);
 }
 #endif

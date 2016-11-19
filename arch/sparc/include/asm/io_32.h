@@ -13,22 +13,24 @@
 #include <asm-generic/io.h>
 
 static inline void _memset_io(volatile void __iomem *dst,
-                              int c, __kernel_size_t n)
+							  int c, __kernel_size_t n)
 {
 	volatile void __iomem *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		writeb(c, d);
 		d++;
 	}
 }
 
 static inline void _memcpy_fromio(void *dst, const volatile void __iomem *src,
-                                  __kernel_size_t n)
+								  __kernel_size_t n)
 {
 	char *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		char tmp = readb(src);
 		*d++ = tmp;
 		src++;
@@ -36,12 +38,13 @@ static inline void _memcpy_fromio(void *dst, const volatile void __iomem *src,
 }
 
 static inline void _memcpy_toio(volatile void __iomem *dst, const void *src,
-                                __kernel_size_t n)
+								__kernel_size_t n)
 {
 	const char *s = src;
 	volatile void __iomem *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		char tmp = *s++;
 		writeb(tmp, d);
 		d++;
@@ -85,21 +88,23 @@ static inline void sbus_writel(u32 l, volatile void __iomem *addr)
 }
 
 static inline void sbus_memset_io(volatile void __iomem *__dst, int c,
-                                  __kernel_size_t n)
+								  __kernel_size_t n)
 {
-	while(n--) {
+	while (n--)
+	{
 		sbus_writeb(c, __dst);
 		__dst++;
 	}
 }
 
 static inline void sbus_memcpy_fromio(void *dst,
-                                      const volatile void __iomem *src,
-                                      __kernel_size_t n)
+									  const volatile void __iomem *src,
+									  __kernel_size_t n)
 {
 	char *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		char tmp = sbus_readb(src);
 		*d++ = tmp;
 		src++;
@@ -107,13 +112,14 @@ static inline void sbus_memcpy_fromio(void *dst,
 }
 
 static inline void sbus_memcpy_toio(volatile void __iomem *dst,
-                                    const void *src,
-                                    __kernel_size_t n)
+									const void *src,
+									__kernel_size_t n)
 {
 	const char *s = src;
 	volatile void __iomem *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		char tmp = *s++;
 		sbus_writeb(tmp, d);
 		d++;

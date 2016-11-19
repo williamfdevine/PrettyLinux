@@ -7,7 +7,8 @@
 #ifndef _UAPI_BFIN_STAT_H
 #define _UAPI_BFIN_STAT_H
 
-struct stat {
+struct stat
+{
 	unsigned short st_dev;
 	unsigned short __pad1;
 	unsigned long st_ino;
@@ -33,7 +34,8 @@ struct stat {
 /* This matches struct stat64 in glibc2.1, hence the absolutely
  * insane amounts of padding around dev_t's.
  */
-struct stat64 {
+struct stat64
+{
 	unsigned long long st_dev;
 	unsigned char __pad1[4];
 

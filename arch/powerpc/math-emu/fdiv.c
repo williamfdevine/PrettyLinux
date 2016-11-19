@@ -26,24 +26,32 @@ fdiv(void *frD, void *frA, void *frB)
 	printk("B: %ld %lu %lu %ld (%ld)\n", B_s, B_f1, B_f0, B_e, B_c);
 #endif
 
-	if (A_c == FP_CLS_ZERO && B_c == FP_CLS_ZERO) {
+	if (A_c == FP_CLS_ZERO && B_c == FP_CLS_ZERO)
+	{
 		FP_SET_EXCEPTION(EFLAG_VXZDZ);
 #ifdef DEBUG
 		printk("%s: FPSCR_VXZDZ raised\n", __func__);
 #endif
 	}
-	if (A_c == FP_CLS_INF && B_c == FP_CLS_INF) {
+
+	if (A_c == FP_CLS_INF && B_c == FP_CLS_INF)
+	{
 		FP_SET_EXCEPTION(EFLAG_VXIDI);
 #ifdef DEBUG
 		printk("%s: FPSCR_VXIDI raised\n", __func__);
 #endif
 	}
 
-	if (B_c == FP_CLS_ZERO && A_c != FP_CLS_ZERO) {
+	if (B_c == FP_CLS_ZERO && A_c != FP_CLS_ZERO)
+	{
 		FP_SET_EXCEPTION(EFLAG_DIVZERO);
+
 		if (__FPU_TRAP_P(EFLAG_DIVZERO))
+		{
 			return FP_CUR_EXCEPTIONS;
+		}
 	}
+
 	FP_DIV_D(R, A, B);
 
 #ifdef DEBUG

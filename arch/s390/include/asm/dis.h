@@ -22,13 +22,15 @@
 #define OPERAND_LENGTH	0x400	/* Operand printed as length (+1) */
 
 
-struct s390_operand {
+struct s390_operand
+{
 	int bits;		/* The number of bits in the operand. */
 	int shift;		/* The number of bits to shift. */
 	int flags;		/* One bit syntax flags. */
 };
 
-struct s390_insn {
+struct s390_insn
+{
 	const char name[5];
 	unsigned char opfrag;
 	unsigned char format;

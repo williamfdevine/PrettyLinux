@@ -1,7 +1,8 @@
 #ifndef _UAPI__ASM_SH_PTRACE_64_H
 #define _UAPI__ASM_SH_PTRACE_64_H
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long long pc;
 	unsigned long long sr;
 	long long syscall_nr;

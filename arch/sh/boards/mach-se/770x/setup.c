@@ -64,7 +64,8 @@ static void __init smsc_setup(char **cmdline_p)
 }
 
 
-static struct resource cf_ide_resources[] = {
+static struct resource cf_ide_resources[] =
+{
 	[0] = {
 		.start  = PA_MRSHPC_IO + 0x1f0,
 		.end    = PA_MRSHPC_IO + 0x1f0 + 8,
@@ -81,7 +82,8 @@ static struct resource cf_ide_resources[] = {
 	},
 };
 
-static struct platform_device cf_ide_device  = {
+static struct platform_device cf_ide_device  =
+{
 	.name           = "pata_platform",
 	.id             = -1,
 	.num_resources  = ARRAY_SIZE(cf_ide_resources),
@@ -90,18 +92,21 @@ static struct platform_device cf_ide_device  = {
 
 static unsigned char heartbeat_bit_pos[] = { 8, 9, 10, 11, 12, 13, 14, 15 };
 
-static struct heartbeat_data heartbeat_data = {
+static struct heartbeat_data heartbeat_data =
+{
 	.bit_pos	= heartbeat_bit_pos,
 	.nr_bits	= ARRAY_SIZE(heartbeat_bit_pos),
 };
 
-static struct resource heartbeat_resource = {
+static struct resource heartbeat_resource =
+{
 	.start	= PA_LED,
 	.end	= PA_LED,
 	.flags	= IORESOURCE_MEM | IORESOURCE_MEM_16BIT,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.dev	= {
@@ -114,7 +119,8 @@ static struct platform_device heartbeat_device = {
 #if defined(CONFIG_CPU_SUBTYPE_SH7710) ||\
 	defined(CONFIG_CPU_SUBTYPE_SH7712)
 /* SH771X Ethernet driver */
-static struct resource sh_eth0_resources[] = {
+static struct resource sh_eth0_resources[] =
+{
 	[0] = {
 		.start = SH_ETH0_BASE,
 		.end = SH_ETH0_BASE + 0x1B8,
@@ -127,7 +133,8 @@ static struct resource sh_eth0_resources[] = {
 	},
 };
 
-static struct platform_device sh_eth0_device = {
+static struct platform_device sh_eth0_device =
+{
 	.name = "sh771x-ether",
 	.id = 0,
 	.dev = {
@@ -137,7 +144,8 @@ static struct platform_device sh_eth0_device = {
 	.resource = sh_eth0_resources,
 };
 
-static struct resource sh_eth1_resources[] = {
+static struct resource sh_eth1_resources[] =
+{
 	[0] = {
 		.start = SH_ETH1_BASE,
 		.end = SH_ETH1_BASE + 0x1B8,
@@ -150,7 +158,8 @@ static struct resource sh_eth1_resources[] = {
 	},
 };
 
-static struct platform_device sh_eth1_device = {
+static struct platform_device sh_eth1_device =
+{
 	.name = "sh771x-ether",
 	.id = 1,
 	.dev = {
@@ -161,7 +170,8 @@ static struct platform_device sh_eth1_device = {
 };
 #endif
 
-static struct platform_device *se_devices[] __initdata = {
+static struct platform_device *se_devices[] __initdata =
+{
 	&heartbeat_device,
 	&cf_ide_device,
 #if defined(CONFIG_CPU_SUBTYPE_SH7710) ||\
@@ -181,7 +191,8 @@ device_initcall(se_devices_setup);
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_se __initmv = {
+static struct sh_machine_vector mv_se __initmv =
+{
 	.mv_name		= "SolutionEngine",
 	.mv_setup		= smsc_setup,
 	.mv_init_irq		= init_se_IRQ,

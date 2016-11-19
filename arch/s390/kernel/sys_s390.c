@@ -36,7 +36,8 @@
  * for parameter passing.
  */
 
-struct s390_mmap_arg_struct {
+struct s390_mmap_arg_struct
+{
 	unsigned long addr;
 	unsigned long len;
 	unsigned long prot;
@@ -51,7 +52,10 @@ SYSCALL_DEFINE1(mmap2, struct s390_mmap_arg_struct __user *, arg)
 	int error = -EFAULT;
 
 	if (copy_from_user(&a, arg, sizeof(a)))
+	{
 		goto out;
+	}
+
 	error = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd, a.offset);
 out:
 	return error;
@@ -61,10 +65,13 @@ out:
  * sys_ipc() is the de-multiplexer for the SysV IPC calls.
  */
 SYSCALL_DEFINE5(s390_ipc, uint, call, int, first, unsigned long, second,
-		unsigned long, third, void __user *, ptr)
+				unsigned long, third, void __user *, ptr)
 {
 	if (call >> 16)
+	{
 		return -EINVAL;
+	}
+
 	/* The s390 sys_ipc variant has only five parameters instead of six
 	 * like the generic variant. The only difference is the handling of
 	 * the SEMTIMEDOP subcall where on s390 the third parameter is used
@@ -81,11 +88,17 @@ SYSCALL_DEFINE1(s390_personality, unsigned int, personality)
 	unsigned int ret;
 
 	if (personality(current->personality) == PER_LINUX32 &&
-	    personality(personality) == PER_LINUX)
+		personality(personality) == PER_LINUX)
+	{
 		personality |= PER_LINUX32;
+	}
+
 	ret = sys_personality(personality);
+
 	if (personality(ret) == PER_LINUX32)
+	{
 		ret &= ~PER_LINUX32;
+	}
 
 	return ret;
 }

@@ -34,7 +34,8 @@
 #include <sysdev/mpic.h>
 #include "smp.h"
 
-struct epapr_spin_table {
+struct epapr_spin_table
+{
 	u32	addr_h;
 	u32	addr_l;
 	u32	r3_h;
@@ -56,7 +57,10 @@ static void mpc85xx_give_timebase(void)
 	hard_irq_disable();
 
 	while (!tb_req)
+	{
 		barrier();
+	}
+
 	tb_req = 0;
 
 	qoriq_pm_ops->freeze_time_base(true);
@@ -75,13 +79,15 @@ static void mpc85xx_give_timebase(void)
 		u64 prev;
 
 		asm volatile("mfspr %0, %1" : "=r" (timebase) :
-			     "i" (SPRN_TBRL));
+					 "i" (SPRN_TBRL));
 
-		do {
+		do
+		{
 			prev = timebase;
 			asm volatile("mfspr %0, %1" : "=r" (timebase) :
-				     "i" (SPRN_TBRL));
-		} while (prev != timebase);
+						 "i" (SPRN_TBRL));
+		}
+		while (prev != timebase);
 	}
 #else
 	timebase = get_tb();
@@ -90,7 +96,9 @@ static void mpc85xx_give_timebase(void)
 	tb_valid = 1;
 
 	while (tb_valid)
+	{
 		barrier();
+	}
 
 	qoriq_pm_ops->freeze_time_base(false);
 
@@ -105,8 +113,11 @@ static void mpc85xx_take_timebase(void)
 	hard_irq_disable();
 
 	tb_req = 1;
+
 	while (!tb_valid)
+	{
 		barrier();
+	}
 
 	set_tb(timebase >> 32, timebase & 0xffffffff);
 	isync();
@@ -143,15 +154,19 @@ static void qoriq_cpu_kill(unsigned int cpu)
 {
 	int i;
 
-	for (i = 0; i < 500; i++) {
-		if (is_cpu_dead(cpu)) {
+	for (i = 0; i < 500; i++)
+	{
+		if (is_cpu_dead(cpu))
+		{
 #ifdef CONFIG_PPC64
 			paca[cpu].cpu_start = 0;
 #endif
 			return;
 		}
+
 		msleep(20);
 	}
+
 	pr_err("CPU%d didn't die...\n", cpu);
 }
 #endif
@@ -166,13 +181,13 @@ static void qoriq_cpu_kill(unsigned int cpu)
 static inline void flush_spin_table(void *spin_table)
 {
 	flush_dcache_range((ulong)spin_table,
-		(ulong)spin_table + sizeof(struct epapr_spin_table));
+					   (ulong)spin_table + sizeof(struct epapr_spin_table));
 }
 
 static inline u32 read_spin_table_addr_l(void *spin_table)
 {
 	flush_dcache_range((ulong)spin_table,
-		(ulong)spin_table + sizeof(struct epapr_spin_table));
+					   (ulong)spin_table + sizeof(struct epapr_spin_table));
 	return in_be32(&((struct epapr_spin_table *)spin_table)->addr_l);
 }
 
@@ -200,7 +215,9 @@ static int smp_85xx_start_cpu(int cpu)
 
 	np = of_get_cpu_node(cpu, NULL);
 	cpu_rel_addr = of_get_property(np, "cpu-release-addr", NULL);
-	if (!cpu_rel_addr) {
+
+	if (!cpu_rel_addr)
+	{
 		pr_err("No cpu-release-addr for cpu %d\n", cpu);
 		return -ENOENT;
 	}
@@ -216,18 +233,23 @@ static int smp_85xx_start_cpu(int cpu)
 	/* Map the spin table */
 	if (ioremappable)
 		spin_table = ioremap_prot(*cpu_rel_addr,
-			sizeof(struct epapr_spin_table), _PAGE_COHERENT);
+								  sizeof(struct epapr_spin_table), _PAGE_COHERENT);
 	else
+	{
 		spin_table = phys_to_virt(*cpu_rel_addr);
+	}
 
 	local_irq_save(flags);
 	hard_irq_disable();
 
 	if (qoriq_pm_ops)
+	{
 		qoriq_pm_ops->cpu_up_prepare(cpu);
+	}
 
 	/* if cpu is not spinning, reset it */
-	if (read_spin_table_addr_l(spin_table) != 1) {
+	if (read_spin_table_addr_l(spin_table) != 1)
+	{
 		/*
 		 * We don't set the BPTR register here since it already points
 		 * to the boot page properly.
@@ -241,9 +263,10 @@ static int smp_85xx_start_cpu(int cpu)
 		 */
 		if (!spin_event_timeout(
 				read_spin_table_addr_l(spin_table) == 1,
-				10000, 100)) {
+				10000, 100))
+		{
 			pr_err("timeout waiting for cpu %d to reset\n",
-				hw_cpu);
+				   hw_cpu);
 			ret = -EAGAIN;
 			goto err;
 		}
@@ -253,7 +276,7 @@ static int smp_85xx_start_cpu(int cpu)
 	out_be32(&spin_table->pir, hw_cpu);
 #ifdef CONFIG_PPC64
 	out_be64((u64 *)(&spin_table->addr_h),
-		__pa(ppc_function_entry(generic_secondary_smp_init)));
+			 __pa(ppc_function_entry(generic_secondary_smp_init)));
 #else
 	out_be32(&spin_table->addr_l, __pa(__early_start));
 #endif
@@ -262,7 +285,9 @@ err:
 	local_irq_restore(flags);
 
 	if (ioremappable)
+	{
 		iounmap(spin_table);
+	}
 
 	return ret;
 }
@@ -279,27 +304,36 @@ static int smp_85xx_kick_cpu(int nr)
 	pr_debug("kick CPU #%d\n", nr);
 
 #ifdef CONFIG_PPC64
-	if (threads_per_core == 2) {
+
+	if (threads_per_core == 2)
+	{
 		if (WARN_ON_ONCE(!cpu_has_feature(CPU_FTR_SMT)))
+		{
 			return -ENOENT;
+		}
 
 		booting_thread_hwid = cpu_thread_in_core(nr);
 		primary = cpu_first_thread_sibling(nr);
 
 		if (qoriq_pm_ops)
+		{
 			qoriq_pm_ops->cpu_up_prepare(nr);
+		}
 
 		/*
 		 * If either thread in the core is online, use it to start
 		 * the other.
 		 */
-		if (cpu_online(primary)) {
+		if (cpu_online(primary))
+		{
 			smp_call_function_single(primary,
-					wake_hw_thread, &nr, 1);
+									 wake_hw_thread, &nr, 1);
 			goto done;
-		} else if (cpu_online(primary + 1)) {
+		}
+		else if (cpu_online(primary + 1))
+		{
 			smp_call_function_single(primary + 1,
-					wake_hw_thread, &nr, 1);
+									 wake_hw_thread, &nr, 1);
 			goto done;
 		}
 
@@ -310,21 +344,28 @@ static int smp_85xx_kick_cpu(int nr)
 		 * corresponding to nr.
 		 */
 
-	} else if (threads_per_core == 1) {
+	}
+	else if (threads_per_core == 1)
+	{
 		/*
 		 * If one core has only one thread, set booting_thread_hwid to
 		 * an invalid value.
 		 */
 		booting_thread_hwid = INVALID_THREAD_HWID;
 
-	} else if (threads_per_core > 2) {
+	}
+	else if (threads_per_core > 2)
+	{
 		pr_err("Do not support more than 2 threads per CPU.");
 		return -EINVAL;
 	}
 
 	ret = smp_85xx_start_cpu(primary);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 done:
 	paca[nr].cpu_start = 1;
@@ -333,8 +374,11 @@ done:
 	return ret;
 #else
 	ret = smp_85xx_start_cpu(nr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	generic_set_cpu_up(nr);
 
@@ -342,7 +386,8 @@ done:
 #endif
 }
 
-struct smp_ops_t smp_85xx_ops = {
+struct smp_ops_t smp_85xx_ops =
+{
 	.kick_cpu = smp_85xx_kick_cpu,
 	.cpu_bootable = smp_generic_cpu_bootable,
 #ifdef CONFIG_HOTPLUG_CPU
@@ -363,9 +408,11 @@ void mpc85xx_smp_kexec_cpu_down(int crash_shutdown, int secondary)
 {
 	local_irq_disable();
 
-	if (secondary) {
+	if (secondary)
+	{
 		cur_cpu_spec->cpu_down_flush();
 		atomic_inc(&kexec_down_cpus);
+
 		/* loop forever */
 		while (1);
 	}
@@ -374,7 +421,9 @@ void mpc85xx_smp_kexec_cpu_down(int crash_shutdown, int secondary)
 static void mpc85xx_smp_kexec_down(void *arg)
 {
 	if (ppc_md.kexec_cpu_down)
-		ppc_md.kexec_cpu_down(0,1);
+	{
+		ppc_md.kexec_cpu_down(0, 1);
+	}
 }
 #else
 void mpc85xx_smp_kexec_cpu_down(int crash_shutdown, int secondary)
@@ -391,7 +440,8 @@ void mpc85xx_smp_kexec_cpu_down(int crash_shutdown, int secondary)
 	hard_irq_disable();
 	mpic_teardown_this_cpu(secondary);
 
-	if (cpu == crashing_cpu && cpu_thread_in_core(cpu) != 0) {
+	if (cpu == crashing_cpu && cpu_thread_in_core(cpu) != 0)
+	{
 		/*
 		 * We enter the crash kernel on whatever cpu crashed,
 		 * even if it's a secondary thread.  If that's the case,
@@ -399,34 +449,44 @@ void mpc85xx_smp_kexec_cpu_down(int crash_shutdown, int secondary)
 		 */
 		disable_threadbit = 1;
 		disable_cpu = cpu_first_thread_sibling(cpu);
-	} else if (sibling != crashing_cpu &&
-		   cpu_thread_in_core(cpu) == 0 &&
-		   cpu_thread_in_core(sibling) != 0) {
+	}
+	else if (sibling != crashing_cpu &&
+			 cpu_thread_in_core(cpu) == 0 &&
+			 cpu_thread_in_core(sibling) != 0)
+	{
 		disable_threadbit = 2;
 		disable_cpu = sibling;
 	}
 
-	if (disable_threadbit) {
-		while (paca[disable_cpu].kexec_state < KEXEC_STATE_REAL_MODE) {
+	if (disable_threadbit)
+	{
+		while (paca[disable_cpu].kexec_state < KEXEC_STATE_REAL_MODE)
+		{
 			barrier();
 			now = mftb();
-			if (!notified && now - start > 1000000) {
+
+			if (!notified && now - start > 1000000)
+			{
 				pr_info("%s/%d: waiting for cpu %d to enter KEXEC_STATE_REAL_MODE (%d)\n",
-					__func__, smp_processor_id(),
-					disable_cpu,
-					paca[disable_cpu].kexec_state);
+						__func__, smp_processor_id(),
+						disable_cpu,
+						paca[disable_cpu].kexec_state);
 				notified = true;
 			}
 		}
 
-		if (notified) {
+		if (notified)
+		{
 			pr_info("%s: cpu %d done waiting\n",
-				__func__, disable_cpu);
+					__func__, disable_cpu);
 		}
 
 		mtspr(SPRN_TENC, disable_threadbit);
+
 		while (mfspr(SPRN_TENSR) & disable_threadbit)
+		{
 			cpu_relax();
+		}
 	}
 }
 #endif
@@ -438,20 +498,25 @@ static void mpc85xx_smp_machine_kexec(struct kimage *image)
 	int i, num_cpus = num_present_cpus();
 
 	if (image->type == KEXEC_TYPE_DEFAULT)
+	{
 		smp_call_function(mpc85xx_smp_kexec_down, NULL, 0);
+	}
 
 	while ( (atomic_read(&kexec_down_cpus) != (num_cpus - 1)) &&
-		( timeout > 0 ) )
+			( timeout > 0 ) )
 	{
 		timeout--;
 	}
 
 	if ( !timeout )
+	{
 		printk(KERN_ERR "Unable to bring down secondary cpu(s)");
+	}
 
 	for_each_online_cpu(i)
 	{
-		if ( i == smp_processor_id() ) continue;
+		if ( i == smp_processor_id() ) { continue; }
+
 		mpic_reset_core(i);
 	}
 #endif
@@ -463,7 +528,9 @@ static void mpc85xx_smp_machine_kexec(struct kimage *image)
 static void smp_85xx_basic_setup(int cpu_nr)
 {
 	if (cpu_has_feature(CPU_FTR_DBELL))
+	{
 		doorbell_setup_this_cpu();
+	}
 }
 
 static void smp_85xx_setup_cpu(int cpu_nr)
@@ -478,14 +545,20 @@ void __init mpc85xx_smp_init(void)
 
 
 	np = of_find_node_by_type(NULL, "open-pic");
-	if (np) {
+
+	if (np)
+	{
 		smp_85xx_ops.probe = smp_mpic_probe;
 		smp_85xx_ops.setup_cpu = smp_85xx_setup_cpu;
 		smp_85xx_ops.message_pass = smp_mpic_message_pass;
-	} else
+	}
+	else
+	{
 		smp_85xx_ops.setup_cpu = smp_85xx_basic_setup;
+	}
 
-	if (cpu_has_feature(CPU_FTR_DBELL)) {
+	if (cpu_has_feature(CPU_FTR_DBELL))
+	{
 		/*
 		 * If left NULL, .message_pass defaults to
 		 * smp_muxed_ipi_message_pass
@@ -503,12 +576,15 @@ void __init mpc85xx_smp_init(void)
 #ifdef CONFIG_FSL_PMC
 	mpc85xx_setup_pmc();
 #endif
-	if (qoriq_pm_ops) {
+
+	if (qoriq_pm_ops)
+	{
 		smp_85xx_ops.give_timebase = mpc85xx_give_timebase;
 		smp_85xx_ops.take_timebase = mpc85xx_take_timebase;
 		ppc_md.cpu_die = smp_85xx_mach_cpu_die;
 		smp_85xx_ops.cpu_die = qoriq_cpu_kill;
 	}
+
 #endif
 	smp_ops = &smp_85xx_ops;
 

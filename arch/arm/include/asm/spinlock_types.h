@@ -2,15 +2,18 @@
 #define __ASM_SPINLOCK_TYPES_H
 
 #ifndef __LINUX_SPINLOCK_TYPES_H
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
 #define TICKET_SHIFT	16
 
-typedef struct {
-	union {
+typedef struct
+{
+	union
+	{
 		u32 slock;
-		struct __raw_tickets {
+		struct __raw_tickets
+		{
 #ifdef __ARMEB__
 			u16 next;
 			u16 owner;
@@ -24,7 +27,8 @@ typedef struct {
 
 #define __ARCH_SPIN_LOCK_UNLOCKED	{ { 0 } }
 
-typedef struct {
+typedef struct
+{
 	u32 lock;
 } arch_rwlock_t;
 

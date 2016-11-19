@@ -35,7 +35,8 @@
 #include "flash.h"
 
 /* Oscillator frequencies. These are board-specific */
-unsigned long at32_board_osc_rates[3] = {
+unsigned long at32_board_osc_rates[3] =
+{
 	[0] = 32768,	/* 32.768 kHz on RTC osc */
 	[1] = 25000000, /* 25MHz on osc0 */
 	[2] = 12000000,	/* 12 MHz on osc1 */
@@ -45,7 +46,8 @@ unsigned long at32_board_osc_rates[3] = {
 struct tag *bootloader_tags __initdata;
 
 #ifdef CONFIG_BOARD_HAMMERHEAD_LCD
-static struct fb_videomode __initdata hda350tlv_modes[] = {
+static struct fb_videomode __initdata hda350tlv_modes[] =
+{
 	{
 		.name		= "320x240 @ 75",
 		.refresh	= 75,
@@ -65,7 +67,8 @@ static struct fb_videomode __initdata hda350tlv_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata hammerhead_hda350t_monspecs = {
+static struct fb_monspecs __initdata hammerhead_hda350t_monspecs =
+{
 	.manufacturer		= "HAN",
 	.monitor		= "HDA350T-LV",
 	.modedb			= hda350tlv_modes,
@@ -77,19 +80,21 @@ static struct fb_monspecs __initdata hammerhead_hda350t_monspecs = {
 	.dclkmax		= 10000000,
 };
 
-struct atmel_lcdfb_pdata __initdata hammerhead_lcdc_data = {
+struct atmel_lcdfb_pdata __initdata hammerhead_lcdc_data =
+{
 	.default_bpp		= 24,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_INVCLK
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_INVCLK
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_MEMOR_BIG),
 	.default_monspecs	= &hammerhead_hda350t_monspecs,
 	.guard_time		= 2,
 };
 #endif
 
-static struct mci_platform_data __initdata mci0_data = {
+static struct mci_platform_data __initdata mci0_data =
+{
 	.slot[0] = {
 		.bus_width	= 4,
 		.detect_pin	= -ENODEV,
@@ -97,7 +102,8 @@ static struct mci_platform_data __initdata mci0_data = {
 	},
 };
 
-struct eth_addr {
+struct eth_addr
+{
 	u8 addr[6];
 };
 
@@ -118,7 +124,7 @@ static int __init parse_tag_ethernet(struct tag *tag)
 
 	if (i < ARRAY_SIZE(hw_addr))
 		memcpy(hw_addr[i].addr, tag->u.ethernet.hw_address,
-		       sizeof(hw_addr[i].addr));
+			   sizeof(hw_addr[i].addr));
 
 	return 0;
 }
@@ -132,15 +138,21 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	struct clk *pclk;
 
 	if (!res)
+	{
 		return;
+	}
 
 	if (pdev->id >= ARRAY_SIZE(hw_addr))
+	{
 		return;
+	}
 
 	addr = hw_addr[pdev->id].addr;
 
 	if (!is_valid_ether_addr(addr))
+	{
 		return;
+	}
 
 	/*
 	 * Since this is board-specific code, we'll cheat and use the
@@ -151,12 +163,14 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	pclk = clk_get(&pdev->dev, "pclk");
 
 	if (IS_ERR(pclk))
+	{
 		return;
+	}
 
 	clk_enable(pclk);
 
 	__raw_writel((addr[3] << 24) | (addr[2] << 16) | (addr[1] << 8) |
-		     addr[0], regs + 0x98);
+				 addr[0], regs + 0x98);
 	__raw_writel((addr[5] << 8) | addr[4], regs + 0x9c);
 
 	clk_disable(pclk);
@@ -169,7 +183,8 @@ void __init setup_board(void)
 	at32_setup_serial_console(0);
 }
 
-static struct i2c_gpio_platform_data i2c_gpio_data = {
+static struct i2c_gpio_platform_data i2c_gpio_data =
+{
 	.sda_pin		= GPIO_PIN_PA(6),
 	.scl_pin		= GPIO_PIN_PA(7),
 	.sda_is_open_drain	= 1,
@@ -177,7 +192,8 @@ static struct i2c_gpio_platform_data i2c_gpio_data = {
 	.udelay			= 2,	/* close to 100 kHz */
 };
 
-static struct platform_device i2c_gpio_device = {
+static struct platform_device i2c_gpio_device =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev		= { .platform_data = &i2c_gpio_data, },
@@ -186,7 +202,8 @@ static struct platform_device i2c_gpio_device = {
 static struct i2c_board_info __initdata i2c_info[] = {};
 
 #ifdef CONFIG_BOARD_HAMMERHEAD_SND
-static struct ac97c_platform_data ac97c_data = {
+static struct ac97c_platform_data ac97c_data =
+{
 	.reset_pin = GPIO_PIN_PA(16),
 };
 #endif
@@ -204,7 +221,7 @@ static int __init hammerhead_init(void)
 	/* Reserve PB29 (GCLK3). This pin is used as clock source
 	 * for ETH PHY (25MHz). GCLK3 setup is done by U-Boot.
 	 */
-	at32_reserve_pin(GPIO_PIOB_BASE, (1<<29));
+	at32_reserve_pin(GPIO_PIOB_BASE, (1 << 29));
 
 	/*
 	 * Hammerhead uses only one ethernet port, so we don't set
@@ -222,15 +239,15 @@ static int __init hammerhead_init(void)
 #endif
 #ifdef CONFIG_BOARD_HAMMERHEAD_LCD
 	at32_add_device_lcdc(0, &hammerhead_lcdc_data, fbmem_start,
-			     fbmem_size, ATMEL_LCDC_PRI_24BIT);
+						 fbmem_size, ATMEL_LCDC_PRI_24BIT);
 #endif
 
 	at32_select_gpio(i2c_gpio_data.sda_pin,
-			 AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT |
-			 AT32_GPIOF_HIGH);
+					 AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT |
+					 AT32_GPIOF_HIGH);
 	at32_select_gpio(i2c_gpio_data.scl_pin,
-			 AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT |
-			 AT32_GPIOF_HIGH);
+					 AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT |
+					 AT32_GPIOF_HIGH);
 	platform_device_register(&i2c_gpio_device);
 	i2c_register_board_info(0, i2c_info, ARRAY_SIZE(i2c_info));
 

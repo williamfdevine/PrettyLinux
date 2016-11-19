@@ -14,7 +14,8 @@ void notrace arch_local_irq_restore(unsigned long flags)
 {
 	unsigned long __dummy0, __dummy1;
 
-	if (flags == ARCH_IRQ_DISABLED) {
+	if (flags == ARCH_IRQ_DISABLED)
+	{
 		__asm__ __volatile__ (
 			"stc	sr, %0\n\t"
 			"or	#0xf0, %0\n\t"
@@ -23,7 +24,9 @@ void notrace arch_local_irq_restore(unsigned long flags)
 			: /* no inputs */
 			: "memory"
 		);
-	} else {
+	}
+	else
+	{
 		__asm__ __volatile__ (
 			"stc	sr, %0\n\t"
 			"and	%1, %0\n\t"

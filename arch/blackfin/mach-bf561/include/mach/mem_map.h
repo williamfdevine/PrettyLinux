@@ -9,7 +9,7 @@
 #define __BFIN_MACH_MEM_MAP_H__
 
 #ifndef __BFIN_MEM_MAP_H__
-# error "do not include mach/mem_map.h directly -- use asm/mem_map.h"
+	# error "do not include mach/mem_map.h directly -- use asm/mem_map.h"
 #endif
 
 /* Async Memory Banks */
@@ -30,9 +30,9 @@
 /* Level 1 Memory */
 
 #ifdef CONFIG_BFIN_ICACHE
-#define BFIN_ICACHESIZE	(16*1024)
+	#define BFIN_ICACHESIZE	(16*1024)
 #else
-#define BFIN_ICACHESIZE	(0*1024)
+	#define BFIN_ICACHESIZE	(0*1024)
 #endif
 
 /* Memory Map for ADSP-BF561 processors */
@@ -52,26 +52,26 @@
 
 #ifdef CONFIG_BFIN_DCACHE
 
-#ifdef CONFIG_BFIN_DCACHE_BANKA
-#define DMEM_CNTR (ACACHE_BSRAM | ENDCPLB | PORT_PREF0)
-#define L1_DATA_A_LENGTH      (0x8000 - 0x4000)
-#define L1_DATA_B_LENGTH      0x8000
-#define BFIN_DCACHESIZE	(16*1024)
-#define BFIN_DSUPBANKS	1
-#else
-#define DMEM_CNTR (ACACHE_BCACHE | ENDCPLB | PORT_PREF0)
-#define L1_DATA_A_LENGTH      (0x8000 - 0x4000)
-#define L1_DATA_B_LENGTH      (0x8000 - 0x4000)
-#define BFIN_DCACHESIZE	(32*1024)
-#define BFIN_DSUPBANKS	2
-#endif
+	#ifdef CONFIG_BFIN_DCACHE_BANKA
+		#define DMEM_CNTR (ACACHE_BSRAM | ENDCPLB | PORT_PREF0)
+		#define L1_DATA_A_LENGTH      (0x8000 - 0x4000)
+		#define L1_DATA_B_LENGTH      0x8000
+		#define BFIN_DCACHESIZE	(16*1024)
+		#define BFIN_DSUPBANKS	1
+	#else
+		#define DMEM_CNTR (ACACHE_BCACHE | ENDCPLB | PORT_PREF0)
+		#define L1_DATA_A_LENGTH      (0x8000 - 0x4000)
+		#define L1_DATA_B_LENGTH      (0x8000 - 0x4000)
+		#define BFIN_DCACHESIZE	(32*1024)
+		#define BFIN_DSUPBANKS	2
+	#endif
 
 #else
-#define DMEM_CNTR (ASRAM_BSRAM | ENDCPLB | PORT_PREF0)
-#define L1_DATA_A_LENGTH      0x8000
-#define L1_DATA_B_LENGTH      0x8000
-#define BFIN_DCACHESIZE	(0*1024)
-#define BFIN_DSUPBANKS	0
+	#define DMEM_CNTR (ASRAM_BSRAM | ENDCPLB | PORT_PREF0)
+	#define L1_DATA_A_LENGTH      0x8000
+	#define L1_DATA_B_LENGTH      0x8000
+	#define BFIN_DCACHESIZE	(0*1024)
+	#define BFIN_DSUPBANKS	0
 #endif /*CONFIG_BFIN_DCACHE*/
 
 /*
@@ -88,13 +88,13 @@
  * of the user -- don't try to use memory that doesn't exist.
  */
 #ifdef CONFIG_SMP
-# define COREB_L1_CODE_LENGTH     L1_CODE_LENGTH
-# define COREB_L1_DATA_A_LENGTH   L1_DATA_A_LENGTH
-# define COREB_L1_DATA_B_LENGTH   L1_DATA_B_LENGTH
+	#define COREB_L1_CODE_LENGTH     L1_CODE_LENGTH
+	#define COREB_L1_DATA_A_LENGTH   L1_DATA_A_LENGTH
+	#define COREB_L1_DATA_B_LENGTH   L1_DATA_B_LENGTH
 #else
-# define COREB_L1_CODE_LENGTH     0x14000
-# define COREB_L1_DATA_A_LENGTH   0x8000
-# define COREB_L1_DATA_B_LENGTH   0x8000
+	#define COREB_L1_CODE_LENGTH     0x14000
+	#define COREB_L1_DATA_A_LENGTH   0x8000
+	#define COREB_L1_DATA_B_LENGTH   0x8000
 #endif
 
 /* Level 2 Memory */
@@ -142,20 +142,20 @@
 	preg.l = _cpu_pda;		\
 	preg.h = _cpu_pda;		\
 	if !cc jump 3f;			\
-1:					\
+	1:					\
 	/* preg = 0x0; */		\
 	cc = !cc; /* restore cc to 0 */	\
 	jump 4f;			\
-2:					\
+	2:					\
 	cc = preg == 0x0;		\
 	preg.l = _cpu_pda;		\
 	preg.h = _cpu_pda;		\
 	if cc jump 4f;			\
 	/* preg = 0x1000000; */		\
 	cc = !cc; /* restore cc to 1 */	\
-3:					\
+	3:					\
 	preg = [preg];			\
-4:
+	4:
 
 # define GET_PDA(preg, dreg)		\
 	preg.l = lo(DSPID);		\
@@ -166,7 +166,7 @@
 	cc = bittst(dreg, 0);		\
 	if !cc jump 1f;			\
 	preg = [preg];			\
-1:					\
+	1:					\
 
 # define GET_CPUID(preg, dreg)		\
 	preg.l = lo(DSPID);		\
@@ -179,39 +179,39 @@
 
 #  include <asm/processor.h>
 
-static inline unsigned long get_l1_scratch_start_cpu(int cpu)
-{
-	return cpu ? COREB_L1_SCRATCH_START : COREA_L1_SCRATCH_START;
-}
-static inline unsigned long get_l1_code_start_cpu(int cpu)
-{
-	return cpu ? COREB_L1_CODE_START : COREA_L1_CODE_START;
-}
-static inline unsigned long get_l1_data_a_start_cpu(int cpu)
-{
-	return cpu ? COREB_L1_DATA_A_START : COREA_L1_DATA_A_START;
-}
-static inline unsigned long get_l1_data_b_start_cpu(int cpu)
-{
-	return cpu ? COREB_L1_DATA_B_START : COREA_L1_DATA_B_START;
-}
+	static inline unsigned long get_l1_scratch_start_cpu(int cpu)
+	{
+		return cpu ? COREB_L1_SCRATCH_START : COREA_L1_SCRATCH_START;
+	}
+	static inline unsigned long get_l1_code_start_cpu(int cpu)
+	{
+		return cpu ? COREB_L1_CODE_START : COREA_L1_CODE_START;
+	}
+	static inline unsigned long get_l1_data_a_start_cpu(int cpu)
+	{
+		return cpu ? COREB_L1_DATA_A_START : COREA_L1_DATA_A_START;
+	}
+	static inline unsigned long get_l1_data_b_start_cpu(int cpu)
+	{
+		return cpu ? COREB_L1_DATA_B_START : COREA_L1_DATA_B_START;
+	}
 
-static inline unsigned long get_l1_scratch_start(void)
-{
-	return get_l1_scratch_start_cpu(blackfin_core_id());
-}
-static inline unsigned long get_l1_code_start(void)
-{
-	return get_l1_code_start_cpu(blackfin_core_id());
-}
-static inline unsigned long get_l1_data_a_start(void)
-{
-	return get_l1_data_a_start_cpu(blackfin_core_id());
-}
-static inline unsigned long get_l1_data_b_start(void)
-{
-	return get_l1_data_b_start_cpu(blackfin_core_id());
-}
+	static inline unsigned long get_l1_scratch_start(void)
+	{
+		return get_l1_scratch_start_cpu(blackfin_core_id());
+	}
+	static inline unsigned long get_l1_code_start(void)
+	{
+		return get_l1_code_start_cpu(blackfin_core_id());
+	}
+	static inline unsigned long get_l1_data_a_start(void)
+	{
+		return get_l1_data_a_start_cpu(blackfin_core_id());
+	}
+	static inline unsigned long get_l1_data_b_start(void)
+	{
+		return get_l1_data_b_start_cpu(blackfin_core_id());
+	}
 
 # endif /* __ASSEMBLY__ */
 #endif /* CONFIG_SMP */

@@ -26,28 +26,37 @@ void __init shmobile_init_delay(void)
 	u32 max_freq = 0;
 
 	cpus = of_find_node_by_path("/cpus");
-	if (!cpus)
-		return;
 
-	for_each_child_of_node(cpus, np) {
+	if (!cpus)
+	{
+		return;
+	}
+
+	for_each_child_of_node(cpus, np)
+	{
 		u32 freq;
 
 		if (IS_ENABLED(CONFIG_ARM_ARCH_TIMER) &&
-		    (of_device_is_compatible(np, "arm,cortex-a7") ||
-		     of_device_is_compatible(np, "arm,cortex-a15"))) {
+			(of_device_is_compatible(np, "arm,cortex-a7") ||
+			 of_device_is_compatible(np, "arm,cortex-a15")))
+		{
 			of_node_put(np);
 			of_node_put(cpus);
 			return;
 		}
 
 		if (!of_property_read_u32(np, "clock-frequency", &freq))
+		{
 			max_freq = max(max_freq, freq);
+		}
 	}
 
 	of_node_put(cpus);
 
 	if (!max_freq)
+	{
 		return;
+	}
 
 	/*
 	 * Calculate a worst-case loops-per-jiffy value
@@ -59,5 +68,7 @@ void __init shmobile_init_delay(void)
 	 */
 
 	if (!preset_lpj)
+	{
 		preset_lpj = max_freq / HZ;
+	}
 }

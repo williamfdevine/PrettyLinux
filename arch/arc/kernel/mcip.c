@@ -33,7 +33,8 @@ static void mcip_ipi_send(int cpu)
 	int ipi_was_pending;
 
 	/* ARConnect can only send IPI to others */
-	if (unlikely(cpu == raw_smp_processor_id())) {
+	if (unlikely(cpu == raw_smp_processor_id()))
+	{
 		arc_softirq_trigger(SOFTIRQ_IRQ);
 		return;
 	}
@@ -48,8 +49,11 @@ static void mcip_ipi_send(int cpu)
 	 */
 	__mcip_cmd(CMD_INTRPT_READ_STATUS, cpu);
 	ipi_was_pending = read_aux_reg(ARC_REG_MCIP_READBACK);
+
 	if (!ipi_was_pending)
+	{
 		__mcip_cmd(CMD_INTRPT_GENERATE_IRQ, cpu);
+	}
 
 	raw_spin_unlock_irqrestore(&mcip_lock, flags);
 }
@@ -59,7 +63,8 @@ static void mcip_ipi_clear(int irq)
 	unsigned int cpu, c;
 	unsigned long flags;
 
-	if (unlikely(irq == SOFTIRQ_IRQ)) {
+	if (unlikely(irq == SOFTIRQ_IRQ))
+	{
 		arc_softirq_clear(irq);
 		return;
 	}
@@ -76,11 +81,13 @@ static void mcip_ipi_clear(int irq)
 	 * possibly be coalesced by MCIP into 1 asserted IRQ, so @cpus can be
 	 * "vectored" (multiple bits sets) as opposed to typical single bit
 	 */
-	do {
+	do
+	{
 		c = __ffs(cpu);			/* 0,1,2,3 */
 		__mcip_cmd(CMD_INTRPT_GENERATE_ACK, c);
 		cpu &= ~(1U << c);
-	} while (cpu);
+	}
+	while (cpu);
 
 	raw_spin_unlock_irqrestore(&mcip_lock, flags);
 }
@@ -92,23 +99,25 @@ static void mcip_probe_n_setup(void)
 	READ_BCR(ARC_REG_MCIP_BCR, mp);
 
 	sprintf(smp_cpuinfo_buf,
-		"Extn [SMP]\t: ARConnect (v%d): %d cores with %s%s%s%s%s\n",
-		mp.ver, mp.num_cores,
-		IS_AVAIL1(mp.ipi, "IPI "),
-		IS_AVAIL1(mp.idu, "IDU "),
-		IS_AVAIL1(mp.llm, "LLM "),
-		IS_AVAIL1(mp.dbg, "DEBUG "),
-		IS_AVAIL1(mp.gfrc, "GFRC"));
+			"Extn [SMP]\t: ARConnect (v%d): %d cores with %s%s%s%s%s\n",
+			mp.ver, mp.num_cores,
+			IS_AVAIL1(mp.ipi, "IPI "),
+			IS_AVAIL1(mp.idu, "IDU "),
+			IS_AVAIL1(mp.llm, "LLM "),
+			IS_AVAIL1(mp.dbg, "DEBUG "),
+			IS_AVAIL1(mp.gfrc, "GFRC"));
 
 	cpuinfo_arc700[0].extn.gfrc = mp.gfrc;
 
-	if (mp.dbg) {
+	if (mp.dbg)
+	{
 		__mcip_cmd_data(CMD_DEBUG_SET_SELECT, 0, 0xf);
 		__mcip_cmd_data(CMD_DEBUG_SET_MASK, 0xf, 0xf);
 	}
 }
 
-struct plat_smp_ops plat_smp_ops = {
+struct plat_smp_ops plat_smp_ops =
+{
 	.info		= smp_cpuinfo_buf,
 	.init_early_smp	= mcip_probe_n_setup,
 	.init_per_cpu	= mcip_setup_per_cpu,
@@ -142,12 +151,14 @@ static void idu_set_dest(unsigned int cmn_irq, unsigned int cpu_mask)
 }
 
 static void idu_set_mode(unsigned int cmn_irq, unsigned int lvl,
-			   unsigned int distr)
+						 unsigned int distr)
 {
-	union {
+	union
+	{
 		unsigned int word;
-		struct {
-			unsigned int distr:2, pad:2, lvl:1, pad2:27;
+		struct
+		{
+			unsigned int distr: 2, pad: 2, lvl: 1, pad2: 27;
 		};
 	} data;
 
@@ -177,7 +188,7 @@ static void idu_irq_unmask(struct irq_data *data)
 #ifdef CONFIG_SMP
 static int
 idu_irq_set_affinity(struct irq_data *data, const struct cpumask *cpumask,
-		     bool force)
+					 bool force)
 {
 	unsigned long flags;
 	cpumask_t online;
@@ -186,7 +197,9 @@ idu_irq_set_affinity(struct irq_data *data, const struct cpumask *cpumask,
 
 	/* errout if no online cpu per @cpumask */
 	if (!cpumask_and(&online, cpumask, cpu_online_mask))
+	{
 		return -EINVAL;
+	}
 
 	raw_spin_lock_irqsave(&mcip_lock, flags);
 
@@ -194,9 +207,13 @@ idu_irq_set_affinity(struct irq_data *data, const struct cpumask *cpumask,
 	idu_set_dest(data->hwirq, destination_bits);
 
 	if (ffs(destination_bits) == fls(destination_bits))
+	{
 		distribution_mode = IDU_M_DISTRI_DEST;
+	}
 	else
+	{
 		distribution_mode = IDU_M_DISTRI_RR;
+	}
 
 	idu_set_mode(data->hwirq, IDU_M_TRIG_LEVEL, distribution_mode);
 
@@ -206,7 +223,8 @@ idu_irq_set_affinity(struct irq_data *data, const struct cpumask *cpumask,
 }
 #endif
 
-static struct irq_chip idu_irq_chip = {
+static struct irq_chip idu_irq_chip =
+{
 	.name			= "MCIP IDU Intc",
 	.irq_mask		= idu_irq_mask,
 	.irq_unmask		= idu_irq_unmask,
@@ -236,8 +254,8 @@ static int idu_irq_map(struct irq_domain *d, unsigned int virq, irq_hw_number_t 
 }
 
 static int idu_irq_xlate(struct irq_domain *d, struct device_node *n,
-			 const u32 *intspec, unsigned int intsize,
-			 irq_hw_number_t *out_hwirq, unsigned int *out_type)
+						 const u32 *intspec, unsigned int intsize,
+						 irq_hw_number_t *out_hwirq, unsigned int *out_type)
 {
 	irq_hw_number_t hwirq = *out_hwirq = intspec[0];
 	int distri = intspec[1];
@@ -246,13 +264,16 @@ static int idu_irq_xlate(struct irq_domain *d, struct device_node *n,
 	*out_type = IRQ_TYPE_NONE;
 
 	/* XXX: validate distribution scheme again online cpu mask */
-	if (distri == 0) {
+	if (distri == 0)
+	{
 		/* 0 - Round Robin to all cpus, otherwise 1 bit per core */
 		raw_spin_lock_irqsave(&mcip_lock, flags);
 		idu_set_dest(hwirq, BIT(num_online_cpus()) - 1);
 		idu_set_mode(hwirq, IDU_M_TRIG_LEVEL, IDU_M_DISTRI_RR);
 		raw_spin_unlock_irqrestore(&mcip_lock, flags);
-	} else {
+	}
+	else
+	{
 		/*
 		 * DEST based distribution for Level Triggered intr can only
 		 * have 1 CPU, so generalize it to always contain 1 cpu
@@ -261,7 +282,7 @@ static int idu_irq_xlate(struct irq_domain *d, struct device_node *n,
 
 		if (cpu != fls(distri))
 			pr_warn("IDU irq %lx distri mode set to cpu %x\n",
-				hwirq, cpu);
+					hwirq, cpu);
 
 		raw_spin_lock_irqsave(&mcip_lock, flags);
 		idu_set_dest(hwirq, cpu);
@@ -272,7 +293,8 @@ static int idu_irq_xlate(struct irq_domain *d, struct device_node *n,
 	return 0;
 }
 
-static const struct irq_domain_ops idu_irq_ops = {
+static const struct irq_domain_ops idu_irq_ops =
+{
 	.xlate	= idu_irq_xlate,
 	.map	= idu_irq_map,
 };
@@ -296,7 +318,9 @@ idu_of_init(struct device_node *intc, struct device_node *parent)
 	READ_BCR(ARC_REG_MCIP_BCR, mp);
 
 	if (!mp.idu)
+	{
 		panic("IDU not detected, but DeviceTree using it");
+	}
 
 	pr_info("MCIP: IDU referenced from Devicetree %d irqs\n", nr_irqs);
 
@@ -304,7 +328,8 @@ idu_of_init(struct device_node *intc, struct device_node *parent)
 
 	/* Parent interrupts (core-intc) are already mapped */
 
-	for (i = 0; i < nr_irqs; i++) {
+	for (i = 0; i < nr_irqs; i++)
+	{
 		/*
 		 * Return parent uplink IRQs (towards core intc) 24,25,.....
 		 * this step has been done before already
@@ -312,8 +337,11 @@ idu_of_init(struct device_node *intc, struct device_node *parent)
 		 * as first level isr
 		 */
 		virq = irq_of_parse_and_map(intc, i);
+
 		if (!i)
+		{
 			idu_first_hwirq = irqd_to_hwirq(irq_get_irq_data(virq));
+		}
 
 		irq_set_chained_handler_and_data(virq, idu_cascade_isr, domain);
 	}

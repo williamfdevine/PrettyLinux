@@ -54,7 +54,8 @@
 #include "common.h"
 #include "h1940.h"
 
-static struct map_desc rx3715_iodesc[] __initdata = {
+static struct map_desc rx3715_iodesc[] __initdata =
+{
 	/* dump ISA space somewhere unused */
 
 	{
@@ -70,7 +71,8 @@ static struct map_desc rx3715_iodesc[] __initdata = {
 	},
 };
 
-static struct s3c2410_uartcfg rx3715_uartcfgs[] = {
+static struct s3c2410_uartcfg rx3715_uartcfgs[] =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -100,10 +102,11 @@ static struct s3c2410_uartcfg rx3715_uartcfgs[] = {
 
 /* framebuffer lcd controller information */
 
-static struct s3c2410fb_display rx3715_lcdcfg __initdata = {
+static struct s3c2410fb_display rx3715_lcdcfg __initdata =
+{
 	.lcdcon5 =	S3C2410_LCDCON5_INVVLINE |
-			S3C2410_LCDCON5_FRM565 |
-			S3C2410_LCDCON5_HWSWP,
+	S3C2410_LCDCON5_FRM565 |
+	S3C2410_LCDCON5_HWSWP,
 
 	.type		= S3C2410_LCDCON1_TFT,
 	.width		= 240,
@@ -121,7 +124,8 @@ static struct s3c2410fb_display rx3715_lcdcfg __initdata = {
 	.vsync_len	= 3,
 };
 
-static struct s3c2410fb_mach_info rx3715_fb_info __initdata = {
+static struct s3c2410fb_mach_info rx3715_fb_info __initdata =
+{
 
 	.displays =	&rx3715_lcdcfg,
 	.num_displays =	1,
@@ -140,7 +144,8 @@ static struct s3c2410fb_mach_info rx3715_fb_info __initdata = {
 	.gpdup_mask =	0xffffffff,
 };
 
-static struct mtd_partition __initdata rx3715_nand_part[] = {
+static struct mtd_partition __initdata rx3715_nand_part[] =
+{
 	[0] = {
 		.name		= "Whole Flash",
 		.offset		= 0,
@@ -149,7 +154,8 @@ static struct mtd_partition __initdata rx3715_nand_part[] = {
 	}
 };
 
-static struct s3c2410_nand_set __initdata rx3715_nand_sets[] = {
+static struct s3c2410_nand_set __initdata rx3715_nand_sets[] =
+{
 	[0] = {
 		.name		= "Internal",
 		.nr_chips	= 1,
@@ -158,7 +164,8 @@ static struct s3c2410_nand_set __initdata rx3715_nand_sets[] = {
 	},
 };
 
-static struct s3c2410_platform_nand __initdata rx3715_nand_info = {
+static struct s3c2410_platform_nand __initdata rx3715_nand_info =
+{
 	.tacls		= 25,
 	.twrph0		= 50,
 	.twrph1		= 15,
@@ -166,7 +173,8 @@ static struct s3c2410_platform_nand __initdata rx3715_nand_info = {
 	.sets		= rx3715_nand_sets,
 };
 
-static struct platform_device *rx3715_devices[] __initdata = {
+static struct platform_device *rx3715_devices[] __initdata =
+{
 	&s3c_device_ohci,
 	&s3c_device_lcd,
 	&s3c_device_wdt,
@@ -208,11 +216,11 @@ static void __init rx3715_init_machine(void)
 }
 
 MACHINE_START(RX3715, "IPAQ-RX3715")
-	/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
+.atag_offset	= 0x100,
 	.map_io		= rx3715_map_io,
-	.reserve	= rx3715_reserve,
-	.init_irq	= s3c2440_init_irq,
-	.init_machine	= rx3715_init_machine,
-	.init_time	= rx3715_init_time,
-MACHINE_END
+		.reserve	= rx3715_reserve,
+			.init_irq	= s3c2440_init_irq,
+			   .init_machine	= rx3715_init_machine,
+				  .init_time	= rx3715_init_time,
+					MACHINE_END

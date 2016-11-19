@@ -59,7 +59,8 @@ void register_ipr_controller(struct ipr_desc *desc)
 	desc->chip.irq_mask = disable_ipr_irq;
 	desc->chip.irq_unmask = enable_ipr_irq;
 
-	for (i = 0; i < desc->nr_irqs; i++) {
+	for (i = 0; i < desc->nr_irqs; i++)
+	{
 		struct ipr_data *p = desc->ipr_data + i;
 		int res;
 
@@ -67,15 +68,17 @@ void register_ipr_controller(struct ipr_desc *desc)
 		BUG_ON(!desc->ipr_offsets[p->ipr_idx]);
 
 		res = irq_alloc_desc_at(p->irq, numa_node_id());
-		if (unlikely(res != p->irq && res != -EEXIST)) {
+
+		if (unlikely(res != p->irq && res != -EEXIST))
+		{
 			printk(KERN_INFO "can not get irq_desc for %d\n",
-			       p->irq);
+				   p->irq);
 			continue;
 		}
 
 		disable_irq_nosync(p->irq);
 		irq_set_chip_and_handler_name(p->irq, &desc->chip,
-					      handle_level_irq, "level");
+									  handle_level_irq, "level");
 		irq_set_chip_data(p->irq, p);
 		disable_ipr_irq(irq_get_irq_data(p->irq));
 	}

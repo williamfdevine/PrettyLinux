@@ -71,7 +71,7 @@ static inline union ieee754sp buildsp(int s, int bx, unsigned m)
 
 	assert((s) == 0 || (s) == 1);
 	assert((bx) >= SP_EMIN - 1 + SP_EBIAS
-	       && (bx) <= SP_EMAX + 1 + SP_EBIAS);
+		   && (bx) <= SP_EMAX + 1 + SP_EBIAS);
 	assert(((m) >> SP_FBITS) == 0);
 
 	r.sign = s;

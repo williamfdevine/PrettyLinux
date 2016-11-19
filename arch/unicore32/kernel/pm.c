@@ -31,11 +31,15 @@ int puv3_pm_enter(suspend_state_t state)
 	int i;
 
 	/* skip registers saving for standby */
-	if (state != PM_SUSPEND_STANDBY) {
+	if (state != PM_SUSPEND_STANDBY)
+	{
 		puv3_cpu_pm_fns->save(sleep_save);
+
 		/* before sleeping, calculate and save a checksum */
 		for (i = 0; i < puv3_cpu_pm_fns->save_count - 1; i++)
+		{
 			sleep_save_checksum += sleep_save[i];
+		}
 	}
 
 	/* *** go zzz *** */
@@ -47,16 +51,24 @@ int puv3_pm_enter(suspend_state_t state)
 #ifdef CONFIG_PCI
 	pci_puv3_preinit();
 #endif
-	if (state != PM_SUSPEND_STANDBY) {
+
+	if (state != PM_SUSPEND_STANDBY)
+	{
 		/* after sleeping, validate the checksum */
 		for (i = 0; i < puv3_cpu_pm_fns->save_count - 1; i++)
+		{
 			checksum += sleep_save[i];
+		}
 
 		/* if invalid, display message and wait for a hardware reset */
-		if (checksum != sleep_save_checksum) {
+		if (checksum != sleep_save_checksum)
+		{
 			while (1)
+			{
 				puv3_cpu_pm_fns->enter(state);
+			}
 		}
+
 		puv3_cpu_pm_fns->restore(sleep_save);
 	}
 
@@ -74,7 +86,9 @@ unsigned long sleep_phys_sp(void *sp)
 static int puv3_pm_valid(suspend_state_t state)
 {
 	if (puv3_cpu_pm_fns)
+	{
 		return puv3_cpu_pm_fns->valid(state);
+	}
 
 	return -EINVAL;
 }
@@ -84,7 +98,9 @@ static int puv3_pm_prepare(void)
 	int ret = 0;
 
 	if (puv3_cpu_pm_fns && puv3_cpu_pm_fns->prepare)
+	{
 		ret = puv3_cpu_pm_fns->prepare();
+	}
 
 	return ret;
 }
@@ -92,10 +108,13 @@ static int puv3_pm_prepare(void)
 static void puv3_pm_finish(void)
 {
 	if (puv3_cpu_pm_fns && puv3_cpu_pm_fns->finish)
+	{
 		puv3_cpu_pm_fns->finish();
+	}
 }
 
-static struct platform_suspend_ops puv3_pm_ops = {
+static struct platform_suspend_ops puv3_pm_ops =
+{
 	.valid		= puv3_pm_valid,
 	.enter		= puv3_pm_enter,
 	.prepare	= puv3_pm_prepare,
@@ -104,14 +123,17 @@ static struct platform_suspend_ops puv3_pm_ops = {
 
 static int __init puv3_pm_init(void)
 {
-	if (!puv3_cpu_pm_fns) {
+	if (!puv3_cpu_pm_fns)
+	{
 		printk(KERN_ERR "no valid puv3_cpu_pm_fns defined\n");
 		return -EINVAL;
 	}
 
 	sleep_save = kmalloc(puv3_cpu_pm_fns->save_count
-				* sizeof(unsigned long), GFP_KERNEL);
-	if (!sleep_save) {
+						 * sizeof(unsigned long), GFP_KERNEL);
+
+	if (!sleep_save)
+	{
 		printk(KERN_ERR "failed to alloc memory for pm save\n");
 		return -ENOMEM;
 	}

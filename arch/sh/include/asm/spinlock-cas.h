@@ -16,9 +16,9 @@
 static inline unsigned __sl_cas(volatile unsigned *p, unsigned old, unsigned new)
 {
 	__asm__ __volatile__("cas.l %1,%0,@r0"
-		: "+r"(new)
-		: "r"(old), "z"(p)
-		: "t", "memory" );
+						 : "+r"(new)
+						 : "r"(old), "z"(p)
+						 : "t", "memory" );
 	return new;
 }
 
@@ -73,15 +73,17 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 static inline void arch_read_lock(arch_rwlock_t *rw)
 {
 	unsigned old;
-	do old = rw->lock;
-	while (!old || __sl_cas(&rw->lock, old, old-1) != old);
+
+	do { old = rw->lock; }
+	while (!old || __sl_cas(&rw->lock, old, old - 1) != old);
 }
 
 static inline void arch_read_unlock(arch_rwlock_t *rw)
 {
 	unsigned old;
-	do old = rw->lock;
-	while (__sl_cas(&rw->lock, old, old+1) != old);
+
+	do { old = rw->lock; }
+	while (__sl_cas(&rw->lock, old, old + 1) != old);
 }
 
 static inline void arch_write_lock(arch_rwlock_t *rw)
@@ -97,8 +99,10 @@ static inline void arch_write_unlock(arch_rwlock_t *rw)
 static inline int arch_read_trylock(arch_rwlock_t *rw)
 {
 	unsigned old;
-	do old = rw->lock;
-	while (old && __sl_cas(&rw->lock, old, old-1) != old);
+
+	do { old = rw->lock; }
+	while (old && __sl_cas(&rw->lock, old, old - 1) != old);
+
 	return !!old;
 }
 

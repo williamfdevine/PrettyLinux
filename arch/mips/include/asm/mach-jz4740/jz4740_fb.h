@@ -17,7 +17,8 @@
 
 #include <linux/fb.h>
 
-enum jz4740_fb_lcd_type {
+enum jz4740_fb_lcd_type
+{
 	JZ_LCD_TYPE_GENERIC_16_BIT = 0,
 	JZ_LCD_TYPE_GENERIC_18_BIT = 0 | (1 << 4),
 	JZ_LCD_TYPE_SPECIAL_TFT_1 = 1,
@@ -43,7 +44,8 @@ enum jz4740_fb_lcd_type {
 * lcd_type: lcd type
 */
 
-struct jz4740_fb_platform_data {
+struct jz4740_fb_platform_data
+{
 	unsigned int width;
 	unsigned int height;
 
@@ -53,15 +55,16 @@ struct jz4740_fb_platform_data {
 	unsigned int bpp;
 	enum jz4740_fb_lcd_type lcd_type;
 
-	struct {
+	struct
+	{
 		uint32_t spl;
 		uint32_t cls;
 		uint32_t ps;
 		uint32_t rev;
 	} special_tft_config;
 
-	unsigned pixclk_falling_edge:1;
-	unsigned date_enable_active_low:1;
+	unsigned pixclk_falling_edge: 1;
+	unsigned date_enable_active_low: 1;
 };
 
 #endif

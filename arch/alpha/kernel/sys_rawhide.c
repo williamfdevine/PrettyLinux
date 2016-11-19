@@ -37,7 +37,8 @@
 
 /* Note mask bit is true for ENABLED irqs.  */
 
-static unsigned int hose_irq_masks[4] = {
+static unsigned int hose_irq_masks[4] =
+{
 	0xff0000, 0xfe0000, 0xff0000, 0xff0000
 };
 static unsigned int cached_irq_masks[4];
@@ -52,9 +53,9 @@ rawhide_update_irq_hw(int hose, int mask)
 }
 
 #define hose_exists(h) \
-  (((h) < MCPCIA_MAX_HOSES) && (cached_irq_masks[(h)] != 0))
+	(((h) < MCPCIA_MAX_HOSES) && (cached_irq_masks[(h)] != 0))
 
-static inline void 
+static inline void
 rawhide_enable_irq(struct irq_data *d)
 {
 	unsigned int mask, hose;
@@ -62,8 +63,11 @@ rawhide_enable_irq(struct irq_data *d)
 
 	irq -= 16;
 	hose = irq / 24;
+
 	if (!hose_exists(hose)) /* if hose non-existent, exit */
+	{
 		return;
+	}
 
 	irq -= hose * 24;
 	mask = 1 << irq;
@@ -75,7 +79,7 @@ rawhide_enable_irq(struct irq_data *d)
 	spin_unlock(&rawhide_irq_lock);
 }
 
-static void 
+static void
 rawhide_disable_irq(struct irq_data *d)
 {
 	unsigned int mask, hose;
@@ -83,8 +87,11 @@ rawhide_disable_irq(struct irq_data *d)
 
 	irq -= 16;
 	hose = irq / 24;
+
 	if (!hose_exists(hose)) /* if hose non-existent, exit */
+	{
 		return;
+	}
 
 	irq -= hose * 24;
 	mask = ~(1 << irq) | hose_irq_masks[hose];
@@ -104,8 +111,11 @@ rawhide_mask_and_ack_irq(struct irq_data *d)
 
 	irq -= 16;
 	hose = irq / 24;
+
 	if (!hose_exists(hose)) /* if hose non-existent, exit */
+	{
 		return;
+	}
 
 	irq -= hose * 24;
 	mask1 = 1 << irq;
@@ -123,31 +133,33 @@ rawhide_mask_and_ack_irq(struct irq_data *d)
 	spin_unlock(&rawhide_irq_lock);
 }
 
-static struct irq_chip rawhide_irq_type = {
+static struct irq_chip rawhide_irq_type =
+{
 	.name		= "RAWHIDE",
 	.irq_unmask	= rawhide_enable_irq,
 	.irq_mask	= rawhide_disable_irq,
 	.irq_mask_ack	= rawhide_mask_and_ack_irq,
 };
 
-static void 
+static void
 rawhide_srm_device_interrupt(unsigned long vector)
 {
 	int irq;
 
 	irq = (vector - 0x800) >> 4;
 
-        /*
-         * The RAWHIDE SRM console reports PCI interrupts with a vector
-	 * 0x80 *higher* than one might expect, as PCI IRQ 0 (ie bit 0)
+	/*
+	 * The RAWHIDE SRM console reports PCI interrupts with a vector
+	* 0x80 *higher* than one might expect, as PCI IRQ 0 (ie bit 0)
 	 * shows up as IRQ 24, etc, etc. We adjust it down by 8 to have
 	 * it line up with the actual bit numbers from the REQ registers,
 	 * which is how we manage the interrupts/mask. Sigh...
 	 *
 	 * Also, PCI #1 interrupts are offset some more... :-(
-         */
+	       */
 
-	if (irq == 52) {
+	if (irq == 52)
+	{
 		/* SCSI on PCI1 is special.  */
 		irq = 72;
 	}
@@ -167,9 +179,10 @@ rawhide_init_irq(void)
 	mcpcia_init_hoses();
 
 	/* Clear them all; only hoses that exist will be non-zero. */
-	for (i = 0; i < MCPCIA_MAX_HOSES; i++) cached_irq_masks[i] = 0;
+	for (i = 0; i < MCPCIA_MAX_HOSES; i++) { cached_irq_masks[i] = 0; }
 
-	for (hose = hose_head; hose; hose = hose->next) {
+	for (hose = hose_head; hose; hose = hose->next)
+	{
 		unsigned int h = hose->index;
 		unsigned int mask = hose_irq_masks[h];
 
@@ -178,9 +191,10 @@ rawhide_init_irq(void)
 		*(vuip)MCPCIA_INT_MASK1(MCPCIA_HOSE2MID(h)) = 0;
 	}
 
-	for (i = 16; i < 128; ++i) {
+	for (i = 16; i < 128; ++i)
+	{
 		irq_set_chip_and_handler(i, &rawhide_irq_type,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
 
@@ -212,32 +226,37 @@ rawhide_init_irq(void)
  * 16       EISA interrupt (PCI 0) or SCSI interrupt (PCI 1)
  * 17-23    NA
  *
- * IdSel	
+ * IdSel
  *   1	 EISA bridge (PCI bus 0 only)
  *   2 	 PCI option slot 2
  *   3	 PCI option slot 3
  *   4   PCI option slot 4
  *   5   PCI option slot 5
- * 
+ *
  */
 
 static int __init
 rawhide_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[5][5] __initdata = {
+	static char irq_tab[5][5] __initdata =
+	{
 		/*INT    INTA   INTB   INTC   INTD */
-		{ 16+16, 16+16, 16+16, 16+16, 16+16}, /* IdSel 1 SCSI PCI 1 */
-		{ 16+ 0, 16+ 0, 16+ 1, 16+ 2, 16+ 3}, /* IdSel 2 slot 2 */
-		{ 16+ 4, 16+ 4, 16+ 5, 16+ 6, 16+ 7}, /* IdSel 3 slot 3 */
-		{ 16+ 8, 16+ 8, 16+ 9, 16+10, 16+11}, /* IdSel 4 slot 4 */
-		{ 16+12, 16+12, 16+13, 16+14, 16+15}  /* IdSel 5 slot 5 */
+		{ 16 + 16, 16 + 16, 16 + 16, 16 + 16, 16 + 16}, /* IdSel 1 SCSI PCI 1 */
+		{ 16 + 0, 16 + 0, 16 + 1, 16 + 2, 16 + 3}, /* IdSel 2 slot 2 */
+		{ 16 + 4, 16 + 4, 16 + 5, 16 + 6, 16 + 7}, /* IdSel 3 slot 3 */
+		{ 16 + 8, 16 + 8, 16 + 9, 16 + 10, 16 + 11}, /* IdSel 4 slot 4 */
+		{ 16 + 12, 16 + 12, 16 + 13, 16 + 14, 16 + 15} /* IdSel 5 slot 5 */
 	};
 	const long min_idsel = 1, max_idsel = 5, irqs_per_slot = 5;
 
 	struct pci_controller *hose = dev->sysdata;
 	int irq = COMMON_TABLE_LOOKUP;
+
 	if (irq >= 0)
+	{
 		irq += 24 * hose->index;
+	}
+
 	return irq;
 }
 
@@ -246,7 +265,8 @@ rawhide_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
  * The System Vector
  */
 
-struct alpha_machine_vector rawhide_mv __initmv = {
+struct alpha_machine_vector rawhide_mv __initmv =
+{
 	.vector_name		= "Rawhide",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,

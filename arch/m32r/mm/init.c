@@ -36,9 +36,9 @@ pgd_t swapper_pg_dir[1024];
  * Cache of MMU context last used.
  */
 #ifndef CONFIG_SMP
-unsigned long mmu_context_cache_dat;
+	unsigned long mmu_context_cache_dat;
 #else
-unsigned long mmu_context_cache_dat[NR_CPUS];
+	unsigned long mmu_context_cache_dat[NR_CPUS];
 #endif
 
 /*
@@ -48,7 +48,7 @@ void __init paging_init(void);
 void __init mem_init(void);
 void free_initmem(void);
 #ifdef CONFIG_BLK_DEV_INITRD
-void free_initrd_mem(unsigned long, unsigned long);
+	void free_initrd_mem(unsigned long, unsigned long);
 #endif
 
 /* It'd be good if these lines were in the standard header file. */
@@ -70,10 +70,13 @@ void __init zone_sizes_init(void)
 		max_dma = virt_to_phys((char *)MAX_DMA_ADDRESS) >> PAGE_SHIFT;
 		low = MAX_LOW_PFN(0);
 
-		if (low < max_dma) {
+		if (low < max_dma)
+		{
 			zones_size[ZONE_DMA] = low - start_pfn;
 			zones_size[ZONE_NORMAL] = 0;
-		} else {
+		}
+		else
+		{
 			zones_size[ZONE_DMA] = low - start_pfn;
 			zones_size[ZONE_NORMAL] = low - max_dma;
 		}
@@ -103,7 +106,10 @@ void __init paging_init(void)
 	pg_dir = swapper_pg_dir;
 
 	for (i = 0 ; i < USER_PTRS_PER_PGD * 2 ; i++)
+	{
 		pgd_val(pg_dir[i]) = 0;
+	}
+
 #endif /* CONFIG_MMU */
 	zone_sizes_init();
 }

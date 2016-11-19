@@ -17,11 +17,11 @@
 #include <asm/page.h>
 
 #ifdef CONFIG_4KSTACKS
-#define THREAD_SIZE		(4096)
-#define THREAD_SIZE_ORDER	(0)
+	#define THREAD_SIZE		(4096)
+	#define THREAD_SIZE_ORDER	(0)
 #else
-#define THREAD_SIZE		(8192)
-#define THREAD_SIZE_ORDER	(1)
+	#define THREAD_SIZE		(8192)
+	#define THREAD_SIZE_ORDER	(1)
 #endif
 
 #define STACK_WARN		(THREAD_SIZE / 8)
@@ -34,11 +34,13 @@
  *   must also be changed
  */
 #ifndef __ASSEMBLY__
-typedef struct {
+typedef struct
+{
 	unsigned long	seg;
 } mm_segment_t;
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	struct pt_regs		*frame;		/* current exception frame */
 	unsigned long		flags;		/* low level flags */
@@ -60,7 +62,7 @@ struct thread_info {
 #else /* !__ASSEMBLY__ */
 
 #ifndef __ASM_OFFSETS_H__
-#include <asm/asm-offsets.h>
+	#include <asm/asm-offsets.h>
 #endif
 
 #endif
@@ -71,13 +73,13 @@ struct thread_info {
 #ifndef __ASSEMBLY__
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -93,10 +95,10 @@ struct thread_info *current_thread_info(void)
 {
 	struct thread_info *ti;
 	asm("mov sp,%0\n"
-	    "and %1,%0\n"
-	    : "=d" (ti)
-	    : "i" (~(THREAD_SIZE - 1))
-	    : "cc");
+		"and %1,%0\n"
+		: "=d" (ti)
+		: "i" (~(THREAD_SIZE - 1))
+		: "cc");
 	return ti;
 }
 
@@ -115,7 +117,7 @@ static inline unsigned long current_stack_pointer(void)
 }
 
 #ifndef CONFIG_KGDB
-void arch_release_thread_stack(unsigned long *stack);
+	void arch_release_thread_stack(unsigned long *stack);
 #endif
 #define get_thread_info(ti)	get_task_struct((ti)->task)
 #define put_thread_info(ti)	put_task_struct((ti)->task)
@@ -123,11 +125,11 @@ void arch_release_thread_stack(unsigned long *stack);
 #else /* !__ASSEMBLY__ */
 
 #ifndef __VMLINUX_LDS__
-/* how to get the thread information struct from ASM */
-.macro GET_THREAD_INFO reg
-	mov	sp,\reg
-	and	-THREAD_SIZE,\reg
-.endm
+	/* how to get the thread information struct from ASM */
+	.macro GET_THREAD_INFO reg
+	mov	sp, \reg
+	and	- THREAD_SIZE, \reg
+	.endm
 #endif
 #endif
 

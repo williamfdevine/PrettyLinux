@@ -17,7 +17,7 @@
 #include <linux/threads.h>
 #include <asm/page.h>
 #ifdef CONFIG_HIGHMEM
-#include <asm/kmap_types.h>
+	#include <asm/kmap_types.h>
 #endif
 
 /*
@@ -45,7 +45,8 @@
  * future, say framebuffers for the console driver(s) could be
  * fix-mapped?
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 	/*
 	 * The FIX_CMAP entries are used by kmap_coherent() to get virtual
 	 * addresses which are of a known color, and so their values are
@@ -76,7 +77,7 @@ enum fixed_addresses {
 };
 
 extern void __set_fixmap(enum fixed_addresses idx,
-			 unsigned long phys, pgprot_t flags);
+						 unsigned long phys, pgprot_t flags);
 extern void __clear_fixmap(enum fixed_addresses idx, pgprot_t flags);
 
 /*
@@ -87,9 +88,9 @@ extern void __clear_fixmap(enum fixed_addresses idx, pgprot_t flags);
  * at the top of mem..
  */
 #ifdef CONFIG_SUPERH32
-#define FIXADDR_TOP	(P4SEG - PAGE_SIZE)
+	#define FIXADDR_TOP	(P4SEG - PAGE_SIZE)
 #else
-#define FIXADDR_TOP	((unsigned long)(-PAGE_SIZE))
+	#define FIXADDR_TOP	((unsigned long)(-PAGE_SIZE))
 #endif
 #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
 #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)

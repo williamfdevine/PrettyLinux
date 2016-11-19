@@ -32,13 +32,15 @@ typedef u32 uprobe_opcode_t;
 #define UPROBE_SWBP_INSN		UPROBE_BRK_UPROBE
 #define UPROBE_SWBP_INSN_SIZE		4
 
-struct arch_uprobe {
+struct arch_uprobe
+{
 	unsigned long	resume_epc;
 	u32	insn[2];
 	u32	ixol[2];
 };
 
-struct arch_uprobe_task {
+struct arch_uprobe_task
+{
 	unsigned long saved_trap_nr;
 };
 

@@ -29,7 +29,8 @@
  * well as the number of commands posted and completed.  The
  * structure is accessed via a thread-safe, lock-free algorithm.
  */
-typedef struct {
+typedef struct
+{
 	/*
 	 * Address of a MPIPE_EDMA_POST_REGION_VAL_t,
 	 * TRIO_PUSH_DMA_REGION_VAL_t, or TRIO_PULL_DMA_REGION_VAL_t
@@ -54,8 +55,8 @@ typedef struct {
 
 /* Initialize a dma queue. */
 extern void __gxio_dma_queue_init(__gxio_dma_queue_t *dma_queue,
-				  void *post_region_addr,
-				  unsigned int num_entries);
+								  void *post_region_addr,
+								  unsigned int num_entries);
 
 /*
  * Update the "credits_and_next_index" and "hw_complete_count" fields
@@ -67,15 +68,15 @@ extern void __gxio_dma_queue_update_credits(__gxio_dma_queue_t *dma_queue);
 
 /* Wait for credits to become available. */
 extern int64_t __gxio_dma_queue_wait_for_credits(__gxio_dma_queue_t *dma_queue,
-						 int64_t modifier);
+		int64_t modifier);
 
 /* Reserve slots in the queue, optionally waiting for slots to become
  * available, and optionally returning a "completion_slot" suitable for
  * direct comparison to "hw_complete_count".
  */
 static inline int64_t __gxio_dma_queue_reserve(__gxio_dma_queue_t *dma_queue,
-					       unsigned int num, bool wait,
-					       bool completion)
+		unsigned int num, bool wait,
+		bool completion)
 {
 	uint64_t slot;
 
@@ -88,29 +89,35 @@ static inline int64_t __gxio_dma_queue_reserve(__gxio_dma_queue_t *dma_queue,
 	int64_t modifier = (((int64_t)(-num)) << DMA_QUEUE_CREDIT_SHIFT) | num;
 	int64_t old =
 		__insn_fetchaddgez(&dma_queue->credits_and_next_index,
-				   modifier);
+						   modifier);
 
-	if (unlikely(old + modifier < 0)) {
+	if (unlikely(old + modifier < 0))
+	{
 		/*
 		 * We're out of credits.  Try once to get more by checking for
 		 * completed egress commands.  If that fails, wait or fail.
 		 */
 		__gxio_dma_queue_update_credits(dma_queue);
 		old = __insn_fetchaddgez(&dma_queue->credits_and_next_index,
-					 modifier);
-		if (old + modifier < 0) {
+								 modifier);
+
+		if (old + modifier < 0)
+		{
 			if (wait)
 				old = __gxio_dma_queue_wait_for_credits
-					(dma_queue, modifier);
+					  (dma_queue, modifier);
 			else
+			{
 				return GXIO_ERR_DMA_CREDITS;
+			}
 		}
 	}
 
 	/* The bottom 24 bits of old encode the "slot". */
 	slot = (old & 0xffffff);
 
-	if (completion) {
+	if (completion)
+	{
 		/*
 		 * A "completion_slot" is a "slot" which can be compared to
 		 * "hw_complete_count" at any time in the future.  To convert
@@ -123,8 +130,11 @@ static inline int64_t __gxio_dma_queue_reserve(__gxio_dma_queue_t *dma_queue,
 		uint64_t complete;
 		complete = ACCESS_ONCE(dma_queue->hw_complete_count);
 		slot |= (complete & 0xffffffffff000000);
+
 		if (slot < complete)
+		{
 			slot += 0x1000000;
+		}
 	}
 
 	/*
@@ -132,7 +142,8 @@ static inline int64_t __gxio_dma_queue_reserve(__gxio_dma_queue_t *dma_queue,
 	 * collect some egress credits, and update "hw_complete_count", and
 	 * make sure the index doesn't overflow into the credits.
 	 */
-	if (unlikely(((old + num) & 0xff) < num)) {
+	if (unlikely(((old + num) & 0xff) < num))
+	{
 		__gxio_dma_queue_update_credits(dma_queue);
 
 		/* Make sure the index doesn't overflow into the credits. */
@@ -148,7 +159,7 @@ static inline int64_t __gxio_dma_queue_reserve(__gxio_dma_queue_t *dma_queue,
 
 /* Non-inlinable "__gxio_dma_queue_reserve(..., true)". */
 extern int64_t __gxio_dma_queue_reserve_aux(__gxio_dma_queue_t *dma_queue,
-					    unsigned int num, int wait);
+		unsigned int num, int wait);
 
 /* Check whether a particular "completion slot" has completed.
  *
@@ -156,6 +167,6 @@ extern int64_t __gxio_dma_queue_reserve_aux(__gxio_dma_queue_t *dma_queue,
  * cannot be used with the result of any "reserve_fast" function.
  */
 extern int __gxio_dma_queue_is_complete(__gxio_dma_queue_t *dma_queue,
-					int64_t completion_slot, int update);
+										int64_t completion_slot, int update);
 
 #endif /* !_GXIO_DMA_QUEUE_H_ */

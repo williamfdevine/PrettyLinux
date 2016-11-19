@@ -19,7 +19,7 @@ static void up_send_ipi_single(int cpu, unsigned int action)
 }
 
 static inline void up_send_ipi_mask(const struct cpumask *mask,
-				    unsigned int action)
+									unsigned int action)
 {
 	panic(KERN_ERR "%s called", __func__);
 }
@@ -63,7 +63,8 @@ static void up_cpu_die(unsigned int cpu)
 }
 #endif
 
-struct plat_smp_ops up_smp_ops = {
+struct plat_smp_ops up_smp_ops =
+{
 	.send_ipi_single	= up_send_ipi_single,
 	.send_ipi_mask		= up_send_ipi_mask,
 	.init_secondary		= up_init_secondary,

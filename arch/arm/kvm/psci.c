@@ -36,7 +36,9 @@
 static unsigned long psci_affinity_mask(unsigned long affinity_level)
 {
 	if (affinity_level <= 3)
+	{
 		return MPIDR_HWID_BITMASK & AFFINITY_MASK(affinity_level);
+	}
 
 	return 0;
 }
@@ -76,8 +78,11 @@ static unsigned long kvm_psci_vcpu_on(struct kvm_vcpu *source_vcpu)
 	phys_addr_t target_pc;
 
 	cpu_id = vcpu_get_reg(source_vcpu, 1) & MPIDR_HWID_BITMASK;
+
 	if (vcpu_mode_is_32bit(source_vcpu))
+	{
 		cpu_id &= ~((u32) 0);
+	}
 
 	vcpu = kvm_mpidr_to_vcpu(kvm, cpu_id);
 
@@ -86,12 +91,20 @@ static unsigned long kvm_psci_vcpu_on(struct kvm_vcpu *source_vcpu)
 	 * turned off.
 	 */
 	if (!vcpu)
+	{
 		return PSCI_RET_INVALID_PARAMS;
-	if (!vcpu->arch.power_off) {
+	}
+
+	if (!vcpu->arch.power_off)
+	{
 		if (kvm_psci_version(source_vcpu) != KVM_ARM_PSCI_0_1)
+		{
 			return PSCI_RET_ALREADY_ON;
+		}
 		else
+		{
 			return PSCI_RET_INVALID_PARAMS;
+		}
 	}
 
 	target_pc = vcpu_get_reg(source_vcpu, 2);
@@ -100,14 +113,17 @@ static unsigned long kvm_psci_vcpu_on(struct kvm_vcpu *source_vcpu)
 	kvm_reset_vcpu(vcpu);
 
 	/* Gracefully handle Thumb2 entry point */
-	if (vcpu_mode_is_32bit(vcpu) && (target_pc & 1)) {
+	if (vcpu_mode_is_32bit(vcpu) && (target_pc & 1))
+	{
 		target_pc &= ~((phys_addr_t) 1);
 		vcpu_set_thumb(vcpu);
 	}
 
 	/* Propagate caller endianness */
 	if (kvm_vcpu_is_be(source_vcpu))
+	{
 		kvm_vcpu_set_be(vcpu);
+	}
 
 	*vcpu_pc(vcpu) = target_pc;
 	/*
@@ -139,8 +155,11 @@ static unsigned long kvm_psci_vcpu_affinity_info(struct kvm_vcpu *vcpu)
 
 	/* Determine target affinity mask */
 	target_affinity_mask = psci_affinity_mask(lowest_affinity_level);
+
 	if (!target_affinity_mask)
+	{
 		return PSCI_RET_INVALID_PARAMS;
+	}
 
 	/* Ignore other bits of target affinity */
 	target_affinity &= target_affinity_mask;
@@ -149,17 +168,25 @@ static unsigned long kvm_psci_vcpu_affinity_info(struct kvm_vcpu *vcpu)
 	 * If one or more VCPU matching target affinity are running
 	 * then ON else OFF
 	 */
-	kvm_for_each_vcpu(i, tmp, kvm) {
+	kvm_for_each_vcpu(i, tmp, kvm)
+	{
 		mpidr = kvm_vcpu_get_mpidr_aff(tmp);
-		if ((mpidr & target_affinity_mask) == target_affinity) {
+
+		if ((mpidr & target_affinity_mask) == target_affinity)
+		{
 			matching_cpus++;
+
 			if (!tmp->arch.power_off)
+			{
 				return PSCI_0_2_AFFINITY_LEVEL_ON;
+			}
 		}
 	}
 
 	if (!matching_cpus)
+	{
 		return PSCI_RET_INVALID_PARAMS;
+	}
 
 	return PSCI_0_2_AFFINITY_LEVEL_OFF;
 }
@@ -178,7 +205,8 @@ static void kvm_prepare_system_event(struct kvm_vcpu *vcpu, u32 type)
 	 * after this call is handled and before the VCPUs have been
 	 * re-initialized.
 	 */
-	kvm_for_each_vcpu(i, tmp, vcpu->kvm) {
+	kvm_for_each_vcpu(i, tmp, vcpu->kvm)
+	{
 		tmp->arch.power_off = true;
 		kvm_vcpu_kick(tmp);
 	}
@@ -201,7 +229,9 @@ static void kvm_psci_system_reset(struct kvm_vcpu *vcpu)
 int kvm_psci_version(struct kvm_vcpu *vcpu)
 {
 	if (test_bit(KVM_ARM_VCPU_PSCI_0_2, vcpu->arch.features))
+	{
 		return KVM_ARM_PSCI_0_2;
+	}
 
 	return KVM_ARM_PSCI_0_1;
 }
@@ -212,65 +242,74 @@ static int kvm_psci_0_2_call(struct kvm_vcpu *vcpu)
 	unsigned long psci_fn = vcpu_get_reg(vcpu, 0) & ~((u32) 0);
 	unsigned long val;
 
-	switch (psci_fn) {
-	case PSCI_0_2_FN_PSCI_VERSION:
-		/*
-		 * Bits[31:16] = Major Version = 0
-		 * Bits[15:0] = Minor Version = 2
-		 */
-		val = 2;
-		break;
-	case PSCI_0_2_FN_CPU_SUSPEND:
-	case PSCI_0_2_FN64_CPU_SUSPEND:
-		val = kvm_psci_vcpu_suspend(vcpu);
-		break;
-	case PSCI_0_2_FN_CPU_OFF:
-		kvm_psci_vcpu_off(vcpu);
-		val = PSCI_RET_SUCCESS;
-		break;
-	case PSCI_0_2_FN_CPU_ON:
-	case PSCI_0_2_FN64_CPU_ON:
-		val = kvm_psci_vcpu_on(vcpu);
-		break;
-	case PSCI_0_2_FN_AFFINITY_INFO:
-	case PSCI_0_2_FN64_AFFINITY_INFO:
-		val = kvm_psci_vcpu_affinity_info(vcpu);
-		break;
-	case PSCI_0_2_FN_MIGRATE_INFO_TYPE:
-		/*
-		 * Trusted OS is MP hence does not require migration
-	         * or
-		 * Trusted OS is not present
-		 */
-		val = PSCI_0_2_TOS_MP;
-		break;
-	case PSCI_0_2_FN_SYSTEM_OFF:
-		kvm_psci_system_off(vcpu);
-		/*
-		 * We should'nt be going back to guest VCPU after
-		 * receiving SYSTEM_OFF request.
-		 *
-		 * If user space accidently/deliberately resumes
-		 * guest VCPU after SYSTEM_OFF request then guest
-		 * VCPU should see internal failure from PSCI return
-		 * value. To achieve this, we preload r0 (or x0) with
-		 * PSCI return value INTERNAL_FAILURE.
-		 */
-		val = PSCI_RET_INTERNAL_FAILURE;
-		ret = 0;
-		break;
-	case PSCI_0_2_FN_SYSTEM_RESET:
-		kvm_psci_system_reset(vcpu);
-		/*
-		 * Same reason as SYSTEM_OFF for preloading r0 (or x0)
-		 * with PSCI return value INTERNAL_FAILURE.
-		 */
-		val = PSCI_RET_INTERNAL_FAILURE;
-		ret = 0;
-		break;
-	default:
-		val = PSCI_RET_NOT_SUPPORTED;
-		break;
+	switch (psci_fn)
+	{
+		case PSCI_0_2_FN_PSCI_VERSION:
+			/*
+			 * Bits[31:16] = Major Version = 0
+			 * Bits[15:0] = Minor Version = 2
+			 */
+			val = 2;
+			break;
+
+		case PSCI_0_2_FN_CPU_SUSPEND:
+		case PSCI_0_2_FN64_CPU_SUSPEND:
+			val = kvm_psci_vcpu_suspend(vcpu);
+			break;
+
+		case PSCI_0_2_FN_CPU_OFF:
+			kvm_psci_vcpu_off(vcpu);
+			val = PSCI_RET_SUCCESS;
+			break;
+
+		case PSCI_0_2_FN_CPU_ON:
+		case PSCI_0_2_FN64_CPU_ON:
+			val = kvm_psci_vcpu_on(vcpu);
+			break;
+
+		case PSCI_0_2_FN_AFFINITY_INFO:
+		case PSCI_0_2_FN64_AFFINITY_INFO:
+			val = kvm_psci_vcpu_affinity_info(vcpu);
+			break;
+
+		case PSCI_0_2_FN_MIGRATE_INFO_TYPE:
+			/*
+			 * Trusted OS is MP hence does not require migration
+			     * or
+			 * Trusted OS is not present
+			 */
+			val = PSCI_0_2_TOS_MP;
+			break;
+
+		case PSCI_0_2_FN_SYSTEM_OFF:
+			kvm_psci_system_off(vcpu);
+			/*
+			 * We should'nt be going back to guest VCPU after
+			 * receiving SYSTEM_OFF request.
+			 *
+			 * If user space accidently/deliberately resumes
+			 * guest VCPU after SYSTEM_OFF request then guest
+			 * VCPU should see internal failure from PSCI return
+			 * value. To achieve this, we preload r0 (or x0) with
+			 * PSCI return value INTERNAL_FAILURE.
+			 */
+			val = PSCI_RET_INTERNAL_FAILURE;
+			ret = 0;
+			break;
+
+		case PSCI_0_2_FN_SYSTEM_RESET:
+			kvm_psci_system_reset(vcpu);
+			/*
+			 * Same reason as SYSTEM_OFF for preloading r0 (or x0)
+			 * with PSCI return value INTERNAL_FAILURE.
+			 */
+			val = PSCI_RET_INTERNAL_FAILURE;
+			ret = 0;
+			break;
+
+		default:
+			val = PSCI_RET_NOT_SUPPORTED;
+			break;
 	}
 
 	vcpu_set_reg(vcpu, 0, val);
@@ -282,17 +321,20 @@ static int kvm_psci_0_1_call(struct kvm_vcpu *vcpu)
 	unsigned long psci_fn = vcpu_get_reg(vcpu, 0) & ~((u32) 0);
 	unsigned long val;
 
-	switch (psci_fn) {
-	case KVM_PSCI_FN_CPU_OFF:
-		kvm_psci_vcpu_off(vcpu);
-		val = PSCI_RET_SUCCESS;
-		break;
-	case KVM_PSCI_FN_CPU_ON:
-		val = kvm_psci_vcpu_on(vcpu);
-		break;
-	default:
-		val = PSCI_RET_NOT_SUPPORTED;
-		break;
+	switch (psci_fn)
+	{
+		case KVM_PSCI_FN_CPU_OFF:
+			kvm_psci_vcpu_off(vcpu);
+			val = PSCI_RET_SUCCESS;
+			break;
+
+		case KVM_PSCI_FN_CPU_ON:
+			val = kvm_psci_vcpu_on(vcpu);
+			break;
+
+		default:
+			val = PSCI_RET_NOT_SUPPORTED;
+			break;
 	}
 
 	vcpu_set_reg(vcpu, 0, val);
@@ -315,12 +357,15 @@ static int kvm_psci_0_1_call(struct kvm_vcpu *vcpu)
  */
 int kvm_psci_call(struct kvm_vcpu *vcpu)
 {
-	switch (kvm_psci_version(vcpu)) {
-	case KVM_ARM_PSCI_0_2:
-		return kvm_psci_0_2_call(vcpu);
-	case KVM_ARM_PSCI_0_1:
-		return kvm_psci_0_1_call(vcpu);
-	default:
-		return -EINVAL;
+	switch (kvm_psci_version(vcpu))
+	{
+		case KVM_ARM_PSCI_0_2:
+			return kvm_psci_0_2_call(vcpu);
+
+		case KVM_ARM_PSCI_0_1:
+			return kvm_psci_0_1_call(vcpu);
+
+		default:
+			return -EINVAL;
 	};
 }

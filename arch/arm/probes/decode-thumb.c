@@ -16,7 +16,8 @@
 #include "decode-thumb.h"
 
 
-static const union decode_item t32_table_1110_100x_x0xx[] = {
+static const union decode_item t32_table_1110_100x_x0xx[] =
+{
 	/* Load/store multiple instructions */
 
 	/* Rn is PC		1110 100x x0xx 1111 xxxx xxxx xxxx xxxx */
@@ -45,7 +46,8 @@ static const union decode_item t32_table_1110_100x_x0xx[] = {
 	DECODE_END
 };
 
-static const union decode_item t32_table_1110_100x_x1xx[] = {
+static const union decode_item t32_table_1110_100x_x1xx[] =
+{
 	/* Load/store dual, load/store exclusive, table branch */
 
 	/* STRD (immediate)	1110 1000 x110 xxxx xxxx xxxx xxxx xxxx */
@@ -54,12 +56,12 @@ static const union decode_item t32_table_1110_100x_x1xx[] = {
 	/* STRD (immediate)	1110 1001 x1x0 xxxx xxxx xxxx xxxx xxxx */
 	/* LDRD (immediate)	1110 1001 x1x1 xxxx xxxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xff400000, 0xe9400000, PROBES_T32_LDRDSTRD,
-						 REGS(NOPCWB, NOSPPC, NOSPPC, 0, 0)),
+	REGS(NOPCWB, NOSPPC, NOSPPC, 0, 0)),
 
 	/* TBB			1110 1000 1101 xxxx xxxx xxxx 0000 xxxx */
 	/* TBH			1110 1000 1101 xxxx xxxx xxxx 0001 xxxx */
 	DECODE_SIMULATEX(0xfff000e0, 0xe8d00000, PROBES_T32_TABLE_BRANCH,
-						 REGS(NOSP, 0, 0, 0, NOSPPC)),
+	REGS(NOSP, 0, 0, 0, NOSPPC)),
 
 	/* STREX		1110 1000 0100 xxxx xxxx xxxx xxxx xxxx */
 	/* LDREX		1110 1000 0101 xxxx xxxx xxxx xxxx xxxx */
@@ -73,24 +75,25 @@ static const union decode_item t32_table_1110_100x_x1xx[] = {
 	DECODE_END
 };
 
-static const union decode_item t32_table_1110_101x[] = {
+static const union decode_item t32_table_1110_101x[] =
+{
 	/* Data-processing (shifted register)				*/
 
 	/* TST			1110 1010 0001 xxxx xxxx 1111 xxxx xxxx */
 	/* TEQ			1110 1010 1001 xxxx xxxx 1111 xxxx xxxx */
 	DECODE_EMULATEX	(0xff700f00, 0xea100f00, PROBES_T32_TST,
-						 REGS(NOSPPC, 0, 0, 0, NOSPPC)),
+	REGS(NOSPPC, 0, 0, 0, NOSPPC)),
 
 	/* CMN			1110 1011 0001 xxxx xxxx 1111 xxxx xxxx */
 	DECODE_OR	(0xfff00f00, 0xeb100f00),
 	/* CMP			1110 1011 1011 xxxx xxxx 1111 xxxx xxxx */
 	DECODE_EMULATEX	(0xfff00f00, 0xebb00f00, PROBES_T32_TST,
-						 REGS(NOPC, 0, 0, 0, NOSPPC)),
+	REGS(NOPC, 0, 0, 0, NOSPPC)),
 
 	/* MOV			1110 1010 010x 1111 xxxx xxxx xxxx xxxx */
 	/* MVN			1110 1010 011x 1111 xxxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xffcf0000, 0xea4f0000, PROBES_T32_MOV,
-						 REGS(0, 0, NOSPPC, 0, NOSPPC)),
+	REGS(0, 0, NOSPPC, 0, NOSPPC)),
 
 	/* ???			1110 1010 101x xxxx xxxx xxxx xxxx xxxx */
 	/* ???			1110 1010 111x xxxx xxxx xxxx xxxx xxxx */
@@ -105,7 +108,7 @@ static const union decode_item t32_table_1110_101x[] = {
 	/* ADD/SUB SP, SP, Rm, LSL #0..3				*/
 	/*			1110 1011 x0xx 1101 x000 1101 xx00 xxxx */
 	DECODE_EMULATEX	(0xff4f7f30, 0xeb0d0d00, PROBES_T32_ADDSUB,
-						 REGS(SP, 0, SP, 0, NOSPPC)),
+	REGS(SP, 0, SP, 0, NOSPPC)),
 
 	/* ADD/SUB SP, SP, Rm, shift					*/
 	/*			1110 1011 x0xx 1101 xxxx 1101 xxxx xxxx */
@@ -114,7 +117,7 @@ static const union decode_item t32_table_1110_101x[] = {
 	/* ADD/SUB Rd, SP, Rm, shift					*/
 	/*			1110 1011 x0xx 1101 xxxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xff4f0000, 0xeb0d0000, PROBES_T32_ADDSUB,
-						 REGS(SP, 0, NOPC, 0, NOSPPC)),
+	REGS(SP, 0, NOPC, 0, NOSPPC)),
 
 	/* AND			1110 1010 000x xxxx xxxx xxxx xxxx xxxx */
 	/* BIC			1110 1010 001x xxxx xxxx xxxx xxxx xxxx */
@@ -128,29 +131,30 @@ static const union decode_item t32_table_1110_101x[] = {
 	/* SUB			1110 1011 101x xxxx xxxx xxxx xxxx xxxx */
 	/* RSB			1110 1011 110x xxxx xxxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfe000000, 0xea000000, PROBES_T32_LOGICAL,
-						 REGS(NOSPPC, 0, NOSPPC, 0, NOSPPC)),
+	REGS(NOSPPC, 0, NOSPPC, 0, NOSPPC)),
 
 	DECODE_END
 };
 
-static const union decode_item t32_table_1111_0x0x___0[] = {
+static const union decode_item t32_table_1111_0x0x___0[] =
+{
 	/* Data-processing (modified immediate)				*/
 
 	/* TST			1111 0x00 0001 xxxx 0xxx 1111 xxxx xxxx */
 	/* TEQ			1111 0x00 1001 xxxx 0xxx 1111 xxxx xxxx */
 	DECODE_EMULATEX	(0xfb708f00, 0xf0100f00, PROBES_T32_TST,
-						 REGS(NOSPPC, 0, 0, 0, 0)),
+	REGS(NOSPPC, 0, 0, 0, 0)),
 
 	/* CMN			1111 0x01 0001 xxxx 0xxx 1111 xxxx xxxx */
 	DECODE_OR	(0xfbf08f00, 0xf1100f00),
 	/* CMP			1111 0x01 1011 xxxx 0xxx 1111 xxxx xxxx */
 	DECODE_EMULATEX	(0xfbf08f00, 0xf1b00f00, PROBES_T32_CMP,
-						 REGS(NOPC, 0, 0, 0, 0)),
+	REGS(NOPC, 0, 0, 0, 0)),
 
 	/* MOV			1111 0x00 010x 1111 0xxx xxxx xxxx xxxx */
 	/* MVN			1111 0x00 011x 1111 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfbcf8000, 0xf04f0000, PROBES_T32_MOV,
-						 REGS(0, 0, NOSPPC, 0, 0)),
+	REGS(0, 0, NOSPPC, 0, 0)),
 
 	/* ???			1111 0x00 101x xxxx 0xxx xxxx xxxx xxxx */
 	DECODE_REJECT	(0xfbe08000, 0xf0a00000),
@@ -167,7 +171,7 @@ static const union decode_item t32_table_1111_0x0x___0[] = {
 	/* ADD Rd, SP, #imm	1111 0x01 000x 1101 0xxx xxxx xxxx xxxx */
 	/* SUB Rd, SP, #imm	1111 0x01 101x 1101 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfb4f8000, 0xf10d0000, PROBES_T32_ADDSUB,
-						 REGS(SP, 0, NOPC, 0, 0)),
+	REGS(SP, 0, NOPC, 0, 0)),
 
 	/* AND			1111 0x00 000x xxxx 0xxx xxxx xxxx xxxx */
 	/* BIC			1111 0x00 001x xxxx 0xxx xxxx xxxx xxxx */
@@ -180,61 +184,63 @@ static const union decode_item t32_table_1111_0x0x___0[] = {
 	/* SUB			1111 0x01 101x xxxx 0xxx xxxx xxxx xxxx */
 	/* RSB			1111 0x01 110x xxxx 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfa008000, 0xf0000000, PROBES_T32_LOGICAL,
-						 REGS(NOSPPC, 0, NOSPPC, 0, 0)),
+	REGS(NOSPPC, 0, NOSPPC, 0, 0)),
 
 	DECODE_END
 };
 
-static const union decode_item t32_table_1111_0x1x___0[] = {
+static const union decode_item t32_table_1111_0x1x___0[] =
+{
 	/* Data-processing (plain binary immediate)			*/
 
 	/* ADDW Rd, PC, #imm	1111 0x10 0000 1111 0xxx xxxx xxxx xxxx */
 	DECODE_OR	(0xfbff8000, 0xf20f0000),
 	/* SUBW	Rd, PC, #imm	1111 0x10 1010 1111 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfbff8000, 0xf2af0000, PROBES_T32_ADDWSUBW_PC,
-						 REGS(PC, 0, NOSPPC, 0, 0)),
+	REGS(PC, 0, NOSPPC, 0, 0)),
 
 	/* ADDW SP, SP, #imm	1111 0x10 0000 1101 0xxx 1101 xxxx xxxx */
 	DECODE_OR	(0xfbff8f00, 0xf20d0d00),
 	/* SUBW	SP, SP, #imm	1111 0x10 1010 1101 0xxx 1101 xxxx xxxx */
 	DECODE_EMULATEX	(0xfbff8f00, 0xf2ad0d00, PROBES_T32_ADDWSUBW,
-						 REGS(SP, 0, SP, 0, 0)),
+	REGS(SP, 0, SP, 0, 0)),
 
 	/* ADDW			1111 0x10 0000 xxxx 0xxx xxxx xxxx xxxx */
 	DECODE_OR	(0xfbf08000, 0xf2000000),
 	/* SUBW			1111 0x10 1010 xxxx 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfbf08000, 0xf2a00000, PROBES_T32_ADDWSUBW,
-						 REGS(NOPCX, 0, NOSPPC, 0, 0)),
+	REGS(NOPCX, 0, NOSPPC, 0, 0)),
 
 	/* MOVW			1111 0x10 0100 xxxx 0xxx xxxx xxxx xxxx */
 	/* MOVT			1111 0x10 1100 xxxx 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfb708000, 0xf2400000, PROBES_T32_MOVW,
-						 REGS(0, 0, NOSPPC, 0, 0)),
+	REGS(0, 0, NOSPPC, 0, 0)),
 
 	/* SSAT16		1111 0x11 0010 xxxx 0000 xxxx 00xx xxxx */
 	/* SSAT			1111 0x11 00x0 xxxx 0xxx xxxx xxxx xxxx */
 	/* USAT16		1111 0x11 1010 xxxx 0000 xxxx 00xx xxxx */
 	/* USAT			1111 0x11 10x0 xxxx 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfb508000, 0xf3000000, PROBES_T32_SAT,
-						 REGS(NOSPPC, 0, NOSPPC, 0, 0)),
+	REGS(NOSPPC, 0, NOSPPC, 0, 0)),
 
 	/* SFBX			1111 0x11 0100 xxxx 0xxx xxxx xxxx xxxx */
 	/* UFBX			1111 0x11 1100 xxxx 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfb708000, 0xf3400000, PROBES_T32_BITFIELD,
-						 REGS(NOSPPC, 0, NOSPPC, 0, 0)),
+	REGS(NOSPPC, 0, NOSPPC, 0, 0)),
 
 	/* BFC			1111 0x11 0110 1111 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfbff8000, 0xf36f0000, PROBES_T32_BITFIELD,
-						 REGS(0, 0, NOSPPC, 0, 0)),
+	REGS(0, 0, NOSPPC, 0, 0)),
 
 	/* BFI			1111 0x11 0110 xxxx 0xxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfbf08000, 0xf3600000, PROBES_T32_BITFIELD,
-						 REGS(NOSPPCX, 0, NOSPPC, 0, 0)),
+	REGS(NOSPPCX, 0, NOSPPC, 0, 0)),
 
 	DECODE_END
 };
 
-static const union decode_item t32_table_1111_0xxx___1[] = {
+static const union decode_item t32_table_1111_0xxx___1[] =
+{
 	/* Branches and miscellaneous control				*/
 
 	/* YIELD		1111 0011 1010 xxxx 10x0 x000 0000 0001 */
@@ -248,7 +254,7 @@ static const union decode_item t32_table_1111_0xxx___1[] = {
 
 	/* MRS Rd, CPSR		1111 0011 1110 xxxx 10x0 xxxx xxxx xxxx */
 	DECODE_SIMULATEX(0xfff0d000, 0xf3e08000, PROBES_T32_MRS,
-						 REGS(0, 0, NOSPPC, 0, 0)),
+	REGS(0, 0, NOSPPC, 0, 0)),
 
 	/*
 	 * Unsupported instructions
@@ -280,7 +286,8 @@ static const union decode_item t32_table_1111_0xxx___1[] = {
 	DECODE_END
 };
 
-static const union decode_item t32_table_1111_100x_x0x1__1111[] = {
+static const union decode_item t32_table_1111_100x_x0x1__1111[] =
+{
 	/* Memory hints							*/
 
 	/* PLD (literal)	1111 1000 x001 1111 1111 xxxx xxxx xxxx */
@@ -295,19 +302,20 @@ static const union decode_item t32_table_1111_100x_x0x1__1111[] = {
 	DECODE_OR	(0xfff0f000, 0xf990f000),
 	/* PLI (immediate)	1111 1001 0001 xxxx 1111 1100 xxxx xxxx */
 	DECODE_SIMULATEX(0xfff0ff00, 0xf910fc00, PROBES_T32_PLDI,
-						 REGS(NOPCX, 0, 0, 0, 0)),
+	REGS(NOPCX, 0, 0, 0, 0)),
 
 	/* PLD{W} (register)	1111 1000 00x1 xxxx 1111 0000 00xx xxxx */
 	DECODE_OR	(0xffd0ffc0, 0xf810f000),
 	/* PLI (register)	1111 1001 0001 xxxx 1111 0000 00xx xxxx */
 	DECODE_SIMULATEX(0xfff0ffc0, 0xf910f000, PROBES_T32_PLDI,
-						 REGS(NOPCX, 0, 0, 0, NOSPPC)),
+	REGS(NOPCX, 0, 0, 0, NOSPPC)),
 
 	/* Other unallocated instructions...				*/
 	DECODE_END
 };
 
-static const union decode_item t32_table_1111_100x[] = {
+static const union decode_item t32_table_1111_100x[] =
+{
 	/* Store/Load single data item					*/
 
 	/* ???			1111 100x x11x xxxx xxxx xxxx xxxx xxxx */
@@ -337,7 +345,7 @@ static const union decode_item t32_table_1111_100x[] = {
 
 	/* LDR (literal)	1111 1000 x101 1111 xxxx xxxx xxxx xxxx */
 	DECODE_SIMULATEX(0xff7f0000, 0xf85f0000, PROBES_T32_LDR_LIT,
-						 REGS(PC, ANY, 0, 0, 0)),
+	REGS(PC, ANY, 0, 0, 0)),
 
 	/* STR (immediate)	1111 1000 0100 xxxx xxxx 1xxx xxxx xxxx */
 	/* LDR (immediate)	1111 1000 0101 xxxx xxxx 1xxx xxxx xxxx */
@@ -345,19 +353,19 @@ static const union decode_item t32_table_1111_100x[] = {
 	/* STR (immediate)	1111 1000 1100 xxxx xxxx xxxx xxxx xxxx */
 	/* LDR (immediate)	1111 1000 1101 xxxx xxxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xffe00000, 0xf8c00000, PROBES_T32_LDRSTR,
-						 REGS(NOPCX, ANY, 0, 0, 0)),
+	REGS(NOPCX, ANY, 0, 0, 0)),
 
 	/* STR (register)	1111 1000 0100 xxxx xxxx 0000 00xx xxxx */
 	/* LDR (register)	1111 1000 0101 xxxx xxxx 0000 00xx xxxx */
 	DECODE_EMULATEX	(0xffe00fc0, 0xf8400000, PROBES_T32_LDRSTR,
-						 REGS(NOPCX, ANY, 0, 0, NOSPPC)),
+	REGS(NOPCX, ANY, 0, 0, NOSPPC)),
 
 	/* LDRB (literal)	1111 1000 x001 1111 xxxx xxxx xxxx xxxx */
 	/* LDRSB (literal)	1111 1001 x001 1111 xxxx xxxx xxxx xxxx */
 	/* LDRH (literal)	1111 1000 x011 1111 xxxx xxxx xxxx xxxx */
 	/* LDRSH (literal)	1111 1001 x011 1111 xxxx xxxx xxxx xxxx */
 	DECODE_SIMULATEX(0xfe5f0000, 0xf81f0000, PROBES_T32_LDR_LIT,
-						 REGS(PC, NOSPPCX, 0, 0, 0)),
+	REGS(PC, NOSPPCX, 0, 0, 0)),
 
 	/* STRB (immediate)	1111 1000 0000 xxxx xxxx 1xxx xxxx xxxx */
 	/* STRH (immediate)	1111 1000 0010 xxxx xxxx 1xxx xxxx xxxx */
@@ -373,7 +381,7 @@ static const union decode_item t32_table_1111_100x[] = {
 	/* LDRH (immediate)	1111 1000 1011 xxxx xxxx xxxx xxxx xxxx */
 	/* LDRSH (immediate)	1111 1001 1011 xxxx xxxx xxxx xxxx xxxx */
 	DECODE_EMULATEX	(0xfec00000, 0xf8800000, PROBES_T32_LDRSTR,
-						 REGS(NOPCX, NOSPPCX, 0, 0, 0)),
+	REGS(NOPCX, NOSPPCX, 0, 0, 0)),
 
 	/* STRB (register)	1111 1000 0000 xxxx xxxx 0000 00xx xxxx */
 	/* STRH (register)	1111 1000 0010 xxxx xxxx 0000 00xx xxxx */
@@ -382,13 +390,14 @@ static const union decode_item t32_table_1111_100x[] = {
 	/* LDRH (register)	1111 1000 0011 xxxx xxxx 0000 00xx xxxx */
 	/* LDRSH (register)	1111 1001 0011 xxxx xxxx 0000 00xx xxxx */
 	DECODE_EMULATEX	(0xfe800fc0, 0xf8000000, PROBES_T32_LDRSTR,
-						 REGS(NOPCX, NOSPPCX, 0, 0, NOSPPC)),
+	REGS(NOPCX, NOSPPCX, 0, 0, NOSPPC)),
 
 	/* Other unallocated instructions...				*/
 	DECODE_END
 };
 
-static const union decode_item t32_table_1111_1010___1111[] = {
+static const union decode_item t32_table_1111_1010___1111[] =
+{
 	/* Data-processing (register)					*/
 
 	/* ???			1111 1010 011x xxxx 1111 xxxx 1xxx xxxx */
@@ -401,7 +410,7 @@ static const union decode_item t32_table_1111_1010___1111[] = {
 	/* SXTB			1111 1010 0100 1111 1111 xxxx 1xxx xxxx */
 	/* UXTB			1111 1010 0101 1111 1111 xxxx 1xxx xxxx */
 	DECODE_EMULATEX	(0xff8ff080, 0xfa0ff080, PROBES_T32_SIGN_EXTEND,
-						 REGS(0, 0, NOSPPC, 0, NOSPPC)),
+	REGS(0, 0, NOSPPC, 0, NOSPPC)),
 
 
 	/* ???			1111 1010 1xxx xxxx 1111 xxxx 0x11 xxxx */
@@ -474,7 +483,7 @@ static const union decode_item t32_table_1111_1010___1111[] = {
 	/* ASR			1111 1010 010x xxxx 1111 xxxx 0000 xxxx */
 	/* ROR			1111 1010 011x xxxx 1111 xxxx 0000 xxxx */
 	DECODE_EMULATEX	(0xff80f0f0, 0xfa00f000, PROBES_T32_MEDIA,
-						 REGS(NOSPPC, 0, NOSPPC, 0, NOSPPC)),
+	REGS(NOSPPC, 0, NOSPPC, 0, NOSPPC)),
 
 	/* CLZ			1111 1010 1010 xxxx 1111 xxxx 1000 xxxx */
 	DECODE_OR	(0xfff0f0f0, 0xfab0f080),
@@ -484,13 +493,14 @@ static const union decode_item t32_table_1111_1010___1111[] = {
 	/* RBIT			1111 1010 1001 xxxx 1111 xxxx 1010 xxxx */
 	/* REVSH		1111 1010 1001 xxxx 1111 xxxx 1011 xxxx */
 	DECODE_EMULATEX	(0xfff0f0c0, 0xfa90f080, PROBES_T32_REVERSE,
-						 REGS(NOSPPC, 0, NOSPPC, 0, SAMEAS16)),
+	REGS(NOSPPC, 0, NOSPPC, 0, SAMEAS16)),
 
 	/* Other unallocated instructions...				*/
 	DECODE_END
 };
 
-static const union decode_item t32_table_1111_1011_0[] = {
+static const union decode_item t32_table_1111_1011_0[] =
+{
 	/* Multiply, multiply accumulate, and absolute difference	*/
 
 	/* ???			1111 1011 0000 xxxx 1111 xxxx 0001 xxxx */
@@ -507,7 +517,7 @@ static const union decode_item t32_table_1111_1011_0[] = {
 	/* SMMUL{R}		1111 1011 0101 xxxx 1111 xxxx 000x xxxx */
 	/* USAD8		1111 1011 0111 xxxx 1111 xxxx 0000 xxxx */
 	DECODE_EMULATEX	(0xff80f0e0, 0xfb00f000, PROBES_T32_MUL_ADD,
-						 REGS(NOSPPC, 0, NOSPPC, 0, NOSPPC)),
+	REGS(NOSPPC, 0, NOSPPC, 0, NOSPPC)),
 
 	/* ???			1111 1011 0111 xxxx xxxx xxxx 0001 xxxx */
 	DECODE_REJECT	(0xfff000f0, 0xfb700010),
@@ -523,13 +533,14 @@ static const union decode_item t32_table_1111_1011_0[] = {
 	/* SMMLS{R}		1111 1011 0110 xxxx xxxx xxxx 000x xxxx */
 	/* USADA8		1111 1011 0111 xxxx xxxx xxxx 0000 xxxx */
 	DECODE_EMULATEX	(0xff8000c0, 0xfb000000,  PROBES_T32_MUL_ADD2,
-						 REGS(NOSPPC, NOSPPCX, NOSPPC, 0, NOSPPC)),
+	REGS(NOSPPC, NOSPPCX, NOSPPC, 0, NOSPPC)),
 
 	/* Other unallocated instructions...				*/
 	DECODE_END
 };
 
-static const union decode_item t32_table_1111_1011_1[] = {
+static const union decode_item t32_table_1111_1011_1[] =
+{
 	/* Long multiply, long multiply accumulate, and divide		*/
 
 	/* UMAAL		1111 1011 1110 xxxx xxxx xxxx 0110 xxxx */
@@ -544,7 +555,7 @@ static const union decode_item t32_table_1111_1011_1[] = {
 	/* SMLAL		1111 1011 1100 xxxx xxxx xxxx 0000 xxxx */
 	/* UMLAL		1111 1011 1110 xxxx xxxx xxxx 0000 xxxx */
 	DECODE_EMULATEX	(0xff9000f0, 0xfb800000, PROBES_T32_MUL_ADD_LONG,
-						 REGS(NOSPPC, NOSPPC, NOSPPC, 0, NOSPPC)),
+	REGS(NOSPPC, NOSPPC, NOSPPC, 0, NOSPPC)),
 
 	/* SDIV			1111 1011 1001 xxxx xxxx xxxx 1111 xxxx */
 	/* UDIV			1111 1011 1011 xxxx xxxx xxxx 1111 xxxx */
@@ -552,7 +563,8 @@ static const union decode_item t32_table_1111_1011_1[] = {
 	DECODE_END
 };
 
-const union decode_item probes_decode_thumb32_table[] = {
+const union decode_item probes_decode_thumb32_table[] =
+{
 
 	/*
 	 * Load/store multiple instructions
@@ -641,10 +653,11 @@ const union decode_item probes_decode_thumb32_table[] = {
 	DECODE_END
 };
 #ifdef CONFIG_ARM_KPROBES_TEST_MODULE
-EXPORT_SYMBOL_GPL(probes_decode_thumb32_table);
+	EXPORT_SYMBOL_GPL(probes_decode_thumb32_table);
 #endif
 
-static const union decode_item t16_table_1011[] = {
+static const union decode_item t16_table_1011[] =
+{
 	/* Miscellaneous 16-bit instructions		    */
 
 	/* ADD (SP plus immediate)	1011 0000 0xxx xxxx */
@@ -696,7 +709,8 @@ static const union decode_item t16_table_1011[] = {
 	DECODE_END
 };
 
-const union decode_item probes_decode_thumb16_table[] = {
+const union decode_item probes_decode_thumb16_table[] =
+{
 
 	/*
 	 * Shift (immediate), add, subtract, move, and compare
@@ -833,13 +847,16 @@ const union decode_item probes_decode_thumb16_table[] = {
 	DECODE_END
 };
 #ifdef CONFIG_ARM_KPROBES_TEST_MODULE
-EXPORT_SYMBOL_GPL(probes_decode_thumb16_table);
+	EXPORT_SYMBOL_GPL(probes_decode_thumb16_table);
 #endif
 
 static unsigned long __kprobes thumb_check_cc(unsigned long cpsr)
 {
 	if (unlikely(in_it_block(cpsr)))
+	{
 		return probes_condition_checks[current_cond(cpsr)](cpsr);
+	}
+
 	return true;
 }
 
@@ -863,22 +880,22 @@ static void __kprobes thumb32_singlestep(probes_opcode_t opcode,
 
 enum probes_insn __kprobes
 thumb16_probes_decode_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
-			   bool emulate, const union decode_action *actions,
-			   const struct decode_checker *checkers[])
+						   bool emulate, const union decode_action *actions,
+						   const struct decode_checker *checkers[])
 {
 	asi->insn_singlestep = thumb16_singlestep;
 	asi->insn_check_cc = thumb_check_cc;
 	return probes_decode_insn(insn, asi, probes_decode_thumb16_table, true,
-				  emulate, actions, checkers);
+	emulate, actions, checkers);
 }
 
 enum probes_insn __kprobes
 thumb32_probes_decode_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
-			   bool emulate, const union decode_action *actions,
-			   const struct decode_checker *checkers[])
+						   bool emulate, const union decode_action *actions,
+						   const struct decode_checker *checkers[])
 {
 	asi->insn_singlestep = thumb32_singlestep;
 	asi->insn_check_cc = thumb_check_cc;
 	return probes_decode_insn(insn, asi, probes_decode_thumb32_table, true,
-				  emulate, actions, checkers);
+	emulate, actions, checkers);
 }

@@ -110,7 +110,8 @@ struct spu_runqueue;
 struct spu_lscsa;
 struct device_node;
 
-enum spu_utilization_state {
+enum spu_utilization_state
+{
 	SPU_UTIL_USER,
 	SPU_UTIL_SYSTEM,
 	SPU_UTIL_IOWAIT,
@@ -118,7 +119,8 @@ enum spu_utilization_state {
 	SPU_UTIL_MAX
 };
 
-struct spu {
+struct spu
+{
 	const char *name;
 	unsigned long local_store_phys;
 	u8 *local_store;
@@ -157,7 +159,7 @@ struct spu {
 
 	u64 spe_id;
 
-	void* pdata; /* platform private data */
+	void *pdata; /* platform private data */
 
 	/* of based platforms only */
 	struct device_node *devnode;
@@ -173,7 +175,8 @@ struct spu {
 	int has_mem_affinity;
 	struct list_head aff_list;
 
-	struct {
+	struct
+	{
 		/* protected by interrupt reentrancy */
 		enum spu_utilization_state util_state;
 		unsigned long long tstamp;
@@ -189,7 +192,8 @@ struct spu {
 	} stats;
 };
 
-struct cbe_spu_info {
+struct cbe_spu_info
+{
 	struct mutex list_mutex;
 	struct list_head spus;
 	int n_spus;
@@ -204,7 +208,7 @@ void spu_init_channels(struct spu *spu);
 void spu_irq_setaffinity(struct spu *spu, int cpu);
 
 void spu_setup_kernel_slbs(struct spu *spu, struct spu_lscsa *lscsa,
-		void *code, int code_size);
+						   void *code, int code_size);
 
 extern void spu_invalidate_slbs(struct spu *spu);
 extern void spu_associate_mm(struct spu *spu, struct mm_struct *mm);
@@ -223,13 +227,14 @@ extern void spu_flush_all_slbs(struct mm_struct *mm);
  * on prof_info_kref.
  */
 void spu_set_profile_private_kref(struct spu_context *ctx,
-				  struct kref *prof_info_kref,
-				  void ( * prof_info_release) (struct kref *kref));
+								  struct kref *prof_info_kref,
+								  void ( * prof_info_release) (struct kref *kref));
 
 void *spu_get_profile_private_kref(struct spu_context *ctx);
 
 /* system callbacks from the SPU */
-struct spu_syscall_block {
+struct spu_syscall_block
+{
 	u64 nr_ret;
 	u64 parm[6];
 };
@@ -238,12 +243,13 @@ extern long spu_sys_callback(struct spu_syscall_block *s);
 /* syscalls implemented in spufs */
 struct file;
 struct coredump_params;
-struct spufs_calls {
+struct spufs_calls
+{
 	long (*create_thread)(const char __user *name,
-					unsigned int flags, umode_t mode,
-					struct file *neighbor);
+						  unsigned int flags, umode_t mode,
+						  struct file *neighbor);
 	long (*spu_run)(struct file *filp, __u32 __user *unpc,
-						__u32 __user *ustatus);
+					__u32 __user *ustatus);
 	int (*coredump_extra_notes_size)(void);
 	int (*coredump_extra_notes_write)(struct coredump_params *cprm);
 	void (*notify_spus_active)(void);
@@ -295,8 +301,8 @@ void spu_remove_dev_attr_group(struct attribute_group *attrs);
  * function can assume that spu->ctx is valid.
  */
 struct notifier_block;
-int spu_switch_event_register(struct notifier_block * n);
-int spu_switch_event_unregister(struct notifier_block * n);
+int spu_switch_event_register(struct notifier_block *n);
+int spu_switch_event_unregister(struct notifier_block *n);
 
 extern void notify_spus_active(void);
 extern void do_notify_spus_active(void);
@@ -305,29 +311,34 @@ extern void do_notify_spus_active(void);
  * This defines the Local Store, Problem Area and Privilege Area of an SPU.
  */
 
-union mfc_tag_size_class_cmd {
-	struct {
+union mfc_tag_size_class_cmd
+{
+	struct
+	{
 		u16 mfc_size;
 		u16 mfc_tag;
 		u8  pad;
 		u8  mfc_rclassid;
 		u16 mfc_cmd;
 	} u;
-	struct {
+	struct
+	{
 		u32 mfc_size_tag32;
 		u32 mfc_class_cmd32;
 	} by32;
 	u64 all64;
 };
 
-struct mfc_cq_sr {
+struct mfc_cq_sr
+{
 	u64 mfc_cq_data0_RW;
 	u64 mfc_cq_data1_RW;
 	u64 mfc_cq_data2_RW;
 	u64 mfc_cq_data3_RW;
 };
 
-struct spu_problem {
+struct spu_problem
+{
 #define MS_SYNC_PENDING         1L
 	u64 spc_mssync_RW;					/* 0x0000 */
 	u8  pad_0x0008_0x3000[0x3000 - 0x0008];
@@ -389,7 +400,8 @@ struct spu_problem {
 } __attribute__ ((aligned(0x20000)));
 
 /* SPU Privilege 2 State Area */
-struct spu_priv2 {
+struct spu_priv2
+{
 	/* MFC Registers */
 	u8  pad_0x0000_0x1100[0x1100 - 0x0000]; 		/* 0x0000 */
 
@@ -485,7 +497,8 @@ struct spu_priv2 {
 } __attribute__ ((aligned(0x20000)));
 
 /* SPU Privilege 1 State Area */
-struct spu_priv1 {
+struct spu_priv1
+{
 	/* Control and Configuration Area */
 	u64 mfc_sr1_RW;						/* 0x000 */
 #define MFC_STATE1_LOCAL_STORAGE_DECODE_MASK	0x01ull

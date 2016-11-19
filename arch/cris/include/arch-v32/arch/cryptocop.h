@@ -12,7 +12,8 @@
 
 #include <arch/hwregs/dma.h>
 
-typedef enum {
+typedef enum
+{
 	cryptocop_alg_csum = 0,
 	cryptocop_alg_mem2mem,
 	cryptocop_alg_md5,
@@ -28,9 +29,10 @@ typedef u8 cryptocop_tfrm_id;
 
 struct cryptocop_operation;
 
-typedef void (cryptocop_callback)(struct cryptocop_operation*, void*);
+typedef void (cryptocop_callback)(struct cryptocop_operation *, void *);
 
-struct cryptocop_transform_init {
+struct cryptocop_transform_init
+{
 	cryptocop_algorithm    alg;
 	/* Keydata for ciphers. */
 	unsigned char          key[CRYPTOCOP_MAX_KEY_LENGTH];
@@ -44,7 +46,8 @@ struct cryptocop_transform_init {
 };
 
 
-typedef enum {
+typedef enum
+{
 	cryptocop_source_dma = 0,
 	cryptocop_source_des,
 	cryptocop_source_3des,
@@ -56,14 +59,16 @@ typedef enum {
 } cryptocop_source;
 
 
-struct cryptocop_desc_cfg {
+struct cryptocop_desc_cfg
+{
 	cryptocop_tfrm_id tid;
 	cryptocop_source src;
-	unsigned int last:1; /* Last use of this transform in the operation.  Will push outdata when encountered. */
+	unsigned int last: 1; /* Last use of this transform in the operation.  Will push outdata when encountered. */
 	struct cryptocop_desc_cfg *next;
 };
 
-struct cryptocop_desc {
+struct cryptocop_desc
+{
 	size_t length;
 	struct cryptocop_desc_cfg *cfg;
 	struct cryptocop_desc *next;
@@ -76,7 +81,8 @@ struct cryptocop_desc {
 #define CRYPTOCOP_DECRYPT     (0x02)
 #define CRYPTOCOP_EXPLICIT_IV (0x04)
 
-struct cryptocop_tfrm_cfg {
+struct cryptocop_tfrm_cfg
+{
 	cryptocop_tfrm_id tid;
 
 	unsigned int flags; /* DECRYPT, ENCRYPT, EXPLICIT_IV */
@@ -95,7 +101,8 @@ struct cryptocop_tfrm_cfg {
 
 
 
-struct cryptocop_dma_list_operation{
+struct cryptocop_dma_list_operation
+{
 	/* The consumer can provide DMA lists to send to the co-processor.  'use_dmalists' in
 	   struct cryptocop_operation must be set for the driver to use them.  outlist,
 	   out_data_buf, inlist and in_data_buf must all be physical addresses since they will
@@ -110,7 +117,8 @@ struct cryptocop_dma_list_operation{
 };
 
 
-struct cryptocop_tfrm_operation{
+struct cryptocop_tfrm_operation
+{
 	/* Operation configuration, if not 'use_dmalists' is set. */
 	struct cryptocop_tfrm_cfg *tfrm_cfg;
 	struct cryptocop_desc *desc;
@@ -125,7 +133,8 @@ struct cryptocop_tfrm_operation{
 };
 
 
-struct cryptocop_operation {
+struct cryptocop_operation
+{
 	cryptocop_callback *cb;
 	void *cb_data;
 
@@ -135,11 +144,12 @@ struct cryptocop_operation {
 	int operation_status; /* 0, -EAGAIN */
 
 	/* Flags */
-	unsigned int use_dmalists:1;  /* Use outlist and inlist instead of the desc/tfrm_cfg configuration. */
-	unsigned int in_interrupt:1;  /* Set if inserting job from interrupt context. */
-	unsigned int fast_callback:1; /* Set if fast callback wanted, i.e. from interrupt context. */
+	unsigned int use_dmalists: 1; /* Use outlist and inlist instead of the desc/tfrm_cfg configuration. */
+	unsigned int in_interrupt: 1; /* Set if inserting job from interrupt context. */
+	unsigned int fast_callback: 1; /* Set if fast callback wanted, i.e. from interrupt context. */
 
-	union{
+	union
+	{
 		struct cryptocop_dma_list_operation list_op;
 		struct cryptocop_tfrm_operation tfrm_op;
 	};

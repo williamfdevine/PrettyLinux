@@ -15,7 +15,7 @@
 #include "ar5312_regs.h"
 
 static inline void prom_uart_wr(void __iomem *base, unsigned reg,
-				unsigned char ch)
+								unsigned char ch)
 {
 	__raw_writel(ch, base + 4 * reg);
 }
@@ -29,16 +29,23 @@ void prom_putchar(unsigned char ch)
 {
 	static void __iomem *base;
 
-	if (unlikely(base == NULL)) {
+	if (unlikely(base == NULL))
+	{
 		if (is_ar2315())
+		{
 			base = (void __iomem *)(KSEG1ADDR(AR2315_UART0_BASE));
+		}
 		else
+		{
 			base = (void __iomem *)(KSEG1ADDR(AR5312_UART0_BASE));
+		}
 	}
 
 	while ((prom_uart_rr(base, UART_LSR) & UART_LSR_THRE) == 0)
 		;
+
 	prom_uart_wr(base, UART_TX, ch);
+
 	while ((prom_uart_rr(base, UART_LSR) & UART_LSR_THRE) == 0)
 		;
 }

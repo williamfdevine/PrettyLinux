@@ -37,18 +37,21 @@
 
 #define IRQ_GPIO_ETH0_IRQ	IRQ_GPIO21
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = DEFINE_RES_MEM(PLEB_ETH0_P, 0x04000000),
 #if 0 /* Autoprobe instead, to get rising/falling edge characteristic right */
 	[1] = DEFINE_RES_IRQ(IRQ_GPIO_ETH0_IRQ),
 #endif
 };
 
-static struct smc91x_platdata smc91x_platdata = {
+static struct smc91x_platdata smc91x_platdata =
+{
 	.flags = SMC91X_USE_16BIT | SMC91X_USE_8BIT | SMC91X_NOWAIT,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -58,7 +61,8 @@ static struct platform_device smc91x_device = {
 	},
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&smc91x_device,
 };
 
@@ -68,13 +72,15 @@ static struct platform_device *devices[] __initdata = {
  * has flash memory (typically 4 or 8 meg) selected by
  * the two SA1100 lowest chip select outputs.
  */
-static struct resource pleb_flash_resources[] = {
+static struct resource pleb_flash_resources[] =
+{
 	[0] = DEFINE_RES_MEM(SA1100_CS0_PHYS, SZ_8M),
 	[1] = DEFINE_RES_MEM(SA1100_CS1_PHYS, SZ_8M),
 };
 
 
-static struct mtd_partition pleb_partitions[] = {
+static struct mtd_partition pleb_partitions[] =
+{
 	{
 		.name		= "blob",
 		.offset		= 0,
@@ -91,7 +97,8 @@ static struct mtd_partition pleb_partitions[] = {
 };
 
 
-static struct flash_platform_data pleb_flash_data = {
+static struct flash_platform_data pleb_flash_data =
+{
 	.map_name = "cfi_probe",
 	.parts = pleb_partitions,
 	.nr_parts = ARRAY_SIZE(pleb_partitions),
@@ -101,7 +108,7 @@ static struct flash_platform_data pleb_flash_data = {
 static void __init pleb_init(void)
 {
 	sa11x0_register_mtd(&pleb_flash_data, pleb_flash_resources,
-			      ARRAY_SIZE(pleb_flash_resources));
+						ARRAY_SIZE(pleb_flash_resources));
 
 
 	platform_add_devices(devices, ARRAY_SIZE(devices));
@@ -123,7 +130,7 @@ static void __init pleb_map_io(void)
 	/*
 	 * Fix expansion memory timing for network card
 	 */
-	MECR = ((2<<10) | (2<<5) | (2<<0));
+	MECR = ((2 << 10) | (2 << 5) | (2 << 0));
 
 	/*
 	 * Enable the SMC ethernet controller
@@ -137,11 +144,11 @@ static void __init pleb_map_io(void)
 }
 
 MACHINE_START(PLEB, "PLEB")
-	.map_io		= pleb_map_io,
+.map_io		= pleb_map_io,
 	.nr_irqs	= SA1100_NR_IRQS,
-	.init_irq	= sa1100_init_irq,
-	.init_time	= sa1100_timer_init,
-	.init_machine   = pleb_init,
-	.init_late	= sa11x0_init_late,
-	.restart	= sa11x0_restart,
-MACHINE_END
+		.init_irq	= sa1100_init_irq,
+		   .init_time	= sa1100_timer_init,
+			 .init_machine   = pleb_init,
+			  .init_late	= sa11x0_init_late,
+				.restart	= sa11x0_restart,
+					MACHINE_END

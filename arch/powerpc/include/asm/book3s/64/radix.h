@@ -2,18 +2,18 @@
 #define _ASM_POWERPC_PGTABLE_RADIX_H
 
 #ifndef __ASSEMBLY__
-#include <asm/cmpxchg.h>
+	#include <asm/cmpxchg.h>
 #endif
 
 #ifdef CONFIG_PPC_64K_PAGES
-#include <asm/book3s/64/radix-64k.h>
+	#include <asm/book3s/64/radix-64k.h>
 #else
-#include <asm/book3s/64/radix-4k.h>
+	#include <asm/book3s/64/radix-4k.h>
 #endif
 
 #ifndef __ASSEMBLY__
-#include <asm/book3s/64/tlbflush-radix.h>
-#include <asm/cpu_has_feature.h>
+	#include <asm/book3s/64/tlbflush-radix.h>
+	#include <asm/cpu_has_feature.h>
 #endif
 
 /* An empty PTE can still have a R or C writeback */
@@ -33,7 +33,7 @@
  * Size of EA range mapped by our pagetables.
  */
 #define RADIX_PGTABLE_EADDR_SIZE (RADIX_PTE_INDEX_SIZE + RADIX_PMD_INDEX_SIZE +	\
-			      RADIX_PUD_INDEX_SIZE + RADIX_PGD_INDEX_SIZE + PAGE_SHIFT)
+								  RADIX_PUD_INDEX_SIZE + RADIX_PGD_INDEX_SIZE + PAGE_SHIFT)
 #define RADIX_PGTABLE_RANGE (ASM_CONST(1) << RADIX_PGTABLE_EADDR_SIZE)
 
 /*
@@ -111,31 +111,34 @@
 #define RADIX_PGD_TABLE_SIZE	(sizeof(pgd_t) << RADIX_PGD_INDEX_SIZE)
 
 static inline unsigned long __radix_pte_update(pte_t *ptep, unsigned long clr,
-					       unsigned long set)
+		unsigned long set)
 {
 	pte_t pte;
 	unsigned long old_pte, new_pte;
 
-	do {
+	do
+	{
 		pte = READ_ONCE(*ptep);
 		old_pte = pte_val(pte);
 		new_pte = (old_pte | set) & ~clr;
 
-	} while (!pte_xchg(ptep, __pte(old_pte), __pte(new_pte)));
+	}
+	while (!pte_xchg(ptep, __pte(old_pte), __pte(new_pte)));
 
 	return old_pte;
 }
 
 
 static inline unsigned long radix__pte_update(struct mm_struct *mm,
-					unsigned long addr,
-					pte_t *ptep, unsigned long clr,
-					unsigned long set,
-					int huge)
+		unsigned long addr,
+		pte_t *ptep, unsigned long clr,
+		unsigned long set,
+		int huge)
 {
 	unsigned long old_pte;
 
-	if (cpu_has_feature(CPU_FTR_POWER9_DD1)) {
+	if (cpu_has_feature(CPU_FTR_POWER9_DD1))
+	{
 
 		unsigned long new_pte;
 
@@ -153,11 +156,18 @@ static inline unsigned long radix__pte_update(struct mm_struct *mm,
 		radix__flush_tlb_mm(mm);
 
 		__radix_pte_update(ptep, 0, new_pte);
-	} else
+	}
+	else
+	{
 		old_pte = __radix_pte_update(ptep, clr, set);
+	}
+
 	asm volatile("ptesync" : : : "memory");
+
 	if (!huge)
+	{
 		assert_pte_locked(mm, addr);
+	}
 
 	return old_pte;
 }
@@ -167,13 +177,14 @@ static inline unsigned long radix__pte_update(struct mm_struct *mm,
  * function doesn't need to invalidate tlb.
  */
 static inline void radix__ptep_set_access_flags(struct mm_struct *mm,
-						pte_t *ptep, pte_t entry)
+		pte_t *ptep, pte_t entry)
 {
 
 	unsigned long set = pte_val(entry) & (_PAGE_DIRTY | _PAGE_ACCESSED |
-					      _PAGE_RW | _PAGE_EXEC);
+										  _PAGE_RW | _PAGE_EXEC);
 
-	if (cpu_has_feature(CPU_FTR_POWER9_DD1)) {
+	if (cpu_has_feature(CPU_FTR_POWER9_DD1))
+	{
 
 		unsigned long old_pte, new_pte;
 
@@ -191,8 +202,12 @@ static inline void radix__ptep_set_access_flags(struct mm_struct *mm,
 		radix__flush_tlb_mm(mm);
 
 		__radix_pte_update(ptep, 0, new_pte);
-	} else
+	}
+	else
+	{
 		__radix_pte_update(ptep, 0, set);
+	}
+
 	asm volatile("ptesync" : : : "memory");
 }
 
@@ -207,7 +222,7 @@ static inline int radix__pte_none(pte_t pte)
 }
 
 static inline void radix__set_pte_at(struct mm_struct *mm, unsigned long addr,
-				 pte_t *ptep, pte_t pte, int percpu)
+									 pte_t *ptep, pte_t pte, int percpu)
 {
 	*ptep = pte;
 	asm volatile("ptesync" : : : "memory");
@@ -246,37 +261,38 @@ static inline pmd_t radix__pmd_mkhuge(pmd_t pmd)
 	return __pmd(pmd_val(pmd) | _PAGE_PTE);
 }
 static inline void radix__pmdp_huge_split_prepare(struct vm_area_struct *vma,
-					    unsigned long address, pmd_t *pmdp)
+		unsigned long address, pmd_t *pmdp)
 {
 	/* Nothing to do for radix. */
 	return;
 }
 
 extern unsigned long radix__pmd_hugepage_update(struct mm_struct *mm, unsigned long addr,
-					  pmd_t *pmdp, unsigned long clr,
-					  unsigned long set);
+		pmd_t *pmdp, unsigned long clr,
+		unsigned long set);
 extern pmd_t radix__pmdp_collapse_flush(struct vm_area_struct *vma,
-				  unsigned long address, pmd_t *pmdp);
+										unsigned long address, pmd_t *pmdp);
 extern void radix__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-					pgtable_t pgtable);
+		pgtable_t pgtable);
 extern pgtable_t radix__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
 extern pmd_t radix__pmdp_huge_get_and_clear(struct mm_struct *mm,
-				      unsigned long addr, pmd_t *pmdp);
+		unsigned long addr, pmd_t *pmdp);
 extern int radix__has_transparent_hugepage(void);
 #endif
 
 extern int __meminit radix__vmemmap_create_mapping(unsigned long start,
-					     unsigned long page_size,
-					     unsigned long phys);
+		unsigned long page_size,
+		unsigned long phys);
 extern void radix__vmemmap_remove_mapping(unsigned long start,
-				    unsigned long page_size);
+		unsigned long page_size);
 
 extern int radix__map_kernel_page(unsigned long ea, unsigned long pa,
-				 pgprot_t flags, unsigned int psz);
+								  pgprot_t flags, unsigned int psz);
 
 static inline unsigned long radix__get_tree_size(void)
 {
 	unsigned long rts_field;
+
 	/*
 	 * We support 52 bits, hence:
 	 *  DD1    52-28 = 24, 0b11000
@@ -286,11 +302,15 @@ static inline unsigned long radix__get_tree_size(void)
 	 * bits 4 - 5 of rts -> bits 62 - 63 of unsigned long
 	 */
 	if (cpu_has_feature(CPU_FTR_POWER9_DD1))
+	{
 		rts_field = (0x3UL << 61);
-	else {
+	}
+	else
+	{
 		rts_field = (0x5UL << 5); /* 6 - 8 bits */
 		rts_field |= (0x2UL << 61);
 	}
+
 	return rts_field;
 }
 #endif /* __ASSEMBLY__ */

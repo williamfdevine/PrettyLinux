@@ -62,11 +62,15 @@ static void event_update(struct perf_event *event)
 	 * Calculate the CU power consumption over a time period, the unit of
 	 * final value (delta) is micro-Watts. Then add it to the event count.
 	 */
-	if (new_pwr_acc < prev_pwr_acc) {
+	if (new_pwr_acc < prev_pwr_acc)
+	{
 		delta = max_cu_acc_power + new_pwr_acc;
 		delta -= prev_pwr_acc;
-	} else
+	}
+	else
+	{
 		delta = new_pwr_acc - prev_pwr_acc;
+	}
 
 	delta *= cpu_pwr_sample_ratio * 1000;
 	tdelta = new_ptsc - prev_ptsc;
@@ -78,7 +82,9 @@ static void event_update(struct perf_event *event)
 static void __pmu_event_start(struct perf_event *event)
 {
 	if (WARN_ON_ONCE(!(event->hw.state & PERF_HES_STOPPED)))
+	{
 		return;
+	}
 
 	event->hw.state = 0;
 
@@ -97,10 +103,13 @@ static void pmu_event_stop(struct perf_event *event, int mode)
 
 	/* Mark event as deactivated and stopped. */
 	if (!(hwc->state & PERF_HES_STOPPED))
+	{
 		hwc->state |= PERF_HES_STOPPED;
+	}
 
 	/* Check if software counter update is necessary. */
-	if ((mode & PERF_EF_UPDATE) && !(hwc->state & PERF_HES_UPTODATE)) {
+	if ((mode & PERF_EF_UPDATE) && !(hwc->state & PERF_HES_UPTODATE))
+	{
 		/*
 		 * Drain the remaining delta count out of an event
 		 * that we are disabling:
@@ -117,7 +126,9 @@ static int pmu_event_add(struct perf_event *event, int mode)
 	hwc->state = PERF_HES_UPTODATE | PERF_HES_STOPPED;
 
 	if (mode & PERF_EF_START)
+	{
 		__pmu_event_start(event);
+	}
 
 	return 0;
 }
@@ -133,21 +144,27 @@ static int pmu_event_init(struct perf_event *event)
 
 	/* Only look at AMD power events. */
 	if (event->attr.type != pmu_class.type)
+	{
 		return -ENOENT;
+	}
 
 	/* Unsupported modes and filters. */
 	if (event->attr.exclude_user   ||
-	    event->attr.exclude_kernel ||
-	    event->attr.exclude_hv     ||
-	    event->attr.exclude_idle   ||
-	    event->attr.exclude_host   ||
-	    event->attr.exclude_guest  ||
-	    /* no sampling */
-	    event->attr.sample_period)
+		event->attr.exclude_kernel ||
+		event->attr.exclude_hv     ||
+		event->attr.exclude_idle   ||
+		event->attr.exclude_host   ||
+		event->attr.exclude_guest  ||
+		/* no sampling */
+		event->attr.sample_period)
+	{
 		return -EINVAL;
+	}
 
 	if (cfg != AMD_POWER_EVENTSEL_PKG)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -165,12 +182,14 @@ get_attr_cpumask(struct device *dev, struct device_attribute *attr, char *buf)
 
 static DEVICE_ATTR(cpumask, S_IRUGO, get_attr_cpumask, NULL);
 
-static struct attribute *pmu_attrs[] = {
+static struct attribute *pmu_attrs[] =
+{
 	&dev_attr_cpumask.attr,
 	NULL,
 };
 
-static struct attribute_group pmu_attr_group = {
+static struct attribute_group pmu_attr_group =
+{
 	.attrs = pmu_attrs,
 };
 
@@ -178,45 +197,51 @@ static struct attribute_group pmu_attr_group = {
  * Currently it only supports to report the power of each
  * processor/package.
  */
-EVENT_ATTR_STR(power-pkg, power_pkg, "event=0x01");
+EVENT_ATTR_STR(power - pkg, power_pkg, "event=0x01");
 
-EVENT_ATTR_STR(power-pkg.unit, power_pkg_unit, "mWatts");
+EVENT_ATTR_STR(power - pkg.unit, power_pkg_unit, "mWatts");
 
 /* Convert the count from micro-Watts to milli-Watts. */
-EVENT_ATTR_STR(power-pkg.scale, power_pkg_scale, "1.000000e-3");
+EVENT_ATTR_STR(power - pkg.scale, power_pkg_scale, "1.000000e-3");
 
-static struct attribute *events_attr[] = {
+static struct attribute *events_attr[] =
+{
 	EVENT_PTR(power_pkg),
 	EVENT_PTR(power_pkg_unit),
 	EVENT_PTR(power_pkg_scale),
 	NULL,
 };
 
-static struct attribute_group pmu_events_group = {
+static struct attribute_group pmu_events_group =
+{
 	.name	= "events",
 	.attrs	= events_attr,
 };
 
 PMU_FORMAT_ATTR(event, "config:0-7");
 
-static struct attribute *formats_attr[] = {
+static struct attribute *formats_attr[] =
+{
 	&format_attr_event.attr,
 	NULL,
 };
 
-static struct attribute_group pmu_format_group = {
+static struct attribute_group pmu_format_group =
+{
 	.name	= "format",
 	.attrs	= formats_attr,
 };
 
-static const struct attribute_group *attr_groups[] = {
+static const struct attribute_group *attr_groups[] =
+{
 	&pmu_attr_group,
 	&pmu_format_group,
 	&pmu_events_group,
 	NULL,
 };
 
-static struct pmu pmu_class = {
+static struct pmu pmu_class =
+{
 	.attr_groups	= attr_groups,
 	/* system-wide only */
 	.task_ctx_nr	= perf_invalid_context,
@@ -233,7 +258,9 @@ static int power_cpu_exit(unsigned int cpu)
 	int target;
 
 	if (!cpumask_test_and_clear_cpu(cpu, &cpu_mask))
+	{
 		return 0;
+	}
 
 	/*
 	 * Find a new CPU on the same compute unit, if was set in cpumask
@@ -241,10 +268,13 @@ static int power_cpu_exit(unsigned int cpu)
 	 * context to new CPU.
 	 */
 	target = cpumask_any_but(topology_sibling_cpumask(cpu), cpu);
-	if (target < nr_cpumask_bits) {
+
+	if (target < nr_cpumask_bits)
+	{
 		cpumask_set_cpu(target, &cpu_mask);
 		perf_pmu_migrate_context(&pmu_class, cpu, target);
 	}
+
 	return 0;
 }
 
@@ -262,12 +292,17 @@ static int power_cpu_init(unsigned int cpu)
 	 * sibling mask, then it is also in cpu_mask.
 	 */
 	target = cpumask_any_but(topology_sibling_cpumask(cpu), cpu);
+
 	if (target >= nr_cpumask_bits)
+	{
 		cpumask_set_cpu(cpu, &cpu_mask);
+	}
+
 	return 0;
 }
 
-static const struct x86_cpu_id cpu_match[] = {
+static const struct x86_cpu_id cpu_match[] =
+{
 	{ .vendor = X86_VENDOR_AMD, .family = 0x15 },
 	{},
 };
@@ -277,25 +312,32 @@ static int __init amd_power_pmu_init(void)
 	int ret;
 
 	if (!x86_match_cpu(cpu_match))
+	{
 		return 0;
+	}
 
 	if (!boot_cpu_has(X86_FEATURE_ACC_POWER))
+	{
 		return -ENODEV;
+	}
 
 	cpu_pwr_sample_ratio = cpuid_ecx(0x80000007);
 
-	if (rdmsrl_safe(MSR_F15H_CU_MAX_PWR_ACCUMULATOR, &max_cu_acc_power)) {
+	if (rdmsrl_safe(MSR_F15H_CU_MAX_PWR_ACCUMULATOR, &max_cu_acc_power))
+	{
 		pr_err("Failed to read max compute unit power accumulator MSR\n");
 		return -ENODEV;
 	}
 
 
 	cpuhp_setup_state(CPUHP_AP_PERF_X86_AMD_POWER_ONLINE,
-			  "AP_PERF_X86_AMD_POWER_ONLINE",
-			  power_cpu_init, power_cpu_exit);
+					  "AP_PERF_X86_AMD_POWER_ONLINE",
+					  power_cpu_init, power_cpu_exit);
 
 	ret = perf_pmu_register(&pmu_class, "power", -1);
-	if (WARN_ON(ret)) {
+
+	if (WARN_ON(ret))
+	{
 		pr_warn("AMD Power PMU registration failed\n");
 		return ret;
 	}

@@ -9,8 +9,10 @@
 
 typedef uint8_t Elf64_Byte;
 
-typedef union {
-	struct {
+typedef union
+{
+	struct
+	{
 		Elf64_Word r_sym;	/* Symbol index.  */
 		Elf64_Byte r_ssym;	/* Special symbol.  */
 		Elf64_Byte r_type3;	/* Third relocation.  */

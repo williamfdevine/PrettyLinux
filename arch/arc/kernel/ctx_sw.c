@@ -17,7 +17,7 @@
 #include <asm/asm-offsets.h>
 #include <linux/sched.h>
 #ifdef CONFIG_ARC_PLAT_EZNPS
-#include <plat/ctop.h>
+	#include <plat/ctop.h>
 #endif
 
 #define KSP_WORD_OFF 	((TASK_THREAD + THREAD_KSP) / 4)

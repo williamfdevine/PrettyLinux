@@ -173,7 +173,8 @@
 #define TSI108_IRQ_DESTINATION		0x00004
 
 /* weird mpic register indices and mask bits in the HW info array */
-enum {
+enum
+{
 	MPIC_IDX_GREG_BASE = 0,
 	MPIC_IDX_GREG_FEATURE_0,
 	MPIC_IDX_GREG_GLOBAL_CONF_0,
@@ -228,7 +229,8 @@ struct mpic_irq_fixup
 #endif /* CONFIG_MPIC_U3_HT_IRQS */
 
 
-enum mpic_reg_type {
+enum mpic_reg_type
+{
 	mpic_access_mmio_le,
 	mpic_access_mmio_be,
 #ifdef CONFIG_PPC_DCR
@@ -236,14 +238,16 @@ enum mpic_reg_type {
 #endif
 };
 
-struct mpic_reg_bank {
+struct mpic_reg_bank
+{
 	u32 __iomem	*base;
 #ifdef CONFIG_PPC_DCR
 	dcr_host_t	dhost;
 #endif /* CONFIG_PPC_DCR */
 };
 
-struct mpic_irq_save {
+struct mpic_irq_save
+{
 	u32		vecprio,
 			dest;
 #ifdef CONFIG_MPIC_U3_HT_IRQS
@@ -254,84 +258,84 @@ struct mpic_irq_save {
 /* The instance data of a given MPIC */
 struct mpic
 {
-	/* The OpenFirmware dt node for this MPIC */
-	struct device_node *node;
+		/* The OpenFirmware dt node for this MPIC */
+		struct device_node *node;
 
-	/* The remapper for this MPIC */
-	struct irq_domain	*irqhost;
+		/* The remapper for this MPIC */
+		struct irq_domain	*irqhost;
 
-	/* The "linux" controller struct */
-	struct irq_chip		hc_irq;
+		/* The "linux" controller struct */
+		struct irq_chip		hc_irq;
 #ifdef CONFIG_MPIC_U3_HT_IRQS
-	struct irq_chip		hc_ht_irq;
+		struct irq_chip		hc_ht_irq;
 #endif
 #ifdef CONFIG_SMP
-	struct irq_chip		hc_ipi;
+		struct irq_chip		hc_ipi;
 #endif
-	struct irq_chip		hc_tm;
-	struct irq_chip		hc_err;
-	const char		*name;
-	/* Flags */
-	unsigned int		flags;
-	/* How many irq sources in a given ISU */
-	unsigned int		isu_size;
-	unsigned int		isu_shift;
-	unsigned int		isu_mask;
-	/* Number of sources */
-	unsigned int		num_sources;
+		struct irq_chip		hc_tm;
+		struct irq_chip		hc_err;
+		const char		*name;
+		/* Flags */
+		unsigned int		flags;
+		/* How many irq sources in a given ISU */
+		unsigned int		isu_size;
+		unsigned int		isu_shift;
+		unsigned int		isu_mask;
+		/* Number of sources */
+		unsigned int		num_sources;
 
-	/* vector numbers used for internal sources (ipi/timers) */
-	unsigned int		ipi_vecs[4];
-	unsigned int		timer_vecs[8];
-	/* vector numbers used for FSL MPIC error interrupts */
-	unsigned int		err_int_vecs[MPIC_MAX_ERR];
+		/* vector numbers used for internal sources (ipi/timers) */
+		unsigned int		ipi_vecs[4];
+		unsigned int		timer_vecs[8];
+		/* vector numbers used for FSL MPIC error interrupts */
+		unsigned int		err_int_vecs[MPIC_MAX_ERR];
 
-	/* Spurious vector to program into unused sources */
-	unsigned int		spurious_vec;
+		/* Spurious vector to program into unused sources */
+		unsigned int		spurious_vec;
 
 #ifdef CONFIG_MPIC_U3_HT_IRQS
-	/* The fixup table */
-	struct mpic_irq_fixup	*fixups;
-	raw_spinlock_t	fixup_lock;
+		/* The fixup table */
+		struct mpic_irq_fixup	*fixups;
+		raw_spinlock_t	fixup_lock;
 #endif
 
-	/* Register access method */
-	enum mpic_reg_type	reg_type;
+		/* Register access method */
+		enum mpic_reg_type	reg_type;
 
-	/* The physical base address of the MPIC */
-	phys_addr_t paddr;
+		/* The physical base address of the MPIC */
+		phys_addr_t paddr;
 
-	/* The various ioremap'ed bases */
-	struct mpic_reg_bank	thiscpuregs;
-	struct mpic_reg_bank	gregs;
-	struct mpic_reg_bank	tmregs;
-	struct mpic_reg_bank	cpuregs[MPIC_MAX_CPUS];
-	struct mpic_reg_bank	isus[MPIC_MAX_ISU];
+		/* The various ioremap'ed bases */
+		struct mpic_reg_bank	thiscpuregs;
+		struct mpic_reg_bank	gregs;
+		struct mpic_reg_bank	tmregs;
+		struct mpic_reg_bank	cpuregs[MPIC_MAX_CPUS];
+		struct mpic_reg_bank	isus[MPIC_MAX_ISU];
 
-	/* ioremap'ed base for error interrupt registers */
-	u32 __iomem	*err_regs;
+		/* ioremap'ed base for error interrupt registers */
+		u32 __iomem	*err_regs;
 
-	/* Protected sources */
-	unsigned long		*protected;
+		/* Protected sources */
+		unsigned long		*protected;
 
 #ifdef CONFIG_MPIC_WEIRD
-	/* Pointer to HW info array */
-	u32			*hw_set;
+		/* Pointer to HW info array */
+		u32			*hw_set;
 #endif
 
 #ifdef CONFIG_PCI_MSI
-	struct msi_bitmap	msi_bitmap;
+		struct msi_bitmap	msi_bitmap;
 #endif
 
 #ifdef CONFIG_MPIC_BROKEN_REGREAD
-	u32			isu_reg0_shadow[MPIC_MAX_IRQ_SOURCES];
+		u32			isu_reg0_shadow[MPIC_MAX_IRQ_SOURCES];
 #endif
 
-	/* link */
-	struct mpic		*next;
+		/* link */
+		struct mpic		*next;
 
 #ifdef CONFIG_PM
-	struct mpic_irq_save	*save_data;
+		struct mpic_irq_save	*save_data;
 #endif
 };
 
@@ -397,7 +401,7 @@ extern u32 fsl_mpic_primary_get_version(void);
 /* Allocate the controller structure and setup the linux irq descs
  * for the range if interrupts passed in. No HW initialization is
  * actually performed.
- * 
+ *
  * @phys_addr:	physial base address of the MPIC
  * @flags:	flags, see constants above
  * @isu_size:	number of interrupts in an ISU. Use 0 to use a
@@ -417,11 +421,11 @@ extern u32 fsl_mpic_primary_get_version(void);
  * that is senses[0] correspond to linux irq "irq_offset".
  */
 extern struct mpic *mpic_alloc(struct device_node *node,
-			       phys_addr_t phys_addr,
-			       unsigned int flags,
-			       unsigned int isu_size,
-			       unsigned int irq_count,
-			       const char *name);
+							   phys_addr_t phys_addr,
+							   unsigned int flags,
+							   unsigned int isu_size,
+							   unsigned int irq_count,
+							   const char *name);
 
 /* Assign ISUs, to call before mpic_init()
  *
@@ -430,7 +434,7 @@ extern struct mpic *mpic_alloc(struct device_node *node,
  * @phys_addr:	physical address of the ISU
  */
 extern void mpic_assign_isu(struct mpic *mpic, unsigned int isu_num,
-			    phys_addr_t phys_addr);
+							phys_addr_t phys_addr);
 
 
 /* Initialize the controller. After this has been called, none of the above

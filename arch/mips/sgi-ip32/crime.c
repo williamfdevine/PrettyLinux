@@ -36,7 +36,7 @@ void __init crime_init(void)
 	rev = id & CRIME_ID_REV;
 	id = (id & CRIME_ID_IDBITS) >> 4;
 	printk(KERN_INFO "CRIME id %1x rev %d at 0x%0*lx\n",
-	       id, rev, field, (unsigned long) CRIME_BASE);
+		   id, rev, field, (unsigned long) CRIME_BASE);
 }
 
 irqreturn_t crime_memerr_intr(unsigned int irq, void *dev_id)
@@ -50,42 +50,72 @@ irqreturn_t crime_memerr_intr(unsigned int irq, void *dev_id)
 	printk("CRIME memory error at 0x%08lx ST 0x%08lx<", addr, stat);
 
 	if (stat & CRIME_MEM_ERROR_INV)
+	{
 		printk("INV,");
-	if (stat & CRIME_MEM_ERROR_ECC) {
+	}
+
+	if (stat & CRIME_MEM_ERROR_ECC)
+	{
 		unsigned long ecc_syn =
 			crime->mem_ecc_syn & CRIME_MEM_ERROR_ECC_SYN_MASK;
 		unsigned long ecc_gen =
 			crime->mem_ecc_chk & CRIME_MEM_ERROR_ECC_CHK_MASK;
 		printk("ECC,SYN=0x%08lx,GEN=0x%08lx,", ecc_syn, ecc_gen);
 	}
-	if (stat & CRIME_MEM_ERROR_MULTIPLE) {
+
+	if (stat & CRIME_MEM_ERROR_MULTIPLE)
+	{
 		fatal = 1;
 		printk("MULTIPLE,");
 	}
-	if (stat & CRIME_MEM_ERROR_HARD_ERR) {
+
+	if (stat & CRIME_MEM_ERROR_HARD_ERR)
+	{
 		fatal = 1;
 		printk("HARD,");
 	}
+
 	if (stat & CRIME_MEM_ERROR_SOFT_ERR)
+	{
 		printk("SOFT,");
+	}
+
 	if (stat & CRIME_MEM_ERROR_CPU_ACCESS)
+	{
 		printk("CPU,");
+	}
+
 	if (stat & CRIME_MEM_ERROR_VICE_ACCESS)
+	{
 		printk("VICE,");
+	}
+
 	if (stat & CRIME_MEM_ERROR_GBE_ACCESS)
+	{
 		printk("GBE,");
+	}
+
 	if (stat & CRIME_MEM_ERROR_RE_ACCESS)
-		printk("RE,REID=0x%02lx,", (stat & CRIME_MEM_ERROR_RE_ID)>>8);
+	{
+		printk("RE,REID=0x%02lx,", (stat & CRIME_MEM_ERROR_RE_ID) >> 8);
+	}
+
 	if (stat & CRIME_MEM_ERROR_MACE_ACCESS)
+	{
 		printk("MACE,MACEID=0x%02lx,", stat & CRIME_MEM_ERROR_MACE_ID);
+	}
 
 	crime->mem_error_stat = 0;
 
-	if (fatal) {
+	if (fatal)
+	{
 		printk("FATAL>\n");
 		panic("Fatal memory error.");
-	} else
+	}
+	else
+	{
 		printk("NONFATAL>\n");
+	}
 
 	return IRQ_HANDLED;
 }

@@ -13,12 +13,14 @@
 #ifndef BOOT_VESA_H
 #define BOOT_VESA_H
 
-typedef struct {
+typedef struct
+{
 	u16 off, seg;
 } far_ptr;
 
 /* VESA General Information table */
-struct vesa_general_info {
+struct vesa_general_info
+{
 	u32 signature;		/* 0 Magic number = "VESA" */
 	u16 version;		/* 4 */
 	far_ptr vendor_string;	/* 6 */
@@ -31,7 +33,8 @@ struct vesa_general_info {
 
 #define VESA_MAGIC ('V' + ('E' << 8) + ('S' << 16) + ('A' << 24))
 
-struct vesa_mode_info {
+struct vesa_mode_info
+{
 	u16 mode_attr;		/* 0 */
 	u8 win_attr[2];		/* 2 */
 	u16 win_grain;		/* 4 */

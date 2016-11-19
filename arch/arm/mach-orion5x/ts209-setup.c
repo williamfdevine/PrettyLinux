@@ -46,7 +46,8 @@
  *  [5] 0x00760000-0x00780000 : "U-Boot Config"
  *  [1] 0x00780000-0x00800000 : "U-Boot" (read-only)
  ***************************************************************************/
-static struct mtd_partition qnap_ts209_partitions[] = {
+static struct mtd_partition qnap_ts209_partitions[] =
+{
 	{
 		.name		= "U-Boot",
 		.size		= 0x00080000,
@@ -76,19 +77,22 @@ static struct mtd_partition qnap_ts209_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data qnap_ts209_nor_flash_data = {
+static struct physmap_flash_data qnap_ts209_nor_flash_data =
+{
 	.width		= 1,
 	.parts		= qnap_ts209_partitions,
 	.nr_parts	= ARRAY_SIZE(qnap_ts209_partitions)
 };
 
-static struct resource qnap_ts209_nor_flash_resource = {
+static struct resource qnap_ts209_nor_flash_resource =
+{
 	.flags	= IORESOURCE_MEM,
 	.start	= QNAP_TS209_NOR_BOOT_BASE,
 	.end	= QNAP_TS209_NOR_BOOT_BASE + QNAP_TS209_NOR_BOOT_SIZE - 1,
 };
 
-static struct platform_device qnap_ts209_nor_flash = {
+static struct platform_device qnap_ts209_nor_flash =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -114,36 +118,50 @@ static void __init qnap_ts209_pci_preinit(void)
 	 * Configure PCI GPIO IRQ pins
 	 */
 	pin = QNAP_TS209_PCI_SLOT0_IRQ_PIN;
-	if (gpio_request(pin, "PCI Int1") == 0) {
-		if (gpio_direction_input(pin) == 0) {
+
+	if (gpio_request(pin, "PCI Int1") == 0)
+	{
+		if (gpio_direction_input(pin) == 0)
+		{
 			irq_set_irq_type(gpio_to_irq(pin), IRQ_TYPE_LEVEL_LOW);
-		} else {
+		}
+		else
+		{
 			printk(KERN_ERR "qnap_ts209_pci_preinit failed to "
-					"set_irq_type pin %d\n", pin);
+				   "set_irq_type pin %d\n", pin);
 			gpio_free(pin);
 		}
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "qnap_ts209_pci_preinit failed to gpio_request "
-				"%d\n", pin);
+			   "%d\n", pin);
 	}
 
 	pin = QNAP_TS209_PCI_SLOT1_IRQ_PIN;
-	if (gpio_request(pin, "PCI Int2") == 0) {
-		if (gpio_direction_input(pin) == 0) {
+
+	if (gpio_request(pin, "PCI Int2") == 0)
+	{
+		if (gpio_direction_input(pin) == 0)
+		{
 			irq_set_irq_type(gpio_to_irq(pin), IRQ_TYPE_LEVEL_LOW);
-		} else {
+		}
+		else
+		{
 			printk(KERN_ERR "qnap_ts209_pci_preinit failed "
-					"to set_irq_type pin %d\n", pin);
+				   "to set_irq_type pin %d\n", pin);
 			gpio_free(pin);
 		}
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "qnap_ts209_pci_preinit failed to gpio_request "
-				"%d\n", pin);
+			   "%d\n", pin);
 	}
 }
 
 static int __init qnap_ts209_pci_map_irq(const struct pci_dev *dev, u8 slot,
-	u8 pin)
+		u8 pin)
 {
 	int irq;
 
@@ -151,23 +169,30 @@ static int __init qnap_ts209_pci_map_irq(const struct pci_dev *dev, u8 slot,
 	 * Check for devices with hard-wired IRQs.
 	 */
 	irq = orion5x_pci_map_irq(dev, slot, pin);
+
 	if (irq != -1)
+	{
 		return irq;
+	}
 
 	/*
 	 * PCI IRQs are connected via GPIOs.
 	 */
-	switch (slot - QNAP_TS209_PCI_SLOT0_OFFS) {
-	case 0:
-		return gpio_to_irq(QNAP_TS209_PCI_SLOT0_IRQ_PIN);
-	case 1:
-		return gpio_to_irq(QNAP_TS209_PCI_SLOT1_IRQ_PIN);
-	default:
-		return -1;
+	switch (slot - QNAP_TS209_PCI_SLOT0_OFFS)
+	{
+		case 0:
+			return gpio_to_irq(QNAP_TS209_PCI_SLOT0_IRQ_PIN);
+
+		case 1:
+			return gpio_to_irq(QNAP_TS209_PCI_SLOT1_IRQ_PIN);
+
+		default:
+			return -1;
 	}
 }
 
-static struct hw_pci qnap_ts209_pci __initdata = {
+static struct hw_pci qnap_ts209_pci __initdata =
+{
 	.nr_controllers	= 2,
 	.preinit	= qnap_ts209_pci_preinit,
 	.setup		= orion5x_pci_sys_setup,
@@ -178,7 +203,9 @@ static struct hw_pci qnap_ts209_pci __initdata = {
 static int __init qnap_ts209_pci_init(void)
 {
 	if (machine_is_ts209())
+	{
 		pci_common_init(&qnap_ts209_pci);
+	}
 
 	return 0;
 }
@@ -191,7 +218,8 @@ subsys_initcall(qnap_ts209_pci_init);
 
 #define TS209_RTC_GPIO	3
 
-static struct i2c_board_info __initdata qnap_ts209_i2c_rtc = {
+static struct i2c_board_info __initdata qnap_ts209_i2c_rtc =
+{
 	I2C_BOARD_INFO("s35390a", 0x30),
 	.irq	= 0,
 };
@@ -204,7 +232,8 @@ static struct i2c_board_info __initdata qnap_ts209_i2c_rtc = {
 #define QNAP_TS209_GPIO_KEY_MEDIA	1
 #define QNAP_TS209_GPIO_KEY_RESET	2
 
-static struct gpio_keys_button qnap_ts209_buttons[] = {
+static struct gpio_keys_button qnap_ts209_buttons[] =
+{
 	{
 		.code		= KEY_COPY,
 		.gpio		= QNAP_TS209_GPIO_KEY_MEDIA,
@@ -218,12 +247,14 @@ static struct gpio_keys_button qnap_ts209_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data qnap_ts209_button_data = {
+static struct gpio_keys_platform_data qnap_ts209_button_data =
+{
 	.buttons	= qnap_ts209_buttons,
 	.nbuttons	= ARRAY_SIZE(qnap_ts209_buttons),
 };
 
-static struct platform_device qnap_ts209_button_device = {
+static struct platform_device qnap_ts209_button_device =
+{
 	.name		= "gpio-keys",
 	.id		= -1,
 	.num_resources	= 0,
@@ -235,7 +266,8 @@ static struct platform_device qnap_ts209_button_device = {
 /*****************************************************************************
  * SATA
  ****************************************************************************/
-static struct mv_sata_platform_data qnap_ts209_sata_data = {
+static struct mv_sata_platform_data qnap_ts209_sata_data =
+{
 	.n_ports	= 2,
 };
 
@@ -243,7 +275,8 @@ static struct mv_sata_platform_data qnap_ts209_sata_data = {
 
  * General Setup
  ****************************************************************************/
-static unsigned int ts209_mpp_modes[] __initdata = {
+static unsigned int ts209_mpp_modes[] __initdata =
+{
 	MPP0_UNUSED,
 	MPP1_GPIO,		/* USB copy button */
 	MPP2_GPIO,		/* Load defaults button */
@@ -287,16 +320,16 @@ static void __init qnap_ts209_init(void)
 	 * Configure peripherals.
 	 */
 	mvebu_mbus_add_window_by_id(ORION_MBUS_DEVBUS_BOOT_TARGET,
-				    ORION_MBUS_DEVBUS_BOOT_ATTR,
-				    QNAP_TS209_NOR_BOOT_BASE,
-				    QNAP_TS209_NOR_BOOT_SIZE);
+								ORION_MBUS_DEVBUS_BOOT_ATTR,
+								QNAP_TS209_NOR_BOOT_BASE,
+								QNAP_TS209_NOR_BOOT_SIZE);
 	platform_device_register(&qnap_ts209_nor_flash);
 
 	orion5x_ehci0_init();
 	orion5x_ehci1_init();
 	qnap_tsx09_find_mac_addr(QNAP_TS209_NOR_BOOT_BASE +
-				 qnap_ts209_partitions[5].offset,
-				 qnap_ts209_partitions[5].size);
+							 qnap_ts209_partitions[5].offset,
+							 qnap_ts209_partitions[5].size);
 	orion5x_eth_init(&qnap_tsx09_eth_data);
 	orion5x_i2c_init();
 	orion5x_sata_init(&qnap_ts209_sata_data);
@@ -307,14 +340,23 @@ static void __init qnap_ts209_init(void)
 	platform_device_register(&qnap_ts209_button_device);
 
 	/* Get RTC IRQ and register the chip */
-	if (gpio_request(TS209_RTC_GPIO, "rtc") == 0) {
+	if (gpio_request(TS209_RTC_GPIO, "rtc") == 0)
+	{
 		if (gpio_direction_input(TS209_RTC_GPIO) == 0)
+		{
 			qnap_ts209_i2c_rtc.irq = gpio_to_irq(TS209_RTC_GPIO);
+		}
 		else
+		{
 			gpio_free(TS209_RTC_GPIO);
+		}
 	}
+
 	if (qnap_ts209_i2c_rtc.irq == 0)
+	{
 		pr_warn("qnap_ts209_init: failed to get RTC IRQ\n");
+	}
+
 	i2c_register_board_info(0, &qnap_ts209_i2c_rtc, 1);
 
 	/* register tsx09 specific power-off method */
@@ -322,14 +364,14 @@ static void __init qnap_ts209_init(void)
 }
 
 MACHINE_START(TS209, "QNAP TS-109/TS-209")
-	/* Maintainer: Byron Bradley <byron.bbradley@gmail.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Byron Bradley <byron.bbradley@gmail.com> */
+.atag_offset	= 0x100,
 	.nr_irqs	= ORION5X_NR_IRQS,
-	.init_machine	= qnap_ts209_init,
-	.map_io		= orion5x_map_io,
-	.init_early	= orion5x_init_early,
-	.init_irq	= orion5x_init_irq,
-	.init_time	= orion5x_timer_init,
-	.fixup		= tag_fixup_mem32,
-	.restart	= orion5x_restart,
-MACHINE_END
+		.init_machine	= qnap_ts209_init,
+		   .map_io		= orion5x_map_io,
+			   .init_early	= orion5x_init_early,
+				.init_irq	= orion5x_init_irq,
+				   .init_time	= orion5x_timer_init,
+					 .fixup		= tag_fixup_mem32,
+						  .restart	= orion5x_restart,
+							  MACHINE_END

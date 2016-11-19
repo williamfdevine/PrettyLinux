@@ -11,7 +11,8 @@
 #include <linux/platform_device.h>
 #include <mach/irqs.h>
 
-static struct resource pmu_resource = {
+static struct resource pmu_resource =
+{
 #ifdef CONFIG_ARCH_IOP32X
 	.start	= IRQ_IOP32X_CORE_PMU,
 	.end	= IRQ_IOP32X_CORE_PMU,
@@ -23,7 +24,8 @@ static struct resource pmu_resource = {
 	.flags	= IORESOURCE_IRQ,
 };
 
-static struct platform_device pmu_device = {
+static struct platform_device pmu_device =
+{
 	.name		= "xscale-pmu",
 	.id		= -1,
 	.resource	= &pmu_resource,

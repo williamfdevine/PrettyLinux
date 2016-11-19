@@ -63,7 +63,7 @@ static void omap_read_persistent_clock64(struct timespec64 *ts)
 	cycles = sync32k_cnt_reg ? readl_relaxed(sync32k_cnt_reg) : 0;
 
 	nsecs = clocksource_cyc2ns(cycles - last_cycles,
-					persistent_mult, persistent_shift);
+							   persistent_mult, persistent_shift);
 
 	timespec64_add_ns(&persistent_ts, nsecs);
 
@@ -90,21 +90,27 @@ int __init omap_init_clocksource_32k(void __iomem *vbase)
 	 * to identify the version.
 	 */
 	if (readl_relaxed(vbase + OMAP2_32KSYNCNT_REV_OFF) &
-						OMAP2_32KSYNCNT_REV_SCHEME)
+		OMAP2_32KSYNCNT_REV_SCHEME)
+	{
 		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_HIGH;
+	}
 	else
+	{
 		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_LOW;
+	}
 
 	/*
 	 * 120000 rough estimate from the calculations in
 	 * __clocksource_update_freq_scale.
 	 */
 	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
-			32768, NSEC_PER_SEC, 120000);
+						   32768, NSEC_PER_SEC, 120000);
 
 	ret = clocksource_mmio_init(sync32k_cnt_reg, "32k_counter", 32768,
-				250, 32, clocksource_mmio_readl_up);
-	if (ret) {
+								250, 32, clocksource_mmio_readl_up);
+
+	if (ret)
+	{
 		pr_err("32k_counter: can't register clocksource\n");
 		return ret;
 	}

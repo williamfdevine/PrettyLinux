@@ -68,7 +68,7 @@ static inline union ieee754dp builddp(int s, int bx, u64 m)
 
 	assert((s) == 0 || (s) == 1);
 	assert((bx) >= DP_EMIN - 1 + DP_EBIAS
-	       && (bx) <= DP_EMAX + 1 + DP_EBIAS);
+		   && (bx) <= DP_EMAX + 1 + DP_EBIAS);
 	assert(((m) >> DP_FBITS) == 0);
 
 	r.sign = s;

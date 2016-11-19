@@ -15,8 +15,8 @@
 extern void *_switch_to(void *last, void *next);
 
 #define switch_to(prev,next,last)		\
-do {						\
-	(last) = _switch_to(prev, next);	\
-} while(0)
+	do {						\
+		(last) = _switch_to(prev, next);	\
+	} while(0)
 
 #endif /* _XTENSA_SWITCH_TO_H */

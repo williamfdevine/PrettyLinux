@@ -69,7 +69,8 @@
 #define AMP_MUTE_SDL		(GPIO_PORTE + 5)
 #define AMP_MUTE_SDR		(GPIO_PORTF + 7)
 
-static const int visstrim_m10_pins[] __initconst = {
+static const int visstrim_m10_pins[] __initconst =
+{
 	/* UART1 (console) */
 	PE12_PF_UART1_TXD,
 	PE13_PF_UART1_RXD,
@@ -157,7 +158,8 @@ static const int visstrim_m10_pins[] __initconst = {
 	AMP_MUTE_SDR | GPIO_GPIO | GPIO_OUT,
 };
 
-static struct gpio visstrim_m10_version_gpios[] = {
+static struct gpio visstrim_m10_version_gpios[] =
+{
 	{ EXPBOARD_BIT0, GPIOF_IN, "exp-version-0" },
 	{ EXPBOARD_BIT1, GPIOF_IN, "exp-version-1" },
 	{ EXPBOARD_BIT2, GPIOF_IN, "exp-version-2" },
@@ -166,7 +168,8 @@ static struct gpio visstrim_m10_version_gpios[] = {
 	{ MOTHERBOARD_BIT2, GPIOF_IN, "mother-version-2" },
 };
 
-static const struct gpio visstrim_m10_gpios[] __initconst = {
+static const struct gpio visstrim_m10_gpios[] __initconst =
+{
 	{
 		.gpio = TVP5150_RSTN,
 		.flags = GPIOF_DIR_OUT | GPIOF_INIT_HIGH,
@@ -221,11 +224,13 @@ static int visstrim_camera_reset(struct device *dev)
 	return 0;
 };
 
-static struct i2c_board_info visstrim_i2c_camera =  {
+static struct i2c_board_info visstrim_i2c_camera =
+{
 	I2C_BOARD_INFO("tvp5150", 0x5d),
 };
 
-static struct soc_camera_link iclink_tvp5150 = {
+static struct soc_camera_link iclink_tvp5150 =
+{
 	.bus_id         = 0,
 	.board_info     = &visstrim_i2c_camera,
 	.i2c_adapter_id = 0,
@@ -233,9 +238,10 @@ static struct soc_camera_link iclink_tvp5150 = {
 	.reset = visstrim_camera_reset,
 };
 
-static struct mx2_camera_platform_data visstrim_camera = {
+static struct mx2_camera_platform_data visstrim_camera =
+{
 	.flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE |
-		 MX2_CAMERA_PCLK_SAMPLE_RISING,
+	MX2_CAMERA_PCLK_SAMPLE_RISING,
 	.clk = 100000,
 };
 
@@ -255,26 +261,33 @@ static void __init visstrim_analog_camera_init(void)
 	ndelay(200000);
 
 	pdev = imx27_add_mx2_camera(&visstrim_camera);
+
 	if (IS_ERR(pdev))
+	{
 		return;
+	}
 
 	dma = dma_declare_coherent_memory(&pdev->dev,
-				mx2_camera_base, mx2_camera_base,
-				MX2_CAMERA_BUF_SIZE,
-				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+									  mx2_camera_base, mx2_camera_base,
+									  MX2_CAMERA_BUF_SIZE,
+									  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+
 	if (!(dma & DMA_MEMORY_MAP))
+	{
 		return;
+	}
 }
 
 static void __init visstrim_reserve(void)
 {
 	/* reserve 4 MiB for mx2-camera */
 	mx2_camera_base = arm_memblock_steal(3 * MX2_CAMERA_BUF_SIZE,
-			MX2_CAMERA_BUF_SIZE);
+										 MX2_CAMERA_BUF_SIZE);
 }
 
 /* GPIOs used as events for applications */
-static struct gpio_keys_button visstrim_gpio_keys[] = {
+static struct gpio_keys_button visstrim_gpio_keys[] =
+{
 	{
 		.type	= EV_KEY,
 		.code	= KEY_RESTART,
@@ -302,13 +315,15 @@ static struct gpio_keys_button visstrim_gpio_keys[] = {
 };
 
 static const struct gpio_keys_platform_data
-		visstrim_gpio_keys_platform_data __initconst = {
+	visstrim_gpio_keys_platform_data __initconst =
+{
 	.buttons	= visstrim_gpio_keys,
 	.nbuttons	= ARRAY_SIZE(visstrim_gpio_keys),
 };
 
 /* led */
-static const struct gpio_led visstrim_m10_leds[] __initconst = {
+static const struct gpio_led visstrim_m10_leds[] __initconst =
+{
 	{
 		.name = "visstrim:ld0",
 		.default_trigger = "nand-disk",
@@ -331,19 +346,20 @@ static const struct gpio_led visstrim_m10_leds[] __initconst = {
 	},
 };
 
-static const struct gpio_led_platform_data visstrim_m10_led_data __initconst = {
+static const struct gpio_led_platform_data visstrim_m10_led_data __initconst =
+{
 	.leds = visstrim_m10_leds,
 	.num_leds = ARRAY_SIZE(visstrim_m10_leds),
 };
 
 /* Visstrim_SM10 has a microSD slot connected to sdhc1 */
 static int visstrim_m10_sdhc1_init(struct device *dev,
-		irq_handler_t detect_irq, void *data)
+								   irq_handler_t detect_irq, void *data)
 {
 	int ret;
 
 	ret = request_irq(gpio_to_irq(SDHC1_IRQ_GPIO), detect_irq,
-			  IRQF_TRIGGER_FALLING, "mmc-detect", data);
+					  IRQF_TRIGGER_FALLING, "mmc-detect", data);
 	return ret;
 }
 
@@ -352,23 +368,27 @@ static void visstrim_m10_sdhc1_exit(struct device *dev, void *data)
 	free_irq(gpio_to_irq(SDHC1_IRQ_GPIO), data);
 }
 
-static const struct imxmmc_platform_data visstrim_m10_sdhc_pdata __initconst = {
+static const struct imxmmc_platform_data visstrim_m10_sdhc_pdata __initconst =
+{
 	.init = visstrim_m10_sdhc1_init,
 	.exit = visstrim_m10_sdhc1_exit,
 };
 
 /* Visstrim_SM10 NOR flash */
-static struct physmap_flash_data visstrim_m10_flash_data = {
+static struct physmap_flash_data visstrim_m10_flash_data =
+{
 	.width = 2,
 };
 
-static struct resource visstrim_m10_flash_resource = {
+static struct resource visstrim_m10_flash_resource =
+{
 	.start = 0xc0000000,
 	.end = 0xc0000000 + SZ_64M - 1,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platform_device visstrim_m10_nor_mtd_device = {
+static struct platform_device visstrim_m10_nor_mtd_device =
+{
 	.name = "physmap-flash",
 	.id = 0,
 	.dev = {
@@ -378,37 +398,43 @@ static struct platform_device visstrim_m10_nor_mtd_device = {
 	.resource = &visstrim_m10_flash_resource,
 };
 
-static struct platform_device *platform_devices[] __initdata = {
+static struct platform_device *platform_devices[] __initdata =
+{
 	&visstrim_m10_nor_mtd_device,
 };
 
 /* Visstrim_M10 uses UART0 as console */
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
 /* I2C */
-static const struct imxi2c_platform_data visstrim_m10_i2c_data __initconst = {
+static const struct imxi2c_platform_data visstrim_m10_i2c_data __initconst =
+{
 	.bitrate = 100000,
 };
 
-static struct pca953x_platform_data visstrim_m10_pca9555_pdata = {
+static struct pca953x_platform_data visstrim_m10_pca9555_pdata =
+{
 	.gpio_base = 240, /* After MX27 internal GPIOs */
 	.invert = 0,
 };
 
-static struct aic32x4_pdata visstrim_m10_aic32x4_pdata = {
+static struct aic32x4_pdata visstrim_m10_aic32x4_pdata =
+{
 	.power_cfg = AIC32X4_PWR_MICBIAS_2075_LDOIN |
-		     AIC32X4_PWR_AVDD_DVDD_WEAK_DISABLE |
-		     AIC32X4_PWR_AIC32X4_LDO_ENABLE |
-		     AIC32X4_PWR_CMMODE_LDOIN_RANGE_18_36 |
-		     AIC32X4_PWR_CMMODE_HP_LDOIN_POWERED,
+	AIC32X4_PWR_AVDD_DVDD_WEAK_DISABLE |
+	AIC32X4_PWR_AIC32X4_LDO_ENABLE |
+	AIC32X4_PWR_CMMODE_LDOIN_RANGE_18_36 |
+	AIC32X4_PWR_CMMODE_HP_LDOIN_POWERED,
 	.micpga_routing = AIC32X4_MICPGA_ROUTE_LMIC_IN2R_10K |
-			 AIC32X4_MICPGA_ROUTE_RMIC_IN1L_10K,
+	AIC32X4_MICPGA_ROUTE_RMIC_IN1L_10K,
 	.swapdacs = false,
 };
 
-static struct i2c_board_info visstrim_m10_i2c_devices[] = {
+static struct i2c_board_info visstrim_m10_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("pca9555", 0x20),
 		.platform_data = &visstrim_m10_pca9555_pdata,
@@ -418,7 +444,7 @@ static struct i2c_board_info visstrim_m10_i2c_devices[] = {
 		.platform_data = &visstrim_m10_aic32x4_pdata,
 	},
 	{
-		 I2C_BOARD_INFO("m41t00", 0x68),
+		I2C_BOARD_INFO("m41t00", 0x68),
 	}
 };
 
@@ -429,13 +455,15 @@ static int otg_phy_init(struct platform_device *pdev)
 }
 
 static const struct mxc_usbh_platform_data
-visstrim_m10_usbotg_pdata __initconst = {
+	visstrim_m10_usbotg_pdata __initconst =
+{
 	.init = otg_phy_init,
 	.portsc	= MXC_EHCI_MODE_ULPI | MXC_EHCI_UTMI_8BIT,
 };
 
 /* SSI */
-static const struct imx_ssi_platform_data visstrim_m10_ssi_pdata __initconst = {
+static const struct imx_ssi_platform_data visstrim_m10_ssi_pdata __initconst =
+{
 	.flags			= IMX_SSI_DMA | IMX_SSI_SYN,
 };
 
@@ -448,16 +476,20 @@ static void __init visstrim_coda_init(void)
 
 	pdev = imx27_add_coda();
 	dma = dma_declare_coherent_memory(&pdev->dev,
-					  mx2_camera_base + MX2_CAMERA_BUF_SIZE,
-					  mx2_camera_base + MX2_CAMERA_BUF_SIZE,
-					  MX2_CAMERA_BUF_SIZE,
-					  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+									  mx2_camera_base + MX2_CAMERA_BUF_SIZE,
+									  mx2_camera_base + MX2_CAMERA_BUF_SIZE,
+									  MX2_CAMERA_BUF_SIZE,
+									  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+
 	if (!(dma & DMA_MEMORY_MAP))
+	{
 		return;
+	}
 }
 
 /* DMA deinterlace */
-static struct platform_device visstrim_deinterlace = {
+static struct platform_device visstrim_deinterlace =
+{
 	.name = "m2m-deinterlace",
 	.id = 0,
 };
@@ -471,12 +503,15 @@ static void __init visstrim_deinterlace_init(void)
 	ret = platform_device_register(pdev);
 
 	dma = dma_declare_coherent_memory(&pdev->dev,
-					  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
-					  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
-					  MX2_CAMERA_BUF_SIZE,
-					  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+									  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
+									  mx2_camera_base + 2 * MX2_CAMERA_BUF_SIZE,
+									  MX2_CAMERA_BUF_SIZE,
+									  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+
 	if (!(dma & DMA_MEMORY_MAP))
+	{
 		return;
+	}
 }
 
 /* Emma-PrP for format conversion */
@@ -486,23 +521,30 @@ static void __init visstrim_emmaprp_init(void)
 	int dma;
 
 	pdev = imx27_add_mx2_emmaprp();
+
 	if (IS_ERR(pdev))
+	{
 		return;
+	}
 
 	/*
 	 * Use the same memory area as the analog camera since both
 	 * devices are, by nature, exclusive.
 	 */
 	dma = dma_declare_coherent_memory(&pdev->dev,
-				mx2_camera_base, mx2_camera_base,
-				MX2_CAMERA_BUF_SIZE,
-				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+									  mx2_camera_base, mx2_camera_base,
+									  MX2_CAMERA_BUF_SIZE,
+									  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+
 	if (!(dma & DMA_MEMORY_MAP))
+	{
 		pr_err("Failed to declare memory for emmaprp\n");
+	}
 }
 
 /* Audio */
-static const struct snd_mx27vis_platform_data snd_mx27vis_pdata __initconst = {
+static const struct snd_mx27vis_platform_data snd_mx27vis_pdata __initconst =
+{
 	.amp_gain0_gpio = AMP_GAIN_0,
 	.amp_gain1_gpio = AMP_GAIN_1,
 	.amp_mutel_gpio = AMP_MUTE_SDL,
@@ -516,8 +558,10 @@ static void __init visstrim_m10_revision(void)
 	int ret;
 
 	ret = gpio_request_array(visstrim_m10_version_gpios,
-				 ARRAY_SIZE(visstrim_m10_version_gpios));
-	if (ret) {
+							 ARRAY_SIZE(visstrim_m10_version_gpios));
+
+	if (ret)
+	{
 		pr_err("Failed to request version gpios");
 		return;
 	}
@@ -545,9 +589,12 @@ static void __init visstrim_m10_board_init(void)
 	visstrim_m10_revision();
 
 	ret = mxc_gpio_setup_multiple_pins(visstrim_m10_pins,
-			ARRAY_SIZE(visstrim_m10_pins), "VISSTRIM_M10");
+									   ARRAY_SIZE(visstrim_m10_pins), "VISSTRIM_M10");
+
 	if (ret)
+	{
 		pr_err("Failed to setup pins (%d)\n", ret);
+	}
 
 	imx27_add_imx_ssi(0, &visstrim_m10_ssi_pdata);
 	imx27_add_imx_uart0(&uart_pdata);
@@ -555,7 +602,7 @@ static void __init visstrim_m10_board_init(void)
 	imx27_add_imx_i2c(0, &visstrim_m10_i2c_data);
 	imx27_add_imx_i2c(1, &visstrim_m10_i2c_data);
 	i2c_register_board_info(0, visstrim_m10_i2c_devices,
-				ARRAY_SIZE(visstrim_m10_i2c_devices));
+							ARRAY_SIZE(visstrim_m10_i2c_devices));
 
 	imx27_add_mxc_mmc(0, &visstrim_m10_sdhc_pdata);
 	imx27_add_mxc_ehci_otg(&visstrim_m10_usbotg_pdata);
@@ -569,22 +616,27 @@ static void __init visstrim_m10_late_init(void)
 	int mo_version, ret;
 
 	ret = gpio_request_array(visstrim_m10_gpios,
-				 ARRAY_SIZE(visstrim_m10_gpios));
+							 ARRAY_SIZE(visstrim_m10_gpios));
+
 	if (ret)
+	{
 		pr_err("Failed to request gpios (%d)\n", ret);
+	}
 
 	imx_add_gpio_keys(&visstrim_gpio_keys_platform_data);
 
 	imx_add_platform_device("mx27vis", 0, NULL, 0, &snd_mx27vis_pdata,
-				sizeof(snd_mx27vis_pdata));
+							sizeof(snd_mx27vis_pdata));
 	platform_device_register_resndata(NULL, "soc-camera-pdrv", 0, NULL, 0,
-				      &iclink_tvp5150, sizeof(iclink_tvp5150));
+									  &iclink_tvp5150, sizeof(iclink_tvp5150));
 
 	gpio_led_register_device(0, &visstrim_m10_led_data);
 
 	/* Use mother board version to decide what video devices we shall use */
 	mo_version = (system_rev >> MOTHERBOARD_SHIFT) & VERSION_MASK;
-	if (mo_version & 0x1) {
+
+	if (mo_version & 0x1)
+	{
 		visstrim_emmaprp_init();
 
 		/*
@@ -595,7 +647,9 @@ static void __init visstrim_m10_late_init(void)
 		gpio_set_value(TVP5150_PWDN, 1);
 		ndelay(1);
 		gpio_set_value(TVP5150_RSTN, 0);
-	} else {
+	}
+	else
+	{
 		visstrim_deinterlace_init();
 		visstrim_analog_camera_init();
 	}
@@ -609,13 +663,13 @@ static void __init visstrim_m10_timer_init(void)
 }
 
 MACHINE_START(IMX27_VISSTRIM_M10, "Vista Silicon Visstrim_M10")
-	.atag_offset = 0x100,
-	.reserve = visstrim_reserve,
-	.map_io = mx27_map_io,
-	.init_early = imx27_init_early,
+.atag_offset = 0x100,
+ .reserve = visstrim_reserve,
+  .map_io = mx27_map_io,
+   .init_early = imx27_init_early,
 	.init_irq = mx27_init_irq,
-	.init_time	= visstrim_m10_timer_init,
-	.init_machine = visstrim_m10_board_init,
-	.init_late	= visstrim_m10_late_init,
-	.restart	= mxc_restart,
-MACHINE_END
+	 .init_time	= visstrim_m10_timer_init,
+	   .init_machine = visstrim_m10_board_init,
+		.init_late	= visstrim_m10_late_init,
+		  .restart	= mxc_restart,
+			  MACHINE_END

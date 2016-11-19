@@ -11,23 +11,35 @@
 
 static inline u32 vfp_shiftright32jamming(u32 val, unsigned int shift)
 {
-	if (shift) {
+	if (shift)
+	{
 		if (shift < 32)
+		{
 			val = val >> shift | ((val << (32 - shift)) != 0);
+		}
 		else
+		{
 			val = val != 0;
+		}
 	}
+
 	return val;
 }
 
 static inline u64 vfp_shiftright64jamming(u64 val, unsigned int shift)
 {
-	if (shift) {
+	if (shift)
+	{
 		if (shift < 64)
+		{
 			val = val >> shift | ((val << (64 - shift)) != 0);
+		}
 		else
+		{
 			val = val != 0;
+		}
 	}
+
 	return val;
 }
 
@@ -36,10 +48,10 @@ static inline u32 vfp_hi64to32jamming(u64 val)
 	u32 v;
 
 	asm(
-	"cmp	%Q1, #1		@ vfp_hi64to32jamming\n\t"
-	"movcc	%0, %R1\n\t"
-	"orrcs	%0, %R1, #1"
-	: "=r" (v) : "r" (val) : "cc");
+		"cmp	%Q1, #1		@ vfp_hi64to32jamming\n\t"
+		"movcc	%0, %R1\n\t"
+		"orrcs	%0, %R1, #1"
+		: "=r" (v) : "r" (val) : "cc");
 
 	return v;
 }
@@ -47,12 +59,12 @@ static inline u32 vfp_hi64to32jamming(u64 val)
 static inline void add128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
 {
 	asm(	"adds	%Q0, %Q2, %Q4\n\t"
-		"adcs	%R0, %R2, %R4\n\t"
-		"adcs	%Q1, %Q3, %Q5\n\t"
-		"adc	%R1, %R3, %R5"
-	    : "=r" (nl), "=r" (nh)
-	    : "0" (nl), "1" (nh), "r" (ml), "r" (mh)
-	    : "cc");
+			"adcs	%R0, %R2, %R4\n\t"
+			"adcs	%Q1, %Q3, %Q5\n\t"
+			"adc	%R1, %R3, %R5"
+			: "=r" (nl), "=r" (nh)
+			: "0" (nl), "1" (nh), "r" (ml), "r" (mh)
+			: "cc");
 	*resh = nh;
 	*resl = nl;
 }
@@ -60,12 +72,12 @@ static inline void add128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
 static inline void sub128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
 {
 	asm(	"subs	%Q0, %Q2, %Q4\n\t"
-		"sbcs	%R0, %R2, %R4\n\t"
-		"sbcs	%Q1, %Q3, %Q5\n\t"
-		"sbc	%R1, %R3, %R5\n\t"
-	    : "=r" (nl), "=r" (nh)
-	    : "0" (nl), "1" (nh), "r" (ml), "r" (mh)
-	    : "cc");
+			"sbcs	%R0, %R2, %R4\n\t"
+			"sbcs	%Q1, %Q3, %Q5\n\t"
+			"sbc	%R1, %R3, %R5\n\t"
+			: "=r" (nl), "=r" (nh)
+			: "0" (nl), "1" (nh), "r" (ml), "r" (mh)
+			: "cc");
 	*resh = nh;
 	*resl = nl;
 }
@@ -115,29 +127,45 @@ static inline u64 vfp_estimate_div128to64(u64 nh, u64 nl, u64 m)
 	u64 mh, ml, remh, reml, termh, terml, z;
 
 	if (nh >= m)
+	{
 		return ~0ULL;
+	}
+
 	mh = m >> 32;
-	if (mh << 32 <= nh) {
+
+	if (mh << 32 <= nh)
+	{
 		z = 0xffffffff00000000ULL;
-	} else {
+	}
+	else
+	{
 		z = nh;
 		do_div(z, mh);
 		z <<= 32;
 	}
+
 	mul64to128(&termh, &terml, m, z);
 	sub128(&remh, &reml, nh, nl, termh, terml);
 	ml = m << 32;
-	while ((s64)remh < 0) {
+
+	while ((s64)remh < 0)
+	{
 		z -= 0x100000000ULL;
 		add128(&remh, &reml, remh, reml, mh, ml);
 	}
+
 	remh = (remh << 32) | (reml >> 32);
-	if (mh << 32 <= remh) {
+
+	if (mh << 32 <= remh)
+	{
 		z |= 0xffffffff;
-	} else {
+	}
+	else
+	{
 		do_div(remh, mh);
 		z |= remh;
 	}
+
 	return z;
 }
 
@@ -149,7 +177,8 @@ static inline u64 vfp_estimate_div128to64(u64 nh, u64 nl, u64 m)
 /*
  * Single-precision
  */
-struct vfp_single {
+struct vfp_single
+{
 	s16	exponent;
 	u16	sign;
 	u32	significand;
@@ -193,12 +222,16 @@ static inline void vfp_single_unpack(struct vfp_single *s, s32 val)
 	u32 significand;
 
 	s->sign = vfp_single_packed_sign(val) >> 16,
-	s->exponent = vfp_single_packed_exponent(val);
+	   s->exponent = vfp_single_packed_exponent(val);
 
 	significand = (u32) val;
 	significand = (significand << (32 - VFP_SINGLE_MANTISSA_BITS)) >> 2;
+
 	if (s->exponent && s->exponent != 255)
+	{
 		significand |= 0x40000000;
+	}
+
 	s->significand = significand;
 }
 
@@ -210,8 +243,8 @@ static inline s32 vfp_single_pack(struct vfp_single *s)
 {
 	u32 val;
 	val = (s->sign << 16) +
-	      (s->exponent << VFP_SINGLE_MANTISSA_BITS) +
-	      (s->significand >> VFP_SINGLE_LOW_BITS);
+		  (s->exponent << VFP_SINGLE_MANTISSA_BITS) +
+		  (s->significand >> VFP_SINGLE_LOW_BITS);
 	return (s32)val;
 }
 
@@ -228,33 +261,49 @@ static inline s32 vfp_single_pack(struct vfp_single *s)
 static inline int vfp_single_type(struct vfp_single *s)
 {
 	int type = VFP_NUMBER;
-	if (s->exponent == 255) {
+
+	if (s->exponent == 255)
+	{
 		if (s->significand == 0)
+		{
 			type = VFP_INFINITY;
+		}
 		else if (s->significand & VFP_SINGLE_SIGNIFICAND_QNAN)
+		{
 			type = VFP_QNAN;
+		}
 		else
+		{
 			type = VFP_SNAN;
-	} else if (s->exponent == 0) {
-		if (s->significand == 0)
-			type |= VFP_ZERO;
-		else
-			type |= VFP_DENORMAL;
+		}
 	}
+	else if (s->exponent == 0)
+	{
+		if (s->significand == 0)
+		{
+			type |= VFP_ZERO;
+		}
+		else
+		{
+			type |= VFP_DENORMAL;
+		}
+	}
+
 	return type;
 }
 
 #ifndef DEBUG
-#define vfp_single_normaliseround(sd,vsd,fpscr,except,func) __vfp_single_normaliseround(sd,vsd,fpscr,except)
-u32 __vfp_single_normaliseround(int sd, struct vfp_single *vs, u32 fpscr, u32 exceptions);
+	#define vfp_single_normaliseround(sd,vsd,fpscr,except,func) __vfp_single_normaliseround(sd,vsd,fpscr,except)
+	u32 __vfp_single_normaliseround(int sd, struct vfp_single *vs, u32 fpscr, u32 exceptions);
 #else
-u32 vfp_single_normaliseround(int sd, struct vfp_single *vs, u32 fpscr, u32 exceptions, const char *func);
+	u32 vfp_single_normaliseround(int sd, struct vfp_single *vs, u32 fpscr, u32 exceptions, const char *func);
 #endif
 
 /*
  * Double-precision
  */
-struct vfp_double {
+struct vfp_double
+{
 	s16	exponent;
 	u16	sign;
 	u64	significand;
@@ -266,9 +315,9 @@ struct vfp_double {
  * zero instructions.
  */
 #ifdef CONFIG_VFPv3
-#define VFP_REG_ZERO	32
+	#define VFP_REG_ZERO	32
 #else
-#define VFP_REG_ZERO	16
+	#define VFP_REG_ZERO	16
 #endif
 extern u64 vfp_get_double(unsigned int reg);
 extern void vfp_put_double(u64 val, unsigned int reg);
@@ -306,8 +355,12 @@ static inline void vfp_double_unpack(struct vfp_double *s, s64 val)
 
 	significand = (u64) val;
 	significand = (significand << (64 - VFP_DOUBLE_MANTISSA_BITS)) >> 2;
+
 	if (s->exponent && s->exponent != 2047)
+	{
 		significand |= (1ULL << 62);
+	}
+
 	s->significand = significand;
 }
 
@@ -319,27 +372,42 @@ static inline s64 vfp_double_pack(struct vfp_double *s)
 {
 	u64 val;
 	val = ((u64)s->sign << 48) +
-	      ((u64)s->exponent << VFP_DOUBLE_MANTISSA_BITS) +
-	      (s->significand >> VFP_DOUBLE_LOW_BITS);
+		  ((u64)s->exponent << VFP_DOUBLE_MANTISSA_BITS) +
+		  (s->significand >> VFP_DOUBLE_LOW_BITS);
 	return (s64)val;
 }
 
 static inline int vfp_double_type(struct vfp_double *s)
 {
 	int type = VFP_NUMBER;
-	if (s->exponent == 2047) {
+
+	if (s->exponent == 2047)
+	{
 		if (s->significand == 0)
+		{
 			type = VFP_INFINITY;
+		}
 		else if (s->significand & VFP_DOUBLE_SIGNIFICAND_QNAN)
+		{
 			type = VFP_QNAN;
+		}
 		else
+		{
 			type = VFP_SNAN;
-	} else if (s->exponent == 0) {
-		if (s->significand == 0)
-			type |= VFP_ZERO;
-		else
-			type |= VFP_DENORMAL;
+		}
 	}
+	else if (s->exponent == 0)
+	{
+		if (s->significand == 0)
+		{
+			type |= VFP_ZERO;
+		}
+		else
+		{
+			type |= VFP_DENORMAL;
+		}
+	}
+
 	return type;
 }
 
@@ -372,7 +440,8 @@ u32 vfp_estimate_sqrt_significand(u32 exponent, u32 significand);
 #define OP_DD		(1 << 1)
 #define OP_SM		(1 << 2)
 
-struct op {
+struct op
+{
 	u32 (* const fn)(int dd, int dn, int dm, u32 fpscr);
 	u32 flags;
 };

@@ -59,7 +59,8 @@
 /*
  * DSP structure and data
  */
-struct sh_dsp_struct {
+struct sh_dsp_struct
+{
 	unsigned long dsp_regs[14];
 	long status;
 };
@@ -68,7 +69,8 @@ struct sh_dsp_struct {
  * FPU structure and data
  */
 
-struct sh_fpu_hard_struct {
+struct sh_fpu_hard_struct
+{
 	unsigned long fp_regs[16];
 	unsigned long xfp_regs[16];
 	unsigned long fpscr;
@@ -78,7 +80,8 @@ struct sh_fpu_hard_struct {
 };
 
 /* Dummy fpu emulator  */
-struct sh_fpu_soft_struct {
+struct sh_fpu_soft_struct
+{
 	unsigned long fp_regs[16];
 	unsigned long xfp_regs[16];
 	unsigned long fpscr;
@@ -88,12 +91,14 @@ struct sh_fpu_soft_struct {
 	unsigned long entry_pc;
 };
 
-union thread_xstate {
+union thread_xstate
+{
 	struct sh_fpu_hard_struct hardfpu;
 	struct sh_fpu_soft_struct softfpu;
 };
 
-struct thread_struct {
+struct thread_struct
+{
 	/* Saved registers when thread is descheduled */
 	unsigned long sp;
 	unsigned long pc;
@@ -124,9 +129,9 @@ struct thread_struct {
 };
 
 #define INIT_THREAD  {						\
-	.sp = sizeof(init_stack) + (long) &init_stack,		\
-	.flags = 0,						\
-}
+		.sp = sizeof(init_stack) + (long) &init_stack,		\
+			  .flags = 0,						\
+	}
 
 /* Forward declaration, a strange C thing */
 struct task_struct;
@@ -150,10 +155,10 @@ static __inline__ void disable_fpu(void)
 
 	/* Set FD flag in SR */
 	__asm__ __volatile__("stc	sr, %0\n\t"
-			     "or	%1, %0\n\t"
-			     "ldc	%0, sr"
-			     : "=&r" (__dummy)
-			     : "r" (SR_FD));
+						 "or	%1, %0\n\t"
+						 "ldc	%0, sr"
+						 : "=&r" (__dummy)
+						 : "r" (SR_FD));
 }
 
 static __inline__ void enable_fpu(void)
@@ -162,10 +167,10 @@ static __inline__ void enable_fpu(void)
 
 	/* Clear out FD flag in SR */
 	__asm__ __volatile__("stc	sr, %0\n\t"
-			     "and	%1, %0\n\t"
-			     "ldc	%0, sr"
-			     : "=&r" (__dummy)
-			     : "r" (~SR_FD));
+						 "and	%1, %0\n\t"
+						 "ldc	%0, sr"
+						 : "=&r" (__dummy)
+						 : "r" (~SR_FD));
 }
 
 /* Double presision, NANS as NANS, rounding to nearest, no exceptions */
@@ -180,7 +185,7 @@ static __inline__ void enable_fpu(void)
 #define thread_saved_pc(tsk)	(tsk->thread.pc)
 
 void show_trace(struct task_struct *tsk, unsigned long *sp,
-		struct pt_regs *regs);
+				struct pt_regs *regs);
 
 #ifdef CONFIG_DUMP_CODE
 void show_code(struct pt_regs *regs);

@@ -31,80 +31,86 @@
 #include "sha256_glue.h"
 
 asmlinkage void sha256_block_data_order(u32 *digest, const void *data,
-					unsigned int num_blks);
+										unsigned int num_blks);
 
 int crypto_sha256_arm_update(struct shash_desc *desc, const u8 *data,
-			     unsigned int len)
+							 unsigned int len)
 {
 	/* make sure casting to sha256_block_fn() is safe */
 	BUILD_BUG_ON(offsetof(struct sha256_state, state) != 0);
 
 	return sha256_base_do_update(desc, data, len,
-				(sha256_block_fn *)sha256_block_data_order);
+								 (sha256_block_fn *)sha256_block_data_order);
 }
 EXPORT_SYMBOL(crypto_sha256_arm_update);
 
 static int sha256_final(struct shash_desc *desc, u8 *out)
 {
 	sha256_base_do_finalize(desc,
-				(sha256_block_fn *)sha256_block_data_order);
+							(sha256_block_fn *)sha256_block_data_order);
 	return sha256_base_finish(desc, out);
 }
 
 int crypto_sha256_arm_finup(struct shash_desc *desc, const u8 *data,
-			    unsigned int len, u8 *out)
+							unsigned int len, u8 *out)
 {
 	sha256_base_do_update(desc, data, len,
-			      (sha256_block_fn *)sha256_block_data_order);
+						  (sha256_block_fn *)sha256_block_data_order);
 	return sha256_final(desc, out);
 }
 EXPORT_SYMBOL(crypto_sha256_arm_finup);
 
 static struct shash_alg algs[] = { {
-	.digestsize	=	SHA256_DIGEST_SIZE,
-	.init		=	sha256_base_init,
-	.update		=	crypto_sha256_arm_update,
-	.final		=	sha256_final,
-	.finup		=	crypto_sha256_arm_finup,
-	.descsize	=	sizeof(struct sha256_state),
-	.base		=	{
-		.cra_name	=	"sha256",
-		.cra_driver_name =	"sha256-asm",
-		.cra_priority	=	150,
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	SHA256_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
+		.digestsize	=	SHA256_DIGEST_SIZE,
+		.init		=	sha256_base_init,
+		.update		=	crypto_sha256_arm_update,
+		.final		=	sha256_final,
+		.finup		=	crypto_sha256_arm_finup,
+		.descsize	=	sizeof(struct sha256_state),
+		.base		=	{
+			.cra_name	=	"sha256",
+			.cra_driver_name =	"sha256-asm",
+			.cra_priority	=	150,
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	SHA256_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
+	}, {
+		.digestsize	=	SHA224_DIGEST_SIZE,
+		.init		=	sha224_base_init,
+		.update		=	crypto_sha256_arm_update,
+		.final		=	sha256_final,
+		.finup		=	crypto_sha256_arm_finup,
+		.descsize	=	sizeof(struct sha256_state),
+		.base		=	{
+			.cra_name	=	"sha224",
+			.cra_driver_name =	"sha224-asm",
+			.cra_priority	=	150,
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	SHA224_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
 	}
-}, {
-	.digestsize	=	SHA224_DIGEST_SIZE,
-	.init		=	sha224_base_init,
-	.update		=	crypto_sha256_arm_update,
-	.final		=	sha256_final,
-	.finup		=	crypto_sha256_arm_finup,
-	.descsize	=	sizeof(struct sha256_state),
-	.base		=	{
-		.cra_name	=	"sha224",
-		.cra_driver_name =	"sha224-asm",
-		.cra_priority	=	150,
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	SHA224_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
-	}
-} };
+};
 
 static int __init sha256_mod_init(void)
 {
 	int res = crypto_register_shashes(algs, ARRAY_SIZE(algs));
 
 	if (res < 0)
+	{
 		return res;
+	}
 
-	if (IS_ENABLED(CONFIG_KERNEL_MODE_NEON) && cpu_has_neon()) {
+	if (IS_ENABLED(CONFIG_KERNEL_MODE_NEON) && cpu_has_neon())
+	{
 		res = crypto_register_shashes(sha256_neon_algs,
-					      ARRAY_SIZE(sha256_neon_algs));
+									  ARRAY_SIZE(sha256_neon_algs));
 
 		if (res < 0)
+		{
 			crypto_unregister_shashes(algs, ARRAY_SIZE(algs));
+		}
 	}
 
 	return res;
@@ -116,7 +122,7 @@ static void __exit sha256_mod_fini(void)
 
 	if (IS_ENABLED(CONFIG_KERNEL_MODE_NEON) && cpu_has_neon())
 		crypto_unregister_shashes(sha256_neon_algs,
-					  ARRAY_SIZE(sha256_neon_algs));
+								  ARRAY_SIZE(sha256_neon_algs));
 }
 
 module_init(sha256_mod_init);

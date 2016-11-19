@@ -16,41 +16,41 @@
 
 #ifndef REG_FIELD
 #define REG_FIELD( scope, reg, field, value ) \
-  REG_FIELD_X_( value, reg_##scope##_##reg##___##field##___lsb )
+	REG_FIELD_X_( value, reg_##scope##_##reg##___##field##___lsb )
 #define REG_FIELD_X_( value, shift ) ((value) << shift)
 #endif
 
 #ifndef REG_STATE
 #define REG_STATE( scope, reg, field, symbolic_value ) \
-  REG_STATE_X_( regk_##scope##_##symbolic_value, reg_##scope##_##reg##___##field##___lsb )
+	REG_STATE_X_( regk_##scope##_##symbolic_value, reg_##scope##_##reg##___##field##___lsb )
 #define REG_STATE_X_( k, shift ) (k << shift)
 #endif
 
 #ifndef REG_MASK
 #define REG_MASK( scope, reg, field ) \
-  REG_MASK_X_( reg_##scope##_##reg##___##field##___width, reg_##scope##_##reg##___##field##___lsb )
+	REG_MASK_X_( reg_##scope##_##reg##___##field##___width, reg_##scope##_##reg##___##field##___lsb )
 #define REG_MASK_X_( width, lsb ) (((1 << width)-1) << lsb)
 #endif
 
 #ifndef REG_LSB
-#define REG_LSB( scope, reg, field ) reg_##scope##_##reg##___##field##___lsb
+	#define REG_LSB( scope, reg, field ) reg_##scope##_##reg##___##field##___lsb
 #endif
 
 #ifndef REG_BIT
-#define REG_BIT( scope, reg, field ) reg_##scope##_##reg##___##field##___bit
+	#define REG_BIT( scope, reg, field ) reg_##scope##_##reg##___##field##___bit
 #endif
 
 #ifndef REG_ADDR
-#define REG_ADDR( scope, inst, reg ) REG_ADDR_X_(inst, reg_##scope##_##reg##_offset)
-#define REG_ADDR_X_( inst, offs ) ((inst) + offs)
+	#define REG_ADDR( scope, inst, reg ) REG_ADDR_X_(inst, reg_##scope##_##reg##_offset)
+	#define REG_ADDR_X_( inst, offs ) ((inst) + offs)
 #endif
 
 #ifndef REG_ADDR_VECT
 #define REG_ADDR_VECT( scope, inst, reg, index ) \
-         REG_ADDR_VECT_X_(inst, reg_##scope##_##reg##_offset, index, \
-			 STRIDE_##scope##_##reg )
+	REG_ADDR_VECT_X_(inst, reg_##scope##_##reg##_offset, index, \
+					 STRIDE_##scope##_##reg )
 #define REG_ADDR_VECT_X_( inst, offs, index, stride ) \
-                          ((inst) + offs + (index) * stride)
+	((inst) + offs + (index) * stride)
 #endif
 
 /* Register rw_mc_ctrl, scope iop_sw_cpu, type rw */

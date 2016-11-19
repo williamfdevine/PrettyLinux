@@ -41,11 +41,12 @@ u8					hpet_blockid; /* OS timer block num */
 bool					hpet_msi_disable;
 
 #ifdef CONFIG_PCI_MSI
-static unsigned int			hpet_num_timers;
+	static unsigned int			hpet_num_timers;
 #endif
 static void __iomem			*hpet_virt_address;
 
-struct hpet_dev {
+struct hpet_dev
+{
 	struct clock_event_device	evt;
 	unsigned int			num;
 	int				cpu;
@@ -70,7 +71,7 @@ static inline void hpet_writel(unsigned int d, unsigned int a)
 }
 
 #ifdef CONFIG_X86_64
-#include <asm/pgtable.h>
+	#include <asm/pgtable.h>
 #endif
 
 static inline void hpet_set_mapping(void)
@@ -93,19 +94,33 @@ static bool hpet_verbose;
 
 static int __init hpet_setup(char *str)
 {
-	while (str) {
+	while (str)
+	{
 		char *next = strchr(str, ',');
 
 		if (next)
+		{
 			*next++ = 0;
+		}
+
 		if (!strncmp("disable", str, 7))
+		{
 			boot_hpet_disable = true;
+		}
+
 		if (!strncmp("force", str, 5))
+		{
 			hpet_force_user = true;
+		}
+
 		if (!strncmp("verbose", str, 7))
+		{
 			hpet_verbose = true;
+		}
+
 		str = next;
 	}
+
 	return 1;
 }
 __setup("hpet=", hpet_setup);
@@ -148,30 +163,31 @@ static void _hpet_print_config(const char *function, int line)
 	h = hpet_readl(HPET_STATUS);
 	printk(KERN_INFO "hpet: CFG: 0x%x, STATUS: 0x%x\n", l, h);
 	l = hpet_readl(HPET_COUNTER);
-	h = hpet_readl(HPET_COUNTER+4);
+	h = hpet_readl(HPET_COUNTER + 4);
 	printk(KERN_INFO "hpet: COUNTER_l: 0x%x, COUNTER_h: 0x%x\n", l, h);
 
-	for (i = 0; i < timers; i++) {
+	for (i = 0; i < timers; i++)
+	{
 		l = hpet_readl(HPET_Tn_CFG(i));
-		h = hpet_readl(HPET_Tn_CFG(i)+4);
+		h = hpet_readl(HPET_Tn_CFG(i) + 4);
 		printk(KERN_INFO "hpet: T%d: CFG_l: 0x%x, CFG_h: 0x%x\n",
-		       i, l, h);
+			   i, l, h);
 		l = hpet_readl(HPET_Tn_CMP(i));
-		h = hpet_readl(HPET_Tn_CMP(i)+4);
+		h = hpet_readl(HPET_Tn_CMP(i) + 4);
 		printk(KERN_INFO "hpet: T%d: CMP_l: 0x%x, CMP_h: 0x%x\n",
-		       i, l, h);
+			   i, l, h);
 		l = hpet_readl(HPET_Tn_ROUTE(i));
-		h = hpet_readl(HPET_Tn_ROUTE(i)+4);
+		h = hpet_readl(HPET_Tn_ROUTE(i) + 4);
 		printk(KERN_INFO "hpet: T%d ROUTE_l: 0x%x, ROUTE_h: 0x%x\n",
-		       i, l, h);
+			   i, l, h);
 	}
 }
 
 #define hpet_print_config()					\
-do {								\
-	if (hpet_verbose)					\
-		_hpet_print_config(__func__, __LINE__);	\
-} while (0)
+	do {								\
+		if (hpet_verbose)					\
+			_hpet_print_config(__func__, __LINE__);	\
+	} while (0)
 
 /*
  * When the hpet driver (/dev/hpet) is enabled, we need to reserve
@@ -208,9 +224,10 @@ static void hpet_reserve_platform_timers(unsigned int id)
 	hd.hd_irq[0] = HPET_LEGACY_8254;
 	hd.hd_irq[1] = HPET_LEGACY_RTC;
 
-	for (i = 2; i < nrtimers; timer++, i++) {
+	for (i = 2; i < nrtimers; timer++, i++)
+	{
 		hd.hd_irq[i] = (readl(&timer->hpet_config) &
-			Tn_INT_ROUTE_CNF_MASK) >> Tn_INT_ROUTE_CNF_SHIFT;
+						Tn_INT_ROUTE_CNF_MASK) >> Tn_INT_ROUTE_CNF_SHIFT;
 	}
 
 	hpet_reserve_msi_timers(&hd);
@@ -287,7 +304,7 @@ static void hpet_legacy_clockevent_register(void)
 	 */
 	hpet_clockevent.cpumask = cpumask_of(smp_processor_id());
 	clockevents_config_and_register(&hpet_clockevent, hpet_freq,
-					HPET_MIN_PROG_DELTA, 0x7FFFFFFF);
+									HPET_MIN_PROG_DELTA, 0x7FFFFFFF);
 	global_clock_event = &hpet_clockevent;
 	printk(KERN_DEBUG "hpet clockevent registered\n");
 }
@@ -304,7 +321,7 @@ static int hpet_set_periodic(struct clock_event_device *evt, int timer)
 	cmp = now + (unsigned int)delta;
 	cfg = hpet_readl(HPET_Tn_CFG(timer));
 	cfg |= HPET_TN_ENABLE | HPET_TN_PERIODIC | HPET_TN_SETVAL |
-	       HPET_TN_32BIT;
+		   HPET_TN_32BIT;
 	hpet_writel(cfg, HPET_Tn_CFG(timer));
 	hpet_writel(cmp, HPET_Tn_CMP(timer));
 	udelay(1);
@@ -347,9 +364,12 @@ static int hpet_shutdown(struct clock_event_device *evt, int timer)
 
 static int hpet_resume(struct clock_event_device *evt, int timer)
 {
-	if (!timer) {
+	if (!timer)
+	{
 		hpet_enable_legacy_int();
-	} else {
+	}
+	else
+	{
 		struct hpet_dev *hdev = EVT_TO_HPET_DEV(evt);
 
 		irq_domain_activate_irq(irq_get_irq_data(hdev->irq));
@@ -357,13 +377,14 @@ static int hpet_resume(struct clock_event_device *evt, int timer)
 		irq_set_affinity(hdev->irq, cpumask_of(hdev->cpu));
 		enable_irq(hdev->irq);
 	}
+
 	hpet_print_config();
 
 	return 0;
 }
 
 static int hpet_next_event(unsigned long delta,
-			   struct clock_event_device *evt, int timer)
+						   struct clock_event_device *evt, int timer)
 {
 	u32 cnt;
 	s32 res;
@@ -420,7 +441,7 @@ static int hpet_legacy_resume(struct clock_event_device *evt)
 }
 
 static int hpet_legacy_next_event(unsigned long delta,
-			struct clock_event_device *evt)
+								  struct clock_event_device *evt)
 {
 	return hpet_next_event(delta, evt, 0);
 }
@@ -428,10 +449,11 @@ static int hpet_legacy_next_event(unsigned long delta,
 /*
  * The hpet clock event device
  */
-static struct clock_event_device hpet_clockevent = {
+static struct clock_event_device hpet_clockevent =
+{
 	.name			= "hpet",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_periodic	= hpet_legacy_set_periodic,
 	.set_state_oneshot	= hpet_legacy_set_oneshot,
 	.set_state_shutdown	= hpet_legacy_shutdown,
@@ -514,7 +536,7 @@ static int hpet_msi_resume(struct clock_event_device *evt)
 }
 
 static int hpet_msi_next_event(unsigned long delta,
-				struct clock_event_device *evt)
+							   struct clock_event_device *evt)
 {
 	struct hpet_dev *hdev = EVT_TO_HPET_DEV(evt);
 	return hpet_next_event(delta, evt, hdev->num);
@@ -525,9 +547,10 @@ static irqreturn_t hpet_interrupt_handler(int irq, void *data)
 	struct hpet_dev *dev = (struct hpet_dev *)data;
 	struct clock_event_device *hevt = &dev->evt;
 
-	if (!hevt->event_handler) {
+	if (!hevt->event_handler)
+	{
 		printk(KERN_INFO "Spurious HPET timer interrupt on HPET timer %d\n",
-				dev->num);
+			   dev->num);
 		return IRQ_HANDLED;
 	}
 
@@ -539,16 +562,18 @@ static int hpet_setup_irq(struct hpet_dev *dev)
 {
 
 	if (request_irq(dev->irq, hpet_interrupt_handler,
-			IRQF_TIMER | IRQF_NOBALANCING,
-			dev->name, dev))
+					IRQF_TIMER | IRQF_NOBALANCING,
+					dev->name, dev))
+	{
 		return -1;
+	}
 
 	disable_irq(dev->irq);
 	irq_set_affinity(dev->irq, cpumask_of(dev->cpu));
 	enable_irq(dev->irq);
 
 	printk(KERN_DEBUG "hpet: %s irq %d for MSI\n",
-			 dev->name, dev->irq);
+		   dev->name, dev->irq);
 
 	return 0;
 }
@@ -559,8 +584,11 @@ static void init_one_hpet_msi_clockevent(struct hpet_dev *hdev, int cpu)
 	struct clock_event_device *evt = &hdev->evt;
 
 	WARN_ON(cpu != smp_processor_id());
+
 	if (!(hdev->flags & HPET_DEV_VALID))
+	{
 		return;
+	}
 
 	hdev->cpu = cpu;
 	per_cpu(cpu_hpet_dev, cpu) = hdev;
@@ -570,7 +598,9 @@ static void init_one_hpet_msi_clockevent(struct hpet_dev *hdev, int cpu)
 
 	evt->rating = 110;
 	evt->features = CLOCK_EVT_FEAT_ONESHOT;
-	if (hdev->flags & HPET_DEV_PERI_CAP) {
+
+	if (hdev->flags & HPET_DEV_PERI_CAP)
+	{
 		evt->features |= CLOCK_EVT_FEAT_PERIODIC;
 		evt->set_state_periodic = hpet_msi_set_periodic;
 	}
@@ -582,14 +612,14 @@ static void init_one_hpet_msi_clockevent(struct hpet_dev *hdev, int cpu)
 	evt->cpumask = cpumask_of(hdev->cpu);
 
 	clockevents_config_and_register(evt, hpet_freq, HPET_MIN_PROG_DELTA,
-					0x7FFFFFFF);
+									0x7FFFFFFF);
 }
 
 #ifdef CONFIG_HPET
-/* Reserve at least one timer for userspace (/dev/hpet) */
-#define RESERVE_TIMERS 1
+	/* Reserve at least one timer for userspace (/dev/hpet) */
+	#define RESERVE_TIMERS 1
 #else
-#define RESERVE_TIMERS 0
+	#define RESERVE_TIMERS 0
 #endif
 
 static void hpet_msi_capability_lookup(unsigned int start_timer)
@@ -600,10 +630,15 @@ static void hpet_msi_capability_lookup(unsigned int start_timer)
 	int i, irq;
 
 	if (hpet_msi_disable)
+	{
 		return;
+	}
 
 	if (boot_cpu_has(X86_FEATURE_ARAT))
+	{
 		return;
+	}
+
 	id = hpet_readl(HPET_ID);
 
 	num_timers = ((id & HPET_ID_NUMBER) >> HPET_ID_NUMBER_SHIFT);
@@ -611,43 +646,62 @@ static void hpet_msi_capability_lookup(unsigned int start_timer)
 	hpet_print_config();
 
 	hpet_domain = hpet_create_irq_domain(hpet_blockid);
+
 	if (!hpet_domain)
+	{
 		return;
+	}
 
 	hpet_devs = kzalloc(sizeof(struct hpet_dev) * num_timers, GFP_KERNEL);
+
 	if (!hpet_devs)
+	{
 		return;
+	}
 
 	hpet_num_timers = num_timers;
 
-	for (i = start_timer; i < num_timers - RESERVE_TIMERS; i++) {
+	for (i = start_timer; i < num_timers - RESERVE_TIMERS; i++)
+	{
 		struct hpet_dev *hdev = &hpet_devs[num_timers_used];
 		unsigned int cfg = hpet_readl(HPET_Tn_CFG(i));
 
 		/* Only consider HPET timer with MSI support */
 		if (!(cfg & HPET_TN_FSB_CAP))
+		{
 			continue;
+		}
 
 		hdev->flags = 0;
+
 		if (cfg & HPET_TN_PERIODIC_CAP)
+		{
 			hdev->flags |= HPET_DEV_PERI_CAP;
+		}
+
 		sprintf(hdev->name, "hpet%d", i);
 		hdev->num = i;
 
 		irq = hpet_assign_irq(hpet_domain, hdev, hdev->num);
+
 		if (irq <= 0)
+		{
 			continue;
+		}
 
 		hdev->irq = irq;
 		hdev->flags |= HPET_DEV_FSB_CAP;
 		hdev->flags |= HPET_DEV_VALID;
 		num_timers_used++;
+
 		if (num_timers_used == num_possible_cpus())
+		{
 			break;
+		}
 	}
 
 	printk(KERN_INFO "HPET: %d timers in total, %d timers will be used for per-cpu timer\n",
-		num_timers, num_timers_used);
+		   num_timers, num_timers_used);
 }
 
 #ifdef CONFIG_HPET
@@ -656,13 +710,18 @@ static void hpet_reserve_msi_timers(struct hpet_data *hd)
 	int i;
 
 	if (!hpet_devs)
+	{
 		return;
+	}
 
-	for (i = 0; i < hpet_num_timers; i++) {
+	for (i = 0; i < hpet_num_timers; i++)
+	{
 		struct hpet_dev *hdev = &hpet_devs[i];
 
 		if (!(hdev->flags & HPET_DEV_VALID))
+		{
 			continue;
+		}
 
 		hd->hd_irq[hdev->num] = hdev->irq;
 		hpet_reserve_timer(hd, hdev->num);
@@ -675,22 +734,33 @@ static struct hpet_dev *hpet_get_unused_timer(void)
 	int i;
 
 	if (!hpet_devs)
+	{
 		return NULL;
+	}
 
-	for (i = 0; i < hpet_num_timers; i++) {
+	for (i = 0; i < hpet_num_timers; i++)
+	{
 		struct hpet_dev *hdev = &hpet_devs[i];
 
 		if (!(hdev->flags & HPET_DEV_VALID))
+		{
 			continue;
+		}
+
 		if (test_and_set_bit(HPET_DEV_USED_BIT,
-			(unsigned long *)&hdev->flags))
+							 (unsigned long *)&hdev->flags))
+		{
 			continue;
+		}
+
 		return hdev;
 	}
+
 	return NULL;
 }
 
-struct hpet_work_struct {
+struct hpet_work_struct
+{
 	struct delayed_work work;
 	struct completion complete;
 };
@@ -704,8 +774,11 @@ static void hpet_work(struct work_struct *w)
 	hpet_work = container_of(w, struct hpet_work_struct, work.work);
 
 	hdev = hpet_get_unused_timer();
+
 	if (hdev)
+	{
 		init_one_hpet_msi_clockevent(hdev, cpu);
+	}
 
 	complete(&hpet_work->complete);
 }
@@ -728,7 +801,10 @@ static int hpet_cpuhp_dead(unsigned int cpu)
 	struct hpet_dev *hdev = per_cpu(cpu_hpet_dev, cpu);
 
 	if (!hdev)
+	{
 		return 0;
+	}
+
 	free_irq(hdev->irq, hdev);
 	hdev->flags &= ~HPET_DEV_USED;
 	per_cpu(cpu_hpet_dev, cpu) = NULL;
@@ -779,15 +855,18 @@ static void hpet_reserve_msi_timers(struct hpet_data *hd)
  * single atomic 64-bit read. It is explicitly assumed that arch_spinlock_t
  * is 32 bits in size.
  */
-union hpet_lock {
-	struct {
+union hpet_lock
+{
+	struct
+	{
 		arch_spinlock_t lock;
 		u32 value;
 	};
 	u64 lockval;
 };
 
-static union hpet_lock hpet __cacheline_aligned = {
+static union hpet_lock hpet __cacheline_aligned =
+{
 	{ .lock = __ARCH_SPIN_LOCK_UNLOCKED, },
 };
 
@@ -802,7 +881,9 @@ static cycle_t read_hpet(struct clocksource *cs)
 	 * Read HPET directly if in NMI.
 	 */
 	if (in_nmi())
+	{
 		return (cycle_t)hpet_readl(HPET_COUNTER);
+	}
 
 	/*
 	 * Read the current state of the lock and HPET value atomically.
@@ -810,10 +891,14 @@ static cycle_t read_hpet(struct clocksource *cs)
 	old.lockval = READ_ONCE(hpet.lockval);
 
 	if (arch_spin_is_locked(&old.lock))
+	{
 		goto contended;
+	}
 
 	local_irq_save(flags);
-	if (arch_spin_trylock(&hpet.lock)) {
+
+	if (arch_spin_trylock(&hpet.lock))
+	{
 		new.value = hpet_readl(HPET_COUNTER);
 		/*
 		 * Use WRITE_ONCE() to prevent store tearing.
@@ -823,9 +908,11 @@ static cycle_t read_hpet(struct clocksource *cs)
 		local_irq_restore(flags);
 		return (cycle_t)new.value;
 	}
+
 	local_irq_restore(flags);
 
 contended:
+
 	/*
 	 * Contended case
 	 * --------------
@@ -838,10 +925,12 @@ contended:
 	 * the value immediately instead of waiting for the next HPET reader
 	 * to come along.
 	 */
-	do {
+	do
+	{
 		cpu_relax();
 		new.lockval = READ_ONCE(hpet.lockval);
-	} while ((new.value == old.value) && arch_spin_is_locked(&new.lock));
+	}
+	while ((new.value == old.value) && arch_spin_is_locked(&new.lock));
 
 	return (cycle_t)new.value;
 }
@@ -855,7 +944,8 @@ static cycle_t read_hpet(struct clocksource *cs)
 }
 #endif
 
-static struct clocksource clocksource_hpet = {
+static struct clocksource clocksource_hpet =
+{
 	.name		= "hpet",
 	.rating		= 250,
 	.read		= read_hpet,
@@ -882,14 +972,17 @@ static int hpet_clocksource_register(void)
 	 * 4 GHz == 50us
 	 * 1 GHz == 200us
 	 */
-	do {
+	do
+	{
 		rep_nop();
 		now = rdtsc();
-	} while ((now - start) < 200000UL);
+	}
+	while ((now - start) < 200000UL);
 
-	if (t1 == hpet_readl(HPET_COUNTER)) {
+	if (t1 == hpet_readl(HPET_COUNTER))
+	{
 		printk(KERN_WARNING
-		       "HPET counter not counting. HPET disabled\n");
+			   "HPET counter not counting. HPET disabled\n");
 		return -ENODEV;
 	}
 
@@ -909,7 +1002,9 @@ int __init hpet_enable(void)
 	unsigned int i, last;
 
 	if (!is_hpet_capable())
+	{
 		return 0;
+	}
 
 	hpet_set_mapping();
 
@@ -931,17 +1026,21 @@ int __init hpet_enable(void)
 	 * machines this check is only done once and has no side
 	 * effects.
 	 */
-	for (i = 0; hpet_readl(HPET_CFG) == 0xFFFFFFFF; i++) {
-		if (i == 1000) {
+	for (i = 0; hpet_readl(HPET_CFG) == 0xFFFFFFFF; i++)
+	{
+		if (i == 1000)
+		{
 			printk(KERN_WARNING
-			       "HPET config register value = 0xFFFFFFFF. "
-			       "Disabling HPET\n");
+				   "HPET config register value = 0xFFFFFFFF. "
+				   "Disabling HPET\n");
 			goto out_nohpet;
 		}
 	}
 
 	if (hpet_period < HPET_MIN_PERIOD || hpet_period > HPET_MAX_PERIOD)
+	{
 		goto out_nohpet;
+	}
 
 	/*
 	 * The period is a femto seconds value. Convert it to a
@@ -961,49 +1060,71 @@ int __init hpet_enable(void)
 	last = (id & HPET_ID_NUMBER) >> HPET_ID_NUMBER_SHIFT;
 
 #ifdef CONFIG_HPET_EMULATE_RTC
+
 	/*
 	 * The legacy routing mode needs at least two channels, tick timer
 	 * and the rtc emulation channel.
 	 */
 	if (!last)
+	{
 		goto out_nohpet;
+	}
+
 #endif
 
 	cfg = hpet_readl(HPET_CFG);
 	hpet_boot_cfg = kmalloc((last + 2) * sizeof(*hpet_boot_cfg),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (hpet_boot_cfg)
+	{
 		*hpet_boot_cfg = cfg;
+	}
 	else
+	{
 		pr_warn("HPET initial state will not be saved\n");
+	}
+
 	cfg &= ~(HPET_CFG_ENABLE | HPET_CFG_LEGACY);
 	hpet_writel(cfg, HPET_CFG);
+
 	if (cfg)
 		pr_warn("HPET: Unrecognized bits %#x set in global cfg\n",
-			cfg);
+				cfg);
 
-	for (i = 0; i <= last; ++i) {
+	for (i = 0; i <= last; ++i)
+	{
 		cfg = hpet_readl(HPET_Tn_CFG(i));
+
 		if (hpet_boot_cfg)
+		{
 			hpet_boot_cfg[i + 1] = cfg;
+		}
+
 		cfg &= ~(HPET_TN_ENABLE | HPET_TN_LEVEL | HPET_TN_FSB);
 		hpet_writel(cfg, HPET_Tn_CFG(i));
 		cfg &= ~(HPET_TN_PERIODIC | HPET_TN_PERIODIC_CAP
-			 | HPET_TN_64BIT_CAP | HPET_TN_32BIT | HPET_TN_ROUTE
-			 | HPET_TN_FSB | HPET_TN_FSB_CAP);
+				 | HPET_TN_64BIT_CAP | HPET_TN_32BIT | HPET_TN_ROUTE
+				 | HPET_TN_FSB | HPET_TN_FSB_CAP);
+
 		if (cfg)
 			pr_warn("HPET: Unrecognized bits %#x set in cfg#%u\n",
-				cfg, i);
+					cfg, i);
 	}
+
 	hpet_print_config();
 
 	if (hpet_clocksource_register())
+	{
 		goto out_nohpet;
+	}
 
-	if (id & HPET_ID_LEGSUP) {
+	if (id & HPET_ID_LEGSUP)
+	{
 		hpet_legacy_clockevent_register();
 		return 1;
 	}
+
 	return 0;
 
 out_nohpet:
@@ -1023,42 +1144,65 @@ static __init int hpet_late_init(void)
 	int ret;
 
 	if (boot_hpet_disable)
+	{
 		return -ENODEV;
+	}
 
-	if (!hpet_address) {
+	if (!hpet_address)
+	{
 		if (!force_hpet_address)
+		{
 			return -ENODEV;
+		}
 
 		hpet_address = force_hpet_address;
 		hpet_enable();
 	}
 
 	if (!hpet_virt_address)
+	{
 		return -ENODEV;
+	}
 
 	if (hpet_readl(HPET_ID) & HPET_ID_LEGSUP)
+	{
 		hpet_msi_capability_lookup(2);
+	}
 	else
+	{
 		hpet_msi_capability_lookup(0);
+	}
 
 	hpet_reserve_platform_timers(hpet_readl(HPET_ID));
 	hpet_print_config();
 
 	if (hpet_msi_disable)
+	{
 		return 0;
+	}
 
 	if (boot_cpu_has(X86_FEATURE_ARAT))
+	{
 		return 0;
+	}
 
 	/* This notifier should be called after workqueue is ready */
 	ret = cpuhp_setup_state(CPUHP_AP_X86_HPET_ONLINE, "AP_X86_HPET_ONLINE",
-				hpet_cpuhp_online, NULL);
+							hpet_cpuhp_online, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = cpuhp_setup_state(CPUHP_X86_HPET_DEAD, "X86_HPET_DEAD", NULL,
-				hpet_cpuhp_dead);
+							hpet_cpuhp_dead);
+
 	if (ret)
+	{
 		goto err_cpuhp;
+	}
+
 	return 0;
 
 err_cpuhp:
@@ -1069,29 +1213,40 @@ fs_initcall(hpet_late_init);
 
 void hpet_disable(void)
 {
-	if (is_hpet_capable() && hpet_virt_address) {
+	if (is_hpet_capable() && hpet_virt_address)
+	{
 		unsigned int cfg = hpet_readl(HPET_CFG), id, last;
 
 		if (hpet_boot_cfg)
+		{
 			cfg = *hpet_boot_cfg;
-		else if (hpet_legacy_int_enabled) {
+		}
+		else if (hpet_legacy_int_enabled)
+		{
 			cfg &= ~HPET_CFG_LEGACY;
 			hpet_legacy_int_enabled = false;
 		}
+
 		cfg &= ~HPET_CFG_ENABLE;
 		hpet_writel(cfg, HPET_CFG);
 
 		if (!hpet_boot_cfg)
+		{
 			return;
+		}
 
 		id = hpet_readl(HPET_ID);
 		last = ((id & HPET_ID_NUMBER) >> HPET_ID_NUMBER_SHIFT);
 
 		for (id = 0; id <= last; ++id)
+		{
 			hpet_writel(hpet_boot_cfg[id + 1], HPET_Tn_CFG(id));
+		}
 
 		if (*hpet_boot_cfg & HPET_CFG_ENABLE)
+		{
 			hpet_writel(*hpet_boot_cfg, HPET_CFG);
+		}
 	}
 }
 
@@ -1143,9 +1298,14 @@ static inline int hpet_cnt_ahead(u32 c1, u32 c2)
 int hpet_register_irq_handler(rtc_irq_handler handler)
 {
 	if (!is_hpet_enabled())
+	{
 		return -ENODEV;
+	}
+
 	if (irq_handler)
+	{
 		return -EBUSY;
+	}
 
 	irq_handler = handler;
 
@@ -1160,7 +1320,9 @@ EXPORT_SYMBOL_GPL(hpet_register_irq_handler);
 void hpet_unregister_irq_handler(rtc_irq_handler handler)
 {
 	if (!is_hpet_enabled())
+	{
 		return;
+	}
 
 	irq_handler = NULL;
 	hpet_rtc_flags = 0;
@@ -1179,9 +1341,12 @@ int hpet_rtc_timer_init(void)
 	unsigned long flags;
 
 	if (!is_hpet_enabled())
+	{
 		return 0;
+	}
 
-	if (!hpet_default_delta) {
+	if (!hpet_default_delta)
+	{
 		uint64_t clc;
 
 		clc = (uint64_t) hpet_clockevent.mult * NSEC_PER_SEC;
@@ -1190,9 +1355,13 @@ int hpet_rtc_timer_init(void)
 	}
 
 	if (!(hpet_rtc_flags & RTC_PIE) || hpet_pie_limit)
+	{
 		delta = hpet_default_delta;
+	}
 	else
+	{
 		delta = hpet_pie_delta;
+	}
 
 	local_irq_save(flags);
 
@@ -1226,11 +1395,16 @@ static void hpet_disable_rtc_channel(void)
 int hpet_mask_rtc_irq_bit(unsigned long bit_mask)
 {
 	if (!is_hpet_enabled())
+	{
 		return 0;
+	}
 
 	hpet_rtc_flags &= ~bit_mask;
+
 	if (unlikely(!hpet_rtc_flags))
+	{
 		hpet_disable_rtc_channel();
+	}
 
 	return 1;
 }
@@ -1241,25 +1415,33 @@ int hpet_set_rtc_irq_bit(unsigned long bit_mask)
 	unsigned long oldbits = hpet_rtc_flags;
 
 	if (!is_hpet_enabled())
+	{
 		return 0;
+	}
 
 	hpet_rtc_flags |= bit_mask;
 
 	if ((bit_mask & RTC_UIE) && !(oldbits & RTC_UIE))
+	{
 		hpet_prev_update_sec = -1;
+	}
 
 	if (!oldbits)
+	{
 		hpet_rtc_timer_init();
+	}
 
 	return 1;
 }
 EXPORT_SYMBOL_GPL(hpet_set_rtc_irq_bit);
 
 int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
-			unsigned char sec)
+						unsigned char sec)
 {
 	if (!is_hpet_enabled())
+	{
 		return 0;
+	}
 
 	hpet_alarm_time.tm_hour = hrs;
 	hpet_alarm_time.tm_min = min;
@@ -1274,17 +1456,23 @@ int hpet_set_periodic_freq(unsigned long freq)
 	uint64_t clc;
 
 	if (!is_hpet_enabled())
+	{
 		return 0;
+	}
 
 	if (freq <= DEFAULT_RTC_INT_FREQ)
+	{
 		hpet_pie_limit = DEFAULT_RTC_INT_FREQ / freq;
-	else {
+	}
+	else
+	{
 		clc = (uint64_t) hpet_clockevent.mult * NSEC_PER_SEC;
 		do_div(clc, freq);
 		clc >>= hpet_clockevent.shift;
 		hpet_pie_delta = clc;
 		hpet_pie_limit = 0;
 	}
+
 	return 1;
 }
 EXPORT_SYMBOL_GPL(hpet_set_periodic_freq);
@@ -1301,29 +1489,41 @@ static void hpet_rtc_timer_reinit(void)
 	int lost_ints = -1;
 
 	if (unlikely(!hpet_rtc_flags))
+	{
 		hpet_disable_rtc_channel();
+	}
 
 	if (!(hpet_rtc_flags & RTC_PIE) || hpet_pie_limit)
+	{
 		delta = hpet_default_delta;
+	}
 	else
+	{
 		delta = hpet_pie_delta;
+	}
 
 	/*
 	 * Increment the comparator value until we are ahead of the
 	 * current count.
 	 */
-	do {
+	do
+	{
 		hpet_t1_cmp += delta;
 		hpet_writel(hpet_t1_cmp, HPET_T1_CMP);
 		lost_ints++;
-	} while (!hpet_cnt_ahead(hpet_t1_cmp, hpet_readl(HPET_COUNTER)));
+	}
+	while (!hpet_cnt_ahead(hpet_t1_cmp, hpet_readl(HPET_COUNTER)));
 
-	if (lost_ints) {
+	if (lost_ints)
+	{
 		if (hpet_rtc_flags & RTC_PIE)
+		{
 			hpet_pie_count += lost_ints;
+		}
+
 		if (printk_ratelimit())
 			printk(KERN_WARNING "hpet1: lost %d rtc interrupts\n",
-				lost_ints);
+				   lost_ints);
 	}
 }
 
@@ -1336,32 +1536,46 @@ irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
 	memset(&curr_time, 0, sizeof(struct rtc_time));
 
 	if (hpet_rtc_flags & (RTC_UIE | RTC_AIE))
+	{
 		mc146818_get_time(&curr_time);
+	}
 
 	if (hpet_rtc_flags & RTC_UIE &&
-	    curr_time.tm_sec != hpet_prev_update_sec) {
+		curr_time.tm_sec != hpet_prev_update_sec)
+	{
 		if (hpet_prev_update_sec >= 0)
+		{
 			rtc_int_flag = RTC_UF;
+		}
+
 		hpet_prev_update_sec = curr_time.tm_sec;
 	}
 
 	if (hpet_rtc_flags & RTC_PIE &&
-	    ++hpet_pie_count >= hpet_pie_limit) {
+		++hpet_pie_count >= hpet_pie_limit)
+	{
 		rtc_int_flag |= RTC_PF;
 		hpet_pie_count = 0;
 	}
 
 	if (hpet_rtc_flags & RTC_AIE &&
-	    (curr_time.tm_sec == hpet_alarm_time.tm_sec) &&
-	    (curr_time.tm_min == hpet_alarm_time.tm_min) &&
-	    (curr_time.tm_hour == hpet_alarm_time.tm_hour))
-			rtc_int_flag |= RTC_AF;
-
-	if (rtc_int_flag) {
-		rtc_int_flag |= (RTC_IRQF | (RTC_NUM_INTS << 8));
-		if (irq_handler)
-			irq_handler(rtc_int_flag, dev_id);
+		(curr_time.tm_sec == hpet_alarm_time.tm_sec) &&
+		(curr_time.tm_min == hpet_alarm_time.tm_min) &&
+		(curr_time.tm_hour == hpet_alarm_time.tm_hour))
+	{
+		rtc_int_flag |= RTC_AF;
 	}
+
+	if (rtc_int_flag)
+	{
+		rtc_int_flag |= (RTC_IRQF | (RTC_NUM_INTS << 8));
+
+		if (irq_handler)
+		{
+			irq_handler(rtc_int_flag, dev_id);
+		}
+	}
+
 	return IRQ_HANDLED;
 }
 EXPORT_SYMBOL_GPL(hpet_rtc_interrupt);

@@ -7,7 +7,7 @@
 
 /* these are defined in mpc52xx_sleep.S, and only used here */
 extern void mpc52xx_deep_sleep(void __iomem *sram, void __iomem *sdram_regs,
-		struct mpc52xx_cdm __iomem *, struct mpc52xx_intr __iomem*);
+							   struct mpc52xx_cdm __iomem *, struct mpc52xx_intr __iomem *);
 extern void mpc52xx_ds_sram(void);
 extern const long mpc52xx_ds_sram_size;
 extern void mpc52xx_ds_cached(void);
@@ -25,11 +25,13 @@ struct mpc52xx_suspend mpc52xx_suspend;
 
 static int mpc52xx_pm_valid(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-		return 1;
-	default:
-		return 0;
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+			return 1;
+
+		default:
+			return 0;
 	}
 }
 
@@ -57,7 +59,8 @@ int mpc52xx_set_wakeup_gpio(u8 pin, u8 level)
 int mpc52xx_pm_prepare(void)
 {
 	struct device_node *np;
-	const struct of_device_id immr_ids[] = {
+	const struct of_device_id immr_ids[] =
+	{
 		{ .compatible = "fsl,mpc5200-immr", },
 		{ .compatible = "fsl,mpc5200b-immr", },
 		{ .type = "soc", .compatible = "mpc5200", }, /* lite5200 */
@@ -69,7 +72,8 @@ int mpc52xx_pm_prepare(void)
 	/* map the whole register space */
 	np = of_find_matching_node(NULL, immr_ids);
 
-	if (of_address_to_resource(np, 0, &res)) {
+	if (of_address_to_resource(np, 0, &res))
+	{
 		pr_err("mpc52xx_pm_prepare(): could not get IMMR address\n");
 		of_node_put(np);
 		return -ENOSYS;
@@ -78,10 +82,13 @@ int mpc52xx_pm_prepare(void)
 	mbar = ioremap(res.start, 0xc000); /* we should map whole region including SRAM */
 
 	of_node_put(np);
-	if (!mbar) {
+
+	if (!mbar)
+	{
 		pr_err("mpc52xx_pm_prepare(): could not map registers\n");
 		return -ENOSYS;
 	}
+
 	/* these offsets are from mpc5200 users manual */
 	sdram	= mbar + 0x100;
 	cdm	= mbar + 0x200;
@@ -92,16 +99,19 @@ int mpc52xx_pm_prepare(void)
 
 	/* call board suspend code, if applicable */
 	if (mpc52xx_suspend.board_suspend_prepare)
+	{
 		mpc52xx_suspend.board_suspend_prepare(mbar);
-	else {
+	}
+	else
+	{
 		printk(KERN_ALERT "%s: %i don't know how to wake up the board\n",
-				__func__, __LINE__);
+			   __func__, __LINE__);
 		goto out_unmap;
 	}
 
 	return 0;
 
- out_unmap:
+out_unmap:
 	iounmap(mbar);
 	return -ENOSYS;
 }
@@ -114,7 +124,7 @@ int mpc52xx_pm_enter(suspend_state_t state)
 	u32 clk_enables;
 	u32 msr, hid0;
 	u32 intr_main_mask;
-	void __iomem * irq_0x500 = (void __iomem *)CONFIG_KERNEL_START + 0x500;
+	void __iomem *irq_0x500 = (void __iomem *)CONFIG_KERNEL_START + 0x500;
 	unsigned long irq_0x500_stop = (unsigned long)irq_0x500 + mpc52xx_ds_cached_size;
 	char saved_0x500[mpc52xx_ds_cached_size];
 
@@ -181,12 +191,15 @@ void mpc52xx_pm_finish(void)
 {
 	/* call board resume code */
 	if (mpc52xx_suspend.board_resume_finish)
+	{
 		mpc52xx_suspend.board_resume_finish(mbar);
+	}
 
 	iounmap(mbar);
 }
 
-static const struct platform_suspend_ops mpc52xx_pm_ops = {
+static const struct platform_suspend_ops mpc52xx_pm_ops =
+{
 	.valid		= mpc52xx_pm_valid,
 	.prepare	= mpc52xx_pm_prepare,
 	.enter		= mpc52xx_pm_enter,

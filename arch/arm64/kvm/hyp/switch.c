@@ -33,8 +33,8 @@ static bool __hyp_text __fpsimd_enabled_vhe(void)
 }
 
 static hyp_alternate_select(__fpsimd_is_enabled,
-			    __fpsimd_enabled_nvhe, __fpsimd_enabled_vhe,
-			    ARM64_HAS_VIRT_HOST_EXTN);
+							__fpsimd_enabled_nvhe, __fpsimd_enabled_vhe,
+							ARM64_HAS_VIRT_HOST_EXTN);
 
 bool __hyp_text __fpsimd_enabled(void)
 {
@@ -63,8 +63,8 @@ static void __hyp_text __activate_traps_nvhe(void)
 }
 
 static hyp_alternate_select(__activate_traps_arch,
-			    __activate_traps_nvhe, __activate_traps_vhe,
-			    ARM64_HAS_VIRT_HOST_EXTN);
+							__activate_traps_nvhe, __activate_traps_vhe,
+							ARM64_HAS_VIRT_HOST_EXTN);
 
 static void __hyp_text __activate_traps(struct kvm_vcpu *vcpu)
 {
@@ -78,10 +78,13 @@ static void __hyp_text __activate_traps(struct kvm_vcpu *vcpu)
 	 * we set FPEXC.EN to prevent traps to EL1, when setting the TFP bit.
 	 */
 	val = vcpu->arch.hcr_el2;
-	if (!(val & HCR_RW)) {
+
+	if (!(val & HCR_RW))
+	{
 		write_sysreg(1 << 30, fpexc32_el2);
 		isb();
 	}
+
 	write_sysreg(val, hcr_el2);
 	/* Trap on AArch32 cp15 c15 accesses (EL1 or EL0) */
 	write_sysreg(1 << 15, hstr_el2);
@@ -107,8 +110,8 @@ static void __hyp_text __deactivate_traps_nvhe(void)
 }
 
 static hyp_alternate_select(__deactivate_traps_arch,
-			    __deactivate_traps_nvhe, __deactivate_traps_vhe,
-			    ARM64_HAS_VIRT_HOST_EXTN);
+							__deactivate_traps_nvhe, __deactivate_traps_vhe,
+							ARM64_HAS_VIRT_HOST_EXTN);
 
 static void __hyp_text __deactivate_traps(struct kvm_vcpu *vcpu)
 {
@@ -119,7 +122,9 @@ static void __hyp_text __deactivate_traps(struct kvm_vcpu *vcpu)
 	 * HCR_EL2.VSE is cleared to 0."
 	 */
 	if (vcpu->arch.hcr_el2 & HCR_VSE)
+	{
 		vcpu->arch.hcr_el2 = read_sysreg(hcr_el2);
+	}
 
 	__deactivate_traps_arch()();
 	write_sysreg(0, hstr_el2);
@@ -141,9 +146,13 @@ static void __hyp_text __deactivate_vm(struct kvm_vcpu *vcpu)
 static void __hyp_text __vgic_save_state(struct kvm_vcpu *vcpu)
 {
 	if (static_branch_unlikely(&kvm_vgic_global_state.gicv3_cpuif))
+	{
 		__vgic_v3_save_state(vcpu);
+	}
 	else
+	{
 		__vgic_v2_save_state(vcpu);
+	}
 
 	write_sysreg(read_sysreg(hcr_el2) & ~HCR_INT_OVERRIDE, hcr_el2);
 }
@@ -158,9 +167,13 @@ static void __hyp_text __vgic_restore_state(struct kvm_vcpu *vcpu)
 	write_sysreg(val, hcr_el2);
 
 	if (static_branch_unlikely(&kvm_vgic_global_state.gicv3_cpuif))
+	{
 		__vgic_v3_restore_state(vcpu);
+	}
 	else
+	{
 		__vgic_v2_restore_state(vcpu);
+	}
 }
 
 static bool __hyp_text __true_value(void)
@@ -174,8 +187,8 @@ static bool __hyp_text __false_value(void)
 }
 
 static hyp_alternate_select(__check_arm_834220,
-			    __false_value, __true_value,
-			    ARM64_WORKAROUND_834220);
+							__false_value, __true_value,
+							ARM64_WORKAROUND_834220);
 
 static bool __hyp_text __translate_far_to_hpfar(u64 far, u64 *hpfar)
 {
@@ -199,7 +212,9 @@ static bool __hyp_text __translate_far_to_hpfar(u64 far, u64 *hpfar)
 	write_sysreg(par, par_el1);
 
 	if (unlikely(tmp & 1))
-		return false; /* Translation failed, back to guest */
+	{
+		return false;    /* Translation failed, back to guest */
+	}
 
 	/* Convert PAR to HPFAR format */
 	*hpfar = ((tmp >> 12) & ((1UL << 36) - 1)) << 4;
@@ -215,7 +230,9 @@ static bool __hyp_text __populate_fault_info(struct kvm_vcpu *vcpu)
 	vcpu->arch.fault.esr_el2 = esr;
 
 	if (ec != ESR_ELx_EC_DABT_LOW && ec != ESR_ELx_EC_IABT_LOW)
+	{
 		return true;
+	}
 
 	far = read_sysreg_el2(far);
 
@@ -231,10 +248,15 @@ static bool __hyp_text __populate_fault_info(struct kvm_vcpu *vcpu)
 	 * resolve the IPA using the AT instruction.
 	 */
 	if (!(esr & ESR_ELx_S1PTW) &&
-	    (__check_arm_834220()() || (esr & ESR_ELx_FSC_TYPE) == FSC_PERM)) {
+		(__check_arm_834220()() || (esr & ESR_ELx_FSC_TYPE) == FSC_PERM))
+	{
 		if (!__translate_far_to_hpfar(far, &hpfar))
+		{
 			return false;
-	} else {
+		}
+	}
+	else
+	{
 		hpfar = read_sysreg(hpfar_el2);
 	}
 
@@ -247,11 +269,14 @@ static void __hyp_text __skip_instr(struct kvm_vcpu *vcpu)
 {
 	*vcpu_pc(vcpu) = read_sysreg_el2(elr);
 
-	if (vcpu_mode_is_32bit(vcpu)) {
+	if (vcpu_mode_is_32bit(vcpu))
+	{
 		vcpu->arch.ctxt.gp_regs.regs.pstate = read_sysreg_el2(spsr);
 		kvm_skip_instr32(vcpu, kvm_vcpu_trap_il_is32bit(vcpu));
 		write_sysreg_el2(vcpu->arch.ctxt.gp_regs.regs.pstate, spsr);
-	} else {
+	}
+	else
+	{
 		*vcpu_pc(vcpu) += 4;
 	}
 
@@ -300,27 +325,33 @@ again:
 	 * trapping instruction.
 	 */
 	if (exit_code == ARM_EXCEPTION_TRAP && !__populate_fault_info(vcpu))
+	{
 		goto again;
+	}
 
 	if (static_branch_unlikely(&vgic_v2_cpuif_trap) &&
-	    exit_code == ARM_EXCEPTION_TRAP) {
+		exit_code == ARM_EXCEPTION_TRAP)
+	{
 		bool valid;
 
 		valid = kvm_vcpu_trap_get_class(vcpu) == ESR_ELx_EC_DABT_LOW &&
-			kvm_vcpu_trap_get_fault_type(vcpu) == FSC_FAULT &&
-			kvm_vcpu_dabt_isvalid(vcpu) &&
-			!kvm_vcpu_dabt_isextabt(vcpu) &&
-			!kvm_vcpu_dabt_iss1tw(vcpu);
+				kvm_vcpu_trap_get_fault_type(vcpu) == FSC_FAULT &&
+				kvm_vcpu_dabt_isvalid(vcpu) &&
+				!kvm_vcpu_dabt_isextabt(vcpu) &&
+				!kvm_vcpu_dabt_iss1tw(vcpu);
 
-		if (valid) {
+		if (valid)
+		{
 			int ret = __vgic_v2_perform_cpuif_access(vcpu);
 
-			if (ret == 1) {
+			if (ret == 1)
+			{
 				__skip_instr(vcpu);
 				goto again;
 			}
 
-			if (ret == -1) {
+			if (ret == -1)
+			{
 				/* Promote an illegal access to an SError */
 				__skip_instr(vcpu);
 				exit_code = ARM_EXCEPTION_EL1_SERROR;
@@ -342,7 +373,8 @@ again:
 
 	__sysreg_restore_host_state(host_ctxt);
 
-	if (fp_enabled) {
+	if (fp_enabled)
+	{
 		__fpsimd_save_state(&guest_ctxt->gp_regs.fp_regs);
 		__fpsimd_restore_state(&host_ctxt->gp_regs.fp_regs);
 	}
@@ -353,7 +385,8 @@ again:
 	return exit_code;
 }
 
-static const char __hyp_panic_string[] = "HYP panic:\nPS:%08llx PC:%016llx ESR:%08llx\nFAR:%016llx HPFAR:%016llx PAR:%016llx\nVCPU:%p\n";
+static const char __hyp_panic_string[] =
+	"HYP panic:\nPS:%08llx PC:%016llx ESR:%08llx\nFAR:%016llx HPFAR:%016llx PAR:%016llx\nVCPU:%p\n";
 
 static void __hyp_text __hyp_call_panic_nvhe(u64 spsr, u64 elr, u64 par)
 {
@@ -367,24 +400,24 @@ static void __hyp_text __hyp_call_panic_nvhe(u64 spsr, u64 elr, u64 par)
 	asm volatile("ldr %0, =__hyp_panic_string" : "=r" (str_va));
 
 	__hyp_do_panic(str_va,
-		       spsr,  elr,
-		       read_sysreg(esr_el2),   read_sysreg_el2(far),
-		       read_sysreg(hpfar_el2), par,
-		       (void *)read_sysreg(tpidr_el2));
+				   spsr,  elr,
+				   read_sysreg(esr_el2),   read_sysreg_el2(far),
+				   read_sysreg(hpfar_el2), par,
+				   (void *)read_sysreg(tpidr_el2));
 }
 
 static void __hyp_text __hyp_call_panic_vhe(u64 spsr, u64 elr, u64 par)
 {
 	panic(__hyp_panic_string,
-	      spsr,  elr,
-	      read_sysreg_el2(esr),   read_sysreg_el2(far),
-	      read_sysreg(hpfar_el2), par,
-	      (void *)read_sysreg(tpidr_el2));
+		  spsr,  elr,
+		  read_sysreg_el2(esr),   read_sysreg_el2(far),
+		  read_sysreg(hpfar_el2), par,
+		  (void *)read_sysreg(tpidr_el2));
 }
 
 static hyp_alternate_select(__hyp_call_panic,
-			    __hyp_call_panic_nvhe, __hyp_call_panic_vhe,
-			    ARM64_HAS_VIRT_HOST_EXTN);
+							__hyp_call_panic_nvhe, __hyp_call_panic_vhe,
+							ARM64_HAS_VIRT_HOST_EXTN);
 
 void __hyp_text __noreturn __hyp_panic(void)
 {
@@ -392,7 +425,8 @@ void __hyp_text __noreturn __hyp_panic(void)
 	u64 elr = read_sysreg_el2(elr);
 	u64 par = read_sysreg(par_el1);
 
-	if (read_sysreg(vttbr_el2)) {
+	if (read_sysreg(vttbr_el2))
+	{
 		struct kvm_vcpu *vcpu;
 		struct kvm_cpu_context *host_ctxt;
 

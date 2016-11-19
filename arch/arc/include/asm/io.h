@@ -14,17 +14,17 @@
 #include <asm/page.h>
 
 #ifdef CONFIG_ISA_ARCV2
-#include <asm/barrier.h>
-#define __iormb()		rmb()
-#define __iowmb()		wmb()
+	#include <asm/barrier.h>
+	#define __iormb()		rmb()
+	#define __iowmb()		wmb()
 #else
-#define __iormb()		do { } while (0)
-#define __iowmb()		do { } while (0)
+	#define __iormb()		do { } while (0)
+	#define __iowmb()		do { } while (0)
 #endif
 
 extern void __iomem *ioremap(phys_addr_t paddr, unsigned long size);
 extern void __iomem *ioremap_prot(phys_addr_t paddr, unsigned long size,
-				  unsigned long flags);
+								  unsigned long flags);
 static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
 {
 	return (void __iomem *)port;
@@ -58,10 +58,10 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
 	u8 b;
 
 	__asm__ __volatile__(
-	"	ldb%U1 %0, %1	\n"
-	: "=r" (b)
-	: "m" (*(volatile u8 __force *)addr)
-	: "memory");
+		"	ldb%U1 %0, %1	\n"
+		: "=r" (b)
+		: "m" (*(volatile u8 __force *)addr)
+		: "memory");
 
 	return b;
 }
@@ -72,10 +72,10 @@ static inline u16 __raw_readw(const volatile void __iomem *addr)
 	u16 s;
 
 	__asm__ __volatile__(
-	"	ldw%U1 %0, %1	\n"
-	: "=r" (s)
-	: "m" (*(volatile u16 __force *)addr)
-	: "memory");
+		"	ldw%U1 %0, %1	\n"
+		: "=r" (s)
+		: "m" (*(volatile u16 __force *)addr)
+		: "memory");
 
 	return s;
 }
@@ -86,10 +86,10 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 	u32 w;
 
 	__asm__ __volatile__(
-	"	ld%U1 %0, %1	\n"
-	: "=r" (w)
-	: "m" (*(volatile u32 __force *)addr)
-	: "memory");
+		"	ld%U1 %0, %1	\n"
+		: "=r" (w)
+		: "m" (*(volatile u32 __force *)addr)
+		: "memory");
 
 	return w;
 }
@@ -98,20 +98,20 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 static inline void __raw_writeb(u8 b, volatile void __iomem *addr)
 {
 	__asm__ __volatile__(
-	"	stb%U1 %0, %1	\n"
-	:
-	: "r" (b), "m" (*(volatile u8 __force *)addr)
-	: "memory");
+		"	stb%U1 %0, %1	\n"
+		:
+		: "r" (b), "m" (*(volatile u8 __force *)addr)
+		: "memory");
 }
 
 #define __raw_writew __raw_writew
 static inline void __raw_writew(u16 s, volatile void __iomem *addr)
 {
 	__asm__ __volatile__(
-	"	stw%U1 %0, %1	\n"
-	:
-	: "r" (s), "m" (*(volatile u16 __force *)addr)
-	: "memory");
+		"	stw%U1 %0, %1	\n"
+		:
+		: "r" (s), "m" (*(volatile u16 __force *)addr)
+		: "memory");
 
 }
 
@@ -119,10 +119,10 @@ static inline void __raw_writew(u16 s, volatile void __iomem *addr)
 static inline void __raw_writel(u32 w, volatile void __iomem *addr)
 {
 	__asm__ __volatile__(
-	"	st%U1 %0, %1	\n"
-	:
-	: "r" (w), "m" (*(volatile u32 __force *)addr)
-	: "memory");
+		"	st%U1 %0, %1	\n"
+		:
+		: "r" (w), "m" (*(volatile u32 __force *)addr)
+		: "memory");
 
 }
 
@@ -157,9 +157,9 @@ static inline void __raw_writel(u32 w, volatile void __iomem *addr)
  */
 #define readb_relaxed(c)	__raw_readb(c)
 #define readw_relaxed(c) ({ u16 __r = le16_to_cpu((__force __le16) \
-					__raw_readw(c)); __r; })
+										  __raw_readw(c)); __r; })
 #define readl_relaxed(c) ({ u32 __r = le32_to_cpu((__force __le32) \
-					__raw_readl(c)); __r; })
+										  __raw_readl(c)); __r; })
 
 #define writeb_relaxed(v,c)	__raw_writeb(v,c)
 #define writew_relaxed(v,c)	__raw_writew((__force u16) cpu_to_le16(v),c)

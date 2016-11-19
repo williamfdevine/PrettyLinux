@@ -18,7 +18,9 @@ static inline int arch_get_random_int(unsigned int *v)
 static inline int arch_get_random_seed_long(unsigned long *v)
 {
 	if (ppc_md.get_random_seed)
+	{
 		return ppc_md.get_random_seed(v);
+	}
 
 	return 0;
 }
@@ -28,8 +30,11 @@ static inline int arch_get_random_seed_int(unsigned int *v)
 	int rc;
 
 	rc = arch_get_random_long(&val);
+
 	if (rc)
+	{
 		*v = val;
+	}
 
 	return rc;
 }

@@ -25,11 +25,13 @@
 /*
  * EV7 RBOX Registers
  */
-typedef struct {
+typedef struct
+{
 	volatile unsigned long csr __attribute__((aligned(16)));
 } ev7_csr;
 
-typedef struct {
+typedef struct
+{
 	ev7_csr	RBOX_CFG;		/* 0x0000 */
 	ev7_csr	RBOX_NSVC;
 	ev7_csr	RBOX_EWVC;
@@ -66,11 +68,13 @@ typedef struct {
 /*
  * IO7 registers
  */
-typedef struct {
+typedef struct
+{
 	volatile unsigned long csr __attribute__((aligned(64)));
 } io7_csr;
 
-typedef struct {
+typedef struct
+{
 	/* I/O Port Control Registers */
 	io7_csr	POx_CTRL;	       	/* 0x0000 */
 	io7_csr	POx_CACHE_CTL;
@@ -132,7 +136,8 @@ typedef struct {
 	io7_csr rsvd9[103];
 } io7_ioport_csrs;
 
-typedef struct {
+typedef struct
+{
 	io7_csr IO_ASIC_REV;		/* 0x30.0000 */
 	io7_csr IO_SYS_REV;
 	io7_csr SER_CHAIN3;
@@ -184,7 +189,8 @@ typedef struct {
 	/*
 	 * Interrupt Diagnostic / Test
 	 */
-	struct {
+	struct
+	{
 		io7_csr INT_PND;
 		io7_csr INT_CLR;
 		io7_csr INT_EOI;
@@ -198,19 +204,21 @@ typedef struct {
 	io7_csr MSI_CLR[16];		/* 0x31.c800 */
 } io7_port7_csrs;
 
-/* 
+/*
  * IO7 DMA Window Base register (POx_WBASEx)
  */
 #define wbase_m_ena  0x1
 #define wbase_m_sg   0x2
 #define wbase_m_dac  0x4
 #define wbase_m_addr 0xFFF00000
-union IO7_POx_WBASE {
-	struct {
+union IO7_POx_WBASE
+{
+	struct
+	{
 		unsigned ena : 1;	/* <0>			*/
 		unsigned sg : 1;	/* <1>			*/
 		unsigned dac : 1;	/* <2> -- window 3 only */
-		unsigned rsvd1 : 17; 
+		unsigned rsvd1 : 17;
 		unsigned addr : 12;	/* <31:20>		*/
 		unsigned rsvd2 : 32;
 	} bits;
@@ -226,13 +234,15 @@ union IO7_POx_WBASE {
  *	bus/port	slot/device	INTx
  *	<7:5>		<4:2>		<1:0>
  */
-union IO7_IID {
-	struct {
+union IO7_IID
+{
+	struct
+	{
 		unsigned int_num : 9;		/* <8:0>    	*/
 		unsigned tpu_mask : 4;		/* <12:9> rsvd	*/
 		unsigned msi : 1;		/* 13		*/
 		unsigned ipe : 10;		/* <23:14>	*/
-		unsigned long rsvd : 40;		
+		unsigned long rsvd : 40;
 	} bits;
 	unsigned int as_long[2];
 	unsigned long as_quad;
@@ -254,7 +264,7 @@ union IO7_IID {
 #define IO7_CONF_PHYS(pe, port)	(IO7_HOSE(pe, port) | 0xFE000000UL)
 #define IO7_IO_PHYS(pe, port)	(IO7_HOSE(pe, port) | 0xFF000000UL)
 #define IO7_CSR_PHYS(pe, port, off) \
-                                (IO7_HOSE(pe, port) | 0xFF800000UL | (off))
+	(IO7_HOSE(pe, port) | 0xFF800000UL | (off))
 #define IO7_CSRS_PHYS(pe, port)	(IO7_CSR_PHYS(pe, port, 0UL))
 #define IO7_PORT7_CSRS_PHYS(pe) (IO7_CSR_PHYS(pe, 7, 0x300000UL))
 
@@ -271,8 +281,8 @@ union IO7_IID {
 #define IO7_MEM_SPACE		(2UL * 1024 * 1024 * 1024)	/* 2GB MEM */
 #define IO7_IO_SPACE		(8UL * 1024 * 1024)		/* 8MB I/O */
 
- 
-/* 
+
+/*
  * Offset between ram physical addresses and pci64 DAC addresses
  */
 #define IO7_DAC_OFFSET		(1UL << 49)
@@ -281,7 +291,7 @@ union IO7_IID {
  * This is needed to satisify the IO() macro used in initializing the machvec
  */
 #define MARVEL_IACK_SC 							\
-        ((unsigned long)						\
+	((unsigned long)						\
 	 (&(((io7_ioport_csrs *)IO7_CSRS_KERN(0, 0))->POx_IACK_SPECIAL)))
 
 #ifdef __KERNEL__
@@ -292,7 +302,8 @@ union IO7_IID {
 #define IO7_NUM_PORTS 4
 #define IO7_AGP_PORT  3
 
-struct io7_port {
+struct io7_port
+{
 	struct io7 *io7;
 	struct pci_controller *hose;
 
@@ -305,7 +316,8 @@ struct io7_port {
 	unsigned long saved_tbase[4];
 };
 
-struct io7 {
+struct io7
+{
 	struct io7 *next;
 
 	unsigned int pe;
@@ -316,8 +328,8 @@ struct io7 {
 };
 
 #ifndef __EXTERN_INLINE
-# define __EXTERN_INLINE extern inline
-# define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -368,8 +380,8 @@ extern int marvel_is_mmio(const volatile void __iomem *);
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-# undef __EXTERN_INLINE
-# undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

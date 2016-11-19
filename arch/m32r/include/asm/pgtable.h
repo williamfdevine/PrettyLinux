@@ -20,29 +20,29 @@
 
 #ifndef __ASSEMBLY__
 
-#include <linux/threads.h>
-#include <linux/bitops.h>
-#include <asm/processor.h>
-#include <asm/addrspace.h>
-#include <asm/page.h>
+	#include <linux/threads.h>
+	#include <linux/bitops.h>
+	#include <asm/processor.h>
+	#include <asm/addrspace.h>
+	#include <asm/page.h>
 
-struct mm_struct;
-struct vm_area_struct;
+	struct mm_struct;
+	struct vm_area_struct;
 
-extern pgd_t swapper_pg_dir[1024];
-extern void paging_init(void);
+	extern pgd_t swapper_pg_dir[1024];
+	extern void paging_init(void);
 
-/*
- * ZERO_PAGE is a global shared page that is always zero: used
- * for zero-mapped memory areas etc..
- */
-extern unsigned long empty_zero_page[1024];
-#define ZERO_PAGE(vaddr)	(virt_to_page(empty_zero_page))
+	/*
+	* ZERO_PAGE is a global shared page that is always zero: used
+	* for zero-mapped memory areas etc..
+	*/
+	extern unsigned long empty_zero_page[1024];
+	#define ZERO_PAGE(vaddr)	(virt_to_page(empty_zero_page))
 
 #endif /* !__ASSEMBLY__ */
 
 #ifndef __ASSEMBLY__
-#include <asm/pgtable-2level.h>
+	#include <asm/pgtable-2level.h>
 #endif
 
 #define pgtable_cache_init()	do { } while (0)
@@ -103,10 +103,10 @@ extern unsigned long empty_zero_page[1024];
 
 #define _PAGE_TABLE	\
 	( _PAGE_PRESENT | _PAGE_WRITE | _PAGE_READ | _PAGE_ACCESSED \
-	| _PAGE_DIRTY )
+	  | _PAGE_DIRTY )
 #define _KERNPG_TABLE	\
 	( _PAGE_PRESENT | _PAGE_WRITE | _PAGE_READ | _PAGE_ACCESSED \
-	| _PAGE_DIRTY )
+	  | _PAGE_DIRTY )
 #define _PAGE_CHG_MASK	\
 	( PTE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY )
 
@@ -117,7 +117,7 @@ extern unsigned long empty_zero_page[1024];
 	__pgprot(_PAGE_PRESENT | _PAGE_WRITE | _PAGE_READ | _PAGE_ACCESSED)
 #define PAGE_SHARED_EXEC \
 	__pgprot(_PAGE_PRESENT | _PAGE_EXEC | _PAGE_WRITE | _PAGE_READ \
-		| _PAGE_ACCESSED)
+			 | _PAGE_ACCESSED)
 #define PAGE_COPY	\
 	__pgprot(_PAGE_PRESENT | _PAGE_READ | _PAGE_ACCESSED)
 #define PAGE_COPY_EXEC	\
@@ -129,7 +129,7 @@ extern unsigned long empty_zero_page[1024];
 
 #define __PAGE_KERNEL	\
 	( _PAGE_PRESENT | _PAGE_EXEC | _PAGE_WRITE | _PAGE_READ | _PAGE_DIRTY \
-	| _PAGE_ACCESSED )
+	  | _PAGE_ACCESSED )
 #define __PAGE_KERNEL_RO	( __PAGE_KERNEL & ~_PAGE_WRITE )
 #define __PAGE_KERNEL_NOCACHE	( __PAGE_KERNEL | _PAGE_NONCACHABLE)
 
@@ -153,7 +153,7 @@ extern unsigned long empty_zero_page[1024];
 #define PAGE_KERNEL_NOCACHE	__pgprot(0)
 #endif /* CONFIG_MMU */
 
-	/* xwr */
+/* xwr */
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY
 #define __P010	PAGE_COPY
@@ -281,7 +281,7 @@ static inline pgprot_t pgprot_noncached(pgprot_t _prot)
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
 	set_pte(&pte, __pte((pte_val(pte) & _PAGE_CHG_MASK) \
-		| pgprot_val(newprot)));
+						| pgprot_val(newprot)));
 
 	return pte;
 }
@@ -291,7 +291,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
  * and a page entry and page directory to the page they refer to.
  */
 
-static inline void pmd_set(pmd_t * pmdp, pte_t * ptep)
+static inline void pmd_set(pmd_t *pmdp, pte_t *ptep)
 {
 	pmd_val(*pmdp) = (((unsigned long) ptep) & PAGE_MASK);
 }
@@ -300,7 +300,7 @@ static inline void pmd_set(pmd_t * pmdp, pte_t * ptep)
 	((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
 
 #ifndef CONFIG_DISCONTIGMEM
-#define pmd_page(pmd)	(mem_map + ((pmd_val(pmd) >> PAGE_SHIFT) - PFN_BASE))
+	#define pmd_page(pmd)	(mem_map + ((pmd_val(pmd) >> PAGE_SHIFT) - PFN_BASE))
 #endif /* !CONFIG_DISCONTIGMEM */
 
 /* to find an entry in a page-table-directory. */

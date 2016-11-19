@@ -22,18 +22,18 @@
 static inline void aout_dump_thread(struct pt_regs *pt, struct user *dump)
 {
 	/* switch stack follows right below pt_regs: */
-	struct switch_stack * sw = ((struct switch_stack *) pt) - 1;
+	struct switch_stack *sw = ((struct switch_stack *) pt) - 1;
 
 	dump->magic = CMAGIC;
 	dump->start_code  = current->mm->start_code;
 	dump->start_data  = current->mm->start_data;
 	dump->start_stack = rdusp() & ~(PAGE_SIZE - 1);
 	dump->u_tsize = ((current->mm->end_code - dump->start_code)
-			 >> PAGE_SHIFT);
-	dump->u_dsize = ((current->mm->brk + PAGE_SIZE-1 - dump->start_data)
-			 >> PAGE_SHIFT);
+					 >> PAGE_SHIFT);
+	dump->u_dsize = ((current->mm->brk + PAGE_SIZE - 1 - dump->start_data)
+					 >> PAGE_SHIFT);
 	dump->u_ssize = (current->mm->start_stack - dump->start_stack
-			 + PAGE_SIZE-1) >> PAGE_SHIFT;
+					 + PAGE_SIZE - 1) >> PAGE_SHIFT;
 
 	/*
 	 * We store the registers in an order/format that is

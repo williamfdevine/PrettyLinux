@@ -90,10 +90,13 @@ static const struct cpumask *noop_target_cpus(void)
 }
 
 static void noop_vector_allocation_domain(int cpu, struct cpumask *retmask,
-					  const struct cpumask *mask)
+		const struct cpumask *mask)
 {
 	if (cpu != 0)
+	{
 		pr_warning("APIC: Vector allocated for non-BSP cpu\n");
+	}
+
 	cpumask_copy(retmask, cpumask_of(cpu));
 }
 
@@ -108,7 +111,8 @@ static void noop_apic_write(u32 reg, u32 v)
 	WARN_ON_ONCE(boot_cpu_has(X86_FEATURE_APIC) && !disable_apic);
 }
 
-struct apic apic_noop __ro_after_init = {
+struct apic apic_noop __ro_after_init =
+{
 	.name				= "noop",
 	.probe				= noop_probe,
 	.acpi_madt_oem_check		= NULL,

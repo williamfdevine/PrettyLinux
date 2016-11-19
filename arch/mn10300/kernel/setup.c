@@ -41,13 +41,15 @@ char redboot_command_line[COMMAND_LINE_SIZE] =
 
 char __initdata redboot_platform_name[COMMAND_LINE_SIZE];
 
-static struct resource code_resource = {
+static struct resource code_resource =
+{
 	.start	= 0x100000,
 	.end	= 0,
 	.name	= "Kernel code",
 };
 
-static struct resource data_resource = {
+static struct resource data_resource =
+{
 	.start	= 0,
 	.end	= 0,
 	.name	= "Kernel data",
@@ -62,7 +64,8 @@ struct thread_info *__current_ti = &init_thread_union.thread_info;
 struct task_struct *__current = &init_task;
 
 #define mn10300_known_cpus 5
-static const char *const mn10300_cputypes[] = {
+static const char *const mn10300_cputypes[] =
+{
 	"am33-1",
 	"am33-2",
 	"am34-1",
@@ -80,7 +83,9 @@ static int __init early_mem(char *p)
 	memory_size = memparse(p, &p);
 
 	if (memory_size == 0)
+	{
 		panic("Memory size not known\n");
+	}
 
 	return 0;
 }
@@ -108,9 +113,12 @@ void __init setup_arch(char **cmdline_p)
 	parse_early_param();
 
 	memory_end = (unsigned long) CONFIG_KERNEL_RAM_BASE_ADDRESS +
-		memory_size;
+				 memory_size;
+
 	if (memory_end > phys_memory_end)
+	{
 		memory_end = phys_memory_end;
+	}
 
 	init_mm.start_code = (unsigned long)&_text;
 	init_mm.end_code = (unsigned long) &_etext;
@@ -118,9 +126,9 @@ void __init setup_arch(char **cmdline_p)
 	init_mm.brk = (unsigned long) &_end;
 
 	code_resource.start = virt_to_bus(&_text);
-	code_resource.end = virt_to_bus(&_etext)-1;
+	code_resource.end = virt_to_bus(&_etext) - 1;
 	data_resource.start = virt_to_bus(&_etext);
-	data_resource.end = virt_to_bus(&_edata)-1;
+	data_resource.end = virt_to_bus(&_edata) - 1;
 
 	start_pfn = (CONFIG_KERNEL_RAM_BASE_ADDRESS >> PAGE_SHIFT);
 	kstart_pfn = PFN_UP(__pa(&_text));
@@ -128,26 +136,26 @@ void __init setup_arch(char **cmdline_p)
 	end_pfn = PFN_DOWN(__pa(memory_end));
 
 	bootmap_size = init_bootmem_node(&contig_page_data,
-					 free_pfn,
-					 start_pfn,
-					 end_pfn);
+									 free_pfn,
+									 start_pfn,
+									 end_pfn);
 
 	if (kstart_pfn > start_pfn)
 		free_bootmem(PFN_PHYS(start_pfn),
-			     PFN_PHYS(kstart_pfn - start_pfn));
+					 PFN_PHYS(kstart_pfn - start_pfn));
 
 	free_bootmem(PFN_PHYS(free_pfn),
-		     PFN_PHYS(end_pfn - free_pfn));
+				 PFN_PHYS(end_pfn - free_pfn));
 
 	/* If interrupt vector table is in main ram, then we need to
 	   reserve the page it is occupying. */
 	if (CONFIG_INTERRUPT_VECTOR_BASE >= CONFIG_KERNEL_RAM_BASE_ADDRESS &&
-	    CONFIG_INTERRUPT_VECTOR_BASE < memory_end)
+		CONFIG_INTERRUPT_VECTOR_BASE < memory_end)
 		reserve_bootmem(CONFIG_INTERRUPT_VECTOR_BASE, PAGE_SIZE,
-				BOOTMEM_DEFAULT);
+						BOOTMEM_DEFAULT);
 
 	reserve_bootmem(PAGE_ALIGN(PFN_PHYS(free_pfn)), bootmap_size,
-			BOOTMEM_DEFAULT);
+					BOOTMEM_DEFAULT);
 
 #ifdef CONFIG_VT
 #if defined(CONFIG_VGA_CONSOLE)
@@ -168,12 +176,15 @@ void __init cpu_init(void)
 	unsigned long cpurev = CPUREV, type;
 
 	type = (CPUREV & CPUREV_TYPE) >> CPUREV_TYPE_S;
+
 	if (type > mn10300_known_cpus)
+	{
 		type = mn10300_known_cpus;
+	}
 
 	printk(KERN_INFO "Panasonic %s, rev %ld\n",
-	       mn10300_cputypes[type],
-	       (cpurev & CPUREV_REVISION) >> CPUREV_REVISION_S);
+		   mn10300_cputypes[type],
+		   (cpurev & CPUREV_REVISION) >> CPUREV_REVISION_S);
 
 	get_mem_info(&phys_memory_base, &memory_size);
 	phys_memory_end = phys_memory_base + memory_size;
@@ -188,7 +199,7 @@ static int __init topology_init(void)
 	int i;
 
 	for_each_present_cpu(i)
-		register_cpu(&cpu_devices[i], i);
+	register_cpu(&cpu_devices[i], i);
 
 	return 0;
 }
@@ -210,13 +221,20 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 #endif /* CONFIG_SMP */
 
 #ifdef CONFIG_SMP
+
 	if (!cpu_online(cpu_id))
+	{
 		return 0;
+	}
+
 #endif
 
 	type = (cpurev & CPUREV_TYPE) >> CPUREV_TYPE_S;
+
 	if (type > mn10300_known_cpus)
+	{
 		type = mn10300_known_cpus;
+	}
 
 	icachesz =
 		((cpurev & CPUREV_ICWAY ) >> CPUREV_ICWAY_S)  *
@@ -229,33 +247,33 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 		1024;
 
 	seq_printf(m,
-		   "processor  : %ld\n"
-		   "vendor_id  : " PROCESSOR_VENDOR_NAME "\n"
-		   "cpu core   : %s\n"
-		   "cpu rev    : %lu\n"
-		   "model name : " PROCESSOR_MODEL_NAME		"\n"
-		   "icache size: %lu\n"
-		   "dcache size: %lu\n",
-		   cpu_id,
-		   mn10300_cputypes[type],
-		   (cpurev & CPUREV_REVISION) >> CPUREV_REVISION_S,
-		   icachesz,
-		   dcachesz
-		   );
+			   "processor  : %ld\n"
+			   "vendor_id  : " PROCESSOR_VENDOR_NAME "\n"
+			   "cpu core   : %s\n"
+			   "cpu rev    : %lu\n"
+			   "model name : " PROCESSOR_MODEL_NAME		"\n"
+			   "icache size: %lu\n"
+			   "dcache size: %lu\n",
+			   cpu_id,
+			   mn10300_cputypes[type],
+			   (cpurev & CPUREV_REVISION) >> CPUREV_REVISION_S,
+			   icachesz,
+			   dcachesz
+			  );
 
 	seq_printf(m,
-		   "ioclk speed: %lu.%02luMHz\n"
-		   "bogomips   : %lu.%02lu\n\n",
-		   MN10300_IOCLK / 1000000,
-		   (MN10300_IOCLK / 10000) % 100,
+			   "ioclk speed: %lu.%02luMHz\n"
+			   "bogomips   : %lu.%02lu\n\n",
+			   MN10300_IOCLK / 1000000,
+			   (MN10300_IOCLK / 10000) % 100,
 #ifdef CONFIG_SMP
-		   c->loops_per_jiffy / (500000 / HZ),
-		   (c->loops_per_jiffy / (5000 / HZ)) % 100
+			   c->loops_per_jiffy / (500000 / HZ),
+			   (c->loops_per_jiffy / (5000 / HZ)) % 100
 #else  /* CONFIG_SMP */
-		   loops_per_jiffy / (500000 / HZ),
-		   (loops_per_jiffy / (5000 / HZ)) % 100
+			   loops_per_jiffy / (500000 / HZ),
+			   (loops_per_jiffy / (5000 / HZ)) % 100
 #endif /* CONFIG_SMP */
-		   );
+			  );
 
 	return 0;
 }
@@ -275,7 +293,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,

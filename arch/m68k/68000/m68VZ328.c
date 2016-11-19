@@ -29,7 +29,7 @@
 #include <asm/bootstd.h>
 
 #ifdef CONFIG_INIT_LCD
-#include "bootlogo-vz.h"
+	#include "bootlogo-vz.h"
 #endif
 
 /***************************************************************************/
@@ -154,10 +154,15 @@ static void __init init_hardware(char *command, int size)
 	p = cs8900a_hwaddr = gethwaddr(0);
 	printk(KERN_INFO "uCdimm hwaddr %pM\n", p);
 	p = getbenv("APPEND");
+
 	if (p)
+	{
 		strcpy(p, command);
+	}
 	else
+	{
 		command[0] = 0;
+	}
 }
 
 /***************************************************************************/

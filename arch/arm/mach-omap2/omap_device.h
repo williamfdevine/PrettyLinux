@@ -55,7 +55,8 @@ extern struct dev_pm_domain omap_device_fail_pm_domain;
  * the omap_device code.
  *
  */
-struct omap_device {
+struct omap_device
+{
 	struct platform_device		*pdev;
 	struct omap_hwmod		**hwmods;
 	unsigned long			_driver_status;
@@ -72,15 +73,15 @@ int omap_device_idle(struct platform_device *pdev);
 /* Core code interface */
 
 struct platform_device *omap_device_build(const char *pdev_name, int pdev_id,
-					  struct omap_hwmod *oh, void *pdata,
-					  int pdata_len);
+		struct omap_hwmod *oh, void *pdata,
+		int pdata_len);
 
 struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
-					 struct omap_hwmod **oh, int oh_cnt,
-					 void *pdata, int pdata_len);
+		struct omap_hwmod **oh, int oh_cnt,
+		void *pdata, int pdata_len);
 
 struct omap_device *omap_device_alloc(struct platform_device *pdev,
-				      struct omap_hwmod **ohs, int oh_cnt);
+									  struct omap_hwmod **ohs, int oh_cnt);
 void omap_device_delete(struct omap_device *od);
 int omap_device_register(struct platform_device *pdev);
 
@@ -92,9 +93,9 @@ int omap_device_get_context_loss_count(struct platform_device *pdev);
 /* Other */
 
 int omap_device_assert_hardreset(struct platform_device *pdev,
-				 const char *name);
+								 const char *name);
 int omap_device_deassert_hardreset(struct platform_device *pdev,
-				 const char *name);
+								   const char *name);
 
 /* Get omap_device pointer from platform_device pointer */
 static inline struct omap_device *to_omap_device(struct platform_device *pdev)

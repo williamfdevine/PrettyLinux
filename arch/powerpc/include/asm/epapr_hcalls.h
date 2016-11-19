@@ -134,7 +134,7 @@ static inline int epapr_paravirt_early_init(void) { return 0; }
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int ev_int_set_config(unsigned int interrupt,
-	uint32_t config, unsigned int priority, uint32_t destination)
+		uint32_t config, unsigned int priority, uint32_t destination)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -149,9 +149,9 @@ static inline unsigned int ev_int_set_config(unsigned int interrupt,
 	r6  = destination;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6)
-		: : EV_HCALL_CLOBBERS4
-	);
+				 : "+r" (r11), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6)
+				 : : EV_HCALL_CLOBBERS4
+				);
 
 	return r3;
 }
@@ -166,7 +166,7 @@ static inline unsigned int ev_int_set_config(unsigned int interrupt,
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int ev_int_get_config(unsigned int interrupt,
-	uint32_t *config, unsigned int *priority, uint32_t *destination)
+		uint32_t *config, unsigned int *priority, uint32_t *destination)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -178,9 +178,9 @@ static inline unsigned int ev_int_get_config(unsigned int interrupt,
 	r3 = interrupt;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "=r" (r4), "=r" (r5), "=r" (r6)
-		: : EV_HCALL_CLOBBERS4
-	);
+				 : "+r" (r11), "+r" (r3), "=r" (r4), "=r" (r5), "=r" (r6)
+				 : : EV_HCALL_CLOBBERS4
+				);
 
 	*config = r4;
 	*priority = r5;
@@ -197,7 +197,7 @@ static inline unsigned int ev_int_get_config(unsigned int interrupt,
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int ev_int_set_mask(unsigned int interrupt,
-	unsigned int mask)
+		unsigned int mask)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -208,9 +208,9 @@ static inline unsigned int ev_int_set_mask(unsigned int interrupt,
 	r4 = mask;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "+r" (r4)
-		: : EV_HCALL_CLOBBERS2
-	);
+				 : "+r" (r11), "+r" (r3), "+r" (r4)
+				 : : EV_HCALL_CLOBBERS2
+				);
 
 	return r3;
 }
@@ -223,7 +223,7 @@ static inline unsigned int ev_int_set_mask(unsigned int interrupt,
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int ev_int_get_mask(unsigned int interrupt,
-	unsigned int *mask)
+		unsigned int *mask)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -233,9 +233,9 @@ static inline unsigned int ev_int_get_mask(unsigned int interrupt,
 	r3 = interrupt;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "=r" (r4)
-		: : EV_HCALL_CLOBBERS2
-	);
+				 : "+r" (r11), "+r" (r3), "=r" (r4)
+				 : : EV_HCALL_CLOBBERS2
+				);
 
 	*mask = r4;
 
@@ -261,9 +261,9 @@ static inline unsigned int ev_int_eoi(unsigned int interrupt)
 	r3 = interrupt;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -280,7 +280,7 @@ static inline unsigned int ev_int_eoi(unsigned int interrupt)
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int ev_byte_channel_send(unsigned int handle,
-	unsigned int *count, const char buffer[EV_BYTE_CHANNEL_MAX_BYTES])
+		unsigned int *count, const char buffer[EV_BYTE_CHANNEL_MAX_BYTES])
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -300,10 +300,10 @@ static inline unsigned int ev_byte_channel_send(unsigned int handle,
 	r8 = be32_to_cpu(p[3]);
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3),
-		  "+r" (r4), "+r" (r5), "+r" (r6), "+r" (r7), "+r" (r8)
-		: : EV_HCALL_CLOBBERS6
-	);
+				 : "+r" (r11), "+r" (r3),
+				 "+r" (r4), "+r" (r5), "+r" (r6), "+r" (r7), "+r" (r8)
+				 : : EV_HCALL_CLOBBERS6
+				);
 
 	*count = r4;
 
@@ -323,7 +323,7 @@ static inline unsigned int ev_byte_channel_send(unsigned int handle,
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int ev_byte_channel_receive(unsigned int handle,
-	unsigned int *count, char buffer[EV_BYTE_CHANNEL_MAX_BYTES])
+		unsigned int *count, char buffer[EV_BYTE_CHANNEL_MAX_BYTES])
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -339,10 +339,10 @@ static inline unsigned int ev_byte_channel_receive(unsigned int handle,
 	r4 = *count;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "+r" (r4),
-		  "=r" (r5), "=r" (r6), "=r" (r7), "=r" (r8)
-		: : EV_HCALL_CLOBBERS6
-	);
+				 : "+r" (r11), "+r" (r3), "+r" (r4),
+				 "=r" (r5), "=r" (r6), "=r" (r7), "=r" (r8)
+				 : : EV_HCALL_CLOBBERS6
+				);
 
 	*count = r4;
 	p[0] = cpu_to_be32(r5);
@@ -366,7 +366,7 @@ static inline unsigned int ev_byte_channel_receive(unsigned int handle,
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int ev_byte_channel_poll(unsigned int handle,
-	unsigned int *rx_count,	unsigned int *tx_count)
+		unsigned int *rx_count,	unsigned int *tx_count)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -377,9 +377,9 @@ static inline unsigned int ev_byte_channel_poll(unsigned int handle,
 	r3 = handle;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "=r" (r4), "=r" (r5)
-		: : EV_HCALL_CLOBBERS3
-	);
+				 : "+r" (r11), "+r" (r3), "=r" (r4), "=r" (r5)
+				 : : EV_HCALL_CLOBBERS3
+				);
 
 	*rx_count = r4;
 	*tx_count = r5;
@@ -400,7 +400,7 @@ static inline unsigned int ev_byte_channel_poll(unsigned int handle,
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int ev_int_iack(unsigned int handle,
-	unsigned int *vector)
+									   unsigned int *vector)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -410,9 +410,9 @@ static inline unsigned int ev_int_iack(unsigned int handle,
 	r3 = handle;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "=r" (r4)
-		: : EV_HCALL_CLOBBERS2
-	);
+				 : "+r" (r11), "+r" (r3), "=r" (r4)
+				 : : EV_HCALL_CLOBBERS2
+				);
 
 	*vector = r4;
 
@@ -434,9 +434,9 @@ static inline unsigned int ev_doorbell_send(unsigned int handle)
 	r3 = handle;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -454,17 +454,17 @@ static inline unsigned int ev_idle(void)
 	r11 = EV_HCALL_TOKEN(EV_IDLE);
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "=r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "=r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
 
 #ifdef CONFIG_EPAPR_PARAVIRT
 static inline unsigned long epapr_hypercall(unsigned long *in,
-			    unsigned long *out,
-			    unsigned long nr)
+		unsigned long *out,
+		unsigned long nr)
 {
 	unsigned long register r0 asm("r0");
 	unsigned long register r3 asm("r3") = in[0];
@@ -479,12 +479,12 @@ static inline unsigned long epapr_hypercall(unsigned long *in,
 	unsigned long register r12 asm("r12");
 
 	asm volatile("bl	epapr_hypercall_start"
-		     : "=r"(r0), "=r"(r3), "=r"(r4), "=r"(r5), "=r"(r6),
-		       "=r"(r7), "=r"(r8), "=r"(r9), "=r"(r10), "=r"(r11),
-		       "=r"(r12)
-		     : "r"(r3), "r"(r4), "r"(r5), "r"(r6), "r"(r7), "r"(r8),
-		       "r"(r9), "r"(r10), "r"(r11)
-		     : "memory", "cc", "xer", "ctr", "lr");
+				 : "=r"(r0), "=r"(r3), "=r"(r4), "=r"(r5), "=r"(r6),
+				 "=r"(r7), "=r"(r8), "=r"(r9), "=r"(r10), "=r"(r11),
+				 "=r"(r12)
+				 : "r"(r3), "r"(r4), "r"(r5), "r"(r6), "r"(r7), "r"(r8),
+				 "r"(r9), "r"(r10), "r"(r11)
+				 : "memory", "cc", "xer", "ctr", "lr");
 
 	out[0] = r4;
 	out[1] = r5;
@@ -499,8 +499,8 @@ static inline unsigned long epapr_hypercall(unsigned long *in,
 }
 #else
 static unsigned long epapr_hypercall(unsigned long *in,
-				   unsigned long *out,
-				   unsigned long nr)
+									 unsigned long *out,
+									 unsigned long nr)
 {
 	return EV_UNIMPLEMENTED;
 }
@@ -536,7 +536,7 @@ static inline long epapr_hypercall1(unsigned int nr, unsigned long p1)
 }
 
 static inline long epapr_hypercall2(unsigned int nr, unsigned long p1,
-				    unsigned long p2)
+									unsigned long p2)
 {
 	unsigned long in[8];
 	unsigned long out[8];
@@ -547,7 +547,7 @@ static inline long epapr_hypercall2(unsigned int nr, unsigned long p1,
 }
 
 static inline long epapr_hypercall3(unsigned int nr, unsigned long p1,
-				    unsigned long p2, unsigned long p3)
+									unsigned long p2, unsigned long p3)
 {
 	unsigned long in[8];
 	unsigned long out[8];
@@ -559,8 +559,8 @@ static inline long epapr_hypercall3(unsigned int nr, unsigned long p1,
 }
 
 static inline long epapr_hypercall4(unsigned int nr, unsigned long p1,
-				    unsigned long p2, unsigned long p3,
-				    unsigned long p4)
+									unsigned long p2, unsigned long p3,
+									unsigned long p4)
 {
 	unsigned long in[8];
 	unsigned long out[8];

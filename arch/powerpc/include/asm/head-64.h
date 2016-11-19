@@ -8,13 +8,13 @@
  * name for some reason, so these macros can do it for us.
  */
 .macro define_ftsec name
-	.section ".head.text.\name\()","ax",@progbits
+.section ".head.text.\name\()", "ax", @progbits
 .endm
 .macro define_data_ftsec name
-	.section ".head.data.\name\()","a",@progbits
+.section ".head.data.\name\()", "a", @progbits
 .endm
 .macro use_ftsec name
-	.section ".head.text.\name\()"
+.section ".head.text.\name\()"
 .endm
 
 /*
@@ -61,13 +61,13 @@
 	sname##_len = (end) - (start);				\
 	define_ftsec sname;					\
 	. = 0x0;						\
-start_##sname:
+	start_##sname:
 
 #define OPEN_TEXT_SECTION(start)				\
 	text_start = (start);					\
 	.section ".text","ax",@progbits;			\
 	. = 0x0;						\
-start_text:
+	start_text:
 
 #define ZERO_FIXED_SECTION(sname, start, end)			\
 	sname##_start = (start);				\
@@ -90,14 +90,14 @@ start_text:
 #define CLOSE_FIXED_SECTION(sname)				\
 	USE_FIXED_SECTION(sname);				\
 	. = sname##_len;					\
-end_##sname:
+	end_##sname:
 
 
 #define __FIXED_SECTION_ENTRY_BEGIN(sname, name, __align)	\
 	USE_FIXED_SECTION(sname);				\
 	.align __align;						\
 	.global name;						\
-name:
+	name:
 
 #define FIXED_SECTION_ENTRY_BEGIN(sname, name)			\
 	__FIXED_SECTION_ENTRY_BEGIN(sname, name, 0)
@@ -111,7 +111,7 @@ name:
 	.endif;							\
 	. = (start) - sname##_start;				\
 	.global name;						\
-name:
+	name:
 
 #define FIXED_SECTION_ENTRY_END_LOCATION(sname, name, end)		\
 	.if (end) > sname##_end;				\
@@ -125,16 +125,16 @@ name:
 	. = ((end) - sname##_start);				\
 
 
-/*
- * These macros are used to change symbols in other fixed sections to be
- * absolute or related to our current fixed section.
- *
- * - DEFINE_FIXED_SYMBOL / FIXED_SYMBOL_ABS_ADDR is used to find the
- *   absolute address of a symbol within a fixed section, from any section.
- *
- * - ABS_ADDR is used to find the absolute address of any symbol, from within
- *   a fixed section.
- */
+	/*
+	 * These macros are used to change symbols in other fixed sections to be
+	 * absolute or related to our current fixed section.
+	 *
+	 * - DEFINE_FIXED_SYMBOL / FIXED_SYMBOL_ABS_ADDR is used to find the
+	 *   absolute address of a symbol within a fixed section, from any section.
+	 *
+	 * - ABS_ADDR is used to find the absolute address of any symbol, from within
+	 *   a fixed section.
+	 */
 #define DEFINE_FIXED_SYMBOL(label)				\
 	label##_absolute = (label - fs_label + fs_start)
 
@@ -143,53 +143,53 @@ name:
 
 #define ABS_ADDR(label) (label - fs_label + fs_start)
 
-/*
- * Following are the BOOK3S exception handler helper macros.
- * Handlers come in a number of types, and each type has a number of varieties.
- *
- * EXC_REAL_*        - real, unrelocated exception vectors
- * EXC_VIRT_*        - virt (AIL), unrelocated exception vectors
- * TRAMP_REAL_*   - real, unrelocated helpers (virt can call these)
- * TRAMP_VIRT_*  - virt, unreloc helpers (in practice, real can use)
- * TRAMP_KVM         - KVM handlers that get put into real, unrelocated
- * EXC_COMMON_*  - virt, relocated common handlers
- *
- * The EXC handlers are given a name, and branch to name_common, or the
- * appropriate KVM or masking function. Vector handler verieties are as
- * follows:
- *
- * EXC_{REAL|VIRT}_BEGIN/END - used to open-code the exception
- *
- * EXC_{REAL|VIRT}  - standard exception
- *
- * EXC_{REAL|VIRT}_suffix
- *     where _suffix is:
- *   - _MASKABLE               - maskable exception
- *   - _OOL                    - out of line with trampoline to common handler
- *   - _HV                     - HV exception
- *
- * There can be combinations, e.g., EXC_VIRT_OOL_MASKABLE_HV
- *
- * The one unusual case is __EXC_REAL_OOL_HV_DIRECT, which is
- * an OOL vector that branches to a specified handler rather than the usual
- * trampoline that goes to common. It, and other underscore macros, should
- * be used with care.
- *
- * KVM handlers come in the following verieties:
- * TRAMP_KVM
- * TRAMP_KVM_SKIP
- * TRAMP_KVM_HV
- * TRAMP_KVM_HV_SKIP
- *
- * COMMON handlers come in the following verieties:
- * EXC_COMMON_BEGIN/END - used to open-code the handler
- * EXC_COMMON
- * EXC_COMMON_ASYNC
- * EXC_COMMON_HV
- *
- * TRAMP_REAL and TRAMP_VIRT can be used with BEGIN/END. KVM
- * and OOL handlers are implemented as types of TRAMP and TRAMP_VIRT handlers.
- */
+	/*
+	 * Following are the BOOK3S exception handler helper macros.
+	 * Handlers come in a number of types, and each type has a number of varieties.
+	 *
+	 * EXC_REAL_*        - real, unrelocated exception vectors
+	 * EXC_VIRT_*        - virt (AIL), unrelocated exception vectors
+	 * TRAMP_REAL_*   - real, unrelocated helpers (virt can call these)
+	 * TRAMP_VIRT_*  - virt, unreloc helpers (in practice, real can use)
+	 * TRAMP_KVM         - KVM handlers that get put into real, unrelocated
+	 * EXC_COMMON_*  - virt, relocated common handlers
+	 *
+	 * The EXC handlers are given a name, and branch to name_common, or the
+	 * appropriate KVM or masking function. Vector handler verieties are as
+	 * follows:
+	 *
+	 * EXC_{REAL|VIRT}_BEGIN/END - used to open-code the exception
+	 *
+	 * EXC_{REAL|VIRT}  - standard exception
+	 *
+	 * EXC_{REAL|VIRT}_suffix
+	 *     where _suffix is:
+	 *   - _MASKABLE               - maskable exception
+	 *   - _OOL                    - out of line with trampoline to common handler
+	 *   - _HV                     - HV exception
+	 *
+	 * There can be combinations, e.g., EXC_VIRT_OOL_MASKABLE_HV
+	 *
+	 * The one unusual case is __EXC_REAL_OOL_HV_DIRECT, which is
+	 * an OOL vector that branches to a specified handler rather than the usual
+	 * trampoline that goes to common. It, and other underscore macros, should
+	 * be used with care.
+	 *
+	 * KVM handlers come in the following verieties:
+	 * TRAMP_KVM
+	 * TRAMP_KVM_SKIP
+	 * TRAMP_KVM_HV
+	 * TRAMP_KVM_HV_SKIP
+	 *
+	 * COMMON handlers come in the following verieties:
+	 * EXC_COMMON_BEGIN/END - used to open-code the handler
+	 * EXC_COMMON
+	 * EXC_COMMON_ASYNC
+	 * EXC_COMMON_HV
+	 *
+	 * TRAMP_REAL and TRAMP_VIRT can be used with BEGIN/END. KVM
+	 * and OOL handlers are implemented as types of TRAMP and TRAMP_VIRT handlers.
+	 */
 
 #define EXC_REAL_BEGIN(name, start, end)			\
 	FIXED_SECTION_ENTRY_BEGIN_LOCATION(real_vectors, exc_real_##start##_##name, start)
@@ -208,7 +208,7 @@ name:
 	.align	7;							\
 	.global name;							\
 	DEFINE_FIXED_SYMBOL(name);					\
-name:
+	name:
 
 #define TRAMP_REAL_BEGIN(name)					\
 	FIXED_SECTION_ENTRY_BEGIN(real_trampolines, name)
@@ -367,9 +367,9 @@ name:
 	TRAMP_KVM_BEGIN(do_kvm_##n);					\
 	KVM_HANDLER_SKIP(area, EXC_STD, n);				\
 
-/*
- * HV variant exceptions get the 0x2 bit added to their trap number.
- */
+	/*
+	 * HV variant exceptions get the 0x2 bit added to their trap number.
+	 */
 #define TRAMP_KVM_HV(area, n)						\
 	TRAMP_KVM_BEGIN(do_kvm_H##n);					\
 	KVM_HANDLER(area, EXC_HV, n + 0x2);				\

@@ -38,7 +38,8 @@
  * Page table bit offsets used for 64 bit physical addressing on
  * MIPS32r5 with XPA.
  */
-enum pgtable_bits {
+enum pgtable_bits
+{
 	/* Used by TLB hardware (placed in EntryLo*) */
 	_PAGE_NO_EXEC_SHIFT,
 	_PAGE_NO_READ_SHIFT,
@@ -65,7 +66,8 @@ enum pgtable_bits {
  * Page table bit offsets used for 36 bit physical addressing on MIPS32,
  * for example with Alchemy or Netlogic XLP/XLR.
  */
-enum pgtable_bits {
+enum pgtable_bits
+{
 	/* Used by TLB hardware (placed in EntryLo*) */
 	_PAGE_GLOBAL_SHIFT,
 	_PAGE_VALID_SHIFT,
@@ -83,7 +85,8 @@ enum pgtable_bits {
 #elif defined(CONFIG_CPU_R3000) || defined(CONFIG_CPU_TX39XX)
 
 /* Page table bits used for r3k systems */
-enum pgtable_bits {
+enum pgtable_bits
+{
 	/* Used only by software (writes to EntryLo ignored) */
 	_PAGE_PRESENT_SHIFT,
 	_PAGE_NO_READ_SHIFT,
@@ -101,7 +104,8 @@ enum pgtable_bits {
 #else
 
 /* Page table bits used for r4k systems */
-enum pgtable_bits {
+enum pgtable_bits
+{
 	/* Used only by software (masked out before writing EntryLo*) */
 	_PAGE_PRESENT_SHIFT,
 #if !defined(CONFIG_CPU_HAS_RIXI)
@@ -133,30 +137,30 @@ enum pgtable_bits {
 #define _PAGE_ACCESSED		(1 << _PAGE_ACCESSED_SHIFT)
 #define _PAGE_MODIFIED		(1 << _PAGE_MODIFIED_SHIFT)
 #if defined(CONFIG_64BIT) && defined(CONFIG_MIPS_HUGE_TLB_SUPPORT)
-# define _PAGE_HUGE		(1 << _PAGE_HUGE_SHIFT)
+	#define _PAGE_HUGE		(1 << _PAGE_HUGE_SHIFT)
 #endif
 
 /* Used by TLB hardware (placed in EntryLo*) */
 #if defined(CONFIG_XPA)
-# define _PAGE_NO_EXEC		(1 << _PAGE_NO_EXEC_SHIFT)
+	#define _PAGE_NO_EXEC		(1 << _PAGE_NO_EXEC_SHIFT)
 #elif defined(CONFIG_CPU_HAS_RIXI)
-# define _PAGE_NO_EXEC		(cpu_has_rixi ? (1 << _PAGE_NO_EXEC_SHIFT) : 0)
+	#define _PAGE_NO_EXEC		(cpu_has_rixi ? (1 << _PAGE_NO_EXEC_SHIFT) : 0)
 #endif
 #define _PAGE_NO_READ		(1 << _PAGE_NO_READ_SHIFT)
 #define _PAGE_GLOBAL		(1 << _PAGE_GLOBAL_SHIFT)
 #define _PAGE_VALID		(1 << _PAGE_VALID_SHIFT)
 #define _PAGE_DIRTY		(1 << _PAGE_DIRTY_SHIFT)
 #if defined(CONFIG_CPU_R3000) || defined(CONFIG_CPU_TX39XX)
-# define _CACHE_UNCACHED	(1 << _CACHE_UNCACHED_SHIFT)
-# define _CACHE_MASK		_CACHE_UNCACHED
-# define _PFN_SHIFT		PAGE_SHIFT
+	#define _CACHE_UNCACHED	(1 << _CACHE_UNCACHED_SHIFT)
+	#define _CACHE_MASK		_CACHE_UNCACHED
+	#define _PFN_SHIFT		PAGE_SHIFT
 #else
-# define _CACHE_MASK		(7 << _CACHE_SHIFT)
-# define _PFN_SHIFT		(PAGE_SHIFT - 12 + _CACHE_SHIFT + 3)
+	#define _CACHE_MASK		(7 << _CACHE_SHIFT)
+	#define _PFN_SHIFT		(PAGE_SHIFT - 12 + _CACHE_SHIFT + 3)
 #endif
 
 #ifndef _PAGE_NO_EXEC
-#define _PAGE_NO_EXEC		0
+	#define _PAGE_NO_EXEC		0
 #endif
 
 #define _PAGE_SILENT_READ	_PAGE_VALID
@@ -181,7 +185,9 @@ enum pgtable_bits {
 static inline uint64_t pte_to_entrylo(unsigned long pte_val)
 {
 #ifdef CONFIG_CPU_HAS_RIXI
-	if (cpu_has_rixi) {
+
+	if (cpu_has_rixi)
+	{
 		int sa;
 #ifdef CONFIG_32BIT
 		sa = 31 - _PAGE_NO_READ_SHIFT;
@@ -194,8 +200,9 @@ static inline uint64_t pte_to_entrylo(unsigned long pte_val)
 		 * in the fast path this is done in assembly
 		 */
 		return (pte_val >> _PAGE_GLOBAL_SHIFT) |
-			((pte_val & (_PAGE_NO_EXEC | _PAGE_NO_READ)) << sa);
+			   ((pte_val & (_PAGE_NO_EXEC | _PAGE_NO_READ)) << sa);
 	}
+
 #endif
 
 	return pte_val >> _PAGE_GLOBAL_SHIFT;
@@ -206,59 +213,59 @@ static inline uint64_t pte_to_entrylo(unsigned long pte_val)
  */
 #if defined(CONFIG_CPU_R3000) || defined(CONFIG_CPU_TX39XX)
 
-#define _CACHE_CACHABLE_NONCOHERENT 0
-#define _CACHE_UNCACHED_ACCELERATED _CACHE_UNCACHED
+	#define _CACHE_CACHABLE_NONCOHERENT 0
+	#define _CACHE_UNCACHED_ACCELERATED _CACHE_UNCACHED
 
 #elif defined(CONFIG_CPU_SB1)
 
-/* No penalty for being coherent on the SB1, so just
-   use it for "noncoherent" spaces, too.  Shouldn't hurt. */
+	/* No penalty for being coherent on the SB1, so just
+	use it for "noncoherent" spaces, too.  Shouldn't hurt. */
 
-#define _CACHE_CACHABLE_NONCOHERENT (5<<_CACHE_SHIFT)
+	#define _CACHE_CACHABLE_NONCOHERENT (5<<_CACHE_SHIFT)
 
 #elif defined(CONFIG_CPU_LOONGSON3)
 
-/* Using COHERENT flag for NONCOHERENT doesn't hurt. */
+	/* Using COHERENT flag for NONCOHERENT doesn't hurt. */
 
-#define _CACHE_CACHABLE_NONCOHERENT (3<<_CACHE_SHIFT)  /* LOONGSON       */
-#define _CACHE_CACHABLE_COHERENT    (3<<_CACHE_SHIFT)  /* LOONGSON-3     */
+	#define _CACHE_CACHABLE_NONCOHERENT (3<<_CACHE_SHIFT)  /* LOONGSON       */
+	#define _CACHE_CACHABLE_COHERENT    (3<<_CACHE_SHIFT)  /* LOONGSON-3     */
 
 #elif defined(CONFIG_MACH_INGENIC)
 
-/* Ingenic uses the WA bit to achieve write-combine memory writes */
-#define _CACHE_UNCACHED_ACCELERATED (1<<_CACHE_SHIFT)
+	/* Ingenic uses the WA bit to achieve write-combine memory writes */
+	#define _CACHE_UNCACHED_ACCELERATED (1<<_CACHE_SHIFT)
 
 #endif
 
 #ifndef _CACHE_CACHABLE_NO_WA
-#define _CACHE_CACHABLE_NO_WA		(0<<_CACHE_SHIFT)
+	#define _CACHE_CACHABLE_NO_WA		(0<<_CACHE_SHIFT)
 #endif
 #ifndef _CACHE_CACHABLE_WA
-#define _CACHE_CACHABLE_WA		(1<<_CACHE_SHIFT)
+	#define _CACHE_CACHABLE_WA		(1<<_CACHE_SHIFT)
 #endif
 #ifndef _CACHE_UNCACHED
-#define _CACHE_UNCACHED			(2<<_CACHE_SHIFT)
+	#define _CACHE_UNCACHED			(2<<_CACHE_SHIFT)
 #endif
 #ifndef _CACHE_CACHABLE_NONCOHERENT
-#define _CACHE_CACHABLE_NONCOHERENT	(3<<_CACHE_SHIFT)
+	#define _CACHE_CACHABLE_NONCOHERENT	(3<<_CACHE_SHIFT)
 #endif
 #ifndef _CACHE_CACHABLE_CE
-#define _CACHE_CACHABLE_CE		(4<<_CACHE_SHIFT)
+	#define _CACHE_CACHABLE_CE		(4<<_CACHE_SHIFT)
 #endif
 #ifndef _CACHE_CACHABLE_COW
-#define _CACHE_CACHABLE_COW		(5<<_CACHE_SHIFT)
+	#define _CACHE_CACHABLE_COW		(5<<_CACHE_SHIFT)
 #endif
 #ifndef _CACHE_CACHABLE_CUW
-#define _CACHE_CACHABLE_CUW		(6<<_CACHE_SHIFT)
+	#define _CACHE_CACHABLE_CUW		(6<<_CACHE_SHIFT)
 #endif
 #ifndef _CACHE_UNCACHED_ACCELERATED
-#define _CACHE_UNCACHED_ACCELERATED	(7<<_CACHE_SHIFT)
+	#define _CACHE_UNCACHED_ACCELERATED	(7<<_CACHE_SHIFT)
 #endif
 
 #define __READABLE	(_PAGE_SILENT_READ | _PAGE_ACCESSED)
 #define __WRITEABLE	(_PAGE_SILENT_WRITE | _PAGE_WRITE | _PAGE_MODIFIED)
 
 #define _PAGE_CHG_MASK	(_PAGE_ACCESSED | _PAGE_MODIFIED |	\
-			 _PFN_MASK | _CACHE_MASK)
+						 _PFN_MASK | _CACHE_MASK)
 
 #endif /* _ASM_PGTABLE_BITS_H */

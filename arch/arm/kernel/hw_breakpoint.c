@@ -58,13 +58,13 @@ static u8 max_watchpoint_len;
 
 #define READ_WB_REG_CASE(OP2, M, VAL)			\
 	case ((OP2 << 4) + M):				\
-		ARM_DBG_READ(c0, c ## M, OP2, VAL);	\
-		break
+	ARM_DBG_READ(c0, c ## M, OP2, VAL);	\
+	break
 
 #define WRITE_WB_REG_CASE(OP2, M, VAL)			\
 	case ((OP2 << 4) + M):				\
-		ARM_DBG_WRITE(c0, c ## M, OP2, VAL);	\
-		break
+	ARM_DBG_WRITE(c0, c ## M, OP2, VAL);	\
+	break
 
 #define GEN_READ_WB_REG_CASES(OP2, VAL)		\
 	READ_WB_REG_CASE(OP2, 0, VAL);		\
@@ -106,14 +106,16 @@ static u32 read_wb_reg(int n)
 {
 	u32 val = 0;
 
-	switch (n) {
-	GEN_READ_WB_REG_CASES(ARM_OP2_BVR, val);
-	GEN_READ_WB_REG_CASES(ARM_OP2_BCR, val);
-	GEN_READ_WB_REG_CASES(ARM_OP2_WVR, val);
-	GEN_READ_WB_REG_CASES(ARM_OP2_WCR, val);
-	default:
-		pr_warn("attempt to read from unknown breakpoint register %d\n",
-			n);
+	switch (n)
+	{
+			GEN_READ_WB_REG_CASES(ARM_OP2_BVR, val);
+			GEN_READ_WB_REG_CASES(ARM_OP2_BCR, val);
+			GEN_READ_WB_REG_CASES(ARM_OP2_WVR, val);
+			GEN_READ_WB_REG_CASES(ARM_OP2_WCR, val);
+
+		default:
+			pr_warn("attempt to read from unknown breakpoint register %d\n",
+					n);
 	}
 
 	return val;
@@ -121,15 +123,18 @@ static u32 read_wb_reg(int n)
 
 static void write_wb_reg(int n, u32 val)
 {
-	switch (n) {
-	GEN_WRITE_WB_REG_CASES(ARM_OP2_BVR, val);
-	GEN_WRITE_WB_REG_CASES(ARM_OP2_BCR, val);
-	GEN_WRITE_WB_REG_CASES(ARM_OP2_WVR, val);
-	GEN_WRITE_WB_REG_CASES(ARM_OP2_WCR, val);
-	default:
-		pr_warn("attempt to write to unknown breakpoint register %d\n",
-			n);
+	switch (n)
+	{
+			GEN_WRITE_WB_REG_CASES(ARM_OP2_BVR, val);
+			GEN_WRITE_WB_REG_CASES(ARM_OP2_BCR, val);
+			GEN_WRITE_WB_REG_CASES(ARM_OP2_WVR, val);
+			GEN_WRITE_WB_REG_CASES(ARM_OP2_WCR, val);
+
+		default:
+			pr_warn("attempt to write to unknown breakpoint register %d\n",
+					n);
 	}
+
 	isb();
 }
 
@@ -139,9 +144,10 @@ static u8 get_debug_arch(void)
 	u32 didr;
 
 	/* Do we implement the extended CPUID interface? */
-	if (((read_cpuid_id() >> 16) & 0xf) != 0xf) {
+	if (((read_cpuid_id() >> 16) & 0xf) != 0xf)
+	{
 		pr_warn_once("CPUID feature registers not supported. "
-			     "Assuming v6 debug is present.\n");
+					 "Assuming v6 debug is present.\n");
 		return ARM_DEBUG_ARCH_V6;
 	}
 
@@ -160,7 +166,7 @@ static int debug_arch_supported(void)
 
 	/* We don't support the memory-mapped interface. */
 	return (arch >= ARM_DEBUG_ARCH_V6 && arch <= ARM_DEBUG_ARCH_V7_ECP14) ||
-		arch >= ARM_DEBUG_ARCH_V7_1;
+		   arch >= ARM_DEBUG_ARCH_V7_1;
 }
 
 /* Can we determine the watchpoint access type from the fsr? */
@@ -189,7 +195,7 @@ static int get_num_brp_resources(void)
 static int core_has_mismatch_brps(void)
 {
 	return (get_debug_arch() >= ARM_DEBUG_ARCH_V7_ECP14 &&
-		get_num_brp_resources() > 1);
+			get_num_brp_resources() > 1);
 }
 
 /* Determine number of usable WRPs available. */
@@ -214,7 +220,9 @@ static int get_num_wrps(void)
 	 * that it is set on some implementations].
 	 */
 	if (get_debug_arch() < ARM_DEBUG_ARCH_V7_1)
+	{
 		return 1;
+	}
 
 	return get_num_wrp_resources();
 }
@@ -246,29 +254,36 @@ static int enable_monitor_mode(void)
 
 	/* If monitor mode is already enabled, just return. */
 	if (dscr & ARM_DSCR_MDBGEN)
+	{
 		goto out;
+	}
 
 	/* Write to the corresponding DSCR. */
-	switch (get_debug_arch()) {
-	case ARM_DEBUG_ARCH_V6:
-	case ARM_DEBUG_ARCH_V6_1:
-		ARM_DBG_WRITE(c0, c1, 0, (dscr | ARM_DSCR_MDBGEN));
-		break;
-	case ARM_DEBUG_ARCH_V7_ECP14:
-	case ARM_DEBUG_ARCH_V7_1:
-	case ARM_DEBUG_ARCH_V8:
-		ARM_DBG_WRITE(c0, c2, 2, (dscr | ARM_DSCR_MDBGEN));
-		isb();
-		break;
-	default:
-		return -ENODEV;
+	switch (get_debug_arch())
+	{
+		case ARM_DEBUG_ARCH_V6:
+		case ARM_DEBUG_ARCH_V6_1:
+			ARM_DBG_WRITE(c0, c1, 0, (dscr | ARM_DSCR_MDBGEN));
+			break;
+
+		case ARM_DEBUG_ARCH_V7_ECP14:
+		case ARM_DEBUG_ARCH_V7_1:
+		case ARM_DEBUG_ARCH_V8:
+			ARM_DBG_WRITE(c0, c2, 2, (dscr | ARM_DSCR_MDBGEN));
+			isb();
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	/* Check that the write made it through. */
 	ARM_DBG_READ(c0, c1, 0, dscr);
-	if (!(dscr & ARM_DSCR_MDBGEN)) {
+
+	if (!(dscr & ARM_DSCR_MDBGEN))
+	{
 		pr_warn_once("Failed to enable monitor mode on CPU %d.\n",
-				smp_processor_id());
+					 smp_processor_id());
 		return -EPERM;
 	}
 
@@ -279,20 +294,25 @@ out:
 int hw_breakpoint_slots(int type)
 {
 	if (!debug_arch_supported())
+	{
 		return 0;
+	}
 
 	/*
 	 * We can be called early, so don't rely on
 	 * our static variables being initialised.
 	 */
-	switch (type) {
-	case TYPE_INST:
-		return get_num_brps();
-	case TYPE_DATA:
-		return get_num_wrps();
-	default:
-		pr_warn("unknown slot type: %d\n", type);
-		return 0;
+	switch (type)
+	{
+		case TYPE_INST:
+			return get_num_brps();
+
+		case TYPE_DATA:
+			return get_num_wrps();
+
+		default:
+			pr_warn("unknown slot type: %d\n", type);
+			return 0;
 	}
 }
 
@@ -307,7 +327,9 @@ static u8 get_max_wp_len(void)
 	u8 size = 4;
 
 	if (debug_arch < ARM_DEBUG_ARCH_V7_ECP14)
+	{
 		goto out;
+	}
 
 	memset(&ctrl, 0, sizeof(ctrl));
 	ctrl.len = ARM_BREAKPOINT_LEN_8;
@@ -315,8 +337,11 @@ static u8 get_max_wp_len(void)
 
 	write_wb_reg(ARM_BASE_WVR, 0);
 	write_wb_reg(ARM_BASE_WCR, ctrl_reg);
+
 	if ((read_wb_reg(ARM_BASE_WCR) & ctrl_reg) == ctrl_reg)
+	{
 		size = 8;
+	}
 
 out:
 	return size;
@@ -340,13 +365,16 @@ int arch_install_hw_breakpoint(struct perf_event *bp)
 	addr = info->address;
 	ctrl = encode_ctrl_reg(info->ctrl) | 0x1;
 
-	if (info->ctrl.type == ARM_BREAKPOINT_EXECUTE) {
+	if (info->ctrl.type == ARM_BREAKPOINT_EXECUTE)
+	{
 		/* Breakpoint */
 		ctrl_base = ARM_BASE_BCR;
 		val_base = ARM_BASE_BVR;
 		slots = this_cpu_ptr(bp_on_reg);
 		max_slots = core_num_brps;
-	} else {
+	}
+	else
+	{
 		/* Watchpoint */
 		ctrl_base = ARM_BASE_WCR;
 		val_base = ARM_BASE_WVR;
@@ -354,25 +382,31 @@ int arch_install_hw_breakpoint(struct perf_event *bp)
 		max_slots = core_num_wrps;
 	}
 
-	for (i = 0; i < max_slots; ++i) {
+	for (i = 0; i < max_slots; ++i)
+	{
 		slot = &slots[i];
 
-		if (!*slot) {
+		if (!*slot)
+		{
 			*slot = bp;
 			break;
 		}
 	}
 
-	if (i == max_slots) {
+	if (i == max_slots)
+	{
 		pr_warn("Can't find any breakpoint slot\n");
 		return -EBUSY;
 	}
 
 	/* Override the breakpoint data with the step data. */
-	if (info->step_ctrl.enabled) {
+	if (info->step_ctrl.enabled)
+	{
 		addr = info->trigger & ~0x3;
 		ctrl = encode_ctrl_reg(info->step_ctrl);
-		if (info->ctrl.type != ARM_BREAKPOINT_EXECUTE) {
+
+		if (info->ctrl.type != ARM_BREAKPOINT_EXECUTE)
+		{
 			i = 0;
 			ctrl_base = ARM_BASE_BCR + core_num_brps;
 			val_base = ARM_BASE_BVR + core_num_brps;
@@ -393,12 +427,15 @@ void arch_uninstall_hw_breakpoint(struct perf_event *bp)
 	struct perf_event **slot, **slots;
 	int i, max_slots, base;
 
-	if (info->ctrl.type == ARM_BREAKPOINT_EXECUTE) {
+	if (info->ctrl.type == ARM_BREAKPOINT_EXECUTE)
+	{
 		/* Breakpoint */
 		base = ARM_BASE_BCR;
 		slots = this_cpu_ptr(bp_on_reg);
 		max_slots = core_num_brps;
-	} else {
+	}
+	else
+	{
 		/* Watchpoint */
 		base = ARM_BASE_WCR;
 		slots = this_cpu_ptr(wp_on_reg);
@@ -406,23 +443,27 @@ void arch_uninstall_hw_breakpoint(struct perf_event *bp)
 	}
 
 	/* Remove the breakpoint. */
-	for (i = 0; i < max_slots; ++i) {
+	for (i = 0; i < max_slots; ++i)
+	{
 		slot = &slots[i];
 
-		if (*slot == bp) {
+		if (*slot == bp)
+		{
 			*slot = NULL;
 			break;
 		}
 	}
 
-	if (i == max_slots) {
+	if (i == max_slots)
+	{
 		pr_warn("Can't find any breakpoint slot\n");
 		return;
 	}
 
 	/* Ensure that we disable the mismatch breakpoint. */
 	if (info->ctrl.type != ARM_BREAKPOINT_EXECUTE &&
-	    info->step_ctrl.enabled) {
+		info->step_ctrl.enabled)
+	{
 		i = 0;
 		base = ARM_BASE_BCR + core_num_brps;
 	}
@@ -435,19 +476,23 @@ static int get_hbp_len(u8 hbp_len)
 {
 	unsigned int len_in_bytes = 0;
 
-	switch (hbp_len) {
-	case ARM_BREAKPOINT_LEN_1:
-		len_in_bytes = 1;
-		break;
-	case ARM_BREAKPOINT_LEN_2:
-		len_in_bytes = 2;
-		break;
-	case ARM_BREAKPOINT_LEN_4:
-		len_in_bytes = 4;
-		break;
-	case ARM_BREAKPOINT_LEN_8:
-		len_in_bytes = 8;
-		break;
+	switch (hbp_len)
+	{
+		case ARM_BREAKPOINT_LEN_1:
+			len_in_bytes = 1;
+			break;
+
+		case ARM_BREAKPOINT_LEN_2:
+			len_in_bytes = 2;
+			break;
+
+		case ARM_BREAKPOINT_LEN_4:
+			len_in_bytes = 4;
+			break;
+
+		case ARM_BREAKPOINT_LEN_8:
+			len_in_bytes = 8;
+			break;
 	}
 
 	return len_in_bytes;
@@ -474,42 +519,52 @@ int arch_check_bp_in_kernelspace(struct perf_event *bp)
  * to generic breakpoint descriptions.
  */
 int arch_bp_generic_fields(struct arch_hw_breakpoint_ctrl ctrl,
-			   int *gen_len, int *gen_type)
+						   int *gen_len, int *gen_type)
 {
 	/* Type */
-	switch (ctrl.type) {
-	case ARM_BREAKPOINT_EXECUTE:
-		*gen_type = HW_BREAKPOINT_X;
-		break;
-	case ARM_BREAKPOINT_LOAD:
-		*gen_type = HW_BREAKPOINT_R;
-		break;
-	case ARM_BREAKPOINT_STORE:
-		*gen_type = HW_BREAKPOINT_W;
-		break;
-	case ARM_BREAKPOINT_LOAD | ARM_BREAKPOINT_STORE:
-		*gen_type = HW_BREAKPOINT_RW;
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl.type)
+	{
+		case ARM_BREAKPOINT_EXECUTE:
+			*gen_type = HW_BREAKPOINT_X;
+			break;
+
+		case ARM_BREAKPOINT_LOAD:
+			*gen_type = HW_BREAKPOINT_R;
+			break;
+
+		case ARM_BREAKPOINT_STORE:
+			*gen_type = HW_BREAKPOINT_W;
+			break;
+
+		case ARM_BREAKPOINT_LOAD | ARM_BREAKPOINT_STORE:
+			*gen_type = HW_BREAKPOINT_RW;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Len */
-	switch (ctrl.len) {
-	case ARM_BREAKPOINT_LEN_1:
-		*gen_len = HW_BREAKPOINT_LEN_1;
-		break;
-	case ARM_BREAKPOINT_LEN_2:
-		*gen_len = HW_BREAKPOINT_LEN_2;
-		break;
-	case ARM_BREAKPOINT_LEN_4:
-		*gen_len = HW_BREAKPOINT_LEN_4;
-		break;
-	case ARM_BREAKPOINT_LEN_8:
-		*gen_len = HW_BREAKPOINT_LEN_8;
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl.len)
+	{
+		case ARM_BREAKPOINT_LEN_1:
+			*gen_len = HW_BREAKPOINT_LEN_1;
+			break;
+
+		case ARM_BREAKPOINT_LEN_2:
+			*gen_len = HW_BREAKPOINT_LEN_2;
+			break;
+
+		case ARM_BREAKPOINT_LEN_4:
+			*gen_len = HW_BREAKPOINT_LEN_4;
+			break;
+
+		case ARM_BREAKPOINT_LEN_8:
+			*gen_len = HW_BREAKPOINT_LEN_8;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -523,41 +578,54 @@ static int arch_build_bp_info(struct perf_event *bp)
 	struct arch_hw_breakpoint *info = counter_arch_bp(bp);
 
 	/* Type */
-	switch (bp->attr.bp_type) {
-	case HW_BREAKPOINT_X:
-		info->ctrl.type = ARM_BREAKPOINT_EXECUTE;
-		break;
-	case HW_BREAKPOINT_R:
-		info->ctrl.type = ARM_BREAKPOINT_LOAD;
-		break;
-	case HW_BREAKPOINT_W:
-		info->ctrl.type = ARM_BREAKPOINT_STORE;
-		break;
-	case HW_BREAKPOINT_RW:
-		info->ctrl.type = ARM_BREAKPOINT_LOAD | ARM_BREAKPOINT_STORE;
-		break;
-	default:
-		return -EINVAL;
+	switch (bp->attr.bp_type)
+	{
+		case HW_BREAKPOINT_X:
+			info->ctrl.type = ARM_BREAKPOINT_EXECUTE;
+			break;
+
+		case HW_BREAKPOINT_R:
+			info->ctrl.type = ARM_BREAKPOINT_LOAD;
+			break;
+
+		case HW_BREAKPOINT_W:
+			info->ctrl.type = ARM_BREAKPOINT_STORE;
+			break;
+
+		case HW_BREAKPOINT_RW:
+			info->ctrl.type = ARM_BREAKPOINT_LOAD | ARM_BREAKPOINT_STORE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Len */
-	switch (bp->attr.bp_len) {
-	case HW_BREAKPOINT_LEN_1:
-		info->ctrl.len = ARM_BREAKPOINT_LEN_1;
-		break;
-	case HW_BREAKPOINT_LEN_2:
-		info->ctrl.len = ARM_BREAKPOINT_LEN_2;
-		break;
-	case HW_BREAKPOINT_LEN_4:
-		info->ctrl.len = ARM_BREAKPOINT_LEN_4;
-		break;
-	case HW_BREAKPOINT_LEN_8:
-		info->ctrl.len = ARM_BREAKPOINT_LEN_8;
-		if ((info->ctrl.type != ARM_BREAKPOINT_EXECUTE)
-			&& max_watchpoint_len >= 8)
+	switch (bp->attr.bp_len)
+	{
+		case HW_BREAKPOINT_LEN_1:
+			info->ctrl.len = ARM_BREAKPOINT_LEN_1;
 			break;
-	default:
-		return -EINVAL;
+
+		case HW_BREAKPOINT_LEN_2:
+			info->ctrl.len = ARM_BREAKPOINT_LEN_2;
+			break;
+
+		case HW_BREAKPOINT_LEN_4:
+			info->ctrl.len = ARM_BREAKPOINT_LEN_4;
+			break;
+
+		case HW_BREAKPOINT_LEN_8:
+			info->ctrl.len = ARM_BREAKPOINT_LEN_8;
+
+			if ((info->ctrl.type != ARM_BREAKPOINT_EXECUTE)
+				&& max_watchpoint_len >= 8)
+			{
+				break;
+			}
+
+		default:
+			return -EINVAL;
 	}
 
 	/*
@@ -567,17 +635,22 @@ static int arch_build_bp_info(struct perf_event *bp)
 	 * bytes.
 	 */
 	if (info->ctrl.type == ARM_BREAKPOINT_EXECUTE &&
-	    info->ctrl.len != ARM_BREAKPOINT_LEN_2 &&
-	    info->ctrl.len != ARM_BREAKPOINT_LEN_4)
+		info->ctrl.len != ARM_BREAKPOINT_LEN_2 &&
+		info->ctrl.len != ARM_BREAKPOINT_LEN_4)
+	{
 		return -EINVAL;
+	}
 
 	/* Address */
 	info->address = bp->attr.bp_addr;
 
 	/* Privilege */
 	info->ctrl.privilege = ARM_BREAKPOINT_USER;
+
 	if (arch_check_bp_in_kernelspace(bp))
+	{
 		info->ctrl.privilege |= ARM_BREAKPOINT_PRIV;
+	}
 
 	/* Enabled? */
 	info->ctrl.enabled = !bp->attr.disabled;
@@ -599,65 +672,93 @@ int arch_validate_hwbkpt_settings(struct perf_event *bp)
 
 	/* Ensure that we are in monitor debug mode. */
 	if (!monitor_mode_enabled())
+	{
 		return -ENODEV;
+	}
 
 	/* Build the arch_hw_breakpoint. */
 	ret = arch_build_bp_info(bp);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* Check address alignment. */
 	if (info->ctrl.len == ARM_BREAKPOINT_LEN_8)
+	{
 		alignment_mask = 0x7;
+	}
+
 	offset = info->address & alignment_mask;
-	switch (offset) {
-	case 0:
-		/* Aligned */
-		break;
-	case 1:
-	case 2:
-		/* Allow halfword watchpoints and breakpoints. */
-		if (info->ctrl.len == ARM_BREAKPOINT_LEN_2)
+
+	switch (offset)
+	{
+		case 0:
+			/* Aligned */
 			break;
-	case 3:
-		/* Allow single byte watchpoint. */
-		if (info->ctrl.len == ARM_BREAKPOINT_LEN_1)
-			break;
-	default:
-		ret = -EINVAL;
-		goto out;
+
+		case 1:
+		case 2:
+
+			/* Allow halfword watchpoints and breakpoints. */
+			if (info->ctrl.len == ARM_BREAKPOINT_LEN_2)
+			{
+				break;
+			}
+
+		case 3:
+
+			/* Allow single byte watchpoint. */
+			if (info->ctrl.len == ARM_BREAKPOINT_LEN_1)
+			{
+				break;
+			}
+
+		default:
+			ret = -EINVAL;
+			goto out;
 	}
 
 	info->address &= ~alignment_mask;
 	info->ctrl.len <<= offset;
 
-	if (is_default_overflow_handler(bp)) {
+	if (is_default_overflow_handler(bp))
+	{
 		/*
 		 * Mismatch breakpoints are required for single-stepping
 		 * breakpoints.
 		 */
 		if (!core_has_mismatch_brps())
+		{
 			return -EINVAL;
+		}
 
 		/* We don't allow mismatch breakpoints in kernel space. */
 		if (arch_check_bp_in_kernelspace(bp))
+		{
 			return -EPERM;
+		}
 
 		/*
 		 * Per-cpu breakpoints are not supported by our stepping
 		 * mechanism.
 		 */
 		if (!bp->hw.target)
+		{
 			return -EINVAL;
+		}
 
 		/*
 		 * We only support specific access types if the fsr
 		 * reports them.
 		 */
 		if (!debug_exception_updates_fsr() &&
-		    (info->ctrl.type == ARM_BREAKPOINT_LOAD ||
-		     info->ctrl.type == ARM_BREAKPOINT_STORE))
+			(info->ctrl.type == ARM_BREAKPOINT_LOAD ||
+			 info->ctrl.type == ARM_BREAKPOINT_STORE))
+		{
 			return -EINVAL;
+		}
 	}
 
 out:
@@ -689,7 +790,7 @@ static void disable_single_step(struct perf_event *bp)
 }
 
 static void watchpoint_handler(unsigned long addr, unsigned int fsr,
-			       struct pt_regs *regs)
+							   struct pt_regs *regs)
 {
 	int i, access;
 	u32 val, ctrl_reg, alignment_mask;
@@ -699,47 +800,68 @@ static void watchpoint_handler(unsigned long addr, unsigned int fsr,
 
 	slots = this_cpu_ptr(wp_on_reg);
 
-	for (i = 0; i < core_num_wrps; ++i) {
+	for (i = 0; i < core_num_wrps; ++i)
+	{
 		rcu_read_lock();
 
 		wp = slots[i];
 
 		if (wp == NULL)
+		{
 			goto unlock;
+		}
 
 		info = counter_arch_bp(wp);
+
 		/*
 		 * The DFAR is an unknown value on debug architectures prior
 		 * to 7.1. Since we only allow a single watchpoint on these
 		 * older CPUs, we can set the trigger to the lowest possible
 		 * faulting address.
 		 */
-		if (debug_arch < ARM_DEBUG_ARCH_V7_1) {
+		if (debug_arch < ARM_DEBUG_ARCH_V7_1)
+		{
 			BUG_ON(i > 0);
 			info->trigger = wp->attr.bp_addr;
-		} else {
+		}
+		else
+		{
 			if (info->ctrl.len == ARM_BREAKPOINT_LEN_8)
+			{
 				alignment_mask = 0x7;
+			}
 			else
+			{
 				alignment_mask = 0x3;
+			}
 
 			/* Check if the watchpoint value matches. */
 			val = read_wb_reg(ARM_BASE_WVR + i);
+
 			if (val != (addr & ~alignment_mask))
+			{
 				goto unlock;
+			}
 
 			/* Possible match, check the byte address select. */
 			ctrl_reg = read_wb_reg(ARM_BASE_WCR + i);
 			decode_ctrl_reg(ctrl_reg, &ctrl);
+
 			if (!((1 << (addr & alignment_mask)) & ctrl.len))
+			{
 				goto unlock;
+			}
 
 			/* Check that the access type matches. */
-			if (debug_exception_updates_fsr()) {
+			if (debug_exception_updates_fsr())
+			{
 				access = (fsr & ARM_FSR_ACCESS_MASK) ?
-					  HW_BREAKPOINT_W : HW_BREAKPOINT_R;
+						 HW_BREAKPOINT_W : HW_BREAKPOINT_R;
+
 				if (!(access & hw_breakpoint_type(wp)))
+				{
 					goto unlock;
+				}
 			}
 
 			/* We have a winner. */
@@ -755,7 +877,9 @@ static void watchpoint_handler(unsigned long addr, unsigned int fsr,
 		 * watchpoint trigger.
 		 */
 		if (is_default_overflow_handler(wp))
+		{
 			enable_single_step(wp, instruction_pointer(regs));
+		}
 
 unlock:
 		rcu_read_unlock();
@@ -770,24 +894,32 @@ static void watchpoint_single_step_handler(unsigned long pc)
 
 	slots = this_cpu_ptr(wp_on_reg);
 
-	for (i = 0; i < core_num_wrps; ++i) {
+	for (i = 0; i < core_num_wrps; ++i)
+	{
 		rcu_read_lock();
 
 		wp = slots[i];
 
 		if (wp == NULL)
+		{
 			goto unlock;
+		}
 
 		info = counter_arch_bp(wp);
+
 		if (!info->step_ctrl.enabled)
+		{
 			goto unlock;
+		}
 
 		/*
 		 * Restore the original watchpoint if we've completed the
 		 * single-step.
 		 */
 		if (info->trigger != pc)
+		{
 			disable_single_step(wp);
+		}
 
 unlock:
 		rcu_read_unlock();
@@ -808,37 +940,53 @@ static void breakpoint_handler(unsigned long unknown, struct pt_regs *regs)
 	addr = regs->ARM_pc;
 
 	/* Check the currently installed breakpoints first. */
-	for (i = 0; i < core_num_brps; ++i) {
+	for (i = 0; i < core_num_brps; ++i)
+	{
 		rcu_read_lock();
 
 		bp = slots[i];
 
 		if (bp == NULL)
+		{
 			goto unlock;
+		}
 
 		info = counter_arch_bp(bp);
 
 		/* Check if the breakpoint value matches. */
 		val = read_wb_reg(ARM_BASE_BVR + i);
+
 		if (val != (addr & ~0x3))
+		{
 			goto mismatch;
+		}
 
 		/* Possible match, check the byte address select to confirm. */
 		ctrl_reg = read_wb_reg(ARM_BASE_BCR + i);
 		decode_ctrl_reg(ctrl_reg, &ctrl);
-		if ((1 << (addr & 0x3)) & ctrl.len) {
+
+		if ((1 << (addr & 0x3)) & ctrl.len)
+		{
 			info->trigger = addr;
 			pr_debug("breakpoint fired: address = 0x%x\n", addr);
 			perf_bp_event(bp, regs);
+
 			if (!bp->overflow_handler)
+			{
 				enable_single_step(bp, addr);
+			}
+
 			goto unlock;
 		}
 
 mismatch:
+
 		/* If we're stepping a breakpoint, it can now be restored. */
 		if (info->step_ctrl.enabled)
+		{
 			disable_single_step(bp);
+		}
+
 unlock:
 		rcu_read_unlock();
 	}
@@ -852,7 +1000,7 @@ unlock:
  * Prefetch Abort Handler [breakpoint] with interrupts disabled.
  */
 static int hw_breakpoint_pending(unsigned long addr, unsigned int fsr,
-				 struct pt_regs *regs)
+								 struct pt_regs *regs)
 {
 	int ret = 0;
 	u32 dscr;
@@ -860,23 +1008,29 @@ static int hw_breakpoint_pending(unsigned long addr, unsigned int fsr,
 	preempt_disable();
 
 	if (interrupts_enabled(regs))
+	{
 		local_irq_enable();
+	}
 
 	/* We only handle watchpoints and hardware breakpoints. */
 	ARM_DBG_READ(c0, c1, 0, dscr);
 
 	/* Perform perf callbacks. */
-	switch (ARM_DSCR_MOE(dscr)) {
-	case ARM_ENTRY_BREAKPOINT:
-		breakpoint_handler(addr, regs);
-		break;
-	case ARM_ENTRY_ASYNC_WATCHPOINT:
-		WARN(1, "Asynchronous watchpoint exception taken. Debugging results may be unreliable\n");
-	case ARM_ENTRY_SYNC_WATCHPOINT:
-		watchpoint_handler(addr, fsr, regs);
-		break;
-	default:
-		ret = 1; /* Unhandled fault. */
+	switch (ARM_DSCR_MOE(dscr))
+	{
+		case ARM_ENTRY_BREAKPOINT:
+			breakpoint_handler(addr, regs);
+			break;
+
+		case ARM_ENTRY_ASYNC_WATCHPOINT:
+			WARN(1, "Asynchronous watchpoint exception taken. Debugging results may be unreliable\n");
+
+		case ARM_ENTRY_SYNC_WATCHPOINT:
+			watchpoint_handler(addr, fsr, regs);
+			break;
+
+		default:
+			ret = 1; /* Unhandled fault. */
 	}
 
 	preempt_enable();
@@ -894,7 +1048,7 @@ static int debug_reg_trap(struct pt_regs *regs, unsigned int instr)
 	int cpu = smp_processor_id();
 
 	pr_warn("Debug register access (0x%x) caused undefined instruction on CPU %d\n",
-		instr, cpu);
+			instr, cpu);
 
 	/* Set the error flag for this CPU and skip the faulting instruction. */
 	cpumask_set_cpu(cpu, &debug_err_mask);
@@ -902,7 +1056,8 @@ static int debug_reg_trap(struct pt_regs *regs, unsigned int instr)
 	return 0;
 }
 
-static struct undef_hook debug_reg_hook = {
+static struct undef_hook debug_reg_hook =
+{
 	.instr_mask	= 0x0fe80f10,
 	.instr_val	= 0x0e000e10,
 	.fn		= debug_reg_trap,
@@ -913,15 +1068,21 @@ static bool core_has_os_save_restore(void)
 {
 	u32 oslsr;
 
-	switch (get_debug_arch()) {
-	case ARM_DEBUG_ARCH_V7_1:
-		return true;
-	case ARM_DEBUG_ARCH_V7_ECP14:
-		ARM_DBG_READ(c1, c1, 4, oslsr);
-		if (oslsr & ARM_OSLSR_OSLM0)
+	switch (get_debug_arch())
+	{
+		case ARM_DEBUG_ARCH_V7_1:
 			return true;
-	default:
-		return false;
+
+		case ARM_DEBUG_ARCH_V7_ECP14:
+			ARM_DBG_READ(c1, c1, 4, oslsr);
+
+			if (oslsr & ARM_OSLSR_OSLM0)
+			{
+				return true;
+			}
+
+		default:
+			return false;
 	}
 }
 
@@ -938,34 +1099,48 @@ static void reset_ctrl_regs(void *unused)
 	 * Access Register to avoid taking undefined instruction exceptions
 	 * later on.
 	 */
-	switch (debug_arch) {
-	case ARM_DEBUG_ARCH_V6:
-	case ARM_DEBUG_ARCH_V6_1:
-		/* ARMv6 cores clear the registers out of reset. */
-		goto out_mdbgen;
-	case ARM_DEBUG_ARCH_V7_ECP14:
-		/*
-		 * Ensure sticky power-down is clear (i.e. debug logic is
-		 * powered up).
-		 */
-		ARM_DBG_READ(c1, c5, 4, val);
-		if ((val & 0x1) == 0)
-			err = -EPERM;
+	switch (debug_arch)
+	{
+		case ARM_DEBUG_ARCH_V6:
+		case ARM_DEBUG_ARCH_V6_1:
+			/* ARMv6 cores clear the registers out of reset. */
+			goto out_mdbgen;
 
-		if (!has_ossr)
-			goto clear_vcr;
-		break;
-	case ARM_DEBUG_ARCH_V7_1:
-		/*
-		 * Ensure the OS double lock is clear.
-		 */
-		ARM_DBG_READ(c1, c3, 4, val);
-		if ((val & 0x1) == 1)
-			err = -EPERM;
-		break;
+		case ARM_DEBUG_ARCH_V7_ECP14:
+			/*
+			 * Ensure sticky power-down is clear (i.e. debug logic is
+			 * powered up).
+			 */
+			ARM_DBG_READ(c1, c5, 4, val);
+
+			if ((val & 0x1) == 0)
+			{
+				err = -EPERM;
+			}
+
+			if (!has_ossr)
+			{
+				goto clear_vcr;
+			}
+
+			break;
+
+		case ARM_DEBUG_ARCH_V7_1:
+			/*
+			 * Ensure the OS double lock is clear.
+			 */
+			ARM_DBG_READ(c1, c3, 4, val);
+
+			if ((val & 0x1) == 1)
+			{
+				err = -EPERM;
+			}
+
+			break;
 	}
 
-	if (err) {
+	if (err)
+	{
 		pr_warn_once("CPU %d debug is powered down!\n", cpu);
 		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
 		return;
@@ -986,7 +1161,8 @@ clear_vcr:
 	ARM_DBG_WRITE(c0, c7, 0, 0);
 	isb();
 
-	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu))) {
+	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu)))
+	{
 		pr_warn_once("CPU %d failed to disable vector catch\n", cpu);
 		return;
 	}
@@ -996,17 +1172,21 @@ clear_vcr:
 	 * clear them to avoid spurious debug events.
 	 */
 	raw_num_brps = get_num_brp_resources();
-	for (i = 0; i < raw_num_brps; ++i) {
+
+	for (i = 0; i < raw_num_brps; ++i)
+	{
 		write_wb_reg(ARM_BASE_BCR + i, 0UL);
 		write_wb_reg(ARM_BASE_BVR + i, 0UL);
 	}
 
-	for (i = 0; i < core_num_wrps; ++i) {
+	for (i = 0; i < core_num_wrps; ++i)
+	{
 		write_wb_reg(ARM_BASE_WCR + i, 0UL);
 		write_wb_reg(ARM_BASE_WVR + i, 0UL);
 	}
 
-	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu))) {
+	if (cpumask_intersects(&debug_err_mask, cpumask_of(cpu)))
+	{
 		pr_warn_once("CPU %d failed to clear debug register pairs\n", cpu);
 		return;
 	}
@@ -1016,34 +1196,43 @@ clear_vcr:
 	 * it yet, but reporting an error early is useful if it fails.
 	 */
 out_mdbgen:
+
 	if (enable_monitor_mode())
+	{
 		cpumask_or(&debug_err_mask, &debug_err_mask, cpumask_of(cpu));
+	}
 }
 
 static int dbg_reset_notify(struct notifier_block *self,
-				      unsigned long action, void *cpu)
+							unsigned long action, void *cpu)
 {
 	if ((action & ~CPU_TASKS_FROZEN) == CPU_ONLINE)
+	{
 		smp_call_function_single((int)cpu, reset_ctrl_regs, NULL, 1);
+	}
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block dbg_reset_nb = {
+static struct notifier_block dbg_reset_nb =
+{
 	.notifier_call = dbg_reset_notify,
 };
 
 #ifdef CONFIG_CPU_PM
 static int dbg_cpu_pm_notify(struct notifier_block *self, unsigned long action,
-			     void *v)
+							 void *v)
 {
 	if (action == CPU_PM_EXIT)
+	{
 		reset_ctrl_regs(NULL);
+	}
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block dbg_cpu_pm_nb = {
+static struct notifier_block dbg_cpu_pm_nb =
+{
 	.notifier_call = dbg_cpu_pm_notify,
 };
 
@@ -1061,7 +1250,8 @@ static int __init arch_hw_breakpoint_init(void)
 {
 	debug_arch = get_debug_arch();
 
-	if (!debug_arch_supported()) {
+	if (!debug_arch_supported())
+	{
 		pr_info("debug architecture 0x%x unsupported.\n", debug_arch);
 		return 0;
 	}
@@ -1087,7 +1277,9 @@ static int __init arch_hw_breakpoint_init(void)
 	 */
 	on_each_cpu(reset_ctrl_regs, NULL, 1);
 	unregister_undef_hook(&debug_reg_hook);
-	if (!cpumask_empty(&debug_err_mask)) {
+
+	if (!cpumask_empty(&debug_err_mask))
+	{
 		core_num_brps = 0;
 		core_num_wrps = 0;
 		cpu_notifier_register_done();
@@ -1095,8 +1287,8 @@ static int __init arch_hw_breakpoint_init(void)
 	}
 
 	pr_info("found %d " "%s" "breakpoint and %d watchpoint registers.\n",
-		core_num_brps, core_has_mismatch_brps() ? "(+1 reserved) " :
-		"", core_num_wrps);
+			core_num_brps, core_has_mismatch_brps() ? "(+1 reserved) " :
+			"", core_num_wrps);
 
 	/* Work out the maximum supported watchpoint length. */
 	max_watchpoint_len = get_max_wp_len();
@@ -1105,9 +1297,9 @@ static int __init arch_hw_breakpoint_init(void)
 
 	/* Register debug fault handler. */
 	hook_fault_code(FAULT_CODE_DEBUG, hw_breakpoint_pending, SIGTRAP,
-			TRAP_HWBKPT, "watchpoint debug exception");
+					TRAP_HWBKPT, "watchpoint debug exception");
 	hook_ifault_code(FAULT_CODE_DEBUG, hw_breakpoint_pending, SIGTRAP,
-			TRAP_HWBKPT, "breakpoint debug exception");
+					 TRAP_HWBKPT, "breakpoint debug exception");
 
 	/* Register hotplug and PM notifiers. */
 	__register_cpu_notifier(&dbg_reset_nb);
@@ -1127,7 +1319,7 @@ void hw_breakpoint_pmu_read(struct perf_event *bp)
  * Dummy function to register with die_notifier.
  */
 int hw_breakpoint_exceptions_notify(struct notifier_block *unused,
-					unsigned long val, void *data)
+									unsigned long val, void *data)
 {
 	return NOTIFY_DONE;
 }

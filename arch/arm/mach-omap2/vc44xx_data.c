@@ -30,7 +30,8 @@
  * VC data common to 44xx chips
  * XXX This stuff presumably belongs in the vc3xxx.c or vc.c file.
  */
-static const struct omap_vc_common omap4_vc_common = {
+static const struct omap_vc_common omap4_vc_common =
+{
 	.bypass_val_reg = OMAP4_PRM_VC_VAL_BYPASS_OFFSET,
 	.data_shift = OMAP4430_DATA_SHIFT,
 	.slaveaddr_shift = OMAP4430_SLAVEADDR_SHIFT,
@@ -48,7 +49,8 @@ static const struct omap_vc_common omap4_vc_common = {
 };
 
 /* VC instance data for each controllable voltage line */
-struct omap_vc_channel omap4_vc_mpu = {
+struct omap_vc_channel omap4_vc_mpu =
+{
 	.flags = OMAP_VC_CHANNEL_DEFAULT | OMAP_VC_CHANNEL_CFG_MUTANT,
 	.common = &omap4_vc_common,
 	.smps_sa_reg = OMAP4_PRM_VC_SMPS_SA_OFFSET,
@@ -62,7 +64,8 @@ struct omap_vc_channel omap4_vc_mpu = {
 	.cfg_channel_sa_shift = OMAP4430_SA_VDD_MPU_L_SHIFT,
 };
 
-struct omap_vc_channel omap4_vc_iva = {
+struct omap_vc_channel omap4_vc_iva =
+{
 	.common = &omap4_vc_common,
 	.smps_sa_reg = OMAP4_PRM_VC_SMPS_SA_OFFSET,
 	.smps_volra_reg = OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET,
@@ -75,7 +78,8 @@ struct omap_vc_channel omap4_vc_iva = {
 	.cfg_channel_sa_shift = OMAP4430_SA_VDD_IVA_L_SHIFT,
 };
 
-struct omap_vc_channel omap4_vc_core = {
+struct omap_vc_channel omap4_vc_core =
+{
 	.common = &omap4_vc_common,
 	.smps_sa_reg = OMAP4_PRM_VC_SMPS_SA_OFFSET,
 	.smps_volra_reg = OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET,
@@ -96,21 +100,24 @@ struct omap_vc_channel omap4_vc_core = {
 #define OMAP4_RET_VOLTAGE_UV			837500
 #define OMAP4_OFF_VOLTAGE_UV			0
 
-struct omap_vc_param omap4_mpu_vc_data = {
+struct omap_vc_param omap4_mpu_vc_data =
+{
 	.on			= OMAP4_ON_VOLTAGE_UV,
 	.onlp			= OMAP4_ONLP_VOLTAGE_UV,
 	.ret			= OMAP4_RET_VOLTAGE_UV,
 	.off			= OMAP4_OFF_VOLTAGE_UV,
 };
 
-struct omap_vc_param omap4_iva_vc_data = {
+struct omap_vc_param omap4_iva_vc_data =
+{
 	.on			= OMAP4_ON_VOLTAGE_UV,
 	.onlp			= OMAP4_ONLP_VOLTAGE_UV,
 	.ret			= OMAP4_RET_VOLTAGE_UV,
 	.off			= OMAP4_OFF_VOLTAGE_UV,
 };
 
-struct omap_vc_param omap4_core_vc_data = {
+struct omap_vc_param omap4_core_vc_data =
+{
 	.on			= OMAP4_ON_VOLTAGE_UV,
 	.onlp			= OMAP4_ONLP_VOLTAGE_UV,
 	.ret			= OMAP4_RET_VOLTAGE_UV,

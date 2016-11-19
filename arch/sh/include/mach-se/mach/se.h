@@ -38,9 +38,9 @@
 #define PA_DIPSW1	0xb0800002	/* Dip switch 7,8 */
 #define PA_LED		0xb0c00000	/* LED */
 #if defined(CONFIG_CPU_SUBTYPE_SH7705)
-#define PA_BCR		0xb0e00000
+	#define PA_BCR		0xb0e00000
 #else
-#define PA_BCR		0xb1400000	/* FPGA */
+	#define PA_BCR		0xb1400000	/* FPGA */
 #endif
 
 #define PA_MRSHPC	0xb83fffe0	/* MR-SHPC-01 PCMCIA controller */
@@ -70,29 +70,29 @@
 #define BCR_ILCRG	(PA_BCR + 12)
 
 #if defined(CONFIG_CPU_SUBTYPE_SH7709)
-#define INTC_IRR0       0xa4000004UL
-#define INTC_IRR1       0xa4000006UL
-#define INTC_IRR2       0xa4000008UL
+	#define INTC_IRR0       0xa4000004UL
+	#define INTC_IRR1       0xa4000006UL
+	#define INTC_IRR2       0xa4000008UL
 
-#define INTC_ICR0       0xfffffee0UL
-#define INTC_ICR1       0xa4000010UL
-#define INTC_ICR2       0xa4000012UL
-#define INTC_INTER      0xa4000014UL
+	#define INTC_ICR0       0xfffffee0UL
+	#define INTC_ICR1       0xa4000010UL
+	#define INTC_ICR2       0xa4000012UL
+	#define INTC_INTER      0xa4000014UL
 
-#define INTC_IPRC       0xa4000016UL
-#define INTC_IPRD       0xa4000018UL
-#define INTC_IPRE       0xa400001aUL
+	#define INTC_IPRC       0xa4000016UL
+	#define INTC_IPRD       0xa4000018UL
+	#define INTC_IPRE       0xa400001aUL
 
-#define IRQ0_IRQ        evt2irq(0x600)
-#define IRQ1_IRQ        evt2irq(0x620)
+	#define IRQ0_IRQ        evt2irq(0x600)
+	#define IRQ1_IRQ        evt2irq(0x620)
 #endif
 
 #if defined(CONFIG_CPU_SUBTYPE_SH7705)
-#define IRQ_STNIC	evt2irq(0x380)
-#define IRQ_CFCARD	evt2irq(0x3c0)
+	#define IRQ_STNIC	evt2irq(0x380)
+	#define IRQ_CFCARD	evt2irq(0x3c0)
 #else
-#define IRQ_STNIC	evt2irq(0x340)
-#define IRQ_CFCARD	evt2irq(0x2e0)
+	#define IRQ_STNIC	evt2irq(0x340)
+	#define IRQ_CFCARD	evt2irq(0x2e0)
 #endif
 
 /* SH Ether support (SH7710/SH7712) */
@@ -101,9 +101,9 @@
 #define SH_ETH1_BASE 0xA7000400
 /* PHY ID */
 #if defined(CONFIG_CPU_SUBTYPE_SH7710)
-# define PHY_ID 0x00
+	#define PHY_ID 0x00
 #elif defined(CONFIG_CPU_SUBTYPE_SH7712)
-# define PHY_ID 0x01
+	#define PHY_ID 0x01
 #endif
 /* Ether IRQ */
 #define SH_ETH0_IRQ	evt2irq(0xc00)

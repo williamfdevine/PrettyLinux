@@ -37,7 +37,8 @@
 #define DB1300_BCSR_PHYS_ADDR	0x19800000
 #define DB1300_BCSR_HEXLED_OFS	0x00400000
 
-enum bcsr_id {
+enum bcsr_id
+{
 	/* BCSR base 1 */
 	BCSR_WHOAMI	= 0,
 	BCSR_STATUS,
@@ -92,7 +93,8 @@ enum bcsr_id {
 #define BCSR_WHOAMI_BOARD(x)		(((x) >> 8) & 0xf)
 
 /* register "WHOAMI" bits 11:8 identify the board */
-enum bcsr_whoami_boards {
+enum bcsr_whoami_boards
+{
 	BCSR_WHOAMI_PB1500 = 1,
 	BCSR_WHOAMI_PB1500R2,
 	BCSR_WHOAMI_PB1100,

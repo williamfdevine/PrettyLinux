@@ -13,7 +13,8 @@
  *  in arch/sh/mm/Kconfig, as well as an entry in arch/sh/kernel/setup.c
  *  for parsing the subtype in get_cpu_subtype().
  */
-enum cpu_type {
+enum cpu_type
+{
 	/* SH-2 types */
 	CPU_SH7619, CPU_J2,
 
@@ -39,13 +40,14 @@ enum cpu_type {
 	CPU_SH7343, CPU_SH7722, CPU_SH7366, CPU_SH7372,
 
 	/* SH-5 types */
-        CPU_SH5_101, CPU_SH5_103,
+	CPU_SH5_101, CPU_SH5_103,
 
 	/* Unknown subtype */
 	CPU_SH_NONE
 };
 
-enum cpu_family {
+enum cpu_family
+{
 	CPU_FAMILY_SH2,
 	CPU_FAMILY_SH2A,
 	CPU_FAMILY_SH3,
@@ -61,7 +63,8 @@ enum cpu_family {
  *
  * Defined for both I and D tlb, per-processor.
  */
-struct tlb_info {
+struct tlb_info
+{
 	unsigned long long next;
 	unsigned long long first;
 	unsigned long long last;
@@ -72,7 +75,8 @@ struct tlb_info {
 	unsigned long flags;
 };
 
-struct sh_cpuinfo {
+struct sh_cpuinfo
+{
 	unsigned int type, family;
 	int cut_major, cut_minor;
 	unsigned long loops_per_jiffy;
@@ -157,28 +161,28 @@ int generic_mode_pins(void);
 int test_mode_pin(int pin);
 
 #ifdef CONFIG_VSYSCALL
-int vsyscall_init(void);
+	int vsyscall_init(void);
 #else
-#define vsyscall_init() do { } while (0)
+	#define vsyscall_init() do { } while (0)
 #endif
 
 /*
  * SH-2A has both 16 and 32-bit opcodes, do lame encoding checks.
  */
 #ifdef CONFIG_CPU_SH2A
-extern unsigned int instruction_size(unsigned int insn);
+	extern unsigned int instruction_size(unsigned int insn);
 #elif defined(CONFIG_SUPERH32)
-#define instruction_size(insn)	(2)
+	#define instruction_size(insn)	(2)
 #else
-#define instruction_size(insn)	(4)
+	#define instruction_size(insn)	(4)
 #endif
 
 #endif /* __ASSEMBLY__ */
 
 #ifdef CONFIG_SUPERH32
-# include <asm/processor_32.h>
+	#include <asm/processor_32.h>
 #else
-# include <asm/processor_64.h>
+	#include <asm/processor_64.h>
 #endif
 
 #endif /* __ASM_SH_PROCESSOR_H */

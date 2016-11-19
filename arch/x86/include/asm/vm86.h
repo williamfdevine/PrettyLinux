@@ -13,21 +13,23 @@
  * setup. For user space layout see 'struct vm86_regs' above.
  */
 
-struct kernel_vm86_regs {
-/*
- * normal regs, with special meaning for the segment descriptors..
- */
+struct kernel_vm86_regs
+{
+	/*
+	 * normal regs, with special meaning for the segment descriptors..
+	 */
 	struct pt_regs pt;
-/*
- * these are specific to v86 mode:
- */
+	/*
+	 * these are specific to v86 mode:
+	 */
 	unsigned short es, __esh;
 	unsigned short ds, __dsh;
 	unsigned short fs, __fsh;
 	unsigned short gs, __gsh;
 };
 
-struct vm86 {
+struct vm86
+{
 	struct vm86plus_struct __user *user_vm86;
 	struct pt_regs regs32;
 	unsigned long veflags;
@@ -51,12 +53,12 @@ void save_v86_state(struct kernel_vm86_regs *, int);
 struct task_struct;
 
 #define free_vm86(t) do {				\
-	struct thread_struct *__t = (t);		\
-	if (__t->vm86 != NULL) {			\
-		kfree(__t->vm86);			\
-		__t->vm86 = NULL;			\
-	}						\
-} while (0)
+		struct thread_struct *__t = (t);		\
+		if (__t->vm86 != NULL) {			\
+			kfree(__t->vm86);			\
+			__t->vm86 = NULL;			\
+		}						\
+	} while (0)
 
 /*
  * Support for VM86 programs to request interrupts for

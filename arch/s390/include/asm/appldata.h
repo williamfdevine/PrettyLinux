@@ -18,7 +18,8 @@
 /*
  * Parameter list for DIAGNOSE X'DC'
  */
-struct appldata_parameter_list {
+struct appldata_parameter_list
+{
 	u16 diag;
 	u8  function;
 	u8  parlist_length;
@@ -30,7 +31,8 @@ struct appldata_parameter_list {
 	u64 buffer_addr;
 } __attribute__ ((packed));
 
-struct appldata_product_id {
+struct appldata_product_id
+{
 	char prod_nr[7];	/* product number */
 	u16  prod_fn;		/* product function */
 	u8   record_nr; 	/* record number */
@@ -40,14 +42,17 @@ struct appldata_product_id {
 } __attribute__ ((packed));
 
 static inline int appldata_asm(struct appldata_product_id *id,
-			       unsigned short fn, void *buffer,
-			       unsigned short length)
+							   unsigned short fn, void *buffer,
+							   unsigned short length)
 {
 	struct appldata_parameter_list parm_list;
 	int ry;
 
 	if (!MACHINE_IS_VM)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	parm_list.diag = 0xdc;
 	parm_list.function = fn;
 	parm_list.parlist_length = sizeof(parm_list);

@@ -37,7 +37,8 @@
 #define PCI_ACCESS_WRITE 1
 
 /* define an unsigned array for the PCI registers */
-static unsigned int korina_cnfg_regs[25] = {
+static unsigned int korina_cnfg_regs[25] =
+{
 	KORINA_CNFG1, KORINA_CNFG2, KORINA_CNFG3, KORINA_CNFG4,
 	KORINA_CNFG5, KORINA_CNFG6, KORINA_CNFG7, KORINA_CNFG8,
 	KORINA_CNFG9, KORINA_CNFG10, KORINA_CNFG11, KORINA_CNFG12,
@@ -48,7 +49,8 @@ static unsigned int korina_cnfg_regs[25] = {
 static struct resource rc32434_res_pci_mem1;
 static struct resource rc32434_res_pci_mem2;
 
-static struct resource rc32434_res_pci_mem1 = {
+static struct resource rc32434_res_pci_mem1 =
+{
 	.name = "PCI MEM1",
 	.start = 0x50000000,
 	.end = 0x5FFFFFFF,
@@ -57,7 +59,8 @@ static struct resource rc32434_res_pci_mem1 = {
 	.child = &rc32434_res_pci_mem2
 };
 
-static struct resource rc32434_res_pci_mem2 = {
+static struct resource rc32434_res_pci_mem2 =
+{
 	.name = "PCI Mem2",
 	.start = 0x60000000,
 	.end = 0x6FFFFFFF,
@@ -67,7 +70,8 @@ static struct resource rc32434_res_pci_mem2 = {
 	.child = NULL
 };
 
-static struct resource rc32434_res_pci_io1 = {
+static struct resource rc32434_res_pci_io1 =
+{
 	.name = "PCI I/O1",
 	.start = 0x18800000,
 	.end = 0x188FFFFF,
@@ -90,7 +94,8 @@ extern struct pci_ops rc32434_pci_ops;
 
 struct pci_controller rc32434_controller2;
 
-struct pci_controller rc32434_controller = {
+struct pci_controller rc32434_controller =
+{
 	.pci_ops = &rc32434_pci_ops,
 	.mem_resource = &rc32434_res_pci_mem1,
 	.io_resource = &rc32434_res_pci_io1,
@@ -100,9 +105,9 @@ struct pci_controller rc32434_controller = {
 };
 
 #ifdef __MIPSEB__
-#define PCI_ENDIAN_FLAG PCILBAC_sb_m
+	#define PCI_ENDIAN_FLAG PCILBAC_sb_m
 #else
-#define PCI_ENDIAN_FLAG 0
+	#define PCI_ENDIAN_FLAG 0
 #endif
 
 static int __init rc32434_pcibridge_init(void)
@@ -114,21 +119,29 @@ static int __init rc32434_pcibridge_init(void)
 
 	pcicvalue = rc32434_pci->pcic;
 	pcicvalue = (pcicvalue >> PCIM_SHFT) & PCIM_BIT_LEN;
+
 	if (!((pcicvalue == PCIM_H_EA) ||
-	      (pcicvalue == PCIM_H_IA_FIX) ||
-	      (pcicvalue == PCIM_H_IA_RR))) {
+		  (pcicvalue == PCIM_H_IA_FIX) ||
+		  (pcicvalue == PCIM_H_IA_RR)))
+	{
 		pr_err("PCI init error!!!\n");
 		/* Not in Host Mode, return ERROR */
 		return -1;
 	}
+
 	/* Enables the Idle Grant mode, Arbiter Parking */
 	pcicdata |= (PCI_CTL_IGM | PCI_CTL_EAP | PCI_CTL_EN);
 	rc32434_pci->pcic = pcicdata;	/* Enable the PCI bus Interface */
+
 	/* Zero out the PCI status & PCI Status Mask */
-	for (;;) {
+	for (;;)
+	{
 		pcicdata = rc32434_pci->pcis;
+
 		if (!(pcicdata & PCI_STAT_RIP))
+		{
 			break;
+		}
 	}
 
 	rc32434_pci->pcis = 0;
@@ -157,42 +170,45 @@ static int __init rc32434_pcibridge_init(void)
 
 	/* Setup PCILBA1 as MEM */
 	rc32434_pci->pcilba[0].control =
-	    (((SIZE_256MB & 0x1f) << PCI_LBAC_SIZE_BIT) | PCI_ENDIAN_FLAG);
+		(((SIZE_256MB & 0x1f) << PCI_LBAC_SIZE_BIT) | PCI_ENDIAN_FLAG);
 	dummyread = rc32434_pci->pcilba[0].control;	/* flush the CPU write Buffers */
 	rc32434_pci->pcilba[1].address = 0x60000000;
 	rc32434_pci->pcilba[1].mapping = 0x60000000;
 
 	/* setup PCILBA2 as IO Window */
 	rc32434_pci->pcilba[1].control =
-	    (((SIZE_256MB & 0x1f) << PCI_LBAC_SIZE_BIT) | PCI_ENDIAN_FLAG);
+		(((SIZE_256MB & 0x1f) << PCI_LBAC_SIZE_BIT) | PCI_ENDIAN_FLAG);
 	dummyread = rc32434_pci->pcilba[1].control;	/* flush the CPU write Buffers */
 	rc32434_pci->pcilba[2].address = 0x18C00000;
 	rc32434_pci->pcilba[2].mapping = 0x18FFFFFF;
 
 	/* setup PCILBA2 as IO Window */
 	rc32434_pci->pcilba[2].control =
-	    (((SIZE_4MB & 0x1f) << PCI_LBAC_SIZE_BIT) | PCI_ENDIAN_FLAG);
+		(((SIZE_4MB & 0x1f) << PCI_LBAC_SIZE_BIT) | PCI_ENDIAN_FLAG);
 	dummyread = rc32434_pci->pcilba[2].control;	/* flush the CPU write Buffers */
 
 	/* Setup PCILBA3 as IO Window */
 	rc32434_pci->pcilba[3].address = 0x18800000;
 	rc32434_pci->pcilba[3].mapping = 0x18800000;
 	rc32434_pci->pcilba[3].control =
-	    ((((SIZE_1MB & 0x1ff) << PCI_LBAC_SIZE_BIT) | PCI_LBAC_MSI) |
-	     PCI_ENDIAN_FLAG);
+		((((SIZE_1MB & 0x1ff) << PCI_LBAC_SIZE_BIT) | PCI_LBAC_MSI) |
+		 PCI_ENDIAN_FLAG);
 	dummyread = rc32434_pci->pcilba[3].control;	/* flush the CPU write Buffers */
 
 	pci_config_addr = (unsigned int) (0x80000004);
-	for (loopCount = 0; loopCount < 24; loopCount++) {
+
+	for (loopCount = 0; loopCount < 24; loopCount++)
+	{
 		rc32434_pci->pcicfga = pci_config_addr;
 		dummyread = rc32434_pci->pcicfga;
 		rc32434_pci->pcicfgd = korina_cnfg_regs[loopCount];
 		dummyread = rc32434_pci->pcicfgd;
 		pci_config_addr += 4;
 	}
+
 	rc32434_pci->pcitc =
-	    (unsigned int) ((PCITC_RTIMER_VAL & 0xff) << PCI_TC_RTIMER_BIT) |
-	    ((PCITC_DTIMER_VAL & 0xff) << PCI_TC_DTIMER_BIT);
+		(unsigned int) ((PCITC_RTIMER_VAL & 0xff) << PCI_TC_RTIMER_BIT) |
+		((PCITC_DTIMER_VAL & 0xff) << PCI_TC_DTIMER_BIT);
 
 	pcicntlval = rc32434_pci->pcic;
 	pcicntlval &= ~PCI_CTL_TNR;
@@ -214,10 +230,12 @@ static int __init rc32434_pci_init(void)
 	rc32434_pcibridge_init();
 
 	io_map_base = ioremap(rc32434_res_pci_io1.start,
-			      resource_size(&rc32434_res_pci_io1));
+						  resource_size(&rc32434_res_pci_io1));
 
 	if (!io_map_base)
+	{
 		return -ENOMEM;
+	}
 
 	rc32434_controller.io_map_base =
 		(unsigned long)io_map_base - rc32434_res_pci_io1.start;

@@ -46,7 +46,7 @@ static void __init db1550_hw_setup(void)
 	 */
 	base = (void __iomem *)KSEG1ADDR(AU1550_PSC1_PHYS_ADDR);
 	__raw_writel(PSC_SEL_CLK_SERCLK | PSC_SEL_PS_AC97MODE,
-		     base + PSC_SEL_OFFSET);
+				 base + PSC_SEL_OFFSET);
 	__raw_writel(PSC_CTRL_DISABLE, base + PSC_CTRL_OFFSET);
 	wmb();
 	__raw_writel(PSC_AC97RST_RST, base + PSC_AC97RST_OFFSET);
@@ -58,23 +58,27 @@ int __init db1550_board_setup(void)
 	unsigned short whoami;
 
 	bcsr_init(DB1550_BCSR_PHYS_ADDR,
-		  DB1550_BCSR_PHYS_ADDR + DB1550_BCSR_HEXLED_OFS);
+			  DB1550_BCSR_PHYS_ADDR + DB1550_BCSR_HEXLED_OFS);
 
 	whoami = bcsr_read(BCSR_WHOAMI); /* PB1550 hexled offset differs */
-	switch (BCSR_WHOAMI_BOARD(whoami)) {
-	case BCSR_WHOAMI_PB1550_SDR:
-	case BCSR_WHOAMI_PB1550_DDR:
-		bcsr_init(PB1550_BCSR_PHYS_ADDR,
-			  PB1550_BCSR_PHYS_ADDR + PB1550_BCSR_HEXLED_OFS);
-	case BCSR_WHOAMI_DB1550:
-		break;
-	default:
-		return -ENODEV;
+
+	switch (BCSR_WHOAMI_BOARD(whoami))
+	{
+		case BCSR_WHOAMI_PB1550_SDR:
+		case BCSR_WHOAMI_PB1550_DDR:
+			bcsr_init(PB1550_BCSR_PHYS_ADDR,
+					  PB1550_BCSR_PHYS_ADDR + PB1550_BCSR_HEXLED_OFS);
+
+		case BCSR_WHOAMI_DB1550:
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	pr_info("Alchemy/AMD %s Board, CPLD Rev %d Board-ID %d	"	\
-		"Daughtercard ID %d\n", get_system_type(),
-		(whoami >> 4) & 0xf, (whoami >> 8) & 0xf, whoami & 0xf);
+			"Daughtercard ID %d\n", get_system_type(),
+			(whoami >> 4) & 0xf, (whoami >> 8) & 0xf, whoami & 0xf);
 
 	db1550_hw_setup();
 	return 0;
@@ -82,7 +86,8 @@ int __init db1550_board_setup(void)
 
 /*****************************************************************************/
 
-static struct mtd_partition db1550_spiflash_parts[] = {
+static struct mtd_partition db1550_spiflash_parts[] =
+{
 	{
 		.name	= "spi_flash",
 		.offset = 0,
@@ -90,14 +95,16 @@ static struct mtd_partition db1550_spiflash_parts[] = {
 	},
 };
 
-static struct flash_platform_data db1550_spiflash_data = {
+static struct flash_platform_data db1550_spiflash_data =
+{
 	.name		= "s25fl010",
 	.parts		= db1550_spiflash_parts,
 	.nr_parts	= ARRAY_SIZE(db1550_spiflash_parts),
 	.type		= "m25p10",
 };
 
-static struct spi_board_info db1550_spi_devs[] __initdata = {
+static struct spi_board_info db1550_spi_devs[] __initdata =
+{
 	{
 		/* TI TMP121AIDBVR temp sensor */
 		.modalias	= "tmp121",
@@ -117,7 +124,8 @@ static struct spi_board_info db1550_spi_devs[] __initdata = {
 	},
 };
 
-static struct i2c_board_info db1550_i2c_devs[] __initdata = {
+static struct i2c_board_info db1550_i2c_devs[] __initdata =
+{
 	{ I2C_BOARD_INFO("24c04",  0x52),}, /* AT24C04-10 I2C eeprom */
 	{ I2C_BOARD_INFO("ne1619", 0x2d),}, /* adm1025-compat hwmon */
 	{ I2C_BOARD_INFO("wm8731", 0x1b),}, /* I2S audio codec WM8731 */
@@ -126,23 +134,31 @@ static struct i2c_board_info db1550_i2c_devs[] __initdata = {
 /**********************************************************************/
 
 static void au1550_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-				 unsigned int ctrl)
+								 unsigned int ctrl)
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 	unsigned long ioaddr = (unsigned long)this->IO_ADDR_W;
 
 	ioaddr &= 0xffffff00;
 
-	if (ctrl & NAND_CLE) {
+	if (ctrl & NAND_CLE)
+	{
 		ioaddr += MEM_STNAND_CMD;
-	} else if (ctrl & NAND_ALE) {
+	}
+	else if (ctrl & NAND_ALE)
+	{
 		ioaddr += MEM_STNAND_ADDR;
-	} else {
+	}
+	else
+	{
 		/* assume we want to r/w real data  by default */
 		ioaddr += MEM_STNAND_DATA;
 	}
+
 	this->IO_ADDR_R = this->IO_ADDR_W = (void __iomem *)ioaddr;
-	if (cmd != NAND_CMD_NONE) {
+
+	if (cmd != NAND_CMD_NONE)
+	{
 		__raw_writeb(cmd, this->IO_ADDR_W);
 		wmb();
 	}
@@ -153,7 +169,8 @@ static int au1550_nand_device_ready(struct mtd_info *mtd)
 	return alchemy_rdsmem(AU1000_MEM_STSTAT) & 1;
 }
 
-static struct mtd_partition db1550_nand_parts[] = {
+static struct mtd_partition db1550_nand_parts[] =
+{
 	{
 		.name	= "NAND FS 0",
 		.offset = 0,
@@ -166,7 +183,8 @@ static struct mtd_partition db1550_nand_parts[] = {
 	},
 };
 
-struct platform_nand_data db1550_nand_platdata = {
+struct platform_nand_data db1550_nand_platdata =
+{
 	.chip = {
 		.nr_chips	= 1,
 		.chip_offset	= 0,
@@ -180,7 +198,8 @@ struct platform_nand_data db1550_nand_platdata = {
 	},
 };
 
-static struct resource db1550_nand_res[] = {
+static struct resource db1550_nand_res[] =
+{
 	[0] = {
 		.start	= 0x20000000,
 		.end	= 0x200000ff,
@@ -188,7 +207,8 @@ static struct resource db1550_nand_res[] = {
 	},
 };
 
-static struct platform_device db1550_nand_dev = {
+static struct platform_device db1550_nand_dev =
+{
 	.name		= "gen_nand",
 	.num_resources	= ARRAY_SIZE(db1550_nand_res),
 	.resource	= db1550_nand_res,
@@ -198,13 +218,15 @@ static struct platform_device db1550_nand_dev = {
 	}
 };
 
-static struct au1550nd_platdata pb1550_nand_pd = {
+static struct au1550nd_platdata pb1550_nand_pd =
+{
 	.parts		= db1550_nand_parts,
 	.num_parts	= ARRAY_SIZE(db1550_nand_parts),
 	.devwidth	= 0,	/* x8 NAND default, needs fixing up */
 };
 
-static struct platform_device pb1550_nand_dev = {
+static struct platform_device pb1550_nand_dev =
+{
 	.name		= "au1550-nand",
 	.id		= -1,
 	.resource	= db1550_nand_res,
@@ -217,23 +239,27 @@ static struct platform_device pb1550_nand_dev = {
 static void __init pb1550_nand_setup(void)
 {
 	int boot_swapboot = (alchemy_rdsmem(AU1000_MEM_STSTAT) & (0x7 << 1)) |
-			    ((bcsr_read(BCSR_STATUS) >> 6) & 0x1);
+						((bcsr_read(BCSR_STATUS) >> 6) & 0x1);
 
 	gpio_direction_input(206);	/* de-assert NAND CS# */
-	switch (boot_swapboot) {
-	case 0: case 2: case 8: case 0xC: case 0xD:
-		/* x16 NAND Flash */
-		pb1550_nand_pd.devwidth = 1;
+
+	switch (boot_swapboot)
+	{
+		case 0: case 2: case 8: case 0xC: case 0xD:
+			/* x16 NAND Flash */
+			pb1550_nand_pd.devwidth = 1;
+
 		/* fallthrough */
-	case 1: case 3: case 9: case 0xE: case 0xF:
-		/* x8 NAND, already set up */
-		platform_device_register(&pb1550_nand_dev);
+		case 1: case 3: case 9: case 0xE: case 0xF:
+			/* x8 NAND, already set up */
+			platform_device_register(&pb1550_nand_dev);
 	}
 }
 
 /**********************************************************************/
 
-static struct resource au1550_psc0_res[] = {
+static struct resource au1550_psc0_res[] =
+{
 	[0] = {
 		.start	= AU1550_PSC0_PHYS_ADDR,
 		.end	= AU1550_PSC0_PHYS_ADDR + 0xfff,
@@ -259,12 +285,17 @@ static struct resource au1550_psc0_res[] = {
 static void db1550_spi_cs_en(struct au1550_spi_info *spi, int cs, int pol)
 {
 	if (cs)
+	{
 		bcsr_mod(BCSR_BOARD, 0, BCSR_BOARD_SPISEL);
+	}
 	else
+	{
 		bcsr_mod(BCSR_BOARD, BCSR_BOARD_SPISEL, 0);
+	}
 }
 
-static struct au1550_spi_info db1550_spi_platdata = {
+static struct au1550_spi_info db1550_spi_platdata =
+{
 	.mainclk_hz	= 48000000,	/* PSC0 clock: max. 2.4MHz SPI clk */
 	.num_chipselect = 2,
 	.activate_cs	= db1550_spi_cs_en,
@@ -272,7 +303,8 @@ static struct au1550_spi_info db1550_spi_platdata = {
 
 static u64 spi_dmamask = DMA_BIT_MASK(32);
 
-static struct platform_device db1550_spi_dev = {
+static struct platform_device db1550_spi_dev =
+{
 	.dev	= {
 		.dma_mask		= &spi_dmamask,
 		.coherent_dma_mask	= DMA_BIT_MASK(32),
@@ -286,7 +318,8 @@ static struct platform_device db1550_spi_dev = {
 
 /**********************************************************************/
 
-static struct resource au1550_psc1_res[] = {
+static struct resource au1550_psc1_res[] =
+{
 	[0] = {
 		.start	= AU1550_PSC1_PHYS_ADDR,
 		.end	= AU1550_PSC1_PHYS_ADDR + 0xfff,
@@ -309,7 +342,8 @@ static struct resource au1550_psc1_res[] = {
 	},
 };
 
-static struct platform_device db1550_ac97_dev = {
+static struct platform_device db1550_ac97_dev =
+{
 	.name		= "au1xpsc_ac97",
 	.id		= 1,	/* PSC ID */
 	.num_resources	= ARRAY_SIZE(au1550_psc1_res),
@@ -317,7 +351,8 @@ static struct platform_device db1550_ac97_dev = {
 };
 
 
-static struct resource au1550_psc2_res[] = {
+static struct resource au1550_psc2_res[] =
+{
 	[0] = {
 		.start	= AU1550_PSC2_PHYS_ADDR,
 		.end	= AU1550_PSC2_PHYS_ADDR + 0xfff,
@@ -340,7 +375,8 @@ static struct resource au1550_psc2_res[] = {
 	},
 };
 
-static struct platform_device db1550_i2c_dev = {
+static struct platform_device db1550_i2c_dev =
+{
 	.name		= "au1xpsc_smbus",
 	.id		= 0,	/* bus number */
 	.num_resources	= ARRAY_SIZE(au1550_psc2_res),
@@ -349,7 +385,8 @@ static struct platform_device db1550_i2c_dev = {
 
 /**********************************************************************/
 
-static struct resource au1550_psc3_res[] = {
+static struct resource au1550_psc3_res[] =
+{
 	[0] = {
 		.start	= AU1550_PSC3_PHYS_ADDR,
 		.end	= AU1550_PSC3_PHYS_ADDR + 0xfff,
@@ -372,7 +409,8 @@ static struct resource au1550_psc3_res[] = {
 	},
 };
 
-static struct platform_device db1550_i2s_dev = {
+static struct platform_device db1550_i2s_dev =
+{
 	.name		= "au1xpsc_i2s",
 	.id		= 3,	/* PSC ID */
 	.num_resources	= ARRAY_SIZE(au1550_psc3_res),
@@ -381,26 +419,31 @@ static struct platform_device db1550_i2s_dev = {
 
 /**********************************************************************/
 
-static struct platform_device db1550_stac_dev = {
+static struct platform_device db1550_stac_dev =
+{
 	.name		= "ac97-codec",
 	.id		= 1,	/* on PSC1 */
 };
 
-static struct platform_device db1550_ac97dma_dev = {
+static struct platform_device db1550_ac97dma_dev =
+{
 	.name		= "au1xpsc-pcm",
 	.id		= 1,	/* on PSC3 */
 };
 
-static struct platform_device db1550_i2sdma_dev = {
+static struct platform_device db1550_i2sdma_dev =
+{
 	.name		= "au1xpsc-pcm",
 	.id		= 3,	/* on PSC3 */
 };
 
-static struct platform_device db1550_sndac97_dev = {
+static struct platform_device db1550_sndac97_dev =
+{
 	.name		= "db1550-ac97",
 };
 
-static struct platform_device db1550_sndi2s_dev = {
+static struct platform_device db1550_sndi2s_dev =
+{
 	.name		= "db1550-i2s",
 };
 
@@ -409,52 +452,86 @@ static struct platform_device db1550_sndi2s_dev = {
 static int db1550_map_pci_irq(const struct pci_dev *d, u8 slot, u8 pin)
 {
 	if ((slot < 11) || (slot > 13) || pin == 0)
+	{
 		return -1;
+	}
+
 	if (slot == 11)
+	{
 		return (pin == 1) ? AU1550_PCI_INTC : 0xff;
-	if (slot == 12) {
-		switch (pin) {
-		case 1: return AU1550_PCI_INTB;
-		case 2: return AU1550_PCI_INTC;
-		case 3: return AU1550_PCI_INTD;
-		case 4: return AU1550_PCI_INTA;
+	}
+
+	if (slot == 12)
+	{
+		switch (pin)
+		{
+			case 1: return AU1550_PCI_INTB;
+
+			case 2: return AU1550_PCI_INTC;
+
+			case 3: return AU1550_PCI_INTD;
+
+			case 4: return AU1550_PCI_INTA;
 		}
 	}
-	if (slot == 13) {
-		switch (pin) {
-		case 1: return AU1550_PCI_INTA;
-		case 2: return AU1550_PCI_INTB;
-		case 3: return AU1550_PCI_INTC;
-		case 4: return AU1550_PCI_INTD;
+
+	if (slot == 13)
+	{
+		switch (pin)
+		{
+			case 1: return AU1550_PCI_INTA;
+
+			case 2: return AU1550_PCI_INTB;
+
+			case 3: return AU1550_PCI_INTC;
+
+			case 4: return AU1550_PCI_INTD;
 		}
 	}
+
 	return -1;
 }
 
 static int pb1550_map_pci_irq(const struct pci_dev *d, u8 slot, u8 pin)
 {
 	if ((slot < 12) || (slot > 13) || pin == 0)
+	{
 		return -1;
-	if (slot == 12) {
-		switch (pin) {
-		case 1: return AU1500_PCI_INTB;
-		case 2: return AU1500_PCI_INTC;
-		case 3: return AU1500_PCI_INTD;
-		case 4: return AU1500_PCI_INTA;
+	}
+
+	if (slot == 12)
+	{
+		switch (pin)
+		{
+			case 1: return AU1500_PCI_INTB;
+
+			case 2: return AU1500_PCI_INTC;
+
+			case 3: return AU1500_PCI_INTD;
+
+			case 4: return AU1500_PCI_INTA;
 		}
 	}
-	if (slot == 13) {
-		switch (pin) {
-		case 1: return AU1500_PCI_INTA;
-		case 2: return AU1500_PCI_INTB;
-		case 3: return AU1500_PCI_INTC;
-		case 4: return AU1500_PCI_INTD;
+
+	if (slot == 13)
+	{
+		switch (pin)
+		{
+			case 1: return AU1500_PCI_INTA;
+
+			case 2: return AU1500_PCI_INTB;
+
+			case 3: return AU1500_PCI_INTC;
+
+			case 4: return AU1500_PCI_INTD;
 		}
 	}
+
 	return -1;
 }
 
-static struct resource alchemy_pci_host_res[] = {
+static struct resource alchemy_pci_host_res[] =
+{
 	[0] = {
 		.start	= AU1500_PCI_PHYS_ADDR,
 		.end	= AU1500_PCI_PHYS_ADDR + 0xfff,
@@ -462,11 +539,13 @@ static struct resource alchemy_pci_host_res[] = {
 	},
 };
 
-static struct alchemy_pci_platdata db1550_pci_pd = {
+static struct alchemy_pci_platdata db1550_pci_pd =
+{
 	.board_map_irq	= db1550_map_pci_irq,
 };
 
-static struct platform_device db1550_pci_host_dev = {
+static struct platform_device db1550_pci_host_dev =
+{
 	.dev.platform_data = &db1550_pci_pd,
 	.name		= "alchemy-pci",
 	.id		= 0,
@@ -476,7 +555,8 @@ static struct platform_device db1550_pci_host_dev = {
 
 /**********************************************************************/
 
-static struct platform_device *db1550_devs[] __initdata = {
+static struct platform_device *db1550_devs[] __initdata =
+{
 	&db1550_i2c_dev,
 	&db1550_ac97_dev,
 	&db1550_spi_dev,
@@ -492,7 +572,10 @@ static struct platform_device *db1550_devs[] __initdata = {
 int __init db1550_pci_setup(int id)
 {
 	if (id)
+	{
 		db1550_pci_pd.board_map_irq = pb1550_map_pci_irq;
+	}
+
 	return platform_device_register(&db1550_pci_host_dev);
 }
 
@@ -578,18 +661,23 @@ int __init db1550_dev_setup(void)
 	id = (BCSR_WHOAMI_BOARD(bcsr_read(BCSR_WHOAMI)) != BCSR_WHOAMI_DB1550);
 
 	i2c_register_board_info(0, db1550_i2c_devs,
-				ARRAY_SIZE(db1550_i2c_devs));
+							ARRAY_SIZE(db1550_i2c_devs));
 	spi_register_board_info(db1550_spi_devs,
-				ARRAY_SIZE(db1550_i2c_devs));
+							ARRAY_SIZE(db1550_i2c_devs));
 
 	c = clk_get(NULL, "psc0_intclk");
-	if (!IS_ERR(c)) {
+
+	if (!IS_ERR(c))
+	{
 		clk_set_rate(c, 50000000);
 		clk_prepare_enable(c);
 		clk_put(c);
 	}
+
 	c = clk_get(NULL, "psc2_intclk");
-	if (!IS_ERR(c)) {
+
+	if (!IS_ERR(c))
+	{
 		clk_set_rate(c, db1550_spi_platdata.mainclk_hz);
 		clk_prepare_enable(c);
 		clk_put(c);
@@ -597,23 +685,23 @@ int __init db1550_dev_setup(void)
 
 	/* Audio PSC clock is supplied by codecs (PSC1, 3) FIXME: platdata!! */
 	__raw_writel(PSC_SEL_CLK_SERCLK,
-	    (void __iomem *)KSEG1ADDR(AU1550_PSC1_PHYS_ADDR) + PSC_SEL_OFFSET);
+				 (void __iomem *)KSEG1ADDR(AU1550_PSC1_PHYS_ADDR) + PSC_SEL_OFFSET);
 	wmb();
 	__raw_writel(PSC_SEL_CLK_SERCLK,
-	    (void __iomem *)KSEG1ADDR(AU1550_PSC3_PHYS_ADDR) + PSC_SEL_OFFSET);
+				 (void __iomem *)KSEG1ADDR(AU1550_PSC3_PHYS_ADDR) + PSC_SEL_OFFSET);
 	wmb();
 	/* SPI/I2C use internally supplied 50MHz source */
 	__raw_writel(PSC_SEL_CLK_INTCLK,
-	    (void __iomem *)KSEG1ADDR(AU1550_PSC0_PHYS_ADDR) + PSC_SEL_OFFSET);
+				 (void __iomem *)KSEG1ADDR(AU1550_PSC0_PHYS_ADDR) + PSC_SEL_OFFSET);
 	wmb();
 	__raw_writel(PSC_SEL_CLK_INTCLK,
-	    (void __iomem *)KSEG1ADDR(AU1550_PSC2_PHYS_ADDR) + PSC_SEL_OFFSET);
+				 (void __iomem *)KSEG1ADDR(AU1550_PSC2_PHYS_ADDR) + PSC_SEL_OFFSET);
 	wmb();
 
 	id ? pb1550_devices() : db1550_devices();
 
 	swapped = bcsr_read(BCSR_STATUS) &
-	       (id ? BCSR_STATUS_PB1550_SWAPBOOT : BCSR_STATUS_DB1000_SWAPBOOT);
+			  (id ? BCSR_STATUS_PB1550_SWAPBOOT : BCSR_STATUS_DB1000_SWAPBOOT);
 	db1x_register_norflash(128 << 20, 4, swapped);
 
 	return platform_add_devices(db1550_devs, ARRAY_SIZE(db1550_devs));

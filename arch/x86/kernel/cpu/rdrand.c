@@ -46,10 +46,14 @@ void x86_init_rdrand(struct cpuinfo_x86 *c)
 	int i;
 
 	if (!cpu_has(c, X86_FEATURE_RDRAND))
+	{
 		return;
+	}
 
-	for (i = 0; i < SANITY_CHECK_LOOPS; i++) {
-		if (!rdrand_long(&tmp)) {
+	for (i = 0; i < SANITY_CHECK_LOOPS; i++)
+	{
+		if (!rdrand_long(&tmp))
+		{
 			clear_cpu_cap(c, X86_FEATURE_RDRAND);
 			pr_warn_once("rdrand: disabled\n");
 			return;

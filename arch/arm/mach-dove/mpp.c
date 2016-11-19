@@ -16,13 +16,15 @@
 #include <plat/orion-gpio.h>
 #include "mpp.h"
 
-struct dove_mpp_grp {
+struct dove_mpp_grp
+{
 	int start;
 	int end;
 };
 
 /* Map a group to a range of GPIO pins in that group */
-static const struct dove_mpp_grp dove_mpp_grp[] = {
+static const struct dove_mpp_grp dove_mpp_grp[] =
+{
 	[MPP_24_39] = {
 		.start	= 24,
 		.end	= 39,
@@ -52,7 +54,9 @@ static void __init dove_mpp_gpio_mode(int start, int end, int gpio_mode)
 	int i;
 
 	for (i = start; i <= end; i++)
+	{
 		orion_gpio_set_valid(i, gpio_mode);
+	}
 }
 
 /* Dump all the extra MPP registers. The platform code will dump the
@@ -60,10 +64,10 @@ static void __init dove_mpp_gpio_mode(int start, int end, int gpio_mode)
 static void __init dove_mpp_dump_regs(void)
 {
 	pr_debug("PMU_CTRL4_CTRL: %08x\n",
-		 readl(DOVE_MPP_CTRL4_VIRT_BASE));
+			 readl(DOVE_MPP_CTRL4_VIRT_BASE));
 
 	pr_debug("PMU_MPP_GENERAL_CTRL: %08x\n",
-		 readl(DOVE_PMU_MPP_GENERAL_CTRL));
+			 readl(DOVE_PMU_MPP_GENERAL_CTRL));
 
 	pr_debug("MPP_GENERAL: %08x\n", readl(DOVE_MPP_GENERAL_VIRT_BASE));
 }
@@ -92,24 +96,36 @@ static void __init dove_mpp_cfg_au1(int sel)
 	global_cfg_2 &= ~(DOVE_TWSI_OPTION3_GPIO);
 
 	if (!sel || sel == 0x2)
+	{
 		dove_mpp_gpio_mode(52, 57, 0);
+	}
 	else
+	{
 		dove_mpp_gpio_mode(52, 57, GPIO_OUTPUT_OK | GPIO_INPUT_OK);
+	}
 
-	if (sel & 0x1) {
+	if (sel & 0x1)
+	{
 		global_cfg_2 |= DOVE_TWSI_OPTION3_GPIO;
 		dove_mpp_gpio_mode(56, 57, 0);
 	}
-	if (sel & 0x2) {
+
+	if (sel & 0x2)
+	{
 		mpp_gen_ctrl |= DOVE_AU1_SPDIFO_GPIO_EN;
 		dove_mpp_gpio_mode(57, 57, GPIO_OUTPUT_OK | GPIO_INPUT_OK);
 	}
-	if (sel & 0x4) {
+
+	if (sel & 0x4)
+	{
 		ssp_ctrl1 |= DOVE_SSP_ON_AU1;
 		dove_mpp_gpio_mode(52, 55, 0);
 	}
+
 	if (sel & 0x8)
+	{
 		mpp_ctrl4 |= DOVE_AU1_GPIO_SEL;
+	}
 
 	writel(mpp_ctrl4, DOVE_MPP_CTRL4_VIRT_BASE);
 	writel(ssp_ctrl1, DOVE_SSP_CTRL_STATUS_1);
@@ -124,11 +140,13 @@ static void __init dove_mpp_conf_grp(unsigned int *mpp_grp_list)
 	u32 mpp_ctrl4 = readl(DOVE_MPP_CTRL4_VIRT_BASE);
 	int gpio_mode;
 
-	for ( ; *mpp_grp_list; mpp_grp_list++) {
+	for ( ; *mpp_grp_list; mpp_grp_list++)
+	{
 		unsigned int num = MPP_NUM(*mpp_grp_list);
 		unsigned int sel = MPP_SEL(*mpp_grp_list);
 
-		if (num > MPP_GRP_MAX) {
+		if (num > MPP_GRP_MAX)
+		{
 			pr_err("dove: invalid MPP GRP number (%u)\n", num);
 			continue;
 		}
@@ -138,16 +156,17 @@ static void __init dove_mpp_conf_grp(unsigned int *mpp_grp_list)
 
 		gpio_mode = sel ? GPIO_OUTPUT_OK | GPIO_INPUT_OK : 0;
 		dove_mpp_gpio_mode(dove_mpp_grp[num].start,
-				   dove_mpp_grp[num].end, gpio_mode);
+						   dove_mpp_grp[num].end, gpio_mode);
 	}
+
 	writel(mpp_ctrl4, DOVE_MPP_CTRL4_VIRT_BASE);
 }
 
 /* Configure the various MPP pins on Dove */
 void __init dove_mpp_conf(unsigned int *mpp_list,
-			  unsigned int *mpp_grp_list,
-			  unsigned int grp_au1_52_57,
-			  unsigned int grp_nfc_64_71)
+						  unsigned int *mpp_grp_list,
+						  unsigned int grp_au1_52_57,
+						  unsigned int grp_nfc_64_71)
 {
 	dove_mpp_dump_regs();
 

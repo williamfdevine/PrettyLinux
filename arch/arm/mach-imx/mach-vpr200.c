@@ -50,7 +50,8 @@
 #define GPIO_BUTTON7	IMX_GPIO_NR(1, 11)
 #define GPIO_BUTTON8	IMX_GPIO_NR(1, 12)
 
-static const struct fb_videomode fb_modedb[] = {
+static const struct fb_videomode fb_modedb[] =
+{
 	{
 		/* 800x480 @ 60 Hz */
 		.name		= "PT0708048",
@@ -86,23 +87,27 @@ static const struct fb_videomode fb_modedb[] = {
 	}
 };
 
-static struct mx3fb_platform_data mx3fb_pdata __initdata = {
+static struct mx3fb_platform_data mx3fb_pdata __initdata =
+{
 	.name		= "PT0708048",
 	.mode		= fb_modedb,
 	.num_modes	= ARRAY_SIZE(fb_modedb),
 };
 
-static struct physmap_flash_data vpr200_flash_data = {
+static struct physmap_flash_data vpr200_flash_data =
+{
 	.width  = 2,
 };
 
-static struct resource vpr200_flash_resource = {
+static struct resource vpr200_flash_resource =
+{
 	.start	= MX35_CS0_BASE_ADDR,
 	.end	= MX35_CS0_BASE_ADDR + SZ_64M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device vpr200_flash = {
+static struct platform_device vpr200_flash =
+{
 	.name	= "physmap-flash",
 	.id	= 0,
 	.dev	= {
@@ -113,14 +118,16 @@ static struct platform_device vpr200_flash = {
 };
 
 static const struct mxc_nand_platform_data
-		vpr200_nand_board_info __initconst = {
+	vpr200_nand_board_info __initconst =
+{
 	.width = 1,
 	.hw_ecc = 1,
 	.flash_bbt = 1,
 };
 
 #define VPR_KEY_DEBOUNCE	500
-static struct gpio_keys_button vpr200_gpio_keys_table[] = {
+static struct gpio_keys_button vpr200_gpio_keys_table[] =
+{
 	{KEY_F2, GPIO_BUTTON1, 1, "vpr-keys: F2", 0, VPR_KEY_DEBOUNCE},
 	{KEY_F3, GPIO_BUTTON2, 1, "vpr-keys: F3", 0, VPR_KEY_DEBOUNCE},
 	{KEY_F4, GPIO_BUTTON3, 1, "vpr-keys: F4", 0, VPR_KEY_DEBOUNCE},
@@ -132,25 +139,30 @@ static struct gpio_keys_button vpr200_gpio_keys_table[] = {
 };
 
 static const struct gpio_keys_platform_data
-		vpr200_gpio_keys_data __initconst = {
+	vpr200_gpio_keys_data __initconst =
+{
 	.buttons = vpr200_gpio_keys_table,
 	.nbuttons = ARRAY_SIZE(vpr200_gpio_keys_table),
 };
 
-static struct mc13xxx_platform_data vpr200_pmic = {
+static struct mc13xxx_platform_data vpr200_pmic =
+{
 	.flags = MC13XXX_USE_ADC | MC13XXX_USE_TOUCHSCREEN,
 };
 
-static const struct imxi2c_platform_data vpr200_i2c0_data __initconst = {
+static const struct imxi2c_platform_data vpr200_i2c0_data __initconst =
+{
 	.bitrate = 50000,
 };
 
-static struct at24_platform_data vpr200_eeprom = {
+static struct at24_platform_data vpr200_eeprom =
+{
 	.byte_len = 2048 / 8,
 	.page_size = 1,
 };
 
-static struct i2c_board_info vpr200_i2c_devices[] = {
+static struct i2c_board_info vpr200_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("at24", 0x50), /* E0=0, E1=0, E2=0 */
 		.platform_data = &vpr200_eeprom,
@@ -161,7 +173,8 @@ static struct i2c_board_info vpr200_i2c_devices[] = {
 	}
 };
 
-static const iomux_v3_cfg_t vpr200_pads[] __initconst = {
+static const iomux_v3_cfg_t vpr200_pads[] __initconst =
+{
 	/* UART1 */
 	MX35_PAD_TXD1__UART1_TXD_MUX,
 	MX35_PAD_RXD1__UART1_RXD_MUX,
@@ -235,7 +248,8 @@ static const iomux_v3_cfg_t vpr200_pads[] __initconst = {
 };
 
 /* USB Device config */
-static const struct fsl_usb2_platform_data otg_device_pdata __initconst = {
+static const struct fsl_usb2_platform_data otg_device_pdata __initconst =
+{
 	.operating_mode	= FSL_USB2_DR_DEVICE,
 	.phy_mode	= FSL_USB2_PHY_UTMI,
 	.workaround	= FLS_USB2_WORKAROUND_ENGCM09152,
@@ -244,16 +258,18 @@ static const struct fsl_usb2_platform_data otg_device_pdata __initconst = {
 static int vpr200_usbh_init(struct platform_device *pdev)
 {
 	return mx35_initialize_usb_hw(pdev->id,
-			MXC_EHCI_INTERFACE_SINGLE_UNI | MXC_EHCI_INTERNAL_PHY);
+								  MXC_EHCI_INTERFACE_SINGLE_UNI | MXC_EHCI_INTERNAL_PHY);
 }
 
 /* USB HOST config */
-static const struct mxc_usbh_platform_data usb_host_pdata __initconst = {
+static const struct mxc_usbh_platform_data usb_host_pdata __initconst =
+{
 	.init = vpr200_usbh_init,
 	.portsc = MXC_EHCI_MODE_SERIAL,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&vpr200_flash,
 };
 
@@ -289,18 +305,26 @@ static void __init vpr200_late_init(void)
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 
 	if (0 != gpio_request(GPIO_LCDPWR, "LCDPWR"))
+	{
 		printk(KERN_WARNING "vpr200: Couldn't get LCDPWR gpio\n");
+	}
 	else
+	{
 		gpio_direction_output(GPIO_LCDPWR, 0);
+	}
 
 	if (0 != gpio_request(GPIO_PMIC_INT, "PMIC_INT"))
+	{
 		printk(KERN_WARNING "vpr200: Couldn't get PMIC_INT gpio\n");
+	}
 	else
+	{
 		gpio_direction_input(GPIO_PMIC_INT);
+	}
 
 	vpr200_i2c_devices[1].irq = gpio_to_irq(GPIO_PMIC_INT);
 	i2c_register_board_info(0, vpr200_i2c_devices,
-			ARRAY_SIZE(vpr200_i2c_devices));
+							ARRAY_SIZE(vpr200_i2c_devices));
 
 	imx35_add_imx_i2c0(&vpr200_i2c0_data);
 }
@@ -311,12 +335,12 @@ static void __init vpr200_timer_init(void)
 }
 
 MACHINE_START(VPR200, "VPR200")
-	/* Maintainer: Creative Product Design */
-	.map_io = mx35_map_io,
-	.init_early = imx35_init_early,
-	.init_irq = mx35_init_irq,
-	.init_time = vpr200_timer_init,
+/* Maintainer: Creative Product Design */
+.map_io = mx35_map_io,
+ .init_early = imx35_init_early,
+  .init_irq = mx35_init_irq,
+   .init_time = vpr200_timer_init,
 	.init_machine = vpr200_board_init,
-	.init_late	= vpr200_late_init,
-	.restart	= mxc_restart,
-MACHINE_END
+	 .init_late	= vpr200_late_init,
+	   .restart	= mxc_restart,
+		   MACHINE_END

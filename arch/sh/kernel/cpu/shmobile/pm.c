@@ -36,14 +36,14 @@ ATOMIC_NOTIFIER_HEAD(sh_mobile_post_sleep_notifier_list);
 #define SUSP_MODE_STANDBY_SF	(SUSP_SH_STANDBY | SUSP_SH_SF)
 #define SUSP_MODE_RSTANDBY_SF \
 	(SUSP_SH_RSTANDBY | SUSP_SH_MMU | SUSP_SH_REGS | SUSP_SH_SF)
- /*
-  * U-standby mode is unsupported since it needs bootloader hacks
-  */
+/*
+ * U-standby mode is unsupported since it needs bootloader hacks
+ */
 
 #ifdef CONFIG_CPU_SUBTYPE_SH7724
-#define RAM_BASE 0xfd800000 /* RSMEM */
+	#define RAM_BASE 0xfd800000 /* RSMEM */
 #else
-#define RAM_BASE 0xe5200000 /* ILRAM */
+	#define RAM_BASE 0xe5200000 /* ILRAM */
 #endif
 
 void sh_mobile_call_standby(unsigned long mode)
@@ -56,17 +56,19 @@ void sh_mobile_call_standby(unsigned long mode)
 	standby_onchip_mem = (void *)(sdp + 1);
 
 	atomic_notifier_call_chain(&sh_mobile_pre_sleep_notifier_list,
-				   mode, NULL);
+							   mode, NULL);
 
 	/* flush the caches if MMU flag is set */
 	if (mode & SUSP_SH_MMU)
+	{
 		flush_cache_all();
+	}
 
 	/* Let assembly snippet in on-chip memory handle the rest */
 	standby_onchip_mem(mode, RAM_BASE);
 
 	atomic_notifier_call_chain(&sh_mobile_post_sleep_notifier_list,
-				   mode, NULL);
+							   mode, NULL);
 }
 
 extern char sh_mobile_sleep_enter_start;
@@ -78,8 +80,8 @@ extern char sh_mobile_sleep_resume_end;
 unsigned long sh_mobile_sleep_supported = SUSP_SH_SLEEP;
 
 void sh_mobile_register_self_refresh(unsigned long flags,
-				     void *pre_start, void *pre_end,
-				     void *post_start, void *post_end)
+									 void *pre_start, void *pre_end,
+									 void *post_start, void *post_end)
 {
 	void *onchip_mem = (void *)RAM_BASE;
 	void *vp;
@@ -132,7 +134,9 @@ void sh_mobile_register_self_refresh(unsigned long flags,
 static int sh_pm_enter(suspend_state_t state)
 {
 	if (!(sh_mobile_sleep_supported & SUSP_MODE_STANDBY_SF))
+	{
 		return -ENXIO;
+	}
 
 	local_irq_disable();
 	set_bl_bit();
@@ -142,7 +146,8 @@ static int sh_pm_enter(suspend_state_t state)
 	return 0;
 }
 
-static const struct platform_suspend_ops sh_pm_ops = {
+static const struct platform_suspend_ops sh_pm_ops =
+{
 	.enter          = sh_pm_enter,
 	.valid          = suspend_valid_only_mem,
 };

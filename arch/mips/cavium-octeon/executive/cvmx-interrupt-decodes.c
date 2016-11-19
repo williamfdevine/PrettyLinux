@@ -41,7 +41,7 @@
 #include <asm/octeon/cvmx-stxx-defs.h>
 
 #ifndef PRINT_ERROR
-#define PRINT_ERROR(format, ...)
+	#define PRINT_ERROR(format, ...)
 #endif
 
 
@@ -52,9 +52,11 @@ void __cvmx_interrupt_gmxx_rxx_int_en_enable(int index, int block)
 {
 	union cvmx_gmxx_rxx_int_en gmx_rx_int_en;
 	cvmx_write_csr(CVMX_GMXX_RXX_INT_REG(index, block),
-		       cvmx_read_csr(CVMX_GMXX_RXX_INT_REG(index, block)));
+				   cvmx_read_csr(CVMX_GMXX_RXX_INT_REG(index, block)));
 	gmx_rx_int_en.u64 = 0;
-	if (OCTEON_IS_MODEL(OCTEON_CN56XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN56XX))
+	{
 		/* Skipping gmx_rx_int_en.s.reserved_29_63 */
 		gmx_rx_int_en.s.hg2cc = 1;
 		gmx_rx_int_en.s.hg2fld = 1;
@@ -83,7 +85,9 @@ void __cvmx_interrupt_gmxx_rxx_int_en_enable(int index, int block)
 		gmx_rx_int_en.s.carext = 1;
 		/* Skipping gmx_rx_int_en.s.reserved_0_0 */
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN30XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN30XX))
+	{
 		/* Skipping gmx_rx_int_en.s.reserved_19_63 */
 		/*gmx_rx_int_en.s.phy_dupx = 1; */
 		/*gmx_rx_int_en.s.phy_spd = 1; */
@@ -105,7 +109,9 @@ void __cvmx_interrupt_gmxx_rxx_int_en_enable(int index, int block)
 		gmx_rx_int_en.s.carext = 1;
 		gmx_rx_int_en.s.minerr = 1;
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN50XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN50XX))
+	{
 		/* Skipping gmx_rx_int_en.s.reserved_20_63 */
 		gmx_rx_int_en.s.pause_drp = 1;
 		/*gmx_rx_int_en.s.phy_dupx = 1; */
@@ -128,7 +134,9 @@ void __cvmx_interrupt_gmxx_rxx_int_en_enable(int index, int block)
 		gmx_rx_int_en.s.carext = 1;
 		/* Skipping gmx_rx_int_en.s.reserved_0_0 */
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN38XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN38XX))
+	{
 		/* Skipping gmx_rx_int_en.s.reserved_19_63 */
 		/*gmx_rx_int_en.s.phy_dupx = 1; */
 		/*gmx_rx_int_en.s.phy_spd = 1; */
@@ -150,7 +158,9 @@ void __cvmx_interrupt_gmxx_rxx_int_en_enable(int index, int block)
 		gmx_rx_int_en.s.carext = 1;
 		gmx_rx_int_en.s.minerr = 1;
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN31XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN31XX))
+	{
 		/* Skipping gmx_rx_int_en.s.reserved_19_63 */
 		/*gmx_rx_int_en.s.phy_dupx = 1; */
 		/*gmx_rx_int_en.s.phy_spd = 1; */
@@ -172,7 +182,9 @@ void __cvmx_interrupt_gmxx_rxx_int_en_enable(int index, int block)
 		gmx_rx_int_en.s.carext = 1;
 		gmx_rx_int_en.s.minerr = 1;
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN58XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN58XX))
+	{
 		/* Skipping gmx_rx_int_en.s.reserved_20_63 */
 		gmx_rx_int_en.s.pause_drp = 1;
 		/*gmx_rx_int_en.s.phy_dupx = 1; */
@@ -195,7 +207,9 @@ void __cvmx_interrupt_gmxx_rxx_int_en_enable(int index, int block)
 		gmx_rx_int_en.s.carext = 1;
 		gmx_rx_int_en.s.minerr = 1;
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN52XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN52XX))
+	{
 		/* Skipping gmx_rx_int_en.s.reserved_29_63 */
 		gmx_rx_int_en.s.hg2cc = 1;
 		gmx_rx_int_en.s.hg2fld = 1;
@@ -224,6 +238,7 @@ void __cvmx_interrupt_gmxx_rxx_int_en_enable(int index, int block)
 		gmx_rx_int_en.s.carext = 1;
 		/* Skipping gmx_rx_int_en.s.reserved_0_0 */
 	}
+
 	cvmx_write_csr(CVMX_GMXX_RXX_INT_EN(index, block), gmx_rx_int_en.u64);
 }
 /**
@@ -233,9 +248,11 @@ void __cvmx_interrupt_pcsx_intx_en_reg_enable(int index, int block)
 {
 	union cvmx_pcsx_intx_en_reg pcs_int_en_reg;
 	cvmx_write_csr(CVMX_PCSX_INTX_REG(index, block),
-		       cvmx_read_csr(CVMX_PCSX_INTX_REG(index, block)));
+				   cvmx_read_csr(CVMX_PCSX_INTX_REG(index, block)));
 	pcs_int_en_reg.u64 = 0;
-	if (OCTEON_IS_MODEL(OCTEON_CN56XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN56XX))
+	{
 		/* Skipping pcs_int_en_reg.s.reserved_12_63 */
 		/*pcs_int_en_reg.s.dup = 1; // This happens during normal operation */
 		pcs_int_en_reg.s.sync_bad_en = 1;
@@ -250,7 +267,9 @@ void __cvmx_interrupt_pcsx_intx_en_reg_enable(int index, int block)
 		/*pcs_int_en_reg.s.xmit_en = 1; // This happens during normal operation */
 		/*pcs_int_en_reg.s.lnkspd_en = 1; // This happens during normal operation */
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN52XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN52XX))
+	{
 		/* Skipping pcs_int_en_reg.s.reserved_12_63 */
 		/*pcs_int_en_reg.s.dup = 1; // This happens during normal operation */
 		pcs_int_en_reg.s.sync_bad_en = 1;
@@ -265,6 +284,7 @@ void __cvmx_interrupt_pcsx_intx_en_reg_enable(int index, int block)
 		/*pcs_int_en_reg.s.xmit_en = 1; // This happens during normal operation */
 		/*pcs_int_en_reg.s.lnkspd_en = 1; // This happens during normal operation */
 	}
+
 	cvmx_write_csr(CVMX_PCSX_INTX_EN_REG(index, block), pcs_int_en_reg.u64);
 }
 /**
@@ -274,9 +294,11 @@ void __cvmx_interrupt_pcsxx_int_en_reg_enable(int index)
 {
 	union cvmx_pcsxx_int_en_reg pcsx_int_en_reg;
 	cvmx_write_csr(CVMX_PCSXX_INT_REG(index),
-		       cvmx_read_csr(CVMX_PCSXX_INT_REG(index)));
+				   cvmx_read_csr(CVMX_PCSXX_INT_REG(index)));
 	pcsx_int_en_reg.u64 = 0;
-	if (OCTEON_IS_MODEL(OCTEON_CN56XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN56XX))
+	{
 		/* Skipping pcsx_int_en_reg.s.reserved_6_63 */
 		pcsx_int_en_reg.s.algnlos_en = 1;
 		pcsx_int_en_reg.s.synlos_en = 1;
@@ -285,7 +307,9 @@ void __cvmx_interrupt_pcsxx_int_en_reg_enable(int index)
 		pcsx_int_en_reg.s.rxbad_en = 1;
 		pcsx_int_en_reg.s.txflt_en = 1;
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN52XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN52XX))
+	{
 		/* Skipping pcsx_int_en_reg.s.reserved_6_63 */
 		pcsx_int_en_reg.s.algnlos_en = 1;
 		pcsx_int_en_reg.s.synlos_en = 1;
@@ -294,6 +318,7 @@ void __cvmx_interrupt_pcsxx_int_en_reg_enable(int index)
 		pcsx_int_en_reg.s.rxbad_en = 1;
 		pcsx_int_en_reg.s.txflt_en = 1;
 	}
+
 	cvmx_write_csr(CVMX_PCSXX_INT_EN_REG(index), pcsx_int_en_reg.u64);
 }
 
@@ -304,9 +329,11 @@ void __cvmx_interrupt_spxx_int_msk_enable(int index)
 {
 	union cvmx_spxx_int_msk spx_int_msk;
 	cvmx_write_csr(CVMX_SPXX_INT_REG(index),
-		       cvmx_read_csr(CVMX_SPXX_INT_REG(index)));
+				   cvmx_read_csr(CVMX_SPXX_INT_REG(index)));
 	spx_int_msk.u64 = 0;
-	if (OCTEON_IS_MODEL(OCTEON_CN38XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN38XX))
+	{
 		/* Skipping spx_int_msk.s.reserved_12_63 */
 		spx_int_msk.s.calerr = 1;
 		spx_int_msk.s.syncerr = 1;
@@ -320,7 +347,9 @@ void __cvmx_interrupt_spxx_int_msk_enable(int index)
 		spx_int_msk.s.abnorm = 1;
 		spx_int_msk.s.prtnxa = 1;
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN58XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN58XX))
+	{
 		/* Skipping spx_int_msk.s.reserved_12_63 */
 		spx_int_msk.s.calerr = 1;
 		spx_int_msk.s.syncerr = 1;
@@ -334,6 +363,7 @@ void __cvmx_interrupt_spxx_int_msk_enable(int index)
 		spx_int_msk.s.abnorm = 1;
 		spx_int_msk.s.prtnxa = 1;
 	}
+
 	cvmx_write_csr(CVMX_SPXX_INT_MSK(index), spx_int_msk.u64);
 }
 /**
@@ -343,9 +373,11 @@ void __cvmx_interrupt_stxx_int_msk_enable(int index)
 {
 	union cvmx_stxx_int_msk stx_int_msk;
 	cvmx_write_csr(CVMX_STXX_INT_REG(index),
-		       cvmx_read_csr(CVMX_STXX_INT_REG(index)));
+				   cvmx_read_csr(CVMX_STXX_INT_REG(index)));
 	stx_int_msk.u64 = 0;
-	if (OCTEON_IS_MODEL(OCTEON_CN38XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN38XX))
+	{
 		/* Skipping stx_int_msk.s.reserved_8_63 */
 		stx_int_msk.s.frmerr = 1;
 		stx_int_msk.s.unxfrm = 1;
@@ -356,7 +388,9 @@ void __cvmx_interrupt_stxx_int_msk_enable(int index)
 		stx_int_msk.s.calpar1 = 1;
 		stx_int_msk.s.calpar0 = 1;
 	}
-	if (OCTEON_IS_MODEL(OCTEON_CN58XX)) {
+
+	if (OCTEON_IS_MODEL(OCTEON_CN58XX))
+	{
 		/* Skipping stx_int_msk.s.reserved_8_63 */
 		stx_int_msk.s.frmerr = 1;
 		stx_int_msk.s.unxfrm = 1;
@@ -367,5 +401,6 @@ void __cvmx_interrupt_stxx_int_msk_enable(int index)
 		stx_int_msk.s.calpar1 = 1;
 		stx_int_msk.s.calpar0 = 1;
 	}
+
 	cvmx_write_csr(CVMX_STXX_INT_MSK(index), stx_int_msk.u64);
 }

@@ -23,19 +23,19 @@
  * inline assembler.
  */
 #ifndef __STR
-#define __STR(x) #x
+	#define __STR(x) #x
 #endif
 #ifndef STR
-#define STR(x) __STR(x)
+	#define STR(x) __STR(x)
 #endif
 
 /*
  *  Configure language
  */
 #ifdef __ASSEMBLY__
-#define _ULCAST_
+	#define _ULCAST_
 #else
-#define _ULCAST_ (unsigned long)
+	#define _ULCAST_ (unsigned long)
 #endif
 
 /*
@@ -150,33 +150,33 @@
  */
 #ifdef CONFIG_CPU_VR41XX
 
-/* Why doesn't stupidity hurt ... */
+	/* Why doesn't stupidity hurt ... */
 
-#define PM_1K		0x00000000
-#define PM_4K		0x00001800
-#define PM_16K		0x00007800
-#define PM_64K		0x0001f800
-#define PM_256K		0x0007f800
+	#define PM_1K		0x00000000
+	#define PM_4K		0x00001800
+	#define PM_16K		0x00007800
+	#define PM_64K		0x0001f800
+	#define PM_256K		0x0007f800
 
 #else
 
-#define PM_4K		0x00000000
-#define PM_8K		0x00002000
-#define PM_16K		0x00006000
-#define PM_32K		0x0000e000
-#define PM_64K		0x0001e000
-#define PM_128K		0x0003e000
-#define PM_256K		0x0007e000
-#define PM_512K		0x000fe000
-#define PM_1M		0x001fe000
-#define PM_2M		0x003fe000
-#define PM_4M		0x007fe000
-#define PM_8M		0x00ffe000
-#define PM_16M		0x01ffe000
-#define PM_32M		0x03ffe000
-#define PM_64M		0x07ffe000
-#define PM_256M		0x1fffe000
-#define PM_1G		0x7fffe000
+	#define PM_4K		0x00000000
+	#define PM_8K		0x00002000
+	#define PM_16K		0x00006000
+	#define PM_32K		0x0000e000
+	#define PM_64K		0x0001e000
+	#define PM_128K		0x0003e000
+	#define PM_256K		0x0007e000
+	#define PM_512K		0x000fe000
+	#define PM_1M		0x001fe000
+	#define PM_2M		0x003fe000
+	#define PM_4M		0x007fe000
+	#define PM_8M		0x00ffe000
+	#define PM_16M		0x01ffe000
+	#define PM_32M		0x03ffe000
+	#define PM_64M		0x07ffe000
+	#define PM_256M		0x1fffe000
+	#define PM_1G		0x7fffe000
 
 #endif
 
@@ -184,34 +184,34 @@
  * Default page size for a given kernel configuration
  */
 #ifdef CONFIG_PAGE_SIZE_4KB
-#define PM_DEFAULT_MASK PM_4K
+	#define PM_DEFAULT_MASK PM_4K
 #elif defined(CONFIG_PAGE_SIZE_8KB)
-#define PM_DEFAULT_MASK PM_8K
+	#define PM_DEFAULT_MASK PM_8K
 #elif defined(CONFIG_PAGE_SIZE_16KB)
-#define PM_DEFAULT_MASK PM_16K
+	#define PM_DEFAULT_MASK PM_16K
 #elif defined(CONFIG_PAGE_SIZE_32KB)
-#define PM_DEFAULT_MASK PM_32K
+	#define PM_DEFAULT_MASK PM_32K
 #elif defined(CONFIG_PAGE_SIZE_64KB)
-#define PM_DEFAULT_MASK PM_64K
+	#define PM_DEFAULT_MASK PM_64K
 #else
-#error Bad page size configuration!
+	#error Bad page size configuration!
 #endif
 
 /*
  * Default huge tlb size for a given kernel configuration
  */
 #ifdef CONFIG_PAGE_SIZE_4KB
-#define PM_HUGE_MASK	PM_1M
+	#define PM_HUGE_MASK	PM_1M
 #elif defined(CONFIG_PAGE_SIZE_8KB)
-#define PM_HUGE_MASK	PM_4M
+	#define PM_HUGE_MASK	PM_4M
 #elif defined(CONFIG_PAGE_SIZE_16KB)
-#define PM_HUGE_MASK	PM_16M
+	#define PM_HUGE_MASK	PM_16M
 #elif defined(CONFIG_PAGE_SIZE_32KB)
-#define PM_HUGE_MASK	PM_64M
+	#define PM_HUGE_MASK	PM_64M
 #elif defined(CONFIG_PAGE_SIZE_64KB)
-#define PM_HUGE_MASK	PM_256M
+	#define PM_HUGE_MASK	PM_256M
 #elif defined(CONFIG_MIPS_HUGE_TLB_SUPPORT)
-#error Bad page size configuration for hugetlbfs!
+	#error Bad page size configuration for hugetlbfs!
 #endif
 
 /*
@@ -1052,14 +1052,14 @@
  * Macros for handling the ISA mode bit for MIPS16 and microMIPS.
  */
 #if defined(CONFIG_SYS_SUPPORTS_MIPS16) || \
-    defined(CONFIG_SYS_SUPPORTS_MICROMIPS)
-#define get_isa16_mode(x)		((x) & 0x1)
-#define msk_isa16_mode(x)		((x) & ~0x1)
-#define set_isa16_mode(x)		do { (x) |= 0x1; } while(0)
+	defined(CONFIG_SYS_SUPPORTS_MICROMIPS)
+	#define get_isa16_mode(x)		((x) & 0x1)
+	#define msk_isa16_mode(x)		((x) & ~0x1)
+	#define set_isa16_mode(x)		do { (x) |= 0x1; } while(0)
 #else
-#define get_isa16_mode(x)		0
-#define msk_isa16_mode(x)		(x)
-#define set_isa16_mode(x)		do { } while(0)
+	#define get_isa16_mode(x)		0
+	#define msk_isa16_mode(x)		(x)
+	#define set_isa16_mode(x)		do { } while(0)
 #endif
 
 /*
@@ -1091,13 +1091,13 @@ static inline int mm_insn_16bit(u16 insn)
 #endif
 
 #ifndef _ASM_INSN16_IF_MM
-#define _ASM_INSN16_IF_MM(_enc)
+	#define _ASM_INSN16_IF_MM(_enc)
 #endif
 #ifndef _ASM_INSN32_IF_MM
-#define _ASM_INSN32_IF_MM(_enc)
+	#define _ASM_INSN32_IF_MM(_enc)
 #endif
 #ifndef _ASM_INSN_IF_MIPS
-#define _ASM_INSN_IF_MIPS(_enc)
+	#define _ASM_INSN_IF_MIPS(_enc)
 #endif
 
 /*
@@ -1123,42 +1123,42 @@ static inline void tlbinvf(void)
  * disassembler these will look like an access to sel 0 or 1.
  */
 #define read_r10k_perf_cntr(counter)				\
-({								\
-	unsigned int __res;					\
-	__asm__ __volatile__(					\
-	"mfpc\t%0, %1"						\
-	: "=r" (__res)						\
-	: "i" (counter));					\
-								\
-	__res;							\
-})
+	({								\
+		unsigned int __res;					\
+		__asm__ __volatile__(					\
+												"mfpc\t%0, %1"						\
+												: "=r" (__res)						\
+												: "i" (counter));					\
+		\
+		__res;							\
+	})
 
 #define write_r10k_perf_cntr(counter,val)			\
-do {								\
-	__asm__ __volatile__(					\
-	"mtpc\t%0, %1"						\
-	:							\
-	: "r" (val), "i" (counter));				\
-} while (0)
+	do {								\
+		__asm__ __volatile__(					\
+												"mtpc\t%0, %1"						\
+												:							\
+												: "r" (val), "i" (counter));				\
+	} while (0)
 
 #define read_r10k_perf_event(counter)				\
-({								\
-	unsigned int __res;					\
-	__asm__ __volatile__(					\
-	"mfps\t%0, %1"						\
-	: "=r" (__res)						\
-	: "i" (counter));					\
-								\
-	__res;							\
-})
+	({								\
+		unsigned int __res;					\
+		__asm__ __volatile__(					\
+												"mfps\t%0, %1"						\
+												: "=r" (__res)						\
+												: "i" (counter));					\
+		\
+		__res;							\
+	})
 
 #define write_r10k_perf_cntl(counter,val)			\
-do {								\
-	__asm__ __volatile__(					\
-	"mtps\t%0, %1"						\
-	:							\
-	: "r" (val), "i" (counter));				\
-} while (0)
+	do {								\
+		__asm__ __volatile__(					\
+												"mtps\t%0, %1"						\
+												:							\
+												: "r" (val), "i" (counter));				\
+	} while (0)
 
 
 /*
@@ -1166,195 +1166,195 @@ do {								\
  */
 
 #define __read_32bit_c0_register(source, sel)				\
-({ unsigned int __res;							\
-	if (sel == 0)							\
-		__asm__ __volatile__(					\
-			"mfc0\t%0, " #source "\n\t"			\
-			: "=r" (__res));				\
-	else								\
-		__asm__ __volatile__(					\
-			".set\tmips32\n\t"				\
-			"mfc0\t%0, " #source ", " #sel "\n\t"		\
-			".set\tmips0\n\t"				\
-			: "=r" (__res));				\
-	__res;								\
-})
+	({ unsigned int __res;							\
+		if (sel == 0)							\
+			__asm__ __volatile__(					\
+													"mfc0\t%0, " #source "\n\t"			\
+													: "=r" (__res));				\
+		else								\
+			__asm__ __volatile__(					\
+													".set\tmips32\n\t"				\
+													"mfc0\t%0, " #source ", " #sel "\n\t"		\
+													".set\tmips0\n\t"				\
+													: "=r" (__res));				\
+		__res;								\
+	})
 
 #define __read_64bit_c0_register(source, sel)				\
-({ unsigned long long __res;						\
-	if (sizeof(unsigned long) == 4)					\
-		__res = __read_64bit_c0_split(source, sel);		\
-	else if (sel == 0)						\
-		__asm__ __volatile__(					\
-			".set\tmips3\n\t"				\
-			"dmfc0\t%0, " #source "\n\t"			\
-			".set\tmips0"					\
-			: "=r" (__res));				\
-	else								\
-		__asm__ __volatile__(					\
-			".set\tmips64\n\t"				\
-			"dmfc0\t%0, " #source ", " #sel "\n\t"		\
-			".set\tmips0"					\
-			: "=r" (__res));				\
-	__res;								\
-})
+	({ unsigned long long __res;						\
+		if (sizeof(unsigned long) == 4)					\
+			__res = __read_64bit_c0_split(source, sel);		\
+		else if (sel == 0)						\
+			__asm__ __volatile__(					\
+													".set\tmips3\n\t"				\
+													"dmfc0\t%0, " #source "\n\t"			\
+													".set\tmips0"					\
+													: "=r" (__res));				\
+		else								\
+			__asm__ __volatile__(					\
+													".set\tmips64\n\t"				\
+													"dmfc0\t%0, " #source ", " #sel "\n\t"		\
+													".set\tmips0"					\
+													: "=r" (__res));				\
+		__res;								\
+	})
 
 #define __write_32bit_c0_register(register, sel, value)			\
-do {									\
-	if (sel == 0)							\
-		__asm__ __volatile__(					\
-			"mtc0\t%z0, " #register "\n\t"			\
-			: : "Jr" ((unsigned int)(value)));		\
-	else								\
-		__asm__ __volatile__(					\
-			".set\tmips32\n\t"				\
-			"mtc0\t%z0, " #register ", " #sel "\n\t"	\
-			".set\tmips0"					\
-			: : "Jr" ((unsigned int)(value)));		\
-} while (0)
+	do {									\
+		if (sel == 0)							\
+			__asm__ __volatile__(					\
+													"mtc0\t%z0, " #register "\n\t"			\
+													: : "Jr" ((unsigned int)(value)));		\
+		else								\
+			__asm__ __volatile__(					\
+													".set\tmips32\n\t"				\
+													"mtc0\t%z0, " #register ", " #sel "\n\t"	\
+													".set\tmips0"					\
+													: : "Jr" ((unsigned int)(value)));		\
+	} while (0)
 
 #define __write_64bit_c0_register(register, sel, value)			\
-do {									\
-	if (sizeof(unsigned long) == 4)					\
-		__write_64bit_c0_split(register, sel, value);		\
-	else if (sel == 0)						\
-		__asm__ __volatile__(					\
-			".set\tmips3\n\t"				\
-			"dmtc0\t%z0, " #register "\n\t"			\
-			".set\tmips0"					\
-			: : "Jr" (value));				\
-	else								\
-		__asm__ __volatile__(					\
-			".set\tmips64\n\t"				\
-			"dmtc0\t%z0, " #register ", " #sel "\n\t"	\
-			".set\tmips0"					\
-			: : "Jr" (value));				\
-} while (0)
+	do {									\
+		if (sizeof(unsigned long) == 4)					\
+			__write_64bit_c0_split(register, sel, value);		\
+		else if (sel == 0)						\
+			__asm__ __volatile__(					\
+													".set\tmips3\n\t"				\
+													"dmtc0\t%z0, " #register "\n\t"			\
+													".set\tmips0"					\
+													: : "Jr" (value));				\
+		else								\
+			__asm__ __volatile__(					\
+													".set\tmips64\n\t"				\
+													"dmtc0\t%z0, " #register ", " #sel "\n\t"	\
+													".set\tmips0"					\
+													: : "Jr" (value));				\
+	} while (0)
 
 #define __read_ulong_c0_register(reg, sel)				\
 	((sizeof(unsigned long) == 4) ?					\
-	(unsigned long) __read_32bit_c0_register(reg, sel) :		\
-	(unsigned long) __read_64bit_c0_register(reg, sel))
+	 (unsigned long) __read_32bit_c0_register(reg, sel) :		\
+	 (unsigned long) __read_64bit_c0_register(reg, sel))
 
 #define __write_ulong_c0_register(reg, sel, val)			\
-do {									\
-	if (sizeof(unsigned long) == 4)					\
-		__write_32bit_c0_register(reg, sel, val);		\
-	else								\
-		__write_64bit_c0_register(reg, sel, val);		\
-} while (0)
+	do {									\
+		if (sizeof(unsigned long) == 4)					\
+			__write_32bit_c0_register(reg, sel, val);		\
+		else								\
+			__write_64bit_c0_register(reg, sel, val);		\
+	} while (0)
 
 /*
  * On RM7000/RM9000 these are uses to access cop0 set 1 registers
  */
 #define __read_32bit_c0_ctrl_register(source)				\
-({ unsigned int __res;							\
-	__asm__ __volatile__(						\
-		"cfc0\t%0, " #source "\n\t"				\
-		: "=r" (__res));					\
-	__res;								\
-})
+	({ unsigned int __res;							\
+		__asm__ __volatile__(						\
+				"cfc0\t%0, " #source "\n\t"				\
+				: "=r" (__res));					\
+		__res;								\
+	})
 
 #define __write_32bit_c0_ctrl_register(register, value)			\
-do {									\
-	__asm__ __volatile__(						\
-		"ctc0\t%z0, " #register "\n\t"				\
-		: : "Jr" ((unsigned int)(value)));			\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				"ctc0\t%z0, " #register "\n\t"				\
+				: : "Jr" ((unsigned int)(value)));			\
+	} while (0)
 
 /*
  * These versions are only needed for systems with more than 38 bits of
  * physical address space running the 32-bit kernel.  That's none atm :-)
  */
 #define __read_64bit_c0_split(source, sel)				\
-({									\
-	unsigned long long __val;					\
-	unsigned long __flags;						\
-									\
-	local_irq_save(__flags);					\
-	if (sel == 0)							\
-		__asm__ __volatile__(					\
-			".set\tmips64\n\t"				\
-			"dmfc0\t%M0, " #source "\n\t"			\
-			"dsll\t%L0, %M0, 32\n\t"			\
-			"dsra\t%M0, %M0, 32\n\t"			\
-			"dsra\t%L0, %L0, 32\n\t"			\
-			".set\tmips0"					\
-			: "=r" (__val));				\
-	else								\
-		__asm__ __volatile__(					\
-			".set\tmips64\n\t"				\
-			"dmfc0\t%M0, " #source ", " #sel "\n\t"		\
-			"dsll\t%L0, %M0, 32\n\t"			\
-			"dsra\t%M0, %M0, 32\n\t"			\
-			"dsra\t%L0, %L0, 32\n\t"			\
-			".set\tmips0"					\
-			: "=r" (__val));				\
-	local_irq_restore(__flags);					\
-									\
-	__val;								\
-})
+	({									\
+		unsigned long long __val;					\
+		unsigned long __flags;						\
+		\
+		local_irq_save(__flags);					\
+		if (sel == 0)							\
+			__asm__ __volatile__(					\
+													".set\tmips64\n\t"				\
+													"dmfc0\t%M0, " #source "\n\t"			\
+													"dsll\t%L0, %M0, 32\n\t"			\
+													"dsra\t%M0, %M0, 32\n\t"			\
+													"dsra\t%L0, %L0, 32\n\t"			\
+													".set\tmips0"					\
+													: "=r" (__val));				\
+		else								\
+			__asm__ __volatile__(					\
+													".set\tmips64\n\t"				\
+													"dmfc0\t%M0, " #source ", " #sel "\n\t"		\
+													"dsll\t%L0, %M0, 32\n\t"			\
+													"dsra\t%M0, %M0, 32\n\t"			\
+													"dsra\t%L0, %L0, 32\n\t"			\
+													".set\tmips0"					\
+													: "=r" (__val));				\
+		local_irq_restore(__flags);					\
+		\
+		__val;								\
+	})
 
 #define __write_64bit_c0_split(source, sel, val)			\
-do {									\
-	unsigned long __flags;						\
-									\
-	local_irq_save(__flags);					\
-	if (sel == 0)							\
-		__asm__ __volatile__(					\
-			".set\tmips64\n\t"				\
-			"dsll\t%L0, %L0, 32\n\t"			\
-			"dsrl\t%L0, %L0, 32\n\t"			\
-			"dsll\t%M0, %M0, 32\n\t"			\
-			"or\t%L0, %L0, %M0\n\t"				\
-			"dmtc0\t%L0, " #source "\n\t"			\
-			".set\tmips0"					\
-			: : "r" (val));					\
-	else								\
-		__asm__ __volatile__(					\
-			".set\tmips64\n\t"				\
-			"dsll\t%L0, %L0, 32\n\t"			\
-			"dsrl\t%L0, %L0, 32\n\t"			\
-			"dsll\t%M0, %M0, 32\n\t"			\
-			"or\t%L0, %L0, %M0\n\t"				\
-			"dmtc0\t%L0, " #source ", " #sel "\n\t"		\
-			".set\tmips0"					\
-			: : "r" (val));					\
-	local_irq_restore(__flags);					\
-} while (0)
+	do {									\
+		unsigned long __flags;						\
+		\
+		local_irq_save(__flags);					\
+		if (sel == 0)							\
+			__asm__ __volatile__(					\
+													".set\tmips64\n\t"				\
+													"dsll\t%L0, %L0, 32\n\t"			\
+													"dsrl\t%L0, %L0, 32\n\t"			\
+													"dsll\t%M0, %M0, 32\n\t"			\
+													"or\t%L0, %L0, %M0\n\t"				\
+													"dmtc0\t%L0, " #source "\n\t"			\
+													".set\tmips0"					\
+													: : "r" (val));					\
+		else								\
+			__asm__ __volatile__(					\
+													".set\tmips64\n\t"				\
+													"dsll\t%L0, %L0, 32\n\t"			\
+													"dsrl\t%L0, %L0, 32\n\t"			\
+													"dsll\t%M0, %M0, 32\n\t"			\
+													"or\t%L0, %L0, %M0\n\t"				\
+													"dmtc0\t%L0, " #source ", " #sel "\n\t"		\
+													".set\tmips0"					\
+													: : "r" (val));					\
+		local_irq_restore(__flags);					\
+	} while (0)
 
 #define __readx_32bit_c0_register(source)				\
-({									\
-	unsigned int __res;						\
-									\
-	__asm__ __volatile__(						\
-	"	.set	push					\n"	\
-	"	.set	noat					\n"	\
-	"	.set	mips32r2				\n"	\
-	"	# mfhc0 $1, %1					\n"	\
-	_ASM_INSN_IF_MIPS(0x40410000 | ((%1 & 0x1f) << 11))		\
-	_ASM_INSN32_IF_MM(0x002000f4 | ((%1 & 0x1f) << 16))		\
-	"	move	%0, $1					\n"	\
-	"	.set	pop					\n"	\
-	: "=r" (__res)							\
-	: "i" (source));						\
-	__res;								\
-})
+	({									\
+		unsigned int __res;						\
+		\
+		__asm__ __volatile__(						\
+				"	.set	push					\n"	\
+				"	.set	noat					\n"	\
+				"	.set	mips32r2				\n"	\
+				"	# mfhc0 $1, %1					\n"	\
+				_ASM_INSN_IF_MIPS(0x40410000 | ((%1 & 0x1f) << 11))		\
+				_ASM_INSN32_IF_MM(0x002000f4 | ((%1 & 0x1f) << 16))		\
+				"	move	%0, $1					\n"	\
+				"	.set	pop					\n"	\
+				: "=r" (__res)							\
+				: "i" (source));						\
+		__res;								\
+	})
 
 #define __writex_32bit_c0_register(register, value)			\
-do {									\
-	__asm__ __volatile__(						\
-	"	.set	push					\n"	\
-	"	.set	noat					\n"	\
-	"	.set	mips32r2				\n"	\
-	"	move	$1, %0					\n"	\
-	"	# mthc0 $1, %1					\n"	\
-	_ASM_INSN_IF_MIPS(0x40c10000 | ((%1 & 0x1f) << 11))		\
-	_ASM_INSN32_IF_MM(0x002002f4 | ((%1 & 0x1f) << 16))		\
-	"	.set	pop					\n"	\
-	:								\
-	: "r" (value), "i" (register));					\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				"	.set	push					\n"	\
+				"	.set	noat					\n"	\
+				"	.set	mips32r2				\n"	\
+				"	move	$1, %0					\n"	\
+				"	# mthc0 $1, %1					\n"	\
+				_ASM_INSN_IF_MIPS(0x40c10000 | ((%1 & 0x1f) << 11))		\
+				_ASM_INSN32_IF_MM(0x002002f4 | ((%1 & 0x1f) << 16))		\
+				"	.set	pop					\n"	\
+				:								\
+				: "r" (value), "i" (register));					\
+	} while (0)
 
 #define read_c0_index()		__read_32bit_c0_register($0, 0)
 #define write_c0_index(val)	__write_32bit_c0_register($0, 0, val)
@@ -1743,129 +1743,129 @@ do {									\
 #ifdef TOOLCHAIN_SUPPORTS_VIRT
 
 #define __read_32bit_gc0_register(source, sel)				\
-({ int __res;								\
-	__asm__ __volatile__(						\
-		".set\tpush\n\t"					\
-		".set\tmips32r2\n\t"					\
-		".set\tvirt\n\t"					\
-		"mfgc0\t%0, $%1, %2\n\t"				\
-		".set\tpop"						\
-		: "=r" (__res)						\
-		: "i" (source), "i" (sel));				\
-	__res;								\
-})
+	({ int __res;								\
+		__asm__ __volatile__(						\
+				".set\tpush\n\t"					\
+				".set\tmips32r2\n\t"					\
+				".set\tvirt\n\t"					\
+				"mfgc0\t%0, $%1, %2\n\t"				\
+				".set\tpop"						\
+				: "=r" (__res)						\
+				: "i" (source), "i" (sel));				\
+		__res;								\
+	})
 
 #define __read_64bit_gc0_register(source, sel)				\
-({ unsigned long long __res;						\
-	__asm__ __volatile__(						\
-		".set\tpush\n\t"					\
-		".set\tmips64r2\n\t"					\
-		".set\tvirt\n\t"					\
-		"dmfgc0\t%0, $%1, %2\n\t"			\
-		".set\tpop"						\
-		: "=r" (__res)						\
-		: "i" (source), "i" (sel));				\
-	__res;								\
-})
+	({ unsigned long long __res;						\
+		__asm__ __volatile__(						\
+				".set\tpush\n\t"					\
+				".set\tmips64r2\n\t"					\
+				".set\tvirt\n\t"					\
+				"dmfgc0\t%0, $%1, %2\n\t"			\
+				".set\tpop"						\
+				: "=r" (__res)						\
+				: "i" (source), "i" (sel));				\
+		__res;								\
+	})
 
 #define __write_32bit_gc0_register(register, sel, value)		\
-do {									\
-	__asm__ __volatile__(						\
-		".set\tpush\n\t"					\
-		".set\tmips32r2\n\t"					\
-		".set\tvirt\n\t"					\
-		"mtgc0\t%z0, $%1, %2\n\t"				\
-		".set\tpop"						\
-		: : "Jr" ((unsigned int)(value)),			\
-		    "i" (register), "i" (sel));				\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				".set\tpush\n\t"					\
+				".set\tmips32r2\n\t"					\
+				".set\tvirt\n\t"					\
+				"mtgc0\t%z0, $%1, %2\n\t"				\
+				".set\tpop"						\
+				: : "Jr" ((unsigned int)(value)),			\
+				"i" (register), "i" (sel));				\
+	} while (0)
 
 #define __write_64bit_gc0_register(register, sel, value)		\
-do {									\
-	__asm__ __volatile__(						\
-		".set\tpush\n\t"					\
-		".set\tmips64r2\n\t"					\
-		".set\tvirt\n\t"					\
-		"dmtgc0\t%z0, $%1, %2\n\t"				\
-		".set\tpop"						\
-		: : "Jr" (value),					\
-		    "i" (register), "i" (sel));				\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				".set\tpush\n\t"					\
+				".set\tmips64r2\n\t"					\
+				".set\tvirt\n\t"					\
+				"dmtgc0\t%z0, $%1, %2\n\t"				\
+				".set\tpop"						\
+				: : "Jr" (value),					\
+				"i" (register), "i" (sel));				\
+	} while (0)
 
 #else	/* TOOLCHAIN_SUPPORTS_VIRT */
 
 #define __read_32bit_gc0_register(source, sel)				\
-({ int __res;								\
-	__asm__ __volatile__(						\
-		".set\tpush\n\t"					\
-		".set\tnoat\n\t"					\
-		"# mfgc0\t$1, $%1, %2\n\t"				\
-		_ASM_INSN_IF_MIPS(0x40610000 | %1 << 11 | %2)		\
-		_ASM_INSN32_IF_MM(0x002004fc | %1 << 16 | %2 << 11)	\
-		"move\t%0, $1\n\t"					\
-		".set\tpop"						\
-		: "=r" (__res)						\
-		: "i" (source), "i" (sel));				\
-	__res;								\
-})
+	({ int __res;								\
+		__asm__ __volatile__(						\
+				".set\tpush\n\t"					\
+				".set\tnoat\n\t"					\
+				"# mfgc0\t$1, $%1, %2\n\t"				\
+				_ASM_INSN_IF_MIPS(0x40610000 | %1 << 11 | %2)		\
+				_ASM_INSN32_IF_MM(0x002004fc | %1 << 16 | %2 << 11)	\
+				"move\t%0, $1\n\t"					\
+				".set\tpop"						\
+				: "=r" (__res)						\
+				: "i" (source), "i" (sel));				\
+		__res;								\
+	})
 
 #define __read_64bit_gc0_register(source, sel)				\
-({ unsigned long long __res;						\
-	__asm__ __volatile__(						\
-		".set\tpush\n\t"					\
-		".set\tnoat\n\t"					\
-		"# dmfgc0\t$1, $%1, %2\n\t"				\
-		_ASM_INSN_IF_MIPS(0x40610100 | %1 << 11 | %2)		\
-		_ASM_INSN32_IF_MM(0x582004fc | %1 << 16 | %2 << 11)	\
-		"move\t%0, $1\n\t"					\
-		".set\tpop"						\
-		: "=r" (__res)						\
-		: "i" (source), "i" (sel));				\
-	__res;								\
-})
+	({ unsigned long long __res;						\
+		__asm__ __volatile__(						\
+				".set\tpush\n\t"					\
+				".set\tnoat\n\t"					\
+				"# dmfgc0\t$1, $%1, %2\n\t"				\
+				_ASM_INSN_IF_MIPS(0x40610100 | %1 << 11 | %2)		\
+				_ASM_INSN32_IF_MM(0x582004fc | %1 << 16 | %2 << 11)	\
+				"move\t%0, $1\n\t"					\
+				".set\tpop"						\
+				: "=r" (__res)						\
+				: "i" (source), "i" (sel));				\
+		__res;								\
+	})
 
 #define __write_32bit_gc0_register(register, sel, value)		\
-do {									\
-	__asm__ __volatile__(						\
-		".set\tpush\n\t"					\
-		".set\tnoat\n\t"					\
-		"move\t$1, %z0\n\t"					\
-		"# mtgc0\t$1, $%1, %2\n\t"				\
-		_ASM_INSN_IF_MIPS(0x40610200 | %1 << 11 | %2)		\
-		_ASM_INSN32_IF_MM(0x002006fc | %1 << 16 | %2 << 11)	\
-		".set\tpop"						\
-		: : "Jr" ((unsigned int)(value)),			\
-		    "i" (register), "i" (sel));				\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				".set\tpush\n\t"					\
+				".set\tnoat\n\t"					\
+				"move\t$1, %z0\n\t"					\
+				"# mtgc0\t$1, $%1, %2\n\t"				\
+				_ASM_INSN_IF_MIPS(0x40610200 | %1 << 11 | %2)		\
+				_ASM_INSN32_IF_MM(0x002006fc | %1 << 16 | %2 << 11)	\
+				".set\tpop"						\
+				: : "Jr" ((unsigned int)(value)),			\
+				"i" (register), "i" (sel));				\
+	} while (0)
 
 #define __write_64bit_gc0_register(register, sel, value)		\
-do {									\
-	__asm__ __volatile__(						\
-		".set\tpush\n\t"					\
-		".set\tnoat\n\t"					\
-		"move\t$1, %z0\n\t"					\
-		"# dmtgc0\t$1, $%1, %2\n\t"				\
-		_ASM_INSN_IF_MIPS(0x40610300 | %1 << 11 | %2)		\
-		_ASM_INSN32_IF_MM(0x582006fc | %1 << 16 | %2 << 11)	\
-		".set\tpop"						\
-		: : "Jr" (value),					\
-		    "i" (register), "i" (sel));				\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				".set\tpush\n\t"					\
+				".set\tnoat\n\t"					\
+				"move\t$1, %z0\n\t"					\
+				"# dmtgc0\t$1, $%1, %2\n\t"				\
+				_ASM_INSN_IF_MIPS(0x40610300 | %1 << 11 | %2)		\
+				_ASM_INSN32_IF_MM(0x582006fc | %1 << 16 | %2 << 11)	\
+				".set\tpop"						\
+				: : "Jr" (value),					\
+				"i" (register), "i" (sel));				\
+	} while (0)
 
 #endif	/* !TOOLCHAIN_SUPPORTS_VIRT */
 
 #define __read_ulong_gc0_register(reg, sel)				\
 	((sizeof(unsigned long) == 4) ?					\
-	(unsigned long) __read_32bit_gc0_register(reg, sel) :		\
-	(unsigned long) __read_64bit_gc0_register(reg, sel))
+	 (unsigned long) __read_32bit_gc0_register(reg, sel) :		\
+	 (unsigned long) __read_64bit_gc0_register(reg, sel))
 
 #define __write_ulong_gc0_register(reg, sel, val)			\
-do {									\
-	if (sizeof(unsigned long) == 4)					\
-		__write_32bit_gc0_register(reg, sel, val);		\
-	else								\
-		__write_64bit_gc0_register(reg, sel, val);		\
-} while (0)
+	do {									\
+		if (sizeof(unsigned long) == 4)					\
+			__write_32bit_gc0_register(reg, sel, val);		\
+		else								\
+			__write_64bit_gc0_register(reg, sel, val);		\
+	} while (0)
 
 #define read_gc0_index()		__read_32bit_gc0_register(0, 0)
 #define write_gc0_index(val)		__write_32bit_gc0_register(0, 0, val)
@@ -2055,32 +2055,32 @@ do {									\
  * Macros to access the floating point coprocessor control registers
  */
 #define _read_32bit_cp1_register(source, gas_hardfloat)			\
-({									\
-	unsigned int __res;						\
-									\
-	__asm__ __volatile__(						\
-	"	.set	push					\n"	\
-	"	.set	reorder					\n"	\
-	"	# gas fails to assemble cfc1 for some archs,	\n"	\
-	"	# like Octeon.					\n"	\
-	"	.set	mips1					\n"	\
-	"	"STR(gas_hardfloat)"				\n"	\
-	"	cfc1	%0,"STR(source)"			\n"	\
-	"	.set	pop					\n"	\
-	: "=r" (__res));						\
-	__res;								\
-})
+	({									\
+		unsigned int __res;						\
+		\
+		__asm__ __volatile__(						\
+				"	.set	push					\n"	\
+				"	.set	reorder					\n"	\
+				"	# gas fails to assemble cfc1 for some archs,	\n"	\
+				"	# like Octeon.					\n"	\
+				"	.set	mips1					\n"	\
+				"	"STR(gas_hardfloat)"				\n"	\
+				"	cfc1	%0,"STR(source)"			\n"	\
+				"	.set	pop					\n"	\
+				: "=r" (__res));						\
+		__res;								\
+	})
 
 #define _write_32bit_cp1_register(dest, val, gas_hardfloat)		\
-do {									\
-	__asm__ __volatile__(						\
-	"	.set	push					\n"	\
-	"	.set	reorder					\n"	\
-	"	"STR(gas_hardfloat)"				\n"	\
-	"	ctc1	%0,"STR(dest)"				\n"	\
-	"	.set	pop					\n"	\
-	: : "r" (val));							\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				"	.set	push					\n"	\
+				"	.set	reorder					\n"	\
+				"	"STR(gas_hardfloat)"				\n"	\
+				"	ctc1	%0,"STR(dest)"				\n"	\
+				"	.set	pop					\n"	\
+				: : "r" (val));							\
+	} while (0)
 
 #ifdef GAS_HAS_SET_HARDFLOAT
 #define read_32bit_cp1_register(source)					\
@@ -2096,292 +2096,292 @@ do {									\
 
 #ifdef HAVE_AS_DSP
 #define rddsp(mask)							\
-({									\
-	unsigned int __dspctl;						\
-									\
-	__asm__ __volatile__(						\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	rddsp	%0, %x1					\n"	\
-	"	.set pop					\n"	\
-	: "=r" (__dspctl)						\
-	: "i" (mask));							\
-	__dspctl;							\
-})
+	({									\
+		unsigned int __dspctl;						\
+		\
+		__asm__ __volatile__(						\
+				"	.set push					\n"	\
+				"	.set dsp					\n"	\
+				"	rddsp	%0, %x1					\n"	\
+				"	.set pop					\n"	\
+				: "=r" (__dspctl)						\
+				: "i" (mask));							\
+		__dspctl;							\
+	})
 
 #define wrdsp(val, mask)						\
-do {									\
-	__asm__ __volatile__(						\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	wrdsp	%0, %x1					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (val), "i" (mask));					\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				"	.set push					\n"	\
+				"	.set dsp					\n"	\
+				"	wrdsp	%0, %x1					\n"	\
+				"	.set pop					\n"	\
+				:								\
+				: "r" (val), "i" (mask));					\
+	} while (0)
 
 #define mflo0()								\
-({									\
-	long mflo0;							\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mflo %0, $ac0					\n"	\
-	"	.set pop					\n" 	\
-	: "=r" (mflo0)); 						\
-	mflo0;								\
-})
+	({									\
+		long mflo0;							\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mflo %0, $ac0					\n"	\
+											"	.set pop					\n" 	\
+											: "=r" (mflo0)); 						\
+		mflo0;								\
+	})
 
 #define mflo1()								\
-({									\
-	long mflo1;							\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mflo %0, $ac1					\n"	\
-	"	.set pop					\n" 	\
-	: "=r" (mflo1)); 						\
-	mflo1;								\
-})
+	({									\
+		long mflo1;							\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mflo %0, $ac1					\n"	\
+											"	.set pop					\n" 	\
+											: "=r" (mflo1)); 						\
+		mflo1;								\
+	})
 
 #define mflo2()								\
-({									\
-	long mflo2;							\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mflo %0, $ac2					\n"	\
-	"	.set pop					\n" 	\
-	: "=r" (mflo2)); 						\
-	mflo2;								\
-})
+	({									\
+		long mflo2;							\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mflo %0, $ac2					\n"	\
+											"	.set pop					\n" 	\
+											: "=r" (mflo2)); 						\
+		mflo2;								\
+	})
 
 #define mflo3()								\
-({									\
-	long mflo3;							\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mflo %0, $ac3					\n"	\
-	"	.set pop					\n" 	\
-	: "=r" (mflo3)); 						\
-	mflo3;								\
-})
+	({									\
+		long mflo3;							\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mflo %0, $ac3					\n"	\
+											"	.set pop					\n" 	\
+											: "=r" (mflo3)); 						\
+		mflo3;								\
+	})
 
 #define mfhi0()								\
-({									\
-	long mfhi0;							\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mfhi %0, $ac0					\n"	\
-	"	.set pop					\n" 	\
-	: "=r" (mfhi0)); 						\
-	mfhi0;								\
-})
+	({									\
+		long mfhi0;							\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mfhi %0, $ac0					\n"	\
+											"	.set pop					\n" 	\
+											: "=r" (mfhi0)); 						\
+		mfhi0;								\
+	})
 
 #define mfhi1()								\
-({									\
-	long mfhi1;							\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mfhi %0, $ac1					\n"	\
-	"	.set pop					\n" 	\
-	: "=r" (mfhi1)); 						\
-	mfhi1;								\
-})
+	({									\
+		long mfhi1;							\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mfhi %0, $ac1					\n"	\
+											"	.set pop					\n" 	\
+											: "=r" (mfhi1)); 						\
+		mfhi1;								\
+	})
 
 #define mfhi2()								\
-({									\
-	long mfhi2;							\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mfhi %0, $ac2					\n"	\
-	"	.set pop					\n" 	\
-	: "=r" (mfhi2)); 						\
-	mfhi2;								\
-})
+	({									\
+		long mfhi2;							\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mfhi %0, $ac2					\n"	\
+											"	.set pop					\n" 	\
+											: "=r" (mfhi2)); 						\
+		mfhi2;								\
+	})
 
 #define mfhi3()								\
-({									\
-	long mfhi3;							\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mfhi %0, $ac3					\n"	\
-	"	.set pop					\n" 	\
-	: "=r" (mfhi3)); 						\
-	mfhi3;								\
-})
+	({									\
+		long mfhi3;							\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mfhi %0, $ac3					\n"	\
+											"	.set pop					\n" 	\
+											: "=r" (mfhi3)); 						\
+		mfhi3;								\
+	})
 
 
 #define mtlo0(x)							\
-({									\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mtlo %0, $ac0					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (x));							\
-})
+	({									\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mtlo %0, $ac0					\n"	\
+											"	.set pop					\n"	\
+											:								\
+											: "r" (x));							\
+	})
 
 #define mtlo1(x)							\
-({									\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mtlo %0, $ac1					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (x));							\
-})
+	({									\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mtlo %0, $ac1					\n"	\
+											"	.set pop					\n"	\
+											:								\
+											: "r" (x));							\
+	})
 
 #define mtlo2(x)							\
-({									\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mtlo %0, $ac2					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (x));							\
-})
+	({									\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mtlo %0, $ac2					\n"	\
+											"	.set pop					\n"	\
+											:								\
+											: "r" (x));							\
+	})
 
 #define mtlo3(x)							\
-({									\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mtlo %0, $ac3					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (x));							\
-})
+	({									\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mtlo %0, $ac3					\n"	\
+											"	.set pop					\n"	\
+											:								\
+											: "r" (x));							\
+	})
 
 #define mthi0(x)							\
-({									\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mthi %0, $ac0					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (x));							\
-})
+	({									\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mthi %0, $ac0					\n"	\
+											"	.set pop					\n"	\
+											:								\
+											: "r" (x));							\
+	})
 
 #define mthi1(x)							\
-({									\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mthi %0, $ac1					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (x));							\
-})
+	({									\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mthi %0, $ac1					\n"	\
+											"	.set pop					\n"	\
+											:								\
+											: "r" (x));							\
+	})
 
 #define mthi2(x)							\
-({									\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mthi %0, $ac2					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (x));							\
-})
+	({									\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mthi %0, $ac2					\n"	\
+											"	.set pop					\n"	\
+											:								\
+											: "r" (x));							\
+	})
 
 #define mthi3(x)							\
-({									\
-	__asm__(							\
-	"	.set push					\n"	\
-	"	.set dsp					\n"	\
-	"	mthi %0, $ac3					\n"	\
-	"	.set pop					\n"	\
-	:								\
-	: "r" (x));							\
-})
+	({									\
+		__asm__(							\
+											"	.set push					\n"	\
+											"	.set dsp					\n"	\
+											"	mthi %0, $ac3					\n"	\
+											"	.set pop					\n"	\
+											:								\
+											: "r" (x));							\
+	})
 
 #else
 
 #define rddsp(mask)							\
-({									\
-	unsigned int __res;						\
-									\
-	__asm__ __volatile__(						\
-	"	.set	push					\n"	\
-	"	.set	noat					\n"	\
-	"	# rddsp $1, %x1					\n"	\
-	_ASM_INSN_IF_MIPS(0x7c000cb8 | (%x1 << 16))			\
-	_ASM_INSN32_IF_MM(0x0020067c | (%x1 << 14))			\
-	"	move	%0, $1					\n"	\
-	"	.set	pop					\n"	\
-	: "=r" (__res)							\
-	: "i" (mask));							\
-	__res;								\
-})
+	({									\
+		unsigned int __res;						\
+		\
+		__asm__ __volatile__(						\
+				"	.set	push					\n"	\
+				"	.set	noat					\n"	\
+				"	# rddsp $1, %x1					\n"	\
+				_ASM_INSN_IF_MIPS(0x7c000cb8 | (%x1 << 16))			\
+				_ASM_INSN32_IF_MM(0x0020067c | (%x1 << 14))			\
+				"	move	%0, $1					\n"	\
+				"	.set	pop					\n"	\
+				: "=r" (__res)							\
+				: "i" (mask));							\
+		__res;								\
+	})
 
 #define wrdsp(val, mask)						\
-do {									\
-	__asm__ __volatile__(						\
-	"	.set	push					\n"	\
-	"	.set	noat					\n"	\
-	"	move	$1, %0					\n"	\
-	"	# wrdsp $1, %x1					\n"	\
-	_ASM_INSN_IF_MIPS(0x7c2004f8 | (%x1 << 11))			\
-	_ASM_INSN32_IF_MM(0x0020167c | (%x1 << 14))			\
-	"	.set	pop					\n"	\
-	:								\
-	: "r" (val), "i" (mask));					\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				"	.set	push					\n"	\
+				"	.set	noat					\n"	\
+				"	move	$1, %0					\n"	\
+				"	# wrdsp $1, %x1					\n"	\
+				_ASM_INSN_IF_MIPS(0x7c2004f8 | (%x1 << 11))			\
+				_ASM_INSN32_IF_MM(0x0020167c | (%x1 << 14))			\
+				"	.set	pop					\n"	\
+				:								\
+				: "r" (val), "i" (mask));					\
+	} while (0)
 
 #define _dsp_mfxxx(ins)							\
-({									\
-	unsigned long __treg;						\
-									\
-	__asm__ __volatile__(						\
-	"	.set	push					\n"	\
-	"	.set	noat					\n"	\
-	_ASM_INSN_IF_MIPS(0x00000810 | %X1)				\
-	_ASM_INSN32_IF_MM(0x0001007c | %x1)				\
-	"	move	%0, $1					\n"	\
-	"	.set	pop					\n"	\
-	: "=r" (__treg)							\
-	: "i" (ins));							\
-	__treg;								\
-})
+	({									\
+		unsigned long __treg;						\
+		\
+		__asm__ __volatile__(						\
+				"	.set	push					\n"	\
+				"	.set	noat					\n"	\
+				_ASM_INSN_IF_MIPS(0x00000810 | %X1)				\
+				_ASM_INSN32_IF_MM(0x0001007c | %x1)				\
+				"	move	%0, $1					\n"	\
+				"	.set	pop					\n"	\
+				: "=r" (__treg)							\
+				: "i" (ins));							\
+		__treg;								\
+	})
 
 #define _dsp_mtxxx(val, ins)						\
-do {									\
-	__asm__ __volatile__(						\
-	"	.set	push					\n"	\
-	"	.set	noat					\n"	\
-	"	move	$1, %0					\n"	\
-	_ASM_INSN_IF_MIPS(0x00200011 | %X1)				\
-	_ASM_INSN32_IF_MM(0x0001207c | %x1)				\
-	"	.set	pop					\n"	\
-	:								\
-	: "r" (val), "i" (ins));					\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				"	.set	push					\n"	\
+				"	.set	noat					\n"	\
+				"	move	$1, %0					\n"	\
+				_ASM_INSN_IF_MIPS(0x00200011 | %X1)				\
+				_ASM_INSN32_IF_MM(0x0001207c | %x1)				\
+				"	.set	pop					\n"	\
+				:								\
+				: "r" (val), "i" (ins));					\
+	} while (0)
 
 #ifdef CONFIG_CPU_MICROMIPS
 
-#define _dsp_mflo(reg) _dsp_mfxxx((reg << 14) | 0x1000)
-#define _dsp_mfhi(reg) _dsp_mfxxx((reg << 14) | 0x0000)
+	#define _dsp_mflo(reg) _dsp_mfxxx((reg << 14) | 0x1000)
+	#define _dsp_mfhi(reg) _dsp_mfxxx((reg << 14) | 0x0000)
 
-#define _dsp_mtlo(val, reg) _dsp_mtxxx(val, ((reg << 14) | 0x1000))
-#define _dsp_mthi(val, reg) _dsp_mtxxx(val, ((reg << 14) | 0x0000))
+	#define _dsp_mtlo(val, reg) _dsp_mtxxx(val, ((reg << 14) | 0x1000))
+	#define _dsp_mthi(val, reg) _dsp_mtxxx(val, ((reg << 14) | 0x0000))
 
 #else  /* !CONFIG_CPU_MICROMIPS */
 
-#define _dsp_mflo(reg) _dsp_mfxxx((reg << 21) | 0x0002)
-#define _dsp_mfhi(reg) _dsp_mfxxx((reg << 21) | 0x0000)
+	#define _dsp_mflo(reg) _dsp_mfxxx((reg << 21) | 0x0002)
+	#define _dsp_mfhi(reg) _dsp_mfxxx((reg << 21) | 0x0000)
 
-#define _dsp_mtlo(val, reg) _dsp_mtxxx(val, ((reg << 11) | 0x0002))
-#define _dsp_mthi(val, reg) _dsp_mtxxx(val, ((reg << 11) | 0x0000))
+	#define _dsp_mtlo(val, reg) _dsp_mtxxx(val, ((reg << 11) | 0x0002))
+	#define _dsp_mthi(val, reg) _dsp_mtxxx(val, ((reg << 11) | 0x0000))
 
 #endif /* CONFIG_CPU_MICROMIPS */
 
@@ -2426,15 +2426,15 @@ static inline void tlb_read(void)
 	int res = 0;
 
 	__asm__ __volatile__(
-	"	.set	push					\n"
-	"	.set	noreorder				\n"
-	"	.set	noat					\n"
-	"	.set	mips32r2				\n"
-	"	.word	0x41610001		# dvpe $1	\n"
-	"	move	%0, $1					\n"
-	"	ehb						\n"
-	"	.set	pop					\n"
-	: "=r" (res));
+		"	.set	push					\n"
+		"	.set	noreorder				\n"
+		"	.set	noat					\n"
+		"	.set	mips32r2				\n"
+		"	.word	0x41610001		# dvpe $1	\n"
+		"	move	%0, $1					\n"
+		"	ehb						\n"
+		"	.set	pop					\n"
+		: "=r" (res));
 
 	instruction_hazard();
 #endif
@@ -2445,15 +2445,17 @@ static inline void tlb_read(void)
 		".set reorder");
 
 #if MIPS34K_MISSED_ITLB_WAR
+
 	if ((res & _ULCAST_(1)))
 		__asm__ __volatile__(
-		"	.set	push				\n"
-		"	.set	noreorder			\n"
-		"	.set	noat				\n"
-		"	.set	mips32r2			\n"
-		"	.word	0x41600021	# evpe		\n"
-		"	ehb					\n"
-		"	.set	pop				\n");
+			"	.set	push				\n"
+			"	.set	noreorder			\n"
+			"	.set	noat				\n"
+			"	.set	mips32r2			\n"
+			"	.word	0x41600021	# evpe		\n"
+			"	ehb					\n"
+			"	.set	pop				\n");
+
 #endif
 }
 
@@ -2589,42 +2591,42 @@ static inline void guest_tlbinvf(void)
  * Manipulate bits in a register.
  */
 #define __BUILD_SET_COMMON(name)				\
-static inline unsigned int					\
-set_##name(unsigned int set)					\
-{								\
-	unsigned int res, new;					\
-								\
-	res = read_##name();					\
-	new = res | set;					\
-	write_##name(new);					\
-								\
-	return res;						\
-}								\
-								\
-static inline unsigned int					\
-clear_##name(unsigned int clear)				\
-{								\
-	unsigned int res, new;					\
-								\
-	res = read_##name();					\
-	new = res & ~clear;					\
-	write_##name(new);					\
-								\
-	return res;						\
-}								\
-								\
-static inline unsigned int					\
-change_##name(unsigned int change, unsigned int val)		\
-{								\
-	unsigned int res, new;					\
-								\
-	res = read_##name();					\
-	new = res & ~change;					\
-	new |= (val & change);					\
-	write_##name(new);					\
-								\
-	return res;						\
-}
+	static inline unsigned int					\
+	set_##name(unsigned int set)					\
+	{								\
+		unsigned int res, new;					\
+		\
+		res = read_##name();					\
+		new = res | set;					\
+		write_##name(new);					\
+		\
+		return res;						\
+	}								\
+	\
+	static inline unsigned int					\
+	clear_##name(unsigned int clear)				\
+	{								\
+		unsigned int res, new;					\
+		\
+		res = read_##name();					\
+		new = res & ~clear;					\
+		write_##name(new);					\
+		\
+		return res;						\
+	}								\
+	\
+	static inline unsigned int					\
+	change_##name(unsigned int change, unsigned int val)		\
+	{								\
+		unsigned int res, new;					\
+		\
+		res = read_##name();					\
+		new = res & ~change;					\
+		new |= (val & change);					\
+		write_##name(new);					\
+		\
+		return res;						\
+	}
 
 /*
  * Manipulate bits in a c0 register.

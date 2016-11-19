@@ -13,7 +13,7 @@
 #define __ASM_MACH_LOONGSON32_REGS_MUX_H
 
 #define LS1X_MUX_REG(x) \
-		((void __iomem *)KSEG1ADDR(LS1X_MUX_BASE + (x)))
+	((void __iomem *)KSEG1ADDR(LS1X_MUX_BASE + (x)))
 
 #define LS1X_MUX_CTRL0			LS1X_MUX_REG(0x0)
 #define LS1X_MUX_CTRL1			LS1X_MUX_REG(0x4)
@@ -115,7 +115,7 @@
 #define SRAM_CTRL_SHIFT				0
 
 #define LS1X_CBUS_REG(n, x) \
-		((void __iomem *)KSEG1ADDR(LS1X_CBUS_BASE + (n * 0x04) + (x)))
+	((void __iomem *)KSEG1ADDR(LS1X_CBUS_BASE + (n * 0x04) + (x)))
 
 #define LS1X_CBUS_FIRST(n)		LS1X_CBUS_REG(n, 0x00)
 #define LS1X_CBUS_SECOND(n)		LS1X_CBUS_REG(n, 0x10)

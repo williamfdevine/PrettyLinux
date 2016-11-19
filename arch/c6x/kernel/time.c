@@ -31,7 +31,8 @@ static cycle_t tsc_read(struct clocksource *cs)
 	return get_cycles();
 }
 
-static struct clocksource clocksource_tsc = {
+static struct clocksource clocksource_tsc =
+{
 	.name		= "timestamp",
 	.rating		= 300,
 	.read		= tsc_read,

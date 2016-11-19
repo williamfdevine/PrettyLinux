@@ -18,18 +18,18 @@ static inline __attribute_const__ __u16 __c6x_swab16(__u16 val)
 static inline __attribute_const__ __u32 __c6x_swab32(__u32 val)
 {
 	asm("swap4 .l1 %0,%0\n"
-	    "swap2 .l1 %0,%0\n"
-	    : "+a"(val));
+		"swap2 .l1 %0,%0\n"
+		: "+a"(val));
 	return val;
 }
 
 static inline __attribute_const__ __u64 __c6x_swab64(__u64 val)
 {
 	asm("   swap2 .s1 %p0,%P0\n"
-	    "|| swap2 .l1 %P0,%p0\n"
-	    "   swap4 .l1 %p0,%p0\n"
-	    "   swap4 .l1 %P0,%P0\n"
-	    : "+a"(val));
+		"|| swap2 .l1 %P0,%p0\n"
+		"   swap4 .l1 %p0,%p0\n"
+		"   swap4 .l1 %P0,%P0\n"
+		: "+a"(val));
 	return val;
 }
 

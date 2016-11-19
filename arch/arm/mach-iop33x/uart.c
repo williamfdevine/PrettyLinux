@@ -29,7 +29,8 @@
 
 #define IOP33X_UART_XTAL 33334000
 
-static struct plat_serial8250_port iop33x_uart0_data[] = {
+static struct plat_serial8250_port iop33x_uart0_data[] =
+{
 	{
 		.membase	= (char *)IOP33X_UART0_VIRT,
 		.mapbase	= IOP33X_UART0_PHYS,
@@ -42,7 +43,8 @@ static struct plat_serial8250_port iop33x_uart0_data[] = {
 	{ },
 };
 
-static struct resource iop33x_uart0_resources[] = {
+static struct resource iop33x_uart0_resources[] =
+{
 	[0] = {
 		.start	= IOP33X_UART0_PHYS,
 		.end	= IOP33X_UART0_PHYS + 0x3f,
@@ -55,7 +57,8 @@ static struct resource iop33x_uart0_resources[] = {
 	},
 };
 
-struct platform_device iop33x_uart0_device = {
+struct platform_device iop33x_uart0_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev		= {
@@ -66,7 +69,8 @@ struct platform_device iop33x_uart0_device = {
 };
 
 
-static struct resource iop33x_uart1_resources[] = {
+static struct resource iop33x_uart1_resources[] =
+{
 	[0] = {
 		.start	= IOP33X_UART1_PHYS,
 		.end	= IOP33X_UART1_PHYS + 0x3f,
@@ -79,7 +83,8 @@ static struct resource iop33x_uart1_resources[] = {
 	},
 };
 
-static struct plat_serial8250_port iop33x_uart1_data[] = {
+static struct plat_serial8250_port iop33x_uart1_data[] =
+{
 	{
 		.membase	= (char *)IOP33X_UART1_VIRT,
 		.mapbase	= IOP33X_UART1_PHYS,
@@ -92,7 +97,8 @@ static struct plat_serial8250_port iop33x_uart1_data[] = {
 	{ },
 };
 
-struct platform_device iop33x_uart1_device = {
+struct platform_device iop33x_uart1_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM1,
 	.dev		= {

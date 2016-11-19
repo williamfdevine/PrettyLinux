@@ -30,7 +30,8 @@
 
 #include "common.h"
 
-static struct gpio_led ib4220b_leds[] = {
+static struct gpio_led ib4220b_leds[] =
+{
 	{
 		.name			= "nas4220b:orange:hdd",
 		.default_trigger	= "none",
@@ -43,12 +44,14 @@ static struct gpio_led ib4220b_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data ib4220b_leds_data = {
+static struct gpio_led_platform_data ib4220b_leds_data =
+{
 	.num_leds	= ARRAY_SIZE(ib4220b_leds),
 	.leds		= ib4220b_leds,
 };
 
-static struct platform_device ib4220b_led_device = {
+static struct platform_device ib4220b_led_device =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -56,7 +59,8 @@ static struct platform_device ib4220b_led_device = {
 	},
 };
 
-static struct gpio_keys_button ib4220b_keys[] = {
+static struct gpio_keys_button ib4220b_keys[] =
+{
 	{
 		.code		= KEY_SETUP,
 		.gpio		= 61,
@@ -73,12 +77,14 @@ static struct gpio_keys_button ib4220b_keys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data ib4220b_keys_data = {
+static struct gpio_keys_platform_data ib4220b_keys_data =
+{
 	.buttons	= ib4220b_keys,
 	.nbuttons	= ARRAY_SIZE(ib4220b_keys),
 };
 
-static struct platform_device ib4220b_key_device = {
+static struct platform_device ib4220b_key_device =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -97,10 +103,10 @@ static void __init ib4220b_init(void)
 }
 
 MACHINE_START(NAS4220B, "Raidsonic NAS IB-4220-B")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= gemini_map_io,
-	.init_irq	= gemini_init_irq,
-	.init_time	= gemini_timer_init,
-	.init_machine	= ib4220b_init,
-	.restart	= gemini_restart,
-MACHINE_END
+		.init_irq	= gemini_init_irq,
+		   .init_time	= gemini_timer_init,
+			 .init_machine	= ib4220b_init,
+				.restart	= gemini_restart,
+					MACHINE_END

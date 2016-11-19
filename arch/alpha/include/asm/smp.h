@@ -24,7 +24,8 @@ __hard_smp_processor_id(void)
 
 #include <asm/irq.h>
 
-struct cpuinfo_alpha {
+struct cpuinfo_alpha
+{
 	unsigned long loops_per_jiffy;
 	unsigned long last_asn;
 	int need_new_asn;

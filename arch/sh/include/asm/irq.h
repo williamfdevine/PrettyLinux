@@ -10,9 +10,9 @@
  * so will expand automatically based on the number of registered IRQs.
  */
 #ifdef CONFIG_SPARSE_IRQ
-# define NR_IRQS		8
+	#define NR_IRQS		8
 #else
-# define NR_IRQS		512
+	#define NR_IRQS		512
 #endif
 
 /*
@@ -48,25 +48,25 @@ void migrate_irqs(void);
 asmlinkage int do_IRQ(unsigned int irq, struct pt_regs *regs);
 
 #ifdef CONFIG_IRQSTACKS
-extern void irq_ctx_init(int cpu);
-extern void irq_ctx_exit(int cpu);
-# define __ARCH_HAS_DO_SOFTIRQ
+	extern void irq_ctx_init(int cpu);
+	extern void irq_ctx_exit(int cpu);
+	#define __ARCH_HAS_DO_SOFTIRQ
 #else
-# define irq_ctx_init(cpu) do { } while (0)
-# define irq_ctx_exit(cpu) do { } while (0)
+	#define irq_ctx_init(cpu) do { } while (0)
+	#define irq_ctx_exit(cpu) do { } while (0)
 #endif
 
 #ifdef CONFIG_INTC_BALANCING
-extern unsigned int irq_lookup(unsigned int irq);
-extern void irq_finish(unsigned int irq);
+	extern unsigned int irq_lookup(unsigned int irq);
+	extern void irq_finish(unsigned int irq);
 #else
-#define irq_lookup(irq)		(irq)
-#define irq_finish(irq)		do { } while (0)
+	#define irq_lookup(irq)		(irq)
+	#define irq_finish(irq)		do { } while (0)
 #endif
 
 #include <asm-generic/irq.h>
 #ifdef CONFIG_CPU_SH5
-#include <cpu/irq.h>
+	#include <cpu/irq.h>
 #endif
 
 #endif /* __ASM_SH_IRQ_H */

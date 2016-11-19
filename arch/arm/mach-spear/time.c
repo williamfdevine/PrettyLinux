@@ -67,7 +67,7 @@ static __iomem void *gpt_base;
 static struct clk *gpt_clk;
 
 static int clockevent_next_event(unsigned long evt,
-				 struct clock_event_device *clk_event_dev);
+								 struct clock_event_device *clk_event_dev);
 
 static void __init spear_clocksource_init(void)
 {
@@ -90,7 +90,7 @@ static void __init spear_clocksource_init(void)
 
 	/* register the clocksource */
 	clocksource_mmio_init(gpt_base + COUNT(CLKSRC), "tmr1", tick_rate,
-		200, 16, clocksource_mmio_readw_up);
+						  200, 16, clocksource_mmio_readw_up);
 }
 
 static inline void timer_shutdown(struct clock_event_device *evt)
@@ -143,7 +143,8 @@ static int spear_set_periodic(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device clkevt = {
+static struct clock_event_device clkevt =
+{
 	.name = "tmr0",
 	.features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown = spear_shutdown,
@@ -155,12 +156,14 @@ static struct clock_event_device clkevt = {
 };
 
 static int clockevent_next_event(unsigned long cycles,
-				 struct clock_event_device *clk_event_dev)
+								 struct clock_event_device *clk_event_dev)
 {
 	u16 val = readw(gpt_base + CR(CLKEVT));
 
 	if (val & CTRL_ENABLE)
+	{
 		writew(val & ~CTRL_ENABLE, gpt_base + CR(CLKEVT));
+	}
 
 	writew(cycles, gpt_base + LOAD(CLKEVT));
 
@@ -181,7 +184,8 @@ static irqreturn_t spear_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction spear_timer_irq = {
+static struct irqaction spear_timer_irq =
+{
 	.name = "timer",
 	.flags = IRQF_TIMER,
 	.handler = spear_timer_interrupt
@@ -204,7 +208,8 @@ static void __init spear_clockevent_init(int irq)
 	setup_irq(irq, &spear_timer_irq);
 }
 
-static const struct of_device_id const timer_of_match[] __initconst = {
+static const struct of_device_id const timer_of_match[] __initconst =
+{
 	{ .compatible = "st,spear-timer", },
 	{ },
 };
@@ -215,31 +220,41 @@ void __init spear_setup_of_timer(void)
 	int irq, ret;
 
 	np = of_find_matching_node(NULL, timer_of_match);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("%s: No timer passed via DT\n", __func__);
 		return;
 	}
 
 	irq = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_err("%s: No irq passed for timer via DT\n", __func__);
 		return;
 	}
 
 	gpt_base = of_iomap(np, 0);
-	if (!gpt_base) {
+
+	if (!gpt_base)
+	{
 		pr_err("%s: of iomap failed\n", __func__);
 		return;
 	}
 
 	gpt_clk = clk_get_sys("gpt0", NULL);
-	if (!gpt_clk) {
+
+	if (!gpt_clk)
+	{
 		pr_err("%s:couldn't get clk for gpt\n", __func__);
 		goto err_iomap;
 	}
 
 	ret = clk_prepare_enable(gpt_clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s:couldn't prepare-enable gpt clock\n", __func__);
 		goto err_prepare_enable_clk;
 	}

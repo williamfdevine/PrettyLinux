@@ -19,9 +19,14 @@ void save_processor_state(void)
 	saved_status = read_c0_status();
 
 	if (is_fpu_owner())
+	{
 		save_fp(current);
+	}
+
 	if (cpu_has_dsp)
+	{
 		save_dsp(current);
+	}
 }
 
 void restore_processor_state(void)
@@ -29,9 +34,14 @@ void restore_processor_state(void)
 	write_c0_status(saved_status);
 
 	if (is_fpu_owner())
+	{
 		restore_fp(current);
+	}
+
 	if (cpu_has_dsp)
+	{
 		restore_dsp(current);
+	}
 }
 
 int pfn_is_nosave(unsigned long pfn)

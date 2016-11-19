@@ -40,8 +40,8 @@ void *kmap_coherent(struct page *page, unsigned long addr)
 	pagefault_disable();
 
 	idx = FIX_CMAP_END -
-		(((addr >> PAGE_SHIFT) & (FIX_N_COLOURS - 1)) +
-		 (FIX_N_COLOURS * smp_processor_id()));
+		  (((addr >> PAGE_SHIFT) & (FIX_N_COLOURS - 1)) +
+		   (FIX_N_COLOURS * smp_processor_id()));
 
 	vaddr = __fix_to_virt(idx);
 
@@ -53,7 +53,8 @@ void *kmap_coherent(struct page *page, unsigned long addr)
 
 void kunmap_coherent(void *kvaddr)
 {
-	if (kvaddr >= (void *)FIXADDR_START) {
+	if (kvaddr >= (void *)FIXADDR_START)
+	{
 		unsigned long vaddr = (unsigned long)kvaddr & PAGE_MASK;
 		enum fixed_addresses idx = __virt_to_fix(vaddr);
 

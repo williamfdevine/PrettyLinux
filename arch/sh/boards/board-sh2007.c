@@ -16,20 +16,23 @@
 #include <mach/sh2007.h>
 
 /* Dummy supplies, where voltage doesn't matter */
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
 	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
 	REGULATOR_SUPPLY("vddvario", "smsc911x.1"),
 	REGULATOR_SUPPLY("vdd33a", "smsc911x.1"),
 };
 
-struct smsc911x_platform_config smc911x_info = {
+struct smsc911x_platform_config smc911x_info =
+{
 	.flags		= SMSC911X_USE_32BIT,
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_PUSH_PULL,
 };
 
-static struct resource smsc9118_0_resources[] = {
+static struct resource smsc9118_0_resources[] =
+{
 	[0] = {
 		.start	= SMC0_BASE,
 		.end	= SMC0_BASE + 0xff,
@@ -42,7 +45,8 @@ static struct resource smsc9118_0_resources[] = {
 	}
 };
 
-static struct resource smsc9118_1_resources[] = {
+static struct resource smsc9118_1_resources[] =
+{
 	[0] = {
 		.start	= SMC1_BASE,
 		.end	= SMC1_BASE + 0xff,
@@ -55,7 +59,8 @@ static struct resource smsc9118_1_resources[] = {
 	}
 };
 
-static struct platform_device smsc9118_0_device = {
+static struct platform_device smsc9118_0_device =
+{
 	.name		= "smsc911x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smsc9118_0_resources),
@@ -65,7 +70,8 @@ static struct platform_device smsc9118_0_device = {
 	},
 };
 
-static struct platform_device smsc9118_1_device = {
+static struct platform_device smsc9118_1_device =
+{
 	.name		= "smsc911x",
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(smsc9118_1_resources),
@@ -75,7 +81,8 @@ static struct platform_device smsc9118_1_device = {
 	},
 };
 
-static struct resource cf_resources[] = {
+static struct resource cf_resources[] =
+{
 	[0] = {
 		.start	= CF_BASE + CF_OFFSET,
 		.end	= CF_BASE + CF_OFFSET + 0x0f,
@@ -93,14 +100,16 @@ static struct resource cf_resources[] = {
 	},
 };
 
-static struct platform_device cf_device  = {
+static struct platform_device cf_device  =
+{
 	.name		= "pata_platform",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(cf_resources),
 	.resource	= cf_resources,
 };
 
-static struct platform_device *sh2007_devices[] __initdata = {
+static struct platform_device *sh2007_devices[] __initdata =
+{
 	&smsc9118_0_device,
 	&smsc9118_1_device,
 	&cf_device,
@@ -138,7 +147,8 @@ static void __init sh2007_setup(char **cmdline_p)
 /*
  * The Machine Vector
  */
-struct sh_machine_vector mv_sh2007 __initmv = {
+struct sh_machine_vector mv_sh2007 __initmv =
+{
 	.mv_setup		= sh2007_setup,
 	.mv_name		= "sh2007",
 	.mv_init_irq		= sh2007_init_irq,

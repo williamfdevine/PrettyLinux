@@ -16,7 +16,8 @@
 #include <linux/sh_timer.h>
 #include <linux/io.h>
 
-enum {
+enum
+{
 	UNUSED = 0,
 
 	/* interrupt sources */
@@ -28,7 +29,8 @@ enum {
 	SIOF,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_IRQ(IRQ0, 64), INTC_IRQ(IRQ1, 65),
 	INTC_IRQ(IRQ2, 66), INTC_IRQ(IRQ3, 67),
 	INTC_IRQ(IRQ4, 80), INTC_IRQ(IRQ5, 81),
@@ -47,7 +49,8 @@ static struct intc_vect vectors[] __initdata = {
 	INTC_IRQ(SIOF, 108),
 };
 
-static struct intc_prio_reg prio_registers[] __initdata = {
+static struct intc_prio_reg prio_registers[] __initdata =
+{
 	{ 0xf8140006, 0, 16, 4, /* IPRA */ { IRQ0, IRQ1, IRQ2, IRQ3 } },
 	{ 0xf8140008, 0, 16, 4, /* IPRB */ { IRQ4, IRQ5, IRQ6, IRQ7 } },
 	{ 0xf8080000, 0, 16, 4, /* IPRC */ { WDT, EDMAC, CMT0, CMT1 } },
@@ -58,20 +61,23 @@ static struct intc_prio_reg prio_registers[] __initdata = {
 };
 
 static DECLARE_INTC_DESC(intc_desc, "sh7619", vectors, NULL,
-			 NULL, prio_registers, NULL);
+						 NULL, prio_registers, NULL);
 
-static struct plat_sci_port scif0_platform_data = {
+static struct plat_sci_port scif0_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif0_resources[] = {
+static struct resource scif0_resources[] =
+{
 	DEFINE_RES_MEM(0xf8400000, 0x100),
 	DEFINE_RES_IRQ(88),
 };
 
-static struct platform_device scif0_device = {
+static struct platform_device scif0_device =
+{
 	.name		= "sh-sci",
 	.id		= 0,
 	.resource	= scif0_resources,
@@ -81,18 +87,21 @@ static struct platform_device scif0_device = {
 	},
 };
 
-static struct plat_sci_port scif1_platform_data = {
+static struct plat_sci_port scif1_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif1_resources[] = {
+static struct resource scif1_resources[] =
+{
 	DEFINE_RES_MEM(0xf8410000, 0x100),
 	DEFINE_RES_IRQ(92),
 };
 
-static struct platform_device scif1_device = {
+static struct platform_device scif1_device =
+{
 	.name		= "sh-sci",
 	.id		= 1,
 	.resource	= scif1_resources,
@@ -102,18 +111,21 @@ static struct platform_device scif1_device = {
 	},
 };
 
-static struct plat_sci_port scif2_platform_data = {
+static struct plat_sci_port scif2_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif2_resources[] = {
+static struct resource scif2_resources[] =
+{
 	DEFINE_RES_MEM(0xf8420000, 0x100),
 	DEFINE_RES_IRQ(96),
 };
 
-static struct platform_device scif2_device = {
+static struct platform_device scif2_device =
+{
 	.name		= "sh-sci",
 	.id		= 2,
 	.resource	= scif2_resources,
@@ -123,13 +135,15 @@ static struct platform_device scif2_device = {
 	},
 };
 
-static struct sh_eth_plat_data eth_platform_data = {
+static struct sh_eth_plat_data eth_platform_data =
+{
 	.phy		= 1,
 	.edmac_endian	= EDMAC_LITTLE_ENDIAN,
 	.phy_interface	= PHY_INTERFACE_MODE_MII,
 };
 
-static struct resource eth_resources[] = {
+static struct resource eth_resources[] =
+{
 	[0] = {
 		.start = 0xfb000000,
 		.end = 0xfb0001c7,
@@ -142,7 +156,8 @@ static struct resource eth_resources[] = {
 	},
 };
 
-static struct platform_device eth_device = {
+static struct platform_device eth_device =
+{
 	.name = "sh7619-ether",
 	.id = -1,
 	.dev = {
@@ -152,17 +167,20 @@ static struct platform_device eth_device = {
 	.resource = eth_resources,
 };
 
-static struct sh_timer_config cmt_platform_data = {
+static struct sh_timer_config cmt_platform_data =
+{
 	.channels_mask = 3,
 };
 
-static struct resource cmt_resources[] = {
+static struct resource cmt_resources[] =
+{
 	DEFINE_RES_MEM(0xf84a0070, 0x10),
 	DEFINE_RES_IRQ(86),
 	DEFINE_RES_IRQ(87),
 };
 
-static struct platform_device cmt_device = {
+static struct platform_device cmt_device =
+{
 	.name		= "sh-cmt-16",
 	.id		= 0,
 	.dev = {
@@ -172,7 +190,8 @@ static struct platform_device cmt_device = {
 	.num_resources	= ARRAY_SIZE(cmt_resources),
 };
 
-static struct platform_device *sh7619_devices[] __initdata = {
+static struct platform_device *sh7619_devices[] __initdata =
+{
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
@@ -183,7 +202,7 @@ static struct platform_device *sh7619_devices[] __initdata = {
 static int __init sh7619_devices_setup(void)
 {
 	return platform_add_devices(sh7619_devices,
-				    ARRAY_SIZE(sh7619_devices));
+								ARRAY_SIZE(sh7619_devices));
 }
 arch_initcall(sh7619_devices_setup);
 
@@ -192,7 +211,8 @@ void __init plat_irq_setup(void)
 	register_intc_controller(&intc_desc);
 }
 
-static struct platform_device *sh7619_early_devices[] __initdata = {
+static struct platform_device *sh7619_early_devices[] __initdata =
+{
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
@@ -207,5 +227,5 @@ void __init plat_early_device_setup(void)
 	__raw_writeb(__raw_readb(STBCR3) & ~0x10, STBCR3);
 
 	early_platform_add_devices(sh7619_early_devices,
-				   ARRAY_SIZE(sh7619_early_devices));
+							   ARRAY_SIZE(sh7619_early_devices));
 }

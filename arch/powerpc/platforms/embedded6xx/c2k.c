@@ -107,9 +107,9 @@ static void __noreturn c2k_restart(char *cmd)
 }
 
 #ifdef CONFIG_NOT_COHERENT_CACHE
-#define COHERENCY_SETTING "off"
+	#define COHERENCY_SETTING "off"
 #else
-#define COHERENCY_SETTING "on"
+	#define COHERENCY_SETTING "on"
 #endif
 
 void c2k_show_cpuinfo(struct seq_file *m)
@@ -124,7 +124,9 @@ void c2k_show_cpuinfo(struct seq_file *m)
 static int __init c2k_probe(void)
 {
 	if (!of_machine_is_compatible("GEFanuc,C2K"))
+	{
 		return 0;
+	}
 
 	printk(KERN_INFO "Detected a GEFanuc C2K board\n");
 
@@ -136,13 +138,14 @@ static int __init c2k_probe(void)
 	return 1;
 }
 
-define_machine(c2k) {
+define_machine(c2k)
+{
 	.name			= "C2K",
-	.probe			= c2k_probe,
-	.setup_arch		= c2k_setup_arch,
-	.show_cpuinfo		= c2k_show_cpuinfo,
-	.init_IRQ		= mv64x60_init_irq,
-	.get_irq		= mv64x60_get_irq,
-	.restart		= c2k_restart,
-	.calibrate_decr		= generic_calibrate_decr,
+			 .probe			= c2k_probe,
+					 .setup_arch		= c2k_setup_arch,
+						 .show_cpuinfo		= c2k_show_cpuinfo,
+							   .init_IRQ		= mv64x60_init_irq,
+									 .get_irq		= mv64x60_get_irq,
+											.restart		= c2k_restart,
+												   .calibrate_decr		= generic_calibrate_decr,
 };

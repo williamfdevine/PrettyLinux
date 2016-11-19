@@ -121,20 +121,20 @@
 #define IRQ_PORTH_INTA		107	/* Port H Interrupt A */
 
 #if 0 /* No Interrupt B support (yet) */
-#define IRQ_MAC_TX		108	/* DMA2 Interrupt (Ethernet TX) */
-#define IRQ_PORTH_INTB		109	/* Port H Interrupt B */
+	#define IRQ_MAC_TX		108	/* DMA2 Interrupt (Ethernet TX) */
+	#define IRQ_PORTH_INTB		109	/* Port H Interrupt B */
 #else
-#define IRQ_MAC_TX		IRQ_PH_INTB_MAC_TX
+	#define IRQ_MAC_TX		IRQ_PH_INTB_MAC_TX
 #endif
 
 #define IRQ_PORTF_INTA		110	/* Port F Interrupt A */
 #define IRQ_PORTG_INTA		111	/* Port G Interrupt A */
 
 #if 0 /* No Interrupt B support (yet) */
-#define IRQ_WATCH		112	/* Watchdog Timer */
-#define IRQ_PORTF_INTB		113	/* Port F Interrupt B */
+	#define IRQ_WATCH		112	/* Watchdog Timer */
+	#define IRQ_PORTF_INTB		113	/* Port F Interrupt B */
 #else
-#define IRQ_WATCH		IRQ_PF_INTB_WATCH
+	#define IRQ_WATCH		IRQ_PF_INTB_WATCH
 #endif
 
 #define NR_MACH_IRQS		(113 + 1)

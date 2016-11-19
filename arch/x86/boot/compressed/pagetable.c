@@ -29,7 +29,8 @@
 unsigned long __force_order;
 
 /* Used to track our page table allocation area. */
-struct alloc_pgt_data {
+struct alloc_pgt_data
+{
 	unsigned char *pgt_buf;
 	unsigned long pgt_buf_size;
 	unsigned long pgt_buf_offset;
@@ -46,7 +47,8 @@ static void *alloc_pgt_page(void *context)
 	unsigned char *entry;
 
 	/* Validate there is space available for a new page. */
-	if (pages->pgt_buf_offset >= pages->pgt_buf_size) {
+	if (pages->pgt_buf_offset >= pages->pgt_buf_size)
+	{
 		debug_putstr("out of pgt_buf in " __FILE__ "!?\n");
 		debug_putaddr(pages->pgt_buf_offset);
 		debug_putaddr(pages->pgt_buf_size);
@@ -69,7 +71,8 @@ static unsigned long level4p;
  * Mapping information structure passed to kernel_ident_mapping_init().
  * Due to relocation, pointers must be assigned at run time not build time.
  */
-static struct x86_mapping_info mapping_info = {
+static struct x86_mapping_info mapping_info =
+{
 	.pmd_flag       = __PAGE_KERNEL_LARGE_EXEC,
 };
 
@@ -93,12 +96,16 @@ void initialize_identity_maps(void)
 	 * overwriting it.
 	 */
 	level4p = read_cr3();
-	if (level4p == (unsigned long)_pgtable) {
+
+	if (level4p == (unsigned long)_pgtable)
+	{
 		debug_putstr("booted via startup_32()\n");
 		pgt_data.pgt_buf = _pgtable + BOOT_INIT_PGT_SIZE;
 		pgt_data.pgt_buf_size = BOOT_PGT_SIZE - BOOT_INIT_PGT_SIZE;
 		memset(pgt_data.pgt_buf, 0, pgt_data.pgt_buf_size);
-	} else {
+	}
+	else
+	{
 		debug_putstr("booted via startup_64()\n");
 		pgt_data.pgt_buf = _pgtable;
 		pgt_data.pgt_buf_size = BOOT_PGT_SIZE;
@@ -119,12 +126,15 @@ void add_identity_map(unsigned long start, unsigned long size)
 	/* Align boundary to 2M. */
 	start = round_down(start, PMD_SIZE);
 	end = round_up(end, PMD_SIZE);
+
 	if (start >= end)
+	{
 		return;
+	}
 
 	/* Build the mapping. */
 	kernel_ident_mapping_init(&mapping_info, (pgd_t *)level4p,
-				  start, end);
+							  start, end);
 }
 
 /*

@@ -23,7 +23,8 @@
 #include <asm/sh7760fb.h>
 
 /* NOR Flash */
-static struct mtd_partition sh7763rdp_nor_flash_partitions[] = {
+static struct mtd_partition sh7763rdp_nor_flash_partitions[] =
+{
 	{
 		.name = "U-Boot",
 		.offset = 0,
@@ -40,13 +41,15 @@ static struct mtd_partition sh7763rdp_nor_flash_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data sh7763rdp_nor_flash_data = {
+static struct physmap_flash_data sh7763rdp_nor_flash_data =
+{
 	.width = 2,
 	.parts = sh7763rdp_nor_flash_partitions,
 	.nr_parts = ARRAY_SIZE(sh7763rdp_nor_flash_partitions),
 };
 
-static struct resource sh7763rdp_nor_flash_resources[] = {
+static struct resource sh7763rdp_nor_flash_resources[] =
+{
 	[0] = {
 		.name = "NOR Flash",
 		.start = 0,
@@ -55,7 +58,8 @@ static struct resource sh7763rdp_nor_flash_resources[] = {
 	},
 };
 
-static struct platform_device sh7763rdp_nor_flash_device = {
+static struct platform_device sh7763rdp_nor_flash_device =
+{
 	.name = "physmap-flash",
 	.resource = sh7763rdp_nor_flash_resources,
 	.num_resources = ARRAY_SIZE(sh7763rdp_nor_flash_resources),
@@ -70,7 +74,8 @@ static struct platform_device sh7763rdp_nor_flash_device = {
  * SH Ether of SH7763 has multi IRQ handling.
  * (0x920,0x940,0x960 -> 0x920)
  */
-static struct resource sh_eth_resources[] = {
+static struct resource sh_eth_resources[] =
+{
 	{
 		.start  = 0xFEE00800,   /* use eth1 */
 		.end    = 0xFEE00F7C - 1,
@@ -85,13 +90,15 @@ static struct resource sh_eth_resources[] = {
 	},
 };
 
-static struct sh_eth_plat_data sh7763_eth_pdata = {
+static struct sh_eth_plat_data sh7763_eth_pdata =
+{
 	.phy = 1,
 	.edmac_endian = EDMAC_LITTLE_ENDIAN,
 	.phy_interface = PHY_INTERFACE_MODE_MII,
 };
 
-static struct platform_device sh7763rdp_eth_device = {
+static struct platform_device sh7763rdp_eth_device =
+{
 	.name       = "sh7763-gether",
 	.resource   = sh_eth_resources,
 	.num_resources  = ARRAY_SIZE(sh_eth_resources),
@@ -101,7 +108,8 @@ static struct platform_device sh7763rdp_eth_device = {
 };
 
 /* SH7763 LCDC */
-static struct resource sh7763rdp_fb_resources[] = {
+static struct resource sh7763rdp_fb_resources[] =
+{
 	{
 		.start  = 0xFFE80000,
 		.end    = 0xFFE80442 - 1,
@@ -109,7 +117,8 @@ static struct resource sh7763rdp_fb_resources[] = {
 	},
 };
 
-static struct fb_videomode sh7763fb_videomode = {
+static struct fb_videomode sh7763fb_videomode =
+{
 	.refresh = 60,
 	.name = "VGA Monitor",
 	.xres = 640,
@@ -126,9 +135,10 @@ static struct fb_videomode sh7763fb_videomode = {
 	.flag = FBINFO_FLAG_DEFAULT,
 };
 
-static struct sh7760fb_platdata sh7763fb_def_pdata = {
+static struct sh7760fb_platdata sh7763fb_def_pdata =
+{
 	.def_mode = &sh7763fb_videomode,
-	.ldmtr = (LDMTR_TFT_COLOR_16|LDMTR_MCNT),
+	.ldmtr = (LDMTR_TFT_COLOR_16 | LDMTR_MCNT),
 	.lddfr = LDDFR_16BPP_RGB565,
 	.ldpmmr = 0x0000,
 	.ldpspr = 0xFFFF,
@@ -139,7 +149,8 @@ static struct sh7760fb_platdata sh7763fb_def_pdata = {
 	.blank = NULL,
 };
 
-static struct platform_device sh7763rdp_fb_device = {
+static struct platform_device sh7763rdp_fb_device =
+{
 	.name		= "sh7760-lcdc",
 	.resource	= sh7763rdp_fb_resources,
 	.num_resources = ARRAY_SIZE(sh7763rdp_fb_resources),
@@ -148,7 +159,8 @@ static struct platform_device sh7763rdp_fb_device = {
 	},
 };
 
-static struct platform_device *sh7763rdp_devices[] __initdata = {
+static struct platform_device *sh7763rdp_devices[] __initdata =
+{
 	&sh7763rdp_nor_flash_device,
 	&sh7763rdp_eth_device,
 	&sh7763rdp_fb_device,
@@ -157,7 +169,7 @@ static struct platform_device *sh7763rdp_devices[] __initdata = {
 static int __init sh7763rdp_devices_setup(void)
 {
 	return platform_add_devices(sh7763rdp_devices,
-				    ARRAY_SIZE(sh7763rdp_devices));
+								ARRAY_SIZE(sh7763rdp_devices));
 }
 device_initcall(sh7763rdp_devices_setup);
 
@@ -165,9 +177,13 @@ static void __init sh7763rdp_setup(char **cmdline_p)
 {
 	/* Board version check */
 	if (__raw_readw(CPLD_BOARD_ID_ERV_REG) == 0xECB1)
+	{
 		printk(KERN_INFO "RTE Standard Configuration\n");
+	}
 	else
+	{
 		printk(KERN_INFO "RTA Standard Configuration\n");
+	}
 
 	/* USB pin select bits (clear bit 5-2 to 0) */
 	__raw_writew((__raw_readw(PORT_PSEL2) & 0xFFC3), PORT_PSEL2);
@@ -210,7 +226,8 @@ static void __init sh7763rdp_setup(char **cmdline_p)
 	__raw_writew(__raw_readw(PORT_PCCR) & ~0xCFC3, PORT_PCCR);
 }
 
-static struct sh_machine_vector mv_sh7763rdp __initmv = {
+static struct sh_machine_vector mv_sh7763rdp __initmv =
+{
 	.mv_name = "sh7763drp",
 	.mv_setup = sh7763rdp_setup,
 	.mv_init_irq = init_sh7763rdp_IRQ,

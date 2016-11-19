@@ -20,7 +20,7 @@
 #define _ASM_NIOS2_REGISTERS_H
 
 #ifndef __ASSEMBLY__
-#include <asm/cpuinfo.h>
+	#include <asm/cpuinfo.h>
 #endif
 
 /* control register numbers */
@@ -58,7 +58,7 @@
 /* tlbmisc register bits */
 #define TLBMISC_PID_SHIFT	4
 #ifndef __ASSEMBLY__
-#define TLBMISC_PID_MASK	((1UL << cpuinfo.tlb_pid_num_bits) - 1)
+	#define TLBMISC_PID_MASK	((1UL << cpuinfo.tlb_pid_num_bits) - 1)
 #endif
 #define TLBMISC_WAY_MASK	0xf
 #define TLBMISC_WAY_SHIFT	20

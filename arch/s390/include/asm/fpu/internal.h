@@ -26,7 +26,9 @@ static inline void convert_vx_to_fp(freg_t *fprs, __vector128 *vxrs)
 	int i;
 
 	for (i = 0; i < __NUM_FPRS; i++)
+	{
 		fprs[i] = *(freg_t *)(vxrs + i);
+	}
 }
 
 static inline void convert_fp_to_vx(__vector128 *vxrs, freg_t *fprs)
@@ -34,28 +36,36 @@ static inline void convert_fp_to_vx(__vector128 *vxrs, freg_t *fprs)
 	int i;
 
 	for (i = 0; i < __NUM_FPRS; i++)
+	{
 		*(freg_t *)(vxrs + i) = fprs[i];
+	}
 }
 
 static inline void fpregs_store(_s390_fp_regs *fpregs, struct fpu *fpu)
 {
 	fpregs->pad = 0;
 	fpregs->fpc = fpu->fpc;
+
 	if (MACHINE_HAS_VX)
+	{
 		convert_vx_to_fp((freg_t *)&fpregs->fprs, fpu->vxrs);
+	}
 	else
 		memcpy((freg_t *)&fpregs->fprs, fpu->fprs,
-		       sizeof(fpregs->fprs));
+			   sizeof(fpregs->fprs));
 }
 
 static inline void fpregs_load(_s390_fp_regs *fpregs, struct fpu *fpu)
 {
 	fpu->fpc = fpregs->fpc;
+
 	if (MACHINE_HAS_VX)
+	{
 		convert_fp_to_vx(fpu->vxrs, (freg_t *)&fpregs->fprs);
+	}
 	else
 		memcpy(fpu->fprs, (freg_t *)&fpregs->fprs,
-		       sizeof(fpregs->fprs));
+			   sizeof(fpregs->fprs));
 }
 
 #endif /* _ASM_S390_FPU_INTERNAL_H */

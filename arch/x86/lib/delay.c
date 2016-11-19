@@ -23,7 +23,7 @@
 #include <asm/mwait.h>
 
 #ifdef CONFIG_SMP
-# include <asm/smp.h>
+	#include <asm/smp.h>
 #endif
 
 /* simple loop based delay: */
@@ -56,10 +56,15 @@ static void delay_tsc(unsigned long __loops)
 	preempt_disable();
 	cpu = smp_processor_id();
 	bclock = rdtsc_ordered();
-	for (;;) {
+
+	for (;;)
+	{
 		now = rdtsc_ordered();
+
 		if ((now - bclock) >= loops)
+		{
 			break;
+		}
 
 		/* Allow RT tasks to run */
 		preempt_enable();
@@ -75,12 +80,14 @@ static void delay_tsc(unsigned long __loops)
 		 * make sure we waited long enough. Rebalance the
 		 * counter for this CPU.
 		 */
-		if (unlikely(cpu != smp_processor_id())) {
+		if (unlikely(cpu != smp_processor_id()))
+		{
 			loops -= (now - bclock);
 			cpu = smp_processor_id();
 			bclock = rdtsc_ordered();
 		}
 	}
+
 	preempt_enable();
 }
 
@@ -95,7 +102,8 @@ static void delay_mwaitx(unsigned long __loops)
 
 	start = rdtsc_ordered();
 
-	for (;;) {
+	for (;;)
+	{
 		delay = min_t(u64, MWAITX_MAX_LOOPS, loops);
 
 		/*
@@ -114,7 +122,9 @@ static void delay_mwaitx(unsigned long __loops)
 		end = rdtsc_ordered();
 
 		if (loops <= end - start)
+		{
 			break;
+		}
 
 		loops -= end - start;
 
@@ -131,7 +141,9 @@ static void (*delay_fn)(unsigned long) = delay_loop;
 void use_tsc_delay(void)
 {
 	if (delay_fn == delay_loop)
+	{
 		delay_fn = delay_tsc;
+	}
 }
 
 void use_mwaitx_delay(void)
@@ -141,10 +153,12 @@ void use_mwaitx_delay(void)
 
 int read_current_timer(unsigned long *timer_val)
 {
-	if (delay_fn == delay_tsc) {
+	if (delay_fn == delay_tsc)
+	{
 		*timer_val = rdtsc();
 		return 0;
 	}
+
 	return -1;
 }
 

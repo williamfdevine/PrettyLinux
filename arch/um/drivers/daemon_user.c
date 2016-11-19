@@ -22,7 +22,8 @@ enum request_type { REQ_NEW_CONTROL };
 
 #define SWITCH_MAGIC 0xfeedface
 
-struct request_v3 {
+struct request_v3
+{
 	uint32_t magic;
 	uint32_t version;
 	enum request_type type;
@@ -34,11 +35,14 @@ static struct sockaddr_un *new_addr(void *name, int len)
 	struct sockaddr_un *sun;
 
 	sun = uml_kmalloc(sizeof(struct sockaddr_un), UM_GFP_KERNEL);
-	if (sun == NULL) {
+
+	if (sun == NULL)
+	{
 		printk(UM_KERN_ERR "new_addr: allocation of sockaddr_un "
-		       "failed\n");
+			   "failed\n");
 		return NULL;
 	}
+
 	sun->sun_family = AF_UNIX;
 	memcpy(sun->sun_path, name, len);
 	return sun;
@@ -53,39 +57,48 @@ static int connect_to_switch(struct daemon_data *pri)
 	int fd, n, err;
 
 	pri->control = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (pri->control < 0) {
+
+	if (pri->control < 0)
+	{
 		err = -errno;
 		printk(UM_KERN_ERR "daemon_open : control socket failed, "
-		       "errno = %d\n", -err);
+			   "errno = %d\n", -err);
 		return err;
 	}
 
 	if (connect(pri->control, (struct sockaddr *) ctl_addr,
-		   sizeof(*ctl_addr)) < 0) {
+				sizeof(*ctl_addr)) < 0)
+	{
 		err = -errno;
 		printk(UM_KERN_ERR "daemon_open : control connect failed, "
-		       "errno = %d\n", -err);
+			   "errno = %d\n", -err);
 		goto out;
 	}
 
 	fd = socket(AF_UNIX, SOCK_DGRAM, 0);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		err = -errno;
 		printk(UM_KERN_ERR "daemon_open : data socket failed, "
-		       "errno = %d\n", -err);
+			   "errno = %d\n", -err);
 		goto out;
 	}
-	if (bind(fd, (struct sockaddr *) local_addr, sizeof(*local_addr)) < 0) {
+
+	if (bind(fd, (struct sockaddr *) local_addr, sizeof(*local_addr)) < 0)
+	{
 		err = -errno;
 		printk(UM_KERN_ERR "daemon_open : data bind failed, "
-		       "errno = %d\n", -err);
+			   "errno = %d\n", -err);
 		goto out_close;
 	}
 
 	sun = uml_kmalloc(sizeof(struct sockaddr_un), UM_GFP_KERNEL);
-	if (sun == NULL) {
+
+	if (sun == NULL)
+	{
 		printk(UM_KERN_ERR "new_addr: allocation of sockaddr_un "
-		       "failed\n");
+			   "failed\n");
 		err = -ENOMEM;
 		goto out_close;
 	}
@@ -95,17 +108,21 @@ static int connect_to_switch(struct daemon_data *pri)
 	req.type = REQ_NEW_CONTROL;
 	req.sock = *local_addr;
 	n = write(pri->control, &req, sizeof(req));
-	if (n != sizeof(req)) {
+
+	if (n != sizeof(req))
+	{
 		printk(UM_KERN_ERR "daemon_open : control setup request "
-		       "failed, err = %d\n", -errno);
+			   "failed, err = %d\n", -errno);
 		err = -ENOTCONN;
 		goto out_free;
 	}
 
 	n = read(pri->control, sun, sizeof(*sun));
-	if (n != sizeof(*sun)) {
+
+	if (n != sizeof(*sun))
+	{
 		printk(UM_KERN_ERR "daemon_open : read of data socket failed, "
-		       "err = %d\n", -errno);
+			   "err = %d\n", -errno);
 		err = -ENOTCONN;
 		goto out_free;
 	}
@@ -113,11 +130,11 @@ static int connect_to_switch(struct daemon_data *pri)
 	pri->data_addr = sun;
 	return fd;
 
- out_free:
+out_free:
 	kfree(sun);
- out_close:
+out_close:
 	close(fd);
- out:
+out:
 	close(pri->control);
 	return err;
 }
@@ -126,7 +143,8 @@ static int daemon_user_init(void *data, void *dev)
 {
 	struct daemon_data *pri = data;
 	struct timeval tv;
-	struct {
+	struct
+	{
 		char zero;
 		int pid;
 		int usecs;
@@ -134,7 +152,8 @@ static int daemon_user_init(void *data, void *dev)
 
 	if (!strcmp(pri->sock_type, "unix"))
 		pri->ctl_addr = new_addr(pri->ctl_sock,
-					 strlen(pri->ctl_sock) + 1);
+								 strlen(pri->ctl_sock) + 1);
+
 	name.zero = 0;
 	name.pid = os_getpid();
 	gettimeofday(&tv, NULL);
@@ -142,7 +161,9 @@ static int daemon_user_init(void *data, void *dev)
 	pri->local_addr = new_addr(&name, sizeof(name));
 	pri->dev = dev;
 	pri->fd = connect_to_switch(pri);
-	if (pri->fd < 0) {
+
+	if (pri->fd < 0)
+	{
 		kfree(pri->local_addr);
 		pri->local_addr = NULL;
 		return pri->fd;
@@ -181,7 +202,8 @@ int daemon_user_write(int fd, void *buf, int len, struct daemon_data *pri)
 	return net_sendto(fd, buf, len, data_addr, sizeof(*data_addr));
 }
 
-const struct net_user_info daemon_user_info = {
+const struct net_user_info daemon_user_info =
+{
 	.init		= daemon_user_init,
 	.open		= daemon_open,
 	.close	 	= NULL,

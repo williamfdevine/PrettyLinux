@@ -25,9 +25,9 @@
  */
 
 #ifdef CONFIG_MMU
-#define MMU_IO(a, b)	(a)
+	#define MMU_IO(a, b)	(a)
 #else
-#define MMU_IO(a, b)	(b)
+	#define MMU_IO(a, b)	(b)
 #endif
 
 #define XBUS_SIZE		0x00100000
@@ -89,11 +89,11 @@
 #define CPLD_FLASH_WR_ENABLE	1
 
 #ifndef __ASSEMBLY__
-extern raw_spinlock_t nw_gpio_lock;
-extern void nw_gpio_modify_op(unsigned int mask, unsigned int set);
-extern void nw_gpio_modify_io(unsigned int mask, unsigned int in);
-extern unsigned int nw_gpio_read(void);
-extern void nw_cpld_modify(unsigned int mask, unsigned int set);
+	extern raw_spinlock_t nw_gpio_lock;
+	extern void nw_gpio_modify_op(unsigned int mask, unsigned int set);
+	extern void nw_gpio_modify_io(unsigned int mask, unsigned int in);
+	extern unsigned int nw_gpio_read(void);
+	extern void nw_cpld_modify(unsigned int mask, unsigned int set);
 #endif
 
 #endif

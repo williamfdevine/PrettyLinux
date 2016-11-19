@@ -39,31 +39,31 @@
 		if (!is_kernel_in_hyp_mode())				\
 			val = phys_to_virt((u64)&sym - kimage_voffset);	\
 		val;							\
-	 })
+	})
 
 #ifndef __ASSEMBLY__
-struct kvm;
-struct kvm_vcpu;
+	struct kvm;
+	struct kvm_vcpu;
 
-extern char __kvm_hyp_init[];
-extern char __kvm_hyp_init_end[];
-extern char __kvm_hyp_reset[];
+	extern char __kvm_hyp_init[];
+	extern char __kvm_hyp_init_end[];
+	extern char __kvm_hyp_reset[];
 
-extern char __kvm_hyp_vector[];
+	extern char __kvm_hyp_vector[];
 
-extern void __kvm_flush_vm_context(void);
-extern void __kvm_tlb_flush_vmid_ipa(struct kvm *kvm, phys_addr_t ipa);
-extern void __kvm_tlb_flush_vmid(struct kvm *kvm);
-extern void __kvm_tlb_flush_local_vmid(struct kvm_vcpu *vcpu);
+	extern void __kvm_flush_vm_context(void);
+	extern void __kvm_tlb_flush_vmid_ipa(struct kvm *kvm, phys_addr_t ipa);
+	extern void __kvm_tlb_flush_vmid(struct kvm *kvm);
+	extern void __kvm_tlb_flush_local_vmid(struct kvm_vcpu *vcpu);
 
-extern int __kvm_vcpu_run(struct kvm_vcpu *vcpu);
+	extern int __kvm_vcpu_run(struct kvm_vcpu *vcpu);
 
-extern u64 __vgic_v3_get_ich_vtr_el2(void);
-extern void __vgic_v3_init_lrs(void);
+	extern u64 __vgic_v3_get_ich_vtr_el2(void);
+	extern void __vgic_v3_init_lrs(void);
 
-extern u32 __kvm_get_mdcr_el2(void);
+	extern u32 __kvm_get_mdcr_el2(void);
 
-extern u32 __init_stage2_translation(void);
+	extern u32 __init_stage2_translation(void);
 
 #endif
 

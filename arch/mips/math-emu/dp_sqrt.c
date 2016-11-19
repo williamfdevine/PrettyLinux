@@ -21,7 +21,8 @@
 
 #include "ieee754dp.h"
 
-static const unsigned table[] = {
+static const unsigned table[] =
+{
 	0, 1204, 3062, 5746, 9193, 13348, 18162, 23592,
 	29598, 36145, 43202, 50740, 58733, 67158, 75992,
 	85215, 83599, 71378, 60428, 50647, 41945, 34246,
@@ -41,38 +42,44 @@ union ieee754dp ieee754dp_sqrt(union ieee754dp x)
 	FLUSHXDP;
 
 	/* x == INF or NAN? */
-	switch (xc) {
-	case IEEE754_CLASS_SNAN:
-		return ieee754dp_nanxcpt(x);
+	switch (xc)
+	{
+		case IEEE754_CLASS_SNAN:
+			return ieee754dp_nanxcpt(x);
 
-	case IEEE754_CLASS_QNAN:
-		/* sqrt(Nan) = Nan */
-		return x;
+		case IEEE754_CLASS_QNAN:
+			/* sqrt(Nan) = Nan */
+			return x;
 
-	case IEEE754_CLASS_ZERO:
-		/* sqrt(0) = 0 */
-		return x;
+		case IEEE754_CLASS_ZERO:
+			/* sqrt(0) = 0 */
+			return x;
 
-	case IEEE754_CLASS_INF:
-		if (xs) {
-			/* sqrt(-Inf) = Nan */
-			ieee754_setcx(IEEE754_INVALID_OPERATION);
-			return ieee754dp_indef();
-		}
-		/* sqrt(+Inf) = Inf */
-		return x;
+		case IEEE754_CLASS_INF:
+			if (xs)
+			{
+				/* sqrt(-Inf) = Nan */
+				ieee754_setcx(IEEE754_INVALID_OPERATION);
+				return ieee754dp_indef();
+			}
 
-	case IEEE754_CLASS_DNORM:
-		DPDNORMX;
+			/* sqrt(+Inf) = Inf */
+			return x;
+
+		case IEEE754_CLASS_DNORM:
+			DPDNORMX;
+
 		/* fall through */
 
-	case IEEE754_CLASS_NORM:
-		if (xs) {
-			/* sqrt(-x) = Nan */
-			ieee754_setcx(IEEE754_INVALID_OPERATION);
-			return ieee754dp_indef();
-		}
-		break;
+		case IEEE754_CLASS_NORM:
+			if (xs)
+			{
+				/* sqrt(-x) = Nan */
+				ieee754_setcx(IEEE754_INVALID_OPERATION);
+				return ieee754dp_indef();
+			}
+
+			break;
 	}
 
 	/* save old csr; switch off INX enable & flag; set RN rounding */
@@ -83,10 +90,14 @@ union ieee754dp ieee754dp_sqrt(union ieee754dp x)
 
 	/* adjust exponent to prevent overflow */
 	scalx = 0;
-	if (xe > 512) {		/* x > 2**-512? */
+
+	if (xe > 512)  		/* x > 2**-512? */
+	{
 		xe -= 512;	/* x = x / 2**512 */
 		scalx += 256;
-	} else if (xe < -512) { /* x < 2**-512? */
+	}
+	else if (xe < -512)     /* x < 2**-512? */
+	{
 		xe += 512;	/* x = x * 2**512 */
 		scalx -= 256;
 	}
@@ -127,23 +138,28 @@ union ieee754dp ieee754dp_sqrt(union ieee754dp x)
 	/* t=x/y; ...chopped quotient, possibly inexact */
 	t = ieee754dp_div(x, y);
 
-	if (ieee754_csr.sx & IEEE754_INEXACT || t.bits != y.bits) {
+	if (ieee754_csr.sx & IEEE754_INEXACT || t.bits != y.bits)
+	{
 
 		if (!(ieee754_csr.sx & IEEE754_INEXACT))
 			/* t = t-ulp */
+		{
 			t.bits -= 1;
+		}
 
 		/* add inexact to result status */
 		oldcsr.cx |= IEEE754_INEXACT;
 		oldcsr.sx |= IEEE754_INEXACT;
 
-		switch (oldcsr.rm) {
-		case FPU_CSR_RU:
-			y.bits += 1;
+		switch (oldcsr.rm)
+		{
+			case FPU_CSR_RU:
+				y.bits += 1;
+
 			/* drop through */
-		case FPU_CSR_RN:
-			t.bits += 1;
-			break;
+			case FPU_CSR_RN:
+				t.bits += 1;
+				break;
 		}
 
 		/* y=y+t; ...chopped sum */

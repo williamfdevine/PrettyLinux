@@ -26,7 +26,8 @@ static inline int pcibios_vaddr_is_ioport(void __iomem *address)
 /*
  * Structure of a PCI controller (host bridge)
  */
-struct pci_controller {
+struct pci_controller
+{
 	struct pci_bus *bus;
 	char is_dynamic;
 	struct device_node *dn;
@@ -109,32 +110,32 @@ static inline int isa_vaddr_is_ioport(void __iomem *address)
 /* These are used for config access before all the PCI probing
    has been done. */
 extern int early_read_config_byte(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u8 *val);
+								  int dev_fn, int where, u8 *val);
 extern int early_read_config_word(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u16 *val);
+								  int dev_fn, int where, u16 *val);
 extern int early_read_config_dword(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u32 *val);
+								   int dev_fn, int where, u32 *val);
 extern int early_write_config_byte(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u8 val);
+								   int dev_fn, int where, u8 val);
 extern int early_write_config_word(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u16 val);
+								   int dev_fn, int where, u16 val);
 extern int early_write_config_dword(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u32 val);
+									int dev_fn, int where, u32 val);
 
 extern int early_find_capability(struct pci_controller *hose, int bus,
-				 int dev_fn, int cap);
+								 int dev_fn, int cap);
 
 extern void setup_indirect_pci(struct pci_controller *hose,
-			       resource_size_t cfg_addr,
-			       resource_size_t cfg_data, u32 flags);
+							   resource_size_t cfg_addr,
+							   resource_size_t cfg_data, u32 flags);
 
 /* Get the PCI host controller for an OF device */
 extern struct pci_controller *pci_find_hose_for_OF_device(
-			struct device_node *node);
+	struct device_node *node);
 
 /* Fill up host controller resources from the OF node */
 extern void pci_process_bridge_OF_ranges(struct pci_controller *hose,
-			struct device_node *dev, int primary);
+		struct device_node *dev, int primary);
 
 /* Allocate & free a PCI host bridge structure */
 extern struct pci_controller *pcibios_alloc_controller(struct device_node *dev);

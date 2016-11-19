@@ -32,16 +32,17 @@
  * but that's slow and we know it'll be within the first 2GB.
  */
 #ifdef CONFIG_64BIT
-#define INDIRECT_ADDR(addr)	(((unsigned long)(addr) & 1UL<<63) != 0)
-#define ADDR_TO_REGION(addr)    (((unsigned long)addr >> 60) & 7)
-#define IOPORT_MAP_BASE		(8UL << 60)
+	#define INDIRECT_ADDR(addr)	(((unsigned long)(addr) & 1UL<<63) != 0)
+	#define ADDR_TO_REGION(addr)    (((unsigned long)addr >> 60) & 7)
+	#define IOPORT_MAP_BASE		(8UL << 60)
 #else
-#define INDIRECT_ADDR(addr)     (((unsigned long)(addr) & 1UL<<31) != 0)
-#define ADDR_TO_REGION(addr)    (((unsigned long)addr >> 28) & 7)
-#define IOPORT_MAP_BASE		(8UL << 28)
+	#define INDIRECT_ADDR(addr)     (((unsigned long)(addr) & 1UL<<31) != 0)
+	#define ADDR_TO_REGION(addr)    (((unsigned long)addr >> 28) & 7)
+	#define IOPORT_MAP_BASE		(8UL << 28)
 #endif
 
-struct iomap_ops {
+struct iomap_ops
+{
 	unsigned int (*read8)(void __iomem *);
 	unsigned int (*read16)(void __iomem *);
 	unsigned int (*read16be)(void __iomem *);
@@ -124,7 +125,8 @@ static void ioport_write32r(void __iomem *addr, const void *s, unsigned long n)
 	outsl(ADDR2PORT(addr), s, n);
 }
 
-static const struct iomap_ops ioport_ops = {
+static const struct iomap_ops ioport_ops =
+{
 	.read8 = ioport_read8,
 	.read16 = ioport_read16,
 	.read16be = ioport_read16,
@@ -197,7 +199,8 @@ static void iomem_write32be(u32 datum, void __iomem *addr)
 
 static void iomem_read8r(void __iomem *addr, void *dst, unsigned long count)
 {
-	while (count--) {
+	while (count--)
+	{
 		*(u8 *)dst = __raw_readb(addr);
 		dst++;
 	}
@@ -205,7 +208,8 @@ static void iomem_read8r(void __iomem *addr, void *dst, unsigned long count)
 
 static void iomem_read16r(void __iomem *addr, void *dst, unsigned long count)
 {
-	while (count--) {
+	while (count--)
+	{
 		*(u16 *)dst = __raw_readw(addr);
 		dst += 2;
 	}
@@ -213,7 +217,8 @@ static void iomem_read16r(void __iomem *addr, void *dst, unsigned long count)
 
 static void iomem_read32r(void __iomem *addr, void *dst, unsigned long count)
 {
-	while (count--) {
+	while (count--)
+	{
 		*(u32 *)dst = __raw_readl(addr);
 		dst += 4;
 	}
@@ -221,7 +226,8 @@ static void iomem_read32r(void __iomem *addr, void *dst, unsigned long count)
 
 static void iomem_write8r(void __iomem *addr, const void *s, unsigned long n)
 {
-	while (n--) {
+	while (n--)
+	{
 		__raw_writeb(*(u8 *)s, addr);
 		s++;
 	}
@@ -229,7 +235,8 @@ static void iomem_write8r(void __iomem *addr, const void *s, unsigned long n)
 
 static void iomem_write16r(void __iomem *addr, const void *s, unsigned long n)
 {
-	while (n--) {
+	while (n--)
+	{
 		__raw_writew(*(u16 *)s, addr);
 		s += 2;
 	}
@@ -237,13 +244,15 @@ static void iomem_write16r(void __iomem *addr, const void *s, unsigned long n)
 
 static void iomem_write32r(void __iomem *addr, const void *s, unsigned long n)
 {
-	while (n--) {
+	while (n--)
+	{
 		__raw_writel(*(u32 *)s, addr);
 		s += 4;
 	}
 }
 
-static const struct iomap_ops iomem_ops = {
+static const struct iomap_ops iomem_ops =
+{
 	.read8 = iomem_read8,
 	.read16 = iomem_read16,
 	.read16be = iomem_read16be,
@@ -262,7 +271,8 @@ static const struct iomap_ops iomem_ops = {
 	.write32r = iomem_write32r,
 };
 
-static const struct iomap_ops *iomap_ops[8] = {
+static const struct iomap_ops *iomap_ops[8] =
+{
 	[0] = &ioport_ops,
 	[7] = &iomem_ops
 };
@@ -271,79 +281,109 @@ static const struct iomap_ops *iomap_ops[8] = {
 unsigned int ioread8(void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		return iomap_ops[ADDR_TO_REGION(addr)]->read8(addr);
+	}
+
 	return *((u8 *)addr);
 }
 
 unsigned int ioread16(void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		return iomap_ops[ADDR_TO_REGION(addr)]->read16(addr);
+	}
+
 	return le16_to_cpup((u16 *)addr);
 }
 
 unsigned int ioread16be(void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		return iomap_ops[ADDR_TO_REGION(addr)]->read16be(addr);
+	}
+
 	return *((u16 *)addr);
 }
 
 unsigned int ioread32(void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		return iomap_ops[ADDR_TO_REGION(addr)]->read32(addr);
+	}
+
 	return le32_to_cpup((u32 *)addr);
 }
 
 unsigned int ioread32be(void __iomem *addr)
 {
 	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		return iomap_ops[ADDR_TO_REGION(addr)]->read32be(addr);
+	}
+
 	return *((u32 *)addr);
 }
 
 void iowrite8(u8 datum, void __iomem *addr)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->write8(datum, addr);
-	} else {
+	}
+	else
+	{
 		*((u8 *)addr) = datum;
 	}
 }
 
 void iowrite16(u16 datum, void __iomem *addr)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->write16(datum, addr);
-	} else {
+	}
+	else
+	{
 		*((u16 *)addr) = cpu_to_le16(datum);
 	}
 }
 
 void iowrite16be(u16 datum, void __iomem *addr)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->write16be(datum, addr);
-	} else {
+	}
+	else
+	{
 		*((u16 *)addr) = datum;
 	}
 }
 
 void iowrite32(u32 datum, void __iomem *addr)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->write32(datum, addr);
-	} else {
+	}
+	else
+	{
 		*((u32 *)addr) = cpu_to_le32(datum);
 	}
 }
 
 void iowrite32be(u32 datum, void __iomem *addr)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->write32be(datum, addr);
-	} else {
+	}
+	else
+	{
 		*((u32 *)addr) = datum;
 	}
 }
@@ -352,10 +392,14 @@ void iowrite32be(u32 datum, void __iomem *addr)
 
 void ioread8_rep(void __iomem *addr, void *dst, unsigned long count)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->read8r(addr, dst, count);
-	} else {
-		while (count--) {
+	}
+	else
+	{
+		while (count--)
+		{
 			*(u8 *)dst = *(u8 *)addr;
 			dst++;
 		}
@@ -364,10 +408,14 @@ void ioread8_rep(void __iomem *addr, void *dst, unsigned long count)
 
 void ioread16_rep(void __iomem *addr, void *dst, unsigned long count)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->read16r(addr, dst, count);
-	} else {
-		while (count--) {
+	}
+	else
+	{
+		while (count--)
+		{
 			*(u16 *)dst = *(u16 *)addr;
 			dst += 2;
 		}
@@ -376,10 +424,14 @@ void ioread16_rep(void __iomem *addr, void *dst, unsigned long count)
 
 void ioread32_rep(void __iomem *addr, void *dst, unsigned long count)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->read32r(addr, dst, count);
-	} else {
-		while (count--) {
+	}
+	else
+	{
+		while (count--)
+		{
 			*(u32 *)dst = *(u32 *)addr;
 			dst += 4;
 		}
@@ -388,10 +440,14 @@ void ioread32_rep(void __iomem *addr, void *dst, unsigned long count)
 
 void iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->write8r(addr, src, count);
-	} else {
-		while (count--) {
+	}
+	else
+	{
+		while (count--)
+		{
 			*(u8 *)addr = *(u8 *)src;
 			src++;
 		}
@@ -400,10 +456,14 @@ void iowrite8_rep(void __iomem *addr, const void *src, unsigned long count)
 
 void iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->write16r(addr, src, count);
-	} else {
-		while (count--) {
+	}
+	else
+	{
+		while (count--)
+		{
 			*(u16 *)addr = *(u16 *)src;
 			src += 2;
 		}
@@ -412,10 +472,14 @@ void iowrite16_rep(void __iomem *addr, const void *src, unsigned long count)
 
 void iowrite32_rep(void __iomem *addr, const void *src, unsigned long count)
 {
-	if (unlikely(INDIRECT_ADDR(addr))) {
+	if (unlikely(INDIRECT_ADDR(addr)))
+	{
 		iomap_ops[ADDR_TO_REGION(addr)]->write32r(addr, src, count);
-	} else {
-		while (count--) {
+	}
+	else
+	{
+		while (count--)
+		{
 			*(u32 *)addr = *(u32 *)src;
 			src += 4;
 		}
@@ -431,14 +495,16 @@ void __iomem *ioport_map(unsigned long port, unsigned int nr)
 
 void ioport_unmap(void __iomem *addr)
 {
-	if (!INDIRECT_ADDR(addr)) {
+	if (!INDIRECT_ADDR(addr))
+	{
 		iounmap(addr);
 	}
 }
 
-void pci_iounmap(struct pci_dev *dev, void __iomem * addr)
+void pci_iounmap(struct pci_dev *dev, void __iomem *addr)
 {
-	if (!INDIRECT_ADDR(addr)) {
+	if (!INDIRECT_ADDR(addr))
+	{
 		iounmap(addr);
 	}
 }

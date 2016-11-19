@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2002  David Howells (dhowells@redhat.com)
  * - Incorporating suggestions made by Linus Torvalds and Dave Miller
- * 
+ *
  * CRIS port by Axis Communications
  */
 
@@ -12,10 +12,10 @@
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-#include <asm/types.h>
-#include <asm/processor.h>
-#include <arch/thread_info.h>
-#include <asm/segment.h>
+	#include <asm/types.h>
+	#include <asm/processor.h>
+	#include <arch/thread_info.h>
+	#include <asm/segment.h>
 #endif
 
 
@@ -26,7 +26,8 @@
  * - if the contents of this structure are changed, the assembly constants must also be changed
  */
 #ifndef __ASSEMBLY__
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	__u32			cpu;		/* current CPU */
@@ -47,13 +48,13 @@ struct thread_info {
  */
 #ifndef __ASSEMBLY__
 #define INIT_THREAD_INFO(tsk)				\
-{							\
-	.task		= &tsk,				\
-	.flags		= 0,				\
-	.cpu		= 0,				\
-	.preempt_count	= INIT_PREEMPT_COUNT,		\
-	.addr_limit	= KERNEL_DS,			\
-}
+	{							\
+		.task		= &tsk,				\
+					  .flags		= 0,				\
+									.cpu		= 0,				\
+											.preempt_count	= INIT_PREEMPT_COUNT,		\
+													.addr_limit	= KERNEL_DS,			\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 

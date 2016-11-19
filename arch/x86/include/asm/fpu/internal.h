@@ -52,9 +52,9 @@ extern u64 fpu__get_supported_xfeatures_mask(void);
  * Debugging facility:
  */
 #ifdef CONFIG_X86_DEBUG_FPU
-# define WARN_ON_FPU(x) WARN_ON_ONCE(x)
+	#define WARN_ON_FPU(x) WARN_ON_ONCE(x)
 #else
-# define WARN_ON_FPU(x) ({ (void)(x); 0; })
+	#define WARN_ON_FPU(x) ({ (void)(x); 0; })
 #endif
 
 /*
@@ -100,66 +100,77 @@ static inline void fpstate_init_fxstate(struct fxregs_state *fx)
 extern void fpstate_sanitize_xstate(struct fpu *fpu);
 
 #define user_insn(insn, output, input...)				\
-({									\
-	int err;							\
-	asm volatile(ASM_STAC "\n"					\
-		     "1:" #insn "\n\t"					\
-		     "2: " ASM_CLAC "\n"				\
-		     ".section .fixup,\"ax\"\n"				\
-		     "3:  movl $-1,%[err]\n"				\
-		     "    jmp  2b\n"					\
-		     ".previous\n"					\
-		     _ASM_EXTABLE(1b, 3b)				\
-		     : [err] "=r" (err), output				\
-		     : "0"(0), input);					\
-	err;								\
-})
+	({									\
+		int err;							\
+		asm volatile(ASM_STAC "\n"					\
+					 "1:" #insn "\n\t"					\
+					 "2: " ASM_CLAC "\n"				\
+					 ".section .fixup,\"ax\"\n"				\
+					 "3:  movl $-1,%[err]\n"				\
+					 "    jmp  2b\n"					\
+					 ".previous\n"					\
+					 _ASM_EXTABLE(1b, 3b)				\
+					 : [err] "=r" (err), output				\
+					 : "0"(0), input);					\
+		err;								\
+	})
 
 #define check_insn(insn, output, input...)				\
-({									\
-	int err;							\
-	asm volatile("1:" #insn "\n\t"					\
-		     "2:\n"						\
-		     ".section .fixup,\"ax\"\n"				\
-		     "3:  movl $-1,%[err]\n"				\
-		     "    jmp  2b\n"					\
-		     ".previous\n"					\
-		     _ASM_EXTABLE(1b, 3b)				\
-		     : [err] "=r" (err), output				\
-		     : "0"(0), input);					\
-	err;								\
-})
+	({									\
+		int err;							\
+		asm volatile("1:" #insn "\n\t"					\
+					 "2:\n"						\
+					 ".section .fixup,\"ax\"\n"				\
+					 "3:  movl $-1,%[err]\n"				\
+					 "    jmp  2b\n"					\
+					 ".previous\n"					\
+					 _ASM_EXTABLE(1b, 3b)				\
+					 : [err] "=r" (err), output				\
+					 : "0"(0), input);					\
+		err;								\
+	})
 
 static inline int copy_fregs_to_user(struct fregs_state __user *fx)
 {
-	return user_insn(fnsave %[fx]; fwait,  [fx] "=m" (*fx), "m" (*fx));
+	return user_insn(fnsave % [fx]; fwait,  [fx] "=m" (*fx), "m" (*fx));
 }
 
 static inline int copy_fxregs_to_user(struct fxregs_state __user *fx)
 {
 	if (IS_ENABLED(CONFIG_X86_32))
-		return user_insn(fxsave %[fx], [fx] "=m" (*fx), "m" (*fx));
+	{
+		return user_insn(fxsave % [fx], [fx] "=m" (*fx), "m" (*fx));
+	}
 	else if (IS_ENABLED(CONFIG_AS_FXSAVEQ))
-		return user_insn(fxsaveq %[fx], [fx] "=m" (*fx), "m" (*fx));
+	{
+		return user_insn(fxsaveq % [fx], [fx] "=m" (*fx), "m" (*fx));
+	}
 
 	/* See comment in copy_fxregs_to_kernel() below. */
-	return user_insn(rex64/fxsave (%[fx]), "=m" (*fx), [fx] "R" (fx));
+	return user_insn(rex64 / fxsave ( % [fx]), "=m" (*fx), [fx] "R" (fx));
 }
 
 static inline void copy_kernel_to_fxregs(struct fxregs_state *fx)
 {
 	int err;
 
-	if (IS_ENABLED(CONFIG_X86_32)) {
-		err = check_insn(fxrstor %[fx], "=m" (*fx), [fx] "m" (*fx));
-	} else {
-		if (IS_ENABLED(CONFIG_AS_FXSAVEQ)) {
-			err = check_insn(fxrstorq %[fx], "=m" (*fx), [fx] "m" (*fx));
-		} else {
+	if (IS_ENABLED(CONFIG_X86_32))
+	{
+		err = check_insn(fxrstor % [fx], "=m" (*fx), [fx] "m" (*fx));
+	}
+	else
+	{
+		if (IS_ENABLED(CONFIG_AS_FXSAVEQ))
+		{
+			err = check_insn(fxrstorq % [fx], "=m" (*fx), [fx] "m" (*fx));
+		}
+		else
+		{
 			/* See comment in copy_fxregs_to_kernel() below. */
-			err = check_insn(rex64/fxrstor (%[fx]), "=m" (*fx), [fx] "R" (fx), "m" (*fx));
+			err = check_insn(rex64 / fxrstor ( % [fx]), "=m" (*fx), [fx] "R" (fx), "m" (*fx));
 		}
 	}
+
 	/* Copying from a kernel buffer to FPU registers should never fail: */
 	WARN_ON_FPU(err);
 }
@@ -167,34 +178,43 @@ static inline void copy_kernel_to_fxregs(struct fxregs_state *fx)
 static inline int copy_user_to_fxregs(struct fxregs_state __user *fx)
 {
 	if (IS_ENABLED(CONFIG_X86_32))
-		return user_insn(fxrstor %[fx], "=m" (*fx), [fx] "m" (*fx));
+	{
+		return user_insn(fxrstor % [fx], "=m" (*fx), [fx] "m" (*fx));
+	}
 	else if (IS_ENABLED(CONFIG_AS_FXSAVEQ))
-		return user_insn(fxrstorq %[fx], "=m" (*fx), [fx] "m" (*fx));
+	{
+		return user_insn(fxrstorq % [fx], "=m" (*fx), [fx] "m" (*fx));
+	}
 
 	/* See comment in copy_fxregs_to_kernel() below. */
-	return user_insn(rex64/fxrstor (%[fx]), "=m" (*fx), [fx] "R" (fx),
-			  "m" (*fx));
+	return user_insn(rex64 / fxrstor ( % [fx]), "=m" (*fx), [fx] "R" (fx),
+					 "m" (*fx));
 }
 
 static inline void copy_kernel_to_fregs(struct fregs_state *fx)
 {
-	int err = check_insn(frstor %[fx], "=m" (*fx), [fx] "m" (*fx));
+	int err = check_insn(frstor % [fx], "=m" (*fx), [fx] "m" (*fx));
 
 	WARN_ON_FPU(err);
 }
 
 static inline int copy_user_to_fregs(struct fregs_state __user *fx)
 {
-	return user_insn(frstor %[fx], "=m" (*fx), [fx] "m" (*fx));
+	return user_insn(frstor % [fx], "=m" (*fx), [fx] "m" (*fx));
 }
 
 static inline void copy_fxregs_to_kernel(struct fpu *fpu)
 {
 	if (IS_ENABLED(CONFIG_X86_32))
+	{
 		asm volatile( "fxsave %[fx]" : [fx] "=m" (fpu->state.fxsave));
+	}
 	else if (IS_ENABLED(CONFIG_AS_FXSAVEQ))
+	{
 		asm volatile("fxsaveq %[fx]" : [fx] "=m" (fpu->state.fxsave));
-	else {
+	}
+	else
+	{
 		/* Using "rex64; fxsave %0" is broken because, if the memory
 		 * operand uses any extended registers for addressing, a second
 		 * REX prefix will be generated (to the assembler, rex64
@@ -217,8 +237,8 @@ static inline void copy_fxregs_to_kernel(struct fpu *fpu)
 		 * registers.
 		 */
 		asm volatile( "rex64/fxsave (%[fx])"
-			     : "=m" (fpu->state.fxsave)
-			     : [fx] "R" (&fpu->state.fxsave));
+					  : "=m" (fpu->state.fxsave)
+					  : [fx] "R" (&fpu->state.fxsave));
 	}
 }
 
@@ -231,16 +251,16 @@ static inline void copy_fxregs_to_kernel(struct fpu *fpu)
 
 #define XSTATE_OP(op, st, lmask, hmask, err)				\
 	asm volatile("1:" op "\n\t"					\
-		     "xor %[err], %[err]\n"				\
-		     "2:\n\t"						\
-		     ".pushsection .fixup,\"ax\"\n\t"			\
-		     "3: movl $-2,%[err]\n\t"				\
-		     "jmp 2b\n\t"					\
-		     ".popsection\n\t"					\
-		     _ASM_EXTABLE(1b, 3b)				\
-		     : [err] "=r" (err)					\
-		     : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
-		     : "memory")
+				 "xor %[err], %[err]\n"				\
+				 "2:\n\t"						\
+				 ".pushsection .fixup,\"ax\"\n\t"			\
+				 "3: movl $-2,%[err]\n\t"				\
+				 "jmp 2b\n\t"					\
+				 ".popsection\n\t"					\
+				 _ASM_EXTABLE(1b, 3b)				\
+				 : [err] "=r" (err)					\
+				 : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
+				 : "memory")
 
 /*
  * If XSAVES is enabled, it replaces XSAVEOPT because it supports a compact
@@ -258,19 +278,19 @@ static inline void copy_fxregs_to_kernel(struct fpu *fpu)
  */
 #define XSTATE_XSAVE(st, lmask, hmask, err)				\
 	asm volatile(ALTERNATIVE_2(XSAVE,				\
-				   XSAVEOPT, X86_FEATURE_XSAVEOPT,	\
-				   XSAVES,   X86_FEATURE_XSAVES)	\
-		     "\n"						\
-		     "xor %[err], %[err]\n"				\
-		     "3:\n"						\
-		     ".pushsection .fixup,\"ax\"\n"			\
-		     "4: movl $-2, %[err]\n"				\
-		     "jmp 3b\n"						\
-		     ".popsection\n"					\
-		     _ASM_EXTABLE(661b, 4b)				\
-		     : [err] "=r" (err)					\
-		     : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
-		     : "memory")
+							   XSAVEOPT, X86_FEATURE_XSAVEOPT,	\
+							   XSAVES,   X86_FEATURE_XSAVES)	\
+				 "\n"						\
+				 "xor %[err], %[err]\n"				\
+				 "3:\n"						\
+				 ".pushsection .fixup,\"ax\"\n"			\
+				 "4: movl $-2, %[err]\n"				\
+				 "jmp 3b\n"						\
+				 ".popsection\n"					\
+				 _ASM_EXTABLE(661b, 4b)				\
+				 : [err] "=r" (err)					\
+				 : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
+				 : "memory")
 
 /*
  * Use XRSTORS to restore context if it is enabled. XRSTORS supports compact
@@ -278,18 +298,18 @@ static inline void copy_fxregs_to_kernel(struct fpu *fpu)
  */
 #define XSTATE_XRESTORE(st, lmask, hmask, err)				\
 	asm volatile(ALTERNATIVE(XRSTOR,				\
-				 XRSTORS, X86_FEATURE_XSAVES)		\
-		     "\n"						\
-		     "xor %[err], %[err]\n"				\
-		     "3:\n"						\
-		     ".pushsection .fixup,\"ax\"\n"			\
-		     "4: movl $-2, %[err]\n"				\
-		     "jmp 3b\n"						\
-		     ".popsection\n"					\
-		     _ASM_EXTABLE(661b, 4b)				\
-		     : [err] "=r" (err)					\
-		     : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
-		     : "memory")
+							 XRSTORS, X86_FEATURE_XSAVES)		\
+				 "\n"						\
+				 "xor %[err], %[err]\n"				\
+				 "3:\n"						\
+				 ".pushsection .fixup,\"ax\"\n"			\
+				 "4: movl $-2, %[err]\n"				\
+				 "jmp 3b\n"						\
+				 ".popsection\n"					\
+				 _ASM_EXTABLE(661b, 4b)				\
+				 : [err] "=r" (err)					\
+				 : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
+				 : "memory")
 
 /*
  * This function is called only during boot time when x86 caps are not set
@@ -305,9 +325,13 @@ static inline void copy_xregs_to_kernel_booting(struct xregs_state *xstate)
 	WARN_ON(system_state != SYSTEM_BOOTING);
 
 	if (static_cpu_has(X86_FEATURE_XSAVES))
+	{
 		XSTATE_OP(XSAVES, xstate, lmask, hmask, err);
+	}
 	else
+	{
 		XSTATE_OP(XSAVE, xstate, lmask, hmask, err);
+	}
 
 	/* We should never fault when copying to a kernel buffer: */
 	WARN_ON_FPU(err);
@@ -327,9 +351,13 @@ static inline void copy_kernel_to_xregs_booting(struct xregs_state *xstate)
 	WARN_ON(system_state != SYSTEM_BOOTING);
 
 	if (static_cpu_has(X86_FEATURE_XSAVES))
+	{
 		XSTATE_OP(XRSTORS, xstate, lmask, hmask, err);
+	}
 	else
+	{
 		XSTATE_OP(XRSTOR, xstate, lmask, hmask, err);
+	}
 
 	/* We should never fault when copying from a kernel buffer: */
 	WARN_ON_FPU(err);
@@ -387,8 +415,11 @@ static inline int copy_xregs_to_user(struct xregs_state __user *buf)
 	 * initialized to zero.
 	 */
 	err = __clear_user(&buf->header, sizeof(buf->header));
+
 	if (unlikely(err))
+	{
 		return -EFAULT;
+	}
 
 	stac();
 	XSTATE_OP(XSAVE, buf, -1, -1, err);
@@ -426,12 +457,14 @@ static inline int copy_user_to_xregs(struct xregs_state __user *buf, u64 mask)
  */
 static inline int copy_fpregs_to_fpstate(struct fpu *fpu)
 {
-	if (likely(use_xsave())) {
+	if (likely(use_xsave()))
+	{
 		copy_xregs_to_kernel(&fpu->state.xsave);
 		return 1;
 	}
 
-	if (likely(use_fxsr())) {
+	if (likely(use_fxsr()))
+	{
 		copy_fxregs_to_kernel(fpu);
 		return 1;
 	}
@@ -447,13 +480,20 @@ static inline int copy_fpregs_to_fpstate(struct fpu *fpu)
 
 static inline void __copy_kernel_to_fpregs(union fpregs_state *fpstate)
 {
-	if (use_xsave()) {
+	if (use_xsave())
+	{
 		copy_kernel_to_xregs(&fpstate->xsave, -1);
-	} else {
+	}
+	else
+	{
 		if (use_fxsr())
+		{
 			copy_kernel_to_fxregs(&fpstate->fxsave);
+		}
 		else
+		{
 			copy_kernel_to_fregs(&fpstate->fsave);
+		}
 	}
 }
 
@@ -464,7 +504,8 @@ static inline void copy_kernel_to_fpregs(union fpregs_state *fpstate)
 	 * pending. Clear the x87 state here by setting it to fixed values.
 	 * "m" is a random variable that should be in L1.
 	 */
-	if (unlikely(static_cpu_has_bug(X86_BUG_FXSAVE_LEAK))) {
+	if (unlikely(static_cpu_has_bug(X86_BUG_FXSAVE_LEAK)))
+	{
 		asm volatile(
 			"fnclex\n\t"
 			"emms\n\t"
@@ -509,13 +550,17 @@ static inline int fpu_want_lazy_restore(struct fpu *fpu, unsigned int cpu)
 static inline void __fpregs_activate_hw(void)
 {
 	if (!use_eager_fpu())
+	{
 		clts();
+	}
 }
 
 static inline void __fpregs_deactivate_hw(void)
 {
 	if (!use_eager_fpu())
+	{
 		stts();
+	}
 }
 
 /* Must be paired with an 'stts' (fpregs_deactivate_hw()) after! */
@@ -596,40 +641,59 @@ switch_fpu_prepare(struct fpu *old_fpu, struct fpu *new_fpu, int cpu)
 	 * or if the past 5 consecutive context-switches used math.
 	 */
 	fpu.preload = static_cpu_has(X86_FEATURE_FPU) &&
-		      new_fpu->fpstate_active &&
-		      (use_eager_fpu() || new_fpu->counter > 5);
+				  new_fpu->fpstate_active &&
+				  (use_eager_fpu() || new_fpu->counter > 5);
 
-	if (old_fpu->fpregs_active) {
+	if (old_fpu->fpregs_active)
+	{
 		if (!copy_fpregs_to_fpstate(old_fpu))
+		{
 			old_fpu->last_cpu = -1;
+		}
 		else
+		{
 			old_fpu->last_cpu = cpu;
+		}
 
 		/* But leave fpu_fpregs_owner_ctx! */
 		old_fpu->fpregs_active = 0;
 		trace_x86_fpu_regs_deactivated(old_fpu);
 
 		/* Don't change CR0.TS if we just switch! */
-		if (fpu.preload) {
+		if (fpu.preload)
+		{
 			new_fpu->counter++;
 			__fpregs_activate(new_fpu);
 			trace_x86_fpu_regs_activated(new_fpu);
 			prefetch(&new_fpu->state);
-		} else {
+		}
+		else
+		{
 			__fpregs_deactivate_hw();
 		}
-	} else {
+	}
+	else
+	{
 		old_fpu->counter = 0;
 		old_fpu->last_cpu = -1;
-		if (fpu.preload) {
+
+		if (fpu.preload)
+		{
 			new_fpu->counter++;
+
 			if (fpu_want_lazy_restore(new_fpu, cpu))
+			{
 				fpu.preload = 0;
+			}
 			else
+			{
 				prefetch(&new_fpu->state);
+			}
+
 			fpregs_activate(new_fpu);
 		}
 	}
+
 	return fpu;
 }
 
@@ -646,7 +710,9 @@ switch_fpu_prepare(struct fpu *old_fpu, struct fpu *new_fpu, int cpu)
 static inline void switch_fpu_finish(struct fpu *new_fpu, fpu_switch_t fpu_switch)
 {
 	if (fpu_switch.preload)
+	{
 		copy_kernel_to_fpregs(&new_fpu->state);
+	}
 }
 
 /*
@@ -662,8 +728,12 @@ static inline void user_fpu_begin(void)
 	struct fpu *fpu = &current->thread.fpu;
 
 	preempt_disable();
+
 	if (!fpregs_active())
+	{
 		fpregs_activate(fpu);
+	}
+
 	preempt_enable();
 }
 
@@ -680,8 +750,8 @@ static inline u64 xgetbv(u32 index)
 	u32 eax, edx;
 
 	asm volatile(".byte 0x0f,0x01,0xd0" /* xgetbv */
-		     : "=a" (eax), "=d" (edx)
-		     : "c" (index));
+				 : "=a" (eax), "=d" (edx)
+				 : "c" (index));
 	return eax + ((u64)edx << 32);
 }
 
@@ -691,7 +761,7 @@ static inline void xsetbv(u32 index, u64 value)
 	u32 edx = value >> 32;
 
 	asm volatile(".byte 0x0f,0x01,0xd1" /* xsetbv */
-		     : : "a" (eax), "d" (edx), "c" (index));
+				 : : "a" (eax), "d" (edx), "c" (index));
 }
 
 #endif /* _ASM_X86_FPU_INTERNAL_H */

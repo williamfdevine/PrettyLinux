@@ -101,12 +101,13 @@
 
 #define MAKE_AD(alpha, red, blue, green, size, c0, c1, c2, c3) \
 	cpu_to_le32(AD_BYTE_F | (alpha << AD_ALPHA_C_SHIFT) | \
-	(blue << AD_BLUE_C_SHIFT) | (green << AD_GREEN_C_SHIFT) | \
-	(red << AD_RED_C_SHIFT) | (c3 << AD_COMP_3_SHIFT) | \
-	(c2 << AD_COMP_2_SHIFT) | (c1 << AD_COMP_1_SHIFT) | \
-	(c0 << AD_COMP_0_SHIFT) | (size << AD_PIXEL_S_SHIFT))
+				(blue << AD_BLUE_C_SHIFT) | (green << AD_GREEN_C_SHIFT) | \
+				(red << AD_RED_C_SHIFT) | (c3 << AD_COMP_3_SHIFT) | \
+				(c2 << AD_COMP_2_SHIFT) | (c1 << AD_COMP_1_SHIFT) | \
+				(c0 << AD_COMP_0_SHIFT) | (size << AD_PIXEL_S_SHIFT))
 
-struct fsl_law {
+struct fsl_law
+{
 	u32	lawbar;
 	u32	reserved1;
 	u32	lawar;
@@ -144,13 +145,16 @@ static phys_addr_t lbc_br_to_phys(const void *ecm, unsigned int count, u32 br)
 	const struct fsl_law *law = ecm + 0xc08;
 	unsigned int i;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		u64 lawbar = in_be32(&law[i].lawbar);
 		u32 lawar = in_be32(&law[i].lawar);
 
 		if ((lawar & LAWAR_MASK) == LAWAR_MATCH)
 			/* Extract the upper four bits */
+		{
 			return (br & BR_BA) | ((lawbar & LAWBAR_MASK) << 12);
+		}
 	}
 
 	return 0;
@@ -178,46 +182,61 @@ static void p1022ds_set_monitor_port(enum fsl_diu_monitor_port port)
 
 	/* Map the global utilities registers. */
 	guts_node = of_find_compatible_node(NULL, NULL, "fsl,p1022-guts");
-	if (!guts_node) {
+
+	if (!guts_node)
+	{
 		pr_err("p1022ds: missing global utilities device node\n");
 		return;
 	}
 
 	guts = of_iomap(guts_node, 0);
-	if (!guts) {
+
+	if (!guts)
+	{
 		pr_err("p1022ds: could not map global utilities device\n");
 		goto exit;
 	}
 
 	lbc_node = of_find_compatible_node(NULL, NULL, "fsl,p1022-elbc");
-	if (!lbc_node) {
+
+	if (!lbc_node)
+	{
 		pr_err("p1022ds: missing localbus node\n");
 		goto exit;
 	}
 
 	lbc = of_iomap(lbc_node, 0);
-	if (!lbc) {
+
+	if (!lbc)
+	{
 		pr_err("p1022ds: could not map localbus node\n");
 		goto exit;
 	}
 
 	law_node = of_find_compatible_node(NULL, NULL, "fsl,ecm-law");
-	if (!law_node) {
+
+	if (!law_node)
+	{
 		pr_err("p1022ds: missing local access window node\n");
 		goto exit;
 	}
 
 	ecm = of_iomap(law_node, 0);
-	if (!ecm) {
+
+	if (!ecm)
+	{
 		pr_err("p1022ds: could not map local access window node\n");
 		goto exit;
 	}
 
 	iprop = of_get_property(law_node, "fsl,num-laws", NULL);
-	if (!iprop) {
+
+	if (!iprop)
+	{
 		pr_err("p1022ds: LAW node is missing fsl,num-laws property\n");
 		goto exit;
 	}
+
 	num_laws = be32_to_cpup(iprop);
 
 	/*
@@ -236,7 +255,8 @@ static void p1022ds_set_monitor_port(enum fsl_diu_monitor_port port)
 	or1 = in_be32(&lbc->bank[1].or);
 
 	/* Make sure CS0 and CS1 are programmed */
-	if (!(br0 & BR_V) || !(br1 & BR_V)) {
+	if (!(br0 & BR_V) || !(br1 & BR_V))
+	{
 		pr_err("p1022ds: CS0 and/or CS1 is not programmed\n");
 		goto exit;
 	}
@@ -246,13 +266,16 @@ static void p1022ds_set_monitor_port(enum fsl_diu_monitor_port port)
 	 * force the values to simple 32KB GPCM windows with the most
 	 * conservative timing.
 	 */
-	if ((br0 & BR_MSEL) != BR_MS_GPCM) {
+	if ((br0 & BR_MSEL) != BR_MS_GPCM)
+	{
 		br0 = (br0 & BR_BA) | BR_V;
 		or0 = 0xFFFF8000 | 0xFF7;
 		out_be32(&lbc->bank[0].br, br0);
 		out_be32(&lbc->bank[0].or, or0);
 	}
-	if ((br1 & BR_MSEL) != BR_MS_GPCM) {
+
+	if ((br1 & BR_MSEL) != BR_MS_GPCM)
+	{
 		br1 = (br1 & BR_BA) | BR_V;
 		or1 = 0xFFFF8000 | 0xFF7;
 		out_be32(&lbc->bank[1].br, br1);
@@ -260,47 +283,62 @@ static void p1022ds_set_monitor_port(enum fsl_diu_monitor_port port)
 	}
 
 	cs0_addr = lbc_br_to_phys(ecm, num_laws, br0);
-	if (!cs0_addr) {
+
+	if (!cs0_addr)
+	{
 		pr_err("p1022ds: could not determine physical address for CS0"
-		       " (BR0=%08x)\n", br0);
+			   " (BR0=%08x)\n", br0);
 		goto exit;
 	}
+
 	cs1_addr = lbc_br_to_phys(ecm, num_laws, br1);
-	if (!cs1_addr) {
+
+	if (!cs1_addr)
+	{
 		pr_err("p1022ds: could not determine physical address for CS1"
-		       " (BR1=%08x)\n", br1);
+			   " (BR1=%08x)\n", br1);
 		goto exit;
 	}
 
 	lbc_lcs0_ba = ioremap(cs0_addr, 1);
-	if (!lbc_lcs0_ba) {
+
+	if (!lbc_lcs0_ba)
+	{
 		pr_err("p1022ds: could not ioremap CS0 address %llx\n",
-		       (unsigned long long)cs0_addr);
+			   (unsigned long long)cs0_addr);
 		goto exit;
 	}
+
 	lbc_lcs1_ba = ioremap(cs1_addr, 1);
-	if (!lbc_lcs1_ba) {
+
+	if (!lbc_lcs1_ba)
+	{
 		pr_err("p1022ds: could not ioremap CS1 address %llx\n",
-		       (unsigned long long)cs1_addr);
+			   (unsigned long long)cs1_addr);
 		goto exit;
 	}
 
 	/* Make sure we're in indirect mode first. */
 	if ((in_be32(&guts->pmuxcr) & PMUXCR_ELBCDIU_MASK) !=
-	    PMUXCR_ELBCDIU_DIU) {
+		PMUXCR_ELBCDIU_DIU)
+	{
 		struct device_node *pixis_node;
 		void __iomem *pixis;
 
 		pixis_node =
 			of_find_compatible_node(NULL, NULL, "fsl,p1022ds-fpga");
-		if (!pixis_node) {
+
+		if (!pixis_node)
+		{
 			pr_err("p1022ds: missing pixis node\n");
 			goto exit;
 		}
 
 		pixis = of_iomap(pixis_node, 0);
 		of_node_put(pixis_node);
-		if (!pixis) {
+
+		if (!pixis)
+		{
 			pr_err("p1022ds: could not map pixis registers\n");
 			goto exit;
 		}
@@ -317,47 +355,65 @@ static void p1022ds_set_monitor_port(enum fsl_diu_monitor_port port)
 
 		/* Set the chip mux to DIU mode. */
 		clrsetbits_be32(&guts->pmuxcr, PMUXCR_ELBCDIU_MASK,
-				PMUXCR_ELBCDIU_DIU);
+						PMUXCR_ELBCDIU_DIU);
 		in_be32(&guts->pmuxcr);
 	}
 
 
-	switch (port) {
-	case FSL_DIU_PORT_DVI:
-		/* Enable the DVI port, disable the DFP and the backlight */
-		out_8(lbc_lcs0_ba, PX_BRDCFG1);
-		b = in_8(lbc_lcs1_ba);
-		b &= ~(PX_BRDCFG1_DFPEN | PX_BRDCFG1_BACKLIGHT);
-		b |= PX_BRDCFG1_DVIEN;
-		out_8(lbc_lcs1_ba, b);
-		break;
-	case FSL_DIU_PORT_LVDS:
-		/*
-		 * LVDS also needs backlight enabled, otherwise the display
-		 * will be blank.
-		 */
-		/* Enable the DFP port, disable the DVI and the backlight */
-		out_8(lbc_lcs0_ba, PX_BRDCFG1);
-		b = in_8(lbc_lcs1_ba);
-		b &= ~PX_BRDCFG1_DVIEN;
-		b |= PX_BRDCFG1_DFPEN | PX_BRDCFG1_BACKLIGHT;
-		out_8(lbc_lcs1_ba, b);
-		break;
-	default:
-		pr_err("p1022ds: unsupported monitor port %i\n", port);
+	switch (port)
+	{
+		case FSL_DIU_PORT_DVI:
+			/* Enable the DVI port, disable the DFP and the backlight */
+			out_8(lbc_lcs0_ba, PX_BRDCFG1);
+			b = in_8(lbc_lcs1_ba);
+			b &= ~(PX_BRDCFG1_DFPEN | PX_BRDCFG1_BACKLIGHT);
+			b |= PX_BRDCFG1_DVIEN;
+			out_8(lbc_lcs1_ba, b);
+			break;
+
+		case FSL_DIU_PORT_LVDS:
+			/*
+			 * LVDS also needs backlight enabled, otherwise the display
+			 * will be blank.
+			 */
+			/* Enable the DFP port, disable the DVI and the backlight */
+			out_8(lbc_lcs0_ba, PX_BRDCFG1);
+			b = in_8(lbc_lcs1_ba);
+			b &= ~PX_BRDCFG1_DVIEN;
+			b |= PX_BRDCFG1_DFPEN | PX_BRDCFG1_BACKLIGHT;
+			out_8(lbc_lcs1_ba, b);
+			break;
+
+		default:
+			pr_err("p1022ds: unsupported monitor port %i\n", port);
 	}
 
 exit:
+
 	if (lbc_lcs1_ba)
+	{
 		iounmap(lbc_lcs1_ba);
+	}
+
 	if (lbc_lcs0_ba)
+	{
 		iounmap(lbc_lcs0_ba);
+	}
+
 	if (lbc)
+	{
 		iounmap(lbc);
+	}
+
 	if (ecm)
+	{
 		iounmap(ecm);
+	}
+
 	if (guts)
+	{
 		iounmap(guts);
+	}
 
 	of_node_put(law_node);
 	of_node_put(lbc_node);
@@ -379,14 +435,18 @@ void p1022ds_set_pixel_clock(unsigned int pixclock)
 
 	/* Map the global utilities registers. */
 	guts_np = of_find_compatible_node(NULL, NULL, "fsl,p1022-guts");
-	if (!guts_np) {
+
+	if (!guts_np)
+	{
 		pr_err("p1022ds: missing global utilities device node\n");
 		return;
 	}
 
 	guts = of_iomap(guts_np, 0);
 	of_node_put(guts_np);
-	if (!guts) {
+
+	if (!guts)
+	{
 		pr_err("p1022ds: could not map global utilities device\n");
 		return;
 	}
@@ -406,7 +466,7 @@ void p1022ds_set_pixel_clock(unsigned int pixclock)
 
 	/* Disable the pixel clock, and set it to non-inverted and no delay */
 	clrbits32(&guts->clkdvdr,
-		  CLKDVDR_PXCKEN | CLKDVDR_PXCKDLY | CLKDVDR_PXCLK_MASK);
+			  CLKDVDR_PXCKEN | CLKDVDR_PXCKDLY | CLKDVDR_PXCLK_MASK);
 
 	/* Enable the clock and set the pxclk */
 	setbits32(&guts->clkdvdr, CLKDVDR_PXCKEN | (pxclk << 16));
@@ -420,22 +480,24 @@ void p1022ds_set_pixel_clock(unsigned int pixclock)
 enum fsl_diu_monitor_port
 p1022ds_valid_monitor_port(enum fsl_diu_monitor_port port)
 {
-	switch (port) {
-	case FSL_DIU_PORT_DVI:
-	case FSL_DIU_PORT_LVDS:
-		return port;
-	default:
-		return FSL_DIU_PORT_DVI; /* Dual-link LVDS is not supported */
+	switch (port)
+	{
+		case FSL_DIU_PORT_DVI:
+				case FSL_DIU_PORT_LVDS:
+						return port;
+
+			default:
+				return FSL_DIU_PORT_DVI; /* Dual-link LVDS is not supported */
+		}
 	}
-}
 
 #endif
 
-void __init p1022_ds_pic_init(void)
+	void __init p1022_ds_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN |
-		MPIC_SINGLE_DEST_CPU,
-		0, 256, " OpenPIC  ");
+								   MPIC_SINGLE_DEST_CPU,
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 }
@@ -471,7 +533,9 @@ early_param("video", early_video_setup);
 static void __init p1022_ds_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("p1022_ds_setup_arch()", 0);
+	}
 
 #if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
 	diu_ops.set_monitor_port	= p1022ds_set_monitor_port;
@@ -484,17 +548,22 @@ static void __init p1022_ds_setup_arch(void)
 	 * unavailable, so we have to disable these nodes before the MTD
 	 * driver loads.
 	 */
-	if (fslfb) {
+	if (fslfb)
+	{
 		struct device_node *np =
 			of_find_compatible_node(NULL, NULL, "fsl,p1022-elbc");
 
-		if (np) {
+		if (np)
+		{
 			struct device_node *np2;
 
 			of_node_get(np);
 			np2 = of_find_compatible_node(np, NULL, "cfi-flash");
-			if (np2) {
-				static struct property nor_status = {
+
+			if (np2)
+			{
+				static struct property nor_status =
+				{
 					.name = "status",
 					.value = "disabled",
 					.length = sizeof("disabled"),
@@ -509,23 +578,26 @@ static void __init p1022_ds_setup_arch(void)
 				 * call to this function.
 				 */
 				pr_info("p1022ds: disabling %s node",
-					np2->full_name);
+						np2->full_name);
 				of_update_property(np2, &nor_status);
 				of_node_put(np2);
 			}
 
 			of_node_get(np);
 			np2 = of_find_compatible_node(np, NULL,
-						      "fsl,elbc-fcm-nand");
-			if (np2) {
-				static struct property nand_status = {
+										  "fsl,elbc-fcm-nand");
+
+			if (np2)
+			{
+				static struct property nand_status =
+				{
 					.name = "status",
 					.value = "disabled",
 					.length = sizeof("disabled"),
 				};
 
 				pr_info("p1022ds: disabling %s node",
-					np2->full_name);
+						np2->full_name);
 				of_update_property(np2, &nand_status);
 				of_node_put(np2);
 			}
@@ -558,16 +630,17 @@ static int __init p1022_ds_probe(void)
 	return of_machine_is_compatible("fsl,p1022ds");
 }
 
-define_machine(p1022_ds) {
+define_machine(p1022_ds)
+{
 	.name			= "P1022 DS",
-	.probe			= p1022_ds_probe,
-	.setup_arch		= p1022_ds_setup_arch,
-	.init_IRQ		= p1022_ds_pic_init,
+			 .probe			= p1022_ds_probe,
+					 .setup_arch		= p1022_ds_setup_arch,
+						 .init_IRQ		= p1022_ds_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb	= fsl_pcibios_fixup_phb,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+								 .pcibios_fixup_phb	= fsl_pcibios_fixup_phb,
 #endif
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+								   .get_irq		= mpic_get_irq,
+										  .calibrate_decr		= generic_calibrate_decr,
+											  .progress		= udbg_progress,
 };

@@ -27,8 +27,8 @@ EXPORT_SYMBOL(iounmap);
 EXPORT_SYMBOL(ip_fast_csum);
 
 #if 0
-EXPORT_SYMBOL(local_irq_count);
-EXPORT_SYMBOL(local_bh_count);
+	EXPORT_SYMBOL(local_irq_count);
+	EXPORT_SYMBOL(local_bh_count);
 #endif
 
 EXPORT_SYMBOL(__res_bus_clock_speed_HZ);
@@ -41,8 +41,8 @@ EXPORT_SYMBOL(frv_icache_invalidate);
 EXPORT_SYMBOL(frv_cache_wback_inv);
 
 #ifndef CONFIG_MMU
-EXPORT_SYMBOL(memory_start);
-EXPORT_SYMBOL(memory_end);
+	EXPORT_SYMBOL(memory_start);
+	EXPORT_SYMBOL(memory_end);
 #endif
 
 EXPORT_SYMBOL(__debug_bug_trap);
@@ -58,8 +58,8 @@ EXPORT_SYMBOL(__outsl_ns);
 EXPORT_SYMBOL(__insl_ns);
 
 #ifdef CONFIG_FRV_OUTOFLINE_ATOMIC_OPS
-EXPORT_SYMBOL(__xchg_32);
-EXPORT_SYMBOL(__cmpxchg_32);
+	EXPORT_SYMBOL(__xchg_32);
+	EXPORT_SYMBOL(__cmpxchg_32);
 #endif
 EXPORT_SYMBOL(atomic64_add_return);
 EXPORT_SYMBOL(atomic64_sub_return);
@@ -90,7 +90,7 @@ extern void __udivdi3(void);
 extern void __udivmoddi4(void);
 extern void __umoddi3(void);
 
-        /* gcc lib functions */
+/* gcc lib functions */
 //EXPORT_SYMBOL(__gcc_bcmp);
 EXPORT_SYMBOL(__ashldi3);
 EXPORT_SYMBOL(__ashrdi3);

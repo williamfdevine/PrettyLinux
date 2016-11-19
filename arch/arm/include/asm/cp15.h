@@ -24,9 +24,9 @@
 #define CR_L4	(1 << 15)	/* LDR pc can set T bit			*/
 #define CR_DT	(1 << 16)
 #ifdef CONFIG_MMU
-#define CR_HA	(1 << 17)	/* Hardware management of Access Flag   */
+	#define CR_HA	(1 << 17)	/* Hardware management of Access Flag   */
 #else
-#define CR_BR	(1 << 17)	/* MPU Background region enable (PMSA)  */
+	#define CR_BR	(1 << 17)	/* MPU Background region enable (PMSA)  */
 #endif
 #define CR_IT	(1 << 18)
 #define CR_ST	(1 << 19)
@@ -42,9 +42,9 @@
 #ifndef __ASSEMBLY__
 
 #if __LINUX_ARM_ARCH__ >= 4
-#define vectors_high()	(get_cr() & CR_V)
+	#define vectors_high()	(get_cr() & CR_V)
 #else
-#define vectors_high()	(0)
+	#define vectors_high()	(0)
 #endif
 
 #ifdef CONFIG_CPU_CP15
@@ -55,10 +55,10 @@
 	"mrrc", "mcrr", __stringify(p15, Op1, %Q0, %R0, CRm), u64
 
 #define __read_sysreg(r, w, c, t) ({				\
-	t __val;						\
-	asm volatile(r " " c : "=r" (__val));			\
-	__val;							\
-})
+		t __val;						\
+		asm volatile(r " " c : "=r" (__val));			\
+		__val;							\
+	})
 #define read_sysreg(...)		__read_sysreg(__VA_ARGS__)
 
 #define __write_sysreg(v, r, w, c, t)	asm volatile(w " " c : : "r" ((t)(v)))
@@ -76,7 +76,7 @@ static inline unsigned long get_cr(void)
 static inline void set_cr(unsigned long val)
 {
 	asm volatile("mcr p15, 0, %0, c1, c0, 0	@ set CR"
-	  : : "r" (val) : "cc");
+				 : : "r" (val) : "cc");
 	isb();
 }
 
@@ -90,7 +90,7 @@ static inline unsigned int get_auxcr(void)
 static inline void set_auxcr(unsigned int val)
 {
 	asm volatile("mcr p15, 0, %0, c1, c0, 1	@ set AUXCR"
-	  : : "r" (val));
+				 : : "r" (val));
 	isb();
 }
 
@@ -102,14 +102,14 @@ static inline unsigned int get_copro_access(void)
 {
 	unsigned int val;
 	asm("mrc p15, 0, %0, c1, c0, 2 @ get copro access"
-	  : "=r" (val) : : "cc");
+		: "=r" (val) : : "cc");
 	return val;
 }
 
 static inline void set_copro_access(unsigned int val)
 {
 	asm volatile("mcr p15, 0, %0, c1, c0, 2 @ set copro access"
-	  : : "r" (val) : "cc");
+				 : : "r" (val) : "cc");
 	isb();
 }
 

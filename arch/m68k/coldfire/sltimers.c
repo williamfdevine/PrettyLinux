@@ -44,12 +44,17 @@ irqreturn_t mcfslt_profile_tick(int irq, void *dummy)
 {
 	/* Reset Slice Timer 1 */
 	__raw_writel(MCFSLT_SSR_BE | MCFSLT_SSR_TE, PA(MCFSLT_SSR));
+
 	if (current->pid)
+	{
 		profile_tick(CPU_PROFILING);
+	}
+
 	return IRQ_HANDLED;
 }
 
-static struct irqaction mcfslt_profile_irq = {
+static struct irqaction mcfslt_profile_irq =
+{
 	.name	 = "profile timer",
 	.flags	 = IRQF_TIMER,
 	.handler = mcfslt_profile_tick,
@@ -58,14 +63,14 @@ static struct irqaction mcfslt_profile_irq = {
 void mcfslt_profile_init(void)
 {
 	printk(KERN_INFO "PROFILE: lodging TIMER 1 @ %dHz as profile timer\n",
-	       PROFILEHZ);
+		   PROFILEHZ);
 
 	setup_irq(MCF_IRQ_PROFILER, &mcfslt_profile_irq);
 
 	/* Set up TIMER 2 as high speed profile clock */
 	__raw_writel(MCF_BUSCLK / PROFILEHZ - 1, PA(MCFSLT_STCNT));
 	__raw_writel(MCFSLT_SCR_RUN | MCFSLT_SCR_IEN | MCFSLT_SCR_TEN,
-								PA(MCFSLT_SCR));
+				 PA(MCFSLT_SCR));
 
 }
 
@@ -91,7 +96,8 @@ static irqreturn_t mcfslt_tick(int irq, void *dummy)
 	return timer_interrupt(irq, dummy);
 }
 
-static struct irqaction mcfslt_timer_irq = {
+static struct irqaction mcfslt_timer_irq =
+{
 	.name	 = "timer",
 	.flags	 = IRQF_TIMER,
 	.handler = mcfslt_tick,
@@ -105,17 +111,21 @@ static cycle_t mcfslt_read_clk(struct clocksource *cs)
 	local_irq_save(flags);
 	scnt = __raw_readl(TA(MCFSLT_SCNT));
 	cycles = mcfslt_cnt;
-	if (__raw_readl(TA(MCFSLT_SSR)) & MCFSLT_SSR_TE) {
+
+	if (__raw_readl(TA(MCFSLT_SSR)) & MCFSLT_SSR_TE)
+	{
 		cycles += mcfslt_cycles_per_jiffy;
 		scnt = __raw_readl(TA(MCFSLT_SCNT));
 	}
+
 	local_irq_restore(flags);
 
 	/* subtract because slice timers count down */
 	return cycles + ((mcfslt_cycles_per_jiffy - 1) - scnt);
 }
 
-static struct clocksource mcfslt_clk = {
+static struct clocksource mcfslt_clk =
+{
 	.name	= "slt",
 	.rating	= 250,
 	.read	= mcfslt_read_clk,
@@ -134,7 +144,7 @@ void hw_timer_init(irq_handler_t handler)
 	 */
 	__raw_writel(mcfslt_cycles_per_jiffy - 1, TA(MCFSLT_STCNT));
 	__raw_writel(MCFSLT_SCR_RUN | MCFSLT_SCR_IEN | MCFSLT_SCR_TEN,
-								TA(MCFSLT_SCR));
+				 TA(MCFSLT_SCR));
 	/* initialize mcfslt_cnt knowing that slice timers count down */
 	mcfslt_cnt = mcfslt_cycles_per_jiffy;
 

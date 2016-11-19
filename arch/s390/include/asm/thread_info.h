@@ -29,7 +29,8 @@
  * - this struct shares the supervisor stack pages
  * - if the contents of this structure are changed, the assembly constants must also be changed
  */
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	unsigned long		sys_call_table;	/* System call table address */
@@ -45,12 +46,12 @@ struct thread_info {
  * macros/functions for gaining access to the thread information structure
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)

@@ -83,7 +83,7 @@ int pm_do_bus_sleep(void)
 	local_irq_disable();
 
 	/*
-         * Here is where we need some platform-dependent setup
+	     * Here is where we need some platform-dependent setup
 	 * of the interrupt state so that appropriate wakeup
 	 * sources are allowed and all others are masked.
 	 */
@@ -97,14 +97,16 @@ int pm_do_bus_sleep(void)
 	 * devices. The wake_check() tells us if we need to finish waking
 	 * or go back to sleep.
 	 */
-	do {
+	do
+	{
 		frv_cpu_suspend(HSR0_PDM_BUS_SLEEP);
-	} while (__power_switch_wake_check && !__power_switch_wake_check());
+	}
+	while (__power_switch_wake_check && !__power_switch_wake_check());
 
 	__set_LEDS(0xa2);
 
 	/*
-         * Here is where we need some platform-dependent restore
+	     * Here is where we need some platform-dependent restore
 	 * of the interrupt state prior to being called.
 	 */
 	__power_switch_wake_cleanup();
@@ -135,15 +137,23 @@ static int user_atoi(char __user *ubuf, size_t len)
 	unsigned long ret;
 
 	if (len > 15)
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(buf, ubuf, len))
+	{
 		return -EFAULT;
+	}
 
 	buf[len] = 0;
 	ret = simple_strtoul(buf, NULL, 0);
+
 	if (ret > INT_MAX)
+	{
 		return -ERANGE;
+	}
+
 	return ret;
 }
 
@@ -151,32 +161,41 @@ static int user_atoi(char __user *ubuf, size_t len)
  * Send us to sleep.
  */
 static int sysctl_pm_do_suspend(struct ctl_table *ctl, int write,
-				void __user *buffer, size_t *lenp, loff_t *fpos)
+								void __user *buffer, size_t *lenp, loff_t *fpos)
 {
 	int mode;
 
 	if (*lenp <= 0)
+	{
 		return -EIO;
+	}
 
 	mode = user_atoi(buffer, *lenp);
-	switch (mode) {
-	case 1:
-	    return pm_do_suspend();
 
-	case 5:
-	    return pm_do_bus_sleep();
+	switch (mode)
+	{
+		case 1:
+			return pm_do_suspend();
 
-	default:
-	    return -EINVAL;
+		case 5:
+			return pm_do_bus_sleep();
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int try_set_cmode(int new_cmode)
 {
 	if (new_cmode > 15)
+	{
 		return -EINVAL;
-	if (!(clock_cmodes_permitted & (1<<new_cmode)))
+	}
+
+	if (!(clock_cmodes_permitted & (1 << new_cmode)))
+	{
 		return -EINVAL;
+	}
 
 	/* now change cmode */
 	local_irq_disable();
@@ -198,16 +217,18 @@ static int try_set_cmode(int new_cmode)
 
 
 static int cmode_procctl(struct ctl_table *ctl, int write,
-			 void __user *buffer, size_t *lenp, loff_t *fpos)
+						 void __user *buffer, size_t *lenp, loff_t *fpos)
 {
 	int new_cmode;
 
 	if (!write)
+	{
 		return proc_dointvec(ctl, write, buffer, lenp, fpos);
+	}
 
 	new_cmode = user_atoi(buffer, *lenp);
 
-	return try_set_cmode(new_cmode)?:*lenp;
+	return try_set_cmode(new_cmode) ? : *lenp;
 }
 
 static int try_set_p0(int new_p0)
@@ -215,7 +236,9 @@ static int try_set_p0(int new_p0)
 	unsigned long flags, clkc;
 
 	if (new_p0 < 0 || new_p0 > 1)
+	{
 		return -EINVAL;
+	}
 
 	local_irq_save(flags);
 	__set_PSR(flags & ~PSR_ET);
@@ -223,10 +246,16 @@ static int try_set_p0(int new_p0)
 	frv_dma_pause_all();
 
 	clkc = __get_CLKC();
+
 	if (new_p0)
+	{
 		clkc |= CLKC_P0;
+	}
 	else
+	{
 		clkc &= ~CLKC_P0;
+	}
+
 	__set_CLKC(clkc);
 
 	determine_clocks(0);
@@ -245,7 +274,9 @@ static int try_set_cm(int new_cm)
 	unsigned long flags, clkc;
 
 	if (new_cm < 0 || new_cm > 1)
+	{
 		return -EINVAL;
+	}
 
 	local_irq_save(flags);
 	__set_PSR(flags & ~PSR_ET);
@@ -270,29 +301,33 @@ static int try_set_cm(int new_cm)
 }
 
 static int p0_procctl(struct ctl_table *ctl, int write,
-		      void __user *buffer, size_t *lenp, loff_t *fpos)
+					  void __user *buffer, size_t *lenp, loff_t *fpos)
 {
 	int new_p0;
 
 	if (!write)
+	{
 		return proc_dointvec(ctl, write, buffer, lenp, fpos);
+	}
 
 	new_p0 = user_atoi(buffer, *lenp);
 
-	return try_set_p0(new_p0)?:*lenp;
+	return try_set_p0(new_p0) ? : *lenp;
 }
 
 static int cm_procctl(struct ctl_table *ctl, int write,
-		      void __user *buffer, size_t *lenp, loff_t *fpos)
+					  void __user *buffer, size_t *lenp, loff_t *fpos)
 {
 	int new_cm;
 
 	if (!write)
+	{
 		return proc_dointvec(ctl, write, buffer, lenp, fpos);
+	}
 
 	new_cm = user_atoi(buffer, *lenp);
 
-	return try_set_cm(new_cm)?:*lenp;
+	return try_set_cm(new_cm) ? : *lenp;
 }
 
 static struct ctl_table pm_table[] =

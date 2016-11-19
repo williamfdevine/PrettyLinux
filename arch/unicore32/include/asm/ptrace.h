@@ -40,9 +40,12 @@ static inline int valid_user_regs(struct pt_regs *regs)
 	 */
 	regs->UCreg_asr &= ~(PSR_R_BIT);
 
-	if ((regs->UCreg_asr & PSR_I_BIT) == 0) {
+	if ((regs->UCreg_asr & PSR_I_BIT) == 0)
+	{
 		if (mode == USER_MODE)
+		{
 			return 1;
+		}
 	}
 
 	/*

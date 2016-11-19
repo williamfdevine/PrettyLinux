@@ -11,39 +11,39 @@
 #define BCM_PCMCIA_COMMON_BASE_PA	(0x20000000)
 #define BCM_PCMCIA_COMMON_SIZE		(16 * 1024 * 1024)
 #define BCM_PCMCIA_COMMON_END_PA	(BCM_PCMCIA_COMMON_BASE_PA +	\
-					 BCM_PCMCIA_COMMON_SIZE - 1)
+									 BCM_PCMCIA_COMMON_SIZE - 1)
 
 #define BCM_PCMCIA_ATTR_BASE_PA		(0x21000000)
 #define BCM_PCMCIA_ATTR_SIZE		(16 * 1024 * 1024)
 #define BCM_PCMCIA_ATTR_END_PA		(BCM_PCMCIA_ATTR_BASE_PA +	\
-					 BCM_PCMCIA_ATTR_SIZE - 1)
+									 BCM_PCMCIA_ATTR_SIZE - 1)
 
 #define BCM_PCMCIA_IO_BASE_PA		(0x22000000)
 #define BCM_PCMCIA_IO_SIZE		(64 * 1024)
 #define BCM_PCMCIA_IO_END_PA		(BCM_PCMCIA_IO_BASE_PA +	\
-					BCM_PCMCIA_IO_SIZE - 1)
+									 BCM_PCMCIA_IO_SIZE - 1)
 
 #define BCM_PCI_MEM_BASE_PA		(0x30000000)
 #define BCM_PCI_MEM_SIZE		(128 * 1024 * 1024)
 #define BCM_PCI_MEM_END_PA		(BCM_PCI_MEM_BASE_PA +		\
-					BCM_PCI_MEM_SIZE - 1)
+								 BCM_PCI_MEM_SIZE - 1)
 
 #define BCM_PCI_IO_BASE_PA		(0x08000000)
 #define BCM_PCI_IO_SIZE			(64 * 1024)
 #define BCM_PCI_IO_END_PA		(BCM_PCI_IO_BASE_PA +		\
-					BCM_PCI_IO_SIZE - 1)
+								 BCM_PCI_IO_SIZE - 1)
 #define BCM_PCI_IO_HALF_PA		(BCM_PCI_IO_BASE_PA +		\
-					(BCM_PCI_IO_SIZE / 2) - 1)
+								 (BCM_PCI_IO_SIZE / 2) - 1)
 
 #define BCM_CB_MEM_BASE_PA		(0x38000000)
 #define BCM_CB_MEM_SIZE			(128 * 1024 * 1024)
 #define BCM_CB_MEM_END_PA		(BCM_CB_MEM_BASE_PA +		\
-					BCM_CB_MEM_SIZE - 1)
+								 BCM_CB_MEM_SIZE - 1)
 
 #define BCM_PCIE_MEM_BASE_PA		0x10f00000
 #define BCM_PCIE_MEM_SIZE		(16 * 1024 * 1024)
 #define BCM_PCIE_MEM_END_PA		(BCM_PCIE_MEM_BASE_PA +		\
-					BCM_PCIE_MEM_SIZE - 1)
+								 BCM_PCIE_MEM_SIZE - 1)
 
 /*
  * Internal registers are accessed through KSEG3
@@ -66,11 +66,11 @@
 #define bcm_rset_readw(s, o)	bcm_readw(bcm63xx_regset_address(s) + (o))
 #define bcm_rset_readl(s, o)	bcm_readl(bcm63xx_regset_address(s) + (o))
 #define bcm_rset_writeb(s, v, o)	bcm_writeb((v), \
-					bcm63xx_regset_address(s) + (o))
+		bcm63xx_regset_address(s) + (o))
 #define bcm_rset_writew(s, v, o)	bcm_writew((v), \
-					bcm63xx_regset_address(s) + (o))
+		bcm63xx_regset_address(s) + (o))
 #define bcm_rset_writel(s, v, o)	bcm_writel((v), \
-					bcm63xx_regset_address(s) + (o))
+		bcm63xx_regset_address(s) + (o))
 
 /*
  * helpers for frequently used register sets

@@ -35,7 +35,8 @@ extern int root_mountflags;
  * Initialize loops_per_jiffy as 5000000 (500MIPS).
  * Better make it too large than too small...
  */
-struct avr32_cpuinfo boot_cpu_data = {
+struct avr32_cpuinfo boot_cpu_data =
+{
 	.loops_per_jiffy = 5000000
 };
 EXPORT_SYMBOL(boot_cpu_data);
@@ -45,13 +46,15 @@ static char __initdata command_line[COMMAND_LINE_SIZE];
 /*
  * Standard memory resources
  */
-static struct resource __initdata kernel_data = {
+static struct resource __initdata kernel_data =
+{
 	.name	= "Kernel data",
 	.start	= 0,
 	.end	= 0,
 	.flags	= IORESOURCE_SYSTEM_RAM,
 };
-static struct resource __initdata kernel_code = {
+static struct resource __initdata kernel_code =
+{
 	.name	= "Kernel code",
 	.start	= 0,
 	.end	= 0,
@@ -82,25 +85,29 @@ static void __init resource_init(void)
 
 	kernel_code.start = __pa(init_mm.start_code);
 
-	for (mem = system_ram; mem; mem = mem->sibling) {
+	for (mem = system_ram; mem; mem = mem->sibling)
+	{
 		new = alloc_bootmem_low(sizeof(struct resource));
 		memcpy(new, mem, sizeof(struct resource));
 
 		new->sibling = NULL;
+
 		if (request_resource(&iomem_resource, new))
 			printk(KERN_WARNING "Bad RAM resource %08x-%08x\n",
-			       mem->start, mem->end);
+				   mem->start, mem->end);
 	}
 
-	for (res = reserved; res; res = res->sibling) {
+	for (res = reserved; res; res = res->sibling)
+	{
 		new = alloc_bootmem_low(sizeof(struct resource));
 		memcpy(new, res, sizeof(struct resource));
 
 		new->sibling = NULL;
+
 		if (insert_resource(&iomem_resource, new))
 			printk(KERN_WARNING
-			       "Bad reserved resource %s (%08x-%08x)\n",
-			       res->name, res->start, res->end);
+				   "Bad reserved resource %s (%08x-%08x)\n",
+				   res->name, res->start, res->end);
 	}
 }
 
@@ -110,23 +117,29 @@ add_physical_memory(resource_size_t start, resource_size_t end)
 	struct resource *new, *next, **pprev;
 
 	for (pprev = &system_ram, next = system_ram; next;
-	     pprev = &next->sibling, next = next->sibling) {
+		 pprev = &next->sibling, next = next->sibling)
+	{
 		if (end < next->start)
+		{
 			break;
-		if (start <= next->end) {
+		}
+
+		if (start <= next->end)
+		{
 			printk(KERN_WARNING
-			       "Warning: Physical memory map is broken\n");
+				   "Warning: Physical memory map is broken\n");
 			printk(KERN_WARNING
-			       "Warning: %08x-%08x overlaps %08x-%08x\n",
-			       start, end, next->start, next->end);
+				   "Warning: %08x-%08x overlaps %08x-%08x\n",
+				   start, end, next->start, next->end);
 			return;
 		}
 	}
 
-	if (res_cache_next_free >= ARRAY_SIZE(res_cache)) {
+	if (res_cache_next_free >= ARRAY_SIZE(res_cache))
+	{
 		printk(KERN_WARNING
-		       "Warning: Failed to add physical memory %08x-%08x\n",
-		       start, end);
+			   "Warning: Failed to add physical memory %08x-%08x\n",
+			   start, end);
 		return;
 	}
 
@@ -141,22 +154,32 @@ add_physical_memory(resource_size_t start, resource_size_t end)
 
 static int __init
 add_reserved_region(resource_size_t start, resource_size_t end,
-		    const char *name)
+					const char *name)
 {
 	struct resource *new, *next, **pprev;
 
 	if (end < start)
+	{
 		return -EINVAL;
+	}
 
 	if (res_cache_next_free >= ARRAY_SIZE(res_cache))
+	{
 		return -ENOMEM;
+	}
 
 	for (pprev = &reserved, next = reserved; next;
-	     pprev = &next->sibling, next = next->sibling) {
+		 pprev = &next->sibling, next = next->sibling)
+	{
 		if (end < next->start)
+		{
 			break;
+		}
+
 		if (start <= next->end)
+		{
 			return -EBUSY;
+		}
 	}
 
 	new = &res_cache[res_cache_next_free++];
@@ -173,40 +196,56 @@ add_reserved_region(resource_size_t start, resource_size_t end,
 
 static unsigned long __init
 find_free_region(const struct resource *mem, resource_size_t size,
-		 resource_size_t align)
+				 resource_size_t align)
 {
 	struct resource *res;
 	unsigned long target;
 
 	target = ALIGN(mem->start, align);
-	for (res = reserved; res; res = res->sibling) {
+
+	for (res = reserved; res; res = res->sibling)
+	{
 		if ((target + size) <= res->start)
+		{
 			break;
+		}
+
 		if (target <= res->end)
+		{
 			target = ALIGN(res->end + 1, align);
+		}
 	}
 
 	if ((target + size) > (mem->end + 1))
+	{
 		return mem->end + 1;
+	}
 
 	return target;
 }
 
 static int __init
 alloc_reserved_region(resource_size_t *start, resource_size_t size,
-		      resource_size_t align, const char *name)
+					  resource_size_t align, const char *name)
 {
 	struct resource *mem;
 	resource_size_t target;
 	int ret;
 
-	for (mem = system_ram; mem; mem = mem->sibling) {
+	for (mem = system_ram; mem; mem = mem->sibling)
+	{
 		target = find_free_region(mem, size, align);
-		if (target <= mem->end) {
+
+		if (target <= mem->end)
+		{
 			ret = add_reserved_region(target, target + size - 1,
-						  name);
+									  name);
+
 			if (!ret)
+			{
 				*start = target;
+			}
+
 			return ret;
 		}
 	}
@@ -248,33 +287,48 @@ static int __init early_parse_fbmem(char *p)
 	unsigned long align;
 
 	fbmem_size = memparse(p, &p);
-	if (*p == '@') {
+
+	if (*p == '@')
+	{
 		fbmem_start = memparse(p + 1, &p);
 		ret = add_reserved_region(fbmem_start,
-					  fbmem_start + fbmem_size - 1,
-					  "Framebuffer");
-		if (ret) {
+								  fbmem_start + fbmem_size - 1,
+								  "Framebuffer");
+
+		if (ret)
+		{
 			printk(KERN_WARNING
-			       "Failed to reserve framebuffer memory\n");
+				   "Failed to reserve framebuffer memory\n");
 			fbmem_start = 0;
 		}
 	}
 
-	if (!fbmem_start) {
+	if (!fbmem_start)
+	{
 		if ((fbmem_size & 0x000fffffUL) == 0)
-			align = 0x100000;	/* 1 MiB */
+		{
+			align = 0x100000;    /* 1 MiB */
+		}
 		else if ((fbmem_size & 0x0000ffffUL) == 0)
-			align = 0x10000;	/* 64 KiB */
+		{
+			align = 0x10000;    /* 64 KiB */
+		}
 		else
-			align = 0x1000;		/* 4 KiB */
+		{
+			align = 0x1000;    /* 4 KiB */
+		}
 
 		ret = alloc_reserved_region(&fbmem_start, fbmem_size,
-					    align, "Framebuffer");
-		if (ret) {
+									align, "Framebuffer");
+
+		if (ret)
+		{
 			printk(KERN_WARNING
-			       "Failed to allocate framebuffer memory\n");
+				   "Failed to allocate framebuffer memory\n");
 			fbmem_size = 0;
-		} else {
+		}
+		else
+		{
 			memset(__va(fbmem_start), 0, fbmem_size);
 		}
 	}
@@ -293,8 +347,11 @@ static int __init early_mem(char *p)
 
 	start = system_ram->start;
 	size  = memparse(p, &p);
+
 	if (*p == '@')
+	{
 		start = memparse(p + 1, &p);
+	}
 
 	system_ram->start = start;
 	system_ram->end = system_ram->start + size - 1;
@@ -304,11 +361,16 @@ early_param("mem", early_mem);
 
 static int __init parse_tag_core(struct tag *tag)
 {
-	if (tag->hdr.size > 2) {
+	if (tag->hdr.size > 2)
+	{
 		if ((tag->u.core.flags & 1) == 0)
+		{
 			root_mountflags &= ~MS_RDONLY;
+		}
+
 		ROOT_DEV = new_decode_dev(tag->u.core.rootdev);
 	}
+
 	return 0;
 }
 __tagtable(ATAG_CORE, parse_tag_core);
@@ -323,7 +385,9 @@ static int __init parse_tag_mem(struct tag *tag)
 	 * wrong...
 	 */
 	if (tag->u.mem_range.size == 0)
+	{
 		return 0;
+	}
 
 	start = tag->u.mem_range.addr;
 	end = tag->u.mem_range.addr + tag->u.mem_range.size - 1;
@@ -339,17 +403,20 @@ static int __init parse_tag_rdimg(struct tag *tag)
 	struct tag_mem_range *mem = &tag->u.mem_range;
 	int ret;
 
-	if (initrd_start) {
+	if (initrd_start)
+	{
 		printk(KERN_WARNING
-		       "Warning: Only the first initrd image will be used\n");
+			   "Warning: Only the first initrd image will be used\n");
 		return 0;
 	}
 
 	ret = add_reserved_region(mem->addr, mem->addr + mem->size - 1,
-				  "initrd");
-	if (ret) {
+							  "initrd");
+
+	if (ret)
+	{
 		printk(KERN_WARNING
-		       "Warning: Failed to reserve initrd memory\n");
+			   "Warning: Failed to reserve initrd memory\n");
 		return ret;
 	}
 
@@ -357,7 +424,7 @@ static int __init parse_tag_rdimg(struct tag *tag)
 	initrd_end = initrd_start + mem->size;
 #else
 	printk(KERN_WARNING "RAM disk image present, but "
-	       "no initrd support in kernel, ignoring\n");
+		   "no initrd support in kernel, ignoring\n");
 #endif
 
 	return 0;
@@ -369,7 +436,7 @@ static int __init parse_tag_rsvd_mem(struct tag *tag)
 	struct tag_mem_range *mem = &tag->u.mem_range;
 
 	return add_reserved_region(mem->addr, mem->addr + mem->size - 1,
-				   "Reserved");
+							   "Reserved");
 }
 __tagtable(ATAG_RSVD_MEM, parse_tag_rsvd_mem);
 
@@ -416,7 +483,8 @@ static int __init parse_tag(struct tag *tag)
 	struct tagtable *t;
 
 	for (t = &__tagtable_begin; t < &__tagtable_end; t++)
-		if (tag->hdr.tag == t->tag) {
+		if (tag->hdr.tag == t->tag)
+		{
 			t->parse(tag);
 			break;
 		}
@@ -432,8 +500,8 @@ static void __init parse_tags(struct tag *t)
 	for (; t->hdr.tag != ATAG_NONE; t = tag_next(t))
 		if (!parse_tag(t))
 			printk(KERN_WARNING
-			       "Ignoring unrecognised tag 0x%08x\n",
-			       t->hdr.tag);
+				   "Ignoring unrecognised tag 0x%08x\n",
+				   t->hdr.tag);
 }
 
 /*
@@ -476,26 +544,38 @@ static void __init setup_bootmem(void)
 	struct resource *res;
 
 	printk(KERN_INFO "Physical memory:\n");
+
 	for (res = system_ram; res; res = res->sibling)
+	{
 		printk("  %08x-%08x\n", res->start, res->end);
+	}
+
 	printk(KERN_INFO "Reserved memory:\n");
+
 	for (res = reserved; res; res = res->sibling)
 		printk("  %08x-%08x: %s\n",
-		       res->start, res->end, res->name);
+			   res->start, res->end, res->name);
 
 	nodes_clear(node_online_map);
 
 	if (system_ram->sibling)
+	{
 		printk(KERN_WARNING "Only using first memory bank\n");
+	}
 
-	for (res = system_ram; res; res = NULL) {
+	for (res = system_ram; res; res = NULL)
+	{
 		first_pfn = PFN_UP(res->start);
 		max_low_pfn = max_pfn = PFN_DOWN(res->end + 1);
 		bootmap_pfn = find_bootmap_pfn(res);
-		if (bootmap_pfn > max_pfn)
-			panic("No space for bootmem bitmap!\n");
 
-		if (max_low_pfn > MAX_LOWMEM_PFN) {
+		if (bootmap_pfn > max_pfn)
+		{
+			panic("No space for bootmem bitmap!\n");
+		}
+
+		if (max_low_pfn > MAX_LOWMEM_PFN)
+		{
 			max_low_pfn = MAX_LOWMEM_PFN;
 #ifndef CONFIG_HIGHMEM
 			/*
@@ -503,8 +583,8 @@ static void __init setup_bootmem(void)
 			 * directly through P1/P2
 			 */
 			printk(KERN_WARNING
-			       "Node %u: Only %ld MiB of memory will be used.\n",
-			       node, MAX_LOWMEM >> 20);
+				   "Node %u: Only %ld MiB of memory will be used.\n",
+				   node, MAX_LOWMEM >> 20);
 			printk(KERN_WARNING "Use a HIGHMEM enabled kernel.\n");
 #else
 #error HIGHMEM is not supported by AVR32 yet
@@ -513,7 +593,7 @@ static void __init setup_bootmem(void)
 
 		/* Initialize the boot-time allocator with low memory only. */
 		bootmap_size = init_bootmem_node(NODE_DATA(node), bootmap_pfn,
-						 first_pfn, max_low_pfn);
+										 first_pfn, max_low_pfn);
 
 		/*
 		 * Register fully available RAM pages with the bootmem
@@ -521,18 +601,21 @@ static void __init setup_bootmem(void)
 		 */
 		pages = max_low_pfn - first_pfn;
 		free_bootmem_node (NODE_DATA(node), PFN_PHYS(first_pfn),
-				   PFN_PHYS(pages));
+						   PFN_PHYS(pages));
 
 		/* Reserve space for the bootmem bitmap... */
 		reserve_bootmem_node(NODE_DATA(node),
-				     PFN_PHYS(bootmap_pfn),
-				     bootmap_size,
-				     BOOTMEM_DEFAULT);
+							 PFN_PHYS(bootmap_pfn),
+							 bootmap_size,
+							 BOOTMEM_DEFAULT);
 
 		/* ...and any other reserved regions. */
-		for (res = reserved; res; res = res->sibling) {
+		for (res = reserved; res; res = res->sibling)
+		{
 			if (res->start > PFN_PHYS(max_pfn))
+			{
 				break;
+			}
 
 			/*
 			 * resource_init will complain about partial
@@ -540,11 +623,11 @@ static void __init setup_bootmem(void)
 			 * resources for now.
 			 */
 			if (res->start >= PFN_PHYS(first_pfn)
-			    && res->end < PFN_PHYS(max_pfn))
+				&& res->end < PFN_PHYS(max_pfn))
 				reserve_bootmem_node(NODE_DATA(node),
-						     res->start,
-						     resource_size(res),
-						     BOOTMEM_DEFAULT);
+									 res->start,
+									 resource_size(res),
+									 BOOTMEM_DEFAULT);
 		}
 
 		node_set_online(node);
@@ -576,9 +659,13 @@ void __init setup_arch (char **cmdline_p)
 	setup_board();
 
 	cpu_clk = clk_get(NULL, "cpu");
-	if (IS_ERR(cpu_clk)) {
+
+	if (IS_ERR(cpu_clk))
+	{
 		printk(KERN_WARNING "Warning: Unable to get CPU clock\n");
-	} else {
+	}
+	else
+	{
 		unsigned long cpu_hz = clk_get_rate(cpu_clk);
 
 		/*
@@ -590,8 +677,8 @@ void __init setup_arch (char **cmdline_p)
 		boot_cpu_data.clk = cpu_clk;
 		boot_cpu_data.loops_per_jiffy = cpu_hz * 4;
 		printk("CPU: Running at %lu.%03lu MHz\n",
-		       ((cpu_hz + 500) / 1000) / 1000,
-		       ((cpu_hz + 500) / 1000) % 1000);
+			   ((cpu_hz + 500) / 1000) / 1000,
+			   ((cpu_hz + 500) / 1000) % 1000);
 	}
 
 	strlcpy(command_line, boot_command_line, COMMAND_LINE_SIZE);

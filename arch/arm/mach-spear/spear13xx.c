@@ -36,7 +36,9 @@ void __init spear13xx_l2x0_init(void)
 	 *
 	 */
 	if (!IS_ENABLED(CONFIG_CACHE_L2X0))
+	{
 		return;
+	}
 
 	writel_relaxed(0x06, VA_L2CC_BASE + L310_PREFETCH_CTRL);
 
@@ -57,7 +59,8 @@ void __init spear13xx_l2x0_init(void)
  * 0xEC000000		0xFC000000
  * 0xED000000		0xFB000000
  */
-static struct map_desc spear13xx_io_desc[] __initdata = {
+static struct map_desc spear13xx_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)VA_PERIP_GRP2_BASE,
 		.pfn		= __phys_to_pfn(PERIP_GRP2_BASE),
@@ -90,11 +93,17 @@ void __init spear13xx_map_io(void)
 static void __init spear13xx_clk_init(void)
 {
 	if (of_machine_is_compatible("st,spear1310"))
+	{
 		spear1310_clk_init(VA_MISC_BASE, VA_SPEAR1310_RAS_BASE);
+	}
 	else if (of_machine_is_compatible("st,spear1340"))
+	{
 		spear1340_clk_init(VA_MISC_BASE);
+	}
 	else
+	{
 		pr_err("%s: Unknown machine\n", __func__);
+	}
 }
 
 void __init spear13xx_timer_init(void)
@@ -106,16 +115,20 @@ void __init spear13xx_timer_init(void)
 
 	/* get the system timer clock */
 	gpt_clk = clk_get_sys("gpt0", NULL);
-	if (IS_ERR(gpt_clk)) {
+
+	if (IS_ERR(gpt_clk))
+	{
 		pr_err("%s:couldn't get clk for gpt\n", __func__);
 		BUG();
 	}
 
 	/* get the suitable parent clock for timer*/
 	pclk = clk_get(NULL, pclk_name);
-	if (IS_ERR(pclk)) {
+
+	if (IS_ERR(pclk))
+	{
 		pr_err("%s:couldn't get %s as parent for gpt\n", __func__,
-				pclk_name);
+			   pclk_name);
 		BUG();
 	}
 

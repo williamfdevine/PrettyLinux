@@ -25,12 +25,14 @@ static void __iomem *sirfsoc_rstc_base;
 static DEFINE_MUTEX(rstc_lock);
 
 static int sirfsoc_reset_module(struct reset_controller_dev *rcdev,
-					unsigned long sw_reset_idx)
+								unsigned long sw_reset_idx)
 {
 	u32 reset_bit = sw_reset_idx;
 
 	if (reset_bit >= SIRFSOC_RSTBIT_NUM)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&rstc_lock);
 
@@ -42,23 +44,25 @@ static int sirfsoc_reset_module(struct reset_controller_dev *rcdev,
 	 * be shorter if tests pass.
 	 */
 	writel(readl(sirfsoc_rstc_base +
-			(reset_bit / 32) * 4) | (1 << reset_bit),
-		sirfsoc_rstc_base + (reset_bit / 32) * 4);
+				 (reset_bit / 32) * 4) | (1 << reset_bit),
+		   sirfsoc_rstc_base + (reset_bit / 32) * 4);
 	msleep(20);
 	writel(readl(sirfsoc_rstc_base +
-			(reset_bit / 32) * 4) & ~(1 << reset_bit),
-		sirfsoc_rstc_base + (reset_bit / 32) * 4);
+				 (reset_bit / 32) * 4) & ~(1 << reset_bit),
+		   sirfsoc_rstc_base + (reset_bit / 32) * 4);
 
 	mutex_unlock(&rstc_lock);
 
 	return 0;
 }
 
-static struct reset_control_ops sirfsoc_rstc_ops = {
+static struct reset_control_ops sirfsoc_rstc_ops =
+{
 	.reset = sirfsoc_reset_module,
 };
 
-static struct reset_controller_dev sirfsoc_reset_controller = {
+static struct reset_controller_dev sirfsoc_reset_controller =
+{
 	.ops = &sirfsoc_rstc_ops,
 	.nr_resets = SIRFSOC_RSTBIT_NUM,
 };
@@ -74,7 +78,9 @@ static int sirfsoc_rstc_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
 	sirfsoc_rstc_base = of_iomap(np, 0);
-	if (!sirfsoc_rstc_base) {
+
+	if (!sirfsoc_rstc_base)
+	{
 		dev_err(&pdev->dev, "unable to map rstc cpu registers\n");
 		return -ENOMEM;
 	}
@@ -83,17 +89,21 @@ static int sirfsoc_rstc_probe(struct platform_device *pdev)
 	arm_pm_restart = sirfsoc_restart;
 
 	if (IS_ENABLED(CONFIG_RESET_CONTROLLER))
+	{
 		reset_controller_register(&sirfsoc_reset_controller);
+	}
 
 	return 0;
 }
 
-static const struct of_device_id rstc_ids[]  = {
+static const struct of_device_id rstc_ids[]  =
+{
 	{ .compatible = "sirf,prima2-rstc" },
 	{},
 };
 
-static struct platform_driver sirfsoc_rstc_driver = {
+static struct platform_driver sirfsoc_rstc_driver =
+{
 	.probe		= sirfsoc_rstc_probe,
 	.driver		= {
 		.name	= "sirfsoc_rstc",

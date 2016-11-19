@@ -32,7 +32,10 @@ static u8 opal_lpc_inb(unsigned long port)
 	__be32 data;
 
 	if (opal_lpc_chip_id < 0 || port > 0xffff)
+	{
 		return 0xff;
+	}
+
 	rc = opal_lpc_read(opal_lpc_chip_id, OPAL_LPC_IO, port, &data, 1);
 	return rc ? 0xff : be32_to_cpu(data);
 }
@@ -43,9 +46,15 @@ static __le16 __opal_lpc_inw(unsigned long port)
 	__be32 data;
 
 	if (opal_lpc_chip_id < 0 || port > 0xfffe)
+	{
 		return 0xffff;
+	}
+
 	if (port & 1)
+	{
 		return (__le16)opal_lpc_inb(port) << 8 | opal_lpc_inb(port + 1);
+	}
+
 	rc = opal_lpc_read(opal_lpc_chip_id, OPAL_LPC_IO, port, &data, 2);
 	return rc ? 0xffff : be32_to_cpu(data);
 }
@@ -60,12 +69,16 @@ static __le32 __opal_lpc_inl(unsigned long port)
 	__be32 data;
 
 	if (opal_lpc_chip_id < 0 || port > 0xfffc)
+	{
 		return 0xffffffff;
+	}
+
 	if (port & 3)
 		return (__le32)opal_lpc_inb(port    ) << 24 |
-		       (__le32)opal_lpc_inb(port + 1) << 16 |
-		       (__le32)opal_lpc_inb(port + 2) <<  8 |
-			       opal_lpc_inb(port + 3);
+			   (__le32)opal_lpc_inb(port + 1) << 16 |
+			   (__le32)opal_lpc_inb(port + 2) <<  8 |
+			   opal_lpc_inb(port + 3);
+
 	rc = opal_lpc_read(opal_lpc_chip_id, OPAL_LPC_IO, port, &data, 4);
 	return rc ? 0xffffffff : be32_to_cpu(data);
 }
@@ -78,19 +91,27 @@ static u32 opal_lpc_inl(unsigned long port)
 static void opal_lpc_outb(u8 val, unsigned long port)
 {
 	if (opal_lpc_chip_id < 0 || port > 0xffff)
+	{
 		return;
+	}
+
 	opal_lpc_write(opal_lpc_chip_id, OPAL_LPC_IO, port, val, 1);
 }
 
 static void __opal_lpc_outw(__le16 val, unsigned long port)
 {
 	if (opal_lpc_chip_id < 0 || port > 0xfffe)
+	{
 		return;
-	if (port & 1) {
+	}
+
+	if (port & 1)
+	{
 		opal_lpc_outb(val >> 8, port);
 		opal_lpc_outb(val     , port + 1);
 		return;
 	}
+
 	opal_lpc_write(opal_lpc_chip_id, OPAL_LPC_IO, port, val, 2);
 }
 
@@ -102,14 +123,19 @@ static void opal_lpc_outw(u16 val, unsigned long port)
 static void __opal_lpc_outl(__le32 val, unsigned long port)
 {
 	if (opal_lpc_chip_id < 0 || port > 0xfffc)
+	{
 		return;
-	if (port & 3) {
+	}
+
+	if (port & 3)
+	{
 		opal_lpc_outb(val >> 24, port);
 		opal_lpc_outb(val >> 16, port + 1);
 		opal_lpc_outb(val >>  8, port + 2);
 		opal_lpc_outb(val      , port + 3);
 		return;
 	}
+
 	opal_lpc_write(opal_lpc_chip_id, OPAL_LPC_IO, port, val, 4);
 }
 
@@ -122,51 +148,64 @@ static void opal_lpc_insb(unsigned long p, void *b, unsigned long c)
 {
 	u8 *ptr = b;
 
-	while(c--)
+	while (c--)
+	{
 		*(ptr++) = opal_lpc_inb(p);
+	}
 }
 
 static void opal_lpc_insw(unsigned long p, void *b, unsigned long c)
 {
 	__le16 *ptr = b;
 
-	while(c--)
+	while (c--)
+	{
 		*(ptr++) = __opal_lpc_inw(p);
+	}
 }
 
 static void opal_lpc_insl(unsigned long p, void *b, unsigned long c)
 {
 	__le32 *ptr = b;
 
-	while(c--)
+	while (c--)
+	{
 		*(ptr++) = __opal_lpc_inl(p);
+	}
 }
 
 static void opal_lpc_outsb(unsigned long p, const void *b, unsigned long c)
 {
 	const u8 *ptr = b;
 
-	while(c--)
+	while (c--)
+	{
 		opal_lpc_outb(*(ptr++), p);
+	}
 }
 
 static void opal_lpc_outsw(unsigned long p, const void *b, unsigned long c)
 {
 	const __le16 *ptr = b;
 
-	while(c--)
+	while (c--)
+	{
 		__opal_lpc_outw(*(ptr++), p);
+	}
 }
 
 static void opal_lpc_outsl(unsigned long p, const void *b, unsigned long c)
 {
 	const __le32 *ptr = b;
 
-	while(c--)
+	while (c--)
+	{
 		__opal_lpc_outl(*(ptr++), p);
+	}
 }
 
-static const struct ppc_pci_io opal_lpc_io = {
+static const struct ppc_pci_io opal_lpc_io =
+{
 	.inb	= opal_lpc_inb,
 	.inw	= opal_lpc_inw,
 	.inl	= opal_lpc_inl,
@@ -182,22 +221,27 @@ static const struct ppc_pci_io opal_lpc_io = {
 };
 
 #ifdef CONFIG_DEBUG_FS
-struct lpc_debugfs_entry {
+struct lpc_debugfs_entry
+{
 	enum OpalLPCAddressType lpc_type;
 };
 
 static ssize_t lpc_debug_read(struct file *filp, char __user *ubuf,
-			      size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct lpc_debugfs_entry *lpc = filp->private_data;
 	u32 data, pos, len, todo;
 	int rc;
 
 	if (!access_ok(VERIFY_WRITE, ubuf, count))
+	{
 		return -EFAULT;
+	}
 
 	todo = count;
-	while (todo) {
+
+	while (todo)
+	{
 		pos = *ppos;
 
 		/*
@@ -206,16 +250,26 @@ static ssize_t lpc_debug_read(struct file *filp, char __user *ubuf,
 		 * FW supports all 3.
 		 */
 		len = 1;
-		if (lpc->lpc_type == OPAL_LPC_FW) {
+
+		if (lpc->lpc_type == OPAL_LPC_FW)
+		{
 			if (todo > 3 && (pos & 3) == 0)
+			{
 				len = 4;
+			}
 			else if (todo > 1 && (pos & 1) == 0)
+			{
 				len = 2;
+			}
 		}
+
 		rc = opal_lpc_read(opal_lpc_chip_id, lpc->lpc_type, pos,
-				   &data, len);
+						   &data, len);
+
 		if (rc)
+		{
 			return -ENXIO;
+		}
 
 		/*
 		 * Now there is some trickery with the data returned by OPAL
@@ -250,25 +304,32 @@ static ssize_t lpc_debug_read(struct file *filp, char __user *ubuf,
 		 * user wants, but in order to "crop" to the right size, we need to
 		 * shift right first.
 		 */
-		switch(len) {
-		case 4:
-			rc = __put_user((u32)data, (u32 __user *)ubuf);
-			break;
-		case 2:
+		switch (len)
+		{
+			case 4:
+				rc = __put_user((u32)data, (u32 __user *)ubuf);
+				break;
+
+			case 2:
 #ifdef __LITTLE_ENDIAN__
-			data >>= 16;
+				data >>= 16;
 #endif
-			rc = __put_user((u16)data, (u16 __user *)ubuf);
-			break;
-		default:
+				rc = __put_user((u16)data, (u16 __user *)ubuf);
+				break;
+
+			default:
 #ifdef __LITTLE_ENDIAN__
-			data >>= 24;
+				data >>= 24;
 #endif
-			rc = __put_user((u8)data, (u8 __user *)ubuf);
-			break;
+				rc = __put_user((u8)data, (u8 __user *)ubuf);
+				break;
 		}
+
 		if (rc)
+		{
 			return -EFAULT;
+		}
+
 		*ppos += len;
 		ubuf += len;
 		todo -= len;
@@ -278,17 +339,21 @@ static ssize_t lpc_debug_read(struct file *filp, char __user *ubuf,
 }
 
 static ssize_t lpc_debug_write(struct file *filp, const char __user *ubuf,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	struct lpc_debugfs_entry *lpc = filp->private_data;
 	u32 data, pos, len, todo;
 	int rc;
 
 	if (!access_ok(VERIFY_READ, ubuf, count))
+	{
 		return -EFAULT;
+	}
 
 	todo = count;
-	while (todo) {
+
+	while (todo)
+	{
 		pos = *ppos;
 
 		/*
@@ -297,11 +362,17 @@ static ssize_t lpc_debug_write(struct file *filp, const char __user *ubuf,
 		 * FW supports all 3.
 		 */
 		len = 1;
-		if (lpc->lpc_type == OPAL_LPC_FW) {
+
+		if (lpc->lpc_type == OPAL_LPC_FW)
+		{
 			if (todo > 3 && (pos & 3) == 0)
+			{
 				len = 4;
+			}
 			else if (todo > 1 && (pos & 1) == 0)
+			{
 				len = 2;
+			}
 		}
 
 		/*
@@ -320,26 +391,36 @@ static ssize_t lpc_debug_write(struct file *filp, const char __user *ubuf,
 		 *  16-bit:  B0 B1          0000B1B0   0000B0B1
 		 *   8-bit:  B0             000000B0   000000B0
 		 */
-		switch(len) {
-		case 4:
-			rc = __get_user(data, (u32 __user *)ubuf);
-			data = cpu_to_be32(data);
-			break;
-		case 2:
-			rc = __get_user(data, (u16 __user *)ubuf);
-			data = cpu_to_be16(data);
-			break;
-		default:
-			rc = __get_user(data, (u8 __user *)ubuf);
-			break;
+		switch (len)
+		{
+			case 4:
+				rc = __get_user(data, (u32 __user *)ubuf);
+				data = cpu_to_be32(data);
+				break;
+
+			case 2:
+				rc = __get_user(data, (u16 __user *)ubuf);
+				data = cpu_to_be16(data);
+				break;
+
+			default:
+				rc = __get_user(data, (u8 __user *)ubuf);
+				break;
 		}
+
 		if (rc)
+		{
 			return -EFAULT;
+		}
 
 		rc = opal_lpc_write(opal_lpc_chip_id, lpc->lpc_type, pos,
-				    data, len);
+							data, len);
+
 		if (rc)
+		{
 			return -ENXIO;
+		}
+
 		*ppos += len;
 		ubuf += len;
 		todo -= len;
@@ -348,7 +429,8 @@ static ssize_t lpc_debug_write(struct file *filp, const char __user *ubuf,
 	return count;
 }
 
-static const struct file_operations lpc_fops = {
+static const struct file_operations lpc_fops =
+{
 	.read =		lpc_debug_read,
 	.write =	lpc_debug_write,
 	.open =		simple_open,
@@ -356,13 +438,17 @@ static const struct file_operations lpc_fops = {
 };
 
 static int opal_lpc_debugfs_create_type(struct dentry *folder,
-					const char *fname,
-					enum OpalLPCAddressType type)
+										const char *fname,
+										enum OpalLPCAddressType type)
 {
 	struct lpc_debugfs_entry *entry;
 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
+
 	entry->lpc_type = type;
 	debugfs_create_file(fname, 0600, folder, entry, &lpc_fops);
 	return 0;
@@ -374,7 +460,9 @@ static int opal_lpc_init_debugfs(void)
 	int rc = 0;
 
 	if (opal_lpc_chip_id < 0)
+	{
 		return -ENODEV;
+	}
 
 	root = debugfs_create_dir("lpc", powerpc_debugfs_root);
 
@@ -395,16 +483,26 @@ void opal_lpc_init(void)
 	 * we currently support only one though the OPAL APIs
 	 * support any number.
 	 */
-	for_each_compatible_node(np, NULL, "ibm,power8-lpc") {
+	for_each_compatible_node(np, NULL, "ibm,power8-lpc")
+	{
 		if (!of_device_is_available(np))
+		{
 			continue;
+		}
+
 		if (!of_get_property(np, "primary", NULL))
+		{
 			continue;
+		}
+
 		opal_lpc_chip_id = of_get_ibm_chip_id(np);
 		break;
 	}
+
 	if (opal_lpc_chip_id < 0)
+	{
 		return;
+	}
 
 	/* Setup special IO ops */
 	ppc_pci_io = opal_lpc_io;

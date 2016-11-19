@@ -12,7 +12,8 @@
 #include <asm/page.h>
 #include <asm/segment.h>
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	__u32			cpu;		/* current CPU */
@@ -25,14 +26,14 @@ struct thread_info {
 };
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task =		&tsk,			\
-	.flags =		0,		\
-	.cpu =		0,			\
-	.preempt_count = INIT_PREEMPT_COUNT,	\
-	.addr_limit =	KERNEL_DS,		\
-	.real_thread = NULL,			\
-}
+	{						\
+		.task =		&tsk,			\
+					.flags =		0,		\
+									.cpu =		0,			\
+												.preempt_count = INIT_PREEMPT_COUNT,	\
+														.addr_limit =	KERNEL_DS,		\
+																.real_thread = NULL,			\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)

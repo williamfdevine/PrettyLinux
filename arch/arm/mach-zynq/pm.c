@@ -47,10 +47,14 @@ static void __iomem *zynq_pm_ioremap(const char *comp)
 	void __iomem *base = NULL;
 
 	np = of_find_compatible_node(NULL, NULL, comp);
-	if (np) {
+
+	if (np)
+	{
 		base = of_iomap(np, 0);
 		of_node_put(np);
-	} else {
+	}
+	else
+	{
 		pr_warn("%s: no compatible node found for '%s'\n", __func__,
 				comp);
 	}
@@ -68,9 +72,13 @@ void __init zynq_pm_late_init(void)
 	u32 reg;
 
 	ddrc_base = zynq_pm_ioremap("xlnx,zynq-ddrc-a05");
-	if (!ddrc_base) {
+
+	if (!ddrc_base)
+	{
 		pr_warn("%s: Unable to map DDRC IO memory.\n", __func__);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Enable DDRC clock stop feature. The HW takes care of
 		 * entering/exiting the correct mode depending

@@ -12,19 +12,20 @@
  *
  * External expansion card header as read from the card
  */
-struct ex_ecid {
-	unsigned char	r_irq:1;
-	unsigned char	r_zero:1;
-	unsigned char	r_fiq:1;
-	unsigned char	r_id:4;
-	unsigned char	r_a:1;
+struct ex_ecid
+{
+	unsigned char	r_irq: 1;
+	unsigned char	r_zero: 1;
+	unsigned char	r_fiq: 1;
+	unsigned char	r_id: 4;
+	unsigned char	r_a: 1;
 
-	unsigned char	r_cd:1;
-	unsigned char	r_is:1;
-	unsigned char	r_w:2;
-	unsigned char	r_r1:4;
+	unsigned char	r_cd: 1;
+	unsigned char	r_is: 1;
+	unsigned char	r_w: 2;
+	unsigned char	r_r1: 4;
 
-	unsigned char	r_r2:8;
+	unsigned char	r_r2: 8;
 
 	unsigned char	r_prod[2];
 
@@ -42,11 +43,13 @@ struct ex_ecid {
 /*
  * Chunk directory entry as read from the card
  */
-struct ex_chunk_dir {
+struct ex_chunk_dir
+{
 	unsigned char r_id;
 	unsigned char r_len[3];
 	unsigned long r_start;
-	union {
+	union
+	{
 		char string[256];
 		char data[1];
 	} d;
@@ -55,13 +58,15 @@ struct ex_chunk_dir {
 #define c_start(x)	((x)->r_start)
 };
 
-typedef enum ecard_type {		/* Cards address space		*/
+typedef enum ecard_type  		/* Cards address space		*/
+{
 	ECARD_IOC,
 	ECARD_MEMC,
 	ECARD_EASI
 } card_type_t;
 
-typedef enum {				/* Speed for ECARD_IOC space	*/
+typedef enum  				/* Speed for ECARD_IOC space	*/
+{
 	ECARD_SLOW	 = 0,
 	ECARD_MEDIUM	 = 1,
 	ECARD_FAST	 = 2,

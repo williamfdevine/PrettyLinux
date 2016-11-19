@@ -42,7 +42,8 @@ extern void start_thread(struct pt_regs *, unsigned long, unsigned long);
  * thread_struct is supposed to be for context switch data.
  * Specifically, to hold the state necessary to perform switch_to...
  */
-struct thread_struct {
+struct thread_struct
+{
 	void *switch_sp;
 };
 
@@ -53,7 +54,7 @@ struct thread_struct {
  */
 
 #define INIT_THREAD { \
-}
+	}
 
 #define cpu_relax() __vmyield()
 #define cpu_relax_lowlatency() cpu_relax()
@@ -100,44 +101,57 @@ extern unsigned long get_wchan(struct task_struct *p);
  * cycles if building with the old compilers.
  */
 
-struct hexagon_switch_stack {
-	union {
-		struct {
+struct hexagon_switch_stack
+{
+	union
+	{
+		struct
+		{
 			unsigned long r16;
 			unsigned long r17;
 		};
 		unsigned long long	r1716;
 	};
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long r18;
 			unsigned long r19;
 		};
 		unsigned long long	r1918;
 	};
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long r20;
 			unsigned long r21;
 		};
 		unsigned long long	r2120;
 	};
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long r22;
 			unsigned long r23;
 		};
 		unsigned long long	r2322;
 	};
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long r24;
 			unsigned long r25;
 		};
 		unsigned long long	r2524;
 	};
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long r26;
 			unsigned long r27;
 		};

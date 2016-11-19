@@ -62,7 +62,7 @@ void kvm_hv_vcpu_init(struct kvm_vcpu *vcpu);
 void kvm_hv_vcpu_uninit(struct kvm_vcpu *vcpu);
 
 static inline struct kvm_vcpu_hv_stimer *vcpu_to_stimer(struct kvm_vcpu *vcpu,
-							int timer_index)
+		int timer_index)
 {
 	return &vcpu_to_hv_vcpu(vcpu)->stimer[timer_index];
 }
@@ -72,19 +72,19 @@ static inline struct kvm_vcpu *stimer_to_vcpu(struct kvm_vcpu_hv_stimer *stimer)
 	struct kvm_vcpu_hv *hv_vcpu;
 
 	hv_vcpu = container_of(stimer - stimer->index, struct kvm_vcpu_hv,
-			       stimer[0]);
+						   stimer[0]);
 	return hv_vcpu_to_vcpu(hv_vcpu);
 }
 
 static inline bool kvm_hv_has_stimer_pending(struct kvm_vcpu *vcpu)
 {
 	return !bitmap_empty(vcpu->arch.hyperv.stimer_pending_bitmap,
-			     HV_SYNIC_STIMER_COUNT);
+						 HV_SYNIC_STIMER_COUNT);
 }
 
 void kvm_hv_process_stimers(struct kvm_vcpu *vcpu);
 
 void kvm_hv_setup_tsc_page(struct kvm *kvm,
-			   struct pvclock_vcpu_time_info *hv_clock);
+						   struct pvclock_vcpu_time_info *hv_clock);
 
 #endif

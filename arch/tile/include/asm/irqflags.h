@@ -51,49 +51,49 @@
  */
 #if CHIP_HAS_SPLIT_INTR_MASK()
 #if INT_PERF_COUNT < 32 || INT_AUX_PERF_COUNT < 32 || INT_MEM_ERROR >= 32
-# error Fix assumptions about which word various interrupts are in
+	# error Fix assumptions about which word various interrupts are in
 #endif
 #define interrupt_mask_set(n) do { \
-	int __n = (n); \
-	int __mask = 1 << (__n & 0x1f); \
-	if (__n < 32) \
-		__insn_mtspr(SPR_INTERRUPT_MASK_SET_K_0, __mask); \
-	else \
-		__insn_mtspr(SPR_INTERRUPT_MASK_SET_K_1, __mask); \
-} while (0)
+		int __n = (n); \
+		int __mask = 1 << (__n & 0x1f); \
+		if (__n < 32) \
+			__insn_mtspr(SPR_INTERRUPT_MASK_SET_K_0, __mask); \
+		else \
+			__insn_mtspr(SPR_INTERRUPT_MASK_SET_K_1, __mask); \
+	} while (0)
 #define interrupt_mask_reset(n) do { \
-	int __n = (n); \
-	int __mask = 1 << (__n & 0x1f); \
-	if (__n < 32) \
-		__insn_mtspr(SPR_INTERRUPT_MASK_RESET_K_0, __mask); \
-	else \
-		__insn_mtspr(SPR_INTERRUPT_MASK_RESET_K_1, __mask); \
-} while (0)
+		int __n = (n); \
+		int __mask = 1 << (__n & 0x1f); \
+		if (__n < 32) \
+			__insn_mtspr(SPR_INTERRUPT_MASK_RESET_K_0, __mask); \
+		else \
+			__insn_mtspr(SPR_INTERRUPT_MASK_RESET_K_1, __mask); \
+	} while (0)
 #define interrupt_mask_check(n) ({ \
-	int __n = (n); \
-	(((__n < 32) ? \
-	 __insn_mfspr(SPR_INTERRUPT_MASK_K_0) : \
-	 __insn_mfspr(SPR_INTERRUPT_MASK_K_1)) \
-	  >> (__n & 0x1f)) & 1; \
-})
+		int __n = (n); \
+		(((__n < 32) ? \
+		  __insn_mfspr(SPR_INTERRUPT_MASK_K_0) : \
+		  __insn_mfspr(SPR_INTERRUPT_MASK_K_1)) \
+		 >> (__n & 0x1f)) & 1; \
+	})
 #define interrupt_mask_set_mask(mask) do { \
-	unsigned long long __m = (mask); \
-	__insn_mtspr(SPR_INTERRUPT_MASK_SET_K_0, (unsigned long)(__m)); \
-	__insn_mtspr(SPR_INTERRUPT_MASK_SET_K_1, (unsigned long)(__m>>32)); \
-} while (0)
+		unsigned long long __m = (mask); \
+		__insn_mtspr(SPR_INTERRUPT_MASK_SET_K_0, (unsigned long)(__m)); \
+		__insn_mtspr(SPR_INTERRUPT_MASK_SET_K_1, (unsigned long)(__m>>32)); \
+	} while (0)
 #define interrupt_mask_reset_mask(mask) do { \
-	unsigned long long __m = (mask); \
-	__insn_mtspr(SPR_INTERRUPT_MASK_RESET_K_0, (unsigned long)(__m)); \
-	__insn_mtspr(SPR_INTERRUPT_MASK_RESET_K_1, (unsigned long)(__m>>32)); \
-} while (0)
+		unsigned long long __m = (mask); \
+		__insn_mtspr(SPR_INTERRUPT_MASK_RESET_K_0, (unsigned long)(__m)); \
+		__insn_mtspr(SPR_INTERRUPT_MASK_RESET_K_1, (unsigned long)(__m>>32)); \
+	} while (0)
 #define interrupt_mask_save_mask() \
 	(__insn_mfspr(SPR_INTERRUPT_MASK_SET_K_0) | \
 	 (((unsigned long long)__insn_mfspr(SPR_INTERRUPT_MASK_SET_K_1))<<32))
 #define interrupt_mask_restore_mask(mask) do { \
-	unsigned long long __m = (mask); \
-	__insn_mtspr(SPR_INTERRUPT_MASK_K_0, (unsigned long)(__m)); \
-	__insn_mtspr(SPR_INTERRUPT_MASK_K_1, (unsigned long)(__m>>32)); \
-} while (0)
+		unsigned long long __m = (mask); \
+		__insn_mtspr(SPR_INTERRUPT_MASK_K_0, (unsigned long)(__m)); \
+		__insn_mtspr(SPR_INTERRUPT_MASK_K_1, (unsigned long)(__m>>32)); \
+	} while (0)
 #else
 #define interrupt_mask_set(n) \
 	__insn_mtspr(SPR_INTERRUPT_MASK_SET_K, (1UL << (n)))
@@ -125,9 +125,9 @@ DECLARE_PER_CPU(unsigned long long, interrupts_enabled_mask);
 #define INITIAL_INTERRUPTS_ENABLED (1ULL << INT_MEM_ERROR)
 
 #ifdef CONFIG_DEBUG_PREEMPT
-/* Due to inclusion issues, we can't rely on <linux/smp.h> here. */
-extern unsigned int debug_smp_processor_id(void);
-# define smp_processor_id() debug_smp_processor_id()
+	/* Due to inclusion issues, we can't rely on <linux/smp.h> here. */
+	extern unsigned int debug_smp_processor_id(void);
+	#define smp_processor_id() debug_smp_processor_id()
 #endif
 
 /* Disable interrupts. */
@@ -153,11 +153,11 @@ extern unsigned int debug_smp_processor_id(void);
 
 /* Disable or enable interrupts based on flag argument. */
 #define arch_local_irq_restore(disabled) do { \
-	if (disabled) \
-		arch_local_irq_disable(); \
-	else \
-		arch_local_irq_enable(); \
-} while (0)
+		if (disabled) \
+			arch_local_irq_disable(); \
+		else \
+			arch_local_irq_enable(); \
+	} while (0)
 
 /* Return true if "flags" argument means interrupts are disabled. */
 #define arch_irqs_disabled_flags(flags) ((flags) != 0)
@@ -170,9 +170,9 @@ extern unsigned int debug_smp_processor_id(void);
 
 /* Save whether interrupts are currently disabled, then disable them. */
 #define arch_local_irq_save() ({ \
-	unsigned long __flags = arch_local_save_flags(); \
-	arch_local_irq_disable(); \
-	__flags; })
+		unsigned long __flags = arch_local_save_flags(); \
+		arch_local_irq_disable(); \
+		__flags; })
 
 /* Prevent the given interrupt from being enabled next time we enable irqs. */
 #define arch_local_irq_mask(interrupt) \
@@ -180,9 +180,9 @@ extern unsigned int debug_smp_processor_id(void);
 
 /* Prevent the given interrupt from being enabled immediately. */
 #define arch_local_irq_mask_now(interrupt) do { \
-	arch_local_irq_mask(interrupt); \
-	interrupt_mask_set(interrupt); \
-} while (0)
+		arch_local_irq_mask(interrupt); \
+		interrupt_mask_set(interrupt); \
+	} while (0)
 
 /* Allow the given interrupt to be enabled next time we enable irqs. */
 #define arch_local_irq_unmask(interrupt) \
@@ -190,10 +190,10 @@ extern unsigned int debug_smp_processor_id(void);
 
 /* Allow the given interrupt to be enabled immediately, if !irqs_disabled. */
 #define arch_local_irq_unmask_now(interrupt) do { \
-	arch_local_irq_unmask(interrupt); \
-	if (!irqs_disabled()) \
-		interrupt_mask_reset(interrupt); \
-} while (0)
+		arch_local_irq_unmask(interrupt); \
+		if (!irqs_disabled()) \
+			interrupt_mask_reset(interrupt); \
+	} while (0)
 
 #else /* __ASSEMBLY__ */
 
@@ -202,7 +202,7 @@ extern unsigned int debug_smp_processor_id(void);
 #ifdef __tilegx__
 
 #if INT_MEM_ERROR != 0
-# error Fix IRQS_DISABLED() macro
+	# error Fix IRQS_DISABLED() macro
 #endif
 
 /* Return 0 or 1 to indicate whether interrupts are currently disabled. */
@@ -261,12 +261,12 @@ extern unsigned int debug_smp_processor_id(void);
 /* Disable interrupts. */
 #define IRQ_DISABLE(tmp0, tmp1)					\
 	{							\
-	 movei  tmp0, LINUX_MASKABLE_INTERRUPTS_LO;		\
-	 moveli tmp1, lo16(LINUX_MASKABLE_INTERRUPTS_HI)	\
+		movei  tmp0, LINUX_MASKABLE_INTERRUPTS_LO;		\
+		moveli tmp1, lo16(LINUX_MASKABLE_INTERRUPTS_HI)	\
 	};							\
 	{							\
-	 mtspr  SPR_INTERRUPT_MASK_SET_K_0, tmp0;		\
-	 auli   tmp1, tmp1, ha16(LINUX_MASKABLE_INTERRUPTS_HI)	\
+		mtspr  SPR_INTERRUPT_MASK_SET_K_0, tmp0;		\
+		auli   tmp1, tmp1, ha16(LINUX_MASKABLE_INTERRUPTS_HI)	\
 	};							\
 	mtspr   SPR_INTERRUPT_MASK_SET_K_1, tmp1
 
@@ -280,8 +280,8 @@ extern unsigned int debug_smp_processor_id(void);
 #define IRQ_ENABLE_LOAD(tmp0, tmp1)				\
 	GET_INTERRUPTS_ENABLED_MASK_PTR(tmp0);			\
 	{							\
-	 lw     tmp0, tmp0;					\
-	 addi   tmp1, tmp0, 4					\
+		lw     tmp0, tmp0;					\
+		addi   tmp1, tmp0, 4					\
 	};							\
 	lw      tmp1, tmp1
 #define IRQ_ENABLE_APPLY(tmp0, tmp1)				\
@@ -299,11 +299,11 @@ extern unsigned int debug_smp_processor_id(void);
  * all the caller-saved registers.
  */
 #ifdef CONFIG_TRACE_IRQFLAGS
-# define TRACE_IRQS_ON  jal trace_hardirqs_on
-# define TRACE_IRQS_OFF jal trace_hardirqs_off
+	#define TRACE_IRQS_ON  jal trace_hardirqs_on
+	#define TRACE_IRQS_OFF jal trace_hardirqs_off
 #else
-# define TRACE_IRQS_ON
-# define TRACE_IRQS_OFF
+	#define TRACE_IRQS_ON
+	#define TRACE_IRQS_OFF
 #endif
 
 #endif /* __ASSEMBLY__ */

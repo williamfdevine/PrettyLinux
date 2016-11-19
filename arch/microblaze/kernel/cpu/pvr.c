@@ -22,14 +22,14 @@
  */
 
 #define get_single_pvr(pvrid, val)				\
-{								\
-	register unsigned tmp __asm__("r3");			\
-	tmp = 0x0;	/* Prevent warning about unused */	\
-	__asm__ __volatile__ (					\
-			"mfs	%0, rpvr" #pvrid ";"		\
-			: "=r" (tmp) : : "memory");		\
-	val = tmp;						\
-}
+	{								\
+		register unsigned tmp __asm__("r3");			\
+		tmp = 0x0;	/* Prevent warning about unused */	\
+		__asm__ __volatile__ (					\
+												"mfs	%0, rpvr" #pvrid ";"		\
+												: "=r" (tmp) : : "memory");		\
+		val = tmp;						\
+	}
 
 /*
  * Does the CPU support the PVR register?
@@ -51,13 +51,17 @@ int cpu_has_pvr(void)
 
 	/* PVR bit in MSR tells us if there is any support */
 	if (!(flags & PVR_MSR_BIT))
+	{
 		return 0;
+	}
 
 	get_single_pvr(0, pvr0);
 	pr_debug("%s: pvr0 is 0x%08x\n", __func__, pvr0);
 
 	if (pvr0 & PVR0_PVR_FULL_MASK)
+	{
 		return 1;
+	}
 
 	/* for partial PVR use static cpuinfo */
 	return 2;

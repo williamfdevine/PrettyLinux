@@ -45,7 +45,7 @@ static u64 o32_stk[4096];
 #define O32_STK	  &o32_stk[sizeof(o32_stk)]
 
 #define __PROM_O32(fun, arg) fun arg __asm__(#fun); \
-				     __asm__(#fun " = call_o32")
+	__asm__(#fun " = call_o32")
 
 int   __PROM_O32(__prom_putchar, (int *(*)(int), void *, int));
 char *__PROM_O32(__prom_getenv, (char *(*)(char *), void *, char *));
@@ -80,7 +80,9 @@ void *prom_get_hwconf(void)
 	u32 hwconf = _prom_get_hwconf();
 
 	if (hwconf == 0xffffffff)
+	{
 		return NULL;
+	}
 
 	return (void *)CKSEG1ADDR(hwconf);
 }
@@ -102,7 +104,8 @@ const char *get_system_type(void)
 static void __init sni_mem_init(void)
 {
 	int i, memsize;
-	struct membank {
+	struct membank
+	{
 		u32		size;
 		u32		base;
 		u32		size2;
@@ -121,17 +124,23 @@ static void __init sni_mem_init(void)
 	_prom_get_memconf(&memconf);
 
 	pr_debug("prom_get_mem_conf memory configuration:\n");
-	for (i = 0; i < 8 && memconf[i].size; i++) {
+
+	for (i = 0; i < 8 && memconf[i].size; i++)
+	{
 		if (brd_type == SNI_BRD_PCI_TOWER ||
-		    brd_type == SNI_BRD_PCI_TOWER_CPLUS) {
+			brd_type == SNI_BRD_PCI_TOWER_CPLUS)
+		{
 			if (memconf[i].base >= 0x20000000 &&
-			    memconf[i].base <  0x30000000)
+				memconf[i].base <  0x30000000)
+			{
 				memconf[i].base -= 0x20000000;
+			}
 		}
+
 		pr_debug("Bank%d: %08x @ %08x\n", i,
-			memconf[i].size, memconf[i].base);
+				 memconf[i].size, memconf[i].base);
 		add_memory_region(memconf[i].base, memconf[i].size,
-				  BOOT_MEM_RAM);
+						  BOOT_MEM_RAM);
 	}
 }
 
@@ -144,9 +153,13 @@ void __init prom_init(void)
 	sni_mem_init();
 
 	/* copy prom cmdline parameters to kernel cmdline */
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		strcat(arcs_cmdline, (char *)CKSEG0ADDR(argv[i]));
+
 		if (i < (argc - 1))
+		{
 			strcat(arcs_cmdline, " ");
+		}
 	}
 }

@@ -63,14 +63,18 @@ static int rtc_generic_set_time(struct device *dev, struct rtc_time *tm)
 	unsigned long secs;
 
 	rtc_tm_to_time(tm, &secs);
+
 	if ((rtc_sh_set_time == null_rtc_set_time) ||
-	    (rtc_sh_set_time(secs) < 0))
+		(rtc_sh_set_time(secs) < 0))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	return 0;
 }
 
-static const struct rtc_class_ops rtc_generic_ops = {
+static const struct rtc_class_ops rtc_generic_ops =
+{
 	.read_time = rtc_generic_get_time,
 	.set_time = rtc_generic_set_time,
 };
@@ -80,11 +84,13 @@ static int __init rtc_generic_init(void)
 	struct platform_device *pdev;
 
 	if (rtc_sh_get_time == null_rtc_get_time)
+	{
 		return -ENODEV;
+	}
 
 	pdev = platform_device_register_data(NULL, "rtc-generic", -1,
-					     &rtc_generic_ops,
-					     sizeof(rtc_generic_ops));
+										 &rtc_generic_ops,
+										 sizeof(rtc_generic_ops));
 
 
 	return PTR_ERR_OR_ZERO(pdev);
@@ -111,7 +117,9 @@ static void __init sh_late_time_init(void)
 void __init time_init(void)
 {
 	if (board_time_init)
+	{
 		board_time_init();
+	}
 
 	clk_init();
 

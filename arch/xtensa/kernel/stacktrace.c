@@ -26,14 +26,15 @@ extern int common_exception_return;
 /* A struct that maps to the part of the frame containing the a0 and
  * a1 registers.
  */
-struct frame_start {
+struct frame_start
+{
 	unsigned long a0;
 	unsigned long a1;
 };
 
 void xtensa_backtrace_user(struct pt_regs *regs, unsigned int depth,
-			   int (*ufn)(struct stackframe *frame, void *data),
-			   void *data)
+						   int (*ufn)(struct stackframe *frame, void *data),
+						   void *data)
 {
 	unsigned long windowstart = regs->windowstart;
 	unsigned long windowbase = regs->windowbase;
@@ -44,13 +45,17 @@ void xtensa_backtrace_user(struct pt_regs *regs, unsigned int depth,
 	int index;
 
 	if (!depth--)
+	{
 		return;
+	}
 
 	frame.pc = pc;
 	frame.sp = a1;
 
 	if (pc == 0 || pc >= TASK_SIZE || ufn(&frame, data))
+	{
 		return;
+	}
 
 	/* Two steps:
 	 *
@@ -70,7 +75,8 @@ void xtensa_backtrace_user(struct pt_regs *regs, unsigned int depth,
 	 * valid windows.
 	 */
 	for (index = WSBITS - 1; (index > 0) && depth; depth--, index--)
-		if (windowstart & (1 << index)) {
+		if (windowstart & (1 << index))
+		{
 			/* Get the PC from a0 and a1. */
 			pc = MAKE_PC_FROM_RA(a0, pc);
 			/* Read a0 and a1 from the
@@ -83,7 +89,9 @@ void xtensa_backtrace_user(struct pt_regs *regs, unsigned int depth,
 			frame.sp = a1;
 
 			if (pc == 0 || pc >= TASK_SIZE || ufn(&frame, data))
+			{
 				return;
+			}
 		}
 
 	/* Step 2. */
@@ -91,11 +99,14 @@ void xtensa_backtrace_user(struct pt_regs *regs, unsigned int depth,
 	 * look through the stack.
 	 */
 	if (!depth)
+	{
 		return;
+	}
 
 	/* Start from the a1 register. */
 	/* a1 = regs->areg[1]; */
-	while (a0 != 0 && depth--) {
+	while (a0 != 0 && depth--)
+	{
 		struct frame_start frame_start;
 		/* Get the location for a1, a0 for the
 		 * previous frame from the current a1.
@@ -106,11 +117,16 @@ void xtensa_backtrace_user(struct pt_regs *regs, unsigned int depth,
 
 		/* Check if the region is OK to access. */
 		if (!access_ok(VERIFY_READ, psp, sizeof(frame_start)))
+		{
 			return;
+		}
+
 		/* Copy a1, a0 from user space stack frame. */
 		if (__copy_from_user_inatomic(&frame_start, psp,
-					      sizeof(frame_start)))
+									  sizeof(frame_start)))
+		{
 			return;
+		}
 
 		pc = MAKE_PC_FROM_RA(a0, pc);
 		a0 = frame_start.a0;
@@ -120,18 +136,20 @@ void xtensa_backtrace_user(struct pt_regs *regs, unsigned int depth,
 		frame.sp = a1;
 
 		if (pc == 0 || pc >= TASK_SIZE || ufn(&frame, data))
+		{
 			return;
+		}
 	}
 }
 EXPORT_SYMBOL(xtensa_backtrace_user);
 
 void xtensa_backtrace_kernel(struct pt_regs *regs, unsigned int depth,
-			     int (*kfn)(struct stackframe *frame, void *data),
-			     int (*ufn)(struct stackframe *frame, void *data),
-			     void *data)
+							 int (*kfn)(struct stackframe *frame, void *data),
+							 int (*ufn)(struct stackframe *frame, void *data),
+							 void *data)
 {
 	unsigned long pc = regs->depc > VALID_DOUBLE_EXCEPTION_ADDRESS ?
-		regs->depc : regs->pc;
+					   regs->depc : regs->pc;
 	unsigned long sp_start, sp_end;
 	unsigned long a0 = regs->areg[0];
 	unsigned long a1 = regs->areg[1];
@@ -145,7 +163,8 @@ void xtensa_backtrace_kernel(struct pt_regs *regs, unsigned int depth,
 	/* Read the stack frames one by one and create the PC
 	 * from the a0 and a1 registers saved there.
 	 */
-	while (a1 > sp_start && a1 < sp_end && depth--) {
+	while (a1 > sp_start && a1 < sp_end && depth--)
+	{
 		struct stackframe frame;
 		unsigned long *psp = (unsigned long *)a1;
 
@@ -153,16 +172,25 @@ void xtensa_backtrace_kernel(struct pt_regs *regs, unsigned int depth,
 		frame.sp = a1;
 
 		if (kernel_text_address(pc) && kfn(&frame, data))
+		{
 			return;
+		}
 
-		if (pc == (unsigned long)&common_exception_return) {
+		if (pc == (unsigned long)&common_exception_return)
+		{
 			regs = (struct pt_regs *)a1;
-			if (user_mode(regs)) {
+
+			if (user_mode(regs))
+			{
 				if (ufn == NULL)
+				{
 					return;
+				}
+
 				xtensa_backtrace_user(regs, depth, ufn, data);
 				return;
 			}
+
 			a0 = regs->areg[0];
 			a1 = regs->areg[1];
 			continue;
@@ -180,8 +208,8 @@ EXPORT_SYMBOL(xtensa_backtrace_kernel);
 #endif
 
 void walk_stackframe(unsigned long *sp,
-		int (*fn)(struct stackframe *frame, void *data),
-		void *data)
+					 int (*fn)(struct stackframe *frame, void *data),
+					 void *data)
 {
 	unsigned long a0, a1;
 	unsigned long sp_end;
@@ -191,7 +219,8 @@ void walk_stackframe(unsigned long *sp,
 
 	spill_registers();
 
-	while (a1 < sp_end) {
+	while (a1 < sp_end)
+	{
 		struct stackframe frame;
 
 		sp = (unsigned long *)a1;
@@ -200,19 +229,24 @@ void walk_stackframe(unsigned long *sp,
 		a1 = *(sp - 3);
 
 		if (a1 <= (unsigned long)sp)
+		{
 			break;
+		}
 
 		frame.pc = MAKE_PC_FROM_RA(a0, a1);
 		frame.sp = a1;
 
 		if (fn(&frame, data))
+		{
 			return;
+		}
 	}
 }
 
 #ifdef CONFIG_STACKTRACE
 
-struct stack_trace_data {
+struct stack_trace_data
+{
 	struct stack_trace *trace;
 	unsigned skip;
 };
@@ -222,12 +256,16 @@ static int stack_trace_cb(struct stackframe *frame, void *data)
 	struct stack_trace_data *trace_data = data;
 	struct stack_trace *trace = trace_data->trace;
 
-	if (trace_data->skip) {
+	if (trace_data->skip)
+	{
 		--trace_data->skip;
 		return 0;
 	}
+
 	if (!kernel_text_address(frame->pc))
+	{
 		return 0;
+	}
 
 	trace->entries[trace->nr_entries++] = frame->pc;
 	return trace->nr_entries >= trace->max_entries;
@@ -235,7 +273,8 @@ static int stack_trace_cb(struct stackframe *frame, void *data)
 
 void save_stack_trace_tsk(struct task_struct *task, struct stack_trace *trace)
 {
-	struct stack_trace_data trace_data = {
+	struct stack_trace_data trace_data =
+	{
 		.trace = trace,
 		.skip = trace->skip,
 	};
@@ -253,7 +292,8 @@ EXPORT_SYMBOL_GPL(save_stack_trace);
 
 #ifdef CONFIG_FRAME_POINTER
 
-struct return_addr_data {
+struct return_addr_data
+{
 	unsigned long addr;
 	unsigned skip;
 };
@@ -262,19 +302,25 @@ static int return_address_cb(struct stackframe *frame, void *data)
 {
 	struct return_addr_data *r = data;
 
-	if (r->skip) {
+	if (r->skip)
+	{
 		--r->skip;
 		return 0;
 	}
+
 	if (!kernel_text_address(frame->pc))
+	{
 		return 0;
+	}
+
 	r->addr = frame->pc;
 	return 1;
 }
 
 unsigned long return_address(unsigned level)
 {
-	struct return_addr_data r = {
+	struct return_addr_data r =
+	{
 		.skip = level + 1,
 	};
 	walk_stackframe(stack_pointer(NULL), return_address_cb, &r);

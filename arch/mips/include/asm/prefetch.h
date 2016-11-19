@@ -33,21 +33,21 @@
 
 #define Pref_Load			0
 #define Pref_Store			1
-						/* 2 and 3 are reserved */
+/* 2 and 3 are reserved */
 #define Pref_LoadStreamed		4
 #define Pref_StoreStreamed		5
 #define Pref_LoadRetained		6
 #define Pref_StoreRetained		7
-						/* 8 ... 24 are reserved */
+/* 8 ... 24 are reserved */
 #define Pref_WriteBackInvalidate	25
 #define Pref_PrepareForStore		30
 
 #ifdef __ASSEMBLY__
 
 	.macro	__pref hint addr
-#ifdef CONFIG_CPU_HAS_PREFETCH
-	pref	\hint, \addr
-#endif
+	#ifdef CONFIG_CPU_HAS_PREFETCH
+		pref	\hint, \addr
+	#endif
 	.endm
 
 	.macro	pref_load addr

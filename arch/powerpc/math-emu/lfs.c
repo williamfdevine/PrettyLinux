@@ -20,13 +20,15 @@ lfs(void *frD, void *ea)
 #endif
 
 	if (copy_from_user(&f, ea, sizeof(float)))
+	{
 		return -EFAULT;
+	}
 
 	FP_UNPACK_S(A, f);
 
 #ifdef DEBUG
 	printk("A: %ld %lu %ld (%ld) [%08lx]\n", A_s, A_f, A_e, A_c,
-	       *(unsigned long *)&f);
+		   *(unsigned long *)&f);
 #endif
 
 	FP_CONV(D, S, 2, 1, R, A);
@@ -35,10 +37,13 @@ lfs(void *frD, void *ea)
 	printk("R: %ld %lu %lu %ld (%ld)\n", R_s, R_f1, R_f0, R_e, R_c);
 #endif
 
-	if (R_c == FP_CLS_NAN) {
+	if (R_c == FP_CLS_NAN)
+	{
 		R_e = _FP_EXPMAX_D;
 		_FP_PACK_RAW_2_P(D, frD, R);
-	} else {
+	}
+	else
+	{
 		__FP_PACK_D(frD, R);
 	}
 

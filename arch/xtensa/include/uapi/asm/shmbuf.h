@@ -20,7 +20,8 @@
 #define _XTENSA_SHMBUF_H
 
 #if defined (__XTENSA_EL__)
-struct shmid64_ds {
+struct shmid64_ds
+{
 	struct ipc64_perm	shm_perm;	/* operation perms */
 	size_t			shm_segsz;	/* size of segment (bytes) */
 	__kernel_time_t		shm_atime;	/* last attach time */
@@ -36,7 +37,8 @@ struct shmid64_ds {
 	unsigned long		__unused5;
 };
 #elif defined (__XTENSA_EB__)
-struct shmid64_ds {
+struct shmid64_ds
+{
 	struct ipc64_perm	shm_perm;	/* operation perms */
 	size_t			shm_segsz;	/* size of segment (bytes) */
 	__kernel_time_t		shm_atime;	/* last attach time */
@@ -56,7 +58,8 @@ struct shmid64_ds {
 #endif
 
 
-struct shminfo64 {
+struct shminfo64
+{
 	unsigned long	shmmax;
 	unsigned long	shmmin;
 	unsigned long	shmmni;

@@ -40,7 +40,7 @@ static void se7722_irq_demux(struct irq_desc *desc)
 	mask = ioread16(se7722_irq_regs + IRQ01_STS_REG);
 
 	for_each_set_bit(bit, &mask, SE7722_FPGA_IRQ_NR)
-		generic_handle_irq(irq_linear_revmap(se7722_irq_domain, bit));
+	generic_handle_irq(irq_linear_revmap(se7722_irq_domain, bit));
 
 	chip->irq_unmask(data);
 }
@@ -50,16 +50,20 @@ static void __init se7722_domain_init(void)
 	int i;
 
 	se7722_irq_domain = irq_domain_add_linear(NULL, SE7722_FPGA_IRQ_NR,
-						  &irq_domain_simple_ops, NULL);
-	if (unlikely(!se7722_irq_domain)) {
+						&irq_domain_simple_ops, NULL);
+
+	if (unlikely(!se7722_irq_domain))
+	{
 		printk("Failed to get IRQ domain\n");
 		return;
 	}
 
-	for (i = 0; i < SE7722_FPGA_IRQ_NR; i++) {
+	for (i = 0; i < SE7722_FPGA_IRQ_NR; i++)
+	{
 		int irq = irq_create_mapping(se7722_irq_domain, i);
 
-		if (unlikely(irq == 0)) {
+		if (unlikely(irq == 0))
+		{
 			printk("Failed to allocate IRQ %d\n", i);
 			return;
 		}
@@ -75,9 +79,12 @@ static void __init se7722_gc_init(void)
 	irq_base = irq_linear_revmap(se7722_irq_domain, 0);
 
 	gc = irq_alloc_generic_chip(DRV_NAME, 1, irq_base, se7722_irq_regs,
-				    handle_level_irq);
+								handle_level_irq);
+
 	if (unlikely(!gc))
+	{
 		return;
+	}
 
 	ct = gc->chip_types;
 	ct->chip.irq_mask = irq_gc_mask_set_bit;
@@ -86,8 +93,8 @@ static void __init se7722_gc_init(void)
 	ct->regs.mask = IRQ01_MASK_REG;
 
 	irq_setup_generic_chip(gc, IRQ_MSK(SE7722_FPGA_IRQ_NR),
-			       IRQ_GC_INIT_MASK_CACHE,
-			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+						   IRQ_GC_INIT_MASK_CACHE,
+						   IRQ_NOREQUEST | IRQ_NOPROBE, 0);
 
 	irq_set_chained_handler(IRQ0_IRQ, se7722_irq_demux);
 	irq_set_irq_type(IRQ0_IRQ, IRQ_TYPE_LEVEL_LOW);
@@ -102,7 +109,9 @@ static void __init se7722_gc_init(void)
 void __init init_se7722_IRQ(void)
 {
 	se7722_irq_regs = ioremap(IRQ01_BASE_ADDR, SZ_16);
-	if (unlikely(!se7722_irq_regs)) {
+
+	if (unlikely(!se7722_irq_regs))
+	{
 		printk("Failed to remap IRQ01 regs\n");
 		return;
 	}

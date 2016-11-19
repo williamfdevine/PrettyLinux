@@ -15,7 +15,8 @@
 
 #include <mach/smc.h>
 
-static struct smc_timing flash_timing __initdata = {
+static struct smc_timing flash_timing __initdata =
+{
 	.ncs_read_setup		= 0,
 	.nrd_setup		= 15,
 	.ncs_write_setup	= 0,
@@ -30,7 +31,8 @@ static struct smc_timing flash_timing __initdata = {
 	.write_cycle		= 100,
 };
 
-static struct smc_config flash_config __initdata = {
+static struct smc_config flash_config __initdata =
+{
 	.bus_width		= 2,
 	.nrd_controlled		= 1,
 	.nwe_controlled		= 1,
@@ -39,7 +41,8 @@ static struct smc_config flash_config __initdata = {
 
 /* system flash definition */
 
-static struct mtd_partition flash_parts_system[] = {
+static struct mtd_partition flash_parts_system[] =
+{
 	{
 		.name           = "u-boot",
 		.offset         = 0x00000000,
@@ -64,19 +67,22 @@ static struct mtd_partition flash_parts_system[] = {
 	},
 };
 
-static struct physmap_flash_data flash_system = {
+static struct physmap_flash_data flash_system =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(flash_parts_system),
 	.parts		= flash_parts_system,
 };
 
-static struct resource flash_resource_system = {
+static struct resource flash_resource_system =
+{
 	.start		= 0x00000000,
 	.end		= 0x007fffff,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device flash_device_system = {
+static struct platform_device flash_device_system =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.resource	= &flash_resource_system,
@@ -88,7 +94,8 @@ static struct platform_device flash_device_system = {
 
 /* data flash definition */
 
-static struct mtd_partition flash_parts_data[] = {
+static struct mtd_partition flash_parts_data[] =
+{
 	{
 		.name		= "data",
 		.offset		= 0x00000000,
@@ -96,19 +103,22 @@ static struct mtd_partition flash_parts_data[] = {
 	},
 };
 
-static struct physmap_flash_data flash_data = {
+static struct physmap_flash_data flash_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(flash_parts_data),
 	.parts		= flash_parts_data,
 };
 
-static struct resource flash_resource_data = {
+static struct resource flash_resource_data =
+{
 	.start		= 0x08000000,
 	.end		= 0x087fffff,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device flash_device_data = {
+static struct platform_device flash_device_data =
+{
 	.name		= "physmap-flash",
 	.id		= 1,
 	.resource	= &flash_resource_data,
@@ -125,12 +135,17 @@ static int __init mimc200_flash_init(void)
 
 	smc_set_timing(&flash_config, &flash_timing);
 	ret = smc_set_configuration(0, &flash_config);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "mimc200: failed to set 'System' NOR flash timing\n");
 		return ret;
 	}
+
 	ret = smc_set_configuration(1, &flash_config);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "mimc200: failed to set 'Data' NOR flash timing\n");
 		return ret;
 	}

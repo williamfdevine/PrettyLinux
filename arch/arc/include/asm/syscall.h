@@ -18,9 +18,13 @@ static inline long
 syscall_get_nr(struct task_struct *task, struct pt_regs *regs)
 {
 	if (user_mode(regs) && in_syscall(regs))
+	{
 		return regs->r8;
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 static inline void
@@ -44,9 +48,9 @@ syscall_get_return_value(struct task_struct *task, struct pt_regs *regs)
 
 static inline void
 syscall_set_return_value(struct task_struct *task, struct pt_regs *regs,
-			 int error, long val)
+						 int error, long val)
 {
-	regs->r0 = (long) error ?: val;
+	regs->r0 = (long) error ? : val;
 }
 
 /*
@@ -55,14 +59,15 @@ syscall_set_return_value(struct task_struct *task, struct pt_regs *regs,
  */
 static inline void
 syscall_get_arguments(struct task_struct *task, struct pt_regs *regs,
-		      unsigned int i, unsigned int n, unsigned long *args)
+					  unsigned int i, unsigned int n, unsigned long *args)
 {
 	unsigned long *inside_ptregs = &(regs->r0);
 	inside_ptregs -= i;
 
 	BUG_ON((i + n) > 6);
 
-	while (n--) {
+	while (n--)
+	{
 		args[i++] = (*inside_ptregs);
 		inside_ptregs--;
 	}

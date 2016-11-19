@@ -9,9 +9,9 @@
 #define O_DSYNC		0x2000	/* used to be O_SYNC, see below */
 #define O_NONBLOCK	0x4000
 #if defined(__sparc__) && defined(__arch64__)
-#define O_NDELAY	0x0004
+	#define O_NDELAY	0x0004
 #else
-#define O_NDELAY	(0x0004 | O_NONBLOCK)
+	#define O_NDELAY	(0x0004 | O_NONBLOCK)
 #endif
 #define O_NOCTTY	0x8000	/* not fcntl */
 #define O_LARGEFILE	0x40000

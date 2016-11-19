@@ -36,7 +36,8 @@ static void resetFPA11(void)
 	FPA11 *fpa11 = GET_FPA11();
 
 	/* initialize the register type array */
-	for (i = 0; i <= 7; i++) {
+	for (i = 0; i <= 7; i++)
+	{
 		fpa11->fType[i] = typeNone;
 	}
 
@@ -46,38 +47,42 @@ static void resetFPA11(void)
 
 int8 SetRoundingMode(const unsigned int opcode)
 {
-	switch (opcode & MASK_ROUNDING_MODE) {
-	default:
-	case ROUND_TO_NEAREST:
-		return float_round_nearest_even;
+	switch (opcode & MASK_ROUNDING_MODE)
+	{
+		default:
+		case ROUND_TO_NEAREST:
+			return float_round_nearest_even;
 
-	case ROUND_TO_PLUS_INFINITY:
-		return float_round_up;
+		case ROUND_TO_PLUS_INFINITY:
+			return float_round_up;
 
-	case ROUND_TO_MINUS_INFINITY:
-		return float_round_down;
+		case ROUND_TO_MINUS_INFINITY:
+			return float_round_down;
 
-	case ROUND_TO_ZERO:
-		return float_round_to_zero;
+		case ROUND_TO_ZERO:
+			return float_round_to_zero;
 	}
 }
 
 int8 SetRoundingPrecision(const unsigned int opcode)
 {
 #ifdef CONFIG_FPE_NWFPE_XP
-	switch (opcode & MASK_ROUNDING_PRECISION) {
-	case ROUND_SINGLE:
-		return 32;
 
-	case ROUND_DOUBLE:
-		return 64;
+	switch (opcode & MASK_ROUNDING_PRECISION)
+	{
+		case ROUND_SINGLE:
+			return 32;
 
-	case ROUND_EXTENDED:
-		return 80;
+		case ROUND_DOUBLE:
+			return 64;
 
-	default:
-		return 80;
+		case ROUND_EXTENDED:
+			return 80;
+
+		default:
+			return 80;
 	}
+
 #endif
 	return 80;
 }
@@ -88,7 +93,7 @@ void nwfpe_init_fpa(union fp_state *fp)
 #ifdef NWFPE_DEBUG
 	printk("NWFPE: setting up state.\n");
 #endif
- 	memset(fpa11, 0, sizeof(FPA11));
+	memset(fpa11, 0, sizeof(FPA11));
 	resetFPA11();
 	fpa11->initflag = 1;
 }
@@ -102,21 +107,30 @@ unsigned int EmulateAll(unsigned int opcode)
 	printk("NWFPE: emulating opcode %08x\n", opcode);
 #endif
 	code = opcode & 0x00000f00;
-	if (code == 0x00000100 || code == 0x00000200) {
+
+	if (code == 0x00000100 || code == 0x00000200)
+	{
 		/* For coprocessor 1 or 2 (FPA11) */
 		code = opcode & 0x0e000000;
-		if (code == 0x0e000000) {
-			if (opcode & 0x00000010) {
+
+		if (code == 0x0e000000)
+		{
+			if (opcode & 0x00000010)
+			{
 				/* Emulate conversion opcodes. */
 				/* Emulate register transfer opcodes. */
 				/* Emulate comparison opcodes. */
 				return EmulateCPRT(opcode);
-			} else {
+			}
+			else
+			{
 				/* Emulate monadic arithmetic opcodes. */
 				/* Emulate dyadic arithmetic opcodes. */
 				return EmulateCPDO(opcode);
 			}
-		} else if (code == 0x0c000000) {
+		}
+		else if (code == 0x0c000000)
+		{
 			/* Emulate load/store opcodes. */
 			/* Emulate load/store multiple opcodes. */
 			return EmulateCPDT(opcode);

@@ -80,9 +80,9 @@ static inline void __init mpc83xx_qe_init_IRQ(void) {}
 #endif /* CONFIG_QUICC_ENGINE */
 
 #ifdef CONFIG_PCI
-extern void mpc83xx_setup_pci(void);
+	extern void mpc83xx_setup_pci(void);
 #else
-#define mpc83xx_setup_pci()	do {} while (0)
+	#define mpc83xx_setup_pci()	do {} while (0)
 #endif
 
 extern int mpc83xx_declare_of_platform_devices(void);

@@ -26,7 +26,8 @@
 
 u16 pm44xx_errata;
 
-struct power_state {
+struct power_state
+{
 	struct powerdomain *pwrdm;
 	u32 next_state;
 	u32 next_logic_state;
@@ -42,7 +43,8 @@ struct power_state {
  * @from:	from clockdomain
  * @to:		to clockdomain
   */
-struct static_dep_map {
+struct static_dep_map
+{
 	const char *from;
 	const char *to;
 };
@@ -59,13 +61,15 @@ static int omap4_pm_suspend(void)
 	u32 cpu_id = smp_processor_id();
 
 	/* Save current powerdomain state */
-	list_for_each_entry(pwrst, &pwrst_list, node) {
+	list_for_each_entry(pwrst, &pwrst_list, node)
+	{
 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
 		pwrst->saved_logic_state = pwrdm_read_logic_retst(pwrst->pwrdm);
 	}
 
 	/* Set targeted power domain states by suspend */
-	list_for_each_entry(pwrst, &pwrst_list, node) {
+	list_for_each_entry(pwrst, &pwrst_list, node)
+	{
 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
 		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->next_logic_state);
 	}
@@ -82,17 +86,23 @@ static int omap4_pm_suspend(void)
 	omap4_enter_lowpower(cpu_id, cpu_suspend_state);
 
 	/* Restore next powerdomain state */
-	list_for_each_entry(pwrst, &pwrst_list, node) {
+	list_for_each_entry(pwrst, &pwrst_list, node)
+	{
 		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
-		if (state > pwrst->next_state) {
+
+		if (state > pwrst->next_state)
+		{
 			pr_info("Powerdomain (%s) didn't enter target state %d\n",
-				pwrst->pwrdm->name, pwrst->next_state);
+					pwrst->pwrdm->name, pwrst->next_state);
 			ret = -1;
 		}
+
 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
 		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->saved_logic_state);
 	}
-	if (ret) {
+
+	if (ret)
+	{
 		pr_crit("Could not enter target state in pm_suspend\n");
 		/*
 		 * OMAP4 chip PM currently works only with certain (newer)
@@ -103,7 +113,9 @@ static int omap4_pm_suspend(void)
 		 * http://www.spinics.net/lists/arm-kernel/msg218641.html
 		 */
 		pr_warn("A possible cause could be an old bootloader - try u-boot >= v2012.07\n");
-	} else {
+	}
+	else
+	{
 		pr_info("Successfully put all powerdomains to target state\n");
 	}
 
@@ -118,28 +130,37 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
 	struct power_state *pwrst;
 
 	if (!pwrdm->pwrsts)
+	{
 		return 0;
+	}
 
 	/*
 	 * Skip CPU0 and CPU1 power domains. CPU1 is programmed
 	 * through hotplug path and CPU0 explicitly programmed
 	 * further down in the code path
 	 */
-	if (!strncmp(pwrdm->name, "cpu", 3)) {
+	if (!strncmp(pwrdm->name, "cpu", 3))
+	{
 		if (IS_PM44XX_ERRATUM(PM_OMAP4_CPU_OSWR_DISABLE))
+		{
 			cpu_suspend_state = PWRDM_POWER_RET;
+		}
+
 		return 0;
 	}
 
 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
+
 	if (!pwrst)
+	{
 		return -ENOMEM;
+	}
 
 	pwrst->pwrdm = pwrdm;
 	pwrst->next_state = pwrdm_get_valid_lp_state(pwrdm, false,
-						     PWRDM_POWER_RET);
+						PWRDM_POWER_RET);
 	pwrst->next_logic_state = pwrdm_get_valid_lp_state(pwrdm, true,
-							   PWRDM_POWER_OFF);
+							  PWRDM_POWER_OFF);
 
 	list_add(&pwrst->node, &pwrst_list);
 
@@ -168,7 +189,8 @@ static void omap_default_idle(void)
  * from the 32K counter. The BUG applies for GPTIMER1 and WDT2 which
  * are part of L4 wakeup clockdomain.
  */
-static const struct static_dep_map omap4_static_dep_map[] = {
+static const struct static_dep_map omap4_static_dep_map[] =
+{
 	{.from = "mpuss_clkdm", .to = "l3_emif_clkdm"},
 	{.from = "mpuss_clkdm", .to = "l3_1_clkdm"},
 	{.from = "mpuss_clkdm", .to = "l3_2_clkdm"},
@@ -177,7 +199,8 @@ static const struct static_dep_map omap4_static_dep_map[] = {
 	{.from  = NULL} /* TERMINATION */
 };
 
-static const struct static_dep_map omap5_dra7_static_dep_map[] = {
+static const struct static_dep_map omap5_dra7_static_dep_map[] =
+{
 	{.from = "mpu_clkdm", .to = "emif_clkdm"},
 	{.from  = NULL} /* TERMINATION */
 };
@@ -192,20 +215,28 @@ static inline int omap4plus_init_static_deps(const struct static_dep_map *map)
 	struct clockdomain *from, *to;
 
 	if (!map)
+	{
 		return 0;
+	}
 
-	while (map->from) {
+	while (map->from)
+	{
 		from = clkdm_lookup(map->from);
 		to = clkdm_lookup(map->to);
-		if (!from || !to) {
+
+		if (!from || !to)
+		{
 			pr_err("Failed lookup %s or %s for wakeup dependency\n",
-			       map->from, map->to);
+				   map->from, map->to);
 			return -EINVAL;
 		}
+
 		ret = clkdm_add_wkdep(from, to);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("Failed to add %s -> %s wakeup dependency(%d)\n",
-			       map->from, map->to, ret);
+				   map->from, map->to, ret);
 			return ret;
 		}
 
@@ -223,10 +254,14 @@ static inline int omap4plus_init_static_deps(const struct static_dep_map *map)
 int __init omap4_pm_init_early(void)
 {
 	if (cpu_is_omap446x())
+	{
 		pm44xx_errata |= PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD;
+	}
 
 	if (soc_is_omap54xx() || soc_is_dra7xx())
+	{
 		pm44xx_errata |= PM_OMAP4_CPU_OSWR_DISABLE;
+	}
 
 	return 0;
 }
@@ -242,7 +277,8 @@ int __init omap4_pm_init(void)
 {
 	int ret = 0;
 
-	if (omap_rev() == OMAP4430_REV_ES1_0) {
+	if (omap_rev() == OMAP4430_REV_ES1_0)
+	{
 		WARN(1, "Power Management not supported on OMAP4430 ES1.0\n");
 		return -ENODEV;
 	}
@@ -256,26 +292,37 @@ int __init omap4_pm_init(void)
 	 * http://www.spinics.net/lists/arm-kernel/msg218641.html
 	 */
 	if (cpu_is_omap44xx())
+	{
 		pr_warn("OMAP4 PM: u-boot >= v2012.07 is required for full PM support\n");
+	}
 
 	ret = pwrdm_for_each(pwrdms_setup, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to setup powerdomains.\n");
 		goto err2;
 	}
 
 	if (cpu_is_omap44xx())
+	{
 		ret = omap4plus_init_static_deps(omap4_static_dep_map);
+	}
 	else if (soc_is_omap54xx() || soc_is_dra7xx())
+	{
 		ret = omap4plus_init_static_deps(omap5_dra7_static_dep_map);
+	}
 
-	if (ret) {
+	if (ret)
+	{
 		pr_err("Failed to initialise static dependencies.\n");
 		goto err2;
 	}
 
 	ret = omap4_mpuss_init();
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to initialise OMAP4 MPUSS\n");
 		goto err2;
 	}
@@ -288,7 +335,9 @@ int __init omap4_pm_init(void)
 	arm_pm_idle = omap_default_idle;
 
 	if (cpu_is_omap44xx())
+	{
 		omap4_idle_init();
+	}
 
 err2:
 	return ret;

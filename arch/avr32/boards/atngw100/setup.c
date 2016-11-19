@@ -31,7 +31,8 @@
 #include <mach/portmux.h>
 
 /* Oscillator frequencies. These are board-specific */
-unsigned long at32_board_osc_rates[3] = {
+unsigned long at32_board_osc_rates[3] =
+{
 	[0] = 32768,	/* 32.768 kHz on RTC osc */
 	[1] = 20000000,	/* 20 MHz on osc0 */
 	[2] = 12000000,	/* 12 MHz on osc1 */
@@ -51,7 +52,8 @@ unsigned long at32_board_osc_rates[3] = {
 #include <linux/mtd/partitions.h>
 #include <mach/smc.h>
 
-static struct smc_timing nand_timing __initdata = {
+static struct smc_timing nand_timing __initdata =
+{
 	.ncs_read_setup		= 0,
 	.nrd_setup		= 10,
 	.ncs_write_setup	= 0,
@@ -72,7 +74,8 @@ static struct smc_timing nand_timing __initdata = {
 	.nwe_recover		= 50,
 };
 
-static struct smc_config nand_config __initdata = {
+static struct smc_config nand_config __initdata =
+{
 	.bus_width		= 2,
 	.nrd_controlled		= 1,
 	.nwe_controlled		= 1,
@@ -82,7 +85,8 @@ static struct smc_config nand_config __initdata = {
 	.tdf_mode		= 0,
 };
 
-static struct mtd_partition nand_partitions[] = {
+static struct mtd_partition nand_partitions[] =
+{
 	{
 		.name		= "main",
 		.offset		= 0x00000000,
@@ -91,7 +95,8 @@ static struct mtd_partition nand_partitions[] = {
 };
 
 
-static struct atmel_nand_data atngw100mkii_nand_data __initdata = {
+static struct atmel_nand_data atngw100mkii_nand_data __initdata =
+{
 	.cle		= 21,
 	.ale		= 22,
 	.rdy_pin	= GPIO_PIN_PB(28),
@@ -106,13 +111,15 @@ static struct atmel_nand_data atngw100mkii_nand_data __initdata = {
 /* Initialized by bootloader-specific startup code. */
 struct tag *bootloader_tags __initdata;
 
-struct eth_addr {
+struct eth_addr
+{
 	u8 addr[6];
 };
 static struct eth_addr __initdata hw_addr[2];
 static struct macb_platform_data __initdata eth_data[2];
 
-static struct spi_board_info spi0_board_info[] __initdata = {
+static struct spi_board_info spi0_board_info[] __initdata =
+{
 	{
 		.modalias	= "mtd_dataflash",
 		.max_speed_hz	= 8000000,
@@ -120,7 +127,8 @@ static struct spi_board_info spi0_board_info[] __initdata = {
 	},
 };
 
-static struct mci_platform_data __initdata mci0_data = {
+static struct mci_platform_data __initdata mci0_data =
+{
 	.slot[0] = {
 		.bus_width	= 4,
 #if defined(CONFIG_BOARD_ATNGW100_MKII)
@@ -133,7 +141,8 @@ static struct mci_platform_data __initdata mci0_data = {
 	},
 };
 
-static struct usba_platform_data atngw100_usba_data __initdata = {
+static struct usba_platform_data atngw100_usba_data __initdata =
+{
 #if defined(CONFIG_BOARD_ATNGW100_MKII)
 	.vbus_pin	= GPIO_PIN_PE(26),
 #else
@@ -154,9 +163,10 @@ static int __init parse_tag_ethernet(struct tag *tag)
 	int i;
 
 	i = tag->u.ethernet.mac_index;
+
 	if (i < ARRAY_SIZE(hw_addr))
 		memcpy(hw_addr[i].addr, tag->u.ethernet.hw_address,
-		       sizeof(hw_addr[i].addr));
+			   sizeof(hw_addr[i].addr));
 
 	return 0;
 }
@@ -170,13 +180,21 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	struct clk *pclk;
 
 	if (!res)
+	{
 		return;
+	}
+
 	if (pdev->id >= ARRAY_SIZE(hw_addr))
+	{
 		return;
+	}
 
 	addr = hw_addr[pdev->id].addr;
+
 	if (!is_valid_ether_addr(addr))
+	{
 		return;
+	}
 
 	/*
 	 * Since this is board-specific code, we'll cheat and use the
@@ -185,12 +203,15 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	 */
 	regs = (void __iomem __force *)res->start;
 	pclk = clk_get(&pdev->dev, "pclk");
+
 	if (IS_ERR(pclk))
+	{
 		return;
+	}
 
 	clk_enable(pclk);
 	__raw_writel((addr[3] << 24) | (addr[2] << 16)
-		     | (addr[1] << 8) | addr[0], regs + 0x98);
+				 | (addr[1] << 8) | addr[0], regs + 0x98);
 	__raw_writel((addr[5] << 8) | addr[4], regs + 0x9c);
 	clk_disable(pclk);
 	clk_put(pclk);
@@ -202,20 +223,24 @@ void __init setup_board(void)
 	at32_setup_serial_console(0);
 }
 
-static const struct gpio_led ngw_leds[] = {
-	{ .name = "sys", .gpio = GPIO_PIN_PA(16), .active_low = 1,
+static const struct gpio_led ngw_leds[] =
+{
+	{
+		.name = "sys", .gpio = GPIO_PIN_PA(16), .active_low = 1,
 		.default_trigger = "heartbeat",
 	},
 	{ .name = "a", .gpio = GPIO_PIN_PA(19), .active_low = 1, },
 	{ .name = "b", .gpio = GPIO_PIN_PE(19), .active_low = 1, },
 };
 
-static const struct gpio_led_platform_data ngw_led_data = {
+static const struct gpio_led_platform_data ngw_led_data =
+{
 	.num_leds =	ARRAY_SIZE(ngw_leds),
 	.leds =		(void *) ngw_leds,
 };
 
-static struct platform_device ngw_gpio_leds = {
+static struct platform_device ngw_gpio_leds =
+{
 	.name =		"leds-gpio",
 	.id =		-1,
 	.dev = {
@@ -223,7 +248,8 @@ static struct platform_device ngw_gpio_leds = {
 	}
 };
 
-static struct i2c_gpio_platform_data i2c_gpio_data = {
+static struct i2c_gpio_platform_data i2c_gpio_data =
+{
 	.sda_pin		= GPIO_PIN_PA(6),
 	.scl_pin		= GPIO_PIN_PA(7),
 	.sda_is_open_drain	= 1,
@@ -231,7 +257,8 @@ static struct i2c_gpio_platform_data i2c_gpio_data = {
 	.udelay			= 2,	/* close to 100 kHz */
 };
 
-static struct platform_device i2c_gpio_device = {
+static struct platform_device i2c_gpio_device =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev		= {
@@ -239,7 +266,8 @@ static struct platform_device i2c_gpio_device = {
 	},
 };
 
-static struct i2c_board_info __initdata i2c_info[] = {
+static struct i2c_board_info __initdata i2c_info[] =
+{
 	/* NOTE:  original ATtiny24 firmware is at address 0x0b */
 };
 
@@ -270,10 +298,12 @@ static int __init atngw100_init(void)
 	at32_add_device_mci(0, &mci0_data);
 	at32_add_device_usba(0, &atngw100_usba_data);
 
-	for (i = 0; i < ARRAY_SIZE(ngw_leds); i++) {
+	for (i = 0; i < ARRAY_SIZE(ngw_leds); i++)
+	{
 		at32_select_gpio(ngw_leds[i].gpio,
-				AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
+						 AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
 	}
+
 	platform_device_register(&ngw_gpio_leds);
 
 	/* all these i2c/smbus pins should have external pullups for
@@ -287,9 +317,9 @@ static int __init atngw100_init(void)
 	at32_select_periph(GPIO_PIOB_BASE, 1 << 28, 0, AT32_GPIOF_PULLUP);
 #endif
 	at32_select_gpio(i2c_gpio_data.sda_pin,
-		AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
+					 AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
 	at32_select_gpio(i2c_gpio_data.scl_pin,
-		AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
+					 AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
 	platform_device_register(&i2c_gpio_device);
 	i2c_register_board_info(0, i2c_info, ARRAY_SIZE(i2c_info));
 

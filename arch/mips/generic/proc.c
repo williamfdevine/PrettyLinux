@@ -18,12 +18,18 @@ const char *get_system_type(void)
 	int err;
 
 	err = of_property_read_string(of_root, "model", &str);
+
 	if (!err)
+	{
 		return str;
+	}
 
 	err = of_property_read_string_index(of_root, "compatible", 0, &str);
+
 	if (!err)
+	{
 		return str;
+	}
 
 	return "Unknown";
 }

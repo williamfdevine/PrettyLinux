@@ -31,9 +31,11 @@
 #undef __SYSCALL_I386
 #define __SYSCALL_I386(nr, sym, qual) [ nr ] = sym,
 
-extern asmlinkage long sys_ni_syscall(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long);
+extern asmlinkage long sys_ni_syscall(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long,
+									  unsigned long);
 
-const sys_call_ptr_t sys_call_table[] ____cacheline_aligned = {
+const sys_call_ptr_t sys_call_table[] ____cacheline_aligned =
+{
 	/*
 	 * Smells like a compiler bug -- it doesn't work
 	 * when the & below is removed.

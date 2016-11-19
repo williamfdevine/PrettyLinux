@@ -10,60 +10,60 @@
 
 /* Chip type */
 #if defined(CONFIG_CHIP_XNUX_MP) || defined(CONFIG_CHIP_XNUX2_MP)
-#include <asm/m32r_mp_fpga.h>
+	#include <asm/m32r_mp_fpga.h>
 #elif defined(CONFIG_CHIP_VDEC2) || defined(CONFIG_CHIP_XNUX2) \
 	|| defined(CONFIG_CHIP_M32700) || defined(CONFIG_CHIP_M32102) \
-        || defined(CONFIG_CHIP_OPSP) || defined(CONFIG_CHIP_M32104)
-#include <asm/m32102.h>
+	|| defined(CONFIG_CHIP_OPSP) || defined(CONFIG_CHIP_M32104)
+	#include <asm/m32102.h>
 #endif
 
 /* Platform type */
 #if defined(CONFIG_PLAT_M32700UT)
-#include <asm/m32700ut/m32700ut_pld.h>
-#include <asm/m32700ut/m32700ut_lan.h>
-#include <asm/m32700ut/m32700ut_lcd.h>
-/* for ei_handler:linux/arch/m32r/kernel/entry.S */
-#define M32R_INT1ICU_ISTS	PLD_ICUISTS
-#define M32R_INT1ICU_IRQ_BASE	M32700UT_PLD_IRQ_BASE
-#define M32R_INT0ICU_ISTS	M32700UT_LAN_ICUISTS
-#define M32R_INT0ICU_IRQ_BASE	M32700UT_LAN_PLD_IRQ_BASE
-#define M32R_INT2ICU_ISTS	M32700UT_LCD_ICUISTS
-#define M32R_INT2ICU_IRQ_BASE	M32700UT_LCD_PLD_IRQ_BASE
+	#include <asm/m32700ut/m32700ut_pld.h>
+	#include <asm/m32700ut/m32700ut_lan.h>
+	#include <asm/m32700ut/m32700ut_lcd.h>
+	/* for ei_handler:linux/arch/m32r/kernel/entry.S */
+	#define M32R_INT1ICU_ISTS	PLD_ICUISTS
+	#define M32R_INT1ICU_IRQ_BASE	M32700UT_PLD_IRQ_BASE
+	#define M32R_INT0ICU_ISTS	M32700UT_LAN_ICUISTS
+	#define M32R_INT0ICU_IRQ_BASE	M32700UT_LAN_PLD_IRQ_BASE
+	#define M32R_INT2ICU_ISTS	M32700UT_LCD_ICUISTS
+	#define M32R_INT2ICU_IRQ_BASE	M32700UT_LCD_PLD_IRQ_BASE
 #endif  /* CONFIG_PLAT_M32700UT */
 
 #if defined(CONFIG_PLAT_OPSPUT)
-#include <asm/opsput/opsput_pld.h>
-#include <asm/opsput/opsput_lan.h>
-#include <asm/opsput/opsput_lcd.h>
-/* for ei_handler:linux/arch/m32r/kernel/entry.S */
-#define M32R_INT1ICU_ISTS	PLD_ICUISTS
-#define M32R_INT1ICU_IRQ_BASE	OPSPUT_PLD_IRQ_BASE
-#define M32R_INT0ICU_ISTS	OPSPUT_LAN_ICUISTS
-#define M32R_INT0ICU_IRQ_BASE	OPSPUT_LAN_PLD_IRQ_BASE
-#define M32R_INT2ICU_ISTS	OPSPUT_LCD_ICUISTS
-#define M32R_INT2ICU_IRQ_BASE	OPSPUT_LCD_PLD_IRQ_BASE
+	#include <asm/opsput/opsput_pld.h>
+	#include <asm/opsput/opsput_lan.h>
+	#include <asm/opsput/opsput_lcd.h>
+	/* for ei_handler:linux/arch/m32r/kernel/entry.S */
+	#define M32R_INT1ICU_ISTS	PLD_ICUISTS
+	#define M32R_INT1ICU_IRQ_BASE	OPSPUT_PLD_IRQ_BASE
+	#define M32R_INT0ICU_ISTS	OPSPUT_LAN_ICUISTS
+	#define M32R_INT0ICU_IRQ_BASE	OPSPUT_LAN_PLD_IRQ_BASE
+	#define M32R_INT2ICU_ISTS	OPSPUT_LCD_ICUISTS
+	#define M32R_INT2ICU_IRQ_BASE	OPSPUT_LCD_PLD_IRQ_BASE
 #endif  /* CONFIG_PLAT_OPSPUT */
 
 #if defined(CONFIG_PLAT_MAPPI2)
-#include <asm/mappi2/mappi2_pld.h>
+	#include <asm/mappi2/mappi2_pld.h>
 #endif	/* CONFIG_PLAT_MAPPI2 */
 
 #if defined(CONFIG_PLAT_MAPPI3)
-#include <asm/mappi3/mappi3_pld.h>
+	#include <asm/mappi3/mappi3_pld.h>
 #endif	/* CONFIG_PLAT_MAPPI3 */
 
 #if defined(CONFIG_PLAT_USRV)
-#include <asm/m32700ut/m32700ut_pld.h>
-/* for ei_handler:linux/arch/m32r/kernel/entry.S */
-#define M32R_INT1ICU_ISTS	PLD_ICUISTS
-#define M32R_INT1ICU_IRQ_BASE	M32700UT_PLD_IRQ_BASE
+	#include <asm/m32700ut/m32700ut_pld.h>
+	/* for ei_handler:linux/arch/m32r/kernel/entry.S */
+	#define M32R_INT1ICU_ISTS	PLD_ICUISTS
+	#define M32R_INT1ICU_IRQ_BASE	M32700UT_PLD_IRQ_BASE
 #endif
 
 #if defined(CONFIG_PLAT_M32104UT)
-#include <asm/m32104ut/m32104ut_pld.h>
-/* for ei_handler:linux/arch/m32r/kernel/entry.S */
-#define M32R_INT1ICU_ISTS	PLD_ICUISTS
-#define M32R_INT1ICU_IRQ_BASE	M32104UT_PLD_IRQ_BASE
+	#include <asm/m32104ut/m32104ut_pld.h>
+	/* for ei_handler:linux/arch/m32r/kernel/entry.S */
+	#define M32R_INT1ICU_ISTS	PLD_ICUISTS
+	#define M32R_INT1ICU_IRQ_BASE	M32104UT_PLD_IRQ_BASE
 #endif  /* CONFIG_PLAT_M32104 */
 
 /*
@@ -145,9 +145,9 @@
 
 #include <asm/page.h>
 #ifdef CONFIG_MMU
-#define NONCACHE_OFFSET  (__PAGE_OFFSET + 0x20000000)
+	#define NONCACHE_OFFSET  (__PAGE_OFFSET + 0x20000000)
 #else
-#define NONCACHE_OFFSET  __PAGE_OFFSET
+	#define NONCACHE_OFFSET  __PAGE_OFFSET
 #endif /* CONFIG_MMU */
 
 #define M32R_ICU_ISTS_ADDR  M32R_ICU_ISTS_PORTL+NONCACHE_OFFSET

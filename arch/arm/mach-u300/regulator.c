@@ -40,14 +40,22 @@ void u300_pm_poweroff(void)
 	sigset_t old, all;
 
 	sigfillset(&all);
-	if (!sigprocmask(SIG_BLOCK, &all, &old)) {
+
+	if (!sigprocmask(SIG_BLOCK, &all, &old))
+	{
 		/* Disable LDO D to shut down the system */
 		if (main_power_15)
+		{
 			regulator_disable(main_power_15);
+		}
 		else
+		{
 			pr_err("regulator not available to shut down system\n");
+		}
+
 		(void) sigprocmask(SIG_SETMASK, &old, NULL);
 	}
+
 	return;
 }
 
@@ -64,24 +72,33 @@ static int __init __u300_init_boardpower(struct platform_device *pdev)
 	pr_info("U300: setting up board power\n");
 
 	syscon_np = of_parse_phandle(np, "syscon", 0);
-	if (!syscon_np) {
+
+	if (!syscon_np)
+	{
 		pr_crit("U300: no syscon node\n");
 		return -ENODEV;
 	}
+
 	regmap = syscon_node_to_regmap(syscon_np);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		pr_crit("U300: could not locate syscon regmap\n");
 		return PTR_ERR(regmap);
 	}
 
 	main_power_15 = regulator_get(&pdev->dev, "vana15");
 
-	if (IS_ERR(main_power_15)) {
+	if (IS_ERR(main_power_15))
+	{
 		pr_err("could not get vana15");
 		return PTR_ERR(main_power_15);
 	}
+
 	err = regulator_enable(main_power_15);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("could not enable vana15\n");
 		return err;
 	}
@@ -95,7 +112,7 @@ static int __init __u300_init_boardpower(struct platform_device *pdev)
 	 */
 	pr_info("U300: disable system controller pull-up\n");
 	regmap_update_bits(regmap, U300_SYSCON_PMCR,
-			   U300_SYSCON_PMCR_DCON_ENABLE, 0);
+					   U300_SYSCON_PMCR_DCON_ENABLE, 0);
 
 	/* Register globally exported PM poweroff hook */
 	pm_power_off = u300_pm_poweroff;
@@ -108,12 +125,14 @@ static int __init s365_board_probe(struct platform_device *pdev)
 	return __u300_init_boardpower(pdev);
 }
 
-static const struct of_device_id s365_board_match[] = {
+static const struct of_device_id s365_board_match[] =
+{
 	{ .compatible = "stericsson,s365" },
 	{},
 };
 
-static struct platform_driver s365_board_driver = {
+static struct platform_driver s365_board_driver =
+{
 	.driver		= {
 		.name   = "s365-board",
 		.of_match_table = s365_board_match,
@@ -126,7 +145,7 @@ static struct platform_driver s365_board_driver = {
 static int __init u300_init_boardpower(void)
 {
 	return platform_driver_probe(&s365_board_driver,
-				     s365_board_probe);
+								 s365_board_probe);
 }
 
 device_initcall(u300_init_boardpower);

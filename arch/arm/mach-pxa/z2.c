@@ -49,7 +49,8 @@
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static unsigned long z2_pin_config[] = {
+static unsigned long z2_pin_config[] =
+{
 
 	/* LCD - 16bpp Active TFT */
 	GPIO58_LCD_LDD_0,
@@ -150,13 +151,15 @@ static unsigned long z2_pin_config[] = {
  * NOR Flash
  ******************************************************************************/
 #if defined(CONFIG_MTD_PHYSMAP) || defined(CONFIG_MTD_PHYSMAP_MODULE)
-static struct resource z2_flash_resource = {
+static struct resource z2_flash_resource =
+{
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_8M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct mtd_partition z2_flash_parts[] = {
+static struct mtd_partition z2_flash_parts[] =
+{
 	{
 		.name	= "U-Boot Bootloader",
 		.offset	= 0x0,
@@ -172,13 +175,15 @@ static struct mtd_partition z2_flash_parts[] = {
 	},
 };
 
-static struct physmap_flash_data z2_flash_data = {
+static struct physmap_flash_data z2_flash_data =
+{
 	.width		= 2,
 	.parts		= z2_flash_parts,
 	.nr_parts	= ARRAY_SIZE(z2_flash_parts),
 };
 
-static struct platform_device z2_flash = {
+static struct platform_device z2_flash =
+{
 	.name		= "physmap-flash",
 	.id		= -1,
 	.resource	= &z2_flash_resource,
@@ -200,14 +205,16 @@ static inline void z2_nor_init(void) {}
  * Backlight
  ******************************************************************************/
 #if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM_MODULE)
-static struct pwm_lookup z2_pwm_lookup[] = {
+static struct pwm_lookup z2_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa27x-pwm.1", 0, "pwm-backlight.0", NULL, 1260320,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 	PWM_LOOKUP("pxa27x-pwm.0", 1, "pwm-backlight.1", NULL, 1260320,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data z2_backlight_data[] = {
+static struct platform_pwm_backlight_data z2_backlight_data[] =
+{
 	[0] = {
 		/* Keypad Backlight */
 		.max_brightness	= 1023,
@@ -222,7 +229,8 @@ static struct platform_pwm_backlight_data z2_backlight_data[] = {
 	},
 };
 
-static struct platform_device z2_backlight_devices[2] = {
+static struct platform_device z2_backlight_devices[2] =
+{
 	{
 		.name	= "pwm-backlight",
 		.id	= 0,
@@ -252,28 +260,30 @@ static inline void z2_pwm_init(void) {}
  * Framebuffer
  ******************************************************************************/
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static struct pxafb_mode_info z2_lcd_modes[] = {
+static struct pxafb_mode_info z2_lcd_modes[] =
 {
-	.pixclock	= 192000,
-	.xres		= 240,
-	.yres		= 320,
-	.bpp		= 16,
+	{
+		.pixclock	= 192000,
+		.xres		= 240,
+		.yres		= 320,
+		.bpp		= 16,
 
-	.left_margin	= 4,
-	.right_margin	= 8,
-	.upper_margin	= 4,
-	.lower_margin	= 8,
+		.left_margin	= 4,
+		.right_margin	= 8,
+		.upper_margin	= 4,
+		.lower_margin	= 8,
 
-	.hsync_len	= 4,
-	.vsync_len	= 4,
-},
+		.hsync_len	= 4,
+		.vsync_len	= 4,
+	},
 };
 
-static struct pxafb_mach_info z2_lcd_screen = {
+static struct pxafb_mach_info z2_lcd_screen =
+{
 	.modes		= z2_lcd_modes,
 	.num_modes      = ARRAY_SIZE(z2_lcd_modes),
 	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_BIAS_ACTIVE_LOW |
-			  LCD_ALTERNATE_MAPPING,
+	LCD_ALTERNATE_MAPPING,
 };
 
 static void __init z2_lcd_init(void)
@@ -288,7 +298,8 @@ static inline void z2_lcd_init(void) {}
  * SD/MMC card controller
  ******************************************************************************/
 #if defined(CONFIG_MMC_PXA) || defined(CONFIG_MMC_PXA_MODULE)
-static struct pxamci_platform_data z2_mci_platform_data = {
+static struct pxamci_platform_data z2_mci_platform_data =
+{
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO96_ZIPITZ2_SD_DETECT,
 	.gpio_power		= -1,
@@ -308,31 +319,34 @@ static inline void z2_mmc_init(void) {}
  * LEDs
  ******************************************************************************/
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-struct gpio_led z2_gpio_leds[] = {
+struct gpio_led z2_gpio_leds[] =
 {
-	.name			= "z2:green:wifi",
-	.default_trigger	= "none",
-	.gpio			= GPIO10_ZIPITZ2_LED_WIFI,
-	.active_low		= 1,
-}, {
-	.name			= "z2:green:charged",
-	.default_trigger	= "mmc0",
-	.gpio			= GPIO85_ZIPITZ2_LED_CHARGED,
-	.active_low		= 1,
-}, {
-	.name			= "z2:amber:charging",
-	.default_trigger	= "Z2-charging-or-full",
-	.gpio			= GPIO83_ZIPITZ2_LED_CHARGING,
-	.active_low		= 1,
-},
+	{
+		.name			= "z2:green:wifi",
+		.default_trigger	= "none",
+		.gpio			= GPIO10_ZIPITZ2_LED_WIFI,
+		.active_low		= 1,
+	}, {
+		.name			= "z2:green:charged",
+		.default_trigger	= "mmc0",
+		.gpio			= GPIO85_ZIPITZ2_LED_CHARGED,
+		.active_low		= 1,
+	}, {
+		.name			= "z2:amber:charging",
+		.default_trigger	= "Z2-charging-or-full",
+		.gpio			= GPIO83_ZIPITZ2_LED_CHARGING,
+		.active_low		= 1,
+	},
 };
 
-static struct gpio_led_platform_data z2_gpio_led_info = {
+static struct gpio_led_platform_data z2_gpio_led_info =
+{
 	.leds		= z2_gpio_leds,
 	.num_leds	= ARRAY_SIZE(z2_gpio_leds),
 };
 
-static struct platform_device z2_leds = {
+static struct platform_device z2_leds =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -352,7 +366,8 @@ static inline void z2_leds_init(void) {}
  * GPIO keyboard
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_PXA27x) || defined(CONFIG_KEYBOARD_PXA27x_MODULE)
-static const unsigned int z2_matrix_keys[] = {
+static const unsigned int z2_matrix_keys[] =
+{
 	KEY(0, 0, KEY_OPTION),
 	KEY(1, 0, KEY_UP),
 	KEY(2, 0, KEY_DOWN),
@@ -412,12 +427,14 @@ static const unsigned int z2_matrix_keys[] = {
 	KEY(5, 7, KEY_DOT),
 };
 
-static struct matrix_keymap_data z2_matrix_keymap_data = {
+static struct matrix_keymap_data z2_matrix_keymap_data =
+{
 	.keymap			= z2_matrix_keys,
 	.keymap_size		= ARRAY_SIZE(z2_matrix_keys),
 };
 
-static struct pxa27x_keypad_platform_data z2_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data z2_keypad_platform_data =
+{
 	.matrix_key_rows	= 7,
 	.matrix_key_cols	= 8,
 	.matrix_keymap_data	= &z2_matrix_keymap_data,
@@ -437,7 +454,8 @@ static inline void z2_mkp_init(void) {}
  * GPIO keys
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-static struct gpio_keys_button z2_pxa_buttons[] = {
+static struct gpio_keys_button z2_pxa_buttons[] =
+{
 	{
 		.code		= KEY_POWER,
 		.gpio		= GPIO1_ZIPITZ2_POWER_BUTTON,
@@ -456,12 +474,14 @@ static struct gpio_keys_button z2_pxa_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data z2_pxa_keys_data = {
+static struct gpio_keys_platform_data z2_pxa_keys_data =
+{
 	.buttons	= z2_pxa_buttons,
 	.nbuttons	= ARRAY_SIZE(z2_pxa_buttons),
 };
 
-static struct platform_device z2_pxa_keys = {
+static struct platform_device z2_pxa_keys =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -481,7 +501,8 @@ static inline void z2_keys_init(void) {}
  * Battery
  ******************************************************************************/
 #if defined(CONFIG_I2C_PXA) || defined(CONFIG_I2C_PXA_MODULE)
-static struct z2_battery_info batt_chip_info = {
+static struct z2_battery_info batt_chip_info =
+{
 	.batt_I2C_bus	= 0,
 	.batt_I2C_addr	= 0x55,
 	.batt_I2C_reg	= 2,
@@ -494,7 +515,8 @@ static struct z2_battery_info batt_chip_info = {
 	.batt_name	= "Z2",
 };
 
-static struct i2c_board_info __initdata z2_i2c_board_info[] = {
+static struct i2c_board_info __initdata z2_i2c_board_info[] =
+{
 	{
 		I2C_BOARD_INFO("aer915", 0x55),
 		.platform_data	= &batt_chip_info,
@@ -523,12 +545,18 @@ static int z2_lbs_spi_setup(struct spi_device *spi)
 	int ret = 0;
 
 	ret = gpio_request(GPIO14_ZIPITZ2_WIFI_POWER, "WiFi Power");
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = gpio_direction_output(GPIO14_ZIPITZ2_WIFI_POWER, 1);
+
 	if (ret)
+	{
 		goto err2;
+	}
 
 	/* Wait until card is powered on */
 	mdelay(180);
@@ -536,7 +564,7 @@ static int z2_lbs_spi_setup(struct spi_device *spi)
 	spi->bits_per_word = 16;
 	spi->mode = SPI_MODE_2,
 
-	spi_setup(spi);
+		 spi_setup(spi);
 
 	return 0;
 
@@ -554,57 +582,64 @@ static int z2_lbs_spi_teardown(struct spi_device *spi)
 	return 0;
 };
 
-static struct pxa2xx_spi_chip z2_lbs_chip_info = {
+static struct pxa2xx_spi_chip z2_lbs_chip_info =
+{
 	.rx_threshold	= 8,
 	.tx_threshold	= 8,
 	.timeout	= 1000,
 	.gpio_cs	= GPIO24_ZIPITZ2_WIFI_CS,
 };
 
-static struct libertas_spi_platform_data z2_lbs_pdata = {
+static struct libertas_spi_platform_data z2_lbs_pdata =
+{
 	.use_dummy_writes	= 1,
 	.setup			= z2_lbs_spi_setup,
 	.teardown		= z2_lbs_spi_teardown,
 };
 
 /* LCD */
-static struct pxa2xx_spi_chip lms283_chip_info = {
+static struct pxa2xx_spi_chip lms283_chip_info =
+{
 	.rx_threshold	= 1,
 	.tx_threshold	= 1,
 	.timeout	= 64,
 	.gpio_cs	= GPIO88_ZIPITZ2_LCD_CS,
 };
 
-static const struct lms283gf05_pdata lms283_pdata = {
+static const struct lms283gf05_pdata lms283_pdata =
+{
 	.reset_gpio	= GPIO19_ZIPITZ2_LCD_RESET,
 };
 
-static struct spi_board_info spi_board_info[] __initdata = {
+static struct spi_board_info spi_board_info[] __initdata =
 {
-	.modalias		= "libertas_spi",
-	.platform_data		= &z2_lbs_pdata,
-	.controller_data	= &z2_lbs_chip_info,
-	.irq			= PXA_GPIO_TO_IRQ(GPIO36_ZIPITZ2_WIFI_IRQ),
-	.max_speed_hz		= 13000000,
-	.bus_num		= 1,
-	.chip_select		= 0,
-},
-{
-	.modalias		= "lms283gf05",
-	.controller_data	= &lms283_chip_info,
-	.platform_data		= &lms283_pdata,
-	.max_speed_hz		= 400000,
-	.bus_num		= 2,
-	.chip_select		= 0,
-},
+	{
+		.modalias		= "libertas_spi",
+		.platform_data		= &z2_lbs_pdata,
+		.controller_data	= &z2_lbs_chip_info,
+		.irq			= PXA_GPIO_TO_IRQ(GPIO36_ZIPITZ2_WIFI_IRQ),
+		.max_speed_hz		= 13000000,
+		.bus_num		= 1,
+		.chip_select		= 0,
+	},
+	{
+		.modalias		= "lms283gf05",
+		.controller_data	= &lms283_chip_info,
+		.platform_data		= &lms283_pdata,
+		.max_speed_hz		= 400000,
+		.bus_num		= 2,
+		.chip_select		= 0,
+	},
 };
 
-static struct pxa2xx_spi_master pxa_ssp1_master_info = {
+static struct pxa2xx_spi_master pxa_ssp1_master_info =
+{
 	.num_chipselect	= 1,
 	.enable_dma	= 1,
 };
 
-static struct pxa2xx_spi_master pxa_ssp2_master_info = {
+static struct pxa2xx_spi_master pxa_ssp2_master_info =
+{
 	.num_chipselect	= 1,
 };
 
@@ -623,11 +658,13 @@ static inline void z2_spi_init(void) {}
  ******************************************************************************/
 #if defined(CONFIG_REGULATOR_TPS65023) || \
 	defined(CONFIG_REGULATOR_TPS65023_MODULE)
-static struct regulator_consumer_supply z2_tps65021_consumers[] = {
+static struct regulator_consumer_supply z2_tps65021_consumers[] =
+{
 	REGULATOR_SUPPLY("vcc_core", NULL),
 };
 
-static struct regulator_init_data z2_tps65021_info[] = {
+static struct regulator_init_data z2_tps65021_info[] =
+{
 	{
 		.constraints = {
 			.name		= "vcc_core range",
@@ -669,7 +706,8 @@ static struct regulator_init_data z2_tps65021_info[] = {
 	}
 };
 
-static struct i2c_board_info __initdata z2_pi2c_board_info[] = {
+static struct i2c_board_info __initdata z2_pi2c_board_info[] =
+{
 	{
 		I2C_BOARD_INFO("tps65021", 0x48),
 		.platform_data	= &z2_tps65021_info,
@@ -726,12 +764,12 @@ static void __init z2_init(void)
 }
 
 MACHINE_START(ZIPIT2, "Zipit Z2")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa27x_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= z2_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa27x_init_irq,
+			   .handle_irq	= pxa27x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= z2_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

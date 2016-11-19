@@ -24,8 +24,10 @@ unsigned int bcm63xx_get_cpu_freq(void);
 
 static inline u16 __pure __bcm63xx_get_cpu_id(const u16 cpu_id)
 {
-	switch (cpu_id) {
+	switch (cpu_id)
+	{
 #ifdef CONFIG_BCM63XX_CPU_3368
+
 		case BCM3368_CPU_ID:
 #endif
 
@@ -56,9 +58,10 @@ static inline u16 __pure __bcm63xx_get_cpu_id(const u16 cpu_id)
 #ifdef CONFIG_BCM63XX_CPU_6368
 		case BCM6368_CPU_ID:
 #endif
-		break;
-	default:
-		unreachable();
+			break;
+
+		default:
+			unreachable();
 	}
 
 	return cpu_id;
@@ -86,7 +89,8 @@ static inline u16 __pure bcm63xx_get_cpu_id(void)
  * While registers sets are (mostly) the same across 63xx CPU, base
  * address of these sets do change.
  */
-enum bcm63xx_regs_set {
+enum bcm63xx_regs_set
+{
 	RSET_DSL_LMEM = 0,
 	RSET_PERF,
 	RSET_TIMER,
@@ -550,97 +554,98 @@ extern const unsigned long *bcm63xx_regs_base;
 
 #define __GEN_CPU_REGS_TABLE(__cpu)					\
 	[RSET_DSL_LMEM]		= BCM_## __cpu ##_DSL_LMEM_BASE,	\
-	[RSET_PERF]		= BCM_## __cpu ##_PERF_BASE,		\
-	[RSET_TIMER]		= BCM_## __cpu ##_TIMER_BASE,		\
-	[RSET_WDT]		= BCM_## __cpu ##_WDT_BASE,		\
-	[RSET_UART0]		= BCM_## __cpu ##_UART0_BASE,		\
-	[RSET_UART1]		= BCM_## __cpu ##_UART1_BASE,		\
-	[RSET_GPIO]		= BCM_## __cpu ##_GPIO_BASE,		\
-	[RSET_SPI]		= BCM_## __cpu ##_SPI_BASE,		\
-	[RSET_HSSPI]		= BCM_## __cpu ##_HSSPI_BASE,		\
-	[RSET_UDC0]		= BCM_## __cpu ##_UDC0_BASE,		\
-	[RSET_OHCI0]		= BCM_## __cpu ##_OHCI0_BASE,		\
-	[RSET_OHCI_PRIV]	= BCM_## __cpu ##_OHCI_PRIV_BASE,	\
-	[RSET_USBH_PRIV]	= BCM_## __cpu ##_USBH_PRIV_BASE,	\
-	[RSET_USBD]		= BCM_## __cpu ##_USBD_BASE,		\
-	[RSET_USBDMA]		= BCM_## __cpu ##_USBDMA_BASE,		\
-	[RSET_MPI]		= BCM_## __cpu ##_MPI_BASE,		\
-	[RSET_PCMCIA]		= BCM_## __cpu ##_PCMCIA_BASE,		\
-	[RSET_PCIE]		= BCM_## __cpu ##_PCIE_BASE,		\
-	[RSET_DSL]		= BCM_## __cpu ##_DSL_BASE,		\
-	[RSET_ENET0]		= BCM_## __cpu ##_ENET0_BASE,		\
-	[RSET_ENET1]		= BCM_## __cpu ##_ENET1_BASE,		\
-	[RSET_ENETDMA]		= BCM_## __cpu ##_ENETDMA_BASE,		\
-	[RSET_ENETDMAC]		= BCM_## __cpu ##_ENETDMAC_BASE,	\
-	[RSET_ENETDMAS]		= BCM_## __cpu ##_ENETDMAS_BASE,	\
-	[RSET_ENETSW]		= BCM_## __cpu ##_ENETSW_BASE,		\
-	[RSET_EHCI0]		= BCM_## __cpu ##_EHCI0_BASE,		\
-	[RSET_SDRAM]		= BCM_## __cpu ##_SDRAM_BASE,		\
-	[RSET_MEMC]		= BCM_## __cpu ##_MEMC_BASE,		\
-	[RSET_DDR]		= BCM_## __cpu ##_DDR_BASE,		\
-	[RSET_M2M]		= BCM_## __cpu ##_M2M_BASE,		\
-	[RSET_ATM]		= BCM_## __cpu ##_ATM_BASE,		\
-	[RSET_XTM]		= BCM_## __cpu ##_XTM_BASE,		\
-	[RSET_XTMDMA]		= BCM_## __cpu ##_XTMDMA_BASE,		\
-	[RSET_XTMDMAC]		= BCM_## __cpu ##_XTMDMAC_BASE,		\
-	[RSET_XTMDMAS]		= BCM_## __cpu ##_XTMDMAS_BASE,		\
-	[RSET_PCM]		= BCM_## __cpu ##_PCM_BASE,		\
-	[RSET_PCMDMA]		= BCM_## __cpu ##_PCMDMA_BASE,		\
-	[RSET_PCMDMAC]		= BCM_## __cpu ##_PCMDMAC_BASE,		\
-	[RSET_PCMDMAS]		= BCM_## __cpu ##_PCMDMAS_BASE,		\
-	[RSET_RNG]		= BCM_## __cpu ##_RNG_BASE,		\
-	[RSET_MISC]		= BCM_## __cpu ##_MISC_BASE,		\
+						  [RSET_PERF]		= BCM_## __cpu ##_PERF_BASE,		\
+											[RSET_TIMER]		= BCM_## __cpu ##_TIMER_BASE,		\
+													[RSET_WDT]		= BCM_## __cpu ##_WDT_BASE,		\
+															[RSET_UART0]		= BCM_## __cpu ##_UART0_BASE,		\
+																	[RSET_UART1]		= BCM_## __cpu ##_UART1_BASE,		\
+																			[RSET_GPIO]		= BCM_## __cpu ##_GPIO_BASE,		\
+																					[RSET_SPI]		= BCM_## __cpu ##_SPI_BASE,		\
+																							[RSET_HSSPI]		= BCM_## __cpu ##_HSSPI_BASE,		\
+																									[RSET_UDC0]		= BCM_## __cpu ##_UDC0_BASE,		\
+																											[RSET_OHCI0]		= BCM_## __cpu ##_OHCI0_BASE,		\
+																													[RSET_OHCI_PRIV]	= BCM_## __cpu ##_OHCI_PRIV_BASE,	\
+																															[RSET_USBH_PRIV]	= BCM_## __cpu ##_USBH_PRIV_BASE,	\
+																																	[RSET_USBD]		= BCM_## __cpu ##_USBD_BASE,		\
+																																			[RSET_USBDMA]		= BCM_## __cpu ##_USBDMA_BASE,		\
+																																					[RSET_MPI]		= BCM_## __cpu ##_MPI_BASE,		\
+																																							[RSET_PCMCIA]		= BCM_## __cpu ##_PCMCIA_BASE,		\
+																																									[RSET_PCIE]		= BCM_## __cpu ##_PCIE_BASE,		\
+																																											[RSET_DSL]		= BCM_## __cpu ##_DSL_BASE,		\
+																																													[RSET_ENET0]		= BCM_## __cpu ##_ENET0_BASE,		\
+																																															[RSET_ENET1]		= BCM_## __cpu ##_ENET1_BASE,		\
+																																																	[RSET_ENETDMA]		= BCM_## __cpu ##_ENETDMA_BASE,		\
+																																																			[RSET_ENETDMAC]		= BCM_## __cpu ##_ENETDMAC_BASE,	\
+																																																					[RSET_ENETDMAS]		= BCM_## __cpu ##_ENETDMAS_BASE,	\
+																																																							[RSET_ENETSW]		= BCM_## __cpu ##_ENETSW_BASE,		\
+																																																									[RSET_EHCI0]		= BCM_## __cpu ##_EHCI0_BASE,		\
+																																																											[RSET_SDRAM]		= BCM_## __cpu ##_SDRAM_BASE,		\
+																																																													[RSET_MEMC]		= BCM_## __cpu ##_MEMC_BASE,		\
+																																																															[RSET_DDR]		= BCM_## __cpu ##_DDR_BASE,		\
+																																																																	[RSET_M2M]		= BCM_## __cpu ##_M2M_BASE,		\
+																																																																			[RSET_ATM]		= BCM_## __cpu ##_ATM_BASE,		\
+																																																																					[RSET_XTM]		= BCM_## __cpu ##_XTM_BASE,		\
+																																																																							[RSET_XTMDMA]		= BCM_## __cpu ##_XTMDMA_BASE,		\
+																																																																									[RSET_XTMDMAC]		= BCM_## __cpu ##_XTMDMAC_BASE,		\
+																																																																											[RSET_XTMDMAS]		= BCM_## __cpu ##_XTMDMAS_BASE,		\
+																																																																													[RSET_PCM]		= BCM_## __cpu ##_PCM_BASE,		\
+																																																																															[RSET_PCMDMA]		= BCM_## __cpu ##_PCMDMA_BASE,		\
+																																																																																	[RSET_PCMDMAC]		= BCM_## __cpu ##_PCMDMAC_BASE,		\
+																																																																																			[RSET_PCMDMAS]		= BCM_## __cpu ##_PCMDMAS_BASE,		\
+																																																																																					[RSET_RNG]		= BCM_## __cpu ##_RNG_BASE,		\
+																																																																																							[RSET_MISC]		= BCM_## __cpu ##_MISC_BASE,		\
 
 
-static inline unsigned long bcm63xx_regset_address(enum bcm63xx_regs_set set)
-{
-	return bcm63xx_regs_base[set];
-}
+																																																																																									static inline unsigned long bcm63xx_regset_address(enum bcm63xx_regs_set set)
+	{
+		return bcm63xx_regs_base[set];
+	}
 
-/*
- * IRQ number changes across CPU too
- */
-enum bcm63xx_irq {
-	IRQ_TIMER = 0,
-	IRQ_SPI,
-	IRQ_UART0,
-	IRQ_UART1,
-	IRQ_DSL,
-	IRQ_ENET0,
-	IRQ_ENET1,
-	IRQ_ENET_PHY,
-	IRQ_HSSPI,
-	IRQ_OHCI0,
-	IRQ_EHCI0,
-	IRQ_USBD,
-	IRQ_USBD_RXDMA0,
-	IRQ_USBD_TXDMA0,
-	IRQ_USBD_RXDMA1,
-	IRQ_USBD_TXDMA1,
-	IRQ_USBD_RXDMA2,
-	IRQ_USBD_TXDMA2,
-	IRQ_ENET0_RXDMA,
-	IRQ_ENET0_TXDMA,
-	IRQ_ENET1_RXDMA,
-	IRQ_ENET1_TXDMA,
-	IRQ_PCI,
-	IRQ_PCMCIA,
-	IRQ_ATM,
-	IRQ_ENETSW_RXDMA0,
-	IRQ_ENETSW_RXDMA1,
-	IRQ_ENETSW_RXDMA2,
-	IRQ_ENETSW_RXDMA3,
-	IRQ_ENETSW_TXDMA0,
-	IRQ_ENETSW_TXDMA1,
-	IRQ_ENETSW_TXDMA2,
-	IRQ_ENETSW_TXDMA3,
-	IRQ_XTM,
-	IRQ_XTM_DMA0,
-};
+	/*
+	 * IRQ number changes across CPU too
+	 */
+	enum bcm63xx_irq
+	{
+		IRQ_TIMER = 0,
+		IRQ_SPI,
+		IRQ_UART0,
+		IRQ_UART1,
+		IRQ_DSL,
+		IRQ_ENET0,
+		IRQ_ENET1,
+		IRQ_ENET_PHY,
+		IRQ_HSSPI,
+		IRQ_OHCI0,
+		IRQ_EHCI0,
+		IRQ_USBD,
+		IRQ_USBD_RXDMA0,
+		IRQ_USBD_TXDMA0,
+		IRQ_USBD_RXDMA1,
+		IRQ_USBD_TXDMA1,
+		IRQ_USBD_RXDMA2,
+		IRQ_USBD_TXDMA2,
+		IRQ_ENET0_RXDMA,
+		IRQ_ENET0_TXDMA,
+		IRQ_ENET1_RXDMA,
+		IRQ_ENET1_TXDMA,
+		IRQ_PCI,
+		IRQ_PCMCIA,
+		IRQ_ATM,
+		IRQ_ENETSW_RXDMA0,
+		IRQ_ENETSW_RXDMA1,
+		IRQ_ENETSW_RXDMA2,
+		IRQ_ENETSW_RXDMA3,
+		IRQ_ENETSW_TXDMA0,
+		IRQ_ENETSW_TXDMA1,
+		IRQ_ENETSW_TXDMA2,
+		IRQ_ENETSW_TXDMA3,
+		IRQ_XTM,
+		IRQ_XTM_DMA0,
+	};
 
-/*
- * 3368 irqs
- */
+	/*
+	 * 3368 irqs
+	 */
 #define BCM_3368_TIMER_IRQ		(IRQ_INTERNAL_BASE + 0)
 #define BCM_3368_SPI_IRQ		(IRQ_INTERNAL_BASE + 1)
 #define BCM_3368_UART0_IRQ		(IRQ_INTERNAL_BASE + 2)
@@ -684,9 +689,9 @@ enum bcm63xx_irq {
 #define BCM_3368_EXT_IRQ3		(IRQ_INTERNAL_BASE + 28)
 
 
-/*
- * 6328 irqs
- */
+	/*
+	 * 6328 irqs
+	 */
 #define BCM_6328_HIGH_IRQ_BASE		(IRQ_INTERNAL_BASE + 32)
 
 #define BCM_6328_TIMER_IRQ		(IRQ_INTERNAL_BASE + 31)
@@ -733,9 +738,9 @@ enum bcm63xx_irq {
 #define BCM_6328_EXT_IRQ2		(IRQ_INTERNAL_BASE + 26)
 #define BCM_6328_EXT_IRQ3		(IRQ_INTERNAL_BASE + 27)
 
-/*
- * 6338 irqs
- */
+	/*
+	 * 6338 irqs
+	 */
 #define BCM_6338_TIMER_IRQ		(IRQ_INTERNAL_BASE + 0)
 #define BCM_6338_SPI_IRQ		(IRQ_INTERNAL_BASE + 1)
 #define BCM_6338_UART0_IRQ		(IRQ_INTERNAL_BASE + 2)
@@ -772,9 +777,9 @@ enum bcm63xx_irq {
 #define BCM_6338_XTM_IRQ		0
 #define BCM_6338_XTM_DMA0_IRQ		0
 
-/*
- * 6345 irqs
- */
+	/*
+	 * 6345 irqs
+	 */
 #define BCM_6345_TIMER_IRQ		(IRQ_INTERNAL_BASE + 0)
 #define BCM_6345_SPI_IRQ		0
 #define BCM_6345_UART0_IRQ		(IRQ_INTERNAL_BASE + 2)
@@ -811,9 +816,9 @@ enum bcm63xx_irq {
 #define BCM_6345_XTM_IRQ		0
 #define BCM_6345_XTM_DMA0_IRQ		0
 
-/*
- * 6348 irqs
- */
+	/*
+	 * 6348 irqs
+	 */
 #define BCM_6348_TIMER_IRQ		(IRQ_INTERNAL_BASE + 0)
 #define BCM_6348_SPI_IRQ		(IRQ_INTERNAL_BASE + 1)
 #define BCM_6348_UART0_IRQ		(IRQ_INTERNAL_BASE + 2)
@@ -850,9 +855,9 @@ enum bcm63xx_irq {
 #define BCM_6348_XTM_IRQ		0
 #define BCM_6348_XTM_DMA0_IRQ		0
 
-/*
- * 6358 irqs
- */
+	/*
+	 * 6358 irqs
+	 */
 #define BCM_6358_TIMER_IRQ		(IRQ_INTERNAL_BASE + 0)
 #define BCM_6358_SPI_IRQ		(IRQ_INTERNAL_BASE + 1)
 #define BCM_6358_UART0_IRQ		(IRQ_INTERNAL_BASE + 2)
@@ -896,9 +901,9 @@ enum bcm63xx_irq {
 #define BCM_6358_EXT_IRQ2		(IRQ_INTERNAL_BASE + 27)
 #define BCM_6358_EXT_IRQ3		(IRQ_INTERNAL_BASE + 28)
 
-/*
- * 6362 irqs
- */
+	/*
+	 * 6362 irqs
+	 */
 #define BCM_6362_HIGH_IRQ_BASE		(IRQ_INTERNAL_BASE + 32)
 
 #define BCM_6362_TIMER_IRQ		(IRQ_INTERNAL_BASE + 0)
@@ -961,9 +966,9 @@ enum bcm63xx_irq {
 #define BCM_6362_EXT_IRQ2		(BCM_6362_HIGH_IRQ_BASE + 10)
 #define BCM_6362_EXT_IRQ3		(BCM_6362_HIGH_IRQ_BASE + 11)
 
-/*
- * 6368 irqs
- */
+	/*
+	 * 6368 irqs
+	 */
 #define BCM_6368_HIGH_IRQ_BASE		(IRQ_INTERNAL_BASE + 32)
 
 #define BCM_6368_TIMER_IRQ		(IRQ_INTERNAL_BASE + 0)
@@ -1011,57 +1016,57 @@ enum bcm63xx_irq {
 #define BCM_6368_EXT_IRQ4		(IRQ_INTERNAL_BASE + 24)
 #define BCM_6368_EXT_IRQ5		(IRQ_INTERNAL_BASE + 25)
 
-extern const int *bcm63xx_irqs;
+	extern const int *bcm63xx_irqs;
 
 #define __GEN_CPU_IRQ_TABLE(__cpu)					\
 	[IRQ_TIMER]		= BCM_## __cpu ##_TIMER_IRQ,		\
-	[IRQ_SPI]		= BCM_## __cpu ##_SPI_IRQ,		\
-	[IRQ_UART0]		= BCM_## __cpu ##_UART0_IRQ,		\
-	[IRQ_UART1]		= BCM_## __cpu ##_UART1_IRQ,		\
-	[IRQ_DSL]		= BCM_## __cpu ##_DSL_IRQ,		\
-	[IRQ_ENET0]		= BCM_## __cpu ##_ENET0_IRQ,		\
-	[IRQ_ENET1]		= BCM_## __cpu ##_ENET1_IRQ,		\
-	[IRQ_ENET_PHY]		= BCM_## __cpu ##_ENET_PHY_IRQ,		\
-	[IRQ_HSSPI]		= BCM_## __cpu ##_HSSPI_IRQ,		\
-	[IRQ_OHCI0]		= BCM_## __cpu ##_OHCI0_IRQ,		\
-	[IRQ_EHCI0]		= BCM_## __cpu ##_EHCI0_IRQ,		\
-	[IRQ_USBD]		= BCM_## __cpu ##_USBD_IRQ,		\
-	[IRQ_USBD_RXDMA0]	= BCM_## __cpu ##_USBD_RXDMA0_IRQ,	\
-	[IRQ_USBD_TXDMA0]	= BCM_## __cpu ##_USBD_TXDMA0_IRQ,	\
-	[IRQ_USBD_RXDMA1]	= BCM_## __cpu ##_USBD_RXDMA1_IRQ,	\
-	[IRQ_USBD_TXDMA1]	= BCM_## __cpu ##_USBD_TXDMA1_IRQ,	\
-	[IRQ_USBD_RXDMA2]	= BCM_## __cpu ##_USBD_RXDMA2_IRQ,	\
-	[IRQ_USBD_TXDMA2]	= BCM_## __cpu ##_USBD_TXDMA2_IRQ,	\
-	[IRQ_ENET0_RXDMA]	= BCM_## __cpu ##_ENET0_RXDMA_IRQ,	\
-	[IRQ_ENET0_TXDMA]	= BCM_## __cpu ##_ENET0_TXDMA_IRQ,	\
-	[IRQ_ENET1_RXDMA]	= BCM_## __cpu ##_ENET1_RXDMA_IRQ,	\
-	[IRQ_ENET1_TXDMA]	= BCM_## __cpu ##_ENET1_TXDMA_IRQ,	\
-	[IRQ_PCI]		= BCM_## __cpu ##_PCI_IRQ,		\
-	[IRQ_PCMCIA]		= BCM_## __cpu ##_PCMCIA_IRQ,		\
-	[IRQ_ATM]		= BCM_## __cpu ##_ATM_IRQ,		\
-	[IRQ_ENETSW_RXDMA0]	= BCM_## __cpu ##_ENETSW_RXDMA0_IRQ,	\
-	[IRQ_ENETSW_RXDMA1]	= BCM_## __cpu ##_ENETSW_RXDMA1_IRQ,	\
-	[IRQ_ENETSW_RXDMA2]	= BCM_## __cpu ##_ENETSW_RXDMA2_IRQ,	\
-	[IRQ_ENETSW_RXDMA3]	= BCM_## __cpu ##_ENETSW_RXDMA3_IRQ,	\
-	[IRQ_ENETSW_TXDMA0]	= BCM_## __cpu ##_ENETSW_TXDMA0_IRQ,	\
-	[IRQ_ENETSW_TXDMA1]	= BCM_## __cpu ##_ENETSW_TXDMA1_IRQ,	\
-	[IRQ_ENETSW_TXDMA2]	= BCM_## __cpu ##_ENETSW_TXDMA2_IRQ,	\
-	[IRQ_ENETSW_TXDMA3]	= BCM_## __cpu ##_ENETSW_TXDMA3_IRQ,	\
-	[IRQ_XTM]		= BCM_## __cpu ##_XTM_IRQ,		\
-	[IRQ_XTM_DMA0]		= BCM_## __cpu ##_XTM_DMA0_IRQ,		\
+					  [IRQ_SPI]		= BCM_## __cpu ##_SPI_IRQ,		\
+										[IRQ_UART0]		= BCM_## __cpu ##_UART0_IRQ,		\
+												[IRQ_UART1]		= BCM_## __cpu ##_UART1_IRQ,		\
+														[IRQ_DSL]		= BCM_## __cpu ##_DSL_IRQ,		\
+																[IRQ_ENET0]		= BCM_## __cpu ##_ENET0_IRQ,		\
+																		[IRQ_ENET1]		= BCM_## __cpu ##_ENET1_IRQ,		\
+																				[IRQ_ENET_PHY]		= BCM_## __cpu ##_ENET_PHY_IRQ,		\
+																						[IRQ_HSSPI]		= BCM_## __cpu ##_HSSPI_IRQ,		\
+																								[IRQ_OHCI0]		= BCM_## __cpu ##_OHCI0_IRQ,		\
+																										[IRQ_EHCI0]		= BCM_## __cpu ##_EHCI0_IRQ,		\
+																												[IRQ_USBD]		= BCM_## __cpu ##_USBD_IRQ,		\
+																														[IRQ_USBD_RXDMA0]	= BCM_## __cpu ##_USBD_RXDMA0_IRQ,	\
+																																[IRQ_USBD_TXDMA0]	= BCM_## __cpu ##_USBD_TXDMA0_IRQ,	\
+																																		[IRQ_USBD_RXDMA1]	= BCM_## __cpu ##_USBD_RXDMA1_IRQ,	\
+																																				[IRQ_USBD_TXDMA1]	= BCM_## __cpu ##_USBD_TXDMA1_IRQ,	\
+																																						[IRQ_USBD_RXDMA2]	= BCM_## __cpu ##_USBD_RXDMA2_IRQ,	\
+																																								[IRQ_USBD_TXDMA2]	= BCM_## __cpu ##_USBD_TXDMA2_IRQ,	\
+																																										[IRQ_ENET0_RXDMA]	= BCM_## __cpu ##_ENET0_RXDMA_IRQ,	\
+																																												[IRQ_ENET0_TXDMA]	= BCM_## __cpu ##_ENET0_TXDMA_IRQ,	\
+																																														[IRQ_ENET1_RXDMA]	= BCM_## __cpu ##_ENET1_RXDMA_IRQ,	\
+																																																[IRQ_ENET1_TXDMA]	= BCM_## __cpu ##_ENET1_TXDMA_IRQ,	\
+																																																		[IRQ_PCI]		= BCM_## __cpu ##_PCI_IRQ,		\
+																																																				[IRQ_PCMCIA]		= BCM_## __cpu ##_PCMCIA_IRQ,		\
+																																																						[IRQ_ATM]		= BCM_## __cpu ##_ATM_IRQ,		\
+																																																								[IRQ_ENETSW_RXDMA0]	= BCM_## __cpu ##_ENETSW_RXDMA0_IRQ,	\
+																																																										[IRQ_ENETSW_RXDMA1]	= BCM_## __cpu ##_ENETSW_RXDMA1_IRQ,	\
+																																																												[IRQ_ENETSW_RXDMA2]	= BCM_## __cpu ##_ENETSW_RXDMA2_IRQ,	\
+																																																														[IRQ_ENETSW_RXDMA3]	= BCM_## __cpu ##_ENETSW_RXDMA3_IRQ,	\
+																																																																[IRQ_ENETSW_TXDMA0]	= BCM_## __cpu ##_ENETSW_TXDMA0_IRQ,	\
+																																																																		[IRQ_ENETSW_TXDMA1]	= BCM_## __cpu ##_ENETSW_TXDMA1_IRQ,	\
+																																																																				[IRQ_ENETSW_TXDMA2]	= BCM_## __cpu ##_ENETSW_TXDMA2_IRQ,	\
+																																																																						[IRQ_ENETSW_TXDMA3]	= BCM_## __cpu ##_ENETSW_TXDMA3_IRQ,	\
+																																																																								[IRQ_XTM]		= BCM_## __cpu ##_XTM_IRQ,		\
+																																																																										[IRQ_XTM_DMA0]		= BCM_## __cpu ##_XTM_DMA0_IRQ,		\
 
-static inline int bcm63xx_get_irq_number(enum bcm63xx_irq irq)
-{
-	return bcm63xx_irqs[irq];
-}
+																																																																												static inline int bcm63xx_get_irq_number(enum bcm63xx_irq irq)
+	{
+		return bcm63xx_irqs[irq];
+	}
 
-/*
- * return installed memory size
- */
-unsigned int bcm63xx_get_memory_size(void);
+	/*
+	 * return installed memory size
+	 */
+	unsigned int bcm63xx_get_memory_size(void);
 
-void bcm63xx_machine_halt(void);
+	void bcm63xx_machine_halt(void);
 
-void bcm63xx_machine_reboot(void);
+	void bcm63xx_machine_reboot(void);
 
 #endif /* !BCM63XX_CPU_H_ */

@@ -31,7 +31,7 @@
 struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
 EXPORT_SYMBOL(node_data);
 nodemask_t numa_nodes_parsed __initdata;
-static int cpu_to_node_map[NR_CPUS] = { [0 ... NR_CPUS-1] = NUMA_NO_NODE };
+static int cpu_to_node_map[NR_CPUS] = { [0 ... NR_CPUS - 1] = NUMA_NO_NODE };
 
 static int numa_distance_cnt;
 static u8 *numa_distance;
@@ -40,9 +40,14 @@ static bool numa_off;
 static __init int numa_parse_early_param(char *opt)
 {
 	if (!opt)
+	{
 		return -EINVAL;
+	}
+
 	if (!strncmp(opt, "off", 3))
+	{
 		numa_off = true;
+	}
 
 	return 0;
 }
@@ -59,10 +64,14 @@ EXPORT_SYMBOL(node_to_cpumask_map);
 const struct cpumask *cpumask_of_node(int node)
 {
 	if (WARN_ON(node >= nr_node_ids))
+	{
 		return cpu_none_mask;
+	}
 
 	if (WARN_ON(node_to_cpumask_map[node] == NULL))
+	{
 		return cpu_online_mask;
+	}
 
 	return node_to_cpumask_map[node];
 }
@@ -73,8 +82,11 @@ EXPORT_SYMBOL(cpumask_of_node);
 static void map_cpu_to_node(unsigned int cpu, int nid)
 {
 	set_cpu_numa_node(cpu, nid);
+
 	if (nid >= 0)
+	{
 		cpumask_set_cpu(cpu, node_to_cpumask_map[nid]);
+	}
 }
 
 void numa_clear_node(unsigned int cpu)
@@ -82,7 +94,10 @@ void numa_clear_node(unsigned int cpu)
 	int nid = cpu_to_node(cpu);
 
 	if (nid >= 0)
+	{
 		cpumask_clear_cpu(cpu, node_to_cpumask_map[nid]);
+	}
+
 	set_cpu_numa_node(cpu, NUMA_NO_NODE);
 }
 
@@ -99,10 +114,13 @@ static void __init setup_node_to_cpumask_map(void)
 
 	/* setup nr_node_ids if not done yet */
 	if (nr_node_ids == MAX_NUMNODES)
+	{
 		setup_nr_node_ids();
+	}
 
 	/* allocate and clear the mapping */
-	for (node = 0; node < nr_node_ids; node++) {
+	for (node = 0; node < nr_node_ids; node++)
+	{
 		alloc_bootmem_cpumask_var(&node_to_cpumask_map[node]);
 		cpumask_clear(node_to_cpumask_map[node]);
 	}
@@ -123,7 +141,9 @@ void __init early_map_cpu_to_node(unsigned int cpu, int nid)
 {
 	/* fallback to node 0 */
 	if (nid < 0 || nid >= MAX_NUMNODES || numa_off)
+	{
 		nid = 0;
+	}
 
 	cpu_to_node_map[cpu] = nid;
 
@@ -133,7 +153,9 @@ void __init early_map_cpu_to_node(unsigned int cpu, int nid)
 	 * called.
 	 */
 	if (!cpu)
+	{
 		set_cpu_numa_node(cpu, nid);
+	}
 }
 
 #ifdef CONFIG_HAVE_SETUP_PER_CPU_AREA
@@ -150,13 +172,13 @@ static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
 	return node_distance(early_cpu_to_node(from), early_cpu_to_node(to));
 }
 
-static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size,
-				       size_t align)
+static void *__init pcpu_fc_alloc(unsigned int cpu, size_t size,
+								  size_t align)
 {
 	int nid = early_cpu_to_node(cpu);
 
 	return  memblock_virt_alloc_try_nid(size, align,
-			__pa(MAX_DMA_ADDRESS), MEMBLOCK_ALLOC_ACCESSIBLE, nid);
+										__pa(MAX_DMA_ADDRESS), MEMBLOCK_ALLOC_ACCESSIBLE, nid);
 }
 
 static void __init pcpu_fc_free(void *ptr, size_t size)
@@ -175,15 +197,18 @@ void __init setup_per_cpu_areas(void)
 	 * what the legacy allocator did.
 	 */
 	rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
-				    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE,
-				    pcpu_cpu_distance,
-				    pcpu_fc_alloc, pcpu_fc_free);
+								PERCPU_DYNAMIC_RESERVE, PAGE_SIZE,
+								pcpu_cpu_distance,
+								pcpu_fc_alloc, pcpu_fc_free);
+
 	if (rc < 0)
+	{
 		panic("Failed to initialize percpu areas.");
+	}
 
 	delta = (unsigned long)pcpu_base_addr - (unsigned long)__per_cpu_start;
 	for_each_possible_cpu(cpu)
-		__per_cpu_offset[cpu] = delta + pcpu_unit_offsets[cpu];
+	__per_cpu_offset[cpu] = delta + pcpu_unit_offsets[cpu];
 }
 #endif
 
@@ -201,9 +226,11 @@ int __init numa_add_memblk(int nid, u64 start, u64 end)
 	int ret;
 
 	ret = memblock_set_node(start, (end - start), &memblock.memory, nid);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("memblock [0x%llx - 0x%llx] failed to add on node %d\n",
-			start, (end - 1), nid);
+			   start, (end - 1), nid);
 		return ret;
 	}
 
@@ -225,19 +252,24 @@ static void __init setup_node_data(int nid, u64 start_pfn, u64 end_pfn)
 
 	if (start_pfn < end_pfn)
 		pr_info("Initmem setup node %d [mem %#010Lx-%#010Lx]\n", nid,
-			start_pfn << PAGE_SHIFT, (end_pfn << PAGE_SHIFT) - 1);
+				start_pfn << PAGE_SHIFT, (end_pfn << PAGE_SHIFT) - 1);
 	else
+	{
 		pr_info("Initmem setup node %d [<memory-less node>]\n", nid);
+	}
 
 	nd_pa = memblock_alloc_try_nid(nd_size, SMP_CACHE_BYTES, nid);
 	nd = __va(nd_pa);
 
 	/* report and initialize */
 	pr_info("NODE_DATA [mem %#010Lx-%#010Lx]\n",
-		nd_pa, nd_pa + nd_size - 1);
+			nd_pa, nd_pa + nd_size - 1);
 	tnid = early_pfn_to_nid(nd_pa >> PAGE_SHIFT);
+
 	if (tnid != nid)
+	{
 		pr_info("NODE_DATA(%d) on node %d\n", nid, tnid);
+	}
 
 	node_data[nid] = nd;
 	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
@@ -256,10 +288,12 @@ void __init numa_free_distance(void)
 	size_t size;
 
 	if (!numa_distance)
+	{
 		return;
+	}
 
 	size = numa_distance_cnt * numa_distance_cnt *
-		sizeof(numa_distance[0]);
+		   sizeof(numa_distance[0]);
 
 	memblock_free(__pa(numa_distance), size);
 	numa_distance_cnt = 0;
@@ -279,9 +313,12 @@ static int __init numa_alloc_distance(void)
 
 	size = nr_node_ids * nr_node_ids * sizeof(numa_distance[0]);
 	phys = memblock_find_in_range(0, PFN_PHYS(max_pfn),
-				      size, PAGE_SIZE);
+								  size, PAGE_SIZE);
+
 	if (WARN_ON(!phys))
+	{
 		return -ENOMEM;
+	}
 
 	memblock_reserve(phys, size);
 
@@ -292,7 +329,7 @@ static int __init numa_alloc_distance(void)
 	for (i = 0; i < numa_distance_cnt; i++)
 		for (j = 0; j < numa_distance_cnt; j++)
 			numa_distance[i * numa_distance_cnt + j] = i == j ?
-				LOCAL_DISTANCE : REMOTE_DISTANCE;
+					LOCAL_DISTANCE : REMOTE_DISTANCE;
 
 	pr_debug("Initialized distance table, cnt=%d\n", numa_distance_cnt);
 
@@ -314,22 +351,25 @@ static int __init numa_alloc_distance(void)
  */
 void __init numa_set_distance(int from, int to, int distance)
 {
-	if (!numa_distance) {
+	if (!numa_distance)
+	{
 		pr_warn_once("Warning: distance table not allocated yet\n");
 		return;
 	}
 
 	if (from >= numa_distance_cnt || to >= numa_distance_cnt ||
-			from < 0 || to < 0) {
+		from < 0 || to < 0)
+	{
 		pr_warn_once("Warning: node ids are out of bound, from=%d to=%d distance=%d\n",
-			    from, to, distance);
+					 from, to, distance);
 		return;
 	}
 
 	if ((u8)distance != distance ||
-	    (from == to && distance != LOCAL_DISTANCE)) {
+		(from == to && distance != LOCAL_DISTANCE))
+	{
 		pr_warn_once("Warning: invalid distance parameter, from=%d to=%d distance=%d\n",
-			     from, to, distance);
+					 from, to, distance);
 		return;
 	}
 
@@ -342,7 +382,10 @@ void __init numa_set_distance(int from, int to, int distance)
 int __node_distance(int from, int to)
 {
 	if (from >= numa_distance_cnt || to >= numa_distance_cnt)
+	{
 		return from == to ? LOCAL_DISTANCE : REMOTE_DISTANCE;
+	}
+
 	return numa_distance[from * numa_distance_cnt + to];
 }
 EXPORT_SYMBOL(__node_distance);
@@ -354,15 +397,18 @@ static int __init numa_register_nodes(void)
 
 	/* Check that valid nid is set to memblks */
 	for_each_memblock(memory, mblk)
-		if (mblk->nid == NUMA_NO_NODE || mblk->nid >= MAX_NUMNODES) {
-			pr_warn("Warning: invalid memblk node %d [mem %#010Lx-%#010Lx]\n",
+
+	if (mblk->nid == NUMA_NO_NODE || mblk->nid >= MAX_NUMNODES)
+	{
+		pr_warn("Warning: invalid memblk node %d [mem %#010Lx-%#010Lx]\n",
 				mblk->nid, mblk->base,
 				mblk->base + mblk->size - 1);
-			return -EINVAL;
-		}
+		return -EINVAL;
+	}
 
 	/* Finally register nodes. */
-	for_each_node_mask(nid, numa_nodes_parsed) {
+	for_each_node_mask(nid, numa_nodes_parsed)
+	{
 		unsigned long start_pfn, end_pfn;
 
 		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
@@ -386,21 +432,31 @@ static int __init numa_init(int (*init_func)(void))
 	numa_free_distance();
 
 	ret = numa_alloc_distance();
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = init_func();
-	if (ret < 0)
-		return ret;
 
-	if (nodes_empty(numa_nodes_parsed)) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (nodes_empty(numa_nodes_parsed))
+	{
 		pr_info("No NUMA configuration found\n");
 		return -EINVAL;
 	}
 
 	ret = numa_register_nodes();
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	setup_node_to_cpumask_map();
 
@@ -422,14 +478,21 @@ static int __init dummy_numa_init(void)
 	struct memblock_region *mblk;
 
 	if (numa_off)
-		pr_info("NUMA disabled\n"); /* Forced off on command line. */
-	pr_info("Faking a node at [mem %#018Lx-%#018Lx]\n",
-		0LLU, PFN_PHYS(max_pfn) - 1);
+	{
+		pr_info("NUMA disabled\n");    /* Forced off on command line. */
+	}
 
-	for_each_memblock(memory, mblk) {
+	pr_info("Faking a node at [mem %#018Lx-%#018Lx]\n",
+			0LLU, PFN_PHYS(max_pfn) - 1);
+
+	for_each_memblock(memory, mblk)
+	{
 		ret = numa_add_memblk(0, mblk->base, mblk->base + mblk->size);
+
 		if (!ret)
+		{
 			continue;
+		}
 
 		pr_err("NUMA init failed\n");
 		return ret;
@@ -447,11 +510,17 @@ static int __init dummy_numa_init(void)
  */
 void __init arm64_numa_init(void)
 {
-	if (!numa_off) {
+	if (!numa_off)
+	{
 		if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
+		{
 			return;
+		}
+
 		if (acpi_disabled && !numa_init(of_numa_init))
+		{
 			return;
+		}
 	}
 
 	numa_init(dummy_numa_init);

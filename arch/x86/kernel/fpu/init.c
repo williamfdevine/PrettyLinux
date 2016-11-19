@@ -16,9 +16,13 @@
 static void fpu__init_cpu_ctx_switch(void)
 {
 	if (!boot_cpu_has(X86_FEATURE_EAGER_FPU))
+	{
 		stts();
+	}
 	else
+	{
 		clts();
+	}
 }
 
 /*
@@ -30,22 +34,37 @@ static void fpu__init_cpu_generic(void)
 	unsigned long cr4_mask = 0;
 
 	if (boot_cpu_has(X86_FEATURE_FXSR))
+	{
 		cr4_mask |= X86_CR4_OSFXSR;
+	}
+
 	if (boot_cpu_has(X86_FEATURE_XMM))
+	{
 		cr4_mask |= X86_CR4_OSXMMEXCPT;
+	}
+
 	if (cr4_mask)
+	{
 		cr4_set_bits(cr4_mask);
+	}
 
 	cr0 = read_cr0();
-	cr0 &= ~(X86_CR0_TS|X86_CR0_EM); /* clear TS and EM */
+	cr0 &= ~(X86_CR0_TS | X86_CR0_EM); /* clear TS and EM */
+
 	if (!boot_cpu_has(X86_FEATURE_FPU))
+	{
 		cr0 |= X86_CR0_EM;
+	}
+
 	write_cr0(cr0);
 
 	/* Flush out any pending x87 state: */
 #ifdef CONFIG_MATH_EMULATION
+
 	if (!boot_cpu_has(X86_FEATURE_FPU))
+	{
 		fpstate_init_soft(&current->thread.fpu.state.soft);
+	}
 	else
 #endif
 		asm volatile ("fninit");
@@ -78,22 +97,33 @@ static void fpu__init_system_early_generic(struct cpuinfo_x86 *c)
 	cr0 &= ~(X86_CR0_TS | X86_CR0_EM);
 	write_cr0(cr0);
 
-	if (!test_bit(X86_FEATURE_FPU, (unsigned long *)cpu_caps_cleared)) {
+	if (!test_bit(X86_FEATURE_FPU, (unsigned long *)cpu_caps_cleared))
+	{
 		asm volatile("fninit ; fnstsw %0 ; fnstcw %1"
-			     : "+m" (fsw), "+m" (fcw));
+					 : "+m" (fsw), "+m" (fcw));
 
 		if (fsw == 0 && (fcw & 0x103f) == 0x003f)
+		{
 			set_cpu_cap(c, X86_FEATURE_FPU);
+		}
 		else
+		{
 			clear_cpu_cap(c, X86_FEATURE_FPU);
+		}
 	}
 
 #ifndef CONFIG_MATH_EMULATION
-	if (!boot_cpu_has(X86_FEATURE_FPU)) {
+
+	if (!boot_cpu_has(X86_FEATURE_FPU))
+	{
 		pr_emerg("x86/fpu: Giving up, no FPU found and no math emulation present\n");
+
 		for (;;)
+		{
 			asm volatile("hlt");
+		}
 	}
+
 #endif
 }
 
@@ -106,7 +136,8 @@ static void __init fpu__init_system_mxcsr(void)
 {
 	unsigned int mask = 0;
 
-	if (boot_cpu_has(X86_FEATURE_FXSR)) {
+	if (boot_cpu_has(X86_FEATURE_FXSR))
+	{
 		/* Static because GCC does not get 16-byte stack alignment right: */
 		static struct fxregs_state fxregs __initdata;
 
@@ -120,8 +151,11 @@ static void __init fpu__init_system_mxcsr(void)
 		 * denormals-are-zero feature bit:
 		 */
 		if (mask == 0)
+		{
 			mask = 0x0000ffbf;
+		}
 	}
+
 	mxcsr_feature_mask &= mask;
 }
 
@@ -159,7 +193,7 @@ EXPORT_SYMBOL_GPL(fpu_kernel_xstate_size);
  */
 #define CHECK_MEMBER_AT_END_OF(TYPE, MEMBER) \
 	BUILD_BUG_ON(sizeof(TYPE) != ALIGN(offsetofend(TYPE, MEMBER), \
-					   TYPE_ALIGN(TYPE)))
+									   TYPE_ALIGN(TYPE)))
 
 /*
  * We append the 'struct fpu' to the task_struct:
@@ -212,7 +246,8 @@ static void __init fpu__init_system_xstate_size_legacy(void)
 	 * fpu__init_system_xstate().
 	 */
 
-	if (!boot_cpu_has(X86_FEATURE_FPU)) {
+	if (!boot_cpu_has(X86_FEATURE_FPU))
+	{
 		/*
 		 * Disable xsave as we do not support it if i387
 		 * emulation is enabled.
@@ -220,7 +255,9 @@ static void __init fpu__init_system_xstate_size_legacy(void)
 		setup_clear_cpu_cap(X86_FEATURE_XSAVE);
 		setup_clear_cpu_cap(X86_FEATURE_XSAVEOPT);
 		fpu_kernel_xstate_size = sizeof(struct swregs_state);
-	} else {
+	}
+	else
+	{
 		if (boot_cpu_has(X86_FEATURE_FXSR))
 			fpu_kernel_xstate_size =
 				sizeof(struct fxregs_state);
@@ -277,12 +314,15 @@ u64 __init fpu__get_supported_xfeatures_mask(void)
 {
 	/* Support all xfeatures known to us */
 	if (eagerfpu != DISABLE)
+	{
 		return XCNTXT_MASK;
+	}
 
 	/* Warning of xfeatures being disabled for no eagerfpu mode */
-	if (xfeatures_mask & XFEATURE_MASK_EAGER) {
+	if (xfeatures_mask & XFEATURE_MASK_EAGER)
+	{
 		pr_err("x86/fpu: eagerfpu switching disabled, disabling the following xstate features: 0x%llx.\n",
-			xfeatures_mask & XFEATURE_MASK_EAGER);
+			   xfeatures_mask & XFEATURE_MASK_EAGER);
 	}
 
 	/* Return a mask that masks out all features requiring eagerfpu mode */
@@ -319,13 +359,19 @@ static void __init fpu__init_system_ctx_switch(void)
 	WARN_ON_FPU(current->thread.fpu.fpstate_active);
 
 	if (boot_cpu_has(X86_FEATURE_XSAVEOPT) && eagerfpu != DISABLE)
+	{
 		eagerfpu = ENABLE;
+	}
 
 	if (xfeatures_mask & XFEATURE_MASK_EAGER)
+	{
 		eagerfpu = ENABLE;
+	}
 
 	if (eagerfpu == ENABLE)
+	{
 		setup_force_cpu_cap(X86_FEATURE_EAGER_FPU);
+	}
 
 	printk(KERN_INFO "x86/fpu: Using '%s' FPU context switches.\n", eagerfpu == ENABLE ? "eager" : "lazy");
 }
@@ -336,28 +382,38 @@ static void __init fpu__init_system_ctx_switch(void)
  */
 static void __init fpu__init_parse_early_param(void)
 {
-	if (cmdline_find_option_bool(boot_command_line, "eagerfpu=off")) {
+	if (cmdline_find_option_bool(boot_command_line, "eagerfpu=off"))
+	{
 		eagerfpu = DISABLE;
 		fpu__clear_eager_fpu_features();
 	}
 
 	if (cmdline_find_option_bool(boot_command_line, "no387"))
+	{
 		setup_clear_cpu_cap(X86_FEATURE_FPU);
+	}
 
-	if (cmdline_find_option_bool(boot_command_line, "nofxsr")) {
+	if (cmdline_find_option_bool(boot_command_line, "nofxsr"))
+	{
 		setup_clear_cpu_cap(X86_FEATURE_FXSR);
 		setup_clear_cpu_cap(X86_FEATURE_FXSR_OPT);
 		setup_clear_cpu_cap(X86_FEATURE_XMM);
 	}
 
 	if (cmdline_find_option_bool(boot_command_line, "noxsave"))
+	{
 		fpu__xstate_clear_all_cpu_caps();
+	}
 
 	if (cmdline_find_option_bool(boot_command_line, "noxsaveopt"))
+	{
 		setup_clear_cpu_cap(X86_FEATURE_XSAVEOPT);
+	}
 
 	if (cmdline_find_option_bool(boot_command_line, "noxsaves"))
+	{
 		setup_clear_cpu_cap(X86_FEATURE_XSAVES);
+	}
 }
 
 /*

@@ -19,7 +19,7 @@
 
 /* ftrace syscalls requires exporting the sys_call_table */
 #ifdef CONFIG_FTRACE_SYSCALLS
-extern const unsigned long sys_call_table[];
+	extern const unsigned long sys_call_table[];
 #endif /* CONFIG_FTRACE_SYSCALLS */
 
 static inline int syscall_get_nr(struct task_struct *task, struct pt_regs *regs)
@@ -34,20 +34,20 @@ static inline int syscall_get_nr(struct task_struct *task, struct pt_regs *regs)
 }
 
 static inline void syscall_rollback(struct task_struct *task,
-				    struct pt_regs *regs)
+									struct pt_regs *regs)
 {
 	regs->gpr[3] = regs->orig_gpr3;
 }
 
 static inline long syscall_get_return_value(struct task_struct *task,
-					    struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	return regs->gpr[3];
 }
 
 static inline void syscall_set_return_value(struct task_struct *task,
-					    struct pt_regs *regs,
-					    int error, long val)
+		struct pt_regs *regs,
+		int error, long val)
 {
 	/*
 	 * In the general case it's not obvious that we must deal with CCR
@@ -55,49 +55,64 @@ static inline void syscall_set_return_value(struct task_struct *task,
 	 * there are some places, eg. the signal code, which check ccr to
 	 * decide if the value in r3 is actually an error.
 	 */
-	if (error) {
+	if (error)
+	{
 		regs->ccr |= 0x10000000L;
 		regs->gpr[3] = error;
-	} else {
+	}
+	else
+	{
 		regs->ccr &= ~0x10000000L;
 		regs->gpr[3] = val;
 	}
 }
 
 static inline void syscall_get_arguments(struct task_struct *task,
-					 struct pt_regs *regs,
-					 unsigned int i, unsigned int n,
-					 unsigned long *args)
+		struct pt_regs *regs,
+		unsigned int i, unsigned int n,
+		unsigned long *args)
 {
 	unsigned long val, mask = -1UL;
 
 	BUG_ON(i + n > 6);
 
 #ifdef CONFIG_COMPAT
+
 	if (test_tsk_thread_flag(task, TIF_32BIT))
+	{
 		mask = 0xffffffff;
+	}
+
 #endif
-	while (n--) {
+
+	while (n--)
+	{
 		if (n == 0 && i == 0)
+		{
 			val = regs->orig_gpr3;
+		}
 		else
+		{
 			val = regs->gpr[3 + i + n];
+		}
 
 		args[n] = val & mask;
 	}
 }
 
 static inline void syscall_set_arguments(struct task_struct *task,
-					 struct pt_regs *regs,
-					 unsigned int i, unsigned int n,
-					 const unsigned long *args)
+		struct pt_regs *regs,
+		unsigned int i, unsigned int n,
+		const unsigned long *args)
 {
 	BUG_ON(i + n > 6);
 	memcpy(&regs->gpr[3 + i], args, n * sizeof(args[0]));
 
 	/* Also copy the first argument into orig_gpr3 */
 	if (i == 0 && n > 0)
+	{
 		regs->orig_gpr3 = args[0];
+	}
 }
 
 static inline int syscall_get_arch(void)

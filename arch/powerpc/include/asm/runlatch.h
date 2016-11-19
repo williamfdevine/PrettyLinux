@@ -17,7 +17,7 @@ extern void __ppc64_runlatch_off(void);
 #define ppc64_runlatch_off()					\
 	do {							\
 		if (cpu_has_feature(CPU_FTR_CTRL) &&		\
-		    test_thread_local_flags(_TLF_RUNLATCH)) {	\
+			test_thread_local_flags(_TLF_RUNLATCH)) {	\
 			unsigned long msr = mfmsr();		\
 			__hard_irq_disable();			\
 			__ppc64_runlatch_off();			\
@@ -29,7 +29,7 @@ extern void __ppc64_runlatch_off(void);
 #define ppc64_runlatch_on()					\
 	do {							\
 		if (cpu_has_feature(CPU_FTR_CTRL) &&		\
-		    !test_thread_local_flags(_TLF_RUNLATCH)) {	\
+			!test_thread_local_flags(_TLF_RUNLATCH)) {	\
 			unsigned long msr = mfmsr();		\
 			__hard_irq_disable();			\
 			__ppc64_runlatch_on();			\

@@ -16,13 +16,13 @@
 #include <asm/setup.h>
 
 #ifdef CONFIG_X86_32
-/*
- * This is a special lock that is owned by the CPU and holds the index
- * register we are working with.  It is required for NMI access to the
- * CMOS/RTC registers.  See include/asm-i386/mc146818rtc.h for details.
- */
-volatile unsigned long cmos_lock;
-EXPORT_SYMBOL(cmos_lock);
+	/*
+	* This is a special lock that is owned by the CPU and holds the index
+	* register we are working with.  It is required for NMI access to the
+	* CMOS/RTC registers.  See include/asm-i386/mc146818rtc.h for details.
+	*/
+	volatile unsigned long cmos_lock;
+	EXPORT_SYMBOL(cmos_lock);
 #endif /* CONFIG_X86_32 */
 
 /* For two digit years assume time is always after that */
@@ -45,17 +45,23 @@ int mach_set_rtc_mmss(const struct timespec *now)
 	int retval = 0;
 
 	rtc_time_to_tm(nowtime, &tm);
-	if (!rtc_valid_tm(&tm)) {
+
+	if (!rtc_valid_tm(&tm))
+	{
 		retval = mc146818_set_time(&tm);
+
 		if (retval)
 			printk(KERN_ERR "%s: RTC write failed with error %d\n",
-			       __func__, retval);
-	} else {
+				   __func__, retval);
+	}
+	else
+	{
 		printk(KERN_ERR
-		       "%s: Invalid RTC value: write of %lx to RTC failed\n",
-			__func__, nowtime);
+			   "%s: Invalid RTC value: write of %lx to RTC failed\n",
+			   __func__, nowtime);
 		retval = -EINVAL;
 	}
+
 	return retval;
 }
 
@@ -73,7 +79,9 @@ void mach_get_cmos_time(struct timespec *now)
 	 * then the register access might be invalid.
 	 */
 	while ((CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP))
+	{
 		cpu_relax();
+	}
 
 	sec = CMOS_READ(RTC_SECONDS);
 	min = CMOS_READ(RTC_MINUTES);
@@ -83,9 +91,13 @@ void mach_get_cmos_time(struct timespec *now)
 	year = CMOS_READ(RTC_YEAR);
 
 #ifdef CONFIG_ACPI
+
 	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
-	    acpi_gbl_FADT.century)
+		acpi_gbl_FADT.century)
+	{
 		century = CMOS_READ(acpi_gbl_FADT.century);
+	}
+
 #endif
 
 	status = CMOS_READ(RTC_CONTROL);
@@ -93,7 +105,8 @@ void mach_get_cmos_time(struct timespec *now)
 
 	spin_unlock_irqrestore(&rtc_lock, flags);
 
-	if (RTC_ALWAYS_BCD || !(status & RTC_DM_BINARY)) {
+	if (RTC_ALWAYS_BCD || !(status & RTC_DM_BINARY))
+	{
 		sec = bcd2bin(sec);
 		min = bcd2bin(min);
 		hour = bcd2bin(hour);
@@ -102,11 +115,15 @@ void mach_get_cmos_time(struct timespec *now)
 		year = bcd2bin(year);
 	}
 
-	if (century) {
+	if (century)
+	{
 		century = bcd2bin(century);
 		year += century * 100;
-	} else
+	}
+	else
+	{
 		year += CMOS_YEARS_OFFS;
+	}
 
 	now->tv_sec = mktime(year, mon, day, hour, min, sec);
 	now->tv_nsec = 0;
@@ -147,7 +164,8 @@ void read_persistent_clock(struct timespec *ts)
 }
 
 
-static struct resource rtc_resources[] = {
+static struct resource rtc_resources[] =
+{
 	[0] = {
 		.start	= RTC_PORT(0),
 		.end	= RTC_PORT(1),
@@ -160,7 +178,8 @@ static struct resource rtc_resources[] = {
 	}
 };
 
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name		= "rtc_cmos",
 	.id		= -1,
 	.resource	= rtc_resources,
@@ -170,27 +189,35 @@ static struct platform_device rtc_device = {
 static __init int add_rtc_cmos(void)
 {
 #ifdef CONFIG_PNP
-	static const char * const ids[] __initconst =
-	    { "PNP0b00", "PNP0b01", "PNP0b02", };
+	static const char *const ids[] __initconst =
+	{ "PNP0b00", "PNP0b01", "PNP0b02", };
 	struct pnp_dev *dev;
 	struct pnp_id *id;
 	int i;
 
-	pnp_for_each_dev(dev) {
-		for (id = dev->id; id; id = id->next) {
-			for (i = 0; i < ARRAY_SIZE(ids); i++) {
+	pnp_for_each_dev(dev)
+	{
+		for (id = dev->id; id; id = id->next)
+		{
+			for (i = 0; i < ARRAY_SIZE(ids); i++)
+			{
 				if (compare_pnp_id(id, ids[i]) != 0)
+				{
 					return 0;
+				}
 			}
 		}
 	}
 #endif
+
 	if (!x86_platform.legacy.rtc)
+	{
 		return -ENODEV;
+	}
 
 	platform_device_register(&rtc_device);
 	dev_info(&rtc_device.dev,
-		 "registered platform RTC device (no PNP device found)\n");
+			 "registered platform RTC device (no PNP device found)\n");
 
 	return 0;
 }

@@ -54,7 +54,9 @@ static void __iomem *__isamem_convert_addr(const volatile void __iomem *addr)
 	ret += 0xe8000000;
 
 	if ((a & 0x20000) == (a & 0x40000) >> 1)
+	{
 		return (void __iomem *)ret;
+	}
 
 	BUG();
 	return NULL;
@@ -69,9 +71,14 @@ u8 __readb(const volatile void __iomem *addr)
 	u32 ret;
 
 	if ((unsigned long)addr & 1)
+	{
 		ret = __raw_readl(a);
+	}
 	else
+	{
 		ret = __raw_readb(a);
+	}
+
 	return ret;
 }
 
@@ -80,7 +87,9 @@ u16 __readw(const volatile void __iomem *addr)
 	void __iomem *a = __isamem_convert_addr(addr);
 
 	if ((unsigned long)addr & 1)
+	{
 		BUG();
+	}
 
 	return __raw_readw(a);
 }
@@ -91,7 +100,9 @@ u32 __readl(const volatile void __iomem *addr)
 	u32 ret;
 
 	if ((unsigned long)addr & 3)
+	{
 		BUG();
+	}
 
 	ret = __raw_readw(a);
 	ret |= __raw_readw(a + 4) << 16;
@@ -127,9 +138,13 @@ void __writeb(u8 val, volatile void __iomem *addr)
 	void __iomem *a = __isamem_convert_addr(addr);
 
 	if ((unsigned long)addr & 1)
+	{
 		__raw_writel(val, a);
+	}
 	else
+	{
 		__raw_writeb(val, a);
+	}
 }
 
 void __writew(u16 val, volatile void __iomem *addr)
@@ -137,7 +152,9 @@ void __writew(u16 val, volatile void __iomem *addr)
 	void __iomem *a = __isamem_convert_addr(addr);
 
 	if ((unsigned long)addr & 1)
+	{
 		BUG();
+	}
 
 	__raw_writew(val, a);
 }
@@ -147,7 +164,9 @@ void __writel(u32 val, volatile void __iomem *addr)
 	void __iomem *a = __isamem_convert_addr(addr);
 
 	if ((unsigned long)addr & 3)
+	{
 		BUG();
+	}
 
 	__raw_writew(val, a);
 	__raw_writew(val >> 16, a + 4);
@@ -214,18 +233,26 @@ u8 __inb8(unsigned int port)
 	 * The SuperIO registers use sane addressing techniques...
 	 */
 	if (SUPERIO_PORT(port))
+	{
 		ret = __raw_readb((void __iomem *)ISAIO_BASE + (port << 2));
-	else {
+	}
+	else
+	{
 		void __iomem *a = (void __iomem *)ISAIO_BASE + ((port & ~1) << 1);
 
 		/*
 		 * Shame nothing else does
 		 */
 		if (port & 1)
+		{
 			ret = __raw_readl(a);
+		}
 		else
+		{
 			ret = __raw_readb(a);
+		}
 	}
+
 	return ret;
 }
 
@@ -241,9 +268,13 @@ u8 __inb16(unsigned int port)
 	 * The SuperIO registers use sane addressing techniques...
 	 */
 	if (SUPERIO_PORT(port))
+	{
 		offset = port << 2;
+	}
 	else
+	{
 		offset = (port & ~1) << 1 | (port & 1);
+	}
 
 	return __raw_readb((void __iomem *)ISAIO_BASE + offset);
 }
@@ -256,11 +287,15 @@ u16 __inw(unsigned int port)
 	 * The SuperIO registers use sane addressing techniques...
 	 */
 	if (SUPERIO_PORT(port))
+	{
 		offset = port << 2;
-	else {
+	}
+	else
+	{
 		offset = port << 1;
 		BUG_ON(port & 1);
 	}
+
 	return __raw_readw((void __iomem *)ISAIO_BASE + offset);
 }
 
@@ -272,7 +307,9 @@ u32 __inl(unsigned int port)
 	void __iomem *a;
 
 	if (SUPERIO_PORT(port) || port & 3)
+	{
 		BUG();
+	}
 
 	a = (void __iomem *)ISAIO_BASE + ((port & ~1) << 1);
 
@@ -290,17 +327,24 @@ void __outb8(u8 val, unsigned int port)
 	 * The SuperIO registers use sane addressing techniques...
 	 */
 	if (SUPERIO_PORT(port))
+	{
 		__raw_writeb(val, (void __iomem *)ISAIO_BASE + (port << 2));
-	else {
+	}
+	else
+	{
 		void __iomem *a = (void __iomem *)ISAIO_BASE + ((port & ~1) << 1);
 
 		/*
 		 * Shame nothing else does
 		 */
 		if (port & 1)
+		{
 			__raw_writel(val, a);
+		}
 		else
+		{
 			__raw_writeb(val, a);
+		}
 	}
 }
 
@@ -312,9 +356,13 @@ void __outb16(u8 val, unsigned int port)
 	 * The SuperIO registers use sane addressing techniques...
 	 */
 	if (SUPERIO_PORT(port))
+	{
 		offset = port << 2;
+	}
 	else
+	{
 		offset = (port & ~1) << 1 | (port & 1);
+	}
 
 	__raw_writeb(val, (void __iomem *)ISAIO_BASE + offset);
 }
@@ -327,11 +375,15 @@ void __outw(u16 val, unsigned int port)
 	 * The SuperIO registers use sane addressing techniques...
 	 */
 	if (SUPERIO_PORT(port))
+	{
 		offset = port << 2;
-	else {
+	}
+	else
+	{
 		offset = port << 1;
 		BUG_ON(port & 1);
 	}
+
 	__raw_writew(val, (void __iomem *)ISAIO_BASE + offset);
 }
 
@@ -350,11 +402,17 @@ void outsb(unsigned int port, const void *from, int len)
 	u32 off;
 
 	if (SUPERIO_PORT(port))
+	{
 		off = port << 2;
-	else {
+	}
+	else
+	{
 		off = (port & ~1) << 1;
+
 		if (port & 1)
+		{
 			BUG();
+		}
 	}
 
 	__raw_writesb((void __iomem *)ISAIO_BASE + off, from, len);
@@ -365,11 +423,17 @@ void insb(unsigned int port, void *from, int len)
 	u32 off;
 
 	if (SUPERIO_PORT(port))
+	{
 		off = port << 2;
-	else {
+	}
+	else
+	{
 		off = (port & ~1) << 1;
+
 		if (port & 1)
+		{
 			BUG();
+		}
 	}
 
 	__raw_readsb((void __iomem *)ISAIO_BASE + off, from, len);
@@ -383,11 +447,17 @@ void outsw(unsigned int port, const void *from, int len)
 	u32 off;
 
 	if (SUPERIO_PORT(port))
+	{
 		off = port << 2;
-	else {
+	}
+	else
+	{
 		off = (port & ~1) << 1;
+
 		if (port & 1)
+		{
 			BUG();
+		}
 	}
 
 	__raw_writesw((void __iomem *)ISAIO_BASE + off, from, len);
@@ -398,11 +468,17 @@ void insw(unsigned int port, void *from, int len)
 	u32 off;
 
 	if (SUPERIO_PORT(port))
+	{
 		off = port << 2;
-	else {
+	}
+	else
+	{
 		off = (port & ~1) << 1;
+
 		if (port & 1)
+		{
 			BUG();
+		}
 	}
 
 	__raw_readsw((void __iomem *)ISAIO_BASE + off, from, len);
@@ -420,7 +496,9 @@ void outsl(unsigned int port, const void *from, int len)
 	u32 off = port << 1;
 
 	if (SUPERIO_PORT(port) || port & 3)
+	{
 		BUG();
+	}
 
 	__raw_writesw((void __iomem *)ISAIO_BASE + off, from, len << 1);
 }
@@ -430,7 +508,9 @@ void insl(unsigned int port, void *from, int len)
 	u32 off = port << 1;
 
 	if (SUPERIO_PORT(port) || port & 3)
+	{
 		BUG();
+	}
 
 	__raw_readsw((void __iomem *)ISAIO_BASE + off, from, len << 1);
 }

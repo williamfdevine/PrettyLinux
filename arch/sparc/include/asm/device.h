@@ -11,7 +11,8 @@
 struct device_node;
 struct platform_device;
 
-struct dev_archdata {
+struct dev_archdata
+{
 	void			*iommu;
 	void			*stc;
 	void			*host_controller;
@@ -21,7 +22,8 @@ struct dev_archdata {
 
 void of_propagate_archdata(struct platform_device *bus);
 
-struct pdev_archdata {
+struct pdev_archdata
+{
 	struct resource		resource[PROMREG_MAX];
 	unsigned int		irqs[PROMINTR_MAX];
 	int			num_irqs;

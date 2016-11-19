@@ -53,14 +53,15 @@ static int s3c2412_cpu_suspend(unsigned long arg)
 }
 
 /* mapping of interrupts to parts of the wakeup mask */
-static struct samsung_wakeup_mask wake_irqs[] = {
+static struct samsung_wakeup_mask wake_irqs[] =
+{
 	{ .irq = IRQ_RTC,	.bit = S3C2412_PWRCFG_RTC_MASKIRQ, },
 };
 
 static void s3c2412_pm_prepare(void)
 {
 	samsung_sync_wakemask(S3C2412_PWRCFG,
-			      wake_irqs, ARRAY_SIZE(wake_irqs));
+						  wake_irqs, ARRAY_SIZE(wake_irqs));
 }
 
 static int s3c2412_pm_add(struct device *dev, struct subsys_interface *sif)
@@ -71,7 +72,8 @@ static int s3c2412_pm_add(struct device *dev, struct subsys_interface *sif)
 	return 0;
 }
 
-static struct sleep_save s3c2412_sleep[] = {
+static struct sleep_save s3c2412_sleep[] =
+{
 	SAVE_ITEM(S3C2412_DSC0),
 	SAVE_ITEM(S3C2412_DSC1),
 	SAVE_ITEM(S3C2413_GPJDAT),
@@ -94,7 +96,8 @@ static struct sleep_save s3c2412_sleep[] = {
 	SAVE_ITEM(S3C2413_GPJSLPCON),
 };
 
-static struct subsys_interface s3c2412_pm_interface = {
+static struct subsys_interface s3c2412_pm_interface =
+{
 	.name		= "s3c2412_pm",
 	.subsys		= &s3c2412_subsys,
 	.add_dev	= s3c2412_pm_add,
@@ -125,7 +128,8 @@ static void s3c2412_pm_resume(void)
 	s3c_pm_do_restore(s3c2412_sleep, ARRAY_SIZE(s3c2412_sleep));
 }
 
-struct syscore_ops s3c2412_pm_syscore_ops = {
+struct syscore_ops s3c2412_pm_syscore_ops =
+{
 	.suspend	= s3c2412_pm_suspend,
 	.resume		= s3c2412_pm_resume,
 };

@@ -13,9 +13,9 @@
 #define ELF_ARCH		EM_MIPS
 #define ELF_CLASS		ELFCLASS32
 #ifdef __MIPSEB__
-#define ELF_DATA		ELFDATA2MSB;
+	#define ELF_DATA		ELFDATA2MSB;
 #else /* __MIPSEL__ */
-#define ELF_DATA		ELFDATA2LSB;
+	#define ELF_DATA		ELFDATA2LSB;
 #endif
 
 /* ELF register definitions */
@@ -34,9 +34,9 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 #define elf_check_arch elfo32_check_arch
 
 #ifdef CONFIG_KVM_GUEST
-#define TASK32_SIZE		0x3fff8000UL
+	#define TASK32_SIZE		0x3fff8000UL
 #else
-#define TASK32_SIZE		0x7fff8000UL
+	#define TASK32_SIZE		0x7fff8000UL
 #endif
 #undef ELF_ET_DYN_BASE
 #define ELF_ET_DYN_BASE		(TASK32_SIZE / 3 * 2)

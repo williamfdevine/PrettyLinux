@@ -20,7 +20,8 @@
 
 #include <asm/irq.h>
 
-typedef struct {
+typedef struct
+{
 	unsigned int __softirq_pending;
 	long idle_timestamp;
 

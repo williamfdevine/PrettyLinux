@@ -20,7 +20,8 @@
 
 #include <asm/stacktrace.h>
 
-struct frame_tail {
+struct frame_tail
+{
 	struct frame_tail	__user *fp;
 	unsigned long		lr;
 } __attribute__((packed));
@@ -31,21 +32,25 @@ struct frame_tail {
  */
 static struct frame_tail __user *
 user_backtrace(struct frame_tail __user *tail,
-	       struct perf_callchain_entry_ctx *entry)
+			   struct perf_callchain_entry_ctx *entry)
 {
 	struct frame_tail buftail;
 	unsigned long err;
 
 	/* Also check accessibility of one struct frame_tail beyond */
 	if (!access_ok(VERIFY_READ, tail, sizeof(buftail)))
+	{
 		return NULL;
+	}
 
 	pagefault_disable();
 	err = __copy_from_user_inatomic(&buftail, tail, sizeof(buftail));
 	pagefault_enable();
 
 	if (err)
+	{
 		return NULL;
+	}
 
 	perf_callchain_store(entry, buftail.lr);
 
@@ -54,7 +59,9 @@ user_backtrace(struct frame_tail __user *tail,
 	 * (towards higher addresses).
 	 */
 	if (tail >= buftail.fp)
+	{
 		return NULL;
+	}
 
 	return buftail.fp;
 }
@@ -68,7 +75,8 @@ user_backtrace(struct frame_tail __user *tail,
  *
  * This code has been adapted from the ARM OProfile support.
  */
-struct compat_frame_tail {
+struct compat_frame_tail
+{
 	compat_uptr_t	fp; /* a (struct compat_frame_tail *) in compat mode */
 	u32		sp;
 	u32		lr;
@@ -76,21 +84,25 @@ struct compat_frame_tail {
 
 static struct compat_frame_tail __user *
 compat_user_backtrace(struct compat_frame_tail __user *tail,
-		      struct perf_callchain_entry_ctx *entry)
+					  struct perf_callchain_entry_ctx *entry)
 {
 	struct compat_frame_tail buftail;
 	unsigned long err;
 
 	/* Also check accessibility of one struct frame_tail beyond */
 	if (!access_ok(VERIFY_READ, tail, sizeof(buftail)))
+	{
 		return NULL;
+	}
 
 	pagefault_disable();
 	err = __copy_from_user_inatomic(&buftail, tail, sizeof(buftail));
 	pagefault_enable();
 
 	if (err)
+	{
 		return NULL;
+	}
 
 	perf_callchain_store(entry, buftail.lr);
 
@@ -99,33 +111,41 @@ compat_user_backtrace(struct compat_frame_tail __user *tail,
 	 * (towards higher addresses).
 	 */
 	if (tail + 1 >= (struct compat_frame_tail __user *)
-			compat_ptr(buftail.fp))
+		compat_ptr(buftail.fp))
+	{
 		return NULL;
+	}
 
 	return (struct compat_frame_tail __user *)compat_ptr(buftail.fp) - 1;
 }
 #endif /* CONFIG_COMPAT */
 
 void perf_callchain_user(struct perf_callchain_entry_ctx *entry,
-			 struct pt_regs *regs)
+						 struct pt_regs *regs)
 {
-	if (perf_guest_cbs && perf_guest_cbs->is_in_guest()) {
+	if (perf_guest_cbs && perf_guest_cbs->is_in_guest())
+	{
 		/* We don't support guest os callchain now */
 		return;
 	}
 
 	perf_callchain_store(entry, regs->pc);
 
-	if (!compat_user_mode(regs)) {
+	if (!compat_user_mode(regs))
+	{
 		/* AARCH64 mode */
 		struct frame_tail __user *tail;
 
 		tail = (struct frame_tail __user *)regs->regs[29];
 
 		while (entry->nr < entry->max_stack &&
-		       tail && !((unsigned long)tail & 0xf))
+			   tail && !((unsigned long)tail & 0xf))
+		{
 			tail = user_backtrace(tail, entry);
-	} else {
+		}
+	}
+	else
+	{
 #ifdef CONFIG_COMPAT
 		/* AARCH32 compat mode */
 		struct compat_frame_tail __user *tail;
@@ -133,8 +153,11 @@ void perf_callchain_user(struct perf_callchain_entry_ctx *entry,
 		tail = (struct compat_frame_tail __user *)regs->compat_fp - 1;
 
 		while ((entry->nr < entry->max_stack) &&
-			tail && !((unsigned long)tail & 0x3))
+			   tail && !((unsigned long)tail & 0x3))
+		{
 			tail = compat_user_backtrace(tail, entry);
+		}
+
 #endif
 	}
 }
@@ -152,11 +175,12 @@ static int callchain_trace(struct stackframe *frame, void *data)
 }
 
 void perf_callchain_kernel(struct perf_callchain_entry_ctx *entry,
-			   struct pt_regs *regs)
+						   struct pt_regs *regs)
 {
 	struct stackframe frame;
 
-	if (perf_guest_cbs && perf_guest_cbs->is_in_guest()) {
+	if (perf_guest_cbs && perf_guest_cbs->is_in_guest())
+	{
 		/* We don't support guest os callchain now */
 		return;
 	}
@@ -174,7 +198,9 @@ void perf_callchain_kernel(struct perf_callchain_entry_ctx *entry,
 unsigned long perf_instruction_pointer(struct pt_regs *regs)
 {
 	if (perf_guest_cbs && perf_guest_cbs->is_in_guest())
+	{
 		return perf_guest_cbs->get_guest_ip();
+	}
 
 	return instruction_pointer(regs);
 }
@@ -183,16 +209,27 @@ unsigned long perf_misc_flags(struct pt_regs *regs)
 {
 	int misc = 0;
 
-	if (perf_guest_cbs && perf_guest_cbs->is_in_guest()) {
+	if (perf_guest_cbs && perf_guest_cbs->is_in_guest())
+	{
 		if (perf_guest_cbs->is_user_mode())
+		{
 			misc |= PERF_RECORD_MISC_GUEST_USER;
+		}
 		else
+		{
 			misc |= PERF_RECORD_MISC_GUEST_KERNEL;
-	} else {
+		}
+	}
+	else
+	{
 		if (user_mode(regs))
+		{
 			misc |= PERF_RECORD_MISC_USER;
+		}
 		else
+		{
 			misc |= PERF_RECORD_MISC_KERNEL;
+		}
 	}
 
 	return misc;

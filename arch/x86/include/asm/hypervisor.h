@@ -28,7 +28,8 @@
 /*
  * x86 hypervisor information
  */
-struct hypervisor_x86 {
+struct hypervisor_x86
+{
 	/* Hypervisor name */
 	const char	*name;
 

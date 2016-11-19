@@ -43,9 +43,9 @@ typedef u16 kprobe_opcode_t;
 #define MAX_INSN_SIZE		0x0003
 #define MAX_STACK_SIZE		64
 #define MIN_STACK_SIZE(ADDR) (((MAX_STACK_SIZE) < \
-	(((unsigned long)task_stack_page(current)) + THREAD_SIZE - (ADDR))) \
-	? (MAX_STACK_SIZE) \
-	: (((unsigned long)task_stack_page(current)) + THREAD_SIZE - (ADDR)))
+							   (((unsigned long)task_stack_page(current)) + THREAD_SIZE - (ADDR))) \
+							  ? (MAX_STACK_SIZE) \
+							  : (((unsigned long)task_stack_page(current)) + THREAD_SIZE - (ADDR)))
 
 #define kretprobe_blacklist_size 0
 
@@ -57,19 +57,22 @@ typedef u16 kprobe_opcode_t;
 #define FIXUP_NOT_REQUIRED	0x01
 
 /* Architecture specific copy of original instruction */
-struct arch_specific_insn {
+struct arch_specific_insn
+{
 	/* copy of original instruction */
 	kprobe_opcode_t *insn;
 	unsigned int is_ftrace_insn : 1;
 };
 
-struct prev_kprobe {
+struct prev_kprobe
+{
 	struct kprobe *kp;
 	unsigned long status;
 };
 
 /* per-cpu kprobe control block */
-struct kprobe_ctlblk {
+struct kprobe_ctlblk
+{
 	unsigned long kprobe_status;
 	unsigned long kprobe_saved_imask;
 	unsigned long kprobe_saved_ctl[3];
@@ -83,7 +86,7 @@ void kretprobe_trampoline(void);
 
 int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
 int kprobe_exceptions_notify(struct notifier_block *self,
-	unsigned long val, void *data);
+							 unsigned long val, void *data);
 
 int probe_is_prohibited_opcode(u16 *insn);
 int probe_get_fixup_type(u16 *insn);

@@ -66,7 +66,8 @@
 #define SG2_GPIO_nSD_DETECT	90
 #define SG2_SD_POWER_ENABLE	89
 
-static unsigned long sg2_im2_unified_pin_config[] __initdata = {
+static unsigned long sg2_im2_unified_pin_config[] __initdata =
+{
 	/* Device Identification for wakeup*/
 	GPIO102_GPIO,
 	/* DA9030 */
@@ -137,12 +138,14 @@ static unsigned long sg2_im2_unified_pin_config[] __initdata = {
 	GPIO10_GPIO, /* large basic connector pin 23 */
 };
 
-static struct sht15_platform_data platform_data_sht15 = {
+static struct sht15_platform_data platform_data_sht15 =
+{
 	.gpio_data =  100,
 	.gpio_sck  =  98,
 };
 
-static struct platform_device sht15 = {
+static struct platform_device sht15 =
+{
 	.name = "sht15",
 	.id = -1,
 	.dev = {
@@ -150,11 +153,13 @@ static struct platform_device sht15 = {
 	},
 };
 
-static struct regulator_consumer_supply stargate2_sensor_3_con[] = {
+static struct regulator_consumer_supply stargate2_sensor_3_con[] =
+{
 	REGULATOR_SUPPLY("vcc", "sht15"),
 };
 
-enum stargate2_ldos{
+enum stargate2_ldos
+{
 	vcc_vref,
 	vcc_cc2420,
 	/* a mote connector? */
@@ -181,7 +186,8 @@ enum stargate2_ldos{
  * on exactly what is wired to each ldo.  Unfortunately this information is
  * not generally available.  More information has been requested from Xbow.
  */
-static struct regulator_init_data stargate2_ldo_init_data[] = {
+static struct regulator_init_data stargate2_ldo_init_data[] =
+{
 	[vcc_bbio] = {
 		.constraints = { /* board default 1.8V */
 			.name = "vcc_bbio",
@@ -247,7 +253,7 @@ static struct regulator_init_data stargate2_ldo_init_data[] = {
 		},
 	},
 	[vcc_io] = { /* Same or higher than everything
-			  * bar vccbat and vccusb */
+		  * bar vccbat and vccusb */
 		.constraints = { /* default 2.8V */
 			.name = "vcc_io",
 			.min_uV = 2692000,
@@ -293,7 +299,8 @@ static struct regulator_init_data stargate2_ldo_init_data[] = {
 	},
 };
 
-static struct mtd_partition stargate2flash_partitions[] = {
+static struct mtd_partition stargate2flash_partitions[] =
+{
 	{
 		.name = "Bootloader",
 		.size = 0x00040000,
@@ -312,13 +319,15 @@ static struct mtd_partition stargate2flash_partitions[] = {
 	},
 };
 
-static struct resource flash_resources = {
+static struct resource flash_resources =
+{
 	.start = PXA_CS0_PHYS,
 	.end = PXA_CS0_PHYS + SZ_32M - 1,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct flash_platform_data stargate2_flash_data = {
+static struct flash_platform_data stargate2_flash_data =
+{
 	.map_name = "cfi_probe",
 	.parts = stargate2flash_partitions,
 	.nr_parts = ARRAY_SIZE(stargate2flash_partitions),
@@ -326,7 +335,8 @@ static struct flash_platform_data stargate2_flash_data = {
 	.width = 2,
 };
 
-static struct platform_device stargate2_flash_device = {
+static struct platform_device stargate2_flash_device =
+{
 	.name = "pxa2xx-flash",
 	.id = 0,
 	.dev = {
@@ -336,21 +346,25 @@ static struct platform_device stargate2_flash_device = {
 	.num_resources = 1,
 };
 
-static struct pxa2xx_spi_master pxa_ssp_master_0_info = {
+static struct pxa2xx_spi_master pxa_ssp_master_0_info =
+{
 	.num_chipselect = 1,
 };
 
-static struct pxa2xx_spi_master pxa_ssp_master_1_info = {
+static struct pxa2xx_spi_master pxa_ssp_master_1_info =
+{
 	.num_chipselect = 1,
 };
 
-static struct pxa2xx_spi_master pxa_ssp_master_2_info = {
+static struct pxa2xx_spi_master pxa_ssp_master_2_info =
+{
 	.num_chipselect = 1,
 };
 
 /* An upcoming kernel change will scrap SFRM usage so these
  * drivers have been moved to use gpio's via cs_control */
-static struct pxa2xx_spi_chip staccel_chip_info = {
+static struct pxa2xx_spi_chip staccel_chip_info =
+{
 	.tx_threshold = 8,
 	.rx_threshold = 8,
 	.dma_burst_size = 8,
@@ -358,7 +372,8 @@ static struct pxa2xx_spi_chip staccel_chip_info = {
 	.gpio_cs = 24,
 };
 
-static struct pxa2xx_spi_chip cc2420_info = {
+static struct pxa2xx_spi_chip cc2420_info =
+{
 	.tx_threshold = 8,
 	.rx_threshold = 8,
 	.dma_burst_size = 8,
@@ -366,7 +381,8 @@ static struct pxa2xx_spi_chip cc2420_info = {
 	.gpio_cs = 39,
 };
 
-static struct spi_board_info spi_board_info[] __initdata = {
+static struct spi_board_info spi_board_info[] __initdata =
+{
 	{
 		.modalias = "lis3l02dq",
 		.max_speed_hz = 8000000,/* 8MHz max spi frequency at 3V */
@@ -385,21 +401,25 @@ static struct spi_board_info spi_board_info[] __initdata = {
 
 static void sg2_udc_command(int cmd)
 {
-	switch (cmd) {
-	case PXA2XX_UDC_CMD_CONNECT:
-		UP2OCR |=  UP2OCR_HXOE  | UP2OCR_DPPUE | UP2OCR_DPPUBE;
-		break;
-	case PXA2XX_UDC_CMD_DISCONNECT:
-		UP2OCR &= ~(UP2OCR_HXOE  | UP2OCR_DPPUE | UP2OCR_DPPUBE);
-		break;
+	switch (cmd)
+	{
+		case PXA2XX_UDC_CMD_CONNECT:
+			UP2OCR |=  UP2OCR_HXOE  | UP2OCR_DPPUE | UP2OCR_DPPUBE;
+			break;
+
+		case PXA2XX_UDC_CMD_DISCONNECT:
+			UP2OCR &= ~(UP2OCR_HXOE  | UP2OCR_DPPUE | UP2OCR_DPPUBE);
+			break;
 	}
 }
 
-static struct i2c_pxa_platform_data i2c_pwr_pdata = {
+static struct i2c_pxa_platform_data i2c_pwr_pdata =
+{
 	.fast_mode = 1,
 };
 
-static struct i2c_pxa_platform_data i2c_pdata = {
+static struct i2c_pxa_platform_data i2c_pdata =
+{
 	.fast_mode = 1,
 };
 
@@ -432,7 +452,8 @@ static int imote2_mci_get_ro(struct device *dev)
 }
 
 /* Rather simple case as hotplugging not possible */
-static struct pxamci_platform_data imote2_mci_platform_data = {
+static struct pxamci_platform_data imote2_mci_platform_data =
+{
 	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34, /* default anyway */
 	.get_ro = imote2_mci_get_ro,
 	.gpio_card_detect = -1,
@@ -440,7 +461,8 @@ static struct pxamci_platform_data imote2_mci_platform_data = {
 	.gpio_power = -1,
 };
 
-static struct gpio_led imote2_led_pins[] = {
+static struct gpio_led imote2_led_pins[] =
+{
 	{
 		.name       =  "imote2:red",
 		.gpio       = 103,
@@ -456,12 +478,14 @@ static struct gpio_led imote2_led_pins[] = {
 	},
 };
 
-static struct gpio_led_platform_data imote2_led_data = {
+static struct gpio_led_platform_data imote2_led_data =
+{
 	.num_leds = ARRAY_SIZE(imote2_led_pins),
 	.leds     = imote2_led_pins,
 };
 
-static struct platform_device imote2_leds = {
+static struct platform_device imote2_leds =
+{
 	.name = "leds-gpio",
 	.id   = -1,
 	.dev = {
@@ -469,7 +493,8 @@ static struct platform_device imote2_leds = {
 	},
 };
 
-static struct da903x_subdev_info imote2_da9030_subdevs[] = {
+static struct da903x_subdev_info imote2_da9030_subdevs[] =
+{
 	{
 		.name = "da903x-regulator",
 		.id = DA9030_ID_LDO2,
@@ -533,12 +558,14 @@ static struct da903x_subdev_info imote2_da9030_subdevs[] = {
 	},
 };
 
-static struct da903x_platform_data imote2_da9030_pdata = {
+static struct da903x_platform_data imote2_da9030_pdata =
+{
 	.num_subdevs = ARRAY_SIZE(imote2_da9030_subdevs),
 	.subdevs = imote2_da9030_subdevs,
 };
 
-static struct i2c_board_info __initdata imote2_pwr_i2c_board_info[] = {
+static struct i2c_board_info __initdata imote2_pwr_i2c_board_info[] =
+{
 	{
 		.type = "da9030",
 		.addr = 0x49,
@@ -547,7 +574,8 @@ static struct i2c_board_info __initdata imote2_pwr_i2c_board_info[] = {
 	},
 };
 
-static struct i2c_board_info __initdata imote2_i2c_board_info[] = {
+static struct i2c_board_info __initdata imote2_i2c_board_info[] =
+{
 	{ /* UCAM sensor board */
 		.type = "max1239",
 		.addr = 0x35,
@@ -575,7 +603,8 @@ static struct i2c_board_info __initdata imote2_i2c_board_info[] = {
 	},
 };
 
-static unsigned long imote2_pin_config[] __initdata = {
+static unsigned long imote2_pin_config[] __initdata =
+{
 
 	/* Button */
 	GPIO91_GPIO,
@@ -586,16 +615,19 @@ static unsigned long imote2_pin_config[] __initdata = {
 	GPIO105_GPIO, /* blue led */
 };
 
-static struct pxa2xx_udc_mach_info imote2_udc_info __initdata = {
+static struct pxa2xx_udc_mach_info imote2_udc_info __initdata =
+{
 	.udc_command		= sg2_udc_command,
 };
 
-static struct platform_device imote2_audio_device = {
+static struct platform_device imote2_audio_device =
+{
 	.name = "imote2-audio",
 	.id   = -1,
 };
 
-static struct platform_device *imote2_devices[] = {
+static struct platform_device *imote2_devices[] =
+{
 	&stargate2_flash_device,
 	&imote2_leds,
 	&sht15,
@@ -611,9 +643,9 @@ static void __init imote2_init(void)
 	platform_add_devices(imote2_devices, ARRAY_SIZE(imote2_devices));
 
 	i2c_register_board_info(0, imote2_i2c_board_info,
-				ARRAY_SIZE(imote2_i2c_board_info));
+							ARRAY_SIZE(imote2_i2c_board_info));
 	i2c_register_board_info(1, imote2_pwr_i2c_board_info,
-				ARRAY_SIZE(imote2_pwr_i2c_board_info));
+							ARRAY_SIZE(imote2_pwr_i2c_board_info));
 
 	pxa_set_mci_info(&imote2_mci_platform_data);
 	pxa_set_udc_info(&imote2_udc_info);
@@ -622,7 +654,8 @@ static void __init imote2_init(void)
 
 #ifdef CONFIG_MACH_STARGATE2
 
-static unsigned long stargate2_pin_config[] __initdata = {
+static unsigned long stargate2_pin_config[] __initdata =
+{
 
 	GPIO15_nCS_1, /* SRAM */
 	/* SMC91x */
@@ -656,7 +689,8 @@ static unsigned long stargate2_pin_config[] __initdata = {
 	GPIO81_GPIO, /* reset */
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.name = "smc91x-regs",
 		.start = (PXA_CS4_PHYS + 0x300),
@@ -670,12 +704,14 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct smc91x_platdata stargate2_smc91x_info = {
+static struct smc91x_platdata stargate2_smc91x_info =
+{
 	.flags = SMC91X_USE_8BIT | SMC91X_USE_16BIT | SMC91X_USE_32BIT
 	| SMC91X_NOWAIT | SMC91X_USE_DMA,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name = "smc91x",
 	.id = -1,
 	.num_resources = ARRAY_SIZE(smc91x_resources),
@@ -691,41 +727,50 @@ static struct platform_device smc91x_device = {
  * to give the card a chance to fully insert / eject.
  */
 static int stargate2_mci_init(struct device *dev,
-			      irq_handler_t stargate2_detect_int,
-			      void *data)
+							  irq_handler_t stargate2_detect_int,
+							  void *data)
 {
 	int err;
 
 	err = gpio_request(SG2_SD_POWER_ENABLE, "SG2_sd_power_enable");
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "Can't get the gpio for SD power control");
 		goto return_err;
 	}
+
 	gpio_direction_output(SG2_SD_POWER_ENABLE, 0);
 
 	err = gpio_request(SG2_GPIO_nSD_DETECT, "SG2_sd_detect");
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "Can't get the sd detect gpio");
 		goto free_power_en;
 	}
+
 	gpio_direction_input(SG2_GPIO_nSD_DETECT);
 
 	err = request_irq(PXA_GPIO_TO_IRQ(SG2_GPIO_nSD_DETECT),
-			  stargate2_detect_int,
-			  IRQ_TYPE_EDGE_BOTH,
-			  "MMC card detect",
-			  data);
-	if (err) {
+					  stargate2_detect_int,
+					  IRQ_TYPE_EDGE_BOTH,
+					  "MMC card detect",
+					  data);
+
+	if (err)
+	{
 		printk(KERN_ERR "can't request MMC card detect IRQ\n");
 		goto free_nsd_detect;
 	}
+
 	return 0;
 
- free_nsd_detect:
+free_nsd_detect:
 	gpio_free(SG2_GPIO_nSD_DETECT);
- free_power_en:
+free_power_en:
 	gpio_free(SG2_SD_POWER_ENABLE);
- return_err:
+return_err:
 	return err;
 }
 
@@ -747,7 +792,8 @@ static void stargate2_mci_exit(struct device *dev, void *data)
 	gpio_free(SG2_GPIO_nSD_DETECT);
 }
 
-static struct pxamci_platform_data stargate2_mci_platform_data = {
+static struct pxamci_platform_data stargate2_mci_platform_data =
+{
 	.detect_delay_ms = 250,
 	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34,
 	.init = stargate2_mci_init,
@@ -763,18 +809,21 @@ static struct pxamci_platform_data stargate2_mci_platform_data = {
  * typically have a cifs filesystem created on it to provide
  * fast temporary storage.
  */
-static struct resource sram_resources = {
+static struct resource sram_resources =
+{
 	.start = PXA_CS1_PHYS,
-	.end = PXA_CS1_PHYS + SZ_32M-1,
+	.end = PXA_CS1_PHYS + SZ_32M - 1,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platdata_mtd_ram stargate2_sram_pdata = {
+static struct platdata_mtd_ram stargate2_sram_pdata =
+{
 	.mapname = "Stargate2 SRAM",
 	.bankwidth = 2,
 };
 
-static struct platform_device stargate2_sram = {
+static struct platform_device stargate2_sram =
+{
 	.name = "mtd-ram",
 	.id = 0,
 	.resource = &sram_resources,
@@ -784,7 +833,8 @@ static struct platform_device stargate2_sram = {
 	},
 };
 
-static struct pcf857x_platform_data platform_data_pcf857x = {
+static struct pcf857x_platform_data platform_data_pcf857x =
+{
 	.gpio_base = 128,
 	.n_latch = 0,
 	.setup = NULL,
@@ -792,7 +842,8 @@ static struct pcf857x_platform_data platform_data_pcf857x = {
 	.context = NULL,
 };
 
-static struct at24_platform_data pca9500_eeprom_pdata = {
+static struct at24_platform_data pca9500_eeprom_pdata =
+{
 	.byte_len = 256,
 	.page_size = 4,
 };
@@ -804,10 +855,13 @@ static int stargate2_reset_bluetooth(void)
 {
 	int err;
 	err = gpio_request(SG2_BT_RESET, "SG2_BT_RESET");
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "Could not get gpio for bluetooth reset\n");
 		return err;
 	}
+
 	gpio_direction_output(SG2_BT_RESET, 1);
 	mdelay(5);
 	/* now reset it - 5 msec minimum */
@@ -818,7 +872,8 @@ static int stargate2_reset_bluetooth(void)
 	return 0;
 }
 
-static struct led_info stargate2_leds[] = {
+static struct led_info stargate2_leds[] =
+{
 	{
 		.name = "sg2:red",
 		.flags = DA9030_LED_RATE_ON,
@@ -831,7 +886,8 @@ static struct led_info stargate2_leds[] = {
 	},
 };
 
-static struct da903x_subdev_info stargate2_da9030_subdevs[] = {
+static struct da903x_subdev_info stargate2_da9030_subdevs[] =
+{
 	{
 		.name = "da903x-led",
 		.id = DA9030_ID_LED_2,
@@ -907,12 +963,14 @@ static struct da903x_subdev_info stargate2_da9030_subdevs[] = {
 	},
 };
 
-static struct da903x_platform_data stargate2_da9030_pdata = {
+static struct da903x_platform_data stargate2_da9030_pdata =
+{
 	.num_subdevs = ARRAY_SIZE(stargate2_da9030_subdevs),
 	.subdevs = stargate2_da9030_subdevs,
 };
 
-static struct i2c_board_info __initdata stargate2_pwr_i2c_board_info[] = {
+static struct i2c_board_info __initdata stargate2_pwr_i2c_board_info[] =
+{
 	{
 		.type = "da9030",
 		.addr = 0x49,
@@ -921,7 +979,8 @@ static struct i2c_board_info __initdata stargate2_pwr_i2c_board_info[] = {
 	},
 };
 
-static struct i2c_board_info __initdata stargate2_i2c_board_info[] = {
+static struct i2c_board_info __initdata stargate2_i2c_board_info[] =
+{
 	/* Techically this a pca9500 - but it's compatible with the 8574
 	 * for gpio expansion and the 24c02 for eeprom access.
 	 */
@@ -965,12 +1024,14 @@ static int sg2_udc_detect(void)
 	return 1;
 }
 
-static struct pxa2xx_udc_mach_info stargate2_udc_info __initdata = {
+static struct pxa2xx_udc_mach_info stargate2_udc_info __initdata =
+{
 	.udc_is_connected	= sg2_udc_detect,
 	.udc_command		= sg2_udc_command,
 };
 
-static struct platform_device *stargate2_devices[] = {
+static struct platform_device *stargate2_devices[] =
+{
 	&stargate2_flash_device,
 	&stargate2_sram,
 	&smc91x_device,
@@ -991,7 +1052,7 @@ static void __init stargate2_init(void)
 
 	i2c_register_board_info(0, ARRAY_AND_SIZE(stargate2_i2c_board_info));
 	i2c_register_board_info(1, stargate2_pwr_i2c_board_info,
-				ARRAY_SIZE(stargate2_pwr_i2c_board_info));
+							ARRAY_SIZE(stargate2_pwr_i2c_board_info));
 
 	pxa_set_mci_info(&stargate2_mci_platform_data);
 
@@ -1002,7 +1063,7 @@ static void __init stargate2_init(void)
 #endif
 
 #ifdef CONFIG_MACH_INTELMOTE2
-MACHINE_START(INTELMOTE2, "IMOTE 2")
+	MACHINE_START(INTELMOTE2, "IMOTE 2")
 	.map_io		= pxa27x_map_io,
 	.nr_irqs	= PXA_NR_IRQS,
 	.init_irq	= pxa27x_init_irq,
@@ -1011,11 +1072,11 @@ MACHINE_START(INTELMOTE2, "IMOTE 2")
 	.init_machine	= imote2_init,
 	.atag_offset	= 0x100,
 	.restart	= pxa_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_STARGATE2
-MACHINE_START(STARGATE2, "Stargate 2")
+	MACHINE_START(STARGATE2, "Stargate 2")
 	.map_io = pxa27x_map_io,
 	.nr_irqs = STARGATE_NR_IRQS,
 	.init_irq = pxa27x_init_irq,
@@ -1024,5 +1085,5 @@ MACHINE_START(STARGATE2, "Stargate 2")
 	.init_machine = stargate2_init,
 	.atag_offset = 0x100,
 	.restart	= pxa_restart,
-MACHINE_END
+	MACHINE_END
 #endif

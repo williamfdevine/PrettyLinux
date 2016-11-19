@@ -27,17 +27,17 @@
 #define __UART0(X) (*(volatile uint8_t *)(UART0_BASE + (UART_##X)))
 
 #define LSR_WAIT_FOR0(STATE)			\
-do {						\
-} while (!(__UART0(LSR) & UART_LSR_##STATE))
+	do {						\
+	} while (!(__UART0(LSR) & UART_LSR_##STATE))
 
 #define FLOWCTL_QUERY0(LINE)	({ __UART0(MSR) & UART_MSR_##LINE; })
 #define FLOWCTL_CLEAR0(LINE)	do { __UART0(MCR) &= ~UART_MCR_##LINE; } while (0)
 #define FLOWCTL_SET0(LINE)	do { __UART0(MCR) |= UART_MCR_##LINE; } while (0)
 
 #define FLOWCTL_WAIT_FOR0(LINE)			\
-do {						\
-	gdbstub_do_rx();			\
-} while(!FLOWCTL_QUERY(LINE))
+	do {						\
+		gdbstub_do_rx();			\
+	} while(!FLOWCTL_QUERY(LINE))
 
 struct frv_debug_status __debug_status;
 
@@ -55,22 +55,28 @@ asmlinkage void debug_stub(void)
 	int type = 0;
 
 	static u8 inited = 0;
-	if (!inited) {
+
+	if (!inited)
+	{
 		debug_stub_init();
 		type = -1;
 		inited = 1;
 	}
 
 	hsr0 = __get_HSR(0);
+
 	if (hsr0 & HSR0_ETMD)
+	{
 		__set_HSR(0, hsr0 & ~HSR0_ETMD);
+	}
 
 	/* disable single stepping */
 	__debug_status.dcr &= ~DCR_SE;
 
 	/* kernel mode can propose an exception be handled in debug mode by jumping to a special
 	 * location */
-	if (__debug_frame->pc == (unsigned long) __break_hijack_kernel_event_breaks_here) {
+	if (__debug_frame->pc == (unsigned long) __break_hijack_kernel_event_breaks_here)
+	{
 		/* replace the debug frame with the kernel frame and discard
 		 * the top kernel context */
 		*__debug_frame = *__frame;
@@ -79,7 +85,8 @@ asmlinkage void debug_stub(void)
 		__debug_status.brr |= BRR_EB;
 	}
 
-	if (__debug_frame->pc == (unsigned long) __debug_bug_trap + 4) {
+	if (__debug_frame->pc == (unsigned long) __debug_bug_trap + 4)
+	{
 		__debug_frame->pc = __debug_frame->lr;
 		type = __debug_frame->gr8;
 	}
@@ -89,7 +96,9 @@ asmlinkage void debug_stub(void)
 #endif
 
 	if (hsr0 & HSR0_ETMD)
+	{
 		__set_HSR(0, __get_HSR(0) | HSR0_ETMD);
+	}
 
 } /* end debug_stub() */
 
@@ -103,24 +112,26 @@ static void __init debug_stub_init(void)
 	__set_IITMR(1, 0x20000000);	/* ERR0/1, UART0/1 IRQ detect levels */
 
 	asm volatile("	movgs	gr0,ibar0	\n"
-		     "	movgs	gr0,ibar1	\n"
-		     "	movgs	gr0,ibar2	\n"
-		     "	movgs	gr0,ibar3	\n"
-		     "	movgs	gr0,dbar0	\n"
-		     "	movgs	gr0,dbmr00	\n"
-		     "	movgs	gr0,dbmr01	\n"
-		     "	movgs	gr0,dbdr00	\n"
-		     "	movgs	gr0,dbdr01	\n"
-		     "	movgs	gr0,dbar1	\n"
-		     "	movgs	gr0,dbmr10	\n"
-		     "	movgs	gr0,dbmr11	\n"
-		     "	movgs	gr0,dbdr10	\n"
-		     "	movgs	gr0,dbdr11	\n"
-		     );
+				 "	movgs	gr0,ibar1	\n"
+				 "	movgs	gr0,ibar2	\n"
+				 "	movgs	gr0,ibar3	\n"
+				 "	movgs	gr0,dbar0	\n"
+				 "	movgs	gr0,dbmr00	\n"
+				 "	movgs	gr0,dbmr01	\n"
+				 "	movgs	gr0,dbdr00	\n"
+				 "	movgs	gr0,dbdr01	\n"
+				 "	movgs	gr0,dbar1	\n"
+				 "	movgs	gr0,dbmr10	\n"
+				 "	movgs	gr0,dbmr11	\n"
+				 "	movgs	gr0,dbdr10	\n"
+				 "	movgs	gr0,dbdr11	\n"
+				);
 
 	/* deal with debugging stub initialisation and initial pause */
 	if (__debug_frame->pc == (unsigned long) __debug_stub_init_break)
+	{
 		__debug_frame->pc = (unsigned long) start_kernel;
+	}
 
 	/* enable the debug events we want to trap */
 	__debug_status.dcr = DCR_EBE;
@@ -156,18 +167,21 @@ void debug_to_serial(const char *p, int n)
 {
 	char ch;
 
-	for (; n > 0; n--) {
+	for (; n > 0; n--)
+	{
 		ch = *p++;
 		FLOWCTL_SET0(DTR);
 		LSR_WAIT_FOR0(THRE);
 		// FLOWCTL_WAIT_FOR(CTS);
 
-		if (ch == 0x0a) {
+		if (ch == 0x0a)
+		{
 			__UART0(TX) = 0x0d;
 			mb();
 			LSR_WAIT_FOR0(THRE);
 			// FLOWCTL_WAIT_FOR(CTS);
 		}
+
 		__UART0(TX) = ch;
 		mb();
 
@@ -212,7 +226,9 @@ void __init console_set_baud(unsigned baud)
 
 	/* pick the nearest bound */
 	if (low + (high - low) / 2 > baud)
+	{
 		value++;
+	}
 
 	lcr = __UART0(LCR);
 	__UART0(LCR) |= UART_LCR_DLAB;

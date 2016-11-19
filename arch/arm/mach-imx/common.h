@@ -45,7 +45,7 @@ int mx31_clocks_init(unsigned long fref);
 int mx35_clocks_init(void);
 int mx31_clocks_init_dt(void);
 struct platform_device *mxc_register_gpio(char *name, int id,
-	resource_size_t iobase, resource_size_t iosize, int irq, int irq_high);
+		resource_size_t iobase, resource_size_t iosize, int irq, int irq_high);
 void mxc_set_cpu_type(unsigned int type);
 void mxc_restart(enum reboot_mode, const char *);
 void mxc_arch_reset_init(void __iomem *);
@@ -64,7 +64,8 @@ void imx_gpc_set_arm_power_down_timing(u32 sw2iso, u32 sw);
 void imx25_pm_init(void);
 void imx27_pm_init(void);
 
-enum mxc_cpu_pwr_mode {
+enum mxc_cpu_pwr_mode
+{
 	WAIT_CLOCKED,		/* wfi only */
 	WAIT_UNCLOCKED,		/* WAIT */
 	WAIT_UNCLOCKED_POWER_OFF,	/* WAIT + SRPG */
@@ -72,7 +73,8 @@ enum mxc_cpu_pwr_mode {
 	STOP_POWER_OFF,		/* STOP + SRPG */
 };
 
-enum mx3_cpu_pwr_mode {
+enum mx3_cpu_pwr_mode
+{
 	MX3_RUN,
 	MX3_WAIT,
 	MX3_DOZE,

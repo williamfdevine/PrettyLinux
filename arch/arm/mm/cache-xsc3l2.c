@@ -57,8 +57,10 @@ static inline void xsc3_l2_inv_all(void)
 
 	__asm__("mrc p15, 1, %0, c0, c0, 1" : "=r" (l2ctype));
 
-	for (set = 0; set < CACHE_SET_SIZE(l2ctype); set++) {
-		for (way = 0; way < CACHE_WAY_PER_SET; way++) {
+	for (set = 0; set < CACHE_SET_SIZE(l2ctype); set++)
+	{
+		for (way = 0; way < CACHE_WAY_PER_SET; way++)
+		{
 			set_way = (way << 29) | (set << 5);
 			__asm__("mcr p15, 1, %0, c7, c11, 2" : : "r"(set_way));
 		}
@@ -70,8 +72,12 @@ static inline void xsc3_l2_inv_all(void)
 static inline void l2_unmap_va(unsigned long va)
 {
 #ifdef CONFIG_HIGHMEM
+
 	if (va != -1)
+	{
 		kunmap_atomic((void *)va);
+	}
+
 #endif
 }
 
@@ -80,7 +86,9 @@ static inline unsigned long l2_map_va(unsigned long pa, unsigned long prev_va)
 #ifdef CONFIG_HIGHMEM
 	unsigned long va = prev_va & PAGE_MASK;
 	unsigned long pa_offset = pa << (32 - PAGE_SHIFT);
-	if (unlikely(pa_offset < (prev_va << (32 - PAGE_SHIFT)))) {
+
+	if (unlikely(pa_offset < (prev_va << (32 - PAGE_SHIFT))))
+	{
 		/*
 		 * Switching to a new page.  Because cache ops are
 		 * using virtual addresses only, we must put a mapping
@@ -89,6 +97,7 @@ static inline unsigned long l2_map_va(unsigned long pa, unsigned long prev_va)
 		l2_unmap_va(prev_va);
 		va = (unsigned long)kmap_atomic_pfn(pa >> PAGE_SHIFT);
 	}
+
 	return va + (pa_offset >> (32 - PAGE_SHIFT));
 #else
 	return __phys_to_virt(pa);
@@ -99,7 +108,8 @@ static void xsc3_l2_inv_range(unsigned long start, unsigned long end)
 {
 	unsigned long vaddr;
 
-	if (start == 0 && end == -1ul) {
+	if (start == 0 && end == -1ul)
+	{
 		xsc3_l2_inv_all();
 		return;
 	}
@@ -109,7 +119,8 @@ static void xsc3_l2_inv_range(unsigned long start, unsigned long end)
 	/*
 	 * Clean and invalidate partial first cache line.
 	 */
-	if (start & (CACHE_LINE_SIZE - 1)) {
+	if (start & (CACHE_LINE_SIZE - 1))
+	{
 		vaddr = l2_map_va(start & ~(CACHE_LINE_SIZE - 1), vaddr);
 		xsc3_l2_clean_mva(vaddr);
 		xsc3_l2_inv_mva(vaddr);
@@ -119,7 +130,8 @@ static void xsc3_l2_inv_range(unsigned long start, unsigned long end)
 	/*
 	 * Invalidate all full cache lines between 'start' and 'end'.
 	 */
-	while (start < (end & ~(CACHE_LINE_SIZE - 1))) {
+	while (start < (end & ~(CACHE_LINE_SIZE - 1)))
+	{
 		vaddr = l2_map_va(start, vaddr);
 		xsc3_l2_inv_mva(vaddr);
 		start += CACHE_LINE_SIZE;
@@ -128,7 +140,8 @@ static void xsc3_l2_inv_range(unsigned long start, unsigned long end)
 	/*
 	 * Clean and invalidate partial last cache line.
 	 */
-	if (start < end) {
+	if (start < end)
+	{
 		vaddr = l2_map_va(start, vaddr);
 		xsc3_l2_clean_mva(vaddr);
 		xsc3_l2_inv_mva(vaddr);
@@ -146,7 +159,9 @@ static void xsc3_l2_clean_range(unsigned long start, unsigned long end)
 	vaddr = -1;  /* to force the first mapping */
 
 	start &= ~(CACHE_LINE_SIZE - 1);
-	while (start < end) {
+
+	while (start < end)
+	{
 		vaddr = l2_map_va(start, vaddr);
 		xsc3_l2_clean_mva(vaddr);
 		start += CACHE_LINE_SIZE;
@@ -167,8 +182,10 @@ static inline void xsc3_l2_flush_all(void)
 
 	__asm__("mrc p15, 1, %0, c0, c0, 1" : "=r" (l2ctype));
 
-	for (set = 0; set < CACHE_SET_SIZE(l2ctype); set++) {
-		for (way = 0; way < CACHE_WAY_PER_SET; way++) {
+	for (set = 0; set < CACHE_SET_SIZE(l2ctype); set++)
+	{
+		for (way = 0; way < CACHE_WAY_PER_SET; way++)
+		{
 			set_way = (way << 29) | (set << 5);
 			__asm__("mcr p15, 1, %0, c7, c15, 2" : : "r"(set_way));
 		}
@@ -181,7 +198,8 @@ static void xsc3_l2_flush_range(unsigned long start, unsigned long end)
 {
 	unsigned long vaddr;
 
-	if (start == 0 && end == -1ul) {
+	if (start == 0 && end == -1ul)
+	{
 		xsc3_l2_flush_all();
 		return;
 	}
@@ -189,7 +207,9 @@ static void xsc3_l2_flush_range(unsigned long start, unsigned long end)
 	vaddr = -1;  /* to force the first mapping */
 
 	start &= ~(CACHE_LINE_SIZE - 1);
-	while (start < end) {
+
+	while (start < end)
+	{
 		vaddr = l2_map_va(start, vaddr);
 		xsc3_l2_clean_mva(vaddr);
 		xsc3_l2_inv_mva(vaddr);
@@ -204,9 +224,12 @@ static void xsc3_l2_flush_range(unsigned long start, unsigned long end)
 static int __init xsc3_l2_init(void)
 {
 	if (!cpu_is_xsc3() || !xsc3_l2_present())
+	{
 		return 0;
+	}
 
-	if (get_cr() & CR_L2) {
+	if (get_cr() & CR_L2)
+	{
 		pr_info("XScale3 L2 cache enabled.\n");
 		xsc3_l2_inv_all();
 

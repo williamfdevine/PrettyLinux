@@ -16,11 +16,12 @@
 
 #include "common.h"
 
-static const char * const imx50_dt_board_compat[] __initconst = {
+static const char *const imx50_dt_board_compat[] __initconst =
+{
 	"fsl,imx50",
 	NULL
 };
 
 DT_MACHINE_START(IMX50_DT, "Freescale i.MX50 (Device Tree Support)")
-	.dt_compat	= imx50_dt_board_compat,
-MACHINE_END
+.dt_compat	= imx50_dt_board_compat,
+  MACHINE_END

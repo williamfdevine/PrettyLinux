@@ -23,19 +23,26 @@
 #include <linux/leds.h>
 #include <linux/platform_device.h>
 
-static const struct gpio_led puv3_gpio_leds[] = {
-	{ .name = "cpuhealth", .gpio = GPO_CPU_HEALTH, .active_low = 0,
-		.default_trigger = "heartbeat",	},
-	{ .name = "hdd_led", .gpio = GPO_HDD_LED, .active_low = 1,
-		.default_trigger = "disk-activity", },
+static const struct gpio_led puv3_gpio_leds[] =
+{
+	{
+		.name = "cpuhealth", .gpio = GPO_CPU_HEALTH, .active_low = 0,
+		.default_trigger = "heartbeat",
+	},
+	{
+		.name = "hdd_led", .gpio = GPO_HDD_LED, .active_low = 1,
+		.default_trigger = "disk-activity",
+	},
 };
 
-static const struct gpio_led_platform_data puv3_gpio_led_data = {
+static const struct gpio_led_platform_data puv3_gpio_led_data =
+{
 	.num_leds =	ARRAY_SIZE(puv3_gpio_leds),
 	.leds =		(void *) puv3_gpio_leds,
 };
 
-static struct platform_device puv3_gpio_gpio_leds = {
+static struct platform_device puv3_gpio_gpio_leds =
+{
 	.name =		"leds-gpio",
 	.id =		-1,
 	.dev = {
@@ -60,9 +67,13 @@ static int puv3_gpio_get(struct gpio_chip *chip, unsigned offset)
 static void puv3_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
 	if (value)
+	{
 		writel(GPIO_GPIO(offset), GPIO_GPSR);
+	}
 	else
+	{
 		writel(GPIO_GPIO(offset), GPIO_GPCR);
+	}
 }
 
 static int puv3_direction_input(struct gpio_chip *chip, unsigned offset)
@@ -76,7 +87,7 @@ static int puv3_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int puv3_direction_output(struct gpio_chip *chip, unsigned offset,
-		int value)
+								 int value)
 {
 	unsigned long flags;
 
@@ -87,7 +98,8 @@ static int puv3_direction_output(struct gpio_chip *chip, unsigned offset,
 	return 0;
 }
 
-static struct gpio_chip puv3_gpio_chip = {
+static struct gpio_chip puv3_gpio_chip =
+{
 	.label			= "gpio",
 	.direction_input	= puv3_direction_input,
 	.direction_output	= puv3_direction_output,
@@ -114,11 +126,11 @@ void __init puv3_init_gpio(void)
 	gpio_set_value(GPO_SPKR, 0);
 	gpio_set_value(GPO_CPU_HEALTH, 1);
 	gpio_set_value(GPO_LAN_SEL, 1);
-/*
- * DO NOT modify the GPO_SET_V1 and GPO_SET_V2 in kernel
- *	gpio_set_value(GPO_SET_V1, 1);
- *	gpio_set_value(GPO_SET_V2, 1);
- */
+	/*
+	 * DO NOT modify the GPO_SET_V1 and GPO_SET_V2 in kernel
+	 *	gpio_set_value(GPO_SET_V1, 1);
+	 *	gpio_set_value(GPO_SET_V2, 1);
+	 */
 #endif
 	gpiochip_add_data(&puv3_gpio_chip, NULL);
 }

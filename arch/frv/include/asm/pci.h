@@ -28,7 +28,7 @@ extern void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle);
 extern void consistent_free(void *vaddr);
 extern void consistent_sync(void *vaddr, size_t size, int direction);
 extern void consistent_sync_page(struct page *page, unsigned long offset,
-				 size_t size, int direction);
+								 size_t size, int direction);
 #endif
 
 /* Return the index of the PCI controller for device PDEV. */

@@ -18,16 +18,16 @@
 #define _PLAT_EZNPS_CTOP_H
 
 #ifndef CONFIG_ARC_PLAT_EZNPS
-#error "Incorrect ctop.h include"
+	#error "Incorrect ctop.h include"
 #endif
 
 #include <soc/nps/common.h>
 
 /* core auxiliary registers */
 #ifdef __ASSEMBLY__
-#define CTOP_AUX_BASE				(-0x800)
+	#define CTOP_AUX_BASE				(-0x800)
 #else
-#define CTOP_AUX_BASE				0xFFFFF800
+	#define CTOP_AUX_BASE				0xFFFFF800
 #endif
 
 #define CTOP_AUX_GLOBAL_ID			(CTOP_AUX_BASE + 0x000)
@@ -77,106 +77,136 @@
 
 #ifndef __ASSEMBLY__
 /* Functional registers definition */
-struct nps_host_reg_mtm_cfg {
-	union {
-		struct {
-			u32 gen:1, gdis:1, clk_gate_dis:1, asb:1,
-			__reserved:9, nat:3, ten:16;
+struct nps_host_reg_mtm_cfg
+{
+	union
+	{
+		struct
+		{
+			u32 gen: 1, gdis: 1, clk_gate_dis: 1, asb: 1,
+				__reserved: 9, nat: 3, ten: 16;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_mtm_cpu_cfg {
-	union {
-		struct {
-			u32 csa:22, dmsid:6, __reserved:3, cs:1;
+struct nps_host_reg_mtm_cpu_cfg
+{
+	union
+	{
+		struct
+		{
+			u32 csa: 22, dmsid: 6, __reserved: 3, cs: 1;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_thr_init {
-	union {
-		struct {
-			u32 str:1, __reserved:27, thr_id:4;
+struct nps_host_reg_thr_init
+{
+	union
+	{
+		struct
+		{
+			u32 str: 1, __reserved: 27, thr_id: 4;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_thr_init_sts {
-	union {
-		struct {
-			u32 bsy:1, err:1, __reserved:26, thr_id:4;
+struct nps_host_reg_thr_init_sts
+{
+	union
+	{
+		struct
+		{
+			u32 bsy: 1, err: 1, __reserved: 26, thr_id: 4;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_msu_en_cfg {
-	union {
-		struct {
-			u32     __reserved1:11,
-			rtc_en:1, ipc_en:1, gim_1_en:1,
-			gim_0_en:1, ipi_en:1, buff_e_rls_bmuw:1,
-			buff_e_alc_bmuw:1, buff_i_rls_bmuw:1, buff_i_alc_bmuw:1,
-			buff_e_rls_bmue:1, buff_e_alc_bmue:1, buff_i_rls_bmue:1,
-			buff_i_alc_bmue:1, __reserved2:1, buff_e_pre_en:1,
-			buff_i_pre_en:1, pmuw_ja_en:1, pmue_ja_en:1,
-			pmuw_nj_en:1, pmue_nj_en:1, msu_en:1;
+struct nps_host_reg_msu_en_cfg
+{
+	union
+	{
+		struct
+		{
+			u32     __reserved1: 11,
+					rtc_en: 1, ipc_en: 1, gim_1_en: 1,
+					gim_0_en: 1, ipi_en: 1, buff_e_rls_bmuw: 1,
+					buff_e_alc_bmuw: 1, buff_i_rls_bmuw: 1, buff_i_alc_bmuw: 1,
+					buff_e_rls_bmue: 1, buff_e_alc_bmue: 1, buff_i_rls_bmue: 1,
+					buff_i_alc_bmue: 1, __reserved2: 1, buff_e_pre_en: 1,
+					buff_i_pre_en: 1, pmuw_ja_en: 1, pmue_ja_en: 1,
+					pmuw_nj_en: 1, pmue_nj_en: 1, msu_en: 1;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_gim_p_int_dst {
-	union {
-		struct {
-			u32 int_out_en:1, __reserved1:4,
-			is:1, intm:2, __reserved2:4,
-			nid:4, __reserved3:4, cid:4,
-			 __reserved4:4, tid:4;
+struct nps_host_reg_gim_p_int_dst
+{
+	union
+	{
+		struct
+		{
+			u32 int_out_en: 1, __reserved1: 4,
+				is: 1, intm: 2, __reserved2: 4,
+				nid: 4, __reserved3: 4, cid: 4,
+				__reserved4: 4, tid: 4;
 		};
 		u32 value;
 	};
 };
 
 /* AUX registers definition */
-struct nps_host_reg_aux_udmc {
-	union {
-		struct {
-			u32 dcp:1, cme:1, __reserved:19, nat:3,
-			__reserved2:5, dcas:3;
+struct nps_host_reg_aux_udmc
+{
+	union
+	{
+		struct
+		{
+			u32 dcp: 1, cme: 1, __reserved: 19, nat: 3,
+				__reserved2: 5, dcas: 3;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_aux_mt_ctrl {
-	union {
-		struct {
-			u32 mten:1, hsen:1, scd:1, sten:1,
-			st_cnt:8, __reserved:8,
-			hs_cnt:8, __reserved1:4;
+struct nps_host_reg_aux_mt_ctrl
+{
+	union
+	{
+		struct
+		{
+			u32 mten: 1, hsen: 1, scd: 1, sten: 1,
+				st_cnt: 8, __reserved: 8,
+				hs_cnt: 8, __reserved1: 4;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_aux_hw_comply {
-	union {
-		struct {
-			u32 me:1, le:1, te:1, knc:1, __reserved:28;
+struct nps_host_reg_aux_hw_comply
+{
+	union
+	{
+		struct
+		{
+			u32 me: 1, le: 1, te: 1, knc: 1, __reserved: 28;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_aux_lpc {
-	union {
-		struct {
-			u32 mep:1, __reserved:31;
+struct nps_host_reg_aux_lpc
+{
+	union
+	{
+		struct
+		{
+			u32 mep: 1, __reserved: 31;
 		};
 		u32 value;
 	};
@@ -198,7 +228,7 @@ struct nps_host_reg_aux_lpc {
 #else
 
 .macro  GET_CPU_ID  reg
-	lr  \reg, [CTOP_AUX_LOGIC_GLOBAL_ID]
+lr  \reg, [CTOP_AUX_LOGIC_GLOBAL_ID]
 #ifndef CONFIG_EZNPS_MTM_EXT
 	lsr \reg, \reg, 4
 #endif

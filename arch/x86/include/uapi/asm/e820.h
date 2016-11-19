@@ -22,7 +22,7 @@
  */
 
 #ifndef __KERNEL__
-#define E820_X_MAX E820MAX
+	#define E820_X_MAX E820MAX
 #endif
 
 #define E820NR	0x1e8		/* # entries in E820MAP */
@@ -55,13 +55,15 @@
 
 #ifndef __ASSEMBLY__
 #include <linux/types.h>
-struct e820entry {
+struct e820entry
+{
 	__u64 addr;	/* start of memory segment */
 	__u64 size;	/* size of memory segment */
 	__u32 type;	/* type of memory segment */
 } __attribute__((packed));
 
-struct e820map {
+struct e820map
+{
 	__u32 nr_map;
 	struct e820entry map[E820_X_MAX];
 };

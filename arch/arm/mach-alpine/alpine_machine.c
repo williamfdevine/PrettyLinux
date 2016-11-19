@@ -18,11 +18,12 @@
 
 #include <asm/mach/arch.h>
 
-static const char * const al_match[] __initconst = {
+static const char *const al_match[] __initconst =
+{
 	"al,alpine",
 	NULL,
 };
 
 DT_MACHINE_START(AL_DT, "Annapurna Labs Alpine")
-	.dt_compat	= al_match,
-MACHINE_END
+.dt_compat	= al_match,
+  MACHINE_END

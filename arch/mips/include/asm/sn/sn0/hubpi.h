@@ -197,32 +197,32 @@
  */
 
 #define PI_FATAL_ERR_CPU_A	(PI_ERR_SYSSTATE_TAG_A	| \
-				 PI_ERR_BAD_SPOOL_A	| \
-				 PI_ERR_SYSCMD_ADDR_A	| \
-				 PI_ERR_SYSCMD_DATA_A	| \
-				 PI_ERR_SYSAD_ADDR_A	| \
-				 PI_ERR_SYSAD_DATA_A	| \
-				 PI_ERR_SYSSTATE_A)
+							 PI_ERR_BAD_SPOOL_A	| \
+							 PI_ERR_SYSCMD_ADDR_A	| \
+							 PI_ERR_SYSCMD_DATA_A	| \
+							 PI_ERR_SYSAD_ADDR_A	| \
+							 PI_ERR_SYSAD_DATA_A	| \
+							 PI_ERR_SYSSTATE_A)
 
 #define PI_MISC_ERR_CPU_A	(PI_ERR_UNCAC_UNCORR_A	| \
-				 PI_ERR_WRB_WERR_A	| \
-				 PI_ERR_WRB_TERR_A	| \
-				 PI_ERR_SPUR_MSG_A	| \
-				 PI_ERR_SPOOL_CMP_A)
+							 PI_ERR_WRB_WERR_A	| \
+							 PI_ERR_WRB_TERR_A	| \
+							 PI_ERR_SPUR_MSG_A	| \
+							 PI_ERR_SPOOL_CMP_A)
 
 #define PI_FATAL_ERR_CPU_B	(PI_ERR_SYSSTATE_TAG_B	| \
-				 PI_ERR_BAD_SPOOL_B	| \
-				 PI_ERR_SYSCMD_ADDR_B	| \
-				 PI_ERR_SYSCMD_DATA_B	| \
-				 PI_ERR_SYSAD_ADDR_B	| \
-				 PI_ERR_SYSAD_DATA_B	| \
-				 PI_ERR_SYSSTATE_B)
+							 PI_ERR_BAD_SPOOL_B	| \
+							 PI_ERR_SYSCMD_ADDR_B	| \
+							 PI_ERR_SYSCMD_DATA_B	| \
+							 PI_ERR_SYSAD_ADDR_B	| \
+							 PI_ERR_SYSAD_DATA_B	| \
+							 PI_ERR_SYSSTATE_B)
 
 #define PI_MISC_ERR_CPU_B	(PI_ERR_UNCAC_UNCORR_B	| \
-				 PI_ERR_WRB_WERR_B	| \
-				 PI_ERR_WRB_TERR_B	| \
-				 PI_ERR_SPUR_MSG_B	| \
-				 PI_ERR_SPOOL_CMP_B)
+							 PI_ERR_WRB_WERR_B	| \
+							 PI_ERR_WRB_TERR_B	| \
+							 PI_ERR_SPUR_MSG_B	| \
+							 PI_ERR_SPOOL_CMP_B)
 
 #define PI_ERR_GENERIC	(PI_ERR_MD_UNCORR)
 
@@ -304,14 +304,15 @@
 #define PI_STACK_SIZE_SHFT	12	/* 4k */
 
 #define ERR_STACK_SIZE_BYTES(_sz) \
-       ((_sz) ? (PI_MIN_STACK_SIZE << ((_sz) - 1)) : 0)
+	((_sz) ? (PI_MIN_STACK_SIZE << ((_sz) - 1)) : 0)
 
 #ifndef __ASSEMBLY__
 /*
  * format of error stack and error status registers.
  */
 
-struct err_stack_format {
+struct err_stack_format
+{
 	u64	sk_addr	   : 33,   /* address */
 		sk_cmd	   :  8,   /* message command */
 		sk_crb_sts : 10,   /* status from RRB or WRB */
@@ -322,12 +323,14 @@ struct err_stack_format {
 		sk_err_type:  3;   /* error type	*/
 };
 
-typedef union pi_err_stack {
+typedef union pi_err_stack
+{
 	u64	pi_stk_word;
 	struct	err_stack_format pi_stk_fmt;
 } pi_err_stack_t;
 
-struct err_status0_format {
+struct err_status0_format
+{
 	u64	s0_valid   :  1,   /* Valid */
 		s0_ovr_run :  1,   /* Overrun, spooled to memory */
 		s0_addr	   : 37,   /* address */
@@ -337,22 +340,25 @@ struct err_status0_format {
 		s0_err_type:  3;   /* error type */
 };
 
-typedef union pi_err_stat0 {
+typedef union pi_err_stat0
+{
 	u64	pi_stat0_word;
 	struct err_status0_format pi_stat0_fmt;
 } pi_err_stat0_t;
 
-struct err_status1_format {
+struct err_status1_format
+{
 	u64	s1_src	   : 11,   /* message source */
-		s1_crb_sts : 10,   /* status from RRB or WRB */
-		s1_rw_rb   :  1,   /* RRB == 0, WRB == 1 */
-		s1_crb_num :  3,   /* WRB (0 to 7) or RRB (0 to 4) */
-		s1_inval_cnt:10,   /* signed invalidate counter RRB */
-		s1_to_cnt  :  8,   /* crb timeout counter */
-		s1_spl_cnt : 21;   /* number spooled to memory */
+		 s1_crb_sts : 10,   /* status from RRB or WRB */
+		 s1_rw_rb   :  1,   /* RRB == 0, WRB == 1 */
+		 s1_crb_num :  3,   /* WRB (0 to 7) or RRB (0 to 4) */
+		 s1_inval_cnt: 10,  /* signed invalidate counter RRB */
+		 s1_to_cnt  :  8,   /* crb timeout counter */
+		 s1_spl_cnt : 21;   /* number spooled to memory */
 };
 
-typedef union pi_err_stat1 {
+typedef union pi_err_stat1
+{
 	u64	pi_stat1_word;
 	struct err_status1_format pi_stat1_fmt;
 } pi_err_stat1_t;

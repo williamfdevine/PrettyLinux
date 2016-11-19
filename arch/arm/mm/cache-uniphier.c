@@ -63,7 +63,7 @@
 
 /* Is the operation region specified by address range? */
 #define UNIPHIER_SSCOQM_S_IS_RANGE(op) \
-		((op & UNIPHIER_SSCOQM_S_MASK) == UNIPHIER_SSCOQM_S_RANGE)
+	((op & UNIPHIER_SSCOQM_S_MASK) == UNIPHIER_SSCOQM_S_RANGE)
 
 /**
  * uniphier_cache_data - UniPhier outer cache specific data
@@ -78,7 +78,8 @@
  * @range_op_max_size: max size that can be handled by a single range operation
  * @list: list node to include this level in the whole cache hierarchy
  */
-struct uniphier_cache_data {
+struct uniphier_cache_data
+{
 	void __iomem *ctrl_base;
 	void __iomem *rev_base;
 	void __iomem *op_base;
@@ -106,7 +107,7 @@ static void __uniphier_cache_sync(struct uniphier_cache_data *data)
 {
 	/* This sequence need not be atomic.  Do not disable IRQ. */
 	writel_relaxed(UNIPHIER_SSCOPE_CM_SYNC,
-		       data->op_base + UNIPHIER_SSCOPE);
+				   data->op_base + UNIPHIER_SSCOPE);
 	/* need a read back to confirm */
 	readl_relaxed(data->op_base + UNIPHIER_SSCOPE);
 }
@@ -120,9 +121,9 @@ static void __uniphier_cache_sync(struct uniphier_cache_data *data)
  * @operation: flags to specify the desired cache operation
  */
 static void __uniphier_cache_maint_common(struct uniphier_cache_data *data,
-					  unsigned long start,
-					  unsigned long size,
-					  u32 operation)
+		unsigned long start,
+		unsigned long size,
+		u32 operation)
 {
 	unsigned long flags;
 
@@ -154,39 +155,44 @@ static void __uniphier_cache_maint_common(struct uniphier_cache_data *data,
 	/* clear the complete notification flag */
 	writel_relaxed(UNIPHIER_SSCOLPQS_EF, data->op_base + UNIPHIER_SSCOLPQS);
 
-	do {
+	do
+	{
 		/* set cache operation */
 		writel_relaxed(UNIPHIER_SSCOQM_CE | operation,
-			       data->op_base + UNIPHIER_SSCOQM);
+					   data->op_base + UNIPHIER_SSCOQM);
 
 		/* set address range if needed */
-		if (likely(UNIPHIER_SSCOQM_S_IS_RANGE(operation))) {
+		if (likely(UNIPHIER_SSCOQM_S_IS_RANGE(operation)))
+		{
 			writel_relaxed(start, data->op_base + UNIPHIER_SSCOQAD);
 			writel_relaxed(size, data->op_base + UNIPHIER_SSCOQSZ);
 		}
-	} while (unlikely(readl_relaxed(data->op_base + UNIPHIER_SSCOPPQSEF) &
-			  (UNIPHIER_SSCOPPQSEF_FE | UNIPHIER_SSCOPPQSEF_OE)));
+	}
+	while (unlikely(readl_relaxed(data->op_base + UNIPHIER_SSCOPPQSEF) &
+					(UNIPHIER_SSCOPPQSEF_FE | UNIPHIER_SSCOPPQSEF_OE)));
 
 	/* wait until the operation is completed */
 	while (likely(readl_relaxed(data->op_base + UNIPHIER_SSCOLPQS) !=
-		      UNIPHIER_SSCOLPQS_EF))
+				  UNIPHIER_SSCOLPQS_EF))
+	{
 		cpu_relax();
+	}
 
 	local_irq_restore(flags);
 }
 
 static void __uniphier_cache_maint_all(struct uniphier_cache_data *data,
-				       u32 operation)
+									   u32 operation)
 {
 	__uniphier_cache_maint_common(data, 0, 0,
-				      UNIPHIER_SSCOQM_S_ALL | operation);
+								  UNIPHIER_SSCOQM_S_ALL | operation);
 
 	__uniphier_cache_sync(data);
 }
 
 static void __uniphier_cache_maint_range(struct uniphier_cache_data *data,
-					 unsigned long start, unsigned long end,
-					 u32 operation)
+		unsigned long start, unsigned long end,
+		u32 operation)
 {
 	unsigned long size;
 
@@ -198,7 +204,8 @@ static void __uniphier_cache_maint_range(struct uniphier_cache_data *data,
 
 	size = end - start;
 
-	if (unlikely(size >= (unsigned long)(-data->line_size))) {
+	if (unlikely(size >= (unsigned long)(-data->line_size)))
+	{
 		/* this means cache operation for all range */
 		__uniphier_cache_maint_all(data, operation);
 		return;
@@ -210,12 +217,13 @@ static void __uniphier_cache_maint_range(struct uniphier_cache_data *data,
 	 */
 	size = ALIGN(size, data->line_size);
 
-	while (size) {
+	while (size)
+	{
 		unsigned long chunk_size = min_t(unsigned long, size,
-						 data->range_op_max_size);
+										 data->range_op_max_size);
 
 		__uniphier_cache_maint_common(data, start, chunk_size,
-					UNIPHIER_SSCOQM_S_RANGE | operation);
+									  UNIPHIER_SSCOQM_S_RANGE | operation);
 
 		start += chunk_size;
 		size -= chunk_size;
@@ -229,31 +237,33 @@ static void __uniphier_cache_enable(struct uniphier_cache_data *data, bool on)
 	u32 val = 0;
 
 	if (on)
+	{
 		val = UNIPHIER_SSCC_WTG | UNIPHIER_SSCC_PRD | UNIPHIER_SSCC_ON;
+	}
 
 	writel_relaxed(val, data->ctrl_base + UNIPHIER_SSCC);
 }
 
 static void __init __uniphier_cache_set_locked_ways(
-					struct uniphier_cache_data *data,
-					u32 way_mask)
+	struct uniphier_cache_data *data,
+	u32 way_mask)
 {
 	unsigned int cpu;
 
 	data->way_locked_mask = way_mask & data->way_present_mask;
 
 	for_each_possible_cpu(cpu)
-		writel_relaxed(~data->way_locked_mask & data->way_present_mask,
-			       data->way_ctrl_base + 4 * cpu);
+	writel_relaxed(~data->way_locked_mask & data->way_present_mask,
+				   data->way_ctrl_base + 4 * cpu);
 }
 
 static void uniphier_cache_maint_range(unsigned long start, unsigned long end,
-				       u32 operation)
+									   u32 operation)
 {
 	struct uniphier_cache_data *data;
 
 	list_for_each_entry(data, &uniphier_cache_list, list)
-		__uniphier_cache_maint_range(data, start, end, operation);
+	__uniphier_cache_maint_range(data, start, end, operation);
 }
 
 static void uniphier_cache_maint_all(u32 operation)
@@ -261,7 +271,7 @@ static void uniphier_cache_maint_all(u32 operation)
 	struct uniphier_cache_data *data;
 
 	list_for_each_entry(data, &uniphier_cache_list, list)
-		__uniphier_cache_maint_all(data, operation);
+	__uniphier_cache_maint_all(data, operation);
 }
 
 static void uniphier_cache_inv_range(unsigned long start, unsigned long end)
@@ -294,7 +304,7 @@ static void uniphier_cache_disable(void)
 	struct uniphier_cache_data *data;
 
 	list_for_each_entry_reverse(data, &uniphier_cache_list, list)
-		__uniphier_cache_enable(data, false);
+	__uniphier_cache_enable(data, false);
 
 	uniphier_cache_flush_all();
 }
@@ -305,7 +315,8 @@ static void __init uniphier_cache_enable(void)
 
 	uniphier_cache_inv_all();
 
-	list_for_each_entry(data, &uniphier_cache_list, list) {
+	list_for_each_entry(data, &uniphier_cache_list, list)
+	{
 		__uniphier_cache_enable(data, true);
 		__uniphier_cache_set_locked_ways(data, 0);
 	}
@@ -316,68 +327,79 @@ static void uniphier_cache_sync(void)
 	struct uniphier_cache_data *data;
 
 	list_for_each_entry(data, &uniphier_cache_list, list)
-		__uniphier_cache_sync(data);
+	__uniphier_cache_sync(data);
 }
 
-static const struct of_device_id uniphier_cache_match[] __initconst = {
+static const struct of_device_id uniphier_cache_match[] __initconst =
+{
 	{ .compatible = "socionext,uniphier-system-cache" },
 	{ /* sentinel */ }
 };
 
 static int __init __uniphier_cache_init(struct device_node *np,
-					unsigned int *cache_level)
+										unsigned int *cache_level)
 {
 	struct uniphier_cache_data *data;
 	u32 level, cache_size;
 	struct device_node *next_np;
 	int ret = 0;
 
-	if (!of_match_node(uniphier_cache_match, np)) {
+	if (!of_match_node(uniphier_cache_match, np))
+	{
 		pr_err("L%d: not compatible with uniphier cache\n",
-		       *cache_level);
+			   *cache_level);
 		return -EINVAL;
 	}
 
-	if (of_property_read_u32(np, "cache-level", &level)) {
+	if (of_property_read_u32(np, "cache-level", &level))
+	{
 		pr_err("L%d: cache-level is not specified\n", *cache_level);
 		return -EINVAL;
 	}
 
-	if (level != *cache_level) {
+	if (level != *cache_level)
+	{
 		pr_err("L%d: cache-level is unexpected value %d\n",
-		       *cache_level, level);
+			   *cache_level, level);
 		return -EINVAL;
 	}
 
-	if (!of_property_read_bool(np, "cache-unified")) {
+	if (!of_property_read_bool(np, "cache-unified"))
+	{
 		pr_err("L%d: cache-unified is not specified\n", *cache_level);
 		return -EINVAL;
 	}
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	if (of_property_read_u32(np, "cache-line-size", &data->line_size) ||
-	    !is_power_of_2(data->line_size)) {
+		!is_power_of_2(data->line_size))
+	{
 		pr_err("L%d: cache-line-size is unspecified or invalid\n",
-		       *cache_level);
+			   *cache_level);
 		ret = -EINVAL;
 		goto err;
 	}
 
 	if (of_property_read_u32(np, "cache-sets", &data->nsets) ||
-	    !is_power_of_2(data->nsets)) {
+		!is_power_of_2(data->nsets))
+	{
 		pr_err("L%d: cache-sets is unspecified or invalid\n",
-		       *cache_level);
+			   *cache_level);
 		ret = -EINVAL;
 		goto err;
 	}
 
 	if (of_property_read_u32(np, "cache-size", &cache_size) ||
-	    cache_size == 0 || cache_size % (data->nsets * data->line_size)) {
+		cache_size == 0 || cache_size % (data->nsets * data->line_size))
+	{
 		pr_err("L%d: cache-size is unspecified or invalid\n",
-		       *cache_level);
+			   *cache_level);
 		ret = -EINVAL;
 		goto err;
 	}
@@ -386,21 +408,27 @@ static int __init __uniphier_cache_init(struct device_node *np,
 		((u32)1 << cache_size / data->nsets / data->line_size) - 1;
 
 	data->ctrl_base = of_iomap(np, 0);
-	if (!data->ctrl_base) {
+
+	if (!data->ctrl_base)
+	{
 		pr_err("L%d: failed to map control register\n", *cache_level);
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	data->rev_base = of_iomap(np, 1);
-	if (!data->rev_base) {
+
+	if (!data->rev_base)
+	{
 		pr_err("L%d: failed to map revision register\n", *cache_level);
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	data->op_base = of_iomap(np, 2);
-	if (!data->op_base) {
+
+	if (!data->op_base)
+	{
 		pr_err("L%d: failed to map operation register\n", *cache_level);
 		ret = -ENOMEM;
 		goto err;
@@ -408,29 +436,36 @@ static int __init __uniphier_cache_init(struct device_node *np,
 
 	data->way_ctrl_base = data->ctrl_base + 0xc00;
 
-	if (*cache_level == 2) {
+	if (*cache_level == 2)
+	{
 		u32 revision = readl(data->rev_base + UNIPHIER_SSCID);
+
 		/*
 		 * The size of range operation is limited to (1 << 22) or less
 		 * for PH-sLD8 or older SoCs.
 		 */
 		if (revision <= 0x16)
+		{
 			data->range_op_max_size = (u32)1 << 22;
+		}
 
 		/*
 		 * Unfortunatly, the offset address of active way control base
 		 * varies from SoC to SoC.
 		 */
-		switch (revision) {
-		case 0x11:	/* sLD3 */
-			data->way_ctrl_base = data->ctrl_base + 0x870;
-			break;
-		case 0x12:	/* LD4 */
-		case 0x16:	/* sld8 */
-			data->way_ctrl_base = data->ctrl_base + 0x840;
-			break;
-		default:
-			break;
+		switch (revision)
+		{
+			case 0x11:	/* sLD3 */
+				data->way_ctrl_base = data->ctrl_base + 0x870;
+				break;
+
+			case 0x12:	/* LD4 */
+			case 0x16:	/* sld8 */
+				data->way_ctrl_base = data->ctrl_base + 0x840;
+				break;
+
+			default:
+				break;
 		}
 	}
 
@@ -446,10 +481,13 @@ static int __init __uniphier_cache_init(struct device_node *np,
 	 * cache levels.
 	 */
 	next_np = of_find_next_cache_node(np);
-	if (next_np) {
+
+	if (next_np)
+	{
 		(*cache_level)++;
 		ret = __uniphier_cache_init(next_np, cache_level);
 	}
+
 	of_node_put(next_np);
 
 	return ret;
@@ -471,21 +509,27 @@ int __init uniphier_cache_init(void)
 	/* look for level 2 cache */
 	while ((np = of_find_matching_node(np, uniphier_cache_match)))
 		if (!of_property_read_u32(np, "cache-level", &cache_level) &&
-		    cache_level == 2)
+			cache_level == 2)
+		{
 			break;
+		}
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	ret = __uniphier_cache_init(np, &cache_level);
 	of_node_put(np);
 
-	if (ret) {
+	if (ret)
+	{
 		/*
 		 * Error out iif L2 initialization fails.  Continue with any
 		 * error on L3 or outer because they are optional.
 		 */
-		if (cache_level == 2) {
+		if (cache_level == 2)
+		{
 			pr_err("failed to initialize L2 cache\n");
 			return ret;
 		}

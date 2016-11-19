@@ -21,16 +21,16 @@
 
 /* PAGE_SHIFT and HPAGE_SHIFT determine the page sizes. */
 #if defined(CONFIG_PAGE_SIZE_4KB)  /* tilepro only */
-#define PAGE_SHIFT	12
-#define CTX_PAGE_FLAG	HV_CTX_PG_SM_4K
+	#define PAGE_SHIFT	12
+	#define CTX_PAGE_FLAG	HV_CTX_PG_SM_4K
 #elif defined(CONFIG_PAGE_SIZE_16KB)
-#define PAGE_SHIFT	14
-#define CTX_PAGE_FLAG	HV_CTX_PG_SM_16K
+	#define PAGE_SHIFT	14
+	#define CTX_PAGE_FLAG	HV_CTX_PG_SM_16K
 #elif defined(CONFIG_PAGE_SIZE_64KB)
-#define PAGE_SHIFT	16
-#define CTX_PAGE_FLAG	HV_CTX_PG_SM_64K
+	#define PAGE_SHIFT	16
+	#define CTX_PAGE_FLAG	HV_CTX_PG_SM_64K
 #else
-#error Page size not specified in Kconfig
+	#error Page size not specified in Kconfig
 #endif
 #define HPAGE_SHIFT	HV_LOG2_DEFAULT_PAGE_SIZE_LARGE
 
@@ -46,7 +46,7 @@
  * the respective sizes of the two page types.  See <linux/mmzone.h>.
  */
 #ifndef CONFIG_FORCE_MAX_ZONEORDER
-#define CONFIG_FORCE_MAX_ZONEORDER (HPAGE_SHIFT - PAGE_SHIFT + 1)
+	#define CONFIG_FORCE_MAX_ZONEORDER (HPAGE_SHIFT - PAGE_SHIFT + 1)
 #endif
 
 #ifndef __ASSEMBLY__
@@ -67,13 +67,13 @@ static inline void copy_page(void *to, void *from)
 }
 
 static inline void clear_user_page(void *page, unsigned long vaddr,
-				struct page *pg)
+								   struct page *pg)
 {
 	clear_page(page);
 }
 
 static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
-				struct page *topage)
+								  struct page *topage)
 {
 	copy_page(to, from);
 }
@@ -141,7 +141,7 @@ static inline __attribute_const__ int get_order(unsigned long size)
 #define HUGE_MAX_HSTATE		6
 
 #ifdef CONFIG_HUGETLB_PAGE
-#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+	#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
 #endif
 
 /* Allow overriding how much VA or PA the kernel will use. */
@@ -156,84 +156,84 @@ static inline __attribute_const__ int get_order(unsigned long size)
 
 #ifdef __tilegx__
 
-/*
- * We reserve the lower half of memory for user-space programs, and the
- * upper half for system code.  We re-map all of physical memory in the
- * upper half, which takes a quarter of our VA space.  Then we have
- * the vmalloc regions.  The supervisor code lives at the highest address,
- * with the hypervisor above that.
- *
- * Loadable kernel modules are placed immediately after the static
- * supervisor code, with each being allocated a 256MB region of
- * address space, so we don't have to worry about the range of "jal"
- * and other branch instructions.
- *
- * For now we keep life simple and just allocate one pmd (4GB) for vmalloc.
- * Similarly, for now we don't play any struct page mapping games.
- */
+	/*
+	* We reserve the lower half of memory for user-space programs, and the
+	* upper half for system code.  We re-map all of physical memory in the
+	* upper half, which takes a quarter of our VA space.  Then we have
+	* the vmalloc regions.  The supervisor code lives at the highest address,
+	* with the hypervisor above that.
+	*
+	* Loadable kernel modules are placed immediately after the static
+	* supervisor code, with each being allocated a 256MB region of
+	* address space, so we don't have to worry about the range of "jal"
+	* and other branch instructions.
+	*
+	* For now we keep life simple and just allocate one pmd (4GB) for vmalloc.
+	* Similarly, for now we don't play any struct page mapping games.
+	*/
 
-#if MAX_PA_WIDTH + 2 > MAX_VA_WIDTH
-# error Too much PA to map with the VA available!
-#endif
+	#if MAX_PA_WIDTH + 2 > MAX_VA_WIDTH
+		# error Too much PA to map with the VA available!
+	#endif
 
-#define PAGE_OFFSET		(-(_AC(1, UL) << (MAX_VA_WIDTH - 1)))
-#define KERNEL_HIGH_VADDR	_AC(0xfffffff800000000, UL)  /* high 32GB */
-#define FIXADDR_BASE		(KERNEL_HIGH_VADDR - 0x300000000) /* 4 GB */
-#define FIXADDR_TOP		(KERNEL_HIGH_VADDR - 0x200000000) /* 4 GB */
-#define _VMALLOC_START		FIXADDR_TOP
-#define MEM_SV_START		(KERNEL_HIGH_VADDR - 0x100000000) /* 256 MB */
-#define MEM_MODULE_START	(MEM_SV_START + (256*1024*1024)) /* 256 MB */
-#define MEM_MODULE_END		(MEM_MODULE_START + (256*1024*1024))
+	#define PAGE_OFFSET		(-(_AC(1, UL) << (MAX_VA_WIDTH - 1)))
+	#define KERNEL_HIGH_VADDR	_AC(0xfffffff800000000, UL)  /* high 32GB */
+	#define FIXADDR_BASE		(KERNEL_HIGH_VADDR - 0x300000000) /* 4 GB */
+	#define FIXADDR_TOP		(KERNEL_HIGH_VADDR - 0x200000000) /* 4 GB */
+	#define _VMALLOC_START		FIXADDR_TOP
+	#define MEM_SV_START		(KERNEL_HIGH_VADDR - 0x100000000) /* 256 MB */
+	#define MEM_MODULE_START	(MEM_SV_START + (256*1024*1024)) /* 256 MB */
+	#define MEM_MODULE_END		(MEM_MODULE_START + (256*1024*1024))
 
 #else /* !__tilegx__ */
 
-/*
- * A PAGE_OFFSET of 0xC0000000 means that the kernel has
- * a virtual address space of one gigabyte, which limits the
- * amount of physical memory you can use to about 768MB.
- * If you want more physical memory than this then see the CONFIG_HIGHMEM
- * option in the kernel configuration.
- *
- * The top 16MB chunk in the table below is unavailable to Linux.  Since
- * the kernel interrupt vectors must live at ether 0xfe000000 or 0xfd000000
- * (depending on whether the kernel is at PL2 or Pl1), we map all of the
- * bottom of RAM at this address with a huge page table entry to minimize
- * its ITLB footprint (as well as at PAGE_OFFSET).  The last architected
- * requirement is that user interrupt vectors live at 0xfc000000, so we
- * make that range of memory available to user processes.  The remaining
- * regions are sized as shown; the first four addresses use the PL 1
- * values, and after that, we show "typical" values, since the actual
- * addresses depend on kernel #defines.
- *
- * MEM_HV_START                    0xfe000000
- * MEM_SV_START  (kernel code)     0xfd000000
- * MEM_USER_INTRPT (user vector)   0xfc000000
- * FIX_KMAP_xxx                    0xfa000000 (via NR_CPUS * KM_TYPE_NR)
- * PKMAP_BASE                      0xf9000000 (via LAST_PKMAP)
- * VMALLOC_START                   0xf7000000 (via VMALLOC_RESERVE)
- * mapped LOWMEM                   0xc0000000
- */
+	/*
+	* A PAGE_OFFSET of 0xC0000000 means that the kernel has
+	* a virtual address space of one gigabyte, which limits the
+	* amount of physical memory you can use to about 768MB.
+	* If you want more physical memory than this then see the CONFIG_HIGHMEM
+	* option in the kernel configuration.
+	*
+	* The top 16MB chunk in the table below is unavailable to Linux.  Since
+	* the kernel interrupt vectors must live at ether 0xfe000000 or 0xfd000000
+	* (depending on whether the kernel is at PL2 or Pl1), we map all of the
+	* bottom of RAM at this address with a huge page table entry to minimize
+	* its ITLB footprint (as well as at PAGE_OFFSET).  The last architected
+	* requirement is that user interrupt vectors live at 0xfc000000, so we
+	* make that range of memory available to user processes.  The remaining
+	* regions are sized as shown; the first four addresses use the PL 1
+	* values, and after that, we show "typical" values, since the actual
+	* addresses depend on kernel #defines.
+	*
+	* MEM_HV_START                    0xfe000000
+	* MEM_SV_START  (kernel code)     0xfd000000
+	* MEM_USER_INTRPT (user vector)   0xfc000000
+	* FIX_KMAP_xxx                    0xfa000000 (via NR_CPUS * KM_TYPE_NR)
+	* PKMAP_BASE                      0xf9000000 (via LAST_PKMAP)
+	* VMALLOC_START                   0xf7000000 (via VMALLOC_RESERVE)
+	* mapped LOWMEM                   0xc0000000
+	*/
 
-#define MEM_USER_INTRPT		_AC(0xfc000000, UL)
-#define MEM_SV_START		_AC(0xfd000000, UL)
-#define MEM_HV_START		_AC(0xfe000000, UL)
+	#define MEM_USER_INTRPT		_AC(0xfc000000, UL)
+	#define MEM_SV_START		_AC(0xfd000000, UL)
+	#define MEM_HV_START		_AC(0xfe000000, UL)
 
-#define INTRPT_SIZE		0x4000
+	#define INTRPT_SIZE		0x4000
 
-/* Tolerate page size larger than the architecture interrupt region size. */
-#if PAGE_SIZE > INTRPT_SIZE
-#undef INTRPT_SIZE
-#define INTRPT_SIZE PAGE_SIZE
-#endif
+	/* Tolerate page size larger than the architecture interrupt region size. */
+	#if PAGE_SIZE > INTRPT_SIZE
+		#undef INTRPT_SIZE
+		#define INTRPT_SIZE PAGE_SIZE
+	#endif
 
-#define KERNEL_HIGH_VADDR	MEM_USER_INTRPT
-#define FIXADDR_TOP		(KERNEL_HIGH_VADDR - PAGE_SIZE)
+	#define KERNEL_HIGH_VADDR	MEM_USER_INTRPT
+	#define FIXADDR_TOP		(KERNEL_HIGH_VADDR - PAGE_SIZE)
 
-#define PAGE_OFFSET		_AC(CONFIG_PAGE_OFFSET, UL)
+	#define PAGE_OFFSET		_AC(CONFIG_PAGE_OFFSET, UL)
 
-/* On 32-bit architectures we mix kernel modules in with other vmaps. */
-#define MEM_MODULE_START	VMALLOC_START
-#define MEM_MODULE_END		VMALLOC_END
+	/* On 32-bit architectures we mix kernel modules in with other vmaps. */
+	#define MEM_MODULE_START	VMALLOC_START
+	#define MEM_MODULE_END		VMALLOC_END
 
 #endif /* __tilegx__ */
 
@@ -249,7 +249,7 @@ static inline unsigned long kaddr_to_pfn(const volatile void *_kaddr)
 {
 	unsigned long kaddr = (unsigned long)_kaddr;
 	return pbase_map[kaddr >> HPAGE_SHIFT] +
-		((kaddr & (HPAGE_SIZE - 1)) >> PAGE_SHIFT);
+		   ((kaddr & (HPAGE_SIZE - 1)) >> PAGE_SHIFT);
 }
 
 static inline void *pfn_to_kaddr(unsigned long pfn)
@@ -261,12 +261,12 @@ static inline phys_addr_t virt_to_phys(const volatile void *kaddr)
 {
 	unsigned long pfn = kaddr_to_pfn(kaddr);
 	return ((phys_addr_t)pfn << PAGE_SHIFT) +
-		((unsigned long)kaddr & (PAGE_SIZE-1));
+		   ((unsigned long)kaddr & (PAGE_SIZE - 1));
 }
 
 static inline void *phys_to_virt(phys_addr_t paddr)
 {
-	return pfn_to_kaddr(paddr >> PAGE_SHIFT) + (paddr & (PAGE_SIZE-1));
+	return pfn_to_kaddr(paddr >> PAGE_SHIFT) + (paddr & (PAGE_SIZE - 1));
 }
 
 /* With HIGHMEM, we pack PAGE_OFFSET through high_memory with all valid VAs. */

@@ -49,7 +49,8 @@ void qnap_tsx09_power_off(void)
  * Ethernet
  ****************************************************************************/
 
-struct mv643xx_eth_platform_data qnap_tsx09_eth_data = {
+struct mv643xx_eth_platform_data qnap_tsx09_eth_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_ADDR(8),
 };
 
@@ -58,7 +59,9 @@ static int __init qnap_tsx09_check_mac_addr(const char *addr_str)
 	u_int8_t addr[6];
 
 	if (!mac_pton(addr_str, addr))
+	{
 		return -1;
+	}
 
 	printk(KERN_INFO "tsx09: found ethernet mac address %pM\n", addr);
 
@@ -76,17 +79,22 @@ void __init qnap_tsx09_find_mac_addr(u32 mem_base, u32 size)
 {
 	unsigned long addr;
 
-	for (addr = mem_base; addr < (mem_base + size); addr += 1024) {
+	for (addr = mem_base; addr < (mem_base + size); addr += 1024)
+	{
 		void __iomem *nor_page;
 		int ret = 0;
 
 		nor_page = ioremap(addr, 1024);
-		if (nor_page != NULL) {
+
+		if (nor_page != NULL)
+		{
 			ret = qnap_tsx09_check_mac_addr((__force const char *)nor_page);
 			iounmap(nor_page);
 		}
 
 		if (ret == 0)
+		{
 			break;
+		}
 	}
 }

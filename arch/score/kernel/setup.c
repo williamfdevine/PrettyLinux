@@ -54,23 +54,25 @@ static void __init bootmem_init(void)
 
 	/* Initialize the boot-time allocator with low memory only. */
 	bootmap_size = init_bootmem_node(NODE_DATA(0), start_pfn,
-					 min_low_pfn, max_low_pfn);
+									 min_low_pfn, max_low_pfn);
 	memblock_add_node(PFN_PHYS(min_low_pfn),
-			  PFN_PHYS(max_low_pfn - min_low_pfn), 0);
+					  PFN_PHYS(max_low_pfn - min_low_pfn), 0);
 
 	free_bootmem(PFN_PHYS(start_pfn),
-		     (max_low_pfn - start_pfn) << PAGE_SHIFT);
+				 (max_low_pfn - start_pfn) << PAGE_SHIFT);
 	memory_present(0, start_pfn, max_low_pfn);
 
 	/* Reserve space for the bootmem bitmap. */
 	reserve_bootmem(PFN_PHYS(start_pfn), bootmap_size, BOOTMEM_DEFAULT);
 
-	if (size == 0) {
+	if (size == 0)
+	{
 		printk(KERN_INFO "Initrd not found or empty");
 		goto disable;
 	}
 
-	if (__pa(initrd_end) > PFN_PHYS(max_low_pfn)) {
+	if (__pa(initrd_end) > PFN_PHYS(max_low_pfn))
+	{
 		printk(KERN_ERR "Initrd extends beyond end of memory");
 		goto disable;
 	}
@@ -80,7 +82,7 @@ static void __init bootmem_init(void)
 	initrd_below_start_ok = 1;
 
 	pr_info("Initial ramdisk at: 0x%lx (%lu bytes)\n",
-		 initrd_start, size);
+			initrd_start, size);
 	return;
 disable:
 	printk(KERN_CONT " - disabling initrd\n");
@@ -147,7 +149,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,

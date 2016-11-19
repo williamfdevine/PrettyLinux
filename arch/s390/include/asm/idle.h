@@ -11,7 +11,8 @@
 #include <linux/device.h>
 #include <linux/seqlock.h>
 
-struct s390_idle_data {
+struct s390_idle_data
+{
 	seqcount_t seqcount;
 	unsigned long long idle_count;
 	unsigned long long idle_time;

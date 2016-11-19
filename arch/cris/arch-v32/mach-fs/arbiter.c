@@ -21,7 +21,8 @@
 #include <asm/io.h>
 #include <asm/irq_regs.h>
 
-struct crisv32_watch_entry {
+struct crisv32_watch_entry
+{
 	unsigned long instance;
 	watch_callback *cb;
 	unsigned long start;
@@ -36,7 +37,8 @@ struct crisv32_watch_entry {
 #define INTMEM_BANDWIDTH 400000000
 #define NBR_OF_REGIONS 2
 
-static struct crisv32_watch_entry watches[NUMBER_OF_BP] = {
+static struct crisv32_watch_entry watches[NUMBER_OF_BP] =
+{
 	{regi_marb_bp0},
 	{regi_marb_bp1},
 	{regi_marb_bp2},
@@ -46,7 +48,7 @@ static struct crisv32_watch_entry watches[NUMBER_OF_BP] = {
 static u8 requested_slots[NBR_OF_REGIONS][NBR_OF_CLIENTS];
 static u8 active_clients[NBR_OF_REGIONS][NBR_OF_CLIENTS];
 static int max_bandwidth[NBR_OF_REGIONS] =
-    { SDRAM_BANDWIDTH, INTMEM_BANDWIDTH };
+{ SDRAM_BANDWIDTH, INTMEM_BANDWIDTH };
 
 DEFINE_SPINLOCK(arbiter_lock);
 
@@ -81,10 +83,14 @@ static void crisv32_arbiter_config(int region, int unused_slots)
 	s8 val[NBR_OF_SLOTS];
 
 	for (slot = 0; slot < NBR_OF_SLOTS; slot++)
+	{
 		val[slot] = -1;
+	}
 
-	for (client = 0; client < NBR_OF_CLIENTS; client++) {
+	for (client = 0; client < NBR_OF_CLIENTS; client++)
+	{
 		int pos;
+
 		/* Allocate the requested non-zero number of slots, but
 		 * also give clients with zero-requests one slot each
 		 * while stocks last. We do the latter here, in client
@@ -102,29 +108,38 @@ static void crisv32_arbiter_config(int region, int unused_slots)
 		 * unallocated bandwidth.)  All the above only matters for
 		 * memory-intensive situations, of course.
 		 */
-		if (!requested_slots[region][client]) {
+		if (!requested_slots[region][client])
+		{
 			/*
 			 * Skip inactive clients. Also skip zero-slot
 			 * allocations in this pass when there are no known
 			 * free slots.
 			 */
 			if (!active_clients[region][client]
-			    || unused_slots <= 0)
+				|| unused_slots <= 0)
+			{
 				continue;
+			}
 
 			unused_slots--;
 
 			/* Only allocate one slot for this client. */
 			interval = NBR_OF_SLOTS;
-		} else
+		}
+		else
 			interval =
-			    NBR_OF_SLOTS / requested_slots[region][client];
+				NBR_OF_SLOTS / requested_slots[region][client];
 
 		pos = 0;
-		while (pos < NBR_OF_SLOTS) {
+
+		while (pos < NBR_OF_SLOTS)
+		{
 			if (val[pos] >= 0)
+			{
 				pos++;
-			else {
+			}
+			else
+			{
 				val[pos] = client;
 				pos += interval;
 			}
@@ -132,29 +147,39 @@ static void crisv32_arbiter_config(int region, int unused_slots)
 	}
 
 	client = 0;
-	for (slot = 0; slot < NBR_OF_SLOTS; slot++) {
+
+	for (slot = 0; slot < NBR_OF_SLOTS; slot++)
+	{
 		/*
 		 * Allocate remaining slots in round-robin
 		 * client-number order for active clients. For this
 		 * pass, we ignore requested bandwidth and previous
 		 * allocations.
 		 */
-		if (val[slot] < 0) {
+		if (val[slot] < 0)
+		{
 			int first = client;
-			while (!active_clients[region][client]) {
+
+			while (!active_clients[region][client])
+			{
 				client = (client + 1) % NBR_OF_CLIENTS;
+
 				if (client == first)
+				{
 					break;
+				}
 			}
+
 			val[slot] = client;
 			client = (client + 1) % NBR_OF_CLIENTS;
 		}
+
 		if (region == EXT_REGION)
 			REG_WR_INT_VECT(marb, regi_marb, rw_ext_slots, slot,
-					val[slot]);
+							val[slot]);
 		else if (region == INT_REGION)
 			REG_WR_INT_VECT(marb, regi_marb, rw_int_slots, slot,
-					val[slot]);
+							val[slot]);
 	}
 }
 
@@ -165,7 +190,9 @@ static void crisv32_arbiter_init(void)
 	static int initialized;
 
 	if (initialized)
+	{
 		return;
+	}
 
 	initialized = 1;
 
@@ -185,20 +212,22 @@ static void crisv32_arbiter_init(void)
 	crisv32_arbiter_config(INT_REGION, 0);
 
 	if (request_irq(MEMARB_INTR_VECT, crisv32_arbiter_irq, 0,
-			"arbiter", NULL))
+					"arbiter", NULL))
+	{
 		printk(KERN_ERR "Couldn't allocate arbiter IRQ\n");
+	}
 
 #ifndef CONFIG_ETRAX_KGDB
 	/* Global watch for writes to kernel text segment. */
 	crisv32_arbiter_watch(virt_to_phys(&_stext), &_etext - &_stext,
-			      arbiter_all_clients, arbiter_all_write, NULL);
+						  arbiter_all_clients, arbiter_all_write, NULL);
 #endif
 }
 
 /* Main entry for bandwidth allocation. */
 
 int crisv32_arbiter_allocate_bandwidth(int client, int region,
-				       unsigned long bandwidth)
+									   unsigned long bandwidth)
 {
 	int i;
 	int total_assigned = 0;
@@ -207,14 +236,15 @@ int crisv32_arbiter_allocate_bandwidth(int client, int region,
 
 	crisv32_arbiter_init();
 
-	for (i = 0; i < NBR_OF_CLIENTS; i++) {
+	for (i = 0; i < NBR_OF_CLIENTS; i++)
+	{
 		total_assigned += requested_slots[region][i];
 		total_clients += active_clients[region][i];
 	}
 
 	/* Avoid division by 0 for 0-bandwidth requests. */
 	req = bandwidth == 0
-	    ? 0 : NBR_OF_SLOTS / (max_bandwidth[region] / bandwidth);
+		  ? 0 : NBR_OF_SLOTS / (max_bandwidth[region] / bandwidth);
 
 	/*
 	 * We make sure that there are enough slots only for non-zero
@@ -225,7 +255,9 @@ int crisv32_arbiter_allocate_bandwidth(int client, int region,
 	 * of the slot-allocated clients doesn't claim their slot.
 	 */
 	if (total_assigned + req > NBR_OF_SLOTS)
+	{
 		return -ENOMEM;
+	}
 
 	active_clients[region][client] = 1;
 	requested_slots[region][client] = req;
@@ -255,31 +287,36 @@ void crisv32_arbiter_deallocate_bandwidth(int client, int region)
 	active_clients[region][client] = 0;
 
 	for (i = 0; i < NBR_OF_CLIENTS; i++)
+	{
 		total_assigned += requested_slots[region][i];
+	}
 
 	crisv32_arbiter_config(region, NBR_OF_SLOTS - total_assigned);
 }
 
 int crisv32_arbiter_watch(unsigned long start, unsigned long size,
-			  unsigned long clients, unsigned long accesses,
-			  watch_callback *cb)
+						  unsigned long clients, unsigned long accesses,
+						  watch_callback *cb)
 {
 	int i;
 
 	crisv32_arbiter_init();
 
-	if (start > 0x80000000) {
+	if (start > 0x80000000)
+	{
 		printk(KERN_ERR "Arbiter: %lX doesn't look like a "
-			"physical address", start);
+			   "physical address", start);
 		return -EFAULT;
 	}
 
 	spin_lock(&arbiter_lock);
 
-	for (i = 0; i < NUMBER_OF_BP; i++) {
-		if (!watches[i].used) {
+	for (i = 0; i < NUMBER_OF_BP; i++)
+	{
+		if (!watches[i].used)
+		{
 			reg_marb_rw_intr_mask intr_mask =
-			    REG_RD(marb, regi_marb, rw_intr_mask);
+				REG_RD(marb, regi_marb, rw_intr_mask);
 
 			watches[i].used = 1;
 			watches[i].start = start;
@@ -287,22 +324,30 @@ int crisv32_arbiter_watch(unsigned long start, unsigned long size,
 			watches[i].cb = cb;
 
 			REG_WR_INT(marb_bp, watches[i].instance, rw_first_addr,
-				   watches[i].start);
+					   watches[i].start);
 			REG_WR_INT(marb_bp, watches[i].instance, rw_last_addr,
-				   watches[i].end);
+					   watches[i].end);
 			REG_WR_INT(marb_bp, watches[i].instance, rw_op,
-				   accesses);
+					   accesses);
 			REG_WR_INT(marb_bp, watches[i].instance, rw_clients,
-				   clients);
+					   clients);
 
 			if (i == 0)
+			{
 				intr_mask.bp0 = regk_marb_yes;
+			}
 			else if (i == 1)
+			{
 				intr_mask.bp1 = regk_marb_yes;
+			}
 			else if (i == 2)
+			{
 				intr_mask.bp2 = regk_marb_yes;
+			}
 			else if (i == 3)
+			{
 				intr_mask.bp3 = regk_marb_yes;
+			}
 
 			REG_WR(marb, regi_marb, rw_intr_mask, intr_mask);
 			spin_unlock(&arbiter_lock);
@@ -310,6 +355,7 @@ int crisv32_arbiter_watch(unsigned long start, unsigned long size,
 			return i;
 		}
 	}
+
 	spin_unlock(&arbiter_lock);
 	return -ENOMEM;
 }
@@ -322,7 +368,8 @@ int crisv32_arbiter_unwatch(int id)
 
 	spin_lock(&arbiter_lock);
 
-	if ((id < 0) || (id >= NUMBER_OF_BP) || (!watches[id].used)) {
+	if ((id < 0) || (id >= NUMBER_OF_BP) || (!watches[id].used))
+	{
 		spin_unlock(&arbiter_lock);
 		return -EINVAL;
 	}
@@ -330,13 +377,21 @@ int crisv32_arbiter_unwatch(int id)
 	memset(&watches[id], 0, sizeof(struct crisv32_watch_entry));
 
 	if (id == 0)
+	{
 		intr_mask.bp0 = regk_marb_no;
+	}
 	else if (id == 1)
+	{
 		intr_mask.bp1 = regk_marb_no;
+	}
 	else if (id == 2)
+	{
 		intr_mask.bp2 = regk_marb_no;
+	}
 	else if (id == 3)
+	{
 		intr_mask.bp3 = regk_marb_no;
+	}
 
 	REG_WR(marb, regi_marb, rw_intr_mask, intr_mask);
 
@@ -349,31 +404,41 @@ extern void show_registers(struct pt_regs *regs);
 static irqreturn_t crisv32_arbiter_irq(int irq, void *dev_id)
 {
 	reg_marb_r_masked_intr masked_intr =
-	    REG_RD(marb, regi_marb, r_masked_intr);
+		REG_RD(marb, regi_marb, r_masked_intr);
 	reg_marb_bp_r_brk_clients r_clients;
 	reg_marb_bp_r_brk_addr r_addr;
 	reg_marb_bp_r_brk_op r_op;
 	reg_marb_bp_r_brk_first_client r_first;
 	reg_marb_bp_r_brk_size r_size;
 	reg_marb_bp_rw_ack ack = { 0 };
-	reg_marb_rw_ack_intr ack_intr = {
+	reg_marb_rw_ack_intr ack_intr =
+	{
 		.bp0 = 1, .bp1 = 1, .bp2 = 1, .bp3 = 1
 	};
 	struct crisv32_watch_entry *watch;
 
-	if (masked_intr.bp0) {
+	if (masked_intr.bp0)
+	{
 		watch = &watches[0];
 		ack_intr.bp0 = regk_marb_yes;
-	} else if (masked_intr.bp1) {
+	}
+	else if (masked_intr.bp1)
+	{
 		watch = &watches[1];
 		ack_intr.bp1 = regk_marb_yes;
-	} else if (masked_intr.bp2) {
+	}
+	else if (masked_intr.bp2)
+	{
 		watch = &watches[2];
 		ack_intr.bp2 = regk_marb_yes;
-	} else if (masked_intr.bp3) {
+	}
+	else if (masked_intr.bp3)
+	{
 		watch = &watches[3];
 		ack_intr.bp3 = regk_marb_yes;
-	} else {
+	}
+	else
+	{
 		return IRQ_NONE;
 	}
 
@@ -386,11 +451,11 @@ static irqreturn_t crisv32_arbiter_irq(int irq, void *dev_id)
 
 	printk(KERN_INFO "Arbiter IRQ\n");
 	printk(KERN_INFO "Clients %X addr %X op %X first %X size %X\n",
-	       REG_TYPE_CONV(int, reg_marb_bp_r_brk_clients, r_clients),
-	       REG_TYPE_CONV(int, reg_marb_bp_r_brk_addr, r_addr),
-	       REG_TYPE_CONV(int, reg_marb_bp_r_brk_op, r_op),
-	       REG_TYPE_CONV(int, reg_marb_bp_r_brk_first_client, r_first),
-	       REG_TYPE_CONV(int, reg_marb_bp_r_brk_size, r_size));
+		   REG_TYPE_CONV(int, reg_marb_bp_r_brk_clients, r_clients),
+		   REG_TYPE_CONV(int, reg_marb_bp_r_brk_addr, r_addr),
+		   REG_TYPE_CONV(int, reg_marb_bp_r_brk_op, r_op),
+		   REG_TYPE_CONV(int, reg_marb_bp_r_brk_first_client, r_first),
+		   REG_TYPE_CONV(int, reg_marb_bp_r_brk_size, r_size));
 
 	REG_WR(marb_bp, watch->instance, rw_ack, ack);
 	REG_WR(marb, regi_marb, rw_ack_intr, ack_intr);
@@ -398,7 +463,9 @@ static irqreturn_t crisv32_arbiter_irq(int irq, void *dev_id)
 	printk(KERN_INFO "IRQ occurred at %lX\n", get_irq_regs()->erp);
 
 	if (watch->cb)
+	{
 		watch->cb();
+	}
 
 	return IRQ_HANDLED;
 }

@@ -30,7 +30,8 @@
 #include "iomux-v1.h"
 
 /* MX27 memory map definition */
-static struct map_desc imx27_io_desc[] __initdata = {
+static struct map_desc imx27_io_desc[] __initdata =
+{
 	/*
 	 * this fixed mapping covers:
 	 * - AIPI1
@@ -67,7 +68,7 @@ void __init imx27_init_early(void)
 {
 	mxc_set_cpu_type(MXC_CPU_MX27);
 	imx_iomuxv1_init(MX27_IO_ADDRESS(MX27_GPIO_BASE_ADDR),
-			MX27_NUM_GPIO_PORT);
+					 MX27_NUM_GPIO_PORT);
 }
 
 void __init mx27_init_irq(void)
@@ -75,7 +76,8 @@ void __init mx27_init_irq(void)
 	mxc_init_irq(MX27_IO_ADDRESS(MX27_AVIC_BASE_ADDR));
 }
 
-static const struct resource imx27_audmux_res[] __initconst = {
+static const struct resource imx27_audmux_res[] __initconst =
+{
 	DEFINE_RES_MEM(MX27_AUDMUX_BASE_ADDR, SZ_4K),
 };
 
@@ -94,10 +96,10 @@ void __init imx27_soc_init(void)
 
 	pinctrl_provide_dummies();
 	imx_add_imx_dma("imx27-dma", MX27_DMA_BASE_ADDR,
-			MX27_INT_DMACH0, 0); /* No ERR irq */
+					MX27_INT_DMACH0, 0); /* No ERR irq */
 	/* imx27 has the imx21 type audmux */
 	platform_device_register_simple("imx21-audmux", 0, imx27_audmux_res,
-					ARRAY_SIZE(imx27_audmux_res));
+									ARRAY_SIZE(imx27_audmux_res));
 
 	imx27_pm_init();
 }

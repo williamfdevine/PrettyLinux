@@ -32,7 +32,9 @@ static void __attribute__((section(".inittext"))) serial_putchar(int ch)
 	unsigned timeout = 0xffff;
 
 	while ((inb(early_serial_base + LSR) & XMTRDY) == 0 && --timeout)
+	{
 		cpu_relax();
+	}
 
 	outb(ch, early_serial_base + TXR);
 }
@@ -52,18 +54,24 @@ static void __attribute__((section(".inittext"))) bios_putchar(int ch)
 void __attribute__((section(".inittext"))) putchar(int ch)
 {
 	if (ch == '\n')
-		putchar('\r');	/* \n -> \r\n */
+	{
+		putchar('\r');    /* \n -> \r\n */
+	}
 
 	bios_putchar(ch);
 
 	if (early_serial_base != 0)
+	{
 		serial_putchar(ch);
+	}
 }
 
 void __attribute__((section(".inittext"))) puts(const char *str)
 {
 	while (*str)
+	{
 		putchar(*str++);
+	}
 }
 
 /*
@@ -109,9 +117,13 @@ static int kbd_pending(void)
 
 void kbd_flush(void)
 {
-	for (;;) {
+	for (;;)
+	{
 		if (!kbd_pending())
+		{
 			break;
+		}
+
 		getchar();
 	}
 }
@@ -123,12 +135,17 @@ int getchar_timeout(void)
 
 	t0 = gettime();
 
-	while (cnt) {
+	while (cnt)
+	{
 		if (kbd_pending())
+		{
 			return getchar();
+		}
 
 		t1 = gettime();
-		if (t0 != t1) {
+
+		if (t0 != t1)
+		{
 			cnt--;
 			t0 = t1;
 		}

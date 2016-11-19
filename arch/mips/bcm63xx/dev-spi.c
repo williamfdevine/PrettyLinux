@@ -18,7 +18,8 @@
 #include <bcm63xx_dev_spi.h>
 #include <bcm63xx_regs.h>
 
-static struct resource spi_resources[] = {
+static struct resource spi_resources[] =
+{
 	{
 		.start		= -1, /* filled at runtime */
 		.end		= -1, /* filled at runtime */
@@ -30,7 +31,8 @@ static struct resource spi_resources[] = {
 	},
 };
 
-static struct platform_device bcm63xx_spi_device = {
+static struct platform_device bcm63xx_spi_device =
+{
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(spi_resources),
 	.resource	= spi_resources,
@@ -39,21 +41,25 @@ static struct platform_device bcm63xx_spi_device = {
 int __init bcm63xx_spi_register(void)
 {
 	if (BCMCPU_IS_6328() || BCMCPU_IS_6345())
+	{
 		return -ENODEV;
+	}
 
 	spi_resources[0].start = bcm63xx_regset_address(RSET_SPI);
 	spi_resources[0].end = spi_resources[0].start;
 	spi_resources[1].start = bcm63xx_get_irq_number(IRQ_SPI);
 
-	if (BCMCPU_IS_6338() || BCMCPU_IS_6348()) {
+	if (BCMCPU_IS_6338() || BCMCPU_IS_6348())
+	{
 		bcm63xx_spi_device.name = "bcm6348-spi",
-		spi_resources[0].end += BCM_6348_RSET_SPI_SIZE - 1;
+						   spi_resources[0].end += BCM_6348_RSET_SPI_SIZE - 1;
 	}
 
 	if (BCMCPU_IS_3368() || BCMCPU_IS_6358() || BCMCPU_IS_6362() ||
-		BCMCPU_IS_6368()) {
+		BCMCPU_IS_6368())
+	{
 		bcm63xx_spi_device.name = "bcm6358-spi",
-		spi_resources[0].end += BCM_6358_RSET_SPI_SIZE - 1;
+						   spi_resources[0].end += BCM_6358_RSET_SPI_SIZE - 1;
 	}
 
 	return platform_device_register(&bcm63xx_spi_device);

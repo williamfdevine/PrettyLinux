@@ -15,11 +15,13 @@
 #ifndef __ASSEMBLY__
 #include <linux/types.h>
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long uregs[18];
 };
 
-struct svc_pt_regs {
+struct svc_pt_regs
+{
 	struct pt_regs regs;
 	u32 dacr;
 	u32 addr_limit;
@@ -67,19 +69,28 @@ static inline int valid_user_regs(struct pt_regs *regs)
 	 */
 	regs->ARM_cpsr &= ~(PSR_F_BIT | PSR_A_BIT);
 
-	if ((regs->ARM_cpsr & PSR_I_BIT) == 0) {
+	if ((regs->ARM_cpsr & PSR_I_BIT) == 0)
+	{
 		if (mode == USR_MODE)
+		{
 			return 1;
+		}
+
 		if (elf_hwcap & HWCAP_26BIT && mode == USR26_MODE)
+		{
 			return 1;
+		}
 	}
 
 	/*
 	 * Force CPSR to something logical...
 	 */
 	regs->ARM_cpsr &= PSR_f | PSR_s | PSR_x | PSR_T_BIT | MODE32_BIT;
+
 	if (!(elf_hwcap & HWCAP_26BIT))
+	{
 		regs->ARM_cpsr |= USR_MODE;
+	}
 
 	return 0;
 #else /* ifndef CONFIG_CPU_V7M */
@@ -95,21 +106,21 @@ static inline long regs_return_value(struct pt_regs *regs)
 #define instruction_pointer(regs)	(regs)->ARM_pc
 
 #ifdef CONFIG_THUMB2_KERNEL
-#define frame_pointer(regs) (regs)->ARM_r7
+	#define frame_pointer(regs) (regs)->ARM_r7
 #else
-#define frame_pointer(regs) (regs)->ARM_fp
+	#define frame_pointer(regs) (regs)->ARM_fp
 #endif
 
 static inline void instruction_pointer_set(struct pt_regs *regs,
-					   unsigned long val)
+		unsigned long val)
 {
 	instruction_pointer(regs) = val;
 }
 
 #ifdef CONFIG_SMP
-extern unsigned long profile_pc(struct pt_regs *regs);
+	extern unsigned long profile_pc(struct pt_regs *regs);
 #else
-#define profile_pc(regs) instruction_pointer(regs)
+	#define profile_pc(regs) instruction_pointer(regs)
 #endif
 
 #define predicate(x)		((x) & 0xf0000000)
@@ -134,7 +145,7 @@ extern int regs_query_register_offset(const char *name);
 extern const char *regs_query_register_name(unsigned int offset);
 extern bool regs_within_kernel_stack(struct pt_regs *regs, unsigned long addr);
 extern unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs,
-					       unsigned int n);
+		unsigned int n);
 
 /**
  * regs_get_register() - get register value from its offset
@@ -146,10 +157,13 @@ extern unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs,
  * If @offset is bigger than MAX_REG_OFFSET, this returns 0.
  */
 static inline unsigned long regs_get_register(struct pt_regs *regs,
-					      unsigned int offset)
+		unsigned int offset)
 {
 	if (unlikely(offset > MAX_REG_OFFSET))
+	{
 		return 0;
+	}
+
 	return *(unsigned long *)((unsigned long)regs + offset);
 }
 
@@ -166,7 +180,7 @@ static inline unsigned long user_stack_pointer(struct pt_regs *regs)
 
 #define current_pt_regs(void) ({ (struct pt_regs *)			\
 		((current_stack_pointer | (THREAD_SIZE - 1)) - 7) - 1;	\
-})
+	})
 
 #endif /* __ASSEMBLY__ */
 #endif

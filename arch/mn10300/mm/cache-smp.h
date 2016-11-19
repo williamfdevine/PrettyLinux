@@ -15,14 +15,16 @@
  *
  * One of smp_icache_ops and one of smp_dcache_ops can be OR'd together.
  */
-enum smp_icache_ops {
+enum smp_icache_ops
+{
 	SMP_ICACHE_NOP			= 0x0000,
 	SMP_ICACHE_INV			= 0x0001,
 	SMP_ICACHE_INV_RANGE		= 0x0002,
 };
 #define SMP_ICACHE_OP_MASK		0x0003
 
-enum smp_dcache_ops {
+enum smp_dcache_ops
+{
 	SMP_DCACHE_NOP			= 0x0000,
 	SMP_DCACHE_INV			= 0x0004,
 	SMP_DCACHE_INV_RANGE		= 0x0008,
@@ -43,10 +45,10 @@ enum smp_dcache_ops {
 extern spinlock_t smp_cache_lock;
 
 extern void smp_cache_call(unsigned long opr_mask,
-			   unsigned long addr, unsigned long end);
+						   unsigned long addr, unsigned long end);
 
 static inline unsigned long smp_lock_cache(void)
-	__acquires(&smp_cache_lock)
+__acquires(&smp_cache_lock)
 {
 	unsigned long flags;
 	spin_lock_irqsave(&smp_cache_lock, flags);
@@ -54,7 +56,7 @@ static inline unsigned long smp_lock_cache(void)
 }
 
 static inline void smp_unlock_cache(unsigned long flags)
-	__releases(&smp_cache_lock)
+__releases(&smp_cache_lock)
 {
 	spin_unlock_irqrestore(&smp_cache_lock, flags);
 }
@@ -63,7 +65,7 @@ static inline void smp_unlock_cache(unsigned long flags)
 static inline unsigned long smp_lock_cache(void) { return 0; }
 static inline void smp_unlock_cache(unsigned long flags) {}
 static inline void smp_cache_call(unsigned long opr_mask,
-				  unsigned long addr, unsigned long end)
+								  unsigned long addr, unsigned long end)
 {
 }
 #endif /* CONFIG_SMP */

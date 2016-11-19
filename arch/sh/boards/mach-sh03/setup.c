@@ -29,7 +29,8 @@ static void __init sh03_setup(char **cmdline_p)
 	board_time_init = sh03_time_init;
 }
 
-static struct resource cf_ide_resources[] = {
+static struct resource cf_ide_resources[] =
+{
 	[0] = {
 		.start  = 0x1f0,
 		.end    = 0x1f0 + 8,
@@ -37,7 +38,7 @@ static struct resource cf_ide_resources[] = {
 	},
 	[1] = {
 		.start  = 0x1f0 + 0x206,
-		.end    = 0x1f0 +8 + 0x206 + 8,
+		.end    = 0x1f0 + 8 + 0x206 + 8,
 		.flags  = IORESOURCE_IO,
 	},
 	[2] = {
@@ -46,14 +47,16 @@ static struct resource cf_ide_resources[] = {
 	},
 };
 
-static struct platform_device cf_ide_device = {
+static struct platform_device cf_ide_device =
+{
 	.name		= "pata_platform",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(cf_ide_resources),
 	.resource	= cf_ide_resources,
 };
 
-static struct resource heartbeat_resources[] = {
+static struct resource heartbeat_resources[] =
+{
 	[0] = {
 		.start	= 0xa0800000,
 		.end	= 0xa0800000,
@@ -61,14 +64,16 @@ static struct resource heartbeat_resources[] = {
 	},
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(heartbeat_resources),
 	.resource	= heartbeat_resources,
 };
 
-static struct platform_device *sh03_devices[] __initdata = {
+static struct platform_device *sh03_devices[] __initdata =
+{
 	&heartbeat_device,
 	&cf_ide_device,
 };
@@ -83,7 +88,9 @@ static int __init sh03_devices_setup(void)
 	paddrbase = virt_to_phys((void *)PA_AREA5_IO);
 	prot = PAGE_KERNEL_PCC(1, _PAGE_PCC_IO16);
 	cf_ide_base = ioremap_prot(paddrbase, PAGE_SIZE, pgprot_val(prot));
-	if (!cf_ide_base) {
+
+	if (!cf_ide_base)
+	{
 		printk("allocate_cf_area : can't open CF I/O window!\n");
 		return -ENOMEM;
 	}
@@ -98,7 +105,8 @@ static int __init sh03_devices_setup(void)
 }
 device_initcall(sh03_devices_setup);
 
-static struct sh_machine_vector mv_sh03 __initmv = {
+static struct sh_machine_vector mv_sh03 __initmv =
+{
 	.mv_name		= "Interface (CTP/PCI-SH03)",
 	.mv_setup		= sh03_setup,
 	.mv_init_irq		= init_sh03_IRQ,

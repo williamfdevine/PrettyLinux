@@ -19,7 +19,9 @@ static __init int profile_init(void)
 	u16 tmp;
 
 	if (!prof_buffer)
+	{
 		return 0;
+	}
 
 	/* use timer 11 to drive the profiling interrupts */
 	set_intr_stub(EXCEP_IRQ_LEVEL0, profile_handler);
@@ -41,9 +43,9 @@ static __init int profile_init(void)
 	tmp = TM11ICR;
 
 	printk(KERN_INFO "Profiling initiated on timer 11, priority 0, %uHz\n",
-	       MN10300_IOCLK / 8 / (TM11BR + 1));
+		   MN10300_IOCLK / 8 / (TM11BR + 1));
 	printk(KERN_INFO "Profile histogram stored %p-%p\n",
-	       prof_buffer, (u8 *)(prof_buffer + prof_len) - 1);
+		   prof_buffer, (u8 *)(prof_buffer + prof_len) - 1);
 
 	return 0;
 }

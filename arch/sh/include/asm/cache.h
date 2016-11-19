@@ -17,7 +17,8 @@
 #define __read_mostly __attribute__((__section__(".data..read_mostly")))
 
 #ifndef __ASSEMBLY__
-struct cache_info {
+struct cache_info
+{
 	unsigned int ways;		/* Number of cache ways */
 	unsigned int sets;		/* Number of cache sets */
 	unsigned int linesz;		/* Cache line size (bytes) */

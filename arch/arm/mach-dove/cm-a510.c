@@ -26,11 +26,13 @@
 
 #include "common.h"
 
-static struct mv643xx_eth_platform_data cm_a510_ge00_data = {
+static struct mv643xx_eth_platform_data cm_a510_ge00_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_ADDR_DEFAULT,
 };
 
-static struct mv_sata_platform_data cm_a510_sata_data = {
+static struct mv_sata_platform_data cm_a510_sata_data =
+{
 	.n_ports        = 1,
 };
 
@@ -38,11 +40,13 @@ static struct mv_sata_platform_data cm_a510_sata_data = {
  * SPI Devices:
  * SPI0: 1M Flash Winbond w25q32bv
  */
-static const struct flash_platform_data cm_a510_spi_flash_data = {
+static const struct flash_platform_data cm_a510_spi_flash_data =
+{
 	.type		= "w25q32bv",
 };
 
-static struct spi_board_info __initdata cm_a510_spi_flash_info[] = {
+static struct spi_board_info __initdata cm_a510_spi_flash_info[] =
+{
 	{
 		.modalias       = "m25p80",
 		.platform_data  = &cm_a510_spi_flash_data,
@@ -56,7 +60,9 @@ static struct spi_board_info __initdata cm_a510_spi_flash_info[] = {
 static int __init cm_a510_pci_init(void)
 {
 	if (machine_is_cm_a510())
+	{
 		dove_pcie_init(1, 1);
+	}
 
 	return 0;
 }
@@ -83,16 +89,16 @@ static void __init cm_a510_init(void)
 	dove_uart1_init();
 	dove_i2c_init();
 	spi_register_board_info(cm_a510_spi_flash_info,
-				ARRAY_SIZE(cm_a510_spi_flash_info));
+							ARRAY_SIZE(cm_a510_spi_flash_info));
 }
 
 MACHINE_START(CM_A510, "Compulab CM-A510 Board")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.nr_irqs	= DOVE_NR_IRQS,
-	.init_machine	= cm_a510_init,
-	.map_io		= dove_map_io,
-	.init_early	= dove_init_early,
-	.init_irq	= dove_init_irq,
-	.init_time	= dove_timer_init,
-	.restart	= dove_restart,
-MACHINE_END
+		.init_machine	= cm_a510_init,
+		   .map_io		= dove_map_io,
+			   .init_early	= dove_init_early,
+				.init_irq	= dove_init_irq,
+				   .init_time	= dove_timer_init,
+					 .restart	= dove_restart,
+						 MACHINE_END

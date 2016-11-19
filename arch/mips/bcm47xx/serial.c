@@ -17,7 +17,8 @@
 
 static struct plat_serial8250_port uart8250_data[5];
 
-static struct platform_device uart8250_device = {
+static struct platform_device uart8250_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -34,7 +35,8 @@ static int __init uart8250_init_ssb(void)
 	memset(&uart8250_data, 0,  sizeof(uart8250_data));
 
 	for (i = 0; i < mcore->nr_serial_ports &&
-		    i < ARRAY_SIZE(uart8250_data) - 1; i++) {
+		 i < ARRAY_SIZE(uart8250_data) - 1; i++)
+	{
 		struct plat_serial8250_port *p = &(uart8250_data[i]);
 		struct ssb_serial_port *ssb_port = &(mcore->serial_ports[i]);
 
@@ -46,6 +48,7 @@ static int __init uart8250_init_ssb(void)
 		p->iotype = UPIO_MEM;
 		p->flags = UPF_BOOT_AUTOCONF | UPF_SHARE_IRQ;
 	}
+
 	return platform_device_register(&uart8250_device);
 }
 #endif
@@ -59,7 +62,8 @@ static int __init uart8250_init_bcma(void)
 	memset(&uart8250_data, 0,  sizeof(uart8250_data));
 
 	for (i = 0; i < cc->nr_serial_ports &&
-		    i < ARRAY_SIZE(uart8250_data) - 1; i++) {
+		 i < ARRAY_SIZE(uart8250_data) - 1; i++)
+	{
 		struct plat_serial8250_port *p = &(uart8250_data[i]);
 		struct bcma_serial_port *bcma_port;
 		bcma_port = &(cc->serial_ports[i]);
@@ -72,22 +76,27 @@ static int __init uart8250_init_bcma(void)
 		p->iotype = UPIO_MEM;
 		p->flags = UPF_BOOT_AUTOCONF | UPF_SHARE_IRQ;
 	}
+
 	return platform_device_register(&uart8250_device);
 }
 #endif
 
 static int __init uart8250_init(void)
 {
-	switch (bcm47xx_bus_type) {
+	switch (bcm47xx_bus_type)
+	{
 #ifdef CONFIG_BCM47XX_SSB
-	case BCM47XX_BUS_TYPE_SSB:
-		return uart8250_init_ssb();
+
+		case BCM47XX_BUS_TYPE_SSB:
+			return uart8250_init_ssb();
 #endif
 #ifdef CONFIG_BCM47XX_BCMA
-	case BCM47XX_BUS_TYPE_BCMA:
-		return uart8250_init_bcma();
+
+		case BCM47XX_BUS_TYPE_BCMA:
+			return uart8250_init_bcma();
 #endif
 	}
+
 	return -EINVAL;
 }
 device_initcall(uart8250_init);

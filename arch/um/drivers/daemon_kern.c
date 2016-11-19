@@ -11,7 +11,8 @@
 #include <net_kern.h>
 #include "daemon.h"
 
-struct daemon_init {
+struct daemon_init
+{
 	char *sock_type;
 	char *ctl_sock;
 };
@@ -35,23 +36,24 @@ static void daemon_init(struct net_device *dev, void *data)
 	dpri->local_addr = NULL;
 
 	printk("daemon backend (uml_switch version %d) - %s:%s",
-	       SWITCH_VERSION, dpri->sock_type, dpri->ctl_sock);
+		   SWITCH_VERSION, dpri->sock_type, dpri->ctl_sock);
 	printk("\n");
 }
 
 static int daemon_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
 {
 	return net_recvfrom(fd, skb_mac_header(skb),
-			    skb->dev->mtu + ETH_HEADER_OTHER);
+						skb->dev->mtu + ETH_HEADER_OTHER);
 }
 
 static int daemon_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
 {
 	return daemon_user_write(fd, skb->data, skb->len,
-				 (struct daemon_data *) &lp->user);
+							 (struct daemon_data *) &lp->user);
 }
 
-static const struct net_kern_info daemon_kern_info = {
+static const struct net_kern_info daemon_kern_info =
+{
 	.init			= daemon_init,
 	.protocol		= eth_protocol,
 	.read			= daemon_read,
@@ -64,19 +66,23 @@ static int daemon_setup(char *str, char **mac_out, void *data)
 	char *remain;
 
 	*init = ((struct daemon_init)
-		{ .sock_type 		= "unix",
-		  .ctl_sock 		= "/tmp/uml.ctl" });
+	{
+		.sock_type 		= "unix",
+			.ctl_sock 		= "/tmp/uml.ctl"
+	});
 
 	remain = split_if_spec(str, mac_out, &init->sock_type, &init->ctl_sock,
-			       NULL);
+						   NULL);
+
 	if (remain != NULL)
 		printk(KERN_WARNING "daemon_setup : Ignoring data socket "
-		       "specification\n");
+			   "specification\n");
 
 	return 1;
 }
 
-static struct transport daemon_transport = {
+static struct transport daemon_transport =
+{
 	.list 		= LIST_HEAD_INIT(daemon_transport.list),
 	.name 		= "daemon",
 	.setup  	= daemon_setup,

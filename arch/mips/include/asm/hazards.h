@@ -62,17 +62,17 @@
  * to work right even for 32-bit code...
  */
 #define instruction_hazard()						\
-do {									\
-	unsigned long tmp;						\
-									\
-	__asm__ __volatile__(						\
-	"	.set "MIPS_ISA_LEVEL"				\n"	\
-	"	dla	%0, 1f					\n"	\
-	"	jr.hb	%0					\n"	\
-	"	.set	mips0					\n"	\
-	"1:							\n"	\
-	: "=r" (tmp));							\
-} while (0)
+	do {									\
+		unsigned long tmp;						\
+		\
+		__asm__ __volatile__(						\
+				"	.set "MIPS_ISA_LEVEL"				\n"	\
+				"	dla	%0, 1f					\n"	\
+				"	jr.hb	%0					\n"	\
+				"	.set	mips0					\n"	\
+				"1:							\n"	\
+				: "=r" (tmp));							\
+	} while (0)
 
 #elif (defined(CONFIG_CPU_MIPSR1) && !defined(CONFIG_MIPS_ALCHEMY)) || \
 	defined(CONFIG_CPU_BMIPS)
@@ -137,23 +137,23 @@ do {									\
  * to work right even for 32-bit code...
  */
 #define __instruction_hazard()						\
-do {									\
-	unsigned long tmp;						\
-									\
-	__asm__ __volatile__(						\
-	"	.set	mips64r2				\n"	\
-	"	dla	%0, 1f					\n"	\
-	"	jr.hb	%0					\n"	\
-	"	.set	mips0					\n"	\
-	"1:							\n"	\
-	: "=r" (tmp));							\
-} while (0)
+	do {									\
+		unsigned long tmp;						\
+		\
+		__asm__ __volatile__(						\
+				"	.set	mips64r2				\n"	\
+				"	dla	%0, 1f					\n"	\
+				"	jr.hb	%0					\n"	\
+				"	.set	mips0					\n"	\
+				"1:							\n"	\
+				: "=r" (tmp));							\
+	} while (0)
 
 #define instruction_hazard()						\
-do {									\
-	if (cpu_has_mips_r2_r6)						\
-		__instruction_hazard();					\
-} while (0)
+	do {									\
+		if (cpu_has_mips_r2_r6)						\
+			__instruction_hazard();					\
+	} while (0)
 
 #elif defined(CONFIG_MIPS_ALCHEMY) || defined(CONFIG_CPU_CAVIUM_OCTEON) || \
 	defined(CONFIG_CPU_LOONGSON2) || defined(CONFIG_LOONGSON3_ENHANCEMENT) || \
@@ -315,98 +315,98 @@ do {									\
 #else
 
 #define _ssnop()							\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(___ssnop)						\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(___ssnop)						\
+							);								\
+	} while (0)
 
 #define	_ehb()								\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(___ehb)						\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(___ehb)						\
+							);								\
+	} while (0)
 
 
 #define mtc0_tlbw_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__mtc0_tlbw_hazard)					\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__mtc0_tlbw_hazard)					\
+							);								\
+	} while (0)
 
 
 #define mtc0_tlbr_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__mtc0_tlbr_hazard)					\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__mtc0_tlbr_hazard)					\
+							);								\
+	} while (0)
 
 
 #define tlbw_use_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__tlbw_use_hazard)					\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__tlbw_use_hazard)					\
+							);								\
+	} while (0)
 
 
 #define tlb_read_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__tlb_read_hazard)					\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__tlb_read_hazard)					\
+							);								\
+	} while (0)
 
 
 #define tlb_probe_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__tlb_probe_hazard)					\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__tlb_probe_hazard)					\
+							);								\
+	} while (0)
 
 
 #define irq_enable_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__irq_enable_hazard)				\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__irq_enable_hazard)				\
+							);								\
+	} while (0)
 
 
 #define irq_disable_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__irq_disable_hazard)				\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__irq_disable_hazard)				\
+							);								\
+	} while (0)
 
 
 #define back_to_back_c0_hazard() 					\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__back_to_back_c0_hazard)				\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__back_to_back_c0_hazard)				\
+							);								\
+	} while (0)
 
 
 #define enable_fpu_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__enable_fpu_hazard)				\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__enable_fpu_hazard)				\
+							);								\
+	} while (0)
 
 
 #define disable_fpu_hazard()						\
-do {									\
-	__asm__ __volatile__(						\
-	__stringify(__disable_fpu_hazard)				\
-	);								\
-} while (0)
+	do {									\
+		__asm__ __volatile__(						\
+				__stringify(__disable_fpu_hazard)				\
+							);								\
+	} while (0)
 
 /*
  * MIPS R2 instruction hazard barrier.   Needs to be called as a subroutine.

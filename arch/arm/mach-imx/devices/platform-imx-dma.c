@@ -9,9 +9,10 @@
 #include "devices-common.h"
 
 struct platform_device __init __maybe_unused *imx_add_imx_dma(char *name,
-	resource_size_t iobase, int irq, int irq_err)
+		resource_size_t iobase, int irq, int irq_err)
 {
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start = iobase,
 			.end = iobase + SZ_4K - 1,
@@ -32,9 +33,10 @@ struct platform_device __init __maybe_unused *imx_add_imx_dma(char *name,
 }
 
 struct platform_device __init __maybe_unused *imx_add_imx_sdma(char *name,
-	resource_size_t iobase, int irq, struct sdma_platform_data *pdata)
+		resource_size_t iobase, int irq, struct sdma_platform_data *pdata)
 {
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start = iobase,
 			.end = iobase + SZ_16K - 1,

@@ -16,17 +16,31 @@ ia64_do_save_stack(struct unw_frame_info *info, void *arg)
 	int skip = trace->skip;
 
 	trace->nr_entries = 0;
-	do {
+
+	do
+	{
 		unw_get_ip(info, &ip);
+
 		if (ip == 0)
+		{
 			break;
-		if (skip == 0) {
+		}
+
+		if (skip == 0)
+		{
 			trace->entries[trace->nr_entries++] = ip;
+
 			if (trace->nr_entries == trace->max_entries)
+			{
 				break;
-		} else
+			}
+		}
+		else
+		{
 			skip--;
-	} while (unw_unwind(info) >= 0);
+		}
+	}
+	while (unw_unwind(info) >= 0);
 }
 
 /*

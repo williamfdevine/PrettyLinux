@@ -220,278 +220,278 @@
 	{H_OUTSTANDING_COP_OPS,		"H_OUTSTANDING_COP_OPS"}
 
 TRACE_EVENT(kvm_guest_enter,
-	TP_PROTO(struct kvm_vcpu *vcpu),
-	TP_ARGS(vcpu),
+			TP_PROTO(struct kvm_vcpu *vcpu),
+			TP_ARGS(vcpu),
 
-	TP_STRUCT__entry(
-		__field(int,		vcpu_id)
-		__field(unsigned long,	pc)
-		__field(unsigned long,  pending_exceptions)
-		__field(u8,		ceded)
-	),
+			TP_STRUCT__entry(
+				__field(int,		vcpu_id)
+				__field(unsigned long,	pc)
+				__field(unsigned long,  pending_exceptions)
+				__field(u8,		ceded)
+			),
 
-	TP_fast_assign(
-		__entry->vcpu_id	= vcpu->vcpu_id;
-		__entry->pc		= kvmppc_get_pc(vcpu);
-		__entry->ceded		= vcpu->arch.ceded;
-		__entry->pending_exceptions  = vcpu->arch.pending_exceptions;
-	),
+			TP_fast_assign(
+				__entry->vcpu_id	= vcpu->vcpu_id;
+				__entry->pc		= kvmppc_get_pc(vcpu);
+				__entry->ceded		= vcpu->arch.ceded;
+				__entry->pending_exceptions  = vcpu->arch.pending_exceptions;
+			),
 
-	TP_printk("VCPU %d: pc=0x%lx pexcp=0x%lx ceded=%d",
-			__entry->vcpu_id,
-			__entry->pc,
-			__entry->pending_exceptions, __entry->ceded)
-);
+			TP_printk("VCPU %d: pc=0x%lx pexcp=0x%lx ceded=%d",
+					  __entry->vcpu_id,
+					  __entry->pc,
+					  __entry->pending_exceptions, __entry->ceded)
+		   );
 
 TRACE_EVENT(kvm_guest_exit,
-	TP_PROTO(struct kvm_vcpu *vcpu),
-	TP_ARGS(vcpu),
+			TP_PROTO(struct kvm_vcpu *vcpu),
+			TP_ARGS(vcpu),
 
-	TP_STRUCT__entry(
-		__field(int,		vcpu_id)
-		__field(int,		trap)
-		__field(unsigned long,	pc)
-		__field(unsigned long,	msr)
-		__field(u8,		ceded)
-	),
+			TP_STRUCT__entry(
+				__field(int,		vcpu_id)
+				__field(int,		trap)
+				__field(unsigned long,	pc)
+				__field(unsigned long,	msr)
+				__field(u8,		ceded)
+			),
 
-	TP_fast_assign(
-		__entry->vcpu_id = vcpu->vcpu_id;
-		__entry->trap	 = vcpu->arch.trap;
-		__entry->ceded	 = vcpu->arch.ceded;
-		__entry->pc	 = kvmppc_get_pc(vcpu);
-		__entry->msr	 = vcpu->arch.shregs.msr;
-	),
+			TP_fast_assign(
+				__entry->vcpu_id = vcpu->vcpu_id;
+				__entry->trap	 = vcpu->arch.trap;
+				__entry->ceded	 = vcpu->arch.ceded;
+				__entry->pc	 = kvmppc_get_pc(vcpu);
+				__entry->msr	 = vcpu->arch.shregs.msr;
+			),
 
-	TP_printk("VCPU %d: trap=%s pc=0x%lx msr=0x%lx, ceded=%d",
-		__entry->vcpu_id,
-		__print_symbolic(__entry->trap, kvm_trace_symbol_exit),
-		__entry->pc, __entry->msr, __entry->ceded
-	)
-);
+			TP_printk("VCPU %d: trap=%s pc=0x%lx msr=0x%lx, ceded=%d",
+					  __entry->vcpu_id,
+					  __print_symbolic(__entry->trap, kvm_trace_symbol_exit),
+					  __entry->pc, __entry->msr, __entry->ceded
+					 )
+		   );
 
 TRACE_EVENT(kvm_page_fault_enter,
-	TP_PROTO(struct kvm_vcpu *vcpu, unsigned long *hptep,
-		 struct kvm_memory_slot *memslot, unsigned long ea,
-		 unsigned long dsisr),
+			TP_PROTO(struct kvm_vcpu *vcpu, unsigned long *hptep,
+					 struct kvm_memory_slot *memslot, unsigned long ea,
+					 unsigned long dsisr),
 
-	TP_ARGS(vcpu, hptep, memslot, ea, dsisr),
+			TP_ARGS(vcpu, hptep, memslot, ea, dsisr),
 
-	TP_STRUCT__entry(
-		__field(int,		vcpu_id)
-		__field(unsigned long,	hpte_v)
-		__field(unsigned long,	hpte_r)
-		__field(unsigned long,	gpte_r)
-		__field(unsigned long,	ea)
-		__field(u64,		base_gfn)
-		__field(u32,		slot_flags)
-		__field(u32,		dsisr)
-	),
+			TP_STRUCT__entry(
+				__field(int,		vcpu_id)
+				__field(unsigned long,	hpte_v)
+				__field(unsigned long,	hpte_r)
+				__field(unsigned long,	gpte_r)
+				__field(unsigned long,	ea)
+				__field(u64,		base_gfn)
+				__field(u32,		slot_flags)
+				__field(u32,		dsisr)
+			),
 
-	TP_fast_assign(
-		__entry->vcpu_id  = vcpu->vcpu_id;
-		__entry->hpte_v	  = hptep[0];
-		__entry->hpte_r	  = hptep[1];
-		__entry->gpte_r	  = hptep[2];
-		__entry->ea	  = ea;
-		__entry->dsisr	  = dsisr;
-		__entry->base_gfn = memslot ? memslot->base_gfn : -1UL;
-		__entry->slot_flags = memslot ? memslot->flags : 0;
-	),
+			TP_fast_assign(
+				__entry->vcpu_id  = vcpu->vcpu_id;
+				__entry->hpte_v	  = hptep[0];
+				__entry->hpte_r	  = hptep[1];
+				__entry->gpte_r	  = hptep[2];
+				__entry->ea	  = ea;
+				__entry->dsisr	  = dsisr;
+				__entry->base_gfn = memslot ? memslot->base_gfn : -1UL;
+				__entry->slot_flags = memslot ? memslot->flags : 0;
+			),
 
-	TP_printk("VCPU %d: hpte=0x%lx:0x%lx guest=0x%lx ea=0x%lx,%x slot=0x%llx,0x%x",
-		   __entry->vcpu_id,
-		   __entry->hpte_v, __entry->hpte_r, __entry->gpte_r,
-		   __entry->ea, __entry->dsisr,
-		   __entry->base_gfn, __entry->slot_flags)
-);
+			TP_printk("VCPU %d: hpte=0x%lx:0x%lx guest=0x%lx ea=0x%lx,%x slot=0x%llx,0x%x",
+					  __entry->vcpu_id,
+					  __entry->hpte_v, __entry->hpte_r, __entry->gpte_r,
+					  __entry->ea, __entry->dsisr,
+					  __entry->base_gfn, __entry->slot_flags)
+		   );
 
 TRACE_EVENT(kvm_page_fault_exit,
-	TP_PROTO(struct kvm_vcpu *vcpu, unsigned long *hptep, long ret),
+			TP_PROTO(struct kvm_vcpu *vcpu, unsigned long *hptep, long ret),
 
-	TP_ARGS(vcpu, hptep, ret),
+			TP_ARGS(vcpu, hptep, ret),
 
-	TP_STRUCT__entry(
-		__field(int,		vcpu_id)
-		__field(unsigned long,	hpte_v)
-		__field(unsigned long,	hpte_r)
-		__field(long,		ret)
-	),
+			TP_STRUCT__entry(
+				__field(int,		vcpu_id)
+				__field(unsigned long,	hpte_v)
+				__field(unsigned long,	hpte_r)
+				__field(long,		ret)
+			),
 
-	TP_fast_assign(
-		__entry->vcpu_id  = vcpu->vcpu_id;
-		__entry->hpte_v	= hptep[0];
-		__entry->hpte_r	= hptep[1];
-		__entry->ret = ret;
-	),
+			TP_fast_assign(
+				__entry->vcpu_id  = vcpu->vcpu_id;
+				__entry->hpte_v	= hptep[0];
+				__entry->hpte_r	= hptep[1];
+				__entry->ret = ret;
+			),
 
-	TP_printk("VCPU %d: hpte=0x%lx:0x%lx ret=0x%lx",
-		   __entry->vcpu_id,
-		   __entry->hpte_v, __entry->hpte_r, __entry->ret)
-);
+			TP_printk("VCPU %d: hpte=0x%lx:0x%lx ret=0x%lx",
+					  __entry->vcpu_id,
+					  __entry->hpte_v, __entry->hpte_r, __entry->ret)
+		   );
 
 TRACE_EVENT(kvm_hcall_enter,
-	TP_PROTO(struct kvm_vcpu *vcpu),
+			TP_PROTO(struct kvm_vcpu *vcpu),
 
-	TP_ARGS(vcpu),
+			TP_ARGS(vcpu),
 
-	TP_STRUCT__entry(
-		__field(int,		vcpu_id)
-		__field(unsigned long,	req)
-		__field(unsigned long,	gpr4)
-		__field(unsigned long,	gpr5)
-		__field(unsigned long,	gpr6)
-		__field(unsigned long,	gpr7)
-	),
+			TP_STRUCT__entry(
+				__field(int,		vcpu_id)
+				__field(unsigned long,	req)
+				__field(unsigned long,	gpr4)
+				__field(unsigned long,	gpr5)
+				__field(unsigned long,	gpr6)
+				__field(unsigned long,	gpr7)
+			),
 
-	TP_fast_assign(
-		__entry->vcpu_id  = vcpu->vcpu_id;
-		__entry->req   = kvmppc_get_gpr(vcpu, 3);
-		__entry->gpr4  = kvmppc_get_gpr(vcpu, 4);
-		__entry->gpr5  = kvmppc_get_gpr(vcpu, 5);
-		__entry->gpr6  = kvmppc_get_gpr(vcpu, 6);
-		__entry->gpr7  = kvmppc_get_gpr(vcpu, 7);
-	),
+			TP_fast_assign(
+				__entry->vcpu_id  = vcpu->vcpu_id;
+				__entry->req   = kvmppc_get_gpr(vcpu, 3);
+				__entry->gpr4  = kvmppc_get_gpr(vcpu, 4);
+				__entry->gpr5  = kvmppc_get_gpr(vcpu, 5);
+				__entry->gpr6  = kvmppc_get_gpr(vcpu, 6);
+				__entry->gpr7  = kvmppc_get_gpr(vcpu, 7);
+			),
 
-	TP_printk("VCPU %d: hcall=%s GPR4-7=0x%lx,0x%lx,0x%lx,0x%lx",
-		   __entry->vcpu_id,
-		   __print_symbolic(__entry->req, kvm_trace_symbol_hcall),
-		   __entry->gpr4, __entry->gpr5, __entry->gpr6, __entry->gpr7)
-);
+			TP_printk("VCPU %d: hcall=%s GPR4-7=0x%lx,0x%lx,0x%lx,0x%lx",
+					  __entry->vcpu_id,
+					  __print_symbolic(__entry->req, kvm_trace_symbol_hcall),
+					  __entry->gpr4, __entry->gpr5, __entry->gpr6, __entry->gpr7)
+		   );
 
 TRACE_EVENT(kvm_hcall_exit,
-	TP_PROTO(struct kvm_vcpu *vcpu, int ret),
+			TP_PROTO(struct kvm_vcpu *vcpu, int ret),
 
-	TP_ARGS(vcpu, ret),
+			TP_ARGS(vcpu, ret),
 
-	TP_STRUCT__entry(
-		__field(int,		vcpu_id)
-		__field(unsigned long,	ret)
-		__field(unsigned long,	hcall_rc)
-	),
+			TP_STRUCT__entry(
+				__field(int,		vcpu_id)
+				__field(unsigned long,	ret)
+				__field(unsigned long,	hcall_rc)
+			),
 
-	TP_fast_assign(
-		__entry->vcpu_id  = vcpu->vcpu_id;
-		__entry->ret	  = ret;
-		__entry->hcall_rc = kvmppc_get_gpr(vcpu, 3);
-	),
+			TP_fast_assign(
+				__entry->vcpu_id  = vcpu->vcpu_id;
+				__entry->ret	  = ret;
+				__entry->hcall_rc = kvmppc_get_gpr(vcpu, 3);
+			),
 
-	TP_printk("VCPU %d: ret=%s hcall_rc=%s",
-		   __entry->vcpu_id,
-		   __print_symbolic(__entry->ret, kvm_trace_symbol_kvmret),
-		   __print_symbolic(__entry->ret & RESUME_FLAG_HOST ?
-					H_TOO_HARD : __entry->hcall_rc,
-					kvm_trace_symbol_hcall_rc))
-);
+			TP_printk("VCPU %d: ret=%s hcall_rc=%s",
+					  __entry->vcpu_id,
+					  __print_symbolic(__entry->ret, kvm_trace_symbol_kvmret),
+					  __print_symbolic(__entry->ret & RESUME_FLAG_HOST ?
+									   H_TOO_HARD : __entry->hcall_rc,
+									   kvm_trace_symbol_hcall_rc))
+		   );
 
 TRACE_EVENT(kvmppc_run_core,
-	TP_PROTO(struct kvmppc_vcore *vc, int where),
+			TP_PROTO(struct kvmppc_vcore *vc, int where),
 
-	TP_ARGS(vc, where),
+			TP_ARGS(vc, where),
 
-	TP_STRUCT__entry(
-		__field(int,	n_runnable)
-		__field(int,	runner_vcpu)
-		__field(int,	where)
-		__field(pid_t,	tgid)
-	),
+			TP_STRUCT__entry(
+				__field(int,	n_runnable)
+				__field(int,	runner_vcpu)
+				__field(int,	where)
+				__field(pid_t,	tgid)
+			),
 
-	TP_fast_assign(
-		__entry->runner_vcpu	= vc->runner->vcpu_id;
-		__entry->n_runnable	= vc->n_runnable;
-		__entry->where		= where;
-		__entry->tgid		= current->tgid;
-	),
+			TP_fast_assign(
+				__entry->runner_vcpu	= vc->runner->vcpu_id;
+				__entry->n_runnable	= vc->n_runnable;
+				__entry->where		= where;
+				__entry->tgid		= current->tgid;
+			),
 
-	TP_printk("%s runner_vcpu==%d runnable=%d tgid=%d",
-		    __entry->where ? "Exit" : "Enter",
-		    __entry->runner_vcpu, __entry->n_runnable, __entry->tgid)
-);
+			TP_printk("%s runner_vcpu==%d runnable=%d tgid=%d",
+					  __entry->where ? "Exit" : "Enter",
+					  __entry->runner_vcpu, __entry->n_runnable, __entry->tgid)
+		   );
 
 TRACE_EVENT(kvmppc_vcore_blocked,
-	TP_PROTO(struct kvmppc_vcore *vc, int where),
+			TP_PROTO(struct kvmppc_vcore *vc, int where),
 
-	TP_ARGS(vc, where),
+			TP_ARGS(vc, where),
 
-	TP_STRUCT__entry(
-		__field(int,	n_runnable)
-		__field(int,	runner_vcpu)
-		__field(int,	where)
-		__field(pid_t,	tgid)
-	),
+			TP_STRUCT__entry(
+				__field(int,	n_runnable)
+				__field(int,	runner_vcpu)
+				__field(int,	where)
+				__field(pid_t,	tgid)
+			),
 
-	TP_fast_assign(
-		__entry->runner_vcpu = vc->runner->vcpu_id;
-		__entry->n_runnable  = vc->n_runnable;
-		__entry->where       = where;
-		__entry->tgid	     = current->tgid;
-	),
+			TP_fast_assign(
+				__entry->runner_vcpu = vc->runner->vcpu_id;
+				__entry->n_runnable  = vc->n_runnable;
+				__entry->where       = where;
+				__entry->tgid	     = current->tgid;
+			),
 
-	TP_printk("%s runner_vcpu=%d runnable=%d tgid=%d",
-		   __entry->where ? "Exit" : "Enter",
-		   __entry->runner_vcpu, __entry->n_runnable, __entry->tgid)
-);
+			TP_printk("%s runner_vcpu=%d runnable=%d tgid=%d",
+					  __entry->where ? "Exit" : "Enter",
+					  __entry->runner_vcpu, __entry->n_runnable, __entry->tgid)
+		   );
 
 TRACE_EVENT(kvmppc_vcore_wakeup,
-	TP_PROTO(int do_sleep, __u64 ns),
+			TP_PROTO(int do_sleep, __u64 ns),
 
-	TP_ARGS(do_sleep, ns),
+			TP_ARGS(do_sleep, ns),
 
-	TP_STRUCT__entry(
-		__field(__u64,  ns)
-		__field(int,    waited)
-		__field(pid_t,  tgid)
-	),
+			TP_STRUCT__entry(
+				__field(__u64,  ns)
+				__field(int,    waited)
+				__field(pid_t,  tgid)
+			),
 
-	TP_fast_assign(
-		__entry->ns     = ns;
-		__entry->waited = do_sleep;
-		__entry->tgid   = current->tgid;
-	),
+			TP_fast_assign(
+				__entry->ns     = ns;
+				__entry->waited = do_sleep;
+				__entry->tgid   = current->tgid;
+			),
 
-	TP_printk("%s time %lld ns, tgid=%d",
-		__entry->waited ? "wait" : "poll",
-		__entry->ns, __entry->tgid)
-);
+			TP_printk("%s time %lld ns, tgid=%d",
+					  __entry->waited ? "wait" : "poll",
+					  __entry->ns, __entry->tgid)
+		   );
 
 TRACE_EVENT(kvmppc_run_vcpu_enter,
-	TP_PROTO(struct kvm_vcpu *vcpu),
+			TP_PROTO(struct kvm_vcpu *vcpu),
 
-	TP_ARGS(vcpu),
+			TP_ARGS(vcpu),
 
-	TP_STRUCT__entry(
-		__field(int,		vcpu_id)
-		__field(pid_t,		tgid)
-	),
+			TP_STRUCT__entry(
+				__field(int,		vcpu_id)
+				__field(pid_t,		tgid)
+			),
 
-	TP_fast_assign(
-		__entry->vcpu_id  = vcpu->vcpu_id;
-		__entry->tgid	  = current->tgid;
-	),
+			TP_fast_assign(
+				__entry->vcpu_id  = vcpu->vcpu_id;
+				__entry->tgid	  = current->tgid;
+			),
 
-	TP_printk("VCPU %d: tgid=%d", __entry->vcpu_id, __entry->tgid)
-);
+			TP_printk("VCPU %d: tgid=%d", __entry->vcpu_id, __entry->tgid)
+		   );
 
 TRACE_EVENT(kvmppc_run_vcpu_exit,
-	TP_PROTO(struct kvm_vcpu *vcpu, struct kvm_run *run),
+			TP_PROTO(struct kvm_vcpu *vcpu, struct kvm_run *run),
 
-	TP_ARGS(vcpu, run),
+			TP_ARGS(vcpu, run),
 
-	TP_STRUCT__entry(
-		__field(int,		vcpu_id)
-		__field(int,		exit)
-		__field(int,		ret)
-	),
+			TP_STRUCT__entry(
+				__field(int,		vcpu_id)
+				__field(int,		exit)
+				__field(int,		ret)
+			),
 
-	TP_fast_assign(
-		__entry->vcpu_id  = vcpu->vcpu_id;
-		__entry->exit     = run->exit_reason;
-		__entry->ret      = vcpu->arch.ret;
-	),
+			TP_fast_assign(
+				__entry->vcpu_id  = vcpu->vcpu_id;
+				__entry->exit     = run->exit_reason;
+				__entry->ret      = vcpu->arch.ret;
+			),
 
-	TP_printk("VCPU %d: exit=%d, ret=%d",
-			__entry->vcpu_id, __entry->exit, __entry->ret)
-);
+			TP_printk("VCPU %d: exit=%d, ret=%d",
+					  __entry->vcpu_id, __entry->exit, __entry->ret)
+		   );
 
 #endif /* _TRACE_KVM_HV_H */
 

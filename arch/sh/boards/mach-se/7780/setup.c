@@ -17,13 +17,15 @@
 #include <asm/heartbeat.h>
 
 /* Heartbeat */
-static struct resource heartbeat_resource = {
+static struct resource heartbeat_resource =
+{
 	.start  = PA_LED,
 	.end    = PA_LED,
 	.flags  = IORESOURCE_MEM | IORESOURCE_MEM_16BIT,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name           = "heartbeat",
 	.id             = -1,
 	.num_resources  = 1,
@@ -31,7 +33,8 @@ static struct platform_device heartbeat_device = {
 };
 
 /* SMC91x */
-static struct resource smc91x_eth_resources[] = {
+static struct resource smc91x_eth_resources[] =
+{
 	[0] = {
 		.name   = "smc91x-regs" ,
 		.start  = PA_LAN + 0x300,
@@ -45,7 +48,8 @@ static struct resource smc91x_eth_resources[] = {
 	},
 };
 
-static struct platform_device smc91x_eth_device = {
+static struct platform_device smc91x_eth_device =
+{
 	.name           = "smc91x",
 	.id             = 0,
 	.dev = {
@@ -56,7 +60,8 @@ static struct platform_device smc91x_eth_device = {
 	.resource       = smc91x_eth_resources,
 };
 
-static struct platform_device *se7780_devices[] __initdata = {
+static struct platform_device *se7780_devices[] __initdata =
+{
 	&heartbeat_device,
 	&smc91x_eth_device,
 };
@@ -64,7 +69,7 @@ static struct platform_device *se7780_devices[] __initdata = {
 static int __init se7780_devices_setup(void)
 {
 	return platform_add_devices(se7780_devices,
-		ARRAY_SIZE(se7780_devices));
+								ARRAY_SIZE(se7780_devices));
 }
 device_initcall(se7780_devices_setup);
 
@@ -97,7 +102,7 @@ static void __init se7780_setup(char **cmdline_p)
 
 	/* GPIO setting */
 	__raw_writew(0x0000, GPIO_PECR);
-	__raw_writew(__raw_readw(GPIO_PHCR)&0xfff3, GPIO_PHCR);
+	__raw_writew(__raw_readw(GPIO_PHCR) & 0xfff3, GPIO_PHCR);
 	__raw_writew(0x0c00, GPIO_PMSELR);
 
 	/* iVDR Power ON */
@@ -107,7 +112,8 @@ static void __init se7780_setup(char **cmdline_p)
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_se7780 __initmv = {
+static struct sh_machine_vector mv_se7780 __initmv =
+{
 	.mv_name                = "Solution Engine 7780" ,
 	.mv_setup               = se7780_setup ,
 	.mv_init_irq		= init_se7780_IRQ,

@@ -74,15 +74,15 @@
 
 #ifndef	__ASSEMBLER__
 
-/* EMIF Slow Interface Configuration Register */
-#define OMAP_EMIFS_CONFIG_FR		(1 << 4)
-#define OMAP_EMIFS_CONFIG_PDE		(1 << 3)
-#define OMAP_EMIFS_CONFIG_PWD_EN	(1 << 2)
-#define OMAP_EMIFS_CONFIG_BM		(1 << 1)
-#define OMAP_EMIFS_CONFIG_WP		(1 << 0)
+	/* EMIF Slow Interface Configuration Register */
+	#define OMAP_EMIFS_CONFIG_FR		(1 << 4)
+	#define OMAP_EMIFS_CONFIG_PDE		(1 << 3)
+	#define OMAP_EMIFS_CONFIG_PWD_EN	(1 << 2)
+	#define OMAP_EMIFS_CONFIG_BM		(1 << 1)
+	#define OMAP_EMIFS_CONFIG_WP		(1 << 0)
 
-#define EMIFS_CCS(n)		(EMIFS_CS0_CONFIG + (4 * (n)))
-#define EMIFS_ACS(n)		(EMIFS_ACS0 + (4 * (n)))
+	#define EMIFS_CCS(n)		(EMIFS_CS0_CONFIG + (4 * (n)))
+	#define EMIFS_ACS(n)		(EMIFS_ACS0 + (4 * (n)))
 
 #endif	/* __ASSEMBLER__ */
 

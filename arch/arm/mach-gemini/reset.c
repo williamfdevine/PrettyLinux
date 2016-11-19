@@ -19,7 +19,7 @@
 void gemini_restart(enum reboot_mode mode, const char *cmd)
 {
 	__raw_writel(RESET_GLOBAL | RESET_CPU1,
-		     IO_ADDRESS(GEMINI_GLOBAL_BASE) + GLOBAL_RESET);
+				 IO_ADDRESS(GEMINI_GLOBAL_BASE) + GLOBAL_RESET);
 }
 
 #endif /* __MACH_SYSTEM_H */

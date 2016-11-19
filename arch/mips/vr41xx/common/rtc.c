@@ -26,7 +26,8 @@
 #include <asm/cpu.h>
 #include <asm/vr41xx/irq.h>
 
-static struct resource rtc_type1_resource[] __initdata = {
+static struct resource rtc_type1_resource[] __initdata =
+{
 	{
 		.start	= 0x0b0000c0,
 		.end	= 0x0b0000df,
@@ -49,7 +50,8 @@ static struct resource rtc_type1_resource[] __initdata = {
 	},
 };
 
-static struct resource rtc_type2_resource[] __initdata = {
+static struct resource rtc_type2_resource[] __initdata =
+{
 	{
 		.start	= 0x0f000100,
 		.end	= 0x0f00011f,
@@ -80,33 +82,45 @@ static int __init vr41xx_rtc_add(void)
 	int retval;
 
 	pdev = platform_device_alloc("RTC", -1);
-	if (!pdev)
-		return -ENOMEM;
 
-	switch (current_cpu_type()) {
-	case CPU_VR4111:
-	case CPU_VR4121:
-		res = rtc_type1_resource;
-		num = ARRAY_SIZE(rtc_type1_resource);
-		break;
-	case CPU_VR4122:
-	case CPU_VR4131:
-	case CPU_VR4133:
-		res = rtc_type2_resource;
-		num = ARRAY_SIZE(rtc_type2_resource);
-		break;
-	default:
-		retval = -ENODEV;
-		goto err_free_device;
+	if (!pdev)
+	{
+		return -ENOMEM;
+	}
+
+	switch (current_cpu_type())
+	{
+		case CPU_VR4111:
+		case CPU_VR4121:
+			res = rtc_type1_resource;
+			num = ARRAY_SIZE(rtc_type1_resource);
+			break;
+
+		case CPU_VR4122:
+		case CPU_VR4131:
+		case CPU_VR4133:
+			res = rtc_type2_resource;
+			num = ARRAY_SIZE(rtc_type2_resource);
+			break;
+
+		default:
+			retval = -ENODEV;
+			goto err_free_device;
 	}
 
 	retval = platform_device_add_resources(pdev, res, num);
+
 	if (retval)
+	{
 		goto err_free_device;
+	}
 
 	retval = platform_device_add(pdev);
+
 	if (retval)
+	{
 		goto err_free_device;
+	}
 
 	return 0;
 

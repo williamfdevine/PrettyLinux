@@ -28,23 +28,23 @@
 
 /* We need to use these functions early... */
 #define delay() ({						\
-	int x;							\
-	for (x=0; x<100000; x++) __asm__ __volatile__(""); })
+		int x;							\
+		for (x=0; x<100000; x++) __asm__ __volatile__(""); })
 
 #define eeprom_cs_on(ptr) ({	\
-	__raw_writel(__raw_readl(ptr) & ~EEPROM_DATO, ptr);	\
-	__raw_writel(__raw_readl(ptr) & ~EEPROM_ECLK, ptr);	\
-	__raw_writel(__raw_readl(ptr) & ~EEPROM_EPROT, ptr);	\
-	delay();						\
-	__raw_writel(__raw_readl(ptr) | EEPROM_CSEL, ptr);	\
-	__raw_writel(__raw_readl(ptr) | EEPROM_ECLK, ptr); })
+		__raw_writel(__raw_readl(ptr) & ~EEPROM_DATO, ptr);	\
+		__raw_writel(__raw_readl(ptr) & ~EEPROM_ECLK, ptr);	\
+		__raw_writel(__raw_readl(ptr) & ~EEPROM_EPROT, ptr);	\
+		delay();						\
+		__raw_writel(__raw_readl(ptr) | EEPROM_CSEL, ptr);	\
+		__raw_writel(__raw_readl(ptr) | EEPROM_ECLK, ptr); })
 
 
 #define eeprom_cs_off(ptr) ({	\
-	__raw_writel(__raw_readl(ptr) & ~EEPROM_ECLK, ptr);	\
-	__raw_writel(__raw_readl(ptr) & ~EEPROM_CSEL, ptr);	\
-	__raw_writel(__raw_readl(ptr) | EEPROM_EPROT, ptr);	\
-	__raw_writel(__raw_readl(ptr) | EEPROM_ECLK, ptr); })
+		__raw_writel(__raw_readl(ptr) & ~EEPROM_ECLK, ptr);	\
+		__raw_writel(__raw_readl(ptr) & ~EEPROM_CSEL, ptr);	\
+		__raw_writel(__raw_readl(ptr) | EEPROM_EPROT, ptr);	\
+		__raw_writel(__raw_readl(ptr) | EEPROM_ECLK, ptr); })
 
 #define BITS_IN_COMMAND 11
 /*
@@ -58,17 +58,25 @@ static inline void eeprom_cmd(unsigned int *ctrl, unsigned cmd, unsigned reg)
 	int i;
 
 	ser_cmd = cmd | (reg << (16 - BITS_IN_COMMAND));
-	for (i = 0; i < BITS_IN_COMMAND; i++) {
-		if (ser_cmd & (1<<15))	/* if high order bit set */
+
+	for (i = 0; i < BITS_IN_COMMAND; i++)
+	{
+		if (ser_cmd & (1 << 15))	/* if high order bit set */
+		{
 			__raw_writel(__raw_readl(ctrl) | EEPROM_DATO, ctrl);
+		}
 		else
+		{
 			__raw_writel(__raw_readl(ctrl) & ~EEPROM_DATO, ctrl);
+		}
+
 		__raw_writel(__raw_readl(ctrl) & ~EEPROM_ECLK, ctrl);
 		delay();
 		__raw_writel(__raw_readl(ctrl) | EEPROM_ECLK, ctrl);
 		delay();
 		ser_cmd <<= 1;
 	}
+
 	/* see data sheet timing diagram */
 	__raw_writel(__raw_readl(ctrl) & ~EEPROM_DATO, ctrl);
 }
@@ -83,14 +91,18 @@ unsigned short ip22_eeprom_read(unsigned int *ctrl, int reg)
 	eeprom_cmd(ctrl, EEPROM_READ, reg);
 
 	/* clock the data ouf of serial mem */
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		__raw_writel(__raw_readl(ctrl) & ~EEPROM_ECLK, ctrl);
 		delay();
 		__raw_writel(__raw_readl(ctrl) | EEPROM_ECLK, ctrl);
 		delay();
 		res <<= 1;
+
 		if (__raw_readl(ctrl) & EEPROM_DATI)
+		{
 			res |= 1;
+		}
 	}
 
 	eeprom_cs_off(ctrl);
@@ -108,8 +120,11 @@ unsigned short ip22_nvram_read(int reg)
 	if (ip22_is_fullhouse())
 		/* IP22 (Indigo2 aka FullHouse) stores env variables into
 		 * 93CS56 Microwire Bus EEPROM 2048 Bit (128x16) */
+	{
 		return ip22_eeprom_read(&hpc3c0->eeprom, reg);
-	else {
+	}
+	else
+	{
 		unsigned short tmp;
 		/* IP24 (Indy aka Guiness) uses DS1386 8K version */
 		reg <<= 1;

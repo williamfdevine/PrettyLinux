@@ -60,11 +60,25 @@ static int ms1bit(unsigned long x)
 {
 	int b = 0, s;
 
-	s = 16; if (x >> 16 == 0) s = 0; b += s; x >>= s;
-	s =  8; if (x >>  8 == 0) s = 0; b += s; x >>= s;
-	s =  4; if (x >>  4 == 0) s = 0; b += s; x >>= s;
-	s =  2; if (x >>  2 == 0) s = 0; b += s; x >>= s;
-	s =  1; if (x >>  1 == 0) s = 0; b += s;
+	s = 16;
+
+	if (x >> 16 == 0) { s = 0; } b += s; x >>= s;
+
+	s =  8;
+
+	if (x >>  8 == 0) { s = 0; } b += s; x >>= s;
+
+	s =  4;
+
+	if (x >>  4 == 0) { s = 0; } b += s; x >>= s;
+
+	s =  2;
+
+	if (x >>  2 == 0) { s = 0; } b += s; x >>= s;
+
+	s =  1;
+
+	if (x >>  1 == 0) { s = 0; } b += s;
 
 	return b;
 }
@@ -94,28 +108,40 @@ static void ip27_do_irq_mask0(void)
 	mask0 = LOCAL_HUB_L(pi_int_mask0);
 
 	pend0 &= mask0;		/* Pick intrs we should look at */
+
 	if (!pend0)
+	{
 		return;
+	}
 
 	swlevel = ms1bit(pend0);
 #ifdef CONFIG_SMP
-	if (pend0 & (1UL << CPU_RESCHED_A_IRQ)) {
+
+	if (pend0 & (1UL << CPU_RESCHED_A_IRQ))
+	{
 		LOCAL_HUB_CLR_INTR(CPU_RESCHED_A_IRQ);
 		scheduler_ipi();
-	} else if (pend0 & (1UL << CPU_RESCHED_B_IRQ)) {
+	}
+	else if (pend0 & (1UL << CPU_RESCHED_B_IRQ))
+	{
 		LOCAL_HUB_CLR_INTR(CPU_RESCHED_B_IRQ);
 		scheduler_ipi();
-	} else if (pend0 & (1UL << CPU_CALL_A_IRQ)) {
+	}
+	else if (pend0 & (1UL << CPU_CALL_A_IRQ))
+	{
 		LOCAL_HUB_CLR_INTR(CPU_CALL_A_IRQ);
 		irq_enter();
 		generic_smp_call_function_interrupt();
 		irq_exit();
-	} else if (pend0 & (1UL << CPU_CALL_B_IRQ)) {
+	}
+	else if (pend0 & (1UL << CPU_CALL_B_IRQ))
+	{
 		LOCAL_HUB_CLR_INTR(CPU_CALL_B_IRQ);
 		irq_enter();
 		generic_smp_call_function_interrupt();
 		irq_exit();
-	} else
+	}
+	else
 #endif
 	{
 		/* "map" swlevel to irq */
@@ -141,8 +167,11 @@ static void ip27_do_irq_mask1(void)
 	mask1 = LOCAL_HUB_L(pi_int_mask1);
 
 	pend1 &= mask1;		/* Pick intrs we should look at */
+
 	if (!pend1)
+	{
 		return;
+	}
 
 	swlevel = ms1bit(pend1);
 	/* "map" swlevel to irq */
@@ -169,15 +198,25 @@ asmlinkage void plat_irq_dispatch(void)
 	extern unsigned int rt_timer_irq;
 
 	if (pending & CAUSEF_IP4)
+	{
 		do_IRQ(rt_timer_irq);
+	}
 	else if (pending & CAUSEF_IP2)	/* PI_INT_PEND_0 or CC_PEND_{A|B} */
+	{
 		ip27_do_irq_mask0();
+	}
 	else if (pending & CAUSEF_IP3)	/* PI_INT_PEND_1 */
+	{
 		ip27_do_irq_mask1();
+	}
 	else if (pending & CAUSEF_IP5)
+	{
 		ip27_prof_timer();
+	}
 	else if (pending & CAUSEF_IP6)
+	{
 		ip27_hub_error();
+	}
 }
 
 void __init arch_init_irq(void)
@@ -202,10 +241,13 @@ void install_ipi(void)
 	__set_bit(call, si->irq_enable_mask);
 	LOCAL_HUB_CLR_INTR(call);
 
-	if (slice == 0) {
+	if (slice == 0)
+	{
 		LOCAL_HUB_S(PI_INT_MASK0_A, si->irq_enable_mask[0]);
 		LOCAL_HUB_S(PI_INT_MASK1_A, si->irq_enable_mask[1]);
-	} else {
+	}
+	else
+	{
 		LOCAL_HUB_S(PI_INT_MASK0_B, si->irq_enable_mask[0]);
 		LOCAL_HUB_S(PI_INT_MASK1_B, si->irq_enable_mask[1]);
 	}

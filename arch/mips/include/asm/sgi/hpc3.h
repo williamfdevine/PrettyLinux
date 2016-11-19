@@ -16,7 +16,8 @@
 #include <asm/page.h>
 
 /* An HPC DMA descriptor. */
-struct hpc_dma_desc {
+struct hpc_dma_desc
+{
 	u32 pbuf;	/* physical address of data buffer */
 	u32 cntinfo;	/* counter and info bits */
 #define HPCDMA_EOX	0x80000000 /* last desc in chain for tx */
@@ -34,10 +35,11 @@ struct hpc_dma_desc {
 };
 
 /* The set of regs for each HPC3 PBUS DMA channel. */
-struct hpc3_pbus_dmacregs {
+struct hpc3_pbus_dmacregs
+{
 	volatile u32 pbdma_bptr;	/* pbus dma channel buffer ptr */
 	volatile u32 pbdma_dptr;	/* pbus dma channel desc ptr */
-	u32 _unused0[0x1000/4 - 2];	/* padding */
+	u32 _unused0[0x1000 / 4 - 2];	/* padding */
 	volatile u32 pbdma_ctrl;	/* pbus dma channel control register has
 					 * completely different meaning for read
 					 * compared with write */
@@ -55,14 +57,15 @@ struct hpc3_pbus_dmacregs {
 #define HPC3_PDMACTRL_FB	0x003f0000 /* Ptr to beginning of fifo */
 #define HPC3_PDMACTRL_FE	0x3f000000 /* Ptr to end of fifo */
 
-	u32 _unused1[0x1000/4 - 1];	/* padding */
+	u32 _unused1[0x1000 / 4 - 1];	/* padding */
 };
 
 /* The HPC3 SCSI registers, this does not include external ones. */
-struct hpc3_scsiregs {
+struct hpc3_scsiregs
+{
 	volatile u32 cbptr;	/* current dma buffer ptr, diagnostic use only */
 	volatile u32 ndptr;	/* next dma descriptor ptr */
-	u32 _unused0[0x1000/4 - 2];	/* padding */
+	u32 _unused0[0x1000 / 4 - 2];	/* padding */
 	volatile u32 bcd;	/* byte count info */
 #define HPC3_SBCD_BCNTMSK 0x00003fff /* bytes to transfer from/to memory */
 #define HPC3_SBCD_XIE	  0x00004000 /* Send IRQ when done with cur buf */
@@ -102,15 +105,16 @@ struct hpc3_scsiregs {
 #define HPC3_SPCFG_EPAR 0x4000 /* Enable parity checking for PIO */
 #define HPC3_SPCFG_FUJI 0x8000 /* Fujitsu scsi controller mode for faster dma/pio */
 
-	u32 _unused1[0x1000/4 - 6];	/* padding */
+	u32 _unused1[0x1000 / 4 - 6];	/* padding */
 };
 
 /* SEEQ ethernet HPC3 registers, only one seeq per HPC3. */
-struct hpc3_ethregs {
+struct hpc3_ethregs
+{
 	/* Receiver registers. */
 	volatile u32 rx_cbptr;	 /* current dma buffer ptr, diagnostic use only */
 	volatile u32 rx_ndptr;	 /* next dma descriptor ptr */
-	u32 _unused0[0x1000/4 - 2];	/* padding */
+	u32 _unused0[0x1000 / 4 - 2];	/* padding */
 	volatile u32 rx_bcd;	/* byte count info */
 #define HPC3_ERXBCD_BCNTMSK 0x00003fff /* bytes to be sent to memory */
 #define HPC3_ERXBCD_XIE	    0x20000000 /* HPC3 interrupts cpu at end of this buf */
@@ -149,12 +153,12 @@ struct hpc3_ethregs {
 #define HPC3_EPCFG_P3	 0x0f00 /* Cycles to spend in P3 state for PIO */
 #define HPC3_EPCFG_TST	 0x1000 /* Diagnostic ram test feature bit */
 
-	u32 _unused2[0x1000/4 - 8];	/* padding */
+	u32 _unused2[0x1000 / 4 - 8];	/* padding */
 
 	/* Transmitter registers. */
 	volatile u32 tx_cbptr;	/* current dma buffer ptr, diagnostic use only */
 	volatile u32 tx_ndptr;	/* next dma descriptor ptr */
-	u32 _unused3[0x1000/4 - 2];	/* padding */
+	u32 _unused3[0x1000 / 4 - 2];	/* padding */
 	volatile u32 tx_bcd;		/* byte count info */
 #define HPC3_ETXBCD_BCNTMSK 0x00003fff	/* bytes to be read from memory */
 #define HPC3_ETXBCD_ESAMP   0x10000000	/* if set, too late to add descriptor */
@@ -172,10 +176,11 @@ struct hpc3_ethregs {
 
 	volatile u32 tx_gfptr;		/* current GIO fifo ptr */
 	volatile u32 tx_dfptr;		/* current device fifo ptr */
-	u32 _unused4[0x1000/4 - 4];	/* padding */
+	u32 _unused4[0x1000 / 4 - 4];	/* padding */
 };
 
-struct hpc3_regs {
+struct hpc3_regs
+{
 	/* First regs for the PBUS 8 dma channels. */
 	struct hpc3_pbus_dmacregs pbdma[8];
 
@@ -188,7 +193,7 @@ struct hpc3_regs {
 	/* Here are where the hpc3 fifo's can be directly accessed
 	 * via PIO accesses.  Under normal operation we never stick
 	 * our grubby paws in here so it's just padding. */
-	u32 _unused0[0x18000/4];
+	u32 _unused0[0x18000 / 4];
 
 	/* HPC3 irq status regs.  Due to a peculiar bug you need to
 	 * look at two different register addresses to get at all of
@@ -220,15 +225,15 @@ struct hpc3_regs {
 #define HPC3_BESTAT_PIDSHIFT	9
 #define HPC3_BESTAT_PIDMASK	0x3f700 /* DMA channel parity identifier */
 
-	u32 _unused1[0x14000/4 - 5];	/* padding */
+	u32 _unused1[0x14000 / 4 - 5];	/* padding */
 
 	/* Now direct PIO per-HPC3 peripheral access to external regs. */
 	volatile u32 scsi0_ext[256];	/* SCSI channel 0 external regs */
-	u32 _unused2[0x7c00/4];
+	u32 _unused2[0x7c00 / 4];
 	volatile u32 scsi1_ext[256];	/* SCSI channel 1 external regs */
-	u32 _unused3[0x7c00/4];
+	u32 _unused3[0x7c00 / 4];
 	volatile u32 eth_ext[320];	/* Ethernet external registers */
-	u32 _unused4[0x3b00/4];
+	u32 _unused4[0x3b00 / 4];
 
 	/* Per-peripheral device external registers and DMA/PIO control. */
 	volatile u32 pbus_extregs[16][256];
@@ -290,18 +295,18 @@ struct hpc3_regs {
 	volatile u32 pbus_promwe;	/* PROM write enable register */
 #define HPC3_PROM_WENAB 0x1	/* Enable writes to the PROM */
 
-	u32 _unused5[0x0800/4 - 1];
+	u32 _unused5[0x0800 / 4 - 1];
 	volatile u32 pbus_promswap;	/* Chip select swap reg */
 #define HPC3_PROM_SWAP	0x1	/* invert GIO addr bit to select prom0 or prom1 */
 
-	u32 _unused6[0x0800/4 - 1];
+	u32 _unused6[0x0800 / 4 - 1];
 	volatile u32 pbus_gout; /* PROM general purpose output reg */
 #define HPC3_PROM_STAT	0x1	/* General purpose status bit in gout */
 
-	u32 _unused7[0x1000/4 - 1];
+	u32 _unused7[0x1000 / 4 - 1];
 	volatile u32 rtcregs[14];	/* Dallas clock registers */
 	u32 _unused8[50];
-	volatile u32 bbram[8192-50-14]; /* Battery backed ram */
+	volatile u32 bbram[8192 - 50 - 14]; /* Battery backed ram */
 };
 
 /*

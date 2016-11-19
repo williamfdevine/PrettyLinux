@@ -81,13 +81,15 @@ static DEFINE_SPINLOCK(consistent_lock);
  * the amount of RAM found at boot time.)  I would imagine that get_vm_area()
  * would have to initialise this each time prior to calling vm_region_alloc().
  */
-struct ppc_vm_region {
+struct ppc_vm_region
+{
 	struct list_head	vm_list;
 	unsigned long		vm_start;
 	unsigned long		vm_end;
 };
 
-static struct ppc_vm_region consistent_head = {
+static struct ppc_vm_region consistent_head =
+{
 	.vm_list	= LIST_HEAD_INIT(consistent_head.vm_list),
 	.vm_start	= CONSISTENT_BASE,
 	.vm_end		= CONSISTENT_END,
@@ -101,22 +103,35 @@ ppc_vm_region_alloc(struct ppc_vm_region *head, size_t size, gfp_t gfp)
 	struct ppc_vm_region *c, *new;
 
 	new = kmalloc(sizeof(struct ppc_vm_region), gfp);
+
 	if (!new)
+	{
 		goto out;
+	}
 
 	spin_lock_irqsave(&consistent_lock, flags);
 
-	list_for_each_entry(c, &head->vm_list, vm_list) {
+	list_for_each_entry(c, &head->vm_list, vm_list)
+	{
 		if ((addr + size) < addr)
+		{
 			goto nospc;
+		}
+
 		if ((addr + size) <= c->vm_start)
+		{
 			goto found;
+		}
+
 		addr = c->vm_end;
+
 		if (addr > end)
+		{
 			goto nospc;
+		}
 	}
 
- found:
+found:
 	/*
 	 * Insert this entry _before_ the one we found.
 	 */
@@ -127,10 +142,10 @@ ppc_vm_region_alloc(struct ppc_vm_region *head, size_t size, gfp_t gfp)
 	spin_unlock_irqrestore(&consistent_lock, flags);
 	return new;
 
- nospc:
+nospc:
 	spin_unlock_irqrestore(&consistent_lock, flags);
 	kfree(new);
- out:
+out:
 	return NULL;
 }
 
@@ -138,12 +153,15 @@ static struct ppc_vm_region *ppc_vm_region_find(struct ppc_vm_region *head, unsi
 {
 	struct ppc_vm_region *c;
 
-	list_for_each_entry(c, &head->vm_list, vm_list) {
+	list_for_each_entry(c, &head->vm_list, vm_list)
+	{
 		if (c->vm_start == addr)
+		{
 			goto out;
+		}
 	}
 	c = NULL;
- out:
+out:
 	return c;
 }
 
@@ -159,22 +177,25 @@ __dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *handle, gfp_t 
 	unsigned long order;
 	u64 mask = ISA_DMA_THRESHOLD, limit;
 
-	if (dev) {
+	if (dev)
+	{
 		mask = dev->coherent_dma_mask;
 
 		/*
 		 * Sanity check the DMA mask - it must be non-zero, and
 		 * must be able to be satisfied by a DMA allocation.
 		 */
-		if (mask == 0) {
+		if (mask == 0)
+		{
 			dev_warn(dev, "coherent DMA mask is unset\n");
 			goto no_page;
 		}
 
-		if ((~mask) & ISA_DMA_THRESHOLD) {
+		if ((~mask) & ISA_DMA_THRESHOLD)
+		{
 			dev_warn(dev, "coherent DMA mask %#llx is smaller "
-				 "than system GFP_DMA mask %#llx\n",
-				 mask, (unsigned long long)ISA_DMA_THRESHOLD);
+					 "than system GFP_DMA mask %#llx\n",
+					 mask, (unsigned long long)ISA_DMA_THRESHOLD);
 			goto no_page;
 		}
 	}
@@ -182,10 +203,12 @@ __dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *handle, gfp_t 
 
 	size = PAGE_ALIGN(size);
 	limit = (mask + 1) & ~mask;
+
 	if ((limit && size >= limit) ||
-	    size >= (CONSISTENT_END - CONSISTENT_BASE)) {
+		size >= (CONSISTENT_END - CONSISTENT_BASE))
+	{
 		printk(KERN_WARNING "coherent allocation too big (requested %#x mask %#Lx)\n",
-		       size, mask);
+			   size, mask);
 		return NULL;
 	}
 
@@ -193,11 +216,16 @@ __dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *handle, gfp_t 
 
 	/* Might be useful if we ever have a real legacy DMA zone... */
 	if (mask != 0xffffffff)
+	{
 		gfp |= GFP_DMA;
+	}
 
 	page = alloc_pages(gfp, order);
+
 	if (!page)
+	{
 		goto no_page;
+	}
 
 	/*
 	 * Invalidate any data that might be lurking in the
@@ -213,8 +241,10 @@ __dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *handle, gfp_t 
 	 * Allocate a virtual address in the consistent mapping region.
 	 */
 	c = ppc_vm_region_alloc(&consistent_head, size,
-			    gfp & ~(__GFP_DMA | __GFP_HIGHMEM));
-	if (c) {
+							gfp & ~(__GFP_DMA | __GFP_HIGHMEM));
+
+	if (c)
+	{
 		unsigned long vaddr = c->vm_start;
 		struct page *end = page + (1 << order);
 
@@ -225,18 +255,21 @@ __dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *handle, gfp_t 
 		 */
 		*handle = page_to_phys(page);
 
-		do {
+		do
+		{
 			SetPageReserved(page);
 			map_page(vaddr, page_to_phys(page),
-				 pgprot_val(pgprot_noncached(PAGE_KERNEL)));
+					 pgprot_val(pgprot_noncached(PAGE_KERNEL)));
 			page++;
 			vaddr += PAGE_SIZE;
-		} while (size -= PAGE_SIZE);
+		}
+		while (size -= PAGE_SIZE);
 
 		/*
 		 * Free the otherwise unused pages.
 		 */
-		while (page < end) {
+		while (page < end)
+		{
 			__free_page(page);
 			page++;
 		}
@@ -245,8 +278,11 @@ __dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *handle, gfp_t 
 	}
 
 	if (page)
+	{
 		__free_pages(page, order);
- no_page:
+	}
+
+no_page:
 	return NULL;
 }
 EXPORT_SYMBOL(__dma_alloc_coherent);
@@ -258,41 +294,53 @@ void __dma_free_coherent(size_t size, void *vaddr)
 {
 	struct ppc_vm_region *c;
 	unsigned long flags, addr;
-	
+
 	size = PAGE_ALIGN(size);
 
 	spin_lock_irqsave(&consistent_lock, flags);
 
 	c = ppc_vm_region_find(&consistent_head, (unsigned long)vaddr);
-	if (!c)
-		goto no_area;
 
-	if ((c->vm_end - c->vm_start) != size) {
+	if (!c)
+	{
+		goto no_area;
+	}
+
+	if ((c->vm_end - c->vm_start) != size)
+	{
 		printk(KERN_ERR "%s: freeing wrong coherent size (%ld != %d)\n",
-		       __func__, c->vm_end - c->vm_start, size);
+			   __func__, c->vm_end - c->vm_start, size);
 		dump_stack();
 		size = c->vm_end - c->vm_start;
 	}
 
 	addr = c->vm_start;
-	do {
+
+	do
+	{
 		pte_t *ptep;
 		unsigned long pfn;
 
 		ptep = pte_offset_kernel(pmd_offset(pud_offset(pgd_offset_k(addr),
-							       addr),
-						    addr),
-					 addr);
-		if (!pte_none(*ptep) && pte_present(*ptep)) {
+											addr),
+											addr),
+								 addr);
+
+		if (!pte_none(*ptep) && pte_present(*ptep))
+		{
 			pfn = pte_pfn(*ptep);
 			pte_clear(&init_mm, addr, ptep);
-			if (pfn_valid(pfn)) {
+
+			if (pfn_valid(pfn))
+			{
 				struct page *page = pfn_to_page(pfn);
 				__free_reserved_page(page);
 			}
 		}
+
 		addr += PAGE_SIZE;
-	} while (size -= PAGE_SIZE);
+	}
+	while (size -= PAGE_SIZE);
 
 	flush_tlb_kernel_range(c->vm_start, c->vm_end);
 
@@ -303,10 +351,10 @@ void __dma_free_coherent(size_t size, void *vaddr)
 	kfree(c);
 	return;
 
- no_area:
+no_area:
 	spin_unlock_irqrestore(&consistent_lock, flags);
 	printk(KERN_ERR "%s: trying to free invalid coherent area: %p\n",
-	       __func__, vaddr);
+		   __func__, vaddr);
 	dump_stack();
 }
 EXPORT_SYMBOL(__dma_free_coherent);
@@ -319,25 +367,35 @@ void __dma_sync(void *vaddr, size_t size, int direction)
 	unsigned long start = (unsigned long)vaddr;
 	unsigned long end   = start + size;
 
-	switch (direction) {
-	case DMA_NONE:
-		BUG();
-	case DMA_FROM_DEVICE:
-		/*
-		 * invalidate only when cache-line aligned otherwise there is
-		 * the potential for discarding uncommitted data from the cache
-		 */
-		if ((start | end) & (L1_CACHE_BYTES - 1))
+	switch (direction)
+	{
+		case DMA_NONE:
+			BUG();
+
+		case DMA_FROM_DEVICE:
+
+			/*
+			 * invalidate only when cache-line aligned otherwise there is
+			 * the potential for discarding uncommitted data from the cache
+			 */
+			if ((start | end) & (L1_CACHE_BYTES - 1))
+			{
+				flush_dcache_range(start, end);
+			}
+			else
+			{
+				invalidate_dcache_range(start, end);
+			}
+
+			break;
+
+		case DMA_TO_DEVICE:		/* writeback only */
+			clean_dcache_range(start, end);
+			break;
+
+		case DMA_BIDIRECTIONAL:	/* writeback and invalidate */
 			flush_dcache_range(start, end);
-		else
-			invalidate_dcache_range(start, end);
-		break;
-	case DMA_TO_DEVICE:		/* writeback only */
-		clean_dcache_range(start, end);
-		break;
-	case DMA_BIDIRECTIONAL:	/* writeback and invalidate */
-		flush_dcache_range(start, end);
-		break;
+			break;
 	}
 }
 EXPORT_SYMBOL(__dma_sync);
@@ -358,12 +416,13 @@ static inline void __dma_sync_page_highmem(struct page *page,
 	size_t seg_size = min((size_t)(PAGE_SIZE - offset), size);
 	size_t cur_size = seg_size;
 	unsigned long flags, start, seg_offset = offset;
-	int nr_segs = 1 + ((size - seg_size) + PAGE_SIZE - 1)/PAGE_SIZE;
+	int nr_segs = 1 + ((size - seg_size) + PAGE_SIZE - 1) / PAGE_SIZE;
 	int seg_nr = 0;
 
 	local_irq_save(flags);
 
-	do {
+	do
+	{
 		start = (unsigned long)kmap_atomic(page + seg_nr) + seg_offset;
 
 		/* Sync this buffer segment */
@@ -377,7 +436,8 @@ static inline void __dma_sync_page_highmem(struct page *page,
 		/* Add the segment size to our running total */
 		cur_size += seg_size;
 		seg_offset = 0;
-	} while (seg_nr < nr_segs);
+	}
+	while (seg_nr < nr_segs);
 
 	local_irq_restore(flags);
 }
@@ -388,7 +448,7 @@ static inline void __dma_sync_page_highmem(struct page *page,
  * takes a struct page instead of a virtual address
  */
 void __dma_sync_page(struct page *page, unsigned long offset,
-	size_t size, int direction)
+					 size_t size, int direction)
 {
 #ifdef CONFIG_HIGHMEM
 	__dma_sync_page_highmem(page, offset, size, direction);
@@ -415,6 +475,9 @@ unsigned long __dma_get_coherent_pfn(unsigned long cpu_addr)
 	pte_t *ptep = pte_offset_kernel(pmd, cpu_addr);
 
 	if (pte_none(*ptep) || !pte_present(*ptep))
+	{
 		return 0;
+	}
+
 	return pte_pfn(*ptep);
 }

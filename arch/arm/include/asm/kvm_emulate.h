@@ -29,13 +29,13 @@ unsigned long *vcpu_reg(struct kvm_vcpu *vcpu, u8 reg_num);
 unsigned long *vcpu_spsr(struct kvm_vcpu *vcpu);
 
 static inline unsigned long vcpu_get_reg(struct kvm_vcpu *vcpu,
-					 u8 reg_num)
+		u8 reg_num)
 {
 	return *vcpu_reg(vcpu, reg_num);
 }
 
 static inline void vcpu_set_reg(struct kvm_vcpu *vcpu, u8 reg_num,
-				unsigned long val)
+								unsigned long val)
 {
 	*vcpu_reg(vcpu, reg_num) = val;
 }
@@ -114,7 +114,9 @@ static inline int kvm_vcpu_get_condition(const struct kvm_vcpu *vcpu)
 	u32 hsr = kvm_vcpu_get_hsr(vcpu);
 
 	if (hsr & HSR_CV)
+	{
 		return (hsr & HSR_COND) >> HSR_COND_SHIFT;
+	}
 
 	return -1;
 }
@@ -167,16 +169,20 @@ static inline bool kvm_vcpu_dabt_is_cm(struct kvm_vcpu *vcpu)
 /* Get Access Size from a data abort */
 static inline int kvm_vcpu_dabt_get_as(struct kvm_vcpu *vcpu)
 {
-	switch ((kvm_vcpu_get_hsr(vcpu) >> 22) & 0x3) {
-	case 0:
-		return 1;
-	case 1:
-		return 2;
-	case 2:
-		return 4;
-	default:
-		kvm_err("Hardware is weird: SAS 0b11 is reserved\n");
-		return -EFAULT;
+	switch ((kvm_vcpu_get_hsr(vcpu) >> 22) & 0x3)
+	{
+		case 0:
+			return 1;
+
+		case 1:
+			return 2;
+
+		case 2:
+			return 4;
+
+		default:
+			kvm_err("Hardware is weird: SAS 0b11 is reserved\n");
+			return -EFAULT;
 	}
 }
 
@@ -227,51 +233,69 @@ static inline bool kvm_vcpu_is_be(struct kvm_vcpu *vcpu)
 }
 
 static inline unsigned long vcpu_data_guest_to_host(struct kvm_vcpu *vcpu,
-						    unsigned long data,
-						    unsigned int len)
+		unsigned long data,
+		unsigned int len)
 {
-	if (kvm_vcpu_is_be(vcpu)) {
-		switch (len) {
-		case 1:
-			return data & 0xff;
-		case 2:
-			return be16_to_cpu(data & 0xffff);
-		default:
-			return be32_to_cpu(data);
+	if (kvm_vcpu_is_be(vcpu))
+	{
+		switch (len)
+		{
+			case 1:
+				return data & 0xff;
+
+			case 2:
+				return be16_to_cpu(data & 0xffff);
+
+			default:
+				return be32_to_cpu(data);
 		}
-	} else {
-		switch (len) {
-		case 1:
-			return data & 0xff;
-		case 2:
-			return le16_to_cpu(data & 0xffff);
-		default:
-			return le32_to_cpu(data);
+	}
+	else
+	{
+		switch (len)
+		{
+			case 1:
+				return data & 0xff;
+
+			case 2:
+				return le16_to_cpu(data & 0xffff);
+
+			default:
+				return le32_to_cpu(data);
 		}
 	}
 }
 
 static inline unsigned long vcpu_data_host_to_guest(struct kvm_vcpu *vcpu,
-						    unsigned long data,
-						    unsigned int len)
+		unsigned long data,
+		unsigned int len)
 {
-	if (kvm_vcpu_is_be(vcpu)) {
-		switch (len) {
-		case 1:
-			return data & 0xff;
-		case 2:
-			return cpu_to_be16(data & 0xffff);
-		default:
-			return cpu_to_be32(data);
+	if (kvm_vcpu_is_be(vcpu))
+	{
+		switch (len)
+		{
+			case 1:
+				return data & 0xff;
+
+			case 2:
+				return cpu_to_be16(data & 0xffff);
+
+			default:
+				return cpu_to_be32(data);
 		}
-	} else {
-		switch (len) {
-		case 1:
-			return data & 0xff;
-		case 2:
-			return cpu_to_le16(data & 0xffff);
-		default:
-			return cpu_to_le32(data);
+	}
+	else
+	{
+		switch (len)
+		{
+			case 1:
+				return data & 0xff;
+
+			case 2:
+				return cpu_to_le16(data & 0xffff);
+
+			default:
+				return cpu_to_le32(data);
 		}
 	}
 }

@@ -50,23 +50,25 @@
 #define CVMX_L2C_VRT_MAX_VIRTID_ALLOWED ((OCTEON_IS_MODEL(OCTEON_CN63XX)) ? 64 : 0)
 #define CVMX_L2C_VRT_MAX_MEMSZ_ALLOWED ((OCTEON_IS_MODEL(OCTEON_CN63XX)) ? 32 : 0)
 
-union cvmx_l2c_tag {
+union cvmx_l2c_tag
+{
 	uint64_t u64;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved:28;
-		uint64_t V:1;		/* Line valid */
-		uint64_t D:1;		/* Line dirty */
-		uint64_t L:1;		/* Line locked */
-		uint64_t U:1;		/* Use, LRU eviction */
-		uint64_t addr:32;	/* Phys mem (not all bits valid) */
+		uint64_t reserved: 28;
+		uint64_t V: 1;		/* Line valid */
+		uint64_t D: 1;		/* Line dirty */
+		uint64_t L: 1;		/* Line locked */
+		uint64_t U: 1;		/* Use, LRU eviction */
+		uint64_t addr: 32;	/* Phys mem (not all bits valid) */
 #else
-		uint64_t addr:32;	/* Phys mem (not all bits valid) */
-		uint64_t U:1;		/* Use, LRU eviction */
-		uint64_t L:1;		/* Line locked */
-		uint64_t D:1;		/* Line dirty */
-		uint64_t V:1;		/* Line valid */
-		uint64_t reserved:28;
+		uint64_t addr: 32;	/* Phys mem (not all bits valid) */
+		uint64_t U: 1;		/* Use, LRU eviction */
+		uint64_t L: 1;		/* Line locked */
+		uint64_t D: 1;		/* Line dirty */
+		uint64_t V: 1;		/* Line valid */
+		uint64_t reserved: 28;
 #endif
 	} s;
 };
@@ -74,8 +76,9 @@ union cvmx_l2c_tag {
 /* Number of L2C Tag-and-data sections (TADs) that are connected to LMC. */
 #define CVMX_L2C_TADS  1
 
-  /* L2C Performance Counter events. */
-enum cvmx_l2c_event {
+/* L2C Performance Counter events. */
+enum cvmx_l2c_event
+{
 	CVMX_L2C_EVENT_CYCLES		=  0,
 	CVMX_L2C_EVENT_INSTRUCTION_MISS =  1,
 	CVMX_L2C_EVENT_INSTRUCTION_HIT	=  2,
@@ -134,7 +137,8 @@ enum cvmx_l2c_event {
 };
 
 /* L2C Performance Counter events for Octeon2. */
-enum cvmx_l2c_tad_event {
+enum cvmx_l2c_tad_event
+{
 	CVMX_L2C_TAD_EVENT_NONE		 = 0,
 	CVMX_L2C_TAD_EVENT_TAG_HIT	 = 1,
 	CVMX_L2C_TAD_EVENT_TAG_MISS	 = 2,

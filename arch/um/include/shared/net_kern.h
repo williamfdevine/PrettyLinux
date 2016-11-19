@@ -13,14 +13,16 @@
 #include <linux/list.h>
 #include <linux/workqueue.h>
 
-struct uml_net {
+struct uml_net
+{
 	struct list_head list;
 	struct net_device *dev;
 	struct platform_device pdev;
 	int index;
 };
 
-struct uml_net_private {
+struct uml_net_private
+{
 	struct list_head list;
 	spinlock_t lock;
 	struct net_device *dev;
@@ -42,14 +44,16 @@ struct uml_net_private {
 	char user[0];
 };
 
-struct net_kern_info {
+struct net_kern_info
+{
 	void (*init)(struct net_device *, void *);
 	unsigned short (*protocol)(struct sk_buff *);
 	int (*read)(int, struct sk_buff *skb, struct uml_net_private *);
 	int (*write)(int, struct sk_buff *skb, struct uml_net_private *);
 };
 
-struct transport {
+struct transport
+{
 	struct list_head list;
 	const char *name;
 	int (* const setup)(char *, char **, void *);
@@ -62,7 +66,7 @@ struct transport {
 extern struct net_device *ether_init(int);
 extern unsigned short ether_protocol(struct sk_buff *);
 extern int tap_setup_common(char *str, char *type, char **dev_name,
-			    char **mac_out, char **gate_addr);
+							char **mac_out, char **gate_addr);
 extern void register_transport(struct transport *new);
 extern unsigned short eth_protocol(struct sk_buff *skb);
 

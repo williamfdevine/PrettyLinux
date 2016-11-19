@@ -43,9 +43,11 @@ op_handle_interrupt(unsigned long which, struct pt_regs *regs)
 	   into the counter such that it'll overflow after N more
 	   events.  */
 	if ((reg.need_reset >> which) & 1)
+	{
 		model->reset_ctr(&reg, which);
+	}
 }
- 
+
 static int
 op_axp_setup(void)
 {
@@ -58,7 +60,10 @@ op_axp_setup(void)
 	/* Compute the mask of enabled counters.  */
 	for (i = e = 0; i < model->num_counters; ++i)
 		if (ctr[i].enabled)
+		{
 			e |= 1 << i;
+		}
+
 	reg.enable = e;
 
 	/* Pre-compute the values to stuff in the hardware registers.  */
@@ -110,7 +115,8 @@ op_axp_create_files(struct dentry *root)
 {
 	int i;
 
-	for (i = 0; i < model->num_counters; ++i) {
+	for (i = 0; i < model->num_counters; ++i)
+	{
 		struct dentry *dir;
 		char buf[4];
 
@@ -118,7 +124,7 @@ op_axp_create_files(struct dentry *root)
 		dir = oprofilefs_mkdir(root, buf);
 
 		oprofilefs_create_ulong(dir, "enabled", &ctr[i].enabled);
-                oprofilefs_create_ulong(dir, "event", &ctr[i].event);
+		oprofilefs_create_ulong(dir, "event", &ctr[i].event);
 		oprofilefs_create_ulong(dir, "count", &ctr[i].count);
 		/* Dummies.  */
 		oprofilefs_create_ulong(dir, "kernel", &ctr[i].kernel);
@@ -126,13 +132,14 @@ op_axp_create_files(struct dentry *root)
 		oprofilefs_create_ulong(dir, "unit_mask", &ctr[i].unit_mask);
 	}
 
-	if (model->can_set_proc_mode) {
+	if (model->can_set_proc_mode)
+	{
 		oprofilefs_create_ulong(root, "enable_pal",
-					&sys.enable_pal);
+								&sys.enable_pal);
 		oprofilefs_create_ulong(root, "enable_kernel",
-					&sys.enable_kernel);
+								&sys.enable_kernel);
 		oprofilefs_create_ulong(root, "enable_user",
-					&sys.enable_user);
+								&sys.enable_user);
 	}
 
 	return 0;
@@ -143,30 +150,48 @@ oprofile_arch_init(struct oprofile_operations *ops)
 {
 	struct op_axp_model *lmodel = NULL;
 
-	switch (implver()) {
-	case IMPLVER_EV4:
-		lmodel = &op_model_ev4;
-		break;
-	case IMPLVER_EV5:
-		/* 21164PC has a slightly different set of events.
-		   Recognize the chip by the presence of the MAX insns.  */
-		if (!amask(AMASK_MAX))
-			lmodel = &op_model_pca56;
-		else
-			lmodel = &op_model_ev5;
-		break;
-	case IMPLVER_EV6:
-		/* 21264A supports ProfileMe.
-		   Recognize the chip by the presence of the CIX insns.  */
-		if (!amask(AMASK_CIX))
-			lmodel = &op_model_ev67;
-		else
-			lmodel = &op_model_ev6;
-		break;
+	switch (implver())
+	{
+		case IMPLVER_EV4:
+			lmodel = &op_model_ev4;
+			break;
+
+		case IMPLVER_EV5:
+
+			/* 21164PC has a slightly different set of events.
+			   Recognize the chip by the presence of the MAX insns.  */
+			if (!amask(AMASK_MAX))
+			{
+				lmodel = &op_model_pca56;
+			}
+			else
+			{
+				lmodel = &op_model_ev5;
+			}
+
+			break;
+
+		case IMPLVER_EV6:
+
+			/* 21264A supports ProfileMe.
+			   Recognize the chip by the presence of the CIX insns.  */
+			if (!amask(AMASK_CIX))
+			{
+				lmodel = &op_model_ev67;
+			}
+			else
+			{
+				lmodel = &op_model_ev6;
+			}
+
+			break;
 	}
 
 	if (!lmodel)
+	{
 		return -ENODEV;
+	}
+
 	model = lmodel;
 
 	ops->create_files = op_axp_create_files;
@@ -177,7 +202,7 @@ oprofile_arch_init(struct oprofile_operations *ops)
 	ops->cpu_type = lmodel->cpu_type;
 
 	printk(KERN_INFO "oprofile: using %s performance monitoring.\n",
-	       lmodel->cpu_type);
+		   lmodel->cpu_type);
 
 	return 0;
 }

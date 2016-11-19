@@ -44,8 +44,10 @@ void __udelay(unsigned long usecs)
 	stop = __muldiv64u(usecs, MN10300_TSCCLK, 1000000);
 	start = TMTSCBC;
 
-	do {
+	do
+	{
 		cnt = start - TMTSCBC;
-	} while (cnt < stop);
+	}
+	while (cnt < stop);
 }
 EXPORT_SYMBOL(__udelay);

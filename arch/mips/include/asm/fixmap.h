@@ -16,8 +16,8 @@
 #include <asm/page.h>
 #include <spaces.h>
 #ifdef CONFIG_HIGHMEM
-#include <linux/threads.h>
-#include <asm/kmap_types.h>
+	#include <linux/threads.h>
+	#include <asm/kmap_types.h>
 #endif
 
 /*
@@ -45,14 +45,15 @@
  * future, say framebuffers for the console driver(s) could be
  * fix-mapped?
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 #define FIX_N_COLOURS 8
 	FIX_CMAP_BEGIN,
 	FIX_CMAP_END = FIX_CMAP_BEGIN + (FIX_N_COLOURS * 2),
 #ifdef CONFIG_HIGHMEM
 	/* reserved pte's for temporary kernel mappings */
 	FIX_KMAP_BEGIN = FIX_CMAP_END + 1,
-	FIX_KMAP_END = FIX_KMAP_BEGIN+(KM_TYPE_NR*NR_CPUS)-1,
+	FIX_KMAP_END = FIX_KMAP_BEGIN + (KM_TYPE_NR * NR_CPUS) - 1,
 #endif
 	__end_of_fixed_addresses
 };
@@ -76,7 +77,7 @@ enum fixed_addresses {
  * Called from pgtable_init()
  */
 extern void fixrange_init(unsigned long start, unsigned long end,
-	pgd_t *pgd_base);
+						  pgd_t *pgd_base);
 
 
 #endif

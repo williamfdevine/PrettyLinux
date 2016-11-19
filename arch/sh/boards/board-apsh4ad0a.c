@@ -21,12 +21,14 @@
 #include <asm/sizes.h>
 
 /* Dummy supplies, where voltage doesn't matter */
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vddvario", "smsc911x"),
 	REGULATOR_SUPPLY("vdd33a", "smsc911x"),
 };
 
-static struct resource smsc911x_resources[] = {
+static struct resource smsc911x_resources[] =
+{
 	[0] = {
 		.name		= "smsc911x-memory",
 		.start		= 0xA4000000,
@@ -41,14 +43,16 @@ static struct resource smsc911x_resources[] = {
 	},
 };
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
 	.flags		= SMSC911X_USE_16BIT,
 	.phy_interface	= PHY_INTERFACE_MODE_MII,
 };
 
-static struct platform_device smsc911x_device = {
+static struct platform_device smsc911x_device =
+{
 	.name		= "smsc911x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smsc911x_resources),
@@ -58,7 +62,8 @@ static struct platform_device smsc911x_device = {
 	},
 };
 
-static struct platform_device *apsh4ad0a_devices[] __initdata = {
+static struct platform_device *apsh4ad0a_devices[] __initdata =
+{
 	&smsc911x_device,
 };
 
@@ -67,7 +72,7 @@ static int __init apsh4ad0a_devices_setup(void)
 	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
 
 	return platform_add_devices(apsh4ad0a_devices,
-				    ARRAY_SIZE(apsh4ad0a_devices));
+								ARRAY_SIZE(apsh4ad0a_devices));
 }
 device_initcall(apsh4ad0a_devices_setup);
 
@@ -104,8 +109,12 @@ static int apsh4ad0a_clk_init(void)
 	int ret;
 
 	clk = clk_get(NULL, "extal");
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
+
 	ret = clk_set_rate(clk, 33333000);
 	clk_put(clk);
 
@@ -126,7 +135,8 @@ static void __init apsh4ad0a_init_irq(void)
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_apsh4ad0a __initmv = {
+static struct sh_machine_vector mv_apsh4ad0a __initmv =
+{
 	.mv_name		= "AP-SH4AD-0A",
 	.mv_setup		= apsh4ad0a_setup,
 	.mv_mode_pins		= apsh4ad0a_mode_pins,

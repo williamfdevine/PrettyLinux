@@ -846,9 +846,9 @@
 /* Per_number = 0 to 63 */
 /* IVG_number = 7 to 15   */
 #define Peripheral_IVG(Per_number, IVG_number)    \
-    ((IVG_number) - 7) << (((Per_number) % 8) * 4)	/* Peripheral #Per_number assigned IVG #IVG_number  */
-    /* Usage: r0.l = lo(Peripheral_IVG(62, 10)); */
-    /*        r0.h = hi(Peripheral_IVG(62, 10)); */
+	((IVG_number) - 7) << (((Per_number) % 8) * 4)	/* Peripheral #Per_number assigned IVG #IVG_number  */
+/* Usage: r0.l = lo(Peripheral_IVG(62, 10)); */
+/*        r0.h = hi(Peripheral_IVG(62, 10)); */
 
 /* SICx_IMASKw Masks */
 /* masks are 32 bit wide, so two writes reguired for "64 bit" wide registers  */

@@ -29,7 +29,7 @@
  */
 unsigned long
 arch_get_unmapped_area(struct file *filp, unsigned long addr,
-		unsigned long len, unsigned long pgoff, unsigned long flags)
+					   unsigned long len, unsigned long pgoff, unsigned long flags)
 {
 	struct mm_struct *mm = current->mm;
 	struct vm_area_struct *vma;
@@ -41,31 +41,47 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
 	 * We only need to do colour alignment if D cache aliases.
 	 */
 	if (aliasing)
+	{
 		do_align = filp || (flags & MAP_SHARED);
+	}
 
 	/*
 	 * We enforce the MAP_FIXED case.
 	 */
-	if (flags & MAP_FIXED) {
+	if (flags & MAP_FIXED)
+	{
 		if (aliasing && flags & MAP_SHARED &&
-		    (addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1))
+			(addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1))
+		{
 			return -EINVAL;
+		}
+
 		return addr;
 	}
 
 	if (len > TASK_SIZE)
+	{
 		return -ENOMEM;
+	}
 
-	if (addr) {
+	if (addr)
+	{
 		if (do_align)
+		{
 			addr = COLOUR_ALIGN(addr, pgoff);
+		}
 		else
+		{
 			addr = PAGE_ALIGN(addr);
+		}
 
 		vma = find_vma(mm, addr);
+
 		if (TASK_SIZE - len >= addr &&
-		    (!vma || addr + len <= vma->vm_start))
+			(!vma || addr + len <= vma->vm_start))
+		{
 			return addr;
+		}
 	}
 
 	info.flags = 0;

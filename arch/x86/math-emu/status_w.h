@@ -13,9 +13,9 @@
 #include "fpu_emu.h"		/* for definition of PECULIAR_486 */
 
 #ifdef __ASSEMBLY__
-#define	Const__(x)	$##x
+	#define	Const__(x)	$##x
 #else
-#define	Const__(x)	x
+	#define	Const__(x)	x
 #endif
 
 #define SW_Backward    	Const__(0x8000)	/* backward compatibility */
@@ -47,7 +47,7 @@
 #define COMP_SNaN	0x80
 
 #define status_word() \
-  ((partial_status & ~SW_Top & 0xffff) | ((top << SW_Top_Shift) & SW_Top))
+	((partial_status & ~SW_Top & 0xffff) | ((top << SW_Top_Shift) & SW_Top))
 static inline void setcc(int cc)
 {
 	partial_status &= ~(SW_C0 | SW_C1 | SW_C2 | SW_C3);
@@ -55,11 +55,11 @@ static inline void setcc(int cc)
 }
 
 #ifdef PECULIAR_486
-   /* Default, this conveys no information, but an 80486 does it. */
-   /* Clear the SW_C1 bit, "other bits undefined". */
-#  define clear_C1()  { partial_status &= ~SW_C1; }
-# else
-#  define clear_C1()
+	/* Default, this conveys no information, but an 80486 does it. */
+	/* Clear the SW_C1 bit, "other bits undefined". */
+	#define clear_C1()  { partial_status &= ~SW_C1; }
+#else
+	#define clear_C1()
 #endif /* PECULIAR_486 */
 
 #endif /* __ASSEMBLY__ */

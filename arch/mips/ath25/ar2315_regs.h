@@ -69,8 +69,8 @@
 #define AR2315_RESET_COLD_CPU		0x00000004
 #define AR2315_RESET_COLD_CPUWARM	0x00000008
 #define AR2315_RESET_SYSTEM		(RESET_COLD_CPU |\
-					 RESET_COLD_APB |\
-					 RESET_COLD_AHB)  /* full system */
+								 RESET_COLD_APB |\
+								 RESET_COLD_AHB)  /* full system */
 #define AR2317_RESET_SYSTEM		0x00000010
 
 /* Reset register */
@@ -215,7 +215,7 @@
 #define AR2315_AHB_ERR4			0x0060  /* status */
 
 #define AR2315_AHB_ERROR_DET	1 /* AHB Error has been detected,          */
-				  /* write 1 to clear all bits in ERR0     */
+/* write 1 to clear all bits in ERR0     */
 #define AR2315_AHB_ERROR_OVR	2 /* AHB Error overflow has been detected  */
 #define AR2315_AHB_ERROR_WDT	4 /* AHB Error due to wdt instead of hresp */
 

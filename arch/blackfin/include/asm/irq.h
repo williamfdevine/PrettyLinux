@@ -21,20 +21,20 @@
 #include <mach/irq.h>
 
 #if ANOMALY_05000244 && defined(CONFIG_BFIN_ICACHE)
-# define NOP_PAD_ANOMALY_05000244 "nop; nop;"
+	#define NOP_PAD_ANOMALY_05000244 "nop; nop;"
 #else
-# define NOP_PAD_ANOMALY_05000244
+	#define NOP_PAD_ANOMALY_05000244
 #endif
 
 #define idle_with_irq_disabled() \
 	__asm__ __volatile__( \
-		NOP_PAD_ANOMALY_05000244 \
-		".align 8;" \
-		"sti %0;" \
-		"idle;" \
-		: \
-		: "d" (bfin_irq_flags) \
-	)
+						  NOP_PAD_ANOMALY_05000244 \
+						  ".align 8;" \
+						  "sti %0;" \
+						  "idle;" \
+						  : \
+						  : "d" (bfin_irq_flags) \
+						)
 
 #include <asm-generic/irq.h>
 

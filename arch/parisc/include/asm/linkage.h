@@ -4,8 +4,8 @@
 #include <asm/dwarf.h>
 
 #ifndef __ALIGN
-#define __ALIGN         .align 4
-#define __ALIGN_STR     ".align 4"
+	#define __ALIGN         .align 4
+	#define __ALIGN_STR     ".align 4"
 #endif
 
 /*
@@ -19,7 +19,7 @@
 #define ENTRY(name) \
 	.export name !\
 	ALIGN !\
-name:
+	name:
 
 #ifdef CONFIG_64BIT
 #define ENDPROC(name) \

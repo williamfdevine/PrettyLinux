@@ -14,8 +14,8 @@ cris_swapnwbrlz(unsigned long w)
 	unsigned long res;
 
 	__asm__ __volatile__ ("swapnwbr %0\n\t"
-			      "lz %0,%0"
-			      : "=r" (res) : "0" (w));
+						  "lz %0,%0"
+						  : "=r" (res) : "0" (w));
 
 	return res;
 }
@@ -26,8 +26,8 @@ cris_swapwbrlz(unsigned long w)
 	unsigned long res;
 
 	__asm__ __volatile__ ("swapwbr %0\n\t"
-			      "lz %0,%0"
-			      : "=r" (res) : "0" (w));
+						  "lz %0,%0"
+						  : "=r" (res) : "0" (w));
 
 	return res;
 }

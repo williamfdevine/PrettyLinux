@@ -25,7 +25,8 @@
 
 #include <mach/ams-delta-fiq.h>
 
-static struct fiq_handler fh = {
+static struct fiq_handler fh =
+{
 	.name	= "ams-delta-fiq"
 };
 
@@ -54,12 +55,15 @@ static irqreturn_t deferred_fiq(int irq, void *dev_id)
 	 * until the IRQ counter catches the FIQ incremented interrupt counter.
 	 */
 	for (gpio = AMS_DELTA_GPIO_PIN_KEYBRD_CLK;
-			gpio <= AMS_DELTA_GPIO_PIN_HOOK_SWITCH; gpio++) {
+		 gpio <= AMS_DELTA_GPIO_PIN_HOOK_SWITCH; gpio++)
+	{
 		irq_num = gpio_to_irq(gpio);
 		fiq_count = fiq_buffer[FIQ_CNT_INT_00 + gpio];
 
-		while (irq_counter[gpio] < fiq_count) {
-			if (gpio != AMS_DELTA_GPIO_PIN_KEYBRD_CLK) {
+		while (irq_counter[gpio] < fiq_count)
+		{
+			if (gpio != AMS_DELTA_GPIO_PIN_KEYBRD_CLK)
+			{
 				struct irq_data *d = irq_get_irq_data(irq_num);
 
 				/*
@@ -68,13 +72,17 @@ static irqreturn_t deferred_fiq(int irq, void *dev_id)
 				 * expects interrupt already unmasked.
 				 */
 				if (irq_chip && irq_chip->irq_unmask)
+				{
 					irq_chip->irq_unmask(d);
+				}
 			}
+
 			generic_handle_irq(irq_num);
 
 			irq_counter[gpio]++;
 		}
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -92,25 +100,30 @@ void __init ams_delta_init_fiq(void)
 			fiqhandler_start, fiqhandler_length);
 
 	retval = claim_fiq(&fh);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("ams_delta_init_fiq(): couldn't claim FIQ, ret=%d\n",
-				retval);
+			   retval);
 		return;
 	}
 
 	retval = request_irq(INT_DEFERRED_FIQ, deferred_fiq,
-			IRQ_TYPE_EDGE_RISING, "deferred_fiq", NULL);
-	if (retval < 0) {
+						 IRQ_TYPE_EDGE_RISING, "deferred_fiq", NULL);
+
+	if (retval < 0)
+	{
 		pr_err("Failed to get deferred_fiq IRQ, ret=%d\n", retval);
 		release_fiq(&fh);
 		return;
 	}
+
 	/*
 	 * Since no set_type() method is provided by OMAP irq chip,
 	 * switch to edge triggered interrupt type manually.
 	 */
 	offset = IRQ_ILR0_REG_OFFSET +
-			((INT_DEFERRED_FIQ - NR_IRQS_LEGACY) & 0x1f) * 0x4;
+			 ((INT_DEFERRED_FIQ - NR_IRQS_LEGACY) & 0x1f) * 0x4;
 	val = omap_readl(DEFERRED_FIQ_IH_BASE + offset) & ~(1 << 1);
 	omap_writel(val, DEFERRED_FIQ_IH_BASE + offset);
 
@@ -131,10 +144,12 @@ void __init ams_delta_init_fiq(void)
 	fiq_buffer[FIQ_BUF_LEN]		= 256;
 	fiq_buffer[FIQ_MISSED_KEYS]	= 0;
 	fiq_buffer[FIQ_BUFFER_START]	=
-			(unsigned int) &fiq_buffer[FIQ_CIRC_BUFF];
+		(unsigned int) &fiq_buffer[FIQ_CIRC_BUFF];
 
 	for (i = FIQ_CNT_INT_00; i <= FIQ_CNT_INT_15; i++)
+	{
 		fiq_buffer[i] = 0;
+	}
 
 	/*
 	 * FIQ mode r9 always points to the fiq_buffer, because the FIQ isr

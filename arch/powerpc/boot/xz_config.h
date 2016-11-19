@@ -18,9 +18,9 @@ static inline uint32_t swab32p(void *p)
 }
 
 #ifdef __LITTLE_ENDIAN__
-#define get_le32(p) (*((uint32_t *) (p)))
+	#define get_le32(p) (*((uint32_t *) (p)))
 #else
-#define get_le32(p) swab32p(p)
+	#define get_le32(p) swab32p(p)
 #endif
 
 #define memeq(a, b, size) (memcmp(a, b, size) == 0)

@@ -25,11 +25,11 @@ extern int pnv_pci_get_device_tree(uint32_t phandle, void *buf, uint64_t len);
 extern int pnv_pci_get_presence_state(uint64_t id, uint8_t *state);
 extern int pnv_pci_get_power_state(uint64_t id, uint8_t *state);
 extern int pnv_pci_set_power_state(uint64_t id, uint8_t state,
-				   struct opal_msg *msg);
+								   struct opal_msg *msg);
 
 int pnv_phb_to_cxl_mode(struct pci_dev *dev, uint64_t mode);
 int pnv_cxl_ioda_msi_setup(struct pci_dev *dev, unsigned int hwirq,
-			   unsigned int virq);
+						   unsigned int virq);
 int pnv_cxl_alloc_hwirqs(struct pci_dev *dev, int num);
 void pnv_cxl_release_hwirqs(struct pci_dev *dev, int hwirq, int num);
 int pnv_cxl_get_irq_count(struct pci_dev *dev);
@@ -39,9 +39,9 @@ bool is_pnv_opal_msi(struct irq_chip *chip);
 
 #ifdef CONFIG_CXL_BASE
 int pnv_cxl_alloc_hwirq_ranges(struct cxl_irq_ranges *irqs,
-			       struct pci_dev *dev, int num);
+							   struct pci_dev *dev, int num);
 void pnv_cxl_release_hwirq_ranges(struct cxl_irq_ranges *irqs,
-				  struct pci_dev *dev);
+								  struct pci_dev *dev);
 
 /* Support for the cxl kernel api on the real PHB (instead of vPHB) */
 int pnv_cxl_enable_phb_kernel_api(struct pci_controller *hose, bool enable);
@@ -51,7 +51,8 @@ void pnv_cxl_phb_set_peer_afu(struct pci_dev *dev, struct cxl_afu *afu);
 
 #endif
 
-struct pnv_php_slot {
+struct pnv_php_slot
+{
 	struct hotplug_slot		slot;
 	struct hotplug_slot_info	slot_info;
 	uint64_t			id;
@@ -78,6 +79,6 @@ struct pnv_php_slot {
 };
 extern struct pnv_php_slot *pnv_php_find_slot(struct device_node *dn);
 extern int pnv_php_set_slot_power_state(struct hotplug_slot *slot,
-					uint8_t state);
+										uint8_t state);
 
 #endif

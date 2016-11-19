@@ -36,7 +36,8 @@ MODULE_DESCRIPTION("Sun LDOM domain services driver");
 MODULE_LICENSE("GPL");
 MODULE_VERSION(DRV_MODULE_VERSION);
 
-struct ds_msg_tag {
+struct ds_msg_tag
+{
 	__u32			type;
 #define DS_INIT_REQ		0x00
 #define DS_INIT_ACK		0x01
@@ -60,27 +61,32 @@ struct ds_msg_tag {
 #define DS_INV_HDL		0x03
 #define DS_TYPE_UNKNOWN		0x04
 
-struct ds_version {
+struct ds_version
+{
 	__u16			major;
 	__u16			minor;
 };
 
-struct ds_ver_req {
+struct ds_ver_req
+{
 	struct ds_msg_tag	tag;
 	struct ds_version	ver;
 };
 
-struct ds_ver_ack {
+struct ds_ver_ack
+{
 	struct ds_msg_tag	tag;
 	__u16			minor;
 };
 
-struct ds_ver_nack {
+struct ds_ver_nack
+{
 	struct ds_msg_tag	tag;
 	__u16			major;
 };
 
-struct ds_reg_req {
+struct ds_reg_req
+{
 	struct ds_msg_tag	tag;
 	__u64			handle;
 	__u16			major;
@@ -88,51 +94,59 @@ struct ds_reg_req {
 	char			svc_id[0];
 };
 
-struct ds_reg_ack {
+struct ds_reg_ack
+{
 	struct ds_msg_tag	tag;
 	__u64			handle;
 	__u16			minor;
 };
 
-struct ds_reg_nack {
+struct ds_reg_nack
+{
 	struct ds_msg_tag	tag;
 	__u64			handle;
 	__u16			major;
 };
 
-struct ds_unreg_req {
+struct ds_unreg_req
+{
 	struct ds_msg_tag	tag;
 	__u64			handle;
 };
 
-struct ds_unreg_ack {
+struct ds_unreg_ack
+{
 	struct ds_msg_tag	tag;
 	__u64			handle;
 };
 
-struct ds_unreg_nack {
+struct ds_unreg_nack
+{
 	struct ds_msg_tag	tag;
 	__u64			handle;
 };
 
-struct ds_data {
+struct ds_data
+{
 	struct ds_msg_tag	tag;
 	__u64			handle;
 };
 
-struct ds_data_nack {
+struct ds_data_nack
+{
 	struct ds_msg_tag	tag;
 	__u64			handle;
 	__u64			result;
 };
 
 struct ds_info;
-struct ds_cap_state {
+struct ds_cap_state
+{
 	__u64			handle;
 
 	void			(*data)(struct ds_info *dp,
-					struct ds_cap_state *cp,
-					void *buf, int len);
+							struct ds_cap_state *cp,
+							void *buf, int len);
 
 	const char		*service_id;
 
@@ -143,26 +157,27 @@ struct ds_cap_state {
 };
 
 static void md_update_data(struct ds_info *dp, struct ds_cap_state *cp,
-			   void *buf, int len);
+						   void *buf, int len);
 static void domain_shutdown_data(struct ds_info *dp,
-				 struct ds_cap_state *cp,
-				 void *buf, int len);
+								 struct ds_cap_state *cp,
+								 void *buf, int len);
 static void domain_panic_data(struct ds_info *dp,
-			      struct ds_cap_state *cp,
-			      void *buf, int len);
+							  struct ds_cap_state *cp,
+							  void *buf, int len);
 #ifdef CONFIG_HOTPLUG_CPU
 static void dr_cpu_data(struct ds_info *dp,
-			struct ds_cap_state *cp,
-			void *buf, int len);
+						struct ds_cap_state *cp,
+						void *buf, int len);
 #endif
 static void ds_pri_data(struct ds_info *dp,
-			struct ds_cap_state *cp,
-			void *buf, int len);
+						struct ds_cap_state *cp,
+						void *buf, int len);
 static void ds_var_data(struct ds_info *dp,
-			struct ds_cap_state *cp,
-			void *buf, int len);
+						struct ds_cap_state *cp,
+						void *buf, int len);
 
-static struct ds_cap_state ds_states_template[] = {
+static struct ds_cap_state ds_states_template[] =
+{
 	{
 		.service_id	= "md-update",
 		.data		= md_update_data,
@@ -197,7 +212,8 @@ static struct ds_cap_state ds_states_template[] = {
 
 static DEFINE_SPINLOCK(ds_lock);
 
-struct ds_info {
+struct ds_info
+{
 	struct ldc_channel	*lp;
 	u8			hs_state;
 #define DS_HS_START		0x01
@@ -221,21 +237,28 @@ static struct ds_cap_state *find_cap(struct ds_info *dp, u64 handle)
 	unsigned int index = handle >> 32;
 
 	if (index >= dp->num_ds_states)
+	{
 		return NULL;
+	}
+
 	return &dp->ds_states[index];
 }
 
 static struct ds_cap_state *find_cap_by_string(struct ds_info *dp,
-					       const char *name)
+		const char *name)
 {
 	int i;
 
-	for (i = 0; i < dp->num_ds_states; i++) {
+	for (i = 0; i < dp->num_ds_states; i++)
+	{
 		if (strcmp(dp->ds_states[i].service_id, name))
+		{
 			continue;
+		}
 
 		return &dp->ds_states[i];
 	}
+
 	return NULL;
 }
 
@@ -244,10 +267,16 @@ static int __ds_send(struct ldc_channel *lp, void *data, int len)
 	int err, limit = 1000;
 
 	err = -EINVAL;
-	while (limit-- > 0) {
+
+	while (limit-- > 0)
+	{
 		err = ldc_write(lp, data, len);
+
 		if (!err || (err != -EAGAIN))
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
@@ -266,23 +295,26 @@ static int ds_send(struct ldc_channel *lp, void *data, int len)
 	return err;
 }
 
-struct ds_md_update_req {
+struct ds_md_update_req
+{
 	__u64				req_num;
 };
 
-struct ds_md_update_res {
+struct ds_md_update_res
+{
 	__u64				req_num;
 	__u32				result;
 };
 
 static void md_update_data(struct ds_info *dp,
-			   struct ds_cap_state *cp,
-			   void *buf, int len)
+						   struct ds_cap_state *cp,
+						   void *buf, int len)
 {
 	struct ldc_channel *lp = dp->lp;
 	struct ds_data *dpkt = buf;
 	struct ds_md_update_req *rp;
-	struct {
+	struct
+	{
 		struct ds_data		data;
 		struct ds_md_update_res	res;
 	} pkt;
@@ -303,25 +335,28 @@ static void md_update_data(struct ds_info *dp,
 	ds_send(lp, &pkt, sizeof(pkt));
 }
 
-struct ds_shutdown_req {
+struct ds_shutdown_req
+{
 	__u64				req_num;
 	__u32				ms_delay;
 };
 
-struct ds_shutdown_res {
+struct ds_shutdown_res
+{
 	__u64				req_num;
 	__u32				result;
 	char				reason[1];
 };
 
 static void domain_shutdown_data(struct ds_info *dp,
-				 struct ds_cap_state *cp,
-				 void *buf, int len)
+								 struct ds_cap_state *cp,
+								 void *buf, int len)
 {
 	struct ldc_channel *lp = dp->lp;
 	struct ds_data *dpkt = buf;
 	struct ds_shutdown_req *rp;
-	struct {
+	struct
+	{
 		struct ds_data		data;
 		struct ds_shutdown_res	res;
 	} pkt;
@@ -329,7 +364,7 @@ static void domain_shutdown_data(struct ds_info *dp,
 	rp = (struct ds_shutdown_req *) (dpkt + 1);
 
 	printk(KERN_ALERT "ds-%llu: Shutdown request from "
-	       "LDOM manager received.\n", dp->id);
+		   "LDOM manager received.\n", dp->id);
 
 	memset(&pkt, 0, sizeof(pkt));
 	pkt.data.tag.type = DS_DATA;
@@ -344,24 +379,27 @@ static void domain_shutdown_data(struct ds_info *dp,
 	orderly_poweroff(true);
 }
 
-struct ds_panic_req {
+struct ds_panic_req
+{
 	__u64				req_num;
 };
 
-struct ds_panic_res {
+struct ds_panic_res
+{
 	__u64				req_num;
 	__u32				result;
 	char				reason[1];
 };
 
 static void domain_panic_data(struct ds_info *dp,
-			      struct ds_cap_state *cp,
-			      void *buf, int len)
+							  struct ds_cap_state *cp,
+							  void *buf, int len)
 {
 	struct ldc_channel *lp = dp->lp;
 	struct ds_data *dpkt = buf;
 	struct ds_panic_req *rp;
-	struct {
+	struct
+	{
 		struct ds_data		data;
 		struct ds_panic_res	res;
 	} pkt;
@@ -369,7 +407,7 @@ static void domain_panic_data(struct ds_info *dp,
 	rp = (struct ds_panic_req *) (dpkt + 1);
 
 	printk(KERN_ALERT "ds-%llu: Panic request from "
-	       "LDOM manager received.\n", dp->id);
+		   "LDOM manager received.\n", dp->id);
 
 	memset(&pkt, 0, sizeof(pkt));
 	pkt.data.tag.type = DS_DATA;
@@ -385,7 +423,8 @@ static void domain_panic_data(struct ds_info *dp,
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
-struct dr_cpu_tag {
+struct dr_cpu_tag
+{
 	__u64				req_num;
 	__u32				type;
 #define DR_CPU_CONFIGURE		0x43
@@ -393,14 +432,15 @@ struct dr_cpu_tag {
 #define DR_CPU_FORCE_UNCONFIGURE	0x46
 #define DR_CPU_STATUS			0x53
 
-/* Responses */
+	/* Responses */
 #define DR_CPU_OK			0x6f
 #define DR_CPU_ERROR			0x65
 
 	__u32				num_records;
 };
 
-struct dr_cpu_resp_entry {
+struct dr_cpu_resp_entry
+{
 	__u32				cpu;
 	__u32				result;
 #define DR_CPU_RES_OK			0x00
@@ -418,11 +458,12 @@ struct dr_cpu_resp_entry {
 };
 
 static void __dr_cpu_send_error(struct ds_info *dp,
-				struct ds_cap_state *cp,
-				struct ds_data *data)
+								struct ds_cap_state *cp,
+								struct ds_data *data)
 {
 	struct dr_cpu_tag *tag = (struct dr_cpu_tag *) (data + 1);
-	struct {
+	struct
+	{
 		struct ds_data		data;
 		struct dr_cpu_tag	tag;
 	} pkt;
@@ -436,7 +477,7 @@ static void __dr_cpu_send_error(struct ds_info *dp,
 	pkt.tag.num_records = 0;
 
 	msg_len = (sizeof(struct ds_data) +
-		   sizeof(struct dr_cpu_tag));
+			   sizeof(struct dr_cpu_tag));
 
 	pkt.data.tag.len = msg_len - sizeof(struct ds_msg_tag);
 
@@ -444,8 +485,8 @@ static void __dr_cpu_send_error(struct ds_info *dp,
 }
 
 static void dr_cpu_send_error(struct ds_info *dp,
-			      struct ds_cap_state *cp,
-			      struct ds_data *data)
+							  struct ds_cap_state *cp,
+							  struct ds_data *data)
 {
 	unsigned long flags;
 
@@ -460,16 +501,22 @@ static void purge_dups(u32 *list, u32 num_ents)
 {
 	unsigned int i;
 
-	for (i = 0; i < num_ents; i++) {
+	for (i = 0; i < num_ents; i++)
+	{
 		u32 cpu = list[i];
 		unsigned int j;
 
 		if (cpu == CPU_SENTINEL)
+		{
 			continue;
+		}
 
-		for (j = i + 1; j < num_ents; j++) {
+		for (j = i + 1; j < num_ents; j++)
+		{
 			if (list[j] == cpu)
+			{
 				list[j] = CPU_SENTINEL;
+			}
 		}
 	}
 }
@@ -477,13 +524,13 @@ static void purge_dups(u32 *list, u32 num_ents)
 static int dr_cpu_size_response(int ncpus)
 {
 	return (sizeof(struct ds_data) +
-		sizeof(struct dr_cpu_tag) +
-		(sizeof(struct dr_cpu_resp_entry) * ncpus));
+			sizeof(struct dr_cpu_tag) +
+			(sizeof(struct dr_cpu_resp_entry) * ncpus));
 }
 
 static void dr_cpu_init_response(struct ds_data *resp, u64 req_num,
-				 u64 handle, int resp_len, int ncpus,
-				 cpumask_t *mask, u32 default_stat)
+								 u64 handle, int resp_len, int ncpus,
+								 cpumask_t *mask, u32 default_stat)
 {
 	struct dr_cpu_resp_entry *ent;
 	struct dr_cpu_tag *tag;
@@ -500,7 +547,8 @@ static void dr_cpu_init_response(struct ds_data *resp, u64 req_num,
 	tag->num_records = ncpus;
 
 	i = 0;
-	for_each_cpu(cpu, mask) {
+	for_each_cpu(cpu, mask)
+	{
 		ent[i].cpu = cpu;
 		ent[i].result = DR_CPU_RES_OK;
 		ent[i].stat = default_stat;
@@ -510,7 +558,7 @@ static void dr_cpu_init_response(struct ds_data *resp, u64 req_num,
 }
 
 static void dr_cpu_mark(struct ds_data *resp, int cpu, int ncpus,
-			u32 res, u32 stat)
+						u32 res, u32 stat)
 {
 	struct dr_cpu_resp_entry *ent;
 	struct dr_cpu_tag *tag;
@@ -519,9 +567,13 @@ static void dr_cpu_mark(struct ds_data *resp, int cpu, int ncpus,
 	tag = (struct dr_cpu_tag *) (resp + 1);
 	ent = (struct dr_cpu_resp_entry *) (tag + 1);
 
-	for (i = 0; i < ncpus; i++) {
+	for (i = 0; i < ncpus; i++)
+	{
 		if (ent[i].cpu != cpu)
+		{
 			continue;
+		}
+
 		ent[i].result = res;
 		ent[i].stat = stat;
 		break;
@@ -529,7 +581,7 @@ static void dr_cpu_mark(struct ds_data *resp, int cpu, int ncpus,
 }
 
 static int dr_cpu_configure(struct ds_info *dp, struct ds_cap_state *cp,
-			    u64 req_num, cpumask_t *mask)
+							u64 req_num, cpumask_t *mask)
 {
 	struct ds_data *resp;
 	int resp_len, ncpus, cpu;
@@ -538,37 +590,46 @@ static int dr_cpu_configure(struct ds_info *dp, struct ds_cap_state *cp,
 	ncpus = cpumask_weight(mask);
 	resp_len = dr_cpu_size_response(ncpus);
 	resp = kzalloc(resp_len, GFP_KERNEL);
+
 	if (!resp)
+	{
 		return -ENOMEM;
+	}
 
 	dr_cpu_init_response(resp, req_num, cp->handle,
-			     resp_len, ncpus, mask,
-			     DR_CPU_STAT_CONFIGURED);
+						 resp_len, ncpus, mask,
+						 DR_CPU_STAT_CONFIGURED);
 
 	mdesc_populate_present_mask(mask);
 	mdesc_fill_in_cpu_data(mask);
 
-	for_each_cpu(cpu, mask) {
+	for_each_cpu(cpu, mask)
+	{
 		int err;
 
 		printk(KERN_INFO "ds-%llu: Starting cpu %d...\n",
-		       dp->id, cpu);
+			   dp->id, cpu);
 		err = cpu_up(cpu);
-		if (err) {
+
+		if (err)
+		{
 			__u32 res = DR_CPU_RES_FAILURE;
 			__u32 stat = DR_CPU_STAT_UNCONFIGURED;
 
-			if (!cpu_present(cpu)) {
+			if (!cpu_present(cpu))
+			{
 				/* CPU not present in MD */
 				res = DR_CPU_RES_NOT_IN_MD;
 				stat = DR_CPU_STAT_NOT_PRESENT;
-			} else if (err == -ENODEV) {
+			}
+			else if (err == -ENODEV)
+			{
 				/* CPU did not call in successfully */
 				res = DR_CPU_RES_CPU_NOT_RESPONDING;
 			}
 
 			printk(KERN_INFO "ds-%llu: CPU startup failed err=%d\n",
-			       dp->id, err);
+				   dp->id, err);
 			dr_cpu_mark(resp, cpu, ncpus, res, stat);
 		}
 	}
@@ -586,9 +647,9 @@ static int dr_cpu_configure(struct ds_info *dp, struct ds_cap_state *cp,
 }
 
 static int dr_cpu_unconfigure(struct ds_info *dp,
-			      struct ds_cap_state *cp,
-			      u64 req_num,
-			      cpumask_t *mask)
+							  struct ds_cap_state *cp,
+							  u64 req_num,
+							  cpumask_t *mask)
 {
 	struct ds_data *resp;
 	int resp_len, ncpus, cpu;
@@ -597,23 +658,28 @@ static int dr_cpu_unconfigure(struct ds_info *dp,
 	ncpus = cpumask_weight(mask);
 	resp_len = dr_cpu_size_response(ncpus);
 	resp = kzalloc(resp_len, GFP_KERNEL);
+
 	if (!resp)
+	{
 		return -ENOMEM;
+	}
 
 	dr_cpu_init_response(resp, req_num, cp->handle,
-			     resp_len, ncpus, mask,
-			     DR_CPU_STAT_UNCONFIGURED);
+						 resp_len, ncpus, mask,
+						 DR_CPU_STAT_UNCONFIGURED);
 
-	for_each_cpu(cpu, mask) {
+	for_each_cpu(cpu, mask)
+	{
 		int err;
 
 		printk(KERN_INFO "ds-%llu: Shutting down cpu %d...\n",
-		       dp->id, cpu);
+			   dp->id, cpu);
 		err = cpu_down(cpu);
+
 		if (err)
 			dr_cpu_mark(resp, cpu, ncpus,
-				    DR_CPU_RES_FAILURE,
-				    DR_CPU_STAT_CONFIGURED);
+						DR_CPU_RES_FAILURE,
+						DR_CPU_STAT_CONFIGURED);
 	}
 
 	spin_lock_irqsave(&ds_lock, flags);
@@ -626,7 +692,7 @@ static int dr_cpu_unconfigure(struct ds_info *dp,
 }
 
 static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
-			int len)
+						int len)
 {
 	struct ds_data *data = buf;
 	struct dr_cpu_tag *tag = (struct dr_cpu_tag *) (data + 1);
@@ -636,39 +702,53 @@ static void dr_cpu_data(struct ds_info *dp, struct ds_cap_state *cp, void *buf,
 	unsigned int i;
 	int err;
 
-	switch (tag->type) {
-	case DR_CPU_CONFIGURE:
-	case DR_CPU_UNCONFIGURE:
-	case DR_CPU_FORCE_UNCONFIGURE:
-		break;
+	switch (tag->type)
+	{
+		case DR_CPU_CONFIGURE:
+		case DR_CPU_UNCONFIGURE:
+		case DR_CPU_FORCE_UNCONFIGURE:
+			break;
 
-	default:
-		dr_cpu_send_error(dp, cp, data);
-		return;
+		default:
+			dr_cpu_send_error(dp, cp, data);
+			return;
 	}
 
 	purge_dups(cpu_list, tag->num_records);
 
 	cpumask_clear(&mask);
-	for (i = 0; i < tag->num_records; i++) {
+
+	for (i = 0; i < tag->num_records; i++)
+	{
 		if (cpu_list[i] == CPU_SENTINEL)
+		{
 			continue;
+		}
 
 		if (cpu_list[i] < nr_cpu_ids)
+		{
 			cpumask_set_cpu(cpu_list[i], &mask);
+		}
 	}
 
 	if (tag->type == DR_CPU_CONFIGURE)
+	{
 		err = dr_cpu_configure(dp, cp, req_num, &mask);
+	}
 	else
+	{
 		err = dr_cpu_unconfigure(dp, cp, req_num, &mask);
+	}
 
 	if (err)
+	{
 		dr_cpu_send_error(dp, cp, data);
+	}
 }
 #endif /* CONFIG_HOTPLUG_CPU */
 
-struct ds_pri_msg {
+struct ds_pri_msg
+{
 	__u64				req_num;
 	__u64				type;
 #define DS_PRI_REQUEST			0x00
@@ -677,8 +757,8 @@ struct ds_pri_msg {
 };
 
 static void ds_pri_data(struct ds_info *dp,
-			struct ds_cap_state *cp,
-			void *buf, int len)
+						struct ds_cap_state *cp,
+						void *buf, int len)
 {
 	struct ds_data *dpkt = buf;
 	struct ds_pri_msg *rp;
@@ -686,10 +766,11 @@ static void ds_pri_data(struct ds_info *dp,
 	rp = (struct ds_pri_msg *) (dpkt + 1);
 
 	printk(KERN_INFO "ds-%llu: PRI REQ [%llx:%llx], len=%d\n",
-	       dp->id, rp->req_num, rp->type, len);
+		   dp->id, rp->req_num, rp->type, len);
 }
 
-struct ds_var_hdr {
+struct ds_var_hdr
+{
 	__u32				type;
 #define DS_VAR_SET_REQ			0x00
 #define DS_VAR_DELETE_REQ		0x01
@@ -697,17 +778,20 @@ struct ds_var_hdr {
 #define DS_VAR_DELETE_RESP		0x03
 };
 
-struct ds_var_set_msg {
+struct ds_var_set_msg
+{
 	struct ds_var_hdr		hdr;
 	char				name_and_value[0];
 };
 
-struct ds_var_delete_msg {
+struct ds_var_delete_msg
+{
 	struct ds_var_hdr		hdr;
 	char				name[0];
 };
 
-struct ds_var_resp {
+struct ds_var_resp
+{
 	struct ds_var_hdr		hdr;
 	__u32				result;
 #define DS_VAR_SUCCESS			0x00
@@ -722,8 +806,8 @@ static int ds_var_doorbell;
 static int ds_var_response;
 
 static void ds_var_data(struct ds_info *dp,
-			struct ds_cap_state *cp,
-			void *buf, int len)
+						struct ds_cap_state *cp,
+						void *buf, int len)
 {
 	struct ds_data *dpkt = buf;
 	struct ds_var_resp *rp;
@@ -731,8 +815,10 @@ static void ds_var_data(struct ds_info *dp,
 	rp = (struct ds_var_resp *) (dpkt + 1);
 
 	if (rp->hdr.type != DS_VAR_SET_RESP &&
-	    rp->hdr.type != DS_VAR_DELETE_RESP)
+		rp->hdr.type != DS_VAR_DELETE_RESP)
+	{
 		return;
+	}
 
 	ds_var_response = rp->result;
 	wmb();
@@ -747,31 +833,44 @@ void ldom_set_var(const char *var, const char *value)
 
 	spin_lock_irqsave(&ds_lock, flags);
 	cp = NULL;
-	for (dp = ds_info_list; dp; dp = dp->next) {
+
+	for (dp = ds_info_list; dp; dp = dp->next)
+	{
 		struct ds_cap_state *tmp;
 
 		tmp = find_cap_by_string(dp, "var-config");
-		if (tmp && tmp->state == CAP_STATE_REGISTERED) {
+
+		if (tmp && tmp->state == CAP_STATE_REGISTERED)
+		{
 			cp = tmp;
 			break;
 		}
 	}
-	if (!cp) {
-		for (dp = ds_info_list; dp; dp = dp->next) {
+
+	if (!cp)
+	{
+		for (dp = ds_info_list; dp; dp = dp->next)
+		{
 			struct ds_cap_state *tmp;
 
 			tmp = find_cap_by_string(dp, "var-config-backup");
-			if (tmp && tmp->state == CAP_STATE_REGISTERED) {
+
+			if (tmp && tmp->state == CAP_STATE_REGISTERED)
+			{
 				cp = tmp;
 				break;
 			}
 		}
 	}
+
 	spin_unlock_irqrestore(&ds_lock, flags);
 
-	if (cp) {
-		union {
-			struct {
+	if (cp)
+	{
+		union
+		{
+			struct
+			{
 				struct ds_data		data;
 				struct ds_var_set_msg	msg;
 			} header;
@@ -781,12 +880,13 @@ void ldom_set_var(const char *var, const char *value)
 		int msg_len, loops;
 
 		if (strlen(var) + strlen(value) + 2 >
-		    sizeof(pkt) - sizeof(pkt.header)) {
+			sizeof(pkt) - sizeof(pkt.header))
+		{
 			printk(KERN_ERR PFX
-				"contents length: %zu, which more than max: %lu,"
-				"so could not set (%s) variable to (%s).\n",
-				strlen(var) + strlen(value) + 2,
-				sizeof(pkt) - sizeof(pkt.header), var, value);
+				   "contents length: %zu, which more than max: %lu,"
+				   "so could not set (%s) variable to (%s).\n",
+				   strlen(var) + strlen(value) + 2,
+				   sizeof(pkt) - sizeof(pkt.header), var, value);
 			return;
 		}
 
@@ -801,8 +901,8 @@ void ldom_set_var(const char *var, const char *value)
 		p += strlen(value) + 1;
 
 		msg_len = (sizeof(struct ds_data) +
-			   sizeof(struct ds_var_set_msg) +
-			   (p - base));
+				   sizeof(struct ds_var_set_msg) +
+				   (p - base));
 		msg_len = (msg_len + 3) & ~3;
 		pkt.header.data.tag.len = msg_len - sizeof(struct ds_msg_tag);
 
@@ -816,9 +916,14 @@ void ldom_set_var(const char *var, const char *value)
 		spin_unlock_irqrestore(&ds_lock, flags);
 
 		loops = 1000;
-		while (ds_var_doorbell == 0) {
+
+		while (ds_var_doorbell == 0)
+		{
 			if (loops-- < 0)
+			{
 				break;
+			}
+
 			barrier();
 			udelay(100);
 		}
@@ -826,15 +931,17 @@ void ldom_set_var(const char *var, const char *value)
 		mutex_unlock(&ds_var_mutex);
 
 		if (ds_var_doorbell == 0 ||
-		    ds_var_response != DS_VAR_SUCCESS)
+			ds_var_response != DS_VAR_SUCCESS)
 			printk(KERN_ERR "ds-%llu: var-config [%s:%s] "
-			       "failed, response(%d).\n",
-			       dp->id, var, value,
-			       ds_var_response);
-	} else {
+				   "failed, response(%d).\n",
+				   dp->id, var, value,
+				   ds_var_response);
+	}
+	else
+	{
 		printk(KERN_ERR PFX "var-config not registered so "
-		       "could not set (%s) variable to (%s).\n",
-		       var, value);
+			   "could not set (%s) variable to (%s).\n",
+			   var, value);
 	}
 }
 
@@ -846,25 +953,31 @@ void ldom_reboot(const char *boot_command)
 	/* Don't bother with any of this if the boot_command
 	 * is empty.
 	 */
-	if (boot_command && strlen(boot_command)) {
+	if (boot_command && strlen(boot_command))
+	{
 		unsigned long len;
 
 		snprintf(full_boot_str, sizeof(full_boot_str), "boot %s",
-			 boot_command);
+				 boot_command);
 		len = strlen(full_boot_str);
 
-		if (reboot_data_supported) {
+		if (reboot_data_supported)
+		{
 			unsigned long ra = kimage_addr_to_ra(full_boot_str);
 			unsigned long hv_ret;
 
 			hv_ret = sun4v_reboot_data_set(ra, len);
+
 			if (hv_ret != HV_EOK)
 				pr_err("SUN4V: Unable to set reboot data "
-				       "hv_ret=%lu\n", hv_ret);
-		} else {
+					   "hv_ret=%lu\n", hv_ret);
+		}
+		else
+		{
 			ldom_set_var("reboot-command", full_boot_str);
 		}
 	}
+
 	sun4v_mach_sir();
 }
 
@@ -876,7 +989,7 @@ void ldom_power_off(void)
 static void ds_conn_reset(struct ds_info *dp)
 {
 	printk(KERN_ERR "ds-%llu: ds_conn_reset() from %pf\n",
-	       dp->id, __builtin_return_address(0));
+		   dp->id, __builtin_return_address(0));
 }
 
 static int register_services(struct ds_info *dp)
@@ -884,8 +997,10 @@ static int register_services(struct ds_info *dp)
 	struct ldc_channel *lp = dp->lp;
 	int i;
 
-	for (i = 0; i < dp->num_ds_states; i++) {
-		struct {
+	for (i = 0; i < dp->num_ds_states; i++)
+	{
+		struct
+		{
 			struct ds_reg_req req;
 			u8 id_buf[256];
 		} pbuf;
@@ -894,13 +1009,15 @@ static int register_services(struct ds_info *dp)
 		u64 new_count;
 
 		if (cp->state == CAP_STATE_REGISTERED)
+		{
 			continue;
+		}
 
 		new_count = sched_clock() & 0xffffffff;
 		cp->handle = ((u64) i << 32) | new_count;
 
 		msg_len = (sizeof(struct ds_reg_req) +
-			   strlen(cp->service_id));
+				   strlen(cp->service_id));
 
 		memset(&pbuf, 0, sizeof(pbuf));
 		pbuf.req.tag.type = DS_REG_REQ;
@@ -911,18 +1028,25 @@ static int register_services(struct ds_info *dp)
 		strcpy(pbuf.req.svc_id, cp->service_id);
 
 		err = __ds_send(lp, &pbuf, msg_len);
+
 		if (err > 0)
+		{
 			cp->state = CAP_STATE_REG_SENT;
+		}
 	}
+
 	return 0;
 }
 
 static int ds_handshake(struct ds_info *dp, struct ds_msg_tag *pkt)
 {
 
-	if (dp->hs_state == DS_HS_START) {
+	if (dp->hs_state == DS_HS_START)
+	{
 		if (pkt->type != DS_INIT_ACK)
+		{
 			goto conn_reset;
+		}
 
 		dp->hs_state = DS_HS_DONE;
 
@@ -930,30 +1054,39 @@ static int ds_handshake(struct ds_info *dp, struct ds_msg_tag *pkt)
 	}
 
 	if (dp->hs_state != DS_HS_DONE)
+	{
 		goto conn_reset;
+	}
 
-	if (pkt->type == DS_REG_ACK) {
+	if (pkt->type == DS_REG_ACK)
+	{
 		struct ds_reg_ack *ap = (struct ds_reg_ack *) pkt;
 		struct ds_cap_state *cp = find_cap(dp, ap->handle);
 
-		if (!cp) {
+		if (!cp)
+		{
 			printk(KERN_ERR "ds-%llu: REG ACK for unknown "
-			       "handle %llx\n", dp->id, ap->handle);
+				   "handle %llx\n", dp->id, ap->handle);
 			return 0;
 		}
+
 		printk(KERN_INFO "ds-%llu: Registered %s service.\n",
-		       dp->id, cp->service_id);
+			   dp->id, cp->service_id);
 		cp->state = CAP_STATE_REGISTERED;
-	} else if (pkt->type == DS_REG_NACK) {
+	}
+	else if (pkt->type == DS_REG_NACK)
+	{
 		struct ds_reg_nack *np = (struct ds_reg_nack *) pkt;
 		struct ds_cap_state *cp = find_cap(dp, np->handle);
 
-		if (!cp) {
+		if (!cp)
+		{
 			printk(KERN_ERR "ds-%llu: REG NACK for "
-			       "unknown handle %llx\n",
-			       dp->id, np->handle);
+				   "unknown handle %llx\n",
+				   dp->id, np->handle);
 			return 0;
 		}
+
 		cp->state = CAP_STATE_UNKNOWN;
 	}
 
@@ -966,11 +1099,12 @@ conn_reset:
 
 static void __send_ds_nack(struct ds_info *dp, u64 handle)
 {
-	struct ds_data_nack nack = {
+	struct ds_data_nack nack =
+	{
 		.tag = {
 			.type = DS_NACK,
 			.len = (sizeof(struct ds_data_nack) -
-				sizeof(struct ds_msg_tag)),
+			sizeof(struct ds_msg_tag)),
 		},
 		.handle = handle,
 		.result = DS_INV_HDL,
@@ -982,7 +1116,8 @@ static void __send_ds_nack(struct ds_info *dp, u64 handle)
 static LIST_HEAD(ds_work_list);
 static DECLARE_WAIT_QUEUE_HEAD(ds_wait);
 
-struct ds_queue_entry {
+struct ds_queue_entry
+{
 	struct list_head		list;
 	struct ds_info			*dp;
 	int				req_len;
@@ -1000,21 +1135,25 @@ static void process_ds_work(void)
 	list_splice_init(&ds_work_list, &todo);
 	spin_unlock_irqrestore(&ds_lock, flags);
 
-	list_for_each_entry_safe(qp, tmp, &todo, list) {
+	list_for_each_entry_safe(qp, tmp, &todo, list)
+	{
 		struct ds_data *dpkt = (struct ds_data *) qp->req;
 		struct ds_info *dp = qp->dp;
 		struct ds_cap_state *cp = find_cap(dp, dpkt->handle);
 		int req_len = qp->req_len;
 
-		if (!cp) {
+		if (!cp)
+		{
 			printk(KERN_ERR "ds-%llu: Data for unknown "
-			       "handle %llu\n",
-			       dp->id, dpkt->handle);
+				   "handle %llu\n",
+				   dp->id, dpkt->handle);
 
 			spin_lock_irqsave(&ds_lock, flags);
 			__send_ds_nack(dp, dpkt->handle);
 			spin_unlock_irqrestore(&ds_lock, flags);
-		} else {
+		}
+		else
+		{
 			cp->data(dp, cp, dpkt, req_len);
 		}
 
@@ -1027,14 +1166,21 @@ static int ds_thread(void *__unused)
 {
 	DEFINE_WAIT(wait);
 
-	while (1) {
+	while (1)
+	{
 		prepare_to_wait(&ds_wait, &wait, TASK_INTERRUPTIBLE);
+
 		if (list_empty(&ds_work_list))
+		{
 			schedule();
+		}
+
 		finish_wait(&ds_wait, &wait);
 
 		if (kthread_should_stop())
+		{
 			break;
+		}
 
 		process_ds_work();
 	}
@@ -1048,14 +1194,19 @@ static int ds_data(struct ds_info *dp, struct ds_msg_tag *pkt, int len)
 	struct ds_queue_entry *qp;
 
 	qp = kmalloc(sizeof(struct ds_queue_entry) + len, GFP_ATOMIC);
-	if (!qp) {
+
+	if (!qp)
+	{
 		__send_ds_nack(dp, dpkt->handle);
-	} else {
+	}
+	else
+	{
 		qp->dp = dp;
 		memcpy(&qp->req, pkt, len);
 		list_add_tail(&qp->list, &ds_work_list);
 		wake_up(&ds_wait);
 	}
+
 	return 0;
 }
 
@@ -1071,8 +1222,11 @@ static void ds_up(struct ds_info *dp)
 	req.ver.minor = 0;
 
 	err = __ds_send(lp, &req, sizeof(req));
+
 	if (err > 0)
+	{
 		dp->hs_state = DS_HS_START;
+	}
 }
 
 static void ds_reset(struct ds_info *dp)
@@ -1081,7 +1235,8 @@ static void ds_reset(struct ds_info *dp)
 
 	dp->hs_state = 0;
 
-	for (i = 0; i < dp->num_ds_states; i++) {
+	for (i = 0; i < dp->num_ds_states; i++)
+	{
 		struct ds_cap_state *cp = &dp->ds_states[i];
 
 		cp->state = CAP_STATE_UNKNOWN;
@@ -1097,57 +1252,81 @@ static void ds_event(void *arg, int event)
 
 	spin_lock_irqsave(&ds_lock, flags);
 
-	if (event == LDC_EVENT_UP) {
+	if (event == LDC_EVENT_UP)
+	{
 		ds_up(dp);
 		spin_unlock_irqrestore(&ds_lock, flags);
 		return;
 	}
 
-	if (event == LDC_EVENT_RESET) {
+	if (event == LDC_EVENT_RESET)
+	{
 		ds_reset(dp);
 		spin_unlock_irqrestore(&ds_lock, flags);
 		return;
 	}
 
-	if (event != LDC_EVENT_DATA_READY) {
+	if (event != LDC_EVENT_DATA_READY)
+	{
 		printk(KERN_WARNING "ds-%llu: Unexpected LDC event %d\n",
-		       dp->id, event);
+			   dp->id, event);
 		spin_unlock_irqrestore(&ds_lock, flags);
 		return;
 	}
 
 	err = 0;
-	while (1) {
+
+	while (1)
+	{
 		struct ds_msg_tag *tag;
 
 		err = ldc_read(lp, dp->rcv_buf, sizeof(*tag));
 
-		if (unlikely(err < 0)) {
+		if (unlikely(err < 0))
+		{
 			if (err == -ECONNRESET)
+			{
 				ds_conn_reset(dp);
+			}
+
 			break;
 		}
+
 		if (err == 0)
+		{
 			break;
+		}
 
 		tag = dp->rcv_buf;
 		err = ldc_read(lp, tag + 1, tag->len);
 
-		if (unlikely(err < 0)) {
+		if (unlikely(err < 0))
+		{
 			if (err == -ECONNRESET)
+			{
 				ds_conn_reset(dp);
+			}
+
 			break;
 		}
+
 		if (err < tag->len)
+		{
 			break;
+		}
 
 		if (tag->type < DS_DATA)
+		{
 			err = ds_handshake(dp, dp->rcv_buf);
+		}
 		else
 			err = ds_data(dp, dp->rcv_buf,
-				      sizeof(*tag) + err);
+						  sizeof(*tag) + err);
+
 		if (err == -ECONNRESET)
+		{
 			break;
+		}
 	}
 
 	spin_unlock_irqrestore(&ds_lock, flags);
@@ -1156,7 +1335,8 @@ static void ds_event(void *arg, int event)
 static int ds_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 {
 	static int ds_version_printed;
-	struct ldc_channel_config ds_cfg = {
+	struct ldc_channel_config ds_cfg =
+	{
 		.event		= ds_event,
 		.mtu		= 4096,
 		.mode		= LDC_MODE_STREAM,
@@ -1168,48 +1348,71 @@ static int ds_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 	int err, i;
 
 	if (ds_version_printed++ == 0)
+	{
 		printk(KERN_INFO "%s", version);
+	}
 
 	dp = kzalloc(sizeof(*dp), GFP_KERNEL);
 	err = -ENOMEM;
+
 	if (!dp)
+	{
 		goto out_err;
+	}
 
 	hp = mdesc_grab();
 	val = mdesc_get_property(hp, vdev->mp, "id", NULL);
+
 	if (val)
+	{
 		dp->id = *val;
+	}
+
 	mdesc_release(hp);
 
 	dp->rcv_buf = kzalloc(4096, GFP_KERNEL);
+
 	if (!dp->rcv_buf)
+	{
 		goto out_free_dp;
+	}
 
 	dp->rcv_buf_len = 4096;
 
 	dp->ds_states = kmemdup(ds_states_template,
-				sizeof(ds_states_template), GFP_KERNEL);
+							sizeof(ds_states_template), GFP_KERNEL);
+
 	if (!dp->ds_states)
+	{
 		goto out_free_rcv_buf;
+	}
 
 	dp->num_ds_states = ARRAY_SIZE(ds_states_template);
 
 	for (i = 0; i < dp->num_ds_states; i++)
+	{
 		dp->ds_states[i].handle = ((u64)i << 32);
+	}
 
 	ds_cfg.tx_irq = vdev->tx_irq;
 	ds_cfg.rx_irq = vdev->rx_irq;
 
 	lp = ldc_alloc(vdev->channel_id, &ds_cfg, dp, "DS");
-	if (IS_ERR(lp)) {
+
+	if (IS_ERR(lp))
+	{
 		err = PTR_ERR(lp);
 		goto out_free_ds_states;
 	}
+
 	dp->lp = lp;
 
 	err = ldc_bind(lp);
+
 	if (err)
+	{
 		goto out_free_ldc;
+	}
 
 	spin_lock_irq(&ds_lock);
 	dp->next = ds_info_list;
@@ -1239,14 +1442,16 @@ static int ds_remove(struct vio_dev *vdev)
 	return 0;
 }
 
-static const struct vio_device_id ds_match[] = {
+static const struct vio_device_id ds_match[] =
+{
 	{
 		.type = "domain-services-port",
 	},
 	{},
 };
 
-static struct vio_driver ds_driver = {
+static struct vio_driver ds_driver =
+{
 	.id_table	= ds_match,
 	.probe		= ds_probe,
 	.remove		= ds_remove,
@@ -1257,14 +1462,18 @@ static int __init ds_init(void)
 {
 	unsigned long hv_ret, major, minor;
 
-	if (tlb_type == hypervisor) {
+	if (tlb_type == hypervisor)
+	{
 		hv_ret = sun4v_get_version(HV_GRP_REBOOT_DATA, &major, &minor);
-		if (hv_ret == HV_EOK) {
+
+		if (hv_ret == HV_EOK)
+		{
 			pr_info("SUN4V: Reboot data supported (maj=%lu,min=%lu).\n",
-				major, minor);
+					major, minor);
 			reboot_data_supported = 1;
 		}
 	}
+
 	kthread_run(ds_thread, NULL, "kldomd");
 
 	return vio_register_driver(&ds_driver);

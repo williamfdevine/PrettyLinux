@@ -17,7 +17,8 @@
  * TX & RX, and can be used for either source or destination
  * channels.
  */
-enum dma_dev_type {
+enum dma_dev_type
+{
 	DB8500_DMA_DEV0_SPI0 = 0,
 	DB8500_DMA_DEV1_SD_MMC0 = 1,
 	DB8500_DMA_DEV2_SD_MMC1 = 2,

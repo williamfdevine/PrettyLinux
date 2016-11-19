@@ -4,7 +4,8 @@
 #include <linux/threads.h>
 #include <linux/irq.h>
 
-typedef struct {
+typedef struct
+{
 	unsigned int __softirq_pending;
 	unsigned int __nmi_count;	/* arch dependent */
 #ifdef CONFIG_X86_LOCAL_APIC
@@ -49,7 +50,7 @@ DECLARE_PER_CPU_SHARED_ALIGNED(irq_cpustat_t, irq_stat);
 #define __ARCH_SET_SOFTIRQ_PENDING
 
 #define set_softirq_pending(x)	\
-		this_cpu_write(irq_stat.__softirq_pending, (x))
+	this_cpu_write(irq_stat.__softirq_pending, (x))
 #define or_softirq_pending(x)	this_cpu_or(irq_stat.__softirq_pending, (x))
 
 extern void ack_bad_irq(unsigned int irq);

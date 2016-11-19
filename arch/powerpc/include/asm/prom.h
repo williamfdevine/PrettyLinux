@@ -49,7 +49,8 @@
  * the job of everybody. It's just a list of u64 pairs (base/size) that
  * ends when size is 0
  */
-struct boot_param_header {
+struct boot_param_header
+{
 	__be32	magic;			/* magic word OF_DT_HEADER */
 	__be32	totalsize;		/* total size of DT block */
 	__be32	off_dt_struct;		/* offset to structure */
@@ -73,8 +74,8 @@ struct boot_param_header {
  * size parameters.
  */
 void of_parse_dma_window(struct device_node *dn, const __be32 *dma_window,
-			 unsigned long *busno, unsigned long *phys,
-			 unsigned long *size);
+						 unsigned long *busno, unsigned long *phys,
+						 unsigned long *size);
 
 extern void of_instantiate_rtc(void);
 
@@ -84,7 +85,8 @@ extern int of_get_ibm_chip_id(struct device_node *np);
  * specified in the device tree property
  * ibm,dynamic-reconfiguration-memory/ibm,dynamic-memory
  */
-struct of_drconf_cell {
+struct of_drconf_cell
+{
 	u64	base_addr;
 	u32	drc_index;
 	u32	reserved;

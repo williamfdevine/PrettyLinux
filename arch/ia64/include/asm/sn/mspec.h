@@ -24,10 +24,10 @@
 #define FETCHOP_CLEAR_CACHE	56
 
 #define FETCHOP_LOAD_OP(addr, op) ( \
-         *(volatile long *)((char*) (addr) + (op)))
+									*(volatile long *)((char*) (addr) + (op)))
 
 #define FETCHOP_STORE_OP(addr, op, x) ( \
-         *(volatile long *)((char*) (addr) + (op)) = (long) (x))
+										*(volatile long *)((char*) (addr) + (op)) = (long) (x))
 
 #ifdef __KERNEL__
 
@@ -48,9 +48,10 @@
  * overwrite the uncached value in physical memory and lead to
  * inconsistency.
  */
-struct amo {
-        u64 variable;
-        u64 unused[7];
+struct amo
+{
+	u64 variable;
+	u64 unused[7];
 };
 
 

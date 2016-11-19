@@ -12,9 +12,9 @@
 #include <asm/io.h>		/* need byte IO */
 
 #ifdef HAVE_REALLY_SLOW_DMA_CONTROLLER
-#define dma_outb	outb_p
+	#define dma_outb	outb_p
 #else
-#define dma_outb	outb
+	#define dma_outb	outb
 #endif
 
 #define dma_inb		inb
@@ -76,11 +76,11 @@
 #define MAX_DMA32_PFN ((4UL * 1024 * 1024 * 1024) >> PAGE_SHIFT)
 
 #ifdef CONFIG_X86_32
-/* The maximum address that we can perform a DMA transfer to on this platform */
-#define MAX_DMA_ADDRESS      (PAGE_OFFSET + 0x1000000)
+	/* The maximum address that we can perform a DMA transfer to on this platform */
+	#define MAX_DMA_ADDRESS      (PAGE_OFFSET + 0x1000000)
 #else
-/* Compat define for old dma zone */
-#define MAX_DMA_ADDRESS ((unsigned long)__va(MAX_DMA_PFN << PAGE_SHIFT))
+	/* Compat define for old dma zone */
+	#define MAX_DMA_ADDRESS ((unsigned long)__va(MAX_DMA_PFN << PAGE_SHIFT))
 #endif
 
 /* 8237 DMA controllers */
@@ -166,17 +166,25 @@ static inline void release_dma_lock(unsigned long flags)
 static inline void enable_dma(unsigned int dmanr)
 {
 	if (dmanr <= 3)
+	{
 		dma_outb(dmanr, DMA1_MASK_REG);
+	}
 	else
+	{
 		dma_outb(dmanr & 3, DMA2_MASK_REG);
+	}
 }
 
 static inline void disable_dma(unsigned int dmanr)
 {
 	if (dmanr <= 3)
+	{
 		dma_outb(dmanr | 4, DMA1_MASK_REG);
+	}
 	else
+	{
 		dma_outb((dmanr & 3) | 4, DMA2_MASK_REG);
+	}
 }
 
 /* Clear the 'DMA Pointer Flip Flop'.
@@ -189,18 +197,26 @@ static inline void disable_dma(unsigned int dmanr)
 static inline void clear_dma_ff(unsigned int dmanr)
 {
 	if (dmanr <= 3)
+	{
 		dma_outb(0, DMA1_CLEAR_FF_REG);
+	}
 	else
+	{
 		dma_outb(0, DMA2_CLEAR_FF_REG);
+	}
 }
 
 /* set mode (above) for a specific DMA channel */
 static inline void set_dma_mode(unsigned int dmanr, char mode)
 {
 	if (dmanr <= 3)
+	{
 		dma_outb(mode | dmanr, DMA1_MODE_REG);
+	}
 	else
+	{
 		dma_outb(mode | (dmanr & 3), DMA2_MODE_REG);
+	}
 }
 
 /* Set only the page register bits of the transfer address.
@@ -210,28 +226,35 @@ static inline void set_dma_mode(unsigned int dmanr, char mode)
  */
 static inline void set_dma_page(unsigned int dmanr, char pagenr)
 {
-	switch (dmanr) {
-	case 0:
-		dma_outb(pagenr, DMA_PAGE_0);
-		break;
-	case 1:
-		dma_outb(pagenr, DMA_PAGE_1);
-		break;
-	case 2:
-		dma_outb(pagenr, DMA_PAGE_2);
-		break;
-	case 3:
-		dma_outb(pagenr, DMA_PAGE_3);
-		break;
-	case 5:
-		dma_outb(pagenr & 0xfe, DMA_PAGE_5);
-		break;
-	case 6:
-		dma_outb(pagenr & 0xfe, DMA_PAGE_6);
-		break;
-	case 7:
-		dma_outb(pagenr & 0xfe, DMA_PAGE_7);
-		break;
+	switch (dmanr)
+	{
+		case 0:
+			dma_outb(pagenr, DMA_PAGE_0);
+			break;
+
+		case 1:
+			dma_outb(pagenr, DMA_PAGE_1);
+			break;
+
+		case 2:
+			dma_outb(pagenr, DMA_PAGE_2);
+			break;
+
+		case 3:
+			dma_outb(pagenr, DMA_PAGE_3);
+			break;
+
+		case 5:
+			dma_outb(pagenr & 0xfe, DMA_PAGE_5);
+			break;
+
+		case 6:
+			dma_outb(pagenr & 0xfe, DMA_PAGE_6);
+			break;
+
+		case 7:
+			dma_outb(pagenr & 0xfe, DMA_PAGE_7);
+			break;
 	}
 }
 
@@ -241,11 +264,15 @@ static inline void set_dma_page(unsigned int dmanr, char pagenr)
  */
 static inline void set_dma_addr(unsigned int dmanr, unsigned int a)
 {
-	set_dma_page(dmanr, a>>16);
-	if (dmanr <= 3)  {
+	set_dma_page(dmanr, a >> 16);
+
+	if (dmanr <= 3)
+	{
 		dma_outb(a & 0xff, ((dmanr & 3) << 1) + IO_DMA1_BASE);
 		dma_outb((a >> 8) & 0xff, ((dmanr & 3) << 1) + IO_DMA1_BASE);
-	}  else  {
+	}
+	else
+	{
 		dma_outb((a >> 1) & 0xff, ((dmanr & 3) << 2) + IO_DMA2_BASE);
 		dma_outb((a >> 9) & 0xff, ((dmanr & 3) << 2) + IO_DMA2_BASE);
 	}
@@ -263,15 +290,19 @@ static inline void set_dma_addr(unsigned int dmanr, unsigned int a)
 static inline void set_dma_count(unsigned int dmanr, unsigned int count)
 {
 	count--;
-	if (dmanr <= 3)  {
+
+	if (dmanr <= 3)
+	{
 		dma_outb(count & 0xff, ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE);
 		dma_outb((count >> 8) & 0xff,
-			 ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE);
-	} else {
+				 ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE);
+	}
+	else
+	{
 		dma_outb((count >> 1) & 0xff,
-			 ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE);
+				 ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE);
 		dma_outb((count >> 9) & 0xff,
-			 ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE);
+				 ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE);
 	}
 }
 
@@ -291,7 +322,7 @@ static inline int get_dma_residue(unsigned int dmanr)
 	unsigned short count;
 
 	io_port = (dmanr <= 3) ? ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE
-		: ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE;
+			  : ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE;
 
 	count = 1 + dma_inb(io_port);
 	count += dma_inb(io_port) << 8;
@@ -302,16 +333,16 @@ static inline int get_dma_residue(unsigned int dmanr)
 
 /* These are in kernel/dma.c because x86 uses CONFIG_GENERIC_ISA_DMA */
 #ifdef CONFIG_ISA_DMA_API
-extern int request_dma(unsigned int dmanr, const char *device_id);
-extern void free_dma(unsigned int dmanr);
+	extern int request_dma(unsigned int dmanr, const char *device_id);
+	extern void free_dma(unsigned int dmanr);
 #endif
 
 /* From PCI */
 
 #ifdef CONFIG_PCI
-extern int isa_dma_bridge_buggy;
+	extern int isa_dma_bridge_buggy;
 #else
-#define isa_dma_bridge_buggy	(0)
+	#define isa_dma_bridge_buggy	(0)
 #endif
 
 #endif /* _ASM_X86_DMA_H */

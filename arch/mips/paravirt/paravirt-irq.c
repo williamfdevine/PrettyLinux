@@ -24,7 +24,8 @@ static int cpunum_for_cpu(int cpu)
 #endif
 }
 
-struct core_chip_data {
+struct core_chip_data
+{
 	struct mutex core_irq_mutex;
 	bool current_en;
 	bool desired_en;
@@ -44,9 +45,12 @@ static void irq_core_ack(struct irq_data *data)
 	 * interrupt code.
 	 */
 	clear_c0_status(0x100 << bit);
+
 	/* The two user interrupts must be cleared manually. */
 	if (bit < 2)
+	{
 		clear_c0_cause(0x100 << bit);
+	}
 }
 
 static void irq_core_eoi(struct irq_data *data)
@@ -71,9 +75,13 @@ static void irq_core_set_enable_local(void *arg)
 	 * Interrupts are already disabled, so these are atomic.
 	 */
 	if (cd->desired_en)
+	{
 		set_c0_status(mask);
+	}
 	else
+	{
 		clear_c0_status(mask);
+	}
 
 }
 
@@ -100,7 +108,8 @@ static void irq_core_bus_sync_unlock(struct irq_data *data)
 {
 	struct core_chip_data *cd = irq_data_get_irq_chip_data(data);
 
-	if (cd->desired_en != cd->current_en) {
+	if (cd->desired_en != cd->current_en)
+	{
 		on_each_cpu(irq_core_set_enable_local, data, 1);
 		cd->current_en = cd->desired_en;
 	}
@@ -108,7 +117,8 @@ static void irq_core_bus_sync_unlock(struct irq_data *data)
 	mutex_unlock(&cd->core_irq_mutex);
 }
 
-static struct irq_chip irq_chip_core = {
+static struct irq_chip irq_chip_core =
+{
 	.name = "Core",
 	.irq_enable = irq_core_enable,
 	.irq_disable = irq_core_disable,
@@ -132,7 +142,8 @@ static void __init irq_init_core(void)
 	clear_c0_status(ST0_IM);
 	clear_c0_cause(CAUSEF_IP0 | CAUSEF_IP1);
 
-	for (i = 0; i < ARRAY_SIZE(irq_core_chip_data); i++) {
+	for (i = 0; i < ARRAY_SIZE(irq_core_chip_data); i++)
+	{
 		cd = irq_core_chip_data + i;
 		cd->current_en = false;
 		cd->desired_en = false;
@@ -141,18 +152,20 @@ static void __init irq_init_core(void)
 
 		irq = MIPS_CPU_IRQ_BASE + i;
 
-		switch (i) {
-		case 0: /* SW0 */
-		case 1: /* SW1 */
-		case 5: /* IP5 */
-		case 6: /* IP6 */
-		case 7: /* IP7 */
-			irq_set_chip_data(irq, cd);
-			irq_set_chip_and_handler(irq, &irq_chip_core,
-						 handle_percpu_irq);
-			break;
-		default:
-			break;
+		switch (i)
+		{
+			case 0: /* SW0 */
+			case 1: /* SW1 */
+			case 5: /* IP5 */
+			case 6: /* IP6 */
+			case 7: /* IP7 */
+				irq_set_chip_data(irq, cd);
+				irq_set_chip_and_handler(irq, &irq_chip_core,
+										 handle_percpu_irq);
+				break;
+
+			default:
+				break;
 		}
 	}
 }
@@ -202,7 +215,8 @@ static void irq_pci_unmask(struct irq_data *data)
 	__raw_writel(mask, mips_irq_chip + mips_irq_chip_reg_en_w1s);
 }
 
-static struct irq_chip irq_chip_pci = {
+static struct irq_chip irq_chip_pci =
+{
 	.name = "PCI",
 	.irq_enable = irq_pci_enable,
 	.irq_disable = irq_pci_disable,
@@ -219,7 +233,8 @@ static void irq_mbox_all(struct irq_data *data,  void __iomem *base)
 
 	WARN_ON(mbox >= MBOX_BITS_PER_CPU);
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		unsigned int cpuid = cpunum_for_cpu(cpu);
 		mask = 1 << (cpuid * MBOX_BITS_PER_CPU + mbox);
 		__raw_writel(mask, base + (cpuid * mips_irq_cpu_stride));
@@ -281,7 +296,8 @@ static void irq_mbox_cpu_offline(struct irq_data *data)
 	irq_mbox_cpu_onoffline(data, mips_irq_chip + mips_irq_chip_reg_en_w1c + sizeof(u32));
 }
 
-static struct irq_chip irq_chip_mbox = {
+static struct irq_chip irq_chip_mbox =
+{
 	.name = "MBOX",
 	.irq_enable = irq_mbox_enable,
 	.irq_disable = irq_mbox_disable,
@@ -313,10 +329,14 @@ static void __init irq_pci_init(void)
 	mips_irq_cpu_stride		= stride * 4;
 
 	for (i = 0; i < 4; i++)
+	{
 		irq_set_chip_and_handler(i + MIPS_IRQ_PCIA, &irq_chip_pci, handle_level_irq);
+	}
 
 	for (i = 0; i < 2; i++)
+	{
 		irq_set_chip_and_handler(i + MIPS_IRQ_MBOX0, &irq_chip_mbox, handle_percpu_irq);
+	}
 
 
 	set_c0_status(STATUSF_IP2);
@@ -328,17 +348,24 @@ static void irq_pci_dispatch(void)
 	u32 en;
 
 	en = __raw_readl(mips_irq_chip + mips_irq_chip_reg_src +
-			(cpuid * mips_irq_cpu_stride));
+					 (cpuid * mips_irq_cpu_stride));
 
-	if (!en) {
+	if (!en)
+	{
 		en = __raw_readl(mips_irq_chip + mips_irq_chip_reg_src + (cpuid * mips_irq_cpu_stride) + sizeof(u32));
 		en = (en >> (2 * cpuid)) & 3;
 
 		if (!en)
+		{
 			spurious_interrupt();
+		}
 		else
-			do_IRQ(__ffs(en) + MIPS_IRQ_MBOX0);	/* MBOX type */
-	} else {
+		{
+			do_IRQ(__ffs(en) + MIPS_IRQ_MBOX0);    /* MBOX type */
+		}
+	}
+	else
+	{
 		do_IRQ(__ffs(en));
 	}
 }
@@ -355,14 +382,20 @@ asmlinkage void plat_irq_dispatch(void)
 	unsigned int pending = read_c0_cause() & read_c0_status() & ST0_IM;
 	int ip;
 
-	if (unlikely(!pending)) {
+	if (unlikely(!pending))
+	{
 		spurious_interrupt();
 		return;
 	}
 
 	ip = ffs(pending) - 1 - STATUSB_IP0;
+
 	if (ip == 2)
+	{
 		irq_pci_dispatch();
+	}
 	else
+	{
 		do_IRQ(MIPS_CPU_IRQ_BASE + ip);
+	}
 }

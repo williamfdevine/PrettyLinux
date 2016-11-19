@@ -21,7 +21,7 @@
 /* Assertions. */
 
 #if (XCHAL_HAVE_WINDOWED != 1)
-# error Linux requires the Xtensa Windowed Registers Option.
+	# error Linux requires the Xtensa Windowed Registers Option.
 #endif
 
 #define ARCH_SLAB_MINALIGN	XCHAL_DATA_WIDTH
@@ -35,9 +35,9 @@
  */
 
 #ifdef CONFIG_MMU
-#define TASK_SIZE	__XTENSA_UL_CONST(0x40000000)
+	#define TASK_SIZE	__XTENSA_UL_CONST(0x40000000)
 #else
-#define TASK_SIZE	__XTENSA_UL_CONST(0xffffffff)
+	#define TASK_SIZE	__XTENSA_UL_CONST(0xffffffff)
 #endif
 
 #define STACK_TOP	TASK_SIZE
@@ -87,9 +87,9 @@
  * general-purpose interrupts.
  */
 #if defined(CONFIG_XTENSA_FAKE_NMI) && defined(XCHAL_PROFILING_INTERRUPT)
-#define LOCKLEVEL (PROFILING_INTLEVEL - 1)
+	#define LOCKLEVEL (PROFILING_INTLEVEL - 1)
 #else
-#define LOCKLEVEL XCHAL_EXCM_LEVEL
+	#define LOCKLEVEL XCHAL_EXCM_LEVEL
 #endif
 
 #define TOPLEVEL XCHAL_EXCM_LEVEL
@@ -113,11 +113,13 @@
  */
 #define MAKE_PC_FROM_RA(ra,sp)    (((ra) & 0x3fffffff) | ((sp) & 0xc0000000))
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
-struct thread_struct {
+struct thread_struct
+{
 
 	/* kernel's return address and stack pointer for context switching */
 	unsigned long ra; /* kernel's a0: return address and window call size */
@@ -152,15 +154,15 @@ struct thread_struct {
 #define TASK_UNMAPPED_BASE	(TASK_SIZE / 2)
 
 #define INIT_THREAD  \
-{									\
-	ra:		0, 						\
+	{									\
+		ra:		0, 						\
 	sp:		sizeof(init_stack) + (long) &init_stack,	\
 	current_ds:	{0},						\
-	/*info:		{0}, */						\
-	bad_vaddr:	0,						\
-	bad_uaddr:	0,						\
-	error_code:	0,						\
-}
+		/*info:		{0}, */						\
+		bad_vaddr:	0,						\
+		bad_uaddr:	0,						\
+		error_code:	0,						\
+	}
 
 
 /*
@@ -169,10 +171,10 @@ struct thread_struct {
  *       set_thread_state in signal.c depends on it.
  */
 #define USER_PS_VALUE ((1 << PS_WOE_BIT) |				\
-		       (1 << PS_CALLINC_SHIFT) |			\
-		       (USER_RING << PS_RING_SHIFT) |			\
-		       (1 << PS_UM_BIT) |				\
-		       (1 << PS_EXCM_BIT))
+					   (1 << PS_CALLINC_SHIFT) |			\
+					   (USER_RING << PS_RING_SHIFT) |			\
+					   (1 << PS_UM_BIT) |				\
+					   (1 << PS_EXCM_BIT))
 
 /* Clearing a0 terminates the backtrace. */
 #define start_thread(regs, new_pc, new_sp) \
@@ -217,7 +219,7 @@ extern unsigned long get_wchan(struct task_struct *p);
 #define get_sr(sr) ({unsigned int v; RSR(v,sr); v; })
 
 #ifndef XCHAL_HAVE_EXTERN_REGS
-#define XCHAL_HAVE_EXTERN_REGS 0
+	#define XCHAL_HAVE_EXTERN_REGS 0
 #endif
 
 #if XCHAL_HAVE_EXTERN_REGS

@@ -22,7 +22,8 @@
  * struct arch_clocksource_data - Architecture-specific clocksource information.
  * @vdso_clock_mode: Method the VDSO should use to access the clocksource.
  */
-struct arch_clocksource_data {
+struct arch_clocksource_data
+{
 	u8 vdso_clock_mode;
 };
 

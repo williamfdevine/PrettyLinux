@@ -17,9 +17,9 @@
 #include <asm/io.h>
 
 typedef void (*relocate_new_kernel_t)(
-				unsigned long indirection_page,
-				unsigned long reboot_code_buffer,
-				unsigned long start_address) __noreturn;
+	unsigned long indirection_page,
+	unsigned long reboot_code_buffer,
+	unsigned long start_address) __noreturn;
 
 /*
  * This is a generic machine_kexec function suitable at least for
@@ -47,15 +47,15 @@ void default_machine_kexec(struct kimage *image)
 
 	/* we need both effective and real address here */
 	reboot_code_buffer =
-			(unsigned long)page_address(image->control_code_page);
+		(unsigned long)page_address(image->control_code_page);
 	reboot_code_buffer_phys = virt_to_phys((void *)reboot_code_buffer);
 
 	/* copy our kernel relocation code to the control code page */
 	memcpy((void *)reboot_code_buffer, relocate_new_kernel,
-						relocate_new_kernel_size);
+		   relocate_new_kernel_size);
 
 	flush_icache_range(reboot_code_buffer,
-				reboot_code_buffer + KEXEC_CONTROL_PAGE_SIZE);
+					   reboot_code_buffer + KEXEC_CONTROL_PAGE_SIZE);
 	printk(KERN_INFO "Bye!\n");
 
 	/* now call it */

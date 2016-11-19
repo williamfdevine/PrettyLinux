@@ -62,7 +62,8 @@
 static void __iomem *brd_io;
 static struct irq_domain *domain;
 
-static struct resource smsc911x_resources[] = {
+static struct resource smsc911x_resources[] =
+{
 	{
 		.flags = IORESOURCE_MEM,
 	} , {
@@ -70,12 +71,14 @@ static struct resource smsc911x_resources[] = {
 	},
 };
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.irq_polarity = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.flags = SMSC911X_USE_32BIT | SMSC911X_FORCE_INTERNAL_PHY,
 };
 
-static struct platform_device smsc_lan9217_device = {
+static struct platform_device smsc_lan9217_device =
+{
 	.name = "smsc911x",
 	.id = -1,
 	.dev = {
@@ -98,9 +101,14 @@ static void mxc_expio_irq_handler(struct irq_desc *desc)
 	int_valid = imx_readw(brd_io + INTR_STATUS_REG) & ~imr_val;
 
 	expio_irq = 0;
-	for (; int_valid != 0; int_valid >>= 1, expio_irq++) {
+
+	for (; int_valid != 0; int_valid >>= 1, expio_irq++)
+	{
 		if ((int_valid & 1) == 0)
+		{
 			continue;
+		}
+
 		generic_handle_irq(irq_find_mapping(domain, expio_irq));
 	}
 
@@ -141,13 +149,15 @@ static void expio_unmask_irq(struct irq_data *d)
 	imx_writew(reg, brd_io + INTR_MASK_REG);
 }
 
-static struct irq_chip expio_irq_chip = {
+static struct irq_chip expio_irq_chip =
+{
 	.irq_ack = expio_ack_irq,
 	.irq_mask = expio_mask_irq,
 	.irq_unmask = expio_unmask_irq,
 };
 
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vdd33a", "smsc911x"),
 	REGULATOR_SUPPLY("vddvario", "smsc911x"),
 };
@@ -159,12 +169,16 @@ int __init mxc_expio_init(u32 base, u32 intr_gpio)
 	int i;
 
 	brd_io = ioremap(BOARD_IO_ADDR(base), SZ_4K);
+
 	if (brd_io == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	if ((imx_readw(brd_io + MAGIC_NUMBER1_REG) != 0xAAAA) ||
-	    (imx_readw(brd_io + MAGIC_NUMBER2_REG) != 0x5555) ||
-	    (imx_readw(brd_io + MAGIC_NUMBER3_REG) != 0xCAFE)) {
+		(imx_readw(brd_io + MAGIC_NUMBER2_REG) != 0x5555) ||
+		(imx_readw(brd_io + MAGIC_NUMBER3_REG) != 0xCAFE))
+	{
 		pr_info("3-Stack Debug board not detected\n");
 		iounmap(brd_io);
 		brd_io = NULL;
@@ -172,7 +186,7 @@ int __init mxc_expio_init(u32 base, u32 intr_gpio)
 	}
 
 	pr_info("3-Stack Debug board detected, rev = 0x%04X\n",
-		readw(brd_io + CPLD_CODE_VER_REG));
+			readw(brd_io + CPLD_CODE_VER_REG));
 
 	/*
 	 * Configure INT line as GPIO input
@@ -190,13 +204,15 @@ int __init mxc_expio_init(u32 base, u32 intr_gpio)
 	WARN_ON(irq_base < 0);
 
 	domain = irq_domain_add_legacy(NULL, MXC_MAX_EXP_IO_LINES, irq_base, 0,
-				       &irq_domain_simple_ops, NULL);
+								   &irq_domain_simple_ops, NULL);
 	WARN_ON(!domain);
 
-	for (i = irq_base; i < irq_base + MXC_MAX_EXP_IO_LINES; i++) {
+	for (i = irq_base; i < irq_base + MXC_MAX_EXP_IO_LINES; i++)
+	{
 		irq_set_chip_and_handler(i, &expio_irq_chip, handle_level_irq);
 		irq_clear_status_flags(i, IRQ_NOREQUEST);
 	}
+
 	irq_set_irq_type(p_irq, IRQF_TRIGGER_LOW);
 	irq_set_chained_handler(p_irq, mxc_expio_irq_handler);
 

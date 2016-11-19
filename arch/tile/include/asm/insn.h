@@ -19,27 +19,30 @@
 static inline tilegx_bundle_bits NOP(void)
 {
 	return create_UnaryOpcodeExtension_X0(FNOP_UNARY_OPCODE_X0) |
-		create_RRROpcodeExtension_X0(UNARY_RRR_0_OPCODE_X0) |
-		create_Opcode_X0(RRR_0_OPCODE_X0) |
-		create_UnaryOpcodeExtension_X1(NOP_UNARY_OPCODE_X1) |
-		create_RRROpcodeExtension_X1(UNARY_RRR_0_OPCODE_X1) |
-		create_Opcode_X1(RRR_0_OPCODE_X1);
+		   create_RRROpcodeExtension_X0(UNARY_RRR_0_OPCODE_X0) |
+		   create_Opcode_X0(RRR_0_OPCODE_X0) |
+		   create_UnaryOpcodeExtension_X1(NOP_UNARY_OPCODE_X1) |
+		   create_RRROpcodeExtension_X1(UNARY_RRR_0_OPCODE_X1) |
+		   create_Opcode_X1(RRR_0_OPCODE_X1);
 }
 
 static inline tilegx_bundle_bits tilegx_gen_branch(unsigned long pc,
-					    unsigned long addr,
-					    bool link)
+		unsigned long addr,
+		bool link)
 {
 	tilegx_bundle_bits opcode_x0, opcode_x1;
 	long pcrel_by_instr = (addr - pc) >> TILEGX_LOG2_BUNDLE_SIZE_IN_BYTES;
 
-	if (link) {
+	if (link)
+	{
 		/* opcode: jal addr */
 		opcode_x1 =
 			create_Opcode_X1(JUMP_OPCODE_X1) |
 			create_JumpOpcodeExtension_X1(JAL_JUMP_OPCODE_X1) |
 			create_JumpOff_X1(pcrel_by_instr);
-	} else {
+	}
+	else
+	{
 		/* opcode: j addr */
 		opcode_x1 =
 			create_Opcode_X1(JUMP_OPCODE_X1) |

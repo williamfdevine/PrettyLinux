@@ -5,15 +5,16 @@
 #include <linux/clocksource.h>
 
 #ifdef BUILD_VDSO32_64
-typedef u64 gtod_long_t;
+	typedef u64 gtod_long_t;
 #else
-typedef unsigned long gtod_long_t;
+	typedef unsigned long gtod_long_t;
 #endif
 /*
  * vsyscall_gtod_data will be accessed by 32 and 64 bit code at the same time
  * so be carefull by modifying this structure.
  */
-struct vsyscall_gtod_data {
+struct vsyscall_gtod_data
+{
 	unsigned seq;
 
 	int vclock_mode;
@@ -49,16 +50,19 @@ static inline unsigned gtod_read_begin(const struct vsyscall_gtod_data *s)
 
 repeat:
 	ret = ACCESS_ONCE(s->seq);
-	if (unlikely(ret & 1)) {
+
+	if (unlikely(ret & 1))
+	{
 		cpu_relax();
 		goto repeat;
 	}
+
 	smp_rmb();
 	return ret;
 }
 
 static inline int gtod_read_retry(const struct vsyscall_gtod_data *s,
-					unsigned start)
+								  unsigned start)
 {
 	smp_rmb();
 	return unlikely(s->seq != start);

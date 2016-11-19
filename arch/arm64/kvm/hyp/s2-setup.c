@@ -35,26 +35,32 @@ u32 __hyp_text __init_stage2_translation(void)
 	val |= parange << 16;
 
 	/* Compute the actual PARange... */
-	switch (parange) {
-	case 0:
-		parange = 32;
-		break;
-	case 1:
-		parange = 36;
-		break;
-	case 2:
-		parange = 40;
-		break;
-	case 3:
-		parange = 42;
-		break;
-	case 4:
-		parange = 44;
-		break;
-	case 5:
-	default:
-		parange = 48;
-		break;
+	switch (parange)
+	{
+		case 0:
+			parange = 32;
+			break;
+
+		case 1:
+			parange = 36;
+			break;
+
+		case 2:
+			parange = 40;
+			break;
+
+		case 3:
+			parange = 42;
+			break;
+
+		case 4:
+			parange = 44;
+			break;
+
+		case 5:
+		default:
+			parange = 48;
+			break;
 	}
 
 	/*
@@ -70,8 +76,11 @@ u32 __hyp_text __init_stage2_translation(void)
 	 * Management in ID_AA64MMFR1_EL1 and enable the feature in VTCR_EL2.
 	 */
 	tmp = (read_sysreg(id_aa64mmfr1_el1) >> ID_AA64MMFR1_HADBS_SHIFT) & 0xf;
+
 	if (IS_ENABLED(CONFIG_ARM64_HW_AFDBM) && tmp)
+	{
 		val |= VTCR_EL2_HA;
+	}
 
 	/*
 	 * Read the VMIDBits bits from ID_AA64MMFR1_EL1 and set the VS
@@ -79,8 +88,8 @@ u32 __hyp_text __init_stage2_translation(void)
 	 */
 	tmp = (read_sysreg(id_aa64mmfr1_el1) >> ID_AA64MMFR1_VMIDBITS_SHIFT) & 0xf;
 	val |= (tmp == ID_AA64MMFR1_VMIDBITS_16) ?
-			VTCR_EL2_VS_16BIT :
-			VTCR_EL2_VS_8BIT;
+		   VTCR_EL2_VS_16BIT :
+		   VTCR_EL2_VS_8BIT;
 
 	write_sysreg(val, vtcr_el2);
 

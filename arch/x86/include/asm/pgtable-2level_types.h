@@ -10,7 +10,8 @@ typedef unsigned long	pudval_t;
 typedef unsigned long	pgdval_t;
 typedef unsigned long	pgprotval_t;
 
-typedef union {
+typedef union
+{
 	pteval_t pte;
 	pteval_t pte_low;
 } pte_t;

@@ -26,7 +26,8 @@
 #include <asm/io_trapped.h>
 #include <asm/spi.h>
 
-static struct resource cf_ide_resources[] = {
+static struct resource cf_ide_resources[] =
+{
 	[0] = {
 		.start	= PA_AREA5_IO + 0x1000,
 		.end	= PA_AREA5_IO + 0x1000 + 0x10 - 0x2,
@@ -45,11 +46,13 @@ static struct resource cf_ide_resources[] = {
 #endif
 };
 
-static struct pata_platform_info pata_info = {
+static struct pata_platform_info pata_info =
+{
 	.ioport_shift	= 1,
 };
 
-static struct platform_device cf_ide_device  = {
+static struct platform_device cf_ide_device  =
+{
 	.name		= "pata_platform",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(cf_ide_resources),
@@ -59,7 +62,8 @@ static struct platform_device cf_ide_device  = {
 	},
 };
 
-static struct spi_board_info spi_bus[] = {
+static struct spi_board_info spi_bus[] =
+{
 	{
 		.modalias	= "rtc-r9701",
 		.max_speed_hz	= 1000000,
@@ -73,12 +77,14 @@ static void r2d_chip_select(struct sh_spi_info *spi, int cs, int state)
 	__raw_writew(state == BITBANG_CS_ACTIVE, PA_RTCCE);
 }
 
-static struct sh_spi_info spi_info = {
+static struct sh_spi_info spi_info =
+{
 	.num_chipselect = 1,
 	.chip_select = r2d_chip_select,
 };
 
-static struct resource spi_sh_sci_resources[] = {
+static struct resource spi_sh_sci_resources[] =
+{
 	{
 		.start	= 0xffe00000,
 		.end	= 0xffe0001f,
@@ -86,7 +92,8 @@ static struct resource spi_sh_sci_resources[] = {
 	},
 };
 
-static struct platform_device spi_sh_sci_device  = {
+static struct platform_device spi_sh_sci_device  =
+{
 	.name		= "spi_sh_sci",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(spi_sh_sci_resources),
@@ -96,7 +103,8 @@ static struct platform_device spi_sh_sci_device  = {
 	},
 };
 
-static struct resource heartbeat_resources[] = {
+static struct resource heartbeat_resources[] =
+{
 	[0] = {
 		.start	= PA_OUTPORT,
 		.end	= PA_OUTPORT,
@@ -104,14 +112,16 @@ static struct resource heartbeat_resources[] = {
 	},
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(heartbeat_resources),
 	.resource	= heartbeat_resources,
 };
 
-static struct resource sm501_resources[] = {
+static struct resource sm501_resources[] =
+{
 	[0]	= {
 		.start	= 0x10000000,
 		.end	= 0x13e00000 - 1,
@@ -128,7 +138,8 @@ static struct resource sm501_resources[] = {
 	},
 };
 
-static struct fb_videomode sm501_default_mode = {
+static struct fb_videomode sm501_default_mode =
+{
 	.pixclock	= 35714,
 	.xres		= 640,
 	.yres		= 480,
@@ -141,40 +152,46 @@ static struct fb_videomode sm501_default_mode = {
 	.sync = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct sm501_platdata_fbsub sm501_pdata_fbsub_pnl = {
+static struct sm501_platdata_fbsub sm501_pdata_fbsub_pnl =
+{
 	.def_bpp	= 16,
 	.def_mode	= &sm501_default_mode,
 	.flags		= SM501FB_FLAG_USE_INIT_MODE |
-			  SM501FB_FLAG_USE_HWCURSOR |
-			  SM501FB_FLAG_USE_HWACCEL |
-			  SM501FB_FLAG_DISABLE_AT_EXIT,
+	SM501FB_FLAG_USE_HWCURSOR |
+	SM501FB_FLAG_USE_HWACCEL |
+	SM501FB_FLAG_DISABLE_AT_EXIT,
 };
 
-static struct sm501_platdata_fbsub sm501_pdata_fbsub_crt = {
+static struct sm501_platdata_fbsub sm501_pdata_fbsub_crt =
+{
 	.flags		= (SM501FB_FLAG_USE_INIT_MODE |
-			   SM501FB_FLAG_USE_HWCURSOR |
-			   SM501FB_FLAG_USE_HWACCEL |
-			   SM501FB_FLAG_DISABLE_AT_EXIT),
+	SM501FB_FLAG_USE_HWCURSOR |
+	SM501FB_FLAG_USE_HWACCEL |
+	SM501FB_FLAG_DISABLE_AT_EXIT),
 
 };
 
-static struct sm501_platdata_fb sm501_fb_pdata = {
+static struct sm501_platdata_fb sm501_fb_pdata =
+{
 	.fb_route	= SM501_FB_OWN,
 	.fb_crt		= &sm501_pdata_fbsub_crt,
 	.fb_pnl		= &sm501_pdata_fbsub_pnl,
 	.flags		= SM501_FBPD_SWAP_FB_ENDIAN,
 };
 
-static struct sm501_initdata sm501_initdata = {
+static struct sm501_initdata sm501_initdata =
+{
 	.devices	= SM501_USE_USB_HOST | SM501_USE_UART0,
 };
 
-static struct sm501_platdata sm501_platform_data = {
+static struct sm501_platdata sm501_platform_data =
+{
 	.init		= &sm501_initdata,
 	.fb		= &sm501_fb_pdata,
 };
 
-static struct platform_device sm501_device = {
+static struct platform_device sm501_device =
+{
 	.name		= "sm501",
 	.id		= -1,
 	.dev		= {
@@ -184,7 +201,8 @@ static struct platform_device sm501_device = {
 	.resource	= sm501_resources,
 };
 
-static struct mtd_partition r2d_partitions[] = {
+static struct mtd_partition r2d_partitions[] =
+{
 	{
 		.name		= "U-Boot",
 		.offset		= 0x00000000,
@@ -206,19 +224,22 @@ static struct mtd_partition r2d_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data flash_data = {
+static struct physmap_flash_data flash_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(r2d_partitions),
 	.parts		= r2d_partitions,
 };
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.start		= 0x00000000,
 	.end		= 0x02000000,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device flash_device = {
+static struct platform_device flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= -1,
 	.resource	= &flash_resource,
@@ -228,7 +249,8 @@ static struct platform_device flash_device = {
 	},
 };
 
-static struct platform_device *rts7751r2d_devices[] __initdata = {
+static struct platform_device *rts7751r2d_devices[] __initdata =
+{
 	&sm501_device,
 	&heartbeat_device,
 	&spi_sh_sci_device,
@@ -239,7 +261,8 @@ static struct platform_device *rts7751r2d_devices[] __initdata = {
  * unsupported. The linux ata driver is however using 8-bit operations, so
  * insert a trapped io filter to convert 8-bit operations into 16-bit.
  */
-static struct trapped_io cf_trapped_io = {
+static struct trapped_io cf_trapped_io =
+{
 	.resource		= cf_ide_resources,
 	.num_resources		= 2,
 	.minimum_bus_width	= 16,
@@ -248,15 +271,19 @@ static struct trapped_io cf_trapped_io = {
 static int __init rts7751r2d_devices_setup(void)
 {
 	if (register_trapped_io(&cf_trapped_io) == 0)
+	{
 		platform_device_register(&cf_ide_device);
+	}
 
 	if (mach_is_r2d_plus())
+	{
 		platform_device_register(&flash_device);
+	}
 
 	spi_register_board_info(spi_bus, ARRAY_SIZE(spi_bus));
 
 	return platform_add_devices(rts7751r2d_devices,
-				    ARRAY_SIZE(rts7751r2d_devices));
+								ARRAY_SIZE(rts7751r2d_devices));
 }
 device_initcall(rts7751r2d_devices_setup);
 
@@ -276,7 +303,7 @@ static void __init rts7751r2d_setup(char **cmdline_p)
 	printk(KERN_INFO "Renesas Technology Sales RTS7751R2D support.\n");
 
 	printk(KERN_INFO "FPGA version:%d (revision:%d)\n",
-					(ver >> 4) & 0xf, ver & 0xf);
+		   (ver >> 4) & 0xf, ver & 0xf);
 
 	__raw_writew(0x0000, PA_OUTPORT);
 	pm_power_off = rts7751r2d_power_off;
@@ -300,7 +327,8 @@ static void __init rts7751r2d_setup(char **cmdline_p)
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_rts7751r2d __initmv = {
+static struct sh_machine_vector mv_rts7751r2d __initmv =
+{
 	.mv_name		= "RTS7751R2D",
 	.mv_setup		= rts7751r2d_setup,
 	.mv_init_irq		= init_rts7751r2d_IRQ,

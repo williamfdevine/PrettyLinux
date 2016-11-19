@@ -14,12 +14,14 @@
 unsigned long __xchg_u32(volatile u32 *m, u32 new);
 void __xchg_called_with_bad_pointer(void);
 
-static inline unsigned long __xchg(unsigned long x, __volatile__ void * ptr, int size)
+static inline unsigned long __xchg(unsigned long x, __volatile__ void *ptr, int size)
 {
-	switch (size) {
-	case 4:
-		return __xchg_u32(ptr, x);
+	switch (size)
+	{
+		case 4:
+			return __xchg_u32(ptr, x);
 	}
+
 	__xchg_called_with_bad_pointer();
 	return x;
 }
@@ -44,23 +46,26 @@ unsigned long __cmpxchg_u32(volatile u32 *m, u32 old, u32 new_);
 static inline unsigned long
 __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
 {
-	switch (size) {
-	case 4:
-		return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
-	default:
-		__cmpxchg_called_with_bad_pointer();
-		break;
+	switch (size)
+	{
+		case 4:
+			return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
+
+		default:
+			__cmpxchg_called_with_bad_pointer();
+			break;
 	}
+
 	return old;
 }
 
 #define cmpxchg(ptr, o, n)						\
-({									\
-	__typeof__(*(ptr)) _o_ = (o);					\
-	__typeof__(*(ptr)) _n_ = (n);					\
-	(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
-			(unsigned long)_n_, sizeof(*(ptr)));		\
-})
+	({									\
+		__typeof__(*(ptr)) _o_ = (o);					\
+		__typeof__(*(ptr)) _n_ = (n);					\
+		(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
+									   (unsigned long)_n_, sizeof(*(ptr)));		\
+	})
 
 #include <asm-generic/cmpxchg-local.h>
 

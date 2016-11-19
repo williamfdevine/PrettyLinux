@@ -25,26 +25,26 @@
 #include "gdb-io.h"
 
 #ifdef CONFIG_GDBSTUB_UART0
-#define __UART(X) (*(volatile uint8_t *)(UART0_BASE + (UART_##X)))
-#define __UART_IRR_NMI 0xff0f0000
+	#define __UART(X) (*(volatile uint8_t *)(UART0_BASE + (UART_##X)))
+	#define __UART_IRR_NMI 0xff0f0000
 #else /* CONFIG_GDBSTUB_UART1 */
-#define __UART(X) (*(volatile uint8_t *)(UART1_BASE + (UART_##X)))
-#define __UART_IRR_NMI 0xfff00000
+	#define __UART(X) (*(volatile uint8_t *)(UART1_BASE + (UART_##X)))
+	#define __UART_IRR_NMI 0xfff00000
 #endif
 
 #define LSR_WAIT_FOR(STATE)			\
-do {						\
-	gdbstub_do_rx();			\
-} while (!(__UART(LSR) & UART_LSR_##STATE))
+	do {						\
+		gdbstub_do_rx();			\
+	} while (!(__UART(LSR) & UART_LSR_##STATE))
 
 #define FLOWCTL_QUERY(LINE)	({ __UART(MSR) & UART_MSR_##LINE; })
 #define FLOWCTL_CLEAR(LINE)	do { __UART(MCR) &= ~UART_MCR_##LINE; mb(); } while (0)
 #define FLOWCTL_SET(LINE)	do { __UART(MCR) |= UART_MCR_##LINE;  mb(); } while (0)
 
 #define FLOWCTL_WAIT_FOR(LINE)			\
-do {						\
-	gdbstub_do_rx();			\
-} while(!FLOWCTL_QUERY(LINE))
+	do {						\
+		gdbstub_do_rx();			\
+	} while(!FLOWCTL_QUERY(LINE))
 
 /*****************************************************************************/
 /*
@@ -64,7 +64,7 @@ void gdbstub_io_init(void)
 	FLOWCTL_CLEAR(DTR);
 	FLOWCTL_SET(RTS);
 
-//	gdbstub_set_baud(115200);
+	//	gdbstub_set_baud(115200);
 
 	/* we want to get serial receive interrupts */
 	__UART(IER) = UART_IER_RDI | UART_IER_RLSI;
@@ -92,7 +92,9 @@ void gdbstub_set_baud(unsigned baud)
 
 	/* pick the nearest bound */
 	if (low + (high - low) / 2 > baud)
+	{
 		value++;
+	}
 
 	lcr = __UART(LCR);
 	__UART(LCR) |= UART_LCR_DLAB;
@@ -115,10 +117,14 @@ void gdbstub_do_rx(void)
 
 	ix = gdbstub_rx_inp;
 
-	while (__UART(LSR) & UART_LSR_DR) {
+	while (__UART(LSR) & UART_LSR_DR)
+	{
 		nix = (ix + 2) & 0xfff;
+
 		if (nix == gdbstub_rx_outp)
+		{
 			break;
+		}
 
 		gdbstub_rx_buffer[ix++] = __UART(LSR);
 		gdbstub_rx_buffer[ix++] = __UART(RX);
@@ -143,20 +149,26 @@ int gdbstub_rx_char(unsigned char *_ch, int nonblock)
 
 	*_ch = 0xff;
 
-	if (gdbstub_rx_unget) {
+	if (gdbstub_rx_unget)
+	{
 		*_ch = gdbstub_rx_unget;
 		gdbstub_rx_unget = 0;
 		return 0;
 	}
 
- try_again:
+try_again:
 	gdbstub_do_rx();
 
 	/* pull chars out of the buffer */
 	ix = gdbstub_rx_outp;
-	if (ix == gdbstub_rx_inp) {
+
+	if (ix == gdbstub_rx_inp)
+	{
 		if (nonblock)
+		{
 			return -EAGAIN;
+		}
+
 		//watchdog_alert_counter = 0;
 		goto try_again;
 	}
@@ -165,16 +177,19 @@ int gdbstub_rx_char(unsigned char *_ch, int nonblock)
 	ch = gdbstub_rx_buffer[ix++];
 	gdbstub_rx_outp = ix & 0x00000fff;
 
-	if (st & UART_LSR_BI) {
+	if (st & UART_LSR_BI)
+	{
 		gdbstub_proto("### GDB Rx Break Detected ###\n");
 		return -EINTR;
 	}
-	else if (st & (UART_LSR_FE|UART_LSR_OE|UART_LSR_PE)) {
-		gdbstub_io("### GDB Rx Error (st=%02x) ###\n",st);
+	else if (st & (UART_LSR_FE | UART_LSR_OE | UART_LSR_PE))
+	{
+		gdbstub_io("### GDB Rx Error (st=%02x) ###\n", st);
 		return -EIO;
 	}
-	else {
-		gdbstub_io("### GDB Rx %02x (st=%02x) ###\n",ch,st);
+	else
+	{
+		gdbstub_io("### GDB Rx %02x (st=%02x) ###\n", ch, st);
 		*_ch = ch & 0x7f;
 		return 0;
 	}
@@ -189,14 +204,16 @@ void gdbstub_tx_char(unsigned char ch)
 {
 	FLOWCTL_SET(DTR);
 	LSR_WAIT_FOR(THRE);
-//	FLOWCTL_WAIT_FOR(CTS);
+	//	FLOWCTL_WAIT_FOR(CTS);
 
-	if (ch == 0x0a) {
+	if (ch == 0x0a)
+	{
 		__UART(TX) = 0x0d;
 		mb();
 		LSR_WAIT_FOR(THRE);
-//		FLOWCTL_WAIT_FOR(CTS);
+		//		FLOWCTL_WAIT_FOR(CTS);
 	}
+
 	__UART(TX) = ch;
 	mb();
 

@@ -45,11 +45,11 @@
    assumed that we want to share code when debugging (exposes more
    trouble). */
 #ifndef SHARE_LIB_CORE
-# if (defined(__KERNEL__) || !defined(RELOC_DEBUG))
-#  define SHARE_LIB_CORE 0
-# else
-#  define SHARE_LIB_CORE 1
-# endif /* __KERNEL__ etc */
+	#if (defined(__KERNEL__) || !defined(RELOC_DEBUG))
+		#define SHARE_LIB_CORE 0
+	#else
+		#define SHARE_LIB_CORE 1
+	#endif /* __KERNEL__ etc */
 #endif /* SHARE_LIB_CORE */
 
 
@@ -57,30 +57,31 @@
    has been read in. */
 extern int
 perform_cris_aout_relocations(unsigned long text, unsigned long tlength,
-			      unsigned long data, unsigned long dlength,
-			      unsigned long baddr, unsigned long blength,
+							  unsigned long data, unsigned long dlength,
+							  unsigned long baddr, unsigned long blength,
 
-			      /* These may be zero when there's "perfect"
-				 position-independent code. */
-			      unsigned char *trel, unsigned long tsrel,
-			      unsigned long dsrel,
+							  /* These may be zero when there's "perfect"
+							  position-independent code. */
+							  unsigned char *trel, unsigned long tsrel,
+							  unsigned long dsrel,
 
-			      /* These will be zero at a first try, to see
-				 if code is statically linked.  Else a
-				 second try, with the symbol table and
-				 string table nonzero should be done. */
-			      unsigned char *symbols, unsigned long symlength,
-			      unsigned char *strings, unsigned long stringlength,
+							  /* These will be zero at a first try, to see
+							  if code is statically linked.  Else a
+							   second try, with the symbol table and
+							   string table nonzero should be done. */
+							  unsigned char *symbols, unsigned long symlength,
+							  unsigned char *strings, unsigned long stringlength,
 
-			      /* These will only be used when symbol table
-			       information is present. */
-			      char **env, int envc,
-			      int euid, int is_suid);
+							  /* These will only be used when symbol table
+							   information is present. */
+							  char **env, int envc,
+							  int euid, int is_suid);
 
 
 #ifdef RELOC_DEBUG
 /* Task-specific debug stuff. */
-struct task_reloc_debug {
+struct task_reloc_debug
+{
 	struct memdebug *alloclast;
 	unsigned long alloc_total;
 	unsigned long export_total;
@@ -89,22 +90,22 @@ struct task_reloc_debug {
 
 #if SHARE_LIB_CORE
 
-/* When code (and some very specific data) is shared and not just
-   dynamically linked, we need to export hooks for exec beginning and
-   end. */
+	/* When code (and some very specific data) is shared and not just
+	dynamically linked, we need to export hooks for exec beginning and
+	end. */
 
-struct shlibdep;
+	struct shlibdep;
 
-extern void
-shlibmod_exit(struct shlibdep **deps);
+	extern void
+	shlibmod_exit(struct shlibdep **deps);
 
-/* Returns 0 if failure, nonzero for ok. */
-extern int
-shlibmod_fork(struct shlibdep **deps);
+	/* Returns 0 if failure, nonzero for ok. */
+	extern int
+	shlibmod_fork(struct shlibdep **deps);
 
 #else  /* ! SHARE_LIB_CORE */
-# define shlibmod_exit(x)
-# define shlibmod_fork(x) 1
+	#define shlibmod_exit(x)
+	#define shlibmod_fork(x) 1
 #endif /* ! SHARE_LIB_CORE */
 
 #endif _cris_relocate_h

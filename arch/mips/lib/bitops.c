@@ -84,7 +84,7 @@ EXPORT_SYMBOL(__mips_change_bit);
  * @addr: Address to count from
  */
 int __mips_test_and_set_bit(unsigned long nr,
-			    volatile unsigned long *addr)
+							volatile unsigned long *addr)
 {
 	unsigned long *a = (unsigned long *)addr;
 	unsigned bit = nr & SZLONG_MASK;
@@ -110,7 +110,7 @@ EXPORT_SYMBOL(__mips_test_and_set_bit);
  * @addr: Address to count from
  */
 int __mips_test_and_set_bit_lock(unsigned long nr,
-				 volatile unsigned long *addr)
+								 volatile unsigned long *addr)
 {
 	unsigned long *a = (unsigned long *)addr;
 	unsigned bit = nr & SZLONG_MASK;

@@ -31,7 +31,8 @@
 #define GPIO_NAND_CLE	(3)
 #define GPIO_NAND_RB	(10)
 
-static unsigned long cmx255_pin_config[] = {
+static unsigned long cmx255_pin_config[] =
+{
 	/* AC'97 */
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
@@ -98,11 +99,13 @@ static unsigned long cmx255_pin_config[] = {
 };
 
 #if defined(CONFIG_SPI_PXA2XX)
-static struct pxa2xx_spi_master pxa_ssp_master_info = {
+static struct pxa2xx_spi_master pxa_ssp_master_info =
+{
 	.num_chipselect	= 1,
 };
 
-static struct spi_board_info spi_board_info[] __initdata = {
+static struct spi_board_info spi_board_info[] __initdata =
+{
 	[0] = {
 		.modalias	= "rtc-max6902",
 		.max_speed_hz	= 1000000,
@@ -121,7 +124,8 @@ static inline void cmx255_init_rtc(void) {}
 #endif
 
 #if defined(CONFIG_MTD_PHYSMAP) || defined(CONFIG_MTD_PHYSMAP_MODULE)
-static struct mtd_partition cmx255_nor_partitions[] = {
+static struct mtd_partition cmx255_nor_partitions[] =
+{
 	{
 		.name		= "ARMmon",
 		.size		= 0x00030000,
@@ -143,7 +147,8 @@ static struct mtd_partition cmx255_nor_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data cmx255_nor_flash_data[] = {
+static struct physmap_flash_data cmx255_nor_flash_data[] =
+{
 	{
 		.width		= 2,	/* bankwidth in bytes */
 		.parts		= cmx255_nor_partitions,
@@ -151,13 +156,15 @@ static struct physmap_flash_data cmx255_nor_flash_data[] = {
 	}
 };
 
-static struct resource cmx255_nor_resource = {
+static struct resource cmx255_nor_resource =
+{
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_8M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device cmx255_nor = {
+static struct platform_device cmx255_nor =
+{
 	.name	= "physmap-flash",
 	.id	= -1,
 	.dev	= {
@@ -176,7 +183,8 @@ static inline void cmx255_init_nor(void) {}
 #endif
 
 #if defined(CONFIG_MTD_NAND_GPIO) || defined(CONFIG_MTD_NAND_GPIO_MODULE)
-static struct resource cmx255_nand_resource[] = {
+static struct resource cmx255_nand_resource[] =
+{
 	[0] = {
 		.start = PXA_CS1_PHYS,
 		.end   = PXA_CS1_PHYS + 11,
@@ -189,7 +197,8 @@ static struct resource cmx255_nand_resource[] = {
 	},
 };
 
-static struct mtd_partition cmx255_nand_parts[] = {
+static struct mtd_partition cmx255_nand_parts[] =
+{
 	[0] = {
 		.name	= "cmx255-nand",
 		.size	= MTDPART_SIZ_FULL,
@@ -197,7 +206,8 @@ static struct mtd_partition cmx255_nand_parts[] = {
 	},
 };
 
-static struct gpio_nand_platdata cmx255_nand_platdata = {
+static struct gpio_nand_platdata cmx255_nand_platdata =
+{
 	.gpio_nce = GPIO_NAND_CS,
 	.gpio_cle = GPIO_NAND_CLE,
 	.gpio_ale = GPIO_NAND_ALE,
@@ -208,7 +218,8 @@ static struct gpio_nand_platdata cmx255_nand_platdata = {
 	.chip_delay = 25,
 };
 
-static struct platform_device cmx255_nand = {
+static struct platform_device cmx255_nand =
+{
 	.name		= "gpio-nand",
 	.num_resources	= ARRAY_SIZE(cmx255_nand_resource),
 	.resource	= cmx255_nand_resource,

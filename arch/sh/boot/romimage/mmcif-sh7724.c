@@ -62,8 +62,8 @@ asmlinkage void mmcif_loader(unsigned char *buf, unsigned long no_bytes)
 
 	/* load kernel via MMCIF interface */
 	sh_mmcif_boot_do_read(MMCIF_BASE, 512,
-	                      (no_bytes + SH_MMCIF_BBS - 1) / SH_MMCIF_BBS,
-			      buf);
+						  (no_bytes + SH_MMCIF_BBS - 1) / SH_MMCIF_BBS,
+						  buf);
 
 	/* disable clock to the MMCIF hardware block */
 	__raw_writel(__raw_readl(MSTPCR2) | 0x20000000, MSTPCR2);

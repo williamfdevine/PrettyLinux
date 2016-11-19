@@ -65,49 +65,51 @@
 #define PA_CS4(item) (__phys_to_pfn((item) + S3C2410_CS4))
 #define PA_CS5(item) (__phys_to_pfn((item) + S3C2410_CS5))
 
-static struct map_desc vr1000_iodesc[] __initdata = {
-  /* ISA IO areas */
-  {
-	  .virtual	= (u32)S3C24XX_VA_ISA_BYTE,
-	  .pfn		= PA_CS2(BAST_PA_ISAIO),
-	  .length	= SZ_16M,
-	  .type		= MT_DEVICE,
-  }, {
-	  .virtual	= (u32)S3C24XX_VA_ISA_WORD,
-	  .pfn		= PA_CS3(BAST_PA_ISAIO),
-	  .length	= SZ_16M,
-	  .type		= MT_DEVICE,
-  },
+static struct map_desc vr1000_iodesc[] __initdata =
+{
+	/* ISA IO areas */
+	{
+		.virtual	= (u32)S3C24XX_VA_ISA_BYTE,
+		.pfn		= PA_CS2(BAST_PA_ISAIO),
+		.length	= SZ_16M,
+		.type		= MT_DEVICE,
+	}, {
+		.virtual	= (u32)S3C24XX_VA_ISA_WORD,
+		.pfn		= PA_CS3(BAST_PA_ISAIO),
+		.length	= SZ_16M,
+		.type		= MT_DEVICE,
+	},
 
-  /*  CPLD control registers, and external interrupt controls */
-  {
-	  .virtual	= (u32)VR1000_VA_CTRL1,
-	  .pfn		= __phys_to_pfn(VR1000_PA_CTRL1),
-	  .length	= SZ_1M,
-	  .type		= MT_DEVICE,
-  }, {
-	  .virtual	= (u32)VR1000_VA_CTRL2,
-	  .pfn		= __phys_to_pfn(VR1000_PA_CTRL2),
-	  .length	= SZ_1M,
-	  .type		= MT_DEVICE,
-  }, {
-	  .virtual	= (u32)VR1000_VA_CTRL3,
-	  .pfn		= __phys_to_pfn(VR1000_PA_CTRL3),
-	  .length	= SZ_1M,
-	  .type		= MT_DEVICE,
-  }, {
-	  .virtual	= (u32)VR1000_VA_CTRL4,
-	  .pfn		= __phys_to_pfn(VR1000_PA_CTRL4),
-	  .length	= SZ_1M,
-	  .type		= MT_DEVICE,
-  },
+	/*  CPLD control registers, and external interrupt controls */
+	{
+		.virtual	= (u32)VR1000_VA_CTRL1,
+		.pfn		= __phys_to_pfn(VR1000_PA_CTRL1),
+		.length	= SZ_1M,
+		.type		= MT_DEVICE,
+	}, {
+		.virtual	= (u32)VR1000_VA_CTRL2,
+		.pfn		= __phys_to_pfn(VR1000_PA_CTRL2),
+		.length	= SZ_1M,
+		.type		= MT_DEVICE,
+	}, {
+		.virtual	= (u32)VR1000_VA_CTRL3,
+		.pfn		= __phys_to_pfn(VR1000_PA_CTRL3),
+		.length	= SZ_1M,
+		.type		= MT_DEVICE,
+	}, {
+		.virtual	= (u32)VR1000_VA_CTRL4,
+		.pfn		= __phys_to_pfn(VR1000_PA_CTRL4),
+		.length	= SZ_1M,
+		.type		= MT_DEVICE,
+	},
 };
 
 #define UCON S3C2410_UCON_DEFAULT | S3C2410_UCON_UCLK
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg vr1000_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg vr1000_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -138,7 +140,8 @@ static struct s3c2410_uartcfg vr1000_uartcfgs[] __initdata = {
 
 #define VR1000_SERIAL_MAPBASE(x) (VR1000_PA_SERIAL + 0x80 + ((x) << 5))
 
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	[0] = {
 		.mapbase	= VR1000_SERIAL_MAPBASE(0),
 		.irq		= VR1000_IRQ_SERIAL + 0,
@@ -174,7 +177,8 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	{ },
 };
 
-static struct platform_device serial_device = {
+static struct platform_device serial_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -184,29 +188,33 @@ static struct platform_device serial_device = {
 
 /* DM9000 ethernet devices */
 
-static struct resource vr1000_dm9k0_resource[] = {
+static struct resource vr1000_dm9k0_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS5 + VR1000_PA_DM9000, 4),
 	[1] = DEFINE_RES_MEM(S3C2410_CS5 + VR1000_PA_DM9000 + 0x40, 0x40),
 	[2] = DEFINE_RES_NAMED(VR1000_IRQ_DM9000A, 1, NULL, IORESOURCE_IRQ \
-						| IORESOURCE_IRQ_HIGHLEVEL),
+	| IORESOURCE_IRQ_HIGHLEVEL),
 };
 
-static struct resource vr1000_dm9k1_resource[] = {
+static struct resource vr1000_dm9k1_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS5 + VR1000_PA_DM9000 + 0x80, 4),
 	[1] = DEFINE_RES_MEM(S3C2410_CS5 + VR1000_PA_DM9000 + 0xC0, 0x40),
 	[2] = DEFINE_RES_NAMED(VR1000_IRQ_DM9000N, 1, NULL, IORESOURCE_IRQ \
-						| IORESOURCE_IRQ_HIGHLEVEL),
+	| IORESOURCE_IRQ_HIGHLEVEL),
 };
 
 /* for the moment we limit ourselves to 16bit IO until some
  * better IO routines can be written and tested
 */
 
-static struct dm9000_plat_data vr1000_dm9k_platdata = {
+static struct dm9000_plat_data vr1000_dm9k_platdata =
+{
 	.flags		= DM9000_PLATF_16BITONLY,
 };
 
-static struct platform_device vr1000_dm9k0 = {
+static struct platform_device vr1000_dm9k0 =
+{
 	.name		= "dm9000",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(vr1000_dm9k0_resource),
@@ -216,7 +224,8 @@ static struct platform_device vr1000_dm9k0 = {
 	}
 };
 
-static struct platform_device vr1000_dm9k1 = {
+static struct platform_device vr1000_dm9k1 =
+{
 	.name		= "dm9000",
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(vr1000_dm9k1_resource),
@@ -228,25 +237,29 @@ static struct platform_device vr1000_dm9k1 = {
 
 /* LEDS */
 
-static struct s3c24xx_led_platdata vr1000_led1_pdata = {
+static struct s3c24xx_led_platdata vr1000_led1_pdata =
+{
 	.name		= "led1",
 	.gpio		= S3C2410_GPB(0),
 	.def_trigger	= "",
 };
 
-static struct s3c24xx_led_platdata vr1000_led2_pdata = {
+static struct s3c24xx_led_platdata vr1000_led2_pdata =
+{
 	.name		= "led2",
 	.gpio		= S3C2410_GPB(1),
 	.def_trigger	= "",
 };
 
-static struct s3c24xx_led_platdata vr1000_led3_pdata = {
+static struct s3c24xx_led_platdata vr1000_led3_pdata =
+{
 	.name		= "led3",
 	.gpio		= S3C2410_GPB(2),
 	.def_trigger	= "",
 };
 
-static struct platform_device vr1000_led1 = {
+static struct platform_device vr1000_led1 =
+{
 	.name		= "s3c24xx_led",
 	.id		= 1,
 	.dev		= {
@@ -254,7 +267,8 @@ static struct platform_device vr1000_led1 = {
 	},
 };
 
-static struct platform_device vr1000_led2 = {
+static struct platform_device vr1000_led2 =
+{
 	.name		= "s3c24xx_led",
 	.id		= 2,
 	.dev		= {
@@ -262,7 +276,8 @@ static struct platform_device vr1000_led2 = {
 	},
 };
 
-static struct platform_device vr1000_led3 = {
+static struct platform_device vr1000_led3 =
+{
 	.name		= "s3c24xx_led",
 	.id		= 3,
 	.dev		= {
@@ -272,7 +287,8 @@ static struct platform_device vr1000_led3 = {
 
 /* I2C devices. */
 
-static struct i2c_board_info vr1000_i2c_devs[] __initdata = {
+static struct i2c_board_info vr1000_i2c_devs[] __initdata =
+{
 	{
 		I2C_BOARD_INFO("tlv320aic23", 0x1a),
 	}, {
@@ -284,7 +300,8 @@ static struct i2c_board_info vr1000_i2c_devs[] __initdata = {
 
 /* devices for this board */
 
-static struct platform_device *vr1000_devices[] __initdata = {
+static struct platform_device *vr1000_devices[] __initdata =
+{
 	&s3c2410_device_dclk,
 	&s3c_device_ohci,
 	&s3c_device_lcd,
@@ -325,7 +342,7 @@ static void __init vr1000_init(void)
 	platform_add_devices(vr1000_devices, ARRAY_SIZE(vr1000_devices));
 
 	i2c_register_board_info(0, vr1000_i2c_devs,
-				ARRAY_SIZE(vr1000_i2c_devs));
+							ARRAY_SIZE(vr1000_i2c_devs));
 
 	nor_simtec_init();
 	simtec_audio_add(NULL, true, NULL);
@@ -334,10 +351,10 @@ static void __init vr1000_init(void)
 }
 
 MACHINE_START(VR1000, "Thorcom-VR1000")
-	/* Maintainer: Ben Dooks <ben@simtec.co.uk> */
-	.atag_offset	= 0x100,
+/* Maintainer: Ben Dooks <ben@simtec.co.uk> */
+.atag_offset	= 0x100,
 	.map_io		= vr1000_map_io,
-	.init_machine	= vr1000_init,
-	.init_irq	= s3c2410_init_irq,
-	.init_time	= vr1000_init_time,
-MACHINE_END
+		.init_machine	= vr1000_init,
+		   .init_irq	= s3c2410_init_irq,
+			  .init_time	= vr1000_init_time,
+				MACHINE_END

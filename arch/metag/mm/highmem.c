@@ -13,8 +13,12 @@ unsigned long highstart_pfn, highend_pfn;
 void *kmap(struct page *page)
 {
 	might_sleep();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
+
 	return kmap_high(page);
 }
 EXPORT_SYMBOL(kmap);
@@ -22,8 +26,12 @@ EXPORT_SYMBOL(kmap);
 void kunmap(struct page *page)
 {
 	BUG_ON(in_interrupt());
+
 	if (!PageHighMem(page))
+	{
 		return;
+	}
+
 	kunmap_high(page);
 }
 EXPORT_SYMBOL(kunmap);
@@ -45,8 +53,11 @@ void *kmap_atomic(struct page *page)
 
 	preempt_disable();
 	pagefault_disable();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
 
 	type = kmap_atomic_idx_push();
 	idx = type + KM_TYPE_NR * smp_processor_id();
@@ -65,7 +76,8 @@ void __kunmap_atomic(void *kvaddr)
 	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
 	int idx, type;
 
-	if (kvaddr >= (void *)FIXADDR_START) {
+	if (kvaddr >= (void *)FIXADDR_START)
+	{
 		type = kmap_atomic_idx();
 		idx = type + KM_TYPE_NR * smp_processor_id();
 
@@ -75,7 +87,7 @@ void __kunmap_atomic(void *kvaddr)
 		 * is a bad idea also, in case the page changes cacheability
 		 * attributes or becomes a protected page in a hypervisor.
 		 */
-		pte_clear(&init_mm, vaddr, kmap_pte-idx);
+		pte_clear(&init_mm, vaddr, kmap_pte - idx);
 		flush_tlb_kernel_range(vaddr, vaddr + PAGE_SIZE);
 
 		kmap_atomic_idx_pop();

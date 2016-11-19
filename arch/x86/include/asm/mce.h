@@ -132,7 +132,8 @@
  * debugging tools.  Each entry is only valid when its finished flag
  * is set.
  */
-struct mce_log {
+struct mce_log
+{
 	char signature[12]; /* "MACHINECHECK" */
 	unsigned len;	    /* = MCE_LOG_LEN */
 	unsigned next;
@@ -141,7 +142,8 @@ struct mce_log {
 	struct mce entry[MCE_LOG_LEN];
 };
 
-struct mca_config {
+struct mca_config
+{
 	bool dont_log_ce;
 	bool cmci_disabled;
 	bool lmce_disabled;
@@ -158,31 +160,33 @@ struct mca_config {
 	u32 rip_msr;
 };
 
-struct mce_vendor_flags {
+struct mce_vendor_flags
+{
 	/*
 	 * Indicates that overflow conditions are not fatal, when set.
 	 */
 	__u64 overflow_recov	: 1,
 
-	/*
-	 * (AMD) SUCCOR stands for S/W UnCorrectable error COntainment and
-	 * Recovery. It indicates support for data poisoning in HW and deferred
-	 * error interrupts.
-	 */
-	      succor		: 1,
+			 /*
+			  * (AMD) SUCCOR stands for S/W UnCorrectable error COntainment and
+			  * Recovery. It indicates support for data poisoning in HW and deferred
+			  * error interrupts.
+			  */
+			 succor		: 1,
 
-	/*
-	 * (AMD) SMCA: This bit indicates support for Scalable MCA which expands
-	 * the register space for each MCA bank and also increases number of
-	 * banks. Also, to accommodate the new banks and registers, the MCA
-	 * register space is moved to a new MSR range.
-	 */
-	      smca		: 1,
+			 /*
+			  * (AMD) SMCA: This bit indicates support for Scalable MCA which expands
+			  * the register space for each MCA bank and also increases number of
+			  * banks. Also, to accommodate the new banks and registers, the MCA
+			  * register space is moved to a new MSR range.
+			  */
+			 smca		: 1,
 
-	      __reserved_0	: 61;
+			 __reserved_0	: 61;
 };
 
-struct mca_msr_regs {
+struct mca_msr_regs
+{
 	u32 (*ctl)	(int bank);
 	u32 (*status)	(int bank);
 	u32 (*addr)	(int bank);
@@ -264,7 +268,8 @@ DECLARE_PER_CPU(unsigned, mce_poll_count);
 typedef DECLARE_BITMAP(mce_banks_t, MAX_NR_BANKS);
 DECLARE_PER_CPU(mce_banks_t, mce_poll_banks);
 
-enum mcp_flags {
+enum mcp_flags
+{
 	MCP_TIMESTAMP	= BIT(0),	/* log time stamp */
 	MCP_UC		= BIT(1),	/* log uncorrected errors */
 	MCP_DONTLOG	= BIT(2),	/* only clear, don't log */
@@ -276,8 +281,8 @@ int mce_notify_irq(void);
 DECLARE_PER_CPU(struct mce, injectm);
 
 extern void register_mce_write_callback(ssize_t (*)(struct file *filp,
-				    const char __user *ubuf,
-				    size_t usize, loff_t *off));
+										const char __user *ubuf,
+										size_t usize, loff_t *off));
 
 /* Disable CMCI/polling for MCA bank claimed by firmware */
 extern void mce_disable_bank(int bank);
@@ -330,7 +335,7 @@ static inline void mcheck_intel_therm_init(void) { }
 
 struct cper_sec_mem_err;
 extern void apei_mce_report_mem_error(int corrected,
-				      struct cper_sec_mem_err *mem_err);
+									  struct cper_sec_mem_err *mem_err);
 
 /*
  * Enumerate new IP types and HWID values in AMD processors which support
@@ -339,7 +344,8 @@ extern void apei_mce_report_mem_error(int corrected,
 #ifdef CONFIG_X86_MCE_AMD
 
 /* These may be used by multiple smca_hwid_mcatypes */
-enum smca_bank_types {
+enum smca_bank_types
+{
 	SMCA_LS = 0,	/* Load Store */
 	SMCA_IF,	/* Instruction Fetch */
 	SMCA_L2_CACHE,	/* L2 Cache */
@@ -356,7 +362,8 @@ enum smca_bank_types {
 	N_SMCA_BANK_TYPES
 };
 
-struct smca_bank_name {
+struct smca_bank_name
+{
 	const char *name;	/* Short name for sysfs */
 	const char *long_name;	/* Long name for pretty-printing */
 };
@@ -365,13 +372,15 @@ extern struct smca_bank_name smca_bank_names[N_SMCA_BANK_TYPES];
 
 #define HWID_MCATYPE(hwid, mcatype) ((hwid << 16) | mcatype)
 
-struct smca_hwid_mcatype {
+struct smca_hwid_mcatype
+{
 	unsigned int bank_type;	/* Use with smca_bank_types for easy indexing. */
 	u32 hwid_mcatype;	/* (hwid,mcatype) tuple */
 	u32 xec_bitmap;		/* Bitmap of valid ExtErrorCodes; current max is 21. */
 };
 
-struct smca_bank_info {
+struct smca_bank_info
+{
 	struct smca_hwid_mcatype *type;
 	u32 type_instance;
 };

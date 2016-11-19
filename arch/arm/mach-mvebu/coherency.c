@@ -45,20 +45,28 @@ static void __iomem *cpu_config_base;
 /* Coherency fabric registers */
 #define IO_SYNC_BARRIER_CTL_OFFSET		   0x0
 
-enum {
+enum
+{
 	COHERENCY_FABRIC_TYPE_NONE,
 	COHERENCY_FABRIC_TYPE_ARMADA_370_XP,
 	COHERENCY_FABRIC_TYPE_ARMADA_375,
 	COHERENCY_FABRIC_TYPE_ARMADA_380,
 };
 
-static const struct of_device_id of_coherency_table[] = {
-	{.compatible = "marvell,coherency-fabric",
-	 .data = (void *) COHERENCY_FABRIC_TYPE_ARMADA_370_XP },
-	{.compatible = "marvell,armada-375-coherency-fabric",
-	 .data = (void *) COHERENCY_FABRIC_TYPE_ARMADA_375 },
-	{.compatible = "marvell,armada-380-coherency-fabric",
-	 .data = (void *) COHERENCY_FABRIC_TYPE_ARMADA_380 },
+static const struct of_device_id of_coherency_table[] =
+{
+	{
+		.compatible = "marvell,coherency-fabric",
+		.data = (void *) COHERENCY_FABRIC_TYPE_ARMADA_370_XP
+	},
+	{
+		.compatible = "marvell,armada-375-coherency-fabric",
+		.data = (void *) COHERENCY_FABRIC_TYPE_ARMADA_375
+	},
+	{
+		.compatible = "marvell,armada-380-coherency-fabric",
+		.data = (void *) COHERENCY_FABRIC_TYPE_ARMADA_380
+	},
 	{ /* end of list */ },
 };
 
@@ -84,7 +92,9 @@ static void armada_xp_clear_shared_l2(void)
 	u32 reg;
 
 	if (!cpu_config_base)
+	{
 		return;
+	}
 
 	reg = readl(cpu_config_base);
 	reg &= ~CPU_CONFIG_SHARED_L2;
@@ -92,22 +102,27 @@ static void armada_xp_clear_shared_l2(void)
 }
 
 static int mvebu_hwcc_notifier(struct notifier_block *nb,
-			       unsigned long event, void *__dev)
+							   unsigned long event, void *__dev)
 {
 	struct device *dev = __dev;
 
 	if (event != BUS_NOTIFY_ADD_DEVICE)
+	{
 		return NOTIFY_DONE;
+	}
+
 	set_dma_ops(dev, &arm_coherent_dma_ops);
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block mvebu_hwcc_nb = {
+static struct notifier_block mvebu_hwcc_nb =
+{
 	.notifier_call = mvebu_hwcc_notifier,
 };
 
-static struct notifier_block mvebu_hwcc_pci_nb __maybe_unused = {
+static struct notifier_block mvebu_hwcc_pci_nb __maybe_unused =
+{
 	.notifier_call = mvebu_hwcc_notifier,
 };
 
@@ -135,12 +150,17 @@ static void __init armada_370_coherency_init(struct device_node *np)
 	coherency_cpu_base = of_iomap(np, 1);
 
 	cpu_config_np = of_find_compatible_node(NULL, NULL,
-						"marvell,armada-xp-cpu-config");
+											"marvell,armada-xp-cpu-config");
+
 	if (!cpu_config_np)
+	{
 		goto exit;
+	}
 
 	cpu_config_base = of_iomap(cpu_config_np, 0);
-	if (!cpu_config_base) {
+
+	if (!cpu_config_base)
+	{
 		of_node_put(cpu_config_np);
 		goto exit;
 	}
@@ -148,8 +168,8 @@ static void __init armada_370_coherency_init(struct device_node *np)
 	of_node_put(cpu_config_np);
 
 	cpuhp_setup_state_nocalls(CPUHP_AP_ARM_MVEBU_COHERENCY,
-				  "AP_ARM_MVEBU_COHERENCY",
-				  armada_xp_clear_l2_starting, NULL);
+							  "AP_ARM_MVEBU_COHERENCY",
+							  armada_xp_clear_l2_starting, NULL);
 exit:
 	set_cpu_coherent();
 }
@@ -162,7 +182,7 @@ exit:
  */
 static void __iomem *
 armada_wa_ioremap_caller(phys_addr_t phys_addr, size_t size,
-			 unsigned int mtype, void *caller)
+						 unsigned int mtype, void *caller)
 {
 	mtype = MT_UNCACHED;
 	return __arm_ioremap_caller(phys_addr, size, mtype, caller);
@@ -181,7 +201,9 @@ static void __init armada_375_380_coherency_init(struct device_node *np)
 	 * I/O coherency is actually enabled.
 	 */
 	if (!coherency_available())
+	{
 		return;
+	}
 
 	/*
 	 * Add the PL310 property "arm,io-coherent". This makes sure the
@@ -190,7 +212,8 @@ static void __init armada_375_380_coherency_init(struct device_node *np)
 	 * doing PCIe in an SMP situation on Armada 375 and Armada
 	 * 38x.
 	 */
-	for_each_compatible_node(cache_dn, NULL, "arm,pl310-cache") {
+	for_each_compatible_node(cache_dn, NULL, "arm,pl310-cache")
+	{
 		struct property *p;
 
 		p = kzalloc(sizeof(*p), GFP_KERNEL);
@@ -227,11 +250,16 @@ static int coherency_type(void)
 
 	 */
 	if (!is_smp())
+	{
 		return COHERENCY_FABRIC_TYPE_NONE;
+	}
 
 	np = of_find_matching_node_and_match(NULL, of_coherency_table, &match);
+
 	if (!np)
+	{
 		return COHERENCY_FABRIC_TYPE_NONE;
+	}
 
 	type = (int) match->data;
 
@@ -244,8 +272,10 @@ int set_cpu_coherent(void)
 {
 	int type = coherency_type();
 
-	if (type == COHERENCY_FABRIC_TYPE_ARMADA_370_XP) {
-		if (!coherency_base) {
+	if (type == COHERENCY_FABRIC_TYPE_ARMADA_370_XP)
+	{
+		if (!coherency_base)
+		{
 			pr_warn("Can't make current CPU cache coherent.\n");
 			pr_warn("Coherency fabric is not initialized\n");
 			return 1;
@@ -272,10 +302,14 @@ int __init coherency_init(void)
 	np = of_find_matching_node(NULL, of_coherency_table);
 
 	if (type == COHERENCY_FABRIC_TYPE_ARMADA_370_XP)
+	{
 		armada_370_coherency_init(np);
+	}
 	else if (type == COHERENCY_FABRIC_TYPE_ARMADA_375 ||
-		 type == COHERENCY_FABRIC_TYPE_ARMADA_380)
+			 type == COHERENCY_FABRIC_TYPE_ARMADA_380)
+	{
 		armada_375_380_coherency_init(np);
+	}
 
 	of_node_put(np);
 
@@ -286,7 +320,8 @@ static int __init coherency_late_init(void)
 {
 	if (coherency_available())
 		bus_register_notifier(&platform_bus_type,
-				      &mvebu_hwcc_nb);
+							  &mvebu_hwcc_nb);
+
 	return 0;
 }
 
@@ -297,7 +332,8 @@ static int __init coherency_pci_init(void)
 {
 	if (coherency_available())
 		bus_register_notifier(&pci_bus_type,
-				       &mvebu_hwcc_pci_nb);
+							  &mvebu_hwcc_pci_nb);
+
 	return 0;
 }
 

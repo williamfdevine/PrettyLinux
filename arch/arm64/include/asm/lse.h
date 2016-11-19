@@ -11,7 +11,7 @@
 .arch_extension	lse
 
 .macro alt_lse, llsc, lse
-	alternative_insn "\llsc", "\lse", ARM64_HAS_LSE_ATOMICS
+alternative_insn "\llsc", "\lse", ARM64_HAS_LSE_ATOMICS
 .endm
 
 #else	/* __ASSEMBLER__ */
@@ -36,17 +36,17 @@ __asm__(".arch_extension	lse");
 
 #ifdef __ASSEMBLER__
 
-.macro alt_lse, llsc, lse
+	.macro alt_lse, llsc, lse
 	\llsc
-.endm
+	.endm
 
 #else	/* __ASSEMBLER__ */
 
-#define __LL_SC_INLINE		static inline
-#define __LL_SC_PREFIX(x)	x
-#define __LL_SC_EXPORT(x)
+	#define __LL_SC_INLINE		static inline
+	#define __LL_SC_PREFIX(x)	x
+	#define __LL_SC_EXPORT(x)
 
-#define ARM64_LSE_ATOMIC_INSN(llsc, lse)	llsc
+	#define ARM64_LSE_ATOMIC_INSN(llsc, lse)	llsc
 
 #endif	/* __ASSEMBLER__ */
 #endif	/* CONFIG_AS_LSE && CONFIG_ARM64_LSE_ATOMICS */

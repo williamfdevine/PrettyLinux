@@ -14,47 +14,59 @@
 
 
 static inline int is_hugepage_only_range(struct mm_struct *mm,
-					 unsigned long addr,
-					 unsigned long len)
+		unsigned long addr,
+		unsigned long len)
 {
 	return 0;
 }
 
 static inline int prepare_hugepage_range(struct file *file,
-					 unsigned long addr,
-					 unsigned long len)
+		unsigned long addr,
+		unsigned long len)
 {
 	unsigned long task_size = STACK_TOP;
 	struct hstate *h = hstate_file(file);
 
 	if (len & ~huge_page_mask(h))
+	{
 		return -EINVAL;
+	}
+
 	if (addr & ~huge_page_mask(h))
+	{
 		return -EINVAL;
+	}
+
 	if (len > task_size)
+	{
 		return -ENOMEM;
+	}
+
 	if (task_size - len < addr)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
 static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
-					  unsigned long addr,
-					  unsigned long end,
-					  unsigned long floor,
-					  unsigned long ceiling)
+		unsigned long addr,
+		unsigned long end,
+		unsigned long floor,
+		unsigned long ceiling)
 {
 	free_pgd_range(tlb, addr, end, floor, ceiling);
 }
 
 static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-				   pte_t *ptep, pte_t pte)
+								   pte_t *ptep, pte_t pte)
 {
 	set_pte_at(mm, addr, ptep, pte);
 }
 
 static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
-					    unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 	pte_t clear;
 	pte_t pte = *ptep;
@@ -65,7 +77,7 @@ static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
 }
 
 static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
-					 unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 	flush_tlb_page(vma, addr & huge_page_mask(hstate_vma(vma)));
 }
@@ -82,19 +94,20 @@ static inline pte_t huge_pte_wrprotect(pte_t pte)
 }
 
 static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
-					   unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 	ptep_set_wrprotect(mm, addr, ptep);
 }
 
 static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
-					     unsigned long addr,
-					     pte_t *ptep, pte_t pte,
-					     int dirty)
+		unsigned long addr,
+		pte_t *ptep, pte_t pte,
+		int dirty)
 {
 	int changed = !pte_same(*ptep, pte);
 
-	if (changed) {
+	if (changed)
+	{
 		set_pte_at(vma->vm_mm, addr, ptep, pte);
 		/*
 		 * There could be some standard sized pages in there,
@@ -102,6 +115,7 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
 		 */
 		flush_tlb_range(vma, addr, addr + HPAGE_SIZE);
 	}
+
 	return changed;
 }
 

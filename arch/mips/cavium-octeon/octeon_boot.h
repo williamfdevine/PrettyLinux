@@ -22,7 +22,8 @@
 
 #include <linux/types.h>
 
-struct boot_init_vector {
+struct boot_init_vector
+{
 	/* First stage address - in ram instead of flash */
 	uint64_t code_addr;
 	/* Setup code for application, NOT application entry point */
@@ -36,7 +37,8 @@ struct boot_init_vector {
 };
 
 /* similar to bootloader's linux_app_boot_info but without global data */
-struct linux_app_boot_info {
+struct linux_app_boot_info
+{
 #ifdef __BIG_ENDIAN_BITFIELD
 	uint32_t labi_signature;
 	uint32_t start_core0_addr;
@@ -87,7 +89,7 @@ struct linux_app_boot_info {
 
 /*  from uboot-headers/octeon_mem_map.h */
 #define EXCEPTION_BASE_INCR	(4 * 1024)
-			       /* Increment size for exception base addresses (4k minimum) */
+/* Increment size for exception base addresses (4k minimum) */
 #define EXCEPTION_BASE_BASE	0
 #define BOOTLOADER_PRIV_DATA_BASE	(EXCEPTION_BASE_BASE + 0x800)
 #define BOOTLOADER_BOOT_VECTOR		(BOOTLOADER_PRIV_DATA_BASE)

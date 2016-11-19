@@ -16,7 +16,8 @@
 #include <asm/smp.h>
 #include <asm/io.h>
 
-struct mpic_msgr {
+struct mpic_msgr
+{
 	u32 __iomem *base;
 	u32 __iomem *mer;
 	int irq;
@@ -113,7 +114,7 @@ static inline void mpic_msgr_clear(struct mpic_msgr *msgr)
  * and *not* the actual hardware CPU number.
  */
 static inline void mpic_msgr_set_destination(struct mpic_msgr *msgr,
-					     u32 cpu_num)
+		u32 cpu_num)
 {
 	out_be32(msgr->base, 1 << get_hard_smp_processor_id(cpu_num));
 }

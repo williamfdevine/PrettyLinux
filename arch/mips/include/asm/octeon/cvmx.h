@@ -31,7 +31,8 @@
 #include <linux/kernel.h>
 #include <linux/string.h>
 
-enum cvmx_mips_space {
+enum cvmx_mips_space
+{
 	CVMX_MIPS_SPACE_XKSEG = 3LL,
 	CVMX_MIPS_SPACE_XKPHYS = 2LL,
 	CVMX_MIPS_SPACE_XSSEG = 1LL,
@@ -49,7 +50,7 @@ enum cvmx_mips_space {
 #define CVMX_ADD_SEG(segment, add) \
 	((((uint64_t)segment) << 62) | (add))
 #ifndef CVMX_ADD_IO_SEG
-#define CVMX_ADD_IO_SEG(add) CVMX_ADD_SEG(CVMX_IO_SEG, (add))
+	#define CVMX_ADD_IO_SEG(add) CVMX_ADD_SEG(CVMX_IO_SEG, (add))
 #endif
 
 #include <asm/octeon/cvmx-asm.h>
@@ -73,13 +74,13 @@ enum cvmx_mips_space {
 #include <asm/octeon/cvmx-l2c.h>
 
 #ifndef CVMX_ENABLE_DEBUG_PRINTS
-#define CVMX_ENABLE_DEBUG_PRINTS 1
+	#define CVMX_ENABLE_DEBUG_PRINTS 1
 #endif
 
 #if CVMX_ENABLE_DEBUG_PRINTS
-#define cvmx_dprintf	    printk
+	#define cvmx_dprintf	    printk
 #else
-#define cvmx_dprintf(...)   {}
+	#define cvmx_dprintf(...)   {}
 #endif
 
 #define CVMX_MAX_CORES		(16)
@@ -123,7 +124,7 @@ static inline uint32_t cvmx_get_proc_id(void)
  * Returns I/O base address
  */
 static inline uint64_t cvmx_build_io_address(uint64_t major_did,
-					     uint64_t sub_did)
+		uint64_t sub_did)
 {
 	return (0x1ull << 48) | (major_did << 43) | (sub_did << 40);
 }
@@ -146,7 +147,7 @@ static inline uint64_t cvmx_build_io_address(uint64_t major_did,
  * Returns Value masked and shifted
  */
 static inline uint64_t cvmx_build_bits(uint64_t high_bit,
-				       uint64_t low_bit, uint64_t value)
+									   uint64_t low_bit, uint64_t value)
 {
 	return (value & cvmx_build_mask(high_bit - low_bit + 1)) << low_bit;
 }
@@ -161,7 +162,8 @@ static inline uint64_t cvmx_build_bits(uint64_t high_bit,
  */
 static inline uint64_t cvmx_ptr_to_phys(void *ptr)
 {
-	if (sizeof(void *) == 8) {
+	if (sizeof(void *) == 8)
+	{
 		/*
 		 * We're running in 64 bit mode. Normally this means
 		 * that we can use 40 bits of address space (the
@@ -171,10 +173,16 @@ static inline uint64_t cvmx_ptr_to_phys(void *ptr)
 		 * only 30 bits can be used.
 		 */
 		if ((CAST64(ptr) >> 62) == 3)
+		{
 			return CAST64(ptr) & cvmx_build_mask(30);
+		}
 		else
+		{
 			return CAST64(ptr) & cvmx_build_mask(40);
-	} else {
+		}
+	}
+	else
+	{
 		return (long)(ptr) & 0x1fffffff;
 	}
 }
@@ -189,15 +197,18 @@ static inline uint64_t cvmx_ptr_to_phys(void *ptr)
  */
 static inline void *cvmx_phys_to_ptr(uint64_t physical_address)
 {
-	if (sizeof(void *) == 8) {
+	if (sizeof(void *) == 8)
+	{
 		/* Just set the top bit, avoiding any TLB ugliness */
 		return CASTPTR(void,
-			       CVMX_ADD_SEG(CVMX_MIPS_SPACE_XKPHYS,
-					    physical_address));
-	} else {
+					   CVMX_ADD_SEG(CVMX_MIPS_SPACE_XKPHYS,
+									physical_address));
+	}
+	else
+	{
 		return CASTPTR(void,
-			       CVMX_ADD_SEG32(CVMX_MIPS32_SPACE_KSEG0,
-					      physical_address));
+					   CVMX_ADD_SEG32(CVMX_MIPS32_SPACE_KSEG0,
+									  physical_address));
 	}
 }
 
@@ -209,10 +220,10 @@ static inline void *cvmx_phys_to_ptr(uint64_t physical_address)
 /* We have a full 64bit ABI. Writing to a 64bit address can be done with
     a simple volatile pointer */
 #define CVMX_BUILD_WRITE64(TYPE, ST)					\
-static inline void cvmx_write64_##TYPE(uint64_t addr, TYPE##_t val)	\
-{									\
-    *CASTPTR(volatile TYPE##_t, addr) = val;				\
-}
+	static inline void cvmx_write64_##TYPE(uint64_t addr, TYPE##_t val)	\
+	{									\
+		*CASTPTR(volatile TYPE##_t, addr) = val;				\
+	}
 
 
 /* The following #if controls the definition of the macro
@@ -223,10 +234,10 @@ static inline void cvmx_write64_##TYPE(uint64_t addr, TYPE##_t val)	\
 /* We have a full 64bit ABI. Writing to a 64bit address can be done with
     a simple volatile pointer */
 #define CVMX_BUILD_READ64(TYPE, LT)					\
-static inline TYPE##_t cvmx_read64_##TYPE(uint64_t addr)		\
-{									\
-	return *CASTPTR(volatile TYPE##_t, addr);			\
-}
+	static inline TYPE##_t cvmx_read64_##TYPE(uint64_t addr)		\
+	{									\
+		return *CASTPTR(volatile TYPE##_t, addr);			\
+	}
 
 
 /* The following defines 8 functions for writing to a 64bit address. Each
@@ -273,7 +284,9 @@ static inline void cvmx_write_csr(uint64_t csr_addr, uint64_t val)
 	 * because it is fast and harmless.
 	 */
 	if (((csr_addr >> 40) & 0x7ffff) == (0x118))
+	{
 		cvmx_read64(CVMX_MIO_BOOT_BIST_STAT);
+	}
 }
 
 static inline void cvmx_writeq_csr(void __iomem *csr_addr, uint64_t val)
@@ -306,12 +319,14 @@ static inline void cvmx_send_single(uint64_t data)
 
 static inline void cvmx_read_csr_async(uint64_t scraddr, uint64_t csr_addr)
 {
-	union {
+	union
+	{
 		uint64_t u64;
-		struct {
-			uint64_t scraddr:8;
-			uint64_t len:8;
-			uint64_t addr:48;
+		struct
+		{
+			uint64_t scraddr: 8;
+			uint64_t len: 8;
+			uint64_t addr: 48;
 		} s;
 	} addr;
 	addr.u64 = csr_addr;
@@ -326,7 +341,7 @@ static inline int cvmx_octeon_is_pass1(void)
 #if OCTEON_IS_COMMON_BINARY()
 	return 0;	/* Pass 1 isn't supported for common binaries */
 #else
-/* Now that we know we're built for a specific model, only check CN38XX */
+	/* Now that we know we're built for a specific model, only check CN38XX */
 #if OCTEON_IS_MODEL(OCTEON_CN38XX)
 	return cvmx_get_proc_id() == OCTEON_CN38XX_PASS1;
 #else
@@ -422,9 +437,13 @@ static inline void cvmx_wait(uint64_t cycles)
 static inline uint64_t cvmx_get_cycle_global(void)
 {
 	if (cvmx_octeon_is_pass1())
+	{
 		return 0;
+	}
 	else
+	{
 		return cvmx_read64(CVMX_IPD_CLK_COUNT);
+	}
 }
 
 /**
@@ -437,27 +456,27 @@ static inline uint64_t cvmx_get_cycle_global(void)
  * 3) If #2 isn't true loop to #1 unless too much time has passed.
  */
 #define CVMX_WAIT_FOR_FIELD64(address, type, field, op, value, timeout_usec)\
-    (									\
-{									\
-	int result;							\
-	do {								\
-		uint64_t done = cvmx_get_cycle() + (uint64_t)timeout_usec * \
-			cvmx_sysinfo_get()->cpu_clock_hz / 1000000;	\
-		type c;							\
-		while (1) {						\
-			c.u64 = cvmx_read_csr(address);			\
-			if ((c.s.field) op(value)) {			\
-				result = 0;				\
-				break;					\
-			} else if (cvmx_get_cycle() > done) {		\
-				result = -1;				\
-				break;					\
-			} else						\
-				cvmx_wait(100);				\
-		}							\
-	} while (0);							\
-	result;								\
-})
+	(									\
+	{									\
+		int result;							\
+		do {								\
+			uint64_t done = cvmx_get_cycle() + (uint64_t)timeout_usec * \
+							cvmx_sysinfo_get()->cpu_clock_hz / 1000000;	\
+			type c;							\
+			while (1) {						\
+				c.u64 = cvmx_read_csr(address);			\
+				if ((c.s.field) op(value)) {			\
+					result = 0;				\
+					break;					\
+				} else if (cvmx_get_cycle() > done) {		\
+					result = -1;				\
+					break;					\
+				} else						\
+					cvmx_wait(100);				\
+			}							\
+		} while (0);							\
+		result;								\
+	})
 
 /***************************************************************************/
 
@@ -468,9 +487,14 @@ static inline uint32_t cvmx_octeon_num_cores(void)
 	u64 ciu_fuse;
 
 	if (OCTEON_IS_OCTEON3() && !OCTEON_IS_MODEL(OCTEON_CN70XX))
+	{
 		ciu_fuse_reg = CVMX_CIU3_FUSE;
+	}
 	else
+	{
 		ciu_fuse_reg = CVMX_CIU_FUSE;
+	}
+
 	ciu_fuse = cvmx_read_csr(ciu_fuse_reg);
 	return cvmx_dpop(ciu_fuse);
 }

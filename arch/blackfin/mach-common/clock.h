@@ -3,7 +3,8 @@
 
 #include <linux/clk.h>
 
-struct clk_ops {
+struct clk_ops
+{
 	unsigned long (*get_rate)(struct clk *clk);
 	unsigned long (*round_rate)(struct clk *clk, unsigned long rate);
 	int (*set_rate)(struct clk *clk, unsigned long rate);
@@ -11,7 +12,8 @@ struct clk_ops {
 	int (*disable)(struct clk *clk);
 };
 
-struct clk {
+struct clk
+{
 	const char		*name;
 	unsigned long           rate;
 	spinlock_t 		lock;

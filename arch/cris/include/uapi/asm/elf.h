@@ -6,9 +6,9 @@
  */
 
 #ifdef __arch_v32
-#include <asm/elf_v32.h>
+	#include <asm/elf_v32.h>
 #else
-#include <asm/elf_v10.h>
+	#include <asm/elf_v10.h>
 #endif
 
 #define R_CRIS_NONE             0

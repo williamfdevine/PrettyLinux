@@ -24,19 +24,22 @@
 
 #define LEVELS_PER_SLICE 128
 
-struct slice_data {
+struct slice_data
+{
 	unsigned long irq_enable_mask[2];
 	int level_to_irq[LEVELS_PER_SLICE];
 };
 
-struct hub_data {
+struct hub_data
+{
 	cpumask_t	h_cpus;
 	unsigned long slice_map;
 	unsigned long irq_alloc_mask[2];
 	struct slice_data slice[2];
 };
 
-struct node_data {
+struct node_data
+{
 	struct pglist_data pglist;
 	struct hub_data hub;
 	cpumask_t cpumask;

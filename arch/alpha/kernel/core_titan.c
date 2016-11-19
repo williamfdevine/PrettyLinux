@@ -47,9 +47,9 @@ static int titan_pchip1_present;
 #define DEBUG_CONFIG 0
 
 #if DEBUG_CONFIG
-# define DBG_CFG(args)	printk args
+	#define DBG_CFG(args)	printk args
 #else
-# define DBG_CFG(args)
+	#define DBG_CFG(args)
 #endif
 
 
@@ -62,14 +62,14 @@ mk_tig_addr(int offset)
 	return (volatile unsigned long *)(TITAN_TIG_SPACE + (offset << 6));
 }
 
-static inline u8 
+static inline u8
 titan_read_tig(int offset, u8 value)
 {
 	volatile unsigned long *tig_addr = mk_tig_addr(offset);
 	return (u8)(*tig_addr & 0xff);
 }
 
-static inline void 
+static inline void
 titan_write_tig(int offset, u8 value)
 {
 	volatile unsigned long *tig_addr = mk_tig_addr(offset);
@@ -90,7 +90,7 @@ titan_write_tig(int offset, u8 value)
  *
  * Type 1:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | | | | | | | | | |B|B|B|B|B|B|B|B|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|1|
@@ -101,11 +101,11 @@ titan_write_tig(int offset, u8 value)
  *	15:11	Device number (5 bits)
  *	10:8	function number
  *	 7:2	register number
- *  
+ *
  * Notes:
- *	The function number selects which function of a multi-function device 
+ *	The function number selects which function of a multi-function device
  *	(e.g., SCSI and Ethernet).
- * 
+ *
  *	The register selects a DWORD (32 bit) register offset.  Hence it
  *	doesn't get shifted by 2 bits as we want to "drop" the bottom two
  *	bits.
@@ -113,23 +113,26 @@ titan_write_tig(int offset, u8 value)
 
 static int
 mk_conf_addr(struct pci_bus *pbus, unsigned int device_fn, int where,
-	     unsigned long *pci_addr, unsigned char *type1)
+			 unsigned long *pci_addr, unsigned char *type1)
 {
 	struct pci_controller *hose = pbus->sysdata;
 	unsigned long addr;
 	u8 bus = pbus->number;
 
 	DBG_CFG(("mk_conf_addr(bus=%d ,device_fn=0x%x, where=0x%x, "
-		 "pci_addr=0x%p, type1=0x%p)\n",
-		 bus, device_fn, where, pci_addr, type1));
+			 "pci_addr=0x%p, type1=0x%p)\n",
+			 bus, device_fn, where, pci_addr, type1));
 
 	if (!pbus->parent) /* No parent means peer PCI bus. */
+	{
 		bus = 0;
-        *type1 = (bus != 0);
+	}
 
-        addr = (bus << 16) | (device_fn << 8) | where;
+	*type1 = (bus != 0);
+
+	addr = (bus << 16) | (device_fn << 8) | where;
 	addr |= hose->config_space_base;
-		
+
 	*pci_addr = addr;
 	DBG_CFG(("mk_conf_addr: returning pci_addr 0x%lx\n", addr));
 	return 0;
@@ -137,61 +140,71 @@ mk_conf_addr(struct pci_bus *pbus, unsigned int device_fn, int where,
 
 static int
 titan_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		  int size, u32 *value)
+				  int size, u32 *value)
 {
 	unsigned long addr;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, &addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
-	switch (size) {
-	case 1:
-		*value = __kernel_ldbu(*(vucp)addr);
-		break;
-	case 2:
-		*value = __kernel_ldwu(*(vusp)addr);
-		break;
-	case 4:
-		*value = *(vuip)addr;
-		break;
+	switch (size)
+	{
+		case 1:
+			*value = __kernel_ldbu(*(vucp)addr);
+			break;
+
+		case 2:
+			*value = __kernel_ldwu(*(vusp)addr);
+			break;
+
+		case 4:
+			*value = *(vuip)addr;
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static int 
+static int
 titan_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		   int size, u32 value)
+				   int size, u32 value)
 {
 	unsigned long addr;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, &addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
-	switch (size) {
-	case 1:
-		__kernel_stb(value, *(vucp)addr);
-		mb();
-		__kernel_ldbu(*(vucp)addr);
-		break;
-	case 2:
-		__kernel_stw(value, *(vusp)addr);
-		mb();
-		__kernel_ldwu(*(vusp)addr);
-		break;
-	case 4:
-		*(vuip)addr = value;
-		mb();
-		*(vuip)addr;
-		break;
+	switch (size)
+	{
+		case 1:
+			__kernel_stb(value, *(vucp)addr);
+			mb();
+			__kernel_ldbu(*(vucp)addr);
+			break;
+
+		case 2:
+			__kernel_stw(value, *(vusp)addr);
+			mb();
+			__kernel_ldwu(*(vusp)addr);
+			break;
+
+		case 4:
+			*(vuip)addr = value;
+			mb();
+			*(vuip)addr;
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops titan_pci_ops = 
+struct pci_ops titan_pci_ops =
 {
 	.read =		titan_read_config,
 	.write =	titan_write_config,
@@ -201,27 +214,33 @@ struct pci_ops titan_pci_ops =
 void
 titan_pci_tbi(struct pci_controller *hose, dma_addr_t start, dma_addr_t end)
 {
-	titan_pachip *pachip = 
-	  (hose->index & 1) ? TITAN_pachip1 : TITAN_pachip0;
+	titan_pachip *pachip =
+		(hose->index & 1) ? TITAN_pachip1 : TITAN_pachip0;
 	titan_pachip_port *port;
 	volatile unsigned long *csr;
 	unsigned long value;
 
 	/* Get the right hose.  */
 	port = &pachip->g_port;
-	if (hose->index & 2) 
+
+	if (hose->index & 2)
+	{
 		port = &pachip->a_port;
+	}
 
 	/* We can invalidate up to 8 tlb entries in a go.  The flush
-	   matches against <31:16> in the pci address.  
+	   matches against <31:16> in the pci address.
 	   Note that gtlbi* and atlbi* are in the same place in the g_port
 	   and a_port, respectively, so the g_port offset can be used
 	   even if hose is an a_port */
 	csr = &port->port_specific.g.gtlbia.csr;
-	if (((start ^ end) & 0xffff0000) == 0)
-		csr = &port->port_specific.g.gtlbiv.csr;
 
-	/* For TBIA, it doesn't matter what value we write.  For TBI, 
+	if (((start ^ end) & 0xffff0000) == 0)
+	{
+		csr = &port->port_specific.g.gtlbiv.csr;
+	}
+
+	/* For TBIA, it doesn't matter what value we write.  For TBI,
 	   it's the shifted tag bits.  */
 	value = (start & 0xffff0000) >> 12;
 
@@ -249,24 +268,28 @@ titan_init_one_pachip_port(titan_pachip_port *port, int index)
 	struct pci_controller *hose;
 
 	hose = alloc_pci_controller();
+
 	if (index == 0)
+	{
 		pci_isa_hose = hose;
+	}
+
 	hose->io_space = alloc_resource();
 	hose->mem_space = alloc_resource();
 
 	/*
-	 * This is for userland consumption.  The 40-bit PIO bias that we 
-	 * use in the kernel through KSEG doesn't work in the page table 
+	 * This is for userland consumption.  The 40-bit PIO bias that we
+	 * use in the kernel through KSEG doesn't work in the page table
 	 * based user mappings. (43-bit KSEG sign extends the physical
 	 * address from bit 40 to hit the I/O bit - mapped addresses don't).
-	 * So make sure we get the 43-bit PIO bias.  
+	 * So make sure we get the 43-bit PIO bias.
 	 */
 	hose->sparse_mem_base = 0;
 	hose->sparse_io_base = 0;
 	hose->dense_mem_base
-	  = (TITAN_MEM(index) & 0xffffffffffUL) | 0x80000000000UL;
+		= (TITAN_MEM(index) & 0xffffffffffUL) | 0x80000000000UL;
 	hose->dense_io_base
-	  = (TITAN_IO(index) & 0xffffffffffUL) | 0x80000000000UL;
+		= (TITAN_IO(index) & 0xffffffffffUL) | 0x80000000000UL;
 
 	hose->config_space_base = TITAN_CONF(index);
 	hose->index = index;
@@ -282,12 +305,17 @@ titan_init_one_pachip_port(titan_pachip_port *port, int index)
 	hose->mem_space->flags = IORESOURCE_MEM;
 
 	if (request_resource(&ioport_resource, hose->io_space) < 0)
+	{
 		printk(KERN_ERR "Failed to request IO on hose %d\n", index);
+	}
+
 	if (request_resource(&iomem_resource, hose->mem_space) < 0)
+	{
 		printk(KERN_ERR "Failed to request MEM on hose %d\n", index);
+	}
 
 	/*
-	 * Save the existing PCI window translations.  SRM will 
+	 * Save the existing PCI window translations.  SRM will
 	 * need them when we go to reboot.
 	 */
 	saved_config[index].wsba[0] = port->wsba[0].csr;
@@ -341,8 +369,10 @@ titan_init_one_pachip_port(titan_pachip_port *port, int index)
 	/*
 	 * If it's an AGP port, initialize agplastwr.
 	 */
-	if (titan_query_agp(port)) 
+	if (titan_query_agp(port))
+	{
 		port->port_specific.a.agplastwr.csr = __direct_map_base;
+	}
 
 	titan_pci_tbi(hose, 0, -1);
 }
@@ -350,15 +380,22 @@ titan_init_one_pachip_port(titan_pachip_port *port, int index)
 static void __init
 titan_init_pachips(titan_pachip *pachip0, titan_pachip *pachip1)
 {
-	titan_pchip1_present = TITAN_cchip->csc.csr & 1L<<14;
+	titan_pchip1_present = TITAN_cchip->csc.csr & 1L << 14;
 
 	/* Init the ports in hose order... */
 	titan_init_one_pachip_port(&pachip0->g_port, 0);	/* hose 0 */
+
 	if (titan_pchip1_present)
-		titan_init_one_pachip_port(&pachip1->g_port, 1);/* hose 1 */
+	{
+		titan_init_one_pachip_port(&pachip1->g_port, 1);    /* hose 1 */
+	}
+
 	titan_init_one_pachip_port(&pachip0->a_port, 2);	/* hose 2 */
+
 	if (titan_pchip1_present)
-		titan_init_one_pachip_port(&pachip1->a_port, 3);/* hose 3 */
+	{
+		titan_init_one_pachip_port(&pachip1->a_port, 3);    /* hose 3 */
+	}
 }
 
 void __init
@@ -422,10 +459,12 @@ titan_kill_one_pachip_port(titan_pachip_port *port, int index)
 static void
 titan_kill_pachips(titan_pachip *pachip0, titan_pachip *pachip1)
 {
-	if (titan_pchip1_present) {
+	if (titan_pchip1_present)
+	{
 		titan_kill_one_pachip_port(&pachip1->g_port, 1);
 		titan_kill_one_pachip_port(&pachip1->a_port, 3);
 	}
+
 	titan_kill_one_pachip_port(&pachip0->g_port, 0);
 	titan_kill_one_pachip_port(&pachip0->a_port, 2);
 }
@@ -455,7 +494,7 @@ titan_ioremap(unsigned long addr, unsigned long size)
 	int h = (addr & TITAN_HOSE_MASK) >> TITAN_HOSE_SHIFT;
 	unsigned long baddr = addr & ~TITAN_HOSE_MASK;
 	unsigned long last = baddr + size - 1;
-	struct pci_controller *hose;	
+	struct pci_controller *hose;
 	struct vm_struct *area;
 	unsigned long vaddr;
 	unsigned long *ptes;
@@ -463,8 +502,9 @@ titan_ioremap(unsigned long addr, unsigned long size)
 
 	/*
 	 * Adjust the address and hose, if necessary.
-	 */ 
-	if (pci_vga_hose && __is_mem_vga(addr)) {
+	 */
+	if (pci_vga_hose && __is_mem_vga(addr))
+	{
 		h = pci_vga_hose->index;
 		addr += pci_vga_hose->mem_space->start;
 	}
@@ -474,25 +514,32 @@ titan_ioremap(unsigned long addr, unsigned long size)
 	 */
 	for (hose = hose_head; hose; hose = hose->next)
 		if (hose->index == h)
+		{
 			break;
+		}
+
 	if (!hose)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Is it direct-mapped?
 	 */
-	if ((baddr >= __direct_map_base) && 
-	    ((baddr + size - 1) < __direct_map_base + __direct_map_size)) {
+	if ((baddr >= __direct_map_base) &&
+		((baddr + size - 1) < __direct_map_base + __direct_map_size))
+	{
 		vaddr = addr - __direct_map_base + TITAN_MEM_BIAS;
 		return (void __iomem *) vaddr;
 	}
 
-	/* 
+	/*
 	 * Check the scatter-gather arena.
 	 */
 	if (hose->sg_pci &&
-	    baddr >= (unsigned long)hose->sg_pci->dma_base &&
-	    last < (unsigned long)hose->sg_pci->dma_base + hose->sg_pci->size){
+		baddr >= (unsigned long)hose->sg_pci->dma_base &&
+		last < (unsigned long)hose->sg_pci->dma_base + hose->sg_pci->size)
+	{
 
 		/*
 		 * Adjust the limits (mappings must be page aligned)
@@ -506,26 +553,34 @@ titan_ioremap(unsigned long addr, unsigned long size)
 		 * Map it
 		 */
 		area = get_vm_area(size, VM_IOREMAP);
-		if (!area) {
+
+		if (!area)
+		{
 			printk("ioremap failed... no vm_area...\n");
 			return NULL;
 		}
 
 		ptes = hose->sg_pci->ptes;
-		for (vaddr = (unsigned long)area->addr; 
-		    baddr <= last; 
-		    baddr += PAGE_SIZE, vaddr += PAGE_SIZE) {
+
+		for (vaddr = (unsigned long)area->addr;
+			 baddr <= last;
+			 baddr += PAGE_SIZE, vaddr += PAGE_SIZE)
+		{
 			pfn = ptes[baddr >> PAGE_SHIFT];
-			if (!(pfn & 1)) {
+
+			if (!(pfn & 1))
+			{
 				printk("ioremap failed... pte not valid...\n");
 				vfree(area->addr);
 				return NULL;
 			}
+
 			pfn >>= 1;	/* make it a true pfn */
-			
+
 			if (__alpha_remap_area_pages(vaddr,
-						     pfn << PAGE_SHIFT, 
-						     PAGE_SIZE, 0)) {
+										 pfn << PAGE_SHIFT,
+										 PAGE_SIZE, 0))
+			{
 				printk("FAILED to remap_area_pages...\n");
 				vfree(area->addr);
 				return NULL;
@@ -546,8 +601,11 @@ void
 titan_iounmap(volatile void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
+
 	if (addr >= VMALLOC_START)
-		vfree((void *)(PAGE_MASK & addr)); 
+	{
+		vfree((void *)(PAGE_MASK & addr));
+	}
 }
 
 int
@@ -556,16 +614,20 @@ titan_is_mmio(const volatile void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 
 	if (addr >= VMALLOC_START)
+	{
 		return 1;
+	}
 	else
+	{
 		return (addr & 0x100000000UL) == 0;
+	}
 }
 
 #ifndef CONFIG_ALPHA_GENERIC
-EXPORT_SYMBOL(titan_ioportmap);
-EXPORT_SYMBOL(titan_ioremap);
-EXPORT_SYMBOL(titan_iounmap);
-EXPORT_SYMBOL(titan_is_mmio);
+	EXPORT_SYMBOL(titan_ioportmap);
+	EXPORT_SYMBOL(titan_ioremap);
+	EXPORT_SYMBOL(titan_iounmap);
+	EXPORT_SYMBOL(titan_is_mmio);
 #endif
 
 /*
@@ -576,7 +638,8 @@ EXPORT_SYMBOL(titan_is_mmio);
 #include <linux/slab.h>
 #include <linux/delay.h>
 
-struct titan_agp_aperture {
+struct titan_agp_aperture
+{
 	struct pci_iommu_arena *arena;
 	long pg_start;
 	long pg_count;
@@ -588,23 +651,30 @@ titan_agp_setup(alpha_agp_info *agp)
 	struct titan_agp_aperture *aper;
 
 	if (!alpha_agpgart_size)
+	{
 		return -ENOMEM;
+	}
 
 	aper = kmalloc(sizeof(struct titan_agp_aperture), GFP_KERNEL);
+
 	if (aper == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	aper->arena = agp->hose->sg_pci;
 	aper->pg_count = alpha_agpgart_size / PAGE_SIZE;
 	aper->pg_start = iommu_reserve(aper->arena, aper->pg_count,
-				       aper->pg_count - 1);
-	if (aper->pg_start < 0) {
+								   aper->pg_count - 1);
+
+	if (aper->pg_start < 0)
+	{
 		printk(KERN_ERR "Failed to reserve AGP memory\n");
 		kfree(aper);
 		return -ENOMEM;
 	}
 
-	agp->aperture.bus_base = 
+	agp->aperture.bus_base =
 		aper->arena->dma_base + aper->pg_start * PAGE_SIZE;
 	agp->aperture.size = aper->pg_count * PAGE_SIZE;
 	agp->aperture.sysdata = aper;
@@ -619,15 +689,20 @@ titan_agp_cleanup(alpha_agp_info *agp)
 	int status;
 
 	status = iommu_release(aper->arena, aper->pg_start, aper->pg_count);
-	if (status == -EBUSY) {
-		printk(KERN_WARNING 
-		       "Attempted to release bound AGP memory - unbinding\n");
+
+	if (status == -EBUSY)
+	{
+		printk(KERN_WARNING
+			   "Attempted to release bound AGP memory - unbinding\n");
 		iommu_unbind(aper->arena, aper->pg_start, aper->pg_count);
-		status = iommu_release(aper->arena, aper->pg_start, 
-				       aper->pg_count);
+		status = iommu_release(aper->arena, aper->pg_start,
+							   aper->pg_count);
 	}
+
 	if (status < 0)
+	{
 		printk(KERN_ERR "Failed to release AGP memory\n");
+	}
 
 	kfree(aper);
 	kfree(agp);
@@ -645,13 +720,21 @@ titan_agp_configure(alpha_agp_info *agp)
 
 	/* AGP Rate? */
 	pctl.pctl_r_bits.apctl_v_agp_rate = 0;		/* 1x */
-	if (agp->mode.bits.rate & 2) 
-		pctl.pctl_r_bits.apctl_v_agp_rate = 1;	/* 2x */
+
+	if (agp->mode.bits.rate & 2)
+	{
+		pctl.pctl_r_bits.apctl_v_agp_rate = 1;    /* 2x */
+	}
+
 #if 0
-	if (agp->mode.bits.rate & 4) 
-		pctl.pctl_r_bits.apctl_v_agp_rate = 2;	/* 4x */
+
+	if (agp->mode.bits.rate & 4)
+	{
+		pctl.pctl_r_bits.apctl_v_agp_rate = 2;    /* 4x */
+	}
+
 #endif
-	
+
 	/* RQ Depth? */
 	pctl.pctl_r_bits.apctl_v_agp_hp_rd = 2;
 	pctl.pctl_r_bits.apctl_v_agp_lp_rd = 7;
@@ -662,33 +745,33 @@ titan_agp_configure(alpha_agp_info *agp)
 	pctl.pctl_r_bits.apctl_v_agp_en = agp->mode.bits.enable;
 
 	/* Tell the user.  */
-	printk("Enabling AGP: %dX%s\n", 
-	       1 << pctl.pctl_r_bits.apctl_v_agp_rate,
-	       pctl.pctl_r_bits.apctl_v_agp_sba_en ? " - SBA" : "");
-	       
+	printk("Enabling AGP: %dX%s\n",
+		   1 << pctl.pctl_r_bits.apctl_v_agp_rate,
+		   pctl.pctl_r_bits.apctl_v_agp_sba_en ? " - SBA" : "");
+
 	/* Write it.  */
 	port->pctl.csr = pctl.pctl_q_whole;
-	
+
 	/* And wait at least 5000 66MHz cycles (per Titan spec).  */
 	udelay(100);
 
 	return 0;
 }
 
-static int 
+static int
 titan_agp_bind_memory(alpha_agp_info *agp, off_t pg_start, struct agp_memory *mem)
 {
 	struct titan_agp_aperture *aper = agp->aperture.sysdata;
-	return iommu_bind(aper->arena, aper->pg_start + pg_start, 
-			  mem->page_count, mem->pages);
+	return iommu_bind(aper->arena, aper->pg_start + pg_start,
+					  mem->page_count, mem->pages);
 }
 
-static int 
+static int
 titan_agp_unbind_memory(alpha_agp_info *agp, off_t pg_start, struct agp_memory *mem)
 {
 	struct titan_agp_aperture *aper = agp->aperture.sysdata;
 	return iommu_unbind(aper->arena, aper->pg_start + pg_start,
-			    mem->page_count);
+						mem->page_count);
 }
 
 static unsigned long
@@ -699,13 +782,16 @@ titan_agp_translate(alpha_agp_info *agp, dma_addr_t addr)
 	unsigned long pte;
 
 	if (addr < agp->aperture.bus_base ||
-	    addr >= agp->aperture.bus_base + agp->aperture.size) {
+		addr >= agp->aperture.bus_base + agp->aperture.size)
+	{
 		printk("%s: addr out of range\n", __func__);
 		return -EINVAL;
 	}
 
 	pte = aper->arena->ptes[baddr >> PAGE_SHIFT];
-	if (!(pte & 1)) {
+
+	if (!(pte & 1))
+	{
 		printk("%s: pte not valid\n", __func__);
 		return -EINVAL;
 	}
@@ -736,29 +822,42 @@ titan_agp_info(void)
 	 * Find the AGP port.
 	 */
 	port = &TITAN_pachip0->a_port;
+
 	if (titan_query_agp(port))
+	{
 		hosenum = 2;
-	if (hosenum < 0 && 
-	    titan_pchip1_present &&
-	    titan_query_agp(port = &TITAN_pachip1->a_port)) 
+	}
+
+	if (hosenum < 0 &&
+		titan_pchip1_present &&
+		titan_query_agp(port = &TITAN_pachip1->a_port))
+	{
 		hosenum = 3;
-	
+	}
+
 	/*
 	 * Find the hose the port is on.
 	 */
 	for (hose = hose_head; hose; hose = hose->next)
 		if (hose->index == hosenum)
+		{
 			break;
+		}
 
 	if (!hose || !hose->sg_pci)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Allocate the info structure.
 	 */
 	agp = kmalloc(sizeof(*agp), GFP_KERNEL);
+
 	if (!agp)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Fill it in.

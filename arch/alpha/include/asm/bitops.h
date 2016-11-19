@@ -2,7 +2,7 @@
 #define _ALPHA_BITOPS_H
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <asm/compiler.h>
@@ -25,28 +25,28 @@
  */
 
 static inline void
-set_bit(unsigned long nr, volatile void * addr)
+set_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long temp;
 	int *m = ((int *) addr) + (nr >> 5);
 
 	__asm__ __volatile__(
-	"1:	ldl_l %0,%3\n"
-	"	bis %0,%2,%0\n"
-	"	stl_c %0,%1\n"
-	"	beq %0,2f\n"
-	".subsection 2\n"
-	"2:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (*m)
-	:"Ir" (1UL << (nr & 31)), "m" (*m));
+		"1:	ldl_l %0,%3\n"
+		"	bis %0,%2,%0\n"
+		"	stl_c %0,%1\n"
+		"	beq %0,2f\n"
+		".subsection 2\n"
+		"2:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (*m)
+		:"Ir" (1UL << (nr & 31)), "m" (*m));
 }
 
 /*
  * WARNING: non atomic version.
  */
 static inline void
-__set_bit(unsigned long nr, volatile void * addr)
+__set_bit(unsigned long nr, volatile void *addr)
 {
 	int *m = ((int *) addr) + (nr >> 5);
 
@@ -54,25 +54,25 @@ __set_bit(unsigned long nr, volatile void * addr)
 }
 
 static inline void
-clear_bit(unsigned long nr, volatile void * addr)
+clear_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long temp;
 	int *m = ((int *) addr) + (nr >> 5);
 
 	__asm__ __volatile__(
-	"1:	ldl_l %0,%3\n"
-	"	bic %0,%2,%0\n"
-	"	stl_c %0,%1\n"
-	"	beq %0,2f\n"
-	".subsection 2\n"
-	"2:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (*m)
-	:"Ir" (1UL << (nr & 31)), "m" (*m));
+		"1:	ldl_l %0,%3\n"
+		"	bic %0,%2,%0\n"
+		"	stl_c %0,%1\n"
+		"	beq %0,2f\n"
+		".subsection 2\n"
+		"2:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (*m)
+		:"Ir" (1UL << (nr & 31)), "m" (*m));
 }
 
 static inline void
-clear_bit_unlock(unsigned long nr, volatile void * addr)
+clear_bit_unlock(unsigned long nr, volatile void *addr)
 {
 	smp_mb();
 	clear_bit(nr, addr);
@@ -82,7 +82,7 @@ clear_bit_unlock(unsigned long nr, volatile void * addr)
  * WARNING: non atomic version.
  */
 static __inline__ void
-__clear_bit(unsigned long nr, volatile void * addr)
+__clear_bit(unsigned long nr, volatile void *addr)
 {
 	int *m = ((int *) addr) + (nr >> 5);
 
@@ -90,35 +90,35 @@ __clear_bit(unsigned long nr, volatile void * addr)
 }
 
 static inline void
-__clear_bit_unlock(unsigned long nr, volatile void * addr)
+__clear_bit_unlock(unsigned long nr, volatile void *addr)
 {
 	smp_mb();
 	__clear_bit(nr, addr);
 }
 
 static inline void
-change_bit(unsigned long nr, volatile void * addr)
+change_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long temp;
 	int *m = ((int *) addr) + (nr >> 5);
 
 	__asm__ __volatile__(
-	"1:	ldl_l %0,%3\n"
-	"	xor %0,%2,%0\n"
-	"	stl_c %0,%1\n"
-	"	beq %0,2f\n"
-	".subsection 2\n"
-	"2:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (*m)
-	:"Ir" (1UL << (nr & 31)), "m" (*m));
+		"1:	ldl_l %0,%3\n"
+		"	xor %0,%2,%0\n"
+		"	stl_c %0,%1\n"
+		"	beq %0,2f\n"
+		".subsection 2\n"
+		"2:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (*m)
+		:"Ir" (1UL << (nr & 31)), "m" (*m));
 }
 
 /*
  * WARNING: non atomic version.
  */
 static __inline__ void
-__change_bit(unsigned long nr, volatile void * addr)
+__change_bit(unsigned long nr, volatile void *addr)
 {
 	int *m = ((int *) addr) + (nr >> 5);
 
@@ -134,23 +134,23 @@ test_and_set_bit(unsigned long nr, volatile void *addr)
 
 	__asm__ __volatile__(
 #ifdef CONFIG_SMP
-	"	mb\n"
+		"	mb\n"
 #endif
-	"1:	ldl_l %0,%4\n"
-	"	and %0,%3,%2\n"
-	"	bne %2,2f\n"
-	"	xor %0,%3,%0\n"
-	"	stl_c %0,%1\n"
-	"	beq %0,3f\n"
-	"2:\n"
+		"1:	ldl_l %0,%4\n"
+		"	and %0,%3,%2\n"
+		"	bne %2,2f\n"
+		"	xor %0,%3,%0\n"
+		"	stl_c %0,%1\n"
+		"	beq %0,3f\n"
+		"2:\n"
 #ifdef CONFIG_SMP
-	"	mb\n"
+		"	mb\n"
 #endif
-	".subsection 2\n"
-	"3:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
-	:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
+		".subsection 2\n"
+		"3:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
+		:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
 
 	return oldbit != 0;
 }
@@ -163,21 +163,21 @@ test_and_set_bit_lock(unsigned long nr, volatile void *addr)
 	int *m = ((int *) addr) + (nr >> 5);
 
 	__asm__ __volatile__(
-	"1:	ldl_l %0,%4\n"
-	"	and %0,%3,%2\n"
-	"	bne %2,2f\n"
-	"	xor %0,%3,%0\n"
-	"	stl_c %0,%1\n"
-	"	beq %0,3f\n"
-	"2:\n"
+		"1:	ldl_l %0,%4\n"
+		"	and %0,%3,%2\n"
+		"	bne %2,2f\n"
+		"	xor %0,%3,%0\n"
+		"	stl_c %0,%1\n"
+		"	beq %0,3f\n"
+		"2:\n"
 #ifdef CONFIG_SMP
-	"	mb\n"
+		"	mb\n"
 #endif
-	".subsection 2\n"
-	"3:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
-	:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
+		".subsection 2\n"
+		"3:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
+		:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
 
 	return oldbit != 0;
 }
@@ -186,7 +186,7 @@ test_and_set_bit_lock(unsigned long nr, volatile void *addr)
  * WARNING: non atomic version.
  */
 static inline int
-__test_and_set_bit(unsigned long nr, volatile void * addr)
+__test_and_set_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long mask = 1 << (nr & 0x1f);
 	int *m = ((int *) addr) + (nr >> 5);
@@ -197,7 +197,7 @@ __test_and_set_bit(unsigned long nr, volatile void * addr)
 }
 
 static inline int
-test_and_clear_bit(unsigned long nr, volatile void * addr)
+test_and_clear_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long oldbit;
 	unsigned long temp;
@@ -205,23 +205,23 @@ test_and_clear_bit(unsigned long nr, volatile void * addr)
 
 	__asm__ __volatile__(
 #ifdef CONFIG_SMP
-	"	mb\n"
+		"	mb\n"
 #endif
-	"1:	ldl_l %0,%4\n"
-	"	and %0,%3,%2\n"
-	"	beq %2,2f\n"
-	"	xor %0,%3,%0\n"
-	"	stl_c %0,%1\n"
-	"	beq %0,3f\n"
-	"2:\n"
+		"1:	ldl_l %0,%4\n"
+		"	and %0,%3,%2\n"
+		"	beq %2,2f\n"
+		"	xor %0,%3,%0\n"
+		"	stl_c %0,%1\n"
+		"	beq %0,3f\n"
+		"2:\n"
 #ifdef CONFIG_SMP
-	"	mb\n"
+		"	mb\n"
 #endif
-	".subsection 2\n"
-	"3:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
-	:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
+		".subsection 2\n"
+		"3:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
+		:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
 
 	return oldbit != 0;
 }
@@ -230,7 +230,7 @@ test_and_clear_bit(unsigned long nr, volatile void * addr)
  * WARNING: non atomic version.
  */
 static inline int
-__test_and_clear_bit(unsigned long nr, volatile void * addr)
+__test_and_clear_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long mask = 1 << (nr & 0x1f);
 	int *m = ((int *) addr) + (nr >> 5);
@@ -241,7 +241,7 @@ __test_and_clear_bit(unsigned long nr, volatile void * addr)
 }
 
 static inline int
-test_and_change_bit(unsigned long nr, volatile void * addr)
+test_and_change_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long oldbit;
 	unsigned long temp;
@@ -249,21 +249,21 @@ test_and_change_bit(unsigned long nr, volatile void * addr)
 
 	__asm__ __volatile__(
 #ifdef CONFIG_SMP
-	"	mb\n"
+		"	mb\n"
 #endif
-	"1:	ldl_l %0,%4\n"
-	"	and %0,%3,%2\n"
-	"	xor %0,%3,%0\n"
-	"	stl_c %0,%1\n"
-	"	beq %0,3f\n"
+		"1:	ldl_l %0,%4\n"
+		"	and %0,%3,%2\n"
+		"	xor %0,%3,%0\n"
+		"	stl_c %0,%1\n"
+		"	beq %0,3f\n"
 #ifdef CONFIG_SMP
-	"	mb\n"
+		"	mb\n"
 #endif
-	".subsection 2\n"
-	"3:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
-	:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
+		".subsection 2\n"
+		"3:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
+		:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
 
 	return oldbit != 0;
 }
@@ -272,7 +272,7 @@ test_and_change_bit(unsigned long nr, volatile void * addr)
  * WARNING: non atomic version.
  */
 static __inline__ int
-__test_and_change_bit(unsigned long nr, volatile void * addr)
+__test_and_change_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long mask = 1 << (nr & 0x1f);
 	int *m = ((int *) addr) + (nr >> 5);
@@ -283,7 +283,7 @@ __test_and_change_bit(unsigned long nr, volatile void * addr)
 }
 
 static inline int
-test_bit(int nr, const volatile void * addr)
+test_bit(int nr, const volatile void *addr)
 {
 	return (1UL & (((const int *) addr)[nr >> 5] >> (nr & 31))) != 0UL;
 }
@@ -323,7 +323,7 @@ static inline unsigned long ffz(unsigned long word)
 	bits = __kernel_extbl(word, qofs);
 	bofs = ffz_b(bits);
 
-	return qofs*8 + bofs;
+	return qofs * 8 + bofs;
 #endif
 }
 
@@ -343,7 +343,7 @@ static inline unsigned long __ffs(unsigned long word)
 	bits = __kernel_extbl(word, qofs);
 	bofs = ffz_b(~bits);
 
-	return qofs*8 + bofs;
+	return qofs * 8 + bofs;
 #endif
 }
 
@@ -379,7 +379,7 @@ static inline int fls64(unsigned long x)
 	t = __kernel_cmpbge (x, 0x0101010101010101UL);
 	a = __flsm1_tab[t];
 	t = __kernel_extbl (x, a);
-	r = a*8 + __flsm1_tab[t] + (x != 0);
+	r = a * 8 + __flsm1_tab[t] + (x != 0);
 
 	return r;
 }

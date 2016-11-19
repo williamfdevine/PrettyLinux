@@ -48,7 +48,10 @@ void exit_thread_runtime_instr(void)
 	struct task_struct *task = current;
 
 	if (!task->thread.ri_cb)
+	{
 		return;
+	}
+
 	disable_runtime_instr();
 	kfree(task->thread.ri_cb);
 	task->thread.ri_cb = NULL;
@@ -59,9 +62,12 @@ SYSCALL_DEFINE1(s390_runtime_instr, int, command)
 	struct runtime_instr_cb *cb;
 
 	if (!test_facility(64))
+	{
 		return -EOPNOTSUPP;
+	}
 
-	if (command == S390_RUNTIME_INSTR_STOP) {
+	if (command == S390_RUNTIME_INSTR_STOP)
+	{
 		preempt_disable();
 		exit_thread_runtime_instr();
 		preempt_enable();
@@ -69,13 +75,21 @@ SYSCALL_DEFINE1(s390_runtime_instr, int, command)
 	}
 
 	if (command != S390_RUNTIME_INSTR_START)
+	{
 		return -EINVAL;
+	}
 
-	if (!current->thread.ri_cb) {
+	if (!current->thread.ri_cb)
+	{
 		cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+
 		if (!cb)
+		{
 			return -ENOMEM;
-	} else {
+		}
+	}
+	else
+	{
 		cb = current->thread.ri_cb;
 		memset(cb, 0, sizeof(*cb));
 	}

@@ -19,7 +19,8 @@
  * DMA descriptor (in physical memory).
  */
 
-struct dma_desc {
+struct dma_desc
+{
 	u32 control;			/* Control. use DMAD_* */
 	u32 ca;				/* Current Address. */
 	u32 devcs;			/* Device control and status. */
@@ -58,7 +59,8 @@ struct dma_desc {
  * DMA register (within Internal Register Map).
  */
 
-struct dma_reg {
+struct dma_reg
+{
 	u32 dmac;		/* Control. */
 	u32 dmas;		/* Status. */
 	u32 dmasm;		/* Mask. */
@@ -96,7 +98,8 @@ struct dma_reg {
 #define DMA_CHAN_MEM_TO_PCI		5
 #define DMA_CHAN_COUNT			6
 
-struct dma_channel {
+struct dma_channel
+{
 	struct dma_reg ch[DMA_CHAN_COUNT];
 };
 

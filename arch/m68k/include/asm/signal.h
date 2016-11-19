@@ -12,7 +12,8 @@
 
 typedef unsigned long old_sigset_t;		/* at least 32 bits */
 
-typedef struct {
+typedef struct
+{
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
 
@@ -26,17 +27,17 @@ typedef struct {
 static inline void sigaddset(sigset_t *set, int _sig)
 {
 	asm ("bfset %0{%1,#1}"
-		: "+o" (*set)
-		: "id" ((_sig - 1) ^ 31)
-		: "cc");
+		 : "+o" (*set)
+		 : "id" ((_sig - 1) ^ 31)
+		 : "cc");
 }
 
 static inline void sigdelset(sigset_t *set, int _sig)
 {
 	asm ("bfclr %0{%1,#1}"
-		: "+o" (*set)
-		: "id" ((_sig - 1) ^ 31)
-		: "cc");
+		 : "+o" (*set)
+		 : "id" ((_sig - 1) ^ 31)
+		 : "cc");
 }
 
 static inline int __const_sigismember(sigset_t *set, int _sig)
@@ -49,9 +50,9 @@ static inline int __gen_sigismember(sigset_t *set, int _sig)
 {
 	int ret;
 	asm ("bfextu %1{%2,#1},%0"
-		: "=d" (ret)
-		: "o" (*set), "id" ((_sig-1) ^ 31)
-		: "cc");
+		 : "=d" (ret)
+		 : "o" (*set), "id" ((_sig-1) ^ 31)
+		 : "cc");
 	return ret;
 }
 
@@ -63,8 +64,8 @@ static inline int __gen_sigismember(sigset_t *set, int _sig)
 #endif /* !CONFIG_CPU_HAS_NO_BITFIELDS */
 
 #ifndef __uClinux__
-extern void ptrace_signal_deliver(void);
-#define ptrace_signal_deliver ptrace_signal_deliver
+	extern void ptrace_signal_deliver(void);
+	#define ptrace_signal_deliver ptrace_signal_deliver
 #endif /* __uClinux__ */
 
 #endif /* _M68K_SIGNAL_H */

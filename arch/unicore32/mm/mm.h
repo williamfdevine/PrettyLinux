@@ -27,7 +27,8 @@ static inline pmd_t *pmd_off_k(unsigned long virt)
 	return pmd_off(pgd_offset_k(virt), virt);
 }
 
-struct mem_type {
+struct mem_type
+{
 	unsigned int prot_pte;
 	unsigned int prot_l1;
 	unsigned int prot_sect;
@@ -37,8 +38,8 @@ const struct mem_type *get_mem_type(unsigned int type);
 
 extern void __flush_dcache_page(struct address_space *, struct page *);
 extern void hook_fault_code(int nr, int (*fn)
-		(unsigned long, unsigned int, struct pt_regs *),
-		int sig, int code, const char *name);
+							(unsigned long, unsigned int, struct pt_regs *),
+							int sig, int code, const char *name);
 
 void __init bootmem_init(void);
 void uc32_mm_memblock_reserve(void);

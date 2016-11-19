@@ -23,18 +23,18 @@
 
 #ifdef __ASSEMBLY__
 
-/* offsets from base register */
-#define BONITO(x)	(x)
+	/* offsets from base register */
+	#define BONITO(x)	(x)
 
 #else
 
-/*
- * Algorithmics Bonito64 system controller register base.
- */
-extern unsigned long _pcictrl_bonito;
-extern unsigned long _pcictrl_bonito_pcicfg;
+	/*
+	* Algorithmics Bonito64 system controller register base.
+	*/
+	extern unsigned long _pcictrl_bonito;
+	extern unsigned long _pcictrl_bonito_pcicfg;
 
-#define BONITO(x)		*(volatile u32 *)(_pcictrl_bonito + (x))
+	#define BONITO(x)		*(volatile u32 *)(_pcictrl_bonito + (x))
 
 #endif /* __ASSEMBLY__ */
 
@@ -417,9 +417,9 @@ extern unsigned long _pcictrl_bonito_pcicfg;
 #define BONITO_PCIMEMBASECFG_ADDRTRANS(WIN, CFG) ((((CFG) & BONITO_PCIMEMBASECFG_MEMBASE##WIN##_TRANS) >> BONITO_PCIMEMBASECFG_MEMBASE##WIN##_TRANS_SHIFT) << BONITO_PCIMEMBASECFG_ASHIFT)
 
 #define BONITO_PCITOPHYS(WIN, ADDR, CFG)	  ( \
-						  (((ADDR) & (~(BONITO_PCIMEMBASECFG_MASK))) & (~(BONITO_PCIMEMBASECFG_ADDRMASK(WIN, CFG)))) | \
-						  (BONITO_PCIMEMBASECFG_ADDRTRANS(WIN, CFG)) \
-						)
+		(((ADDR) & (~(BONITO_PCIMEMBASECFG_MASK))) & (~(BONITO_PCIMEMBASECFG_ADDRMASK(WIN, CFG)))) | \
+		(BONITO_PCIMEMBASECFG_ADDRTRANS(WIN, CFG)) \
+										   )
 
 /* PCICmd */
 

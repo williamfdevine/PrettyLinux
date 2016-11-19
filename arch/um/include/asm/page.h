@@ -117,7 +117,7 @@ extern unsigned long uml_physmem;
 #endif	/* __ASSEMBLY__ */
 
 #ifdef CONFIG_X86_32
-#define __HAVE_ARCH_GATE_AREA 1
+	#define __HAVE_ARCH_GATE_AREA 1
 #endif
 
 #endif	/* __UM_PAGE_H */

@@ -7,7 +7,8 @@
 #define CLP_LPS_BASE	0
 #define CLP_LPS_PCI	2
 
-struct clp_req_hdr {
+struct clp_req_hdr
+{
 	u16 len;
 	u16 cmd;
 	u32 fmt		: 4;
@@ -15,7 +16,8 @@ struct clp_req_hdr {
 	u64 reserved2;
 } __packed;
 
-struct clp_rsp_hdr {
+struct clp_rsp_hdr
+{
 	u16 len;
 	u16 rsp;
 	u32 fmt		: 4;
@@ -35,11 +37,13 @@ struct clp_rsp_hdr {
 #define CLP_RC_FC_UNKNOWN		0x0100	/* Function code not recognized */
 
 /* Store logical-processor characteristics request */
-struct clp_req_slpc {
+struct clp_req_slpc
+{
 	struct clp_req_hdr hdr;
 } __packed;
 
-struct clp_rsp_slpc {
+struct clp_rsp_slpc
+{
 	struct clp_rsp_hdr hdr;
 	u32 reserved2[4];
 	u32 lpif[8];
@@ -47,7 +51,8 @@ struct clp_rsp_slpc {
 	u32 lpic[8];
 } __packed;
 
-struct clp_req_rsp_slpc {
+struct clp_req_rsp_slpc
+{
 	struct clp_req_slpc request;
 	struct clp_rsp_slpc response;
 } __packed;

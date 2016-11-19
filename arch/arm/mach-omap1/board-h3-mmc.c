@@ -23,7 +23,7 @@
 #if IS_ENABLED(CONFIG_MMC_OMAP)
 
 static int mmc_set_power(struct device *dev, int slot, int power_on,
-				int vdd)
+						 int vdd)
 {
 	gpio_set_value(H3_TPS_GPIO_MMC_PWR_EN, power_on);
 	return 0;
@@ -34,7 +34,8 @@ static int mmc_set_power(struct device *dev, int slot, int power_on,
  * - mmc_get_cover_state that uses OMAP_MPUIO(1)
  * - mmc_get_wp that maybe uses OMAP_MPUIO(3)
  */
-static struct omap_mmc_platform_data mmc1_data = {
+static struct omap_mmc_platform_data mmc1_data =
+{
 	.nr_slots                       = 1,
 	.slots[0]       = {
 		.set_power              = mmc_set_power,
@@ -50,8 +51,12 @@ void __init h3_mmc_init(void)
 	int ret;
 
 	ret = gpio_request(H3_TPS_GPIO_MMC_PWR_EN, "MMC power");
+
 	if (ret < 0)
+	{
 		return;
+	}
+
 	gpio_direction_output(H3_TPS_GPIO_MMC_PWR_EN, 0);
 
 	mmc_data[0] = &mmc1_data;

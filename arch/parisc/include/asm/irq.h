@@ -13,11 +13,11 @@
 #define NO_IRQ		(-1)
 
 #ifdef CONFIG_GSC
-#define GSC_IRQ_BASE	16
-#define GSC_IRQ_MAX	63
-#define CPU_IRQ_BASE	64
+	#define GSC_IRQ_BASE	16
+	#define GSC_IRQ_MAX	63
+	#define CPU_IRQ_BASE	64
 #else
-#define CPU_IRQ_BASE	16
+	#define CPU_IRQ_BASE	16
 #endif
 
 #define TIMER_IRQ	(CPU_IRQ_BASE + 0)

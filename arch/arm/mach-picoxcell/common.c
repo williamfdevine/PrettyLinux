@@ -32,14 +32,18 @@ static void picoxcell_setup_restart(void)
 {
 	struct device_node *np = of_find_compatible_node(NULL, NULL,
 							 "snps,dw-apb-wdg");
+
 	if (WARN(!np, "unable to setup watchdog restart"))
+	{
 		return;
+	}
 
 	wdt_regs = of_iomap(np, 0);
 	WARN(!wdt_regs, "failed to remap watchdog regs");
 }
 
-static struct map_desc io_map __initdata = {
+static struct map_desc io_map __initdata =
+{
 	.virtual	= PHYS_TO_IO(PICOXCELL_PERIPH_BASE),
 	.pfn		= __phys_to_pfn(PICOXCELL_PERIPH_BASE),
 	.length		= PICOXCELL_PERIPH_LENGTH,
@@ -56,7 +60,8 @@ static void __init picoxcell_init_machine(void)
 	picoxcell_setup_restart();
 }
 
-static const char *picoxcell_dt_match[] = {
+static const char *picoxcell_dt_match[] =
+{
 	"picochip,pc3x2",
 	"picochip,pc3x3",
 	NULL
@@ -68,7 +73,8 @@ static void picoxcell_wdt_restart(enum reboot_mode mode, const char *cmd)
 	 * Configure the watchdog to reset with the shortest possible timeout
 	 * and give it chance to do the reset.
 	 */
-	if (wdt_regs) {
+	if (wdt_regs)
+	{
 		writel_relaxed(WDT_CTRL_REG_EN_MASK, wdt_regs + WDT_CTRL_REG_OFFS);
 		writel_relaxed(0, wdt_regs + WDT_TIMEOUT_REG_OFFS);
 		/* No sleeping, possibly atomic. */
@@ -77,8 +83,8 @@ static void picoxcell_wdt_restart(enum reboot_mode mode, const char *cmd)
 }
 
 DT_MACHINE_START(PICOXCELL, "Picochip picoXcell")
-	.map_io		= picoxcell_map_io,
+.map_io		= picoxcell_map_io,
 	.init_machine	= picoxcell_init_machine,
-	.dt_compat	= picoxcell_dt_match,
-	.restart	= picoxcell_wdt_restart,
-MACHINE_END
+	   .dt_compat	= picoxcell_dt_match,
+		 .restart	= picoxcell_wdt_restart,
+			 MACHINE_END

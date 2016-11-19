@@ -59,7 +59,8 @@ void notrace s390_kernel_write(void *dst, const void *src, size_t size)
 {
 	long copied;
 
-	while (size) {
+	while (size)
+	{
 		copied = s390_kernel_write_odd(dst, src, size);
 		dst += copied;
 		src += copied;
@@ -80,9 +81,9 @@ static int __memcpy_real(void *dest, void *src, size_t count)
 		"1:	jo	0b\n"
 		"	lhi	%0,0x0\n"
 		"2:\n"
-		EX_TABLE(1b,2b)
+		EX_TABLE(1b, 2b)
 		: "+d" (rc), "+d" (_dest), "+d" (_src), "+d" (_len1),
-		  "+d" (_len2), "=m" (*((long *) dest))
+		"+d" (_len2), "=m" (*((long *) dest))
 		: "m" (*((long *) src))
 		: "cc", "memory");
 	return rc;
@@ -97,14 +98,25 @@ int memcpy_real(void *dest, void *src, size_t count)
 	unsigned long flags;
 
 	if (!count)
+	{
 		return 0;
+	}
+
 	flags = __arch_local_irq_stnsm(0xf8UL);
 	irqs_disabled = arch_irqs_disabled_flags(flags);
+
 	if (!irqs_disabled)
+	{
 		trace_hardirqs_off();
+	}
+
 	rc = __memcpy_real(dest, src, count);
+
 	if (!irqs_disabled)
+	{
 		trace_hardirqs_on();
+	}
+
 	__arch_local_irq_ssm(flags);
 	return rc;
 }
@@ -120,15 +132,20 @@ void memcpy_absolute(void *dest, void *src, size_t count)
 	__ctl_store(cr0, 0, 0);
 	__ctl_clear_bit(0, 28); /* disable lowcore protection */
 	prefix = store_prefix();
-	if (prefix) {
+
+	if (prefix)
+	{
 		local_mcck_disable();
 		set_prefix(0);
 		memcpy(dest, src, count);
 		set_prefix(prefix);
 		local_mcck_enable();
-	} else {
+	}
+	else
+	{
 		memcpy(dest, src, count);
 	}
+
 	__ctl_load(cr0, 0, 0);
 	arch_local_irq_restore(flags);
 }
@@ -142,17 +159,31 @@ int copy_to_user_real(void __user *dest, void *src, unsigned long count)
 	char *buf;
 
 	buf = (char *) __get_free_page(GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
+
 	rc = -EFAULT;
-	while (offs < count) {
+
+	while (offs < count)
+	{
 		size = min(PAGE_SIZE, count - offs);
+
 		if (memcpy_real(buf, src + offs, size))
+		{
 			goto out;
+		}
+
 		if (copy_to_user(dest + offs, buf, size))
+		{
 			goto out;
+		}
+
 		offs += size;
 	}
+
 	rc = 0;
 out:
 	free_page((unsigned long) buf);
@@ -168,11 +199,19 @@ static int is_swapped(unsigned long addr)
 	int cpu;
 
 	if (addr < sizeof(struct lowcore))
+	{
 		return 1;
-	for_each_online_cpu(cpu) {
+	}
+
+	for_each_online_cpu(cpu)
+	{
 		lc = (unsigned long) lowcore_ptr[cpu];
+
 		if (addr > lc + sizeof(struct lowcore) - 1 || addr < lc)
+		{
 			continue;
+		}
+
 		return 1;
 	}
 	return 0;
@@ -191,12 +230,18 @@ void *xlate_dev_mem_ptr(phys_addr_t addr)
 
 	get_online_cpus();
 	preempt_disable();
-	if (is_swapped(addr)) {
+
+	if (is_swapped(addr))
+	{
 		size = PAGE_SIZE - (addr & ~PAGE_MASK);
 		bounce = (void *) __get_free_page(GFP_ATOMIC);
+
 		if (bounce)
+		{
 			memcpy_absolute(bounce, (void *) addr, size);
+		}
 	}
+
 	preempt_enable();
 	put_online_cpus();
 	return bounce;
@@ -208,5 +253,7 @@ void *xlate_dev_mem_ptr(phys_addr_t addr)
 void unxlate_dev_mem_ptr(phys_addr_t addr, void *buf)
 {
 	if ((void *) addr != buf)
+	{
 		free_page((unsigned long) buf);
+	}
 }

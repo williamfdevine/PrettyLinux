@@ -69,11 +69,17 @@ static void intc_irq_mask(struct irq_data *d)
 	unsigned int irq = d->irq - MCFINT_VECBASE;
 
 	if (MCFINTC2_SIMR && (irq > 128))
+	{
 		__raw_writeb(irq - 128, MCFINTC2_SIMR);
+	}
 	else if (MCFINTC1_SIMR && (irq > 64))
+	{
 		__raw_writeb(irq - 64, MCFINTC1_SIMR);
+	}
 	else
+	{
 		__raw_writeb(irq, MCFINTC0_SIMR);
+	}
 }
 
 static void intc_irq_unmask(struct irq_data *d)
@@ -81,11 +87,17 @@ static void intc_irq_unmask(struct irq_data *d)
 	unsigned int irq = d->irq - MCFINT_VECBASE;
 
 	if (MCFINTC2_CIMR && (irq > 128))
+	{
 		__raw_writeb(irq - 128, MCFINTC2_CIMR);
+	}
 	else if (MCFINTC1_CIMR && (irq > 64))
+	{
 		__raw_writeb(irq - 64, MCFINTC1_CIMR);
+	}
 	else
+	{
 		__raw_writeb(irq, MCFINTC0_CIMR);
+	}
 }
 
 static void intc_irq_ack(struct irq_data *d)
@@ -99,7 +111,8 @@ static unsigned int intc_irq_startup(struct irq_data *d)
 {
 	unsigned int irq = d->irq;
 
-	if ((irq >= EINT1) && (irq <= EINT7)) {
+	if ((irq >= EINT1) && (irq <= EINT7))
+	{
 		unsigned int ebit = irq2ebit(irq);
 		u8 v;
 
@@ -115,12 +128,19 @@ static unsigned int intc_irq_startup(struct irq_data *d)
 	}
 
 	irq -= MCFINT_VECBASE;
+
 	if (MCFINTC2_ICR0 && (irq > 128))
+	{
 		__raw_writeb(5, MCFINTC2_ICR0 + irq - 128);
+	}
 	else if (MCFINTC1_ICR0 && (irq > 64))
+	{
 		__raw_writeb(5, MCFINTC1_ICR0 + irq - 64);
+	}
 	else
+	{
 		__raw_writeb(5, MCFINTC0_ICR0 + irq);
+	}
 
 	intc_irq_unmask(d);
 	return 0;
@@ -131,41 +151,49 @@ static int intc_irq_set_type(struct irq_data *d, unsigned int type)
 	unsigned int ebit, irq = d->irq;
 	u16 pa, tb;
 
-	switch (type) {
-	case IRQ_TYPE_EDGE_RISING:
-		tb = 0x1;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		tb = 0x2;
-		break;
-	case IRQ_TYPE_EDGE_BOTH:
-		tb = 0x3;
-		break;
-	default:
-		/* Level triggered */
-		tb = 0;
-		break;
+	switch (type)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			tb = 0x1;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			tb = 0x2;
+			break;
+
+		case IRQ_TYPE_EDGE_BOTH:
+			tb = 0x3;
+			break;
+
+		default:
+			/* Level triggered */
+			tb = 0;
+			break;
 	}
 
 	if (tb)
+	{
 		irq_set_handler(irq, handle_edge_irq);
+	}
 
 	ebit = irq2ebit(irq) * 2;
 	pa = __raw_readw(MCFEPORT_EPPAR);
 	pa = (pa & ~(0x3 << ebit)) | (tb << ebit);
 	__raw_writew(pa, MCFEPORT_EPPAR);
-	
+
 	return 0;
 }
 
-static struct irq_chip intc_irq_chip = {
+static struct irq_chip intc_irq_chip =
+{
 	.name		= "CF-INTC",
 	.irq_startup	= intc_irq_startup,
 	.irq_mask	= intc_irq_mask,
 	.irq_unmask	= intc_irq_unmask,
 };
 
-static struct irq_chip intc_irq_chip_edge_port = {
+static struct irq_chip intc_irq_chip_edge_port =
+{
 	.name		= "CF-INTC-EP",
 	.irq_startup	= intc_irq_startup,
 	.irq_mask	= intc_irq_mask,
@@ -180,18 +208,31 @@ void __init init_IRQ(void)
 
 	/* Mask all interrupt sources */
 	__raw_writeb(0xff, MCFINTC0_SIMR);
+
 	if (MCFINTC1_SIMR)
+	{
 		__raw_writeb(0xff, MCFINTC1_SIMR);
+	}
+
 	if (MCFINTC2_SIMR)
+	{
 		__raw_writeb(0xff, MCFINTC2_SIMR);
+	}
 
 	eirq = MCFINT_VECBASE + 64 + (MCFINTC1_ICR0 ? 64 : 0) +
-						(MCFINTC2_ICR0 ? 64 : 0);
-	for (irq = MCFINT_VECBASE; (irq < eirq); irq++) {
+		   (MCFINTC2_ICR0 ? 64 : 0);
+
+	for (irq = MCFINT_VECBASE; (irq < eirq); irq++)
+	{
 		if ((irq >= EINT1) && (irq <= EINT7))
+		{
 			irq_set_chip(irq, &intc_irq_chip_edge_port);
+		}
 		else
+		{
 			irq_set_chip(irq, &intc_irq_chip);
+		}
+
 		irq_set_irq_type(irq, IRQ_TYPE_LEVEL_HIGH);
 		irq_set_handler(irq, handle_level_irq);
 	}

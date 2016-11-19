@@ -142,9 +142,9 @@
 #define pud_bad(pud)		(!(pud_val(pud) & 2))
 #define pud_present(pud)	(pud_val(pud))
 #define pmd_table(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == \
-						 PMD_TYPE_TABLE)
+							 PMD_TYPE_TABLE)
 #define pmd_sect(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == \
-						 PMD_TYPE_SECT)
+							 PMD_TYPE_SECT)
 #define pmd_large(pmd)		pmd_sect(pmd)
 
 #define pud_clear(pudp)			\
@@ -198,9 +198,9 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
  */
 #define __HAVE_ARCH_PTE_SAME
 #define pte_same(pte_a,pte_b)	((pte_present(pte_a) ? pte_val(pte_a) & ~PTE_EXT_NG	\
-					: pte_val(pte_a))				\
-				== (pte_present(pte_b) ? pte_val(pte_b) & ~PTE_EXT_NG	\
-					: pte_val(pte_b)))
+								  : pte_val(pte_a))				\
+								 == (pte_present(pte_b) ? pte_val(pte_b) & ~PTE_EXT_NG	\
+									 : pte_val(pte_b)))
 
 #define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,__pte(pte_val(pte)|(ext)))
 
@@ -208,7 +208,7 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
 #define pte_mkhuge(pte)		(__pte(pte_val(pte) & ~PTE_TABLE_BIT))
 
 #define pmd_isset(pmd, val)	((u32)(val) == (val) ? pmd_val(pmd) & (val) \
-						: !!(pmd_val(pmd) & (val)))
+							 : !!(pmd_val(pmd) & (val)))
 #define pmd_isclear(pmd, val)	(!(pmd_val(pmd) & (val)))
 
 #define pmd_present(pmd)	(pmd_isset((pmd), L_PMD_SECT_VALID))
@@ -231,11 +231,11 @@ static inline pte_t pte_mkspecial(pte_t pte)
 #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-#define pmd_trans_huge(pmd)	(pmd_val(pmd) && !pmd_table(pmd))
+	#define pmd_trans_huge(pmd)	(pmd_val(pmd) && !pmd_table(pmd))
 #endif
 
 #define PMD_BIT_FUNC(fn,op) \
-static inline pmd_t pmd_##fn(pmd_t pmd) { pmd_val(pmd) op; return pmd; }
+	static inline pmd_t pmd_##fn(pmd_t pmd) { pmd_val(pmd) op; return pmd; }
 
 PMD_BIT_FUNC(wrprotect,	|= L_PMD_SECT_RDONLY);
 PMD_BIT_FUNC(mkold,	&= ~PMD_SECT_AF);
@@ -259,24 +259,30 @@ static inline pmd_t pmd_mknotpresent(pmd_t pmd)
 static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
 {
 	const pmdval_t mask = PMD_SECT_USER | PMD_SECT_XN | L_PMD_SECT_RDONLY |
-				L_PMD_SECT_VALID | L_PMD_SECT_NONE;
+						  L_PMD_SECT_VALID | L_PMD_SECT_NONE;
 	pmd_val(pmd) = (pmd_val(pmd) & ~mask) | (pgprot_val(newprot) & mask);
 	return pmd;
 }
 
 static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
-			      pmd_t *pmdp, pmd_t pmd)
+							  pmd_t *pmdp, pmd_t pmd)
 {
 	BUG_ON(addr >= TASK_SIZE);
 
 	/* create a faulting entry if PROT_NONE protected */
 	if (pmd_val(pmd) & L_PMD_SECT_NONE)
+	{
 		pmd_val(pmd) &= ~L_PMD_SECT_VALID;
+	}
 
 	if (pmd_write(pmd) && pmd_dirty(pmd))
+	{
 		pmd_val(pmd) &= ~PMD_SECT_AP2;
+	}
 	else
+	{
 		pmd_val(pmd) |= PMD_SECT_AP2;
+	}
 
 	*pmdp = __pmd(pmd_val(pmd) | PMD_SECT_nG);
 	flush_pmd_entry(pmdp);

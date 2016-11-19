@@ -44,7 +44,7 @@
 	preg.l = LO(CHIPID);				\
 	if cc jump 1f;					\
 	dreg.l = W[preg];				\
-1:
+	1:
 #else
 # define ANOMALY_283_315_WORKAROUND(preg, dreg)
 #endif /* ANOMALY_05000283 || ANOMALY_05000315 */
@@ -55,40 +55,40 @@
  */
 # ifndef CONFIG_DEBUG_KERNEL
 #define INTERRUPT_ENTRY(N)						\
-    [--sp] = SYSCFG;							\
-    [--sp] = P0;	/*orig_p0*/					\
-    [--sp] = R0;	/*orig_r0*/					\
-    [--sp] = (R7:0,P5:0);						\
-    R0 = (N);								\
-    LOAD_IPIPE_IPEND							\
-    jump __common_int_entry;
+	[--sp] = SYSCFG;							\
+	[--sp] = P0;	/*orig_p0*/					\
+	[--sp] = R0;	/*orig_r0*/					\
+	[--sp] = (R7:0,P5:0);						\
+	R0 = (N);								\
+	LOAD_IPIPE_IPEND							\
+	jump __common_int_entry;
 # else /* CONFIG_DEBUG_KERNEL */
 #define INTERRUPT_ENTRY(N)						\
-    [--sp] = SYSCFG;							\
-    [--sp] = P0;	/*orig_p0*/					\
-    [--sp] = R0;	/*orig_r0*/					\
-    [--sp] = (R7:0,P5:0);						\
-    p0.l = lo(IPEND);							\
-    p0.h = hi(IPEND);							\
-    r1 = [p0];								\
-    R0 = (N);								\
-    LOAD_IPIPE_IPEND							\
-    jump __common_int_entry;
+	[--sp] = SYSCFG;							\
+	[--sp] = P0;	/*orig_p0*/					\
+	[--sp] = R0;	/*orig_r0*/					\
+	[--sp] = (R7:0,P5:0);						\
+	p0.l = lo(IPEND);							\
+	p0.h = hi(IPEND);							\
+	r1 = [p0];								\
+	R0 = (N);								\
+	LOAD_IPIPE_IPEND							\
+	jump __common_int_entry;
 # endif /* CONFIG_DEBUG_KERNEL */
 
 /* For timer interrupts, we need to save IPEND, since the user_mode
  *macro accesses it to determine where to account time.
  */
 #define TIMER_INTERRUPT_ENTRY(N)					\
-    [--sp] = SYSCFG;							\
-    [--sp] = P0;	/*orig_p0*/					\
-    [--sp] = R0;	/*orig_r0*/					\
-    [--sp] = (R7:0,P5:0);						\
-    p0.l = lo(IPEND);							\
-    p0.h = hi(IPEND);							\
-    r1 = [p0];								\
-    R0 = (N);								\
-    jump __common_int_entry;
+	[--sp] = SYSCFG;							\
+	[--sp] = P0;	/*orig_p0*/					\
+	[--sp] = R0;	/*orig_r0*/					\
+	[--sp] = (R7:0,P5:0);						\
+	p0.l = lo(IPEND);							\
+	p0.h = hi(IPEND);							\
+	r1 = [p0];								\
+	R0 = (N);								\
+	jump __common_int_entry;
 #else /* CONFIG_EXACT_HWERR is defined */
 
 /* if we want hardware error to be exact, we need to do a SSYNC (which forces
@@ -106,63 +106,63 @@
  * since the 283/315 workaround includes a branch to the end
  */
 #define INTERRUPT_ENTRY(N)						\
-    [--sp] = SYSCFG;							\
-    [--sp] = P0;	/*orig_p0*/					\
-    [--sp] = R0;	/*orig_r0*/					\
-    [--sp] = (R7:0,P5:0);						\
-    R1 = ASTAT;								\
-    ANOMALY_283_315_WORKAROUND(p0, r0)					\
-    P0.L = LO(ILAT);							\
-    P0.H = HI(ILAT);							\
-    NOP;								\
-    SSYNC;								\
-    SSYNC;								\
-    R0 = [P0];								\
-    CC = BITTST(R0, EVT_IVHW_P);					\
-    IF CC JUMP 1f;							\
-    ASTAT = R1;								\
-    p0.l = lo(IPEND);							\
-    p0.h = hi(IPEND);							\
-    r1 = [p0];								\
-    R0 = (N);								\
-    LOAD_IPIPE_IPEND							\
-    jump __common_int_entry;						\
-1:  ASTAT = R1;								\
-    RAISE N;								\
-    (R7:0, P5:0) = [SP++];						\
-    SP += 0x8;								\
-    SYSCFG = [SP++];							\
-    CSYNC;								\
-    RTI;
+	[--sp] = SYSCFG;							\
+	[--sp] = P0;	/*orig_p0*/					\
+	[--sp] = R0;	/*orig_r0*/					\
+	[--sp] = (R7:0,P5:0);						\
+	R1 = ASTAT;								\
+	ANOMALY_283_315_WORKAROUND(p0, r0)					\
+	P0.L = LO(ILAT);							\
+	P0.H = HI(ILAT);							\
+	NOP;								\
+	SSYNC;								\
+	SSYNC;								\
+	R0 = [P0];								\
+	CC = BITTST(R0, EVT_IVHW_P);					\
+	IF CC JUMP 1f;							\
+	ASTAT = R1;								\
+	p0.l = lo(IPEND);							\
+	p0.h = hi(IPEND);							\
+	r1 = [p0];								\
+	R0 = (N);								\
+	LOAD_IPIPE_IPEND							\
+	jump __common_int_entry;						\
+	1:  ASTAT = R1;								\
+	RAISE N;								\
+	(R7:0, P5:0) = [SP++];						\
+	SP += 0x8;								\
+	SYSCFG = [SP++];							\
+	CSYNC;								\
+	RTI;
 
 #define TIMER_INTERRUPT_ENTRY(N)					\
-    [--sp] = SYSCFG;							\
-    [--sp] = P0;	/*orig_p0*/					\
-    [--sp] = R0;	/*orig_r0*/					\
-    [--sp] = (R7:0,P5:0);						\
-    R1 = ASTAT;								\
-    ANOMALY_283_315_WORKAROUND(p0, r0)					\
-    P0.L = LO(ILAT);							\
-    P0.H = HI(ILAT);							\
-    NOP;								\
-    SSYNC;								\
-    SSYNC;								\
-    R0 = [P0];								\
-    CC = BITTST(R0, EVT_IVHW_P);					\
-    IF CC JUMP 1f;							\
-    ASTAT = R1;								\
-    p0.l = lo(IPEND);							\
-    p0.h = hi(IPEND);							\
-    r1 = [p0];								\
-    R0 = (N);								\
-    jump __common_int_entry;						\
-1:  ASTAT = R1;								\
-    RAISE N;								\
-    (R7:0, P5:0) = [SP++];						\
-    SP += 0x8;								\
-    SYSCFG = [SP++];							\
-    CSYNC;								\
-    RTI;
+	[--sp] = SYSCFG;							\
+	[--sp] = P0;	/*orig_p0*/					\
+	[--sp] = R0;	/*orig_r0*/					\
+	[--sp] = (R7:0,P5:0);						\
+	R1 = ASTAT;								\
+	ANOMALY_283_315_WORKAROUND(p0, r0)					\
+	P0.L = LO(ILAT);							\
+	P0.H = HI(ILAT);							\
+	NOP;								\
+	SSYNC;								\
+	SSYNC;								\
+	R0 = [P0];								\
+	CC = BITTST(R0, EVT_IVHW_P);					\
+	IF CC JUMP 1f;							\
+	ASTAT = R1;								\
+	p0.l = lo(IPEND);							\
+	p0.h = hi(IPEND);							\
+	r1 = [p0];								\
+	R0 = (N);								\
+	jump __common_int_entry;						\
+	1:  ASTAT = R1;								\
+	RAISE N;								\
+	(R7:0, P5:0) = [SP++];						\
+	SP += 0x8;								\
+	SYSCFG = [SP++];							\
+	CSYNC;								\
+	RTI;
 #endif	/* CONFIG_EXACT_HWERR */
 
 /* This one pushes RETI without using CLI.  Interrupts are enabled.  */

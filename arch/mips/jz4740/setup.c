@@ -45,8 +45,8 @@ static void __init jz4740_detect_mem(void)
 	cols = 8 + ((ctrl >> 26) & 7);
 	rows = 11 + ((ctrl >> 20) & 3);
 	printk(KERN_DEBUG
-		"SDRAM preconfigured: bus:%u bank:%u rows:%u cols:%u\n",
-		bus, bank, rows, cols);
+		   "SDRAM preconfigured: bus:%u bank:%u rows:%u cols:%u\n",
+		   bus, bank, rows, cols);
 	iounmap(jz_emc_base);
 
 	size = 1 << (bus + bank + cols + rows);
@@ -61,14 +61,19 @@ void __init plat_mem_setup(void)
 	__dt_setup_arch(__dtb_start);
 
 	offset = fdt_path_offset(__dtb_start, "/memory");
+
 	if (offset < 0)
+	{
 		jz4740_detect_mem();
+	}
 }
 
 void __init device_tree_init(void)
 {
 	if (!initial_boot_params)
+	{
 		return;
+	}
 
 	unflatten_and_copy_device_tree();
 }
@@ -76,7 +81,9 @@ void __init device_tree_init(void)
 const char *get_system_type(void)
 {
 	if (IS_ENABLED(CONFIG_MACH_JZ4780))
+	{
 		return "JZ4780";
+	}
 
 	return "JZ4740";
 }

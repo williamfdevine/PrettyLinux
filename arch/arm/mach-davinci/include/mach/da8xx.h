@@ -105,9 +105,9 @@ int da850_register_pm(struct platform_device *pdev);
 int da850_register_sata(unsigned long refclkpn);
 int da850_register_vpif(void);
 int da850_register_vpif_display
-			(struct vpif_display_config *display_config);
+(struct vpif_display_config *display_config);
 int da850_register_vpif_capture
-			(struct vpif_capture_config *capture_config);
+(struct vpif_capture_config *capture_config);
 void da8xx_restart(enum reboot_mode mode, const char *cmd);
 void da8xx_rproc_reserve_cma(void);
 int da8xx_register_rproc(void);

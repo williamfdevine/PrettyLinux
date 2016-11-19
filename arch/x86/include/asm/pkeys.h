@@ -4,7 +4,7 @@
 #define arch_max_pkey() (boot_cpu_has(X86_FEATURE_OSPKE) ? 16 : 1)
 
 extern int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
-		unsigned long init_val);
+									 unsigned long init_val);
 
 /*
  * Try to dedicate one of the protection keys to be used as an
@@ -14,7 +14,9 @@ extern int __execute_only_pkey(struct mm_struct *mm);
 static inline int execute_only_pkey(struct mm_struct *mm)
 {
 	if (!boot_cpu_has(X86_FEATURE_OSPKE))
+	{
 		return 0;
+	}
 
 	return __execute_only_pkey(mm);
 }
@@ -25,23 +27,25 @@ static inline int arch_override_mprotect_pkey(struct vm_area_struct *vma,
 		int prot, int pkey)
 {
 	if (!boot_cpu_has(X86_FEATURE_OSPKE))
+	{
 		return 0;
+	}
 
 	return __arch_override_mprotect_pkey(vma, prot, pkey);
 }
 
 extern int __arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
-		unsigned long init_val);
+									   unsigned long init_val);
 
 #define ARCH_VM_PKEY_FLAGS (VM_PKEY_BIT0 | VM_PKEY_BIT1 | VM_PKEY_BIT2 | VM_PKEY_BIT3)
 
 #define mm_pkey_allocation_map(mm)	(mm->context.pkey_allocation_map)
 #define mm_set_pkey_allocated(mm, pkey) do {		\
-	mm_pkey_allocation_map(mm) |= (1U << pkey);	\
-} while (0)
+		mm_pkey_allocation_map(mm) |= (1U << pkey);	\
+	} while (0)
 #define mm_set_pkey_free(mm, pkey) do {			\
-	mm_pkey_allocation_map(mm) &= ~(1U << pkey);	\
-} while (0)
+		mm_pkey_allocation_map(mm) &= ~(1U << pkey);	\
+	} while (0)
 
 static inline
 bool mm_pkey_is_allocated(struct mm_struct *mm, int pkey)
@@ -70,7 +74,9 @@ int mm_pkey_alloc(struct mm_struct *mm)
 	 * zeros.
 	 */
 	if (mm_pkey_allocation_map(mm) == all_pkeys_mask)
+	{
 		return -1;
+	}
 
 	ret = ffz(mm_pkey_allocation_map(mm));
 
@@ -87,9 +93,14 @@ int mm_pkey_free(struct mm_struct *mm, int pkey)
 	 * be freed.
 	 */
 	if (!pkey)
+	{
 		return -EINVAL;
+	}
+
 	if (!mm_pkey_is_allocated(mm, pkey))
+	{
 		return -EINVAL;
+	}
 
 	mm_set_pkey_free(mm, pkey);
 
@@ -97,9 +108,9 @@ int mm_pkey_free(struct mm_struct *mm, int pkey)
 }
 
 extern int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
-		unsigned long init_val);
+									 unsigned long init_val);
 extern int __arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
-		unsigned long init_val);
+									   unsigned long init_val);
 extern void copy_init_pkru_to_fpregs(void);
 
 #endif /*_ASM_X86_PKEYS_H */

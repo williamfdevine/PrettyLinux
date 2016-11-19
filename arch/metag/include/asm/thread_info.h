@@ -13,7 +13,7 @@
 #include <asm/page.h>
 
 #ifndef __ASSEMBLY__
-#include <asm/processor.h>
+	#include <asm/processor.h>
 #endif
 
 /*
@@ -26,7 +26,8 @@
 #ifndef __ASSEMBLY__
 
 /* This must be 8 byte aligned so we can ensure stack alignment. */
-struct thread_info {
+struct thread_info
+{
 	struct task_struct *task;	/* main task structure */
 	unsigned long flags;	/* low level flags */
 	unsigned long status;	/* thread-synchronous flags */
@@ -45,15 +46,15 @@ struct thread_info {
 #endif
 
 #ifdef CONFIG_4KSTACKS
-#define THREAD_SHIFT		12
+	#define THREAD_SHIFT		12
 #else
-#define THREAD_SHIFT		13
+	#define THREAD_SHIFT		13
 #endif
 
 #if THREAD_SHIFT >= PAGE_SHIFT
-#define THREAD_SIZE_ORDER	(THREAD_SHIFT - PAGE_SHIFT)
+	#define THREAD_SIZE_ORDER	(THREAD_SHIFT - PAGE_SHIFT)
 #else
-#define THREAD_SIZE_ORDER	0
+	#define THREAD_SIZE_ORDER	0
 #endif
 
 #define THREAD_SIZE		(PAGE_SIZE << THREAD_SIZE_ORDER)
@@ -65,13 +66,13 @@ struct thread_info {
 #ifndef __ASSEMBLY__
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -83,14 +84,14 @@ register unsigned long current_stack_pointer asm("A0StP") __used;
 static inline struct thread_info *current_thread_info(void)
 {
 	return (struct thread_info *)(current_stack_pointer &
-				      ~(THREAD_SIZE - 1));
+								  ~(THREAD_SIZE - 1));
 }
 
 #define __HAVE_ARCH_KSTACK_END
 static inline int kstack_end(void *addr)
 {
 	return addr == (void *) (((unsigned long) addr & ~(THREAD_SIZE - 1))
-				 + sizeof(struct thread_info));
+							 + sizeof(struct thread_info));
 }
 
 #endif
@@ -127,17 +128,17 @@ static inline int kstack_end(void *addr)
 
 /* work to do in syscall trace */
 #define _TIF_WORK_SYSCALL_MASK	(_TIF_SYSCALL_TRACE | _TIF_SINGLESTEP | \
-				 _TIF_SYSCALL_AUDIT | _TIF_SECCOMP | \
-				 _TIF_SYSCALL_TRACEPOINT)
+								 _TIF_SYSCALL_AUDIT | _TIF_SECCOMP | \
+								 _TIF_SYSCALL_TRACEPOINT)
 
 /* work to do on any return to u-space */
 #define _TIF_ALLWORK_MASK	(_TIF_SYSCALL_TRACE | _TIF_SIGPENDING      | \
-				 _TIF_NEED_RESCHED  | _TIF_SYSCALL_AUDIT   | \
-				 _TIF_SINGLESTEP    | _TIF_RESTORE_SIGMASK | \
-				 _TIF_NOTIFY_RESUME)
+							 _TIF_NEED_RESCHED  | _TIF_SYSCALL_AUDIT   | \
+							 _TIF_SINGLESTEP    | _TIF_RESTORE_SIGMASK | \
+							 _TIF_NOTIFY_RESUME)
 
 /* work to do on interrupt/exception return */
 #define _TIF_WORK_MASK		(_TIF_ALLWORK_MASK & ~(_TIF_SYSCALL_TRACE | \
-				 _TIF_SYSCALL_AUDIT | _TIF_SINGLESTEP))
+							 _TIF_SYSCALL_AUDIT | _TIF_SINGLESTEP))
 
 #endif /* _ASM_THREAD_INFO_H */

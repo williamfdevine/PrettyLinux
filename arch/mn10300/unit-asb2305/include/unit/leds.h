@@ -20,10 +20,10 @@
 
 /* perform a hard reset by driving PIO06 low */
 #define mn10300_unit_hard_reset()		\
-do {						\
-	P0OUT &= 0xbf;				\
-	P0MD = (P0MD & P0MD_6) | P0MD_6_OUT;	\
-} while (0)
+	do {						\
+		P0OUT &= 0xbf;				\
+		P0MD = (P0MD & P0MD_6) | P0MD_6_OUT;	\
+	} while (0)
 
 /*
  * use the 7-segment LEDs to indicate states
@@ -35,17 +35,17 @@ do {						\
 
 /* flip the 7-segment LEDs between "Gdb-" and "----" */
 #define mn10300_set_gdbleds(ONOFF)				\
-do {								\
-	ASB2305_7SEGLEDS = (ONOFF) ? 0x8543077f : 0x7f7f7f7f;	\
-} while (0)
+	do {								\
+		ASB2305_7SEGLEDS = (ONOFF) ? 0x8543077f : 0x7f7f7f7f;	\
+	} while (0)
 
 #ifndef __ASSEMBLY__
-extern void peripheral_leds_display_exception(enum exception_code);
-extern void peripheral_leds_led_chase(void);
-extern void peripheral_leds7x4_display_dec(unsigned int, unsigned int);
-extern void peripheral_leds7x4_display_hex(unsigned int, unsigned int);
-extern void peripheral_leds7x4_display_minssecs(unsigned int, unsigned int);
-extern void peripheral_leds7x4_display_rtc(void);
+	extern void peripheral_leds_display_exception(enum exception_code);
+	extern void peripheral_leds_led_chase(void);
+	extern void peripheral_leds7x4_display_dec(unsigned int, unsigned int);
+	extern void peripheral_leds7x4_display_hex(unsigned int, unsigned int);
+	extern void peripheral_leds7x4_display_minssecs(unsigned int, unsigned int);
+	extern void peripheral_leds7x4_display_rtc(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* _ASM_UNIT_LEDS_H */

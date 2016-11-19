@@ -37,7 +37,8 @@
  * It's not really 'fixmap', per se, but fits loosely into the same
  * paradigm.
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 	/*
 	 * FIX_IOREMAP entries are useful for mapping physical address
 	 * space before ioremap() is useable, e.g. really early in boot
@@ -73,7 +74,9 @@ static __always_inline unsigned long fix_to_virt(const unsigned int idx)
 	 * loudly with a reasonably clear error message..
 	 */
 	if (idx >= __end_of_fixed_addresses)
+	{
 		BUG();
+	}
 
 	return __fix_to_virt(idx);
 }

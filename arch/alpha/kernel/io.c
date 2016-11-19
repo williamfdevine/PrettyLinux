@@ -8,47 +8,47 @@
 #include <linux/module.h>
 #include <asm/io.h>
 
-/* Out-of-line versions of the i/o routines that redirect into the 
+/* Out-of-line versions of the i/o routines that redirect into the
    platform-specific version.  Note that "platform-specific" may mean
    "generic", which bumps through the machine vector.  */
 
 unsigned int
 ioread8(void __iomem *addr)
 {
-	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread8)(addr);
+	unsigned int ret = IO_CONCAT(__IO_PREFIX, ioread8)(addr);
 	mb();
 	return ret;
 }
 
 unsigned int ioread16(void __iomem *addr)
 {
-	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread16)(addr);
+	unsigned int ret = IO_CONCAT(__IO_PREFIX, ioread16)(addr);
 	mb();
 	return ret;
 }
 
 unsigned int ioread32(void __iomem *addr)
 {
-	unsigned int ret = IO_CONCAT(__IO_PREFIX,ioread32)(addr);
+	unsigned int ret = IO_CONCAT(__IO_PREFIX, ioread32)(addr);
 	mb();
 	return ret;
 }
 
 void iowrite8(u8 b, void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,iowrite8)(b, addr);
+	IO_CONCAT(__IO_PREFIX, iowrite8)(b, addr);
 	mb();
 }
 
 void iowrite16(u16 b, void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,iowrite16)(b, addr);
+	IO_CONCAT(__IO_PREFIX, iowrite16)(b, addr);
 	mb();
 }
 
 void iowrite32(u32 b, void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,iowrite32)(b, addr);
+	IO_CONCAT(__IO_PREFIX, iowrite32)(b, addr);
 	mb();
 }
 
@@ -98,52 +98,52 @@ EXPORT_SYMBOL(outl);
 
 u8 __raw_readb(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,readb)(addr);
+	return IO_CONCAT(__IO_PREFIX, readb)(addr);
 }
 
 u16 __raw_readw(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,readw)(addr);
+	return IO_CONCAT(__IO_PREFIX, readw)(addr);
 }
 
 u32 __raw_readl(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,readl)(addr);
+	return IO_CONCAT(__IO_PREFIX, readl)(addr);
 }
 
 u64 __raw_readq(const volatile void __iomem *addr)
 {
-	return IO_CONCAT(__IO_PREFIX,readq)(addr);
+	return IO_CONCAT(__IO_PREFIX, readq)(addr);
 }
 
 void __raw_writeb(u8 b, volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,writeb)(b, addr);
+	IO_CONCAT(__IO_PREFIX, writeb)(b, addr);
 }
 
 void __raw_writew(u16 b, volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,writew)(b, addr);
+	IO_CONCAT(__IO_PREFIX, writew)(b, addr);
 }
 
 void __raw_writel(u32 b, volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,writel)(b, addr);
+	IO_CONCAT(__IO_PREFIX, writel)(b, addr);
 }
 
 void __raw_writeq(u64 b, volatile void __iomem *addr)
 {
-	IO_CONCAT(__IO_PREFIX,writeq)(b, addr);
+	IO_CONCAT(__IO_PREFIX, writeq)(b, addr);
 }
 
-EXPORT_SYMBOL(__raw_readb); 
-EXPORT_SYMBOL(__raw_readw); 
-EXPORT_SYMBOL(__raw_readl); 
-EXPORT_SYMBOL(__raw_readq); 
-EXPORT_SYMBOL(__raw_writeb); 
-EXPORT_SYMBOL(__raw_writew); 
-EXPORT_SYMBOL(__raw_writel); 
-EXPORT_SYMBOL(__raw_writeq); 
+EXPORT_SYMBOL(__raw_readb);
+EXPORT_SYMBOL(__raw_readw);
+EXPORT_SYMBOL(__raw_readl);
+EXPORT_SYMBOL(__raw_readq);
+EXPORT_SYMBOL(__raw_writeb);
+EXPORT_SYMBOL(__raw_writew);
+EXPORT_SYMBOL(__raw_writel);
+EXPORT_SYMBOL(__raw_writeq);
 
 u8 readb(const volatile void __iomem *addr)
 {
@@ -212,15 +212,20 @@ EXPORT_SYMBOL(writeq);
  */
 void ioread8_rep(void __iomem *port, void *dst, unsigned long count)
 {
-	while ((unsigned long)dst & 0x3) {
+	while ((unsigned long)dst & 0x3)
+	{
 		if (!count)
+		{
 			return;
+		}
+
 		count--;
 		*(unsigned char *)dst = ioread8(port);
 		dst += 1;
 	}
 
-	while (count >= 4) {
+	while (count >= 4)
+	{
 		unsigned int w;
 		count -= 4;
 		w = ioread8(port);
@@ -231,7 +236,8 @@ void ioread8_rep(void __iomem *port, void *dst, unsigned long count)
 		dst += 4;
 	}
 
-	while (count) {
+	while (count)
+	{
 		--count;
 		*(unsigned char *)dst = ioread8(port);
 		dst += 1;
@@ -255,16 +261,21 @@ EXPORT_SYMBOL(insb);
  */
 void ioread16_rep(void __iomem *port, void *dst, unsigned long count)
 {
-	if (unlikely((unsigned long)dst & 0x3)) {
+	if (unlikely((unsigned long)dst & 0x3))
+	{
 		if (!count)
+		{
 			return;
+		}
+
 		BUG_ON((unsigned long)dst & 0x1);
 		count--;
 		*(unsigned short *)dst = ioread16(port);
 		dst += 2;
 	}
 
-	while (count >= 2) {
+	while (count >= 2)
+	{
 		unsigned int w;
 		count -= 2;
 		w = ioread16(port);
@@ -273,8 +284,9 @@ void ioread16_rep(void __iomem *port, void *dst, unsigned long count)
 		dst += 4;
 	}
 
-	if (count) {
-		*(unsigned short*)dst = ioread16(port);
+	if (count)
+	{
+		*(unsigned short *)dst = ioread16(port);
 	}
 }
 
@@ -295,15 +307,20 @@ EXPORT_SYMBOL(insw);
  */
 void ioread32_rep(void __iomem *port, void *dst, unsigned long count)
 {
-	if (unlikely((unsigned long)dst & 0x3)) {
-		while (count--) {
+	if (unlikely((unsigned long)dst & 0x3))
+	{
+		while (count--)
+		{
 			struct S { int x __attribute__((packed)); };
 			((struct S *)dst)->x = ioread32(port);
 			dst += 4;
 		}
-	} else {
+	}
+	else
+	{
 		/* Buffer 32-bit aligned.  */
-		while (count--) {
+		while (count--)
+		{
 			*(unsigned int *)dst = ioread32(port);
 			dst += 4;
 		}
@@ -328,8 +345,11 @@ EXPORT_SYMBOL(insl);
 void iowrite8_rep(void __iomem *port, const void *xsrc, unsigned long count)
 {
 	const unsigned char *src = xsrc;
+
 	while (count--)
+	{
 		iowrite8(*src++, port);
+	}
 }
 
 void outsb(unsigned long port, const void *src, unsigned long count)
@@ -349,16 +369,21 @@ EXPORT_SYMBOL(outsb);
  */
 void iowrite16_rep(void __iomem *port, const void *src, unsigned long count)
 {
-	if (unlikely((unsigned long)src & 0x3)) {
+	if (unlikely((unsigned long)src & 0x3))
+	{
 		if (!count)
+		{
 			return;
+		}
+
 		BUG_ON((unsigned long)src & 0x1);
 		iowrite16(*(unsigned short *)src, port);
 		src += 2;
 		--count;
 	}
 
-	while (count >= 2) {
+	while (count >= 2)
+	{
 		unsigned int w;
 		count -= 2;
 		w = *(unsigned int *)src;
@@ -367,7 +392,8 @@ void iowrite16_rep(void __iomem *port, const void *src, unsigned long count)
 		iowrite16(w >> 16, port);
 	}
 
-	if (count) {
+	if (count)
+	{
 		iowrite16(*(unsigned short *)src, port);
 	}
 }
@@ -389,15 +415,20 @@ EXPORT_SYMBOL(outsw);
  */
 void iowrite32_rep(void __iomem *port, const void *src, unsigned long count)
 {
-	if (unlikely((unsigned long)src & 0x3)) {
-		while (count--) {
+	if (unlikely((unsigned long)src & 0x3))
+	{
+		while (count--)
+		{
 			struct S { int x __attribute__((packed)); };
 			iowrite32(((struct S *)src)->x, port);
 			src += 4;
 		}
-	} else {
+	}
+	else
+	{
 		/* Buffer 32-bit aligned.  */
-		while (count--) {
+		while (count--)
+		{
 			iowrite32(*(unsigned int *)src, port);
 			src += 4;
 		}
@@ -422,45 +453,62 @@ void memcpy_fromio(void *to, const volatile void __iomem *from, long count)
 	/* Optimize co-aligned transfers.  Everything else gets handled
 	   a byte at a time. */
 
-	if (count >= 8 && ((u64)to & 7) == ((u64)from & 7)) {
+	if (count >= 8 && ((u64)to & 7) == ((u64)from & 7))
+	{
 		count -= 8;
-		do {
+
+		do
+		{
 			*(u64 *)to = __raw_readq(from);
 			count -= 8;
 			to += 8;
 			from += 8;
-		} while (count >= 0);
+		}
+		while (count >= 0);
+
 		count += 8;
 	}
 
-	if (count >= 4 && ((u64)to & 3) == ((u64)from & 3)) {
+	if (count >= 4 && ((u64)to & 3) == ((u64)from & 3))
+	{
 		count -= 4;
-		do {
+
+		do
+		{
 			*(u32 *)to = __raw_readl(from);
 			count -= 4;
 			to += 4;
 			from += 4;
-		} while (count >= 0);
+		}
+		while (count >= 0);
+
 		count += 4;
 	}
 
-	if (count >= 2 && ((u64)to & 1) == ((u64)from & 1)) {
+	if (count >= 2 && ((u64)to & 1) == ((u64)from & 1))
+	{
 		count -= 2;
-		do {
+
+		do
+		{
 			*(u16 *)to = __raw_readw(from);
 			count -= 2;
 			to += 2;
 			from += 2;
-		} while (count >= 0);
+		}
+		while (count >= 0);
+
 		count += 2;
 	}
 
-	while (count > 0) {
+	while (count > 0)
+	{
 		*(u8 *) to = __raw_readb(from);
 		count--;
 		to++;
 		from++;
 	}
+
 	mb();
 }
 
@@ -477,45 +525,62 @@ void memcpy_toio(volatile void __iomem *to, const void *from, long count)
 	   a byte at a time. */
 	/* FIXME -- align FROM.  */
 
-	if (count >= 8 && ((u64)to & 7) == ((u64)from & 7)) {
+	if (count >= 8 && ((u64)to & 7) == ((u64)from & 7))
+	{
 		count -= 8;
-		do {
+
+		do
+		{
 			__raw_writeq(*(const u64 *)from, to);
 			count -= 8;
 			to += 8;
 			from += 8;
-		} while (count >= 0);
+		}
+		while (count >= 0);
+
 		count += 8;
 	}
 
-	if (count >= 4 && ((u64)to & 3) == ((u64)from & 3)) {
+	if (count >= 4 && ((u64)to & 3) == ((u64)from & 3))
+	{
 		count -= 4;
-		do {
+
+		do
+		{
 			__raw_writel(*(const u32 *)from, to);
 			count -= 4;
 			to += 4;
 			from += 4;
-		} while (count >= 0);
+		}
+		while (count >= 0);
+
 		count += 4;
 	}
 
-	if (count >= 2 && ((u64)to & 1) == ((u64)from & 1)) {
+	if (count >= 2 && ((u64)to & 1) == ((u64)from & 1))
+	{
 		count -= 2;
-		do {
+
+		do
+		{
 			__raw_writew(*(const u16 *)from, to);
 			count -= 2;
 			to += 2;
 			from += 2;
-		} while (count >= 0);
+		}
+		while (count >= 0);
+
 		count += 2;
 	}
 
-	while (count > 0) {
+	while (count > 0)
+	{
 		__raw_writeb(*(const u8 *) from, to);
 		count--;
 		to++;
 		from++;
 	}
+
 	mb();
 }
 
@@ -528,21 +593,24 @@ EXPORT_SYMBOL(memcpy_toio);
 void _memset_c_io(volatile void __iomem *to, unsigned long c, long count)
 {
 	/* Handle any initial odd byte */
-	if (count > 0 && ((u64)to & 1)) {
+	if (count > 0 && ((u64)to & 1))
+	{
 		__raw_writeb(c, to);
 		to++;
 		count--;
 	}
 
 	/* Handle any initial odd halfword */
-	if (count >= 2 && ((u64)to & 2)) {
+	if (count >= 2 && ((u64)to & 2))
+	{
 		__raw_writew(c, to);
 		to += 2;
 		count -= 2;
 	}
 
 	/* Handle any initial odd word */
-	if (count >= 4 && ((u64)to & 4)) {
+	if (count >= 4 && ((u64)to & 4))
+	{
 		__raw_writel(c, to);
 		to += 4;
 		count -= 4;
@@ -551,33 +619,42 @@ void _memset_c_io(volatile void __iomem *to, unsigned long c, long count)
 	/* Handle all full-sized quadwords: we're aligned
 	   (or have a small count) */
 	count -= 8;
-	if (count >= 0) {
-		do {
+
+	if (count >= 0)
+	{
+		do
+		{
 			__raw_writeq(c, to);
 			to += 8;
 			count -= 8;
-		} while (count >= 0);
+		}
+		while (count >= 0);
 	}
+
 	count += 8;
 
 	/* The tail is word-aligned if we still have count >= 4 */
-	if (count >= 4) {
+	if (count >= 4)
+	{
 		__raw_writel(c, to);
 		to += 4;
 		count -= 4;
 	}
 
 	/* The tail is half-word aligned if we have count >= 2 */
-	if (count >= 2) {
+	if (count >= 2)
+	{
 		__raw_writew(c, to);
 		to += 2;
 		count -= 2;
 	}
 
 	/* And finally, one last byte.. */
-	if (count) {
+	if (count)
+	{
 		__raw_writeb(c, to);
 	}
+
 	mb();
 }
 
@@ -594,24 +671,36 @@ scr_memcpyw(u16 *d, const u16 *s, unsigned int count)
 	int s_isio = __is_ioaddr(s);
 	int d_isio = __is_ioaddr(d);
 
-	if (s_isio) {
-		if (d_isio) {
+	if (s_isio)
+	{
+		if (d_isio)
+		{
 			/* FIXME: Should handle unaligned ops and
 			   operation widening.  */
 
 			count /= 2;
-			while (count--) {
+
+			while (count--)
+			{
 				u16 tmp = __raw_readw(ios++);
 				__raw_writew(tmp, iod++);
 			}
 		}
 		else
+		{
 			memcpy_fromio(d, ios, count);
-	} else {
+		}
+	}
+	else
+	{
 		if (d_isio)
+		{
 			memcpy_toio(iod, s, count);
+		}
 		else
+		{
 			memcpy(d, s, count);
+		}
 	}
 }
 
@@ -619,7 +708,7 @@ EXPORT_SYMBOL(scr_memcpyw);
 
 void __iomem *ioport_map(unsigned long port, unsigned int size)
 {
-	return IO_CONCAT(__IO_PREFIX,ioportmap) (port);
+	return IO_CONCAT(__IO_PREFIX, ioportmap) (port);
 }
 
 void ioport_unmap(void __iomem *addr)

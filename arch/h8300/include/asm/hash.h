@@ -37,15 +37,15 @@ static inline u32 __attribute_const__ __hash_32(u32 x)
 	u32 temp;
 
 	asm(   "mov.w	%e1,%f0"
-	"\n	mulxu.w	%f2,%0"		/* klow * xhigh */
-	"\n	mov.w	%f0,%e1"	/* The extra instruction */
-	"\n	mov.w	%f1,%f0"
-	"\n	mulxu.w	%e2,%0"		/* khigh * xlow */
-	"\n	add.w	%e1,%f0"
-	"\n	mulxu.w	%f2,%1"		/* klow * xlow */
-	"\n	add.w	%f0,%e1"
-	: "=&r" (temp), "=r" (x)
-	: "%r" (GOLDEN_RATIO_32), "1" (x));
+		   "\n	mulxu.w	%f2,%0"		/* klow * xhigh */
+		   "\n	mov.w	%f0,%e1"	/* The extra instruction */
+		   "\n	mov.w	%f1,%f0"
+		   "\n	mulxu.w	%e2,%0"		/* khigh * xlow */
+		   "\n	add.w	%e1,%f0"
+		   "\n	mulxu.w	%f2,%1"		/* klow * xlow */
+		   "\n	add.w	%f0,%e1"
+		   : "=&r" (temp), "=r" (x)
+		   : "%r" (GOLDEN_RATIO_32), "1" (x));
 	return x;
 }
 

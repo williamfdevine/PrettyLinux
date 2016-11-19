@@ -11,11 +11,11 @@
 #include <mach/blackfin.h>
 
 #ifdef CONFIG_SMP
-# include <asm/pda.h>
-# include <asm/processor.h>
-# define bfin_irq_flags cpu_pda[blackfin_core_id()].imask
+	#include <asm/pda.h>
+	#include <asm/processor.h>
+	#define bfin_irq_flags cpu_pda[blackfin_core_id()].imask
 #else
-extern unsigned long bfin_irq_flags;
+	extern unsigned long bfin_irq_flags;
 #endif
 
 static inline notrace void bfin_sti(unsigned long flags)
@@ -31,9 +31,9 @@ static inline notrace unsigned long bfin_cli(void)
 }
 
 #ifdef CONFIG_DEBUG_HWERR
-# define bfin_no_irqs 0x3f
+	#define bfin_no_irqs 0x3f
 #else
-# define bfin_no_irqs 0x1f
+	#define bfin_no_irqs 0x1f
 #endif
 
 /*****************************************************************************/
@@ -83,7 +83,9 @@ static inline notrace int hard_irqs_disabled(void)
 static inline notrace void __hard_local_irq_restore(unsigned long flags)
 {
 	if (!hard_irqs_disabled_flags(flags))
+	{
 		__hard_local_irq_enable();
+	}
 }
 
 /*****************************************************************************/
@@ -106,12 +108,12 @@ unsigned long __ipipe_test_and_stall_root(void);
 void __ipipe_restore_root(unsigned long flags);
 
 #ifdef CONFIG_IPIPE_DEBUG_CONTEXT
-struct ipipe_domain;
-extern struct ipipe_domain ipipe_root;
-void ipipe_check_context(struct ipipe_domain *ipd);
-#define __check_irqop_context(ipd)  ipipe_check_context(&ipipe_root)
+	struct ipipe_domain;
+	extern struct ipipe_domain ipipe_root;
+	void ipipe_check_context(struct ipipe_domain *ipd);
+	#define __check_irqop_context(ipd)  ipipe_check_context(&ipipe_root)
 #else /* !CONFIG_IPIPE_DEBUG_CONTEXT */
-#define __check_irqop_context(ipd)  do { } while (0)
+	#define __check_irqop_context(ipd)  do { } while (0)
 #endif /* !CONFIG_IPIPE_DEBUG_CONTEXT */
 
 /*
@@ -180,7 +182,8 @@ static inline notrace int arch_demangle_irq_bits(unsigned long *x)
 #ifdef CONFIG_IPIPE_TRACE_IRQSOFF
 static inline notrace void hard_local_irq_disable(void)
 {
-	if (!hard_irqs_disabled()) {
+	if (!hard_irqs_disabled())
+	{
 		__hard_local_irq_disable();
 		ipipe_trace_begin(0x80000000);
 	}
@@ -188,7 +191,8 @@ static inline notrace void hard_local_irq_disable(void)
 
 static inline notrace void hard_local_irq_enable(void)
 {
-	if (hard_irqs_disabled()) {
+	if (hard_irqs_disabled())
+	{
 		ipipe_trace_end(0x80000000);
 		__hard_local_irq_enable();
 	}
@@ -197,16 +201,20 @@ static inline notrace void hard_local_irq_enable(void)
 static inline notrace unsigned long hard_local_irq_save(void)
 {
 	unsigned long flags = hard_local_save_flags();
-	if (!hard_irqs_disabled_flags(flags)) {
+
+	if (!hard_irqs_disabled_flags(flags))
+	{
 		__hard_local_irq_disable();
 		ipipe_trace_begin(0x80000001);
 	}
+
 	return flags;
 }
 
 static inline notrace void hard_local_irq_restore(unsigned long flags)
 {
-	if (!hard_irqs_disabled_flags(flags)) {
+	if (!hard_irqs_disabled_flags(flags))
+	{
 		ipipe_trace_end(0x80000001);
 		__hard_local_irq_enable();
 	}
@@ -248,11 +256,11 @@ static inline notrace void hard_local_irq_restore(unsigned long flags)
 #endif /* !CONFIG_IPIPE */
 
 #ifdef CONFIG_SMP
-#define hard_local_irq_save_smp()		hard_local_irq_save()
-#define hard_local_irq_restore_smp(flags)	hard_local_irq_restore(flags)
+	#define hard_local_irq_save_smp()		hard_local_irq_save()
+	#define hard_local_irq_restore_smp(flags)	hard_local_irq_restore(flags)
 #else
-#define hard_local_irq_save_smp()		hard_local_save_flags()
-#define hard_local_irq_restore_smp(flags)	do { (void)(flags); } while (0)
+	#define hard_local_irq_save_smp()		hard_local_save_flags()
+	#define hard_local_irq_restore_smp(flags)	do { (void)(flags); } while (0)
 #endif
 
 /*

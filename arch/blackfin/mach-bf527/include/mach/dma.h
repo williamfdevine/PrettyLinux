@@ -30,9 +30,9 @@
 #define CH_MEM_STREAM1_SRC 	15	/* RX */
 
 #if defined(CONFIG_BF527_NAND_D_PORTF)
-#define CH_NFC			CH_PPI	/* PPI receive/transmit or NFC */
+	#define CH_NFC			CH_PPI	/* PPI receive/transmit or NFC */
 #elif defined(CONFIG_BF527_NAND_D_PORTH)
-#define CH_NFC			CH_EMAC_TX /* PPI receive/transmit or NFC */
+	#define CH_NFC			CH_EMAC_TX /* PPI receive/transmit or NFC */
 #endif
 
 #endif

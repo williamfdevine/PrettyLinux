@@ -82,13 +82,21 @@ void __init setup_arch(char **cmdline_p)
 inline unsigned get_romfs_len(unsigned *addr)
 {
 #ifdef CONFIG_ROMFS_FS
+
 	if (memcmp(&addr[0], "-rom1fs-", 8) == 0) /* romfs */
+	{
 		return be32_to_cpu(addr[2]);
+	}
+
 #endif
 
 #ifdef CONFIG_CRAMFS
+
 	if (addr[0] == le32_to_cpu(0x28cd3d45)) /* cramfs */
+	{
 		return le32_to_cpu(addr[1]);
+	}
+
 #endif
 	return 0;
 }
@@ -97,8 +105,8 @@ inline unsigned get_romfs_len(unsigned *addr)
 unsigned long kernel_tlb;
 
 void __init machine_early_init(const char *cmdline, unsigned int ram,
-		unsigned int fdt, unsigned int msr, unsigned int tlb0,
-		unsigned int tlb1)
+							   unsigned int fdt, unsigned int msr, unsigned int tlb0,
+							   unsigned int tlb1)
 {
 	unsigned long *src, *dst;
 	unsigned int offset = 0;
@@ -114,23 +122,27 @@ void __init machine_early_init(const char *cmdline, unsigned int ram,
 
 	romfs_base = (ram ? ram : (unsigned int)&__init_end);
 	romfs_size = PAGE_ALIGN(get_romfs_len((unsigned *)romfs_base));
-	if (!romfs_size) {
+
+	if (!romfs_size)
+	{
 		romfs_base = (unsigned int)&__bss_start;
 		romfs_size = PAGE_ALIGN(get_romfs_len((unsigned *)romfs_base));
 	}
 
 	/* Move ROMFS out of BSS before clearing it */
-	if (romfs_size > 0) {
+	if (romfs_size > 0)
+	{
 		memmove(&__bss_stop, (int *)romfs_base, romfs_size);
 		klimit += romfs_size;
 	}
+
 #endif
 
-/* clearing bss section */
-	memset(__bss_start, 0, __bss_stop-__bss_start);
-	memset(_ssbss, 0, _esbss-_ssbss);
+	/* clearing bss section */
+	memset(__bss_start, 0, __bss_stop - __bss_start);
+	memset(_ssbss, 0, _esbss - _ssbss);
 
-/* initialize device tree for usage in early_printk */
+	/* initialize device tree for usage in early_printk */
 	early_init_devtree(_fdt_start);
 
 #ifdef CONFIG_EARLY_PRINTK
@@ -144,10 +156,15 @@ void __init machine_early_init(const char *cmdline, unsigned int ram,
 							tlb1, kernel_tlb); */
 
 	pr_info("Ramdisk addr 0x%08x, ", ram);
+
 	if (fdt)
+	{
 		pr_info("FDT at 0x%08x\n", fdt);
+	}
 	else
+	{
 		pr_info("Compiled-in FDT at %p\n", _fdt_start);
+	}
 
 #ifdef CONFIG_MTD_UCLINUX
 	pr_info("Found romfs @ 0x%08x (0x%08x)\n",
@@ -162,15 +179,21 @@ void __init machine_early_init(const char *cmdline, unsigned int ram,
 #endif
 
 #if CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR
-	if (msr) {
+
+	if (msr)
+	{
 		pr_info("!!!Your kernel has setup MSR instruction but ");
 		pr_cont("CPU don't have it %x\n", msr);
 	}
+
 #else
-	if (!msr) {
+
+	if (!msr)
+	{
 		pr_info("!!!Your kernel not setup MSR instruction but ");
 		pr_cont("CPU have it %x\n", msr);
 	}
+
 #endif
 
 	/* Do not copy reset vectors. offset = 0x2 means skip the first
@@ -180,8 +203,11 @@ void __init machine_early_init(const char *cmdline, unsigned int ram,
 	offset = 0x2;
 #endif
 	dst = (unsigned long *) (offset * sizeof(u32));
+
 	for (src = __ivt_start + offset; src < __ivt_end; src++, dst++)
+	{
 		*dst = *src;
+	}
 
 	/* Initialize global data */
 	per_cpu(KM, 0) = 0x1;	/* We start in kernel mode */
@@ -212,11 +238,16 @@ static int __init debugfs_tlb(void)
 	struct dentry *d;
 
 	if (!of_debugfs_root)
+	{
 		return -ENODEV;
+	}
 
 	d = debugfs_create_u32("tlb_skip", S_IRUGO, of_debugfs_root, &tlb_skip);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

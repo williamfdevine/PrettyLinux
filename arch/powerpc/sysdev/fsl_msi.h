@@ -31,7 +31,8 @@
 
 struct fsl_msi_cascade_data;
 
-struct fsl_msi {
+struct fsl_msi
+{
 	struct irq_domain *irqhost;
 
 	unsigned long cascade_irq;

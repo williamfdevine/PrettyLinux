@@ -23,18 +23,21 @@
 
 #include "board.h"
 
-static struct property_entry __initdata wifi_rfkill_prop[] = {
+static struct property_entry __initdata wifi_rfkill_prop[] =
+{
 	PROPERTY_ENTRY_STRING("name", "wifi_rfkill"),
 	PROPERTY_ENTRY_STRING("type", "wlan"),
 	{ },
 };
 
-static struct platform_device wifi_rfkill_device = {
+static struct platform_device wifi_rfkill_device =
+{
 	.name	= "rfkill_gpio",
 	.id	= -1,
 };
 
-static struct gpiod_lookup_table wifi_gpio_lookup = {
+static struct gpiod_lookup_table wifi_gpio_lookup =
+{
 	.dev_id = "rfkill_gpio",
 	.table = {
 		GPIO_LOOKUP("tegra-gpio", 25, "reset", 0),

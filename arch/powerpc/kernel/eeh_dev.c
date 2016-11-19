@@ -55,9 +55,11 @@ struct eeh_dev *eeh_dev_init(struct pci_dn *pdn)
 
 	/* Allocate EEH device */
 	edev = kzalloc(sizeof(*edev), GFP_KERNEL);
-	if (!edev) {
+
+	if (!edev)
+	{
 		pr_warn("%s: out of memory\n",
-			__func__);
+				__func__);
 		return NULL;
 	}
 
@@ -95,7 +97,7 @@ static int __init eeh_dev_phb_init(void)
 	struct pci_controller *phb, *tmp;
 
 	list_for_each_entry_safe(phb, tmp, &hose_list, list_node)
-		eeh_dev_phb_init_dynamic(phb);
+	eeh_dev_phb_init_dynamic(phb);
 
 	return 0;
 }

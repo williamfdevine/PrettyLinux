@@ -89,8 +89,11 @@ static void restore_core_regs(void)
 	alchemy_wrsys(sleep_sys_clocks[1], AU1000_SYS_FREQCTRL1);
 	alchemy_wrsys(sleep_sys_clocks[2], AU1000_SYS_CLKSRC);
 	alchemy_wrsys(sleep_sys_clocks[4], AU1000_SYS_AUXPLL);
+
 	if (!au1xxx_cpu_has_pll_wo())
+	{
 		alchemy_wrsys(sleep_sys_clocks[3], AU1000_SYS_CPUPLL);
+	}
 
 	alchemy_wrsys(sleep_sys_pinfunc, AU1000_SYS_PINFUNC);
 
@@ -113,19 +116,22 @@ void au_sleep(void)
 {
 	save_core_regs();
 
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1000:
-	case ALCHEMY_CPU_AU1500:
-	case ALCHEMY_CPU_AU1100:
-		alchemy_sleep_au1000();
-		break;
-	case ALCHEMY_CPU_AU1550:
-	case ALCHEMY_CPU_AU1200:
-		alchemy_sleep_au1550();
-		break;
-	case ALCHEMY_CPU_AU1300:
-		alchemy_sleep_au1300();
-		break;
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1000:
+		case ALCHEMY_CPU_AU1500:
+		case ALCHEMY_CPU_AU1100:
+			alchemy_sleep_au1000();
+			break;
+
+		case ALCHEMY_CPU_AU1550:
+		case ALCHEMY_CPU_AU1200:
+			alchemy_sleep_au1550();
+			break;
+
+		case ALCHEMY_CPU_AU1300:
+			alchemy_sleep_au1300();
+			break;
 	}
 
 	restore_core_regs();

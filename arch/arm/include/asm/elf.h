@@ -68,9 +68,9 @@ typedef struct user_fp elf_fpregset_t;
  */
 #define ELF_CLASS	ELFCLASS32
 #ifdef __ARMEB__
-#define ELF_DATA	ELFDATA2MSB
+	#define ELF_DATA	ELFDATA2MSB
 #else
-#define ELF_DATA	ELFDATA2LSB
+	#define ELF_DATA	ELFDATA2LSB
 #endif
 #define ELF_ARCH	EM_ARM
 
@@ -119,8 +119,8 @@ int dump_task_regs(struct task_struct *t, elf_gregset_t *elfregs);
 
 #define ELF_ET_DYN_BASE	(TASK_SIZE / 3 * 2)
 
-/* When the program starts, a1 contains a pointer to a function to be 
-   registered with atexit, as per the SVR4 ABI.  A value of 0 means we 
+/* When the program starts, a1 contains a pointer to a function to be
+   registered with atexit, as per the SVR4 ABI.  A value of 0 means we
    have no such handler.  */
 #define ELF_PLAT_INIT(_r, load_addr)	(_r)->ARM_r0 = 0
 
@@ -130,10 +130,10 @@ extern void elf_set_personality(const struct elf32_hdr *);
 #ifdef CONFIG_MMU
 #ifdef CONFIG_VDSO
 #define ARCH_DLINFO						\
-do {								\
-	NEW_AUX_ENT(AT_SYSINFO_EHDR,				\
-		    (elf_addr_t)current->mm->context.vdso);	\
-} while (0)
+	do {								\
+		NEW_AUX_ENT(AT_SYSINFO_EHDR,				\
+					(elf_addr_t)current->mm->context.vdso);	\
+	} while (0)
 #endif
 #define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
 struct linux_binprm;

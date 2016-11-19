@@ -35,7 +35,7 @@ static phys_addr_t omap_secure_memblock_base;
  * Return the non-zero error value on failure.
  */
 u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs, u32 arg1, u32 arg2,
-							 u32 arg3, u32 arg4)
+						   u32 arg3, u32 arg4)
 {
 	u32 ret;
 	u32 param[5];
@@ -87,12 +87,12 @@ phys_addr_t omap_secure_ram_mempool_base(void)
  *       it calling omap_smc3() instead omap_smc2() and param[0] is nargs+1
  */
 u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 nargs,
-			   u32 arg1, u32 arg2, u32 arg3, u32 arg4)
+						   u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
 	u32 ret;
 	u32 param[5];
 
-	param[0] = nargs+1; /* RX-51 needs number of arguments + 1 */
+	param[0] = nargs + 1; /* RX-51 needs number of arguments + 1 */
 	param[1] = arg1;
 	param[2] = arg2;
 	param[3] = arg3;
@@ -131,9 +131,9 @@ u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits)
 	acr |= set_bits;
 
 	return rx51_secure_dispatcher(RX51_PPA_WRITE_ACR,
-				      0,
-				      FLAG_START_CRITICAL,
-				      1, acr, 0, 0, 0);
+								  0,
+								  FLAG_START_CRITICAL,
+								  1, acr, 0, 0, 0);
 }
 
 /**
@@ -142,7 +142,7 @@ u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits)
 u32 rx51_secure_rng_call(u32 ptr, u32 count, u32 flag)
 {
 	return rx51_secure_dispatcher(RX51_PPA_HWRNG,
-				      0,
-				      NO_FLAG,
-				      3, ptr, count, flag, 0);
+								  0,
+								  NO_FLAG,
+								  3, ptr, count, flag, 0);
 }

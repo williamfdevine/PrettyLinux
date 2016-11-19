@@ -18,7 +18,8 @@
 #include <mach/dma.h>
 #include <asm/dma.h>
 
-struct g2_channel {
+struct g2_channel
+{
 	unsigned long g2_addr;		/* G2 bus address */
 	unsigned long root_addr;	/* Root bus (SH-4) address */
 	unsigned long size;		/* Size (in bytes), 32-byte aligned */
@@ -29,14 +30,16 @@ struct g2_channel {
 	unsigned long xfer_stat;	/* Transfer status */
 } __attribute__ ((aligned(32)));
 
-struct g2_status {
+struct g2_status
+{
 	unsigned long g2_addr;
 	unsigned long root_addr;
 	unsigned long size;
 	unsigned long status;
 } __attribute__ ((aligned(16)));
 
-struct g2_dma_info {
+struct g2_dma_info
+{
 	struct g2_channel channel[G2_NR_DMA_CHANNELS];
 	unsigned long pad1[G2_NR_DMA_CHANNELS];
 	unsigned long wait_state;
@@ -55,11 +58,14 @@ static irqreturn_t g2_dma_interrupt(int irq, void *dev_id)
 {
 	int i;
 
-	for (i = 0; i < G2_NR_DMA_CHANNELS; i++) {
-		if (g2_dma->status[i].status & 0x20000000) {
+	for (i = 0; i < G2_NR_DMA_CHANNELS; i++)
+	{
+		if (g2_dma->status[i].status & 0x20000000)
+		{
 			unsigned int bytes = g2_bytes_remaining(i);
 
-			if (likely(bytes == 0)) {
+			if (likely(bytes == 0))
+			{
 				struct dma_info *info = dev_id;
 				struct dma_channel *chan = info->channels + i;
 
@@ -97,19 +103,23 @@ static int g2_xfer_dma(struct dma_channel *chan)
 {
 	unsigned int chan_nr = chan->chan;
 
-	if (chan->sar & 31) {
+	if (chan->sar & 31)
+	{
 		printk("g2dma: unaligned source 0x%lx\n", chan->sar);
 		return -EINVAL;
 	}
 
-	if (chan->dar & 31) {
+	if (chan->dar & 31)
+	{
 		printk("g2dma: unaligned dest 0x%lx\n", chan->dar);
 		return -EINVAL;
 	}
 
 	/* Align the count */
 	if (chan->count & 31)
+	{
 		chan->count = (chan->count + (32 - 1)) & ~(32 - 1);
+	}
 
 	/* Fixup destination */
 	chan->dar += 0xa0800000;
@@ -137,14 +147,14 @@ static int g2_xfer_dma(struct dma_channel *chan)
 
 	/* debug cruft */
 	pr_debug("count, sar, dar, mode, ctrl, chan, xfer: %ld, 0x%08lx, "
-		 "0x%08lx, %ld, %ld, %ld, %ld\n",
-		 g2_dma->channel[chan_nr].size,
-		 g2_dma->channel[chan_nr].root_addr,
-		 g2_dma->channel[chan_nr].g2_addr,
-		 g2_dma->channel[chan_nr].direction,
-		 g2_dma->channel[chan_nr].ctrl,
-		 g2_dma->channel[chan_nr].chan_enable,
-		 g2_dma->channel[chan_nr].xfer_enable);
+			 "0x%08lx, %ld, %ld, %ld, %ld\n",
+			 g2_dma->channel[chan_nr].size,
+			 g2_dma->channel[chan_nr].root_addr,
+			 g2_dma->channel[chan_nr].g2_addr,
+			 g2_dma->channel[chan_nr].direction,
+			 g2_dma->channel[chan_nr].ctrl,
+			 g2_dma->channel[chan_nr].chan_enable,
+			 g2_dma->channel[chan_nr].xfer_enable);
 
 	return 0;
 }
@@ -154,12 +164,14 @@ static int g2_get_residue(struct dma_channel *chan)
 	return g2_bytes_remaining(chan->chan);
 }
 
-static struct dma_ops g2_dma_ops = {
+static struct dma_ops g2_dma_ops =
+{
 	.xfer		= g2_xfer_dma,
 	.get_residue	= g2_get_residue,
 };
 
-static struct dma_info g2_dma_info = {
+static struct dma_info g2_dma_info =
+{
 	.name		= "g2_dmac",
 	.nr_channels	= 4,
 	.ops		= &g2_dma_ops,
@@ -171,17 +183,23 @@ static int __init g2_dma_init(void)
 	int ret;
 
 	ret = request_irq(HW_EVENT_G2_DMA, g2_dma_interrupt, 0,
-			  "g2 DMA handler", &g2_dma_info);
+					  "g2 DMA handler", &g2_dma_info);
+
 	if (unlikely(ret))
+	{
 		return -EINVAL;
+	}
 
 	/* Magic */
 	g2_dma->wait_state	= 27;
 	g2_dma->magic		= 0x4659404f;
 
 	ret = register_dmac(&g2_dma_info);
+
 	if (unlikely(ret != 0))
+	{
 		free_irq(HW_EVENT_G2_DMA, &g2_dma_info);
+	}
 
 	return ret;
 }

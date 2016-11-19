@@ -48,7 +48,8 @@ typedef elf_greg_t elf_gregset_t[ELF_NGREG];
 #define ELF_NFPREG 32
 typedef float elf_fpreg_t;
 
-typedef struct {
+typedef struct
+{
 	elf_fpreg_t	fpregs[ELF_NFPREG];
 	u_int32_t	fpcr;
 } elf_fpregset_t;
@@ -71,15 +72,15 @@ typedef struct {
  * ELF process initialiser
  */
 #define ELF_PLAT_INIT(_r, load_addr)					\
-do {									\
-	struct pt_regs *_ur = current->thread.uregs;			\
-	_ur->a3   = 0;	_ur->a2   = 0;	_ur->d3   = 0;	_ur->d2   = 0;	\
-	_ur->mcvf = 0;	_ur->mcrl = 0;	_ur->mcrh = 0;	_ur->mdrq = 0;	\
-	_ur->e1   = 0;	_ur->e0   = 0;	_ur->e7   = 0;	_ur->e6   = 0;	\
-	_ur->e5   = 0;	_ur->e4   = 0;	_ur->e3   = 0;	_ur->e2   = 0;	\
-	_ur->lar  = 0;	_ur->lir  = 0;	_ur->mdr  = 0;			\
-	_ur->a1   = 0;	_ur->a0   = 0;	_ur->d1   = 0;	_ur->d0   = 0;	\
-} while (0)
+	do {									\
+		struct pt_regs *_ur = current->thread.uregs;			\
+		_ur->a3   = 0;	_ur->a2   = 0;	_ur->d3   = 0;	_ur->d2   = 0;	\
+		_ur->mcvf = 0;	_ur->mcrl = 0;	_ur->mcrh = 0;	_ur->mdrq = 0;	\
+		_ur->e1   = 0;	_ur->e0   = 0;	_ur->e7   = 0;	_ur->e6   = 0;	\
+		_ur->e5   = 0;	_ur->e4   = 0;	_ur->e3   = 0;	_ur->e2   = 0;	\
+		_ur->lar  = 0;	_ur->lir  = 0;	_ur->mdr  = 0;			\
+		_ur->a1   = 0;	_ur->a0   = 0;	_ur->d1   = 0;	_ur->d0   = 0;	\
+	} while (0)
 
 #define CORE_DUMP_USE_REGSET
 #define ELF_EXEC_PAGESIZE	4096
@@ -99,35 +100,35 @@ do {									\
  * - ELF_CORE_COPY_REGS has been guessed, and may be wrong
  */
 #define ELF_CORE_COPY_REGS(pr_reg, regs)	\
-do {						\
-	pr_reg[0]	= regs->a3;		\
-	pr_reg[1]	= regs->a2;		\
-	pr_reg[2]	= regs->d3;		\
-	pr_reg[3]	= regs->d2;		\
-	pr_reg[4]	= regs->mcvf;		\
-	pr_reg[5]	= regs->mcrl;		\
-	pr_reg[6]	= regs->mcrh;		\
-	pr_reg[7]	= regs->mdrq;		\
-	pr_reg[8]	= regs->e1;		\
-	pr_reg[9]	= regs->e0;		\
-	pr_reg[10]	= regs->e7;		\
-	pr_reg[11]	= regs->e6;		\
-	pr_reg[12]	= regs->e5;		\
-	pr_reg[13]	= regs->e4;		\
-	pr_reg[14]	= regs->e3;		\
-	pr_reg[15]	= regs->e2;		\
-	pr_reg[16]	= regs->sp;		\
-	pr_reg[17]	= regs->lar;		\
-	pr_reg[18]	= regs->lir;		\
-	pr_reg[19]	= regs->mdr;		\
-	pr_reg[20]	= regs->a1;		\
-	pr_reg[21]	= regs->a0;		\
-	pr_reg[22]	= regs->d1;		\
-	pr_reg[23]	= regs->d0;		\
-	pr_reg[24]	= regs->orig_d0;	\
-	pr_reg[25]	= regs->epsw;		\
-	pr_reg[26]	= regs->pc;		\
-} while (0);
+	do {						\
+		pr_reg[0]	= regs->a3;		\
+		pr_reg[1]	= regs->a2;		\
+		pr_reg[2]	= regs->d3;		\
+		pr_reg[3]	= regs->d2;		\
+		pr_reg[4]	= regs->mcvf;		\
+		pr_reg[5]	= regs->mcrl;		\
+		pr_reg[6]	= regs->mcrh;		\
+		pr_reg[7]	= regs->mdrq;		\
+		pr_reg[8]	= regs->e1;		\
+		pr_reg[9]	= regs->e0;		\
+		pr_reg[10]	= regs->e7;		\
+		pr_reg[11]	= regs->e6;		\
+		pr_reg[12]	= regs->e5;		\
+		pr_reg[13]	= regs->e4;		\
+		pr_reg[14]	= regs->e3;		\
+		pr_reg[15]	= regs->e2;		\
+		pr_reg[16]	= regs->sp;		\
+		pr_reg[17]	= regs->lar;		\
+		pr_reg[18]	= regs->lir;		\
+		pr_reg[19]	= regs->mdr;		\
+		pr_reg[20]	= regs->a1;		\
+		pr_reg[21]	= regs->a0;		\
+		pr_reg[22]	= regs->d1;		\
+		pr_reg[23]	= regs->d0;		\
+		pr_reg[24]	= regs->orig_d0;	\
+		pr_reg[25]	= regs->epsw;		\
+		pr_reg[26]	= regs->pc;		\
+	} while (0);
 
 /*
  * This yields a mask that user programs can use to figure out what
@@ -135,9 +136,9 @@ do {						\
  * but it's not easy, and we've already done it here.
  */
 #ifdef CONFIG_MN10300_HAS_ATOMIC_OPS_UNIT
-#define ELF_HWCAP	(HWCAP_MN10300_ATOMIC_OP_UNIT)
+	#define ELF_HWCAP	(HWCAP_MN10300_ATOMIC_OP_UNIT)
 #else
-#define ELF_HWCAP	(0)
+	#define ELF_HWCAP	(0)
 #endif
 
 /*

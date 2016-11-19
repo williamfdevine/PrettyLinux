@@ -39,7 +39,8 @@ static cycle_t cf_dt_get_cycles(struct clocksource *cs)
 	return __raw_readl(DTCN0);
 }
 
-static struct clocksource clocksource_cf_dt = {
+static struct clocksource clocksource_cf_dt =
+{
 	.name		= "coldfire_dma_timer",
 	.rating		= 200,
 	.read		= cf_dt_get_cycles,
@@ -70,7 +71,7 @@ arch_initcall(init_cf_dt_clocksource);
 static unsigned long long cycles2ns(unsigned long cycl)
 {
 	return (unsigned long long) ((unsigned long long)cycl *
-			CYC2NS_SCALE) >> CYC2NS_SCALE_FACTOR;
+								 CYC2NS_SCALE) >> CYC2NS_SCALE_FACTOR;
 }
 
 unsigned long long sched_clock(void)

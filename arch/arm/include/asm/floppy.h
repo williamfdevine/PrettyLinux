@@ -12,7 +12,7 @@
 #ifndef __ASM_ARM_FLOPPY_H
 #define __ASM_ARM_FLOPPY_H
 #if 0
-#include <mach/floppy.h>
+	#include <mach/floppy.h>
 #endif
 
 #define fd_outb(val,port)			\
@@ -25,13 +25,13 @@
 
 #define fd_inb(port)		inb((port))
 #define fd_request_irq()	request_irq(IRQ_FLOPPYDISK,floppy_interrupt,\
-					    0,"floppy",NULL)
+										0,"floppy",NULL)
 #define fd_free_irq()		free_irq(IRQ_FLOPPYDISK,NULL)
 #define fd_disable_irq()	disable_irq(IRQ_FLOPPYDISK)
 #define fd_enable_irq()		enable_irq(IRQ_FLOPPYDISK)
 
 static inline int fd_dma_setup(void *data, unsigned int length,
-			       unsigned int mode, unsigned long addr)
+							   unsigned int mode, unsigned long addr)
 {
 	set_dma_mode(DMA_FLOPPY, mode);
 	__set_dma_addr(DMA_FLOPPY, data);
@@ -63,14 +63,14 @@ static unsigned char floppy_selects[2][4] =
 };
 
 #define fd_setdor(dor)								\
-do {										\
-	int new_dor = (dor);							\
-	if (new_dor & 0xf0)							\
-		new_dor = (new_dor & 0x0c) | floppy_selects[fdc][new_dor & 3];	\
-	else									\
-		new_dor &= 0x0c;						\
-	outb(new_dor, FD_DOR);							\
-} while (0)
+	do {										\
+		int new_dor = (dor);							\
+		if (new_dor & 0xf0)							\
+			new_dor = (new_dor & 0x0c) | floppy_selects[fdc][new_dor & 3];	\
+		else									\
+			new_dor &= 0x0c;						\
+		outb(new_dor, FD_DOR);							\
+	} while (0)
 
 /*
  * Someday, we'll automatically detect which drives are present...
@@ -86,13 +86,19 @@ static inline void fd_scandrives (void)
 	raw_cmd->track = 0;
 	raw_cmd->rate = ?;
 	drive_count = 0;
-	for (floppy = 0; floppy < 4; floppy ++) {
+
+	for (floppy = 0; floppy < 4; floppy ++)
+	{
 		current_drive = drive_count;
+
 		/*
 		 * Turn on floppy motor
 		 */
 		if (start_motor(redo_fd_request))
+		{
 			continue;
+		}
+
 		/*
 		 * Set up FDC
 		 */
@@ -102,16 +108,26 @@ static inline void fd_scandrives (void)
 		 */
 		output_byte(FD_RECALIBRATE);
 		LAST_OUT(UNIT(floppy));
+
 		/* wait for command to complete */
-		if (!successful) {
+		if (!successful)
+		{
 			int i;
+
 			for (i = drive_count; i < 3; i--)
+			{
 				floppy_selects[fdc][i] = floppy_selects[fdc][i + 1];
+			}
+
 			floppy_selects[fdc][3] = 0;
 			floppy -= 1;
-		} else
+		}
+		else
+		{
 			drive_count++;
+		}
 	}
+
 #else
 	floppy_selects[0][0] = 0x10;
 	floppy_selects[0][1] = 0x21;
@@ -144,5 +160,5 @@ static void driveswap(int *ints, int dummy, int dummy2)
 }
 
 #define EXTRA_FLOPPY_PARAMS ,{ "driveswap", &driveswap, NULL, 0, 0 }
-	
+
 #endif

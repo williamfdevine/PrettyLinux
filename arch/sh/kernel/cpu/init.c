@@ -27,15 +27,15 @@
 #include <asm/setup.h>
 
 #ifdef CONFIG_SH_FPU
-#define cpu_has_fpu	1
+	#define cpu_has_fpu	1
 #else
-#define cpu_has_fpu	0
+	#define cpu_has_fpu	0
 #endif
 
 #ifdef CONFIG_SH_DSP
-#define cpu_has_dsp	1
+	#define cpu_has_dsp	1
 #else
-#define cpu_has_dsp	0
+	#define cpu_has_dsp	0
 #endif
 
 /*
@@ -43,14 +43,14 @@
  * peripherals (nofpu, nodsp, and so forth).
  */
 #define onchip_setup(x)					\
-static int x##_disabled = !cpu_has_##x;			\
-							\
-static int x##_setup(char *opts)			\
-{							\
-	x##_disabled = 1;				\
-	return 1;					\
-}							\
-__setup("no" __stringify(x), x##_setup);
+	static int x##_disabled = !cpu_has_##x;			\
+	\
+	static int x##_setup(char *opts)			\
+	{							\
+		x##_disabled = 1;				\
+		return 1;					\
+	}							\
+	__setup("no" __stringify(x), x##_setup);
 
 onchip_setup(fpu);
 onchip_setup(dsp);
@@ -125,41 +125,54 @@ static void cache_init(void)
 	 * during the loop to lines that have already been done, this is safe.
 	 * - RPC
 	 */
-	if (ccr & CCR_CACHE_ENABLE) {
+	if (ccr & CCR_CACHE_ENABLE)
+	{
 		unsigned long ways, waysize, addrstart;
 
 		waysize = current_cpu_data.dcache.sets;
 
 #ifdef CCR_CACHE_ORA
+
 		/*
 		 * If the OC is already in RAM mode, we only have
 		 * half of the entries to flush..
 		 */
 		if (ccr & CCR_CACHE_ORA)
+		{
 			waysize >>= 1;
+		}
+
 #endif
 
 		waysize <<= current_cpu_data.dcache.entry_shift;
 
 #ifdef CCR_CACHE_EMODE
+
 		/* If EMODE is not set, we only have 1 way to flush. */
 		if (!(ccr & CCR_CACHE_EMODE))
+		{
 			ways = 1;
+		}
 		else
 #endif
 			ways = current_cpu_data.dcache.ways;
 
 		addrstart = CACHE_OC_ADDRESS_ARRAY;
-		do {
+
+		do
+		{
 			unsigned long addr;
 
 			for (addr = addrstart;
-			     addr < addrstart + waysize;
-			     addr += current_cpu_data.dcache.linesz)
+				 addr < addrstart + waysize;
+				 addr += current_cpu_data.dcache.linesz)
+			{
 				__raw_writel(0, addr);
+			}
 
 			addrstart += current_cpu_data.dcache.way_incr;
-		} while (--ways);
+		}
+		while (--ways);
 	}
 
 	/*
@@ -169,11 +182,17 @@ static void cache_init(void)
 	flags = CCR_CACHE_ENABLE | CCR_CACHE_INVALIDATE;
 
 #ifdef CCR_CACHE_EMODE
+
 	/* Force EMODE if possible */
 	if (current_cpu_data.dcache.ways > 1)
+	{
 		flags |= CCR_CACHE_EMODE;
+	}
 	else
+	{
 		flags &= ~CCR_CACHE_EMODE;
+	}
+
 #endif
 
 #if defined(CONFIG_CACHE_WRITETHROUGH)
@@ -207,20 +226,29 @@ static void detect_cache_shape(void)
 	l1d_cache_shape = CACHE_DESC_SHAPE(current_cpu_data.dcache);
 
 	if (current_cpu_data.dcache.flags & SH_CACHE_COMBINED)
+	{
 		l1i_cache_shape = l1d_cache_shape;
+	}
 	else
+	{
 		l1i_cache_shape = CACHE_DESC_SHAPE(current_cpu_data.icache);
+	}
 
 	if (current_cpu_data.flags & CPU_HAS_L2_CACHE)
+	{
 		l2_cache_shape = CACHE_DESC_SHAPE(current_cpu_data.scache);
+	}
 	else
-		l2_cache_shape = -1; /* No S-cache */
+	{
+		l2_cache_shape = -1;    /* No S-cache */
+	}
 }
 
 static void fpu_init(void)
 {
 	/* Disable the FPU */
-	if (fpu_disabled && (current_cpu_data.flags & CPU_HAS_FPU)) {
+	if (fpu_disabled && (current_cpu_data.flags & CPU_HAS_FPU))
+	{
 		printk("FPU Disabled\n");
 		current_cpu_data.flags &= ~CPU_HAS_FPU;
 	}
@@ -264,10 +292,13 @@ static void dsp_init(void)
 
 	/* If the DSP bit is still set, this CPU has a DSP */
 	if (sr & SR_DSP)
+	{
 		current_cpu_data.flags |= CPU_HAS_DSP;
+	}
 
 	/* Disable the DSP */
-	if (dsp_disabled && (current_cpu_data.flags & CPU_HAS_DSP)) {
+	if (dsp_disabled && (current_cpu_data.flags & CPU_HAS_DSP))
+	{
 		printk("DSP Disabled\n");
 		current_cpu_data.flags &= ~CPU_HAS_DSP;
 	}
@@ -303,30 +334,33 @@ asmlinkage void cpu_init(void)
 	cpu_probe();
 
 	if (current_cpu_data.type == CPU_SH_NONE)
+	{
 		panic("Unknown CPU");
+	}
 
 	/* First setup the rest of the I-cache info */
 	current_cpu_data.icache.entry_mask = current_cpu_data.icache.way_incr -
-				      current_cpu_data.icache.linesz;
+										 current_cpu_data.icache.linesz;
 
 	current_cpu_data.icache.way_size = current_cpu_data.icache.sets *
-				    current_cpu_data.icache.linesz;
+									   current_cpu_data.icache.linesz;
 
 	/* And the D-cache too */
 	current_cpu_data.dcache.entry_mask = current_cpu_data.dcache.way_incr -
-				      current_cpu_data.dcache.linesz;
+										 current_cpu_data.dcache.linesz;
 
 	current_cpu_data.dcache.way_size = current_cpu_data.dcache.sets *
-				    current_cpu_data.dcache.linesz;
+									   current_cpu_data.dcache.linesz;
 
 	/* Init the cache */
 	cache_init();
 
-	if (raw_smp_processor_id() == 0) {
+	if (raw_smp_processor_id() == 0)
+	{
 #ifdef CONFIG_MMU
 		shm_align_mask = max_t(unsigned long,
-				       current_cpu_data.dcache.way_size - 1,
-				       PAGE_SIZE - 1);
+							   current_cpu_data.dcache.way_size - 1,
+							   PAGE_SIZE - 1);
 #else
 		shm_align_mask = PAGE_SIZE - 1;
 #endif
@@ -350,7 +384,8 @@ asmlinkage void cpu_init(void)
 	expmask_init();
 
 	/* Do the rest of the boot processor setup */
-	if (raw_smp_processor_id() == 0) {
+	if (raw_smp_processor_id() == 0)
+	{
 		/* Save off the BIOS VBR, if there is one */
 		sh_bios_vbr_init();
 

@@ -6,7 +6,7 @@
 #define _ASM_IA64_THREAD_INFO_H
 
 #ifndef ASM_OFFSETS_C
-#include <asm/asm-offsets.h>
+	#include <asm/asm-offsets.h>
 #endif
 #include <asm/processor.h>
 #include <asm/ptrace.h>
@@ -18,7 +18,8 @@
  * mapped by a single TLB entry and so they can be addressed by the "current" pointer
  * without having to do pointer masking.
  */
-struct thread_info {
+struct thread_info
+{
 	struct task_struct *task;	/* XXX not really needed, except for dup_task_struct() */
 	__u32 flags;			/* thread_info flags (see TIF_*) */
 	__u32 cpu;			/* current CPU */
@@ -37,19 +38,19 @@ struct thread_info {
 #define THREAD_SIZE			KERNEL_STACK_SIZE
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.addr_limit	= KERNEL_DS,		\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.addr_limit	= KERNEL_DS,		\
+													.preempt_count	= INIT_PREEMPT_COUNT,	\
+	}
 
 #ifndef ASM_OFFSETS_C
 /* how to get the thread information struct from C */
 #define current_thread_info()	((struct thread_info *) ((char *) current + IA64_TASK_SIZE))
 #define alloc_thread_stack_node(tsk, node)	\
-		((unsigned long *) ((char *) (tsk) + IA64_TASK_SIZE))
+	((unsigned long *) ((char *) (tsk) + IA64_TASK_SIZE))
 #define task_thread_info(tsk)	((struct thread_info *) ((char *) (tsk) + IA64_TASK_SIZE))
 #else
 #define current_thread_info()	((struct thread_info *) 0)
@@ -74,13 +75,13 @@ struct thread_info {
 #define end_of_stack(p) (unsigned long *)((void *)(p) + IA64_RBS_OFFSET)
 
 #define alloc_task_struct_node(node)						\
-({										\
-	struct page *page = alloc_pages_node(node, GFP_KERNEL | __GFP_COMP,	\
-					     KERNEL_STACK_SIZE_ORDER);		\
-	struct task_struct *ret = page ? page_address(page) : NULL;		\
-										\
-	ret;									\
-})
+	({										\
+		struct page *page = alloc_pages_node(node, GFP_KERNEL | __GFP_COMP,	\
+											 KERNEL_STACK_SIZE_ORDER);		\
+		struct task_struct *ret = page ? page_address(page) : NULL;		\
+		\
+		ret;									\
+	})
 #define free_task_struct(tsk)	free_pages((unsigned long) (tsk), KERNEL_STACK_SIZE_ORDER)
 
 #endif /* !__ASSEMBLY */
@@ -117,7 +118,7 @@ struct thread_info {
 
 /* "work to do on user-return" bits */
 #define TIF_ALLWORK_MASK	(_TIF_SIGPENDING|_TIF_NOTIFY_RESUME|_TIF_SYSCALL_AUDIT|\
-				 _TIF_NEED_RESCHED|_TIF_SYSCALL_TRACE)
+							 _TIF_NEED_RESCHED|_TIF_SYSCALL_TRACE)
 /* like TIF_ALLWORK_BITS but sans TIF_SYSCALL_TRACE or TIF_SYSCALL_AUDIT */
 #define TIF_WORK_MASK		(TIF_ALLWORK_MASK&~(_TIF_SYSCALL_TRACE|_TIF_SYSCALL_AUDIT))
 

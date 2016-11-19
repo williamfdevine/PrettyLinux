@@ -154,9 +154,9 @@ static inline int atomic_cmpxchg(atomic_t *v, int o, int n)
 #endif /* __ASSEMBLY__ */
 
 #ifndef __tilegx__
-#include <asm/atomic_32.h>
+	#include <asm/atomic_32.h>
 #else
-#include <asm/atomic_64.h>
+	#include <asm/atomic_64.h>
 #endif
 
 #ifndef __ASSEMBLY__
@@ -183,7 +183,7 @@ static inline long long atomic64_xchg(atomic64_t *v, long long n)
  * Returns the old value at @v.
  */
 static inline long long atomic64_cmpxchg(atomic64_t *v, long long o,
-					long long n)
+		long long n)
 {
 	return cmpxchg64(&v->counter, o, n);
 }
@@ -193,15 +193,26 @@ static inline long long atomic64_dec_if_positive(atomic64_t *v)
 	long long c, old, dec;
 
 	c = atomic64_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		dec = c - 1;
+
 		if (unlikely(dec < 0))
+		{
 			break;
+		}
+
 		old = atomic64_cmpxchg((v), c, dec);
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return dec;
 }
 

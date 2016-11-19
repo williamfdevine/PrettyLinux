@@ -11,10 +11,10 @@
 #define PGD_INDEX_SIZE  9
 
 #ifndef __ASSEMBLY__
-#define PTE_TABLE_SIZE	(sizeof(pte_t) << PTE_INDEX_SIZE)
-#define PMD_TABLE_SIZE	(sizeof(pmd_t) << PMD_INDEX_SIZE)
-#define PUD_TABLE_SIZE	(sizeof(pud_t) << PUD_INDEX_SIZE)
-#define PGD_TABLE_SIZE	(sizeof(pgd_t) << PGD_INDEX_SIZE)
+	#define PTE_TABLE_SIZE	(sizeof(pte_t) << PTE_INDEX_SIZE)
+	#define PMD_TABLE_SIZE	(sizeof(pmd_t) << PMD_INDEX_SIZE)
+	#define PUD_TABLE_SIZE	(sizeof(pud_t) << PUD_INDEX_SIZE)
+	#define PGD_TABLE_SIZE	(sizeof(pgd_t) << PGD_INDEX_SIZE)
 #endif	/* __ASSEMBLY__ */
 
 #define PTRS_PER_PTE	(1 << PTE_INDEX_SIZE)
@@ -78,8 +78,8 @@ extern struct page *pgd_page(pgd_t pgd);
 #endif /* !__ASSEMBLY__ */
 
 #define pud_offset(pgdp, addr)	\
-  (((pud_t *) pgd_page_vaddr(*(pgdp))) + \
-    (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1)))
+	(((pud_t *) pgd_page_vaddr(*(pgdp))) + \
+	 (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1)))
 
 #define pud_ERROR(e) \
 	pr_err("%s:%d: bad pud %08lx.\n", __FILE__, __LINE__, pud_val(e))

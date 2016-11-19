@@ -76,7 +76,8 @@
  * @itr:	Flag for Industrial Temperature Range option.
  * @jumpers:	Bitfield for jumpers' state.
  */
-struct ts5500_sbc {
+struct ts5500_sbc
+{
 	const char *name;
 	int	id;
 	bool	sram;
@@ -88,10 +89,12 @@ struct ts5500_sbc {
 };
 
 /* Board signatures in BIOS shadow RAM */
-static const struct {
-	const char * const string;
+static const struct
+{
+	const char *const string;
 	const ssize_t offset;
-} ts5500_signatures[] __initconst = {
+} ts5500_signatures[] __initconst =
+{
 	{ "TS-5x00 AMD Elan", 0xb14 },
 };
 
@@ -101,13 +104,18 @@ static int __init ts5500_check_signature(void)
 	int i, ret = -ENODEV;
 
 	bios = ioremap(0xf0000, 0x10000);
-	if (!bios)
-		return -ENOMEM;
 
-	for (i = 0; i < ARRAY_SIZE(ts5500_signatures); i++) {
+	if (!bios)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(ts5500_signatures); i++)
+	{
 		if (check_signature(bios + ts5500_signatures[i].offset,
-				    ts5500_signatures[i].string,
-				    strlen(ts5500_signatures[i].string))) {
+							ts5500_signatures[i].string,
+							strlen(ts5500_signatures[i].string)))
+		{
 			ret = 0;
 			break;
 		}
@@ -123,14 +131,22 @@ static int __init ts5500_detect_config(struct ts5500_sbc *sbc)
 	int ret = 0;
 
 	if (!request_region(TS5500_PRODUCT_CODE_ADDR, 4, "ts5500"))
+	{
 		return -EBUSY;
+	}
 
 	sbc->id = inb(TS5500_PRODUCT_CODE_ADDR);
-	if (sbc->id == TS5500_PRODUCT_CODE) {
+
+	if (sbc->id == TS5500_PRODUCT_CODE)
+	{
 		sbc->name = "TS-5500";
-	} else if (sbc->id == TS5400_PRODUCT_CODE) {
+	}
+	else if (sbc->id == TS5400_PRODUCT_CODE)
+	{
 		sbc->name = "TS-5400";
-	} else {
+	}
+	else
+	{
 		pr_err("ts5500: unknown product code 0x%x\n", sbc->id);
 		ret = -ENODEV;
 		goto cleanup;
@@ -154,7 +170,7 @@ cleanup:
 }
 
 static ssize_t name_show(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						 char *buf)
 {
 	struct ts5500_sbc *sbc = dev_get_drvdata(dev);
 
@@ -163,7 +179,7 @@ static ssize_t name_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(name);
 
 static ssize_t id_show(struct device *dev, struct device_attribute *attr,
-		char *buf)
+					   char *buf)
 {
 	struct ts5500_sbc *sbc = dev_get_drvdata(dev);
 
@@ -172,7 +188,7 @@ static ssize_t id_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(id);
 
 static ssize_t jumpers_show(struct device *dev, struct device_attribute *attr,
-		char *buf)
+							char *buf)
 {
 	struct ts5500_sbc *sbc = dev_get_drvdata(dev);
 
@@ -182,10 +198,10 @@ static DEVICE_ATTR_RO(jumpers);
 
 #define TS5500_ATTR_BOOL(_field)					\
 	static ssize_t _field##_show(struct device *dev,		\
-			struct device_attribute *attr, char *buf)	\
+								 struct device_attribute *attr, char *buf)	\
 	{								\
 		struct ts5500_sbc *sbc = dev_get_drvdata(dev);		\
-									\
+		\
 		return sprintf(buf, "%d\n", sbc->_field);		\
 	}								\
 	static DEVICE_ATTR_RO(_field)
@@ -196,7 +212,8 @@ TS5500_ATTR_BOOL(adc);
 TS5500_ATTR_BOOL(ereset);
 TS5500_ATTR_BOOL(itr);
 
-static struct attribute *ts5500_attributes[] = {
+static struct attribute *ts5500_attributes[] =
+{
 	&dev_attr_id.attr,
 	&dev_attr_name.attr,
 	&dev_attr_jumpers.attr,
@@ -208,26 +225,31 @@ static struct attribute *ts5500_attributes[] = {
 	NULL
 };
 
-static const struct attribute_group ts5500_attr_group = {
+static const struct attribute_group ts5500_attr_group =
+{
 	.attrs = ts5500_attributes,
 };
 
-static struct resource ts5500_dio1_resource[] = {
+static struct resource ts5500_dio1_resource[] =
+{
 	DEFINE_RES_IRQ_NAMED(7, "DIO1 interrupt"),
 };
 
-static struct platform_device ts5500_dio1_pdev = {
+static struct platform_device ts5500_dio1_pdev =
+{
 	.name = "ts5500-dio1",
 	.id = -1,
 	.resource = ts5500_dio1_resource,
 	.num_resources = 1,
 };
 
-static struct resource ts5500_dio2_resource[] = {
+static struct resource ts5500_dio2_resource[] =
+{
 	DEFINE_RES_IRQ_NAMED(6, "DIO2 interrupt"),
 };
 
-static struct platform_device ts5500_dio2_pdev = {
+static struct platform_device ts5500_dio2_pdev =
+{
 	.name = "ts5500-dio2",
 	.id = -1,
 	.resource = ts5500_dio2_resource,
@@ -235,7 +257,7 @@ static struct platform_device ts5500_dio2_pdev = {
 };
 
 static void ts5500_led_set(struct led_classdev *led_cdev,
-			   enum led_brightness brightness)
+						   enum led_brightness brightness)
 {
 	outb(!!brightness, TS5500_LED_JP_ADDR);
 }
@@ -245,7 +267,8 @@ static enum led_brightness ts5500_led_get(struct led_classdev *led_cdev)
 	return (inb(TS5500_LED_JP_ADDR) & TS5500_LED) ? LED_FULL : LED_OFF;
 }
 
-static struct led_classdev ts5500_led_cdev = {
+static struct led_classdev ts5500_led_cdev =
+{
 	.name = "ts5500:green:",
 	.brightness_set = ts5500_led_set,
 	.brightness_get = ts5500_led_get,
@@ -264,8 +287,11 @@ static int ts5500_adc_convert(u8 ctrl)
 	 * otherwise we have to re-initiate a conversion.
 	 */
 	udelay(TS5500_ADC_CONV_DELAY);
+
 	if (inb(TS5500_ADC_CONV_BUSY_ADDR) & TS5500_ADC_CONV_BUSY)
+	{
 		return -EBUSY;
+	}
 
 	/* Read the raw data */
 	lsb = inb(TS5500_ADC_CONV_INIT_LSB_ADDR);
@@ -274,11 +300,13 @@ static int ts5500_adc_convert(u8 ctrl)
 	return (msb << 8) | lsb;
 }
 
-static struct max197_platform_data ts5500_adc_pdata = {
+static struct max197_platform_data ts5500_adc_pdata =
+{
 	.convert = ts5500_adc_convert,
 };
 
-static struct platform_device ts5500_adc_pdev = {
+static struct platform_device ts5500_adc_pdev =
+{
 	.name = "max197",
 	.id = -1,
 	.dev = {
@@ -298,45 +326,73 @@ static int __init ts5500_init(void)
 	 * It is safer to find a signature in the BIOS shadow RAM.
 	 */
 	err = ts5500_check_signature();
+
 	if (err)
+	{
 		return err;
+	}
 
 	pdev = platform_device_register_simple("ts5500", -1, NULL, 0);
+
 	if (IS_ERR(pdev))
+	{
 		return PTR_ERR(pdev);
+	}
 
 	sbc = devm_kzalloc(&pdev->dev, sizeof(struct ts5500_sbc), GFP_KERNEL);
-	if (!sbc) {
+
+	if (!sbc)
+	{
 		err = -ENOMEM;
 		goto error;
 	}
 
 	err = ts5500_detect_config(sbc);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	platform_set_drvdata(pdev, sbc);
 
 	err = sysfs_create_group(&pdev->dev.kobj, &ts5500_attr_group);
-	if (err)
-		goto error;
 
-	if (sbc->id == TS5500_PRODUCT_CODE) {
+	if (err)
+	{
+		goto error;
+	}
+
+	if (sbc->id == TS5500_PRODUCT_CODE)
+	{
 		ts5500_dio1_pdev.dev.parent = &pdev->dev;
+
 		if (platform_device_register(&ts5500_dio1_pdev))
+		{
 			dev_warn(&pdev->dev, "DIO1 block registration failed\n");
+		}
+
 		ts5500_dio2_pdev.dev.parent = &pdev->dev;
+
 		if (platform_device_register(&ts5500_dio2_pdev))
+		{
 			dev_warn(&pdev->dev, "DIO2 block registration failed\n");
+		}
 	}
 
 	if (led_classdev_register(&pdev->dev, &ts5500_led_cdev))
+	{
 		dev_warn(&pdev->dev, "LED registration failed\n");
+	}
 
-	if (sbc->adc) {
+	if (sbc->adc)
+	{
 		ts5500_adc_pdev.dev.parent = &pdev->dev;
+
 		if (platform_device_register(&ts5500_adc_pdev))
+		{
 			dev_warn(&pdev->dev, "ADC registration failed\n");
+		}
 	}
 
 	return 0;

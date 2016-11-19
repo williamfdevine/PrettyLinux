@@ -10,7 +10,8 @@
  * - 64-bit time_t to solve y2038 problem
  * - 2 miscellaneous 32-bit values
  */
-struct semid64_ds {
+struct semid64_ds
+{
 	struct ipc64_perm sem_perm;	/* permissions .. see ipc.h */
 	__kernel_time_t	sem_otime;	/* last semop time */
 	__kernel_ulong_t __unused1;

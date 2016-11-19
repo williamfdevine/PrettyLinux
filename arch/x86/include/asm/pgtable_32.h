@@ -40,9 +40,9 @@ void paging_init(void);
 #undef TEST_ACCESS_OK
 
 #ifdef CONFIG_X86_PAE
-# include <asm/pgtable-3level.h>
+	#include <asm/pgtable-3level.h>
 #else
-# include <asm/pgtable-2level.h>
+	#include <asm/pgtable-2level.h>
 #endif
 
 #if defined(CONFIG_HIGHPTE)
@@ -58,10 +58,10 @@ void paging_init(void);
 
 /* Clear a kernel PTE and flush it from the TLB */
 #define kpte_clear_flush(ptep, vaddr)		\
-do {						\
-	pte_clear(&init_mm, (vaddr), (ptep));	\
-	__flush_tlb_one((vaddr));		\
-} while (0)
+	do {						\
+		pte_clear(&init_mm, (vaddr), (ptep));	\
+		__flush_tlb_one((vaddr));		\
+	} while (0)
 
 #endif /* !__ASSEMBLY__ */
 
@@ -70,9 +70,9 @@ do {						\
  * SPARSEMEM and DISCONTIGMEM
  */
 #ifdef CONFIG_FLATMEM
-#define kern_addr_valid(addr)	(1)
+	#define kern_addr_valid(addr)	(1)
 #else
-#define kern_addr_valid(kaddr)	(0)
+	#define kern_addr_valid(kaddr)	(0)
 #endif
 
 #endif /* _ASM_X86_PGTABLE_32_H */

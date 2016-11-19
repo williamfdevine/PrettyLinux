@@ -2,7 +2,8 @@
 #define _ASM_S390_PCI_DMA_H
 
 /* I/O Translation Anchor (IOTA) */
-enum zpci_ioat_dtype {
+enum zpci_ioat_dtype
+{
 	ZPCI_IOTA_STO = 0,
 	ZPCI_IOTA_RTTO = 1,
 	ZPCI_IOTA_RSTO = 2,
@@ -180,15 +181,15 @@ static inline int entry_isprotected(unsigned long entry)
 static inline unsigned long *get_rt_sto(unsigned long entry)
 {
 	return ((entry & ZPCI_TABLE_TYPE_MASK) == ZPCI_TABLE_TYPE_RTX)
-		? (unsigned long *) (entry & ZPCI_RTE_ADDR_MASK)
-		: NULL;
+		   ? (unsigned long *) (entry & ZPCI_RTE_ADDR_MASK)
+		   : NULL;
 }
 
 static inline unsigned long *get_st_pto(unsigned long entry)
 {
 	return ((entry & ZPCI_TABLE_TYPE_MASK) == ZPCI_TABLE_TYPE_SX)
-		? (unsigned long *) (entry & ZPCI_STE_ADDR_MASK)
-		: NULL;
+		   ? (unsigned long *) (entry & ZPCI_STE_ADDR_MASK)
+		   : NULL;
 }
 
 /* Prototypes */

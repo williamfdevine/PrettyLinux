@@ -355,8 +355,8 @@ struct el_apecs_procdata
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -388,11 +388,14 @@ __EXTERN_INLINE unsigned int apecs_ioread8(void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long result, base_and_type;
 
-	if (addr >= APECS_DENSE_MEM) {
+	if (addr >= APECS_DENSE_MEM)
+	{
 		addr -= APECS_DENSE_MEM;
 		APECS_SET_HAE;
 		base_and_type = APECS_SPARSE_MEM + 0x00;
-	} else {
+	}
+	else
+	{
 		addr -= APECS_IO;
 		base_and_type = APECS_IO + 0x00;
 	}
@@ -406,11 +409,14 @@ __EXTERN_INLINE void apecs_iowrite8(u8 b, void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long w, base_and_type;
 
-	if (addr >= APECS_DENSE_MEM) {
+	if (addr >= APECS_DENSE_MEM)
+	{
 		addr -= APECS_DENSE_MEM;
 		APECS_SET_HAE;
 		base_and_type = APECS_SPARSE_MEM + 0x00;
-	} else {
+	}
+	else
+	{
 		addr -= APECS_IO;
 		base_and_type = APECS_IO + 0x00;
 	}
@@ -424,11 +430,14 @@ __EXTERN_INLINE unsigned int apecs_ioread16(void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long result, base_and_type;
 
-	if (addr >= APECS_DENSE_MEM) {
+	if (addr >= APECS_DENSE_MEM)
+	{
 		addr -= APECS_DENSE_MEM;
 		APECS_SET_HAE;
 		base_and_type = APECS_SPARSE_MEM + 0x08;
-	} else {
+	}
+	else
+	{
 		addr -= APECS_IO;
 		base_and_type = APECS_IO + 0x08;
 	}
@@ -442,11 +451,14 @@ __EXTERN_INLINE void apecs_iowrite16(u16 b, void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long w, base_and_type;
 
-	if (addr >= APECS_DENSE_MEM) {
+	if (addr >= APECS_DENSE_MEM)
+	{
 		addr -= APECS_DENSE_MEM;
 		APECS_SET_HAE;
 		base_and_type = APECS_SPARSE_MEM + 0x08;
-	} else {
+	}
+	else
+	{
 		addr -= APECS_IO;
 		base_and_type = APECS_IO + 0x08;
 	}
@@ -458,16 +470,24 @@ __EXTERN_INLINE void apecs_iowrite16(u16 b, void __iomem *xaddr)
 __EXTERN_INLINE unsigned int apecs_ioread32(void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
+
 	if (addr < APECS_DENSE_MEM)
+	{
 		addr = ((addr - APECS_IO) << 5) + APECS_IO + 0x18;
+	}
+
 	return *(vuip)addr;
 }
 
 __EXTERN_INLINE void apecs_iowrite32(u32 b, void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
+
 	if (addr < APECS_DENSE_MEM)
+	{
 		addr = ((addr - APECS_IO) << 5) + APECS_IO + 0x18;
+	}
+
 	*(vuip)addr = b;
 }
 
@@ -477,7 +497,7 @@ __EXTERN_INLINE void __iomem *apecs_ioportmap(unsigned long addr)
 }
 
 __EXTERN_INLINE void __iomem *apecs_ioremap(unsigned long addr,
-					    unsigned long size)
+		unsigned long size)
 {
 	return (void __iomem *)(addr + APECS_DENSE_MEM);
 }
@@ -508,8 +528,8 @@ __EXTERN_INLINE int apecs_is_mmio(const volatile void __iomem *addr)
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

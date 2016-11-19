@@ -26,7 +26,8 @@ static int bootrom_open(struct inode *inode, struct file *file)
 	return single_open(file, bootrom_show, NULL);
 }
 
-static const struct file_operations bootrom_file_ops = {
+static const struct file_operations bootrom_file_ops =
+{
 	.open		= bootrom_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -36,7 +37,8 @@ static const struct file_operations bootrom_file_ops = {
 static int bootrom_setup(void)
 {
 	if (!debugfs_create_file("bootrom", 0444,
-			NULL, NULL, &bootrom_file_ops)) {
+							 NULL, NULL, &bootrom_file_ops))
+	{
 		pr_err("Failed to create bootrom debugfs file\n");
 
 		return -EINVAL;

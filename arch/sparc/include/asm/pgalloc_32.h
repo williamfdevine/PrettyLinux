@@ -27,7 +27,7 @@ static inline void free_pgd_fast(pgd_t *pgd)
 #define pgd_free(mm, pgd)	free_pgd_fast(pgd)
 #define pgd_alloc(mm)	get_pgd_fast()
 
-static inline void pgd_set(pgd_t * pgdp, pmd_t * pmdp)
+static inline void pgd_set(pgd_t *pgdp, pmd_t *pmdp)
 {
 	unsigned long pa = __nocache_pa(pmdp);
 
@@ -37,13 +37,13 @@ static inline void pgd_set(pgd_t * pgdp, pmd_t * pmdp)
 #define pgd_populate(MM, PGD, PMD)      pgd_set(PGD, PMD)
 
 static inline pmd_t *pmd_alloc_one(struct mm_struct *mm,
-				   unsigned long address)
+								   unsigned long address)
 {
 	return srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE,
-				 SRMMU_PMD_TABLE_SIZE);
+							 SRMMU_PMD_TABLE_SIZE);
 }
 
-static inline void free_pmd_fast(pmd_t * pmd)
+static inline void free_pmd_fast(pmd_t *pmd)
 {
 	srmmu_free_nocache(pmd, SRMMU_PMD_TABLE_SIZE);
 }
@@ -60,7 +60,7 @@ void pmd_set(pmd_t *pmdp, pte_t *ptep);
 pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address);
 
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					  unsigned long address)
+		unsigned long address)
 {
 	return srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
 }
@@ -73,7 +73,7 @@ static inline void free_pte_fast(pte_t *pte)
 
 #define pte_free_kernel(mm, pte)	free_pte_fast(pte)
 
-void pte_free(struct mm_struct * mm, pgtable_t pte);
+void pte_free(struct mm_struct *mm, pgtable_t pte);
 #define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, pte)
 
 #endif /* _SPARC_PGALLOC_H */

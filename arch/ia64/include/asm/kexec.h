@@ -16,14 +16,14 @@
 #define KEXEC_ARCH KEXEC_ARCH_IA_64
 
 #define kexec_flush_icache_page(page) do { \
-                unsigned long page_addr = (unsigned long)page_address(page); \
-                flush_icache_range(page_addr, page_addr + PAGE_SIZE); \
-        } while(0)
+		unsigned long page_addr = (unsigned long)page_address(page); \
+		flush_icache_range(page_addr, page_addr + PAGE_SIZE); \
+	} while(0)
 
 extern struct kimage *ia64_kimage;
 extern const unsigned int relocate_new_kernel_size;
 extern void relocate_new_kernel(unsigned long, unsigned long,
-		struct ia64_boot_param *, unsigned long);
+								struct ia64_boot_param *, unsigned long);
 static inline void
 crash_setup_regs(struct pt_regs *newregs, struct pt_regs *oldregs)
 {

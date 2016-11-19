@@ -40,7 +40,8 @@
 
 #include <linux/leds.h>
 
-struct au1xmmc_platform_data {
+struct au1xmmc_platform_data
+{
 	int(*cd_setup)(void *mmc_host, int on);
 	int(*card_inserted)(void *mmc_host);
 	int(*card_readonly)(void *mmc_host);

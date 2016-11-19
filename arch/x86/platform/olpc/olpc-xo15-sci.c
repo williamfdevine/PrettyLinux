@@ -42,7 +42,9 @@ static int set_lid_wake_behavior(bool wake_on_close)
 	acpi_status status;
 
 	status = acpi_execute_simple_method(NULL, "\\_SB.PCI0.LID.LIDW", wake_on_close);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		pr_warning(PFX "failed to set lid behavior\n");
 		return 1;
 	}
@@ -59,13 +61,15 @@ lid_wake_on_close_show(struct kobject *s, struct kobj_attribute *attr, char *buf
 }
 
 static ssize_t lid_wake_on_close_store(struct kobject *s,
-				       struct kobj_attribute *attr,
-				       const char *buf, size_t n)
+									   struct kobj_attribute *attr,
+									   const char *buf, size_t n)
 {
 	unsigned int val;
 
 	if (sscanf(buf, "%u", &val) != 1)
+	{
 		return -EINVAL;
+	}
 
 	set_lid_wake_behavior(!!val);
 
@@ -74,14 +78,15 @@ static ssize_t lid_wake_on_close_store(struct kobject *s,
 
 static struct kobj_attribute lid_wake_on_close_attr =
 	__ATTR(lid_wake_on_close, 0644,
-	       lid_wake_on_close_show,
-	       lid_wake_on_close_store);
+		   lid_wake_on_close_show,
+		   lid_wake_on_close_store);
 
 static void battery_status_changed(void)
 {
 	struct power_supply *psy = power_supply_get_by_name("olpc-battery");
 
-	if (psy) {
+	if (psy)
+	{
 		power_supply_changed(psy);
 		power_supply_put(psy);
 	}
@@ -91,7 +96,8 @@ static void ac_status_changed(void)
 {
 	struct power_supply *psy = power_supply_get_by_name("olpc-ac");
 
-	if (psy) {
+	if (psy)
+	{
 		power_supply_changed(psy);
 		power_supply_put(psy);
 	}
@@ -102,28 +108,37 @@ static void process_sci_queue(void)
 	u16 data;
 	int r;
 
-	do {
+	do
+	{
 		r = olpc_ec_sci_query(&data);
+
 		if (r || !data)
+		{
 			break;
+		}
 
 		pr_debug(PFX "SCI 0x%x received\n", data);
 
-		switch (data) {
-		case EC_SCI_SRC_BATERR:
-		case EC_SCI_SRC_BATSOC:
-		case EC_SCI_SRC_BATTERY:
-		case EC_SCI_SRC_BATCRIT:
-			battery_status_changed();
-			break;
-		case EC_SCI_SRC_ACPWR:
-			ac_status_changed();
-			break;
+		switch (data)
+		{
+			case EC_SCI_SRC_BATERR:
+			case EC_SCI_SRC_BATSOC:
+			case EC_SCI_SRC_BATTERY:
+			case EC_SCI_SRC_BATCRIT:
+				battery_status_changed();
+				break;
+
+			case EC_SCI_SRC_ACPWR:
+				ac_status_changed();
+				break;
 		}
-	} while (data);
+	}
+	while (data);
 
 	if (r)
+	{
 		pr_err(PFX "Failed to clear SCI queue");
+	}
 }
 
 static void process_sci_queue_work(struct work_struct *work)
@@ -146,28 +161,39 @@ static int xo15_sci_add(struct acpi_device *device)
 	int r;
 
 	if (!device)
+	{
 		return -EINVAL;
+	}
 
 	strcpy(acpi_device_name(device), XO15_SCI_DEVICE_NAME);
 	strcpy(acpi_device_class(device), XO15_SCI_CLASS);
 
 	/* Get GPE bit assignment (EC events). */
 	status = acpi_evaluate_integer(device->handle, "_GPE", NULL, &tmp);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -EINVAL;
+	}
 
 	xo15_sci_gpe = tmp;
 	status = acpi_install_gpe_handler(NULL, xo15_sci_gpe,
-					  ACPI_GPE_EDGE_TRIGGERED,
-					  xo15_sci_gpe_handler, device);
+									  ACPI_GPE_EDGE_TRIGGERED,
+									  xo15_sci_gpe_handler, device);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -ENODEV;
+	}
 
 	dev_info(&device->dev, "Initialized, GPE = 0x%lx\n", xo15_sci_gpe);
 
 	r = sysfs_create_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
+
 	if (r)
+	{
 		goto err_sysfs;
+	}
 
 	/* Flush queue, and enable all SCI events */
 	process_sci_queue();
@@ -177,7 +203,9 @@ static int xo15_sci_add(struct acpi_device *device)
 
 	/* Enable wake-on-EC */
 	if (device->wakeup.flags.valid)
+	{
 		device_init_wakeup(&device->dev, true);
+	}
 
 	return 0;
 
@@ -210,12 +238,14 @@ static int xo15_sci_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(xo15_sci_pm, NULL, xo15_sci_resume);
 
-static const struct acpi_device_id xo15_sci_device_ids[] = {
+static const struct acpi_device_id xo15_sci_device_ids[] =
+{
 	{"XO15EC", 0},
 	{"", 0},
 };
 
-static struct acpi_driver xo15_sci_drv = {
+static struct acpi_driver xo15_sci_drv =
+{
 	.name = DRV_NAME,
 	.class = XO15_SCI_CLASS,
 	.ids = xo15_sci_device_ids,

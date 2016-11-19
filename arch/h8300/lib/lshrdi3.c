@@ -7,12 +7,17 @@ DWtype __lshrdi3(DWtype u, word_type b)
 	DWunion w;
 
 	if (b == 0)
+	{
 		return u;
+	}
 
-	if (bm <= 0) {
+	if (bm <= 0)
+	{
 		w.s.high = 0;
 		w.s.low = (UWtype) uu.s.high >> -bm;
-	} else {
+	}
+	else
+	{
 		const UWtype carries = (UWtype) uu.s.high << bm;
 
 		w.s.high = (UWtype) uu.s.high >> b;

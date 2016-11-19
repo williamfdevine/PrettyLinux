@@ -20,7 +20,7 @@
 #include <asm/smp_plat.h>
 
 static void cpu_to_pcpu(unsigned int cpu,
-			unsigned int *pcpu, unsigned int *pcluster)
+						unsigned int *pcpu, unsigned int *pcluster)
 {
 	unsigned int mpidr;
 
@@ -37,12 +37,16 @@ static int mcpm_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	cpu_to_pcpu(cpu, &pcpu, &pcluster);
 
 	pr_debug("%s: logical CPU %d is physical CPU %d cluster %d\n",
-		 __func__, cpu, pcpu, pcluster);
+			 __func__, cpu, pcpu, pcluster);
 
 	mcpm_set_entry_vector(pcpu, pcluster, NULL);
 	ret = mcpm_cpu_power_up(pcpu, pcluster);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	mcpm_set_entry_vector(pcpu, pcluster, secondary_startup);
 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
 	dsb_sev();
@@ -83,7 +87,8 @@ static void mcpm_cpu_die(unsigned int cpu)
 
 #endif
 
-static const struct smp_operations mcpm_smp_ops __initconst = {
+static const struct smp_operations mcpm_smp_ops __initconst =
+{
 	.smp_boot_secondary	= mcpm_boot_secondary,
 	.smp_secondary_init	= mcpm_secondary_init,
 #ifdef CONFIG_HOTPLUG_CPU

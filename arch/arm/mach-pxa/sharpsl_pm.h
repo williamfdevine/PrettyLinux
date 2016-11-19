@@ -11,7 +11,8 @@
 #ifndef _MACH_SHARPSL_PM
 #define _MACH_SHARPSL_PM
 
-struct sharpsl_charger_machinfo {
+struct sharpsl_charger_machinfo
+{
 	void (*init)(void);
 	void (*exit)(void);
 	int gpio_acin;
@@ -55,19 +56,22 @@ struct sharpsl_charger_machinfo {
 	int status_low_noac;
 };
 
-struct battery_thresh {
+struct battery_thresh
+{
 	int voltage;
 	int percentage;
 };
 
-struct battery_stat {
+struct battery_stat
+{
 	int ac_status;         /* APM AC Present/Not Present */
 	int mainbat_status;    /* APM Main Battery Status */
 	int mainbat_percent;   /* Main Battery Percentage Charge */
 	int mainbat_voltage;   /* Main Battery Voltage */
 };
 
-struct sharpsl_pm_status {
+struct sharpsl_pm_status
+{
 	struct device *dev;
 	struct timer_list ac_timer;
 	struct timer_list chrg_full_timer;

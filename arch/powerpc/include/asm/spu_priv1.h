@@ -28,7 +28,8 @@ struct spu_context;
 
 /* access to priv1 registers */
 
-struct spu_priv1_ops {
+struct spu_priv1_ops
+{
 	void (*int_mask_and) (struct spu *spu, int class, u64 mask);
 	void (*int_mask_or) (struct spu *spu, int class, u64 mask);
 	void (*int_mask_set) (struct spu *spu, int class, u64 mask);
@@ -51,7 +52,7 @@ struct spu_priv1_ops {
 	u64 (*resource_allocation_enable_get) (struct spu *spu);
 };
 
-extern const struct spu_priv1_ops* spu_priv1_ops;
+extern const struct spu_priv1_ops *spu_priv1_ops;
 
 static inline void
 spu_int_mask_and (struct spu *spu, int class, u64 mask)
@@ -175,7 +176,8 @@ spu_resource_allocation_enable_get (struct spu *spu)
 
 /* spu management abstraction */
 
-struct spu_management_ops {
+struct spu_management_ops
+{
 	int (*enumerate_spus)(int (*fn)(void *data));
 	int (*create_spu)(struct spu *spu, void *data);
 	int (*destroy_spu)(struct spu *spu);
@@ -184,7 +186,7 @@ struct spu_management_ops {
 	int (*init_affinity)(void);
 };
 
-extern const struct spu_management_ops* spu_management_ops;
+extern const struct spu_management_ops *spu_management_ops;
 
 static inline int
 spu_enumerate_spus (int (*fn)(void *data))

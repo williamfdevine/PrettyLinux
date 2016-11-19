@@ -84,9 +84,9 @@
  */
 #define ELF_CLASS	ELFCLASS64
 #ifdef __AARCH64EB__
-#define ELF_DATA	ELFDATA2MSB
+	#define ELF_DATA	ELFDATA2MSB
 #else
-#define ELF_DATA	ELFDATA2LSB
+	#define ELF_DATA	ELFDATA2LSB
 #endif
 #define ELF_ARCH	EM_AARCH64
 
@@ -97,9 +97,9 @@
  */
 #define ELF_PLATFORM_SIZE	16
 #ifdef __AARCH64EB__
-#define ELF_PLATFORM		("aarch64_be")
+	#define ELF_PLATFORM		("aarch64_be")
 #else
-#define ELF_PLATFORM		("aarch64")
+	#define ELF_PLATFORM		("aarch64")
 #endif
 
 /*
@@ -142,29 +142,29 @@ typedef struct user_fpsimd_state elf_fpregset_t;
 
 /* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
 #define ARCH_DLINFO							\
-do {									\
-	NEW_AUX_ENT(AT_SYSINFO_EHDR,					\
-		    (elf_addr_t)current->mm->context.vdso);		\
-} while (0)
+	do {									\
+		NEW_AUX_ENT(AT_SYSINFO_EHDR,					\
+					(elf_addr_t)current->mm->context.vdso);		\
+	} while (0)
 
 #define ARCH_HAS_SETUP_ADDITIONAL_PAGES
 struct linux_binprm;
 extern int arch_setup_additional_pages(struct linux_binprm *bprm,
-				       int uses_interp);
+									   int uses_interp);
 
 /* 1GB of VA */
 #ifdef CONFIG_COMPAT
 #define STACK_RND_MASK			(test_thread_flag(TIF_32BIT) ? \
-						0x7ff >> (PAGE_SHIFT - 12) : \
-						0x3ffff >> (PAGE_SHIFT - 12))
+								 0x7ff >> (PAGE_SHIFT - 12) : \
+								 0x3ffff >> (PAGE_SHIFT - 12))
 #else
 #define STACK_RND_MASK			(0x3ffff >> (PAGE_SHIFT - 12))
 #endif
 
 #ifdef __AARCH64EB__
-#define COMPAT_ELF_PLATFORM		("v8b")
+	#define COMPAT_ELF_PLATFORM		("v8b")
 #else
-#define COMPAT_ELF_PLATFORM		("v8l")
+	#define COMPAT_ELF_PLATFORM		("v8l")
 #endif
 
 #ifdef CONFIG_COMPAT
@@ -179,16 +179,16 @@ typedef compat_elf_greg_t		compat_elf_gregset_t[COMPAT_ELF_NGREG];
 /* AArch32 EABI. */
 #define EF_ARM_EABI_MASK		0xff000000
 #define compat_elf_check_arch(x)	(system_supports_32bit_el0() && \
-					 ((x)->e_machine == EM_ARM) && \
-					 ((x)->e_flags & EF_ARM_EABI_MASK))
+									 ((x)->e_machine == EM_ARM) && \
+									 ((x)->e_flags & EF_ARM_EABI_MASK))
 
 #define compat_start_thread		compat_start_thread
 #define COMPAT_SET_PERSONALITY(ex)	set_thread_flag(TIF_32BIT);
 #define COMPAT_ARCH_DLINFO
 extern int aarch32_setup_vectors_page(struct linux_binprm *bprm,
-				      int uses_interp);
+									  int uses_interp);
 #define compat_arch_setup_additional_pages \
-					aarch32_setup_vectors_page
+	aarch32_setup_vectors_page
 
 #endif /* CONFIG_COMPAT */
 

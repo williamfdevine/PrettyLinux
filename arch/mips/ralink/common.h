@@ -11,7 +11,8 @@
 
 #define RAMIPS_SYS_TYPE_LEN	32
 
-struct ralink_soc_info {
+struct ralink_soc_info
+{
 	unsigned char sys_type[RAMIPS_SYS_TYPE_LEN];
 	unsigned char *compatible;
 

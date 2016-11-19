@@ -26,18 +26,18 @@ void disable_early_printk(void);
 void microblaze_heartbeat(void);
 void microblaze_setup_heartbeat(void);
 
-#   ifdef CONFIG_MMU
-extern void mmu_reset(void);
-extern void early_console_reg_tlb_alloc(unsigned int addr);
-#   endif /* CONFIG_MMU */
+#ifdef CONFIG_MMU
+	extern void mmu_reset(void);
+	extern void early_console_reg_tlb_alloc(unsigned int addr);
+#endif /* CONFIG_MMU */
 
 extern void of_platform_reset_gpio_probe(void);
 
 void time_init(void);
 void init_IRQ(void);
 void machine_early_init(const char *cmdline, unsigned int ram,
-		unsigned int fdt, unsigned int msr, unsigned int tlb0,
-		unsigned int tlb1);
+						unsigned int fdt, unsigned int msr, unsigned int tlb0,
+						unsigned int tlb1);
 
 void machine_restart(char *cmd);
 void machine_shutdown(void);

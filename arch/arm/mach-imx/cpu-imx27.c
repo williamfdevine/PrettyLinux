@@ -43,15 +43,19 @@ static int mx27_read_cpu_rev(void)
 
 	mx27_cpu_partnumber = (int)((val >> 12) & 0xFFFF);
 
-	switch (val >> 28) {
-	case 0:
-		return IMX_CHIP_REVISION_1_0;
-	case 1:
-		return IMX_CHIP_REVISION_2_0;
-	case 2:
-		return IMX_CHIP_REVISION_2_1;
-	default:
-		return IMX_CHIP_REVISION_UNKNOWN;
+	switch (val >> 28)
+	{
+		case 0:
+			return IMX_CHIP_REVISION_1_0;
+
+		case 1:
+			return IMX_CHIP_REVISION_2_0;
+
+		case 2:
+			return IMX_CHIP_REVISION_2_1;
+
+		default:
+			return IMX_CHIP_REVISION_UNKNOWN;
 	}
 }
 
@@ -63,10 +67,14 @@ static int mx27_read_cpu_rev(void)
 int mx27_revision(void)
 {
 	if (mx27_cpu_rev == -1)
+	{
 		mx27_cpu_rev = mx27_read_cpu_rev();
+	}
 
 	if (mx27_cpu_partnumber != 0x8821)
+	{
 		return -EINVAL;
+	}
 
 	return mx27_cpu_rev;
 }

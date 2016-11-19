@@ -13,9 +13,9 @@
  * buffers have cache line alignment.
  */
 #ifdef CONFIG_METAG_L2C
-#define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
+	#define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
 #else
-#define ARCH_DMA_MINALIGN	8
+	#define ARCH_DMA_MINALIGN	8
 #endif
 
 #define __read_mostly __attribute__((__section__(".data..read_mostly")))

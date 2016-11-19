@@ -85,14 +85,15 @@ extern u32 tsi108_pci_cfg_base;
 /* Exported functions */
 
 extern int tsi108_direct_write_config(struct pci_bus *bus, unsigned int devfn,
-				      int offset, int len, u32 val);
+									  int offset, int len, u32 val);
 extern int tsi108_direct_read_config(struct pci_bus *bus, unsigned int devfn,
-				     int offset, int len, u32 * val);
+									 int offset, int len, u32 *val);
 extern void tsi108_clear_pci_error(u32 pci_cfg_base);
 
 extern phys_addr_t get_csrbase(void);
 
-typedef struct {
+typedef struct
+{
 	u32 regs;		/* hw registers base address */
 	u32 phyregs;		/* phy registers base address */
 	u16 phy;		/* phy address */

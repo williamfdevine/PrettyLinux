@@ -19,46 +19,53 @@ extern const char bad_pmd_string[];
 
 static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
 {
-        free_page((unsigned long) pte);
+	free_page((unsigned long) pte);
 }
 
 static inline void pte_free(struct mm_struct *mm, pgtable_t page)
 {
 	pgtable_page_dtor(page);
-        __free_page(page);
+	__free_page(page);
 }
 
 #define __pte_free_tlb(tlb,pte,addr)			\
-do {							\
-	pgtable_page_dtor(pte);				\
-	tlb_remove_page((tlb), pte);			\
-} while (0)
+	do {							\
+		pgtable_page_dtor(pte);				\
+		tlb_remove_page((tlb), pte);			\
+	} while (0)
 
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					  unsigned long address)
+		unsigned long address)
 {
 	unsigned long page = __get_free_page(GFP_KERNEL);
 
 	if (!page)
+	{
 		return NULL;
+	}
 
 	memset((void *)page, 0, PAGE_SIZE);
 	return (pte_t *) (page);
 }
 
 static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
-					unsigned long address)
+									  unsigned long address)
 {
-        struct page *page = alloc_pages(GFP_KERNEL, 0);
+	struct page *page = alloc_pages(GFP_KERNEL, 0);
 
 	if (page == NULL)
+	{
 		return NULL;
+	}
 
 	clear_highpage(page);
-	if (!pgtable_page_ctor(page)) {
+
+	if (!pgtable_page_ctor(page))
+	{
 		__free_page(page);
 		return NULL;
 	}
+
 	return page;
 
 }
@@ -83,17 +90,17 @@ static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd, pgtable_t page
 
 static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 {
-        free_page((unsigned long) pgd);
+	free_page((unsigned long) pgd);
 }
 
-static inline pgd_t * pgd_alloc(struct mm_struct *mm)
+static inline pgd_t *pgd_alloc(struct mm_struct *mm)
 {
-     pgd_t *new_pgd;
+	pgd_t *new_pgd;
 
-     new_pgd = (pgd_t *)get_zeroed_page(GFP_KERNEL);
-     memcpy(new_pgd, swapper_pg_dir, PAGE_SIZE);
-     memset(new_pgd, 0, (PAGE_OFFSET >> PGDIR_SHIFT));
-     return new_pgd;
+	new_pgd = (pgd_t *)get_zeroed_page(GFP_KERNEL);
+	memcpy(new_pgd, swapper_pg_dir, PAGE_SIZE);
+	memset(new_pgd, 0, (PAGE_OFFSET >> PGDIR_SHIFT));
+	return new_pgd;
 }
 
 #define pgd_populate(mm, pmd, pte) BUG()

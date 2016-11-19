@@ -62,21 +62,24 @@
 #define PMU_ANA_CR_B	0x48 /* Disable */
 
 /* Status */
-static u32 pmu_clk_sr[] = {
+static u32 pmu_clk_sr[] =
+{
 	PMU_CLK_SR,
 	PMU_CLK_SR1,
 	PMU_ANA_SR,
 };
 
 /* Enable */
-static u32 pmu_clk_cr_a[] = {
+static u32 pmu_clk_cr_a[] =
+{
 	PMU_CLK_CR_A,
 	PMU_CLK_CR1_A,
 	PMU_ANA_CR_A,
 };
 
 /* Disable */
-static u32 pmu_clk_cr_b[] = {
+static u32 pmu_clk_cr_b[] =
+{
 	PMU_CLK_CR_B,
 	PMU_CLK_CR1_B,
 	PMU_ANA_CR_B,
@@ -169,11 +172,16 @@ void ltq_pmu_enable(unsigned int module)
 
 	spin_lock(&g_pmu_lock);
 	pmu_w32(pmu_r32(PMU_PWDCR) & ~module, PMU_PWDCR);
-	do {} while (--retry && (pmu_r32(PMU_PWDSR) & module));
+
+	do {}
+	while (--retry && (pmu_r32(PMU_PWDSR) & module));
+
 	spin_unlock(&g_pmu_lock);
 
 	if (!retry)
+	{
 		panic("activating PMU module failed!");
+	}
 }
 EXPORT_SYMBOL(ltq_pmu_enable);
 
@@ -184,11 +192,16 @@ void ltq_pmu_disable(unsigned int module)
 
 	spin_lock(&g_pmu_lock);
 	pmu_w32(pmu_r32(PMU_PWDCR) | module, PMU_PWDCR);
-	do {} while (--retry && (!(pmu_r32(PMU_PWDSR) & module)));
+
+	do {}
+	while (--retry && (!(pmu_r32(PMU_PWDSR) & module)));
+
 	spin_unlock(&g_pmu_lock);
 
 	if (!retry)
+	{
 		pr_warn("deactivating PMU module failed!");
+	}
 }
 EXPORT_SYMBOL(ltq_pmu_disable);
 
@@ -211,22 +224,32 @@ static int pmu_enable(struct clk *clk)
 	int retry = 1000000;
 
 	if (of_machine_is_compatible("lantiq,ar10")
-	    || of_machine_is_compatible("lantiq,grx390")) {
+		|| of_machine_is_compatible("lantiq,grx390"))
+	{
 		pmu_w32(clk->bits, PWDCR_EN_XRX(clk->module));
-		do {} while (--retry &&
-			     (!(pmu_r32(PWDSR_XRX(clk->module)) & clk->bits)));
 
-	} else {
+		do {}
+		while (--retry &&
+			   (!(pmu_r32(PWDSR_XRX(clk->module)) & clk->bits)));
+
+	}
+	else
+	{
 		spin_lock(&g_pmu_lock);
 		pmu_w32(pmu_r32(PWDCR(clk->module)) & ~clk->bits,
 				PWDCR(clk->module));
-		do {} while (--retry &&
-			     (pmu_r32(PWDSR(clk->module)) & clk->bits));
+
+		do {}
+		while (--retry &&
+			   (pmu_r32(PWDSR(clk->module)) & clk->bits));
+
 		spin_unlock(&g_pmu_lock);
 	}
 
 	if (!retry)
+	{
 		panic("activating PMU module failed!");
+	}
 
 	return 0;
 }
@@ -237,42 +260,67 @@ static void pmu_disable(struct clk *clk)
 	int retry = 1000000;
 
 	if (of_machine_is_compatible("lantiq,ar10")
-	    || of_machine_is_compatible("lantiq,grx390")) {
+		|| of_machine_is_compatible("lantiq,grx390"))
+	{
 		pmu_w32(clk->bits, PWDCR_DIS_XRX(clk->module));
-		do {} while (--retry &&
-			     (pmu_r32(PWDSR_XRX(clk->module)) & clk->bits));
-	} else {
+
+		do {}
+		while (--retry &&
+			   (pmu_r32(PWDSR_XRX(clk->module)) & clk->bits));
+	}
+	else
+	{
 		spin_lock(&g_pmu_lock);
 		pmu_w32(pmu_r32(PWDCR(clk->module)) | clk->bits,
 				PWDCR(clk->module));
-		do {} while (--retry &&
-			     (!(pmu_r32(PWDSR(clk->module)) & clk->bits)));
+
+		do {}
+		while (--retry &&
+			   (!(pmu_r32(PWDSR(clk->module)) & clk->bits)));
+
 		spin_unlock(&g_pmu_lock);
 	}
 
 	if (!retry)
+	{
 		pr_warn("deactivating PMU module failed!");
+	}
 }
 
 /* the pci enable helper */
 static int pci_enable(struct clk *clk)
 {
 	unsigned int val = ltq_cgu_r32(ifccr);
+
 	/* set bus clock speed */
 	if (of_machine_is_compatible("lantiq,ar9") ||
-			of_machine_is_compatible("lantiq,vr9")) {
+		of_machine_is_compatible("lantiq,vr9"))
+	{
 		val &= ~0x1f00000;
+
 		if (clk->rate == CLOCK_33M)
+		{
 			val |= 0xe00000;
+		}
 		else
-			val |= 0x700000; /* 62.5M */
-	} else {
-		val &= ~0xf00000;
-		if (clk->rate == CLOCK_33M)
-			val |= 0x800000;
-		else
-			val |= 0x400000; /* 62.5M */
+		{
+			val |= 0x700000;    /* 62.5M */
+		}
 	}
+	else
+	{
+		val &= ~0xf00000;
+
+		if (clk->rate == CLOCK_33M)
+		{
+			val |= 0x800000;
+		}
+		else
+		{
+			val |= 0x400000;    /* 62.5M */
+		}
+	}
+
 	ltq_cgu_w32(val, ifccr);
 	pmu_enable(clk);
 	return 0;
@@ -309,8 +357,10 @@ static int clkout_enable(struct clk *clk)
 	int i;
 
 	/* get the correct rate */
-	for (i = 0; i < 4; i++) {
-		if (clk->rates[i] == clk->rate) {
+	for (i = 0; i < 4; i++)
+	{
+		if (clk->rates[i] == clk->rate)
+		{
 			int shift = 14 - (2 * clk->module);
 			int enable = 7 - clk->module;
 			unsigned int val = ltq_cgu_r32(ifccr);
@@ -322,12 +372,13 @@ static int clkout_enable(struct clk *clk)
 			return 0;
 		}
 	}
+
 	return -1;
 }
 
 /* manage the clock gates via PMU */
 static void clkdev_add_pmu(const char *dev, const char *con, bool deactivate,
-			   unsigned int module, unsigned int bits)
+						   unsigned int module, unsigned int bits)
 {
 	struct clk *clk = kzalloc(sizeof(struct clk), GFP_KERNEL);
 
@@ -338,19 +389,22 @@ static void clkdev_add_pmu(const char *dev, const char *con, bool deactivate,
 	clk->disable = pmu_disable;
 	clk->module = module;
 	clk->bits = bits;
-	if (deactivate) {
+
+	if (deactivate)
+	{
 		/*
 		 * Disable it during the initialization. Module should enable
 		 * when used
 		 */
 		pmu_disable(clk);
 	}
+
 	clkdev_add(&clk->cl);
 }
 
 /* manage the clock generator */
 static void clkdev_add_cgu(const char *dev, const char *con,
-					unsigned int bits)
+						   unsigned int bits)
 {
 	struct clk *clk = kzalloc(sizeof(struct clk), GFP_KERNEL);
 
@@ -393,7 +447,8 @@ static void clkdev_add_pci(void)
 }
 
 /* xway socs can generate clocks on gpio pins */
-static unsigned long valid_clkout_rates[4][5] = {
+static unsigned long valid_clkout_rates[4][5] =
+{
 	{CLOCK_32_768K, CLOCK_1_536M, CLOCK_2_5M, CLOCK_12M, 0},
 	{CLOCK_40M, CLOCK_12M, CLOCK_24M, CLOCK_48M, 0},
 	{CLOCK_25M, CLOCK_40M, CLOCK_30M, CLOCK_60M, 0},
@@ -404,7 +459,8 @@ static void clkdev_add_clkout(void)
 {
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		struct clk *clk;
 		char *name;
 
@@ -428,55 +484,76 @@ void __init ltq_soc_init(void)
 {
 	struct resource res_pmu, res_cgu, res_ebu;
 	struct device_node *np_pmu =
-			of_find_compatible_node(NULL, NULL, "lantiq,pmu-xway");
+		of_find_compatible_node(NULL, NULL, "lantiq,pmu-xway");
 	struct device_node *np_cgu =
-			of_find_compatible_node(NULL, NULL, "lantiq,cgu-xway");
+		of_find_compatible_node(NULL, NULL, "lantiq,cgu-xway");
 	struct device_node *np_ebu =
-			of_find_compatible_node(NULL, NULL, "lantiq,ebu-xway");
+		of_find_compatible_node(NULL, NULL, "lantiq,ebu-xway");
 
 	/* check if all the core register ranges are available */
 	if (!np_pmu || !np_cgu || !np_ebu)
+	{
 		panic("Failed to load core nodes from devicetree");
+	}
 
 	if (of_address_to_resource(np_pmu, 0, &res_pmu) ||
-			of_address_to_resource(np_cgu, 0, &res_cgu) ||
-			of_address_to_resource(np_ebu, 0, &res_ebu))
+		of_address_to_resource(np_cgu, 0, &res_cgu) ||
+		of_address_to_resource(np_ebu, 0, &res_ebu))
+	{
 		panic("Failed to get core resources");
+	}
 
 	if (!request_mem_region(res_pmu.start, resource_size(&res_pmu),
-				res_pmu.name) ||
+							res_pmu.name) ||
 		!request_mem_region(res_cgu.start, resource_size(&res_cgu),
-				res_cgu.name) ||
+							res_cgu.name) ||
 		!request_mem_region(res_ebu.start, resource_size(&res_ebu),
-				res_ebu.name))
+							res_ebu.name))
+	{
 		pr_err("Failed to request core resources");
+	}
 
 	pmu_membase = ioremap_nocache(res_pmu.start, resource_size(&res_pmu));
 	ltq_cgu_membase = ioremap_nocache(res_cgu.start,
-						resource_size(&res_cgu));
+									  resource_size(&res_cgu));
 	ltq_ebu_membase = ioremap_nocache(res_ebu.start,
-						resource_size(&res_ebu));
-	if (!pmu_membase || !ltq_cgu_membase || !ltq_ebu_membase)
-		panic("Failed to remap core resources");
+									  resource_size(&res_ebu));
 
-	if (of_machine_is_compatible("lantiq,vr9")) {
+	if (!pmu_membase || !ltq_cgu_membase || !ltq_ebu_membase)
+	{
+		panic("Failed to remap core resources");
+	}
+
+	if (of_machine_is_compatible("lantiq,vr9"))
+	{
 		struct resource res_xbar;
 		struct device_node *np_xbar =
-				of_find_compatible_node(NULL, NULL,
-							"lantiq,xbar-xway");
+			of_find_compatible_node(NULL, NULL,
+									"lantiq,xbar-xway");
 
 		if (!np_xbar)
+		{
 			panic("Failed to load xbar nodes from devicetree");
+		}
+
 		if (of_address_to_resource(np_pmu, 0, &res_xbar))
+		{
 			panic("Failed to get xbar resources");
+		}
+
 		if (request_mem_region(res_xbar.start, resource_size(&res_xbar),
-			res_xbar.name) < 0)
+							   res_xbar.name) < 0)
+		{
 			panic("Failed to get xbar resources");
+		}
 
 		ltq_xbar_membase = ioremap_nocache(res_xbar.start,
-						   resource_size(&res_xbar));
+										   resource_size(&res_xbar));
+
 		if (!ltq_xbar_membase)
+		{
 			panic("Failed to remap xbar resources");
+		}
 	}
 
 	/* make sure to unprotect the memory region where flash is located */
@@ -493,20 +570,25 @@ void __init ltq_soc_init(void)
 	clkdev_add_clkout();
 
 	/* add the soc dependent clocks */
-	if (of_machine_is_compatible("lantiq,vr9")) {
+	if (of_machine_is_compatible("lantiq,vr9"))
+	{
 		ifccr = CGU_IFCCR_VR9;
 		pcicr = CGU_PCICR_VR9;
-	} else {
+	}
+	else
+	{
 		clkdev_add_pmu("1e180000.etop", NULL, 1, 0, PMU_PPE);
 	}
 
-	if (!of_machine_is_compatible("lantiq,ase")) {
+	if (!of_machine_is_compatible("lantiq,ase"))
+	{
 		clkdev_add_pmu("1e100c00.serial", NULL, 0, 0, PMU_ASC1);
 		clkdev_add_pci();
 	}
 
 	if (of_machine_is_compatible("lantiq,grx390") ||
-	    of_machine_is_compatible("lantiq,ar10")) {
+		of_machine_is_compatible("lantiq,ar10"))
+	{
 		clkdev_add_pmu("1e101000.usb", "phy", 1, 2, PMU_ANALOG_USB0_P);
 		clkdev_add_pmu("1e106000.usb", "phy", 1, 2, PMU_ANALOG_USB1_P);
 		/* rc 0 */
@@ -521,13 +603,15 @@ void __init ltq_soc_init(void)
 		clkdev_add_pmu("19000000.pcie", "ctl", 1, 1, PMU1_PCIE1_CTL);
 	}
 
-	if (of_machine_is_compatible("lantiq,ase")) {
+	if (of_machine_is_compatible("lantiq,ase"))
+	{
 		if (ltq_cgu_r32(CGU_SYS) & (1 << 5))
 			clkdev_add_static(CLOCK_266M, CLOCK_133M,
-						CLOCK_133M, CLOCK_266M);
+							  CLOCK_133M, CLOCK_266M);
 		else
 			clkdev_add_static(CLOCK_133M, CLOCK_133M,
-						CLOCK_133M, CLOCK_133M);
+							  CLOCK_133M, CLOCK_133M);
+
 		clkdev_add_pmu("1e101000.usb", "ctl", 1, 0, PMU_USB0);
 		clkdev_add_pmu("1e101000.usb", "phy", 1, 0, PMU_USB0_P);
 		clkdev_add_pmu("1e180000.etop", "ppe", 1, 0, PMU_PPE);
@@ -535,9 +619,11 @@ void __init ltq_soc_init(void)
 		clkdev_add_pmu("1e180000.etop", "ephy", 1, 0, PMU_EPHY);
 		clkdev_add_pmu("1e103000.sdio", NULL, 1, 0, PMU_ASE_SDIO);
 		clkdev_add_pmu("1e116000.mei", "dfe", 1, 0, PMU_DFE);
-	} else if (of_machine_is_compatible("lantiq,grx390")) {
+	}
+	else if (of_machine_is_compatible("lantiq,grx390"))
+	{
 		clkdev_add_static(ltq_grx390_cpu_hz(), ltq_grx390_fpi_hz(),
-				  ltq_grx390_fpi_hz(), ltq_grx390_pp32_hz());
+						  ltq_grx390_fpi_hz(), ltq_grx390_pp32_hz());
 		clkdev_add_pmu("1e101000.usb", "ctl", 1, 0, PMU_USB0);
 		clkdev_add_pmu("1e106000.usb", "ctl", 1, 0, PMU_USB1);
 		/* rc 2 */
@@ -548,21 +634,25 @@ void __init ltq_soc_init(void)
 		clkdev_add_pmu("1e108000.eth", NULL, 1, 0, PMU_SWITCH | PMU_PPE_DP);
 		clkdev_add_pmu("1da00000.usif", "NULL", 1, 0, PMU_USIF);
 		clkdev_add_pmu("1e103100.deu", NULL, 1, 0, PMU_DEU);
-	} else if (of_machine_is_compatible("lantiq,ar10")) {
+	}
+	else if (of_machine_is_compatible("lantiq,ar10"))
+	{
 		clkdev_add_static(ltq_ar10_cpu_hz(), ltq_ar10_fpi_hz(),
-				  ltq_ar10_fpi_hz(), ltq_ar10_pp32_hz());
+						  ltq_ar10_fpi_hz(), ltq_ar10_pp32_hz());
 		clkdev_add_pmu("1e101000.usb", "ctl", 1, 0, PMU_USB0);
 		clkdev_add_pmu("1e106000.usb", "ctl", 1, 0, PMU_USB1);
 		clkdev_add_pmu("1e108000.eth", NULL, 1, 0, PMU_SWITCH |
-			       PMU_PPE_DP | PMU_PPE_TC);
+					   PMU_PPE_DP | PMU_PPE_TC);
 		clkdev_add_pmu("1da00000.usif", "NULL", 1, 0, PMU_USIF);
 		clkdev_add_pmu("1f203000.rcu", "gphy", 1, 0, PMU_GPHY);
 		clkdev_add_pmu("1e103100.deu", NULL, 1, 0, PMU_DEU);
 		clkdev_add_pmu("1e116000.mei", "afe", 1, 2, PMU_ANALOG_DSL_AFE);
 		clkdev_add_pmu("1e116000.mei", "dfe", 1, 0, PMU_DFE);
-	} else if (of_machine_is_compatible("lantiq,vr9")) {
+	}
+	else if (of_machine_is_compatible("lantiq,vr9"))
+	{
 		clkdev_add_static(ltq_vr9_cpu_hz(), ltq_vr9_fpi_hz(),
-				ltq_vr9_fpi_hz(), ltq_vr9_pp32_hz());
+						  ltq_vr9_fpi_hz(), ltq_vr9_pp32_hz());
 		clkdev_add_pmu("1e101000.usb", "phy", 1, 0, PMU_USB0_P);
 		clkdev_add_pmu("1e101000.usb", "ctl", 1, 0, PMU_USB0 | PMU_AHBM);
 		clkdev_add_pmu("1e106000.usb", "phy", 1, 0, PMU_USB1_P);
@@ -576,16 +666,18 @@ void __init ltq_soc_init(void)
 
 		clkdev_add_pmu("1da00000.usif", "NULL", 1, 0, PMU_USIF);
 		clkdev_add_pmu("1e108000.eth", NULL, 1, 0,
-				PMU_SWITCH | PMU_PPE_DPLUS | PMU_PPE_DPLUM |
-				PMU_PPE_EMA | PMU_PPE_TC | PMU_PPE_SLL01 |
-				PMU_PPE_QSB | PMU_PPE_TOP);
+					   PMU_SWITCH | PMU_PPE_DPLUS | PMU_PPE_DPLUM |
+					   PMU_PPE_EMA | PMU_PPE_TC | PMU_PPE_SLL01 |
+					   PMU_PPE_QSB | PMU_PPE_TOP);
 		clkdev_add_pmu("1f203000.rcu", "gphy", 1, 0, PMU_GPHY);
 		clkdev_add_pmu("1e103000.sdio", NULL, 1, 0, PMU_SDIO);
 		clkdev_add_pmu("1e103100.deu", NULL, 1, 0, PMU_DEU);
 		clkdev_add_pmu("1e116000.mei", "dfe", 1, 0, PMU_DFE);
-	} else if (of_machine_is_compatible("lantiq,ar9")) {
+	}
+	else if (of_machine_is_compatible("lantiq,ar9"))
+	{
 		clkdev_add_static(ltq_ar9_cpu_hz(), ltq_ar9_fpi_hz(),
-				ltq_ar9_fpi_hz(), CLOCK_250M);
+						  ltq_ar9_fpi_hz(), CLOCK_250M);
 		clkdev_add_pmu("1e101000.usb", "ctl", 1, 0, PMU_USB0);
 		clkdev_add_pmu("1e101000.usb", "phy", 1, 0, PMU_USB0_P);
 		clkdev_add_pmu("1e106000.usb", "ctl", 1, 0, PMU_USB1);
@@ -595,9 +687,11 @@ void __init ltq_soc_init(void)
 		clkdev_add_pmu("1e103100.deu", NULL, 1, 0, PMU_DEU);
 		clkdev_add_pmu("1e116000.mei", "dfe", 1, 0, PMU_DFE);
 		clkdev_add_pmu("1e100400.serial", NULL, 1, 0, PMU_ASC0);
-	} else {
+	}
+	else
+	{
 		clkdev_add_static(ltq_danube_cpu_hz(), ltq_danube_fpi_hz(),
-				ltq_danube_fpi_hz(), ltq_danube_pp32_hz());
+						  ltq_danube_fpi_hz(), ltq_danube_pp32_hz());
 		clkdev_add_pmu("1e101000.usb", "ctl", 1, 0, PMU_USB0);
 		clkdev_add_pmu("1e101000.usb", "phy", 1, 0, PMU_USB0_P);
 		clkdev_add_pmu("1e103000.sdio", NULL, 1, 0, PMU_SDIO);
@@ -607,5 +701,7 @@ void __init ltq_soc_init(void)
 	}
 
 	if (of_machine_is_compatible("lantiq,vr9"))
+	{
 		xbar_fpi_burst_disable();
+	}
 }

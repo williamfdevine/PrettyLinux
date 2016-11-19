@@ -35,13 +35,14 @@ void __init bcm63xx_nvram_init(void *addr)
 	/* check checksum before using data */
 	if (bcm963xx_nvram_checksum(&nvram, &expected_crc, &crc))
 		pr_warn("nvram checksum failed, contents may be invalid (expected %08x, got %08x)\n",
-			expected_crc, crc);
+				expected_crc, crc);
 
 	/* Cable modems have a different NVRAM which is embedded in the eCos
 	 * firmware and not easily extractible, give at least a MAC address
 	 * pool.
 	 */
-	if (BCMCPU_IS_3368()) {
+	if (BCMCPU_IS_3368())
+	{
 		memcpy(nvram.mac_addr_base, hcs_mac_addr, ETH_ALEN);
 		nvram.mac_addr_count = 2;
 	}
@@ -58,26 +59,35 @@ int bcm63xx_nvram_get_mac_address(u8 *mac)
 	u8 *oui;
 	int count;
 
-	if (mac_addr_used >= nvram.mac_addr_count) {
+	if (mac_addr_used >= nvram.mac_addr_count)
+	{
 		pr_err("not enough mac addresses\n");
 		return -ENODEV;
 	}
 
 	memcpy(mac, nvram.mac_addr_base, ETH_ALEN);
-	oui = mac + ETH_ALEN/2 - 1;
+	oui = mac + ETH_ALEN / 2 - 1;
 	count = mac_addr_used;
 
-	while (count--) {
+	while (count--)
+	{
 		u8 *p = mac + ETH_ALEN - 1;
 
-		do {
+		do
+		{
 			(*p)++;
-			if (*p != 0)
-				break;
-			p--;
-		} while (p != oui);
 
-		if (p == oui) {
+			if (*p != 0)
+			{
+				break;
+			}
+
+			p--;
+		}
+		while (p != oui);
+
+		if (p == oui)
+		{
 			pr_err("unable to fetch mac address\n");
 			return -ENODEV;
 		}
@@ -91,7 +101,9 @@ EXPORT_SYMBOL(bcm63xx_nvram_get_mac_address);
 int bcm63xx_nvram_get_psi_size(void)
 {
 	if (nvram.psi_size > 0)
+	{
 		return nvram.psi_size;
+	}
 
 	return BCM63XX_DEFAULT_PSI_SIZE;
 }

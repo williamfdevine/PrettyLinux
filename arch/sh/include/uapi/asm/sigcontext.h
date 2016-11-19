@@ -1,7 +1,8 @@
 #ifndef __ASM_SH_SIGCONTEXT_H
 #define __ASM_SH_SIGCONTEXT_H
 
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long	oldmask;
 
 #if defined(__SH5__) || defined(CONFIG_CPU_SH5)

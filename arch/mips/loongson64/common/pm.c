@@ -79,7 +79,9 @@ int __weak wakeup_loongson(void)
 static void wait_for_wakeup_events(void)
 {
 	while (!wakeup_loongson())
+	{
 		LOONGSON_CHIPCFG(0) &= ~0x7;
+	}
 }
 
 /*
@@ -136,18 +138,20 @@ static int loongson_pm_enter(suspend_state_t state)
 
 static int loongson_pm_valid_state(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_ON:
-	case PM_SUSPEND_STANDBY:
-	case PM_SUSPEND_MEM:
-		return 1;
+	switch (state)
+	{
+		case PM_SUSPEND_ON:
+		case PM_SUSPEND_STANDBY:
+		case PM_SUSPEND_MEM:
+			return 1;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 }
 
-static const struct platform_suspend_ops loongson_pm_ops = {
+static const struct platform_suspend_ops loongson_pm_ops =
+{
 	.valid	= loongson_pm_valid_state,
 	.enter	= loongson_pm_enter,
 };

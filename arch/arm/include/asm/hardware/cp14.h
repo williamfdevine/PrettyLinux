@@ -23,16 +23,16 @@
 
 /* MRC14 and MCR14 */
 #define MRC14(op1, crn, crm, op2)					\
-({									\
-u32 val;								\
-asm volatile("mrc p14, "#op1", %0, "#crn", "#crm", "#op2 : "=r" (val));	\
-val;									\
-})
+	({									\
+		u32 val;								\
+		asm volatile("mrc p14, "#op1", %0, "#crn", "#crm", "#op2 : "=r" (val));	\
+		val;									\
+	})
 
 #define MCR14(val, op1, crn, crm, op2)					\
-({									\
-asm volatile("mcr p14, "#op1", %0, "#crn", "#crm", "#op2 : : "r" (val));\
-})
+	({									\
+		asm volatile("mcr p14, "#op1", %0, "#crn", "#crm", "#op2 : : "r" (val));\
+	})
 
 /*
  * Debug Registers

@@ -15,7 +15,7 @@
 #include <asm/pgtable.h>
 
 static void __iomem *xtensa_ioremap(unsigned long paddr, unsigned long size,
-				    pgprot_t prot)
+									pgprot_t prot)
 {
 	unsigned long offset = paddr & ~PAGE_MASK;
 	unsigned long pfn = __phys_to_pfn(paddr);
@@ -30,15 +30,19 @@ static void __iomem *xtensa_ioremap(unsigned long paddr, unsigned long size,
 	size = PAGE_ALIGN(offset + size);
 
 	area = get_vm_area(size, VM_IOREMAP);
+
 	if (!area)
+	{
 		return NULL;
+	}
 
 	vaddr = (unsigned long)area->addr;
 	area->phys_addr = paddr;
 
 	err = ioremap_page_range(vaddr, vaddr + size, paddr, prot);
 
-	if (err) {
+	if (err)
+	{
 		vunmap((void *)vaddr);
 		return NULL;
 	}

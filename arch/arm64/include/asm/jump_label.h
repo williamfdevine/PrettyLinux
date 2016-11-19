@@ -29,11 +29,11 @@
 static __always_inline bool arch_static_branch(struct static_key *key, bool branch)
 {
 	asm goto("1: nop\n\t"
-		 ".pushsection __jump_table,  \"aw\"\n\t"
-		 ".align 3\n\t"
-		 ".quad 1b, %l[l_yes], %c0\n\t"
-		 ".popsection\n\t"
-		 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
+			 ".pushsection __jump_table,  \"aw\"\n\t"
+			 ".align 3\n\t"
+			 ".quad 1b, %l[l_yes], %c0\n\t"
+			 ".popsection\n\t"
+			 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
 
 	return false;
 l_yes:
@@ -43,11 +43,11 @@ l_yes:
 static __always_inline bool arch_static_branch_jump(struct static_key *key, bool branch)
 {
 	asm goto("1: b %l[l_yes]\n\t"
-		 ".pushsection __jump_table,  \"aw\"\n\t"
-		 ".align 3\n\t"
-		 ".quad 1b, %l[l_yes], %c0\n\t"
-		 ".popsection\n\t"
-		 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
+			 ".pushsection __jump_table,  \"aw\"\n\t"
+			 ".align 3\n\t"
+			 ".quad 1b, %l[l_yes], %c0\n\t"
+			 ".popsection\n\t"
+			 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
 
 	return false;
 l_yes:
@@ -56,7 +56,8 @@ l_yes:
 
 typedef u64 jump_label_t;
 
-struct jump_entry {
+struct jump_entry
+{
 	jump_label_t code;
 	jump_label_t target;
 	jump_label_t key;

@@ -22,10 +22,14 @@ void __kernel_fpu_begin(struct kernel_fpu *state, u32 flags)
 
 	if (flags & KERNEL_FPC)
 		/* Save floating point control */
+	{
 		asm volatile("stfpc %0" : "=m" (state->fpc));
+	}
 
-	if (!MACHINE_HAS_VX) {
-		if (flags & KERNEL_VXR_V0V7) {
+	if (!MACHINE_HAS_VX)
+	{
+		if (flags & KERNEL_VXR_V0V7)
+		{
 			/* Save floating-point registers */
 			asm volatile("std 0,%0" : "=Q" (state->fprs[0]));
 			asm volatile("std 1,%0" : "=Q" (state->fprs[1]));
@@ -44,6 +48,7 @@ void __kernel_fpu_begin(struct kernel_fpu *state, u32 flags)
 			asm volatile("std 14,%0" : "=Q" (state->fprs[14]));
 			asm volatile("std 15,%0" : "=Q" (state->fprs[15]));
 		}
+
 		return;
 	}
 
@@ -104,10 +109,14 @@ void __kernel_fpu_end(struct kernel_fpu *state, u32 flags)
 
 	if (flags & KERNEL_FPC)
 		/* Restore floating-point controls */
+	{
 		asm volatile("lfpc %0" : : "Q" (state->fpc));
+	}
 
-	if (!MACHINE_HAS_VX) {
-		if (flags & KERNEL_VXR_V0V7) {
+	if (!MACHINE_HAS_VX)
+	{
+		if (flags & KERNEL_VXR_V0V7)
+		{
 			/* Restore floating-point registers */
 			asm volatile("ld 0,%0" : : "Q" (state->fprs[0]));
 			asm volatile("ld 1,%0" : : "Q" (state->fprs[1]));
@@ -126,6 +135,7 @@ void __kernel_fpu_end(struct kernel_fpu *state, u32 flags)
 			asm volatile("ld 14,%0" : : "Q" (state->fprs[14]));
 			asm volatile("ld 15,%0" : : "Q" (state->fprs[15]));
 		}
+
 		return;
 	}
 

@@ -30,8 +30,8 @@
  *		initialisation in fs/jffs2/erase.c
  */
 #if (__GNUC__ < 4)
-#error Your compiler should upgrade to uc4
-#error	Known good compilers: 4.2.2
+	#error Your compiler should upgrade to uc4
+	#error	Known good compilers: 4.2.2
 #endif
 
 int main(void)
@@ -98,10 +98,10 @@ int main(void)
 	DEFINE(PBE_ORIN_ADDRESS,	offsetof(struct pbe, orig_address));
 	DEFINE(PBE_NEXT,		offsetof(struct pbe, next));
 	DEFINE(SWSUSP_CPU,		offsetof(struct swsusp_arch_regs, \
-							cpu_context));
+									 cpu_context));
 #ifdef	CONFIG_UNICORE_FPU_F64
 	DEFINE(SWSUSP_FPSTATE,		offsetof(struct swsusp_arch_regs, \
-							fpstate));
+										 fpstate));
 #endif
 	BLANK();
 	DEFINE(DMA_BIDIRECTIONAL,	DMA_BIDIRECTIONAL);

@@ -23,17 +23,18 @@
 #include "r8a7791.h"
 #include "rcar-gen2.h"
 
-static const char *const r8a7791_boards_compat_dt[] __initconst = {
+static const char *const r8a7791_boards_compat_dt[] __initconst =
+{
 	"renesas,r8a7791",
 	NULL,
 };
 
 DT_MACHINE_START(R8A7791_DT, "Generic R8A7791 (Flattened Device Tree)")
-	.smp_init	= smp_init_ops(shmobile_smp_init_fallback_ops),
-	.smp		= smp_ops(r8a7791_smp_ops),
-	.init_early	= shmobile_init_delay,
-	.init_time	= rcar_gen2_timer_init,
-	.init_late	= shmobile_init_late,
-	.reserve	= rcar_gen2_reserve,
-	.dt_compat	= r8a7791_boards_compat_dt,
-MACHINE_END
+.smp_init	= smp_init_ops(shmobile_smp_init_fallback_ops),
+   .smp		= smp_ops(r8a7791_smp_ops),
+		  .init_early	= shmobile_init_delay,
+		   .init_time	= rcar_gen2_timer_init,
+			 .init_late	= shmobile_init_late,
+			   .reserve	= rcar_gen2_reserve,
+				   .dt_compat	= r8a7791_boards_compat_dt,
+					 MACHINE_END

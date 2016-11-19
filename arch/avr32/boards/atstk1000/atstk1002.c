@@ -31,7 +31,8 @@
 #include "atstk1000.h"
 
 /* Oscillator frequencies. These are board specific */
-unsigned long at32_board_osc_rates[3] = {
+unsigned long at32_board_osc_rates[3] =
+{
 	[0] = 32768,	/* 32.768 kHz on RTC osc */
 	[1] = 20000000,	/* 20 MHz on osc0 */
 	[2] = 12000000,	/* 12 MHz on osc1 */
@@ -51,7 +52,8 @@ unsigned long at32_board_osc_rates[3] = {
 #include <linux/mtd/partitions.h>
 #include <mach/smc.h>
 
-static struct smc_timing nand_timing __initdata = {
+static struct smc_timing nand_timing __initdata =
+{
 	.ncs_read_setup		= 0,
 	.nrd_setup		= 10,
 	.ncs_write_setup	= 0,
@@ -72,7 +74,8 @@ static struct smc_timing nand_timing __initdata = {
 	.nwe_recover		= 50,
 };
 
-static struct smc_config nand_config __initdata = {
+static struct smc_config nand_config __initdata =
+{
 	.bus_width		= 1,
 	.nrd_controlled		= 1,
 	.nwe_controlled		= 1,
@@ -82,7 +85,8 @@ static struct smc_config nand_config __initdata = {
 	.tdf_mode		= 0,
 };
 
-static struct mtd_partition nand_partitions[] = {
+static struct mtd_partition nand_partitions[] =
+{
 	{
 		.name		= "main",
 		.offset		= 0x00000000,
@@ -90,7 +94,8 @@ static struct mtd_partition nand_partitions[] = {
 	},
 };
 
-static struct atmel_nand_data atstk1006_nand_data __initdata = {
+static struct atmel_nand_data atstk1006_nand_data __initdata =
+{
 	.cle		= 21,
 	.ale		= 22,
 	.rdy_pin	= GPIO_PIN_PB(30),
@@ -101,12 +106,14 @@ static struct atmel_nand_data atstk1006_nand_data __initdata = {
 };
 #endif
 
-struct eth_addr {
+struct eth_addr
+{
 	u8 addr[6];
 };
 
 static struct eth_addr __initdata hw_addr[2];
-static struct macb_platform_data __initdata eth_data[2] = {
+static struct macb_platform_data __initdata eth_data[2] =
+{
 	{
 		/*
 		 * The MDIO pullups on STK1000 are a bit too weak for
@@ -121,14 +128,16 @@ static struct macb_platform_data __initdata eth_data[2] = {
 };
 
 #ifdef CONFIG_BOARD_ATSTK1000_EXTDAC
-static struct at73c213_board_info at73c213_data = {
+static struct at73c213_board_info at73c213_data =
+{
 	.ssc_id		= 0,
 	.shortname	= "AVR32 STK1000 external DAC",
 };
 #endif
 
 #ifndef CONFIG_BOARD_ATSTK100X_SW1_CUSTOM
-static struct spi_board_info spi0_board_info[] __initdata = {
+static struct spi_board_info spi0_board_info[] __initdata =
+{
 #ifdef CONFIG_BOARD_ATSTK1000_EXTDAC
 	{
 		/* AT73C213 */
@@ -151,8 +160,9 @@ static struct spi_board_info spi0_board_info[] __initdata = {
 
 #ifdef CONFIG_BOARD_ATSTK100X_SPI1
 static struct spi_board_info spi1_board_info[] __initdata = { {
-	/* patch in custom entries here */
-} };
+		/* patch in custom entries here */
+	}
+};
 #endif
 
 /*
@@ -168,9 +178,10 @@ static int __init parse_tag_ethernet(struct tag *tag)
 	int i;
 
 	i = tag->u.ethernet.mac_index;
+
 	if (i < ARRAY_SIZE(hw_addr))
 		memcpy(hw_addr[i].addr, tag->u.ethernet.hw_address,
-		       sizeof(hw_addr[i].addr));
+			   sizeof(hw_addr[i].addr));
 
 	return 0;
 }
@@ -184,13 +195,21 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	struct clk *pclk;
 
 	if (!res)
+	{
 		return;
+	}
+
 	if (pdev->id >= ARRAY_SIZE(hw_addr))
+	{
 		return;
+	}
 
 	addr = hw_addr[pdev->id].addr;
+
 	if (!is_valid_ether_addr(addr))
+	{
 		return;
+	}
 
 	/*
 	 * Since this is board-specific code, we'll cheat and use the
@@ -199,12 +218,15 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	 */
 	regs = (void __iomem __force *)res->start;
 	pclk = clk_get(&pdev->dev, "pclk");
+
 	if (IS_ERR(pclk))
+	{
 		return;
+	}
 
 	clk_enable(pclk);
 	__raw_writel((addr[3] << 24) | (addr[2] << 16)
-		     | (addr[1] << 8) | addr[0], regs + 0x98);
+				 | (addr[1] << 8) | addr[0], regs + 0x98);
 	__raw_writel((addr[5] << 8) | addr[4], regs + 0x9c);
 	clk_disable(pclk);
 	clk_put(pclk);
@@ -217,13 +239,21 @@ static void __init atstk1002_setup_extdac(void)
 	struct clk *pll;
 
 	gclk = clk_get(NULL, "gclk0");
-	if (IS_ERR(gclk))
-		goto err_gclk;
-	pll = clk_get(NULL, "pll0");
-	if (IS_ERR(pll))
-		goto err_pll;
 
-	if (clk_set_parent(gclk, pll)) {
+	if (IS_ERR(gclk))
+	{
+		goto err_gclk;
+	}
+
+	pll = clk_get(NULL, "pll0");
+
+	if (IS_ERR(pll))
+	{
+		goto err_pll;
+	}
+
+	if (clk_set_parent(gclk, pll))
+	{
 		pr_debug("STK1000: failed to set pll0 as parent for DAC clock\n");
 		goto err_set_clk;
 	}
@@ -260,11 +290,12 @@ void __init setup_board(void)
 
 #ifndef CONFIG_BOARD_ATSTK100X_SW2_CUSTOM
 
-static struct mci_platform_data __initdata mci0_data = {
+static struct mci_platform_data __initdata mci0_data =
+{
 	.slot[0] = {
 		.bus_width	= 4,
 
-/* MMC card detect requires MACB0 *NOT* be used */
+		/* MMC card detect requires MACB0 *NOT* be used */
 #ifdef CONFIG_BOARD_ATSTK1002_SW6_CUSTOM
 		.detect_pin	= GPIO_PIN_PC(14), /* gpio30/sdcd */
 		.wp_pin		= GPIO_PIN_PC(15), /* gpio31/sdwp */
@@ -314,8 +345,8 @@ static int __init atstk1002_init(void)
 	set_hw_addr(at32_add_device_eth(1, &eth_data[1]));
 #else
 	at32_add_device_lcdc(0, &atstk1000_lcdc_data,
-			     fbmem_start, fbmem_size,
-			     ATMEL_LCDC_PRI_24BIT | ATMEL_LCDC_PRI_CONTROL);
+						 fbmem_start, fbmem_size,
+						 ATMEL_LCDC_PRI_24BIT | ATMEL_LCDC_PRI_CONTROL);
 #endif
 	at32_add_device_usba(0, NULL);
 #ifndef CONFIG_BOARD_ATSTK100X_SW3_CUSTOM

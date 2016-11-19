@@ -30,8 +30,8 @@
 #include <sysdev/fsl_pci.h>
 
 #ifdef CONFIG_CPM2
-#include <asm/cpm2.h>
-#include <sysdev/cpm2_pic.h>
+	#include <asm/cpm2.h>
+	#include <sysdev/cpm2_pic.h>
 #endif
 
 #include "mpc85xx.h"
@@ -39,7 +39,7 @@
 static void __init mpc85xx_ads_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 
@@ -50,11 +50,13 @@ static void __init mpc85xx_ads_pic_init(void)
  * Setup the architecture
  */
 #ifdef CONFIG_CPM2
-struct cpm_pin {
+struct cpm_pin
+{
 	int port, pin, flags;
 };
 
-static const struct cpm_pin mpc8560_ads_pins[] = {
+static const struct cpm_pin mpc8560_ads_pins[] =
+{
 	/* SCC1 */
 	{3, 29, CPM_PIN_OUTPUT | CPM_PIN_PRIMARY},
 	{3, 30, CPM_PIN_OUTPUT | CPM_PIN_SECONDARY},
@@ -108,7 +110,8 @@ static void __init init_ioports(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(mpc8560_ads_pins); i++) {
+	for (i = 0; i < ARRAY_SIZE(mpc8560_ads_pins); i++)
+	{
 		const struct cpm_pin *pin = &mpc8560_ads_pins[i];
 		cpm2_set_pin(pin->port, pin->pin, pin->flags);
 	}
@@ -127,7 +130,9 @@ static void __init init_ioports(void)
 static void __init mpc85xx_ads_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mpc85xx_ads_setup_arch()", 0);
+	}
 
 #ifdef CONFIG_CPM2
 	cpm2_reset();
@@ -163,13 +168,14 @@ static int __init mpc85xx_ads_probe(void)
 	return of_machine_is_compatible("MPC85xxADS");
 }
 
-define_machine(mpc85xx_ads) {
+define_machine(mpc85xx_ads)
+{
 	.name			= "MPC85xx ADS",
-	.probe			= mpc85xx_ads_probe,
-	.setup_arch		= mpc85xx_ads_setup_arch,
-	.init_IRQ		= mpc85xx_ads_pic_init,
-	.show_cpuinfo		= mpc85xx_ads_show_cpuinfo,
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mpc85xx_ads_probe,
+					 .setup_arch		= mpc85xx_ads_setup_arch,
+						 .init_IRQ		= mpc85xx_ads_pic_init,
+							   .show_cpuinfo		= mpc85xx_ads_show_cpuinfo,
+									 .get_irq		= mpic_get_irq,
+											.calibrate_decr		= generic_calibrate_decr,
+												.progress		= udbg_progress,
 };

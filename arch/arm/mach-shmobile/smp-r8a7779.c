@@ -31,25 +31,29 @@
 #define AVECR IOMEM(0xfe700040)
 #define R8A7779_SCU_BASE 0xf0000000
 
-static const struct rcar_sysc_ch r8a7779_ch_cpu1 = {
+static const struct rcar_sysc_ch r8a7779_ch_cpu1 =
+{
 	.chan_offs = 0x40, /* PWRSR0 .. PWRER0 */
 	.chan_bit = 1, /* ARM1 */
 	.isr_bit = 1, /* ARM1 */
 };
 
-static const struct rcar_sysc_ch r8a7779_ch_cpu2 = {
+static const struct rcar_sysc_ch r8a7779_ch_cpu2 =
+{
 	.chan_offs = 0x40, /* PWRSR0 .. PWRER0 */
 	.chan_bit = 2, /* ARM2 */
 	.isr_bit = 2, /* ARM2 */
 };
 
-static const struct rcar_sysc_ch r8a7779_ch_cpu3 = {
+static const struct rcar_sysc_ch r8a7779_ch_cpu3 =
+{
 	.chan_offs = 0x40, /* PWRSR0 .. PWRER0 */
 	.chan_bit = 3, /* ARM3 */
 	.isr_bit = 3, /* ARM3 */
 };
 
-static const struct rcar_sysc_ch * const r8a7779_ch_cpu[4] = {
+static const struct rcar_sysc_ch *const r8a7779_ch_cpu[4] =
+{
 	[1] = &r8a7779_ch_cpu1,
 	[2] = &r8a7779_ch_cpu2,
 	[3] = &r8a7779_ch_cpu3,
@@ -63,10 +67,14 @@ static int r8a7779_platform_cpu_kill(unsigned int cpu)
 	cpu = cpu_logical_map(cpu);
 
 	if (cpu < ARRAY_SIZE(r8a7779_ch_cpu))
+	{
 		ch = r8a7779_ch_cpu[cpu];
+	}
 
 	if (ch)
+	{
 		ret = rcar_sysc_power_down(ch);
+	}
 
 	return ret ? ret : 1;
 }
@@ -78,12 +86,18 @@ static int r8a7779_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	int ret;
 
 	if (lcpu < ARRAY_SIZE(r8a7779_ch_cpu))
+	{
 		ch = r8a7779_ch_cpu[lcpu];
+	}
 
 	if (ch)
+	{
 		ret = rcar_sysc_power_up(ch);
+	}
 	else
+	{
 		ret = -EIO;
+	}
 
 	return ret;
 }
@@ -108,13 +122,16 @@ static void __init r8a7779_smp_prepare_cpus(unsigned int max_cpus)
 static int r8a7779_cpu_kill(unsigned int cpu)
 {
 	if (shmobile_smp_scu_cpu_kill(cpu))
+	{
 		return r8a7779_platform_cpu_kill(cpu);
+	}
 
 	return 0;
 }
 #endif /* CONFIG_HOTPLUG_CPU */
 
-const struct smp_operations r8a7779_smp_ops  __initconst = {
+const struct smp_operations r8a7779_smp_ops  __initconst =
+{
 	.smp_prepare_cpus	= r8a7779_smp_prepare_cpus,
 	.smp_boot_secondary	= r8a7779_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU

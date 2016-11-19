@@ -36,42 +36,44 @@ static void gapspci_fixup_resources(struct pci_dev *dev)
 
 	printk(KERN_NOTICE "PCI: Fixing up device %s\n", pci_name(dev));
 
-	switch (dev->device) {
-	case PCI_DEVICE_ID_SEGA_BBA:
-		/*
-		 * We also assume that dev->devfn == 0
-		 */
-		dev->resource[1].start	= p->resources[0].start  + 0x100;
-		dev->resource[1].end	= dev->resource[1].start + 0x200 - 1;
+	switch (dev->device)
+	{
+		case PCI_DEVICE_ID_SEGA_BBA:
+			/*
+			 * We also assume that dev->devfn == 0
+			 */
+			dev->resource[1].start	= p->resources[0].start  + 0x100;
+			dev->resource[1].end	= dev->resource[1].start + 0x200 - 1;
 
-		/*
-		 * This is not a normal BAR, prevent any attempts to move
-		 * the BAR, as this will result in a bus lock.
-		 */
-		dev->resource[1].flags |= IORESOURCE_PCI_FIXED;
+			/*
+			 * This is not a normal BAR, prevent any attempts to move
+			 * the BAR, as this will result in a bus lock.
+			 */
+			dev->resource[1].flags |= IORESOURCE_PCI_FIXED;
 
-		/*
-		 * Redirect dma memory allocations to special memory window.
-		 *
-		 * If this GAPSPCI region were mapped by a BAR, the CPU
-		 * phys_addr_t would be pci_resource_start(), and the bus
-		 * address would be pci_bus_address(pci_resource_start()).
-		 * But apparently there's no BAR mapping it, so we just
-		 * "know" its CPU address is GAPSPCI_DMA_BASE.
-		 */
-		res.start = GAPSPCI_DMA_BASE;
-		res.end = GAPSPCI_DMA_BASE + GAPSPCI_DMA_SIZE - 1;
-		res.flags = IORESOURCE_MEM;
-		pcibios_resource_to_bus(dev->bus, &region, &res);
-		BUG_ON(!dma_declare_coherent_memory(&dev->dev,
-						res.start,
-						region.start,
-						resource_size(&res),
-						DMA_MEMORY_MAP |
-						DMA_MEMORY_EXCLUSIVE));
-		break;
-	default:
-		printk("PCI: Failed resource fixup\n");
+			/*
+			 * Redirect dma memory allocations to special memory window.
+			 *
+			 * If this GAPSPCI region were mapped by a BAR, the CPU
+			 * phys_addr_t would be pci_resource_start(), and the bus
+			 * address would be pci_bus_address(pci_resource_start()).
+			 * But apparently there's no BAR mapping it, so we just
+			 * "know" its CPU address is GAPSPCI_DMA_BASE.
+			 */
+			res.start = GAPSPCI_DMA_BASE;
+			res.end = GAPSPCI_DMA_BASE + GAPSPCI_DMA_SIZE - 1;
+			res.flags = IORESOURCE_MEM;
+			pcibios_resource_to_bus(dev->bus, &region, &res);
+			BUG_ON(!dma_declare_coherent_memory(&dev->dev,
+												res.start,
+												region.start,
+												resource_size(&res),
+												DMA_MEMORY_MAP |
+												DMA_MEMORY_EXCLUSIVE));
+			break;
+
+		default:
+			printk("PCI: Failed resource fixup\n");
 	}
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, gapspci_fixup_resources);

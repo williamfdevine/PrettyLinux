@@ -10,7 +10,8 @@
 #include <asm/asi.h>
 #include <asm/visasm.h>
 
-struct fpustate {
+struct fpustate
+{
 	u32	regs[64];
 };
 

@@ -35,9 +35,9 @@
 #define NO_CONTEXT -1
 
 #define NUM_DTLB_SETS (1 << ((mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTS) >> \
-			    SPR_DMMUCFGR_NTS_OFF))
+							 SPR_DMMUCFGR_NTS_OFF))
 #define NUM_ITLB_SETS (1 << ((mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTS) >> \
-			    SPR_IMMUCFGR_NTS_OFF))
+							 SPR_IMMUCFGR_NTS_OFF))
 #define DTLB_OFFSET(addr) (((addr) >> PAGE_SHIFT) & (NUM_DTLB_SETS-1))
 #define ITLB_OFFSET(addr) (((addr) >> PAGE_SHIFT) & (NUM_ITLB_SETS-1))
 /*
@@ -58,7 +58,8 @@ void flush_tlb_all(void)
 	/* FIXME: Assumption is I & D nsets equal. */
 	num_tlb_sets = NUM_ITLB_SETS;
 
-	for (i = 0; i < num_tlb_sets; i++) {
+	for (i = 0; i < num_tlb_sets; i++)
+	{
 		mtspr_off(SPR_DTLBMR_BASE(0), i, 0);
 		mtspr_off(SPR_ITLBMR_BASE(0), i, 0);
 	}
@@ -89,18 +90,26 @@ void flush_tlb_all(void)
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long addr)
 {
 	if (have_dtlbeir)
+	{
 		flush_dtlb_page_eir(addr);
+	}
 	else
+	{
 		flush_dtlb_page_no_eir(addr);
+	}
 
 	if (have_itlbeir)
+	{
 		flush_itlb_page_eir(addr);
+	}
 	else
+	{
 		flush_itlb_page_no_eir(addr);
+	}
 }
 
 void flush_tlb_range(struct vm_area_struct *vma,
-		     unsigned long start, unsigned long end)
+					 unsigned long start, unsigned long end)
 {
 	int addr;
 	bool dtlbeir;
@@ -109,16 +118,25 @@ void flush_tlb_range(struct vm_area_struct *vma,
 	dtlbeir = have_dtlbeir;
 	itlbeir = have_itlbeir;
 
-	for (addr = start; addr < end; addr += PAGE_SIZE) {
+	for (addr = start; addr < end; addr += PAGE_SIZE)
+	{
 		if (dtlbeir)
+		{
 			flush_dtlb_page_eir(addr);
+		}
 		else
+		{
 			flush_dtlb_page_no_eir(addr);
+		}
 
 		if (itlbeir)
+		{
 			flush_itlb_page_eir(addr);
+		}
 		else
+		{
 			flush_itlb_page_no_eir(addr);
+		}
 	}
 }
 
@@ -141,7 +159,7 @@ void flush_tlb_mm(struct mm_struct *mm)
 /* called in schedule() just before actually doing the switch_to */
 
 void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-	       struct task_struct *next_tsk)
+			   struct task_struct *next_tsk)
 {
 	/* remember the pgd for the fault handlers
 	 * this is similar to the pgd register in some other CPU's.
@@ -156,7 +174,9 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	 */
 
 	if (prev != next)
+	{
 		flush_tlb_mm(prev);
+	}
 
 }
 

@@ -39,7 +39,8 @@
 #define DLLFRQ		0xa4150050
 
 /* Fixed 32 KHz root clock for RTC and Power Management purposes */
-static struct clk r_clk = {
+static struct clk r_clk =
+{
 	.rate           = 32768,
 };
 
@@ -47,7 +48,8 @@ static struct clk r_clk = {
  * Default rate for the root input clock, reset this with clk_set_rate()
  * from the platform code.
  */
-struct clk extal_clk = {
+struct clk extal_clk =
+{
 	.rate		= 33333333,
 };
 
@@ -57,18 +59,24 @@ static unsigned long dll_recalc(struct clk *clk)
 	unsigned long mult;
 
 	if (__raw_readl(PLLCR) & 0x1000)
+	{
 		mult = __raw_readl(DLLFRQ);
+	}
 	else
+	{
 		mult = 0;
+	}
 
 	return clk->parent->rate * mult;
 }
 
-static struct sh_clk_ops dll_clk_ops = {
+static struct sh_clk_ops dll_clk_ops =
+{
 	.recalc		= dll_recalc,
 };
 
-static struct clk dll_clk = {
+static struct clk dll_clk =
+{
 	.ops		= &dll_clk_ops,
 	.parent		= &r_clk,
 	.flags		= CLK_ENABLE_ON_INIT,
@@ -80,23 +88,30 @@ static unsigned long pll_recalc(struct clk *clk)
 	unsigned long div = 1;
 
 	if (__raw_readl(PLLCR) & 0x4000)
+	{
 		mult = (((__raw_readl(FRQCR) >> 24) & 0x1f) + 1);
+	}
 	else
+	{
 		div = 2;
+	}
 
 	return (clk->parent->rate * mult) / div;
 }
 
-static struct sh_clk_ops pll_clk_ops = {
+static struct sh_clk_ops pll_clk_ops =
+{
 	.recalc		= pll_recalc,
 };
 
-static struct clk pll_clk = {
+static struct clk pll_clk =
+{
 	.ops		= &pll_clk_ops,
 	.flags		= CLK_ENABLE_ON_INIT,
 };
 
-struct clk *main_clks[] = {
+struct clk *main_clks[] =
+{
 	&r_clk,
 	&extal_clk,
 	&dll_clk,
@@ -106,23 +121,26 @@ struct clk *main_clks[] = {
 static int multipliers[] = { 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 static int divisors[] = { 1, 3, 2, 5, 3, 4, 5, 6, 8, 10, 12, 16, 20 };
 
-static struct clk_div_mult_table div4_div_mult_table = {
+static struct clk_div_mult_table div4_div_mult_table =
+{
 	.divisors = divisors,
 	.nr_divisors = ARRAY_SIZE(divisors),
 	.multipliers = multipliers,
 	.nr_multipliers = ARRAY_SIZE(multipliers),
 };
 
-static struct clk_div4_table div4_table = {
+static struct clk_div4_table div4_table =
+{
 	.div_mult_table = &div4_div_mult_table,
 };
 
 #define DIV4(_reg, _bit, _mask, _flags) \
-  SH_CLK_DIV4(&pll_clk, _reg, _bit, _mask, _flags)
+	SH_CLK_DIV4(&pll_clk, _reg, _bit, _mask, _flags)
 
 enum { DIV4_I, DIV4_U, DIV4_SH, DIV4_B, DIV4_B3, DIV4_P, DIV4_NR };
 
-struct clk div4_clks[DIV4_NR] = {
+struct clk div4_clks[DIV4_NR] =
+{
 	[DIV4_I] = DIV4(FRQCR, 20, 0x1fef, CLK_ENABLE_ON_INIT),
 	[DIV4_U] = DIV4(FRQCR, 16, 0x1fff, CLK_ENABLE_ON_INIT),
 	[DIV4_SH] = DIV4(FRQCR, 12, 0x1fff, CLK_ENABLE_ON_INIT),
@@ -133,24 +151,28 @@ struct clk div4_clks[DIV4_NR] = {
 
 enum { DIV4_IRDA, DIV4_ENABLE_NR };
 
-struct clk div4_enable_clks[DIV4_ENABLE_NR] = {
+struct clk div4_enable_clks[DIV4_ENABLE_NR] =
+{
 	[DIV4_IRDA] = DIV4(IRDACLKCR, 0, 0x1fff, 0),
 };
 
 enum { DIV4_SIUA, DIV4_SIUB, DIV4_REPARENT_NR };
 
-struct clk div4_reparent_clks[DIV4_REPARENT_NR] = {
+struct clk div4_reparent_clks[DIV4_REPARENT_NR] =
+{
 	[DIV4_SIUA] = DIV4(SCLKACR, 0, 0x1fff, 0),
 	[DIV4_SIUB] = DIV4(SCLKBCR, 0, 0x1fff, 0),
 };
 
 enum { DIV6_V, DIV6_NR };
 
-struct clk div6_clks[DIV6_NR] = {
+struct clk div6_clks[DIV6_NR] =
+{
 	[DIV6_V] = SH_CLK_DIV6(&pll_clk, VCLKCR, 0),
 };
 
-static struct clk mstp_clks[HWBLK_NR] = {
+static struct clk mstp_clks[HWBLK_NR] =
+{
 	[HWBLK_URAM]  = SH_CLK_MSTP32(&div4_clks[DIV4_U], MSTPCR0, 28, CLK_ENABLE_ON_INIT),
 	[HWBLK_XYMEM] = SH_CLK_MSTP32(&div4_clks[DIV4_B], MSTPCR0, 26, CLK_ENABLE_ON_INIT),
 	[HWBLK_TMU]   = SH_CLK_MSTP32(&div4_clks[DIV4_P], MSTPCR0, 15, 0),
@@ -178,7 +200,8 @@ static struct clk mstp_clks[HWBLK_NR] = {
 	[HWBLK_LCDC]  = SH_CLK_MSTP32(&div4_clks[DIV4_P], MSTPCR2, 0, 0),
 };
 
-static struct clk_lookup lookups[] = {
+static struct clk_lookup lookups[] =
+{
 	/* main clocks */
 	CLKDEV_CON_ID("rclk", &r_clk),
 	CLKDEV_CON_ID("extal", &extal_clk),
@@ -235,31 +258,43 @@ int __init arch_clk_init(void)
 
 	/* autodetect extal or dll configuration */
 	if (__raw_readl(PLLCR) & 0x1000)
+	{
 		pll_clk.parent = &dll_clk;
+	}
 	else
+	{
 		pll_clk.parent = &extal_clk;
+	}
 
 	for (k = 0; !ret && (k < ARRAY_SIZE(main_clks)); k++)
+	{
 		ret = clk_register(main_clks[k]);
+	}
 
 	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
 
 	if (!ret)
+	{
 		ret = sh_clk_div4_register(div4_clks, DIV4_NR, &div4_table);
+	}
 
 	if (!ret)
 		ret = sh_clk_div4_enable_register(div4_enable_clks,
-					DIV4_ENABLE_NR, &div4_table);
+										  DIV4_ENABLE_NR, &div4_table);
 
 	if (!ret)
 		ret = sh_clk_div4_reparent_register(div4_reparent_clks,
-					DIV4_REPARENT_NR, &div4_table);
+											DIV4_REPARENT_NR, &div4_table);
 
 	if (!ret)
+	{
 		ret = sh_clk_div6_register(div6_clks, DIV6_NR);
+	}
 
 	if (!ret)
+	{
 		ret = sh_clk_mstp_register(mstp_clks, HWBLK_NR);
+	}
 
 	return ret;
 }

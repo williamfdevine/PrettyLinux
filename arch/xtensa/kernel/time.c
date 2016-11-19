@@ -44,7 +44,8 @@ static u64 notrace ccount_sched_clock_read(void)
 	return get_ccount();
 }
 
-static struct clocksource ccount_clocksource = {
+static struct clocksource ccount_clocksource =
+{
 	.name = "ccount",
 	.rating = 200,
 	.read = ccount_read,
@@ -53,8 +54,9 @@ static struct clocksource ccount_clocksource = {
 };
 
 static int ccount_timer_set_next_event(unsigned long delta,
-		struct clock_event_device *dev);
-struct ccount_timer {
+									   struct clock_event_device *dev);
+struct ccount_timer
+{
 	struct clock_event_device evt;
 	int irq_enabled;
 	char name[24];
@@ -62,7 +64,7 @@ struct ccount_timer {
 static DEFINE_PER_CPU(struct ccount_timer, ccount_timer);
 
 static int ccount_timer_set_next_event(unsigned long delta,
-		struct clock_event_device *dev)
+									   struct clock_event_device *dev)
 {
 	unsigned long flags, next;
 	int ret = 0;
@@ -70,8 +72,12 @@ static int ccount_timer_set_next_event(unsigned long delta,
 	local_irq_save(flags);
 	next = get_ccount() + delta;
 	set_linux_timer(next);
+
 	if (next - get_ccount() > delta)
+	{
 		ret = -ETIME;
+	}
+
 	local_irq_restore(flags);
 
 	return ret;
@@ -88,10 +94,12 @@ static int ccount_timer_shutdown(struct clock_event_device *evt)
 	struct ccount_timer *timer =
 		container_of(evt, struct ccount_timer, evt);
 
-	if (timer->irq_enabled) {
+	if (timer->irq_enabled)
+	{
 		disable_irq(evt->irq);
 		timer->irq_enabled = 0;
 	}
+
 	return 0;
 }
 
@@ -100,15 +108,18 @@ static int ccount_timer_set_oneshot(struct clock_event_device *evt)
 	struct ccount_timer *timer =
 		container_of(evt, struct ccount_timer, evt);
 
-	if (!timer->irq_enabled) {
+	if (!timer->irq_enabled)
+	{
 		enable_irq(evt->irq);
 		timer->irq_enabled = 1;
 	}
+
 	return 0;
 }
 
 static irqreturn_t timer_interrupt(int irq, void *dev_id);
-static struct irqaction timer_irqaction = {
+static struct irqaction timer_irqaction =
+{
 	.handler =	timer_interrupt,
 	.flags =	IRQF_TIMER,
 	.name =		"timer",
@@ -130,10 +141,14 @@ void local_timer_setup(unsigned cpu)
 	clockevent->tick_resume = ccount_timer_set_oneshot;
 	clockevent->cpumask = cpumask_of(cpu);
 	clockevent->irq = irq_create_mapping(NULL, LINUX_TIMER_INT);
+
 	if (WARN(!clockevent->irq, "error: can't map timer irq"))
+	{
 		return;
+	}
+
 	clockevents_config_and_register(clockevent, ccount_freq,
-					0xf, 0xffffffff);
+									0xf, 0xffffffff);
 }
 
 #ifdef CONFIG_XTENSA_CALIBRATE_CCOUNT
@@ -144,18 +159,26 @@ static void __init calibrate_ccount(void)
 	struct clk *clk;
 
 	cpu = of_find_compatible_node(NULL, NULL, "cdns,xtensa-cpu");
-	if (cpu) {
+
+	if (cpu)
+	{
 		clk = of_clk_get(cpu, 0);
-		if (!IS_ERR(clk)) {
+
+		if (!IS_ERR(clk))
+		{
 			ccount_freq = clk_get_rate(clk);
 			return;
-		} else {
-			pr_warn("%s: CPU input clock not found\n",
-				__func__);
 		}
-	} else {
+		else
+		{
+			pr_warn("%s: CPU input clock not found\n",
+					__func__);
+		}
+	}
+	else
+	{
 		pr_warn("%s: CPU node not found in the device tree\n",
-			__func__);
+				__func__);
 	}
 
 	platform_calibrate_ccount();
@@ -175,14 +198,14 @@ void __init time_init(void)
 	pr_info("Calibrating CPU frequency ");
 	calibrate_ccount();
 	pr_cont("%d.%02d MHz\n",
-		(int)ccount_freq / 1000000,
-		(int)(ccount_freq / 10000) % 100);
+			(int)ccount_freq / 1000000,
+			(int)(ccount_freq / 10000) % 100);
 #else
-	ccount_freq = CONFIG_XTENSA_CPU_CLOCK*1000000UL;
+	ccount_freq = CONFIG_XTENSA_CPU_CLOCK * 1000000UL;
 #endif
 	WARN(!ccount_freq,
-	     "%s: CPU clock frequency is not set up correctly\n",
-	     __func__);
+		 "%s: CPU clock frequency is not set up correctly\n",
+		 __func__);
 	clocksource_register_hz(&ccount_clocksource, ccount_freq);
 	local_timer_setup(0);
 	setup_irq(this_cpu_ptr(&ccount_timer)->evt.irq, &timer_irqaction);
@@ -212,7 +235,7 @@ void calibrate_delay(void)
 {
 	loops_per_jiffy = ccount_freq / HZ;
 	pr_info("Calibrating delay loop (skipped)... %lu.%02lu BogoMIPS preset\n",
-		loops_per_jiffy / (1000000 / HZ),
-		(loops_per_jiffy / (10000 / HZ)) % 100);
+			loops_per_jiffy / (1000000 / HZ),
+			(loops_per_jiffy / (10000 / HZ)) % 100);
 }
 #endif

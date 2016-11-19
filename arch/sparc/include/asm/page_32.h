@@ -34,14 +34,15 @@
  * these structs, this is arbitrary.  The entry after the
  * last valid one has num_bytes==0.
  */
-struct sparc_phys_banks {
-  unsigned long base_addr;
-  unsigned long num_bytes;
+struct sparc_phys_banks
+{
+	unsigned long base_addr;
+	unsigned long num_bytes;
 };
 
 #define SPARC_PHYS_BANKS 32
 
-extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
+extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS + 1];
 
 /* passing structs on the Sparc slow us down tremendously... */
 
@@ -115,8 +116,8 @@ typedef struct page *pgtable_t;
 
 #define PAGE_OFFSET	0xf0000000
 #ifndef __ASSEMBLY__
-extern unsigned long phys_base;
-extern unsigned long pfn_base;
+	extern unsigned long phys_base;
+	extern unsigned long pfn_base;
 #endif
 #define __pa(x)			((unsigned long)(x) - PAGE_OFFSET + phys_base)
 #define __va(x)			((void *)((unsigned long) (x) - phys_base + PAGE_OFFSET))
@@ -131,7 +132,7 @@ extern unsigned long pfn_base;
 #define virt_addr_valid(kaddr)	((((unsigned long)(kaddr)-PAGE_OFFSET)>>PAGE_SHIFT) < max_mapnr)
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/memory_model.h>
 #include <asm-generic/getorder.h>

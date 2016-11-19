@@ -55,7 +55,10 @@ static FILE		*input_file;	/* Input file name */
 static void usage(const char *err)
 {
 	if (err)
+	{
 		fprintf(stderr, "%s: Error: %s\n\n", prog, err);
+	}
+
 	fprintf(stderr, "Usage: %s [-y|-n|-v] [-s seed[,no]] [-m max] [-i input]\n", prog);
 	fprintf(stderr, "\t-y	64bit mode\n");
 	fprintf(stderr, "\t-n	32bit mode\n");
@@ -67,14 +70,14 @@ static void usage(const char *err)
 }
 
 static void dump_field(FILE *fp, const char *name, const char *indent,
-		       struct insn_field *field)
+					   struct insn_field *field)
 {
 	fprintf(fp, "%s.%s = {\n", indent, name);
 	fprintf(fp, "%s\t.value = %d, bytes[] = {%x, %x, %x, %x},\n",
-		indent, field->value, field->bytes[0], field->bytes[1],
-		field->bytes[2], field->bytes[3]);
+			indent, field->value, field->bytes[0], field->bytes[1],
+			field->bytes[2], field->bytes[3]);
 	fprintf(fp, "%s\t.got = %d, .nbytes = %d},\n", indent,
-		field->got, field->nbytes);
+			field->got, field->nbytes);
 }
 
 static void dump_insn(FILE *fp, struct insn *insn)
@@ -90,13 +93,13 @@ static void dump_insn(FILE *fp, struct insn *insn)
 	dump_field(fp, "immediate1", "\t",	&insn->immediate1);
 	dump_field(fp, "immediate2", "\t",	&insn->immediate2);
 	fprintf(fp, "\t.attr = %x, .opnd_bytes = %d, .addr_bytes = %d,\n",
-		insn->attr, insn->opnd_bytes, insn->addr_bytes);
+			insn->attr, insn->opnd_bytes, insn->addr_bytes);
 	fprintf(fp, "\t.length = %d, .x86_64 = %d, .kaddr = %p}\n",
-		insn->length, insn->x86_64, insn->kaddr);
+			insn->length, insn->x86_64, insn->kaddr);
 }
 
 static void dump_stream(FILE *fp, const char *msg, unsigned long nr_iter,
-			unsigned char *insn_buf, struct insn *insn)
+						unsigned char *insn_buf, struct insn *insn)
 {
 	int i;
 
@@ -108,11 +111,16 @@ static void dump_stream(FILE *fp, const char *msg, unsigned long nr_iter,
 
 	/* Input a decoded instruction sequence directly */
 	fprintf(fp, " $ echo ");
+
 	for (i = 0; i < MAX_INSN_SIZE; i++)
+	{
 		fprintf(fp, " %02x", insn_buf[i]);
+	}
+
 	fprintf(fp, " | %s -i -\n", prog);
 
-	if (!input_file) {
+	if (!input_file)
+	{
 		fprintf(fp, "Or \n");
 		/* Give a seed and iteration number */
 		fprintf(fp, " $ %s -s 0x%x,%lu\n", prog, seed, nr_iter);
@@ -124,11 +132,16 @@ static void init_random_seed(void)
 	int fd;
 
 	fd = open("/dev/urandom", O_RDONLY);
+
 	if (fd < 0)
+	{
 		goto fail;
+	}
 
 	if (read(fd, &seed, sizeof(seed)) != sizeof(seed))
+	{
 		goto fail;
+	}
 
 	close(fd);
 	return;
@@ -143,13 +156,20 @@ static int read_next_insn(unsigned char *insn_buf)
 	int i;
 
 	tmp = fgets(buf, ARRAY_SIZE(buf), input_file);
-	if (tmp == NULL || feof(input_file))
-		return 0;
 
-	for (i = 0; i < MAX_INSN_SIZE; i++) {
+	if (tmp == NULL || feof(input_file))
+	{
+		return 0;
+	}
+
+	for (i = 0; i < MAX_INSN_SIZE; i++)
+	{
 		insn_buf[i] = (unsigned char)strtoul(tmp, &tmp, 16);
+
 		if (*tmp != ' ')
+		{
 			break;
+		}
 	}
 
 	return i;
@@ -160,14 +180,20 @@ static int generate_insn(unsigned char *insn_buf)
 	int i;
 
 	if (input_file)
+	{
 		return read_next_insn(insn_buf);
+	}
 
 	/* Fills buffer with random binary up to MAX_INSN_SIZE */
 	for (i = 0; i < MAX_INSN_SIZE - 1; i += 2)
+	{
 		*(unsigned short *)(&insn_buf[i]) = random() & 0xffff;
+	}
 
 	while (i < MAX_INSN_SIZE)
+	{
 		insn_buf[i++] = random() & 0xff;
+	}
 
 	return i;
 }
@@ -179,56 +205,91 @@ static void parse_args(int argc, char **argv)
 	int set_seed = 0;
 
 	prog = argv[0];
-	while ((c = getopt(argc, argv, "ynvs:m:i:")) != -1) {
-		switch (c) {
-		case 'y':
-			x86_64 = 1;
-			break;
-		case 'n':
-			x86_64 = 0;
-			break;
-		case 'v':
-			verbose++;
-			break;
-		case 'i':
-			if (strcmp("-", optarg) == 0)
-				input_file = stdin;
-			else
-				input_file = fopen(optarg, "r");
-			if (!input_file)
-				usage("Failed to open input file");
-			break;
-		case 's':
-			seed = (unsigned int)strtoul(optarg, &tmp, 0);
-			if (*tmp == ',') {
-				optarg = tmp + 1;
-				iter_start = strtoul(optarg, &tmp, 0);
-			}
-			if (*tmp != '\0' || tmp == optarg)
-				usage("Failed to parse seed");
-			set_seed = 1;
-			break;
-		case 'm':
-			iter_end = strtoul(optarg, &tmp, 0);
-			if (*tmp != '\0' || tmp == optarg)
-				usage("Failed to parse max_iter");
-			break;
-		default:
-			usage(NULL);
+
+	while ((c = getopt(argc, argv, "ynvs:m:i:")) != -1)
+	{
+		switch (c)
+		{
+			case 'y':
+				x86_64 = 1;
+				break;
+
+			case 'n':
+				x86_64 = 0;
+				break;
+
+			case 'v':
+				verbose++;
+				break;
+
+			case 'i':
+				if (strcmp("-", optarg) == 0)
+				{
+					input_file = stdin;
+				}
+				else
+				{
+					input_file = fopen(optarg, "r");
+				}
+
+				if (!input_file)
+				{
+					usage("Failed to open input file");
+				}
+
+				break;
+
+			case 's':
+				seed = (unsigned int)strtoul(optarg, &tmp, 0);
+
+				if (*tmp == ',')
+				{
+					optarg = tmp + 1;
+					iter_start = strtoul(optarg, &tmp, 0);
+				}
+
+				if (*tmp != '\0' || tmp == optarg)
+				{
+					usage("Failed to parse seed");
+				}
+
+				set_seed = 1;
+				break;
+
+			case 'm':
+				iter_end = strtoul(optarg, &tmp, 0);
+
+				if (*tmp != '\0' || tmp == optarg)
+				{
+					usage("Failed to parse max_iter");
+				}
+
+				break;
+
+			default:
+				usage(NULL);
 		}
 	}
 
 	/* Check errors */
 	if (iter_end < iter_start)
+	{
 		usage("Max iteration number must be bigger than iter-num");
+	}
 
 	if (set_seed && input_file)
+	{
 		usage("Don't use input file (-i) with random seed (-s)");
+	}
 
 	/* Initialize random seed */
-	if (!input_file) {
+	if (!input_file)
+	{
 		if (!set_seed)	/* No seed is given */
+		{
 			init_random_seed();
+		}
+
 		srand(seed);
 	}
 }
@@ -246,36 +307,48 @@ int main(int argc, char **argv)
 	/* Prepare stop bytes with NOPs */
 	memset(insn_buf + MAX_INSN_SIZE, INSN_NOP, MAX_INSN_SIZE);
 
-	for (i = 0; i < iter_end; i++) {
+	for (i = 0; i < iter_end; i++)
+	{
 		if (generate_insn(insn_buf) <= 0)
+		{
 			break;
+		}
 
 		if (i < iter_start)	/* Skip to given iteration number */
+		{
 			continue;
+		}
 
 		/* Decode an instruction */
 		insn_init(&insn, insn_buf, sizeof(insn_buf), x86_64);
 		insn_get_length(&insn);
 
 		if (insn.next_byte <= insn.kaddr ||
-		    insn.kaddr + MAX_INSN_SIZE < insn.next_byte) {
+			insn.kaddr + MAX_INSN_SIZE < insn.next_byte)
+		{
 			/* Access out-of-range memory */
 			dump_stream(stderr, "Error: Found an access violation", i, insn_buf, &insn);
 			errors++;
-		} else if (verbose && !insn_complete(&insn))
+		}
+		else if (verbose && !insn_complete(&insn))
+		{
 			dump_stream(stdout, "Info: Found an undecodable input", i, insn_buf, &insn);
+		}
 		else if (verbose >= 2)
+		{
 			dump_insn(stdout, &insn);
+		}
+
 		insns++;
 	}
 
 	fprintf(stdout, "%s: %s: decoded and checked %d %s instructions with %d errors (seed:0x%x)\n",
-		prog,
-		(errors) ? "Failure" : "Success",
-		insns,
-		(input_file) ? "given" : "random",
-		errors,
-		seed);
+			prog,
+			(errors) ? "Failure" : "Success",
+			insns,
+			(input_file) ? "given" : "random",
+			errors,
+			seed);
 
 	return errors ? 1 : 0;
 }

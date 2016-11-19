@@ -16,7 +16,8 @@ static void early_console_write(struct console *con, const char *s, unsigned int
 	um_early_printk(s, n);
 }
 
-static struct console early_console_dev = {
+static struct console early_console_dev =
+{
 	.name = "earlycon",
 	.write = early_console_write,
 	.flags = CON_BOOT,
@@ -25,10 +26,12 @@ static struct console early_console_dev = {
 
 static int __init setup_early_printk(char *buf)
 {
-	if (!early_console) {
+	if (!early_console)
+	{
 		early_console = &early_console_dev;
 		register_console(&early_console_dev);
 	}
+
 	return 0;
 }
 

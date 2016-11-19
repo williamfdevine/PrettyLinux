@@ -54,8 +54,11 @@ int omap_hwmod_aess_preprogram(struct omap_hwmod *oh)
 	void __iomem *va;
 
 	va = omap_hwmod_get_mpu_rt_va(oh);
+
 	if (!va)
+	{
 		return -EINVAL;
+	}
 
 	aess_enable_autogating(va);
 
@@ -77,7 +80,7 @@ static void omap_rtc_wait_not_busy(struct omap_hwmod *oh)
 
 	/* BUSY may stay active for 1/32768 second (~30 usec) */
 	omap_test_timeout(omap_hwmod_read(oh, OMAP_RTC_STATUS_REG)
-			  & OMAP_RTC_STATUS_BUSY, OMAP_RTC_MAX_READY_TIME, i);
+					  & OMAP_RTC_STATUS_BUSY, OMAP_RTC_MAX_READY_TIME, i);
 	/* now we have ~15 microseconds to read/write various registers */
 }
 

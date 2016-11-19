@@ -8,7 +8,7 @@
  *    Copyright (C) 2002-2003 Matthew Wilcox <willy at parisc-linux.org>
  *    Copyright (C) 2002 Randolph Chung <tausq at parisc-linux.org>
  *    Copyright (C) 2002-2007 Helge Deller <deller with parisc-linux.org>
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
@@ -36,11 +36,11 @@ EXPORT_SYMBOL(__xchg8);
 EXPORT_SYMBOL(__xchg32);
 EXPORT_SYMBOL(__cmpxchg_u32);
 #ifdef CONFIG_SMP
-EXPORT_SYMBOL(__atomic_hash);
+	EXPORT_SYMBOL(__atomic_hash);
 #endif
 #ifdef CONFIG_64BIT
-EXPORT_SYMBOL(__xchg64);
-EXPORT_SYMBOL(__cmpxchg_u64);
+	EXPORT_SYMBOL(__xchg64);
+	EXPORT_SYMBOL(__cmpxchg_u64);
 #endif
 
 #include <asm/uaccess.h>
@@ -58,9 +58,9 @@ EXPORT_SYMBOL(fixup_put_user_skip_1);
 EXPORT_SYMBOL(fixup_put_user_skip_2);
 
 #ifndef CONFIG_64BIT
-/* Needed so insmod can set dp value */
-extern int $global$;
-EXPORT_SYMBOL($global$);
+	/* Needed so insmod can set dp value */
+	extern int $global$;
+	EXPORT_SYMBOL($global$);
 #endif
 
 #include <asm/io.h>
@@ -128,35 +128,35 @@ EXPORT_SYMBOL(__lshrdi3);
 EXPORT_SYMBOL(__muldi3);
 EXPORT_SYMBOL(__ucmpdi2);
 
-asmlinkage void * __canonicalize_funcptr_for_compare(void *);
+asmlinkage void *__canonicalize_funcptr_for_compare(void *);
 EXPORT_SYMBOL(__canonicalize_funcptr_for_compare);
 
 #ifdef CONFIG_64BIT
-extern void __divdi3(void);
-extern void __udivdi3(void);
-extern void __umoddi3(void);
-extern void __moddi3(void);
+	extern void __divdi3(void);
+	extern void __udivdi3(void);
+	extern void __umoddi3(void);
+	extern void __moddi3(void);
 
-EXPORT_SYMBOL(__divdi3);
-EXPORT_SYMBOL(__udivdi3);
-EXPORT_SYMBOL(__umoddi3);
-EXPORT_SYMBOL(__moddi3);
+	EXPORT_SYMBOL(__divdi3);
+	EXPORT_SYMBOL(__udivdi3);
+	EXPORT_SYMBOL(__umoddi3);
+	EXPORT_SYMBOL(__moddi3);
 #endif
 
 #ifndef CONFIG_64BIT
-extern void $$dyncall(void);
-EXPORT_SYMBOL($$dyncall);
+	extern void $$dyncall(void);
+	EXPORT_SYMBOL($$dyncall);
 #endif
 
 #ifdef CONFIG_DISCONTIGMEM
-#include <asm/mmzone.h>
-EXPORT_SYMBOL(node_data);
-EXPORT_SYMBOL(pfnnid_map);
+	#include <asm/mmzone.h>
+	EXPORT_SYMBOL(node_data);
+	EXPORT_SYMBOL(pfnnid_map);
 #endif
 
 #ifdef CONFIG_FUNCTION_TRACER
-extern void _mcount(void);
-EXPORT_SYMBOL(_mcount);
+	extern void _mcount(void);
+	EXPORT_SYMBOL(_mcount);
 #endif
 
 /* from pacache.S -- needed for clear/copy_page */

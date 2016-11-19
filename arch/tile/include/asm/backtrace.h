@@ -21,11 +21,12 @@
  * Returns true if successful, else false (e.g. memory not readable).
  */
 typedef bool (*BacktraceMemoryReader)(void *result,
-				      unsigned long address,
-				      unsigned int size,
-				      void *extra);
+									  unsigned long address,
+									  unsigned int size,
+									  void *extra);
 
-typedef struct {
+typedef struct
+{
 	/* Current PC. */
 	unsigned long pc;
 
@@ -47,7 +48,8 @@ typedef struct {
 } BacktraceIterator;
 
 
-typedef enum {
+typedef enum
+{
 
 	/* We have no idea what the caller's pc is. */
 	PC_LOC_UNKNOWN,
@@ -61,7 +63,8 @@ typedef enum {
 } CallerPCLocation;
 
 
-typedef enum {
+typedef enum
+{
 
 	/* We have no idea what the caller's sp is. */
 	SP_LOC_UNKNOWN,
@@ -78,7 +81,8 @@ typedef enum {
 
 
 /* Bit values ORed into CALLER_* values for info ops. */
-enum {
+enum
+{
 	/* Setting the low bit on any of these values means the info op
 	 * applies only to one bundle ago.
 	 */
@@ -100,7 +104,8 @@ enum {
 
 
 /* Internal constants used to define 'info' operands. */
-enum {
+enum
+{
 	/* 0 and 1 are reserved, as are all negative numbers. */
 
 	CALLER_UNKNOWN_BASE = 2,
@@ -112,7 +117,8 @@ enum {
 
 
 /* Current backtracer state describing where it thinks the caller is. */
-typedef struct {
+typedef struct
+{
 	/*
 	 * Public fields
 	 */
@@ -151,10 +157,10 @@ typedef struct {
 } CallerLocation;
 
 extern void backtrace_init(BacktraceIterator *state,
-                          BacktraceMemoryReader read_memory_func,
-                          void *read_memory_func_extra,
-                          unsigned long pc, unsigned long lr,
-                          unsigned long sp, unsigned long r52);
+						   BacktraceMemoryReader read_memory_func,
+						   void *read_memory_func_extra,
+						   unsigned long pc, unsigned long lr,
+						   unsigned long sp, unsigned long r52);
 
 
 extern bool backtrace_next(BacktraceIterator *state);

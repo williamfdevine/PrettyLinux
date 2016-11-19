@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
  * Licensed under the GPL
  */
@@ -18,13 +18,13 @@
 
 /* This is to get size_t */
 #ifndef __UM_HOST__
-#include <linux/types.h>
+	#include <linux/types.h>
 #else
-#include <stddef.h>
+	#include <stddef.h>
 #endif
 
 extern void panic(const char *fmt, ...)
-	__attribute__ ((format (printf, 1, 2)));
+__attribute__ ((format (printf, 1, 2)));
 
 /* Requires preincluding include/linux/kern_levels.h */
 #define UM_KERN_EMERG	KERN_EMERG
@@ -39,7 +39,7 @@ extern void panic(const char *fmt, ...)
 
 #ifdef UML_CONFIG_PRINTK
 extern int printk(const char *fmt, ...)
-	__attribute__ ((format (printf, 1, 2)));
+__attribute__ ((format (printf, 1, 2)));
 #else
 static inline int printk(const char *fmt, ...)
 {

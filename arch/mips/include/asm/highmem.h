@@ -19,44 +19,44 @@
 
 #ifdef __KERNEL__
 
-#include <linux/bug.h>
-#include <linux/interrupt.h>
-#include <linux/uaccess.h>
-#include <asm/cpu-features.h>
-#include <asm/kmap_types.h>
+	#include <linux/bug.h>
+	#include <linux/interrupt.h>
+	#include <linux/uaccess.h>
+	#include <asm/cpu-features.h>
+	#include <asm/kmap_types.h>
 
-/* undef for production */
-#define HIGHMEM_DEBUG 1
+	/* undef for production */
+	#define HIGHMEM_DEBUG 1
 
-/* declarations for highmem.c */
-extern unsigned long highstart_pfn, highend_pfn;
+	/* declarations for highmem.c */
+	extern unsigned long highstart_pfn, highend_pfn;
 
-extern pte_t *pkmap_page_table;
+	extern pte_t *pkmap_page_table;
 
-/*
- * Right now we initialize only a single pte table. It can be extended
- * easily, subsequent pte tables have to be allocated in one physical
- * chunk of RAM.
- */
-#define LAST_PKMAP 1024
-#define LAST_PKMAP_MASK (LAST_PKMAP-1)
-#define PKMAP_NR(virt)	((virt-PKMAP_BASE) >> PAGE_SHIFT)
-#define PKMAP_ADDR(nr)	(PKMAP_BASE + ((nr) << PAGE_SHIFT))
+	/*
+	* Right now we initialize only a single pte table. It can be extended
+	* easily, subsequent pte tables have to be allocated in one physical
+	* chunk of RAM.
+	*/
+	#define LAST_PKMAP 1024
+	#define LAST_PKMAP_MASK (LAST_PKMAP-1)
+	#define PKMAP_NR(virt)	((virt-PKMAP_BASE) >> PAGE_SHIFT)
+	#define PKMAP_ADDR(nr)	(PKMAP_BASE + ((nr) << PAGE_SHIFT))
 
-extern void * kmap_high(struct page *page);
-extern void kunmap_high(struct page *page);
+	extern void *kmap_high(struct page *page);
+	extern void kunmap_high(struct page *page);
 
-extern void *kmap(struct page *page);
-extern void kunmap(struct page *page);
-extern void *kmap_atomic(struct page *page);
-extern void __kunmap_atomic(void *kvaddr);
-extern void *kmap_atomic_pfn(unsigned long pfn);
+	extern void *kmap(struct page *page);
+	extern void kunmap(struct page *page);
+	extern void *kmap_atomic(struct page *page);
+	extern void __kunmap_atomic(void *kvaddr);
+	extern void *kmap_atomic_pfn(unsigned long pfn);
 
-#define flush_cache_kmaps()	BUG_ON(cpu_has_dc_aliases)
+	#define flush_cache_kmaps()	BUG_ON(cpu_has_dc_aliases)
 
-extern void kmap_init(void);
+	extern void kmap_init(void);
 
-#define kmap_prot PAGE_KERNEL
+	#define kmap_prot PAGE_KERNEL
 
 #endif /* __KERNEL__ */
 

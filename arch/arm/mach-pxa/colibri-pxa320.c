@@ -35,7 +35,8 @@
 #include "devices.h"
 
 #ifdef	CONFIG_MACH_COLIBRI_EVALBOARD
-static mfp_cfg_t colibri_pxa320_evalboard_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa320_evalboard_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO22_MMC1_CLK,
 	GPIO23_MMC1_CMD,
@@ -103,12 +104,14 @@ static mfp_cfg_t colibri_pxa320_evalboard_pin_config[] __initdata = {};
 /*
  * Asix AX88796 Ethernet
  */
-static struct ax_plat_data colibri_asix_platdata = {
+static struct ax_plat_data colibri_asix_platdata =
+{
 	.flags		= 0, /* defined later */
 	.wordlength	= 2,
 };
 
-static struct resource colibri_asix_resource[] = {
+static struct resource colibri_asix_resource[] =
+{
 	[0] = {
 		.start = PXA3xx_CS2_PHYS,
 		.end   = PXA3xx_CS2_PHYS + (0x20 * 2) - 1,
@@ -121,7 +124,8 @@ static struct resource colibri_asix_resource[] = {
 	}
 };
 
-static struct platform_device asix_device = {
+static struct platform_device asix_device =
+{
 	.name		= "ax88796",
 	.id		= 0,
 	.num_resources 	= ARRAY_SIZE(colibri_asix_resource),
@@ -131,7 +135,8 @@ static struct platform_device asix_device = {
 	}
 };
 
-static mfp_cfg_t colibri_pxa320_eth_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa320_eth_pin_config[] __initdata =
+{
 	GPIO3_nCS2,			/* AX88796 chip select */
 	GPIO36_GPIO | MFP_PULL_HIGH	/* AX88796 IRQ */
 };
@@ -147,12 +152,14 @@ static inline void __init colibri_pxa320_init_eth(void) {}
 #endif /* CONFIG_AX88796 */
 
 #if defined(CONFIG_USB_PXA27X)||defined(CONFIG_USB_PXA27X_MODULE)
-static struct gpio_vbus_mach_info colibri_pxa320_gpio_vbus_info = {
+static struct gpio_vbus_mach_info colibri_pxa320_gpio_vbus_info =
+{
 	.gpio_vbus		= mfp_to_gpio(MFP_PIN_GPIO96),
 	.gpio_pullup		= -1,
 };
 
-static struct platform_device colibri_pxa320_gpio_vbus = {
+static struct platform_device colibri_pxa320_gpio_vbus =
+{
 	.name	= "gpio-vbus",
 	.id	= -1,
 	.dev	= {
@@ -163,12 +170,17 @@ static struct platform_device colibri_pxa320_gpio_vbus = {
 static void colibri_pxa320_udc_command(int cmd)
 {
 	if (cmd == PXA2XX_UDC_CMD_CONNECT)
+	{
 		UP2OCR = UP2OCR_HXOE | UP2OCR_DPPUE;
+	}
 	else if (cmd == PXA2XX_UDC_CMD_DISCONNECT)
+	{
 		UP2OCR = UP2OCR_HXOE;
+	}
 }
 
-static struct pxa2xx_udc_mach_info colibri_pxa320_udc_info __initdata = {
+static struct pxa2xx_udc_mach_info colibri_pxa320_udc_info __initdata =
+{
 	.udc_command		= colibri_pxa320_udc_command,
 	.gpio_pullup		= -1,
 };
@@ -183,7 +195,8 @@ static inline void colibri_pxa320_init_udc(void) {}
 #endif
 
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static mfp_cfg_t colibri_pxa320_lcd_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa320_lcd_pin_config[] __initdata =
+{
 	GPIO6_2_LCD_LDD_0,
 	GPIO7_2_LCD_LDD_1,
 	GPIO8_2_LCD_LDD_2,
@@ -220,7 +233,8 @@ static inline void colibri_pxa320_init_lcd(void) {}
 
 #if	defined(CONFIG_SND_AC97_CODEC) || \
 	defined(CONFIG_SND_AC97_CODEC_MODULE)
-static mfp_cfg_t colibri_pxa320_ac97_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa320_ac97_pin_config[] __initdata =
+{
 	GPIO34_AC97_SYSCLK,
 	GPIO35_AC97_SDATA_IN_0,
 	GPIO37_AC97_SDATA_OUT,
@@ -253,13 +267,13 @@ void __init colibri_pxa320_init(void)
 }
 
 MACHINE_START(COLIBRI320, "Toradex Colibri PXA320")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.init_machine	= colibri_pxa320_init,
-	.map_io		= pxa3xx_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa3xx_init_irq,
-	.handle_irq	= pxa3xx_handle_irq,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+	   .map_io		= pxa3xx_map_io,
+		   .nr_irqs	= PXA_NR_IRQS,
+			   .init_irq	= pxa3xx_init_irq,
+				  .handle_irq	= pxa3xx_handle_irq,
+				   .init_time	= pxa_timer_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END
 

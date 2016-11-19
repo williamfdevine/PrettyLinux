@@ -24,14 +24,16 @@
  */
 int bcm63xx_pci_enabled;
 
-static struct resource bcm_pci_mem_resource = {
+static struct resource bcm_pci_mem_resource =
+{
 	.name	= "bcm63xx PCI memory space",
 	.start	= BCM_PCI_MEM_BASE_PA,
 	.end	= BCM_PCI_MEM_END_PA,
 	.flags	= IORESOURCE_MEM
 };
 
-static struct resource bcm_pci_io_resource = {
+static struct resource bcm_pci_io_resource =
+{
 	.name	= "bcm63xx PCI IO space",
 	.start	= BCM_PCI_IO_BASE_PA,
 #ifdef CONFIG_CARDBUS
@@ -42,7 +44,8 @@ static struct resource bcm_pci_io_resource = {
 	.flags	= IORESOURCE_IO
 };
 
-struct pci_controller bcm63xx_controller = {
+struct pci_controller bcm63xx_controller =
+{
 	.pci_ops	= &bcm63xx_pci_ops,
 	.io_resource	= &bcm_pci_io_resource,
 	.mem_resource	= &bcm_pci_mem_resource,
@@ -54,42 +57,48 @@ struct pci_controller bcm63xx_controller = {
  * memory decoder.
  */
 #ifdef CONFIG_CARDBUS
-static struct resource bcm_cb_mem_resource = {
+static struct resource bcm_cb_mem_resource =
+{
 	.name	= "bcm63xx Cardbus memory space",
 	.start	= BCM_CB_MEM_BASE_PA,
 	.end	= BCM_CB_MEM_END_PA,
 	.flags	= IORESOURCE_MEM
 };
 
-static struct resource bcm_cb_io_resource = {
+static struct resource bcm_cb_io_resource =
+{
 	.name	= "bcm63xx Cardbus IO space",
 	.start	= BCM_PCI_IO_HALF_PA + 1,
 	.end	= BCM_PCI_IO_END_PA,
 	.flags	= IORESOURCE_IO
 };
 
-struct pci_controller bcm63xx_cb_controller = {
+struct pci_controller bcm63xx_cb_controller =
+{
 	.pci_ops	= &bcm63xx_cb_ops,
 	.io_resource	= &bcm_cb_io_resource,
 	.mem_resource	= &bcm_cb_mem_resource,
 };
 #endif
 
-static struct resource bcm_pcie_mem_resource = {
+static struct resource bcm_pcie_mem_resource =
+{
 	.name	= "bcm63xx PCIe memory space",
 	.start	= BCM_PCIE_MEM_BASE_PA,
 	.end	= BCM_PCIE_MEM_END_PA,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct resource bcm_pcie_io_resource = {
+static struct resource bcm_pcie_io_resource =
+{
 	.name	= "bcm63xx PCIe IO space",
 	.start	= 0,
 	.end	= 0,
 	.flags	= 0,
 };
 
-struct pci_controller bcm63xx_pcie_controller = {
+struct pci_controller bcm63xx_pcie_controller =
+{
 	.pci_ops	= &bcm63xx_pcie_ops,
 	.io_resource	= &bcm_pcie_io_resource,
 	.mem_resource	= &bcm_pcie_mem_resource,
@@ -125,9 +134,13 @@ static void __init bcm63xx_reset_pcie(void)
 
 	/* enable SERDES */
 	if (BCMCPU_IS_6328())
+	{
 		reg = MISC_SERDES_CTRL_6328_REG;
+	}
 	else
+	{
 		reg = MISC_SERDES_CTRL_6362_REG;
+	}
 
 	val = bcm_misc_readl(reg);
 	val |= SERDES_PCIE_EN | SERDES_PCIE_EXD_EN;
@@ -153,8 +166,11 @@ static int __init bcm63xx_register_pcie(void)
 
 	/* enable clock */
 	pcie_clk = clk_get(NULL, "pcie");
+
 	if (IS_ERR_OR_NULL(pcie_clk))
+	{
 		return -ENODEV;
+	}
 
 	clk_prepare_enable(pcie_clk);
 
@@ -222,8 +238,11 @@ static int __init bcm63xx_register_pci(void)
 	 * broken on SMP.
 	 */
 	pci_iospace_start = ioremap_nocache(BCM_PCI_IO_BASE_PA, 4);
+
 	if (!pci_iospace_start)
+	{
 		return -ENOMEM;
+	}
 
 	/* setup local bus to PCI access (PCI memory) */
 	val = BCM_PCI_MEM_BASE_PA & MPI_L2P_BASE_MASK;
@@ -266,10 +285,16 @@ static int __init bcm63xx_register_pci(void)
 	/* setup PCI to local bus access, used by PCI device to target
 	 * local RAM while bus mastering */
 	bcm63xx_int_cfg_writel(0, PCI_BASE_ADDRESS_3);
+
 	if (BCMCPU_IS_3368() || BCMCPU_IS_6358() || BCMCPU_IS_6368())
+	{
 		val = MPI_SP0_REMAP_ENABLE_MASK;
+	}
 	else
+	{
 		val = 0;
+	}
+
 	bcm_mpi_writel(val, MPI_SP0_REMAP_REG);
 
 	bcm63xx_int_cfg_writel(0x0, PCI_BASE_ADDRESS_4);
@@ -279,12 +304,15 @@ static int __init bcm63xx_register_pci(void)
 
 	/* 6348 before rev b0 exposes only 16 MB of RAM memory through
 	 * PCI, throw a warning if we have more memory */
-	if (BCMCPU_IS_6348() && (bcm63xx_get_cpu_rev() & 0xf0) == 0xa0) {
+	if (BCMCPU_IS_6348() && (bcm63xx_get_cpu_rev() & 0xf0) == 0xa0)
+	{
 		if (mem_size > (16 * 1024 * 1024))
 			printk(KERN_WARNING "bcm63xx: this CPU "
-			       "revision cannot handle more than 16MB "
-			       "of RAM for PCI bus mastering\n");
-	} else {
+				   "revision cannot handle more than 16MB "
+				   "of RAM for PCI bus mastering\n");
+	}
+	else
+	{
 		/* setup sp0 range to local RAM size */
 		bcm_mpi_writel(~(mem_size - 1), MPI_SP0_RANGE_REG);
 		bcm_mpi_writel(0, MPI_SP1_RANGE_REG);
@@ -324,7 +352,7 @@ static int __init bcm63xx_register_pci(void)
 
 	/* mark memory space used for IO mapping as reserved */
 	request_mem_region(BCM_PCI_IO_BASE_PA, BCM_PCI_IO_SIZE,
-			   "bcm63xx PCI IO space");
+					   "bcm63xx PCI IO space");
 	return 0;
 }
 
@@ -332,19 +360,24 @@ static int __init bcm63xx_register_pci(void)
 static int __init bcm63xx_pci_init(void)
 {
 	if (!bcm63xx_pci_enabled)
+	{
 		return -ENODEV;
+	}
 
-	switch (bcm63xx_get_cpu_id()) {
-	case BCM6328_CPU_ID:
-	case BCM6362_CPU_ID:
-		return bcm63xx_register_pcie();
-	case BCM3368_CPU_ID:
-	case BCM6348_CPU_ID:
-	case BCM6358_CPU_ID:
-	case BCM6368_CPU_ID:
-		return bcm63xx_register_pci();
-	default:
-		return -ENODEV;
+	switch (bcm63xx_get_cpu_id())
+	{
+		case BCM6328_CPU_ID:
+		case BCM6362_CPU_ID:
+			return bcm63xx_register_pcie();
+
+		case BCM3368_CPU_ID:
+		case BCM6348_CPU_ID:
+		case BCM6358_CPU_ID:
+		case BCM6368_CPU_ID:
+			return bcm63xx_register_pci();
+
+		default:
+			return -ENODEV;
 	}
 }
 

@@ -22,9 +22,9 @@
 #define _ASM_SMP_H
 
 #ifndef __ASSEMBLY__
-#include <linux/threads.h>
-#include <linux/cpumask.h>
-#include <linux/thread_info.h>
+	#include <linux/threads.h>
+	#include <linux/cpumask.h>
+	#include <linux/thread_info.h>
 #endif
 
 #ifdef CONFIG_SMP
@@ -65,9 +65,9 @@
  */
 #define arch_smp_processor_id()	(CPUID)
 #if 0
-#define raw_smp_processor_id()	(arch_smp_processor_id())
+	#define raw_smp_processor_id()	(arch_smp_processor_id())
 #else
-#define raw_smp_processor_id()	(current_thread_info()->cpu)
+	#define raw_smp_processor_id()	(current_thread_info()->cpu)
 #endif
 
 static inline int cpu_logical_map(int cpu)
@@ -92,8 +92,8 @@ extern void arch_send_call_function_single_ipi(int cpu);
 extern void arch_send_call_function_ipi_mask(const struct cpumask *mask);
 
 #ifdef CONFIG_HOTPLUG_CPU
-extern int __cpu_disable(void);
-extern void __cpu_die(unsigned int cpu);
+	extern int __cpu_disable(void);
+	extern void __cpu_die(unsigned int cpu);
 #endif /* CONFIG_HOTPLUG_CPU */
 
 #endif /* __ASSEMBLY__ */

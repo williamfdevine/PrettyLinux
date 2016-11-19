@@ -27,24 +27,29 @@ static void platform_fixups(void)
 	dt_fixup_cpu_clocks(bd.bi_intfreq, bd.bi_busfreq / 4, bd.bi_busfreq);
 
 	soc = find_node_by_devtype(NULL, "soc");
-	if (soc) {
+
+	if (soc)
+	{
 		void *serial = NULL;
 
 		setprop(soc, "bus-frequency", &bd.bi_busfreq,
-		        sizeof(bd.bi_busfreq));
+				sizeof(bd.bi_busfreq));
 
-		while ((serial = find_node_by_devtype(serial, "serial"))) {
+		while ((serial = find_node_by_devtype(serial, "serial")))
+		{
 			if (get_parent(serial) != soc)
+			{
 				continue;
+			}
 
 			setprop(serial, "clock-frequency", &bd.bi_busfreq,
-			        sizeof(bd.bi_busfreq));
+					sizeof(bd.bi_busfreq));
 		}
 	}
 }
 
 void platform_init(unsigned long r3, unsigned long r4, unsigned long r5,
-                   unsigned long r6, unsigned long r7)
+				   unsigned long r6, unsigned long r7)
 {
 	CUBOOT_INIT();
 	fdt_init(_dtb_start);

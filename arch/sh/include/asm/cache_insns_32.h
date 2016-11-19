@@ -4,9 +4,9 @@
 #include <linux/types.h>
 
 #if defined(CONFIG_CPU_SH4A)
-#define __icbi(addr)	__asm__ __volatile__ ( "icbi @%0\n\t" : : "r" (addr))
+	#define __icbi(addr)	__asm__ __volatile__ ( "icbi @%0\n\t" : : "r" (addr))
 #else
-#define __icbi(addr)	mb()
+	#define __icbi(addr)	mb()
 #endif
 
 #define __ocbp(addr)	__asm__ __volatile__ ( "ocbp @%0\n\t" : : "r" (addr))

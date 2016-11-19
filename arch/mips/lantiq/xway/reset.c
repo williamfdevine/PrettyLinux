@@ -133,31 +133,37 @@ unsigned char ltq_boot_select(void)
 	u32 val = ltq_rcu_r32(RCU_RST_STAT);
 
 	if (of_device_is_compatible(ltq_rcu_np, "lantiq,rcu-xrx200"))
+	{
 		return RCU_BOOT_SEL_XRX200(val);
+	}
 
 	return RCU_BOOT_SEL(val);
 }
 
-struct ltq_gphy_reset {
+struct ltq_gphy_reset
+{
 	u32 rd;
 	u32 addr;
 };
 
 /* reset / boot a gphy */
-static struct ltq_gphy_reset xrx200_gphy[] = {
+static struct ltq_gphy_reset xrx200_gphy[] =
+{
 	{RCU_RD_GPHY0_XRX200, RCU_GFS_ADD0_XRX200},
 	{RCU_RD_GPHY1_XRX200, RCU_GFS_ADD1_XRX200},
 };
 
 /* reset / boot a gphy */
-static struct ltq_gphy_reset xrx300_gphy[] = {
+static struct ltq_gphy_reset xrx300_gphy[] =
+{
 	{RCU_RD_GPHY0_XRX300, RCU_GFS_ADD0_XRX300},
 	{RCU_RD_GPHY1_XRX300, RCU_GFS_ADD1_XRX300},
 	{RCU_RD_GPHY2_XRX300, RCU_GFS_ADD2_XRX300},
 };
 
 /* reset / boot a gphy */
-static struct ltq_gphy_reset xrx330_gphy[] = {
+static struct ltq_gphy_reset xrx330_gphy[] =
+{
 	{RCU_RD_GPHY0_XRX330, RCU_GFS_ADD0_XRX330},
 	{RCU_RD_GPHY1_XRX330, RCU_GFS_ADD1_XRX330},
 	{RCU_RD_GPHY2_XRX330, RCU_GFS_ADD2_XRX330},
@@ -165,7 +171,7 @@ static struct ltq_gphy_reset xrx330_gphy[] = {
 };
 
 static void xrx200_gphy_boot_addr(struct ltq_gphy_reset *phy_regs,
-				  dma_addr_t dev_addr)
+								  dma_addr_t dev_addr)
 {
 	ltq_rcu_w32_mask(0, phy_regs->rd, RCU_RST_REQ);
 	ltq_rcu_w32(dev_addr, phy_regs->addr);
@@ -177,39 +183,57 @@ int xrx200_gphy_boot(struct device *dev, unsigned int id, dma_addr_t dev_addr)
 {
 	struct clk *clk;
 
-	if (!of_device_is_compatible(ltq_rcu_np, "lantiq,rcu-xrx200")) {
+	if (!of_device_is_compatible(ltq_rcu_np, "lantiq,rcu-xrx200"))
+	{
 		dev_err(dev, "this SoC has no GPHY\n");
 		return -EINVAL;
 	}
 
-	if (of_machine_is_compatible("lantiq,vr9")) {
+	if (of_machine_is_compatible("lantiq,vr9"))
+	{
 		clk = clk_get_sys("1f203000.rcu", "gphy");
+
 		if (IS_ERR(clk))
+		{
 			return PTR_ERR(clk);
+		}
+
 		clk_enable(clk);
 	}
 
 	dev_info(dev, "booting GPHY%u firmware at %X\n", id, dev_addr);
 
-	if (of_machine_is_compatible("lantiq,vr9")) {
-		if (id >= ARRAY_SIZE(xrx200_gphy)) {
+	if (of_machine_is_compatible("lantiq,vr9"))
+	{
+		if (id >= ARRAY_SIZE(xrx200_gphy))
+		{
 			dev_err(dev, "%u is an invalid gphy id\n", id);
 			return -EINVAL;
 		}
+
 		xrx200_gphy_boot_addr(&xrx200_gphy[id], dev_addr);
-	} else if (of_machine_is_compatible("lantiq,ar10")) {
-		if (id >= ARRAY_SIZE(xrx300_gphy)) {
+	}
+	else if (of_machine_is_compatible("lantiq,ar10"))
+	{
+		if (id >= ARRAY_SIZE(xrx300_gphy))
+		{
 			dev_err(dev, "%u is an invalid gphy id\n", id);
 			return -EINVAL;
 		}
+
 		xrx200_gphy_boot_addr(&xrx300_gphy[id], dev_addr);
-	} else if (of_machine_is_compatible("lantiq,grx390")) {
-		if (id >= ARRAY_SIZE(xrx330_gphy)) {
+	}
+	else if (of_machine_is_compatible("lantiq,grx390"))
+	{
+		if (id >= ARRAY_SIZE(xrx330_gphy))
+		{
 			dev_err(dev, "%u is an invalid gphy id\n", id);
 			return -EINVAL;
 		}
+
 		xrx200_gphy_boot_addr(&xrx330_gphy[id], dev_addr);
 	}
+
 	return 0;
 }
 
@@ -222,12 +246,14 @@ void ltq_reset_once(unsigned int module, ulong u)
 }
 
 static int ltq_assert_device(struct reset_controller_dev *rcdev,
-				unsigned long id)
+							 unsigned long id)
 {
 	u32 val;
 
 	if (id < 8)
+	{
 		return -1;
+	}
 
 	val = ltq_rcu_r32(RCU_RST_REQ);
 	val |= BIT(id);
@@ -237,12 +263,14 @@ static int ltq_assert_device(struct reset_controller_dev *rcdev,
 }
 
 static int ltq_deassert_device(struct reset_controller_dev *rcdev,
-				  unsigned long id)
+							   unsigned long id)
 {
 	u32 val;
 
 	if (id < 8)
+	{
 		return -1;
+	}
 
 	val = ltq_rcu_r32(RCU_RST_REQ);
 	val &= ~BIT(id);
@@ -252,19 +280,21 @@ static int ltq_deassert_device(struct reset_controller_dev *rcdev,
 }
 
 static int ltq_reset_device(struct reset_controller_dev *rcdev,
-			       unsigned long id)
+							unsigned long id)
 {
 	ltq_assert_device(rcdev, id);
 	return ltq_deassert_device(rcdev, id);
 }
 
-static const struct reset_control_ops reset_ops = {
+static const struct reset_control_ops reset_ops =
+{
 	.reset = ltq_reset_device,
 	.assert = ltq_assert_device,
 	.deassert = ltq_deassert_device,
 };
 
-static struct reset_controller_dev reset_dev = {
+static struct reset_controller_dev reset_dev =
+{
 	.ops			= &reset_ops,
 	.owner			= THIS_MODULE,
 	.nr_resets		= 32,
@@ -275,10 +305,15 @@ void ltq_rst_init(void)
 {
 	reset_dev.of_node = of_find_compatible_node(NULL, NULL,
 						"lantiq,xway-reset");
+
 	if (!reset_dev.of_node)
+	{
 		pr_err("Failed to find reset controller node");
+	}
 	else
+	{
 		reset_controller_register(&reset_dev);
+	}
 }
 
 static void ltq_machine_restart(char *command)
@@ -286,7 +321,9 @@ static void ltq_machine_restart(char *command)
 	u32 val = ltq_rcu_r32(RCU_RST_REQ);
 
 	if (of_device_is_compatible(ltq_rcu_np, "lantiq,rcu-xrx200"))
+	{
 		val |= RCU_RD_GPHY1_XRX200 | RCU_RD_GPHY0_XRX200;
+	}
 
 	val |= RCU_RD_SRST;
 
@@ -323,15 +360,15 @@ static void ltq_usb_init(void)
 
 	/* Configure cores to host mode */
 	ltq_rcu_w32(ltq_rcu_r32(RCU_USB1CFG) & ~RCU_USBCFG_HDSEL_BIT,
-		RCU_USB1CFG);
+				RCU_USB1CFG);
 	ltq_rcu_w32(ltq_rcu_r32(RCU_USB2CFG) & ~RCU_USBCFG_HDSEL_BIT,
-		RCU_USB2CFG);
+				RCU_USB2CFG);
 
 	/* Select DMA endianness (Host-endian: big-endian) */
 	ltq_rcu_w32((ltq_rcu_r32(RCU_USB1CFG) & ~RCU_USBCFG_SLV_END_BIT)
-		| RCU_USBCFG_HOST_END_BIT, RCU_USB1CFG);
+				| RCU_USBCFG_HOST_END_BIT, RCU_USB1CFG);
 	ltq_rcu_w32(ltq_rcu_r32((RCU_USB2CFG) & ~RCU_USBCFG_SLV_END_BIT)
-		| RCU_USBCFG_HOST_END_BIT, RCU_USB2CFG);
+				| RCU_USBCFG_HOST_END_BIT, RCU_USB2CFG);
 
 	/* Hard reset USB state machines */
 	ltq_rcu_w32(ltq_rcu_r32(RCU_USBRESET) | USBRESET_BIT, RCU_USBRESET);
@@ -340,10 +377,10 @@ static void ltq_usb_init(void)
 
 	/* Soft reset USB state machines */
 	ltq_rcu_w32(ltq_rcu_r32(RCU_USBRESET2)
-		| USB1RESET_BIT | USB2RESET_BIT, RCU_USBRESET2);
+				| USB1RESET_BIT | USB2RESET_BIT, RCU_USBRESET2);
 	udelay(50 * 1000);
 	ltq_rcu_w32(ltq_rcu_r32(RCU_USBRESET2)
-		& ~(USB1RESET_BIT | USB2RESET_BIT), RCU_USBRESET2);
+				& ~(USB1RESET_BIT | USB2RESET_BIT), RCU_USBRESET2);
 }
 
 static int __init mips_reboot_setup(void)
@@ -351,31 +388,43 @@ static int __init mips_reboot_setup(void)
 	struct resource res;
 
 	ltq_rcu_np = of_find_compatible_node(NULL, NULL, "lantiq,rcu-xway");
+
 	if (!ltq_rcu_np)
 		ltq_rcu_np = of_find_compatible_node(NULL, NULL,
-							"lantiq,rcu-xrx200");
+											 "lantiq,rcu-xrx200");
 
 	/* check if all the reset register range is available */
 	if (!ltq_rcu_np)
+	{
 		panic("Failed to load reset resources from devicetree");
+	}
 
 	if (of_address_to_resource(ltq_rcu_np, 0, &res))
+	{
 		panic("Failed to get rcu memory range");
+	}
 
 	if (!request_mem_region(res.start, resource_size(&res), res.name))
+	{
 		pr_err("Failed to request rcu memory");
+	}
 
 	ltq_rcu_membase = ioremap_nocache(res.start, resource_size(&res));
+
 	if (!ltq_rcu_membase)
+	{
 		panic("Failed to remap core memory");
+	}
 
 	if (of_machine_is_compatible("lantiq,ar9") ||
-	    of_machine_is_compatible("lantiq,vr9"))
+		of_machine_is_compatible("lantiq,vr9"))
+	{
 		ltq_usb_init();
+	}
 
 	if (of_machine_is_compatible("lantiq,vr9"))
 		ltq_rcu_w32(ltq_rcu_r32(RCU_AHB_ENDIAN) | RCU_VR9_BE_AHB1S,
-			    RCU_AHB_ENDIAN);
+					RCU_AHB_ENDIAN);
 
 	_machine_restart = ltq_machine_restart;
 	_machine_halt = ltq_machine_halt;

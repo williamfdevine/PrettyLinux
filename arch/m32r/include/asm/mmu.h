@@ -3,7 +3,8 @@
 
 #if !defined(CONFIG_MMU)
 
-typedef struct {
+typedef struct
+{
 	unsigned long		end_brk;
 } mm_context_t;
 
@@ -11,9 +12,9 @@ typedef struct {
 
 /* Default "unsigned long" context */
 #ifndef CONFIG_SMP
-typedef unsigned long mm_context_t;
+	typedef unsigned long mm_context_t;
 #else
-typedef unsigned long mm_context_t[NR_CPUS];
+	typedef unsigned long mm_context_t[NR_CPUS];
 #endif
 
 #endif /* CONFIG_MMU */

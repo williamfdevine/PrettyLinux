@@ -38,9 +38,12 @@ static inline void __install_page_table(pgd_t *pgdir, int asid, pgprot_t prot)
 {
 	/* FIXME: DIRECTIO should not always be set. FIXME. */
 	int rc = hv_install_context(__pa(pgdir), prot, asid,
-				    HV_CTX_DIRECTIO | CTX_PAGE_FLAG);
+								HV_CTX_DIRECTIO | CTX_PAGE_FLAG);
+
 	if (rc < 0)
+	{
 		panic("hv_install_context failed: %d", rc);
+	}
 }
 
 static inline void install_page_table(pgd_t *pgdir, int asid)
@@ -79,28 +82,36 @@ static inline void install_page_table(pgd_t *pgdir, int asid)
 static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *t)
 {
 #if CHIP_HAS_TILE_DMA()
+
 	/*
 	 * We have to do an "identity" page table switch in order to
 	 * clear any pending DMA interrupts.
 	 */
 	if (current->thread.tile_dma_state.enabled)
+	{
 		install_page_table(mm->pgd, __this_cpu_read(current_asid));
+	}
+
 #endif
 }
 
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
-	if (likely(prev != next)) {
+	if (likely(prev != next))
+	{
 
 		int cpu = smp_processor_id();
 
 		/* Pick new ASID. */
 		int asid = __this_cpu_read(current_asid) + 1;
-		if (asid > max_asid) {
+
+		if (asid > max_asid)
+		{
 			asid = min_asid;
 			local_flush_tlb();
 		}
+
 		__this_cpu_write(current_asid, asid);
 
 		/* Clear cpu from the old mm, and set it in the new one. */
@@ -124,7 +135,7 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 }
 
 static inline void activate_mm(struct mm_struct *prev_mm,
-			       struct mm_struct *next_mm)
+							   struct mm_struct *next_mm)
 {
 	switch_mm(prev_mm, next_mm, NULL);
 }

@@ -26,9 +26,9 @@
 /** Memory info under each memory controller. */
 struct mshim_mem_info
 {
-  uint64_t mem_size;     /**< Total memory size in bytes. */
-  uint8_t mem_type;      /**< Memory type, DDR2 or DDR3. */
-  uint8_t mem_ecc;       /**< Memory supports ECC. */
+	uint64_t mem_size;     /**< Total memory size in bytes. */
+	uint8_t mem_type;      /**< Memory type, DDR2 or DDR3. */
+	uint8_t mem_ecc;       /**< Memory supports ECC. */
 };
 
 /**
@@ -38,7 +38,7 @@ struct mshim_mem_info
  */
 struct mshim_mem_error
 {
-  uint32_t sbe_count;     /**< Number of single-bit errors. */
+	uint32_t sbe_count;     /**< Number of single-bit errors. */
 };
 
 /** Read this offset to get the memory info per mshim. */

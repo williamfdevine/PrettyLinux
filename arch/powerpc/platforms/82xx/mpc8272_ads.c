@@ -36,8 +36,10 @@
 static void __init mpc8272_ads_pic_init(void)
 {
 	struct device_node *np = of_find_compatible_node(NULL, NULL,
-	                                                 "fsl,cpm2-pic");
-	if (!np) {
+							 "fsl,cpm2-pic");
+
+	if (!np)
+	{
 		printk(KERN_ERR "PIC init: can not find fsl,cpm2-pic node\n");
 		return;
 	}
@@ -49,11 +51,13 @@ static void __init mpc8272_ads_pic_init(void)
 	pq2ads_pci_init_irq();
 }
 
-struct cpm_pin {
+struct cpm_pin
+{
 	int port, pin, flags;
 };
 
-static struct cpm_pin mpc8272_ads_pins[] = {
+static struct cpm_pin mpc8272_ads_pins[] =
+{
 	/* SCC1 */
 	{3, 30, CPM_PIN_OUTPUT | CPM_PIN_SECONDARY},
 	{3, 31, CPM_PIN_INPUT | CPM_PIN_PRIMARY},
@@ -116,7 +120,8 @@ static void __init init_ioports(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(mpc8272_ads_pins); i++) {
+	for (i = 0; i < ARRAY_SIZE(mpc8272_ads_pins); i++)
+	{
 		struct cpm_pin *pin = &mpc8272_ads_pins[i];
 		cpm2_set_pin(pin->port, pin->pin, pin->flags);
 	}
@@ -139,19 +144,25 @@ static void __init mpc8272_ads_setup_arch(void)
 	__be32 __iomem *bcsr;
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mpc8272_ads_setup_arch()", 0);
+	}
 
 	cpm2_reset();
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc8272ads-bcsr");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_ERR "No bcsr in device tree\n");
 		return;
 	}
 
 	bcsr = of_iomap(np, 0);
 	of_node_put(np);
-	if (!bcsr) {
+
+	if (!bcsr)
+	{
 		printk(KERN_ERR "Cannot map BCSR registers\n");
 		return;
 	}
@@ -178,10 +189,13 @@ static void __init mpc8272_ads_setup_arch(void)
 	pq2_init_pci();
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mpc8272_ads_setup_arch(), finish", 0);
+	}
 }
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .name = "soc", },
 	{ .name = "cpm", },
 	{ .name = "localbus", },
@@ -207,11 +221,11 @@ static int __init mpc8272_ads_probe(void)
 define_machine(mpc8272_ads)
 {
 	.name = "Freescale MPC8272 ADS",
-	.probe = mpc8272_ads_probe,
-	.setup_arch = mpc8272_ads_setup_arch,
-	.init_IRQ = mpc8272_ads_pic_init,
-	.get_irq = cpm2_get_irq,
-	.calibrate_decr = generic_calibrate_decr,
-	.restart = pq2_restart,
-	.progress = udbg_progress,
+	 .probe = mpc8272_ads_probe,
+	  .setup_arch = mpc8272_ads_setup_arch,
+	   .init_IRQ = mpc8272_ads_pic_init,
+		.get_irq = cpm2_get_irq,
+		 .calibrate_decr = generic_calibrate_decr,
+		  .restart = pq2_restart,
+		   .progress = udbg_progress,
 };

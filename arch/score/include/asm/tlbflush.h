@@ -15,11 +15,11 @@
 extern void local_flush_tlb_all(void);
 extern void local_flush_tlb_mm(struct mm_struct *mm);
 extern void local_flush_tlb_range(struct vm_area_struct *vma,
-	unsigned long start, unsigned long end);
+								  unsigned long start, unsigned long end);
 extern void local_flush_tlb_kernel_range(unsigned long start,
-	unsigned long end);
+		unsigned long end);
 extern void local_flush_tlb_page(struct vm_area_struct *vma,
-	unsigned long page);
+								 unsigned long page);
 extern void local_flush_tlb_one(unsigned long vaddr);
 
 #define flush_tlb_all()			local_flush_tlb_all()
@@ -50,7 +50,7 @@ static inline void pevn_set(unsigned long val)
 	__asm__ __volatile__(
 		"mtcr %0, cr11\n"
 		"nop\nnop\nnop\nnop\nnop\n"
-	: : "r" (val));
+		: : "r" (val));
 }
 
 static inline void pectx_set(unsigned long val)
@@ -58,7 +58,7 @@ static inline void pectx_set(unsigned long val)
 	__asm__ __volatile__(
 		"mtcr %0, cr12\n"
 		"nop\nnop\nnop\nnop\nnop\n"
-	: : "r" (val));
+		: : "r" (val));
 }
 
 static inline unsigned long pectx_get(void)
@@ -67,7 +67,7 @@ static inline unsigned long pectx_get(void)
 	__asm__ __volatile__(
 		"mfcr %0, cr12\n"
 		"nop\nnop\n"
-	: "=r" (val));
+		: "=r" (val));
 	return val;
 }
 static inline unsigned long tlblock_get(void)
@@ -77,7 +77,7 @@ static inline unsigned long tlblock_get(void)
 	__asm__ __volatile__(
 		"mfcr %0, cr7\n"
 		"nop\nnop\n"
-	: "=r" (val));
+		: "=r" (val));
 	return val;
 }
 static inline void tlblock_set(unsigned long val)
@@ -85,7 +85,7 @@ static inline void tlblock_set(unsigned long val)
 	__asm__ __volatile__(
 		"mtcr %0, cr7\n"
 		"nop\nnop\nnop\nnop\nnop\n"
-	: : "r" (val));
+		: : "r" (val));
 }
 
 static inline void tlbpt_set(unsigned long val)

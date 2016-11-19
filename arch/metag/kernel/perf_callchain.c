@@ -16,37 +16,50 @@ static bool is_valid_call(unsigned long calladdr)
 	unsigned int callinsn;
 
 	/* Check the possible return address is aligned. */
-	if (!(calladdr & 0x3)) {
-		if (!get_user(callinsn, (unsigned int *)calladdr)) {
+	if (!(calladdr & 0x3))
+	{
+		if (!get_user(callinsn, (unsigned int *)calladdr))
+		{
 			/* Check for CALLR or SWAP PC,D1RtP. */
 			if ((callinsn & 0xff000000) == 0xab000000 ||
-			    callinsn == 0xa3200aa0)
+				callinsn == 0xa3200aa0)
+			{
 				return true;
+			}
 		}
 	}
+
 	return false;
 }
 
 static struct metag_frame __user *
 user_backtrace(struct metag_frame __user *user_frame,
-	       struct perf_callchain_entry_ctx *entry)
+			   struct perf_callchain_entry_ctx *entry)
 {
 	struct metag_frame frame;
 	unsigned long calladdr;
 
 	/* We cannot rely on having frame pointers in user code. */
-	while (1) {
+	while (1)
+	{
 		/* Also check accessibility of one struct frame beyond */
 		if (!access_ok(VERIFY_READ, user_frame, sizeof(frame)))
+		{
 			return 0;
+		}
+
 		if (__copy_from_user_inatomic(&frame, user_frame,
-					      sizeof(frame)))
+									  sizeof(frame)))
+		{
 			return 0;
+		}
 
 		--user_frame;
 
 		calladdr = frame.lr - 4;
-		if (is_valid_call(calladdr)) {
+
+		if (is_valid_call(calladdr))
+		{
 			perf_callchain_store(entry, calladdr);
 			return user_frame;
 		}
@@ -66,7 +79,9 @@ perf_callchain_user(struct perf_callchain_entry_ctx *entry, struct pt_regs *regs
 	--frame;
 
 	while ((entry->nr < entry->max_stack) && frame)
+	{
 		frame = user_backtrace(frame, entry);
+	}
 }
 
 /*
@@ -76,7 +91,7 @@ perf_callchain_user(struct perf_callchain_entry_ctx *entry, struct pt_regs *regs
  */
 static int
 callchain_trace(struct stackframe *fr,
-		void *data)
+				void *data)
 {
 	struct perf_callchain_entry_ctx *entry = data;
 	perf_callchain_store(entry, fr->pc);

@@ -11,7 +11,7 @@
  * that this code assumes is that the timebases have been synchronized
  * by firmware on SMP and are never stopped (never do sleep
  * on SMP then, nap and doze are OK).
- * 
+ *
  * Speeded up do_gettimeofday by getting rid of references to
  * xtime (which required locks for consistency). (mikejc@us.ibm.com)
  *
@@ -81,7 +81,8 @@
 #include <linux/timekeeper_internal.h>
 
 static cycle_t rtc_read(struct clocksource *);
-static struct clocksource clocksource_rtc = {
+static struct clocksource clocksource_rtc =
+{
 	.name         = "rtc",
 	.rating       = 400,
 	.flags        = CLOCK_SOURCE_IS_CONTINUOUS,
@@ -90,7 +91,8 @@ static struct clocksource clocksource_rtc = {
 };
 
 static cycle_t timebase_read(struct clocksource *);
-static struct clocksource clocksource_timebase = {
+static struct clocksource clocksource_timebase =
+{
 	.name         = "timebase",
 	.rating       = 400,
 	.flags        = CLOCK_SOURCE_IS_CONTINUOUS,
@@ -102,10 +104,11 @@ static struct clocksource clocksource_timebase = {
 u64 decrementer_max = DECREMENTER_DEFAULT_MAX;
 
 static int decrementer_set_next_event(unsigned long evt,
-				      struct clock_event_device *dev);
+									  struct clock_event_device *dev);
 static int decrementer_shutdown(struct clock_event_device *evt);
 
-struct clock_event_device decrementer_clockevent = {
+struct clock_event_device decrementer_clockevent =
+{
 	.name			= "decrementer",
 	.rating			= 200,
 	.irq			= 0,
@@ -113,7 +116,7 @@ struct clock_event_device decrementer_clockevent = {
 	.set_state_shutdown	= decrementer_shutdown,
 	.tick_resume		= decrementer_shutdown,
 	.features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_C3STOP,
+	CLOCK_EVT_FEAT_C3STOP,
 };
 EXPORT_SYMBOL(decrementer_clockevent);
 
@@ -123,10 +126,10 @@ static DEFINE_PER_CPU(struct clock_event_device, decrementers);
 #define XSEC_PER_SEC (1024*1024)
 
 #ifdef CONFIG_PPC64
-#define SCALE_XSEC(xsec, max)	(((xsec) * max) / XSEC_PER_SEC)
+	#define SCALE_XSEC(xsec, max)	(((xsec) * max) / XSEC_PER_SEC)
 #else
-/* compute ((xsec << 12) * max) >> 32 */
-#define SCALE_XSEC(xsec, max)	mulhwu((xsec) << 12, max)
+	/* compute ((xsec << 12) * max) >> 32 */
+	#define SCALE_XSEC(xsec, max)	mulhwu((xsec) << 12, max)
 #endif
 
 unsigned long tb_ticks_per_jiffy;
@@ -170,13 +173,13 @@ DEFINE_PER_CPU(unsigned long, cputime_scaled_last_delta);
 cputime_t cputime_one_jiffy;
 
 #ifdef CONFIG_PPC_SPLPAR
-void (*dtl_consumer)(struct dtl_entry *, u64);
+	void (*dtl_consumer)(struct dtl_entry *, u64);
 #endif
 
 #ifdef CONFIG_PPC64
-#define get_accounting(tsk)	(&get_paca()->accounting)
+	#define get_accounting(tsk)	(&get_paca()->accounting)
 #else
-#define get_accounting(tsk)	(&task_thread_info(tsk)->accounting)
+	#define get_accounting(tsk)	(&task_thread_info(tsk)->accounting)
 #endif
 
 static void calc_cputime_factors(void)
@@ -200,9 +203,15 @@ static void calc_cputime_factors(void)
 static unsigned long read_spurr(unsigned long tb)
 {
 	if (cpu_has_feature(CPU_FTR_SPURR))
+	{
 		return mfspr(SPRN_SPURR);
+	}
+
 	if (cpu_has_feature(CPU_FTR_PURR))
+	{
 		return mfspr(SPRN_PURR);
+	}
+
 	return tb;
 }
 
@@ -223,31 +232,50 @@ static u64 scan_dispatch_log(u64 stop_tb)
 	u64 dtb;
 
 	if (!dtl)
+	{
 		return 0;
+	}
 
 	if (i == be64_to_cpu(vpa->dtl_idx))
+	{
 		return 0;
-	while (i < be64_to_cpu(vpa->dtl_idx)) {
+	}
+
+	while (i < be64_to_cpu(vpa->dtl_idx))
+	{
 		dtb = be64_to_cpu(dtl->timebase);
 		tb_delta = be32_to_cpu(dtl->enqueue_to_dispatch_time) +
-			be32_to_cpu(dtl->ready_to_enqueue_time);
+				   be32_to_cpu(dtl->ready_to_enqueue_time);
 		barrier();
-		if (i + N_DISPATCH_LOG < be64_to_cpu(vpa->dtl_idx)) {
+
+		if (i + N_DISPATCH_LOG < be64_to_cpu(vpa->dtl_idx))
+		{
 			/* buffer has overflowed */
 			i = be64_to_cpu(vpa->dtl_idx) - N_DISPATCH_LOG;
 			dtl = local_paca->dispatch_log + (i % N_DISPATCH_LOG);
 			continue;
 		}
+
 		if (dtb > stop_tb)
+		{
 			break;
+		}
+
 		if (dtl_consumer)
+		{
 			dtl_consumer(dtl, i);
+		}
+
 		stolen += tb_delta;
 		++i;
 		++dtl;
+
 		if (dtl == dtl_end)
+		{
 			dtl = local_paca->dispatch_log;
+		}
 	}
+
 	local_paca->dtl_ridx = i;
 	local_paca->dtl_curr = dtl;
 	return stolen;
@@ -284,7 +312,8 @@ static inline u64 calculate_stolen_time(u64 stop_tb)
 {
 	u64 stolen = 0;
 
-	if (get_paca()->dtl_ridx != be64_to_cpu(get_lppaca()->dtl_idx)) {
+	if (get_paca()->dtl_ridx != be64_to_cpu(get_lppaca()->dtl_idx))
+	{
 		stolen = scan_dispatch_log(stop_tb);
 		get_paca()->accounting.system_time -= stolen;
 	}
@@ -307,8 +336,8 @@ static inline u64 calculate_stolen_time(u64 stop_tb)
  * or soft irq state.
  */
 static unsigned long vtime_delta(struct task_struct *tsk,
-				 unsigned long *sys_scaled,
-				 unsigned long *stolen)
+								 unsigned long *sys_scaled,
+								 unsigned long *stolen)
 {
 	unsigned long now, nowscaled, deltascaled;
 	unsigned long udelta, delta, user_scaled;
@@ -342,14 +371,20 @@ static unsigned long vtime_delta(struct task_struct *tsk,
 	 */
 	*sys_scaled = delta;
 	user_scaled = udelta;
-	if (deltascaled != delta + udelta) {
-		if (udelta) {
+
+	if (deltascaled != delta + udelta)
+	{
+		if (udelta)
+		{
 			*sys_scaled = deltascaled * delta / (delta + udelta);
 			user_scaled = deltascaled - *sys_scaled;
-		} else {
+		}
+		else
+		{
 			*sys_scaled = deltascaled;
 		}
 	}
+
 	acct->user_time_scaled += user_scaled;
 
 	return delta;
@@ -361,8 +396,11 @@ void vtime_account_system(struct task_struct *tsk)
 
 	delta = vtime_delta(tsk, &sys_scaled, &stolen);
 	account_system_time(tsk, 0, delta, sys_scaled);
+
 	if (stolen)
+	{
 		account_steal_time(stolen);
+	}
 }
 EXPORT_SYMBOL_GPL(vtime_account_system);
 
@@ -421,18 +459,31 @@ void __delay(unsigned long loops)
 	unsigned long start;
 	int diff;
 
-	if (__USE_RTC()) {
+	if (__USE_RTC())
+	{
 		start = get_rtcl();
-		do {
+
+		do
+		{
 			/* the RTCL register wraps at 1000000000 */
 			diff = get_rtcl() - start;
+
 			if (diff < 0)
+			{
 				diff += 1000000000;
-		} while (diff < loops);
-	} else {
+			}
+		}
+		while (diff < loops);
+	}
+	else
+	{
 		start = get_tbl();
+
 		while (get_tbl() - start < loops)
+		{
 			HMT_low();
+		}
+
 		HMT_medium();
 	}
 }
@@ -450,7 +501,9 @@ unsigned long profile_pc(struct pt_regs *regs)
 	unsigned long pc = instruction_pointer(regs);
 
 	if (in_lock_functions(pc))
+	{
 		return regs->link;
+	}
 
 	return pc;
 }
@@ -468,23 +521,23 @@ static inline unsigned long test_irq_work_pending(void)
 	unsigned long x;
 
 	asm volatile("lbz %0,%1(13)"
-		: "=r" (x)
-		: "i" (offsetof(struct paca_struct, irq_work_pending)));
+				 : "=r" (x)
+				 : "i" (offsetof(struct paca_struct, irq_work_pending)));
 	return x;
 }
 
 static inline void set_irq_work_pending_flag(void)
 {
 	asm volatile("stb %0,%1(13)" : :
-		"r" (1),
-		"i" (offsetof(struct paca_struct, irq_work_pending)));
+				 "r" (1),
+				 "i" (offsetof(struct paca_struct, irq_work_pending)));
 }
 
 static inline void clear_irq_work_pending(void)
 {
 	asm volatile("stb %0,%1(13)" : :
-		"r" (0),
-		"i" (offsetof(struct paca_struct, irq_work_pending)));
+				 "r" (0),
+				 "i" (offsetof(struct paca_struct, irq_work_pending)));
 }
 
 #else /* 32-bit */
@@ -521,33 +574,52 @@ static void __timer_interrupt(void)
 
 	trace_timer_interrupt_entry(regs);
 
-	if (test_irq_work_pending()) {
+	if (test_irq_work_pending())
+	{
 		clear_irq_work_pending();
 		irq_work_run();
 	}
 
 	now = get_tb_or_rtc();
-	if (now >= *next_tb) {
+
+	if (now >= *next_tb)
+	{
 		*next_tb = ~(u64)0;
+
 		if (evt->event_handler)
+		{
 			evt->event_handler(evt);
+		}
+
 		__this_cpu_inc(irq_stat.timer_irqs_event);
-	} else {
+	}
+	else
+	{
 		now = *next_tb - now;
+
 		if (now <= decrementer_max)
+		{
 			set_dec(now);
+		}
+
 		/* We may have raced with new irq work */
 		if (test_irq_work_pending())
+		{
 			set_dec(1);
+		}
+
 		__this_cpu_inc(irq_stat.timer_irqs_others);
 	}
 
 #ifdef CONFIG_PPC64
+
 	/* collect purr register values often, for accurate calculations */
-	if (firmware_has_feature(FW_FEATURE_SPLPAR)) {
+	if (firmware_has_feature(FW_FEATURE_SPLPAR))
+	{
 		struct cpu_usage *cu = this_cpu_ptr(&cpu_usage_array);
 		cu->current_tb = mfspr(SPRN_PURR);
 	}
+
 #endif
 
 	trace_timer_interrupt_exit(regs);
@@ -557,7 +629,7 @@ static void __timer_interrupt(void)
  * timer_interrupt - gets called when the decrementer overflows,
  * with interrupts disabled.
  */
-void timer_interrupt(struct pt_regs * regs)
+void timer_interrupt(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs;
 	u64 *next_tb = this_cpu_ptr(&decrementers_next_tb);
@@ -573,7 +645,8 @@ void timer_interrupt(struct pt_regs * regs)
 	 * don't replay timer interrupt when return, otherwise we'll trap
 	 * here infinitely :(
 	 */
-	if (!cpu_online(smp_processor_id())) {
+	if (!cpu_online(smp_processor_id()))
+	{
 		*next_tb = ~(u64)0;
 		return;
 	}
@@ -585,8 +658,12 @@ void timer_interrupt(struct pt_regs * regs)
 
 
 #if defined(CONFIG_PPC32) && defined(CONFIG_PPC_PMAC)
+
 	if (atomic_read(&ppc_n_lost_interrupts) != 0)
+	{
 		do_IRQ(regs);
+	}
+
 #endif
 
 	old_regs = set_irq_regs(regs);
@@ -628,7 +705,10 @@ static void generic_suspend_enable_irqs(void)
 void arch_suspend_disable_irqs(void)
 {
 	if (ppc_md.suspend_disable_irqs)
+	{
 		ppc_md.suspend_disable_irqs();
+	}
+
 	generic_suspend_disable_irqs();
 }
 
@@ -636,8 +716,11 @@ void arch_suspend_disable_irqs(void)
 void arch_suspend_enable_irqs(void)
 {
 	generic_suspend_enable_irqs();
+
 	if (ppc_md.suspend_enable_irqs)
+	{
 		ppc_md.suspend_enable_irqs();
+	}
 }
 #endif
 
@@ -657,7 +740,10 @@ EXPORT_SYMBOL_GPL(tb_to_ns);
 unsigned long long sched_clock(void)
 {
 	if (__USE_RTC())
+	{
 		return get_rtc();
+	}
+
 	return mulhdu(get_tb() - boot_tb, tb_to_ns_scale) << tb_to_ns_shift;
 }
 
@@ -680,8 +766,10 @@ unsigned long long running_clock(void)
 	 * would be unsafe to rely only on the #ifdef above.
 	 */
 	if (firmware_has_feature(FW_FEATURE_LPAR) &&
-	    cpu_has_feature(CPU_FTR_ARCH_207S))
+		cpu_has_feature(CPU_FTR_ARCH_207S))
+	{
 		return mulhdu(get_vtb() - boot_tb, tb_to_ns_scale) << tb_to_ns_shift;
+	}
 
 	/*
 	 * This is a next best approximation without a VTB.
@@ -702,9 +790,12 @@ static int __init get_freq(char *name, int cells, unsigned long *val)
 	/* The cpu node should have timebase and clock frequency properties */
 	cpu = of_find_node_by_type(NULL, "cpu");
 
-	if (cpu) {
+	if (cpu)
+	{
 		fp = of_get_property(cpu, name, NULL);
-		if (fp) {
+
+		if (fp)
+		{
 			found = 1;
 			*val = of_read_ulong(fp, cells);
 		}
@@ -731,19 +822,21 @@ void __init generic_calibrate_decr(void)
 	ppc_tb_freq = DEFAULT_TB_FREQ;		/* hardcoded default */
 
 	if (!get_freq("ibm,extended-timebase-frequency", 2, &ppc_tb_freq) &&
-	    !get_freq("timebase-frequency", 1, &ppc_tb_freq)) {
+		!get_freq("timebase-frequency", 1, &ppc_tb_freq))
+	{
 
 		printk(KERN_ERR "WARNING: Estimating decrementer frequency "
-				"(not found)\n");
+			   "(not found)\n");
 	}
 
 	ppc_proc_freq = DEFAULT_PROC_FREQ;	/* hardcoded default */
 
 	if (!get_freq("ibm,extended-clock-frequency", 2, &ppc_proc_freq) &&
-	    !get_freq("clock-frequency", 1, &ppc_proc_freq)) {
+		!get_freq("clock-frequency", 1, &ppc_proc_freq))
+	{
 
 		printk(KERN_ERR "WARNING: Estimating processor frequency "
-				"(not found)\n");
+			   "(not found)\n");
 	}
 }
 
@@ -752,7 +845,9 @@ int update_persistent_clock(struct timespec now)
 	struct rtc_time tm;
 
 	if (!ppc_md.set_rtc_time)
+	{
 		return -ENODEV;
+	}
 
 	to_tm(now.tv_sec + 1 + timezone_offset, &tm);
 	tm.tm_year -= 1900;
@@ -767,26 +862,35 @@ static void __read_persistent_clock(struct timespec *ts)
 	static int first = 1;
 
 	ts->tv_nsec = 0;
+
 	/* XXX this is a litle fragile but will work okay in the short term */
-	if (first) {
+	if (first)
+	{
 		first = 0;
+
 		if (ppc_md.time_init)
+		{
 			timezone_offset = ppc_md.time_init();
+		}
 
 		/* get_boot_time() isn't guaranteed to be safe to call late */
-		if (ppc_md.get_boot_time) {
+		if (ppc_md.get_boot_time)
+		{
 			ts->tv_sec = ppc_md.get_boot_time() - timezone_offset;
 			return;
 		}
 	}
-	if (!ppc_md.get_rtc_time) {
+
+	if (!ppc_md.get_rtc_time)
+	{
 		ts->tv_sec = 0;
 		return;
 	}
+
 	ppc_md.get_rtc_time(&tm);
 
-	ts->tv_sec = mktime(tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday,
-			    tm.tm_hour, tm.tm_min, tm.tm_sec);
+	ts->tv_sec = mktime(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+						tm.tm_hour, tm.tm_min, tm.tm_sec);
 }
 
 void read_persistent_clock(struct timespec *ts)
@@ -794,11 +898,12 @@ void read_persistent_clock(struct timespec *ts)
 	__read_persistent_clock(ts);
 
 	/* Sanitize it in case real time clock is set below EPOCH */
-	if (ts->tv_sec < 0) {
+	if (ts->tv_sec < 0)
+	{
 		ts->tv_sec = 0;
 		ts->tv_nsec = 0;
 	}
-		
+
 }
 
 /* clocksource code */
@@ -813,13 +918,15 @@ static cycle_t timebase_read(struct clocksource *cs)
 }
 
 void update_vsyscall_old(struct timespec *wall_time, struct timespec *wtm,
-			 struct clocksource *clock, u32 mult, cycle_t cycle_last)
+						 struct clocksource *clock, u32 mult, cycle_t cycle_last)
 {
 	u64 new_tb_to_xs, new_stamp_xsec;
 	u32 frac_sec;
 
 	if (clock != &clocksource_timebase)
+	{
 		return;
+	}
 
 	/* Make userspace gettimeofday spin until we're done. */
 	++vdso_data->tb_update_count;
@@ -868,29 +975,36 @@ static void __init clocksource_init(void)
 	struct clocksource *clock;
 
 	if (__USE_RTC())
+	{
 		clock = &clocksource_rtc;
+	}
 	else
+	{
 		clock = &clocksource_timebase;
+	}
 
-	if (clocksource_register_hz(clock, tb_ticks_per_sec)) {
+	if (clocksource_register_hz(clock, tb_ticks_per_sec))
+	{
 		printk(KERN_ERR "clocksource: %s is already registered\n",
-		       clock->name);
+			   clock->name);
 		return;
 	}
 
 	printk(KERN_INFO "clocksource: %s mult[%x] shift[%d] registered\n",
-	       clock->name, clock->mult, clock->shift);
+		   clock->name, clock->mult, clock->shift);
 }
 
 static int decrementer_set_next_event(unsigned long evt,
-				      struct clock_event_device *dev)
+									  struct clock_event_device *dev)
 {
 	__this_cpu_write(decrementers_next_tb, get_tb_or_rtc() + evt);
 	set_dec(evt);
 
 	/* We may have raced with new irq work */
 	if (test_irq_work_pending())
+	{
 		set_dec(1);
+	}
 
 	return 0;
 }
@@ -918,7 +1032,7 @@ static void register_decrementer_clockevent(int cpu)
 	dec->cpumask = cpumask_of(cpu);
 
 	printk_once(KERN_DEBUG "clockevent: %s mult[%x] shift[%d] cpu[%d]\n",
-		    dec->name, dec->mult, dec->shift, cpu);
+				dec->name, dec->mult, dec->shift, cpu);
 
 	clockevents_register_device(dec);
 }
@@ -926,17 +1040,23 @@ static void register_decrementer_clockevent(int cpu)
 static void enable_large_decrementer(void)
 {
 	if (!cpu_has_feature(CPU_FTR_ARCH_300))
+	{
 		return;
+	}
 
 	if (decrementer_max <= DECREMENTER_DEFAULT_MAX)
+	{
 		return;
+	}
 
 	/*
 	 * If we're running as the hypervisor we need to enable the LD manually
 	 * otherwise firmware should have done it for us.
 	 */
 	if (cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		mtspr(SPRN_LPCR, mfspr(SPRN_LPCR) | LPCR_LD);
+	}
 }
 
 static void __init set_decrementer_max(void)
@@ -946,12 +1066,16 @@ static void __init set_decrementer_max(void)
 
 	/* Prior to ISAv3 the decrementer is always 32 bit */
 	if (!cpu_has_feature(CPU_FTR_ARCH_300))
+	{
 		return;
+	}
 
 	cpu = of_find_node_by_type(NULL, "cpu");
 
-	if (of_property_read_u32(cpu, "ibm,dec-bits", &bits) == 0) {
-		if (bits > 64 || bits < 32) {
+	if (of_property_read_u32(cpu, "ibm,dec-bits", &bits) == 0)
+	{
+		if (bits > 64 || bits < 32)
+		{
 			pr_warn("time_init: firmware supplied invalid ibm,dec-bits");
 			bits = 32;
 		}
@@ -963,7 +1087,7 @@ static void __init set_decrementer_max(void)
 	of_node_put(cpu);
 
 	pr_info("time_init: %u bit decrementer (max: %llx)\n",
-		bits, decrementer_max);
+			bits, decrementer_max);
 }
 
 static void __init init_decrementer_clockevent(void)
@@ -1002,16 +1126,19 @@ void __init time_init(void)
 	u64 scale;
 	unsigned shift;
 
-	if (__USE_RTC()) {
+	if (__USE_RTC())
+	{
 		/* 601 processor: dec counts down by 128 every 128ns */
 		ppc_tb_freq = 1000000000;
-	} else {
+	}
+	else
+	{
 		/* Normal PowerPC with timebase register */
 		ppc_md.calibrate_decr();
 		printk(KERN_DEBUG "time_init: decrementer frequency = %lu.%.6lu MHz\n",
-		       ppc_tb_freq / 1000000, ppc_tb_freq % 1000000);
+			   ppc_tb_freq / 1000000, ppc_tb_freq % 1000000);
 		printk(KERN_DEBUG "time_init: processor frequency   = %lu.%.6lu MHz\n",
-		       ppc_proc_freq / 1000000, ppc_proc_freq % 1000000);
+			   ppc_proc_freq / 1000000, ppc_proc_freq % 1000000);
 	}
 
 	tb_ticks_per_jiffy = ppc_tb_freq / HZ;
@@ -1032,17 +1159,21 @@ void __init time_init(void)
 	 */
 	div128_by_32(1000000000, 0, tb_ticks_per_sec, &res);
 	scale = res.result_low;
-	for (shift = 0; res.result_high != 0; ++shift) {
+
+	for (shift = 0; res.result_high != 0; ++shift)
+	{
 		scale = (scale >> 1) | (res.result_high << 63);
 		res.result_high >>= 1;
 	}
+
 	tb_to_ns_scale = scale;
 	tb_to_ns_shift = shift;
 	/* Save the current timebase to pretty up CONFIG_PRINTK_TIME */
 	boot_tb = get_tb_or_rtc();
 
 	/* If platform provided a timezone (pmac), we correct the time */
-	if (timezone_offset) {
+	if (timezone_offset)
+	{
 		sys_tz.tz_minuteswest = -timezone_offset / 60;
 		sys_tz.tz_dsttime = 0;
 	}
@@ -1076,15 +1207,16 @@ void __init time_init(void)
 #define SECDAY		86400L
 #define SECYR		(SECDAY * 365)
 #define	leapyear(year)		((year) % 4 == 0 && \
-				 ((year) % 100 != 0 || (year) % 400 == 0))
+							 ((year) % 100 != 0 || (year) % 400 == 0))
 #define	days_in_year(a) 	(leapyear(a) ? 366 : 365)
 #define	days_in_month(a) 	(month_days[(a) - 1])
 
-static int month_days[12] = {
+static int month_days[12] =
+{
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-void to_tm(int tim, struct rtc_time * tm)
+void to_tm(int tim, struct rtc_time *tm)
 {
 	register int    i;
 	register long   hms, day;
@@ -1099,14 +1231,23 @@ void to_tm(int tim, struct rtc_time * tm)
 
 	/* Number of years in days */
 	for (i = STARTOFTIME; day >= days_in_year(i); i++)
+	{
 		day -= days_in_year(i);
+	}
+
 	tm->tm_year = i;
 
 	/* Number of months in days left */
 	if (leapyear(tm->tm_year))
+	{
 		days_in_month(FEBRUARY) = 29;
+	}
+
 	for (i = 1; day >= days_in_month(i); i++)
+	{
 		day -= days_in_month(i);
+	}
+
 	days_in_month(FEBRUARY) = 28;
 	tm->tm_mon = i;
 
@@ -1125,7 +1266,7 @@ EXPORT_SYMBOL(to_tm);
  * result.
  */
 void div128_by_32(u64 dividend_high, u64 dividend_low,
-		  unsigned divisor, struct div_result *dr)
+				  unsigned divisor, struct div_result *dr)
 {
 	unsigned long a, b, c, d;
 	unsigned long w, x, y, z;
@@ -1172,15 +1313,20 @@ static int rtc_generic_get_time(struct device *dev, struct rtc_time *tm)
 static int rtc_generic_set_time(struct device *dev, struct rtc_time *tm)
 {
 	if (!ppc_md.set_rtc_time)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (ppc_md.set_rtc_time(tm) < 0)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	return 0;
 }
 
-static const struct rtc_class_ops rtc_generic_ops = {
+static const struct rtc_class_ops rtc_generic_ops =
+{
 	.read_time = rtc_generic_get_time,
 	.set_time = rtc_generic_set_time,
 };
@@ -1190,11 +1336,13 @@ static int __init rtc_init(void)
 	struct platform_device *pdev;
 
 	if (!ppc_md.get_rtc_time)
+	{
 		return -ENODEV;
+	}
 
 	pdev = platform_device_register_data(NULL, "rtc-generic", -1,
-					     &rtc_generic_ops,
-					     sizeof(rtc_generic_ops));
+										 &rtc_generic_ops,
+										 sizeof(rtc_generic_ops));
 
 	return PTR_ERR_OR_ZERO(pdev);
 }

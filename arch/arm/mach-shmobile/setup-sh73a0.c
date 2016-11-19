@@ -30,7 +30,8 @@
 #include "common.h"
 #include "sh73a0.h"
 
-static struct map_desc sh73a0_io_desc[] __initdata = {
+static struct map_desc sh73a0_io_desc[] __initdata =
+{
 	/* create a 1:1 identity mapping for 0xe6xxxxxx
 	 * used by CPGA, INTC and PFC.
 	 */
@@ -56,16 +57,17 @@ static void __init sh73a0_generic_init(void)
 #endif
 }
 
-static const char *const sh73a0_boards_compat_dt[] __initconst = {
+static const char *const sh73a0_boards_compat_dt[] __initconst =
+{
 	"renesas,sh73a0",
 	NULL,
 };
 
 DT_MACHINE_START(SH73A0_DT, "Generic SH73A0 (Flattened Device Tree)")
-	.smp		= smp_ops(sh73a0_smp_ops),
-	.map_io		= sh73a0_map_io,
-	.init_early	= shmobile_init_delay,
-	.init_machine	= sh73a0_generic_init,
-	.init_late	= shmobile_init_late,
-	.dt_compat	= sh73a0_boards_compat_dt,
-MACHINE_END
+.smp		= smp_ops(sh73a0_smp_ops),
+	   .map_io		= sh73a0_map_io,
+		   .init_early	= shmobile_init_delay,
+			.init_machine	= sh73a0_generic_init,
+			   .init_late	= shmobile_init_late,
+				 .dt_compat	= sh73a0_boards_compat_dt,
+				   MACHINE_END

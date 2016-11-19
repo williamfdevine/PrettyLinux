@@ -105,9 +105,13 @@ static void ml2f_shutdown(void)
 	val = inb(EC_SHUTDOWN_IO_PORT_DATA);
 	outb(val & (~BIT_SHUTDOWN_ON), EC_SHUTDOWN_IO_PORT_DATA);
 	mmiowb();
+
 	/* need enough wait here... how many microseconds needs? */
 	for (i = 0; i < 0x10000; i++)
+	{
 		delay();
+	}
+
 	outb(val | BIT_SHUTDOWN_ON, EC_SHUTDOWN_IO_PORT_DATA);
 	mmiowb();
 }
@@ -122,38 +126,46 @@ static void yl2f89_shutdown(void)
 
 void mach_prepare_reboot(void)
 {
-	switch (mips_machtype) {
-	case MACH_LEMOTE_FL2F:
-	case MACH_LEMOTE_NAS:
-	case MACH_LEMOTE_LL2F:
-		fl2f_reboot();
-		break;
-	case MACH_LEMOTE_ML2F7:
-		ml2f_reboot();
-		break;
-	case MACH_LEMOTE_YL2F89:
-		yl2f89_reboot();
-		break;
-	default:
-		break;
+	switch (mips_machtype)
+	{
+		case MACH_LEMOTE_FL2F:
+		case MACH_LEMOTE_NAS:
+		case MACH_LEMOTE_LL2F:
+			fl2f_reboot();
+			break;
+
+		case MACH_LEMOTE_ML2F7:
+			ml2f_reboot();
+			break;
+
+		case MACH_LEMOTE_YL2F89:
+			yl2f89_reboot();
+			break;
+
+		default:
+			break;
 	}
 }
 
 void mach_prepare_shutdown(void)
 {
-	switch (mips_machtype) {
-	case MACH_LEMOTE_FL2F:
-	case MACH_LEMOTE_NAS:
-	case MACH_LEMOTE_LL2F:
-		fl2f_shutdown();
-		break;
-	case MACH_LEMOTE_ML2F7:
-		ml2f_shutdown();
-		break;
-	case MACH_LEMOTE_YL2F89:
-		yl2f89_shutdown();
-		break;
-	default:
-		break;
+	switch (mips_machtype)
+	{
+		case MACH_LEMOTE_FL2F:
+		case MACH_LEMOTE_NAS:
+		case MACH_LEMOTE_LL2F:
+			fl2f_shutdown();
+			break;
+
+		case MACH_LEMOTE_ML2F7:
+			ml2f_shutdown();
+			break;
+
+		case MACH_LEMOTE_YL2F89:
+			yl2f89_shutdown();
+			break;
+
+		default:
+			break;
 	}
 }

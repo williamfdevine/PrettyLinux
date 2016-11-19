@@ -32,9 +32,9 @@
 static inline unsigned long __ffs(unsigned long x)
 {
 	asm (" bitr  .M1  %0,%0\n"
-	     " nop\n"
-	     " lmbd  .L1  1,%0,%0\n"
-	     : "+a"(x));
+		 " nop\n"
+		 " lmbd  .L1  1,%0,%0\n"
+		 : "+a"(x));
 
 	return x;
 }
@@ -57,7 +57,9 @@ static inline unsigned long __ffs(unsigned long x)
 static inline int fls(int x)
 {
 	if (!x)
+	{
 		return 0;
+	}
 
 	asm (" lmbd  .L1  1,%0,%0\n" : "+a"(x));
 
@@ -76,7 +78,9 @@ static inline int fls(int x)
 static inline int ffs(int x)
 {
 	if (!x)
+	{
 		return 0;
+	}
 
 	return __ffs(x) + 1;
 }

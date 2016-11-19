@@ -11,19 +11,22 @@
 
 #define DESC_TYPE_CODE_DATA	(1 << 0)
 
-struct efi_uga_draw_protocol_32 {
+struct efi_uga_draw_protocol_32
+{
 	u32 get_mode;
 	u32 set_mode;
 	u32 blt;
 };
 
-struct efi_uga_draw_protocol_64 {
+struct efi_uga_draw_protocol_64
+{
 	u64 get_mode;
 	u64 set_mode;
 	u64 blt;
 };
 
-struct efi_uga_draw_protocol {
+struct efi_uga_draw_protocol
+{
 	void *get_mode;
 	void *set_mode;
 	void *blt;

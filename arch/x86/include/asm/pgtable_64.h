@@ -28,16 +28,16 @@ extern void paging_init(void);
 
 #define pte_ERROR(e)					\
 	pr_err("%s:%d: bad pte %p(%016lx)\n",		\
-	       __FILE__, __LINE__, &(e), pte_val(e))
+		   __FILE__, __LINE__, &(e), pte_val(e))
 #define pmd_ERROR(e)					\
 	pr_err("%s:%d: bad pmd %p(%016lx)\n",		\
-	       __FILE__, __LINE__, &(e), pmd_val(e))
+		   __FILE__, __LINE__, &(e), pmd_val(e))
 #define pud_ERROR(e)					\
 	pr_err("%s:%d: bad pud %p(%016lx)\n",		\
-	       __FILE__, __LINE__, &(e), pud_val(e))
+		   __FILE__, __LINE__, &(e), pud_val(e))
 #define pgd_ERROR(e)					\
 	pr_err("%s:%d: bad pgd %p(%016lx)\n",		\
-	       __FILE__, __LINE__, &(e), pgd_val(e))
+		   __FILE__, __LINE__, &(e), pgd_val(e))
 
 struct mm_struct;
 
@@ -45,7 +45,7 @@ void set_pte_vaddr_pud(pud_t *pud_page, unsigned long vaddr, pte_t new_pte);
 
 
 static inline void native_pte_clear(struct mm_struct *mm, unsigned long addr,
-				    pte_t *ptep)
+									pte_t *ptep)
 {
 	*ptep = native_make_pte(0);
 }
@@ -117,7 +117,7 @@ static inline void native_pgd_clear(pgd_t *pgd)
 }
 
 extern void sync_global_pgds(unsigned long start, unsigned long end,
-			     int removed);
+							 int removed);
 
 /*
  * Conversion functions: convert a page and protection to a page entry,
@@ -161,11 +161,11 @@ static inline int pgd_large(pgd_t pgd) { return 0; }
 #define MAX_SWAPFILES_CHECK() BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > SWP_TYPE_BITS)
 
 #define __swp_type(x)			(((x).val >> (SWP_TYPE_FIRST_BIT)) \
-					 & ((1U << SWP_TYPE_BITS) - 1))
+								 & ((1U << SWP_TYPE_BITS) - 1))
 #define __swp_offset(x)			((x).val >> SWP_OFFSET_FIRST_BIT)
 #define __swp_entry(type, offset)	((swp_entry_t) { \
-					 ((type) << (SWP_TYPE_FIRST_BIT)) \
-					 | ((offset) << SWP_OFFSET_FIRST_BIT) })
+		((type) << (SWP_TYPE_FIRST_BIT)) \
+		| ((offset) << SWP_OFFSET_FIRST_BIT) })
 #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val((pte)) })
 #define __swp_entry_to_pte(x)		((pte_t) { .pte = (x).val })
 

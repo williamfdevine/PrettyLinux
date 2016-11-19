@@ -59,7 +59,8 @@ void __init generate_cplb_tables_cpu(unsigned int cpu)
 #endif
 
 
-	for (; addr < memory_start; addr += cplb_pagesize) {
+	for (; addr < memory_start; addr += cplb_pagesize)
+	{
 		d_tbl[i_d].addr = addr;
 		d_tbl[i_d++].data = SDRAM_DGENERIC | cplb_pageflags;
 		i_tbl[i_i].addr = addr;
@@ -84,23 +85,31 @@ void __init generate_cplb_tables_cpu(unsigned int cpu)
 #endif
 
 	/* Cover L1 memory.  One 4M area for code and data each is enough.  */
-	if (cpu == 0) {
-		if (L1_DATA_A_LENGTH || L1_DATA_B_LENGTH) {
+	if (cpu == 0)
+	{
+		if (L1_DATA_A_LENGTH || L1_DATA_B_LENGTH)
+		{
 			d_tbl[i_d].addr = L1_DATA_A_START;
 			d_tbl[i_d++].data = L1_DMEMORY | PAGE_SIZE_4MB;
 		}
+
 		i_tbl[i_i].addr = L1_CODE_START;
 		i_tbl[i_i++].data = L1_IMEMORY | PAGE_SIZE_4MB;
 	}
+
 #ifdef CONFIG_SMP
-	else {
-		if (L1_DATA_A_LENGTH || L1_DATA_B_LENGTH) {
+	else
+	{
+		if (L1_DATA_A_LENGTH || L1_DATA_B_LENGTH)
+		{
 			d_tbl[i_d].addr = COREB_L1_DATA_A_START;
 			d_tbl[i_d++].data = L1_DMEMORY | PAGE_SIZE_4MB;
 		}
+
 		i_tbl[i_i].addr = COREB_L1_CODE_START;
 		i_tbl[i_i++].data = L1_IMEMORY | PAGE_SIZE_4MB;
 	}
+
 #endif
 	first_switched_dcplb = i_d;
 	first_switched_icplb = i_i;
@@ -109,9 +118,14 @@ void __init generate_cplb_tables_cpu(unsigned int cpu)
 	BUG_ON(first_switched_icplb > MAX_CPLBS);
 
 	while (i_d < MAX_CPLBS)
+	{
 		d_tbl[i_d++].data = 0;
+	}
+
 	while (i_i < MAX_CPLBS)
+	{
 		i_tbl[i_i++].data = 0;
+	}
 }
 
 void __init generate_cplb_tables_all(void)
@@ -126,27 +140,38 @@ void __init generate_cplb_tables_all(void)
 #else
 	uncached_end = memory_end;
 #endif
+
 	/*
 	 * if DMA uncached is less than 1MB, mark the 1MB chunk as uncached
 	 * so that we don't have to use 4kB pages and cause CPLB thrashing
 	 */
 	if ((DMA_UNCACHED_REGION >= 1 * 1024 * 1024) || !DMA_UNCACHED_REGION ||
-	    ((_ramend - uncached_end) >= 1 * 1024 * 1024))
+		((_ramend - uncached_end) >= 1 * 1024 * 1024))
+	{
 		dcplb_bounds[i_d].eaddr = uncached_end;
+	}
 	else
+	{
 		dcplb_bounds[i_d].eaddr = uncached_end & ~(1 * 1024 * 1024 - 1);
+	}
+
 	dcplb_bounds[i_d++].data = SDRAM_DGENERIC;
+
 	/* DMA uncached region.  */
-	if (DMA_UNCACHED_REGION) {
+	if (DMA_UNCACHED_REGION)
+	{
 		dcplb_bounds[i_d].eaddr = _ramend;
 		dcplb_bounds[i_d++].data = SDRAM_DNON_CHBL;
 	}
-	if (_ramend != physical_mem_end) {
+
+	if (_ramend != physical_mem_end)
+	{
 		/* Reserved memory.  */
 		dcplb_bounds[i_d].eaddr = physical_mem_end;
 		dcplb_bounds[i_d++].data = (reserved_mem_dcache_on ?
-					    SDRAM_DGENERIC : SDRAM_DNON_CHBL);
+									SDRAM_DGENERIC : SDRAM_DNON_CHBL);
 	}
+
 	/* Addressing hole up to the async bank.  */
 	dcplb_bounds[i_d].eaddr = ASYNC_BANK0_BASE;
 	dcplb_bounds[i_d++].data = 0;
@@ -159,7 +184,9 @@ void __init generate_cplb_tables_all(void)
 	/* BootROM -- largest one should be less than 1 meg.  */
 	dcplb_bounds[i_d].eaddr = BOOT_ROM_START + BOOT_ROM_LENGTH;
 	dcplb_bounds[i_d++].data = SDRAM_DGENERIC;
-	if (L2_LENGTH) {
+
+	if (L2_LENGTH)
+	{
 		/* Addressing hole up to L2 SRAM.  */
 		dcplb_bounds[i_d].eaddr = L2_START;
 		dcplb_bounds[i_d++].data = 0;
@@ -167,6 +194,7 @@ void __init generate_cplb_tables_all(void)
 		dcplb_bounds[i_d].eaddr = L2_START + L2_LENGTH;
 		dcplb_bounds[i_d++].data = L2_DMEMORY;
 	}
+
 	dcplb_nr_bounds = i_d;
 	BUG_ON(dcplb_nr_bounds > ARRAY_SIZE(dcplb_bounds));
 
@@ -174,18 +202,23 @@ void __init generate_cplb_tables_all(void)
 	/* Normal RAM, including MTD FS.  */
 	icplb_bounds[i_i].eaddr = uncached_end;
 	icplb_bounds[i_i++].data = SDRAM_IGENERIC;
-	if (_ramend != physical_mem_end) {
+
+	if (_ramend != physical_mem_end)
+	{
 		/* DMA uncached region.  */
-		if (DMA_UNCACHED_REGION) {
+		if (DMA_UNCACHED_REGION)
+		{
 			/* Normally this hole is caught by the async below.  */
 			icplb_bounds[i_i].eaddr = _ramend;
 			icplb_bounds[i_i++].data = 0;
 		}
+
 		/* Reserved memory.  */
 		icplb_bounds[i_i].eaddr = physical_mem_end;
 		icplb_bounds[i_i++].data = (reserved_mem_icache_on ?
-					    SDRAM_IGENERIC : SDRAM_INON_CHBL);
+									SDRAM_IGENERIC : SDRAM_INON_CHBL);
 	}
+
 	/* Addressing hole up to the async bank.  */
 	icplb_bounds[i_i].eaddr = ASYNC_BANK0_BASE;
 	icplb_bounds[i_i++].data = 0;
@@ -199,7 +232,8 @@ void __init generate_cplb_tables_all(void)
 	icplb_bounds[i_i].eaddr = BOOT_ROM_START + BOOT_ROM_LENGTH;
 	icplb_bounds[i_i++].data = SDRAM_IGENERIC;
 
-	if (L2_LENGTH) {
+	if (L2_LENGTH)
+	{
 		/* Addressing hole up to L2 SRAM.  */
 		icplb_bounds[i_i].eaddr = L2_START;
 		icplb_bounds[i_i++].data = 0;
@@ -207,6 +241,7 @@ void __init generate_cplb_tables_all(void)
 		icplb_bounds[i_i].eaddr = L2_START + L2_LENGTH;
 		icplb_bounds[i_i++].data = L2_IMEMORY;
 	}
+
 	icplb_nr_bounds = i_i;
 	BUG_ON(icplb_nr_bounds > ARRAY_SIZE(icplb_bounds));
 }

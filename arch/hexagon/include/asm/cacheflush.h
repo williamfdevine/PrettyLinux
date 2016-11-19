@@ -84,13 +84,13 @@ extern void flush_cache_all_hexagon(void);
  *
  */
 static inline void update_mmu_cache(struct vm_area_struct *vma,
-					unsigned long address, pte_t *ptep)
+									unsigned long address, pte_t *ptep)
 {
 	/*  generic_ptrace_pokedata doesn't wind up here, does it?  */
 }
 
 void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
-		       unsigned long vaddr, void *dst, void *src, int len);
+					   unsigned long vaddr, void *dst, void *src, int len);
 
 #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
 	memcpy(dst, src, len)

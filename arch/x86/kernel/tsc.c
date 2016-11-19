@@ -73,7 +73,8 @@ struct clocksource *art_related_clocksource;
  * no longer run the risk of hitting half-written state.
  */
 
-struct cyc2ns {
+struct cyc2ns
+{
 	struct cyc2ns_data data[2];	/*  0 + 2*24 = 48 */
 	struct cyc2ns_data *head;	/* 48 + 8    = 56 */
 	struct cyc2ns_data *tail;	/* 56 + 8    = 64 */
@@ -102,13 +103,15 @@ struct cyc2ns_data *cyc2ns_read_begin(void)
 void cyc2ns_read_end(struct cyc2ns_data *head)
 {
 	barrier();
+
 	/*
 	 * If we're the outer most nested read; update the tail pointer
 	 * when we're done. This notifies possible pending writers
 	 * that we've observed the head pointer and that the other
 	 * entry is now free.
 	 */
-	if (!--head->__count) {
+	if (!--head->__count)
+	{
 		/*
 		 * x86-TSO does not reorder writes with older reads;
 		 * therefore once this write becomes visible to another
@@ -118,6 +121,7 @@ void cyc2ns_read_end(struct cyc2ns_data *head)
 		 */
 		this_cpu_write(cyc2ns.tail, head);
 	}
+
 	preempt_enable();
 }
 
@@ -133,7 +137,9 @@ static struct cyc2ns_data *cyc2ns_write_begin(int cpu)
 	struct cyc2ns_data *data = c2n->data;
 
 	if (data == c2n->head)
+	{
 		data++;
+	}
 
 	/* XXX send an IPI to @cpu in order to guarantee a read? */
 
@@ -143,7 +149,9 @@ static struct cyc2ns_data *cyc2ns_write_begin(int cpu)
 	 * to start writing to it.
 	 */
 	while (c2n->tail == data)
+	{
 		cpu_relax();
+	}
 
 	return data;
 }
@@ -220,10 +228,13 @@ static inline unsigned long long cycles_2_ns(unsigned long long cyc)
 	data = this_cpu_read(cyc2ns.head);
 	tail = this_cpu_read(cyc2ns.tail);
 
-	if (likely(data == tail)) {
+	if (likely(data == tail))
+	{
 		ns = data->cyc2ns_offset;
 		ns += mul_u64_u32_shr(cyc, data->cyc2ns_mul, data->cyc2ns_shift);
-	} else {
+	}
+	else
+	{
 		data->__count++;
 
 		barrier();
@@ -234,8 +245,11 @@ static inline unsigned long long cycles_2_ns(unsigned long long cyc)
 		barrier();
 
 		if (!--data->__count)
+		{
 			this_cpu_write(cyc2ns.tail, data);
+		}
 	}
+
 	preempt_enable_notrace();
 
 	return ns;
@@ -251,7 +265,9 @@ static void set_cyc2ns_scale(unsigned long khz, int cpu)
 	sched_clock_idle_sleep_event();
 
 	if (!khz)
+	{
 		goto done;
+	}
 
 	data = cyc2ns_write_begin(cpu);
 
@@ -264,7 +280,7 @@ static void set_cyc2ns_scale(unsigned long khz, int cpu)
 	 * cyc2ns_data.
 	 */
 	clocks_calc_mult_shift(&data->cyc2ns_mul, &data->cyc2ns_shift, khz,
-			       NSEC_PER_MSEC, 0);
+						   NSEC_PER_MSEC, 0);
 
 	/*
 	 * cyc2ns_shift is exported via arch_perf_update_userpage() where it is
@@ -272,13 +288,14 @@ static void set_cyc2ns_scale(unsigned long khz, int cpu)
 	 * conversion algorithm shifting a 32-bit value (now specifies a 64-bit
 	 * value) - refer perf_event_mmap_page documentation in perf_event.h.
 	 */
-	if (data->cyc2ns_shift == 32) {
+	if (data->cyc2ns_shift == 32)
+	{
 		data->cyc2ns_shift = 31;
 		data->cyc2ns_mul >>= 1;
 	}
 
 	data->cyc2ns_offset = ns_now -
-		mul_u64_u32_shr(tsc_now, data->cyc2ns_mul, data->cyc2ns_shift);
+						  mul_u64_u32_shr(tsc_now, data->cyc2ns_mul, data->cyc2ns_shift);
 
 	cyc2ns_write_end(cpu, data);
 
@@ -291,7 +308,8 @@ done:
  */
 u64 native_sched_clock(void)
 {
-	if (static_branch_likely(&__use_tsc)) {
+	if (static_branch_likely(&__use_tsc))
+	{
 		u64 tsc_now = rdtsc();
 
 		/* return the value in ns */
@@ -363,9 +381,15 @@ static int no_sched_irq_time;
 static int __init tsc_setup(char *str)
 {
 	if (!strcmp(str, "reliable"))
+	{
 		tsc_clocksource_reliable = 1;
+	}
+
 	if (!strncmp(str, "noirqtime", 9))
+	{
 		no_sched_irq_time = 1;
+	}
+
 	return 1;
 }
 
@@ -382,16 +406,27 @@ static u64 tsc_read_refs(u64 *p, int hpet)
 	u64 t1, t2;
 	int i;
 
-	for (i = 0; i < MAX_RETRIES; i++) {
+	for (i = 0; i < MAX_RETRIES; i++)
+	{
 		t1 = get_cycles();
+
 		if (hpet)
+		{
 			*p = hpet_readl(HPET_COUNTER) & 0xFFFFFFFF;
+		}
 		else
+		{
 			*p = acpi_pm_read_early();
+		}
+
 		t2 = get_cycles();
+
 		if ((t2 - t1) < SMI_TRESHOLD)
+		{
 			return t2;
+		}
 	}
+
 	return ULLONG_MAX;
 }
 
@@ -403,7 +438,10 @@ static unsigned long calc_hpet_ref(u64 deltatsc, u64 hpet1, u64 hpet2)
 	u64 tmp;
 
 	if (hpet2 < hpet1)
+	{
 		hpet2 += 0x100000000ULL;
+	}
+
 	hpet2 -= hpet1;
 	tmp = ((u64)hpet2 * hpet_readl(HPET_PERIOD));
 	do_div(tmp, 1000000);
@@ -420,10 +458,15 @@ static unsigned long calc_pmtimer_ref(u64 deltatsc, u64 pm1, u64 pm2)
 	u64 tmp;
 
 	if (!pm1 && !pm2)
+	{
 		return ULONG_MAX;
+	}
 
 	if (pm2 < pm1)
+	{
 		pm2 += (u64)ACPI_PM_OVRRUN;
+	}
+
 	pm2 -= pm1;
 	tmp = pm2 * 1000000000LL;
 	do_div(tmp, PMTMR_TICKS_PER_SEC);
@@ -471,14 +514,23 @@ static unsigned long pit_calibrate_tsc(u32 latch, unsigned long ms, int loopmin)
 	pitcnt = 0;
 	tscmax = 0;
 	tscmin = ULONG_MAX;
-	while ((inb(0x61) & 0x20) == 0) {
+
+	while ((inb(0x61) & 0x20) == 0)
+	{
 		t2 = get_cycles();
 		delta = t2 - tsc;
 		tsc = t2;
+
 		if ((unsigned long) delta < tscmin)
+		{
 			tscmin = (unsigned int) delta;
+		}
+
 		if ((unsigned long) delta > tscmax)
+		{
 			tscmax = (unsigned int) delta;
+		}
+
 		pitcnt++;
 	}
 
@@ -492,7 +544,9 @@ static unsigned long pit_calibrate_tsc(u32 latch, unsigned long ms, int loopmin)
 	 * then we got hit by an SMI as well.
 	 */
 	if (pitcnt < loopmin || tscmax > 10 * tscmin)
+	{
 		return ULONG_MAX;
+	}
 
 	/* Calculate the PIT value */
 	delta = t2 - t1;
@@ -547,12 +601,17 @@ static inline int pit_expect_msb(unsigned char val, u64 *tscp, unsigned long *de
 	int count;
 	u64 tsc = 0, prev_tsc = 0;
 
-	for (count = 0; count < 50000; count++) {
+	for (count = 0; count < 50000; count++)
+	{
 		if (!pit_verify_msb(val))
+		{
 			break;
+		}
+
 		prev_tsc = tsc;
 		tsc = get_cycles();
 	}
+
 	*deltap = get_cycles() - prev_tsc;
 	*tscp = tsc;
 
@@ -604,10 +663,14 @@ static unsigned long quick_pit_calibrate(void)
 	 */
 	pit_verify_msb(0);
 
-	if (pit_expect_msb(0xff, &tsc, &d1)) {
-		for (i = 1; i <= MAX_QUICK_PIT_ITERATIONS; i++) {
-			if (!pit_expect_msb(0xff-i, &delta, &d2))
+	if (pit_expect_msb(0xff, &tsc, &d1))
+	{
+		for (i = 1; i <= MAX_QUICK_PIT_ITERATIONS; i++)
+		{
+			if (!pit_expect_msb(0xff - i, &delta, &d2))
+			{
 				break;
+			}
 
 			delta -= tsc;
 
@@ -616,14 +679,18 @@ static unsigned long quick_pit_calibrate(void)
 			 * never be below 500 ppm.
 			 */
 			if (i == 1 &&
-			    d1 + d2 >= (delta * MAX_QUICK_PIT_ITERATIONS) >> 11)
+				d1 + d2 >= (delta * MAX_QUICK_PIT_ITERATIONS) >> 11)
+			{
 				return 0;
+			}
 
 			/*
 			 * Iterate until the error is less than 500 ppm
 			 */
-			if (d1+d2 >= delta >> 11)
+			if (d1 + d2 >= delta >> 11)
+			{
 				continue;
+			}
 
 			/*
 			 * Check the PIT one more time to verify that
@@ -633,10 +700,14 @@ static unsigned long quick_pit_calibrate(void)
 			 * last cycle read ('d2') in pit_expect_msb.
 			 */
 			if (!pit_verify_msb(0xfe - i))
+			{
 				break;
+			}
+
 			goto success;
 		}
 	}
+
 	pr_info("Fast TSC calibration failed\n");
 	return 0;
 
@@ -655,7 +726,7 @@ success:
 	 * kHz = ((t2 - t1) * PIT_TICK_RATE) / (I * 256 * 1000)
 	 */
 	delta *= PIT_TICK_RATE;
-	do_div(delta, i*256*1000);
+	do_div(delta, i * 256 * 1000);
 	pr_info("Fast TSC calibration using PIT\n");
 	return delta;
 }
@@ -670,10 +741,14 @@ unsigned long native_calibrate_tsc(void)
 	unsigned int crystal_khz;
 
 	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL)
+	{
 		return 0;
+	}
 
 	if (boot_cpu_data.cpuid_level < 0x15)
+	{
 		return 0;
+	}
 
 	eax_denominator = ebx_numerator = ecx_hz = edx = 0;
 
@@ -681,24 +756,30 @@ unsigned long native_calibrate_tsc(void)
 	cpuid(0x15, &eax_denominator, &ebx_numerator, &ecx_hz, &edx);
 
 	if (ebx_numerator == 0 || eax_denominator == 0)
+	{
 		return 0;
+	}
 
 	crystal_khz = ecx_hz / 1000;
 
-	if (crystal_khz == 0) {
-		switch (boot_cpu_data.x86_model) {
-		case INTEL_FAM6_SKYLAKE_MOBILE:
-		case INTEL_FAM6_SKYLAKE_DESKTOP:
-		case INTEL_FAM6_KABYLAKE_MOBILE:
-		case INTEL_FAM6_KABYLAKE_DESKTOP:
-			crystal_khz = 24000;	/* 24.0 MHz */
-			break;
-		case INTEL_FAM6_SKYLAKE_X:
-			crystal_khz = 25000;	/* 25.0 MHz */
-			break;
-		case INTEL_FAM6_ATOM_GOLDMONT:
-			crystal_khz = 19200;	/* 19.2 MHz */
-			break;
+	if (crystal_khz == 0)
+	{
+		switch (boot_cpu_data.x86_model)
+		{
+			case INTEL_FAM6_SKYLAKE_MOBILE:
+			case INTEL_FAM6_SKYLAKE_DESKTOP:
+			case INTEL_FAM6_KABYLAKE_MOBILE:
+			case INTEL_FAM6_KABYLAKE_DESKTOP:
+				crystal_khz = 24000;	/* 24.0 MHz */
+				break;
+
+			case INTEL_FAM6_SKYLAKE_X:
+				crystal_khz = 25000;	/* 25.0 MHz */
+				break;
+
+			case INTEL_FAM6_ATOM_GOLDMONT:
+				crystal_khz = 19200;	/* 19.2 MHz */
+				break;
 		}
 	}
 
@@ -710,10 +791,14 @@ static unsigned long cpu_khz_from_cpuid(void)
 	unsigned int eax_base_mhz, ebx_max_mhz, ecx_bus_mhz, edx;
 
 	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL)
+	{
 		return 0;
+	}
 
 	if (boot_cpu_data.cpuid_level < 0x16)
+	{
 		return 0;
+	}
 
 	eax_base_mhz = ebx_max_mhz = ecx_bus_mhz = edx = 0;
 
@@ -733,18 +818,27 @@ unsigned long native_calibrate_cpu(void)
 	int hpet = is_hpet_enabled(), i, loopmin;
 
 	fast_calibrate = cpu_khz_from_cpuid();
+
 	if (fast_calibrate)
+	{
 		return fast_calibrate;
+	}
 
 	fast_calibrate = cpu_khz_from_msr();
+
 	if (fast_calibrate)
+	{
 		return fast_calibrate;
+	}
 
 	local_irq_save(flags);
 	fast_calibrate = quick_pit_calibrate();
 	local_irq_restore(flags);
+
 	if (fast_calibrate)
+	{
 		return fast_calibrate;
+	}
 
 	/*
 	 * Run 5 calibration loops to get the lowest frequency value
@@ -776,7 +870,8 @@ unsigned long native_calibrate_cpu(void)
 	ms = CAL_MS;
 	loopmin = CAL_PIT_LOOPS;
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		unsigned long tsc_pit_khz;
 
 		/*
@@ -796,17 +891,26 @@ unsigned long native_calibrate_cpu(void)
 
 		/* hpet or pmtimer available ? */
 		if (ref1 == ref2)
+		{
 			continue;
+		}
 
 		/* Check, whether the sampling was disturbed by an SMI */
 		if (tsc1 == ULLONG_MAX || tsc2 == ULLONG_MAX)
+		{
 			continue;
+		}
 
 		tsc2 = (tsc2 - tsc1) * 1000000LL;
+
 		if (hpet)
+		{
 			tsc2 = calc_hpet_ref(tsc2, ref1, ref2);
+		}
 		else
+		{
 			tsc2 = calc_pmtimer_ref(tsc2, ref1, ref2);
+		}
 
 		tsc_ref_min = min(tsc_ref_min, (unsigned long) tsc2);
 
@@ -820,9 +924,10 @@ unsigned long native_calibrate_cpu(void)
 		 * succeeded. We break out of the loop right away. We
 		 * use the reference value, as it is more precise.
 		 */
-		if (delta >= 90 && delta <= 110) {
+		if (delta >= 90 && delta <= 110)
+		{
 			pr_info("PIT calibration matches %s. %d loops\n",
-				hpet ? "HPET" : "PMTIMER", i + 1);
+					hpet ? "HPET" : "PMTIMER", i + 1);
 			return tsc_ref_min;
 		}
 
@@ -832,7 +937,8 @@ unsigned long native_calibrate_cpu(void)
 		 * give the virtual PC a slightly longer timeframe for
 		 * the HPET/PMTIMER to make the result precise.
 		 */
-		if (i == 1 && tsc_pit_min == ULONG_MAX) {
+		if (i == 1 && tsc_pit_min == ULONG_MAX)
+		{
 			latch = CAL2_LATCH;
 			ms = CAL2_MS;
 			loopmin = CAL2_PIT_LOOPS;
@@ -842,37 +948,42 @@ unsigned long native_calibrate_cpu(void)
 	/*
 	 * Now check the results.
 	 */
-	if (tsc_pit_min == ULONG_MAX) {
+	if (tsc_pit_min == ULONG_MAX)
+	{
 		/* PIT gave no useful value */
 		pr_warn("Unable to calibrate against PIT\n");
 
 		/* We don't have an alternative source, disable TSC */
-		if (!hpet && !ref1 && !ref2) {
+		if (!hpet && !ref1 && !ref2)
+		{
 			pr_notice("No reference (HPET/PMTIMER) available\n");
 			return 0;
 		}
 
 		/* The alternative source failed as well, disable TSC */
-		if (tsc_ref_min == ULONG_MAX) {
+		if (tsc_ref_min == ULONG_MAX)
+		{
 			pr_warn("HPET/PMTIMER calibration failed\n");
 			return 0;
 		}
 
 		/* Use the alternative source */
 		pr_info("using %s reference calibration\n",
-			hpet ? "HPET" : "PMTIMER");
+				hpet ? "HPET" : "PMTIMER");
 
 		return tsc_ref_min;
 	}
 
 	/* We don't have an alternative source, use the PIT calibration value */
-	if (!hpet && !ref1 && !ref2) {
+	if (!hpet && !ref1 && !ref2)
+	{
 		pr_info("Using PIT calibration value\n");
 		return tsc_pit_min;
 	}
 
 	/* The alternative source failed, use the PIT calibration value */
-	if (tsc_ref_min == ULONG_MAX) {
+	if (tsc_ref_min == ULONG_MAX)
+	{
 		pr_warn("HPET/PMTIMER calibration failed. Using PIT calibration.\n");
 		return tsc_pit_min;
 	}
@@ -883,7 +994,7 @@ unsigned long native_calibrate_cpu(void)
 	 * running at double speed. At least we let the user know:
 	 */
 	pr_warn("PIT calibration deviates from %s: %lu %lu\n",
-		hpet ? "HPET" : "PMTIMER", tsc_pit_min, tsc_ref_min);
+			hpet ? "HPET" : "PMTIMER", tsc_pit_min, tsc_ref_min);
 	pr_info("Using PIT calibration value\n");
 	return tsc_pit_min;
 }
@@ -894,16 +1005,24 @@ int recalibrate_cpu_khz(void)
 	unsigned long cpu_khz_old = cpu_khz;
 
 	if (!boot_cpu_has(X86_FEATURE_TSC))
+	{
 		return -ENODEV;
+	}
 
 	cpu_khz = x86_platform.calibrate_cpu();
 	tsc_khz = x86_platform.calibrate_tsc();
+
 	if (tsc_khz == 0)
+	{
 		tsc_khz = cpu_khz;
+	}
 	else if (abs(cpu_khz - tsc_khz) * 10 > tsc_khz)
+	{
 		cpu_khz = tsc_khz;
+	}
+
 	cpu_data(0).loops_per_jiffy = cpufreq_scale(cpu_data(0).loops_per_jiffy,
-						    cpu_khz_old, cpu_khz);
+								  cpu_khz_old, cpu_khz);
 
 	return 0;
 #else
@@ -919,7 +1038,9 @@ static unsigned long long cyc2ns_suspend;
 void tsc_save_sched_clock_state(void)
 {
 	if (!sched_clock_stable())
+	{
 		return;
+	}
 
 	cyc2ns_suspend = sched_clock();
 }
@@ -939,7 +1060,9 @@ void tsc_restore_sched_clock_state(void)
 	int cpu;
 
 	if (!sched_clock_stable())
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
@@ -954,7 +1077,8 @@ void tsc_restore_sched_clock_state(void)
 
 	offset = cyc2ns_suspend - sched_clock();
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		per_cpu(cyc2ns.data[0].cyc2ns_offset, cpu) = offset;
 		per_cpu(cyc2ns.data[1].cyc2ns_offset, cpu) = offset;
 	}
@@ -980,29 +1104,39 @@ static unsigned long loops_per_jiffy_ref;
 static unsigned long tsc_khz_ref;
 
 static int time_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
-				void *data)
+								 void *data)
 {
 	struct cpufreq_freqs *freq = data;
 	unsigned long *lpj;
 
 	lpj = &boot_cpu_data.loops_per_jiffy;
 #ifdef CONFIG_SMP
+
 	if (!(freq->flags & CPUFREQ_CONST_LOOPS))
+	{
 		lpj = &cpu_data(freq->cpu).loops_per_jiffy;
+	}
+
 #endif
 
-	if (!ref_freq) {
+	if (!ref_freq)
+	{
 		ref_freq = freq->old;
 		loops_per_jiffy_ref = *lpj;
 		tsc_khz_ref = tsc_khz;
 	}
+
 	if ((val == CPUFREQ_PRECHANGE  && freq->old < freq->new) ||
-			(val == CPUFREQ_POSTCHANGE && freq->old > freq->new)) {
+		(val == CPUFREQ_POSTCHANGE && freq->old > freq->new))
+	{
 		*lpj = cpufreq_scale(loops_per_jiffy_ref, ref_freq, freq->new);
 
 		tsc_khz = cpufreq_scale(tsc_khz_ref, ref_freq, freq->new);
+
 		if (!(freq->flags & CPUFREQ_CONST_LOOPS))
+		{
 			mark_tsc_unstable("cpufreq changes");
+		}
 
 		set_cyc2ns_scale(tsc_khz, freq->cpu);
 	}
@@ -1010,18 +1144,25 @@ static int time_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
 	return 0;
 }
 
-static struct notifier_block time_cpufreq_notifier_block = {
+static struct notifier_block time_cpufreq_notifier_block =
+{
 	.notifier_call  = time_cpufreq_notifier
 };
 
 static int __init cpufreq_register_tsc_scaling(void)
 {
 	if (!boot_cpu_has(X86_FEATURE_TSC))
+	{
 		return 0;
+	}
+
 	if (boot_cpu_has(X86_FEATURE_CONSTANT_TSC))
+	{
 		return 0;
+	}
+
 	cpufreq_register_notifier(&time_cpufreq_notifier_block,
-				CPUFREQ_TRANSITION_NOTIFIER);
+							  CPUFREQ_TRANSITION_NOTIFIER);
 	return 0;
 }
 
@@ -1041,19 +1182,25 @@ static void detect_art(void)
 	unsigned int unused[2];
 
 	if (boot_cpu_data.cpuid_level < ART_CPUID_LEAF)
+	{
 		return;
+	}
 
 	cpuid(ART_CPUID_LEAF, &art_to_tsc_denominator,
-	      &art_to_tsc_numerator, unused, unused+1);
+		  &art_to_tsc_numerator, unused, unused + 1);
 
 	/* Don't enable ART in a VM, non-stop TSC required */
 	if (boot_cpu_has(X86_FEATURE_HYPERVISOR) ||
-	    !boot_cpu_has(X86_FEATURE_NONSTOP_TSC) ||
-	    art_to_tsc_denominator < ART_MIN_DENOMINATOR)
+		!boot_cpu_has(X86_FEATURE_NONSTOP_TSC) ||
+		art_to_tsc_denominator < ART_MIN_DENOMINATOR)
+	{
 		return;
+	}
 
 	if (rdmsrl_safe(MSR_IA32_TSC_ADJUST, &art_to_tsc_offset))
+	{
 		return;
+	}
 
 	/* Make this sticky over multiple CPU init calls */
 	setup_force_cpu_cap(X86_FEATURE_ART);
@@ -1088,27 +1235,33 @@ static cycle_t read_tsc(struct clocksource *cs)
 /*
  * .mask MUST be CLOCKSOURCE_MASK(64). See comment above read_tsc()
  */
-static struct clocksource clocksource_tsc = {
+static struct clocksource clocksource_tsc =
+{
 	.name                   = "tsc",
 	.rating                 = 300,
 	.read                   = read_tsc,
 	.mask                   = CLOCKSOURCE_MASK(64),
 	.flags                  = CLOCK_SOURCE_IS_CONTINUOUS |
-				  CLOCK_SOURCE_MUST_VERIFY,
+	CLOCK_SOURCE_MUST_VERIFY,
 	.archdata               = { .vclock_mode = VCLOCK_TSC },
 };
 
 void mark_tsc_unstable(char *reason)
 {
-	if (!tsc_unstable) {
+	if (!tsc_unstable)
+	{
 		tsc_unstable = 1;
 		clear_sched_clock_stable();
 		disable_sched_clock_irqtime();
 		pr_info("Marking TSC unstable due to %s\n", reason);
+
 		/* Change only the rating, when not registered */
 		if (clocksource_tsc.mult)
+		{
 			clocksource_mark_unstable(&clocksource_tsc);
-		else {
+		}
+		else
+		{
 			clocksource_tsc.flags |= CLOCK_SOURCE_UNSTABLE;
 			clocksource_tsc.rating = 0;
 		}
@@ -1120,19 +1273,28 @@ EXPORT_SYMBOL_GPL(mark_tsc_unstable);
 static void __init check_system_tsc_reliable(void)
 {
 #if defined(CONFIG_MGEODEGX1) || defined(CONFIG_MGEODE_LX) || defined(CONFIG_X86_GENERIC)
-	if (is_geode_lx()) {
+
+	if (is_geode_lx())
+	{
 		/* RTSC counts during suspend */
 #define RTSC_SUSP 0x100
 		unsigned long res_low, res_high;
 
 		rdmsr_safe(MSR_GEODE_BUSCONT_CONF0, &res_low, &res_high);
+
 		/* Geode_LX - the OLPC CPU has a very reliable TSC */
 		if (res_low & RTSC_SUSP)
+		{
 			tsc_clocksource_reliable = 1;
+		}
 	}
+
 #endif
+
 	if (boot_cpu_has(X86_FEATURE_TSC_RELIABLE))
+	{
 		tsc_clocksource_reliable = 1;
+	}
 }
 
 /*
@@ -1142,26 +1304,40 @@ static void __init check_system_tsc_reliable(void)
 int unsynchronized_tsc(void)
 {
 	if (!boot_cpu_has(X86_FEATURE_TSC) || tsc_unstable)
+	{
 		return 1;
+	}
 
 #ifdef CONFIG_SMP
+
 	if (apic_is_clustered_box())
+	{
 		return 1;
+	}
+
 #endif
 
 	if (boot_cpu_has(X86_FEATURE_CONSTANT_TSC))
+	{
 		return 0;
+	}
 
 	if (tsc_clocksource_reliable)
+	{
 		return 0;
+	}
+
 	/*
 	 * Intel systems are normally all synchronized.
 	 * Exceptions must mark TSC as unstable:
 	 */
-	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL) {
+	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL)
+	{
 		/* assume multi socket systems are not synchronized: */
 		if (num_possible_cpus() > 1)
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -1182,8 +1358,11 @@ struct system_counterval_t convert_art_to_tsc(cycle_t art)
 	do_div(tmp, art_to_tsc_denominator);
 	res += tmp + art_to_tsc_offset;
 
-	return (struct system_counterval_t) {.cs = art_related_clocksource,
-			.cycles = res};
+	return (struct system_counterval_t)
+	{
+		.cs = art_related_clocksource,
+		 .cycles = res
+	};
 }
 EXPORT_SYMBOL(convert_art_to_tsc);
 
@@ -1212,14 +1391,17 @@ static void tsc_refine_calibration_work(struct work_struct *work)
 
 	/* Don't bother refining TSC on unstable systems */
 	if (check_tsc_unstable())
+	{
 		goto out;
+	}
 
 	/*
 	 * Since the work is started early in boot, we may be
 	 * delayed the first time we expire. So set the workqueue
 	 * again once we know timers are working.
 	 */
-	if (tsc_start == -1) {
+	if (tsc_start == -1)
+	{
 		/*
 		 * Only set hpet once, to avoid mixing hardware
 		 * if the hpet becomes enabled later.
@@ -1234,34 +1416,49 @@ static void tsc_refine_calibration_work(struct work_struct *work)
 
 	/* hpet or pmtimer available ? */
 	if (ref_start == ref_stop)
+	{
 		goto out;
+	}
 
 	/* Check, whether the sampling was disturbed by an SMI */
 	if (tsc_start == ULLONG_MAX || tsc_stop == ULLONG_MAX)
+	{
 		goto out;
+	}
 
 	delta = tsc_stop - tsc_start;
 	delta *= 1000000LL;
+
 	if (hpet)
+	{
 		freq = calc_hpet_ref(delta, ref_start, ref_stop);
+	}
 	else
+	{
 		freq = calc_pmtimer_ref(delta, ref_start, ref_stop);
+	}
 
 	/* Make sure we're within 1% */
-	if (abs(tsc_khz - freq) > tsc_khz/100)
+	if (abs(tsc_khz - freq) > tsc_khz / 100)
+	{
 		goto out;
+	}
 
 	tsc_khz = freq;
 	pr_info("Refined TSC clocksource calibration: %lu.%03lu MHz\n",
-		(unsigned long)tsc_khz / 1000,
-		(unsigned long)tsc_khz % 1000);
+			(unsigned long)tsc_khz / 1000,
+			(unsigned long)tsc_khz % 1000);
 
 	/* Inform the TSC deadline clockevent devices about the recalibration */
 	lapic_update_tsc_freq();
 
 out:
+
 	if (boot_cpu_has(X86_FEATURE_ART))
+	{
 		art_related_clocksource = &clocksource_tsc;
+	}
+
 	clocksource_register_khz(&clocksource_tsc, tsc_khz);
 }
 
@@ -1269,24 +1466,33 @@ out:
 static int __init init_tsc_clocksource(void)
 {
 	if (!boot_cpu_has(X86_FEATURE_TSC) || tsc_disabled > 0 || !tsc_khz)
+	{
 		return 0;
+	}
 
 	if (tsc_clocksource_reliable)
+	{
 		clocksource_tsc.flags &= ~CLOCK_SOURCE_MUST_VERIFY;
+	}
+
 	/* lower the rating if we already know its unstable: */
-	if (check_tsc_unstable()) {
+	if (check_tsc_unstable())
+	{
 		clocksource_tsc.rating = 0;
 		clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
 	}
 
 	if (boot_cpu_has(X86_FEATURE_NONSTOP_TSC_S3))
+	{
 		clocksource_tsc.flags |= CLOCK_SOURCE_SUSPEND_NONSTOP;
+	}
 
 	/*
 	 * Trust the results of the earlier calibration on systems
 	 * exporting a reliable TSC.
 	 */
-	if (boot_cpu_has(X86_FEATURE_TSC_RELIABLE)) {
+	if (boot_cpu_has(X86_FEATURE_TSC_RELIABLE))
+	{
 		clocksource_register_khz(&clocksource_tsc, tsc_khz);
 		return 0;
 	}
@@ -1305,7 +1511,8 @@ void __init tsc_init(void)
 	u64 lpj;
 	int cpu;
 
-	if (!boot_cpu_has(X86_FEATURE_TSC)) {
+	if (!boot_cpu_has(X86_FEATURE_TSC))
+	{
 		setup_clear_cpu_cap(X86_FEATURE_TSC_DEADLINE_TIMER);
 		return;
 	}
@@ -1319,19 +1526,24 @@ void __init tsc_init(void)
 	 * which will be off if system timer is off.
 	 */
 	if (tsc_khz == 0)
+	{
 		tsc_khz = cpu_khz;
+	}
 	else if (abs(cpu_khz - tsc_khz) * 10 > tsc_khz)
+	{
 		cpu_khz = tsc_khz;
+	}
 
-	if (!tsc_khz) {
+	if (!tsc_khz)
+	{
 		mark_tsc_unstable("could not calculate TSC khz");
 		setup_clear_cpu_cap(X86_FEATURE_TSC_DEADLINE_TIMER);
 		return;
 	}
 
 	pr_info("Detected %lu.%03lu MHz processor\n",
-		(unsigned long)cpu_khz / 1000,
-		(unsigned long)cpu_khz % 1000);
+			(unsigned long)cpu_khz / 1000,
+			(unsigned long)cpu_khz % 1000);
 
 	/*
 	 * Secondary CPUs do not run through tsc_init(), so set up
@@ -1339,13 +1551,16 @@ void __init tsc_init(void)
 	 * speed as the bootup CPU. (cpufreq notifiers will fix this
 	 * up if their speed diverges)
 	 */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		cyc2ns_init(cpu);
 		set_cyc2ns_scale(tsc_khz, cpu);
 	}
 
 	if (tsc_disabled > 0)
+	{
 		return;
+	}
 
 	/* now allow native_sched_clock() to use rdtsc */
 
@@ -1353,7 +1568,9 @@ void __init tsc_init(void)
 	static_branch_enable(&__use_tsc);
 
 	if (!no_sched_irq_time)
+	{
 		enable_sched_clock_irqtime();
+	}
 
 	lpj = ((u64)tsc_khz * 1000);
 	do_div(lpj, HZ);
@@ -1362,7 +1579,9 @@ void __init tsc_init(void)
 	use_tsc_delay();
 
 	if (unsynchronized_tsc())
+	{
 		mark_tsc_unstable("TSCs unsynchronized");
+	}
 
 	check_system_tsc_reliable();
 
@@ -1382,14 +1601,22 @@ unsigned long calibrate_delay_is_known(void)
 	struct cpumask *mask = topology_core_cpumask(cpu);
 
 	if (!tsc_disabled && !cpu_has(&cpu_data(cpu), X86_FEATURE_CONSTANT_TSC))
+	{
 		return 0;
+	}
 
 	if (!mask)
+	{
 		return 0;
+	}
 
 	sibling = cpumask_any_but(mask, cpu);
+
 	if (sibling < nr_cpu_ids)
+	{
 		return cpu_data(sibling).loops_per_jiffy;
+	}
+
 	return 0;
 }
 #endif

@@ -28,8 +28,11 @@ dump_user_backtrace_32(struct stack_frame_ia32 *head)
 	unsigned long bytes;
 
 	bytes = copy_from_user_nmi(bufhead, head, sizeof(bufhead));
+
 	if (bytes != 0)
+	{
 		return NULL;
+	}
 
 	fp = (struct stack_frame_ia32 *) compat_ptr(bufhead[0].next_frame);
 
@@ -38,30 +41,37 @@ dump_user_backtrace_32(struct stack_frame_ia32 *head)
 	/* frame pointers should strictly progress back up the stack
 	* (towards higher addresses) */
 	if (head >= fp)
+	{
 		return NULL;
+	}
 
 	return fp;
 }
 
 static inline int
-x86_backtrace_32(struct pt_regs * const regs, unsigned int depth)
+x86_backtrace_32(struct pt_regs *const regs, unsigned int depth)
 {
 	struct stack_frame_ia32 *head;
 
 	/* User process is IA32 */
 	if (!current || !test_thread_flag(TIF_IA32))
+	{
 		return 0;
+	}
 
 	head = (struct stack_frame_ia32 *) regs->bp;
+
 	while (depth-- && head)
+	{
 		head = dump_user_backtrace_32(head);
+	}
 
 	return 1;
 }
 
 #else
 static inline int
-x86_backtrace_32(struct pt_regs * const regs, unsigned int depth)
+x86_backtrace_32(struct pt_regs *const regs, unsigned int depth)
 {
 	return 0;
 }
@@ -74,54 +84,74 @@ static struct stack_frame *dump_user_backtrace(struct stack_frame *head)
 	unsigned long bytes;
 
 	bytes = copy_from_user_nmi(bufhead, head, sizeof(bufhead));
+
 	if (bytes != 0)
+	{
 		return NULL;
+	}
 
 	oprofile_add_trace(bufhead[0].return_address);
 
 	/* frame pointers should strictly progress back up the stack
 	 * (towards higher addresses) */
 	if (head >= bufhead[0].next_frame)
+	{
 		return NULL;
+	}
 
 	return bufhead[0].next_frame;
 }
 
 void
-x86_backtrace(struct pt_regs * const regs, unsigned int depth)
+x86_backtrace(struct pt_regs *const regs, unsigned int depth)
 {
 	struct stack_frame *head = (struct stack_frame *)frame_pointer(regs);
 
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		struct unwind_state state;
 		unsigned long addr;
 
 		if (!depth)
+		{
 			return;
+		}
 
 		oprofile_add_trace(regs->ip);
 
 		if (!--depth)
+		{
 			return;
+		}
 
 		for (unwind_start(&state, current, regs, NULL);
-		     !unwind_done(&state); unwind_next_frame(&state)) {
+			 !unwind_done(&state); unwind_next_frame(&state))
+		{
 			addr = unwind_get_return_address(&state);
+
 			if (!addr)
+			{
 				break;
+			}
 
 			oprofile_add_trace(addr);
 
 			if (!--depth)
+			{
 				break;
+			}
 		}
 
 		return;
 	}
 
 	if (x86_backtrace_32(regs, depth))
+	{
 		return;
+	}
 
 	while (depth-- && head)
+	{
 		head = dump_user_backtrace(head);
+	}
 }

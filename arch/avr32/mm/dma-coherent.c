@@ -24,26 +24,32 @@ void dma_cache_sync(struct device *dev, void *vaddr, size_t size, int direction)
 	 * No need to sync an uncached area
 	 */
 	if (PXSEG(vaddr) == P2SEG)
+	{
 		return;
+	}
 
-	switch (direction) {
-	case DMA_FROM_DEVICE:		/* invalidate only */
-		invalidate_dcache_region(vaddr, size);
-		break;
-	case DMA_TO_DEVICE:		/* writeback only */
-		clean_dcache_region(vaddr, size);
-		break;
-	case DMA_BIDIRECTIONAL:		/* writeback and invalidate */
-		flush_dcache_region(vaddr, size);
-		break;
-	default:
-		BUG();
+	switch (direction)
+	{
+		case DMA_FROM_DEVICE:		/* invalidate only */
+			invalidate_dcache_region(vaddr, size);
+			break;
+
+		case DMA_TO_DEVICE:		/* writeback only */
+			clean_dcache_region(vaddr, size);
+			break;
+
+		case DMA_BIDIRECTIONAL:		/* writeback and invalidate */
+			flush_dcache_region(vaddr, size);
+			break;
+
+		default:
+			BUG();
 	}
 }
 EXPORT_SYMBOL(dma_cache_sync);
 
 static struct page *__dma_alloc(struct device *dev, size_t size,
-				dma_addr_t *handle, gfp_t gfp)
+								dma_addr_t *handle, gfp_t gfp)
 {
 	struct page *page, *free, *end;
 	int order;
@@ -59,8 +65,12 @@ static struct page *__dma_alloc(struct device *dev, size_t size,
 	order = get_order(size);
 
 	page = alloc_pages(gfp, order);
+
 	if (!page)
+	{
 		return NULL;
+	}
+
 	split_page(page, order);
 
 	/*
@@ -81,7 +91,8 @@ static struct page *__dma_alloc(struct device *dev, size_t size,
 	/*
 	 * Free any unused pages
 	 */
-	while (free < end) {
+	while (free < end)
+	{
 		__free_page(free);
 		free++;
 	}
@@ -90,48 +101,60 @@ static struct page *__dma_alloc(struct device *dev, size_t size,
 }
 
 static void __dma_free(struct device *dev, size_t size,
-		       struct page *page, dma_addr_t handle)
+					   struct page *page, dma_addr_t handle)
 {
 	struct page *end = page + (PAGE_ALIGN(size) >> PAGE_SHIFT);
 
 	while (page < end)
+	{
 		__free_page(page++);
+	}
 }
 
 static void *avr32_dma_alloc(struct device *dev, size_t size,
-		dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
+							 dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
 {
 	struct page *page;
 	dma_addr_t phys;
 
 	page = __dma_alloc(dev, size, handle, gfp);
+
 	if (!page)
+	{
 		return NULL;
+	}
+
 	phys = page_to_phys(page);
 
-	if (attrs & DMA_ATTR_WRITE_COMBINE) {
+	if (attrs & DMA_ATTR_WRITE_COMBINE)
+	{
 		/* Now, map the page into P3 with write-combining turned on */
 		*handle = phys;
 		return __ioremap(phys, size, _PAGE_BUFFER);
-	} else {
+	}
+	else
+	{
 		return phys_to_uncached(phys);
 	}
 }
 
 static void avr32_dma_free(struct device *dev, size_t size,
-		void *cpu_addr, dma_addr_t handle, unsigned long attrs)
+						   void *cpu_addr, dma_addr_t handle, unsigned long attrs)
 {
 	struct page *page;
 
-	if (attrs & DMA_ATTR_WRITE_COMBINE) {
+	if (attrs & DMA_ATTR_WRITE_COMBINE)
+	{
 		iounmap(cpu_addr);
 
 		page = phys_to_page(handle);
-	} else {
+	}
+	else
+	{
 		void *addr = phys_to_cached(uncached_to_phys(cpu_addr));
 
 		pr_debug("avr32_dma_free addr %p (phys %08lx) size %u\n",
-			 cpu_addr, (unsigned long)handle, (unsigned)size);
+				 cpu_addr, (unsigned long)handle, (unsigned)size);
 
 		BUG_ON(!virt_addr_valid(addr));
 		page = virt_to_page(addr);
@@ -141,8 +164,8 @@ static void avr32_dma_free(struct device *dev, size_t size,
 }
 
 static dma_addr_t avr32_dma_map_page(struct device *dev, struct page *page,
-		unsigned long offset, size_t size,
-		enum dma_data_direction direction, unsigned long attrs)
+									 unsigned long offset, size_t size,
+									 enum dma_data_direction direction, unsigned long attrs)
 {
 	void *cpu_addr = page_address(page) + offset;
 
@@ -151,13 +174,14 @@ static dma_addr_t avr32_dma_map_page(struct device *dev, struct page *page,
 }
 
 static int avr32_dma_map_sg(struct device *dev, struct scatterlist *sglist,
-		int nents, enum dma_data_direction direction,
-		unsigned long attrs)
+							int nents, enum dma_data_direction direction,
+							unsigned long attrs)
 {
 	int i;
 	struct scatterlist *sg;
 
-	for_each_sg(sglist, sg, nents, i) {
+	for_each_sg(sglist, sg, nents, i)
+	{
 		char *virt;
 
 		sg->dma_address = page_to_bus(sg_page(sg)) + sg->offset;
@@ -183,10 +207,11 @@ static void avr32_dma_sync_sg_for_device(struct device *dev,
 	struct scatterlist *sg;
 
 	for_each_sg(sglist, sg, nents, i)
-		dma_cache_sync(dev, sg_virt(sg), sg->length, direction);
+	dma_cache_sync(dev, sg_virt(sg), sg->length, direction);
 }
 
-struct dma_map_ops avr32_dma_ops = {
+struct dma_map_ops avr32_dma_ops =
+{
 	.alloc			= avr32_dma_alloc,
 	.free			= avr32_dma_free,
 	.map_page		= avr32_dma_map_page,

@@ -14,8 +14,8 @@
 
 /* Platform Independent IRQs */
 #ifdef CONFIG_ISA_ARCV2
-#define IPI_IRQ		19
-#define SOFTIRQ_IRQ	21
+	#define IPI_IRQ		19
+	#define SOFTIRQ_IRQ	21
 #endif
 
 #include <linux/interrupt.h>

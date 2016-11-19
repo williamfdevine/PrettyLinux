@@ -77,12 +77,14 @@ static const struct mtrr_ops *mtrr_ops[X86_VENDOR_NUM] __ro_after_init;
 const struct mtrr_ops *mtrr_if;
 
 static void set_mtrr(unsigned int reg, unsigned long base,
-		     unsigned long size, mtrr_type type);
+					 unsigned long size, mtrr_type type);
 
 void __init set_mtrr_ops(const struct mtrr_ops *ops)
 {
 	if (ops->vendor && ops->vendor < X86_VENDOR_NUM)
+	{
 		mtrr_ops[ops->vendor] = ops;
+	}
 }
 
 /*  Returns non-zero if we have the write-combining memory type  */
@@ -91,31 +93,38 @@ static int have_wrcomb(void)
 	struct pci_dev *dev;
 
 	dev = pci_get_class(PCI_CLASS_BRIDGE_HOST << 8, NULL);
-	if (dev != NULL) {
+
+	if (dev != NULL)
+	{
 		/*
 		 * ServerWorks LE chipsets < rev 6 have problems with
 		 * write-combining. Don't allow it and leave room for other
 		 * chipsets to be tagged
 		 */
 		if (dev->vendor == PCI_VENDOR_ID_SERVERWORKS &&
-		    dev->device == PCI_DEVICE_ID_SERVERWORKS_LE &&
-		    dev->revision <= 5) {
+			dev->device == PCI_DEVICE_ID_SERVERWORKS_LE &&
+			dev->revision <= 5)
+		{
 			pr_info("mtrr: Serverworks LE rev < 6 detected. Write-combining disabled.\n");
 			pci_dev_put(dev);
 			return 0;
 		}
+
 		/*
 		 * Intel 450NX errata # 23. Non ascending cacheline evictions to
 		 * write combining memory may resulting in data corruption
 		 */
 		if (dev->vendor == PCI_VENDOR_ID_INTEL &&
-		    dev->device == PCI_DEVICE_ID_INTEL_82451NX) {
+			dev->device == PCI_DEVICE_ID_INTEL_82451NX)
+		{
 			pr_info("mtrr: Intel 450NX MMC detected. Write-combining disabled.\n");
 			pci_dev_put(dev);
 			return 0;
 		}
+
 		pci_dev_put(dev);
 	}
+
 	return mtrr_if->have_wrcomb ? mtrr_if->have_wrcomb() : 0;
 }
 
@@ -125,11 +134,17 @@ static void __init set_num_var_ranges(void)
 	unsigned long config = 0, dummy;
 
 	if (use_intel())
+	{
 		rdmsr(MSR_MTRRcap, config, dummy);
+	}
 	else if (is_cpu(AMD))
+	{
 		config = 2;
+	}
 	else if (is_cpu(CYRIX) || is_cpu(CENTAUR))
+	{
 		config = 8;
+	}
 
 	num_var_ranges = config & 0xff;
 }
@@ -139,11 +154,15 @@ static void __init init_table(void)
 	int i, max;
 
 	max = num_var_ranges;
+
 	for (i = 0; i < max; i++)
+	{
 		mtrr_usage_table[i] = 1;
+	}
 }
 
-struct set_mtrr_data {
+struct set_mtrr_data
+{
 	unsigned long	smp_base;
 	unsigned long	smp_size;
 	unsigned int	smp_reg;
@@ -174,21 +193,25 @@ static int mtrr_rendezvous_handler(void *info)
 	 * started the boot/resume sequence, this might be a duplicate
 	 * set_all()).
 	 */
-	if (data->smp_reg != ~0U) {
+	if (data->smp_reg != ~0U)
+	{
 		mtrr_if->set(data->smp_reg, data->smp_base,
-			     data->smp_size, data->smp_type);
-	} else if (mtrr_aps_delayed_init || !cpu_online(smp_processor_id())) {
+					 data->smp_size, data->smp_type);
+	}
+	else if (mtrr_aps_delayed_init || !cpu_online(smp_processor_id()))
+	{
 		mtrr_if->set_all();
 	}
+
 	return 0;
 }
 
 static inline int types_compatible(mtrr_type type1, mtrr_type type2)
 {
 	return type1 == MTRR_TYPE_UNCACHABLE ||
-	       type2 == MTRR_TYPE_UNCACHABLE ||
-	       (type1 == MTRR_TYPE_WRTHROUGH && type2 == MTRR_TYPE_WRBACK) ||
-	       (type1 == MTRR_TYPE_WRBACK && type2 == MTRR_TYPE_WRTHROUGH);
+		   type2 == MTRR_TYPE_UNCACHABLE ||
+		   (type1 == MTRR_TYPE_WRTHROUGH && type2 == MTRR_TYPE_WRBACK) ||
+		   (type1 == MTRR_TYPE_WRBACK && type2 == MTRR_TYPE_WRTHROUGH);
 }
 
 /**
@@ -229,25 +252,25 @@ static void
 set_mtrr(unsigned int reg, unsigned long base, unsigned long size, mtrr_type type)
 {
 	struct set_mtrr_data data = { .smp_reg = reg,
-				      .smp_base = base,
-				      .smp_size = size,
-				      .smp_type = type
-				    };
+			   .smp_base = base,
+				.smp_size = size,
+				 .smp_type = type
+	};
 
 	stop_machine(mtrr_rendezvous_handler, &data, cpu_online_mask);
 }
 
 static void set_mtrr_from_inactive_cpu(unsigned int reg, unsigned long base,
-				      unsigned long size, mtrr_type type)
+									   unsigned long size, mtrr_type type)
 {
 	struct set_mtrr_data data = { .smp_reg = reg,
-				      .smp_base = base,
-				      .smp_size = size,
-				      .smp_type = type
-				    };
+			   .smp_base = base,
+				.smp_size = size,
+				 .smp_type = type
+	};
 
 	stop_machine_from_inactive_cpu(mtrr_rendezvous_handler, &data,
-				       cpu_callout_mask);
+								   cpu_callout_mask);
 }
 
 /**
@@ -286,37 +309,46 @@ static void set_mtrr_from_inactive_cpu(unsigned int reg, unsigned long base,
  * failures and do not wish system log messages to be sent.
  */
 int mtrr_add_page(unsigned long base, unsigned long size,
-		  unsigned int type, bool increment)
+				  unsigned int type, bool increment)
 {
 	unsigned long lbase, lsize;
 	int i, replace, error;
 	mtrr_type ltype;
 
 	if (!mtrr_enabled())
+	{
 		return -ENXIO;
+	}
 
 	error = mtrr_if->validate_add_page(base, size, type);
-	if (error)
-		return error;
 
-	if (type >= MTRR_NUM_TYPES) {
+	if (error)
+	{
+		return error;
+	}
+
+	if (type >= MTRR_NUM_TYPES)
+	{
 		pr_warn("mtrr: type: %u invalid\n", type);
 		return -EINVAL;
 	}
 
 	/* If the type is WC, check that this processor supports it */
-	if ((type == MTRR_TYPE_WRCOMB) && !have_wrcomb()) {
+	if ((type == MTRR_TYPE_WRCOMB) && !have_wrcomb())
+	{
 		pr_warn("mtrr: your processor doesn't support write-combining\n");
 		return -ENOSYS;
 	}
 
-	if (!size) {
+	if (!size)
+	{
 		pr_warn("mtrr: zero sized request\n");
 		return -EINVAL;
 	}
 
 	if ((base | (base + size - 1)) >>
-	    (boot_cpu_data.x86_phys_bits - PAGE_SHIFT)) {
+		(boot_cpu_data.x86_phys_bits - PAGE_SHIFT))
+	{
 		pr_warn("mtrr: base or size exceeds the MTRR width\n");
 		return -EINVAL;
 	}
@@ -329,64 +361,101 @@ int mtrr_add_page(unsigned long base, unsigned long size,
 
 	/* Search for existing MTRR  */
 	mutex_lock(&mtrr_mutex);
-	for (i = 0; i < num_var_ranges; ++i) {
+
+	for (i = 0; i < num_var_ranges; ++i)
+	{
 		mtrr_if->get(i, &lbase, &lsize, &ltype);
+
 		if (!lsize || base > lbase + lsize - 1 ||
-		    base + size - 1 < lbase)
+			base + size - 1 < lbase)
+		{
 			continue;
+		}
+
 		/*
 		 * At this point we know there is some kind of
 		 * overlap/enclosure
 		 */
-		if (base < lbase || base + size - 1 > lbase + lsize - 1) {
+		if (base < lbase || base + size - 1 > lbase + lsize - 1)
+		{
 			if (base <= lbase &&
-			    base + size - 1 >= lbase + lsize - 1) {
+				base + size - 1 >= lbase + lsize - 1)
+			{
 				/*  New region encloses an existing region  */
-				if (type == ltype) {
+				if (type == ltype)
+				{
 					replace = replace == -1 ? i : -2;
 					continue;
-				} else if (types_compatible(type, ltype))
+				}
+				else if (types_compatible(type, ltype))
+				{
 					continue;
+				}
 			}
+
 			pr_warn("mtrr: 0x%lx000,0x%lx000 overlaps existing"
-				" 0x%lx000,0x%lx000\n", base, size, lbase,
-				lsize);
+					" 0x%lx000,0x%lx000\n", base, size, lbase,
+					lsize);
 			goto out;
 		}
+
 		/* New region is enclosed by an existing region */
-		if (ltype != type) {
+		if (ltype != type)
+		{
 			if (types_compatible(type, ltype))
+			{
 				continue;
+			}
+
 			pr_warn("mtrr: type mismatch for %lx000,%lx000 old: %s new: %s\n",
-				base, size, mtrr_attrib_to_str(ltype),
-				mtrr_attrib_to_str(type));
+					base, size, mtrr_attrib_to_str(ltype),
+					mtrr_attrib_to_str(type));
 			goto out;
 		}
+
 		if (increment)
+		{
 			++mtrr_usage_table[i];
+		}
+
 		error = i;
 		goto out;
 	}
+
 	/* Search for an empty MTRR */
 	i = mtrr_if->get_free_region(base, size, replace);
-	if (i >= 0) {
+
+	if (i >= 0)
+	{
 		set_mtrr(i, base, size, type);
-		if (likely(replace < 0)) {
+
+		if (likely(replace < 0))
+		{
 			mtrr_usage_table[i] = 1;
-		} else {
+		}
+		else
+		{
 			mtrr_usage_table[i] = mtrr_usage_table[replace];
+
 			if (increment)
+			{
 				mtrr_usage_table[i]++;
-			if (unlikely(replace != i)) {
+			}
+
+			if (unlikely(replace != i))
+			{
 				set_mtrr(replace, 0, 0, 0);
 				mtrr_usage_table[replace] = 0;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		pr_info("mtrr: no more MTRRs available\n");
 	}
+
 	error = i;
- out:
+out:
 	mutex_unlock(&mtrr_mutex);
 	put_online_cpus();
 	return error;
@@ -394,12 +463,14 @@ int mtrr_add_page(unsigned long base, unsigned long size,
 
 static int mtrr_check(unsigned long base, unsigned long size)
 {
-	if ((base & (PAGE_SIZE - 1)) || (size & (PAGE_SIZE - 1))) {
+	if ((base & (PAGE_SIZE - 1)) || (size & (PAGE_SIZE - 1)))
+	{
 		pr_warn("mtrr: size and base must be multiples of 4 kiB\n");
 		pr_debug("mtrr: size: 0x%lx  base: 0x%lx\n", size, base);
 		dump_stack();
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -439,14 +510,20 @@ static int mtrr_check(unsigned long base, unsigned long size)
  * failures and do not wish system log messages to be sent.
  */
 int mtrr_add(unsigned long base, unsigned long size, unsigned int type,
-	     bool increment)
+			 bool increment)
 {
 	if (!mtrr_enabled())
+	{
 		return -ENODEV;
+	}
+
 	if (mtrr_check(base, size))
+	{
 		return -EINVAL;
+	}
+
 	return mtrr_add_page(base >> PAGE_SHIFT, size >> PAGE_SHIFT, type,
-			     increment);
+						 increment);
 }
 
 /**
@@ -471,44 +548,64 @@ int mtrr_del_page(int reg, unsigned long base, unsigned long size)
 	int error = -EINVAL;
 
 	if (!mtrr_enabled())
+	{
 		return -ENODEV;
+	}
 
 	max = num_var_ranges;
 	/* No CPU hotplug when we change MTRR entries */
 	get_online_cpus();
 	mutex_lock(&mtrr_mutex);
-	if (reg < 0) {
+
+	if (reg < 0)
+	{
 		/*  Search for existing MTRR  */
-		for (i = 0; i < max; ++i) {
+		for (i = 0; i < max; ++i)
+		{
 			mtrr_if->get(i, &lbase, &lsize, &ltype);
-			if (lbase == base && lsize == size) {
+
+			if (lbase == base && lsize == size)
+			{
 				reg = i;
 				break;
 			}
 		}
-		if (reg < 0) {
+
+		if (reg < 0)
+		{
 			pr_debug("mtrr: no MTRR for %lx000,%lx000 found\n",
-				 base, size);
+					 base, size);
 			goto out;
 		}
 	}
-	if (reg >= max) {
+
+	if (reg >= max)
+	{
 		pr_warn("mtrr: register: %d too big\n", reg);
 		goto out;
 	}
+
 	mtrr_if->get(reg, &lbase, &lsize, &ltype);
-	if (lsize < 1) {
+
+	if (lsize < 1)
+	{
 		pr_warn("mtrr: MTRR %d not used\n", reg);
 		goto out;
 	}
-	if (mtrr_usage_table[reg] < 1) {
+
+	if (mtrr_usage_table[reg] < 1)
+	{
 		pr_warn("mtrr: reg: %d has count=0\n", reg);
 		goto out;
 	}
+
 	if (--mtrr_usage_table[reg] < 1)
+	{
 		set_mtrr(reg, 0, 0, 0);
+	}
+
 	error = reg;
- out:
+out:
 	mutex_unlock(&mtrr_mutex);
 	put_online_cpus();
 	return error;
@@ -531,9 +628,15 @@ int mtrr_del_page(int reg, unsigned long base, unsigned long size)
 int mtrr_del(int reg, unsigned long base, unsigned long size)
 {
 	if (!mtrr_enabled())
+	{
 		return -ENODEV;
+	}
+
 	if (mtrr_check(base, size))
+	{
 		return -EINVAL;
+	}
+
 	return mtrr_del_page(reg, base >> PAGE_SHIFT, size >> PAGE_SHIFT);
 }
 
@@ -557,14 +660,19 @@ int arch_phys_wc_add(unsigned long base, unsigned long size)
 	int ret;
 
 	if (pat_enabled() || !mtrr_enabled())
-		return 0;  /* Success!  (We don't need to do anything.) */
+	{
+		return 0;    /* Success!  (We don't need to do anything.) */
+	}
 
 	ret = mtrr_add(base, size, MTRR_TYPE_WRCOMB, true);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_warn("Failed to add WC MTRR for [%p-%p]; performance may suffer.",
-			(void *)base, (void *)(base + size - 1));
+				(void *)base, (void *)(base + size - 1));
 		return ret;
 	}
+
 	return ret + MTRR_TO_PHYS_WC_OFFSET;
 }
 EXPORT_SYMBOL(arch_phys_wc_add);
@@ -580,7 +688,8 @@ EXPORT_SYMBOL(arch_phys_wc_add);
  */
 void arch_phys_wc_del(int handle)
 {
-	if (handle >= 1) {
+	if (handle >= 1)
+	{
 		WARN_ON(handle < MTRR_TO_PHYS_WC_OFFSET);
 		mtrr_del(handle - MTRR_TO_PHYS_WC_OFFSET, 0, 0);
 	}
@@ -601,9 +710,13 @@ EXPORT_SYMBOL(arch_phys_wc_del);
 int arch_phys_wc_index(int handle)
 {
 	if (handle < MTRR_TO_PHYS_WC_OFFSET)
+	{
 		return -1;
+	}
 	else
+	{
 		return handle - MTRR_TO_PHYS_WC_OFFSET;
+	}
 }
 EXPORT_SYMBOL_GPL(arch_phys_wc_index);
 
@@ -624,7 +737,8 @@ static void __init init_ifs(void)
 /* The suspend/resume methods are only for CPU without MTRR. CPU using generic
  * MTRR driver doesn't require this
  */
-struct mtrr_value {
+struct mtrr_value
+{
 	mtrr_type	ltype;
 	unsigned long	lbase;
 	unsigned long	lsize;
@@ -636,11 +750,13 @@ static int mtrr_save(void)
 {
 	int i;
 
-	for (i = 0; i < num_var_ranges; i++) {
+	for (i = 0; i < num_var_ranges; i++)
+	{
 		mtrr_if->get(i, &mtrr_value[i].lbase,
-				&mtrr_value[i].lsize,
-				&mtrr_value[i].ltype);
+					 &mtrr_value[i].lsize,
+					 &mtrr_value[i].ltype);
 	}
+
 	return 0;
 }
 
@@ -648,18 +764,21 @@ static void mtrr_restore(void)
 {
 	int i;
 
-	for (i = 0; i < num_var_ranges; i++) {
-		if (mtrr_value[i].lsize) {
+	for (i = 0; i < num_var_ranges; i++)
+	{
+		if (mtrr_value[i].lsize)
+		{
 			set_mtrr(i, mtrr_value[i].lbase,
-				    mtrr_value[i].lsize,
-				    mtrr_value[i].ltype);
+					 mtrr_value[i].lsize,
+					 mtrr_value[i].ltype);
 		}
 	}
 }
 
 
 
-static struct syscore_ops mtrr_syscore_ops = {
+static struct syscore_ops mtrr_syscore_ops =
+{
 	.suspend	= mtrr_save,
 	.resume		= mtrr_restore,
 };
@@ -682,7 +801,8 @@ void __init mtrr_bp_init(void)
 
 	phys_addr = 32;
 
-	if (boot_cpu_has(X86_FEATURE_MTRR)) {
+	if (boot_cpu_has(X86_FEATURE_MTRR))
+	{
 		mtrr_if = &generic_mtrr_ops;
 		size_or_mask = SIZE_OR_MASK_BITS(36);
 		size_and_mask = 0x00f00000;
@@ -693,20 +813,26 @@ void __init mtrr_bp_init(void)
 		 * Intel will implement it too when they extend the address
 		 * bus of the Xeon.
 		 */
-		if (cpuid_eax(0x80000000) >= 0x80000008) {
+		if (cpuid_eax(0x80000000) >= 0x80000008)
+		{
 			phys_addr = cpuid_eax(0x80000008) & 0xff;
+
 			/* CPUID workaround for Intel 0F33/0F34 CPU */
 			if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
-			    boot_cpu_data.x86 == 0xF &&
-			    boot_cpu_data.x86_model == 0x3 &&
-			    (boot_cpu_data.x86_mask == 0x3 ||
-			     boot_cpu_data.x86_mask == 0x4))
+				boot_cpu_data.x86 == 0xF &&
+				boot_cpu_data.x86_model == 0x3 &&
+				(boot_cpu_data.x86_mask == 0x3 ||
+				 boot_cpu_data.x86_mask == 0x4))
+			{
 				phys_addr = 36;
+			}
 
 			size_or_mask = SIZE_OR_MASK_BITS(phys_addr);
 			size_and_mask = ~size_or_mask & 0xfffff00000ULL;
-		} else if (boot_cpu_data.x86_vendor == X86_VENDOR_CENTAUR &&
-			   boot_cpu_data.x86 == 6) {
+		}
+		else if (boot_cpu_data.x86_vendor == X86_VENDOR_CENTAUR &&
+				 boot_cpu_data.x86 == 6)
+		{
 			/*
 			 * VIA C* family have Intel style MTRRs,
 			 * but don't support PAE
@@ -715,54 +841,73 @@ void __init mtrr_bp_init(void)
 			size_and_mask = 0;
 			phys_addr = 32;
 		}
-	} else {
-		switch (boot_cpu_data.x86_vendor) {
-		case X86_VENDOR_AMD:
-			if (cpu_feature_enabled(X86_FEATURE_K6_MTRR)) {
-				/* Pre-Athlon (K6) AMD CPU MTRRs */
-				mtrr_if = mtrr_ops[X86_VENDOR_AMD];
-				size_or_mask = SIZE_OR_MASK_BITS(32);
-				size_and_mask = 0;
-			}
-			break;
-		case X86_VENDOR_CENTAUR:
-			if (cpu_feature_enabled(X86_FEATURE_CENTAUR_MCR)) {
-				mtrr_if = mtrr_ops[X86_VENDOR_CENTAUR];
-				size_or_mask = SIZE_OR_MASK_BITS(32);
-				size_and_mask = 0;
-			}
-			break;
-		case X86_VENDOR_CYRIX:
-			if (cpu_feature_enabled(X86_FEATURE_CYRIX_ARR)) {
-				mtrr_if = mtrr_ops[X86_VENDOR_CYRIX];
-				size_or_mask = SIZE_OR_MASK_BITS(32);
-				size_and_mask = 0;
-			}
-			break;
-		default:
-			break;
+	}
+	else
+	{
+		switch (boot_cpu_data.x86_vendor)
+		{
+			case X86_VENDOR_AMD:
+				if (cpu_feature_enabled(X86_FEATURE_K6_MTRR))
+				{
+					/* Pre-Athlon (K6) AMD CPU MTRRs */
+					mtrr_if = mtrr_ops[X86_VENDOR_AMD];
+					size_or_mask = SIZE_OR_MASK_BITS(32);
+					size_and_mask = 0;
+				}
+
+				break;
+
+			case X86_VENDOR_CENTAUR:
+				if (cpu_feature_enabled(X86_FEATURE_CENTAUR_MCR))
+				{
+					mtrr_if = mtrr_ops[X86_VENDOR_CENTAUR];
+					size_or_mask = SIZE_OR_MASK_BITS(32);
+					size_and_mask = 0;
+				}
+
+				break;
+
+			case X86_VENDOR_CYRIX:
+				if (cpu_feature_enabled(X86_FEATURE_CYRIX_ARR))
+				{
+					mtrr_if = mtrr_ops[X86_VENDOR_CYRIX];
+					size_or_mask = SIZE_OR_MASK_BITS(32);
+					size_and_mask = 0;
+				}
+
+				break;
+
+			default:
+				break;
 		}
 	}
 
-	if (mtrr_if) {
+	if (mtrr_if)
+	{
 		__mtrr_enabled = true;
 		set_num_var_ranges();
 		init_table();
-		if (use_intel()) {
+
+		if (use_intel())
+		{
 			/* BIOS may override */
 			__mtrr_enabled = get_mtrr_state();
 
 			if (mtrr_enabled())
+			{
 				mtrr_bp_pat_init();
+			}
 
-			if (mtrr_cleanup(phys_addr)) {
+			if (mtrr_cleanup(phys_addr))
+			{
 				changed_by_mtrr_cleanup = 1;
 				mtrr_if->set_all();
 			}
 		}
 	}
 
-	if (!mtrr_enabled()) {
+	if (!mtrr_enabled())
+	{
 		pr_info("MTRR: Disabled\n");
 
 		/*
@@ -777,10 +922,15 @@ void __init mtrr_bp_init(void)
 void mtrr_ap_init(void)
 {
 	if (!mtrr_enabled())
+	{
 		return;
+	}
 
 	if (!use_intel() || mtrr_aps_delayed_init)
+	{
 		return;
+	}
+
 	/*
 	 * Ideally we should hold mtrr_mutex here to avoid mtrr entries
 	 * changed, but this routine will be called in cpu boot time,
@@ -805,7 +955,9 @@ void mtrr_save_state(void)
 	int first_cpu;
 
 	if (!mtrr_enabled())
+	{
 		return;
+	}
 
 	get_online_cpus();
 	first_cpu = cpumask_first(cpu_online_mask);
@@ -816,9 +968,14 @@ void mtrr_save_state(void)
 void set_mtrr_aps_delayed_init(void)
 {
 	if (!mtrr_enabled())
+	{
 		return;
+	}
+
 	if (!use_intel())
+	{
 		return;
+	}
 
 	mtrr_aps_delayed_init = true;
 }
@@ -829,7 +986,9 @@ void set_mtrr_aps_delayed_init(void)
 void mtrr_aps_init(void)
 {
 	if (!use_intel() || !mtrr_enabled())
+	{
 		return;
+	}
 
 	/*
 	 * Check if someone has requested the delay of AP MTRR initialization,
@@ -837,7 +996,9 @@ void mtrr_aps_init(void)
 	 * then we are done.
 	 */
 	if (!mtrr_aps_delayed_init)
+	{
 		return;
+	}
 
 	set_mtrr(~0U, 0, 0, 0);
 	mtrr_aps_delayed_init = false;
@@ -846,7 +1007,9 @@ void mtrr_aps_init(void)
 void mtrr_bp_restore(void)
 {
 	if (!use_intel() || !mtrr_enabled())
+	{
 		return;
+	}
 
 	mtrr_if->set_all();
 }
@@ -854,11 +1017,17 @@ void mtrr_bp_restore(void)
 static int __init mtrr_init_finialize(void)
 {
 	if (!mtrr_enabled())
+	{
 		return 0;
+	}
 
-	if (use_intel()) {
+	if (use_intel())
+	{
 		if (!changed_by_mtrr_cleanup)
+		{
 			mtrr_state_warn();
+		}
+
 		return 0;
 	}
 

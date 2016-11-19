@@ -17,7 +17,8 @@
 
 extern long sys_ni_syscall(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long);
 
-asmlinkage const sys_call_ptr_t sys_call_table[__NR_syscall_max+1] = {
+asmlinkage const sys_call_ptr_t sys_call_table[__NR_syscall_max + 1] =
+{
 	/*
 	 * Smells like a compiler bug -- it doesn't work
 	 * when the & below is removed.

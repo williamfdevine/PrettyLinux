@@ -4,18 +4,19 @@
 /* define constants */
 #define USER_DATA     (1)
 #ifndef __USER_DS
-#define __USER_DS     (USER_DATA)
+	#define __USER_DS     (USER_DATA)
 #endif
 #define USER_PROGRAM  (2)
 #define SUPER_DATA    (3)
 #ifndef __KERNEL_DS
-#define __KERNEL_DS   (SUPER_DATA)
+	#define __KERNEL_DS   (SUPER_DATA)
 #endif
 #define SUPER_PROGRAM (4)
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 

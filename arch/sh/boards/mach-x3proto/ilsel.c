@@ -72,7 +72,7 @@ static void __ilsel_enable(ilsel_source_t set, unsigned int bit)
 	shift = mk_ilsel_shift(bit);
 
 	pr_debug("%s: bit#%d: addr - 0x%08lx (shift %d, set %d)\n",
-		 __func__, bit, addr, shift, set);
+			 __func__, bit, addr, shift, set);
 
 	tmp = __raw_readw(addr);
 	tmp &= ~(0xf << shift);
@@ -96,14 +96,17 @@ int ilsel_enable(ilsel_source_t set)
 {
 	unsigned int bit;
 
-	if (unlikely(set > ILSEL_KEY)) {
+	if (unlikely(set > ILSEL_KEY))
+	{
 		pr_err("Aliased sources must use ilsel_enable_fixed()\n");
 		return -EINVAL;
 	}
 
-	do {
+	do
+	{
 		bit = find_first_zero_bit(&ilsel_level_map, ILSEL_LEVELS);
-	} while (test_and_set_bit(bit, &ilsel_level_map));
+	}
+	while (test_and_set_bit(bit, &ilsel_level_map));
 
 	__ilsel_enable(set, bit);
 
@@ -127,7 +130,9 @@ int ilsel_enable_fixed(ilsel_source_t set, unsigned int level)
 	unsigned int bit = ilsel_offset(level - 1);
 
 	if (test_and_set_bit(bit, &ilsel_level_map))
+	{
 		return -EBUSY;
+	}
 
 	__ilsel_enable(set, bit);
 

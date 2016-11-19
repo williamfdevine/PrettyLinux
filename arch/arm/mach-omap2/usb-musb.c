@@ -30,14 +30,16 @@
 #include "mux.h"
 #include "usb.h"
 
-static struct musb_hdrc_config musb_config = {
+static struct musb_hdrc_config musb_config =
+{
 	.multipoint	= 1,
 	.dyn_fifo	= 1,
 	.num_eps	= 16,
 	.ram_bits	= 12,
 };
 
-static struct musb_hdrc_platform_data musb_plat = {
+static struct musb_hdrc_platform_data musb_plat =
+{
 	.mode		= MUSB_OTG,
 
 	/* .clock is set dynamically */
@@ -52,7 +54,8 @@ static struct musb_hdrc_platform_data musb_plat = {
 
 static u64 musb_dmamask = DMA_BIT_MASK(32);
 
-static struct omap_musb_board_data musb_default_board_data = {
+static struct omap_musb_board_data musb_default_board_data =
+{
 	.interface_type		= MUSB_INTERFACE_ULPI,
 	.mode			= MUSB_OTG,
 	.power			= 100,
@@ -68,9 +71,13 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
 	struct omap_musb_board_data	*board_data;
 
 	if (musb_board_data)
+	{
 		board_data = musb_board_data;
+	}
 	else
+	{
 		board_data = &musb_default_board_data;
+	}
 
 	/*
 	 * REVISIT: This line can be removed once all the platforms using
@@ -85,16 +92,21 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
 	oh_name = "usb_otg_hs";
 	name = "musb-omap2430";
 
-        oh = omap_hwmod_lookup(oh_name);
-        if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
-                 __func__, oh_name))
-                return;
+	oh = omap_hwmod_lookup(oh_name);
+
+	if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
+			 __func__, oh_name))
+	{
+		return;
+	}
 
 	pdev = omap_device_build(name, bus_id, oh, &musb_plat,
-				 sizeof(musb_plat));
-	if (IS_ERR(pdev)) {
+							 sizeof(musb_plat));
+
+	if (IS_ERR(pdev))
+	{
 		pr_err("Could not build omap_device for %s %s\n",
-						name, oh_name);
+			   name, oh_name);
 		return;
 	}
 

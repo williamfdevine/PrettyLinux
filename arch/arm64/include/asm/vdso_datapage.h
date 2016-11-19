@@ -20,7 +20,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct vdso_data {
+struct vdso_data
+{
 	__u64 cs_cycle_last;	/* Timebase at clocksource init */
 	__u64 raw_time_sec;	/* Raw time */
 	__u64 raw_time_nsec;

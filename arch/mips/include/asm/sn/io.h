@@ -10,7 +10,7 @@
 #define _ASM_SN_IO_H
 
 #if defined(CONFIG_SGI_IP27)
-#include <asm/sn/sn0/hubio.h>
+	#include <asm/sn/sn0/hubio.h>
 #endif
 
 
@@ -35,14 +35,14 @@
 
 #define IIO_ITTE_PUT(nasid, bigwin, io_or_mem, widget, addr) \
 	REMOTE_HUB_S((nasid), IIO_ITTE(bigwin), \
-		(((((addr) >> BWIN_SIZE_BITS) & \
-		   IIO_ITTE_OFFSET_MASK) << IIO_ITTE_OFFSET_SHIFT) | \
-		(io_or_mem << IIO_ITTE_IOSP_SHIFT) | \
-		(((widget) & IIO_ITTE_WIDGET_MASK) << IIO_ITTE_WIDGET_SHIFT)))
+				 (((((addr) >> BWIN_SIZE_BITS) & \
+					IIO_ITTE_OFFSET_MASK) << IIO_ITTE_OFFSET_SHIFT) | \
+				  (io_or_mem << IIO_ITTE_IOSP_SHIFT) | \
+				  (((widget) & IIO_ITTE_WIDGET_MASK) << IIO_ITTE_WIDGET_SHIFT)))
 
 #define IIO_ITTE_DISABLE(nasid, bigwin) \
 	IIO_ITTE_PUT((nasid), HUB_PIO_MAP_TO_MEM, \
-		     (bigwin), IIO_ITTE_INVALID_WIDGET, 0)
+				 (bigwin), IIO_ITTE_INVALID_WIDGET, 0)
 
 #define IIO_ITTE_GET(nasid, bigwin) REMOTE_HUB_ADDR((nasid), IIO_ITTE(bigwin))
 
@@ -53,7 +53,7 @@
  * 0, 8 - 0xF
  */
 #define IIO_IOPRB(_x)	(IIO_IOPRB_0 + ( ( (_x) < HUB_WIDGET_ID_MIN ? \
-			(_x) : \
-			(_x) - (HUB_WIDGET_ID_MIN-1)) << 3) )
+						 (_x) : \
+						 (_x) - (HUB_WIDGET_ID_MIN-1)) << 3) )
 
 #endif /* _ASM_SN_IO_H */

@@ -51,7 +51,8 @@
 #define PFX "s3c24xx-pm: "
 
 #ifdef CONFIG_PM_SLEEP
-static struct sleep_save core_save[] = {
+static struct sleep_save core_save[] =
+{
 	/* we restore the timings here, with the proviso that the board
 	 * brings the system up in an slower, or equal frequency setting
 	 * to the original system.
@@ -83,17 +84,27 @@ static void s3c_pm_check_resume_pin(unsigned int pin, unsigned int irqoffs)
 	int irq = gpio_to_irq(pin);
 
 	if (irqoffs < 4)
-		irqstate = s3c_irqwake_intmask & (1L<<irqoffs);
+	{
+		irqstate = s3c_irqwake_intmask & (1L << irqoffs);
+	}
 	else
-		irqstate = s3c_irqwake_eintmask & (1L<<irqoffs);
+	{
+		irqstate = s3c_irqwake_eintmask & (1L << irqoffs);
+	}
 
 	pinstate = s3c_gpio_getcfg(pin);
 
-	if (!irqstate) {
+	if (!irqstate)
+	{
 		if (pinstate == S3C2410_GPIO_IRQ)
+		{
 			S3C_PMDBG("Leaving IRQ %d (pin %d) as is\n", irq, pin);
-	} else {
-		if (pinstate == S3C2410_GPIO_IRQ) {
+		}
+	}
+	else
+	{
+		if (pinstate == S3C2410_GPIO_IRQ)
+		{
 			S3C_PMDBG("Disabling IRQ %d (pin %d)\n", irq, pin);
 			s3c_gpio_cfgpin(pin, S3C2410_GPIO_INPUT);
 		}
@@ -114,12 +125,14 @@ void s3c_pm_configure_extint(void)
 	 * and then configure it as an input if it is not
 	*/
 
-	for (pin = S3C2410_GPF(0); pin <= S3C2410_GPF(7); pin++) {
+	for (pin = S3C2410_GPF(0); pin <= S3C2410_GPF(7); pin++)
+	{
 		s3c_pm_check_resume_pin(pin, pin - S3C2410_GPF(0));
 	}
 
-	for (pin = S3C2410_GPG(0); pin <= S3C2410_GPG(7); pin++) {
-		s3c_pm_check_resume_pin(pin, (pin - S3C2410_GPG(0))+8);
+	for (pin = S3C2410_GPG(0); pin <= S3C2410_GPG(7); pin++)
+	{
+		s3c_pm_check_resume_pin(pin, (pin - S3C2410_GPG(0)) + 8);
 	}
 }
 

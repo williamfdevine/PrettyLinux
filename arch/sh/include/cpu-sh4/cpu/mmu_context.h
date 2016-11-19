@@ -33,9 +33,9 @@
 #define MMU_PAGE_ASSOC_BIT	0x80
 
 #ifdef CONFIG_MMU
-#define MMUCR_AT		(1 << 0)
+	#define MMUCR_AT		(1 << 0)
 #else
-#define MMUCR_AT		(0)
+	#define MMUCR_AT		(0)
 #endif
 
 #define MMUCR_TI		(1 << 2)
@@ -47,32 +47,32 @@
 #define MMUCR_URC_SHIFT		10
 
 #if defined(CONFIG_32BIT) && defined(CONFIG_CPU_SUBTYPE_ST40)
-#define MMUCR_SE		(1 << 4)
+	#define MMUCR_SE		(1 << 4)
 #else
-#define MMUCR_SE		(0)
+	#define MMUCR_SE		(0)
 #endif
 
 #ifdef CONFIG_CPU_HAS_PTEAEX
-#define MMUCR_AEX		(1 << 6)
+	#define MMUCR_AEX		(1 << 6)
 #else
-#define MMUCR_AEX		(0)
+	#define MMUCR_AEX		(0)
 #endif
 
 #ifdef CONFIG_X2TLB
-#define MMUCR_ME		(1 << 7)
+	#define MMUCR_ME		(1 << 7)
 #else
-#define MMUCR_ME		(0)
+	#define MMUCR_ME		(0)
 #endif
 
 #ifdef CONFIG_SH_STORE_QUEUES
-#define MMUCR_SQMD		(1 << 9)
+	#define MMUCR_SQMD		(1 << 9)
 #else
-#define MMUCR_SQMD		(0)
+	#define MMUCR_SQMD		(0)
 #endif
 
 #define MMU_NTLB_ENTRIES	64
 #define MMU_CONTROL_INIT	(MMUCR_AT | MMUCR_TI | MMUCR_SQMD | \
-				 MMUCR_ME | MMUCR_SE | MMUCR_AEX)
+							 MMUCR_ME | MMUCR_SE | MMUCR_AEX)
 
 #define TRA	0xff000020
 #define EXPEVT	0xff000024

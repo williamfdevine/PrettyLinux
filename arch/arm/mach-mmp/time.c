@@ -39,9 +39,9 @@
 #include "clock.h"
 
 #ifdef CONFIG_CPU_MMP2
-#define MMP_CLOCK_FREQ		6500000
+	#define MMP_CLOCK_FREQ		6500000
 #else
-#define MMP_CLOCK_FREQ		3250000
+	#define MMP_CLOCK_FREQ		3250000
 #endif
 
 #define TIMERS_VIRT_BASE	TIMERS1_VIRT_BASE
@@ -61,7 +61,9 @@ static inline uint32_t timer_read(void)
 	__raw_writel(1, mmp_timer_base + TMR_CVWR(1));
 
 	while (delay--)
+	{
 		cpu_relax();
+	}
 
 	return __raw_readl(mmp_timer_base + TMR_CVWR(1));
 }
@@ -91,7 +93,7 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 }
 
 static int timer_set_next_event(unsigned long delta,
-				struct clock_event_device *dev)
+								struct clock_event_device *dev)
 {
 	unsigned long flags;
 
@@ -135,7 +137,8 @@ static int timer_set_shutdown(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device ckevt = {
+static struct clock_event_device ckevt =
+{
 	.name			= "clockevent",
 	.features		= CLOCK_EVT_FEAT_ONESHOT,
 	.rating			= 200,
@@ -149,7 +152,8 @@ static cycle_t clksrc_read(struct clocksource *cs)
 	return timer_read();
 }
 
-static struct clocksource cksrc = {
+static struct clocksource cksrc =
+{
 	.name		= "clocksource",
 	.rating		= 200,
 	.read		= clksrc_read,
@@ -164,7 +168,7 @@ static void __init timer_config(void)
 	__raw_writel(0x0, mmp_timer_base + TMR_CER); /* disable */
 
 	ccr &= (cpu_is_mmp2()) ? (TMR_CCR_CS_0(0) | TMR_CCR_CS_1(0)) :
-		(TMR_CCR_CS_0(3) | TMR_CCR_CS_1(3));
+		   (TMR_CCR_CS_0(3) | TMR_CCR_CS_1(3));
 	__raw_writel(ccr, mmp_timer_base + TMR_CCR);
 
 	/* set timer 0 to periodic mode, and timer 1 to free-running mode */
@@ -182,7 +186,8 @@ static void __init timer_config(void)
 	__raw_writel(0x2, mmp_timer_base + TMR_CER);
 }
 
-static struct irqaction timer_irq = {
+static struct irqaction timer_irq =
+{
 	.name		= "timer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= timer_interrupt,
@@ -201,11 +206,12 @@ void __init timer_init(int irq)
 
 	clocksource_register_hz(&cksrc, MMP_CLOCK_FREQ);
 	clockevents_config_and_register(&ckevt, MMP_CLOCK_FREQ,
-					MIN_DELTA, MAX_DELTA);
+									MIN_DELTA, MAX_DELTA);
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id mmp_timer_dt_ids[] = {
+static const struct of_device_id mmp_timer_dt_ids[] =
+{
 	{ .compatible = "mrvl,mmp-timer", },
 	{}
 };
@@ -216,21 +222,29 @@ void __init mmp_dt_init_timer(void)
 	int irq, ret;
 
 	np = of_find_matching_node(NULL, mmp_timer_dt_ids);
-	if (!np) {
+
+	if (!np)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
 	irq = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
+
 	mmp_timer_base = of_iomap(np, 0);
-	if (!mmp_timer_base) {
+
+	if (!mmp_timer_base)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	timer_init(irq);
 	return;
 out:

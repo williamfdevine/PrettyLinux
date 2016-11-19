@@ -36,7 +36,8 @@ DEFINE_CLK(mcftmr1, "mcftmr.1", MCF_BUSCLK);
 DEFINE_CLK(mcfuart0, "mcfuart.0", MCF_BUSCLK);
 DEFINE_CLK(mcfuart1, "mcfuart.1", MCF_BUSCLK);
 
-struct clk *mcf_clks[] = {
+struct clk *mcf_clks[] =
+{
 	&clk_pll,
 	&clk_sys,
 	&clk_mcftmr0,
@@ -54,7 +55,7 @@ void __init config_BSP(char *commandp, int size)
     defined(CONFIG_SECUREEDGEMP3) || defined(CONFIG_CLEOPATRA)
 	/* Copy command line from FLASH to local buffer... */
 	memcpy(commandp, (char *) 0xf0004000, size);
-	commandp[size-1] = 0;
+	commandp[size - 1] = 0;
 #endif
 
 	mach_sched_init = hw_timer_init;

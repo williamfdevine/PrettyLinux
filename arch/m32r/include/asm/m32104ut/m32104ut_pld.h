@@ -16,24 +16,24 @@
  */
 
 #if defined(CONFIG_PLAT_M32104UT)
-#define PLD_PLAT_BASE		0x02c00000
+	#define PLD_PLAT_BASE		0x02c00000
 #else
-#error "no platform configuration"
+	#error "no platform configuration"
 #endif
 
 #ifndef __ASSEMBLY__
-/*
- * C functions use non-cache address.
- */
-#define PLD_BASE		(PLD_PLAT_BASE /* + NONCACHE_OFFSET */)
-#define __reg8			(volatile unsigned char *)
-#define __reg16			(volatile unsigned short *)
-#define __reg32			(volatile unsigned int *)
+	/*
+	* C functions use non-cache address.
+	*/
+	#define PLD_BASE		(PLD_PLAT_BASE /* + NONCACHE_OFFSET */)
+	#define __reg8			(volatile unsigned char *)
+	#define __reg16			(volatile unsigned short *)
+	#define __reg32			(volatile unsigned int *)
 #else
-#define PLD_BASE		(PLD_PLAT_BASE + NONCACHE_OFFSET)
-#define __reg8
-#define __reg16
-#define __reg32
+	#define PLD_BASE		(PLD_PLAT_BASE + NONCACHE_OFFSET)
+	#define __reg8
+	#define __reg16
+	#define __reg32
 #endif /* __ASSEMBLY__ */
 
 /* CFC */

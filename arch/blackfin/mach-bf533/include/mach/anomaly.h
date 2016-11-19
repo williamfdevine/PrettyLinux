@@ -18,23 +18,23 @@
 
 /* We do not support 0.1 or 0.2 silicon - sorry */
 #if __SILICON_REVISION__ < 3
-# error will not work on BF533 silicon version 0.0, 0.1, or 0.2
+	# error will not work on BF533 silicon version 0.0, 0.1, or 0.2
 #endif
 
 #if defined(__ADSPBF531__)
-# define ANOMALY_BF531 1
+	#define ANOMALY_BF531 1
 #else
-# define ANOMALY_BF531 0
+	#define ANOMALY_BF531 0
 #endif
 #if defined(__ADSPBF532__)
-# define ANOMALY_BF532 1
+	#define ANOMALY_BF532 1
 #else
-# define ANOMALY_BF532 0
+	#define ANOMALY_BF532 0
 #endif
 #if defined(__ADSPBF533__)
-# define ANOMALY_BF533 1
+	#define ANOMALY_BF533 1
 #else
-# define ANOMALY_BF533 0
+	#define ANOMALY_BF533 0
 #endif
 
 /* Multi-Issue Instruction with dsp32shiftimm in slot1 and P-reg Store in slot2 Not Supported */

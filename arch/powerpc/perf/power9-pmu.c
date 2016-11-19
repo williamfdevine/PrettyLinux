@@ -20,7 +20,8 @@
  */
 #define EVENT(_name, _code)	_name = _code,
 
-enum {
+enum
+{
 #include "power9-events-list.h"
 };
 
@@ -31,33 +32,34 @@ enum {
 #define POWER9_MMCRA_IFM2		0x0000000080000000UL
 #define POWER9_MMCRA_IFM3		0x00000000C0000000UL
 
-GENERIC_EVENT_ATTR(cpu-cycles,			PM_CYC);
-GENERIC_EVENT_ATTR(stalled-cycles-frontend,	PM_ICT_NOSLOT_CYC);
-GENERIC_EVENT_ATTR(stalled-cycles-backend,	PM_CMPLU_STALL);
+GENERIC_EVENT_ATTR(cpu - cycles,			PM_CYC);
+GENERIC_EVENT_ATTR(stalled - cycles - frontend,	PM_ICT_NOSLOT_CYC);
+GENERIC_EVENT_ATTR(stalled - cycles - backend,	PM_CMPLU_STALL);
 GENERIC_EVENT_ATTR(instructions,		PM_INST_CMPL);
-GENERIC_EVENT_ATTR(branch-instructions,		PM_BRU_CMPL);
-GENERIC_EVENT_ATTR(branch-misses,		PM_BR_MPRED_CMPL);
-GENERIC_EVENT_ATTR(cache-references,		PM_LD_REF_L1);
-GENERIC_EVENT_ATTR(cache-misses,		PM_LD_MISS_L1_FIN);
+GENERIC_EVENT_ATTR(branch - instructions,		PM_BRU_CMPL);
+GENERIC_EVENT_ATTR(branch - misses,		PM_BR_MPRED_CMPL);
+GENERIC_EVENT_ATTR(cache - references,		PM_LD_REF_L1);
+GENERIC_EVENT_ATTR(cache - misses,		PM_LD_MISS_L1_FIN);
 
-CACHE_EVENT_ATTR(L1-dcache-load-misses,		PM_LD_MISS_L1_FIN);
-CACHE_EVENT_ATTR(L1-dcache-loads,		PM_LD_REF_L1);
-CACHE_EVENT_ATTR(L1-dcache-prefetches,		PM_L1_PREF);
-CACHE_EVENT_ATTR(L1-dcache-store-misses,	PM_ST_MISS_L1);
-CACHE_EVENT_ATTR(L1-icache-load-misses,		PM_L1_ICACHE_MISS);
-CACHE_EVENT_ATTR(L1-icache-loads,		PM_INST_FROM_L1);
-CACHE_EVENT_ATTR(L1-icache-prefetches,		PM_IC_PREF_WRITE);
-CACHE_EVENT_ATTR(LLC-load-misses,		PM_DATA_FROM_L3MISS);
-CACHE_EVENT_ATTR(LLC-loads,			PM_DATA_FROM_L3);
-CACHE_EVENT_ATTR(LLC-prefetches,		PM_L3_PREF_ALL);
-CACHE_EVENT_ATTR(LLC-store-misses,		PM_L2_ST_MISS);
-CACHE_EVENT_ATTR(LLC-stores,			PM_L2_ST);
-CACHE_EVENT_ATTR(branch-load-misses,		PM_BR_MPRED_CMPL);
-CACHE_EVENT_ATTR(branch-loads,			PM_BRU_CMPL);
-CACHE_EVENT_ATTR(dTLB-load-misses,		PM_DTLB_MISS);
-CACHE_EVENT_ATTR(iTLB-load-misses,		PM_ITLB_MISS);
+CACHE_EVENT_ATTR(L1 - dcache - load - misses,		PM_LD_MISS_L1_FIN);
+CACHE_EVENT_ATTR(L1 - dcache - loads,		PM_LD_REF_L1);
+CACHE_EVENT_ATTR(L1 - dcache - prefetches,		PM_L1_PREF);
+CACHE_EVENT_ATTR(L1 - dcache - store - misses,	PM_ST_MISS_L1);
+CACHE_EVENT_ATTR(L1 - icache - load - misses,		PM_L1_ICACHE_MISS);
+CACHE_EVENT_ATTR(L1 - icache - loads,		PM_INST_FROM_L1);
+CACHE_EVENT_ATTR(L1 - icache - prefetches,		PM_IC_PREF_WRITE);
+CACHE_EVENT_ATTR(LLC - load - misses,		PM_DATA_FROM_L3MISS);
+CACHE_EVENT_ATTR(LLC - loads,			PM_DATA_FROM_L3);
+CACHE_EVENT_ATTR(LLC - prefetches,		PM_L3_PREF_ALL);
+CACHE_EVENT_ATTR(LLC - store - misses,		PM_L2_ST_MISS);
+CACHE_EVENT_ATTR(LLC - stores,			PM_L2_ST);
+CACHE_EVENT_ATTR(branch - load - misses,		PM_BR_MPRED_CMPL);
+CACHE_EVENT_ATTR(branch - loads,			PM_BRU_CMPL);
+CACHE_EVENT_ATTR(dTLB - load - misses,		PM_DTLB_MISS);
+CACHE_EVENT_ATTR(iTLB - load - misses,		PM_ITLB_MISS);
 
-static struct attribute *power9_events_attr[] = {
+static struct attribute *power9_events_attr[] =
+{
 	GENERIC_EVENT_PTR(PM_CYC),
 	GENERIC_EVENT_PTR(PM_ICT_NOSLOT_CYC),
 	GENERIC_EVENT_PTR(PM_CMPLU_STALL),
@@ -85,7 +87,8 @@ static struct attribute *power9_events_attr[] = {
 	NULL
 };
 
-static struct attribute_group power9_pmu_events_group = {
+static struct attribute_group power9_pmu_events_group =
+{
 	.name = "events",
 	.attrs = power9_events_attr,
 };
@@ -103,7 +106,8 @@ PMU_FORMAT_ATTR(thresh_stop,	"config:32-35");
 PMU_FORMAT_ATTR(thresh_start,	"config:36-39");
 PMU_FORMAT_ATTR(thresh_cmp,	"config:40-49");
 
-static struct attribute *power9_pmu_format_attr[] = {
+static struct attribute *power9_pmu_format_attr[] =
+{
 	&format_attr_event.attr,
 	&format_attr_pmcxsel.attr,
 	&format_attr_mark.attr,
@@ -119,18 +123,21 @@ static struct attribute *power9_pmu_format_attr[] = {
 	NULL,
 };
 
-static struct attribute_group power9_pmu_format_group = {
+static struct attribute_group power9_pmu_format_group =
+{
 	.name = "format",
 	.attrs = power9_pmu_format_attr,
 };
 
-static const struct attribute_group *power9_pmu_attr_groups[] = {
+static const struct attribute_group *power9_pmu_attr_groups[] =
+{
 	&power9_pmu_format_group,
 	&power9_pmu_events_group,
 	NULL,
 };
 
-static int power9_generic_events[] = {
+static int power9_generic_events[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES] =			PM_CYC,
 	[PERF_COUNT_HW_STALLED_CYCLES_FRONTEND] =	PM_ICT_NOSLOT_CYC,
 	[PERF_COUNT_HW_STALLED_CYCLES_BACKEND] =	PM_CMPLU_STALL,
@@ -154,19 +161,28 @@ static u64 power9_bhrb_filter_map(u64 branch_sample_type)
 
 	/* No branch filter requested */
 	if (branch_sample_type & PERF_SAMPLE_BRANCH_ANY)
+	{
 		return pmu_bhrb_filter;
+	}
 
 	/* Invalid branch filter options - HW does not support */
 	if (branch_sample_type & PERF_SAMPLE_BRANCH_ANY_RETURN)
+	{
 		return -1;
+	}
 
 	if (branch_sample_type & PERF_SAMPLE_BRANCH_IND_CALL)
+	{
 		return -1;
+	}
 
 	if (branch_sample_type & PERF_SAMPLE_BRANCH_CALL)
+	{
 		return -1;
+	}
 
-	if (branch_sample_type & PERF_SAMPLE_BRANCH_ANY_CALL) {
+	if (branch_sample_type & PERF_SAMPLE_BRANCH_ANY_CALL)
+	{
 		pmu_bhrb_filter |= POWER9_MMCRA_IFM1;
 		return pmu_bhrb_filter;
 	}
@@ -188,7 +204,8 @@ static void power9_config_bhrb(u64 pmu_bhrb_filter)
  * 0 means not supported, -1 means nonsensical, other values
  * are event codes.
  */
-static int power9_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
+static int power9_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] =
+{
 	[ C(L1D) ] = {
 		[ C(OP_READ) ] = {
 			[ C(RESULT_ACCESS) ] = PM_LD_REF_L1,
@@ -291,7 +308,8 @@ static int power9_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
 
 #undef C
 
-static struct power_pmu power9_pmu = {
+static struct power_pmu power9_pmu =
+{
 	.name			= "POWER9",
 	.n_counter		= MAX_PMU_COUNTERS,
 	.add_fields		= ISA207_ADD_FIELDS,
@@ -315,12 +333,17 @@ static int __init init_power9_pmu(void)
 
 	/* Comes from cpu_specs[] */
 	if (!cur_cpu_spec->oprofile_cpu_type ||
-	    strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc64/power9"))
+		strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc64/power9"))
+	{
 		return -ENODEV;
+	}
 
 	rc = register_power_pmu(&power9_pmu);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Tell userspace that EBB is supported */
 	cur_cpu_spec->cpu_user_features2 |= PPC_FEATURE2_EBB;

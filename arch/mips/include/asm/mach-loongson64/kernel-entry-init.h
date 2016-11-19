@@ -14,7 +14,7 @@
 /*
  * Override macros used in arch/mips/kernel/head.S.
  */
-	.macro	kernel_entry_setup
+.macro	kernel_entry_setup
 #ifdef CONFIG_CPU_LOONGSON3
 	.set	push
 	.set	mips64
@@ -26,21 +26,21 @@
 	mfc0	t0, $5, 1
 	or	t0, (0x1 << 29)
 	mtc0	t0, $5, 1
-#ifdef CONFIG_LOONGSON3_ENHANCEMENT
-	/* Enable STFill Buffer */
-	mfc0	t0, $16, 6
-	or	t0, 0x100
-	mtc0	t0, $16, 6
-#endif
+	#ifdef CONFIG_LOONGSON3_ENHANCEMENT
+		/* Enable STFill Buffer */
+		mfc0	t0, $16, 6
+		or	t0, 0x100
+		mtc0	t0, $16, 6
+	#endif
 	_ehb
 	.set	pop
 #endif
-	.endm
+.endm
 
 /*
  * Do SMP slave processor setup.
  */
-	.macro	smp_slave_setup
+.macro	smp_slave_setup
 #ifdef CONFIG_CPU_LOONGSON3
 	.set	push
 	.set	mips64
@@ -52,15 +52,15 @@
 	mfc0	t0, $5, 1
 	or	t0, (0x1 << 29)
 	mtc0	t0, $5, 1
-#ifdef CONFIG_LOONGSON3_ENHANCEMENT
-	/* Enable STFill Buffer */
-	mfc0	t0, $16, 6
-	or	t0, 0x100
-	mtc0	t0, $16, 6
-#endif
+	#ifdef CONFIG_LOONGSON3_ENHANCEMENT
+		/* Enable STFill Buffer */
+		mfc0	t0, $16, 6
+		or	t0, 0x100
+		mtc0	t0, $16, 6
+	#endif
 	_ehb
 	.set	pop
 #endif
-	.endm
+.endm
 
 #endif /* __ASM_MACH_LOONGSON64_KERNEL_ENTRY_H */

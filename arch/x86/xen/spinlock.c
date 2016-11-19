@@ -29,7 +29,9 @@ static void xen_qlock_kick(int cpu)
 
 	/* Don't kick if the target's kicker interrupt is not initialized. */
 	if (irq == -1)
+	{
 		return;
+	}
 
 	xen_send_IPI_one(cpu, XEN_SPIN_UNLOCK_VECTOR);
 }
@@ -43,7 +45,9 @@ static void xen_qlock_wait(u8 *byte, u8 val)
 
 	/* If kicker interrupts not initialized yet, just spin */
 	if (irq == -1)
+	{
 		return;
+	}
 
 	/* clear pending */
 	xen_clear_irq_pending(irq);
@@ -57,7 +61,9 @@ static void xen_qlock_wait(u8 *byte, u8 val)
 	 * So it is effectively a memory barrier for x86.
 	 */
 	if (READ_ONCE(*byte) != val)
+	{
 		return;
+	}
 
 	/*
 	 * If an interrupt happens here, it will leave the wakeup irq
@@ -81,20 +87,23 @@ void xen_init_lock_cpu(int cpu)
 	char *name;
 
 	if (!xen_pvspin)
+	{
 		return;
+	}
 
 	WARN(per_cpu(lock_kicker_irq, cpu) >= 0, "spinlock on CPU%d exists on IRQ%d!\n",
-	     cpu, per_cpu(lock_kicker_irq, cpu));
+		 cpu, per_cpu(lock_kicker_irq, cpu));
 
 	name = kasprintf(GFP_KERNEL, "spinlock%d", cpu);
 	irq = bind_ipi_to_irqhandler(XEN_SPIN_UNLOCK_VECTOR,
-				     cpu,
-				     dummy_handler,
-				     IRQF_PERCPU|IRQF_NOBALANCING,
-				     name,
-				     NULL);
+								 cpu,
+								 dummy_handler,
+								 IRQF_PERCPU | IRQF_NOBALANCING,
+								 name,
+								 NULL);
 
-	if (irq >= 0) {
+	if (irq >= 0)
+	{
 		disable_irq(irq); /* make sure it's never delivered */
 		per_cpu(lock_kicker_irq, cpu) = irq;
 		per_cpu(irq_name, cpu) = name;
@@ -106,7 +115,9 @@ void xen_init_lock_cpu(int cpu)
 void xen_uninit_lock_cpu(int cpu)
 {
 	if (!xen_pvspin)
+	{
 		return;
+	}
 
 	unbind_from_irqhandler(per_cpu(lock_kicker_irq, cpu), NULL);
 	per_cpu(lock_kicker_irq, cpu) = -1;
@@ -126,10 +137,12 @@ void xen_uninit_lock_cpu(int cpu)
 void __init xen_init_spinlocks(void)
 {
 
-	if (!xen_pvspin) {
+	if (!xen_pvspin)
+	{
 		printk(KERN_DEBUG "xen: PV spinlocks disabled\n");
 		return;
 	}
+
 	printk(KERN_DEBUG "xen: PV spinlocks enabled\n");
 
 	__pv_init_lock_hash();
@@ -148,10 +161,14 @@ void __init xen_init_spinlocks(void)
 static __init int xen_init_spinlocks_jump(void)
 {
 	if (!xen_pvspin)
+	{
 		return 0;
+	}
 
 	if (!xen_domain())
+	{
 		return 0;
+	}
 
 	static_key_slow_inc(&paravirt_ticketlocks_enabled);
 	return 0;

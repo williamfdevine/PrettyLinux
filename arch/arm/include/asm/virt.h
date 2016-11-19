@@ -66,7 +66,7 @@ void hyp_mode_check(void);
 static inline bool is_hyp_mode_available(void)
 {
 	return ((__boot_cpu_mode & MODE_MASK) == HYP_MODE &&
-		!(__boot_cpu_mode & BOOT_CPU_MODE_MISMATCH));
+			!(__boot_cpu_mode & BOOT_CPU_MODE_MISMATCH));
 }
 
 /* Check if the bootloader has booted CPUs in different modes */

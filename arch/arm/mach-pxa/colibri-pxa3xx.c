@@ -47,20 +47,24 @@ void __init colibri_pxa3xx_init_eth(struct ax_plat_data *plat_data)
 	 * this way.
 	 */
 
-	for (i = 0; i < ETHER_ADDR_LEN; i++) {
+	for (i = 0; i < ETHER_ADDR_LEN; i++)
+	{
 		ether_mac_addr[i] = serial & 0xff;
 		serial >>= 8;
 	}
 
-	if (is_valid_ether_addr(ether_mac_addr)) {
+	if (is_valid_ether_addr(ether_mac_addr))
+	{
 		plat_data->flags |= AXFLG_MAC_FROMPLATFORM;
 		plat_data->mac_addr = ether_mac_addr;
 		printk(KERN_INFO "%s(): taking MAC from serial boot tag\n",
-			__func__);
-	} else {
+			   __func__);
+	}
+	else
+	{
 		plat_data->flags |= AXFLG_MAC_FROMDEV;
 		printk(KERN_INFO "%s(): no valid serial boot tag found, "
-			"taking MAC from device\n", __func__);
+			   "taking MAC from device\n", __func__);
 	}
 }
 #endif
@@ -76,7 +80,8 @@ static void colibri_lcd_backlight(int on)
 	gpio_set_value(lcd_bl_pin, !!on);
 }
 
-static struct pxafb_mode_info sharp_lq43_mode = {
+static struct pxafb_mode_info sharp_lq43_mode =
+{
 	.pixclock	= 101936,
 	.xres		= 480,
 	.yres		= 272,
@@ -92,7 +97,8 @@ static struct pxafb_mode_info sharp_lq43_mode = {
 	.cmap_greyscale = 0,
 };
 
-static struct pxafb_mach_info sharp_lq43_info = {
+static struct pxafb_mach_info sharp_lq43_info =
+{
 	.modes		= &sharp_lq43_mode,
 	.num_modes	= 1,
 	.cmap_inverse	= 0,
@@ -111,7 +117,8 @@ void __init colibri_pxa3xx_init_lcd(int bl_pin)
 #endif
 
 #if defined(CONFIG_MTD_NAND_PXA3xx) || defined(CONFIG_MTD_NAND_PXA3xx_MODULE)
-static struct mtd_partition colibri_nand_partitions[] = {
+static struct mtd_partition colibri_nand_partitions[] =
+{
 	{
 		.name        = "bootloader",
 		.offset      = 0,
@@ -137,7 +144,8 @@ static struct mtd_partition colibri_nand_partitions[] = {
 	},
 };
 
-static struct pxa3xx_nand_platform_data colibri_nand_info = {
+static struct pxa3xx_nand_platform_data colibri_nand_info =
+{
 	.enable_arbiter	= 1,
 	.keep_config	= 1,
 	.num_cs		= 1,

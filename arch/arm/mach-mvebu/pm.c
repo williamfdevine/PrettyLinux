@@ -157,9 +157,13 @@ static int mvebu_pm_store_bootinfo(void)
 	store_addr = phys_to_virt(BOOT_INFO_ADDR);
 
 	if (of_machine_is_compatible("marvell,armadaxp"))
+	{
 		mvebu_pm_store_armadaxp_bootinfo(store_addr);
+	}
 	else
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -169,8 +173,11 @@ static int mvebu_enter_suspend(void)
 	int ret;
 
 	ret = mvebu_pm_store_bootinfo();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	cpu_pm_enter();
 
@@ -188,31 +195,40 @@ static int mvebu_enter_suspend(void)
 
 static int mvebu_pm_enter(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-		cpu_do_idle();
-		break;
-	case PM_SUSPEND_MEM:
-		pr_warn("Entering suspend to RAM. Only special wake-up sources will resume the system\n");
-		return mvebu_enter_suspend();
-	default:
-		return -EINVAL;
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+			cpu_do_idle();
+			break;
+
+		case PM_SUSPEND_MEM:
+			pr_warn("Entering suspend to RAM. Only special wake-up sources will resume the system\n");
+			return mvebu_enter_suspend();
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
 static int mvebu_pm_valid(suspend_state_t state)
 {
 	if (state == PM_SUSPEND_STANDBY)
+	{
 		return 1;
+	}
 
 	if (state == PM_SUSPEND_MEM && mvebu_board_pm_enter != NULL)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
-static const struct platform_suspend_ops mvebu_pm_ops = {
+static const struct platform_suspend_ops mvebu_pm_ops =
+{
 	.enter = mvebu_pm_enter,
 	.valid = mvebu_pm_valid,
 };
@@ -220,10 +236,12 @@ static const struct platform_suspend_ops mvebu_pm_ops = {
 static int __init mvebu_pm_init(void)
 {
 	if (!of_machine_is_compatible("marvell,armadaxp") &&
-	    !of_machine_is_compatible("marvell,armada370") &&
-	    !of_machine_is_compatible("marvell,armada380") &&
-	    !of_machine_is_compatible("marvell,armada390"))
+		!of_machine_is_compatible("marvell,armada370") &&
+		!of_machine_is_compatible("marvell,armada380") &&
+		!of_machine_is_compatible("marvell,armada390"))
+	{
 		return -ENODEV;
+	}
 
 	suspend_set_ops(&mvebu_pm_ops);
 
@@ -234,29 +252,36 @@ static int __init mvebu_pm_init(void)
 late_initcall(mvebu_pm_init);
 
 int __init mvebu_pm_suspend_init(void (*board_pm_enter)(void __iomem *sdram_reg,
-							u32 srcmd))
+								 u32 srcmd))
 {
 	struct device_node *np;
 	struct resource res;
 
 	np = of_find_compatible_node(NULL, NULL,
-				     "marvell,armada-xp-sdram-controller");
-	if (!np)
-		return -ENODEV;
+								 "marvell,armada-xp-sdram-controller");
 
-	if (of_address_to_resource(np, 0, &res)) {
+	if (!np)
+	{
+		return -ENODEV;
+	}
+
+	if (of_address_to_resource(np, 0, &res))
+	{
 		of_node_put(np);
 		return -ENODEV;
 	}
 
 	if (!request_mem_region(res.start, resource_size(&res),
-				np->full_name)) {
+							np->full_name))
+	{
 		of_node_put(np);
 		return -EBUSY;
 	}
 
 	sdram_ctrl = ioremap(res.start, resource_size(&res));
-	if (!sdram_ctrl) {
+
+	if (!sdram_ctrl)
+	{
 		release_mem_region(res.start, resource_size(&res));
 		of_node_put(np);
 		return -ENOMEM;

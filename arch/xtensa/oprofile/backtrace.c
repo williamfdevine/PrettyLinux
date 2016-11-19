@@ -17,11 +17,13 @@ static int xtensa_backtrace_cb(struct stackframe *frame, void *data)
 	return 0;
 }
 
-void xtensa_backtrace(struct pt_regs * const regs, unsigned int depth)
+void xtensa_backtrace(struct pt_regs *const regs, unsigned int depth)
 {
 	if (user_mode(regs))
+	{
 		xtensa_backtrace_user(regs, depth, xtensa_backtrace_cb, NULL);
+	}
 	else
 		xtensa_backtrace_kernel(regs, depth, xtensa_backtrace_cb,
-					xtensa_backtrace_cb, NULL);
+								xtensa_backtrace_cb, NULL);
 }

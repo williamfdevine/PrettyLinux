@@ -33,7 +33,8 @@
 
 #define GPIO_5V_ENABLE		(89)
 
-static unsigned long brownstone_pin_config[] __initdata = {
+static unsigned long brownstone_pin_config[] __initdata =
+{
 	/* UART1 */
 	GPIO29_UART1_RXD,
 	GPIO30_UART1_TXD,
@@ -105,15 +106,18 @@ static unsigned long brownstone_pin_config[] __initdata = {
 	GPIO89_GPIO,
 };
 
-static struct pxa_gpio_platform_data mmp2_gpio_pdata = {
+static struct pxa_gpio_platform_data mmp2_gpio_pdata =
+{
 	.irq_base	= MMP_GPIO_TO_IRQ(0),
 };
 
-static struct regulator_consumer_supply max8649_supply[] = {
+static struct regulator_consumer_supply max8649_supply[] =
+{
 	REGULATOR_SUPPLY("vcc_core", NULL),
 };
 
-static struct regulator_init_data max8649_init_data = {
+static struct regulator_init_data max8649_init_data =
+{
 	.constraints	= {
 		.name		= "vcc_core range",
 		.min_uV		= 1150000,
@@ -126,18 +130,21 @@ static struct regulator_init_data max8649_init_data = {
 	.consumer_supplies	= &max8649_supply[0],
 };
 
-static struct max8649_platform_data brownstone_max8649_info = {
+static struct max8649_platform_data brownstone_max8649_info =
+{
 	.mode		= 2,	/* VID1 = 1, VID0 = 0 */
 	.extclk		= 0,
 	.ramp_timing	= MAX8649_RAMP_32MV,
 	.regulator	= &max8649_init_data,
 };
 
-static struct regulator_consumer_supply brownstone_v_5vp_supplies[] = {
+static struct regulator_consumer_supply brownstone_v_5vp_supplies[] =
+{
 	REGULATOR_SUPPLY("v_5vp", NULL),
 };
 
-static struct regulator_init_data brownstone_v_5vp_data = {
+static struct regulator_init_data brownstone_v_5vp_data =
+{
 	.constraints	= {
 		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
 	},
@@ -145,7 +152,8 @@ static struct regulator_init_data brownstone_v_5vp_data = {
 	.consumer_supplies	= brownstone_v_5vp_supplies,
 };
 
-static struct fixed_voltage_config brownstone_v_5vp = {
+static struct fixed_voltage_config brownstone_v_5vp =
+{
 	.supply_name		= "v_5vp",
 	.microvolts		= 5000000,
 	.gpio			= GPIO_5V_ENABLE,
@@ -154,7 +162,8 @@ static struct fixed_voltage_config brownstone_v_5vp = {
 	.init_data		= &brownstone_v_5vp_data,
 };
 
-static struct platform_device brownstone_v_5vp_device = {
+static struct platform_device brownstone_v_5vp_device =
+{
 	.name		= "reg-fixed-voltage",
 	.id		= 1,
 	.dev = {
@@ -162,11 +171,13 @@ static struct platform_device brownstone_v_5vp_device = {
 	},
 };
 
-static struct max8925_platform_data brownstone_max8925_info = {
+static struct max8925_platform_data brownstone_max8925_info =
+{
 	.irq_base		= MMP_NR_IRQS,
 };
 
-static struct i2c_board_info brownstone_twsi1_info[] = {
+static struct i2c_board_info brownstone_twsi1_info[] =
+{
 	[0] = {
 		.type		= "max8649",
 		.addr		= 0x60,
@@ -180,22 +191,26 @@ static struct i2c_board_info brownstone_twsi1_info[] = {
 	},
 };
 
-static struct sdhci_pxa_platdata mmp2_sdh_platdata_mmc0 = {
+static struct sdhci_pxa_platdata mmp2_sdh_platdata_mmc0 =
+{
 	.clk_delay_cycles = 0x1f,
 };
 
-static struct sdhci_pxa_platdata mmp2_sdh_platdata_mmc2 = {
+static struct sdhci_pxa_platdata mmp2_sdh_platdata_mmc2 =
+{
 	.clk_delay_cycles = 0x1f,
 	.flags = PXA_FLAG_CARD_PERMANENT
-		| PXA_FLAG_SD_8_BIT_CAPABLE_SLOT,
+	| PXA_FLAG_SD_8_BIT_CAPABLE_SLOT,
 };
 
-static struct sram_platdata mmp2_asram_platdata = {
+static struct sram_platdata mmp2_asram_platdata =
+{
 	.pool_name	= "asram",
 	.granularity	= SRAM_GRANULARITY,
 };
 
-static struct sram_platdata mmp2_isram_platdata = {
+static struct sram_platdata mmp2_isram_platdata =
+{
 	.pool_name	= "isram",
 	.granularity	= SRAM_GRANULARITY,
 };
@@ -208,7 +223,7 @@ static void __init brownstone_init(void)
 	mmp2_add_uart(1);
 	mmp2_add_uart(3);
 	platform_device_add_data(&mmp2_device_gpio, &mmp2_gpio_pdata,
-				 sizeof(struct pxa_gpio_platform_data));
+							 sizeof(struct pxa_gpio_platform_data));
 	platform_device_register(&mmp2_device_gpio);
 	mmp2_add_twsi(1, NULL, ARRAY_AND_SIZE(brownstone_twsi1_info));
 	mmp2_add_sdhost(0, &mmp2_sdh_platdata_mmc0); /* SD/MMC */
@@ -221,11 +236,11 @@ static void __init brownstone_init(void)
 }
 
 MACHINE_START(BROWNSTONE, "Brownstone Development Platform")
-	/* Maintainer: Haojian Zhuang <haojian.zhuang@marvell.com> */
-	.map_io		= mmp_map_io,
+/* Maintainer: Haojian Zhuang <haojian.zhuang@marvell.com> */
+.map_io		= mmp_map_io,
 	.nr_irqs	= BROWNSTONE_NR_IRQS,
-	.init_irq	= mmp2_init_irq,
-	.init_time	= mmp2_timer_init,
-	.init_machine	= brownstone_init,
-	.restart	= mmp_restart,
-MACHINE_END
+		.init_irq	= mmp2_init_irq,
+		   .init_time	= mmp2_timer_init,
+			 .init_machine	= brownstone_init,
+				.restart	= mmp_restart,
+					MACHINE_END

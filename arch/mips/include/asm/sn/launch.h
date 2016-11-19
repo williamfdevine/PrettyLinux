@@ -29,8 +29,8 @@
 
 #define LAUNCH_MAGIC		0xaddbead2addbead3
 #ifdef CONFIG_SGI_IP27
-#define LAUNCH_SIZEOF		0x100
-#define LAUNCH_PADSZ		0xa0
+	#define LAUNCH_SIZEOF		0x100
+	#define LAUNCH_PADSZ		0xa0
 #endif
 
 #define LAUNCH_OFF_MAGIC	0x00	/* Struct offsets for assembly	    */
@@ -64,7 +64,8 @@
 typedef int launch_state_t;
 typedef void (*launch_proc_t)(u64 call_parm);
 
-typedef struct launch_s {
+typedef struct launch_s
+{
 	volatile u64		magic;	/* Magic number			    */
 	volatile u64		busy;	/* Slave currently active	    */
 	volatile launch_proc_t	call_addr;	/* Func. for slave to call  */
@@ -83,23 +84,23 @@ typedef struct launch_s {
  */
 
 #define LAUNCH_SLAVE	(*(void (*)(int nasid, int cpu, \
-				    launch_proc_t call_addr, \
-				    u64 call_parm, \
-				    void *stack_addr, \
-				    void *gp_addr)) \
-			 IP27PROM_LAUNCHSLAVE)
+									launch_proc_t call_addr, \
+									u64 call_parm, \
+									void *stack_addr, \
+									void *gp_addr)) \
+						 IP27PROM_LAUNCHSLAVE)
 
 #define LAUNCH_WAIT	(*(void (*)(int nasid, int cpu, int timeout_msec)) \
-			 IP27PROM_WAITSLAVE)
+					 IP27PROM_WAITSLAVE)
 
 #define LAUNCH_POLL	(*(launch_state_t (*)(int nasid, int cpu)) \
-			 IP27PROM_POLLSLAVE)
+					 IP27PROM_POLLSLAVE)
 
 #define LAUNCH_LOOP	(*(void (*)(void)) \
-			 IP27PROM_SLAVELOOP)
+					 IP27PROM_SLAVELOOP)
 
 #define LAUNCH_FLASH	(*(void (*)(void)) \
-			 IP27PROM_FLASHLEDS)
+						 IP27PROM_FLASHLEDS)
 
 #endif /* !__ASSEMBLY__ */
 

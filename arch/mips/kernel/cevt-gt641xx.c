@@ -37,7 +37,9 @@ void gt641xx_set_base_clock(unsigned int clock)
 int gt641xx_timer0_state(void)
 {
 	if (GT_READ(GT_TC0_OFS))
+	{
 		return 0;
+	}
 
 	GT_WRITE(GT_TC0_OFS, gt641xx_base_clock / HZ);
 	GT_WRITE(GT_TC_CONTROL_OFS, GT_TC_CONTROL_ENTC0_MSK);
@@ -46,7 +48,7 @@ int gt641xx_timer0_state(void)
 }
 
 static int gt641xx_timer0_set_next_event(unsigned long delta,
-					 struct clock_event_device *evt)
+		struct clock_event_device *evt)
 {
 	u32 ctrl;
 
@@ -111,10 +113,11 @@ static void gt641xx_timer0_event_handler(struct clock_event_device *dev)
 {
 }
 
-static struct clock_event_device gt641xx_timer0_clockevent = {
+static struct clock_event_device gt641xx_timer0_clockevent =
+{
 	.name			= "gt641xx-timer0",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.irq			= GT641XX_TIMER0_IRQ,
 	.set_next_event		= gt641xx_timer0_set_next_event,
 	.set_state_shutdown	= gt641xx_timer0_shutdown,
@@ -133,7 +136,8 @@ static irqreturn_t gt641xx_timer0_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction gt641xx_timer0_irqaction = {
+static struct irqaction gt641xx_timer0_irqaction =
+{
 	.handler	= gt641xx_timer0_interrupt,
 	.flags		= IRQF_PERCPU | IRQF_TIMER,
 	.name		= "gt641xx_timer0",
@@ -144,7 +148,9 @@ static int __init gt641xx_timer0_clockevent_init(void)
 	struct clock_event_device *cd;
 
 	if (!gt641xx_base_clock)
+	{
 		return 0;
+	}
 
 	GT_WRITE(GT_TC0_OFS, gt641xx_base_clock / HZ);
 

@@ -39,7 +39,8 @@
  */
 #define NAND_BLOCK_SIZE		SZ_128K
 
-static struct mtd_partition davinci_nand_partitions[] = {
+static struct mtd_partition davinci_nand_partitions[] =
+{
 	{
 		/* UBL (a few copies) plus U-Boot */
 		.name		= "bootloader",
@@ -71,7 +72,8 @@ static struct mtd_partition davinci_nand_partitions[] = {
 	/* two blocks with bad block table (and mirror) at the end */
 };
 
-static struct davinci_nand_pdata davinci_nand_data = {
+static struct davinci_nand_pdata davinci_nand_data =
+{
 	.mask_chipsel		= BIT(14),
 	.parts			= davinci_nand_partitions,
 	.nr_parts		= ARRAY_SIZE(davinci_nand_partitions),
@@ -80,7 +82,8 @@ static struct davinci_nand_pdata davinci_nand_data = {
 	.bbt_options		= NAND_BBT_USE_FLASH,
 };
 
-static struct resource davinci_nand_resources[] = {
+static struct resource davinci_nand_resources[] =
+{
 	{
 		.start		= DM355_ASYNC_EMIF_DATA_CE0_BASE,
 		.end		= DM355_ASYNC_EMIF_DATA_CE0_BASE + SZ_32M - 1,
@@ -92,7 +95,8 @@ static struct resource davinci_nand_resources[] = {
 	},
 };
 
-static struct platform_device davinci_nand_device = {
+static struct platform_device davinci_nand_device =
+{
 	.name			= "davinci_nand",
 	.id			= 0,
 
@@ -104,7 +108,8 @@ static struct platform_device davinci_nand_device = {
 	},
 };
 
-static struct davinci_i2c_platform_data i2c_pdata = {
+static struct davinci_i2c_platform_data i2c_pdata =
+{
 	.bus_freq	= 400	/* kHz */,
 	.bus_delay	= 0	/* usec */,
 };
@@ -125,10 +130,13 @@ static void dm355leopard_mmcsd_gpios(unsigned gpio)
 	leopard_mmc_gpio = gpio;
 }
 
-static struct i2c_board_info dm355leopard_i2c_info[] = {
-	{ I2C_BOARD_INFO("dm355leopard_msp", 0x25),
+static struct i2c_board_info dm355leopard_i2c_info[] =
+{
+	{
+		I2C_BOARD_INFO("dm355leopard_msp", 0x25),
 		.platform_data = dm355leopard_mmcsd_gpios,
-		/* plus irq */ },
+		/* plus irq */
+	},
 	/* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
 	/* { I2C_BOARD_INFO("tvp5146", 0x5d), }, */
 };
@@ -142,10 +150,11 @@ static void __init leopard_init_i2c(void)
 	dm355leopard_i2c_info[0].irq = gpio_to_irq(5);
 
 	i2c_register_board_info(1, dm355leopard_i2c_info,
-			ARRAY_SIZE(dm355leopard_i2c_info));
+							ARRAY_SIZE(dm355leopard_i2c_info));
 }
 
-static struct resource dm355leopard_dm9000_rsrc[] = {
+static struct resource dm355leopard_dm9000_rsrc[] =
+{
 	{
 		/* addr */
 		.start	= 0x04000000,
@@ -158,18 +167,20 @@ static struct resource dm355leopard_dm9000_rsrc[] = {
 		.flags	= IORESOURCE_MEM,
 	}, {
 		.flags	= IORESOURCE_IRQ
-			| IORESOURCE_IRQ_HIGHEDGE /* rising (active high) */,
+		| IORESOURCE_IRQ_HIGHEDGE /* rising (active high) */,
 	},
 };
 
-static struct platform_device dm355leopard_dm9000 = {
+static struct platform_device dm355leopard_dm9000 =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.resource	= dm355leopard_dm9000_rsrc,
 	.num_resources	= ARRAY_SIZE(dm355leopard_dm9000_rsrc),
 };
 
-static struct platform_device *davinci_leopard_devices[] __initdata = {
+static struct platform_device *davinci_leopard_devices[] __initdata =
+{
 	&dm355leopard_dm9000,
 	&davinci_nand_device,
 };
@@ -182,7 +193,10 @@ static void __init dm355_leopard_map_io(void)
 static int dm355leopard_mmc_get_cd(int module)
 {
 	if (!gpio_is_valid(leopard_mmc_gpio))
+	{
 		return -ENXIO;
+	}
+
 	/* low == card present */
 	return !gpio_get_value_cansleep(leopard_mmc_gpio + 2 * module + 1);
 }
@@ -190,12 +204,16 @@ static int dm355leopard_mmc_get_cd(int module)
 static int dm355leopard_mmc_get_ro(int module)
 {
 	if (!gpio_is_valid(leopard_mmc_gpio))
+	{
 		return -ENXIO;
+	}
+
 	/* high == card's write protect switch active */
 	return gpio_get_value_cansleep(leopard_mmc_gpio + 2 * module + 0);
 }
 
-static struct davinci_mmc_config dm355leopard_mmc_config = {
+static struct davinci_mmc_config dm355leopard_mmc_config =
+{
 	.get_cd		= dm355leopard_mmc_get_cd,
 	.get_ro		= dm355leopard_mmc_get_ro,
 	.wires		= 4,
@@ -210,14 +228,16 @@ static struct davinci_mmc_config dm355leopard_mmc_config = {
  */
 #define USB_ID_VALUE	1	/* ID pulled low */
 
-static struct spi_eeprom at25640a = {
+static struct spi_eeprom at25640a =
+{
 	.byte_len	= SZ_64K / 8,
 	.name		= "at25640a",
 	.page_size	= 32,
 	.flags		= EE_ADDR2,
 };
 
-static struct spi_board_info dm355_leopard_spi_info[] __initconst = {
+static struct spi_board_info dm355_leopard_spi_info[] __initconst =
+{
 	{
 		.modalias	= "at25",
 		.platform_data	= &at25640a,
@@ -234,19 +254,25 @@ static __init void dm355_leopard_init(void)
 	int ret;
 
 	ret = dm355_gpio_register();
+
 	if (ret)
+	{
 		pr_warn("%s: GPIO init failed: %d\n", __func__, ret);
+	}
 
 	gpio_request(9, "dm9000");
 	gpio_direction_input(9);
 	dm355leopard_dm9000_rsrc[2].start = gpio_to_irq(9);
 
 	aemif = clk_get(&dm355leopard_dm9000.dev, "aemif");
+
 	if (!WARN(IS_ERR(aemif), "unable to get AEMIF clock\n"))
+	{
 		clk_prepare_enable(aemif);
+	}
 
 	platform_add_devices(davinci_leopard_devices,
-			     ARRAY_SIZE(davinci_leopard_devices));
+						 ARRAY_SIZE(davinci_leopard_devices));
 	leopard_init_i2c();
 	davinci_serial_init(dm355_serial_device);
 
@@ -264,16 +290,16 @@ static __init void dm355_leopard_init(void)
 	davinci_setup_mmc(1, &dm355leopard_mmc_config);
 
 	dm355_init_spi0(BIT(0), dm355_leopard_spi_info,
-			ARRAY_SIZE(dm355_leopard_spi_info));
+					ARRAY_SIZE(dm355_leopard_spi_info));
 }
 
 MACHINE_START(DM355_LEOPARD, "DaVinci DM355 leopard")
-	.atag_offset  = 0x100,
-	.map_io	      = dm355_leopard_map_io,
-	.init_irq     = davinci_irq_init,
-	.init_time	= davinci_timer_init,
-	.init_machine = dm355_leopard_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= davinci_restart,
-MACHINE_END
+.atag_offset  = 0x100,
+ .map_io	      = dm355_leopard_map_io,
+  .init_irq     = davinci_irq_init,
+   .init_time	= davinci_timer_init,
+	 .init_machine = dm355_leopard_init,
+	  .init_late	= davinci_init_late,
+		.dma_zone_size	= SZ_128M,
+		  .restart	= davinci_restart,
+			  MACHINE_END

@@ -28,10 +28,14 @@ fsubs(void *frD, void *frA, void *frB)
 #endif
 
 	if (B_c != FP_CLS_NAN)
+	{
 		B_s ^= 1;
+	}
 
 	if (A_s != B_s && A_c == FP_CLS_INF && B_c == FP_CLS_INF)
+	{
 		FP_SET_EXCEPTION(EFLAG_VXISI);
+	}
 
 	FP_ADD_D(R, A, B);
 

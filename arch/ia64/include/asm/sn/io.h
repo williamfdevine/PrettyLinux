@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is subject to the terms and conditions of the GNU General Public
  * License.  See the file "COPYING" in the main directory of this archive
  * for more details.
@@ -11,7 +11,7 @@
 #include <linux/compiler.h>
 #include <asm/intrinsics.h>
 
-extern void * sn_io_addr(unsigned long port) __attribute_const__; /* Forward definition */
+extern void *sn_io_addr(unsigned long port) __attribute_const__;  /* Forward definition */
 extern void __sn_mmiowb(void); /* Forward definition */
 
 extern int num_cnodes;
@@ -59,11 +59,13 @@ ___sn_inb (unsigned long port)
 	volatile unsigned char *addr;
 	unsigned char ret = -1;
 
-	if ((addr = sn_io_addr(port))) {
+	if ((addr = sn_io_addr(port)))
+	{
 		ret = *addr;
 		__sn_mf_a();
 		sn_dma_flush((unsigned long)addr);
 	}
+
 	return ret;
 }
 
@@ -73,11 +75,13 @@ ___sn_inw (unsigned long port)
 	volatile unsigned short *addr;
 	unsigned short ret = -1;
 
-	if ((addr = sn_io_addr(port))) {
+	if ((addr = sn_io_addr(port)))
+	{
 		ret = *addr;
 		__sn_mf_a();
 		sn_dma_flush((unsigned long)addr);
 	}
+
 	return ret;
 }
 
@@ -87,11 +91,13 @@ ___sn_inl (unsigned long port)
 	volatile unsigned int *addr;
 	unsigned int ret = -1;
 
-	if ((addr = sn_io_addr(port))) {
+	if ((addr = sn_io_addr(port)))
+	{
 		ret = *addr;
 		__sn_mf_a();
 		sn_dma_flush((unsigned long)addr);
 	}
+
 	return ret;
 }
 
@@ -100,7 +106,8 @@ ___sn_outb (unsigned char val, unsigned long port)
 {
 	volatile unsigned char *addr;
 
-	if ((addr = sn_io_addr(port))) {
+	if ((addr = sn_io_addr(port)))
+	{
 		*addr = val;
 		__sn_mmiowb();
 	}
@@ -111,7 +118,8 @@ ___sn_outw (unsigned short val, unsigned long port)
 {
 	volatile unsigned short *addr;
 
-	if ((addr = sn_io_addr(port))) {
+	if ((addr = sn_io_addr(port)))
+	{
 		*addr = val;
 		__sn_mmiowb();
 	}
@@ -122,18 +130,19 @@ ___sn_outl (unsigned int val, unsigned long port)
 {
 	volatile unsigned int *addr;
 
-	if ((addr = sn_io_addr(port))) {
+	if ((addr = sn_io_addr(port)))
+	{
 		*addr = val;
 		__sn_mmiowb();
 	}
 }
 
 /*
- * The following routines are SN Platform specific, called when 
- * a reference is made to readX/writeX set macros.  SN Platform 
- * readX set of macros ensures that Posted DMA writes on the 
+ * The following routines are SN Platform specific, called when
+ * a reference is made to readX/writeX set macros.  SN Platform
+ * readX set of macros ensures that Posted DMA writes on the
  * Bridge is flushed.
- * 
+ *
  * The routines should be self explainatory.
  */
 
@@ -145,7 +154,7 @@ ___sn_readb (const volatile void __iomem *addr)
 	val = *(volatile unsigned char __force *)addr;
 	__sn_mf_a();
 	sn_dma_flush((unsigned long)addr);
-        return val;
+	return val;
 }
 
 static inline unsigned short
@@ -156,7 +165,7 @@ ___sn_readw (const volatile void __iomem *addr)
 	val = *(volatile unsigned short __force *)addr;
 	__sn_mf_a();
 	sn_dma_flush((unsigned long)addr);
-        return val;
+	return val;
 }
 
 static inline unsigned int
@@ -167,7 +176,7 @@ ___sn_readl (const volatile void __iomem *addr)
 	val = *(volatile unsigned int __force *)addr;
 	__sn_mf_a();
 	sn_dma_flush((unsigned long)addr);
-        return val;
+	return val;
 }
 
 static inline unsigned long
@@ -178,7 +187,7 @@ ___sn_readq (const volatile void __iomem *addr)
 	val = *(volatile unsigned long __force *)addr;
 	__sn_mf_a();
 	sn_dma_flush((unsigned long)addr);
-        return val;
+	return val;
 }
 
 /*
@@ -253,17 +262,23 @@ static inline int
 sn_pci_set_vchan(struct pci_dev *pci_dev, unsigned long *addr, int vchan)
 {
 
-	if (vchan > 1) {
+	if (vchan > 1)
+	{
 		return -1;
 	}
 
 	if (!(*addr >> 32))	/* Using a mask here would be cleaner */
-		return 0;	/* but this generates better code */
+	{
+		return 0;    /* but this generates better code */
+	}
 
-	if (vchan == 1) {
+	if (vchan == 1)
+	{
 		/* Set Bit 57 */
 		*addr |= (1UL << 57);
-	} else {
+	}
+	else
+	{
 		/* Clear Bit 57 */
 		*addr &= ~(1UL << 57);
 	}

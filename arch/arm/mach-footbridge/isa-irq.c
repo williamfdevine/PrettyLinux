@@ -52,7 +52,8 @@ static void isa_unmask_pic_lo_irq(struct irq_data *d)
 	outb(inb(PIC_MASK_LO) & ~mask, PIC_MASK_LO);
 }
 
-static struct irq_chip isa_lo_chip = {
+static struct irq_chip isa_lo_chip =
+{
 	.irq_ack	= isa_ack_pic_lo_irq,
 	.irq_mask	= isa_mask_pic_lo_irq,
 	.irq_unmask	= isa_unmask_pic_lo_irq,
@@ -81,7 +82,8 @@ static void isa_unmask_pic_hi_irq(struct irq_data *d)
 	outb(inb(PIC_MASK_HI) & ~mask, PIC_MASK_HI);
 }
 
-static struct irq_chip isa_hi_chip = {
+static struct irq_chip isa_hi_chip =
+{
 	.irq_ack	= isa_ack_pic_hi_irq,
 	.irq_mask	= isa_mask_pic_hi_irq,
 	.irq_unmask	= isa_unmask_pic_hi_irq,
@@ -91,7 +93,8 @@ static void isa_irq_handler(struct irq_desc *desc)
 {
 	unsigned int isa_irq = *(unsigned char *)PCIIACK_BASE;
 
-	if (isa_irq < _ISA_IRQ(0) || isa_irq >= _ISA_IRQ(16)) {
+	if (isa_irq < _ISA_IRQ(0) || isa_irq >= _ISA_IRQ(16))
+	{
 		do_bad_IRQ(desc);
 		return;
 	}
@@ -99,18 +102,21 @@ static void isa_irq_handler(struct irq_desc *desc)
 	generic_handle_irq(isa_irq);
 }
 
-static struct irqaction irq_cascade = {
+static struct irqaction irq_cascade =
+{
 	.handler = no_action,
 	.name = "cascade",
 };
 
-static struct resource pic1_resource = {
+static struct resource pic1_resource =
+{
 	.name	= "pic1",
 	.start	= 0x20,
 	.end	= 0x3f,
 };
 
-static struct resource pic2_resource = {
+static struct resource pic2_resource =
+{
 	.name	= "pic2",
 	.start	= 0xa0,
 	.end	= 0xbf,
@@ -140,24 +146,30 @@ void __init isa_init_irq(unsigned int host_irq)
 	outb(0x0b, PIC_LO);
 	outb(0x0b, PIC_HI);
 
-	if (inb(PIC_MASK_LO) == 0xf5 && inb(PIC_MASK_HI) == 0xfa) {
+	if (inb(PIC_MASK_LO) == 0xf5 && inb(PIC_MASK_HI) == 0xfa)
+	{
 		outb(0xff, PIC_MASK_LO);/* mask all IRQs	*/
 		outb(0xff, PIC_MASK_HI);/* mask all IRQs	*/
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "IRQ: ISA PIC not found\n");
-		host_irq = (unsigned int)-1;
+		host_irq = (unsigned int) - 1;
 	}
 
-	if (host_irq != (unsigned int)-1) {
-		for (irq = _ISA_IRQ(0); irq < _ISA_IRQ(8); irq++) {
+	if (host_irq != (unsigned int) - 1)
+	{
+		for (irq = _ISA_IRQ(0); irq < _ISA_IRQ(8); irq++)
+		{
 			irq_set_chip_and_handler(irq, &isa_lo_chip,
-						 handle_level_irq);
+									 handle_level_irq);
 			irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 		}
 
-		for (irq = _ISA_IRQ(8); irq < _ISA_IRQ(16); irq++) {
+		for (irq = _ISA_IRQ(8); irq < _ISA_IRQ(16); irq++)
+		{
 			irq_set_chip_and_handler(irq, &isa_hi_chip,
-						 handle_level_irq);
+									 handle_level_irq);
 			irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 		}
 
@@ -175,7 +187,7 @@ void __init isa_init_irq(unsigned int host_irq)
 		 */
 		if (machine_is_netwinder())
 			irq_modify_status(_ISA_IRQ(11),
-				IRQ_NOREQUEST | IRQ_NOPROBE, IRQ_NOAUTOEN);
+							  IRQ_NOREQUEST | IRQ_NOPROBE, IRQ_NOAUTOEN);
 	}
 }
 

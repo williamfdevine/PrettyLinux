@@ -16,21 +16,24 @@
 
 extern struct pci_ops gt64xxx_pci0_ops;
 
-static struct resource cobalt_mem_resource = {
+static struct resource cobalt_mem_resource =
+{
 	.start	= GT_DEF_PCI0_MEM0_BASE,
 	.end	= GT_DEF_PCI0_MEM0_BASE + GT_DEF_PCI0_MEM0_SIZE - 1,
 	.name	= "PCI memory",
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct resource cobalt_io_resource = {
+static struct resource cobalt_io_resource =
+{
 	.start	= 0x1000,
 	.end	= 0xffffffUL,
 	.name	= "PCI I/O",
 	.flags	= IORESOURCE_IO,
 };
 
-static struct pci_controller cobalt_pci_controller = {
+static struct pci_controller cobalt_pci_controller =
+{
 	.pci_ops	= &gt64xxx_pci0_ops,
 	.mem_resource	= &cobalt_mem_resource,
 	.io_resource	= &cobalt_io_resource,

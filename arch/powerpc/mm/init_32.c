@@ -49,10 +49,10 @@
 #include "mmu_decl.h"
 
 #if defined(CONFIG_KERNEL_START_BOOL) || defined(CONFIG_LOWMEM_SIZE_BOOL)
-/* The amount of lowmem must be within 0xF0000000 - KERNELBASE. */
-#if (CONFIG_LOWMEM_SIZE > (0xF0000000 - PAGE_OFFSET))
-#error "You must adjust CONFIG_LOWMEM_SIZE or CONFIG_KERNEL_START"
-#endif
+	/* The amount of lowmem must be within 0xF0000000 - KERNELBASE. */
+	#if (CONFIG_LOWMEM_SIZE > (0xF0000000 - PAGE_OFFSET))
+		#error "You must adjust CONFIG_LOWMEM_SIZE or CONFIG_KERNEL_START"
+	#endif
 #endif
 #define MAX_LOW_MEM	CONFIG_LOWMEM_SIZE
 
@@ -65,17 +65,17 @@ phys_addr_t kernstart_addr;
 EXPORT_SYMBOL(kernstart_addr);
 
 #ifdef CONFIG_RELOCATABLE
-/* Used in __va()/__pa() */
-long long virt_phys_offset;
-EXPORT_SYMBOL(virt_phys_offset);
+	/* Used in __va()/__pa() */
+	long long virt_phys_offset;
+	EXPORT_SYMBOL(virt_phys_offset);
 #endif
 
 phys_addr_t lowmem_end_addr;
 
 int boot_mapsize;
 #ifdef CONFIG_PPC_PMAC
-unsigned long agp_special_page;
-EXPORT_SYMBOL(agp_special_page);
+	unsigned long agp_special_page;
+	EXPORT_SYMBOL(agp_special_page);
 #endif
 
 void MMU_init(void);
@@ -102,14 +102,18 @@ unsigned long __max_low_memory = MAX_LOW_MEM;
 void __init MMU_setup(void)
 {
 	/* Check for nobats option (used in mapin_ram). */
-	if (strstr(boot_command_line, "nobats")) {
+	if (strstr(boot_command_line, "nobats"))
+	{
 		__map_without_bats = 1;
 	}
 
-	if (strstr(boot_command_line, "noltlbs")) {
+	if (strstr(boot_command_line, "noltlbs"))
+	{
 		__map_without_ltlbs = 1;
 	}
-	if (debug_pagealloc_enabled()) {
+
+	if (debug_pagealloc_enabled())
+	{
 		__map_without_bats = 1;
 		__map_without_ltlbs = 1;
 	}
@@ -123,7 +127,9 @@ void __init MMU_setup(void)
 void __init MMU_init(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("MMU:enter", 0x111);
+	}
 
 	/* parse args from command line */
 	MMU_setup();
@@ -134,7 +140,8 @@ void __init MMU_init(void)
 	 */
 	reserve_hugetlb_gpages();
 
-	if (memblock.memory.cnt > 1) {
+	if (memblock.memory.cnt > 1)
+	{
 #ifndef CONFIG_WII
 		memblock_enforce_memory_limit(memblock.memory.regions[0].size);
 		pr_warn("Only using first contiguous memory region\n");
@@ -153,7 +160,8 @@ void __init MMU_init(void)
 	adjust_total_lowmem();
 #endif /* CONFIG_FSL_BOOKE */
 
-	if (total_lowmem > __max_low_memory) {
+	if (total_lowmem > __max_low_memory)
+	{
 		total_lowmem = __max_low_memory;
 		lowmem_end_addr = memstart_addr + total_lowmem;
 #ifndef CONFIG_HIGHMEM
@@ -164,19 +172,27 @@ void __init MMU_init(void)
 
 	/* Initialize the MMU hardware */
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("MMU:hw init", 0x300);
+	}
+
 	MMU_init_hw();
 
 	/* Map in all of RAM starting at KERNELBASE */
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("MMU:mapin", 0x301);
+	}
+
 	mapin_ram();
 
 	/* Initialize early top-down ioremap allocator */
 	ioremap_bot = IOREMAP_TOP;
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("MMU:exit", 0x211);
+	}
 
 	/* From now on, btext is no longer BAT mapped if it was at all */
 #ifdef CONFIG_BOOTX_TEXT

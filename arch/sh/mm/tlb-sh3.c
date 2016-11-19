@@ -34,7 +34,9 @@ void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
 	 * Handle debugger faulting in for debugee.
 	 */
 	if (vma && current->active_mm != vma->vm_mm)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
@@ -68,13 +70,16 @@ void local_flush_tlb_one(unsigned long asid, unsigned long page)
 	addr = MMU_TLB_ADDRESS_ARRAY | (page & 0x1F000);
 	data = (page & 0xfffe0000) | asid; /* VALID bit is off */
 
-	if ((current_cpu_data.flags & CPU_HAS_MMU_PAGE_ASSOC)) {
+	if ((current_cpu_data.flags & CPU_HAS_MMU_PAGE_ASSOC))
+	{
 		addr |= MMU_PAGE_ASSOC_BIT;
 		ways = 1;	/* we already know the way .. */
 	}
 
 	for (i = 0; i < ways; i++)
+	{
 		__raw_writel(data, addr + (i << 8));
+	}
 }
 
 void local_flush_tlb_all(void)

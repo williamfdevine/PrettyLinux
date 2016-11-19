@@ -47,18 +47,21 @@
 #include "nand-core.h"
 #include "spi-core.h"
 
-static struct map_desc s3c2443_iodesc[] __initdata = {
+static struct map_desc s3c2443_iodesc[] __initdata =
+{
 	IODESC_ENT(WATCHDOG),
 	IODESC_ENT(CLKPWR),
 	IODESC_ENT(TIMER),
 };
 
-struct bus_type s3c2443_subsys = {
+struct bus_type s3c2443_subsys =
+{
 	.name = "s3c2443-core",
 	.dev_name = "s3c2443-core",
 };
 
-static struct device s3c2443_dev = {
+static struct device s3c2443_dev =
+{
 	.bus		= &s3c2443_subsys,
 };
 

@@ -15,7 +15,8 @@
  * the default behaviour on these CPUs is to consider gpio 113 as the
  * AC97 reset line, which is the default on most boards.
  */
-typedef struct {
+typedef struct
+{
 	int (*startup)(struct snd_pcm_substream *, void *);
 	void (*shutdown)(struct snd_pcm_substream *, void *);
 	void (*suspend)(void *);

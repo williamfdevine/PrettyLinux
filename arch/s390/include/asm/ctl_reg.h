@@ -10,23 +10,23 @@
 #include <linux/bug.h>
 
 #define __ctl_load(array, low, high) {					\
-	typedef struct { char _[sizeof(array)]; } addrtype;		\
-									\
-	BUILD_BUG_ON(sizeof(addrtype) != (high - low + 1) * sizeof(long));\
-	asm volatile(							\
-		"	lctlg	%1,%2,%0\n"				\
-		: : "Q" (*(addrtype *)(&array)), "i" (low), "i" (high));\
-}
+		typedef struct { char _[sizeof(array)]; } addrtype;		\
+		\
+		BUILD_BUG_ON(sizeof(addrtype) != (high - low + 1) * sizeof(long));\
+		asm volatile(							\
+												"	lctlg	%1,%2,%0\n"				\
+												: : "Q" (*(addrtype *)(&array)), "i" (low), "i" (high));\
+	}
 
 #define __ctl_store(array, low, high) {					\
-	typedef struct { char _[sizeof(array)]; } addrtype;		\
-									\
-	BUILD_BUG_ON(sizeof(addrtype) != (high - low + 1) * sizeof(long));\
-	asm volatile(							\
-		"	stctg	%1,%2,%0\n"				\
-		: "=Q" (*(addrtype *)(&array))				\
-		: "i" (low), "i" (high));				\
-}
+		typedef struct { char _[sizeof(array)]; } addrtype;		\
+		\
+		BUILD_BUG_ON(sizeof(addrtype) != (high - low + 1) * sizeof(long));\
+		asm volatile(							\
+												"	stctg	%1,%2,%0\n"				\
+												: "=Q" (*(addrtype *)(&array))				\
+												: "i" (low), "i" (high));				\
+	}
 
 static inline void __ctl_set_bit(unsigned int cr, unsigned int bit)
 {
@@ -49,9 +49,11 @@ static inline void __ctl_clear_bit(unsigned int cr, unsigned int bit)
 void smp_ctl_set_bit(int cr, int bit);
 void smp_ctl_clear_bit(int cr, int bit);
 
-union ctlreg0 {
+union ctlreg0
+{
 	unsigned long val;
-	struct {
+	struct
+	{
 		unsigned long	   : 32;
 		unsigned long	   : 3;
 		unsigned long lap  : 1; /* Low-address-protection control */
@@ -65,11 +67,11 @@ union ctlreg0 {
 };
 
 #ifdef CONFIG_SMP
-# define ctl_set_bit(cr, bit) smp_ctl_set_bit(cr, bit)
-# define ctl_clear_bit(cr, bit) smp_ctl_clear_bit(cr, bit)
+	#define ctl_set_bit(cr, bit) smp_ctl_set_bit(cr, bit)
+	#define ctl_clear_bit(cr, bit) smp_ctl_clear_bit(cr, bit)
 #else
-# define ctl_set_bit(cr, bit) __ctl_set_bit(cr, bit)
-# define ctl_clear_bit(cr, bit) __ctl_clear_bit(cr, bit)
+	#define ctl_set_bit(cr, bit) __ctl_set_bit(cr, bit)
+	#define ctl_clear_bit(cr, bit) __ctl_clear_bit(cr, bit)
 #endif
 
 #endif /* __ASM_CTL_REG_H */

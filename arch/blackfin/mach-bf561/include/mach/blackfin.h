@@ -16,8 +16,8 @@
 #include "defBF561.h"
 
 #ifndef __ASSEMBLY__
-# include <asm/cdef_LPBlackfin.h>
-# include "cdefBF561.h"
+	#include <asm/cdef_LPBlackfin.h>
+	#include "cdefBF561.h"
 #endif
 
 #define bfin_read_FIO_FLAG_D() bfin_read_FIO0_FLAG_D()

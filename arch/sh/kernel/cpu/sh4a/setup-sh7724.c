@@ -32,7 +32,8 @@
 #include <cpu/sh7724.h>
 
 /* DMA */
-static const struct sh_dmae_slave_config sh7724_dmae_slaves[] = {
+static const struct sh_dmae_slave_config sh7724_dmae_slaves[] =
+{
 	{
 		.slave_id	= SHDMA_SLAVE_SCIF0_TX,
 		.addr		= 0xffe0000c,
@@ -156,7 +157,8 @@ static const struct sh_dmae_slave_config sh7724_dmae_slaves[] = {
 	},
 };
 
-static const struct sh_dmae_channel sh7724_dmae_channels[] = {
+static const struct sh_dmae_channel sh7724_dmae_channels[] =
+{
 	{
 		.offset = 0,
 		.dmars = 0,
@@ -186,7 +188,8 @@ static const struct sh_dmae_channel sh7724_dmae_channels[] = {
 
 static const unsigned int ts_shift[] = TS_SHIFT;
 
-static struct sh_dmae_pdata dma_platform_data = {
+static struct sh_dmae_pdata dma_platform_data =
+{
 	.slave		= sh7724_dmae_slaves,
 	.slave_num	= ARRAY_SIZE(sh7724_dmae_slaves),
 	.channel	= sh7724_dmae_channels,
@@ -201,7 +204,8 @@ static struct sh_dmae_pdata dma_platform_data = {
 };
 
 /* Resource order important! */
-static struct resource sh7724_dmae0_resources[] = {
+static struct resource sh7724_dmae0_resources[] =
+{
 	{
 		/* Channel registers and DMAOR */
 		.start	= 0xfe008020,
@@ -235,7 +239,8 @@ static struct resource sh7724_dmae0_resources[] = {
 };
 
 /* Resource order important! */
-static struct resource sh7724_dmae1_resources[] = {
+static struct resource sh7724_dmae1_resources[] =
+{
 	{
 		/* Channel registers and DMAOR */
 		.start	= 0xfdc08020,
@@ -268,7 +273,8 @@ static struct resource sh7724_dmae1_resources[] = {
 	},
 };
 
-static struct platform_device dma0_device = {
+static struct platform_device dma0_device =
+{
 	.name		= "sh-dma-engine",
 	.id		= 0,
 	.resource	= sh7724_dmae0_resources,
@@ -278,7 +284,8 @@ static struct platform_device dma0_device = {
 	},
 };
 
-static struct platform_device dma1_device = {
+static struct platform_device dma1_device =
+{
 	.name		= "sh-dma-engine",
 	.id		= 1,
 	.resource	= sh7724_dmae1_resources,
@@ -289,7 +296,8 @@ static struct platform_device dma1_device = {
 };
 
 /* Serial */
-static struct plat_sci_port scif0_platform_data = {
+static struct plat_sci_port scif0_platform_data =
+{
 	.port_reg	= SCIx_NOT_SUPPORTED,
 	.flags          = UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE,
@@ -297,12 +305,14 @@ static struct plat_sci_port scif0_platform_data = {
 	.regtype	= SCIx_SH4_SCIF_NO_SCSPTR_REGTYPE,
 };
 
-static struct resource scif0_resources[] = {
+static struct resource scif0_resources[] =
+{
 	DEFINE_RES_MEM(0xffe00000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xc00)),
 };
 
-static struct platform_device scif0_device = {
+static struct platform_device scif0_device =
+{
 	.name		= "sh-sci",
 	.id		= 0,
 	.resource	= scif0_resources,
@@ -312,7 +322,8 @@ static struct platform_device scif0_device = {
 	},
 };
 
-static struct plat_sci_port scif1_platform_data = {
+static struct plat_sci_port scif1_platform_data =
+{
 	.port_reg	= SCIx_NOT_SUPPORTED,
 	.flags          = UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE,
@@ -320,12 +331,14 @@ static struct plat_sci_port scif1_platform_data = {
 	.regtype	= SCIx_SH4_SCIF_NO_SCSPTR_REGTYPE,
 };
 
-static struct resource scif1_resources[] = {
+static struct resource scif1_resources[] =
+{
 	DEFINE_RES_MEM(0xffe10000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xc20)),
 };
 
-static struct platform_device scif1_device = {
+static struct platform_device scif1_device =
+{
 	.name		= "sh-sci",
 	.id		= 1,
 	.resource	= scif1_resources,
@@ -335,7 +348,8 @@ static struct platform_device scif1_device = {
 	},
 };
 
-static struct plat_sci_port scif2_platform_data = {
+static struct plat_sci_port scif2_platform_data =
+{
 	.port_reg	= SCIx_NOT_SUPPORTED,
 	.flags          = UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE,
@@ -343,12 +357,14 @@ static struct plat_sci_port scif2_platform_data = {
 	.regtype	= SCIx_SH4_SCIF_NO_SCSPTR_REGTYPE,
 };
 
-static struct resource scif2_resources[] = {
+static struct resource scif2_resources[] =
+{
 	DEFINE_RES_MEM(0xffe20000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xc40)),
 };
 
-static struct platform_device scif2_device = {
+static struct platform_device scif2_device =
+{
 	.name		= "sh-sci",
 	.id		= 2,
 	.resource	= scif2_resources,
@@ -358,7 +374,8 @@ static struct platform_device scif2_device = {
 	},
 };
 
-static struct plat_sci_port scif3_platform_data = {
+static struct plat_sci_port scif3_platform_data =
+{
 	.port_reg	= SCIx_NOT_SUPPORTED,
 	.flags          = UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE,
@@ -366,12 +383,14 @@ static struct plat_sci_port scif3_platform_data = {
 	.type           = PORT_SCIFA,
 };
 
-static struct resource scif3_resources[] = {
+static struct resource scif3_resources[] =
+{
 	DEFINE_RES_MEM(0xa4e30000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0x900)),
 };
 
-static struct platform_device scif3_device = {
+static struct platform_device scif3_device =
+{
 	.name		= "sh-sci",
 	.id		= 3,
 	.resource	= scif3_resources,
@@ -381,7 +400,8 @@ static struct platform_device scif3_device = {
 	},
 };
 
-static struct plat_sci_port scif4_platform_data = {
+static struct plat_sci_port scif4_platform_data =
+{
 	.port_reg	= SCIx_NOT_SUPPORTED,
 	.flags          = UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE,
@@ -389,12 +409,14 @@ static struct plat_sci_port scif4_platform_data = {
 	.type           = PORT_SCIFA,
 };
 
-static struct resource scif4_resources[] = {
+static struct resource scif4_resources[] =
+{
 	DEFINE_RES_MEM(0xa4e40000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xd00)),
 };
 
-static struct platform_device scif4_device = {
+static struct platform_device scif4_device =
+{
 	.name		= "sh-sci",
 	.id		= 4,
 	.resource	= scif4_resources,
@@ -404,7 +426,8 @@ static struct platform_device scif4_device = {
 	},
 };
 
-static struct plat_sci_port scif5_platform_data = {
+static struct plat_sci_port scif5_platform_data =
+{
 	.port_reg	= SCIx_NOT_SUPPORTED,
 	.flags          = UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RE | SCSCR_TE,
@@ -412,12 +435,14 @@ static struct plat_sci_port scif5_platform_data = {
 	.type           = PORT_SCIFA,
 };
 
-static struct resource scif5_resources[] = {
+static struct resource scif5_resources[] =
+{
 	DEFINE_RES_MEM(0xa4e50000, 0x100),
 	DEFINE_RES_IRQ(evt2irq(0xfa0)),
 };
 
-static struct platform_device scif5_device = {
+static struct platform_device scif5_device =
+{
 	.name		= "sh-sci",
 	.id		= 5,
 	.resource	= scif5_resources,
@@ -428,7 +453,8 @@ static struct platform_device scif5_device = {
 };
 
 /* RTC */
-static struct resource rtc_resources[] = {
+static struct resource rtc_resources[] =
+{
 	[0] = {
 		.start	= 0xa465fec0,
 		.end	= 0xa465fec0 + 0x58 - 1,
@@ -451,7 +477,8 @@ static struct resource rtc_resources[] = {
 	},
 };
 
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name		= "sh-rtc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(rtc_resources),
@@ -459,7 +486,8 @@ static struct platform_device rtc_device = {
 };
 
 /* I2C0 */
-static struct resource iic0_resources[] = {
+static struct resource iic0_resources[] =
+{
 	[0] = {
 		.name	= "IIC0",
 		.start  = 0x04470000,
@@ -473,7 +501,8 @@ static struct resource iic0_resources[] = {
 	},
 };
 
-static struct platform_device iic0_device = {
+static struct platform_device iic0_device =
+{
 	.name           = "i2c-sh_mobile",
 	.id             = 0, /* "i2c0" clock */
 	.num_resources  = ARRAY_SIZE(iic0_resources),
@@ -481,7 +510,8 @@ static struct platform_device iic0_device = {
 };
 
 /* I2C1 */
-static struct resource iic1_resources[] = {
+static struct resource iic1_resources[] =
+{
 	[0] = {
 		.name	= "IIC1",
 		.start  = 0x04750000,
@@ -495,7 +525,8 @@ static struct resource iic1_resources[] = {
 	},
 };
 
-static struct platform_device iic1_device = {
+static struct platform_device iic1_device =
+{
 	.name           = "i2c-sh_mobile",
 	.id             = 1, /* "i2c1" clock */
 	.num_resources  = ARRAY_SIZE(iic1_resources),
@@ -503,13 +534,15 @@ static struct platform_device iic1_device = {
 };
 
 /* VPU */
-static struct uio_info vpu_platform_data = {
+static struct uio_info vpu_platform_data =
+{
 	.name = "VPU5F",
 	.version = "0",
 	.irq = evt2irq(0x980),
 };
 
-static struct resource vpu_resources[] = {
+static struct resource vpu_resources[] =
+{
 	[0] = {
 		.name	= "VPU",
 		.start	= 0xfe900000,
@@ -521,7 +554,8 @@ static struct resource vpu_resources[] = {
 	},
 };
 
-static struct platform_device vpu_device = {
+static struct platform_device vpu_device =
+{
 	.name		= "uio_pdrv_genirq",
 	.id		= 0,
 	.dev = {
@@ -532,13 +566,15 @@ static struct platform_device vpu_device = {
 };
 
 /* VEU0 */
-static struct uio_info veu0_platform_data = {
+static struct uio_info veu0_platform_data =
+{
 	.name = "VEU3F0",
 	.version = "0",
 	.irq = evt2irq(0xc60),
 };
 
-static struct resource veu0_resources[] = {
+static struct resource veu0_resources[] =
+{
 	[0] = {
 		.name	= "VEU3F0",
 		.start	= 0xfe920000,
@@ -550,7 +586,8 @@ static struct resource veu0_resources[] = {
 	},
 };
 
-static struct platform_device veu0_device = {
+static struct platform_device veu0_device =
+{
 	.name		= "uio_pdrv_genirq",
 	.id		= 1,
 	.dev = {
@@ -561,13 +598,15 @@ static struct platform_device veu0_device = {
 };
 
 /* VEU1 */
-static struct uio_info veu1_platform_data = {
+static struct uio_info veu1_platform_data =
+{
 	.name = "VEU3F1",
 	.version = "0",
 	.irq = evt2irq(0x8c0),
 };
 
-static struct resource veu1_resources[] = {
+static struct resource veu1_resources[] =
+{
 	[0] = {
 		.name	= "VEU3F1",
 		.start	= 0xfe924000,
@@ -579,7 +618,8 @@ static struct resource veu1_resources[] = {
 	},
 };
 
-static struct platform_device veu1_device = {
+static struct platform_device veu1_device =
+{
 	.name		= "uio_pdrv_genirq",
 	.id		= 2,
 	.dev = {
@@ -590,13 +630,15 @@ static struct platform_device veu1_device = {
 };
 
 /* BEU0 */
-static struct uio_info beu0_platform_data = {
+static struct uio_info beu0_platform_data =
+{
 	.name = "BEU0",
 	.version = "0",
 	.irq = evt2irq(0x8A0),
 };
 
-static struct resource beu0_resources[] = {
+static struct resource beu0_resources[] =
+{
 	[0] = {
 		.name	= "BEU0",
 		.start	= 0xfe930000,
@@ -608,7 +650,8 @@ static struct resource beu0_resources[] = {
 	},
 };
 
-static struct platform_device beu0_device = {
+static struct platform_device beu0_device =
+{
 	.name		= "uio_pdrv_genirq",
 	.id		= 6,
 	.dev = {
@@ -619,13 +662,15 @@ static struct platform_device beu0_device = {
 };
 
 /* BEU1 */
-static struct uio_info beu1_platform_data = {
+static struct uio_info beu1_platform_data =
+{
 	.name = "BEU1",
 	.version = "0",
 	.irq = evt2irq(0xA00),
 };
 
-static struct resource beu1_resources[] = {
+static struct resource beu1_resources[] =
+{
 	[0] = {
 		.name	= "BEU1",
 		.start	= 0xfe940000,
@@ -637,7 +682,8 @@ static struct resource beu1_resources[] = {
 	},
 };
 
-static struct platform_device beu1_device = {
+static struct platform_device beu1_device =
+{
 	.name		= "uio_pdrv_genirq",
 	.id		= 7,
 	.dev = {
@@ -647,16 +693,19 @@ static struct platform_device beu1_device = {
 	.num_resources	= ARRAY_SIZE(beu1_resources),
 };
 
-static struct sh_timer_config cmt_platform_data = {
+static struct sh_timer_config cmt_platform_data =
+{
 	.channels_mask = 0x20,
 };
 
-static struct resource cmt_resources[] = {
+static struct resource cmt_resources[] =
+{
 	DEFINE_RES_MEM(0x044a0000, 0x70),
 	DEFINE_RES_IRQ(evt2irq(0xf00)),
 };
 
-static struct platform_device cmt_device = {
+static struct platform_device cmt_device =
+{
 	.name		= "sh-cmt-32",
 	.id		= 0,
 	.dev = {
@@ -666,18 +715,21 @@ static struct platform_device cmt_device = {
 	.num_resources	= ARRAY_SIZE(cmt_resources),
 };
 
-static struct sh_timer_config tmu0_platform_data = {
+static struct sh_timer_config tmu0_platform_data =
+{
 	.channels_mask = 7,
 };
 
-static struct resource tmu0_resources[] = {
+static struct resource tmu0_resources[] =
+{
 	DEFINE_RES_MEM(0xffd80000, 0x2c),
 	DEFINE_RES_IRQ(evt2irq(0x400)),
 	DEFINE_RES_IRQ(evt2irq(0x420)),
 	DEFINE_RES_IRQ(evt2irq(0x440)),
 };
 
-static struct platform_device tmu0_device = {
+static struct platform_device tmu0_device =
+{
 	.name		= "sh-tmu",
 	.id		= 0,
 	.dev = {
@@ -687,18 +739,21 @@ static struct platform_device tmu0_device = {
 	.num_resources	= ARRAY_SIZE(tmu0_resources),
 };
 
-static struct sh_timer_config tmu1_platform_data = {
+static struct sh_timer_config tmu1_platform_data =
+{
 	.channels_mask = 7,
 };
 
-static struct resource tmu1_resources[] = {
+static struct resource tmu1_resources[] =
+{
 	DEFINE_RES_MEM(0xffd90000, 0x2c),
 	DEFINE_RES_IRQ(evt2irq(0x920)),
 	DEFINE_RES_IRQ(evt2irq(0x940)),
 	DEFINE_RES_IRQ(evt2irq(0x960)),
 };
 
-static struct platform_device tmu1_device = {
+static struct platform_device tmu1_device =
+{
 	.name		= "sh-tmu",
 	.id		= 1,
 	.dev = {
@@ -709,13 +764,15 @@ static struct platform_device tmu1_device = {
 };
 
 /* JPU */
-static struct uio_info jpu_platform_data = {
+static struct uio_info jpu_platform_data =
+{
 	.name = "JPU",
 	.version = "0",
 	.irq = evt2irq(0x560),
 };
 
-static struct resource jpu_resources[] = {
+static struct resource jpu_resources[] =
+{
 	[0] = {
 		.name	= "JPU",
 		.start	= 0xfe980000,
@@ -727,7 +784,8 @@ static struct resource jpu_resources[] = {
 	},
 };
 
-static struct platform_device jpu_device = {
+static struct platform_device jpu_device =
+{
 	.name		= "uio_pdrv_genirq",
 	.id		= 3,
 	.dev = {
@@ -738,13 +796,15 @@ static struct platform_device jpu_device = {
 };
 
 /* SPU2DSP0 */
-static struct uio_info spu0_platform_data = {
+static struct uio_info spu0_platform_data =
+{
 	.name = "SPU2DSP0",
 	.version = "0",
 	.irq = evt2irq(0xcc0),
 };
 
-static struct resource spu0_resources[] = {
+static struct resource spu0_resources[] =
+{
 	[0] = {
 		.name	= "SPU2DSP0",
 		.start	= 0xFE200000,
@@ -756,7 +816,8 @@ static struct resource spu0_resources[] = {
 	},
 };
 
-static struct platform_device spu0_device = {
+static struct platform_device spu0_device =
+{
 	.name		= "uio_pdrv_genirq",
 	.id		= 4,
 	.dev = {
@@ -767,13 +828,15 @@ static struct platform_device spu0_device = {
 };
 
 /* SPU2DSP1 */
-static struct uio_info spu1_platform_data = {
+static struct uio_info spu1_platform_data =
+{
 	.name = "SPU2DSP1",
 	.version = "0",
 	.irq = evt2irq(0xce0),
 };
 
-static struct resource spu1_resources[] = {
+static struct resource spu1_resources[] =
+{
 	[0] = {
 		.name	= "SPU2DSP1",
 		.start	= 0xFE300000,
@@ -785,7 +848,8 @@ static struct resource spu1_resources[] = {
 	},
 };
 
-static struct platform_device spu1_device = {
+static struct platform_device spu1_device =
+{
 	.name		= "uio_pdrv_genirq",
 	.id		= 5,
 	.dev = {
@@ -795,7 +859,8 @@ static struct platform_device spu1_device = {
 	.num_resources	= ARRAY_SIZE(spu1_resources),
 };
 
-static struct platform_device *sh7724_devices[] __initdata = {
+static struct platform_device *sh7724_devices[] __initdata =
+{
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
@@ -830,11 +895,12 @@ static int __init sh7724_devices_setup(void)
 	platform_resource_setup_memory(&spu1_device, "spu1", 2 << 20);
 
 	return platform_add_devices(sh7724_devices,
-				    ARRAY_SIZE(sh7724_devices));
+								ARRAY_SIZE(sh7724_devices));
 }
 arch_initcall(sh7724_devices_setup);
 
-static struct platform_device *sh7724_early_devices[] __initdata = {
+static struct platform_device *sh7724_early_devices[] __initdata =
+{
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
@@ -849,7 +915,7 @@ static struct platform_device *sh7724_early_devices[] __initdata = {
 void __init plat_early_device_setup(void)
 {
 	early_platform_add_devices(sh7724_early_devices,
-				   ARRAY_SIZE(sh7724_early_devices));
+							   ARRAY_SIZE(sh7724_early_devices));
 }
 
 #define RAMCR_CACHE_L2FC	0x0002
@@ -862,7 +928,8 @@ void l2_cache_init(void)
 	__raw_writel(L2_CACHE_ENABLE, RAMCR);
 }
 
-enum {
+enum
+{
 	UNUSED = 0,
 	ENABLED,
 	DISABLED,
@@ -911,7 +978,8 @@ enum {
 	DMAC1B, DMAC0B, I2C0, I2C1, SDHI0, SDHI1, SPU, MMCIF,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_VECT(IRQ0, 0x600), INTC_VECT(IRQ1, 0x620),
 	INTC_VECT(IRQ2, 0x640), INTC_VECT(IRQ3, 0x660),
 	INTC_VECT(IRQ4, 0x680), INTC_VECT(IRQ5, 0x6a0),
@@ -1014,7 +1082,8 @@ static struct intc_vect vectors[] __initdata = {
 	INTC_VECT(TMU1_TUNI2, 0x960),
 };
 
-static struct intc_group groups[] __initdata = {
+static struct intc_group groups[] __initdata =
+{
 	INTC_GROUP(DMAC1A, DMAC1A_DEI0, DMAC1A_DEI1, DMAC1A_DEI2, DMAC1A_DEI3),
 	INTC_GROUP(_2DG, _2DG_TRI, _2DG_INI, _2DG_CEI),
 	INTC_GROUP(DMAC0A, DMAC0A_DEI0, DMAC0A_DEI1, DMAC0A_DEI2, DMAC0A_DEI3),
@@ -1029,84 +1098,159 @@ static struct intc_group groups[] __initdata = {
 	INTC_GROUP(MMCIF, MMC_MMC2I, MMC_MMC3I),
 };
 
-static struct intc_mask_reg mask_registers[] __initdata = {
-	{ 0xa4080080, 0xa40800c0, 8, /* IMR0 / IMCR0 */
-	  { 0, TMU1_TUNI2, TMU1_TUNI1, TMU1_TUNI0,
-	    0, ENABLED, ENABLED, ENABLED } },
-	{ 0xa4080084, 0xa40800c4, 8, /* IMR1 / IMCR1 */
-	  { VIO_VOU, VIO_VEU1, VIO_BEU0, VIO_CEU0,
-	    DMAC0A_DEI3, DMAC0A_DEI2, DMAC0A_DEI1, DMAC0A_DEI0 } },
-	{ 0xa4080088, 0xa40800c8, 8, /* IMR2 / IMCR2 */
-	  { 0, 0, 0, VPU, ATAPI, ETHI, 0, SCIFA3 } },
-	{ 0xa408008c, 0xa40800cc, 8, /* IMR3 / IMCR3 */
-	  { DMAC1A_DEI3, DMAC1A_DEI2, DMAC1A_DEI1, DMAC1A_DEI0,
-	    SPU_SPUI1, SPU_SPUI0, BEU1, IRDA } },
-	{ 0xa4080090, 0xa40800d0, 8, /* IMR4 / IMCR4 */
-	  { 0, TMU0_TUNI2, TMU0_TUNI1, TMU0_TUNI0,
-	    JPU, 0, 0, LCDC } },
-	{ 0xa4080094, 0xa40800d4, 8, /* IMR5 / IMCR5 */
-	  { KEYSC, DMAC0B_DADERR, DMAC0B_DEI5, DMAC0B_DEI4,
-	    VEU0, SCIF_SCIF2, SCIF_SCIF1, SCIF_SCIF0 } },
-	{ 0xa4080098, 0xa40800d8, 8, /* IMR6 / IMCR6 */
-	  { 0, 0, ICB, SCIFA4,
-	    CEU1, 0, MSIOF_MSIOFI1, MSIOF_MSIOFI0 } },
-	{ 0xa408009c, 0xa40800dc, 8, /* IMR7 / IMCR7 */
-	  { I2C0_DTEI, I2C0_WAITI, I2C0_TACKI, I2C0_ALI,
-	    I2C1_DTEI, I2C1_WAITI, I2C1_TACKI, I2C1_ALI } },
-	{ 0xa40800a0, 0xa40800e0, 8, /* IMR8 / IMCR8 */
-	  { DISABLED, ENABLED, ENABLED, ENABLED,
-	    0, 0, SCIFA5, FSI } },
-	{ 0xa40800a4, 0xa40800e4, 8, /* IMR9 / IMCR9 */
-	  { 0, 0, 0, CMT, 0, USB1, USB0, 0 } },
-	{ 0xa40800a8, 0xa40800e8, 8, /* IMR10 / IMCR10 */
-	  { 0, DMAC1B_DADERR, DMAC1B_DEI5, DMAC1B_DEI4,
-	    0, RTC_CUI, RTC_PRI, RTC_ATI } },
-	{ 0xa40800ac, 0xa40800ec, 8, /* IMR11 / IMCR11 */
-	  { 0, _2DG_CEI, _2DG_INI, _2DG_TRI,
-	    0, TPU, 0, TSIF } },
-	{ 0xa40800b0, 0xa40800f0, 8, /* IMR12 / IMCR12 */
-	  { 0, 0, MMC_MMC3I, MMC_MMC2I, 0, 0, 0, _2DDMAC } },
-	{ 0xa4140044, 0xa4140064, 8, /* INTMSK00 / INTMSKCLR00 */
-	  { IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 } },
+static struct intc_mask_reg mask_registers[] __initdata =
+{
+	{
+		0xa4080080, 0xa40800c0, 8, /* IMR0 / IMCR0 */
+		{
+			0, TMU1_TUNI2, TMU1_TUNI1, TMU1_TUNI0,
+			0, ENABLED, ENABLED, ENABLED
+		}
+	},
+	{
+		0xa4080084, 0xa40800c4, 8, /* IMR1 / IMCR1 */
+		{
+			VIO_VOU, VIO_VEU1, VIO_BEU0, VIO_CEU0,
+			DMAC0A_DEI3, DMAC0A_DEI2, DMAC0A_DEI1, DMAC0A_DEI0
+		}
+	},
+	{
+		0xa4080088, 0xa40800c8, 8, /* IMR2 / IMCR2 */
+		{ 0, 0, 0, VPU, ATAPI, ETHI, 0, SCIFA3 }
+	},
+	{
+		0xa408008c, 0xa40800cc, 8, /* IMR3 / IMCR3 */
+		{
+			DMAC1A_DEI3, DMAC1A_DEI2, DMAC1A_DEI1, DMAC1A_DEI0,
+			SPU_SPUI1, SPU_SPUI0, BEU1, IRDA
+		}
+	},
+	{
+		0xa4080090, 0xa40800d0, 8, /* IMR4 / IMCR4 */
+		{
+			0, TMU0_TUNI2, TMU0_TUNI1, TMU0_TUNI0,
+			JPU, 0, 0, LCDC
+		}
+	},
+	{
+		0xa4080094, 0xa40800d4, 8, /* IMR5 / IMCR5 */
+		{
+			KEYSC, DMAC0B_DADERR, DMAC0B_DEI5, DMAC0B_DEI4,
+			VEU0, SCIF_SCIF2, SCIF_SCIF1, SCIF_SCIF0
+		}
+	},
+	{
+		0xa4080098, 0xa40800d8, 8, /* IMR6 / IMCR6 */
+		{
+			0, 0, ICB, SCIFA4,
+			CEU1, 0, MSIOF_MSIOFI1, MSIOF_MSIOFI0
+		}
+	},
+	{
+		0xa408009c, 0xa40800dc, 8, /* IMR7 / IMCR7 */
+		{
+			I2C0_DTEI, I2C0_WAITI, I2C0_TACKI, I2C0_ALI,
+			I2C1_DTEI, I2C1_WAITI, I2C1_TACKI, I2C1_ALI
+		}
+	},
+	{
+		0xa40800a0, 0xa40800e0, 8, /* IMR8 / IMCR8 */
+		{
+			DISABLED, ENABLED, ENABLED, ENABLED,
+			0, 0, SCIFA5, FSI
+		}
+	},
+	{
+		0xa40800a4, 0xa40800e4, 8, /* IMR9 / IMCR9 */
+		{ 0, 0, 0, CMT, 0, USB1, USB0, 0 }
+	},
+	{
+		0xa40800a8, 0xa40800e8, 8, /* IMR10 / IMCR10 */
+		{
+			0, DMAC1B_DADERR, DMAC1B_DEI5, DMAC1B_DEI4,
+			0, RTC_CUI, RTC_PRI, RTC_ATI
+		}
+	},
+	{
+		0xa40800ac, 0xa40800ec, 8, /* IMR11 / IMCR11 */
+		{
+			0, _2DG_CEI, _2DG_INI, _2DG_TRI,
+			0, TPU, 0, TSIF
+		}
+	},
+	{
+		0xa40800b0, 0xa40800f0, 8, /* IMR12 / IMCR12 */
+		{ 0, 0, MMC_MMC3I, MMC_MMC2I, 0, 0, 0, _2DDMAC }
+	},
+	{
+		0xa4140044, 0xa4140064, 8, /* INTMSK00 / INTMSKCLR00 */
+		{ IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 }
+	},
 };
 
-static struct intc_prio_reg prio_registers[] __initdata = {
-	{ 0xa4080000, 0, 16, 4, /* IPRA */ { TMU0_TUNI0, TMU0_TUNI1,
-					     TMU0_TUNI2, IRDA } },
+static struct intc_prio_reg prio_registers[] __initdata =
+{
+	{
+		0xa4080000, 0, 16, 4, /* IPRA */ {
+			TMU0_TUNI0, TMU0_TUNI1,
+			TMU0_TUNI2, IRDA
+		}
+	},
 	{ 0xa4080004, 0, 16, 4, /* IPRB */ { JPU, LCDC, DMAC1A, BEU1 } },
-	{ 0xa4080008, 0, 16, 4, /* IPRC */ { TMU1_TUNI0, TMU1_TUNI1,
-					     TMU1_TUNI2, SPU } },
+	{
+		0xa4080008, 0, 16, 4, /* IPRC */ {
+			TMU1_TUNI0, TMU1_TUNI1,
+			TMU1_TUNI2, SPU
+		}
+	},
 	{ 0xa408000c, 0, 16, 4, /* IPRD */ { 0, MMCIF, 0, ATAPI } },
 	{ 0xa4080010, 0, 16, 4, /* IPRE */ { DMAC0A, VIO, SCIFA3, VPU } },
 	{ 0xa4080014, 0, 16, 4, /* IPRF */ { KEYSC, DMAC0B, USB, CMT } },
-	{ 0xa4080018, 0, 16, 4, /* IPRG */ { SCIF_SCIF0, SCIF_SCIF1,
-					     SCIF_SCIF2, VEU0 } },
-	{ 0xa408001c, 0, 16, 4, /* IPRH */ { MSIOF_MSIOFI0, MSIOF_MSIOFI1,
-					     I2C1, I2C0 } },
+	{
+		0xa4080018, 0, 16, 4, /* IPRG */ {
+			SCIF_SCIF0, SCIF_SCIF1,
+			SCIF_SCIF2, VEU0
+		}
+	},
+	{
+		0xa408001c, 0, 16, 4, /* IPRH */ {
+			MSIOF_MSIOFI0, MSIOF_MSIOFI1,
+			I2C1, I2C0
+		}
+	},
 	{ 0xa4080020, 0, 16, 4, /* IPRI */ { SCIFA4, ICB, TSIF, _2DG } },
 	{ 0xa4080024, 0, 16, 4, /* IPRJ */ { CEU1, ETHI, FSI, SDHI1 } },
 	{ 0xa4080028, 0, 16, 4, /* IPRK */ { RTC, DMAC1B, 0, SDHI0 } },
 	{ 0xa408002c, 0, 16, 4, /* IPRL */ { SCIFA5, 0, TPU, _2DDMAC } },
-	{ 0xa4140010, 0, 32, 4, /* INTPRI00 */
-	  { IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 } },
+	{
+		0xa4140010, 0, 32, 4, /* INTPRI00 */
+		{ IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 }
+	},
 };
 
-static struct intc_sense_reg sense_registers[] __initdata = {
-	{ 0xa414001c, 16, 2, /* ICR1 */
-	  { IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 } },
+static struct intc_sense_reg sense_registers[] __initdata =
+{
+	{
+		0xa414001c, 16, 2, /* ICR1 */
+		{ IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 }
+	},
 };
 
-static struct intc_mask_reg ack_registers[] __initdata = {
-	{ 0xa4140024, 0, 8, /* INTREQ00 */
-	  { IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 } },
+static struct intc_mask_reg ack_registers[] __initdata =
+{
+	{
+		0xa4140024, 0, 8, /* INTREQ00 */
+		{ IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 }
+	},
 };
 
-static struct intc_desc intc_desc __initdata = {
+static struct intc_desc intc_desc __initdata =
+{
 	.name = "sh7724",
 	.force_enable = ENABLED,
 	.force_disable = DISABLED,
 	.hw = INTC_HW_DESC(vectors, groups, mask_registers,
-			   prio_registers, sense_registers, ack_registers),
+	prio_registers, sense_registers, ack_registers),
 };
 
 void __init plat_irq_setup(void)
@@ -1114,7 +1258,8 @@ void __init plat_irq_setup(void)
 	register_intc_controller(&intc_desc);
 }
 
-static struct {
+static struct
+{
 	/* BSC */
 	unsigned long mmselr;
 	unsigned long cs0bcr;
@@ -1163,10 +1308,12 @@ static struct {
 } sh7724_rstandby_state;
 
 static int sh7724_pre_sleep_notifier_call(struct notifier_block *nb,
-					  unsigned long flags, void *unused)
+		unsigned long flags, void *unused)
 {
 	if (!(flags & SUSP_SH_RSTANDBY))
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* BCR */
 	sh7724_rstandby_state.mmselr = __raw_readl(0xff800020); /* MMSELR */
@@ -1225,10 +1372,12 @@ static int sh7724_pre_sleep_notifier_call(struct notifier_block *nb,
 }
 
 static int sh7724_post_sleep_notifier_call(struct notifier_block *nb,
-					   unsigned long flags, void *unused)
+		unsigned long flags, void *unused)
 {
 	if (!(flags & SUSP_SH_RSTANDBY))
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* BCR */
 	__raw_writel(sh7724_rstandby_state.mmselr, 0xff800020); /* MMSELR */
@@ -1282,12 +1431,14 @@ static int sh7724_post_sleep_notifier_call(struct notifier_block *nb,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block sh7724_pre_sleep_notifier = {
+static struct notifier_block sh7724_pre_sleep_notifier =
+{
 	.notifier_call = sh7724_pre_sleep_notifier_call,
 	.priority = SH_MOBILE_PRE(SH_MOBILE_SLEEP_CPU),
 };
 
-static struct notifier_block sh7724_post_sleep_notifier = {
+static struct notifier_block sh7724_post_sleep_notifier =
+{
 	.notifier_call = sh7724_post_sleep_notifier_call,
 	.priority = SH_MOBILE_POST(SH_MOBILE_SLEEP_CPU),
 };
@@ -1295,10 +1446,10 @@ static struct notifier_block sh7724_post_sleep_notifier = {
 static int __init sh7724_sleep_setup(void)
 {
 	atomic_notifier_chain_register(&sh_mobile_pre_sleep_notifier_list,
-				       &sh7724_pre_sleep_notifier);
+								   &sh7724_pre_sleep_notifier);
 
 	atomic_notifier_chain_register(&sh_mobile_post_sleep_notifier_list,
-				       &sh7724_post_sleep_notifier);
+								   &sh7724_post_sleep_notifier);
 	return 0;
 }
 arch_initcall(sh7724_sleep_setup);

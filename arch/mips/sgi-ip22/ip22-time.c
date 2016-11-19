@@ -36,7 +36,7 @@ static unsigned long dosample(void)
 
 	/* Start the counter. */
 	sgint->tcword = (SGINT_TCWORD_CNT2 | SGINT_TCWORD_CALL |
-			 SGINT_TCWORD_MRGEN);
+					 SGINT_TCWORD_MRGEN);
 	sgint->tcnt2 = SGINT_TCSAMP_COUNTER & 0xff;
 	sgint->tcnt2 = SGINT_TCSAMP_COUNTER >> 8;
 
@@ -44,23 +44,25 @@ static unsigned long dosample(void)
 	ct0 = read_c0_count();
 
 	/* Latch and spin until top byte of counter2 is zero */
-	do {
+	do
+	{
 		writeb(SGINT_TCWORD_CNT2 | SGINT_TCWORD_CLAT, &sgint->tcword);
 		(void) readb(&sgint->tcnt2);
 		msb = readb(&sgint->tcnt2);
 		ct1 = read_c0_count();
-	} while (msb);
+	}
+	while (msb);
 
 	/* Stop the counter. */
 	writeb(SGINT_TCWORD_CNT2 | SGINT_TCWORD_CALL | SGINT_TCWORD_MSWST,
-	       &sgint->tcword);
+		   &sgint->tcword);
 	/*
 	 * Return the difference, this is how far the r4k counter increments
 	 * for every 1/HZ seconds. We round off the nearest 1 MHz of master
 	 * clock (= 1000000 / HZ / 2).
 	 */
 
-	return (ct1 - ct0) / (500000/HZ) * (500000/HZ);
+	return (ct1 - ct0) / (500000 / HZ) * (500000 / HZ);
 }
 
 /*
@@ -83,36 +85,52 @@ __init void plat_time_init(void)
 	printk(KERN_INFO "Calibrating system timer... ");
 	dosample();	/* Prime cache. */
 	dosample();	/* Prime cache. */
-	/* Zero is NOT an option. */
-	do {
-		r4k_ticks[0] = dosample();
-	} while (!r4k_ticks[0]);
-	do {
-		r4k_ticks[1] = dosample();
-	} while (!r4k_ticks[1]);
 
-	if (r4k_ticks[0] != r4k_ticks[1]) {
+	/* Zero is NOT an option. */
+	do
+	{
+		r4k_ticks[0] = dosample();
+	}
+	while (!r4k_ticks[0]);
+
+	do
+	{
+		r4k_ticks[1] = dosample();
+	}
+	while (!r4k_ticks[1]);
+
+	if (r4k_ticks[0] != r4k_ticks[1])
+	{
 		printk("warning: timer counts differ, retrying... ");
 		r4k_ticks[2] = dosample();
+
 		if (r4k_ticks[2] == r4k_ticks[0]
-		    || r4k_ticks[2] == r4k_ticks[1])
+			|| r4k_ticks[2] == r4k_ticks[1])
+		{
 			r4k_tick = r4k_ticks[2];
-		else {
+		}
+		else
+		{
 			printk("disagreement, using average... ");
 			r4k_tick = (r4k_ticks[0] + r4k_ticks[1]
-				   + r4k_ticks[2]) / 3;
+						+ r4k_ticks[2]) / 3;
 		}
-	} else
+	}
+	else
+	{
 		r4k_tick = r4k_ticks[0];
+	}
 
 	printk("%d [%d.%04d MHz CPU]\n", (int) r4k_tick,
-		(int) (r4k_tick / (500000 / HZ)),
-		(int) (r4k_tick % (500000 / HZ)));
+		   (int) (r4k_tick / (500000 / HZ)),
+		   (int) (r4k_tick % (500000 / HZ)));
 
 	mips_hpt_frequency = r4k_tick * HZ;
 
 	if (ip22_is_fullhouse())
+	{
 		setup_pit_timer();
+	}
 }
 
 /* Generic SGI handler for (spurious) 8254 interrupts */

@@ -63,9 +63,12 @@ static void cns3xxx_pwr_soft_rst_force(unsigned int block)
 	 * bit 0, 28, 29 => program low to reset,
 	 * the other else program low and then high
 	 */
-	if (block & 0x30000001) {
+	if (block & 0x30000001)
+	{
 		reg &= ~(block & PM_SOFT_RST_REG_MASK);
-	} else {
+	}
+	else
+	{
 		reg &= ~(block & PM_SOFT_RST_REG_MASK);
 		__raw_writel(reg, PM_SOFT_RST_REG);
 		reg |= (block & PM_SOFT_RST_REG_MASK);
@@ -78,12 +81,16 @@ void cns3xxx_pwr_soft_rst(unsigned int block)
 {
 	static unsigned int soft_reset;
 
-	if (soft_reset & block) {
+	if (soft_reset & block)
+	{
 		/* SPI/I2C/GPIO use the same block, reset once. */
 		return;
-	} else {
+	}
+	else
+	{
 		soft_reset |= block;
 	}
+
 	cns3xxx_pwr_soft_rst_force(block);
 }
 EXPORT_SYMBOL(cns3xxx_pwr_soft_rst);

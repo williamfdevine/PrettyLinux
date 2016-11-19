@@ -8,8 +8,8 @@
 #include <asm/prom.h>
 
 void of_parse_dma_window(struct device_node *dn, const __be32 *dma_window,
-			 unsigned long *busno, unsigned long *phys,
-			 unsigned long *size)
+						 unsigned long *busno, unsigned long *phys,
+						 unsigned long *size)
 {
 	u32 cells;
 	const __be32 *prop;
@@ -19,8 +19,11 @@ void of_parse_dma_window(struct device_node *dn, const __be32 *dma_window,
 	dma_window++;
 
 	prop = of_get_property(dn, "ibm,#dma-address-cells", NULL);
+
 	if (!prop)
+	{
 		prop = of_get_property(dn, "#address-cells", NULL);
+	}
 
 	cells = prop ? of_read_number(prop, 1) : of_n_addr_cells(dn);
 	*phys = of_read_number(dma_window, cells);

@@ -32,22 +32,22 @@ struct salsa20_ctx
 };
 
 asmlinkage void salsa20_keysetup(struct salsa20_ctx *ctx, const u8 *k,
-				 u32 keysize, u32 ivsize);
+								 u32 keysize, u32 ivsize);
 asmlinkage void salsa20_ivsetup(struct salsa20_ctx *ctx, const u8 *iv);
 asmlinkage void salsa20_encrypt_bytes(struct salsa20_ctx *ctx,
-				      const u8 *src, u8 *dst, u32 bytes);
+									  const u8 *src, u8 *dst, u32 bytes);
 
 static int setkey(struct crypto_tfm *tfm, const u8 *key,
-		  unsigned int keysize)
+				  unsigned int keysize)
 {
 	struct salsa20_ctx *ctx = crypto_tfm_ctx(tfm);
-	salsa20_keysetup(ctx, key, keysize*8, SALSA20_IV_SIZE*8);
+	salsa20_keysetup(ctx, key, keysize * 8, SALSA20_IV_SIZE * 8);
 	return 0;
 }
 
 static int encrypt(struct blkcipher_desc *desc,
-		   struct scatterlist *dst, struct scatterlist *src,
-		   unsigned int nbytes)
+				   struct scatterlist *dst, struct scatterlist *src,
+				   unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 	struct crypto_blkcipher *tfm = desc->tfm;
@@ -62,27 +62,30 @@ static int encrypt(struct blkcipher_desc *desc,
 	if (likely(walk.nbytes == nbytes))
 	{
 		salsa20_encrypt_bytes(ctx, walk.src.virt.addr,
-				      walk.dst.virt.addr, nbytes);
+							  walk.dst.virt.addr, nbytes);
 		return blkcipher_walk_done(desc, &walk, 0);
 	}
 
-	while (walk.nbytes >= 64) {
+	while (walk.nbytes >= 64)
+	{
 		salsa20_encrypt_bytes(ctx, walk.src.virt.addr,
-				      walk.dst.virt.addr,
-				      walk.nbytes - (walk.nbytes % 64));
+							  walk.dst.virt.addr,
+							  walk.nbytes - (walk.nbytes % 64));
 		err = blkcipher_walk_done(desc, &walk, walk.nbytes % 64);
 	}
 
-	if (walk.nbytes) {
+	if (walk.nbytes)
+	{
 		salsa20_encrypt_bytes(ctx, walk.src.virt.addr,
-				      walk.dst.virt.addr, walk.nbytes);
+							  walk.dst.virt.addr, walk.nbytes);
 		err = blkcipher_walk_done(desc, &walk, 0);
 	}
 
 	return err;
 }
 
-static struct crypto_alg alg = {
+static struct crypto_alg alg =
+{
 	.cra_name           =   "salsa20",
 	.cra_driver_name    =   "salsa20-asm",
 	.cra_priority       =   200,

@@ -65,12 +65,16 @@ void __init mem_init(void)
  */
 static void __init one_page_table_init(pmd_t *pmd)
 {
-	if (pmd_none(*pmd)) {
+	if (pmd_none(*pmd))
+	{
 		pte_t *pte = (pte_t *) alloc_bootmem_low_pages(PAGE_SIZE);
 		set_pmd(pmd, __pmd(_KERNPG_TABLE +
-					   (unsigned long) __pa(pte)));
+						   (unsigned long) __pa(pte)));
+
 		if (pte != pte_offset_kernel(pmd, 0))
+		{
 			BUG();
+		}
 	}
 }
 
@@ -79,13 +83,17 @@ static void __init one_md_table_init(pud_t *pud)
 #ifdef CONFIG_3_LEVEL_PGTABLES
 	pmd_t *pmd_table = (pmd_t *) alloc_bootmem_low_pages(PAGE_SIZE);
 	set_pud(pud, __pud(_KERNPG_TABLE + (unsigned long) __pa(pmd_table)));
+
 	if (pmd_table != pmd_offset(pud, 0))
+	{
 		BUG();
+	}
+
 #endif
 }
 
 static void __init fixrange_init(unsigned long start, unsigned long end,
-				 pgd_t *pgd_base)
+								 pgd_t *pgd_base)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -98,15 +106,23 @@ static void __init fixrange_init(unsigned long start, unsigned long end,
 	j = pmd_index(vaddr);
 	pgd = pgd_base + i;
 
-	for ( ; (i < PTRS_PER_PGD) && (vaddr < end); pgd++, i++) {
+	for ( ; (i < PTRS_PER_PGD) && (vaddr < end); pgd++, i++)
+	{
 		pud = pud_offset(pgd, vaddr);
+
 		if (pud_none(*pud))
+		{
 			one_md_table_init(pud);
+		}
+
 		pmd = pmd_offset(pud, vaddr);
-		for (; (j < PTRS_PER_PMD) && (vaddr < end); pmd++, j++) {
+
+		for (; (j < PTRS_PER_PMD) && (vaddr < end); pmd++, j++)
+		{
 			one_page_table_init(pmd);
 			vaddr += PMD_SIZE;
 		}
+
 		j = 0;
 	}
 }
@@ -123,20 +139,25 @@ static void __init fixaddr_user_init( void)
 	unsigned long v, vaddr = FIXADDR_USER_START;
 
 	if (!size)
+	{
 		return;
+	}
 
 	fixrange_init( FIXADDR_USER_START, FIXADDR_USER_END, swapper_pg_dir);
 	v = (unsigned long) alloc_bootmem_low_pages(size);
 	memcpy((void *) v , (void *) FIXADDR_USER_START, size);
 	p = __pa(v);
+
 	for ( ; size > 0; size -= PAGE_SIZE, vaddr += PAGE_SIZE,
-		      p += PAGE_SIZE) {
+		  p += PAGE_SIZE)
+	{
 		pgd = swapper_pg_dir + pgd_index(vaddr);
 		pud = pud_offset(pgd, vaddr);
 		pmd = pmd_offset(pud, vaddr);
 		pte = pte_offset_kernel(pmd, vaddr);
 		pte_set_val(*pte, p, PAGE_READONLY);
 	}
+
 #endif
 }
 
@@ -147,11 +168,14 @@ void __init paging_init(void)
 
 	empty_zero_page = (unsigned long *) alloc_bootmem_low_pages(PAGE_SIZE);
 	empty_bad_page = (unsigned long *) alloc_bootmem_low_pages(PAGE_SIZE);
+
 	for (i = 0; i < ARRAY_SIZE(zones_size); i++)
+	{
 		zones_size[i] = 0;
+	}
 
 	zones_size[ZONE_NORMAL] = (end_iomem >> PAGE_SHIFT) -
-		(uml_physmem >> PAGE_SHIFT);
+							  (uml_physmem >> PAGE_SHIFT);
 	free_area_init(zones_size);
 
 	/*
@@ -186,12 +210,14 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 {
 	pgd_t *pgd = (pgd_t *)__get_free_page(GFP_KERNEL);
 
-	if (pgd) {
+	if (pgd)
+	{
 		memset(pgd, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
 		memcpy(pgd + USER_PTRS_PER_PGD,
-		       swapper_pg_dir + USER_PTRS_PER_PGD,
-		       (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
+			   swapper_pg_dir + USER_PTRS_PER_PGD,
+			   (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 	}
+
 	return pgd;
 }
 
@@ -204,7 +230,7 @@ pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
 {
 	pte_t *pte;
 
-	pte = (pte_t *)__get_free_page(GFP_KERNEL|__GFP_ZERO);
+	pte = (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
 	return pte;
 }
 
@@ -212,13 +238,19 @@ pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address)
 {
 	struct page *pte;
 
-	pte = alloc_page(GFP_KERNEL|__GFP_ZERO);
+	pte = alloc_page(GFP_KERNEL | __GFP_ZERO);
+
 	if (!pte)
+	{
 		return NULL;
-	if (!pgtable_page_ctor(pte)) {
+	}
+
+	if (!pgtable_page_ctor(pte))
+	{
 		__free_page(pte);
 		return NULL;
 	}
+
 	return pte;
 }
 
@@ -228,7 +260,9 @@ pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
 	pmd_t *pmd = (pmd_t *) __get_free_page(GFP_KERNEL);
 
 	if (pmd)
+	{
 		memset(pmd, 0, PAGE_SIZE);
+	}
 
 	return pmd;
 }

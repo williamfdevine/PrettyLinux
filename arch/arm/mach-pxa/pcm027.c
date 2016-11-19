@@ -83,7 +83,8 @@
  * *) CPU internal use only
  */
 
-static unsigned long pcm027_pin_config[] __initdata = {
+static unsigned long pcm027_pin_config[] __initdata =
+{
 	/* Chip Selects */
 	GPIO20_nSDCS_2,
 	GPIO21_nSDCS_3,
@@ -108,7 +109,8 @@ static unsigned long pcm027_pin_config[] __initdata = {
 /*
  * SMC91x network controller specific stuff
  */
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= PCM027_ETH_PHYS + 0x300,
 		.end	= PCM027_ETH_PHYS + PCM027_ETH_SIZE,
@@ -122,7 +124,8 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -132,16 +135,19 @@ static struct platform_device smc91x_device = {
 /*
  * SPI host and devices
  */
-static struct pxa2xx_spi_master pxa_ssp_master_info = {
+static struct pxa2xx_spi_master pxa_ssp_master_info =
+{
 	.num_chipselect	= 1,
 };
 
-static struct max7301_platform_data max7301_info = {
+static struct max7301_platform_data max7301_info =
+{
 	.base = -1,
 };
 
 /* bus_num must match id in pxa2xx_set_spi_info() call */
-static struct spi_board_info spi_board_info[] __initdata = {
+static struct spi_board_info spi_board_info[] __initdata =
+{
 	{
 		.modalias	= "max7301",
 		.platform_data	= &max7301_info,
@@ -155,17 +161,20 @@ static struct spi_board_info spi_board_info[] __initdata = {
 /*
  * NOR flash
  */
-static struct physmap_flash_data pcm027_flash_data = {
+static struct physmap_flash_data pcm027_flash_data =
+{
 	.width  = 4,
 };
 
-static struct resource pcm027_flash_resource = {
+static struct resource pcm027_flash_resource =
+{
 	.start          = PCM027_FLASH_PHYS,
 	.end            = PCM027_FLASH_PHYS + PCM027_FLASH_SIZE - 1 ,
 	.flags          = IORESOURCE_MEM,
 };
 
-static struct platform_device pcm027_flash = {
+static struct platform_device pcm027_flash =
+{
 	.name           = "physmap-flash",
 	.id             = 0,
 	.dev            = {
@@ -177,7 +186,8 @@ static struct platform_device pcm027_flash = {
 
 #ifdef CONFIG_LEDS_GPIO
 
-static struct gpio_led pcm027_led[] = {
+static struct gpio_led pcm027_led[] =
+{
 	{
 		.name = "led0:red",	/* FIXME */
 		.gpio = PCM027_LED_CPU
@@ -188,12 +198,14 @@ static struct gpio_led pcm027_led[] = {
 	},
 };
 
-static struct gpio_led_platform_data pcm027_led_data = {
+static struct gpio_led_platform_data pcm027_led_data =
+{
 	.num_leds	= ARRAY_SIZE(pcm027_led),
 	.leds		= pcm027_led
 };
 
-static struct platform_device pcm027_led_dev = {
+static struct platform_device pcm027_led_dev =
+{
 	.name		= "leds-gpio",
 	.id		= 0,
 	.dev		= {
@@ -206,7 +218,8 @@ static struct platform_device pcm027_led_dev = {
 /*
  * declare the available device resources on this board
  */
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&smc91x_device,
 	&pcm027_flash,
 #ifdef CONFIG_LEDS_GPIO
@@ -257,13 +270,13 @@ static void __init pcm027_map_io(void)
 }
 
 MACHINE_START(PCM027, "Phytec Messtechnik GmbH phyCORE-PXA270")
-	/* Maintainer: Pengutronix */
-	.atag_offset	= 0x100,
+/* Maintainer: Pengutronix */
+.atag_offset	= 0x100,
 	.map_io		= pcm027_map_io,
-	.nr_irqs	= PCM027_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= pcm027_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PCM027_NR_IRQS,
+			.init_irq	= pxa27x_init_irq,
+			   .handle_irq	= pxa27x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= pcm027_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

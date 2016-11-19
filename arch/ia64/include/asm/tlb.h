@@ -52,7 +52,8 @@
  */
 #define	IA64_GATHER_BUNDLE	8
 
-struct mmu_gather {
+struct mmu_gather
+{
 	struct mm_struct	*mm;
 	unsigned int		nr;
 	unsigned int		max;
@@ -65,7 +66,8 @@ struct mmu_gather {
 	struct page		*local[IA64_GATHER_BUNDLE];
 };
 
-struct ia64_tr_entry {
+struct ia64_tr_entry
+{
 	u64 ifa;
 	u64 itir;
 	u64 pte;
@@ -96,15 +98,17 @@ ia64_tlb_flush_mmu_tlbonly(struct mmu_gather *tlb, unsigned long start, unsigned
 {
 	tlb->need_flush = 0;
 
-	if (tlb->fullmm) {
+	if (tlb->fullmm)
+	{
 		/*
 		 * Tearing down the entire address space.  This happens both as a result
 		 * of exit() and execve().  The latter case necessitates the call to
 		 * flush_tlb_mm() here.
 		 */
 		flush_tlb_mm(tlb->mm);
-	} else if (unlikely (end - start >= 1024*1024*1024*1024UL
-			     || REGION_NUMBER(start) != REGION_NUMBER(end - 1)))
+	}
+	else if (unlikely (end - start >= 1024 * 1024 * 1024 * 1024UL
+					   || REGION_NUMBER(start) != REGION_NUMBER(end - 1)))
 	{
 		/*
 		 * If we flush more than a tera-byte or across regions, we're probably
@@ -112,7 +116,9 @@ ia64_tlb_flush_mmu_tlbonly(struct mmu_gather *tlb, unsigned long start, unsigned
 		 * and is not worth optimizing for.
 		 */
 		flush_tlb_all();
-	} else {
+	}
+	else
+	{
 		/*
 		 * XXX fix me: flush_tlb_range() should take an mm pointer instead of a
 		 * vma pointer.
@@ -139,8 +145,11 @@ ia64_tlb_flush_mmu_free(struct mmu_gather *tlb)
 
 	tlb->nr = 0;
 	tlb->start_addr = ~0UL;
+
 	for (i = 0; i < nr; ++i)
+	{
 		free_page_and_swap_cache(tlb->pages[i]);
+	}
 }
 
 /*
@@ -151,7 +160,10 @@ static inline void
 ia64_tlb_flush_mmu (struct mmu_gather *tlb, unsigned long start, unsigned long end)
 {
 	if (!tlb->need_flush)
+	{
 		return;
+	}
+
 	ia64_tlb_flush_mmu_tlbonly(tlb, start, end);
 	ia64_tlb_flush_mmu_free(tlb);
 }
@@ -160,7 +172,8 @@ static inline void __tlb_alloc_page(struct mmu_gather *tlb)
 {
 	unsigned long addr = __get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
 
-	if (addr) {
+	if (addr)
+	{
 		tlb->pages = (void *)addr;
 		tlb->max = PAGE_SIZE / sizeof(void *);
 	}
@@ -174,7 +187,7 @@ tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start
 	tlb->max = ARRAY_SIZE(tlb->local);
 	tlb->pages = tlb->local;
 	tlb->nr = 0;
-	tlb->fullmm = !(start | (end+1));
+	tlb->fullmm = !(start | (end + 1));
 	tlb->start = start;
 	tlb->end = end;
 	tlb->start_addr = ~0UL;
@@ -197,7 +210,9 @@ tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
 	check_pgt_cache();
 
 	if (tlb->pages != tlb->local)
+	{
 		free_pages((unsigned long)tlb->pages, 0);
+	}
 }
 
 /*
@@ -208,12 +223,16 @@ tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
 static inline bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
 {
 	if (tlb->nr == tlb->max)
+	{
 		return true;
+	}
 
 	tlb->need_flush = 1;
 
 	if (!tlb->nr && tlb->pages == tlb->local)
+	{
 		__tlb_alloc_page(tlb);
+	}
 
 	tlb->pages[tlb->nr++] = page;
 	return false;
@@ -236,26 +255,27 @@ static inline void tlb_flush_mmu(struct mmu_gather *tlb)
 
 static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
 {
-	if (__tlb_remove_page(tlb, page)) {
+	if (__tlb_remove_page(tlb, page))
+	{
 		tlb_flush_mmu(tlb);
 		__tlb_remove_page(tlb, page);
 	}
 }
 
 static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
-					  struct page *page, int page_size)
+		struct page *page, int page_size)
 {
 	return __tlb_remove_page(tlb, page);
 }
 
 static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
-					 struct page *page)
+		struct page *page)
 {
 	return __tlb_remove_page(tlb, page);
 }
 
 static inline void tlb_remove_page_size(struct mmu_gather *tlb,
-					struct page *page, int page_size)
+										struct page *page, int page_size)
 {
 	return tlb_remove_page(tlb, page);
 }
@@ -268,7 +288,10 @@ static inline void
 __tlb_remove_tlb_entry (struct mmu_gather *tlb, pte_t *ptep, unsigned long address)
 {
 	if (tlb->start_addr == ~0UL)
+	{
 		tlb->start_addr = address;
+	}
+
 	tlb->end_addr = address + PAGE_SIZE;
 }
 
@@ -278,27 +301,27 @@ __tlb_remove_tlb_entry (struct mmu_gather *tlb, pte_t *ptep, unsigned long addre
 #define tlb_end_vma(tlb, vma)			do { } while (0)
 
 #define tlb_remove_tlb_entry(tlb, ptep, addr)		\
-do {							\
-	tlb->need_flush = 1;				\
-	__tlb_remove_tlb_entry(tlb, ptep, addr);	\
-} while (0)
+	do {							\
+		tlb->need_flush = 1;				\
+		__tlb_remove_tlb_entry(tlb, ptep, addr);	\
+	} while (0)
 
 #define pte_free_tlb(tlb, ptep, address)		\
-do {							\
-	tlb->need_flush = 1;				\
-	__pte_free_tlb(tlb, ptep, address);		\
-} while (0)
+	do {							\
+		tlb->need_flush = 1;				\
+		__pte_free_tlb(tlb, ptep, address);		\
+	} while (0)
 
 #define pmd_free_tlb(tlb, ptep, address)		\
-do {							\
-	tlb->need_flush = 1;				\
-	__pmd_free_tlb(tlb, ptep, address);		\
-} while (0)
+	do {							\
+		tlb->need_flush = 1;				\
+		__pmd_free_tlb(tlb, ptep, address);		\
+	} while (0)
 
 #define pud_free_tlb(tlb, pudp, address)		\
-do {							\
-	tlb->need_flush = 1;				\
-	__pud_free_tlb(tlb, pudp, address);		\
-} while (0)
+	do {							\
+		tlb->need_flush = 1;				\
+		__pud_free_tlb(tlb, pudp, address);		\
+	} while (0)
 
 #endif /* _ASM_IA64_TLB_H */

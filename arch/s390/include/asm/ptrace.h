@@ -18,12 +18,13 @@
 #ifndef __ASSEMBLY__
 
 #define PSW_KERNEL_BITS	(PSW_DEFAULT_KEY | PSW_MASK_BASE | PSW_ASC_HOME | \
-			 PSW_MASK_EA | PSW_MASK_BA)
+						 PSW_MASK_EA | PSW_MASK_BA)
 #define PSW_USER_BITS	(PSW_MASK_DAT | PSW_MASK_IO | PSW_MASK_EXT | \
-			 PSW_DEFAULT_KEY | PSW_MASK_BASE | PSW_MASK_MCHECK | \
-			 PSW_MASK_PSTATE | PSW_ASC_PRIMARY)
+						 PSW_DEFAULT_KEY | PSW_MASK_BASE | PSW_MASK_MCHECK | \
+						 PSW_MASK_PSTATE | PSW_ASC_PRIMARY)
 
-struct psw_bits {
+struct psw_bits
+{
 	unsigned long	   :  1;
 	unsigned long r	   :  1; /* PER-Mask */
 	unsigned long	   :  3;
@@ -45,13 +46,15 @@ struct psw_bits {
 	unsigned long ia   : 64; /* Instruction Address */
 };
 
-enum {
+enum
+{
 	PSW_AMODE_24BIT = 0,
 	PSW_AMODE_31BIT = 1,
 	PSW_AMODE_64BIT = 3
 };
 
-enum {
+enum
+{
 	PSW_AS_PRIMARY	 = 0,
 	PSW_AS_ACCREG	 = 1,
 	PSW_AS_SECONDARY = 2,
@@ -59,15 +62,15 @@ enum {
 };
 
 #define psw_bits(__psw) (*({			\
-	typecheck(psw_t, __psw);		\
-	&(*(struct psw_bits *)(&(__psw)));	\
-}))
+		typecheck(psw_t, __psw);		\
+		&(*(struct psw_bits *)(&(__psw)));	\
+	}))
 
 /*
  * The pt_regs struct defines the way the registers are stored on
  * the stack during a system call.
  */
-struct pt_regs 
+struct pt_regs
 {
 	unsigned long args[1];
 	psw_t psw;
@@ -82,7 +85,8 @@ struct pt_regs
 /*
  * Program event recording (PER) register set.
  */
-struct per_regs {
+struct per_regs
+{
 	unsigned long control;		/* PER control bits */
 	unsigned long start;		/* PER starting address */
 	unsigned long end;		/* PER ending address */
@@ -91,7 +95,8 @@ struct per_regs {
 /*
  * PER event contains information about the cause of the last PER exception.
  */
-struct per_event {
+struct per_event
+{
 	unsigned short cause;		/* PER code, ATMID and AI */
 	unsigned long address;		/* PER address */
 	unsigned char paid;		/* PER access identification */
@@ -100,7 +105,8 @@ struct per_event {
 /*
  * Simplified per_info structure used to decode the ptrace user space ABI.
  */
-struct per_struct_kernel {
+struct per_struct_kernel
+{
 	unsigned long cr9;		/* PER control bits */
 	unsigned long cr10;		/* PER starting address */
 	unsigned long cr11;		/* PER ending address */
@@ -159,7 +165,7 @@ static inline long regs_return_value(struct pt_regs *regs)
 }
 
 static inline void instruction_pointer_set(struct pt_regs *regs,
-					   unsigned long val)
+		unsigned long val)
 {
 	regs->psw.addr = val;
 }

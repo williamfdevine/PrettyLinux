@@ -52,7 +52,7 @@ static inline int get_stack_long(struct task_struct *task, int offset)
  * This routine will put a word on the process kernel stack.
  */
 static inline int put_stack_long(struct task_struct *task, int offset,
-				 unsigned long data)
+								 unsigned long data)
 {
 	unsigned char *stack;
 
@@ -63,7 +63,7 @@ static inline int put_stack_long(struct task_struct *task, int offset,
 }
 
 void ptrace_triggered(struct perf_event *bp,
-		      struct perf_sample_data *data, struct pt_regs *regs)
+					  struct perf_sample_data *data, struct pt_regs *regs)
 {
 	struct perf_event_attr attr;
 
@@ -83,7 +83,9 @@ static int set_single_step(struct task_struct *tsk, unsigned long addr)
 	struct perf_event_attr attr;
 
 	bp = thread->ptrace_bps[0];
-	if (!bp) {
+
+	if (!bp)
+	{
 		ptrace_breakpoint_init(&attr);
 
 		attr.bp_addr = addr;
@@ -91,12 +93,17 @@ static int set_single_step(struct task_struct *tsk, unsigned long addr)
 		attr.bp_type = HW_BREAKPOINT_R;
 
 		bp = register_user_hw_breakpoint(&attr, ptrace_triggered,
-						 NULL, tsk);
+										 NULL, tsk);
+
 		if (IS_ERR(bp))
+		{
 			return PTR_ERR(bp);
+		}
 
 		thread->ptrace_bps[0] = bp;
-	} else {
+	}
+	else
+	{
 		int err;
 
 		attr = bp->attr;
@@ -104,8 +111,11 @@ static int set_single_step(struct task_struct *tsk, unsigned long addr)
 		/* reenable breakpoint */
 		attr.disabled = false;
 		err = modify_user_hw_breakpoint(bp, &attr);
+
 		if (unlikely(err))
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -136,95 +146,105 @@ void ptrace_disable(struct task_struct *child)
 }
 
 static int genregs_get(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       void *kbuf, void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   void *kbuf, void __user *ubuf)
 {
 	const struct pt_regs *regs = task_pt_regs(target);
 	int ret;
 
 	ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				  regs->regs,
-				  0, 16 * sizeof(unsigned long));
+							  regs->regs,
+							  0, 16 * sizeof(unsigned long));
+
 	if (!ret)
 		/* PC, PR, SR, GBR, MACH, MACL, TRA */
 		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-					  &regs->pc,
-					  offsetof(struct pt_regs, pc),
-					  sizeof(struct pt_regs));
+								  &regs->pc,
+								  offsetof(struct pt_regs, pc),
+								  sizeof(struct pt_regs));
+
 	if (!ret)
 		ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf,
-					       sizeof(struct pt_regs), -1);
+									   sizeof(struct pt_regs), -1);
 
 	return ret;
 }
 
 static int genregs_set(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       const void *kbuf, const void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   const void *kbuf, const void __user *ubuf)
 {
 	struct pt_regs *regs = task_pt_regs(target);
 	int ret;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 regs->regs,
-				 0, 16 * sizeof(unsigned long));
+							 regs->regs,
+							 0, 16 * sizeof(unsigned long));
+
 	if (!ret && count > 0)
 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-					 &regs->pc,
-					 offsetof(struct pt_regs, pc),
-					 sizeof(struct pt_regs));
+								 &regs->pc,
+								 offsetof(struct pt_regs, pc),
+								 sizeof(struct pt_regs));
+
 	if (!ret)
 		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-						sizeof(struct pt_regs), -1);
+										sizeof(struct pt_regs), -1);
 
 	return ret;
 }
 
 #ifdef CONFIG_SH_FPU
 int fpregs_get(struct task_struct *target,
-	       const struct user_regset *regset,
-	       unsigned int pos, unsigned int count,
-	       void *kbuf, void __user *ubuf)
+			   const struct user_regset *regset,
+			   unsigned int pos, unsigned int count,
+			   void *kbuf, void __user *ubuf)
 {
 	int ret;
 
 	ret = init_fpu(target);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if ((boot_cpu_data.flags & CPU_HAS_FPU))
 		return user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-					   &target->thread.xstate->hardfpu, 0, -1);
+								   &target->thread.xstate->hardfpu, 0, -1);
 
 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				   &target->thread.xstate->softfpu, 0, -1);
+							   &target->thread.xstate->softfpu, 0, -1);
 }
 
 static int fpregs_set(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       const void *kbuf, const void __user *ubuf)
+					  const struct user_regset *regset,
+					  unsigned int pos, unsigned int count,
+					  const void *kbuf, const void __user *ubuf)
 {
 	int ret;
 
 	ret = init_fpu(target);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	set_stopped_child_used_math(target);
 
 	if ((boot_cpu_data.flags & CPU_HAS_FPU))
 		return user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-					  &target->thread.xstate->hardfpu, 0, -1);
+								  &target->thread.xstate->hardfpu, 0, -1);
 
 	return user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				  &target->thread.xstate->softfpu, 0, -1);
+							  &target->thread.xstate->softfpu, 0, -1);
 }
 
 static int fpregs_active(struct task_struct *target,
-			 const struct user_regset *regset)
+						 const struct user_regset *regset)
 {
 	return tsk_used_math(target) ? regset->n : 0;
 }
@@ -232,43 +252,45 @@ static int fpregs_active(struct task_struct *target,
 
 #ifdef CONFIG_SH_DSP
 static int dspregs_get(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       void *kbuf, void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   void *kbuf, void __user *ubuf)
 {
 	const struct pt_dspregs *regs =
 		(struct pt_dspregs *)&target->thread.dsp_status.dsp_regs;
 	int ret;
 
 	ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf, regs,
-				  0, sizeof(struct pt_dspregs));
+							  0, sizeof(struct pt_dspregs));
+
 	if (!ret)
 		ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf,
-					       sizeof(struct pt_dspregs), -1);
+									   sizeof(struct pt_dspregs), -1);
 
 	return ret;
 }
 
 static int dspregs_set(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       const void *kbuf, const void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   const void *kbuf, const void __user *ubuf)
 {
 	struct pt_dspregs *regs =
 		(struct pt_dspregs *)&target->thread.dsp_status.dsp_regs;
 	int ret;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, regs,
-				 0, sizeof(struct pt_dspregs));
+							 0, sizeof(struct pt_dspregs));
+
 	if (!ret)
 		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-						sizeof(struct pt_dspregs), -1);
+										sizeof(struct pt_dspregs), -1);
 
 	return ret;
 }
 
 static int dspregs_active(struct task_struct *target,
-			  const struct user_regset *regset)
+						  const struct user_regset *regset)
 {
 	struct pt_regs *regs = task_pt_regs(target);
 
@@ -276,7 +298,8 @@ static int dspregs_active(struct task_struct *target,
 }
 #endif
 
-const struct pt_regs_offset regoffset_table[] = {
+const struct pt_regs_offset regoffset_table[] =
+{
 	REGS_OFFSET_NAME(0),
 	REGS_OFFSET_NAME(1),
 	REGS_OFFSET_NAME(2),
@@ -306,7 +329,8 @@ const struct pt_regs_offset regoffset_table[] = {
 /*
  * These are our native regset flavours.
  */
-enum sh_regset {
+enum sh_regset
+{
 	REGSET_GENERAL,
 #ifdef CONFIG_SH_FPU
 	REGSET_FPU,
@@ -316,7 +340,8 @@ enum sh_regset {
 #endif
 };
 
-static const struct user_regset sh_regsets[] = {
+static const struct user_regset sh_regsets[] =
+{
 	/*
 	 * Format is:
 	 *	R0 --> R15
@@ -355,7 +380,8 @@ static const struct user_regset sh_regsets[] = {
 #endif
 };
 
-static const struct user_regset_view user_sh_native_view = {
+static const struct user_regset_view user_sh_native_view =
+{
 	.name		= "sh",
 	.e_machine	= EM_SH,
 	.regsets	= sh_regsets,
@@ -368,117 +394,169 @@ const struct user_regset_view *task_user_regset_view(struct task_struct *task)
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	unsigned long __user *datap = (unsigned long __user *)data;
 	int ret;
 
-	switch (request) {
-	/* read the word at location addr in the USER area. */
-	case PTRACE_PEEKUSR: {
-		unsigned long tmp;
+	switch (request)
+	{
+		/* read the word at location addr in the USER area. */
+		case PTRACE_PEEKUSR:
+			{
+				unsigned long tmp;
 
-		ret = -EIO;
-		if ((addr & 3) || addr < 0 ||
-		    addr > sizeof(struct user) - 3)
-			break;
+				ret = -EIO;
 
-		if (addr < sizeof(struct pt_regs))
-			tmp = get_stack_long(child, addr);
-		else if (addr >= offsetof(struct user, fpu) &&
-			 addr < offsetof(struct user, u_fpvalid)) {
-			if (!tsk_used_math(child)) {
-				if (addr == offsetof(struct user, fpu.fpscr))
-					tmp = FPSCR_INIT;
+				if ((addr & 3) || addr < 0 ||
+					addr > sizeof(struct user) - 3)
+				{
+					break;
+				}
+
+				if (addr < sizeof(struct pt_regs))
+				{
+					tmp = get_stack_long(child, addr);
+				}
+				else if (addr >= offsetof(struct user, fpu) &&
+						 addr < offsetof(struct user, u_fpvalid))
+				{
+					if (!tsk_used_math(child))
+					{
+						if (addr == offsetof(struct user, fpu.fpscr))
+						{
+							tmp = FPSCR_INIT;
+						}
+						else
+						{
+							tmp = 0;
+						}
+					}
+					else
+					{
+						unsigned long index;
+						ret = init_fpu(child);
+
+						if (ret)
+						{
+							break;
+						}
+
+						index = addr - offsetof(struct user, fpu);
+						tmp = ((unsigned long *)child->thread.xstate)
+							  [index >> 2];
+					}
+				}
+				else if (addr == offsetof(struct user, u_fpvalid))
+				{
+					tmp = !!tsk_used_math(child);
+				}
+				else if (addr == PT_TEXT_ADDR)
+				{
+					tmp = child->mm->start_code;
+				}
+				else if (addr == PT_DATA_ADDR)
+				{
+					tmp = child->mm->start_data;
+				}
+				else if (addr == PT_TEXT_END_ADDR)
+				{
+					tmp = child->mm->end_code;
+				}
+				else if (addr == PT_TEXT_LEN)
+				{
+					tmp = child->mm->end_code - child->mm->start_code;
+				}
 				else
+				{
 					tmp = 0;
-			} else {
+				}
+
+				ret = put_user(tmp, datap);
+				break;
+			}
+
+		case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+			ret = -EIO;
+
+			if ((addr & 3) || addr < 0 ||
+				addr > sizeof(struct user) - 3)
+			{
+				break;
+			}
+
+			if (addr < sizeof(struct pt_regs))
+			{
+				ret = put_stack_long(child, addr, data);
+			}
+			else if (addr >= offsetof(struct user, fpu) &&
+					 addr < offsetof(struct user, u_fpvalid))
+			{
 				unsigned long index;
 				ret = init_fpu(child);
-				if (ret)
-					break;
-				index = addr - offsetof(struct user, fpu);
-				tmp = ((unsigned long *)child->thread.xstate)
-					[index >> 2];
-			}
-		} else if (addr == offsetof(struct user, u_fpvalid))
-			tmp = !!tsk_used_math(child);
-		else if (addr == PT_TEXT_ADDR)
-			tmp = child->mm->start_code;
-		else if (addr == PT_DATA_ADDR)
-			tmp = child->mm->start_data;
-		else if (addr == PT_TEXT_END_ADDR)
-			tmp = child->mm->end_code;
-		else if (addr == PT_TEXT_LEN)
-			tmp = child->mm->end_code - child->mm->start_code;
-		else
-			tmp = 0;
-		ret = put_user(tmp, datap);
-		break;
-	}
 
-	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
-		ret = -EIO;
-		if ((addr & 3) || addr < 0 ||
-		    addr > sizeof(struct user) - 3)
+				if (ret)
+				{
+					break;
+				}
+
+				index = addr - offsetof(struct user, fpu);
+				set_stopped_child_used_math(child);
+				((unsigned long *)child->thread.xstate)
+				[index >> 2] = data;
+				ret = 0;
+			}
+			else if (addr == offsetof(struct user, u_fpvalid))
+			{
+				conditional_stopped_child_used_math(data, child);
+				ret = 0;
+			}
+
 			break;
 
-		if (addr < sizeof(struct pt_regs))
-			ret = put_stack_long(child, addr, data);
-		else if (addr >= offsetof(struct user, fpu) &&
-			 addr < offsetof(struct user, u_fpvalid)) {
-			unsigned long index;
-			ret = init_fpu(child);
-			if (ret)
-				break;
-			index = addr - offsetof(struct user, fpu);
-			set_stopped_child_used_math(child);
-			((unsigned long *)child->thread.xstate)
-				[index >> 2] = data;
-			ret = 0;
-		} else if (addr == offsetof(struct user, u_fpvalid)) {
-			conditional_stopped_child_used_math(data, child);
-			ret = 0;
-		}
-		break;
+		case PTRACE_GETREGS:
+			return copy_regset_to_user(child, &user_sh_native_view,
+									   REGSET_GENERAL,
+									   0, sizeof(struct pt_regs),
+									   datap);
 
-	case PTRACE_GETREGS:
-		return copy_regset_to_user(child, &user_sh_native_view,
-					   REGSET_GENERAL,
-					   0, sizeof(struct pt_regs),
-					   datap);
-	case PTRACE_SETREGS:
-		return copy_regset_from_user(child, &user_sh_native_view,
-					     REGSET_GENERAL,
-					     0, sizeof(struct pt_regs),
-					     datap);
+		case PTRACE_SETREGS:
+			return copy_regset_from_user(child, &user_sh_native_view,
+										 REGSET_GENERAL,
+										 0, sizeof(struct pt_regs),
+										 datap);
 #ifdef CONFIG_SH_FPU
-	case PTRACE_GETFPREGS:
-		return copy_regset_to_user(child, &user_sh_native_view,
-					   REGSET_FPU,
-					   0, sizeof(struct user_fpu_struct),
-					   datap);
-	case PTRACE_SETFPREGS:
-		return copy_regset_from_user(child, &user_sh_native_view,
-					     REGSET_FPU,
-					     0, sizeof(struct user_fpu_struct),
-					     datap);
+
+		case PTRACE_GETFPREGS:
+			return copy_regset_to_user(child, &user_sh_native_view,
+									   REGSET_FPU,
+									   0, sizeof(struct user_fpu_struct),
+									   datap);
+
+		case PTRACE_SETFPREGS:
+			return copy_regset_from_user(child, &user_sh_native_view,
+										 REGSET_FPU,
+										 0, sizeof(struct user_fpu_struct),
+										 datap);
 #endif
 #ifdef CONFIG_SH_DSP
-	case PTRACE_GETDSPREGS:
-		return copy_regset_to_user(child, &user_sh_native_view,
-					   REGSET_DSP,
-					   0, sizeof(struct pt_dspregs),
-					   datap);
-	case PTRACE_SETDSPREGS:
-		return copy_regset_from_user(child, &user_sh_native_view,
-					     REGSET_DSP,
-					     0, sizeof(struct pt_dspregs),
-					     datap);
+
+		case PTRACE_GETDSPREGS:
+			return copy_regset_to_user(child, &user_sh_native_view,
+									   REGSET_DSP,
+									   0, sizeof(struct pt_dspregs),
+									   datap);
+
+		case PTRACE_SETDSPREGS:
+			return copy_regset_from_user(child, &user_sh_native_view,
+										 REGSET_DSP,
+										 0, sizeof(struct pt_dspregs),
+										 datap);
 #endif
-	default:
-		ret = ptrace_request(child, request, addr, data);
-		break;
+
+		default:
+			ret = ptrace_request(child, request, addr, data);
+			break;
 	}
 
 	return ret;
@@ -491,21 +569,25 @@ asmlinkage long do_syscall_trace_enter(struct pt_regs *regs)
 	secure_computing_strict(regs->regs[0]);
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE) &&
-	    tracehook_report_syscall_entry(regs))
+		tracehook_report_syscall_entry(regs))
 		/*
 		 * Tracing decided this syscall should not happen.
 		 * We'll return a bogus call number to get an ENOSYS
 		 * error, but leave the original number in regs->regs[0].
 		 */
+	{
 		ret = -1L;
+	}
 
 	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
+	{
 		trace_sys_enter(regs, regs->regs[0]);
+	}
 
 	audit_syscall_entry(regs->regs[3], regs->regs[4], regs->regs[5],
-			    regs->regs[6], regs->regs[7]);
+						regs->regs[6], regs->regs[7]);
 
-	return ret ?: regs->regs[0];
+	return ret ? : regs->regs[0];
 }
 
 asmlinkage void do_syscall_trace_leave(struct pt_regs *regs)
@@ -515,9 +597,14 @@ asmlinkage void do_syscall_trace_leave(struct pt_regs *regs)
 	audit_syscall_exit(regs);
 
 	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
+	{
 		trace_sys_exit(regs, regs->regs[0]);
+	}
 
 	step = test_thread_flag(TIF_SINGLESTEP);
+
 	if (step || test_thread_flag(TIF_SYSCALL_TRACE))
+	{
 		tracehook_report_syscall_exit(regs, step);
+	}
 }

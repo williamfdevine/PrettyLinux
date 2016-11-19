@@ -91,7 +91,7 @@ extern void execve_tail(void);
 
 #define TASK_SIZE_OF(tsk)	((tsk)->mm->context.asce_limit)
 #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_31BIT) ? \
-					(1UL << 30) : (1UL << 41))
+							 (1UL << 30) : (1UL << 41))
 #define TASK_SIZE		TASK_SIZE_OF(current)
 #define TASK_MAX_SIZE		(1UL << 53)
 
@@ -100,16 +100,18 @@ extern void execve_tail(void);
 
 #define HAVE_ARCH_PICK_MMAP_LAYOUT
 
-typedef struct {
-        __u32 ar4;
+typedef struct
+{
+	__u32 ar4;
 } mm_segment_t;
 
 /*
  * Thread structure
  */
-struct thread_struct {
+struct thread_struct
+{
 	unsigned int  acrs[NUM_ACRS];
-        unsigned long ksp;              /* kernel stack pointer             */
+	unsigned long ksp;              /* kernel stack pointer             */
 	mm_segment_t mm_segment;
 	unsigned long gmap_addr;	/* address of last gmap fault. */
 	unsigned int gmap_write_flag;	/* gmap fault write indication */
@@ -118,7 +120,7 @@ struct thread_struct {
 	struct per_regs per_user;	/* User specified PER registers */
 	struct per_event per_event;	/* Cause of the last PER trap */
 	unsigned long per_flags;	/* Flags to control debug behavior */
-        /* pfault_wait is used to block the process on a pfault event */
+	/* pfault_wait is used to block the process on a pfault event */
 	unsigned long pfault_wait;
 	struct list_head list;
 	/* cpu runtime instrumentation */
@@ -147,14 +149,16 @@ typedef struct thread_struct thread_struct;
  * Stack layout of a C stack frame.
  */
 #ifndef __PACK_STACK
-struct stack_frame {
+struct stack_frame
+{
 	unsigned long back_chain;
 	unsigned long empty1[5];
 	unsigned long gprs[10];
 	unsigned int  empty2[8];
 };
 #else
-struct stack_frame {
+struct stack_frame
+{
 	unsigned long empty1[5];
 	unsigned int  empty2[8];
 	unsigned long gprs[10];
@@ -165,27 +169,27 @@ struct stack_frame {
 #define ARCH_MIN_TASKALIGN	8
 
 #define INIT_THREAD {							\
-	.ksp = sizeof(init_stack) + (unsigned long) &init_stack,	\
-	.fpu.regs = (void *) init_task.thread.fpu.fprs,			\
-}
+		.ksp = sizeof(init_stack) + (unsigned long) &init_stack,	\
+			   .fpu.regs = (void *) init_task.thread.fpu.fprs,			\
+	}
 
 /*
  * Do necessary setup to start up a new thread.
  */
 #define start_thread(regs, new_psw, new_stackp) do {			\
-	regs->psw.mask	= PSW_USER_BITS | PSW_MASK_EA | PSW_MASK_BA;	\
-	regs->psw.addr	= new_psw;					\
-	regs->gprs[15]	= new_stackp;					\
-	execve_tail();							\
-} while (0)
+		regs->psw.mask	= PSW_USER_BITS | PSW_MASK_EA | PSW_MASK_BA;	\
+		regs->psw.addr	= new_psw;					\
+		regs->gprs[15]	= new_stackp;					\
+		execve_tail();							\
+	} while (0)
 
 #define start_thread31(regs, new_psw, new_stackp) do {			\
-	regs->psw.mask	= PSW_USER_BITS | PSW_MASK_BA;			\
-	regs->psw.addr	= new_psw;					\
-	regs->gprs[15]	= new_stackp;					\
-	crst_table_downgrade(current->mm);				\
-	execve_tail();							\
-} while (0)
+		regs->psw.mask	= PSW_USER_BITS | PSW_MASK_BA;			\
+		regs->psw.addr	= new_psw;					\
+		regs->gprs[15]	= new_stackp;					\
+		crst_table_downgrade(current->mm);				\
+		execve_tail();							\
+	} while (0)
 
 /* Forward declaration, a strange C thing */
 struct task_struct;
@@ -194,7 +198,7 @@ struct seq_file;
 
 typedef int (*dump_trace_func_t)(void *data, unsigned long address, int reliable);
 void dump_trace(dump_trace_func_t func, void *data,
-		struct task_struct *task, unsigned long sp);
+				struct task_struct *task, unsigned long sp);
 
 void show_cacheinfo(struct seq_file *m);
 
@@ -208,7 +212,7 @@ extern unsigned long thread_saved_pc(struct task_struct *t);
 
 unsigned long get_wchan(struct task_struct *p);
 #define task_pt_regs(tsk) ((struct pt_regs *) \
-        (task_stack_page(tsk) + THREAD_SIZE) - 1)
+						   (task_stack_page(tsk) + THREAD_SIZE) - 1)
 #define KSTK_EIP(tsk)	(task_pt_regs(tsk)->psw.addr)
 #define KSTK_ESP(tsk)	(task_pt_regs(tsk)->gprs[15])
 
@@ -246,7 +250,7 @@ static inline unsigned long __ecag(unsigned int asi, unsigned char parm)
 	unsigned long val;
 
 	asm volatile(".insn	rsy,0xeb000000004c,%0,0,0(%1)" /* ecag */
-		     : "=d" (val) : "a" (asi << 8 | parm));
+				 : "=d" (val) : "a" (asi << 8 | parm));
 	return val;
 }
 
@@ -311,8 +315,8 @@ static inline unsigned long __rewind_psw(psw_t psw, unsigned long ilc)
 	unsigned long mask;
 
 	mask = (psw.mask & PSW_MASK_EA) ? -1UL :
-	       (psw.mask & PSW_MASK_BA) ? (1UL << 31) - 1 :
-					  (1UL << 24) - 1;
+		   (psw.mask & PSW_MASK_BA) ? (1UL << 31) - 1 :
+		   (1UL << 24) - 1;
 	return (psw.addr - ilc) & mask;
 }
 
@@ -331,6 +335,7 @@ static inline void __noreturn disabled_wait(unsigned long code)
 	psw.mask = PSW_MASK_BASE | PSW_MASK_WAIT | PSW_MASK_BA | PSW_MASK_EA;
 	psw.addr = code;
 	__load_psw(psw);
+
 	while (1);
 }
 
@@ -352,11 +357,11 @@ extern int memcpy_real(void *, void *, size_t);
 extern void memcpy_absolute(void *, void *, size_t);
 
 #define mem_assign_absolute(dest, val) {			\
-	__typeof__(dest) __tmp = (val);				\
-								\
-	BUILD_BUG_ON(sizeof(__tmp) != sizeof(val));		\
-	memcpy_absolute(&(dest), &__tmp, sizeof(__tmp));	\
-}
+		__typeof__(dest) __tmp = (val);				\
+		\
+		BUILD_BUG_ON(sizeof(__tmp) != sizeof(val));		\
+		memcpy_absolute(&(dest), &__tmp, sizeof(__tmp));	\
+	}
 
 #endif /* __ASSEMBLY__ */
 

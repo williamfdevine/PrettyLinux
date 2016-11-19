@@ -24,14 +24,14 @@ static __inline__ long local_add_return(long a, local_t *l)
 	long t;
 
 	__asm__ __volatile__(
-"1:"	PPC_LLARX(%0,0,%2,0) "			# local_add_return\n\
+		"1:"	PPC_LLARX(%0, 0, %2, 0) "			# local_add_return\n\
 	add	%0,%1,%0\n"
-	PPC405_ERR77(0,%2)
-	PPC_STLCX	"%0,0,%2 \n\
+		PPC405_ERR77(0, %2)
+		PPC_STLCX	"%0,0,%2 \n\
 	bne-	1b"
-	: "=&r" (t)
-	: "r" (a), "r" (&(l->a.counter))
-	: "cc", "memory");
+		: "=&r" (t)
+		: "r" (a), "r" (&(l->a.counter))
+		: "cc", "memory");
 
 	return t;
 }
@@ -43,14 +43,14 @@ static __inline__ long local_sub_return(long a, local_t *l)
 	long t;
 
 	__asm__ __volatile__(
-"1:"	PPC_LLARX(%0,0,%2,0) "			# local_sub_return\n\
+		"1:"	PPC_LLARX(%0, 0, %2, 0) "			# local_sub_return\n\
 	subf	%0,%1,%0\n"
-	PPC405_ERR77(0,%2)
-	PPC_STLCX	"%0,0,%2 \n\
+		PPC405_ERR77(0, %2)
+		PPC_STLCX	"%0,0,%2 \n\
 	bne-	1b"
-	: "=&r" (t)
-	: "r" (a), "r" (&(l->a.counter))
-	: "cc", "memory");
+		: "=&r" (t)
+		: "r" (a), "r" (&(l->a.counter))
+		: "cc", "memory");
 
 	return t;
 }
@@ -60,14 +60,14 @@ static __inline__ long local_inc_return(local_t *l)
 	long t;
 
 	__asm__ __volatile__(
-"1:"	PPC_LLARX(%0,0,%1,0) "			# local_inc_return\n\
+		"1:"	PPC_LLARX(%0, 0, %1, 0) "			# local_inc_return\n\
 	addic	%0,%0,1\n"
-	PPC405_ERR77(0,%1)
-	PPC_STLCX	"%0,0,%1 \n\
+		PPC405_ERR77(0, %1)
+		PPC_STLCX	"%0,0,%1 \n\
 	bne-	1b"
-	: "=&r" (t)
-	: "r" (&(l->a.counter))
-	: "cc", "xer", "memory");
+		: "=&r" (t)
+		: "r" (&(l->a.counter))
+		: "cc", "xer", "memory");
 
 	return t;
 }
@@ -87,14 +87,14 @@ static __inline__ long local_dec_return(local_t *l)
 	long t;
 
 	__asm__ __volatile__(
-"1:"	PPC_LLARX(%0,0,%1,0) "			# local_dec_return\n\
+		"1:"	PPC_LLARX(%0, 0, %1, 0) "			# local_dec_return\n\
 	addic	%0,%0,-1\n"
-	PPC405_ERR77(0,%1)
-	PPC_STLCX	"%0,0,%1\n\
+		PPC405_ERR77(0, %1)
+		PPC_STLCX	"%0,0,%1\n\
 	bne-	1b"
-	: "=&r" (t)
-	: "r" (&(l->a.counter))
-	: "cc", "xer", "memory");
+		: "=&r" (t)
+		: "r" (&(l->a.counter))
+		: "cc", "xer", "memory");
 
 	return t;
 }
@@ -117,18 +117,18 @@ static __inline__ int local_add_unless(local_t *l, long a, long u)
 	long t;
 
 	__asm__ __volatile__ (
-"1:"	PPC_LLARX(%0,0,%1,0) "			# local_add_unless\n\
+		"1:"	PPC_LLARX(%0, 0, %1, 0) "			# local_add_unless\n\
 	cmpw	0,%0,%3 \n\
 	beq-	2f \n\
 	add	%0,%2,%0 \n"
-	PPC405_ERR77(0,%2)
-	PPC_STLCX	"%0,0,%1 \n\
+		PPC405_ERR77(0, %2)
+		PPC_STLCX	"%0,0,%1 \n\
 	bne-	1b \n"
-"	subf	%0,%2,%0 \n\
+		"	subf	%0,%2,%0 \n\
 2:"
-	: "=&r" (t)
-	: "r" (&(l->a.counter)), "r" (a), "r" (u)
-	: "cc", "memory");
+		: "=&r" (t)
+		: "r" (&(l->a.counter)), "r" (a), "r" (u)
+		: "cc", "memory");
 
 	return t != u;
 }
@@ -147,17 +147,17 @@ static __inline__ long local_dec_if_positive(local_t *l)
 	long t;
 
 	__asm__ __volatile__(
-"1:"	PPC_LLARX(%0,0,%1,0) "			# local_dec_if_positive\n\
+		"1:"	PPC_LLARX(%0, 0, %1, 0) "			# local_dec_if_positive\n\
 	cmpwi	%0,1\n\
 	addi	%0,%0,-1\n\
 	blt-	2f\n"
-	PPC405_ERR77(0,%1)
-	PPC_STLCX	"%0,0,%1\n\
+		PPC405_ERR77(0, %1)
+		PPC_STLCX	"%0,0,%1\n\
 	bne-	1b"
-	"\n\
+		"\n\
 2:"	: "=&b" (t)
-	: "r" (&(l->a.counter))
-	: "cc", "memory");
+		: "r" (&(l->a.counter))
+		: "cc", "memory");
 
 	return t;
 }

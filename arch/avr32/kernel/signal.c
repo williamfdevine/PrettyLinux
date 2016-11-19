@@ -75,21 +75,29 @@ asmlinkage int sys_rt_sigreturn(struct pt_regs *regs)
 	pr_debug("SIG return: frame = %p\n", frame);
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	pr_debug("Context restored: pc = %08lx, lr = %08lx, sp = %08lx\n",
-		 regs->pc, regs->lr, regs->sp);
+			 regs->pc, regs->lr, regs->sp);
 
 	return regs->r12;
 
@@ -142,8 +150,11 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 
 	frame = get_sigframe(ksig, regs, sizeof(*frame));
 	err = -EFAULT;
+
 	if (!access_ok(VERIFY_WRITE, frame, sizeof (*frame)))
+	{
 		goto out;
+	}
 
 	/*
 	 * Set up the return code:
@@ -158,7 +169,7 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 # error __NR_rt_sigreturn must be < 127 to fit in a short mov
 #endif
 	err = __put_user(0x3008d733 | (__NR_rt_sigreturn << 20),
-			 &frame->retcode);
+					 &frame->retcode);
 
 	err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 
@@ -170,23 +181,29 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
 
 	if (err)
+	{
 		goto out;
+	}
 
 	regs->r12 = ksig->sig;
 	regs->r11 = (unsigned long) &frame->info;
 	regs->r10 = (unsigned long) &frame->uc;
 	regs->sp = (unsigned long) frame;
+
 	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		regs->lr = (unsigned long)ksig->ka.sa.sa_restorer;
-	else {
+	}
+	else
+	{
 		printk(KERN_NOTICE "[%s:%d] did not set SA_RESTORER\n",
-		       current->comm, current->pid);
+			   current->comm, current->pid);
 		regs->lr = (unsigned long) &frame->retcode;
 	}
 
 	pr_debug("SIG deliver [%s:%d]: sig=%d sp=0x%lx pc=0x%lx->0x%p lr=0x%lx\n",
-		 current->comm, current->pid, ksig->sig, regs->sp,
-		 regs->pc, ksig->ka.sa.sa_handler, regs->lr);
+			 current->comm, current->pid, ksig->sig, regs->sp,
+			 regs->pc, ksig->ka.sa.sa_handler, regs->lr);
 
 	regs->pc = (unsigned long)ksig->ka.sa.sa_handler;
 
@@ -197,9 +214,14 @@ out:
 static inline void setup_syscall_restart(struct pt_regs *regs)
 {
 	if (regs->r12 == -ERESTART_RESTARTBLOCK)
+	{
 		regs->r8 = __NR_restart_syscall;
+	}
 	else
+	{
 		regs->r12 = regs->r12_orig;
+	}
+
 	regs->pc -= 2;
 }
 
@@ -239,30 +261,40 @@ static void do_signal(struct pt_regs *regs, int syscall)
 	 * without doing anything if so.
 	 */
 	if (!user_mode(regs))
+	{
 		return;
+	}
 
 	get_signal(&ksig);
-	if (syscall) {
-		switch (regs->r12) {
-		case -ERESTART_RESTARTBLOCK:
-		case -ERESTARTNOHAND:
-			if (ksig.sig > 0) {
-				regs->r12 = -EINTR;
-				break;
-			}
+
+	if (syscall)
+	{
+		switch (regs->r12)
+		{
+			case -ERESTART_RESTARTBLOCK:
+			case -ERESTARTNOHAND:
+				if (ksig.sig > 0)
+				{
+					regs->r12 = -EINTR;
+					break;
+				}
+
 			/* fall through */
-		case -ERESTARTSYS:
-			if (ksig.sig > 0 && !(ksig.ka.sa.sa_flags & SA_RESTART)) {
-				regs->r12 = -EINTR;
-				break;
-			}
+			case -ERESTARTSYS:
+				if (ksig.sig > 0 && !(ksig.ka.sa.sa_flags & SA_RESTART))
+				{
+					regs->r12 = -EINTR;
+					break;
+				}
+
 			/* fall through */
-		case -ERESTARTNOINTR:
-			setup_syscall_restart(regs);
+			case -ERESTARTNOINTR:
+				setup_syscall_restart(regs);
 		}
 	}
 
-	if (!ksig.sig) {
+	if (!ksig.sig)
+	{
 		/* No signal to deliver -- put the saved sigmask back */
 		restore_saved_sigmask();
 		return;
@@ -276,12 +308,17 @@ asmlinkage void do_notify_resume(struct pt_regs *regs, struct thread_info *ti)
 	int syscall = 0;
 
 	if ((sysreg_read(SR) & MODE_MASK) == MODE_SUPERVISOR)
+	{
 		syscall = 1;
+	}
 
 	if (ti->flags & _TIF_SIGPENDING)
+	{
 		do_signal(regs, syscall);
+	}
 
-	if (ti->flags & _TIF_NOTIFY_RESUME) {
+	if (ti->flags & _TIF_NOTIFY_RESUME)
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}

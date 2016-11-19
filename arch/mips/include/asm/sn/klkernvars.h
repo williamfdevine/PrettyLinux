@@ -15,7 +15,8 @@
 
 #include <asm/sn/types.h>
 
-typedef struct kern_vars_s {
+typedef struct kern_vars_s
+{
 	int		kv_magic;
 	nasid_t		kv_ro_nasid;
 	nasid_t		kv_rw_nasid;

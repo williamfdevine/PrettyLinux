@@ -29,19 +29,22 @@ static void nfputs(const char *str, unsigned int count)
 	unsigned long phys = virt_to_phys(buf);
 
 	buf[64] = 0;
-	while (count > 64) {
+
+	while (count > 64)
+	{
 		memcpy(buf, str, 64);
 		nf_call(stderr_id, phys);
 		str += 64;
 		count -= 64;
 	}
+
 	memcpy(buf, str, count);
 	buf[count] = 0;
 	nf_call(stderr_id, phys);
 }
 
 static void nfcon_write(struct console *con, const char *str,
-			unsigned int count)
+						unsigned int count)
 {
 	nfputs(str, count);
 }
@@ -52,7 +55,8 @@ static struct tty_driver *nfcon_device(struct console *con, int *index)
 	return (con->flags & CON_ENABLED) ? nfcon_tty_driver : NULL;
 }
 
-static struct console nf_console = {
+static struct console nf_console =
+{
 	.name	= "nfcon",
 	.write	= nfcon_write,
 	.device	= nfcon_device,
@@ -71,7 +75,7 @@ static void nfcon_tty_close(struct tty_struct *tty, struct file *filp)
 }
 
 static int nfcon_tty_write(struct tty_struct *tty, const unsigned char *buf,
-			   int count)
+						   int count)
 {
 	nfputs(buf, count);
 	return count;
@@ -90,7 +94,8 @@ static int nfcon_tty_write_room(struct tty_struct *tty)
 	return 64;
 }
 
-static const struct tty_operations nfcon_tty_ops = {
+static const struct tty_operations nfcon_tty_ops =
+{
 	.open		= nfcon_tty_open,
 	.close		= nfcon_tty_close,
 	.write		= nfcon_tty_write,
@@ -103,10 +108,14 @@ static const struct tty_operations nfcon_tty_ops = {
 static int __init nf_debug_setup(char *arg)
 {
 	if (strcmp(arg, "nfcon"))
+	{
 		return 0;
+	}
 
 	stderr_id = nf_get_id("NF_STDERR");
-	if (stderr_id) {
+
+	if (stderr_id)
+	{
 		nf_console.flags |= CON_ENABLED;
 		register_console(&nf_console);
 	}
@@ -123,12 +132,18 @@ static int __init nfcon_init(void)
 	int res;
 
 	stderr_id = nf_get_id("NF_STDERR");
+
 	if (!stderr_id)
+	{
 		return -ENODEV;
+	}
 
 	nfcon_tty_driver = alloc_tty_driver(1);
+
 	if (!nfcon_tty_driver)
+	{
 		return -ENOMEM;
+	}
 
 	tty_port_init(&nfcon_tty_port);
 
@@ -142,7 +157,9 @@ static int __init nfcon_init(void)
 	tty_set_operations(nfcon_tty_driver, &nfcon_tty_ops);
 	tty_port_link_device(&nfcon_tty_port, nfcon_tty_driver, 0);
 	res = tty_register_driver(nfcon_tty_driver);
-	if (res) {
+
+	if (res)
+	{
 		pr_err("failed to register nfcon tty driver\n");
 		put_tty_driver(nfcon_tty_driver);
 		tty_port_destroy(&nfcon_tty_port);
@@ -150,7 +167,9 @@ static int __init nfcon_init(void)
 	}
 
 	if (!(nf_console.flags & CON_ENABLED))
+	{
 		register_console(&nf_console);
+	}
 
 	return 0;
 }

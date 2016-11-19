@@ -16,21 +16,24 @@
 #include <asm/prom.h>
 
 /* CPU Version and FPGA Family code conversion table type */
-struct cpu_ver_key {
+struct cpu_ver_key
+{
 	const char *s;
 	const unsigned k;
 };
 
 extern const struct cpu_ver_key cpu_ver_lookup[];
 
-struct family_string_key {
+struct family_string_key
+{
 	const char *s;
 	const unsigned k;
 };
 
 extern const struct family_string_key family_string_lookup[];
 
-struct cpuinfo {
+struct cpuinfo
+{
 	/* Core CPU configuration */
 	u32 use_instr;
 	u32 use_mult;

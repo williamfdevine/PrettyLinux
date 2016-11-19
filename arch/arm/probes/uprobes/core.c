@@ -26,19 +26,20 @@
 bool is_swbp_insn(uprobe_opcode_t *insn)
 {
 	return (__mem_to_opcode_arm(*insn) & 0x0fffffff) ==
-		(UPROBE_SWBP_ARM_INSN & 0x0fffffff);
+		   (UPROBE_SWBP_ARM_INSN & 0x0fffffff);
 }
 
 int set_swbp(struct arch_uprobe *auprobe, struct mm_struct *mm,
-	     unsigned long vaddr)
+			 unsigned long vaddr)
 {
 	return uprobe_write_opcode(mm, vaddr,
-		   __opcode_to_mem_arm(auprobe->bpinsn));
+							   __opcode_to_mem_arm(auprobe->bpinsn));
 }
 
 bool arch_uprobe_ignore(struct arch_uprobe *auprobe, struct pt_regs *regs)
 {
-	if (!auprobe->asi.insn_check_cc(regs->ARM_cpsr)) {
+	if (!auprobe->asi.insn_check_cc(regs->ARM_cpsr))
+	{
 		regs->ARM_pc += 4;
 		return true;
 	}
@@ -51,7 +52,9 @@ bool arch_uprobe_skip_sstep(struct arch_uprobe *auprobe, struct pt_regs *regs)
 	probes_opcode_t opcode;
 
 	if (!auprobe->simulate)
+	{
 		return false;
+	}
 
 	opcode = __mem_to_opcode_arm(*(unsigned int *) auprobe->insn);
 
@@ -62,7 +65,7 @@ bool arch_uprobe_skip_sstep(struct arch_uprobe *auprobe, struct pt_regs *regs)
 
 unsigned long
 arch_uretprobe_hijack_return_addr(unsigned long trampoline_vaddr,
-				  struct pt_regs *regs)
+								  struct pt_regs *regs)
 {
 	unsigned long orig_ret_vaddr;
 
@@ -73,7 +76,7 @@ arch_uretprobe_hijack_return_addr(unsigned long trampoline_vaddr,
 }
 
 int arch_uprobe_analyze_insn(struct arch_uprobe *auprobe, struct mm_struct *mm,
-			     unsigned long addr)
+							 unsigned long addr)
 {
 	unsigned int insn;
 	unsigned int bpinsn;
@@ -81,32 +84,41 @@ int arch_uprobe_analyze_insn(struct arch_uprobe *auprobe, struct mm_struct *mm,
 
 	/* Thumb not yet support */
 	if (addr & 0x3)
+	{
 		return -EINVAL;
+	}
 
 	insn = __mem_to_opcode_arm(*(unsigned int *)auprobe->insn);
 	auprobe->ixol[0] = __opcode_to_mem_arm(insn);
 	auprobe->ixol[1] = __opcode_to_mem_arm(UPROBE_SS_ARM_INSN);
 
 	ret = arm_probes_decode_insn(insn, &auprobe->asi, false,
-				     uprobes_probes_actions, NULL);
-	switch (ret) {
-	case INSN_REJECTED:
-		return -EINVAL;
+								 uprobes_probes_actions, NULL);
 
-	case INSN_GOOD_NO_SLOT:
-		auprobe->simulate = true;
-		break;
+	switch (ret)
+	{
+		case INSN_REJECTED:
+			return -EINVAL;
 
-	case INSN_GOOD:
-	default:
-		break;
+		case INSN_GOOD_NO_SLOT:
+			auprobe->simulate = true;
+			break;
+
+		case INSN_GOOD:
+		default:
+			break;
 	}
 
 	bpinsn = UPROBE_SWBP_ARM_INSN & 0x0fffffff;
+
 	if (insn >= 0xe0000000)
-		bpinsn |= 0xe0000000;  /* Unconditional instruction */
+	{
+		bpinsn |= 0xe0000000;    /* Unconditional instruction */
+	}
 	else
-		bpinsn |= insn & 0xf0000000;  /* Copy condition from insn */
+	{
+		bpinsn |= insn & 0xf0000000;    /* Copy condition from insn */
+	}
 
 	auprobe->bpinsn = bpinsn;
 
@@ -114,7 +126,7 @@ int arch_uprobe_analyze_insn(struct arch_uprobe *auprobe, struct mm_struct *mm,
 }
 
 void arch_uprobe_copy_ixol(struct page *page, unsigned long vaddr,
-			   void *src, unsigned long len)
+						   void *src, unsigned long len)
 {
 	void *xol_page_kaddr = kmap_atomic(page);
 	void *dst = xol_page_kaddr + (vaddr & ~PAGE_MASK);
@@ -138,7 +150,9 @@ int arch_uprobe_pre_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 	struct uprobe_task *utask = current->utask;
 
 	if (auprobe->prehandler)
+	{
 		auprobe->prehandler(auprobe, &utask->autask, regs);
+	}
 
 	utask->autask.saved_trap_no = current->thread.trap_no;
 	current->thread.trap_no = UPROBE_TRAP_NR;
@@ -157,7 +171,9 @@ int arch_uprobe_post_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 	regs->ARM_pc = utask->vaddr + 4;
 
 	if (auprobe->posthandler)
+	{
 		auprobe->posthandler(auprobe, &utask->autask, regs);
+	}
 
 	return 0;
 }
@@ -165,7 +181,9 @@ int arch_uprobe_post_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 bool arch_uprobe_xol_was_trapped(struct task_struct *t)
 {
 	if (t->thread.trap_no != UPROBE_TRAP_NR)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -179,7 +197,7 @@ void arch_uprobe_abort_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 }
 
 int arch_uprobe_exception_notify(struct notifier_block *self,
-				 unsigned long val, void *data)
+								 unsigned long val, void *data)
 {
 	return NOTIFY_DONE;
 }
@@ -190,10 +208,16 @@ static int uprobe_trap_handler(struct pt_regs *regs, unsigned int instr)
 
 	local_irq_save(flags);
 	instr &= 0x0fffffff;
+
 	if (instr == (UPROBE_SWBP_ARM_INSN & 0x0fffffff))
+	{
 		uprobe_pre_sstep_notifier(regs);
+	}
 	else if (instr == (UPROBE_SS_ARM_INSN & 0x0fffffff))
+	{
 		uprobe_post_sstep_notifier(regs);
+	}
+
 	local_irq_restore(flags);
 
 	return 0;
@@ -204,7 +228,8 @@ unsigned long uprobe_get_swbp_addr(struct pt_regs *regs)
 	return instruction_pointer(regs);
 }
 
-static struct undef_hook uprobes_arm_break_hook = {
+static struct undef_hook uprobes_arm_break_hook =
+{
 	.instr_mask	= 0x0fffffff,
 	.instr_val	= (UPROBE_SWBP_ARM_INSN & 0x0fffffff),
 	.cpsr_mask	= MODE_MASK,
@@ -212,7 +237,8 @@ static struct undef_hook uprobes_arm_break_hook = {
 	.fn		= uprobe_trap_handler,
 };
 
-static struct undef_hook uprobes_arm_ss_hook = {
+static struct undef_hook uprobes_arm_ss_hook =
+{
 	.instr_mask	= 0x0fffffff,
 	.instr_val	= (UPROBE_SS_ARM_INSN & 0x0fffffff),
 	.cpsr_mask	= MODE_MASK,

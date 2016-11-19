@@ -39,9 +39,12 @@ static inline void arch_memcpy_to_pmem(void *dst, const void *src, size_t n)
 	 * before the WARN+BUG.
 	 */
 	rem = __copy_from_user_inatomic_nocache(dst, (void __user *) src, n);
+
 	if (WARN(rem, "%s: fault copying %p <- %p unwritten: %d\n",
-				__func__, dst, src, rem))
+			 __func__, dst, src, rem))
+	{
 		BUG();
+	}
 }
 
 static inline int arch_memcpy_from_pmem(void *dst, const void *src, size_t n)
@@ -65,8 +68,10 @@ static inline void arch_wb_cache_pmem(void *addr, size_t size)
 	void *p;
 
 	for (p = (void *)((unsigned long)addr & ~clflush_mask);
-	     p < vend; p += x86_clflush_size)
+		 p < vend; p += x86_clflush_size)
+	{
 		clwb(p);
+	}
 }
 
 /*
@@ -95,7 +100,9 @@ static inline size_t arch_copy_from_iter_pmem(void *addr, size_t bytes,
 	len = copy_from_iter_nocache(addr, bytes, i);
 
 	if (__iter_needs_pmem_wb(i))
+	{
 		arch_wb_cache_pmem(addr, bytes);
+	}
 
 	return len;
 }

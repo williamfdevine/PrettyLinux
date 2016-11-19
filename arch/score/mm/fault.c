@@ -42,7 +42,7 @@
  * routines.
  */
 asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long write,
-				unsigned long address)
+							  unsigned long address)
 {
 	struct vm_area_struct *vma = NULL;
 	struct task_struct *tsk = current;
@@ -64,10 +64,17 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long write,
 	* nothing more.
 	*/
 	if (unlikely(address >= VMALLOC_START && address <= VMALLOC_END))
+	{
 		goto vmalloc_fault;
+	}
+
 #ifdef MODULE_START
+
 	if (unlikely(address >= MODULE_START && address < MODULE_END))
+	{
 		goto vmalloc_fault;
+	}
+
 #endif
 
 	/*
@@ -75,21 +82,38 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long write,
 	* context, we must not take the fault..
 	*/
 	if (pagefault_disabled() || !mm)
+	{
 		goto bad_area_nosemaphore;
+	}
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
 
 	down_read(&mm->mmap_sem);
 	vma = find_vma(mm, address);
+
 	if (!vma)
+	{
 		goto bad_area;
+	}
+
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
+
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
+	}
+
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
+
 	/*
 	* Ok, we have a good vm_area for this memory access, so
 	* we can handle it..
@@ -97,13 +121,21 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long write,
 good_area:
 	info.si_code = SEGV_ACCERR;
 
-	if (write) {
+	if (write)
+	{
 		if (!(vma->vm_flags & VM_WRITE))
+		{
 			goto bad_area;
+		}
+
 		flags |= FAULT_FLAG_WRITE;
-	} else {
+	}
+	else
+	{
 		if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
+		{
 			goto bad_area;
+		}
 	}
 
 	/*
@@ -112,19 +144,33 @@ good_area:
 	* the fault.
 	*/
 	fault = handle_mm_fault(vma, address, flags);
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
+
 	if (fault & VM_FAULT_MAJOR)
+	{
 		tsk->maj_flt++;
+	}
 	else
+	{
 		tsk->min_flt++;
+	}
 
 	up_read(&mm->mmap_sem);
 	return;
@@ -137,8 +183,10 @@ bad_area:
 	up_read(&mm->mmap_sem);
 
 bad_area_nosemaphore:
+
 	/* User mode accesses just cause a SIGSEGV */
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		tsk->thread.cp0_badvaddr = address;
 		tsk->thread.error_code = write;
 		info.si_signo = SIGSEGV;
@@ -150,8 +198,10 @@ bad_area_nosemaphore:
 	}
 
 no_context:
+
 	/* Are we prepared to handle this kernel fault? */
-	if (fixup_exception(regs)) {
+	if (fixup_exception(regs))
+	{
 		current->thread.cp0_baduaddr = address;
 		return;
 	}
@@ -163,9 +213,9 @@ no_context:
 	bust_spinlocks(1);
 
 	printk(KERN_ALERT "CPU %d Unable to handle kernel paging request at "
-			"virtual address %0*lx, epc == %0*lx, ra == %0*lx\n",
-			0, field, address, field, regs->cp0_epc,
-			field, regs->regs[3]);
+		   "virtual address %0*lx, epc == %0*lx, ra == %0*lx\n",
+		   0, field, address, field, regs->cp0_epc,
+		   field, regs->regs[3]);
 	die("Oops", regs);
 
 	/*
@@ -174,22 +224,32 @@ no_context:
 	*/
 out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return;
 
 do_sigbus:
 	up_read(&mm->mmap_sem);
+
 	/* Kernel mode? Handle exceptions or die */
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
 	else
-	/*
-	* Send a sigbus, regardless of whether we were in kernel
-	* or user mode.
-	*/
-	tsk->thread.cp0_badvaddr = address;
+		/*
+		* Send a sigbus, regardless of whether we were in kernel
+		* or user mode.
+		*/
+	{
+		tsk->thread.cp0_badvaddr = address;
+	}
+
 	info.si_signo = SIGBUS;
 	info.si_errno = 0;
 	info.si_code = BUS_ADRERR;
@@ -215,23 +275,37 @@ vmalloc_fault:
 		pgd_k = init_mm.pgd + offset;
 
 		if (!pgd_present(*pgd_k))
+		{
 			goto no_context;
+		}
+
 		set_pgd(pgd, *pgd_k);
 
 		pud = pud_offset(pgd, address);
 		pud_k = pud_offset(pgd_k, address);
+
 		if (!pud_present(*pud_k))
+		{
 			goto no_context;
+		}
 
 		pmd = pmd_offset(pud, address);
 		pmd_k = pmd_offset(pud_k, address);
+
 		if (!pmd_present(*pmd_k))
+		{
 			goto no_context;
+		}
+
 		set_pmd(pmd, *pmd_k);
 
 		pte_k = pte_offset_kernel(pmd_k, address);
+
 		if (!pte_present(*pte_k))
+		{
 			goto no_context;
+		}
+
 		return;
 	}
 }

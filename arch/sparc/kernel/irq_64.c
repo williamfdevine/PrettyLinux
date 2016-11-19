@@ -59,11 +59,11 @@ static unsigned long bucket_get_chain_pa(unsigned long bucket_pa)
 	unsigned long ret;
 
 	__asm__ __volatile__("ldxa	[%1] %2, %0"
-			     : "=&r" (ret)
-			     : "r" (bucket_pa +
-				    offsetof(struct ino_bucket,
-					     __irq_chain_pa)),
-			       "i" (ASI_PHYS_USE_EC));
+						 : "=&r" (ret)
+						 : "r" (bucket_pa +
+								offsetof(struct ino_bucket,
+										 __irq_chain_pa)),
+						 "i" (ASI_PHYS_USE_EC));
 
 	return ret;
 }
@@ -71,11 +71,11 @@ static unsigned long bucket_get_chain_pa(unsigned long bucket_pa)
 static void bucket_clear_chain_pa(unsigned long bucket_pa)
 {
 	__asm__ __volatile__("stxa	%%g0, [%0] %1"
-			     : /* no outputs */
-			     : "r" (bucket_pa +
-				    offsetof(struct ino_bucket,
-					     __irq_chain_pa)),
-			       "i" (ASI_PHYS_USE_EC));
+						 : /* no outputs */
+						 : "r" (bucket_pa +
+								offsetof(struct ino_bucket,
+										 __irq_chain_pa)),
+						 "i" (ASI_PHYS_USE_EC));
 }
 
 static unsigned int bucket_get_irq(unsigned long bucket_pa)
@@ -83,11 +83,11 @@ static unsigned int bucket_get_irq(unsigned long bucket_pa)
 	unsigned int ret;
 
 	__asm__ __volatile__("lduwa	[%1] %2, %0"
-			     : "=&r" (ret)
-			     : "r" (bucket_pa +
-				    offsetof(struct ino_bucket,
-					     __irq)),
-			       "i" (ASI_PHYS_USE_EC));
+						 : "=&r" (ret)
+						 : "r" (bucket_pa +
+								offsetof(struct ino_bucket,
+										 __irq)),
+						 "i" (ASI_PHYS_USE_EC));
 
 	return ret;
 }
@@ -95,12 +95,12 @@ static unsigned int bucket_get_irq(unsigned long bucket_pa)
 static void bucket_set_irq(unsigned long bucket_pa, unsigned int irq)
 {
 	__asm__ __volatile__("stwa	%0, [%1] %2"
-			     : /* no outputs */
-			     : "r" (irq),
-			       "r" (bucket_pa +
-				    offsetof(struct ino_bucket,
-					     __irq)),
-			       "i" (ASI_PHYS_USE_EC));
+						 : /* no outputs */
+						 : "r" (irq),
+						 "r" (bucket_pa +
+							  offsetof(struct ino_bucket,
+									   __irq)),
+						 "i" (ASI_PHYS_USE_EC));
 }
 
 #define irq_work_pa(__cpu)	&(trap_block[(__cpu)].irq_worklist_pa)
@@ -145,7 +145,10 @@ static int hv_irq_version;
 static bool sun4v_cookie_only_virqs(void)
 {
 	if (hv_irq_version >= 3)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -154,22 +157,33 @@ static void __init irq_init_hv(void)
 	unsigned long hv_error, major, minor = 0;
 
 	if (tlb_type != hypervisor)
+	{
 		return;
+	}
 
 	if (hvirq_major)
+	{
 		major = hvirq_major;
+	}
 	else
+	{
 		major = 3;
+	}
 
 	hv_error = sun4v_hvapi_register(HV_GRP_INTR, major, &minor);
+
 	if (!hv_error)
+	{
 		hv_irq_version = major;
+	}
 	else
+	{
 		hv_irq_version = 1;
+	}
 
 	pr_info("SUN4V: Using IRQ API major %d, cookie only virqs %s\n",
-		hv_irq_version,
-		sun4v_cookie_only_virqs() ? "enabled" : "disabled");
+			hv_irq_version,
+			sun4v_cookie_only_virqs() ? "enabled" : "disabled");
 }
 
 /* This function is for the timer interrupt.*/
@@ -184,20 +198,26 @@ static unsigned int nr_ivec = DEFAULT_NUM_IVECS;
 
 static unsigned int __init size_nr_ivec(void)
 {
-	if (tlb_type == hypervisor) {
-		switch (sun4v_chip_type) {
-		/* Athena's devhandle|devino is large.*/
-		case SUN4V_CHIP_SPARC64X:
-			nr_ivec = 0xffff;
-			break;
+	if (tlb_type == hypervisor)
+	{
+		switch (sun4v_chip_type)
+		{
+			/* Athena's devhandle|devino is large.*/
+			case SUN4V_CHIP_SPARC64X:
+				nr_ivec = 0xffff;
+				break;
 		}
 	}
+
 	return nr_ivec;
 }
 
-struct irq_handler_data {
-	union {
-		struct {
+struct irq_handler_data
+{
+	union
+	{
+		struct
+		{
 			unsigned int dev_handle;
 			unsigned int dev_ino;
 		};
@@ -243,8 +263,11 @@ unsigned int irq_alloc(unsigned int dev_handle, unsigned int dev_ino)
 	int irq;
 
 	irq = __irq_alloc_descs(-1, 1, 1, numa_node_id(), NULL, NULL);
+
 	if (irq <= 0)
+	{
 		goto out;
+	}
 
 	return irq;
 out:
@@ -258,16 +281,20 @@ static unsigned int cookie_exists(u32 devhandle, unsigned int devino)
 	unsigned int irq = 0U;
 
 	hv_err = sun4v_vintr_get_cookie(devhandle, devino, &cookie);
-	if (hv_err) {
+
+	if (hv_err)
+	{
 		pr_err("HV get cookie failed hv_err = %ld\n", hv_err);
 		goto out;
 	}
 
-	if (cookie & ((1UL << 63UL))) {
+	if (cookie & ((1UL << 63UL)))
+	{
 		cookie = ~cookie;
 		bucket = (struct ino_bucket *) __va(cookie);
 		irq = bucket->__irq;
 	}
+
 out:
 	return irq;
 }
@@ -290,8 +317,8 @@ void ack_bad_irq(unsigned int irq)
 }
 
 void irq_install_pre_handler(int irq,
-			     void (*func)(unsigned int, void *, void *),
-			     void *arg1, void *arg2)
+							 void (*func)(unsigned int, void *, void *),
+							 void *arg1, void *arg2)
 {
 	pr_warn("IRQ pre handler NOT supported.\n");
 }
@@ -305,7 +332,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 
 	seq_printf(p, "NMI: ");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", cpu_data(j).__nmi_count);
+	seq_printf(p, "%10u ", cpu_data(j).__nmi_count);
 	seq_printf(p, "     Non-maskable interrupts\n");
 	return 0;
 }
@@ -314,29 +341,39 @@ static unsigned int sun4u_compute_tid(unsigned long imap, unsigned long cpuid)
 {
 	unsigned int tid;
 
-	if (this_is_starfire) {
+	if (this_is_starfire)
+	{
 		tid = starfire_translate(imap, cpuid);
 		tid <<= IMAP_TID_SHIFT;
 		tid &= IMAP_TID_UPA;
-	} else {
-		if (tlb_type == cheetah || tlb_type == cheetah_plus) {
+	}
+	else
+	{
+		if (tlb_type == cheetah || tlb_type == cheetah_plus)
+		{
 			unsigned long ver;
 
 			__asm__ ("rdpr %%ver, %0" : "=r" (ver));
+
 			if ((ver >> 32UL) == __JALAPENO_ID ||
-			    (ver >> 32UL) == __SERRANO_ID) {
+				(ver >> 32UL) == __SERRANO_ID)
+			{
 				tid = cpuid << IMAP_TID_SHIFT;
 				tid &= IMAP_TID_JBUS;
-			} else {
+			}
+			else
+			{
 				unsigned int a = cpuid & 0x1f;
 				unsigned int n = (cpuid >> 5) & 0x1f;
 
 				tid = ((a << IMAP_AID_SHIFT) |
-				       (n << IMAP_NID_SHIFT));
+					   (n << IMAP_NID_SHIFT));
 				tid &= (IMAP_AID_SAFARI |
-					IMAP_NID_SAFARI);
+						IMAP_NID_SAFARI);
 			}
-		} else {
+		}
+		else
+		{
 			tid = cpuid << IMAP_TID_SHIFT;
 			tid &= IMAP_TID_UPA;
 		}
@@ -352,9 +389,13 @@ static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
 	int cpuid;
 
 	cpumask_copy(&mask, affinity);
-	if (cpumask_equal(&mask, cpu_online_mask)) {
+
+	if (cpumask_equal(&mask, cpu_online_mask))
+	{
 		cpuid = map_to_cpu(irq);
-	} else {
+	}
+	else
+	{
 		cpumask_t tmp;
 
 		cpumask_and(&tmp, cpu_online_mask, &mask);
@@ -373,19 +414,21 @@ static void sun4u_irq_enable(struct irq_data *data)
 	struct irq_handler_data *handler_data;
 
 	handler_data = irq_data_get_irq_handler_data(data);
-	if (likely(handler_data)) {
+
+	if (likely(handler_data))
+	{
 		unsigned long cpuid, imap, val;
 		unsigned int tid;
 
 		cpuid = irq_choose_cpu(data->irq,
-				       irq_data_get_affinity_mask(data));
+							   irq_data_get_affinity_mask(data));
 		imap = handler_data->imap;
 
 		tid = sun4u_compute_tid(imap, cpuid);
 
 		val = upa_readq(imap);
 		val &= ~(IMAP_TID_UPA | IMAP_TID_JBUS |
-			 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
+				 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
 		val |= tid | IMAP_VALID;
 		upa_writeq(val, imap);
 		upa_writeq(ICLR_IDLE, handler_data->iclr);
@@ -393,12 +436,14 @@ static void sun4u_irq_enable(struct irq_data *data)
 }
 
 static int sun4u_set_affinity(struct irq_data *data,
-			       const struct cpumask *mask, bool force)
+							  const struct cpumask *mask, bool force)
 {
 	struct irq_handler_data *handler_data;
 
 	handler_data = irq_data_get_irq_handler_data(data);
-	if (likely(handler_data)) {
+
+	if (likely(handler_data))
+	{
 		unsigned long cpuid, imap, val;
 		unsigned int tid;
 
@@ -409,7 +454,7 @@ static int sun4u_set_affinity(struct irq_data *data,
 
 		val = upa_readq(imap);
 		val &= ~(IMAP_TID_UPA | IMAP_TID_JBUS |
-			 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
+				 IMAP_AID_SAFARI | IMAP_NID_SAFARI);
 		val |= tid | IMAP_VALID;
 		upa_writeq(val, imap);
 		upa_writeq(ICLR_IDLE, handler_data->iclr);
@@ -444,42 +489,51 @@ static void sun4u_irq_eoi(struct irq_data *data)
 	struct irq_handler_data *handler_data;
 
 	handler_data = irq_data_get_irq_handler_data(data);
+
 	if (likely(handler_data))
+	{
 		upa_writeq(ICLR_IDLE, handler_data->iclr);
+	}
 }
 
 static void sun4v_irq_enable(struct irq_data *data)
 {
 	unsigned long cpuid = irq_choose_cpu(data->irq,
-					     irq_data_get_affinity_mask(data));
+										 irq_data_get_affinity_mask(data));
 	unsigned int ino = irq_data_to_sysino(data);
 	int err;
 
 	err = sun4v_intr_settarget(ino, cpuid);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_intr_settarget(%x,%lu): "
-		       "err(%d)\n", ino, cpuid, err);
+			   "err(%d)\n", ino, cpuid, err);
+
 	err = sun4v_intr_setstate(ino, HV_INTR_STATE_IDLE);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_intr_setstate(%x): "
-		       "err(%d)\n", ino, err);
+			   "err(%d)\n", ino, err);
+
 	err = sun4v_intr_setenabled(ino, HV_INTR_ENABLED);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_intr_setenabled(%x): err(%d)\n",
-		       ino, err);
+			   ino, err);
 }
 
 static int sun4v_set_affinity(struct irq_data *data,
-			       const struct cpumask *mask, bool force)
+							  const struct cpumask *mask, bool force)
 {
 	unsigned long cpuid = irq_choose_cpu(data->irq, mask);
 	unsigned int ino = irq_data_to_sysino(data);
 	int err;
 
 	err = sun4v_intr_settarget(ino, cpuid);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_intr_settarget(%x,%lu): "
-		       "err(%d)\n", ino, cpuid, err);
+			   "err(%d)\n", ino, cpuid, err);
 
 	return 0;
 }
@@ -490,9 +544,10 @@ static void sun4v_irq_disable(struct irq_data *data)
 	int err;
 
 	err = sun4v_intr_setenabled(ino, HV_INTR_DISABLED);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_intr_setenabled(%x): "
-		       "err(%d)\n", ino, err);
+			   "err(%d)\n", ino, err);
 }
 
 static void sun4v_irq_eoi(struct irq_data *data)
@@ -501,9 +556,10 @@ static void sun4v_irq_eoi(struct irq_data *data)
 	int err;
 
 	err = sun4v_intr_setstate(ino, HV_INTR_STATE_IDLE);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_intr_setstate(%x): "
-		       "err(%d)\n", ino, err);
+			   "err(%d)\n", ino, err);
 }
 
 static void sun4v_virq_enable(struct irq_data *data)
@@ -516,26 +572,31 @@ static void sun4v_virq_enable(struct irq_data *data)
 	cpuid = irq_choose_cpu(data->irq, irq_data_get_affinity_mask(data));
 
 	err = sun4v_vintr_set_target(dev_handle, dev_ino, cpuid);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_vintr_set_target(%lx,%lx,%lu): "
-		       "err(%d)\n",
-		       dev_handle, dev_ino, cpuid, err);
+			   "err(%d)\n",
+			   dev_handle, dev_ino, cpuid, err);
+
 	err = sun4v_vintr_set_state(dev_handle, dev_ino,
-				    HV_INTR_STATE_IDLE);
+								HV_INTR_STATE_IDLE);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_vintr_set_state(%lx,%lx,"
-		       "HV_INTR_STATE_IDLE): err(%d)\n",
-		       dev_handle, dev_ino, err);
+			   "HV_INTR_STATE_IDLE): err(%d)\n",
+			   dev_handle, dev_ino, err);
+
 	err = sun4v_vintr_set_valid(dev_handle, dev_ino,
-				    HV_INTR_ENABLED);
+								HV_INTR_ENABLED);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_vintr_set_state(%lx,%lx,"
-		       "HV_INTR_ENABLED): err(%d)\n",
-		       dev_handle, dev_ino, err);
+			   "HV_INTR_ENABLED): err(%d)\n",
+			   dev_handle, dev_ino, err);
 }
 
 static int sun4v_virt_set_affinity(struct irq_data *data,
-				    const struct cpumask *mask, bool force)
+								   const struct cpumask *mask, bool force)
 {
 	unsigned long dev_handle = irq_data_to_handle(data);
 	unsigned long dev_ino = irq_data_to_ino(data);
@@ -545,10 +606,11 @@ static int sun4v_virt_set_affinity(struct irq_data *data,
 	cpuid = irq_choose_cpu(data->irq, mask);
 
 	err = sun4v_vintr_set_target(dev_handle, dev_ino, cpuid);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_vintr_set_target(%lx,%lx,%lu): "
-		       "err(%d)\n",
-		       dev_handle, dev_ino, cpuid, err);
+			   "err(%d)\n",
+			   dev_handle, dev_ino, cpuid, err);
 
 	return 0;
 }
@@ -561,11 +623,12 @@ static void sun4v_virq_disable(struct irq_data *data)
 
 
 	err = sun4v_vintr_set_valid(dev_handle, dev_ino,
-				    HV_INTR_DISABLED);
+								HV_INTR_DISABLED);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_vintr_set_state(%lx,%lx,"
-		       "HV_INTR_DISABLED): err(%d)\n",
-		       dev_handle, dev_ino, err);
+			   "HV_INTR_DISABLED): err(%d)\n",
+			   dev_handle, dev_ino, err);
 }
 
 static void sun4v_virq_eoi(struct irq_data *data)
@@ -575,14 +638,16 @@ static void sun4v_virq_eoi(struct irq_data *data)
 	int err;
 
 	err = sun4v_vintr_set_state(dev_handle, dev_ino,
-				    HV_INTR_STATE_IDLE);
+								HV_INTR_STATE_IDLE);
+
 	if (err != HV_EOK)
 		printk(KERN_ERR "sun4v_vintr_set_state(%lx,%lx,"
-		       "HV_INTR_STATE_IDLE): err(%d)\n",
-		       dev_handle, dev_ino, err);
+			   "HV_INTR_STATE_IDLE): err(%d)\n",
+			   dev_handle, dev_ino, err);
 }
 
-static struct irq_chip sun4u_irq = {
+static struct irq_chip sun4u_irq =
+{
 	.name			= "sun4u",
 	.irq_enable		= sun4u_irq_enable,
 	.irq_disable		= sun4u_irq_disable,
@@ -591,7 +656,8 @@ static struct irq_chip sun4u_irq = {
 	.flags			= IRQCHIP_EOI_IF_HANDLED,
 };
 
-static struct irq_chip sun4v_irq = {
+static struct irq_chip sun4v_irq =
+{
 	.name			= "sun4v",
 	.irq_enable		= sun4v_irq_enable,
 	.irq_disable		= sun4v_irq_disable,
@@ -600,7 +666,8 @@ static struct irq_chip sun4v_irq = {
 	.flags			= IRQCHIP_EOI_IF_HANDLED,
 };
 
-static struct irq_chip sun4v_virq = {
+static struct irq_chip sun4v_virq =
+{
 	.name			= "vsun4v",
 	.irq_enable		= sun4v_virq_enable,
 	.irq_disable		= sun4v_virq_disable,
@@ -621,22 +688,30 @@ unsigned int build_irq(int inofixup, unsigned long iclr, unsigned long imap)
 	ino = (upa_readq(imap) & (IMAP_IGN | IMAP_INO)) + inofixup;
 	bucket = &ivector_table[ino];
 	irq = bucket_get_irq(__pa(bucket));
-	if (!irq) {
+
+	if (!irq)
+	{
 		irq = irq_alloc(0, ino);
 		bucket_set_irq(__pa(bucket), irq);
 		irq_set_chip_and_handler_name(irq, &sun4u_irq,
-					      handle_fasteoi_irq, "IVEC");
+									  handle_fasteoi_irq, "IVEC");
 	}
 
 	handler_data = irq_get_handler_data(irq);
+
 	if (unlikely(handler_data))
+	{
 		goto out;
+	}
 
 	handler_data = kzalloc(sizeof(struct irq_handler_data), GFP_ATOMIC);
-	if (unlikely(!handler_data)) {
+
+	if (unlikely(!handler_data))
+	{
 		prom_printf("IRQ: kzalloc(irq_handler_data) failed.\n");
 		prom_halt();
 	}
+
 	irq_set_handler_data(irq, handler_data);
 
 	handler_data->imap  = imap;
@@ -647,19 +722,24 @@ out:
 }
 
 static unsigned int sun4v_build_common(u32 devhandle, unsigned int devino,
-		void (*handler_data_init)(struct irq_handler_data *data,
-		u32 devhandle, unsigned int devino),
-		struct irq_chip *chip)
+									   void (*handler_data_init)(struct irq_handler_data *data,
+											   u32 devhandle, unsigned int devino),
+									   struct irq_chip *chip)
 {
 	struct irq_handler_data *data;
 	unsigned int irq;
 
 	irq = irq_alloc(devhandle, devino);
+
 	if (!irq)
+	{
 		goto out;
+	}
 
 	data = kzalloc(sizeof(struct irq_handler_data), GFP_ATOMIC);
-	if (unlikely(!data)) {
+
+	if (unlikely(!data))
+	{
 		pr_err("IRQ handler data allocation failed.\n");
 		irq_free(irq);
 		irq = 0;
@@ -676,7 +756,7 @@ out:
 }
 
 static unsigned long cookie_assign(unsigned int irq, u32 devhandle,
-		unsigned int devino)
+								   unsigned int devino)
 {
 	struct irq_handler_data *ihd = irq_get_handler_data(irq);
 	unsigned long hv_error, cookie;
@@ -688,21 +768,24 @@ static unsigned long cookie_assign(unsigned int irq, u32 devhandle,
 	cookie = ~__pa(&ihd->bucket);
 
 	hv_error = sun4v_vintr_set_cookie(devhandle, devino, cookie);
+
 	if (hv_error)
+	{
 		pr_err("HV vintr set cookie failed = %ld\n", hv_error);
+	}
 
 	return hv_error;
 }
 
 static void cookie_handler_data(struct irq_handler_data *data,
-				u32 devhandle, unsigned int devino)
+								u32 devhandle, unsigned int devino)
 {
 	data->dev_handle = devhandle;
 	data->dev_ino = devino;
 }
 
 static unsigned int cookie_build_irq(u32 devhandle, unsigned int devino,
-				     struct irq_chip *chip)
+									 struct irq_chip *chip)
 {
 	unsigned long hv_error;
 	unsigned int irq;
@@ -710,7 +793,9 @@ static unsigned int cookie_build_irq(u32 devhandle, unsigned int devino,
 	irq = sun4v_build_common(devhandle, devino, cookie_handler_data, chip);
 
 	hv_error = cookie_assign(irq, devhandle, devino);
-	if (hv_error) {
+
+	if (hv_error)
+	{
 		irq_free(irq);
 		irq = 0;
 	}
@@ -723,8 +808,11 @@ static unsigned int sun4v_build_cookie(u32 devhandle, unsigned int devino)
 	unsigned int irq;
 
 	irq = cookie_exists(devhandle, devino);
+
 	if (irq)
+	{
 		goto out;
+	}
 
 	irq = cookie_build_irq(devhandle, devino, &sun4v_virq);
 
@@ -745,7 +833,7 @@ static void sysino_set_bucket(unsigned int irq)
 }
 
 static void sysino_handler_data(struct irq_handler_data *data,
-				u32 devhandle, unsigned int devino)
+								u32 devhandle, unsigned int devino)
 {
 	unsigned long sysino;
 
@@ -754,13 +842,16 @@ static void sysino_handler_data(struct irq_handler_data *data,
 }
 
 static unsigned int sysino_build_irq(u32 devhandle, unsigned int devino,
-				     struct irq_chip *chip)
+									 struct irq_chip *chip)
 {
 	unsigned int irq;
 
 	irq = sun4v_build_common(devhandle, devino, sysino_handler_data, chip);
+
 	if (!irq)
+	{
 		goto out;
+	}
 
 	sysino_set_bucket(irq);
 out:
@@ -772,8 +863,11 @@ static int sun4v_build_sysino(u32 devhandle, unsigned int devino)
 	int irq;
 
 	irq = sysino_exists(devhandle, devino);
+
 	if (irq)
+	{
 		goto out;
+	}
 
 	irq = sysino_build_irq(devhandle, devino, &sun4v_irq);
 out:
@@ -785,9 +879,13 @@ unsigned int sun4v_build_irq(u32 devhandle, unsigned int devino)
 	unsigned int irq;
 
 	if (sun4v_cookie_only_virqs())
+	{
 		irq = sun4v_build_cookie(devhandle, devino);
+	}
 	else
+	{
 		irq = sun4v_build_sysino(devhandle, devino);
+	}
 
 	return irq;
 }
@@ -797,8 +895,11 @@ unsigned int sun4v_build_virq(u32 devhandle, unsigned int devino)
 	int irq;
 
 	irq = cookie_build_irq(devhandle, devino, &sun4v_virq);
+
 	if (!irq)
+	{
 		goto out;
+	}
 
 	/* This is borrowed from the original function.
 	 */
@@ -824,18 +925,19 @@ void __irq_entry handler_irq(int pil, struct pt_regs *regs)
 
 	/* Grab an atomic snapshot of the pending IVECs.  */
 	__asm__ __volatile__("rdpr	%%pstate, %0\n\t"
-			     "wrpr	%0, %3, %%pstate\n\t"
-			     "ldx	[%2], %1\n\t"
-			     "stx	%%g0, [%2]\n\t"
-			     "wrpr	%0, 0x0, %%pstate\n\t"
-			     : "=&r" (pstate), "=&r" (bucket_pa)
-			     : "r" (irq_work_pa(smp_processor_id())),
-			       "i" (PSTATE_IE)
-			     : "memory");
+						 "wrpr	%0, %3, %%pstate\n\t"
+						 "ldx	[%2], %1\n\t"
+						 "stx	%%g0, [%2]\n\t"
+						 "wrpr	%0, 0x0, %%pstate\n\t"
+						 : "=&r" (pstate), "=&r" (bucket_pa)
+						 : "r" (irq_work_pa(smp_processor_id())),
+						 "i" (PSTATE_IE)
+						 : "memory");
 
 	orig_sp = set_hardirq_stack();
 
-	while (bucket_pa) {
+	while (bucket_pa)
+	{
 		unsigned long next_pa;
 		unsigned int irq;
 
@@ -861,12 +963,12 @@ void do_softirq_own_stack(void)
 	sp += THREAD_SIZE - 192 - STACK_BIAS;
 
 	__asm__ __volatile__("mov %%sp, %0\n\t"
-			     "mov %1, %%sp"
-			     : "=&r" (orig_sp)
-			     : "r" (sp));
+						 "mov %1, %%sp"
+						 : "=&r" (orig_sp)
+						 : "r" (sp));
 	__do_softirq();
 	__asm__ __volatile__("mov %0, %%sp"
-			     : : "r" (orig_sp));
+						 : : "r" (orig_sp));
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -874,21 +976,28 @@ void fixup_irqs(void)
 {
 	unsigned int irq;
 
-	for (irq = 0; irq < NR_IRQS; irq++) {
+	for (irq = 0; irq < NR_IRQS; irq++)
+	{
 		struct irq_desc *desc = irq_to_desc(irq);
 		struct irq_data *data;
 		unsigned long flags;
 
 		if (!desc)
+		{
 			continue;
+		}
+
 		data = irq_desc_get_irq_data(desc);
 		raw_spin_lock_irqsave(&desc->lock, flags);
-		if (desc->action && !irqd_is_per_cpu(data)) {
+
+		if (desc->action && !irqd_is_per_cpu(data))
+		{
 			if (data->chip->irq_set_affinity)
 				data->chip->irq_set_affinity(data,
-					irq_data_get_affinity_mask(data),
-					false);
+											 irq_data_get_affinity_mask(data),
+											 false);
 		}
+
 		raw_spin_unlock_irqrestore(&desc->lock, flags);
 	}
 
@@ -896,7 +1005,8 @@ void fixup_irqs(void)
 }
 #endif
 
-struct sun5_timer {
+struct sun5_timer
+{
 	u64	count0;
 	u64	limit0;
 	u64	count1;
@@ -914,34 +1024,45 @@ static void map_prom_timers(void)
 	/* PROM timer node hangs out in the top level of device siblings... */
 	dp = of_find_node_by_path("/");
 	dp = dp->child;
-	while (dp) {
+
+	while (dp)
+	{
 		if (!strcmp(dp->name, "counter-timer"))
+		{
 			break;
+		}
+
 		dp = dp->sibling;
 	}
 
 	/* Assume if node is not present, PROM uses different tick mechanism
 	 * which we should not care about.
 	 */
-	if (!dp) {
+	if (!dp)
+	{
 		prom_timers = (struct sun5_timer *) 0;
 		return;
 	}
 
 	/* If PROM is really using this, it must be mapped by him. */
 	addr = of_get_property(dp, "address", NULL);
-	if (!addr) {
+
+	if (!addr)
+	{
 		prom_printf("PROM does not have timer mapped, trying to continue.\n");
 		prom_timers = (struct sun5_timer *) 0;
 		return;
 	}
+
 	prom_timers = (struct sun5_timer *) ((unsigned long)addr[0]);
 }
 
 static void kill_prom_timer(void)
 {
 	if (!prom_timers)
+	{
 		return;
+	}
 
 	/* Save them away for later. */
 	prom_limit0 = prom_timers->limit0;
@@ -955,14 +1076,14 @@ static void kill_prom_timer(void)
 
 	/* Wheee, eat the interrupt packet too... */
 	__asm__ __volatile__(
-"	mov	0x40, %%g2\n"
-"	ldxa	[%%g0] %0, %%g1\n"
-"	ldxa	[%%g2] %1, %%g1\n"
-"	stxa	%%g0, [%%g0] %0\n"
-"	membar	#Sync\n"
-	: /* no outputs */
-	: "i" (ASI_INTR_RECEIVE), "i" (ASI_INTR_R)
-	: "g1", "g2");
+		"	mov	0x40, %%g2\n"
+		"	ldxa	[%%g0] %0, %%g1\n"
+		"	ldxa	[%%g2] %1, %%g1\n"
+		"	stxa	%%g0, [%%g0] %0\n"
+		"	membar	#Sync\n"
+		: /* no outputs */
+		: "i" (ASI_INTR_RECEIVE), "i" (ASI_INTR_R)
+		: "g1", "g2");
 }
 
 void notrace init_irqwork_curcpu(void)
@@ -984,15 +1105,17 @@ void notrace init_irqwork_curcpu(void)
  * from these two routines.
  */
 static void notrace register_one_mondo(unsigned long paddr, unsigned long type,
-				       unsigned long qmask)
+									   unsigned long qmask)
 {
 	unsigned long num_entries = (qmask + 1) / 64;
 	unsigned long status;
 
 	status = sun4v_cpu_qconf(type, paddr, num_entries);
-	if (status != HV_EOK) {
+
+	if (status != HV_EOK)
+	{
 		prom_printf("SUN4V: sun4v_cpu_qconf(%lu:%lx:%lu) failed, "
-			    "err %lu\n", type, paddr, num_entries, status);
+					"err %lu\n", type, paddr, num_entries, status);
 		prom_halt();
 	}
 }
@@ -1002,13 +1125,13 @@ void notrace sun4v_register_mondo_queues(int this_cpu)
 	struct trap_per_cpu *tb = &trap_block[this_cpu];
 
 	register_one_mondo(tb->cpu_mondo_pa, HV_CPU_QUEUE_CPU_MONDO,
-			   tb->cpu_mondo_qmask);
+					   tb->cpu_mondo_qmask);
 	register_one_mondo(tb->dev_mondo_pa, HV_CPU_QUEUE_DEVICE_MONDO,
-			   tb->dev_mondo_qmask);
+					   tb->dev_mondo_qmask);
 	register_one_mondo(tb->resum_mondo_pa, HV_CPU_QUEUE_RES_ERROR,
-			   tb->resum_qmask);
+					   tb->resum_qmask);
 	register_one_mondo(tb->nonresum_mondo_pa, HV_CPU_QUEUE_NONRES_ERROR,
-			   tb->nonresum_qmask);
+					   tb->nonresum_qmask);
 }
 
 /* Each queue region must be a power of 2 multiple of 64 bytes in
@@ -1022,7 +1145,9 @@ static void __init alloc_one_queue(unsigned long *pa_ptr, unsigned long qmask)
 	unsigned long p;
 
 	p = __get_free_pages(GFP_KERNEL, order);
-	if (!p) {
+
+	if (!p)
+	{
 		prom_printf("SUN4V: Error, cannot allocate queue.\n");
 		prom_halt();
 	}
@@ -1038,7 +1163,9 @@ static void __init init_cpu_send_mondo_info(struct trap_per_cpu *tb)
 	BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > (PAGE_SIZE - 64));
 
 	page = get_zeroed_page(GFP_KERNEL);
-	if (!page) {
+
+	if (!page)
+	{
 		prom_printf("SUN4V: Error, cannot allocate cpu mondo page.\n");
 		prom_halt();
 	}
@@ -1053,7 +1180,8 @@ static void __init sun4v_init_mondo_queues(void)
 {
 	int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct trap_per_cpu *tb = &trap_block[cpu];
 
 		alloc_one_queue(&tb->cpu_mondo_pa, tb->cpu_mondo_qmask);
@@ -1062,7 +1190,7 @@ static void __init sun4v_init_mondo_queues(void)
 		alloc_one_queue(&tb->resum_kernel_buf_pa, tb->resum_qmask);
 		alloc_one_queue(&tb->nonresum_mondo_pa, tb->nonresum_qmask);
 		alloc_one_queue(&tb->nonresum_kernel_buf_pa,
-				tb->nonresum_qmask);
+						tb->nonresum_qmask);
 	}
 }
 
@@ -1070,14 +1198,16 @@ static void __init init_send_mondo_info(void)
 {
 	int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct trap_per_cpu *tb = &trap_block[cpu];
 
 		init_cpu_send_mondo_info(tb);
 	}
 }
 
-static struct irqaction timer_irq_action = {
+static struct irqaction timer_irq_action =
+{
 	.name = "timer",
 };
 
@@ -1090,19 +1220,24 @@ static void __init irq_ivector_init(void)
 	 * table to process interrupts.
 	 */
 	if (sun4v_cookie_only_virqs())
+	{
 		return;
+	}
 
 	ivecs = size_nr_ivec();
 	size = sizeof(struct ino_bucket) * ivecs;
 	order = get_order(size);
 	ivector_table = (struct ino_bucket *)
-		__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
-	if (!ivector_table) {
+					__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
+
+	if (!ivector_table)
+	{
 		prom_printf("Fatal error, cannot allocate ivector_table\n");
 		prom_halt();
 	}
+
 	__flush_dcache_range((unsigned long) ivector_table,
-			     ((unsigned long) ivector_table) + size);
+						 ((unsigned long) ivector_table) + size);
 
 	ivector_table_pa = __pa(ivector_table);
 }
@@ -1116,11 +1251,14 @@ void __init init_IRQ(void)
 	kill_prom_timer();
 
 	if (tlb_type == hypervisor)
+	{
 		sun4v_init_mondo_queues();
+	}
 
 	init_send_mondo_info();
 
-	if (tlb_type == hypervisor) {
+	if (tlb_type == hypervisor)
+	{
 		/* Load up the boot cpu's entries.  */
 		sun4v_register_mondo_queues(hard_smp_processor_id());
 	}
@@ -1137,11 +1275,11 @@ void __init init_IRQ(void)
 	 * to boot us wants to speak to us.  We just ignore them.
 	 */
 	__asm__ __volatile__("rdpr	%%pstate, %%g1\n\t"
-			     "or	%%g1, %0, %%g1\n\t"
-			     "wrpr	%%g1, 0x0, %%pstate"
-			     : /* No outputs */
-			     : "i" (PSTATE_IE)
-			     : "g1");
+						 "or	%%g1, %0, %%g1\n\t"
+						 "wrpr	%%g1, 0x0, %%pstate"
+						 : /* No outputs */
+						 : "i" (PSTATE_IE)
+						 : "g1");
 
 	irq_to_desc(0)->action = &timer_irq_action;
 }

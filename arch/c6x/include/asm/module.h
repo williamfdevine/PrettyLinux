@@ -15,7 +15,8 @@
 
 #include <asm-generic/module.h>
 
-struct loaded_sections {
+struct loaded_sections
+{
 	unsigned int new_vaddr;
 	unsigned int loaded;
 };

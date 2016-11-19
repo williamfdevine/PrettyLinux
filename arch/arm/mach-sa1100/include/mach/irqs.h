@@ -89,12 +89,12 @@
  * to be included in the NR_IRQS calculation.
  */
 #ifdef CONFIG_SHARP_LOCOMO
-#define NR_IRQS_LOCOMO		4
+	#define NR_IRQS_LOCOMO		4
 #else
-#define NR_IRQS_LOCOMO		0
+	#define NR_IRQS_LOCOMO		0
 #endif
 
 #ifndef NR_IRQS
-#define NR_IRQS (IRQ_BOARD_START + NR_IRQS_LOCOMO)
+	#define NR_IRQS (IRQ_BOARD_START + NR_IRQS_LOCOMO)
 #endif
 #define SA1100_NR_IRQS (IRQ_BOARD_START + NR_IRQS_LOCOMO)

@@ -47,16 +47,19 @@ static void markeins_machine_halt(void)
 {
 	printk("EMMA2RH Mark-eins halted.\n");
 	markeins_led("halted.");
+
 	while (1) ;
 }
 
 static void markeins_machine_power_off(void)
 {
 	markeins_led("poweroff.");
+
 	while (1) ;
 }
 
-static unsigned long __initdata emma2rh_clock[4] = {
+static unsigned long __initdata emma2rh_clock[4] =
+{
 	166500000, 187312500, 199800000, 210600000
 };
 
@@ -74,16 +77,24 @@ static unsigned int __init detect_bus_frequency(unsigned long rtc_base)
 void __init plat_time_init(void)
 {
 	u32 reg;
+
 	if (bus_frequency == 0)
+	{
 		bus_frequency = detect_bus_frequency(0);
+	}
 
 	reg = emma2rh_in32(EMMA2RH_BHIF_STRAP_0);
+
 	if ((reg & 0x3) == 0)
+	{
 		reg = (reg >> 6) & 0x3;
-	else {
+	}
+	else
+	{
 		reg = emma2rh_in32(EMMA2RH_BHIF_MAIN_CTRL);
 		reg = (reg >> 4) & 0x3;
 	}
+
 	mips_hpt_frequency = (bus_frequency * (4 + reg)) / 4 / 2;
 }
 

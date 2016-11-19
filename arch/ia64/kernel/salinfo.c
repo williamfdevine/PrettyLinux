@@ -56,7 +56,8 @@ MODULE_LICENSE("GPL");
 
 static const struct file_operations proc_salinfo_fops;
 
-typedef struct {
+typedef struct
+{
 	const char		*name;		/* name of the proc entry */
 	unsigned long           feature;        /* feature bit */
 	struct proc_dir_entry	*entry;		/* registered entry (removal) */
@@ -66,7 +67,8 @@ typedef struct {
  * List {name,feature} pairs for every entry in /proc/sal/<feature>
  * that this module exports
  */
-static const salinfo_entry_t salinfo_entries[]={
+static const salinfo_entry_t salinfo_entries[] =
+{
 	{ "bus_lock",           IA64_SAL_PLATFORM_FEATURE_BUS_LOCK, },
 	{ "irq_redirection",	IA64_SAL_PLATFORM_FEATURE_IRQ_REDIR_HINT, },
 	{ "ipi_redirection",	IA64_SAL_PLATFORM_FEATURE_IPI_REDIR_HINT, },
@@ -75,7 +77,8 @@ static const salinfo_entry_t salinfo_entries[]={
 
 #define NR_SALINFO_ENTRIES ARRAY_SIZE(salinfo_entries)
 
-static char *salinfo_log_name[] = {
+static char *salinfo_log_name[] =
+{
 	"mca",
 	"init",
 	"cmc",
@@ -91,8 +94,9 @@ static struct proc_dir_entry *salinfo_proc_entries[
 /* Some records we get ourselves, some are accessed as saved data in buffers
  * that are owned by mca.c.
  */
-struct salinfo_data_saved {
-	u8*			buffer;
+struct salinfo_data_saved
+{
+	u8			*buffer;
 	u64			size;
 	u64			id;
 	int			cpu;
@@ -133,13 +137,15 @@ struct salinfo_data_saved {
  * action then closes it again.  The record areas are only freed at close when
  * the state is NO_DATA.
  */
-enum salinfo_state {
+enum salinfo_state
+{
 	STATE_NO_DATA,
 	STATE_LOG_RECORD,
 	STATE_OEMDATA,
 };
 
-struct salinfo_data {
+struct salinfo_data
+{
 	cpumask_t		cpu_event;	/* which cpus have outstanding events */
 	wait_queue_head_t	read_wait;
 	u8			*log_buffer;
@@ -149,33 +155,34 @@ struct salinfo_data {
 	int			open;		/* single-open to prevent races */
 	u8			type;
 	u8			saved_num;	/* using a saved record? */
-	enum salinfo_state	state :8;	/* processing state */
-	u8			padding;
-	int			cpu_check;	/* next CPU to check */
-	struct salinfo_data_saved data_saved[5];/* save last 5 records from mca.c, must be < 255 */
-};
+	enum salinfo_state	state : 8;	/* processing state */
+		u8			padding;
+		int			cpu_check;	/* next CPU to check */
+		struct salinfo_data_saved data_saved[5];/* save last 5 records from mca.c, must be < 255 */
+	};
 
-static struct salinfo_data salinfo_data[ARRAY_SIZE(salinfo_log_name)];
+	static struct salinfo_data salinfo_data[ARRAY_SIZE(salinfo_log_name)];
 
-static DEFINE_SPINLOCK(data_lock);
-static DEFINE_SPINLOCK(data_saved_lock);
+	static DEFINE_SPINLOCK(data_lock);
+	static DEFINE_SPINLOCK(data_saved_lock);
 
-/** salinfo_platform_oemdata - optional callback to decode oemdata from an error
- * record.
- * @sect_header: pointer to the start of the section to decode.
- * @oemdata: returns vmalloc area containing the decoded output.
- * @oemdata_size: returns length of decoded output (strlen).
- *
- * Description: If user space asks for oem data to be decoded by the kernel
- * and/or prom and the platform has set salinfo_platform_oemdata to the address
- * of a platform specific routine then call that routine.  salinfo_platform_oemdata
- * vmalloc's and formats its output area, returning the address of the text
- * and its strlen.  Returns 0 for success, -ve for error.  The callback is
- * invoked on the cpu that generated the error record.
- */
-int (*salinfo_platform_oemdata)(const u8 *sect_header, u8 **oemdata, u64 *oemdata_size);
+	/** salinfo_platform_oemdata - optional callback to decode oemdata from an error
+	 * record.
+	 * @sect_header: pointer to the start of the section to decode.
+	 * @oemdata: returns vmalloc area containing the decoded output.
+	 * @oemdata_size: returns length of decoded output (strlen).
+	 *
+	 * Description: If user space asks for oem data to be decoded by the kernel
+	 * and/or prom and the platform has set salinfo_platform_oemdata to the address
+	 * of a platform specific routine then call that routine.  salinfo_platform_oemdata
+	 * vmalloc's and formats its output area, returning the address of the text
+	 * and its strlen.  Returns 0 for success, -ve for error.  The callback is
+	 * invoked on the cpu that generated the error record.
+	 */
+	int (*salinfo_platform_oemdata)(const u8 *sect_header, u8 **oemdata, u64 *oemdata_size);
 
-struct salinfo_platform_oemdata_parms {
+	struct salinfo_platform_oemdata_parms
+{
 	const u8 *efi_guid;
 	u8 **oemdata;
 	u64 *oemdata_size;
@@ -192,10 +199,10 @@ salinfo_platform_oemdata_cpu(void *context)
 static void
 shift1_data_saved (struct salinfo_data *data, int shift)
 {
-	memcpy(data->data_saved+shift, data->data_saved+shift+1,
-	       (ARRAY_SIZE(data->data_saved) - (shift+1)) * sizeof(data->data_saved[0]));
+	memcpy(data->data_saved + shift, data->data_saved + shift + 1,
+		   (ARRAY_SIZE(data->data_saved) - (shift + 1)) * sizeof(data->data_saved[0]));
 	memset(data->data_saved + ARRAY_SIZE(data->data_saved) - 1, 0,
-	       sizeof(data->data_saved[0]));
+		   sizeof(data->data_saved[0]));
 }
 
 /* This routine is invoked in interrupt context.  Note: mca.c enables
@@ -221,28 +228,46 @@ salinfo_log_wakeup(int type, u8 *buffer, u64 size, int irqsafe)
 	BUG_ON(type >= ARRAY_SIZE(salinfo_log_name));
 
 	if (irqsafe)
+	{
 		spin_lock_irqsave(&data_saved_lock, flags);
-	if (buffer) {
-		for (i = 0, data_saved = data->data_saved; i < saved_size; ++i, ++data_saved) {
+	}
+
+	if (buffer)
+	{
+		for (i = 0, data_saved = data->data_saved; i < saved_size; ++i, ++data_saved)
+		{
 			if (!data_saved->buffer)
+			{
 				break;
+			}
 		}
-		if (i == saved_size) {
-			if (!data->saved_num) {
+
+		if (i == saved_size)
+		{
+			if (!data->saved_num)
+			{
 				shift1_data_saved(data, 0);
 				data_saved = data->data_saved + saved_size - 1;
-			} else
+			}
+			else
+			{
 				data_saved = NULL;
+			}
 		}
-		if (data_saved) {
+
+		if (data_saved)
+		{
 			data_saved->cpu = smp_processor_id();
 			data_saved->id = ((sal_log_record_header_t *)buffer)->id;
 			data_saved->size = size;
 			data_saved->buffer = buffer;
 		}
 	}
+
 	cpumask_set_cpu(smp_processor_id(), &data->cpu_event);
-	if (irqsafe) {
+
+	if (irqsafe)
+	{
 		wake_up_interruptible(&data->read_wait);
 		spin_unlock_irqrestore(&data_saved_lock, flags);
 	}
@@ -257,9 +282,14 @@ static void
 salinfo_timeout_check(struct salinfo_data *data)
 {
 	if (!data->open)
+	{
 		return;
+	}
+
 	if (!cpumask_empty(&data->cpu_event))
+	{
 		wake_up_interruptible(&data->read_wait);
+	}
 }
 
 static void
@@ -276,7 +306,10 @@ static int
 salinfo_event_open(struct inode *inode, struct file *file)
 {
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	return 0;
 }
 
@@ -289,50 +322,77 @@ salinfo_event_read(struct file *file, char __user *buffer, size_t count, loff_t 
 	int i, n, cpu = -1;
 
 retry:
-	if (cpumask_empty(&data->cpu_event)) {
+
+	if (cpumask_empty(&data->cpu_event))
+	{
 		if (file->f_flags & O_NONBLOCK)
+		{
 			return -EAGAIN;
+		}
+
 		if (wait_event_interruptible(data->read_wait,
-					     !cpumask_empty(&data->cpu_event)))
+									 !cpumask_empty(&data->cpu_event)))
+		{
 			return -EINTR;
+		}
 	}
 
 	n = data->cpu_check;
-	for (i = 0; i < nr_cpu_ids; i++) {
-		if (cpumask_test_cpu(n, &data->cpu_event)) {
-			if (!cpu_online(n)) {
+
+	for (i = 0; i < nr_cpu_ids; i++)
+	{
+		if (cpumask_test_cpu(n, &data->cpu_event))
+		{
+			if (!cpu_online(n))
+			{
 				cpumask_clear_cpu(n, &data->cpu_event);
 				continue;
 			}
+
 			cpu = n;
 			break;
 		}
+
 		if (++n == nr_cpu_ids)
+		{
 			n = 0;
+		}
 	}
 
 	if (cpu == -1)
+	{
 		goto retry;
+	}
 
 	ia64_mlogbuf_dump();
 
 	/* for next read, start checking at next CPU */
 	data->cpu_check = cpu;
+
 	if (++data->cpu_check == nr_cpu_ids)
+	{
 		data->cpu_check = 0;
+	}
 
 	snprintf(cmd, sizeof(cmd), "read %d\n", cpu);
 
 	size = strlen(cmd);
+
 	if (size > count)
+	{
 		size = count;
+	}
+
 	if (copy_to_user(buffer, cmd, size))
+	{
 		return -EFAULT;
+	}
 
 	return size;
 }
 
-static const struct file_operations salinfo_event_fops = {
+static const struct file_operations salinfo_event_fops =
+{
 	.open  = salinfo_event_open,
 	.read  = salinfo_event_read,
 	.llseek = noop_llseek,
@@ -344,18 +404,24 @@ salinfo_log_open(struct inode *inode, struct file *file)
 	struct salinfo_data *data = PDE_DATA(inode);
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	spin_lock(&data_lock);
-	if (data->open) {
+
+	if (data->open)
+	{
 		spin_unlock(&data_lock);
 		return -EBUSY;
 	}
+
 	data->open = 1;
 	spin_unlock(&data_lock);
 
 	if (data->state == STATE_NO_DATA &&
-	    !(data->log_buffer = vmalloc(ia64_sal_get_state_info_size(data->type)))) {
+		!(data->log_buffer = vmalloc(ia64_sal_get_state_info_size(data->type))))
+	{
 		data->open = 0;
 		return -ENOMEM;
 	}
@@ -368,12 +434,14 @@ salinfo_log_release(struct inode *inode, struct file *file)
 {
 	struct salinfo_data *data = PDE_DATA(inode);
 
-	if (data->state == STATE_NO_DATA) {
+	if (data->state == STATE_NO_DATA)
+	{
 		vfree(data->log_buffer);
 		vfree(data->oemdata);
 		data->log_buffer = NULL;
 		data->oemdata = NULL;
 	}
+
 	spin_lock(&data_lock);
 	data->open = 0;
 	spin_unlock(&data_lock);
@@ -396,9 +464,12 @@ salinfo_log_read_cpu(void *context)
 	sal_log_record_header_t *rh;
 	data->log_size = ia64_sal_get_state_info(data->type, (u64 *) data->log_buffer);
 	rh = (sal_log_record_header_t *)(data->log_buffer);
+
 	/* Clear corrected errors as they are read from SAL */
 	if (rh->severity == sal_log_severity_corrected)
+	{
 		ia64_sal_clear_state_info(data->type);
+	}
 }
 
 static void
@@ -412,29 +483,42 @@ salinfo_log_new_read(int cpu, struct salinfo_data *data)
 	data->saved_num = 0;
 	spin_lock_irqsave(&data_saved_lock, flags);
 retry:
-	for (i = 0, data_saved = data->data_saved; i < saved_size; ++i, ++data_saved) {
-		if (data_saved->buffer && data_saved->cpu == cpu) {
+
+	for (i = 0, data_saved = data->data_saved; i < saved_size; ++i, ++data_saved)
+	{
+		if (data_saved->buffer && data_saved->cpu == cpu)
+		{
 			sal_log_record_header_t *rh = (sal_log_record_header_t *)(data_saved->buffer);
 			data->log_size = data_saved->size;
 			memcpy(data->log_buffer, rh, data->log_size);
 			barrier();	/* id check must not be moved */
-			if (rh->id == data_saved->id) {
-				data->saved_num = i+1;
+
+			if (rh->id == data_saved->id)
+			{
+				data->saved_num = i + 1;
 				break;
 			}
+
 			/* saved record changed by mca.c since interrupt, discard it */
 			shift1_data_saved(data, i);
 			goto retry;
 		}
 	}
+
 	spin_unlock_irqrestore(&data_saved_lock, flags);
 
 	if (!data->saved_num)
+	{
 		call_on_cpu(cpu, salinfo_log_read_cpu, data);
-	if (!data->log_size) {
+	}
+
+	if (!data->log_size)
+	{
 		data->state = STATE_NO_DATA;
 		cpumask_clear_cpu(cpu, &data->cpu_event);
-	} else {
+	}
+	else
+	{
 		data->state = STATE_LOG_RECORD;
 	}
 }
@@ -446,16 +530,22 @@ salinfo_log_read(struct file *file, char __user *buffer, size_t count, loff_t *p
 	u8 *buf;
 	u64 bufsize;
 
-	if (data->state == STATE_LOG_RECORD) {
+	if (data->state == STATE_LOG_RECORD)
+	{
 		buf = data->log_buffer;
 		bufsize = data->log_size;
-	} else if (data->state == STATE_OEMDATA) {
+	}
+	else if (data->state == STATE_OEMDATA)
+	{
 		buf = data->oemdata;
 		bufsize = data->oemdata_size;
-	} else {
+	}
+	else
+	{
 		buf = NULL;
 		bufsize = 0;
 	}
+
 	return simple_read_from_buffer(buffer, count, ppos, buf, bufsize);
 }
 
@@ -473,28 +563,41 @@ salinfo_log_clear(struct salinfo_data *data, int cpu)
 	unsigned long flags;
 	spin_lock_irqsave(&data_saved_lock, flags);
 	data->state = STATE_NO_DATA;
-	if (!cpumask_test_cpu(cpu, &data->cpu_event)) {
+
+	if (!cpumask_test_cpu(cpu, &data->cpu_event))
+	{
 		spin_unlock_irqrestore(&data_saved_lock, flags);
 		return 0;
 	}
+
 	cpumask_clear_cpu(cpu, &data->cpu_event);
-	if (data->saved_num) {
+
+	if (data->saved_num)
+	{
 		shift1_data_saved(data, data->saved_num - 1);
 		data->saved_num = 0;
 	}
+
 	spin_unlock_irqrestore(&data_saved_lock, flags);
 	rh = (sal_log_record_header_t *)(data->log_buffer);
+
 	/* Corrected errors have already been cleared from SAL */
 	if (rh->severity != sal_log_severity_corrected)
+	{
 		call_on_cpu(cpu, salinfo_log_clear_cpu, data);
+	}
+
 	/* clearing a record may make a new record visible */
 	salinfo_log_new_read(cpu, data);
-	if (data->state == STATE_LOG_RECORD) {
+
+	if (data->state == STATE_LOG_RECORD)
+	{
 		spin_lock_irqsave(&data_saved_lock, flags);
 		cpumask_set_cpu(cpu, &data->cpu_event);
 		wake_up_interruptible(&data->read_wait);
 		spin_unlock_irqrestore(&data_saved_lock, flags);
 	}
+
 	return 0;
 }
 
@@ -508,41 +611,74 @@ salinfo_log_write(struct file *file, const char __user *buffer, size_t count, lo
 	int cpu;
 
 	size = sizeof(cmd);
-	if (count < size)
-		size = count;
-	if (copy_from_user(cmd, buffer, size))
-		return -EFAULT;
 
-	if (sscanf(cmd, "read %d", &cpu) == 1) {
+	if (count < size)
+	{
+		size = count;
+	}
+
+	if (copy_from_user(cmd, buffer, size))
+	{
+		return -EFAULT;
+	}
+
+	if (sscanf(cmd, "read %d", &cpu) == 1)
+	{
 		salinfo_log_new_read(cpu, data);
-	} else if (sscanf(cmd, "clear %d", &cpu) == 1) {
+	}
+	else if (sscanf(cmd, "clear %d", &cpu) == 1)
+	{
 		int ret;
+
 		if ((ret = salinfo_log_clear(data, cpu)))
+		{
 			count = ret;
-	} else if (sscanf(cmd, "oemdata %d %d", &cpu, &offset) == 2) {
+		}
+	}
+	else if (sscanf(cmd, "oemdata %d %d", &cpu, &offset) == 2)
+	{
 		if (data->state != STATE_LOG_RECORD && data->state != STATE_OEMDATA)
+		{
 			return -EINVAL;
+		}
+
 		if (offset > data->log_size - sizeof(efi_guid_t))
+		{
 			return -EINVAL;
+		}
+
 		data->state = STATE_OEMDATA;
-		if (salinfo_platform_oemdata) {
-			struct salinfo_platform_oemdata_parms parms = {
+
+		if (salinfo_platform_oemdata)
+		{
+			struct salinfo_platform_oemdata_parms parms =
+			{
 				.efi_guid = data->log_buffer + offset,
 				.oemdata = &data->oemdata,
 				.oemdata_size = &data->oemdata_size
 			};
 			call_on_cpu(cpu, salinfo_platform_oemdata_cpu, &parms);
+
 			if (parms.ret)
+			{
 				count = parms.ret;
-		} else
+			}
+		}
+		else
+		{
 			data->oemdata_size = 0;
-	} else
+		}
+	}
+	else
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
 
-static const struct file_operations salinfo_data_fops = {
+static const struct file_operations salinfo_data_fops =
+{
 	.open    = salinfo_log_open,
 	.release = salinfo_log_release,
 	.read    = salinfo_log_read,
@@ -556,38 +692,52 @@ salinfo_cpu_callback(struct notifier_block *nb, unsigned long action, void *hcpu
 	unsigned int i, cpu = (unsigned long)hcpu;
 	unsigned long flags;
 	struct salinfo_data *data;
-	switch (action) {
-	case CPU_ONLINE:
-	case CPU_ONLINE_FROZEN:
-		spin_lock_irqsave(&data_saved_lock, flags);
-		for (i = 0, data = salinfo_data;
-		     i < ARRAY_SIZE(salinfo_data);
-		     ++i, ++data) {
-			cpumask_set_cpu(cpu, &data->cpu_event);
-			wake_up_interruptible(&data->read_wait);
-		}
-		spin_unlock_irqrestore(&data_saved_lock, flags);
-		break;
-	case CPU_DEAD:
-	case CPU_DEAD_FROZEN:
-		spin_lock_irqsave(&data_saved_lock, flags);
-		for (i = 0, data = salinfo_data;
-		     i < ARRAY_SIZE(salinfo_data);
-		     ++i, ++data) {
-			struct salinfo_data_saved *data_saved;
-			int j;
-			for (j = ARRAY_SIZE(data->data_saved) - 1, data_saved = data->data_saved + j;
-			     j >= 0;
-			     --j, --data_saved) {
-				if (data_saved->buffer && data_saved->cpu == cpu) {
-					shift1_data_saved(data, j);
-				}
+
+	switch (action)
+	{
+		case CPU_ONLINE:
+		case CPU_ONLINE_FROZEN:
+			spin_lock_irqsave(&data_saved_lock, flags);
+
+			for (i = 0, data = salinfo_data;
+				 i < ARRAY_SIZE(salinfo_data);
+				 ++i, ++data)
+			{
+				cpumask_set_cpu(cpu, &data->cpu_event);
+				wake_up_interruptible(&data->read_wait);
 			}
-			cpumask_clear_cpu(cpu, &data->cpu_event);
-		}
-		spin_unlock_irqrestore(&data_saved_lock, flags);
-		break;
+
+			spin_unlock_irqrestore(&data_saved_lock, flags);
+			break;
+
+		case CPU_DEAD:
+		case CPU_DEAD_FROZEN:
+			spin_lock_irqsave(&data_saved_lock, flags);
+
+			for (i = 0, data = salinfo_data;
+				 i < ARRAY_SIZE(salinfo_data);
+				 ++i, ++data)
+			{
+				struct salinfo_data_saved *data_saved;
+				int j;
+
+				for (j = ARRAY_SIZE(data->data_saved) - 1, data_saved = data->data_saved + j;
+					 j >= 0;
+					 --j, --data_saved)
+				{
+					if (data_saved->buffer && data_saved->cpu == cpu)
+					{
+						shift1_data_saved(data, j);
+					}
+				}
+
+				cpumask_clear_cpu(cpu, &data->cpu_event);
+			}
+
+			spin_unlock_irqrestore(&data_saved_lock, flags);
+			break;
 	}
+
 	return NOTIFY_OK;
 }
 
@@ -607,41 +757,57 @@ salinfo_init(void)
 	int i, j;
 
 	salinfo_dir = proc_mkdir("sal", NULL);
-	if (!salinfo_dir)
-		return 0;
 
-	for (i=0; i < NR_SALINFO_ENTRIES; i++) {
+	if (!salinfo_dir)
+	{
+		return 0;
+	}
+
+	for (i = 0; i < NR_SALINFO_ENTRIES; i++)
+	{
 		/* pass the feature bit in question as misc data */
 		*sdir++ = proc_create_data(salinfo_entries[i].name, 0, salinfo_dir,
-					   &proc_salinfo_fops,
-					   (void *)salinfo_entries[i].feature);
+								   &proc_salinfo_fops,
+								   (void *)salinfo_entries[i].feature);
 	}
 
 	cpu_notifier_register_begin();
 
-	for (i = 0; i < ARRAY_SIZE(salinfo_log_name); i++) {
+	for (i = 0; i < ARRAY_SIZE(salinfo_log_name); i++)
+	{
 		data = salinfo_data + i;
 		data->type = i;
 		init_waitqueue_head(&data->read_wait);
 		dir = proc_mkdir(salinfo_log_name[i], salinfo_dir);
+
 		if (!dir)
+		{
 			continue;
+		}
 
 		entry = proc_create_data("event", S_IRUSR, dir,
-					 &salinfo_event_fops, data);
+								 &salinfo_event_fops, data);
+
 		if (!entry)
+		{
 			continue;
+		}
+
 		*sdir++ = entry;
 
 		entry = proc_create_data("data", S_IRUSR | S_IWUSR, dir,
-					 &salinfo_data_fops, data);
+								 &salinfo_data_fops, data);
+
 		if (!entry)
+		{
 			continue;
+		}
+
 		*sdir++ = entry;
 
 		/* we missed any events before now */
 		for_each_online_cpu(j)
-			cpumask_set_cpu(j, &data->cpu_event);
+		cpumask_set_cpu(j, &data->cpu_event);
 
 		*sdir++ = dir;
 	}
@@ -676,7 +842,8 @@ static int proc_salinfo_open(struct inode *inode, struct file *file)
 	return single_open(file, proc_salinfo_show, PDE_DATA(inode));
 }
 
-static const struct file_operations proc_salinfo_fops = {
+static const struct file_operations proc_salinfo_fops =
+{
 	.open		= proc_salinfo_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

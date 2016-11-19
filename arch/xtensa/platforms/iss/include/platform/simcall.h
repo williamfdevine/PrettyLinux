@@ -67,12 +67,12 @@ static inline int __simc(int a, int b, int c, int d)
 	register int c1 asm("a4") = c;
 	register int d1 asm("a5") = d;
 	__asm__ __volatile__ (
-			"simcall\n"
-			"mov %0, a2\n"
-			"mov %1, a3\n"
-			: "=a" (ret), "=a" (errno), "+r"(a1), "+r"(b1)
-			: "r"(c1), "r"(d1)
-			: "memory");
+		"simcall\n"
+		"mov %0, a2\n"
+		"mov %1, a3\n"
+		: "=a" (ret), "=a" (errno), "+r"(a1), "+r"(b1)
+		: "r"(c1), "r"(d1)
+		: "memory");
 	return ret;
 }
 

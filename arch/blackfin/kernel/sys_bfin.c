@@ -43,7 +43,7 @@ asmlinkage void *sys_dma_memcpy(void *dest, const void *src, size_t len)
 #include <linux/fb.h>
 #include <linux/export.h>
 unsigned long get_fb_unmapped_area(struct file *filp, unsigned long orig_addr,
-	unsigned long len, unsigned long pgoff, unsigned long flags)
+								   unsigned long len, unsigned long pgoff, unsigned long flags)
 {
 	struct fb_info *info = filp->private_data;
 	return (unsigned long)info->screen_base;
@@ -55,7 +55,7 @@ EXPORT_SYMBOL(get_fb_unmapped_area);
 static DEFINE_SPINLOCK(bfin_spinlock_lock);
 
 #ifdef CONFIG_SYS_BFIN_SPINLOCK_L1
-__attribute__((l1_text))
+	__attribute__((l1_text))
 #endif
 asmlinkage int sys_bfin_spinlock(int *p)
 {
@@ -63,12 +63,19 @@ asmlinkage int sys_bfin_spinlock(int *p)
 
 	spin_lock(&bfin_spinlock_lock); /* This would also hold kernel preemption. */
 	ret = get_user(tmp, p);
-	if (likely(ret == 0)) {
+
+	if (likely(ret == 0))
+	{
 		if (unlikely(tmp))
+		{
 			ret = 1;
+		}
 		else
+		{
 			put_user(1, p);
+		}
 	}
+
 	spin_unlock(&bfin_spinlock_lock);
 
 	return ret;
@@ -77,12 +84,19 @@ asmlinkage int sys_bfin_spinlock(int *p)
 SYSCALL_DEFINE3(cacheflush, unsigned long, addr, unsigned long, len, int, op)
 {
 	if (is_user_addr_valid(current, addr, len) != 0)
+	{
 		return -EINVAL;
+	}
 
 	if (op & DCACHE)
+	{
 		blackfin_dcache_flush_range(addr, addr + len);
+	}
+
 	if (op & ICACHE)
+	{
 		blackfin_icache_flush_range(addr, addr + len);
+	}
 
 	return 0;
 }

@@ -40,7 +40,8 @@
 #define GPIO_LCD_RESET		(16)
 
 /* SAAR MFP configurations */
-static mfp_cfg_t saar_mfp_cfg[] __initdata = {
+static mfp_cfg_t saar_mfp_cfg[] __initdata =
+{
 	/* LCD */
 	GPIO23_LCD_DD0,
 	GPIO24_LCD_DD1,
@@ -89,7 +90,8 @@ static mfp_cfg_t saar_mfp_cfg[] __initdata = {
 
 #define SAAR_ETH_PHYS	(0x14000000)
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= (SAAR_ETH_PHYS + 0x300),
 		.end	= (SAAR_ETH_PHYS + 0xfffff),
@@ -102,11 +104,13 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct smc91x_platdata saar_smc91x_info = {
+static struct smc91x_platdata saar_smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_USE_DMA,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -117,7 +121,8 @@ static struct platform_device smc91x_device = {
 };
 
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static uint16_t lcd_power_on[] = {
+static uint16_t lcd_power_on[] =
+{
 	/* single frame */
 	SMART_CMD_NOOP,
 	SMART_CMD(0x00),
@@ -305,7 +310,8 @@ static uint16_t lcd_power_on[] = {
 	SMART_DELAY(20),
 };
 
-static uint16_t lcd_panel_on[] = {
+static uint16_t lcd_panel_on[] =
+{
 	SMART_CMD(0x00),
 	SMART_CMD(0x07),
 	SMART_DAT(0x00),
@@ -325,7 +331,8 @@ static uint16_t lcd_panel_on[] = {
 	SMART_DELAY(1),
 };
 
-static uint16_t lcd_panel_off[] = {
+static uint16_t lcd_panel_off[] =
+{
 	SMART_CMD(0x00),
 	SMART_CMD(0x07),
 	SMART_DAT(0x00),
@@ -345,7 +352,8 @@ static uint16_t lcd_panel_off[] = {
 	SMART_DELAY(1),
 };
 
-static uint16_t lcd_power_off[] = {
+static uint16_t lcd_power_off[] =
+{
 	SMART_CMD(0x00),
 	SMART_CMD(0x10),
 	SMART_DAT(0x00),
@@ -368,7 +376,8 @@ static uint16_t lcd_power_off[] = {
 	SMART_DAT(0x00),
 };
 
-static uint16_t update_framedata[] = {
+static uint16_t update_framedata[] =
+{
 	/* set display ram: 240*320 */
 	SMART_CMD(0x00), /* RAM address set(H) 0*/
 	SMART_CMD(0x20),
@@ -412,9 +421,12 @@ static void ltm022a97a_lcd_power(int on, struct fb_var_screeninfo *var)
 	struct fb_info *info = container_of(var, struct fb_info, var);
 	int err;
 
-	if (!pin_requested) {
+	if (!pin_requested)
+	{
 		err = gpio_request(GPIO_LCD_RESET, "lcd reset");
-		if (err) {
+
+		if (err)
+		{
 			pr_err("failed to request gpio for LCD reset\n");
 			return;
 		}
@@ -423,20 +435,26 @@ static void ltm022a97a_lcd_power(int on, struct fb_var_screeninfo *var)
 		pin_requested = 1;
 	}
 
-	if (on) {
+	if (on)
+	{
 		gpio_set_value(GPIO_LCD_RESET, 0); msleep(100);
 		gpio_set_value(GPIO_LCD_RESET, 1); msleep(10);
 
 		pxafb_smart_queue(info, ARRAY_AND_SIZE(lcd_power_on));
 		pxafb_smart_queue(info, ARRAY_AND_SIZE(lcd_panel_on));
-	} else {
+	}
+	else
+	{
 		pxafb_smart_queue(info, ARRAY_AND_SIZE(lcd_panel_off));
 		pxafb_smart_queue(info, ARRAY_AND_SIZE(lcd_power_off));
 	}
 
 	err = pxafb_smart_flush(info);
+
 	if (err)
+	{
 		pr_err("%s: timed out\n", __func__);
+	}
 }
 
 static void ltm022a97a_update(struct fb_info *info)
@@ -445,7 +463,8 @@ static void ltm022a97a_update(struct fb_info *info)
 	pxafb_smart_flush(info);
 }
 
-static struct pxafb_mode_info toshiba_ltm022a97a_modes[] = {
+static struct pxafb_mode_info toshiba_ltm022a97a_modes[] =
+{
 	[0] = {
 		.xres			= 240,
 		.yres			= 320,
@@ -459,11 +478,12 @@ static struct pxafb_mode_info toshiba_ltm022a97a_modes[] = {
 
 		/* L_LCLK_A0 and L_LCLK_RD active low */
 		.sync			= FB_SYNC_HOR_HIGH_ACT |
-					  FB_SYNC_VERT_HIGH_ACT,
+		FB_SYNC_VERT_HIGH_ACT,
 	},
 };
 
-static struct pxafb_mach_info saar_lcd_info = {
+static struct pxafb_mach_info saar_lcd_info =
+{
 	.modes			= toshiba_ltm022a97a_modes,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_SMART_PANEL_8BPP | LCD_PCLK_EDGE_FALL,
@@ -480,11 +500,13 @@ static inline void saar_init_lcd(void) {}
 #endif
 
 #if defined(CONFIG_I2C_PXA) || defined(CONFIG_I2C_PXA_MODULE)
-static struct da9034_backlight_pdata saar_da9034_backlight = {
+static struct da9034_backlight_pdata saar_da9034_backlight =
+{
 	.output_current	= 4,	/* 4mA */
 };
 
-static struct da903x_subdev_info saar_da9034_subdevs[] = {
+static struct da903x_subdev_info saar_da9034_subdevs[] =
+{
 	[0] = {
 		.name		= "da903x-backlight",
 		.id		= DA9034_ID_WLED,
@@ -492,12 +514,14 @@ static struct da903x_subdev_info saar_da9034_subdevs[] = {
 	},
 };
 
-static struct da903x_platform_data saar_da9034_info = {
+static struct da903x_platform_data saar_da9034_info =
+{
 	.num_subdevs	= ARRAY_SIZE(saar_da9034_subdevs),
 	.subdevs	= saar_da9034_subdevs,
 };
 
-static struct i2c_board_info saar_i2c_info[] = {
+static struct i2c_board_info saar_i2c_info[] =
+{
 	[0] = {
 		.type		= "da9034",
 		.addr		= 0x34,
@@ -516,7 +540,8 @@ static inline void saar_init_i2c(void) {}
 #endif
 
 #if defined(CONFIG_MTD_ONENAND) || defined(CONFIG_MTD_ONENAND_MODULE)
-static struct mtd_partition saar_onenand_partitions[] = {
+static struct mtd_partition saar_onenand_partitions[] =
+{
 	{
 		.name		= "bootloader",
 		.offset		= 0,
@@ -545,14 +570,16 @@ static struct mtd_partition saar_onenand_partitions[] = {
 	}
 };
 
-static struct onenand_platform_data saar_onenand_info = {
+static struct onenand_platform_data saar_onenand_info =
+{
 	.parts		= saar_onenand_partitions,
 	.nr_parts	= ARRAY_SIZE(saar_onenand_partitions),
 };
 
 #define SMC_CS0_PHYS_BASE	(0x10000000)
 
-static struct resource saar_resource_onenand[] = {
+static struct resource saar_resource_onenand[] =
+{
 	[0] = {
 		.start	= SMC_CS0_PHYS_BASE,
 		.end	= SMC_CS0_PHYS_BASE + SZ_1M,
@@ -560,7 +587,8 @@ static struct resource saar_resource_onenand[] = {
 	},
 };
 
-static struct platform_device saar_device_onenand = {
+static struct platform_device saar_device_onenand =
+{
 	.name		= "onenand-flash",
 	.id		= -1,
 	.dev		= {
@@ -595,13 +623,13 @@ static void __init saar_init(void)
 }
 
 MACHINE_START(SAAR, "PXA930 Handheld Platform (aka SAAR)")
-	/* Maintainer: Eric Miao <eric.miao@marvell.com> */
-	.atag_offset    = 0x100,
-	.map_io         = pxa3xx_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq       = pxa3xx_init_irq,
-	.handle_irq       = pxa3xx_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine   = saar_init,
-	.restart	= pxa_restart,
-MACHINE_END
+/* Maintainer: Eric Miao <eric.miao@marvell.com> */
+.atag_offset    = 0x100,
+ .map_io         = pxa3xx_map_io,
+  .nr_irqs	= PXA_NR_IRQS,
+	  .init_irq       = pxa3xx_init_irq,
+	   .handle_irq       = pxa3xx_handle_irq,
+		.init_time	= pxa_timer_init,
+		  .init_machine   = saar_init,
+		   .restart	= pxa_restart,
+			   MACHINE_END

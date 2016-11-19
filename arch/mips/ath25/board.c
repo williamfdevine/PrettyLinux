@@ -38,24 +38,33 @@ static inline bool check_board_data(const void __iomem *addr, bool broken)
 {
 	/* config magic found */
 	if (__raw_readl(addr) == ATH25_BD_MAGIC)
+	{
 		return true;
+	}
 
 	if (!broken)
+	{
 		return false;
+	}
 
 	/* broken board data detected, use radio data to find the
 	 * offset, user will fix this */
 
 	if (check_radio_magic(addr + 0x1000))
+	{
 		return true;
+	}
+
 	if (check_radio_magic(addr + 0xf8))
+	{
 		return true;
+	}
 
 	return false;
 }
 
-static const void __iomem * __init find_board_config(const void __iomem *limit,
-						     const bool broken)
+static const void __iomem *__init find_board_config(const void __iomem *limit,
+		const bool broken)
 {
 	const void __iomem *addr;
 	const void __iomem *begin = limit - 0x1000;
@@ -63,13 +72,15 @@ static const void __iomem * __init find_board_config(const void __iomem *limit,
 
 	for (addr = begin; addr >= end; addr -= 0x1000)
 		if (check_board_data(addr, broken))
+		{
 			return addr;
+		}
 
 	return NULL;
 }
 
-static const void __iomem * __init find_radio_config(const void __iomem *limit,
-						     const void __iomem *bcfg)
+static const void __iomem *__init find_radio_config(const void __iomem *limit,
+		const void __iomem *bcfg)
 {
 	const void __iomem *rcfg, *begin, *end;
 
@@ -80,16 +91,22 @@ static const void __iomem * __init find_radio_config(const void __iomem *limit,
 	 */
 	begin = bcfg + 0x1000;
 	end = limit;
+
 	for (rcfg = begin; rcfg < end; rcfg += 0x1000)
 		if (check_notempty(rcfg) && check_radio_magic(rcfg))
+		{
 			return rcfg;
+		}
 
 	/* AR2316 relocates radio config to new location */
 	begin = bcfg + 0xf8;
 	end = limit - 0x1000 + 0xf8;
+
 	for (rcfg = begin; rcfg < end; rcfg += 0x1000)
 		if (check_notempty(rcfg) && check_radio_magic(rcfg))
+		{
 			return rcfg;
+		}
 
 	return NULL;
 }
@@ -124,12 +141,14 @@ int __init ath25_find_config(phys_addr_t base, unsigned long size)
 	bcfg = find_board_config(flash_limit, false);
 
 	/* If that fails, try to at least find valid radio data */
-	if (!bcfg) {
+	if (!bcfg)
+	{
 		bcfg = find_board_config(flash_limit, true);
 		broken_boarddata = 1;
 	}
 
-	if (!bcfg) {
+	if (!bcfg)
+	{
 		pr_warn("WARNING: No board configuration data found!\n");
 		goto error;
 	}
@@ -137,10 +156,14 @@ int __init ath25_find_config(phys_addr_t base, unsigned long size)
 	board_data = kzalloc(BOARD_CONFIG_BUFSZ, GFP_KERNEL);
 	ath25_board.config = (struct ath25_boarddata *)board_data;
 	memcpy_fromio(board_data, bcfg, 0x100);
-	if (broken_boarddata) {
+
+	if (broken_boarddata)
+	{
 		pr_warn("WARNING: broken board data detected\n");
 		config = ath25_board.config;
-		if (is_zero_ether_addr(config->enet0_mac)) {
+
+		if (is_zero_ether_addr(config->enet0_mac))
+		{
 			pr_info("Fixing up empty mac addresses\n");
 			config->reset_config_gpio = 0xffff;
 			config->sys_led_gpio = 0xffff;
@@ -155,7 +178,9 @@ int __init ath25_find_config(phys_addr_t base, unsigned long size)
 	 * of what the physical layout on the flash chip looks like */
 
 	rcfg = find_radio_config(flash_limit, bcfg);
-	if (!rcfg) {
+
+	if (!rcfg)
+	{
 		pr_warn("WARNING: Could not find Radio Configuration data\n");
 		goto error;
 	}
@@ -164,12 +189,14 @@ int __init ath25_find_config(phys_addr_t base, unsigned long size)
 	ath25_board.radio = radio_data;
 	offset = radio_data - board_data;
 	pr_info("Radio config found at offset 0x%x (0x%x)\n", rcfg - bcfg,
-		offset);
+			offset);
 	rcfg_size = BOARD_CONFIG_BUFSZ - offset;
 	memcpy_fromio(radio_data, rcfg, rcfg_size);
 
 	mac_addr = &radio_data[0x1d * 2];
-	if (is_broadcast_ether_addr(mac_addr)) {
+
+	if (is_broadcast_ether_addr(mac_addr))
+	{
 		pr_info("Radio MAC is blank; using board-data\n");
 		ether_addr_copy(mac_addr, ath25_board.config->wlan0_mac);
 	}
@@ -195,9 +222,13 @@ void __init plat_mem_setup(void)
 	pm_power_off = ath25_halt;
 
 	if (is_ar5312())
+	{
 		ar5312_plat_mem_setup();
+	}
 	else
+	{
 		ar2315_plat_mem_setup();
+	}
 
 	/* Disable data watchpoints */
 	write_c0_watchlo0(0);
@@ -211,9 +242,13 @@ asmlinkage void plat_irq_dispatch(void)
 void __init plat_time_init(void)
 {
 	if (is_ar5312())
+	{
 		ar5312_plat_time_init();
+	}
 	else
+	{
 		ar2315_plat_time_init();
+	}
 }
 
 unsigned int get_c0_compare_int(void)
@@ -228,7 +263,11 @@ void __init arch_init_irq(void)
 
 	/* Initialize interrupt controllers */
 	if (is_ar5312())
+	{
 		ar5312_arch_init_irq();
+	}
 	else
+	{
 		ar2315_arch_init_irq();
+	}
 }

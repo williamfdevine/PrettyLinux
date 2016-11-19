@@ -56,14 +56,14 @@ extern void fast_second_level_miss(void);
 extern void fast_store_prohibited(void);
 extern void fast_coprocessor(void);
 
-extern void do_illegal_instruction (struct pt_regs*);
-extern void do_interrupt (struct pt_regs*);
+extern void do_illegal_instruction (struct pt_regs *);
+extern void do_interrupt (struct pt_regs *);
 extern void do_nmi(struct pt_regs *);
-extern void do_unaligned_user (struct pt_regs*);
-extern void do_multihit (struct pt_regs*, unsigned long);
-extern void do_page_fault (struct pt_regs*, unsigned long);
-extern void do_debug (struct pt_regs*);
-extern void system_call (struct pt_regs*);
+extern void do_unaligned_user (struct pt_regs *);
+extern void do_multihit (struct pt_regs *, unsigned long);
+extern void do_page_fault (struct pt_regs *, unsigned long);
+extern void do_debug (struct pt_regs *);
+extern void system_call (struct pt_regs *);
 
 /*
  * The vector table must be preceded by a save area (which
@@ -75,79 +75,81 @@ extern void system_call (struct pt_regs*);
 #define USER		0x02
 
 #define COPROCESSOR(x)							\
-{ EXCCAUSE_COPROCESSOR ## x ## _DISABLED, USER, fast_coprocessor }
+	{ EXCCAUSE_COPROCESSOR ## x ## _DISABLED, USER, fast_coprocessor }
 
-typedef struct {
+typedef struct
+{
 	int cause;
 	int fast;
-	void* handler;
+	void *handler;
 } dispatch_init_table_t;
 
-static dispatch_init_table_t __initdata dispatch_init_table[] = {
+static dispatch_init_table_t __initdata dispatch_init_table[] =
+{
 
-{ EXCCAUSE_ILLEGAL_INSTRUCTION,	0,	   do_illegal_instruction},
-{ EXCCAUSE_SYSTEM_CALL,		KRNL,	   fast_syscall_kernel },
-{ EXCCAUSE_SYSTEM_CALL,		USER,	   fast_syscall_user },
-{ EXCCAUSE_SYSTEM_CALL,		0,	   system_call },
-/* EXCCAUSE_INSTRUCTION_FETCH unhandled */
-/* EXCCAUSE_LOAD_STORE_ERROR unhandled*/
-{ EXCCAUSE_LEVEL1_INTERRUPT,	0,	   do_interrupt },
-{ EXCCAUSE_ALLOCA,		USER|KRNL, fast_alloca },
-/* EXCCAUSE_INTEGER_DIVIDE_BY_ZERO unhandled */
-/* EXCCAUSE_PRIVILEGED unhandled */
+	{ EXCCAUSE_ILLEGAL_INSTRUCTION,	0,	   do_illegal_instruction},
+	{ EXCCAUSE_SYSTEM_CALL,		KRNL,	   fast_syscall_kernel },
+	{ EXCCAUSE_SYSTEM_CALL,		USER,	   fast_syscall_user },
+	{ EXCCAUSE_SYSTEM_CALL,		0,	   system_call },
+	/* EXCCAUSE_INSTRUCTION_FETCH unhandled */
+	/* EXCCAUSE_LOAD_STORE_ERROR unhandled*/
+	{ EXCCAUSE_LEVEL1_INTERRUPT,	0,	   do_interrupt },
+	{ EXCCAUSE_ALLOCA,		USER | KRNL, fast_alloca },
+	/* EXCCAUSE_INTEGER_DIVIDE_BY_ZERO unhandled */
+	/* EXCCAUSE_PRIVILEGED unhandled */
 #if XCHAL_UNALIGNED_LOAD_EXCEPTION || XCHAL_UNALIGNED_STORE_EXCEPTION
 #ifdef CONFIG_XTENSA_UNALIGNED_USER
-{ EXCCAUSE_UNALIGNED,		USER,	   fast_unaligned },
+	{ EXCCAUSE_UNALIGNED,		USER,	   fast_unaligned },
 #endif
-{ EXCCAUSE_UNALIGNED,		0,	   do_unaligned_user },
-{ EXCCAUSE_UNALIGNED,		KRNL,	   fast_unaligned },
+	{ EXCCAUSE_UNALIGNED,		0,	   do_unaligned_user },
+	{ EXCCAUSE_UNALIGNED,		KRNL,	   fast_unaligned },
 #endif
 #ifdef CONFIG_MMU
-{ EXCCAUSE_ITLB_MISS,		0,	   do_page_fault },
-{ EXCCAUSE_ITLB_MISS,		USER|KRNL, fast_second_level_miss},
-{ EXCCAUSE_ITLB_MULTIHIT,		0,	   do_multihit },
-{ EXCCAUSE_ITLB_PRIVILEGE,	0,	   do_page_fault },
-/* EXCCAUSE_SIZE_RESTRICTION unhandled */
-{ EXCCAUSE_FETCH_CACHE_ATTRIBUTE,	0,	   do_page_fault },
-{ EXCCAUSE_DTLB_MISS,		USER|KRNL, fast_second_level_miss},
-{ EXCCAUSE_DTLB_MISS,		0,	   do_page_fault },
-{ EXCCAUSE_DTLB_MULTIHIT,		0,	   do_multihit },
-{ EXCCAUSE_DTLB_PRIVILEGE,	0,	   do_page_fault },
-/* EXCCAUSE_DTLB_SIZE_RESTRICTION unhandled */
-{ EXCCAUSE_STORE_CACHE_ATTRIBUTE,	USER|KRNL, fast_store_prohibited },
-{ EXCCAUSE_STORE_CACHE_ATTRIBUTE,	0,	   do_page_fault },
-{ EXCCAUSE_LOAD_CACHE_ATTRIBUTE,	0,	   do_page_fault },
+	{ EXCCAUSE_ITLB_MISS,		0,	   do_page_fault },
+	{ EXCCAUSE_ITLB_MISS,		USER | KRNL, fast_second_level_miss},
+	{ EXCCAUSE_ITLB_MULTIHIT,		0,	   do_multihit },
+	{ EXCCAUSE_ITLB_PRIVILEGE,	0,	   do_page_fault },
+	/* EXCCAUSE_SIZE_RESTRICTION unhandled */
+	{ EXCCAUSE_FETCH_CACHE_ATTRIBUTE,	0,	   do_page_fault },
+	{ EXCCAUSE_DTLB_MISS,		USER | KRNL, fast_second_level_miss},
+	{ EXCCAUSE_DTLB_MISS,		0,	   do_page_fault },
+	{ EXCCAUSE_DTLB_MULTIHIT,		0,	   do_multihit },
+	{ EXCCAUSE_DTLB_PRIVILEGE,	0,	   do_page_fault },
+	/* EXCCAUSE_DTLB_SIZE_RESTRICTION unhandled */
+	{ EXCCAUSE_STORE_CACHE_ATTRIBUTE,	USER | KRNL, fast_store_prohibited },
+	{ EXCCAUSE_STORE_CACHE_ATTRIBUTE,	0,	   do_page_fault },
+	{ EXCCAUSE_LOAD_CACHE_ATTRIBUTE,	0,	   do_page_fault },
 #endif /* CONFIG_MMU */
-/* XCCHAL_EXCCAUSE_FLOATING_POINT unhandled */
+	/* XCCHAL_EXCCAUSE_FLOATING_POINT unhandled */
 #if XTENSA_HAVE_COPROCESSOR(0)
-COPROCESSOR(0),
+	COPROCESSOR(0),
 #endif
 #if XTENSA_HAVE_COPROCESSOR(1)
-COPROCESSOR(1),
+	COPROCESSOR(1),
 #endif
 #if XTENSA_HAVE_COPROCESSOR(2)
-COPROCESSOR(2),
+	COPROCESSOR(2),
 #endif
 #if XTENSA_HAVE_COPROCESSOR(3)
-COPROCESSOR(3),
+	COPROCESSOR(3),
 #endif
 #if XTENSA_HAVE_COPROCESSOR(4)
-COPROCESSOR(4),
+	COPROCESSOR(4),
 #endif
 #if XTENSA_HAVE_COPROCESSOR(5)
-COPROCESSOR(5),
+	COPROCESSOR(5),
 #endif
 #if XTENSA_HAVE_COPROCESSOR(6)
-COPROCESSOR(6),
+	COPROCESSOR(6),
 #endif
 #if XTENSA_HAVE_COPROCESSOR(7)
-COPROCESSOR(7),
+	COPROCESSOR(7),
 #endif
 #if XTENSA_FAKE_NMI
-{ EXCCAUSE_MAPPED_NMI,			0,		do_nmi },
+	{ EXCCAUSE_MAPPED_NMI,			0,		do_nmi },
 #endif
-{ EXCCAUSE_MAPPED_DEBUG,		0,		do_debug },
-{ -1, -1, 0 }
+	{ EXCCAUSE_MAPPED_DEBUG,		0,		do_debug },
+	{ -1, -1, 0 }
 
 };
 
@@ -156,17 +158,19 @@ COPROCESSOR(7),
  * 2. it is a temporary memory buffer for the exception handlers.
  */
 
-DEFINE_PER_CPU(unsigned long, exc_table[EXC_TABLE_SIZE/4]);
+DEFINE_PER_CPU(unsigned long, exc_table[EXC_TABLE_SIZE / 4]);
 
 DEFINE_PER_CPU(struct debug_table, debug_table);
 
-void die(const char*, struct pt_regs*, long);
+void die(const char *, struct pt_regs *, long);
 
 static inline void
 __die_if_kernel(const char *str, struct pt_regs *regs, long err)
 {
 	if (!user_mode(regs))
+	{
 		die(str, regs, err);
+	}
 }
 
 /*
@@ -176,13 +180,13 @@ __die_if_kernel(const char *str, struct pt_regs *regs, long err)
 void do_unhandled(struct pt_regs *regs, unsigned long exccause)
 {
 	__die_if_kernel("Caught unhandled exception - should not happen",
-	    		regs, SIGKILL);
+					regs, SIGKILL);
 
 	/* If in user mode, send SIGILL signal to current process */
 	printk("Caught unhandled exception in '%s' "
-	       "(pid = %d, pc = %#010lx) - should not happen\n"
-	       "\tEXCCAUSE is %ld\n",
-	       current->comm, task_pid_nr(current), regs->pc, exccause);
+		   "(pid = %d, pc = %#010lx) - should not happen\n"
+		   "\tEXCCAUSE is %ld\n",
+		   current->comm, task_pid_nr(current), regs->pc, exccause);
 	force_sig(SIGILL, current);
 }
 
@@ -216,9 +220,9 @@ static inline void check_valid_nmi(void)
 	unsigned intenable = get_sr(intenable);
 
 	BUG_ON(intread & intenable &
-	       ~(XTENSA_INTLEVEL_ANDBELOW_MASK(PROFILING_INTLEVEL) ^
-		 XTENSA_INTLEVEL_MASK(PROFILING_INTLEVEL) ^
-		 BIT(XCHAL_PROFILING_INTERRUPT)));
+		   ~(XTENSA_INTLEVEL_ANDBELOW_MASK(PROFILING_INTLEVEL) ^
+			 XTENSA_INTLEVEL_MASK(PROFILING_INTLEVEL) ^
+			 BIT(XCHAL_PROFILING_INTERRUPT)));
 }
 
 #else
@@ -238,7 +242,9 @@ void do_nmi(struct pt_regs *regs)
 	struct pt_regs *old_regs;
 
 	if ((regs->ps & PS_INTLEVEL_MASK) < LOCKLEVEL)
+	{
 		trace_hardirqs_off();
+	}
 
 	old_regs = set_irq_regs(regs);
 	nmi_enter();
@@ -252,7 +258,8 @@ void do_nmi(struct pt_regs *regs)
 
 void do_interrupt(struct pt_regs *regs)
 {
-	static const unsigned int_level_mask[] = {
+	static const unsigned int_level_mask[] =
+	{
 		0,
 		XCHAL_INTLEVEL1_MASK,
 		XCHAL_INTLEVEL2_MASK,
@@ -269,21 +276,26 @@ void do_interrupt(struct pt_regs *regs)
 	old_regs = set_irq_regs(regs);
 	irq_enter();
 
-	for (;;) {
+	for (;;)
+	{
 		unsigned intread = get_sr(interrupt);
 		unsigned intenable = get_sr(intenable);
 		unsigned int_at_level = intread & intenable;
 		unsigned level;
 
-		for (level = LOCKLEVEL; level > 0; --level) {
-			if (int_at_level & int_level_mask[level]) {
+		for (level = LOCKLEVEL; level > 0; --level)
+		{
+			if (int_at_level & int_level_mask[level])
+			{
 				int_at_level &= int_level_mask[level];
 				break;
 			}
 		}
 
 		if (level == 0)
+		{
 			break;
+		}
 
 		do_IRQ(__ffs(int_at_level), regs);
 	}
@@ -304,7 +316,7 @@ do_illegal_instruction(struct pt_regs *regs)
 	/* If in user mode, send SIGILL signal to current process. */
 
 	printk("Illegal Instruction in '%s' (pid = %d, pc = %#010lx)\n",
-	    current->comm, task_pid_nr(current), regs->pc);
+		   current->comm, task_pid_nr(current), regs->pc);
 	force_sig(SIGILL, current);
 }
 
@@ -323,13 +335,13 @@ do_unaligned_user (struct pt_regs *regs)
 	siginfo_t info;
 
 	__die_if_kernel("Unhandled unaligned exception in kernel",
-	    		regs, SIGKILL);
+					regs, SIGKILL);
 
 	current->thread.bad_vaddr = regs->excvaddr;
 	current->thread.error_code = -3;
 	printk("Unaligned memory access to %08lx in '%s' "
-	       "(pid = %d, pc = %#010lx)\n",
-	       regs->excvaddr, current->comm, task_pid_nr(current), regs->pc);
+		   "(pid = %d, pc = %#010lx)\n",
+		   regs->excvaddr, current->comm, task_pid_nr(current), regs->pc);
 	info.si_signo = SIGBUS;
 	info.si_errno = 0;
 	info.si_code = BUS_ADRALN;
@@ -352,8 +364,12 @@ do_debug(struct pt_regs *regs)
 	int ret = check_hw_breakpoint(regs);
 
 	preempt_enable();
+
 	if (ret == 0)
+	{
 		return;
+	}
+
 #endif
 	__die_if_kernel("Breakpoint in kernel", regs, SIGKILL);
 
@@ -368,15 +384,15 @@ static void set_handler(int idx, void *handler)
 	unsigned int cpu;
 
 	for_each_possible_cpu(cpu)
-		per_cpu(exc_table, cpu)[idx] = (unsigned long)handler;
+	per_cpu(exc_table, cpu)[idx] = (unsigned long)handler;
 }
 
 /* Set exception C handler - for temporary use when probing exceptions */
 
-void * __init trap_set_handler(int cause, void *handler)
+void *__init trap_set_handler(int cause, void *handler)
 {
 	void *previous = (void *)per_cpu(exc_table, 0)[
-		EXC_TABLE_DEFAULT / 4 + cause];
+						 EXC_TABLE_DEFAULT / 4 + cause];
 	set_handler(EXC_TABLE_DEFAULT / 4 + cause, handler);
 	return previous;
 }
@@ -394,7 +410,7 @@ static void trap_init_debug(void)
 
 	this_cpu_ptr(&debug_table)->debug_exception = debug_exception;
 	__asm__ __volatile__("wsr %0, excsave" __stringify(XCHAL_DEBUGLEVEL)
-			     :: "a"(debugsave));
+						 :: "a"(debugsave));
 }
 
 /*
@@ -416,26 +432,36 @@ void __init trap_init(void)
 
 	/* Setup default vectors. */
 
-	for(i = 0; i < 64; i++) {
-		set_handler(EXC_TABLE_FAST_USER/4   + i, user_exception);
-		set_handler(EXC_TABLE_FAST_KERNEL/4 + i, kernel_exception);
-		set_handler(EXC_TABLE_DEFAULT/4 + i, do_unhandled);
+	for (i = 0; i < 64; i++)
+	{
+		set_handler(EXC_TABLE_FAST_USER / 4   + i, user_exception);
+		set_handler(EXC_TABLE_FAST_KERNEL / 4 + i, kernel_exception);
+		set_handler(EXC_TABLE_DEFAULT / 4 + i, do_unhandled);
 	}
 
 	/* Setup specific handlers. */
 
-	for(i = 0; dispatch_init_table[i].cause >= 0; i++) {
+	for (i = 0; dispatch_init_table[i].cause >= 0; i++)
+	{
 
 		int fast = dispatch_init_table[i].fast;
 		int cause = dispatch_init_table[i].cause;
 		void *handler = dispatch_init_table[i].handler;
 
 		if (fast == 0)
-			set_handler (EXC_TABLE_DEFAULT/4 + cause, handler);
+		{
+			set_handler (EXC_TABLE_DEFAULT / 4 + cause, handler);
+		}
+
 		if (fast && fast & USER)
-			set_handler (EXC_TABLE_FAST_USER/4 + cause, handler);
+		{
+			set_handler (EXC_TABLE_FAST_USER / 4 + cause, handler);
+		}
+
 		if (fast && fast & KRNL)
-			set_handler (EXC_TABLE_FAST_KERNEL/4 + cause, handler);
+		{
+			set_handler (EXC_TABLE_FAST_KERNEL / 4 + cause, handler);
+		}
 	}
 
 	/* Initialize EXCSAVE_1 to hold the address of the exception table. */
@@ -455,7 +481,7 @@ void secondary_trap_init(void)
  * This function dumps the current valid window frame and other base registers.
  */
 
-void show_regs(struct pt_regs * regs)
+void show_regs(struct pt_regs *regs)
 {
 	int i, wmask;
 
@@ -463,35 +489,45 @@ void show_regs(struct pt_regs * regs)
 
 	wmask = regs->wmask & ~1;
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		if ((i % 8) == 0)
+		{
 			pr_info("a%02d:", i);
+		}
+
 		pr_cont(" %08lx", regs->areg[i]);
 	}
+
 	pr_cont("\n");
 	pr_info("pc: %08lx, ps: %08lx, depc: %08lx, excvaddr: %08lx\n",
-		regs->pc, regs->ps, regs->depc, regs->excvaddr);
+			regs->pc, regs->ps, regs->depc, regs->excvaddr);
 	pr_info("lbeg: %08lx, lend: %08lx lcount: %08lx, sar: %08lx\n",
-		regs->lbeg, regs->lend, regs->lcount, regs->sar);
+			regs->lbeg, regs->lend, regs->lcount, regs->sar);
+
 	if (user_mode(regs))
 		pr_cont("wb: %08lx, ws: %08lx, wmask: %08lx, syscall: %ld\n",
-			regs->windowbase, regs->windowstart, regs->wmask,
-			regs->syscall);
+				regs->windowbase, regs->windowstart, regs->wmask,
+				regs->syscall);
 }
 
 static int show_trace_cb(struct stackframe *frame, void *data)
 {
-	if (kernel_text_address(frame->pc)) {
+	if (kernel_text_address(frame->pc))
+	{
 		pr_cont(" [<%08lx>]", frame->pc);
 		print_symbol(" %s\n", frame->pc);
 	}
+
 	return 0;
 }
 
 void show_trace(struct task_struct *task, unsigned long *sp)
 {
 	if (!sp)
+	{
 		sp = stack_pointer(task);
+	}
 
 	pr_info("Call Trace:\n");
 	walk_stackframe(sp, show_trace_cb, NULL);
@@ -508,24 +544,35 @@ void show_stack(struct task_struct *task, unsigned long *sp)
 	unsigned long *stack;
 
 	if (!sp)
+	{
 		sp = stack_pointer(task);
+	}
+
 	stack = sp;
 
 	pr_info("Stack:\n");
 
-	for (i = 0; i < kstack_depth_to_print; i++) {
+	for (i = 0; i < kstack_depth_to_print; i++)
+	{
 		if (kstack_end(sp))
+		{
 			break;
+		}
+
 		pr_cont(" %08lx", *sp++);
+
 		if (i % 8 == 7)
+		{
 			pr_cont("\n");
+		}
 	}
+
 	show_trace(task, stack);
 }
 
 DEFINE_SPINLOCK(die_lock);
 
-void die(const char * str, struct pt_regs * regs, long err)
+void die(const char *str, struct pt_regs *regs, long err)
 {
 	static int die_counter;
 
@@ -533,19 +580,26 @@ void die(const char * str, struct pt_regs * regs, long err)
 	spin_lock_irq(&die_lock);
 
 	pr_info("%s: sig: %ld [#%d]%s\n", str, err, ++die_counter,
-		IS_ENABLED(CONFIG_PREEMPT) ? " PREEMPT" : "");
+			IS_ENABLED(CONFIG_PREEMPT) ? " PREEMPT" : "");
 	show_regs(regs);
+
 	if (!user_mode(regs))
-		show_stack(NULL, (unsigned long*)regs->areg[1]);
+	{
+		show_stack(NULL, (unsigned long *)regs->areg[1]);
+	}
 
 	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
 	spin_unlock_irq(&die_lock);
 
 	if (in_interrupt())
+	{
 		panic("Fatal exception in interrupt");
+	}
 
 	if (panic_on_oops)
+	{
 		panic("Fatal exception");
+	}
 
 	do_exit(err);
 }

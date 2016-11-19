@@ -2,7 +2,7 @@
  *  Machine specific calibrate_tsc() for generic.
  *  Split out from timer_tsc.c by Osamu Tomita <tomita@cinet.co.jp>
  */
-/* ------ Calibrate the TSC ------- 
+/* ------ Calibrate the TSC -------
  * Return 2^32 * (1 / (TSC clocks per usec)) for do_fast_gettimeoffset().
  * Too much 64-bit arithmetic here to do this cleanly in C, and for
  * accuracy's sake we want to keep the overhead on the CTC speaker (channel 2)
@@ -19,7 +19,7 @@
 
 static inline void mach_prepare_counter(void)
 {
-       /* Set the Gate high, disable speaker */
+	/* Set the Gate high, disable speaker */
 	outb((inb(0x61) & ~0x02) | 0x01, 0x61);
 
 	/*
@@ -39,9 +39,13 @@ static inline void mach_prepare_counter(void)
 static inline void mach_countup(unsigned long *count_p)
 {
 	unsigned long count = 0;
-	do {
+
+	do
+	{
 		count++;
-	} while ((inb_p(0x61) & 0x20) == 0);
+	}
+	while ((inb_p(0x61) & 0x20) == 0);
+
 	*count_p = count;
 }
 

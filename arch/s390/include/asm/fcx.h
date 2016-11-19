@@ -33,24 +33,25 @@
  * @input_count: Input Count
  * @intrg: Interrogate TCW Address
  */
-struct tcw {
-	u32 format:2;
-	u32 :6;
-	u32 flags:24;
-	u32 :8;
-	u32 tccbl:6;
-	u32 r:1;
-	u32 w:1;
-	u32 :16;
+struct tcw
+{
+	u32 format: 2;
+	u32 : 6;
+	u32 flags: 24;
+	u32 : 8;
+	u32 tccbl: 6;
+	u32 r: 1;
+	u32 w: 1;
+	u32 : 16;
 	u64 output;
 	u64 input;
 	u64 tsb;
 	u64 tccb;
 	u32 output_count;
 	u32 input_count;
-	u32 :32;
-	u32 :32;
-	u32 :32;
+	u32 : 32;
+	u32 : 32;
+	u32 : 32;
 	u32 intrg;
 } __attribute__ ((packed, aligned(64)));
 
@@ -68,9 +69,10 @@ struct tcw {
  * @count: Count
  * @addr: Address
  */
-struct tidaw {
-	u32 flags:8;
-	u32 :24;
+struct tidaw
+{
+	u32 flags: 8;
+	u32 : 24;
 	u32 count;
 	u64 addr;
 } __attribute__ ((packed, aligned(16)));
@@ -84,7 +86,8 @@ struct tidaw {
  * @dev_act_time: Device-Active-Only Time
  * @sense: Sense Data (if present)
  */
-struct tsa_iostat {
+struct tsa_iostat
+{
 	u32 dev_time;
 	u32 def_time;
 	u32 queue_time;
@@ -99,9 +102,10 @@ struct tsa_iostat {
  * @rcq: Reason Code Qualifier
  * @sense: Sense Data (if present)
  */
-struct tsa_ddpc {
-	u32 :24;
-	u32 rc:8;
+struct tsa_ddpc
+{
+	u32 : 24;
+	u32 rc: 8;
 	u8 rcq[16];
 	u8 sense[32];
 } __attribute__ ((packed));
@@ -123,13 +127,14 @@ struct tsa_ddpc {
  * @dl_id: Device-Level Identifier
  * @dd_data: Device-Dependent Data
  */
-struct tsa_intrg {
-	u32 format:8;
-	u32 flags:8;
-	u32 cu_state:8;
-	u32 dev_state:8;
-	u32 op_state:8;
-	u32 :24;
+struct tsa_intrg
+{
+	u32 format: 8;
+	u32 flags: 8;
+	u32 cu_state: 8;
+	u32 dev_state: 8;
+	u32 op_state: 8;
+	u32 : 24;
 	u8 sd_info[12];
 	u32 dl_id;
 	u8 dd_data[28];
@@ -157,13 +162,15 @@ struct tsa_intrg {
  * @count: Count
  * @tsa: Transport-Status-Area
  */
-struct tsb {
-	u32 length:8;
-	u32 flags:8;
-	u32 dcw_offset:16;
+struct tsb
+{
+	u32 length: 8;
+	u32 flags: 8;
+	u32 dcw_offset: 16;
 	u32 count;
-	u32 :32;
-	union {
+	u32 : 32;
+	union
+	{
 		struct tsa_iostat iostat;
 		struct tsa_ddpc ddpc;
 		struct tsa_intrg intrg;
@@ -200,17 +207,18 @@ struct tsb {
  * @prog_id: Program Identifier
  * @prog_data: Program-Dependent Data
  */
-struct dcw_intrg_data {
-	u32 format:8;
-	u32 rc:8;
-	u32 rcq:8;
-	u32 lpm:8;
-	u32 pam:8;
-	u32 pim:8;
-	u32 timeout:16;
-	u32 flags:8;
-	u32 :24;
-	u32 :32;
+struct dcw_intrg_data
+{
+	u32 format: 8;
+	u32 rc: 8;
+	u32 rcq: 8;
+	u32 lpm: 8;
+	u32 pam: 8;
+	u32 pim: 8;
+	u32 timeout: 16;
+	u32 flags: 8;
+	u32 : 24;
+	u32 : 32;
 	u64 time;
 	u64 prog_id;
 	u8  prog_data[0];
@@ -234,11 +242,12 @@ struct dcw_intrg_data {
  * @count: Count
  * @cd: Control Data
  */
-struct dcw {
-	u32 cmd:8;
-	u32 flags:8;
-	u32 :8;
-	u32 cd_count:8;
+struct dcw
+{
+	u32 cmd: 8;
+	u32 flags: 8;
+	u32 : 8;
+	u32 cd_count: 8;
 	u32 count;
 	u8 cd[0];
 } __attribute__ ((packed));
@@ -246,8 +255,8 @@ struct dcw {
 #define TCCB_FORMAT_DEFAULT	0x7f
 #define TCCB_MAX_DCW		30
 #define TCCB_MAX_SIZE		(sizeof(struct tccb_tcah) + \
-				 TCCB_MAX_DCW * sizeof(struct dcw) + \
-				 sizeof(struct tccb_tcat))
+							 TCCB_MAX_DCW * sizeof(struct dcw) + \
+							 sizeof(struct tccb_tcat))
 #define TCCB_SAC_DEFAULT	0x1ffe
 #define TCCB_SAC_INTRG		0x1fff
 
@@ -258,23 +267,25 @@ struct dcw {
  * @sac: Service-Action Code. Can be one of %TCCB_SAC_DEFAULT, %TCCB_SAC_INTRG
  * @prio: Priority
  */
-struct tccb_tcah {
-	u32 format:8;
-	u32 :24;
-	u32 :24;
-	u32 tcal:8;
-	u32 sac:16;
-	u32 :8;
-	u32 prio:8;
-	u32 :32;
+struct tccb_tcah
+{
+	u32 format: 8;
+	u32 : 24;
+	u32 : 24;
+	u32 tcal: 8;
+	u32 sac: 16;
+	u32 : 8;
+	u32 prio: 8;
+	u32 : 32;
 } __attribute__ ((packed));
 
 /**
  * struct tccb_tcat - Transport-Command-Area Trailer (TCAT)
  * @count: Transport Count
  */
-struct tccb_tcat {
-	u32 :32;
+struct tccb_tcat
+{
+	u32 : 32;
 	u32 count;
 } __attribute__ ((packed));
 
@@ -283,7 +294,8 @@ struct tccb_tcat {
  * @tcah: TCAH
  * @tca: Transport-Command Area
  */
-struct tccb {
+struct tccb
+{
 	struct tccb_tcah tcah;
 	u8 tca[0];
 } __attribute__ ((packed, aligned(8)));
@@ -304,8 +316,8 @@ void tcw_set_tsb(struct tcw *tcw, struct tsb *tsb);
 void tccb_init(struct tccb *tccb, size_t tccb_size, u32 sac);
 void tsb_init(struct tsb *tsb);
 struct dcw *tccb_add_dcw(struct tccb *tccb, size_t tccb_size, u8 cmd, u8 flags,
-			 void *cd, u8 cd_count, u32 count);
+						 void *cd, u8 cd_count, u32 count);
 struct tidaw *tcw_add_tidaw(struct tcw *tcw, int num_tidaws, u8 flags,
-			    void *addr, u32 count);
+							void *addr, u32 count);
 
 #endif /* _ASM_S390_FCX_H */

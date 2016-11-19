@@ -24,11 +24,11 @@
 
 /* PAGE_SHIFT determines the page size */
 #if defined(CONFIG_MICROBLAZE_64K_PAGES)
-#define PAGE_SHIFT		16
+	#define PAGE_SHIFT		16
 #elif defined(CONFIG_MICROBLAZE_16K_PAGES)
-#define PAGE_SHIFT		14
+	#define PAGE_SHIFT		14
 #else
-#define PAGE_SHIFT		12
+	#define PAGE_SHIFT		12
 #endif
 #define PAGE_SIZE	(ASM_CONST(1) << PAGE_SHIFT)
 #define PAGE_MASK	(~(PAGE_SIZE-1))
@@ -48,30 +48,30 @@
 #define PAGE_DOWN(addr)	((addr)&(~((PAGE_SIZE)-1)))
 
 #ifndef CONFIG_MMU
-/*
- * PAGE_OFFSET -- the first address of the first page of memory. When not
- * using MMU this corresponds to the first free page in physical memory (aligned
- * on a page boundary).
- */
-extern unsigned int __page_offset;
-#define PAGE_OFFSET __page_offset
+	/*
+	* PAGE_OFFSET -- the first address of the first page of memory. When not
+	* using MMU this corresponds to the first free page in physical memory (aligned
+	* on a page boundary).
+	*/
+	extern unsigned int __page_offset;
+	#define PAGE_OFFSET __page_offset
 
 #else /* CONFIG_MMU */
 
-/*
- * PAGE_OFFSET -- the first address of the first page of memory. With MMU
- * it is set to the kernel start address (aligned on a page boundary).
- *
- * CONFIG_KERNEL_START is defined in arch/microblaze/config.in and used
- * in arch/microblaze/Makefile.
- */
-#define PAGE_OFFSET	CONFIG_KERNEL_START
+	/*
+	* PAGE_OFFSET -- the first address of the first page of memory. With MMU
+	* it is set to the kernel start address (aligned on a page boundary).
+	*
+	* CONFIG_KERNEL_START is defined in arch/microblaze/config.in and used
+	* in arch/microblaze/Makefile.
+	*/
+	#define PAGE_OFFSET	CONFIG_KERNEL_START
 
-/*
- * The basic type of a PTE - 32 bit physical addressing.
- */
-typedef unsigned long pte_basic_t;
-#define PTE_FMT		"%.8lx"
+	/*
+	* The basic type of a PTE - 32 bit physical addressing.
+	*/
+	typedef unsigned long pte_basic_t;
+	#define PTE_FMT		"%.8lx"
 
 #endif /* CONFIG_MMU */
 
@@ -80,7 +80,7 @@ typedef unsigned long pte_basic_t;
 
 # define clear_user_page(pgaddr, vaddr, page)	memset((pgaddr), 0, PAGE_SIZE)
 # define copy_user_page(vto, vfrom, vaddr, topg) \
-			memcpy((vto), (vfrom), PAGE_SIZE)
+	memcpy((vto), (vfrom), PAGE_SIZE)
 
 /*
  * These are used to make use of C type-checking..
@@ -101,14 +101,14 @@ typedef struct { pud_t		pge[1]; }	pgd_t;
 # define pte_val(x)	((x).pte)
 # define pgprot_val(x)	((x).pgprot)
 
-#   ifdef CONFIG_MMU
-#   define pmd_val(x)      ((x).pmd)
-#   define pgd_val(x)      ((x).pgd)
-#   else  /* CONFIG_MMU */
-#   define pmd_val(x)	((x).ste[0])
-#   define pud_val(x)	((x).pue[0])
-#   define pgd_val(x)	((x).pge[0])
-#   endif  /* CONFIG_MMU */
+#ifdef CONFIG_MMU
+	#define pmd_val(x)      ((x).pmd)
+	#define pgd_val(x)      ((x).pgd)
+#else  /* CONFIG_MMU */
+	#define pmd_val(x)	((x).ste[0])
+	#define pud_val(x)	((x).pue[0])
+	#define pgd_val(x)	((x).pge[0])
+#endif  /* CONFIG_MMU */
 
 # define __pte(x)	((pte_t) { (x) })
 # define __pmd(x)	((pmd_t) { (x) })
@@ -147,23 +147,23 @@ extern int page_is_ram(unsigned long pfn);
 # define virt_to_pfn(vaddr)	(phys_to_pfn((__pa(vaddr))))
 # define pfn_to_virt(pfn)	__va(pfn_to_phys((pfn)))
 
-#  ifdef CONFIG_MMU
+#ifdef CONFIG_MMU
 
-#  define virt_to_page(kaddr)	(pfn_to_page(__pa(kaddr) >> PAGE_SHIFT))
-#  define page_to_virt(page)   __va(page_to_pfn(page) << PAGE_SHIFT)
-#  define page_to_phys(page)     (page_to_pfn(page) << PAGE_SHIFT)
+	#define virt_to_page(kaddr)	(pfn_to_page(__pa(kaddr) >> PAGE_SHIFT))
+	#define page_to_virt(page)   __va(page_to_pfn(page) << PAGE_SHIFT)
+	#define page_to_phys(page)     (page_to_pfn(page) << PAGE_SHIFT)
 
-#  else /* CONFIG_MMU */
-#  define virt_to_page(vaddr)	(pfn_to_page(virt_to_pfn(vaddr)))
-#  define page_to_virt(page)	(pfn_to_virt(page_to_pfn(page)))
-#  define page_to_phys(page)	(pfn_to_phys(page_to_pfn(page)))
-#  define page_to_bus(page)	(page_to_phys(page))
-#  define phys_to_page(paddr)	(pfn_to_page(phys_to_pfn(paddr)))
-#  endif /* CONFIG_MMU */
+#else /* CONFIG_MMU */
+	#define virt_to_page(vaddr)	(pfn_to_page(virt_to_pfn(vaddr)))
+	#define page_to_virt(page)	(pfn_to_virt(page_to_pfn(page)))
+	#define page_to_phys(page)	(pfn_to_phys(page_to_pfn(page)))
+	#define page_to_bus(page)	(page_to_phys(page))
+	#define phys_to_page(paddr)	(pfn_to_page(phys_to_pfn(paddr)))
+#endif /* CONFIG_MMU */
 
 #  ifndef CONFIG_MMU
 #  define pfn_valid(pfn)	(((pfn) >= min_low_pfn) && \
-				((pfn) <= (min_low_pfn + max_mapnr)))
+							 ((pfn) <= (min_low_pfn + max_mapnr)))
 #  define ARCH_PFN_OFFSET	(PAGE_OFFSET >> PAGE_SHIFT)
 #  else /* CONFIG_MMU */
 #  define ARCH_PFN_OFFSET	(memory_start >> PAGE_SHIFT)
@@ -200,7 +200,7 @@ extern int page_is_ram(unsigned long pfn);
 #ifdef CONFIG_MMU
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 #endif /* CONFIG_MMU */
 
 #endif /* __KERNEL__ */

@@ -53,10 +53,16 @@ static void rtc_cycle_clock(unsigned long data)
 	data |= ds1603->clk;
 	rtc_reg_write(data);
 	lasat_ndelay(250);
+
 	if (ds1603->data_reversed)
+	{
 		data &= ~ds1603->data;
+	}
 	else
+	{
 		data |= ds1603->data;
+	}
+
 	data &= ~ds1603->clk;
 	rtc_reg_write(data);
 	lasat_ndelay(250 + ds1603->huge_delay);
@@ -65,12 +71,20 @@ static void rtc_cycle_clock(unsigned long data)
 static void rtc_write_databit(unsigned int bit)
 {
 	unsigned long data = rtc_reg_read();
+
 	if (ds1603->data_reversed)
+	{
 		bit = !bit;
+	}
+
 	if (bit)
+	{
 		data |= ds1603->data;
+	}
 	else
+	{
 		data &= ~ds1603->data;
+	}
 
 	rtc_reg_write(data);
 	lasat_ndelay(50 + ds1603->huge_delay);
@@ -82,7 +96,7 @@ static unsigned int rtc_read_databit(void)
 	unsigned int data;
 
 	data = (rtc_datareg_read() & (1 << ds1603->data_read_shift))
-		>> ds1603->data_read_shift;
+		   >> ds1603->data_read_shift;
 	rtc_cycle_clock(rtc_reg_read());
 	return data;
 }
@@ -91,7 +105,8 @@ static void rtc_write_byte(unsigned int byte)
 {
 	int i;
 
-	for (i = 0; i <= 7; i++) {
+	for (i = 0; i <= 7; i++)
+	{
 		rtc_write_databit(byte & 1L);
 		byte >>= 1;
 	}
@@ -101,7 +116,8 @@ static void rtc_write_word(unsigned long word)
 {
 	int i;
 
-	for (i = 0; i <= 31; i++) {
+	for (i = 0; i <= 31; i++)
+	{
 		rtc_write_databit(word & 1L);
 		word >>= 1;
 	}
@@ -113,10 +129,12 @@ static unsigned long rtc_read_word(void)
 	unsigned long word = 0;
 	unsigned long shift = 0;
 
-	for (i = 0; i <= 31; i++) {
+	for (i = 0; i <= 31; i++)
+	{
 		word |= rtc_read_databit() << shift;
 		shift++;
 	}
+
 	return word;
 }
 
@@ -169,7 +187,7 @@ void ds1603_set_trimmer(unsigned int trimval)
 {
 	rtc_init_op();
 	rtc_write_byte(((trimval << TRIMMER_SHIFT) & TRIMMER_VALUE_MASK)
-			| (TRIMMER_SET_CMD));
+				   | (TRIMMER_SET_CMD));
 	rtc_end_op();
 }
 

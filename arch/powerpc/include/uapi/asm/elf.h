@@ -108,28 +108,28 @@ typedef elf_gregset_t32 compat_elf_gregset_t;
  * ELF_ARCH, CLASS, and DATA are used to set parameters in the core dumps.
  */
 #ifdef __powerpc64__
-# define ELF_NVRREG32	33	/* includes vscr & vrsave stuffed together */
-# define ELF_NVRREG	34	/* includes vscr & vrsave in split vectors */
-# define ELF_NVSRHALFREG 32	/* Half the vsx registers */
-# define ELF_GREG_TYPE	elf_greg_t64
-# define ELF_ARCH	EM_PPC64
-# define ELF_CLASS	ELFCLASS64
-typedef elf_greg_t64 elf_greg_t;
-typedef elf_gregset_t64 elf_gregset_t;
+	#define ELF_NVRREG32	33	/* includes vscr & vrsave stuffed together */
+	#define ELF_NVRREG	34	/* includes vscr & vrsave in split vectors */
+	#define ELF_NVSRHALFREG 32	/* Half the vsx registers */
+	#define ELF_GREG_TYPE	elf_greg_t64
+	#define ELF_ARCH	EM_PPC64
+	#define ELF_CLASS	ELFCLASS64
+	typedef elf_greg_t64 elf_greg_t;
+	typedef elf_gregset_t64 elf_gregset_t;
 #else
-# define ELF_NEVRREG	34	/* includes acc (as 2) */
-# define ELF_NVRREG	33	/* includes vscr */
-# define ELF_GREG_TYPE	elf_greg_t32
-# define ELF_ARCH	EM_PPC
-# define ELF_CLASS	ELFCLASS32
-typedef elf_greg_t32 elf_greg_t;
-typedef elf_gregset_t32 elf_gregset_t;
+	#define ELF_NEVRREG	34	/* includes acc (as 2) */
+	#define ELF_NVRREG	33	/* includes vscr */
+	#define ELF_GREG_TYPE	elf_greg_t32
+	#define ELF_ARCH	EM_PPC
+	#define ELF_CLASS	ELFCLASS32
+	typedef elf_greg_t32 elf_greg_t;
+	typedef elf_gregset_t32 elf_gregset_t;
 #endif /* __powerpc64__ */
 
 #ifdef __BIG_ENDIAN__
-#define ELF_DATA	ELFDATA2MSB
+	#define ELF_DATA	ELFDATA2MSB
 #else
-#define ELF_DATA	ELFDATA2LSB
+	#define ELF_DATA	ELFDATA2LSB
 #endif
 
 /* Floating point registers */
@@ -138,18 +138,18 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 
 /* Altivec registers */
 /*
- * The entries with indexes 0-31 contain the corresponding vector registers. 
- * The entry with index 32 contains the vscr as the last word (offset 12) 
- * within the quadword.  This allows the vscr to be stored as either a 
- * quadword (since it must be copied via a vector register to/from storage) 
- * or as a word.  
+ * The entries with indexes 0-31 contain the corresponding vector registers.
+ * The entry with index 32 contains the vscr as the last word (offset 12)
+ * within the quadword.  This allows the vscr to be stored as either a
+ * quadword (since it must be copied via a vector register to/from storage)
+ * or as a word.
  *
- * 64-bit kernel notes: The entry at index 33 contains the vrsave as the first  
+ * 64-bit kernel notes: The entry at index 33 contains the vrsave as the first
  * word (offset 0) within the quadword.
  *
- * This definition of the VMX state is compatible with the current PPC32 
- * ptrace interface.  This allows signal handling and ptrace to use the same 
- * structures.  This also simplifies the implementation of a bi-arch 
+ * This definition of the VMX state is compatible with the current PPC32
+ * ptrace interface.  This allows signal handling and ptrace to use the same
+ * structures.  This also simplifies the implementation of a bi-arch
  * (combined (32- and 64-bit) gdb.
  *
  * Note that it's _not_ compatible with 32 bits ucontext which stuffs the
@@ -158,8 +158,8 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 typedef __vector128 elf_vrreg_t;
 typedef elf_vrreg_t elf_vrregset_t[ELF_NVRREG];
 #ifdef __powerpc64__
-typedef elf_vrreg_t elf_vrregset_t32[ELF_NVRREG32];
-typedef elf_fpreg_t elf_vsrreghalf_t32[ELF_NVSRHALFREG];
+	typedef elf_vrreg_t elf_vrregset_t32[ELF_NVRREG32];
+	typedef elf_fpreg_t elf_vsrreghalf_t32[ELF_NVSRHALFREG];
 #endif
 
 
@@ -174,16 +174,16 @@ typedef elf_fpreg_t elf_vsrreghalf_t32[ELF_NVSRHALFREG];
  * update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes
  */
 #define ARCH_DLINFO							\
-do {									\
-	/* Handle glibc compatibility. */				\
-	NEW_AUX_ENT(AT_IGNOREPPC, AT_IGNOREPPC);			\
-	NEW_AUX_ENT(AT_IGNOREPPC, AT_IGNOREPPC);			\
-	/* Cache size items */						\
-	NEW_AUX_ENT(AT_DCACHEBSIZE, dcache_bsize);			\
-	NEW_AUX_ENT(AT_ICACHEBSIZE, icache_bsize);			\
-	NEW_AUX_ENT(AT_UCACHEBSIZE, ucache_bsize);			\
-	VDSO_AUX_ENT(AT_SYSINFO_EHDR, current->mm->context.vdso_base);	\
-} while (0)
+	do {									\
+		/* Handle glibc compatibility. */				\
+		NEW_AUX_ENT(AT_IGNOREPPC, AT_IGNOREPPC);			\
+		NEW_AUX_ENT(AT_IGNOREPPC, AT_IGNOREPPC);			\
+		/* Cache size items */						\
+		NEW_AUX_ENT(AT_DCACHEBSIZE, dcache_bsize);			\
+		NEW_AUX_ENT(AT_ICACHEBSIZE, icache_bsize);			\
+		NEW_AUX_ENT(AT_UCACHEBSIZE, ucache_bsize);			\
+		VDSO_AUX_ENT(AT_SYSINFO_EHDR, current->mm->context.vdso_base);	\
+	} while (0)
 
 /* PowerPC64 relocations defined by the ABIs */
 #define R_PPC64_NONE    R_PPC_NONE

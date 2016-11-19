@@ -25,7 +25,8 @@
 #include <asm/udbg.h>
 #include <asm/code-patching.h>
 
-enum slb_index {
+enum slb_index
+{
 	LINEAR_INDEX	= 0, /* Kernel linear map  (0xc000000000000000) */
 	VMALLOC_INDEX	= 1, /* Kernel virtual map (0xd000000000000000) */
 	KSTACK_INDEX	= 2, /* Kernel stack map */
@@ -45,21 +46,21 @@ static void slb_allocate(unsigned long ea)
 	(((ssize) == MMU_SEGSIZE_256M)? ESID_MASK: ESID_MASK_1T)
 
 static inline unsigned long mk_esid_data(unsigned long ea, int ssize,
-					 enum slb_index index)
+		enum slb_index index)
 {
 	return (ea & slb_esid_mask(ssize)) | SLB_ESID_V | index;
 }
 
 static inline unsigned long mk_vsid_data(unsigned long ea, int ssize,
-					 unsigned long flags)
+		unsigned long flags)
 {
 	return (get_kernel_vsid(ea, ssize) << slb_vsid_shift(ssize)) | flags |
-		((unsigned long) ssize << SLB_VSID_SSIZE_SHIFT);
+		   ((unsigned long) ssize << SLB_VSID_SSIZE_SHIFT);
 }
 
 static inline void slb_shadow_update(unsigned long ea, int ssize,
-				     unsigned long flags,
-				     enum slb_index index)
+									 unsigned long flags,
+									 enum slb_index index)
 {
 	struct slb_shadow *p = get_slb_shadow();
 
@@ -79,8 +80,8 @@ static inline void slb_shadow_clear(enum slb_index index)
 }
 
 static inline void create_shadowed_slbe(unsigned long ea, int ssize,
-					unsigned long flags,
-					enum slb_index index)
+										unsigned long flags,
+										enum slb_index index)
 {
 	/*
 	 * Updating the shadow buffer before writing the SLB ensures
@@ -90,9 +91,9 @@ static inline void create_shadowed_slbe(unsigned long ea, int ssize,
 	slb_shadow_update(ea, ssize, flags, index);
 
 	asm volatile("slbmte  %0,%1" :
-		     : "r" (mk_vsid_data(ea, ssize, flags)),
-		       "r" (mk_esid_data(ea, ssize, index))
-		     : "memory" );
+				 : "r" (mk_vsid_data(ea, ssize, flags)),
+				 "r" (mk_esid_data(ea, ssize, index))
+				 : "memory" );
 }
 
 static void __slb_flush_and_rebolt(void)
@@ -108,11 +109,15 @@ static void __slb_flush_and_rebolt(void)
 	vflags = SLB_VSID_KERNEL | vmalloc_llp;
 
 	ksp_esid_data = mk_esid_data(get_paca()->kstack, mmu_kernel_ssize, KSTACK_INDEX);
-	if ((ksp_esid_data & ~0xfffffffUL) <= PAGE_OFFSET) {
+
+	if ((ksp_esid_data & ~0xfffffffUL) <= PAGE_OFFSET)
+	{
 		ksp_esid_data &= ~SLB_ESID_V;
 		ksp_vsid_data = 0;
 		slb_shadow_clear(KSTACK_INDEX);
-	} else {
+	}
+	else
+	{
 		/* Update stack entry; others don't change */
 		slb_shadow_update(get_paca()->kstack, mmu_kernel_ssize, lflags, KSTACK_INDEX);
 		ksp_vsid_data =
@@ -122,17 +127,17 @@ static void __slb_flush_and_rebolt(void)
 	/* We need to do this all in asm, so we're sure we don't touch
 	 * the stack between the slbia and rebolting it. */
 	asm volatile("isync\n"
-		     "slbia\n"
-		     /* Slot 1 - first VMALLOC segment */
-		     "slbmte	%0,%1\n"
-		     /* Slot 2 - kernel stack */
-		     "slbmte	%2,%3\n"
-		     "isync"
-		     :: "r"(mk_vsid_data(VMALLOC_START, mmu_kernel_ssize, vflags)),
-		        "r"(mk_esid_data(VMALLOC_START, mmu_kernel_ssize, 1)),
-		        "r"(ksp_vsid_data),
-		        "r"(ksp_esid_data)
-		     : "memory");
+				 "slbia\n"
+				 /* Slot 1 - first VMALLOC segment */
+				 "slbmte	%0,%1\n"
+				 /* Slot 2 - kernel stack */
+				 "slbmte	%2,%3\n"
+				 "isync"
+				 :: "r"(mk_vsid_data(VMALLOC_START, mmu_kernel_ssize, vflags)),
+				 "r"(mk_esid_data(VMALLOC_START, mmu_kernel_ssize, 1)),
+				 "r"(ksp_vsid_data),
+				 "r"(ksp_esid_data)
+				 : "memory");
 }
 
 void slb_flush_and_rebolt(void)
@@ -171,18 +176,24 @@ static inline int esids_match(unsigned long addr1, unsigned long addr2)
 
 	/* System is not 1T segment size capable. */
 	if (!mmu_has_feature(MMU_FTR_1T_SEGMENT))
+	{
 		return (GET_ESID(addr1) == GET_ESID(addr2));
+	}
 
 	esid_1t_count = (((addr1 >> SID_SHIFT_1T) != 0) +
-				((addr2 >> SID_SHIFT_1T) != 0));
+					 ((addr2 >> SID_SHIFT_1T) != 0));
 
 	/* both addresses are < 1T */
 	if (esid_1t_count == 0)
+	{
 		return (GET_ESID(addr1) == GET_ESID(addr2));
+	}
 
 	/* One address < 1T, the other > 1T.  Not a match */
 	if (esid_1t_count == 1)
+	{
 		return 0;
+	}
 
 	/* Both addresses are > 1T. */
 	return (GET_ESID_1T(addr1) == GET_ESID_1T(addr2));
@@ -205,26 +216,35 @@ void switch_slb(struct task_struct *tsk, struct mm_struct *mm)
 	 */
 	hard_irq_disable();
 	offset = get_paca()->slb_cache_ptr;
+
 	if (!mmu_has_feature(MMU_FTR_NO_SLBIE_B) &&
-	    offset <= SLB_CACHE_ENTRIES) {
+		offset <= SLB_CACHE_ENTRIES)
+	{
 		int i;
 		asm volatile("isync" : : : "memory");
-		for (i = 0; i < offset; i++) {
+
+		for (i = 0; i < offset; i++)
+		{
 			slbie_data = (unsigned long)get_paca()->slb_cache[i]
-				<< SID_SHIFT; /* EA */
+						 << SID_SHIFT; /* EA */
 			slbie_data |= user_segment_size(slbie_data)
-				<< SLBIE_SSIZE_SHIFT;
+						  << SLBIE_SSIZE_SHIFT;
 			slbie_data |= SLBIE_C; /* C set for user addresses */
 			asm volatile("slbie %0" : : "r" (slbie_data));
 		}
+
 		asm volatile("isync" : : : "memory");
-	} else {
+	}
+	else
+	{
 		__slb_flush_and_rebolt();
 	}
 
 	/* Workaround POWER5 < DD2.1 issue */
 	if (offset == 1 || offset > SLB_CACHE_ENTRIES)
+	{
 		asm volatile("slbie %0" : : "r" (slbie_data));
+	}
 
 	get_paca()->slb_cache_ptr = 0;
 	copy_mm_to_paca(&mm->context);
@@ -237,21 +257,27 @@ void switch_slb(struct task_struct *tsk, struct mm_struct *mm)
 	exec_base = 0x10000000;
 
 	if (is_kernel_addr(pc) || is_kernel_addr(stack) ||
-	    is_kernel_addr(exec_base))
+		is_kernel_addr(exec_base))
+	{
 		return;
+	}
 
 	slb_allocate(pc);
 
 	if (!esids_match(pc, stack))
+	{
 		slb_allocate(stack);
+	}
 
 	if (!esids_match(pc, exec_base) &&
-	    !esids_match(stack, exec_base))
+		!esids_match(stack, exec_base))
+	{
 		slb_allocate(exec_base);
+	}
 }
 
 static inline void patch_slb_encoding(unsigned int *insn_addr,
-				      unsigned int immed)
+									  unsigned int immed)
 {
 
 	/*
@@ -279,7 +305,9 @@ extern u32 slb_miss_kernel_load_vmemmap[];
 void slb_set_size(u16 size)
 {
 	if (mmu_slb_size == size)
+	{
 		return;
+	}
 
 	mmu_slb_size = size;
 	patch_slb_encoding(slb_compare_rr_to_size, mmu_slb_size);
@@ -302,21 +330,23 @@ void slb_initialize(void)
 #ifdef CONFIG_SPARSEMEM_VMEMMAP
 	vmemmap_llp = mmu_psize_defs[mmu_vmemmap_psize].sllp;
 #endif
-	if (!slb_encoding_inited) {
+
+	if (!slb_encoding_inited)
+	{
 		slb_encoding_inited = 1;
 		patch_slb_encoding(slb_miss_kernel_load_linear,
-				   SLB_VSID_KERNEL | linear_llp);
+						   SLB_VSID_KERNEL | linear_llp);
 		patch_slb_encoding(slb_miss_kernel_load_io,
-				   SLB_VSID_KERNEL | io_llp);
+						   SLB_VSID_KERNEL | io_llp);
 		patch_slb_encoding(slb_compare_rr_to_size,
-				   mmu_slb_size);
+						   mmu_slb_size);
 
 		pr_devel("SLB: linear  LLP = %04lx\n", linear_llp);
 		pr_devel("SLB: io      LLP = %04lx\n", io_llp);
 
 #ifdef CONFIG_SPARSEMEM_VMEMMAP
 		patch_slb_encoding(slb_miss_kernel_load_vmemmap,
-				   SLB_VSID_KERNEL | vmemmap_llp);
+						   SLB_VSID_KERNEL | vmemmap_llp);
 		pr_devel("SLB: vmemmap LLP = %04lx\n", vmemmap_llp);
 #endif
 	}
@@ -339,10 +369,11 @@ void slb_initialize(void)
 	 * For secondary cpus, we need to bolt the kernel stack entry now.
 	 */
 	slb_shadow_clear(KSTACK_INDEX);
+
 	if (raw_smp_processor_id() != boot_cpuid &&
-	    (get_paca()->kstack & slb_esid_mask(mmu_kernel_ssize)) > PAGE_OFFSET)
+		(get_paca()->kstack & slb_esid_mask(mmu_kernel_ssize)) > PAGE_OFFSET)
 		create_shadowed_slbe(get_paca()->kstack,
-				     mmu_kernel_ssize, lflags, KSTACK_INDEX);
+							 mmu_kernel_ssize, lflags, KSTACK_INDEX);
 
 	asm volatile("isync":::"memory");
 }

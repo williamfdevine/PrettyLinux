@@ -13,7 +13,8 @@
 #define NDFMC_PLAT_FLAG_HOLDADD		0x04
 #define NDFMC_PLAT_FLAG_DUMMYWRITE	0x08
 
-struct txx9ndfmc_platform_data {
+struct txx9ndfmc_platform_data
+{
 	unsigned int shift;
 	unsigned int gbus_clock;
 	unsigned int hold;		/* hold time in nanosecond */
@@ -25,6 +26,6 @@ struct txx9ndfmc_platform_data {
 };
 
 void txx9_ndfmc_init(unsigned long baseaddr,
-		     const struct txx9ndfmc_platform_data *plat_data);
+					 const struct txx9ndfmc_platform_data *plat_data);
 
 #endif /* __ASM_TXX9_NDFMC_H */

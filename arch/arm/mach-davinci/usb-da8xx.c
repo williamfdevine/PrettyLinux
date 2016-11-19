@@ -17,20 +17,23 @@
 
 #if IS_ENABLED(CONFIG_USB_MUSB_HDRC)
 
-static struct musb_hdrc_config musb_config = {
+static struct musb_hdrc_config musb_config =
+{
 	.multipoint	= true,
 	.num_eps	= 5,
 	.ram_bits	= 10,
 };
 
-static struct musb_hdrc_platform_data usb_data = {
+static struct musb_hdrc_platform_data usb_data =
+{
 	/* OTG requires a Mini-AB connector */
 	.mode           = MUSB_OTG,
 	.clock		= "usb20",
 	.config		= &musb_config,
 };
 
-static struct resource da8xx_usb20_resources[] = {
+static struct resource da8xx_usb20_resources[] =
+{
 	{
 		.start		= DA8XX_USB0_BASE,
 		.end		= DA8XX_USB0_BASE + SZ_64K - 1,
@@ -45,7 +48,8 @@ static struct resource da8xx_usb20_resources[] = {
 
 static u64 usb_dmamask = DMA_BIT_MASK(32);
 
-static struct platform_device usb_dev = {
+static struct platform_device usb_dev =
+{
 	.name		= "musb-da8xx",
 	.id             = -1,
 	.dev = {
@@ -74,7 +78,8 @@ int __init da8xx_register_usb20(unsigned int mA, unsigned int potpgt)
 
 #endif  /* CONFIG_USB_MUSB_HDRC */
 
-static struct resource da8xx_usb11_resources[] = {
+static struct resource da8xx_usb11_resources[] =
+{
 	[0] = {
 		.start	= DA8XX_USB1_BASE,
 		.end	= DA8XX_USB1_BASE + SZ_4K - 1,
@@ -89,7 +94,8 @@ static struct resource da8xx_usb11_resources[] = {
 
 static u64 da8xx_usb11_dma_mask = DMA_BIT_MASK(32);
 
-static struct platform_device da8xx_usb11_device = {
+static struct platform_device da8xx_usb11_device =
+{
 	.name		= "ohci",
 	.id		= 0,
 	.dev = {

@@ -20,16 +20,16 @@
 #undef DEBUG
 
 #ifdef DEBUG
-#define D(x) x
+	#define D(x) x
 #else
-#define D(x)
+	#define D(x)
 #endif
 
 extern const struct exception_table_entry
-	*search_exception_tables(unsigned long addr);
+*search_exception_tables(unsigned long addr);
 
 asmlinkage void do_page_fault(unsigned long address, struct pt_regs *regs,
-                              int protection, int writeaccess);
+							  int protection, int writeaccess);
 
 /* fast TLB-fill fault handler
  * this is called from entry.S with interrupts disabled
@@ -45,7 +45,7 @@ handle_mmu_bus_fault(struct pt_regs *regs)
 	int page_id;
 	int acc, inv;
 #endif
-	pgd_t* pgd = (pgd_t*)per_cpu(current_pgd, smp_processor_id());
+	pgd_t *pgd = (pgd_t *)per_cpu(current_pgd, smp_processor_id());
 	pmd_t *pmd;
 	pte_t pte;
 	int miss, we, writeac;
@@ -68,25 +68,37 @@ handle_mmu_bus_fault(struct pt_regs *regs)
 	writeac = IO_EXTRACT(R_MMU_CAUSE,  wr_rd,     cause);
 
 	D(printk("bus_fault from IRP 0x%lx: addr 0x%lx, miss %d, inv %d, we %d, acc %d, dx %d pid %d\n",
-		 regs->irp, address, miss, inv, we, acc, index, page_id));
+			 regs->irp, address, miss, inv, we, acc, index, page_id));
 
 	/* leave it to the MM system fault handler */
 	if (miss)
+	{
 		do_page_fault(address, regs, 0, writeac);
-        else
+	}
+	else
+	{
 		do_page_fault(address, regs, 1, we);
+	}
 
-        /* Reload TLB with new entry to avoid an extra miss exception.
-	 * do_page_fault may have flushed the TLB so we have to restore
+	/* Reload TLB with new entry to avoid an extra miss exception.
+	* do_page_fault may have flushed the TLB so we have to restore
 	 * the MMU registers.
 	 */
 	local_irq_save(flags);
 	pmd = (pmd_t *)(pgd + pgd_index(address));
+
 	if (pmd_none(*pmd))
+	{
 		goto exit;
+	}
+
 	pte = *pte_offset_kernel(pmd, address);
+
 	if (!pte_present(pte))
+	{
 		goto exit;
+	}
+
 	*R_TLB_SELECT = select;
 	*R_TLB_HI = cause;
 	*R_TLB_LO = pte_val(pte);

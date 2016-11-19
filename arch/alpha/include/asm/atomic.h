@@ -30,106 +30,106 @@
  */
 
 #define ATOMIC_OP(op, asm_op)						\
-static __inline__ void atomic_##op(int i, atomic_t * v)			\
-{									\
-	unsigned long temp;						\
-	__asm__ __volatile__(						\
-	"1:	ldl_l %0,%1\n"						\
-	"	" #asm_op " %0,%2,%0\n"					\
-	"	stl_c %0,%1\n"						\
-	"	beq %0,2f\n"						\
-	".subsection 2\n"						\
-	"2:	br 1b\n"						\
-	".previous"							\
-	:"=&r" (temp), "=m" (v->counter)				\
-	:"Ir" (i), "m" (v->counter));					\
-}									\
+	static __inline__ void atomic_##op(int i, atomic_t * v)			\
+	{									\
+		unsigned long temp;						\
+		__asm__ __volatile__(						\
+				"1:	ldl_l %0,%1\n"						\
+				"	" #asm_op " %0,%2,%0\n"					\
+				"	stl_c %0,%1\n"						\
+				"	beq %0,2f\n"						\
+				".subsection 2\n"						\
+				"2:	br 1b\n"						\
+				".previous"							\
+				:"=&r" (temp), "=m" (v->counter)				\
+				:"Ir" (i), "m" (v->counter));					\
+	}									\
 
 #define ATOMIC_OP_RETURN(op, asm_op)					\
-static inline int atomic_##op##_return_relaxed(int i, atomic_t *v)	\
-{									\
-	long temp, result;						\
-	__asm__ __volatile__(						\
-	"1:	ldl_l %0,%1\n"						\
-	"	" #asm_op " %0,%3,%2\n"					\
-	"	" #asm_op " %0,%3,%0\n"					\
-	"	stl_c %0,%1\n"						\
-	"	beq %0,2f\n"						\
-	".subsection 2\n"						\
-	"2:	br 1b\n"						\
-	".previous"							\
-	:"=&r" (temp), "=m" (v->counter), "=&r" (result)		\
-	:"Ir" (i), "m" (v->counter) : "memory");			\
-	return result;							\
-}
+	static inline int atomic_##op##_return_relaxed(int i, atomic_t *v)	\
+	{									\
+		long temp, result;						\
+		__asm__ __volatile__(						\
+				"1:	ldl_l %0,%1\n"						\
+				"	" #asm_op " %0,%3,%2\n"					\
+				"	" #asm_op " %0,%3,%0\n"					\
+				"	stl_c %0,%1\n"						\
+				"	beq %0,2f\n"						\
+				".subsection 2\n"						\
+				"2:	br 1b\n"						\
+				".previous"							\
+				:"=&r" (temp), "=m" (v->counter), "=&r" (result)		\
+				:"Ir" (i), "m" (v->counter) : "memory");			\
+		return result;							\
+	}
 
 #define ATOMIC_FETCH_OP(op, asm_op)					\
-static inline int atomic_fetch_##op##_relaxed(int i, atomic_t *v)	\
-{									\
-	long temp, result;						\
-	__asm__ __volatile__(						\
-	"1:	ldl_l %2,%1\n"						\
-	"	" #asm_op " %2,%3,%0\n"					\
-	"	stl_c %0,%1\n"						\
-	"	beq %0,2f\n"						\
-	".subsection 2\n"						\
-	"2:	br 1b\n"						\
-	".previous"							\
-	:"=&r" (temp), "=m" (v->counter), "=&r" (result)		\
-	:"Ir" (i), "m" (v->counter) : "memory");			\
-	return result;							\
-}
+	static inline int atomic_fetch_##op##_relaxed(int i, atomic_t *v)	\
+	{									\
+		long temp, result;						\
+		__asm__ __volatile__(						\
+				"1:	ldl_l %2,%1\n"						\
+				"	" #asm_op " %2,%3,%0\n"					\
+				"	stl_c %0,%1\n"						\
+				"	beq %0,2f\n"						\
+				".subsection 2\n"						\
+				"2:	br 1b\n"						\
+				".previous"							\
+				:"=&r" (temp), "=m" (v->counter), "=&r" (result)		\
+				:"Ir" (i), "m" (v->counter) : "memory");			\
+		return result;							\
+	}
 
 #define ATOMIC64_OP(op, asm_op)						\
-static __inline__ void atomic64_##op(long i, atomic64_t * v)		\
-{									\
-	unsigned long temp;						\
-	__asm__ __volatile__(						\
-	"1:	ldq_l %0,%1\n"						\
-	"	" #asm_op " %0,%2,%0\n"					\
-	"	stq_c %0,%1\n"						\
-	"	beq %0,2f\n"						\
-	".subsection 2\n"						\
-	"2:	br 1b\n"						\
-	".previous"							\
-	:"=&r" (temp), "=m" (v->counter)				\
-	:"Ir" (i), "m" (v->counter));					\
-}									\
+	static __inline__ void atomic64_##op(long i, atomic64_t * v)		\
+	{									\
+		unsigned long temp;						\
+		__asm__ __volatile__(						\
+				"1:	ldq_l %0,%1\n"						\
+				"	" #asm_op " %0,%2,%0\n"					\
+				"	stq_c %0,%1\n"						\
+				"	beq %0,2f\n"						\
+				".subsection 2\n"						\
+				"2:	br 1b\n"						\
+				".previous"							\
+				:"=&r" (temp), "=m" (v->counter)				\
+				:"Ir" (i), "m" (v->counter));					\
+	}									\
 
 #define ATOMIC64_OP_RETURN(op, asm_op)					\
-static __inline__ long atomic64_##op##_return_relaxed(long i, atomic64_t * v)	\
-{									\
-	long temp, result;						\
-	__asm__ __volatile__(						\
-	"1:	ldq_l %0,%1\n"						\
-	"	" #asm_op " %0,%3,%2\n"					\
-	"	" #asm_op " %0,%3,%0\n"					\
-	"	stq_c %0,%1\n"						\
-	"	beq %0,2f\n"						\
-	".subsection 2\n"						\
-	"2:	br 1b\n"						\
-	".previous"							\
-	:"=&r" (temp), "=m" (v->counter), "=&r" (result)		\
-	:"Ir" (i), "m" (v->counter) : "memory");			\
-	return result;							\
-}
+	static __inline__ long atomic64_##op##_return_relaxed(long i, atomic64_t * v)	\
+	{									\
+		long temp, result;						\
+		__asm__ __volatile__(						\
+				"1:	ldq_l %0,%1\n"						\
+				"	" #asm_op " %0,%3,%2\n"					\
+				"	" #asm_op " %0,%3,%0\n"					\
+				"	stq_c %0,%1\n"						\
+				"	beq %0,2f\n"						\
+				".subsection 2\n"						\
+				"2:	br 1b\n"						\
+				".previous"							\
+				:"=&r" (temp), "=m" (v->counter), "=&r" (result)		\
+				:"Ir" (i), "m" (v->counter) : "memory");			\
+		return result;							\
+	}
 
 #define ATOMIC64_FETCH_OP(op, asm_op)					\
-static __inline__ long atomic64_fetch_##op##_relaxed(long i, atomic64_t * v)	\
-{									\
-	long temp, result;						\
-	__asm__ __volatile__(						\
-	"1:	ldq_l %2,%1\n"						\
-	"	" #asm_op " %2,%3,%0\n"					\
-	"	stq_c %0,%1\n"						\
-	"	beq %0,2f\n"						\
-	".subsection 2\n"						\
-	"2:	br 1b\n"						\
-	".previous"							\
-	:"=&r" (temp), "=m" (v->counter), "=&r" (result)		\
-	:"Ir" (i), "m" (v->counter) : "memory");			\
-	return result;							\
-}
+	static __inline__ long atomic64_fetch_##op##_relaxed(long i, atomic64_t * v)	\
+	{									\
+		long temp, result;						\
+		__asm__ __volatile__(						\
+				"1:	ldq_l %2,%1\n"						\
+				"	" #asm_op " %2,%3,%0\n"					\
+				"	stq_c %0,%1\n"						\
+				"	beq %0,2f\n"						\
+				".subsection 2\n"						\
+				"2:	br 1b\n"						\
+				".previous"							\
+				:"=&r" (temp), "=m" (v->counter), "=&r" (result)		\
+				:"Ir" (i), "m" (v->counter) : "memory");			\
+		return result;							\
+	}
 
 #define ATOMIC_OPS(op)							\
 	ATOMIC_OP(op, op##l)						\
@@ -139,8 +139,8 @@ static __inline__ long atomic64_fetch_##op##_relaxed(long i, atomic64_t * v)	\
 	ATOMIC64_OP_RETURN(op, op##q)					\
 	ATOMIC64_FETCH_OP(op, op##q)
 
-ATOMIC_OPS(add)
-ATOMIC_OPS(sub)
+	ATOMIC_OPS(add)
+	ATOMIC_OPS(sub)
 
 #define atomic_add_return_relaxed	atomic_add_return_relaxed
 #define atomic_sub_return_relaxed	atomic_sub_return_relaxed
@@ -162,10 +162,10 @@ ATOMIC_OPS(sub)
 	ATOMIC64_OP(op, asm)						\
 	ATOMIC64_FETCH_OP(op, asm)
 
-ATOMIC_OPS(and, and)
-ATOMIC_OPS(andnot, bic)
-ATOMIC_OPS(or, bis)
-ATOMIC_OPS(xor, xor)
+	ATOMIC_OPS( and , and )
+	ATOMIC_OPS(andnot, bic)
+	ATOMIC_OPS( or , bis)
+	ATOMIC_OPS(xor, xor)
 
 #define atomic_fetch_and_relaxed	atomic_fetch_and_relaxed
 #define atomic_fetch_andnot_relaxed	atomic_fetch_andnot_relaxed
@@ -191,96 +191,96 @@ ATOMIC_OPS(xor, xor)
 #define atomic_cmpxchg(v, old, new) (cmpxchg(&((v)->counter), old, new))
 #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
 
-/**
- * __atomic_add_unless - add unless the number is a given value
- * @v: pointer of type atomic_t
- * @a: the amount to add to v...
- * @u: ...unless v is equal to u.
- *
- * Atomically adds @a to @v, so long as it was not @u.
- * Returns the old value of @v.
- */
-static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
-{
-	int c, new, old;
-	smp_mb();
-	__asm__ __volatile__(
-	"1:	ldl_l	%[old],%[mem]\n"
-	"	cmpeq	%[old],%[u],%[c]\n"
-	"	addl	%[old],%[a],%[new]\n"
-	"	bne	%[c],2f\n"
-	"	stl_c	%[new],%[mem]\n"
-	"	beq	%[new],3f\n"
-	"2:\n"
-	".subsection 2\n"
-	"3:	br	1b\n"
-	".previous"
-	: [old] "=&r"(old), [new] "=&r"(new), [c] "=&r"(c)
-	: [mem] "m"(*v), [a] "rI"(a), [u] "rI"((long)u)
-	: "memory");
-	smp_mb();
-	return old;
-}
+	/**
+	 * __atomic_add_unless - add unless the number is a given value
+	 * @v: pointer of type atomic_t
+	 * @a: the amount to add to v...
+	 * @u: ...unless v is equal to u.
+	 *
+	 * Atomically adds @a to @v, so long as it was not @u.
+	 * Returns the old value of @v.
+	 */
+	static __inline__ int __atomic_add_unless(atomic_t *v, int a, int u)
+	{
+		int c, new, old;
+		smp_mb();
+		__asm__ __volatile__(
+			"1:	ldl_l	%[old],%[mem]\n"
+			"	cmpeq	%[old],%[u],%[c]\n"
+			"	addl	%[old],%[a],%[new]\n"
+			"	bne	%[c],2f\n"
+			"	stl_c	%[new],%[mem]\n"
+			"	beq	%[new],3f\n"
+			"2:\n"
+			".subsection 2\n"
+			"3:	br	1b\n"
+			".previous"
+			: [old] "=&r"(old), [new] "=&r"(new), [c] "=&r"(c)
+			: [mem] "m"(*v), [a] "rI"(a), [u] "rI"((long)u)
+			: "memory");
+		smp_mb();
+		return old;
+	}
 
 
-/**
- * atomic64_add_unless - add unless the number is a given value
- * @v: pointer of type atomic64_t
- * @a: the amount to add to v...
- * @u: ...unless v is equal to u.
- *
- * Atomically adds @a to @v, so long as it was not @u.
- * Returns true iff @v was not @u.
- */
-static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
-{
-	long c, tmp;
-	smp_mb();
-	__asm__ __volatile__(
-	"1:	ldq_l	%[tmp],%[mem]\n"
-	"	cmpeq	%[tmp],%[u],%[c]\n"
-	"	addq	%[tmp],%[a],%[tmp]\n"
-	"	bne	%[c],2f\n"
-	"	stq_c	%[tmp],%[mem]\n"
-	"	beq	%[tmp],3f\n"
-	"2:\n"
-	".subsection 2\n"
-	"3:	br	1b\n"
-	".previous"
-	: [tmp] "=&r"(tmp), [c] "=&r"(c)
-	: [mem] "m"(*v), [a] "rI"(a), [u] "rI"(u)
-	: "memory");
-	smp_mb();
-	return !c;
-}
+	/**
+	 * atomic64_add_unless - add unless the number is a given value
+	 * @v: pointer of type atomic64_t
+	 * @a: the amount to add to v...
+	 * @u: ...unless v is equal to u.
+	 *
+	 * Atomically adds @a to @v, so long as it was not @u.
+	 * Returns true iff @v was not @u.
+	 */
+	static __inline__ int atomic64_add_unless(atomic64_t *v, long a, long u)
+	{
+		long c, tmp;
+		smp_mb();
+		__asm__ __volatile__(
+			"1:	ldq_l	%[tmp],%[mem]\n"
+			"	cmpeq	%[tmp],%[u],%[c]\n"
+			"	addq	%[tmp],%[a],%[tmp]\n"
+			"	bne	%[c],2f\n"
+			"	stq_c	%[tmp],%[mem]\n"
+			"	beq	%[tmp],3f\n"
+			"2:\n"
+			".subsection 2\n"
+			"3:	br	1b\n"
+			".previous"
+			: [tmp] "=&r"(tmp), [c] "=&r"(c)
+			: [mem] "m"(*v), [a] "rI"(a), [u] "rI"(u)
+			: "memory");
+		smp_mb();
+		return !c;
+	}
 
-/*
- * atomic64_dec_if_positive - decrement by 1 if old value positive
- * @v: pointer of type atomic_t
- *
- * The function returns the old value of *v minus 1, even if
- * the atomic variable, v, was not decremented.
- */
-static inline long atomic64_dec_if_positive(atomic64_t *v)
-{
-	long old, tmp;
-	smp_mb();
-	__asm__ __volatile__(
-	"1:	ldq_l	%[old],%[mem]\n"
-	"	subq	%[old],1,%[tmp]\n"
-	"	ble	%[old],2f\n"
-	"	stq_c	%[tmp],%[mem]\n"
-	"	beq	%[tmp],3f\n"
-	"2:\n"
-	".subsection 2\n"
-	"3:	br	1b\n"
-	".previous"
-	: [old] "=&r"(old), [tmp] "=&r"(tmp)
-	: [mem] "m"(*v)
-	: "memory");
-	smp_mb();
-	return old - 1;
-}
+	/*
+	 * atomic64_dec_if_positive - decrement by 1 if old value positive
+	 * @v: pointer of type atomic_t
+	 *
+	 * The function returns the old value of *v minus 1, even if
+	 * the atomic variable, v, was not decremented.
+	 */
+	static inline long atomic64_dec_if_positive(atomic64_t *v)
+	{
+		long old, tmp;
+		smp_mb();
+		__asm__ __volatile__(
+			"1:	ldq_l	%[old],%[mem]\n"
+			"	subq	%[old],1,%[tmp]\n"
+			"	ble	%[old],2f\n"
+			"	stq_c	%[tmp],%[mem]\n"
+			"	beq	%[tmp],3f\n"
+			"2:\n"
+			".subsection 2\n"
+			"3:	br	1b\n"
+			".previous"
+			: [old] "=&r"(old), [tmp] "=&r"(tmp)
+			: [mem] "m"(*v)
+			: "memory");
+		smp_mb();
+		return old - 1;
+	}
 
 #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
 

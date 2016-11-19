@@ -36,7 +36,7 @@ int arch_update_cpu_topology(void)
 	unsigned int cpu;
 
 	for_each_possible_cpu(cpu)
-		cpu_core_map[cpu] = cpu_coregroup_map(cpu);
+	cpu_core_map[cpu] = cpu_coregroup_map(cpu);
 
 	return 0;
 }
@@ -47,18 +47,20 @@ static int __init topology_init(void)
 
 #ifdef CONFIG_NEED_MULTIPLE_NODES
 	for_each_online_node(i)
-		register_one_node(i);
+	register_one_node(i);
 #endif
 
-	for_each_present_cpu(i) {
+	for_each_present_cpu(i)
+	{
 		struct cpuinfo_metag *cpuinfo = &per_cpu(cpu_data, i);
 #ifdef CONFIG_HOTPLUG_CPU
 		cpuinfo->cpu.hotpluggable = 1;
 #endif
 		ret = register_cpu(&cpuinfo->cpu, i);
+
 		if (unlikely(ret))
 			pr_warn("%s: register_cpu %d failed (%d)\n",
-				__func__, i, ret);
+					__func__, i, ret);
 	}
 
 #if defined(CONFIG_NUMA) && !defined(CONFIG_SMP)
@@ -69,8 +71,12 @@ static int __init topology_init(void)
 	 * and cpu0.
 	 */
 	for_each_online_node(i)
-		if (i != numa_node_id())
-			register_cpu_under_node(raw_smp_processor_id(), i);
+
+	if (i != numa_node_id())
+	{
+		register_cpu_under_node(raw_smp_processor_id(), i);
+	}
+
 #endif
 
 	return 0;

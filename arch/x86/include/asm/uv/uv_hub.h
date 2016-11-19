@@ -129,7 +129,8 @@
 #define UV_MAX_NASID_VALUE	(UV_MAX_NUMALINK_BLADES * 2)
 
 /* System Controller Interface Reg info */
-struct uv_scir_s {
+struct uv_scir_s
+{
 	struct timer_list timer;
 	unsigned long	offset;
 	unsigned long	last;
@@ -140,7 +141,8 @@ struct uv_scir_s {
 };
 
 /* GAM (globally addressed memory) range table */
-struct uv_gam_range_s {
+struct uv_gam_range_s
+{
 	u32	limit;		/* PA bits 56:26 (GAM_RANGE_SHFT) */
 	u16	nasid;		/* node's global physical address */
 	s8	base;		/* entry index of node's base addr */
@@ -153,7 +155,8 @@ struct uv_gam_range_s {
  * After setup, the struct is read only, so it should be readily
  * available in the L3 cache on the cpu socket for the node.
  */
-struct uv_hub_info_s {
+struct uv_hub_info_s
+{
 	unsigned long		global_mmr_base;
 	unsigned long		global_mmr_shift;
 	unsigned long		gpa_mask;
@@ -187,7 +190,8 @@ struct uv_hub_info_s {
 };
 
 /* CPU specific info with a pointer to the hub common info struct */
-struct uv_cpu_info_s {
+struct uv_cpu_info_s
+{
 	void			*p_uv_hub_info;
 	unsigned char		blade_cpu_id;
 	struct uv_scir_s	scir;
@@ -223,10 +227,12 @@ extern int uv_hub_info_version(void);
 static inline int uv_hub_info_check(int version)
 {
 	if (uv_hub_info_version() == version)
+	{
 		return 0;
+	}
 
 	pr_crit("UV: uv_hub_info version(%x) mismatch, expecting(%x)\n",
-		uv_hub_info_version(), version);
+			uv_hub_info_version(), version);
 
 	BUG();	/* Catastrophic - cannot continue on unknown UV system */
 }
@@ -258,7 +264,7 @@ static inline int is_uv1_hub(void)
 static inline int is_uv2_hub(void)
 {
 	return ((uv_hub_info->hub_revision >= UV2_HUB_REVISION_BASE) &&
-		(uv_hub_info->hub_revision < UV3_HUB_REVISION_BASE));
+			(uv_hub_info->hub_revision < UV3_HUB_REVISION_BASE));
 }
 #else
 static inline int is_uv2_hub(void)
@@ -271,7 +277,7 @@ static inline int is_uv2_hub(void)
 static inline int is_uv3_hub(void)
 {
 	return ((uv_hub_info->hub_revision >= UV3_HUB_REVISION_BASE) &&
-		(uv_hub_info->hub_revision < UV4_HUB_REVISION_BASE));
+			(uv_hub_info->hub_revision < UV4_HUB_REVISION_BASE));
 }
 #else
 static inline int is_uv3_hub(void)
@@ -295,7 +301,9 @@ static inline int is_uv4_hub(void)
 static inline int is_uvx_hub(void)
 {
 	if (uv_hub_info->hub_revision >= UV2_HUB_REVISION_BASE)
+	{
 		return uv_hub_info->hub_revision;
+	}
 
 	return 0;
 }
@@ -308,16 +316,18 @@ static inline int is_uv_hub(void)
 	return is_uvx_hub();
 }
 
-union uvh_apicid {
-    unsigned long       v;
-    struct uvh_apicid_s {
-        unsigned long   local_apic_mask  : 24;
-        unsigned long   local_apic_shift :  5;
-        unsigned long   unused1          :  3;
-        unsigned long   pnode_mask       : 24;
-        unsigned long   pnode_shift      :  5;
-        unsigned long   unused2          :  3;
-    } s;
+union uvh_apicid
+{
+	unsigned long       v;
+	struct uvh_apicid_s
+	{
+		unsigned long   local_apic_mask  : 24;
+		unsigned long   local_apic_shift :  5;
+		unsigned long   unused1          :  3;
+		unsigned long   pnode_mask       : 24;
+		unsigned long   pnode_shift      :  5;
+		unsigned long   unused2          :  3;
+	} s;
 };
 
 /*
@@ -353,28 +363,28 @@ union uvh_apicid {
 #define UV4_GLOBAL_MMR32_SIZE		(16UL * 1024 * 1024)
 
 #define UV_LOCAL_MMR_BASE		(				\
-					is_uv1_hub() ? UV1_LOCAL_MMR_BASE : \
-					is_uv2_hub() ? UV2_LOCAL_MMR_BASE : \
-					is_uv3_hub() ? UV3_LOCAL_MMR_BASE : \
-					/*is_uv4_hub*/ UV4_LOCAL_MMR_BASE)
+		is_uv1_hub() ? UV1_LOCAL_MMR_BASE : \
+		is_uv2_hub() ? UV2_LOCAL_MMR_BASE : \
+		is_uv3_hub() ? UV3_LOCAL_MMR_BASE : \
+		/*is_uv4_hub*/ UV4_LOCAL_MMR_BASE)
 
 #define UV_GLOBAL_MMR32_BASE		(				\
-					is_uv1_hub() ? UV1_GLOBAL_MMR32_BASE : \
-					is_uv2_hub() ? UV2_GLOBAL_MMR32_BASE : \
-					is_uv3_hub() ? UV3_GLOBAL_MMR32_BASE : \
-					/*is_uv4_hub*/ UV4_GLOBAL_MMR32_BASE)
+		is_uv1_hub() ? UV1_GLOBAL_MMR32_BASE : \
+		is_uv2_hub() ? UV2_GLOBAL_MMR32_BASE : \
+		is_uv3_hub() ? UV3_GLOBAL_MMR32_BASE : \
+		/*is_uv4_hub*/ UV4_GLOBAL_MMR32_BASE)
 
 #define UV_LOCAL_MMR_SIZE		(				\
-					is_uv1_hub() ? UV1_LOCAL_MMR_SIZE : \
-					is_uv2_hub() ? UV2_LOCAL_MMR_SIZE : \
-					is_uv3_hub() ? UV3_LOCAL_MMR_SIZE : \
-					/*is_uv4_hub*/ UV4_LOCAL_MMR_SIZE)
+		is_uv1_hub() ? UV1_LOCAL_MMR_SIZE : \
+		is_uv2_hub() ? UV2_LOCAL_MMR_SIZE : \
+		is_uv3_hub() ? UV3_LOCAL_MMR_SIZE : \
+		/*is_uv4_hub*/ UV4_LOCAL_MMR_SIZE)
 
 #define UV_GLOBAL_MMR32_SIZE		(				\
-					is_uv1_hub() ? UV1_GLOBAL_MMR32_SIZE : \
-					is_uv2_hub() ? UV2_GLOBAL_MMR32_SIZE : \
-					is_uv3_hub() ? UV3_GLOBAL_MMR32_SIZE : \
-					/*is_uv4_hub*/ UV4_GLOBAL_MMR32_SIZE)
+		is_uv1_hub() ? UV1_GLOBAL_MMR32_SIZE : \
+		is_uv2_hub() ? UV2_GLOBAL_MMR32_SIZE : \
+		is_uv3_hub() ? UV3_GLOBAL_MMR32_SIZE : \
+		/*is_uv4_hub*/ UV4_GLOBAL_MMR32_SIZE)
 
 #define UV_GLOBAL_MMR64_BASE		(uv_hub_info->global_mmr_base)
 
@@ -411,8 +421,8 @@ union uvh_apicid {
  */
 #define SCIR_WINDOW_COUNT	64
 #define SCIR_LOCAL_MMR_BASE	(LOCAL_BUS_BASE + \
-				 LOCAL_BUS_SIZE - \
-				 SCIR_WINDOW_COUNT)
+							 LOCAL_BUS_SIZE - \
+							 SCIR_WINDOW_COUNT)
 
 #define SCIR_CPU_HEARTBEAT	0x01	/* timer interrupt */
 #define SCIR_CPU_ACTIVITY	0x02	/* not idle */
@@ -443,12 +453,17 @@ static inline struct uv_gam_range_s *uv_gam_range(unsigned long pa)
 	unsigned long pal = (pa & uv_hub_info->gpa_mask) >> UV_GAM_RANGE_SHFT;
 	int i, num = uv_hub_info->gr_table_len;
 
-	if (gr) {
-		for (i = 0; i < num; i++, gr++) {
+	if (gr)
+	{
+		for (i = 0; i < num; i++, gr++)
+		{
 			if (pal < gr->limit)
+			{
 				return gr;
+			}
 		}
 	}
+
 	pr_crit("UV: GAM Range for 0x%lx not found at %p!\n", pa, gr);
 	BUG();
 }
@@ -460,7 +475,9 @@ static inline unsigned long uv_gam_range_base(unsigned long pa)
 	int base = gr->base;
 
 	if (base < 0)
+	{
 		return 0UL;
+	}
 
 	return uv_hub_info->gr_table[base].limit;
 }
@@ -484,16 +501,21 @@ static inline unsigned long uv_soc_phys_ram_to_gpa(unsigned long paddr)
 	unsigned int m_val = uv_hub_info->m_val;
 
 	if (paddr < uv_hub_info->lowmem_remap_top)
+	{
 		paddr |= uv_hub_info->lowmem_remap_base;
+	}
+
 	paddr |= uv_hub_info->gnode_upper;
+
 	if (m_val)
 		paddr = ((paddr << uv_hub_info->m_shift)
-						>> uv_hub_info->m_shift) |
-			((paddr >> uv_hub_info->m_val)
-						<< uv_hub_info->n_lshift);
+				 >> uv_hub_info->m_shift) |
+				((paddr >> uv_hub_info->m_val)
+				 << uv_hub_info->n_lshift);
 	else
 		paddr |= uv_soc_phys_ram_to_nasid(paddr)
-						<< uv_hub_info->gpa_shift;
+				 << uv_hub_info->gpa_shift;
+
 	return paddr;
 }
 
@@ -520,11 +542,15 @@ static inline unsigned long uv_gpa_to_soc_phys_ram(unsigned long gpa)
 
 	if (m_val)
 		gpa = ((gpa << uv_hub_info->m_shift) >> uv_hub_info->m_shift) |
-			((gpa >> uv_hub_info->n_lshift) << uv_hub_info->m_val);
+			  ((gpa >> uv_hub_info->n_lshift) << uv_hub_info->m_val);
 
 	paddr = gpa & uv_hub_info->gpa_mask;
+
 	if (paddr >= remap_base && paddr < remap_base + remap_top)
+	{
 		paddr -= remap_base;
+	}
+
 	return paddr;
 }
 
@@ -534,7 +560,9 @@ static inline unsigned long uv_gpa_to_gnode(unsigned long gpa)
 	unsigned int n_lshift = uv_hub_info->n_lshift;
 
 	if (n_lshift)
+	{
 		return gpa >> n_lshift;
+	}
 
 	return uv_gam_range(gpa)->nasid >> 1;
 }
@@ -551,7 +579,9 @@ static inline unsigned long uv_gpa_to_offset(unsigned long gpa)
 	unsigned int m_shift = uv_hub_info->m_shift;
 
 	if (m_shift)
+	{
 		return (gpa << m_shift) >> m_shift;
+	}
 
 	return (gpa & uv_hub_info->gpa_mask) - uv_gam_range_base(gpa);
 }
@@ -575,7 +605,9 @@ static inline void *uv_pnode_offset_to_vaddr(int pnode, unsigned long offset)
 	unsigned short sockid, node, *p2s;
 
 	if (m_val)
+	{
 		return __va(((unsigned long)pnode << m_val) | offset);
+	}
 
 	p2s = uv_hub_info->pnode_to_socket;
 	sockid = p2s ? p2s[pnode - uv_hub_info->min_pnode] : pnode;
@@ -583,7 +615,9 @@ static inline void *uv_pnode_offset_to_vaddr(int pnode, unsigned long offset)
 
 	/* limit address of previous socket is our base, except node 0 is 0 */
 	if (!node)
+	{
 		return __va((unsigned long)offset);
+	}
 
 	base = (unsigned long)(uv_hub_info->gr_table[node - 1].limit);
 	return __va(base << UV_GAM_RANGE_SHFT | offset);
@@ -602,9 +636,13 @@ static inline int uv_apicid_to_pnode(int apicid)
 static inline int uv_apicid_to_socket(int apicid)
 {
 	if (is_uv1_hub())
+	{
 		return (apicid >> (uv_hub_info->apic_pnode_shift - 1)) & 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /*
@@ -614,7 +652,7 @@ static inline int uv_apicid_to_socket(int apicid)
 static inline unsigned long *uv_global_mmr32_address(int pnode, unsigned long offset)
 {
 	return __va(UV_GLOBAL_MMR32_BASE |
-		       UV_GLOBAL_MMR32_PNODE_BITS(pnode) | offset);
+				UV_GLOBAL_MMR32_PNODE_BITS(pnode) | offset);
 }
 
 static inline void uv_write_global_mmr32(int pnode, unsigned long offset, unsigned long val)
@@ -634,7 +672,7 @@ static inline unsigned long uv_read_global_mmr32(int pnode, unsigned long offset
 static inline volatile void __iomem *uv_global_mmr64_address(int pnode, unsigned long offset)
 {
 	return __va(UV_GLOBAL_MMR64_BASE |
-		    UV_GLOBAL_MMR64_PNODE_BITS(pnode) | offset);
+				UV_GLOBAL_MMR64_PNODE_BITS(pnode) | offset);
 }
 
 static inline void uv_write_global_mmr64(int pnode, unsigned long offset, unsigned long val)
@@ -792,7 +830,8 @@ extern void uv_nmi_setup(void);
 #define UVH_NMI_MMRX_REQ	UVH_SCRATCH5_ALIAS_2
 #define UVH_NMI_MMRX_REQ_SHIFT	62
 
-struct uv_hub_nmi_s {
+struct uv_hub_nmi_s
+{
 	raw_spinlock_t	nmi_lock;
 	atomic_t	in_nmi;		/* flag this node in UV NMI IRQ */
 	atomic_t	cpu_owner;	/* last locker of this struct */
@@ -801,7 +840,8 @@ struct uv_hub_nmi_s {
 	unsigned long	nmi_value;	/* last value read from NMI MMR */
 };
 
-struct uv_cpu_nmi_s {
+struct uv_cpu_nmi_s
+{
 	struct uv_hub_nmi_s	*hub;
 	int			state;
 	int			pinging;
@@ -824,7 +864,8 @@ DECLARE_PER_CPU(struct uv_cpu_nmi_s, uv_cpu_nmi);
 /* Update SCIR state */
 static inline void uv_set_scir_bits(unsigned char value)
 {
-	if (uv_scir_info->state != value) {
+	if (uv_scir_info->state != value)
+	{
 		uv_scir_info->state = value;
 		uv_write_local_mmr8(uv_scir_info->offset, value);
 	}
@@ -837,9 +878,10 @@ static inline unsigned long uv_scir_offset(int apicid)
 
 static inline void uv_set_cpu_scir_bits(int cpu, unsigned char value)
 {
-	if (uv_cpu_scir_info(cpu)->state != value) {
+	if (uv_cpu_scir_info(cpu)->state != value)
+	{
 		uv_write_global_mmr8(uv_cpu_to_pnode(cpu),
-				uv_cpu_scir_info(cpu)->offset, value);
+							 uv_cpu_scir_info(cpu)->offset, value);
 		uv_cpu_scir_info(cpu)->state = value;
 	}
 }
@@ -849,9 +891,9 @@ static unsigned long uv_hub_ipi_value(int apicid, int vector, int mode)
 {
 	apicid |= uv_apicid_hibits;
 	return (1UL << UVH_IPI_INT_SEND_SHFT) |
-			((apicid) << UVH_IPI_INT_APIC_ID_SHFT) |
-			(mode << UVH_IPI_INT_DELIVERY_MODE_SHFT) |
-			(vector << UVH_IPI_INT_VECTOR_SHFT);
+		   ((apicid) << UVH_IPI_INT_APIC_ID_SHFT) |
+		   (mode << UVH_IPI_INT_DELIVERY_MODE_SHFT) |
+		   (vector << UVH_IPI_INT_VECTOR_SHFT);
 }
 
 static inline void uv_hub_send_ipi(int pnode, int apicid, int vector)
@@ -860,7 +902,9 @@ static inline void uv_hub_send_ipi(int pnode, int apicid, int vector)
 	unsigned long dmode = dest_Fixed;
 
 	if (vector == NMI_VECTOR)
+	{
 		dmode = dest_NMI;
+	}
 
 	val = uv_hub_ipi_value(apicid, vector, dmode);
 	uv_write_global_mmr64(pnode, UVH_IPI_INT, val);

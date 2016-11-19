@@ -52,38 +52,38 @@
 #define _PAGE_ACCESSED	(CF_PAGE_ACCESSED)
 #define _PAGE_DIRTY	(CF_PAGE_DIRTY)
 #define _PAGE_READWRITE (CF_PAGE_READABLE \
-				| CF_PAGE_WRITABLE \
-				| CF_PAGE_SYSTEM \
-				| CF_PAGE_SHARED)
+						 | CF_PAGE_WRITABLE \
+						 | CF_PAGE_SYSTEM \
+						 | CF_PAGE_SHARED)
 
 /*
  * Compound page protection values.
  */
 #define PAGE_NONE	__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED)
+							 | CF_PAGE_ACCESSED)
 
 #define PAGE_SHARED     __pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_SHARED)
+								 | CF_PAGE_ACCESSED \
+								 | CF_PAGE_SHARED)
 
 #define PAGE_INIT	__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_READABLE \
-				 | CF_PAGE_WRITABLE \
-				 | CF_PAGE_EXEC \
-				 | CF_PAGE_SYSTEM)
+							 | CF_PAGE_READABLE \
+							 | CF_PAGE_WRITABLE \
+							 | CF_PAGE_EXEC \
+							 | CF_PAGE_SYSTEM)
 
 #define PAGE_KERNEL	__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_READABLE \
-				 | CF_PAGE_WRITABLE \
-				 | CF_PAGE_EXEC \
-				 | CF_PAGE_SYSTEM \
-				 | CF_PAGE_SHARED)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_READABLE \
+							 | CF_PAGE_WRITABLE \
+							 | CF_PAGE_EXEC \
+							 | CF_PAGE_SYSTEM \
+							 | CF_PAGE_SHARED)
 
 #define PAGE_COPY	__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_READABLE \
-				 | CF_PAGE_DIRTY)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_READABLE \
+							 | CF_PAGE_DIRTY)
 
 /*
  * Page protections for initialising protection_map. See mm/mmap.c
@@ -92,57 +92,57 @@
  */
 #define __P000		PAGE_NONE
 #define __P001		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_READABLE)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_READABLE)
 #define __P010		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_WRITABLE)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_WRITABLE)
 #define __P011		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_READABLE \
-				 | CF_PAGE_WRITABLE)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_READABLE \
+							 | CF_PAGE_WRITABLE)
 #define __P100		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_EXEC)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_EXEC)
 #define __P101		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_READABLE \
-				 | CF_PAGE_EXEC)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_READABLE \
+							 | CF_PAGE_EXEC)
 #define __P110		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_WRITABLE \
-				 | CF_PAGE_EXEC)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_WRITABLE \
+							 | CF_PAGE_EXEC)
 #define __P111		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_READABLE \
-				 | CF_PAGE_WRITABLE \
-				 | CF_PAGE_EXEC)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_READABLE \
+							 | CF_PAGE_WRITABLE \
+							 | CF_PAGE_EXEC)
 
 #define __S000		PAGE_NONE
 #define __S001		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_READABLE)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_READABLE)
 #define __S010		PAGE_SHARED
 #define __S011		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_SHARED \
-				 | CF_PAGE_READABLE)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_SHARED \
+							 | CF_PAGE_READABLE)
 #define __S100		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_EXEC)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_EXEC)
 #define __S101		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_READABLE \
-				 | CF_PAGE_EXEC)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_READABLE \
+							 | CF_PAGE_EXEC)
 #define __S110		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_SHARED \
-				 | CF_PAGE_EXEC)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_SHARED \
+							 | CF_PAGE_EXEC)
 #define __S111		__pgprot(CF_PAGE_VALID \
-				 | CF_PAGE_ACCESSED \
-				 | CF_PAGE_SHARED \
-				 | CF_PAGE_READABLE \
-				 | CF_PAGE_EXEC)
+							 | CF_PAGE_ACCESSED \
+							 | CF_PAGE_SHARED \
+							 | CF_PAGE_READABLE \
+							 | CF_PAGE_EXEC)
 
 #define PTE_MASK	PAGE_MASK
 #define CF_PAGE_CHG_MASK (PTE_MASK | CF_PAGE_ACCESSED | CF_PAGE_DIRTY)
@@ -182,7 +182,7 @@ static inline int pte_present(pte_t pte)
 }
 
 static inline void pte_clear(struct mm_struct *mm, unsigned long addr,
-	pte_t *ptep)
+							 pte_t *ptep)
 {
 	pte_val(*ptep) = 0;
 }
@@ -204,13 +204,13 @@ static inline void pgd_clear(pgd_t *pgdp) {}
 
 #define pte_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pte %08lx.\n",	\
-	__FILE__, __LINE__, pte_val(e))
+		   __FILE__, __LINE__, pte_val(e))
 #define pmd_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pmd %08lx.\n",	\
-	__FILE__, __LINE__, pmd_val(e))
+		   __FILE__, __LINE__, pmd_val(e))
 #define pgd_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pgd %08lx.\n",	\
-	__FILE__, __LINE__, pgd_val(e))
+		   __FILE__, __LINE__, pgd_val(e))
 
 /*
  * The following only work if pte_present() is true.
@@ -391,14 +391,14 @@ static inline void cache_page(void *vaddr)
 #define __swp_type(x)		((x).val & 0xFF)
 #define __swp_offset(x)		((x).val >> 11)
 #define __swp_entry(typ, off)	((swp_entry_t) { (typ) | \
-					(off << 11) })
+		(off << 11) })
 #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
 #define __swp_entry_to_pte(x)	(__pte((x).val))
 
 #define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT))
 
 #define pte_offset_map(pmdp, addr) ((pte_t *)__pmd_page(*pmdp) + \
-				       __pte_offset(addr))
+									__pte_offset(addr))
 #define pte_unmap(pte)		((void) 0)
 #define pfn_pte(pfn, prot)	__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
 #define pte_pfn(pte)		(pte_val(pte) >> PAGE_SHIFT)

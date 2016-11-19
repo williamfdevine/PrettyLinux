@@ -40,7 +40,8 @@ static void sirfsoc_secondary_init(unsigned int cpu)
 	spin_unlock(&boot_lock);
 }
 
-static const struct of_device_id clk_ids[]  = {
+static const struct of_device_id clk_ids[]  =
+{
 	{ .compatible = "sirf,atlas7-clkc" },
 	{},
 };
@@ -51,12 +52,18 @@ static int sirfsoc_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	struct device_node *np;
 
 	np = of_find_matching_node(NULL, clk_ids);
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	clk_base = of_iomap(np, 0);
+
 	if (!clk_base)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * write the address of secondary startup into the clkc register
@@ -66,11 +73,11 @@ static int sirfsoc_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 */
 #define SIRFSOC_CPU1_JUMPADDR_OFFSET 0x2bc
 	__raw_writel(virt_to_phys(sirfsoc_secondary_startup),
-		clk_base + SIRFSOC_CPU1_JUMPADDR_OFFSET);
+				 clk_base + SIRFSOC_CPU1_JUMPADDR_OFFSET);
 
 #define SIRFSOC_CPU1_WAKEMAGIC_OFFSET 0x2b8
 	__raw_writel(0x3CAF5D62,
-		clk_base + SIRFSOC_CPU1_WAKEMAGIC_OFFSET);
+				 clk_base + SIRFSOC_CPU1_WAKEMAGIC_OFFSET);
 
 	/* make sure write buffer is drained */
 	mb();
@@ -95,10 +102,15 @@ static int sirfsoc_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	dsb_sev();
 
 	timeout = jiffies + (1 * HZ);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		smp_rmb();
+
 		if (pen_release == -1)
+		{
 			break;
+		}
 
 		udelay(10);
 	}
@@ -112,7 +124,8 @@ static int sirfsoc_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	return pen_release != -1 ? -ENOSYS : 0;
 }
 
-const struct smp_operations sirfsoc_smp_ops __initconst = {
+const struct smp_operations sirfsoc_smp_ops __initconst =
+{
 	.smp_secondary_init     = sirfsoc_secondary_init,
 	.smp_boot_secondary     = sirfsoc_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU

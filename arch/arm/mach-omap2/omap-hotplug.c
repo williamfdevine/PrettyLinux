@@ -35,32 +35,42 @@ void omap4_cpu_die(unsigned int cpu)
 	/*
 	 * we're ready for shutdown now, so do it
 	 */
-	if (omap_secure_apis_support()) {
+	if (omap_secure_apis_support())
+	{
 		if (omap_modify_auxcoreboot0(0x0, 0x200) != 0x0)
+		{
 			pr_err("Secure clear status failed\n");
-	} else {
+		}
+	}
+	else
+	{
 		writel_relaxed(0, base + OMAP_AUX_CORE_BOOT_0);
 	}
 
 
-	for (;;) {
+	for (;;)
+	{
 		/*
 		 * Enter into low power state
 		 */
 		omap4_hotplug_cpu(cpu, PWRDM_POWER_OFF);
 
 		if (omap_secure_apis_support())
+		{
 			boot_cpu = omap_read_auxcoreboot0();
+		}
 		else
 			boot_cpu =
 				readl_relaxed(base + OMAP_AUX_CORE_BOOT_0) >> 5;
 
-		if (boot_cpu == smp_processor_id()) {
+		if (boot_cpu == smp_processor_id())
+		{
 			/*
 			 * OK, proper wakeup, we're done
 			 */
 			break;
 		}
+
 		pr_debug("CPU%u: spurious wakeup call\n", cpu);
 	}
 }

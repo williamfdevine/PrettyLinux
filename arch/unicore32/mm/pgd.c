@@ -31,8 +31,11 @@ pgd_t *get_pgd_slow(struct mm_struct *mm)
 	pte_t *new_pte, *init_pte;
 
 	new_pgd = (pgd_t *)__get_free_pages(GFP_KERNEL, 0);
+
 	if (!new_pgd)
+	{
 		goto no_pgd;
+	}
 
 	memset(new_pgd, 0, FIRST_KERNEL_PGD_NR * sizeof(pgd_t));
 
@@ -41,22 +44,29 @@ pgd_t *get_pgd_slow(struct mm_struct *mm)
 	 */
 	init_pgd = pgd_offset_k(0);
 	memcpy(new_pgd + FIRST_KERNEL_PGD_NR, init_pgd + FIRST_KERNEL_PGD_NR,
-		       (PTRS_PER_PGD - FIRST_KERNEL_PGD_NR) * sizeof(pgd_t));
+		   (PTRS_PER_PGD - FIRST_KERNEL_PGD_NR) * sizeof(pgd_t));
 
 	clean_dcache_area(new_pgd, PTRS_PER_PGD * sizeof(pgd_t));
 
-	if (!vectors_high()) {
+	if (!vectors_high())
+	{
 		/*
 		 * On UniCore, first page must always be allocated since it
 		 * contains the machine vectors.
 		 */
 		new_pmd = pmd_alloc(mm, (pud_t *)new_pgd, 0);
+
 		if (!new_pmd)
+		{
 			goto no_pmd;
+		}
 
 		new_pte = pte_alloc_map(mm, new_pmd, 0);
+
 		if (!new_pte)
+		{
 			goto no_pte;
+		}
 
 		init_pmd = pmd_offset((pud_t *)init_pgd, 0);
 		init_pte = pte_offset_map(init_pmd, 0);
@@ -82,13 +92,20 @@ void free_pgd_slow(struct mm_struct *mm, pgd_t *pgd)
 	pgtable_t pte;
 
 	if (!pgd)
+	{
 		return;
+	}
 
 	/* pgd is always present and good */
 	pmd = pmd_off(pgd, 0);
+
 	if (pmd_none(*pmd))
+	{
 		goto free;
-	if (pmd_bad(*pmd)) {
+	}
+
+	if (pmd_bad(*pmd))
+	{
 		pmd_ERROR(*pmd);
 		pmd_clear(pmd);
 		goto free;

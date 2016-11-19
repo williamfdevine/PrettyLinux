@@ -10,7 +10,8 @@
 
 extern long perfmonctl(int fd, int cmd, void *arg, int narg);
 
-typedef struct {
+typedef struct
+{
 	void (*handler)(int irq, void *arg, struct pt_regs *regs);
 } pfm_intr_handler_desc_t;
 
@@ -35,18 +36,21 @@ extern int  pfm_remove_alt_pmu_interrupt(pfm_intr_handler_desc_t *h);
 #define PFM_PMD_SHORT_RESET	0
 #define PFM_PMD_LONG_RESET	1
 
-typedef union {
+typedef union
+{
 	unsigned int val;
-	struct {
-		unsigned int notify_user:1;	/* notify user program of overflow */
-		unsigned int reset_ovfl_pmds:1;	/* reset overflowed PMDs */
-		unsigned int block_task:1;	/* block monitored task on kernel exit */
-		unsigned int mask_monitoring:1; /* mask monitors via PMCx.plm */
-		unsigned int reserved:28;	/* for future use */
+	struct
+	{
+		unsigned int notify_user: 1;	/* notify user program of overflow */
+		unsigned int reset_ovfl_pmds: 1;	/* reset overflowed PMDs */
+		unsigned int block_task: 1;	/* block monitored task on kernel exit */
+		unsigned int mask_monitoring: 1; /* mask monitors via PMCx.plm */
+		unsigned int reserved: 28;	/* for future use */
 	} bits;
 } pfm_ovfl_ctrl_t;
 
-typedef struct {
+typedef struct
+{
 	unsigned char	ovfl_pmd;			/* index of overflowed PMD  */
 	unsigned char   ovfl_notify;			/* =1 if monitor requested overflow notification */
 	unsigned short  active_set;			/* event set active at the time of the overflow */
@@ -60,7 +64,8 @@ typedef struct {
 } pfm_ovfl_arg_t;
 
 
-typedef struct {
+typedef struct
+{
 	char		*fmt_name;
 	pfm_uuid_t	fmt_uuid;
 	size_t		fmt_arg_size;
@@ -69,7 +74,8 @@ typedef struct {
 	int		(*fmt_validate)(struct task_struct *task, unsigned int flags, int cpu, void *arg);
 	int		(*fmt_getsize)(struct task_struct *task, unsigned int flags, int cpu, void *arg, unsigned long *size);
 	int 		(*fmt_init)(struct task_struct *task, void *buf, unsigned int flags, int cpu, void *arg);
-	int		(*fmt_handler)(struct task_struct *task, void *buf, pfm_ovfl_arg_t *arg, struct pt_regs *regs, unsigned long stamp);
+	int		(*fmt_handler)(struct task_struct *task, void *buf, pfm_ovfl_arg_t *arg, struct pt_regs *regs,
+						   unsigned long stamp);
 	int		(*fmt_restart)(struct task_struct *task, pfm_ovfl_ctrl_t *ctrl, void *buf, struct pt_regs *regs);
 	int		(*fmt_restart_active)(struct task_struct *task, pfm_ovfl_ctrl_t *ctrl, void *buf, struct pt_regs *regs);
 	int		(*fmt_exit)(struct task_struct *task, void *buf, struct pt_regs *regs);
@@ -98,7 +104,8 @@ extern int pfm_mod_write_dbrs(struct task_struct *task, void *req, unsigned int 
 /*
  * sysctl control structure. visible to sampling formats
  */
-typedef struct {
+typedef struct
+{
 	int	debug;		/* turn on/off debugging via syslog */
 	int	debug_ovfl;	/* turn on/off debug printk in overflow handler */
 	int	fastctxsw;	/* turn on/off fast (unsecure) ctxsw */

@@ -46,7 +46,7 @@
  *   AS: 2-bit Chiplet Identifier
  *     00: TIO LB (Indicates TIO MMR access.)
  *     01: TIO ICE (indicates coretalk space access.)
- * 
+ *
  *   NodeOffset: top bit must be set.
  *
  *
@@ -78,8 +78,8 @@
 #define AS_CAC_SPACE		(AS_CAC_VAL << AS_SHIFT)
 
 
-/* 
- * Virtual Mode Local & Global MMR space.  
+/*
+ * Virtual Mode Local & Global MMR space.
  */
 #define SH1_LOCAL_MMR_OFFSET	0x8000000000UL
 #define SH2_LOCAL_MMR_OFFSET	0x0200000000UL
@@ -137,11 +137,11 @@
 #define TO_PHYS(x)		(TO_PHYS_MASK & (x))
 #define TO_CAC(x)		(CAC_BASE     | TO_PHYS(x))
 #ifdef CONFIG_SGI_SN
-#define TO_AMO(x)		(AMO_BASE     | TO_PHYS(x))
-#define TO_GET(x)		(GET_BASE     | TO_PHYS(x))
+	#define TO_AMO(x)		(AMO_BASE     | TO_PHYS(x))
+	#define TO_GET(x)		(GET_BASE     | TO_PHYS(x))
 #else
-#define TO_AMO(x)		({ BUG(); x; })
-#define TO_GET(x)		({ BUG(); x; })
+	#define TO_AMO(x)		({ BUG(); x; })
+	#define TO_GET(x)		({ BUG(); x; })
 #endif
 
 /*
@@ -156,17 +156,17 @@
 	((((u64)(NASID_GET(x))) << 40) | NODE_OFFSET(x))
 
 #define SH2_NETWORK_BANK_OFFSET(x) 					\
-        ((u64)(x) & ((1UL << (sn_hub_info->nasid_shift - 4)) -1))
+	((u64)(x) & ((1UL << (sn_hub_info->nasid_shift - 4)) -1))
 
 #define SH2_NETWORK_BANK_SELECT(x) 					\
-        ((((u64)(x) & (0x3UL << (sn_hub_info->nasid_shift - 4)))	\
-        	>> (sn_hub_info->nasid_shift - 4)) << 36)
+	((((u64)(x) & (0x3UL << (sn_hub_info->nasid_shift - 4)))	\
+	  >> (sn_hub_info->nasid_shift - 4)) << 36)
 
 #define SH2_NETWORK_ADDRESS(x) 						\
 	(SH2_NETWORK_BANK_OFFSET(x) | SH2_NETWORK_BANK_SELECT(x))
 
 #define SH2_TIO_PHYS_TO_DMA(x) 						\
-        (((u64)(NASID_GET(x)) << 40) | 	SH2_NETWORK_ADDRESS(x))
+	(((u64)(NASID_GET(x)) << 40) | 	SH2_NETWORK_ADDRESS(x))
 
 #define PHYS_TO_TIODMA(x)						\
 	(is_shub1() ? SH1_TIO_PHYS_TO_DMA(x) : SH2_TIO_PHYS_TO_DMA(x))
@@ -190,9 +190,9 @@
 #define BWIN_SIZE_BITS			29	/* big window size: 512M */
 #define TIO_BWIN_SIZE_BITS		30	/* big window size: 1G */
 #define NODE_SWIN_BASE(n, w)		((w == 0) ? NODE_BWIN_BASE((n), SWIN0_BIGWIN) \
-		: RAW_NODE_SWIN_BASE(n, w))
+									 : RAW_NODE_SWIN_BASE(n, w))
 #define TIO_SWIN_BASE(n, w) 		(TIO_IO_BASE(n) + \
-					    ((u64) (w) << TIO_SWIN_SIZE_BITS))
+									 ((u64) (w) << TIO_SWIN_SIZE_BITS))
 #define NODE_IO_BASE(n)			(GLOBAL_MMR_SPACE | NASID_SPACE(n))
 #define TIO_IO_BASE(n)                  (__IA64_UNCACHED_OFFSET | NASID_SPACE(n))
 #define BWIN_SIZE			(1UL << BWIN_SIZE_BITS)
@@ -258,7 +258,7 @@
 
 #define SH1_REMOTE_MMR(n,x)						\
 	(SH1_IS_BIG_WINDOW_ADDR(x) ? SH1_REMOTE_BWIN_MMR(n,x) :		\
-	 	SH1_REMOTE_SWIN_MMR(n,x))
+	 SH1_REMOTE_SWIN_MMR(n,x))
 
 /* Shub1 TIO & MMR addressing macros */
 #define SH2_TIO_IOSPACE_ADDR(n,x)					\
@@ -271,7 +271,7 @@
 /* TIO & MMR addressing macros that work on both shub1 & shub2 */
 #define TIO_IOSPACE_ADDR(n,x)						\
 	((u64 *)(is_shub1() ? SH1_TIO_IOSPACE_ADDR(n,x) :		\
-		 SH2_TIO_IOSPACE_ADDR(n,x)))
+			 SH2_TIO_IOSPACE_ADDR(n,x)))
 
 #define SH_REMOTE_MMR(n,x)						\
 	(is_shub1() ? SH1_REMOTE_MMR(n,x) : SH2_REMOTE_MMR(n,x))

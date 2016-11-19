@@ -39,7 +39,9 @@ static void __init
 sbc8641_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("sbc8641_setup_arch()", 0);
+	}
 
 	printk("SBC8641 board from Wind River\n");
 
@@ -68,24 +70,27 @@ sbc8641_show_cpuinfo(struct seq_file *m)
 static int __init sbc8641_probe(void)
 {
 	if (of_machine_is_compatible("wind,sbc8641"))
-		return 1;	/* Looks good */
+	{
+		return 1;    /* Looks good */
+	}
 
 	return 0;
 }
 
 machine_arch_initcall(sbc8641, mpc86xx_common_publish_devices);
 
-define_machine(sbc8641) {
+define_machine(sbc8641)
+{
 	.name			= "SBC8641D",
-	.probe			= sbc8641_probe,
-	.setup_arch		= sbc8641_setup_arch,
-	.init_IRQ		= mpc86xx_init_irq,
-	.show_cpuinfo		= sbc8641_show_cpuinfo,
-	.get_irq		= mpic_get_irq,
-	.time_init		= mpc86xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= sbc8641_probe,
+					 .setup_arch		= sbc8641_setup_arch,
+						 .init_IRQ		= mpc86xx_init_irq,
+							   .show_cpuinfo		= sbc8641_show_cpuinfo,
+									 .get_irq		= mpic_get_irq,
+											.time_init		= mpc86xx_time_init,
+												 .calibrate_decr		= generic_calibrate_decr,
+													 .progress		= udbg_progress,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+														   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
 #endif
 };

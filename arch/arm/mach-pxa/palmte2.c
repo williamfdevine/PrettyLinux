@@ -47,7 +47,8 @@
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static unsigned long palmte2_pin_config[] __initdata = {
+static unsigned long palmte2_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO6_MMC_CLK,
 	GPIO8_MMC_CS0,
@@ -99,7 +100,8 @@ static unsigned long palmte2_pin_config[] __initdata = {
 /******************************************************************************
  * SD/MMC card controller
  ******************************************************************************/
-static struct pxamci_platform_data palmte2_mci_platform_data = {
+static struct pxamci_platform_data palmte2_mci_platform_data =
+{
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO_NR_PALMTE2_SD_DETECT_N,
 	.gpio_card_ro		= GPIO_NR_PALMTE2_SD_READONLY,
@@ -110,7 +112,8 @@ static struct pxamci_platform_data palmte2_mci_platform_data = {
 /******************************************************************************
  * GPIO keys
  ******************************************************************************/
-static struct gpio_keys_button palmte2_pxa_buttons[] = {
+static struct gpio_keys_button palmte2_pxa_buttons[] =
+{
 	{KEY_F1,	GPIO_NR_PALMTE2_KEY_CONTACTS,	1, "Contacts" },
 	{KEY_F2,	GPIO_NR_PALMTE2_KEY_CALENDAR,	1, "Calendar" },
 	{KEY_F3,	GPIO_NR_PALMTE2_KEY_TASKS,	1, "Tasks" },
@@ -122,12 +125,14 @@ static struct gpio_keys_button palmte2_pxa_buttons[] = {
 	{KEY_UP,	GPIO_NR_PALMTE2_KEY_UP,		1, "Up" },
 };
 
-static struct gpio_keys_platform_data palmte2_pxa_keys_data = {
+static struct gpio_keys_platform_data palmte2_pxa_keys_data =
+{
 	.buttons	= palmte2_pxa_buttons,
 	.nbuttons	= ARRAY_SIZE(palmte2_pxa_buttons),
 };
 
-static struct platform_device palmte2_pxa_keys = {
+static struct platform_device palmte2_pxa_keys =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -139,12 +144,14 @@ static struct platform_device palmte2_pxa_keys = {
 /******************************************************************************
  * Backlight
  ******************************************************************************/
-static struct pwm_lookup palmte2_pwm_lookup[] = {
+static struct pwm_lookup palmte2_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa25x-pwm.0", 0, "pwm-backlight.0", NULL,
-		   PALMTE2_PERIOD_NS, PWM_POLARITY_NORMAL),
+	PALMTE2_PERIOD_NS, PWM_POLARITY_NORMAL),
 };
 
-static struct gpio palmte_bl_gpios[] = {
+static struct gpio palmte_bl_gpios[] =
+{
 	{ GPIO_NR_PALMTE2_BL_POWER, GPIOF_INIT_LOW, "Backlight power" },
 	{ GPIO_NR_PALMTE2_LCD_POWER, GPIOF_INIT_LOW, "LCD power" },
 };
@@ -166,7 +173,8 @@ static void palmte2_backlight_exit(struct device *dev)
 	gpio_free_array(ARRAY_AND_SIZE(palmte_bl_gpios));
 }
 
-static struct platform_pwm_backlight_data palmte2_backlight_data = {
+static struct platform_pwm_backlight_data palmte2_backlight_data =
+{
 	.max_brightness	= PALMTE2_MAX_INTENSITY,
 	.dft_brightness	= PALMTE2_MAX_INTENSITY,
 	.enable_gpio	= -1,
@@ -175,7 +183,8 @@ static struct platform_pwm_backlight_data palmte2_backlight_data = {
 	.exit		= palmte2_backlight_exit,
 };
 
-static struct platform_device palmte2_backlight = {
+static struct platform_device palmte2_backlight =
+{
 	.name	= "pwm-backlight",
 	.dev	= {
 		.parent		= &pxa25x_device_pwm0.dev,
@@ -186,7 +195,8 @@ static struct platform_device palmte2_backlight = {
 /******************************************************************************
  * IrDA
  ******************************************************************************/
-static struct pxaficp_platform_data palmte2_ficp_platform_data = {
+static struct pxaficp_platform_data palmte2_ficp_platform_data =
+{
 	.gpio_pwdown		= GPIO_NR_PALMTE2_IR_DISABLE,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
@@ -194,13 +204,15 @@ static struct pxaficp_platform_data palmte2_ficp_platform_data = {
 /******************************************************************************
  * UDC
  ******************************************************************************/
-static struct gpio_vbus_mach_info palmte2_udc_info = {
+static struct gpio_vbus_mach_info palmte2_udc_info =
+{
 	.gpio_vbus		= GPIO_NR_PALMTE2_USB_DETECT_N,
 	.gpio_vbus_inverted	= 1,
 	.gpio_pullup		= GPIO_NR_PALMTE2_USB_PULLUP,
 };
 
-static struct platform_device palmte2_gpio_vbus = {
+static struct platform_device palmte2_gpio_vbus =
+{
 	.name	= "gpio-vbus",
 	.id	= -1,
 	.dev	= {
@@ -216,11 +228,18 @@ static int power_supply_init(struct device *dev)
 	int ret;
 
 	ret = gpio_request(GPIO_NR_PALMTE2_POWER_DETECT, "CABLE_STATE_AC");
+
 	if (ret)
+	{
 		goto err1;
+	}
+
 	ret = gpio_direction_input(GPIO_NR_PALMTE2_POWER_DETECT);
+
 	if (ret)
+	{
 		goto err2;
+	}
 
 	return 0;
 
@@ -240,11 +259,13 @@ static void power_supply_exit(struct device *dev)
 	gpio_free(GPIO_NR_PALMTE2_POWER_DETECT);
 }
 
-static char *palmte2_supplicants[] = {
+static char *palmte2_supplicants[] =
+{
 	"main-battery",
 };
 
-static struct pda_power_pdata power_supply_info = {
+static struct pda_power_pdata power_supply_info =
+{
 	.init            = power_supply_init,
 	.is_ac_online    = palmte2_is_ac_online,
 	.exit            = power_supply_exit,
@@ -252,7 +273,8 @@ static struct pda_power_pdata power_supply_info = {
 	.num_supplicants = ARRAY_SIZE(palmte2_supplicants),
 };
 
-static struct platform_device power_supply = {
+static struct platform_device power_supply =
+{
 	.name = "pda-power",
 	.id   = -1,
 	.dev  = {
@@ -263,7 +285,8 @@ static struct platform_device power_supply = {
 /******************************************************************************
  * WM97xx audio, battery
  ******************************************************************************/
-static struct wm97xx_batt_pdata palmte2_batt_pdata = {
+static struct wm97xx_batt_pdata palmte2_batt_pdata =
+{
 	.batt_aux	= WM97XX_AUX_ID3,
 	.temp_aux	= WM97XX_AUX_ID2,
 	.charge_gpio	= -1,
@@ -277,19 +300,23 @@ static struct wm97xx_batt_pdata palmte2_batt_pdata = {
 	.batt_name	= "main-batt",
 };
 
-static struct wm97xx_pdata palmte2_wm97xx_pdata = {
+static struct wm97xx_pdata palmte2_wm97xx_pdata =
+{
 	.batt_pdata	= &palmte2_batt_pdata,
 };
 
-static pxa2xx_audio_ops_t palmte2_ac97_pdata = {
+static pxa2xx_audio_ops_t palmte2_ac97_pdata =
+{
 	.codec_pdata	= { &palmte2_wm97xx_pdata, },
 };
 
-static struct palm27x_asoc_info palmte2_asoc_pdata = {
+static struct palm27x_asoc_info palmte2_asoc_pdata =
+{
 	.jack_gpio	= GPIO_NR_PALMTE2_EARPHONE_DETECT,
 };
 
-static struct platform_device palmte2_asoc = {
+static struct platform_device palmte2_asoc =
+{
 	.name = "palm27x-asoc",
 	.id   = -1,
 	.dev  = {
@@ -300,24 +327,26 @@ static struct platform_device palmte2_asoc = {
 /******************************************************************************
  * Framebuffer
  ******************************************************************************/
-static struct pxafb_mode_info palmte2_lcd_modes[] = {
+static struct pxafb_mode_info palmte2_lcd_modes[] =
 {
-	.pixclock	= 77757,
-	.xres		= 320,
-	.yres		= 320,
-	.bpp		= 16,
+	{
+		.pixclock	= 77757,
+		.xres		= 320,
+		.yres		= 320,
+		.bpp		= 16,
 
-	.left_margin	= 28,
-	.right_margin	= 7,
-	.upper_margin	= 7,
-	.lower_margin	= 5,
+		.left_margin	= 28,
+		.right_margin	= 7,
+		.upper_margin	= 7,
+		.lower_margin	= 5,
 
-	.hsync_len	= 4,
-	.vsync_len	= 1,
-},
+		.hsync_len	= 4,
+		.vsync_len	= 1,
+	},
 };
 
-static struct pxafb_mach_info palmte2_lcd_screen = {
+static struct pxafb_mach_info palmte2_lcd_screen =
+{
 	.modes		= palmte2_lcd_modes,
 	.num_modes	= ARRAY_SIZE(palmte2_lcd_modes),
 	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
@@ -326,7 +355,8 @@ static struct pxafb_mach_info palmte2_lcd_screen = {
 /******************************************************************************
  * Machine init
  ******************************************************************************/
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
 	&palmte2_pxa_keys,
 #endif
@@ -339,7 +369,8 @@ static struct platform_device *devices[] __initdata = {
 /* setup udc GPIOs initial state */
 static void __init palmte2_udc_init(void)
 {
-	if (!gpio_request(GPIO_NR_PALMTE2_USB_PULLUP, "UDC Vbus")) {
+	if (!gpio_request(GPIO_NR_PALMTE2_USB_PULLUP, "UDC Vbus"))
+	{
 		gpio_direction_output(GPIO_NR_PALMTE2_USB_PULLUP, 1);
 		gpio_free(GPIO_NR_PALMTE2_USB_PULLUP);
 	}
@@ -364,12 +395,12 @@ static void __init palmte2_init(void)
 }
 
 MACHINE_START(PALMTE2, "Palm Tungsten|E2")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa25x_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= palmte2_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa25x_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= palmte2_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

@@ -78,7 +78,8 @@
  * on our cache or tlb entries.
  */
 
-struct exception_table_entry {
+struct exception_table_entry
+{
 	unsigned long insn, fixup;
 };
 
@@ -113,34 +114,35 @@ struct exception_table_entry {
 extern long __put_user_bad(void);
 
 #define __put_user_nocheck(x, ptr, size)		\
-({							\
-	long __pu_err;					\
-	__put_user_size((x), (ptr), (size), __pu_err);	\
-	__pu_err;					\
-})
+	({							\
+		long __pu_err;					\
+		__put_user_size((x), (ptr), (size), __pu_err);	\
+		__pu_err;					\
+	})
 
 #define __put_user_check(x, ptr, size)					\
-({									\
-	long __pu_err = -EFAULT;					\
-	__typeof__(*(ptr)) *__pu_addr = (ptr);				\
-	if (access_ok(VERIFY_WRITE, __pu_addr, size))			\
-		__put_user_size((x), __pu_addr, (size), __pu_err);	\
-	__pu_err;							\
-})
+	({									\
+		long __pu_err = -EFAULT;					\
+		__typeof__(*(ptr)) *__pu_addr = (ptr);				\
+		if (access_ok(VERIFY_WRITE, __pu_addr, size))			\
+			__put_user_size((x), __pu_addr, (size), __pu_err);	\
+		__pu_err;							\
+	})
 
 #define __put_user_size(x, ptr, size, retval)				\
-do {									\
-	retval = 0;							\
-	switch (size) {							\
-	case 1: __put_user_asm(x, ptr, retval, "l.sb"); break;		\
-	case 2: __put_user_asm(x, ptr, retval, "l.sh"); break;		\
-	case 4: __put_user_asm(x, ptr, retval, "l.sw"); break;		\
-	case 8: __put_user_asm2(x, ptr, retval); break;			\
-	default: __put_user_bad();					\
-	}								\
-} while (0)
+	do {									\
+		retval = 0;							\
+		switch (size) {							\
+			case 1: __put_user_asm(x, ptr, retval, "l.sb"); break;		\
+			case 2: __put_user_asm(x, ptr, retval, "l.sh"); break;		\
+			case 4: __put_user_asm(x, ptr, retval, "l.sw"); break;		\
+			case 8: __put_user_asm2(x, ptr, retval); break;			\
+			default: __put_user_bad();					\
+		}								\
+	} while (0)
 
-struct __large_struct {
+struct __large_struct
+{
 	unsigned long buf[100];
 };
 #define __m(x) (*(struct __large_struct *)(x))
@@ -152,106 +154,106 @@ struct __large_struct {
  */
 #define __put_user_asm(x, addr, err, op)			\
 	__asm__ __volatile__(					\
-		"1:	"op" 0(%2),%1\n"			\
-		"2:\n"						\
-		".section .fixup,\"ax\"\n"			\
-		"3:	l.addi %0,r0,%3\n"			\
-		"	l.j 2b\n"				\
-		"	l.nop\n"				\
-		".previous\n"					\
-		".section __ex_table,\"a\"\n"			\
-		"	.align 2\n"				\
-		"	.long 1b,3b\n"				\
-		".previous"					\
-		: "=r"(err)					\
-		: "r"(x), "r"(addr), "i"(-EFAULT), "0"(err))
+											"1:	"op" 0(%2),%1\n"			\
+											"2:\n"						\
+											".section .fixup,\"ax\"\n"			\
+											"3:	l.addi %0,r0,%3\n"			\
+											"	l.j 2b\n"				\
+											"	l.nop\n"				\
+											".previous\n"					\
+											".section __ex_table,\"a\"\n"			\
+											"	.align 2\n"				\
+											"	.long 1b,3b\n"				\
+											".previous"					\
+											: "=r"(err)					\
+											: "r"(x), "r"(addr), "i"(-EFAULT), "0"(err))
 
 #define __put_user_asm2(x, addr, err)				\
 	__asm__ __volatile__(					\
-		"1:	l.sw 0(%2),%1\n"			\
-		"2:	l.sw 4(%2),%H1\n"			\
-		"3:\n"						\
-		".section .fixup,\"ax\"\n"			\
-		"4:	l.addi %0,r0,%3\n"			\
-		"	l.j 3b\n"				\
-		"	l.nop\n"				\
-		".previous\n"					\
-		".section __ex_table,\"a\"\n"			\
-		"	.align 2\n"				\
-		"	.long 1b,4b\n"				\
-		"	.long 2b,4b\n"				\
-		".previous"					\
-		: "=r"(err)					\
-		: "r"(x), "r"(addr), "i"(-EFAULT), "0"(err))
+											"1:	l.sw 0(%2),%1\n"			\
+											"2:	l.sw 4(%2),%H1\n"			\
+											"3:\n"						\
+											".section .fixup,\"ax\"\n"			\
+											"4:	l.addi %0,r0,%3\n"			\
+											"	l.j 3b\n"				\
+											"	l.nop\n"				\
+											".previous\n"					\
+											".section __ex_table,\"a\"\n"			\
+											"	.align 2\n"				\
+											"	.long 1b,4b\n"				\
+											"	.long 2b,4b\n"				\
+											".previous"					\
+											: "=r"(err)					\
+											: "r"(x), "r"(addr), "i"(-EFAULT), "0"(err))
 
 #define __get_user_nocheck(x, ptr, size)			\
-({								\
-	long __gu_err, __gu_val;				\
-	__get_user_size(__gu_val, (ptr), (size), __gu_err);	\
-	(x) = (__force __typeof__(*(ptr)))__gu_val;		\
-	__gu_err;						\
-})
+	({								\
+		long __gu_err, __gu_val;				\
+		__get_user_size(__gu_val, (ptr), (size), __gu_err);	\
+		(x) = (__force __typeof__(*(ptr)))__gu_val;		\
+		__gu_err;						\
+	})
 
 #define __get_user_check(x, ptr, size)					\
-({									\
-	long __gu_err = -EFAULT, __gu_val = 0;				\
-	const __typeof__(*(ptr)) * __gu_addr = (ptr);			\
-	if (access_ok(VERIFY_READ, __gu_addr, size))			\
-		__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
-	(x) = (__force __typeof__(*(ptr)))__gu_val;			\
-	__gu_err;							\
-})
+	({									\
+		long __gu_err = -EFAULT, __gu_val = 0;				\
+		const __typeof__(*(ptr)) * __gu_addr = (ptr);			\
+		if (access_ok(VERIFY_READ, __gu_addr, size))			\
+			__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
+		(x) = (__force __typeof__(*(ptr)))__gu_val;			\
+		__gu_err;							\
+	})
 
 extern long __get_user_bad(void);
 
 #define __get_user_size(x, ptr, size, retval)				\
-do {									\
-	retval = 0;							\
-	switch (size) {							\
-	case 1: __get_user_asm(x, ptr, retval, "l.lbz"); break;		\
-	case 2: __get_user_asm(x, ptr, retval, "l.lhz"); break;		\
-	case 4: __get_user_asm(x, ptr, retval, "l.lwz"); break;		\
-	case 8: __get_user_asm2(x, ptr, retval);			\
-	default: (x) = __get_user_bad();				\
-	}								\
-} while (0)
+	do {									\
+		retval = 0;							\
+		switch (size) {							\
+			case 1: __get_user_asm(x, ptr, retval, "l.lbz"); break;		\
+			case 2: __get_user_asm(x, ptr, retval, "l.lhz"); break;		\
+			case 4: __get_user_asm(x, ptr, retval, "l.lwz"); break;		\
+			case 8: __get_user_asm2(x, ptr, retval);			\
+			default: (x) = __get_user_bad();				\
+		}								\
+	} while (0)
 
 #define __get_user_asm(x, addr, err, op)		\
 	__asm__ __volatile__(				\
-		"1:	"op" %1,0(%2)\n"		\
-		"2:\n"					\
-		".section .fixup,\"ax\"\n"		\
-		"3:	l.addi %0,r0,%3\n"		\
-		"	l.addi %1,r0,0\n"		\
-		"	l.j 2b\n"			\
-		"	l.nop\n"			\
-		".previous\n"				\
-		".section __ex_table,\"a\"\n"		\
-		"	.align 2\n"			\
-		"	.long 1b,3b\n"			\
-		".previous"				\
-		: "=r"(err), "=r"(x)			\
-		: "r"(addr), "i"(-EFAULT), "0"(err))
+										"1:	"op" %1,0(%2)\n"		\
+										"2:\n"					\
+										".section .fixup,\"ax\"\n"		\
+										"3:	l.addi %0,r0,%3\n"		\
+										"	l.addi %1,r0,0\n"		\
+										"	l.j 2b\n"			\
+										"	l.nop\n"			\
+										".previous\n"				\
+										".section __ex_table,\"a\"\n"		\
+										"	.align 2\n"			\
+										"	.long 1b,3b\n"			\
+										".previous"				\
+										: "=r"(err), "=r"(x)			\
+										: "r"(addr), "i"(-EFAULT), "0"(err))
 
 #define __get_user_asm2(x, addr, err)			\
 	__asm__ __volatile__(				\
-		"1:	l.lwz %1,0(%2)\n"		\
-		"2:	l.lwz %H1,4(%2)\n"		\
-		"3:\n"					\
-		".section .fixup,\"ax\"\n"		\
-		"4:	l.addi %0,r0,%3\n"		\
-		"	l.addi %1,r0,0\n"		\
-		"	l.addi %H1,r0,0\n"		\
-		"	l.j 3b\n"			\
-		"	l.nop\n"			\
-		".previous\n"				\
-		".section __ex_table,\"a\"\n"		\
-		"	.align 2\n"			\
-		"	.long 1b,4b\n"			\
-		"	.long 2b,4b\n"			\
-		".previous"				\
-		: "=r"(err), "=&r"(x)			\
-		: "r"(addr), "i"(-EFAULT), "0"(err))
+										"1:	l.lwz %1,0(%2)\n"		\
+										"2:	l.lwz %H1,4(%2)\n"		\
+										"3:\n"					\
+										".section .fixup,\"ax\"\n"		\
+										"4:	l.addi %0,r0,%3\n"		\
+										"	l.addi %1,r0,0\n"		\
+										"	l.addi %H1,r0,0\n"		\
+										"	l.j 3b\n"			\
+										"	l.nop\n"			\
+										".previous\n"				\
+										".section __ex_table,\"a\"\n"		\
+										"	.align 2\n"			\
+										"	.long 1b,4b\n"			\
+										"	.long 2b,4b\n"			\
+										".previous"				\
+										: "=r"(err), "=&r"(x)			\
+										: "r"(addr), "i"(-EFAULT), "0"(err))
 
 /* more complex routines */
 
@@ -272,9 +274,15 @@ copy_from_user(void *to, const void *from, unsigned long n)
 	unsigned long res = n;
 
 	if (likely(access_ok(VERIFY_READ, from, n)))
+	{
 		res = __copy_tofrom_user(to, from, n);
+	}
+
 	if (unlikely(res))
+	{
 		memset(to + (n - res), 0, res);
+	}
+
 	return res;
 }
 
@@ -282,7 +290,10 @@ static inline unsigned long
 copy_to_user(void *to, const void *from, unsigned long n)
 {
 	if (likely(access_ok(VERIFY_WRITE, to, n)))
+	{
 		n = __copy_tofrom_user(to, from, n);
+	}
+
 	return n;
 }
 
@@ -292,7 +303,10 @@ static inline __must_check unsigned long
 clear_user(void *addr, unsigned long size)
 {
 	if (likely(access_ok(VERIFY_WRITE, addr, size)))
+	{
 		size = __clear_user(addr, size);
+	}
+
 	return size;
 }
 

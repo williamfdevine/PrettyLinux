@@ -46,18 +46,21 @@ int ftrace_arch_code_modify_post_process(void)
  * tracer just add one cycle overhead to every kernel function when disabled.
  */
 static unsigned long ftrace_gen_branch(unsigned long pc, unsigned long addr,
-				       bool link)
+									   bool link)
 {
 	tilegx_bundle_bits opcode_x0, opcode_x1;
 	long pcrel_by_instr = (addr - pc) >> TILEGX_LOG2_BUNDLE_SIZE_IN_BYTES;
 
-	if (link) {
+	if (link)
+	{
 		/* opcode: jal addr */
 		opcode_x1 =
 			create_Opcode_X1(JUMP_OPCODE_X1) |
 			create_JumpOpcodeExtension_X1(JAL_JUMP_OPCODE_X1) |
 			create_JumpOff_X1(pcrel_by_instr);
-	} else {
+	}
+	else
+	{
 		/* opcode: j addr */
 		opcode_x1 =
 			create_Opcode_X1(JUMP_OPCODE_X1) |
@@ -69,7 +72,8 @@ static unsigned long ftrace_gen_branch(unsigned long pc, unsigned long addr,
 	 * Also put { move r10, lr; jal ftrace_stub } in a bundle, which
 	 * is used to replace the instruction in address ftrace_call.
 	 */
-	if (addr == FTRACE_ADDR || addr == (unsigned long)ftrace_stub) {
+	if (addr == FTRACE_ADDR || addr == (unsigned long)ftrace_stub)
+	{
 		/* opcode: or r10, lr, zero */
 		opcode_x0 =
 			create_Dest_X0(10) |
@@ -77,7 +81,9 @@ static unsigned long ftrace_gen_branch(unsigned long pc, unsigned long addr,
 			create_SrcB_X0(TREG_ZERO) |
 			create_RRROpcodeExtension_X0(OR_RRR_0_OPCODE_X0) |
 			create_Opcode_X0(RRR_0_OPCODE_X0);
-	} else {
+	}
+	else
+	{
 		/* opcode: fnop */
 		opcode_x0 =
 			create_UnaryOpcodeExtension_X0(FNOP_UNARY_OPCODE_X0) |
@@ -99,24 +105,30 @@ static unsigned long ftrace_call_replace(unsigned long pc, unsigned long addr)
 }
 
 static int ftrace_modify_code(unsigned long pc, unsigned long old,
-			      unsigned long new)
+							  unsigned long new)
 {
 	unsigned long pc_wr;
 
 	/* Check if the address is in kernel text space and module space. */
 	if (!kernel_text_address(pc))
+	{
 		return -EINVAL;
+	}
 
 	/* Operate on writable kernel text mapping. */
 	pc_wr = ktext_writable_addr(pc);
 
 	if (probe_kernel_write((void *)pc_wr, &new, MCOUNT_INSN_SIZE))
+	{
 		return -EPERM;
+	}
 
 	smp_wmb();
 
 	if (!machine_stopped && num_online_cpus() > 1)
+	{
 		flush_icache_range(pc, pc + MCOUNT_INSN_SIZE);
+	}
 
 	return 0;
 }
@@ -148,7 +160,7 @@ int ftrace_make_call(struct dyn_ftrace *rec, unsigned long addr)
 }
 
 int ftrace_make_nop(struct module *mod,
-		    struct dyn_ftrace *rec, unsigned long addr)
+					struct dyn_ftrace *rec, unsigned long addr)
 {
 	unsigned long ip = rec->ip;
 	unsigned long old;
@@ -170,7 +182,7 @@ int __init ftrace_dyn_arch_init(void)
 
 #ifdef CONFIG_FUNCTION_GRAPH_TRACER
 void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
-			   unsigned long frame_pointer)
+						   unsigned long frame_pointer)
 {
 	unsigned long return_hooker = (unsigned long) &return_to_handler;
 	struct ftrace_graph_ent trace;
@@ -178,14 +190,18 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
 	int err;
 
 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+	{
 		return;
+	}
 
 	old = *parent;
 	*parent = return_hooker;
 
 	err = ftrace_push_return_trace(old, self_addr, &trace.depth,
-				       frame_pointer, NULL);
-	if (err == -EBUSY) {
+								   frame_pointer, NULL);
+
+	if (err == -EBUSY)
+	{
 		*parent = old;
 		return;
 	}
@@ -193,7 +209,8 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
 	trace.func = self_addr;
 
 	/* Only trace if the calling function expects to */
-	if (!ftrace_graph_entry(&trace)) {
+	if (!ftrace_graph_entry(&trace))
+	{
 		current->curr_ret_stack--;
 		*parent = old;
 	}
@@ -203,7 +220,7 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
 extern unsigned long ftrace_graph_call;
 
 static int __ftrace_modify_caller(unsigned long *callsite,
-				  void (*func) (void), bool enable)
+								  void (*func) (void), bool enable)
 {
 	unsigned long caller_fn = (unsigned long) func;
 	unsigned long pc = (unsigned long) callsite;
@@ -220,8 +237,8 @@ static int ftrace_modify_graph_caller(bool enable)
 	int ret;
 
 	ret = __ftrace_modify_caller(&ftrace_graph_call,
-				     ftrace_graph_caller,
-				     enable);
+								 ftrace_graph_caller,
+								 enable);
 
 	return ret;
 }

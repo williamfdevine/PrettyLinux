@@ -32,10 +32,15 @@ stfs(void *frS, void *ea)
 #endif
 
 	_FP_PACK_CANONICAL(S, 1, R);
-	if (!FP_CUR_EXCEPTIONS || !__FPU_TRAP_P(FP_CUR_EXCEPTIONS)) {
+
+	if (!FP_CUR_EXCEPTIONS || !__FPU_TRAP_P(FP_CUR_EXCEPTIONS))
+	{
 		_FP_PACK_RAW_1_P(S, &f, R);
+
 		if (copy_to_user(ea, &f, sizeof(float)))
+		{
 			return -EFAULT;
+		}
 	}
 
 	return FP_CUR_EXCEPTIONS;

@@ -30,7 +30,8 @@
 #include <linux/timer.h>
 #include <asm/types.h>
 
-struct iommu_table {
+struct iommu_table
+{
 	const struct cal_chipset_ops *chip_ops; /* chipset specific funcs */
 	unsigned long  it_base;      /* mapped address of tce table */
 	unsigned long  it_hint;      /* Hint for next alloc */
@@ -43,7 +44,8 @@ struct iommu_table {
 	unsigned char  it_busno;     /* Bus number this table belongs to */
 };
 
-struct cal_chipset_ops {
+struct cal_chipset_ops
+{
 	void (*handle_quirks)(struct iommu_table *tbl, struct pci_dev *dev);
 	void (*tce_cache_blast)(struct iommu_table *tbl);
 	void (*dump_error_regs)(struct iommu_table *tbl);

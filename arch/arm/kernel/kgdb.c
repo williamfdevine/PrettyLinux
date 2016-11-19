@@ -50,24 +50,32 @@ struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] =
 char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return NULL;
+	}
 
 	if (dbg_reg_def[regno].offset != -1)
 		memcpy(mem, (void *)regs + dbg_reg_def[regno].offset,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 	else
+	{
 		memset(mem, 0, dbg_reg_def[regno].size);
+	}
+
 	return dbg_reg_def[regno].name;
 }
 
 int dbg_set_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (dbg_reg_def[regno].offset != -1)
 		memcpy((void *)regs + dbg_reg_def[regno].offset, mem,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
+
 	return 0;
 }
 
@@ -79,11 +87,15 @@ sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *task)
 
 	/* Just making sure... */
 	if (task == NULL)
+	{
 		return;
+	}
 
 	/* Initialize to zero */
 	for (regno = 0; regno < GDB_MAX_REGS; regno++)
+	{
 		gdb_regs[regno] = 0;
+	}
 
 	/* Otherwise, we have only some registers from switch_to() */
 	ti			= task_thread_info(task);
@@ -107,32 +119,38 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long pc)
 static int compiled_break;
 
 int kgdb_arch_handle_exception(int exception_vector, int signo,
-			       int err_code, char *remcom_in_buffer,
-			       char *remcom_out_buffer,
-			       struct pt_regs *linux_regs)
+							   int err_code, char *remcom_in_buffer,
+							   char *remcom_out_buffer,
+							   struct pt_regs *linux_regs)
 {
 	unsigned long addr;
 	char *ptr;
 
-	switch (remcom_in_buffer[0]) {
-	case 'D':
-	case 'k':
-	case 'c':
-		/*
-		 * Try to read optional parameter, pc unchanged if no parm.
-		 * If this was a compiled breakpoint, we need to move
-		 * to the next instruction or we will just breakpoint
-		 * over and over again.
-		 */
-		ptr = &remcom_in_buffer[1];
-		if (kgdb_hex2long(&ptr, &addr))
-			linux_regs->ARM_pc = addr;
-		else if (compiled_break == 1)
-			linux_regs->ARM_pc += 4;
+	switch (remcom_in_buffer[0])
+	{
+		case 'D':
+		case 'k':
+		case 'c':
+			/*
+			 * Try to read optional parameter, pc unchanged if no parm.
+			 * If this was a compiled breakpoint, we need to move
+			 * to the next instruction or we will just breakpoint
+			 * over and over again.
+			 */
+			ptr = &remcom_in_buffer[1];
 
-		compiled_break = 0;
+			if (kgdb_hex2long(&ptr, &addr))
+			{
+				linux_regs->ARM_pc = addr;
+			}
+			else if (compiled_break == 1)
+			{
+				linux_regs->ARM_pc += 4;
+			}
 
-		return 0;
+			compiled_break = 0;
+
+			return 0;
 	}
 
 	return -1;
@@ -153,7 +171,8 @@ static int kgdb_compiled_brk_fn(struct pt_regs *regs, unsigned int instr)
 	return 0;
 }
 
-static struct undef_hook kgdb_brkpt_hook = {
+static struct undef_hook kgdb_brkpt_hook =
+{
 	.instr_mask		= 0xffffffff,
 	.instr_val		= KGDB_BREAKINST,
 	.cpsr_mask		= MODE_MASK,
@@ -161,7 +180,8 @@ static struct undef_hook kgdb_brkpt_hook = {
 	.fn			= kgdb_brk_fn
 };
 
-static struct undef_hook kgdb_compiled_brkpt_hook = {
+static struct undef_hook kgdb_compiled_brkpt_hook =
+{
 	.instr_mask		= 0xffffffff,
 	.instr_val		= KGDB_COMPILED_BREAK,
 	.cpsr_mask		= MODE_MASK,
@@ -171,14 +191,14 @@ static struct undef_hook kgdb_compiled_brkpt_hook = {
 
 static void kgdb_call_nmi_hook(void *ignored)
 {
-       kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
+	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
 }
 
 void kgdb_roundup_cpus(unsigned long flags)
 {
-       local_irq_enable();
-       smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-       local_irq_disable();
+	local_irq_enable();
+	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
+	local_irq_disable();
 }
 
 static int __kgdb_notify(struct die_args *args, unsigned long cmd)
@@ -186,7 +206,10 @@ static int __kgdb_notify(struct die_args *args, unsigned long cmd)
 	struct pt_regs *regs = args->regs;
 
 	if (kgdb_handle_exception(1, args->signr, cmd, regs))
+	{
 		return NOTIFY_DONE;
+	}
+
 	return NOTIFY_STOP;
 }
 static int
@@ -202,7 +225,8 @@ kgdb_notify(struct notifier_block *self, unsigned long cmd, void *ptr)
 	return ret;
 }
 
-static struct notifier_block kgdb_notifier = {
+static struct notifier_block kgdb_notifier =
+{
 	.notifier_call	= kgdb_notify,
 	.priority	= -INT_MAX,
 };
@@ -219,7 +243,9 @@ int kgdb_arch_init(void)
 	int ret = register_die_notifier(&kgdb_notifier);
 
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	register_undef_hook(&kgdb_brkpt_hook);
 	register_undef_hook(&kgdb_compiled_brkpt_hook);
@@ -248,13 +274,16 @@ int kgdb_arch_set_breakpoint(struct kgdb_bkpt *bpt)
 	BUILD_BUG_ON(sizeof(int) != BREAK_INSTR_SIZE);
 
 	err = probe_kernel_read(bpt->saved_instr, (char *)bpt->bpt_addr,
-				BREAK_INSTR_SIZE);
+							BREAK_INSTR_SIZE);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Machine is already stopped, so we can use __patch_text() directly */
 	__patch_text((void *)bpt->bpt_addr,
-		     *(unsigned int *)arch_kgdb_ops.gdb_bpt_instr);
+				 *(unsigned int *)arch_kgdb_ops.gdb_bpt_instr);
 
 	return err;
 }
@@ -273,7 +302,8 @@ int kgdb_arch_remove_breakpoint(struct kgdb_bkpt *bpt)
  * and we handle the normal undef case within the do_undefinstr
  * handler.
  */
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 #ifndef __ARMEB__
 	.gdb_bpt_instr		= {0xfe, 0xde, 0xff, 0xe7}
 #else /* ! __ARMEB__ */

@@ -29,7 +29,8 @@
 
 #define GOLDFISH_TTY_BASE	(0x2000)
 
-static struct resource goldfish_pdev_bus_resources[] = {
+static struct resource goldfish_pdev_bus_resources[] =
+{
 	{
 		.start  = GOLDFISH_PDEV_BUS_BASE,
 		.end    = GOLDFISH_PDEV_BUS_END,
@@ -45,7 +46,7 @@ static struct resource goldfish_pdev_bus_resources[] = {
 static int __init goldfish_init(void)
 {
 	platform_device_register_simple("goldfish_pdev_bus", -1,
-						goldfish_pdev_bus_resources, 2);
+									goldfish_pdev_bus_resources, 2);
 	return 0;
 }
 device_initcall(goldfish_init);

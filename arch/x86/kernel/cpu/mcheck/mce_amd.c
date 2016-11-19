@@ -55,7 +55,8 @@
 /* Threshold LVT offset is at MSR0xC0000410[15:12] */
 #define SMCA_THR_LVT_OFF	0xF000
 
-static const char * const th_names[] = {
+static const char *const th_names[] =
+{
 	"load_store",
 	"insn_fetch",
 	"combined_unit",
@@ -64,12 +65,14 @@ static const char * const th_names[] = {
 	"execution_unit",
 };
 
-static const char * const smca_umc_block_names[] = {
+static const char *const smca_umc_block_names[] =
+{
 	"dram_ecc",
 	"misc_umc"
 };
 
-struct smca_bank_name smca_bank_names[] = {
+struct smca_bank_name smca_bank_names[] =
+{
 	[SMCA_LS]	= { "load_store",	"Load Store Unit" },
 	[SMCA_IF]	= { "insn_fetch",	"Instruction Fetch Unit" },
 	[SMCA_L2_CACHE]	= { "l2_cache",		"L2 Cache" },
@@ -86,7 +89,8 @@ struct smca_bank_name smca_bank_names[] = {
 };
 EXPORT_SYMBOL_GPL(smca_bank_names);
 
-static struct smca_hwid_mcatype smca_hwid_mcatypes[] = {
+static struct smca_hwid_mcatype smca_hwid_mcatypes[] =
+{
 	/* { bank_type, hwid_mcatype, xec_bitmap } */
 
 	/* ZN Core (HWID=0xB0) MCA types */
@@ -155,9 +159,12 @@ static void get_smca_bank_info(unsigned int bank)
 
 	/* Collect bank_info using CPU 0 for now. */
 	if (cpu)
+	{
 		return;
+	}
 
-	if (rdmsr_safe_on_cpu(cpu, MSR_AMD64_SMCA_MCx_IPID(bank), &instanceId, &high)) {
+	if (rdmsr_safe_on_cpu(cpu, MSR_AMD64_SMCA_MCx_IPID(bank), &instanceId, &high))
+	{
 		pr_warn("Failed to read MCA_IPID for bank %d\n", bank);
 		return;
 	}
@@ -166,9 +173,12 @@ static void get_smca_bank_info(unsigned int bank)
 	mcatype = (high & MCI_IPID_MCATYPE) >> 16;
 	hwid_mcatype = HWID_MCATYPE(hwid, mcatype);
 
-	for (i = 0; i < ARRAY_SIZE(smca_hwid_mcatypes); i++) {
+	for (i = 0; i < ARRAY_SIZE(smca_hwid_mcatypes); i++)
+	{
 		type = &smca_hwid_mcatypes[i];
-		if (hwid_mcatype == type->hwid_mcatype) {
+
+		if (hwid_mcatype == type->hwid_mcatype)
+		{
 			smca_banks[bank].type = type;
 			smca_banks[bank].type_instance = instanceId;
 			break;
@@ -176,7 +186,8 @@ static void get_smca_bank_info(unsigned int bank)
 	}
 }
 
-struct thresh_restart {
+struct thresh_restart
+{
 	struct threshold_block	*b;
 	int			reset;
 	int			set_lvt_off;
@@ -191,7 +202,9 @@ static inline bool is_shared_bank(int bank)
 	 * a shared bank.
 	 */
 	if (mce_flags.smca)
+	{
 		return false;
+	}
 
 	/* Bank 4 is for northbridge reporting and is thus shared */
 	return (bank == 4);
@@ -199,20 +212,21 @@ static inline bool is_shared_bank(int bank)
 
 static const char *bank4_names(const struct threshold_block *b)
 {
-	switch (b->address) {
-	/* MSR4_MISC0 */
-	case 0x00000413:
-		return "dram";
+	switch (b->address)
+	{
+		/* MSR4_MISC0 */
+		case 0x00000413:
+			return "dram";
 
-	case 0xc0000408:
-		return "ht_links";
+		case 0xc0000408:
+			return "ht_links";
 
-	case 0xc0000409:
-		return "l3_cache";
+		case 0xc0000409:
+			return "l3_cache";
 
-	default:
-		WARN(1, "Funny MSR: 0x%08x\n", b->address);
-		return "";
+		default:
+			WARN(1, "Funny MSR: 0x%08x\n", b->address);
+			return "";
 	}
 };
 
@@ -223,7 +237,9 @@ static bool lvt_interrupt_supported(unsigned int bank, u32 msr_high_bits)
 	 * bank 4 supports APIC LVT interrupts implicitly since forever.
 	 */
 	if (bank == 4)
+	{
 		return true;
+	}
 
 	/*
 	 * IntP: interrupt present; if this bit is set, the thresholding
@@ -236,25 +252,29 @@ static int lvt_off_valid(struct threshold_block *b, int apic, u32 lo, u32 hi)
 {
 	int msr = (hi & MASK_LVTOFF_HI) >> 20;
 
-	if (apic < 0) {
+	if (apic < 0)
+	{
 		pr_err(FW_BUG "cpu %d, failed to setup threshold interrupt "
-		       "for bank %d, block %d (MSR%08X=0x%x%08x)\n", b->cpu,
-		       b->bank, b->block, b->address, hi, lo);
+			   "for bank %d, block %d (MSR%08X=0x%x%08x)\n", b->cpu,
+			   b->bank, b->block, b->address, hi, lo);
 		return 0;
 	}
 
-	if (apic != msr) {
+	if (apic != msr)
+	{
 		/*
 		 * On SMCA CPUs, LVT offset is programmed at a different MSR, and
 		 * the BIOS provides the value. The original field where LVT offset
 		 * was set is reserved. Return early here:
 		 */
 		if (mce_flags.smca)
+		{
 			return 0;
+		}
 
 		pr_err(FW_BUG "cpu %d, invalid threshold interrupt offset %d "
-		       "for bank %d, block %d (MSR%08X=0x%x%08x)\n",
-		       b->cpu, apic, b->bank, b->block, b->address, hi, lo);
+			   "for bank %d, block %d (MSR%08X=0x%x%08x)\n",
+			   b->cpu, apic, b->bank, b->block, b->address, hi, lo);
 		return 0;
 	}
 
@@ -270,28 +290,37 @@ static void threshold_restart_bank(void *_tr)
 	rdmsr(tr->b->address, lo, hi);
 
 	if (tr->b->threshold_limit < (hi & THRESHOLD_MAX))
-		tr->reset = 1;	/* limit cannot be lower than err count */
+	{
+		tr->reset = 1;    /* limit cannot be lower than err count */
+	}
 
-	if (tr->reset) {		/* reset err count and overflow bit */
+	if (tr->reset)  		/* reset err count and overflow bit */
+	{
 		hi =
-		    (hi & ~(MASK_ERR_COUNT_HI | MASK_OVERFLOW_HI)) |
-		    (THRESHOLD_MAX - tr->b->threshold_limit);
-	} else if (tr->old_limit) {	/* change limit w/o reset */
+			(hi & ~(MASK_ERR_COUNT_HI | MASK_OVERFLOW_HI)) |
+			(THRESHOLD_MAX - tr->b->threshold_limit);
+	}
+	else if (tr->old_limit)  	/* change limit w/o reset */
+	{
 		int new_count = (hi & THRESHOLD_MAX) +
-		    (tr->old_limit - tr->b->threshold_limit);
+						(tr->old_limit - tr->b->threshold_limit);
 
 		hi = (hi & ~MASK_ERR_COUNT_HI) |
-		    (new_count & THRESHOLD_MAX);
+			 (new_count & THRESHOLD_MAX);
 	}
 
 	/* clear IntType */
 	hi &= ~MASK_INT_TYPE_HI;
 
 	if (!tr->b->interrupt_capable)
+	{
 		goto done;
+	}
 
-	if (tr->set_lvt_off) {
-		if (lvt_off_valid(tr->b, tr->lvt_off, lo, hi)) {
+	if (tr->set_lvt_off)
+	{
+		if (lvt_off_valid(tr->b, tr->lvt_off, lo, hi))
+		{
 			/* set new lvt offset */
 			hi &= ~MASK_LVTOFF_HI;
 			hi |= tr->lvt_off << 20;
@@ -299,9 +328,11 @@ static void threshold_restart_bank(void *_tr)
 	}
 
 	if (tr->b->interrupt_enable)
+	{
 		hi |= INT_TYPE_APIC;
+	}
 
- done:
+done:
 
 	hi |= MASK_COUNT_EN_HI;
 	wrmsr(tr->b->address, lo, hi);
@@ -309,7 +340,8 @@ static void threshold_restart_bank(void *_tr)
 
 static void mce_threshold_block_init(struct threshold_block *b, int offset)
 {
-	struct thresh_restart tr = {
+	struct thresh_restart tr =
+	{
 		.b			= b,
 		.set_lvt_off		= 1,
 		.lvt_off		= offset,
@@ -322,8 +354,10 @@ static void mce_threshold_block_init(struct threshold_block *b, int offset)
 static int setup_APIC_mce_threshold(int reserved, int new)
 {
 	if (reserved < 0 && !setup_APIC_eilvt(new, THRESHOLD_APIC_VECTOR,
-					      APIC_EILVT_MSG_FIX, 0))
+										  APIC_EILVT_MSG_FIX, 0))
+	{
 		return new;
+	}
 
 	return reserved;
 }
@@ -331,8 +365,10 @@ static int setup_APIC_mce_threshold(int reserved, int new)
 static int setup_APIC_deferred_error(int reserved, int new)
 {
 	if (reserved < 0 && !setup_APIC_eilvt(new, DEFERRED_ERROR_VECTOR,
-					      APIC_EILVT_MSG_FIX, 0))
+										  APIC_EILVT_MSG_FIX, 0))
+	{
 		return new;
+	}
 
 	return reserved;
 }
@@ -343,33 +379,44 @@ static void deferred_error_interrupt_enable(struct cpuinfo_x86 *c)
 	int def_offset = -1, def_new;
 
 	if (rdmsr_safe(MSR_CU_DEF_ERR, &low, &high))
+	{
 		return;
+	}
 
 	def_new = (low & MASK_DEF_LVTOFF) >> 4;
-	if (!(low & MASK_DEF_LVTOFF)) {
+
+	if (!(low & MASK_DEF_LVTOFF))
+	{
 		pr_err(FW_BUG "Your BIOS is not setting up LVT offset 0x2 for deferred error IRQs correctly.\n");
 		def_new = DEF_LVT_OFF;
 		low = (low & ~MASK_DEF_LVTOFF) | (DEF_LVT_OFF << 4);
 	}
 
 	def_offset = setup_APIC_deferred_error(def_offset, def_new);
+
 	if ((def_offset == def_new) &&
-	    (deferred_error_int_vector != amd_deferred_error_interrupt))
+		(deferred_error_int_vector != amd_deferred_error_interrupt))
+	{
 		deferred_error_int_vector = amd_deferred_error_interrupt;
+	}
 
 	low = (low & ~MASK_DEF_INT_TYPE) | DEF_INT_TYPE_APIC;
 	wrmsr(MSR_CU_DEF_ERR, low, high);
 }
 
 static u32 get_block_address(unsigned int cpu, u32 current_addr, u32 low, u32 high,
-			     unsigned int bank, unsigned int block)
+							 unsigned int bank, unsigned int block)
 {
 	u32 addr = 0, offset = 0;
 
-	if (mce_flags.smca) {
-		if (!block) {
+	if (mce_flags.smca)
+	{
+		if (!block)
+		{
 			addr = MSR_AMD64_SMCA_MCx_MISC(bank);
-		} else {
+		}
+		else
+		{
 			/*
 			 * For SMCA enabled processors, BLKPTR field of the
 			 * first MISC register (MCx_MISC0) indicates presence of
@@ -378,37 +425,52 @@ static u32 get_block_address(unsigned int cpu, u32 current_addr, u32 low, u32 hi
 			u32 low, high;
 
 			if (rdmsr_safe_on_cpu(cpu, MSR_AMD64_SMCA_MCx_CONFIG(bank), &low, &high))
+			{
 				return addr;
+			}
 
 			if (!(low & MCI_CONFIG_MCAX))
+			{
 				return addr;
+			}
 
 			if (!rdmsr_safe_on_cpu(cpu, MSR_AMD64_SMCA_MCx_MISC(bank), &low, &high) &&
-			    (low & MASK_BLKPTR_LO))
+				(low & MASK_BLKPTR_LO))
+			{
 				addr = MSR_AMD64_SMCA_MCx_MISCy(bank, block - 1);
+			}
 		}
+
 		return addr;
 	}
 
 	/* Fall back to method we used for older processors: */
-	switch (block) {
-	case 0:
-		addr = msr_ops.misc(bank);
-		break;
-	case 1:
-		offset = ((low & MASK_BLKPTR_LO) >> 21);
-		if (offset)
-			addr = MCG_XBLK_ADDR + offset;
-		break;
-	default:
-		addr = ++current_addr;
+	switch (block)
+	{
+		case 0:
+			addr = msr_ops.misc(bank);
+			break;
+
+		case 1:
+			offset = ((low & MASK_BLKPTR_LO) >> 21);
+
+			if (offset)
+			{
+				addr = MCG_XBLK_ADDR + offset;
+			}
+
+			break;
+
+		default:
+			addr = ++current_addr;
 	}
+
 	return addr;
 }
 
 static int
 prepare_threshold_block(unsigned int bank, unsigned int block, u32 addr,
-			int offset, u32 misc_high)
+						int offset, u32 misc_high)
 {
 	unsigned int cpu = smp_processor_id();
 	u32 smca_low, smca_high, smca_addr;
@@ -416,7 +478,9 @@ prepare_threshold_block(unsigned int bank, unsigned int block, u32 addr,
 	int new;
 
 	if (!block)
+	{
 		per_cpu(bank_map, cpu) |= (1 << bank);
+	}
 
 	memset(&b, 0, sizeof(b));
 	b.cpu			= cpu;
@@ -426,18 +490,22 @@ prepare_threshold_block(unsigned int bank, unsigned int block, u32 addr,
 	b.interrupt_capable	= lvt_interrupt_supported(bank, misc_high);
 
 	if (!b.interrupt_capable)
+	{
 		goto done;
+	}
 
 	b.interrupt_enable = 1;
 
-	if (!mce_flags.smca) {
+	if (!mce_flags.smca)
+	{
 		new = (misc_high & MASK_LVTOFF_HI) >> 20;
 		goto set_offset;
 	}
 
 	smca_addr = MSR_AMD64_SMCA_MCx_CONFIG(bank);
 
-	if (!rdmsr_safe(smca_addr, &smca_low, &smca_high)) {
+	if (!rdmsr_safe(smca_addr, &smca_low, &smca_high))
+	{
 		/*
 		 * OS is required to set the MCAX bit to acknowledge that it is
 		 * now using the new MSR ranges and new registers under each
@@ -475,14 +543,18 @@ prepare_threshold_block(unsigned int bank, unsigned int block, u32 addr,
 		 * set.
 		 */
 		if ((smca_low & BIT(5)) && !((smca_high >> 5) & 0x3))
+		{
 			smca_high |= BIT(5);
+		}
 
 		wrmsr(smca_addr, smca_low, smca_high);
 	}
 
 	/* Gather LVT offset for thresholding: */
 	if (rdmsr_safe(MSR_CU_DEF_ERR, &smca_low, &smca_high))
+	{
 		goto out;
+	}
 
 	new = (smca_low & SMCA_THR_LVT_OFF) >> 12;
 
@@ -490,7 +562,9 @@ set_offset:
 	offset = setup_APIC_mce_threshold(offset, new);
 
 	if ((offset == new) && (mce_threshold_vector != amd_threshold_interrupt))
+	{
 		mce_threshold_vector = amd_threshold_interrupt;
+	}
 
 done:
 	mce_threshold_block_init(&b, offset);
@@ -506,31 +580,46 @@ void mce_amd_feature_init(struct cpuinfo_x86 *c)
 	unsigned int bank, block, cpu = smp_processor_id();
 	int offset = -1;
 
-	for (bank = 0; bank < mca_cfg.banks; ++bank) {
+	for (bank = 0; bank < mca_cfg.banks; ++bank)
+	{
 		if (mce_flags.smca)
+		{
 			get_smca_bank_info(bank);
+		}
 
-		for (block = 0; block < NR_BLOCKS; ++block) {
+		for (block = 0; block < NR_BLOCKS; ++block)
+		{
 			address = get_block_address(cpu, address, low, high, bank, block);
+
 			if (!address)
+			{
 				break;
+			}
 
 			if (rdmsr_safe(address, &low, &high))
+			{
 				break;
+			}
 
 			if (!(high & MASK_VALID_HI))
+			{
 				continue;
+			}
 
 			if (!(high & MASK_CNTP_HI)  ||
-			     (high & MASK_LOCKED_HI))
+				(high & MASK_LOCKED_HI))
+			{
 				continue;
+			}
 
 			offset = prepare_threshold_block(bank, block, address, offset, high);
 		}
 	}
 
 	if (mce_flags.succor)
+	{
 		deferred_error_interrupt_enable(c);
+	}
 }
 
 static void
@@ -543,7 +632,8 @@ __log_error(unsigned int bank, bool deferred_err, bool threshold_err, u64 misc)
 
 	WARN_ON_ONCE(deferred_err && threshold_err);
 
-	if (deferred_err && mce_flags.smca) {
+	if (deferred_err && mce_flags.smca)
+	{
 		msr_status = MSR_AMD64_SMCA_MCx_DESTAT(bank);
 		msr_addr = MSR_AMD64_SMCA_MCx_DEADDR(bank);
 	}
@@ -551,7 +641,9 @@ __log_error(unsigned int bank, bool deferred_err, bool threshold_err, u64 misc)
 	rdmsrl(msr_status, status);
 
 	if (!(status & MCI_STATUS_VAL))
+	{
 		return;
+	}
 
 	mce_setup(&m);
 
@@ -559,27 +651,34 @@ __log_error(unsigned int bank, bool deferred_err, bool threshold_err, u64 misc)
 	m.bank = bank;
 
 	if (threshold_err)
+	{
 		m.misc = misc;
+	}
 
-	if (m.status & MCI_STATUS_ADDRV) {
+	if (m.status & MCI_STATUS_ADDRV)
+	{
 		rdmsrl(msr_addr, m.addr);
 
 		/*
 		 * Extract [55:<lsb>] where lsb is the least significant
 		 * *valid* bit of the address bits.
 		 */
-		if (mce_flags.smca) {
+		if (mce_flags.smca)
+		{
 			u8 lsb = (m.addr >> 56) & 0x3f;
 
 			m.addr &= GENMASK_ULL(55, lsb);
 		}
 	}
 
-	if (mce_flags.smca) {
+	if (mce_flags.smca)
+	{
 		rdmsrl(MSR_AMD64_SMCA_MCx_IPID(bank), m.ipid);
 
 		if (m.status & MCI_STATUS_SYNDV)
+		{
 			rdmsrl(MSR_AMD64_SMCA_MCx_SYND(bank), m.synd);
+		}
 	}
 
 	mce_log(&m);
@@ -616,15 +715,18 @@ static void amd_deferred_error_interrupt(void)
 	u32 msr_status;
 	u64 status;
 
-	for (bank = 0; bank < mca_cfg.banks; ++bank) {
+	for (bank = 0; bank < mca_cfg.banks; ++bank)
+	{
 		msr_status = (mce_flags.smca) ? MSR_AMD64_SMCA_MCx_DESTAT(bank)
-					      : msr_ops.status(bank);
+					 : msr_ops.status(bank);
 
 		rdmsrl(msr_status, status);
 
 		if (!(status & MCI_STATUS_VAL) ||
-		    !(status & MCI_STATUS_DEFERRED))
+			!(status & MCI_STATUS_DEFERRED))
+		{
 			continue;
+		}
 
 		__log_error(bank, true, false, 0);
 		break;
@@ -647,36 +749,56 @@ static void amd_threshold_interrupt(void)
 	unsigned int bank, block, cpu = smp_processor_id();
 
 	/* assume first bank caused it */
-	for (bank = 0; bank < mca_cfg.banks; ++bank) {
+	for (bank = 0; bank < mca_cfg.banks; ++bank)
+	{
 		if (!(per_cpu(bank_map, cpu) & (1 << bank)))
+		{
 			continue;
-		for (block = 0; block < NR_BLOCKS; ++block) {
+		}
+
+		for (block = 0; block < NR_BLOCKS; ++block)
+		{
 			address = get_block_address(cpu, address, low, high, bank, block);
+
 			if (!address)
+			{
 				break;
+			}
 
 			if (rdmsr_safe(address, &low, &high))
+			{
 				break;
+			}
 
-			if (!(high & MASK_VALID_HI)) {
+			if (!(high & MASK_VALID_HI))
+			{
 				if (block)
+				{
 					continue;
+				}
 				else
+				{
 					break;
+				}
 			}
 
 			if (!(high & MASK_CNTP_HI)  ||
-			     (high & MASK_LOCKED_HI))
+				(high & MASK_LOCKED_HI))
+			{
 				continue;
+			}
 
 			/*
 			 * Log the machine check that caused the threshold
 			 * event.
 			 */
 			if (high & MASK_OVERFLOW_HI)
+			{
 				goto log;
+			}
 		}
 	}
+
 	return;
 
 log:
@@ -687,17 +809,18 @@ log:
  * Sysfs Interface
  */
 
-struct threshold_attr {
+struct threshold_attr
+{
 	struct attribute attr;
 	ssize_t (*show) (struct threshold_block *, char *);
 	ssize_t (*store) (struct threshold_block *, const char *, size_t count);
 };
 
 #define SHOW_FIELDS(name)						\
-static ssize_t show_ ## name(struct threshold_block *b, char *buf)	\
-{									\
-	return sprintf(buf, "%lu\n", (unsigned long) b->name);		\
-}
+	static ssize_t show_ ## name(struct threshold_block *b, char *buf)	\
+	{									\
+		return sprintf(buf, "%lu\n", (unsigned long) b->name);		\
+	}
 SHOW_FIELDS(interrupt_enable)
 SHOW_FIELDS(threshold_limit)
 
@@ -708,10 +831,14 @@ store_interrupt_enable(struct threshold_block *b, const char *buf, size_t size)
 	unsigned long new;
 
 	if (!b->interrupt_capable)
+	{
 		return -EINVAL;
+	}
 
 	if (kstrtoul(buf, 0, &new) < 0)
+	{
 		return -EINVAL;
+	}
 
 	b->interrupt_enable = !!new;
 
@@ -730,12 +857,19 @@ store_threshold_limit(struct threshold_block *b, const char *buf, size_t size)
 	unsigned long new;
 
 	if (kstrtoul(buf, 0, &new) < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (new > THRESHOLD_MAX)
+	{
 		new = THRESHOLD_MAX;
+	}
+
 	if (new < 1)
+	{
 		new = 1;
+	}
 
 	memset(&tr, 0, sizeof(tr));
 	tr.old_limit = b->threshold_limit;
@@ -754,25 +888,27 @@ static ssize_t show_error_count(struct threshold_block *b, char *buf)
 	rdmsr_on_cpu(b->cpu, b->address, &lo, &hi);
 
 	return sprintf(buf, "%u\n", ((hi & THRESHOLD_MAX) -
-				     (THRESHOLD_MAX - b->threshold_limit)));
+								 (THRESHOLD_MAX - b->threshold_limit)));
 }
 
-static struct threshold_attr error_count = {
+static struct threshold_attr error_count =
+{
 	.attr = {.name = __stringify(error_count), .mode = 0444 },
 	.show = show_error_count,
 };
 
 #define RW_ATTR(val)							\
-static struct threshold_attr val = {					\
-	.attr	= {.name = __stringify(val), .mode = 0644 },		\
-	.show	= show_## val,						\
-	.store	= store_## val,						\
-};
+	static struct threshold_attr val = {					\
+		.attr	= {.name = __stringify(val), .mode = 0644 },		\
+				  .show	= show_## val,						\
+							.store	= store_## val,						\
+	};
 
 RW_ATTR(interrupt_enable);
 RW_ATTR(threshold_limit);
 
-static struct attribute *default_attrs[] = {
+static struct attribute *default_attrs[] =
+{
 	&threshold_limit.attr,
 	&error_count.attr,
 	NULL,	/* possibly interrupt_enable if supported, see below */
@@ -794,7 +930,7 @@ static ssize_t show(struct kobject *kobj, struct attribute *attr, char *buf)
 }
 
 static ssize_t store(struct kobject *kobj, struct attribute *attr,
-		     const char *buf, size_t count)
+					 const char *buf, size_t count)
 {
 	struct threshold_block *b = to_block(kobj);
 	struct threshold_attr *a = to_attr(attr);
@@ -805,12 +941,14 @@ static ssize_t store(struct kobject *kobj, struct attribute *attr,
 	return ret;
 }
 
-static const struct sysfs_ops threshold_ops = {
+static const struct sysfs_ops threshold_ops =
+{
 	.show			= show,
 	.store			= store,
 };
 
-static struct kobj_type threshold_ktype = {
+static struct kobj_type threshold_ktype =
+{
 	.sysfs_ops		= &threshold_ops,
 	.default_attrs		= default_attrs,
 };
@@ -819,57 +957,80 @@ static const char *get_name(unsigned int bank, struct threshold_block *b)
 {
 	unsigned int bank_type;
 
-	if (!mce_flags.smca) {
+	if (!mce_flags.smca)
+	{
 		if (b && bank == 4)
+		{
 			return bank4_names(b);
+		}
 
 		return th_names[bank];
 	}
 
 	if (!smca_banks[bank].type)
+	{
 		return NULL;
+	}
 
 	bank_type = smca_banks[bank].type->bank_type;
 
-	if (b && bank_type == SMCA_UMC) {
+	if (b && bank_type == SMCA_UMC)
+	{
 		if (b->block < ARRAY_SIZE(smca_umc_block_names))
+		{
 			return smca_umc_block_names[b->block];
+		}
+
 		return NULL;
 	}
 
 	snprintf(buf_mcatype, MAX_MCATYPE_NAME_LEN,
-		 "%s_%x", smca_bank_names[bank_type].name,
-			  smca_banks[bank].type_instance);
+			 "%s_%x", smca_bank_names[bank_type].name,
+			 smca_banks[bank].type_instance);
 	return buf_mcatype;
 }
 
 static int allocate_threshold_blocks(unsigned int cpu, unsigned int bank,
-				     unsigned int block, u32 address)
+									 unsigned int block, u32 address)
 {
 	struct threshold_block *b = NULL;
 	u32 low, high;
 	int err;
 
 	if ((bank >= mca_cfg.banks) || (block >= NR_BLOCKS))
+	{
 		return 0;
+	}
 
 	if (rdmsr_safe_on_cpu(cpu, address, &low, &high))
+	{
 		return 0;
+	}
 
-	if (!(high & MASK_VALID_HI)) {
+	if (!(high & MASK_VALID_HI))
+	{
 		if (block)
+		{
 			goto recurse;
+		}
 		else
+		{
 			return 0;
+		}
 	}
 
 	if (!(high & MASK_CNTP_HI)  ||
-	     (high & MASK_LOCKED_HI))
+		(high & MASK_LOCKED_HI))
+	{
 		goto recurse;
+	}
 
 	b = kzalloc(sizeof(struct threshold_block), GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
 
 	b->block		= block;
 	b->bank			= bank;
@@ -879,47 +1040,68 @@ static int allocate_threshold_blocks(unsigned int cpu, unsigned int bank,
 	b->interrupt_capable	= lvt_interrupt_supported(bank, high);
 	b->threshold_limit	= THRESHOLD_MAX;
 
-	if (b->interrupt_capable) {
+	if (b->interrupt_capable)
+	{
 		threshold_ktype.default_attrs[2] = &interrupt_enable.attr;
 		b->interrupt_enable = 1;
-	} else {
+	}
+	else
+	{
 		threshold_ktype.default_attrs[2] = NULL;
 	}
 
 	INIT_LIST_HEAD(&b->miscj);
 
-	if (per_cpu(threshold_banks, cpu)[bank]->blocks) {
+	if (per_cpu(threshold_banks, cpu)[bank]->blocks)
+	{
 		list_add(&b->miscj,
-			 &per_cpu(threshold_banks, cpu)[bank]->blocks->miscj);
-	} else {
+				 &per_cpu(threshold_banks, cpu)[bank]->blocks->miscj);
+	}
+	else
+	{
 		per_cpu(threshold_banks, cpu)[bank]->blocks = b;
 	}
 
 	err = kobject_init_and_add(&b->kobj, &threshold_ktype,
-				   per_cpu(threshold_banks, cpu)[bank]->kobj,
-				   get_name(bank, b));
+							   per_cpu(threshold_banks, cpu)[bank]->kobj,
+							   get_name(bank, b));
+
 	if (err)
+	{
 		goto out_free;
+	}
+
 recurse:
 	address = get_block_address(cpu, address, low, high, bank, ++block);
+
 	if (!address)
+	{
 		return 0;
+	}
 
 	err = allocate_threshold_blocks(cpu, bank, block, address);
+
 	if (err)
+	{
 		goto out_free;
+	}
 
 	if (b)
+	{
 		kobject_uevent(&b->kobj, KOBJ_ADD);
+	}
 
 	return err;
 
 out_free:
-	if (b) {
+
+	if (b)
+	{
 		kobject_put(&b->kobj);
 		list_del(&b->miscj);
 		kfree(b);
 	}
+
 	return err;
 }
 
@@ -931,15 +1113,21 @@ static int __threshold_add_blocks(struct threshold_bank *b)
 	int err = 0;
 
 	err = kobject_add(&b->blocks->kobj, b->kobj, b->blocks->kobj.name);
-	if (err)
-		return err;
 
-	list_for_each_entry_safe(pos, tmp, head, miscj) {
+	if (err)
+	{
+		return err;
+	}
+
+	list_for_each_entry_safe(pos, tmp, head, miscj)
+	{
 
 		err = kobject_add(&pos->kobj, b->kobj, pos->kobj.name);
-		if (err) {
+
+		if (err)
+		{
 			list_for_each_entry_safe_reverse(pos, tmp, head, miscj)
-				kobject_del(&pos->kobj);
+			kobject_del(&pos->kobj);
 
 			return err;
 		}
@@ -955,16 +1143,21 @@ static int threshold_create_bank(unsigned int cpu, unsigned int bank)
 	const char *name = get_name(bank, NULL);
 	int err = 0;
 
-	if (is_shared_bank(bank)) {
+	if (is_shared_bank(bank))
+	{
 		nb = node_to_amd_nb(amd_get_nb_id(cpu));
 
 		/* threshold descriptor already initialized on this node? */
-		if (nb && nb->bank4) {
+		if (nb && nb->bank4)
+		{
 			/* yes, use it */
 			b = nb->bank4;
 			err = kobject_add(b->kobj, &dev->kobj, name);
+
 			if (err)
+			{
 				goto out;
+			}
 
 			per_cpu(threshold_banks, cpu)[bank] = b;
 			atomic_inc(&b->cpus);
@@ -976,37 +1169,46 @@ static int threshold_create_bank(unsigned int cpu, unsigned int bank)
 	}
 
 	b = kzalloc(sizeof(struct threshold_bank), GFP_KERNEL);
-	if (!b) {
+
+	if (!b)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
 
 	b->kobj = kobject_create_and_add(name, &dev->kobj);
-	if (!b->kobj) {
+
+	if (!b->kobj)
+	{
 		err = -EINVAL;
 		goto out_free;
 	}
 
 	per_cpu(threshold_banks, cpu)[bank] = b;
 
-	if (is_shared_bank(bank)) {
+	if (is_shared_bank(bank))
+	{
 		atomic_set(&b->cpus, 1);
 
 		/* nb is already initialized, see above */
-		if (nb) {
+		if (nb)
+		{
 			WARN_ON(nb->bank4);
 			nb->bank4 = b;
 		}
 	}
 
 	err = allocate_threshold_blocks(cpu, bank, 0, msr_ops.misc(bank));
-	if (!err)
-		goto out;
 
- out_free:
+	if (!err)
+	{
+		goto out;
+	}
+
+out_free:
 	kfree(b);
 
- out:
+out:
 	return err;
 }
 
@@ -1018,34 +1220,47 @@ static int threshold_create_device(unsigned int cpu)
 	int err = 0;
 
 	bp = kzalloc(sizeof(struct threshold_bank *) * mca_cfg.banks,
-		     GFP_KERNEL);
+				 GFP_KERNEL);
+
 	if (!bp)
+	{
 		return -ENOMEM;
+	}
 
 	per_cpu(threshold_banks, cpu) = bp;
 
-	for (bank = 0; bank < mca_cfg.banks; ++bank) {
+	for (bank = 0; bank < mca_cfg.banks; ++bank)
+	{
 		if (!(per_cpu(bank_map, cpu) & (1 << bank)))
+		{
 			continue;
+		}
+
 		err = threshold_create_bank(cpu, bank);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return err;
 }
 
 static void deallocate_threshold_block(unsigned int cpu,
-						 unsigned int bank)
+									   unsigned int bank)
 {
 	struct threshold_block *pos = NULL;
 	struct threshold_block *tmp = NULL;
 	struct threshold_bank *head = per_cpu(threshold_banks, cpu)[bank];
 
 	if (!head)
+	{
 		return;
+	}
 
-	list_for_each_entry_safe(pos, tmp, &head->blocks->miscj, miscj) {
+	list_for_each_entry_safe(pos, tmp, &head->blocks->miscj, miscj)
+	{
 		kobject_put(&pos->kobj);
 		list_del(&pos->miscj);
 		kfree(pos);
@@ -1063,7 +1278,7 @@ static void __threshold_remove_blocks(struct threshold_bank *b)
 	kobject_del(b->kobj);
 
 	list_for_each_entry_safe(pos, tmp, &b->blocks->miscj, miscj)
-		kobject_del(&pos->kobj);
+	kobject_del(&pos->kobj);
 }
 
 static void threshold_remove_bank(unsigned int cpu, int bank)
@@ -1072,18 +1287,27 @@ static void threshold_remove_bank(unsigned int cpu, int bank)
 	struct threshold_bank *b;
 
 	b = per_cpu(threshold_banks, cpu)[bank];
+
 	if (!b)
+	{
 		return;
+	}
 
 	if (!b->blocks)
+	{
 		goto free_out;
+	}
 
-	if (is_shared_bank(bank)) {
-		if (!atomic_dec_and_test(&b->cpus)) {
+	if (is_shared_bank(bank))
+	{
+		if (!atomic_dec_and_test(&b->cpus))
+		{
 			__threshold_remove_blocks(b);
 			per_cpu(threshold_banks, cpu)[bank] = NULL;
 			return;
-		} else {
+		}
+		else
+		{
 			/*
 			 * the last CPU on this node using the shared bank is
 			 * going away, remove that bank now.
@@ -1106,11 +1330,16 @@ static void threshold_remove_device(unsigned int cpu)
 {
 	unsigned int bank;
 
-	for (bank = 0; bank < mca_cfg.banks; ++bank) {
+	for (bank = 0; bank < mca_cfg.banks; ++bank)
+	{
 		if (!(per_cpu(bank_map, cpu) & (1 << bank)))
+		{
 			continue;
+		}
+
 		threshold_remove_bank(cpu, bank);
 	}
+
 	kfree(per_cpu(threshold_banks, cpu));
 }
 
@@ -1118,17 +1347,20 @@ static void threshold_remove_device(unsigned int cpu)
 static void
 amd_64_threshold_cpu_callback(unsigned long action, unsigned int cpu)
 {
-	switch (action) {
-	case CPU_ONLINE:
-	case CPU_ONLINE_FROZEN:
-		threshold_create_device(cpu);
-		break;
-	case CPU_DEAD:
-	case CPU_DEAD_FROZEN:
-		threshold_remove_device(cpu);
-		break;
-	default:
-		break;
+	switch (action)
+	{
+		case CPU_ONLINE:
+		case CPU_ONLINE_FROZEN:
+			threshold_create_device(cpu);
+			break;
+
+		case CPU_DEAD:
+		case CPU_DEAD_FROZEN:
+			threshold_remove_device(cpu);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -1137,11 +1369,14 @@ static __init int threshold_init_device(void)
 	unsigned lcpu = 0;
 
 	/* to hit CPUs online before the notifier is up */
-	for_each_online_cpu(lcpu) {
+	for_each_online_cpu(lcpu)
+	{
 		int err = threshold_create_device(lcpu);
 
 		if (err)
+		{
 			return err;
+		}
 	}
 	threshold_cpu_callback = amd_64_threshold_cpu_callback;
 

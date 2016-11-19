@@ -58,11 +58,12 @@ static int bcm54220_phy_fixup(struct phy_device *dev)
 
 static void __init imx7d_enet_phy_init(void)
 {
-	if (IS_BUILTIN(CONFIG_PHYLIB)) {
+	if (IS_BUILTIN(CONFIG_PHYLIB))
+	{
 		phy_register_fixup_for_uid(PHY_ID_AR8031, 0xffffffff,
-					   ar8031_phy_fixup);
+								   ar8031_phy_fixup);
 		phy_register_fixup_for_uid(PHY_ID_BCM54220, 0xffffffff,
-					   bcm54220_phy_fixup);
+								   bcm54220_phy_fixup);
 	}
 }
 
@@ -71,10 +72,14 @@ static void __init imx7d_enet_clk_sel(void)
 	struct regmap *gpr;
 
 	gpr = syscon_regmap_lookup_by_compatible("fsl,imx7d-iomuxc-gpr");
-	if (!IS_ERR(gpr)) {
+
+	if (!IS_ERR(gpr))
+	{
 		regmap_update_bits(gpr, IOMUXC_GPR1, IMX7D_GPR1_ENET_TX_CLK_SEL_MASK, 0);
 		regmap_update_bits(gpr, IOMUXC_GPR1, IMX7D_GPR1_ENET_CLK_DIR_MASK, 0);
-	} else {
+	}
+	else
+	{
 		pr_err("failed to find fsl,imx7d-iomux-gpr regmap\n");
 	}
 }
@@ -90,8 +95,11 @@ static void __init imx7d_init_machine(void)
 	struct device *parent;
 
 	parent = imx_soc_device_init();
+
 	if (parent == NULL)
+	{
 		pr_warn("failed to initialize soc device\n");
+	}
 
 	imx_anatop_init();
 	imx7d_enet_init();
@@ -104,14 +112,15 @@ static void __init imx7d_init_irq(void)
 	irqchip_init();
 }
 
-static const char *const imx7d_dt_compat[] __initconst = {
+static const char *const imx7d_dt_compat[] __initconst =
+{
 	"fsl,imx7d",
 	"fsl,imx7s",
 	NULL,
 };
 
 DT_MACHINE_START(IMX7D, "Freescale i.MX7 Dual (Device Tree)")
-	.init_irq	= imx7d_init_irq,
-	.init_machine	= imx7d_init_machine,
-	.dt_compat	= imx7d_dt_compat,
-MACHINE_END
+.init_irq	= imx7d_init_irq,
+   .init_machine	= imx7d_init_machine,
+	  .dt_compat	= imx7d_dt_compat,
+		MACHINE_END

@@ -51,7 +51,8 @@ static void unmask_core_irq(struct irq_data *data)
 	raw_spin_unlock(&core_irq_lock);
 }
 
-static struct irq_chip core_chip = {
+static struct irq_chip core_chip =
+{
 	.name		= "core",
 	.irq_mask	= mask_core_irq,
 	.irq_unmask	= unmask_core_irq,
@@ -75,10 +76,12 @@ asmlinkage void c6x_do_IRQ(unsigned int prio, struct pt_regs *regs)
 static struct irq_domain *core_domain;
 
 static int core_domain_map(struct irq_domain *h, unsigned int virq,
-			   irq_hw_number_t hw)
+						   irq_hw_number_t hw)
 {
 	if (hw < 4 || hw >= NR_PRIORITY_IRQS)
+	{
 		return -EINVAL;
+	}
 
 	prio_to_virq[hw] = virq;
 
@@ -87,7 +90,8 @@ static int core_domain_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops core_domain_ops = {
+static const struct irq_domain_ops core_domain_ops =
+{
 	.map = core_domain_map,
 	.xlate = irq_domain_xlate_onecell,
 };
@@ -100,12 +104,18 @@ void __init init_IRQ(void)
 	and_creg(IER, ~0xfff0);
 
 	np = of_find_compatible_node(NULL, NULL, "ti,c64x+core-pic");
-	if (np != NULL) {
+
+	if (np != NULL)
+	{
 		/* create the core host */
 		core_domain = irq_domain_add_linear(np, NR_PRIORITY_IRQS,
-						    &core_domain_ops, NULL);
+											&core_domain_ops, NULL);
+
 		if (core_domain)
+		{
 			irq_set_default_host(core_domain);
+		}
+
 		of_node_put(np);
 	}
 

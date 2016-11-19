@@ -35,13 +35,15 @@ static int apply_r_mips_32_rela(struct module *me, u32 *location, Elf_Addr v)
 
 static int apply_r_mips_26_rela(struct module *me, u32 *location, Elf_Addr v)
 {
-	if (v % 4) {
+	if (v % 4)
+	{
 		pr_err("module %s: dangerous R_MIPS_26 RELA relocation\n",
-		       me->name);
+			   me->name);
 		return -ENOEXEC;
 	}
 
-	if ((v & 0xf0000000) != (((unsigned long)location + 4) & 0xf0000000)) {
+	if ((v & 0xf0000000) != (((unsigned long)location + 4) & 0xf0000000))
+	{
 		pr_err("module %s: relocation overflow\n", me->name);
 		return -ENOEXEC;
 	}
@@ -54,7 +56,7 @@ static int apply_r_mips_26_rela(struct module *me, u32 *location, Elf_Addr v)
 static int apply_r_mips_hi16_rela(struct module *me, u32 *location, Elf_Addr v)
 {
 	*location = (*location & 0xffff0000) |
-		    ((((long long) v + 0x8000LL) >> 16) & 0xffff);
+				((((long long) v + 0x8000LL) >> 16) & 0xffff);
 
 	return 0;
 }
@@ -67,15 +69,16 @@ static int apply_r_mips_lo16_rela(struct module *me, u32 *location, Elf_Addr v)
 }
 
 static int apply_r_mips_pc_rela(struct module *me, u32 *location, Elf_Addr v,
-				unsigned bits)
+								unsigned bits)
 {
 	unsigned long mask = GENMASK(bits - 1, 0);
 	unsigned long se_bits;
 	long offset;
 
-	if (v % 4) {
+	if (v % 4)
+	{
 		pr_err("module %s: dangerous R_MIPS_PC%u RELA relocation\n",
-		       me->name, bits);
+			   me->name, bits);
 		return -ENOEXEC;
 	}
 
@@ -83,7 +86,9 @@ static int apply_r_mips_pc_rela(struct module *me, u32 *location, Elf_Addr v,
 
 	/* check the sign bit onwards are identical - ie. we didn't overflow */
 	se_bits = (offset & BIT(bits - 1)) ? ~0ul : 0;
-	if ((offset & ~mask) != (se_bits & ~mask)) {
+
+	if ((offset & ~mask) != (se_bits & ~mask))
+	{
 		pr_err("module %s: relocation overflow\n", me->name);
 		return -ENOEXEC;
 	}
@@ -116,25 +121,26 @@ static int apply_r_mips_64_rela(struct module *me, u32 *location, Elf_Addr v)
 }
 
 static int apply_r_mips_higher_rela(struct module *me, u32 *location,
-				    Elf_Addr v)
+									Elf_Addr v)
 {
 	*location = (*location & 0xffff0000) |
-		    ((((long long) v + 0x80008000LL) >> 32) & 0xffff);
+				((((long long) v + 0x80008000LL) >> 32) & 0xffff);
 
 	return 0;
 }
 
 static int apply_r_mips_highest_rela(struct module *me, u32 *location,
-				     Elf_Addr v)
+									 Elf_Addr v)
 {
 	*location = (*location & 0xffff0000) |
-		    ((((long long) v + 0x800080008000LL) >> 48) & 0xffff);
+				((((long long) v + 0x800080008000LL) >> 48) & 0xffff);
 
 	return 0;
 }
 
 static int (*reloc_handlers_rela[]) (struct module *me, u32 *location,
-				Elf_Addr v) = {
+									 Elf_Addr v) =
+{
 	[R_MIPS_NONE]		= apply_r_mips_none,
 	[R_MIPS_32]		= apply_r_mips_32_rela,
 	[R_MIPS_26]		= apply_r_mips_26_rela,
@@ -149,11 +155,11 @@ static int (*reloc_handlers_rela[]) (struct module *me, u32 *location,
 };
 
 int apply_relocate_add(Elf_Shdr *sechdrs, const char *strtab,
-		       unsigned int symindex, unsigned int relsec,
-		       struct module *me)
+					   unsigned int symindex, unsigned int relsec,
+					   struct module *me)
 {
 	Elf_Mips_Rela *rel = (void *) sechdrs[relsec].sh_addr;
-	int (*handler)(struct module *me, u32 *location, Elf_Addr v);
+	int (*handler)(struct module * me, u32 * location, Elf_Addr v);
 	Elf_Sym *sym;
 	u32 *location;
 	unsigned int i, type;
@@ -161,41 +167,55 @@ int apply_relocate_add(Elf_Shdr *sechdrs, const char *strtab,
 	int res;
 
 	pr_debug("Applying relocate section %u to %u\n", relsec,
-	       sechdrs[relsec].sh_info);
+			 sechdrs[relsec].sh_info);
 
-	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++) {
+	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++)
+	{
 		/* This is where to make the change */
 		location = (void *)sechdrs[sechdrs[relsec].sh_info].sh_addr
-			+ rel[i].r_offset;
+				   + rel[i].r_offset;
 		/* This is the symbol it is referring to */
 		sym = (Elf_Sym *)sechdrs[symindex].sh_addr
-			+ ELF_MIPS_R_SYM(rel[i]);
-		if (sym->st_value >= -MAX_ERRNO) {
+			  + ELF_MIPS_R_SYM(rel[i]);
+
+		if (sym->st_value >= -MAX_ERRNO)
+		{
 			/* Ignore unresolved weak symbol */
 			if (ELF_ST_BIND(sym->st_info) == STB_WEAK)
+			{
 				continue;
+			}
+
 			pr_warn("%s: Unknown symbol %s\n",
-			       me->name, strtab + sym->st_name);
+					me->name, strtab + sym->st_name);
 			return -ENOENT;
 		}
 
 		type = ELF_MIPS_R_TYPE(rel[i]);
 
 		if (type < ARRAY_SIZE(reloc_handlers_rela))
+		{
 			handler = reloc_handlers_rela[type];
+		}
 		else
+		{
 			handler = NULL;
+		}
 
-		if (!handler) {
+		if (!handler)
+		{
 			pr_err("%s: Unknown relocation type %u\n",
-			       me->name, type);
+				   me->name, type);
 			return -EINVAL;
 		}
 
 		v = sym->st_value + rel[i].r_addend;
 		res = handler(me, location, v);
+
 		if (res)
+		{
 			return res;
+		}
 	}
 
 	return 0;

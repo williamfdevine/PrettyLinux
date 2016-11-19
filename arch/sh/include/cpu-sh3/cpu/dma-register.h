@@ -21,7 +21,8 @@
  * The SuperH DMAC supports a number of transmit sizes, we list them here,
  * with their respective values as they appear in the CHCR registers.
  */
-enum {
+enum
+{
 	XMIT_SZ_8BIT,
 	XMIT_SZ_16BIT,
 	XMIT_SZ_32BIT,
@@ -30,11 +31,11 @@ enum {
 
 /* log2(size / 8) - used to calculate number of transfers */
 #define TS_SHIFT {			\
-	[XMIT_SZ_8BIT]		= 0,	\
-	[XMIT_SZ_16BIT]		= 1,	\
-	[XMIT_SZ_32BIT]		= 2,	\
-	[XMIT_SZ_128BIT]	= 4,	\
-}
+		[XMIT_SZ_8BIT]		= 0,	\
+							  [XMIT_SZ_16BIT]		= 1,	\
+									  [XMIT_SZ_32BIT]		= 2,	\
+											  [XMIT_SZ_128BIT]	= 4,	\
+	}
 
 #define TS_INDEX2VAL(i)	(((i) & 3) << CHCR_TS_LOW_SHIFT)
 

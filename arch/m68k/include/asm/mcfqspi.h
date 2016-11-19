@@ -28,7 +28,8 @@
  * platform data for each QSPI master controller.  Only the select and
  * deselect functions are required.
 */
-struct mcfqspi_cs_control {
+struct mcfqspi_cs_control
+{
 	int 	(*setup)(struct mcfqspi_cs_control *);
 	void	(*teardown)(struct mcfqspi_cs_control *);
 	void	(*select)(struct mcfqspi_cs_control *, u8, bool);
@@ -41,7 +42,8 @@ struct mcfqspi_cs_control {
  * @num_chipselects: number of chip selects supported by this qspi driver.
  * @cs_control: platform dependent chip select control.
 */
-struct mcfqspi_platform_data {
+struct mcfqspi_platform_data
+{
 	s16	bus_num;
 	u16	num_chipselect;
 	struct mcfqspi_cs_control *cs_control;

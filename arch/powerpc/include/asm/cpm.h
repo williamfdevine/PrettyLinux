@@ -10,7 +10,8 @@
 /*
  * SPI Parameter RAM common to QE and CPM.
  */
-struct spi_pram {
+struct spi_pram
+{
 	__be16	rbase;	/* Rx Buffer descriptor base address */
 	__be16	tbase;	/* Tx Buffer descriptor base address */
 	u8	rfcr;	/* Rx function code */
@@ -34,7 +35,8 @@ struct spi_pram {
 /*
  * USB Controller pram common to QE and CPM.
  */
-struct usb_ctlr {
+struct usb_ctlr
+{
 	u8	usb_usmod;
 	u8	usb_usadr;
 	u8	usb_uscom;
@@ -57,15 +59,15 @@ struct usb_ctlr {
  * Function code bits, usually generic to devices.
  */
 #ifdef CONFIG_CPM1
-#define CPMFCR_GBL	((u_char)0x00)	/* Flag doesn't exist in CPM1 */
-#define CPMFCR_TC2	((u_char)0x00)	/* Flag doesn't exist in CPM1 */
-#define CPMFCR_DTB	((u_char)0x00)	/* Flag doesn't exist in CPM1 */
-#define CPMFCR_BDB	((u_char)0x00)	/* Flag doesn't exist in CPM1 */
+	#define CPMFCR_GBL	((u_char)0x00)	/* Flag doesn't exist in CPM1 */
+	#define CPMFCR_TC2	((u_char)0x00)	/* Flag doesn't exist in CPM1 */
+	#define CPMFCR_DTB	((u_char)0x00)	/* Flag doesn't exist in CPM1 */
+	#define CPMFCR_BDB	((u_char)0x00)	/* Flag doesn't exist in CPM1 */
 #else
-#define CPMFCR_GBL	((u_char)0x20)	/* Set memory snooping */
-#define CPMFCR_TC2	((u_char)0x04)	/* Transfer code 2 value */
-#define CPMFCR_DTB	((u_char)0x02)	/* Use local bus for data when set */
-#define CPMFCR_BDB	((u_char)0x01)	/* Use local bus for BD when set */
+	#define CPMFCR_GBL	((u_char)0x20)	/* Set memory snooping */
+	#define CPMFCR_TC2	((u_char)0x04)	/* Transfer code 2 value */
+	#define CPMFCR_DTB	((u_char)0x02)	/* Use local bus for data when set */
+	#define CPMFCR_BDB	((u_char)0x01)	/* Use local bus for BD when set */
 #endif
 #define CPMFCR_EB	((u_char)0x10)	/* Set big endian byte order */
 
@@ -84,7 +86,8 @@ struct usb_ctlr {
 #define CPM_CR_STOP_IDMA	((ushort)0x000b)
 
 /* Buffer descriptors used by many of the CPM protocols. */
-typedef struct cpm_buf_desc {
+typedef struct cpm_buf_desc
+{
 	ushort	cbd_sc;		/* Status and Control */
 	ushort	cbd_datlen;	/* Data length in buffer */
 	uint	cbd_bufaddr;	/* Buffer address in host memory */

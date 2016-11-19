@@ -38,7 +38,8 @@
 /*
  * Do a signal return; undo the signal stack. These are aligned to 128-bit.
  */
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo info;
 	struct ucontext uc;
 	u64 fp;
@@ -74,38 +75,50 @@ static int restore_fpsimd_context(struct fpsimd_context __user *ctx)
 	/* check the magic/size information */
 	__get_user_error(magic, &ctx->head.magic, err);
 	__get_user_error(size, &ctx->head.size, err);
+
 	if (err)
+	{
 		return -EFAULT;
+	}
+
 	if (magic != FPSIMD_MAGIC || size != sizeof(struct fpsimd_context))
+	{
 		return -EINVAL;
+	}
 
 	/* copy the FP and status/control registers */
 	err = __copy_from_user(fpsimd.vregs, ctx->vregs,
-			       sizeof(fpsimd.vregs));
+						   sizeof(fpsimd.vregs));
 	__get_user_error(fpsimd.fpsr, &ctx->fpsr, err);
 	__get_user_error(fpsimd.fpcr, &ctx->fpcr, err);
 
 	/* load the hardware registers from the fpsimd_state structure */
 	if (!err)
+	{
 		fpsimd_update_current_state(&fpsimd);
+	}
 
 	return err ? -EFAULT : 0;
 }
 
 static int restore_sigframe(struct pt_regs *regs,
-			    struct rt_sigframe __user *sf)
+							struct rt_sigframe __user *sf)
 {
 	sigset_t set;
 	int i, err;
 	void *aux = sf->uc.uc_mcontext.__reserved;
 
 	err = __copy_from_user(&set, &sf->uc.uc_sigmask, sizeof(set));
+
 	if (err == 0)
+	{
 		set_current_blocked(&set);
+	}
 
 	for (i = 0; i < 31; i++)
 		__get_user_error(regs->regs[i], &sf->uc.uc_mcontext.regs[i],
-				 err);
+						 err);
+
 	__get_user_error(regs->sp, &sf->uc.uc_mcontext.sp, err);
 	__get_user_error(regs->pc, &sf->uc.uc_mcontext.pc, err);
 	__get_user_error(regs->pstate, &sf->uc.uc_mcontext.pstate, err);
@@ -117,7 +130,8 @@ static int restore_sigframe(struct pt_regs *regs,
 
 	err |= !valid_user_regs(&regs->user_regs, current);
 
-	if (err == 0) {
+	if (err == 0)
+	{
 		struct fpsimd_context *fpsimd_ctx =
 			container_of(aux, struct fpsimd_context, head);
 		err |= restore_fpsimd_context(fpsimd_ctx);
@@ -138,32 +152,42 @@ asmlinkage long sys_rt_sigreturn(struct pt_regs *regs)
 	 * be word aligned here.
 	 */
 	if (regs->sp & 15)
+	{
 		goto badframe;
+	}
 
 	frame = (struct rt_sigframe __user *)regs->sp;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof (*frame)))
+	{
 		goto badframe;
+	}
 
 	if (restore_sigframe(regs, frame))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return regs->regs[0];
 
 badframe:
+
 	if (show_unhandled_signals)
 		pr_info_ratelimited("%s[%d]: bad frame in %s: pc=%08llx sp=%08llx\n",
-				    current->comm, task_pid_nr(current), __func__,
-				    regs->pc, regs->sp);
+							current->comm, task_pid_nr(current), __func__,
+							regs->pc, regs->sp);
+
 	force_sig(SIGSEGV, current);
 	return 0;
 }
 
 static int setup_sigframe(struct rt_sigframe __user *sf,
-			  struct pt_regs *regs, sigset_t *set)
+						  struct pt_regs *regs, sigset_t *set)
 {
 	int i, err = 0;
 	void *aux = sf->uc.uc_mcontext.__reserved;
@@ -175,7 +199,8 @@ static int setup_sigframe(struct rt_sigframe __user *sf,
 
 	for (i = 0; i < 31; i++)
 		__put_user_error(regs->regs[i], &sf->uc.uc_mcontext.regs[i],
-				 err);
+						 err);
+
 	__put_user_error(regs->sp, &sf->uc.uc_mcontext.sp, err);
 	__put_user_error(regs->pc, &sf->uc.uc_mcontext.pc, err);
 	__put_user_error(regs->pstate, &sf->uc.uc_mcontext.pstate, err);
@@ -184,7 +209,8 @@ static int setup_sigframe(struct rt_sigframe __user *sf,
 
 	err |= __copy_to_user(&sf->uc.uc_sigmask, set, sizeof(*set));
 
-	if (err == 0) {
+	if (err == 0)
+	{
 		struct fpsimd_context *fpsimd_ctx =
 			container_of(aux, struct fpsimd_context, head);
 		err |= preserve_fpsimd_context(fpsimd_ctx);
@@ -192,7 +218,8 @@ static int setup_sigframe(struct rt_sigframe __user *sf,
 	}
 
 	/* fault information, if valid */
-	if (current->thread.fault_code) {
+	if (current->thread.fault_code)
+	{
 		struct esr_context *esr_ctx =
 			container_of(aux, struct esr_context, head);
 		__put_user_error(ESR_MAGIC, &esr_ctx->head.magic, err);
@@ -210,7 +237,7 @@ static int setup_sigframe(struct rt_sigframe __user *sf,
 }
 
 static struct rt_sigframe __user *get_sigframe(struct ksignal *ksig,
-					       struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	unsigned long sp, sp_top;
 	struct rt_sigframe __user *frame;
@@ -224,13 +251,15 @@ static struct rt_sigframe __user *get_sigframe(struct ksignal *ksig,
 	 * Check that we can actually write to the signal frame.
 	 */
 	if (!access_ok(VERIFY_WRITE, frame, sp_top - sp))
+	{
 		frame = NULL;
+	}
 
 	return frame;
 }
 
 static void setup_return(struct pt_regs *regs, struct k_sigaction *ka,
-			 void __user *frame, int usig)
+						 void __user *frame, int usig)
 {
 	__sigrestore_t sigtramp;
 
@@ -240,31 +269,42 @@ static void setup_return(struct pt_regs *regs, struct k_sigaction *ka,
 	regs->pc = (unsigned long)ka->sa.sa_handler;
 
 	if (ka->sa.sa_flags & SA_RESTORER)
+	{
 		sigtramp = ka->sa.sa_restorer;
+	}
 	else
+	{
 		sigtramp = VDSO_SYMBOL(current->mm->context.vdso, sigtramp);
+	}
 
 	regs->regs[30] = (unsigned long)sigtramp;
 }
 
 static int setup_rt_frame(int usig, struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame;
 	int err = 0;
 
 	frame = get_sigframe(ksig, regs);
+
 	if (!frame)
+	{
 		return 1;
+	}
 
 	__put_user_error(0, &frame->uc.uc_flags, err);
 	__put_user_error(NULL, &frame->uc.uc_link, err);
 
 	err |= __save_altstack(&frame->uc.uc_stack, regs->sp);
 	err |= setup_sigframe(frame, regs, set);
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		setup_return(regs, &ksig->ka, frame, usig);
-		if (ksig->ka.sa.sa_flags & SA_SIGINFO) {
+
+		if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+		{
 			err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 			regs->regs[1] = (unsigned long)&frame->info;
 			regs->regs[2] = (unsigned long)&frame->uc;
@@ -277,9 +317,13 @@ static int setup_rt_frame(int usig, struct ksignal *ksig, sigset_t *set,
 static void setup_restart_syscall(struct pt_regs *regs)
 {
 	if (is_compat_task())
+	{
 		compat_setup_restart_syscall(regs);
+	}
 	else
+	{
 		regs->regs[8] = __NR_restart_syscall;
+	}
 }
 
 /*
@@ -295,12 +339,19 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	/*
 	 * Set up the stack frame
 	 */
-	if (is_compat_task()) {
+	if (is_compat_task())
+	{
 		if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+		{
 			ret = compat_setup_rt_frame(usig, ksig, oldset, regs);
+		}
 		else
+		{
 			ret = compat_setup_frame(usig, ksig, oldset, regs);
-	} else {
+		}
+	}
+	else
+	{
 		ret = setup_rt_frame(usig, ksig, oldset, regs);
 	}
 
@@ -314,7 +365,9 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	 * handler.
 	 */
 	if (!ret)
+	{
 		user_fastforward_single_step(tsk);
+	}
 
 	signal_setup_done(ret, ksig, 0);
 }
@@ -338,7 +391,8 @@ static void do_signal(struct pt_regs *regs)
 	/*
 	 * If we were from a system call, check for system call restarting...
 	 */
-	if (syscall >= 0) {
+	if (syscall >= 0)
+	{
 		continue_addr = regs->pc;
 		restart_addr = continue_addr - (compat_thumb_mode(regs) ? 2 : 4);
 		retval = regs->regs[0];
@@ -352,14 +406,15 @@ static void do_signal(struct pt_regs *regs)
 		 * Prepare for system call restart. We do this here so that a
 		 * debugger will see the already changed PC.
 		 */
-		switch (retval) {
-		case -ERESTARTNOHAND:
-		case -ERESTARTSYS:
-		case -ERESTARTNOINTR:
-		case -ERESTART_RESTARTBLOCK:
-			regs->regs[0] = regs->orig_x0;
-			regs->pc = restart_addr;
-			break;
+		switch (retval)
+		{
+			case -ERESTARTNOHAND:
+			case -ERESTARTSYS:
+			case -ERESTARTNOINTR:
+			case -ERESTART_RESTARTBLOCK:
+				regs->regs[0] = regs->orig_x0;
+				regs->pc = restart_addr;
+				break;
 		}
 	}
 
@@ -367,17 +422,19 @@ static void do_signal(struct pt_regs *regs)
 	 * Get the signal to deliver. When running under ptrace, at this point
 	 * the debugger may change all of our registers.
 	 */
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/*
 		 * Depending on the signal settings, we may need to revert the
 		 * decision to restart the system call, but skip this if a
 		 * debugger has chosen to restart at a different PC.
 		 */
 		if (regs->pc == restart_addr &&
-		    (retval == -ERESTARTNOHAND ||
-		     retval == -ERESTART_RESTARTBLOCK ||
-		     (retval == -ERESTARTSYS &&
-		      !(ksig.ka.sa.sa_flags & SA_RESTART)))) {
+			(retval == -ERESTARTNOHAND ||
+			 retval == -ERESTART_RESTARTBLOCK ||
+			 (retval == -ERESTARTSYS &&
+			  !(ksig.ka.sa.sa_flags & SA_RESTART))))
+		{
 			regs->regs[0] = -EINTR;
 			regs->pc = continue_addr;
 		}
@@ -390,9 +447,13 @@ static void do_signal(struct pt_regs *regs)
 	 * Handle restarting a different system call. As above, if a debugger
 	 * has chosen to restart at a different PC, ignore the restart.
 	 */
-	if (syscall >= 0 && regs->pc == restart_addr) {
+	if (syscall >= 0 && regs->pc == restart_addr)
+	{
 		if (retval == -ERESTART_RESTARTBLOCK)
+		{
 			setup_restart_syscall(regs);
+		}
+
 		user_rewind_single_step(current);
 	}
 
@@ -400,7 +461,7 @@ static void do_signal(struct pt_regs *regs)
 }
 
 asmlinkage void do_notify_resume(struct pt_regs *regs,
-				 unsigned int thread_flags)
+								 unsigned int thread_flags)
 {
 	/*
 	 * The assembly code enters us with IRQs off, but it hasn't
@@ -408,25 +469,36 @@ asmlinkage void do_notify_resume(struct pt_regs *regs,
 	 * Update the trace code with the current status.
 	 */
 	trace_hardirqs_off();
-	do {
-		if (thread_flags & _TIF_NEED_RESCHED) {
+
+	do
+	{
+		if (thread_flags & _TIF_NEED_RESCHED)
+		{
 			schedule();
-		} else {
+		}
+		else
+		{
 			local_irq_enable();
 
 			if (thread_flags & _TIF_SIGPENDING)
+			{
 				do_signal(regs);
+			}
 
-			if (thread_flags & _TIF_NOTIFY_RESUME) {
+			if (thread_flags & _TIF_NOTIFY_RESUME)
+			{
 				clear_thread_flag(TIF_NOTIFY_RESUME);
 				tracehook_notify_resume(regs);
 			}
 
 			if (thread_flags & _TIF_FOREIGN_FPSTATE)
+			{
 				fpsimd_restore_current_state();
+			}
 		}
 
 		local_irq_disable();
 		thread_flags = READ_ONCE(current_thread_info()->flags);
-	} while (thread_flags & _TIF_WORK_MASK);
+	}
+	while (thread_flags & _TIF_WORK_MASK);
 }

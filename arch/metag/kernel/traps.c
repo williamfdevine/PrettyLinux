@@ -41,8 +41,8 @@
 
 /* Passing syscall arguments as long long is quicker. */
 typedef unsigned int (*LPSYSCALL) (unsigned long long,
-				   unsigned long long,
-				   unsigned long long);
+								   unsigned long long,
+								   unsigned long long);
 
 /*
  * Users of LNKSET should compare the bus error bits obtained from DEFR
@@ -58,15 +58,16 @@ typedef unsigned int (*LPSYSCALL) (unsigned long long,
 DECLARE_PER_CPU(PTBI, pTBI);
 
 #ifdef CONFIG_SMP
-static DEFINE_PER_CPU(unsigned int, trigger_mask);
+	static DEFINE_PER_CPU(unsigned int, trigger_mask);
 #else
-unsigned int global_trigger_mask;
-EXPORT_SYMBOL(global_trigger_mask);
+	unsigned int global_trigger_mask;
+	EXPORT_SYMBOL(global_trigger_mask);
 #endif
 
 unsigned long per_cpu__stack_save[NR_CPUS];
 
-static const char * const trap_names[] = {
+static const char *const trap_names[] =
+{
 	[TBIXXF_SIGNUM_IIF] = "Illegal instruction fault",
 	[TBIXXF_SIGNUM_PGF] = "Privilege violation",
 	[TBIXXF_SIGNUM_DHF] = "Unaligned data access fault",
@@ -81,15 +82,18 @@ static const char * const trap_names[] = {
 const char *trap_name(int trapno)
 {
 	if (trapno >= 0 && trapno < ARRAY_SIZE(trap_names)
-			&& trap_names[trapno])
+		&& trap_names[trapno])
+	{
 		return trap_names[trapno];
+	}
+
 	return "Unknown fault";
 }
 
 static DEFINE_SPINLOCK(die_lock);
 
 void __noreturn die(const char *str, struct pt_regs *regs,
-		    long err, unsigned long addr)
+					long err, unsigned long addr)
 {
 	static int die_counter;
 
@@ -99,24 +103,31 @@ void __noreturn die(const char *str, struct pt_regs *regs,
 	console_verbose();
 	bust_spinlocks(1);
 	pr_err("%s: err %04lx (%s) addr %08lx [#%d]\n", str, err & 0xffff,
-	       trap_name(err & 0xffff), addr, ++die_counter);
+		   trap_name(err & 0xffff), addr, ++die_counter);
 
 	print_modules();
 	show_regs(regs);
 
 	pr_err("Process: %s (pid: %d, stack limit = %p)\n", current->comm,
-	       task_pid_nr(current), task_stack_page(current) + THREAD_SIZE);
+		   task_pid_nr(current), task_stack_page(current) + THREAD_SIZE);
 
 	bust_spinlocks(0);
 	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
+
 	if (kexec_should_crash(current))
+	{
 		crash_kexec(regs);
+	}
 
 	if (in_interrupt())
+	{
 		panic("Fatal exception in interrupt");
+	}
 
 	if (panic_on_oops)
+	{
 		panic("Fatal exception");
+	}
 
 	spin_unlock_irq(&die_lock);
 	oops_exit();
@@ -142,7 +153,7 @@ static inline unsigned int decode_dspram_size(unsigned int size)
 }
 
 static void dspram_save(struct meta_ext_context *dsp_ctx,
-			unsigned int ramA_sz, unsigned int ramB_sz)
+						unsigned int ramA_sz, unsigned int ramB_sz)
 {
 	unsigned int ram_sz[2];
 	int i;
@@ -150,36 +161,54 @@ static void dspram_save(struct meta_ext_context *dsp_ctx,
 	ram_sz[0] = ramA_sz;
 	ram_sz[1] = ramB_sz;
 
-	for (i = 0; i < 2; i++) {
-		if (ram_sz[i] != 0) {
+	for (i = 0; i < 2; i++)
+	{
+		if (ram_sz[i] != 0)
+		{
 			unsigned int sz;
 
 			if (i == 0)
+			{
 				sz = decode_dspram_size(ram_sz[i] >> 8);
+			}
 			else
+			{
 				sz = decode_dspram_size(ram_sz[i]);
+			}
 
-			if (dsp_ctx->ram[i] == NULL) {
+			if (dsp_ctx->ram[i] == NULL)
+			{
 				dsp_ctx->ram[i] = kmalloc(sz, GFP_KERNEL);
 
 				if (dsp_ctx->ram[i] == NULL)
+				{
 					panic("couldn't save DSP context");
-			} else {
-				if (ram_sz[i] > dsp_ctx->ram_sz[i]) {
+				}
+			}
+			else
+			{
+				if (ram_sz[i] > dsp_ctx->ram_sz[i])
+				{
 					kfree(dsp_ctx->ram[i]);
 
 					dsp_ctx->ram[i] = kmalloc(sz,
-								  GFP_KERNEL);
+											  GFP_KERNEL);
 
 					if (dsp_ctx->ram[i] == NULL)
+					{
 						panic("couldn't save DSP context");
+					}
 				}
 			}
 
 			if (i == 0)
+			{
 				__TBIDspramSaveA(ram_sz[i], dsp_ctx->ram[i]);
+			}
 			else
+			{
 				__TBIDspramSaveB(ram_sz[i], dsp_ctx->ram[i]);
+			}
 
 			dsp_ctx->ram_sz[i] = ram_sz[i];
 		}
@@ -209,14 +238,20 @@ static void nest_interrupts(TBIRES State, unsigned long mask)
 	 */
 	D0_8 = __core_reg_get(D0.8);
 
-	if (D0_8 && (State.Sig.SaveMask & TBICTX_PRIV_BIT)) {
+	if (D0_8 && (State.Sig.SaveMask & TBICTX_PRIV_BIT))
+	{
 		State.Sig.SaveMask |= (D0_8 >> 16);
 
 		dsp_ctx = current->thread.dsp_context;
-		if (dsp_ctx == NULL) {
+
+		if (dsp_ctx == NULL)
+		{
 			dsp_ctx = kzalloc(sizeof(*dsp_ctx), GFP_KERNEL);
+
 			if (dsp_ctx == NULL)
+			{
 				panic("couldn't save DSP context: ENOMEM");
+			}
 
 			current->thread.dsp_context = dsp_ctx;
 		}
@@ -224,8 +259,12 @@ static void nest_interrupts(TBIRES State, unsigned long mask)
 		current->thread.user_flags |= (D0_8 & 0xffff0000);
 		__TBINestInts(State, &dsp_ctx->regs, mask);
 		dspram_save(dsp_ctx, D0_8 & 0x7f00, D0_8 & 0x007f);
-	} else
+	}
+	else
+	{
 		__TBINestInts(State, NULL, mask);
+	}
+
 #else
 	__TBINestInts(State, NULL, mask);
 #endif
@@ -236,7 +275,8 @@ void head_end(TBIRES State, unsigned long mask)
 	unsigned int savemask = (unsigned short)State.Sig.SaveMask;
 	unsigned int ctx_savemask = (unsigned short)State.Sig.pCtx->SaveMask;
 
-	if (savemask & TBICTX_PRIV_BIT) {
+	if (savemask & TBICTX_PRIV_BIT)
+	{
 		ctx_savemask |= TBICTX_PRIV_BIT;
 		current->thread.user_flags = savemask;
 	}
@@ -252,10 +292,12 @@ void head_end(TBIRES State, unsigned long mask)
 	 * State.SaveMask.
 	 */
 	if ((savemask & TBICTX_CBUF_BIT) ||
-	    (ctx_savemask & TBICTX_CBRP_BIT)) {
+		(ctx_savemask & TBICTX_CBRP_BIT))
+	{
 		/* Have we already saved the buffers though?
 		 * - See TestTrack 5071 */
-		if (ctx_savemask & TBICTX_XCBF_BIT) {
+		if (ctx_savemask & TBICTX_XCBF_BIT)
+		{
 			/* Strip off the bits so the call to __TBINestInts
 			 * won't save the buffers again. */
 			savemask &= ~TBICTX_CBUF_BIT;
@@ -286,10 +328,15 @@ void head_end(TBIRES State, unsigned long mask)
 		txdefr = __core_reg_get(TXDEFR);
 
 		txdefr &= TXDEFR_BUS_STATE_BITS;
+
 		if (txdefr & TXDEFR_LNKSET_SUCCESS)
+		{
 			current->thread.txdefr_failure &= ~(1 << depth);
+		}
 		else
+		{
 			current->thread.txdefr_failure |= (1 << depth);
+		}
 	}
 #endif
 
@@ -316,17 +363,22 @@ TBIRES tail_end_sys(TBIRES State, int syscall, int *restart)
 
 	local_irq_disable();
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		flags = current_thread_info()->flags;
+
 		if (flags & _TIF_WORK_MASK &&
-		    do_work_pending(regs, flags, syscall)) {
+			do_work_pending(regs, flags, syscall))
+		{
 			*restart = 1;
 			return State;
 		}
 
 #ifdef CONFIG_METAG_FPU
+
 		if (current->thread.fpu_context &&
-		    current->thread.fpu_context->needs_restore) {
+			current->thread.fpu_context->needs_restore)
+		{
 			__TBICtxFPURestore(State, current->thread.fpu_context);
 			/*
 			 * Clearing this bit ensures the FP unit is not made
@@ -335,21 +387,26 @@ TBIRES tail_end_sys(TBIRES State, int syscall, int *restart)
 			State.Sig.SaveMask &= ~TBICTX_FPAC_BIT;
 			current->thread.fpu_context->needs_restore = false;
 		}
+
 		State.Sig.TrigMask |= TBI_TRIG_BIT(TBID_SIGNUM_DFR);
 #endif
 	}
 
 	/* TBI will turn interrupts back on at some point. */
 	if (!irqs_disabled_flags((unsigned long)State.Sig.TrigMask))
+	{
 		trace_hardirqs_on();
+	}
 
 #ifdef CONFIG_METAG_DSP
+
 	/*
 	 * If we previously saved an extended context then restore it
 	 * now. Otherwise, clear D0.8 because this process is not
 	 * using DSP hardware.
 	 */
-	if (State.Sig.pCtx->SaveMask & TBICTX_XEXT_BIT) {
+	if (State.Sig.pCtx->SaveMask & TBICTX_XEXT_BIT)
+	{
 		unsigned int D0_8;
 		struct meta_ext_context *dsp_ctx = current->thread.dsp_context;
 
@@ -358,10 +415,11 @@ TBIRES tail_end_sys(TBIRES State, int syscall, int *restart)
 
 		if (dsp_ctx->ram_sz[0] > 0)
 			__TBIDspramRestoreA(dsp_ctx->ram_sz[0],
-					    dsp_ctx->ram[0]);
+								dsp_ctx->ram[0]);
+
 		if (dsp_ctx->ram_sz[1] > 0)
 			__TBIDspramRestoreB(dsp_ctx->ram_sz[1],
-					    dsp_ctx->ram[1]);
+								dsp_ctx->ram[1]);
 
 		State.Sig.SaveMask |= State.Sig.pCtx->SaveMask;
 		__TBICtxRestore(State, current->thread.dsp_context);
@@ -369,8 +427,12 @@ TBIRES tail_end_sys(TBIRES State, int syscall, int *restart)
 		D0_8 |= current->thread.user_flags & 0xffff0000;
 		D0_8 |= (dsp_ctx->ram_sz[1] | dsp_ctx->ram_sz[0]) & 0xffff;
 		__core_reg_set(D0.8, D0_8);
-	} else
+	}
+	else
+	{
 		__core_reg_set(D0.8, 0);
+	}
+
 #endif /* CONFIG_METAG_DSP */
 
 #ifdef CONFIG_METAG_META21
@@ -397,9 +459,13 @@ TBIRES tail_end_sys(TBIRES State, int syscall, int *restart)
 
 		/* Do we need to restore a failure code into TXDEFR? */
 		if (current->thread.txdefr_failure & (1 << depth))
+		{
 			txdefr |= (TXDEFR_LNKSET_FAILURE | TXDEFR_BUS_TRIG_BIT);
+		}
 		else
+		{
 			txdefr |= (TXDEFR_LNKSET_SUCCESS | TXDEFR_BUS_TRIG_BIT);
+		}
 
 		__core_reg_set(TXDEFR, txdefr);
 	}
@@ -420,18 +486,20 @@ static inline void _restart_critical_section(TBIRES State)
 	unsigned long get_tls_end;
 
 	get_tls_start = (unsigned long)__kuser_get_tls -
-		(unsigned long)&__user_gateway_start;
+					(unsigned long)&__user_gateway_start;
 
 	get_tls_start += USER_GATEWAY_PAGE;
 
 	get_tls_end = (unsigned long)__kuser_get_tls_end -
-		(unsigned long)&__user_gateway_start;
+				  (unsigned long)&__user_gateway_start;
 
 	get_tls_end += USER_GATEWAY_PAGE;
 
 	if ((State.Sig.pCtx->CurrPC >= get_tls_start) &&
-	    (State.Sig.pCtx->CurrPC < get_tls_end))
+		(State.Sig.pCtx->CurrPC < get_tls_end))
+	{
 		State.Sig.pCtx->CurrPC = get_tls_start;
+	}
 }
 #else
 /*
@@ -445,18 +513,20 @@ static inline void _restart_critical_section(TBIRES State)
 	unsigned long cmpxchg_end;
 
 	cmpxchg_start = (unsigned long)__kuser_cmpxchg -
-		(unsigned long)&__user_gateway_start;
+					(unsigned long)&__user_gateway_start;
 
 	cmpxchg_start += USER_GATEWAY_PAGE;
 
 	cmpxchg_end = (unsigned long)__kuser_cmpxchg_end -
-		(unsigned long)&__user_gateway_start;
+				  (unsigned long)&__user_gateway_start;
 
 	cmpxchg_end += USER_GATEWAY_PAGE;
 
 	if ((State.Sig.pCtx->CurrPC >= cmpxchg_start) &&
-	    (State.Sig.pCtx->CurrPC < cmpxchg_end))
+		(State.Sig.pCtx->CurrPC < cmpxchg_end))
+	{
 		State.Sig.pCtx->CurrPC = cmpxchg_start;
+	}
 }
 #endif
 
@@ -467,13 +537,15 @@ void restart_critical_section(TBIRES State)
 }
 
 TBIRES trigger_handler(TBIRES State, int SigNum, int Triggers, int Inst,
-		       PTBI pTBI)
+					   PTBI pTBI)
 {
 	head_end(State, ~INTS_OFF_MASK);
 
 	/* If we interrupted user code handle any critical sections. */
 	if (State.Sig.SaveMask & TBICTX_PRIV_BIT)
+	{
 		_restart_critical_section(State);
+	}
 
 	trace_hardirqs_off();
 
@@ -493,17 +565,19 @@ static unsigned long fault_address(PTBICTXEXTCB0 pbuf)
 }
 
 static void unhandled_fault(struct pt_regs *regs, unsigned long addr,
-			    int signo, int code, int trapno)
+							int signo, int code, int trapno)
 {
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		siginfo_t info;
 
 		if (show_unhandled_signals && unhandled_signal(current, signo)
-		    && printk_ratelimit()) {
+			&& printk_ratelimit())
+		{
 
 			pr_info("pid %d unhandled fault: pc 0x%08x, addr 0x%08lx, trap %d (%s)\n",
-				current->pid, regs->ctx.CurrPC, addr,
-				trapno, trap_name(trapno));
+					current->pid, regs->ctx.CurrPC, addr,
+					trapno, trap_name(trapno));
 			print_vma_addr(" in ", regs->ctx.CurrPC);
 			print_vma_addr(" rtp in ", regs->ctx.DX[4].U1);
 			printk("\n");
@@ -516,13 +590,15 @@ static void unhandled_fault(struct pt_regs *regs, unsigned long addr,
 		info.si_addr = (__force void __user *)addr;
 		info.si_trapno = trapno;
 		force_sig_info(signo, &info, current);
-	} else {
+	}
+	else
+	{
 		die("Oops", regs, trapno, addr);
 	}
 }
 
 static int handle_data_fault(PTBICTXEXTCB0 pcbuf, struct pt_regs *regs,
-			     unsigned int data_address, int trapno)
+							 unsigned int data_address, int trapno)
 {
 	int ret;
 
@@ -537,7 +613,7 @@ static unsigned long get_inst_fault_address(struct pt_regs *regs)
 }
 
 TBIRES fault_handler(TBIRES State, int SigNum, int Triggers,
-		     int Inst, PTBI pTBI)
+					 int Inst, PTBI pTBI)
 {
 	struct pt_regs *regs = (struct pt_regs *)State.Sig.pCtx;
 	PTBICTXEXTCB0 pcbuf = (PTBICTXEXTCB0)&regs->extcb0;
@@ -547,11 +623,12 @@ TBIRES fault_handler(TBIRES State, int SigNum, int Triggers,
 
 	/* Hardware breakpoint or data watch */
 	if ((SigNum == TBIXXF_SIGNUM_IHF) ||
-	    ((SigNum == TBIXXF_SIGNUM_DHF) &&
-	     (pcbuf[0].CBFlags & (TXCATCH0_WATCH1_BIT |
-				  TXCATCH0_WATCH0_BIT)))) {
+		((SigNum == TBIXXF_SIGNUM_DHF) &&
+		 (pcbuf[0].CBFlags & (TXCATCH0_WATCH1_BIT |
+							  TXCATCH0_WATCH0_BIT))))
+	{
 		State = __TBIUnExpXXX(State, SigNum, Triggers, Inst,
-				      pTBI);
+							  pTBI);
 		return tail_end(State);
 	}
 
@@ -559,44 +636,51 @@ TBIRES fault_handler(TBIRES State, int SigNum, int Triggers,
 
 	data_address = fault_address(pcbuf);
 
-	switch (SigNum) {
-	case TBIXXF_SIGNUM_IGF:
+	switch (SigNum)
+	{
+		case TBIXXF_SIGNUM_IGF:
+
 		/* 1st-level entry invalid (instruction fetch) */
-	case TBIXXF_SIGNUM_IPF: {
-		/* 2nd-level entry invalid (instruction fetch) */
-		unsigned long addr = get_inst_fault_address(regs);
-		do_page_fault(regs, addr, 0, SigNum);
-		break;
-	}
+		case TBIXXF_SIGNUM_IPF:
+			{
+				/* 2nd-level entry invalid (instruction fetch) */
+				unsigned long addr = get_inst_fault_address(regs);
+				do_page_fault(regs, addr, 0, SigNum);
+				break;
+			}
 
-	case TBIXXF_SIGNUM_DGF:
+		case TBIXXF_SIGNUM_DGF:
+
 		/* 1st-level entry invalid (data access) */
-	case TBIXXF_SIGNUM_DPF:
+		case TBIXXF_SIGNUM_DPF:
+
 		/* 2nd-level entry invalid (data access) */
-	case TBIXXF_SIGNUM_DWF:
-		/* Write to read only page */
-		handle_data_fault(pcbuf, regs, data_address, SigNum);
-		break;
+		case TBIXXF_SIGNUM_DWF:
+			/* Write to read only page */
+			handle_data_fault(pcbuf, regs, data_address, SigNum);
+			break;
 
-	case TBIXXF_SIGNUM_IIF:
-		/* Illegal instruction */
-		unhandled_fault(regs, regs->ctx.CurrPC, SIGILL, ILL_ILLOPC,
-				SigNum);
-		break;
+		case TBIXXF_SIGNUM_IIF:
+			/* Illegal instruction */
+			unhandled_fault(regs, regs->ctx.CurrPC, SIGILL, ILL_ILLOPC,
+							SigNum);
+			break;
 
-	case TBIXXF_SIGNUM_DHF:
-		/* Unaligned access */
-		unhandled_fault(regs, data_address, SIGBUS, BUS_ADRALN,
-				SigNum);
-		break;
-	case TBIXXF_SIGNUM_PGF:
-		/* Privilege violation */
-		unhandled_fault(regs, data_address, SIGSEGV, SEGV_ACCERR,
-				SigNum);
-		break;
-	default:
-		BUG();
-		break;
+		case TBIXXF_SIGNUM_DHF:
+			/* Unaligned access */
+			unhandled_fault(regs, data_address, SIGBUS, BUS_ADRALN,
+							SigNum);
+			break;
+
+		case TBIXXF_SIGNUM_PGF:
+			/* Privilege violation */
+			unhandled_fault(regs, data_address, SIGSEGV, SEGV_ACCERR,
+							SigNum);
+			break;
+
+		default:
+			BUG();
+			break;
 	}
 
 	return tail_end(State);
@@ -623,7 +707,7 @@ static inline int test_syscall_work(void)
 }
 
 TBIRES switch1_handler(TBIRES State, int SigNum, int Triggers,
-		       int Inst, PTBI pTBI)
+					   int Inst, PTBI pTBI)
 {
 	struct pt_regs *regs = (struct pt_regs *)State.Sig.pCtx;
 	unsigned int sysnumber;
@@ -636,14 +720,18 @@ TBIRES switch1_handler(TBIRES State, int SigNum, int Triggers,
 	/*
 	 * If this is not a syscall SWITCH it could be a breakpoint.
 	 */
-	if (!switch_is_syscall(Inst)) {
+	if (!switch_is_syscall(Inst))
+	{
 		/*
 		 * Alert the user if they're trying to use legacy system
 		 * calls. This suggests they need to update their C
 		 * library and build against up to date kernel headers.
 		 */
 		if (switch_is_legacy_syscall(Inst))
+		{
 			pr_warn_once("WARNING: A legacy syscall was made. Your userland needs updating.\n");
+		}
+
 		/*
 		 * We don't know how to handle the SWITCH and cannot
 		 * safely ignore it, so treat all unknown switches
@@ -660,15 +748,20 @@ restart_syscall:
 	sysnumber = regs->ctx.DX[0].U1;
 
 	if (test_syscall_work())
+	{
 		sysnumber = syscall_trace_enter(regs);
+	}
 
 	/* Skip over the SWITCH instruction - or you just get 'stuck' on it! */
 	step_over_switch(regs, Inst);
 
-	if (sysnumber >= __NR_syscalls) {
+	if (sysnumber >= __NR_syscalls)
+	{
 		pr_debug("unknown syscall number: %d\n", sysnumber);
 		syscall_entry = (LPSYSCALL) sys_ni_syscall;
-	} else {
+	}
+	else
+	{
 		syscall_entry = (LPSYSCALL) sys_call_table[sysnumber];
 	}
 
@@ -681,17 +774,23 @@ restart_syscall:
 	regs->ctx.DX[0].U0 = syscall_entry(a1_a2, a3_a4, a5_a6);
 
 	if (test_syscall_work())
+	{
 		syscall_trace_leave(regs);
+	}
 
 	State = tail_end_sys(State, sysnumber, &restart);
+
 	/* Handlerless restarts shouldn't go via userland */
 	if (restart)
+	{
 		goto restart_syscall;
+	}
+
 	return State;
 }
 
 TBIRES switchx_handler(TBIRES State, int SigNum, int Triggers,
-		       int Inst, PTBI pTBI)
+					   int Inst, PTBI pTBI)
 {
 	struct pt_regs *regs = (struct pt_regs *)State.Sig.pCtx;
 
@@ -701,10 +800,16 @@ TBIRES switchx_handler(TBIRES State, int SigNum, int Triggers,
 	 * thread to stop, so signal a SIGTRAP instead.
 	 */
 	head_end(State, ~INTS_OFF_MASK);
+
 	if (user_mode(regs))
+	{
 		force_sig(SIGTRAP, current);
+	}
 	else
+	{
 		State = __TBIUnExpXXX(State, SigNum, Triggers, Inst, pTBI);
+	}
+
 	return tail_end(State);
 }
 
@@ -722,17 +827,30 @@ TBIRES fpe_handler(TBIRES State, int SigNum, int Triggers, int Inst, PTBI pTBI)
 	info.si_signo = SIGFPE;
 
 	if (error_state & TXSTAT_FPE_INVALID_BIT)
+	{
 		info.si_code = FPE_FLTINV;
+	}
 	else if (error_state & TXSTAT_FPE_DIVBYZERO_BIT)
+	{
 		info.si_code = FPE_FLTDIV;
+	}
 	else if (error_state & TXSTAT_FPE_OVERFLOW_BIT)
+	{
 		info.si_code = FPE_FLTOVF;
+	}
 	else if (error_state & TXSTAT_FPE_UNDERFLOW_BIT)
+	{
 		info.si_code = FPE_FLTUND;
+	}
 	else if (error_state & TXSTAT_FPE_INEXACT_BIT)
+	{
 		info.si_code = FPE_FLTRES;
+	}
 	else
+	{
 		info.si_code = 0;
+	}
+
 	info.si_errno = 0;
 	info.si_addr = (__force void __user *)regs->ctx.CurrPC;
 	force_sig_info(SIGFPE, &info, current);
@@ -742,7 +860,8 @@ TBIRES fpe_handler(TBIRES State, int SigNum, int Triggers, int Inst, PTBI pTBI)
 #endif
 
 #ifdef CONFIG_METAG_SUSPEND_MEM
-struct traps_context {
+struct traps_context
+{
 	PTBIAPIFN fnSigs[TBID_SIGNUM_MAX + 1];
 };
 
@@ -755,8 +874,11 @@ int traps_save_context(void)
 	struct traps_context *context;
 
 	context = kzalloc(sizeof(*context), GFP_ATOMIC);
+
 	if (!context)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(context->fnSigs, (void *)_pTBI->fnSigs, sizeof(context->fnSigs));
 
@@ -818,8 +940,8 @@ void per_cpu_trap_init(unsigned long cpu)
 	unsigned int thread = cpu_2_hwthread_id[cpu];
 
 	set_trigger_mask(TBI_INTS_INIT(thread) | /* interrupts */
-			 TBI_TRIG_BIT(TBID_SIGNUM_LWK) | /* low level kick */
-			 TBI_TRIG_BIT(TBID_SIGNUM_SW1));
+					 TBI_TRIG_BIT(TBID_SIGNUM_LWK) | /* low level kick */
+					 TBI_TRIG_BIT(TBID_SIGNUM_SW1));
 
 	/* non-priv - use current stack */
 	int_context.Sig.pCtx = NULL;
@@ -860,7 +982,9 @@ void tbi_startup_interrupt(int irq)
 
 	/* For TR1 and TR2, the thread id is encoded in the irq number */
 	if (irq >= TBID_SIGNUM_T10 && irq < TBID_SIGNUM_TR3)
+	{
 		cpu = hwthread_id_2_cpu[(irq - TBID_SIGNUM_T10) % 4];
+	}
 
 	set_trigger_mask(get_trigger_mask() | TBI_TRIG_BIT(irq));
 
@@ -889,7 +1013,8 @@ int ret_from_fork(TBIRES arg)
 
 	schedule_tail(prev);
 
-	if (tsk->flags & PF_KTHREAD) {
+	if (tsk->flags & PF_KTHREAD)
+	{
 		fn = (void *)regs->ctx.DX[4].U1;
 		BUG_ON(!fn);
 
@@ -897,7 +1022,9 @@ int ret_from_fork(TBIRES arg)
 	}
 
 	if (test_syscall_work())
+	{
 		syscall_trace_leave(regs);
+	}
 
 	preempt_disable();
 
@@ -919,7 +1046,7 @@ int ret_from_fork(TBIRES arg)
 }
 
 void show_trace(struct task_struct *tsk, unsigned long *sp,
-		struct pt_regs *regs)
+				struct pt_regs *regs)
 {
 	unsigned long addr;
 #ifdef CONFIG_FRAME_POINTER
@@ -928,7 +1055,9 @@ void show_trace(struct task_struct *tsk, unsigned long *sp,
 #endif
 
 	if (regs && user_mode(regs))
+	{
 		return;
+	}
 
 	printk("\nCall trace: ");
 #ifdef CONFIG_KALLSYMS
@@ -936,13 +1065,19 @@ void show_trace(struct task_struct *tsk, unsigned long *sp,
 #endif
 
 	if (!tsk)
+	{
 		tsk = current;
+	}
 
 #ifdef CONFIG_FRAME_POINTER
-	if (regs) {
+
+	if (regs)
+	{
 		print_ip_sym(regs->ctx.CurrPC);
 		fp = regs->ctx.AX[1].U0;
-	} else {
+	}
+	else
+	{
 		fp = __core_reg_get(A0FrP);
 	}
 
@@ -951,24 +1086,43 @@ void show_trace(struct task_struct *tsk, unsigned long *sp,
 	 * kstack_end may not detect).
 	 */
 	stack = (unsigned long)task_stack_page(tsk);
-	while (fp >= stack && fp + 8 <= stack + THREAD_SIZE) {
+
+	while (fp >= stack && fp + 8 <= stack + THREAD_SIZE)
+	{
 		addr = __raw_readl((unsigned long *)(fp + 4)) - 4;
+
 		if (kernel_text_address(addr))
+		{
 			print_ip_sym(addr);
+		}
 		else
+		{
 			break;
+		}
+
 		/* stack grows up, so frame pointers must decrease */
 		fpnew = __raw_readl((unsigned long *)(fp + 0));
+
 		if (fpnew >= fp)
+		{
 			break;
+		}
+
 		fp = fpnew;
 	}
+
 #else
-	while (!kstack_end(sp)) {
+
+	while (!kstack_end(sp))
+	{
 		addr = (*sp--) - 4;
+
 		if (kernel_text_address(addr))
+		{
 			print_ip_sym(addr);
+		}
 	}
+
 #endif
 
 	printk("\n");
@@ -979,11 +1133,18 @@ void show_trace(struct task_struct *tsk, unsigned long *sp,
 void show_stack(struct task_struct *tsk, unsigned long *sp)
 {
 	if (!tsk)
+	{
 		tsk = current;
+	}
+
 	if (tsk == current)
+	{
 		sp = (unsigned long *)current_stack_pointer;
+	}
 	else
+	{
 		sp = (unsigned long *)tsk->thread.kernel_context->AX[0].U0;
+	}
 
 	show_trace(tsk, sp, NULL);
 }

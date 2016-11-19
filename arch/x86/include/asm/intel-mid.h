@@ -38,14 +38,15 @@ extern struct sfi_rtc_table_entry sfi_mrtc_array[];
  * through SFI "DEVS" table, we use name and type to match the device and
  * its platform data.
  */
-struct devs_id {
+struct devs_id
+{
 	char name[SFI_NAME_LEN + 1];
 	u8 type;
 	u8 delay;
 	void *(*get_platform_data)(void *info);
 	/* Custom handler for devices */
 	void (*device_handler)(struct sfi_device_table_entry *pentry,
-			       struct devs_id *dev);
+						   struct devs_id *dev);
 };
 
 #define sfi_device(i)								\
@@ -59,7 +60,8 @@ struct devs_id {
 * @max_clk:		the maximum frequency device supports
 * @platform_data:	the particular data stored there is driver-specific
 */
-struct mid_sd_board_info {
+struct mid_sd_board_info
+{
 	char		name[SFI_NAME_LEN];
 	int		bus_num;
 	unsigned short	addr;
@@ -74,7 +76,8 @@ struct mid_sd_board_info {
  * we treat Medfield/Penwell as a variant of Moorestown. Penwell can be
  * identified via MSRs.
  */
-enum intel_mid_cpu_type {
+enum intel_mid_cpu_type
+{
 	/* 1 was Moorestown */
 	INTEL_MID_CPU_CHIP_PENWELL = 2,
 	INTEL_MID_CPU_CHIP_CLOVERVIEW,
@@ -91,7 +94,8 @@ extern enum intel_mid_cpu_type __intel_mid_cpu_chip;
  * This structure can be extended if any new interface is required
  * between intel-mid & its sub arch files.
  */
-struct intel_mid_ops {
+struct intel_mid_ops
+{
 	void (*arch_setup)(void);
 };
 
@@ -107,10 +111,10 @@ struct intel_mid_ops {
  * declared in arch/x86/platform/intel_mid/intel_mid_weak_decls.h.
  */
 #define INTEL_MID_OPS_INIT {							\
-	DECLARE_INTEL_MID_OPS_INIT(penwell, INTEL_MID_CPU_CHIP_PENWELL),	\
-	DECLARE_INTEL_MID_OPS_INIT(cloverview, INTEL_MID_CPU_CHIP_CLOVERVIEW),	\
-	DECLARE_INTEL_MID_OPS_INIT(tangier, INTEL_MID_CPU_CHIP_TANGIER)		\
-};
+		DECLARE_INTEL_MID_OPS_INIT(penwell, INTEL_MID_CPU_CHIP_PENWELL),	\
+		DECLARE_INTEL_MID_OPS_INIT(cloverview, INTEL_MID_CPU_CHIP_CLOVERVIEW),	\
+		DECLARE_INTEL_MID_OPS_INIT(tangier, INTEL_MID_CPU_CHIP_TANGIER)		\
+	};
 
 #ifdef CONFIG_X86_INTEL_MID
 
@@ -131,7 +135,8 @@ static inline bool intel_mid_has_msic(void)
 
 #endif /* !CONFIG_X86_INTEL_MID */
 
-enum intel_mid_timer_options {
+enum intel_mid_timer_options
+{
 	INTEL_MID_TIMER_DEFAULT,
 	INTEL_MID_TIMER_APBT_ONLY,
 	INTEL_MID_TIMER_LAPIC_APBT,

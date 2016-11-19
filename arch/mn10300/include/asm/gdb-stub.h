@@ -75,7 +75,8 @@
  * part of the GDB stub.
  */
 
-struct gdb_regs {
+struct gdb_regs
+{
 	/* saved main processor registers */
 	u32	d0, d1, d2, d3, a0, a1, a2, a3;
 	u32	sp, pc, mdr, epsw, lir, lar, mdrq;
@@ -111,9 +112,9 @@ extern asmlinkage void __gdbstub_bug_trap(void);
 extern asmlinkage void __gdbstub_pause(void);
 
 #ifdef CONFIG_MN10300_CACHE_ENABLED
-extern asmlinkage void gdbstub_purge_cache(void);
+	extern asmlinkage void gdbstub_purge_cache(void);
 #else
-#define gdbstub_purge_cache()	do {} while (0)
+	#define gdbstub_purge_cache()	do {} while (0)
 #endif
 
 /* Used to prevent crashes in memory access */
@@ -146,7 +147,7 @@ extern u8	gdbstub_rx_unget;
 
 #ifdef CONFIG_GDBSTUB_DEBUGGING
 extern void gdbstub_printk(const char *fmt, ...)
-	__attribute__((format(printf, 1, 2)));
+__attribute__((format(printf, 1, 2)));
 #else
 static inline __attribute__((format(printf, 1, 2)))
 void gdbstub_printk(const char *fmt, ...)
@@ -155,27 +156,27 @@ void gdbstub_printk(const char *fmt, ...)
 #endif
 
 #ifdef CONFIG_GDBSTUB_DEBUG_ENTRY
-#define gdbstub_entry(FMT, ...) gdbstub_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_entry(FMT, ...) gdbstub_printk(FMT, ##__VA_ARGS__)
 #else
-#define gdbstub_entry(FMT, ...) no_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_entry(FMT, ...) no_printk(FMT, ##__VA_ARGS__)
 #endif
 
 #ifdef CONFIG_GDBSTUB_DEBUG_PROTOCOL
-#define gdbstub_proto(FMT, ...) gdbstub_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_proto(FMT, ...) gdbstub_printk(FMT, ##__VA_ARGS__)
 #else
-#define gdbstub_proto(FMT, ...) no_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_proto(FMT, ...) no_printk(FMT, ##__VA_ARGS__)
 #endif
 
 #ifdef CONFIG_GDBSTUB_DEBUG_IO
-#define gdbstub_io(FMT, ...) gdbstub_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_io(FMT, ...) gdbstub_printk(FMT, ##__VA_ARGS__)
 #else
-#define gdbstub_io(FMT, ...) no_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_io(FMT, ...) no_printk(FMT, ##__VA_ARGS__)
 #endif
 
 #ifdef CONFIG_GDBSTUB_DEBUG_BREAKPOINT
-#define gdbstub_bkpt(FMT, ...) gdbstub_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_bkpt(FMT, ...) gdbstub_printk(FMT, ##__VA_ARGS__)
 #else
-#define gdbstub_bkpt(FMT, ...) no_printk(FMT, ##__VA_ARGS__)
+	#define gdbstub_bkpt(FMT, ...) no_printk(FMT, ##__VA_ARGS__)
 #endif
 
 #endif /* !__ASSEMBLY__ */

@@ -28,23 +28,23 @@
 #define MN10300_SRC_IOCLK	MN10300_IOCLK
 
 #ifndef HZ
-# error HZ undeclared.
+	# error HZ undeclared.
 #endif /* !HZ */
 /* use as little prescaling as possible to avoid losing accuracy */
 #if (MN10300_SRC_IOCLK + HZ / 2) / HZ - 1 <= TMJCBR_MAX
-# define IOCLK_PRESCALE		1
-# define JC_TIMER_CLKSRC	TM0MD_SRC_IOCLK
-# define TSC_TIMER_CLKSRC	TM4MD_SRC_IOCLK
+	#define IOCLK_PRESCALE		1
+	#define JC_TIMER_CLKSRC	TM0MD_SRC_IOCLK
+	#define TSC_TIMER_CLKSRC	TM4MD_SRC_IOCLK
 #elif (MN10300_SRC_IOCLK / 8 + HZ / 2) / HZ - 1 <= TMJCBR_MAX
-# define IOCLK_PRESCALE		8
-# define JC_TIMER_CLKSRC	TM0MD_SRC_IOCLK_8
-# define TSC_TIMER_CLKSRC	TM4MD_SRC_IOCLK_8
+	#define IOCLK_PRESCALE		8
+	#define JC_TIMER_CLKSRC	TM0MD_SRC_IOCLK_8
+	#define TSC_TIMER_CLKSRC	TM4MD_SRC_IOCLK_8
 #elif (MN10300_SRC_IOCLK / 32 + HZ / 2) / HZ - 1 <= TMJCBR_MAX
-# define IOCLK_PRESCALE		32
-# define JC_TIMER_CLKSRC	TM0MD_SRC_IOCLK_32
-# define TSC_TIMER_CLKSRC	TM4MD_SRC_IOCLK_32
+	#define IOCLK_PRESCALE		32
+	#define JC_TIMER_CLKSRC	TM0MD_SRC_IOCLK_32
+	#define TSC_TIMER_CLKSRC	TM4MD_SRC_IOCLK_32
 #else
-# error You lose.
+	# error You lose.
 #endif
 
 #define MN10300_JCCLK		(MN10300_SRC_IOCLK / IOCLK_PRESCALE)
@@ -68,15 +68,15 @@ static inline void reload_jiffies_counter(u32 cnt)
 	tmp = TM01BR;
 
 	TM01MD = JC_TIMER_CLKSRC |		\
-		 TM1MD_SRC_TM0CASCADE << 8 |	\
-		 TM0MD_INIT_COUNTER |		\
-		 TM1MD_INIT_COUNTER << 8;
+			 TM1MD_SRC_TM0CASCADE << 8 |	\
+			 TM0MD_INIT_COUNTER |		\
+			 TM1MD_INIT_COUNTER << 8;
 
 
 	TM01MD = JC_TIMER_CLKSRC |		\
-		 TM1MD_SRC_TM0CASCADE << 8 |	\
-		 TM0MD_COUNT_ENABLE |		\
-		 TM1MD_COUNT_ENABLE << 8;
+			 TM1MD_SRC_TM0CASCADE << 8 |	\
+			 TM0MD_COUNT_ENABLE |		\
+			 TM1MD_COUNT_ENABLE << 8;
 
 	tmp = TM01MD;
 }

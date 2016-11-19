@@ -37,10 +37,15 @@ static unsigned int __init micro9_detect_bootwidth(void)
 
 	/* Detect the bus width of the external flash memory */
 	v = __raw_readl(EP93XX_SYSCON_SYSCFG);
+
 	if (v & EP93XX_SYSCON_SYSCFG_LCSN7)
-		return 4; /* 32-bit */
+	{
+		return 4;    /* 32-bit */
+	}
 	else
-		return 2; /* 16-bit */
+	{
+		return 2;    /* 16-bit */
+	}
 }
 
 static void __init micro9_register_flash(void)
@@ -48,21 +53,30 @@ static void __init micro9_register_flash(void)
 	unsigned int width;
 
 	if (machine_is_micro9())
+	{
 		width = 4;
+	}
 	else if (machine_is_micro9m() || machine_is_micro9s())
+	{
 		width = micro9_detect_bootwidth();
+	}
 	else
+	{
 		width = 0;
+	}
 
 	if (width)
+	{
 		ep93xx_register_flash(width, EP93XX_CS1_PHYS_BASE, SZ_64M);
+	}
 }
 
 
 /*************************************************************************
  * Micro9 Ethernet
  *************************************************************************/
-static struct ep93xx_eth_data __initdata micro9_eth_data = {
+static struct ep93xx_eth_data __initdata micro9_eth_data =
+{
 	.phy_id		= 0x1f,
 };
 
@@ -76,7 +90,7 @@ static void __init micro9_init_machine(void)
 
 
 #ifdef CONFIG_MACH_MICRO9H
-MACHINE_START(MICRO9, "Contec Micro9-High")
+	MACHINE_START(MICRO9, "Contec Micro9-High")
 	/* Maintainer: Hubert Feurstein <hubert.feurstein@contec.at> */
 	.atag_offset	= 0x100,
 	.map_io		= ep93xx_map_io,
@@ -85,11 +99,11 @@ MACHINE_START(MICRO9, "Contec Micro9-High")
 	.init_machine	= micro9_init_machine,
 	.init_late	= ep93xx_init_late,
 	.restart	= ep93xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_MICRO9M
-MACHINE_START(MICRO9M, "Contec Micro9-Mid")
+	MACHINE_START(MICRO9M, "Contec Micro9-Mid")
 	/* Maintainer: Hubert Feurstein <hubert.feurstein@contec.at> */
 	.atag_offset	= 0x100,
 	.map_io		= ep93xx_map_io,
@@ -98,11 +112,11 @@ MACHINE_START(MICRO9M, "Contec Micro9-Mid")
 	.init_machine	= micro9_init_machine,
 	.init_late	= ep93xx_init_late,
 	.restart	= ep93xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_MICRO9L
-MACHINE_START(MICRO9L, "Contec Micro9-Lite")
+	MACHINE_START(MICRO9L, "Contec Micro9-Lite")
 	/* Maintainer: Hubert Feurstein <hubert.feurstein@contec.at> */
 	.atag_offset	= 0x100,
 	.map_io		= ep93xx_map_io,
@@ -111,11 +125,11 @@ MACHINE_START(MICRO9L, "Contec Micro9-Lite")
 	.init_machine	= micro9_init_machine,
 	.init_late	= ep93xx_init_late,
 	.restart	= ep93xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_MICRO9S
-MACHINE_START(MICRO9S, "Contec Micro9-Slim")
+	MACHINE_START(MICRO9S, "Contec Micro9-Slim")
 	/* Maintainer: Hubert Feurstein <hubert.feurstein@contec.at> */
 	.atag_offset	= 0x100,
 	.map_io		= ep93xx_map_io,
@@ -124,5 +138,5 @@ MACHINE_START(MICRO9S, "Contec Micro9-Slim")
 	.init_machine	= micro9_init_machine,
 	.init_late	= ep93xx_init_late,
 	.restart	= ep93xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif

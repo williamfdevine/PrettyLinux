@@ -18,9 +18,9 @@ static inline void set_pci_iommu(struct pci_bus *bus, void *val)
 #endif /* CONFIG_CALGARY_IOMMU */
 
 extern int (*pci_config_read)(int seg, int bus, int dev, int fn,
-			      int reg, int len, u32 *value);
+							  int reg, int len, u32 *value);
 extern int (*pci_config_write)(int seg, int bus, int dev, int fn,
-			       int reg, int len, u32 value);
+							   int reg, int len, u32 value);
 
 #endif /* __KERNEL__ */
 

@@ -43,37 +43,49 @@ extern int min_asid, max_asid;
 
 /* Flush a single user page on this cpu. */
 static inline void local_flush_tlb_page(struct vm_area_struct *vma,
-					unsigned long addr,
-					unsigned long page_size)
+										unsigned long addr,
+										unsigned long page_size)
 {
 	int rc = hv_flush_page(addr, page_size);
+
 	if (rc < 0)
 		panic("hv_flush_page(%#lx,%#lx) failed: %d",
-		      addr, page_size, rc);
+			  addr, page_size, rc);
+
 	if (!vma || (vma != FLUSH_NONEXEC && (vma->vm_flags & VM_EXEC)))
+	{
 		__flush_icache();
+	}
 }
 
 /* Flush range of user pages on this cpu. */
 static inline void local_flush_tlb_pages(struct vm_area_struct *vma,
-					 unsigned long addr,
-					 unsigned long page_size,
-					 unsigned long len)
+		unsigned long addr,
+		unsigned long page_size,
+		unsigned long len)
 {
 	int rc = hv_flush_pages(addr, page_size, len);
+
 	if (rc < 0)
 		panic("hv_flush_pages(%#lx,%#lx,%#lx) failed: %d",
-		      addr, page_size, len, rc);
+			  addr, page_size, len, rc);
+
 	if (!vma || (vma != FLUSH_NONEXEC && (vma->vm_flags & VM_EXEC)))
+	{
 		__flush_icache();
+	}
 }
 
 /* Flush all user pages on this cpu. */
 static inline void local_flush_tlb(void)
 {
 	int rc = hv_flush_all(1);   /* preserve global mappings */
+
 	if (rc < 0)
+	{
 		panic("hv_flush_all(1) failed: %d", rc);
+	}
+
 	__flush_icache();
 }
 
@@ -84,10 +96,16 @@ static inline void local_flush_tlb(void)
 static inline void local_flush_tlb_all(void)
 {
 	int i;
-	for (i = 0; ; ++i) {
+
+	for (i = 0; ; ++i)
+	{
 		HV_VirtAddrRange r = hv_inquire_virtual(i);
+
 		if (r.size == 0)
+		{
 			break;
+		}
+
 		local_flush_tlb_pages(NULL, r.start, PAGE_SIZE, r.size);
 		local_flush_tlb_pages(NULL, r.start, HPAGE_SIZE, r.size);
 	}
@@ -114,9 +132,9 @@ extern void flush_tlb_current_task(void);
 extern void flush_tlb_mm(struct mm_struct *);
 extern void flush_tlb_page(struct vm_area_struct *, unsigned long);
 extern void flush_tlb_page_mm(struct vm_area_struct *,
-			      struct mm_struct *, unsigned long);
+							  struct mm_struct *, unsigned long);
 extern void flush_tlb_range(struct vm_area_struct *,
-			    unsigned long start, unsigned long end);
+							unsigned long start, unsigned long end);
 
 #define flush_tlb()     flush_tlb_current_task()
 

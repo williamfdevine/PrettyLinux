@@ -50,8 +50,8 @@
 #define ARAVALI2_PHYS		0x100E0000
 
 #if defined(CONFIG_SIBYTE_CARMEL)
-#define K_GPIO_GB_IDE	9
-#define K_INT_GB_IDE	(K_INT_GPIO_0 + K_GPIO_GB_IDE)
+	#define K_GPIO_GB_IDE	9
+	#define K_INT_GB_IDE	(K_INT_GPIO_0 + K_GPIO_GB_IDE)
 #endif
 
 

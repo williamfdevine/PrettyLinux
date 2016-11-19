@@ -109,7 +109,7 @@
 #define rbtx4939_vpsout_addr	((u8 __iomem *)RBTX4939_VPSOUT_ADDR)
 #define rbtx4939_vpsin_addr	((u8 __iomem *)RBTX4939_VPSIN_ADDR)
 #define rbtx4939_7seg_addr(s, ch) \
-				((u8 __iomem *)RBTX4939_7SEG_ADDR(s, ch))
+	((u8 __iomem *)RBTX4939_7SEG_ADDR(s, ch))
 #define rbtx4939_softreset_addr ((u8 __iomem *)RBTX4939_SOFTRESET_ADDR)
 #define rbtx4939_reseten_addr	((u8 __iomem *)RBTX4939_RESETEN_ADDR)
 #define rbtx4939_resetstat_addr ((u8 __iomem *)RBTX4939_RESETSTAT_ADDR)
@@ -132,7 +132,8 @@ void rbtx4939_irq_setup(void);
 
 struct mtd_partition;
 struct map_info;
-struct rbtx4939_flash_data {
+struct rbtx4939_flash_data
+{
 	unsigned int width;
 	unsigned int nr_parts;
 	struct mtd_partition *parts;

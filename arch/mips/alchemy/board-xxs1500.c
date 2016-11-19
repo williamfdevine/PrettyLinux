@@ -49,8 +49,11 @@ void __init prom_init(void)
 	prom_init_cmdline();
 
 	memsize_str = prom_getenv("memsize");
+
 	if (!memsize_str || kstrtoul(memsize_str, 0, &memsize))
+	{
 		memsize = 0x04000000;
+	}
 
 	add_memory_region(0, memsize, BOOT_MEM_RAM);
 }
@@ -70,9 +73,9 @@ static void xxs1500_power_off(void)
 {
 	while (1)
 		asm volatile (
-		"	.set	mips32					\n"
-		"	wait						\n"
-		"	.set	mips0					\n");
+			"	.set	mips32					\n"
+			"	wait						\n"
+			"	.set	mips0					\n");
 }
 
 void __init board_setup(void)
@@ -100,7 +103,8 @@ void __init board_setup(void)
 
 /******************************************************************************/
 
-static struct resource xxs1500_pcmcia_res[] = {
+static struct resource xxs1500_pcmcia_res[] =
+{
 	{
 		.name	= "pcmcia-io",
 		.flags	= IORESOURCE_MEM,
@@ -121,14 +125,16 @@ static struct resource xxs1500_pcmcia_res[] = {
 	},
 };
 
-static struct platform_device xxs1500_pcmcia_dev = {
+static struct platform_device xxs1500_pcmcia_dev =
+{
 	.name		= "xxs1500_pcmcia",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(xxs1500_pcmcia_res),
 	.resource	= xxs1500_pcmcia_res,
 };
 
-static struct platform_device *xxs1500_devs[] __initdata = {
+static struct platform_device *xxs1500_devs[] __initdata =
+{
 	&xxs1500_pcmcia_dev,
 };
 
@@ -149,6 +155,6 @@ static int __init xxs1500_dev_init(void)
 	irq_set_irq_type(AU1500_GPIO5_INT, IRQ_TYPE_LEVEL_LOW);
 
 	return platform_add_devices(xxs1500_devs,
-				    ARRAY_SIZE(xxs1500_devs));
+								ARRAY_SIZE(xxs1500_devs));
 }
 device_initcall(xxs1500_dev_init);

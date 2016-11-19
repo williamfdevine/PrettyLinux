@@ -37,11 +37,11 @@
 void coldfire_profile_init(void);
 
 #if defined(CONFIG_M53xx) || defined(CONFIG_M5441x)
-#define	__raw_readtrr	__raw_readl
-#define	__raw_writetrr	__raw_writel
+	#define	__raw_readtrr	__raw_readl
+	#define	__raw_writetrr	__raw_writel
 #else
-#define	__raw_readtrr	__raw_readw
-#define	__raw_writetrr	__raw_writew
+	#define	__raw_readtrr	__raw_readw
+	#define	__raw_writetrr	__raw_writew
 #endif
 
 static u32 mcftmr_cycles_per_jiffy;
@@ -56,13 +56,13 @@ static void init_timer_irq(void)
 #ifdef MCFSIM_ICR_AUTOVEC
 	/* Timer1 is always used as system timer */
 	writeb(MCFSIM_ICR_AUTOVEC | MCFSIM_ICR_LEVEL6 | MCFSIM_ICR_PRI3,
-		MCFSIM_TIMER1ICR);
+		   MCFSIM_TIMER1ICR);
 	mcf_mapirq2imr(MCF_IRQ_TIMER, MCFINTC_TIMER1);
 
 #ifdef CONFIG_HIGHPROFILE
 	/* Timer2 is to be used as a high speed profile timer  */
 	writeb(MCFSIM_ICR_AUTOVEC | MCFSIM_ICR_LEVEL7 | MCFSIM_ICR_PRI3,
-		MCFSIM_TIMER2ICR);
+		   MCFSIM_TIMER2ICR);
 	mcf_mapirq2imr(MCF_IRQ_PROFILER, MCFINTC_TIMER2);
 #endif
 #endif /* MCFSIM_ICR_AUTOVEC */
@@ -81,7 +81,8 @@ static irqreturn_t mcftmr_tick(int irq, void *dummy)
 
 /***************************************************************************/
 
-static struct irqaction mcftmr_timer_irq = {
+static struct irqaction mcftmr_timer_irq =
+{
 	.name	 = "timer",
 	.flags	 = IRQF_TIMER,
 	.handler = mcftmr_tick,
@@ -105,7 +106,8 @@ static cycle_t mcftmr_read_clk(struct clocksource *cs)
 
 /***************************************************************************/
 
-static struct clocksource mcftmr_clk = {
+static struct clocksource mcftmr_clk =
+{
 	.name	= "tmr",
 	.rating	= 250,
 	.read	= mcftmr_read_clk,
@@ -127,7 +129,7 @@ void hw_timer_init(irq_handler_t handler)
 	 */
 	__raw_writetrr(mcftmr_cycles_per_jiffy - 1, TA(MCFTIMER_TRR));
 	__raw_writew(MCFTIMER_TMR_ENORI | MCFTIMER_TMR_CLK16 |
-		MCFTIMER_TMR_RESTART | MCFTIMER_TMR_ENABLE, TA(MCFTIMER_TMR));
+				 MCFTIMER_TMR_RESTART | MCFTIMER_TMR_ENABLE, TA(MCFTIMER_TMR));
 
 	clocksource_register_hz(&mcftmr_clk, FREQ);
 
@@ -162,14 +164,19 @@ irqreturn_t coldfire_profile_tick(int irq, void *dummy)
 {
 	/* Reset ColdFire timer2 */
 	__raw_writeb(MCFTIMER_TER_CAP | MCFTIMER_TER_REF, PA(MCFTIMER_TER));
+
 	if (current->pid)
+	{
 		profile_tick(CPU_PROFILING);
+	}
+
 	return IRQ_HANDLED;
 }
 
 /***************************************************************************/
 
-static struct irqaction coldfire_profile_irq = {
+static struct irqaction coldfire_profile_irq =
+{
 	.name	 = "profile timer",
 	.flags	 = IRQF_TIMER,
 	.handler = coldfire_profile_tick,
@@ -178,14 +185,14 @@ static struct irqaction coldfire_profile_irq = {
 void coldfire_profile_init(void)
 {
 	printk(KERN_INFO "PROFILE: lodging TIMER2 @ %dHz as profile timer\n",
-	       PROFILEHZ);
+		   PROFILEHZ);
 
 	/* Set up TIMER 2 as high speed profile clock */
 	__raw_writew(MCFTIMER_TMR_DISABLE, PA(MCFTIMER_TMR));
 
 	__raw_writetrr(((MCF_BUSCLK / 16) / PROFILEHZ), PA(MCFTIMER_TRR));
 	__raw_writew(MCFTIMER_TMR_ENORI | MCFTIMER_TMR_CLK16 |
-		MCFTIMER_TMR_RESTART | MCFTIMER_TMR_ENABLE, PA(MCFTIMER_TMR));
+				 MCFTIMER_TMR_RESTART | MCFTIMER_TMR_ENABLE, PA(MCFTIMER_TMR));
 
 	setup_irq(MCF_IRQ_PROFILER, &coldfire_profile_irq);
 }

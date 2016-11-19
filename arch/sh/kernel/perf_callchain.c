@@ -24,10 +24,13 @@ static void callchain_address(void *data, unsigned long addr, int reliable)
 	struct perf_callchain_entry_ctx *entry = data;
 
 	if (reliable)
+	{
 		perf_callchain_store(entry, addr);
+	}
 }
 
-static const struct stacktrace_ops callchain_ops = {
+static const struct stacktrace_ops callchain_ops =
+{
 	.stack		= callchain_stack,
 	.address	= callchain_address,
 };

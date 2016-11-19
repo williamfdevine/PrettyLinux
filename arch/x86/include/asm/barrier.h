@@ -12,11 +12,11 @@
 
 #ifdef CONFIG_X86_32
 #define mb() asm volatile(ALTERNATIVE("lock; addl $0,0(%%esp)", "mfence", \
-				      X86_FEATURE_XMM2) ::: "memory", "cc")
+									  X86_FEATURE_XMM2) ::: "memory", "cc")
 #define rmb() asm volatile(ALTERNATIVE("lock; addl $0,0(%%esp)", "lfence", \
-				       X86_FEATURE_XMM2) ::: "memory", "cc")
+									   X86_FEATURE_XMM2) ::: "memory", "cc")
 #define wmb() asm volatile(ALTERNATIVE("lock; addl $0,0(%%esp)", "sfence", \
-				       X86_FEATURE_XMM2) ::: "memory", "cc")
+									   X86_FEATURE_XMM2) ::: "memory", "cc")
 #else
 #define mb() 	asm volatile("mfence":::"memory")
 #define rmb()	asm volatile("lfence":::"memory")
@@ -24,9 +24,9 @@
 #endif
 
 #ifdef CONFIG_X86_PPRO_FENCE
-#define dma_rmb()	rmb()
+	#define dma_rmb()	rmb()
 #else
-#define dma_rmb()	barrier()
+	#define dma_rmb()	barrier()
 #endif
 #define dma_wmb()	barrier()
 
@@ -43,36 +43,36 @@
  */
 
 #define __smp_store_release(p, v)					\
-do {									\
-	compiletime_assert_atomic_type(*p);				\
-	__smp_mb();							\
-	WRITE_ONCE(*p, v);						\
-} while (0)
+	do {									\
+		compiletime_assert_atomic_type(*p);				\
+		__smp_mb();							\
+		WRITE_ONCE(*p, v);						\
+	} while (0)
 
 #define __smp_load_acquire(p)						\
-({									\
-	typeof(*p) ___p1 = READ_ONCE(*p);				\
-	compiletime_assert_atomic_type(*p);				\
-	__smp_mb();							\
-	___p1;								\
-})
+	({									\
+		typeof(*p) ___p1 = READ_ONCE(*p);				\
+		compiletime_assert_atomic_type(*p);				\
+		__smp_mb();							\
+		___p1;								\
+	})
 
 #else /* regular x86 TSO memory ordering */
 
 #define __smp_store_release(p, v)					\
-do {									\
-	compiletime_assert_atomic_type(*p);				\
-	barrier();							\
-	WRITE_ONCE(*p, v);						\
-} while (0)
+	do {									\
+		compiletime_assert_atomic_type(*p);				\
+		barrier();							\
+		WRITE_ONCE(*p, v);						\
+	} while (0)
 
 #define __smp_load_acquire(p)						\
-({									\
-	typeof(*p) ___p1 = READ_ONCE(*p);				\
-	compiletime_assert_atomic_type(*p);				\
-	barrier();							\
-	___p1;								\
-})
+	({									\
+		typeof(*p) ___p1 = READ_ONCE(*p);				\
+		compiletime_assert_atomic_type(*p);				\
+		barrier();							\
+		___p1;								\
+	})
 
 #endif
 

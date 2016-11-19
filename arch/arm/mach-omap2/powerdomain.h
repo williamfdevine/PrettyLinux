@@ -109,9 +109,11 @@ struct voltagedomain;
  *
  * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
  */
-struct powerdomain {
+struct powerdomain
+{
 	const char *name;
-	union {
+	union
+	{
 		const char *name;
 		struct voltagedomain *ptr;
 	} voltdm;
@@ -178,7 +180,8 @@ struct powerdomain {
  * @pwrdm_set_lowpwrstchange is intended to configure the OMAP4
  * hardware powerdomain state machine to enable this feature.
  */
-struct pwrdm_ops {
+struct pwrdm_ops
+{
 	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
 	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
 	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
@@ -207,16 +210,16 @@ int pwrdm_complete_init(void);
 struct powerdomain *pwrdm_lookup(const char *name);
 
 int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
-			void *user);
+				   void *user);
 int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
-			void *user);
+						  void *user);
 
 int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
 
 int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
 
 u8 pwrdm_get_valid_lp_state(struct powerdomain *pwrdm,
-			    bool is_logic_state, u8 req_state);
+							bool is_logic_state, u8 req_state);
 
 int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
 int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);

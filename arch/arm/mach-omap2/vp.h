@@ -30,7 +30,8 @@ struct voltagedomain;
  * @check_txdone: check for VP transaction done
  * @clear_txdone: clear VP transaction done status
  */
-struct omap_vp_ops {
+struct omap_vp_ops
+{
 	u32 (*check_txdone)(u8 vp_id);
 	void (*clear_txdone)(u8 vp_id);
 };
@@ -56,7 +57,8 @@ struct omap_vp_ops {
  * @vlimitto_timeout_shift: TIMEOUT field shift in PRM_VP*_VLIMITTO reg
  * @vpvoltage_mask: VPVOLTAGE field mask in PRM_VP*_VOLTAGE reg
  */
-struct omap_vp_common {
+struct omap_vp_common
+{
 	u32 vpconfig_erroroffset_mask;
 	u32 vpconfig_errorgain_mask;
 	u32 vpconfig_initvoltage_mask;
@@ -89,7 +91,8 @@ struct omap_vp_common {
  *
  * XXX vp_common is probably not needed since it is per-SoC
  */
-struct omap_vp_instance {
+struct omap_vp_instance
+{
 	const struct omap_vp_common *common;
 	u8 vpconfig;
 	u8 vstepmin;
@@ -119,8 +122,8 @@ void omap_vp_init(struct voltagedomain *voltdm);
 void omap_vp_enable(struct voltagedomain *voltdm);
 void omap_vp_disable(struct voltagedomain *voltdm);
 int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
-			      unsigned long target_volt);
+							  unsigned long target_volt);
 int omap_vp_update_errorgain(struct voltagedomain *voltdm,
-			     unsigned long target_volt);
+							 unsigned long target_volt);
 
 #endif

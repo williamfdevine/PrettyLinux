@@ -34,7 +34,8 @@
 
 static void __init rockchip_timer_init(void)
 {
-	if (of_machine_is_compatible("rockchip,rk3288")) {
+	if (of_machine_is_compatible("rockchip,rk3288"))
+	{
 		struct regmap *grf;
 		void __iomem *reg_base;
 
@@ -44,14 +45,18 @@ static void __init rockchip_timer_init(void)
 		 * So make sure it is running during early boot.
 		 */
 		reg_base = ioremap(RK3288_TIMER6_7_PHYS, SZ_16K);
-		if (reg_base) {
+
+		if (reg_base)
+		{
 			writel(0, reg_base + 0x30);
 			writel(0xffffffff, reg_base + 0x20);
 			writel(0xffffffff, reg_base + 0x24);
 			writel(1, reg_base + 0x30);
 			dsb();
 			iounmap(reg_base);
-		} else {
+		}
+		else
+		{
 			pr_err("rockchip: could not map timer7 registers\n");
 		}
 
@@ -60,10 +65,15 @@ static void __init rockchip_timer_init(void)
 		 * with the mmc controllers making them unreliable
 		 */
 		grf = syscon_regmap_lookup_by_compatible("rockchip,rk3288-grf");
+
 		if (!IS_ERR(grf))
+		{
 			regmap_write(grf, RK3288_GRF_SOC_CON0, 0x10000000);
+		}
 		else
+		{
 			pr_err("rockchip: could not get grf syscon\n");
+		}
 	}
 
 	of_clk_init(NULL);
@@ -75,7 +85,8 @@ static void __init rockchip_dt_init(void)
 	rockchip_suspend_init();
 }
 
-static const char * const rockchip_board_dt_compat[] = {
+static const char *const rockchip_board_dt_compat[] =
+{
 	"rockchip,rk2928",
 	"rockchip,rk3066a",
 	"rockchip,rk3066b",
@@ -86,9 +97,9 @@ static const char * const rockchip_board_dt_compat[] = {
 };
 
 DT_MACHINE_START(ROCKCHIP_DT, "Rockchip (Device Tree)")
-	.l2c_aux_val	= 0,
+.l2c_aux_val	= 0,
 	.l2c_aux_mask	= ~0,
-	.init_time	= rockchip_timer_init,
-	.dt_compat	= rockchip_board_dt_compat,
-	.init_machine	= rockchip_dt_init,
-MACHINE_END
+	   .init_time	= rockchip_timer_init,
+		 .dt_compat	= rockchip_board_dt_compat,
+		   .init_machine	= rockchip_dt_init,
+			  MACHINE_END

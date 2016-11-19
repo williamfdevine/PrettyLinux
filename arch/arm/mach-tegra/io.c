@@ -30,7 +30,8 @@
 #include "board.h"
 #include "iomap.h"
 
-static struct map_desc tegra_io_desc[] __initdata = {
+static struct map_desc tegra_io_desc[] __initdata =
+{
 	{
 		.virtual = (unsigned long)IO_PPSB_VIRT,
 		.pfn = __phys_to_pfn(IO_PPSB_PHYS),

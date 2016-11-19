@@ -43,7 +43,8 @@ static cycle_t notrace iop_clocksource_read(struct clocksource *unused)
 	return 0xffffffffu - read_tcr1();
 }
 
-static struct clocksource iop_clocksource = {
+static struct clocksource iop_clocksource =
+{
 	.name 		= "iop_timer1",
 	.rating		= 300,
 	.read		= iop_clocksource_read,
@@ -63,7 +64,7 @@ static u64 notrace iop_read_sched_clock(void)
  * IOP clockevents (interrupting timer 0).
  */
 static int iop_set_next_event(unsigned long delta,
-			      struct clock_event_device *unused)
+							  struct clock_event_device *unused)
 {
 	u32 tmr = IOP_TMR_PRIVILEGED | IOP_TMR_RATIO_1_1;
 
@@ -118,10 +119,11 @@ static int iop_resume(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device iop_clockevent = {
+static struct clock_event_device iop_clockevent =
+{
 	.name			= "iop_timer0",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.rating			= 300,
 	.set_next_event		= iop_set_next_event,
 	.set_state_shutdown	= iop_shutdown,
@@ -140,7 +142,8 @@ iop_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction iop_timer_irq = {
+static struct irqaction iop_timer_irq =
+{
 	.name		= "IOP Timer Tick",
 	.handler	= iop_timer_interrupt,
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
@@ -164,7 +167,7 @@ void __init iop_init_time(unsigned long tick_rate)
 	iop_tick_rate = tick_rate;
 
 	timer_ctl = IOP_TMR_EN | IOP_TMR_PRIVILEGED |
-			IOP_TMR_RELOAD | IOP_TMR_RATIO_1_1;
+				IOP_TMR_RELOAD | IOP_TMR_RATIO_1_1;
 
 	/*
 	 * Set up interrupting clockevent timer 0.
@@ -174,7 +177,7 @@ void __init iop_init_time(unsigned long tick_rate)
 	setup_irq(IRQ_IOP_TIMER0, &iop_timer_irq);
 	iop_clockevent.cpumask = cpumask_of(0);
 	clockevents_config_and_register(&iop_clockevent, tick_rate,
-					0xf, 0xfffffffe);
+									0xf, 0xfffffffe);
 
 	/*
 	 * Set up free-running clocksource timer 1.

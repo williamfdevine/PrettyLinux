@@ -39,7 +39,8 @@
 #include <linux/perf/arm_pmu.h>
 #include <linux/platform_device.h>
 
-enum armv6_perf_types {
+enum armv6_perf_types
+{
 	ARMV6_PERFCTR_ICACHE_MISS	    = 0x0,
 	ARMV6_PERFCTR_IBUF_STALL	    = 0x1,
 	ARMV6_PERFCTR_DDEP_STALL	    = 0x2,
@@ -61,7 +62,8 @@ enum armv6_perf_types {
 	ARMV6_PERFCTR_NOP		    = 0x20,
 };
 
-enum armv6_counters {
+enum armv6_counters
+{
 	ARMV6_CYCLE_COUNTER = 0,
 	ARMV6_COUNTER0,
 	ARMV6_COUNTER1,
@@ -72,7 +74,8 @@ enum armv6_counters {
  * we have harvard caches and no way to combine instruction and data
  * accesses/misses in hardware.
  */
-static const unsigned armv6_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned armv6_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV6_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV6_PERFCTR_INSTR_EXEC,
@@ -83,8 +86,9 @@ static const unsigned armv6_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned armv6_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					  [PERF_COUNT_HW_CACHE_OP_MAX]
-					  [PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	/*
@@ -112,7 +116,8 @@ static const unsigned armv6_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 	[C(ITLB)][C(OP_WRITE)][C(RESULT_MISS)]	= ARMV6_PERFCTR_ITLB_MISS,
 };
 
-enum armv6mpcore_perf_types {
+enum armv6mpcore_perf_types
+{
 	ARMV6MPCORE_PERFCTR_ICACHE_MISS	    = 0x0,
 	ARMV6MPCORE_PERFCTR_IBUF_STALL	    = 0x1,
 	ARMV6MPCORE_PERFCTR_DDEP_STALL	    = 0x2,
@@ -140,7 +145,8 @@ enum armv6mpcore_perf_types {
  * we have harvard caches and no way to combine instruction and data
  * accesses/misses in hardware.
  */
-static const unsigned armv6mpcore_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned armv6mpcore_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV6MPCORE_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV6MPCORE_PERFCTR_INSTR_EXEC,
@@ -151,8 +157,9 @@ static const unsigned armv6mpcore_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned armv6mpcore_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					[PERF_COUNT_HW_CACHE_OP_MAX]
-					[PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	[C(L1D)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV6MPCORE_PERFCTR_DCACHE_RDACCESS,
@@ -216,18 +223,26 @@ armv6_pmcr_has_overflowed(unsigned long pmcr)
 
 static inline int
 armv6_pmcr_counter_has_overflowed(unsigned long pmcr,
-				  enum armv6_counters counter)
+								  enum armv6_counters counter)
 {
 	int ret = 0;
 
 	if (ARMV6_CYCLE_COUNTER == counter)
+	{
 		ret = pmcr & ARMV6_PMCR_CCOUNT_OVERFLOW;
+	}
 	else if (ARMV6_COUNTER0 == counter)
+	{
 		ret = pmcr & ARMV6_PMCR_COUNT0_OVERFLOW;
+	}
 	else if (ARMV6_COUNTER1 == counter)
+	{
 		ret = pmcr & ARMV6_PMCR_COUNT1_OVERFLOW;
+	}
 	else
+	{
 		WARN_ONCE(1, "invalid counter number (%d)\n", counter);
+	}
 
 	return ret;
 }
@@ -239,13 +254,21 @@ static inline u32 armv6pmu_read_counter(struct perf_event *event)
 	unsigned long value = 0;
 
 	if (ARMV6_CYCLE_COUNTER == counter)
+	{
 		asm volatile("mrc   p15, 0, %0, c15, c12, 1" : "=r"(value));
+	}
 	else if (ARMV6_COUNTER0 == counter)
+	{
 		asm volatile("mrc   p15, 0, %0, c15, c12, 2" : "=r"(value));
+	}
 	else if (ARMV6_COUNTER1 == counter)
+	{
 		asm volatile("mrc   p15, 0, %0, c15, c12, 3" : "=r"(value));
+	}
 	else
+	{
 		WARN_ONCE(1, "invalid counter number (%d)\n", counter);
+	}
 
 	return value;
 }
@@ -256,13 +279,21 @@ static inline void armv6pmu_write_counter(struct perf_event *event, u32 value)
 	int counter = hwc->idx;
 
 	if (ARMV6_CYCLE_COUNTER == counter)
+	{
 		asm volatile("mcr   p15, 0, %0, c15, c12, 1" : : "r"(value));
+	}
 	else if (ARMV6_COUNTER0 == counter)
+	{
 		asm volatile("mcr   p15, 0, %0, c15, c12, 2" : : "r"(value));
+	}
 	else if (ARMV6_COUNTER1 == counter)
+	{
 		asm volatile("mcr   p15, 0, %0, c15, c12, 3" : : "r"(value));
+	}
 	else
+	{
 		WARN_ONCE(1, "invalid counter number (%d)\n", counter);
+	}
 }
 
 static void armv6pmu_enable_event(struct perf_event *event)
@@ -273,18 +304,25 @@ static void armv6pmu_enable_event(struct perf_event *event)
 	struct pmu_hw_events *events = this_cpu_ptr(cpu_pmu->hw_events);
 	int idx = hwc->idx;
 
-	if (ARMV6_CYCLE_COUNTER == idx) {
+	if (ARMV6_CYCLE_COUNTER == idx)
+	{
 		mask	= 0;
 		evt	= ARMV6_PMCR_CCOUNT_IEN;
-	} else if (ARMV6_COUNTER0 == idx) {
+	}
+	else if (ARMV6_COUNTER0 == idx)
+	{
 		mask	= ARMV6_PMCR_EVT_COUNT0_MASK;
 		evt	= (hwc->config_base << ARMV6_PMCR_EVT_COUNT0_SHIFT) |
 			  ARMV6_PMCR_COUNT0_IEN;
-	} else if (ARMV6_COUNTER1 == idx) {
+	}
+	else if (ARMV6_COUNTER1 == idx)
+	{
 		mask	= ARMV6_PMCR_EVT_COUNT1_MASK;
 		evt	= (hwc->config_base << ARMV6_PMCR_EVT_COUNT1_SHIFT) |
 			  ARMV6_PMCR_COUNT1_IEN;
-	} else {
+	}
+	else
+	{
 		WARN_ONCE(1, "invalid counter number (%d)\n", idx);
 		return;
 	}
@@ -303,7 +341,7 @@ static void armv6pmu_enable_event(struct perf_event *event)
 
 static irqreturn_t
 armv6pmu_handle_irq(int irq_num,
-		    void *dev)
+					void *dev)
 {
 	unsigned long pmcr = armv6_pmcr_read();
 	struct perf_sample_data data;
@@ -313,7 +351,9 @@ armv6pmu_handle_irq(int irq_num,
 	int idx;
 
 	if (!armv6_pmcr_has_overflowed(pmcr))
+	{
 		return IRQ_NONE;
+	}
 
 	regs = get_irq_regs();
 
@@ -324,29 +364,39 @@ armv6pmu_handle_irq(int irq_num,
 	 */
 	armv6_pmcr_write(pmcr);
 
-	for (idx = 0; idx < cpu_pmu->num_events; ++idx) {
+	for (idx = 0; idx < cpu_pmu->num_events; ++idx)
+	{
 		struct perf_event *event = cpuc->events[idx];
 		struct hw_perf_event *hwc;
 
 		/* Ignore if we don't have an event. */
 		if (!event)
+		{
 			continue;
+		}
 
 		/*
 		 * We have a single interrupt for all counters. Check that
 		 * each counter has overflowed before we process it.
 		 */
 		if (!armv6_pmcr_counter_has_overflowed(pmcr, idx))
+		{
 			continue;
+		}
 
 		hwc = &event->hw;
 		armpmu_event_update(event);
 		perf_sample_data_init(&data, 0, hwc->last_period);
+
 		if (!armpmu_event_set_period(event))
+		{
 			continue;
+		}
 
 		if (perf_event_overflow(event, &data, regs))
+		{
 			cpu_pmu->disable(event);
+		}
 	}
 
 	/*
@@ -387,25 +437,35 @@ static void armv6pmu_stop(struct arm_pmu *cpu_pmu)
 
 static int
 armv6pmu_get_event_idx(struct pmu_hw_events *cpuc,
-				struct perf_event *event)
+					   struct perf_event *event)
 {
 	struct hw_perf_event *hwc = &event->hw;
+
 	/* Always place a cycle counter into the cycle counter. */
-	if (ARMV6_PERFCTR_CPU_CYCLES == hwc->config_base) {
+	if (ARMV6_PERFCTR_CPU_CYCLES == hwc->config_base)
+	{
 		if (test_and_set_bit(ARMV6_CYCLE_COUNTER, cpuc->used_mask))
+		{
 			return -EAGAIN;
+		}
 
 		return ARMV6_CYCLE_COUNTER;
-	} else {
+	}
+	else
+	{
 		/*
 		 * For anything other than a cycle counter, try and use
 		 * counter0 and counter1.
 		 */
 		if (!test_and_set_bit(ARMV6_COUNTER1, cpuc->used_mask))
+		{
 			return ARMV6_COUNTER1;
+		}
 
 		if (!test_and_set_bit(ARMV6_COUNTER0, cpuc->used_mask))
+		{
 			return ARMV6_COUNTER0;
+		}
 
 		/* The counters are all in use. */
 		return -EAGAIN;
@@ -420,16 +480,23 @@ static void armv6pmu_disable_event(struct perf_event *event)
 	struct pmu_hw_events *events = this_cpu_ptr(cpu_pmu->hw_events);
 	int idx = hwc->idx;
 
-	if (ARMV6_CYCLE_COUNTER == idx) {
+	if (ARMV6_CYCLE_COUNTER == idx)
+	{
 		mask	= ARMV6_PMCR_CCOUNT_IEN;
 		evt	= 0;
-	} else if (ARMV6_COUNTER0 == idx) {
+	}
+	else if (ARMV6_COUNTER0 == idx)
+	{
 		mask	= ARMV6_PMCR_COUNT0_IEN | ARMV6_PMCR_EVT_COUNT0_MASK;
 		evt	= ARMV6_PERFCTR_NOP << ARMV6_PMCR_EVT_COUNT0_SHIFT;
-	} else if (ARMV6_COUNTER1 == idx) {
+	}
+	else if (ARMV6_COUNTER1 == idx)
+	{
 		mask	= ARMV6_PMCR_COUNT1_IEN | ARMV6_PMCR_EVT_COUNT1_MASK;
 		evt	= ARMV6_PERFCTR_NOP << ARMV6_PMCR_EVT_COUNT1_SHIFT;
-	} else {
+	}
+	else
+	{
 		WARN_ONCE(1, "invalid counter number (%d)\n", idx);
 		return;
 	}
@@ -455,13 +522,20 @@ static void armv6mpcore_pmu_disable_event(struct perf_event *event)
 	struct pmu_hw_events *events = this_cpu_ptr(cpu_pmu->hw_events);
 	int idx = hwc->idx;
 
-	if (ARMV6_CYCLE_COUNTER == idx) {
+	if (ARMV6_CYCLE_COUNTER == idx)
+	{
 		mask	= ARMV6_PMCR_CCOUNT_IEN;
-	} else if (ARMV6_COUNTER0 == idx) {
+	}
+	else if (ARMV6_COUNTER0 == idx)
+	{
 		mask	= ARMV6_PMCR_COUNT0_IEN;
-	} else if (ARMV6_COUNTER1 == idx) {
+	}
+	else if (ARMV6_COUNTER1 == idx)
+	{
 		mask	= ARMV6_PMCR_COUNT1_IEN;
-	} else {
+	}
+	else
+	{
 		WARN_ONCE(1, "invalid counter number (%d)\n", idx);
 		return;
 	}
@@ -481,7 +555,7 @@ static void armv6mpcore_pmu_disable_event(struct perf_event *event)
 static int armv6_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &armv6_perf_map,
-				&armv6_perf_cache_map, 0xFF);
+							&armv6_perf_cache_map, 0xFF);
 }
 
 static void armv6pmu_init(struct arm_pmu *cpu_pmu)
@@ -531,7 +605,7 @@ static int armv6_1176_pmu_init(struct arm_pmu *cpu_pmu)
 static int armv6mpcore_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &armv6mpcore_perf_map,
-				&armv6mpcore_perf_cache_map, 0xFF);
+							&armv6mpcore_perf_cache_map, 0xFF);
 }
 
 static int armv6mpcore_pmu_init(struct arm_pmu *cpu_pmu)
@@ -552,14 +626,16 @@ static int armv6mpcore_pmu_init(struct arm_pmu *cpu_pmu)
 	return 0;
 }
 
-static struct of_device_id armv6_pmu_of_device_ids[] = {
+static struct of_device_id armv6_pmu_of_device_ids[] =
+{
 	{.compatible = "arm,arm11mpcore-pmu",	.data = armv6mpcore_pmu_init},
 	{.compatible = "arm,arm1176-pmu",	.data = armv6_1176_pmu_init},
 	{.compatible = "arm,arm1136-pmu",	.data = armv6_1136_pmu_init},
 	{ /* sentinel value */ }
 };
 
-static const struct pmu_probe_info armv6_pmu_probe_table[] = {
+static const struct pmu_probe_info armv6_pmu_probe_table[] =
+{
 	ARM_PMU_PROBE(ARM_CPU_PART_ARM1136, armv6_1136_pmu_init),
 	ARM_PMU_PROBE(ARM_CPU_PART_ARM1156, armv6_1156_pmu_init),
 	ARM_PMU_PROBE(ARM_CPU_PART_ARM1176, armv6_1176_pmu_init),
@@ -570,10 +646,11 @@ static const struct pmu_probe_info armv6_pmu_probe_table[] = {
 static int armv6_pmu_device_probe(struct platform_device *pdev)
 {
 	return arm_pmu_device_probe(pdev, armv6_pmu_of_device_ids,
-				    armv6_pmu_probe_table);
+								armv6_pmu_probe_table);
 }
 
-static struct platform_driver armv6_pmu_driver = {
+static struct platform_driver armv6_pmu_driver =
+{
 	.driver		= {
 		.name	= "armv6-pmu",
 		.of_match_table = armv6_pmu_of_device_ids,

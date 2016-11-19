@@ -22,7 +22,8 @@
 
 typedef unsigned long old_sigset_t;
 
-typedef struct {
+typedef struct
+{
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
 

@@ -56,7 +56,8 @@
 /* 2xxx-specific possible dependencies */
 
 /* 2xxx PM_WKDEP_GFX: CORE, MPU, WKUP */
-struct clkdm_dep gfx_24xx_wkdeps[] = {
+struct clkdm_dep gfx_24xx_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "mpu_clkdm" },
@@ -65,7 +66,8 @@ struct clkdm_dep gfx_24xx_wkdeps[] = {
 };
 
 /* 2xxx PM_WKDEP_DSP: CORE, MPU, WKUP */
-struct clkdm_dep dsp_24xx_wkdeps[] = {
+struct clkdm_dep dsp_24xx_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "mpu_clkdm" },
@@ -84,7 +86,8 @@ struct clkdm_dep dsp_24xx_wkdeps[] = {
  */
 
 /* This is an implicit clockdomain - it is never defined as such in TRM */
-struct clockdomain wkup_common_clkdm = {
+struct clockdomain wkup_common_clkdm =
+{
 	.name		= "wkup_clkdm",
 	.pwrdm		= { .name = "wkup_pwrdm" },
 	.dep_bit	= OMAP_EN_WKUP_SHIFT,

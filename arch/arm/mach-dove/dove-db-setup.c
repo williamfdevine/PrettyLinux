@@ -27,11 +27,13 @@
 #include <mach/dove.h>
 #include "common.h"
 
-static struct mv643xx_eth_platform_data dove_db_ge00_data = {
+static struct mv643xx_eth_platform_data dove_db_ge00_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_ADDR_DEFAULT,
 };
 
-static struct mv_sata_platform_data dove_db_sata_data = {
+static struct mv_sata_platform_data dove_db_sata_data =
+{
 	.n_ports        = 1,
 };
 
@@ -39,11 +41,13 @@ static struct mv_sata_platform_data dove_db_sata_data = {
  * SPI Devices:
  * 	SPI0: 4M Flash ST-M25P32-VMF6P
  ****************************************************************************/
-static const struct flash_platform_data dove_db_spi_flash_data = {
+static const struct flash_platform_data dove_db_spi_flash_data =
+{
 	.type		= "m25p64",
 };
 
-static struct spi_board_info __initdata dove_db_spi_flash_info[] = {
+static struct spi_board_info __initdata dove_db_spi_flash_info[] =
+{
 	{
 		.modalias       = "m25p80",
 		.platform_data  = &dove_db_spi_flash_data,
@@ -60,7 +64,9 @@ static struct spi_board_info __initdata dove_db_spi_flash_info[] = {
 static int __init dove_db_pci_init(void)
 {
 	if (machine_is_dove_db())
+	{
 		dove_pcie_init(1, 1);
+	}
 
 	return 0;
 }
@@ -89,16 +95,16 @@ static void __init dove_db_init(void)
 	dove_uart1_init();
 	dove_i2c_init();
 	spi_register_board_info(dove_db_spi_flash_info,
-				ARRAY_SIZE(dove_db_spi_flash_info));
+							ARRAY_SIZE(dove_db_spi_flash_info));
 }
 
 MACHINE_START(DOVE_DB, "Marvell DB-MV88AP510-BP Development Board")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.nr_irqs	= DOVE_NR_IRQS,
-	.init_machine	= dove_db_init,
-	.map_io		= dove_map_io,
-	.init_early	= dove_init_early,
-	.init_irq	= dove_init_irq,
-	.init_time	= dove_timer_init,
-	.restart	= dove_restart,
-MACHINE_END
+		.init_machine	= dove_db_init,
+		   .map_io		= dove_map_io,
+			   .init_early	= dove_init_early,
+				.init_irq	= dove_init_irq,
+				   .init_time	= dove_timer_init,
+					 .restart	= dove_restart,
+						 MACHINE_END

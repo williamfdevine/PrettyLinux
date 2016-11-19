@@ -14,7 +14,7 @@
 #define wmb()	asm volatile("sync 0" : : : "memory")
 
 #ifdef CONFIG_SMP
-# error "The AVR32 port does not support SMP"
+	# error "The AVR32 port does not support SMP"
 #endif
 
 #include <asm-generic/barrier.h>

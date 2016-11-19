@@ -46,22 +46,33 @@ int kvm_arch_create_vcpu_debugfs(struct kvm_vcpu *vcpu)
 	struct dentry *ret;
 
 	ret = debugfs_create_file("tsc-offset", 0444,
-							vcpu->debugfs_dentry,
-							vcpu, &vcpu_tsc_offset_fops);
-	if (!ret)
-		return -ENOMEM;
+							  vcpu->debugfs_dentry,
+							  vcpu, &vcpu_tsc_offset_fops);
 
-	if (kvm_has_tsc_control) {
+	if (!ret)
+	{
+		return -ENOMEM;
+	}
+
+	if (kvm_has_tsc_control)
+	{
 		ret = debugfs_create_file("tsc-scaling-ratio", 0444,
-							vcpu->debugfs_dentry,
-							vcpu, &vcpu_tsc_scaling_fops);
+								  vcpu->debugfs_dentry,
+								  vcpu, &vcpu_tsc_scaling_fops);
+
 		if (!ret)
+		{
 			return -ENOMEM;
+		}
+
 		ret = debugfs_create_file("tsc-scaling-ratio-frac-bits", 0444,
-							vcpu->debugfs_dentry,
-							vcpu, &vcpu_tsc_scaling_frac_fops);
+								  vcpu->debugfs_dentry,
+								  vcpu, &vcpu_tsc_scaling_frac_fops);
+
 		if (!ret)
+		{
 			return -ENOMEM;
+		}
 
 	}
 

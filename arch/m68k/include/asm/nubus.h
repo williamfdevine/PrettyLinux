@@ -16,25 +16,25 @@
 #define nubus_memcpy_toio(a,b,c)	memcpy((void *)(a),(b),(c))
 
 static inline void *nubus_remap_nocache_ser(unsigned long physaddr,
-					    unsigned long size)
+		unsigned long size)
 {
 	return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
 }
 
 static inline void *nubus_remap_nocache_nonser(unsigned long physaddr,
-					       unsigned long size)
+		unsigned long size)
 {
 	return __ioremap(physaddr, size, IOMAP_NOCACHE_NONSER);
 }
 
 static inline void *nbus_remap_writethrough(unsigned long physaddr,
-					    unsigned long size)
+		unsigned long size)
 {
 	return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
 }
 
 static inline void *nubus_remap_fullcache(unsigned long physaddr,
-					  unsigned long size)
+		unsigned long size)
 {
 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
 }

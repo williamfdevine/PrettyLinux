@@ -44,7 +44,8 @@ MODULE_LICENSE("GPL");
 
 typedef int (*palinfo_func_t)(struct seq_file *);
 
-typedef struct {
+typedef struct
+{
 	const char		*name;		/* name of the proc entry */
 	palinfo_func_t		proc_read;	/* function to call for reading */
 	struct proc_dir_entry	*entry;		/* registered entry (removal) */
@@ -55,21 +56,24 @@ typedef struct {
  *  A bunch of string array to get pretty printing
  */
 
-static const char *cache_types[] = {
+static const char *cache_types[] =
+{
 	"",			/* not used */
 	"Instruction",
 	"Data",
 	"Data/Instruction"	/* unified */
 };
 
-static const char *cache_mattrib[]={
+static const char *cache_mattrib[] =
+{
 	"WriteThrough",
 	"WriteBack",
 	"",		/* reserved */
 	""		/* reserved */
 };
 
-static const char *cache_st_hints[]={
+static const char *cache_st_hints[] =
+{
 	"Temporal, level 1",
 	"Reserved",
 	"Reserved",
@@ -80,7 +84,8 @@ static const char *cache_st_hints[]={
 	"Reserved"
 };
 
-static const char *cache_ld_hints[]={
+static const char *cache_ld_hints[] =
+{
 	"Temporal, level 1",
 	"Non-temporal, level 1",
 	"Reserved",
@@ -91,7 +96,8 @@ static const char *cache_ld_hints[]={
 	"Reserved"
 };
 
-static const char *rse_hints[]={
+static const char *rse_hints[] =
+{
 	"enforced lazy",
 	"eager stores",
 	"eager loads",
@@ -100,7 +106,8 @@ static const char *rse_hints[]={
 
 #define RSE_HINTS_COUNT ARRAY_SIZE(rse_hints)
 
-static const char *mem_attrib[]={
+static const char *mem_attrib[] =
+{
 	"WB",		/* 000 */
 	"SW",		/* 001 */
 	"010",		/* 010 */
@@ -125,12 +132,16 @@ static const char *mem_attrib[]={
  */
 static void bitvector_process(struct seq_file *m, u64 vector)
 {
-	int i,j;
-	static const char *units[]={ "", "K", "M", "G", "T" };
+	int i, j;
+	static const char *units[] = { "", "K", "M", "G", "T" };
 
-	for (i=0, j=0; i < 64; i++ , j=i/10) {
+	for (i = 0, j = 0; i < 64; i++ , j = i / 10)
+	{
 		if (vector & 0x1)
-			seq_printf(m, "%d%s ", 1 << (i-j*10), units[j]);
+		{
+			seq_printf(m, "%d%s ", 1 << (i - j * 10), units[j]);
+		}
+
 		vector >>= 1;
 	}
 }
@@ -154,28 +165,44 @@ static void bitregister_process(struct seq_file *m, u64 *reg_info, int max)
 
 	value >>= i = begin = ffs(value) - 1;
 
-	for(; i < max; i++ ) {
+	for (; i < max; i++ )
+	{
 
-		if (i != 0 && (i%64) == 0) value = *++reg_info;
+		if (i != 0 && (i % 64) == 0) { value = *++reg_info; }
 
-		if ((value & 0x1) == 0 && skip == 0) {
+		if ((value & 0x1) == 0 && skip == 0)
+		{
 			if (begin  <= i - 2)
-				seq_printf(m, "%d-%d ", begin, i-1);
+			{
+				seq_printf(m, "%d-%d ", begin, i - 1);
+			}
 			else
-				seq_printf(m, "%d ", i-1);
+			{
+				seq_printf(m, "%d ", i - 1);
+			}
+
 			skip  = 1;
 			begin = -1;
-		} else if ((value & 0x1) && skip == 1) {
+		}
+		else if ((value & 0x1) && skip == 1)
+		{
 			skip = 0;
 			begin = i;
 		}
-		value >>=1;
+
+		value >>= 1;
 	}
-	if (begin > -1) {
+
+	if (begin > -1)
+	{
 		if (begin < 127)
+		{
 			seq_printf(m, "%d-127", begin);
+		}
 		else
+		{
 			seq_puts(m, "127");
+		}
 	}
 }
 
@@ -183,28 +210,34 @@ static int power_info(struct seq_file *m)
 {
 	s64 status;
 	u64 halt_info_buffer[8];
-	pal_power_mgmt_info_u_t *halt_info =(pal_power_mgmt_info_u_t *)halt_info_buffer;
+	pal_power_mgmt_info_u_t *halt_info = (pal_power_mgmt_info_u_t *)halt_info_buffer;
 	int i;
 
 	status = ia64_pal_halt_info(halt_info);
-	if (status != 0) return 0;
 
-	for (i=0; i < 8 ; i++ ) {
-		if (halt_info[i].pal_power_mgmt_info_s.im == 1) {
+	if (status != 0) { return 0; }
+
+	for (i = 0; i < 8 ; i++ )
+	{
+		if (halt_info[i].pal_power_mgmt_info_s.im == 1)
+		{
 			seq_printf(m,
-				   "Power level %d:\n"
-				   "\tentry_latency       : %d cycles\n"
-				   "\texit_latency        : %d cycles\n"
-				   "\tpower consumption   : %d mW\n"
-				   "\tCache+TLB coherency : %s\n", i,
-				   halt_info[i].pal_power_mgmt_info_s.entry_latency,
-				   halt_info[i].pal_power_mgmt_info_s.exit_latency,
-				   halt_info[i].pal_power_mgmt_info_s.power_consumption,
-				   halt_info[i].pal_power_mgmt_info_s.co ? "Yes" : "No");
-		} else {
-			seq_printf(m,"Power level %d: not implemented\n", i);
+					   "Power level %d:\n"
+					   "\tentry_latency       : %d cycles\n"
+					   "\texit_latency        : %d cycles\n"
+					   "\tpower consumption   : %d mW\n"
+					   "\tCache+TLB coherency : %s\n", i,
+					   halt_info[i].pal_power_mgmt_info_s.entry_latency,
+					   halt_info[i].pal_power_mgmt_info_s.exit_latency,
+					   halt_info[i].pal_power_mgmt_info_s.power_consumption,
+					   halt_info[i].pal_power_mgmt_info_s.co ? "Yes" : "No");
+		}
+		else
+		{
+			seq_printf(m, "Power level %d: not implemented\n", i);
 		}
 	}
+
 	return 0;
 }
 
@@ -215,80 +248,103 @@ static int cache_info(struct seq_file *m)
 	int j, k;
 	long status;
 
-	if ((status = ia64_pal_cache_summary(&levels, &unique_caches)) != 0) {
+	if ((status = ia64_pal_cache_summary(&levels, &unique_caches)) != 0)
+	{
 		printk(KERN_ERR "ia64_pal_cache_summary=%ld\n", status);
 		return 0;
 	}
 
 	seq_printf(m, "Cache levels  : %ld\nUnique caches : %ld\n\n",
-		   levels, unique_caches);
+			   levels, unique_caches);
 
-	for (i=0; i < levels; i++) {
-		for (j=2; j >0 ; j--) {
+	for (i = 0; i < levels; i++)
+	{
+		for (j = 2; j > 0 ; j--)
+		{
 			/* even without unification some level may not be present */
-			if ((status=ia64_pal_cache_config_info(i,j, &cci)) != 0)
+			if ((status = ia64_pal_cache_config_info(i, j, &cci)) != 0)
+			{
 				continue;
+			}
 
 			seq_printf(m,
-				   "%s Cache level %lu:\n"
-				   "\tSize           : %u bytes\n"
-				   "\tAttributes     : ",
-				   cache_types[j+cci.pcci_unified], i+1,
-				   cci.pcci_cache_size);
+					   "%s Cache level %lu:\n"
+					   "\tSize           : %u bytes\n"
+					   "\tAttributes     : ",
+					   cache_types[j + cci.pcci_unified], i + 1,
+					   cci.pcci_cache_size);
 
 			if (cci.pcci_unified)
+			{
 				seq_puts(m, "Unified ");
+			}
 
 			seq_printf(m, "%s\n", cache_mattrib[cci.pcci_cache_attr]);
 
 			seq_printf(m,
-				   "\tAssociativity  : %d\n"
-				   "\tLine size      : %d bytes\n"
-				   "\tStride         : %d bytes\n",
-				   cci.pcci_assoc,
-				   1<<cci.pcci_line_size,
-				   1<<cci.pcci_stride);
+					   "\tAssociativity  : %d\n"
+					   "\tLine size      : %d bytes\n"
+					   "\tStride         : %d bytes\n",
+					   cci.pcci_assoc,
+					   1 << cci.pcci_line_size,
+					   1 << cci.pcci_stride);
+
 			if (j == 1)
+			{
 				seq_puts(m, "\tStore latency  : N/A\n");
+			}
 			else
 				seq_printf(m, "\tStore latency  : %d cycle(s)\n",
-					   cci.pcci_st_latency);
+						   cci.pcci_st_latency);
 
 			seq_printf(m,
-				   "\tLoad latency   : %d cycle(s)\n"
-				   "\tStore hints    : ", cci.pcci_ld_latency);
+					   "\tLoad latency   : %d cycle(s)\n"
+					   "\tStore hints    : ", cci.pcci_ld_latency);
 
-			for(k=0; k < 8; k++ ) {
+			for (k = 0; k < 8; k++ )
+			{
 				if ( cci.pcci_st_hints & 0x1)
+				{
 					seq_printf(m, "[%s]", cache_st_hints[k]);
-				cci.pcci_st_hints >>=1;
+				}
+
+				cci.pcci_st_hints >>= 1;
 			}
+
 			seq_puts(m, "\n\tLoad hints     : ");
 
-			for(k=0; k < 8; k++ ) {
+			for (k = 0; k < 8; k++ )
+			{
 				if (cci.pcci_ld_hints & 0x1)
+				{
 					seq_printf(m, "[%s]", cache_ld_hints[k]);
-				cci.pcci_ld_hints >>=1;
+				}
+
+				cci.pcci_ld_hints >>= 1;
 			}
+
 			seq_printf(m,
-				   "\n\tAlias boundary : %d byte(s)\n"
-				   "\tTag LSB        : %d\n"
-				   "\tTag MSB        : %d\n",
-				   1<<cci.pcci_alias_boundary, cci.pcci_tag_lsb,
-				   cci.pcci_tag_msb);
+					   "\n\tAlias boundary : %d byte(s)\n"
+					   "\tTag LSB        : %d\n"
+					   "\tTag MSB        : %d\n",
+					   1 << cci.pcci_alias_boundary, cci.pcci_tag_lsb,
+					   cci.pcci_tag_msb);
 
 			/* when unified, data(j=2) is enough */
 			if (cci.pcci_unified)
+			{
 				break;
+			}
 		}
 	}
+
 	return 0;
 }
 
 
 static int vm_info(struct seq_file *m)
 {
-	u64 tr_pages =0, vw_pages=0, tc_pages;
+	u64 tr_pages = 0, vw_pages = 0, tc_pages;
 	u64 attrib;
 	pal_vm_info_1_u_t vm_info_1;
 	pal_vm_info_2_u_t vm_info_2;
@@ -298,56 +354,70 @@ static int vm_info(struct seq_file *m)
 	int i, j;
 	long status;
 
-	if ((status = ia64_pal_vm_summary(&vm_info_1, &vm_info_2)) !=0) {
+	if ((status = ia64_pal_vm_summary(&vm_info_1, &vm_info_2)) != 0)
+	{
 		printk(KERN_ERR "ia64_pal_vm_summary=%ld\n", status);
-	} else {
+	}
+	else
+	{
 
 		seq_printf(m,
-		     "Physical Address Space         : %d bits\n"
-		     "Virtual Address Space          : %d bits\n"
-		     "Protection Key Registers(PKR)  : %d\n"
-		     "Implemented bits in PKR.key    : %d\n"
-		     "Hash Tag ID                    : 0x%x\n"
-		     "Size of RR.rid                 : %d\n"
-		     "Max Purges                     : ",
-		     vm_info_1.pal_vm_info_1_s.phys_add_size,
-		     vm_info_2.pal_vm_info_2_s.impl_va_msb+1,
-		     vm_info_1.pal_vm_info_1_s.max_pkr+1,
-		     vm_info_1.pal_vm_info_1_s.key_size,
-		     vm_info_1.pal_vm_info_1_s.hash_tag_id,
-		     vm_info_2.pal_vm_info_2_s.rid_size);
+				   "Physical Address Space         : %d bits\n"
+				   "Virtual Address Space          : %d bits\n"
+				   "Protection Key Registers(PKR)  : %d\n"
+				   "Implemented bits in PKR.key    : %d\n"
+				   "Hash Tag ID                    : 0x%x\n"
+				   "Size of RR.rid                 : %d\n"
+				   "Max Purges                     : ",
+				   vm_info_1.pal_vm_info_1_s.phys_add_size,
+				   vm_info_2.pal_vm_info_2_s.impl_va_msb + 1,
+				   vm_info_1.pal_vm_info_1_s.max_pkr + 1,
+				   vm_info_1.pal_vm_info_1_s.key_size,
+				   vm_info_1.pal_vm_info_1_s.hash_tag_id,
+				   vm_info_2.pal_vm_info_2_s.rid_size);
+
 		if (vm_info_2.pal_vm_info_2_s.max_purges == PAL_MAX_PURGES)
+		{
 			seq_puts(m, "unlimited\n");
+		}
 		else
 			seq_printf(m, "%d\n",
-		     		vm_info_2.pal_vm_info_2_s.max_purges ?
-				vm_info_2.pal_vm_info_2_s.max_purges : 1);
+					   vm_info_2.pal_vm_info_2_s.max_purges ?
+					   vm_info_2.pal_vm_info_2_s.max_purges : 1);
 	}
 
-	if (ia64_pal_mem_attrib(&attrib) == 0) {
+	if (ia64_pal_mem_attrib(&attrib) == 0)
+	{
 		seq_puts(m, "Supported memory attributes    : ");
 		sep = "";
-		for (i = 0; i < 8; i++) {
-			if (attrib & (1 << i)) {
+
+		for (i = 0; i < 8; i++)
+		{
+			if (attrib & (1 << i))
+			{
 				seq_printf(m, "%s%s", sep, mem_attrib[i]);
 				sep = ", ";
 			}
 		}
+
 		seq_putc(m, '\n');
 	}
 
-	if ((status = ia64_pal_vm_page_size(&tr_pages, &vw_pages)) !=0) {
+	if ((status = ia64_pal_vm_page_size(&tr_pages, &vw_pages)) != 0)
+	{
 		printk(KERN_ERR "ia64_pal_vm_page_size=%ld\n", status);
-	} else {
+	}
+	else
+	{
 
 		seq_printf(m,
-			   "\nTLB walker                     : %simplemented\n"
-			   "Number of DTR                  : %d\n"
-			   "Number of ITR                  : %d\n"
-			   "TLB insertable page sizes      : ",
-			   vm_info_1.pal_vm_info_1_s.vw ? "" : "not ",
-			   vm_info_1.pal_vm_info_1_s.max_dtr_entry+1,
-			   vm_info_1.pal_vm_info_1_s.max_itr_entry+1);
+				   "\nTLB walker                     : %simplemented\n"
+				   "Number of DTR                  : %d\n"
+				   "Number of ITR                  : %d\n"
+				   "TLB insertable page sizes      : ",
+				   vm_info_1.pal_vm_info_1_s.vw ? "" : "not ",
+				   vm_info_1.pal_vm_info_1_s.max_dtr_entry + 1,
+				   vm_info_1.pal_vm_info_1_s.max_itr_entry + 1);
 
 		bitvector_process(m, tr_pages);
 
@@ -356,49 +426,64 @@ static int vm_info(struct seq_file *m)
 		bitvector_process(m, vw_pages);
 	}
 
-	if ((status = ia64_get_ptce(&ptce)) != 0) {
+	if ((status = ia64_get_ptce(&ptce)) != 0)
+	{
 		printk(KERN_ERR "ia64_get_ptce=%ld\n", status);
-	} else {
+	}
+	else
+	{
 		seq_printf(m,
-		     "\nPurge base address             : 0x%016lx\n"
-		     "Purge outer loop count         : %d\n"
-		     "Purge inner loop count         : %d\n"
-		     "Purge outer loop stride        : %d\n"
-		     "Purge inner loop stride        : %d\n",
-		     ptce.base, ptce.count[0], ptce.count[1],
-		     ptce.stride[0], ptce.stride[1]);
+				   "\nPurge base address             : 0x%016lx\n"
+				   "Purge outer loop count         : %d\n"
+				   "Purge inner loop count         : %d\n"
+				   "Purge outer loop stride        : %d\n"
+				   "Purge inner loop stride        : %d\n",
+				   ptce.base, ptce.count[0], ptce.count[1],
+				   ptce.stride[0], ptce.stride[1]);
 
 		seq_printf(m,
-		     "TC Levels                      : %d\n"
-		     "Unique TC(s)                   : %d\n",
-		     vm_info_1.pal_vm_info_1_s.num_tc_levels,
-		     vm_info_1.pal_vm_info_1_s.max_unique_tcs);
+				   "TC Levels                      : %d\n"
+				   "Unique TC(s)                   : %d\n",
+				   vm_info_1.pal_vm_info_1_s.num_tc_levels,
+				   vm_info_1.pal_vm_info_1_s.max_unique_tcs);
 
-		for(i=0; i < vm_info_1.pal_vm_info_1_s.num_tc_levels; i++) {
-			for (j=2; j>0 ; j--) {
+		for (i = 0; i < vm_info_1.pal_vm_info_1_s.num_tc_levels; i++)
+		{
+			for (j = 2; j > 0 ; j--)
+			{
 				tc_pages = 0; /* just in case */
 
 				/* even without unification, some levels may not be present */
-				if ((status=ia64_pal_vm_info(i,j, &tc_info, &tc_pages)) != 0)
+				if ((status = ia64_pal_vm_info(i, j, &tc_info, &tc_pages)) != 0)
+				{
 					continue;
+				}
 
 				seq_printf(m,
-				     "\n%s Translation Cache Level %d:\n"
-				     "\tHash sets           : %d\n"
-				     "\tAssociativity       : %d\n"
-				     "\tNumber of entries   : %d\n"
-				     "\tFlags               : ",
-				     cache_types[j+tc_info.tc_unified], i+1,
-				     tc_info.tc_num_sets,
-				     tc_info.tc_associativity,
-				     tc_info.tc_num_entries);
+						   "\n%s Translation Cache Level %d:\n"
+						   "\tHash sets           : %d\n"
+						   "\tAssociativity       : %d\n"
+						   "\tNumber of entries   : %d\n"
+						   "\tFlags               : ",
+						   cache_types[j + tc_info.tc_unified], i + 1,
+						   tc_info.tc_num_sets,
+						   tc_info.tc_associativity,
+						   tc_info.tc_num_entries);
 
 				if (tc_info.tc_pf)
+				{
 					seq_puts(m, "PreferredPageSizeOptimized ");
+				}
+
 				if (tc_info.tc_unified)
+				{
 					seq_puts(m, "Unified ");
+				}
+
 				if (tc_info.tc_reduce_tr)
+				{
 					seq_puts(m, "TCReduction");
+				}
 
 				seq_puts(m, "\n\tSupported page sizes: ");
 
@@ -406,7 +491,9 @@ static int vm_info(struct seq_file *m)
 
 				/* when unified date (j=2) is enough */
 				if (tc_info.tc_unified)
+				{
 					break;
+				}
 			}
 		}
 	}
@@ -423,16 +510,21 @@ static int register_info(struct seq_file *m)
 	unsigned long phys_stacked;
 	pal_hints_u_t hints;
 	unsigned long iregs, dregs;
-	static const char * const info_type[] = {
+	static const char *const info_type[] =
+	{
 		"Implemented AR(s)",
 		"AR(s) with read side-effects",
 		"Implemented CR(s)",
 		"CR(s) with read side-effects",
 	};
 
-	for(info=0; info < 4; info++) {
+	for (info = 0; info < 4; info++)
+	{
 		if (ia64_pal_register_info(info, &reg_info[0], &reg_info[1]) != 0)
+		{
 			return 0;
+		}
+
 		seq_printf(m, "%-32s : ", info_type[info]);
 		bitregister_process(m, reg_info, 128);
 		seq_putc(m, '\n');
@@ -440,26 +532,29 @@ static int register_info(struct seq_file *m)
 
 	if (ia64_pal_rse_info(&phys_stacked, &hints) == 0)
 		seq_printf(m,
-			   "RSE stacked physical registers   : %ld\n"
-			   "RSE load/store hints             : %ld (%s)\n",
-			   phys_stacked, hints.ph_data,
-			   hints.ph_data < RSE_HINTS_COUNT ? rse_hints[hints.ph_data]: "(??)");
+				   "RSE stacked physical registers   : %ld\n"
+				   "RSE load/store hints             : %ld (%s)\n",
+				   phys_stacked, hints.ph_data,
+				   hints.ph_data < RSE_HINTS_COUNT ? rse_hints[hints.ph_data] : "(??)");
 
 	if (ia64_pal_debug_info(&iregs, &dregs))
+	{
 		return 0;
+	}
 
 	seq_printf(m,
-		   "Instruction debug register pairs : %ld\n"
-		   "Data debug register pairs        : %ld\n", iregs, dregs);
+			   "Instruction debug register pairs : %ld\n"
+			   "Data debug register pairs        : %ld\n", iregs, dregs);
 
 	return 0;
 }
 
-static const char *const proc_features_0[]={		/* Feature set 0 */
-	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
-	NULL,NULL,NULL,NULL,NULL,NULL,NULL, NULL,NULL,
-	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
-	NULL,NULL,NULL,NULL,NULL, NULL,NULL,NULL,NULL,
+static const char *const proc_features_0[] =  		/* Feature set 0 */
+{
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	"Unimplemented instruction address fault",
 	"INIT, PMI, and LINT pins",
 	"Simple unimplemented instr addresses",
@@ -487,7 +582,8 @@ static const char *const proc_features_0[]={		/* Feature set 0 */
 	"Enable BERR promotion"
 };
 
-static const char *const proc_features_16[]={		/* Feature set 16 */
+static const char *const proc_features_16[] =  		/* Feature set 16 */
+{
 	"Disable ETM",
 	"Enable ETM",
 	"Enable MCA on half-way timer",
@@ -507,7 +603,8 @@ static const char *const proc_features_16[]={		/* Feature set 16 */
 	NULL, NULL, NULL, NULL, NULL
 };
 
-static const char *const *const proc_features[]={
+static const char *const *const proc_features[] =
+{
 	proc_features_0,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL,
@@ -516,66 +613,87 @@ static const char *const *const proc_features[]={
 };
 
 static void feature_set_info(struct seq_file *m, u64 avail, u64 status, u64 control,
-			     unsigned long set)
+							 unsigned long set)
 {
 	const char *const *vf, *const *v;
 	int i;
 
 	vf = v = proc_features[set];
-	for(i=0; i < 64; i++, avail >>=1, status >>=1, control >>=1) {
+
+	for (i = 0; i < 64; i++, avail >>= 1, status >>= 1, control >>= 1)
+	{
 
 		if (!(control))		/* No remaining bits set */
+		{
 			break;
+		}
+
 		if (!(avail & 0x1))	/* Print only bits that are available */
+		{
 			continue;
+		}
+
 		if (vf)
+		{
 			v = vf + i;
-		if ( v && *v ) {
+		}
+
+		if ( v && *v )
+		{
 			seq_printf(m, "%-40s : %s %s\n", *v,
-				avail & 0x1 ? (status & 0x1 ?
-					      "On " : "Off"): "",
-				avail & 0x1 ? (control & 0x1 ?
-						"Ctrl" : "NoCtrl"): "");
-		} else {
+					   avail & 0x1 ? (status & 0x1 ?
+									  "On " : "Off") : "",
+					   avail & 0x1 ? (control & 0x1 ?
+									  "Ctrl" : "NoCtrl") : "");
+		}
+		else
+		{
 			seq_printf(m, "Feature set %2ld bit %2d\t\t\t"
-					" : %s %s\n",
-				set, i,
-				avail & 0x1 ? (status & 0x1 ?
-						"On " : "Off"): "",
-				avail & 0x1 ? (control & 0x1 ?
-						"Ctrl" : "NoCtrl"): "");
+					   " : %s %s\n",
+					   set, i,
+					   avail & 0x1 ? (status & 0x1 ?
+									  "On " : "Off") : "",
+					   avail & 0x1 ? (control & 0x1 ?
+									  "Ctrl" : "NoCtrl") : "");
 		}
 	}
 }
 
 static int processor_info(struct seq_file *m)
 {
-	u64 avail=1, status=1, control=1, feature_set=0;
+	u64 avail = 1, status = 1, control = 1, feature_set = 0;
 	s64 ret;
 
-	do {
+	do
+	{
 		ret = ia64_pal_proc_get_features(&avail, &status, &control,
-						feature_set);
-		if (ret < 0)
-			return 0;
+										 feature_set);
 
-		if (ret == 1) {
+		if (ret < 0)
+		{
+			return 0;
+		}
+
+		if (ret == 1)
+		{
 			feature_set++;
 			continue;
 		}
 
 		feature_set_info(m, avail, status, control, feature_set);
 		feature_set++;
-	} while(1);
+	}
+	while (1);
 
 	return 0;
 }
 
-static const char *const bus_features[]={
-	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
-	NULL,NULL,NULL,NULL,NULL,NULL,NULL, NULL,NULL,
-	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
-	NULL,NULL,
+static const char *const bus_features[] =
+{
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL,
 	"Request  Bus Parking",
 	"Bus Lock Mask",
 	"Enable Half Transfer",
@@ -605,21 +723,28 @@ static int bus_info(struct seq_file *m)
 	int i;
 	s64 ret;
 
-	if ((ret=ia64_pal_bus_get_features(&av, &st, &ct)) != 0)
+	if ((ret = ia64_pal_bus_get_features(&av, &st, &ct)) != 0)
+	{
 		return 0;
+	}
 
 	avail   = av.pal_bus_features_val;
 	status  = st.pal_bus_features_val;
 	control = ct.pal_bus_features_val;
 
-	for(i=0; i < 64; i++, v++, avail >>=1, status >>=1, control >>=1) {
+	for (i = 0; i < 64; i++, v++, avail >>= 1, status >>= 1, control >>= 1)
+	{
 		if ( ! *v )
+		{
 			continue;
+		}
+
 		seq_printf(m, "%-48s : %s%s %s\n", *v,
-			   avail & 0x1 ? "" : "NotImpl",
-			   avail & 0x1 ? (status  & 0x1 ? "On" : "Off"): "",
-			   avail & 0x1 ? (control & 0x1 ? "Ctrl" : "NoCtrl"): "");
+				   avail & 0x1 ? "" : "NotImpl",
+				   avail & 0x1 ? (status  & 0x1 ? "On" : "Off") : "",
+				   avail & 0x1 ? (control & 0x1 ? "Ctrl" : "NoCtrl") : "");
 	}
+
 	return 0;
 }
 
@@ -628,22 +753,24 @@ static int version_info(struct seq_file *m)
 	pal_version_u_t min_ver, cur_ver;
 
 	if (ia64_pal_version(&min_ver, &cur_ver) != 0)
+	{
 		return 0;
+	}
 
 	seq_printf(m,
-		   "PAL_vendor : 0x%02x (min=0x%02x)\n"
-		   "PAL_A      : %02x.%02x (min=%02x.%02x)\n"
-		   "PAL_B      : %02x.%02x (min=%02x.%02x)\n",
-		   cur_ver.pal_version_s.pv_pal_vendor,
-		   min_ver.pal_version_s.pv_pal_vendor,
-		   cur_ver.pal_version_s.pv_pal_a_model,
-		   cur_ver.pal_version_s.pv_pal_a_rev,
-		   min_ver.pal_version_s.pv_pal_a_model,
-		   min_ver.pal_version_s.pv_pal_a_rev,
-		   cur_ver.pal_version_s.pv_pal_b_model,
-		   cur_ver.pal_version_s.pv_pal_b_rev,
-		   min_ver.pal_version_s.pv_pal_b_model,
-		   min_ver.pal_version_s.pv_pal_b_rev);
+			   "PAL_vendor : 0x%02x (min=0x%02x)\n"
+			   "PAL_A      : %02x.%02x (min=%02x.%02x)\n"
+			   "PAL_B      : %02x.%02x (min=%02x.%02x)\n",
+			   cur_ver.pal_version_s.pv_pal_vendor,
+			   min_ver.pal_version_s.pv_pal_vendor,
+			   cur_ver.pal_version_s.pv_pal_a_model,
+			   cur_ver.pal_version_s.pv_pal_a_rev,
+			   min_ver.pal_version_s.pv_pal_a_model,
+			   min_ver.pal_version_s.pv_pal_a_rev,
+			   cur_ver.pal_version_s.pv_pal_b_model,
+			   cur_ver.pal_version_s.pv_pal_b_rev,
+			   min_ver.pal_version_s.pv_pal_b_model,
+			   min_ver.pal_version_s.pv_pal_b_rev);
 	return 0;
 }
 
@@ -653,36 +780,42 @@ static int perfmon_info(struct seq_file *m)
 	pal_perf_mon_info_u_t pm_info;
 
 	if (ia64_pal_perf_mon_info(pm_buffer, &pm_info) != 0)
+	{
 		return 0;
+	}
 
 	seq_printf(m,
-		   "PMC/PMD pairs                 : %d\n"
-		   "Counter width                 : %d bits\n"
-		   "Cycle event number            : %d\n"
-		   "Retired event number          : %d\n"
-		   "Implemented PMC               : ",
-		   pm_info.pal_perf_mon_info_s.generic,
-		   pm_info.pal_perf_mon_info_s.width,
-		   pm_info.pal_perf_mon_info_s.cycles,
-		   pm_info.pal_perf_mon_info_s.retired);
+			   "PMC/PMD pairs                 : %d\n"
+			   "Counter width                 : %d bits\n"
+			   "Cycle event number            : %d\n"
+			   "Retired event number          : %d\n"
+			   "Implemented PMC               : ",
+			   pm_info.pal_perf_mon_info_s.generic,
+			   pm_info.pal_perf_mon_info_s.width,
+			   pm_info.pal_perf_mon_info_s.cycles,
+			   pm_info.pal_perf_mon_info_s.retired);
 
 	bitregister_process(m, pm_buffer, 256);
 	seq_puts(m, "\nImplemented PMD               : ");
-	bitregister_process(m, pm_buffer+4, 256);
+	bitregister_process(m, pm_buffer + 4, 256);
 	seq_puts(m, "\nCycles count capable          : ");
-	bitregister_process(m, pm_buffer+8, 256);
+	bitregister_process(m, pm_buffer + 8, 256);
 	seq_puts(m, "\nRetired bundles count capable : ");
 
 #ifdef CONFIG_ITANIUM
+
 	/*
 	 * PAL_PERF_MON_INFO reports that only PMC4 can be used to count CPU_CYCLES
 	 * which is wrong, both PMC4 and PMD5 support it.
 	 */
 	if (pm_buffer[12] == 0x10)
-		pm_buffer[12]=0x30;
+	{
+		pm_buffer[12] = 0x30;
+	}
+
 #endif
 
-	bitregister_process(m, pm_buffer+12, 256);
+	bitregister_process(m, pm_buffer + 12, 256);
 	seq_putc(m, '\n');
 	return 0;
 }
@@ -693,17 +826,21 @@ static int frequency_info(struct seq_file *m)
 	unsigned long base;
 
 	if (ia64_pal_freq_base(&base) == -1)
+	{
 		seq_puts(m, "Output clock            : not implemented\n");
+	}
 	else
+	{
 		seq_printf(m, "Output clock            : %ld ticks/s\n", base);
+	}
 
-	if (ia64_pal_freq_ratios(&proc, &bus, &itc) != 0) return 0;
+	if (ia64_pal_freq_ratios(&proc, &bus, &itc) != 0) { return 0; }
 
 	seq_printf(m,
-		     "Processor/Clock ratio   : %d/%d\n"
-		     "Bus/Clock ratio         : %d/%d\n"
-		     "ITC/Clock ratio         : %d/%d\n",
-		     proc.num, proc.den, bus.num, bus.den, itc.num, itc.den);
+			   "Processor/Clock ratio   : %d/%d\n"
+			   "Bus/Clock ratio         : %d/%d\n"
+			   "ITC/Clock ratio         : %d/%d\n",
+			   proc.num, proc.den, bus.num, bus.den, itc.num, itc.den);
 	return 0;
 }
 
@@ -716,90 +853,103 @@ static int tr_info(struct seq_file *m)
 	pal_vm_info_2_u_t vm_info_2;
 	unsigned long i, j;
 	unsigned long max[3], pgm;
-	struct ifa_reg {
-		unsigned long valid:1;
-		unsigned long ig:11;
-		unsigned long vpn:52;
+	struct ifa_reg
+	{
+		unsigned long valid: 1;
+		unsigned long ig: 11;
+		unsigned long vpn: 52;
 	} *ifa_reg;
-	struct itir_reg {
-		unsigned long rv1:2;
-		unsigned long ps:6;
-		unsigned long key:24;
-		unsigned long rv2:32;
+	struct itir_reg
+	{
+		unsigned long rv1: 2;
+		unsigned long ps: 6;
+		unsigned long key: 24;
+		unsigned long rv2: 32;
 	} *itir_reg;
-	struct gr_reg {
-		unsigned long p:1;
-		unsigned long rv1:1;
-		unsigned long ma:3;
-		unsigned long a:1;
-		unsigned long d:1;
-		unsigned long pl:2;
-		unsigned long ar:3;
-		unsigned long ppn:38;
-		unsigned long rv2:2;
-		unsigned long ed:1;
-		unsigned long ig:11;
+	struct gr_reg
+	{
+		unsigned long p: 1;
+		unsigned long rv1: 1;
+		unsigned long ma: 3;
+		unsigned long a: 1;
+		unsigned long d: 1;
+		unsigned long pl: 2;
+		unsigned long ar: 3;
+		unsigned long ppn: 38;
+		unsigned long rv2: 2;
+		unsigned long ed: 1;
+		unsigned long ig: 11;
 	} *gr_reg;
-	struct rid_reg {
-		unsigned long ig1:1;
-		unsigned long rv1:1;
-		unsigned long ig2:6;
-		unsigned long rid:24;
-		unsigned long rv2:32;
+	struct rid_reg
+	{
+		unsigned long ig1: 1;
+		unsigned long rv1: 1;
+		unsigned long ig2: 6;
+		unsigned long rid: 24;
+		unsigned long rv2: 32;
 	} *rid_reg;
 
-	if ((status = ia64_pal_vm_summary(&vm_info_1, &vm_info_2)) !=0) {
+	if ((status = ia64_pal_vm_summary(&vm_info_1, &vm_info_2)) != 0)
+	{
 		printk(KERN_ERR "ia64_pal_vm_summary=%ld\n", status);
 		return 0;
 	}
-	max[0] = vm_info_1.pal_vm_info_1_s.max_itr_entry+1;
-	max[1] = vm_info_1.pal_vm_info_1_s.max_dtr_entry+1;
 
-	for (i=0; i < 2; i++ ) {
-		for (j=0; j < max[i]; j++) {
+	max[0] = vm_info_1.pal_vm_info_1_s.max_itr_entry + 1;
+	max[1] = vm_info_1.pal_vm_info_1_s.max_dtr_entry + 1;
 
-		status = ia64_pal_tr_read(j, i, tr_buffer, &tr_valid);
-		if (status != 0) {
-			printk(KERN_ERR "palinfo: pal call failed on tr[%lu:%lu]=%ld\n",
-			       i, j, status);
-			continue;
-		}
+	for (i = 0; i < 2; i++ )
+	{
+		for (j = 0; j < max[i]; j++)
+		{
 
-		ifa_reg  = (struct ifa_reg *)&tr_buffer[2];
+			status = ia64_pal_tr_read(j, i, tr_buffer, &tr_valid);
 
-		if (ifa_reg->valid == 0)
-			continue;
+			if (status != 0)
+			{
+				printk(KERN_ERR "palinfo: pal call failed on tr[%lu:%lu]=%ld\n",
+					   i, j, status);
+				continue;
+			}
 
-		gr_reg   = (struct gr_reg *)tr_buffer;
-		itir_reg = (struct itir_reg *)&tr_buffer[1];
-		rid_reg  = (struct rid_reg *)&tr_buffer[3];
+			ifa_reg  = (struct ifa_reg *)&tr_buffer[2];
 
-		pgm	 = -1 << (itir_reg->ps - 12);
-		seq_printf(m,
-			   "%cTR%lu: av=%d pv=%d dv=%d mv=%d\n"
-			   "\tppn  : 0x%lx\n"
-			   "\tvpn  : 0x%lx\n"
-			   "\tps   : ",
-			   "ID"[i], j,
-			   tr_valid.pal_tr_valid_s.access_rights_valid,
-			   tr_valid.pal_tr_valid_s.priv_level_valid,
-			   tr_valid.pal_tr_valid_s.dirty_bit_valid,
-			   tr_valid.pal_tr_valid_s.mem_attr_valid,
-			   (gr_reg->ppn & pgm)<< 12, (ifa_reg->vpn & pgm)<< 12);
+			if (ifa_reg->valid == 0)
+			{
+				continue;
+			}
 
-		bitvector_process(m, 1<< itir_reg->ps);
+			gr_reg   = (struct gr_reg *)tr_buffer;
+			itir_reg = (struct itir_reg *)&tr_buffer[1];
+			rid_reg  = (struct rid_reg *)&tr_buffer[3];
 
-		seq_printf(m,
-			   "\n\tpl   : %d\n"
-			   "\tar   : %d\n"
-			   "\trid  : %x\n"
-			   "\tp    : %d\n"
-			   "\tma   : %d\n"
-			   "\td    : %d\n",
-			   gr_reg->pl, gr_reg->ar, rid_reg->rid, gr_reg->p, gr_reg->ma,
-			   gr_reg->d);
+			pgm	 = -1 << (itir_reg->ps - 12);
+			seq_printf(m,
+					   "%cTR%lu: av=%d pv=%d dv=%d mv=%d\n"
+					   "\tppn  : 0x%lx\n"
+					   "\tvpn  : 0x%lx\n"
+					   "\tps   : ",
+					   "ID"[i], j,
+					   tr_valid.pal_tr_valid_s.access_rights_valid,
+					   tr_valid.pal_tr_valid_s.priv_level_valid,
+					   tr_valid.pal_tr_valid_s.dirty_bit_valid,
+					   tr_valid.pal_tr_valid_s.mem_attr_valid,
+					   (gr_reg->ppn & pgm) << 12, (ifa_reg->vpn & pgm) << 12);
+
+			bitvector_process(m, 1 << itir_reg->ps);
+
+			seq_printf(m,
+					   "\n\tpl   : %d\n"
+					   "\tar   : %d\n"
+					   "\trid  : %x\n"
+					   "\tp    : %d\n"
+					   "\tma   : %d\n"
+					   "\td    : %d\n",
+					   gr_reg->pl, gr_reg->ar, rid_reg->rid, gr_reg->p, gr_reg->ma,
+					   gr_reg->d);
 		}
 	}
+
 	return 0;
 }
 
@@ -808,7 +958,8 @@ static int tr_info(struct seq_file *m)
 /*
  * List {name,function} pairs for every entry in /proc/palinfo/cpu*
  */
-static const palinfo_entry_t palinfo_entries[]={
+static const palinfo_entry_t palinfo_entries[] =
+{
 	{ "version_info",	version_info, },
 	{ "vm_info",		vm_info, },
 	{ "cache_info",		cache_info, },
@@ -832,9 +983,11 @@ static struct proc_dir_entry *palinfo_dir;
  * In SMP mode, when we get a request for another CPU, we must call that
  * other CPU using IPI and wait for the result before returning.
  */
-typedef union {
+typedef union
+{
 	u64 value;
-	struct {
+	struct
+	{
 		unsigned	req_cpu: 32;	/* for which CPU this info is */
 		unsigned	func_id: 32;	/* which function is requested */
 	} pal_func_cpu;
@@ -848,7 +1001,8 @@ typedef union {
 /*
  * used to hold information about final function to call
  */
-typedef struct {
+typedef struct
+{
 	palinfo_func_t	func;	/* pointer to function to call */
 	struct seq_file *m;	/* buffer to store results */
 	int		ret;	/* return value from call */
@@ -884,11 +1038,13 @@ int palinfo_handle_smp(struct seq_file *m, pal_func_cpu_u_t *f)
 
 
 	/* will send IPI to other CPU and wait for completion of remote call */
-	if ((ret=smp_call_function_single(f->req_cpu, palinfo_smp_call, &ptr, 1))) {
+	if ((ret = smp_call_function_single(f->req_cpu, palinfo_smp_call, &ptr, 1)))
+	{
 		printk(KERN_ERR "palinfo: remote CPU call from %d to %d on function %d: "
-		       "error %d\n", smp_processor_id(), f->req_cpu, f->func_id, ret);
+			   "error %d\n", smp_processor_id(), f->req_cpu, f->func_id, ret);
 		return 0;
 	}
+
 	return ptr.ret;
 }
 #else /* ! CONFIG_SMP */
@@ -912,9 +1068,13 @@ static int proc_palinfo_show(struct seq_file *m, void *v)
 	 * information. PAL, by definition, is processor specific
 	 */
 	if (f->req_cpu == get_cpu())
+	{
 		(*palinfo_entries[f->func_id].proc_read)(m);
+	}
 	else
+	{
 		palinfo_handle_smp(m, f);
+	}
 
 	put_cpu();
 	return 0;
@@ -925,7 +1085,8 @@ static int proc_palinfo_open(struct inode *inode, struct file *file)
 	return single_open(file, proc_palinfo_show, PDE_DATA(inode));
 }
 
-static const struct file_operations proc_palinfo_fops = {
+static const struct file_operations proc_palinfo_fops =
+{
 	.open		= proc_palinfo_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -938,45 +1099,52 @@ create_palinfo_proc_entries(unsigned int cpu)
 	pal_func_cpu_u_t f;
 	struct proc_dir_entry *cpu_dir;
 	int j;
-	char cpustr[3+4+1];	/* cpu numbers are up to 4095 on itanic */
+	char cpustr[3 + 4 + 1];	/* cpu numbers are up to 4095 on itanic */
 	sprintf(cpustr, "cpu%d", cpu);
 
 	cpu_dir = proc_mkdir(cpustr, palinfo_dir);
+
 	if (!cpu_dir)
+	{
 		return;
+	}
 
 	f.req_cpu = cpu;
 
-	for (j=0; j < NR_PALINFO_ENTRIES; j++) {
+	for (j = 0; j < NR_PALINFO_ENTRIES; j++)
+	{
 		f.func_id = j;
 		proc_create_data(palinfo_entries[j].name, 0, cpu_dir,
-				 &proc_palinfo_fops, (void *)f.value);
+						 &proc_palinfo_fops, (void *)f.value);
 	}
 }
 
 static void
 remove_palinfo_proc_entries(unsigned int hcpu)
 {
-	char cpustr[3+4+1];	/* cpu numbers are up to 4095 on itanic */
+	char cpustr[3 + 4 + 1];	/* cpu numbers are up to 4095 on itanic */
 	sprintf(cpustr, "cpu%d", hcpu);
 	remove_proc_subtree(cpustr, palinfo_dir);
 }
 
 static int palinfo_cpu_callback(struct notifier_block *nfb,
-					unsigned long action, void *hcpu)
+								unsigned long action, void *hcpu)
 {
 	unsigned int hotcpu = (unsigned long)hcpu;
 
-	switch (action) {
-	case CPU_ONLINE:
-	case CPU_ONLINE_FROZEN:
-		create_palinfo_proc_entries(hotcpu);
-		break;
-	case CPU_DEAD:
-	case CPU_DEAD_FROZEN:
-		remove_palinfo_proc_entries(hotcpu);
-		break;
+	switch (action)
+	{
+		case CPU_ONLINE:
+		case CPU_ONLINE_FROZEN:
+			create_palinfo_proc_entries(hotcpu);
+			break;
+
+		case CPU_DEAD:
+		case CPU_DEAD_FROZEN:
+			remove_palinfo_proc_entries(hotcpu);
+			break;
 	}
+
 	return NOTIFY_OK;
 }
 
@@ -993,13 +1161,17 @@ palinfo_init(void)
 
 	printk(KERN_INFO "PAL Information Facility v%s\n", PALINFO_VERSION);
 	palinfo_dir = proc_mkdir("pal", NULL);
+
 	if (!palinfo_dir)
+	{
 		return -ENOMEM;
+	}
 
 	cpu_notifier_register_begin();
 
 	/* Create palinfo dirs in /proc for all online cpus */
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		create_palinfo_proc_entries(i);
 	}
 

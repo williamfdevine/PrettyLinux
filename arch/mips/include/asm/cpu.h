@@ -274,7 +274,8 @@
 
 #if !defined(__ASSEMBLY__)
 
-enum cpu_type_enum {
+enum cpu_type_enum
+{
 	CPU_UNKNOWN,
 
 	/*
@@ -347,10 +348,10 @@ enum cpu_type_enum {
 #define MIPS_CPU_ISA_M64R6	0x00000200
 
 #define MIPS_CPU_ISA_32BIT (MIPS_CPU_ISA_II | MIPS_CPU_ISA_M32R1 | \
-	MIPS_CPU_ISA_M32R2 | MIPS_CPU_ISA_M32R6)
+							MIPS_CPU_ISA_M32R2 | MIPS_CPU_ISA_M32R6)
 #define MIPS_CPU_ISA_64BIT (MIPS_CPU_ISA_III | MIPS_CPU_ISA_IV | \
-	MIPS_CPU_ISA_V | MIPS_CPU_ISA_M64R1 | MIPS_CPU_ISA_M64R2 | \
-	MIPS_CPU_ISA_M64R6)
+							MIPS_CPU_ISA_V | MIPS_CPU_ISA_M64R1 | MIPS_CPU_ISA_M64R2 | \
+							MIPS_CPU_ISA_M64R6)
 
 /*
  * Private version of BIT_ULL() to escape include file recursion hell.

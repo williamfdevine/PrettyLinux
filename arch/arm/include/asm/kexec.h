@@ -28,22 +28,25 @@
  * %NULL then current registers are stored there.
  */
 static inline void crash_setup_regs(struct pt_regs *newregs,
-				    struct pt_regs *oldregs)
+									struct pt_regs *oldregs)
 {
-	if (oldregs) {
+	if (oldregs)
+	{
 		memcpy(newregs, oldregs, sizeof(*newregs));
-	} else {
+	}
+	else
+	{
 		__asm__ __volatile__ (
 			"stmia	%[regs_base], {r0-r12}\n\t"
 			"mov	%[_ARM_sp], sp\n\t"
 			"str	lr, %[_ARM_lr]\n\t"
 			"adr	%[_ARM_pc], 1f\n\t"
 			"mrs	%[_ARM_cpsr], cpsr\n\t"
-		"1:"
+			"1:"
 			: [_ARM_pc] "=r" (newregs->ARM_pc),
-			  [_ARM_cpsr] "=r" (newregs->ARM_cpsr),
-			  [_ARM_sp] "=r" (newregs->ARM_sp),
-			  [_ARM_lr] "=o" (newregs->ARM_lr)
+			[_ARM_cpsr] "=r" (newregs->ARM_cpsr),
+			[_ARM_sp] "=r" (newregs->ARM_sp),
+			[_ARM_lr] "=o" (newregs->ARM_lr)
 			: [regs_base] "r" (&newregs->ARM_r0)
 			: "memory"
 		);

@@ -37,7 +37,8 @@
 
 #ifndef _LANGUAGE_ASSEMBLY
 
-typedef volatile struct dbdma_global {
+typedef volatile struct dbdma_global
+{
 	u32	ddma_config;
 	u32	ddma_intstat;
 	u32	ddma_throttle;
@@ -52,7 +53,8 @@ typedef volatile struct dbdma_global {
 #define DDMA_THROTTLE_EN	(1 << 31)
 
 /* The structure of a DMA Channel. */
-typedef volatile struct au1xxx_dma_channel {
+typedef volatile struct au1xxx_dma_channel
+{
 	u32	ddma_cfg;	/* See below */
 	u32	ddma_desptr;	/* 32-byte aligned pointer to descriptor */
 	u32	ddma_statptr;	/* word aligned pointer to status word */
@@ -89,7 +91,8 @@ typedef volatile struct au1xxx_dma_channel {
  * "Standard" DDMA Descriptor.
  * Must be 32-byte aligned.
  */
-typedef volatile struct au1xxx_ddma_desc {
+typedef volatile struct au1xxx_ddma_desc
+{
 	u32	dscr_cmd0;		/* See below */
 	u32	dscr_cmd1;		/* See below */
 	u32	dscr_source0;		/* source phys address */
@@ -219,7 +222,7 @@ typedef volatile struct au1xxx_ddma_desc {
 #define DSCR_NDEV_IDS		32
 /* This macro is used to find/create custom device types */
 #define DSCR_DEV2CUSTOM_ID(x, d) (((((x) & 0xFFFF) << 8) | 0x32000000) | \
-				  ((d) & 0xFF))
+								  ((d) & 0xFF))
 #define DSCR_CUSTOM2DEV_ID(x)	((x) & 0xFF)
 
 #define DSCR_CMD0_SID(x)	(((x) & 0x1f) << 25)
@@ -304,7 +307,8 @@ typedef volatile struct au1xxx_ddma_desc {
  * DDMA API definitions
  * FIXME: may not fit to this header file
  */
-typedef struct dbdma_device_table {
+typedef struct dbdma_device_table
+{
 	u32	dev_id;
 	u32	dev_flags;
 	u32	dev_tsize;
@@ -315,7 +319,8 @@ typedef struct dbdma_device_table {
 } dbdev_tab_t;
 
 
-typedef struct dbdma_chan_config {
+typedef struct dbdma_chan_config
+{
 	spinlock_t	lock;
 
 	u32			chan_flags;
@@ -346,8 +351,8 @@ typedef struct dbdma_chan_config {
  * interrupt.
  */
 extern u32 au1xxx_dbdma_chan_alloc(u32 srcid, u32 destid,
-				   void (*callback)(int, void *),
-				   void *callparam);
+								   void (*callback)(int, void *),
+								   void *callparam);
 
 #define DBDMA_MEM_CHAN	DSCR_CMD0_ALWAYS
 

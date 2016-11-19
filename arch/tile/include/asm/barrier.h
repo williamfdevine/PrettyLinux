@@ -33,14 +33,14 @@ static inline void __mb_incoherent(void)
 {
 	long clobber_r10;
 	asm volatile("swint2"
-		     : "=R10" (clobber_r10)
-		     : "R10" (HV_SYS_fence_incoherent)
-		     : "r0", "r1", "r2", "r3", "r4",
-		       "r5", "r6", "r7", "r8", "r9",
-		       "r11", "r12", "r13", "r14",
-		       "r15", "r16", "r17", "r18", "r19",
-		       "r20", "r21", "r22", "r23", "r24",
-		       "r25", "r26", "r27", "r28", "r29");
+				 : "=R10" (clobber_r10)
+				 : "R10" (HV_SYS_fence_incoherent)
+				 : "r0", "r1", "r2", "r3", "r4",
+				 "r5", "r6", "r7", "r8", "r9",
+				 "r11", "r12", "r13", "r14",
+				 "r15", "r16", "r17", "r18", "r19",
+				 "r20", "r21", "r22", "r23", "r24",
+				 "r25", "r26", "r27", "r28", "r29");
 }
 
 /* Fence to guarantee visibility of stores to incoherent memory. */
@@ -53,10 +53,16 @@ mb_incoherent(void)
 #if CHIP_HAS_TILE_WRITE_PENDING()
 		const unsigned long WRITE_TIMEOUT_CYCLES = 400;
 		unsigned long start = get_cycles_low();
-		do {
+
+		do
+		{
 			if (__insn_mfspr(SPR_TILE_WRITE_PENDING) == 0)
+			{
 				return;
-		} while ((get_cycles_low() - start) < WRITE_TIMEOUT_CYCLES);
+			}
+		}
+		while ((get_cycles_low() - start) < WRITE_TIMEOUT_CYCLES);
+
 #endif /* CHIP_HAS_TILE_WRITE_PENDING() */
 		(void) __mb_incoherent();
 	}
@@ -73,18 +79,18 @@ mb_incoherent(void)
 #define iob()		fast_iob()
 
 #ifndef __tilegx__ /* 32 bit */
-/*
- * We need to barrier before modifying the word, since the _atomic_xxx()
- * routines just tns the lock and then read/modify/write of the word.
- * But after the word is updated, the routine issues an "mf" before returning,
- * and since it's a function call, we don't even need a compiler barrier.
- */
-#define __smp_mb__before_atomic()	__smp_mb()
-#define __smp_mb__after_atomic()	do { } while (0)
-#define smp_mb__after_atomic()	__smp_mb__after_atomic()
+	/*
+	* We need to barrier before modifying the word, since the _atomic_xxx()
+	* routines just tns the lock and then read/modify/write of the word.
+	* But after the word is updated, the routine issues an "mf" before returning,
+	* and since it's a function call, we don't even need a compiler barrier.
+	*/
+	#define __smp_mb__before_atomic()	__smp_mb()
+	#define __smp_mb__after_atomic()	do { } while (0)
+	#define smp_mb__after_atomic()	__smp_mb__after_atomic()
 #else /* 64 bit */
-#define __smp_mb__before_atomic()	__smp_mb()
-#define __smp_mb__after_atomic()	__smp_mb()
+	#define __smp_mb__before_atomic()	__smp_mb()
+	#define __smp_mb__after_atomic()	__smp_mb()
 #endif
 
 /*

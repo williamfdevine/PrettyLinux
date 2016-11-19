@@ -44,7 +44,9 @@ static inline void xen_mc_issue(unsigned mode)
 	trace_xen_mc_issue(mode);
 
 	if ((paravirt_get_lazy_mode() & mode) == 0)
+	{
 		xen_mc_flush();
+	}
 
 	/* restore flags saved in xen_mc_batch */
 	local_irq_restore(this_cpu_read(xen_mc_irq_flags));

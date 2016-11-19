@@ -52,9 +52,12 @@ static int l2x0_pmu_find_idx(void)
 {
 	int i;
 
-	for (i = 0; i < PMU_NR_COUNTERS; i++) {
+	for (i = 0; i < PMU_NR_COUNTERS; i++)
+	{
 		if (!events[i])
+		{
 			return i;
+		}
 	}
 
 	return -1;
@@ -65,9 +68,12 @@ static int l2x0_pmu_num_active_counters(void)
 {
 	int i, cnt = 0;
 
-	for (i = 0; i < PMU_NR_COUNTERS; i++) {
+	for (i = 0; i < PMU_NR_COUNTERS; i++)
+	{
 		if (events[i])
+		{
 			cnt++;
+		}
 	}
 
 	return cnt;
@@ -105,7 +111,9 @@ static void __l2x0_pmu_disable(void)
 static void l2x0_pmu_enable(struct pmu *pmu)
 {
 	if (l2x0_pmu_num_active_counters() == 0)
+	{
 		return;
+	}
 
 	__l2x0_pmu_enable();
 }
@@ -113,7 +121,9 @@ static void l2x0_pmu_enable(struct pmu *pmu)
 static void l2x0_pmu_disable(struct pmu *pmu)
 {
 	if (l2x0_pmu_num_active_counters() == 0)
+	{
 		return;
+	}
 
 	__l2x0_pmu_disable();
 }
@@ -121,7 +131,9 @@ static void l2x0_pmu_disable(struct pmu *pmu)
 static void warn_if_saturated(u32 count)
 {
 	if (count != 0xffffffff)
+	{
 		return;
+	}
 
 	pr_warn_ratelimited("L2X0 counter saturated. Poll period too long\n");
 }
@@ -131,10 +143,12 @@ static void l2x0_pmu_event_read(struct perf_event *event)
 	struct hw_perf_event *hw = &event->hw;
 	u64 prev_count, new_count, mask;
 
-	do {
-		 prev_count = local64_read(&hw->prev_count);
-		 new_count = l2x0_pmu_counter_read(hw->idx);
-	} while (local64_xchg(&hw->prev_count, new_count) != prev_count);
+	do
+	{
+		prev_count = local64_read(&hw->prev_count);
+		new_count = l2x0_pmu_counter_read(hw->idx);
+	}
+	while (local64_xchg(&hw->prev_count, new_count) != prev_count);
 
 	mask = GENMASK_ULL(31, 0);
 	local64_add((new_count - prev_count) & mask, &event->count);
@@ -168,11 +182,14 @@ static enum hrtimer_restart l2x0_pmu_poll(struct hrtimer *hrtimer)
 	local_irq_save(flags);
 	__l2x0_pmu_disable();
 
-	for (i = 0; i < PMU_NR_COUNTERS; i++) {
+	for (i = 0; i < PMU_NR_COUNTERS; i++)
+	{
 		struct perf_event *event = events[i];
 
 		if (!event)
+		{
 			continue;
+		}
 
 		l2x0_pmu_event_read(event);
 		l2x0_pmu_event_configure(event);
@@ -200,9 +217,12 @@ static void l2x0_pmu_event_start(struct perf_event *event, int flags)
 	struct hw_perf_event *hw = &event->hw;
 
 	if (WARN_ON_ONCE(!(event->hw.state & PERF_HES_STOPPED)))
+	{
 		return;
+	}
 
-	if (flags & PERF_EF_RELOAD) {
+	if (flags & PERF_EF_RELOAD)
+	{
 		WARN_ON_ONCE(!(hw->state & PERF_HES_UPTODATE));
 		l2x0_pmu_event_configure(event);
 	}
@@ -226,13 +246,16 @@ static void l2x0_pmu_event_stop(struct perf_event *event, int flags)
 	struct hw_perf_event *hw = &event->hw;
 
 	if (WARN_ON_ONCE(event->hw.state & PERF_HES_STOPPED))
+	{
 		return;
+	}
 
 	__l2x0_pmu_event_disable(hw->idx);
 
 	hw->state |= PERF_HES_STOPPED;
 
-	if (flags & PERF_EF_UPDATE) {
+	if (flags & PERF_EF_UPDATE)
+	{
 		l2x0_pmu_event_read(event);
 		hw->state |= PERF_HES_UPTODATE;
 	}
@@ -244,7 +267,9 @@ static int l2x0_pmu_event_add(struct perf_event *event, int flags)
 	int idx = l2x0_pmu_find_idx();
 
 	if (idx == -1)
+	{
 		return -EAGAIN;
+	}
 
 	/*
 	 * Pin the timer, so that the overflows are handled by the chosen
@@ -253,7 +278,7 @@ static int l2x0_pmu_event_add(struct perf_event *event, int flags)
 	 */
 	if (l2x0_pmu_num_active_counters() == 0)
 		hrtimer_start(&l2x0_pmu_hrtimer, l2x0_pmu_poll_period,
-			      HRTIMER_MODE_REL_PINNED);
+					  HRTIMER_MODE_REL_PINNED);
 
 	events[idx] = event;
 	hw->idx = idx;
@@ -263,7 +288,9 @@ static int l2x0_pmu_event_add(struct perf_event *event, int flags)
 	hw->state = PERF_HES_STOPPED | PERF_HES_UPTODATE;
 
 	if (flags & PERF_EF_START)
+	{
 		l2x0_pmu_event_start(event, 0);
+	}
 
 	return 0;
 }
@@ -278,7 +305,9 @@ static void l2x0_pmu_event_del(struct perf_event *event, int flags)
 	hw->idx = -1;
 
 	if (l2x0_pmu_num_active_counters() == 0)
+	{
 		hrtimer_cancel(&l2x0_pmu_hrtimer);
+	}
 }
 
 static bool l2x0_pmu_group_is_valid(struct perf_event *event)
@@ -289,15 +318,24 @@ static bool l2x0_pmu_group_is_valid(struct perf_event *event)
 	int num_hw = 0;
 
 	if (leader->pmu == pmu)
+	{
 		num_hw++;
+	}
 	else if (!is_software_event(leader))
+	{
 		return false;
+	}
 
-	list_for_each_entry(sibling, &leader->sibling_list, group_entry) {
+	list_for_each_entry(sibling, &leader->sibling_list, group_entry)
+	{
 		if (sibling->pmu == pmu)
+		{
 			num_hw++;
+		}
 		else if (!is_software_event(sibling))
+		{
 			return false;
+		}
 	}
 
 	return num_hw <= PMU_NR_COUNTERS;
@@ -308,37 +346,50 @@ static int l2x0_pmu_event_init(struct perf_event *event)
 	struct hw_perf_event *hw = &event->hw;
 
 	if (event->attr.type != l2x0_pmu->type)
+	{
 		return -ENOENT;
+	}
 
 	if (is_sampling_event(event) ||
-	    event->attach_state & PERF_ATTACH_TASK)
+		event->attach_state & PERF_ATTACH_TASK)
+	{
 		return -EINVAL;
+	}
 
 	if (event->attr.exclude_user   ||
-	    event->attr.exclude_kernel ||
-	    event->attr.exclude_hv     ||
-	    event->attr.exclude_idle   ||
-	    event->attr.exclude_host   ||
-	    event->attr.exclude_guest)
+		event->attr.exclude_kernel ||
+		event->attr.exclude_hv     ||
+		event->attr.exclude_idle   ||
+		event->attr.exclude_host   ||
+		event->attr.exclude_guest)
+	{
 		return -EINVAL;
+	}
 
 	if (event->cpu < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (event->attr.config & ~L2X0_EVENT_CNT_CFG_SRC_MASK)
+	{
 		return -EINVAL;
+	}
 
 	hw->config_base = event->attr.config;
 
 	if (!l2x0_pmu_group_is_valid(event))
+	{
 		return -EINVAL;
+	}
 
 	event->cpu = cpumask_first(&pmu_cpu);
 
 	return 0;
 }
 
-struct l2x0_event_attribute {
+struct l2x0_event_attribute
+{
 	struct device_attribute attr;
 	unsigned int config;
 	bool pl310_only;
@@ -346,10 +397,10 @@ struct l2x0_event_attribute {
 
 #define L2X0_EVENT_ATTR(_name, _config, _pl310_only)				\
 	(&((struct l2x0_event_attribute[]) {{					\
-		.attr = __ATTR(_name, S_IRUGO, l2x0_pmu_event_show, NULL),	\
-		.config = _config,						\
-		.pl310_only = _pl310_only,					\
-	}})[0].attr.attr)
+			.attr = __ATTR(_name, S_IRUGO, l2x0_pmu_event_show, NULL),	\
+					.config = _config,						\
+							  .pl310_only = _pl310_only,					\
+		}})[0].attr.attr)
 
 #define L220_PLUS_EVENT_ATTR(_name, _config)					\
 	L2X0_EVENT_ATTR(_name, _config, false)
@@ -358,7 +409,7 @@ struct l2x0_event_attribute {
 	L2X0_EVENT_ATTR(_name, _config, true)
 
 static ssize_t l2x0_pmu_event_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct l2x0_event_attribute *lattr;
 
@@ -367,8 +418,8 @@ static ssize_t l2x0_pmu_event_show(struct device *dev,
 }
 
 static umode_t l2x0_pmu_event_attr_is_visible(struct kobject *kobj,
-					      struct attribute *attr,
-					      int unused)
+		struct attribute *attr,
+		int unused)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	struct pmu *pmu = dev_get_drvdata(dev);
@@ -377,12 +428,15 @@ static umode_t l2x0_pmu_event_attr_is_visible(struct kobject *kobj,
 	lattr = container_of(attr, typeof(*lattr), attr.attr);
 
 	if (!lattr->pl310_only || strcmp("l2c_310", pmu->name) == 0)
+	{
 		return attr->mode;
+	}
 
 	return 0;
 }
 
-static struct attribute *l2x0_pmu_event_attrs[] = {
+static struct attribute *l2x0_pmu_event_attrs[] =
+{
 	L220_PLUS_EVENT_ATTR(co,	0x1),
 	L220_PLUS_EVENT_ATTR(drhit,	0x2),
 	L220_PLUS_EVENT_ATTR(drreq,	0x3),
@@ -401,31 +455,35 @@ static struct attribute *l2x0_pmu_event_attrs[] = {
 	NULL
 };
 
-static struct attribute_group l2x0_pmu_event_attrs_group = {
+static struct attribute_group l2x0_pmu_event_attrs_group =
+{
 	.name = "events",
 	.attrs = l2x0_pmu_event_attrs,
 	.is_visible = l2x0_pmu_event_attr_is_visible,
 };
 
 static ssize_t l2x0_pmu_cpumask_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	return cpumap_print_to_pagebuf(true, buf, &pmu_cpu);
 }
 
 static struct device_attribute l2x0_pmu_cpumask_attr =
-		__ATTR(cpumask, S_IRUGO, l2x0_pmu_cpumask_show, NULL);
+	__ATTR(cpumask, S_IRUGO, l2x0_pmu_cpumask_show, NULL);
 
-static struct attribute *l2x0_pmu_cpumask_attrs[] = {
+static struct attribute *l2x0_pmu_cpumask_attrs[] =
+{
 	&l2x0_pmu_cpumask_attr.attr,
 	NULL,
 };
 
-static struct attribute_group l2x0_pmu_cpumask_attr_group = {
+static struct attribute_group l2x0_pmu_cpumask_attr_group =
+{
 	.attrs = l2x0_pmu_cpumask_attrs,
 };
 
-static const struct attribute_group *l2x0_pmu_attr_groups[] = {
+static const struct attribute_group *l2x0_pmu_attr_groups[] =
+{
 	&l2x0_pmu_event_attrs_group,
 	&l2x0_pmu_cpumask_attr_group,
 	NULL,
@@ -438,7 +496,9 @@ static void l2x0_pmu_reset(void)
 	__l2x0_pmu_disable();
 
 	for (i = 0; i < PMU_NR_COUNTERS; i++)
+	{
 		__l2x0_pmu_event_disable(i);
+	}
 }
 
 static int l2x0_pmu_offline_cpu(unsigned int cpu)
@@ -446,11 +506,16 @@ static int l2x0_pmu_offline_cpu(unsigned int cpu)
 	unsigned int target;
 
 	if (!cpumask_test_and_clear_cpu(cpu, &pmu_cpu))
+	{
 		return 0;
+	}
 
 	target = cpumask_any_but(cpu_online_mask, cpu);
+
 	if (target >= nr_cpu_ids)
+	{
 		return 0;
+	}
 
 	perf_pmu_migrate_context(l2x0_pmu, cpu, target);
 	cpumask_set_cpu(target, &pmu_cpu);
@@ -463,13 +528,18 @@ void l2x0_pmu_suspend(void)
 	int i;
 
 	if (!l2x0_pmu)
+	{
 		return;
+	}
 
 	l2x0_pmu_disable(l2x0_pmu);
 
-	for (i = 0; i < PMU_NR_COUNTERS; i++) {
+	for (i = 0; i < PMU_NR_COUNTERS; i++)
+	{
 		if (events[i])
+		{
 			l2x0_pmu_event_stop(events[i], PERF_EF_UPDATE);
+		}
 	}
 
 }
@@ -479,13 +549,18 @@ void l2x0_pmu_resume(void)
 	int i;
 
 	if (!l2x0_pmu)
+	{
 		return;
+	}
 
 	l2x0_pmu_reset();
 
-	for (i = 0; i < PMU_NR_COUNTERS; i++) {
+	for (i = 0; i < PMU_NR_COUNTERS; i++)
+	{
 		if (events[i])
+		{
 			l2x0_pmu_event_start(events[i], PERF_EF_RELOAD);
+		}
 	}
 
 	l2x0_pmu_enable(l2x0_pmu);
@@ -506,15 +581,18 @@ void __init l2x0_pmu_register(void __iomem *base, u32 part)
 	 * running, so just stash the name and base, and leave that to another
 	 * initcall.
 	 */
-	switch (part & L2X0_CACHE_ID_PART_MASK) {
-	case L2X0_CACHE_ID_PART_L220:
-		l2x0_name = "l2c_220";
-		break;
-	case L2X0_CACHE_ID_PART_L310:
-		l2x0_name = "l2c_310";
-		break;
-	default:
-		return;
+	switch (part & L2X0_CACHE_ID_PART_MASK)
+	{
+		case L2X0_CACHE_ID_PART_L220:
+			l2x0_name = "l2c_220";
+			break;
+
+		case L2X0_CACHE_ID_PART_L310:
+			l2x0_name = "l2c_310";
+			break;
+
+		default:
+			return;
 	}
 
 	l2x0_base = base;
@@ -525,25 +603,30 @@ static __init int l2x0_pmu_init(void)
 	int ret;
 
 	if (!l2x0_base)
+	{
 		return 0;
+	}
 
 	l2x0_pmu = kzalloc(sizeof(*l2x0_pmu), GFP_KERNEL);
-	if (!l2x0_pmu) {
+
+	if (!l2x0_pmu)
+	{
 		pr_warn("Unable to allocate L2x0 PMU\n");
 		return -ENOMEM;
 	}
 
-	*l2x0_pmu = (struct pmu) {
+	*l2x0_pmu = (struct pmu)
+	{
 		.task_ctx_nr = perf_invalid_context,
-		.pmu_enable = l2x0_pmu_enable,
-		.pmu_disable = l2x0_pmu_disable,
-		.read = l2x0_pmu_event_read,
-		.start = l2x0_pmu_event_start,
-		.stop = l2x0_pmu_event_stop,
-		.add = l2x0_pmu_event_add,
-		.del = l2x0_pmu_event_del,
-		.event_init = l2x0_pmu_event_init,
-		.attr_groups = l2x0_pmu_attr_groups,
+		 .pmu_enable = l2x0_pmu_enable,
+		  .pmu_disable = l2x0_pmu_disable,
+		   .read = l2x0_pmu_event_read,
+			.start = l2x0_pmu_event_start,
+			 .stop = l2x0_pmu_event_stop,
+			  .add = l2x0_pmu_event_add,
+			   .del = l2x0_pmu_event_del,
+				.event_init = l2x0_pmu_event_init,
+				 .attr_groups = l2x0_pmu_attr_groups,
 	};
 
 	l2x0_pmu_reset();
@@ -563,14 +646,20 @@ static __init int l2x0_pmu_init(void)
 
 	cpumask_set_cpu(0, &pmu_cpu);
 	ret = cpuhp_setup_state_nocalls(CPUHP_AP_PERF_ARM_L2X0_ONLINE,
-					"AP_PERF_ARM_L2X0_ONLINE", NULL,
-					l2x0_pmu_offline_cpu);
+									"AP_PERF_ARM_L2X0_ONLINE", NULL,
+									l2x0_pmu_offline_cpu);
+
 	if (ret)
+	{
 		goto out_pmu;
+	}
 
 	ret = perf_pmu_register(l2x0_pmu, l2x0_name, -1);
+
 	if (ret)
+	{
 		goto out_cpuhp;
+	}
 
 	return 0;
 

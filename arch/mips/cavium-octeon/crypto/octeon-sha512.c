@@ -113,7 +113,7 @@ static int octeon_sha384_init(struct shash_desc *desc)
 }
 
 static void __octeon_sha512_update(struct sha512_state *sctx, const u8 *data,
-				   unsigned int len)
+								   unsigned int len)
 {
 	unsigned int part_len;
 	unsigned int index;
@@ -124,21 +124,28 @@ static void __octeon_sha512_update(struct sha512_state *sctx, const u8 *data,
 
 	/* Update number of bytes. */
 	if ((sctx->count[0] += len) < len)
+	{
 		sctx->count[1]++;
+	}
 
 	part_len = SHA512_BLOCK_SIZE - index;
 
 	/* Transform as many times as possible. */
-	if (len >= part_len) {
+	if (len >= part_len)
+	{
 		memcpy(&sctx->buf[index], data, part_len);
 		octeon_sha512_transform(sctx->buf);
 
 		for (i = part_len; i + SHA512_BLOCK_SIZE <= len;
-			i += SHA512_BLOCK_SIZE)
+			 i += SHA512_BLOCK_SIZE)
+		{
 			octeon_sha512_transform(&data[i]);
+		}
 
 		index = 0;
-	} else {
+	}
+	else
+	{
 		i = 0;
 	}
 
@@ -147,7 +154,7 @@ static void __octeon_sha512_update(struct sha512_state *sctx, const u8 *data,
 }
 
 static int octeon_sha512_update(struct shash_desc *desc, const u8 *data,
-				unsigned int len)
+								unsigned int len)
 {
 	struct sha512_state *sctx = shash_desc_ctx(desc);
 	struct octeon_cop2_state state;
@@ -159,7 +166,9 @@ static int octeon_sha512_update(struct shash_desc *desc, const u8 *data,
 	 * octeon_crypto_disable().
 	 */
 	if ((sctx->count[0] % SHA512_BLOCK_SIZE) + len < SHA512_BLOCK_SIZE)
+	{
 		return crypto_sha512_update(desc, data, len);
+	}
 
 	flags = octeon_crypto_enable(&state);
 	octeon_sha512_store_hash(sctx);
@@ -190,7 +199,7 @@ static int octeon_sha512_final(struct shash_desc *desc, u8 *hash)
 
 	/* Pad out to 112 mod 128. */
 	index = sctx->count[0] & 0x7f;
-	pad_len = (index < 112) ? (112 - index) : ((128+112) - index);
+	pad_len = (index < 112) ? (112 - index) : ((128 + 112) - index);
 
 	flags = octeon_crypto_enable(&state);
 	octeon_sha512_store_hash(sctx);
@@ -205,7 +214,9 @@ static int octeon_sha512_final(struct shash_desc *desc, u8 *hash)
 
 	/* Store state in digest. */
 	for (i = 0; i < 8; i++)
+	{
 		dst[i] = cpu_to_be64(sctx->state[i]);
+	}
 
 	/* Zeroize sensitive information. */
 	memset(sctx, 0, sizeof(struct sha512_state));
@@ -226,47 +237,51 @@ static int octeon_sha384_final(struct shash_desc *desc, u8 *hash)
 }
 
 static struct shash_alg octeon_sha512_algs[2] = { {
-	.digestsize	=	SHA512_DIGEST_SIZE,
-	.init		=	octeon_sha512_init,
-	.update		=	octeon_sha512_update,
-	.final		=	octeon_sha512_final,
-	.descsize	=	sizeof(struct sha512_state),
-	.base		=	{
-		.cra_name	=	"sha512",
-		.cra_driver_name=	"octeon-sha512",
-		.cra_priority	=	OCTEON_CR_OPCODE_PRIORITY,
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	SHA512_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
+		.digestsize	=	SHA512_DIGEST_SIZE,
+		.init		=	octeon_sha512_init,
+		.update		=	octeon_sha512_update,
+		.final		=	octeon_sha512_final,
+		.descsize	=	sizeof(struct sha512_state),
+		.base		=	{
+			.cra_name	=	"sha512",
+			.cra_driver_name =	"octeon-sha512",
+			.cra_priority	=	OCTEON_CR_OPCODE_PRIORITY,
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	SHA512_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
+	}, {
+		.digestsize	=	SHA384_DIGEST_SIZE,
+		.init		=	octeon_sha384_init,
+		.update		=	octeon_sha512_update,
+		.final		=	octeon_sha384_final,
+		.descsize	=	sizeof(struct sha512_state),
+		.base		=	{
+			.cra_name	=	"sha384",
+			.cra_driver_name =	"octeon-sha384",
+			.cra_priority	=	OCTEON_CR_OPCODE_PRIORITY,
+			.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize	=	SHA384_BLOCK_SIZE,
+			.cra_module	=	THIS_MODULE,
+		}
 	}
-}, {
-	.digestsize	=	SHA384_DIGEST_SIZE,
-	.init		=	octeon_sha384_init,
-	.update		=	octeon_sha512_update,
-	.final		=	octeon_sha384_final,
-	.descsize	=	sizeof(struct sha512_state),
-	.base		=	{
-		.cra_name	=	"sha384",
-		.cra_driver_name=	"octeon-sha384",
-		.cra_priority	=	OCTEON_CR_OPCODE_PRIORITY,
-		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize	=	SHA384_BLOCK_SIZE,
-		.cra_module	=	THIS_MODULE,
-	}
-} };
+};
 
 static int __init octeon_sha512_mod_init(void)
 {
 	if (!octeon_has_crypto())
+	{
 		return -ENOTSUPP;
+	}
+
 	return crypto_register_shashes(octeon_sha512_algs,
-				       ARRAY_SIZE(octeon_sha512_algs));
+								   ARRAY_SIZE(octeon_sha512_algs));
 }
 
 static void __exit octeon_sha512_mod_fini(void)
 {
 	crypto_unregister_shashes(octeon_sha512_algs,
-				  ARRAY_SIZE(octeon_sha512_algs));
+							  ARRAY_SIZE(octeon_sha512_algs));
 }
 
 module_init(octeon_sha512_mod_init);

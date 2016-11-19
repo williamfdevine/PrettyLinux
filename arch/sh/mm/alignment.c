@@ -69,13 +69,16 @@ unsigned int unaligned_user_action(void)
 {
 	unsigned int action = se_usermode;
 
-	if (current->thread.flags & SH_THREAD_UAC_SIGBUS) {
+	if (current->thread.flags & SH_THREAD_UAC_SIGBUS)
+	{
 		action &= ~UM_FIXUP;
 		action |= UM_SIGNAL;
 	}
 
 	if (current->thread.flags & SH_THREAD_UAC_NOPRINT)
+	{
 		action &= ~UM_WARN;
+	}
 
 	return action;
 }
@@ -83,32 +86,33 @@ unsigned int unaligned_user_action(void)
 int get_unalign_ctl(struct task_struct *tsk, unsigned long addr)
 {
 	return put_user(tsk->thread.flags & SH_THREAD_UAC_MASK,
-			(unsigned int __user *)addr);
+					(unsigned int __user *)addr);
 }
 
 int set_unalign_ctl(struct task_struct *tsk, unsigned int val)
 {
 	tsk->thread.flags = (tsk->thread.flags & ~SH_THREAD_UAC_MASK) |
-			    (val & SH_THREAD_UAC_MASK);
+						(val & SH_THREAD_UAC_MASK);
 	return 0;
 }
 
 void unaligned_fixups_notify(struct task_struct *tsk, insn_size_t insn,
-			     struct pt_regs *regs)
+							 struct pt_regs *regs)
 {
 	if (user_mode(regs) && (se_usermode & UM_WARN))
 		pr_notice_ratelimited("Fixing up unaligned userspace access "
-			  "in \"%s\" pid=%d pc=0x%p ins=0x%04hx\n",
-			  tsk->comm, task_pid_nr(tsk),
-			  (void *)instruction_pointer(regs), insn);
+							  "in \"%s\" pid=%d pc=0x%p ins=0x%04hx\n",
+							  tsk->comm, task_pid_nr(tsk),
+							  (void *)instruction_pointer(regs), insn);
 	else if (se_kernmode_warn)
 		pr_notice_ratelimited("Fixing up unaligned kernel access "
-			  "in \"%s\" pid=%d pc=0x%p ins=0x%04hx\n",
-			  tsk->comm, task_pid_nr(tsk),
-			  (void *)instruction_pointer(regs), insn);
+							  "in \"%s\" pid=%d pc=0x%p ins=0x%04hx\n",
+							  tsk->comm, task_pid_nr(tsk),
+							  (void *)instruction_pointer(regs), insn);
 }
 
-static const char *se_usermode_action[] = {
+static const char *se_usermode_action[] =
+{
 	"ignored",
 	"warn",
 	"fixup",
@@ -126,9 +130,9 @@ static int alignment_proc_show(struct seq_file *m, void *v)
 	seq_printf(m, "DWord:\t\t%lu\n", se_dword);
 	seq_printf(m, "Multi:\t\t%lu\n", se_multi);
 	seq_printf(m, "User faults:\t%i (%s)\n", se_usermode,
-			se_usermode_action[se_usermode]);
+			   se_usermode_action[se_usermode]);
 	seq_printf(m, "Kernel faults:\t%i (fixup%s)\n", se_kernmode_warn,
-			se_kernmode_warn ? "+warn" : "");
+			   se_kernmode_warn ? "+warn" : "");
 	return 0;
 }
 
@@ -138,21 +142,29 @@ static int alignment_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t alignment_proc_write(struct file *file,
-		const char __user *buffer, size_t count, loff_t *pos)
+									const char __user *buffer, size_t count, loff_t *pos)
 {
 	int *data = PDE_DATA(file_inode(file));
 	char mode;
 
-	if (count > 0) {
+	if (count > 0)
+	{
 		if (get_user(mode, buffer))
+		{
 			return -EFAULT;
+		}
+
 		if (mode >= '0' && mode <= '5')
+		{
 			*data = mode - '0';
+		}
 	}
+
 	return count;
 }
 
-static const struct file_operations alignment_proc_fops = {
+static const struct file_operations alignment_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= alignment_proc_open,
 	.read		= seq_read,
@@ -172,18 +184,27 @@ static int __init alignment_init(void)
 	struct proc_dir_entry *dir, *res;
 
 	dir = proc_mkdir("cpu", NULL);
+
 	if (!dir)
+	{
 		return -ENOMEM;
+	}
 
 	res = proc_create_data("alignment", S_IWUSR | S_IRUGO, dir,
-			       &alignment_proc_fops, &se_usermode);
-	if (!res)
-		return -ENOMEM;
+						   &alignment_proc_fops, &se_usermode);
 
-        res = proc_create_data("kernel_alignment", S_IWUSR | S_IRUGO, dir,
-			       &alignment_proc_fops, &se_kernmode_warn);
-        if (!res)
-                return -ENOMEM;
+	if (!res)
+	{
+		return -ENOMEM;
+	}
+
+	res = proc_create_data("kernel_alignment", S_IWUSR | S_IRUGO, dir,
+						   &alignment_proc_fops, &se_kernmode_warn);
+
+	if (!res)
+	{
+		return -ENOMEM;
+	}
 
 	return 0;
 }

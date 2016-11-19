@@ -28,7 +28,8 @@ DEFINE_CLK(mcfuart0, "mcfuart.0", MCF_BUSCLK);
 DEFINE_CLK(mcfuart1, "mcfuart.1", MCF_BUSCLK);
 DEFINE_CLK(mcfqspi0, "mcfqspi.0", MCF_BUSCLK);
 
-struct clk *mcf_clks[] = {
+struct clk *mcf_clks[] =
+{
 	&clk_pll,
 	&clk_sys,
 	&clk_mcftmr0,
@@ -43,7 +44,8 @@ struct clk *mcf_clks[] = {
 
 #ifdef CONFIG_M5249C3
 
-static struct resource m5249_smc91x_resources[] = {
+static struct resource m5249_smc91x_resources[] =
+{
 	{
 		.start		= 0xe0000300,
 		.end		= 0xe0000300 + 0x100,
@@ -56,7 +58,8 @@ static struct resource m5249_smc91x_resources[] = {
 	},
 };
 
-static struct platform_device m5249_smc91x = {
+static struct platform_device m5249_smc91x =
+{
 	.name			= "smc91x",
 	.id			= 0,
 	.num_resources		= ARRAY_SIZE(m5249_smc91x_resources),
@@ -65,7 +68,8 @@ static struct platform_device m5249_smc91x = {
 
 #endif /* CONFIG_M5249C3 */
 
-static struct platform_device *m5249_devices[] __initdata = {
+static struct platform_device *m5249_devices[] __initdata =
+{
 #ifdef CONFIG_M5249C3
 	&m5249_smc91x,
 #endif
@@ -78,7 +82,7 @@ static void __init m5249_qspi_init(void)
 #if IS_ENABLED(CONFIG_SPI_COLDFIRE_QSPI)
 	/* QSPI irq setup */
 	writeb(MCFSIM_ICR_AUTOVEC | MCFSIM_ICR_LEVEL4 | MCFSIM_ICR_PRI0,
-	       MCFSIM_QSPIICR);
+		   MCFSIM_QSPIICR);
 	mcf_mapirq2imr(MCF_IRQ_QSPI, MCFINTC_QSPI);
 #endif /* IS_ENABLED(CONFIG_SPI_COLDFIRE_QSPI) */
 }

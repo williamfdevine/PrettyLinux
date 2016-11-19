@@ -29,8 +29,11 @@ void __init prom_init(void)
 
 	prom_init_cmdline();
 	memsize_str = prom_getenv("memsize");
+
 	if (!memsize_str || kstrtoul(memsize_str, 0, &memsize))
-		memsize = 64 << 20; /* all devboards have at least 64MB RAM */
+	{
+		memsize = 64 << 20;    /* all devboards have at least 64MB RAM */
+	}
 
 	add_memory_region(0, memsize, BOOT_MEM_RAM);
 }
@@ -38,13 +41,18 @@ void __init prom_init(void)
 void prom_putchar(unsigned char c)
 {
 	if (alchemy_get_cputype() == ALCHEMY_CPU_AU1300)
+	{
 		alchemy_uart_putchar(AU1300_UART2_PHYS_ADDR, c);
+	}
 	else
+	{
 		alchemy_uart_putchar(AU1000_UART0_PHYS_ADDR, c);
+	}
 }
 
 
-static struct platform_device db1x00_rtc_dev = {
+static struct platform_device db1x00_rtc_dev =
+{
 	.name	= "rtc-au1xxx",
 	.id	= -1,
 };
@@ -54,8 +62,11 @@ static void db1x_power_off(void)
 {
 	bcsr_write(BCSR_RESETS, 0);
 	bcsr_write(BCSR_SYSTEM, BCSR_SYSTEM_PWROFF | BCSR_SYSTEM_RESET);
+
 	while (1)		/* sit and spin */
+	{
 		cpu_wait();
+	}
 }
 
 static void db1x_reset(char *c)
@@ -67,11 +78,19 @@ static void db1x_reset(char *c)
 static int __init db1x_late_setup(void)
 {
 	if (!pm_power_off)
+	{
 		pm_power_off = db1x_power_off;
+	}
+
 	if (!_machine_halt)
+	{
 		_machine_halt = db1x_power_off;
+	}
+
 	if (!_machine_restart)
+	{
 		_machine_restart = db1x_reset;
+	}
 
 	platform_device_register(&db1x00_rtc_dev);
 
@@ -81,33 +100,44 @@ device_initcall(db1x_late_setup);
 
 /* register a pcmcia socket */
 int __init db1x_register_pcmcia_socket(phys_addr_t pcmcia_attr_start,
-				       phys_addr_t pcmcia_attr_end,
-				       phys_addr_t pcmcia_mem_start,
-				       phys_addr_t pcmcia_mem_end,
-				       phys_addr_t pcmcia_io_start,
-				       phys_addr_t pcmcia_io_end,
-				       int card_irq,
-				       int cd_irq,
-				       int stschg_irq,
-				       int eject_irq,
-				       int id)
+									   phys_addr_t pcmcia_attr_end,
+									   phys_addr_t pcmcia_mem_start,
+									   phys_addr_t pcmcia_mem_end,
+									   phys_addr_t pcmcia_io_start,
+									   phys_addr_t pcmcia_io_end,
+									   int card_irq,
+									   int cd_irq,
+									   int stschg_irq,
+									   int eject_irq,
+									   int id)
 {
 	int cnt, i, ret;
 	struct resource *sr;
 	struct platform_device *pd;
 
 	cnt = 5;
+
 	if (eject_irq)
+	{
 		cnt++;
+	}
+
 	if (stschg_irq)
+	{
 		cnt++;
+	}
 
 	sr = kzalloc(sizeof(struct resource) * cnt, GFP_KERNEL);
+
 	if (!sr)
+	{
 		return -ENOMEM;
+	}
 
 	pd = platform_device_alloc("db1xxx_pcmcia", id);
-	if (!pd) {
+
+	if (!pd)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -136,13 +166,17 @@ int __init db1x_register_pcmcia_socket(phys_addr_t pcmcia_attr_start,
 	sr[4].start = sr[4].end = card_irq;
 
 	i = 5;
-	if (stschg_irq) {
+
+	if (stschg_irq)
+	{
 		sr[i].name	= "stschg";
 		sr[i].flags	= IORESOURCE_IRQ;
 		sr[i].start = sr[i].end = stschg_irq;
 		i++;
 	}
-	if (eject_irq) {
+
+	if (eject_irq)
+	{
 		sr[i].name	= "eject";
 		sr[i].flags	= IORESOURCE_IRQ;
 		sr[i].start = sr[i].end = eject_irq;
@@ -152,8 +186,11 @@ int __init db1x_register_pcmcia_socket(phys_addr_t pcmcia_attr_start,
 	pd->num_resources = cnt;
 
 	ret = platform_device_add(pd);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 	platform_device_put(pd);
 out:
@@ -165,7 +202,7 @@ out:
 #define YAMON_ENV_SIZE	0x00040000
 
 int __init db1x_register_norflash(unsigned long size, int width,
-				  int swapped)
+								  int swapped)
 {
 	struct physmap_flash_data *pfd;
 	struct platform_device *pd;
@@ -174,24 +211,38 @@ int __init db1x_register_norflash(unsigned long size, int width,
 	int ret, i;
 
 	if (size < (8 * 1024 * 1024))
+	{
 		return -EINVAL;
+	}
 
 	ret = -ENOMEM;
 	parts = kzalloc(sizeof(struct mtd_partition) * 5, GFP_KERNEL);
+
 	if (!parts)
+	{
 		goto out;
+	}
 
 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+
 	if (!res)
+	{
 		goto out1;
+	}
 
 	pfd = kzalloc(sizeof(struct physmap_flash_data), GFP_KERNEL);
+
 	if (!pfd)
+	{
 		goto out2;
+	}
 
 	pd = platform_device_alloc("physmap-flash", 0);
+
 	if (!pd)
+	{
 		goto out3;
+	}
 
 	/* NOR flash ends at 0x20000000, regardless of size */
 	res->start = 0x20000000 - size;
@@ -202,7 +253,9 @@ int __init db1x_register_norflash(unsigned long size, int width,
 	 * to swap the physical locations of the 2 NOR flash banks.
 	 */
 	i = 0;
-	if (!swapped) {
+
+	if (!swapped)
+	{
 		/* first NOR chip */
 		parts[i].offset = 0;
 		parts[i].name = "User FS";
@@ -232,7 +285,8 @@ int __init db1x_register_norflash(unsigned long size, int width,
 	parts[i].mask_flags = MTD_WRITEABLE;
 	i++;
 
-	if (swapped) {
+	if (swapped)
+	{
 		parts[i].offset = MTDPART_OFS_APPEND;
 		parts[i].name = "User FS";
 		parts[i].size = size / 2;
@@ -248,8 +302,11 @@ int __init db1x_register_norflash(unsigned long size, int width,
 	pd->num_resources = 1;
 
 	ret = platform_device_add(pd);
+
 	if (!ret)
+	{
 		return ret;
+	}
 
 	platform_device_put(pd);
 out3:

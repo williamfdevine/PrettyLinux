@@ -19,7 +19,8 @@
  *
  * This code has been adapted from the ARM OProfile support.
  */
-struct frame_tail {
+struct frame_tail
+{
 	struct frame_tail __user *fp;
 	unsigned long sp;
 	unsigned long lr;
@@ -31,20 +32,24 @@ struct frame_tail {
  */
 static struct frame_tail __user *
 user_backtrace(struct frame_tail __user *tail,
-	       struct perf_callchain_entry_ctx *entry)
+			   struct perf_callchain_entry_ctx *entry)
 {
 	struct frame_tail buftail;
 	unsigned long err;
 
 	if (!access_ok(VERIFY_READ, tail, sizeof(buftail)))
+	{
 		return NULL;
+	}
 
 	pagefault_disable();
 	err = __copy_from_user_inatomic(&buftail, tail, sizeof(buftail));
 	pagefault_enable();
 
 	if (err)
+	{
 		return NULL;
+	}
 
 	perf_callchain_store(entry, buftail.lr);
 
@@ -53,7 +58,9 @@ user_backtrace(struct frame_tail __user *tail,
 	 * (towards higher addresses).
 	 */
 	if (tail + 1 >= buftail.fp)
+	{
 		return NULL;
+	}
 
 	return buftail.fp - 1;
 }
@@ -63,7 +70,8 @@ perf_callchain_user(struct perf_callchain_entry_ctx *entry, struct pt_regs *regs
 {
 	struct frame_tail __user *tail;
 
-	if (perf_guest_cbs && perf_guest_cbs->is_in_guest()) {
+	if (perf_guest_cbs && perf_guest_cbs->is_in_guest())
+	{
 		/* We don't support guest os callchain now */
 		return;
 	}
@@ -71,13 +79,17 @@ perf_callchain_user(struct perf_callchain_entry_ctx *entry, struct pt_regs *regs
 	perf_callchain_store(entry, regs->ARM_pc);
 
 	if (!current->mm)
+	{
 		return;
+	}
 
 	tail = (struct frame_tail __user *)regs->ARM_fp - 1;
 
 	while ((entry->nr < entry->max_stack) &&
-	       tail && !((unsigned long)tail & 0x3))
+		   tail && !((unsigned long)tail & 0x3))
+	{
 		tail = user_backtrace(tail, entry);
+	}
 }
 
 /*
@@ -87,7 +99,7 @@ perf_callchain_user(struct perf_callchain_entry_ctx *entry, struct pt_regs *regs
  */
 static int
 callchain_trace(struct stackframe *fr,
-		void *data)
+				void *data)
 {
 	struct perf_callchain_entry_ctx *entry = data;
 	perf_callchain_store(entry, fr->pc);
@@ -99,7 +111,8 @@ perf_callchain_kernel(struct perf_callchain_entry_ctx *entry, struct pt_regs *re
 {
 	struct stackframe fr;
 
-	if (perf_guest_cbs && perf_guest_cbs->is_in_guest()) {
+	if (perf_guest_cbs && perf_guest_cbs->is_in_guest())
+	{
 		/* We don't support guest os callchain now */
 		return;
 	}
@@ -111,7 +124,9 @@ perf_callchain_kernel(struct perf_callchain_entry_ctx *entry, struct pt_regs *re
 unsigned long perf_instruction_pointer(struct pt_regs *regs)
 {
 	if (perf_guest_cbs && perf_guest_cbs->is_in_guest())
+	{
 		return perf_guest_cbs->get_guest_ip();
+	}
 
 	return instruction_pointer(regs);
 }
@@ -120,16 +135,27 @@ unsigned long perf_misc_flags(struct pt_regs *regs)
 {
 	int misc = 0;
 
-	if (perf_guest_cbs && perf_guest_cbs->is_in_guest()) {
+	if (perf_guest_cbs && perf_guest_cbs->is_in_guest())
+	{
 		if (perf_guest_cbs->is_user_mode())
+		{
 			misc |= PERF_RECORD_MISC_GUEST_USER;
+		}
 		else
+		{
 			misc |= PERF_RECORD_MISC_GUEST_KERNEL;
-	} else {
+		}
+	}
+	else
+	{
 		if (user_mode(regs))
+		{
 			misc |= PERF_RECORD_MISC_USER;
+		}
 		else
+		{
 			misc |= PERF_RECORD_MISC_KERNEL;
+		}
 	}
 
 	return misc;

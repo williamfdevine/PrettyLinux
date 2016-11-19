@@ -112,8 +112,11 @@ EXPORT_SYMBOL(pic32_get_boot_status);
 void __init pic32_config_init(void)
 {
 	pic32_conf_base = ioremap(PIC32_BASE_CONFIG, 0x110);
+
 	if (!pic32_conf_base)
+	{
 		panic("pic32: config base not mapped");
+	}
 
 	/* Boot Status */
 	pic32_reset_status = readl(pic32_conf_base + PIC32_RCON);
@@ -121,6 +124,6 @@ void __init pic32_config_init(void)
 
 	/* Device Inforation */
 	pr_info("Device Id: 0x%08x, Device Ver: 0x%04x\n",
-		pic32_get_device_id(),
-		pic32_get_device_version());
+			pic32_get_device_id(),
+			pic32_get_device_version());
 }

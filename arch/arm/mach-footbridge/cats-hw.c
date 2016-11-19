@@ -26,7 +26,8 @@
 
 static int __init cats_hw_init(void)
 {
-	if (machine_is_cats()) {
+	if (machine_is_cats())
+	{
 		/* Set Aladdin to CONFIGURE mode */
 		outb(0x51, CFG_PORT);
 		outb(0x23, CFG_PORT);
@@ -35,11 +36,11 @@ static int __init cats_hw_init(void)
 		outb(0x07, INDEX_PORT);
 		outb(0x03, DATA_PORT);
 
-		/* Set parallel port to DMA channel 3, ECP+EPP1.9, 
+		/* Set parallel port to DMA channel 3, ECP+EPP1.9,
 		   enable EPP timeout */
 		outb(0x74, INDEX_PORT);
 		outb(0x03, DATA_PORT);
-	
+
 		outb(0xf0, INDEX_PORT);
 		outb(0x0f, DATA_PORT);
 
@@ -86,12 +87,12 @@ fixup_cats(struct tag *tags, char **cmdline)
 }
 
 MACHINE_START(CATS, "Chalice-CATS")
-	/* Maintainer: Philip Blundell */
-	.atag_offset	= 0x100,
+/* Maintainer: Philip Blundell */
+.atag_offset	= 0x100,
 	.reboot_mode	= REBOOT_SOFT,
-	.fixup		= fixup_cats,
-	.map_io		= footbridge_map_io,
-	.init_irq	= footbridge_init_irq,
-	.init_time	= isa_timer_init,
-	.restart	= footbridge_restart,
-MACHINE_END
+		.fixup		= fixup_cats,
+			 .map_io		= footbridge_map_io,
+				 .init_irq	= footbridge_init_irq,
+					.init_time	= isa_timer_init,
+					  .restart	= footbridge_restart,
+						  MACHINE_END

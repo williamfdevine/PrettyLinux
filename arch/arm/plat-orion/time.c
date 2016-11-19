@@ -77,7 +77,9 @@ orion_clkevt_next_event(unsigned long delta, struct clock_event_device *dev)
 	u32 u;
 
 	if (delta == 0)
+	{
 		return -ETIME;
+	}
 
 	local_irq_save(flags);
 
@@ -154,10 +156,11 @@ static int orion_clkevt_set_periodic(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device orion_clkevt = {
+static struct clock_event_device orion_clkevt =
+{
 	.name			= "orion_tick",
 	.features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_PERIODIC,
+	CLOCK_EVT_FEAT_PERIODIC,
 	.rating			= 300,
 	.set_next_event		= orion_clkevt_next_event,
 	.set_state_shutdown	= orion_clkevt_shutdown,
@@ -177,7 +180,8 @@ static irqreturn_t orion_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction orion_timer_irq = {
+static struct irqaction orion_timer_irq =
+{
 	.name		= "orion_tick",
 	.flags		= IRQF_TIMER,
 	.handler	= orion_timer_interrupt
@@ -194,13 +198,14 @@ static unsigned long orion_delay_timer_read(void)
 	return ~readl(timer_base + TIMER0_VAL_OFF);
 }
 
-static struct delay_timer orion_delay_timer = {
+static struct delay_timer orion_delay_timer =
+{
 	.read_current_timer = orion_delay_timer_read,
 };
 
 void __init
 orion_time_init(void __iomem *_bridge_base, u32 _bridge_timer1_clr_mask,
-		unsigned int irq, unsigned int tclk)
+				unsigned int irq, unsigned int tclk)
 {
 	u32 u;
 
@@ -210,7 +215,7 @@ orion_time_init(void __iomem *_bridge_base, u32 _bridge_timer1_clr_mask,
 	bridge_base = _bridge_base;
 	bridge_timer1_clr_mask = _bridge_timer1_clr_mask;
 
-	ticks_per_jiffy = (tclk + HZ/2) / HZ;
+	ticks_per_jiffy = (tclk + HZ / 2) / HZ;
 
 	orion_delay_timer.freq = tclk;
 	register_current_timer_delay(&orion_delay_timer);
@@ -231,7 +236,7 @@ orion_time_init(void __iomem *_bridge_base, u32 _bridge_timer1_clr_mask,
 	u = readl(timer_base + TIMER_CTRL_OFF);
 	writel(u | TIMER0_EN | TIMER0_RELOAD_EN, timer_base + TIMER_CTRL_OFF);
 	clocksource_mmio_init(timer_base + TIMER0_VAL_OFF, "orion_clocksource",
-		tclk, 300, 32, clocksource_mmio_readl_down);
+						  tclk, 300, 32, clocksource_mmio_readl_down);
 
 	/*
 	 * Setup clockevent timer (interrupt-driven).

@@ -47,7 +47,8 @@
 /*****************************************************************************
  * I/O Address Mapping
  ****************************************************************************/
-static struct map_desc dove_io_desc[] __initdata = {
+static struct map_desc dove_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long) DOVE_SB_REGS_VIRT_BASE,
 		.pfn		= __phys_to_pfn(DOVE_SB_REGS_PHYS_BASE),
@@ -75,11 +76,11 @@ static DEFINE_SPINLOCK(gating_lock);
 static struct clk *tclk;
 
 static struct clk __init *dove_register_gate(const char *name,
-					     const char *parent, u8 bit_idx)
+		const char *parent, u8 bit_idx)
 {
 	return clk_register_gate(NULL, name, parent, 0,
-				 (void __iomem *)CLOCK_GATING_CONTROL,
-				 bit_idx, 0, &gating_lock);
+							 (void __iomem *)CLOCK_GATING_CONTROL,
+							 bit_idx, 0, &gating_lock);
 }
 
 static void __init dove_clk_init(void)
@@ -155,8 +156,8 @@ void __init dove_ehci1_init(void)
 void __init dove_ge00_init(struct mv643xx_eth_platform_data *eth_data)
 {
 	orion_ge00_init(eth_data, DOVE_GE00_PHYS_BASE,
-			IRQ_DOVE_GE00_SUM, IRQ_DOVE_GE00_ERR,
-			1600);
+					IRQ_DOVE_GE00_SUM, IRQ_DOVE_GE00_ERR,
+					1600);
 }
 
 /*****************************************************************************
@@ -182,7 +183,7 @@ void __init dove_sata_init(struct mv_sata_platform_data *sata_data)
 void __init dove_uart0_init(void)
 {
 	orion_uart0_init(DOVE_UART0_VIRT_BASE, DOVE_UART0_PHYS_BASE,
-			 IRQ_DOVE_UART_0, tclk);
+					 IRQ_DOVE_UART_0, tclk);
 }
 
 /*****************************************************************************
@@ -191,7 +192,7 @@ void __init dove_uart0_init(void)
 void __init dove_uart1_init(void)
 {
 	orion_uart1_init(DOVE_UART1_VIRT_BASE, DOVE_UART1_PHYS_BASE,
-			 IRQ_DOVE_UART_1, tclk);
+					 IRQ_DOVE_UART_1, tclk);
 }
 
 /*****************************************************************************
@@ -200,7 +201,7 @@ void __init dove_uart1_init(void)
 void __init dove_uart2_init(void)
 {
 	orion_uart2_init(DOVE_UART2_VIRT_BASE, DOVE_UART2_PHYS_BASE,
-			 IRQ_DOVE_UART_2, tclk);
+					 IRQ_DOVE_UART_2, tclk);
 }
 
 /*****************************************************************************
@@ -209,7 +210,7 @@ void __init dove_uart2_init(void)
 void __init dove_uart3_init(void)
 {
 	orion_uart3_init(DOVE_UART3_VIRT_BASE, DOVE_UART3_PHYS_BASE,
-			 IRQ_DOVE_UART_3, tclk);
+					 IRQ_DOVE_UART_3, tclk);
 }
 
 /*****************************************************************************
@@ -240,8 +241,8 @@ void __init dove_init_early(void)
 {
 	orion_time_set_base(TIMER_VIRT_BASE);
 	mvebu_mbus_init("marvell,dove-mbus",
-			BRIDGE_WINS_BASE, BRIDGE_WINS_SZ,
-			DOVE_MC_WINS_BASE, DOVE_MC_WINS_SZ);
+					BRIDGE_WINS_BASE, BRIDGE_WINS_SZ,
+					DOVE_MC_WINS_BASE, DOVE_MC_WINS_SZ);
 }
 
 static int __init dove_find_tclk(void)
@@ -253,7 +254,7 @@ void __init dove_timer_init(void)
 {
 	dove_tclk = dove_find_tclk();
 	orion_time_init(BRIDGE_VIRT_BASE, BRIDGE_INT_TIMER1_CLR,
-			IRQ_DOVE_BRIDGE, dove_tclk);
+					IRQ_DOVE_BRIDGE, dove_tclk);
 }
 
 /*****************************************************************************
@@ -262,7 +263,7 @@ void __init dove_timer_init(void)
 static void __init dove_xor0_init(void)
 {
 	orion_xor0_init(DOVE_XOR0_PHYS_BASE, DOVE_XOR0_HIGH_PHYS_BASE,
-			IRQ_DOVE_XOR_00, IRQ_DOVE_XOR_01);
+					IRQ_DOVE_XOR_00, IRQ_DOVE_XOR_01);
 }
 
 /*****************************************************************************
@@ -271,7 +272,7 @@ static void __init dove_xor0_init(void)
 static void __init dove_xor1_init(void)
 {
 	orion_xor1_init(DOVE_XOR1_PHYS_BASE, DOVE_XOR1_HIGH_PHYS_BASE,
-			IRQ_DOVE_XOR_10, IRQ_DOVE_XOR_11);
+					IRQ_DOVE_XOR_10, IRQ_DOVE_XOR_11);
 }
 
 /*****************************************************************************
@@ -279,7 +280,8 @@ static void __init dove_xor1_init(void)
  ****************************************************************************/
 static u64 sdio_dmamask = DMA_BIT_MASK(32);
 
-static struct resource dove_sdio0_resources[] = {
+static struct resource dove_sdio0_resources[] =
+{
 	{
 		.start	= DOVE_SDIO0_PHYS_BASE,
 		.end	= DOVE_SDIO0_PHYS_BASE + 0xff,
@@ -291,7 +293,8 @@ static struct resource dove_sdio0_resources[] = {
 	},
 };
 
-static struct platform_device dove_sdio0 = {
+static struct platform_device dove_sdio0 =
+{
 	.name		= "sdhci-dove",
 	.id		= 0,
 	.dev		= {
@@ -307,7 +310,8 @@ void __init dove_sdio0_init(void)
 	platform_device_register(&dove_sdio0);
 }
 
-static struct resource dove_sdio1_resources[] = {
+static struct resource dove_sdio1_resources[] =
+{
 	{
 		.start	= DOVE_SDIO1_PHYS_BASE,
 		.end	= DOVE_SDIO1_PHYS_BASE + 0xff,
@@ -319,7 +323,8 @@ static struct resource dove_sdio1_resources[] = {
 	},
 };
 
-static struct platform_device dove_sdio1 = {
+static struct platform_device dove_sdio1 =
+{
 	.name		= "sdhci-dove",
 	.id		= 1,
 	.dev		= {
@@ -344,43 +349,45 @@ void __init dove_setup_cpu_wins(void)
 	 * fully moves to DT.
 	 */
 	mvebu_mbus_add_window_remap_by_id(DOVE_MBUS_PCIE0_IO_TARGET,
-					  DOVE_MBUS_PCIE0_IO_ATTR,
-					  DOVE_PCIE0_IO_PHYS_BASE,
-					  DOVE_PCIE0_IO_SIZE,
-					  DOVE_PCIE0_IO_BUS_BASE);
+									  DOVE_MBUS_PCIE0_IO_ATTR,
+									  DOVE_PCIE0_IO_PHYS_BASE,
+									  DOVE_PCIE0_IO_SIZE,
+									  DOVE_PCIE0_IO_BUS_BASE);
 	mvebu_mbus_add_window_remap_by_id(DOVE_MBUS_PCIE1_IO_TARGET,
-					  DOVE_MBUS_PCIE1_IO_ATTR,
-					  DOVE_PCIE1_IO_PHYS_BASE,
-					  DOVE_PCIE1_IO_SIZE,
-					  DOVE_PCIE1_IO_BUS_BASE);
+									  DOVE_MBUS_PCIE1_IO_ATTR,
+									  DOVE_PCIE1_IO_PHYS_BASE,
+									  DOVE_PCIE1_IO_SIZE,
+									  DOVE_PCIE1_IO_BUS_BASE);
 	mvebu_mbus_add_window_by_id(DOVE_MBUS_PCIE0_MEM_TARGET,
-				    DOVE_MBUS_PCIE0_MEM_ATTR,
-				    DOVE_PCIE0_MEM_PHYS_BASE,
-				    DOVE_PCIE0_MEM_SIZE);
+								DOVE_MBUS_PCIE0_MEM_ATTR,
+								DOVE_PCIE0_MEM_PHYS_BASE,
+								DOVE_PCIE0_MEM_SIZE);
 	mvebu_mbus_add_window_by_id(DOVE_MBUS_PCIE1_MEM_TARGET,
-				    DOVE_MBUS_PCIE1_MEM_ATTR,
-				    DOVE_PCIE1_MEM_PHYS_BASE,
-				    DOVE_PCIE1_MEM_SIZE);
+								DOVE_MBUS_PCIE1_MEM_ATTR,
+								DOVE_PCIE1_MEM_PHYS_BASE,
+								DOVE_PCIE1_MEM_SIZE);
 	mvebu_mbus_add_window_by_id(DOVE_MBUS_CESA_TARGET,
-				    DOVE_MBUS_CESA_ATTR,
-				    DOVE_CESA_PHYS_BASE,
-				    DOVE_CESA_SIZE);
+								DOVE_MBUS_CESA_ATTR,
+								DOVE_CESA_PHYS_BASE,
+								DOVE_CESA_SIZE);
 	mvebu_mbus_add_window_by_id(DOVE_MBUS_BOOTROM_TARGET,
-				    DOVE_MBUS_BOOTROM_ATTR,
-				    DOVE_BOOTROM_PHYS_BASE,
-				    DOVE_BOOTROM_SIZE);
+								DOVE_MBUS_BOOTROM_ATTR,
+								DOVE_BOOTROM_PHYS_BASE,
+								DOVE_BOOTROM_SIZE);
 	mvebu_mbus_add_window_by_id(DOVE_MBUS_SCRATCHPAD_TARGET,
-				    DOVE_MBUS_SCRATCHPAD_ATTR,
-				    DOVE_SCRATCHPAD_PHYS_BASE,
-				    DOVE_SCRATCHPAD_SIZE);
+								DOVE_MBUS_SCRATCHPAD_ATTR,
+								DOVE_SCRATCHPAD_PHYS_BASE,
+								DOVE_SCRATCHPAD_SIZE);
 }
 
-static struct resource orion_wdt_resource[] = {
-		DEFINE_RES_MEM(TIMER_PHYS_BASE, 0x04),
-		DEFINE_RES_MEM(RSTOUTn_MASK_PHYS, 0x04),
+static struct resource orion_wdt_resource[] =
+{
+	DEFINE_RES_MEM(TIMER_PHYS_BASE, 0x04),
+	DEFINE_RES_MEM(RSTOUTn_MASK_PHYS, 0x04),
 };
 
-static struct platform_device orion_wdt_device = {
+static struct platform_device orion_wdt_device =
+{
 	.name		= "orion_wdt",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(orion_wdt_resource),
@@ -392,7 +399,8 @@ static void __init __maybe_unused orion_wdt_init(void)
 	platform_device_register(&orion_wdt_device);
 }
 
-static const struct dove_pmu_domain_initdata pmu_domains[] __initconst = {
+static const struct dove_pmu_domain_initdata pmu_domains[] __initconst =
+{
 	{
 		.pwr_mask = PMU_PWR_VPU_PWR_DWN_MASK,
 		.rst_mask = PMU_SW_RST_VIDEO_MASK,
@@ -408,7 +416,8 @@ static const struct dove_pmu_domain_initdata pmu_domains[] __initconst = {
 	},
 };
 
-static const struct dove_pmu_initdata pmu_data __initconst = {
+static const struct dove_pmu_initdata pmu_data __initconst =
+{
 	.pmc_base = DOVE_PMU_VIRT_BASE,
 	.pmu_base = DOVE_PMU_VIRT_BASE + 0x8000,
 	.irq = IRQ_DOVE_PMU,
@@ -419,7 +428,7 @@ static const struct dove_pmu_initdata pmu_data __initconst = {
 void __init dove_init(void)
 {
 	pr_info("Dove 88AP510 SoC, TCLK = %d MHz.\n",
-		(dove_tclk + 499999) / 1000000);
+			(dove_tclk + 499999) / 1000000);
 
 #ifdef CONFIG_CACHE_TAUROS2
 	tauros2_init(0);

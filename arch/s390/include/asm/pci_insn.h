@@ -51,7 +51,8 @@
 #define ZPCI_FIB_FC_DMAAS_REG	0x10
 
 /* Function Information Block */
-struct zpci_fib {
+struct zpci_fib
+{
 	u32 fmt		:  8;	/* format */
 	u32		: 24;
 	u32		: 32;

@@ -32,7 +32,8 @@
 #include <asm/mpic.h>
 #include <asm/mmu.h>
 
-static const struct of_device_id iss4xx_of_bus[] __initconst = {
+static const struct of_device_id iss4xx_of_bus[] __initconst =
+{
 	{ .compatible = "ibm,plb4", },
 	{ .compatible = "ibm,plb6", },
 	{ .compatible = "ibm,opb", },
@@ -55,19 +56,28 @@ static void __init iss4xx_init_irq(void)
 	struct device_node *np;
 
 	/* Find top level interrupt controller */
-	for_each_node_with_property(np, "interrupt-controller") {
+	for_each_node_with_property(np, "interrupt-controller")
+	{
 		if (of_get_property(np, "interrupts", NULL) == NULL)
+		{
 			break;
+		}
 	}
+
 	if (np == NULL)
+	{
 		panic("Can't find top level interrupt controller");
+	}
 
 	/* Check type and do appropriate initialization */
-	if (of_device_is_compatible(np, "ibm,uic")) {
+	if (of_device_is_compatible(np, "ibm,uic"))
+	{
 		uic_init_tree();
 		ppc_md.get_irq = uic_get_irq;
 #ifdef CONFIG_MPIC
-	} else if (of_device_is_compatible(np, "chrp,open-pic")) {
+	}
+	else if (of_device_is_compatible(np, "chrp,open-pic"))
+	{
 		/* The MPIC driver will get everything it needs from the
 		 * device-tree, just pass 0 to all arguments
 		 */
@@ -76,8 +86,11 @@ static void __init iss4xx_init_irq(void)
 		mpic_init(mpic);
 		ppc_md.get_irq = mpic_get_irq;
 #endif
-	} else
+	}
+	else
+	{
 		panic("Unrecognized top level interrupt controller");
+	}
 }
 
 #ifdef CONFIG_SMP
@@ -100,8 +113,10 @@ static int smp_iss4xx_kick_cpu(int cpu)
 	 * our only supported method
 	 */
 	spin_table_addr_prop = of_get_property(cpunode, "cpu-release-addr",
-					       NULL);
-	if (spin_table_addr_prop == NULL) {
+										   NULL);
+
+	if (spin_table_addr_prop == NULL)
+	{
 		pr_err("CPU%d: Can't start, missing cpu-release-addr !\n", cpu);
 		return -ENOENT;
 	}
@@ -120,7 +135,8 @@ static int smp_iss4xx_kick_cpu(int cpu)
 	return 0;
 }
 
-static struct smp_ops_t iss_smp_ops = {
+static struct smp_ops_t iss_smp_ops =
+{
 	.probe		= smp_mpic_probe,
 	.message_pass	= smp_mpic_message_pass,
 	.setup_cpu	= smp_iss4xx_setup_cpu,
@@ -132,7 +148,9 @@ static struct smp_ops_t iss_smp_ops = {
 static void __init iss4xx_smp_init(void)
 {
 	if (mmu_has_feature(MMU_FTR_TYPE_47x))
+	{
 		smp_ops = &iss_smp_ops;
+	}
 }
 
 #else /* CONFIG_SMP */
@@ -150,17 +168,20 @@ static void __init iss4xx_setup_arch(void)
 static int __init iss4xx_probe(void)
 {
 	if (!of_machine_is_compatible("ibm,iss-4xx"))
+	{
 		return 0;
+	}
 
 	return 1;
 }
 
-define_machine(iss4xx) {
+define_machine(iss4xx)
+{
 	.name			= "ISS-4xx",
-	.probe			= iss4xx_probe,
-	.progress		= udbg_progress,
-	.init_IRQ		= iss4xx_init_irq,
-	.setup_arch		= iss4xx_setup_arch,
-	.restart		= ppc4xx_reset_system,
-	.calibrate_decr		= generic_calibrate_decr,
+			 .probe			= iss4xx_probe,
+					 .progress		= udbg_progress,
+						   .init_IRQ		= iss4xx_init_irq,
+								 .setup_arch		= iss4xx_setup_arch,
+									 .restart		= ppc4xx_reset_system,
+											.calibrate_decr		= generic_calibrate_decr,
 };

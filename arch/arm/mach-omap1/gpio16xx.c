@@ -33,7 +33,8 @@
 #define SYSCONFIG_WORD			0x14
 
 /* mpu gpio */
-static struct resource omap16xx_mpu_gpio_resources[] = {
+static struct resource omap16xx_mpu_gpio_resources[] =
+{
 	{
 		.start	= OMAP1_MPUIO_VBASE,
 		.end	= OMAP1_MPUIO_VBASE + SZ_2K - 1,
@@ -45,7 +46,8 @@ static struct resource omap16xx_mpu_gpio_resources[] = {
 	},
 };
 
-static struct omap_gpio_reg_offs omap16xx_mpuio_regs = {
+static struct omap_gpio_reg_offs omap16xx_mpuio_regs =
+{
 	.revision       = USHRT_MAX,
 	.direction	= OMAP_MPUIO_IO_CNTL,
 	.datain		= OMAP_MPUIO_INPUT_LATCH,
@@ -56,14 +58,16 @@ static struct omap_gpio_reg_offs omap16xx_mpuio_regs = {
 	.irqctrl	= OMAP_MPUIO_GPIO_INT_EDGE,
 };
 
-static struct omap_gpio_platform_data omap16xx_mpu_gpio_config = {
+static struct omap_gpio_platform_data omap16xx_mpu_gpio_config =
+{
 	.is_mpuio		= true,
 	.bank_width		= 16,
 	.bank_stride		= 1,
 	.regs                   = &omap16xx_mpuio_regs,
 };
 
-static struct platform_device omap16xx_mpu_gpio = {
+static struct platform_device omap16xx_mpu_gpio =
+{
 	.name           = "omap_gpio",
 	.id             = 0,
 	.dev            = {
@@ -74,7 +78,8 @@ static struct platform_device omap16xx_mpu_gpio = {
 };
 
 /* gpio1 */
-static struct resource omap16xx_gpio1_resources[] = {
+static struct resource omap16xx_gpio1_resources[] =
+{
 	{
 		.start	= OMAP1610_GPIO1_BASE,
 		.end	= OMAP1610_GPIO1_BASE + SZ_2K - 1,
@@ -86,7 +91,8 @@ static struct resource omap16xx_gpio1_resources[] = {
 	},
 };
 
-static struct omap_gpio_reg_offs omap16xx_gpio_regs = {
+static struct omap_gpio_reg_offs omap16xx_gpio_regs =
+{
 	.revision       = OMAP1610_GPIO_REVISION,
 	.direction	= OMAP1610_GPIO_DIRECTION,
 	.set_dataout	= OMAP1610_GPIO_SET_DATAOUT,
@@ -102,12 +108,14 @@ static struct omap_gpio_reg_offs omap16xx_gpio_regs = {
 	.edgectrl2	= OMAP1610_GPIO_EDGE_CTRL2,
 };
 
-static struct omap_gpio_platform_data omap16xx_gpio1_config = {
+static struct omap_gpio_platform_data omap16xx_gpio1_config =
+{
 	.bank_width		= 16,
 	.regs                   = &omap16xx_gpio_regs,
 };
 
-static struct platform_device omap16xx_gpio1 = {
+static struct platform_device omap16xx_gpio1 =
+{
 	.name           = "omap_gpio",
 	.id             = 1,
 	.dev            = {
@@ -118,7 +126,8 @@ static struct platform_device omap16xx_gpio1 = {
 };
 
 /* gpio2 */
-static struct resource omap16xx_gpio2_resources[] = {
+static struct resource omap16xx_gpio2_resources[] =
+{
 	{
 		.start	= OMAP1610_GPIO2_BASE,
 		.end	= OMAP1610_GPIO2_BASE + SZ_2K - 1,
@@ -130,12 +139,14 @@ static struct resource omap16xx_gpio2_resources[] = {
 	},
 };
 
-static struct omap_gpio_platform_data omap16xx_gpio2_config = {
+static struct omap_gpio_platform_data omap16xx_gpio2_config =
+{
 	.bank_width		= 16,
 	.regs                   = &omap16xx_gpio_regs,
 };
 
-static struct platform_device omap16xx_gpio2 = {
+static struct platform_device omap16xx_gpio2 =
+{
 	.name           = "omap_gpio",
 	.id             = 2,
 	.dev            = {
@@ -146,7 +157,8 @@ static struct platform_device omap16xx_gpio2 = {
 };
 
 /* gpio3 */
-static struct resource omap16xx_gpio3_resources[] = {
+static struct resource omap16xx_gpio3_resources[] =
+{
 	{
 		.start	= OMAP1610_GPIO3_BASE,
 		.end	= OMAP1610_GPIO3_BASE + SZ_2K - 1,
@@ -158,12 +170,14 @@ static struct resource omap16xx_gpio3_resources[] = {
 	},
 };
 
-static struct omap_gpio_platform_data omap16xx_gpio3_config = {
+static struct omap_gpio_platform_data omap16xx_gpio3_config =
+{
 	.bank_width		= 16,
 	.regs                   = &omap16xx_gpio_regs,
 };
 
-static struct platform_device omap16xx_gpio3 = {
+static struct platform_device omap16xx_gpio3 =
+{
 	.name           = "omap_gpio",
 	.id             = 3,
 	.dev            = {
@@ -174,7 +188,8 @@ static struct platform_device omap16xx_gpio3 = {
 };
 
 /* gpio4 */
-static struct resource omap16xx_gpio4_resources[] = {
+static struct resource omap16xx_gpio4_resources[] =
+{
 	{
 		.start	= OMAP1610_GPIO4_BASE,
 		.end	= OMAP1610_GPIO4_BASE + SZ_2K - 1,
@@ -186,12 +201,14 @@ static struct resource omap16xx_gpio4_resources[] = {
 	},
 };
 
-static struct omap_gpio_platform_data omap16xx_gpio4_config = {
+static struct omap_gpio_platform_data omap16xx_gpio4_config =
+{
 	.bank_width		= 16,
 	.regs                   = &omap16xx_gpio_regs,
 };
 
-static struct platform_device omap16xx_gpio4 = {
+static struct platform_device omap16xx_gpio4 =
+{
 	.name           = "omap_gpio",
 	.id             = 4,
 	.dev            = {
@@ -201,7 +218,8 @@ static struct platform_device omap16xx_gpio4 = {
 	.resource = omap16xx_gpio4_resources,
 };
 
-static struct platform_device *omap16xx_gpio_dev[] __initdata = {
+static struct platform_device *omap16xx_gpio_dev[] __initdata =
+{
 	&omap16xx_mpu_gpio,
 	&omap16xx_gpio1,
 	&omap16xx_gpio2,
@@ -223,27 +241,34 @@ static int __init omap16xx_gpio_init(void)
 	struct omap_gpio_platform_data *pdata;
 
 	if (!cpu_is_omap16xx())
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Enable system clock for GPIO module.
 	 * The CAM_CLK_CTRL *is* really the right place.
 	 */
 	omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
-					ULPD_CAM_CLK_CTRL);
+				ULPD_CAM_CLK_CTRL);
 
-	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++) {
+	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++)
+	{
 		pdev = omap16xx_gpio_dev[i];
 		pdata = pdev->dev.platform_data;
 
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-		if (unlikely(!res)) {
+
+		if (unlikely(!res))
+		{
 			dev_err(&pdev->dev, "Invalid mem resource.\n");
 			return -ENODEV;
 		}
 
 		base = ioremap(res->start, resource_size(res));
-		if (unlikely(!base)) {
+
+		if (unlikely(!base))
+		{
 			dev_err(&pdev->dev, "ioremap failed.\n");
 			return -ENOMEM;
 		}

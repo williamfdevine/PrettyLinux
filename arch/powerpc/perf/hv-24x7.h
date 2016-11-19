@@ -3,14 +3,16 @@
 
 #include <linux/types.h>
 
-enum hv_perf_domains {
+enum hv_perf_domains
+{
 #define DOMAIN(n, v, x, c) HV_PERF_DOMAIN_##n = v,
 #include "hv-24x7-domains.h"
 #undef DOMAIN
 	HV_PERF_DOMAIN_MAX,
 };
 
-struct hv_24x7_request {
+struct hv_24x7_request
+{
 	/* PHYSICAL domains require enabling via phyp/hmc. */
 	__u8 performance_domain;
 	__u8 reserved[0x1];
@@ -44,7 +46,8 @@ struct hv_24x7_request {
 	__be16 max_ix;
 } __packed;
 
-struct hv_24x7_request_buffer {
+struct hv_24x7_request_buffer
+{
 	/* 0 - ? */
 	/* 1 - ? */
 #define HV_24X7_IF_VERSION_CURRENT 0x01
@@ -54,7 +57,8 @@ struct hv_24x7_request_buffer {
 	struct hv_24x7_request requests[1];
 } __packed;
 
-struct hv_24x7_result_element {
+struct hv_24x7_result_element
+{
 	__be16 lpar_ix;
 
 	/*
@@ -70,7 +74,8 @@ struct hv_24x7_result_element {
 	__u64 element_data[1];
 } __packed;
 
-struct hv_24x7_result {
+struct hv_24x7_result
+{
 	__u8 result_ix;
 
 	/*
@@ -91,7 +96,8 @@ struct hv_24x7_result {
 	struct hv_24x7_result_element elements[1];
 } __packed;
 
-struct hv_24x7_data_result_buffer {
+struct hv_24x7_data_result_buffer
+{
 	/* See versioning for request buffer */
 	__u8 interface_version;
 

@@ -21,7 +21,9 @@ void bonito_irqdispatch(void)
 
 	/* workaround the IO dma problem: let cpu looping to allow DMA finish */
 	int_status = LOONGSON_INTISR;
-	while (int_status & (1 << 10)) {
+
+	while (int_status & (1 << 10))
+	{
 		udelay(1);
 		int_status = LOONGSON_INTISR;
 	}
@@ -29,7 +31,8 @@ void bonito_irqdispatch(void)
 	/* Get pending sources, masked by current enables */
 	int_status = LOONGSON_INTISR & LOONGSON_INTEN;
 
-	if (int_status) {
+	if (int_status)
+	{
 		i = __ffs(int_status);
 		do_IRQ(LOONGSON_IRQ_BASE + i);
 	}

@@ -7,7 +7,8 @@
 
 struct pt_regs;
 
-enum die_val {
+enum die_val
+{
 	DIE_OOPS = 1,
 	DIE_BPT,
 	DIE_SSTEP,

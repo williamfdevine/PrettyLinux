@@ -36,8 +36,11 @@
 void clear_reset_status(unsigned int mask)
 {
 	if (cpu_is_pxa2xx())
+	{
 		pxa2xx_clear_reset_status(mask);
-	else {
+	}
+	else
+	{
 		/* RESET_STATUS_* has a 1:1 mapping with ARSR */
 		ARSR = mask;
 	}
@@ -48,11 +51,17 @@ unsigned long get_clock_tick_rate(void)
 	unsigned long clock_tick_rate;
 
 	if (cpu_is_pxa25x())
+	{
 		clock_tick_rate = 3686400;
+	}
 	else if (machine_is_mainstone())
+	{
 		clock_tick_rate = 3249600;
+	}
 	else
+	{
 		clock_tick_rate = 3250000;
+	}
 
 	return clock_tick_rate;
 }
@@ -64,13 +73,22 @@ EXPORT_SYMBOL(get_clock_tick_rate);
 void __init pxa_timer_init(void)
 {
 	if (cpu_is_pxa25x())
+	{
 		pxa25x_clocks_init();
+	}
+
 	if (cpu_is_pxa27x())
+	{
 		pxa27x_clocks_init();
+	}
+
 	if (cpu_is_pxa3xx())
+	{
 		pxa3xx_clocks_init();
+	}
+
 	pxa_timer_nodt_init(IRQ_OST0, io_p2v(0x40a00000),
-			    get_clock_tick_rate());
+						get_clock_tick_rate());
 }
 
 /*
@@ -81,9 +99,14 @@ void __init pxa_timer_init(void)
 unsigned int get_clk_frequency_khz(int info)
 {
 	if (cpu_is_pxa25x())
+	{
 		return pxa25x_get_clk_frequency_khz(info);
+	}
 	else if (cpu_is_pxa27x())
+	{
 		return pxa27x_get_clk_frequency_khz(info);
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(get_clk_frequency_khz);
@@ -94,8 +117,9 @@ EXPORT_SYMBOL(get_clk_frequency_khz);
  * Note: virtual 0xfffe0000-0xffffffff is reserved for the vector table
  *       and cache flush area.
  */
-static struct map_desc common_io_desc[] __initdata = {
-  	{	/* Devs */
+static struct map_desc common_io_desc[] __initdata =
+{
+	{	/* Devs */
 		.virtual	= (unsigned long)PERIPH_VIRT,
 		.pfn		= __phys_to_pfn(PERIPH_PHYS),
 		.length		= PERIPH_SIZE,

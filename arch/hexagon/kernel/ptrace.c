@@ -48,9 +48,9 @@ void user_disable_single_step(struct task_struct *child)
 #endif
 
 static int genregs_get(struct task_struct *target,
-		   const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   void *kbuf, void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   void *kbuf, void __user *ubuf)
 {
 	int ret;
 	unsigned int dummy;
@@ -58,7 +58,9 @@ static int genregs_get(struct task_struct *target,
 
 
 	if (!regs)
+	{
 		return -EIO;
+	}
 
 	/* The general idea here is that the copyout must happen in
 	 * exactly the same order in which the userspace expects these
@@ -67,14 +69,14 @@ static int genregs_get(struct task_struct *target,
 	 * happens one at a time.
 	 */
 	ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				  &regs->r00, 0, 32*sizeof(unsigned long));
+							  &regs->r00, 0, 32 * sizeof(unsigned long));
 
 #define ONEXT(KPT_REG, USR_REG) \
 	if (!ret) \
 		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf, \
-			KPT_REG, offsetof(struct user_regs_struct, USR_REG), \
-			offsetof(struct user_regs_struct, USR_REG) + \
-				 sizeof(unsigned long));
+								  KPT_REG, offsetof(struct user_regs_struct, USR_REG), \
+								  offsetof(struct user_regs_struct, USR_REG) + \
+								  sizeof(unsigned long));
 
 	/* Must be exactly same sequence as struct user_regs_struct */
 	ONEXT(&regs->sa0, sa0);
@@ -99,31 +101,34 @@ static int genregs_get(struct task_struct *target,
 	/* Pad the rest with zeros, if needed */
 	if (!ret)
 		ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf,
-					offsetof(struct user_regs_struct, pad1), -1);
+									   offsetof(struct user_regs_struct, pad1), -1);
+
 	return ret;
 }
 
 static int genregs_set(struct task_struct *target,
-		   const struct user_regset *regset,
-		   unsigned int pos, unsigned int count,
-		   const void *kbuf, const void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   const void *kbuf, const void __user *ubuf)
 {
 	int ret;
 	unsigned long bucket;
 	struct pt_regs *regs = task_pt_regs(target);
 
 	if (!regs)
+	{
 		return -EIO;
+	}
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 &regs->r00, 0, 32*sizeof(unsigned long));
+							 &regs->r00, 0, 32 * sizeof(unsigned long));
 
 #define INEXT(KPT_REG, USR_REG) \
 	if (!ret) \
 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, \
-			KPT_REG, offsetof(struct user_regs_struct, USR_REG), \
-			offsetof(struct user_regs_struct, USR_REG) + \
-				sizeof(unsigned long));
+								 KPT_REG, offsetof(struct user_regs_struct, USR_REG), \
+								 offsetof(struct user_regs_struct, USR_REG) + \
+								 sizeof(unsigned long));
 
 	/* Must be exactly same sequence as struct user_regs_struct */
 	INEXT(&regs->sa0, sa0);
@@ -150,10 +155,12 @@ static int genregs_set(struct task_struct *target,
 	/* Ignore the rest, if needed */
 	if (!ret)
 		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-					offsetof(struct user_regs_struct, pad1), -1);
+										offsetof(struct user_regs_struct, pad1), -1);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * This is special; SP is actually restored by the VM via the
@@ -163,11 +170,13 @@ static int genregs_set(struct task_struct *target,
 	return 0;
 }
 
-enum hexagon_regset {
+enum hexagon_regset
+{
 	REGSET_GENERAL,
 };
 
-static const struct user_regset hexagon_regsets[] = {
+static const struct user_regset hexagon_regsets[] =
+{
 	[REGSET_GENERAL] = {
 		.core_note_type = NT_PRSTATUS,
 		.n = ELF_NGREG,
@@ -178,7 +187,8 @@ static const struct user_regset hexagon_regsets[] = {
 	},
 };
 
-static const struct user_regset_view hexagon_user_view = {
+static const struct user_regset_view hexagon_user_view =
+{
 	.name = UTS_MACHINE,
 	.e_machine = ELF_ARCH,
 	.ei_osabi = ELF_OSABI,
@@ -199,7 +209,7 @@ void ptrace_disable(struct task_struct *child)
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	return ptrace_request(child, request, addr, data);
 }

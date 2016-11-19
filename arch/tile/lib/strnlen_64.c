@@ -28,16 +28,21 @@ size_t strnlen(const char *s, size_t count)
 
 	/* Avoid page fault risk by not reading any bytes when count is 0. */
 	if (count == 0)
+	{
 		return 0;
+	}
 
 	/* Read and MASK the first word. */
 	v = *p | MASK(s_int);
 
-	while ((bits = __insn_v1cmpeqi(v, 0)) == 0) {
-		if (bytes_read >= count) {
+	while ((bits = __insn_v1cmpeqi(v, 0)) == 0)
+	{
+		if (bytes_read >= count)
+		{
 			/* Read COUNT bytes and didn't find the terminator. */
 			return count;
 		}
+
 		v = *++p;
 		bytes_read += sizeof(v);
 	}

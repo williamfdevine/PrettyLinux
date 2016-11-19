@@ -39,17 +39,21 @@
 
 static void led_print (int f, char *s)
 {
-	unsigned long* led_addr = (unsigned long*) (XT2000_LED_ADDR + 0xE0) + f;
+	unsigned long *led_addr = (unsigned long *) (XT2000_LED_ADDR + 0xE0) + f;
 	int i;
+
 	for (i = f; i < 8; i++)
 		if ((*led_addr++ = *s++) == 0)
-		    break;
+		{
+			break;
+		}
 }
 
 void platform_halt(void)
 {
 	led_print (0, "  HALT  ");
 	local_irq_disable();
+
 	while (1);
 }
 
@@ -57,6 +61,7 @@ void platform_power_off(void)
 {
 	led_print (0, "POWEROFF");
 	local_irq_disable();
+
 	while (1);
 }
 
@@ -68,7 +73,7 @@ void platform_restart(void)
 	/* control never gets here */
 }
 
-void __init platform_setup(char** cmdline)
+void __init platform_setup(char **cmdline)
 {
 	led_print (0, "LINUX   ");
 }
@@ -83,12 +88,12 @@ void __init platform_init(bp_tag_t *first)
 
 void platform_heartbeat(void)
 {
-	static int i=0, t = 0;
+	static int i = 0, t = 0;
 
 	if (--t < 0)
 	{
 		t = 59;
-		led_print(7, i ? ".": " ");
+		led_print(7, i ? "." : " ");
 		i ^= 1;
 	}
 }
@@ -96,17 +101,18 @@ void platform_heartbeat(void)
 //#define RS_TABLE_SIZE 2
 
 #define _SERIAL_PORT(_base,_irq)					\
-{									\
-	.mapbase	= (_base),					\
-	.membase	= (void*)(_base),				\
-	.irq		= (_irq),					\
-	.uartclk	= DUART16552_XTAL_FREQ,				\
-	.iotype		= UPIO_MEM,					\
-	.flags		= UPF_BOOT_AUTOCONF,				\
-	.regshift	= 2,						\
-}
+	{									\
+		.mapbase	= (_base),					\
+					  .membase	= (void*)(_base),				\
+									.irq		= (_irq),					\
+											.uartclk	= DUART16552_XTAL_FREQ,				\
+													.iotype		= UPIO_MEM,					\
+															.flags		= UPF_BOOT_AUTOCONF,				\
+																	.regshift	= 2,						\
+	}
 
-static struct plat_serial8250_port xt2000_serial_data[] = {
+static struct plat_serial8250_port xt2000_serial_data[] =
+{
 #if XCHAL_HAVE_BE
 	_SERIAL_PORT(DUART16552_1_ADDR + 3, DUART16552_1_INTNUM),
 	_SERIAL_PORT(DUART16552_2_ADDR + 3, DUART16552_2_INTNUM),
@@ -117,15 +123,17 @@ static struct plat_serial8250_port xt2000_serial_data[] = {
 	{ }
 };
 
-static struct platform_device xt2000_serial8250_device = {
+static struct platform_device xt2000_serial8250_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev		= {
-	    .platform_data = xt2000_serial_data,
+		.platform_data = xt2000_serial_data,
 	},
 };
 
-static struct resource xt2000_sonic_res[] = {
+static struct resource xt2000_sonic_res[] =
+{
 	{
 		.start = SONIC83934_ADDR,
 		.end   = SONIC83934_ADDR + 0xff,
@@ -138,7 +146,8 @@ static struct resource xt2000_sonic_res[] = {
 	},
 };
 
-static struct platform_device xt2000_sonic_device = {
+static struct platform_device xt2000_sonic_device =
+{
 	.name		= "xtsonic",
 	.num_resources	= ARRAY_SIZE(xt2000_sonic_res),
 	.resource		= xt2000_sonic_res,

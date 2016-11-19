@@ -33,15 +33,22 @@ static void mvebu_armada_pm_enter(void __iomem *sdram_reg, u32 srcmd)
 
 	/* Put 001 as value on the GPIOs */
 	reg = readl(gpio_ctrl);
+
 	for (i = 0; i < ARMADA_PIC_NR_GPIOS; i++)
+	{
 		reg &= ~BIT(pic_raw_gpios[i]);
+	}
+
 	reg |= BIT(pic_raw_gpios[0]);
 	writel(reg, gpio_ctrl);
 
 	/* Prepare writing 111 to the GPIOs */
 	ackcmd = readl(gpio_ctrl);
+
 	for (i = 0; i < ARMADA_PIC_NR_GPIOS; i++)
+	{
 		ackcmd |= BIT(pic_raw_gpios[i]);
+	}
 
 	srcmd = cpu_to_le32(srcmd);
 	ackcmd = cpu_to_le32(ackcmd);
@@ -73,7 +80,7 @@ static void mvebu_armada_pm_enter(void __iomem *sdram_reg, u32 srcmd)
 		/* Trap the processor */
 		"b .\n\t"
 		: : [srcmd] "r" (srcmd), [sdram_reg] "r" (sdram_reg),
-		  [ackcmd] "r" (ackcmd), [gpio_ctrl] "r" (gpio_ctrl) : "r1");
+		[ackcmd] "r" (ackcmd), [gpio_ctrl] "r" (gpio_ctrl) : "r1");
 }
 
 static int __init mvebu_armada_pm_init(void)
@@ -83,44 +90,60 @@ static int __init mvebu_armada_pm_init(void)
 	int ret = 0, i;
 
 	if (!of_machine_is_compatible("marvell,axp-gp"))
+	{
 		return -ENODEV;
+	}
 
 	np = of_find_node_by_name(NULL, "pm_pic");
-	if (!np)
-		return -ENODEV;
 
-	for (i = 0; i < ARMADA_PIC_NR_GPIOS; i++) {
+	if (!np)
+	{
+		return -ENODEV;
+	}
+
+	for (i = 0; i < ARMADA_PIC_NR_GPIOS; i++)
+	{
 		char *name;
 		struct of_phandle_args args;
 
 		pic_gpios[i] = of_get_named_gpio(np, "ctrl-gpios", i);
-		if (pic_gpios[i] < 0) {
+
+		if (pic_gpios[i] < 0)
+		{
 			ret = -ENODEV;
 			goto out;
 		}
 
 		name = kasprintf(GFP_KERNEL, "pic-pin%d", i);
-		if (!name) {
+
+		if (!name)
+		{
 			ret = -ENOMEM;
 			goto out;
 		}
 
 		ret = gpio_request(pic_gpios[i], name);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			kfree(name);
 			goto out;
 		}
 
 		ret = gpio_direction_output(pic_gpios[i], 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			gpio_free(pic_gpios[i]);
 			kfree(name);
 			goto out;
 		}
 
 		ret = of_parse_phandle_with_fixed_args(np, "ctrl-gpios", 2,
-						       i, &args);
-		if (ret < 0) {
+											   i, &args);
+
+		if (ret < 0)
+		{
 			gpio_free(pic_gpios[i]);
 			kfree(name);
 			goto out;
@@ -131,8 +154,11 @@ static int __init mvebu_armada_pm_init(void)
 	}
 
 	gpio_ctrl = of_iomap(gpio_ctrl_np, 0);
+
 	if (!gpio_ctrl)
+	{
 		return -ENOMEM;
+	}
 
 	mvebu_pm_suspend_init(mvebu_armada_pm_enter);
 

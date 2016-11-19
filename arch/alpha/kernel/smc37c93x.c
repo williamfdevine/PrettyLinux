@@ -15,9 +15,9 @@
 #define SMC_DEBUG 0
 
 #if SMC_DEBUG
-# define DBG_DEVS(args)         printk args
+	#define DBG_DEVS(args)         printk args
 #else
-# define DBG_DEVS(args)
+	#define DBG_DEVS(args)
 #endif
 
 #define KB              1024
@@ -97,14 +97,19 @@ static unsigned long __init SMCConfigState(unsigned long baseAddr)
 		outb(CONFIG_ON_KEY, configPort);
 		outb(DEVICE_ID, indexPort);
 		devId = inb(dataPort);
-		if (devId == VALID_DEVICE_ID) {
+
+		if (devId == VALID_DEVICE_ID)
+		{
 			outb(DEVICE_REV, indexPort);
 			/* unsigned char devRev = */ inb(dataPort);
 			break;
 		}
 		else
+		{
 			udelay(100);
+		}
 	}
+
 	return (i != NUM_RETRIES) ? baseAddr : 0L;
 }
 
@@ -118,20 +123,26 @@ static unsigned long __init SMCDetectUltraIO(void)
 	unsigned long baseAddr;
 
 	baseAddr = 0x3F0;
-	if ( ( baseAddr = SMCConfigState( baseAddr ) ) == 0x3F0 ) {
-		return( baseAddr );
+
+	if ( ( baseAddr = SMCConfigState( baseAddr ) ) == 0x3F0 )
+	{
+		return ( baseAddr );
 	}
+
 	baseAddr = 0x370;
-	if ( ( baseAddr = SMCConfigState( baseAddr ) ) == 0x370 ) {
-		return( baseAddr );
+
+	if ( ( baseAddr = SMCConfigState( baseAddr ) ) == 0x370 )
+	{
+		return ( baseAddr );
 	}
-	return( ( unsigned long )0 );
+
+	return ( ( unsigned long )0 );
 }
 
 static void __init SMCEnableDevice(unsigned long baseAddr,
-			    unsigned long device,
-			    unsigned long portaddr,
-			    unsigned long interrupt)
+								   unsigned long device,
+								   unsigned long portaddr,
+								   unsigned long interrupt)
 {
 	unsigned long indexPort;
 	unsigned long dataPort;
@@ -219,17 +230,17 @@ static void __init SMCReportDeviceStatus(unsigned long baseAddr)
 	currentControl = inb(dataPort);
 
 	printk(currentControl & (1 << FDC)
-	       ? "\t+FDC Enabled\n" : "\t-FDC Disabled\n");
+		   ? "\t+FDC Enabled\n" : "\t-FDC Disabled\n");
 	printk(currentControl & (1 << IDE1)
-	       ? "\t+IDE1 Enabled\n" : "\t-IDE1 Disabled\n");
+		   ? "\t+IDE1 Enabled\n" : "\t-IDE1 Disabled\n");
 	printk(currentControl & (1 << IDE2)
-	       ? "\t+IDE2 Enabled\n" : "\t-IDE2 Disabled\n");
+		   ? "\t+IDE2 Enabled\n" : "\t-IDE2 Disabled\n");
 	printk(currentControl & (1 << PARP)
-	       ? "\t+PARP Enabled\n" : "\t-PARP Disabled\n");
+		   ? "\t+PARP Enabled\n" : "\t-PARP Disabled\n");
 	printk(currentControl & (1 << SER1)
-	       ? "\t+SER1 Enabled\n" : "\t-SER1 Disabled\n");
+		   ? "\t+SER1 Enabled\n" : "\t-SER1 Disabled\n");
 	printk(currentControl & (1 << SER2)
-	       ? "\t+SER2 Enabled\n" : "\t-SER2 Disabled\n");
+		   ? "\t+SER2 Enabled\n" : "\t-SER2 Disabled\n");
 
 	printk( "\n" );
 }
@@ -241,7 +252,9 @@ int __init SMC93x_Init(void)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	if ((SMCUltraBase = SMCDetectUltraIO()) != 0UL) {
+
+	if ((SMCUltraBase = SMCDetectUltraIO()) != 0UL)
+	{
 #if SMC_DEBUG
 		SMCReportDeviceStatus(SMCUltraBase);
 #endif
@@ -263,10 +276,11 @@ int __init SMC93x_Init(void)
 		SMCRunState(SMCUltraBase);
 		local_irq_restore(flags);
 		printk("SMC FDC37C93X Ultra I/O Controller found @ 0x%lx\n",
-		       SMCUltraBase);
+			   SMCUltraBase);
 		return 1;
 	}
-	else {
+	else
+	{
 		local_irq_restore(flags);
 		DBG_DEVS(("No SMC FDC37C93X Ultra I/O Controller found\n"));
 		return 0;

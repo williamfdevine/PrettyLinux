@@ -44,8 +44,8 @@ static u8 regcache[63];
  *						-- PFM.
  */
 static int lookup_prev_stack_frame(unsigned long fp, unsigned long pc,
-		      unsigned long *pprev_fp, unsigned long *pprev_pc,
-		      struct pt_regs *regs)
+								   unsigned long *pprev_fp, unsigned long *pprev_pc,
+								   struct pt_regs *regs)
 {
 	const char *sym;
 	char namebuf[128];
@@ -57,26 +57,34 @@ static int lookup_prev_stack_frame(unsigned long fp, unsigned long pc,
 	int i, found_prologue_end = 0;
 
 	sym = kallsyms_lookup(pc, NULL, &offset, NULL, namebuf);
+
 	if (!sym)
+	{
 		return -EINVAL;
+	}
 
 	prologue = pc - offset;
+
 	if (!prologue)
+	{
 		return -EINVAL;
+	}
 
 	/* Validate fp, to avoid risk of dereferencing a bad pointer later.
 	   Assume 128Mb since that's the amount of RAM on a Cayman.  Modify
 	   when there is an SH-5 board with more. */
 	if ((fp < (unsigned long) phys_to_virt(__MEMORY_START)) ||
-	    (fp >= (unsigned long)(phys_to_virt(__MEMORY_START)) + 128*1024*1024) ||
-	    ((fp & 7) != 0)) {
+		(fp >= (unsigned long)(phys_to_virt(__MEMORY_START)) + 128 * 1024 * 1024) ||
+		((fp & 7) != 0))
+	{
 		return -EINVAL;
 	}
 
 	/*
 	 * Depth to walk, depth is completely arbitrary.
 	 */
-	for (i = 0; i < 100; i++, prologue += sizeof(unsigned long)) {
+	for (i = 0; i < 100; i++, prologue += sizeof(unsigned long))
+	{
 		unsigned long op;
 		u8 major, minor;
 		u8 src, dest, disp;
@@ -103,98 +111,134 @@ static int lookup_prev_stack_frame(unsigned long fp, unsigned long pc,
 		 *	sub	r15, rX, r15
 		 */
 
-		switch (major) {
-		case (0x00 >> 2):
-			switch (minor) {
-			case 0x8: /* add.l */
-			case 0x9: /* add */
-				/* Look for r15, r63, r14 */
-				if (src == 15 && disp == 63 && dest == 14)
-					found_prologue_end = 1;
+		switch (major)
+		{
+			case (0x00 >> 2):
+				switch (minor)
+				{
+					case 0x8: /* add.l */
+					case 0x9: /* add */
+
+						/* Look for r15, r63, r14 */
+						if (src == 15 && disp == 63 && dest == 14)
+						{
+							found_prologue_end = 1;
+						}
+
+						break;
+
+					case 0xa: /* sub.l */
+					case 0xb: /* sub */
+						if (src != 15 || dest != 15)
+						{
+							continue;
+						}
+
+						fp_displacement -= regcache[disp];
+						fp_prev = fp - fp_displacement;
+						break;
+				}
 
 				break;
-			case 0xa: /* sub.l */
-			case 0xb: /* sub */
-				if (src != 15 || dest != 15)
-					continue;
 
-				fp_displacement -= regcache[disp];
+			case (0xa8 >> 2): /* st.l */
+				if (src != 15)
+				{
+					continue;
+				}
+
+				switch (dest)
+				{
+					case 14:
+						if (offset_r14 || fp_displacement == 0)
+						{
+							continue;
+						}
+
+						offset_r14 = (u64)(((((s64)op >> 10) & 0x3ff) << 54) >> 54);
+						offset_r14 *= sizeof(unsigned long);
+						offset_r14 += fp_displacement;
+						break;
+
+					case 18:
+						if (offset_r18 || fp_displacement == 0)
+						{
+							continue;
+						}
+
+						offset_r18 = (u64)(((((s64)op >> 10) & 0x3ff) << 54) >> 54);
+						offset_r18 *= sizeof(unsigned long);
+						offset_r18 += fp_displacement;
+						break;
+				}
+
+				break;
+
+			case (0xcc >> 2): /* movi */
+				if (dest >= 63)
+				{
+					printk(KERN_NOTICE "%s: Invalid dest reg %d "
+						   "specified in movi handler. Failed "
+						   "opcode was 0x%lx: ", __func__,
+						   dest, op);
+
+					continue;
+				}
+
+				/* Sign extend */
+				regcache[dest] =
+					sign_extend64((((u64)op >> 10) & 0xffff), 9);
+				break;
+
+			case (0xd0 >> 2): /* addi */
+			case (0xd4 >> 2): /* addi.l */
+
+				/* Look for r15, -FRAME_SIZE, r15 */
+				if (src != 15 || dest != 15)
+				{
+					continue;
+				}
+
+				/* Sign extended frame size.. */
+				fp_displacement +=
+					(u64)(((((s64)op >> 10) & 0x3ff) << 54) >> 54);
 				fp_prev = fp - fp_displacement;
 				break;
-			}
-			break;
-		case (0xa8 >> 2): /* st.l */
-			if (src != 15)
-				continue;
-
-			switch (dest) {
-			case 14:
-				if (offset_r14 || fp_displacement == 0)
-					continue;
-
-				offset_r14 = (u64)(((((s64)op >> 10) & 0x3ff) << 54) >> 54);
-				offset_r14 *= sizeof(unsigned long);
-				offset_r14 += fp_displacement;
-				break;
-			case 18:
-				if (offset_r18 || fp_displacement == 0)
-					continue;
-
-				offset_r18 = (u64)(((((s64)op >> 10) & 0x3ff) << 54) >> 54);
-				offset_r18 *= sizeof(unsigned long);
-				offset_r18 += fp_displacement;
-				break;
-			}
-
-			break;
-		case (0xcc >> 2): /* movi */
-			if (dest >= 63) {
-				printk(KERN_NOTICE "%s: Invalid dest reg %d "
-				       "specified in movi handler. Failed "
-				       "opcode was 0x%lx: ", __func__,
-				       dest, op);
-
-				continue;
-			}
-
-			/* Sign extend */
-			regcache[dest] =
-				sign_extend64((((u64)op >> 10) & 0xffff), 9);
-			break;
-		case (0xd0 >> 2): /* addi */
-		case (0xd4 >> 2): /* addi.l */
-			/* Look for r15, -FRAME_SIZE, r15 */
-			if (src != 15 || dest != 15)
-				continue;
-
-			/* Sign extended frame size.. */
-			fp_displacement +=
-				(u64)(((((s64)op >> 10) & 0x3ff) << 54) >> 54);
-			fp_prev = fp - fp_displacement;
-			break;
 		}
 
 		if (found_prologue_end && offset_r14 && (offset_r18 || *pprev_pc) && fp_prev)
+		{
 			break;
+		}
 	}
 
-	if (offset_r14 == 0 || fp_prev == 0) {
+	if (offset_r14 == 0 || fp_prev == 0)
+	{
 		if (!offset_r14)
+		{
 			pr_debug("Unable to find r14 offset\n");
+		}
+
 		if (!fp_prev)
+		{
 			pr_debug("Unable to find previous fp\n");
+		}
 
 		return -EINVAL;
 	}
 
 	/* For innermost leaf function, there might not be a offset_r18 */
 	if (!*pprev_pc && (offset_r18 == 0))
+	{
 		return -EINVAL;
+	}
 
 	*pprev_fp = *(unsigned long *)(fp_prev + offset_r14);
 
 	if (offset_r18)
+	{
 		*pprev_pc = *(unsigned long *)(fp_prev + offset_r18);
+	}
 
 	*pprev_pc &= ~1;
 
@@ -214,18 +258,20 @@ extern const char ret_from_exception;
 extern const char ret_from_irq;
 
 static void sh64_unwind_inner(const struct stacktrace_ops *ops,
-			      void *data, struct pt_regs *regs);
+							  void *data, struct pt_regs *regs);
 
 static inline void unwind_nested(const struct stacktrace_ops *ops, void *data,
-				 unsigned long pc, unsigned long fp)
+								 unsigned long pc, unsigned long fp)
 {
 	if ((fp >= __MEMORY_START) &&
-	    ((fp & 7) == 0))
+		((fp & 7) == 0))
+	{
 		sh64_unwind_inner(ops, data, (struct pt_regs *)fp);
+	}
 }
 
 static void sh64_unwind_inner(const struct stacktrace_ops *ops,
-			      void *data, struct pt_regs *regs)
+							  void *data, struct pt_regs *regs)
 {
 	unsigned long pc, fp;
 	int ofs = 0;
@@ -235,17 +281,21 @@ static void sh64_unwind_inner(const struct stacktrace_ops *ops,
 	fp = regs->regs[14];
 
 	first_pass = 1;
-	for (;;) {
+
+	for (;;)
+	{
 		int cond;
 		unsigned long next_fp, next_pc;
 
-		if (pc == ((unsigned long)&syscall_ret & ~1)) {
+		if (pc == ((unsigned long)&syscall_ret & ~1))
+		{
 			printk("SYSCALL\n");
 			unwind_nested(ops, data, pc, fp);
 			return;
 		}
 
-		if (pc == ((unsigned long)&ret_from_syscall & ~1)) {
+		if (pc == ((unsigned long)&ret_from_syscall & ~1))
+		{
 			printk("SYSCALL (PREEMPTED)\n");
 			unwind_nested(ops, data, pc, fp);
 			return;
@@ -253,42 +303,51 @@ static void sh64_unwind_inner(const struct stacktrace_ops *ops,
 
 		/* In this case, the PC is discovered by lookup_prev_stack_frame but
 		   it has 4 taken off it to look like the 'caller' */
-		if (pc == ((unsigned long)&ret_from_exception & ~1)) {
+		if (pc == ((unsigned long)&ret_from_exception & ~1))
+		{
 			printk("EXCEPTION\n");
 			unwind_nested(ops, data, pc, fp);
 			return;
 		}
 
-		if (pc == ((unsigned long)&ret_from_irq & ~1)) {
+		if (pc == ((unsigned long)&ret_from_irq & ~1))
+		{
 			printk("IRQ\n");
 			unwind_nested(ops, data, pc, fp);
 			return;
 		}
 
 		cond = ((pc >= __MEMORY_START) && (fp >= __MEMORY_START) &&
-			((pc & 3) == 0) && ((fp & 7) == 0));
+				((pc & 3) == 0) && ((fp & 7) == 0));
 
 		pc -= ofs;
 
 		ops->address(data, pc, 1);
 
-		if (first_pass) {
+		if (first_pass)
+		{
 			/* If the innermost frame is a leaf function, it's
 			 * possible that r18 is never saved out to the stack.
 			 */
 			next_pc = regs->regs[18];
-		} else {
+		}
+		else
+		{
 			next_pc = 0;
 		}
 
-		if (lookup_prev_stack_frame(fp, pc, &next_fp, &next_pc, regs) == 0) {
+		if (lookup_prev_stack_frame(fp, pc, &next_fp, &next_pc, regs) == 0)
+		{
 			ofs = sizeof(unsigned long);
 			pc = next_pc & ~1;
 			fp = next_fp;
-		} else {
+		}
+		else
+		{
 			printk("Unable to lookup previous stack frame\n");
 			break;
 		}
+
 		first_pass = 0;
 	}
 
@@ -296,12 +355,13 @@ static void sh64_unwind_inner(const struct stacktrace_ops *ops,
 }
 
 static void sh64_unwinder_dump(struct task_struct *task,
-			       struct pt_regs *regs,
-			       unsigned long *sp,
-			       const struct stacktrace_ops *ops,
-			       void *data)
+							   struct pt_regs *regs,
+							   unsigned long *sp,
+							   const struct stacktrace_ops *ops,
+							   void *data)
 {
-	if (!regs) {
+	if (!regs)
+	{
 		/*
 		 * Fetch current regs if we have no other saved state to back
 		 * trace from.
@@ -332,7 +392,8 @@ static void sh64_unwinder_dump(struct task_struct *task,
 	sh64_unwind_inner(ops, data, regs);
 }
 
-static struct unwinder sh64_unwinder = {
+static struct unwinder sh64_unwinder =
+{
 	.name	= "sh64-unwinder",
 	.dump	= sh64_unwinder_dump,
 	.rating	= 150,

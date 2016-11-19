@@ -30,11 +30,16 @@ static inline int kvm_para_available(void)
 	struct device_node *hyper_node;
 
 	hyper_node = of_find_node_by_path("/hypervisor");
+
 	if (!hyper_node)
+	{
 		return 0;
+	}
 
 	if (!of_device_is_compatible(hyper_node, "linux,kvm"))
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -53,10 +58,14 @@ static inline unsigned int kvm_arch_para_features(void)
 	unsigned long r;
 
 	if (!kvm_para_available())
+	{
 		return 0;
+	}
 
-	if(epapr_hypercall0_1(KVM_HCALL_TOKEN(KVM_HC_FEATURES), &r))
+	if (epapr_hypercall0_1(KVM_HCALL_TOKEN(KVM_HC_FEATURES), &r))
+	{
 		return 0;
+	}
 
 	return r;
 }

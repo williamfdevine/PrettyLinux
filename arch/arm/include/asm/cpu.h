@@ -13,7 +13,8 @@
 #include <linux/percpu.h>
 #include <linux/cpu.h>
 
-struct cpuinfo_arm {
+struct cpuinfo_arm
+{
 	struct cpu	cpu;
 	u32		cpuid;
 #ifdef CONFIG_SMP

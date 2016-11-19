@@ -61,8 +61,12 @@ static int notrace arch_save_image(unsigned long unused)
 	int ret;
 
 	ret = swsusp_save();
+
 	if (ret == 0)
+	{
 		_soft_restart(virt_to_idmap(cpu_resume), false);
+	}
+
 	return ret;
 }
 
@@ -84,13 +88,16 @@ static void notrace arch_restore_image(void *unused)
 	struct pbe *pbe;
 
 	cpu_switch_mm(idmap_pgd, &init_mm);
+
 	for (pbe = restore_pblist; pbe; pbe = pbe->next)
+	{
 		copy_page(pbe->orig_address, pbe->address);
+	}
 
 	_soft_restart(virt_to_idmap(cpu_resume), false);
 }
 
-static u64 resume_stack[PAGE_SIZE/2/sizeof(u64)] __nosavedata;
+static u64 resume_stack[PAGE_SIZE / 2 / sizeof(u64)] __nosavedata;
 
 /*
  * Resume from the hibernation image.
@@ -101,6 +108,6 @@ static u64 resume_stack[PAGE_SIZE/2/sizeof(u64)] __nosavedata;
 int swsusp_arch_resume(void)
 {
 	call_with_stack(arch_restore_image, 0,
-		resume_stack + ARRAY_SIZE(resume_stack));
+					resume_stack + ARRAY_SIZE(resume_stack));
 	return 0;
 }

@@ -26,7 +26,8 @@
  * stored in the lower 32-bits of the struct kvm_regs fields and sign
  * extended to 64-bits.
  */
-struct kvm_regs {
+struct kvm_regs
+{
 	/* out (KVM_GET_REGS) / in (KVM_SET_REGS) */
 	__u64 gpr[32];
 	__u64 hi;
@@ -37,7 +38,8 @@ struct kvm_regs {
 /*
  * for KVM_GET_FPU and KVM_SET_FPU
  */
-struct kvm_fpu {
+struct kvm_fpu
+{
 };
 
 
@@ -183,23 +185,28 @@ struct kvm_fpu {
  * KVM MIPS specific structures and definitions
  *
  */
-struct kvm_debug_exit_arch {
+struct kvm_debug_exit_arch
+{
 	__u64 epc;
 };
 
 /* for KVM_SET_GUEST_DEBUG */
-struct kvm_guest_debug_arch {
+struct kvm_guest_debug_arch
+{
 };
 
 /* definition of registers in kvm_run */
-struct kvm_sync_regs {
+struct kvm_sync_regs
+{
 };
 
 /* dummy definition */
-struct kvm_sregs {
+struct kvm_sregs
+{
 };
 
-struct kvm_mips_interrupt {
+struct kvm_mips_interrupt
+{
 	/* in */
 	__u32 cpu;
 	__u32 irq;

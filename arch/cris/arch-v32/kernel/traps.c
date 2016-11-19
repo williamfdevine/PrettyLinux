@@ -24,19 +24,19 @@ void show_registers(struct pt_regs *regs)
 	printk("CPU: %d\n", smp_processor_id());
 
 	printk("ERP: %08lx SRP: %08lx  CCS: %08lx USP: %08lx MOF: %08lx\n",
-	       regs->erp, regs->srp, regs->ccs, usp, regs->mof);
+		   regs->erp, regs->srp, regs->ccs, usp, regs->mof);
 
 	printk(" r0: %08lx  r1: %08lx   r2: %08lx  r3: %08lx\n",
-	       regs->r0, regs->r1, regs->r2, regs->r3);
+		   regs->r0, regs->r1, regs->r2, regs->r3);
 
 	printk(" r4: %08lx  r5: %08lx   r6: %08lx  r7: %08lx\n",
-	       regs->r4, regs->r5, regs->r6, regs->r7);
+		   regs->r4, regs->r5, regs->r6, regs->r7);
 
 	printk(" r8: %08lx  r9: %08lx  r10: %08lx r11: %08lx\n",
-	       regs->r8, regs->r9, regs->r10, regs->r11);
+		   regs->r8, regs->r9, regs->r10, regs->r11);
 
 	printk("r12: %08lx r13: %08lx oR10: %08lx acr: %08lx\n",
-	       regs->r12, regs->r13, regs->orig_r10, regs->acr);
+		   regs->r12, regs->r13, regs->orig_r10, regs->acr);
 
 	printk(" sp: %08lx\n", (unsigned long)regs);
 
@@ -50,13 +50,14 @@ void show_registers(struct pt_regs *regs)
 	printk("Instruction MMU Cause: %08lx\n", i_mmu_cause);
 
 	printk("Process %s (pid: %d, stackpage=%08lx)\n",
-	       current->comm, current->pid, (unsigned long)current);
+		   current->comm, current->pid, (unsigned long)current);
 
 	/*
 	 * When in-kernel, we also print out the stack and code at the
 	 * time of the fault..
 	 */
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		int i;
 
 		show_stack(NULL, (unsigned long *)usp);
@@ -66,12 +67,16 @@ void show_registers(struct pt_regs *regs)
 		 * kernel stack now.
 		 */
 		if (usp != 0)
+		{
 			show_stack(NULL, NULL);
+		}
 
 		printk("\nCode: ");
 
 		if (regs->erp < PAGE_OFFSET)
+		{
 			goto bad_value;
+		}
 
 		/*
 		 * Quite often the value at regs->erp doesn't point to the
@@ -82,20 +87,27 @@ void show_registers(struct pt_regs *regs)
 		 * location is pointed out in a ksymoops-friendly way by
 		 * wrapping the byte for that address in parenthesises.
 		 */
-		for (i = -12; i < 12; i++) {
+		for (i = -12; i < 12; i++)
+		{
 			unsigned char c;
 
-			if (__get_user(c, &((unsigned char *)regs->erp)[i])) {
+			if (__get_user(c, &((unsigned char *)regs->erp)[i]))
+			{
 bad_value:
 				printk(" Bad IP value.");
 				break;
 			}
 
 			if (i == 0)
+			{
 				printk("(%02x) ", c);
+			}
 			else
+			{
 				printk("%02x ", c);
+			}
 		}
+
 		printk("\n");
 	}
 }
@@ -117,13 +129,19 @@ void handle_nmi(struct pt_regs *regs)
 #endif
 
 	if (nmi_handler)
+	{
 		nmi_handler(regs);
+	}
 
 #ifdef CONFIG_ETRAXFS
+
 	/* Wait until nmi is no longer active. */
-	do {
+	do
+	{
 		r = REG_RD(intr_vect, regi_irq, r_nmi);
-	} while (r.ext == regk_intr_vect_on);
+	}
+	while (r.ext == regk_intr_vect_on);
+
 #endif
 }
 
@@ -157,7 +175,9 @@ void fixup_BUG(struct pt_regs *regs)
 		 * bytes.
 		 */
 		fixup = search_exception_tables(instruction_pointer(regs) - 2);
-		if (fixup) {
+
+		if (fixup)
+		{
 			/* Adjust the instruction pointer in the stackframe. */
 			instruction_pointer(regs) = fixup->fixup;
 			arch_fixup(regs);
@@ -173,15 +193,15 @@ void fixup_BUG(struct pt_regs *regs)
  * Break 14 handler. Save regs and jump into the fixup_BUG.
  */
 __asm__  ( ".text\n\t"
-	   ".global breakh_BUG\n\t"
-	   "breakh_BUG:\n\t"
-	   SAVE_ALL
-	   KGDB_FIXUP
-	   "move.d $sp, $r10\n\t"
-	   "jsr fixup_BUG\n\t"
-	   "nop\n\t"
-	   "jump ret_from_intr\n\t"
-	   "nop\n\t");
+		   ".global breakh_BUG\n\t"
+		   "breakh_BUG:\n\t"
+		   SAVE_ALL
+		   KGDB_FIXUP
+		   "move.d $sp, $r10\n\t"
+		   "jsr fixup_BUG\n\t"
+		   "nop\n\t"
+		   "jump ret_from_intr\n\t"
+		   "nop\n\t");
 
 
 #ifdef CONFIG_DEBUG_BUGVERBOSE

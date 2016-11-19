@@ -38,7 +38,7 @@
  */
 
 static inline void crash_setup_regs(struct pt_regs *newregs,
-				    struct pt_regs *oldregs)
+									struct pt_regs *oldregs)
 {
 	/* Empty routine needed to avoid build errors. */
 }

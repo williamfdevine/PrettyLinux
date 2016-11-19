@@ -27,12 +27,13 @@
 
 static void jz4740_halt(void)
 {
-	while (1) {
+	while (1)
+	{
 		__asm__(".set push;\n"
-			".set mips3;\n"
-			"wait;\n"
-			".set pop;\n"
-		);
+				".set mips3;\n"
+				"wait;\n"
+				".set pop;\n"
+			   );
 	}
 }
 
@@ -70,9 +71,11 @@ static inline void jz4740_rtc_wait_ready(void __iomem *rtc_base)
 {
 	uint32_t ctrl;
 
-	do {
+	do
+	{
 		ctrl = readl(rtc_base + JZ_REG_RTC_CTRL);
-	} while (!(ctrl & JZ_RTC_CTRL_WRDY));
+	}
+	while (!(ctrl & JZ_RTC_CTRL_WRDY));
 }
 
 static void jz4740_power_off(void)
@@ -84,8 +87,12 @@ static void jz4740_power_off(void)
 	unsigned long rtc_rate;
 
 	rtc_clk = clk_get(NULL, "rtc");
+
 	if (IS_ERR(rtc_clk))
+	{
 		panic("unable to get RTC clock");
+	}
+
 	rtc_rate = clk_get_rate(rtc_clk);
 	clk_put(rtc_clk);
 
@@ -94,10 +101,16 @@ static void jz4740_power_off(void)
 	 * Range is 0 to 2 sec if RTC is clocked at 32 kHz.
 	 */
 	wakeup_filter_ticks = (100 * rtc_rate) / 1000;
+
 	if (wakeup_filter_ticks < JZ_RTC_WAKEUP_FILTER_MASK)
+	{
 		wakeup_filter_ticks &= JZ_RTC_WAKEUP_FILTER_MASK;
+	}
 	else
+	{
 		wakeup_filter_ticks = JZ_RTC_WAKEUP_FILTER_MASK;
+	}
+
 	jz4740_rtc_wait_ready(rtc_base);
 	writel(wakeup_filter_ticks, rtc_base + JZ_REG_RTC_WAKEUP_FILTER);
 
@@ -106,10 +119,16 @@ static void jz4740_power_off(void)
 	 * Range is 0 to 125 ms if RTC is clocked at 32 kHz.
 	 */
 	reset_counter_ticks = (60 * rtc_rate) / 1000;
+
 	if (reset_counter_ticks < JZ_RTC_RESET_COUNTER_MASK)
+	{
 		reset_counter_ticks &= JZ_RTC_RESET_COUNTER_MASK;
+	}
 	else
+	{
 		reset_counter_ticks = JZ_RTC_RESET_COUNTER_MASK;
+	}
+
 	jz4740_rtc_wait_ready(rtc_base);
 	writel(reset_counter_ticks, rtc_base + JZ_REG_RTC_RESET_COUNTER);
 

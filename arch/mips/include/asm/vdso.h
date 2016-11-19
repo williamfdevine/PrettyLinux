@@ -28,7 +28,8 @@
  * part of the VDSO build process, aside from the mapping page array, which is
  * populated at runtime.
  */
-struct mips_vdso_image {
+struct mips_vdso_image
+{
 	void *data;
 	unsigned long size;
 
@@ -46,11 +47,11 @@ struct mips_vdso_image {
 extern struct mips_vdso_image vdso_image;
 
 #ifdef CONFIG_MIPS32_O32
-extern struct mips_vdso_image vdso_image_o32;
+	extern struct mips_vdso_image vdso_image_o32;
 #endif
 
 #ifdef CONFIG_MIPS32_N32
-extern struct mips_vdso_image vdso_image_n32;
+	extern struct mips_vdso_image vdso_image_n32;
 #endif
 
 /**
@@ -75,8 +76,10 @@ extern struct mips_vdso_image vdso_image_n32;
  * Note: Care should be taken when modifying as the layout must remain the same
  * for both 64- and 32-bit (for 32-bit userland on 64-bit kernel).
  */
-union mips_vdso_data {
-	struct {
+union mips_vdso_data
+{
+	struct
+	{
 		u64 xtime_sec;
 		u64 xtime_nsec;
 		u32 wall_to_mono_sec;
@@ -98,9 +101,12 @@ static inline u32 vdso_data_read_begin(const union mips_vdso_data *data)
 {
 	u32 seq;
 
-	while (true) {
+	while (true)
+	{
 		seq = ACCESS_ONCE(data->seq_count);
-		if (likely(!(seq & 1))) {
+
+		if (likely(!(seq & 1)))
+		{
 			/* Paired with smp_wmb() in vdso_data_write_*(). */
 			smp_rmb();
 			return seq;
@@ -111,7 +117,7 @@ static inline u32 vdso_data_read_begin(const union mips_vdso_data *data)
 }
 
 static inline bool vdso_data_read_retry(const union mips_vdso_data *data,
-					u32 start_seq)
+										u32 start_seq)
 {
 	/* Paired with smp_wmb() in vdso_data_write_*(). */
 	smp_rmb();

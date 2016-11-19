@@ -20,12 +20,13 @@
 #include <linux/crypto.h>
 #include <asm/fpu/api.h>
 
-struct crypto_fpu_ctx {
+struct crypto_fpu_ctx
+{
 	struct crypto_blkcipher *child;
 };
 
 static int crypto_fpu_setkey(struct crypto_tfm *parent, const u8 *key,
-			     unsigned int keylen)
+							 unsigned int keylen)
 {
 	struct crypto_fpu_ctx *ctx = crypto_tfm_ctx(parent);
 	struct crypto_blkcipher *child = ctx->child;
@@ -33,21 +34,22 @@ static int crypto_fpu_setkey(struct crypto_tfm *parent, const u8 *key,
 
 	crypto_blkcipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_blkcipher_set_flags(child, crypto_tfm_get_flags(parent) &
-				   CRYPTO_TFM_REQ_MASK);
+							   CRYPTO_TFM_REQ_MASK);
 	err = crypto_blkcipher_setkey(child, key, keylen);
 	crypto_tfm_set_flags(parent, crypto_blkcipher_get_flags(child) &
-				     CRYPTO_TFM_RES_MASK);
+						 CRYPTO_TFM_RES_MASK);
 	return err;
 }
 
 static int crypto_fpu_encrypt(struct blkcipher_desc *desc_in,
-			      struct scatterlist *dst, struct scatterlist *src,
-			      unsigned int nbytes)
+							  struct scatterlist *dst, struct scatterlist *src,
+							  unsigned int nbytes)
 {
 	int err;
 	struct crypto_fpu_ctx *ctx = crypto_blkcipher_ctx(desc_in->tfm);
 	struct crypto_blkcipher *child = ctx->child;
-	struct blkcipher_desc desc = {
+	struct blkcipher_desc desc =
+	{
 		.tfm = child,
 		.info = desc_in->info,
 		.flags = desc_in->flags & ~CRYPTO_TFM_REQ_MAY_SLEEP,
@@ -60,13 +62,14 @@ static int crypto_fpu_encrypt(struct blkcipher_desc *desc_in,
 }
 
 static int crypto_fpu_decrypt(struct blkcipher_desc *desc_in,
-			      struct scatterlist *dst, struct scatterlist *src,
-			      unsigned int nbytes)
+							  struct scatterlist *dst, struct scatterlist *src,
+							  unsigned int nbytes)
 {
 	int err;
 	struct crypto_fpu_ctx *ctx = crypto_blkcipher_ctx(desc_in->tfm);
 	struct crypto_blkcipher *child = ctx->child;
-	struct blkcipher_desc desc = {
+	struct blkcipher_desc desc =
+	{
 		.tfm = child,
 		.info = desc_in->info,
 		.flags = desc_in->flags & ~CRYPTO_TFM_REQ_MAY_SLEEP,
@@ -86,8 +89,11 @@ static int crypto_fpu_init_tfm(struct crypto_tfm *tfm)
 	struct crypto_blkcipher *cipher;
 
 	cipher = crypto_spawn_blkcipher(spawn);
+
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 	return 0;
@@ -106,17 +112,26 @@ static struct crypto_instance *crypto_fpu_alloc(struct rtattr **tb)
 	int err;
 
 	err = crypto_check_attr_type(tb, CRYPTO_ALG_TYPE_BLKCIPHER);
+
 	if (err)
+	{
 		return ERR_PTR(err);
+	}
 
 	alg = crypto_get_attr_alg(tb, CRYPTO_ALG_TYPE_BLKCIPHER,
-				  CRYPTO_ALG_TYPE_MASK);
+							  CRYPTO_ALG_TYPE_MASK);
+
 	if (IS_ERR(alg))
+	{
 		return ERR_CAST(alg);
+	}
 
 	inst = crypto_alloc_instance("fpu", alg);
+
 	if (IS_ERR(inst))
+	{
 		goto out_put_alg;
+	}
 
 	inst->alg.cra_flags = alg->cra_flags;
 	inst->alg.cra_priority = alg->cra_priority;
@@ -144,7 +159,8 @@ static void crypto_fpu_free(struct crypto_instance *inst)
 	kfree(inst);
 }
 
-static struct crypto_template crypto_fpu_tmpl = {
+static struct crypto_template crypto_fpu_tmpl =
+{
 	.name = "fpu",
 	.alloc = crypto_fpu_alloc,
 	.free = crypto_fpu_free,

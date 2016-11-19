@@ -12,13 +12,14 @@
  */
 
 #if defined(__sparc__) && defined(__arch64__)
-# define PADDING(x)
+	#define PADDING(x)
 #else
-# define PADDING(x) unsigned int x;
+	#define PADDING(x) unsigned int x;
 #endif
 
 
-struct msqid64_ds {
+struct msqid64_ds
+{
 	struct ipc64_perm msg_perm;
 	PADDING(__pad1)
 	__kernel_time_t msg_stime;	/* last msgsnd time */

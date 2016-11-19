@@ -24,9 +24,11 @@
 
 enum host_type_t {DCR_HOST_MMIO, DCR_HOST_NATIVE, DCR_HOST_INVALID};
 
-typedef struct {
+typedef struct
+{
 	enum host_type_t type;
-	union {
+	union
+	{
 		dcr_host_mmio_t mmio;
 		dcr_host_native_t native;
 	} host;
@@ -35,7 +37,7 @@ typedef struct {
 extern bool dcr_map_ok_generic(dcr_host_t host);
 
 extern dcr_host_t dcr_map_generic(struct device_node *dev, unsigned int dcr_n,
-			  unsigned int dcr_c);
+								  unsigned int dcr_c);
 extern void dcr_unmap_generic(dcr_host_t host, unsigned int dcr_c);
 
 extern u32 dcr_read_generic(dcr_host_t host, unsigned int dcr_n);

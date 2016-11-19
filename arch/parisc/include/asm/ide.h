@@ -22,7 +22,8 @@
 
 static __inline__ void __ide_mm_insw(void __iomem *port, void *addr, u32 count)
 {
-	while (count--) {
+	while (count--)
+	{
 		*(u16 *)addr = __raw_readw(port);
 		addr += 2;
 	}
@@ -30,7 +31,8 @@ static __inline__ void __ide_mm_insw(void __iomem *port, void *addr, u32 count)
 
 static __inline__ void __ide_mm_insl(void __iomem *port, void *addr, u32 count)
 {
-	while (count--) {
+	while (count--)
+	{
 		*(u32 *)addr = __raw_readl(port);
 		addr += 4;
 	}
@@ -38,7 +40,8 @@ static __inline__ void __ide_mm_insl(void __iomem *port, void *addr, u32 count)
 
 static __inline__ void __ide_mm_outsw(void __iomem *port, void *addr, u32 count)
 {
-	while (count--) {
+	while (count--)
+	{
 		__raw_writew(*(u16 *)addr, port);
 		addr += 2;
 	}
@@ -46,7 +49,8 @@ static __inline__ void __ide_mm_outsw(void __iomem *port, void *addr, u32 count)
 
 static __inline__ void __ide_mm_outsl(void __iomem *port, void *addr, u32 count)
 {
-	while (count--) {
+	while (count--)
+	{
 		__raw_writel(*(u32 *)addr, port);
 		addr += 4;
 	}

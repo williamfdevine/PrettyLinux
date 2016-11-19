@@ -19,7 +19,7 @@
 /* Macros given a pcibus structure */
 #define IS_PCIX(ps)     ((ps)->pbi_bridge_mode & BUSTYPE_MASK)
 #define IS_PCI_BRIDGE_ASIC(asic) (asic == PCIIO_ASIC_TYPE_PIC || \
-                asic == PCIIO_ASIC_TYPE_TIOCP)
+								  asic == PCIIO_ASIC_TYPE_TIOCP)
 #define IS_PIC_SOFT(ps)     (ps->pbi_bridge_type == PCIBR_BRIDGETYPE_PIC)
 #define IS_TIOCP_SOFT(ps)   (ps->pbi_bridge_type == PCIBR_BRIDGETYPE_TIOCP)
 
@@ -46,7 +46,7 @@
 #define PCI32_DIRECT_BASE               0x80000000
 
 #define IS_PCI32_MAPPED(x)              ((u64)(x) < PCI32_DIRECT_BASE && \
-                                         (u64)(x) >= PCI32_MAPPED_BASE)
+		(u64)(x) >= PCI32_MAPPED_BASE)
 #define IS_PCI32_DIRECT(x)              ((u64)(x) >= PCI32_MAPPED_BASE)
 
 
@@ -76,9 +76,9 @@
  * I/O page size
  */
 #if PAGE_SIZE < 16384
-#define IOPFNSHIFT                      12      /* 4K per mapped page */
+	#define IOPFNSHIFT                      12      /* 4K per mapped page */
 #else
-#define IOPFNSHIFT                      14      /* 16K per mapped page */
+	#define IOPFNSHIFT                      14      /* 16K per mapped page */
 #endif
 
 #define IOPGSIZE                        (1 << IOPFNSHIFT)
@@ -91,13 +91,15 @@
 /*
  * PMU resources.
  */
-struct ate_resource{
+struct ate_resource
+{
 	u64 *ate;
 	u64 num_ate;
 	u64 lowest_free_index;
 };
 
-struct pcibus_info {
+struct pcibus_info
+{
 	struct pcibus_bussoft	pbi_buscommon;   /* common header */
 	u32                pbi_moduleid;
 	short                   pbi_bridge_type;
@@ -136,15 +138,15 @@ extern void             pcireg_intr_addr_addr_set(struct pcibus_info *, int, u64
 extern void             pcireg_force_intr_set(struct pcibus_info *, int);
 extern u64         pcireg_wrb_flush_get(struct pcibus_info *, int);
 extern void             pcireg_int_ate_set(struct pcibus_info *, int, u64);
-extern u64 __iomem *	pcireg_int_ate_addr(struct pcibus_info *, int);
+extern u64 __iomem 	*pcireg_int_ate_addr(struct pcibus_info *, int);
 extern void 		pcibr_force_interrupt(struct sn_irq_info *sn_irq_info);
 extern void 		pcibr_change_devices_irq(struct sn_irq_info *sn_irq_info);
 extern int 		pcibr_ate_alloc(struct pcibus_info *, int);
 extern void 		pcibr_ate_free(struct pcibus_info *, int);
 extern void 		ate_write(struct pcibus_info *, int, int, u64);
 extern int sal_pcibr_slot_enable(struct pcibus_info *soft, int device,
-				 void *resp, char **ssdt);
+								 void *resp, char **ssdt);
 extern int sal_pcibr_slot_disable(struct pcibus_info *soft, int device,
-				  int action, void *resp);
+								  int action, void *resp);
 extern u16 sn_ioboard_to_pci_bus(struct pci_bus *pci_bus);
 #endif

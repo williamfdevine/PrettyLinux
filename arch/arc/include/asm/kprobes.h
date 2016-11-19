@@ -19,7 +19,8 @@ typedef u16 kprobe_opcode_t;
 #define MAX_INSN_SIZE   8
 #define MAX_STACK_SIZE  64
 
-struct arch_specific_insn {
+struct arch_specific_insn
+{
 	int is_short;
 	kprobe_opcode_t *t1_addr, *t2_addr;
 	kprobe_opcode_t t1_opcode, t2_opcode;
@@ -34,14 +35,16 @@ struct kprobe;
 void arch_remove_kprobe(struct kprobe *p);
 
 int kprobe_exceptions_notify(struct notifier_block *self,
-			     unsigned long val, void *data);
+							 unsigned long val, void *data);
 
-struct prev_kprobe {
+struct prev_kprobe
+{
 	struct kprobe *kp;
 	unsigned long status;
 };
 
-struct kprobe_ctlblk {
+struct kprobe_ctlblk
+{
 	unsigned int kprobe_status;
 	struct pt_regs jprobe_saved_regs;
 	char jprobes_stack[MAX_STACK_SIZE];

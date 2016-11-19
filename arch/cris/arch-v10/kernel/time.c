@@ -37,20 +37,26 @@ unsigned long get_ns_in_jiffie(void)
 	/* presc_count might be wrapped */
 	t1 = *R_TIMER0_DATA;
 
-	if (timer_count != t1){
+	if (timer_count != t1)
+	{
 		/* it wrapped, read prescaler again...  */
 		presc_count = *R_TIM_PRESC_STATUS;
 		timer_count = t1;
 	}
+
 	local_irq_restore(flags);
-	if (presc_count >= PRESCALE_VALUE/2 ){
-		presc_count =  PRESCALE_VALUE - presc_count + PRESCALE_VALUE/2;
-	} else {
-		presc_count =  PRESCALE_VALUE - presc_count - PRESCALE_VALUE/2;
+
+	if (presc_count >= PRESCALE_VALUE / 2 )
+	{
+		presc_count =  PRESCALE_VALUE - presc_count + PRESCALE_VALUE / 2;
+	}
+	else
+	{
+		presc_count =  PRESCALE_VALUE - presc_count - PRESCALE_VALUE / 2;
 	}
 
-	ns = ( (TIMER0_DIV - timer_count) * ((1000000000/HZ)/TIMER0_DIV )) +
-	     ( (presc_count) * (1000000000/PRESCALE_FREQ));
+	ns = ( (TIMER0_DIV - timer_count) * ((1000000000 / HZ) / TIMER0_DIV )) +
+		 ( (presc_count) * (1000000000 / PRESCALE_FREQ));
 	return ns;
 }
 
@@ -65,7 +71,7 @@ static u32 cris_v10_gettimeoffset(void)
 	count = *R_TIMER0_DATA;
 
 	/* Convert timer value to nsec */
-	return (TIMER0_DIV - count) * (NSEC_PER_SEC/HZ)/TIMER0_DIV;
+	return (TIMER0_DIV - count) * (NSEC_PER_SEC / HZ) / TIMER0_DIV;
 }
 
 /* Excerpt from the Etrax100 HSDD about the built-in watchdog:
@@ -97,7 +103,7 @@ static u32 cris_v10_gettimeoffset(void)
 #define start_watchdog reset_watchdog
 
 #ifdef CONFIG_ETRAX_WATCHDOG
-static int watchdog_key = 0;  /* arbitrary number */
+	static int watchdog_key = 0;  /* arbitrary number */
 #endif
 
 /* number of pages to consider "out of memory". it is normal that the memory
@@ -109,13 +115,16 @@ static int watchdog_key = 0;  /* arbitrary number */
 void reset_watchdog(void)
 {
 #if defined(CONFIG_ETRAX_WATCHDOG)
+
 	/* only keep watchdog happy as long as we have memory left! */
-	if(nr_free_pages() > WATCHDOG_MIN_FREE_PAGES) {
+	if (nr_free_pages() > WATCHDOG_MIN_FREE_PAGES)
+	{
 		/* reset the watchdog with the inverse of the old key */
 		watchdog_key ^= 0x7; /* invert key, which is 3 bits */
 		*R_WATCHDOG = IO_FIELD(R_WATCHDOG, key, watchdog_key) |
-			IO_STATE(R_WATCHDOG, enable, start);
+					  IO_STATE(R_WATCHDOG, enable, start);
 	}
+
 #endif
 }
 
@@ -126,7 +135,7 @@ void stop_watchdog(void)
 #ifdef CONFIG_ETRAX_WATCHDOG
 	watchdog_key ^= 0x7; /* invert key, which is 3 bits */
 	*R_WATCHDOG = IO_FIELD(R_WATCHDOG, key, watchdog_key) |
-		IO_STATE(R_WATCHDOG, enable, stop);
+				  IO_STATE(R_WATCHDOG, enable, stop);
 #endif
 }
 
@@ -165,13 +174,14 @@ static inline irqreturn_t timer_interrupt(int irq, void *dev_id)
 	/* call the real timer interrupt handler */
 	xtime_update(1);
 
-        cris_do_profile(regs); /* Save profiling information */
-        return IRQ_HANDLED;
+	cris_do_profile(regs); /* Save profiling information */
+	return IRQ_HANDLED;
 }
 
 /* timer is IRQF_SHARED so drivers can add stuff to the timer irq chain */
 
-static struct irqaction irq2  = {
+static struct irqaction irq2  =
+{
 	.handler = timer_interrupt,
 	.flags = IRQF_SHARED,
 	.name = "timer",
@@ -209,14 +219,14 @@ void __init time_init(void)
 		IO_STATE( R_TIMER_CTRL, clksel0, c6250kHz);
 
 	*R_TIMER_CTRL = r_timer_ctrl_shadow =
-		IO_FIELD( R_TIMER_CTRL, timerdiv1, 0) |
-		IO_FIELD( R_TIMER_CTRL, timerdiv0, 0) |
-		IO_STATE( R_TIMER_CTRL, i1, nop) |
-		IO_STATE( R_TIMER_CTRL, tm1, run) |
-		IO_STATE( R_TIMER_CTRL, clksel1, cascade0) |
-		IO_STATE( R_TIMER_CTRL, i0, nop) |
-		IO_STATE( R_TIMER_CTRL, tm0, run) |
-		IO_STATE( R_TIMER_CTRL, clksel0, c6250kHz);
+						IO_FIELD( R_TIMER_CTRL, timerdiv1, 0) |
+						IO_FIELD( R_TIMER_CTRL, timerdiv0, 0) |
+						IO_STATE( R_TIMER_CTRL, i1, nop) |
+						IO_STATE( R_TIMER_CTRL, tm1, run) |
+						IO_STATE( R_TIMER_CTRL, clksel1, cascade0) |
+						IO_STATE( R_TIMER_CTRL, i0, nop) |
+						IO_STATE( R_TIMER_CTRL, tm0, run) |
+						IO_STATE( R_TIMER_CTRL, clksel0, c6250kHz);
 #else
 	*R_TIMER_CTRL =
 		IO_FIELD(R_TIMER_CTRL, timerdiv1, 192)      |
@@ -229,14 +239,14 @@ void __init time_init(void)
 		IO_STATE(R_TIMER_CTRL, clksel0,   flexible);
 
 	*R_TIMER_CTRL = r_timer_ctrl_shadow =
-		IO_FIELD(R_TIMER_CTRL, timerdiv1, 192)      |
-		IO_FIELD(R_TIMER_CTRL, timerdiv0, TIMER0_DIV)      |
-		IO_STATE(R_TIMER_CTRL, i1,        nop)      |
-		IO_STATE(R_TIMER_CTRL, tm1,       run)      |
-		IO_STATE(R_TIMER_CTRL, clksel1,   c19k2Hz)  |
-		IO_STATE(R_TIMER_CTRL, i0,        nop)      |
-		IO_STATE(R_TIMER_CTRL, tm0,       run)      |
-		IO_STATE(R_TIMER_CTRL, clksel0,   flexible);
+						IO_FIELD(R_TIMER_CTRL, timerdiv1, 192)      |
+						IO_FIELD(R_TIMER_CTRL, timerdiv0, TIMER0_DIV)      |
+						IO_STATE(R_TIMER_CTRL, i1,        nop)      |
+						IO_STATE(R_TIMER_CTRL, tm1,       run)      |
+						IO_STATE(R_TIMER_CTRL, clksel1,   c19k2Hz)  |
+						IO_STATE(R_TIMER_CTRL, i0,        nop)      |
+						IO_STATE(R_TIMER_CTRL, tm0,       run)      |
+						IO_STATE(R_TIMER_CTRL, clksel0,   flexible);
 
 	*R_TIMER_PRESCALE = PRESCALE_VALUE;
 #endif

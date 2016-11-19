@@ -39,10 +39,13 @@ static int tosa_bt_set_block(void *data, bool blocked)
 {
 	pr_info("BT_RADIO going: %s\n", blocked ? "off" : "on");
 
-	if (!blocked) {
+	if (!blocked)
+	{
 		pr_info("TOSA_BT: going ON\n");
 		tosa_bt_on(data);
-	} else {
+	}
+	else
+	{
 		pr_info("TOSA_BT: going OFF\n");
 		tosa_bt_off(data);
 	}
@@ -50,7 +53,8 @@ static int tosa_bt_set_block(void *data, bool blocked)
 	return 0;
 }
 
-static const struct rfkill_ops tosa_bt_rfkill_ops = {
+static const struct rfkill_ops tosa_bt_rfkill_ops =
+{
 	.set_block = tosa_bt_set_block,
 };
 
@@ -62,28 +66,48 @@ static int tosa_bt_probe(struct platform_device *dev)
 	struct tosa_bt_data *data = dev->dev.platform_data;
 
 	rc = gpio_request(data->gpio_reset, "Bluetooth reset");
+
 	if (rc)
+	{
 		goto err_reset;
+	}
+
 	rc = gpio_direction_output(data->gpio_reset, 0);
+
 	if (rc)
+	{
 		goto err_reset_dir;
+	}
+
 	rc = gpio_request(data->gpio_pwr, "Bluetooth power");
+
 	if (rc)
+	{
 		goto err_pwr;
+	}
+
 	rc = gpio_direction_output(data->gpio_pwr, 0);
+
 	if (rc)
+	{
 		goto err_pwr_dir;
+	}
 
 	rfk = rfkill_alloc("tosa-bt", &dev->dev, RFKILL_TYPE_BLUETOOTH,
-			   &tosa_bt_rfkill_ops, data);
-	if (!rfk) {
+					   &tosa_bt_rfkill_ops, data);
+
+	if (!rfk)
+	{
 		rc = -ENOMEM;
 		goto err_rfk_alloc;
 	}
 
 	rc = rfkill_register(rfk);
+
 	if (rc)
+	{
 		goto err_rfkill;
+	}
 
 	platform_set_drvdata(dev, rfk);
 
@@ -109,10 +133,12 @@ static int tosa_bt_remove(struct platform_device *dev)
 
 	platform_set_drvdata(dev, NULL);
 
-	if (rfk) {
+	if (rfk)
+	{
 		rfkill_unregister(rfk);
 		rfkill_destroy(rfk);
 	}
+
 	rfk = NULL;
 
 	tosa_bt_off(data);
@@ -123,7 +149,8 @@ static int tosa_bt_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver tosa_bt_driver = {
+static struct platform_driver tosa_bt_driver =
+{
 	.probe = tosa_bt_probe,
 	.remove = tosa_bt_remove,
 

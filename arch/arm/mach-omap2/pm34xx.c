@@ -55,7 +55,8 @@
 /* pm34xx errata defined in pm.h */
 u16 pm34xx_errata;
 
-struct power_state {
+struct power_state
+{
 	struct powerdomain *pwrdm;
 	u32 next_state;
 #ifdef CONFIG_SUSPEND
@@ -81,7 +82,7 @@ static void omap3_core_save_context(void)
 	 * cases according to errata 1.157, 1.185
 	 */
 	omap_ctrl_writel(omap_ctrl_readl(OMAP343X_PADCONF_ETK_D14),
-		OMAP343X_CONTROL_MEM_WKUP + 0x2a0);
+					 OMAP343X_CONTROL_MEM_WKUP + 0x2a0);
 
 	/* Save the Interrupt controller context */
 	omap_intc_save_context();
@@ -114,7 +115,8 @@ static void omap3_save_secure_ram_context(void)
 	u32 ret;
 	int mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
 
-	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
+	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+	{
 		/*
 		 * MPU next state must be set to POWER_ON temporarily,
 		 * otherwise the WFI executed inside the ROM code
@@ -122,11 +124,14 @@ static void omap3_save_secure_ram_context(void)
 		 */
 		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
 		ret = _omap_save_secure_sram((u32 *)(unsigned long)
-				__pa(omap3_secure_ram_storage));
+									 __pa(omap3_secure_ram_storage));
 		pwrdm_set_next_pwrst(mpu_pwrdm, mpu_next_state);
+
 		/* Following is for error tracking, it should not happen */
-		if (ret) {
+		if (ret)
+		{
 			pr_err("save_secure_sram() returns %08x\n", ret);
+
 			while (1)
 				;
 		}
@@ -138,7 +143,7 @@ static irqreturn_t _prcm_int_handle_io(int irq, void *unused)
 	int c;
 
 	c = omap_prm_clear_mod_irqs(WKUP_MOD, 1, OMAP3430_ST_IO_MASK |
-				    OMAP3430_ST_IO_CHAIN_MASK);
+								OMAP3430_ST_IO_CHAIN_MASK);
 
 	return c ? IRQ_HANDLED : IRQ_NONE;
 }
@@ -153,10 +158,12 @@ static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
 	 * IO events before parsing in mux code
 	 */
 	c = omap_prm_clear_mod_irqs(WKUP_MOD, 1, ~(OMAP3430_ST_IO_MASK |
-						   OMAP3430_ST_IO_CHAIN_MASK));
+								OMAP3430_ST_IO_CHAIN_MASK));
 	c += omap_prm_clear_mod_irqs(CORE_MOD, 1, ~0);
 	c += omap_prm_clear_mod_irqs(OMAP3430_PER_MOD, 1, ~0);
-	if (omap_rev() > OMAP3430_REV_ES1_0) {
+
+	if (omap_rev() > OMAP3430_REV_ES1_0)
+	{
 		c += omap_prm_clear_mod_irqs(CORE_MOD, 3, ~0);
 		c += omap_prm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, ~0);
 	}
@@ -201,24 +208,30 @@ void omap_sram_idle(void)
 	u32 sdrc_pwr = 0;
 
 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
-	switch (mpu_next_state) {
-	case PWRDM_POWER_ON:
-	case PWRDM_POWER_RET:
-		/* No need to save context */
-		save_state = 0;
-		break;
-	case PWRDM_POWER_OFF:
-		save_state = 3;
-		break;
-	default:
-		/* Invalid state */
-		pr_err("Invalid mpu state in sram_idle\n");
-		return;
+
+	switch (mpu_next_state)
+	{
+		case PWRDM_POWER_ON:
+		case PWRDM_POWER_RET:
+			/* No need to save context */
+			save_state = 0;
+			break;
+
+		case PWRDM_POWER_OFF:
+			save_state = 3;
+			break;
+
+		default:
+			/* Invalid state */
+			pr_err("Invalid mpu state in sram_idle\n");
+			return;
 	}
 
 	/* NEON control */
 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
+	{
 		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
+	}
 
 	/* Enable IO-PAD and IO-CHAIN wakeups */
 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
@@ -227,14 +240,17 @@ void omap_sram_idle(void)
 	pwrdm_pre_transition(NULL);
 
 	/* PER */
-	if (per_next_state < PWRDM_POWER_ON) {
+	if (per_next_state < PWRDM_POWER_ON)
+	{
 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
 		omap2_gpio_prepare_for_idle(per_going_off);
 	}
 
 	/* CORE */
-	if (core_next_state < PWRDM_POWER_ON) {
-		if (core_next_state == PWRDM_POWER_OFF) {
+	if (core_next_state < PWRDM_POWER_ON)
+	{
+		if (core_next_state == PWRDM_POWER_OFF)
+		{
 			omap3_core_save_context();
 			omap3_cm_save_context();
 		}
@@ -252,10 +268,12 @@ void omap_sram_idle(void)
 	 * Hence store/restore the SDRC_POWER register here.
 	 */
 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
-	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
-	     omap_type() == OMAP2_DEVICE_TYPE_SEC) &&
-	    core_next_state == PWRDM_POWER_OFF)
+		(omap_type() == OMAP2_DEVICE_TYPE_EMU ||
+		 omap_type() == OMAP2_DEVICE_TYPE_SEC) &&
+		core_next_state == PWRDM_POWER_OFF)
+	{
 		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
+	}
 
 	/*
 	 * omap3_arm_context is the location where some ARM context
@@ -263,27 +281,39 @@ void omap_sram_idle(void)
 	 * from there before resuming.
 	 */
 	if (save_state)
+	{
 		omap34xx_save_context(omap3_arm_context);
+	}
+
 	if (save_state == 1 || save_state == 3)
+	{
 		cpu_suspend(save_state, omap34xx_do_sram_idle);
+	}
 	else
+	{
 		omap34xx_do_sram_idle(save_state);
+	}
 
 	/* Restore normal SDRC POWER settings */
 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
-	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
-	     omap_type() == OMAP2_DEVICE_TYPE_SEC) &&
-	    core_next_state == PWRDM_POWER_OFF)
+		(omap_type() == OMAP2_DEVICE_TYPE_EMU ||
+		 omap_type() == OMAP2_DEVICE_TYPE_SEC) &&
+		core_next_state == PWRDM_POWER_OFF)
+	{
 		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
+	}
 
 	/* CORE */
 	if (core_next_state < PWRDM_POWER_ON &&
-	    pwrdm_read_prev_pwrst(core_pwrdm) == PWRDM_POWER_OFF) {
+		pwrdm_read_prev_pwrst(core_pwrdm) == PWRDM_POWER_OFF)
+	{
 		omap3_core_restore_context();
 		omap3_cm_restore_context();
 		omap3_sram_restore_context();
 		omap2_sms_restore_context();
-	} else {
+	}
+	else
+	{
 		/*
 		 * In off-mode resume path above, omap3_core_restore_context
 		 * also handles the INTC autoidle restore done here so limit
@@ -296,13 +326,17 @@ void omap_sram_idle(void)
 
 	/* PER */
 	if (per_next_state < PWRDM_POWER_ON)
+	{
 		omap2_gpio_resume_after_idle();
+	}
 }
 
 static void omap3_pm_idle(void)
 {
 	if (omap_irq_pending())
+	{
 		return;
+	}
 
 	trace_cpu_idle_rcuidle(1, smp_processor_id());
 
@@ -319,13 +353,19 @@ static int omap3_pm_suspend(void)
 
 	/* Read current next_pwrsts */
 	list_for_each_entry(pwrst, &pwrst_list, node)
-		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
+	pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
 	/* Set ones wanted by suspend */
-	list_for_each_entry(pwrst, &pwrst_list, node) {
+	list_for_each_entry(pwrst, &pwrst_list, node)
+	{
 		if (omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
+		{
 			goto restore;
+		}
+
 		if (pwrdm_clear_all_prev_pwrst(pwrst->pwrdm))
+		{
 			goto restore;
+		}
 	}
 
 	omap3_intc_suspend();
@@ -334,19 +374,28 @@ static int omap3_pm_suspend(void)
 
 restore:
 	/* Restore next_pwrsts */
-	list_for_each_entry(pwrst, &pwrst_list, node) {
+	list_for_each_entry(pwrst, &pwrst_list, node)
+	{
 		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
-		if (state > pwrst->next_state) {
+
+		if (state > pwrst->next_state)
+		{
 			pr_info("Powerdomain (%s) didn't enter target state %d\n",
-				pwrst->pwrdm->name, pwrst->next_state);
+					pwrst->pwrdm->name, pwrst->next_state);
 			ret = -1;
 		}
+
 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
 	}
+
 	if (ret)
+	{
 		pr_err("Could not enter target state in pm_suspend\n");
+	}
 	else
+	{
 		pr_info("Successfully put all powerdomains to target state\n");
+	}
 
 	return ret;
 }
@@ -367,20 +416,29 @@ void omap3_pm_off_mode_enable(int enable)
 	u32 state;
 
 	if (enable)
+	{
 		state = PWRDM_POWER_OFF;
+	}
 	else
+	{
 		state = PWRDM_POWER_RET;
+	}
 
-	list_for_each_entry(pwrst, &pwrst_list, node) {
+	list_for_each_entry(pwrst, &pwrst_list, node)
+	{
 		if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583) &&
-				pwrst->pwrdm == core_pwrdm &&
-				state == PWRDM_POWER_OFF) {
+			pwrst->pwrdm == core_pwrdm &&
+			state == PWRDM_POWER_OFF)
+		{
 			pwrst->next_state = PWRDM_POWER_RET;
 			pr_warn("%s: Core OFF disabled due to errata i583\n",
-				__func__);
-		} else {
+					__func__);
+		}
+		else
+		{
 			pwrst->next_state = state;
 		}
+
 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
 	}
 }
@@ -389,9 +447,12 @@ int omap3_pm_get_suspend_state(struct powerdomain *pwrdm)
 {
 	struct power_state *pwrst;
 
-	list_for_each_entry(pwrst, &pwrst_list, node) {
+	list_for_each_entry(pwrst, &pwrst_list, node)
+	{
 		if (pwrst->pwrdm == pwrdm)
+		{
 			return pwrst->next_state;
+		}
 	}
 	return -EINVAL;
 }
@@ -400,8 +461,10 @@ int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
 {
 	struct power_state *pwrst;
 
-	list_for_each_entry(pwrst, &pwrst_list, node) {
-		if (pwrst->pwrdm == pwrdm) {
+	list_for_each_entry(pwrst, &pwrst_list, node)
+	{
+		if (pwrst->pwrdm == pwrdm)
+		{
 			pwrst->next_state = state;
 			return 0;
 		}
@@ -414,17 +477,25 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
 	struct power_state *pwrst;
 
 	if (!pwrdm->pwrsts)
+	{
 		return 0;
+	}
 
 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
+
 	if (!pwrst)
+	{
 		return -ENOMEM;
+	}
+
 	pwrst->pwrdm = pwrdm;
 	pwrst->next_state = PWRDM_POWER_RET;
 	list_add(&pwrst->node, &pwrst_list);
 
 	if (pwrdm_has_hdwr_sar(pwrdm))
+	{
 		pwrdm_enable_hdwr_sar(pwrdm);
+	}
 
 	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
 }
@@ -442,19 +513,23 @@ void omap_push_sram_idle(void)
 
 	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
 		_omap_save_secure_sram = omap_sram_push(save_secure_ram_context,
-				save_secure_ram_context_sz);
+												save_secure_ram_context_sz);
 }
 
 static void __init pm_errata_configure(void)
 {
-	if (cpu_is_omap3630()) {
+	if (cpu_is_omap3630())
+	{
 		pm34xx_errata |= PM_RTA_ERRATUM_i608;
 		/* Enable the l2 cache toggling in sleep logic */
 		enable_omap3630_toggle_l2_on_restore();
+
 		if (omap_rev() < OMAP3630_REV_ES1_2)
 			pm34xx_errata |= (PM_SDRC_WAKEUP_ERRATUM_i583 |
-					  PM_PER_MEMORIES_ERRATUM_i582);
-	} else if (cpu_is_omap34xx()) {
+							  PM_PER_MEMORIES_ERRATUM_i582);
+	}
+	else if (cpu_is_omap34xx())
+	{
 		pm34xx_errata |= PM_PER_MEMORIES_ERRATUM_i582;
 	}
 }
@@ -466,7 +541,9 @@ int __init omap3_pm_init(void)
 	int ret;
 
 	if (!omap3_has_io_chain_ctrl())
+	{
 		pr_warn("PM: no software I/O chain control; some wakeups may be lost\n");
+	}
 
 	pm_errata_configure();
 
@@ -475,26 +552,30 @@ int __init omap3_pm_init(void)
 	prcm_setup_regs();
 
 	ret = request_irq(omap_prcm_event_to_irq("wkup"),
-		_prcm_int_handle_wakeup, IRQF_NO_SUSPEND, "pm_wkup", NULL);
+					  _prcm_int_handle_wakeup, IRQF_NO_SUSPEND, "pm_wkup", NULL);
 
-	if (ret) {
+	if (ret)
+	{
 		pr_err("pm: Failed to request pm_wkup irq\n");
 		goto err1;
 	}
 
 	/* IO interrupt is shared with mux code */
 	ret = request_irq(omap_prcm_event_to_irq("io"),
-		_prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
-		omap3_pm_init);
+					  _prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
+					  omap3_pm_init);
 	enable_irq(omap_prcm_event_to_irq("io"));
 
-	if (ret) {
+	if (ret)
+	{
 		pr_err("pm: Failed to request pm_io irq\n");
 		goto err2;
 	}
 
 	ret = pwrdm_for_each(pwrdms_setup, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to setup powerdomains\n");
 		goto err3;
 	}
@@ -502,7 +583,9 @@ int __init omap3_pm_init(void)
 	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
 
 	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
-	if (mpu_pwrdm == NULL) {
+
+	if (mpu_pwrdm == NULL)
+	{
 		pr_err("Failed to get mpu_pwrdm\n");
 		ret = -EINVAL;
 		goto err3;
@@ -528,7 +611,9 @@ int __init omap3_pm_init(void)
 	 * to be doubly sure here and prevent any mishaps.
 	 */
 	if (IS_PM34XX_ERRATUM(PM_RTA_ERRATUM_i608))
+	{
 		omap3630_ctrl_disable_rta();
+	}
 
 	/*
 	 * The UART3/4 FIFO and the sidetone memory in McBSP2/3 are
@@ -549,14 +634,21 @@ int __init omap3_pm_init(void)
 	 * or OSWR is enabled.
 	 */
 	if (IS_PM34XX_ERRATUM(PM_PER_MEMORIES_ERRATUM_i582))
+	{
 		clkdm_add_wkdep(per_clkdm, wkup_clkdm);
+	}
 
 	clkdm_add_wkdep(neon_clkdm, mpu_clkdm);
-	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
+
+	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+	{
 		omap3_secure_ram_storage =
 			kmalloc(0x803F, GFP_KERNEL);
+
 		if (!omap3_secure_ram_storage)
+		{
 			pr_err("Memory allocation failed when allocating for secure sram context\n");
+		}
 
 		local_irq_disable();
 
@@ -571,7 +663,8 @@ int __init omap3_pm_init(void)
 	return ret;
 
 err3:
-	list_for_each_entry_safe(pwrst, tmp, &pwrst_list, node) {
+	list_for_each_entry_safe(pwrst, tmp, &pwrst_list, node)
+	{
 		list_del(&pwrst->node);
 		kfree(pwrst);
 	}

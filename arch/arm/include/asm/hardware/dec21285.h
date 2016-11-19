@@ -19,10 +19,10 @@
 #define DC21285_PCI_MEM			0x80000000
 
 #ifndef __ASSEMBLY__
-#include <mach/hardware.h>
-#define DC21285_IO(x)		((volatile unsigned long *)(ARMCSR_BASE+(x)))
+	#include <mach/hardware.h>
+	#define DC21285_IO(x)		((volatile unsigned long *)(ARMCSR_BASE+(x)))
 #else
-#define DC21285_IO(x)		(x)
+	#define DC21285_IO(x)		(x)
 #endif
 
 #define CSR_PCICMD		DC21285_IO(0x0004)
@@ -90,11 +90,11 @@
  */
 #define __footbridge_cfn_mode() (*CSR_SA110_CNTL & SA110_CNTL_PCICFN)
 #if defined(CONFIG_FOOTBRIDGE_HOST) && defined(CONFIG_FOOTBRIDGE_ADDIN)
-#define footbridge_cfn_mode() __footbridge_cfn_mode()
+	#define footbridge_cfn_mode() __footbridge_cfn_mode()
 #elif defined(CONFIG_FOOTBRIDGE_HOST)
-#define footbridge_cfn_mode() (1)
+	#define footbridge_cfn_mode() (1)
 #else
-#define footbridge_cfn_mode() (0)
+	#define footbridge_cfn_mode() (0)
 #endif
 
 #define CSR_PCIADDR_EXTN	DC21285_IO(0x0140)

@@ -23,7 +23,7 @@
  * Functions for accessing PCI configuration space with type 1 accesses
  */
 static int sh4_pci_read(struct pci_bus *bus, unsigned int devfn,
-			   int where, int size, u32 *val)
+						int where, int size, u32 *val)
 {
 	struct pci_channel *chan = bus->sysdata;
 	unsigned long flags;
@@ -38,18 +38,22 @@ static int sh4_pci_read(struct pci_bus *bus, unsigned int devfn,
 	data = pci_read_reg(chan, SH4_PCIPDR);
 	raw_spin_unlock_irqrestore(&pci_config_lock, flags);
 
-	switch (size) {
-	case 1:
-		*val = (data >> ((where & 3) << 3)) & 0xff;
-		break;
-	case 2:
-		*val = (data >> ((where & 2) << 3)) & 0xffff;
-		break;
-	case 4:
-		*val = data;
-		break;
-	default:
-		return PCIBIOS_FUNC_NOT_SUPPORTED;
+	switch (size)
+	{
+		case 1:
+			*val = (data >> ((where & 3) << 3)) & 0xff;
+			break;
+
+		case 2:
+			*val = (data >> ((where & 2) << 3)) & 0xffff;
+			break;
+
+		case 4:
+			*val = data;
+			break;
+
+		default:
+			return PCIBIOS_FUNC_NOT_SUPPORTED;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
@@ -61,7 +65,7 @@ static int sh4_pci_read(struct pci_bus *bus, unsigned int devfn,
  * We'll allow an odd byte offset, though it should be illegal.
  */
 static int sh4_pci_write(struct pci_bus *bus, unsigned int devfn,
-			 int where, int size, u32 val)
+						 int where, int size, u32 val)
 {
 	struct pci_channel *chan = bus->sysdata;
 	unsigned long flags;
@@ -73,22 +77,26 @@ static int sh4_pci_write(struct pci_bus *bus, unsigned int devfn,
 	data = pci_read_reg(chan, SH4_PCIPDR);
 	raw_spin_unlock_irqrestore(&pci_config_lock, flags);
 
-	switch (size) {
-	case 1:
-		shift = (where & 3) << 3;
-		data &= ~(0xff << shift);
-		data |= ((val & 0xff) << shift);
-		break;
-	case 2:
-		shift = (where & 2) << 3;
-		data &= ~(0xffff << shift);
-		data |= ((val & 0xffff) << shift);
-		break;
-	case 4:
-		data = val;
-		break;
-	default:
-		return PCIBIOS_FUNC_NOT_SUPPORTED;
+	switch (size)
+	{
+		case 1:
+			shift = (where & 3) << 3;
+			data &= ~(0xff << shift);
+			data |= ((val & 0xff) << shift);
+			break;
+
+		case 2:
+			shift = (where & 2) << 3;
+			data &= ~(0xffff << shift);
+			data |= ((val & 0xffff) << shift);
+			break;
+
+		case 4:
+			data = val;
+			break;
+
+		default:
+			return PCIBIOS_FUNC_NOT_SUPPORTED;
 	}
 
 	pci_write_reg(chan, data, SH4_PCIPDR);
@@ -96,7 +104,8 @@ static int sh4_pci_write(struct pci_bus *bus, unsigned int devfn,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops sh4_pci_ops = {
+struct pci_ops sh4_pci_ops =
+{
 	.read		= sh4_pci_read,
 	.write		= sh4_pci_write,
 };

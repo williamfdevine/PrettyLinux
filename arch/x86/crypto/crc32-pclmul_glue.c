@@ -48,24 +48,28 @@
 u32 crc32_pclmul_le_16(unsigned char const *buffer, size_t len, u32 crc32);
 
 static u32 __attribute__((pure))
-	crc32_pclmul_le(u32 crc, unsigned char const *p, size_t len)
+crc32_pclmul_le(u32 crc, unsigned char const *p, size_t len)
 {
 	unsigned int iquotient;
 	unsigned int iremainder;
 	unsigned int prealign;
 
 	if (len < PCLMUL_MIN_LEN + SCALE_F_MASK || !irq_fpu_usable())
+	{
 		return crc32_le(crc, p, len);
+	}
 
-	if ((long)p & SCALE_F_MASK) {
+	if ((long)p & SCALE_F_MASK)
+	{
 		/* align p to 16 byte */
 		prealign = SCALE_F - ((long)p & SCALE_F_MASK);
 
 		crc = crc32_le(crc, p, prealign);
 		len -= prealign;
 		p = (unsigned char *)(((unsigned long)p + SCALE_F_MASK) &
-				     ~SCALE_F_MASK);
+							  ~SCALE_F_MASK);
 	}
+
 	iquotient = len & (~SCALE_F_MASK);
 	iremainder = len & SCALE_F_MASK;
 
@@ -74,7 +78,9 @@ static u32 __attribute__((pure))
 	kernel_fpu_end();
 
 	if (iremainder)
+	{
 		crc = crc32_le(crc, p + iquotient, iremainder);
+	}
 
 	return crc;
 }
@@ -89,14 +95,16 @@ static int crc32_pclmul_cra_init(struct crypto_tfm *tfm)
 }
 
 static int crc32_pclmul_setkey(struct crypto_shash *hash, const u8 *key,
-			unsigned int keylen)
+							   unsigned int keylen)
 {
 	u32 *mctx = crypto_shash_ctx(hash);
 
-	if (keylen != sizeof(u32)) {
+	if (keylen != sizeof(u32))
+	{
 		crypto_shash_set_flags(hash, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
+
 	*mctx = le32_to_cpup((__le32 *)key);
 	return 0;
 }
@@ -112,7 +120,7 @@ static int crc32_pclmul_init(struct shash_desc *desc)
 }
 
 static int crc32_pclmul_update(struct shash_desc *desc, const u8 *data,
-			       unsigned int len)
+							   unsigned int len)
 {
 	u32 *crcp = shash_desc_ctx(desc);
 
@@ -122,14 +130,14 @@ static int crc32_pclmul_update(struct shash_desc *desc, const u8 *data,
 
 /* No final XOR 0xFFFFFFFF, like crc32_le */
 static int __crc32_pclmul_finup(u32 *crcp, const u8 *data, unsigned int len,
-				u8 *out)
+								u8 *out)
 {
 	*(__le32 *)out = cpu_to_le32(crc32_pclmul_le(*crcp, data, len));
 	return 0;
 }
 
 static int crc32_pclmul_finup(struct shash_desc *desc, const u8 *data,
-			      unsigned int len, u8 *out)
+							  unsigned int len, u8 *out)
 {
 	return __crc32_pclmul_finup(shash_desc_ctx(desc), data, len, out);
 }
@@ -143,13 +151,14 @@ static int crc32_pclmul_final(struct shash_desc *desc, u8 *out)
 }
 
 static int crc32_pclmul_digest(struct shash_desc *desc, const u8 *data,
-			       unsigned int len, u8 *out)
+							   unsigned int len, u8 *out)
 {
 	return __crc32_pclmul_finup(crypto_shash_ctx(desc->tfm), data, len,
-				    out);
+								out);
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.setkey		= crc32_pclmul_setkey,
 	.init		= crc32_pclmul_init,
 	.update		= crc32_pclmul_update,
@@ -159,17 +168,18 @@ static struct shash_alg alg = {
 	.descsize	= sizeof(u32),
 	.digestsize	= CHKSUM_DIGEST_SIZE,
 	.base		= {
-			.cra_name		= "crc32",
-			.cra_driver_name	= "crc32-pclmul",
-			.cra_priority		= 200,
-			.cra_blocksize		= CHKSUM_BLOCK_SIZE,
-			.cra_ctxsize		= sizeof(u32),
-			.cra_module		= THIS_MODULE,
-			.cra_init		= crc32_pclmul_cra_init,
+		.cra_name		= "crc32",
+		.cra_driver_name	= "crc32-pclmul",
+		.cra_priority		= 200,
+		.cra_blocksize		= CHKSUM_BLOCK_SIZE,
+		.cra_ctxsize		= sizeof(u32),
+		.cra_module		= THIS_MODULE,
+		.cra_init		= crc32_pclmul_cra_init,
 	}
 };
 
-static const struct x86_cpu_id crc32pclmul_cpu_id[] = {
+static const struct x86_cpu_id crc32pclmul_cpu_id[] =
+{
 	X86_FEATURE_MATCH(X86_FEATURE_PCLMULQDQ),
 	{}
 };
@@ -179,10 +189,12 @@ MODULE_DEVICE_TABLE(x86cpu, crc32pclmul_cpu_id);
 static int __init crc32_pclmul_mod_init(void)
 {
 
-	if (!x86_match_cpu(crc32pclmul_cpu_id)) {
+	if (!x86_match_cpu(crc32pclmul_cpu_id))
+	{
 		pr_info("PCLMULQDQ-NI instructions are not detected.\n");
 		return -ENODEV;
 	}
+
 	return crypto_register_shash(&alg);
 }
 

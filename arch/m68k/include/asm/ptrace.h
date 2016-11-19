@@ -6,8 +6,8 @@
 #ifndef __ASSEMBLY__
 
 #ifndef PS_S
-#define PS_S  (0x2000)
-#define PS_M  (0x1000)
+	#define PS_S  (0x2000)
+	#define PS_M  (0x1000)
 #endif
 
 #define user_mode(regs) (!((regs)->sr & PS_S))
@@ -20,7 +20,7 @@
 #define arch_has_single_step()	(1)
 
 #ifdef CONFIG_MMU
-#define arch_has_block_step()	(1)
+	#define arch_has_block_step()	(1)
 #endif
 
 #endif /* __ASSEMBLY__ */

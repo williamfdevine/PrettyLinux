@@ -72,13 +72,13 @@ typedef u64 iomux_v3_cfg_t;
 #define MUX_PAD_CTRL(x)		((iomux_v3_cfg_t)(x) << MUX_PAD_CTRL_SHIFT)
 
 #define IOMUX_PAD(_pad_ctrl_ofs, _mux_ctrl_ofs, _mux_mode, _sel_input_ofs, \
-		_sel_input, _pad_ctrl)					\
-	(((iomux_v3_cfg_t)(_mux_ctrl_ofs) << MUX_CTRL_OFS_SHIFT) |	\
-		((iomux_v3_cfg_t)(_mux_mode) << MUX_MODE_SHIFT) |	\
-		((iomux_v3_cfg_t)(_pad_ctrl_ofs) << MUX_PAD_CTRL_OFS_SHIFT) | \
-		((iomux_v3_cfg_t)(_pad_ctrl) << MUX_PAD_CTRL_SHIFT) |	\
-		((iomux_v3_cfg_t)(_sel_input_ofs) << MUX_SEL_INPUT_OFS_SHIFT) | \
-		((iomux_v3_cfg_t)(_sel_input) << MUX_SEL_INPUT_SHIFT))
+				  _sel_input, _pad_ctrl)					\
+(((iomux_v3_cfg_t)(_mux_ctrl_ofs) << MUX_CTRL_OFS_SHIFT) |	\
+ ((iomux_v3_cfg_t)(_mux_mode) << MUX_MODE_SHIFT) |	\
+ ((iomux_v3_cfg_t)(_pad_ctrl_ofs) << MUX_PAD_CTRL_OFS_SHIFT) | \
+ ((iomux_v3_cfg_t)(_pad_ctrl) << MUX_PAD_CTRL_SHIFT) |	\
+ ((iomux_v3_cfg_t)(_sel_input_ofs) << MUX_SEL_INPUT_OFS_SHIFT) | \
+ ((iomux_v3_cfg_t)(_sel_input) << MUX_SEL_INPUT_SHIFT))
 
 #define NEW_PAD_CTRL(cfg, pad)	(((cfg) & ~MUX_PAD_CTRL_MASK) | MUX_PAD_CTRL(pad))
 /*
@@ -132,7 +132,7 @@ int mxc_iomux_v3_setup_pad(iomux_v3_cfg_t pad);
  * convenient way to call the above function with tables
  */
 int mxc_iomux_v3_setup_multiple_pads(const iomux_v3_cfg_t *pad_list,
-		unsigned count);
+									 unsigned count);
 
 /*
  * Initialise the iomux controller

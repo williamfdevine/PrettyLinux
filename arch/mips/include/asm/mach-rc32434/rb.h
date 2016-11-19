@@ -58,26 +58,30 @@
 
 #define BIT_TO_MASK(x)	(1 << x)
 
-struct dev_reg {
+struct dev_reg
+{
 	u32	base;
 	u32	mask;
 	u32	ctl;
 	u32	timing;
 };
 
-struct korina_device {
+struct korina_device
+{
 	char *name;
 	unsigned char mac[6];
 	struct net_device *dev;
 };
 
-struct cf_device {
+struct cf_device
+{
 	int gpio_pin;
 	void *dev;
 	struct gendisk *gd;
 };
 
-struct mpmc_device {
+struct mpmc_device
+{
 	unsigned char	state;
 	spinlock_t	lock;
 	void __iomem	*base;

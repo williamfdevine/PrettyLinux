@@ -51,7 +51,8 @@ typedef signed long long Elf64_Sxword;
 
 #define EI_NIDENT	16
 
-typedef struct elf32_hdr {
+typedef struct elf32_hdr
+{
 	unsigned char e_ident[EI_NIDENT];
 	Elf32_Half e_type;
 	Elf32_Half e_machine;
@@ -68,7 +69,8 @@ typedef struct elf32_hdr {
 	Elf32_Half e_shstrndx;
 } Elf32_Ehdr;
 
-typedef struct elf64_hdr {
+typedef struct elf64_hdr
+{
 	unsigned char e_ident[16];	/* ELF "magic number" */
 	Elf64_Half e_type;
 	Elf64_Half e_machine;
@@ -91,7 +93,8 @@ typedef struct elf64_hdr {
 #define PF_W		0x2
 #define PF_X		0x1
 
-typedef struct elf32_phdr {
+typedef struct elf32_phdr
+{
 	Elf32_Word p_type;
 	Elf32_Off p_offset;
 	Elf32_Addr p_vaddr;
@@ -102,7 +105,8 @@ typedef struct elf32_phdr {
 	Elf32_Word p_align;
 } Elf32_Phdr;
 
-typedef struct elf64_phdr {
+typedef struct elf64_phdr
+{
 	Elf64_Word p_type;
 	Elf64_Word p_flags;
 	Elf64_Off p_offset;	/* Segment file offset */
@@ -146,7 +150,8 @@ typedef struct elf64_phdr {
 #define ELFOSABI_NONE	0
 #define ELFOSABI_LINUX	3
 
-struct elf_info {
+struct elf_info
+{
 	unsigned long loadsize;
 	unsigned long memsize;
 	unsigned long elfoffset;

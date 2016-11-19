@@ -5,7 +5,7 @@
 
 #ifdef CONFIG_CPU_IDLE
 extern int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
-		struct cpuidle_driver *drv, int index);
+									struct cpuidle_driver *drv, int index);
 #else
 static inline int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
 		struct cpuidle_driver *drv, int index) { return -ENODEV; }
@@ -13,13 +13,13 @@ static inline int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
 
 /* Common ARM WFI state */
 #define ARM_CPUIDLE_WFI_STATE_PWR(p) {\
-	.enter                  = arm_cpuidle_simple_enter,\
-	.exit_latency           = 1,\
-	.target_residency       = 1,\
-	.power_usage		= p,\
-	.name                   = "WFI",\
-	.desc                   = "ARM WFI",\
-}
+		.enter                  = arm_cpuidle_simple_enter,\
+								  .exit_latency           = 1,\
+										  .target_residency       = 1,\
+												  .power_usage		= p,\
+														  .name                   = "WFI",\
+																  .desc                   = "ARM WFI",\
+	}
 
 /*
  * in case power_specified == 1, give a default WFI power value needed
@@ -29,12 +29,14 @@ static inline int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
 
 struct device_node;
 
-struct cpuidle_ops {
+struct cpuidle_ops
+{
 	int (*suspend)(unsigned long arg);
 	int (*init)(struct device_node *, int cpu);
 };
 
-struct of_cpuidle_method {
+struct of_cpuidle_method
+{
 	const char *method;
 	const struct cpuidle_ops *ops;
 };
@@ -42,7 +44,7 @@ struct of_cpuidle_method {
 #define CPUIDLE_METHOD_OF_DECLARE(name, _method, _ops)			\
 	static const struct of_cpuidle_method __cpuidle_method_of_table_##name \
 	__used __section(__cpuidle_method_of_table)			\
-	= { .method = _method, .ops = _ops }
+		= { .method = _method, .ops = _ops }
 
 extern int arm_cpuidle_suspend(int index);
 

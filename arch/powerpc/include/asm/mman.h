@@ -35,9 +35,15 @@ static inline pgprot_t arch_vm_get_page_prot(unsigned long vm_flags)
 static inline bool arch_validate_prot(unsigned long prot)
 {
 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
+	{
 		return false;
+	}
+
 	if ((prot & PROT_SAO) && !cpu_has_feature(CPU_FTR_SAO))
+	{
 		return false;
+	}
+
 	return true;
 }
 #define arch_validate_prot(prot) arch_validate_prot(prot)

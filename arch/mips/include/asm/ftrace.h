@@ -20,48 +20,48 @@ extern void _mcount(void);
 #define mcount _mcount
 
 #define safe_load(load, src, dst, error)		\
-do {							\
-	asm volatile (					\
-		"1: " load " %[tmp_dst], 0(%[tmp_src])\n"	\
-		"   li %[tmp_err], 0\n"			\
-		"2: .insn\n"				\
-							\
-		".section .fixup, \"ax\"\n"		\
-		"3: li %[tmp_err], 1\n"			\
-		"   j 2b\n"				\
-		".previous\n"				\
-							\
-		".section\t__ex_table,\"a\"\n\t"	\
-		STR(PTR) "\t1b, 3b\n\t"			\
-		".previous\n"				\
-							\
-		: [tmp_dst] "=&r" (dst), [tmp_err] "=r" (error)\
-		: [tmp_src] "r" (src)			\
-		: "memory"				\
-	);						\
-} while (0)
+	do {							\
+		asm volatile (					\
+										"1: " load " %[tmp_dst], 0(%[tmp_src])\n"	\
+										"   li %[tmp_err], 0\n"			\
+										"2: .insn\n"				\
+										\
+										".section .fixup, \"ax\"\n"		\
+										"3: li %[tmp_err], 1\n"			\
+										"   j 2b\n"				\
+										".previous\n"				\
+										\
+										".section\t__ex_table,\"a\"\n\t"	\
+										STR(PTR) "\t1b, 3b\n\t"			\
+										".previous\n"				\
+										\
+										: [tmp_dst] "=&r" (dst), [tmp_err] "=r" (error)\
+										: [tmp_src] "r" (src)			\
+										: "memory"				\
+					 );						\
+	} while (0)
 
 #define safe_store(store, src, dst, error)	\
-do {						\
-	asm volatile (				\
-		"1: " store " %[tmp_src], 0(%[tmp_dst])\n"\
-		"   li %[tmp_err], 0\n"		\
-		"2: .insn\n"			\
-						\
-		".section .fixup, \"ax\"\n"	\
-		"3: li %[tmp_err], 1\n"		\
-		"   j 2b\n"			\
-		".previous\n"			\
-						\
-		".section\t__ex_table,\"a\"\n\t"\
-		STR(PTR) "\t1b, 3b\n\t"		\
-		".previous\n"			\
-						\
-		: [tmp_err] "=r" (error)	\
-		: [tmp_dst] "r" (dst), [tmp_src] "r" (src)\
-		: "memory"			\
-	);					\
-} while (0)
+	do {						\
+		asm volatile (				\
+									"1: " store " %[tmp_src], 0(%[tmp_dst])\n"\
+									"   li %[tmp_err], 0\n"		\
+									"2: .insn\n"			\
+									\
+									".section .fixup, \"ax\"\n"	\
+									"3: li %[tmp_err], 1\n"		\
+									"   j 2b\n"			\
+									".previous\n"			\
+									\
+									".section\t__ex_table,\"a\"\n\t"\
+									STR(PTR) "\t1b, 3b\n\t"		\
+									".previous\n"			\
+									\
+									: [tmp_err] "=r" (error)	\
+									: [tmp_dst] "r" (dst), [tmp_src] "r" (src)\
+									: "memory"			\
+					 );					\
+	} while (0)
 
 #define safe_load_code(dst, src, error) \
 	safe_load(STR(lw), src, dst, error)
@@ -81,7 +81,8 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 	return addr;
 }
 
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 };
 
 #endif /*  CONFIG_DYNAMIC_FTRACE */

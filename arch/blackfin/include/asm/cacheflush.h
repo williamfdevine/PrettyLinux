@@ -12,7 +12,7 @@
 #include <asm/blackfin.h>	/* for SSYNC() */
 #include <asm/sections.h>	/* for _ramend */
 #ifdef CONFIG_SMP
-#include <asm/smp.h>
+	#include <asm/smp.h>
 #endif
 
 extern void blackfin_icache_flush_range(unsigned long start_address, unsigned long end_address);
@@ -40,12 +40,20 @@ extern void blackfin_invalidate_entire_icache(void);
 static inline void flush_icache_range(unsigned start, unsigned end)
 {
 #if defined(CONFIG_BFIN_EXTMEM_WRITEBACK)
+
 	if (end <= physical_mem_end)
+	{
 		blackfin_dcache_flush_range(start, end);
+	}
+
 #endif
 #if defined(CONFIG_BFIN_L2_WRITEBACK)
+
 	if (start >= L2_START && end <= L2_START + L2_LENGTH)
+	{
 		blackfin_dcache_flush_range(start, end);
+	}
+
 #endif
 
 	/* Make sure all write buffers in the data side of the core
@@ -58,39 +66,45 @@ static inline void flush_icache_range(unsigned start, unsigned end)
 	 */
 	SSYNC();
 #if defined(CONFIG_BFIN_EXTMEM_ICACHEABLE)
-	if (end <= physical_mem_end) {
+
+	if (end <= physical_mem_end)
+	{
 		blackfin_icache_flush_range(start, end);
 		flush_icache_range_others(start, end);
 	}
+
 #endif
 #if defined(CONFIG_BFIN_L2_ICACHEABLE)
-	if (start >= L2_START && end <= L2_START + L2_LENGTH) {
+
+	if (start >= L2_START && end <= L2_START + L2_LENGTH)
+	{
 		blackfin_icache_flush_range(start, end);
 		flush_icache_range_others(start, end);
 	}
+
 #endif
 }
 
 #define copy_to_user_page(vma, page, vaddr, dst, src, len)		\
-do { memcpy(dst, src, len);						\
-     flush_icache_range((unsigned) (dst), (unsigned) (dst) + (len));	\
-} while (0)
+	do { memcpy(dst, src, len);						\
+		flush_icache_range((unsigned) (dst), (unsigned) (dst) + (len));	\
+	} while (0)
 
 #define copy_from_user_page(vma, page, vaddr, dst, src, len)	memcpy(dst, src, len)
 
 #if defined(CONFIG_BFIN_DCACHE)
-# define invalidate_dcache_range(start,end)	blackfin_dcache_invalidate_range((start), (end))
+	#define invalidate_dcache_range(start,end)	blackfin_dcache_invalidate_range((start), (end))
 #else
-# define invalidate_dcache_range(start,end)	do { } while (0)
+	#define invalidate_dcache_range(start,end)	do { } while (0)
 #endif
 #if defined(CONFIG_BFIN_EXTMEM_WRITEBACK) || defined(CONFIG_BFIN_L2_WRITEBACK)
-# define flush_dcache_range(start,end)		blackfin_dcache_flush_range((start), (end))
-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
-# define flush_dcache_page(page)		blackfin_dflush_page(page_address(page))
+	#define flush_dcache_range(start,end)		blackfin_dcache_flush_range((start), (end))
+	#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+	#define flush_dcache_page(page)		blackfin_dflush_page(page_address(page))
 #else
-# define flush_dcache_range(start,end)		do { } while (0)
-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
-# define flush_dcache_page(page)		do { } while (0)
+	#define flush_dcache_range(start,end)		do { } while (0)
+	#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+	#define flush_dcache_page(page)		do { } while (0)
 #endif
 
 extern unsigned long reserved_mem_dcache_on;
@@ -99,17 +113,27 @@ extern unsigned long reserved_mem_icache_on;
 static inline int bfin_addr_dcacheable(unsigned long addr)
 {
 #ifdef CONFIG_BFIN_EXTMEM_DCACHEABLE
+
 	if (addr < (_ramend - DMA_UNCACHED_REGION))
+	{
 		return 1;
+	}
+
 #endif
 
 	if (reserved_mem_dcache_on &&
 		addr >= _ramend && addr < physical_mem_end)
+	{
 		return 1;
+	}
 
 #ifdef CONFIG_BFIN_L2_DCACHEABLE
+
 	if (addr >= L2_START && addr < L2_START + L2_LENGTH)
+	{
 		return 1;
+	}
+
 #endif
 
 	return 0;

@@ -14,7 +14,7 @@ static const char serial_version[] = "mn10300_serial-1.0";
 static const char serial_revdate[] = "2007-11-06";
 
 #if defined(CONFIG_MN10300_TTYSM_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
-#define SUPPORT_SYSRQ
+	#define SUPPORT_SYSRQ
 #endif
 
 #include <linux/module.h>
@@ -44,8 +44,8 @@ static const char serial_revdate[] = "2007-11-06";
 #include "mn10300-serial.h"
 
 #ifdef CONFIG_SMP
-#undef  GxICR
-#define GxICR(X) CROSS_GxICR(X, 0)
+	#undef  GxICR
+	#define GxICR(X) CROSS_GxICR(X, 0)
 #endif /* CONFIG_SMP */
 
 #define kenter(FMT, ...) \
@@ -62,20 +62,21 @@ static const char serial_revdate[] = "2007-11-06";
 	no_printk(KERN_DEBUG "### MNSERIAL " FMT " ###\n", ##__VA_ARGS__)
 
 #ifndef CODMSB
-/* c_cflag bit meaning */
-#define CODMSB	004000000000	/* change Transfer bit-order */
+	/* c_cflag bit meaning */
+	#define CODMSB	004000000000	/* change Transfer bit-order */
 #endif
 
 #define NR_UARTS 3
 
 #ifdef CONFIG_MN10300_TTYSM_CONSOLE
 static void mn10300_serial_console_write(struct console *co,
-					   const char *s, unsigned count);
+		const char *s, unsigned count);
 static int __init mn10300_serial_console_setup(struct console *co,
-						 char *options);
+		char *options);
 
 static struct uart_driver mn10300_serial_driver;
-static struct console mn10300_serial_console = {
+static struct console mn10300_serial_console =
+{
 	.name		= "ttySM",
 	.write		= mn10300_serial_console_write,
 	.device		= uart_console_device,
@@ -86,7 +87,8 @@ static struct console mn10300_serial_console = {
 };
 #endif
 
-static struct uart_driver mn10300_serial_driver = {
+static struct uart_driver mn10300_serial_driver =
+{
 	.owner		= NULL,
 	.driver_name	= "mn10300-serial",
 	.dev_name	= "ttySM",
@@ -110,20 +112,21 @@ static void mn10300_serial_break_ctl(struct uart_port *, int ctl);
 static int mn10300_serial_startup(struct uart_port *);
 static void mn10300_serial_shutdown(struct uart_port *);
 static void mn10300_serial_set_termios(struct uart_port *,
-					 struct ktermios *new,
-					 struct ktermios *old);
+									   struct ktermios *new,
+									   struct ktermios *old);
 static const char *mn10300_serial_type(struct uart_port *);
 static void mn10300_serial_release_port(struct uart_port *);
 static int mn10300_serial_request_port(struct uart_port *);
 static void mn10300_serial_config_port(struct uart_port *, int);
 static int mn10300_serial_verify_port(struct uart_port *,
-					struct serial_struct *);
+									  struct serial_struct *);
 #ifdef CONFIG_CONSOLE_POLL
-static void mn10300_serial_poll_put_char(struct uart_port *, unsigned char);
-static int mn10300_serial_poll_get_char(struct uart_port *);
+	static void mn10300_serial_poll_put_char(struct uart_port *, unsigned char);
+	static int mn10300_serial_poll_get_char(struct uart_port *);
 #endif
 
-static const struct uart_ops mn10300_serial_ops = {
+static const struct uart_ops mn10300_serial_ops =
+{
 	.tx_empty	= mn10300_serial_tx_empty,
 	.set_mctrl	= mn10300_serial_set_mctrl,
 	.get_mctrl	= mn10300_serial_get_mctrl,
@@ -153,7 +156,8 @@ static irqreturn_t mn10300_serial_interrupt(int irq, void *dev_id);
  * the first on-chip serial port: ttySM0 (aka SIF0)
  */
 #ifdef CONFIG_MN10300_TTYSM0
-struct mn10300_serial_port mn10300_serial_port_sif0 = {
+struct mn10300_serial_port mn10300_serial_port_sif0 =
+{
 	.uart.ops	= &mn10300_serial_ops,
 	.uart.membase	= (void __iomem *) &SC0CTR,
 	.uart.mapbase	= (unsigned long) &SC0CTR,
@@ -169,7 +173,7 @@ struct mn10300_serial_port mn10300_serial_port_sif0 = {
 	.name		= "ttySM0",
 	._iobase	= &SC0CTR,
 	._control	= &SC0CTR,
-	._status	= (volatile u8 *)&SC0STR,
+	._status	= (volatile u8 *) &SC0STR,
 	._intr		= &SC0ICR,
 	._rxb		= &SC0RXB,
 	._txb		= &SC0TXB,
@@ -185,14 +189,14 @@ struct mn10300_serial_port mn10300_serial_port_sif0 = {
 #elif defined(CONFIG_MN10300_TTYSM0_TIMER0)
 	.tm_name	= "ttySM0:Timer0",
 	._tmxmd		= &TM0MD,
-	._tmxbr		= (volatile u16 *)&TM0BR,
+	._tmxbr		= (volatile u16 *) &TM0BR,
 	._tmicr		= &TM0ICR,
 	.tm_irq		= TM0IRQ,
 	.div_timer	= MNSCx_DIV_TIMER_8BIT,
 #elif defined(CONFIG_MN10300_TTYSM0_TIMER2)
 	.tm_name	= "ttySM0:Timer2",
 	._tmxmd		= &TM2MD,
-	._tmxbr		= (volatile u16 *)&TM2BR,
+	._tmxbr		= (volatile u16 *) &TM2BR,
 	._tmicr		= &TM2ICR,
 	.tm_irq		= TM2IRQ,
 	.div_timer	= MNSCx_DIV_TIMER_8BIT,
@@ -215,7 +219,8 @@ struct mn10300_serial_port mn10300_serial_port_sif0 = {
  * the second on-chip serial port: ttySM1 (aka SIF1)
  */
 #ifdef CONFIG_MN10300_TTYSM1
-struct mn10300_serial_port mn10300_serial_port_sif1 = {
+struct mn10300_serial_port mn10300_serial_port_sif1 =
+{
 	.uart.ops	= &mn10300_serial_ops,
 	.uart.membase	= (void __iomem *) &SC1CTR,
 	.uart.mapbase	= (unsigned long) &SC1CTR,
@@ -231,7 +236,7 @@ struct mn10300_serial_port mn10300_serial_port_sif1 = {
 	.name		= "ttySM1",
 	._iobase	= &SC1CTR,
 	._control	= &SC1CTR,
-	._status	= (volatile u8 *)&SC1STR,
+	._status	= (volatile u8 *) &SC1STR,
 	._intr		= &SC1ICR,
 	._rxb		= &SC1RXB,
 	._txb		= &SC1TXB,
@@ -247,7 +252,7 @@ struct mn10300_serial_port mn10300_serial_port_sif1 = {
 #elif defined(CONFIG_MN10300_TTYSM1_TIMER3)
 	.tm_name	= "ttySM1:Timer3",
 	._tmxmd		= &TM3MD,
-	._tmxbr		= (volatile u16 *)&TM3BR,
+	._tmxbr		= (volatile u16 *) &TM3BR,
 	._tmicr		= &TM3ICR,
 	.tm_irq		= TM3IRQ,
 	.div_timer	= MNSCx_DIV_TIMER_8BIT,
@@ -277,7 +282,8 @@ struct mn10300_serial_port mn10300_serial_port_sif1 = {
  * the third on-chip serial port: ttySM2 (aka SIF2)
  */
 #ifdef CONFIG_MN10300_TTYSM2
-struct mn10300_serial_port mn10300_serial_port_sif2 = {
+struct mn10300_serial_port mn10300_serial_port_sif2 =
+{
 	.uart.ops	= &mn10300_serial_ops,
 	.uart.membase	= (void __iomem *) &SC2CTR,
 	.uart.mapbase	= (unsigned long) &SC2CTR,
@@ -297,7 +303,7 @@ struct mn10300_serial_port mn10300_serial_port_sif2 = {
 	.name		= "ttySM2",
 	._iobase	= &SC2CTR,
 	._control	= &SC2CTR,
-	._status	= (volatile u8 *)&SC2STR,
+	._status	= (volatile u8 *) &SC2STR,
 	._intr		= &SC2ICR,
 	._rxb		= &SC2RXB,
 	._txb		= &SC2TXB,
@@ -320,14 +326,14 @@ struct mn10300_serial_port mn10300_serial_port_sif2 = {
 #elif defined(CONFIG_MN10300_TTYSM2_TIMER1)
 	.tm_name	= "ttySM2/Timer1",
 	._tmxmd		= &TM1MD,
-	._tmxbr		= (volatile u16 *)&TM1BR,
+	._tmxbr		= (volatile u16 *) &TM1BR,
 	._tmicr		= &TM1ICR,
 	.tm_irq		= TM1IRQ,
 	.div_timer	= MNSCx_DIV_TIMER_8BIT,
 #elif defined(CONFIG_MN10300_TTYSM2_TIMER3)
 	.tm_name	= "ttySM2/Timer3",
 	._tmxmd		= &TM3MD,
-	._tmxbr		= (volatile u16 *)&TM3BR,
+	._tmxbr		= (volatile u16 *) &TM3BR,
 	._tmicr		= &TM3ICR,
 	.tm_irq		= TM3IRQ,
 	.div_timer	= MNSCx_DIV_TIMER_8BIT,
@@ -354,7 +360,8 @@ struct mn10300_serial_port mn10300_serial_port_sif2 = {
 /*
  * list of available serial ports
  */
-struct mn10300_serial_port *mn10300_serial_ports[NR_UARTS + 1] = {
+struct mn10300_serial_port *mn10300_serial_ports[NR_UARTS + 1] =
+{
 #ifdef CONFIG_MN10300_TTYSM0
 	[0]	= &mn10300_serial_port_sif0,
 #endif
@@ -400,7 +407,8 @@ static void mn10300_serial_nop(struct irq_data *d)
 {
 }
 
-static struct irq_chip mn10300_serial_pic = {
+static struct irq_chip mn10300_serial_pic =
+{
 	.name		= "mnserial",
 	.irq_ack	= mn10300_serial_chip_mask_ack,
 	.irq_mask	= mn10300_serial_chip_mask_ack,
@@ -431,7 +439,8 @@ static void mn10300_serial_low_unmask(struct irq_data *d)
 	arch_local_irq_restore(flags);
 }
 
-static struct irq_chip mn10300_serial_low_pic = {
+static struct irq_chip mn10300_serial_low_pic =
+{
 	.name		= "mnserial-low",
 	.irq_mask	= mn10300_serial_low_mask,
 	.irq_unmask	= mn10300_serial_low_unmask,
@@ -449,7 +458,9 @@ static void mn10300_serial_dis_tx_intr(struct mn10300_serial_port *port)
 
 	/* nothing to do if irq isn't set up */
 	if (!mn10300_serial_int_tbl[port->tx_irq].port)
+	{
 		return;
+	}
 
 	port->tx_flags |= MNSCx_TX_STOP;
 	mb();
@@ -465,7 +476,9 @@ static void mn10300_serial_dis_tx_intr(struct mn10300_serial_port *port)
 	 */
 	while ((*port->tx_icr & GxICR_ENABLE) && retries-- > 0)
 		;
-	if (retries <= 0) {
+
+	if (retries <= 0)
+	{
 		*port->tx_icr =
 			NUM2GxICR_LEVEL(CONFIG_MN10300_SERIAL_IRQ_LEVEL);
 		x = *port->tx_icr;
@@ -478,11 +491,15 @@ static void mn10300_serial_en_tx_intr(struct mn10300_serial_port *port)
 
 	/* nothing to do if irq isn't set up */
 	if (!mn10300_serial_int_tbl[port->tx_irq].port)
+	{
 		return;
+	}
 
 	/* stop vdma irq if not already stopped */
 	if (!(port->tx_flags & MNSCx_TX_STOP))
+	{
 		mn10300_serial_dis_tx_intr(port);
+	}
 
 	port->tx_flags &= ~MNSCx_TX_STOP;
 	mb();
@@ -511,9 +528,9 @@ static int mask_test_and_clear(volatile u8 *ptr, u8 mask)
 {
 	u32 epsw;
 	asm volatile("	bclr	%1,(%2)		\n"
-		     "	mov	epsw,%0		\n"
-		     : "=d"(epsw) : "d"(mask), "a"(ptr)
-		     : "cc", "memory");
+				 "	mov	epsw,%0		\n"
+				 : "=d"(epsw) : "d"(mask), "a"(ptr)
+				 : "cc", "memory");
 	return !(epsw & EPSW_FLAG_Z);
 }
 
@@ -535,18 +552,28 @@ static void mn10300_serial_receive_interrupt(struct mn10300_serial_port *port)
 
 	count = CIRC_CNT(port->rx_inp, port->rx_outp, MNSC_BUFFER_SIZE);
 	count = tty_buffer_request_room(tport, count);
-	if (count == 0) {
+
+	if (count == 0)
+	{
 		if (!tport->low_latency)
+		{
 			tty_flip_buffer_push(tport);
+		}
+
 		return;
 	}
 
 try_again:
 	/* pull chars out of the hat */
 	ix = ACCESS_ONCE(port->rx_outp);
-	if (CIRC_CNT(port->rx_inp, ix, MNSC_BUFFER_SIZE) == 0) {
+
+	if (CIRC_CNT(port->rx_inp, ix, MNSC_BUFFER_SIZE) == 0)
+	{
 		if (push && !tport->low_latency)
+		{
 			tty_flip_buffer_push(tport);
+		}
+
 		return;
 	}
 
@@ -567,56 +594,72 @@ try_again:
 	 * - then we end on a normal char or one that has all the bottom bits
 	 *   zero and the top bits set
 	 */
-	switch (port->rx_brk) {
-	case 0:
-		/* not breaking at the moment */
-		break;
+	switch (port->rx_brk)
+	{
+		case 0:
+			/* not breaking at the moment */
+			break;
 
-	case 1:
-		if (st & SC01STR_FEF && ch == 0) {
-			port->rx_brk = 2;
-			goto try_again;
-		}
-		goto not_break;
+		case 1:
+			if (st & SC01STR_FEF && ch == 0)
+			{
+				port->rx_brk = 2;
+				goto try_again;
+			}
 
-	case 2:
-		if (st & SC01STR_FEF && ch == 0) {
-			port->rx_brk = 3;
-			_proto("Rx Break Detected");
-			icount->brk++;
-			if (uart_handle_break(&port->uart))
-				goto ignore_char;
-			status |= 1 << TTY_BREAK;
-			goto insert;
-		}
-		goto not_break;
+			goto not_break;
 
-	default:
-		if (st & (SC01STR_FEF | SC01STR_PEF | SC01STR_OEF))
-			goto try_again; /* still breaking */
+		case 2:
+			if (st & SC01STR_FEF && ch == 0)
+			{
+				port->rx_brk = 3;
+				_proto("Rx Break Detected");
+				icount->brk++;
 
-		port->rx_brk = 0; /* end of the break */
+				if (uart_handle_break(&port->uart))
+				{
+					goto ignore_char;
+				}
 
-		switch (ch) {
-		case 0xFF:
-		case 0xFE:
-		case 0xFC:
-		case 0xF8:
-		case 0xF0:
-		case 0xE0:
-		case 0xC0:
-		case 0x80:
-		case 0x00:
-			/* discard char at probable break end */
-			goto try_again;
-		}
-		break;
+				status |= 1 << TTY_BREAK;
+				goto insert;
+			}
+
+			goto not_break;
+
+		default:
+			if (st & (SC01STR_FEF | SC01STR_PEF | SC01STR_OEF))
+			{
+				goto try_again;    /* still breaking */
+			}
+
+			port->rx_brk = 0; /* end of the break */
+
+			switch (ch)
+			{
+				case 0xFF:
+				case 0xFE:
+				case 0xFC:
+				case 0xF8:
+				case 0xF0:
+				case 0xE0:
+				case 0xC0:
+				case 0x80:
+				case 0x00:
+					/* discard char at probable break end */
+					goto try_again;
+			}
+
+			break;
 	}
 
 process_errors:
+
 	/* handle framing error */
-	if (st & SC01STR_FEF) {
-		if (ch == 0) {
+	if (st & SC01STR_FEF)
+	{
+		if (ch == 0)
+		{
 			/* framing error with NUL char is probably a BREAK */
 			port->rx_brk = 1;
 			goto try_again;
@@ -628,23 +671,31 @@ process_errors:
 	}
 
 	/* handle parity error */
-	if (st & SC01STR_PEF) {
+	if (st & SC01STR_PEF)
+	{
 		_proto("Rx Parity Error");
 		icount->parity++;
 		status = TTY_PARITY;
 	}
 
 	/* handle normal char */
-	if (status == 0) {
+	if (status == 0)
+	{
 		if (uart_handle_sysrq_char(&port->uart, ch))
+		{
 			goto ignore_char;
+		}
+
 		status = (1 << TTY_NORMAL);
 	}
 
 	/* handle overrun error */
-	if (st & SC01STR_OEF) {
+	if (st & SC01STR_OEF)
+	{
 		if (port->rx_brk)
+		{
 			goto try_again;
+		}
 
 		_proto("Rx Overrun Error");
 		icount->overrun++;
@@ -654,17 +705,26 @@ process_errors:
 insert:
 	status &= port->uart.read_status_mask;
 
-	if (!overrun && !(status & port->uart.ignore_status_mask)) {
+	if (!overrun && !(status & port->uart.ignore_status_mask))
+	{
 		int flag;
 
 		if (status & (1 << TTY_BREAK))
+		{
 			flag = TTY_BREAK;
+		}
 		else if (status & (1 << TTY_PARITY))
+		{
 			flag = TTY_PARITY;
+		}
 		else if (status & (1 << TTY_FRAME))
+		{
 			flag = TTY_FRAME;
+		}
 		else
+		{
 			flag = TTY_NORMAL;
+		}
 
 		tty_insert_flip_char(tport, ch, flag);
 	}
@@ -673,12 +733,19 @@ insert:
 	 * affect the current character
 	 */
 	if (overrun)
+	{
 		tty_insert_flip_char(tport, 0, TTY_OVERRUN);
+	}
 
 	count--;
-	if (count <= 0) {
+
+	if (count <= 0)
+	{
 		if (!tport->low_latency)
+		{
 			tty_flip_buffer_push(tport);
+		}
+
 		return;
 	}
 
@@ -700,17 +767,22 @@ static void mn10300_serial_transmit_interrupt(struct mn10300_serial_port *port)
 {
 	_enter("%s", port->name);
 
-	if (!port->uart.state || !port->uart.state->port.tty) {
+	if (!port->uart.state || !port->uart.state->port.tty)
+	{
 		mn10300_serial_dis_tx_intr(port);
 		return;
 	}
 
 	if (uart_tx_stopped(&port->uart) ||
-	    uart_circ_empty(&port->uart.state->xmit))
+		uart_circ_empty(&port->uart.state->xmit))
+	{
 		mn10300_serial_dis_tx_intr(port);
+	}
 
 	if (uart_circ_chars_pending(&port->uart.state->xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(&port->uart);
+	}
 }
 
 /*
@@ -744,23 +816,32 @@ static irqreturn_t mn10300_serial_interrupt(int irq, void *dev_id)
 
 	spin_lock(&port->uart.lock);
 
-	if (port->intr_flags) {
+	if (port->intr_flags)
+	{
 		_debug("INT %s: %x", port->name, port->intr_flags);
 
 		if (mask_test_and_clear(&port->intr_flags, MNSCx_RX_AVAIL))
+		{
 			mn10300_serial_receive_interrupt(port);
+		}
 
 		if (mask_test_and_clear(&port->intr_flags,
-					MNSCx_TX_SPACE | MNSCx_TX_EMPTY))
+								MNSCx_TX_SPACE | MNSCx_TX_EMPTY))
+		{
 			mn10300_serial_transmit_interrupt(port);
+		}
 	}
 
 	/* the only modem control line amongst the whole lot is CTS on
 	 * serial port 2 */
-	if (port->type == PORT_MN10300_CTS) {
+	if (port->type == PORT_MN10300_CTS)
+	{
 		st = *port->_status;
+
 		if ((port->tx_cts ^ st) & SC2STR_CTS)
+		{
 			mn10300_serial_cts_changed(port, st);
+		}
 	}
 
 	spin_unlock(&port->uart.lock);
@@ -779,14 +860,14 @@ static unsigned int mn10300_serial_tx_empty(struct uart_port *_port)
 	_enter("%s", port->name);
 
 	return (*port->_status & (SC01STR_TXF | SC01STR_TBF)) ?
-		0 : TIOCSER_TEMT;
+		   0 : TIOCSER_TEMT;
 }
 
 /*
  * set the modem control lines (we don't have any)
  */
 static void mn10300_serial_set_mctrl(struct uart_port *_port,
-				     unsigned int mctrl)
+									 unsigned int mctrl)
 {
 	struct mn10300_serial_port *port __attribute__ ((unused)) =
 		container_of(_port, struct mn10300_serial_port, uart);
@@ -805,7 +886,9 @@ static unsigned int mn10300_serial_get_mctrl(struct uart_port *_port)
 	_enter("%s", port->name);
 
 	if (port->type == PORT_MN10300_CTS && !(*port->_status & SC2STR_CTS))
+	{
 		return TIOCM_CAR | TIOCM_DSR;
+	}
 
 	return TIOCM_CAR | TIOCM_CTS | TIOCM_DSR;
 }
@@ -836,20 +919,20 @@ static void mn10300_serial_start_tx(struct uart_port *_port)
 		container_of(_port, struct mn10300_serial_port, uart);
 
 	_enter("%s{%lu}",
-	       port->name,
-	       CIRC_CNT(&port->uart.state->xmit.head,
-			&port->uart.state->xmit.tail,
-			UART_XMIT_SIZE));
+		   port->name,
+		   CIRC_CNT(&port->uart.state->xmit.head,
+					&port->uart.state->xmit.tail,
+					UART_XMIT_SIZE));
 
 	/* kick the virtual DMA controller */
 	mn10300_serial_en_tx_intr(port);
 
 	_debug("CTR=%04hx ICR=%02hx STR=%04x TMD=%02hx TBR=%04hx ICR=%04hx",
-	       *port->_control, *port->_intr, *port->_status,
-	       *port->_tmxmd,
-	       (port->div_timer == MNSCx_DIV_TIMER_8BIT) ?
-	           *(volatile u8 *)port->_tmxbr : *port->_tmxbr,
-	       *port->tx_icr);
+		   *port->_control, *port->_intr, *port->_status,
+		   *port->_tmxmd,
+		   (port->div_timer == MNSCx_DIV_TIMER_8BIT) ?
+		   * (volatile u8 *)port->_tmxbr : *port->_tmxbr,
+		   *port->tx_icr);
 }
 
 /*
@@ -863,9 +946,12 @@ static void mn10300_serial_send_xchar(struct uart_port *_port, char ch)
 
 	_enter("%s,%02x", port->name, ch);
 
-	if (likely(port->gdbstub)) {
+	if (likely(port->gdbstub))
+	{
 		port->tx_xchar = ch;
-		if (ch) {
+
+		if (ch)
+		{
 			spin_lock_irqsave(&port->uart.lock, flags);
 			mn10300_serial_en_tx_intr(port);
 			spin_unlock_irqrestore(&port->uart.lock, flags);
@@ -905,14 +991,15 @@ static void mn10300_serial_enable_ms(struct uart_port *_port)
 
 	_enter("%s", port->name);
 
-	if (port->type == PORT_MN10300_CTS) {
+	if (port->type == PORT_MN10300_CTS)
+	{
 		/* want to interrupt when CTS goes low if CTS is now high and
 		 * vice versa
 		 */
 		port->tx_cts = *port->_status;
 
 		cts = (port->tx_cts & SC2STR_CTS) ?
-			SC2CTR_TWE : SC2CTR_TWE | SC2CTR_TWS;
+			  SC2CTR_TWE : SC2CTR_TWE | SC2CTR_TWS;
 
 		ctr = *port->_control;
 		ctr &= ~SC2CTR_TWS;
@@ -935,15 +1022,20 @@ static void mn10300_serial_break_ctl(struct uart_port *_port, int ctl)
 	_enter("%s,%d", port->name, ctl);
 
 	spin_lock_irqsave(&port->uart.lock, flags);
-	if (ctl) {
+
+	if (ctl)
+	{
 		/* tell the virtual DMA handler to assert BREAK */
 		port->tx_flags |= MNSCx_TX_BREAK;
 		mn10300_serial_en_tx_intr(port);
-	} else {
+	}
+	else
+	{
 		port->tx_flags &= ~MNSCx_TX_BREAK;
 		*port->_control &= ~SC01CTR_BKE;
 		mn10300_serial_en_tx_intr(port);
 	}
+
 	spin_unlock_irqrestore(&port->uart.lock, flags);
 }
 
@@ -959,12 +1051,17 @@ static int mn10300_serial_startup(struct uart_port *_port)
 	_enter("%s{%d}", port->name, port->gdbstub);
 
 	if (unlikely(port->gdbstub))
+	{
 		return -EBUSY;
+	}
 
 	/* allocate an Rx buffer for the virtual DMA handler */
 	port->rx_buffer = kmalloc(MNSC_BUFFER_SIZE, GFP_KERNEL);
+
 	if (!port->rx_buffer)
+	{
 		return -ENOMEM;
+	}
 
 	port->rx_inp = port->rx_outp = 0;
 	port->tx_flags = 0;
@@ -985,19 +1082,26 @@ static int mn10300_serial_startup(struct uart_port *_port)
 	irq_set_chip(port->tm_irq, &mn10300_serial_pic);
 
 	if (request_irq(port->rx_irq, mn10300_serial_interrupt,
-			IRQF_NOBALANCING,
-			port->rx_name, port) < 0)
+					IRQF_NOBALANCING,
+					port->rx_name, port) < 0)
+	{
 		goto error;
+	}
 
 	if (request_irq(port->tx_irq, mn10300_serial_interrupt,
-			IRQF_NOBALANCING,
-			port->tx_name, port) < 0)
+					IRQF_NOBALANCING,
+					port->tx_name, port) < 0)
+	{
 		goto error2;
+	}
 
 	if (request_irq(port->tm_irq, mn10300_serial_interrupt,
-			IRQF_NOBALANCING,
-			port->tm_name, port) < 0)
+					IRQF_NOBALANCING,
+					port->tm_name, port) < 0)
+	{
 		goto error3;
+	}
+
 	mn10300_serial_mask_ack(port->tm_irq);
 
 	return 0;
@@ -1036,7 +1140,8 @@ static void mn10300_serial_shutdown(struct uart_port *_port)
 	*port->_control &= ~(SC01CTR_TXE | SC01CTR_RXE | SC01CTR_BKE);
 	*port->_tmxmd = 0;
 
-	if (port->rx_buffer) {
+	if (port->rx_buffer)
+	{
 		void *buf = port->rx_buffer;
 		port->rx_buffer = NULL;
 		kfree(buf);
@@ -1056,8 +1161,8 @@ static void mn10300_serial_shutdown(struct uart_port *_port)
  * specified baud rate for a serial port.
  */
 static void mn10300_serial_change_speed(struct mn10300_serial_port *port,
-					  struct ktermios *new,
-					  struct ktermios *old)
+										struct ktermios *new,
+										struct ktermios *old)
 {
 	unsigned long flags;
 	unsigned long ioclk = port->ioclk;
@@ -1071,127 +1176,158 @@ static void mn10300_serial_change_speed(struct mn10300_serial_port *port,
 
 	/* byte size and parity */
 	cflag = new->c_cflag;
-	switch (cflag & CSIZE) {
-	case CS7: scxctr = SC01CTR_CLN_7BIT; bits = 9;  break;
-	case CS8: scxctr = SC01CTR_CLN_8BIT; bits = 10; break;
-	default:  scxctr = SC01CTR_CLN_8BIT; bits = 10; break;
+
+	switch (cflag & CSIZE)
+	{
+		case CS7: scxctr = SC01CTR_CLN_7BIT; bits = 9;  break;
+
+		case CS8: scxctr = SC01CTR_CLN_8BIT; bits = 10; break;
+
+		default:  scxctr = SC01CTR_CLN_8BIT; bits = 10; break;
 	}
 
-	if (cflag & CSTOPB) {
+	if (cflag & CSTOPB)
+	{
 		scxctr |= SC01CTR_STB_2BIT;
 		bits++;
 	}
 
-	if (cflag & PARENB) {
+	if (cflag & PARENB)
+	{
 		bits++;
+
 		if (cflag & PARODD)
+		{
 			scxctr |= SC01CTR_PB_ODD;
+		}
+
 #ifdef CMSPAR
 		else if (cflag & CMSPAR)
+		{
 			scxctr |= SC01CTR_PB_FIXED0;
+		}
+
 #endif
 		else
+		{
 			scxctr |= SC01CTR_PB_EVEN;
+		}
 	}
 
 	/* Determine divisor based on baud rate */
 	battempt = 0;
 
-	switch (port->uart.line) {
+	switch (port->uart.line)
+	{
 #ifdef CONFIG_MN10300_TTYSM0
-	case 0: /* ttySM0 */
+
+		case 0: /* ttySM0 */
 #if   defined(CONFIG_MN10300_TTYSM0_TIMER8)
-		scxctr |= SC0CTR_CK_TM8UFLOW_8;
+			scxctr |= SC0CTR_CK_TM8UFLOW_8;
 #elif defined(CONFIG_MN10300_TTYSM0_TIMER0)
-		scxctr |= SC0CTR_CK_TM0UFLOW_8;
+			scxctr |= SC0CTR_CK_TM0UFLOW_8;
 #elif defined(CONFIG_MN10300_TTYSM0_TIMER2)
-		scxctr |= SC0CTR_CK_TM2UFLOW_8;
+			scxctr |= SC0CTR_CK_TM2UFLOW_8;
 #else
 #error "Unknown config for ttySM0"
 #endif
-		break;
+			break;
 #endif /* CONFIG_MN10300_TTYSM0 */
 
 #ifdef CONFIG_MN10300_TTYSM1
-	case 1: /* ttySM1 */
+
+		case 1: /* ttySM1 */
 #if defined(CONFIG_AM33_2) || defined(CONFIG_AM33_3)
 #if   defined(CONFIG_MN10300_TTYSM1_TIMER9)
-		scxctr |= SC1CTR_CK_TM9UFLOW_8;
+			scxctr |= SC1CTR_CK_TM9UFLOW_8;
 #elif defined(CONFIG_MN10300_TTYSM1_TIMER3)
-		scxctr |= SC1CTR_CK_TM3UFLOW_8;
+			scxctr |= SC1CTR_CK_TM3UFLOW_8;
 #else
 #error "Unknown config for ttySM1"
 #endif
 #else /* CONFIG_AM33_2 || CONFIG_AM33_3 */
 #if defined(CONFIG_MN10300_TTYSM1_TIMER12)
-		scxctr |= SC1CTR_CK_TM12UFLOW_8;
+			scxctr |= SC1CTR_CK_TM12UFLOW_8;
 #else
 #error "Unknown config for ttySM1"
 #endif
 #endif /* CONFIG_AM33_2 || CONFIG_AM33_3 */
-		break;
+			break;
 #endif /* CONFIG_MN10300_TTYSM1 */
 
 #ifdef CONFIG_MN10300_TTYSM2
-	case 2: /* ttySM2 */
+
+		case 2: /* ttySM2 */
 #if defined(CONFIG_AM33_2)
 #if   defined(CONFIG_MN10300_TTYSM2_TIMER10)
-		scxctr |= SC2CTR_CK_TM10UFLOW;
+			scxctr |= SC2CTR_CK_TM10UFLOW;
 #else
 #error "Unknown config for ttySM2"
 #endif
 #else /* CONFIG_AM33_2 */
 #if   defined(CONFIG_MN10300_TTYSM2_TIMER9)
-		scxctr |= SC2CTR_CK_TM9UFLOW_8;
+			scxctr |= SC2CTR_CK_TM9UFLOW_8;
 #elif defined(CONFIG_MN10300_TTYSM2_TIMER1)
-		scxctr |= SC2CTR_CK_TM1UFLOW_8;
+			scxctr |= SC2CTR_CK_TM1UFLOW_8;
 #elif defined(CONFIG_MN10300_TTYSM2_TIMER3)
-		scxctr |= SC2CTR_CK_TM3UFLOW_8;
+			scxctr |= SC2CTR_CK_TM3UFLOW_8;
 #else
 #error "Unknown config for ttySM2"
 #endif
 #endif /* CONFIG_AM33_2 */
-		break;
+			break;
 #endif /* CONFIG_MN10300_TTYSM2 */
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 try_alternative:
 	baud = uart_get_baud_rate(&port->uart, new, old, 0,
-				  port->ioclk / 8);
+							  port->ioclk / 8);
 
 	_debug("ALT %d [baud %d]", battempt, baud);
 
 	if (!baud)
-		baud = 9600;	/* B0 transition handled in rs_set_termios */
+	{
+		baud = 9600;    /* B0 transition handled in rs_set_termios */
+	}
+
 	xdiv = 1;
-	if (baud == 134) {
+
+	if (baud == 134)
+	{
 		baud = 269;	/* 134 is really 134.5 */
 		xdiv = 2;
 	}
 
 	if (baud == 38400 &&
-	    (port->uart.flags & UPF_SPD_MASK) == UPF_SPD_CUST
-	    ) {
+		(port->uart.flags & UPF_SPD_MASK) == UPF_SPD_CUST
+	   )
+	{
 		_debug("CUSTOM %u", port->uart.custom_divisor);
 
-		if (div_timer == MNSCx_DIV_TIMER_16BIT) {
-			if (port->uart.custom_divisor <= 65535) {
+		if (div_timer == MNSCx_DIV_TIMER_16BIT)
+		{
+			if (port->uart.custom_divisor <= 65535)
+			{
 				tmxmd = TM8MD_SRC_IOCLK;
 				tmxbr = port->uart.custom_divisor;
 				port->uart.uartclk = ioclk;
 				goto timer_okay;
 			}
-			if (port->uart.custom_divisor / 8 <= 65535) {
+
+			if (port->uart.custom_divisor / 8 <= 65535)
+			{
 				tmxmd = TM8MD_SRC_IOCLK_8;
 				tmxbr = port->uart.custom_divisor / 8;
 				port->uart.custom_divisor = tmxbr * 8;
 				port->uart.uartclk = ioclk / 8;
 				goto timer_okay;
 			}
-			if (port->uart.custom_divisor / 32 <= 65535) {
+
+			if (port->uart.custom_divisor / 32 <= 65535)
+			{
 				tmxmd = TM8MD_SRC_IOCLK_32;
 				tmxbr = port->uart.custom_divisor / 32;
 				port->uart.custom_divisor = tmxbr * 32;
@@ -1199,21 +1335,28 @@ try_alternative:
 				goto timer_okay;
 			}
 
-		} else if (div_timer == MNSCx_DIV_TIMER_8BIT) {
-			if (port->uart.custom_divisor <= 255) {
+		}
+		else if (div_timer == MNSCx_DIV_TIMER_8BIT)
+		{
+			if (port->uart.custom_divisor <= 255)
+			{
 				tmxmd = TM2MD_SRC_IOCLK;
 				tmxbr = port->uart.custom_divisor;
 				port->uart.uartclk = ioclk;
 				goto timer_okay;
 			}
-			if (port->uart.custom_divisor / 8 <= 255) {
+
+			if (port->uart.custom_divisor / 8 <= 255)
+			{
 				tmxmd = TM2MD_SRC_IOCLK_8;
 				tmxbr = port->uart.custom_divisor / 8;
 				port->uart.custom_divisor = tmxbr * 8;
 				port->uart.uartclk = ioclk / 8;
 				goto timer_okay;
 			}
-			if (port->uart.custom_divisor / 32 <= 255) {
+
+			if (port->uart.custom_divisor / 32 <= 255)
+			{
 				tmxmd = TM2MD_SRC_IOCLK_32;
 				tmxbr = port->uart.custom_divisor / 32;
 				port->uart.custom_divisor = tmxbr * 32;
@@ -1223,89 +1366,118 @@ try_alternative:
 		}
 	}
 
-	switch (div_timer) {
-	case MNSCx_DIV_TIMER_16BIT:
-		port->uart.uartclk = ioclk;
-		tmxmd = TM8MD_SRC_IOCLK;
-		tmxbr = tmp = (ioclk / (baud * xdiv) + 4) / 8 - 1;
-		if (tmp > 0 && tmp <= 65535)
-			goto timer_okay;
+	switch (div_timer)
+	{
+		case MNSCx_DIV_TIMER_16BIT:
+			port->uart.uartclk = ioclk;
+			tmxmd = TM8MD_SRC_IOCLK;
+			tmxbr = tmp = (ioclk / (baud * xdiv) + 4) / 8 - 1;
 
-		port->uart.uartclk = ioclk / 8;
-		tmxmd = TM8MD_SRC_IOCLK_8;
-		tmxbr = tmp = (ioclk / (baud * 8 * xdiv) + 4) / 8 - 1;
-		if (tmp > 0 && tmp <= 65535)
-			goto timer_okay;
+			if (tmp > 0 && tmp <= 65535)
+			{
+				goto timer_okay;
+			}
 
-		port->uart.uartclk = ioclk / 32;
-		tmxmd = TM8MD_SRC_IOCLK_32;
-		tmxbr = tmp = (ioclk / (baud * 32 * xdiv) + 4) / 8 - 1;
-		if (tmp > 0 && tmp <= 65535)
-			goto timer_okay;
-		break;
+			port->uart.uartclk = ioclk / 8;
+			tmxmd = TM8MD_SRC_IOCLK_8;
+			tmxbr = tmp = (ioclk / (baud * 8 * xdiv) + 4) / 8 - 1;
 
-	case MNSCx_DIV_TIMER_8BIT:
-		port->uart.uartclk = ioclk;
-		tmxmd = TM2MD_SRC_IOCLK;
-		tmxbr = tmp = (ioclk / (baud * xdiv) + 4) / 8 - 1;
-		if (tmp > 0 && tmp <= 255)
-			goto timer_okay;
+			if (tmp > 0 && tmp <= 65535)
+			{
+				goto timer_okay;
+			}
 
-		port->uart.uartclk = ioclk / 8;
-		tmxmd = TM2MD_SRC_IOCLK_8;
-		tmxbr = tmp = (ioclk / (baud * 8 * xdiv) + 4) / 8 - 1;
-		if (tmp > 0 && tmp <= 255)
-			goto timer_okay;
+			port->uart.uartclk = ioclk / 32;
+			tmxmd = TM8MD_SRC_IOCLK_32;
+			tmxbr = tmp = (ioclk / (baud * 32 * xdiv) + 4) / 8 - 1;
 
-		port->uart.uartclk = ioclk / 32;
-		tmxmd = TM2MD_SRC_IOCLK_32;
-		tmxbr = tmp = (ioclk / (baud * 32 * xdiv) + 4) / 8 - 1;
-		if (tmp > 0 && tmp <= 255)
-			goto timer_okay;
-		break;
+			if (tmp > 0 && tmp <= 65535)
+			{
+				goto timer_okay;
+			}
 
-	default:
-		BUG();
-		return;
+			break;
+
+		case MNSCx_DIV_TIMER_8BIT:
+			port->uart.uartclk = ioclk;
+			tmxmd = TM2MD_SRC_IOCLK;
+			tmxbr = tmp = (ioclk / (baud * xdiv) + 4) / 8 - 1;
+
+			if (tmp > 0 && tmp <= 255)
+			{
+				goto timer_okay;
+			}
+
+			port->uart.uartclk = ioclk / 8;
+			tmxmd = TM2MD_SRC_IOCLK_8;
+			tmxbr = tmp = (ioclk / (baud * 8 * xdiv) + 4) / 8 - 1;
+
+			if (tmp > 0 && tmp <= 255)
+			{
+				goto timer_okay;
+			}
+
+			port->uart.uartclk = ioclk / 32;
+			tmxmd = TM2MD_SRC_IOCLK_32;
+			tmxbr = tmp = (ioclk / (baud * 32 * xdiv) + 4) / 8 - 1;
+
+			if (tmp > 0 && tmp <= 255)
+			{
+				goto timer_okay;
+			}
+
+			break;
+
+		default:
+			BUG();
+			return;
 	}
 
 	/* refuse to change to a baud rate we can't support */
 	_debug("CAN'T SUPPORT");
 
-	switch (battempt) {
-	case 0:
-		if (old) {
+	switch (battempt)
+	{
+		case 0:
+			if (old)
+			{
+				new->c_cflag &= ~CBAUD;
+				new->c_cflag |= (old->c_cflag & CBAUD);
+				battempt = 1;
+				goto try_alternative;
+			}
+
+		case 1:
+			/* as a last resort, if the quotient is zero, default to 9600
+			 * bps */
 			new->c_cflag &= ~CBAUD;
-			new->c_cflag |= (old->c_cflag & CBAUD);
-			battempt = 1;
+			new->c_cflag |= B9600;
+			battempt = 2;
 			goto try_alternative;
-		}
 
-	case 1:
-		/* as a last resort, if the quotient is zero, default to 9600
-		 * bps */
-		new->c_cflag &= ~CBAUD;
-		new->c_cflag |= B9600;
-		battempt = 2;
-		goto try_alternative;
+		default:
+			/* hmmm... can't seem to support 9600 either
+			 * - we could try iterating through the speeds we know about to
+			 *   find the lowest
+			 */
+			new->c_cflag &= ~CBAUD;
+			new->c_cflag |= B0;
 
-	default:
-		/* hmmm... can't seem to support 9600 either
-		 * - we could try iterating through the speeds we know about to
-		 *   find the lowest
-		 */
-		new->c_cflag &= ~CBAUD;
-		new->c_cflag |= B0;
+			if (div_timer == MNSCx_DIV_TIMER_16BIT)
+			{
+				tmxmd = TM8MD_SRC_IOCLK_32;
+			}
+			else if (div_timer == MNSCx_DIV_TIMER_8BIT)
+			{
+				tmxmd = TM2MD_SRC_IOCLK_32;
+			}
 
-		if (div_timer == MNSCx_DIV_TIMER_16BIT)
-			tmxmd = TM8MD_SRC_IOCLK_32;
-		else if (div_timer == MNSCx_DIV_TIMER_8BIT)
-			tmxmd = TM2MD_SRC_IOCLK_32;
-		tmxbr = 1;
+			tmxbr = 1;
 
-		port->uart.uartclk = ioclk / 32;
-		break;
+			port->uart.uartclk = ioclk / 32;
+			break;
 	}
+
 timer_okay:
 
 	_debug("UARTCLK: %u / %hu", port->uart.uartclk, tmxbr);
@@ -1316,63 +1488,81 @@ timer_okay:
 	uart_update_timeout(&port->uart, new->c_cflag, baud);
 
 	/* set the timer to produce the required baud rate */
-	switch (div_timer) {
-	case MNSCx_DIV_TIMER_16BIT:
-		*port->_tmxmd = 0;
-		*port->_tmxbr = tmxbr;
-		*port->_tmxmd = TM8MD_INIT_COUNTER;
-		*port->_tmxmd = tmxmd | TM8MD_COUNT_ENABLE;
-		break;
+	switch (div_timer)
+	{
+		case MNSCx_DIV_TIMER_16BIT:
+			*port->_tmxmd = 0;
+			*port->_tmxbr = tmxbr;
+			*port->_tmxmd = TM8MD_INIT_COUNTER;
+			*port->_tmxmd = tmxmd | TM8MD_COUNT_ENABLE;
+			break;
 
-	case MNSCx_DIV_TIMER_8BIT:
-		*port->_tmxmd = 0;
-		*(volatile u8 *) port->_tmxbr = (u8) tmxbr;
-		*port->_tmxmd = TM2MD_INIT_COUNTER;
-		*port->_tmxmd = tmxmd | TM2MD_COUNT_ENABLE;
-		break;
+		case MNSCx_DIV_TIMER_8BIT:
+			*port->_tmxmd = 0;
+			*(volatile u8 *) port->_tmxbr = (u8) tmxbr;
+			*port->_tmxmd = TM2MD_INIT_COUNTER;
+			*port->_tmxmd = tmxmd | TM2MD_COUNT_ENABLE;
+			break;
 	}
 
 	/* CTS flow control flag and modem status interrupts */
 	scxctr &= ~(SC2CTR_TWE | SC2CTR_TWS);
 
-	if (port->type == PORT_MN10300_CTS && cflag & CRTSCTS) {
+	if (port->type == PORT_MN10300_CTS && cflag & CRTSCTS)
+	{
 		/* want to interrupt when CTS goes low if CTS is now
 		 * high and vice versa
 		 */
 		port->tx_cts = *port->_status;
 
 		if (port->tx_cts & SC2STR_CTS)
+		{
 			scxctr |= SC2CTR_TWE;
+		}
 		else
+		{
 			scxctr |= SC2CTR_TWE | SC2CTR_TWS;
+		}
 	}
 
 	/* set up parity check flag */
 	port->uart.read_status_mask = (1 << TTY_NORMAL) | (1 << TTY_OVERRUN);
+
 	if (new->c_iflag & INPCK)
 		port->uart.read_status_mask |=
 			(1 << TTY_PARITY) | (1 << TTY_FRAME);
+
 	if (new->c_iflag & (BRKINT | PARMRK))
+	{
 		port->uart.read_status_mask |= (1 << TTY_BREAK);
+	}
 
 	/* characters to ignore */
 	port->uart.ignore_status_mask = 0;
+
 	if (new->c_iflag & IGNPAR)
 		port->uart.ignore_status_mask |=
 			(1 << TTY_PARITY) | (1 << TTY_FRAME);
-	if (new->c_iflag & IGNBRK) {
+
+	if (new->c_iflag & IGNBRK)
+	{
 		port->uart.ignore_status_mask |= (1 << TTY_BREAK);
+
 		/*
 		 * If we're ignoring parity and break indicators,
 		 * ignore overruns to (for real raw support).
 		 */
 		if (new->c_iflag & IGNPAR)
+		{
 			port->uart.ignore_status_mask |= (1 << TTY_OVERRUN);
+		}
 	}
 
 	/* Ignore all characters if CREAD is not set */
 	if ((new->c_cflag & CREAD) == 0)
+	{
 		port->uart.ignore_status_mask |= (1 << TTY_NORMAL);
+	}
 
 	scxctr |= SC01CTR_TXE | SC01CTR_RXE;
 	scxctr |= *port->_control & SC01CTR_BKE;
@@ -1385,8 +1575,8 @@ timer_okay:
  * set the terminal I/O parameters
  */
 static void mn10300_serial_set_termios(struct uart_port *_port,
-					 struct ktermios *new,
-					 struct ktermios *old)
+									   struct ktermios *new,
+									   struct ktermios *old)
 {
 	struct mn10300_serial_port *port =
 		container_of(_port, struct mn10300_serial_port, uart);
@@ -1396,7 +1586,8 @@ static void mn10300_serial_set_termios(struct uart_port *_port,
 	mn10300_serial_change_speed(port, new, old);
 
 	/* handle turning off CRTSCTS */
-	if (!(new->c_cflag & CRTSCTS)) {
+	if (!(new->c_cflag & CRTSCTS))
+	{
 		u16 ctr = *port->_control;
 		ctr &= ~SC2CTR_TWE;
 		*port->_control = ctr;
@@ -1404,9 +1595,13 @@ static void mn10300_serial_set_termios(struct uart_port *_port,
 
 	/* change Transfer bit-order (LSB/MSB) */
 	if (new->c_cflag & CODMSB)
-		*port->_control |= SC01CTR_OD_MSBFIRST; /* MSB MODE */
+	{
+		*port->_control |= SC01CTR_OD_MSBFIRST;    /* MSB MODE */
+	}
 	else
-		*port->_control &= ~SC01CTR_OD_MSBFIRST; /* LSB MODE */
+	{
+		*port->_control &= ~SC01CTR_OD_MSBFIRST;    /* LSB MODE */
+	}
 }
 
 /*
@@ -1418,7 +1613,9 @@ static const char *mn10300_serial_type(struct uart_port *_port)
 		container_of(_port, struct mn10300_serial_port, uart);
 
 	if (port->uart.type == PORT_MN10300_CTS)
+	{
 		return "MN10300 SIF_CTS";
+	}
 
 	return "MN10300 SIF";
 }
@@ -1463,7 +1660,9 @@ static void mn10300_serial_config_port(struct uart_port *_port, int type)
 	port->uart.type = PORT_MN10300;
 
 	if (port->options & MNSCx_OPT_CTS)
+	{
 		port->uart.type = PORT_MN10300_CTS;
+	}
 
 	mn10300_serial_request_port(_port);
 }
@@ -1472,7 +1671,7 @@ static void mn10300_serial_config_port(struct uart_port *_port, int type)
  * verify serial parameters are suitable for this port type
  */
 static int mn10300_serial_verify_port(struct uart_port *_port,
-					struct serial_struct *ss)
+									  struct serial_struct *ss)
 {
 	struct mn10300_serial_port *port =
 		container_of(_port, struct mn10300_serial_port, uart);
@@ -1482,22 +1681,29 @@ static int mn10300_serial_verify_port(struct uart_port *_port,
 
 	/* these things may not be changed */
 	if (ss->irq		!= port->uart.irq	||
-	    ss->port		!= port->uart.iobase	||
-	    ss->io_type		!= port->uart.iotype	||
-	    ss->iomem_base	!= mapbase ||
-	    ss->iomem_reg_shift	!= port->uart.regshift	||
-	    ss->hub6		!= port->uart.hub6	||
-	    ss->xmit_fifo_size	!= port->uart.fifosize)
+		ss->port		!= port->uart.iobase	||
+		ss->io_type		!= port->uart.iotype	||
+		ss->iomem_base	!= mapbase ||
+		ss->iomem_reg_shift	!= port->uart.regshift	||
+		ss->hub6		!= port->uart.hub6	||
+		ss->xmit_fifo_size	!= port->uart.fifosize)
+	{
 		return -EINVAL;
+	}
 
 	/* type may be changed on a port that supports CTS */
-	if (ss->type != port->uart.type) {
+	if (ss->type != port->uart.type)
+	{
 		if (!(port->options & MNSCx_OPT_CTS))
+		{
 			return -EINVAL;
+		}
 
 		if (ss->type != PORT_MN10300 &&
-		    ss->type != PORT_MN10300_CTS)
+			ss->type != PORT_MN10300_CTS)
+		{
 			return -EINVAL;
+		}
 	}
 
 	return 0;
@@ -1512,7 +1718,7 @@ static int __init mn10300_serial_init(void)
 	int ret, i;
 
 	printk(KERN_INFO "%s version %s (%s)\n",
-	       serial_name, serial_version, serial_revdate);
+		   serial_name, serial_version, serial_revdate);
 
 #if defined(CONFIG_MN10300_TTYSM2) && defined(CONFIG_AM33_2)
 	{
@@ -1523,40 +1729,52 @@ static int __init mn10300_serial_init(void)
 #endif
 
 	set_intr_stub(NUM2EXCEP_IRQ_LEVEL(CONFIG_MN10300_SERIAL_IRQ_LEVEL),
-		mn10300_serial_vdma_interrupt);
+				  mn10300_serial_vdma_interrupt);
 
 	ret = uart_register_driver(&mn10300_serial_driver);
-	if (!ret) {
-		for (i = 0 ; i < NR_PORTS ; i++) {
-			port = mn10300_serial_ports[i];
-			if (!port || port->gdbstub)
-				continue;
 
-			switch (port->clock_src) {
-			case MNSCx_CLOCK_SRC_IOCLK:
-				port->ioclk = MN10300_IOCLK;
-				break;
+	if (!ret)
+	{
+		for (i = 0 ; i < NR_PORTS ; i++)
+		{
+			port = mn10300_serial_ports[i];
+
+			if (!port || port->gdbstub)
+			{
+				continue;
+			}
+
+			switch (port->clock_src)
+			{
+				case MNSCx_CLOCK_SRC_IOCLK:
+					port->ioclk = MN10300_IOCLK;
+					break;
 
 #ifdef MN10300_IOBCLK
-			case MNSCx_CLOCK_SRC_IOBCLK:
-				port->ioclk = MN10300_IOBCLK;
-				break;
+
+				case MNSCx_CLOCK_SRC_IOBCLK:
+					port->ioclk = MN10300_IOBCLK;
+					break;
 #endif
-			default:
-				BUG();
+
+				default:
+					BUG();
 			}
 
 			ret = uart_add_one_port(&mn10300_serial_driver,
-						&port->uart);
+									&port->uart);
 
-			if (ret < 0) {
+			if (ret < 0)
+			{
 				_debug("ERROR %d", -ret);
 				break;
 			}
 		}
 
 		if (ret)
+		{
 			uart_unregister_driver(&mn10300_serial_driver);
+		}
 	}
 
 	return ret;
@@ -1573,7 +1791,7 @@ __initcall(mn10300_serial_init);
  * - the console must be locked by the caller
  */
 static void mn10300_serial_console_write(struct console *co,
-					   const char *s, unsigned count)
+		const char *s, unsigned count)
 {
 	struct mn10300_serial_port *port;
 	unsigned i;
@@ -1585,56 +1803,76 @@ static void mn10300_serial_console_write(struct console *co,
 	port = mn10300_serial_ports[co->index];
 
 	local_irq_save(flags);
-	if (port->uart.sysrq) {
+
+	if (port->uart.sysrq)
+	{
 		/* mn10300_serial_interrupt() already took the lock */
 		locked = 0;
-	} else if (oops_in_progress) {
+	}
+	else if (oops_in_progress)
+	{
 		locked = spin_trylock(&port->uart.lock);
-	} else
+	}
+	else
+	{
 		spin_lock(&port->uart.lock);
+	}
 
 	/* firstly hijack the serial port from the "virtual DMA" controller */
 	mn10300_serial_dis_tx_intr(port);
 
 	/* the transmitter may be disabled */
 	scxctr = *port->_control;
-	if (!(scxctr & SC01CTR_TXE)) {
+
+	if (!(scxctr & SC01CTR_TXE))
+	{
 		/* restart the UART clock */
 		tmxmd = *port->_tmxmd;
 
-		switch (port->div_timer) {
-		case MNSCx_DIV_TIMER_16BIT:
-			*port->_tmxmd = 0;
-			*port->_tmxmd = TM8MD_INIT_COUNTER;
-			*port->_tmxmd = tmxmd | TM8MD_COUNT_ENABLE;
-			break;
+		switch (port->div_timer)
+		{
+			case MNSCx_DIV_TIMER_16BIT:
+				*port->_tmxmd = 0;
+				*port->_tmxmd = TM8MD_INIT_COUNTER;
+				*port->_tmxmd = tmxmd | TM8MD_COUNT_ENABLE;
+				break;
 
-		case MNSCx_DIV_TIMER_8BIT:
-			*port->_tmxmd = 0;
-			*port->_tmxmd = TM2MD_INIT_COUNTER;
-			*port->_tmxmd = tmxmd | TM2MD_COUNT_ENABLE;
-			break;
+			case MNSCx_DIV_TIMER_8BIT:
+				*port->_tmxmd = 0;
+				*port->_tmxmd = TM2MD_INIT_COUNTER;
+				*port->_tmxmd = tmxmd | TM2MD_COUNT_ENABLE;
+				break;
 		}
 
 		/* enable the transmitter */
 		*port->_control = (scxctr & ~SC01CTR_BKE) | SC01CTR_TXE;
 
-	} else if (scxctr & SC01CTR_BKE) {
+	}
+	else if (scxctr & SC01CTR_BKE)
+	{
 		/* stop transmitting BREAK */
 		*port->_control = (scxctr & ~SC01CTR_BKE);
 	}
 
 	/* send the chars into the serial port (with LF -> LFCR conversion) */
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		char ch = *s++;
 
 		while (*port->_status & SC01STR_TBF)
+		{
 			continue;
+		}
+
 		*port->_txb = ch;
 
-		if (ch == 0x0a) {
+		if (ch == 0x0a)
+		{
 			while (*port->_status & SC01STR_TBF)
+			{
 				continue;
+			}
+
 			*port->_txb = 0xd;
 		}
 	}
@@ -1642,16 +1880,23 @@ static void mn10300_serial_console_write(struct console *co,
 	/* can't let the transmitter be turned off if it's actually
 	 * transmitting */
 	while (*port->_status & (SC01STR_TXF | SC01STR_TBF))
+	{
 		continue;
+	}
 
 	/* disable the transmitter if we re-enabled it */
 	if (!(scxctr & SC01CTR_TXE))
+	{
 		*port->_control = scxctr;
+	}
 
 	mn10300_serial_en_tx_intr(port);
 
 	if (locked)
+	{
 		spin_unlock(&port->uart.lock);
+	}
+
 	local_irq_restore(flags);
 }
 
@@ -1662,36 +1907,46 @@ static void mn10300_serial_console_write(struct console *co,
  * - return non-zero if we didn't find a serial port.
  */
 static int __init mn10300_serial_console_setup(struct console *co,
-						 char *options)
+		char *options)
 {
 	struct mn10300_serial_port *port;
 	int i, parity = 'n', baud = 9600, bits = 8, flow = 0;
 
-	for (i = 0 ; i < NR_PORTS ; i++) {
+	for (i = 0 ; i < NR_PORTS ; i++)
+	{
 		port = mn10300_serial_ports[i];
+
 		if (port && !port->gdbstub && port->uart.line == co->index)
+		{
 			goto found_device;
+		}
 	}
 
 	return -ENODEV;
 
 found_device:
-	switch (port->clock_src) {
-	case MNSCx_CLOCK_SRC_IOCLK:
-		port->ioclk = MN10300_IOCLK;
-		break;
+
+	switch (port->clock_src)
+	{
+		case MNSCx_CLOCK_SRC_IOCLK:
+			port->ioclk = MN10300_IOCLK;
+			break;
 
 #ifdef MN10300_IOBCLK
-	case MNSCx_CLOCK_SRC_IOBCLK:
-		port->ioclk = MN10300_IOBCLK;
-		break;
+
+		case MNSCx_CLOCK_SRC_IOBCLK:
+			port->ioclk = MN10300_IOBCLK;
+			break;
 #endif
-	default:
-		BUG();
+
+		default:
+			BUG();
 	}
 
 	if (options)
+	{
 		uart_parse_options(options, &baud, &parity, &bits, &flow);
+	}
 
 	return uart_set_options(&port->uart, co, baud, parity, bits, flow);
 }
@@ -1721,12 +1976,17 @@ static int mn10300_serial_poll_get_char(struct uart_port *_port)
 
 	_enter("%s", port->name);
 
-	if (mn10300_serial_int_tbl[port->rx_irq].port != NULL) {
-		do {
+	if (mn10300_serial_int_tbl[port->rx_irq].port != NULL)
+	{
+		do
+		{
 			/* pull chars out of the hat */
 			ix = ACCESS_ONCE(port->rx_outp);
+
 			if (CIRC_CNT(port->rx_inp, ix, MNSC_BUFFER_SIZE) == 0)
+			{
 				return NO_POLL_CHAR;
+			}
 
 			smp_read_barrier_depends();
 			ch = port->rx_buffer[ix++];
@@ -1734,13 +1994,21 @@ static int mn10300_serial_poll_get_char(struct uart_port *_port)
 			smp_mb();
 			port->rx_outp = ix & (MNSC_BUFFER_SIZE - 1);
 
-		} while (st & (SC01STR_FEF | SC01STR_PEF | SC01STR_OEF));
-	} else {
-		do {
+		}
+		while (st & (SC01STR_FEF | SC01STR_PEF | SC01STR_OEF));
+	}
+	else
+	{
+		do
+		{
 			st = *port->_status;
+
 			if (st & (SC01STR_FEF | SC01STR_PEF | SC01STR_OEF))
+			{
 				continue;
-		} while (!(st & SC01STR_RBF));
+			}
+		}
+		while (!(st & SC01STR_RBF));
 
 		ch = *port->_rxb;
 	}
@@ -1753,7 +2021,7 @@ static int mn10300_serial_poll_get_char(struct uart_port *_port)
  * Polled character transmission for the kernel debugger
  */
 static void mn10300_serial_poll_put_char(struct uart_port *_port,
-					 unsigned char ch)
+		unsigned char ch)
 {
 	struct mn10300_serial_port *port =
 		container_of(_port, struct mn10300_serial_port, uart);
@@ -1762,22 +2030,31 @@ static void mn10300_serial_poll_put_char(struct uart_port *_port,
 	/* wait for the transmitter to finish anything it might be doing (and
 	 * this includes the virtual DMA handler, so it might take a while) */
 	while (*port->_status & (SC01STR_TBF | SC01STR_TXF))
+	{
 		continue;
+	}
 
 	/* disable the Tx ready interrupt */
 	intr = *port->_intr;
 	*port->_intr = intr & ~SC01ICR_TI;
 	tmp = *port->_intr;
 
-	if (ch == 0x0a) {
+	if (ch == 0x0a)
+	{
 		*port->_txb = 0x0d;
+
 		while (*port->_status & SC01STR_TBF)
+		{
 			continue;
+		}
 	}
 
 	*port->_txb = ch;
+
 	while (*port->_status & SC01STR_TBF)
+	{
 		continue;
+	}
 
 	/* restore the Tx interrupt flag */
 	*port->_intr = intr;

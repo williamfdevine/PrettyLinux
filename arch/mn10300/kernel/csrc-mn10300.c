@@ -18,7 +18,8 @@ static cycle_t mn10300_read(struct clocksource *cs)
 	return read_timestamp_counter();
 }
 
-static struct clocksource clocksource_mn10300 = {
+static struct clocksource clocksource_mn10300 =
+{
 	.name	= "TSC",
 	.rating	= 200,
 	.read	= mn10300_read,

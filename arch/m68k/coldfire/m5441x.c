@@ -73,7 +73,8 @@ DEFINE_CLK(1, "mcfpwm.0", 34, MCF_BUSCLK);
 DEFINE_CLK(1, "sys.0", 36, MCF_BUSCLK);
 DEFINE_CLK(1, "gpio.0", 37, MCF_BUSCLK);
 
-struct clk *mcf_clks[] = {
+struct clk *mcf_clks[] =
+{
 	&__clk_0_2,
 	&__clk_0_8,
 	&__clk_0_9,
@@ -134,7 +135,8 @@ struct clk *mcf_clks[] = {
 };
 
 
-static struct clk * const enable_clks[] __initconst = {
+static struct clk *const enable_clks[] __initconst =
+{
 	/* make sure these clocks are enabled */
 	&__clk_0_18, /* intc0 */
 	&__clk_0_19, /* intc0 */
@@ -151,7 +153,8 @@ static struct clk * const enable_clks[] __initconst = {
 	&__clk_1_36, /* CCM/reset module/Power management */
 	&__clk_1_37, /* gpio */
 };
-static struct clk * const disable_clks[] __initconst = {
+static struct clk *const disable_clks[] __initconst =
+{
 	&__clk_0_8, /* can.0 */
 	&__clk_0_9, /* can.1 */
 	&__clk_0_14, /* i2c.1 */
@@ -197,10 +200,15 @@ static void __init m5441x_clk_init(void)
 	unsigned i;
 
 	for (i = 0; i < ARRAY_SIZE(enable_clks); ++i)
+	{
 		__clk_init_enabled(enable_clks[i]);
+	}
+
 	/* make sure these clocks are disabled */
 	for (i = 0; i < ARRAY_SIZE(disable_clks); ++i)
+	{
 		__clk_init_disabled(disable_clks[i]);
+	}
 }
 
 static void __init m5441x_uarts_init(void)
@@ -225,7 +233,8 @@ void __init config_BSP(char *commandp, int size)
 
 
 #if IS_ENABLED(CONFIG_RTC_DRV_M5441x)
-static struct resource m5441x_rtc_resources[] = {
+static struct resource m5441x_rtc_resources[] =
+{
 	{
 		.start		= MCFRTC_BASE,
 		.end		= MCFRTC_BASE + MCFRTC_SIZE - 1,
@@ -238,7 +247,8 @@ static struct resource m5441x_rtc_resources[] = {
 	},
 };
 
-static struct platform_device m5441x_rtc = {
+static struct platform_device m5441x_rtc =
+{
 	.name			= "mcfrtc",
 	.id			= 0,
 	.resource		= m5441x_rtc_resources,
@@ -246,7 +256,8 @@ static struct platform_device m5441x_rtc = {
 };
 #endif
 
-static struct platform_device *m5441x_devices[] __initdata = {
+static struct platform_device *m5441x_devices[] __initdata =
+{
 #if IS_ENABLED(CONFIG_RTC_DRV_M5441x)
 	&m5441x_rtc,
 #endif

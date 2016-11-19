@@ -53,7 +53,9 @@ static void insert_gateway_page(pgd_t *pgd, unsigned long address)
 	BUG_ON(!pud_present(*pud));
 
 	pmd = pmd_offset(pud, address);
-	if (!pmd_present(*pmd)) {
+
+	if (!pmd_present(*pmd))
+	{
 		pte = alloc_bootmem_pages(PAGE_SIZE);
 		set_pmd(pmd, __pmd(_PAGE_TABLE | __pa(pte)));
 	}
@@ -91,7 +93,7 @@ static void __init user_gateway_init(void)
 	gateway_page += (address & ~PAGE_MASK);
 
 	memcpy(gateway_page, &__user_gateway_start,
-	       &__user_gateway_end - &__user_gateway_start);
+		   &__user_gateway_end - &__user_gateway_start);
 
 	/*
 	 * We don't need to flush the TLB here, there should be no mapping
@@ -117,14 +119,18 @@ static void __init allocate_pgdat(unsigned int nid)
 
 #ifdef CONFIG_NEED_MULTIPLE_NODES
 	phys = __memblock_alloc_base(sizeof(struct pglist_data),
-				SMP_CACHE_BYTES, end_pfn << PAGE_SHIFT);
+								 SMP_CACHE_BYTES, end_pfn << PAGE_SHIFT);
+
 	/* Retry with all of system memory */
 	if (!phys)
 		phys = __memblock_alloc_base(sizeof(struct pglist_data),
-					     SMP_CACHE_BYTES,
-					     memblock_end_of_DRAM());
+									 SMP_CACHE_BYTES,
+									 memblock_end_of_DRAM());
+
 	if (!phys)
+	{
 		panic("Can't allocate pgdat for node %d\n", nid);
+	}
 
 	NODE_DATA(nid) = __va(phys);
 	memset(NODE_DATA(nid), 0, sizeof(struct pglist_data));
@@ -146,19 +152,28 @@ static void __init bootmem_init_one_node(unsigned int nid)
 
 	/* Nothing to do.. */
 	if (!p->node_spanned_pages)
+	{
 		return;
+	}
 
 	end_pfn = pgdat_end_pfn(p);
 #ifdef CONFIG_HIGHMEM
+
 	if (end_pfn > max_low_pfn)
+	{
 		end_pfn = max_low_pfn;
+	}
+
 #endif
 
 	total_pages = bootmem_bootmap_pages(end_pfn - p->node_start_pfn);
 
 	paddr = memblock_alloc(total_pages << PAGE_SHIFT, PAGE_SIZE);
+
 	if (!paddr)
+	{
 		panic("Can't allocate bootmap for nid[%d]\n", nid);
+	}
 
 	init_bootmem_node(p, paddr >> PAGE_SHIFT, p->node_start_pfn, end_pfn);
 
@@ -169,21 +184,27 @@ static void __init bootmem_init_one_node(unsigned int nid)
 	 * only for the moment, we'll refactor this later for handling
 	 * reservations in other nodes.
 	 */
-	if (nid == 0) {
+	if (nid == 0)
+	{
 		struct memblock_region *reg;
 
 		/* Reserve the sections we're already using. */
-		for_each_memblock(reserved, reg) {
+		for_each_memblock(reserved, reg)
+		{
 			unsigned long size = reg->size;
 
 #ifdef CONFIG_HIGHMEM
+
 			/* ...but not highmem */
 			if (PFN_DOWN(reg->base) >= highstart_pfn)
+			{
 				continue;
+			}
 
 			if (PFN_UP(reg->base + size) > highstart_pfn)
 				size = (highstart_pfn - PFN_DOWN(reg->base))
-				       << PAGE_SHIFT;
+					   << PAGE_SHIFT;
+
 #endif
 
 			reserve_bootmem(reg->base, size, BOOTMEM_DEFAULT);
@@ -199,13 +220,14 @@ static void __init do_init_bootmem(void)
 	int i;
 
 	/* Add active regions with valid PFNs. */
-	for_each_memblock(memory, reg) {
+	for_each_memblock(memory, reg)
+	{
 		unsigned long start_pfn, end_pfn;
 		start_pfn = memblock_region_memory_base_pfn(reg);
 		end_pfn = memblock_region_memory_end_pfn(reg);
 		memblock_set_node(PFN_PHYS(start_pfn),
-				  PFN_PHYS(end_pfn - start_pfn),
-				  &memblock.memory, 0);
+						  PFN_PHYS(end_pfn - start_pfn),
+						  &memblock.memory, 0);
 	}
 
 	/* All of system RAM sits in node 0 for the non-NUMA case */
@@ -215,7 +237,7 @@ static void __init do_init_bootmem(void)
 	soc_mem_setup();
 
 	for_each_online_node(i)
-		bootmem_init_one_node(i);
+	bootmem_init_one_node(i);
 
 	sparse_init();
 }
@@ -249,10 +271,13 @@ static void __init init_and_reserve_mem(void)
 	 */
 	base = highstart_pfn << PAGE_SHIFT;
 	size = (highend_pfn << PAGE_SHIFT) - base;
-	if (size) {
+
+	if (size)
+	{
 		memblock_add(base, size);
 		memblock_reserve(base, size);
 	}
+
 #endif
 }
 
@@ -274,17 +299,23 @@ static void __init allocate_pgtables(unsigned long start, unsigned long end)
 	j = pmd_index(vaddr);
 	pgd = swapper_pg_dir + i;
 
-	for ( ; (i < PTRS_PER_PGD) && (vaddr != end); pgd++, i++) {
+	for ( ; (i < PTRS_PER_PGD) && (vaddr != end); pgd++, i++)
+	{
 		pmd = (pmd_t *)pgd;
-		for (; (j < PTRS_PER_PMD) && (vaddr != end); pmd++, j++) {
+
+		for (; (j < PTRS_PER_PMD) && (vaddr != end); pmd++, j++)
+		{
 			vaddr += PMD_SIZE;
 
 			if (!pmd_none(*pmd))
+			{
 				continue;
+			}
 
 			pte = (pte_t *)alloc_bootmem_low_pages(PAGE_SIZE);
 			pmd_populate_kernel(&init_mm, pmd, pte);
 		}
+
 		j = 0;
 	}
 }
@@ -308,7 +339,7 @@ static void __init fixedrange_init(void)
 	 * Permanent kmaps:
 	 */
 	vaddr = PKMAP_BASE;
-	allocate_pgtables(vaddr, vaddr + PAGE_SIZE*LAST_PKMAP);
+	allocate_pgtables(vaddr, vaddr + PAGE_SIZE * LAST_PKMAP);
 
 	pgd = swapper_pg_dir + pgd_index(vaddr);
 	pud = pud_offset(pgd, vaddr);
@@ -354,7 +385,8 @@ void __init paging_init(unsigned long mem_end)
 
 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
 
-	for_each_online_node(nid) {
+	for_each_online_node(nid)
+	{
 		pg_data_t *pgdat = NODE_DATA(nid);
 		unsigned long low, start_pfn;
 
@@ -362,13 +394,15 @@ void __init paging_init(unsigned long mem_end)
 		low = pgdat->bdata->node_low_pfn;
 
 		if (max_zone_pfns[ZONE_NORMAL] < low)
+		{
 			max_zone_pfns[ZONE_NORMAL] = low;
+		}
 
 #ifdef CONFIG_HIGHMEM
 		max_zone_pfns[ZONE_HIGHMEM] = highend_pfn;
 #endif
 		pr_info("Node %u: start_pfn = 0x%lx, low = 0x%lx\n",
-			nid, start_pfn, low);
+				nid, start_pfn, low);
 	}
 
 	free_area_init_nodes(max_zone_pfns);
@@ -384,8 +418,12 @@ void __init mem_init(void)
 	 * freed before calling free_all_bootmem();
 	 */
 	reset_all_zones_managed_pages();
+
 	for (tmp = highstart_pfn; tmp < highend_pfn; tmp++)
+	{
 		free_highmem_page(pfn_to_page(tmp));
+	}
+
 #endif /* CONFIG_HIGHMEM */
 
 	free_all_bootmem();
@@ -401,6 +439,6 @@ void free_initmem(void)
 void free_initrd_mem(unsigned long start, unsigned long end)
 {
 	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
-			   "initrd");
+					   "initrd");
 }
 #endif

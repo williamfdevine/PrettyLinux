@@ -46,7 +46,7 @@
 static const char *stdout;
 
 static int __init early_init_dt_scan_chosen_serial(unsigned long node,
-				const char *uname, int depth, void *data)
+		const char *uname, int depth, void *data)
 {
 	int l;
 	const char *p;
@@ -54,32 +54,40 @@ static int __init early_init_dt_scan_chosen_serial(unsigned long node,
 	pr_debug("%s: depth: %d, uname: %s\n", __func__, depth, uname);
 
 	if (depth == 1 && (strcmp(uname, "chosen") == 0 ||
-				strcmp(uname, "chosen@0") == 0)) {
+					   strcmp(uname, "chosen@0") == 0))
+	{
 		p = of_get_flat_dt_prop(node, "linux,stdout-path", &l);
+
 		if (p != NULL && l > 0)
-			stdout = p; /* store pointer to stdout-path */
+		{
+			stdout = p;    /* store pointer to stdout-path */
+		}
 	}
 
-	if (stdout && strstr(stdout, uname)) {
+	if (stdout && strstr(stdout, uname))
+	{
 		p = of_get_flat_dt_prop(node, "compatible", &l);
 		pr_debug("Compatible string: %s\n", p);
 
 		if ((strncmp(p, "xlnx,xps-uart16550", 18) == 0) ||
-			(strncmp(p, "xlnx,axi-uart16550", 18) == 0)) {
+			(strncmp(p, "xlnx,axi-uart16550", 18) == 0))
+		{
 			unsigned int addr;
 
 			*(u32 *)data = UART16550;
 
 			addr = *(u32 *)of_get_flat_dt_prop(node, "reg", &l);
 			addr += *(u32 *)of_get_flat_dt_prop(node,
-							"reg-offset", &l);
+												"reg-offset", &l);
 			/* clear register offset */
 			return be32_to_cpu(addr) & ~3;
 		}
+
 		if ((strncmp(p, "xlnx,xps-uartlite", 17) == 0) ||
-				(strncmp(p, "xlnx,opb-uartlite", 17) == 0) ||
-				(strncmp(p, "xlnx,axi-uartlite", 17) == 0) ||
-				(strncmp(p, "xlnx,mdm", 8) == 0)) {
+			(strncmp(p, "xlnx,opb-uartlite", 17) == 0) ||
+			(strncmp(p, "xlnx,axi-uartlite", 17) == 0) ||
+			(strncmp(p, "xlnx,mdm", 8) == 0))
+		{
 			const unsigned int *addrp;
 
 			*(u32 *)data = UARTLITE;
@@ -88,6 +96,7 @@ static int __init early_init_dt_scan_chosen_serial(unsigned long node,
 			return be32_to_cpup(addrp); /* return address */
 		}
 	}
+
 	return 0;
 }
 
@@ -103,8 +112,11 @@ void __init early_init_devtree(void *params)
 	pr_debug(" -> early_init_devtree(%p)\n", params);
 
 	early_init_dt_scan(params);
+
 	if (!strlen(boot_command_line))
+	{
 		strlcpy(boot_command_line, cmd_line, COMMAND_LINE_SIZE);
+	}
 
 	parse_early_param();
 

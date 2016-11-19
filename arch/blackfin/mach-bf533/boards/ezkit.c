@@ -15,7 +15,7 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/flash.h>
 #if IS_ENABLED(CONFIG_USB_ISP1362_HCD)
-#include <linux/usb/isp1362.h>
+	#include <linux/usb/isp1362.h>
 #endif
 #include <linux/irq.h>
 #include <linux/i2c.h>
@@ -30,7 +30,8 @@
 const char bfin_board_name[] = "ADI BF533-EZKIT";
 
 #if IS_ENABLED(CONFIG_RTC_DRV_BFIN)
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name = "rtc-bfin",
 	.id   = -1,
 };
@@ -43,13 +44,15 @@ static struct platform_device rtc_device = {
 #if IS_ENABLED(CONFIG_SMC91X)
 #include <linux/smc91x.h>
 
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
 	.leda = RPC_LED_100_10,
 	.ledb = RPC_LED_TX_RX,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	{
 		.name = "smc91x-regs",
 		.start = 0x20310300,
@@ -61,7 +64,8 @@ static struct resource smc91x_resources[] = {
 		.flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
 	},
 };
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name = "smc91x",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(smc91x_resources),
@@ -73,7 +77,8 @@ static struct platform_device smc91x_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_MTD_PHYSMAP)
-static struct mtd_partition ezkit_partitions_a[] = {
+static struct mtd_partition ezkit_partitions_a[] =
+{
 	{
 		.name       = "bootloader(nor a)",
 		.size       = 0x40000,
@@ -85,19 +90,22 @@ static struct mtd_partition ezkit_partitions_a[] = {
 	},
 };
 
-static struct physmap_flash_data ezkit_flash_data_a = {
+static struct physmap_flash_data ezkit_flash_data_a =
+{
 	.width      = 2,
 	.parts      = ezkit_partitions_a,
 	.nr_parts   = ARRAY_SIZE(ezkit_partitions_a),
 };
 
-static struct resource ezkit_flash_resource_a = {
+static struct resource ezkit_flash_resource_a =
+{
 	.start = 0x20000000,
 	.end   = 0x200fffff,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platform_device ezkit_flash_device_a = {
+static struct platform_device ezkit_flash_device_a =
+{
 	.name          = "physmap-flash",
 	.id            = 0,
 	.dev = {
@@ -107,7 +115,8 @@ static struct platform_device ezkit_flash_device_a = {
 	.resource      = &ezkit_flash_resource_a,
 };
 
-static struct mtd_partition ezkit_partitions_b[] = {
+static struct mtd_partition ezkit_partitions_b[] =
+{
 	{
 		.name   = "file system(nor b)",
 		.size   = MTDPART_SIZ_FULL,
@@ -115,19 +124,22 @@ static struct mtd_partition ezkit_partitions_b[] = {
 	},
 };
 
-static struct physmap_flash_data ezkit_flash_data_b = {
+static struct physmap_flash_data ezkit_flash_data_b =
+{
 	.width      = 2,
 	.parts      = ezkit_partitions_b,
 	.nr_parts   = ARRAY_SIZE(ezkit_partitions_b),
 };
 
-static struct resource ezkit_flash_resource_b = {
+static struct resource ezkit_flash_resource_b =
+{
 	.start = 0x20100000,
 	.end   = 0x201fffff,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platform_device ezkit_flash_device_b = {
+static struct platform_device ezkit_flash_device_b =
+{
 	.name          = "physmap-flash",
 	.id            = 4,
 	.dev = {
@@ -139,18 +151,21 @@ static struct platform_device ezkit_flash_device_b = {
 #endif
 
 #if IS_ENABLED(CONFIG_MTD_PLATRAM)
-static struct platdata_mtd_ram sram_data_a = {
+static struct platdata_mtd_ram sram_data_a =
+{
 	.mapname   = "Flash A SRAM",
 	.bankwidth = 2,
 };
 
-static struct resource sram_resource_a = {
+static struct resource sram_resource_a =
+{
 	.start = 0x20240000,
 	.end   = 0x2024ffff,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platform_device sram_device_a = {
+static struct platform_device sram_device_a =
+{
 	.name          = "mtd-ram",
 	.id            = 8,
 	.dev = {
@@ -160,18 +175,21 @@ static struct platform_device sram_device_a = {
 	.resource      = &sram_resource_a,
 };
 
-static struct platdata_mtd_ram sram_data_b = {
+static struct platdata_mtd_ram sram_data_b =
+{
 	.mapname   = "Flash B SRAM",
 	.bankwidth = 2,
 };
 
-static struct resource sram_resource_b = {
+static struct resource sram_resource_b =
+{
 	.start = 0x202c0000,
 	.end   = 0x202cffff,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platform_device sram_device_b = {
+static struct platform_device sram_device_b =
+{
 	.name          = "mtd-ram",
 	.id            = 9,
 	.dev = {
@@ -183,7 +201,8 @@ static struct platform_device sram_device_b = {
 #endif
 
 #if IS_ENABLED(CONFIG_MTD_M25P80)
-static struct mtd_partition bfin_spi_flash_partitions[] = {
+static struct mtd_partition bfin_spi_flash_partitions[] =
+{
 	{
 		.name = "bootloader(spi)",
 		.size = 0x00020000,
@@ -200,7 +219,8 @@ static struct mtd_partition bfin_spi_flash_partitions[] = {
 	}
 };
 
-static struct flash_platform_data bfin_spi_flash_data = {
+static struct flash_platform_data bfin_spi_flash_data =
+{
 	.name = "m25p80",
 	.parts = bfin_spi_flash_partitions,
 	.nr_parts = ARRAY_SIZE(bfin_spi_flash_partitions),
@@ -208,12 +228,14 @@ static struct flash_platform_data bfin_spi_flash_data = {
 };
 
 /* SPI flash chip (m25p64) */
-static struct bfin5xx_spi_chip spi_flash_chip_info = {
+static struct bfin5xx_spi_chip spi_flash_chip_info =
+{
 	.enable_dma = 0,         /* use dma transfer with this chip*/
 };
 #endif
 
-static struct spi_board_info bfin_spi_board_info[] __initdata = {
+static struct spi_board_info bfin_spi_board_info[] __initdata =
+{
 #if IS_ENABLED(CONFIG_MTD_M25P80)
 	{
 		/* the modalias must be the same as spi device driver name */
@@ -247,7 +269,8 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 
 #if IS_ENABLED(CONFIG_SPI_BFIN5XX)
 /* SPI (0) */
-static struct resource bfin_spi0_resource[] = {
+static struct resource bfin_spi0_resource[] =
+{
 	[0] = {
 		.start = SPI0_REGBASE,
 		.end   = SPI0_REGBASE + 0xFF,
@@ -266,13 +289,15 @@ static struct resource bfin_spi0_resource[] = {
 };
 
 /* SPI controller data */
-static struct bfin5xx_spi_master bfin_spi0_info = {
+static struct bfin5xx_spi_master bfin_spi0_info =
+{
 	.num_chipselect = 8,
 	.enable_dma = 1,  /* master has the ability to do dma transfer */
 	.pin_req = {P_SPI0_SCK, P_SPI0_MISO, P_SPI0_MOSI, 0},
 };
 
-static struct platform_device bfin_spi0_device = {
+static struct platform_device bfin_spi0_device =
+{
 	.name = "bfin-spi",
 	.id = 0, /* Bus number */
 	.num_resources = ARRAY_SIZE(bfin_spi0_resource),
@@ -285,10 +310,11 @@ static struct platform_device bfin_spi0_device = {
 
 #if IS_ENABLED(CONFIG_SERIAL_BFIN)
 #ifdef CONFIG_SERIAL_BFIN_UART0
-static struct resource bfin_uart0_resources[] = {
+static struct resource bfin_uart0_resources[] =
+{
 	{
 		.start = BFIN_UART_THR,
-		.end = BFIN_UART_GCTL+2,
+		.end = BFIN_UART_GCTL + 2,
 		.flags = IORESOURCE_MEM,
 	},
 	{
@@ -318,11 +344,13 @@ static struct resource bfin_uart0_resources[] = {
 	},
 };
 
-static unsigned short bfin_uart0_peripherals[] = {
+static unsigned short bfin_uart0_peripherals[] =
+{
 	P_UART0_TX, P_UART0_RX, 0
 };
 
-static struct platform_device bfin_uart0_device = {
+static struct platform_device bfin_uart0_device =
+{
 	.name = "bfin-uart",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_uart0_resources),
@@ -336,7 +364,8 @@ static struct platform_device bfin_uart0_device = {
 
 #if IS_ENABLED(CONFIG_BFIN_SIR)
 #ifdef CONFIG_BFIN_SIR0
-static struct resource bfin_sir0_resources[] = {
+static struct resource bfin_sir0_resources[] =
+{
 	{
 		.start = 0xFFC00400,
 		.end = 0xFFC004FF,
@@ -344,17 +373,18 @@ static struct resource bfin_sir0_resources[] = {
 	},
 	{
 		.start = IRQ_UART0_RX,
-		.end = IRQ_UART0_RX+1,
+		.end = IRQ_UART0_RX + 1,
 		.flags = IORESOURCE_IRQ,
 	},
 	{
 		.start = CH_UART0_RX,
-		.end = CH_UART0_RX+1,
+		.end = CH_UART0_RX + 1,
 		.flags = IORESOURCE_DMA,
 	},
 };
 
-static struct platform_device bfin_sir0_device = {
+static struct platform_device bfin_sir0_device =
+{
 	.name = "bfin_sir",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_sir0_resources),
@@ -367,19 +397,22 @@ static struct platform_device bfin_sir0_device = {
 #include <linux/input.h>
 #include <linux/gpio_keys.h>
 
-static struct gpio_keys_button bfin_gpio_keys_table[] = {
+static struct gpio_keys_button bfin_gpio_keys_table[] =
+{
 	{BTN_0, GPIO_PF7, 1, "gpio-keys: BTN0"},
 	{BTN_1, GPIO_PF8, 1, "gpio-keys: BTN1"},
 	{BTN_2, GPIO_PF9, 1, "gpio-keys: BTN2"},
 	{BTN_3, GPIO_PF10, 1, "gpio-keys: BTN3"},
 };
 
-static struct gpio_keys_platform_data bfin_gpio_keys_data = {
+static struct gpio_keys_platform_data bfin_gpio_keys_data =
+{
 	.buttons        = bfin_gpio_keys_table,
 	.nbuttons       = ARRAY_SIZE(bfin_gpio_keys_table),
 };
 
-static struct platform_device bfin_device_gpiokeys = {
+static struct platform_device bfin_device_gpiokeys =
+{
 	.name      = "gpio-keys",
 	.dev = {
 		.platform_data = &bfin_gpio_keys_data,
@@ -390,7 +423,8 @@ static struct platform_device bfin_device_gpiokeys = {
 #if IS_ENABLED(CONFIG_I2C_GPIO)
 #include <linux/i2c-gpio.h>
 
-static struct i2c_gpio_platform_data i2c_gpio_data = {
+static struct i2c_gpio_platform_data i2c_gpio_data =
+{
 	.sda_pin		= GPIO_PF1,
 	.scl_pin		= GPIO_PF0,
 	.sda_is_open_drain	= 0,
@@ -398,7 +432,8 @@ static struct i2c_gpio_platform_data i2c_gpio_data = {
 	.udelay			= 40,
 };
 
-static struct platform_device i2c_gpio_device = {
+static struct platform_device i2c_gpio_device =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev		= {
@@ -421,20 +456,23 @@ static const unsigned int cclk_vlev_datasheet[] =
 	VRPAIR(VLEV_130, 600000000),
 };
 
-static struct bfin_dpmc_platform_data bfin_dmpc_vreg_data = {
+static struct bfin_dpmc_platform_data bfin_dmpc_vreg_data =
+{
 	.tuple_tab = cclk_vlev_datasheet,
 	.tabsize = ARRAY_SIZE(cclk_vlev_datasheet),
 	.vr_settling_time = 25 /* us */,
 };
 
-static struct platform_device bfin_dpmc = {
+static struct platform_device bfin_dpmc =
+{
 	.name = "bfin dpmc",
 	.dev = {
 		.platform_data = &bfin_dmpc_vreg_data,
 	},
 };
 
-static struct i2c_board_info __initdata bfin_i2c_board_info[] = {
+static struct i2c_board_info __initdata bfin_i2c_board_info[] =
+{
 #if IS_ENABLED(CONFIG_FB_BFIN_7393)
 	{
 		I2C_BOARD_INFO("bfin-adv7393", 0x2B),
@@ -443,7 +481,8 @@ static struct i2c_board_info __initdata bfin_i2c_board_info[] = {
 };
 
 #if IS_ENABLED(CONFIG_SND_BF5XX_I2S)
-static struct platform_device bfin_i2s = {
+static struct platform_device bfin_i2s =
+{
 	.name = "bfin-i2s",
 	.id = CONFIG_SND_BF5XX_SPORT_NUM,
 	/* TODO: add platform data here */
@@ -451,14 +490,16 @@ static struct platform_device bfin_i2s = {
 #endif
 
 #if IS_ENABLED(CONFIG_SND_BF5XX_AC97)
-static struct platform_device bfin_ac97 = {
+static struct platform_device bfin_ac97 =
+{
 	.name = "bfin-ac97",
 	.id = CONFIG_SND_BF5XX_SPORT_NUM,
 	/* TODO: add platform data here */
 };
 #endif
 
-static struct platform_device *ezkit_devices[] __initdata = {
+static struct platform_device *ezkit_devices[] __initdata =
+{
 
 	&bfin_dpmc,
 
@@ -519,13 +560,14 @@ static int __init ezkit_init(void)
 	platform_add_devices(ezkit_devices, ARRAY_SIZE(ezkit_devices));
 	spi_register_board_info(bfin_spi_board_info, ARRAY_SIZE(bfin_spi_board_info));
 	i2c_register_board_info(0, bfin_i2c_board_info,
-				ARRAY_SIZE(bfin_i2c_board_info));
+							ARRAY_SIZE(bfin_i2c_board_info));
 	return 0;
 }
 
 arch_initcall(ezkit_init);
 
-static struct platform_device *ezkit_early_devices[] __initdata = {
+static struct platform_device *ezkit_early_devices[] __initdata =
+{
 #if defined(CONFIG_SERIAL_BFIN_CONSOLE) || defined(CONFIG_EARLY_PRINTK)
 #ifdef CONFIG_SERIAL_BFIN_UART0
 	&bfin_uart0_device,
@@ -537,5 +579,5 @@ void __init native_machine_early_platform_add_devices(void)
 {
 	printk(KERN_INFO "register early platform devices\n");
 	early_platform_add_devices(ezkit_early_devices,
-		ARRAY_SIZE(ezkit_early_devices));
+							   ARRAY_SIZE(ezkit_early_devices));
 }

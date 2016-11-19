@@ -11,7 +11,8 @@
 #include <asm/io.h>
 #include <asm/hw_irq.h>
 
-struct pci_vector_struct {
+struct pci_vector_struct
+{
 	__u16 segment;	/* PCI Segment number */
 	__u16 bus;	/* PCI Bus number */
 	__u32 pci_id;	/* ACPI split 16 bits device, 16 bits function (see section 6.1.1) */
@@ -52,17 +53,18 @@ extern unsigned long ia64_max_iommu_merge_mask;
 
 #define HAVE_PCI_MMAP
 extern int pci_mmap_page_range (struct pci_dev *dev, struct vm_area_struct *vma,
-				enum pci_mmap_state mmap_state, int write_combine);
+								enum pci_mmap_state mmap_state, int write_combine);
 #define HAVE_PCI_LEGACY
 extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
-				      struct vm_area_struct *vma,
-				      enum pci_mmap_state mmap_state);
+									  struct vm_area_struct *vma,
+									  enum pci_mmap_state mmap_state);
 
 #define pci_get_legacy_mem platform_pci_get_legacy_mem
 #define pci_legacy_read platform_pci_legacy_read
 #define pci_legacy_write platform_pci_legacy_write
 
-struct pci_controller {
+struct pci_controller
+{
 	struct acpi_device *companion;
 	void *iommu;
 	int segment;
@@ -89,6 +91,6 @@ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 }
 
 #ifdef CONFIG_INTEL_IOMMU
-extern void pci_iommu_alloc(void);
+	extern void pci_iommu_alloc(void);
 #endif
 #endif /* _ASM_IA64_PCI_H */

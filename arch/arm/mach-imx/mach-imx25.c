@@ -34,14 +34,15 @@ static void __init mx25_init_irq(void)
 	mxc_init_irq(avic_base);
 }
 
-static const char * const imx25_dt_board_compat[] __initconst = {
+static const char *const imx25_dt_board_compat[] __initconst =
+{
 	"fsl,imx25",
 	NULL
 };
 
 DT_MACHINE_START(IMX25_DT, "Freescale i.MX25 (Device Tree Support)")
-	.init_early	= imx25_init_early,
-	.init_late      = imx25_pm_init,
-	.init_irq	= mx25_init_irq,
-	.dt_compat	= imx25_dt_board_compat,
-MACHINE_END
+.init_early	= imx25_init_early,
+ .init_late      = imx25_pm_init,
+  .init_irq	= mx25_init_irq,
+	 .dt_compat	= imx25_dt_board_compat,
+	   MACHINE_END

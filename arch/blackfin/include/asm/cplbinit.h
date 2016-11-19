@@ -14,16 +14,18 @@
 #include <linux/threads.h>
 
 #ifdef CONFIG_CPLB_SWITCH_TAB_L1
-# define PDT_ATTR __attribute__((l1_data))
+	#define PDT_ATTR __attribute__((l1_data))
 #else
-# define PDT_ATTR
+	#define PDT_ATTR
 #endif
 
-struct cplb_entry {
+struct cplb_entry
+{
 	unsigned long data, addr;
 };
 
-struct cplb_boundary {
+struct cplb_boundary
+{
 	unsigned long eaddr; /* End of this region.  */
 	unsigned long data; /* CPLB data value.  */
 };
@@ -42,17 +44,17 @@ extern int nr_dcplb_prot[], nr_cplb_flush[];
 
 #ifdef CONFIG_MPU
 
-extern int first_mask_dcplb;
+	extern int first_mask_dcplb;
 
-extern int page_mask_order;
-extern int page_mask_nelts;
+	extern int page_mask_order;
+	extern int page_mask_nelts;
 
-extern unsigned long *current_rwx_mask[NR_CPUS];
+	extern unsigned long *current_rwx_mask[NR_CPUS];
 
-extern void flush_switched_cplbs(unsigned int);
-extern void set_mask_dcplbs(unsigned long *, unsigned int);
+	extern void flush_switched_cplbs(unsigned int);
+	extern void set_mask_dcplbs(unsigned long *, unsigned int);
 
-extern void __noreturn panic_cplb_error(int seqstat, struct pt_regs *);
+	extern void __noreturn panic_cplb_error(int seqstat, struct pt_regs *);
 
 #endif /* CONFIG_MPU */
 
@@ -60,7 +62,7 @@ extern void bfin_icache_init(struct cplb_entry *icplb_tbl);
 extern void bfin_dcache_init(struct cplb_entry *icplb_tbl);
 
 #if defined(CONFIG_BFIN_DCACHE) || defined(CONFIG_BFIN_ICACHE)
-extern void generate_cplb_tables_all(void);
-extern void generate_cplb_tables_cpu(unsigned int cpu);
+	extern void generate_cplb_tables_all(void);
+	extern void generate_cplb_tables_cpu(unsigned int cpu);
 #endif
 #endif

@@ -30,11 +30,11 @@
 #define _FP_I_TYPE		long
 
 #define _FP_MUL_MEAT_S(R,X,Y)					\
-  _FP_MUL_MEAT_1_imm(_FP_WFRACBITS_S,R,X,Y)
+	_FP_MUL_MEAT_1_imm(_FP_WFRACBITS_S,R,X,Y)
 #define _FP_MUL_MEAT_D(R,X,Y)					\
-  _FP_MUL_MEAT_1_wide(_FP_WFRACBITS_D,R,X,Y,umul_ppmm)
+	_FP_MUL_MEAT_1_wide(_FP_WFRACBITS_D,R,X,Y,umul_ppmm)
 #define _FP_MUL_MEAT_Q(R,X,Y)					\
-  _FP_MUL_MEAT_2_wide(_FP_WFRACBITS_Q,R,X,Y,umul_ppmm)
+	_FP_MUL_MEAT_2_wide(_FP_WFRACBITS_Q,R,X,Y,umul_ppmm)
 
 #define _FP_DIV_MEAT_S(R,X,Y)	_FP_DIV_MEAT_1_imm(S,R,X,Y,_FP_DIV_HELP_imm)
 #define _FP_DIV_MEAT_D(R,X,Y)	_FP_DIV_MEAT_1_udiv_norm(D,R,X,Y)
@@ -57,24 +57,24 @@
  * (see SPAMv9 B.2.2 section).
  */
 #define _FP_CHOOSENAN(fs, wc, R, X, Y, OP)			\
-  do {								\
-    if ((_FP_FRAC_HIGH_RAW_##fs(Y) & _FP_QNANBIT_##fs)		\
-	&& !(_FP_FRAC_HIGH_RAW_##fs(X) & _FP_QNANBIT_##fs))	\
-      {								\
-	R##_s = X##_s;						\
-	_FP_FRAC_COPY_##wc(R,X);				\
-      }								\
-    else							\
-      {								\
-	R##_s = Y##_s;						\
-	_FP_FRAC_COPY_##wc(R,Y);				\
-      }								\
-    R##_c = FP_CLS_NAN;						\
-  } while (0)
+	do {								\
+		if ((_FP_FRAC_HIGH_RAW_##fs(Y) & _FP_QNANBIT_##fs)		\
+			&& !(_FP_FRAC_HIGH_RAW_##fs(X) & _FP_QNANBIT_##fs))	\
+		{								\
+			R##_s = X##_s;						\
+			_FP_FRAC_COPY_##wc(R,X);				\
+		}								\
+		else							\
+		{								\
+			R##_s = Y##_s;						\
+			_FP_FRAC_COPY_##wc(R,Y);				\
+		}								\
+		R##_c = FP_CLS_NAN;						\
+	} while (0)
 
 /* Obtain the current rounding mode. */
 #ifndef FP_ROUNDMODE
-#define FP_ROUNDMODE	((current_thread_info()->xfsr[0] >> 30) & 0x3)
+	#define FP_ROUNDMODE	((current_thread_info()->xfsr[0] >> 30) & 0x3)
 #endif
 
 /* Exception flags. */

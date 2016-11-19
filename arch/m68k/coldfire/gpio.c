@@ -31,25 +31,34 @@ EXPORT_SYMBOL(__mcfgpio_get_value);
 
 void __mcfgpio_set_value(unsigned gpio, int value)
 {
-	if (gpio < MCFGPIO_SCR_START) {
+	if (gpio < MCFGPIO_SCR_START)
+	{
 		unsigned long flags;
 		MCFGPIO_PORTTYPE data;
 
 		local_irq_save(flags);
 		data = mcfgpio_read(__mcfgpio_podr(gpio));
+
 		if (value)
+		{
 			data |= mcfgpio_bit(gpio);
+		}
 		else
+		{
 			data &= ~mcfgpio_bit(gpio);
+		}
+
 		mcfgpio_write(data, __mcfgpio_podr(gpio));
 		local_irq_restore(flags);
-	} else {
+	}
+	else
+	{
 		if (value)
 			mcfgpio_write(mcfgpio_bit(gpio),
-					MCFGPIO_SETR_PORT(gpio));
+						  MCFGPIO_SETR_PORT(gpio));
 		else
 			mcfgpio_write(~mcfgpio_bit(gpio),
-					MCFGPIO_CLRR_PORT(gpio));
+						  MCFGPIO_CLRR_PORT(gpio));
 	}
 }
 EXPORT_SYMBOL(__mcfgpio_set_value);
@@ -80,21 +89,31 @@ int __mcfgpio_direction_output(unsigned gpio, int value)
 	mcfgpio_write(data, __mcfgpio_pddr(gpio));
 
 	/* now set the data to output */
-	if (gpio < MCFGPIO_SCR_START) {
+	if (gpio < MCFGPIO_SCR_START)
+	{
 		data = mcfgpio_read(__mcfgpio_podr(gpio));
+
 		if (value)
+		{
 			data |= mcfgpio_bit(gpio);
+		}
 		else
+		{
 			data &= ~mcfgpio_bit(gpio);
+		}
+
 		mcfgpio_write(data, __mcfgpio_podr(gpio));
-	} else {
-		 if (value)
-			mcfgpio_write(mcfgpio_bit(gpio),
-					MCFGPIO_SETR_PORT(gpio));
-		 else
-			 mcfgpio_write(~mcfgpio_bit(gpio),
-					 MCFGPIO_CLRR_PORT(gpio));
 	}
+	else
+	{
+		if (value)
+			mcfgpio_write(mcfgpio_bit(gpio),
+						  MCFGPIO_SETR_PORT(gpio));
+		else
+			mcfgpio_write(~mcfgpio_bit(gpio),
+						  MCFGPIO_CLRR_PORT(gpio));
+	}
+
 	local_irq_restore(flags);
 	return 0;
 }
@@ -125,13 +144,13 @@ static int mcfgpio_get_value(struct gpio_chip *chip, unsigned offset)
 }
 
 static int mcfgpio_direction_output(struct gpio_chip *chip, unsigned offset,
-				    int value)
+									int value)
 {
 	return __mcfgpio_direction_output(offset, value);
 }
 
 static void mcfgpio_set_value(struct gpio_chip *chip, unsigned offset,
-			      int value)
+							  int value)
 {
 	__mcfgpio_set_value(offset, value);
 }
@@ -149,16 +168,20 @@ static void mcfgpio_free(struct gpio_chip *chip, unsigned offset)
 static int mcfgpio_to_irq(struct gpio_chip *chip, unsigned offset)
 {
 #if defined(MCFGPIO_IRQ_MIN)
+
 	if ((offset >= MCFGPIO_IRQ_MIN) && (offset < MCFGPIO_IRQ_MAX))
 #else
 	if (offset < MCFGPIO_IRQ_MAX)
 #endif
 		return MCFGPIO_IRQ_VECBASE + offset;
 	else
+	{
 		return -EINVAL;
+	}
 }
 
-static struct gpio_chip mcfgpio_chip = {
+static struct gpio_chip mcfgpio_chip =
+{
 	.label			= "mcfgpio",
 	.request		= mcfgpio_request,
 	.free			= mcfgpio_free,

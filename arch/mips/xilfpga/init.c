@@ -38,7 +38,9 @@ void __init prom_free_prom_memory(void)
 void __init device_tree_init(void)
 {
 	if (!initial_boot_params)
+	{
 		return;
+	}
 
 	unflatten_and_copy_device_tree();
 }

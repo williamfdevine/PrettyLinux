@@ -15,15 +15,21 @@ void *memset(void *s, int c, size_t count)
 	int destptr, charcnt, dwordcnt, fill8reg, wrkrega;
 
 	if (!count)
+	{
 		return s;
+	}
 
 	c &= 0xFF;
 
-	if (count <= 8) {
+	if (count <= 8)
+	{
 		char *xs = (char *) s;
 
 		while (count--)
+		{
 			*xs++ = c;
+		}
+
 		return s;
 	}
 
@@ -65,13 +71,13 @@ void *memset(void *s, int c, size_t count)
 		"	stb	%3, 0(%0)\n"
 		"5:\n"
 		: "=r" (destptr),	/* %0  Output */
-		  "=r" (charcnt),	/* %1  Output */
-		  "=r" (dwordcnt),	/* %2  Output */
-		  "=r" (fill8reg),	/* %3  Output */
-		  "=&r" (wrkrega)	/* %4  Output only */
+		"=r" (charcnt),	/* %1  Output */
+		"=r" (dwordcnt),	/* %2  Output */
+		"=r" (fill8reg),	/* %3  Output */
+		"=&r" (wrkrega)	/* %4  Output only */
 		: "r" (c),		/* %5  Input */
-		  "0" (s),		/* %0  Input/Output */
-		  "1" (count)		/* %1  Input/Output */
+		"0" (s),		/* %0  Input/Output */
+		"1" (count)		/* %1  Input/Output */
 		: "memory"		/* clobbered */
 	);
 

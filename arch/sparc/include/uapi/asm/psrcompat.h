@@ -27,18 +27,22 @@
 static inline unsigned int tstate_to_psr(unsigned long tstate)
 {
 	return ((tstate & TSTATE_CWP)			|
-		PSR_S					|
-		((tstate & TSTATE_ICC) >> 12)		|
-		((tstate & TSTATE_XCC) >> 20)		|
-		((tstate & TSTATE_SYSCALL) ? PSR_SYSCALL : 0) |
-		PSR_V8PLUS);
+			PSR_S					|
+			((tstate & TSTATE_ICC) >> 12)		|
+			((tstate & TSTATE_XCC) >> 20)		|
+			((tstate & TSTATE_SYSCALL) ? PSR_SYSCALL : 0) |
+			PSR_V8PLUS);
 }
 
 static inline unsigned long psr_to_tstate_icc(unsigned int psr)
 {
 	unsigned long tstate = ((unsigned long)(psr & PSR_ICC)) << 12;
-	if ((psr & (PSR_VERS|PSR_IMPL)) == PSR_V8PLUS)
+
+	if ((psr & (PSR_VERS | PSR_IMPL)) == PSR_V8PLUS)
+	{
 		tstate |= ((unsigned long)(psr & PSR_XCC)) << 20;
+	}
+
 	return tstate;
 }
 

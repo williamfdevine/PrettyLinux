@@ -29,12 +29,14 @@
 #define LTQ_DMA_RX_OFFSET(x)	((x & 0x7) << 23) /* data bytes offset */
 #define LTQ_DMA_SIZE_MASK	(0xffff) /* the size field is 16 bit */
 
-struct ltq_dma_desc {
+struct ltq_dma_desc
+{
 	u32 ctl;
 	u32 addr;
 };
 
-struct ltq_dma_channel {
+struct ltq_dma_channel
+{
 	int nr;				/* the channel number */
 	int irq;			/* the mapped irq */
 	int desc;			/* the current descriptor */
@@ -42,7 +44,8 @@ struct ltq_dma_channel {
 	int phys;			/* physical addr */
 };
 
-enum {
+enum
+{
 	DMA_PORT_ETOP = 0,
 	DMA_PORT_DEU,
 };

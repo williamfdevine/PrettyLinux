@@ -13,35 +13,35 @@
 #define CPUID_REVIDR	6
 
 #ifdef CONFIG_CPU_V7M
-#define CPUID_EXT_PFR0	0x40
-#define CPUID_EXT_PFR1	0x44
-#define CPUID_EXT_DFR0	0x48
-#define CPUID_EXT_AFR0	0x4c
-#define CPUID_EXT_MMFR0	0x50
-#define CPUID_EXT_MMFR1	0x54
-#define CPUID_EXT_MMFR2	0x58
-#define CPUID_EXT_MMFR3	0x5c
-#define CPUID_EXT_ISAR0	0x60
-#define CPUID_EXT_ISAR1	0x64
-#define CPUID_EXT_ISAR2	0x68
-#define CPUID_EXT_ISAR3	0x6c
-#define CPUID_EXT_ISAR4	0x70
-#define CPUID_EXT_ISAR5	0x74
+	#define CPUID_EXT_PFR0	0x40
+	#define CPUID_EXT_PFR1	0x44
+	#define CPUID_EXT_DFR0	0x48
+	#define CPUID_EXT_AFR0	0x4c
+	#define CPUID_EXT_MMFR0	0x50
+	#define CPUID_EXT_MMFR1	0x54
+	#define CPUID_EXT_MMFR2	0x58
+	#define CPUID_EXT_MMFR3	0x5c
+	#define CPUID_EXT_ISAR0	0x60
+	#define CPUID_EXT_ISAR1	0x64
+	#define CPUID_EXT_ISAR2	0x68
+	#define CPUID_EXT_ISAR3	0x6c
+	#define CPUID_EXT_ISAR4	0x70
+	#define CPUID_EXT_ISAR5	0x74
 #else
-#define CPUID_EXT_PFR0	"c1, 0"
-#define CPUID_EXT_PFR1	"c1, 1"
-#define CPUID_EXT_DFR0	"c1, 2"
-#define CPUID_EXT_AFR0	"c1, 3"
-#define CPUID_EXT_MMFR0	"c1, 4"
-#define CPUID_EXT_MMFR1	"c1, 5"
-#define CPUID_EXT_MMFR2	"c1, 6"
-#define CPUID_EXT_MMFR3	"c1, 7"
-#define CPUID_EXT_ISAR0	"c2, 0"
-#define CPUID_EXT_ISAR1	"c2, 1"
-#define CPUID_EXT_ISAR2	"c2, 2"
-#define CPUID_EXT_ISAR3	"c2, 3"
-#define CPUID_EXT_ISAR4	"c2, 4"
-#define CPUID_EXT_ISAR5	"c2, 5"
+	#define CPUID_EXT_PFR0	"c1, 0"
+	#define CPUID_EXT_PFR1	"c1, 1"
+	#define CPUID_EXT_DFR0	"c1, 2"
+	#define CPUID_EXT_AFR0	"c1, 3"
+	#define CPUID_EXT_MMFR0	"c1, 4"
+	#define CPUID_EXT_MMFR1	"c1, 5"
+	#define CPUID_EXT_MMFR2	"c1, 6"
+	#define CPUID_EXT_MMFR3	"c1, 7"
+	#define CPUID_EXT_ISAR0	"c2, 0"
+	#define CPUID_EXT_ISAR1	"c2, 1"
+	#define CPUID_EXT_ISAR2	"c2, 2"
+	#define CPUID_EXT_ISAR3	"c2, 3"
+	#define CPUID_EXT_ISAR4	"c2, 4"
+	#define CPUID_EXT_ISAR5	"c2, 5"
 #endif
 
 #define MPIDR_SMP_BITMASK (0x3 << 30)
@@ -101,9 +101,9 @@ extern unsigned int processor_id;
 	({								\
 		unsigned int __val;					\
 		asm("mrc	p15, 0, %0, c0, c0, " __stringify(reg)	\
-		    : "=r" (__val)					\
-		    :							\
-		    : "cc");						\
+			: "=r" (__val)					\
+			:							\
+			: "cc");						\
 		__val;							\
 	})
 
@@ -116,9 +116,9 @@ extern unsigned int processor_id;
 	({								\
 		unsigned int __val;					\
 		asm("mrc	p15, 0, %0, c0, " ext_reg		\
-		    : "=r" (__val)					\
-		    :							\
-		    : "memory");					\
+			: "=r" (__val)					\
+			:							\
+			: "memory");					\
 		__val;							\
 	})
 
@@ -247,9 +247,12 @@ static inline int cpu_is_xsc3(void)
 {
 	unsigned int id;
 	id = read_cpuid_id() & 0xffffe000;
+
 	/* It covers both Intel ID and Marvell ID */
 	if ((id == 0x69056000) || (id == 0x56056000))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -264,13 +267,14 @@ static inline int cpu_is_xscale_family(void)
 	unsigned int id;
 	id = read_cpuid_id() & 0xffffe000;
 
-	switch (id) {
-	case 0x69052000: /* Intel XScale 1 */
-	case 0x69054000: /* Intel XScale 2 */
-	case 0x69056000: /* Intel XScale 3 */
-	case 0x56056000: /* Marvell XScale 3 */
-	case 0x56158000: /* Marvell Mohawk */
-		return 1;
+	switch (id)
+	{
+		case 0x69052000: /* Intel XScale 1 */
+		case 0x69054000: /* Intel XScale 2 */
+		case 0x69056000: /* Intel XScale 3 */
+		case 0x56056000: /* Marvell XScale 3 */
+		case 0x56158000: /* Marvell Mohawk */
+			return 1;
 	}
 
 	return 0;
@@ -288,8 +292,11 @@ static inline int cpu_is_pj4(void)
 	unsigned int id;
 
 	id = read_cpuid_id();
+
 	if ((id & 0xff0fff00) == 0x560f5800)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -298,13 +305,15 @@ static inline int cpu_is_pj4(void)
 #endif
 
 static inline int __attribute_const__ cpuid_feature_extract_field(u32 features,
-								  int field)
+		int field)
 {
 	int feature = (features >> field) & 15;
 
 	/* feature registers are signed values */
 	if (feature > 7)
+	{
 		feature -= 16;
+	}
 
 	return feature;
 }

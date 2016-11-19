@@ -34,7 +34,7 @@ __u16 __arch_swab16(__u16 x)
 #define __arch_swab32 __arch_swab32
 
 #if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
-#  define __SWAB_64_THRU_32__
+	#define __SWAB_64_THRU_32__
 #endif
 
 #endif /* __GNUC__ */

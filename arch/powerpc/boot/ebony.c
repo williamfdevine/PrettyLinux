@@ -43,27 +43,33 @@ static void ebony_flashsel_fixup(void)
 	u8 fpga_reg0 = 0x0;
 
 	devp = finddevice(EBONY_FPGA_PATH);
+
 	if (!devp)
+	{
 		fatal("Couldn't locate FPGA node %s\n\r", EBONY_FPGA_PATH);
+	}
 
 	if (getprop(devp, "virtual-reg", &fpga, sizeof(fpga)) != sizeof(fpga))
 		fatal("%s has missing or invalid virtual-reg property\n\r",
-		      EBONY_FPGA_PATH);
+			  EBONY_FPGA_PATH);
 
 	fpga_reg0 = in_8(fpga);
 
 	devp = finddevice(EBONY_SMALL_FLASH_PATH);
+
 	if (!devp)
 		fatal("Couldn't locate small flash node %s\n\r",
-		      EBONY_SMALL_FLASH_PATH);
+			  EBONY_SMALL_FLASH_PATH);
 
 	if (getprop(devp, "reg", reg, sizeof(reg)) != sizeof(reg))
 		fatal("%s has reg property of unexpected size\n\r",
-		      EBONY_SMALL_FLASH_PATH);
+			  EBONY_SMALL_FLASH_PATH);
 
 	/* Invert address bit 14 (IBM-endian) if FLASH_SEL fpga bit is set */
 	if (fpga_reg0 & EBONY_FPGA_FLASH_SEL)
+	{
 		reg[1] ^= 0x80000;
+	}
 
 	setprop(devp, "reg", reg, sizeof(reg));
 }

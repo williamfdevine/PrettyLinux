@@ -42,21 +42,24 @@ EXPORT_SYMBOL_GPL(isa_bridge_pcidev);
 #define ISA_SPACE_IO 0x1
 
 static void pci_process_ISA_OF_ranges(struct device_node *isa_node,
-				      unsigned long phb_io_base_phys)
+									  unsigned long phb_io_base_phys)
 {
 	/* We should get some saner parsing here and remove these structs */
-	struct pci_address {
+	struct pci_address
+	{
 		u32 a_hi;
 		u32 a_mid;
 		u32 a_lo;
 	};
 
-	struct isa_address {
+	struct isa_address
+	{
 		u32 a_hi;
 		u32 a_lo;
 	};
 
-	struct isa_range {
+	struct isa_range
+	{
 		struct isa_address isa_addr;
 		struct pci_address pci_addr;
 		unsigned int size;
@@ -69,8 +72,11 @@ static void pci_process_ISA_OF_ranges(struct device_node *isa_node,
 	int rlen = 0;
 
 	range = of_get_property(isa_node, "ranges", &rlen);
+
 	if (range == NULL || (rlen < sizeof(struct isa_range)))
+	{
 		goto inval_range;
+	}
 
 	/* From "ISA Binding to 1275"
 	 * The ranges property is laid out as an array of elements,
@@ -80,43 +86,54 @@ static void pci_process_ISA_OF_ranges(struct device_node *isa_node,
 	 *			(size depending on dev->n_addr_cells)
 	 *   cell 5:		the size of the range
 	 */
-	if ((range->isa_addr.a_hi & ISA_SPACE_MASK) != ISA_SPACE_IO) {
+	if ((range->isa_addr.a_hi & ISA_SPACE_MASK) != ISA_SPACE_IO)
+	{
 		range++;
 		rlen -= sizeof(struct isa_range);
+
 		if (rlen < sizeof(struct isa_range))
+		{
 			goto inval_range;
+		}
 	}
+
 	if ((range->isa_addr.a_hi & ISA_SPACE_MASK) != ISA_SPACE_IO)
+	{
 		goto inval_range;
+	}
 
 	isa_addr = range->isa_addr.a_lo;
 	pci_addr = (unsigned long) range->pci_addr.a_mid << 32 |
-		range->pci_addr.a_lo;
+			   range->pci_addr.a_lo;
 
 	/* Assume these are both zero. Note: We could fix that and
 	 * do a proper parsing instead ... oh well, that will do for
 	 * now as nobody uses fancy mappings for ISA bridges
 	 */
-	if ((pci_addr != 0) || (isa_addr != 0)) {
+	if ((pci_addr != 0) || (isa_addr != 0))
+	{
 		printk(KERN_ERR "unexpected isa to pci mapping: %s\n",
-		       __func__);
+			   __func__);
 		return;
 	}
 
 	/* Align size and make sure it's cropped to 64K */
 	size = PAGE_ALIGN(range->size);
+
 	if (size > 0x10000)
+	{
 		size = 0x10000;
+	}
 
 	__ioremap_at(phb_io_base_phys, (void *)ISA_IO_BASE,
-		     size, pgprot_val(pgprot_noncached(__pgprot(0))));
+				 size, pgprot_val(pgprot_noncached(__pgprot(0))));
 	return;
 
 inval_range:
 	printk(KERN_ERR "no ISA IO ranges or unexpected isa range, "
-	       "mapping 64k\n");
+		   "mapping 64k\n");
 	__ioremap_at(phb_io_base_phys, (void *)ISA_IO_BASE,
-		     0x10000, pgprot_val(pgprot_noncached(__pgprot(0))));
+				 0x10000, pgprot_val(pgprot_noncached(__pgprot(0))));
 }
 
 
@@ -132,29 +149,42 @@ void __init isa_bridge_find_early(struct pci_controller *hose)
 
 	/* If we already have an ISA bridge, bail off */
 	if (isa_bridge_devnode != NULL)
+	{
 		return;
+	}
 
 	/* For each "isa" node in the system. Note : we do a search by
 	 * type and not by name. It might be better to do by name but that's
 	 * what the code used to do and I don't want to break too much at
 	 * once. We can look into changing that separately
 	 */
-	for_each_node_by_type(np, "isa") {
+	for_each_node_by_type(np, "isa")
+	{
 		/* Look for our hose being a parent */
-		for (parent = of_get_parent(np); parent;) {
-			if (parent == hose->dn) {
+		for (parent = of_get_parent(np); parent;)
+		{
+			if (parent == hose->dn)
+			{
 				of_node_put(parent);
 				break;
 			}
+
 			tmp = parent;
 			parent = of_get_parent(parent);
 			of_node_put(tmp);
 		}
+
 		if (parent != NULL)
+		{
 			break;
+		}
 	}
+
 	if (np == NULL)
+	{
 		return;
+	}
+
 	isa_bridge_devnode = np;
 
 	/* Now parse the "ranges" property and setup the ISA mapping */
@@ -171,7 +201,7 @@ void __init isa_bridge_find_early(struct pci_controller *hose)
  *                        a new ISA bridge
  */
 static void isa_bridge_find_late(struct pci_dev *pdev,
-				 struct device_node *devnode)
+								 struct device_node *devnode)
 {
 	struct pci_controller *hose = pci_bus_to_host(pdev->bus);
 
@@ -186,7 +216,7 @@ static void isa_bridge_find_late(struct pci_dev *pdev,
 	isa_io_base = ISA_IO_BASE;
 
 	pr_debug("ISA bridge (late) is %s on %s\n",
-		 devnode->full_name, pci_name(pdev));
+			 devnode->full_name, pci_name(pdev));
 }
 
 /**
@@ -216,41 +246,53 @@ static void isa_bridge_remove(void)
  * isa_bridge_notify - Get notified of PCI devices addition/removal
  */
 static int isa_bridge_notify(struct notifier_block *nb, unsigned long action,
-			     void *data)
+							 void *data)
 {
 	struct device *dev = data;
 	struct pci_dev *pdev = to_pci_dev(dev);
 	struct device_node *devnode = pci_device_to_OF_node(pdev);
 
-	switch(action) {
-	case BUS_NOTIFY_ADD_DEVICE:
-		/* Check if we have an early ISA device, without PCI dev */
-		if (isa_bridge_devnode && isa_bridge_devnode == devnode &&
-		    !isa_bridge_pcidev) {
-			pr_debug("ISA bridge PCI attached: %s\n",
-				 pci_name(pdev));
-			isa_bridge_pcidev = pdev;
-		}
+	switch (action)
+	{
+		case BUS_NOTIFY_ADD_DEVICE:
 
-		/* Check if we have no ISA device, and this happens to be one,
-		 * register it as such if it has an OF device
-		 */
-		if (!isa_bridge_devnode && devnode && devnode->type &&
-		    !strcmp(devnode->type, "isa"))
-			isa_bridge_find_late(pdev, devnode);
+			/* Check if we have an early ISA device, without PCI dev */
+			if (isa_bridge_devnode && isa_bridge_devnode == devnode &&
+				!isa_bridge_pcidev)
+			{
+				pr_debug("ISA bridge PCI attached: %s\n",
+						 pci_name(pdev));
+				isa_bridge_pcidev = pdev;
+			}
 
-		return 0;
-	case BUS_NOTIFY_DEL_DEVICE:
-		/* Check if this our existing ISA device */
-		if (pdev == isa_bridge_pcidev ||
-		    (devnode && devnode == isa_bridge_devnode))
-			isa_bridge_remove();
-		return 0;
+			/* Check if we have no ISA device, and this happens to be one,
+			 * register it as such if it has an OF device
+			 */
+			if (!isa_bridge_devnode && devnode && devnode->type &&
+				!strcmp(devnode->type, "isa"))
+			{
+				isa_bridge_find_late(pdev, devnode);
+			}
+
+			return 0;
+
+		case BUS_NOTIFY_DEL_DEVICE:
+
+			/* Check if this our existing ISA device */
+			if (pdev == isa_bridge_pcidev ||
+				(devnode && devnode == isa_bridge_devnode))
+			{
+				isa_bridge_remove();
+			}
+
+			return 0;
 	}
+
 	return 0;
 }
 
-static struct notifier_block isa_bridge_notifier = {
+static struct notifier_block isa_bridge_notifier =
+{
 	.notifier_call = isa_bridge_notify
 };
 

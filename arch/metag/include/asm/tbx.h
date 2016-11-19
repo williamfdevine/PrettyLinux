@@ -19,18 +19,18 @@
 #include <asm/metag_mem.h>
 
 #ifdef  TBI_1_4
-#ifndef TBI_MUTEXES_1_4
-#define TBI_MUTEXES_1_4
-#endif
-#ifndef TBI_SEMAPHORES_1_4
-#define TBI_SEMAPHORES_1_4
-#endif
-#ifndef TBI_ASYNC_SWITCH_1_4
-#define TBI_ASYNC_SWITCH_1_4
-#endif
-#ifndef TBI_FASTINT_1_4
-#define TBI_FASTINT_1_4
-#endif
+	#ifndef TBI_MUTEXES_1_4
+		#define TBI_MUTEXES_1_4
+	#endif
+	#ifndef TBI_SEMAPHORES_1_4
+		#define TBI_SEMAPHORES_1_4
+	#endif
+	#ifndef TBI_ASYNC_SWITCH_1_4
+		#define TBI_ASYNC_SWITCH_1_4
+	#endif
+	#ifndef TBI_FASTINT_1_4
+		#define TBI_FASTINT_1_4
+	#endif
 #endif
 
 
@@ -82,7 +82,7 @@
 #define TBID_ISTAT_S      24
 
 /* Privilege needed to access a segment is indicated by the next bit.
-   
+
    This bit is set to mirror the current privilege level when starting a
    search for a segment - setting it yourself toggles the automatically
    generated state which is only useful to emulate unprivileged behaviour
@@ -110,11 +110,11 @@
 
 /* Generate a segment Id given Thread, Scope, and Type */
 #define TBID_SEG( Thread, Scope, Type )                           (\
-    ((Thread)<<TBID_THREAD_S) + ((Scope)<<TBID_SEGSCOPE_S) + (Type))
+		((Thread)<<TBID_THREAD_S) + ((Scope)<<TBID_SEGSCOPE_S) + (Type))
 
 /* Generate a signal Id given Thread and SigNum */
 #define TBID_SIG( Thread, SigNum )                                        (\
-    ((Thread)<<TBID_THREAD_S) + ((SigNum)<<TBID_SIGNUM_S) + TBID_SIGNAL_BIT)
+		((Thread)<<TBID_THREAD_S) + ((SigNum)<<TBID_SIGNUM_S) + TBID_SIGNAL_BIT)
 
 /* Generate an Id that solely represents a thread - useful for cache ops */
 #define TBID_THD( Thread ) ((Thread)<<TBID_THREAD_S)
@@ -142,22 +142,22 @@
 #define TBID_SIGNUM_SW2     0x02 /* SWITCH GROUP 2 - Internal global request */
 #define TBID_SIGNUM_SW3     0x03 /* SWITCH GROUP 3 - External global request */
 #ifdef TBI_1_4
-#define TBID_SIGNUM_FPE     0x04 /* Deferred exception - Any IEEE 754 exception */
-#define TBID_SIGNUM_FPD     0x05 /* Deferred exception - Denormal exception */
-/* Reserved 0x6 for a reserved deferred exception */
-#define TBID_SIGNUM_BUS     0x07 /* Deferred exception - Bus Error */
-/* Reserved 0x08-0x09 */
+	#define TBID_SIGNUM_FPE     0x04 /* Deferred exception - Any IEEE 754 exception */
+	#define TBID_SIGNUM_FPD     0x05 /* Deferred exception - Denormal exception */
+	/* Reserved 0x6 for a reserved deferred exception */
+	#define TBID_SIGNUM_BUS     0x07 /* Deferred exception - Bus Error */
+	/* Reserved 0x08-0x09 */
 #else
-/* Reserved 0x04-0x09 */
+	/* Reserved 0x04-0x09 */
 #endif
 /* Reserved 0x0A-0x0F */
 #define TBID_SIGNUM_TRT     0x10 /* Timer trigger */
 #define TBID_SIGNUM_LWK     0x11 /* Low level kick */
 #define TBID_SIGNUM_XXF     0x12 /* Fault handler - receives ALL _xxF sigs */
 #ifdef TBI_1_4
-#define TBID_SIGNUM_DFR     0x13 /* Deferred Exception handler */
+	#define TBID_SIGNUM_DFR     0x13 /* Deferred Exception handler */
 #else
-#define TBID_SIGNUM_FPE     0x13 /* FPE Exception handler */
+	#define TBID_SIGNUM_FPE     0x13 /* FPE Exception handler */
 #endif
 /* External trigger one group 0x14 to 0x17 - per thread */
 #define TBID_SIGNUM_TR1(Thread) (0x14+(Thread))
@@ -180,21 +180,21 @@
 /* Return the trigger register(TXMASK[I]/TXSTAT[I]) bits related to
    each hardware signal, sometimes this is a many-to-one relationship. */
 #define TBI_TRIG_BIT(SigNum)                                      (\
-    ((SigNum) >= TBID_SIGNUM_TRT) ? 1<<((SigNum)-TBID_SIGNUM_TRT) :\
-    ((SigNum) == TBID_SIGNUM_LWK) ?                                \
-                         TXSTAT_KICK_BIT : TXSTATI_BGNDHALT_BIT    )
+		((SigNum) >= TBID_SIGNUM_TRT) ? 1<<((SigNum)-TBID_SIGNUM_TRT) :\
+		((SigNum) == TBID_SIGNUM_LWK) ?                                \
+		TXSTAT_KICK_BIT : TXSTATI_BGNDHALT_BIT    )
 
 /* Return the hardware trigger vector number for entries in the
    HWVEC0EXT table that will generate the required internal trigger. */
 #define TBI_TRIG_VEC(SigNum)                                      (\
-    ((SigNum) >= TBID_SIGNUM_T10) ? ((SigNum)-TBID_SIGNUM_TRT) : -1)
+		((SigNum) >= TBID_SIGNUM_T10) ? ((SigNum)-TBID_SIGNUM_TRT) : -1)
 
 /* Default trigger masks for each thread at background/interrupt level */
 #define TBI_TRIGS_INIT( Thread )                           (\
-    TXSTAT_KICK_BIT + TBI_TRIG_BIT(TBID_SIGNUM_TR1(Thread)) )
+		TXSTAT_KICK_BIT + TBI_TRIG_BIT(TBID_SIGNUM_TR1(Thread)) )
 #define TBI_INTS_INIT( Thread )                            (\
-    TXSTAT_KICK_BIT + TXSTATI_BGNDHALT_BIT                  \
-                    + TBI_TRIG_BIT(TBID_SIGNUM_TR2(Thread)) )
+		TXSTAT_KICK_BIT + TXSTATI_BGNDHALT_BIT                  \
+		+ TBI_TRIG_BIT(TBID_SIGNUM_TR2(Thread)) )
 
 #ifndef __ASSEMBLY__
 /* A spin-lock location is a zero-initialised location in memory */
@@ -213,18 +213,19 @@ typedef volatile int *PTBIKICK;
 #ifdef LINSYSEVENT_WR_COMBINE_FLUSH
 /* Macro to perform a kick - write combiners must be flushed */
 #define TBI_KICK( pKick )                                                do {\
-    volatile int *pFlush = (volatile int *) LINSYSEVENT_WR_COMBINE_FLUSH;    \
-    pFlush[0] = 0;                                                           \
-    pKick[0]  = 1;                                                } while (0)
+		volatile int *pFlush = (volatile int *) LINSYSEVENT_WR_COMBINE_FLUSH;    \
+		pFlush[0] = 0;                                                           \
+		pKick[0]  = 1;                                                } while (0)
 #endif
 #endif /* if defined(METAC_1_0) || defined(METAC_1_1) */
 #endif /* ifndef __ASSEMBLY__ */
 
 #ifndef __ASSEMBLY__
 /* 64-bit dual unit state value */
-typedef struct _tbidual_tag_ {
-    /* 32-bit value from a pair of registers in data or address units */
-    int U0, U1;
+typedef struct _tbidual_tag_
+{
+	/* 32-bit value from a pair of registers in data or address units */
+	int U0, U1;
 } TBIDUAL, *PTBIDUAL;
 #endif /* ifndef __ASSEMBLY__ */
 
@@ -237,7 +238,7 @@ typedef struct _tbidual_tag_ {
 #define TBICTX_CRIT_BIT 0x0001  /* ASync state saved in TBICTX */
 #define TBICTX_SOFT_BIT 0x0002  /* Sync state saved in TBICTX (other bits 0) */
 #ifdef TBI_FASTINT_1_4
-#define TBICTX_FINT_BIT 0x0004  /* Using Fast Interrupts */
+	#define TBICTX_FINT_BIT 0x0004  /* Using Fast Interrupts */
 #endif
 #define TBICTX_FPAC_BIT 0x0010  /* FPU state in TBICTX, FPU active on entry */
 #define TBICTX_XMCC_BIT 0x0020  /* Bit to identify a MECC task */
@@ -255,11 +256,11 @@ typedef struct _tbidual_tag_ {
 #define TBICTX_PRIV_BIT 0x8000  /* Set if system uses 'privileged' model */
 
 #ifdef METAC_1_0
-#define TBICTX_XAX3_BIT 0x0200  /* Saved AX.5 to AX.7 for XAXX */
-#define TBICTX_AX_REGS  5       /* Ax.0 to Ax.4 are core GP regs on CHORUS */
+	#define TBICTX_XAX3_BIT 0x0200  /* Saved AX.5 to AX.7 for XAXX */
+	#define TBICTX_AX_REGS  5       /* Ax.0 to Ax.4 are core GP regs on CHORUS */
 #else
-#define TBICTX_XAX4_BIT 0x0200  /* Saved AX.4 to AX.7 for XAXX */
-#define TBICTX_AX_REGS  4       /* Default is Ax.0 to Ax.3 */
+	#define TBICTX_XAX4_BIT 0x0200  /* Saved AX.4 to AX.7 for XAXX */
+	#define TBICTX_AX_REGS  4       /* Default is Ax.0 to Ax.3 */
 #endif
 
 #ifdef TBI_1_4
@@ -267,10 +268,10 @@ typedef struct _tbidual_tag_ {
 
 /* The METAC_CORE_ID_CONFIG field indicates omitted DSP resources */
 #define METAC_COREID_CFGXCTX_MASK( Value )                                 (\
-	( (((Value & METAC_COREID_CFGDSP_BITS)>>                                \
-	             METAC_COREID_CFGDSP_S      ) == METAC_COREID_CFGDSP_MIN) ? \
-	         ~(TBICTX_XHL2_BIT+TBICTX_XTDP_BIT+                             \
-	           TBICTX_XAXX_BIT+TBICTX_XDX8_BIT ) : ~0U )                    )
+		( (((Value & METAC_COREID_CFGDSP_BITS)>>                                \
+			METAC_COREID_CFGDSP_S      ) == METAC_COREID_CFGDSP_MIN) ? \
+		  ~(TBICTX_XHL2_BIT+TBICTX_XTDP_BIT+                             \
+			TBICTX_XAXX_BIT+TBICTX_XDX8_BIT ) : ~0U )                    )
 #endif
 
 /* Extended context state provides a standardised method for registering the
@@ -278,32 +279,34 @@ typedef struct _tbidual_tag_ {
    currently in use by non general purpose code. The state of the __TBIExtCtx
    variable in the static space of the thread forms an extension of the base
    context of the thread.
-   
+
    If ( __TBIExtCtx.Ctx.SaveMask == 0 ) then pExt is assumed to be NULL and
    the empty state of  __TBIExtCtx is represented by the fact that
    TBICTX.SaveMask does not have the bit TBICTX_XEXT_BIT set.
-   
+
    If ( __TBIExtCtx.Ctx.SaveMask != 0 ) then pExt should point at a suitably
    sized extended context save area (usually at the end of the stack space
    allocated by the current routine). This space should allow for the
    displaced state of A0.2 and A1.2 to be saved along with the other extended
    states indicated via __TBIExtCtx.Ctx.SaveMask. */
 #ifndef __ASSEMBLY__
-typedef union _tbiextctx_tag_ {
-    long long Val;
-    TBIDUAL AX2;
-    struct _tbiextctxext_tag {
+typedef union _tbiextctx_tag_
+{
+	long long Val;
+	TBIDUAL AX2;
+	struct _tbiextctxext_tag
+	{
 #ifdef TBI_1_4
-        short DspramSizes;      /* DSPRAM sizes. Encoding varies between
+		short DspramSizes;      /* DSPRAM sizes. Encoding varies between
                                    TBICtxAlloc and the ECH scheme. */
 #else
-        short Reserved0;
+		short Reserved0;
 #endif
-        short SaveMask;         /* Flag bits for state saved */
-        PTBIDUAL pExt;          /* AX[2] state saved first plus Xxxx state */
-    
-    } Ctx;
-    
+		short SaveMask;         /* Flag bits for state saved */
+		PTBIDUAL pExt;          /* AX[2] state saved first plus Xxxx state */
+
+	} Ctx;
+
 } TBIEXTCTX, *PTBIEXTCTX;
 
 /* Automatic registration of extended context save for __TBINestInts */
@@ -322,38 +325,38 @@ extern TBIEXTCTX __TBIExtCtx;
 #define TBICTXEXTAX3_BYTES     (3*8)
 #define TBICTXEXTAX4_BYTES     (4*8)
 #ifdef METAC_1_0
-#define TBICTXEXTAXX_BYTES     TBICTXEXTAX3_BYTES
+	#define TBICTXEXTAXX_BYTES     TBICTXEXTAX3_BYTES
 #else
-#define TBICTXEXTAXX_BYTES     TBICTXEXTAX4_BYTES
+	#define TBICTXEXTAXX_BYTES     TBICTXEXTAX4_BYTES
 #endif
 #define TBICTXEXTHL2_BYTES     (3*8)
 #define TBICTXEXTTDR_BYTES    (27*8)
 #define TBICTXEXTTDP_BYTES TBICTXEXTTDR_BYTES
 
 #ifdef TBI_1_4
-#define TBICTXEXTFX8_BYTES	(4*8)
-#define TBICTXEXTFPAC_BYTES	(1*4 + 2*2 + 4*8)
-#define TBICTXEXTFACF_BYTES	(3*8)
+	#define TBICTXEXTFX8_BYTES	(4*8)
+	#define TBICTXEXTFPAC_BYTES	(1*4 + 2*2 + 4*8)
+	#define TBICTXEXTFACF_BYTES	(3*8)
 #endif
 
 /* Maximum flag bits to be set via the TBICTX_EXTSET macro */
 #define TBICTXEXT_MAXBITS  (TBICTX_XEXT_BIT|                \
-                            TBICTX_XDX8_BIT|TBICTX_XAXX_BIT|\
-                            TBICTX_XHL2_BIT|TBICTX_XTDP_BIT )
+							TBICTX_XDX8_BIT|TBICTX_XAXX_BIT|\
+							TBICTX_XHL2_BIT|TBICTX_XTDP_BIT )
 
 /* Maximum size of the extended context save area for current variant */
 #define TBICTXEXT_MAXBYTES (TBICTXEXT_BYTES+TBICTXEXTBB8_BYTES+\
-                         TBICTXEXTAXX_BYTES+TBICTXEXTHL2_BYTES+\
-                                            TBICTXEXTTDP_BYTES )
+							TBICTXEXTAXX_BYTES+TBICTXEXTHL2_BYTES+\
+							TBICTXEXTTDP_BYTES )
 
 #ifdef TBI_FASTINT_1_4
 /* Maximum flag bits to be set via the TBICTX_EXTSET macro */
 #define TBICTX2EXT_MAXBITS (TBICTX_XDX8_BIT|TBICTX_XAXX_BIT|\
-                            TBICTX_XHL2_BIT|TBICTX_XTDP_BIT )
+							TBICTX_XHL2_BIT|TBICTX_XTDP_BIT )
 
 /* Maximum size of the extended context save area for current variant */
 #define TBICTX2EXT_MAXBYTES (TBICTXEXTBB8_BYTES+TBICTXEXTAXX_BYTES\
-                             +TBICTXEXTHL2_BYTES+TBICTXEXTTDP_BYTES )
+							 +TBICTXEXTHL2_BYTES+TBICTXEXTTDP_BYTES )
 #endif
 
 /* Specify extended resources being used by current routine, code must be
@@ -363,18 +366,18 @@ extern TBIEXTCTX __TBIExtCtx;
         ADD     A0StP,A0StP,#SaveSize   ; setup/use A0FrP to access locals
         MOVT    D1xxx,#SaveMask         ; TBICTX_XEXT_BIT MUST be set
         SETL    [A1GbP+#OG(___TBIExtCtx)],D0xxx,D1xxx
-        
+
     NB: OG(___TBIExtCtx) is a special case supported for SETL/GETL operations
         on 64-bit sizes structures only, other accesses must be based on use
-        of OGA(___TBIExtCtx). 
+        of OGA(___TBIExtCtx).
 
    At exit of routine-
-   
+
         MOV     D0xxx,#0                ; Clear extended context save state
         MOV     D1xxx,#0
         SETL    [A1GbP+#OG(___TBIExtCtx)],D0xxx,D1xxx
         SUB     A0StP,A0StP,#SaveSize   ; If original A0StP required
-        
+
     NB: Both the setting and clearing of the whole __TBIExtCtx MUST be done
         atomically in one 64-bit write operation.
 
@@ -383,18 +386,18 @@ extern TBIEXTCTX __TBIExtCtx;
    performed however (assuming __TBINestInts has already been called earlier
    on) then the following logic will correctly call __TBICtxSave if required
    and clear out the currently selected background task-
-   
+
         if ( __TBIExtCtx.Ctx.SaveMask & TBICTX_XEXT_BIT )
         {
             / * Store extended states in pCtx * /
             State.Sig.SaveMask |= __TBIExtCtx.Ctx.SaveMask;
-        
+
             (void) __TBICtxSave( State, (void *) __TBIExtCtx.Ctx.pExt );
             __TBIExtCtx.Val   = 0;
         }
-        
+
     and when restoring task states call __TBICtxRestore-
-    
+
         / * Restore state from pCtx * /
         State.Sig.pCtx     = pCtx;
         State.Sig.SaveMask = pCtx->SaveMask;
@@ -403,46 +406,48 @@ extern TBIEXTCTX __TBIExtCtx;
         {
             / * Restore extended states from pCtx * /
             __TBIExtCtx.Val = pCtx->Ext.Val;
-            
+
             (void) __TBICtxRestore( State, (void *) __TBIExtCtx.Ctx.pExt );
-        }   
-   
+        }
+
  */
 
 /* Critical thread state save area */
 #ifndef __ASSEMBLY__
-typedef struct _tbictx_tag_ {
-    /* TXSTATUS_FLAG_BITS and TXSTATUS_LSM_STEP_BITS from TXSTATUS */
-    short Flags;
-    /* Mask indicates any extended context state saved; 0 -> Never run */
-    short SaveMask;
-    /* Saved PC value */
-    int CurrPC;
-    /* Saved critical register states */
-    TBIDUAL DX[8];
-    /* Background control register states - for cores without catch buffer
-       base in DIVTIME the TXSTATUS bits RPVALID and RPMASK are stored with
-       the real state TXDIVTIME in CurrDIVTIME */
-    int CurrRPT, CurrBPOBITS, CurrMODE, CurrDIVTIME;
-    /* Saved AX register states */
-    TBIDUAL AX[2];
-    TBIEXTCTX Ext;
-    TBIDUAL AX3[TBICTX_AX_REGS-3];
-    
-    /* Any CBUF state to be restored by a handler return must be stored here.
-       Other extended state can be stored anywhere - see __TBICtxSave and
-       __TBICtxRestore. */
-    
+typedef struct _tbictx_tag_
+{
+	/* TXSTATUS_FLAG_BITS and TXSTATUS_LSM_STEP_BITS from TXSTATUS */
+	short Flags;
+	/* Mask indicates any extended context state saved; 0 -> Never run */
+	short SaveMask;
+	/* Saved PC value */
+	int CurrPC;
+	/* Saved critical register states */
+	TBIDUAL DX[8];
+	/* Background control register states - for cores without catch buffer
+	   base in DIVTIME the TXSTATUS bits RPVALID and RPMASK are stored with
+	   the real state TXDIVTIME in CurrDIVTIME */
+	int CurrRPT, CurrBPOBITS, CurrMODE, CurrDIVTIME;
+	/* Saved AX register states */
+	TBIDUAL AX[2];
+	TBIEXTCTX Ext;
+	TBIDUAL AX3[TBICTX_AX_REGS - 3];
+
+	/* Any CBUF state to be restored by a handler return must be stored here.
+	   Other extended state can be stored anywhere - see __TBICtxSave and
+	   __TBICtxRestore. */
+
 } TBICTX, *PTBICTX;
 
 #ifdef TBI_FASTINT_1_4
-typedef struct _tbictx2_tag_ {
-    TBIDUAL AX[2];    /* AU.0, AU.1 */
-    TBIDUAL DX[2];    /* DU.0, DU.4 */
-    int     CurrMODE;
-    int     CurrRPT;
-    int     CurrSTATUS;
-    void   *CurrPC;   /* PC in PC address space */
+typedef struct _tbictx2_tag_
+{
+	TBIDUAL AX[2];    /* AU.0, AU.1 */
+	TBIDUAL DX[2];    /* DU.0, DU.4 */
+	int     CurrMODE;
+	int     CurrRPT;
+	int     CurrSTATUS;
+	void   *CurrPC;   /* PC in PC address space */
 } TBICTX2, *PTBICTX2;
 /* TBICTX2 is followed by:
  *   TBICTXEXTCB0                if TXSTATUS.CBMarker
@@ -450,12 +455,13 @@ typedef struct _tbictx2_tag_ {
  *   TBICTXGP                    if using __TBIStdRootIntHandler or __TBIStdCtxSwitchRootIntHandler
  */
 
-typedef struct _tbictxgp_tag_ {
-    short    DspramSizes;
-    short    SaveMask;
-    void    *pExt;
-    TBIDUAL  DX[6]; /* DU.1-DU.3, DU.5-DU.7 */
-    TBIDUAL  AX[2]; /* AU.2-AU.3 */
+typedef struct _tbictxgp_tag_
+{
+	short    DspramSizes;
+	short    SaveMask;
+	void    *pExt;
+	TBIDUAL  DX[6]; /* DU.1-DU.3, DU.5-DU.7 */
+	TBIDUAL  AX[2]; /* AU.2-AU.3 */
 } TBICTXGP, *PTBICTXGP;
 
 #define TBICTXGP_DspramSizes (0)
@@ -481,128 +487,138 @@ typedef struct _tbictxgp_tag_ {
 #define TBICTX_Ext_Ctx_SaveMask (TBICTX_Ext + TBIEXTCTX_Ctx_SaveMask)
 
 #ifdef TBI_FASTINT_1_4
-#define TBICTX2_BYTES (8 * 2 + 8 * 2 + 4 + 4 + 4 + 4)
-#define TBICTXEXTCB0_BYTES (4 + 4 + 8)
+	#define TBICTX2_BYTES (8 * 2 + 8 * 2 + 4 + 4 + 4 + 4)
+	#define TBICTXEXTCB0_BYTES (4 + 4 + 8)
 
-#define TBICTX2_CRIT_MAX_BYTES (TBICTX2_BYTES + TBICTXEXTCB0_BYTES + 6 * TBIDUAL_BYTES)
-#define TBI_SWITCH_NEXT_PC(PC, EXTRA) ((PC) + (EXTRA & 1) ? 8 : 4)
+	#define TBICTX2_CRIT_MAX_BYTES (TBICTX2_BYTES + TBICTXEXTCB0_BYTES + 6 * TBIDUAL_BYTES)
+	#define TBI_SWITCH_NEXT_PC(PC, EXTRA) ((PC) + (EXTRA & 1) ? 8 : 4)
 #endif
 
 #ifndef __ASSEMBLY__
 /* Extended thread state save areas - catch buffer state element */
-typedef struct _tbictxextcb0_tag_ {
-    /* Flags data and address value - see METAC_CATCH_VALUES in machine.h */
-    unsigned long CBFlags, CBAddr;
-    /* 64-bit data */
-    TBIDUAL CBData;
-    
+typedef struct _tbictxextcb0_tag_
+{
+	/* Flags data and address value - see METAC_CATCH_VALUES in machine.h */
+	unsigned long CBFlags, CBAddr;
+	/* 64-bit data */
+	TBIDUAL CBData;
+
 } TBICTXEXTCB0, *PTBICTXEXTCB0;
 
 /* Read pipeline state saved on later cores after single catch buffer slot */
-typedef struct _tbictxextrp6_tag_ {
-    /* RPMask is TXSTATUS_RPMASK_BITS only, reserved is undefined */
-    unsigned long RPMask, Reserved0;
-    TBIDUAL CBData[6];
-    
+typedef struct _tbictxextrp6_tag_
+{
+	/* RPMask is TXSTATUS_RPMASK_BITS only, reserved is undefined */
+	unsigned long RPMask, Reserved0;
+	TBIDUAL CBData[6];
+
 } TBICTXEXTRP6, *PTBICTXEXTRP6;
 
 /* Extended thread state save areas - 8 DU register pairs */
-typedef struct _tbictxextbb8_tag_ {
-    /* Remaining Data unit registers in 64-bit pairs */
-    TBIDUAL UX[8];
-    
+typedef struct _tbictxextbb8_tag_
+{
+	/* Remaining Data unit registers in 64-bit pairs */
+	TBIDUAL UX[8];
+
 } TBICTXEXTBB8, *PTBICTXEXTBB8;
 
 /* Extended thread state save areas - 3 AU register pairs */
-typedef struct _tbictxextbb3_tag_ {
-    /* Remaining Address unit registers in 64-bit pairs */
-    TBIDUAL UX[3];
-    
+typedef struct _tbictxextbb3_tag_
+{
+	/* Remaining Address unit registers in 64-bit pairs */
+	TBIDUAL UX[3];
+
 } TBICTXEXTBB3, *PTBICTXEXTBB3;
 
 /* Extended thread state save areas - 4 AU register pairs or 4 FX pairs */
-typedef struct _tbictxextbb4_tag_ {
-    /* Remaining Address unit or FPU registers in 64-bit pairs */
-    TBIDUAL UX[4];
-    
+typedef struct _tbictxextbb4_tag_
+{
+	/* Remaining Address unit or FPU registers in 64-bit pairs */
+	TBIDUAL UX[4];
+
 } TBICTXEXTBB4, *PTBICTXEXTBB4;
 
 /* Extended thread state save areas - Hardware loop states (max 2) */
-typedef struct _tbictxexthl2_tag_ {
-    /* Hardware looping register states */
-    TBIDUAL Start, End, Count;
-    
+typedef struct _tbictxexthl2_tag_
+{
+	/* Hardware looping register states */
+	TBIDUAL Start, End, Count;
+
 } TBICTXEXTHL2, *PTBICTXEXTHL2;
 
 /* Extended thread state save areas - DSP register states */
-typedef struct _tbictxexttdp_tag_ {
-    /* DSP 32-bit accumulator register state (Bits 31:0 of ACX.0) */
-    TBIDUAL Acc32[1];
-    /* DSP > 32-bit accumulator bits 63:32 of ACX.0 (zero-extended) */
-    TBIDUAL Acc64[1];
-    /* Twiddle register state, and three phase increment states */
-    TBIDUAL PReg[4];
-    /* Modulo region size, padded to 64-bits */
-    int CurrMRSIZE, Reserved0;
-    
+typedef struct _tbictxexttdp_tag_
+{
+	/* DSP 32-bit accumulator register state (Bits 31:0 of ACX.0) */
+	TBIDUAL Acc32[1];
+	/* DSP > 32-bit accumulator bits 63:32 of ACX.0 (zero-extended) */
+	TBIDUAL Acc64[1];
+	/* Twiddle register state, and three phase increment states */
+	TBIDUAL PReg[4];
+	/* Modulo region size, padded to 64-bits */
+	int CurrMRSIZE, Reserved0;
+
 } TBICTXEXTTDP, *PTBICTXEXTTDP;
 
 /* Extended thread state save areas - DSP register states including DSP RAM */
-typedef struct _tbictxexttdpr_tag_ {
-    /* DSP 32-bit accumulator register state (Bits 31:0 of ACX.0) */
-    TBIDUAL Acc32[1];
-    /* DSP 40-bit accumulator register state (Bits 39:8 of ACX.0) */
-    TBIDUAL Acc40[1];
-    /* DSP RAM Pointers */
-    TBIDUAL RP0[2],  WP0[2],  RP1[2],  WP1[2];
-    /* DSP RAM Increments */
-    TBIDUAL RPI0[2], WPI0[2], RPI1[2], WPI1[2];
-    /* Template registers */
-    unsigned long Tmplt[16];
-    /* Modulo address region size and DSP RAM module region sizes */
-    int CurrMRSIZE, CurrDRSIZE;
-    
+typedef struct _tbictxexttdpr_tag_
+{
+	/* DSP 32-bit accumulator register state (Bits 31:0 of ACX.0) */
+	TBIDUAL Acc32[1];
+	/* DSP 40-bit accumulator register state (Bits 39:8 of ACX.0) */
+	TBIDUAL Acc40[1];
+	/* DSP RAM Pointers */
+	TBIDUAL RP0[2],  WP0[2],  RP1[2],  WP1[2];
+	/* DSP RAM Increments */
+	TBIDUAL RPI0[2], WPI0[2], RPI1[2], WPI1[2];
+	/* Template registers */
+	unsigned long Tmplt[16];
+	/* Modulo address region size and DSP RAM module region sizes */
+	int CurrMRSIZE, CurrDRSIZE;
+
 } TBICTXEXTTDPR, *PTBICTXEXTTDPR;
 
 #ifdef TBI_1_4
 /* The METAC_ID_CORE register state is a marker for the FPU
    state that is then stored after this core header structure.  */
 #define TBICTXEXTFPU_CONFIG_MASK  ( (METAC_COREID_NOFPACC_BIT+     \
-                                     METAC_COREID_CFGFPU_BITS ) << \
-                                     METAC_COREID_CONFIG_BITS       )
+									 METAC_COREID_CFGFPU_BITS ) << \
+									METAC_COREID_CONFIG_BITS       )
 
 /* Recorded FPU exception state from TXDEFR in DefrFpu */
 #define TBICTXEXTFPU_DEFRFPU_MASK (TXDEFR_FPU_FE_BITS)
 
 /* Extended thread state save areas - FPU register states */
-typedef struct _tbictxextfpu_tag_ {
-    /* Stored METAC_CORE_ID CONFIG */
-    int CfgFpu;
-    /* Stored deferred TXDEFR bits related to FPU
-     *
-     * This is encoded as follows in order to fit into 16-bits:
-     * DefrFPU:15 - 14 <= 0
-     *        :13 -  8 <= TXDEFR:21-16
-     *        : 7 -  6 <= 0
-     *        : 5 -  0 <= TXDEFR:5-0
-     */
-    short DefrFpu;
+typedef struct _tbictxextfpu_tag_
+{
+	/* Stored METAC_CORE_ID CONFIG */
+	int CfgFpu;
+	/* Stored deferred TXDEFR bits related to FPU
+	 *
+	 * This is encoded as follows in order to fit into 16-bits:
+	 * DefrFPU:15 - 14 <= 0
+	 *        :13 -  8 <= TXDEFR:21-16
+	 *        : 7 -  6 <= 0
+	 *        : 5 -  0 <= TXDEFR:5-0
+	 */
+	short DefrFpu;
 
-    /* TXMODE bits related to FPU */
-    short ModeFpu;
-    
-    /* FPU Even/Odd register states */
-    TBIDUAL FX[4];
-   
-    /* if CfgFpu & TBICTX_CFGFPU_FX16_BIT  -> 1 then TBICTXEXTBB4 holds FX.8-15 */
-    /* if CfgFpu & TBICTX_CFGFPU_NOACF_BIT -> 0 then TBICTXEXTFPACC holds state */
+	/* TXMODE bits related to FPU */
+	short ModeFpu;
+
+	/* FPU Even/Odd register states */
+	TBIDUAL FX[4];
+
+	/* if CfgFpu & TBICTX_CFGFPU_FX16_BIT  -> 1 then TBICTXEXTBB4 holds FX.8-15 */
+	/* if CfgFpu & TBICTX_CFGFPU_NOACF_BIT -> 0 then TBICTXEXTFPACC holds state */
 } TBICTXEXTFPU, *PTBICTXEXTFPU;
 
 /* Extended thread state save areas - FPU accumulator state */
-typedef struct _tbictxextfpacc_tag_ {
-    /* FPU accumulator register state - three 64-bit parts */
-    TBIDUAL FAcc32[3];
-    
+typedef struct _tbictxextfpacc_tag_
+{
+	/* FPU accumulator register state - three 64-bit parts */
+	TBIDUAL FAcc32[3];
+
 } TBICTXEXTFPACC, *PTBICTXEXTFPACC;
 #endif
 
@@ -610,53 +626,60 @@ typedef struct _tbictxextfpacc_tag_ {
 struct _tbi_tag_ ;
 
 /* A 64-bit return value used commonly in the TBI APIs */
-typedef union _tbires_tag_ {
-    /* Save and load this value to get/set the whole result quickly */
-    long long Val;
+typedef union _tbires_tag_
+{
+	/* Save and load this value to get/set the whole result quickly */
+	long long Val;
 
-    /* Parameter of a fnSigs or __TBICtx* call */
-    struct _tbires_sig_tag_ { 
-        /* TXMASK[I] bits zeroed upto and including current trigger level */
-        unsigned short TrigMask;
-        /* Control bits for handlers - see PTBIAPIFN documentation below */
-        unsigned short SaveMask;
-        /* Pointer to the base register context save area of the thread */
-        PTBICTX pCtx;
-    } Sig;
+	/* Parameter of a fnSigs or __TBICtx* call */
+	struct _tbires_sig_tag_
+	{
+		/* TXMASK[I] bits zeroed upto and including current trigger level */
+		unsigned short TrigMask;
+		/* Control bits for handlers - see PTBIAPIFN documentation below */
+		unsigned short SaveMask;
+		/* Pointer to the base register context save area of the thread */
+		PTBICTX pCtx;
+	} Sig;
 
-    /* Result of TBIThrdPrivId call */
-    struct _tbires_thrdprivid_tag_ {
-        /* Basic thread identifier; just TBID_THREAD_BITS */
-        int Id;
-        /* None thread number bits; TBID_ISTAT_BIT+TBID_PSTAT_BIT */
-        int Priv;
-    } Thrd;
+	/* Result of TBIThrdPrivId call */
+	struct _tbires_thrdprivid_tag_
+	{
+		/* Basic thread identifier; just TBID_THREAD_BITS */
+		int Id;
+		/* None thread number bits; TBID_ISTAT_BIT+TBID_PSTAT_BIT */
+		int Priv;
+	} Thrd;
 
-    /* Parameter and Result of a __TBISwitch call */
-    struct _tbires_switch_tag_ { 
-        /* Parameter passed across context switch */
-        void *pPara;
-        /* Thread context of other Thread includng restore flags */
-        PTBICTX pCtx;
-    } Switch;
-    
-    /* For extended S/W events only */
-    struct _tbires_ccb_tag_ {
-        void *pCCB;
-        int COff;
-    } CCB;
+	/* Parameter and Result of a __TBISwitch call */
+	struct _tbires_switch_tag_
+	{
+		/* Parameter passed across context switch */
+		void *pPara;
+		/* Thread context of other Thread includng restore flags */
+		PTBICTX pCtx;
+	} Switch;
 
-    struct _tbires_tlb_tag_ {
-        int Leaf;  /* TLB Leaf data */
-        int Flags; /* TLB Flags */
-    } Tlb;
+	/* For extended S/W events only */
+	struct _tbires_ccb_tag_
+	{
+		void *pCCB;
+		int COff;
+	} CCB;
+
+	struct _tbires_tlb_tag_
+	{
+		int Leaf;  /* TLB Leaf data */
+		int Flags; /* TLB Flags */
+	} Tlb;
 
 #ifdef TBI_FASTINT_1_4
-    struct _tbires_intr_tag_ {
-      short    TrigMask;
-      short    SaveMask;
-      PTBICTX2 pCtx;
-    } Intr;
+	struct _tbires_intr_tag_
+	{
+		short    TrigMask;
+		short    SaveMask;
+		PTBICTX2 pCtx;
+	} Intr;
 #endif
 
 } TBIRES, *PTBIRES;
@@ -665,59 +688,60 @@ typedef union _tbires_tag_ {
 #ifndef __ASSEMBLY__
 /* Prototype for all signal handler functions, called via ___TBISyncTrigger or
    ___TBIASyncTrigger.
-   
+
    State.Sig.TrigMask will indicate the bits set within TXMASKI at
           the time of the handler call that have all been cleared to prevent
           nested interrupt occurring immediately.
-   
+
    State.Sig.SaveMask is a bit-mask which will be set to Zero when a trigger
           occurs at background level and TBICTX_CRIT_BIT and optionally
           TBICTX_CBUF_BIT when a trigger occurs at interrupt level.
-          
+
           TBICTX_CBUF_BIT reflects the state of TXSTATUS_CBMARKER_BIT for
           the interrupted background thread.
-   
+
    State.Sig.pCtx will point at a TBICTX structure generated to hold the
           critical state of the interrupted thread at interrupt level and
           should be set to NULL when called at background level.
-        
+
    Triggers will indicate the status of TXSTAT or TXSTATI sampled by the
           code that called the handler.
-          
+
    Inst is defined as 'Inst' if the SigNum is TBID_SIGNUM_SWx and holds the
           actual SWITCH instruction detected, in other cases the value of this
           parameter is undefined.
-   
+
    pTBI   points at the PTBI structure related to the thread and processing
           level involved.
 
    TBIRES return value at both processing levels is similar in terms of any
           changes that the handler makes. By default the State argument value
           passed in should be returned.
-          
+
       Sig.TrigMask value is bits to OR back into TXMASKI when the handler
           completes to enable currently disabled interrupts.
-          
+
       Sig.SaveMask value is ignored.
-   
+
       Sig.pCtx is ignored.
 
  */
 typedef TBIRES (*PTBIAPIFN)( TBIRES State, int SigNum,
-                             int Triggers, int Inst,
-                             volatile struct _tbi_tag_ *pTBI );
+							 int Triggers, int Inst,
+							 volatile struct _tbi_tag_ *pTBI );
 #endif /* ifndef __ASSEMBLY__ */
 
 #ifndef __ASSEMBLY__
 /* The global memory map is described by a list of segment descriptors */
-typedef volatile struct _tbiseg_tag_ {
-    volatile struct _tbiseg_tag_ *pLink;
-    int Id;                           /* Id of the segment */
-    TBISPIN Lock;                     /* Spin-lock for struct (normally 0) */
-    unsigned int Bytes;               /* Size of region in bytes */
-    void *pGAddr;                     /* Base addr of region in global space */
-    void *pLAddr;                     /* Base addr of region in local space */
-    int Data[2];                      /* Segment specific data (may be extended) */
+typedef volatile struct _tbiseg_tag_
+{
+	volatile struct _tbiseg_tag_ *pLink;
+	int Id;                           /* Id of the segment */
+	TBISPIN Lock;                     /* Spin-lock for struct (normally 0) */
+	unsigned int Bytes;               /* Size of region in bytes */
+	void *pGAddr;                     /* Base addr of region in global space */
+	void *pLAddr;                     /* Base addr of region in local space */
+	int Data[2];                      /* Segment specific data (may be extended) */
 
 } TBISEG, *PTBISEG;
 #endif /* ifndef __ASSEMBLY__ */
@@ -732,12 +756,13 @@ typedef volatile struct _tbiseg_tag_ {
 #define TBISEG_Data     (24)
 
 #ifndef __ASSEMBLY__
-typedef volatile struct _tbi_tag_ {
-    int SigMask;                      /* Bits set to represent S/W events */
-    PTBIKICK pKick;                   /* Kick addr for S/W events */
-    void *pCCB;                       /* Extended S/W events */
-    PTBISEG pSeg;                     /* Related segment structure */
-    PTBIAPIFN fnSigs[TBID_SIGNUM_MAX+1];/* Signal handler API table */
+typedef volatile struct _tbi_tag_
+{
+	int SigMask;                      /* Bits set to represent S/W events */
+	PTBIKICK pKick;                   /* Kick addr for S/W events */
+	void *pCCB;                       /* Extended S/W events */
+	PTBISEG pSeg;                     /* Related segment structure */
+	PTBIAPIFN fnSigs[TBID_SIGNUM_MAX + 1]; /* Signal handler API table */
 } *PTBI, TBI;
 #endif /* ifndef __ASSEMBLY__ */
 
@@ -752,8 +777,8 @@ typedef volatile struct _tbi_tag_ {
 #ifndef __ASSEMBLY__
 /* This handler should be used for TBID_SIGNUM_DFR */
 extern TBIRES __TBIHandleDFR ( TBIRES State, int SigNum,
-                               int Triggers, int Inst,
-                               volatile struct _tbi_tag_ *pTBI );
+							   int Triggers, int Inst,
+							   volatile struct _tbi_tag_ *pTBI );
 #endif
 #endif
 
@@ -764,12 +789,13 @@ extern TBIRES __TBIHandleDFR ( TBIRES State, int SigNum,
 #define METAG_TBI_STRX (0x5A00) /* TransLen : If no translation present */
 
 #ifndef __ASSEMBLY__
-typedef volatile struct _tbistr_tag_ {
-    short Bytes;                      /* Length of entry in Bytes */
-    short Tag;                        /* Normally METAG_TBI_STRS(0x5300) */
-    short Len;                        /* Length of the string entry (incl null) */
-    short TransLen;                   /* Normally METAG_TBI_STRX(0x5A00) */
-    char String[8];                   /* Zero terminated (may-be bigger) */
+typedef volatile struct _tbistr_tag_
+{
+	short Bytes;                      /* Length of entry in Bytes */
+	short Tag;                        /* Normally METAG_TBI_STRS(0x5300) */
+	short Len;                        /* Length of the string entry (incl null) */
+	short TransLen;                   /* Normally METAG_TBI_STRX(0x5A00) */
+	char String[8];                   /* Zero terminated (may-be bigger) */
 
 } TBISTR, *PTBISTR;
 #endif /* ifndef __ASSEMBLY__ */
@@ -813,7 +839,7 @@ typedef volatile struct _tbistr_tag_ {
 /* Each declaration made by this macro generates a TBISTR entry */
 #ifndef __ASSEMBLY__
 #define TBISTR_DECL( Name, Str )                                       \
-    __attribute__ ((__section__ (".tbistr") )) const char Name[] = #Str
+	__attribute__ ((__section__ (".tbistr") )) const char Name[] = #Str
 #endif
 
 /* META timer values - see below for Timer support routines */
@@ -827,104 +853,104 @@ typedef volatile struct _tbistr_tag_ {
    like the timer and trigger handling features below these should be used in
    preference to this direct low-level access mechanism. */
 #define TBI_GETREG( Reg )                                  __extension__ ({\
-   int __GRValue;                                                          \
-   __asm__ volatile ("MOV\t%0," #Reg "\t/* (*TBI_GETREG OK) */" :          \
-                     "=r" (__GRValue) );                                   \
-    __GRValue;                                                            })
+		int __GRValue;                                                          \
+		__asm__ volatile ("MOV\t%0," #Reg "\t/* (*TBI_GETREG OK) */" :          \
+						  "=r" (__GRValue) );                                   \
+		__GRValue;                                                            })
 
 #define TBI_SETREG( Reg, Value )                                       do {\
-   int __SRValue = Value;                                                  \
-   __asm__ volatile ("MOV\t" #Reg ",%0\t/* (*TBI_SETREG OK) */" :          \
-                     : "r" (__SRValue) );                       } while (0)
+		int __SRValue = Value;                                                  \
+		__asm__ volatile ("MOV\t" #Reg ",%0\t/* (*TBI_SETREG OK) */" :          \
+						  : "r" (__SRValue) );                       } while (0)
 
 #define TBI_SWAPREG( Reg, Value )                                      do {\
-   int __XRValue = (Value);                                                \
-   __asm__ volatile ("SWAP\t" #Reg ",%0\t/* (*TBI_SWAPREG OK) */" :        \
-                     "=r" (__XRValue) : "0" (__XRValue) );                 \
-   Value = __XRValue;                                           } while (0)
+		int __XRValue = (Value);                                                \
+		__asm__ volatile ("SWAP\t" #Reg ",%0\t/* (*TBI_SWAPREG OK) */" :        \
+						  "=r" (__XRValue) : "0" (__XRValue) );                 \
+		Value = __XRValue;                                           } while (0)
 
 /* Obtain and/or release global critical section lock given that interrupts
    are already disabled and/or should remain disabled. */
 #define TBI_NOINTSCRITON                                             do {\
-   __asm__ volatile ("LOCK1\t\t/* (*TBI_NOINTSCRITON OK) */");} while (0)
+		__asm__ volatile ("LOCK1\t\t/* (*TBI_NOINTSCRITON OK) */");} while (0)
 #define TBI_NOINTSCRITOFF                                             do {\
-   __asm__ volatile ("LOCK0\t\t/* (*TBI_NOINTSCRITOFF OK) */");} while (0)
+		__asm__ volatile ("LOCK0\t\t/* (*TBI_NOINTSCRITOFF OK) */");} while (0)
 /* Optimised in-lining versions of the above macros */
 
 #define TBI_LOCK( TrigState )                                          do {\
-   int __TRValue;                                                          \
-   int __ALOCKHI = LINSYSEVENT_WR_ATOMIC_LOCK & 0xFFFF0000;                \
-   __asm__ volatile ("MOV %0,#0\t\t/* (*TBI_LOCK ... */\n\t"               \
-                     "SWAP\t%0,TXMASKI\t/* ... */\n\t"                     \
-                     "LOCK2\t\t/* ... */\n\t"                              \
-                     "SETD\t[%1+#0x40],D1RtP /* ... OK) */" :              \
-                     "=r&" (__TRValue) : "u" (__ALOCKHI) );                \
-   TrigState = __TRValue;                                       } while (0)
+		int __TRValue;                                                          \
+		int __ALOCKHI = LINSYSEVENT_WR_ATOMIC_LOCK & 0xFFFF0000;                \
+		__asm__ volatile ("MOV %0,#0\t\t/* (*TBI_LOCK ... */\n\t"               \
+						  "SWAP\t%0,TXMASKI\t/* ... */\n\t"                     \
+						  "LOCK2\t\t/* ... */\n\t"                              \
+						  "SETD\t[%1+#0x40],D1RtP /* ... OK) */" :              \
+						  "=r&" (__TRValue) : "u" (__ALOCKHI) );                \
+		TrigState = __TRValue;                                       } while (0)
 #define TBI_CRITON( TrigState )                                        do {\
-   int __TRValue;                                                          \
-   __asm__ volatile ("MOV %0,#0\t\t/* (*TBI_CRITON ... */\n\t"             \
-                     "SWAP\t%0,TXMASKI\t/* ... */\n\t"                     \
-                     "LOCK1\t\t/* ... OK) */" :                            \
-                     "=r" (__TRValue) );                                   \
-   TrigState = __TRValue;                                       } while (0)
+		int __TRValue;                                                          \
+		__asm__ volatile ("MOV %0,#0\t\t/* (*TBI_CRITON ... */\n\t"             \
+						  "SWAP\t%0,TXMASKI\t/* ... */\n\t"                     \
+						  "LOCK1\t\t/* ... OK) */" :                            \
+						  "=r" (__TRValue) );                                   \
+		TrigState = __TRValue;                                       } while (0)
 
 #define TBI_INTSX( TrigState )                                         do {\
-   int __TRValue = TrigState;                                              \
-   __asm__ volatile ("SWAP\t%0,TXMASKI\t/* (*TBI_INTSX OK) */" :           \
-                     "=r" (__TRValue) : "0" (__TRValue) );                 \
-   TrigState = __TRValue;                                       } while (0)
+		int __TRValue = TrigState;                                              \
+		__asm__ volatile ("SWAP\t%0,TXMASKI\t/* (*TBI_INTSX OK) */" :           \
+						  "=r" (__TRValue) : "0" (__TRValue) );                 \
+		TrigState = __TRValue;                                       } while (0)
 
 #define TBI_UNLOCK( TrigState )                                        do {\
-   int __TRValue = TrigState;                                              \
-   int __ALOCKHI = LINSYSEVENT_WR_ATOMIC_LOCK & 0xFFFF0000;                \
-   __asm__ volatile ("SETD\t[%1+#0x00],D1RtP\t/* (*TBI_UNLOCK ... */\n\t"  \
-                     "LOCK0\t\t/* ... */\n\t"                              \
-                     "MOV\tTXMASKI,%0\t/* ... OK) */" :                    \
-                     : "r" (__TRValue), "u" (__ALOCKHI) );      } while (0)
+		int __TRValue = TrigState;                                              \
+		int __ALOCKHI = LINSYSEVENT_WR_ATOMIC_LOCK & 0xFFFF0000;                \
+		__asm__ volatile ("SETD\t[%1+#0x00],D1RtP\t/* (*TBI_UNLOCK ... */\n\t"  \
+						  "LOCK0\t\t/* ... */\n\t"                              \
+						  "MOV\tTXMASKI,%0\t/* ... OK) */" :                    \
+						  : "r" (__TRValue), "u" (__ALOCKHI) );      } while (0)
 
 #define TBI_CRITOFF( TrigState )                                       do {\
-   int __TRValue = TrigState;                                              \
-   __asm__ volatile ("LOCK0\t\t/* (*TBI_CRITOFF ... */\n\t"                \
-                     "MOV\tTXMASKI,%0\t/* ... OK) */" :                    \
-                     : "r" (__TRValue) );                       } while (0)
+		int __TRValue = TrigState;                                              \
+		__asm__ volatile ("LOCK0\t\t/* (*TBI_CRITOFF ... */\n\t"                \
+						  "MOV\tTXMASKI,%0\t/* ... OK) */" :                    \
+						  : "r" (__TRValue) );                       } while (0)
 
 #define TBI_TRIGSX( SrcDst ) do { TBI_SWAPREG( TXMASK, SrcDst );} while (0)
 
 /* Composite macros to perform logic ops on INTS or TRIGS masks */
 #define TBI_INTSOR( Bits )                                              do {\
-    int __TT = 0; TBI_INTSX(__TT);                                          \
-    __TT |= (Bits); TBI_INTSX(__TT);                             } while (0)
-    
+		int __TT = 0; TBI_INTSX(__TT);                                          \
+		__TT |= (Bits); TBI_INTSX(__TT);                             } while (0)
+
 #define TBI_INTSAND( Bits )                                             do {\
-    int __TT = 0; TBI_INTSX(__TT);                                          \
-    __TT &= (Bits); TBI_INTSX(__TT);                             } while (0)
+		int __TT = 0; TBI_INTSX(__TT);                                          \
+		__TT &= (Bits); TBI_INTSX(__TT);                             } while (0)
 
 #ifdef TBI_1_4
 #define TBI_DEFRICTRLSOR( Bits )                                        do {\
-    int __TT = TBI_GETREG( CT.20 );                                         \
-    __TT |= (Bits); TBI_SETREG( CT.20, __TT);                    } while (0)
-    
+		int __TT = TBI_GETREG( CT.20 );                                         \
+		__TT |= (Bits); TBI_SETREG( CT.20, __TT);                    } while (0)
+
 #define TBI_DEFRICTRLSAND( Bits )                                       do {\
-    int __TT = TBI_GETREG( TXDEFR );                                        \
-    __TT &= (Bits); TBI_SETREG( CT.20, __TT);                    } while (0)
+		int __TT = TBI_GETREG( TXDEFR );                                        \
+		__TT &= (Bits); TBI_SETREG( CT.20, __TT);                    } while (0)
 #endif
 
 #define TBI_TRIGSOR( Bits )                                             do {\
-    int __TT = TBI_GETREG( TXMASK );                                        \
-    __TT |= (Bits); TBI_SETREG( TXMASK, __TT);                   } while (0)
-    
+		int __TT = TBI_GETREG( TXMASK );                                        \
+		__TT |= (Bits); TBI_SETREG( TXMASK, __TT);                   } while (0)
+
 #define TBI_TRIGSAND( Bits )                                            do {\
-    int __TT = TBI_GETREG( TXMASK );                                        \
-    __TT &= (Bits); TBI_SETREG( TXMASK, __TT);                   } while (0)
+		int __TT = TBI_GETREG( TXMASK );                                        \
+		__TT &= (Bits); TBI_SETREG( TXMASK, __TT);                   } while (0)
 
 /* Macros to disable and re-enable interrupts using TBI_INTSX, deliberate
    traps and exceptions can still be handled within the critical section. */
 #define TBI_STOPINTS( Value )                                           do {\
-    int __TT = TBI_GETREG( TXMASKI );                                       \
-    __TT &= TXSTATI_BGNDHALT_BIT; TBI_INTSX( __TT );                        \
-    Value = __TT;                                                } while (0)
+		int __TT = TBI_GETREG( TXMASKI );                                       \
+		__TT &= TXSTATI_BGNDHALT_BIT; TBI_INTSX( __TT );                        \
+		Value = __TT;                                                } while (0)
 #define TBI_RESTINTS( Value )                                           do {\
-    int __TT = Value; TBI_INTSX( __TT );                         } while (0)
+		int __TT = Value; TBI_INTSX( __TT );                         } while (0)
 
 /* Return pointer to segment list at current privilege level */
 PTBISEG __TBISegList( void );
@@ -952,7 +978,7 @@ TBIRES __TBIThrdPrivId( void );
    Id implies whether Int or Background root block is required */
 PTBI __TBI( int Id );
 
-/* Try to set Mask bit using the spin-lock protocol, return 0 if fails and 
+/* Try to set Mask bit using the spin-lock protocol, return 0 if fails and
    new state if succeeds */
 int __TBIPoll( PTBISPIN pLock, int Mask );
 
@@ -961,7 +987,7 @@ int __TBISpin( PTBISPIN pLock, int Mask );
 
 /* Default handler set up for all TBI.fnSigs entries during initialisation */
 TBIRES __TBIUnExpXXX( TBIRES State, int SigNum,
-                   int Triggers, int Inst, PTBI pTBI );
+					  int Triggers, int Inst, PTBI pTBI );
 
 /* Call this routine to service triggers at background processing level. The
    TBID_POLL_BIT of the Id parameter value will be used to indicate that the
@@ -1020,36 +1046,36 @@ void *__TBICtxSave( TBIRES State, void *pExt );
 void *__TBICtxRestore( TBIRES State, void *pExt );
 
 #ifdef TBI_1_4
-#ifdef TBI_FASTINT_1_4
-/* Call these routines to copy the GP state to a separate buffer
- * Only necessary for context switching.
- */
-PTBICTXGP __TBICtx2SaveCrit( PTBICTX2 pCurrentCtx, PTBICTX2 pSaveCtx );
-void *__TBICtx2SaveGP( PTBICTXGP pCurrentCtxGP, PTBICTXGP pSaveCtxGP );
+	#ifdef TBI_FASTINT_1_4
+		/* Call these routines to copy the GP state to a separate buffer
+		* Only necessary for context switching.
+		*/
+		PTBICTXGP __TBICtx2SaveCrit( PTBICTX2 pCurrentCtx, PTBICTX2 pSaveCtx );
+		void *__TBICtx2SaveGP( PTBICTXGP pCurrentCtxGP, PTBICTXGP pSaveCtxGP );
 
-/* Call these routines to save and restore the extended states of
-   scheduled tasks. */
-void *__TBICtx2Save( PTBICTXGP pCtxGP, short SaveMask, void *pExt );
-void *__TBICtx2Restore( PTBICTX2 pCtx, short SaveMask, void *pExt );
-#endif
+		/* Call these routines to save and restore the extended states of
+		scheduled tasks. */
+		void *__TBICtx2Save( PTBICTXGP pCtxGP, short SaveMask, void *pExt );
+		void *__TBICtx2Restore( PTBICTX2 pCtx, short SaveMask, void *pExt );
+	#endif
 
-/* If FPAC flag is set then significant FPU context exists. Call these routine
-   to save and restore it */
-void *__TBICtxFPUSave( TBIRES State, void *pExt );
-void *__TBICtxFPURestore( TBIRES State, void *pExt );
+	/* If FPAC flag is set then significant FPU context exists. Call these routine
+	to save and restore it */
+	void *__TBICtxFPUSave( TBIRES State, void *pExt );
+	void *__TBICtxFPURestore( TBIRES State, void *pExt );
 
-#ifdef TBI_FASTINT_1_4
-extern void *__TBICtx2FPUSave (PTBICTXGP, short, void*);
-extern void *__TBICtx2FPURestore (PTBICTXGP, short, void*);
-#endif
+	#ifdef TBI_FASTINT_1_4
+		extern void *__TBICtx2FPUSave (PTBICTXGP, short, void *);
+		extern void *__TBICtx2FPURestore (PTBICTXGP, short, void *);
+	#endif
 #endif
 
 #ifdef TBI_1_4
-/* Call these routines to save and restore DSPRAM. */
-void *__TBIDspramSaveA (short DspramSizes, void *pExt);
-void *__TBIDspramSaveB (short DspramSizes, void *pExt);
-void *__TBIDspramRestoreA (short DspramSizes, void *pExt);
-void *__TBIDspramRestoreB (short DspramSizes, void *pExt);
+	/* Call these routines to save and restore DSPRAM. */
+	void *__TBIDspramSaveA (short DspramSizes, void *pExt);
+	void *__TBIDspramSaveB (short DspramSizes, void *pExt);
+	void *__TBIDspramRestoreA (short DspramSizes, void *pExt);
+	void *__TBIDspramRestoreB (short DspramSizes, void *pExt);
 #endif
 
 /* This routine should be used at the entrypoint of interrupt handlers to
@@ -1060,20 +1086,20 @@ void *__TBIDspramRestoreB (short DspramSizes, void *pExt);
    any number of extended state bits X??? including XCBF can be specified to
    force a nested state save call to __TBICtxSave before the current routine
    continues. (In the latter case __TBICtxRestore should be called to restore
-   any extended states before the background thread of execution is resumed) 
-   
+   any extended states before the background thread of execution is resumed)
+
    By default (no X??? bits specified in SaveMask) this routine performs a
    sub-call to __TBICtxSave with the pExt and State parameters specified IF
    some triggers could be serviced while the current interrupt handler
    executes and the hardware catch buffer is actually dirty. In this case
    this routine provides the XCBF bit in State.Sig.SaveMask to force the
    __TBICtxSave to extract the current catch state.
-   
+
    The NoNestMask parameter should normally indicate that the same or lower
    triggers than those provoking the current handler call should not be
    serviced in nested calls, zero may be specified if all possible interrupts
    are to be allowed.
-   
+
    The TBIRES.Sig value returned will be similar to the State parameter
    specified with the XCBF bit ORed into it's SaveMask if a context save was
    required and fewer bits set in it's TrigMask corresponding to the same/lower
@@ -1119,7 +1145,7 @@ int __TBITrigsX( int NewMask );
    Wait value should either be zero to disable the timer concerned or be in
    the recommended TBI_TIMERWAIT_* range to specify the delay required before
    the first timer trigger occurs.
-      
+
    The TBID_ISTAT_BIT of the Id parameter similar effects all other timer
    support functions (see below). */
 void __TBITimerCtrl( int Id, int Wait );
@@ -1143,13 +1169,13 @@ int __TBITimerAdd( int Id, int Wait );
    to compare for an exact match or negative length to compare for partial
    match. */
 const TBISTR *__TBIFindStr( const TBISTR *pStart,
-                            const char *pStr, int MatchLen );
+							const char *pStr, int MatchLen );
 
 /* String table translate function, pStr is text to translate and Len is
    it's length. Value returned may not be a string pointer if the
    translation value is really some other type, 64-bit alignment of the return
    pointer is guaranteed so almost any type including a structure could be
-   located with this routine. */ 
+   located with this routine. */
 const void *__TBITransStr( const char *pStr, int Len );
 
 
@@ -1160,29 +1186,29 @@ void *__TBIPhysAccess( int Channel, int PhysAddr, int Bytes );
 void __TBIPhysRelease( int Channel, void *pLinAddr );
 
 #ifdef METAC_1_0
-/* Data cache function nullified because data cache is off */
-#define TBIDCACHE_FLUSH( pAddr )
-#define TBIDCACHE_PRELOAD( Type, pAddr ) ((Type) (pAddr))
-#define TBIDCACHE_REFRESH( Type, pAddr ) ((Type) (pAddr))
+	/* Data cache function nullified because data cache is off */
+	#define TBIDCACHE_FLUSH( pAddr )
+	#define TBIDCACHE_PRELOAD( Type, pAddr ) ((Type) (pAddr))
+	#define TBIDCACHE_REFRESH( Type, pAddr ) ((Type) (pAddr))
 #endif
 #ifdef METAC_1_1
 /* To flush a single cache line from the data cache using a linear address */
 #define TBIDCACHE_FLUSH( pAddr )          ((volatile char *) \
-                 (((unsigned int) (pAddr))>>LINSYSLFLUSH_S))[0] = 0
+		(((unsigned int) (pAddr))>>LINSYSLFLUSH_S))[0] = 0
 
-extern void * __builtin_dcache_preload (void *);
+extern void *__builtin_dcache_preload (void *);
 
 /* Try to ensure that the data at the address concerned is in the cache */
 #define TBIDCACHE_PRELOAD( Type, Addr )                                    \
-  ((Type) __builtin_dcache_preload ((void *)(Addr)))
+	((Type) __builtin_dcache_preload ((void *)(Addr)))
 
-extern void * __builtin_dcache_refresh (void *);
+extern void *__builtin_dcache_refresh (void *);
 
 /* Flush any old version of data from address and re-load a new copy */
 #define TBIDCACHE_REFRESH( Type, Addr )                   __extension__ ({ \
-  Type __addr = (Type)(Addr);                                              \
-  (void)__builtin_dcache_refresh ((void *)(((unsigned int)(__addr))>>6));  \
-  __addr; })
+		Type __addr = (Type)(Addr);                                              \
+		(void)__builtin_dcache_refresh ((void *)(((unsigned int)(__addr))>>6));  \
+		__addr; })
 
 #endif
 #ifndef METAC_1_0
@@ -1192,19 +1218,19 @@ extern void __builtin_dcache_flush (void *);
 
 /* To flush a single cache line from the data cache using a linear address */
 #define TBIDCACHE_FLUSH( Addr )                                            \
-  __builtin_dcache_flush ((void *)(Addr))
+	__builtin_dcache_flush ((void *)(Addr))
 
-extern void * __builtin_dcache_preload (void *);
+extern void *__builtin_dcache_preload (void *);
 
 /* Try to ensure that the data at the address concerned is in the cache */
 #define TBIDCACHE_PRELOAD( Type, Addr )                                    \
-  ((Type) __builtin_dcache_preload ((void *)(Addr)))
+	((Type) __builtin_dcache_preload ((void *)(Addr)))
 
-extern void * __builtin_dcache_refresh (void *);
+extern void *__builtin_dcache_refresh (void *);
 
 /* Flush any old version of data from address and re-load a new copy */
 #define TBIDCACHE_REFRESH( Type, Addr )                                    \
-  ((Type) __builtin_dcache_refresh ((void *)(Addr)))
+	((Type) __builtin_dcache_refresh ((void *)(Addr)))
 
 #endif
 #endif
@@ -1219,8 +1245,8 @@ extern void * __builtin_dcache_refresh (void *);
 #ifndef __ASSEMBLY__
 /* Obtain the full MMU table entry for the specified address */
 #define TBIMTABLE_DATA(ADDR) __extension__ ({ TBIRES __p;                     \
-                                              __p.Val = TBIXCACHE_RL((int)(ADDR) & (-1<<6));   \
-                                              __p; })
+		__p.Val = TBIXCACHE_RL((int)(ADDR) & (-1<<6));   \
+		__p; })
 #endif
 #endif
 
@@ -1228,13 +1254,13 @@ extern void * __builtin_dcache_refresh (void *);
  * Internal use only
  */
 #define _TBIMTABLE_LIN2PHYS(PHYS, LIN, LMASK) (void*)(((int)(PHYS)&0xFFFFF000)\
-                                               +((int)(LIN)&(LMASK)))
+		+((int)(LIN)&(LMASK)))
 
 /* Convert a linear to a physical address */
 #define TBIMTABLE_LIN2PHYS(LEAFDATA, ADDR)                                    \
-          (((LEAFDATA) & CRLINPHY0_VAL_BIT)                                   \
-              ? _TBIMTABLE_LIN2PHYS(LEAFDATA, ADDR, 0x00000FFF)               \
-              : 0)
+	(((LEAFDATA) & CRLINPHY0_VAL_BIT)                                   \
+	 ? _TBIMTABLE_LIN2PHYS(LEAFDATA, ADDR, 0x00000FFF)               \
+	 : 0)
 
 /* Debug support - using external debugger or host */
 void __TBIDumpSegListEntries( void );
@@ -1252,92 +1278,92 @@ extern const char __TBISigNames[];
 #define TBI_SIGNAME_SCALE   4
 #define TBI_SIGNAME_SCALE_S 2
 
-#define TBI_1_3 
+#define TBI_1_3
 
 #ifdef TBI_1_3
 
 #ifndef __ASSEMBLY__
 #define TBIXCACHE_RD(ADDR)                                 __extension__ ({\
-    void * __Addr = (void *)(ADDR);                                        \
-    int __Data;                                                            \
-    __asm__ volatile ( "CACHERD\t%0,[%1+#0]" :                             \
-                       "=r" (__Data) : "r" (__Addr) );                     \
-    __Data;                                                               })
+		void * __Addr = (void *)(ADDR);                                        \
+		int __Data;                                                            \
+		__asm__ volatile ( "CACHERD\t%0,[%1+#0]" :                             \
+						   "=r" (__Data) : "r" (__Addr) );                     \
+		__Data;                                                               })
 
 #define TBIXCACHE_RL(ADDR)                                 __extension__ ({\
-    void * __Addr = (void *)(ADDR);                                        \
-    long long __Data;                                                      \
-    __asm__ volatile ( "CACHERL\t%0,%t0,[%1+#0]" :                         \
-                       "=d" (__Data) : "r" (__Addr) );                     \
-    __Data;                                                               })
+		void * __Addr = (void *)(ADDR);                                        \
+		long long __Data;                                                      \
+		__asm__ volatile ( "CACHERL\t%0,%t0,[%1+#0]" :                         \
+						   "=d" (__Data) : "r" (__Addr) );                     \
+		__Data;                                                               })
 
 #define TBIXCACHE_WD(ADDR, DATA)                                      do {\
-    void * __Addr = (void *)(ADDR);                                       \
-    int __Data = DATA;                                                    \
-    __asm__ volatile ( "CACHEWD\t[%0+#0],%1" :                            \
-                       : "r" (__Addr), "r" (__Data) );          } while(0)
+		void * __Addr = (void *)(ADDR);                                       \
+		int __Data = DATA;                                                    \
+		__asm__ volatile ( "CACHEWD\t[%0+#0],%1" :                            \
+						   : "r" (__Addr), "r" (__Data) );          } while(0)
 
 #define TBIXCACHE_WL(ADDR, DATA)                                      do {\
-    void * __Addr = (void *)(ADDR);                                       \
-    long long __Data = DATA;                                              \
-    __asm__ volatile ( "CACHEWL\t[%0+#0],%1,%t1" :                        \
-                       : "r" (__Addr), "r" (__Data) );          } while(0)
+		void * __Addr = (void *)(ADDR);                                       \
+		long long __Data = DATA;                                              \
+		__asm__ volatile ( "CACHEWL\t[%0+#0],%1,%t1" :                        \
+						   : "r" (__Addr), "r" (__Data) );          } while(0)
 
 #ifdef TBI_4_0
 
 #define TBICACHE_FLUSH_L1D_L2(ADDR)                                       \
-  TBIXCACHE_WD(ADDR, CACHEW_FLUSH_L1D_L2)
+	TBIXCACHE_WD(ADDR, CACHEW_FLUSH_L1D_L2)
 #define TBICACHE_WRITEBACK_L1D_L2(ADDR)                                   \
-  TBIXCACHE_WD(ADDR, CACHEW_WRITEBACK_L1D_L2)
+	TBIXCACHE_WD(ADDR, CACHEW_WRITEBACK_L1D_L2)
 #define TBICACHE_INVALIDATE_L1D(ADDR)                                     \
-  TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1D)
+	TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1D)
 #define TBICACHE_INVALIDATE_L1D_L2(ADDR)                                  \
-  TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1D_L2)
+	TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1D_L2)
 #define TBICACHE_INVALIDATE_L1DTLB(ADDR)                                  \
-  TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1DTLB)
+	TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1DTLB)
 #define TBICACHE_INVALIDATE_L1I(ADDR)                                     \
-  TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1I)
+	TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1I)
 #define TBICACHE_INVALIDATE_L1ITLB(ADDR)                                  \
-  TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1ITLB)
+	TBIXCACHE_WD(ADDR, CACHEW_INVALIDATE_L1ITLB)
 
 #endif /* TBI_4_0 */
 #endif /* ifndef __ASSEMBLY__ */
 
-/* 
+/*
  * Calculate linear PC value from real PC and Minim mode control, the LSB of
  * the result returned indicates if address compression has occurred.
  */
 #ifndef __ASSEMBLY__
 #define METAG_LINPC( PCVal )                                              (\
-    ( (TBI_GETREG(TXPRIVEXT) & TXPRIVEXT_MINIMON_BIT) != 0 ) ?           ( \
-        ( ((PCVal) & 0x00900000) == 0x00900000 ) ?                         \
-          (((PCVal) & 0xFFE00000) + (((PCVal) & 0x001FFFFC)>>1) + 1) :     \
-        ( ((PCVal) & 0x00800000) == 0x00000000 ) ?                         \
-          (((PCVal) & 0xFF800000) + (((PCVal) & 0x007FFFFC)>>1) + 1) :     \
-                                                             (PCVal)   )   \
-                                                                 : (PCVal) )
+		( (TBI_GETREG(TXPRIVEXT) & TXPRIVEXT_MINIMON_BIT) != 0 ) ?           ( \
+				( ((PCVal) & 0x00900000) == 0x00900000 ) ?                         \
+				(((PCVal) & 0xFFE00000) + (((PCVal) & 0x001FFFFC)>>1) + 1) :     \
+				( ((PCVal) & 0x00800000) == 0x00000000 ) ?                         \
+				(((PCVal) & 0xFF800000) + (((PCVal) & 0x007FFFFC)>>1) + 1) :     \
+				(PCVal)   )   \
+		: (PCVal) )
 #define METAG_LINPC_X2BIT 0x00000001       /* Make (Size>>1) if compressed */
 
 /* Convert an arbitrary Linear address into a valid Minim PC or return 0 */
 #define METAG_PCMINIM( LinVal )                                           (\
-        (((LinVal) & 0x00980000) == 0x00880000) ?                          \
-            (((LinVal) & 0xFFE00000) + (((LinVal) & 0x000FFFFE)<<1)) :     \
-        (((LinVal) & 0x00C00000) == 0x00000000) ?                          \
-            (((LinVal) & 0xFF800000) + (((LinVal) & 0x003FFFFE)<<1)) : 0   )
+		(((LinVal) & 0x00980000) == 0x00880000) ?                          \
+		(((LinVal) & 0xFFE00000) + (((LinVal) & 0x000FFFFE)<<1)) :     \
+		(((LinVal) & 0x00C00000) == 0x00000000) ?                          \
+		(((LinVal) & 0xFF800000) + (((LinVal) & 0x003FFFFE)<<1)) : 0   )
 
 /* Reverse a METAG_LINPC conversion step to return the original PCVal */
 #define METAG_PCLIN( LinVal )                              ( 0xFFFFFFFC & (\
-        ( (LinVal & METAG_LINPC_X2BIT) != 0 ) ? METAG_PCMINIM( LinVal ) :  \
-                                                               (LinVal)   ))
+		( (LinVal & METAG_LINPC_X2BIT) != 0 ) ? METAG_PCMINIM( LinVal ) :  \
+		(LinVal)   ))
 
 /*
  * Flush the MMCU Table cache privately for each thread. On cores that do not
  * support per-thread flushing it will flush all threads mapping data.
  */
 #define TBIMCACHE_TFLUSH(Thread)                                   do {\
-    ((volatile int *)( LINSYSCFLUSH_TxMMCU_BASE            +           \
-                      (LINSYSCFLUSH_TxMMCU_STRIDE*(Thread)) ))[0] = 0; \
-                                                             } while(0)
+		((volatile int *)( LINSYSCFLUSH_TxMMCU_BASE            +           \
+						   (LINSYSCFLUSH_TxMMCU_STRIDE*(Thread)) ))[0] = 0; \
+	} while(0)
 
 /*
  * To flush a single linear-matched cache line from the code cache. In
@@ -1348,8 +1374,8 @@ extern const char __TBISigNames[];
 
 /* To flush a single linear-matched mapping from code/data MMU table cache */
 #define TBIMCACHE_AFLUSH( pAddr, SegType )                                \
-    TBIXCACHE_WD(pAddr, CACHEW_TLBFLUSH_BIT + (                           \
-                 ((SegType) == TBID_SEGTYPE_TEXT) ? CACHEW_ICACHE_BIT : 0 ))
+	TBIXCACHE_WD(pAddr, CACHEW_TLBFLUSH_BIT + (                           \
+				 ((SegType) == TBID_SEGTYPE_TEXT) ? CACHEW_ICACHE_BIT : 0 ))
 
 /*
  * To flush translation data corresponding to a range of addresses without
@@ -1389,7 +1415,7 @@ void __TBIMMUCacheFlush( const void *pStart, int Bytes, int SegType );
  * logic discarding the code or data and avoids write-thru bandwidth in
  * data areas. Code mappings are selected by specifying TBID_SEGTYPE_TEXT
  * for SegType, otherwise data mappings are created.
- * 
+ *
  * Mode supplied should always contain the VALID bit and WINx selection data.
  * Data areas will be mapped read-only if the WRITE bit is not added.
  *

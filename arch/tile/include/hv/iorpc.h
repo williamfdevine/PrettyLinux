@@ -240,18 +240,18 @@
  */
 
 #ifdef __KERNEL__
-#include <linux/stddef.h>
+	#include <linux/stddef.h>
 #else
-#include <stddef.h>
+	#include <stddef.h>
 #endif
 
 #if defined(__HV__)
-#include <hv/hypervisor.h>
+	#include <hv/hypervisor.h>
 #elif defined(__KERNEL__)
-#include <hv/hypervisor.h>
-#include <linux/types.h>
+	#include <hv/hypervisor.h>
+	#include <linux/types.h>
 #else
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 
 
@@ -261,36 +261,36 @@
  */
 enum iorpc_format_e
 {
-  /** No translation required, no prefix struct. */
-  IORPC_FORMAT_NONE,
+	/** No translation required, no prefix struct. */
+	IORPC_FORMAT_NONE,
 
-  /** No translation required, no prefix struct, no access to this
-   *  operation from user space. */
-  IORPC_FORMAT_NONE_NOUSER,
+	/** No translation required, no prefix struct, no access to this
+	 *  operation from user space. */
+	IORPC_FORMAT_NONE_NOUSER,
 
-  /** Prefix struct contains user VA and size. */
-  IORPC_FORMAT_USER_MEM,
+	/** Prefix struct contains user VA and size. */
+	IORPC_FORMAT_USER_MEM,
 
-  /** Prefix struct contains CPA, size, and homing bits. */
-  IORPC_FORMAT_KERNEL_MEM,
+	/** Prefix struct contains CPA, size, and homing bits. */
+	IORPC_FORMAT_KERNEL_MEM,
 
-  /** Prefix struct contains interrupt. */
-  IORPC_FORMAT_KERNEL_INTERRUPT,
+	/** Prefix struct contains interrupt. */
+	IORPC_FORMAT_KERNEL_INTERRUPT,
 
-  /** Prefix struct contains user-level interrupt. */
-  IORPC_FORMAT_USER_INTERRUPT,
+	/** Prefix struct contains user-level interrupt. */
+	IORPC_FORMAT_USER_INTERRUPT,
 
-  /** Prefix struct contains pollfd_setup (interrupt information). */
-  IORPC_FORMAT_KERNEL_POLLFD_SETUP,
+	/** Prefix struct contains pollfd_setup (interrupt information). */
+	IORPC_FORMAT_KERNEL_POLLFD_SETUP,
 
-  /** Prefix struct contains user-level pollfd_setup (file descriptor). */
-  IORPC_FORMAT_USER_POLLFD_SETUP,
+	/** Prefix struct contains user-level pollfd_setup (file descriptor). */
+	IORPC_FORMAT_USER_POLLFD_SETUP,
 
-  /** Prefix struct contains pollfd (interrupt cookie). */
-  IORPC_FORMAT_KERNEL_POLLFD,
+	/** Prefix struct contains pollfd (interrupt cookie). */
+	IORPC_FORMAT_KERNEL_POLLFD,
 
-  /** Prefix struct contains user-level pollfd (file descriptor). */
-  IORPC_FORMAT_USER_POLLFD,
+	/** Prefix struct contains user-level pollfd (file descriptor). */
+	IORPC_FORMAT_USER_POLLFD,
 };
 
 
@@ -302,31 +302,31 @@ enum iorpc_format_e
 union iorpc_offset
 {
 #ifndef __BIG_ENDIAN__
-  uint64_t offset;              /**< All bits. */
+	uint64_t offset;              /**< All bits. */
 
-  struct
-  {
-    uint16_t code;              /**< RPC code. */
-    uint16_t format;            /**< iorpc_format_e */
-    uint32_t sub_offset;        /**< caller-specified offset. */
-  };
+	struct
+	{
+		uint16_t code;              /**< RPC code. */
+		uint16_t format;            /**< iorpc_format_e */
+		uint32_t sub_offset;        /**< caller-specified offset. */
+	};
 
-  uint32_t opcode;              /**< Opcode combines code & format. */
+	uint32_t opcode;              /**< Opcode combines code & format. */
 #else
-  uint64_t offset;              /**< All bits. */
+	uint64_t offset;              /**< All bits. */
 
-  struct
-  {
-    uint32_t sub_offset;        /**< caller-specified offset. */
-    uint16_t format;            /**< iorpc_format_e */
-    uint16_t code;              /**< RPC code. */
-  };
+	struct
+	{
+		uint32_t sub_offset;        /**< caller-specified offset. */
+		uint16_t format;            /**< iorpc_format_e */
+		uint16_t code;              /**< RPC code. */
+	};
 
-  struct
-  {
-    uint32_t padding;
-    uint32_t opcode;              /**< Opcode combines code & format. */
-  };
+	struct
+	{
+		uint32_t padding;
+		uint32_t opcode;              /**< Opcode combines code & format. */
+	};
 #endif
 };
 
@@ -334,11 +334,11 @@ union iorpc_offset
 /** Homing and cache hinting bits that can be used by IO devices. */
 struct iorpc_mem_attr
 {
-  unsigned int lotar_x:4;       /**< lotar X bits (or Gx page_mask). */
-  unsigned int lotar_y:4;       /**< lotar Y bits (or Gx page_offset). */
-  unsigned int hfh:1;           /**< Uses hash-for-home. */
-  unsigned int nt_hint:1;       /**< Non-temporal hint. */
-  unsigned int io_pin:1;        /**< Only fill 'IO' cache ways. */
+	unsigned int lotar_x: 4;      /**< lotar X bits (or Gx page_mask). */
+	unsigned int lotar_y: 4;      /**< lotar Y bits (or Gx page_offset). */
+	unsigned int hfh: 1;          /**< Uses hash-for-home. */
+	unsigned int nt_hint: 1;      /**< Non-temporal hint. */
+	unsigned int io_pin: 1;       /**< Only fill 'IO' cache ways. */
 };
 
 /** Set the nt_hint bit. */
@@ -356,35 +356,35 @@ struct iorpc_mem_attr
     driver translates user VAs into CPAs and homing parameters. */
 union iorpc_mem_buffer
 {
-  struct
-  {
-    uint64_t va;                /**< User virtual address. */
-    uint64_t size;              /**< Buffer size. */
-    unsigned int flags;         /**< nt_hint, IO pin. */
-  }
-  user;                         /**< Buffer as described by user apps. */
+	struct
+	{
+		uint64_t va;                /**< User virtual address. */
+		uint64_t size;              /**< Buffer size. */
+		unsigned int flags;         /**< nt_hint, IO pin. */
+	}
+	user;                         /**< Buffer as described by user apps. */
 
-  struct
-  {
-    unsigned long long cpa;     /**< Client physical address. */
+	struct
+	{
+		unsigned long long cpa;     /**< Client physical address. */
 #if defined(__KERNEL__) || defined(__HV__)
-    size_t size;                /**< Buffer size. */
-    HV_PTE pte;                 /**< PTE describing memory homing. */
+		size_t size;                /**< Buffer size. */
+		HV_PTE pte;                 /**< PTE describing memory homing. */
 #else
-    uint64_t size;
-    uint64_t pte;
+		uint64_t size;
+		uint64_t pte;
 #endif
-    unsigned int flags;         /**< nt_hint, IO pin. */
-  }
-  kernel;                       /**< Buffer as described by kernel. */
+		unsigned int flags;         /**< nt_hint, IO pin. */
+	}
+	kernel;                       /**< Buffer as described by kernel. */
 
-  struct
-  {
-    unsigned long long pa;      /**< Physical address. */
-    size_t size;                /**< Buffer size. */
-    struct iorpc_mem_attr attr;      /**< Homing and locality hint bits. */
-  }
-  hv;                           /**< Buffer parameters for HV driver. */
+	struct
+	{
+		unsigned long long pa;      /**< Physical address. */
+		size_t size;                /**< Buffer size. */
+		struct iorpc_mem_attr attr;      /**< Homing and locality hint bits. */
+	}
+	hv;                           /**< Buffer parameters for HV driver. */
 };
 
 
@@ -393,21 +393,21 @@ union iorpc_mem_buffer
  *  between the formats is done at each level. */
 union iorpc_interrupt
 {
-  struct
-  {
-    int cpu;   /**< CPU. */
-    int event; /**< evt_num */
-  }
-  user;        /**< Interrupt as described by user applications. */
+	struct
+	{
+		int cpu;   /**< CPU. */
+		int event; /**< evt_num */
+	}
+	user;        /**< Interrupt as described by user applications. */
 
-  struct
-  {
-    int x;     /**< X coord. */
-    int y;     /**< Y coord. */
-    int ipi;   /**< int_num */
-    int event; /**< evt_num */
-  }
-  kernel;      /**< Interrupt as described by the kernel. */
+	struct
+	{
+		int x;     /**< X coord. */
+		int y;     /**< Y coord. */
+		int ipi;   /**< int_num */
+		int event; /**< evt_num */
+	}
+	kernel;      /**< Interrupt as described by the kernel. */
 
 };
 
@@ -418,20 +418,20 @@ union iorpc_interrupt
  *  is done at each level. */
 union iorpc_pollfd_setup
 {
-  struct
-  {
-    int fd;    /**< Pollable file descriptor. */
-  }
-  user;        /**< pollfd_setup as described by user applications. */
+	struct
+	{
+		int fd;    /**< Pollable file descriptor. */
+	}
+	user;        /**< pollfd_setup as described by user applications. */
 
-  struct
-  {
-    int x;     /**< X coord. */
-    int y;     /**< Y coord. */
-    int ipi;   /**< int_num */
-    int event; /**< evt_num */
-  }
-  kernel;      /**< pollfd_setup as described by the kernel. */
+	struct
+	{
+		int x;     /**< X coord. */
+		int y;     /**< Y coord. */
+		int ipi;   /**< int_num */
+		int event; /**< evt_num */
+	}
+	kernel;      /**< pollfd_setup as described by the kernel. */
 
 };
 
@@ -442,17 +442,17 @@ union iorpc_pollfd_setup
  *  between the formats is done at each level. */
 union iorpc_pollfd
 {
-  struct
-  {
-    int fd;    /**< Pollable file descriptor. */
-  }
-  user;        /**< pollfd as described by user applications. */
+	struct
+	{
+		int fd;    /**< Pollable file descriptor. */
+	}
+	user;        /**< pollfd as described by user applications. */
 
-  struct
-  {
-    int cookie; /**< hv cookie returned by the pollfd_setup operation. */
-  }
-  kernel;      /**< pollfd as described by the kernel. */
+	struct
+	{
+		int cookie; /**< hv cookie returned by the pollfd_setup operation. */
+	}
+	kernel;      /**< pollfd as described by the kernel. */
 
 };
 
@@ -463,251 +463,252 @@ union iorpc_pollfd
  * (-800 to -899), tilepci (-900 to -999), ilib (-1000 to -1099),
  * gxcr (-1300 to -1399) and gxpci (-1400 to -1499).
  */
-enum gxio_err_e {
+enum gxio_err_e
+{
 
-  /** Largest iorpc error number. */
-  GXIO_ERR_MAX = -1101,
+	/** Largest iorpc error number. */
+	GXIO_ERR_MAX = -1101,
 
 
-  /********************************************************/
-  /*                   Generic Error Codes                */
-  /********************************************************/
+	/********************************************************/
+	/*                   Generic Error Codes                */
+	/********************************************************/
 
-  /** Bad RPC opcode - possible version incompatibility. */
-  GXIO_ERR_OPCODE = -1101,
+	/** Bad RPC opcode - possible version incompatibility. */
+	GXIO_ERR_OPCODE = -1101,
 
-  /** Invalid parameter. */
-  GXIO_ERR_INVAL = -1102,
+	/** Invalid parameter. */
+	GXIO_ERR_INVAL = -1102,
 
-  /** Memory buffer did not meet alignment requirements. */
-  GXIO_ERR_ALIGNMENT = -1103,
+	/** Memory buffer did not meet alignment requirements. */
+	GXIO_ERR_ALIGNMENT = -1103,
 
-  /** Memory buffers must be coherent and cacheable. */
-  GXIO_ERR_COHERENCE = -1104,
+	/** Memory buffers must be coherent and cacheable. */
+	GXIO_ERR_COHERENCE = -1104,
 
-  /** Resource already initialized. */
-  GXIO_ERR_ALREADY_INIT = -1105,
+	/** Resource already initialized. */
+	GXIO_ERR_ALREADY_INIT = -1105,
 
-  /** No service domains available. */
-  GXIO_ERR_NO_SVC_DOM = -1106,
+	/** No service domains available. */
+	GXIO_ERR_NO_SVC_DOM = -1106,
 
-  /** Illegal service domain number. */
-  GXIO_ERR_INVAL_SVC_DOM = -1107,
+	/** Illegal service domain number. */
+	GXIO_ERR_INVAL_SVC_DOM = -1107,
 
-  /** Illegal MMIO address. */
-  GXIO_ERR_MMIO_ADDRESS = -1108,
+	/** Illegal MMIO address. */
+	GXIO_ERR_MMIO_ADDRESS = -1108,
 
-  /** Illegal interrupt binding. */
-  GXIO_ERR_INTERRUPT = -1109,
+	/** Illegal interrupt binding. */
+	GXIO_ERR_INTERRUPT = -1109,
 
-  /** Unreasonable client memory. */
-  GXIO_ERR_CLIENT_MEMORY = -1110,
+	/** Unreasonable client memory. */
+	GXIO_ERR_CLIENT_MEMORY = -1110,
 
-  /** No more IOTLB entries. */
-  GXIO_ERR_IOTLB_ENTRY = -1111,
+	/** No more IOTLB entries. */
+	GXIO_ERR_IOTLB_ENTRY = -1111,
 
-  /** Invalid memory size. */
-  GXIO_ERR_INVAL_MEMORY_SIZE = -1112,
+	/** Invalid memory size. */
+	GXIO_ERR_INVAL_MEMORY_SIZE = -1112,
 
-  /** Unsupported operation. */
-  GXIO_ERR_UNSUPPORTED_OP = -1113,
+	/** Unsupported operation. */
+	GXIO_ERR_UNSUPPORTED_OP = -1113,
 
-  /** Insufficient DMA credits. */
-  GXIO_ERR_DMA_CREDITS = -1114,
+	/** Insufficient DMA credits. */
+	GXIO_ERR_DMA_CREDITS = -1114,
 
-  /** Operation timed out. */
-  GXIO_ERR_TIMEOUT = -1115,
+	/** Operation timed out. */
+	GXIO_ERR_TIMEOUT = -1115,
 
-  /** No such device or object. */
-  GXIO_ERR_NO_DEVICE = -1116,
+	/** No such device or object. */
+	GXIO_ERR_NO_DEVICE = -1116,
 
-  /** Device or resource busy. */
-  GXIO_ERR_BUSY = -1117,
+	/** Device or resource busy. */
+	GXIO_ERR_BUSY = -1117,
 
-  /** I/O error. */
-  GXIO_ERR_IO = -1118,
+	/** I/O error. */
+	GXIO_ERR_IO = -1118,
 
-  /** Permissions error. */
-  GXIO_ERR_PERM = -1119,
+	/** Permissions error. */
+	GXIO_ERR_PERM = -1119,
 
 
 
-  /********************************************************/
-  /*                 Test Device Error Codes              */
-  /********************************************************/
+	/********************************************************/
+	/*                 Test Device Error Codes              */
+	/********************************************************/
 
-  /** Illegal register number. */
-  GXIO_TEST_ERR_REG_NUMBER = -1120,
+	/** Illegal register number. */
+	GXIO_TEST_ERR_REG_NUMBER = -1120,
 
-  /** Illegal buffer slot. */
-  GXIO_TEST_ERR_BUFFER_SLOT = -1121,
+	/** Illegal buffer slot. */
+	GXIO_TEST_ERR_BUFFER_SLOT = -1121,
 
 
-  /********************************************************/
-  /*                    MPIPE Error Codes                 */
-  /********************************************************/
+	/********************************************************/
+	/*                    MPIPE Error Codes                 */
+	/********************************************************/
 
 
-  /** Invalid buffer size. */
-  GXIO_MPIPE_ERR_INVAL_BUFFER_SIZE = -1131,
+	/** Invalid buffer size. */
+	GXIO_MPIPE_ERR_INVAL_BUFFER_SIZE = -1131,
 
-  /** Cannot allocate buffer stack. */
-  GXIO_MPIPE_ERR_NO_BUFFER_STACK = -1140,
+	/** Cannot allocate buffer stack. */
+	GXIO_MPIPE_ERR_NO_BUFFER_STACK = -1140,
 
-  /** Invalid buffer stack number. */
-  GXIO_MPIPE_ERR_BAD_BUFFER_STACK = -1141,
+	/** Invalid buffer stack number. */
+	GXIO_MPIPE_ERR_BAD_BUFFER_STACK = -1141,
 
-  /** Cannot allocate NotifRing. */
-  GXIO_MPIPE_ERR_NO_NOTIF_RING = -1142,
+	/** Cannot allocate NotifRing. */
+	GXIO_MPIPE_ERR_NO_NOTIF_RING = -1142,
 
-  /** Invalid NotifRing number. */
-  GXIO_MPIPE_ERR_BAD_NOTIF_RING = -1143,
+	/** Invalid NotifRing number. */
+	GXIO_MPIPE_ERR_BAD_NOTIF_RING = -1143,
 
-  /** Cannot allocate NotifGroup. */
-  GXIO_MPIPE_ERR_NO_NOTIF_GROUP = -1144,
+	/** Cannot allocate NotifGroup. */
+	GXIO_MPIPE_ERR_NO_NOTIF_GROUP = -1144,
 
-  /** Invalid NotifGroup number. */
-  GXIO_MPIPE_ERR_BAD_NOTIF_GROUP = -1145,
+	/** Invalid NotifGroup number. */
+	GXIO_MPIPE_ERR_BAD_NOTIF_GROUP = -1145,
 
-  /** Cannot allocate bucket. */
-  GXIO_MPIPE_ERR_NO_BUCKET = -1146,
+	/** Cannot allocate bucket. */
+	GXIO_MPIPE_ERR_NO_BUCKET = -1146,
 
-  /** Invalid bucket number. */
-  GXIO_MPIPE_ERR_BAD_BUCKET = -1147,
+	/** Invalid bucket number. */
+	GXIO_MPIPE_ERR_BAD_BUCKET = -1147,
 
-  /** Cannot allocate eDMA ring. */
-  GXIO_MPIPE_ERR_NO_EDMA_RING = -1148,
+	/** Cannot allocate eDMA ring. */
+	GXIO_MPIPE_ERR_NO_EDMA_RING = -1148,
 
-  /** Invalid eDMA ring number. */
-  GXIO_MPIPE_ERR_BAD_EDMA_RING = -1149,
+	/** Invalid eDMA ring number. */
+	GXIO_MPIPE_ERR_BAD_EDMA_RING = -1149,
 
-  /** Invalid channel number. */
-  GXIO_MPIPE_ERR_BAD_CHANNEL = -1150,
+	/** Invalid channel number. */
+	GXIO_MPIPE_ERR_BAD_CHANNEL = -1150,
 
-  /** Bad configuration. */
-  GXIO_MPIPE_ERR_BAD_CONFIG = -1151,
+	/** Bad configuration. */
+	GXIO_MPIPE_ERR_BAD_CONFIG = -1151,
 
-  /** Empty iqueue. */
-  GXIO_MPIPE_ERR_IQUEUE_EMPTY = -1152,
+	/** Empty iqueue. */
+	GXIO_MPIPE_ERR_IQUEUE_EMPTY = -1152,
 
-  /** Empty rules. */
-  GXIO_MPIPE_ERR_RULES_EMPTY = -1160,
+	/** Empty rules. */
+	GXIO_MPIPE_ERR_RULES_EMPTY = -1160,
 
-  /** Full rules. */
-  GXIO_MPIPE_ERR_RULES_FULL = -1161,
+	/** Full rules. */
+	GXIO_MPIPE_ERR_RULES_FULL = -1161,
 
-  /** Corrupt rules. */
-  GXIO_MPIPE_ERR_RULES_CORRUPT = -1162,
+	/** Corrupt rules. */
+	GXIO_MPIPE_ERR_RULES_CORRUPT = -1162,
 
-  /** Invalid rules. */
-  GXIO_MPIPE_ERR_RULES_INVALID = -1163,
+	/** Invalid rules. */
+	GXIO_MPIPE_ERR_RULES_INVALID = -1163,
 
-  /** Classifier is too big. */
-  GXIO_MPIPE_ERR_CLASSIFIER_TOO_BIG = -1170,
+	/** Classifier is too big. */
+	GXIO_MPIPE_ERR_CLASSIFIER_TOO_BIG = -1170,
 
-  /** Classifier is too complex. */
-  GXIO_MPIPE_ERR_CLASSIFIER_TOO_COMPLEX = -1171,
+	/** Classifier is too complex. */
+	GXIO_MPIPE_ERR_CLASSIFIER_TOO_COMPLEX = -1171,
 
-  /** Classifier has bad header. */
-  GXIO_MPIPE_ERR_CLASSIFIER_BAD_HEADER = -1172,
+	/** Classifier has bad header. */
+	GXIO_MPIPE_ERR_CLASSIFIER_BAD_HEADER = -1172,
 
-  /** Classifier has bad contents. */
-  GXIO_MPIPE_ERR_CLASSIFIER_BAD_CONTENTS = -1173,
+	/** Classifier has bad contents. */
+	GXIO_MPIPE_ERR_CLASSIFIER_BAD_CONTENTS = -1173,
 
-  /** Classifier encountered invalid symbol. */
-  GXIO_MPIPE_ERR_CLASSIFIER_INVAL_SYMBOL = -1174,
+	/** Classifier encountered invalid symbol. */
+	GXIO_MPIPE_ERR_CLASSIFIER_INVAL_SYMBOL = -1174,
 
-  /** Classifier encountered invalid bounds. */
-  GXIO_MPIPE_ERR_CLASSIFIER_INVAL_BOUNDS = -1175,
+	/** Classifier encountered invalid bounds. */
+	GXIO_MPIPE_ERR_CLASSIFIER_INVAL_BOUNDS = -1175,
 
-  /** Classifier encountered invalid relocation. */
-  GXIO_MPIPE_ERR_CLASSIFIER_INVAL_RELOCATION = -1176,
+	/** Classifier encountered invalid relocation. */
+	GXIO_MPIPE_ERR_CLASSIFIER_INVAL_RELOCATION = -1176,
 
-  /** Classifier encountered undefined symbol. */
-  GXIO_MPIPE_ERR_CLASSIFIER_UNDEF_SYMBOL = -1177,
+	/** Classifier encountered undefined symbol. */
+	GXIO_MPIPE_ERR_CLASSIFIER_UNDEF_SYMBOL = -1177,
 
 
-  /********************************************************/
-  /*                    TRIO  Error Codes                 */
-  /********************************************************/
+	/********************************************************/
+	/*                    TRIO  Error Codes                 */
+	/********************************************************/
 
-  /** Cannot allocate memory map region. */
-  GXIO_TRIO_ERR_NO_MEMORY_MAP = -1180,
+	/** Cannot allocate memory map region. */
+	GXIO_TRIO_ERR_NO_MEMORY_MAP = -1180,
 
-  /** Invalid memory map region number. */
-  GXIO_TRIO_ERR_BAD_MEMORY_MAP = -1181,
+	/** Invalid memory map region number. */
+	GXIO_TRIO_ERR_BAD_MEMORY_MAP = -1181,
 
-  /** Cannot allocate scatter queue. */
-  GXIO_TRIO_ERR_NO_SCATTER_QUEUE = -1182,
+	/** Cannot allocate scatter queue. */
+	GXIO_TRIO_ERR_NO_SCATTER_QUEUE = -1182,
 
-  /** Invalid scatter queue number. */
-  GXIO_TRIO_ERR_BAD_SCATTER_QUEUE = -1183,
+	/** Invalid scatter queue number. */
+	GXIO_TRIO_ERR_BAD_SCATTER_QUEUE = -1183,
 
-  /** Cannot allocate push DMA ring. */
-  GXIO_TRIO_ERR_NO_PUSH_DMA_RING = -1184,
+	/** Cannot allocate push DMA ring. */
+	GXIO_TRIO_ERR_NO_PUSH_DMA_RING = -1184,
 
-  /** Invalid push DMA ring index. */
-  GXIO_TRIO_ERR_BAD_PUSH_DMA_RING = -1185,
+	/** Invalid push DMA ring index. */
+	GXIO_TRIO_ERR_BAD_PUSH_DMA_RING = -1185,
 
-  /** Cannot allocate pull DMA ring. */
-  GXIO_TRIO_ERR_NO_PULL_DMA_RING = -1186,
+	/** Cannot allocate pull DMA ring. */
+	GXIO_TRIO_ERR_NO_PULL_DMA_RING = -1186,
 
-  /** Invalid pull DMA ring index. */
-  GXIO_TRIO_ERR_BAD_PULL_DMA_RING = -1187,
+	/** Invalid pull DMA ring index. */
+	GXIO_TRIO_ERR_BAD_PULL_DMA_RING = -1187,
 
-  /** Cannot allocate PIO region. */
-  GXIO_TRIO_ERR_NO_PIO = -1188,
+	/** Cannot allocate PIO region. */
+	GXIO_TRIO_ERR_NO_PIO = -1188,
 
-  /** Invalid PIO region index. */
-  GXIO_TRIO_ERR_BAD_PIO = -1189,
+	/** Invalid PIO region index. */
+	GXIO_TRIO_ERR_BAD_PIO = -1189,
 
-  /** Cannot allocate ASID. */
-  GXIO_TRIO_ERR_NO_ASID = -1190,
+	/** Cannot allocate ASID. */
+	GXIO_TRIO_ERR_NO_ASID = -1190,
 
-  /** Invalid ASID. */
-  GXIO_TRIO_ERR_BAD_ASID = -1191,
+	/** Invalid ASID. */
+	GXIO_TRIO_ERR_BAD_ASID = -1191,
 
 
-  /********************************************************/
-  /*                    MICA Error Codes                  */
-  /********************************************************/
+	/********************************************************/
+	/*                    MICA Error Codes                  */
+	/********************************************************/
 
-  /** No such accelerator type. */
-  GXIO_MICA_ERR_BAD_ACCEL_TYPE = -1220,
+	/** No such accelerator type. */
+	GXIO_MICA_ERR_BAD_ACCEL_TYPE = -1220,
 
-  /** Cannot allocate context. */
-  GXIO_MICA_ERR_NO_CONTEXT = -1221,
+	/** Cannot allocate context. */
+	GXIO_MICA_ERR_NO_CONTEXT = -1221,
 
-  /** PKA command queue is full, can't add another command. */
-  GXIO_MICA_ERR_PKA_CMD_QUEUE_FULL = -1222,
+	/** PKA command queue is full, can't add another command. */
+	GXIO_MICA_ERR_PKA_CMD_QUEUE_FULL = -1222,
 
-  /** PKA result queue is empty, can't get a result from the queue. */
-  GXIO_MICA_ERR_PKA_RESULT_QUEUE_EMPTY = -1223,
+	/** PKA result queue is empty, can't get a result from the queue. */
+	GXIO_MICA_ERR_PKA_RESULT_QUEUE_EMPTY = -1223,
 
-  /********************************************************/
-  /*                    GPIO Error Codes                  */
-  /********************************************************/
+	/********************************************************/
+	/*                    GPIO Error Codes                  */
+	/********************************************************/
 
-  /** Pin not available.  Either the physical pin does not exist, or
-   *  it is reserved by the hypervisor for system usage. */
-  GXIO_GPIO_ERR_PIN_UNAVAILABLE = -1240,
+	/** Pin not available.  Either the physical pin does not exist, or
+	 *  it is reserved by the hypervisor for system usage. */
+	GXIO_GPIO_ERR_PIN_UNAVAILABLE = -1240,
 
-  /** Pin busy.  The pin exists, and is available for use via GXIO, but
-   *  it has been attached by some other process or driver. */
-  GXIO_GPIO_ERR_PIN_BUSY = -1241,
+	/** Pin busy.  The pin exists, and is available for use via GXIO, but
+	 *  it has been attached by some other process or driver. */
+	GXIO_GPIO_ERR_PIN_BUSY = -1241,
 
-  /** Cannot access unattached pin.  One or more of the pins being
-   *  manipulated by this call are not attached to the requesting
-   *  context. */
-  GXIO_GPIO_ERR_PIN_UNATTACHED = -1242,
+	/** Cannot access unattached pin.  One or more of the pins being
+	 *  manipulated by this call are not attached to the requesting
+	 *  context. */
+	GXIO_GPIO_ERR_PIN_UNATTACHED = -1242,
 
-  /** Invalid I/O mode for pin.  The wiring of the pin in the system
-   *  is such that the I/O mode or electrical control parameters
-   *  requested could cause damage. */
-  GXIO_GPIO_ERR_PIN_INVALID_MODE = -1243,
+	/** Invalid I/O mode for pin.  The wiring of the pin in the system
+	 *  is such that the I/O mode or electrical control parameters
+	 *  requested could cause damage. */
+	GXIO_GPIO_ERR_PIN_INVALID_MODE = -1243,
 
-  /** Smallest iorpc error number. */
-  GXIO_ERR_MIN = -1299
+	/** Smallest iorpc error number. */
+	GXIO_ERR_MIN = -1299
 };
 
 

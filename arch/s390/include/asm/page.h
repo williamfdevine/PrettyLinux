@@ -36,7 +36,9 @@ void __storage_key_init_range(unsigned long start, unsigned long end);
 static inline void storage_key_init_range(unsigned long start, unsigned long end)
 {
 	if (PAGE_DEFAULT_KEY)
+	{
 		__storage_key_init_range(start, end);
+	}
 }
 
 #define clear_page(page)	memset((page), 0, PAGE_SIZE)
@@ -92,13 +94,15 @@ typedef pte_t *pgtable_t;
 #define __pgprot(x)     ((pgprot_t) { (x) } )
 
 static inline void page_set_storage_key(unsigned long addr,
-					unsigned char skey, int mapped)
+										unsigned char skey, int mapped)
 {
 	if (!mapped)
 		asm volatile(".insn rrf,0xb22b0000,%0,%1,8,0"
-			     : : "d" (skey), "a" (addr));
+					 : : "d" (skey), "a" (addr));
 	else
+	{
 		asm volatile("sske %0,%1" : : "d" (skey), "a" (addr));
+	}
 }
 
 static inline unsigned char page_get_storage_key(unsigned long addr)
@@ -153,7 +157,7 @@ static inline int devmem_is_allowed(unsigned long pfn)
 #define page_to_virt(page)	pfn_to_virt(page_to_pfn(page))
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/memory_model.h>
 #include <asm-generic/getorder.h>

@@ -40,7 +40,8 @@
  * seem to be a documentation error.  At least on my RM200C the Cirrus
  * Logic CL-GD5434 VGA is device 3.
  */
-static char irq_tab_rm200[8][5] __initdata = {
+static char irq_tab_rm200[8][5] __initdata =
+{
 	/*	 INTA  INTB  INTC  INTD */
 	{     0,    0,	  0,	0,    0 },	/* EISA bridge */
 	{  SCSI, SCSI, SCSI, SCSI, SCSI },	/* SCSI */
@@ -57,7 +58,8 @@ static char irq_tab_rm200[8][5] __initdata = {
  *
  * The VGA card is optional for RM300 systems.
  */
-static char irq_tab_rm300d[8][5] __initdata = {
+static char irq_tab_rm300d[8][5] __initdata =
+{
 	/*	 INTA  INTB  INTC  INTD */
 	{     0,    0,	  0,	0,    0 },	/* EISA bridge */
 	{  SCSI, SCSI, SCSI, SCSI, SCSI },	/* SCSI */
@@ -69,7 +71,8 @@ static char irq_tab_rm300d[8][5] __initdata = {
 	{     0, INTD, INTA, INTB, INTC },	/* Slot 4 */
 };
 
-static char irq_tab_rm300e[5][5] __initdata = {
+static char irq_tab_rm300e[5][5] __initdata =
+{
 	/*	 INTA  INTB  INTC  INTD */
 	{     0,    0,	  0,	0,    0 },	/* HOST bridge */
 	{  SCSI, SCSI, SCSI, SCSI, SCSI },	/* SCSI */
@@ -96,7 +99,8 @@ static char irq_tab_rm300e[5][5] __initdata = {
 #define INTC	PCIT_IRQ_INTC
 #define INTD	PCIT_IRQ_INTD
 
-static char irq_tab_pcit[13][5] __initdata = {
+static char irq_tab_pcit[13][5] __initdata =
+{
 	/*	 INTA  INTB  INTC  INTD */
 	{     0,     0,	    0,	   0,	  0 },	/* HOST bridge */
 	{ SCSI0, SCSI0, SCSI0, SCSI0, SCSI0 },	/* SCSI */
@@ -113,7 +117,8 @@ static char irq_tab_pcit[13][5] __initdata = {
 	{     0,  INTA,	 INTB,	INTC,  INTD },	/* Slot 5 */
 };
 
-static char irq_tab_pcit_cplus[13][5] __initdata = {
+static char irq_tab_pcit_cplus[13][5] __initdata =
+{
 	/*	 INTA  INTB  INTC  INTD */
 	{     0,     0,	    0,	   0,	  0 },	/* HOST bridge */
 	{     0,  INTB,	 INTC,	INTD,  INTA },	/* PCI Slot 9 */
@@ -132,32 +137,44 @@ static inline int is_rm300_revd(void)
 
 int __init pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	switch (sni_brd_type) {
-	case SNI_BRD_PCI_TOWER_CPLUS:
-		if (slot == 4) {
-			/*
-			 * SNI messed up interrupt wiring for onboard
-			 * PCI bus 1; we need to fix this up here
-			 */
-			while (dev && dev->bus->number != 1)
-				dev = dev->bus->self;
-			if (dev && dev->devfn >= PCI_DEVFN(4, 0))
-				slot = 5;
-		}
-		return irq_tab_pcit_cplus[slot][pin];
-	case SNI_BRD_PCI_TOWER:
-		return irq_tab_pcit[slot][pin];
+	switch (sni_brd_type)
+	{
+		case SNI_BRD_PCI_TOWER_CPLUS:
+			if (slot == 4)
+			{
+				/*
+				 * SNI messed up interrupt wiring for onboard
+				 * PCI bus 1; we need to fix this up here
+				 */
+				while (dev && dev->bus->number != 1)
+				{
+					dev = dev->bus->self;
+				}
 
-	case SNI_BRD_PCI_MTOWER:
-		if (is_rm300_revd())
-			return irq_tab_rm300d[slot][pin];
+				if (dev && dev->devfn >= PCI_DEVFN(4, 0))
+				{
+					slot = 5;
+				}
+			}
+
+			return irq_tab_pcit_cplus[slot][pin];
+
+		case SNI_BRD_PCI_TOWER:
+			return irq_tab_pcit[slot][pin];
+
+		case SNI_BRD_PCI_MTOWER:
+			if (is_rm300_revd())
+			{
+				return irq_tab_rm300d[slot][pin];
+			}
+
 		/* fall through */
 
-	case SNI_BRD_PCI_DESKTOP:
-		return irq_tab_rm200[slot][pin];
+		case SNI_BRD_PCI_DESKTOP:
+			return irq_tab_rm200[slot][pin];
 
-	case SNI_BRD_PCI_MTOWER_CPLUS:
-		return irq_tab_rm300e[slot][pin];
+		case SNI_BRD_PCI_MTOWER_CPLUS:
+			return irq_tab_rm300e[slot][pin];
 	}
 
 	return 0;

@@ -34,18 +34,22 @@ int ds1287_set_base_clock(unsigned int hz)
 {
 	u8 rate;
 
-	switch (hz) {
-	case 128:
-		rate = 0x9;
-		break;
-	case 256:
-		rate = 0x8;
-		break;
-	case 1024:
-		rate = 0x6;
-		break;
-	default:
-		return -EINVAL;
+	switch (hz)
+	{
+		case 128:
+			rate = 0x9;
+			break;
+
+		case 256:
+			rate = 0x8;
+			break;
+
+		case 1024:
+			rate = 0x6;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	CMOS_WRITE(RTC_REF_CLCK_32KHZ | rate, RTC_REG_A);
@@ -54,7 +58,7 @@ int ds1287_set_base_clock(unsigned int hz)
 }
 
 static int ds1287_set_next_event(unsigned long delta,
-				 struct clock_event_device *evt)
+								 struct clock_event_device *evt)
 {
 	return -EINVAL;
 }
@@ -91,7 +95,8 @@ static void ds1287_event_handler(struct clock_event_device *dev)
 {
 }
 
-static struct clock_event_device ds1287_clockevent = {
+static struct clock_event_device ds1287_clockevent =
+{
 	.name			= "ds1287",
 	.features		= CLOCK_EVT_FEAT_PERIODIC,
 	.set_next_event		= ds1287_set_next_event,
@@ -113,7 +118,8 @@ static irqreturn_t ds1287_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction ds1287_irqaction = {
+static struct irqaction ds1287_irqaction =
+{
 	.handler	= ds1287_interrupt,
 	.flags		= IRQF_PERCPU | IRQF_TIMER,
 	.name		= "ds1287",

@@ -39,12 +39,12 @@
 #include "internal.h"
 
 #ifdef CONFIG_HOTPLUG_CPU
-#include <asm/cacheflush.h>
+	#include <asm/cacheflush.h>
 
-static unsigned long sleep_mode[NR_CPUS];
+	static unsigned long sleep_mode[NR_CPUS];
 
-static void run_sleep_cpu(unsigned int cpu);
-static void run_wakeup_cpu(unsigned int cpu);
+	static void run_sleep_cpu(unsigned int cpu);
+	static void run_wakeup_cpu(unsigned int cpu);
 #endif /* CONFIG_HOTPLUG_CPU */
 
 /*
@@ -53,9 +53,9 @@ static void run_wakeup_cpu(unsigned int cpu);
 
 #undef DEBUG_SMP
 #ifdef DEBUG_SMP
-#define Dprintk(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)
+	#define Dprintk(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)
 #else
-#define Dprintk(fmt, ...) no_printk(KERN_DEBUG fmt, ##__VA_ARGS__)
+	#define Dprintk(fmt, ...) no_printk(KERN_DEBUG fmt, ##__VA_ARGS__)
 #endif
 
 /* timeout value in msec for smp_nmi_call_function. zero is no timeout. */
@@ -64,7 +64,8 @@ static void run_wakeup_cpu(unsigned int cpu);
 /*
  * Structure and data for smp_nmi_call_function().
  */
-struct nmi_call_data_struct {
+struct nmi_call_data_struct
+{
 	smp_call_func_t	func;
 	void		*info;
 	cpumask_t	started;
@@ -117,7 +118,8 @@ static void mn10300_ipi_chip_enable(struct irq_data *d);
 static void mn10300_ipi_ack(struct irq_data *d);
 static void mn10300_ipi_nop(struct irq_data *d);
 
-static struct irq_chip mn10300_ipi_type = {
+static struct irq_chip mn10300_ipi_type =
+{
 	.name		= "cpu_ipi",
 	.irq_disable	= mn10300_ipi_chip_disable,
 	.irq_enable	= mn10300_ipi_chip_enable,
@@ -128,12 +130,14 @@ static struct irq_chip mn10300_ipi_type = {
 static irqreturn_t smp_reschedule_interrupt(int irq, void *dev_id);
 static irqreturn_t smp_call_function_interrupt(int irq, void *dev_id);
 
-static struct irqaction reschedule_ipi = {
+static struct irqaction reschedule_ipi =
+{
 	.handler	= smp_reschedule_interrupt,
 	.flags		= IRQF_NOBALANCING,
 	.name		= "smp reschedule IPI"
 };
-static struct irqaction call_function_ipi = {
+static struct irqaction call_function_ipi =
+{
 	.handler	= smp_call_function_interrupt,
 	.flags		= IRQF_NOBALANCING,
 	.name		= "smp call function IPI"
@@ -141,7 +145,8 @@ static struct irqaction call_function_ipi = {
 
 #if !defined(CONFIG_GENERIC_CLOCKEVENTS) || defined(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)
 static irqreturn_t smp_ipi_timer_interrupt(int irq, void *dev_id);
-static struct irqaction local_timer_ipi = {
+static struct irqaction local_timer_ipi =
+{
 	.handler	= smp_ipi_timer_interrupt,
 	.flags		= IRQF_NOBALANCING,
 	.name		= "smp local timer IPI"
@@ -158,14 +163,14 @@ static void init_ipi(void)
 
 	/* set up the reschedule IPI */
 	irq_set_chip_and_handler(RESCHEDULE_IPI, &mn10300_ipi_type,
-				 handle_percpu_irq);
+							 handle_percpu_irq);
 	setup_irq(RESCHEDULE_IPI, &reschedule_ipi);
 	set_intr_level(RESCHEDULE_IPI, RESCHEDULE_GxICR_LV);
 	mn10300_ipi_enable(RESCHEDULE_IPI);
 
 	/* set up the call function IPI */
 	irq_set_chip_and_handler(CALL_FUNC_SINGLE_IPI, &mn10300_ipi_type,
-				 handle_percpu_irq);
+							 handle_percpu_irq);
 	setup_irq(CALL_FUNC_SINGLE_IPI, &call_function_ipi);
 	set_intr_level(CALL_FUNC_SINGLE_IPI, CALL_FUNCTION_GxICR_LV);
 	mn10300_ipi_enable(CALL_FUNC_SINGLE_IPI);
@@ -174,7 +179,7 @@ static void init_ipi(void)
 #if !defined(CONFIG_GENERIC_CLOCKEVENTS) || \
     defined(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)
 	irq_set_chip_and_handler(LOCAL_TIMER_IPI, &mn10300_ipi_type,
-				 handle_percpu_irq);
+							 handle_percpu_irq);
 	setup_irq(LOCAL_TIMER_IPI, &local_timer_ipi);
 	set_intr_level(LOCAL_TIMER_IPI, LOCAL_TIMER_GxICR_LV);
 	mn10300_ipi_enable(LOCAL_TIMER_IPI);
@@ -185,7 +190,7 @@ static void init_ipi(void)
 	irq_set_chip(FLUSH_CACHE_IPI, &mn10300_ipi_type);
 	flags = arch_local_cli_save();
 	__set_intr_stub(NUM2EXCEP_IRQ_LEVEL(FLUSH_CACHE_GxICR_LV),
-			mn10300_low_ipi_handler);
+					mn10300_low_ipi_handler);
 	GxICR(FLUSH_CACHE_IPI) = FLUSH_CACHE_GxICR_LV | GxICR_DETECT;
 	mn10300_ipi_enable(FLUSH_CACHE_IPI);
 	arch_local_irq_restore(flags);
@@ -201,7 +206,7 @@ static void init_ipi(void)
 	/* set up the SMP boot IPI */
 	flags = arch_local_cli_save();
 	__set_intr_stub(NUM2EXCEP_IRQ_LEVEL(SMP_BOOT_GxICR_LV),
-			mn10300_low_ipi_handler);
+					mn10300_low_ipi_handler);
 	arch_local_irq_restore(flags);
 
 #ifdef CONFIG_KERNEL_DEBUGGER
@@ -315,8 +320,10 @@ static void send_IPI_mask(const cpumask_t *cpumask, int irq)
 	int i;
 	u16 tmp;
 
-	for (i = 0; i < NR_CPUS; i++) {
-		if (cpumask_test_cpu(i, cpumask)) {
+	for (i = 0; i < NR_CPUS; i++)
+	{
+		if (cpumask_test_cpu(i, cpumask))
+		{
 			/* send IPI */
 			tmp = CROSS_GxICR(irq, i);
 			CROSS_GxICR(irq, i) =
@@ -395,16 +402,22 @@ int smp_nmi_call_function(smp_call_func_t func, void *info, int wait)
 	int cpus, ret = 0;
 
 	cpus = num_online_cpus() - 1;
+
 	if (cpus < 1)
+	{
 		return 0;
+	}
 
 	data.func = func;
 	data.info = info;
 	cpumask_copy(&data.started, cpu_online_mask);
 	cpumask_clear_cpu(smp_processor_id(), &data.started);
 	data.wait = wait;
+
 	if (wait)
+	{
 		data.finished = data.started;
+	}
 
 	spin_lock_irqsave(&smp_nmi_call_lock, flags);
 	nmi_call_data = &data;
@@ -414,32 +427,47 @@ int smp_nmi_call_function(smp_call_func_t func, void *info, int wait)
 	send_IPI_allbutself(CALL_FUNCTION_NMI_IPI);
 
 	/* Wait for response */
-	if (CALL_FUNCTION_NMI_IPI_TIMEOUT > 0) {
+	if (CALL_FUNCTION_NMI_IPI_TIMEOUT > 0)
+	{
 		for (cnt = 0;
-		     cnt < CALL_FUNCTION_NMI_IPI_TIMEOUT &&
-			     !cpumask_empty(&data.started);
-		     cnt++)
+			 cnt < CALL_FUNCTION_NMI_IPI_TIMEOUT &&
+			 !cpumask_empty(&data.started);
+			 cnt++)
+		{
 			mdelay(1);
+		}
 
-		if (wait && cnt < CALL_FUNCTION_NMI_IPI_TIMEOUT) {
+		if (wait && cnt < CALL_FUNCTION_NMI_IPI_TIMEOUT)
+		{
 			for (cnt = 0;
-			     cnt < CALL_FUNCTION_NMI_IPI_TIMEOUT &&
-				     !cpumask_empty(&data.finished);
-			     cnt++)
+				 cnt < CALL_FUNCTION_NMI_IPI_TIMEOUT &&
+				 !cpumask_empty(&data.finished);
+				 cnt++)
+			{
 				mdelay(1);
+			}
 		}
 
 		if (cnt >= CALL_FUNCTION_NMI_IPI_TIMEOUT)
+		{
 			ret = -ETIMEDOUT;
+		}
 
-	} else {
+	}
+	else
+	{
 		/* If timeout value is zero, wait until cpumask has been
 		 * cleared */
 		while (!cpumask_empty(&data.started))
+		{
 			barrier();
+		}
+
 		if (wait)
 			while (!cpumask_empty(&data.finished))
+			{
 				barrier();
+			}
 	}
 
 	spin_unlock_irqrestore(&smp_nmi_call_lock, flags);
@@ -459,7 +487,9 @@ void smp_jump_to_debugger(void)
 {
 	if (num_online_cpus() > 1)
 		/* Send a message to all other CPUs */
+	{
 		send_IPI_allbutself(DEBUGGER_NMI_IPI);
+	}
 }
 
 /**
@@ -482,7 +512,9 @@ void stop_this_cpu(void *unused)
 	set_cpu_online(smp_processor_id(), false);
 
 	while (!stopflag)
+	{
 		cpu_relax();
+	}
 
 	set_cpu_online(smp_processor_id(), true);
 	arch_local_irq_restore(flags);
@@ -539,10 +571,11 @@ void smp_nmi_call_function_interrupt(void)
 	cpumask_clear_cpu(smp_processor_id(), &nmi_call_data->started);
 	(*func)(info);
 
-	if (wait) {
+	if (wait)
+	{
 		smp_mb();
 		cpumask_clear_cpu(smp_processor_id(),
-				  &nmi_call_data->finished);
+						  &nmi_call_data->finished);
 	}
 }
 
@@ -564,7 +597,9 @@ static irqreturn_t smp_ipi_timer_interrupt(int irq, void *dev_id)
 void __init smp_init_cpus(void)
 {
 	int i;
-	for (i = 0; i < NR_CPUS; i++) {
+
+	for (i = 0; i < NR_CPUS; i++)
+	{
 		set_cpu_possible(i, true);
 		set_cpu_present(i, true);
 	}
@@ -582,11 +617,16 @@ static void __init smp_cpu_init(void)
 	int cpu_id = smp_processor_id();
 	u16 tmp16;
 
-	if (test_and_set_bit(cpu_id, &cpu_initialized)) {
+	if (test_and_set_bit(cpu_id, &cpu_initialized))
+	{
 		printk(KERN_WARNING "CPU#%d already initialized!\n", cpu_id);
+
 		for (;;)
+		{
 			local_irq_enable();
+		}
 	}
+
 	printk(KERN_INFO "Initializing CPU#%d\n", cpu_id);
 
 	atomic_inc(&init_mm.mm_count);
@@ -641,11 +681,15 @@ void smp_prepare_cpu_init(void)
 
 	/* Disable all interrupts and set to priority 6 (lowest) */
 	for (loop = 0; loop < GxICR_NUM_IRQS; loop++)
+	{
 		GxICR(loop) = GxICR_LEVEL_6 | GxICR_DETECT;
+	}
 
 #ifdef CONFIG_KERNEL_DEBUGGER
+
 	/* initialise the kernel debugger interrupt */
-	do {
+	do
+	{
 		unsigned long flags;
 		u16 tmp16;
 
@@ -653,7 +697,9 @@ void smp_prepare_cpu_init(void)
 		GxICR(DEBUGGER_NMI_IPI) = GxICR_NMI | GxICR_ENABLE | GxICR_DETECT;
 		tmp16 = GxICR(DEBUGGER_NMI_IPI);
 		arch_local_irq_restore(flags);
-	} while (0);
+	}
+	while (0);
+
 #endif
 }
 
@@ -665,8 +711,11 @@ int __init start_secondary(void *unused)
 {
 	smp_cpu_init();
 	smp_callin();
+
 	while (!cpumask_test_cpu(smp_processor_id(), &smp_commenced_mask))
+	{
 		cpu_relax();
+	}
 
 	local_flush_tlb();
 	preempt_disable();
@@ -696,18 +745,26 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 	init_ipi();
 
 	/* If SMP should be disabled, then finish */
-	if (max_cpus == 0) {
+	if (max_cpus == 0)
+	{
 		printk(KERN_INFO "SMP mode deactivated.\n");
 		goto smp_done;
 	}
 
 	/* Boot secondary CPUs (for which phy_id > 0) */
-	for (phy_id = 0; phy_id < NR_CPUS; phy_id++) {
+	for (phy_id = 0; phy_id < NR_CPUS; phy_id++)
+	{
 		/* Don't boot primary CPU */
 		if (max_cpus <= cpucount + 1)
+		{
 			continue;
+		}
+
 		if (phy_id != 0)
+		{
 			do_boot_cpu(phy_id);
+		}
+
 		set_cpu_possible(phy_id, true);
 		smp_show_cpu_info(phy_id);
 	}
@@ -762,8 +819,11 @@ static int __init do_boot_cpu(int phy_id)
 
 	/* Create idle thread for this CPU */
 	idle = fork_idle(cpu_id);
+
 	if (IS_ERR(idle))
+	{
 		panic("Failed fork for CPU#%d.", cpu_id);
+	}
 
 	idle->thread.pc = (unsigned long)start_secondary;
 
@@ -778,39 +838,51 @@ static int __init do_boot_cpu(int phy_id)
 	Dprintk("Waiting for send to finish...\n");
 
 	/* Wait for AP's IPI receive in 100[ms] */
-	do {
+	do
+	{
 		udelay(1000);
 		send_status =
 			CROSS_GxICR(SMP_BOOT_IRQ, phy_id) & GxICR_REQUEST;
-	} while (send_status == GxICR_REQUEST && timeout++ < 100);
+	}
+	while (send_status == GxICR_REQUEST && timeout++ < 100);
 
 	Dprintk("Waiting for cpu_callin_map.\n");
 
-	if (send_status == 0) {
+	if (send_status == 0)
+	{
 		/* Allow AP to start initializing */
 		cpumask_set_cpu(cpu_id, &cpu_callout_map);
 
 		/* Wait for setting cpu_callin_map */
 		timeout = 0;
-		do {
+
+		do
+		{
 			udelay(1000);
 			callin_status = cpumask_test_cpu(cpu_id,
-							 &cpu_callin_map);
-		} while (callin_status == 0 && timeout++ < 5000);
+											 &cpu_callin_map);
+		}
+		while (callin_status == 0 && timeout++ < 5000);
 
 		if (callin_status == 0)
+		{
 			Dprintk("Not responding.\n");
-	} else {
+		}
+	}
+	else
+	{
 		printk(KERN_WARNING "IPI not delivered.\n");
 	}
 
-	if (send_status == GxICR_REQUEST || callin_status == 0) {
+	if (send_status == GxICR_REQUEST || callin_status == 0)
+	{
 		cpumask_clear_cpu(cpu_id, &cpu_callout_map);
 		cpumask_clear_cpu(cpu_id, &cpu_callin_map);
 		cpumask_clear_cpu(cpu_id, &cpu_initialized);
 		cpucount--;
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -823,12 +895,12 @@ static void __init smp_show_cpu_info(int cpu)
 	struct mn10300_cpuinfo *ci = &cpu_data[cpu];
 
 	printk(KERN_INFO
-	       "CPU#%d : ioclk speed: %lu.%02luMHz : bogomips : %lu.%02lu\n",
-	       cpu,
-	       MN10300_IOCLK / 1000000,
-	       (MN10300_IOCLK / 10000) % 100,
-	       ci->loops_per_jiffy / (500000 / HZ),
-	       (ci->loops_per_jiffy / (5000 / HZ)) % 100);
+		   "CPU#%d : ioclk speed: %lu.%02luMHz : bogomips : %lu.%02lu\n",
+		   cpu,
+		   MN10300_IOCLK / 1000000,
+		   (MN10300_IOCLK / 10000) % 100,
+		   ci->loops_per_jiffy / (500000 / HZ),
+		   (ci->loops_per_jiffy / (5000 / HZ)) % 100);
 }
 
 /**
@@ -842,23 +914,30 @@ static void __init smp_callin(void)
 	cpu = smp_processor_id();
 	timeout = jiffies + (2 * HZ);
 
-	if (cpumask_test_cpu(cpu, &cpu_callin_map)) {
+	if (cpumask_test_cpu(cpu, &cpu_callin_map))
+	{
 		printk(KERN_ERR "CPU#%d already present.\n", cpu);
 		BUG();
 	}
+
 	Dprintk("CPU#%d waiting for CALLOUT\n", cpu);
 
 	/* Wait for AP startup 2s total */
-	while (time_before(jiffies, timeout)) {
+	while (time_before(jiffies, timeout))
+	{
 		if (cpumask_test_cpu(cpu, &cpu_callout_map))
+		{
 			break;
+		}
+
 		cpu_relax();
 	}
 
-	if (!time_before(jiffies, timeout)) {
+	if (!time_before(jiffies, timeout))
+	{
 		printk(KERN_ERR
-		       "BUG: CPU#%d started up but did not get a callout!\n",
-		       cpu);
+			   "BUG: CPU#%d started up but did not get a callout!\n",
+			   cpu);
 		BUG();
 	}
 
@@ -935,16 +1014,24 @@ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
 	int timeout;
 
 #ifdef CONFIG_HOTPLUG_CPU
+
 	if (sleep_mode[cpu])
+	{
 		run_wakeup_cpu(cpu);
+	}
+
 #endif /* CONFIG_HOTPLUG_CPU */
 
 	cpumask_set_cpu(cpu, &smp_commenced_mask);
 
 	/* Wait 5s total for a response */
-	for (timeout = 0 ; timeout < 5000 ; timeout++) {
+	for (timeout = 0 ; timeout < 5000 ; timeout++)
+	{
 		if (cpu_online(cpu))
+		{
 			break;
+		}
+
 		udelay(1000);
 	}
 
@@ -975,12 +1062,14 @@ static int __init topology_init(void)
 {
 	int cpu, ret;
 
-	for_each_cpu(cpu) {
+	for_each_cpu(cpu)
+	{
 		ret = register_cpu(&per_cpu(cpu_devices, cpu), cpu, NULL);
+
 		if (ret)
 			printk(KERN_WARNING
-			       "topology_init: register_cpu %d failed (%d)\n",
-			       cpu, ret);
+				   "topology_init: register_cpu %d failed (%d)\n",
+				   cpu, ret);
 	}
 	return 0;
 }
@@ -990,8 +1079,11 @@ subsys_initcall(topology_init);
 int __cpu_disable(void)
 {
 	int cpu = smp_processor_id();
+
 	if (cpu == 0)
+	{
 		return -EBUSY;
+	}
 
 	migrate_irqs();
 	cpumask_clear_cpu(cpu, &mm_cpumask(current->active_mm));
@@ -1016,8 +1108,8 @@ static inline void hotplug_cpu_disable_cache(void)
 		"	bne	1b	\n"
 		: "=&r"(tmp)
 		: "a"(&CHCTR),
-		  "i"(~(CHCTR_ICEN | CHCTR_DCEN)),
-		  "i"(CHCTR_ICBUSY | CHCTR_DCBUSY)
+		"i"(~(CHCTR_ICEN | CHCTR_DCEN)),
+		"i"(CHCTR_ICBUSY | CHCTR_DCBUSY)
 		: "memory", "cc");
 }
 
@@ -1030,7 +1122,7 @@ static inline void hotplug_cpu_enable_cache(void)
 		"movhu	%0,(%1)	\n"
 		: "=&r"(tmp)
 		: "a"(&CHCTR),
-		  "i"(CHCTR_ICEN | CHCTR_DCEN)
+		"i"(CHCTR_ICEN | CHCTR_DCEN)
 		: "memory", "cc");
 }
 
@@ -1043,7 +1135,7 @@ static inline void hotplug_cpu_invalidate_cache(void)
 		"movhu	%0,(%1)	\n"
 		: "=&r"(tmp)
 		: "a"(&CHCTR),
-		  "i"(CHCTR_ICINV | CHCTR_DCINV)
+		"i"(CHCTR_ICINV | CHCTR_DCINV)
 		: "cc");
 }
 
@@ -1065,8 +1157,8 @@ static inline void hotplug_cpu_invalidate_cache(void)
  * This function must be called with maskable interrupts disabled.
  */
 static int hotplug_cpu_nmi_call_function(cpumask_t cpumask,
-					 smp_call_func_t func, void *info,
-					 int wait)
+		smp_call_func_t func, void *info,
+		int wait)
 {
 	/*
 	 * The address and the size of nmi_call_func_mask_data
@@ -1083,8 +1175,11 @@ static int hotplug_cpu_nmi_call_function(cpumask_t cpumask,
 	nmi_call_func_mask_data.info = info;
 	nmi_call_func_mask_data.started = cpumask;
 	nmi_call_func_mask_data.wait = wait;
+
 	if (wait)
+	{
 		nmi_call_func_mask_data.finished = cpumask;
+	}
 
 	spin_lock(&smp_nmi_call_lock);
 	nmi_call_data = &nmi_call_func_mask_data;
@@ -1093,16 +1188,21 @@ static int hotplug_cpu_nmi_call_function(cpumask_t cpumask,
 
 	send_IPI_mask(cpumask, CALL_FUNCTION_NMI_IPI);
 
-	do {
+	do
+	{
 		mn10300_local_dcache_inv_range(start, end);
 		barrier();
-	} while (!cpumask_empty(&nmi_call_func_mask_data.started));
+	}
+	while (!cpumask_empty(&nmi_call_func_mask_data.started));
 
-	if (wait) {
-		do {
+	if (wait)
+	{
+		do
+		{
 			mn10300_local_dcache_inv_range(start, end);
 			barrier();
-		} while (!cpumask_empty(&nmi_call_func_mask_data.finished));
+		}
+		while (!cpumask_empty(&nmi_call_func_mask_data.finished));
 	}
 
 	spin_unlock(&smp_nmi_call_lock);
@@ -1132,14 +1232,18 @@ static void prepare_sleep_cpu(void *unused)
 static void sleep_cpu(void *unused)
 {
 	unsigned int cpu_id = smp_processor_id();
+
 	/*
 	 * CALL_FUNCTION_NMI_IPI for wakeup_cpu() shall not be requested,
 	 * before this cpu goes in SLEEP mode.
 	 */
-	do {
+	do
+	{
 		smp_mb();
 		__sleep_cpu();
-	} while (sleep_mode[cpu_id]);
+	}
+	while (sleep_mode[cpu_id]);
+
 	restart_wakeup_cpu();
 }
 

@@ -17,56 +17,69 @@
 #define hugepages_supported()			(MACHINE_HAS_HPAGE)
 
 void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-		     pte_t *ptep, pte_t pte);
+					 pte_t *ptep, pte_t pte);
 pte_t huge_ptep_get(pte_t *ptep);
 pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
-			      unsigned long addr, pte_t *ptep);
+							  unsigned long addr, pte_t *ptep);
 
 /*
  * If the arch doesn't supply something else, assume that hugepage
  * size aligned regions are ok without further preparation.
  */
 static inline int prepare_hugepage_range(struct file *file,
-			unsigned long addr, unsigned long len)
+		unsigned long addr, unsigned long len)
 {
 	if (len & ~HPAGE_MASK)
+	{
 		return -EINVAL;
+	}
+
 	if (addr & ~HPAGE_MASK)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
 #define arch_clear_hugepage_flags(page)		do { } while (0)
 
 static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
-				  pte_t *ptep)
+								  pte_t *ptep)
 {
 	if ((pte_val(*ptep) & _REGION_ENTRY_TYPE_MASK) == _REGION_ENTRY_TYPE_R3)
+	{
 		pte_val(*ptep) = _REGION3_ENTRY_EMPTY;
+	}
 	else
+	{
 		pte_val(*ptep) = _SEGMENT_ENTRY_EMPTY;
+	}
 }
 
 static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
-					 unsigned long address, pte_t *ptep)
+		unsigned long address, pte_t *ptep)
 {
 	huge_ptep_get_and_clear(vma->vm_mm, address, ptep);
 }
 
 static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
-					     unsigned long addr, pte_t *ptep,
-					     pte_t pte, int dirty)
+		unsigned long addr, pte_t *ptep,
+		pte_t pte, int dirty)
 {
 	int changed = !pte_same(huge_ptep_get(ptep), pte);
-	if (changed) {
+
+	if (changed)
+	{
 		huge_ptep_get_and_clear(vma->vm_mm, addr, ptep);
 		set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
 	}
+
 	return changed;
 }
 
 static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
-					   unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 	pte_t pte = huge_ptep_get_and_clear(mm, addr, ptep);
 	set_huge_pte_at(mm, addr, ptep, pte_wrprotect(pte));

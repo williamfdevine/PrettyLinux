@@ -39,9 +39,13 @@ void __init setup_replication_mask(void)
 	{
 		cnodeid_t	cnode;
 
-		for_each_online_node(cnode) {
+		for_each_online_node(cnode)
+		{
 			if (cnode == 0)
+			{
 				continue;
+			}
+
 			/* Advertise that we have a copy of the kernel */
 			cpumask_set_cpu(cnode, &ktext_repmask);
 		}
@@ -65,7 +69,8 @@ static __init void set_ktext_source(nasid_t client_nasid, nasid_t server_nasid)
 	kvp->kv_rw_nasid = master_nasid;
 	kvp->kv_ro_baseaddr = NODE_CAC_BASE(server_nasid);
 	kvp->kv_rw_baseaddr = NODE_CAC_BASE(master_nasid);
-	printk("REPLICATION: ON nasid %d, ktext from nasid %d, kdata from nasid %d\n", client_nasid, server_nasid, master_nasid);
+	printk("REPLICATION: ON nasid %d, ktext from nasid %d, kdata from nasid %d\n", client_nasid, server_nasid,
+		   master_nasid);
 }
 
 /* XXX - When the BTE works, we should use it instead of this. */
@@ -78,7 +83,7 @@ static __init void copy_kernel(nasid_t dest_nasid)
 	kern_size = source_end - source_start;
 
 	dest_kern_start = CHANGE_ADDR_NASID(MAPPED_KERN_RO_TO_K0(source_start),
-					    dest_nasid);
+										dest_nasid);
 	memcpy((void *)dest_kern_start, (void *)source_start, kern_size);
 }
 
@@ -93,13 +98,18 @@ void __init replicate_kernel_text()
 	/* Record where the master node should get its kernel text */
 	set_ktext_source(master_nasid, master_nasid);
 
-	for_each_online_node(cnode) {
+	for_each_online_node(cnode)
+	{
 		if (cnode == 0)
+		{
 			continue;
+		}
+
 		client_nasid = COMPACT_TO_NASID_NODEID(cnode);
 
 		/* Check if this node should get a copy of the kernel */
-		if (cpumask_test_cpu(cnode, &ktext_repmask)) {
+		if (cpumask_test_cpu(cnode, &ktext_repmask))
+		{
 			server_nasid = client_nasid;
 			copy_kernel(server_nasid);
 		}
@@ -124,8 +134,13 @@ unsigned long node_getfirstfree(cnodeid_t cnode)
 	loadbase += 16777216;
 #endif
 	offset = PAGE_ALIGN((unsigned long)(&_end)) - loadbase;
+
 	if ((cnode == 0) || (cpumask_test_cpu(cnode, &ktext_repmask)))
+	{
 		return TO_NODE(nasid, offset) >> PAGE_SHIFT;
+	}
 	else
+	{
 		return KDM_TO_PHYS(PAGE_ALIGN(SYMMON_STK_ADDR(nasid, 0))) >> PAGE_SHIFT;
+	}
 }

@@ -15,19 +15,25 @@ extern struct dma_map_ops s390_pci_dma_ops;
 static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 {
 	if (dev && dev->archdata.dma_ops)
+	{
 		return dev->archdata.dma_ops;
+	}
+
 	return &dma_noop_ops;
 }
 
 static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-				  enum dma_data_direction direction)
+								  enum dma_data_direction direction)
 {
 }
 
 static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
 {
 	if (!dev->dma_mask)
+	{
 		return false;
+	}
+
 	return addr + size - 1 <= *dev->dma_mask;
 }
 

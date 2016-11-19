@@ -23,10 +23,10 @@ static inline cycles_t get_cycles(void)
 	unsigned l, h;
 
 	asm volatile (" dint\n"
-		      " mvc .s2 TSCL,%0\n"
-		      " mvc .s2 TSCH,%1\n"
-		      " rint\n"
-		      : "=b"(l), "=b"(h));
+				  " mvc .s2 TSCL,%0\n"
+				  " mvc .s2 TSCH,%1\n"
+				  " rint\n"
+				  : "=b"(l), "=b"(h));
 	return ((cycles_t)h << 32) | l;
 }
 

@@ -57,7 +57,8 @@
 #define CLOCK_50M	50000000
 #define CLOCK_60M	60000000
 
-struct clk {
+struct clk
+{
 	struct clk_lookup cl;
 	unsigned long rate;
 	unsigned long *rates;
@@ -72,7 +73,7 @@ struct clk {
 };
 
 extern void clkdev_add_static(unsigned long cpu, unsigned long fpi,
-				unsigned long io, unsigned long ppe);
+							  unsigned long io, unsigned long ppe);
 
 extern unsigned long ltq_danube_cpu_hz(void);
 extern unsigned long ltq_danube_fpi_hz(void);

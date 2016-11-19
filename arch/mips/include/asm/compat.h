@@ -31,7 +31,8 @@ typedef u32		compat_nlink_t;
 typedef s32		compat_ipc_pid_t;
 typedef s32		compat_daddr_t;
 typedef s32		compat_caddr_t;
-typedef struct {
+typedef struct
+{
 	s32	val[2];
 } compat_fsid_t;
 typedef s32		compat_timer_t;
@@ -45,17 +46,20 @@ typedef u32		compat_ulong_t;
 typedef u64		compat_u64;
 typedef u32		compat_uptr_t;
 
-struct compat_timespec {
+struct compat_timespec
+{
 	compat_time_t	tv_sec;
 	s32		tv_nsec;
 };
 
-struct compat_timeval {
+struct compat_timeval
+{
 	compat_time_t	tv_sec;
 	s32		tv_usec;
 };
 
-struct compat_stat {
+struct compat_stat
+{
 	compat_dev_t	st_dev;
 	s32		st_pad1[3];
 	compat_ino_t	st_ino;
@@ -78,7 +82,8 @@ struct compat_stat {
 	s32		st_pad4[14];
 };
 
-struct compat_flock {
+struct compat_flock
+{
 	short		l_type;
 	short		l_whence;
 	compat_off_t	l_start;
@@ -93,7 +98,8 @@ struct compat_flock {
 #define F_SETLK64	34
 #define F_SETLKW64	35
 
-struct compat_flock64 {
+struct compat_flock64
+{
 	short		l_type;
 	short		l_whence;
 	compat_loff_t	l_start;
@@ -101,7 +107,8 @@ struct compat_flock64 {
 	compat_pid_t	l_pid;
 };
 
-struct compat_statfs {
+struct compat_statfs
+{
 	int		f_type;
 	int		f_bsize;
 	int		f_frsize;
@@ -125,7 +132,8 @@ typedef u32		compat_old_sigset_t;	/* at least 32 bits */
 
 typedef u32		compat_sigset_word;
 
-typedef union compat_sigval {
+typedef union compat_sigval
+{
 	compat_int_t	sival_int;
 	compat_uptr_t	sival_ptr;
 } compat_sigval_t;
@@ -134,36 +142,42 @@ typedef union compat_sigval {
 
 #define SI_PAD_SIZE32	(128/sizeof(int) - 3)
 
-typedef struct compat_siginfo {
+typedef struct compat_siginfo
+{
 	int si_signo;
 	int si_code;
 	int si_errno;
 
-	union {
+	union
+	{
 		int _pad[128 / sizeof(int) - 3];
 
 		/* kill() */
-		struct {
+		struct
+		{
 			compat_pid_t _pid;	/* sender's pid */
 			__compat_uid32_t _uid;	/* sender's uid */
 		} _kill;
 
 		/* POSIX.1b timers */
-		struct {
+		struct
+		{
 			compat_timer_t _tid;	/* timer id */
 			int _overrun;		/* overrun count */
 			compat_sigval_t _sigval;	/* same as below */
 		} _timer;
 
 		/* POSIX.1b signals */
-		struct {
+		struct
+		{
 			compat_pid_t _pid;	/* sender's pid */
 			__compat_uid32_t _uid;	/* sender's uid */
 			compat_sigval_t _sigval;
 		} _rt;
 
 		/* SIGCHLD */
-		struct {
+		struct
+		{
 			compat_pid_t _pid;	/* which child */
 			__compat_uid32_t _uid;	/* sender's uid */
 			int _status;		/* exit code */
@@ -172,25 +186,29 @@ typedef struct compat_siginfo {
 		} _sigchld;
 
 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-		struct {
+		struct
+		{
 			compat_uptr_t _addr;	/* faulting insn/memory ref. */
 #ifdef __ARCH_SI_TRAPNO
 			int _trapno;	/* TRAP # which caused the signal */
 #endif
 			short _addr_lsb; /* LSB of the reported address */
-			struct {
+			struct
+			{
 				compat_uptr_t _lower;
 				compat_uptr_t _upper;
 			} _addr_bnd;
 		} _sigfault;
 
 		/* SIGPOLL */
-		struct {
+		struct
+		{
 			compat_long_t _band; /* POLL_IN, POLL_OUT, POLL_MSG */
 			int _fd;
 		} _sigpoll;
 
-		struct {
+		struct
+		{
 			compat_uptr_t _call_addr; /* calling insn */
 			int _syscall;	/* triggering system call number */
 			compat_uint_t _arch;	/* AUDIT_ARCH_* of syscall */
@@ -222,12 +240,13 @@ static inline compat_uptr_t ptr_to_compat(void __user *uptr)
 static inline void __user *arch_compat_alloc_user_space(long len)
 {
 	struct pt_regs *regs = (struct pt_regs *)
-		((unsigned long) current_thread_info() + THREAD_SIZE - 32) - 1;
+						   ((unsigned long) current_thread_info() + THREAD_SIZE - 32) - 1;
 
 	return (void __user *) (regs->regs[29] - len);
 }
 
-struct compat_ipc64_perm {
+struct compat_ipc64_perm
+{
 	compat_key_t key;
 	__compat_uid32_t uid;
 	__compat_gid32_t gid;
@@ -240,7 +259,8 @@ struct compat_ipc64_perm {
 	compat_ulong_t __unused2;
 };
 
-struct compat_semid64_ds {
+struct compat_semid64_ds
+{
 	struct compat_ipc64_perm sem_perm;
 	compat_time_t	sem_otime;
 	compat_time_t	sem_ctime;
@@ -249,7 +269,8 @@ struct compat_semid64_ds {
 	compat_ulong_t	__unused2;
 };
 
-struct compat_msqid64_ds {
+struct compat_msqid64_ds
+{
 	struct compat_ipc64_perm msg_perm;
 #ifndef CONFIG_CPU_LITTLE_ENDIAN
 	compat_ulong_t	__unused1;
@@ -281,7 +302,8 @@ struct compat_msqid64_ds {
 	compat_ulong_t	__unused5;
 };
 
-struct compat_shmid64_ds {
+struct compat_shmid64_ds
+{
 	struct compat_ipc64_perm shm_perm;
 	compat_size_t	shm_segsz;
 	compat_time_t	shm_atime;
@@ -295,7 +317,8 @@ struct compat_shmid64_ds {
 };
 
 /* MIPS has unusual order of fields in stack_t */
-typedef struct compat_sigaltstack {
+typedef struct compat_sigaltstack
+{
 	compat_uptr_t			ss_sp;
 	compat_size_t			ss_size;
 	int				ss_flags;

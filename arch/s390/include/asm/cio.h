@@ -26,12 +26,13 @@
  * operations with the device or the control unit. Only Format-1 channel
  * command words are supported.
  */
-struct ccw1 {
+struct ccw1
+{
 	__u8  cmd_code;
 	__u8  flags;
 	__u16 count;
 	__u32 cda;
-} __attribute__ ((packed,aligned(8)));
+} __attribute__ ((packed, aligned(8)));
 
 #define CCW_FLAG_DC		0x80
 #define CCW_FLAG_CC		0x40
@@ -69,7 +70,8 @@ struct ccw1 {
  * @scnt: sense count, if @cons == %1
  * @res16: reserved
  */
-struct erw {
+struct erw
+{
 	__u32 res0  : 3;
 	__u32 auth  : 1;
 	__u32 pvrf  : 1;
@@ -87,7 +89,8 @@ struct erw {
  * @b: aob error
  * @r: arsb error
  */
-struct erw_eadm {
+struct erw_eadm
+{
 	__u32 : 16;
 	__u32 b : 1;
 	__u32 r : 1;
@@ -108,7 +111,8 @@ struct erw_eadm {
  * @ioerr: i/o-error alert
  * @seqc: sequence code
  */
-struct sublog {
+struct sublog
+{
 	__u32 res0  : 1;
 	__u32 esf   : 7;
 	__u32 lpum  : 8;
@@ -129,7 +133,8 @@ struct sublog {
  * @faddr: failing storage address
  * @saddr: secondary ccw address
  */
-struct esw0 {
+struct esw0
+{
 	struct sublog sublog;
 	struct erw erw;
 	__u32  faddr[2];
@@ -144,7 +149,8 @@ struct esw0 {
  * @erw: extended report word
  * @zeros: three fullwords of zeros
  */
-struct esw1 {
+struct esw1
+{
 	__u8  zero0;
 	__u8  lpum;
 	__u16 zero16;
@@ -160,7 +166,8 @@ struct esw1 {
  * @erw: extended report word
  * @zeros: three fullwords of zeros
  */
-struct esw2 {
+struct esw2
+{
 	__u8  zero0;
 	__u8  lpum;
 	__u16 dcti;
@@ -176,7 +183,8 @@ struct esw2 {
  * @erw: extended report word
  * @zeros: three fullwords of zeros
  */
-struct esw3 {
+struct esw3
+{
 	__u8  zero0;
 	__u8  lpum;
 	__u16 res;
@@ -189,7 +197,8 @@ struct esw3 {
  * @sublog: subchannel logout
  * @erw: extended report word
  */
-struct esw_eadm {
+struct esw_eadm
+{
 	__u32 sublog;
 	struct erw_eadm erw;
 	__u32 : 32;
@@ -212,9 +221,11 @@ struct esw_eadm {
  * For unsolicited interrupts, the irb is passed as-is (expect for sense data,
  * if applicable).
  */
-struct irb {
+struct irb
+{
 	union scsw scsw;
-	union {
+	union
+	{
 		struct esw0 esw0;
 		struct esw1 esw1;
 		struct esw2 esw2;
@@ -222,7 +233,7 @@ struct irb {
 		struct esw_eadm eadm;
 	} esw;
 	__u8   ecw[32];
-} __attribute__ ((packed,aligned(4)));
+} __attribute__ ((packed, aligned(4)));
 
 /**
  * struct ciw - command information word  (CIW) layout
@@ -232,7 +243,8 @@ struct irb {
  * @cmd: command code
  * @count: command count
  */
-struct ciw {
+struct ciw
+{
 	__u32 et       :  2;
 	__u32 reserved :  2;
 	__u32 ct       :  4;
@@ -250,7 +262,7 @@ struct ciw {
 #define DOIO_ALLOW_SUSPEND	 0x0001 /* allow for channel prog. suspend */
 #define DOIO_DENY_PREFETCH	 0x0002 /* don't allow for CCW prefetch */
 #define DOIO_SUPPRESS_INTER	 0x0004 /* suppress intermediate inter. */
-					/* ... for suspended CCWs */
+/* ... for suspended CCWs */
 /* Device or subchannel gone. */
 #define CIO_GONE       0x0001
 /* No path to device. */
@@ -273,7 +285,8 @@ struct ciw {
  * for ccw devices across subchannel sets, @struct ccw_dev_id has been
  * introduced.
  */
-struct ccw_dev_id {
+struct ccw_dev_id
+{
 	u8 ssid;
 	u16 devno;
 };
@@ -289,11 +302,14 @@ struct ccw_dev_id {
  *  any
  */
 static inline int ccw_dev_id_is_equal(struct ccw_dev_id *dev_id1,
-				      struct ccw_dev_id *dev_id2)
+									  struct ccw_dev_id *dev_id2)
 {
 	if ((dev_id1->ssid == dev_id2->ssid) &&
-	    (dev_id1->devno == dev_id2->devno))
+		(dev_id1->devno == dev_id2->devno))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -311,7 +327,8 @@ extern void css_schedule_reprobe(void);
 
 extern void reipl_ccw_dev(struct ccw_dev_id *id);
 
-struct cio_iplinfo {
+struct cio_iplinfo
+{
 	u8 ssid;
 	u16 devno;
 	int is_qdio;

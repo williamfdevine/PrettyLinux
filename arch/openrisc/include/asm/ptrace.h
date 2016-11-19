@@ -40,19 +40,24 @@
  * taken care of elsewhere... head.S, process.c, etc.
  */
 
-struct pt_regs {
-	union {
-		struct {
+struct pt_regs
+{
+	union
+	{
+		struct
+		{
 			/* Named registers */
 			long  sr;	/* Stored in place of r0 */
 			long  sp;	/* r1 */
 		};
-		struct {
+		struct
+		{
 			/* Old style */
 			long offset[2];
 			long gprs[30];
 		};
-		struct {
+		struct
+		{
 			/* New style */
 			long gpr[32];
 		};

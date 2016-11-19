@@ -27,7 +27,9 @@ static void mpc837x_rdb_sd_cfg(void)
 	void __iomem *im;
 
 	im = ioremap(get_immrbase(), 0x1000);
-	if (!im) {
+
+	if (!im)
+	{
 		WARN_ON(1);
 		return;
 	}
@@ -37,9 +39,9 @@ static void mpc837x_rdb_sd_cfg(void)
 	 * so we can safely mux them away from the USB block.
 	 */
 	clrsetbits_be32(im + MPC83XX_SICRL_OFFS, MPC837X_SICRL_USBB_MASK,
-						 MPC837X_SICRL_SD);
+					MPC837X_SICRL_SD);
 	clrsetbits_be32(im + MPC83XX_SICRH_OFFS, MPC837X_SICRH_SPI_MASK,
-						 MPC837X_SICRH_SD);
+					MPC837X_SICRH_SD);
 	iounmap(im);
 }
 
@@ -57,7 +59,8 @@ static void __init mpc837x_rdb_setup_arch(void)
 
 machine_device_initcall(mpc837x_rdb, mpc83xx_declare_of_platform_devices);
 
-static const char * const board[] __initconst = {
+static const char *const board[] __initconst =
+{
 	"fsl,mpc8377rdb",
 	"fsl,mpc8378rdb",
 	"fsl,mpc8379rdb",
@@ -73,14 +76,15 @@ static int __init mpc837x_rdb_probe(void)
 	return of_device_compatible_match(of_root, board);
 }
 
-define_machine(mpc837x_rdb) {
+define_machine(mpc837x_rdb)
+{
 	.name			= "MPC837x RDB/WLAN",
-	.probe			= mpc837x_rdb_probe,
-	.setup_arch		= mpc837x_rdb_setup_arch,
-	.init_IRQ		= mpc83xx_ipic_init_IRQ,
-	.get_irq		= ipic_get_irq,
-	.restart		= mpc83xx_restart,
-	.time_init		= mpc83xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mpc837x_rdb_probe,
+					 .setup_arch		= mpc837x_rdb_setup_arch,
+						 .init_IRQ		= mpc83xx_ipic_init_IRQ,
+							   .get_irq		= ipic_get_irq,
+									  .restart		= mpc83xx_restart,
+											 .time_init		= mpc83xx_time_init,
+												  .calibrate_decr		= generic_calibrate_decr,
+													  .progress		= udbg_progress,
 };

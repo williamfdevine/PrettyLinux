@@ -54,7 +54,8 @@
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static unsigned long palmtx_pin_config[] __initdata = {
+static unsigned long palmtx_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
@@ -131,7 +132,8 @@ static unsigned long palmtx_pin_config[] __initdata = {
  * NOR Flash
  ******************************************************************************/
 #if defined(CONFIG_MTD_PHYSMAP) || defined(CONFIG_MTD_PHYSMAP_MODULE)
-static struct mtd_partition palmtx_partitions[] = {
+static struct mtd_partition palmtx_partitions[] =
+{
 	{
 		.name		= "Flash",
 		.offset		= 0x00000000,
@@ -140,7 +142,8 @@ static struct mtd_partition palmtx_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data palmtx_flash_data[] = {
+static struct physmap_flash_data palmtx_flash_data[] =
+{
 	{
 		.width		= 2,			/* bankwidth in bytes */
 		.parts		= palmtx_partitions,
@@ -148,13 +151,15 @@ static struct physmap_flash_data palmtx_flash_data[] = {
 	}
 };
 
-static struct resource palmtx_flash_resource = {
+static struct resource palmtx_flash_resource =
+{
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_8M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device palmtx_flash = {
+static struct platform_device palmtx_flash =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.resource	= &palmtx_flash_resource,
@@ -176,7 +181,8 @@ static inline void palmtx_nor_init(void) {}
  * GPIO keyboard
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_PXA27x) || defined(CONFIG_KEYBOARD_PXA27x_MODULE)
-static const unsigned int palmtx_matrix_keys[] = {
+static const unsigned int palmtx_matrix_keys[] =
+{
 	KEY(0, 0, KEY_POWER),
 	KEY(0, 1, KEY_F1),
 	KEY(0, 2, KEY_ENTER),
@@ -192,12 +198,14 @@ static const unsigned int palmtx_matrix_keys[] = {
 	KEY(3, 2, KEY_LEFT),
 };
 
-static struct matrix_keymap_data palmtx_matrix_keymap_data = {
+static struct matrix_keymap_data palmtx_matrix_keymap_data =
+{
 	.keymap			= palmtx_matrix_keys,
 	.keymap_size		= ARRAY_SIZE(palmtx_matrix_keys),
 };
 
-static struct pxa27x_keypad_platform_data palmtx_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data palmtx_keypad_platform_data =
+{
 	.matrix_key_rows	= 4,
 	.matrix_key_cols	= 3,
 	.matrix_keymap_data	= &palmtx_matrix_keymap_data,
@@ -217,16 +225,19 @@ static inline void palmtx_kpc_init(void) {}
  * GPIO keys
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-static struct gpio_keys_button palmtx_pxa_buttons[] = {
+static struct gpio_keys_button palmtx_pxa_buttons[] =
+{
 	{KEY_F8, GPIO_NR_PALMTX_HOTSYNC_BUTTON_N, 1, "HotSync Button" },
 };
 
-static struct gpio_keys_platform_data palmtx_pxa_keys_data = {
+static struct gpio_keys_platform_data palmtx_pxa_keys_data =
+{
 	.buttons	= palmtx_pxa_buttons,
 	.nbuttons	= ARRAY_SIZE(palmtx_pxa_buttons),
 };
 
-static struct platform_device palmtx_pxa_keys = {
+static struct platform_device palmtx_pxa_keys =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -248,23 +259,32 @@ static inline void palmtx_keys_init(void) {}
 #if defined(CONFIG_MTD_NAND_PLATFORM) || \
 	defined(CONFIG_MTD_NAND_PLATFORM_MODULE)
 static void palmtx_nand_cmd_ctl(struct mtd_info *mtd, int cmd,
-				 unsigned int ctrl)
+								unsigned int ctrl)
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 	char __iomem *nandaddr = this->IO_ADDR_W;
 
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		writeb(cmd, PALMTX_NAND_CLE_VIRT);
+	}
 	else if (ctrl & NAND_ALE)
+	{
 		writeb(cmd, PALMTX_NAND_ALE_VIRT);
+	}
 	else
+	{
 		writeb(cmd, nandaddr);
+	}
 }
 
-static struct mtd_partition palmtx_partition_info[] = {
+static struct mtd_partition palmtx_partition_info[] =
+{
 	[0] = {
 		.name	= "palmtx-0",
 		.offset	= 0,
@@ -272,7 +292,8 @@ static struct mtd_partition palmtx_partition_info[] = {
 	},
 };
 
-struct platform_nand_data palmtx_nand_platdata = {
+struct platform_nand_data palmtx_nand_platdata =
+{
 	.chip	= {
 		.nr_chips		= 1,
 		.chip_offset		= 0,
@@ -285,7 +306,8 @@ struct platform_nand_data palmtx_nand_platdata = {
 	},
 };
 
-static struct resource palmtx_nand_resource[] = {
+static struct resource palmtx_nand_resource[] =
+{
 	[0]	= {
 		.start	= PXA_CS1_PHYS,
 		.end	= PXA_CS1_PHYS + SZ_1M - 1,
@@ -293,7 +315,8 @@ static struct resource palmtx_nand_resource[] = {
 	},
 };
 
-static struct platform_device palmtx_nand = {
+static struct platform_device palmtx_nand =
+{
 	.name		= "gen_nand",
 	.num_resources	= ARRAY_SIZE(palmtx_nand_resource),
 	.resource	= palmtx_nand_resource,
@@ -314,23 +337,24 @@ static inline void palmtx_nand_init(void) {}
 /******************************************************************************
  * Machine init
  ******************************************************************************/
-static struct map_desc palmtx_io_desc[] __initdata = {
+static struct map_desc palmtx_io_desc[] __initdata =
 {
-	.virtual	= (unsigned long)PALMTX_PCMCIA_VIRT,
-	.pfn		= __phys_to_pfn(PALMTX_PCMCIA_PHYS),
-	.length		= PALMTX_PCMCIA_SIZE,
-	.type		= MT_DEVICE,
-}, {
-	.virtual	= (unsigned long)PALMTX_NAND_ALE_VIRT,
-	.pfn		= __phys_to_pfn(PALMTX_NAND_ALE_PHYS),
-	.length		= SZ_1M,
-	.type		= MT_DEVICE,
-}, {
-	.virtual	= (unsigned long)PALMTX_NAND_CLE_VIRT,
-	.pfn		= __phys_to_pfn(PALMTX_NAND_CLE_PHYS),
-	.length		= SZ_1M,
-	.type		= MT_DEVICE,
-}
+	{
+		.virtual	= (unsigned long)PALMTX_PCMCIA_VIRT,
+		.pfn		= __phys_to_pfn(PALMTX_PCMCIA_PHYS),
+		.length		= PALMTX_PCMCIA_SIZE,
+		.type		= MT_DEVICE,
+	}, {
+		.virtual	= (unsigned long)PALMTX_NAND_ALE_VIRT,
+		.pfn		= __phys_to_pfn(PALMTX_NAND_ALE_PHYS),
+		.length		= SZ_1M,
+		.type		= MT_DEVICE,
+	}, {
+		.virtual	= (unsigned long)PALMTX_NAND_CLE_VIRT,
+		.pfn		= __phys_to_pfn(PALMTX_NAND_CLE_PHYS),
+		.length		= SZ_1M,
+		.type		= MT_DEVICE,
+	}
 };
 
 static void __init palmtx_map_io(void)
@@ -347,14 +371,14 @@ static void __init palmtx_init(void)
 	pxa_set_stuart_info(NULL);
 
 	palm27x_mmc_init(GPIO_NR_PALMTX_SD_DETECT_N, GPIO_NR_PALMTX_SD_READONLY,
-			GPIO_NR_PALMTX_SD_POWER, 0);
+					 GPIO_NR_PALMTX_SD_POWER, 0);
 	palm27x_pm_init(PALMTX_STR_BASE);
 	palm27x_lcd_init(-1, &palm_320x480_lcd_mode);
 	palm27x_udc_init(GPIO_NR_PALMTX_USB_DETECT_N,
-			GPIO_NR_PALMTX_USB_PULLUP, 1);
+					 GPIO_NR_PALMTX_USB_PULLUP, 1);
 	palm27x_irda_init(GPIO_NR_PALMTX_IR_DISABLE);
 	palm27x_ac97_init(PALMTX_BAT_MIN_VOLTAGE, PALMTX_BAT_MAX_VOLTAGE,
-			GPIO_NR_PALMTX_EARPHONE_DETECT, 95);
+					  GPIO_NR_PALMTX_EARPHONE_DETECT, 95);
 	palm27x_pwm_init(GPIO_NR_PALMTX_BL_POWER, GPIO_NR_PALMTX_LCD_POWER);
 	palm27x_power_init(GPIO_NR_PALMTX_POWER_DETECT, -1);
 	palm27x_pmic_init();
@@ -365,12 +389,12 @@ static void __init palmtx_init(void)
 }
 
 MACHINE_START(PALMTX, "Palm T|X")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= palmtx_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= palmtx_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa27x_init_irq,
+			   .handle_irq	= pxa27x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= palmtx_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

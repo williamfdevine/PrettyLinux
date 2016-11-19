@@ -28,26 +28,28 @@ static int ftrace_modify_code(unsigned long ip, u32 old, u32 new)
 	int faulted;
 
 	__asm__ __volatile__(
-	"1:	cas	[%[ip]], %[old], %[new]\n"
-	"	flush	%[ip]\n"
-	"	mov	0, %[faulted]\n"
-	"2:\n"
-	"	.section .fixup,#alloc,#execinstr\n"
-	"	.align	4\n"
-	"3:	sethi	%%hi(2b), %[faulted]\n"
-	"	jmpl	%[faulted] + %%lo(2b), %%g0\n"
-	"	 mov	1, %[faulted]\n"
-	"	.previous\n"
-	"	.section __ex_table,\"a\"\n"
-	"	.align	4\n"
-	"	.word	1b, 3b\n"
-	"	.previous\n"
-	: "=r" (replaced), [faulted] "=r" (faulted)
-	: [new] "0" (new), [old] "r" (old), [ip] "r" (ip)
-	: "memory");
+		"1:	cas	[%[ip]], %[old], %[new]\n"
+		"	flush	%[ip]\n"
+		"	mov	0, %[faulted]\n"
+		"2:\n"
+		"	.section .fixup,#alloc,#execinstr\n"
+		"	.align	4\n"
+		"3:	sethi	%%hi(2b), %[faulted]\n"
+		"	jmpl	%[faulted] + %%lo(2b), %%g0\n"
+		"	 mov	1, %[faulted]\n"
+		"	.previous\n"
+		"	.section __ex_table,\"a\"\n"
+		"	.align	4\n"
+		"	.word	1b, 3b\n"
+		"	.previous\n"
+		: "=r" (replaced), [faulted] "=r" (faulted)
+		: [new] "0" (new), [old] "r" (old), [ip] "r" (ip)
+		: "memory");
 
 	if (replaced != old && replaced != new)
+	{
 		faulted = 2;
+	}
 
 	return faulted;
 }
@@ -121,23 +123,28 @@ int ftrace_disable_ftrace_graph_caller(void)
  * in current thread info.
  */
 unsigned long prepare_ftrace_return(unsigned long parent,
-				    unsigned long self_addr,
-				    unsigned long frame_pointer)
+									unsigned long self_addr,
+									unsigned long frame_pointer)
 {
 	unsigned long return_hooker = (unsigned long) &return_to_handler;
 	struct ftrace_graph_ent trace;
 
 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+	{
 		return parent + 8UL;
+	}
 
 	if (ftrace_push_return_trace(parent, self_addr, &trace.depth,
-				     frame_pointer, NULL) == -EBUSY)
+								 frame_pointer, NULL) == -EBUSY)
+	{
 		return parent + 8UL;
+	}
 
 	trace.func = self_addr;
 
 	/* Only trace if the calling function expects to */
-	if (!ftrace_graph_entry(&trace)) {
+	if (!ftrace_graph_entry(&trace))
+	{
 		current->curr_ret_stack--;
 		return parent + 8UL;
 	}

@@ -47,19 +47,20 @@ void at32_spi_setup_slaves(unsigned int bus_num, struct spi_board_info *b, unsig
 struct atmel_lcdfb_pdata;
 struct platform_device *
 at32_add_device_lcdc(unsigned int id, struct atmel_lcdfb_pdata *data,
-		     unsigned long fbmem_start, unsigned long fbmem_len,
-		     u64 pin_mask);
+					 unsigned long fbmem_start, unsigned long fbmem_len,
+					 u64 pin_mask);
 
 struct usba_platform_data;
 struct platform_device *
 at32_add_device_usba(unsigned int id, struct usba_platform_data *data);
 
-struct ide_platform_data {
+struct ide_platform_data
+{
 	u8      cs;
 };
 struct platform_device *
 at32_add_device_ide(unsigned int id, unsigned int extint,
-		    struct ide_platform_data *data);
+					struct ide_platform_data *data);
 
 /* mask says which PWM channels to mux */
 struct platform_device *at32_add_device_pwm(u32 mask);
@@ -80,8 +81,8 @@ at32_add_device_ssc(unsigned int id, unsigned int flags);
 
 struct i2c_board_info;
 struct platform_device *at32_add_device_twi(unsigned int id,
-					    struct i2c_board_info *b,
-					    unsigned int n);
+		struct i2c_board_info *b,
+		unsigned int n);
 
 struct mci_platform_data;
 struct platform_device *
@@ -90,7 +91,7 @@ at32_add_device_mci(unsigned int id, struct mci_platform_data *data);
 struct ac97c_platform_data;
 struct platform_device *
 at32_add_device_ac97c(unsigned int id, struct ac97c_platform_data *data,
-		      unsigned int flags);
+					  unsigned int flags);
 
 struct atmel_abdac_pdata;
 struct platform_device *
@@ -98,7 +99,8 @@ at32_add_device_abdac(unsigned int id, struct atmel_abdac_pdata *data);
 
 struct platform_device *at32_add_device_psif(unsigned int id);
 
-struct cf_platform_data {
+struct cf_platform_data
+{
 	int	detect_pin;
 	int	reset_pin;
 	int	vcc_pin;
@@ -107,7 +109,7 @@ struct cf_platform_data {
 };
 struct platform_device *
 at32_add_device_cf(unsigned int id, unsigned int extint,
-		struct cf_platform_data *data);
+				   struct cf_platform_data *data);
 
 struct platform_device *
 at32_add_device_nand(unsigned int id, struct atmel_nand_data *data);

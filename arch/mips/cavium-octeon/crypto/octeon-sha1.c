@@ -35,7 +35,8 @@
 static void octeon_sha1_store_hash(struct sha1_state *sctx)
 {
 	u64 *hash = (u64 *)sctx->state;
-	union {
+	union
+	{
 		u32 word[2];
 		u64 dword;
 	} hash_tail = { { sctx->state[4], } };
@@ -49,7 +50,8 @@ static void octeon_sha1_store_hash(struct sha1_state *sctx)
 static void octeon_sha1_read_hash(struct sha1_state *sctx)
 {
 	u64 *hash = (u64 *)sctx->state;
-	union {
+	union
+	{
 		u32 word[2];
 		u64 dword;
 	} hash_tail;
@@ -90,7 +92,7 @@ static int octeon_sha1_init(struct shash_desc *desc)
 }
 
 static void __octeon_sha1_update(struct sha1_state *sctx, const u8 *data,
-				 unsigned int len)
+								 unsigned int len)
 {
 	unsigned int partial;
 	unsigned int done;
@@ -101,27 +103,32 @@ static void __octeon_sha1_update(struct sha1_state *sctx, const u8 *data,
 	done = 0;
 	src = data;
 
-	if ((partial + len) >= SHA1_BLOCK_SIZE) {
-		if (partial) {
+	if ((partial + len) >= SHA1_BLOCK_SIZE)
+	{
+		if (partial)
+		{
 			done = -partial;
 			memcpy(sctx->buffer + partial, data,
-			       done + SHA1_BLOCK_SIZE);
+				   done + SHA1_BLOCK_SIZE);
 			src = sctx->buffer;
 		}
 
-		do {
+		do
+		{
 			octeon_sha1_transform(src);
 			done += SHA1_BLOCK_SIZE;
 			src = data + done;
-		} while (done + SHA1_BLOCK_SIZE <= len);
+		}
+		while (done + SHA1_BLOCK_SIZE <= len);
 
 		partial = 0;
 	}
+
 	memcpy(sctx->buffer + partial, src, len - done);
 }
 
 static int octeon_sha1_update(struct shash_desc *desc, const u8 *data,
-			unsigned int len)
+							  unsigned int len)
 {
 	struct sha1_state *sctx = shash_desc_ctx(desc);
 	struct octeon_cop2_state state;
@@ -133,7 +140,9 @@ static int octeon_sha1_update(struct shash_desc *desc, const u8 *data,
 	 * octeon_crypto_disable().
 	 */
 	if ((sctx->count % SHA1_BLOCK_SIZE) + len < SHA1_BLOCK_SIZE)
+	{
 		return crypto_sha1_update(desc, data, len);
+	}
 
 	flags = octeon_crypto_enable(&state);
 	octeon_sha1_store_hash(sctx);
@@ -163,7 +172,7 @@ static int octeon_sha1_final(struct shash_desc *desc, u8 *out)
 
 	/* Pad out to 56 mod 64. */
 	index = sctx->count & 0x3f;
-	pad_len = (index < 56) ? (56 - index) : ((64+56) - index);
+	pad_len = (index < 56) ? (56 - index) : ((64 + 56) - index);
 
 	flags = octeon_crypto_enable(&state);
 	octeon_sha1_store_hash(sctx);
@@ -178,7 +187,9 @@ static int octeon_sha1_final(struct shash_desc *desc, u8 *out)
 
 	/* Store state in digest */
 	for (i = 0; i < 5; i++)
+	{
 		dst[i] = cpu_to_be32(sctx->state[i]);
+	}
 
 	/* Zeroize sensitive information. */
 	memset(sctx, 0, sizeof(*sctx));
@@ -202,7 +213,8 @@ static int octeon_sha1_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg octeon_sha1_alg = {
+static struct shash_alg octeon_sha1_alg =
+{
 	.digestsize	=	SHA1_DIGEST_SIZE,
 	.init		=	octeon_sha1_init,
 	.update		=	octeon_sha1_update,
@@ -213,7 +225,7 @@ static struct shash_alg octeon_sha1_alg = {
 	.statesize	=	sizeof(struct sha1_state),
 	.base		=	{
 		.cra_name	=	"sha1",
-		.cra_driver_name=	"octeon-sha1",
+		.cra_driver_name =	"octeon-sha1",
 		.cra_priority	=	OCTEON_CR_OPCODE_PRIORITY,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA1_BLOCK_SIZE,
@@ -224,7 +236,10 @@ static struct shash_alg octeon_sha1_alg = {
 static int __init octeon_sha1_mod_init(void)
 {
 	if (!octeon_has_crypto())
+	{
 		return -ENOTSUPP;
+	}
+
 	return crypto_register_shash(&octeon_sha1_alg);
 }
 

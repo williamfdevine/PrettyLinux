@@ -59,7 +59,7 @@ void __init paging_init(void)
 	free_area_init(zones_size);
 
 	flush_dcache_range((unsigned long)empty_zero_page,
-			(unsigned long)empty_zero_page + PAGE_SIZE);
+					   (unsigned long)empty_zero_page + PAGE_SIZE);
 }
 
 void __init mem_init(void)
@@ -106,8 +106,11 @@ static int alloc_kuser_page(void)
 	unsigned long vpage;
 
 	vpage = get_zeroed_page(GFP_ATOMIC);
+
 	if (!vpage)
+	{
 		return -ENOMEM;
+	}
 
 	/* Copy kuser helpers */
 	memcpy((void *)vpage, __kuser_helper_start, kuser_sz);
@@ -128,8 +131,8 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 
 	/* Map kuser helpers to user space address */
 	ret = install_special_mapping(mm, KUSER_BASE, KUSER_SIZE,
-				      VM_READ | VM_EXEC | VM_MAYREAD |
-				      VM_MAYEXEC, kuser_page);
+								  VM_READ | VM_EXEC | VM_MAYREAD |
+								  VM_MAYEXEC, kuser_page);
 
 	up_write(&mm->mmap_sem);
 

@@ -30,7 +30,8 @@ static void osiris_dvs_tps_setdvs(bool on)
 {
 	unsigned vregs1 = 0, vdcdc2 = 0;
 
-	if (!on) {
+	if (!on)
+	{
 		vdcdc2 = TPS_VCORE_DISCH | TPS_LP_COREOFF;
 		vregs1 = TPS_LDO1_OFF;	/* turn off in low-power mode */
 	}
@@ -53,7 +54,7 @@ static bool is_dvs(struct s3c_freq *f)
 static bool cur_dvs = false;
 
 static int osiris_dvs_notify(struct notifier_block *nb,
-			      unsigned long val, void *data)
+							 unsigned long val, void *data)
 {
 	struct cpufreq_freqs *cf = data;
 	struct s3c_cpufreq_freqs *freqs = to_s3c_cpufreq(cf);
@@ -62,35 +63,44 @@ static int osiris_dvs_notify(struct notifier_block *nb,
 	int ret = 0;
 
 	if (!dvs_en)
+	{
 		return 0;
+	}
 
 	printk(KERN_DEBUG "%s: old %ld,%ld new %ld,%ld\n", __func__,
-	       freqs->old.armclk, freqs->old.hclk,
-	       freqs->new.armclk, freqs->new.hclk);
+		   freqs->old.armclk, freqs->old.hclk,
+		   freqs->new.armclk, freqs->new.hclk);
 
-	switch (val) {
-	case CPUFREQ_PRECHANGE:
-		if (old_dvs & !new_dvs ||
-		    cur_dvs & !new_dvs) {
-			pr_debug("%s: exiting dvs\n", __func__);
-			cur_dvs = false;
-			gpio_set_value(OSIRIS_GPIO_DVS, 1);
-		}
-		break;
-	case CPUFREQ_POSTCHANGE:
-		if (!old_dvs & new_dvs ||
-		    !cur_dvs & new_dvs) {
-			pr_debug("entering dvs\n");
-			cur_dvs = true;
-			gpio_set_value(OSIRIS_GPIO_DVS, 0);
-		}
-		break;
+	switch (val)
+	{
+		case CPUFREQ_PRECHANGE:
+			if (old_dvs & !new_dvs ||
+				cur_dvs & !new_dvs)
+			{
+				pr_debug("%s: exiting dvs\n", __func__);
+				cur_dvs = false;
+				gpio_set_value(OSIRIS_GPIO_DVS, 1);
+			}
+
+			break;
+
+		case CPUFREQ_POSTCHANGE:
+			if (!old_dvs & new_dvs ||
+				!cur_dvs & new_dvs)
+			{
+				pr_debug("entering dvs\n");
+				cur_dvs = true;
+				gpio_set_value(OSIRIS_GPIO_DVS, 0);
+			}
+
+			break;
 	}
 
 	return ret;
 }
 
-static struct notifier_block osiris_dvs_nb = {
+static struct notifier_block osiris_dvs_nb =
+{
 	.notifier_call	= osiris_dvs_notify,
 };
 
@@ -101,7 +111,9 @@ static int osiris_dvs_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "initialising\n");
 
 	ret = gpio_request(OSIRIS_GPIO_DVS, "osiris-dvs");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot claim gpio\n");
 		goto err_nogpio;
 	}
@@ -110,8 +122,10 @@ static int osiris_dvs_probe(struct platform_device *pdev)
 	gpio_direction_output(OSIRIS_GPIO_DVS, 1);
 
 	ret = cpufreq_register_notifier(&osiris_dvs_nb,
-					CPUFREQ_TRANSITION_NOTIFIER);
-	if (ret) {
+									CPUFREQ_TRANSITION_NOTIFIER);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register with cpufreq\n");
 		goto err_nofreq;
 	}
@@ -136,7 +150,7 @@ static int osiris_dvs_remove(struct platform_device *pdev)
 	osiris_dvs_tps_setdvs(false);
 
 	cpufreq_unregister_notifier(&osiris_dvs_nb,
-				    CPUFREQ_TRANSITION_NOTIFIER);
+								CPUFREQ_TRANSITION_NOTIFIER);
 
 	gpio_free(OSIRIS_GPIO_DVS);
 
@@ -161,12 +175,14 @@ static int osiris_dvs_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops osiris_dvs_pm = {
+static const struct dev_pm_ops osiris_dvs_pm =
+{
 	.suspend	= osiris_dvs_suspend,
 	.resume		= osiris_dvs_resume,
 };
 
-static struct platform_driver osiris_dvs_driver = {
+static struct platform_driver osiris_dvs_driver =
+{
 	.probe		= osiris_dvs_probe,
 	.remove		= osiris_dvs_remove,
 	.driver		= {

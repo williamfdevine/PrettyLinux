@@ -40,47 +40,47 @@
 #define CVMX_SYNCW_STR "syncw\nsyncw\n"
 #ifdef __OCTEON__
 
-/* Deprecated, will be removed in future release */
-#define CVMX_SYNCIO asm volatile ("nop")
+	/* Deprecated, will be removed in future release */
+	#define CVMX_SYNCIO asm volatile ("nop")
 
-#define CVMX_SYNCIOBDMA asm volatile ("synciobdma" : : : "memory")
+	#define CVMX_SYNCIOBDMA asm volatile ("synciobdma" : : : "memory")
 
-/* Deprecated, will be removed in future release */
-#define CVMX_SYNCIOALL asm volatile ("nop")
+	/* Deprecated, will be removed in future release */
+	#define CVMX_SYNCIOALL asm volatile ("nop")
 
-/*
- * We actually use two syncw instructions in a row when we need a write
- * memory barrier. This is because the CN3XXX series of Octeons have
- * errata Core-401. This can cause a single syncw to not enforce
- * ordering under very rare conditions. Even if it is rare, better safe
- * than sorry.
- */
-#define CVMX_SYNCW asm volatile ("syncw\n\tsyncw" : : : "memory")
+	/*
+	* We actually use two syncw instructions in a row when we need a write
+	* memory barrier. This is because the CN3XXX series of Octeons have
+	* errata Core-401. This can cause a single syncw to not enforce
+	* ordering under very rare conditions. Even if it is rare, better safe
+	* than sorry.
+	*/
+	#define CVMX_SYNCW asm volatile ("syncw\n\tsyncw" : : : "memory")
 
-/*
- * Define new sync instructions to be normal SYNC instructions for
- * operating systems that use threads.
- */
-#define CVMX_SYNCWS CVMX_SYNCW
-#define CVMX_SYNCS  CVMX_SYNC
-#define CVMX_SYNCWS_STR CVMX_SYNCW_STR
+	/*
+	* Define new sync instructions to be normal SYNC instructions for
+	* operating systems that use threads.
+	*/
+	#define CVMX_SYNCWS CVMX_SYNCW
+	#define CVMX_SYNCS  CVMX_SYNC
+	#define CVMX_SYNCWS_STR CVMX_SYNCW_STR
 #else
-/*
- * Not using a Cavium compiler, always use the slower sync so the
- * assembler stays happy.
- */
-/* Deprecated, will be removed in future release */
-#define CVMX_SYNCIO asm volatile ("nop")
+	/*
+	* Not using a Cavium compiler, always use the slower sync so the
+	* assembler stays happy.
+	*/
+	/* Deprecated, will be removed in future release */
+	#define CVMX_SYNCIO asm volatile ("nop")
 
-#define CVMX_SYNCIOBDMA asm volatile ("sync" : : : "memory")
+	#define CVMX_SYNCIOBDMA asm volatile ("sync" : : : "memory")
 
-/* Deprecated, will be removed in future release */
-#define CVMX_SYNCIOALL asm volatile ("nop")
+	/* Deprecated, will be removed in future release */
+	#define CVMX_SYNCIOALL asm volatile ("nop")
 
-#define CVMX_SYNCW asm volatile ("sync" : : : "memory")
-#define CVMX_SYNCWS CVMX_SYNCW
-#define CVMX_SYNCS  CVMX_SYNC
-#define CVMX_SYNCWS_STR CVMX_SYNCW_STR
+	#define CVMX_SYNCW asm volatile ("sync" : : : "memory")
+	#define CVMX_SYNCWS CVMX_SYNCW
+	#define CVMX_SYNCS  CVMX_SYNC
+	#define CVMX_SYNCWS_STR CVMX_SYNCW_STR
 #endif
 
 /*
@@ -92,7 +92,7 @@
  */
 #define CVMX_PREPARE_FOR_STORE(address, offset) \
 	asm volatile ("pref 30, " CVMX_TMP_STR(offset) "(%[rbase])" : : \
-	[rbase] "d" (address))
+				  [rbase] "d" (address))
 /*
  * This is a command headed to the L2 controller to tell it to clear
  * its dirty bit for a block. Basically, SW is telling HW that the
@@ -100,7 +100,7 @@
  */
 #define CVMX_DONT_WRITE_BACK(address, offset) \
 	asm volatile ("pref 29, " CVMX_TMP_STR(offset) "(%[rbase])" : : \
-	[rbase] "d" (address))
+				  [rbase] "d" (address))
 
 /* flush stores, invalidate entire icache */
 #define CVMX_ICACHE_INVALIDATE \
@@ -116,7 +116,7 @@
 
 #define CVMX_CACHE(op, address, offset)					\
 	asm volatile ("cache " CVMX_TMP_STR(op) ", " CVMX_TMP_STR(offset) "(%[rbase])" \
-		: : [rbase] "d" (address) )
+				  : : [rbase] "d" (address) )
 /* fetch and lock the state. */
 #define CVMX_CACHE_LCKL2(address, offset) CVMX_CACHE(31, address, offset)
 /* unlock the state. */

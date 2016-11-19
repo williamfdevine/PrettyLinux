@@ -74,7 +74,7 @@ void __raw_readsl(const volatile void __iomem *addr, void *data, int longlen);
 static inline void __raw_writew(u16 val, volatile void __iomem *addr)
 {
 	asm volatile("strh %1, %0"
-		     : : "Q" (*(volatile u16 __force *)addr), "r" (val));
+				 : : "Q" (*(volatile u16 __force *)addr), "r" (val));
 }
 
 #define __raw_readw __raw_readw
@@ -82,8 +82,8 @@ static inline u16 __raw_readw(const volatile void __iomem *addr)
 {
 	u16 val;
 	asm volatile("ldrh %0, %1"
-		     : "=r" (val)
-		     : "Q" (*(volatile u16 __force *)addr));
+				 : "=r" (val)
+				 : "Q" (*(volatile u16 __force *)addr));
 	return val;
 }
 #endif
@@ -92,14 +92,14 @@ static inline u16 __raw_readw(const volatile void __iomem *addr)
 static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
 {
 	asm volatile("strb %1, %0"
-		     : : "Qo" (*(volatile u8 __force *)addr), "r" (val));
+				 : : "Qo" (*(volatile u8 __force *)addr), "r" (val));
 }
 
 #define __raw_writel __raw_writel
 static inline void __raw_writel(u32 val, volatile void __iomem *addr)
 {
 	asm volatile("str %1, %0"
-		     : : "Qo" (*(volatile u32 __force *)addr), "r" (val));
+				 : : "Qo" (*(volatile u32 __force *)addr), "r" (val));
 }
 
 #define __raw_readb __raw_readb
@@ -107,8 +107,8 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
 {
 	u8 val;
 	asm volatile("ldrb %0, %1"
-		     : "=r" (val)
-		     : "Qo" (*(volatile u8 __force *)addr));
+				 : "=r" (val)
+				 : "Qo" (*(volatile u8 __force *)addr));
 	return val;
 }
 
@@ -117,8 +117,8 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 {
 	u32 val;
 	asm volatile("ldr %0, %1"
-		     : "=r" (val)
-		     : "Qo" (*(volatile u32 __force *)addr));
+				 : "=r" (val)
+				 : "Qo" (*(volatile u32 __force *)addr));
 	return val;
 }
 
@@ -141,13 +141,13 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
  * /proc/vmalloc to use - and should only be used in non-inline functions.
  */
 extern void __iomem *__arm_ioremap_caller(phys_addr_t, size_t, unsigned int,
-	void *);
+		void *);
 extern void __iomem *__arm_ioremap_pfn(unsigned long, unsigned long, size_t, unsigned int);
 extern void __iomem *__arm_ioremap_exec(phys_addr_t, size_t, bool cached);
 extern void __iounmap(volatile void __iomem *addr);
 
-extern void __iomem * (*arch_ioremap_caller)(phys_addr_t, size_t,
-	unsigned int, void *);
+extern void __iomem *(*arch_ioremap_caller)(phys_addr_t, size_t,
+		unsigned int, void *);
 extern void (*arch_iounmap)(volatile void __iomem *);
 
 /*
@@ -167,12 +167,12 @@ static inline void __iomem *__typesafe_io(unsigned long addr)
 
 /* IO barriers */
 #ifdef CONFIG_ARM_DMA_MEM_BUFFERABLE
-#include <asm/barrier.h>
-#define __iormb()		rmb()
-#define __iowmb()		wmb()
+	#include <asm/barrier.h>
+	#define __iormb()		rmb()
+	#define __iowmb()		wmb()
 #else
-#define __iormb()		do { } while (0)
-#define __iowmb()		do { } while (0)
+	#define __iormb()		do { } while (0)
+	#define __iowmb()		do { } while (0)
 #endif
 
 /* PCI fixed i/o mapping */
@@ -191,12 +191,12 @@ extern int pci_ioremap_io(unsigned int offset, phys_addr_t phys_addr);
  * Now, pick up the machine-defined IO definitions
  */
 #ifdef CONFIG_NEED_MACH_IO_H
-#include <mach/io.h>
+	#include <mach/io.h>
 #elif defined(CONFIG_PCI)
-#define IO_SPACE_LIMIT	((resource_size_t)0xfffff)
-#define __io(a)		__typesafe_io(PCI_IO_VIRT_BASE + ((a) & IO_SPACE_LIMIT))
+	#define IO_SPACE_LIMIT	((resource_size_t)0xfffff)
+	#define __io(a)		__typesafe_io(PCI_IO_VIRT_BASE + ((a) & IO_SPACE_LIMIT))
 #else
-#define __io(a)		__typesafe_io((a) & IO_SPACE_LIMIT)
+	#define __io(a)		__typesafe_io((a) & IO_SPACE_LIMIT)
 #endif
 
 /*
@@ -211,13 +211,13 @@ extern int pci_ioremap_io(unsigned int offset, phys_addr_t phys_addr);
  * readb() et.al. on such platforms.
  */
 #ifndef IO_SPACE_LIMIT
-#if defined(CONFIG_PCMCIA_SOC_COMMON) || defined(CONFIG_PCMCIA_SOC_COMMON_MODULE)
-#define IO_SPACE_LIMIT ((resource_size_t)0xffffffff)
-#elif defined(CONFIG_PCI) || defined(CONFIG_ISA) || defined(CONFIG_PCCARD)
-#define IO_SPACE_LIMIT ((resource_size_t)0xffff)
-#else
-#define IO_SPACE_LIMIT ((resource_size_t)0)
-#endif
+	#if defined(CONFIG_PCMCIA_SOC_COMMON) || defined(CONFIG_PCMCIA_SOC_COMMON_MODULE)
+		#define IO_SPACE_LIMIT ((resource_size_t)0xffffffff)
+	#elif defined(CONFIG_PCI) || defined(CONFIG_ISA) || defined(CONFIG_PCCARD)
+		#define IO_SPACE_LIMIT ((resource_size_t)0xffff)
+	#else
+		#define IO_SPACE_LIMIT ((resource_size_t)0)
+	#endif
 #endif
 
 /*
@@ -247,15 +247,15 @@ extern int pci_ioremap_io(unsigned int offset, phys_addr_t phys_addr);
 #ifdef __io
 #define outb(v,p)	({ __iowmb(); __raw_writeb(v,__io(p)); })
 #define outw(v,p)	({ __iowmb(); __raw_writew((__force __u16) \
-					cpu_to_le16(v),__io(p)); })
+			cpu_to_le16(v),__io(p)); })
 #define outl(v,p)	({ __iowmb(); __raw_writel((__force __u32) \
-					cpu_to_le32(v),__io(p)); })
+			cpu_to_le32(v),__io(p)); })
 
 #define inb(p)	({ __u8 __v = __raw_readb(__io(p)); __iormb(); __v; })
 #define inw(p)	({ __u16 __v = le16_to_cpu((__force __le16) \
-			__raw_readw(__io(p))); __iormb(); __v; })
+								   __raw_readw(__io(p))); __iormb(); __v; })
 #define inl(p)	({ __u32 __v = le32_to_cpu((__force __le32) \
-			__raw_readl(__io(p))); __iormb(); __v; })
+								   __raw_readl(__io(p))); __iormb(); __v; })
 
 #define outsb(p,d,l)		__raw_writesb(__io(p),d,l)
 #define outsw(p,d,l)		__raw_writesw(__io(p),d,l)
@@ -288,9 +288,9 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
 #ifndef readl
 #define readb_relaxed(c) ({ u8  __r = __raw_readb(c); __r; })
 #define readw_relaxed(c) ({ u16 __r = le16_to_cpu((__force __le16) \
-					__raw_readw(c)); __r; })
+										  __raw_readw(c)); __r; })
 #define readl_relaxed(c) ({ u32 __r = le32_to_cpu((__force __le32) \
-					__raw_readl(c)); __r; })
+										  __raw_readl(c)); __r; })
 
 #define writeb_relaxed(v,c)	__raw_writeb(v,c)
 #define writew_relaxed(v,c)	__raw_writew((__force u16) cpu_to_le16(v),c)
@@ -314,7 +314,7 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
 
 #ifndef __ARMBE__
 static inline void memset_io(volatile void __iomem *dst, unsigned c,
-	size_t count)
+							 size_t count)
 {
 	extern void mmioset(void *, unsigned int, size_t);
 	mmioset((void __force *)dst, c, count);
@@ -322,7 +322,7 @@ static inline void memset_io(volatile void __iomem *dst, unsigned c,
 #define memset_io(dst,c,count) memset_io(dst,c,count)
 
 static inline void memcpy_fromio(void *to, const volatile void __iomem *from,
-	size_t count)
+								 size_t count)
 {
 	extern void mmiocpy(void *, const void *, size_t);
 	mmiocpy(to, (const void __force *)from, count);
@@ -330,7 +330,7 @@ static inline void memcpy_fromio(void *to, const volatile void __iomem *from,
 #define memcpy_fromio(to,from,count) memcpy_fromio(to,from,count)
 
 static inline void memcpy_toio(volatile void __iomem *to, const void *from,
-	size_t count)
+							   size_t count)
 {
 	extern void mmiocpy(void *, const void *, size_t);
 	mmiocpy((void __force *)to, from, count);
@@ -424,12 +424,12 @@ void *arch_memremap_wb(phys_addr_t phys_addr, size_t size);
 #define iowrite32be(v,p)	({ __iowmb(); __raw_writel((__force __u32)cpu_to_be32(v), p); })
 
 #ifndef ioport_map
-#define ioport_map ioport_map
-extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
+	#define ioport_map ioport_map
+	extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
 #endif
 #ifndef ioport_unmap
-#define ioport_unmap ioport_unmap
-extern void ioport_unmap(void __iomem *addr);
+	#define ioport_unmap ioport_unmap
+	extern void ioport_unmap(void __iomem *addr);
 #endif
 
 struct pci_dev;
@@ -459,16 +459,16 @@ extern void pci_iounmap(struct pci_dev *dev, void __iomem *addr);
 
 struct bio_vec;
 extern bool xen_biovec_phys_mergeable(const struct bio_vec *vec1,
-				      const struct bio_vec *vec2);
+									  const struct bio_vec *vec2);
 #define BIOVEC_PHYS_MERGEABLE(vec1, vec2)				\
 	(__BIOVEC_PHYS_MERGEABLE(vec1, vec2) &&				\
 	 (!xen_domain() || xen_biovec_phys_mergeable(vec1, vec2)))
 
 #ifdef CONFIG_MMU
-#define ARCH_HAS_VALID_PHYS_ADDR_RANGE
-extern int valid_phys_addr_range(phys_addr_t addr, size_t size);
-extern int valid_mmap_phys_addr_range(unsigned long pfn, size_t size);
-extern int devmem_is_allowed(unsigned long pfn);
+	#define ARCH_HAS_VALID_PHYS_ADDR_RANGE
+	extern int valid_phys_addr_range(phys_addr_t addr, size_t size);
+	extern int valid_mmap_phys_addr_range(unsigned long pfn, size_t size);
+	extern int devmem_is_allowed(unsigned long pfn);
 #endif
 
 /*
@@ -476,7 +476,7 @@ extern int devmem_is_allowed(unsigned long pfn);
  * emulation.
  */
 extern void register_isa_ports(unsigned int mmio, unsigned int io,
-			       unsigned int io_shift);
+							   unsigned int io_shift);
 
 #endif	/* __KERNEL__ */
 #endif	/* __ASM_ARM_IO_H */

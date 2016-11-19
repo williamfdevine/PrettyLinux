@@ -13,7 +13,8 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 	return addr;
 }
 
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 	/* No extra data needed on metag */
 };
 #endif /* __ASSEMBLY__ */

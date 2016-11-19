@@ -44,78 +44,119 @@
 static int in_kernel_stack(struct KBacktraceIterator *kbt, unsigned long sp)
 {
 	ulong kstack_base = (ulong) kbt->task->stack;
+
 	if (kstack_base == 0)  /* corrupt task pointer; just follow stack... */
+	{
 		return sp >= PAGE_OFFSET && sp < (unsigned long)high_memory;
+	}
+
 	return sp >= kstack_base && sp < kstack_base + THREAD_SIZE;
 }
 
 /* Callback for backtracer; basically a glorified memcpy */
 static bool read_memory_func(void *result, unsigned long address,
-			     unsigned int size, void *vkbt)
+							 unsigned int size, void *vkbt)
 {
 	int retval;
 	struct KBacktraceIterator *kbt = (struct KBacktraceIterator *)vkbt;
 
 	if (address == 0)
+	{
 		return 0;
-	if (__kernel_text_address(address)) {
+	}
+
+	if (__kernel_text_address(address))
+	{
 		/* OK to read kernel code. */
-	} else if (address >= PAGE_OFFSET) {
+	}
+	else if (address >= PAGE_OFFSET)
+	{
 		/* We only tolerate kernel-space reads of this task's stack */
 		if (!in_kernel_stack(kbt, address))
+		{
 			return 0;
-	} else if (!kbt->is_current) {
+		}
+	}
+	else if (!kbt->is_current)
+	{
 		return 0;	/* can't read from other user address spaces */
 	}
+
 	pagefault_disable();
 	retval = __copy_from_user_inatomic(result,
-					   (void __user __force *)address,
-					   size);
+									   (void __user __force *)address,
+									   size);
 	pagefault_enable();
 	return (retval == 0);
 }
 
 /* Return a pt_regs pointer for a valid fault handler frame */
-static struct pt_regs *valid_fault_handler(struct KBacktraceIterator* kbt)
+static struct pt_regs *valid_fault_handler(struct KBacktraceIterator *kbt)
 {
 	char fault[64];
 	unsigned long sp = kbt->it.sp;
 	struct pt_regs *p;
 
 	if (sp % sizeof(long) != 0)
+	{
 		return NULL;
+	}
+
 	if (!in_kernel_stack(kbt, sp))
+	{
 		return NULL;
-	if (!in_kernel_stack(kbt, sp + C_ABI_SAVE_AREA_SIZE + PTREGS_SIZE-1))
+	}
+
+	if (!in_kernel_stack(kbt, sp + C_ABI_SAVE_AREA_SIZE + PTREGS_SIZE - 1))
+	{
 		return NULL;
+	}
+
 	p = (struct pt_regs *)(sp + C_ABI_SAVE_AREA_SIZE);
-	if (kbt->verbose) {     /* else we aren't going to use it */
+
+	if (kbt->verbose)       /* else we aren't going to use it */
+	{
 		if (p->faultnum == INT_SWINT_1 ||
-		    p->faultnum == INT_SWINT_1_SIGRETURN)
+			p->faultnum == INT_SWINT_1_SIGRETURN)
 			snprintf(fault, sizeof(fault),
-				 "syscall %ld", p->regs[TREG_SYSCALL_NR]);
+					 "syscall %ld", p->regs[TREG_SYSCALL_NR]);
 		else
 			snprintf(fault, sizeof(fault),
-				 "interrupt %ld", p->faultnum);
+					 "interrupt %ld", p->faultnum);
 	}
+
 	if (EX1_PL(p->ex1) == KERNEL_PL &&
-	    __kernel_text_address(p->pc) &&
-	    in_kernel_stack(kbt, p->sp) &&
-	    p->sp >= sp) {
+		__kernel_text_address(p->pc) &&
+		in_kernel_stack(kbt, p->sp) &&
+		p->sp >= sp)
+	{
 		if (kbt->verbose)
+		{
 			pr_err("  <%s while in kernel mode>\n", fault);
-	} else if (user_mode(p) &&
-		   p->sp < PAGE_OFFSET && p->sp != 0) {
+		}
+	}
+	else if (user_mode(p) &&
+			 p->sp < PAGE_OFFSET && p->sp != 0)
+	{
 		if (kbt->verbose)
+		{
 			pr_err("  <%s while in user mode>\n", fault);
-	} else {
+		}
+	}
+	else
+	{
 		if (kbt->verbose && (p->pc != 0 || p->sp != 0 || p->ex1 != 0))
 			pr_err("  (odd fault: pc %#lx, sp %#lx, ex1 %#lx?)\n",
-			       p->pc, p->sp, p->ex1);
+				   p->pc, p->sp, p->ex1);
+
 		return NULL;
 	}
+
 	if (kbt->profile && ((1ULL << p->faultnum) & QUEUED_INTERRUPTS) != 0)
+	{
 		return NULL;
+	}
+
 	return p;
 }
 
@@ -123,33 +164,41 @@ static struct pt_regs *valid_fault_handler(struct KBacktraceIterator* kbt)
 static int is_sigreturn(struct KBacktraceIterator *kbt)
 {
 	return kbt->task->mm &&
-		(kbt->it.pc == ((ulong)kbt->task->mm->context.vdso_base +
-				(ulong)&__vdso_rt_sigreturn));
+		   (kbt->it.pc == ((ulong)kbt->task->mm->context.vdso_base +
+						   (ulong)&__vdso_rt_sigreturn));
 }
 
 /* Return a pt_regs pointer for a valid signal handler frame */
-static struct pt_regs *valid_sigframe(struct KBacktraceIterator* kbt,
-				      struct rt_sigframe* kframe)
+static struct pt_regs *valid_sigframe(struct KBacktraceIterator *kbt,
+									  struct rt_sigframe *kframe)
 {
 	BacktraceIterator *b = &kbt->it;
 
 	if (is_sigreturn(kbt) && b->sp < PAGE_OFFSET &&
-	    b->sp % sizeof(long) == 0) {
+		b->sp % sizeof(long) == 0)
+	{
 		int retval;
 		pagefault_disable();
 		retval = __copy_from_user_inatomic(
-			kframe, (void __user __force *)b->sp,
-			sizeof(*kframe));
+					 kframe, (void __user __force *)b->sp,
+					 sizeof(*kframe));
 		pagefault_enable();
+
 		if (retval != 0 ||
-		    (unsigned int)(kframe->info.si_signo) >= _NSIG)
+			(unsigned int)(kframe->info.si_signo) >= _NSIG)
+		{
 			return NULL;
-		if (kbt->verbose) {
-			pr_err("  <received signal %d>\n",
-			       kframe->info.si_signo);
 		}
+
+		if (kbt->verbose)
+		{
+			pr_err("  <received signal %d>\n",
+				   kframe->info.si_signo);
+		}
+
 		return (struct pt_regs *)&kframe->uc.uc_mcontext;
 	}
+
 	return NULL;
 }
 
@@ -159,12 +208,19 @@ static int KBacktraceIterator_restart(struct KBacktraceIterator *kbt)
 	struct rt_sigframe kframe;
 
 	p = valid_fault_handler(kbt);
+
 	if (p == NULL)
+	{
 		p = valid_sigframe(kbt, &kframe);
+	}
+
 	if (p == NULL)
+	{
 		return 0;
+	}
+
 	backtrace_init(&kbt->it, read_memory_func, kbt,
-		       p->pc, p->lr, p->sp, p->regs[52]);
+				   p->pc, p->lr, p->sp, p->regs[52]);
 	kbt->new_context = 1;
 	return 1;
 }
@@ -173,14 +229,21 @@ static int KBacktraceIterator_restart(struct KBacktraceIterator *kbt)
 static int KBacktraceIterator_next_item_inclusive(
 	struct KBacktraceIterator *kbt)
 {
-	for (;;) {
-		do {
+	for (;;)
+	{
+		do
+		{
 			if (!is_sigreturn(kbt))
+			{
 				return KBT_ONGOING;
-		} while (backtrace_next(&kbt->it));
+			}
+		}
+		while (backtrace_next(&kbt->it));
 
 		if (!KBacktraceIterator_restart(kbt))
+		{
 			return KBT_DONE;
+		}
 	}
 }
 
@@ -199,21 +262,23 @@ static void validate_stack(struct pt_regs *regs)
 	unsigned long ksp0_base = ksp0 & -THREAD_SIZE;
 	unsigned long sp = stack_pointer;
 
-	if (EX1_PL(regs->ex1) == KERNEL_PL && regs->sp >= ksp0) {
+	if (EX1_PL(regs->ex1) == KERNEL_PL && regs->sp >= ksp0)
+	{
 		pr_err("WARNING: cpu %d: kernel stack %#lx..%#lx underrun!\n"
-		       "  sp %#lx (%#lx in caller), caller pc %#lx, lr %#lx\n",
-		       cpu, ksp0_base, ksp0, sp, regs->sp, regs->pc, regs->lr);
+			   "  sp %#lx (%#lx in caller), caller pc %#lx, lr %#lx\n",
+			   cpu, ksp0_base, ksp0, sp, regs->sp, regs->pc, regs->lr);
 	}
 
-	else if (sp < ksp0_base + sizeof(struct thread_info)) {
+	else if (sp < ksp0_base + sizeof(struct thread_info))
+	{
 		pr_err("WARNING: cpu %d: kernel stack %#lx..%#lx overrun!\n"
-		       "  sp %#lx (%#lx in caller), caller pc %#lx, lr %#lx\n",
-		       cpu, ksp0_base, ksp0, sp, regs->sp, regs->pc, regs->lr);
+			   "  sp %#lx (%#lx in caller), caller pc %#lx, lr %#lx\n",
+			   cpu, ksp0_base, ksp0, sp, regs->sp, regs->pc, regs->lr);
 	}
 }
 
 void KBacktraceIterator_init(struct KBacktraceIterator *kbt,
-			     struct task_struct *t, struct pt_regs *regs)
+							 struct task_struct *t, struct pt_regs *regs)
 {
 	unsigned long pc, lr, sp, r52;
 	int is_current;
@@ -224,27 +289,39 @@ void KBacktraceIterator_init(struct KBacktraceIterator *kbt,
 	 */
 	is_current = (t == NULL || t == current);
 	kbt->is_current = is_current;
+
 	if (is_current)
+	{
 		t = validate_current();
+	}
+
 	kbt->task = t;
 	kbt->verbose = 0;   /* override in caller if desired */
 	kbt->profile = 0;   /* override in caller if desired */
 	kbt->end = KBT_ONGOING;
 	kbt->new_context = 1;
-	if (is_current)
-		validate_stack(regs);
 
-	if (regs == NULL) {
-		if (is_current || t->state == TASK_RUNNING) {
+	if (is_current)
+	{
+		validate_stack(regs);
+	}
+
+	if (regs == NULL)
+	{
+		if (is_current || t->state == TASK_RUNNING)
+		{
 			/* Can't do this; we need registers */
 			kbt->end = KBT_RUNNING;
 			return;
 		}
+
 		pc = get_switch_to_pc();
 		lr = t->thread.pc;
 		sp = t->thread.ksp;
 		r52 = 0;
-	} else {
+	}
+	else
+	{
 		pc = regs->pc;
 		lr = regs->lr;
 		sp = regs->sp;
@@ -266,12 +343,17 @@ void KBacktraceIterator_next(struct KBacktraceIterator *kbt)
 {
 	unsigned long old_pc = kbt->it.pc, old_sp = kbt->it.sp;
 	kbt->new_context = 0;
-	if (!backtrace_next(&kbt->it) && !KBacktraceIterator_restart(kbt)) {
+
+	if (!backtrace_next(&kbt->it) && !KBacktraceIterator_restart(kbt))
+	{
 		kbt->end = KBT_DONE;
 		return;
 	}
+
 	kbt->end = KBacktraceIterator_next_item_inclusive(kbt);
-	if (old_pc == kbt->it.pc && old_sp == kbt->it.sp) {
+
+	if (old_pc == kbt->it.pc && old_sp == kbt->it.sp)
+	{
 		/* Trapped in a loop; give up. */
 		kbt->end = KBT_LOOP;
 	}
@@ -279,8 +361,8 @@ void KBacktraceIterator_next(struct KBacktraceIterator *kbt)
 EXPORT_SYMBOL(KBacktraceIterator_next);
 
 static void describe_addr(struct KBacktraceIterator *kbt,
-			  unsigned long address,
-			  int have_mmap_sem, char *buf, size_t bufsize)
+						  unsigned long address,
+						  int have_mmap_sem, char *buf, size_t bufsize)
 {
 	struct vm_area_struct *vma;
 	size_t namelen, remaining;
@@ -298,44 +380,64 @@ static void describe_addr(struct KBacktraceIterator *kbt,
 	adjust = !kbt->new_context;
 	address -= adjust;
 
-	if (address >= PAGE_OFFSET) {
+	if (address >= PAGE_OFFSET)
+	{
 		/* Handle kernel symbols. */
 		BUG_ON(bufsize < KSYM_NAME_LEN);
 		name = kallsyms_lookup(address, &size, &offset,
-				       &modname, buf);
-		if (name == NULL) {
+							   &modname, buf);
+
+		if (name == NULL)
+		{
 			buf[0] = '\0';
 			return;
 		}
+
 		namelen = strlen(buf);
 		remaining = (bufsize - 1) - namelen;
 		p = buf + namelen;
 		rc = snprintf(p, remaining, "+%#lx/%#lx ",
-			      offset + adjust, size);
+					  offset + adjust, size);
+
 		if (modname && rc < remaining)
+		{
 			snprintf(p + rc, remaining - rc, "[%s] ", modname);
-		buf[bufsize-1] = '\0';
+		}
+
+		buf[bufsize - 1] = '\0';
 		return;
 	}
 
 	/* If we don't have the mmap_sem, we can't show any more info. */
 	buf[0] = '\0';
+
 	if (!have_mmap_sem)
+	{
 		return;
+	}
 
 	/* Find vma info. */
 	vma = find_vma(kbt->task->mm, address);
-	if (vma == NULL || address < vma->vm_start) {
+
+	if (vma == NULL || address < vma->vm_start)
+	{
 		snprintf(buf, bufsize, "[unmapped address] ");
 		return;
 	}
 
-	if (vma->vm_file) {
+	if (vma->vm_file)
+	{
 		p = file_path(vma->vm_file, buf, bufsize);
+
 		if (IS_ERR(p))
+		{
 			p = "?";
+		}
+
 		name = kbasename(p);
-	} else {
+	}
+	else
+	{
 		name = "anon";
 	}
 
@@ -344,7 +446,7 @@ static void describe_addr(struct KBacktraceIterator *kbt,
 	remaining = (bufsize - 1) - namelen;
 	memmove(buf, name, namelen);
 	snprintf(buf + namelen, remaining, "[%lx+%lx] ",
-		 vma->vm_start, vma->vm_end - vma->vm_start);
+			 vma->vm_start, vma->vm_end - vma->vm_start);
 }
 
 /*
@@ -354,10 +456,12 @@ static void describe_addr(struct KBacktraceIterator *kbt,
  */
 static bool start_backtrace(void)
 {
-	if (current_thread_info()->in_backtrace) {
+	if (current_thread_info()->in_backtrace)
+	{
 		pr_err("Backtrace requested while in backtrace!\n");
 		return false;
 	}
+
 	current_thread_info()->in_backtrace = true;
 	return true;
 }
@@ -378,11 +482,16 @@ void tile_show_stack(struct KBacktraceIterator *kbt)
 	int have_mmap_sem = 0;
 
 	if (!start_backtrace())
+	{
 		return;
+	}
+
 	kbt->verbose = 1;
 	i = 0;
-	for (; !KBacktraceIterator_end(kbt); KBacktraceIterator_next(kbt)) {
-		char namebuf[KSYM_NAME_LEN+100];
+
+	for (; !KBacktraceIterator_end(kbt); KBacktraceIterator_next(kbt))
+	{
+		char namebuf[KSYM_NAME_LEN + 100];
 		unsigned long address = kbt->it.pc;
 
 		/*
@@ -394,32 +503,41 @@ void tile_show_stack(struct KBacktraceIterator *kbt)
 		 * since we're checking that "current" will work in d_path().
 		 */
 		if (kbt->task == current && address < PAGE_OFFSET &&
-		    !have_mmap_sem && kbt->task->mm && !in_interrupt()) {
+			!have_mmap_sem && kbt->task->mm && !in_interrupt())
+		{
 			have_mmap_sem =
 				down_read_trylock(&kbt->task->mm->mmap_sem);
 		}
 
 		describe_addr(kbt, address, have_mmap_sem,
-			      namebuf, sizeof(namebuf));
+					  namebuf, sizeof(namebuf));
 
 		pr_err("  frame %d: 0x%lx %s(sp 0x%lx)\n",
-		       i++, address, namebuf, (unsigned long)(kbt->it.sp));
+			   i++, address, namebuf, (unsigned long)(kbt->it.sp));
 
-		if (i >= 100) {
+		if (i >= 100)
+		{
 			pr_err("Stack dump truncated (%d frames)\n", i);
 			break;
 		}
 	}
+
 	if (kbt->end == KBT_LOOP)
+	{
 		pr_err("Stack dump stopped; next frame identical to this one\n");
+	}
+
 	if (have_mmap_sem)
+	{
 		up_read(&kbt->task->mm->mmap_sem);
+	}
+
 	end_backtrace();
 }
 EXPORT_SYMBOL(tile_show_stack);
 
 static struct pt_regs *regs_to_pt_regs(struct pt_regs *regs,
-				       ulong pc, ulong lr, ulong sp, ulong r52)
+									   ulong pc, ulong lr, ulong sp, ulong r52)
 {
 	memset(regs, 0, sizeof(struct pt_regs));
 	regs->pc = pc;
@@ -442,11 +560,11 @@ void _dump_stack(int dummy, ulong pc, ulong lr, ulong sp, ulong r52)
 
 /* This is called from KBacktraceIterator_init_current() */
 void _KBacktraceIterator_init_current(struct KBacktraceIterator *kbt, ulong pc,
-				      ulong lr, ulong sp, ulong r52)
+									  ulong lr, ulong sp, ulong r52)
 {
 	struct pt_regs regs;
 	KBacktraceIterator_init(kbt, NULL,
-				regs_to_pt_regs(&regs, pc, lr, sp, r52));
+							regs_to_pt_regs(&regs, pc, lr, sp, r52));
 }
 
 /*
@@ -456,12 +574,17 @@ void _KBacktraceIterator_init_current(struct KBacktraceIterator *kbt, ulong pc,
 void show_stack(struct task_struct *task, unsigned long *esp)
 {
 	struct KBacktraceIterator kbt;
-	if (task == NULL || task == current) {
+
+	if (task == NULL || task == current)
+	{
 		KBacktraceIterator_init_current(&kbt);
 		KBacktraceIterator_next(&kbt);  /* don't show first frame */
-	} else {
+	}
+	else
+	{
 		KBacktraceIterator_init(&kbt, task, NULL);
 	}
+
 	tile_show_stack(&kbt);
 }
 
@@ -470,38 +593,58 @@ void show_stack(struct task_struct *task, unsigned long *esp)
 /* Support generic Linux stack API too */
 
 static void save_stack_trace_common(struct task_struct *task,
-				    struct pt_regs *regs,
-				    bool user,
-				    struct stack_trace *trace)
+									struct pt_regs *regs,
+									bool user,
+									struct stack_trace *trace)
 {
 	struct KBacktraceIterator kbt;
 	int skip = trace->skip;
 	int i = 0;
 
 	if (!start_backtrace())
+	{
 		goto done;
-	if (regs != NULL) {
+	}
+
+	if (regs != NULL)
+	{
 		KBacktraceIterator_init(&kbt, NULL, regs);
-	} else if (task == NULL || task == current) {
+	}
+	else if (task == NULL || task == current)
+	{
 		KBacktraceIterator_init_current(&kbt);
 		skip++;  /* don't show KBacktraceIterator_init_current */
-	} else {
+	}
+	else
+	{
 		KBacktraceIterator_init(&kbt, task, NULL);
 	}
-	for (; !KBacktraceIterator_end(&kbt); KBacktraceIterator_next(&kbt)) {
-		if (skip) {
+
+	for (; !KBacktraceIterator_end(&kbt); KBacktraceIterator_next(&kbt))
+	{
+		if (skip)
+		{
 			--skip;
 			continue;
 		}
+
 		if (i >= trace->max_entries ||
-		    (!user && kbt.it.pc < PAGE_OFFSET))
+			(!user && kbt.it.pc < PAGE_OFFSET))
+		{
 			break;
+		}
+
 		trace->entries[i++] = kbt.it.pc;
 	}
+
 	end_backtrace();
 done:
+
 	if (i < trace->max_entries)
+	{
 		trace->entries[i++] = ULONG_MAX;
+	}
+
 	trace->nr_entries = i;
 }
 
@@ -527,9 +670,11 @@ void save_stack_trace_user(struct stack_trace *trace)
 	/* Trace user stack if we are not a kernel thread. */
 	if (current->mm)
 		save_stack_trace_common(NULL, task_pt_regs(current),
-					true, trace);
+								true, trace);
 	else if (trace->nr_entries < trace->max_entries)
+	{
 		trace->entries[trace->nr_entries++] = ULONG_MAX;
+	}
 }
 #endif
 

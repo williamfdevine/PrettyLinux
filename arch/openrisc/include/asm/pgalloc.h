@@ -31,11 +31,11 @@ extern int mem_init_done;
 	set_pmd(pmd, __pmd(_KERNPG_TABLE + __pa(pte)))
 
 static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
-				struct page *pte)
+								struct page *pte)
 {
 	set_pmd(pmd, __pmd(_KERNPG_TABLE +
-		     ((unsigned long)page_to_pfn(pte) <<
-		     (unsigned long) PAGE_SHIFT)));
+					   ((unsigned long)page_to_pfn(pte) <<
+						(unsigned long) PAGE_SHIFT)));
 }
 
 /*
@@ -45,13 +45,15 @@ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
 {
 	pgd_t *ret = (pgd_t *)__get_free_page(GFP_KERNEL);
 
-	if (ret) {
+	if (ret)
+	{
 		memset(ret, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
 		memcpy(ret + USER_PTRS_PER_PGD,
-		       swapper_pg_dir + USER_PTRS_PER_PGD,
-		       (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
+			   swapper_pg_dir + USER_PTRS_PER_PGD,
+			   (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 
 	}
+
 	return ret;
 }
 
@@ -74,17 +76,24 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address);
 
 static inline struct page *pte_alloc_one(struct mm_struct *mm,
-					 unsigned long address)
+		unsigned long address)
 {
 	struct page *pte;
 	pte = alloc_pages(GFP_KERNEL, 0);
+
 	if (!pte)
+	{
 		return NULL;
+	}
+
 	clear_page(page_address(pte));
-	if (!pgtable_page_ctor(pte)) {
+
+	if (!pgtable_page_ctor(pte))
+	{
 		__free_page(pte);
 		return NULL;
 	}
+
 	return pte;
 }
 

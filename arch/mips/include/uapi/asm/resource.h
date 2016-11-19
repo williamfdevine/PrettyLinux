@@ -27,7 +27,7 @@
  * for compatibility:
  */
 #ifndef __mips64
-# define RLIM_INFINITY		0x7fffffffUL
+	#define RLIM_INFINITY		0x7fffffffUL
 #endif
 
 #include <asm-generic/resource.h>

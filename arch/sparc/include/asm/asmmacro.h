@@ -15,7 +15,7 @@
 	jmpl	%l4 + %lo(trap_setup), %l6;
 #define SAVE_ALL \
 	SAVE_ALL_HEAD \
-	 nop;
+	nop;
 
 /* All traps low-level code here must end with this macro. */
 #define RESTORE_ALL b ret_trap_entry; clr %l6;
@@ -34,7 +34,7 @@
  * The order is important.
  */
 #define LEON_PI(...)				\
-662:	__VA_ARGS__
+	662:	__VA_ARGS__
 
 #define SUN_PI_(...)				\
 	.section .leon_1insn_patch, "ax";	\

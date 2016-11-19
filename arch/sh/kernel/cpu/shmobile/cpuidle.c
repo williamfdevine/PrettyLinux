@@ -18,15 +18,16 @@
 #include <asm/suspend.h>
 #include <asm/uaccess.h>
 
-static unsigned long cpuidle_mode[] = {
+static unsigned long cpuidle_mode[] =
+{
 	SUSP_SH_SLEEP, /* regular sleep mode */
 	SUSP_SH_SLEEP | SUSP_SH_SF, /* sleep mode + self refresh */
 	SUSP_SH_STANDBY | SUSP_SH_SF, /* software standby mode + self refresh */
 };
 
 static int cpuidle_sleep_enter(struct cpuidle_device *dev,
-				struct cpuidle_driver *drv,
-				int index)
+							   struct cpuidle_driver *drv,
+							   int index)
 {
 	unsigned long allowed_mode = SUSP_SH_SLEEP;
 	int requested_state = index;
@@ -36,7 +37,9 @@ static int cpuidle_sleep_enter(struct cpuidle_device *dev,
 	/* convert allowed mode to allowed state */
 	for (k = ARRAY_SIZE(cpuidle_mode) - 1; k > 0; k--)
 		if (cpuidle_mode[k] == allowed_mode)
+		{
 			break;
+		}
 
 	allowed_state = k;
 
@@ -51,7 +54,8 @@ static int cpuidle_sleep_enter(struct cpuidle_device *dev,
 	return k;
 }
 
-static struct cpuidle_driver cpuidle_driver = {
+static struct cpuidle_driver cpuidle_driver =
+{
 	.name   = "sh_idle",
 	.owner  = THIS_MODULE,
 	.states = {
@@ -89,10 +93,14 @@ static struct cpuidle_driver cpuidle_driver = {
 int __init sh_mobile_setup_cpuidle(void)
 {
 	if (sh_mobile_sleep_supported & SUSP_SH_SF)
+	{
 		cpuidle_driver.states[1].disabled = false;
+	}
 
 	if (sh_mobile_sleep_supported & SUSP_SH_STANDBY)
+	{
 		cpuidle_driver.states[2].disabled = false;
+	}
 
 	return cpuidle_register(&cpuidle_driver, NULL);
 }

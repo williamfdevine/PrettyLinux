@@ -36,7 +36,8 @@
 #include "regs-sys.h"
 #include "regs-syscon-power.h"
 
-struct s3c64xx_pm_domain {
+struct s3c64xx_pm_domain
+{
 	char *const name;
 	u32 ena;
 	u32 pwr_stat;
@@ -70,14 +71,21 @@ static int s3c64xx_pd_on(struct generic_pm_domain *domain)
 	__raw_writel(val, S3C64XX_NORMAL_CFG);
 
 	/* Not all domains provide power status readback */
-	if (pd->pwr_stat) {
-		do {
+	if (pd->pwr_stat)
+	{
+		do
+		{
 			cpu_relax();
-			if (__raw_readl(S3C64XX_BLK_PWR_STAT) & pd->pwr_stat)
-				break;
-		} while (retry--);
 
-		if (!retry) {
+			if (__raw_readl(S3C64XX_BLK_PWR_STAT) & pd->pwr_stat)
+			{
+				break;
+			}
+		}
+		while (retry--);
+
+		if (!retry)
+		{
 			pr_err("Failed to start domain %s\n", pd->name);
 			return -EBUSY;
 		}
@@ -86,7 +94,8 @@ static int s3c64xx_pd_on(struct generic_pm_domain *domain)
 	return 0;
 }
 
-static struct s3c64xx_pm_domain s3c64xx_pm_irom = {
+static struct s3c64xx_pm_domain s3c64xx_pm_irom =
+{
 	.name = "IROM",
 	.ena = S3C64XX_NORMALCFG_IROM_ON,
 	.pd = {
@@ -95,7 +104,8 @@ static struct s3c64xx_pm_domain s3c64xx_pm_irom = {
 	},
 };
 
-static struct s3c64xx_pm_domain s3c64xx_pm_etm = {
+static struct s3c64xx_pm_domain s3c64xx_pm_etm =
+{
 	.name = "ETM",
 	.ena = S3C64XX_NORMALCFG_DOMAIN_ETM_ON,
 	.pwr_stat = S3C64XX_BLKPWRSTAT_ETM,
@@ -105,7 +115,8 @@ static struct s3c64xx_pm_domain s3c64xx_pm_etm = {
 	},
 };
 
-static struct s3c64xx_pm_domain s3c64xx_pm_s = {
+static struct s3c64xx_pm_domain s3c64xx_pm_s =
+{
 	.name = "S",
 	.ena = S3C64XX_NORMALCFG_DOMAIN_S_ON,
 	.pwr_stat = S3C64XX_BLKPWRSTAT_S,
@@ -115,7 +126,8 @@ static struct s3c64xx_pm_domain s3c64xx_pm_s = {
 	},
 };
 
-static struct s3c64xx_pm_domain s3c64xx_pm_f = {
+static struct s3c64xx_pm_domain s3c64xx_pm_f =
+{
 	.name = "F",
 	.ena = S3C64XX_NORMALCFG_DOMAIN_F_ON,
 	.pwr_stat = S3C64XX_BLKPWRSTAT_F,
@@ -125,7 +137,8 @@ static struct s3c64xx_pm_domain s3c64xx_pm_f = {
 	},
 };
 
-static struct s3c64xx_pm_domain s3c64xx_pm_p = {
+static struct s3c64xx_pm_domain s3c64xx_pm_p =
+{
 	.name = "P",
 	.ena = S3C64XX_NORMALCFG_DOMAIN_P_ON,
 	.pwr_stat = S3C64XX_BLKPWRSTAT_P,
@@ -135,7 +148,8 @@ static struct s3c64xx_pm_domain s3c64xx_pm_p = {
 	},
 };
 
-static struct s3c64xx_pm_domain s3c64xx_pm_i = {
+static struct s3c64xx_pm_domain s3c64xx_pm_i =
+{
 	.name = "I",
 	.ena = S3C64XX_NORMALCFG_DOMAIN_I_ON,
 	.pwr_stat = S3C64XX_BLKPWRSTAT_I,
@@ -145,7 +159,8 @@ static struct s3c64xx_pm_domain s3c64xx_pm_i = {
 	},
 };
 
-static struct s3c64xx_pm_domain s3c64xx_pm_g = {
+static struct s3c64xx_pm_domain s3c64xx_pm_g =
+{
 	.name = "G",
 	.ena = S3C64XX_NORMALCFG_DOMAIN_G_ON,
 	.pd = {
@@ -154,7 +169,8 @@ static struct s3c64xx_pm_domain s3c64xx_pm_g = {
 	},
 };
 
-static struct s3c64xx_pm_domain s3c64xx_pm_v = {
+static struct s3c64xx_pm_domain s3c64xx_pm_v =
+{
 	.name = "V",
 	.ena = S3C64XX_NORMALCFG_DOMAIN_V_ON,
 	.pwr_stat = S3C64XX_BLKPWRSTAT_V,
@@ -164,11 +180,13 @@ static struct s3c64xx_pm_domain s3c64xx_pm_v = {
 	},
 };
 
-static struct s3c64xx_pm_domain *s3c64xx_always_on_pm_domains[] = {
+static struct s3c64xx_pm_domain *s3c64xx_always_on_pm_domains[] =
+{
 	&s3c64xx_pm_irom,
 };
 
-static struct s3c64xx_pm_domain *s3c64xx_pm_domains[] = {
+static struct s3c64xx_pm_domain *s3c64xx_pm_domains[] =
+{
 	&s3c64xx_pm_etm,
 	&s3c64xx_pm_g,
 	&s3c64xx_pm_v,
@@ -185,27 +203,37 @@ void s3c_pm_debug_smdkled(u32 set, u32 clear)
 	int i;
 
 	local_irq_save(flags);
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		if (clear & (1 << i))
+		{
 			gpio_set_value(S3C64XX_GPN(12 + i), 0);
+		}
+
 		if (set & (1 << i))
+		{
 			gpio_set_value(S3C64XX_GPN(12 + i), 1);
+		}
 	}
+
 	local_irq_restore(flags);
 }
 #endif
 
 #ifdef CONFIG_PM_SLEEP
-static struct sleep_save core_save[] = {
+static struct sleep_save core_save[] =
+{
 	SAVE_ITEM(S3C64XX_MEM0DRVCON),
 	SAVE_ITEM(S3C64XX_MEM1DRVCON),
 };
 
-static struct sleep_save misc_save[] = {
+static struct sleep_save misc_save[] =
+{
 	SAVE_ITEM(S3C64XX_AHB_CON0),
 	SAVE_ITEM(S3C64XX_AHB_CON1),
 	SAVE_ITEM(S3C64XX_AHB_CON2),
-	
+
 	SAVE_ITEM(S3C64XX_SPCON),
 
 	SAVE_ITEM(S3C64XX_MEM0CONSTOP),
@@ -261,7 +289,7 @@ static int s3c64xx_cpu_suspend(unsigned long arg)
 	/* clear any old wakeup */
 
 	__raw_writel(__raw_readl(S3C64XX_WAKEUP_STAT),
-		     S3C64XX_WAKEUP_STAT);
+				 S3C64XX_WAKEUP_STAT);
 
 	/* set the LED state to 0110 over sleep */
 	s3c_pm_debug_smdkled(3 << 1, 0xf);
@@ -272,11 +300,11 @@ static int s3c64xx_cpu_suspend(unsigned long arg)
 	tmp = 0;
 
 	asm("b 1f\n\t"
-	    ".align 5\n\t"
-	    "1:\n\t"
-	    "mcr p15, 0, %0, c7, c10, 5\n\t"
-	    "mcr p15, 0, %0, c7, c10, 4\n\t"
-	    "mcr p15, 0, %0, c7, c0, 4" :: "r" (tmp));
+		".align 5\n\t"
+		"1:\n\t"
+		"mcr p15, 0, %0, c7, c10, 5\n\t"
+		"mcr p15, 0, %0, c7, c10, 4\n\t"
+		"mcr p15, 0, %0, c7, c0, 4" :: "r" (tmp));
 
 	/* we should never get past here */
 
@@ -285,7 +313,8 @@ static int s3c64xx_cpu_suspend(unsigned long arg)
 }
 
 /* mapping of interrupts to parts of the wakeup mask */
-static struct samsung_wakeup_mask wake_irqs[] = {
+static struct samsung_wakeup_mask wake_irqs[] =
+{
 	{ .irq = IRQ_RTC_ALARM,	.bit = S3C64XX_PWRCFG_RTC_ALARM_DISABLE, },
 	{ .irq = IRQ_RTC_TIC,	.bit = S3C64XX_PWRCFG_RTC_TICK_DISABLE, },
 	{ .irq = IRQ_PENDN,	.bit = S3C64XX_PWRCFG_TS_DISABLE, },
@@ -301,7 +330,7 @@ static struct samsung_wakeup_mask wake_irqs[] = {
 static void s3c64xx_pm_prepare(void)
 {
 	samsung_sync_wakemask(S3C64XX_PWR_CFG,
-			      wake_irqs, ARRAY_SIZE(wake_irqs));
+						  wake_irqs, ARRAY_SIZE(wake_irqs));
 
 	/* store address of resume. */
 	__raw_writel(virt_to_phys(s3c_cpu_resume), S3C64XX_INFORM0);
@@ -318,14 +347,20 @@ int __init s3c64xx_pm_init(void)
 
 	for (i = 0; i < ARRAY_SIZE(s3c64xx_always_on_pm_domains); i++)
 		pm_genpd_init(&s3c64xx_always_on_pm_domains[i]->pd,
-			      &pm_domain_always_on_gov, false);
+					  &pm_domain_always_on_gov, false);
 
 	for (i = 0; i < ARRAY_SIZE(s3c64xx_pm_domains); i++)
+	{
 		pm_genpd_init(&s3c64xx_pm_domains[i]->pd, NULL, false);
+	}
 
 #ifdef CONFIG_S3C_DEV_FB
+
 	if (dev_get_platdata(&s3c_device_fb.dev))
+	{
 		pm_genpd_add_device(&s3c64xx_pm_f.pd, &s3c_device_fb.dev);
+	}
+
 #endif
 
 	return 0;
@@ -334,7 +369,9 @@ int __init s3c64xx_pm_init(void)
 static __init int s3c64xx_pm_initcall(void)
 {
 	if (!soc_is_s3c64xx())
+	{
 		return 0;
+	}
 
 	pm_cpu_prep = s3c64xx_pm_prepare;
 	pm_cpu_sleep = s3c64xx_cpu_suspend;

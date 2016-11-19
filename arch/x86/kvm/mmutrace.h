@@ -22,27 +22,27 @@
 	__entry->unsync = sp->unsync;
 
 #define KVM_MMU_PAGE_PRINTK() ({				        \
-	const char *saved_ptr = trace_seq_buffer_ptr(p);		\
-	static const char *access_str[] = {			        \
-		"---", "--x", "w--", "w-x", "-u-", "-ux", "wu-", "wux"  \
-	};							        \
-	union kvm_mmu_page_role role;				        \
-								        \
-	role.word = __entry->role;					\
-									\
-	trace_seq_printf(p, "sp gen %lx gfn %llx %u%s q%u%s %s%s"	\
-			 " %snxe root %u %s%c",	__entry->mmu_valid_gen,	\
-			 __entry->gfn, role.level,			\
-			 role.cr4_pae ? " pae" : "",			\
-			 role.quadrant,					\
-			 role.direct ? " direct" : "",			\
-			 access_str[role.access],			\
-			 role.invalid ? " invalid" : "",		\
-			 role.nxe ? "" : "!",				\
-			 __entry->root_count,				\
-			 __entry->unsync ? "unsync" : "sync", 0);	\
-	saved_ptr;							\
-		})
+		const char *saved_ptr = trace_seq_buffer_ptr(p);		\
+		static const char *access_str[] = {			        \
+															"---", "--x", "w--", "w-x", "-u-", "-ux", "wu-", "wux"  \
+										  };							        \
+		union kvm_mmu_page_role role;				        \
+		\
+		role.word = __entry->role;					\
+		\
+		trace_seq_printf(p, "sp gen %lx gfn %llx %u%s q%u%s %s%s"	\
+						 " %snxe root %u %s%c",	__entry->mmu_valid_gen,	\
+						 __entry->gfn, role.level,			\
+						 role.cr4_pae ? " pae" : "",			\
+						 role.quadrant,					\
+						 role.direct ? " direct" : "",			\
+						 access_str[role.access],			\
+						 role.invalid ? " invalid" : "",		\
+						 role.nxe ? "" : "!",				\
+						 __entry->root_count,				\
+						 __entry->unsync ? "unsync" : "sync", 0);	\
+		saved_ptr;							\
+	})
 
 #define kvm_mmu_trace_pferr_flags       \
 	{ PFERR_PRESENT_MASK, "P" },	\
@@ -70,7 +70,7 @@ TRACE_EVENT(
 	),
 
 	TP_printk("addr %llx pferr %x %s", __entry->addr, __entry->pferr,
-		  __print_flags(__entry->pferr, "|", kvm_mmu_trace_pferr_flags))
+			  __print_flags(__entry->pferr, "|", kvm_mmu_trace_pferr_flags))
 );
 
 
@@ -83,49 +83,49 @@ TRACE_EVENT(
 	TP_STRUCT__entry(
 		__field(__u64, pte)
 		__field(__u32, level)
-		),
+	),
 
 	TP_fast_assign(
 		__entry->pte = pte;
 		__entry->level = level;
-		),
+	),
 
 	TP_printk("pte %llx level %u", __entry->pte, __entry->level)
 );
 
 DECLARE_EVENT_CLASS(kvm_mmu_set_bit_class,
 
-	TP_PROTO(unsigned long table_gfn, unsigned index, unsigned size),
+					TP_PROTO(unsigned long table_gfn, unsigned index, unsigned size),
 
-	TP_ARGS(table_gfn, index, size),
+					TP_ARGS(table_gfn, index, size),
 
-	TP_STRUCT__entry(
-		__field(__u64, gpa)
-	),
+					TP_STRUCT__entry(
+						__field(__u64, gpa)
+					),
 
-	TP_fast_assign(
-		__entry->gpa = ((u64)table_gfn << PAGE_SHIFT)
-				+ index * size;
-		),
+					TP_fast_assign(
+						__entry->gpa = ((u64)table_gfn << PAGE_SHIFT)
+									   + index *size;
+					),
 
-	TP_printk("gpa %llx", __entry->gpa)
-);
+					TP_printk("gpa %llx", __entry->gpa)
+				   );
 
 /* We set a pte accessed bit */
 DEFINE_EVENT(kvm_mmu_set_bit_class, kvm_mmu_set_accessed_bit,
 
-	TP_PROTO(unsigned long table_gfn, unsigned index, unsigned size),
+			 TP_PROTO(unsigned long table_gfn, unsigned index, unsigned size),
 
-	TP_ARGS(table_gfn, index, size)
-);
+			 TP_ARGS(table_gfn, index, size)
+			);
 
 /* We set a pte dirty bit */
 DEFINE_EVENT(kvm_mmu_set_bit_class, kvm_mmu_set_dirty_bit,
 
-	TP_PROTO(unsigned long table_gfn, unsigned index, unsigned size),
+			 TP_PROTO(unsigned long table_gfn, unsigned index, unsigned size),
 
-	TP_ARGS(table_gfn, index, size)
-);
+			 TP_ARGS(table_gfn, index, size)
+			);
 
 TRACE_EVENT(
 	kvm_mmu_walker_error,
@@ -134,14 +134,14 @@ TRACE_EVENT(
 
 	TP_STRUCT__entry(
 		__field(__u32, pferr)
-		),
+	),
 
 	TP_fast_assign(
 		__entry->pferr = pferr;
-		),
+	),
 
 	TP_printk("pferr %x %s", __entry->pferr,
-		  __print_flags(__entry->pferr, "|", kvm_mmu_trace_pferr_flags))
+			  __print_flags(__entry->pferr, "|", kvm_mmu_trace_pferr_flags))
 );
 
 TRACE_EVENT(
@@ -152,50 +152,50 @@ TRACE_EVENT(
 	TP_STRUCT__entry(
 		KVM_MMU_PAGE_FIELDS
 		__field(bool, created)
-		),
+	),
 
 	TP_fast_assign(
 		KVM_MMU_PAGE_ASSIGN(sp)
 		__entry->created = created;
-		),
+	),
 
 	TP_printk("%s %s", KVM_MMU_PAGE_PRINTK(),
-		  __entry->created ? "new" : "existing")
+			  __entry->created ? "new" : "existing")
 );
 
 DECLARE_EVENT_CLASS(kvm_mmu_page_class,
 
-	TP_PROTO(struct kvm_mmu_page *sp),
-	TP_ARGS(sp),
+					TP_PROTO(struct kvm_mmu_page *sp),
+					TP_ARGS(sp),
 
-	TP_STRUCT__entry(
-		KVM_MMU_PAGE_FIELDS
-	),
+					TP_STRUCT__entry(
+						KVM_MMU_PAGE_FIELDS
+					),
 
-	TP_fast_assign(
-		KVM_MMU_PAGE_ASSIGN(sp)
-	),
+					TP_fast_assign(
+						KVM_MMU_PAGE_ASSIGN(sp)
+					),
 
-	TP_printk("%s", KVM_MMU_PAGE_PRINTK())
-);
+					TP_printk("%s", KVM_MMU_PAGE_PRINTK())
+				   );
 
 DEFINE_EVENT(kvm_mmu_page_class, kvm_mmu_sync_page,
-	TP_PROTO(struct kvm_mmu_page *sp),
+			 TP_PROTO(struct kvm_mmu_page *sp),
 
-	TP_ARGS(sp)
-);
+			 TP_ARGS(sp)
+			);
 
 DEFINE_EVENT(kvm_mmu_page_class, kvm_mmu_unsync_page,
-	TP_PROTO(struct kvm_mmu_page *sp),
+			 TP_PROTO(struct kvm_mmu_page *sp),
 
-	TP_ARGS(sp)
-);
+			 TP_ARGS(sp)
+			);
 
 DEFINE_EVENT(kvm_mmu_page_class, kvm_mmu_prepare_zap_page,
-	TP_PROTO(struct kvm_mmu_page *sp),
+			 TP_PROTO(struct kvm_mmu_page *sp),
 
-	TP_ARGS(sp)
-);
+			 TP_ARGS(sp)
+			);
 
 TRACE_EVENT(
 	mark_mmio_spte,
@@ -217,7 +217,7 @@ TRACE_EVENT(
 	),
 
 	TP_printk("sptep:%p gfn %llx access %x gen %x", __entry->sptep,
-		  __entry->gfn, __entry->access, __entry->gen)
+			  __entry->gfn, __entry->access, __entry->gen)
 );
 
 TRACE_EVENT(
@@ -238,7 +238,7 @@ TRACE_EVENT(
 	),
 
 	TP_printk("addr:%llx gfn %llx access %x", __entry->addr, __entry->gfn,
-		  __entry->access)
+			  __entry->access)
 );
 
 #define __spte_satisfied(__spte)				\
@@ -247,7 +247,7 @@ TRACE_EVENT(
 TRACE_EVENT(
 	fast_page_fault,
 	TP_PROTO(struct kvm_vcpu *vcpu, gva_t gva, u32 error_code,
-		 u64 *sptep, u64 old_spte, bool retry),
+			 u64 *sptep, u64 old_spte, bool retry),
 	TP_ARGS(vcpu, gva, error_code, sptep, old_spte, retry),
 
 	TP_STRUCT__entry(
@@ -271,12 +271,12 @@ TRACE_EVENT(
 	),
 
 	TP_printk("vcpu %d gva %lx error_code %s sptep %p old %#llx"
-		  " new %llx spurious %d fixed %d", __entry->vcpu_id,
-		  __entry->gva, __print_flags(__entry->error_code, "|",
-		  kvm_mmu_trace_pferr_flags), __entry->sptep,
-		  __entry->old_spte, __entry->new_spte,
-		  __spte_satisfied(old_spte), __spte_satisfied(new_spte)
-	)
+			  " new %llx spurious %d fixed %d", __entry->vcpu_id,
+			  __entry->gva, __print_flags(__entry->error_code, "|",
+					  kvm_mmu_trace_pferr_flags), __entry->sptep,
+			  __entry->old_spte, __entry->new_spte,
+			  __spte_satisfied(old_spte), __spte_satisfied(new_spte)
+			 )
 );
 
 TRACE_EVENT(
@@ -295,8 +295,8 @@ TRACE_EVENT(
 	),
 
 	TP_printk("kvm-mmu-valid-gen %lx used_pages %x",
-		  __entry->mmu_valid_gen, __entry->mmu_used_pages
-	)
+			  __entry->mmu_valid_gen, __entry->mmu_used_pages
+			 )
 );
 
 
@@ -318,9 +318,9 @@ TRACE_EVENT(
 	),
 
 	TP_printk("spte %llx kvm_gen %x spte-gen %x valid %d", __entry->spte,
-		  __entry->kvm_gen, __entry->spte_gen,
-		  __entry->kvm_gen == __entry->spte_gen
-	)
+			  __entry->kvm_gen, __entry->spte_gen,
+			  __entry->kvm_gen == __entry->spte_gen
+			 )
 );
 #endif /* _TRACE_KVMMMU_H */
 

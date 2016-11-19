@@ -52,7 +52,7 @@ static inline int numa_cpu_node(int cpu)
 #endif	/* CONFIG_NUMA */
 
 #ifdef CONFIG_X86_32
-# include <asm/numa_32.h>
+	#include <asm/numa_32.h>
 #endif
 
 #ifdef CONFIG_NUMA
@@ -70,13 +70,13 @@ static inline void numa_remove_cpu(int cpu)		{ }
 #endif	/* CONFIG_NUMA */
 
 #ifdef CONFIG_DEBUG_PER_CPU_MAPS
-void debug_cpumask_set_cpu(int cpu, int node, bool enable);
+	void debug_cpumask_set_cpu(int cpu, int node, bool enable);
 #endif
 
 #ifdef CONFIG_NUMA_EMU
-#define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
-#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
-void numa_emu_cmdline(char *);
+	#define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
+	#define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
+	void numa_emu_cmdline(char *);
 #endif /* CONFIG_NUMA_EMU */
 
 #endif	/* _ASM_X86_NUMA_H */

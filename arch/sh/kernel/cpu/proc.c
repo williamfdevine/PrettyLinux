@@ -4,7 +4,8 @@
 #include <asm/machvec.h>
 #include <asm/processor.h>
 
-static const char *cpu_name[] = {
+static const char *cpu_name[] =
+{
 	[CPU_SH7201]	= "SH7201",
 	[CPU_SH7203]	= "SH7203",	[CPU_SH7263]	= "SH7263",
 	[CPU_SH7264]	= "SH7264",	[CPU_SH7269]	= "SH7269",
@@ -39,7 +40,8 @@ EXPORT_SYMBOL(get_cpu_subtype);
 
 #ifdef CONFIG_PROC_FS
 /* Symbolic CPU flags, keep in sync with asm/cpu-features.h */
-static const char *cpu_flags[] = {
+static const char *cpu_flags[] =
+{
 	"none", "fpu", "p2flush", "mmuassoc", "dsp", "perfctr",
 	"ptea", "llsc", "l2", "op32", "pteaex", NULL
 };
@@ -50,27 +52,30 @@ static void show_cpuflags(struct seq_file *m, struct sh_cpuinfo *c)
 
 	seq_printf(m, "cpu flags\t:");
 
-	if (!c->flags) {
+	if (!c->flags)
+	{
 		seq_printf(m, " %s\n", cpu_flags[0]);
 		return;
 	}
 
 	for (i = 0; cpu_flags[i]; i++)
 		if ((c->flags & (1 << i)))
-			seq_printf(m, " %s", cpu_flags[i+1]);
+		{
+			seq_printf(m, " %s", cpu_flags[i + 1]);
+		}
 
 	seq_printf(m, "\n");
 }
 
 static void show_cacheinfo(struct seq_file *m, const char *type,
-			   struct cache_info info)
+						   struct cache_info info)
 {
 	unsigned int cache_size;
 
 	cache_size = info.ways * info.sets * info.linesz;
 
 	seq_printf(m, "%s size\t: %2dKiB (%d-way)\n",
-		   type, cache_size >> 10, info.ways);
+			   type, cache_size >> 10, info.ways);
 }
 
 /*
@@ -82,22 +87,35 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	unsigned int cpu = c - cpu_data;
 
 	if (!cpu_online(cpu))
+	{
 		return 0;
+	}
 
 	if (cpu == 0)
+	{
 		seq_printf(m, "machine\t\t: %s\n", get_system_type());
+	}
 	else
+	{
 		seq_printf(m, "\n");
+	}
 
 	seq_printf(m, "processor\t: %d\n", cpu);
 	seq_printf(m, "cpu family\t: %s\n", init_utsname()->machine);
 	seq_printf(m, "cpu type\t: %s\n", get_cpu_subtype(c));
+
 	if (c->cut_major == -1)
+	{
 		seq_printf(m, "cut\t\t: unknown\n");
+	}
 	else if (c->cut_minor == -1)
+	{
 		seq_printf(m, "cut\t\t: %d.x\n", c->cut_major);
+	}
 	else
+	{
 		seq_printf(m, "cut\t\t: %d.%d\n", c->cut_major, c->cut_minor);
+	}
 
 	show_cpuflags(m, c);
 
@@ -108,10 +126,13 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	 * unified cache on the SH-2 and SH-3, as well as the harvard
 	 * style cache on the SH-4.
 	 */
-	if (c->icache.flags & SH_CACHE_COMBINED) {
+	if (c->icache.flags & SH_CACHE_COMBINED)
+	{
 		seq_printf(m, "unified\n");
 		show_cacheinfo(m, "cache", c->icache);
-	} else {
+	}
+	else
+	{
 		seq_printf(m, "split (harvard)\n");
 		show_cacheinfo(m, "icache", c->icache);
 		show_cacheinfo(m, "dcache", c->dcache);
@@ -119,13 +140,15 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 
 	/* Optional secondary cache */
 	if (c->flags & CPU_HAS_L2_CACHE)
+	{
 		show_cacheinfo(m, "scache", c->scache);
+	}
 
 	seq_printf(m, "address sizes\t: %u bits physical\n", c->phys_bits);
 
 	seq_printf(m, "bogomips\t: %lu.%02lu\n",
-		     c->loops_per_jiffy/(500000/HZ),
-		     (c->loops_per_jiffy/(5000/HZ)) % 100);
+			   c->loops_per_jiffy / (500000 / HZ),
+			   (c->loops_per_jiffy / (5000 / HZ)) % 100);
 
 	return 0;
 }
@@ -142,7 +165,8 @@ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
 static void c_stop(struct seq_file *m, void *v)
 {
 }
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,

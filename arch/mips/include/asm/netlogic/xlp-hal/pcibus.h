@@ -90,16 +90,16 @@
 #define MSI_ADDR_BASE			0xfffee00000ULL
 #define MSI_ADDR_SZ			0x10000
 #define MSI_LINK_ADDR(n, l)		(MSI_ADDR_BASE + \
-				(PCIE_NLINKS * (n) + (l)) * MSI_ADDR_SZ)
+								 (PCIE_NLINKS * (n) + (l)) * MSI_ADDR_SZ)
 #define MSIX_ADDR_BASE			0xfffef00000ULL
 #define MSIX_LINK_ADDR(n, l)		(MSIX_ADDR_BASE + \
-				(PCIE_NLINKS * (n) + (l)) * MSI_ADDR_SZ)
+									 (PCIE_NLINKS * (n) + (l)) * MSI_ADDR_SZ)
 #ifndef __ASSEMBLY__
 
 #define nlm_read_pcie_reg(b, r)		nlm_read_reg(b, r)
 #define nlm_write_pcie_reg(b, r, v)	nlm_write_reg(b, r, v)
 #define nlm_get_pcie_base(node, inst)	nlm_pcicfg_base(cpu_is_xlp9xx() ? \
-	XLP9XX_IO_PCIE_OFFSET(node, inst) : XLP_IO_PCIE_OFFSET(node, inst))
+		XLP9XX_IO_PCIE_OFFSET(node, inst) : XLP_IO_PCIE_OFFSET(node, inst))
 
 #ifdef CONFIG_PCI_MSI
 void xlp_init_node_msi_irqs(int node, int link);

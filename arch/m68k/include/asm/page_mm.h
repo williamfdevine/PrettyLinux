@@ -12,17 +12,17 @@
 #ifdef CPU_M68040_OR_M68060_ONLY
 static inline void copy_page(void *to, void *from)
 {
-  unsigned long tmp;
+	unsigned long tmp;
 
-  __asm__ __volatile__("1:\t"
-		       ".chip 68040\n\t"
-		       "move16 %1@+,%0@+\n\t"
-		       "move16 %1@+,%0@+\n\t"
-		       ".chip 68k\n\t"
-		       "dbra  %2,1b\n\t"
-		       : "=a" (to), "=a" (from), "=d" (tmp)
-		       : "0" (to), "1" (from) , "2" (PAGE_SIZE / 32 - 1)
-		       );
+	__asm__ __volatile__("1:\t"
+						 ".chip 68040\n\t"
+						 "move16 %1@+,%0@+\n\t"
+						 "move16 %1@+,%0@+\n\t"
+						 ".chip 68k\n\t"
+						 "dbra  %2,1b\n\t"
+						 : "=a" (to), "=a" (from), "=d" (tmp)
+						 : "0" (to), "1" (from) , "2" (PAGE_SIZE / 32 - 1)
+						);
 }
 
 static inline void clear_page(void *page)
@@ -36,15 +36,15 @@ static inline void clear_page(void *page)
 	*sp++ = 0;
 
 	__asm__ __volatile__("1:\t"
-			     ".chip 68040\n\t"
-			     "move16 %2@+,%0@+\n\t"
-			     ".chip 68k\n\t"
-			     "subqw  #8,%2\n\t"
-			     "subqw  #8,%2\n\t"
-			     "dbra   %1,1b\n\t"
-			     : "=a" (sp), "=d" (tmp)
-			     : "a" (page), "0" (sp),
-			       "1" ((PAGE_SIZE - 16) / 16 - 1));
+						 ".chip 68040\n\t"
+						 "move16 %2@+,%0@+\n\t"
+						 ".chip 68k\n\t"
+						 "subqw  #8,%2\n\t"
+						 "subqw  #8,%2\n\t"
+						 "dbra   %1,1b\n\t"
+						 : "=a" (sp), "=d" (tmp)
+						 : "a" (page), "0" (sp),
+						 "1" ((PAGE_SIZE - 16) / 16 - 1));
 }
 
 #else
@@ -94,23 +94,36 @@ static inline void *__va(unsigned long paddr)
 #define __pa(x) ___pa((unsigned long)(x))
 static inline unsigned long ___pa(unsigned long x)
 {
-     if(x == 0)
-	  return 0;
-     if(x >= PAGE_OFFSET)
-        return (x-PAGE_OFFSET);
-     else
-        return (x+0x2000000);
+	if (x == 0)
+	{
+		return 0;
+	}
+
+	if (x >= PAGE_OFFSET)
+	{
+		return (x - PAGE_OFFSET);
+	}
+	else
+	{
+		return (x + 0x2000000);
+	}
 }
 
 static inline void *__va(unsigned long x)
 {
-     if(x == 0)
-	  return (void *)0;
+	if (x == 0)
+	{
+		return (void *)0;
+	}
 
-     if(x < 0x2000000)
-        return (void *)(x+PAGE_OFFSET);
-     else
-        return (void *)(x-0x2000000);
+	if (x < 0x2000000)
+	{
+		return (void *)(x + PAGE_OFFSET);
+	}
+	else
+	{
+		return (void *)(x - 0x2000000);
+	}
 }
 #endif	/* CONFIG_SUN3 */
 
@@ -146,24 +159,24 @@ static inline __attribute_const__ int __virt_to_node_shift(void)
 #endif
 
 #define virt_to_page(addr) ({						\
-	pfn_to_page(virt_to_pfn(addr));					\
-})
+		pfn_to_page(virt_to_pfn(addr));					\
+	})
 #define page_to_virt(page) ({						\
-	pfn_to_virt(page_to_pfn(page));					\
-})
+		pfn_to_virt(page_to_pfn(page));					\
+	})
 
 #define pfn_to_page(pfn) ({						\
-	unsigned long __pfn = (pfn);					\
-	struct pglist_data *pgdat;					\
-	pgdat = __virt_to_node((unsigned long)pfn_to_virt(__pfn));	\
-	pgdat->node_mem_map + (__pfn - pgdat->node_start_pfn);		\
-})
+		unsigned long __pfn = (pfn);					\
+		struct pglist_data *pgdat;					\
+		pgdat = __virt_to_node((unsigned long)pfn_to_virt(__pfn));	\
+		pgdat->node_mem_map + (__pfn - pgdat->node_start_pfn);		\
+	})
 #define page_to_pfn(_page) ({						\
-	const struct page *__p = (_page);				\
-	struct pglist_data *pgdat;					\
-	pgdat = &pg_data_map[page_to_nid(__p)];				\
-	((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
-})
+		const struct page *__p = (_page);				\
+		struct pglist_data *pgdat;					\
+		pgdat = &pg_data_map[page_to_nid(__p)];				\
+		((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
+	})
 
 #define virt_addr_valid(kaddr)	((void *)(kaddr) >= (void *)PAGE_OFFSET && (void *)(kaddr) < high_memory)
 #define pfn_valid(pfn)		virt_addr_valid(pfn_to_virt(pfn))

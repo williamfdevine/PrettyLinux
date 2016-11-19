@@ -22,7 +22,8 @@
 
 #include "common.h"
 
-static unsigned long gplugd_pin_config[] __initdata = {
+static unsigned long gplugd_pin_config[] __initdata =
+{
 	/* UART3 */
 	GPIO8_UART3_TXD,
 	GPIO9_UART3_RXD,
@@ -129,11 +130,13 @@ static unsigned long gplugd_pin_config[] __initdata = {
 	GPIO116_I2S_TXD
 };
 
-static struct pxa_gpio_platform_data pxa168_gpio_pdata = {
+static struct pxa_gpio_platform_data pxa168_gpio_pdata =
+{
 	.irq_base	= MMP_GPIO_TO_IRQ(0),
 };
 
-static struct i2c_board_info gplugd_i2c_board_info[] = {
+static struct i2c_board_info gplugd_i2c_board_info[] =
+{
 	{
 		.type = "isl1208",
 		.addr = 0x6F,
@@ -143,9 +146,10 @@ static struct i2c_board_info gplugd_i2c_board_info[] = {
 /* Bring PHY out of reset by setting GPIO 104 */
 static int gplugd_eth_init(void)
 {
-	if (unlikely(gpio_request(104, "ETH_RESET_N"))) {
+	if (unlikely(gpio_request(104, "ETH_RESET_N")))
+	{
 		printk(KERN_ERR "Can't get hold of GPIO 104 to bring Ethernet "
-				"PHY out of reset\n");
+			   "PHY out of reset\n");
 		return -EIO;
 	}
 
@@ -154,7 +158,8 @@ static int gplugd_eth_init(void)
 	return 0;
 }
 
-struct pxa168_eth_platform_data gplugd_eth_platform_data = {
+struct pxa168_eth_platform_data gplugd_eth_platform_data =
+{
 	.port_number = 0,
 	.phy_addr    = 0,
 	.speed       = 0, /* Autonagotiation */
@@ -165,18 +170,24 @@ struct pxa168_eth_platform_data gplugd_eth_platform_data = {
 static void __init select_disp_freq(void)
 {
 	/* set GPIO 35 & clear GPIO 85 to set LCD External Clock to 74.25 MHz */
-	if (unlikely(gpio_request(35, "DISP_FREQ_SEL"))) {
+	if (unlikely(gpio_request(35, "DISP_FREQ_SEL")))
+	{
 		printk(KERN_ERR "Can't get hold of GPIO 35 to select display "
-				"frequency\n");
-	} else {
+			   "frequency\n");
+	}
+	else
+	{
 		gpio_direction_output(35, 1);
 		gpio_free(35);
 	}
 
-	if (unlikely(gpio_request(85, "DISP_FREQ_SEL_2"))) {
+	if (unlikely(gpio_request(85, "DISP_FREQ_SEL_2")))
+	{
 		printk(KERN_ERR "Can't get hold of GPIO 85 to select display "
-				"frequency\n");
-	} else {
+			   "frequency\n");
+	}
+	else
+	{
 		gpio_direction_output(85, 0);
 		gpio_free(85);
 	}
@@ -193,17 +204,17 @@ static void __init gplugd_init(void)
 	pxa168_add_ssp(1);
 	pxa168_add_twsi(0, NULL, ARRAY_AND_SIZE(gplugd_i2c_board_info));
 	platform_device_add_data(&pxa168_device_gpio, &pxa168_gpio_pdata,
-				 sizeof(struct pxa_gpio_platform_data));
+							 sizeof(struct pxa_gpio_platform_data));
 	platform_device_register(&pxa168_device_gpio);
 
 	pxa168_add_eth(&gplugd_eth_platform_data);
 }
 
 MACHINE_START(GPLUGD, "PXA168-based GuruPlug Display (gplugD) Platform")
-	.map_io		= mmp_map_io,
+.map_io		= mmp_map_io,
 	.nr_irqs	= MMP_NR_IRQS,
-	.init_irq       = pxa168_init_irq,
-	.init_time	= pxa168_timer_init,
-	.init_machine   = gplugd_init,
-	.restart	= pxa168_restart,
-MACHINE_END
+		.init_irq       = pxa168_init_irq,
+		 .init_time	= pxa168_timer_init,
+		   .init_machine   = gplugd_init,
+			.restart	= pxa168_restart,
+				MACHINE_END

@@ -40,10 +40,10 @@ extern void frv_cache_wback_inv(unsigned long start, unsigned long size);
 static inline void __flush_cache_all(void)
 {
 	asm volatile("	dcef	@(gr0,gr0),#1	\n"
-		     "	icei	@(gr0,gr0),#1	\n"
-		     "	membar			\n"
-		     : : : "memory"
-		     );
+				 "	icei	@(gr0,gr0),#1	\n"
+				 "	membar			\n"
+				 : : : "memory"
+				);
 }
 
 /* dcache/icache coherency... */
@@ -75,10 +75,10 @@ static inline void flush_icache_range(unsigned long start, unsigned long end)
 
 #ifdef CONFIG_MMU
 extern void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
-				    unsigned long start, unsigned long len);
+									unsigned long start, unsigned long len);
 #else
 static inline void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
-					   unsigned long start, unsigned long len)
+		unsigned long start, unsigned long len)
 {
 	frv_cache_wback_inv(start, start + len);
 }
@@ -94,10 +94,10 @@ static inline void flush_icache_page(struct vm_area_struct *vma, struct page *pa
  * and the dcache
  */
 #define copy_to_user_page(vma, page, vaddr, dst, src, len)	\
-do {								\
-	memcpy((dst), (src), (len));				\
-	flush_icache_user_range((vma), (page), (vaddr), (len));	\
-} while(0)
+	do {								\
+		memcpy((dst), (src), (len));				\
+		flush_icache_user_range((vma), (page), (vaddr), (len));	\
+	} while(0)
 
 #define copy_from_user_page(vma, page, vaddr, dst, src, len)	\
 	memcpy((dst), (src), (len))

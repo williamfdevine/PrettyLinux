@@ -32,13 +32,13 @@
 #include <asm/uaccess.h>
 
 #ifdef CONFIG_64BIT
-#define ADDIU	"daddiu "
-#define INS	"dins "
-#define EXT	"dext "
+	#define ADDIU	"daddiu "
+	#define INS	"dins "
+	#define EXT	"dext "
 #else
-#define ADDIU	"addiu "
-#define INS	"ins "
-#define EXT	"ext "
+	#define ADDIU	"addiu "
+	#define INS	"ins "
+	#define EXT	"ext "
 #endif /* CONFIG_64BIT */
 
 #define SB	"sb "
@@ -75,113 +75,157 @@ __setup("mipsr2emu", mipsr2emu_enable);
  */
 static inline int mipsr6_emul(struct pt_regs *regs, u32 ir)
 {
-	switch (MIPSInst_OPCODE(ir)) {
-	case addiu_op:
-		if (MIPSInst_RT(ir))
-			regs->regs[MIPSInst_RT(ir)] =
-				(s32)regs->regs[MIPSInst_RS(ir)] +
-				(s32)MIPSInst_SIMM(ir);
-		return 0;
-	case daddiu_op:
-		if (IS_ENABLED(CONFIG_32BIT))
+	switch (MIPSInst_OPCODE(ir))
+	{
+		case addiu_op:
+			if (MIPSInst_RT(ir))
+				regs->regs[MIPSInst_RT(ir)] =
+					(s32)regs->regs[MIPSInst_RS(ir)] +
+					(s32)MIPSInst_SIMM(ir);
+
+			return 0;
+
+		case daddiu_op:
+			if (IS_ENABLED(CONFIG_32BIT))
+			{
+				break;
+			}
+
+			if (MIPSInst_RT(ir))
+				regs->regs[MIPSInst_RT(ir)] =
+					(s64)regs->regs[MIPSInst_RS(ir)] +
+					(s64)MIPSInst_SIMM(ir);
+
+			return 0;
+
+		case lwc1_op:
+		case swc1_op:
+		case cop1_op:
+		case cop1x_op:
+			/* FPU instructions in delay slot */
+			return -SIGFPE;
+
+		case spec_op:
+			switch (MIPSInst_FUNC(ir))
+			{
+				case or_op:
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							regs->regs[MIPSInst_RS(ir)] |
+							regs->regs[MIPSInst_RT(ir)];
+
+					return 0;
+
+				case sll_op:
+					if (MIPSInst_RS(ir))
+					{
+						break;
+					}
+
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							(s32)(((u32)regs->regs[MIPSInst_RT(ir)]) <<
+								  MIPSInst_FD(ir));
+
+					return 0;
+
+				case srl_op:
+					if (MIPSInst_RS(ir))
+					{
+						break;
+					}
+
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							(s32)(((u32)regs->regs[MIPSInst_RT(ir)]) >>
+								  MIPSInst_FD(ir));
+
+					return 0;
+
+				case addu_op:
+					if (MIPSInst_FD(ir))
+					{
+						break;
+					}
+
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							(s32)((u32)regs->regs[MIPSInst_RS(ir)] +
+								  (u32)regs->regs[MIPSInst_RT(ir)]);
+
+					return 0;
+
+				case subu_op:
+					if (MIPSInst_FD(ir))
+					{
+						break;
+					}
+
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							(s32)((u32)regs->regs[MIPSInst_RS(ir)] -
+								  (u32)regs->regs[MIPSInst_RT(ir)]);
+
+					return 0;
+
+				case dsll_op:
+					if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_RS(ir))
+					{
+						break;
+					}
+
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							(s64)(((u64)regs->regs[MIPSInst_RT(ir)]) <<
+								  MIPSInst_FD(ir));
+
+					return 0;
+
+				case dsrl_op:
+					if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_RS(ir))
+					{
+						break;
+					}
+
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							(s64)(((u64)regs->regs[MIPSInst_RT(ir)]) >>
+								  MIPSInst_FD(ir));
+
+					return 0;
+
+				case daddu_op:
+					if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_FD(ir))
+					{
+						break;
+					}
+
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							(u64)regs->regs[MIPSInst_RS(ir)] +
+							(u64)regs->regs[MIPSInst_RT(ir)];
+
+					return 0;
+
+				case dsubu_op:
+					if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_FD(ir))
+					{
+						break;
+					}
+
+					if (MIPSInst_RD(ir))
+						regs->regs[MIPSInst_RD(ir)] =
+							(s64)((u64)regs->regs[MIPSInst_RS(ir)] -
+								  (u64)regs->regs[MIPSInst_RT(ir)]);
+
+					return 0;
+			}
+
 			break;
 
-		if (MIPSInst_RT(ir))
-			regs->regs[MIPSInst_RT(ir)] =
-				(s64)regs->regs[MIPSInst_RS(ir)] +
-				(s64)MIPSInst_SIMM(ir);
-		return 0;
-	case lwc1_op:
-	case swc1_op:
-	case cop1_op:
-	case cop1x_op:
-		/* FPU instructions in delay slot */
-		return -SIGFPE;
-	case spec_op:
-		switch (MIPSInst_FUNC(ir)) {
-		case or_op:
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					regs->regs[MIPSInst_RS(ir)] |
-					regs->regs[MIPSInst_RT(ir)];
-			return 0;
-		case sll_op:
-			if (MIPSInst_RS(ir))
-				break;
-
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					(s32)(((u32)regs->regs[MIPSInst_RT(ir)]) <<
-						MIPSInst_FD(ir));
-			return 0;
-		case srl_op:
-			if (MIPSInst_RS(ir))
-				break;
-
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					(s32)(((u32)regs->regs[MIPSInst_RT(ir)]) >>
-						MIPSInst_FD(ir));
-			return 0;
-		case addu_op:
-			if (MIPSInst_FD(ir))
-				break;
-
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					(s32)((u32)regs->regs[MIPSInst_RS(ir)] +
-					      (u32)regs->regs[MIPSInst_RT(ir)]);
-			return 0;
-		case subu_op:
-			if (MIPSInst_FD(ir))
-				break;
-
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					(s32)((u32)regs->regs[MIPSInst_RS(ir)] -
-					      (u32)regs->regs[MIPSInst_RT(ir)]);
-			return 0;
-		case dsll_op:
-			if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_RS(ir))
-				break;
-
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					(s64)(((u64)regs->regs[MIPSInst_RT(ir)]) <<
-						MIPSInst_FD(ir));
-			return 0;
-		case dsrl_op:
-			if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_RS(ir))
-				break;
-
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					(s64)(((u64)regs->regs[MIPSInst_RT(ir)]) >>
-						MIPSInst_FD(ir));
-			return 0;
-		case daddu_op:
-			if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_FD(ir))
-				break;
-
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					(u64)regs->regs[MIPSInst_RS(ir)] +
-					(u64)regs->regs[MIPSInst_RT(ir)];
-			return 0;
-		case dsubu_op:
-			if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_FD(ir))
-				break;
-
-			if (MIPSInst_RD(ir))
-				regs->regs[MIPSInst_RD(ir)] =
-					(s64)((u64)regs->regs[MIPSInst_RS(ir)] -
-					      (u64)regs->regs[MIPSInst_RT(ir)]);
-			return 0;
-		}
-		break;
-	default:
-		pr_debug("No fastpath BD emulation for instruction 0x%08x (op: %02x)\n",
-			 ir, MIPSInst_OPCODE(ir));
+		default:
+			pr_debug("No fastpath BD emulation for instruction 0x%08x (op: %02x)\n",
+					 ir, MIPSInst_OPCODE(ir));
 	}
 
 	return SIGILL;
@@ -203,7 +247,9 @@ static int movf_func(struct pt_regs *regs, u32 ir)
 	cond = fpucondbit[MIPSInst_RT(ir) >> 2];
 
 	if (((csr & cond) == 0) && MIPSInst_RD(ir))
+	{
 		regs->regs[MIPSInst_RD(ir)] = regs->regs[MIPSInst_RS(ir)];
+	}
 
 	MIPS_R2_STATS(movs);
 
@@ -226,7 +272,9 @@ static int movt_func(struct pt_regs *regs, u32 ir)
 	cond = fpucondbit[MIPSInst_RT(ir) >> 2];
 
 	if (((csr & cond) != 0) && MIPSInst_RD(ir))
+	{
 		regs->regs[MIPSInst_RD(ir)] = regs->regs[MIPSInst_RS(ir)];
+	}
 
 	MIPS_R2_STATS(movs);
 
@@ -249,7 +297,9 @@ static int jr_func(struct pt_regs *regs, u32 ir)
 	u32 nir;
 
 	if (delay_slot(regs))
+	{
 		return SIGILL;
+	}
 
 	/* EPC after the RI/JR instruction */
 	nepc = regs->cp0_epc;
@@ -259,7 +309,9 @@ static int jr_func(struct pt_regs *regs, u32 ir)
 	err = __compute_return_epc(regs);
 
 	if (err < 0)
+	{
 		return SIGEMT;
+	}
 
 
 	/* Computed EPC */
@@ -267,24 +319,34 @@ static int jr_func(struct pt_regs *regs, u32 ir)
 
 	/* Get DS instruction */
 	err = __get_user(nir, (u32 __user *)nepc);
+
 	if (err)
+	{
 		return SIGSEGV;
+	}
 
 	MIPS_R2BR_STATS(jrs);
 
 	/* If nir == 0(NOP), then nothing else to do */
-	if (nir) {
+	if (nir)
+	{
 		/*
 		 * Negative err means FPU instruction in BD-slot,
 		 * Zero err means 'BD-slot emulation done'
 		 * For anything else we go back to trampoline emulation.
 		 */
 		err = mipsr6_emul(regs, nir);
-		if (err > 0) {
+
+		if (err > 0)
+		{
 			regs->cp0_epc = nepc;
 			err = mips_dsemul(regs, nir, epc, cepc);
+
 			if (err == SIGILL)
+			{
 				err = SIGEMT;
+			}
+
 			MIPS_R2_STATS(dsemul);
 		}
 	}
@@ -302,7 +364,10 @@ static int jr_func(struct pt_regs *regs, u32 ir)
 static int movz_func(struct pt_regs *regs, u32 ir)
 {
 	if (((regs->regs[MIPSInst_RT(ir)]) == 0) && MIPSInst_RD(ir))
+	{
 		regs->regs[MIPSInst_RD(ir)] = regs->regs[MIPSInst_RS(ir)];
+	}
+
 	MIPS_R2_STATS(movs);
 
 	return 0;
@@ -318,7 +383,10 @@ static int movz_func(struct pt_regs *regs, u32 ir)
 static int movn_func(struct pt_regs *regs, u32 ir)
 {
 	if (((regs->regs[MIPSInst_RT(ir)]) != 0) && MIPSInst_RD(ir))
+	{
 		regs->regs[MIPSInst_RD(ir)] = regs->regs[MIPSInst_RS(ir)];
+	}
+
 	MIPS_R2_STATS(movs);
 
 	return 0;
@@ -334,7 +402,9 @@ static int movn_func(struct pt_regs *regs, u32 ir)
 static int mfhi_func(struct pt_regs *regs, u32 ir)
 {
 	if (MIPSInst_RD(ir))
+	{
 		regs->regs[MIPSInst_RD(ir)] = regs->hi;
+	}
 
 	MIPS_R2_STATS(hilo);
 
@@ -367,7 +437,9 @@ static int mthi_func(struct pt_regs *regs, u32 ir)
 static int mflo_func(struct pt_regs *regs, u32 ir)
 {
 	if (MIPSInst_RD(ir))
+	{
 		regs->regs[MIPSInst_RD(ir)] = regs->lo;
+	}
 
 	MIPS_R2_STATS(hilo);
 
@@ -498,7 +570,9 @@ static int dmult_func(struct pt_regs *regs, u32 ir)
 	s64 rt, rs;
 
 	if (IS_ENABLED(CONFIG_32BIT))
+	{
 		return SIGILL;
+	}
 
 	rt = regs->regs[MIPSInst_RT(ir)];
 	rs = regs->regs[MIPSInst_RS(ir)];
@@ -530,7 +604,9 @@ static int dmultu_func(struct pt_regs *regs, u32 ir)
 	u64 rt, rs;
 
 	if (IS_ENABLED(CONFIG_32BIT))
+	{
 		return SIGILL;
+	}
 
 	rt = regs->regs[MIPSInst_RT(ir)];
 	rs = regs->regs[MIPSInst_RS(ir)];
@@ -561,7 +637,9 @@ static int ddiv_func(struct pt_regs *regs, u32 ir)
 	s64 rt, rs;
 
 	if (IS_ENABLED(CONFIG_32BIT))
+	{
 		return SIGILL;
+	}
 
 	rt = regs->regs[MIPSInst_RT(ir)];
 	rs = regs->regs[MIPSInst_RS(ir)];
@@ -586,7 +664,9 @@ static int ddivu_func(struct pt_regs *regs, u32 ir)
 	u64 rt, rs;
 
 	if (IS_ENABLED(CONFIG_32BIT))
+	{
 		return SIGILL;
+	}
 
 	rt = regs->regs[MIPSInst_RT(ir)];
 	rs = regs->regs[MIPSInst_RS(ir)];
@@ -600,7 +680,8 @@ static int ddivu_func(struct pt_regs *regs, u32 ir)
 }
 
 /* R6 removed instructions for the SPECIAL opcode */
-static struct r2_decoder_table spec_op_table[] = {
+static struct r2_decoder_table spec_op_table[] =
+{
 	{ 0xfc1ff83f, 0x00000008, jr_func },
 	{ 0xfc00ffff, 0x00000018, mult_func },
 	{ 0xfc00ffff, 0x00000019, multu_func },
@@ -750,7 +831,10 @@ static int mul_func(struct pt_regs *regs, u32 ir)
 	s32 rt, rs;
 
 	if (!MIPSInst_RD(ir))
+	{
 		return 0;
+	}
+
 	rt = regs->regs[MIPSInst_RT(ir)];
 	rs = regs->regs[MIPSInst_RS(ir)];
 	res = (s64)rt * (s64)rs;
@@ -776,7 +860,9 @@ static int clz_func(struct pt_regs *regs, u32 ir)
 	u32 rs;
 
 	if (!MIPSInst_RD(ir))
+	{
 		return 0;
+	}
 
 	rs = regs->regs[MIPSInst_RS(ir)];
 	__asm__ __volatile__("clz %0, %1" : "=r"(res) : "r"(rs));
@@ -801,7 +887,9 @@ static int clo_func(struct pt_regs *regs, u32 ir)
 	u32 rs;
 
 	if (!MIPSInst_RD(ir))
+	{
 		return 0;
+	}
 
 	rs = regs->regs[MIPSInst_RS(ir)];
 	__asm__ __volatile__("clo %0, %1" : "=r"(res) : "r"(rs));
@@ -825,10 +913,14 @@ static int dclz_func(struct pt_regs *regs, u32 ir)
 	u64 rs;
 
 	if (IS_ENABLED(CONFIG_32BIT))
+	{
 		return SIGILL;
+	}
 
 	if (!MIPSInst_RD(ir))
+	{
 		return 0;
+	}
 
 	rs = regs->regs[MIPSInst_RS(ir)];
 	__asm__ __volatile__("dclz %0, %1" : "=r"(res) : "r"(rs));
@@ -852,10 +944,14 @@ static int dclo_func(struct pt_regs *regs, u32 ir)
 	u64 rs;
 
 	if (IS_ENABLED(CONFIG_32BIT))
+	{
 		return SIGILL;
+	}
 
 	if (!MIPSInst_RD(ir))
+	{
 		return 0;
+	}
 
 	rs = regs->regs[MIPSInst_RS(ir)];
 	__asm__ __volatile__("dclo %0, %1" : "=r"(res) : "r"(rs));
@@ -867,7 +963,8 @@ static int dclo_func(struct pt_regs *regs, u32 ir)
 }
 
 /* R6 removed instructions for the SPECIAL2 opcode */
-static struct r2_decoder_table spec2_op_table[] = {
+static struct r2_decoder_table spec2_op_table[] =
+{
 	{ 0xfc00ffff, 0x70000000, madd_func },
 	{ 0xfc00ffff, 0x70000001, maddu_func },
 	{ 0xfc0007ff, 0x70000002, mul_func },
@@ -881,17 +978,20 @@ static struct r2_decoder_table spec2_op_table[] = {
 };
 
 static inline int mipsr2_find_op_func(struct pt_regs *regs, u32 inst,
-				      struct r2_decoder_table *table)
+									  struct r2_decoder_table *table)
 {
 	struct r2_decoder_table *p;
 	int err;
 
-	for (p = table; p->func; p++) {
-		if ((inst & p->mask) == p->code) {
+	for (p = table; p->func; p++)
+	{
+		if ((inst & p->mask) == p->code)
+		{
 			err = (p->func)(regs, inst);
 			return err;
 		}
 	}
+
 	return SIGILL;
 }
 
@@ -915,1315 +1015,1509 @@ repeat:
 	r31 = regs->regs[31];
 	epc = regs->cp0_epc;
 	err = compute_return_epc(regs);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		BUG();
 		return SIGEMT;
 	}
+
 	pr_debug("Emulating the 0x%08x R2 instruction @ 0x%08lx (pass=%d))\n",
-		 inst, epc, pass);
+			 inst, epc, pass);
 
-	switch (MIPSInst_OPCODE(inst)) {
-	case spec_op:
-		err = mipsr2_find_op_func(regs, inst, spec_op_table);
-		if (err < 0) {
-			/* FPU instruction under JR */
-			regs->cp0_cause |= CAUSEF_BD;
-			goto fpu_emul;
-		}
-		break;
-	case spec2_op:
-		err = mipsr2_find_op_func(regs, inst, spec2_op_table);
-		break;
-	case bcond_op:
-		rt = MIPSInst_RT(inst);
-		rs = MIPSInst_RS(inst);
-		switch (rt) {
-		case tgei_op:
-			if ((long)regs->regs[rs] >= MIPSInst_SIMM(inst))
-				do_trap_or_bp(regs, 0, 0, "TGEI");
+	switch (MIPSInst_OPCODE(inst))
+	{
+		case spec_op:
+			err = mipsr2_find_op_func(regs, inst, spec_op_table);
 
-			MIPS_R2_STATS(traps);
-
-			break;
-		case tgeiu_op:
-			if (regs->regs[rs] >= MIPSInst_UIMM(inst))
-				do_trap_or_bp(regs, 0, 0, "TGEIU");
-
-			MIPS_R2_STATS(traps);
-
-			break;
-		case tlti_op:
-			if ((long)regs->regs[rs] < MIPSInst_SIMM(inst))
-				do_trap_or_bp(regs, 0, 0, "TLTI");
-
-			MIPS_R2_STATS(traps);
-
-			break;
-		case tltiu_op:
-			if (regs->regs[rs] < MIPSInst_UIMM(inst))
-				do_trap_or_bp(regs, 0, 0, "TLTIU");
-
-			MIPS_R2_STATS(traps);
-
-			break;
-		case teqi_op:
-			if (regs->regs[rs] == MIPSInst_SIMM(inst))
-				do_trap_or_bp(regs, 0, 0, "TEQI");
-
-			MIPS_R2_STATS(traps);
-
-			break;
-		case tnei_op:
-			if (regs->regs[rs] != MIPSInst_SIMM(inst))
-				do_trap_or_bp(regs, 0, 0, "TNEI");
-
-			MIPS_R2_STATS(traps);
-
-			break;
-		case bltzl_op:
-		case bgezl_op:
-		case bltzall_op:
-		case bgezall_op:
-			if (delay_slot(regs)) {
-				err = SIGILL;
-				break;
-			}
-			regs->regs[31] = r31;
-			regs->cp0_epc = epc;
-			err = __compute_return_epc(regs);
 			if (err < 0)
-				return SIGEMT;
-			if (err != BRANCH_LIKELY_TAKEN)
-				break;
-			cpc = regs->cp0_epc;
-			nepc = epc + 4;
-			err = __get_user(nir, (u32 __user *)nepc);
-			if (err) {
-				err = SIGSEGV;
-				break;
-			}
-			/*
-			 * This will probably be optimized away when
-			 * CONFIG_DEBUG_FS is not enabled
-			 */
-			switch (rt) {
-			case bltzl_op:
-				MIPS_R2BR_STATS(bltzl);
-				break;
-			case bgezl_op:
-				MIPS_R2BR_STATS(bgezl);
-				break;
-			case bltzall_op:
-				MIPS_R2BR_STATS(bltzall);
-				break;
-			case bgezall_op:
-				MIPS_R2BR_STATS(bgezall);
-				break;
-			}
-
-			switch (MIPSInst_OPCODE(nir)) {
-			case cop1_op:
-			case cop1x_op:
-			case lwc1_op:
-			case swc1_op:
+			{
+				/* FPU instruction under JR */
 				regs->cp0_cause |= CAUSEF_BD;
 				goto fpu_emul;
 			}
-			if (nir) {
-				err = mipsr6_emul(regs, nir);
-				if (err > 0) {
-					err = mips_dsemul(regs, nir, epc, cpc);
-					if (err == SIGILL)
-						err = SIGEMT;
-					MIPS_R2_STATS(dsemul);
-				}
-			}
+
 			break;
-		case bltzal_op:
-		case bgezal_op:
-			if (delay_slot(regs)) {
-				err = SIGILL;
-				break;
-			}
-			regs->regs[31] = r31;
-			regs->cp0_epc = epc;
-			err = __compute_return_epc(regs);
-			if (err < 0)
-				return SIGEMT;
-			cpc = regs->cp0_epc;
-			nepc = epc + 4;
-			err = __get_user(nir, (u32 __user *)nepc);
-			if (err) {
-				err = SIGSEGV;
-				break;
-			}
-			/*
-			 * This will probably be optimized away when
-			 * CONFIG_DEBUG_FS is not enabled
-			 */
-			switch (rt) {
-			case bltzal_op:
-				MIPS_R2BR_STATS(bltzal);
-				break;
-			case bgezal_op:
-				MIPS_R2BR_STATS(bgezal);
-				break;
+
+		case spec2_op:
+			err = mipsr2_find_op_func(regs, inst, spec2_op_table);
+			break;
+
+		case bcond_op:
+			rt = MIPSInst_RT(inst);
+			rs = MIPSInst_RS(inst);
+
+			switch (rt)
+			{
+				case tgei_op:
+					if ((long)regs->regs[rs] >= MIPSInst_SIMM(inst))
+					{
+						do_trap_or_bp(regs, 0, 0, "TGEI");
+					}
+
+					MIPS_R2_STATS(traps);
+
+					break;
+
+				case tgeiu_op:
+					if (regs->regs[rs] >= MIPSInst_UIMM(inst))
+					{
+						do_trap_or_bp(regs, 0, 0, "TGEIU");
+					}
+
+					MIPS_R2_STATS(traps);
+
+					break;
+
+				case tlti_op:
+					if ((long)regs->regs[rs] < MIPSInst_SIMM(inst))
+					{
+						do_trap_or_bp(regs, 0, 0, "TLTI");
+					}
+
+					MIPS_R2_STATS(traps);
+
+					break;
+
+				case tltiu_op:
+					if (regs->regs[rs] < MIPSInst_UIMM(inst))
+					{
+						do_trap_or_bp(regs, 0, 0, "TLTIU");
+					}
+
+					MIPS_R2_STATS(traps);
+
+					break;
+
+				case teqi_op:
+					if (regs->regs[rs] == MIPSInst_SIMM(inst))
+					{
+						do_trap_or_bp(regs, 0, 0, "TEQI");
+					}
+
+					MIPS_R2_STATS(traps);
+
+					break;
+
+				case tnei_op:
+					if (regs->regs[rs] != MIPSInst_SIMM(inst))
+					{
+						do_trap_or_bp(regs, 0, 0, "TNEI");
+					}
+
+					MIPS_R2_STATS(traps);
+
+					break;
+
+				case bltzl_op:
+				case bgezl_op:
+				case bltzall_op:
+				case bgezall_op:
+					if (delay_slot(regs))
+					{
+						err = SIGILL;
+						break;
+					}
+
+					regs->regs[31] = r31;
+					regs->cp0_epc = epc;
+					err = __compute_return_epc(regs);
+
+					if (err < 0)
+					{
+						return SIGEMT;
+					}
+
+					if (err != BRANCH_LIKELY_TAKEN)
+					{
+						break;
+					}
+
+					cpc = regs->cp0_epc;
+					nepc = epc + 4;
+					err = __get_user(nir, (u32 __user *)nepc);
+
+					if (err)
+					{
+						err = SIGSEGV;
+						break;
+					}
+
+					/*
+					 * This will probably be optimized away when
+					 * CONFIG_DEBUG_FS is not enabled
+					 */
+					switch (rt)
+					{
+						case bltzl_op:
+							MIPS_R2BR_STATS(bltzl);
+							break;
+
+						case bgezl_op:
+							MIPS_R2BR_STATS(bgezl);
+							break;
+
+						case bltzall_op:
+							MIPS_R2BR_STATS(bltzall);
+							break;
+
+						case bgezall_op:
+							MIPS_R2BR_STATS(bgezall);
+							break;
+					}
+
+					switch (MIPSInst_OPCODE(nir))
+					{
+						case cop1_op:
+						case cop1x_op:
+						case lwc1_op:
+						case swc1_op:
+							regs->cp0_cause |= CAUSEF_BD;
+							goto fpu_emul;
+					}
+
+					if (nir)
+					{
+						err = mipsr6_emul(regs, nir);
+
+						if (err > 0)
+						{
+							err = mips_dsemul(regs, nir, epc, cpc);
+
+							if (err == SIGILL)
+							{
+								err = SIGEMT;
+							}
+
+							MIPS_R2_STATS(dsemul);
+						}
+					}
+
+					break;
+
+				case bltzal_op:
+				case bgezal_op:
+					if (delay_slot(regs))
+					{
+						err = SIGILL;
+						break;
+					}
+
+					regs->regs[31] = r31;
+					regs->cp0_epc = epc;
+					err = __compute_return_epc(regs);
+
+					if (err < 0)
+					{
+						return SIGEMT;
+					}
+
+					cpc = regs->cp0_epc;
+					nepc = epc + 4;
+					err = __get_user(nir, (u32 __user *)nepc);
+
+					if (err)
+					{
+						err = SIGSEGV;
+						break;
+					}
+
+					/*
+					 * This will probably be optimized away when
+					 * CONFIG_DEBUG_FS is not enabled
+					 */
+					switch (rt)
+					{
+						case bltzal_op:
+							MIPS_R2BR_STATS(bltzal);
+							break;
+
+						case bgezal_op:
+							MIPS_R2BR_STATS(bgezal);
+							break;
+					}
+
+					switch (MIPSInst_OPCODE(nir))
+					{
+						case cop1_op:
+						case cop1x_op:
+						case lwc1_op:
+						case swc1_op:
+							regs->cp0_cause |= CAUSEF_BD;
+							goto fpu_emul;
+					}
+
+					if (nir)
+					{
+						err = mipsr6_emul(regs, nir);
+
+						if (err > 0)
+						{
+							err = mips_dsemul(regs, nir, epc, cpc);
+
+							if (err == SIGILL)
+							{
+								err = SIGEMT;
+							}
+
+							MIPS_R2_STATS(dsemul);
+						}
+					}
+
+					break;
+
+				default:
+					regs->regs[31] = r31;
+					regs->cp0_epc = epc;
+					err = SIGILL;
+					break;
 			}
 
-			switch (MIPSInst_OPCODE(nir)) {
-			case cop1_op:
-			case cop1x_op:
-			case lwc1_op:
-			case swc1_op:
-				regs->cp0_cause |= CAUSEF_BD;
-				goto fpu_emul;
-			}
-			if (nir) {
-				err = mipsr6_emul(regs, nir);
-				if (err > 0) {
-					err = mips_dsemul(regs, nir, epc, cpc);
-					if (err == SIGILL)
-						err = SIGEMT;
-					MIPS_R2_STATS(dsemul);
-				}
-			}
 			break;
-		default:
-			regs->regs[31] = r31;
-			regs->cp0_epc = epc;
-			err = SIGILL;
-			break;
-		}
-		break;
 
-	case beql_op:
-	case bnel_op:
-	case blezl_op:
-	case bgtzl_op:
-		if (delay_slot(regs)) {
-			err = SIGILL;
-			break;
-		}
-		regs->regs[31] = r31;
-		regs->cp0_epc = epc;
-		err = __compute_return_epc(regs);
-		if (err < 0)
-			return SIGEMT;
-		if (err != BRANCH_LIKELY_TAKEN)
-			break;
-		cpc = regs->cp0_epc;
-		nepc = epc + 4;
-		err = __get_user(nir, (u32 __user *)nepc);
-		if (err) {
-			err = SIGSEGV;
-			break;
-		}
-		/*
-		 * This will probably be optimized away when
-		 * CONFIG_DEBUG_FS is not enabled
-		 */
-		switch (MIPSInst_OPCODE(inst)) {
 		case beql_op:
-			MIPS_R2BR_STATS(beql);
-			break;
 		case bnel_op:
-			MIPS_R2BR_STATS(bnel);
-			break;
 		case blezl_op:
-			MIPS_R2BR_STATS(blezl);
-			break;
 		case bgtzl_op:
-			MIPS_R2BR_STATS(bgtzl);
-			break;
-		}
+			if (delay_slot(regs))
+			{
+				err = SIGILL;
+				break;
+			}
 
-		switch (MIPSInst_OPCODE(nir)) {
-		case cop1_op:
-		case cop1x_op:
+			regs->regs[31] = r31;
+			regs->cp0_epc = epc;
+			err = __compute_return_epc(regs);
+
+			if (err < 0)
+			{
+				return SIGEMT;
+			}
+
+			if (err != BRANCH_LIKELY_TAKEN)
+			{
+				break;
+			}
+
+			cpc = regs->cp0_epc;
+			nepc = epc + 4;
+			err = __get_user(nir, (u32 __user *)nepc);
+
+			if (err)
+			{
+				err = SIGSEGV;
+				break;
+			}
+
+			/*
+			 * This will probably be optimized away when
+			 * CONFIG_DEBUG_FS is not enabled
+			 */
+			switch (MIPSInst_OPCODE(inst))
+			{
+				case beql_op:
+					MIPS_R2BR_STATS(beql);
+					break;
+
+				case bnel_op:
+					MIPS_R2BR_STATS(bnel);
+					break;
+
+				case blezl_op:
+					MIPS_R2BR_STATS(blezl);
+					break;
+
+				case bgtzl_op:
+					MIPS_R2BR_STATS(bgtzl);
+					break;
+			}
+
+			switch (MIPSInst_OPCODE(nir))
+			{
+				case cop1_op:
+				case cop1x_op:
+				case lwc1_op:
+				case swc1_op:
+					regs->cp0_cause |= CAUSEF_BD;
+					goto fpu_emul;
+			}
+
+			if (nir)
+			{
+				err = mipsr6_emul(regs, nir);
+
+				if (err > 0)
+				{
+					err = mips_dsemul(regs, nir, epc, cpc);
+
+					if (err == SIGILL)
+					{
+						err = SIGEMT;
+					}
+
+					MIPS_R2_STATS(dsemul);
+				}
+			}
+
+			break;
+
 		case lwc1_op:
 		case swc1_op:
-			regs->cp0_cause |= CAUSEF_BD;
-			goto fpu_emul;
-		}
-		if (nir) {
-			err = mipsr6_emul(regs, nir);
-			if (err > 0) {
-				err = mips_dsemul(regs, nir, epc, cpc);
-				if (err == SIGILL)
-					err = SIGEMT;
-				MIPS_R2_STATS(dsemul);
-			}
-		}
-		break;
-	case lwc1_op:
-	case swc1_op:
-	case cop1_op:
-	case cop1x_op:
+		case cop1_op:
+		case cop1x_op:
 fpu_emul:
-		regs->regs[31] = r31;
-		regs->cp0_epc = epc;
-		if (!used_math()) {     /* First time FPU user.  */
-			preempt_disable();
-			err = init_fpu();
-			preempt_enable();
-			set_used_math();
-		}
-		lose_fpu(1);    /* Save FPU state for the emulator. */
+			regs->regs[31] = r31;
+			regs->cp0_epc = epc;
 
-		err = fpu_emulator_cop1Handler(regs, &current->thread.fpu, 0,
-					       &fault_addr);
+			if (!used_math())       /* First time FPU user.  */
+			{
+				preempt_disable();
+				err = init_fpu();
+				preempt_enable();
+				set_used_math();
+			}
 
-		/*
-		 * We can't allow the emulated instruction to leave any
-		 * enabled Cause bits set in $fcr31.
-		 */
-		*fcr31 = res = mask_fcr31_x(current->thread.fpu.fcr31);
-		current->thread.fpu.fcr31 &= ~res;
+			lose_fpu(1);    /* Save FPU state for the emulator. */
 
-		/*
-		 * this is a tricky issue - lose_fpu() uses LL/SC atomics
-		 * if FPU is owned and effectively cancels user level LL/SC.
-		 * So, it could be logical to don't restore FPU ownership here.
-		 * But the sequence of multiple FPU instructions is much much
-		 * more often than LL-FPU-SC and I prefer loop here until
-		 * next scheduler cycle cancels FPU ownership
-		 */
-		own_fpu(1);	/* Restore FPU state. */
+			err = fpu_emulator_cop1Handler(regs, &current->thread.fpu, 0,
+										   &fault_addr);
 
-		if (err)
-			current->thread.cp0_baduaddr = (unsigned long)fault_addr;
+			/*
+			 * We can't allow the emulated instruction to leave any
+			 * enabled Cause bits set in $fcr31.
+			 */
+			*fcr31 = res = mask_fcr31_x(current->thread.fpu.fcr31);
+			current->thread.fpu.fcr31 &= ~res;
 
-		MIPS_R2_STATS(fpus);
+			/*
+			 * this is a tricky issue - lose_fpu() uses LL/SC atomics
+			 * if FPU is owned and effectively cancels user level LL/SC.
+			 * So, it could be logical to don't restore FPU ownership here.
+			 * But the sequence of multiple FPU instructions is much much
+			 * more often than LL-FPU-SC and I prefer loop here until
+			 * next scheduler cycle cancels FPU ownership
+			 */
+			own_fpu(1);	/* Restore FPU state. */
 
-		break;
+			if (err)
+			{
+				current->thread.cp0_baduaddr = (unsigned long)fault_addr;
+			}
 
-	case lwl_op:
-		rt = regs->regs[MIPSInst_RT(inst)];
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (!access_ok(VERIFY_READ, vaddr, 4)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGSEGV;
+			MIPS_R2_STATS(fpus);
+
 			break;
-		}
-		__asm__ __volatile__(
-			"	.set	push\n"
-			"	.set	reorder\n"
+
+		case lwl_op:
+			rt = regs->regs[MIPSInst_RT(inst)];
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (!access_ok(VERIFY_READ, vaddr, 4))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGSEGV;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"	.set	push\n"
+				"	.set	reorder\n"
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-			"1:"	LB	"%1, 0(%2)\n"
+				"1:"	LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 24, 8\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
-			"2:"	LB	"%1, 0(%2)\n"
+				"2:"	LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 16, 8\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
-			"3:"	LB	"%1, 0(%2)\n"
+				"3:"	LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 8, 8\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
-			"4:"	LB	"%1, 0(%2)\n"
+				"4:"	LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 0, 8\n"
 #else /* !CONFIG_CPU_LITTLE_ENDIAN */
-			"1:"	LB	"%1, 0(%2)\n"
+				"1:"	LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 24, 8\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
-			"2:"	LB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
+				"2:"	LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 16, 8\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
-			"3:"	LB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
+				"3:"	LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 8, 8\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
-			"4:"	LB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
+				"4:"	LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 0, 8\n"
 #endif /* CONFIG_CPU_LITTLE_ENDIAN */
-			"9:	sll	%0, %0, 0\n"
-			"10:\n"
-			"	.insn\n"
-			"	.section	.fixup,\"ax\"\n"
-			"8:	li	%3,%4\n"
-			"	j	10b\n"
-			"	.previous\n"
-			"	.section	__ex_table,\"a\"\n"
-			STR(PTR) " 1b,8b\n"
-			STR(PTR) " 2b,8b\n"
-			STR(PTR) " 3b,8b\n"
-			STR(PTR) " 4b,8b\n"
-			"	.previous\n"
-			"	.set	pop\n"
-			: "+&r"(rt), "=&r"(rs),
-			  "+&r"(vaddr), "+&r"(err)
-			: "i"(SIGSEGV));
+				"9:	sll	%0, %0, 0\n"
+				"10:\n"
+				"	.insn\n"
+				"	.section	.fixup,\"ax\"\n"
+				"8:	li	%3,%4\n"
+				"	j	10b\n"
+				"	.previous\n"
+				"	.section	__ex_table,\"a\"\n"
+				STR(PTR) " 1b,8b\n"
+				STR(PTR) " 2b,8b\n"
+				STR(PTR) " 3b,8b\n"
+				STR(PTR) " 4b,8b\n"
+				"	.previous\n"
+				"	.set	pop\n"
+				: "+&r"(rt), "=&r"(rs),
+				"+&r"(vaddr), "+&r"(err)
+				: "i"(SIGSEGV));
 
-		if (MIPSInst_RT(inst) && !err)
-			regs->regs[MIPSInst_RT(inst)] = rt;
+			if (MIPSInst_RT(inst) && !err)
+			{
+				regs->regs[MIPSInst_RT(inst)] = rt;
+			}
 
-		MIPS_R2_STATS(loads);
+			MIPS_R2_STATS(loads);
 
-		break;
-
-	case lwr_op:
-		rt = regs->regs[MIPSInst_RT(inst)];
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (!access_ok(VERIFY_READ, vaddr, 4)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGSEGV;
 			break;
-		}
-		__asm__ __volatile__(
-			"       .set	push\n"
-			"       .set	reorder\n"
+
+		case lwr_op:
+			rt = regs->regs[MIPSInst_RT(inst)];
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (!access_ok(VERIFY_READ, vaddr, 4))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGSEGV;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"       .set	push\n"
+				"       .set	reorder\n"
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-			"1:"    LB	"%1, 0(%2)\n"
+				"1:"    LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 0, 8\n"
 				ADDIU	"%2, %2, 1\n"
-			"       andi	%1, %2, 0x3\n"
-			"       beq	$0, %1, 9f\n"
-			"2:"    LB	"%1, 0(%2)\n"
+				"       andi	%1, %2, 0x3\n"
+				"       beq	$0, %1, 9f\n"
+				"2:"    LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 8, 8\n"
 				ADDIU	"%2, %2, 1\n"
-			"       andi	%1, %2, 0x3\n"
-			"       beq	$0, %1, 9f\n"
-			"3:"    LB	"%1, 0(%2)\n"
+				"       andi	%1, %2, 0x3\n"
+				"       beq	$0, %1, 9f\n"
+				"3:"    LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 16, 8\n"
 				ADDIU	"%2, %2, 1\n"
-			"       andi	%1, %2, 0x3\n"
-			"       beq	$0, %1, 9f\n"
-			"4:"    LB	"%1, 0(%2)\n"
+				"       andi	%1, %2, 0x3\n"
+				"       beq	$0, %1, 9f\n"
+				"4:"    LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 24, 8\n"
-			"       sll	%0, %0, 0\n"
+				"       sll	%0, %0, 0\n"
 #else /* !CONFIG_CPU_LITTLE_ENDIAN */
-			"1:"    LB	"%1, 0(%2)\n"
+				"1:"    LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 0, 8\n"
-			"       andi	%1, %2, 0x3\n"
-			"       beq	$0, %1, 9f\n"
+				"       andi	%1, %2, 0x3\n"
+				"       beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
-			"2:"    LB	"%1, 0(%2)\n"
+				"2:"    LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 8, 8\n"
-			"       andi	%1, %2, 0x3\n"
-			"       beq	$0, %1, 9f\n"
+				"       andi	%1, %2, 0x3\n"
+				"       beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
-			"3:"    LB	"%1, 0(%2)\n"
+				"3:"    LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 16, 8\n"
-			"       andi	%1, %2, 0x3\n"
-			"       beq	$0, %1, 9f\n"
+				"       andi	%1, %2, 0x3\n"
+				"       beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
-			"4:"    LB	"%1, 0(%2)\n"
+				"4:"    LB	"%1, 0(%2)\n"
 				INS	"%0, %1, 24, 8\n"
-			"       sll	%0, %0, 0\n"
+				"       sll	%0, %0, 0\n"
 #endif /* CONFIG_CPU_LITTLE_ENDIAN */
-			"9:\n"
-			"10:\n"
-			"	.insn\n"
-			"	.section	.fixup,\"ax\"\n"
-			"8:	li	%3,%4\n"
-			"	j	10b\n"
-			"       .previous\n"
-			"	.section	__ex_table,\"a\"\n"
-			STR(PTR) " 1b,8b\n"
-			STR(PTR) " 2b,8b\n"
-			STR(PTR) " 3b,8b\n"
-			STR(PTR) " 4b,8b\n"
-			"	.previous\n"
-			"	.set	pop\n"
-			: "+&r"(rt), "=&r"(rs),
-			  "+&r"(vaddr), "+&r"(err)
-			: "i"(SIGSEGV));
-		if (MIPSInst_RT(inst) && !err)
-			regs->regs[MIPSInst_RT(inst)] = rt;
+				"9:\n"
+				"10:\n"
+				"	.insn\n"
+				"	.section	.fixup,\"ax\"\n"
+				"8:	li	%3,%4\n"
+				"	j	10b\n"
+				"       .previous\n"
+				"	.section	__ex_table,\"a\"\n"
+				STR(PTR) " 1b,8b\n"
+				STR(PTR) " 2b,8b\n"
+				STR(PTR) " 3b,8b\n"
+				STR(PTR) " 4b,8b\n"
+				"	.previous\n"
+				"	.set	pop\n"
+				: "+&r"(rt), "=&r"(rs),
+				"+&r"(vaddr), "+&r"(err)
+				: "i"(SIGSEGV));
 
-		MIPS_R2_STATS(loads);
+			if (MIPSInst_RT(inst) && !err)
+			{
+				regs->regs[MIPSInst_RT(inst)] = rt;
+			}
 
-		break;
+			MIPS_R2_STATS(loads);
 
-	case swl_op:
-		rt = regs->regs[MIPSInst_RT(inst)];
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (!access_ok(VERIFY_WRITE, vaddr, 4)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGSEGV;
 			break;
-		}
-		__asm__ __volatile__(
-			"	.set	push\n"
-			"	.set	reorder\n"
+
+		case swl_op:
+			rt = regs->regs[MIPSInst_RT(inst)];
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (!access_ok(VERIFY_WRITE, vaddr, 4))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGSEGV;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"	.set	push\n"
+				"	.set	reorder\n"
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
 				EXT	"%1, %0, 24, 8\n"
-			"1:"	SB	"%1, 0(%2)\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"1:"	SB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
 				EXT	"%1, %0, 16, 8\n"
-			"2:"	SB	"%1, 0(%2)\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"2:"	SB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
 				EXT	"%1, %0, 8, 8\n"
-			"3:"	SB	"%1, 0(%2)\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"3:"	SB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
 				EXT	"%1, %0, 0, 8\n"
-			"4:"	SB	"%1, 0(%2)\n"
+				"4:"	SB	"%1, 0(%2)\n"
 #else /* !CONFIG_CPU_LITTLE_ENDIAN */
 				EXT	"%1, %0, 24, 8\n"
-			"1:"	SB	"%1, 0(%2)\n"
+				"1:"	SB	"%1, 0(%2)\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				EXT	"%1, %0, 16, 8\n"
-			"2:"	SB	"%1, 0(%2)\n"
+				"2:"	SB	"%1, 0(%2)\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				EXT	"%1, %0, 8, 8\n"
-			"3:"	SB	"%1, 0(%2)\n"
+				"3:"	SB	"%1, 0(%2)\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				EXT	"%1, %0, 0, 8\n"
-			"4:"	SB	"%1, 0(%2)\n"
+				"4:"	SB	"%1, 0(%2)\n"
 #endif /* CONFIG_CPU_LITTLE_ENDIAN */
-			"9:\n"
-			"	.insn\n"
-			"       .section        .fixup,\"ax\"\n"
-			"8:	li	%3,%4\n"
-			"	j	9b\n"
-			"	.previous\n"
-			"	.section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,8b\n"
-			STR(PTR) " 2b,8b\n"
-			STR(PTR) " 3b,8b\n"
-			STR(PTR) " 4b,8b\n"
-			"	.previous\n"
-			"	.set	pop\n"
-			: "+&r"(rt), "=&r"(rs),
-			  "+&r"(vaddr), "+&r"(err)
-			: "i"(SIGSEGV)
-			: "memory");
+				"9:\n"
+				"	.insn\n"
+				"       .section        .fixup,\"ax\"\n"
+				"8:	li	%3,%4\n"
+				"	j	9b\n"
+				"	.previous\n"
+				"	.section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,8b\n"
+				STR(PTR) " 2b,8b\n"
+				STR(PTR) " 3b,8b\n"
+				STR(PTR) " 4b,8b\n"
+				"	.previous\n"
+				"	.set	pop\n"
+				: "+&r"(rt), "=&r"(rs),
+				"+&r"(vaddr), "+&r"(err)
+				: "i"(SIGSEGV)
+				: "memory");
 
-		MIPS_R2_STATS(stores);
+			MIPS_R2_STATS(stores);
 
-		break;
-
-	case swr_op:
-		rt = regs->regs[MIPSInst_RT(inst)];
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (!access_ok(VERIFY_WRITE, vaddr, 4)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGSEGV;
 			break;
-		}
-		__asm__ __volatile__(
-			"	.set	push\n"
-			"	.set	reorder\n"
+
+		case swr_op:
+			rt = regs->regs[MIPSInst_RT(inst)];
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (!access_ok(VERIFY_WRITE, vaddr, 4))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGSEGV;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"	.set	push\n"
+				"	.set	reorder\n"
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
 				EXT	"%1, %0, 0, 8\n"
-			"1:"	SB	"%1, 0(%2)\n"
+				"1:"	SB	"%1, 0(%2)\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				EXT	"%1, %0, 8, 8\n"
-			"2:"	SB	"%1, 0(%2)\n"
+				"2:"	SB	"%1, 0(%2)\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				EXT	"%1, %0, 16, 8\n"
-			"3:"	SB	"%1, 0(%2)\n"
+				"3:"	SB	"%1, 0(%2)\n"
 				ADDIU	"%2, %2, 1\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				EXT	"%1, %0, 24, 8\n"
-			"4:"	SB	"%1, 0(%2)\n"
+				"4:"	SB	"%1, 0(%2)\n"
 #else /* !CONFIG_CPU_LITTLE_ENDIAN */
 				EXT	"%1, %0, 0, 8\n"
-			"1:"	SB	"%1, 0(%2)\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"1:"	SB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
 				EXT	"%1, %0, 8, 8\n"
-			"2:"	SB	"%1, 0(%2)\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"2:"	SB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
 				EXT	"%1, %0, 16, 8\n"
-			"3:"	SB	"%1, 0(%2)\n"
-			"	andi	%1, %2, 0x3\n"
-			"	beq	$0, %1, 9f\n"
+				"3:"	SB	"%1, 0(%2)\n"
+				"	andi	%1, %2, 0x3\n"
+				"	beq	$0, %1, 9f\n"
 				ADDIU	"%2, %2, -1\n"
 				EXT	"%1, %0, 24, 8\n"
-			"4:"	SB	"%1, 0(%2)\n"
+				"4:"	SB	"%1, 0(%2)\n"
 #endif /* CONFIG_CPU_LITTLE_ENDIAN */
-			"9:\n"
-			"	.insn\n"
-			"	.section        .fixup,\"ax\"\n"
-			"8:	li	%3,%4\n"
-			"	j	9b\n"
-			"	.previous\n"
-			"	.section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,8b\n"
-			STR(PTR) " 2b,8b\n"
-			STR(PTR) " 3b,8b\n"
-			STR(PTR) " 4b,8b\n"
-			"	.previous\n"
-			"	.set	pop\n"
-			: "+&r"(rt), "=&r"(rs),
-			  "+&r"(vaddr), "+&r"(err)
-			: "i"(SIGSEGV)
-			: "memory");
+				"9:\n"
+				"	.insn\n"
+				"	.section        .fixup,\"ax\"\n"
+				"8:	li	%3,%4\n"
+				"	j	9b\n"
+				"	.previous\n"
+				"	.section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,8b\n"
+				STR(PTR) " 2b,8b\n"
+				STR(PTR) " 3b,8b\n"
+				STR(PTR) " 4b,8b\n"
+				"	.previous\n"
+				"	.set	pop\n"
+				: "+&r"(rt), "=&r"(rs),
+				"+&r"(vaddr), "+&r"(err)
+				: "i"(SIGSEGV)
+				: "memory");
 
-		MIPS_R2_STATS(stores);
+			MIPS_R2_STATS(stores);
 
-		break;
-
-	case ldl_op:
-		if (IS_ENABLED(CONFIG_32BIT)) {
-		    err = SIGILL;
-		    break;
-		}
-
-		rt = regs->regs[MIPSInst_RT(inst)];
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (!access_ok(VERIFY_READ, vaddr, 8)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGSEGV;
 			break;
-		}
-		__asm__ __volatile__(
-			"	.set    push\n"
-			"	.set    reorder\n"
+
+		case ldl_op:
+			if (IS_ENABLED(CONFIG_32BIT))
+			{
+				err = SIGILL;
+				break;
+			}
+
+			rt = regs->regs[MIPSInst_RT(inst)];
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (!access_ok(VERIFY_READ, vaddr, 8))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGSEGV;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"	.set    push\n"
+				"	.set    reorder\n"
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-			"1:	lb	%1, 0(%2)\n"
-			"	dinsu	%0, %1, 56, 8\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"2:	lb	%1, 0(%2)\n"
-			"	dinsu	%0, %1, 48, 8\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"3:	lb	%1, 0(%2)\n"
-			"	dinsu	%0, %1, 40, 8\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"4:	lb	%1, 0(%2)\n"
-			"	dinsu	%0, %1, 32, 8\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"5:	lb	%1, 0(%2)\n"
-			"	dins	%0, %1, 24, 8\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"6:	lb	%1, 0(%2)\n"
-			"	dins	%0, %1, 16, 8\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"7:	lb	%1, 0(%2)\n"
-			"	dins	%0, %1, 8, 8\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"0:	lb	%1, 0(%2)\n"
-			"	dins	%0, %1, 0, 8\n"
+				"1:	lb	%1, 0(%2)\n"
+				"	dinsu	%0, %1, 56, 8\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"2:	lb	%1, 0(%2)\n"
+				"	dinsu	%0, %1, 48, 8\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"3:	lb	%1, 0(%2)\n"
+				"	dinsu	%0, %1, 40, 8\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"4:	lb	%1, 0(%2)\n"
+				"	dinsu	%0, %1, 32, 8\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"5:	lb	%1, 0(%2)\n"
+				"	dins	%0, %1, 24, 8\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"6:	lb	%1, 0(%2)\n"
+				"	dins	%0, %1, 16, 8\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"7:	lb	%1, 0(%2)\n"
+				"	dins	%0, %1, 8, 8\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"0:	lb	%1, 0(%2)\n"
+				"	dins	%0, %1, 0, 8\n"
 #else /* !CONFIG_CPU_LITTLE_ENDIAN */
-			"1:	lb	%1, 0(%2)\n"
-			"	dinsu	%0, %1, 56, 8\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"2:	lb	%1, 0(%2)\n"
-			"	dinsu	%0, %1, 48, 8\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"3:	lb	%1, 0(%2)\n"
-			"	dinsu	%0, %1, 40, 8\n"
-			"	daddiu  %2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"4:	lb	%1, 0(%2)\n"
-			"	dinsu	%0, %1, 32, 8\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"5:	lb	%1, 0(%2)\n"
-			"	dins	%0, %1, 24, 8\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"6:	lb	%1, 0(%2)\n"
-			"	dins	%0, %1, 16, 8\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"7:	lb	%1, 0(%2)\n"
-			"	dins	%0, %1, 8, 8\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"0:	lb	%1, 0(%2)\n"
-			"	dins	%0, %1, 0, 8\n"
+				"1:	lb	%1, 0(%2)\n"
+				"	dinsu	%0, %1, 56, 8\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"2:	lb	%1, 0(%2)\n"
+				"	dinsu	%0, %1, 48, 8\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"3:	lb	%1, 0(%2)\n"
+				"	dinsu	%0, %1, 40, 8\n"
+				"	daddiu  %2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"4:	lb	%1, 0(%2)\n"
+				"	dinsu	%0, %1, 32, 8\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"5:	lb	%1, 0(%2)\n"
+				"	dins	%0, %1, 24, 8\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"6:	lb	%1, 0(%2)\n"
+				"	dins	%0, %1, 16, 8\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"7:	lb	%1, 0(%2)\n"
+				"	dins	%0, %1, 8, 8\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"0:	lb	%1, 0(%2)\n"
+				"	dins	%0, %1, 0, 8\n"
 #endif /* CONFIG_CPU_LITTLE_ENDIAN */
-			"9:\n"
-			"	.insn\n"
-			"	.section        .fixup,\"ax\"\n"
-			"8:	li	%3,%4\n"
-			"	j	9b\n"
-			"	.previous\n"
-			"	.section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,8b\n"
-			STR(PTR) " 2b,8b\n"
-			STR(PTR) " 3b,8b\n"
-			STR(PTR) " 4b,8b\n"
-			STR(PTR) " 5b,8b\n"
-			STR(PTR) " 6b,8b\n"
-			STR(PTR) " 7b,8b\n"
-			STR(PTR) " 0b,8b\n"
-			"	.previous\n"
-			"	.set	pop\n"
-			: "+&r"(rt), "=&r"(rs),
-			  "+&r"(vaddr), "+&r"(err)
-			: "i"(SIGSEGV));
-		if (MIPSInst_RT(inst) && !err)
-			regs->regs[MIPSInst_RT(inst)] = rt;
+				"9:\n"
+				"	.insn\n"
+				"	.section        .fixup,\"ax\"\n"
+				"8:	li	%3,%4\n"
+				"	j	9b\n"
+				"	.previous\n"
+				"	.section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,8b\n"
+				STR(PTR) " 2b,8b\n"
+				STR(PTR) " 3b,8b\n"
+				STR(PTR) " 4b,8b\n"
+				STR(PTR) " 5b,8b\n"
+				STR(PTR) " 6b,8b\n"
+				STR(PTR) " 7b,8b\n"
+				STR(PTR) " 0b,8b\n"
+				"	.previous\n"
+				"	.set	pop\n"
+				: "+&r"(rt), "=&r"(rs),
+				"+&r"(vaddr), "+&r"(err)
+				: "i"(SIGSEGV));
 
-		MIPS_R2_STATS(loads);
-		break;
+			if (MIPSInst_RT(inst) && !err)
+			{
+				regs->regs[MIPSInst_RT(inst)] = rt;
+			}
 
-	case ldr_op:
-		if (IS_ENABLED(CONFIG_32BIT)) {
-		    err = SIGILL;
-		    break;
-		}
-
-		rt = regs->regs[MIPSInst_RT(inst)];
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (!access_ok(VERIFY_READ, vaddr, 8)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGSEGV;
+			MIPS_R2_STATS(loads);
 			break;
-		}
-		__asm__ __volatile__(
-			"	.set    push\n"
-			"	.set    reorder\n"
+
+		case ldr_op:
+			if (IS_ENABLED(CONFIG_32BIT))
+			{
+				err = SIGILL;
+				break;
+			}
+
+			rt = regs->regs[MIPSInst_RT(inst)];
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (!access_ok(VERIFY_READ, vaddr, 8))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGSEGV;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"	.set    push\n"
+				"	.set    reorder\n"
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-			"1:	lb      %1, 0(%2)\n"
-			"	dins   %0, %1, 0, 8\n"
-			"	daddiu  %2, %2, 1\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"2:	lb      %1, 0(%2)\n"
-			"	dins   %0, %1, 8, 8\n"
-			"	daddiu  %2, %2, 1\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"3:	lb      %1, 0(%2)\n"
-			"	dins   %0, %1, 16, 8\n"
-			"	daddiu  %2, %2, 1\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"4:	lb      %1, 0(%2)\n"
-			"	dins   %0, %1, 24, 8\n"
-			"	daddiu  %2, %2, 1\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"5:	lb      %1, 0(%2)\n"
-			"	dinsu    %0, %1, 32, 8\n"
-			"	daddiu  %2, %2, 1\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"6:	lb      %1, 0(%2)\n"
-			"	dinsu    %0, %1, 40, 8\n"
-			"	daddiu  %2, %2, 1\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"7:	lb      %1, 0(%2)\n"
-			"	dinsu    %0, %1, 48, 8\n"
-			"	daddiu  %2, %2, 1\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"0:	lb      %1, 0(%2)\n"
-			"	dinsu    %0, %1, 56, 8\n"
+				"1:	lb      %1, 0(%2)\n"
+				"	dins   %0, %1, 0, 8\n"
+				"	daddiu  %2, %2, 1\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"2:	lb      %1, 0(%2)\n"
+				"	dins   %0, %1, 8, 8\n"
+				"	daddiu  %2, %2, 1\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"3:	lb      %1, 0(%2)\n"
+				"	dins   %0, %1, 16, 8\n"
+				"	daddiu  %2, %2, 1\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"4:	lb      %1, 0(%2)\n"
+				"	dins   %0, %1, 24, 8\n"
+				"	daddiu  %2, %2, 1\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"5:	lb      %1, 0(%2)\n"
+				"	dinsu    %0, %1, 32, 8\n"
+				"	daddiu  %2, %2, 1\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"6:	lb      %1, 0(%2)\n"
+				"	dinsu    %0, %1, 40, 8\n"
+				"	daddiu  %2, %2, 1\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"7:	lb      %1, 0(%2)\n"
+				"	dinsu    %0, %1, 48, 8\n"
+				"	daddiu  %2, %2, 1\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"0:	lb      %1, 0(%2)\n"
+				"	dinsu    %0, %1, 56, 8\n"
 #else /* !CONFIG_CPU_LITTLE_ENDIAN */
-			"1:	lb      %1, 0(%2)\n"
-			"	dins   %0, %1, 0, 8\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"	daddiu  %2, %2, -1\n"
-			"2:	lb      %1, 0(%2)\n"
-			"	dins   %0, %1, 8, 8\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"	daddiu  %2, %2, -1\n"
-			"3:	lb      %1, 0(%2)\n"
-			"	dins   %0, %1, 16, 8\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"	daddiu  %2, %2, -1\n"
-			"4:	lb      %1, 0(%2)\n"
-			"	dins   %0, %1, 24, 8\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"	daddiu  %2, %2, -1\n"
-			"5:	lb      %1, 0(%2)\n"
-			"	dinsu    %0, %1, 32, 8\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"	daddiu  %2, %2, -1\n"
-			"6:	lb      %1, 0(%2)\n"
-			"	dinsu    %0, %1, 40, 8\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"	daddiu  %2, %2, -1\n"
-			"7:	lb      %1, 0(%2)\n"
-			"	dinsu    %0, %1, 48, 8\n"
-			"	andi    %1, %2, 0x7\n"
-			"	beq     $0, %1, 9f\n"
-			"	daddiu  %2, %2, -1\n"
-			"0:	lb      %1, 0(%2)\n"
-			"	dinsu    %0, %1, 56, 8\n"
+				"1:	lb      %1, 0(%2)\n"
+				"	dins   %0, %1, 0, 8\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"	daddiu  %2, %2, -1\n"
+				"2:	lb      %1, 0(%2)\n"
+				"	dins   %0, %1, 8, 8\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"	daddiu  %2, %2, -1\n"
+				"3:	lb      %1, 0(%2)\n"
+				"	dins   %0, %1, 16, 8\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"	daddiu  %2, %2, -1\n"
+				"4:	lb      %1, 0(%2)\n"
+				"	dins   %0, %1, 24, 8\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"	daddiu  %2, %2, -1\n"
+				"5:	lb      %1, 0(%2)\n"
+				"	dinsu    %0, %1, 32, 8\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"	daddiu  %2, %2, -1\n"
+				"6:	lb      %1, 0(%2)\n"
+				"	dinsu    %0, %1, 40, 8\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"	daddiu  %2, %2, -1\n"
+				"7:	lb      %1, 0(%2)\n"
+				"	dinsu    %0, %1, 48, 8\n"
+				"	andi    %1, %2, 0x7\n"
+				"	beq     $0, %1, 9f\n"
+				"	daddiu  %2, %2, -1\n"
+				"0:	lb      %1, 0(%2)\n"
+				"	dinsu    %0, %1, 56, 8\n"
 #endif /* CONFIG_CPU_LITTLE_ENDIAN */
-			"9:\n"
-			"	.insn\n"
-			"	.section        .fixup,\"ax\"\n"
-			"8:	li     %3,%4\n"
-			"	j      9b\n"
-			"	.previous\n"
-			"	.section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,8b\n"
-			STR(PTR) " 2b,8b\n"
-			STR(PTR) " 3b,8b\n"
-			STR(PTR) " 4b,8b\n"
-			STR(PTR) " 5b,8b\n"
-			STR(PTR) " 6b,8b\n"
-			STR(PTR) " 7b,8b\n"
-			STR(PTR) " 0b,8b\n"
-			"	.previous\n"
-			"	.set    pop\n"
-			: "+&r"(rt), "=&r"(rs),
-			  "+&r"(vaddr), "+&r"(err)
-			: "i"(SIGSEGV));
-		if (MIPSInst_RT(inst) && !err)
-			regs->regs[MIPSInst_RT(inst)] = rt;
+				"9:\n"
+				"	.insn\n"
+				"	.section        .fixup,\"ax\"\n"
+				"8:	li     %3,%4\n"
+				"	j      9b\n"
+				"	.previous\n"
+				"	.section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,8b\n"
+				STR(PTR) " 2b,8b\n"
+				STR(PTR) " 3b,8b\n"
+				STR(PTR) " 4b,8b\n"
+				STR(PTR) " 5b,8b\n"
+				STR(PTR) " 6b,8b\n"
+				STR(PTR) " 7b,8b\n"
+				STR(PTR) " 0b,8b\n"
+				"	.previous\n"
+				"	.set    pop\n"
+				: "+&r"(rt), "=&r"(rs),
+				"+&r"(vaddr), "+&r"(err)
+				: "i"(SIGSEGV));
 
-		MIPS_R2_STATS(loads);
-		break;
+			if (MIPSInst_RT(inst) && !err)
+			{
+				regs->regs[MIPSInst_RT(inst)] = rt;
+			}
 
-	case sdl_op:
-		if (IS_ENABLED(CONFIG_32BIT)) {
-		    err = SIGILL;
-		    break;
-		}
-
-		rt = regs->regs[MIPSInst_RT(inst)];
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (!access_ok(VERIFY_WRITE, vaddr, 8)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGSEGV;
+			MIPS_R2_STATS(loads);
 			break;
-		}
-		__asm__ __volatile__(
-			"	.set	push\n"
-			"	.set	reorder\n"
+
+		case sdl_op:
+			if (IS_ENABLED(CONFIG_32BIT))
+			{
+				err = SIGILL;
+				break;
+			}
+
+			rt = regs->regs[MIPSInst_RT(inst)];
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (!access_ok(VERIFY_WRITE, vaddr, 8))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGSEGV;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"	.set	push\n"
+				"	.set	reorder\n"
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-			"	dextu	%1, %0, 56, 8\n"
-			"1:	sb	%1, 0(%2)\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"	dextu	%1, %0, 48, 8\n"
-			"2:	sb	%1, 0(%2)\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"	dextu	%1, %0, 40, 8\n"
-			"3:	sb	%1, 0(%2)\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"	dextu	%1, %0, 32, 8\n"
-			"4:	sb	%1, 0(%2)\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"	dext	%1, %0, 24, 8\n"
-			"5:	sb	%1, 0(%2)\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"	dext	%1, %0, 16, 8\n"
-			"6:	sb	%1, 0(%2)\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"	dext	%1, %0, 8, 8\n"
-			"7:	sb	%1, 0(%2)\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	daddiu	%2, %2, -1\n"
-			"	dext	%1, %0, 0, 8\n"
-			"0:	sb	%1, 0(%2)\n"
+				"	dextu	%1, %0, 56, 8\n"
+				"1:	sb	%1, 0(%2)\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"	dextu	%1, %0, 48, 8\n"
+				"2:	sb	%1, 0(%2)\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"	dextu	%1, %0, 40, 8\n"
+				"3:	sb	%1, 0(%2)\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"	dextu	%1, %0, 32, 8\n"
+				"4:	sb	%1, 0(%2)\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"	dext	%1, %0, 24, 8\n"
+				"5:	sb	%1, 0(%2)\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"	dext	%1, %0, 16, 8\n"
+				"6:	sb	%1, 0(%2)\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"	dext	%1, %0, 8, 8\n"
+				"7:	sb	%1, 0(%2)\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	daddiu	%2, %2, -1\n"
+				"	dext	%1, %0, 0, 8\n"
+				"0:	sb	%1, 0(%2)\n"
 #else /* !CONFIG_CPU_LITTLE_ENDIAN */
-			"	dextu	%1, %0, 56, 8\n"
-			"1:	sb	%1, 0(%2)\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	dextu	%1, %0, 48, 8\n"
-			"2:	sb	%1, 0(%2)\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	dextu	%1, %0, 40, 8\n"
-			"3:	sb	%1, 0(%2)\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	dextu	%1, %0, 32, 8\n"
-			"4:	sb	%1, 0(%2)\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	dext	%1, %0, 24, 8\n"
-			"5:	sb	%1, 0(%2)\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	dext	%1, %0, 16, 8\n"
-			"6:	sb	%1, 0(%2)\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	dext	%1, %0, 8, 8\n"
-			"7:	sb	%1, 0(%2)\n"
-			"	daddiu	%2, %2, 1\n"
-			"	andi	%1, %2, 0x7\n"
-			"	beq	$0, %1, 9f\n"
-			"	dext	%1, %0, 0, 8\n"
-			"0:	sb	%1, 0(%2)\n"
+				"	dextu	%1, %0, 56, 8\n"
+				"1:	sb	%1, 0(%2)\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	dextu	%1, %0, 48, 8\n"
+				"2:	sb	%1, 0(%2)\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	dextu	%1, %0, 40, 8\n"
+				"3:	sb	%1, 0(%2)\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	dextu	%1, %0, 32, 8\n"
+				"4:	sb	%1, 0(%2)\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	dext	%1, %0, 24, 8\n"
+				"5:	sb	%1, 0(%2)\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	dext	%1, %0, 16, 8\n"
+				"6:	sb	%1, 0(%2)\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	dext	%1, %0, 8, 8\n"
+				"7:	sb	%1, 0(%2)\n"
+				"	daddiu	%2, %2, 1\n"
+				"	andi	%1, %2, 0x7\n"
+				"	beq	$0, %1, 9f\n"
+				"	dext	%1, %0, 0, 8\n"
+				"0:	sb	%1, 0(%2)\n"
 #endif /* CONFIG_CPU_LITTLE_ENDIAN */
-			"9:\n"
-			"	.insn\n"
-			"	.section        .fixup,\"ax\"\n"
-			"8:	li	%3,%4\n"
-			"	j	9b\n"
-			"	.previous\n"
-			"	.section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,8b\n"
-			STR(PTR) " 2b,8b\n"
-			STR(PTR) " 3b,8b\n"
-			STR(PTR) " 4b,8b\n"
-			STR(PTR) " 5b,8b\n"
-			STR(PTR) " 6b,8b\n"
-			STR(PTR) " 7b,8b\n"
-			STR(PTR) " 0b,8b\n"
-			"	.previous\n"
-			"	.set	pop\n"
-			: "+&r"(rt), "=&r"(rs),
-			  "+&r"(vaddr), "+&r"(err)
-			: "i"(SIGSEGV)
-			: "memory");
+				"9:\n"
+				"	.insn\n"
+				"	.section        .fixup,\"ax\"\n"
+				"8:	li	%3,%4\n"
+				"	j	9b\n"
+				"	.previous\n"
+				"	.section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,8b\n"
+				STR(PTR) " 2b,8b\n"
+				STR(PTR) " 3b,8b\n"
+				STR(PTR) " 4b,8b\n"
+				STR(PTR) " 5b,8b\n"
+				STR(PTR) " 6b,8b\n"
+				STR(PTR) " 7b,8b\n"
+				STR(PTR) " 0b,8b\n"
+				"	.previous\n"
+				"	.set	pop\n"
+				: "+&r"(rt), "=&r"(rs),
+				"+&r"(vaddr), "+&r"(err)
+				: "i"(SIGSEGV)
+				: "memory");
 
-		MIPS_R2_STATS(stores);
-		break;
-
-	case sdr_op:
-		if (IS_ENABLED(CONFIG_32BIT)) {
-		    err = SIGILL;
-		    break;
-		}
-
-		rt = regs->regs[MIPSInst_RT(inst)];
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (!access_ok(VERIFY_WRITE, vaddr, 8)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGSEGV;
+			MIPS_R2_STATS(stores);
 			break;
-		}
-		__asm__ __volatile__(
-			"       .set	push\n"
-			"       .set	reorder\n"
+
+		case sdr_op:
+			if (IS_ENABLED(CONFIG_32BIT))
+			{
+				err = SIGILL;
+				break;
+			}
+
+			rt = regs->regs[MIPSInst_RT(inst)];
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (!access_ok(VERIFY_WRITE, vaddr, 8))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGSEGV;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"       .set	push\n"
+				"       .set	reorder\n"
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-			"       dext	%1, %0, 0, 8\n"
-			"1:     sb	%1, 0(%2)\n"
-			"       daddiu	%2, %2, 1\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       dext	%1, %0, 8, 8\n"
-			"2:     sb	%1, 0(%2)\n"
-			"       daddiu	%2, %2, 1\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       dext	%1, %0, 16, 8\n"
-			"3:     sb	%1, 0(%2)\n"
-			"       daddiu	%2, %2, 1\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       dext	%1, %0, 24, 8\n"
-			"4:     sb	%1, 0(%2)\n"
-			"       daddiu	%2, %2, 1\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       dextu	%1, %0, 32, 8\n"
-			"5:     sb	%1, 0(%2)\n"
-			"       daddiu	%2, %2, 1\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       dextu	%1, %0, 40, 8\n"
-			"6:     sb	%1, 0(%2)\n"
-			"       daddiu	%2, %2, 1\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       dextu	%1, %0, 48, 8\n"
-			"7:     sb	%1, 0(%2)\n"
-			"       daddiu	%2, %2, 1\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       dextu	%1, %0, 56, 8\n"
-			"0:     sb	%1, 0(%2)\n"
+				"       dext	%1, %0, 0, 8\n"
+				"1:     sb	%1, 0(%2)\n"
+				"       daddiu	%2, %2, 1\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       dext	%1, %0, 8, 8\n"
+				"2:     sb	%1, 0(%2)\n"
+				"       daddiu	%2, %2, 1\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       dext	%1, %0, 16, 8\n"
+				"3:     sb	%1, 0(%2)\n"
+				"       daddiu	%2, %2, 1\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       dext	%1, %0, 24, 8\n"
+				"4:     sb	%1, 0(%2)\n"
+				"       daddiu	%2, %2, 1\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       dextu	%1, %0, 32, 8\n"
+				"5:     sb	%1, 0(%2)\n"
+				"       daddiu	%2, %2, 1\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       dextu	%1, %0, 40, 8\n"
+				"6:     sb	%1, 0(%2)\n"
+				"       daddiu	%2, %2, 1\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       dextu	%1, %0, 48, 8\n"
+				"7:     sb	%1, 0(%2)\n"
+				"       daddiu	%2, %2, 1\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       dextu	%1, %0, 56, 8\n"
+				"0:     sb	%1, 0(%2)\n"
 #else /* !CONFIG_CPU_LITTLE_ENDIAN */
-			"       dext	%1, %0, 0, 8\n"
-			"1:     sb	%1, 0(%2)\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       daddiu	%2, %2, -1\n"
-			"       dext	%1, %0, 8, 8\n"
-			"2:     sb	%1, 0(%2)\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       daddiu	%2, %2, -1\n"
-			"       dext	%1, %0, 16, 8\n"
-			"3:     sb	%1, 0(%2)\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       daddiu	%2, %2, -1\n"
-			"       dext	%1, %0, 24, 8\n"
-			"4:     sb	%1, 0(%2)\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       daddiu	%2, %2, -1\n"
-			"       dextu	%1, %0, 32, 8\n"
-			"5:     sb	%1, 0(%2)\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       daddiu	%2, %2, -1\n"
-			"       dextu	%1, %0, 40, 8\n"
-			"6:     sb	%1, 0(%2)\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       daddiu	%2, %2, -1\n"
-			"       dextu	%1, %0, 48, 8\n"
-			"7:     sb	%1, 0(%2)\n"
-			"       andi	%1, %2, 0x7\n"
-			"       beq	$0, %1, 9f\n"
-			"       daddiu	%2, %2, -1\n"
-			"       dextu	%1, %0, 56, 8\n"
-			"0:     sb	%1, 0(%2)\n"
+				"       dext	%1, %0, 0, 8\n"
+				"1:     sb	%1, 0(%2)\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       daddiu	%2, %2, -1\n"
+				"       dext	%1, %0, 8, 8\n"
+				"2:     sb	%1, 0(%2)\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       daddiu	%2, %2, -1\n"
+				"       dext	%1, %0, 16, 8\n"
+				"3:     sb	%1, 0(%2)\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       daddiu	%2, %2, -1\n"
+				"       dext	%1, %0, 24, 8\n"
+				"4:     sb	%1, 0(%2)\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       daddiu	%2, %2, -1\n"
+				"       dextu	%1, %0, 32, 8\n"
+				"5:     sb	%1, 0(%2)\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       daddiu	%2, %2, -1\n"
+				"       dextu	%1, %0, 40, 8\n"
+				"6:     sb	%1, 0(%2)\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       daddiu	%2, %2, -1\n"
+				"       dextu	%1, %0, 48, 8\n"
+				"7:     sb	%1, 0(%2)\n"
+				"       andi	%1, %2, 0x7\n"
+				"       beq	$0, %1, 9f\n"
+				"       daddiu	%2, %2, -1\n"
+				"       dextu	%1, %0, 56, 8\n"
+				"0:     sb	%1, 0(%2)\n"
 #endif /* CONFIG_CPU_LITTLE_ENDIAN */
-			"9:\n"
-			"       .insn\n"
-			"       .section        .fixup,\"ax\"\n"
-			"8:     li	%3,%4\n"
-			"       j	9b\n"
-			"       .previous\n"
-			"       .section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,8b\n"
-			STR(PTR) " 2b,8b\n"
-			STR(PTR) " 3b,8b\n"
-			STR(PTR) " 4b,8b\n"
-			STR(PTR) " 5b,8b\n"
-			STR(PTR) " 6b,8b\n"
-			STR(PTR) " 7b,8b\n"
-			STR(PTR) " 0b,8b\n"
-			"       .previous\n"
-			"       .set	pop\n"
-			: "+&r"(rt), "=&r"(rs),
-			  "+&r"(vaddr), "+&r"(err)
-			: "i"(SIGSEGV)
-			: "memory");
+				"9:\n"
+				"       .insn\n"
+				"       .section        .fixup,\"ax\"\n"
+				"8:     li	%3,%4\n"
+				"       j	9b\n"
+				"       .previous\n"
+				"       .section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,8b\n"
+				STR(PTR) " 2b,8b\n"
+				STR(PTR) " 3b,8b\n"
+				STR(PTR) " 4b,8b\n"
+				STR(PTR) " 5b,8b\n"
+				STR(PTR) " 6b,8b\n"
+				STR(PTR) " 7b,8b\n"
+				STR(PTR) " 0b,8b\n"
+				"       .previous\n"
+				"       .set	pop\n"
+				: "+&r"(rt), "=&r"(rs),
+				"+&r"(vaddr), "+&r"(err)
+				: "i"(SIGSEGV)
+				: "memory");
 
-		MIPS_R2_STATS(stores);
+			MIPS_R2_STATS(stores);
 
-		break;
-	case ll_op:
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (vaddr & 0x3) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGBUS;
 			break;
-		}
-		if (!access_ok(VERIFY_READ, vaddr, 4)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGBUS;
+
+		case ll_op:
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (vaddr & 0x3)
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGBUS;
+				break;
+			}
+
+			if (!access_ok(VERIFY_READ, vaddr, 4))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGBUS;
+				break;
+			}
+
+			if (!cpu_has_rw_llb)
+			{
+				/*
+				 * An LL/SC block can't be safely emulated without
+				 * a Config5/LLB availability. So it's probably time to
+				 * kill our process before things get any worse. This is
+				 * because Config5/LLB allows us to use ERETNC so that
+				 * the LLAddr/LLB bit is not cleared when we return from
+				 * an exception. MIPS R2 LL/SC instructions trap with an
+				 * RI exception so once we emulate them here, we return
+				 * back to userland with ERETNC. That preserves the
+				 * LLAddr/LLB so the subsequent SC instruction will
+				 * succeed preserving the atomic semantics of the LL/SC
+				 * block. Without that, there is no safe way to emulate
+				 * an LL/SC block in MIPSR2 userland.
+				 */
+				pr_err("Can't emulate MIPSR2 LL/SC without Config5/LLB\n");
+				err = SIGKILL;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"1:\n"
+				"ll	%0, 0(%2)\n"
+				"2:\n"
+				".insn\n"
+				".section        .fixup,\"ax\"\n"
+				"3:\n"
+				"li	%1, %3\n"
+				"j	2b\n"
+				".previous\n"
+				".section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,3b\n"
+				".previous\n"
+				: "=&r"(res), "+&r"(err)
+				: "r"(vaddr), "i"(SIGSEGV)
+				: "memory");
+
+			if (MIPSInst_RT(inst) && !err)
+			{
+				regs->regs[MIPSInst_RT(inst)] = res;
+			}
+
+			MIPS_R2_STATS(llsc);
+
 			break;
-		}
 
-		if (!cpu_has_rw_llb) {
-			/*
-			 * An LL/SC block can't be safely emulated without
-			 * a Config5/LLB availability. So it's probably time to
-			 * kill our process before things get any worse. This is
-			 * because Config5/LLB allows us to use ERETNC so that
-			 * the LLAddr/LLB bit is not cleared when we return from
-			 * an exception. MIPS R2 LL/SC instructions trap with an
-			 * RI exception so once we emulate them here, we return
-			 * back to userland with ERETNC. That preserves the
-			 * LLAddr/LLB so the subsequent SC instruction will
-			 * succeed preserving the atomic semantics of the LL/SC
-			 * block. Without that, there is no safe way to emulate
-			 * an LL/SC block in MIPSR2 userland.
-			 */
-			pr_err("Can't emulate MIPSR2 LL/SC without Config5/LLB\n");
-			err = SIGKILL;
+		case sc_op:
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (vaddr & 0x3)
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGBUS;
+				break;
+			}
+
+			if (!access_ok(VERIFY_WRITE, vaddr, 4))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGBUS;
+				break;
+			}
+
+			if (!cpu_has_rw_llb)
+			{
+				/*
+				 * An LL/SC block can't be safely emulated without
+				 * a Config5/LLB availability. So it's probably time to
+				 * kill our process before things get any worse. This is
+				 * because Config5/LLB allows us to use ERETNC so that
+				 * the LLAddr/LLB bit is not cleared when we return from
+				 * an exception. MIPS R2 LL/SC instructions trap with an
+				 * RI exception so once we emulate them here, we return
+				 * back to userland with ERETNC. That preserves the
+				 * LLAddr/LLB so the subsequent SC instruction will
+				 * succeed preserving the atomic semantics of the LL/SC
+				 * block. Without that, there is no safe way to emulate
+				 * an LL/SC block in MIPSR2 userland.
+				 */
+				pr_err("Can't emulate MIPSR2 LL/SC without Config5/LLB\n");
+				err = SIGKILL;
+				break;
+			}
+
+			res = regs->regs[MIPSInst_RT(inst)];
+
+			__asm__ __volatile__(
+				"1:\n"
+				"sc	%0, 0(%2)\n"
+				"2:\n"
+				".insn\n"
+				".section        .fixup,\"ax\"\n"
+				"3:\n"
+				"li	%1, %3\n"
+				"j	2b\n"
+				".previous\n"
+				".section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,3b\n"
+				".previous\n"
+				: "+&r"(res), "+&r"(err)
+				: "r"(vaddr), "i"(SIGSEGV));
+
+			if (MIPSInst_RT(inst) && !err)
+			{
+				regs->regs[MIPSInst_RT(inst)] = res;
+			}
+
+			MIPS_R2_STATS(llsc);
+
 			break;
-		}
 
-		__asm__ __volatile__(
-			"1:\n"
-			"ll	%0, 0(%2)\n"
-			"2:\n"
-			".insn\n"
-			".section        .fixup,\"ax\"\n"
-			"3:\n"
-			"li	%1, %3\n"
-			"j	2b\n"
-			".previous\n"
-			".section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,3b\n"
-			".previous\n"
-			: "=&r"(res), "+&r"(err)
-			: "r"(vaddr), "i"(SIGSEGV)
-			: "memory");
+		case lld_op:
+			if (IS_ENABLED(CONFIG_32BIT))
+			{
+				err = SIGILL;
+				break;
+			}
 
-		if (MIPSInst_RT(inst) && !err)
-			regs->regs[MIPSInst_RT(inst)] = res;
-		MIPS_R2_STATS(llsc);
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
 
-		break;
+			if (vaddr & 0x7)
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGBUS;
+				break;
+			}
 
-	case sc_op:
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (vaddr & 0x3) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGBUS;
+			if (!access_ok(VERIFY_READ, vaddr, 8))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGBUS;
+				break;
+			}
+
+			if (!cpu_has_rw_llb)
+			{
+				/*
+				 * An LL/SC block can't be safely emulated without
+				 * a Config5/LLB availability. So it's probably time to
+				 * kill our process before things get any worse. This is
+				 * because Config5/LLB allows us to use ERETNC so that
+				 * the LLAddr/LLB bit is not cleared when we return from
+				 * an exception. MIPS R2 LL/SC instructions trap with an
+				 * RI exception so once we emulate them here, we return
+				 * back to userland with ERETNC. That preserves the
+				 * LLAddr/LLB so the subsequent SC instruction will
+				 * succeed preserving the atomic semantics of the LL/SC
+				 * block. Without that, there is no safe way to emulate
+				 * an LL/SC block in MIPSR2 userland.
+				 */
+				pr_err("Can't emulate MIPSR2 LL/SC without Config5/LLB\n");
+				err = SIGKILL;
+				break;
+			}
+
+			__asm__ __volatile__(
+				"1:\n"
+				"lld	%0, 0(%2)\n"
+				"2:\n"
+				".insn\n"
+				".section        .fixup,\"ax\"\n"
+				"3:\n"
+				"li	%1, %3\n"
+				"j	2b\n"
+				".previous\n"
+				".section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,3b\n"
+				".previous\n"
+				: "=&r"(res), "+&r"(err)
+				: "r"(vaddr), "i"(SIGSEGV)
+				: "memory");
+
+			if (MIPSInst_RT(inst) && !err)
+			{
+				regs->regs[MIPSInst_RT(inst)] = res;
+			}
+
+			MIPS_R2_STATS(llsc);
+
 			break;
-		}
-		if (!access_ok(VERIFY_WRITE, vaddr, 4)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGBUS;
+
+		case scd_op:
+			if (IS_ENABLED(CONFIG_32BIT))
+			{
+				err = SIGILL;
+				break;
+			}
+
+			vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
+
+			if (vaddr & 0x7)
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGBUS;
+				break;
+			}
+
+			if (!access_ok(VERIFY_WRITE, vaddr, 8))
+			{
+				current->thread.cp0_baduaddr = vaddr;
+				err = SIGBUS;
+				break;
+			}
+
+			if (!cpu_has_rw_llb)
+			{
+				/*
+				 * An LL/SC block can't be safely emulated without
+				 * a Config5/LLB availability. So it's probably time to
+				 * kill our process before things get any worse. This is
+				 * because Config5/LLB allows us to use ERETNC so that
+				 * the LLAddr/LLB bit is not cleared when we return from
+				 * an exception. MIPS R2 LL/SC instructions trap with an
+				 * RI exception so once we emulate them here, we return
+				 * back to userland with ERETNC. That preserves the
+				 * LLAddr/LLB so the subsequent SC instruction will
+				 * succeed preserving the atomic semantics of the LL/SC
+				 * block. Without that, there is no safe way to emulate
+				 * an LL/SC block in MIPSR2 userland.
+				 */
+				pr_err("Can't emulate MIPSR2 LL/SC without Config5/LLB\n");
+				err = SIGKILL;
+				break;
+			}
+
+			res = regs->regs[MIPSInst_RT(inst)];
+
+			__asm__ __volatile__(
+				"1:\n"
+				"scd	%0, 0(%2)\n"
+				"2:\n"
+				".insn\n"
+				".section        .fixup,\"ax\"\n"
+				"3:\n"
+				"li	%1, %3\n"
+				"j	2b\n"
+				".previous\n"
+				".section        __ex_table,\"a\"\n"
+				STR(PTR) " 1b,3b\n"
+				".previous\n"
+				: "+&r"(res), "+&r"(err)
+				: "r"(vaddr), "i"(SIGSEGV));
+
+			if (MIPSInst_RT(inst) && !err)
+			{
+				regs->regs[MIPSInst_RT(inst)] = res;
+			}
+
+			MIPS_R2_STATS(llsc);
+
 			break;
-		}
 
-		if (!cpu_has_rw_llb) {
-			/*
-			 * An LL/SC block can't be safely emulated without
-			 * a Config5/LLB availability. So it's probably time to
-			 * kill our process before things get any worse. This is
-			 * because Config5/LLB allows us to use ERETNC so that
-			 * the LLAddr/LLB bit is not cleared when we return from
-			 * an exception. MIPS R2 LL/SC instructions trap with an
-			 * RI exception so once we emulate them here, we return
-			 * back to userland with ERETNC. That preserves the
-			 * LLAddr/LLB so the subsequent SC instruction will
-			 * succeed preserving the atomic semantics of the LL/SC
-			 * block. Without that, there is no safe way to emulate
-			 * an LL/SC block in MIPSR2 userland.
-			 */
-			pr_err("Can't emulate MIPSR2 LL/SC without Config5/LLB\n");
-			err = SIGKILL;
+		case pref_op:
+			/* skip it */
 			break;
-		}
 
-		res = regs->regs[MIPSInst_RT(inst)];
-
-		__asm__ __volatile__(
-			"1:\n"
-			"sc	%0, 0(%2)\n"
-			"2:\n"
-			".insn\n"
-			".section        .fixup,\"ax\"\n"
-			"3:\n"
-			"li	%1, %3\n"
-			"j	2b\n"
-			".previous\n"
-			".section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,3b\n"
-			".previous\n"
-			: "+&r"(res), "+&r"(err)
-			: "r"(vaddr), "i"(SIGSEGV));
-
-		if (MIPSInst_RT(inst) && !err)
-			regs->regs[MIPSInst_RT(inst)] = res;
-
-		MIPS_R2_STATS(llsc);
-
-		break;
-
-	case lld_op:
-		if (IS_ENABLED(CONFIG_32BIT)) {
-		    err = SIGILL;
-		    break;
-		}
-
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (vaddr & 0x7) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGBUS;
-			break;
-		}
-		if (!access_ok(VERIFY_READ, vaddr, 8)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGBUS;
-			break;
-		}
-
-		if (!cpu_has_rw_llb) {
-			/*
-			 * An LL/SC block can't be safely emulated without
-			 * a Config5/LLB availability. So it's probably time to
-			 * kill our process before things get any worse. This is
-			 * because Config5/LLB allows us to use ERETNC so that
-			 * the LLAddr/LLB bit is not cleared when we return from
-			 * an exception. MIPS R2 LL/SC instructions trap with an
-			 * RI exception so once we emulate them here, we return
-			 * back to userland with ERETNC. That preserves the
-			 * LLAddr/LLB so the subsequent SC instruction will
-			 * succeed preserving the atomic semantics of the LL/SC
-			 * block. Without that, there is no safe way to emulate
-			 * an LL/SC block in MIPSR2 userland.
-			 */
-			pr_err("Can't emulate MIPSR2 LL/SC without Config5/LLB\n");
-			err = SIGKILL;
-			break;
-		}
-
-		__asm__ __volatile__(
-			"1:\n"
-			"lld	%0, 0(%2)\n"
-			"2:\n"
-			".insn\n"
-			".section        .fixup,\"ax\"\n"
-			"3:\n"
-			"li	%1, %3\n"
-			"j	2b\n"
-			".previous\n"
-			".section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,3b\n"
-			".previous\n"
-			: "=&r"(res), "+&r"(err)
-			: "r"(vaddr), "i"(SIGSEGV)
-			: "memory");
-		if (MIPSInst_RT(inst) && !err)
-			regs->regs[MIPSInst_RT(inst)] = res;
-
-		MIPS_R2_STATS(llsc);
-
-		break;
-
-	case scd_op:
-		if (IS_ENABLED(CONFIG_32BIT)) {
-		    err = SIGILL;
-		    break;
-		}
-
-		vaddr = regs->regs[MIPSInst_RS(inst)] + MIPSInst_SIMM(inst);
-		if (vaddr & 0x7) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGBUS;
-			break;
-		}
-		if (!access_ok(VERIFY_WRITE, vaddr, 8)) {
-			current->thread.cp0_baduaddr = vaddr;
-			err = SIGBUS;
-			break;
-		}
-
-		if (!cpu_has_rw_llb) {
-			/*
-			 * An LL/SC block can't be safely emulated without
-			 * a Config5/LLB availability. So it's probably time to
-			 * kill our process before things get any worse. This is
-			 * because Config5/LLB allows us to use ERETNC so that
-			 * the LLAddr/LLB bit is not cleared when we return from
-			 * an exception. MIPS R2 LL/SC instructions trap with an
-			 * RI exception so once we emulate them here, we return
-			 * back to userland with ERETNC. That preserves the
-			 * LLAddr/LLB so the subsequent SC instruction will
-			 * succeed preserving the atomic semantics of the LL/SC
-			 * block. Without that, there is no safe way to emulate
-			 * an LL/SC block in MIPSR2 userland.
-			 */
-			pr_err("Can't emulate MIPSR2 LL/SC without Config5/LLB\n");
-			err = SIGKILL;
-			break;
-		}
-
-		res = regs->regs[MIPSInst_RT(inst)];
-
-		__asm__ __volatile__(
-			"1:\n"
-			"scd	%0, 0(%2)\n"
-			"2:\n"
-			".insn\n"
-			".section        .fixup,\"ax\"\n"
-			"3:\n"
-			"li	%1, %3\n"
-			"j	2b\n"
-			".previous\n"
-			".section        __ex_table,\"a\"\n"
-			STR(PTR) " 1b,3b\n"
-			".previous\n"
-			: "+&r"(res), "+&r"(err)
-			: "r"(vaddr), "i"(SIGSEGV));
-
-		if (MIPSInst_RT(inst) && !err)
-			regs->regs[MIPSInst_RT(inst)] = res;
-
-		MIPS_R2_STATS(llsc);
-
-		break;
-	case pref_op:
-		/* skip it */
-		break;
-	default:
-		err = SIGILL;
+		default:
+			err = SIGILL;
 	}
 
 	/*
 	 * Let's not return to userland just yet. It's costly and
 	 * it's likely we have more R2 instructions to emulate
 	 */
-	if (!err && (pass++ < MIPS_R2_EMUL_TOTAL_PASS)) {
+	if (!err && (pass++ < MIPS_R2_EMUL_TOTAL_PASS))
+	{
 		regs->cp0_cause &= ~CAUSEF_BD;
 		err = get_user(inst, (u32 __user *)regs->cp0_epc);
+
 		if (!err)
+		{
 			goto repeat;
+		}
 
 		if (err < 0)
+		{
 			err = SIGSEGV;
+		}
 	}
 
-	if (err && (err != SIGEMT)) {
+	if (err && (err != SIGEMT))
+	{
 		regs->regs[31] = r31;
 		regs->cp0_epc = epc;
 	}
 
 	/* Likely a MIPS R6 compatible instruction */
 	if (pass && (err == SIGILL))
+	{
 		err = 0;
+	}
 
 	return err;
 }
@@ -2235,63 +2529,63 @@ static int mipsr2_stats_show(struct seq_file *s, void *unused)
 
 	seq_printf(s, "Instruction\tTotal\tBDslot\n------------------------------\n");
 	seq_printf(s, "movs\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.movs),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.movs));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.movs),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.movs));
 	seq_printf(s, "hilo\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.hilo),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.hilo));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.hilo),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.hilo));
 	seq_printf(s, "muls\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.muls),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.muls));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.muls),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.muls));
 	seq_printf(s, "divs\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.divs),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.divs));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.divs),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.divs));
 	seq_printf(s, "dsps\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.dsps),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.dsps));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.dsps),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.dsps));
 	seq_printf(s, "bops\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.bops),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.bops));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.bops),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.bops));
 	seq_printf(s, "traps\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.traps),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.traps));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.traps),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.traps));
 	seq_printf(s, "fpus\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.fpus),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.fpus));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.fpus),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.fpus));
 	seq_printf(s, "loads\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.loads),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.loads));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.loads),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.loads));
 	seq_printf(s, "stores\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.stores),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.stores));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.stores),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.stores));
 	seq_printf(s, "llsc\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.llsc),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.llsc));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.llsc),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.llsc));
 	seq_printf(s, "dsemul\t\t%ld\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2emustats.dsemul),
-		   (unsigned long)__this_cpu_read(mipsr2bdemustats.dsemul));
+			   (unsigned long)__this_cpu_read(mipsr2emustats.dsemul),
+			   (unsigned long)__this_cpu_read(mipsr2bdemustats.dsemul));
 	seq_printf(s, "jr\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.jrs));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.jrs));
 	seq_printf(s, "bltzl\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.bltzl));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.bltzl));
 	seq_printf(s, "bgezl\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.bgezl));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.bgezl));
 	seq_printf(s, "bltzll\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.bltzll));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.bltzll));
 	seq_printf(s, "bgezll\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.bgezll));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.bgezll));
 	seq_printf(s, "bltzal\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.bltzal));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.bltzal));
 	seq_printf(s, "bgezal\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.bgezal));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.bgezal));
 	seq_printf(s, "beql\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.beql));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.beql));
 	seq_printf(s, "bnel\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.bnel));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.bnel));
 	seq_printf(s, "blezl\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.blezl));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.blezl));
 	seq_printf(s, "bgtzl\t\t%ld\n",
-		   (unsigned long)__this_cpu_read(mipsr2bremustats.bgtzl));
+			   (unsigned long)__this_cpu_read(mipsr2bremustats.bgtzl));
 
 	return 0;
 }
@@ -2349,14 +2643,16 @@ static int mipsr2_stats_clear_open(struct inode *inode, struct file *file)
 	return single_open(file, mipsr2_stats_clear_show, inode->i_private);
 }
 
-static const struct file_operations mipsr2_emul_fops = {
+static const struct file_operations mipsr2_emul_fops =
+{
 	.open                   = mipsr2_stats_open,
 	.read			= seq_read,
 	.llseek			= seq_lseek,
 	.release		= single_release,
 };
 
-static const struct file_operations mipsr2_clear_fops = {
+static const struct file_operations mipsr2_clear_fops =
+{
 	.open                   = mipsr2_stats_clear_open,
 	.read			= seq_read,
 	.llseek			= seq_lseek,
@@ -2369,19 +2665,27 @@ static int __init mipsr2_init_debugfs(void)
 	struct dentry		*mipsr2_emul;
 
 	if (!mips_debugfs_dir)
+	{
 		return -ENODEV;
+	}
 
 	mipsr2_emul = debugfs_create_file("r2_emul_stats", S_IRUGO,
-					  mips_debugfs_dir, NULL,
-					  &mipsr2_emul_fops);
+									  mips_debugfs_dir, NULL,
+									  &mipsr2_emul_fops);
+
 	if (!mipsr2_emul)
+	{
 		return -ENOMEM;
+	}
 
 	mipsr2_emul = debugfs_create_file("r2_emul_stats_clear", S_IRUGO,
-					  mips_debugfs_dir, NULL,
-					  &mipsr2_clear_fops);
+									  mips_debugfs_dir, NULL,
+									  &mipsr2_clear_fops);
+
 	if (!mipsr2_emul)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

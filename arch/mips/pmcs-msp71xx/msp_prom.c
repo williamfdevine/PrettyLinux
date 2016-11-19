@@ -52,7 +52,7 @@
 
 /* global PROM environment variables and pointers */
 int prom_argc;
-char **prom_argv, **prom_envp;
+char **prom_argv, * *prom_envp;
 int *prom_vec;
 
 /* debug flag */
@@ -64,22 +64,28 @@ struct prom_pmemblock mdesc[PROM_MAX_PMEMBLOCKS];
 /* default feature sets */
 static char msp_default_features[] =
 #if defined(CONFIG_PMC_MSP4200_EVAL) \
- || defined(CONFIG_PMC_MSP4200_GW)
+	|| defined(CONFIG_PMC_MSP4200_GW)
 	"ERER";
 #elif defined(CONFIG_PMC_MSP7120_EVAL) \
- || defined(CONFIG_PMC_MSP7120_GW)
+	|| defined(CONFIG_PMC_MSP7120_GW)
 	"EMEMSP";
 #elif defined(CONFIG_PMC_MSP7120_FPGA)
 	"EMEM";
 #endif
 
-/* conversion functions */
-static inline unsigned char str2hexnum(unsigned char c)
+	/* conversion functions */
+	static inline unsigned char str2hexnum(unsigned char c)
 {
 	if (c >= '0' && c <= '9')
+	{
 		return c - '0';
+	}
+
 	if (c >= 'a' && c <= 'f')
+	{
 		return c - 'a' + 10;
+	}
+
 	return 0; /* foo */
 }
 
@@ -88,22 +94,30 @@ int str2eaddr(unsigned char *ea, unsigned char *str)
 	int index = 0;
 	unsigned char num = 0;
 
-	while (*str != '\0') {
-		if ((*str == '.') || (*str == ':')) {
+	while (*str != '\0')
+	{
+		if ((*str == '.') || (*str == ':'))
+		{
 			ea[index++] = num;
 			num = 0;
 			str++;
-		} else {
+		}
+		else
+		{
 			num = num << 4;
 			num |= str2hexnum(*str++);
 		}
 	}
 
-	if (index == 5) {
+	if (index == 5)
+	{
 		ea[index++] = num;
 		return 0;
-	} else
+	}
+	else
+	{
 		return -1;
+	}
 }
 EXPORT_SYMBOL(str2eaddr);
 
@@ -111,7 +125,8 @@ static inline unsigned long str2hex(unsigned char *str)
 {
 	int value = 0;
 
-	while (*str) {
+	while (*str)
+	{
 		value = value << 4;
 		value |= str2hexnum(*str++);
 	}
@@ -133,7 +148,7 @@ const char *get_system_type(void)
 #elif defined(CONFIG_PMC_MSP7120_FPGA)
 	return "PMC-Sierra MSP7120 FPGA";
 #else
-	#error "What is the type of *your* MSP?"
+#error "What is the type of *your* MSP?"
 #endif
 }
 
@@ -142,24 +157,30 @@ int get_ethernet_addr(char *ethaddr_name, char *ethernet_addr)
 	char *ethaddr_str;
 
 	ethaddr_str = prom_getenv(ethaddr_name);
-	if (!ethaddr_str) {
+
+	if (!ethaddr_str)
+	{
 		printk(KERN_WARNING "%s not set in boot prom\n", ethaddr_name);
 		return -1;
 	}
 
-	if (str2eaddr(ethernet_addr, ethaddr_str) == -1) {
+	if (str2eaddr(ethernet_addr, ethaddr_str) == -1)
+	{
 		printk(KERN_WARNING "%s badly formatted-<%s>\n",
-			ethaddr_name, ethaddr_str);
+			   ethaddr_name, ethaddr_str);
 		return -1;
 	}
 
-	if (init_debug > 1) {
+	if (init_debug > 1)
+	{
 		int i;
 		printk(KERN_DEBUG "get_ethernet_addr: for %s ", ethaddr_name);
+
 		for (i = 0; i < 5; i++)
 			printk(KERN_DEBUG "%02x:",
-				(unsigned char)*(ethernet_addr+i));
-		printk(KERN_DEBUG "%02x\n", *(ethernet_addr+i));
+				   (unsigned char) * (ethernet_addr + i));
+
+		printk(KERN_DEBUG "%02x\n", *(ethernet_addr + i));
 	}
 
 	return 0;
@@ -170,7 +191,8 @@ static char *get_features(void)
 {
 	char *feature = prom_getenv(FEATURES);
 
-	if (feature == NULL) {
+	if (feature == NULL)
+	{
 		/* default features based on MACHINE_TYPE */
 		feature = msp_default_features;
 	}
@@ -182,9 +204,13 @@ static char test_feature(char c)
 {
 	char *feature = get_features();
 
-	while (*feature) {
+	while (*feature)
+	{
 		if (*feature++ == c)
+		{
 			return *feature;
+		}
+
 		feature++;
 	}
 
@@ -196,9 +222,13 @@ unsigned long get_deviceid(void)
 	char *deviceid = prom_getenv(DEVICEID);
 
 	if (deviceid == NULL)
+	{
 		return *DEV_ID_REG;
+	}
 	else
+	{
 		return str2hex(deviceid);
+	}
 }
 
 char identify_pci(void)
@@ -240,9 +270,13 @@ static char identify_enetfeature(char key, unsigned long interface_num)
 {
 	char *feature = get_features();
 
-	while (*feature) {
+	while (*feature)
+	{
 		if (*feature++ == key && interface_num-- == 0)
+		{
 			return *feature;
+		}
+
 		feature++;
 	}
 
@@ -293,10 +327,13 @@ char *prom_getenv(char *env_name)
 	char **var = prom_envp;
 	int i = strlen(env_name);
 
-	while (*var) {
-		if (strncmp(env_name, *var, i) == 0) {
+	while (*var)
+	{
+		if (strncmp(env_name, *var, i) == 0)
+		{
 			return *var + strlen(env_name) + 1;
 		}
+
 		var++;
 	}
 
@@ -312,27 +349,36 @@ void  __init prom_init_cmdline(void)
 	actr = 1; /* Always ignore argv[0] */
 
 	cp = &(arcs_cmdline[0]);
-	while (actr < prom_argc) {
+
+	while (actr < prom_argc)
+	{
 		strcpy(cp, prom_argv[actr]);
 		cp += strlen(prom_argv[actr]);
 		*cp++ = ' ';
 		actr++;
 	}
+
 	if (cp != &(arcs_cmdline[0])) /* get rid of trailing space */
+	{
 		--cp;
+	}
+
 	*cp = '\0';
 }
 
 /* memory allocation functions */
 static int __init prom_memtype_classify(unsigned int type)
 {
-	switch (type) {
-	case yamon_free:
-		return BOOT_MEM_RAM;
-	case yamon_prom:
-		return BOOT_MEM_ROM_DATA;
-	default:
-		return BOOT_MEM_RESERVED;
+	switch (type)
+	{
+		case yamon_free:
+			return BOOT_MEM_RAM;
+
+		case yamon_prom:
+			return BOOT_MEM_ROM_DATA;
+
+		default:
+			return BOOT_MEM_RESERVED;
 	}
 }
 
@@ -342,7 +388,8 @@ void __init prom_meminit(void)
 
 	p = prom_getmdesc();
 
-	while (p->size) {
+	while (p->size)
+	{
 		long type;
 		unsigned long base, size;
 
@@ -369,51 +416,63 @@ void __init prom_free_prom_memory(void)
 	 * preserve environment variables and command line from pmon/bbload
 	 * first preserve the command line
 	 */
-	for (argc = 0; argc < prom_argc; argc++) {
+	for (argc = 0; argc < prom_argc; argc++)
+	{
 		len += sizeof(char *);			/* length of pointer */
 		len += strlen(prom_argv[argc]) + 1;	/* length of string */
 	}
+
 	len += sizeof(char *);		/* plus length of null pointer */
 
 	argv = kmalloc(len, GFP_KERNEL);
 	ptr = (char *) &argv[prom_argc + 1];	/* strings follow array */
 
-	for (argc = 0; argc < prom_argc; argc++) {
+	for (argc = 0; argc < prom_argc; argc++)
+	{
 		argv[argc] = ptr;
 		strcpy(ptr, prom_argv[argc]);
 		ptr += strlen(prom_argv[argc]) + 1;
 	}
+
 	argv[prom_argc] = NULL;		/* end array with null pointer */
 	prom_argv = argv;
 
 	/* next preserve the environment variables */
 	len = 0;
 	i = 0;
-	for (envp = prom_envp; *envp != NULL; envp++) {
+
+	for (envp = prom_envp; *envp != NULL; envp++)
+	{
 		i++;		/* count number of environment variables */
 		len += sizeof(char *);		/* length of pointer */
 		len += strlen(*envp) + 1;	/* length of string */
 	}
+
 	len += sizeof(char *);		/* plus length of null pointer */
 
 	envp = kmalloc(len, GFP_KERNEL);
-	ptr = (char *) &envp[i+1];
+	ptr = (char *) &envp[i + 1];
 
-	for (argc = 0; argc < i; argc++) {
+	for (argc = 0; argc < i; argc++)
+	{
 		envp[argc] = ptr;
 		strcpy(ptr, prom_envp[argc]);
 		ptr += strlen(prom_envp[argc]) + 1;
 	}
+
 	envp[i] = NULL;			/* end array with null pointer */
 	prom_envp = envp;
 
-	for (i = 0; i < boot_mem_map.nr_map; i++) {
+	for (i = 0; i < boot_mem_map.nr_map; i++)
+	{
 		if (boot_mem_map.map[i].type != BOOT_MEM_ROM_DATA)
+		{
 			continue;
+		}
 
 		addr = boot_mem_map.map[i].addr;
 		free_init_pages("prom memory",
-				addr, addr + boot_mem_map.map[i].size);
+						addr, addr + boot_mem_map.map[i].size);
 	}
 }
 
@@ -427,14 +486,19 @@ struct prom_pmemblock *__init prom_getmdesc(void)
 	int i;
 
 	str = prom_getenv(memsz_env);
-	if (!str) {
+
+	if (!str)
+	{
 		ppfinit("memsize not set in boot prom, "
-			"set to default (32Mb)\n");
+				"set to default (32Mb)\n");
 		memsize = 0x02000000;
-	} else {
+	}
+	else
+	{
 		memsize = simple_strtol(str, NULL, 0);
 
-		if (memsize == 0) {
+		if (memsize == 0)
+		{
 			/* if memsize is a bad size, use reasonable default */
 			memsize = 0x02000000;
 		}
@@ -444,17 +508,24 @@ struct prom_pmemblock *__init prom_getmdesc(void)
 	}
 
 	str = prom_getenv(heaptop_env);
-	if (!str) {
+
+	if (!str)
+	{
 		heaptop = CPHYSADDR((u32)&_text);
 		ppfinit("heaptop not set in boot prom, "
-			"set to default 0x%08x\n", heaptop);
-	} else {
+				"set to default 0x%08x\n", heaptop);
+	}
+	else
+	{
 		heaptop = simple_strtol(str, NULL, 16);
-		if (heaptop == 0) {
+
+		if (heaptop == 0)
+		{
 			/* heaptop conversion bad, might have 0xValue */
 			heaptop = simple_strtol(str, NULL, 0);
 
-			if (heaptop == 0) {
+			if (heaptop == 0)
+			{
 				/* heaptop still bad, use reasonable default */
 				heaptop = CPHYSADDR((u32)&_text);
 			}
@@ -469,18 +540,20 @@ struct prom_pmemblock *__init prom_getmdesc(void)
 	mdesc[i].type = BOOT_MEM_RESERVED;
 	mdesc[i].base = 0x00000000;
 	mdesc[i].size = PAGE_ALIGN(0x300 + 0x80);
-		/* jtag interrupt vector + sizeof vector */
+	/* jtag interrupt vector + sizeof vector */
 
 	/* PMON data */
-	if (heaptop > mdesc[i].base + mdesc[i].size) {
+	if (heaptop > mdesc[i].base + mdesc[i].size)
+	{
 		i++;			/* 1 */
 		mdesc[i].type = BOOT_MEM_ROM_DATA;
-		mdesc[i].base = mdesc[i-1].base + mdesc[i-1].size;
+		mdesc[i].base = mdesc[i - 1].base + mdesc[i - 1].size;
 		mdesc[i].size = heaptop - mdesc[i].base;
 	}
 
 	/* end of PMON data to start of kernel -- probably zero .. */
-	if (heaptop != CPHYSADDR((u32)_text)) {
+	if (heaptop != CPHYSADDR((u32)_text))
+	{
 		i++;	/* 2 */
 		mdesc[i].type = BOOT_MEM_RAM;
 		mdesc[i].base = heaptop;
@@ -496,7 +569,7 @@ struct prom_pmemblock *__init prom_getmdesc(void)
 	/* Remainder of RAM -- under memsize */
 	i++;			/* 5 */
 	mdesc[i].type = yamon_free;
-	mdesc[i].base = mdesc[i-1].base + mdesc[i-1].size;
+	mdesc[i].base = mdesc[i - 1].base + mdesc[i - 1].size;
 	mdesc[i].size = memsize - mdesc[i].base;
 
 	return &mdesc[0];

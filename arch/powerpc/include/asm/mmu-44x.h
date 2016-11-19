@@ -104,7 +104,8 @@
 extern unsigned int tlb_44x_hwater;
 extern unsigned int tlb_44x_index;
 
-typedef struct {
+typedef struct
+{
 	unsigned int	id;
 	unsigned int	active;
 	unsigned long	vdso_base;
@@ -117,29 +118,29 @@ typedef struct {
 #else
 #define PPC44x_EARLY_TLBS	2
 #define PPC44x_EARLY_DEBUG_VIRTADDR	(ASM_CONST(0xf0000000) \
-	| (ASM_CONST(CONFIG_PPC_EARLY_DEBUG_44x_PHYSLOW) & 0xffff))
+									 | (ASM_CONST(CONFIG_PPC_EARLY_DEBUG_44x_PHYSLOW) & 0xffff))
 #endif
 
 /* Size of the TLBs used for pinning in lowmem */
 #define PPC_PIN_SIZE	(1 << 28)	/* 256M */
 
 #if (PAGE_SHIFT == 12)
-#define PPC44x_TLBE_SIZE	PPC44x_TLB_4K
-#define PPC47x_TLBE_SIZE	PPC47x_TLB0_4K
-#define mmu_virtual_psize	MMU_PAGE_4K
+	#define PPC44x_TLBE_SIZE	PPC44x_TLB_4K
+	#define PPC47x_TLBE_SIZE	PPC47x_TLB0_4K
+	#define mmu_virtual_psize	MMU_PAGE_4K
 #elif (PAGE_SHIFT == 14)
-#define PPC44x_TLBE_SIZE	PPC44x_TLB_16K
-#define PPC47x_TLBE_SIZE	PPC47x_TLB0_16K
-#define mmu_virtual_psize	MMU_PAGE_16K
+	#define PPC44x_TLBE_SIZE	PPC44x_TLB_16K
+	#define PPC47x_TLBE_SIZE	PPC47x_TLB0_16K
+	#define mmu_virtual_psize	MMU_PAGE_16K
 #elif (PAGE_SHIFT == 16)
-#define PPC44x_TLBE_SIZE	PPC44x_TLB_64K
-#define PPC47x_TLBE_SIZE	PPC47x_TLB0_64K
-#define mmu_virtual_psize	MMU_PAGE_64K
+	#define PPC44x_TLBE_SIZE	PPC44x_TLB_64K
+	#define PPC47x_TLBE_SIZE	PPC47x_TLB0_64K
+	#define mmu_virtual_psize	MMU_PAGE_64K
 #elif (PAGE_SHIFT == 18)
-#define PPC44x_TLBE_SIZE	PPC44x_TLB_256K
-#define mmu_virtual_psize	MMU_PAGE_256K
+	#define PPC44x_TLBE_SIZE	PPC44x_TLB_256K
+	#define mmu_virtual_psize	MMU_PAGE_256K
 #else
-#error "Unsupported PAGE_SIZE"
+	#error "Unsupported PAGE_SIZE"
 #endif
 
 #define mmu_linear_psize	MMU_PAGE_256M

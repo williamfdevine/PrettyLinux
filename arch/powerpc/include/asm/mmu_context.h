@@ -6,7 +6,7 @@
 #include <linux/mm.h>
 #include <linux/sched.h>
 #include <linux/spinlock.h>
-#include <asm/mmu.h>	
+#include <asm/mmu.h>
 #include <asm/cputable.h>
 #include <asm/cputhreads.h>
 
@@ -21,7 +21,7 @@ struct mm_iommu_table_group_mem_t;
 extern int isolate_lru_page(struct page *page);	/* from internal.h */
 extern bool mm_iommu_preregistered(void);
 extern long mm_iommu_get(unsigned long ua, unsigned long entries,
-		struct mm_iommu_table_group_mem_t **pmem);
+						 struct mm_iommu_table_group_mem_t **pmem);
 extern long mm_iommu_put(struct mm_iommu_table_group_mem_t *mem);
 extern void mm_iommu_init(mm_context_t *ctx);
 extern void mm_iommu_cleanup(mm_context_t *ctx);
@@ -30,7 +30,7 @@ extern struct mm_iommu_table_group_mem_t *mm_iommu_lookup(unsigned long ua,
 extern struct mm_iommu_table_group_mem_t *mm_iommu_find(unsigned long ua,
 		unsigned long entries);
 extern long mm_iommu_ua_to_hpa(struct mm_iommu_table_group_mem_t *mem,
-		unsigned long ua, unsigned long *hpa);
+							   unsigned long ua, unsigned long *hpa);
 extern long mm_iommu_mapped_inc(struct mm_iommu_table_group_mem_t *mem);
 extern void mm_iommu_mapped_dec(struct mm_iommu_table_group_mem_t *mem);
 #endif
@@ -39,13 +39,16 @@ extern void set_context(unsigned long id, pgd_t *pgd);
 
 #ifdef CONFIG_PPC_BOOK3S_64
 extern void radix__switch_mmu_context(struct mm_struct *prev,
-				     struct mm_struct *next);
+									  struct mm_struct *next);
 static inline void switch_mmu_context(struct mm_struct *prev,
-				      struct mm_struct *next,
-				      struct task_struct *tsk)
+									  struct mm_struct *next,
+									  struct task_struct *tsk)
 {
 	if (radix_enabled())
+	{
 		return radix__switch_mmu_context(prev, next);
+	}
+
 	return switch_slb(tsk, next);
 }
 
@@ -54,7 +57,7 @@ extern void __destroy_context(int context_id);
 static inline void mmu_context_init(void) { }
 #else
 extern void switch_mmu_context(struct mm_struct *prev, struct mm_struct *next,
-			       struct task_struct *tsk);
+							   struct task_struct *tsk);
 extern unsigned long __init_new_context(void);
 extern void __destroy_context(unsigned long context_id);
 extern void mmu_context_init(void);
@@ -69,11 +72,13 @@ extern void drop_cop(unsigned long acop, struct mm_struct *mm);
  * code in kernel/sched/core.c
  */
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
 	/* Mark this context has been used on the new CPU */
 	if (!cpumask_test_cpu(smp_processor_id(), mm_cpumask(next)))
+	{
 		cpumask_set_cpu(smp_processor_id(), mm_cpumask(next));
+	}
 
 	/* 32-bit keeps track of the current PGDIR in the thread struct */
 #ifdef CONFIG_PPC32
@@ -84,22 +89,33 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 #ifdef CONFIG_PPC_BOOK3E_64
 	get_paca()->pgd = next->pgd;
 #endif
+
 	/* Nothing else to do if we aren't actually switching */
 	if (prev == next)
+	{
 		return;
+	}
 
 #ifdef CONFIG_PPC_ICSWX
+
 	/* Switch coprocessor context only if prev or next uses a coprocessor */
 	if (prev->context.acop || next->context.acop)
+	{
 		switch_cop(next);
+	}
+
 #endif /* CONFIG_PPC_ICSWX */
 
 	/* We must stop all altivec streams before changing the HW
 	 * context
 	 */
 #ifdef CONFIG_ALTIVEC
+
 	if (cpu_has_feature(CPU_FTR_ALTIVEC))
+	{
 		asm volatile ("dssall");
+	}
+
 #endif /* CONFIG_ALTIVEC */
 	/*
 	 * The actual HW switching method differs between the various
@@ -125,7 +141,7 @@ static inline void activate_mm(struct mm_struct *prev, struct mm_struct *next)
 
 /* We don't currently use enter_lazy_tlb() for anything */
 static inline void enter_lazy_tlb(struct mm_struct *mm,
-				  struct task_struct *tsk)
+								  struct task_struct *tsk)
 {
 	/* 64-bit Book3E keeps track of current PGD in the PACA */
 #ifdef CONFIG_PPC_BOOK3E_64
@@ -134,7 +150,7 @@ static inline void enter_lazy_tlb(struct mm_struct *mm,
 }
 
 static inline void arch_dup_mmap(struct mm_struct *oldmm,
-				 struct mm_struct *mm)
+								 struct mm_struct *mm)
 {
 }
 
@@ -143,15 +159,17 @@ static inline void arch_exit_mmap(struct mm_struct *mm)
 }
 
 static inline void arch_unmap(struct mm_struct *mm,
-			      struct vm_area_struct *vma,
-			      unsigned long start, unsigned long end)
+							  struct vm_area_struct *vma,
+							  unsigned long start, unsigned long end)
 {
 	if (start <= mm->context.vdso_base && mm->context.vdso_base < end)
+	{
 		mm->context.vdso_base = 0;
+	}
 }
 
 static inline void arch_bprm_mm_init(struct mm_struct *mm,
-				     struct vm_area_struct *vma)
+									 struct vm_area_struct *vma)
 {
 }
 

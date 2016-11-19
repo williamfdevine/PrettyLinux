@@ -38,7 +38,7 @@
 
 extern void __cpu_clear_user_page(void *p, unsigned long user);
 extern void __cpu_copy_user_page(void *to, const void *from,
-				 unsigned long user);
+								 unsigned long user);
 extern void copy_page(void *to, const void *from);
 extern void clear_page(void *to);
 
@@ -48,7 +48,7 @@ extern void clear_page(void *to);
 typedef struct page *pgtable_t;
 
 #ifdef CONFIG_HAVE_ARCH_PFN_VALID
-extern int pfn_valid(unsigned long);
+	extern int pfn_valid(unsigned long);
 #endif
 
 #include <asm/memory.h>

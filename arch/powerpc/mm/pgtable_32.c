@@ -50,9 +50,12 @@ static struct kmem_cache *pgtable_cache;
 void pgtable_cache_init(void)
 {
 	pgtable_cache = kmem_cache_create("PGDIR cache", 1 << PGDIR_ORDER,
-					  1 << PGDIR_ORDER, 0, NULL);
+									  1 << PGDIR_ORDER, 0, NULL);
+
 	if (pgtable_cache == NULL)
+	{
 		panic("Couldn't allocate pgtable caches");
+	}
 }
 #endif
 
@@ -64,8 +67,8 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 #ifndef CONFIG_PPC_4K_PAGES
 	ret = kmem_cache_alloc(pgtable_cache, GFP_KERNEL | __GFP_ZERO);
 #else
-	ret = (pgd_t *)__get_free_pages(GFP_KERNEL|__GFP_ZERO,
-			PGDIR_ORDER - PAGE_SHIFT);
+	ret = (pgd_t *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
+									PGDIR_ORDER - PAGE_SHIFT);
 #endif
 	return ret;
 }
@@ -83,13 +86,20 @@ __ref pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
 {
 	pte_t *pte;
 
-	if (slab_is_available()) {
-		pte = (pte_t *)__get_free_page(GFP_KERNEL|__GFP_ZERO);
-	} else {
-		pte = __va(memblock_alloc(PAGE_SIZE, PAGE_SIZE));
-		if (pte)
-			clear_page(pte);
+	if (slab_is_available())
+	{
+		pte = (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
 	}
+	else
+	{
+		pte = __va(memblock_alloc(PAGE_SIZE, PAGE_SIZE));
+
+		if (pte)
+		{
+			clear_page(pte);
+		}
+	}
+
 	return pte;
 }
 
@@ -100,12 +110,18 @@ pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address)
 	gfp_t flags = GFP_KERNEL | __GFP_ZERO;
 
 	ptepage = alloc_pages(flags, 0);
+
 	if (!ptepage)
+	{
 		return NULL;
-	if (!pgtable_page_ctor(ptepage)) {
+	}
+
+	if (!pgtable_page_ctor(ptepage))
+	{
 		__free_page(ptepage);
 		return NULL;
 	}
+
 	return ptepage;
 }
 
@@ -113,7 +129,7 @@ void __iomem *
 ioremap(phys_addr_t addr, unsigned long size)
 {
 	return __ioremap_caller(addr, size, _PAGE_NO_CACHE | _PAGE_GUARDED,
-				__builtin_return_address(0));
+							__builtin_return_address(0));
 }
 EXPORT_SYMBOL(ioremap);
 
@@ -121,7 +137,7 @@ void __iomem *
 ioremap_wc(phys_addr_t addr, unsigned long size)
 {
 	return __ioremap_caller(addr, size, _PAGE_NO_CACHE,
-				__builtin_return_address(0));
+							__builtin_return_address(0));
 }
 EXPORT_SYMBOL(ioremap_wc);
 
@@ -130,7 +146,9 @@ ioremap_prot(phys_addr_t addr, unsigned long size, unsigned long flags)
 {
 	/* writeable implies dirty for kernel addresses */
 	if ((flags & (_PAGE_RW | _PAGE_RO)) != _PAGE_RO)
+	{
 		flags |= _PAGE_DIRTY | _PAGE_HWWRITE;
+	}
 
 	/* we don't want to let _PAGE_USER and _PAGE_EXEC leak out */
 	flags &= ~(_PAGE_USER | _PAGE_EXEC);
@@ -155,7 +173,7 @@ __ioremap(phys_addr_t addr, unsigned long size, unsigned long flags)
 
 void __iomem *
 __ioremap_caller(phys_addr_t addr, unsigned long size, unsigned long flags,
-		 void *caller)
+				 void *caller)
 {
 	unsigned long v, i;
 	phys_addr_t p;
@@ -163,11 +181,15 @@ __ioremap_caller(phys_addr_t addr, unsigned long size, unsigned long flags,
 
 	/* Make sure we have the base flags */
 	if ((flags & _PAGE_PRESENT) == 0)
+	{
 		flags |= pgprot_val(PAGE_KERNEL);
+	}
 
 	/* Non-cacheable page cannot be coherent */
 	if (flags & _PAGE_NO_CACHE)
+	{
 		flags &= ~_PAGE_COHERENT;
+	}
 
 	/*
 	 * Choose an address to map it to.
@@ -182,41 +204,58 @@ __ioremap_caller(phys_addr_t addr, unsigned long size, unsigned long flags,
 	 * If the address lies within the first 16 MB, assume it's in ISA
 	 * memory space
 	 */
-	if (p < 16*1024*1024)
+	if (p < 16 * 1024 * 1024)
+	{
 		p += _ISA_MEM_BASE;
+	}
 
 #ifndef CONFIG_CRASH_DUMP
+
 	/*
 	 * Don't allow anybody to remap normal RAM that we're using.
 	 * mem_init() sets high_memory so only do the check after that.
 	 */
 	if (slab_is_available() && (p < virt_to_phys(high_memory)) &&
-	    !(__allow_ioremap_reserved && memblock_is_region_reserved(p, size))) {
+		!(__allow_ioremap_reserved && memblock_is_region_reserved(p, size)))
+	{
 		printk("__ioremap(): phys addr 0x%llx is RAM lr %ps\n",
-		       (unsigned long long)p, __builtin_return_address(0));
+			   (unsigned long long)p, __builtin_return_address(0));
 		return NULL;
 	}
+
 #endif
 
 	if (size == 0)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Is it already mapped?  Perhaps overlapped by a previous
 	 * mapping.
 	 */
 	v = p_block_mapped(p);
-	if (v)
-		goto out;
 
-	if (slab_is_available()) {
+	if (v)
+	{
+		goto out;
+	}
+
+	if (slab_is_available())
+	{
 		struct vm_struct *area;
 		area = get_vm_area_caller(size, VM_IOREMAP, caller);
+
 		if (area == 0)
+		{
 			return NULL;
+		}
+
 		area->phys_addr = p;
 		v = (unsigned long) area->addr;
-	} else {
+	}
+	else
+	{
 		v = (ioremap_bot -= size);
 	}
 
@@ -225,11 +264,19 @@ __ioremap_caller(phys_addr_t addr, unsigned long size, unsigned long flags,
 	 */
 
 	err = 0;
+
 	for (i = 0; i < size && err == 0; i += PAGE_SIZE)
-		err = map_page(v+i, p+i, flags);
-	if (err) {
+	{
+		err = map_page(v + i, p + i, flags);
+	}
+
+	if (err)
+	{
 		if (slab_is_available())
+		{
 			vunmap((void *)v);
+		}
+
 		return NULL;
 	}
 
@@ -245,10 +292,14 @@ void iounmap(volatile void __iomem *addr)
 	 * Calling vfree() generates a benign warning.
 	 */
 	if (v_block_mapped((unsigned long)addr))
+	{
 		return;
+	}
 
 	if (addr > high_memory && (unsigned long) addr < ioremap_bot)
+	{
 		vunmap((void *) (PAGE_MASK & (unsigned long)addr));
+	}
 }
 EXPORT_SYMBOL(iounmap);
 
@@ -262,16 +313,19 @@ int map_page(unsigned long va, phys_addr_t pa, int flags)
 	pd = pmd_offset(pud_offset(pgd_offset_k(va), va), va);
 	/* Use middle 10 bits of VA to index the second-level map */
 	pg = pte_alloc_kernel(pd, va);
-	if (pg != 0) {
+
+	if (pg != 0)
+	{
 		err = 0;
 		/* The PTE should never be already set nor present in the
 		 * hash table
 		 */
 		BUG_ON((pte_val(*pg) & (_PAGE_PRESENT | _PAGE_HASHPTE)) &&
-		       flags);
+			   flags);
 		set_pte_at(&init_mm, va, pg, pfn_pte(pa >> PAGE_SHIFT,
-						     __pgprot(flags)));
+											 __pgprot(flags)));
 	}
+
 	smp_wmb();
 	return err;
 }
@@ -288,14 +342,20 @@ void __init __mapin_ram_chunk(unsigned long offset, unsigned long top)
 	s = offset;
 	v = PAGE_OFFSET + s;
 	p = memstart_addr + s;
-	for (; s < top; s += PAGE_SIZE) {
+
+	for (; s < top; s += PAGE_SIZE)
+	{
 		ktext = ((char *)v >= _stext && (char *)v < etext) ||
-			((char *)v >= _sinittext && (char *)v < _einittext);
+				((char *)v >= _sinittext && (char *)v < _einittext);
 		f = ktext ? pgprot_val(PAGE_KERNEL_TEXT) : pgprot_val(PAGE_KERNEL);
 		map_page(v, p, f);
 #ifdef CONFIG_PPC_STD_MMU_32
+
 		if (ktext)
+		{
 			hash_preload(&init_mm, v, 0, 0x300);
+		}
+
 #endif
 		v += PAGE_SIZE;
 		p += PAGE_SIZE;
@@ -311,10 +371,14 @@ void __init mapin_ram(void)
 	s = mmu_mapin_ram(top);
 	__mapin_ram_chunk(s, top);
 #else
-	if (!wii_hole_size) {
+
+	if (!wii_hole_size)
+	{
 		s = mmu_mapin_ram(total_lowmem);
 		__mapin_ram_chunk(s, total_lowmem);
-	} else {
+	}
+	else
+	{
 		top = wii_hole_start;
 		s = mmu_mapin_ram(top);
 		__mapin_ram_chunk(s, top);
@@ -323,6 +387,7 @@ void __init mapin_ram(void)
 		s = wii_mmu_mapin_mem2(top);
 		__mapin_ram_chunk(s, top);
 	}
+
 #endif
 }
 
@@ -334,30 +399,43 @@ void __init mapin_ram(void)
 int
 get_pteptr(struct mm_struct *mm, unsigned long addr, pte_t **ptep, pmd_t **pmdp)
 {
-        pgd_t	*pgd;
+	pgd_t	*pgd;
 	pud_t	*pud;
-        pmd_t	*pmd;
-        pte_t	*pte;
-        int     retval = 0;
+	pmd_t	*pmd;
+	pte_t	*pte;
+	int     retval = 0;
 
-        pgd = pgd_offset(mm, addr & PAGE_MASK);
-        if (pgd) {
+	pgd = pgd_offset(mm, addr & PAGE_MASK);
+
+	if (pgd)
+	{
 		pud = pud_offset(pgd, addr & PAGE_MASK);
-		if (pud && pud_present(*pud)) {
+
+		if (pud && pud_present(*pud))
+		{
 			pmd = pmd_offset(pud, addr & PAGE_MASK);
-			if (pmd_present(*pmd)) {
+
+			if (pmd_present(*pmd))
+			{
 				pte = pte_offset_map(pmd, addr & PAGE_MASK);
-				if (pte) {
+
+				if (pte)
+				{
 					retval = 1;
 					*ptep = pte;
+
 					if (pmdp)
+					{
 						*pmdp = pmd;
+					}
+
 					/* XXX caller needs to do pte_unmap, yuck */
 				}
 			}
 		}
-        }
-        return(retval);
+	}
+
+	return (retval);
 }
 
 #ifdef CONFIG_DEBUG_PAGEALLOC
@@ -372,9 +450,15 @@ static int __change_page_attr(struct page *page, pgprot_t prot)
 	address = (unsigned long)page_address(page);
 
 	if (v_block_mapped(address))
+	{
 		return 0;
+	}
+
 	if (!get_pteptr(&init_mm, address, &kpte, &kpmd))
+	{
 		return -EINVAL;
+	}
+
 	__set_pte_at(&init_mm, address, kpte, mk_pte(page, prot), 0);
 	wmb();
 	flush_tlb_page(NULL, address);
@@ -394,11 +478,17 @@ static int change_page_attr(struct page *page, int numpages, pgprot_t prot)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	for (i = 0; i < numpages; i++, page++) {
+
+	for (i = 0; i < numpages; i++, page++)
+	{
 		err = __change_page_attr(page, prot);
+
 		if (err)
+		{
 			break;
+		}
 	}
+
 	local_irq_restore(flags);
 	return err;
 }
@@ -407,7 +497,9 @@ static int change_page_attr(struct page *page, int numpages, pgprot_t prot)
 void __kernel_map_pages(struct page *page, int numpages, int enable)
 {
 	if (PageHighMem(page))
+	{
 		return;
+	}
 
 	change_page_attr(page, numpages, enable ? PAGE_KERNEL : __pgprot(0));
 }
@@ -419,7 +511,8 @@ void __set_fixmap (enum fixed_addresses idx, phys_addr_t phys, pgprot_t flags)
 {
 	unsigned long address = __fix_to_virt(idx);
 
-	if (idx >= __end_of_fixed_addresses) {
+	if (idx >= __end_of_fixed_addresses)
+	{
 		BUG();
 		return;
 	}

@@ -23,14 +23,14 @@
 static inline void arch_local_irq_disable(void)
 {
 	__asm__ __volatile__(
-	"	.set	push						\n"
-	"	.set	noat						\n"
-	"	di							\n"
-	"	" __stringify(__irq_disable_hazard) "			\n"
-	"	.set	pop						\n"
-	: /* no outputs */
-	: /* no inputs */
-	: "memory");
+		"	.set	push						\n"
+		"	.set	noat						\n"
+		"	di							\n"
+		"	" __stringify(__irq_disable_hazard) "			\n"
+		"	.set	pop						\n"
+		: /* no outputs */
+		: /* no inputs */
+		: "memory");
 }
 
 static inline unsigned long arch_local_irq_save(void)
@@ -38,21 +38,21 @@ static inline unsigned long arch_local_irq_save(void)
 	unsigned long flags;
 
 	asm __volatile__(
-	"	.set	push						\n"
-	"	.set	reorder						\n"
-	"	.set	noat						\n"
+		"	.set	push						\n"
+		"	.set	reorder						\n"
+		"	.set	noat						\n"
 #if defined(CONFIG_CPU_LOONGSON3)
-	"	mfc0	%[flags], $12					\n"
-	"	di							\n"
+		"	mfc0	%[flags], $12					\n"
+		"	di							\n"
 #else
-	"	di	%[flags]					\n"
+		"	di	%[flags]					\n"
 #endif
-	"	andi	%[flags], 1					\n"
-	"	" __stringify(__irq_disable_hazard) "			\n"
-	"	.set	pop						\n"
-	: [flags] "=r" (flags)
-	: /* no inputs */
-	: "memory");
+		"	andi	%[flags], 1					\n"
+		"	" __stringify(__irq_disable_hazard) "			\n"
+		"	.set	pop						\n"
+		: [flags] "=r" (flags)
+		: /* no inputs */
+		: "memory");
 
 	return flags;
 }
@@ -62,31 +62,31 @@ static inline void arch_local_irq_restore(unsigned long flags)
 	unsigned long __tmp1;
 
 	__asm__ __volatile__(
-	"	.set	push						\n"
-	"	.set	noreorder					\n"
-	"	.set	noat						\n"
+		"	.set	push						\n"
+		"	.set	noreorder					\n"
+		"	.set	noat						\n"
 #if defined(CONFIG_IRQ_MIPS_CPU)
-	/*
-	 * Slow, but doesn't suffer from a relatively unlikely race
-	 * condition we're having since days 1.
-	 */
-	"	beqz	%[flags], 1f					\n"
-	"	di							\n"
-	"	ei							\n"
-	"1:								\n"
+		/*
+		 * Slow, but doesn't suffer from a relatively unlikely race
+		 * condition we're having since days 1.
+		 */
+		"	beqz	%[flags], 1f					\n"
+		"	di							\n"
+		"	ei							\n"
+		"1:								\n"
 #else
-	/*
-	 * Fast, dangerous.  Life is fun, life is good.
-	 */
-	"	mfc0	$1, $12						\n"
-	"	ins	$1, %[flags], 0, 1				\n"
-	"	mtc0	$1, $12						\n"
+		/*
+		 * Fast, dangerous.  Life is fun, life is good.
+		 */
+		"	mfc0	$1, $12						\n"
+		"	ins	$1, %[flags], 0, 1				\n"
+		"	mtc0	$1, $12						\n"
 #endif
-	"	" __stringify(__irq_disable_hazard) "			\n"
-	"	.set	pop						\n"
-	: [flags] "=r" (__tmp1)
-	: "0" (flags)
-	: "memory");
+		"	" __stringify(__irq_disable_hazard) "			\n"
+		"	.set	pop						\n"
+		: [flags] "=r" (__tmp1)
+		: "0" (flags)
+		: "memory");
 }
 
 #else
@@ -99,22 +99,22 @@ void arch_local_irq_restore(unsigned long flags);
 static inline void arch_local_irq_enable(void)
 {
 	__asm__ __volatile__(
-	"	.set	push						\n"
-	"	.set	reorder						\n"
-	"	.set	noat						\n"
+		"	.set	push						\n"
+		"	.set	reorder						\n"
+		"	.set	noat						\n"
 #if   defined(CONFIG_CPU_MIPSR2) || defined(CONFIG_CPU_MIPSR6)
-	"	ei							\n"
+		"	ei							\n"
 #else
-	"	mfc0	$1,$12						\n"
-	"	ori	$1,0x1f						\n"
-	"	xori	$1,0x1e						\n"
-	"	mtc0	$1,$12						\n"
+		"	mfc0	$1,$12						\n"
+		"	ori	$1,0x1f						\n"
+		"	xori	$1,0x1e						\n"
+		"	mtc0	$1,$12						\n"
 #endif
-	"	" __stringify(__irq_enable_hazard) "			\n"
-	"	.set	pop						\n"
-	: /* no outputs */
-	: /* no inputs */
-	: "memory");
+		"	" __stringify(__irq_enable_hazard) "			\n"
+		"	.set	pop						\n"
+		: /* no outputs */
+		: /* no inputs */
+		: "memory");
 }
 
 static inline unsigned long arch_local_save_flags(void)
@@ -122,11 +122,11 @@ static inline unsigned long arch_local_save_flags(void)
 	unsigned long flags;
 
 	asm __volatile__(
-	"	.set	push						\n"
-	"	.set	reorder						\n"
-	"	mfc0	%[flags], $12					\n"
-	"	.set	pop						\n"
-	: [flags] "=r" (flags));
+		"	.set	push						\n"
+		"	.set	reorder						\n"
+		"	mfc0	%[flags], $12					\n"
+		"	.set	pop						\n"
+		: [flags] "=r" (flags));
 
 	return flags;
 }

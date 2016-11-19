@@ -21,16 +21,17 @@ void die(char *fmt, ...);
  * Introduced for MIPSr6
  */
 #ifndef R_MIPS_PC21_S2
-#define R_MIPS_PC21_S2		60
+	#define R_MIPS_PC21_S2		60
 #endif
 
 #ifndef R_MIPS_PC26_S2
-#define R_MIPS_PC26_S2		61
+	#define R_MIPS_PC26_S2		61
 #endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-enum symtype {
+enum symtype
+{
 	S_ABS,
 	S_REL,
 	S_SEG,
@@ -39,7 +40,7 @@ enum symtype {
 };
 
 void process_32(FILE *fp, int as_text, int as_bin,
-		int show_reloc_info, int keep_relocs);
+				int show_reloc_info, int keep_relocs);
 void process_64(FILE *fp, int as_text, int as_bin,
-		int show_reloc_info, int keep_relocs);
+				int show_reloc_info, int keep_relocs);
 #endif /* RELOCS_H */

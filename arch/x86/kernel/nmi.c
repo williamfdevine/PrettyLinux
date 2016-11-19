@@ -22,7 +22,7 @@
 #include <linux/export.h>
 
 #if defined(CONFIG_EDAC)
-#include <linux/edac.h>
+	#include <linux/edac.h>
 #endif
 
 #include <linux/atomic.h>
@@ -36,12 +36,13 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/nmi.h>
 
-struct nmi_desc {
+struct nmi_desc
+{
 	spinlock_t lock;
 	struct list_head head;
 };
 
-static struct nmi_desc nmi_desc[NMI_MAX] = 
+static struct nmi_desc nmi_desc[NMI_MAX] =
 {
 	{
 		.lock = __SPIN_LOCK_UNLOCKED(&nmi_desc[0].lock),
@@ -62,7 +63,8 @@ static struct nmi_desc nmi_desc[NMI_MAX] =
 
 };
 
-struct nmi_stats {
+struct nmi_stats
+{
 	unsigned int normal;
 	unsigned int unknown;
 	unsigned int external;
@@ -94,7 +96,7 @@ static u64 nmi_longest_ns = 1 * NSEC_PER_MSEC;
 static int __init nmi_warning_debugfs(void)
 {
 	debugfs_create_u64("nmi_longest_ns", 0644,
-			arch_debugfs_dir, &nmi_longest_ns);
+					   arch_debugfs_dir, &nmi_longest_ns);
 	return 0;
 }
 fs_initcall(nmi_warning_debugfs);
@@ -109,15 +111,15 @@ static void nmi_max_handler(struct irq_work *w)
 	decimal_msecs = remainder_ns / 1000;
 
 	printk_ratelimited(KERN_INFO
-		"INFO: NMI handler (%ps) took too long to run: %lld.%03d msecs\n",
-		a->handler, whole_msecs, decimal_msecs);
+					   "INFO: NMI handler (%ps) took too long to run: %lld.%03d msecs\n",
+					   a->handler, whole_msecs, decimal_msecs);
 }
 
 static int nmi_handle(unsigned int type, struct pt_regs *regs)
 {
 	struct nmi_desc *desc = nmi_to_desc(type);
 	struct nmiaction *a;
-	int handled=0;
+	int handled = 0;
 
 	rcu_read_lock();
 
@@ -127,7 +129,8 @@ static int nmi_handle(unsigned int type, struct pt_regs *regs)
 	 * can be latched at any given time.  Walk the whole list
 	 * to handle those situations.
 	 */
-	list_for_each_entry_rcu(a, &desc->head, list) {
+	list_for_each_entry_rcu(a, &desc->head, list)
+	{
 		int thishandled;
 		u64 delta;
 
@@ -138,7 +141,9 @@ static int nmi_handle(unsigned int type, struct pt_regs *regs)
 		trace_nmi_handler(a->handler, (int)delta, thishandled);
 
 		if (delta < nmi_longest_ns || delta < a->max_duration)
+		{
 			continue;
+		}
 
 		a->max_duration = delta;
 		irq_work_queue(&a->irq_work);
@@ -157,7 +162,9 @@ int __register_nmi_handler(unsigned int type, struct nmiaction *action)
 	unsigned long flags;
 
 	if (!action->handler)
+	{
 		return -EINVAL;
+	}
 
 	init_irq_work(&action->irq_work, nmi_max_handler);
 
@@ -177,10 +184,14 @@ int __register_nmi_handler(unsigned int type, struct nmiaction *action)
 	 * event confuses some handlers (kdump uses this flag)
 	 */
 	if (action->flags & NMI_FLAG_FIRST)
+	{
 		list_add_rcu(&action->list, &desc->head);
+	}
 	else
+	{
 		list_add_tail_rcu(&action->list, &desc->head);
-	
+	}
+
 	spin_unlock_irqrestore(&desc->lock, flags);
 	return 0;
 }
@@ -194,14 +205,16 @@ void unregister_nmi_handler(unsigned int type, const char *name)
 
 	spin_lock_irqsave(&desc->lock, flags);
 
-	list_for_each_entry_rcu(n, &desc->head, list) {
+	list_for_each_entry_rcu(n, &desc->head, list)
+	{
 		/*
 		 * the name passed in to describe the nmi handler
 		 * is used as the lookup key
 		 */
-		if (!strcmp(n->name, name)) {
+		if (!strcmp(n->name, name))
+		{
 			WARN(in_nmi(),
-				"Trying to free NMI (%s) from NMI context!\n", n->name);
+				 "Trying to free NMI (%s) from NMI context!\n", n->name);
 			list_del_rcu(&n->list);
 			break;
 		}
@@ -217,24 +230,31 @@ pci_serr_error(unsigned char reason, struct pt_regs *regs)
 {
 	/* check to see if anyone registered against these types of errors */
 	if (nmi_handle(NMI_SERR, regs))
+	{
 		return;
+	}
 
 	pr_emerg("NMI: PCI system error (SERR) for reason %02x on CPU %d.\n",
-		 reason, smp_processor_id());
+			 reason, smp_processor_id());
 
 	/*
 	 * On some machines, PCI SERR line is used to report memory
 	 * errors. EDAC makes use of it.
 	 */
 #if defined(CONFIG_EDAC)
-	if (edac_handler_set()) {
+
+	if (edac_handler_set())
+	{
 		edac_atomic_assert_error();
 		return;
 	}
+
 #endif
 
 	if (panic_on_unrecovered_nmi)
+	{
 		nmi_panic(regs, "NMI: Not continuing");
+	}
 
 	pr_emerg("Dazed and confused, but trying to continue\n");
 
@@ -251,14 +271,17 @@ io_check_error(unsigned char reason, struct pt_regs *regs)
 
 	/* check to see if anyone registered against these types of errors */
 	if (nmi_handle(NMI_IO_CHECK, regs))
+	{
 		return;
+	}
 
 	pr_emerg(
-	"NMI: IOCK error (debug interrupt?) for reason %02x on CPU %d.\n",
-		 reason, smp_processor_id());
+		"NMI: IOCK error (debug interrupt?) for reason %02x on CPU %d.\n",
+		reason, smp_processor_id());
 	show_regs(regs);
 
-	if (panic_on_io_nmi) {
+	if (panic_on_io_nmi)
+	{
 		nmi_panic(regs, "NMI IOCK error: Not continuing");
 
 		/*
@@ -274,7 +297,9 @@ io_check_error(unsigned char reason, struct pt_regs *regs)
 	outb(reason, NMI_REASON_PORT);
 
 	i = 20000;
-	while (--i) {
+
+	while (--i)
+	{
 		touch_nmi_watchdog();
 		udelay(100);
 	}
@@ -296,7 +321,9 @@ unknown_nmi_error(unsigned char reason, struct pt_regs *regs)
 	 * if it caused the NMI)
 	 */
 	handled = nmi_handle(NMI_UNKNOWN, regs);
-	if (handled) {
+
+	if (handled)
+	{
 		__this_cpu_add(nmi_stats.unknown, handled);
 		return;
 	}
@@ -304,11 +331,14 @@ unknown_nmi_error(unsigned char reason, struct pt_regs *regs)
 	__this_cpu_add(nmi_stats.unknown, 1);
 
 	pr_emerg("Uhhuh. NMI received for unknown reason %02x on CPU %d.\n",
-		 reason, smp_processor_id());
+			 reason, smp_processor_id());
 
 	pr_emerg("Do you have a strange power saving mode enabled?\n");
+
 	if (unknown_nmi_panic || panic_on_unrecovered_nmi)
+	{
 		nmi_panic(regs, "NMI: Not continuing");
+	}
 
 	pr_emerg("Dazed and confused, but trying to continue\n");
 }
@@ -337,15 +367,21 @@ static void default_do_nmi(struct pt_regs *regs)
 	 * more handlers.  Otherwise reset the 'swallow' NMI behaviour
 	 */
 	if (regs->ip == __this_cpu_read(last_nmi_rip))
+	{
 		b2b = true;
+	}
 	else
+	{
 		__this_cpu_write(swallow_nmi, false);
+	}
 
 	__this_cpu_write(last_nmi_rip, regs->ip);
 
 	handled = nmi_handle(NMI_LOCAL, regs);
 	__this_cpu_add(nmi_stats.normal, handled);
-	if (handled) {
+
+	if (handled)
+	{
 		/*
 		 * There are cases when a NMI handler handles multiple
 		 * events in the current NMI.  One of these events may
@@ -355,7 +391,10 @@ static void default_do_nmi(struct pt_regs *regs)
 		 * swallow.
 		 */
 		if (handled > 1)
+		{
 			__this_cpu_write(swallow_nmi, true);
+		}
+
 		return;
 	}
 
@@ -367,18 +406,25 @@ static void default_do_nmi(struct pt_regs *regs)
 	 * and if so, call its callback directly.  If there is no CPU preparing
 	 * crash dump, we simply loop here.
 	 */
-	while (!raw_spin_trylock(&nmi_reason_lock)) {
+	while (!raw_spin_trylock(&nmi_reason_lock))
+	{
 		run_crash_ipi_callback(regs);
 		cpu_relax();
 	}
 
 	reason = x86_platform.get_nmi_reason();
 
-	if (reason & NMI_REASON_MASK) {
+	if (reason & NMI_REASON_MASK)
+	{
 		if (reason & NMI_REASON_SERR)
+		{
 			pci_serr_error(reason, regs);
+		}
 		else if (reason & NMI_REASON_IOCHK)
+		{
 			io_check_error(reason, regs);
+		}
+
 #ifdef CONFIG_X86_32
 		/*
 		 * Reassert NMI in case it became active
@@ -390,6 +436,7 @@ static void default_do_nmi(struct pt_regs *regs)
 		raw_spin_unlock(&nmi_reason_lock);
 		return;
 	}
+
 	raw_spin_unlock(&nmi_reason_lock);
 
 	/*
@@ -423,9 +470,13 @@ static void default_do_nmi(struct pt_regs *regs)
 	 * for now.
 	 */
 	if (b2b && __this_cpu_read(swallow_nmi))
+	{
 		__this_cpu_add(nmi_stats.swallow, 1);
+	}
 	else
+	{
 		unknown_nmi_error(reason, regs);
+	}
 }
 NOKPROBE_SYMBOL(default_do_nmi);
 
@@ -474,7 +525,8 @@ NOKPROBE_SYMBOL(default_do_nmi);
  * Otherwise, there would be a race of another nested NMI coming in
  * after setting state to NOT_RUNNING but before updating the nmi_cr2.
  */
-enum nmi_states {
+enum nmi_states
+{
 	NMI_NOT_RUNNING = 0,
 	NMI_EXECUTING,
 	NMI_LATCHED,
@@ -483,45 +535,50 @@ static DEFINE_PER_CPU(enum nmi_states, nmi_state);
 static DEFINE_PER_CPU(unsigned long, nmi_cr2);
 
 #ifdef CONFIG_X86_64
-/*
- * In x86_64, we need to handle breakpoint -> NMI -> breakpoint.  Without
- * some care, the inner breakpoint will clobber the outer breakpoint's
- * stack.
- *
- * If a breakpoint is being processed, and the debug stack is being
- * used, if an NMI comes in and also hits a breakpoint, the stack
- * pointer will be set to the same fixed address as the breakpoint that
- * was interrupted, causing that stack to be corrupted. To handle this
- * case, check if the stack that was interrupted is the debug stack, and
- * if so, change the IDT so that new breakpoints will use the current
- * stack and not switch to the fixed address. On return of the NMI,
- * switch back to the original IDT.
- */
-static DEFINE_PER_CPU(int, update_debug_stack);
+	/*
+	* In x86_64, we need to handle breakpoint -> NMI -> breakpoint.  Without
+	* some care, the inner breakpoint will clobber the outer breakpoint's
+	* stack.
+	*
+	* If a breakpoint is being processed, and the debug stack is being
+	* used, if an NMI comes in and also hits a breakpoint, the stack
+	* pointer will be set to the same fixed address as the breakpoint that
+	* was interrupted, causing that stack to be corrupted. To handle this
+	* case, check if the stack that was interrupted is the debug stack, and
+	* if so, change the IDT so that new breakpoints will use the current
+	* stack and not switch to the fixed address. On return of the NMI,
+	* switch back to the original IDT.
+	*/
+	static DEFINE_PER_CPU(int, update_debug_stack);
 #endif
 
 dotraplinkage notrace void
 do_nmi(struct pt_regs *regs, long error_code)
 {
-	if (this_cpu_read(nmi_state) != NMI_NOT_RUNNING) {
+	if (this_cpu_read(nmi_state) != NMI_NOT_RUNNING)
+	{
 		this_cpu_write(nmi_state, NMI_LATCHED);
 		return;
 	}
+
 	this_cpu_write(nmi_state, NMI_EXECUTING);
 	this_cpu_write(nmi_cr2, read_cr2());
 nmi_restart:
 
 #ifdef CONFIG_X86_64
+
 	/*
 	 * If we interrupted a breakpoint, it is possible that
 	 * the nmi handler will have breakpoints too. We need to
 	 * change the IDT such that breakpoints that happen here
 	 * continue to use the NMI stack.
 	 */
-	if (unlikely(is_debug_stack(regs->sp))) {
+	if (unlikely(is_debug_stack(regs->sp)))
+	{
 		debug_stack_set_zero();
 		this_cpu_write(update_debug_stack, 1);
 	}
+
 #endif
 
 	nmi_enter();
@@ -529,21 +586,31 @@ nmi_restart:
 	inc_irq_stat(__nmi_count);
 
 	if (!ignore_nmis)
+	{
 		default_do_nmi(regs);
+	}
 
 	nmi_exit();
 
 #ifdef CONFIG_X86_64
-	if (unlikely(this_cpu_read(update_debug_stack))) {
+
+	if (unlikely(this_cpu_read(update_debug_stack)))
+	{
 		debug_stack_reset();
 		this_cpu_write(update_debug_stack, 0);
 	}
+
 #endif
 
 	if (unlikely(this_cpu_read(nmi_cr2) != read_cr2()))
+	{
 		write_cr2(this_cpu_read(nmi_cr2));
+	}
+
 	if (this_cpu_dec_return(nmi_state))
+	{
 		goto nmi_restart;
+	}
 }
 NOKPROBE_SYMBOL(do_nmi);
 

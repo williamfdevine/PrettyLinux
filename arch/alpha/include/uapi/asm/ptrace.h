@@ -16,7 +16,8 @@
  * give us low system call latency.
  */
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long r0;
 	unsigned long r1;
 	unsigned long r2;
@@ -37,11 +38,11 @@ struct pt_regs {
 	unsigned long r27;
 	unsigned long r28;
 	unsigned long hae;
-/* JRP - These are the values provided to a0-a2 by PALcode */
+	/* JRP - These are the values provided to a0-a2 by PALcode */
 	unsigned long trap_a0;
 	unsigned long trap_a1;
 	unsigned long trap_a2;
-/* These are saved by PAL-code: */
+	/* These are saved by PAL-code: */
 	unsigned long ps;
 	unsigned long pc;
 	unsigned long gp;
@@ -54,7 +55,8 @@ struct pt_regs {
  * This is the extended stack used by signal handlers and the context
  * switcher: it's pushed after the normal "struct pt_regs".
  */
-struct switch_stack {
+struct switch_stack
+{
 	unsigned long r9;
 	unsigned long r10;
 	unsigned long r11;

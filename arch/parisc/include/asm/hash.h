@@ -38,7 +38,7 @@ static inline u32 __attribute_const__ __hash_32(u32 x)
 	a = x << 19;		/* Two shifts can't be paired */
 	b = x << 9;	a += x;
 	c = x << 23;	b += a;
-			c += b;
+	c += b;
 	/* Phase 2: Return (b<<11) + (c<<6) + (a<<3) - c */
 	b <<= 11;
 	a += c << 3;	b -= c;
@@ -123,18 +123,22 @@ hash_64(u64 a, unsigned int bits)
 	 * thereby freeing up an additional temporary register.
 	 */
 	if (!__builtin_constant_p(bits))
+	{
 		asm("" : "=q" (bits) : "0" (64 - bits));
+	}
 	else
+	{
 		bits = 64 - bits;
+	}
 
-	_ASSIGN(b, a*5);	c = a << 13;
+	_ASSIGN(b, a * 5);	c = a << 13;
 	b = (b << 2) + a;	_ASSIGN(d, a << 17);
 	a = b + (a << 1);	c += d;
 	d = a << 10;		_ASSIGN(a, a << 19);
 	d = a - d;		_ASSIGN(a, a << 4, "X" (d));
 	c += b;			a += b;
 	d -= c;			c += a << 1;
-	a += c << 3;		_ASSIGN(b, b << (7+31), "X" (c), "X" (d));
+	a += c << 3;		_ASSIGN(b, b << (7 + 31), "X" (c), "X" (d));
 	a <<= 31;		b += d;
 	a += b;
 	return a >> bits;

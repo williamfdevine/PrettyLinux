@@ -52,7 +52,7 @@ static cpumask_t tlb_flush_pending;
 
 #ifdef CONFIG_ARM_ERRATA_798181
 void a15_erratum_get_cpumask(int this_cpu, struct mm_struct *mm,
-			     cpumask_t *mask)
+							 cpumask_t *mask)
 {
 	int cpu;
 	unsigned long flags;
@@ -60,18 +60,28 @@ void a15_erratum_get_cpumask(int this_cpu, struct mm_struct *mm,
 
 	raw_spin_lock_irqsave(&cpu_asid_lock, flags);
 	context_id = mm->context.id.counter;
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cpu == this_cpu)
+		{
 			continue;
+		}
+
 		/*
 		 * We only need to send an IPI if the other CPUs are
 		 * running the same ASID as the one being invalidated.
 		 */
 		asid = per_cpu(active_asids, cpu).counter;
+
 		if (asid == 0)
+		{
 			asid = per_cpu(reserved_asids, cpu);
+		}
+
 		if (context_id == asid)
+		{
 			cpumask_set_cpu(cpu, mask);
+		}
 	}
 	raw_spin_unlock_irqrestore(&cpu_asid_lock, flags);
 }
@@ -94,38 +104,41 @@ static void cpu_set_reserved_ttbr0(void)
 	 * entries so any speculative walks are perfectly safe.
 	 */
 	asm volatile(
-	"	mrc	p15, 0, %0, c2, c0, 1		@ read TTBR1\n"
-	"	mcr	p15, 0, %0, c2, c0, 0		@ set TTBR0\n"
-	: "=r" (ttb));
+		"	mrc	p15, 0, %0, c2, c0, 1		@ read TTBR1\n"
+		"	mcr	p15, 0, %0, c2, c0, 0		@ set TTBR0\n"
+		: "=r" (ttb));
 	isb();
 }
 #endif
 
 #ifdef CONFIG_PID_IN_CONTEXTIDR
 static int contextidr_notifier(struct notifier_block *unused, unsigned long cmd,
-			       void *t)
+							   void *t)
 {
 	u32 contextidr;
 	pid_t pid;
 	struct thread_info *thread = t;
 
 	if (cmd != THREAD_NOTIFY_SWITCH)
+	{
 		return NOTIFY_DONE;
+	}
 
 	pid = task_pid_nr(thread->task) << ASID_BITS;
 	asm volatile(
-	"	mrc	p15, 0, %0, c13, c0, 1\n"
-	"	and	%0, %0, %2\n"
-	"	orr	%0, %0, %1\n"
-	"	mcr	p15, 0, %0, c13, c0, 1\n"
-	: "=r" (contextidr), "+r" (pid)
-	: "I" (~ASID_MASK));
+		"	mrc	p15, 0, %0, c13, c0, 1\n"
+		"	and	%0, %0, %2\n"
+		"	orr	%0, %0, %1\n"
+		"	mcr	p15, 0, %0, c13, c0, 1\n"
+		: "=r" (contextidr), "+r" (pid)
+		: "I" (~ASID_MASK));
 	isb();
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block contextidr_notifier_block = {
+static struct notifier_block contextidr_notifier_block =
+{
 	.notifier_call = contextidr_notifier,
 };
 
@@ -143,8 +156,10 @@ static void flush_context(unsigned int cpu)
 
 	/* Update the list of reserved ASIDs and the ASID bitmap. */
 	bitmap_clear(asid_map, 0, NUM_USER_ASIDS);
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		asid = atomic64_xchg(&per_cpu(active_asids, i), 0);
+
 		/*
 		 * If this CPU has already been through a
 		 * rollover, but hasn't run another task in
@@ -153,7 +168,10 @@ static void flush_context(unsigned int cpu)
 		 * the process it is still running.
 		 */
 		if (asid == 0)
+		{
 			asid = per_cpu(reserved_asids, i);
+		}
+
 		__set_bit(asid & ~ASID_MASK, asid_map);
 		per_cpu(reserved_asids, i) = asid;
 	}
@@ -162,7 +180,9 @@ static void flush_context(unsigned int cpu)
 	cpumask_setall(&tlb_flush_pending);
 
 	if (icache_is_vivt_asid_tagged())
+	{
 		__flush_icache_all();
+	}
 }
 
 static bool check_update_reserved_asid(u64 asid, u64 newasid)
@@ -179,8 +199,10 @@ static bool check_update_reserved_asid(u64 asid, u64 newasid)
 	 * so could result in us missing the reserved ASID in a future
 	 * generation.
 	 */
-	for_each_possible_cpu(cpu) {
-		if (per_cpu(reserved_asids, cpu) == asid) {
+	for_each_possible_cpu(cpu)
+	{
+		if (per_cpu(reserved_asids, cpu) == asid)
+		{
 			hit = true;
 			per_cpu(reserved_asids, cpu) = newasid;
 		}
@@ -195,7 +217,8 @@ static u64 new_context(struct mm_struct *mm, unsigned int cpu)
 	u64 asid = atomic64_read(&mm->context.id);
 	u64 generation = atomic64_read(&asid_generation);
 
-	if (asid != 0) {
+	if (asid != 0)
+	{
 		u64 newasid = generation | (asid & ~ASID_MASK);
 
 		/*
@@ -203,15 +226,20 @@ static u64 new_context(struct mm_struct *mm, unsigned int cpu)
 		 * can continue to use it and this was just a false alarm.
 		 */
 		if (check_update_reserved_asid(asid, newasid))
+		{
 			return newasid;
+		}
 
 		/*
 		 * We had a valid ASID in a previous life, so try to re-use
 		 * it if possible.,
 		 */
 		asid &= ~ASID_MASK;
+
 		if (!__test_and_set_bit(asid, asid_map))
+		{
 			return newasid;
+		}
 	}
 
 	/*
@@ -224,9 +252,11 @@ static u64 new_context(struct mm_struct *mm, unsigned int cpu)
 	 * area and the userspace stack.
 	 */
 	asid = find_next_zero_bit(asid_map, NUM_USER_ASIDS, cur_idx);
-	if (asid == NUM_USER_ASIDS) {
+
+	if (asid == NUM_USER_ASIDS)
+	{
 		generation = atomic64_add_return(ASID_FIRST_VERSION,
-						 &asid_generation);
+										 &asid_generation);
 		flush_context(cpu);
 		asid = find_next_zero_bit(asid_map, NUM_USER_ASIDS, 1);
 	}
@@ -244,7 +274,9 @@ void check_and_switch_context(struct mm_struct *mm, struct task_struct *tsk)
 	u64 asid;
 
 	if (unlikely(mm->context.vmalloc_seq != init_mm.context.vmalloc_seq))
+	{
 		__check_vmalloc_seq(mm);
+	}
 
 	/*
 	 * We cannot update the pgd and the ASID atomicly with classic
@@ -254,19 +286,25 @@ void check_and_switch_context(struct mm_struct *mm, struct task_struct *tsk)
 	cpu_set_reserved_ttbr0();
 
 	asid = atomic64_read(&mm->context.id);
+
 	if (!((asid ^ atomic64_read(&asid_generation)) >> ASID_BITS)
-	    && atomic64_xchg(&per_cpu(active_asids, cpu), asid))
+		&& atomic64_xchg(&per_cpu(active_asids, cpu), asid))
+	{
 		goto switch_mm_fastpath;
+	}
 
 	raw_spin_lock_irqsave(&cpu_asid_lock, flags);
 	/* Check that our ASID belongs to the current generation. */
 	asid = atomic64_read(&mm->context.id);
-	if ((asid ^ atomic64_read(&asid_generation)) >> ASID_BITS) {
+
+	if ((asid ^ atomic64_read(&asid_generation)) >> ASID_BITS)
+	{
 		asid = new_context(mm, cpu);
 		atomic64_set(&mm->context.id, asid);
 	}
 
-	if (cpumask_test_and_clear_cpu(cpu, &tlb_flush_pending)) {
+	if (cpumask_test_and_clear_cpu(cpu, &tlb_flush_pending))
+	{
 		local_flush_bp_all();
 		local_flush_tlb_all();
 	}

@@ -15,12 +15,12 @@
 #define	flat_old_ram_flag(flags)		(flags)
 
 extern unsigned long bfin_get_addr_from_rp (unsigned long *ptr,
-					unsigned long relval,
-					unsigned long flags,
-					unsigned long *persistent);
+		unsigned long relval,
+		unsigned long flags,
+		unsigned long *persistent);
 
 extern void bfin_put_addr_at_rp(unsigned long *ptr, unsigned long addr,
-		                unsigned long relval);
+								unsigned long relval);
 
 /* The amount by which a relocation can exceed the program image limits
    without being regarded as an error.  */
@@ -40,13 +40,16 @@ flat_get_relocate_addr (unsigned long relval)
 }
 
 static inline int flat_set_persistent(unsigned long relval,
-				      unsigned long *persistent)
+									  unsigned long *persistent)
 {
 	int type = (relval >> 26) & 7;
-	if (type == 3) {
+
+	if (type == 3)
+	{
 		*persistent = relval << 16;
 		return 1;
 	}
+
 	return 0;
 }
 

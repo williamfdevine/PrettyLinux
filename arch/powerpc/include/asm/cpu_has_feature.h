@@ -9,7 +9,7 @@
 static inline bool early_cpu_has_feature(unsigned long feature)
 {
 	return !!((CPU_FTRS_ALWAYS & feature) ||
-		  (CPU_FTRS_POSSIBLE & cur_cpu_spec->cpu_features & feature));
+			  (CPU_FTRS_POSSIBLE & cur_cpu_spec->cpu_features & feature));
 }
 
 #ifdef CONFIG_JUMP_LABEL_FEATURE_CHECKS
@@ -26,18 +26,25 @@ static __always_inline bool cpu_has_feature(unsigned long feature)
 	BUILD_BUG_ON(!__builtin_constant_p(feature));
 
 #ifdef CONFIG_JUMP_LABEL_FEATURE_CHECK_DEBUG
-	if (!static_key_initialized) {
+
+	if (!static_key_initialized)
+	{
 		printk("Warning! cpu_has_feature() used prior to jump label init!\n");
 		dump_stack();
 		return early_cpu_has_feature(feature);
 	}
+
 #endif
 
 	if (CPU_FTRS_ALWAYS & feature)
+	{
 		return true;
+	}
 
 	if (!(CPU_FTRS_POSSIBLE & feature))
+	{
 		return false;
+	}
 
 	i = __builtin_ctzl(feature);
 	return static_branch_likely(&cpu_feature_keys[i]);

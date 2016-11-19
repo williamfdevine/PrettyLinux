@@ -5,7 +5,8 @@ struct hw_perf_event;
 
 #define MAX_HWEVENTS	2
 
-struct sh_pmu {
+struct sh_pmu
+{
 	const char	*name;
 	unsigned int	num_events;
 	void		(*disable_all)(void);
@@ -17,8 +18,8 @@ struct sh_pmu {
 	unsigned int	max_events;
 	unsigned long	raw_event_mask;
 	const int	(*cache_events)[PERF_COUNT_HW_CACHE_MAX]
-				       [PERF_COUNT_HW_CACHE_OP_MAX]
-				       [PERF_COUNT_HW_CACHE_RESULT_MAX];
+	[PERF_COUNT_HW_CACHE_OP_MAX]
+	[PERF_COUNT_HW_CACHE_RESULT_MAX];
 };
 
 /* arch/sh/kernel/perf_event.c */

@@ -63,18 +63,18 @@ hard_reset_now(void)
 #if defined(CONFIG_ETRAX_WATCHDOG)
 	cause_of_death = 0xbedead;
 #else
-{
-	reg_timer_rw_wd_ctrl wd_ctrl = {0};
+	{
+		reg_timer_rw_wd_ctrl wd_ctrl = {0};
 
-	stop_watchdog();
+		stop_watchdog();
 
-	wd_ctrl.key = 16;	/* Arbitrary key. */
-	wd_ctrl.cnt = 1;	/* Minimum time. */
-	wd_ctrl.cmd = regk_timer_start;
+		wd_ctrl.key = 16;	/* Arbitrary key. */
+		wd_ctrl.cnt = 1;	/* Minimum time. */
+		wd_ctrl.cmd = regk_timer_start;
 
-        arch_enable_nmi();
-	REG_WR(timer, regi_timer0, rw_wd_ctrl, wd_ctrl);
-}
+		arch_enable_nmi();
+		REG_WR(timer, regi_timer0, rw_wd_ctrl, wd_ctrl);
+	}
 #endif
 
 	while (1)
@@ -103,7 +103,7 @@ extern asmlinkage void ret_from_kernel_thread(void);
 
 int
 copy_thread(unsigned long clone_flags, unsigned long usp,
-	unsigned long arg, struct task_struct *p)
+			unsigned long arg, struct task_struct *p)
 {
 	struct pt_regs *childregs = task_pt_regs(p);
 	struct switch_stack *swstack = ((struct switch_stack *) childregs) - 1;
@@ -113,9 +113,10 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 	 * fix it up. Note: the task_struct doubles as the kernel stack for the
 	 * task.
 	 */
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		memset(swstack, 0,
-			sizeof(struct switch_stack) + sizeof(struct pt_regs));
+			   sizeof(struct switch_stack) + sizeof(struct pt_regs));
 		swstack->r1 = usp;
 		swstack->r2 = arg;
 		childregs->ccs = 1 << (I_CCS_BITNR + CCS_SHIFT);
@@ -124,13 +125,15 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 		p->thread.usp = 0;
 		return 0;
 	}
+
 	*childregs = *current_pt_regs();	/* Struct copy of pt_regs. */
-        childregs->r10 = 0;	/* Child returns 0 after a fork/clone. */
+	childregs->r10 = 0;	/* Child returns 0 after a fork/clone. */
 
 	/* Set a new TLS ?
 	 * The TLS is in $mof because it is the 5th argument to sys_clone.
 	 */
-	if (p->mm && (clone_flags & CLONE_SETTLS)) {
+	if (p->mm && (clone_flags & CLONE_SETTLS))
+	{
 		task_thread_info(p)->tls = childregs->mof;
 	}
 
@@ -146,7 +149,7 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 	swstack->return_ip = (unsigned long) ret_from_fork;
 
 	/* Fix the user-mode and kernel-mode stackpointer. */
-	p->thread.usp = usp ?: rdusp();
+	p->thread.usp = usp ? : rdusp();
 	p->thread.ksp = (unsigned long) swstack;
 
 	return 0;
@@ -161,24 +164,24 @@ get_wchan(struct task_struct *p)
 #undef last_sched
 #undef first_sched
 
-void show_regs(struct pt_regs * regs)
+void show_regs(struct pt_regs *regs)
 {
 	unsigned long usp = rdusp();
 
 	show_regs_print_info(KERN_DEFAULT);
 
-        printk("ERP: %08lx SRP: %08lx  CCS: %08lx USP: %08lx MOF: %08lx\n",
-		regs->erp, regs->srp, regs->ccs, usp, regs->mof);
+	printk("ERP: %08lx SRP: %08lx  CCS: %08lx USP: %08lx MOF: %08lx\n",
+		   regs->erp, regs->srp, regs->ccs, usp, regs->mof);
 
 	printk(" r0: %08lx  r1: %08lx   r2: %08lx  r3: %08lx\n",
-		regs->r0, regs->r1, regs->r2, regs->r3);
+		   regs->r0, regs->r1, regs->r2, regs->r3);
 
 	printk(" r4: %08lx  r5: %08lx   r6: %08lx  r7: %08lx\n",
-		regs->r4, regs->r5, regs->r6, regs->r7);
+		   regs->r4, regs->r5, regs->r6, regs->r7);
 
 	printk(" r8: %08lx  r9: %08lx  r10: %08lx r11: %08lx\n",
-		regs->r8, regs->r9, regs->r10, regs->r11);
+		   regs->r8, regs->r9, regs->r10, regs->r11);
 
 	printk("r12: %08lx r13: %08lx oR10: %08lx\n",
-		regs->r12, regs->r13, regs->orig_r10);
+		   regs->r12, regs->r13, regs->orig_r10);
 }

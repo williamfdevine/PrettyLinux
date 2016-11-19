@@ -37,22 +37,24 @@ static int dsp_do(struct notifier_block *self, unsigned long cmd, void *t)
 {
 	struct thread_info *thread = t;
 
-	switch (cmd) {
-	case THREAD_NOTIFY_FLUSH:
-		thread->cpu_context.extra[0] = 0;
-		thread->cpu_context.extra[1] = 0;
-		break;
+	switch (cmd)
+	{
+		case THREAD_NOTIFY_FLUSH:
+			thread->cpu_context.extra[0] = 0;
+			thread->cpu_context.extra[1] = 0;
+			break;
 
-	case THREAD_NOTIFY_SWITCH:
-		dsp_save_state(current_thread_info()->cpu_context.extra);
-		dsp_load_state(thread->cpu_context.extra);
-		break;
+		case THREAD_NOTIFY_SWITCH:
+			dsp_save_state(current_thread_info()->cpu_context.extra);
+			dsp_load_state(thread->cpu_context.extra);
+			break;
 	}
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block dsp_notifier_block = {
+static struct notifier_block dsp_notifier_block =
+{
 	.notifier_call	= dsp_do,
 };
 
@@ -62,8 +64,10 @@ static int iwmmxt_do(struct notifier_block *self, unsigned long cmd, void *t)
 {
 	struct thread_info *thread = t;
 
-	switch (cmd) {
-	case THREAD_NOTIFY_FLUSH:
+	switch (cmd)
+	{
+		case THREAD_NOTIFY_FLUSH:
+
 		/*
 		 * flush_thread() zeroes thread->fpstate, so no need
 		 * to do anything here.
@@ -72,19 +76,20 @@ static int iwmmxt_do(struct notifier_block *self, unsigned long cmd, void *t)
 		 * initialised state information on the first fault.
 		 */
 
-	case THREAD_NOTIFY_EXIT:
-		iwmmxt_task_release(thread);
-		break;
+		case THREAD_NOTIFY_EXIT:
+			iwmmxt_task_release(thread);
+			break;
 
-	case THREAD_NOTIFY_SWITCH:
-		iwmmxt_task_switch(thread);
-		break;
+		case THREAD_NOTIFY_SWITCH:
+			iwmmxt_task_switch(thread);
+			break;
 	}
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block iwmmxt_notifier_block = {
+static struct notifier_block iwmmxt_notifier_block =
+{
 	.notifier_call	= iwmmxt_do,
 };
 #endif
@@ -157,12 +162,15 @@ static int __init xscale_cp0_init(void)
 
 	/* do not attempt to probe iwmmxt on non-xscale family CPUs */
 	if (!cpu_is_xscale_family())
+	{
 		return 0;
+	}
 
 	cp_access = xscale_cp_access_read() & ~3;
 	xscale_cp_access_write(cp_access | 1);
 
-	if (cpu_has_iwmmxt()) {
+	if (cpu_has_iwmmxt())
+	{
 #ifndef CONFIG_IWMMXT
 		pr_warn("CAUTION: XScale iWMMXt coprocessor detected, but kernel support is missing.\n");
 #else
@@ -170,7 +178,9 @@ static int __init xscale_cp0_init(void)
 		elf_hwcap |= HWCAP_IWMMXT;
 		thread_register_notifier(&iwmmxt_notifier_block);
 #endif
-	} else {
+	}
+	else
+	{
 		pr_info("XScale DSP coprocessor detected.\n");
 		thread_register_notifier(&dsp_notifier_block);
 		cp_access |= 1;

@@ -20,22 +20,29 @@ srm_printk(const char *fmt, ...)
 	/* count number of linefeeds in string: */
 
 	num_lf = 0;
-	for (src = buf; *src; ++src) {
-		if (*src == '\n') {
+
+	for (src = buf; *src; ++src)
+	{
+		if (*src == '\n')
+		{
 			++num_lf;
 		}
 	}
 
-	if (num_lf) {
+	if (num_lf)
+	{
 		/* expand each linefeed into carriage-return/linefeed: */
-		for (dst = src + num_lf; src >= buf; ) {
-			if (*src == '\n') {
+		for (dst = src + num_lf; src >= buf; )
+		{
+			if (*src == '\n')
+			{
 				*dst-- = '\r';
 			}
+
 			*dst-- = *src--;
 		}
 	}
 
-	srm_puts(buf, num_lf+len);	
-        return len;
+	srm_puts(buf, num_lf + len);
+	return len;
 }

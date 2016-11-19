@@ -10,7 +10,7 @@
  */
 
 #ifndef __KERNEL__
-#include <asm-generic/int-l64.h>
+	#include <asm-generic/int-l64.h>
 #endif
 
 #endif /* _UAPI_ALPHA_TYPES_H */

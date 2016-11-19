@@ -16,7 +16,8 @@
 
 #include "common.h"
 
-struct clk {
+struct clk
+{
 	struct clk_lookup cl;
 	unsigned long rate;
 };
@@ -26,7 +27,9 @@ void ralink_clk_add(const char *dev, unsigned long rate)
 	struct clk *clk = kzalloc(sizeof(struct clk), GFP_KERNEL);
 
 	if (!clk)
+	{
 		panic("failed to add clock");
+	}
 
 	clk->cl.dev_id = dev;
 	clk->cl.clk = clk;
@@ -70,8 +73,12 @@ void __init plat_time_init(void)
 
 	ralink_clk_init();
 	clk = clk_get_sys("cpu", NULL);
+
 	if (IS_ERR(clk))
+	{
 		panic("unable to get CPU clock, err=%ld", PTR_ERR(clk));
+	}
+
 	pr_info("CPU Clock: %ldMHz\n", clk_get_rate(clk) / 1000000);
 	mips_hpt_frequency = clk_get_rate(clk) / 2;
 	clk_put(clk);

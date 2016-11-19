@@ -35,19 +35,28 @@ static void *tca6416_platform_data(void *info)
 	intr = get_gpio_by_name(intr_pin_name);
 
 	if (gpio_base < 0)
+	{
 		return NULL;
+	}
+
 	tca6416.gpio_base = gpio_base;
-	if (intr >= 0) {
+
+	if (intr >= 0)
+	{
 		i2c_info->irq = intr + INTEL_MID_IRQ_OFFSET;
 		tca6416.irq_base = gpio_base + INTEL_MID_IRQ_OFFSET;
-	} else {
+	}
+	else
+	{
 		i2c_info->irq = -1;
 		tca6416.irq_base = -1;
 	}
+
 	return &tca6416;
 }
 
-static const struct devs_id tca6416_dev_id __initconst = {
+static const struct devs_id tca6416_dev_id __initconst =
+{
 	.name = "tca6416",
 	.type = SFI_DEV_TYPE_I2C,
 	.delay = 1,

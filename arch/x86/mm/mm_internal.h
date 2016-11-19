@@ -10,8 +10,8 @@ static inline void *alloc_low_page(void)
 void early_ioremap_page_table_range_init(void);
 
 unsigned long kernel_physical_mapping_init(unsigned long start,
-					     unsigned long end,
-					     unsigned long page_size_mask);
+		unsigned long end,
+		unsigned long page_size_mask);
 void zone_sizes_init(void);
 
 extern int after_bootmem;

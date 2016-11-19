@@ -27,7 +27,7 @@
 
 /* Save Tsunami configuration data as the console had it set up.  */
 
-struct 
+struct
 {
 	unsigned long wsba[4];
 	unsigned long wsm[4];
@@ -35,7 +35,7 @@ struct
 } saved_config[2] __attribute__((common));
 
 /*
- * NOTE: Herein lie back-to-back mb instructions.  They are magic. 
+ * NOTE: Herein lie back-to-back mb instructions.  They are magic.
  * One plausible explanation is that the I/O controller does not properly
  * handle the system transaction.  Another involves timing.  Ho hum.
  */
@@ -47,9 +47,9 @@ struct
 #define DEBUG_CONFIG 0
 
 #if DEBUG_CONFIG
-# define DBG_CFG(args)	printk args
+	#define DBG_CFG(args)	printk args
 #else
-# define DBG_CFG(args)
+	#define DBG_CFG(args)
 #endif
 
 
@@ -66,7 +66,7 @@ struct
  *
  * Type 1:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | | | | | | | | | |B|B|B|B|B|B|B|B|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|1|
@@ -77,11 +77,11 @@ struct
  *	15:11	Device number (5 bits)
  *	10:8	function number
  *	 7:2	register number
- *  
+ *
  * Notes:
- *	The function number selects which function of a multi-function device 
+ *	The function number selects which function of a multi-function device
  *	(e.g., SCSI and Ethernet).
- * 
+ *
  *	The register selects a DWORD (32 bit) register offset.  Hence it
  *	doesn't get shifted by 2 bits as we want to "drop" the bottom two
  *	bits.
@@ -89,85 +89,98 @@ struct
 
 static int
 mk_conf_addr(struct pci_bus *pbus, unsigned int device_fn, int where,
-	     unsigned long *pci_addr, unsigned char *type1)
+			 unsigned long *pci_addr, unsigned char *type1)
 {
 	struct pci_controller *hose = pbus->sysdata;
 	unsigned long addr;
 	u8 bus = pbus->number;
 
 	DBG_CFG(("mk_conf_addr(bus=%d ,device_fn=0x%x, where=0x%x, "
-		 "pci_addr=0x%p, type1=0x%p)\n",
-		 bus, device_fn, where, pci_addr, type1));
-	
+			 "pci_addr=0x%p, type1=0x%p)\n",
+			 bus, device_fn, where, pci_addr, type1));
+
 	if (!pbus->parent) /* No parent means peer PCI bus. */
+	{
 		bus = 0;
+	}
+
 	*type1 = (bus != 0);
 
 	addr = (bus << 16) | (device_fn << 8) | where;
 	addr |= hose->config_space_base;
-		
+
 	*pci_addr = addr;
 	DBG_CFG(("mk_conf_addr: returning pci_addr 0x%lx\n", addr));
 	return 0;
 }
 
-static int 
+static int
 tsunami_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		    int size, u32 *value)
+					int size, u32 *value)
 {
 	unsigned long addr;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, &addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
-	switch (size) {
-	case 1:
-		*value = __kernel_ldbu(*(vucp)addr);
-		break;
-	case 2:
-		*value = __kernel_ldwu(*(vusp)addr);
-		break;
-	case 4:
-		*value = *(vuip)addr;
-		break;
+	switch (size)
+	{
+		case 1:
+			*value = __kernel_ldbu(*(vucp)addr);
+			break;
+
+		case 2:
+			*value = __kernel_ldwu(*(vusp)addr);
+			break;
+
+		case 4:
+			*value = *(vuip)addr;
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static int 
+static int
 tsunami_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		     int size, u32 value)
+					 int size, u32 value)
 {
 	unsigned long addr;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, &addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
-	switch (size) {
-	case 1:
-		__kernel_stb(value, *(vucp)addr);
-		mb();
-		__kernel_ldbu(*(vucp)addr);
-		break;
-	case 2:
-		__kernel_stw(value, *(vusp)addr);
-		mb();
-		__kernel_ldwu(*(vusp)addr);
-		break;
-	case 4:
-		*(vuip)addr = value;
-		mb();
-		*(vuip)addr;
-		break;
+	switch (size)
+	{
+		case 1:
+			__kernel_stb(value, *(vucp)addr);
+			mb();
+			__kernel_ldbu(*(vucp)addr);
+			break;
+
+		case 2:
+			__kernel_stw(value, *(vusp)addr);
+			mb();
+			__kernel_ldwu(*(vusp)addr);
+			break;
+
+		case 4:
+			*(vuip)addr = value;
+			mb();
+			*(vuip)addr;
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops tsunami_pci_ops = 
+struct pci_ops tsunami_pci_ops =
 {
 	.read =		tsunami_read_config,
 	.write = 	tsunami_write_config,
@@ -183,10 +196,13 @@ tsunami_pci_tbi(struct pci_controller *hose, dma_addr_t start, dma_addr_t end)
 	/* We can invalidate up to 8 tlb entries in a go.  The flush
 	   matches against <31:16> in the pci address.  */
 	csr = &pchip->tlbia.csr;
-	if (((start ^ end) & 0xffff0000) == 0)
-		csr = &pchip->tlbiv.csr;
 
-	/* For TBIA, it doesn't matter what value we write.  For TBI, 
+	if (((start ^ end) & 0xffff0000) == 0)
+	{
+		csr = &pchip->tlbiv.csr;
+	}
+
+	/* For TBIA, it doesn't matter what value we write.  For TBI,
 	   it's the shifted tag bits.  */
 	value = (start & 0xffff0000) >> 12;
 
@@ -227,15 +243,21 @@ tsunami_probe_write(volatile unsigned long *vaddr)
 	true_contents = *vaddr;
 	*vaddr = 0;
 	draina();
-	if (TSUNAMI_cchip->misc.csr & (1L << 28)) {
+
+	if (TSUNAMI_cchip->misc.csr & (1L << 28))
+	{
 		int source = (TSUNAMI_cchip->misc.csr >> 29) & 7;
 		TSUNAMI_cchip->misc.csr |= (1L << 28); /* ...and unlock NXS. */
 		probe_result = 0;
 		printk("tsunami_probe_write: unit %d at 0x%016lx\n", source,
-		       (unsigned long)vaddr);
+			   (unsigned long)vaddr);
 	}
+
 	if (probe_result)
+	{
 		*vaddr = true_contents;
+	}
+
 	return probe_result;
 }
 #else
@@ -248,11 +270,17 @@ tsunami_init_one_pchip(tsunami_pchip *pchip, int index)
 	struct pci_controller *hose;
 
 	if (tsunami_probe_read(&pchip->pctl.csr) == 0)
+	{
 		return;
+	}
 
 	hose = alloc_pci_controller();
+
 	if (index == 0)
+	{
 		pci_isa_hose = hose;
+	}
+
 	hose->io_space = alloc_resource();
 	hose->mem_space = alloc_resource();
 
@@ -263,9 +291,9 @@ tsunami_init_one_pchip(tsunami_pchip *pchip, int index)
 	hose->sparse_mem_base = 0;
 	hose->sparse_io_base = 0;
 	hose->dense_mem_base
-	  = (TSUNAMI_MEM(index) & 0xffffffffffL) | 0x80000000000L;
+		= (TSUNAMI_MEM(index) & 0xffffffffffL) | 0x80000000000L;
 	hose->dense_io_base
-	  = (TSUNAMI_IO(index) & 0xffffffffffL) | 0x80000000000L;
+		= (TSUNAMI_IO(index) & 0xffffffffffL) | 0x80000000000L;
 
 	hose->config_space_base = TSUNAMI_CONF(index);
 	hose->index = index;
@@ -281,12 +309,17 @@ tsunami_init_one_pchip(tsunami_pchip *pchip, int index)
 	hose->mem_space->flags = IORESOURCE_MEM;
 
 	if (request_resource(&ioport_resource, hose->io_space) < 0)
+	{
 		printk(KERN_ERR "Failed to request IO on hose %d\n", index);
+	}
+
 	if (request_resource(&iomem_resource, hose->mem_space) < 0)
+	{
 		printk(KERN_ERR "Failed to request MEM on hose %d\n", index);
+	}
 
 	/*
-	 * Save the existing PCI window translations.  SRM will 
+	 * Save the existing PCI window translations.  SRM will
 	 * need them when we go to reboot.
 	 */
 
@@ -310,7 +343,7 @@ tsunami_init_one_pchip(tsunami_pchip *pchip, int index)
 	 * Set up the PCI to main memory translation windows.
 	 *
 	 * Note: Window 3 is scatter-gather only
-	 * 
+	 *
 	 * Window 0 is scatter-gather 8MB at 8MB (for isa)
 	 * Window 1 is scatter-gather (up to) 1GB at 1GB
 	 * Window 2 is direct access 2GB at 2GB
@@ -320,11 +353,11 @@ tsunami_init_one_pchip(tsunami_pchip *pchip, int index)
 	 */
 	hose->sg_isa = iommu_arena_new(hose, 0x00800000, 0x00800000, 0);
 	/* Initially set for 4 PTEs, but will be overridden to 64K for ISA. */
-        hose->sg_isa->align_entry = 4;
+	hose->sg_isa->align_entry = 4;
 
 	hose->sg_pci = iommu_arena_new(hose, 0x40000000,
-				       size_for_memory(0x40000000), 0);
-        hose->sg_pci->align_entry = 4; /* Tsunami caches 4 PTEs at a time */
+								   size_for_memory(0x40000000), 0);
+	hose->sg_pci->align_entry = 4; /* Tsunami caches 4 PTEs at a time */
 
 	__direct_map_base = 0x80000000;
 	__direct_map_size = 0x80000000;
@@ -365,8 +398,8 @@ tsunami_ioremap(unsigned long addr, unsigned long size)
 }
 
 #ifndef CONFIG_ALPHA_GENERIC
-EXPORT_SYMBOL(tsunami_ioportmap);
-EXPORT_SYMBOL(tsunami_ioremap);
+	EXPORT_SYMBOL(tsunami_ioportmap);
+	EXPORT_SYMBOL(tsunami_ioremap);
 #endif
 
 void __init
@@ -374,7 +407,7 @@ tsunami_init_arch(void)
 {
 #ifdef NXM_MACHINE_CHECKS_ON_TSUNAMI
 	unsigned long tmp;
-	
+
 	/* Ho hum.. init_arch is called before init_IRQ, but we need to be
 	   able to handle machine checks.  So install the handler now.  */
 	wrent(entInt, 0);
@@ -384,8 +417,8 @@ tsunami_init_arch(void)
 	tmp = (unsigned long)(TSUNAMI_cchip - 1);
 	printk("%s: probing bogus address:  0x%016lx\n", __func__, bogus_addr);
 	printk("\tprobe %s\n",
-	       tsunami_probe_write((unsigned long *)bogus_addr)
-	       ? "succeeded" : "failed");
+		   tsunami_probe_write((unsigned long *)bogus_addr)
+		   ? "succeeded" : "failed");
 #endif /* NXM_MACHINE_CHECKS_ON_TSUNAMI */
 
 #if 0
@@ -411,8 +444,11 @@ tsunami_init_arch(void)
 	   and TYPHOON can have 2, but might only have 1 (DS10).  */
 
 	tsunami_init_one_pchip(TSUNAMI_pchip0, 0);
-	if (TSUNAMI_cchip->csc.csr & 1L<<14)
+
+	if (TSUNAMI_cchip->csc.csr & 1L << 14)
+	{
 		tsunami_init_one_pchip(TSUNAMI_pchip1, 1);
+	}
 
 	/* Check for graphic console location (if any).  */
 	find_console_vga_hose();
@@ -442,8 +478,11 @@ void
 tsunami_kill_arch(int mode)
 {
 	tsunami_kill_one_pchip(TSUNAMI_pchip0, 0);
-	if (TSUNAMI_cchip->csc.csr & 1L<<14)
+
+	if (TSUNAMI_cchip->csc.csr & 1L << 14)
+	{
 		tsunami_kill_one_pchip(TSUNAMI_pchip1, 1);
+	}
 }
 
 static inline void
@@ -461,8 +500,10 @@ tsunami_pci_clr_err(void)
 	tsunami_pci_clr_err_1(TSUNAMI_pchip0);
 
 	/* TSUNAMI and TYPHOON can have 2, but might only have 1 (DS10) */
-	if (TSUNAMI_cchip->csc.csr & 1L<<14)
+	if (TSUNAMI_cchip->csc.csr & 1L << 14)
+	{
 		tsunami_pci_clr_err_1(TSUNAMI_pchip1);
+	}
 }
 
 void
@@ -477,5 +518,5 @@ tsunami_machine_check(unsigned long vector, unsigned long la_ptr)
 	mb();
 
 	process_mcheck_info(vector, la_ptr, "TSUNAMI",
-			    mcheck_expected(smp_processor_id()));
+						mcheck_expected(smp_processor_id()));
 }

@@ -29,13 +29,17 @@ void __init pcibios_fixup_irqs(void)
 	struct pci_dev *dev = NULL;
 	u8 line, pin;
 
-	for_each_pci_dev(dev) {
+	for_each_pci_dev(dev)
+	{
 		pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
-		if (pin) {
+
+		if (pin)
+		{
 			dev->irq = XIRQ1;
 			pci_write_config_byte(dev, PCI_INTERRUPT_LINE,
-					      dev->irq);
+								  dev->irq);
 		}
+
 		pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &line);
 	}
 }

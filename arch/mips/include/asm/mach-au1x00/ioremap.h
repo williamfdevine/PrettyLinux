@@ -29,7 +29,7 @@ static inline phys_addr_t fixup_bigphys_addr(phys_addr_t phys_addr, phys_addr_t 
 }
 
 static inline void __iomem *plat_ioremap(phys_addr_t offset, unsigned long size,
-	unsigned long flags)
+		unsigned long flags)
 {
 	return NULL;
 }

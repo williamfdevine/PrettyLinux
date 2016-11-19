@@ -30,31 +30,38 @@
 
 static const char name[] = "omap_i2c";
 
-static struct resource i2c_resources[2] = {
+static struct resource i2c_resources[2] =
+{
 };
 
-static struct platform_device omap_i2c_devices[1] = {
+static struct platform_device omap_i2c_devices[1] =
+{
 };
 
 static void __init omap1_i2c_mux_pins(int bus_id)
 {
-	if (cpu_is_omap7xx()) {
+	if (cpu_is_omap7xx())
+	{
 		omap_cfg_reg(I2C_7XX_SDA);
 		omap_cfg_reg(I2C_7XX_SCL);
-	} else {
+	}
+	else
+	{
 		omap_cfg_reg(I2C_SDA);
 		omap_cfg_reg(I2C_SCL);
 	}
 }
 
 int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *pdata,
-				int bus_id)
+							int bus_id)
 {
 	struct platform_device *pdev;
 	struct resource *res;
 
 	if (bus_id > 1)
+	{
 		return -EINVAL;
+	}
 
 	omap1_i2c_mux_pins(bus_id);
 
@@ -75,16 +82,20 @@ int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *pdata,
 
 	/* all OMAP1 I2C are implemented like this */
 	pdata->flags = OMAP_I2C_FLAG_NO_FIFO |
-		       OMAP_I2C_FLAG_SIMPLE_CLOCK |
-		       OMAP_I2C_FLAG_16BIT_DATA_REG |
-		       OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK;
+				   OMAP_I2C_FLAG_SIMPLE_CLOCK |
+				   OMAP_I2C_FLAG_16BIT_DATA_REG |
+				   OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK;
 
 	/* how the cpu bus is wired up differs for 7xx only */
 
 	if (cpu_is_omap7xx())
+	{
 		pdata->flags |= OMAP_I2C_FLAG_BUS_SHIFT_1;
+	}
 	else
+	{
 		pdata->flags |= OMAP_I2C_FLAG_BUS_SHIFT_2;
+	}
 
 	pdev->dev.platform_data = pdata;
 

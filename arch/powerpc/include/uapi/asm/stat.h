@@ -11,7 +11,8 @@
 #define STAT_HAVE_NSEC 1
 
 #ifndef __powerpc64__
-struct __old_kernel_stat {
+struct __old_kernel_stat
+{
 	unsigned short st_dev;
 	unsigned short st_ino;
 	unsigned short st_mode;
@@ -26,7 +27,8 @@ struct __old_kernel_stat {
 };
 #endif /* !__powerpc64__ */
 
-struct stat {
+struct stat
+{
 	unsigned long	st_dev;
 	ino_t		st_ino;
 #ifdef __powerpc64__
@@ -56,7 +58,8 @@ struct stat {
 };
 
 /* This matches struct stat64 in glibc2.1. Only used for 32 bit. */
-struct stat64 {
+struct stat64
+{
 	unsigned long long st_dev;		/* Device.  */
 	unsigned long long st_ino;		/* File serial number.  */
 	unsigned int	st_mode;	/* File mode.  */

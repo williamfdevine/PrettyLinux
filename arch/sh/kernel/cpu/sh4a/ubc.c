@@ -51,7 +51,7 @@ static void sh4a_ubc_enable_all(unsigned long mask)
 	for (i = 0; i < sh4a_ubc.num_events; i++)
 		if (mask & (1 << i))
 			__raw_writel(__raw_readl(UBC_CBR(i)) | UBC_CBR_CE,
-				     UBC_CBR(i));
+						 UBC_CBR(i));
 }
 
 static void sh4a_ubc_disable_all(void)
@@ -60,7 +60,7 @@ static void sh4a_ubc_disable_all(void)
 
 	for (i = 0; i < sh4a_ubc.num_events; i++)
 		__raw_writel(__raw_readl(UBC_CBR(i)) & ~UBC_CBR_CE,
-			     UBC_CBR(i));
+					 UBC_CBR(i));
 }
 
 static unsigned long sh4a_ubc_active_mask(void)
@@ -70,7 +70,9 @@ static unsigned long sh4a_ubc_active_mask(void)
 
 	for (i = 0; i < sh4a_ubc.num_events; i++)
 		if (__raw_readl(UBC_CBR(i)) & UBC_CBR_CE)
+		{
 			active |= (1 << i);
+		}
 
 	return active;
 }
@@ -85,7 +87,8 @@ static void sh4a_ubc_clear_triggered_mask(unsigned long mask)
 	__raw_writel(__raw_readl(UBC_CCMFR) & ~mask, UBC_CCMFR);
 }
 
-static struct sh_ubc sh4a_ubc = {
+static struct sh_ubc sh4a_ubc =
+{
 	.name			= "SH-4A",
 	.num_events		= 2,
 	.trap_nr		= 0x1e0,
@@ -108,13 +111,16 @@ static int __init sh4a_ubc_init(void)
 	 * it. Just ignore it if we can't find it.
 	 */
 	if (IS_ERR(ubc_iclk))
+	{
 		ubc_iclk = NULL;
+	}
 
 	clk_enable(ubc_iclk);
 
 	__raw_writel(0, UBC_CBCR);
 
-	for (i = 0; i < sh4a_ubc.num_events; i++) {
+	for (i = 0; i < sh4a_ubc.num_events; i++)
+	{
 		__raw_writel(0, UBC_CAMR(i));
 		__raw_writel(0, UBC_CBR(i));
 

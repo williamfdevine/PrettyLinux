@@ -146,28 +146,33 @@ typedef u64				pal_cache_line_state_t;
 #define PAL_CACHE_LINE_STATE_EXCLUSIVE	2	/* Exclusive */
 #define PAL_CACHE_LINE_STATE_MODIFIED	3	/* Modified */
 
-typedef struct pal_freq_ratio {
+typedef struct pal_freq_ratio
+{
 	u32 den, num;		/* numerator & denominator */
 } itc_ratio, proc_ratio;
 
-typedef	union  pal_cache_config_info_1_s {
-	struct {
+typedef	union  pal_cache_config_info_1_s
+{
+	struct
+	{
 		u64		u		: 1,	/* 0 Unified cache ? */
-				at		: 2,	/* 2-1 Cache mem attr*/
-				reserved	: 5,	/* 7-3 Reserved */
-				associativity	: 8,	/* 16-8 Associativity*/
-				line_size	: 8,	/* 23-17 Line size */
-				stride		: 8,	/* 31-24 Stride */
-				store_latency	: 8,	/*39-32 Store latency*/
-				load_latency	: 8,	/* 47-40 Load latency*/
-				store_hints	: 8,	/* 55-48 Store hints*/
-				load_hints	: 8;	/* 63-56 Load hints */
+					 at		: 2,	/* 2-1 Cache mem attr*/
+					 reserved	: 5,	/* 7-3 Reserved */
+					 associativity	: 8,	/* 16-8 Associativity*/
+					 line_size	: 8,	/* 23-17 Line size */
+					 stride		: 8,	/* 31-24 Stride */
+					 store_latency	: 8,	/*39-32 Store latency*/
+					 load_latency	: 8,	/* 47-40 Load latency*/
+					 store_hints	: 8,	/* 55-48 Store hints*/
+					 load_hints	: 8;	/* 63-56 Load hints */
 	} pcci1_bits;
 	u64			pcci1_data;
 } pal_cache_config_info_1_t;
 
-typedef	union  pal_cache_config_info_2_s {
-	struct {
+typedef	union  pal_cache_config_info_2_s
+{
+	struct
+	{
 		u32		cache_size;		/*cache size in bytes*/
 
 
@@ -175,15 +180,16 @@ typedef	union  pal_cache_config_info_2_s {
 							 * separation for max
 							 * performance.
 							 */
-				tag_ls_bit	: 8,	/* 47-40 LSb of addr*/
-				tag_ms_bit	: 8,	/* 55-48 MSb of addr*/
-				reserved	: 8;	/* 63-56 Reserved */
+				 tag_ls_bit	: 8,	/* 47-40 LSb of addr*/
+				 tag_ms_bit	: 8,	/* 55-48 MSb of addr*/
+				 reserved	: 8;	/* 63-56 Reserved */
 	} pcci2_bits;
 	u64			pcci2_data;
 } pal_cache_config_info_2_t;
 
 
-typedef struct pal_cache_config_info_s {
+typedef struct pal_cache_config_info_s
+{
 	pal_status_t			pcci_status;
 	pal_cache_config_info_1_t	pcci_info_1;
 	pal_cache_config_info_2_t	pcci_info_2;
@@ -223,21 +229,23 @@ typedef struct pal_cache_config_info_s {
 #define PAL_CACHE_HINT_NTEMP_ALL	3	/* Non-temporal all levels */
 
 /* Processor cache protection  information */
-typedef union pal_cache_protection_element_u {
+typedef union pal_cache_protection_element_u
+{
 	u32			pcpi_data;
-	struct {
+	struct
+	{
 		u32		data_bits	: 8, /* # data bits covered by
 						      * each unit of protection
 						      */
 
-				tagprot_lsb	: 6, /* Least -do- */
-				tagprot_msb	: 6, /* Most Sig. tag address
+				  tagprot_lsb	: 6, /* Least -do- */
+				  tagprot_msb	: 6, /* Most Sig. tag address
 						      * bit that this
 						      * protection covers.
 						      */
-				prot_bits	: 6, /* # of protection bits */
-				method		: 4, /* Protection method */
-				t_d		: 2; /* Indicates which part
+				  prot_bits	: 6, /* # of protection bits */
+				  method		: 4, /* Protection method */
+				  t_d		: 2; /* Indicates which part
 						      * of the cache this
 						      * protection encoding
 						      * applies.
@@ -264,7 +272,8 @@ typedef union pal_cache_protection_element_u {
 #define PAL_CACHE_PROT_PART_MAX		6
 
 
-typedef struct pal_cache_protection_info_s {
+typedef struct pal_cache_protection_info_s
+{
 	pal_status_t			pcpi_status;
 	pal_cache_protection_element_t	pcp_info[PAL_CACHE_PROT_PART_MAX];
 } pal_cache_protection_info_t;
@@ -278,42 +287,45 @@ typedef struct pal_cache_protection_info_s {
 
 
 /* Processor cache line identification in the hierarchy */
-typedef union pal_cache_line_id_u {
+typedef union pal_cache_line_id_u
+{
 	u64			pclid_data;
-	struct {
+	struct
+	{
 		u64		cache_type	: 8,	/* 7-0 cache type */
-				level		: 8,	/* 15-8 level of the
+				 level		: 8,	/* 15-8 level of the
 							 * cache in the
 							 * hierarchy.
 							 */
-				way		: 8,	/* 23-16 way in the set
+				 way		: 8,	/* 23-16 way in the set
 							 */
-				part		: 8,	/* 31-24 part of the
+				 part		: 8,	/* 31-24 part of the
 							 * cache
 							 */
-				reserved	: 32;	/* 63-32 is reserved*/
+				 reserved	: 32;	/* 63-32 is reserved*/
 	} pclid_info_read;
-	struct {
+	struct
+	{
 		u64		cache_type	: 8,	/* 7-0 cache type */
-				level		: 8,	/* 15-8 level of the
+				 level		: 8,	/* 15-8 level of the
 							 * cache in the
 							 * hierarchy.
 							 */
-				way		: 8,	/* 23-16 way in the set
+				 way		: 8,	/* 23-16 way in the set
 							 */
-				part		: 8,	/* 31-24 part of the
+				 part		: 8,	/* 31-24 part of the
 							 * cache
 							 */
-				mesi		: 8,	/* 39-32 cache line
+				 mesi		: 8,	/* 39-32 cache line
 							 * state
 							 */
-				start		: 8,	/* 47-40 lsb of data to
+				 start		: 8,	/* 47-40 lsb of data to
 							 * invert
 							 */
-				length		: 8,	/* 55-48 #bits to
+				 length		: 8,	/* 55-48 #bits to
 							 * invert
 							 */
-				trigger		: 8;	/* 63-56 Trigger error
+				 trigger		: 8;	/* 63-56 Trigger error
 							 * by doing a load
 							 * after the write
 							 */
@@ -343,7 +355,8 @@ typedef union pal_cache_line_id_u {
 #define PAL_CACHE_LINE_ID_PART_DATA_TAG_PROT	4	/* Data+tag
 							 * protection
 							 */
-typedef struct pal_cache_line_info_s {
+typedef struct pal_cache_line_info_s
+{
 	pal_status_t		pcli_status;		/* Return status of the read cache line
 							 * info call.
 							 */
@@ -378,38 +391,39 @@ typedef u64					pal_mc_info_index_t;
 
 #define PAL_TLB_CHECK_OP_PURGE			8
 
-typedef struct pal_process_state_info_s {
+typedef struct pal_process_state_info_s
+{
 	u64		reserved1	: 2,
-			rz		: 1,	/* PAL_CHECK processor
+			  rz		: 1,	/* PAL_CHECK processor
 						 * rendezvous
 						 * successful.
 						 */
 
-			ra		: 1,	/* PAL_CHECK attempted
+			  ra		: 1,	/* PAL_CHECK attempted
 						 * a rendezvous.
 						 */
-			me		: 1,	/* Distinct multiple
+			  me		: 1,	/* Distinct multiple
 						 * errors occurred
 						 */
 
-			mn		: 1,	/* Min. state save
+			  mn		: 1,	/* Min. state save
 						 * area has been
 						 * registered with PAL
 						 */
 
-			sy		: 1,	/* Storage integrity
+			  sy		: 1,	/* Storage integrity
 						 * synched
 						 */
 
 
-			co		: 1,	/* Continuable */
-			ci		: 1,	/* MC isolated */
-			us		: 1,	/* Uncontained storage
+			  co		: 1,	/* Continuable */
+			  ci		: 1,	/* MC isolated */
+			  us		: 1,	/* Uncontained storage
 						 * damage.
 						 */
 
 
-			hd		: 1,	/* Non-essential hw
+			  hd		: 1,	/* Non-essential hw
 						 * lost (no loss of
 						 * functionality)
 						 * causing the
@@ -417,7 +431,7 @@ typedef struct pal_process_state_info_s {
 						 * degraded mode.
 						 */
 
-			tl		: 1,	/* 1 => MC occurred
+			  tl		: 1,	/* 1 => MC occurred
 						 * after an instr was
 						 * executed but before
 						 * the trap that
@@ -426,246 +440,252 @@ typedef struct pal_process_state_info_s {
 						 * generated.
 						 * (Trap Lost )
 						 */
-			mi		: 1,	/* More information available
+			  mi		: 1,	/* More information available
 						 * call PAL_MC_ERROR_INFO
 						 */
-			pi		: 1,	/* Precise instruction pointer */
-			pm		: 1,	/* Precise min-state save area */
+			  pi		: 1,	/* Precise instruction pointer */
+			  pm		: 1,	/* Precise min-state save area */
 
-			dy		: 1,	/* Processor dynamic
+			  dy		: 1,	/* Processor dynamic
 						 * state valid
 						 */
 
 
-			in		: 1,	/* 0 = MC, 1 = INIT */
-			rs		: 1,	/* RSE valid */
-			cm		: 1,	/* MC corrected */
-			ex		: 1,	/* MC is expected */
-			cr		: 1,	/* Control regs valid*/
-			pc		: 1,	/* Perf cntrs valid */
-			dr		: 1,	/* Debug regs valid */
-			tr		: 1,	/* Translation regs
+			  in		: 1,	/* 0 = MC, 1 = INIT */
+			  rs		: 1,	/* RSE valid */
+			  cm		: 1,	/* MC corrected */
+			  ex		: 1,	/* MC is expected */
+			  cr		: 1,	/* Control regs valid*/
+			  pc		: 1,	/* Perf cntrs valid */
+			  dr		: 1,	/* Debug regs valid */
+			  tr		: 1,	/* Translation regs
 						 * valid
 						 */
-			rr		: 1,	/* Region regs valid */
-			ar		: 1,	/* App regs valid */
-			br		: 1,	/* Branch regs valid */
-			pr		: 1,	/* Predicate registers
+			  rr		: 1,	/* Region regs valid */
+			  ar		: 1,	/* App regs valid */
+			  br		: 1,	/* Branch regs valid */
+			  pr		: 1,	/* Predicate registers
 						 * valid
 						 */
 
-			fp		: 1,	/* fp registers valid*/
-			b1		: 1,	/* Preserved bank one
+			  fp		: 1,	/* fp registers valid*/
+			  b1		: 1,	/* Preserved bank one
 						 * general registers
 						 * are valid
 						 */
-			b0		: 1,	/* Preserved bank zero
+			  b0		: 1,	/* Preserved bank zero
 						 * general registers
 						 * are valid
 						 */
-			gr		: 1,	/* General registers
+			  gr		: 1,	/* General registers
 						 * are valid
 						 * (excl. banked regs)
 						 */
-			dsize		: 16,	/* size of dynamic
+			  dsize		: 16,	/* size of dynamic
 						 * state returned
 						 * by the processor
 						 */
 
-			se		: 1,	/* Shared error.  MCA in a
+			  se		: 1,	/* Shared error.  MCA in a
 						   shared structure */
-			reserved2	: 10,
-			cc		: 1,	/* Cache check */
-			tc		: 1,	/* TLB check */
-			bc		: 1,	/* Bus check */
-			rc		: 1,	/* Register file check */
-			uc		: 1;	/* Uarch check */
+			  reserved2	: 10,
+			  cc		: 1,	/* Cache check */
+			  tc		: 1,	/* TLB check */
+			  bc		: 1,	/* Bus check */
+			  rc		: 1,	/* Register file check */
+			  uc		: 1;	/* Uarch check */
 
 } pal_processor_state_info_t;
 
-typedef struct pal_cache_check_info_s {
+typedef struct pal_cache_check_info_s
+{
 	u64		op		: 4,	/* Type of cache
 						 * operation that
 						 * caused the machine
 						 * check.
 						 */
-			level		: 2,	/* Cache level */
-			reserved1	: 2,
-			dl		: 1,	/* Failure in data part
+				level		: 2,	/* Cache level */
+				reserved1	: 2,
+				dl		: 1,	/* Failure in data part
 						 * of cache line
 						 */
-			tl		: 1,	/* Failure in tag part
+				tl		: 1,	/* Failure in tag part
 						 * of cache line
 						 */
-			dc		: 1,	/* Failure in dcache */
-			ic		: 1,	/* Failure in icache */
-			mesi		: 3,	/* Cache line state */
-			mv		: 1,	/* mesi valid */
-			way		: 5,	/* Way in which the
+				dc		: 1,	/* Failure in dcache */
+				ic		: 1,	/* Failure in icache */
+				mesi		: 3,	/* Cache line state */
+				mv		: 1,	/* mesi valid */
+				way		: 5,	/* Way in which the
 						 * error occurred
 						 */
-			wiv		: 1,	/* Way field valid */
-			reserved2	: 1,
-			dp		: 1,	/* Data poisoned on MBE */
-			reserved3	: 6,
-			hlth		: 2,	/* Health indicator */
+				wiv		: 1,	/* Way field valid */
+				reserved2	: 1,
+				dp		: 1,	/* Data poisoned on MBE */
+				reserved3	: 6,
+				hlth		: 2,	/* Health indicator */
 
-			index		: 20,	/* Cache line index */
-			reserved4	: 2,
+				index		: 20,	/* Cache line index */
+				reserved4	: 2,
 
-			is		: 1,	/* instruction set (1 == ia32) */
-			iv		: 1,	/* instruction set field valid */
-			pl		: 2,	/* privilege level */
-			pv		: 1,	/* privilege level field valid */
-			mcc		: 1,	/* Machine check corrected */
-			tv		: 1,	/* Target address
+				is		: 1,	/* instruction set (1 == ia32) */
+				iv		: 1,	/* instruction set field valid */
+				pl		: 2,	/* privilege level */
+				pv		: 1,	/* privilege level field valid */
+				mcc		: 1,	/* Machine check corrected */
+				tv		: 1,	/* Target address
 						 * structure is valid
 						 */
-			rq		: 1,	/* Requester identifier
+				rq		: 1,	/* Requester identifier
 						 * structure is valid
 						 */
-			rp		: 1,	/* Responder identifier
+				rp		: 1,	/* Responder identifier
 						 * structure is valid
 						 */
-			pi		: 1;	/* Precise instruction pointer
+				pi		: 1;	/* Precise instruction pointer
 						 * structure is valid
 						 */
 } pal_cache_check_info_t;
 
-typedef struct pal_tlb_check_info_s {
+typedef struct pal_tlb_check_info_s
+{
 
 	u64		tr_slot		: 8,	/* Slot# of TR where
 						 * error occurred
 						 */
-			trv		: 1,	/* tr_slot field is valid */
-			reserved1	: 1,
-			level		: 2,	/* TLB level where failure occurred */
-			reserved2	: 4,
-			dtr		: 1,	/* Fail in data TR */
-			itr		: 1,	/* Fail in inst TR */
-			dtc		: 1,	/* Fail in data TC */
-			itc		: 1,	/* Fail in inst. TC */
-			op		: 4,	/* Cache operation */
-			reserved3	: 6,
-			hlth		: 2,	/* Health indicator */
-			reserved4	: 22,
+			   trv		: 1,	/* tr_slot field is valid */
+			   reserved1	: 1,
+			   level		: 2,	/* TLB level where failure occurred */
+			   reserved2	: 4,
+			   dtr		: 1,	/* Fail in data TR */
+			   itr		: 1,	/* Fail in inst TR */
+			   dtc		: 1,	/* Fail in data TC */
+			   itc		: 1,	/* Fail in inst. TC */
+			   op		: 4,	/* Cache operation */
+			   reserved3	: 6,
+			   hlth		: 2,	/* Health indicator */
+			   reserved4	: 22,
 
-			is		: 1,	/* instruction set (1 == ia32) */
-			iv		: 1,	/* instruction set field valid */
-			pl		: 2,	/* privilege level */
-			pv		: 1,	/* privilege level field valid */
-			mcc		: 1,	/* Machine check corrected */
-			tv		: 1,	/* Target address
+			   is		: 1,	/* instruction set (1 == ia32) */
+			   iv		: 1,	/* instruction set field valid */
+			   pl		: 2,	/* privilege level */
+			   pv		: 1,	/* privilege level field valid */
+			   mcc		: 1,	/* Machine check corrected */
+			   tv		: 1,	/* Target address
 						 * structure is valid
 						 */
-			rq		: 1,	/* Requester identifier
+			   rq		: 1,	/* Requester identifier
 						 * structure is valid
 						 */
-			rp		: 1,	/* Responder identifier
+			   rp		: 1,	/* Responder identifier
 						 * structure is valid
 						 */
-			pi		: 1;	/* Precise instruction pointer
+			   pi		: 1;	/* Precise instruction pointer
 						 * structure is valid
 						 */
 } pal_tlb_check_info_t;
 
-typedef struct pal_bus_check_info_s {
+typedef struct pal_bus_check_info_s
+{
 	u64		size		: 5,	/* Xaction size */
-			ib		: 1,	/* Internal bus error */
-			eb		: 1,	/* External bus error */
-			cc		: 1,	/* Error occurred
+				  ib		: 1,	/* Internal bus error */
+				  eb		: 1,	/* External bus error */
+				  cc		: 1,	/* Error occurred
 						 * during cache-cache
 						 * transfer.
 						 */
-			type		: 8,	/* Bus xaction type*/
-			sev		: 5,	/* Bus error severity*/
-			hier		: 2,	/* Bus hierarchy level */
-			dp		: 1,	/* Data poisoned on MBE */
-			bsi		: 8,	/* Bus error status
+				  type		: 8,	/* Bus xaction type*/
+				  sev		: 5,	/* Bus error severity*/
+				  hier		: 2,	/* Bus hierarchy level */
+				  dp		: 1,	/* Data poisoned on MBE */
+				  bsi		: 8,	/* Bus error status
 						 * info
 						 */
-			reserved2	: 22,
+				  reserved2	: 22,
 
-			is		: 1,	/* instruction set (1 == ia32) */
-			iv		: 1,	/* instruction set field valid */
-			pl		: 2,	/* privilege level */
-			pv		: 1,	/* privilege level field valid */
-			mcc		: 1,	/* Machine check corrected */
-			tv		: 1,	/* Target address
+				  is		: 1,	/* instruction set (1 == ia32) */
+				  iv		: 1,	/* instruction set field valid */
+				  pl		: 2,	/* privilege level */
+				  pv		: 1,	/* privilege level field valid */
+				  mcc		: 1,	/* Machine check corrected */
+				  tv		: 1,	/* Target address
 						 * structure is valid
 						 */
-			rq		: 1,	/* Requester identifier
+				  rq		: 1,	/* Requester identifier
 						 * structure is valid
 						 */
-			rp		: 1,	/* Responder identifier
+				  rp		: 1,	/* Responder identifier
 						 * structure is valid
 						 */
-			pi		: 1;	/* Precise instruction pointer
+				  pi		: 1;	/* Precise instruction pointer
 						 * structure is valid
 						 */
 } pal_bus_check_info_t;
 
-typedef struct pal_reg_file_check_info_s {
+typedef struct pal_reg_file_check_info_s
+{
 	u64		id		: 4,	/* Register file identifier */
-			op		: 4,	/* Type of register
+				op		: 4,	/* Type of register
 						 * operation that
 						 * caused the machine
 						 * check.
 						 */
-			reg_num		: 7,	/* Register number */
-			rnv		: 1,	/* reg_num valid */
-			reserved2	: 38,
+				reg_num		: 7,	/* Register number */
+				rnv		: 1,	/* reg_num valid */
+				reserved2	: 38,
 
-			is		: 1,	/* instruction set (1 == ia32) */
-			iv		: 1,	/* instruction set field valid */
-			pl		: 2,	/* privilege level */
-			pv		: 1,	/* privilege level field valid */
-			mcc		: 1,	/* Machine check corrected */
-			reserved3	: 3,
-			pi		: 1;	/* Precise instruction pointer
+				is		: 1,	/* instruction set (1 == ia32) */
+				iv		: 1,	/* instruction set field valid */
+				pl		: 2,	/* privilege level */
+				pv		: 1,	/* privilege level field valid */
+				mcc		: 1,	/* Machine check corrected */
+				reserved3	: 3,
+				pi		: 1;	/* Precise instruction pointer
 						 * structure is valid
 						 */
 } pal_reg_file_check_info_t;
 
-typedef struct pal_uarch_check_info_s {
+typedef struct pal_uarch_check_info_s
+{
 	u64		sid		: 5,	/* Structure identification */
-			level		: 3,	/* Level of failure */
-			array_id	: 4,	/* Array identification */
-			op		: 4,	/* Type of
+			   level		: 3,	/* Level of failure */
+			   array_id	: 4,	/* Array identification */
+			   op		: 4,	/* Type of
 						 * operation that
 						 * caused the machine
 						 * check.
 						 */
-			way		: 6,	/* Way of structure */
-			wv		: 1,	/* way valid */
-			xv		: 1,	/* index valid */
-			reserved1	: 6,
-			hlth		: 2,	/* Health indicator */
-			index		: 8,	/* Index or set of the uarch
+			   way		: 6,	/* Way of structure */
+			   wv		: 1,	/* way valid */
+			   xv		: 1,	/* index valid */
+			   reserved1	: 6,
+			   hlth		: 2,	/* Health indicator */
+			   index		: 8,	/* Index or set of the uarch
 						 * structure that failed.
 						 */
-			reserved2	: 24,
+			   reserved2	: 24,
 
-			is		: 1,	/* instruction set (1 == ia32) */
-			iv		: 1,	/* instruction set field valid */
-			pl		: 2,	/* privilege level */
-			pv		: 1,	/* privilege level field valid */
-			mcc		: 1,	/* Machine check corrected */
-			tv		: 1,	/* Target address
+			   is		: 1,	/* instruction set (1 == ia32) */
+			   iv		: 1,	/* instruction set field valid */
+			   pl		: 2,	/* privilege level */
+			   pv		: 1,	/* privilege level field valid */
+			   mcc		: 1,	/* Machine check corrected */
+			   tv		: 1,	/* Target address
 						 * structure is valid
 						 */
-			rq		: 1,	/* Requester identifier
+			   rq		: 1,	/* Requester identifier
 						 * structure is valid
 						 */
-			rp		: 1,	/* Responder identifier
+			   rp		: 1,	/* Responder identifier
 						 * structure is valid
 						 */
-			pi		: 1;	/* Precise instruction pointer
+			   pi		: 1;	/* Precise instruction pointer
 						 * structure is valid
 						 */
 } pal_uarch_check_info_t;
 
-typedef union pal_mc_error_info_u {
+typedef union pal_mc_error_info_u
+{
 	u64				pmei_data;
 	pal_processor_state_info_t	pme_processor;
 	pal_cache_check_info_t		pme_cache;
@@ -749,7 +769,8 @@ typedef union pal_mc_error_info_u {
  * for PAL.
  */
 
-typedef struct pal_min_state_area_s {
+typedef struct pal_min_state_area_s
+{
 	u64	pmsa_nat_bits;		/* nat bits for saved GRs  */
 	u64	pmsa_gr[15];		/* GR1	- GR15		   */
 	u64	pmsa_bank0_gr[16];	/* GR16 - GR31		   */
@@ -768,7 +789,8 @@ typedef struct pal_min_state_area_s {
 } pal_min_state_area_t;
 
 
-struct ia64_pal_retval {
+struct ia64_pal_retval
+{
 	/*
 	 * A zero status value indicates call completed without error.
 	 * A negative status value indicates reason of call failure.
@@ -796,32 +818,32 @@ extern void ia64_save_scratch_fpregs (struct ia64_fpreg *);
 extern void ia64_load_scratch_fpregs (struct ia64_fpreg *);
 
 #define PAL_CALL(iprv,a0,a1,a2,a3) do {			\
-	struct ia64_fpreg fr[6];			\
-	ia64_save_scratch_fpregs(fr);			\
-	iprv = ia64_pal_call_static(a0, a1, a2, a3);	\
-	ia64_load_scratch_fpregs(fr);			\
-} while (0)
+		struct ia64_fpreg fr[6];			\
+		ia64_save_scratch_fpregs(fr);			\
+		iprv = ia64_pal_call_static(a0, a1, a2, a3);	\
+		ia64_load_scratch_fpregs(fr);			\
+	} while (0)
 
 #define PAL_CALL_STK(iprv,a0,a1,a2,a3) do {		\
-	struct ia64_fpreg fr[6];			\
-	ia64_save_scratch_fpregs(fr);			\
-	iprv = ia64_pal_call_stacked(a0, a1, a2, a3);	\
-	ia64_load_scratch_fpregs(fr);			\
-} while (0)
+		struct ia64_fpreg fr[6];			\
+		ia64_save_scratch_fpregs(fr);			\
+		iprv = ia64_pal_call_stacked(a0, a1, a2, a3);	\
+		ia64_load_scratch_fpregs(fr);			\
+	} while (0)
 
 #define PAL_CALL_PHYS(iprv,a0,a1,a2,a3) do {			\
-	struct ia64_fpreg fr[6];				\
-	ia64_save_scratch_fpregs(fr);				\
-	iprv = ia64_pal_call_phys_static(a0, a1, a2, a3);	\
-	ia64_load_scratch_fpregs(fr);				\
-} while (0)
+		struct ia64_fpreg fr[6];				\
+		ia64_save_scratch_fpregs(fr);				\
+		iprv = ia64_pal_call_phys_static(a0, a1, a2, a3);	\
+		ia64_load_scratch_fpregs(fr);				\
+	} while (0)
 
 #define PAL_CALL_PHYS_STK(iprv,a0,a1,a2,a3) do {		\
-	struct ia64_fpreg fr[6];				\
-	ia64_save_scratch_fpregs(fr);				\
-	iprv = ia64_pal_call_phys_stacked(a0, a1, a2, a3);	\
-	ia64_load_scratch_fpregs(fr);				\
-} while (0)
+		struct ia64_fpreg fr[6];				\
+		ia64_save_scratch_fpregs(fr);				\
+		iprv = ia64_pal_call_phys_stacked(a0, a1, a2, a3);	\
+		ia64_load_scratch_fpregs(fr);				\
+	} while (0)
 
 typedef int (*ia64_pal_handler) (u64, ...);
 extern ia64_pal_handler ia64_pal;
@@ -840,10 +862,10 @@ extern pal_cache_protection_info_t	l1_cache_protection_info;
 extern pal_cache_protection_info_t	l2_cache_protection_info;
 
 extern pal_cache_config_info_t		pal_cache_config_info_get(pal_cache_level_t,
-								  pal_cache_type_t);
+		pal_cache_type_t);
 
 extern pal_cache_protection_info_t	pal_cache_protection_info_get(pal_cache_level_t,
-								      pal_cache_type_t);
+		pal_cache_type_t);
 
 
 extern void				pal_error(int);
@@ -851,9 +873,11 @@ extern void				pal_error(int);
 
 /* Useful wrappers for the current list of pal procedures */
 
-typedef union pal_bus_features_u {
+typedef union pal_bus_features_u
+{
 	u64	pal_bus_features_val;
-	struct {
+	struct
+	{
 		u64	pbf_reserved1				:	29;
 		u64	pbf_req_bus_parking			:	1;
 		u64	pbf_bus_lock_mask			:	1;
@@ -879,17 +903,27 @@ extern void pal_bus_features_print (u64);
 /* Provide information about configurable processor bus features */
 static inline s64
 ia64_pal_bus_get_features (pal_bus_features_u_t *features_avail,
-			   pal_bus_features_u_t *features_status,
-			   pal_bus_features_u_t *features_control)
+						   pal_bus_features_u_t *features_status,
+						   pal_bus_features_u_t *features_control)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL_PHYS(iprv, PAL_BUS_GET_FEATURES, 0, 0, 0);
+
 	if (features_avail)
+	{
 		features_avail->pal_bus_features_val = iprv.v0;
+	}
+
 	if (features_status)
+	{
 		features_status->pal_bus_features_val = iprv.v1;
+	}
+
 	if (features_control)
+	{
 		features_control->pal_bus_features_val = iprv.v2;
+	}
+
 	return iprv.status;
 }
 
@@ -910,12 +944,14 @@ ia64_pal_cache_config_info (u64 cache_level, u64 cache_type, pal_cache_config_in
 
 	PAL_CALL(iprv, PAL_CACHE_INFO, cache_level, cache_type, 0);
 
-	if (iprv.status == 0) {
+	if (iprv.status == 0)
+	{
 		conf->pcci_status                 = iprv.status;
 		conf->pcci_info_1.pcci1_data      = iprv.v0;
 		conf->pcci_info_2.pcci2_data      = iprv.v1;
 		conf->pcci_reserved               = iprv.v2;
 	}
+
 	return iprv.status;
 
 }
@@ -928,7 +964,8 @@ ia64_pal_cache_prot_info (u64 cache_level, u64 cache_type, pal_cache_protection_
 
 	PAL_CALL(iprv, PAL_CACHE_PROT_INFO, cache_level, cache_type, 0);
 
-	if (iprv.status == 0) {
+	if (iprv.status == 0)
+	{
 		prot->pcpi_status           = iprv.status;
 		prot->pcp_info[0].pcpi_data = iprv.v0 & 0xffffffff;
 		prot->pcp_info[1].pcpi_data = iprv.v0 >> 32;
@@ -937,6 +974,7 @@ ia64_pal_cache_prot_info (u64 cache_level, u64 cache_type, pal_cache_protection_
 		prot->pcp_info[4].pcpi_data = iprv.v2 & 0xffffffff;
 		prot->pcp_info[5].pcpi_data = iprv.v2 >> 32;
 	}
+
 	return iprv.status;
 }
 
@@ -949,8 +987,12 @@ ia64_pal_cache_flush (u64 cache_type, u64 invalidate, u64 *progress, u64 *vector
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_CACHE_FLUSH, cache_type, invalidate, *progress);
+
 	if (vector)
+	{
 		*vector = iprv.v0;
+	}
+
 	*progress = iprv.v1;
 	return iprv.status;
 }
@@ -984,20 +1026,27 @@ ia64_pal_cache_read (pal_cache_line_id_u_t line_id, u64 physical_addr)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL_PHYS_STK(iprv, PAL_CACHE_READ, line_id.pclid_data,
-				physical_addr, 0);
+					  physical_addr, 0);
 	return iprv.status;
 }
 
 /* Return summary information about the hierarchy of caches controlled by the processor */
 static inline long ia64_pal_cache_summary(unsigned long *cache_levels,
-						unsigned long *unique_caches)
+		unsigned long *unique_caches)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_CACHE_SUMMARY, 0, 0, 0);
+
 	if (cache_levels)
+	{
 		*cache_levels = iprv.v0;
+	}
+
 	if (unique_caches)
+	{
 		*unique_caches = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
@@ -1007,7 +1056,7 @@ ia64_pal_cache_write (pal_cache_line_id_u_t line_id, u64 physical_addr, u64 data
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL_PHYS_STK(iprv, PAL_CACHE_WRITE, line_id.pclid_data,
-				physical_addr, data);
+					  physical_addr, data);
 	return iprv.status;
 }
 
@@ -1015,14 +1064,21 @@ ia64_pal_cache_write (pal_cache_line_id_u_t line_id, u64 physical_addr, u64 data
 /* Return the parameters needed to copy relocatable PAL procedures from ROM to memory */
 static inline s64
 ia64_pal_copy_info (u64 copy_type, u64 num_procs, u64 num_iopics,
-		    u64 *buffer_size, u64 *buffer_align)
+					u64 *buffer_size, u64 *buffer_align)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_COPY_INFO, copy_type, num_procs, num_iopics);
+
 	if (buffer_size)
+	{
 		*buffer_size = iprv.v0;
+	}
+
 	if (buffer_align)
+	{
 		*buffer_align = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
@@ -1032,21 +1088,31 @@ ia64_pal_copy_pal (u64 target_addr, u64 alloc_size, u64 processor, u64 *pal_proc
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_COPY_PAL, target_addr, alloc_size, processor);
+
 	if (pal_proc_offset)
+	{
 		*pal_proc_offset = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
 /* Return the number of instruction and data debug register pairs */
 static inline long ia64_pal_debug_info(unsigned long *inst_regs,
-						unsigned long *data_regs)
+									   unsigned long *data_regs)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_DEBUG_INFO, 0, 0, 0);
+
 	if (inst_regs)
+	{
 		*inst_regs = iprv.v0;
+	}
+
 	if (data_regs)
+	{
 		*data_regs = iprv.v1;
+	}
 
 	return iprv.status;
 }
@@ -1068,8 +1134,12 @@ ia64_pal_fixed_addr (u64 *global_unique_addr)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_FIXED_ADDR, 0, 0, 0);
+
 	if (global_unique_addr)
+	{
 		*global_unique_addr = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
@@ -1078,8 +1148,12 @@ static inline long ia64_pal_freq_base(unsigned long *platform_base_freq)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_FREQ_BASE, 0, 0, 0);
+
 	if (platform_base_freq)
+	{
 		*platform_base_freq = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
@@ -1089,16 +1163,26 @@ static inline long ia64_pal_freq_base(unsigned long *platform_base_freq)
  */
 static inline s64
 ia64_pal_freq_ratios (struct pal_freq_ratio *proc_ratio, struct pal_freq_ratio *bus_ratio,
-		      struct pal_freq_ratio *itc_ratio)
+					  struct pal_freq_ratio *itc_ratio)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_FREQ_RATIOS, 0, 0, 0);
+
 	if (proc_ratio)
+	{
 		*(u64 *)proc_ratio = iprv.v0;
+	}
+
 	if (bus_ratio)
+	{
 		*(u64 *)bus_ratio = iprv.v1;
+	}
+
 	if (itc_ratio)
+	{
 		*(u64 *)itc_ratio = iprv.v2;
+	}
+
 	return iprv.status;
 }
 
@@ -1107,16 +1191,26 @@ ia64_pal_freq_ratios (struct pal_freq_ratio *proc_ratio, struct pal_freq_ratio *
  */
 static inline s64
 ia64_pal_get_hw_policy (u64 proc_num, u64 *cur_policy, u64 *num_impacted,
-			u64 *la)
+						u64 *la)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_GET_HW_POLICY, proc_num, 0, 0);
+
 	if (cur_policy)
+	{
 		*cur_policy = iprv.v0;
+	}
+
 	if (num_impacted)
+	{
 		*num_impacted = iprv.v1;
+	}
+
 	if (la)
+	{
 		*la = iprv.v2;
+	}
+
 	return iprv.status;
 }
 
@@ -1132,15 +1226,17 @@ ia64_pal_halt (u64 halt_state)
 	return iprv.status;
 }
 
-typedef union pal_power_mgmt_info_u {
+typedef union pal_power_mgmt_info_u
+{
 	u64			ppmi_data;
-	struct {
-	       u64		exit_latency		: 16,
-				entry_latency		: 16,
-				power_consumption	: 28,
-				im			: 1,
-				co			: 1,
-				reserved		: 2;
+	struct
+	{
+		u64		exit_latency		: 16,
+					  entry_latency		: 16,
+					  power_consumption	: 28,
+					  im			: 1,
+					  co			: 1,
+					  reserved		: 2;
 	} pal_power_mgmt_info_s;
 } pal_power_mgmt_info_u_t;
 
@@ -1201,8 +1297,12 @@ ia64_pal_mc_clear_log (u64 *pending_vector)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_MC_CLEAR_LOG, 0, 0, 0);
+
 	if (pending_vector)
+	{
 		*pending_vector = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
@@ -1223,8 +1323,12 @@ ia64_pal_mc_dynamic_state (u64 info_type, u64 dy_buffer, u64 *size)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_MC_DYNAMIC_STATE, info_type, dy_buffer, 0);
+
 	if (size)
+	{
 		*size = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
@@ -1234,10 +1338,17 @@ ia64_pal_mc_error_info (u64 info_index, u64 type_index, u64 *size, u64 *error_in
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_MC_ERROR_INFO, info_index, type_index, 0);
+
 	if (size)
+	{
 		*size = iprv.v0;
+	}
+
 	if (error_info)
+	{
 		*error_info = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
@@ -1246,29 +1357,43 @@ ia64_pal_mc_error_info (u64 info_index, u64 type_index, u64 *size, u64 *error_in
  */
 static inline s64
 ia64_pal_mc_error_inject_phys (u64 err_type_info, u64 err_struct_info,
-			u64 err_data_buffer, u64 *capabilities, u64 *resources)
+							   u64 err_data_buffer, u64 *capabilities, u64 *resources)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL_PHYS_STK(iprv, PAL_MC_ERROR_INJECT, err_type_info,
-			  err_struct_info, err_data_buffer);
+					  err_struct_info, err_data_buffer);
+
 	if (capabilities)
-		*capabilities= iprv.v0;
+	{
+		*capabilities = iprv.v0;
+	}
+
 	if (resources)
-		*resources= iprv.v1;
+	{
+		*resources = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
 static inline s64
 ia64_pal_mc_error_inject_virt (u64 err_type_info, u64 err_struct_info,
-			u64 err_data_buffer, u64 *capabilities, u64 *resources)
+							   u64 err_data_buffer, u64 *capabilities, u64 *resources)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL_STK(iprv, PAL_MC_ERROR_INJECT, err_type_info,
-			  err_struct_info, err_data_buffer);
+				 err_struct_info, err_data_buffer);
+
 	if (capabilities)
-		*capabilities= iprv.v0;
+	{
+		*capabilities = iprv.v0;
+	}
+
 	if (resources)
-		*resources= iprv.v1;
+	{
+		*resources = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
@@ -1280,19 +1405,25 @@ ia64_pal_mc_expected (u64 expected, u64 *previous)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_MC_EXPECTED, expected, 0, 0);
+
 	if (previous)
+	{
 		*previous = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
-typedef union pal_hw_tracking_u {
+typedef union pal_hw_tracking_u
+{
 	u64			pht_data;
-	struct {
-		u64		itc	:4,	/* Instruction cache tracking */
-				dct	:4,	/* Date cache tracking */
-				itt	:4,	/* Instruction TLB tracking */
-				ddt	:4,	/* Data TLB tracking */
-				reserved:48;
+	struct
+	{
+		u64		itc	: 4,	/* Instruction cache tracking */
+				dct	: 4,	/* Date cache tracking */
+				itt	: 4,	/* Instruction TLB tracking */
+				ddt	: 4,	/* Data TLB tracking */
+				reserved: 48;
 	} pal_hw_tracking_s;
 } pal_hw_tracking_u_t;
 
@@ -1304,8 +1435,12 @@ ia64_pal_mc_hw_tracking (u64 *status)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_MC_HW_TRACKING, 0, 0, 0);
+
 	if (status)
+	{
 		*status = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
@@ -1318,8 +1453,12 @@ ia64_pal_mc_register_mem (u64 physical_addr, u64 size, u64 *req_size)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_MC_REGISTER_MEM, physical_addr, size, 0);
+
 	if (req_size)
+	{
 		*req_size = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
@@ -1340,8 +1479,12 @@ ia64_pal_mem_attrib (u64 *mem_attrib)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_MEM_ATTRIB, 0, 0, 0);
+
 	if (mem_attrib)
+	{
 		*mem_attrib = iprv.v0 & 0xff;
+	}
+
 	return iprv.status;
 }
 
@@ -1353,21 +1496,30 @@ ia64_pal_mem_for_test (u64 *bytes_needed, u64 *alignment)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_MEM_FOR_TEST, 0, 0, 0);
+
 	if (bytes_needed)
+	{
 		*bytes_needed = iprv.v0;
+	}
+
 	if (alignment)
+	{
 		*alignment = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
-typedef union pal_perf_mon_info_u {
+typedef union pal_perf_mon_info_u
+{
 	u64			  ppmi_data;
-	struct {
-	       u64		generic		: 8,
-				width		: 8,
-				cycles		: 8,
-				retired		: 8,
-				reserved	: 32;
+	struct
+	{
+		u64		generic		: 8,
+				   width		: 8,
+				   cycles		: 8,
+				   retired		: 8,
+				   reserved	: 32;
 	} pal_perf_mon_info_s;
 } pal_perf_mon_info_u_t;
 
@@ -1379,8 +1531,12 @@ ia64_pal_perf_mon_info (u64 *pm_buffer, pal_perf_mon_info_u_t *pm_info)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_PERF_MON_INFO, (unsigned long) pm_buffer, 0, 0);
+
 	if (pm_info)
+	{
 		pm_info->ppmi_data = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
@@ -1408,17 +1564,20 @@ struct pal_features_s;
 /* Provide information about configurable processor features */
 static inline s64
 ia64_pal_proc_get_features (u64 *features_avail,
-			    u64 *features_status,
-			    u64 *features_control,
-			    u64 features_set)
+							u64 *features_status,
+							u64 *features_control,
+							u64 features_set)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL_PHYS(iprv, PAL_PROC_GET_FEATURES, 0, features_set, 0);
-	if (iprv.status == 0) {
+
+	if (iprv.status == 0)
+	{
 		*features_avail   = iprv.v0;
 		*features_status  = iprv.v1;
 		*features_control = iprv.v2;
 	}
+
 	return iprv.status;
 }
 
@@ -1435,7 +1594,8 @@ ia64_pal_proc_set_features (u64 feature_select)
  * Put everything in a struct so we avoid the global offset table whenever
  * possible.
  */
-typedef struct ia64_ptce_info_s {
+typedef struct ia64_ptce_info_s
+{
 	unsigned long	base;
 	u32		count[2];
 	u32		stride[2];
@@ -1450,16 +1610,21 @@ ia64_get_ptce (ia64_ptce_info_t *ptce)
 	struct ia64_pal_retval iprv;
 
 	if (!ptce)
+	{
 		return -1;
+	}
 
 	PAL_CALL(iprv, PAL_PTCE_INFO, 0, 0, 0);
-	if (iprv.status == 0) {
+
+	if (iprv.status == 0)
+	{
 		ptce->base = iprv.v0;
 		ptce->count[0] = iprv.v1 >> 32;
 		ptce->count[1] = iprv.v1 & 0xffffffff;
 		ptce->stride[0] = iprv.v2 >> 32;
 		ptce->stride[1] = iprv.v2 & 0xffffffff;
 	}
+
 	return iprv.status;
 }
 
@@ -1469,19 +1634,28 @@ ia64_pal_register_info (u64 info_request, u64 *reg_info_1, u64 *reg_info_2)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_REGISTER_INFO, info_request, 0, 0);
+
 	if (reg_info_1)
+	{
 		*reg_info_1 = iprv.v0;
+	}
+
 	if (reg_info_2)
+	{
 		*reg_info_2 = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
-typedef union pal_hints_u {
+typedef union pal_hints_u
+{
 	unsigned long		ph_data;
-	struct {
-	       unsigned long	si		: 1,
-				li		: 1,
-				reserved	: 62;
+	struct
+	{
+		unsigned long	si		: 1,
+					   li		: 1,
+					   reserved	: 62;
 	} pal_hints_s;
 } pal_hints_u_t;
 
@@ -1489,14 +1663,21 @@ typedef union pal_hints_u {
  * implementation.
  */
 static inline long ia64_pal_rse_info(unsigned long *num_phys_stacked,
-							pal_hints_u_t *hints)
+									 pal_hints_u_t *hints)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_RSE_INFO, 0, 0, 0);
+
 	if (num_phys_stacked)
+	{
 		*num_phys_stacked = iprv.v0;
+	}
+
 	if (hints)
+	{
 		hints->ph_data = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
@@ -1529,14 +1710,20 @@ ia64_pal_test_proc (u64 test_addr, u64 test_size, u64 attributes, u64 *self_test
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_TEST_PROC, test_addr, test_size, attributes);
+
 	if (self_test_state)
+	{
 		*self_test_state = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
-typedef union  pal_version_u {
+typedef union  pal_version_u
+{
 	u64	pal_version_val;
-	struct {
+	struct
+	{
 		u64	pv_pal_b_rev		:	8;
 		u64	pv_pal_b_model		:	8;
 		u64	pv_reserved1		:	8;
@@ -1559,25 +1746,32 @@ ia64_pal_version (pal_version_u_t *pal_min_version, pal_version_u_t *pal_cur_ver
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL_PHYS(iprv, PAL_VERSION, 0, 0, 0);
+
 	if (pal_min_version)
+	{
 		pal_min_version->pal_version_val = iprv.v0;
+	}
 
 	if (pal_cur_version)
+	{
 		pal_cur_version->pal_version_val = iprv.v1;
+	}
 
 	return iprv.status;
 }
 
-typedef union pal_tc_info_u {
+typedef union pal_tc_info_u
+{
 	u64			pti_val;
-	struct {
-	       u64		num_sets	:	8,
-				associativity	:	8,
-				num_entries	:	16,
-				pf		:	1,
-				unified		:	1,
-				reduce_tr	:	1,
-				reserved	:	29;
+	struct
+	{
+		u64		num_sets	:	8,
+					 associativity	:	8,
+					 num_entries	:	16,
+					 pf		:	1,
+					 unified		:	1,
+					 reduce_tr	:	1,
+					 reserved	:	29;
 	} pal_tc_info_s;
 } pal_tc_info_u_t;
 
@@ -1597,10 +1791,17 @@ ia64_pal_vm_info (u64 tc_level, u64 tc_type,  pal_tc_info_u_t *tc_info, u64 *tc_
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_VM_INFO, tc_level, tc_type, 0);
+
 	if (tc_info)
+	{
 		tc_info->pti_val = iprv.v0;
+	}
+
 	if (tc_pages)
+	{
 		*tc_pages = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
@@ -1611,33 +1812,44 @@ static inline s64 ia64_pal_vm_page_size(u64 *tr_pages, u64 *vw_pages)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_VM_PAGE_SIZE, 0, 0, 0);
+
 	if (tr_pages)
+	{
 		*tr_pages = iprv.v0;
+	}
+
 	if (vw_pages)
+	{
 		*vw_pages = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
-typedef union pal_vm_info_1_u {
+typedef union pal_vm_info_1_u
+{
 	u64			pvi1_val;
-	struct {
+	struct
+	{
 		u64		vw		: 1,
-				phys_add_size	: 7,
-				key_size	: 8,
-				max_pkr		: 8,
-				hash_tag_id	: 8,
-				max_dtr_entry	: 8,
-				max_itr_entry	: 8,
-				max_unique_tcs	: 8,
-				num_tc_levels	: 8;
+					phys_add_size	: 7,
+					key_size	: 8,
+					max_pkr		: 8,
+					hash_tag_id	: 8,
+					max_dtr_entry	: 8,
+					max_itr_entry	: 8,
+					max_unique_tcs	: 8,
+					num_tc_levels	: 8;
 	} pal_vm_info_1_s;
 } pal_vm_info_1_u_t;
 
 #define PAL_MAX_PURGES		0xFFFF		/* all ones is means unlimited */
 
-typedef union pal_vm_info_2_u {
+typedef union pal_vm_info_2_u
+{
 	u64			pvi2_val;
-	struct {
+	struct
+	{
 		u64		impl_va_msb	: 8,
 				rid_size	: 8,
 				max_purges	: 16,
@@ -1653,18 +1865,27 @@ ia64_pal_vm_summary (pal_vm_info_1_u_t *vm_info_1, pal_vm_info_2_u_t *vm_info_2)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_VM_SUMMARY, 0, 0, 0);
+
 	if (vm_info_1)
+	{
 		vm_info_1->pvi1_val = iprv.v0;
+	}
+
 	if (vm_info_2)
+	{
 		vm_info_2->pvi2_val = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
-typedef union pal_vp_info_u {
+typedef union pal_vp_info_u
+{
 	u64			pvi_val;
-	struct {
+	struct
+	{
 		u64		index:		48,	/* virtual feature set info */
-				vmm_id:		16;	/* feature set id */
+					vmm_id:		16;	/* feature set id */
 	} pal_vp_info_s;
 } pal_vp_info_u_t;
 
@@ -1676,17 +1897,26 @@ ia64_pal_vp_info (u64 feature_set, u64 vp_buffer, u64 *vp_info, u64 *vmm_id)
 {
 	struct ia64_pal_retval iprv;
 	PAL_CALL(iprv, PAL_VP_INFO, feature_set, vp_buffer, 0);
+
 	if (vp_info)
+	{
 		*vp_info = iprv.v0;
+	}
+
 	if (vmm_id)
+	{
 		*vmm_id = iprv.v1;
+	}
+
 	return iprv.status;
 }
 
-typedef union pal_itr_valid_u {
+typedef union pal_itr_valid_u
+{
 	u64			piv_val;
-	struct {
-	       u64		access_rights_valid	: 1,
+	struct
+	{
+		u64		access_rights_valid	: 1,
 				priv_level_valid	: 1,
 				dirty_bit_valid		: 1,
 				mem_attr_valid		: 1,
@@ -1699,9 +1929,13 @@ static inline s64
 ia64_pal_tr_read (u64 reg_num, u64 tr_type, u64 *tr_buffer, pal_tr_valid_u_t *tr_valid)
 {
 	struct ia64_pal_retval iprv;
-	PAL_CALL_PHYS_STK(iprv, PAL_VM_TR_READ, reg_num, tr_type,(u64)ia64_tpa(tr_buffer));
+	PAL_CALL_PHYS_STK(iprv, PAL_VM_TR_READ, reg_num, tr_type, (u64)ia64_tpa(tr_buffer));
+
 	if (tr_valid)
+	{
 		tr_valid->piv_val = iprv.v0;
+	}
+
 	return iprv.status;
 }
 
@@ -1728,35 +1962,41 @@ ia64_pal_prefetch_visibility (s64 trans_type)
 }
 
 /* data structure for getting information on logical to physical mappings */
-typedef union pal_log_overview_u {
-	struct {
-		u64	num_log		:16,	/* Total number of logical
+typedef union pal_log_overview_u
+{
+	struct
+	{
+		u64	num_log		: 16,	/* Total number of logical
 						 * processors on this die
 						 */
-			tpc		:8,	/* Threads per core */
-			reserved3	:8,	/* Reserved */
-			cpp		:8,	/* Cores per processor */
-			reserved2	:8,	/* Reserved */
-			ppid		:8,	/* Physical processor ID */
-			reserved1	:8;	/* Reserved */
+			   tpc		: 8,	/* Threads per core */
+			   reserved3	: 8,	/* Reserved */
+			   cpp		: 8,	/* Cores per processor */
+			   reserved2	: 8,	/* Reserved */
+			   ppid		: 8,	/* Physical processor ID */
+			   reserved1	: 8;	/* Reserved */
 	} overview_bits;
 	u64 overview_data;
 } pal_log_overview_t;
 
-typedef union pal_proc_n_log_info1_u{
-	struct {
-		u64	tid		:16,	/* Thread id */
-			reserved2	:16,	/* Reserved */
-			cid		:16,	/* Core id */
-			reserved1	:16;	/* Reserved */
+typedef union pal_proc_n_log_info1_u
+{
+	struct
+	{
+		u64	tid		: 16,	/* Thread id */
+			   reserved2	: 16,	/* Reserved */
+			   cid		: 16,	/* Core id */
+			   reserved1	: 16;	/* Reserved */
 	} ppli1_bits;
 	u64	ppli1_data;
 } pal_proc_n_log_info1_t;
 
-typedef union pal_proc_n_log_info2_u {
-	struct {
-		u64	la		:16,	/* Logical address */
-			reserved	:48;	/* Reserved */
+typedef union pal_proc_n_log_info2_u
+{
+	struct
+	{
+		u64	la		: 16,	/* Logical address */
+				reserved	: 48;	/* Reserved */
 	} ppli2_bits;
 	u64	ppli2_data;
 } pal_proc_n_log_info2_t;
@@ -1804,15 +2044,16 @@ typedef struct pal_cache_shared_info_s
 /* Get information on logical to physical processor mappings. */
 static inline s64
 ia64_pal_cache_shared_info(u64 level,
-		u64 type,
-		u64 proc_number,
-		pal_cache_shared_info_t *info)
+						   u64 type,
+						   u64 proc_number,
+						   pal_cache_shared_info_t *info)
 {
 	struct ia64_pal_retval iprv;
 
 	PAL_CALL(iprv, PAL_CACHE_SHARED_INFO, level, type, proc_number);
 
-	if (iprv.status == PAL_STATUS_SUCCESS) {
+	if (iprv.status == PAL_STATUS_SUCCESS)
+	{
 		info->num_shared = iprv.v0;
 		info->ppli1.ppli1_data = iprv.v1;
 		info->ppli2.ppli2_data = iprv.v2;

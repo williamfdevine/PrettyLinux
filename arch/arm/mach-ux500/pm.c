@@ -53,7 +53,7 @@ int prcmu_gic_decouple(void)
 
 	/* Set bit 0 register value to 1 */
 	writel(val | PRCM_A9_MASK_REQ_PRCM_A9_MASK_REQ,
-	       PRCM_A9_MASK_REQ);
+		   PRCM_A9_MASK_REQ);
 
 	/* Make sure the register is updated */
 	readl(PRCM_A9_MASK_REQ);
@@ -94,13 +94,16 @@ bool prcmu_gic_pending_irq(void)
 	int i;
 
 	/* 5 registers. STI & PPI not skipped */
-	for (i = 0; i < PRCMU_GIC_NUMBER_REGS; i++) {
+	for (i = 0; i < PRCMU_GIC_NUMBER_REGS; i++)
+	{
 
 		pr = readl_relaxed(dist_base + GIC_DIST_PENDING_SET + i * 4);
 		er = readl_relaxed(dist_base + GIC_DIST_ENABLE_SET + i * 4);
 
 		if (pr & er)
-			return true; /* There is a pending interrupt */
+		{
+			return true;    /* There is a pending interrupt */
+		}
 	}
 
 	return false;
@@ -116,11 +119,15 @@ bool prcmu_pending_irq(void)
 	u32 it, im;
 	int i;
 
-	for (i = 0; i < PRCMU_GIC_NUMBER_REGS - 1; i++) {
+	for (i = 0; i < PRCMU_GIC_NUMBER_REGS - 1; i++)
+	{
 		it = readl(PRCM_ARMITVAL31TO0 + i * 4);
 		im = readl(PRCM_ARMITMSK31TO0 + i * 4);
+
 		if (it & im)
-			return true; /* There is a pending interrupt */
+		{
+			return true;    /* There is a pending interrupt */
+		}
 	}
 
 	return false;
@@ -135,7 +142,7 @@ bool prcmu_pending_irq(void)
 bool prcmu_is_cpu_in_wfi(int cpu)
 {
 	return readl(PRCM_ARM_WFI_STANDBY) & cpu ? PRCM_ARM_WFI_STANDBY_WFI1 :
-		     PRCM_ARM_WFI_STANDBY_WFI0;
+		   PRCM_ARM_WFI_STANDBY_WFI0;
 }
 
 /*
@@ -148,9 +155,10 @@ int prcmu_copy_gic_settings(void)
 	int i;
 
 	/* We skip the STI and PPI */
-	for (i = 0; i < PRCMU_GIC_NUMBER_REGS - 1; i++) {
+	for (i = 0; i < PRCMU_GIC_NUMBER_REGS - 1; i++)
+	{
 		er = readl_relaxed(dist_base +
-				   GIC_DIST_ENABLE_SET + (i + 1) * 4);
+						   GIC_DIST_ENABLE_SET + (i + 1) * 4);
 		writel(er, PRCM_ARMITMSK31TO0 + i * 4);
 	}
 
@@ -169,7 +177,8 @@ static int ux500_suspend_valid(suspend_state_t state)
 	return state == PM_SUSPEND_MEM || state == PM_SUSPEND_STANDBY;
 }
 
-static const struct platform_suspend_ops ux500_suspend_ops = {
+static const struct platform_suspend_ops ux500_suspend_ops =
+{
 	.enter	      = ux500_suspend_enter,
 	.valid	      = ux500_suspend_valid,
 };
@@ -183,14 +192,19 @@ void __init ux500_pm_init(u32 phy_base, u32 size)
 	struct device_node *np;
 
 	prcmu_base = ioremap(phy_base, size);
-	if (!prcmu_base) {
+
+	if (!prcmu_base)
+	{
 		pr_err("could not remap PRCMU for PM functions\n");
 		return;
 	}
+
 	np = of_find_compatible_node(NULL, NULL, "arm,cortex-a9-gic");
 	dist_base = of_iomap(np, 0);
 	of_node_put(np);
-	if (!dist_base) {
+
+	if (!dist_base)
+	{
 		pr_err("could not remap GIC dist base for PM functions\n");
 		return;
 	}

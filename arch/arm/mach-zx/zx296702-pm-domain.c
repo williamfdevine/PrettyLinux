@@ -18,7 +18,8 @@
 #define PCU_DM_PWRDN        0x24
 #define PCU_DM_ACK_SYNC     0x28
 
-enum {
+enum
+{
 	PCU_DM_NEON0 = 0,
 	PCU_DM_NEON1,
 	PCU_DM_GPU,
@@ -30,7 +31,8 @@ enum {
 
 static void __iomem *pcubase;
 
-struct zx_pm_domain {
+struct zx_pm_domain
+{
 	struct generic_pm_domain dm;
 	unsigned int bit;
 };
@@ -59,11 +61,15 @@ static int normal_power_off(struct generic_pm_domain *domain)
 	tmp = readl_relaxed(pcubase + PCU_DM_PWRDN);
 	tmp &= ~BIT(zpd->bit);
 	writel_relaxed(tmp | BIT(zpd->bit), pcubase + PCU_DM_PWRDN);
-	do {
-		tmp = readl_relaxed(pcubase + PCU_DM_ACK_SYNC) & BIT(zpd->bit);
-	} while (--loop && !tmp);
 
-	if (!loop) {
+	do
+	{
+		tmp = readl_relaxed(pcubase + PCU_DM_ACK_SYNC) & BIT(zpd->bit);
+	}
+	while (--loop && !tmp);
+
+	if (!loop)
+	{
 		pr_err("Error: %s %s fail\n", __func__, domain->name);
 		return -EIO;
 	}
@@ -80,11 +86,15 @@ static int normal_power_on(struct generic_pm_domain *domain)
 	tmp = readl_relaxed(pcubase + PCU_DM_PWRDN);
 	tmp &= ~BIT(zpd->bit);
 	writel_relaxed(tmp, pcubase + PCU_DM_PWRDN);
-	do {
-		tmp = readl_relaxed(pcubase + PCU_DM_ACK_SYNC) & BIT(zpd->bit);
-	} while (--loop && tmp);
 
-	if (!loop) {
+	do
+	{
+		tmp = readl_relaxed(pcubase + PCU_DM_ACK_SYNC) & BIT(zpd->bit);
+	}
+	while (--loop && tmp);
+
+	if (!loop)
+	{
 		pr_err("Error: %s %s fail\n", __func__, domain->name);
 		return -EIO;
 	}
@@ -106,7 +116,8 @@ static int normal_power_on(struct generic_pm_domain *domain)
 	return 0;
 }
 
-static struct zx_pm_domain gpu_domain = {
+static struct zx_pm_domain gpu_domain =
+{
 	.dm = {
 		.name		= "gpu_domain",
 		.power_off	= normal_power_off,
@@ -115,7 +126,8 @@ static struct zx_pm_domain gpu_domain = {
 	.bit = PCU_DM_GPU,
 };
 
-static struct zx_pm_domain decppu_domain = {
+static struct zx_pm_domain decppu_domain =
+{
 	.dm = {
 		.name		= "decppu_domain",
 		.power_off	= normal_power_off,
@@ -124,7 +136,8 @@ static struct zx_pm_domain decppu_domain = {
 	.bit = PCU_DM_DECPPU,
 };
 
-static struct zx_pm_domain vou_domain = {
+static struct zx_pm_domain vou_domain =
+{
 	.dm = {
 		.name		= "vou_domain",
 		.power_off	= normal_power_off,
@@ -133,7 +146,8 @@ static struct zx_pm_domain vou_domain = {
 	.bit = PCU_DM_VOU,
 };
 
-static struct zx_pm_domain r2d_domain = {
+static struct zx_pm_domain r2d_domain =
+{
 	.dm = {
 		.name		= "r2d_domain",
 		.power_off	= normal_power_off,
@@ -142,7 +156,8 @@ static struct zx_pm_domain r2d_domain = {
 	.bit = PCU_DM_R2D,
 };
 
-static struct generic_pm_domain *zx296702_pm_domains[] = {
+static struct generic_pm_domain *zx296702_pm_domains[] =
+{
 	&vou_domain.dm,
 	&gpu_domain.dm,
 	&decppu_domain.dm,
@@ -156,37 +171,48 @@ static int zx296702_pd_probe(struct platform_device *pdev)
 	int i;
 
 	genpd_data = devm_kzalloc(&pdev->dev, sizeof(*genpd_data), GFP_KERNEL);
+
 	if (!genpd_data)
+	{
 		return -ENOMEM;
+	}
 
 	genpd_data->domains = zx296702_pm_domains;
 	genpd_data->num_domains = ARRAY_SIZE(zx296702_pm_domains);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "no memory resource defined\n");
 		return -ENODEV;
 	}
 
 	pcubase = devm_ioremap_resource(&pdev->dev, res);
-	if (!pcubase) {
+
+	if (!pcubase)
+	{
 		dev_err(&pdev->dev, "ioremap fail.\n");
 		return -EIO;
 	}
 
 	for (i = 0; i < ARRAY_SIZE(zx296702_pm_domains); ++i)
+	{
 		pm_genpd_init(zx296702_pm_domains[i], NULL, false);
+	}
 
 	of_genpd_add_provider_onecell(pdev->dev.of_node, genpd_data);
 	return 0;
 }
 
-static const struct of_device_id zx296702_pm_domain_matches[] __initconst = {
+static const struct of_device_id zx296702_pm_domain_matches[] __initconst =
+{
 	{ .compatible = "zte,zx296702-pcu", },
 	{ },
 };
 
-static struct platform_driver zx296702_pd_driver __initdata = {
+static struct platform_driver zx296702_pd_driver __initdata =
+{
 	.driver = {
 		.name = "zx-powerdomain",
 		.owner = THIS_MODULE,

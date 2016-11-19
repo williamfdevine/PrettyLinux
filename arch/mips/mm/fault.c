@@ -36,9 +36,9 @@ int show_unhandled_signals = 1;
  * routines.
  */
 static void __kprobes __do_page_fault(struct pt_regs *regs, unsigned long write,
-	unsigned long address)
+									  unsigned long address)
 {
-	struct vm_area_struct * vma = NULL;
+	struct vm_area_struct *vma = NULL;
 	struct task_struct *tsk = current;
 	struct mm_struct *mm = tsk->mm;
 	const int field = sizeof(unsigned long) * 2;
@@ -50,17 +50,21 @@ static void __kprobes __do_page_fault(struct pt_regs *regs, unsigned long write,
 
 #if 0
 	printk("Cpu%d[%s:%d:%0*lx:%ld:%0*lx]\n", raw_smp_processor_id(),
-	       current->comm, current->pid, field, address, write,
-	       field, regs->cp0_epc);
+		   current->comm, current->pid, field, address, write,
+		   field, regs->cp0_epc);
 #endif
 
 #ifdef CONFIG_KPROBES
+
 	/*
 	 * This is to notify the fault handler of the kprobes.
 	 */
 	if (notify_die(DIE_PAGE_FAULT, "page fault", regs, -1,
-		       current->thread.trap_nr, SIGSEGV) == NOTIFY_STOP)
+				   current->thread.trap_nr, SIGSEGV) == NOTIFY_STOP)
+	{
 		return;
+	}
+
 #endif
 
 	info.si_code = SEGV_MAPERR;
@@ -81,10 +85,17 @@ static void __kprobes __do_page_fault(struct pt_regs *regs, unsigned long write,
 #endif
 
 	if (unlikely(address >= VMALLOC_START && address <= VMALLOC_END))
+	{
 		goto VMALLOC_FAULT_TARGET;
+	}
+
 #ifdef MODULE_START
+
 	if (unlikely(address >= MODULE_START && address < MODULE_END))
+	{
 		goto VMALLOC_FAULT_TARGET;
+	}
+
 #endif
 
 	/*
@@ -92,58 +103,90 @@ static void __kprobes __do_page_fault(struct pt_regs *regs, unsigned long write,
 	 * context, we must not take the fault..
 	 */
 	if (faulthandler_disabled() || !mm)
+	{
 		goto bad_area_nosemaphore;
+	}
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 retry:
 	down_read(&mm->mmap_sem);
 	vma = find_vma(mm, address);
+
 	if (!vma)
+	{
 		goto bad_area;
+	}
+
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
+
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
+	}
+
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
-/*
- * Ok, we have a good vm_area for this memory access, so
- * we can handle it..
- */
+	}
+
+	/*
+	 * Ok, we have a good vm_area for this memory access, so
+	 * we can handle it..
+	 */
 good_area:
 	info.si_code = SEGV_ACCERR;
 
-	if (write) {
+	if (write)
+	{
 		if (!(vma->vm_flags & VM_WRITE))
+		{
 			goto bad_area;
+		}
+
 		flags |= FAULT_FLAG_WRITE;
-	} else {
-		if (cpu_has_rixi) {
-			if (address == regs->cp0_epc && !(vma->vm_flags & VM_EXEC)) {
+	}
+	else
+	{
+		if (cpu_has_rixi)
+		{
+			if (address == regs->cp0_epc && !(vma->vm_flags & VM_EXEC))
+			{
 #if 0
 				pr_notice("Cpu%d[%s:%d:%0*lx:%ld:%0*lx] XI violation\n",
-					  raw_smp_processor_id(),
-					  current->comm, current->pid,
-					  field, address, write,
-					  field, regs->cp0_epc);
+						  raw_smp_processor_id(),
+						  current->comm, current->pid,
+						  field, address, write,
+						  field, regs->cp0_epc);
 #endif
 				goto bad_area;
 			}
+
 			if (!(vma->vm_flags & VM_READ) &&
-			    exception_epc(regs) != address) {
+				exception_epc(regs) != address)
+			{
 #if 0
 				pr_notice("Cpu%d[%s:%d:%0*lx:%ld:%0*lx] RI violation\n",
-					  raw_smp_processor_id(),
-					  current->comm, current->pid,
-					  field, address, write,
-					  field, regs->cp0_epc);
+						  raw_smp_processor_id(),
+						  current->comm, current->pid,
+						  field, address, write,
+						  field, regs->cp0_epc);
 #endif
 				goto bad_area;
 			}
-		} else {
+		}
+		else
+		{
 			if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
+			{
 				goto bad_area;
+			}
 		}
 	}
 
@@ -155,29 +198,47 @@ good_area:
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return;
+	}
 
 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
-		if (fault & VM_FAULT_MAJOR) {
+
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
+		if (fault & VM_FAULT_MAJOR)
+		{
 			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1,
 						  regs, address);
 			tsk->maj_flt++;
-		} else {
+		}
+		else
+		{
 			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1,
 						  regs, address);
 			tsk->min_flt++;
 		}
-		if (fault & VM_FAULT_RETRY) {
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 			flags |= FAULT_FLAG_TRIED;
 
@@ -194,33 +255,38 @@ good_area:
 	up_read(&mm->mmap_sem);
 	return;
 
-/*
- * Something tried to access memory that isn't in our memory map..
- * Fix it, but check if it's kernel or user first..
- */
+	/*
+	 * Something tried to access memory that isn't in our memory map..
+	 * Fix it, but check if it's kernel or user first..
+	 */
 bad_area:
 	up_read(&mm->mmap_sem);
 
 bad_area_nosemaphore:
+
 	/* User mode accesses just cause a SIGSEGV */
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		tsk->thread.cp0_badvaddr = address;
 		tsk->thread.error_code = write;
+
 		if (show_unhandled_signals &&
-		    unhandled_signal(tsk, SIGSEGV) &&
-		    __ratelimit(&ratelimit_state)) {
+			unhandled_signal(tsk, SIGSEGV) &&
+			__ratelimit(&ratelimit_state))
+		{
 			pr_info("\ndo_page_fault(): sending SIGSEGV to %s for invalid %s %0*lx",
-				tsk->comm,
-				write ? "write access to" : "read access from",
-				field, address);
+					tsk->comm,
+					write ? "write access to" : "read access from",
+					field, address);
 			pr_info("epc = %0*lx in", field,
-				(unsigned long) regs->cp0_epc);
+					(unsigned long) regs->cp0_epc);
 			print_vma_addr(" ", regs->cp0_epc);
 			pr_info("ra  = %0*lx in", field,
-				(unsigned long) regs->regs[31]);
+					(unsigned long) regs->regs[31]);
 			print_vma_addr(" ", regs->regs[31]);
 			pr_info("\n");
 		}
+
 		current->thread.trap_nr = (regs->cp0_cause >> 2) & 0x1f;
 		info.si_signo = SIGSEGV;
 		info.si_errno = 0;
@@ -231,8 +297,10 @@ bad_area_nosemaphore:
 	}
 
 no_context:
+
 	/* Are we prepared to handle this kernel fault?	 */
-	if (fixup_exception(regs)) {
+	if (fixup_exception(regs))
+	{
 		current->thread.cp0_baduaddr = address;
 		return;
 	}
@@ -244,9 +312,9 @@ no_context:
 	bust_spinlocks(1);
 
 	printk(KERN_ALERT "CPU %d Unable to handle kernel paging request at "
-	       "virtual address %0*lx, epc == %0*lx, ra == %0*lx\n",
-	       raw_smp_processor_id(), field, address, field, regs->cp0_epc,
-	       field,  regs->regs[31]);
+		   "virtual address %0*lx, epc == %0*lx, ra == %0*lx\n",
+		   raw_smp_processor_id(), field, address, field, regs->cp0_epc,
+		   field,  regs->regs[31]);
 	die("Oops", regs);
 
 out_of_memory:
@@ -255,8 +323,12 @@ out_of_memory:
 	 * (which will retry the fault, or kill us if we got oom-killed).
 	 */
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return;
 
@@ -265,20 +337,23 @@ do_sigbus:
 
 	/* Kernel mode? Handle exceptions or die */
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
 	else
-	/*
-	 * Send a sigbus, regardless of whether we were in kernel
-	 * or user mode.
-	 */
+		/*
+		 * Send a sigbus, regardless of whether we were in kernel
+		 * or user mode.
+		 */
 #if 0
 		printk("do_page_fault() #3: sending SIGBUS to %s for "
-		       "invalid %s\n%0*lx (epc == %0*lx, ra == %0*lx)\n",
-		       tsk->comm,
-		       write ? "write access to" : "read access from",
-		       field, address,
-		       field, (unsigned long) regs->cp0_epc,
-		       field, (unsigned long) regs->regs[31]);
+			   "invalid %s\n%0*lx (epc == %0*lx, ra == %0*lx)\n",
+			   tsk->comm,
+			   write ? "write access to" : "read access from",
+			   field, address,
+			   field, (unsigned long) regs->cp0_epc,
+			   field, (unsigned long) regs->regs[31]);
+
 #endif
 	current->thread.trap_nr = (regs->cp0_cause >> 2) & 0x1f;
 	tsk->thread.cp0_badvaddr = address;
@@ -309,30 +384,44 @@ vmalloc_fault:
 		pgd_k = init_mm.pgd + offset;
 
 		if (!pgd_present(*pgd_k))
+		{
 			goto no_context;
+		}
+
 		set_pgd(pgd, *pgd_k);
 
 		pud = pud_offset(pgd, address);
 		pud_k = pud_offset(pgd_k, address);
+
 		if (!pud_present(*pud_k))
+		{
 			goto no_context;
+		}
 
 		pmd = pmd_offset(pud, address);
 		pmd_k = pmd_offset(pud_k, address);
+
 		if (!pmd_present(*pmd_k))
+		{
 			goto no_context;
+		}
+
 		set_pmd(pmd, *pmd_k);
 
 		pte_k = pte_offset_kernel(pmd_k, address);
+
 		if (!pte_present(*pte_k))
+		{
 			goto no_context;
+		}
+
 		return;
 	}
 #endif
 }
 
 asmlinkage void __kprobes do_page_fault(struct pt_regs *regs,
-	unsigned long write, unsigned long address)
+										unsigned long write, unsigned long address)
 {
 	enum ctx_state prev_state;
 

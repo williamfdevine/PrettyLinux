@@ -32,11 +32,13 @@
 #include "sys_regs.h"
 
 static bool access_actlr(struct kvm_vcpu *vcpu,
-			 struct sys_reg_params *p,
-			 const struct sys_reg_desc *r)
+						 struct sys_reg_params *p,
+						 const struct sys_reg_desc *r)
 {
 	if (p->is_write)
+	{
 		return ignore_write(vcpu, p);
+	}
 
 	p->regval = vcpu_sys_reg(vcpu, ACTLR_EL1);
 	return true;
@@ -51,19 +53,26 @@ static void reset_actlr(struct kvm_vcpu *vcpu, const struct sys_reg_desc *r)
  * Implementation specific sys-reg registers.
  * Important: Must be sorted ascending by Op0, Op1, CRn, CRm, Op2
  */
-static const struct sys_reg_desc genericv8_sys_regs[] = {
+static const struct sys_reg_desc genericv8_sys_regs[] =
+{
 	/* ACTLR_EL1 */
-	{ Op0(0b11), Op1(0b000), CRn(0b0001), CRm(0b0000), Op2(0b001),
-	  access_actlr, reset_actlr, ACTLR_EL1 },
+	{
+		Op0(0b11), Op1(0b000), CRn(0b0001), CRm(0b0000), Op2(0b001),
+		access_actlr, reset_actlr, ACTLR_EL1
+	},
 };
 
-static const struct sys_reg_desc genericv8_cp15_regs[] = {
+static const struct sys_reg_desc genericv8_cp15_regs[] =
+{
 	/* ACTLR */
-	{ Op1(0b000), CRn(0b0001), CRm(0b0000), Op2(0b001),
-	  access_actlr },
+	{
+		Op1(0b000), CRn(0b0001), CRm(0b0000), Op2(0b001),
+		access_actlr
+	},
 };
 
-static struct kvm_sys_reg_target_table genericv8_target_table = {
+static struct kvm_sys_reg_target_table genericv8_target_table =
+{
 	.table64 = {
 		.table = genericv8_sys_regs,
 		.num = ARRAY_SIZE(genericv8_sys_regs),
@@ -79,21 +88,21 @@ static int __init sys_reg_genericv8_init(void)
 	unsigned int i;
 
 	for (i = 1; i < ARRAY_SIZE(genericv8_sys_regs); i++)
-		BUG_ON(cmp_sys_reg(&genericv8_sys_regs[i-1],
-			       &genericv8_sys_regs[i]) >= 0);
+		BUG_ON(cmp_sys_reg(&genericv8_sys_regs[i - 1],
+						   &genericv8_sys_regs[i]) >= 0);
 
 	kvm_register_target_sys_reg_table(KVM_ARM_TARGET_AEM_V8,
-					  &genericv8_target_table);
+									  &genericv8_target_table);
 	kvm_register_target_sys_reg_table(KVM_ARM_TARGET_FOUNDATION_V8,
-					  &genericv8_target_table);
+									  &genericv8_target_table);
 	kvm_register_target_sys_reg_table(KVM_ARM_TARGET_CORTEX_A53,
-					  &genericv8_target_table);
+									  &genericv8_target_table);
 	kvm_register_target_sys_reg_table(KVM_ARM_TARGET_CORTEX_A57,
-					  &genericv8_target_table);
+									  &genericv8_target_table);
 	kvm_register_target_sys_reg_table(KVM_ARM_TARGET_XGENE_POTENZA,
-					  &genericv8_target_table);
+									  &genericv8_target_table);
 	kvm_register_target_sys_reg_table(KVM_ARM_TARGET_GENERIC_V8,
-					  &genericv8_target_table);
+									  &genericv8_target_table);
 
 	return 0;
 }

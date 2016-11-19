@@ -48,7 +48,8 @@
  *
  * Registers are mapped statically in ep93xx_map_io().
  */
-static struct ep93xx_dma_chan_data ep93xx_dma_m2p_channels[] = {
+static struct ep93xx_dma_chan_data ep93xx_dma_m2p_channels[] =
+{
 	DMA_CHANNEL("m2p0", EP93XX_DMA_BASE + 0x0000, IRQ_EP93XX_DMAM2P0),
 	DMA_CHANNEL("m2p1", EP93XX_DMA_BASE + 0x0040, IRQ_EP93XX_DMAM2P1),
 	DMA_CHANNEL("m2p2", EP93XX_DMA_BASE + 0x0080, IRQ_EP93XX_DMAM2P2),
@@ -61,14 +62,16 @@ static struct ep93xx_dma_chan_data ep93xx_dma_m2p_channels[] = {
 	DMA_CHANNEL("m2p9", EP93XX_DMA_BASE + 0x0300, IRQ_EP93XX_DMAM2P9),
 };
 
-static struct ep93xx_dma_platform_data ep93xx_dma_m2p_data = {
+static struct ep93xx_dma_platform_data ep93xx_dma_m2p_data =
+{
 	.channels		= ep93xx_dma_m2p_channels,
 	.num_channels		= ARRAY_SIZE(ep93xx_dma_m2p_channels),
 };
 
 static u64 ep93xx_dma_m2p_mask = DMA_BIT_MASK(32);
 
-static struct platform_device ep93xx_dma_m2p_device = {
+static struct platform_device ep93xx_dma_m2p_device =
+{
 	.name			= "ep93xx-dma-m2p",
 	.id			= -1,
 	.dev			= {
@@ -87,19 +90,22 @@ static struct platform_device ep93xx_dma_m2p_device = {
  *
  * Registers are mapped statically in ep93xx_map_io().
  */
-static struct ep93xx_dma_chan_data ep93xx_dma_m2m_channels[] = {
+static struct ep93xx_dma_chan_data ep93xx_dma_m2m_channels[] =
+{
 	DMA_CHANNEL("m2m0", EP93XX_DMA_BASE + 0x0100, IRQ_EP93XX_DMAM2M0),
 	DMA_CHANNEL("m2m1", EP93XX_DMA_BASE + 0x0140, IRQ_EP93XX_DMAM2M1),
 };
 
-static struct ep93xx_dma_platform_data ep93xx_dma_m2m_data = {
+static struct ep93xx_dma_platform_data ep93xx_dma_m2m_data =
+{
 	.channels		= ep93xx_dma_m2m_channels,
 	.num_channels		= ARRAY_SIZE(ep93xx_dma_m2m_channels),
 };
 
 static u64 ep93xx_dma_m2m_mask = DMA_BIT_MASK(32);
 
-static struct platform_device ep93xx_dma_m2m_device = {
+static struct platform_device ep93xx_dma_m2m_device =
+{
 	.name			= "ep93xx-dma-m2m",
 	.id			= -1,
 	.dev			= {

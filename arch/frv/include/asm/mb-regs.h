@@ -17,14 +17,14 @@
 #include <asm/mem-layout.h>
 
 #ifndef __ASSEMBLY__
-/* gcc builtins, annotated */
+	/* gcc builtins, annotated */
 
-unsigned long __builtin_read8(volatile void __iomem *);
-unsigned long __builtin_read16(volatile void __iomem *);
-unsigned long __builtin_read32(volatile void __iomem *);
-void __builtin_write8(volatile void __iomem *, unsigned char);
-void __builtin_write16(volatile void __iomem *, unsigned short);
-void __builtin_write32(volatile void __iomem *, unsigned long);
+	unsigned long __builtin_read8(volatile void __iomem *);
+	unsigned long __builtin_read16(volatile void __iomem *);
+	unsigned long __builtin_read32(volatile void __iomem *);
+	void __builtin_write8(volatile void __iomem *, unsigned char);
+	void __builtin_write16(volatile void __iomem *, unsigned short);
+	void __builtin_write32(volatile void __iomem *, unsigned long);
 #endif
 
 #define __region_IO	KERNEL_IO_START	/* the region from 0xe0000000 to 0xffffffff has suitable
@@ -69,9 +69,9 @@ void __builtin_write32(volatile void __iomem *, unsigned long);
 #define __region_PCI_IO		(__region_CS2 + 0x04000000UL)
 #define __region_PCI_MEM	(__region_CS2 + 0x08000000UL)
 #define __flush_PCI_writes()						\
-do {									\
-	__builtin_write8((volatile void __iomem *) __region_PCI_MEM, 0);	\
-} while(0)
+	do {									\
+		__builtin_write8((volatile void __iomem *) __region_PCI_MEM, 0);	\
+	} while(0)
 
 #define __is_PCI_IO(addr) \
 	(((unsigned long)(addr) >> 24) - (__region_PCI_IO >> 24)  < (0x04000000UL >> 24))
@@ -86,16 +86,16 @@ do {									\
 #define __get_CLKIN()	(__get_CLKSW() * 125U * 100000U / 24U)
 
 #ifndef __ASSEMBLY__
-extern int __nongprelbss mb93090_mb00_detected;
+	extern int __nongprelbss mb93090_mb00_detected;
 #endif
 
 #define __addr_LEDS()		(__region_CS2 + 0x01200004UL)
 #ifdef CONFIG_MB93090_MB00
 #define __set_LEDS(X)							\
-do {									\
-	if (mb93090_mb00_detected)					\
-		__builtin_write32((void __iomem *) __addr_LEDS(), ~(X));	\
-} while (0)
+	do {									\
+		if (mb93090_mb00_detected)					\
+			__builtin_write32((void __iomem *) __addr_LEDS(), ~(X));	\
+	} while (0)
 #else
 #define __set_LEDS(X)
 #endif

@@ -28,7 +28,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long gpr[32];
 	unsigned long nip;
 	unsigned long msr;
@@ -41,7 +42,7 @@ struct pt_regs {
 	unsigned long softe;		/* Soft enabled/disabled */
 #else
 	unsigned long mq;		/* 601 only (not used at present) */
-					/* Used on APUS to hold IPL value. */
+	/* Used on APUS to hold IPL value. */
 #endif
 	unsigned long trap;		/* Reason for being here */
 	/* N.B. for critical exceptions on 4xx, the dar and dsisr
@@ -100,9 +101,9 @@ struct pt_regs {
 #define PT_XER	37
 #define PT_CCR	38
 #ifndef __powerpc64__
-#define PT_MQ	39
+	#define PT_MQ	39
 #else
-#define PT_SOFTE 39
+	#define PT_SOFTE 39
 #endif
 #define PT_TRAP	40
 #define PT_DAR	41
@@ -115,24 +116,24 @@ struct pt_regs {
 
 #ifndef __powerpc64__
 
-#define PT_FPR31 (PT_FPR0 + 2*31)
-#define PT_FPSCR (PT_FPR0 + 2*32 + 1)
+	#define PT_FPR31 (PT_FPR0 + 2*31)
+	#define PT_FPSCR (PT_FPR0 + 2*32 + 1)
 
 #else /* __powerpc64__ */
 
-#define PT_FPSCR (PT_FPR0 + 32)	/* each FP reg occupies 1 slot in 64-bit space */
+	#define PT_FPSCR (PT_FPR0 + 32)	/* each FP reg occupies 1 slot in 64-bit space */
 
 
-#define PT_VR0 82	/* each Vector reg occupies 2 slots in 64-bit */
-#define PT_VSCR (PT_VR0 + 32*2 + 1)
-#define PT_VRSAVE (PT_VR0 + 33*2)
+	#define PT_VR0 82	/* each Vector reg occupies 2 slots in 64-bit */
+	#define PT_VSCR (PT_VR0 + 32*2 + 1)
+	#define PT_VRSAVE (PT_VR0 + 33*2)
 
 
-/*
- * Only store first 32 VSRs here. The second 32 VSRs in VR0-31
- */
-#define PT_VSR0 150	/* each VSR reg occupies 2 slots in 64-bit */
-#define PT_VSR31 (PT_VSR0 + 2*31)
+	/*
+	* Only store first 32 VSRs here. The second 32 VSRs in VR0-31
+	*/
+	#define PT_VSR0 150	/* each VSR reg occupies 2 slots in 64-bit */
+	#define PT_VSR31 (PT_VSR0 + 2*31)
 #endif /* __powerpc64__ */
 
 /*
@@ -192,7 +193,8 @@ struct pt_regs {
 
 #ifndef __ASSEMBLY__
 
-struct ppc_debug_info {
+struct ppc_debug_info
+{
 	__u32 version;			/* Only version 1 exists to date */
 	__u32 num_instruction_bps;
 	__u32 num_data_bps;
@@ -215,7 +217,8 @@ struct ppc_debug_info {
 
 #ifndef __ASSEMBLY__
 
-struct ppc_hw_breakpoint {
+struct ppc_hw_breakpoint
+{
 	__u32 version;		/* currently, version must be 1 */
 	__u32 trigger_type;	/* only some combinations allowed */
 	__u32 addr_mode;	/* address match mode */

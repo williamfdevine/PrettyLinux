@@ -24,14 +24,14 @@ extern void do_IRQ(int irq, struct pt_regs *regs);
 extern void init_IRQ(void);
 
 #ifdef CONFIG_METAG_SUSPEND_MEM
-int traps_save_context(void);
-int traps_restore_context(void);
+	int traps_save_context(void);
+	int traps_restore_context(void);
 #endif
 
 #include <asm-generic/irq.h>
 
 #ifdef CONFIG_HOTPLUG_CPU
-extern void migrate_irqs(void);
+	extern void migrate_irqs(void);
 #endif
 
 #endif /* __ASM_METAG_IRQ_H */

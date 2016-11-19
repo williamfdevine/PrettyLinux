@@ -5,7 +5,7 @@
 
 static struct kmem_cache *pgd_cachep;
 #if PAGETABLE_LEVELS > 2
-static struct kmem_cache *pmd_cachep;
+	static struct kmem_cache *pmd_cachep;
 #endif
 
 void pgd_ctor(void *x)
@@ -13,19 +13,19 @@ void pgd_ctor(void *x)
 	pgd_t *pgd = x;
 
 	memcpy(pgd + USER_PTRS_PER_PGD,
-	       swapper_pg_dir + USER_PTRS_PER_PGD,
-	       (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
+		   swapper_pg_dir + USER_PTRS_PER_PGD,
+		   (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 }
 
 void pgtable_cache_init(void)
 {
 	pgd_cachep = kmem_cache_create("pgd_cache",
-				       PTRS_PER_PGD * (1<<PTE_MAGNITUDE),
-				       PAGE_SIZE, SLAB_PANIC, pgd_ctor);
+								   PTRS_PER_PGD * (1 << PTE_MAGNITUDE),
+								   PAGE_SIZE, SLAB_PANIC, pgd_ctor);
 #if PAGETABLE_LEVELS > 2
 	pmd_cachep = kmem_cache_create("pmd_cache",
-				       PTRS_PER_PMD * (1<<PTE_MAGNITUDE),
-				       PAGE_SIZE, SLAB_PANIC, NULL);
+								   PTRS_PER_PMD * (1 << PTE_MAGNITUDE),
+								   PAGE_SIZE, SLAB_PANIC, NULL);
 #endif
 }
 

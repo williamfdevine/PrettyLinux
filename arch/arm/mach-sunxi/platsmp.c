@@ -44,44 +44,55 @@ static void __init sun6i_smp_prepare_cpus(unsigned int max_cpus)
 	struct device_node *node;
 
 	node = of_find_compatible_node(NULL, NULL, "allwinner,sun6i-a31-prcm");
-	if (!node) {
+
+	if (!node)
+	{
 		pr_err("Missing A31 PRCM node in the device tree\n");
 		return;
 	}
 
 	prcm_membase = of_iomap(node, 0);
-	if (!prcm_membase) {
+
+	if (!prcm_membase)
+	{
 		pr_err("Couldn't map A31 PRCM registers\n");
 		return;
 	}
 
 	node = of_find_compatible_node(NULL, NULL,
-				       "allwinner,sun6i-a31-cpuconfig");
-	if (!node) {
+								   "allwinner,sun6i-a31-cpuconfig");
+
+	if (!node)
+	{
 		pr_err("Missing A31 CPU config node in the device tree\n");
 		return;
 	}
 
 	cpucfg_membase = of_iomap(node, 0);
+
 	if (!cpucfg_membase)
+	{
 		pr_err("Couldn't map A31 CPU config registers\n");
+	}
 
 }
 
 static int sun6i_smp_boot_secondary(unsigned int cpu,
-				    struct task_struct *idle)
+									struct task_struct *idle)
 {
 	u32 reg;
 	int i;
 
 	if (!(prcm_membase && cpucfg_membase))
+	{
 		return -EFAULT;
+	}
 
 	spin_lock(&cpu_lock);
 
 	/* Set CPU boot address */
 	writel(virt_to_phys(secondary_startup),
-	       cpucfg_membase + CPUCFG_PRIVATE0_REG);
+		   cpucfg_membase + CPUCFG_PRIVATE0_REG);
 
 	/* Assert the CPU core in reset */
 	writel(0, cpucfg_membase + CPUCFG_CPU_RST_CTRL_REG(cpu));
@@ -96,7 +107,10 @@ static int sun6i_smp_boot_secondary(unsigned int cpu,
 
 	/* Power up the CPU */
 	for (i = 0; i <= 8; i++)
+	{
 		writel(0xff >> i, prcm_membase + PRCM_CPU_PWR_CLAMP_REG(cpu));
+	}
+
 	mdelay(10);
 
 	/* Clear CPU power-off gating */
@@ -116,7 +130,8 @@ static int sun6i_smp_boot_secondary(unsigned int cpu,
 	return 0;
 }
 
-static const struct smp_operations sun6i_smp_ops __initconst = {
+static const struct smp_operations sun6i_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= sun6i_smp_prepare_cpus,
 	.smp_boot_secondary	= sun6i_smp_boot_secondary,
 };
@@ -127,43 +142,54 @@ static void __init sun8i_smp_prepare_cpus(unsigned int max_cpus)
 	struct device_node *node;
 
 	node = of_find_compatible_node(NULL, NULL, "allwinner,sun8i-a23-prcm");
-	if (!node) {
+
+	if (!node)
+	{
 		pr_err("Missing A23 PRCM node in the device tree\n");
 		return;
 	}
 
 	prcm_membase = of_iomap(node, 0);
-	if (!prcm_membase) {
+
+	if (!prcm_membase)
+	{
 		pr_err("Couldn't map A23 PRCM registers\n");
 		return;
 	}
 
 	node = of_find_compatible_node(NULL, NULL,
-				       "allwinner,sun8i-a23-cpuconfig");
-	if (!node) {
+								   "allwinner,sun8i-a23-cpuconfig");
+
+	if (!node)
+	{
 		pr_err("Missing A23 CPU config node in the device tree\n");
 		return;
 	}
 
 	cpucfg_membase = of_iomap(node, 0);
+
 	if (!cpucfg_membase)
+	{
 		pr_err("Couldn't map A23 CPU config registers\n");
+	}
 
 }
 
 static int sun8i_smp_boot_secondary(unsigned int cpu,
-				    struct task_struct *idle)
+									struct task_struct *idle)
 {
 	u32 reg;
 
 	if (!(prcm_membase && cpucfg_membase))
+	{
 		return -EFAULT;
+	}
 
 	spin_lock(&cpu_lock);
 
 	/* Set CPU boot address */
 	writel(virt_to_phys(secondary_startup),
-	       cpucfg_membase + CPUCFG_PRIVATE0_REG);
+		   cpucfg_membase + CPUCFG_PRIVATE0_REG);
 
 	/* Assert the CPU core in reset */
 	writel(0, cpucfg_membase + CPUCFG_CPU_RST_CTRL_REG(cpu));
@@ -185,7 +211,8 @@ static int sun8i_smp_boot_secondary(unsigned int cpu,
 	return 0;
 }
 
-static const struct smp_operations sun8i_smp_ops __initconst = {
+static const struct smp_operations sun8i_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= sun8i_smp_prepare_cpus,
 	.smp_boot_secondary	= sun8i_smp_boot_secondary,
 };

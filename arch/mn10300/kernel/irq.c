@@ -16,18 +16,21 @@
 #include <asm/setup.h>
 #include <asm/serial-regs.h>
 
-unsigned long __mn10300_irq_enabled_epsw[NR_CPUS] __cacheline_aligned_in_smp = {
+unsigned long __mn10300_irq_enabled_epsw[NR_CPUS] __cacheline_aligned_in_smp =
+{
 	[0 ... NR_CPUS - 1] = EPSW_IE | EPSW_IM_7
 };
 EXPORT_SYMBOL(__mn10300_irq_enabled_epsw);
 
 #ifdef CONFIG_SMP
-static char irq_affinity_online[NR_IRQS] = {
+static char irq_affinity_online[NR_IRQS] =
+{
 	[0 ... NR_IRQS - 1] = 0
 };
 
 #define NR_IRQ_WORDS	((NR_IRQS + 31) / 32)
-static unsigned long irq_affinity_request[NR_IRQ_WORDS] = {
+static unsigned long irq_affinity_request[NR_IRQ_WORDS] =
+{
 	[0 ... NR_IRQ_WORDS - 1] = 0
 };
 #endif  /* CONFIG_SMP */
@@ -50,7 +53,7 @@ static void mn10300_cpupic_ack(struct irq_data *d)
 }
 
 static void __mask_and_set_icr(unsigned int irq,
-			       unsigned int mask, unsigned int set)
+							   unsigned int mask, unsigned int set)
 {
 	unsigned long flags;
 	u16 tmp;
@@ -76,11 +79,14 @@ static void mn10300_cpupic_mask_ack(struct irq_data *d)
 
 	flags = arch_local_cli_save();
 
-	if (!test_and_clear_bit(irq, irq_affinity_request)) {
+	if (!test_and_clear_bit(irq, irq_affinity_request))
+	{
 		tmp = GxICR(irq);
 		GxICR(irq) = (tmp & GxICR_LEVEL) | GxICR_DETECT;
 		tmp = GxICR(irq);
-	} else {
+	}
+	else
+	{
 		u16 tmp2;
 		tmp = GxICR(irq);
 		GxICR(irq) = (tmp & GxICR_LEVEL);
@@ -88,7 +94,7 @@ static void mn10300_cpupic_mask_ack(struct irq_data *d)
 
 		irq_affinity_online[irq] =
 			cpumask_any_and(irq_data_get_affinity_mask(d),
-					cpu_online_mask);
+							cpu_online_mask);
 		CROSS_GxICR(irq, irq_affinity_online[irq]) =
 			(tmp & (GxICR_LEVEL | GxICR_ENABLE)) | GxICR_DETECT;
 		tmp = CROSS_GxICR(irq, irq_affinity_online[irq]);
@@ -118,15 +124,18 @@ static void mn10300_cpupic_unmask_clear(struct irq_data *d)
 
 	flags = arch_local_cli_save();
 
-	if (!test_and_clear_bit(irq, irq_affinity_request)) {
+	if (!test_and_clear_bit(irq, irq_affinity_request))
+	{
 		tmp = GxICR(irq);
 		GxICR(irq) = (tmp & GxICR_LEVEL) | GxICR_ENABLE | GxICR_DETECT;
 		tmp = GxICR(irq);
-	} else {
+	}
+	else
+	{
 		tmp = GxICR(irq);
 
 		irq_affinity_online[irq] = cpumask_any_and(irq_data_get_affinity_mask(d),
-							   cpu_online_mask);
+								   cpu_online_mask);
 		CROSS_GxICR(irq, irq_affinity_online[irq]) = (tmp & GxICR_LEVEL) | GxICR_ENABLE | GxICR_DETECT;
 		tmp = CROSS_GxICR(irq, irq_affinity_online[irq]);
 	}
@@ -140,7 +149,7 @@ static void mn10300_cpupic_unmask_clear(struct irq_data *d)
 #ifdef CONFIG_SMP
 static int
 mn10300_cpupic_setaffinity(struct irq_data *d, const struct cpumask *mask,
-			   bool force)
+						   bool force)
 {
 	unsigned long flags;
 
@@ -161,7 +170,8 @@ mn10300_cpupic_setaffinity(struct irq_data *d, const struct cpumask *mask,
  * Also for this reason, we don't supply an ack() op (it's unused anyway if
  * mask_ack() is provided), and mask_ack() just masks.
  */
-static struct irq_chip mn10300_cpu_pic_level = {
+static struct irq_chip mn10300_cpu_pic_level =
+{
 	.name			= "cpu_l",
 	.irq_disable		= mn10300_cpupic_mask,
 	.irq_enable		= mn10300_cpupic_unmask_clear,
@@ -179,7 +189,8 @@ static struct irq_chip mn10300_cpu_pic_level = {
  *
  * We use the latch clearing function of the PIC as the 'ACK' function.
  */
-static struct irq_chip mn10300_cpu_pic_edge = {
+static struct irq_chip mn10300_cpu_pic_edge =
+{
 	.name			= "cpu_e",
 	.irq_disable		= mn10300_cpupic_mask,
 	.irq_enable		= mn10300_cpupic_unmask,
@@ -219,7 +230,7 @@ void set_intr_level(int irq, u16 level)
 void mn10300_set_lateack_irq_type(int irq)
 {
 	irq_set_chip_and_handler(irq, &mn10300_cpu_pic_level,
-				 handle_level_irq);
+							 handle_level_irq);
 }
 
 /*
@@ -236,7 +247,7 @@ void __init init_IRQ(void)
 			 * and we can use handle_level_irq() for edge-triggered
 			 * interrupts */
 			irq_set_chip_and_handler(irq, &mn10300_cpu_pic_edge,
-						 handle_level_irq);
+									 handle_level_irq);
 
 	unit_init_IRQ();
 }
@@ -266,13 +277,17 @@ asmlinkage void do_IRQ(void)
 
 	irq_enter();
 
-	for (;;) {
+	for (;;)
+	{
 		/* ask the interrupt controller for the next IRQ to process
 		 * - the result we get depends on EPSW.IM
 		 */
 		irq = IAGR & IAGR_GN;
+
 		if (!irq)
+		{
 			break;
+		}
 
 		local_irq_restore(irq_disabled_epsw);
 
@@ -296,9 +311,13 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 	int j;
 
 	seq_printf(p, "%*s: ", prec, "NMI");
+
 	for (j = 0; j < NR_CPUS; j++)
 		if (cpu_online(j))
+		{
 			seq_printf(p, "%10u ", nmi_count(j));
+		}
+
 	seq_putc(p, '\n');
 #endif
 
@@ -315,22 +334,30 @@ void migrate_irqs(void)
 	unsigned long flags;
 
 	self = smp_processor_id();
-	for (irq = 0; irq < NR_IRQS; irq++) {
+
+	for (irq = 0; irq < NR_IRQS; irq++)
+	{
 		struct irq_data *data = irq_get_irq_data(irq);
 		struct cpumask *mask = irq_data_get_affinity_mask(data);
 
 		if (irqd_is_per_cpu(data))
+		{
 			continue;
+		}
 
 		if (cpumask_test_cpu(self, mask) &&
-		    !cpumask_intersects(&irq_affinity[irq], cpu_online_mask)) {
+			!cpumask_intersects(&irq_affinity[irq], cpu_online_mask))
+		{
 			int cpu_id;
 			cpu_id = cpumask_first(cpu_online_mask);
 			cpumask_set_cpu(cpu_id, mask);
 		}
+
 		/* We need to operate irq_affinity_online atomically. */
 		arch_local_cli_save(flags);
-		if (irq_affinity_online[irq] == self) {
+
+		if (irq_affinity_online[irq] == self)
+		{
 			u16 x, tmp;
 
 			x = GxICR(irq);
@@ -345,11 +372,16 @@ void migrate_irqs(void)
 			tmp = CROSS_GxICR(irq, new);
 
 			x &= GxICR_LEVEL | GxICR_ENABLE;
+
 			if (GxICR(irq) & GxICR_REQUEST)
+			{
 				x |= GxICR_REQUEST | GxICR_DETECT;
+			}
+
 			CROSS_GxICR(irq, new) = x;
 			tmp = CROSS_GxICR(irq, new);
 		}
+
 		arch_local_irq_restore(flags);
 	}
 }

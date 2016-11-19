@@ -97,11 +97,11 @@
  * mapping set up in TTBR0.
  */
 #if defined CONFIG_VMSPLIT_2G
-#define TTBR1_OFFSET	16			/* skip two L1 entries */
+	#define TTBR1_OFFSET	16			/* skip two L1 entries */
 #elif defined CONFIG_VMSPLIT_3G
-#define TTBR1_OFFSET	(4096 * (1 + 3))	/* only L2, skip pgd + 3*pmd */
+	#define TTBR1_OFFSET	(4096 * (1 + 3))	/* only L2, skip pgd + 3*pmd */
 #else
-#define TTBR1_OFFSET	0
+	#define TTBR1_OFFSET	0
 #endif
 
 #define TTBR1_SIZE	(((PAGE_OFFSET >> 30) - 1) << 16)

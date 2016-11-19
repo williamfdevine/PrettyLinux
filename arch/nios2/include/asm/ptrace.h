@@ -19,7 +19,8 @@
    stack during a system call.  */
 
 #ifndef __ASSEMBLY__
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long  r8;	/* r8-r15 Caller-saved GP registers */
 	unsigned long  r9;
 	unsigned long  r10;
@@ -49,7 +50,8 @@ struct pt_regs {
  * This is the extended stack used by signal handlers and the context
  * switcher: it's pushed after the normal "struct pt_regs".
  */
-struct switch_stack {
+struct switch_stack
+{
 	unsigned long  r16;	/* r16-r23 Callee-saved GP registers */
 	unsigned long  r17;
 	unsigned long  r18;
@@ -72,7 +74,7 @@ extern void show_regs(struct pt_regs *);
 
 #define current_pt_regs() \
 	((struct pt_regs *)((unsigned long)current_thread_info() + THREAD_SIZE)\
-		- 1)
+	 - 1)
 
 int do_syscall_trace_enter(void);
 void do_syscall_trace_exit(void);

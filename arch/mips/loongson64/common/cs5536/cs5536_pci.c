@@ -24,7 +24,8 @@
 #include <cs5536/cs5536_pci.h>
 #include <cs5536/cs5536_vsm.h>
 
-enum {
+enum
+{
 	CS5536_FUNC_START = -1,
 	CS5536_ISA_FUNC,
 	reserved_func,
@@ -35,7 +36,8 @@ enum {
 	CS5536_FUNC_END,
 };
 
-static const cs5536_pci_vsm_write vsm_conf_write[] = {
+static const cs5536_pci_vsm_write vsm_conf_write[] =
+{
 	[CS5536_ISA_FUNC]	= pci_isa_write_reg,
 	[reserved_func]		= NULL,
 	[CS5536_IDE_FUNC]	= pci_ide_write_reg,
@@ -44,7 +46,8 @@ static const cs5536_pci_vsm_write vsm_conf_write[] = {
 	[CS5536_EHCI_FUNC]	= pci_ehci_write_reg,
 };
 
-static const cs5536_pci_vsm_read vsm_conf_read[] = {
+static const cs5536_pci_vsm_read vsm_conf_read[] =
+{
 	[CS5536_ISA_FUNC]	= pci_isa_read_reg,
 	[reserved_func]		= NULL,
 	[CS5536_IDE_FUNC]	= pci_ide_read_reg,
@@ -59,12 +62,19 @@ static const cs5536_pci_vsm_read vsm_conf_read[] = {
 void cs5536_pci_conf_write4(int function, int reg, u32 value)
 {
 	if ((function <= CS5536_FUNC_START) || (function >= CS5536_FUNC_END))
+	{
 		return;
+	}
+
 	if ((reg < 0) || (reg > 0x100) || ((reg & 0x03) != 0))
+	{
 		return;
+	}
 
 	if (vsm_conf_write[function] != NULL)
+	{
 		vsm_conf_write[function](reg, value);
+	}
 }
 
 /*
@@ -75,14 +85,24 @@ u32 cs5536_pci_conf_read4(int function, int reg)
 	u32 data = 0;
 
 	if ((function <= CS5536_FUNC_START) || (function >= CS5536_FUNC_END))
+	{
 		return 0;
+	}
+
 	if ((reg < 0) || ((reg & 0x03) != 0))
+	{
 		return 0;
+	}
+
 	if (reg > 0x100)
+	{
 		return 0xffffffff;
+	}
 
 	if (vsm_conf_read[function] != NULL)
+	{
 		data = vsm_conf_read[function](reg);
+	}
 
 	return data;
 }

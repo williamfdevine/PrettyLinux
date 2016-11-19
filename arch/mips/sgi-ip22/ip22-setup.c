@@ -52,7 +52,7 @@ void __init plat_mem_setup(void)
 	/* Set EISA IO port base for Indigo2
 	 * ioremap cannot fail */
 	set_io_port_base((unsigned long)ioremap(0x00080000,
-						0x1fffffff - 0x00080000));
+											0x1fffffff - 0x00080000));
 	/* ARCS console environment variable is set to "g?" for
 	 * graphics console, it is set to "d" for the first serial
 	 * line and "d2" for the second serial line.
@@ -63,14 +63,21 @@ void __init plat_mem_setup(void)
 	ctype = ArcGetEnvironmentVariable("console");
 	cserial = ArcGetEnvironmentVariable("ConsoleOut");
 
-	if ((ctype && *ctype == 'd') || (cserial && *cserial == 's')) {
+	if ((ctype && *ctype == 'd') || (cserial && *cserial == 's'))
+	{
 		static char options[8] __initdata;
 		char *baud = ArcGetEnvironmentVariable("dbaud");
+
 		if (baud)
+		{
 			strcpy(options, baud);
+		}
+
 		add_preferred_console("ttyS", *(ctype + 1) == '2' ? 1 : 0,
-				      baud ? options : NULL);
-	} else if (!ctype || *ctype != 'g') {
+							  baud ? options : NULL);
+	}
+	else if (!ctype || *ctype != 'g')
+	{
 		/* Use ARC if we don't want serial ('d') or graphics ('g'). */
 		prom_flags |= PROM_FLAG_USE_AS_CONSOLE;
 		add_preferred_console("arc", 0, NULL);

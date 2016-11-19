@@ -53,30 +53,41 @@
  * Returns String
  */
 const char *cvmx_helper_interface_mode_to_string(cvmx_helper_interface_mode_t
-						 mode)
+		mode)
 {
-	switch (mode) {
-	case CVMX_HELPER_INTERFACE_MODE_DISABLED:
-		return "DISABLED";
-	case CVMX_HELPER_INTERFACE_MODE_RGMII:
-		return "RGMII";
-	case CVMX_HELPER_INTERFACE_MODE_GMII:
-		return "GMII";
-	case CVMX_HELPER_INTERFACE_MODE_SPI:
-		return "SPI";
-	case CVMX_HELPER_INTERFACE_MODE_PCIE:
-		return "PCIE";
-	case CVMX_HELPER_INTERFACE_MODE_XAUI:
-		return "XAUI";
-	case CVMX_HELPER_INTERFACE_MODE_SGMII:
-		return "SGMII";
-	case CVMX_HELPER_INTERFACE_MODE_PICMG:
-		return "PICMG";
-	case CVMX_HELPER_INTERFACE_MODE_NPI:
-		return "NPI";
-	case CVMX_HELPER_INTERFACE_MODE_LOOP:
-		return "LOOP";
+	switch (mode)
+	{
+		case CVMX_HELPER_INTERFACE_MODE_DISABLED:
+			return "DISABLED";
+
+		case CVMX_HELPER_INTERFACE_MODE_RGMII:
+			return "RGMII";
+
+		case CVMX_HELPER_INTERFACE_MODE_GMII:
+			return "GMII";
+
+		case CVMX_HELPER_INTERFACE_MODE_SPI:
+			return "SPI";
+
+		case CVMX_HELPER_INTERFACE_MODE_PCIE:
+			return "PCIE";
+
+		case CVMX_HELPER_INTERFACE_MODE_XAUI:
+			return "XAUI";
+
+		case CVMX_HELPER_INTERFACE_MODE_SGMII:
+			return "SGMII";
+
+		case CVMX_HELPER_INTERFACE_MODE_PICMG:
+			return "PICMG";
+
+		case CVMX_HELPER_INTERFACE_MODE_NPI:
+			return "NPI";
+
+		case CVMX_HELPER_INTERFACE_MODE_LOOP:
+			return "LOOP";
 	}
+
 	return "UNKNOWN";
 }
 
@@ -100,21 +111,26 @@ int cvmx_helper_dump_packet(cvmx_wqe_t *work)
 	cvmx_dprintf("	  QoS:	       %u\n", cvmx_wqe_get_qos(work));
 	cvmx_dprintf("	  Buffers:     %u\n", work->word2.s.bufs);
 
-	if (work->word2.s.bufs == 0) {
+	if (work->word2.s.bufs == 0)
+	{
 		union cvmx_ipd_wqe_fpa_queue wqe_pool;
 		wqe_pool.u64 = cvmx_read_csr(CVMX_IPD_WQE_FPA_QUEUE);
 		buffer_ptr.u64 = 0;
 		buffer_ptr.s.pool = wqe_pool.s.wqe_pool;
 		buffer_ptr.s.size = 128;
 		buffer_ptr.s.addr = cvmx_ptr_to_phys(work->packet_data);
-		if (likely(!work->word2.s.not_IP)) {
+
+		if (likely(!work->word2.s.not_IP))
+		{
 			union cvmx_pip_ip_offset pip_ip_offset;
 			pip_ip_offset.u64 = cvmx_read_csr(CVMX_PIP_IP_OFFSET);
 			buffer_ptr.s.addr +=
-			    (pip_ip_offset.s.offset << 3) -
-			    work->word2.s.ip_offset;
+				(pip_ip_offset.s.offset << 3) -
+				work->word2.s.ip_offset;
 			buffer_ptr.s.addr += (work->word2.s.is_v6 ^ 1) << 2;
-		} else {
+		}
+		else
+		{
 			/*
 			 * WARNING: This code assumes that the packet
 			 * is not RAW. If it was, we would use
@@ -125,45 +141,64 @@ int cvmx_helper_dump_packet(cvmx_wqe_t *work)
 			pip_gbl_cfg.u64 = cvmx_read_csr(CVMX_PIP_GBL_CFG);
 			buffer_ptr.s.addr += pip_gbl_cfg.s.nip_shf;
 		}
-	} else
+	}
+	else
+	{
 		buffer_ptr = work->packet_ptr;
+	}
+
 	remaining_bytes = work->word1.len;
 
-	while (remaining_bytes) {
+	while (remaining_bytes)
+	{
 		start_of_buffer =
-		    ((buffer_ptr.s.addr >> 7) - buffer_ptr.s.back) << 7;
+			((buffer_ptr.s.addr >> 7) - buffer_ptr.s.back) << 7;
 		cvmx_dprintf("	  Buffer Start:%llx\n",
-			     (unsigned long long)start_of_buffer);
+					 (unsigned long long)start_of_buffer);
 		cvmx_dprintf("	  Buffer I   : %u\n", buffer_ptr.s.i);
 		cvmx_dprintf("	  Buffer Back: %u\n", buffer_ptr.s.back);
 		cvmx_dprintf("	  Buffer Pool: %u\n", buffer_ptr.s.pool);
 		cvmx_dprintf("	  Buffer Data: %llx\n",
-			     (unsigned long long)buffer_ptr.s.addr);
+					 (unsigned long long)buffer_ptr.s.addr);
 		cvmx_dprintf("	  Buffer Size: %u\n", buffer_ptr.s.size);
 
 		cvmx_dprintf("\t\t");
 		data_address = (uint8_t *) cvmx_phys_to_ptr(buffer_ptr.s.addr);
 		end_of_data = data_address + buffer_ptr.s.size;
 		count = 0;
-		while (data_address < end_of_data) {
+
+		while (data_address < end_of_data)
+		{
 			if (remaining_bytes == 0)
+			{
 				break;
+			}
 			else
+			{
 				remaining_bytes--;
+			}
+
 			cvmx_dprintf("%02x", (unsigned int)*data_address);
 			data_address++;
-			if (remaining_bytes && (count == 7)) {
+
+			if (remaining_bytes && (count == 7))
+			{
 				cvmx_dprintf("\n\t\t");
 				count = 0;
-			} else
+			}
+			else
+			{
 				count++;
+			}
 		}
+
 		cvmx_dprintf("\n");
 
 		if (remaining_bytes)
 			buffer_ptr = *(union cvmx_buf_ptr *)
-				cvmx_phys_to_ptr(buffer_ptr.s.addr - 8);
+						 cvmx_phys_to_ptr(buffer_ptr.s.addr - 8);
 	}
+
 	return 0;
 }
 
@@ -195,7 +230,7 @@ int cvmx_helper_setup_red_queue(int queue, int pass_thresh, int drop_thresh)
 	/* Use the actual queue 0 counter, not the average */
 	red_param.u64 = 0;
 	red_param.s.prb_con =
-	    (255ul << 24) / (red_marks.s.pass - red_marks.s.drop);
+		(255ul << 24) / (red_marks.s.pass - red_marks.s.drop);
 	red_param.s.avg_con = 1;
 	red_param.s.new_con = 255;
 	red_param.s.use_pcnt = 1;
@@ -227,15 +262,19 @@ int cvmx_helper_setup_red(int pass_thresh, int drop_thresh)
 	page_cnt.u64 = 0;
 	page_cnt.s.bp_enb = 0;
 	page_cnt.s.page_cnt = 100;
-	for (interface = 0; interface < 2; interface++) {
+
+	for (interface = 0; interface < 2; interface++)
+	{
 		for (port = cvmx_helper_get_first_ipd_port(interface);
-		     port < cvmx_helper_get_last_ipd_port(interface); port++)
+			 port < cvmx_helper_get_last_ipd_port(interface); port++)
 			cvmx_write_csr(CVMX_IPD_PORTX_BP_PAGE_CNT(port),
-				       page_cnt.u64);
+						   page_cnt.u64);
 	}
 
 	for (queue = 0; queue < 8; queue++)
+	{
 		cvmx_helper_setup_red_queue(queue, pass_thresh, drop_thresh);
+	}
 
 	/* Shutoff the dropping based on the per port page count. SW isn't
 	   decrementing it right now */
@@ -279,16 +318,18 @@ int __cvmx_helper_setup_gmx(int interface, int num_ports)
 	/* Tell GMX the number of RX ports on this interface.  This only
 	 ** applies to *GMII and XAUI ports */
 	if (cvmx_helper_interface_get_mode(interface) ==
-	    CVMX_HELPER_INTERFACE_MODE_RGMII
-	    || cvmx_helper_interface_get_mode(interface) ==
-	    CVMX_HELPER_INTERFACE_MODE_SGMII
-	    || cvmx_helper_interface_get_mode(interface) ==
-	    CVMX_HELPER_INTERFACE_MODE_GMII
-	    || cvmx_helper_interface_get_mode(interface) ==
-	    CVMX_HELPER_INTERFACE_MODE_XAUI) {
-		if (num_ports > 4) {
+		CVMX_HELPER_INTERFACE_MODE_RGMII
+		|| cvmx_helper_interface_get_mode(interface) ==
+		CVMX_HELPER_INTERFACE_MODE_SGMII
+		|| cvmx_helper_interface_get_mode(interface) ==
+		CVMX_HELPER_INTERFACE_MODE_GMII
+		|| cvmx_helper_interface_get_mode(interface) ==
+		CVMX_HELPER_INTERFACE_MODE_XAUI)
+	{
+		if (num_ports > 4)
+		{
 			cvmx_dprintf("__cvmx_helper_setup_gmx: Illegal "
-				     "num_ports\n");
+						 "num_ports\n");
 			return -1;
 		}
 
@@ -299,32 +340,58 @@ int __cvmx_helper_setup_gmx(int interface, int num_ports)
 
 	/* Skip setting CVMX_PKO_REG_GMX_PORT_MODE on 30XX, 31XX, and 50XX */
 	if (!OCTEON_IS_MODEL(OCTEON_CN30XX) && !OCTEON_IS_MODEL(OCTEON_CN31XX)
-	    && !OCTEON_IS_MODEL(OCTEON_CN50XX)) {
+		&& !OCTEON_IS_MODEL(OCTEON_CN50XX))
+	{
 		/* Tell PKO the number of ports on this interface */
 		pko_mode.u64 = cvmx_read_csr(CVMX_PKO_REG_GMX_PORT_MODE);
-		if (interface == 0) {
+
+		if (interface == 0)
+		{
 			if (num_ports == 1)
+			{
 				pko_mode.s.mode0 = 4;
+			}
 			else if (num_ports == 2)
+			{
 				pko_mode.s.mode0 = 3;
+			}
 			else if (num_ports <= 4)
+			{
 				pko_mode.s.mode0 = 2;
+			}
 			else if (num_ports <= 8)
+			{
 				pko_mode.s.mode0 = 1;
+			}
 			else
+			{
 				pko_mode.s.mode0 = 0;
-		} else {
-			if (num_ports == 1)
-				pko_mode.s.mode1 = 4;
-			else if (num_ports == 2)
-				pko_mode.s.mode1 = 3;
-			else if (num_ports <= 4)
-				pko_mode.s.mode1 = 2;
-			else if (num_ports <= 8)
-				pko_mode.s.mode1 = 1;
-			else
-				pko_mode.s.mode1 = 0;
+			}
 		}
+		else
+		{
+			if (num_ports == 1)
+			{
+				pko_mode.s.mode1 = 4;
+			}
+			else if (num_ports == 2)
+			{
+				pko_mode.s.mode1 = 3;
+			}
+			else if (num_ports <= 4)
+			{
+				pko_mode.s.mode1 = 2;
+			}
+			else if (num_ports <= 8)
+			{
+				pko_mode.s.mode1 = 1;
+			}
+			else
+			{
+				pko_mode.s.mode1 = 0;
+			}
+		}
+
 		cvmx_write_csr(CVMX_PKO_REG_GMX_PORT_MODE, pko_mode.u64);
 	}
 
@@ -336,28 +403,42 @@ int __cvmx_helper_setup_gmx(int interface, int num_ports)
 	 * memory load.
 	 */
 	gmx_tx_thresh.u64 = cvmx_read_csr(CVMX_GMXX_TXX_THRESH(0, interface));
+
 	if (OCTEON_IS_MODEL(OCTEON_CN30XX) || OCTEON_IS_MODEL(OCTEON_CN31XX)
-	    || OCTEON_IS_MODEL(OCTEON_CN50XX)) {
+		|| OCTEON_IS_MODEL(OCTEON_CN50XX))
+	{
 		/* These chips have a fixed max threshold of 0x40 */
 		gmx_tx_thresh.s.cnt = 0x40;
-	} else {
+	}
+	else
+	{
 		/* Choose the max value for the number of ports */
 		if (num_ports <= 1)
+		{
 			gmx_tx_thresh.s.cnt = 0x100 / 1;
+		}
 		else if (num_ports == 2)
+		{
 			gmx_tx_thresh.s.cnt = 0x100 / 2;
+		}
 		else
+		{
 			gmx_tx_thresh.s.cnt = 0x100 / 4;
+		}
 	}
+
 	/*
 	 * SPI and XAUI can have lots of ports but the GMX hardware
 	 * only ever has a max of 4.
 	 */
 	if (num_ports > 4)
+	{
 		num_ports = 4;
+	}
+
 	for (index = 0; index < num_ports; index++)
 		cvmx_write_csr(CVMX_GMXX_TXX_THRESH(index, interface),
-			       gmx_tx_thresh.u64);
+					   gmx_tx_thresh.u64);
 
 	return 0;
 }
@@ -373,20 +454,27 @@ int __cvmx_helper_setup_gmx(int interface, int num_ports)
  */
 int cvmx_helper_get_ipd_port(int interface, int port)
 {
-	switch (interface) {
-	case 0:
-		return port;
-	case 1:
-		return port + 16;
-	case 2:
-		return port + 32;
-	case 3:
-		return port + 36;
-	case 4:
-		return port + 40;
-	case 5:
-		return port + 44;
+	switch (interface)
+	{
+		case 0:
+			return port;
+
+		case 1:
+			return port + 16;
+
+		case 2:
+			return port + 32;
+
+		case 3:
+			return port + 36;
+
+		case 4:
+			return port + 40;
+
+		case 5:
+			return port + 44;
 	}
+
 	return -1;
 }
 EXPORT_SYMBOL_GPL(cvmx_helper_get_ipd_port);
@@ -401,20 +489,32 @@ EXPORT_SYMBOL_GPL(cvmx_helper_get_ipd_port);
 int cvmx_helper_get_interface_num(int ipd_port)
 {
 	if (ipd_port < 16)
+	{
 		return 0;
+	}
 	else if (ipd_port < 32)
+	{
 		return 1;
+	}
 	else if (ipd_port < 36)
+	{
 		return 2;
+	}
 	else if (ipd_port < 40)
+	{
 		return 3;
+	}
 	else if (ipd_port < 44)
+	{
 		return 4;
+	}
 	else if (ipd_port < 48)
+	{
 		return 5;
+	}
 	else
 		cvmx_dprintf("cvmx_helper_get_interface_num: Illegal IPD "
-			     "port number\n");
+					 "port number\n");
 
 	return -1;
 }
@@ -431,18 +531,28 @@ EXPORT_SYMBOL_GPL(cvmx_helper_get_interface_num);
 int cvmx_helper_get_interface_index_num(int ipd_port)
 {
 	if (ipd_port < 32)
+	{
 		return ipd_port & 15;
+	}
 	else if (ipd_port < 36)
+	{
 		return ipd_port & 3;
+	}
 	else if (ipd_port < 40)
+	{
 		return ipd_port & 3;
+	}
 	else if (ipd_port < 44)
+	{
 		return ipd_port & 3;
+	}
 	else if (ipd_port < 48)
+	{
 		return ipd_port & 3;
+	}
 	else
 		cvmx_dprintf("cvmx_helper_get_interface_index_num: "
-			     "Illegal IPD port number\n");
+					 "Illegal IPD port number\n");
 
 	return -1;
 }

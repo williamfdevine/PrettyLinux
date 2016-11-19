@@ -5,7 +5,8 @@
 
 #define HEARTBEAT_INVERTED	(1 << 0)
 
-struct heartbeat_data {
+struct heartbeat_data
+{
 	void __iomem *base;
 	unsigned char *bit_pos;
 	unsigned int nr_bits;

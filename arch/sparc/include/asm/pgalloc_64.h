@@ -60,9 +60,9 @@ static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
 }
 
 pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-			    unsigned long address);
+							unsigned long address);
 pgtable_t pte_alloc_one(struct mm_struct *mm,
-			unsigned long address);
+						unsigned long address);
 void pte_free_kernel(struct mm_struct *mm, pte_t *pte);
 void pte_free(struct mm_struct *mm, pgtable_t ptepage);
 
@@ -82,8 +82,12 @@ void tlb_remove_table(struct mmu_gather *, void *);
 static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, bool is_page)
 {
 	unsigned long pgf = (unsigned long)table;
+
 	if (is_page)
+	{
 		pgf |= 0x1UL;
+	}
+
 	tlb_remove_table(tlb, (void *)pgf);
 }
 
@@ -93,7 +97,10 @@ static inline void __tlb_remove_table(void *_table)
 	bool is_page = false;
 
 	if ((unsigned long)_table & 0x1UL)
+	{
 		is_page = true;
+	}
+
 	pgtable_free(table, is_page);
 }
 #else /* CONFIG_SMP */
@@ -104,7 +111,7 @@ static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, bool is
 #endif /* !CONFIG_SMP */
 
 static inline void __pte_free_tlb(struct mmu_gather *tlb, pte_t *pte,
-				  unsigned long address)
+								  unsigned long address)
 {
 	pgtable_free_tlb(tlb, pte, true);
 }

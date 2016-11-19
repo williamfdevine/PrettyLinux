@@ -20,20 +20,20 @@ static inline void cpu_enter_lowpower(void)
 	unsigned int v;
 
 	asm volatile(
-	"	mcr	p15, 0, %1, c7, c5, 0\n"
-	"	mcr	p15, 0, %1, c7, c10, 4\n"
-	/*
-	 * Turn off coherency
-	 */
-	"	mrc	p15, 0, %0, c1, c0, 1\n"
-	"	bic	%0, %0, #0x20\n"
-	"	mcr	p15, 0, %0, c1, c0, 1\n"
-	"	mrc	p15, 0, %0, c1, c0, 0\n"
-	"	bic	%0, %0, %2\n"
-	"	mcr	p15, 0, %0, c1, c0, 0\n"
-	  : "=&r" (v)
-	  : "r" (0), "Ir" (CR_C)
-	  : "cc");
+		"	mcr	p15, 0, %1, c7, c5, 0\n"
+		"	mcr	p15, 0, %1, c7, c10, 4\n"
+		/*
+		 * Turn off coherency
+		 */
+		"	mrc	p15, 0, %0, c1, c0, 1\n"
+		"	bic	%0, %0, #0x20\n"
+		"	mcr	p15, 0, %0, c1, c0, 1\n"
+		"	mrc	p15, 0, %0, c1, c0, 0\n"
+		"	bic	%0, %0, %2\n"
+		"	mcr	p15, 0, %0, c1, c0, 0\n"
+		: "=&r" (v)
+		: "r" (0), "Ir" (CR_C)
+		: "cc");
 }
 
 static inline void cpu_leave_lowpower(void)
@@ -41,14 +41,14 @@ static inline void cpu_leave_lowpower(void)
 	unsigned int v;
 
 	asm volatile(	"mrc	p15, 0, %0, c1, c0, 0\n"
-	"	orr	%0, %0, %1\n"
-	"	mcr	p15, 0, %0, c1, c0, 0\n"
-	"	mrc	p15, 0, %0, c1, c0, 1\n"
-	"	orr	%0, %0, #0x20\n"
-	"	mcr	p15, 0, %0, c1, c0, 1\n"
-	  : "=&r" (v)
-	  : "Ir" (CR_C)
-	  : "cc");
+					"	orr	%0, %0, %1\n"
+					"	mcr	p15, 0, %0, c1, c0, 0\n"
+					"	mrc	p15, 0, %0, c1, c0, 1\n"
+					"	orr	%0, %0, #0x20\n"
+					"	mcr	p15, 0, %0, c1, c0, 1\n"
+					: "=&r" (v)
+					: "Ir" (CR_C)
+					: "cc");
 }
 
 static inline void platform_do_lowpower(unsigned int cpu, int *spurious)
@@ -58,16 +58,18 @@ static inline void platform_do_lowpower(unsigned int cpu, int *spurious)
 	 * we can do is put the core into WFI; this is safe as the calling
 	 * code will have already disabled interrupts
 	 */
-	for (;;) {
+	for (;;)
+	{
 		/*
 		 * here's the WFI
 		 */
 		asm(".word	0xe320f003\n"
-		    :
-		    :
-		    : "memory", "cc");
+			:
+			:
+			: "memory", "cc");
 
-		if (pen_release == cpu_logical_map(cpu)) {
+		if (pen_release == cpu_logical_map(cpu))
+		{
 			/*
 			 * OK, proper wakeup, we're done
 			 */
@@ -107,5 +109,7 @@ void realview_cpu_die(unsigned int cpu)
 	cpu_leave_lowpower();
 
 	if (spurious)
+	{
 		pr_warn("CPU%u: %u spurious wakeup calls\n", cpu, spurious);
+	}
 }

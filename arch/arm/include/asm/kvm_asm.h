@@ -47,35 +47,35 @@
  * swapped when used with the mrrc/mcrr instructions.
  */
 #ifdef CONFIG_CPU_ENDIAN_BE8
-#define rr_lo_hi(a1, a2) a2, a1
+	#define rr_lo_hi(a1, a2) a2, a1
 #else
-#define rr_lo_hi(a1, a2) a1, a2
+	#define rr_lo_hi(a1, a2) a1, a2
 #endif
 
 #define kvm_ksym_ref(kva)	(kva)
 
 #ifndef __ASSEMBLY__
-struct kvm;
-struct kvm_vcpu;
+	struct kvm;
+	struct kvm_vcpu;
 
-extern char __kvm_hyp_init[];
-extern char __kvm_hyp_init_end[];
+	extern char __kvm_hyp_init[];
+	extern char __kvm_hyp_init_end[];
 
-extern char __kvm_hyp_vector[];
+	extern char __kvm_hyp_vector[];
 
-extern void __kvm_flush_vm_context(void);
-extern void __kvm_tlb_flush_vmid_ipa(struct kvm *kvm, phys_addr_t ipa);
-extern void __kvm_tlb_flush_vmid(struct kvm *kvm);
-extern void __kvm_tlb_flush_local_vmid(struct kvm_vcpu *vcpu);
+	extern void __kvm_flush_vm_context(void);
+	extern void __kvm_tlb_flush_vmid_ipa(struct kvm *kvm, phys_addr_t ipa);
+	extern void __kvm_tlb_flush_vmid(struct kvm *kvm);
+	extern void __kvm_tlb_flush_local_vmid(struct kvm_vcpu *vcpu);
 
-extern int __kvm_vcpu_run(struct kvm_vcpu *vcpu);
+	extern int __kvm_vcpu_run(struct kvm_vcpu *vcpu);
 
-extern void __init_stage2_translation(void);
+	extern void __init_stage2_translation(void);
 
-extern void __kvm_hyp_reset(unsigned long);
+	extern void __kvm_hyp_reset(unsigned long);
 
-extern u64 __vgic_v3_get_ich_vtr_el2(void);
-extern void __vgic_v3_init_lrs(void);
+	extern u64 __vgic_v3_get_ich_vtr_el2(void);
+	extern void __vgic_v3_init_lrs(void);
 #endif
 
 #endif /* __ARM_KVM_ASM_H__ */

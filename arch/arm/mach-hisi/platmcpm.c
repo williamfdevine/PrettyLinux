@@ -77,7 +77,10 @@ static bool hip04_cluster_is_down(unsigned int cluster)
 
 	for (i = 0; i < HIP04_MAX_CPUS_PER_CLUSTER; i++)
 		if (hip04_cpu_table[cluster][i])
+		{
 			return false;
+		}
+
 	return true;
 }
 
@@ -86,16 +89,28 @@ static void hip04_set_snoop_filter(unsigned int cluster, unsigned int on)
 	unsigned long data;
 
 	if (!fabric)
+	{
 		BUG();
+	}
+
 	data = readl_relaxed(fabric + FAB_SF_MODE);
+
 	if (on)
+	{
 		data |= 1 << cluster;
+	}
 	else
+	{
 		data &= ~(1 << cluster);
+	}
+
 	writel_relaxed(data, fabric + FAB_SF_MODE);
-	do {
+
+	do
+	{
 		cpu_relax();
-	} while (data != readl_relaxed(fabric + FAB_SF_MODE));
+	}
+	while (data != readl_relaxed(fabric + FAB_SF_MODE));
 }
 
 static int hip04_boot_secondary(unsigned int l_cpu, struct task_struct *idle)
@@ -109,33 +124,49 @@ static int hip04_boot_secondary(unsigned int l_cpu, struct task_struct *idle)
 	cluster = MPIDR_AFFINITY_LEVEL(mpidr, 1);
 
 	if (!sysctrl)
+	{
 		return -ENODEV;
+	}
+
 	if (cluster >= HIP04_MAX_CLUSTERS || cpu >= HIP04_MAX_CPUS_PER_CLUSTER)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irq(&boot_lock);
 
 	if (hip04_cpu_table[cluster][cpu])
+	{
 		goto out;
+	}
 
 	sys_dreq = sysctrl + SC_CPU_RESET_DREQ(cluster);
 	sys_status = sysctrl + SC_CPU_RESET_STATUS(cluster);
-	if (hip04_cluster_is_down(cluster)) {
+
+	if (hip04_cluster_is_down(cluster))
+	{
 		data = CLUSTER_DEBUG_RESET_BIT;
 		writel_relaxed(data, sys_dreq);
-		do {
+
+		do
+		{
 			cpu_relax();
 			data = readl_relaxed(sys_status);
-		} while (data & CLUSTER_DEBUG_RESET_STATUS);
+		}
+		while (data & CLUSTER_DEBUG_RESET_STATUS);
+
 		hip04_set_snoop_filter(cluster, 1);
 	}
 
 	data = CORE_RESET_BIT(cpu) | NEON_RESET_BIT(cpu) | \
-	       CORE_DEBUG_RESET_BIT(cpu);
+		   CORE_DEBUG_RESET_BIT(cpu);
 	writel_relaxed(data, sys_dreq);
-	do {
+
+	do
+	{
 		cpu_relax();
-	} while (data == readl_relaxed(sys_status));
+	}
+	while (data == readl_relaxed(sys_status));
 
 	/*
 	 * We may fail to power up core again without this delay.
@@ -164,31 +195,41 @@ static void hip04_cpu_die(unsigned int l_cpu)
 
 	spin_lock(&boot_lock);
 	hip04_cpu_table[cluster][cpu]--;
-	if (hip04_cpu_table[cluster][cpu] == 1) {
+
+	if (hip04_cpu_table[cluster][cpu] == 1)
+	{
 		/* A power_up request went ahead of us. */
 		spin_unlock(&boot_lock);
 		return;
-	} else if (hip04_cpu_table[cluster][cpu] > 1) {
+	}
+	else if (hip04_cpu_table[cluster][cpu] > 1)
+	{
 		pr_err("Cluster %d CPU%d boots multiple times\n", cluster, cpu);
 		BUG();
 	}
 
 	last_man = hip04_cluster_is_down(cluster);
 	spin_unlock(&boot_lock);
-	if (last_man) {
+
+	if (last_man)
+	{
 		/* Since it's Cortex A15, disable L2 prefetching. */
 		asm volatile(
-		"mcr	p15, 1, %0, c15, c0, 3 \n\t"
-		"isb	\n\t"
-		"dsb	"
-		: : "r" (0x400) );
+			"mcr	p15, 1, %0, c15, c0, 3 \n\t"
+			"isb	\n\t"
+			"dsb	"
+			: : "r" (0x400) );
 		v7_exit_coherency_flush(all);
-	} else {
+	}
+	else
+	{
 		v7_exit_coherency_flush(louis);
 	}
 
 	for (;;)
+	{
 		wfi();
+	}
 }
 
 static int hip04_cpu_kill(unsigned int l_cpu)
@@ -200,37 +241,62 @@ static int hip04_cpu_kill(unsigned int l_cpu)
 	cpu = MPIDR_AFFINITY_LEVEL(mpidr, 0);
 	cluster = MPIDR_AFFINITY_LEVEL(mpidr, 1);
 	BUG_ON(cluster >= HIP04_MAX_CLUSTERS ||
-	       cpu >= HIP04_MAX_CPUS_PER_CLUSTER);
+		   cpu >= HIP04_MAX_CPUS_PER_CLUSTER);
 
 	count = TIMEOUT_MSEC / POLL_MSEC;
 	spin_lock_irq(&boot_lock);
-	for (tries = 0; tries < count; tries++) {
+
+	for (tries = 0; tries < count; tries++)
+	{
 		if (hip04_cpu_table[cluster][cpu])
+		{
 			goto err;
+		}
+
 		cpu_relax();
 		data = readl_relaxed(sysctrl + SC_CPU_RESET_STATUS(cluster));
+
 		if (data & CORE_WFI_STATUS(cpu))
+		{
 			break;
+		}
+
 		spin_unlock_irq(&boot_lock);
 		/* Wait for clean L2 when the whole cluster is down. */
 		msleep(POLL_MSEC);
 		spin_lock_irq(&boot_lock);
 	}
+
 	if (tries >= count)
+	{
 		goto err;
+	}
+
 	data = CORE_RESET_BIT(cpu) | NEON_RESET_BIT(cpu) | \
-	       CORE_DEBUG_RESET_BIT(cpu);
+		   CORE_DEBUG_RESET_BIT(cpu);
 	writel_relaxed(data, sysctrl + SC_CPU_RESET_REQ(cluster));
-	for (tries = 0; tries < count; tries++) {
+
+	for (tries = 0; tries < count; tries++)
+	{
 		cpu_relax();
 		data = readl_relaxed(sysctrl + SC_CPU_RESET_STATUS(cluster));
+
 		if (data & CORE_RESET_STATUS(cpu))
+		{
 			break;
+		}
 	}
+
 	if (tries >= count)
+	{
 		goto err;
+	}
+
 	if (hip04_cluster_is_down(cluster))
+	{
 		hip04_set_snoop_filter(cluster, 0);
+	}
+
 	spin_unlock_irq(&boot_lock);
 	return 1;
 err:
@@ -239,7 +305,8 @@ err:
 }
 #endif
 
-static const struct smp_operations hip04_smp_ops __initconst = {
+static const struct smp_operations hip04_smp_ops __initconst =
+{
 	.smp_boot_secondary	= hip04_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU
 	.cpu_die		= hip04_cpu_die,
@@ -256,10 +323,12 @@ static bool __init hip04_cpu_table_init(void)
 	cluster = MPIDR_AFFINITY_LEVEL(mpidr, 1);
 
 	if (cluster >= HIP04_MAX_CLUSTERS ||
-	    cpu >= HIP04_MAX_CPUS_PER_CLUSTER) {
+		cpu >= HIP04_MAX_CPUS_PER_CLUSTER)
+	{
 		pr_err("%s: boot CPU is out of bound!\n", __func__);
 		return false;
 	}
+
 	hip04_set_snoop_filter(cluster, 1);
 	hip04_cpu_table[cluster][cpu] = 1;
 	return true;
@@ -273,50 +342,80 @@ static int __init hip04_smp_init(void)
 	int ret = -ENODEV;
 
 	np = of_find_compatible_node(NULL, NULL, "hisilicon,hip04-bootwrapper");
+
 	if (!np)
+	{
 		goto err;
+	}
+
 	ret = of_property_read_u32_array(np, "boot-method",
-					 &hip04_boot_method[0], 4);
+									 &hip04_boot_method[0], 4);
+
 	if (ret)
+	{
 		goto err;
+	}
+
 	np_sctl = of_find_compatible_node(NULL, NULL, "hisilicon,sysctrl");
+
 	if (!np_sctl)
+	{
 		goto err;
+	}
+
 	np_fab = of_find_compatible_node(NULL, NULL, "hisilicon,hip04-fabric");
+
 	if (!np_fab)
+	{
 		goto err;
+	}
 
 	ret = memblock_reserve(hip04_boot_method[0], hip04_boot_method[1]);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	relocation = ioremap(hip04_boot_method[2], hip04_boot_method[3]);
-	if (!relocation) {
+
+	if (!relocation)
+	{
 		pr_err("failed to map relocation space\n");
 		ret = -ENOMEM;
 		goto err_reloc;
 	}
+
 	sysctrl = of_iomap(np_sctl, 0);
-	if (!sysctrl) {
+
+	if (!sysctrl)
+	{
 		pr_err("failed to get sysctrl base\n");
 		ret = -ENOMEM;
 		goto err_sysctrl;
 	}
+
 	ret = of_address_to_resource(np_fab, 0, &fab_res);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("failed to get fabric base phys\n");
 		goto err_fabric;
 	}
+
 	fabric_phys_addr = fab_res.start;
 	sync_cache_w(&fabric_phys_addr);
 	fabric = of_iomap(np_fab, 0);
-	if (!fabric) {
+
+	if (!fabric)
+	{
 		pr_err("failed to get fabric base\n");
 		ret = -ENOMEM;
 		goto err_fabric;
 	}
 
-	if (!hip04_cpu_table_init()) {
+	if (!hip04_cpu_table_init())
+	{
 		ret = -EINVAL;
 		goto err_table;
 	}

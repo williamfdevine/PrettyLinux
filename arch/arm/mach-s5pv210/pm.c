@@ -27,7 +27,8 @@
 #include "common.h"
 #include "regs-clock.h"
 
-static struct sleep_save s5pv210_core_save[] = {
+static struct sleep_save s5pv210_core_save[] =
+{
 	/* Clock ETC */
 	SAVE_ITEM(S5P_MDNIE_SEL),
 };
@@ -50,11 +51,11 @@ static int s5pv210_cpu_suspend(unsigned long arg)
 	tmp = 0;
 
 	asm("b 1f\n\t"
-	    ".align 5\n\t"
-	    "1:\n\t"
-	    "mcr p15, 0, %0, c7, c10, 5\n\t"
-	    "mcr p15, 0, %0, c7, c10, 4\n\t"
-	    "wfi" : : "r" (tmp));
+		".align 5\n\t"
+		"1:\n\t"
+		"mcr p15, 0, %0, c7, c10, 5\n\t"
+		"mcr p15, 0, %0, c7, c10, 4\n\t"
+		"wfi" : : "r" (tmp));
 
 	pr_info("Failed to suspend the system\n");
 	return 1; /* Aborting suspend */
@@ -101,10 +102,11 @@ static int s5pv210_suspend_enter(suspend_state_t state)
 	S3C_PMDBG("%s: suspending the system...\n", __func__);
 
 	S3C_PMDBG("%s: wakeup masks: %08x,%08x\n", __func__,
-			s5pv210_irqwake_intmask, exynos_get_eint_wake_mask());
+			  s5pv210_irqwake_intmask, exynos_get_eint_wake_mask());
 
 	if (s5pv210_irqwake_intmask == -1U
-	    && exynos_get_eint_wake_mask() == -1U) {
+		&& exynos_get_eint_wake_mask() == -1U)
+	{
 		pr_err("%s: No wake-up sources!\n", __func__);
 		pr_err("%s: Aborting sleep\n", __func__);
 		return -EINVAL;
@@ -116,13 +118,16 @@ static int s5pv210_suspend_enter(suspend_state_t state)
 	s3c_pm_check_store();
 
 	ret = cpu_suspend(0, s5pv210_cpu_suspend);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s3c_pm_restore_uarts();
 
 	S3C_PMDBG("%s: wakeup stat: %08x\n", __func__,
-			__raw_readl(S5P_WAKEUP_STAT));
+			  __raw_readl(S5P_WAKEUP_STAT));
 
 	s3c_pm_check_restore();
 
@@ -143,7 +148,8 @@ static void s5pv210_suspend_finish(void)
 	s3c_pm_check_cleanup();
 }
 
-static const struct platform_suspend_ops s5pv210_suspend_ops = {
+static const struct platform_suspend_ops s5pv210_suspend_ops =
+{
 	.enter		= s5pv210_suspend_enter,
 	.prepare	= s5pv210_suspend_prepare,
 	.finish		= s5pv210_suspend_finish,
@@ -158,14 +164,15 @@ static void s5pv210_pm_resume(void)
 	u32 tmp;
 
 	tmp = __raw_readl(S5P_OTHERS);
-	tmp |= (S5P_OTHERS_RET_IO | S5P_OTHERS_RET_CF |\
-		S5P_OTHERS_RET_MMC | S5P_OTHERS_RET_UART);
+	tmp |= (S5P_OTHERS_RET_IO | S5P_OTHERS_RET_CF | \
+			S5P_OTHERS_RET_MMC | S5P_OTHERS_RET_UART);
 	__raw_writel(tmp , S5P_OTHERS);
 
 	s3c_pm_do_restore_core(s5pv210_core_save, ARRAY_SIZE(s5pv210_core_save));
 }
 
-static struct syscore_ops s5pv210_pm_syscore_ops = {
+static struct syscore_ops s5pv210_pm_syscore_ops =
+{
 	.resume		= s5pv210_pm_resume,
 };
 

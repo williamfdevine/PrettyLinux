@@ -18,8 +18,8 @@
 typedef void (*bL_switch_completion_handler)(void *cookie);
 
 int bL_switch_request_cb(unsigned int cpu, unsigned int new_cluster_id,
-			 bL_switch_completion_handler completer,
-			 void *completer_cookie);
+						 bL_switch_completion_handler completer,
+						 void *completer_cookie);
 static inline int bL_switch_request(unsigned int cpu, unsigned int new_cluster_id)
 {
 	return bL_switch_request_cb(cpu, new_cluster_id, NULL, NULL);

@@ -71,8 +71,8 @@
 #define ESTATE_ERR_NCE		0x2 /* TO, BERR, LDP, ETP, EDP, WP, UE, IVUE */
 #define ESTATE_ERR_ISAP		0x4 /* System address parity error           */
 #define ESTATE_ERR_ALL		(ESTATE_ERR_CE | \
-				 ESTATE_ERR_NCE | \
-				 ESTATE_ERR_ISAP)
+							 ESTATE_ERR_NCE | \
+							 ESTATE_ERR_ISAP)
 
 /* The various trap types that report using the above state. */
 #define TRAP_TYPE_IAE		0x09 /* Instruction Access Error             */

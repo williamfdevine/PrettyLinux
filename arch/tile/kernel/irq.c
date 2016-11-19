@@ -34,7 +34,7 @@
  * NOTE: we could probably initialize them all statically up front.
  */
 DEFINE_PER_CPU(unsigned long long, interrupts_enabled_mask) =
-  INITIAL_INTERRUPTS_ENABLED;
+	INITIAL_INTERRUPTS_ENABLED;
 EXPORT_PER_CPU_SYMBOL(interrupts_enabled_mask);
 
 /* Define per-tile device interrupt statistics state. */
@@ -46,7 +46,7 @@ EXPORT_PER_CPU_SYMBOL(irq_stat);
  * mask that we use to implement both masking and disabling.
  */
 static DEFINE_PER_CPU(unsigned long, irq_disable_mask)
-	____cacheline_internodealigned_in_smp;
+____cacheline_internodealigned_in_smp;
 
 /*
  * Per-tile IRQ nesting depth.  Used to make sure we enable newly
@@ -55,15 +55,15 @@ static DEFINE_PER_CPU(unsigned long, irq_disable_mask)
 static DEFINE_PER_CPU(int, irq_depth);
 
 #if CHIP_HAS_IPI()
-/* Use SPRs to manipulate device interrupts. */
-#define mask_irqs(irq_mask) __insn_mtspr(SPR_IPI_MASK_SET_K, irq_mask)
-#define unmask_irqs(irq_mask) __insn_mtspr(SPR_IPI_MASK_RESET_K, irq_mask)
-#define clear_irqs(irq_mask) __insn_mtspr(SPR_IPI_EVENT_RESET_K, irq_mask)
+	/* Use SPRs to manipulate device interrupts. */
+	#define mask_irqs(irq_mask) __insn_mtspr(SPR_IPI_MASK_SET_K, irq_mask)
+	#define unmask_irqs(irq_mask) __insn_mtspr(SPR_IPI_MASK_RESET_K, irq_mask)
+	#define clear_irqs(irq_mask) __insn_mtspr(SPR_IPI_EVENT_RESET_K, irq_mask)
 #else
-/* Use HV to manipulate device interrupts. */
-#define mask_irqs(irq_mask) hv_disable_intr(irq_mask)
-#define unmask_irqs(irq_mask) hv_enable_intr(irq_mask)
-#define clear_irqs(irq_mask) hv_clear_intr(irq_mask)
+	/* Use HV to manipulate device interrupts. */
+	#define mask_irqs(irq_mask) hv_disable_intr(irq_mask)
+	#define unmask_irqs(irq_mask) hv_enable_intr(irq_mask)
+	#define clear_irqs(irq_mask) hv_clear_intr(irq_mask)
 #endif
 
 /*
@@ -106,20 +106,26 @@ void tile_dev_intr(struct pt_regs *regs, int intnum)
 	/* Debugging check for stack overflow: less than 1/8th stack free? */
 	{
 		long sp = stack_pointer - (long) current_thread_info();
-		if (unlikely(sp < (sizeof(struct thread_info) + STACK_WARN))) {
+
+		if (unlikely(sp < (sizeof(struct thread_info) + STACK_WARN)))
+		{
 			pr_emerg("%s: stack overflow: %ld\n",
-				 __func__, sp - sizeof(struct thread_info));
+					 __func__, sp - sizeof(struct thread_info));
 			dump_stack();
 		}
 	}
 #endif
-	while (remaining_irqs) {
+
+	while (remaining_irqs)
+	{
 		unsigned long irq = __ffs(remaining_irqs);
 		remaining_irqs &= ~(1UL << irq);
 
 		/* Count device irqs; Linux IPIs are counted elsewhere. */
 		if (irq != IRQ_RESCHEDULE)
+		{
 			__this_cpu_inc(irq_stat.irq_dev_intr_count);
+		}
 
 		generic_handle_irq(irq);
 	}
@@ -130,7 +136,9 @@ void tile_dev_intr(struct pt_regs *regs, int intnum)
 	 * handling.
 	 */
 	if (depth == 1)
+	{
 		unmask_irqs(~__this_cpu_read(irq_disable_mask));
+	}
 
 	__this_cpu_dec(irq_depth);
 
@@ -150,8 +158,12 @@ void tile_dev_intr(struct pt_regs *regs, int intnum)
 static void tile_irq_chip_enable(struct irq_data *d)
 {
 	get_cpu_var(irq_disable_mask) &= ~(1UL << d->irq);
+
 	if (__this_cpu_read(irq_depth) == 0)
+	{
 		unmask_irqs(1UL << d->irq);
+	}
+
 	put_cpu_var(irq_disable_mask);
 }
 
@@ -187,7 +199,9 @@ static void tile_irq_chip_unmask(struct irq_data *d)
 static void tile_irq_chip_ack(struct irq_data *d)
 {
 	if ((unsigned long)irq_data_get_irq_chip_data(d) != IS_HW_CLEARED)
+	{
 		clear_irqs(1UL << d->irq);
+	}
 }
 
 /*
@@ -197,10 +211,13 @@ static void tile_irq_chip_ack(struct irq_data *d)
 static void tile_irq_chip_eoi(struct irq_data *d)
 {
 	if (!(__this_cpu_read(irq_disable_mask) & (1UL << d->irq)))
+	{
 		unmask_irqs(1UL << d->irq);
+	}
 }
 
-static struct irq_chip tile_irq_chip = {
+static struct irq_chip tile_irq_chip =
+{
 	.name = "tile_irq_chip",
 	.irq_enable = tile_irq_chip_enable,
 	.irq_disable = tile_irq_chip_disable,
@@ -234,8 +251,12 @@ void tile_irq_activate(unsigned int irq, int tile_irq_type)
 	 * whenever a bit is high, not just at edges.
 	 */
 	irq_flow_handler_t handle = handle_level_irq;
+
 	if (tile_irq_type == TILE_IRQ_PERCPU)
+	{
 		handle = handle_percpu_irq;
+	}
+
 	irq_set_chip_and_handler(irq, &tile_irq_chip, handle);
 
 	/*
@@ -243,7 +264,9 @@ void tile_irq_activate(unsigned int irq, int tile_irq_type)
 	 * won't clear them.
 	 */
 	if (tile_irq_type == TILE_IRQ_HW_CLEAR)
+	{
 		irq_set_chip_data(irq, (void *)IS_HW_CLEARED);
+	}
 }
 EXPORT_SYMBOL(tile_irq_activate);
 
@@ -264,7 +287,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 	seq_printf(p, "%*s: ", prec, "PMI");
 
 	for_each_online_cpu(i)
-		seq_printf(p, "%10llu ", per_cpu(perf_irqs, i));
+	seq_printf(p, "%10llu ", per_cpu(perf_irqs, i));
 	seq_puts(p, "  perf_events\n");
 #endif
 	return 0;

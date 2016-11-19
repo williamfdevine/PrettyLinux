@@ -43,36 +43,36 @@
 #undef OMAP_NAME
 
 #ifdef CONFIG_ARCH_OMAP730
-# ifdef OMAP_NAME
-#  undef  MULTI_OMAP1
-#  define MULTI_OMAP1
-# else
-#  define OMAP_NAME omap730
-# endif
+	#ifdef OMAP_NAME
+		#undef  MULTI_OMAP1
+		#define MULTI_OMAP1
+	#else
+		#define OMAP_NAME omap730
+	#endif
 #endif
 #ifdef CONFIG_ARCH_OMAP850
-# ifdef OMAP_NAME
-#  undef  MULTI_OMAP1
-#  define MULTI_OMAP1
-# else
-#  define OMAP_NAME omap850
-# endif
+	#ifdef OMAP_NAME
+		#undef  MULTI_OMAP1
+		#define MULTI_OMAP1
+	#else
+		#define OMAP_NAME omap850
+	#endif
 #endif
 #ifdef CONFIG_ARCH_OMAP15XX
-# ifdef OMAP_NAME
-#  undef  MULTI_OMAP1
-#  define MULTI_OMAP1
-# else
-#  define OMAP_NAME omap1510
-# endif
+	#ifdef OMAP_NAME
+		#undef  MULTI_OMAP1
+		#define MULTI_OMAP1
+	#else
+		#define OMAP_NAME omap1510
+	#endif
 #endif
 #ifdef CONFIG_ARCH_OMAP16XX
-# ifdef OMAP_NAME
-#  undef  MULTI_OMAP1
-#  define MULTI_OMAP1
-# else
-#  define OMAP_NAME omap16xx
-# endif
+	#ifdef OMAP_NAME
+		#undef  MULTI_OMAP1
+		#define MULTI_OMAP1
+	#else
+		#define OMAP_NAME omap16xx
+	#endif
 #endif
 
 /*
@@ -98,18 +98,18 @@ unsigned int omap_rev(void);
 #define GET_OMAP_CLASS	(omap_rev() & 0xff)
 
 #define IS_OMAP_CLASS(class, id)			\
-static inline int is_omap ##class (void)		\
-{							\
-	return (GET_OMAP_CLASS == (id)) ? 1 : 0;	\
-}
+	static inline int is_omap ##class (void)		\
+	{							\
+			return (GET_OMAP_CLASS == (id)) ? 1 : 0;	\
+	}
 
 #define GET_OMAP_SUBCLASS	((omap_rev() >> 20) & 0x0fff)
 
 #define IS_OMAP_SUBCLASS(subclass, id)			\
-static inline int is_omap ##subclass (void)		\
-{							\
-	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-}
+	static inline int is_omap ##subclass (void)		\
+	{							\
+		return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
+	}
 
 IS_OMAP_CLASS(7xx, 0x07)
 IS_OMAP_CLASS(15xx, 0x15)
@@ -120,39 +120,39 @@ IS_OMAP_CLASS(16xx, 0x16)
 #define cpu_is_omap16xx()		0
 
 #if defined(MULTI_OMAP1)
-# if defined(CONFIG_ARCH_OMAP730)
-#  undef  cpu_is_omap7xx
-#  define cpu_is_omap7xx()		is_omap7xx()
-# endif
-# if defined(CONFIG_ARCH_OMAP850)
-#  undef  cpu_is_omap7xx
-#  define cpu_is_omap7xx()		is_omap7xx()
-# endif
-# if defined(CONFIG_ARCH_OMAP15XX)
-#  undef  cpu_is_omap15xx
-#  define cpu_is_omap15xx()		is_omap15xx()
-# endif
-# if defined(CONFIG_ARCH_OMAP16XX)
-#  undef  cpu_is_omap16xx
-#  define cpu_is_omap16xx()		is_omap16xx()
-# endif
+	#if defined(CONFIG_ARCH_OMAP730)
+		#undef  cpu_is_omap7xx
+		#define cpu_is_omap7xx()		is_omap7xx()
+	#endif
+	#if defined(CONFIG_ARCH_OMAP850)
+		#undef  cpu_is_omap7xx
+		#define cpu_is_omap7xx()		is_omap7xx()
+	#endif
+	#if defined(CONFIG_ARCH_OMAP15XX)
+		#undef  cpu_is_omap15xx
+		#define cpu_is_omap15xx()		is_omap15xx()
+	#endif
+	#if defined(CONFIG_ARCH_OMAP16XX)
+		#undef  cpu_is_omap16xx
+		#define cpu_is_omap16xx()		is_omap16xx()
+	#endif
 #else
-# if defined(CONFIG_ARCH_OMAP730)
-#  undef  cpu_is_omap7xx
-#  define cpu_is_omap7xx()		1
-# endif
-# if defined(CONFIG_ARCH_OMAP850)
-#  undef  cpu_is_omap7xx
-#  define cpu_is_omap7xx()		1
-# endif
-# if defined(CONFIG_ARCH_OMAP15XX)
-#  undef  cpu_is_omap15xx
-#  define cpu_is_omap15xx()		1
-# endif
-# if defined(CONFIG_ARCH_OMAP16XX)
-#  undef  cpu_is_omap16xx
-#  define cpu_is_omap16xx()		1
-# endif
+	#if defined(CONFIG_ARCH_OMAP730)
+		#undef  cpu_is_omap7xx
+		#define cpu_is_omap7xx()		1
+	#endif
+	#if defined(CONFIG_ARCH_OMAP850)
+		#undef  cpu_is_omap7xx
+		#define cpu_is_omap7xx()		1
+	#endif
+	#if defined(CONFIG_ARCH_OMAP15XX)
+		#undef  cpu_is_omap15xx
+		#define cpu_is_omap15xx()		1
+	#endif
+	#if defined(CONFIG_ARCH_OMAP16XX)
+		#undef  cpu_is_omap16xx
+		#define cpu_is_omap16xx()		1
+	#endif
 #endif
 
 /*
@@ -169,10 +169,10 @@ IS_OMAP_CLASS(16xx, 0x16)
 #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
 
 #define IS_OMAP_TYPE(type, id)				\
-static inline int is_omap ##type (void)			\
-{							\
-	return (GET_OMAP_TYPE == (id)) ? 1 : 0;		\
-}
+	static inline int is_omap ##type (void)			\
+	{							\
+		return (GET_OMAP_TYPE == (id)) ? 1 : 0;		\
+	}
 
 IS_OMAP_TYPE(310, 0x0310)
 IS_OMAP_TYPE(1510, 0x1510)
@@ -192,17 +192,17 @@ IS_OMAP_TYPE(1710, 0x1710)
 
 /* These are needed to compile common code */
 #ifdef CONFIG_ARCH_OMAP1
-#define cpu_is_omap242x()		0
-#define cpu_is_omap2430()		0
-#define cpu_is_omap243x()		0
-#define cpu_is_omap24xx()		0
-#define cpu_is_omap34xx()		0
-#define cpu_is_omap44xx()		0
-#define soc_is_omap54xx()		0
-#define soc_is_dra7xx()			0
-#define soc_is_am33xx()			0
-#define cpu_class_is_omap1()		1
-#define cpu_class_is_omap2()		0
+	#define cpu_is_omap242x()		0
+	#define cpu_is_omap2430()		0
+	#define cpu_is_omap243x()		0
+	#define cpu_is_omap24xx()		0
+	#define cpu_is_omap34xx()		0
+	#define cpu_is_omap44xx()		0
+	#define soc_is_omap54xx()		0
+	#define soc_is_dra7xx()			0
+	#define soc_is_am33xx()			0
+	#define cpu_class_is_omap1()		1
+	#define cpu_class_is_omap2()		0
 #endif
 
 /*
@@ -211,23 +211,23 @@ IS_OMAP_TYPE(1710, 0x1710)
  */
 
 #if defined(CONFIG_ARCH_OMAP15XX)
-# undef  cpu_is_omap310
-# undef  cpu_is_omap1510
-# define cpu_is_omap310()		is_omap310()
-# define cpu_is_omap1510()		is_omap1510()
+	#undef  cpu_is_omap310
+	#undef  cpu_is_omap1510
+	#define cpu_is_omap310()		is_omap310()
+	#define cpu_is_omap1510()		is_omap1510()
 #endif
 
 #if defined(CONFIG_ARCH_OMAP16XX)
-# undef  cpu_is_omap1610
-# undef  cpu_is_omap1611
-# undef  cpu_is_omap5912
-# undef  cpu_is_omap1621
-# undef  cpu_is_omap1710
-# define cpu_is_omap1610()		is_omap1610()
-# define cpu_is_omap1611()		is_omap1611()
-# define cpu_is_omap5912()		is_omap5912()
-# define cpu_is_omap1621()		is_omap1621()
-# define cpu_is_omap1710()		is_omap1710()
+	#undef  cpu_is_omap1610
+	#undef  cpu_is_omap1611
+	#undef  cpu_is_omap5912
+	#undef  cpu_is_omap1621
+	#undef  cpu_is_omap1710
+	#define cpu_is_omap1610()		is_omap1610()
+	#define cpu_is_omap1611()		is_omap1611()
+	#define cpu_is_omap5912()		is_omap5912()
+	#define cpu_is_omap1621()		is_omap1621()
+	#define cpu_is_omap1710()		is_omap1710()
 #endif
 
 #endif	/* __ASSEMBLY__ */

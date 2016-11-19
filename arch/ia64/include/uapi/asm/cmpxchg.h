@@ -15,9 +15,9 @@
 /* include compiler specific intrinsics */
 #include <asm/ia64regs.h>
 #ifdef __INTEL_COMPILER
-# include <asm/intel_intrin.h>
+	#include <asm/intel_intrin.h>
 #else
-# include <asm/gcc_intrin.h>
+	#include <asm/gcc_intrin.h>
 #endif
 
 /*
@@ -27,33 +27,33 @@
 extern void ia64_xchg_called_with_bad_pointer(void);
 
 #define __xchg(x, ptr, size)						\
-({									\
-	unsigned long __xchg_result;					\
-									\
-	switch (size) {							\
-	case 1:								\
-		__xchg_result = ia64_xchg1((__u8 *)ptr, x);		\
-		break;							\
-									\
-	case 2:								\
-		__xchg_result = ia64_xchg2((__u16 *)ptr, x);		\
-		break;							\
-									\
-	case 4:								\
-		__xchg_result = ia64_xchg4((__u32 *)ptr, x);		\
-		break;							\
-									\
-	case 8:								\
-		__xchg_result = ia64_xchg8((__u64 *)ptr, x);		\
-		break;							\
-	default:							\
-		ia64_xchg_called_with_bad_pointer();			\
-	}								\
-	__xchg_result;							\
-})
+	({									\
+		unsigned long __xchg_result;					\
+		\
+		switch (size) {							\
+			case 1:								\
+				__xchg_result = ia64_xchg1((__u8 *)ptr, x);		\
+				break;							\
+				\
+			case 2:								\
+				__xchg_result = ia64_xchg2((__u16 *)ptr, x);		\
+				break;							\
+				\
+			case 4:								\
+				__xchg_result = ia64_xchg4((__u32 *)ptr, x);		\
+				break;							\
+				\
+			case 8:								\
+				__xchg_result = ia64_xchg8((__u64 *)ptr, x);		\
+				break;							\
+			default:							\
+				ia64_xchg_called_with_bad_pointer();			\
+		}								\
+		__xchg_result;							\
+	})
 
 #define xchg(ptr, x)							\
-((__typeof__(*(ptr))) __xchg((unsigned long) (x), (ptr), sizeof(*(ptr))))
+	((__typeof__(*(ptr))) __xchg((unsigned long) (x), (ptr), sizeof(*(ptr))))
 
 /*
  * Atomic compare and exchange.  Compare OLD with MEM, if identical,
@@ -68,48 +68,48 @@ extern void ia64_xchg_called_with_bad_pointer(void);
 extern long ia64_cmpxchg_called_with_bad_pointer(void);
 
 #define ia64_cmpxchg(sem, ptr, old, new, size)				\
-({									\
-	__u64 _o_, _r_;							\
-									\
-	switch (size) {							\
-	case 1:								\
-		_o_ = (__u8) (long) (old);				\
-		break;							\
-	case 2:								\
-		_o_ = (__u16) (long) (old);				\
-		break;							\
-	case 4:								\
-		_o_ = (__u32) (long) (old);				\
-		break;							\
-	case 8:								\
-		_o_ = (__u64) (long) (old);				\
-		break;							\
-	default:							\
-		break;							\
-	}								\
-	switch (size) {							\
-	case 1:								\
-		_r_ = ia64_cmpxchg1_##sem((__u8 *) ptr, new, _o_);	\
-		break;							\
-									\
-	case 2:								\
-		_r_ = ia64_cmpxchg2_##sem((__u16 *) ptr, new, _o_);	\
-		break;							\
-									\
-	case 4:								\
-		_r_ = ia64_cmpxchg4_##sem((__u32 *) ptr, new, _o_);	\
-		break;							\
-									\
-	case 8:								\
-		_r_ = ia64_cmpxchg8_##sem((__u64 *) ptr, new, _o_);	\
-		break;							\
-									\
-	default:							\
-		_r_ = ia64_cmpxchg_called_with_bad_pointer();		\
-		break;							\
-	}								\
-	(__typeof__(old)) _r_;						\
-})
+	({									\
+		__u64 _o_, _r_;							\
+		\
+		switch (size) {							\
+			case 1:								\
+				_o_ = (__u8) (long) (old);				\
+				break;							\
+			case 2:								\
+				_o_ = (__u16) (long) (old);				\
+				break;							\
+			case 4:								\
+				_o_ = (__u32) (long) (old);				\
+				break;							\
+			case 8:								\
+				_o_ = (__u64) (long) (old);				\
+				break;							\
+			default:							\
+				break;							\
+		}								\
+		switch (size) {							\
+			case 1:								\
+				_r_ = ia64_cmpxchg1_##sem((__u8 *) ptr, new, _o_);	\
+				break;							\
+				\
+			case 2:								\
+				_r_ = ia64_cmpxchg2_##sem((__u16 *) ptr, new, _o_);	\
+				break;							\
+				\
+			case 4:								\
+				_r_ = ia64_cmpxchg4_##sem((__u32 *) ptr, new, _o_);	\
+				break;							\
+				\
+			case 8:								\
+				_r_ = ia64_cmpxchg8_##sem((__u64 *) ptr, new, _o_);	\
+				break;							\
+				\
+			default:							\
+				_r_ = ia64_cmpxchg_called_with_bad_pointer();		\
+				break;							\
+		}								\
+		(__typeof__(old)) _r_;						\
+	})
 
 #define cmpxchg_acq(ptr, o, n)	\
 	ia64_cmpxchg(acq, (ptr), (o), (n), sizeof(*(ptr)))
@@ -135,15 +135,15 @@ extern long ia64_cmpxchg_called_with_bad_pointer(void);
 #ifdef CONFIG_IA64_DEBUG_CMPXCHG
 # define CMPXCHG_BUGCHECK_DECL	int _cmpxchg_bugcheck_count = 128;
 # define CMPXCHG_BUGCHECK(v)						\
-do {									\
-	if (_cmpxchg_bugcheck_count-- <= 0) {				\
-		void *ip;						\
-		extern int printk(const char *fmt, ...);		\
-		ip = (void *) ia64_getreg(_IA64_REG_IP);		\
-		printk("CMPXCHG_BUGCHECK: stuck at %p on word %p\n", ip, (v));\
-		break;							\
-	}								\
-} while (0)
+	do {									\
+		if (_cmpxchg_bugcheck_count-- <= 0) {				\
+			void *ip;						\
+			extern int printk(const char *fmt, ...);		\
+			ip = (void *) ia64_getreg(_IA64_REG_IP);		\
+			printk("CMPXCHG_BUGCHECK: stuck at %p on word %p\n", ip, (v));\
+			break;							\
+		}								\
+	} while (0)
 #else /* !CONFIG_IA64_DEBUG_CMPXCHG */
 # define CMPXCHG_BUGCHECK_DECL
 # define CMPXCHG_BUGCHECK(v)

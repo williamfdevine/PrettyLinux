@@ -33,7 +33,7 @@ bfin_iwr_restore(unsigned long iwr0, unsigned long iwr1, unsigned long iwr2)
 #ifndef bfin_iwr_save
 static inline void
 bfin_iwr_save(unsigned long niwr0, unsigned long niwr1, unsigned long niwr2,
-              unsigned long *iwr0, unsigned long *iwr1, unsigned long *iwr2)
+			  unsigned long *iwr0, unsigned long *iwr1, unsigned long *iwr2)
 {
 #ifdef SIC_IWR
 	*iwr0 = bfin_read_SIC_IWR();
@@ -55,7 +55,9 @@ static inline void _bfin_write_pll_relock(u32 addr, unsigned int val)
 	unsigned long flags, iwr0, iwr1, iwr2;
 
 	if (val == bfin_read_PLL_CTL())
+	{
 		return;
+	}
 
 	flags = hard_local_irq_save();
 	/* Enable the PLL Wakeup bit in SIC IWR */

@@ -23,15 +23,17 @@
 
 #ifdef __KERNEL__
 
-struct arch_hw_breakpoint_ctrl {
+struct arch_hw_breakpoint_ctrl
+{
 	u32 __reserved	: 19,
-	len		: 8,
-	type		: 2,
-	privilege	: 2,
-	enabled		: 1;
+		 len		: 8,
+		 type		: 2,
+		 privilege	: 2,
+		 enabled		: 1;
 };
 
-struct arch_hw_breakpoint {
+struct arch_hw_breakpoint
+{
 	u64 address;
 	u64 trigger;
 	struct arch_hw_breakpoint_ctrl ctrl;
@@ -46,16 +48,18 @@ struct arch_hw_breakpoint {
 static inline u32 encode_ctrl_reg(struct arch_hw_breakpoint_ctrl ctrl)
 {
 	u32 val = (ctrl.len << 5) | (ctrl.type << 3) | (ctrl.privilege << 1) |
-		ctrl.enabled;
+			  ctrl.enabled;
 
 	if (is_kernel_in_hyp_mode() && ctrl.privilege == AARCH64_BREAKPOINT_EL1)
+	{
 		val |= DBG_HMC_HYP;
+	}
 
 	return val;
 }
 
 static inline void decode_ctrl_reg(u32 reg,
-				   struct arch_hw_breakpoint_ctrl *ctrl)
+								   struct arch_hw_breakpoint_ctrl *ctrl)
 {
 	ctrl->enabled	= reg & 0x1;
 	reg >>= 1;
@@ -106,12 +110,12 @@ static inline void decode_ctrl_reg(u32 reg,
 
 /* Accessor macros for the debug registers. */
 #define AARCH64_DBG_READ(N, REG, VAL) do {\
-	VAL = read_sysreg(dbg##REG##N##_el1);\
-} while (0)
+		VAL = read_sysreg(dbg##REG##N##_el1);\
+	} while (0)
 
 #define AARCH64_DBG_WRITE(N, REG, VAL) do {\
-	write_sysreg(VAL, dbg##REG##N##_el1);\
-} while (0)
+		write_sysreg(VAL, dbg##REG##N##_el1);\
+	} while (0)
 
 struct task_struct;
 struct notifier_block;
@@ -119,11 +123,11 @@ struct perf_event;
 struct pmu;
 
 extern int arch_bp_generic_fields(struct arch_hw_breakpoint_ctrl ctrl,
-				  int *gen_len, int *gen_type);
+								  int *gen_len, int *gen_type);
 extern int arch_check_bp_in_kernelspace(struct perf_event *bp);
 extern int arch_validate_hwbkpt_settings(struct perf_event *bp);
 extern int hw_breakpoint_exceptions_notify(struct notifier_block *unused,
-					   unsigned long val, void *data);
+		unsigned long val, void *data);
 
 extern int arch_install_hw_breakpoint(struct perf_event *bp);
 extern void arch_uninstall_hw_breakpoint(struct perf_event *bp);
@@ -147,8 +151,8 @@ static inline int get_num_brps(void)
 {
 	u64 dfr0 = read_system_reg(SYS_ID_AA64DFR0_EL1);
 	return 1 +
-		cpuid_feature_extract_unsigned_field(dfr0,
-						ID_AA64DFR0_BRPS_SHIFT);
+		   cpuid_feature_extract_unsigned_field(dfr0,
+				   ID_AA64DFR0_BRPS_SHIFT);
 }
 
 /* Determine number of WRP registers available. */
@@ -156,8 +160,8 @@ static inline int get_num_wrps(void)
 {
 	u64 dfr0 = read_system_reg(SYS_ID_AA64DFR0_EL1);
 	return 1 +
-		cpuid_feature_extract_unsigned_field(dfr0,
-						ID_AA64DFR0_WRPS_SHIFT);
+		   cpuid_feature_extract_unsigned_field(dfr0,
+				   ID_AA64DFR0_WRPS_SHIFT);
 }
 
 #endif	/* __KERNEL__ */

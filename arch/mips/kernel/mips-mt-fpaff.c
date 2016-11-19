@@ -51,7 +51,7 @@ static bool check_same_owner(struct task_struct *p)
 	rcu_read_lock();
 	pcred = __task_cred(p);
 	match = (uid_eq(cred->euid, pcred->euid) ||
-		 uid_eq(cred->euid, pcred->uid));
+			 uid_eq(cred->euid, pcred->uid));
 	rcu_read_unlock();
 	return match;
 }
@@ -60,7 +60,7 @@ static bool check_same_owner(struct task_struct *p)
  * mipsmt_sys_sched_setaffinity - set the cpu affinity of a process
  */
 asmlinkage long mipsmt_sys_sched_setaffinity(pid_t pid, unsigned int len,
-				      unsigned long __user *user_mask_ptr)
+		unsigned long __user *user_mask_ptr)
 {
 	cpumask_var_t cpus_allowed, new_mask, effective_mask;
 	struct thread_info *ti;
@@ -68,16 +68,22 @@ asmlinkage long mipsmt_sys_sched_setaffinity(pid_t pid, unsigned int len,
 	int retval;
 
 	if (len < sizeof(new_mask))
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(&new_mask, user_mask_ptr, sizeof(new_mask)))
+	{
 		return -EFAULT;
+	}
 
 	get_online_cpus();
 	rcu_read_lock();
 
 	p = find_process_by_pid(pid);
-	if (!p) {
+
+	if (!p)
+	{
 		rcu_read_unlock();
 		put_online_cpus();
 		return -ESRCH;
@@ -87,45 +93,64 @@ asmlinkage long mipsmt_sys_sched_setaffinity(pid_t pid, unsigned int len,
 	get_task_struct(p);
 	rcu_read_unlock();
 
-	if (!alloc_cpumask_var(&cpus_allowed, GFP_KERNEL)) {
+	if (!alloc_cpumask_var(&cpus_allowed, GFP_KERNEL))
+	{
 		retval = -ENOMEM;
 		goto out_put_task;
 	}
-	if (!alloc_cpumask_var(&new_mask, GFP_KERNEL)) {
+
+	if (!alloc_cpumask_var(&new_mask, GFP_KERNEL))
+	{
 		retval = -ENOMEM;
 		goto out_free_cpus_allowed;
 	}
-	if (!alloc_cpumask_var(&effective_mask, GFP_KERNEL)) {
+
+	if (!alloc_cpumask_var(&effective_mask, GFP_KERNEL))
+	{
 		retval = -ENOMEM;
 		goto out_free_new_mask;
 	}
+
 	retval = -EPERM;
+
 	if (!check_same_owner(p) && !capable(CAP_SYS_NICE))
+	{
 		goto out_unlock;
+	}
 
 	retval = security_task_setscheduler(p);
+
 	if (retval)
+	{
 		goto out_unlock;
+	}
 
 	/* Record new user-specified CPU set for future reference */
 	cpumask_copy(&p->thread.user_cpus_allowed, new_mask);
 
- again:
+again:
 	/* Compute new global allowed CPU set if necessary */
 	ti = task_thread_info(p);
+
 	if (test_ti_thread_flag(ti, TIF_FPUBOUND) &&
-	    cpumask_intersects(new_mask, &mt_fpu_cpumask)) {
+		cpumask_intersects(new_mask, &mt_fpu_cpumask))
+	{
 		cpumask_and(effective_mask, new_mask, &mt_fpu_cpumask);
 		retval = set_cpus_allowed_ptr(p, effective_mask);
-	} else {
+	}
+	else
+	{
 		cpumask_copy(effective_mask, new_mask);
 		clear_ti_thread_flag(ti, TIF_FPUBOUND);
 		retval = set_cpus_allowed_ptr(p, new_mask);
 	}
 
-	if (!retval) {
+	if (!retval)
+	{
 		cpuset_cpus_allowed(p, cpus_allowed);
-		if (!cpumask_subset(effective_mask, cpus_allowed)) {
+
+		if (!cpumask_subset(effective_mask, cpus_allowed))
+		{
 			/*
 			 * We must have raced with a concurrent cpuset
 			 * update. Just reset the cpus_allowed to the
@@ -135,6 +160,7 @@ asmlinkage long mipsmt_sys_sched_setaffinity(pid_t pid, unsigned int len,
 			goto again;
 		}
 	}
+
 out_unlock:
 	free_cpumask_var(effective_mask);
 out_free_new_mask:
@@ -151,7 +177,7 @@ out_put_task:
  * mipsmt_sys_sched_getaffinity - get the cpu affinity of a process
  */
 asmlinkage long mipsmt_sys_sched_getaffinity(pid_t pid, unsigned int len,
-				      unsigned long __user *user_mask_ptr)
+		unsigned long __user *user_mask_ptr)
 {
 	unsigned int real_len;
 	cpumask_t allowed, mask;
@@ -159,19 +185,29 @@ asmlinkage long mipsmt_sys_sched_getaffinity(pid_t pid, unsigned int len,
 	struct task_struct *p;
 
 	real_len = sizeof(mask);
+
 	if (len < real_len)
+	{
 		return -EINVAL;
+	}
 
 	get_online_cpus();
 	read_lock(&tasklist_lock);
 
 	retval = -ESRCH;
 	p = find_process_by_pid(pid);
+
 	if (!p)
+	{
 		goto out_unlock;
+	}
+
 	retval = security_task_getscheduler(p);
+
 	if (retval)
+	{
 		goto out_unlock;
+	}
 
 	cpumask_or(&allowed, &p->thread.user_cpus_allowed, &p->cpus_allowed);
 	cpumask_and(&mask, &allowed, cpu_active_mask);
@@ -179,10 +215,17 @@ asmlinkage long mipsmt_sys_sched_getaffinity(pid_t pid, unsigned int len,
 out_unlock:
 	read_unlock(&tasklist_lock);
 	put_online_cpus();
+
 	if (retval)
+	{
 		return retval;
+	}
+
 	if (copy_to_user(user_mask_ptr, &mask, real_len))
+	{
 		return -EFAULT;
+	}
+
 	return real_len;
 }
 
@@ -201,14 +244,18 @@ __setup("fpaff=", fpaff_thresh);
 
 static __init int mt_fp_affinity_init(void)
 {
-	if (fpaff_threshold >= 0) {
+	if (fpaff_threshold >= 0)
+	{
 		mt_fpemul_threshold = fpaff_threshold;
-	} else {
-		mt_fpemul_threshold =
-			(FPUSEFACTOR * (loops_per_jiffy/(500000/HZ))) / HZ;
 	}
+	else
+	{
+		mt_fpemul_threshold =
+			(FPUSEFACTOR * (loops_per_jiffy / (500000 / HZ))) / HZ;
+	}
+
 	printk(KERN_DEBUG "FPU Affinity set after %ld emulations\n",
-	       mt_fpemul_threshold);
+		   mt_fpemul_threshold);
 
 	return 0;
 }

@@ -24,7 +24,8 @@
 #define FSL_PM_SLEEP		(1 << 0)
 #define FSL_PM_DEEP_SLEEP	(1 << 1)
 
-struct fsl_pm_ops {
+struct fsl_pm_ops
+{
 	/* mask pending interrupts to the RCPM from MPIC */
 	void (*irq_mask)(int cpu);
 

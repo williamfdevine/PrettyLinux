@@ -5,7 +5,7 @@
  * Definitions for talking to the SMU chip in newer G5 PowerMacs
  */
 #ifdef __KERNEL__
-#include <linux/list.h>
+	#include <linux/list.h>
 #endif
 #include <linux/types.h>
 
@@ -104,67 +104,67 @@
 #define	  SMU_CMD_RTC_SET_DATETIME		0x80 /* i: 7 bytes date */
 #define   SMU_CMD_RTC_GET_DATETIME		0x81 /* o: 7 bytes date */
 
- /*
-  * i2c commands
-  *
-  * To issue an i2c command, first is to send a parameter block to the
-  * the SMU. This is a command of type 0x9a with 9 bytes of header
-  * eventually followed by data for a write:
-  *
-  * 0: bus number (from device-tree usually, SMU has lots of busses !)
-  * 1: transfer type/format (see below)
-  * 2: device address. For combined and combined4 type transfers, this
-  *    is the "write" version of the address (bit 0x01 cleared)
-  * 3: subaddress length (0..3)
-  * 4: subaddress byte 0 (or only byte for subaddress length 1)
-  * 5: subaddress byte 1
-  * 6: subaddress byte 2
-  * 7: combined address (device address for combined mode data phase)
-  * 8: data length
-  *
-  * The transfer types are the same good old Apple ones it seems,
-  * that is:
-  *   - 0x00: Simple transfer
-  *   - 0x01: Subaddress transfer (addr write + data tx, no restart)
-  *   - 0x02: Combined transfer (addr write + restart + data tx)
-  *
-  * This is then followed by actual data for a write.
-  *
-  * At this point, the OF driver seems to have a limitation on transfer
-  * sizes of 0xd bytes on reads and 0x5 bytes on writes. I do not know
-  * whether this is just an OF limit due to some temporary buffer size
-  * or if this is an SMU imposed limit. This driver has the same limitation
-  * for now as I use a 0x10 bytes temporary buffer as well
-  *
-  * Once that is completed, a response is expected from the SMU. This is
-  * obtained via a command of type 0x9a with a length of 1 byte containing
-  * 0 as the data byte. OF also fills the rest of the data buffer with 0xff's
-  * though I can't tell yet if this is actually necessary. Once this command
-  * is complete, at this point, all I can tell is what OF does. OF tests
-  * byte 0 of the reply:
-  *   - on read, 0xfe or 0xfc : bus is busy, wait (see below) or nak ?
-  *   - on read, 0x00 or 0x01 : reply is in buffer (after the byte 0)
-  *   - on write, < 0 -> failure (immediate exit)
-  *   - else, OF just exists (without error, weird)
-  *
-  * So on read, there is this wait-for-busy thing when getting a 0xfc or
-  * 0xfe result. OF does a loop of up to 64 retries, waiting 20ms and
-  * doing the above again until either the retries expire or the result
-  * is no longer 0xfe or 0xfc
-  *
-  * The Darwin I2C driver is less subtle though. On any non-success status
-  * from the response command, it waits 5ms and tries again up to 20 times,
-  * it doesn't differentiate between fatal errors or "busy" status.
-  *
-  * This driver provides an asynchronous paramblock based i2c command
-  * interface to be used either directly by low level code or by a higher
-  * level driver interfacing to the linux i2c layer. The current
-  * implementation of this relies on working timers & timer interrupts
-  * though, so be careful of calling context for now. This may be "fixed"
-  * in the future by adding a polling facility.
-  */
+/*
+ * i2c commands
+ *
+ * To issue an i2c command, first is to send a parameter block to the
+ * the SMU. This is a command of type 0x9a with 9 bytes of header
+ * eventually followed by data for a write:
+ *
+ * 0: bus number (from device-tree usually, SMU has lots of busses !)
+ * 1: transfer type/format (see below)
+ * 2: device address. For combined and combined4 type transfers, this
+ *    is the "write" version of the address (bit 0x01 cleared)
+ * 3: subaddress length (0..3)
+ * 4: subaddress byte 0 (or only byte for subaddress length 1)
+ * 5: subaddress byte 1
+ * 6: subaddress byte 2
+ * 7: combined address (device address for combined mode data phase)
+ * 8: data length
+ *
+ * The transfer types are the same good old Apple ones it seems,
+ * that is:
+ *   - 0x00: Simple transfer
+ *   - 0x01: Subaddress transfer (addr write + data tx, no restart)
+ *   - 0x02: Combined transfer (addr write + restart + data tx)
+ *
+ * This is then followed by actual data for a write.
+ *
+ * At this point, the OF driver seems to have a limitation on transfer
+ * sizes of 0xd bytes on reads and 0x5 bytes on writes. I do not know
+ * whether this is just an OF limit due to some temporary buffer size
+ * or if this is an SMU imposed limit. This driver has the same limitation
+ * for now as I use a 0x10 bytes temporary buffer as well
+ *
+ * Once that is completed, a response is expected from the SMU. This is
+ * obtained via a command of type 0x9a with a length of 1 byte containing
+ * 0 as the data byte. OF also fills the rest of the data buffer with 0xff's
+ * though I can't tell yet if this is actually necessary. Once this command
+ * is complete, at this point, all I can tell is what OF does. OF tests
+ * byte 0 of the reply:
+ *   - on read, 0xfe or 0xfc : bus is busy, wait (see below) or nak ?
+ *   - on read, 0x00 or 0x01 : reply is in buffer (after the byte 0)
+ *   - on write, < 0 -> failure (immediate exit)
+ *   - else, OF just exists (without error, weird)
+ *
+ * So on read, there is this wait-for-busy thing when getting a 0xfc or
+ * 0xfe result. OF does a loop of up to 64 retries, waiting 20ms and
+ * doing the above again until either the retries expire or the result
+ * is no longer 0xfe or 0xfc
+ *
+ * The Darwin I2C driver is less subtle though. On any non-success status
+ * from the response command, it waits 5ms and tries again up to 20 times,
+ * it doesn't differentiate between fatal errors or "busy" status.
+ *
+ * This driver provides an asynchronous paramblock based i2c command
+ * interface to be used either directly by low level code or by a higher
+ * level driver interfacing to the linux i2c layer. The current
+ * implementation of this relies on working timers & timer interrupts
+ * though, so be careful of calling context for now. This may be "fixed"
+ * in the future by adding a polling facility.
+ */
 #define SMU_CMD_I2C_COMMAND			0x9a
-          /* transfer types */
+/* transfer types */
 #define   SMU_I2C_TRANSFER_SIMPLE	0x00
 #define   SMU_I2C_TRANSFER_STDSUB	0x01
 #define   SMU_I2C_TRANSFER_COMBINED	0x02
@@ -334,7 +334,8 @@
 #define SMU_CMD_POWER_EVENTS_COMMAND		0x8f
 
 /* SMU_POWER_EVENTS subcommands */
-enum {
+enum
+{
 	SMU_PWR_GET_POWERUP_EVENTS      = 0x00,
 	SMU_PWR_SET_POWERUP_EVENTS      = 0x01,
 	SMU_PWR_CLR_POWERUP_EVENTS      = 0x02,
@@ -363,7 +364,8 @@ enum {
 };
 
 /* Power events wakeup bits */
-enum {
+enum
+{
 	SMU_PWR_WAKEUP_KEY              = 0x01, /* Wake on key press */
 	SMU_PWR_WAKEUP_AC_INSERT        = 0x02, /* Wake on AC adapter plug */
 	SMU_PWR_WAKEUP_AC_CHANGE        = 0x04,
@@ -424,10 +426,10 @@ struct smu_simple_cmd
  * function
  */
 extern int smu_queue_simple(struct smu_simple_cmd *scmd, u8 command,
-			    unsigned int data_len,
-			    void (*done)(struct smu_cmd *cmd, void *misc),
-			    void *misc,
-			    ...);
+							unsigned int data_len,
+							void (*done)(struct smu_cmd *cmd, void *misc),
+							void *misc,
+							...);
 
 /*
  * Completion helper. Pass it to smu_queue_simple or as 'done'
@@ -527,7 +529,8 @@ extern int smu_queue_i2c(struct smu_i2c_cmd *cmd);
 /*
  * Partition header format
  */
-struct smu_sdbp_header {
+struct smu_sdbp_header
+{
 	__u8	id;
 	__u8	len;
 	__u8	version;
@@ -535,11 +538,11 @@ struct smu_sdbp_header {
 };
 
 
- /*
- * demangle 16 and 32 bits integer in some SMU partitions
- * (currently, afaik, this concerns only the FVT partition
- * (0x12)
- */
+/*
+* demangle 16 and 32 bits integer in some SMU partitions
+* (currently, afaik, this concerns only the FVT partition
+* (0x12)
+*/
 #define SMU_U16_MIX(x)	le16_to_cpu(x)
 #define SMU_U32_MIX(x)  ((((x) & 0xff00ff00u) >> 8)|(((x) & 0x00ff00ffu) << 8))
 
@@ -550,7 +553,8 @@ struct smu_sdbp_header {
  */
 #define SMU_SDB_FVT_ID			0x12
 
-struct smu_sdbp_fvt {
+struct smu_sdbp_fvt
+{
 	__u32	sysclk;			/* Base SysClk frequency in Hz for
 					 * this operating point. Value need to
 					 * be unmixed with SMU_U32_MIX()
@@ -572,7 +576,8 @@ struct smu_sdbp_fvt {
  */
 #define SMU_SDB_CPUVCP_ID		0x21
 
-struct smu_sdbp_cpuvcp {
+struct smu_sdbp_cpuvcp
+{
 	__u16	volt_scale;		/* u4.12 fixed point */
 	__s16	volt_offset;		/* s4.12 fixed point */
 	__u16	curr_scale;		/* u4.12 fixed point */
@@ -584,7 +589,8 @@ struct smu_sdbp_cpuvcp {
  */
 #define SMU_SDB_CPUDIODE_ID		0x18
 
-struct smu_sdbp_cpudiode {
+struct smu_sdbp_cpudiode
+{
 	__u16	m_value;		/* u1.15 fixed point */
 	__s16	b_value;		/* s10.6 fixed point */
 
@@ -594,7 +600,8 @@ struct smu_sdbp_cpudiode {
  */
 #define SMU_SDB_SLOTSPOW_ID		0x78
 
-struct smu_sdbp_slotspow {
+struct smu_sdbp_slotspow
+{
 	__u16	pow_scale;		/* u4.12 fixed point */
 	__s16	pow_offset;		/* s4.12 fixed point */
 };
@@ -604,7 +611,8 @@ struct smu_sdbp_slotspow {
  */
 #define SMU_SDB_SENSORTREE_ID		0x25
 
-struct smu_sdbp_sensortree {
+struct smu_sdbp_sensortree
+{
 	__u8	model_id;
 	__u8	unknown[3];
 };
@@ -615,14 +623,15 @@ struct smu_sdbp_sensortree {
  */
 #define SMU_SDB_CPUPIDDATA_ID		0x17
 
-struct smu_sdbp_cpupiddata {
+struct smu_sdbp_cpupiddata
+{
 	__u8	unknown1;
 	__u8	target_temp_delta;
 	__u8	unknown2;
 	__u8	history_len;
 	__s16	power_adj;
 	__u16	max_power;
-	__s32	gp,gr,gd;
+	__s32	gp, gr, gd;
 };
 
 
@@ -635,11 +644,11 @@ struct smu_sdbp_cpupiddata {
  * if not found. The data format is described below
  */
 extern const struct smu_sdbp_header *smu_get_sdb_partition(int id,
-					unsigned int *size);
+		unsigned int *size);
 
 /* Get "sdb" partition data from an SMU satellite */
 extern struct smu_sdbp_header *smu_sat_get_sdb_partition(unsigned int sat_id,
-					int id, unsigned int *size);
+		int id, unsigned int *size);
 
 
 #endif /* __KERNEL__ */

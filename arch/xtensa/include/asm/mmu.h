@@ -13,7 +13,8 @@
 #include <asm-generic/mmu.h>
 #else
 
-typedef struct {
+typedef struct
+{
 	unsigned long asid[NR_CPUS];
 	unsigned int cpu;
 } mm_context_t;

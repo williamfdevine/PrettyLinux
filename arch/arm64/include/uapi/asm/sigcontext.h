@@ -22,7 +22,8 @@
  * Signal context structure - contains all info to do with the state
  * before the signal handler was invoked.
  */
-struct sigcontext {
+struct sigcontext
+{
 	__u64 fault_address;
 	/* AArch64 registers */
 	__u64 regs[31];
@@ -39,14 +40,16 @@ struct sigcontext {
  * and be 16-byte aligned. The last structure must be a dummy one with the
  * magic and size set to 0.
  */
-struct _aarch64_ctx {
+struct _aarch64_ctx
+{
 	__u32 magic;
 	__u32 size;
 };
 
 #define FPSIMD_MAGIC	0x46508001
 
-struct fpsimd_context {
+struct fpsimd_context
+{
 	struct _aarch64_ctx head;
 	__u32 fpsr;
 	__u32 fpcr;
@@ -56,7 +59,8 @@ struct fpsimd_context {
 /* ESR_EL1 context */
 #define ESR_MAGIC	0x45535201
 
-struct esr_context {
+struct esr_context
+{
 	struct _aarch64_ctx head;
 	__u64 esr;
 };

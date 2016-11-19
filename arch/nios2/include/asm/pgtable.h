@@ -33,9 +33,9 @@ struct mm_struct;
 
 /* Helper macro */
 #define MKP(x, w, r) __pgprot(_PAGE_PRESENT | _PAGE_CACHED |		\
-				((x) ? _PAGE_EXEC : 0) |		\
-				((r) ? _PAGE_READ : 0) |		\
-				((w) ? _PAGE_WRITE : 0))
+							  ((x) ? _PAGE_EXEC : 0) |		\
+							  ((r) ? _PAGE_READ : 0) |		\
+							  ((w) ? _PAGE_WRITE : 0))
 /*
  * These are the macros that generic kernel code needs
  * (to populate protection_map[])
@@ -63,10 +63,10 @@ struct mm_struct;
 
 /* Used all over the kernel */
 #define PAGE_KERNEL __pgprot(_PAGE_PRESENT | _PAGE_CACHED | _PAGE_READ | \
-			     _PAGE_WRITE | _PAGE_EXEC | _PAGE_GLOBAL)
+							 _PAGE_WRITE | _PAGE_EXEC | _PAGE_GLOBAL)
 
 #define PAGE_SHARED __pgprot(_PAGE_PRESENT | _PAGE_CACHED | _PAGE_READ | \
-			     _PAGE_WRITE | _PAGE_ACCESSED)
+							 _PAGE_WRITE | _PAGE_ACCESSED)
 
 #define PAGE_COPY MKP(0, 0, 1)
 
@@ -91,7 +91,7 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
 #define ZERO_PAGE(vaddr)	(virt_to_page(empty_zero_page))
 
 extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
-extern pte_t invalid_pte_table[PAGE_SIZE/sizeof(pte_t)];
+extern pte_t invalid_pte_table[PAGE_SIZE / sizeof(pte_t)];
 
 /*
  * (pmds are folded into puds so this doesn't get actually called,
@@ -107,11 +107,11 @@ static inline void set_pmd(pmd_t *pmdptr, pmd_t pmdval)
 #define pgd_offset(mm, addr)	((mm)->pgd + pgd_index(addr))
 
 static inline int pte_write(pte_t pte)		\
-	{ return pte_val(pte) & _PAGE_WRITE; }
+{ return pte_val(pte) &_PAGE_WRITE; }
 static inline int pte_dirty(pte_t pte)		\
-	{ return pte_val(pte) & _PAGE_DIRTY; }
+{ return pte_val(pte) &_PAGE_DIRTY; }
 static inline int pte_young(pte_t pte)		\
-	{ return pte_val(pte) & _PAGE_ACCESSED; }
+{ return pte_val(pte) &_PAGE_ACCESSED; }
 static inline int pte_special(pte_t pte)	{ return 0; }
 
 #define pgprot_noncached pgprot_noncached
@@ -127,11 +127,11 @@ static inline pgprot_t pgprot_noncached(pgprot_t _prot)
 
 static inline int pte_none(pte_t pte)
 {
-	return !(pte_val(pte) & ~(_PAGE_GLOBAL|0xf));
+	return !(pte_val(pte) & ~(_PAGE_GLOBAL | 0xf));
 }
 
 static inline int pte_present(pte_t pte)	\
-	{ return pte_val(pte) & _PAGE_PRESENT; }
+{ return pte_val(pte) &_PAGE_PRESENT; }
 
 /*
  * The following only work if pte_present() is true.
@@ -186,7 +186,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 static inline int pmd_present(pmd_t pmd)
 {
 	return (pmd_val(pmd) != (unsigned long) invalid_pte_table)
-			&& (pmd_val(pmd) != 0UL);
+		   && (pmd_val(pmd) != 0UL);
 }
 
 static inline void pmd_clear(pmd_t *pmdp)
@@ -207,7 +207,7 @@ static inline void set_pte(pte_t *ptep, pte_t pteval)
 }
 
 static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-			      pte_t *ptep, pte_t pteval)
+							  pte_t *ptep, pte_t pteval)
 {
 	unsigned long paddr = (unsigned long)page_to_virt(pte_page(pteval));
 
@@ -218,13 +218,13 @@ static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
 static inline int pmd_none(pmd_t pmd)
 {
 	return (pmd_val(pmd) ==
-		(unsigned long) invalid_pte_table) || (pmd_val(pmd) == 0UL);
+			(unsigned long) invalid_pte_table) || (pmd_val(pmd) == 0UL);
 }
 
 #define pmd_bad(pmd)	(pmd_val(pmd) & ~PAGE_MASK)
 
 static inline void pte_clear(struct mm_struct *mm,
-				unsigned long addr, pte_t *ptep)
+							 unsigned long addr, pte_t *ptep)
 {
 	pte_t null;
 
@@ -264,10 +264,10 @@ static inline void pte_clear(struct mm_struct *mm,
 
 #define pte_ERROR(e) \
 	pr_err("%s:%d: bad pte %08lx.\n", \
-		__FILE__, __LINE__, pte_val(e))
+		   __FILE__, __LINE__, pte_val(e))
 #define pgd_ERROR(e) \
 	pr_err("%s:%d: bad pgd %08lx.\n", \
-		__FILE__, __LINE__, pgd_val(e))
+		   __FILE__, __LINE__, pgd_val(e))
 
 /*
  * Encode and decode a swap entry (must be !pte_none(pte) && !pte_present(pte):
@@ -283,7 +283,7 @@ static inline void pte_clear(struct mm_struct *mm,
 #define __swp_type(swp)		(((swp).val >> 26) & 0x3)
 #define __swp_offset(swp)	((swp).val & 0xfffff)
 #define __swp_entry(type, off)	((swp_entry_t) { (((type) & 0x3) << 26) \
-						 | ((off) & 0xfffff) })
+		| ((off) & 0xfffff) })
 #define __swp_entry_to_pte(swp)	((pte_t) { (swp).val })
 #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
 
@@ -297,6 +297,6 @@ extern void __init paging_init(void);
 extern void __init mmu_init(void);
 
 extern void update_mmu_cache(struct vm_area_struct *vma,
-			     unsigned long address, pte_t *pte);
+							 unsigned long address, pte_t *pte);
 
 #endif /* _ASM_NIOS2_PGTABLE_H */

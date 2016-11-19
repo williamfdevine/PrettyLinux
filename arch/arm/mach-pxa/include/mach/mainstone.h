@@ -23,9 +23,9 @@
 #define MST_V2P(x)		((x) - MST_FPGA_VIRT + MST_FPGA_PHYS)
 
 #ifndef __ASSEMBLY__
-# define __MST_REG(x)		(*((volatile unsigned long *)MST_P2V(x)))
+	#define __MST_REG(x)		(*((volatile unsigned long *)MST_P2V(x)))
 #else
-# define __MST_REG(x)		MST_P2V(x)
+	#define __MST_REG(x)		MST_P2V(x)
 #endif
 
 /* board level registers in the FPGA */

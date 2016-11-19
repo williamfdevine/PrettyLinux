@@ -8,32 +8,32 @@
 #include <asm/tlbflush.h>
 
 #ifdef CONFIG_EFI
-extern void efi_init(void);
+	extern void efi_init(void);
 #else
-#define efi_init()
+	#define efi_init()
 #endif
 
 int efi_create_mapping(struct mm_struct *mm, efi_memory_desc_t *md);
 int efi_set_mapping_permissions(struct mm_struct *mm, efi_memory_desc_t *md);
 
 #define arch_efi_call_virt_setup()					\
-({									\
-	kernel_neon_begin();						\
-	efi_virtmap_load();						\
-})
+	({									\
+		kernel_neon_begin();						\
+		efi_virtmap_load();						\
+	})
 
 #define arch_efi_call_virt(p, f, args...)				\
-({									\
-	efi_##f##_t *__f;						\
-	__f = p->f;							\
-	__f(args);							\
-})
+	({									\
+		efi_##f##_t *__f;						\
+		__f = p->f;							\
+		__f(args);							\
+	})
 
 #define arch_efi_call_virt_teardown()					\
-({									\
-	efi_virtmap_unload();						\
-	kernel_neon_end();						\
-})
+	({									\
+		efi_virtmap_unload();						\
+		kernel_neon_end();						\
+	})
 
 #define ARCH_EFI_IRQ_FLAGS_MASK (PSR_D_BIT | PSR_A_BIT | PSR_I_BIT | PSR_F_BIT)
 

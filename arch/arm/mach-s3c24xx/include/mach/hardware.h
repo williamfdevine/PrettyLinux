@@ -14,7 +14,7 @@
 
 #ifndef __ASSEMBLY__
 
-extern unsigned int s3c2410_modify_misccr(unsigned int clr, unsigned int chg);
+	extern unsigned int s3c2410_modify_misccr(unsigned int clr, unsigned int chg);
 
 #endif /* __ASSEMBLY__ */
 

@@ -33,23 +33,27 @@
  * @timings: The timing inforamtion to print.
 */
 static void s3c2410_print_timing(const char *pfx,
-				 struct s3c_iotimings *timings)
+								 struct s3c_iotimings *timings)
 {
 	struct s3c2410_iobank_timing *bt;
 	int bank;
 
-	for (bank = 0; bank < MAX_BANKS; bank++) {
+	for (bank = 0; bank < MAX_BANKS; bank++)
+	{
 		bt = timings->bank[bank].io_2410;
+
 		if (!bt)
+		{
 			continue;
+		}
 
 		printk(KERN_DEBUG "%s %d: Tacs=%d.%d, Tcos=%d.%d, Tacc=%d.%d, "
-		       "Tcoh=%d.%d, Tcah=%d.%d\n", pfx, bank,
-		       print_ns(bt->tacs),
-		       print_ns(bt->tcos),
-		       print_ns(bt->tacc),
-		       print_ns(bt->tcoh),
-		       print_ns(bt->tcah));
+			   "Tcoh=%d.%d, Tcah=%d.%d\n", pfx, bank,
+			   print_ns(bt->tacs),
+			   print_ns(bt->tcos),
+			   print_ns(bt->tacc),
+			   print_ns(bt->tcoh),
+			   print_ns(bt->tcah));
 	}
 }
 
@@ -87,7 +91,9 @@ static inline int bank_is_io(unsigned long bankcon)
 static inline unsigned int to_div(unsigned int cyc, unsigned int hclk_tns)
 {
 	if (cyc == 0)
+	{
 		return 0;
+	}
 
 	return DIV_ROUND_UP(cyc, hclk_tns);
 }
@@ -103,30 +109,35 @@ static inline unsigned int to_div(unsigned int cyc, unsigned int hclk_tns)
  * set in the result, @v.
  */
 static unsigned int calc_0124(unsigned int cyc, unsigned long hclk_tns,
-			      unsigned long *v, int shift)
+							  unsigned long *v, int shift)
 {
 	unsigned int div = to_div(cyc, hclk_tns);
 	unsigned long val;
 
 	s3c_freq_iodbg("%s: cyc=%d, hclk=%lu, shift=%d => div %d\n",
-		       __func__, cyc, hclk_tns, shift, div);
+				   __func__, cyc, hclk_tns, shift, div);
 
-	switch (div) {
-	case 0:
-		val = 0;
-		break;
-	case 1:
-		val = 1;
-		break;
-	case 2:
-		val = 2;
-		break;
-	case 3:
-	case 4:
-		val = 3;
-		break;
-	default:
-		return -1;
+	switch (div)
+	{
+		case 0:
+			val = 0;
+			break;
+
+		case 1:
+			val = 1;
+			break;
+
+		case 2:
+			val = 2;
+			break;
+
+		case 3:
+		case 4:
+			val = 3;
+			break;
+
+		default:
+			return -1;
 	}
 
 	*v |= val << shift;
@@ -151,54 +162,57 @@ int calc_tacp(unsigned int cyc, unsigned long hclk, unsigned long *v)
  * pointed to by @v.
 */
 static int calc_tacc(unsigned int cyc, int nwait_en,
-		     unsigned long hclk_tns, unsigned long *v)
+					 unsigned long hclk_tns, unsigned long *v)
 {
 	unsigned int div = to_div(cyc, hclk_tns);
 	unsigned long val;
 
 	s3c_freq_iodbg("%s: cyc=%u, nwait=%d, hclk=%lu => div=%u\n",
-		       __func__, cyc, nwait_en, hclk_tns, div);
+				   __func__, cyc, nwait_en, hclk_tns, div);
 
 	/* if nWait enabled on an bank, Tacc must be at-least 4 cycles. */
 	if (nwait_en && div < 4)
+	{
 		div = 4;
+	}
 
-	switch (div) {
-	case 0:
-		val = 0;
-		break;
+	switch (div)
+	{
+		case 0:
+			val = 0;
+			break;
 
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-		val = div - 1;
-		break;
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			val = div - 1;
+			break;
 
-	case 5:
-	case 6:
-		val = 4;
-		break;
+		case 5:
+		case 6:
+			val = 4;
+			break;
 
-	case 7:
-	case 8:
-		val = 5;
-		break;
+		case 7:
+		case 8:
+			val = 5;
+			break;
 
-	case 9:
-	case 10:
-		val = 6;
-		break;
+		case 9:
+		case 10:
+			val = 6;
+			break;
 
-	case 11:
-	case 12:
-	case 13:
-	case 14:
-		val = 7;
-		break;
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+			val = 7;
+			break;
 
-	default:
-		return -1;
+		default:
+			return -1;
 	}
 
 	*v |= val << 8;
@@ -215,7 +229,7 @@ static int calc_tacc(unsigned int cyc, int nwait_en,
  * ready for the cpu frequency change.
  */
 static int s3c2410_calc_bank(struct s3c_cpufreq_config *cfg,
-			     struct s3c2410_iobank_timing *bt)
+							 struct s3c2410_iobank_timing *bt)
 {
 	unsigned long hclk = cfg->freq.hclk_tns;
 	unsigned long res;
@@ -237,19 +251,24 @@ static int s3c2410_calc_bank(struct s3c_cpufreq_config *cfg,
 	ret |= calc_0124(bt->tcoh, hclk, &res, S3C2410_BANKCON_Tcoh_SHIFT);
 
 	if (ret)
+	{
 		return -EINVAL;
+	}
 
 	ret |= calc_tacp(bt->tacp, hclk, &res);
 	ret |= calc_tacc(bt->tacc, bt->nwait_en, hclk, &res);
 
 	if (ret)
+	{
 		return -EINVAL;
+	}
 
 	bt->bankcon = res;
 	return 0;
 }
 
-static unsigned int tacc_tab[] = {
+static unsigned int tacc_tab[] =
+{
 	[0]	= 1,
 	[1]	= 2,
 	[2]	= 3,
@@ -266,7 +285,7 @@ static unsigned int tacc_tab[] = {
  * @val: The bank timing register value, shifed down.
  */
 static unsigned int get_tacc(unsigned long hclk_tns,
-			     unsigned long val)
+							 unsigned long val)
 {
 	val &= 7;
 	return hclk_tns * tacc_tab[val];
@@ -278,7 +297,7 @@ static unsigned int get_tacc(unsigned long hclk_tns,
  * @val: The bank timing register value, shifed down.
  */
 static unsigned int get_0124(unsigned long hclk_tns,
-			     unsigned long val)
+							 unsigned long val)
 {
 	val &= 3;
 	return hclk_tns * ((val == 3) ? 4 : val);
@@ -293,7 +312,7 @@ static unsigned int get_0124(unsigned long hclk_tns,
  * in @cfg, update the cycle timing information.
  */
 void s3c2410_iotiming_getbank(struct s3c_cpufreq_config *cfg,
-			      struct s3c2410_iobank_timing *bt)
+							  struct s3c2410_iobank_timing *bt)
 {
 	unsigned long bankcon = bt->bankcon;
 	unsigned long hclk = cfg->freq.hclk_tns;
@@ -312,8 +331,8 @@ void s3c2410_iotiming_getbank(struct s3c_cpufreq_config *cfg,
  * @iob: The IO bank information to decode.
  */
 void s3c2410_iotiming_debugfs(struct seq_file *seq,
-			      struct s3c_cpufreq_config *cfg,
-			      union s3c_iobank *iob)
+							  struct s3c_cpufreq_config *cfg,
+							  union s3c_iobank *iob)
 {
 	struct s3c2410_iobank_timing *bt = iob->io_2410;
 	unsigned long bankcon = bt->bankcon;
@@ -333,20 +352,20 @@ void s3c2410_iotiming_debugfs(struct seq_file *seq,
 	tacc = get_tacc(hclk, bankcon >> S3C2410_BANKCON_Tacc_SHIFT);
 
 	seq_printf(seq,
-		   "\tRead: Tacs=%d.%d, Tcos=%d.%d, Tacc=%d.%d, Tcoh=%d.%d, Tcah=%d.%d\n",
-		   print_ns(bt->tacs),
-		   print_ns(bt->tcos),
-		   print_ns(bt->tacc),
-		   print_ns(bt->tcoh),
-		   print_ns(bt->tcah));
+			   "\tRead: Tacs=%d.%d, Tcos=%d.%d, Tacc=%d.%d, Tcoh=%d.%d, Tcah=%d.%d\n",
+			   print_ns(bt->tacs),
+			   print_ns(bt->tcos),
+			   print_ns(bt->tacc),
+			   print_ns(bt->tcoh),
+			   print_ns(bt->tcah));
 
 	seq_printf(seq,
-		   "\t Set: Tacs=%d.%d, Tcos=%d.%d, Tacc=%d.%d, Tcoh=%d.%d, Tcah=%d.%d\n",
-		   print_ns(tacs),
-		   print_ns(tcos),
-		   print_ns(tacc),
-		   print_ns(tcoh),
-		   print_ns(tcah));
+			   "\t Set: Tacs=%d.%d, Tcos=%d.%d, Tacc=%d.%d, Tcoh=%d.%d, Tcah=%d.%d\n",
+			   print_ns(tacs),
+			   print_ns(tcos),
+			   print_ns(tacc),
+			   print_ns(tcoh),
+			   print_ns(tcah));
 }
 
 /**
@@ -359,35 +378,40 @@ void s3c2410_iotiming_debugfs(struct seq_file *seq,
  * to update the timing when necessary.
  */
 int s3c2410_iotiming_calc(struct s3c_cpufreq_config *cfg,
-			  struct s3c_iotimings *iot)
+						  struct s3c_iotimings *iot)
 {
 	struct s3c2410_iobank_timing *bt;
 	unsigned long bankcon;
 	int bank;
 	int ret;
 
-	for (bank = 0; bank < MAX_BANKS; bank++) {
+	for (bank = 0; bank < MAX_BANKS; bank++)
+	{
 		bankcon = __raw_readl(bank_reg(bank));
 		bt = iot->bank[bank].io_2410;
 
 		if (!bt)
+		{
 			continue;
+		}
 
 		bt->bankcon = bankcon;
 
 		ret = s3c2410_calc_bank(cfg, bt);
-		if (ret) {
+
+		if (ret)
+		{
 			printk(KERN_ERR "%s: cannot calculate bank %d io\n",
-			       __func__, bank);
+				   __func__, bank);
 			goto err;
 		}
 
 		s3c_freq_iodbg("%s: bank %d: con=%08lx\n",
-			       __func__, bank, bt->bankcon);
+					   __func__, bank, bt->bankcon);
 	}
 
 	return 0;
- err:
+err:
 	return ret;
 }
 
@@ -401,17 +425,21 @@ int s3c2410_iotiming_calc(struct s3c_cpufreq_config *cfg,
  * the new values are within permitted bounds.
  */
 void s3c2410_iotiming_set(struct s3c_cpufreq_config *cfg,
-			  struct s3c_iotimings *iot)
+						  struct s3c_iotimings *iot)
 {
 	struct s3c2410_iobank_timing *bt;
 	int bank;
 
 	/* set the io timings from the specifier */
 
-	for (bank = 0; bank < MAX_BANKS; bank++) {
+	for (bank = 0; bank < MAX_BANKS; bank++)
+	{
 		bt = iot->bank[bank].io_2410;
+
 		if (!bt)
+		{
 			continue;
+		}
 
 		__raw_writel(bt->bankcon, bank_reg(bank));
 	}
@@ -433,7 +461,7 @@ void s3c2410_iotiming_set(struct s3c_cpufreq_config *cfg,
  */
 
 int s3c2410_iotiming_get(struct s3c_cpufreq_config *cfg,
-			 struct s3c_iotimings *timings)
+						 struct s3c_iotimings *timings)
 {
 	struct s3c2410_iobank_timing *bt;
 	unsigned long bankcon;
@@ -444,27 +472,36 @@ int s3c2410_iotiming_get(struct s3c_cpufreq_config *cfg,
 
 	/* look through all banks to see what is currently set. */
 
-	for (bank = 0; bank < MAX_BANKS; bank++) {
+	for (bank = 0; bank < MAX_BANKS; bank++)
+	{
 		bankcon = __raw_readl(bank_reg(bank));
 
 		if (!bank_is_io(bankcon))
+		{
 			continue;
+		}
 
 		s3c_freq_iodbg("%s: bank %d: con %08lx\n",
-			       __func__, bank, bankcon);
+					   __func__, bank, bankcon);
 
 		bt = kzalloc(sizeof(struct s3c2410_iobank_timing), GFP_KERNEL);
-		if (!bt) {
+
+		if (!bt)
+		{
 			printk(KERN_ERR "%s: no memory for bank\n", __func__);
 			return -ENOMEM;
 		}
 
 		/* find out in nWait is enabled for bank. */
 
-		if (bank != 0) {
+		if (bank != 0)
+		{
 			unsigned long tmp  = S3C2410_BWSCON_GET(bwscon, bank);
+
 			if (tmp & S3C2410_BWSCON_WS)
+			{
 				bt->nwait_en = 1;
+			}
 		}
 
 		timings->bank[bank].io_2410 = bt;

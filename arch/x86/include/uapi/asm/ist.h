@@ -19,7 +19,8 @@
 
 #include <linux/types.h>
 
-struct ist_info {
+struct ist_info
+{
 	__u32 signature;
 	__u32 command;
 	__u32 event;

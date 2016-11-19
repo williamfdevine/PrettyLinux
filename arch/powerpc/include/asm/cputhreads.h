@@ -19,15 +19,15 @@
  */
 
 #ifdef CONFIG_SMP
-extern int threads_per_core;
-extern int threads_per_subcore;
-extern int threads_shift;
-extern cpumask_t threads_core_mask;
+	extern int threads_per_core;
+	extern int threads_per_subcore;
+	extern int threads_shift;
+	extern cpumask_t threads_core_mask;
 #else
-#define threads_per_core	1
-#define threads_per_subcore	1
-#define threads_shift		0
-#define threads_core_mask	(*get_cpu_mask(0))
+	#define threads_per_core	1
+	#define threads_per_subcore	1
+	#define threads_shift		0
+	#define threads_core_mask	(*get_cpu_mask(0))
 #endif
 
 /* cpu_thread_mask_to_cores - Return a cpumask of one per cores
@@ -47,14 +47,22 @@ static inline cpumask_t cpu_thread_mask_to_cores(const struct cpumask *threads)
 	int		i, cpu;
 
 	cpumask_clear(&res);
-	for (i = 0; i < NR_CPUS; i += threads_per_core) {
+
+	for (i = 0; i < NR_CPUS; i += threads_per_core)
+	{
 		cpumask_shift_left(&tmp, &threads_core_mask, i);
-		if (cpumask_intersects(threads, &tmp)) {
+
+		if (cpumask_intersects(threads, &tmp))
+		{
 			cpu = cpumask_next_and(-1, &tmp, cpu_online_mask);
+
 			if (cpu < nr_cpu_ids)
+			{
 				cpumask_set_cpu(cpu, &res);
+			}
 		}
 	}
+
 	return res;
 }
 
@@ -99,8 +107,12 @@ static inline int cpu_last_thread_sibling(int cpu)
 static inline u32 get_tensr(void)
 {
 #ifdef	CONFIG_BOOKE
+
 	if (cpu_has_feature(CPU_FTR_SMT))
+	{
 		return mfspr(SPRN_TENSR);
+	}
+
 #endif
 	return 1;
 }

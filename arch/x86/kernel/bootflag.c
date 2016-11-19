@@ -24,7 +24,8 @@ static int __init parity(u8 v)
 	int x = 0;
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		x ^= (v & 1);
 		v >>= 1;
 	}
@@ -36,13 +37,17 @@ static void __init sbf_write(u8 v)
 {
 	unsigned long flags;
 
-	if (sbf_port != -1) {
+	if (sbf_port != -1)
+	{
 		v &= ~SBF_PARITY;
+
 		if (!parity(v))
+		{
 			v |= SBF_PARITY;
+		}
 
 		printk(KERN_INFO "Simple Boot Flag at 0x%x set to 0x%x\n",
-			sbf_port, v);
+			   sbf_port, v);
 
 		spin_lock_irqsave(&rtc_lock, flags);
 		CMOS_WRITE(v, sbf_port);
@@ -56,7 +61,9 @@ static u8 __init sbf_read(void)
 	u8 v;
 
 	if (sbf_port == -1)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&rtc_lock, flags);
 	v = CMOS_READ(sbf_port);
@@ -68,9 +75,14 @@ static u8 __init sbf_read(void)
 static int __init sbf_value_valid(u8 v)
 {
 	if (v & SBF_RESERVED)		/* Reserved bits */
+	{
 		return 0;
+	}
+
 	if (!parity(v))
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -80,12 +92,16 @@ static int __init sbf_init(void)
 	u8 v;
 
 	if (sbf_port == -1)
+	{
 		return 0;
+	}
 
 	v = sbf_read();
-	if (!sbf_value_valid(v)) {
+
+	if (!sbf_value_valid(v))
+	{
 		printk(KERN_WARNING "Simple Boot Flag value 0x%x read from "
-			"CMOS RAM was invalid\n", v);
+			   "CMOS RAM was invalid\n", v);
 	}
 
 	v &= ~SBF_RESERVED;

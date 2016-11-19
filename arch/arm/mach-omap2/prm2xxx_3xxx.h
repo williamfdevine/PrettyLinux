@@ -65,7 +65,7 @@ static inline void omap2_prm_write_mod_reg(u32 val, s16 module, u16 idx)
 
 /* Read-modify-write a register in a PRM module. Caller must lock */
 static inline u32 omap2_prm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module,
-					     s16 idx)
+		s16 idx)
 {
 	u32 v;
 
@@ -102,29 +102,29 @@ static inline u32 omap2_prm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
 /* These omap2_ PRM functions apply to both OMAP2 and 3 */
 int omap2_prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset);
 int omap2_prm_assert_hardreset(u8 shift, u8 part, s16 prm_mod,
-			       u16 offset);
+							   u16 offset);
 int omap2_prm_deassert_hardreset(u8 rst_shift, u8 st_shift, u8 part,
-				 s16 prm_mod, u16 reset_offset,
-				 u16 st_offset);
+								 s16 prm_mod, u16 reset_offset,
+								 u16 st_offset);
 
 extern int omap2_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
 extern int omap2_pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
 extern int omap2_pwrdm_read_pwrst(struct powerdomain *pwrdm);
 extern int omap2_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank,
-				    u8 pwrst);
+									u8 pwrst);
 extern int omap2_pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank,
-				     u8 pwrst);
+									 u8 pwrst);
 extern int omap2_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
 extern int omap2_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank);
 extern int omap2_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
 extern int omap2_pwrdm_wait_transition(struct powerdomain *pwrdm);
 
 extern int omap2_clkdm_add_wkdep(struct clockdomain *clkdm1,
-				 struct clockdomain *clkdm2);
+								 struct clockdomain *clkdm2);
 extern int omap2_clkdm_del_wkdep(struct clockdomain *clkdm1,
-				 struct clockdomain *clkdm2);
+								 struct clockdomain *clkdm2);
 extern int omap2_clkdm_read_wkdep(struct clockdomain *clkdm1,
-				  struct clockdomain *clkdm2);
+								  struct clockdomain *clkdm2);
 extern int omap2_clkdm_clear_all_wkdeps(struct clockdomain *clkdm);
 
 #endif /* __ASSEMBLER */

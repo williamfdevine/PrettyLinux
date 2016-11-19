@@ -16,7 +16,7 @@
 
 extern int sha256_init(struct sha256_state *sctx);
 extern int sha256_update(struct sha256_state *sctx, const u8 *input,
-				unsigned int length);
+						 unsigned int length);
 extern int sha256_final(struct sha256_state *sctx, u8 *hash);
 
 #endif /* SHA256_H */

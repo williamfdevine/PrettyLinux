@@ -21,12 +21,12 @@ extern int (*__debugger_break_match)(struct pt_regs *regs);
 extern int (*__debugger_fault_handler)(struct pt_regs *regs);
 
 #define DEBUGGER_BOILERPLATE(__NAME) \
-static inline int __NAME(struct pt_regs *regs) \
-{ \
-	if (unlikely(__ ## __NAME)) \
-		return __ ## __NAME(regs); \
-	return 0; \
-}
+	static inline int __NAME(struct pt_regs *regs) \
+	{ \
+		if (unlikely(__ ## __NAME)) \
+			return __ ## __NAME(regs); \
+		return 0; \
+	}
 
 DEBUGGER_BOILERPLATE(debugger)
 DEBUGGER_BOILERPLATE(debugger_ipi)
@@ -50,11 +50,11 @@ void set_breakpoint(struct arch_hw_breakpoint *brk);
 void __set_breakpoint(struct arch_hw_breakpoint *brk);
 #ifdef CONFIG_PPC_ADV_DEBUG_REGS
 extern void do_send_trap(struct pt_regs *regs, unsigned long address,
-			 unsigned long error_code, int signal_code, int brkpt);
+						 unsigned long error_code, int signal_code, int brkpt);
 #else
 
 extern void do_break(struct pt_regs *regs, unsigned long address,
-		     unsigned long error_code);
+					 unsigned long error_code);
 #endif
 
 #endif /* _ASM_POWERPC_DEBUG_H */

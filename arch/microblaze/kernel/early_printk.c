@@ -35,6 +35,7 @@ static void early_printk_uartlite_putc(char c)
 	 */
 
 	unsigned retries = 1000000;
+
 	/* read status bit - 0x8 offset */
 	while (--retries && (in_be32(base_addr + 8) & (1 << 3)))
 		;
@@ -42,21 +43,28 @@ static void early_printk_uartlite_putc(char c)
 	/* Only attempt the iowrite if we didn't timeout */
 	/* write to TX_FIFO - 0x4 offset */
 	if (retries)
+	{
 		out_be32(base_addr + 4, c & 0xff);
+	}
 }
 
 static void early_printk_uartlite_write(struct console *unused,
-					const char *s, unsigned n)
+										const char *s, unsigned n)
 {
-	while (*s && n-- > 0) {
+	while (*s && n-- > 0)
+	{
 		if (*s == '\n')
+		{
 			early_printk_uartlite_putc('\r');
+		}
+
 		early_printk_uartlite_putc(*s);
 		s++;
 	}
 }
 
-static struct console early_serial_uartlite_console = {
+static struct console early_serial_uartlite_console =
+{
 	.name = "earlyser",
 	.write = early_printk_uartlite_write,
 	.flags = CON_PRINTBUFFER | CON_BOOT,
@@ -75,32 +83,39 @@ static void early_printk_uart16550_putc(char c)
 	 * we'll never timeout on a working UART.
 	 */
 
-	#define UART_LSR_TEMT	0x40 /* Transmitter empty */
-	#define UART_LSR_THRE	0x20 /* Transmit-hold-register empty */
-	#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+#define UART_LSR_TEMT	0x40 /* Transmitter empty */
+#define UART_LSR_THRE	0x20 /* Transmit-hold-register empty */
+#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
 
 	unsigned retries = 10000;
 
 	while (--retries &&
-		!((in_be32(base_addr + 0x14) & BOTH_EMPTY) == BOTH_EMPTY))
+		   !((in_be32(base_addr + 0x14) & BOTH_EMPTY) == BOTH_EMPTY))
 		;
 
 	if (retries)
+	{
 		out_be32(base_addr, c & 0xff);
+	}
 }
 
 static void early_printk_uart16550_write(struct console *unused,
-					const char *s, unsigned n)
+		const char *s, unsigned n)
 {
-	while (*s && n-- > 0) {
+	while (*s && n-- > 0)
+	{
 		if (*s == '\n')
+		{
 			early_printk_uart16550_putc('\r');
+		}
+
 		early_printk_uart16550_putc(*s);
 		s++;
 	}
 }
 
-static struct console early_serial_uart16550_console = {
+static struct console early_serial_uart16550_console =
+{
 	.name = "earlyser",
 	.write = early_printk_uart16550_write,
 	.flags = CON_PRINTBUFFER | CON_BOOT,
@@ -113,37 +128,47 @@ int __init setup_early_printk(char *opt)
 	int version = 0;
 
 	if (early_console)
+	{
 		return 1;
+	}
 
 	base_addr = of_early_console(&version);
-	if (base_addr) {
+
+	if (base_addr)
+	{
 #ifdef CONFIG_MMU
 		early_console_reg_tlb_alloc(base_addr);
 #endif
-		switch (version) {
+
+		switch (version)
+		{
 #ifdef CONFIG_SERIAL_UARTLITE_CONSOLE
-		case UARTLITE:
-			pr_info("Early console on uartlite at 0x%08x\n",
-								base_addr);
-			early_console = &early_serial_uartlite_console;
-			break;
+
+			case UARTLITE:
+				pr_info("Early console on uartlite at 0x%08x\n",
+						base_addr);
+				early_console = &early_serial_uartlite_console;
+				break;
 #endif
 #ifdef CONFIG_SERIAL_8250_CONSOLE
-		case UART16550:
-			pr_info("Early console on uart16650 at 0x%08x\n",
-								base_addr);
-			early_console = &early_serial_uart16550_console;
-			break;
+
+			case UART16550:
+				pr_info("Early console on uart16650 at 0x%08x\n",
+						base_addr);
+				early_console = &early_serial_uart16550_console;
+				break;
 #endif
-		default:
-			pr_info("Unsupported early console %d\n",
-								version);
-			return 1;
+
+			default:
+				pr_info("Unsupported early console %d\n",
+						version);
+				return 1;
 		}
 
 		register_console(early_console);
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -152,7 +177,10 @@ int __init setup_early_printk(char *opt)
 void __init remap_early_printk(void)
 {
 	if (!early_console)
+	{
 		return;
+	}
+
 	pr_info("early_printk_console remapping from 0x%x to ", base_addr);
 	base_addr = (u32) ioremap(base_addr, PAGE_SIZE);
 	pr_cont("0x%x\n", base_addr);
@@ -177,7 +205,10 @@ void __init remap_early_printk(void)
 void __init disable_early_printk(void)
 {
 	if (!early_console)
+	{
 		return;
+	}
+
 	pr_warn("disabling early console\n");
 	unregister_console(early_console);
 	early_console = NULL;

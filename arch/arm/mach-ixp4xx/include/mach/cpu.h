@@ -28,13 +28,13 @@
 #define IXP46X_PROCESSOR_ID_MASK	0xfffffff0
 
 #define cpu_is_ixp42x_rev_a0() ((read_cpuid_id() & (IXP42X_PROCESSOR_ID_MASK | 0xF)) == \
-				IXP42X_PROCESSOR_ID_VALUE)
+								IXP42X_PROCESSOR_ID_VALUE)
 #define cpu_is_ixp42x()	((read_cpuid_id() & IXP42X_PROCESSOR_ID_MASK) == \
-			 IXP42X_PROCESSOR_ID_VALUE)
+						 IXP42X_PROCESSOR_ID_VALUE)
 #define cpu_is_ixp43x()	((read_cpuid_id() & IXP43X_PROCESSOR_ID_MASK) == \
-			 IXP43X_PROCESSOR_ID_VALUE)
+						 IXP43X_PROCESSOR_ID_VALUE)
 #define cpu_is_ixp46x()	((read_cpuid_id() & IXP46X_PROCESSOR_ID_MASK) == \
-			 IXP46X_PROCESSOR_ID_VALUE)
+						 IXP46X_PROCESSOR_ID_VALUE)
 
 static inline u32 ixp4xx_read_feature_bits(void)
 {
@@ -42,11 +42,18 @@ static inline u32 ixp4xx_read_feature_bits(void)
 
 	if (cpu_is_ixp42x_rev_a0())
 		return IXP42X_FEATURE_MASK & ~(IXP4XX_FEATURE_RCOMP |
-					       IXP4XX_FEATURE_AES);
+									   IXP4XX_FEATURE_AES);
+
 	if (cpu_is_ixp42x())
+	{
 		return val & IXP42X_FEATURE_MASK;
+	}
+
 	if (cpu_is_ixp43x())
+	{
 		return val & IXP43X_FEATURE_MASK;
+	}
+
 	return val & IXP46X_FEATURE_MASK;
 }
 

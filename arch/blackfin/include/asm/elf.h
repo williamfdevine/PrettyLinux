@@ -51,15 +51,15 @@ typedef struct { } elf_fpregset_t;
 #define ELF_PLAT_INIT(_r)	_r->p1 = 0
 
 #define ELF_FDPIC_PLAT_INIT(_regs, _exec_map_addr, _interp_map_addr, _dynamic_addr)	\
-do {											\
-	_regs->r7	= 0;						\
-	_regs->p0	= _exec_map_addr;				\
-	_regs->p1	= _interp_map_addr;				\
-	_regs->p2	= _dynamic_addr;				\
-} while(0)
+	do {											\
+		_regs->r7	= 0;						\
+		_regs->p0	= _exec_map_addr;				\
+		_regs->p1	= _interp_map_addr;				\
+		_regs->p2	= _dynamic_addr;				\
+	} while(0)
 
 #if 0
-#define CORE_DUMP_USE_REGSET
+	#define CORE_DUMP_USE_REGSET
 #endif
 #define ELF_FDPIC_CORE_EFLAGS	EF_BFIN_FDPIC
 #define ELF_EXEC_PAGESIZE	4096
@@ -117,8 +117,8 @@ do {											\
 #define ELF_ET_DYN_BASE         0xD0000000UL
 
 #define ELF_CORE_COPY_REGS(pr_reg, regs)	\
-        memcpy((char *) &pr_reg, (char *)regs,  \
-               sizeof(struct pt_regs));
+	memcpy((char *) &pr_reg, (char *)regs,  \
+		   sizeof(struct pt_regs));
 #define ELF_CORE_COPY_FPREGS(...) 0	/* Blackfin has no FPU */
 
 /* This yields a mask that user programs can use to figure out what

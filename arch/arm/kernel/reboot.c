@@ -1,7 +1,7 @@
 /*
  *  Copyright (C) 1996-2000 Russell King - Converted to ARM.
  *  Original Copyright (C) 1995  Linus Torvalds
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
@@ -67,7 +67,9 @@ void _soft_restart(unsigned long addr, bool disable_l2)
 
 	/* Disable the L2 if we're the last man standing. */
 	if (disable_l2)
+	{
 		outer_disable();
+	}
 
 	/* Change to the new stack and continue with the reset. */
 	call_with_stack(__soft_restart, (void *)addr, (void *)stack);
@@ -104,6 +106,7 @@ void machine_halt(void)
 {
 	local_irq_disable();
 	smp_send_stop();
+
 	while (1);
 }
 
@@ -119,7 +122,9 @@ void machine_power_off(void)
 	smp_send_stop();
 
 	if (pm_power_off)
+	{
 		pm_power_off();
+	}
 }
 
 /*
@@ -139,14 +144,19 @@ void machine_restart(char *cmd)
 	smp_send_stop();
 
 	if (arm_pm_restart)
+	{
 		arm_pm_restart(reboot_mode, cmd);
+	}
 	else
+	{
 		do_kernel_restart(cmd);
+	}
 
 	/* Give a grace period for failure to restart of 1s */
 	mdelay(1000);
 
 	/* Whoops - the platform was unable to reboot. Tell the user! */
 	printk("Reboot failed -- System halted\n");
+
 	while (1);
 }

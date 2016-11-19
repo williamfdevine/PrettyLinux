@@ -21,8 +21,9 @@ unsigned long search_exception_table(unsigned long pc)
 
 	/* determine if the fault lay during a memcpy_user or a memset_user */
 	if (__frame->lr == (unsigned long) &__memset_user_error_lr &&
-	    (unsigned long) &memset <= pc && pc < (unsigned long) &__memset_end
-	    ) {
+		(unsigned long) &memset <= pc && pc < (unsigned long) &__memset_end
+	   )
+	{
 		/* the fault occurred in a protected memset
 		 * - we search for the return address (in LR) instead of the program counter
 		 * - it was probably during a clear_user()
@@ -31,8 +32,9 @@ unsigned long search_exception_table(unsigned long pc)
 	}
 
 	if (__frame->lr == (unsigned long) &__memcpy_user_error_lr &&
-	    (unsigned long) &memcpy <= pc && pc < (unsigned long) &__memcpy_end
-	    ) {
+		(unsigned long) &memcpy <= pc && pc < (unsigned long) &__memcpy_end
+	   )
+	{
 		/* the fault occurred in a protected memset
 		 * - we search for the return address (in LR) instead of the program counter
 		 * - it was probably during a copy_to/from_user()
@@ -41,8 +43,11 @@ unsigned long search_exception_table(unsigned long pc)
 	}
 
 	extab = search_exception_tables(pc);
+
 	if (extab)
+	{
 		return extab->fixup;
+	}
 
 	return 0;
 

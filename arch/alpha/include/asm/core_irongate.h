@@ -33,7 +33,8 @@
 
 typedef volatile __u32	igcsr32;
 
-typedef struct {
+typedef struct
+{
 	igcsr32 dev_vendor;		/* 0x00 - device ID, vendor ID */
 	igcsr32 stat_cmd;		/* 0x04 - status, command */
 	igcsr32 class;			/* 0x08 - class code, rev ID */
@@ -88,7 +89,8 @@ typedef struct {
 } Irongate0;
 
 
-typedef struct {
+typedef struct
+{
 
 	igcsr32 dev_vendor;		/* 0x00 - Device and Vendor IDs */
 	igcsr32 stat_cmd;		/* 0x04 - Status and Command regs */
@@ -114,9 +116,9 @@ extern igcsr32 *IronECC;
 
 /* Irongate is consistent with a subset of the Tsunami memory map */
 #ifdef USE_48_BIT_KSEG
-#define IRONGATE_BIAS 0x80000000000UL
+	#define IRONGATE_BIAS 0x80000000000UL
 #else
-#define IRONGATE_BIAS 0x10000000000UL
+	#define IRONGATE_BIAS 0x10000000000UL
 #endif
 
 
@@ -134,9 +136,9 @@ extern igcsr32 *IronECC;
  */
 
 #define IGCSR(dev,fun,reg)	( IRONGATE_CONF | \
-				((dev)<<11) | \
-				((fun)<<8) | \
-				(reg) )
+							  ((dev)<<11) | \
+							  ((fun)<<8) | \
+							  (reg) )
 
 #define IRONGATE0		((Irongate0 *) IGCSR(0, 0, 0))
 #define IRONGATE1		((Irongate1 *) IGCSR(1, 0, 0))
@@ -151,7 +153,8 @@ extern igcsr32 *IronECC;
 #define SCB_Q_SYSMCHK	0x660
 #define SCB_Q_PROCMCHK	0x670
 
-struct el_IRONGATE_sysdata_mcheck {
+struct el_IRONGATE_sysdata_mcheck
+{
 	__u32 FrameSize;                 /* Bytes, including this field */
 	__u32 FrameFlags;                /* <31> = Retry, <30> = Second Error */
 	__u32 CpuOffset;                 /* Offset to CPU-specific into */
@@ -179,8 +182,8 @@ struct el_IRONGATE_sysdata_mcheck {
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -223,8 +226,8 @@ __EXTERN_INLINE int irongate_is_mmio(const volatile void __iomem *xaddr)
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

@@ -26,7 +26,8 @@
 #include <linux/types.h>
 
 #ifndef __KERNEL__
-struct mfc_cq_sr {
+struct mfc_cq_sr
+{
 	__u64 mfc_cq_data0_RW;
 	__u64 mfc_cq_data1_RW;
 	__u64 mfc_cq_data2_RW;
@@ -34,7 +35,8 @@ struct mfc_cq_sr {
 };
 #endif /* __KERNEL__ */
 
-struct spu_dma_info {
+struct spu_dma_info
+{
 	__u64 dma_info_type;
 	__u64 dma_info_mask;
 	__u64 dma_info_status;
@@ -43,7 +45,8 @@ struct spu_dma_info {
 	struct mfc_cq_sr dma_info_command_data[16];
 };
 
-struct spu_proxydma_info {
+struct spu_proxydma_info
+{
 	__u64 proxydma_info_type;
 	__u64 proxydma_info_mask;
 	__u64 proxydma_info_status;

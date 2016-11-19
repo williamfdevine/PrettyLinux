@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
  * Licensed under the GPL
  */
@@ -10,7 +10,8 @@
 
 #include <sysdep/ptrace.h>
 
-struct pt_regs {
+struct pt_regs
+{
 	struct uml_pt_regs regs;
 };
 
@@ -32,7 +33,7 @@ struct pt_regs {
 struct task_struct;
 
 extern long subarch_ptrace(struct task_struct *child, long request,
-	unsigned long addr, unsigned long data);
+						   unsigned long addr, unsigned long data);
 extern unsigned long getreg(struct task_struct *child, int regno);
 extern int putreg(struct task_struct *child, int regno, unsigned long value);
 

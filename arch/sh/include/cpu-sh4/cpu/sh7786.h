@@ -14,7 +14,8 @@
 #ifndef __CPU_SH7786_H__
 #define __CPU_SH7786_H__
 
-enum {
+enum
+{
 	/* PA */
 	GPIO_PA7, GPIO_PA6, GPIO_PA5, GPIO_PA4,
 	GPIO_PA3, GPIO_PA2, GPIO_PA1, GPIO_PA0,

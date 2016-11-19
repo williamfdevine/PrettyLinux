@@ -39,7 +39,8 @@ extern gate_desc idt_table[];
 extern const struct desc_ptr debug_idt_descr;
 extern gate_desc debug_idt_table[];
 
-struct gdt_page {
+struct gdt_page
+{
 	struct desc_struct gdt[GDT_ENTRIES];
 } __attribute__((aligned(PAGE_SIZE)));
 
@@ -53,7 +54,7 @@ static inline struct desc_struct *get_cpu_gdt_table(unsigned int cpu)
 #ifdef CONFIG_X86_64
 
 static inline void pack_gate(gate_desc *gate, unsigned type, unsigned long func,
-			     unsigned dpl, unsigned ist, unsigned seg)
+							 unsigned dpl, unsigned ist, unsigned seg)
 {
 	gate->offset_low	= PTR_LOW(func);
 	gate->segment		= __KERNEL_CS;
@@ -69,8 +70,8 @@ static inline void pack_gate(gate_desc *gate, unsigned type, unsigned long func,
 
 #else
 static inline void pack_gate(gate_desc *gate, unsigned char type,
-			     unsigned long base, unsigned dpl, unsigned flags,
-			     unsigned short seg)
+							 unsigned long base, unsigned dpl, unsigned flags,
+							 unsigned short seg)
 {
 	gate->a = (seg << 16) | (base & 0xffff);
 	gate->b = (base & 0xffff0000) | (((0x80 | type | (dpl << 5)) & 0xff) << 8);
@@ -131,23 +132,26 @@ native_write_gdt_entry(struct desc_struct *gdt, int entry, const void *desc, int
 {
 	unsigned int size;
 
-	switch (type) {
-	case DESC_TSS:	size = sizeof(tss_desc);	break;
-	case DESC_LDT:	size = sizeof(ldt_desc);	break;
-	default:	size = sizeof(*gdt);		break;
+	switch (type)
+	{
+		case DESC_TSS:	size = sizeof(tss_desc);	break;
+
+		case DESC_LDT:	size = sizeof(ldt_desc);	break;
+
+		default:	size = sizeof(*gdt);		break;
 	}
 
 	memcpy(&gdt[entry], desc, size);
 }
 
 static inline void pack_descriptor(struct desc_struct *desc, unsigned long base,
-				   unsigned long limit, unsigned char type,
-				   unsigned char flags)
+								   unsigned long limit, unsigned char type,
+								   unsigned char flags)
 {
 	desc->a = ((base & 0xffff) << 16) | (limit & 0xffff);
 	desc->b = (base & 0xff000000) | ((base & 0xff0000) >> 16) |
-		(limit & 0x000f0000) | ((type & 0xff) << 8) |
-		((flags & 0xf) << 20);
+			  (limit & 0x000f0000) | ((type & 0xff) << 8) |
+			  ((flags & 0xf) << 20);
 	desc->p = 1;
 }
 
@@ -185,8 +189,8 @@ static inline void __set_tss_desc(unsigned cpu, unsigned int entry, void *addr)
 	 * last valid byte
 	 */
 	set_tssldt_descriptor(&tss, (unsigned long)addr, DESC_TSS,
-			      IO_BITMAP_OFFSET + IO_BITMAP_BYTES +
-			      sizeof(unsigned long) - 1);
+						  IO_BITMAP_OFFSET + IO_BITMAP_BYTES +
+						  sizeof(unsigned long) - 1);
 	write_gdt_entry(d, entry, &tss, DESC_TSS);
 }
 
@@ -195,15 +199,18 @@ static inline void __set_tss_desc(unsigned cpu, unsigned int entry, void *addr)
 static inline void native_set_ldt(const void *addr, unsigned int entries)
 {
 	if (likely(entries == 0))
+	{
 		asm volatile("lldt %w0"::"q" (0));
-	else {
+	}
+	else
+	{
 		unsigned cpu = smp_processor_id();
 		ldt_desc ldt;
 
 		set_tssldt_descriptor(&ldt, (unsigned long)addr, DESC_LDT,
-				      entries * LDT_ENTRY_SIZE - 1);
+							  entries * LDT_ENTRY_SIZE - 1);
 		write_gdt_entry(get_cpu_gdt_table(cpu), GDT_ENTRY_LDT,
-				&ldt, DESC_LDT);
+						&ldt, DESC_LDT);
 		asm volatile("lldt %w0"::"q" (GDT_ENTRY_LDT*8));
 	}
 }
@@ -248,7 +255,9 @@ static inline void native_load_tls(struct thread_struct *t, unsigned int cpu)
 	unsigned int i;
 
 	for (i = 0; i < GDT_ENTRY_TLS_ENTRIES; i++)
+	{
 		gdt[GDT_ENTRY_TLS_MIN + i] = t->tls_array[i];
+	}
 }
 
 /* This intentionally ignores lm, since 32-bit apps don't have that field. */
@@ -266,13 +275,13 @@ static inline void native_load_tls(struct thread_struct *t, unsigned int cpu)
 static inline bool LDT_zero(const struct user_desc *info)
 {
 	return (info->base_addr		== 0 &&
-		info->limit		== 0 &&
-		info->contents		== 0 &&
-		info->read_exec_only	== 0 &&
-		info->seg_32bit		== 0 &&
-		info->limit_in_pages	== 0 &&
-		info->seg_not_present	== 0 &&
-		info->useable		== 0);
+			info->limit		== 0 &&
+			info->contents		== 0 &&
+			info->read_exec_only	== 0 &&
+			info->seg_32bit		== 0 &&
+			info->limit_in_pages	== 0 &&
+			info->seg_not_present	== 0 &&
+			info->useable		== 0);
 }
 
 static inline void clear_LDT(void)
@@ -322,7 +331,7 @@ static inline void write_trace_idt_entry(int entry, const gate_desc *gate)
 }
 
 static inline void _trace_set_gate(int gate, unsigned type, void *addr,
-				   unsigned dpl, unsigned ist, unsigned seg)
+								   unsigned dpl, unsigned ist, unsigned seg)
 {
 	gate_desc s;
 
@@ -342,7 +351,7 @@ static inline void write_trace_idt_entry(int entry, const gate_desc *gate)
 #endif
 
 static inline void _set_gate(int gate, unsigned type, void *addr,
-			     unsigned dpl, unsigned ist, unsigned seg)
+							 unsigned dpl, unsigned ist, unsigned seg)
 {
 	gate_desc s;
 
@@ -365,14 +374,14 @@ static inline void _set_gate(int gate, unsigned type, void *addr,
 	do {								\
 		BUG_ON((unsigned)n > 0xFF);				\
 		_set_gate(n, GATE_INTERRUPT, (void *)addr, 0, 0,	\
-			  __KERNEL_CS);					\
+				  __KERNEL_CS);					\
 	} while (0)
 
 #define set_intr_gate(n, addr)						\
 	do {								\
 		set_intr_gate_notrace(n, addr);				\
 		_trace_set_gate(n, GATE_INTERRUPT, (void *)trace_##addr,\
-				0, 0, __KERNEL_CS);			\
+						0, 0, __KERNEL_CS);			\
 	} while (0)
 
 extern int first_system_vector;
@@ -381,11 +390,17 @@ extern unsigned long used_vectors[];
 
 static inline void alloc_system_vector(int vector)
 {
-	if (!test_bit(vector, used_vectors)) {
+	if (!test_bit(vector, used_vectors))
+	{
 		set_bit(vector, used_vectors);
+
 		if (first_system_vector > vector)
+		{
 			first_system_vector = vector;
-	} else {
+		}
+	}
+	else
+	{
 		BUG();
 	}
 }
@@ -420,7 +435,7 @@ static inline void set_trap_gate(unsigned int n, void *addr)
 static inline void set_task_gate(unsigned int n, unsigned int gdt_entry)
 {
 	BUG_ON((unsigned)n > 0xFF);
-	_set_gate(n, GATE_TASK, (void *)0, 0, 0, (gdt_entry<<3));
+	_set_gate(n, GATE_TASK, (void *)0, 0, 0, (gdt_entry << 3));
 }
 
 static inline void set_intr_gate_ist(int n, void *addr, unsigned ist)
@@ -440,7 +455,9 @@ DECLARE_PER_CPU(u32, debug_idt_ctr);
 static inline bool is_debug_idt_enabled(void)
 {
 	if (this_cpu_read(debug_idt_ctr))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -465,7 +482,9 @@ extern atomic_t trace_idt_ctr;
 static inline bool is_trace_idt_enabled(void)
 {
 	if (atomic_read(&trace_idt_ctr))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -495,10 +514,16 @@ static inline void load_trace_idt(void)
 static inline void load_current_idt(void)
 {
 	if (is_debug_idt_enabled())
+	{
 		load_debug_idt();
+	}
 	else if (is_trace_idt_enabled())
+	{
 		load_trace_idt();
+	}
 	else
+	{
 		load_idt((const struct desc_ptr *)&idt_descr);
+	}
 }
 #endif /* _ASM_X86_DESC_H */

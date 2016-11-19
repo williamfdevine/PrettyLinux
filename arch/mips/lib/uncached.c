@@ -14,10 +14,10 @@
 #include <asm/cacheflush.h>
 
 #ifndef CKSEG2
-#define CKSEG2 CKSSEG
+	#define CKSEG2 CKSSEG
 #endif
 #ifndef TO_PHYS_MASK
-#define TO_PHYS_MASK -1
+	#define TO_PHYS_MASK -1
 #endif
 
 /*
@@ -43,26 +43,37 @@ unsigned long run_uncached(void *func)
 	long usp;
 
 	if (sp >= (long)CKSEG0 && sp < (long)CKSEG2)
+	{
 		usp = CKSEG1ADDR(sp);
+	}
+
 #ifdef CONFIG_64BIT
 	else if ((long long)sp >= (long long)PHYS_TO_XKPHYS(0, 0) &&
-		 (long long)sp < (long long)PHYS_TO_XKPHYS(8, 0))
+			 (long long)sp < (long long)PHYS_TO_XKPHYS(8, 0))
 		usp = PHYS_TO_XKPHYS(K_CALG_UNCACHED,
-				     XKPHYS_TO_PHYS((long long)sp));
+							 XKPHYS_TO_PHYS((long long)sp));
+
 #endif
-	else {
+	else
+	{
 		BUG();
 		usp = sp;
 	}
+
 	if (lfunc >= (long)CKSEG0 && lfunc < (long)CKSEG2)
+	{
 		ufunc = CKSEG1ADDR(lfunc);
+	}
+
 #ifdef CONFIG_64BIT
 	else if ((long long)lfunc >= (long long)PHYS_TO_XKPHYS(0, 0) &&
-		 (long long)lfunc < (long long)PHYS_TO_XKPHYS(8, 0))
+			 (long long)lfunc < (long long)PHYS_TO_XKPHYS(8, 0))
 		ufunc = PHYS_TO_XKPHYS(K_CALG_UNCACHED,
-				       XKPHYS_TO_PHYS((long long)lfunc));
+							   XKPHYS_TO_PHYS((long long)lfunc));
+
 #endif
-	else {
+	else
+	{
 		BUG();
 		ufunc = lfunc;
 	}

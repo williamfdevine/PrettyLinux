@@ -17,7 +17,8 @@
 #include <asm/barrier.h>
 
 /* OPAL in-memory console. Defined in OPAL source at core/console.c */
-struct memcons {
+struct memcons
+{
 	__be64 magic;
 #define MEMCONS_MAGIC	0x6630696567726173L
 	__be64 obuf_phys;
@@ -41,7 +42,9 @@ ssize_t opal_msglog_copy(char *to, loff_t pos, size_t count)
 	uint32_t out_pos, avail;
 
 	if (!opal_memcons)
+	{
 		return -ENODEV;
+	}
 
 	out_pos = be32_to_cpu(ACCESS_ONCE(opal_memcons->out_pos));
 
@@ -54,16 +57,19 @@ ssize_t opal_msglog_copy(char *to, loff_t pos, size_t count)
 	/* When the buffer has wrapped, read from the out_pos marker to the end
 	 * of the buffer, and then read the remaining data as in the un-wrapped
 	 * case. */
-	if (out_pos & MEMCONS_OUT_POS_WRAP) {
+	if (out_pos & MEMCONS_OUT_POS_WRAP)
+	{
 
 		out_pos &= MEMCONS_OUT_POS_MASK;
 		avail = be32_to_cpu(opal_memcons->obuf_size) - out_pos;
 
 		ret = memory_read_from_buffer(to, count, &pos,
-				conbuf + out_pos, avail);
+									  conbuf + out_pos, avail);
 
 		if (ret < 0)
+		{
 			goto out;
+		}
 
 		first_read = ret;
 		to += first_read;
@@ -71,11 +77,14 @@ ssize_t opal_msglog_copy(char *to, loff_t pos, size_t count)
 		pos -= avail;
 
 		if (count <= 0)
+		{
 			goto out;
+		}
 	}
 
 	/* Sanity check. The firmware should not do this to us. */
-	if (out_pos > be32_to_cpu(opal_memcons->obuf_size)) {
+	if (out_pos > be32_to_cpu(opal_memcons->obuf_size))
+	{
 		pr_err("OPAL: memory console corruption. Aborting read.\n");
 		return -EINVAL;
 	}
@@ -83,7 +92,9 @@ ssize_t opal_msglog_copy(char *to, loff_t pos, size_t count)
 	ret = memory_read_from_buffer(to, count, &pos, conbuf, out_pos);
 
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret += first_read;
 out:
@@ -91,13 +102,14 @@ out:
 }
 
 static ssize_t opal_msglog_read(struct file *file, struct kobject *kobj,
-				struct bin_attribute *bin_attr, char *to,
-				loff_t pos, size_t count)
+								struct bin_attribute *bin_attr, char *to,
+								loff_t pos, size_t count)
 {
 	return opal_msglog_copy(to, pos, count);
 }
 
-static struct bin_attribute opal_msglog_attr = {
+static struct bin_attribute opal_msglog_attr =
+{
 	.attr = {.name = "msglog", .mode = 0444},
 	.read = opal_msglog_read
 };
@@ -107,18 +119,22 @@ void __init opal_msglog_init(void)
 	u64 mcaddr;
 	struct memcons *mc;
 
-	if (of_property_read_u64(opal_node, "ibm,opal-memcons", &mcaddr)) {
+	if (of_property_read_u64(opal_node, "ibm,opal-memcons", &mcaddr))
+	{
 		pr_warn("OPAL: Property ibm,opal-memcons not found, no message log\n");
 		return;
 	}
 
 	mc = phys_to_virt(mcaddr);
-	if (!mc) {
+
+	if (!mc)
+	{
 		pr_warn("OPAL: memory console address is invalid\n");
 		return;
 	}
 
-	if (be64_to_cpu(mc->magic) != MEMCONS_MAGIC) {
+	if (be64_to_cpu(mc->magic) != MEMCONS_MAGIC)
+	{
 		pr_warn("OPAL: memory console version is invalid\n");
 		return;
 	}
@@ -128,11 +144,14 @@ void __init opal_msglog_init(void)
 
 void __init opal_msglog_sysfs_init(void)
 {
-	if (!opal_memcons) {
+	if (!opal_memcons)
+	{
 		pr_warn("OPAL: message log initialisation failed, not creating sysfs entry\n");
 		return;
 	}
 
 	if (sysfs_create_bin_file(opal_kobj, &opal_msglog_attr) != 0)
+	{
 		pr_warn("OPAL: sysfs file creation failed\n");
+	}
 }

@@ -104,18 +104,21 @@ static void __init jmr3927_pci_setup(void)
 	struct pci_controller *c;
 
 	c = txx9_alloc_pci_controller(&txx9_primary_pcic,
-				      JMR3927_PCIMEM, JMR3927_PCIMEM_SIZE,
-				      JMR3927_PCIIO, JMR3927_PCIIO_SIZE);
+								  JMR3927_PCIMEM, JMR3927_PCIMEM_SIZE,
+								  JMR3927_PCIIO, JMR3927_PCIIO_SIZE);
 	register_pci_controller(c);
-	if (!extarb) {
+
+	if (!extarb)
+	{
 		/* Reset PCI Bus */
 		jmr3927_ioc_reg_out(0, JMR3927_IOC_RESET_ADDR);
 		udelay(100);
 		jmr3927_ioc_reg_out(JMR3927_IOC_RESET_PCI,
-				    JMR3927_IOC_RESET_ADDR);
+							JMR3927_IOC_RESET_ADDR);
 		udelay(100);
 		jmr3927_ioc_reg_out(0, JMR3927_IOC_RESET_ADDR);
 	}
+
 	tx3927_pcic_setup(c, JMR3927_SDRAM_SIZE, extarb);
 	tx3927_setup_pcierr_irq();
 #endif /* CONFIG_PCI */
@@ -151,18 +154,21 @@ static void __init jmr3927_board_init(void)
 	jmr3927_led_set(0);
 
 	printk(KERN_INFO
-	       "JMR-TX3927 (Rev %d) --- IOC(Rev %d) DIPSW:%d,%d,%d,%d\n",
-	       jmr3927_ioc_reg_in(JMR3927_IOC_BREV_ADDR) & JMR3927_REV_MASK,
-	       jmr3927_ioc_reg_in(JMR3927_IOC_REV_ADDR) & JMR3927_REV_MASK,
-	       jmr3927_dipsw1(), jmr3927_dipsw2(),
-	       jmr3927_dipsw3(), jmr3927_dipsw4());
+		   "JMR-TX3927 (Rev %d) --- IOC(Rev %d) DIPSW:%d,%d,%d,%d\n",
+		   jmr3927_ioc_reg_in(JMR3927_IOC_BREV_ADDR) & JMR3927_REV_MASK,
+		   jmr3927_ioc_reg_in(JMR3927_IOC_REV_ADDR) & JMR3927_REV_MASK,
+		   jmr3927_dipsw1(), jmr3927_dipsw2(),
+		   jmr3927_dipsw3(), jmr3927_dipsw4());
 }
 
 /* This trick makes rtc-ds1742 driver usable as is. */
 static unsigned long jmr3927_swizzle_addr_b(unsigned long port)
 {
 	if ((port & 0xffff0000) != JMR3927_IOC_NVRAMB_ADDR)
+	{
 		return port;
+	}
+
 	port = (port & 0xffff0000) | (port & 0x7fff << 1);
 #ifdef __BIG_ENDIAN
 	return port;
@@ -173,7 +179,8 @@ static unsigned long jmr3927_swizzle_addr_b(unsigned long port)
 
 static void __init jmr3927_rtc_init(void)
 {
-	static struct resource __initdata res = {
+	static struct resource __initdata res =
+	{
 		.start	= JMR3927_IOC_NVRAMB_ADDR - IO_BASE,
 		.end	= JMR3927_IOC_NVRAMB_ADDR - IO_BASE + 0x800 - 1,
 		.flags	= IORESOURCE_MEM,
@@ -186,7 +193,9 @@ static void __init jmr3927_mtd_init(void)
 	int i;
 
 	for (i = 0; i < 2; i++)
+	{
 		tx3927_mtd_init(i);
+	}
 }
 
 static void __init jmr3927_device_init(void)
@@ -210,7 +219,8 @@ static void __init jmr3927_arch_init(void)
 	gpio_request(10, "dipsw2");
 }
 
-struct txx9_board_vec jmr3927_vec __initdata = {
+struct txx9_board_vec jmr3927_vec __initdata =
+{
 	.system = "Toshiba JMR_TX3927",
 	.prom_init = jmr3927_prom_init,
 	.mem_setup = jmr3927_mem_setup,

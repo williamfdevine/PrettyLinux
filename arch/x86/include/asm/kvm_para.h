@@ -18,7 +18,7 @@ static inline bool kvm_check_and_clear_guest_paused(void)
 #endif /* CONFIG_KVM_GUEST */
 
 #define KVM_HYPERCALL \
-        ALTERNATIVE(".byte 0x0f,0x01,0xc1", ".byte 0x0f,0x01,0xd9", X86_FEATURE_VMMCALL)
+	ALTERNATIVE(".byte 0x0f,0x01,0xc1", ".byte 0x0f,0x01,0xd9", X86_FEATURE_VMMCALL)
 
 /* For KVM hypercalls, a three-byte sequence of either the vmcall or the vmmcall
  * instruction.  The hypervisor may replace it with something else but only the
@@ -34,9 +34,9 @@ static inline long kvm_hypercall0(unsigned int nr)
 {
 	long ret;
 	asm volatile(KVM_HYPERCALL
-		     : "=a"(ret)
-		     : "a"(nr)
-		     : "memory");
+				 : "=a"(ret)
+				 : "a"(nr)
+				 : "memory");
 	return ret;
 }
 
@@ -44,43 +44,43 @@ static inline long kvm_hypercall1(unsigned int nr, unsigned long p1)
 {
 	long ret;
 	asm volatile(KVM_HYPERCALL
-		     : "=a"(ret)
-		     : "a"(nr), "b"(p1)
-		     : "memory");
+				 : "=a"(ret)
+				 : "a"(nr), "b"(p1)
+				 : "memory");
 	return ret;
 }
 
 static inline long kvm_hypercall2(unsigned int nr, unsigned long p1,
-				  unsigned long p2)
+								  unsigned long p2)
 {
 	long ret;
 	asm volatile(KVM_HYPERCALL
-		     : "=a"(ret)
-		     : "a"(nr), "b"(p1), "c"(p2)
-		     : "memory");
+				 : "=a"(ret)
+				 : "a"(nr), "b"(p1), "c"(p2)
+				 : "memory");
 	return ret;
 }
 
 static inline long kvm_hypercall3(unsigned int nr, unsigned long p1,
-				  unsigned long p2, unsigned long p3)
+								  unsigned long p2, unsigned long p3)
 {
 	long ret;
 	asm volatile(KVM_HYPERCALL
-		     : "=a"(ret)
-		     : "a"(nr), "b"(p1), "c"(p2), "d"(p3)
-		     : "memory");
+				 : "=a"(ret)
+				 : "a"(nr), "b"(p1), "c"(p2), "d"(p3)
+				 : "memory");
 	return ret;
 }
 
 static inline long kvm_hypercall4(unsigned int nr, unsigned long p1,
-				  unsigned long p2, unsigned long p3,
-				  unsigned long p4)
+								  unsigned long p2, unsigned long p3,
+								  unsigned long p4)
 {
 	long ret;
 	asm volatile(KVM_HYPERCALL
-		     : "=a"(ret)
-		     : "a"(nr), "b"(p1), "c"(p2), "d"(p3), "S"(p4)
-		     : "memory");
+				 : "=a"(ret)
+				 : "a"(nr), "b"(p1), "c"(p2), "d"(p3), "S"(p4)
+				 : "memory");
 	return ret;
 }
 

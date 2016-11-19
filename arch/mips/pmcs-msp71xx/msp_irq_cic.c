@@ -36,28 +36,28 @@ extern void msp_per_irq_dispatch(void);
 #ifdef CONFIG_SMP
 
 #define LOCK_VPE(flags, mtflags) \
-do {				\
-	local_irq_save(flags);	\
-	mtflags = dmt();	\
-} while (0)
+	do {				\
+		local_irq_save(flags);	\
+		mtflags = dmt();	\
+	} while (0)
 
 #define UNLOCK_VPE(flags, mtflags) \
-do {				\
-	emt(mtflags);		\
-	local_irq_restore(flags);\
-} while (0)
+	do {				\
+		emt(mtflags);		\
+		local_irq_restore(flags);\
+	} while (0)
 
 #define LOCK_CORE(flags, mtflags) \
-do {				\
-	local_irq_save(flags);	\
-	mtflags = dvpe();	\
-} while (0)
+	do {				\
+		local_irq_save(flags);	\
+		mtflags = dvpe();	\
+	} while (0)
 
 #define UNLOCK_CORE(flags, mtflags)		\
-do {				\
-	evpe(mtflags);		\
-	local_irq_restore(flags);\
-} while (0)
+	do {				\
+		evpe(mtflags);		\
+		local_irq_restore(flags);\
+	} while (0)
 
 #else
 
@@ -89,8 +89,11 @@ static void unmask_cic_irq(struct irq_data *d)
 	* we were processing the IRQ.
 	*/
 	if (!cpumask_test_cpu(smp_processor_id(),
-			      irq_data_get_affinity_mask(d)))
+						  irq_data_get_affinity_mask(d)))
+	{
 		return;
+	}
+
 #endif
 
 	vpe = get_current_vpe();
@@ -127,7 +130,7 @@ static void msp_cic_irq_ack(struct irq_data *d)
 
 #ifdef CONFIG_MIPS_MT_SMP
 static int msp_cic_irq_set_affinity(struct irq_data *d,
-				    const struct cpumask *cpumask, bool force)
+									const struct cpumask *cpumask, bool force)
 {
 	int cpu;
 	unsigned long flags;
@@ -140,11 +143,16 @@ static int msp_cic_irq_set_affinity(struct irq_data *d,
 
 	LOCK_CORE(flags, mtflags);
 	/* enable if any of each VPE's TCs require this IRQ */
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cpumask_test_cpu(cpu, cpumask))
+		{
 			cic_mask[cpu] |= imask;
+		}
 		else
+		{
 			cic_mask[cpu] &= ~imask;
+		}
 
 	}
 
@@ -154,7 +162,8 @@ static int msp_cic_irq_set_affinity(struct irq_data *d,
 }
 #endif
 
-static struct irq_chip msp_cic_irq_controller = {
+static struct irq_chip msp_cic_irq_controller =
+{
 	.name = "MSP_CIC",
 	.irq_mask = mask_cic_irq,
 	.irq_mask_ack = msp_cic_irq_ack,
@@ -180,13 +189,14 @@ void __init msp_cic_irq_init(void)
 	*CIC_EXT_CFG_REG &= 0xFFFF8F8F;
 
 	/* initialize all the IRQ descriptors */
-	for (i = MSP_CIC_INTBASE ; i < MSP_CIC_INTBASE + 32 ; i++) {
+	for (i = MSP_CIC_INTBASE ; i < MSP_CIC_INTBASE + 32 ; i++)
+	{
 		irq_set_chip_and_handler(i, &msp_cic_irq_controller,
-					 handle_level_irq);
+								 handle_level_irq);
 	}
 
 	/* Initialize the PER interrupt sub-system */
-	 msp_per_irq_init();
+	msp_per_irq_init();
 }
 
 /* CIC masked by CIC vector processing before dispatch called */
@@ -198,15 +208,25 @@ void msp_cic_irq_dispatch(void)
 	int	cic_status = *CIC_STS_REG;
 	cic_mask = cic_msk_reg[get_current_vpe()];
 	pending = cic_status & cic_mask;
-	if (pending & (1 << (MSP_INT_VPE0_TIMER - MSP_CIC_INTBASE))) {
+
+	if (pending & (1 << (MSP_INT_VPE0_TIMER - MSP_CIC_INTBASE)))
+	{
 		do_IRQ(MSP_INT_VPE0_TIMER);
-	} else if (pending & (1 << (MSP_INT_VPE1_TIMER - MSP_CIC_INTBASE))) {
+	}
+	else if (pending & (1 << (MSP_INT_VPE1_TIMER - MSP_CIC_INTBASE)))
+	{
 		do_IRQ(MSP_INT_VPE1_TIMER);
-	} else if (pending & (1 << (MSP_INT_PER - MSP_CIC_INTBASE))) {
+	}
+	else if (pending & (1 << (MSP_INT_PER - MSP_CIC_INTBASE)))
+	{
 		msp_per_irq_dispatch();
-	} else if (pending) {
+	}
+	else if (pending)
+	{
 		do_IRQ(ffs(pending) + MSP_CIC_INTBASE - 1);
-	} else{
+	}
+	else
+	{
 		spurious_interrupt();
 	}
 }

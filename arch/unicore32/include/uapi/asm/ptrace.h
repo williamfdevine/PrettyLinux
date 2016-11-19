@@ -45,7 +45,8 @@
  * stack during a system call.  Note that sizeof(struct pt_regs)
  * has to be a multiple of 8.
  */
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long uregs[34];
 };
 

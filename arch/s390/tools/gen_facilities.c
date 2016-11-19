@@ -21,24 +21,42 @@ static void print_facility_list(struct facility_def *def)
 	unsigned long long *array;
 
 	array = calloc(1, 8);
+
 	if (!array)
+	{
 		exit(EXIT_FAILURE);
+	}
+
 	high = 0;
-	for (i = 0; def->bits[i] != -1; i++) {
+
+	for (i = 0; def->bits[i] != -1; i++)
+	{
 		bit = 63 - (def->bits[i] & 63);
 		dword = def->bits[i] / 64;
-		if (dword > high) {
+
+		if (dword > high)
+		{
 			array = realloc(array, (dword + 1) * 8);
+
 			if (!array)
+			{
 				exit(EXIT_FAILURE);
+			}
+
 			memset(array + high + 1, 0, (dword - high) * 8);
 			high = dword;
 		}
+
 		array[dword] |= 1ULL << bit;
 	}
+
 	printf("#define %s ", def->name);
+
 	for (i = 0; i <= high; i++)
+	{
 		printf("_AC(0x%016llx,UL)%c", array[i], i < high ? ',' : '\n');
+	}
+
 	free(array);
 }
 
@@ -47,7 +65,9 @@ static void print_facility_lists(void)
 	unsigned int i;
 
 	for (i = 0; i < sizeof(facility_defs) / sizeof(facility_defs[0]); i++)
+	{
 		print_facility_list(&facility_defs[i]);
+	}
 }
 
 int main(int argc, char **argv)

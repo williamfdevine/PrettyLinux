@@ -114,20 +114,20 @@ EXPORT_SYMBOL(elf_hwcap2);
 
 
 #ifdef MULTI_CPU
-struct processor processor __ro_after_init;
+	struct processor processor __ro_after_init;
 #endif
 #ifdef MULTI_TLB
-struct cpu_tlb_fns cpu_tlb __ro_after_init;
+	struct cpu_tlb_fns cpu_tlb __ro_after_init;
 #endif
 #ifdef MULTI_USER
-struct cpu_user_fns cpu_user __ro_after_init;
+	struct cpu_user_fns cpu_user __ro_after_init;
 #endif
 #ifdef MULTI_CACHE
-struct cpu_cache_fns cpu_cache __ro_after_init;
+	struct cpu_cache_fns cpu_cache __ro_after_init;
 #endif
 #ifdef CONFIG_OUTER_CACHE
-struct outer_cache_fns outer_cache __ro_after_init;
-EXPORT_SYMBOL(outer_cache);
+	struct outer_cache_fns outer_cache __ro_after_init;
+	EXPORT_SYMBOL(outer_cache);
 #endif
 
 /*
@@ -137,7 +137,8 @@ EXPORT_SYMBOL(outer_cache);
  */
 int __cpu_architecture __read_mostly = CPU_ARCH_UNKNOWN;
 
-struct stack {
+struct stack
+{
 	u32 irq[3];
 	u32 abt[3];
 	u32 und[3];
@@ -145,7 +146,7 @@ struct stack {
 } ____cacheline_aligned;
 
 #ifndef CONFIG_CPU_V7M
-static struct stack stacks[NR_CPUS];
+	static struct stack stacks[NR_CPUS];
 #endif
 
 char elf_platform[ELF_PLATFORM_SIZE];
@@ -164,7 +165,8 @@ DEFINE_PER_CPU(struct cpuinfo_arm, cpu_data);
 /*
  * Standard memory resources
  */
-static struct resource mem_res[] = {
+static struct resource mem_res[] =
+{
 	{
 		.name = "Video RAM",
 		.start = 0,
@@ -189,7 +191,8 @@ static struct resource mem_res[] = {
 #define kernel_code mem_res[1]
 #define kernel_data mem_res[2]
 
-static struct resource io_res[] = {
+static struct resource io_res[] =
+{
 	{
 		.name = "reserved",
 		.start = 0x3bc,
@@ -214,7 +217,8 @@ static struct resource io_res[] = {
 #define lp1 io_res[1]
 #define lp2 io_res[2]
 
-static const char *proc_arch[] = {
+static const char *proc_arch[] =
+{
 	"undefined/unknown",
 	"3",
 	"4",
@@ -244,28 +248,48 @@ static int __get_cpu_architecture(void)
 {
 	int cpu_arch;
 
-	if ((read_cpuid_id() & 0x0008f000) == 0) {
+	if ((read_cpuid_id() & 0x0008f000) == 0)
+	{
 		cpu_arch = CPU_ARCH_UNKNOWN;
-	} else if ((read_cpuid_id() & 0x0008f000) == 0x00007000) {
+	}
+	else if ((read_cpuid_id() & 0x0008f000) == 0x00007000)
+	{
 		cpu_arch = (read_cpuid_id() & (1 << 23)) ? CPU_ARCH_ARMv4T : CPU_ARCH_ARMv3;
-	} else if ((read_cpuid_id() & 0x00080000) == 0x00000000) {
+	}
+	else if ((read_cpuid_id() & 0x00080000) == 0x00000000)
+	{
 		cpu_arch = (read_cpuid_id() >> 16) & 7;
+
 		if (cpu_arch)
+		{
 			cpu_arch += CPU_ARCH_ARMv3;
-	} else if ((read_cpuid_id() & 0x000f0000) == 0x000f0000) {
+		}
+	}
+	else if ((read_cpuid_id() & 0x000f0000) == 0x000f0000)
+	{
 		/* Revised CPUID format. Read the Memory Model Feature
 		 * Register 0 and check for VMSAv7 or PMSAv7 */
 		unsigned int mmfr0 = read_cpuid_ext(CPUID_EXT_MMFR0);
+
 		if ((mmfr0 & 0x0000000f) >= 0x00000003 ||
-		    (mmfr0 & 0x000000f0) >= 0x00000030)
+			(mmfr0 & 0x000000f0) >= 0x00000030)
+		{
 			cpu_arch = CPU_ARCH_ARMv7;
+		}
 		else if ((mmfr0 & 0x0000000f) == 0x00000002 ||
-			 (mmfr0 & 0x000000f0) == 0x00000020)
+				 (mmfr0 & 0x000000f0) == 0x00000020)
+		{
 			cpu_arch = CPU_ARCH_ARMv6;
+		}
 		else
+		{
 			cpu_arch = CPU_ARCH_UNKNOWN;
-	} else
+		}
+	}
+	else
+	{
 		cpu_arch = CPU_ARCH_UNKNOWN;
+	}
 
 	return cpu_arch;
 }
@@ -285,24 +309,29 @@ static int cpu_has_aliasing_icache(unsigned int arch)
 
 	/* PIPT caches never alias. */
 	if (icache_is_pipt())
+	{
 		return 0;
+	}
 
 	/* arch specifies the register format */
-	switch (arch) {
-	case CPU_ARCH_ARMv7:
-		set_csselr(CSSELR_ICACHE | CSSELR_L1);
-		isb();
-		id_reg = read_ccsidr();
-		line_size = 4 << ((id_reg & 0x7) + 2);
-		num_sets = ((id_reg >> 13) & 0x7fff) + 1;
-		aliasing_icache = (line_size * num_sets) > PAGE_SIZE;
-		break;
-	case CPU_ARCH_ARMv6:
-		aliasing_icache = read_cpuid_cachetype() & (1 << 11);
-		break;
-	default:
-		/* I-cache aliases will be handled by D-cache aliasing code */
-		aliasing_icache = 0;
+	switch (arch)
+	{
+		case CPU_ARCH_ARMv7:
+			set_csselr(CSSELR_ICACHE | CSSELR_L1);
+			isb();
+			id_reg = read_ccsidr();
+			line_size = 4 << ((id_reg & 0x7) + 2);
+			num_sets = ((id_reg >> 13) & 0x7fff) + 1;
+			aliasing_icache = (line_size * num_sets) > PAGE_SIZE;
+			break;
+
+		case CPU_ARCH_ARMv6:
+			aliasing_icache = read_cpuid_cachetype() & (1 << 11);
+			break;
+
+		default:
+			/* I-cache aliases will be handled by D-cache aliasing code */
+			aliasing_icache = 0;
 	}
 
 	return aliasing_icache;
@@ -312,45 +341,64 @@ static void __init cacheid_init(void)
 {
 	unsigned int arch = cpu_architecture();
 
-	if (arch >= CPU_ARCH_ARMv6) {
+	if (arch >= CPU_ARCH_ARMv6)
+	{
 		unsigned int cachetype = read_cpuid_cachetype();
 
-		if ((arch == CPU_ARCH_ARMv7M) && !cachetype) {
+		if ((arch == CPU_ARCH_ARMv7M) && !cachetype)
+		{
 			cacheid = 0;
-		} else if ((cachetype & (7 << 29)) == 4 << 29) {
+		}
+		else if ((cachetype & (7 << 29)) == 4 << 29)
+		{
 			/* ARMv7 register format */
 			arch = CPU_ARCH_ARMv7;
 			cacheid = CACHEID_VIPT_NONALIASING;
-			switch (cachetype & (3 << 14)) {
-			case (1 << 14):
-				cacheid |= CACHEID_ASID_TAGGED;
-				break;
-			case (3 << 14):
-				cacheid |= CACHEID_PIPT;
-				break;
+
+			switch (cachetype & (3 << 14))
+			{
+				case (1 << 14):
+					cacheid |= CACHEID_ASID_TAGGED;
+					break;
+
+				case (3 << 14):
+					cacheid |= CACHEID_PIPT;
+					break;
 			}
-		} else {
-			arch = CPU_ARCH_ARMv6;
-			if (cachetype & (1 << 23))
-				cacheid = CACHEID_VIPT_ALIASING;
-			else
-				cacheid = CACHEID_VIPT_NONALIASING;
 		}
+		else
+		{
+			arch = CPU_ARCH_ARMv6;
+
+			if (cachetype & (1 << 23))
+			{
+				cacheid = CACHEID_VIPT_ALIASING;
+			}
+			else
+			{
+				cacheid = CACHEID_VIPT_NONALIASING;
+			}
+		}
+
 		if (cpu_has_aliasing_icache(arch))
+		{
 			cacheid |= CACHEID_VIPT_I_ALIASING;
-	} else {
+		}
+	}
+	else
+	{
 		cacheid = CACHEID_VIVT;
 	}
 
 	pr_info("CPU: %s data cache, %s instruction cache\n",
-		cache_is_vivt() ? "VIVT" :
-		cache_is_vipt_aliasing() ? "VIPT aliasing" :
-		cache_is_vipt_nonaliasing() ? "PIPT / VIPT nonaliasing" : "unknown",
-		cache_is_vivt() ? "VIVT" :
-		icache_is_vivt_asid_tagged() ? "VIVT ASID tagged" :
-		icache_is_vipt_aliasing() ? "VIPT aliasing" :
-		icache_is_pipt() ? "PIPT" :
-		cache_is_vipt_nonaliasing() ? "VIPT nonaliasing" : "unknown");
+			cache_is_vivt() ? "VIVT" :
+			cache_is_vipt_aliasing() ? "VIPT aliasing" :
+			cache_is_vipt_nonaliasing() ? "PIPT / VIPT nonaliasing" : "unknown",
+			cache_is_vivt() ? "VIVT" :
+			icache_is_vivt_asid_tagged() ? "VIVT ASID tagged" :
+			icache_is_vipt_aliasing() ? "VIPT aliasing" :
+			icache_is_pipt() ? "PIPT" :
+			cache_is_vipt_nonaliasing() ? "VIPT nonaliasing" : "unknown");
 }
 
 /*
@@ -379,7 +427,8 @@ void __init early_print(const char *str, ...)
 
 static inline u32 __attribute_const__ sdiv_instruction(void)
 {
-	if (IS_ENABLED(CONFIG_THUMB2_KERNEL)) {
+	if (IS_ENABLED(CONFIG_THUMB2_KERNEL))
+	{
 		/* "sdiv r0, r0, r1" */
 		u32 insn = __opcode_thumb32_compose(0xfb90, 0xf0f1);
 		return __opcode_to_mem_thumb32(insn);
@@ -391,7 +440,8 @@ static inline u32 __attribute_const__ sdiv_instruction(void)
 
 static inline u32 __attribute_const__ udiv_instruction(void)
 {
-	if (IS_ENABLED(CONFIG_THUMB2_KERNEL)) {
+	if (IS_ENABLED(CONFIG_THUMB2_KERNEL))
+	{
 		/* "udiv r0, r0, r1" */
 		u32 insn = __opcode_thumb32_compose(0xfbb0, 0xf0f1);
 		return __opcode_to_mem_thumb32(insn);
@@ -403,7 +453,8 @@ static inline u32 __attribute_const__ udiv_instruction(void)
 
 static inline u32 __attribute_const__ bx_lr_instruction(void)
 {
-	if (IS_ENABLED(CONFIG_THUMB2_KERNEL)) {
+	if (IS_ENABLED(CONFIG_THUMB2_KERNEL))
+	{
 		/* "bx lr; nop" */
 		u32 insn = __opcode_thumb32_compose(0x4770, 0x46c0);
 		return __opcode_to_mem_thumb32(insn);
@@ -421,8 +472,11 @@ static void __init patch_aeabi_idiv(void)
 	unsigned int mask;
 
 	mask = IS_ENABLED(CONFIG_THUMB2_KERNEL) ? HWCAP_IDIVT : HWCAP_IDIVA;
+
 	if (!(elf_hwcap & mask))
+	{
 		return;
+	}
 
 	pr_info("CPU: div instructions available: patching division code\n");
 
@@ -449,39 +503,65 @@ static void __init cpuid_init_hwcaps(void)
 	u32 isar5;
 
 	if (cpu_architecture() < CPU_ARCH_ARMv7)
+	{
 		return;
+	}
 
 	block = cpuid_feature_extract(CPUID_EXT_ISAR0, 24);
+
 	if (block >= 2)
+	{
 		elf_hwcap |= HWCAP_IDIVA;
+	}
+
 	if (block >= 1)
+	{
 		elf_hwcap |= HWCAP_IDIVT;
+	}
 
 	/* LPAE implies atomic ldrd/strd instructions */
 	block = cpuid_feature_extract(CPUID_EXT_MMFR0, 0);
+
 	if (block >= 5)
+	{
 		elf_hwcap |= HWCAP_LPAE;
+	}
 
 	/* check for supported v8 Crypto instructions */
 	isar5 = read_cpuid_ext(CPUID_EXT_ISAR5);
 
 	block = cpuid_feature_extract_field(isar5, 4);
+
 	if (block >= 2)
+	{
 		elf_hwcap2 |= HWCAP2_PMULL;
+	}
+
 	if (block >= 1)
+	{
 		elf_hwcap2 |= HWCAP2_AES;
+	}
 
 	block = cpuid_feature_extract_field(isar5, 8);
+
 	if (block >= 1)
+	{
 		elf_hwcap2 |= HWCAP2_SHA1;
+	}
 
 	block = cpuid_feature_extract_field(isar5, 12);
+
 	if (block >= 1)
+	{
 		elf_hwcap2 |= HWCAP2_SHA2;
+	}
 
 	block = cpuid_feature_extract_field(isar5, 16);
+
 	if (block >= 1)
+	{
 		elf_hwcap2 |= HWCAP2_CRC32;
+	}
 }
 
 static void __init elf_hwcap_fixup(void)
@@ -493,14 +573,17 @@ static void __init elf_hwcap_fixup(void)
 	 * see also kuser_get_tls_init.
 	 */
 	if (read_cpuid_part() == ARM_CPU_PART_ARM1136 &&
-	    ((id >> 20) & 3) == 0) {
+		((id >> 20) & 3) == 0)
+	{
 		elf_hwcap &= ~HWCAP_TLS;
 		return;
 	}
 
 	/* Verify if CPUID scheme is implemented */
 	if ((id & 0x000f0000) != 0x000f0000)
+	{
 		return;
+	}
 
 	/*
 	 * If the CPU supports LDREX/STREX and LDREXB/STREXB,
@@ -508,9 +591,11 @@ static void __init elf_hwcap_fixup(void)
 	 * multiprocessing cores.
 	 */
 	if (cpuid_feature_extract(CPUID_EXT_ISAR3, 12) > 1 ||
-	    (cpuid_feature_extract(CPUID_EXT_ISAR3, 12) == 1 &&
-	     cpuid_feature_extract(CPUID_EXT_ISAR4, 20) >= 3))
+		(cpuid_feature_extract(CPUID_EXT_ISAR3, 12) == 1 &&
+		 cpuid_feature_extract(CPUID_EXT_ISAR4, 20) >= 3))
+	{
 		elf_hwcap &= ~HWCAP_SWP;
+	}
 }
 
 /*
@@ -524,7 +609,8 @@ void notrace cpu_init(void)
 	unsigned int cpu = smp_processor_id();
 	struct stack *stk = &stacks[cpu];
 
-	if (cpu >= NR_CPUS) {
+	if (cpu >= NR_CPUS)
+	{
 		pr_crit("CPU%u: bad primary CPU number\n", cpu);
 		BUG();
 	}
@@ -551,35 +637,35 @@ void notrace cpu_init(void)
 	 * setup stacks for re-entrant exception handlers
 	 */
 	__asm__ (
-	"msr	cpsr_c, %1\n\t"
-	"add	r14, %0, %2\n\t"
-	"mov	sp, r14\n\t"
-	"msr	cpsr_c, %3\n\t"
-	"add	r14, %0, %4\n\t"
-	"mov	sp, r14\n\t"
-	"msr	cpsr_c, %5\n\t"
-	"add	r14, %0, %6\n\t"
-	"mov	sp, r14\n\t"
-	"msr	cpsr_c, %7\n\t"
-	"add	r14, %0, %8\n\t"
-	"mov	sp, r14\n\t"
-	"msr	cpsr_c, %9"
-	    :
-	    : "r" (stk),
-	      PLC (PSR_F_BIT | PSR_I_BIT | IRQ_MODE),
-	      "I" (offsetof(struct stack, irq[0])),
-	      PLC (PSR_F_BIT | PSR_I_BIT | ABT_MODE),
-	      "I" (offsetof(struct stack, abt[0])),
-	      PLC (PSR_F_BIT | PSR_I_BIT | UND_MODE),
-	      "I" (offsetof(struct stack, und[0])),
-	      PLC (PSR_F_BIT | PSR_I_BIT | FIQ_MODE),
-	      "I" (offsetof(struct stack, fiq[0])),
-	      PLC (PSR_F_BIT | PSR_I_BIT | SVC_MODE)
-	    : "r14");
+		"msr	cpsr_c, %1\n\t"
+		"add	r14, %0, %2\n\t"
+		"mov	sp, r14\n\t"
+		"msr	cpsr_c, %3\n\t"
+		"add	r14, %0, %4\n\t"
+		"mov	sp, r14\n\t"
+		"msr	cpsr_c, %5\n\t"
+		"add	r14, %0, %6\n\t"
+		"mov	sp, r14\n\t"
+		"msr	cpsr_c, %7\n\t"
+		"add	r14, %0, %8\n\t"
+		"mov	sp, r14\n\t"
+		"msr	cpsr_c, %9"
+		:
+		: "r" (stk),
+		PLC (PSR_F_BIT | PSR_I_BIT | IRQ_MODE),
+		"I" (offsetof(struct stack, irq[0])),
+		PLC (PSR_F_BIT | PSR_I_BIT | ABT_MODE),
+		"I" (offsetof(struct stack, abt[0])),
+		PLC (PSR_F_BIT | PSR_I_BIT | UND_MODE),
+		"I" (offsetof(struct stack, und[0])),
+		PLC (PSR_F_BIT | PSR_I_BIT | FIQ_MODE),
+		"I" (offsetof(struct stack, fiq[0])),
+		PLC (PSR_F_BIT | PSR_I_BIT | SVC_MODE)
+		: "r14");
 #endif
 }
 
-u32 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = MPIDR_INVALID };
+u32 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS - 1] = MPIDR_INVALID };
 
 void __init smp_setup_processor_id(void)
 {
@@ -588,8 +674,11 @@ void __init smp_setup_processor_id(void)
 	u32 cpu = MPIDR_AFFINITY_LEVEL(mpidr, 0);
 
 	cpu_logical_map(0) = cpu;
+
 	for (i = 1; i < nr_cpu_ids; ++i)
+	{
 		cpu_logical_map(i) = i == cpu ? 0 : i;
+	}
 
 	/*
 	 * clear __my_cpu_offset on boot CPU to avoid hang caused by
@@ -618,13 +707,15 @@ static void __init smp_build_mpidr_hash(void)
 	 * not contribute to affinity levels, ie they never toggle.
 	 */
 	for_each_possible_cpu(i)
-		mask |= (cpu_logical_map(i) ^ cpu_logical_map(0));
+	mask |= (cpu_logical_map(i) ^ cpu_logical_map(0));
 	pr_debug("mask of set bits 0x%x\n", mask);
+
 	/*
 	 * Find and stash the last and first bit set at all affinity levels to
 	 * check how many bits are required to represent them.
 	 */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		affinity = MPIDR_AFFINITY_LEVEL(mask, i);
 		/*
 		 * Find the MSB bit and LSB bits position
@@ -635,6 +726,7 @@ static void __init smp_build_mpidr_hash(void)
 		fs[i] = affinity ? ffs(affinity) - 1 : 0;
 		bits[i] = ls - fs[i];
 	}
+
 	/*
 	 * An index can be created from the MPIDR by isolating the
 	 * significant bits at each affinity level and by shifting
@@ -647,22 +739,26 @@ static void __init smp_build_mpidr_hash(void)
 	 */
 	mpidr_hash.shift_aff[0] = fs[0];
 	mpidr_hash.shift_aff[1] = MPIDR_LEVEL_BITS + fs[1] - bits[0];
-	mpidr_hash.shift_aff[2] = 2*MPIDR_LEVEL_BITS + fs[2] -
-						(bits[1] + bits[0]);
+	mpidr_hash.shift_aff[2] = 2 * MPIDR_LEVEL_BITS + fs[2] -
+							  (bits[1] + bits[0]);
 	mpidr_hash.mask = mask;
 	mpidr_hash.bits = bits[2] + bits[1] + bits[0];
 	pr_debug("MPIDR hash: aff0[%u] aff1[%u] aff2[%u] mask[0x%x] bits[%u]\n",
-				mpidr_hash.shift_aff[0],
-				mpidr_hash.shift_aff[1],
-				mpidr_hash.shift_aff[2],
-				mpidr_hash.mask,
-				mpidr_hash.bits);
+			 mpidr_hash.shift_aff[0],
+			 mpidr_hash.shift_aff[1],
+			 mpidr_hash.shift_aff[2],
+			 mpidr_hash.mask,
+			 mpidr_hash.bits);
+
 	/*
 	 * 4x is an arbitrary value used to warn on a hash table much bigger
 	 * than expected on most systems.
 	 */
 	if (mpidr_hash_size() > 4 * num_possible_cpus())
+	{
 		pr_warn("Large number of MPIDR hash buckets detected\n");
+	}
+
 	sync_cache_w(&mpidr_hash);
 }
 #endif
@@ -677,9 +773,12 @@ static void __init setup_processor(void)
 	 * entries in arch/arm/mm/proc-*.S
 	 */
 	list = lookup_processor_type(read_cpuid_id());
-	if (!list) {
+
+	if (!list)
+	{
 		pr_err("CPU configuration botched (ID %08x), unable to continue.\n",
-		       read_cpuid_id());
+			   read_cpuid_id());
+
 		while (1);
 	}
 
@@ -700,13 +799,13 @@ static void __init setup_processor(void)
 #endif
 
 	pr_info("CPU: %s [%08x] revision %d (ARMv%s), cr=%08lx\n",
-		cpu_name, read_cpuid_id(), read_cpuid_id() & 15,
-		proc_arch[cpu_architecture()], get_cr());
+			cpu_name, read_cpuid_id(), read_cpuid_id() & 15,
+			proc_arch[cpu_architecture()], get_cr());
 
 	snprintf(init_utsname()->machine, __NEW_UTS_LEN + 1, "%s%c",
-		 list->arch_name, ENDIANNESS);
+			 list->arch_name, ENDIANNESS);
 	snprintf(elf_platform, ELF_PLATFORM_SIZE, "%s%c",
-		 list->elf_name, ENDIANNESS);
+			 list->elf_name, ENDIANNESS);
 	elf_hwcap = list->elf_hwcap;
 
 	cpuid_init_hwcaps();
@@ -732,7 +831,7 @@ void __init dump_machine_table(void)
 
 	early_print("Available machine support:\n\nID (hex)\tNAME\n");
 	for_each_machine_desc(p)
-		early_print("%08x\t%s\n", p->nr, p->name);
+	early_print("%08x\t%s\n", p->nr, p->name);
 
 	early_print("\nPlease check your kernel config and/or bootloader.\n");
 
@@ -749,21 +848,29 @@ int __init arm_add_memory(u64 start, u64 size)
 	 * Size is rounded down, start is rounded up.
 	 */
 	aligned_start = PAGE_ALIGN(start);
+
 	if (aligned_start > start + size)
+	{
 		size = 0;
+	}
 	else
+	{
 		size -= aligned_start - start;
+	}
 
 #ifndef CONFIG_ARCH_PHYS_ADDR_T_64BIT
-	if (aligned_start > ULONG_MAX) {
+
+	if (aligned_start > ULONG_MAX)
+	{
 		pr_crit("Ignoring memory at 0x%08llx outside 32-bit physical address space\n",
-			(long long)start);
+				(long long)start);
 		return -EINVAL;
 	}
 
-	if (aligned_start + size > ULONG_MAX) {
+	if (aligned_start + size > ULONG_MAX)
+	{
 		pr_crit("Truncating memory at 0x%08llx to fit in 32-bit physical address space\n",
-			(long long)start);
+				(long long)start);
 		/*
 		 * To ensure bank->start + bank->size is representable in
 		 * 32 bits, we use ULONG_MAX as the upper limit rather than 4GB.
@@ -771,17 +878,20 @@ int __init arm_add_memory(u64 start, u64 size)
 		 */
 		size = ULONG_MAX - aligned_start;
 	}
+
 #endif
 
-	if (aligned_start < PHYS_OFFSET) {
-		if (aligned_start + size <= PHYS_OFFSET) {
+	if (aligned_start < PHYS_OFFSET)
+	{
+		if (aligned_start + size <= PHYS_OFFSET)
+		{
 			pr_info("Ignoring memory below PHYS_OFFSET: 0x%08llx-0x%08llx\n",
-				aligned_start, aligned_start + size);
+					aligned_start, aligned_start + size);
 			return -EINVAL;
 		}
 
 		pr_info("Ignoring memory below PHYS_OFFSET: 0x%08llx-0x%08llx\n",
-			aligned_start, (u64)PHYS_OFFSET);
+				aligned_start, (u64)PHYS_OFFSET);
 
 		size -= PHYS_OFFSET - aligned_start;
 		aligned_start = PHYS_OFFSET;
@@ -795,7 +905,9 @@ int __init arm_add_memory(u64 start, u64 size)
 	 * invalid node number.
 	 */
 	if (size == 0)
+	{
 		return -EINVAL;
+	}
 
 	memblock_add(start, size);
 	return 0;
@@ -818,16 +930,20 @@ static int __init early_mem(char *p)
 	 * blow away any automatically generated
 	 * size.
 	 */
-	if (usermem == 0) {
+	if (usermem == 0)
+	{
 		usermem = 1;
 		memblock_remove(memblock_start_of_DRAM(),
-			memblock_end_of_DRAM() - memblock_start_of_DRAM());
+						memblock_end_of_DRAM() - memblock_start_of_DRAM());
 	}
 
 	start = PHYS_OFFSET;
 	size  = memparse(p, &endp);
+
 	if (*endp == '@')
+	{
 		start = memparse(endp + 1, NULL);
+	}
 
 	arm_add_memory(start, size);
 
@@ -845,7 +961,8 @@ static void __init request_standard_resources(const struct machine_desc *mdesc)
 	kernel_data.start   = virt_to_phys(_sdata);
 	kernel_data.end     = virt_to_phys(_end - 1);
 
-	for_each_memblock(memory, region) {
+	for_each_memblock(memory, region)
+	{
 		phys_addr_t start = __pfn_to_phys(memblock_region_memory_base_pfn(region));
 		phys_addr_t end = __pfn_to_phys(memblock_region_memory_end_pfn(region)) - 1;
 		unsigned long boot_alias_start;
@@ -856,7 +973,9 @@ static void __init request_standard_resources(const struct machine_desc *mdesc)
 		 * kexec-tools so they know where bootable RAM is located.
 		 */
 		boot_alias_start = phys_to_idmap(start);
-		if (arm_has_idmap_alias() && boot_alias_start != IDMAP_INVALID_ADDR) {
+
+		if (arm_has_idmap_alias() && boot_alias_start != IDMAP_INVALID_ADDR)
+		{
 			res = memblock_virt_alloc(sizeof(*res), 0);
 			res->name = "System RAM (boot alias)";
 			res->start = boot_alias_start;
@@ -874,14 +993,20 @@ static void __init request_standard_resources(const struct machine_desc *mdesc)
 		request_resource(&iomem_resource, res);
 
 		if (kernel_code.start >= res->start &&
-		    kernel_code.end <= res->end)
+			kernel_code.end <= res->end)
+		{
 			request_resource(res, &kernel_code);
+		}
+
 		if (kernel_data.start >= res->start &&
-		    kernel_data.end <= res->end)
+			kernel_data.end <= res->end)
+		{
 			request_resource(res, &kernel_data);
+		}
 	}
 
-	if (mdesc->video_start) {
+	if (mdesc->video_start)
+	{
 		video_ram.start = mdesc->video_start;
 		video_ram.end   = mdesc->video_end;
 		request_resource(&iomem_resource, &video_ram);
@@ -892,22 +1017,31 @@ static void __init request_standard_resources(const struct machine_desc *mdesc)
 	 * possessing lp0, lp1 or lp2
 	 */
 	if (mdesc->reserve_lp0)
+	{
 		request_resource(&ioport_resource, &lp0);
+	}
+
 	if (mdesc->reserve_lp1)
+	{
 		request_resource(&ioport_resource, &lp1);
+	}
+
 	if (mdesc->reserve_lp2)
+	{
 		request_resource(&ioport_resource, &lp2);
+	}
 }
 
 #if defined(CONFIG_VGA_CONSOLE) || defined(CONFIG_DUMMY_CONSOLE) || \
     defined(CONFIG_EFI)
-struct screen_info screen_info = {
- .orig_video_lines	= 30,
- .orig_video_cols	= 80,
- .orig_video_mode	= 0,
- .orig_video_ega_bx	= 0,
- .orig_video_isVGA	= 1,
- .orig_video_points	= 8
+struct screen_info screen_info =
+{
+	.orig_video_lines	= 30,
+	.orig_video_cols	= 80,
+	.orig_video_mode	= 0,
+	.orig_video_ega_bx	= 0,
+	.orig_video_isVGA	= 1,
+	.orig_video_points	= 8
 };
 #endif
 
@@ -920,7 +1054,9 @@ static int __init customize_machine(void)
 	 * otherwise we would always need an init_machine callback.
 	 */
 	if (machine_desc->init_machine)
+	{
 		machine_desc->init_machine();
+	}
 
 	return 0;
 }
@@ -932,20 +1068,27 @@ static int __init init_machine_late(void)
 	int ret;
 
 	if (machine_desc->init_late)
+	{
 		machine_desc->init_late();
+	}
 
 	root = of_find_node_by_path("/");
-	if (root) {
+
+	if (root)
+	{
 		ret = of_property_read_string(root, "serial-number",
-					      &system_serial);
+									  &system_serial);
+
 		if (ret)
+		{
 			system_serial = NULL;
+		}
 	}
 
 	if (!system_serial)
 		system_serial = kasprintf(GFP_KERNEL, "%08x%08x",
-					  system_serial_high,
-					  system_serial_low);
+								  system_serial_high,
+								  system_serial_low);
 
 	return 0;
 }
@@ -981,53 +1124,67 @@ static void __init reserve_crashkernel(void)
 
 	total_mem = get_total_mem();
 	ret = parse_crashkernel(boot_command_line, total_mem,
-				&crash_size, &crash_base);
-	if (ret)
-		return;
+							&crash_size, &crash_base);
 
-	if (crash_base <= 0) {
+	if (ret)
+	{
+		return;
+	}
+
+	if (crash_base <= 0)
+	{
 		unsigned long long crash_max = idmap_to_phys((u32)~0);
 		crash_base = memblock_find_in_range(CRASH_ALIGN, crash_max,
-						    crash_size, CRASH_ALIGN);
-		if (!crash_base) {
+											crash_size, CRASH_ALIGN);
+
+		if (!crash_base)
+		{
 			pr_err("crashkernel reservation failed - No suitable area found.\n");
 			return;
 		}
-	} else {
+	}
+	else
+	{
 		unsigned long long start;
 
 		start = memblock_find_in_range(crash_base,
-					       crash_base + crash_size,
-					       crash_size, SECTION_SIZE);
-		if (start != crash_base) {
+									   crash_base + crash_size,
+									   crash_size, SECTION_SIZE);
+
+		if (start != crash_base)
+		{
 			pr_err("crashkernel reservation failed - memory is in use.\n");
 			return;
 		}
 	}
 
 	ret = memblock_reserve(crash_base, crash_size);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_warn("crashkernel reservation failed - memory is in use (0x%lx)\n",
-			(unsigned long)crash_base);
+				(unsigned long)crash_base);
 		return;
 	}
 
 	pr_info("Reserving %ldMB of memory at %ldMB for crashkernel (System RAM: %ldMB)\n",
-		(unsigned long)(crash_size >> 20),
-		(unsigned long)(crash_base >> 20),
-		(unsigned long)(total_mem >> 20));
+			(unsigned long)(crash_size >> 20),
+			(unsigned long)(crash_base >> 20),
+			(unsigned long)(total_mem >> 20));
 
 	/* The crashk resource must always be located in normal mem */
 	crashk_res.start = crash_base;
 	crashk_res.end = crash_base + crash_size - 1;
 	insert_resource(&iomem_resource, &crashk_res);
 
-	if (arm_has_idmap_alias()) {
+	if (arm_has_idmap_alias())
+	{
 		/*
 		 * If we have a special RAM alias for use at boot, we
 		 * need to advertise to kexec tools where the alias is.
 		 */
-		static struct resource crashk_boot_res = {
+		static struct resource crashk_boot_res =
+		{
 			.name = "Crash kernel (boot alias)",
 			.flags = IORESOURCE_BUSY | IORESOURCE_MEM,
 		};
@@ -1046,15 +1203,22 @@ void __init hyp_mode_check(void)
 #ifdef CONFIG_ARM_VIRT_EXT
 	sync_boot_mode();
 
-	if (is_hyp_mode_available()) {
+	if (is_hyp_mode_available())
+	{
 		pr_info("CPU: All CPU(s) started in HYP mode.\n");
 		pr_info("CPU: Virtualization extensions available.\n");
-	} else if (is_hyp_mode_mismatched()) {
+	}
+	else if (is_hyp_mode_mismatched())
+	{
 		pr_warn("CPU: WARNING: CPU(s) started in wrong/inconsistent modes (primary CPU mode 0x%x)\n",
-			__boot_cpu_mode & MODE_MASK);
+				__boot_cpu_mode & MODE_MASK);
 		pr_warn("CPU: This may indicate a broken bootloader or firmware.\n");
-	} else
+	}
+	else
+	{
 		pr_info("CPU: All CPU(s) started in SVC mode.\n");
+	}
+
 #endif
 }
 
@@ -1064,14 +1228,20 @@ void __init setup_arch(char **cmdline_p)
 
 	setup_processor();
 	mdesc = setup_machine_fdt(__atags_pointer);
+
 	if (!mdesc)
+	{
 		mdesc = setup_machine_tags(__atags_pointer, __machine_arch_type);
+	}
+
 	machine_desc = mdesc;
 	machine_name = mdesc->name;
 	dump_stack_set_arch_desc("%s", mdesc->name);
 
 	if (mdesc->reboot_mode != REBOOT_HARD)
+	{
 		reboot_mode = mdesc->reboot_mode;
+	}
 
 	init_mm.start_code = (unsigned long) _text;
 	init_mm.end_code   = (unsigned long) _etext;
@@ -1102,27 +1272,40 @@ void __init setup_arch(char **cmdline_p)
 	request_standard_resources(mdesc);
 
 	if (mdesc->restart)
+	{
 		arm_pm_restart = mdesc->restart;
+	}
 
 	unflatten_device_tree();
 
 	arm_dt_init_cpu_maps();
 	psci_dt_init();
 #ifdef CONFIG_SMP
-	if (is_smp()) {
-		if (!mdesc->smp_init || !mdesc->smp_init()) {
+
+	if (is_smp())
+	{
+		if (!mdesc->smp_init || !mdesc->smp_init())
+		{
 			if (psci_smp_available())
+			{
 				smp_set_ops(&psci_smp_ops);
+			}
 			else if (mdesc->smp)
+			{
 				smp_set_ops(mdesc->smp);
+			}
 		}
+
 		smp_init_cpus();
 		smp_build_mpidr_hash();
 	}
+
 #endif
 
 	if (!is_smp())
+	{
 		hyp_mode_check();
+	}
 
 	reserve_crashkernel();
 
@@ -1139,7 +1322,9 @@ void __init setup_arch(char **cmdline_p)
 #endif
 
 	if (mdesc->init_early)
+	{
 		mdesc->init_early();
+	}
 }
 
 
@@ -1147,7 +1332,8 @@ static int __init topology_init(void)
 {
 	int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct cpuinfo_arm *cpuinfo = &per_cpu(cpu_data, cpu);
 		cpuinfo->cpu.hotpluggable = platform_can_hotplug_cpu(cpu);
 		register_cpu(&cpuinfo->cpu, cpu);
@@ -1163,14 +1349,19 @@ static int __init proc_cpu_init(void)
 	struct proc_dir_entry *res;
 
 	res = proc_mkdir("cpu", NULL);
+
 	if (!res)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 fs_initcall(proc_cpu_init);
 #endif
 
-static const char *hwcap_str[] = {
+static const char *hwcap_str[] =
+{
 	"swp",
 	"half",
 	"thumb",
@@ -1196,7 +1387,8 @@ static const char *hwcap_str[] = {
 	NULL
 };
 
-static const char *hwcap2_str[] = {
+static const char *hwcap2_str[] =
+{
 	"aes",
 	"pmull",
 	"sha1",
@@ -1210,7 +1402,8 @@ static int c_show(struct seq_file *m, void *v)
 	int i, j;
 	u32 cpuid;
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		/*
 		 * glibc reads /proc/cpuinfo to determine the number of
 		 * online processors, looking for lines beginning with
@@ -1219,48 +1412,60 @@ static int c_show(struct seq_file *m, void *v)
 		seq_printf(m, "processor\t: %d\n", i);
 		cpuid = is_smp() ? per_cpu(cpu_data, i).cpuid : read_cpuid_id();
 		seq_printf(m, "model name\t: %s rev %d (%s)\n",
-			   cpu_name, cpuid & 15, elf_platform);
+				   cpu_name, cpuid & 15, elf_platform);
 
 #if defined(CONFIG_SMP)
 		seq_printf(m, "BogoMIPS\t: %lu.%02lu\n",
-			   per_cpu(cpu_data, i).loops_per_jiffy / (500000UL/HZ),
-			   (per_cpu(cpu_data, i).loops_per_jiffy / (5000UL/HZ)) % 100);
+				   per_cpu(cpu_data, i).loops_per_jiffy / (500000UL / HZ),
+				   (per_cpu(cpu_data, i).loops_per_jiffy / (5000UL / HZ)) % 100);
 #else
 		seq_printf(m, "BogoMIPS\t: %lu.%02lu\n",
-			   loops_per_jiffy / (500000/HZ),
-			   (loops_per_jiffy / (5000/HZ)) % 100);
+				   loops_per_jiffy / (500000 / HZ),
+				   (loops_per_jiffy / (5000 / HZ)) % 100);
 #endif
 		/* dump out the processor features */
 		seq_puts(m, "Features\t: ");
 
 		for (j = 0; hwcap_str[j]; j++)
 			if (elf_hwcap & (1 << j))
+			{
 				seq_printf(m, "%s ", hwcap_str[j]);
+			}
 
 		for (j = 0; hwcap2_str[j]; j++)
 			if (elf_hwcap2 & (1 << j))
+			{
 				seq_printf(m, "%s ", hwcap2_str[j]);
+			}
 
 		seq_printf(m, "\nCPU implementer\t: 0x%02x\n", cpuid >> 24);
 		seq_printf(m, "CPU architecture: %s\n",
-			   proc_arch[cpu_architecture()]);
+				   proc_arch[cpu_architecture()]);
 
-		if ((cpuid & 0x0008f000) == 0x00000000) {
+		if ((cpuid & 0x0008f000) == 0x00000000)
+		{
 			/* pre-ARM7 */
 			seq_printf(m, "CPU part\t: %07x\n", cpuid >> 4);
-		} else {
-			if ((cpuid & 0x0008f000) == 0x00007000) {
+		}
+		else
+		{
+			if ((cpuid & 0x0008f000) == 0x00007000)
+			{
 				/* ARM7 */
 				seq_printf(m, "CPU variant\t: 0x%02x\n",
-					   (cpuid >> 16) & 127);
-			} else {
+						   (cpuid >> 16) & 127);
+			}
+			else
+			{
 				/* post-ARM7 */
 				seq_printf(m, "CPU variant\t: 0x%x\n",
-					   (cpuid >> 20) & 15);
+						   (cpuid >> 20) & 15);
 			}
+
 			seq_printf(m, "CPU part\t: 0x%03x\n",
-				   (cpuid >> 4) & 0xfff);
+					   (cpuid >> 4) & 0xfff);
 		}
+
 		seq_printf(m, "CPU revision\t: %d\n\n", cpuid & 15);
 	}
 
@@ -1286,7 +1491,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,

@@ -154,7 +154,8 @@
  * we have harvard caches and no way to combine instruction and data
  * accesses/misses in hardware.
  */
-static const unsigned armv7_a8_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned armv7_a8_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV7_PERFCTR_INSTR_EXECUTED,
@@ -166,8 +167,9 @@ static const unsigned armv7_a8_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned armv7_a8_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					  [PERF_COUNT_HW_CACHE_OP_MAX]
-					  [PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	/*
@@ -203,7 +205,8 @@ static const unsigned armv7_a8_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 /*
  * Cortex-A9 HW events mapping
  */
-static const unsigned armv7_a9_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned armv7_a9_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV7_A9_PERFCTR_INSTR_CORE_RENAME,
@@ -216,8 +219,9 @@ static const unsigned armv7_a9_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned armv7_a9_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					  [PERF_COUNT_HW_CACHE_OP_MAX]
-					  [PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	/*
@@ -247,7 +251,8 @@ static const unsigned armv7_a9_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 /*
  * Cortex-A5 HW events mapping
  */
-static const unsigned armv7_a5_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned armv7_a5_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV7_PERFCTR_INSTR_EXECUTED,
@@ -258,8 +263,9 @@ static const unsigned armv7_a5_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned armv7_a5_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					[PERF_COUNT_HW_CACHE_OP_MAX]
-					[PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	[C(L1D)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV7_PERFCTR_L1_DCACHE_ACCESS,
@@ -293,7 +299,8 @@ static const unsigned armv7_a5_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 /*
  * Cortex-A15 HW events mapping
  */
-static const unsigned armv7_a15_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned armv7_a15_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV7_PERFCTR_INSTR_EXECUTED,
@@ -305,8 +312,9 @@ static const unsigned armv7_a15_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned armv7_a15_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					[PERF_COUNT_HW_CACHE_OP_MAX]
-					[PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	[C(L1D)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV7_A15_PERFCTR_L1_DCACHE_ACCESS_READ,
@@ -342,7 +350,8 @@ static const unsigned armv7_a15_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 /*
  * Cortex-A7 HW events mapping
  */
-static const unsigned armv7_a7_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned armv7_a7_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV7_PERFCTR_INSTR_EXECUTED,
@@ -354,8 +363,9 @@ static const unsigned armv7_a7_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned armv7_a7_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					[PERF_COUNT_HW_CACHE_OP_MAX]
-					[PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	/*
@@ -391,7 +401,8 @@ static const unsigned armv7_a7_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 /*
  * Cortex-A12 HW events mapping
  */
-static const unsigned armv7_a12_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned armv7_a12_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= ARMV7_PERFCTR_INSTR_EXECUTED,
@@ -403,8 +414,9 @@ static const unsigned armv7_a12_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned armv7_a12_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					[PERF_COUNT_HW_CACHE_OP_MAX]
-					[PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	[C(L1D)][C(OP_READ)][C(RESULT_ACCESS)]	= ARMV7_A12_PERFCTR_L1_DCACHE_ACCESS_READ,
@@ -441,7 +453,8 @@ static const unsigned armv7_a12_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 /*
  * Krait HW events mapping
  */
-static const unsigned krait_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned krait_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]	    = ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]	    = ARMV7_PERFCTR_INSTR_EXECUTED,
@@ -450,7 +463,8 @@ static const unsigned krait_perf_map[PERF_COUNT_HW_MAX] = {
 	[PERF_COUNT_HW_BUS_CYCLES]	    = ARMV7_PERFCTR_CLOCK_CYCLES,
 };
 
-static const unsigned krait_perf_map_no_branch[PERF_COUNT_HW_MAX] = {
+static const unsigned krait_perf_map_no_branch[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]	    = ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]	    = ARMV7_PERFCTR_INSTR_EXECUTED,
@@ -459,8 +473,9 @@ static const unsigned krait_perf_map_no_branch[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned krait_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					  [PERF_COUNT_HW_CACHE_OP_MAX]
-					  [PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	/*
@@ -491,7 +506,8 @@ static const unsigned krait_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 /*
  * Scorpion HW events mapping
  */
-static const unsigned scorpion_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned scorpion_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]	    = ARMV7_PERFCTR_CPU_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]	    = ARMV7_PERFCTR_INSTR_EXECUTED,
@@ -501,8 +517,9 @@ static const unsigned scorpion_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned scorpion_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					    [PERF_COUNT_HW_CACHE_OP_MAX]
-					    [PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 	/*
 	 * The performance counters don't differentiate between read and write
@@ -533,12 +550,14 @@ static const unsigned scorpion_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
 
 PMU_FORMAT_ATTR(event, "config:0-7");
 
-static struct attribute *armv7_pmu_format_attrs[] = {
+static struct attribute *armv7_pmu_format_attrs[] =
+{
 	&format_attr_event.attr,
 	NULL,
 };
 
-static struct attribute_group armv7_pmu_format_attr_group = {
+static struct attribute_group armv7_pmu_format_attr_group =
+{
 	.name = "format",
 	.attrs = armv7_pmu_format_attrs,
 };
@@ -546,7 +565,7 @@ static struct attribute_group armv7_pmu_format_attr_group = {
 #define ARMV7_EVENT_ATTR_RESOLVE(m) #m
 #define ARMV7_EVENT_ATTR(name, config) \
 	PMU_EVENT_ATTR_STRING(name, armv7_event_attr_##name, \
-			      "event=" ARMV7_EVENT_ATTR_RESOLVE(config))
+						  "event=" ARMV7_EVENT_ATTR_RESOLVE(config))
 
 ARMV7_EVENT_ATTR(sw_incr, ARMV7_PERFCTR_PMNC_SW_INCR);
 ARMV7_EVENT_ATTR(l1i_cache_refill, ARMV7_PERFCTR_L1_ICACHE_REFILL);
@@ -568,7 +587,8 @@ ARMV7_EVENT_ATTR(br_mis_pred, ARMV7_PERFCTR_PC_BRANCH_MIS_PRED);
 ARMV7_EVENT_ATTR(cpu_cycles, ARMV7_PERFCTR_CLOCK_CYCLES);
 ARMV7_EVENT_ATTR(br_pred, ARMV7_PERFCTR_PC_BRANCH_PRED);
 
-static struct attribute *armv7_pmuv1_event_attrs[] = {
+static struct attribute *armv7_pmuv1_event_attrs[] =
+{
 	&armv7_event_attr_sw_incr.attr.attr,
 	&armv7_event_attr_l1i_cache_refill.attr.attr,
 	&armv7_event_attr_l1i_tlb_refill.attr.attr,
@@ -591,7 +611,8 @@ static struct attribute *armv7_pmuv1_event_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group armv7_pmuv1_events_attr_group = {
+static struct attribute_group armv7_pmuv1_events_attr_group =
+{
 	.name = "events",
 	.attrs = armv7_pmuv1_event_attrs,
 };
@@ -608,7 +629,8 @@ ARMV7_EVENT_ATTR(inst_spec, ARMV7_PERFCTR_INSTR_SPEC);
 ARMV7_EVENT_ATTR(ttbr_write_retired, ARMV7_PERFCTR_TTBR_WRITE);
 ARMV7_EVENT_ATTR(bus_cycles, ARMV7_PERFCTR_BUS_CYCLES);
 
-static struct attribute *armv7_pmuv2_event_attrs[] = {
+static struct attribute *armv7_pmuv2_event_attrs[] =
+{
 	&armv7_event_attr_sw_incr.attr.attr,
 	&armv7_event_attr_l1i_cache_refill.attr.attr,
 	&armv7_event_attr_l1i_tlb_refill.attr.attr,
@@ -642,7 +664,8 @@ static struct attribute *armv7_pmuv2_event_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group armv7_pmuv2_events_attr_group = {
+static struct attribute_group armv7_pmuv2_events_attr_group =
+{
 	.name = "events",
 	.attrs = armv7_pmuv2_event_attrs,
 };
@@ -727,7 +750,7 @@ static inline int armv7_pmnc_has_overflowed(u32 pmnc)
 static inline int armv7_pmnc_counter_valid(struct arm_pmu *cpu_pmu, int idx)
 {
 	return idx >= ARMV7_IDX_CYCLE_COUNTER &&
-		idx <= ARMV7_IDX_COUNTER_LAST(cpu_pmu);
+		   idx <= ARMV7_IDX_COUNTER_LAST(cpu_pmu);
 }
 
 static inline int armv7_pmnc_counter_has_overflowed(u32 pmnc, int idx)
@@ -749,12 +772,17 @@ static inline u32 armv7pmu_read_counter(struct perf_event *event)
 	int idx = hwc->idx;
 	u32 value = 0;
 
-	if (!armv7_pmnc_counter_valid(cpu_pmu, idx)) {
+	if (!armv7_pmnc_counter_valid(cpu_pmu, idx))
+	{
 		pr_err("CPU%u reading wrong counter %d\n",
-			smp_processor_id(), idx);
-	} else if (idx == ARMV7_IDX_CYCLE_COUNTER) {
+			   smp_processor_id(), idx);
+	}
+	else if (idx == ARMV7_IDX_CYCLE_COUNTER)
+	{
 		asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r" (value));
-	} else {
+	}
+	else
+	{
 		armv7_pmnc_select_counter(idx);
 		asm volatile("mrc p15, 0, %0, c9, c13, 2" : "=r" (value));
 	}
@@ -768,12 +796,17 @@ static inline void armv7pmu_write_counter(struct perf_event *event, u32 value)
 	struct hw_perf_event *hwc = &event->hw;
 	int idx = hwc->idx;
 
-	if (!armv7_pmnc_counter_valid(cpu_pmu, idx)) {
+	if (!armv7_pmnc_counter_valid(cpu_pmu, idx))
+	{
 		pr_err("CPU%u writing wrong counter %d\n",
-			smp_processor_id(), idx);
-	} else if (idx == ARMV7_IDX_CYCLE_COUNTER) {
+			   smp_processor_id(), idx);
+	}
+	else if (idx == ARMV7_IDX_CYCLE_COUNTER)
+	{
 		asm volatile("mcr p15, 0, %0, c9, c13, 0" : : "r" (value));
-	} else {
+	}
+	else
+	{
 		armv7_pmnc_select_counter(idx);
 		asm volatile("mcr p15, 0, %0, c9, c13, 2" : : "r" (value));
 	}
@@ -855,14 +888,15 @@ static void armv7_pmnc_dump_regs(struct arm_pmu *cpu_pmu)
 	pr_info("CCNT  =0x%08x\n", val);
 
 	for (cnt = ARMV7_IDX_COUNTER0;
-			cnt <= ARMV7_IDX_COUNTER_LAST(cpu_pmu); cnt++) {
+		 cnt <= ARMV7_IDX_COUNTER_LAST(cpu_pmu); cnt++)
+	{
 		armv7_pmnc_select_counter(cnt);
 		asm volatile("mrc p15, 0, %0, c9, c13, 2" : "=r" (val));
 		pr_info("CNT[%d] count =0x%08x\n",
-			ARMV7_IDX_TO_COUNTER(cnt), val);
+				ARMV7_IDX_TO_COUNTER(cnt), val);
 		asm volatile("mrc p15, 0, %0, c9, c13, 1" : "=r" (val));
 		pr_info("CNT[%d] evtsel=0x%08x\n",
-			ARMV7_IDX_TO_COUNTER(cnt), val);
+				ARMV7_IDX_TO_COUNTER(cnt), val);
 	}
 }
 #endif
@@ -875,9 +909,10 @@ static void armv7pmu_enable_event(struct perf_event *event)
 	struct pmu_hw_events *events = this_cpu_ptr(cpu_pmu->hw_events);
 	int idx = hwc->idx;
 
-	if (!armv7_pmnc_counter_valid(cpu_pmu, idx)) {
+	if (!armv7_pmnc_counter_valid(cpu_pmu, idx))
+	{
 		pr_err("CPU%u enabling wrong PMNC counter IRQ enable %d\n",
-			smp_processor_id(), idx);
+			   smp_processor_id(), idx);
 		return;
 	}
 
@@ -898,7 +933,9 @@ static void armv7pmu_enable_event(struct perf_event *event)
 	 * have the ability to perform event filtering.
 	 */
 	if (cpu_pmu->set_event_filter || idx != ARMV7_IDX_CYCLE_COUNTER)
+	{
 		armv7_pmnc_write_evtsel(idx, hwc->config_base);
+	}
 
 	/*
 	 * Enable interrupt for this counter
@@ -921,9 +958,10 @@ static void armv7pmu_disable_event(struct perf_event *event)
 	struct pmu_hw_events *events = this_cpu_ptr(cpu_pmu->hw_events);
 	int idx = hwc->idx;
 
-	if (!armv7_pmnc_counter_valid(cpu_pmu, idx)) {
+	if (!armv7_pmnc_counter_valid(cpu_pmu, idx))
+	{
 		pr_err("CPU%u disabling wrong PMNC counter IRQ enable %d\n",
-			smp_processor_id(), idx);
+			   smp_processor_id(), idx);
 		return;
 	}
 
@@ -963,36 +1001,48 @@ static irqreturn_t armv7pmu_handle_irq(int irq_num, void *dev)
 	 * Did an overflow occur?
 	 */
 	if (!armv7_pmnc_has_overflowed(pmnc))
+	{
 		return IRQ_NONE;
+	}
 
 	/*
 	 * Handle the counter(s) overflow(s)
 	 */
 	regs = get_irq_regs();
 
-	for (idx = 0; idx < cpu_pmu->num_events; ++idx) {
+	for (idx = 0; idx < cpu_pmu->num_events; ++idx)
+	{
 		struct perf_event *event = cpuc->events[idx];
 		struct hw_perf_event *hwc;
 
 		/* Ignore if we don't have an event. */
 		if (!event)
+		{
 			continue;
+		}
 
 		/*
 		 * We have a single interrupt for all counters. Check that
 		 * each counter has overflowed before we process it.
 		 */
 		if (!armv7_pmnc_counter_has_overflowed(pmnc, idx))
+		{
 			continue;
+		}
 
 		hwc = &event->hw;
 		armpmu_event_update(event);
 		perf_sample_data_init(&data, 0, hwc->last_period);
+
 		if (!armpmu_event_set_period(event))
+		{
 			continue;
+		}
 
 		if (perf_event_overflow(event, &data, regs))
+		{
 			cpu_pmu->disable(event);
+		}
 	}
 
 	/*
@@ -1030,7 +1080,7 @@ static void armv7pmu_stop(struct arm_pmu *cpu_pmu)
 }
 
 static int armv7pmu_get_event_idx(struct pmu_hw_events *cpuc,
-				  struct perf_event *event)
+								  struct perf_event *event)
 {
 	int idx;
 	struct arm_pmu *cpu_pmu = to_arm_pmu(event->pmu);
@@ -1038,9 +1088,12 @@ static int armv7pmu_get_event_idx(struct pmu_hw_events *cpuc,
 	unsigned long evtype = hwc->config_base & ARMV7_EVTYPE_EVENT;
 
 	/* Always place a cycle counter into the cycle counter. */
-	if (evtype == ARMV7_PERFCTR_CPU_CYCLES) {
+	if (evtype == ARMV7_PERFCTR_CPU_CYCLES)
+	{
 		if (test_and_set_bit(ARMV7_IDX_CYCLE_COUNTER, cpuc->used_mask))
+		{
 			return -EAGAIN;
+		}
 
 		return ARMV7_IDX_CYCLE_COUNTER;
 	}
@@ -1049,9 +1102,12 @@ static int armv7pmu_get_event_idx(struct pmu_hw_events *cpuc,
 	 * For anything other than a cycle counter, try and use
 	 * the events counters
 	 */
-	for (idx = ARMV7_IDX_COUNTER0; idx < cpu_pmu->num_events; ++idx) {
+	for (idx = ARMV7_IDX_COUNTER0; idx < cpu_pmu->num_events; ++idx)
+	{
 		if (!test_and_set_bit(idx, cpuc->used_mask))
+		{
 			return idx;
+		}
 	}
 
 	/* The counters are all in use. */
@@ -1062,18 +1118,29 @@ static int armv7pmu_get_event_idx(struct pmu_hw_events *cpuc,
  * Add an event filter to a given event. This will only work for PMUv2 PMUs.
  */
 static int armv7pmu_set_event_filter(struct hw_perf_event *event,
-				     struct perf_event_attr *attr)
+									 struct perf_event_attr *attr)
 {
 	unsigned long config_base = 0;
 
 	if (attr->exclude_idle)
+	{
 		return -EPERM;
+	}
+
 	if (attr->exclude_user)
+	{
 		config_base |= ARMV7_EXCLUDE_USER;
+	}
+
 	if (attr->exclude_kernel)
+	{
 		config_base |= ARMV7_EXCLUDE_PL1;
+	}
+
 	if (!attr->exclude_hv)
+	{
 		config_base |= ARMV7_INCLUDE_HYP;
+	}
 
 	/*
 	 * Install the filter into config_base as this is used to
@@ -1089,14 +1156,16 @@ static void armv7pmu_reset(void *info)
 	struct arm_pmu *cpu_pmu = (struct arm_pmu *)info;
 	u32 idx, nb_cnt = cpu_pmu->num_events, val;
 
-	if (cpu_pmu->secure_access) {
+	if (cpu_pmu->secure_access)
+	{
 		asm volatile("mrc p15, 0, %0, c1, c1, 1" : "=r" (val));
 		val |= ARMV7_SDER_SUNIDEN;
 		asm volatile("mcr p15, 0, %0, c1, c1, 1" : : "r" (val));
 	}
 
 	/* The counter and interrupt enable registers are unknown at reset. */
-	for (idx = ARMV7_IDX_CYCLE_COUNTER; idx < nb_cnt; ++idx) {
+	for (idx = ARMV7_IDX_CYCLE_COUNTER; idx < nb_cnt; ++idx)
+	{
 		armv7_pmnc_disable_counter(idx);
 		armv7_pmnc_disable_intens(idx);
 	}
@@ -1108,55 +1177,55 @@ static void armv7pmu_reset(void *info)
 static int armv7_a8_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &armv7_a8_perf_map,
-				&armv7_a8_perf_cache_map, 0xFF);
+							&armv7_a8_perf_cache_map, 0xFF);
 }
 
 static int armv7_a9_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &armv7_a9_perf_map,
-				&armv7_a9_perf_cache_map, 0xFF);
+							&armv7_a9_perf_cache_map, 0xFF);
 }
 
 static int armv7_a5_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &armv7_a5_perf_map,
-				&armv7_a5_perf_cache_map, 0xFF);
+							&armv7_a5_perf_cache_map, 0xFF);
 }
 
 static int armv7_a15_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &armv7_a15_perf_map,
-				&armv7_a15_perf_cache_map, 0xFF);
+							&armv7_a15_perf_cache_map, 0xFF);
 }
 
 static int armv7_a7_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &armv7_a7_perf_map,
-				&armv7_a7_perf_cache_map, 0xFF);
+							&armv7_a7_perf_cache_map, 0xFF);
 }
 
 static int armv7_a12_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &armv7_a12_perf_map,
-				&armv7_a12_perf_cache_map, 0xFF);
+							&armv7_a12_perf_cache_map, 0xFF);
 }
 
 static int krait_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &krait_perf_map,
-				&krait_perf_cache_map, 0xFFFFF);
+							&krait_perf_cache_map, 0xFFFFF);
 }
 
 static int krait_map_event_no_branch(struct perf_event *event)
 {
 	return armpmu_map_event(event, &krait_perf_map_no_branch,
-				&krait_perf_cache_map, 0xFFFFF);
+							&krait_perf_cache_map, 0xFFFFF);
 }
 
 static int scorpion_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &scorpion_perf_map,
-				&scorpion_perf_cache_map, 0xFFFFF);
+							&scorpion_perf_cache_map, 0xFFFFF);
 }
 
 static void armv7pmu_init(struct arm_pmu *cpu_pmu)
@@ -1187,8 +1256,8 @@ static void armv7_read_num_pmnc_events(void *info)
 static int armv7_probe_num_events(struct arm_pmu *arm_pmu)
 {
 	return smp_call_function_any(&arm_pmu->supported_cpus,
-				     armv7_read_num_pmnc_events,
-				     &arm_pmu->num_events, 1);
+								 armv7_read_num_pmnc_events,
+								 &arm_pmu->num_events, 1);
 }
 
 static int armv7_a8_pmu_init(struct arm_pmu *cpu_pmu)
@@ -1325,18 +1394,22 @@ static u32 krait_read_pmresrn(int n)
 {
 	u32 val;
 
-	switch (n) {
-	case 0:
-		asm volatile("mrc p15, 1, %0, c9, c15, 0" : "=r" (val));
-		break;
-	case 1:
-		asm volatile("mrc p15, 1, %0, c9, c15, 1" : "=r" (val));
-		break;
-	case 2:
-		asm volatile("mrc p15, 1, %0, c9, c15, 2" : "=r" (val));
-		break;
-	default:
-		BUG(); /* Should be validated in krait_pmu_get_event_idx() */
+	switch (n)
+	{
+		case 0:
+			asm volatile("mrc p15, 1, %0, c9, c15, 0" : "=r" (val));
+			break;
+
+		case 1:
+			asm volatile("mrc p15, 1, %0, c9, c15, 1" : "=r" (val));
+			break;
+
+		case 2:
+			asm volatile("mrc p15, 1, %0, c9, c15, 2" : "=r" (val));
+			break;
+
+		default:
+			BUG(); /* Should be validated in krait_pmu_get_event_idx() */
 	}
 
 	return val;
@@ -1344,18 +1417,22 @@ static u32 krait_read_pmresrn(int n)
 
 static void krait_write_pmresrn(int n, u32 val)
 {
-	switch (n) {
-	case 0:
-		asm volatile("mcr p15, 1, %0, c9, c15, 0" : : "r" (val));
-		break;
-	case 1:
-		asm volatile("mcr p15, 1, %0, c9, c15, 1" : : "r" (val));
-		break;
-	case 2:
-		asm volatile("mcr p15, 1, %0, c9, c15, 2" : : "r" (val));
-		break;
-	default:
-		BUG(); /* Should be validated in krait_pmu_get_event_idx() */
+	switch (n)
+	{
+		case 0:
+			asm volatile("mcr p15, 1, %0, c9, c15, 0" : : "r" (val));
+			break;
+
+		case 1:
+			asm volatile("mcr p15, 1, %0, c9, c15, 1" : : "r" (val));
+			break;
+
+		case 2:
+			asm volatile("mcr p15, 1, %0, c9, c15, 2" : : "r" (val));
+			break;
+
+		default:
+			BUG(); /* Should be validated in krait_pmu_get_event_idx() */
 	}
 }
 
@@ -1401,8 +1478,9 @@ static void venum_post_pmresr(u32 venum_orig_val, u32 fp_orig_val)
 static u32 krait_get_pmresrn_event(unsigned int region)
 {
 	static const u32 pmresrn_table[] = { KRAIT_PMRESR0_GROUP0,
-					     KRAIT_PMRESR1_GROUP0,
-					     KRAIT_PMRESR2_GROUP0 };
+										 KRAIT_PMRESR1_GROUP0,
+										 KRAIT_PMRESR2_GROUP0
+									   };
 	return pmresrn_table[region];
 }
 
@@ -1422,15 +1500,21 @@ static void krait_evt_setup(int idx, u32 config_base)
 
 	/* Configure evtsel for the region and group */
 	if (venum_event)
+	{
 		val = KRAIT_VPMRESR0_GROUP0;
+	}
 	else
+	{
 		val = krait_get_pmresrn_event(region);
+	}
+
 	val += group;
 	/* Mix in mode-exclusion bits */
 	val |= config_base & (ARMV7_EXCLUDE_USER | ARMV7_EXCLUDE_PL1);
 	armv7_pmnc_write_evtsel(idx, val);
 
-	if (venum_event) {
+	if (venum_event)
+	{
 		venum_pre_pmresr(&vval, &fval);
 		val = venum_read_pmresr();
 		val &= ~mask;
@@ -1438,7 +1522,9 @@ static void krait_evt_setup(int idx, u32 config_base)
 		val |= PMRESRn_EN;
 		venum_write_pmresr(val);
 		venum_post_pmresr(vval, fval);
-	} else {
+	}
+	else
+	{
 		val = krait_read_pmresrn(region);
 		val &= ~mask;
 		val |= code << group_shift;
@@ -1458,7 +1544,9 @@ static u32 clear_pmresrn_group(u32 val, int group)
 
 	/* Don't clear enable bit if entire region isn't disabled */
 	if (val & ~PMRESRn_EN)
+	{
 		return val |= PMRESRn_EN;
+	}
 
 	return 0;
 }
@@ -1471,13 +1559,16 @@ static void krait_clearpmu(u32 config_base)
 	unsigned int group = EVENT_GROUP(config_base);
 	bool venum_event = EVENT_VENUM(config_base);
 
-	if (venum_event) {
+	if (venum_event)
+	{
 		venum_pre_pmresr(&vval, &fval);
 		val = venum_read_pmresr();
 		val = clear_pmresrn_group(val, group);
 		venum_write_pmresr(val);
 		venum_post_pmresr(vval, fval);
-	} else {
+	}
+	else
+	{
 		val = krait_read_pmresrn(region);
 		val = clear_pmresrn_group(val, group);
 		krait_write_pmresrn(region, val);
@@ -1502,7 +1593,9 @@ static void krait_pmu_disable_event(struct perf_event *event)
 	 * Clear pmresr code (if destined for PMNx counters)
 	 */
 	if (hwc->config_base & KRAIT_EVENT_MASK)
+	{
 		krait_clearpmu(hwc->config_base);
+	}
 
 	/* Disable interrupt for this counter */
 	armv7_pmnc_disable_intens(idx);
@@ -1533,9 +1626,13 @@ static void krait_pmu_enable_event(struct perf_event *event)
 	 * have the ability to perform event filtering.
 	 */
 	if (hwc->config_base & KRAIT_EVENT_MASK)
+	{
 		krait_evt_setup(idx, hwc->config_base);
+	}
 	else
+	{
 		armv7_pmnc_write_evtsel(idx, hwc->config_base);
+	}
 
 	/* Enable interrupt for this counter */
 	armv7_pmnc_enable_intens(idx);
@@ -1564,7 +1661,8 @@ static void krait_pmu_reset(void *info)
 	venum_post_pmresr(vval, fval);
 
 	/* Reset PMxEVNCTCR to sane default */
-	for (idx = ARMV7_IDX_CYCLE_COUNTER; idx < nb_cnt; ++idx) {
+	for (idx = ARMV7_IDX_CYCLE_COUNTER; idx < nb_cnt; ++idx)
+	{
 		armv7_pmnc_select_counter(idx);
 		asm volatile("mcr p15, 0, %0, c9, c15, 0" : : "r" (0));
 	}
@@ -1572,16 +1670,21 @@ static void krait_pmu_reset(void *info)
 }
 
 static int krait_event_to_bit(struct perf_event *event, unsigned int region,
-			      unsigned int group)
+							  unsigned int group)
 {
 	int bit;
 	struct hw_perf_event *hwc = &event->hw;
 	struct arm_pmu *cpu_pmu = to_arm_pmu(event->pmu);
 
 	if (hwc->config_base & VENUM_EVENT)
+	{
 		bit = KRAIT_VPMRESR0_GROUP0;
+	}
 	else
+	{
 		bit = krait_get_pmresrn_event(region);
+	}
+
 	bit -= krait_get_pmresrn_event(0);
 	bit += group;
 	/*
@@ -1598,7 +1701,7 @@ static int krait_event_to_bit(struct perf_event *event, unsigned int region,
  * Two events cant use the same group within a pmresr register.
  */
 static int krait_pmu_get_event_idx(struct pmu_hw_events *cpuc,
-				   struct perf_event *event)
+								   struct perf_event *event)
 {
 	int idx;
 	int bit = -1;
@@ -1609,27 +1712,39 @@ static int krait_pmu_get_event_idx(struct pmu_hw_events *cpuc,
 	bool venum_event = EVENT_VENUM(hwc->config_base);
 	bool krait_event = EVENT_CPU(hwc->config_base);
 
-	if (venum_event || krait_event) {
+	if (venum_event || krait_event)
+	{
 		/* Ignore invalid events */
 		if (group > 3 || region > 2)
+		{
 			return -EINVAL;
+		}
+
 		if (venum_event && (code & 0xe0))
+		{
 			return -EINVAL;
+		}
 
 		bit = krait_event_to_bit(event, region, group);
+
 		if (test_and_set_bit(bit, cpuc->used_mask))
+		{
 			return -EAGAIN;
+		}
 	}
 
 	idx = armv7pmu_get_event_idx(cpuc, event);
+
 	if (idx < 0 && bit >= 0)
+	{
 		clear_bit(bit, cpuc->used_mask);
+	}
 
 	return idx;
 }
 
 static void krait_pmu_clear_event_idx(struct pmu_hw_events *cpuc,
-				      struct perf_event *event)
+									  struct perf_event *event)
 {
 	int bit;
 	struct hw_perf_event *hwc = &event->hw;
@@ -1638,7 +1753,8 @@ static void krait_pmu_clear_event_idx(struct pmu_hw_events *cpuc,
 	bool venum_event = EVENT_VENUM(hwc->config_base);
 	bool krait_event = EVENT_CPU(hwc->config_base);
 
-	if (venum_event || krait_event) {
+	if (venum_event || krait_event)
+	{
 		bit = krait_event_to_bit(event, region, group);
 		clear_bit(bit, cpuc->used_mask);
 	}
@@ -1648,12 +1764,18 @@ static int krait_pmu_init(struct arm_pmu *cpu_pmu)
 {
 	armv7pmu_init(cpu_pmu);
 	cpu_pmu->name		= "armv7_krait";
+
 	/* Some early versions of Krait don't support PC write events */
 	if (of_property_read_bool(cpu_pmu->plat_device->dev.of_node,
-				  "qcom,no-pc-write"))
+							  "qcom,no-pc-write"))
+	{
 		cpu_pmu->map_event = krait_map_event_no_branch;
+	}
 	else
+	{
 		cpu_pmu->map_event = krait_map_event;
+	}
+
 	cpu_pmu->set_event_filter = armv7pmu_set_event_filter;
 	cpu_pmu->reset		= krait_pmu_reset;
 	cpu_pmu->enable		= krait_pmu_enable_event;
@@ -1703,21 +1825,26 @@ static u32 scorpion_read_pmresrn(int n)
 {
 	u32 val;
 
-	switch (n) {
-	case 0:
-		asm volatile("mrc p15, 0, %0, c15, c0, 0" : "=r" (val));
-		break;
-	case 1:
-		asm volatile("mrc p15, 1, %0, c15, c0, 0" : "=r" (val));
-		break;
-	case 2:
-		asm volatile("mrc p15, 2, %0, c15, c0, 0" : "=r" (val));
-		break;
-	case 3:
-		asm volatile("mrc p15, 3, %0, c15, c2, 0" : "=r" (val));
-		break;
-	default:
-		BUG(); /* Should be validated in scorpion_pmu_get_event_idx() */
+	switch (n)
+	{
+		case 0:
+			asm volatile("mrc p15, 0, %0, c15, c0, 0" : "=r" (val));
+			break;
+
+		case 1:
+			asm volatile("mrc p15, 1, %0, c15, c0, 0" : "=r" (val));
+			break;
+
+		case 2:
+			asm volatile("mrc p15, 2, %0, c15, c0, 0" : "=r" (val));
+			break;
+
+		case 3:
+			asm volatile("mrc p15, 3, %0, c15, c2, 0" : "=r" (val));
+			break;
+
+		default:
+			BUG(); /* Should be validated in scorpion_pmu_get_event_idx() */
 	}
 
 	return val;
@@ -1725,30 +1852,36 @@ static u32 scorpion_read_pmresrn(int n)
 
 static void scorpion_write_pmresrn(int n, u32 val)
 {
-	switch (n) {
-	case 0:
-		asm volatile("mcr p15, 0, %0, c15, c0, 0" : : "r" (val));
-		break;
-	case 1:
-		asm volatile("mcr p15, 1, %0, c15, c0, 0" : : "r" (val));
-		break;
-	case 2:
-		asm volatile("mcr p15, 2, %0, c15, c0, 0" : : "r" (val));
-		break;
-	case 3:
-		asm volatile("mcr p15, 3, %0, c15, c2, 0" : : "r" (val));
-		break;
-	default:
-		BUG(); /* Should be validated in scorpion_pmu_get_event_idx() */
+	switch (n)
+	{
+		case 0:
+			asm volatile("mcr p15, 0, %0, c15, c0, 0" : : "r" (val));
+			break;
+
+		case 1:
+			asm volatile("mcr p15, 1, %0, c15, c0, 0" : : "r" (val));
+			break;
+
+		case 2:
+			asm volatile("mcr p15, 2, %0, c15, c0, 0" : : "r" (val));
+			break;
+
+		case 3:
+			asm volatile("mcr p15, 3, %0, c15, c2, 0" : : "r" (val));
+			break;
+
+		default:
+			BUG(); /* Should be validated in scorpion_pmu_get_event_idx() */
 	}
 }
 
 static u32 scorpion_get_pmresrn_event(unsigned int region)
 {
 	static const u32 pmresrn_table[] = { SCORPION_LPM0_GROUP0,
-					     SCORPION_LPM1_GROUP0,
-					     SCORPION_LPM2_GROUP0,
-					     SCORPION_L2LPM_GROUP0 };
+										 SCORPION_LPM1_GROUP0,
+										 SCORPION_LPM2_GROUP0,
+										 SCORPION_L2LPM_GROUP0
+									   };
 	return pmresrn_table[region];
 }
 
@@ -1768,9 +1901,14 @@ static void scorpion_evt_setup(int idx, u32 config_base)
 
 	/* Configure evtsel for the region and group */
 	if (venum_event)
+	{
 		val = SCORPION_VLPM_GROUP0;
+	}
 	else
+	{
 		val = scorpion_get_pmresrn_event(region);
+	}
+
 	val += group;
 	/* Mix in mode-exclusion bits */
 	val |= config_base & (ARMV7_EXCLUDE_USER | ARMV7_EXCLUDE_PL1);
@@ -1778,7 +1916,8 @@ static void scorpion_evt_setup(int idx, u32 config_base)
 
 	asm volatile("mcr p15, 0, %0, c9, c15, 0" : : "r" (0));
 
-	if (venum_event) {
+	if (venum_event)
+	{
 		venum_pre_pmresr(&vval, &fval);
 		val = venum_read_pmresr();
 		val &= ~mask;
@@ -1786,7 +1925,9 @@ static void scorpion_evt_setup(int idx, u32 config_base)
 		val |= PMRESRn_EN;
 		venum_write_pmresr(val);
 		venum_post_pmresr(vval, fval);
-	} else {
+	}
+	else
+	{
 		val = scorpion_read_pmresrn(region);
 		val &= ~mask;
 		val |= code << group_shift;
@@ -1803,13 +1944,16 @@ static void scorpion_clearpmu(u32 config_base)
 	unsigned int group = EVENT_GROUP(config_base);
 	bool venum_event = EVENT_VENUM(config_base);
 
-	if (venum_event) {
+	if (venum_event)
+	{
 		venum_pre_pmresr(&vval, &fval);
 		val = venum_read_pmresr();
 		val = clear_pmresrn_group(val, group);
 		venum_write_pmresr(val);
 		venum_post_pmresr(vval, fval);
-	} else {
+	}
+	else
+	{
 		val = scorpion_read_pmresrn(region);
 		val = clear_pmresrn_group(val, group);
 		scorpion_write_pmresrn(region, val);
@@ -1834,7 +1978,9 @@ static void scorpion_pmu_disable_event(struct perf_event *event)
 	 * Clear pmresr code (if destined for PMNx counters)
 	 */
 	if (hwc->config_base & KRAIT_EVENT_MASK)
+	{
 		scorpion_clearpmu(hwc->config_base);
+	}
 
 	/* Disable interrupt for this counter */
 	armv7_pmnc_disable_intens(idx);
@@ -1865,9 +2011,13 @@ static void scorpion_pmu_enable_event(struct perf_event *event)
 	 * don't have the ability to perform event filtering.
 	 */
 	if (hwc->config_base & KRAIT_EVENT_MASK)
+	{
 		scorpion_evt_setup(idx, hwc->config_base);
+	}
 	else if (idx != ARMV7_IDX_CYCLE_COUNTER)
+	{
 		armv7_pmnc_write_evtsel(idx, hwc->config_base);
+	}
 
 	/* Enable interrupt for this counter */
 	armv7_pmnc_enable_intens(idx);
@@ -1897,23 +2047,29 @@ static void scorpion_pmu_reset(void *info)
 	venum_post_pmresr(vval, fval);
 
 	/* Reset PMxEVNCTCR to sane default */
-	for (idx = ARMV7_IDX_CYCLE_COUNTER; idx < nb_cnt; ++idx) {
+	for (idx = ARMV7_IDX_CYCLE_COUNTER; idx < nb_cnt; ++idx)
+	{
 		armv7_pmnc_select_counter(idx);
 		asm volatile("mcr p15, 0, %0, c9, c15, 0" : : "r" (0));
 	}
 }
 
 static int scorpion_event_to_bit(struct perf_event *event, unsigned int region,
-			      unsigned int group)
+								 unsigned int group)
 {
 	int bit;
 	struct hw_perf_event *hwc = &event->hw;
 	struct arm_pmu *cpu_pmu = to_arm_pmu(event->pmu);
 
 	if (hwc->config_base & VENUM_EVENT)
+	{
 		bit = SCORPION_VLPM_GROUP0;
+	}
 	else
+	{
 		bit = scorpion_get_pmresrn_event(region);
+	}
+
 	bit -= scorpion_get_pmresrn_event(0);
 	bit += group;
 	/*
@@ -1930,7 +2086,7 @@ static int scorpion_event_to_bit(struct perf_event *event, unsigned int region,
  * Two events cant use the same group within a pmresr register.
  */
 static int scorpion_pmu_get_event_idx(struct pmu_hw_events *cpuc,
-				   struct perf_event *event)
+									  struct perf_event *event)
 {
 	int idx;
 	int bit = -1;
@@ -1940,25 +2096,34 @@ static int scorpion_pmu_get_event_idx(struct pmu_hw_events *cpuc,
 	bool venum_event = EVENT_VENUM(hwc->config_base);
 	bool scorpion_event = EVENT_CPU(hwc->config_base);
 
-	if (venum_event || scorpion_event) {
+	if (venum_event || scorpion_event)
+	{
 		/* Ignore invalid events */
 		if (group > 3 || region > 3)
+		{
 			return -EINVAL;
+		}
 
 		bit = scorpion_event_to_bit(event, region, group);
+
 		if (test_and_set_bit(bit, cpuc->used_mask))
+		{
 			return -EAGAIN;
+		}
 	}
 
 	idx = armv7pmu_get_event_idx(cpuc, event);
+
 	if (idx < 0 && bit >= 0)
+	{
 		clear_bit(bit, cpuc->used_mask);
+	}
 
 	return idx;
 }
 
 static void scorpion_pmu_clear_event_idx(struct pmu_hw_events *cpuc,
-				      struct perf_event *event)
+		struct perf_event *event)
 {
 	int bit;
 	struct hw_perf_event *hwc = &event->hw;
@@ -1967,7 +2132,8 @@ static void scorpion_pmu_clear_event_idx(struct pmu_hw_events *cpuc,
 	bool venum_event = EVENT_VENUM(hwc->config_base);
 	bool scorpion_event = EVENT_CPU(hwc->config_base);
 
-	if (venum_event || scorpion_event) {
+	if (venum_event || scorpion_event)
+	{
 		bit = scorpion_event_to_bit(event, region, group);
 		clear_bit(bit, cpuc->used_mask);
 	}
@@ -1999,7 +2165,8 @@ static int scorpion_mp_pmu_init(struct arm_pmu *cpu_pmu)
 	return armv7_probe_num_events(cpu_pmu);
 }
 
-static const struct of_device_id armv7_pmu_of_device_ids[] = {
+static const struct of_device_id armv7_pmu_of_device_ids[] =
+{
 	{.compatible = "arm,cortex-a17-pmu",	.data = armv7_a17_pmu_init},
 	{.compatible = "arm,cortex-a15-pmu",	.data = armv7_a15_pmu_init},
 	{.compatible = "arm,cortex-a12-pmu",	.data = armv7_a12_pmu_init},
@@ -2013,7 +2180,8 @@ static const struct of_device_id armv7_pmu_of_device_ids[] = {
 	{},
 };
 
-static const struct pmu_probe_info armv7_pmu_probe_table[] = {
+static const struct pmu_probe_info armv7_pmu_probe_table[] =
+{
 	ARM_PMU_PROBE(ARM_CPU_PART_CORTEX_A8, armv7_a8_pmu_init),
 	ARM_PMU_PROBE(ARM_CPU_PART_CORTEX_A9, armv7_a9_pmu_init),
 	{ /* sentinel value */ }
@@ -2023,10 +2191,11 @@ static const struct pmu_probe_info armv7_pmu_probe_table[] = {
 static int armv7_pmu_device_probe(struct platform_device *pdev)
 {
 	return arm_pmu_device_probe(pdev, armv7_pmu_of_device_ids,
-				    armv7_pmu_probe_table);
+								armv7_pmu_probe_table);
 }
 
-static struct platform_driver armv7_pmu_driver = {
+static struct platform_driver armv7_pmu_driver =
+{
 	.driver		= {
 		.name	= "armv7-pmu",
 		.of_match_table = armv7_pmu_of_device_ids,

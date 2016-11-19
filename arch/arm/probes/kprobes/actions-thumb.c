@@ -19,13 +19,13 @@
 
 /* These emulation encodings are functionally equivalent... */
 #define t32_emulate_rd8rn16rm0ra12_noflags \
-		t32_emulate_rdlo12rdhi8rn16rm0_noflags
+	t32_emulate_rdlo12rdhi8rn16rm0_noflags
 
 /* t32 thumb actions */
 
 static void __kprobes
 t32_simulate_table_branch(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+						  struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc;
 	int rn = (insn >> 16) & 0xf;
@@ -36,16 +36,20 @@ t32_simulate_table_branch(probes_opcode_t insn,
 	unsigned int halfwords;
 
 	if (insn & 0x10) /* TBH */
+	{
 		halfwords = ((u16 *)rnv)[rmv];
+	}
 	else /* TBB */
+	{
 		halfwords = ((u8 *)rnv)[rmv];
+	}
 
 	regs->ARM_pc = pc + 2 * halfwords;
 }
 
 static void __kprobes
 t32_simulate_mrs(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+				 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	int rd = (insn >> 8) & 0xf;
 	unsigned long mask = 0xf8ff03df; /* Mask out execution state */
@@ -54,7 +58,7 @@ t32_simulate_mrs(probes_opcode_t insn,
 
 static void __kprobes
 t32_simulate_cond_branch(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+						 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc;
 
@@ -69,7 +73,7 @@ t32_simulate_cond_branch(probes_opcode_t insn,
 
 static enum probes_insn __kprobes
 t32_decode_cond_branch(probes_opcode_t insn, struct arch_probes_insn *asi,
-		const struct decode_header *d)
+					   const struct decode_header *d)
 {
 	int cc = (insn >> 22) & 0xf;
 	asi->insn_check_cc = probes_condition_checks[cc];
@@ -79,7 +83,7 @@ t32_decode_cond_branch(probes_opcode_t insn, struct arch_probes_insn *asi,
 
 static void __kprobes
 t32_simulate_branch(probes_opcode_t insn,
-		    struct arch_probes_insn *asi, struct pt_regs *regs)
+					struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc;
 
@@ -87,15 +91,23 @@ t32_simulate_branch(probes_opcode_t insn,
 	offset += (insn & 0x03ff0000) >> 5;	/* imm10 */
 	offset += (insn & 0x00002000) << 9;	/* J1 */
 	offset += (insn & 0x00000800) << 10;	/* J2 */
-	if (insn & 0x04000000)
-		offset -= 0x00800000; /* Apply sign bit */
-	else
-		offset ^= 0x00600000; /* Invert J1 and J2 */
 
-	if (insn & (1 << 14)) {
+	if (insn & 0x04000000)
+	{
+		offset -= 0x00800000;    /* Apply sign bit */
+	}
+	else
+	{
+		offset ^= 0x00600000;    /* Invert J1 and J2 */
+	}
+
+	if (insn & (1 << 14))
+	{
 		/* BL or BLX */
 		regs->ARM_lr = regs->ARM_pc | 1;
-		if (!(insn & (1 << 12))) {
+
+		if (!(insn & (1 << 12)))
+		{
 			/* BLX so switch to ARM mode */
 			regs->ARM_cpsr &= ~PSR_T_BIT;
 			pc &= ~3;
@@ -107,37 +119,57 @@ t32_simulate_branch(probes_opcode_t insn,
 
 static void __kprobes
 t32_simulate_ldr_literal(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+						 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long addr = regs->ARM_pc & ~3;
 	int rt = (insn >> 12) & 0xf;
 	unsigned long rtv;
 
 	long offset = insn & 0xfff;
-	if (insn & 0x00800000)
-		addr += offset;
-	else
-		addr -= offset;
 
-	if (insn & 0x00400000) {
+	if (insn & 0x00800000)
+	{
+		addr += offset;
+	}
+	else
+	{
+		addr -= offset;
+	}
+
+	if (insn & 0x00400000)
+	{
 		/* LDR */
 		rtv = *(unsigned long *)addr;
-		if (rt == 15) {
+
+		if (rt == 15)
+		{
 			bx_write_pc(rtv, regs);
 			return;
 		}
-	} else if (insn & 0x00200000) {
+	}
+	else if (insn & 0x00200000)
+	{
 		/* LDRH */
 		if (insn & 0x01000000)
+		{
 			rtv = *(s16 *)addr;
+		}
 		else
+		{
 			rtv = *(u16 *)addr;
-	} else {
+		}
+	}
+	else
+	{
 		/* LDRB */
 		if (insn & 0x01000000)
+		{
 			rtv = *(s8 *)addr;
+		}
 		else
+		{
 			rtv = *(u8 *)addr;
+		}
 	}
 
 	regs->uregs[rt] = rtv;
@@ -145,7 +177,7 @@ t32_simulate_ldr_literal(probes_opcode_t insn,
 
 static enum probes_insn __kprobes
 t32_decode_ldmstm(probes_opcode_t insn, struct arch_probes_insn *asi,
-		const struct decode_header *d)
+				  const struct decode_header *d)
 {
 	enum probes_insn ret = kprobe_decode_ldmstm(insn, asi, d);
 
@@ -159,7 +191,7 @@ t32_decode_ldmstm(probes_opcode_t insn, struct arch_probes_insn *asi,
 
 static void __kprobes
 t32_emulate_ldrdstrd(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+					 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc & ~3;
 	int rt1 = (insn >> 12) & 0xf;
@@ -169,7 +201,7 @@ t32_emulate_ldrdstrd(probes_opcode_t insn,
 	register unsigned long rt1v asm("r0") = regs->uregs[rt1];
 	register unsigned long rt2v asm("r1") = regs->uregs[rt2];
 	register unsigned long rnv asm("r2") = (rn == 15) ? pc
-							  : regs->uregs[rn];
+										   : regs->uregs[rn];
 
 	__asm__ __volatile__ (
 		"blx    %[fn]"
@@ -179,14 +211,17 @@ t32_emulate_ldrdstrd(probes_opcode_t insn,
 	);
 
 	if (rn != 15)
-		regs->uregs[rn] = rnv; /* Writeback base register */
+	{
+		regs->uregs[rn] = rnv;    /* Writeback base register */
+	}
+
 	regs->uregs[rt1] = rt1v;
 	regs->uregs[rt2] = rt2v;
 }
 
 static void __kprobes
 t32_emulate_ldrstr(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+				   struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	int rt = (insn >> 12) & 0xf;
 	int rn = (insn >> 16) & 0xf;
@@ -204,15 +239,20 @@ t32_emulate_ldrstr(probes_opcode_t insn,
 	);
 
 	regs->uregs[rn] = rnv; /* Writeback base register */
+
 	if (rt == 15) /* Can't be true for a STR as they aren't allowed */
+	{
 		bx_write_pc(rtv, regs);
+	}
 	else
+	{
 		regs->uregs[rt] = rtv;
+	}
 }
 
 static void __kprobes
 t32_emulate_rd8rn16rm0_rwflags(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+							   struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	int rd = (insn >> 8) & 0xf;
 	int rn = (insn >> 16) & 0xf;
@@ -229,7 +269,7 @@ t32_emulate_rd8rn16rm0_rwflags(probes_opcode_t insn,
 		"mrs	%[cpsr], cpsr		\n\t"
 		: "=r" (rdv), [cpsr] "=r" (cpsr)
 		: "0" (rdv), "r" (rnv), "r" (rmv),
-		  "1" (cpsr), [fn] "r" (asi->insn_fn)
+		"1" (cpsr), [fn] "r" (asi->insn_fn)
 		: "lr", "memory", "cc"
 	);
 
@@ -239,7 +279,7 @@ t32_emulate_rd8rn16rm0_rwflags(probes_opcode_t insn,
 
 static void __kprobes
 t32_emulate_rd8pc16_noflags(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+							struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc;
 	int rd = (insn >> 8) & 0xf;
@@ -259,7 +299,7 @@ t32_emulate_rd8pc16_noflags(probes_opcode_t insn,
 
 static void __kprobes
 t32_emulate_rd8rn16_noflags(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+							struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	int rd = (insn >> 8) & 0xf;
 	int rn = (insn >> 16) & 0xf;
@@ -279,8 +319,8 @@ t32_emulate_rd8rn16_noflags(probes_opcode_t insn,
 
 static void __kprobes
 t32_emulate_rdlo12rdhi8rn16rm0_noflags(probes_opcode_t insn,
-		struct arch_probes_insn *asi,
-		struct pt_regs *regs)
+									   struct arch_probes_insn *asi,
+									   struct pt_regs *regs)
 {
 	int rdlo = (insn >> 12) & 0xf;
 	int rdhi = (insn >> 8) & 0xf;
@@ -296,7 +336,7 @@ t32_emulate_rdlo12rdhi8rn16rm0_noflags(probes_opcode_t insn,
 		"blx    %[fn]"
 		: "=r" (rdlov), "=r" (rdhiv)
 		: "0" (rdlov), "1" (rdhiv), "r" (rnv), "r" (rmv),
-		  [fn] "r" (asi->insn_fn)
+		[fn] "r" (asi->insn_fn)
 		: "lr", "memory", "cc"
 	);
 
@@ -307,21 +347,23 @@ t32_emulate_rdlo12rdhi8rn16rm0_noflags(probes_opcode_t insn,
 
 static void __kprobes
 t16_simulate_bxblx(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+				   struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc + 2;
 	int rm = (insn >> 3) & 0xf;
 	unsigned long rmv = (rm == 15) ? pc : regs->uregs[rm];
 
 	if (insn & (1 << 7)) /* BLX ? */
+	{
 		regs->ARM_lr = regs->ARM_pc | 1;
+	}
 
 	bx_write_pc(rmv, regs);
 }
 
 static void __kprobes
 t16_simulate_ldr_literal(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+						 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long *base = (unsigned long *)((regs->ARM_pc + 2) & ~3);
 	long index = insn & 0xff;
@@ -331,23 +373,28 @@ t16_simulate_ldr_literal(probes_opcode_t insn,
 
 static void __kprobes
 t16_simulate_ldrstr_sp_relative(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+								struct arch_probes_insn *asi, struct pt_regs *regs)
 {
-	unsigned long* base = (unsigned long *)regs->ARM_sp;
+	unsigned long *base = (unsigned long *)regs->ARM_sp;
 	long index = insn & 0xff;
 	int rt = (insn >> 8) & 0x7;
+
 	if (insn & 0x800) /* LDR */
+	{
 		regs->uregs[rt] = base[index];
+	}
 	else /* STR */
+	{
 		base[index] = regs->uregs[rt];
+	}
 }
 
 static void __kprobes
 t16_simulate_reladr(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+					struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long base = (insn & 0x800) ? regs->ARM_sp
-					    : ((regs->ARM_pc + 2) & ~3);
+						 : ((regs->ARM_pc + 2) & ~3);
 	long offset = insn & 0xff;
 	int rt = (insn >> 8) & 0x7;
 	regs->uregs[rt] = base + offset * 4;
@@ -355,22 +402,29 @@ t16_simulate_reladr(probes_opcode_t insn,
 
 static void __kprobes
 t16_simulate_add_sp_imm(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+						struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	long imm = insn & 0x7f;
+
 	if (insn & 0x80) /* SUB */
+	{
 		regs->ARM_sp -= imm * 4;
+	}
 	else /* ADD */
+	{
 		regs->ARM_sp += imm * 4;
+	}
 }
 
 static void __kprobes
 t16_simulate_cbz(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+				 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	int rn = insn & 0x7;
 	probes_opcode_t nonzero = regs->uregs[rn] ? insn : ~insn;
-	if (nonzero & 0x800) {
+
+	if (nonzero & 0x800)
+	{
 		long i = insn & 0x200;
 		long imm5 = insn & 0xf8;
 		unsigned long pc = regs->ARM_pc + 2;
@@ -380,7 +434,7 @@ t16_simulate_cbz(probes_opcode_t insn,
 
 static void __kprobes
 t16_simulate_it(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+				struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	/*
 	 * The 8 IT state bits are split into two parts in CPSR:
@@ -397,7 +451,7 @@ t16_simulate_it(probes_opcode_t insn,
 
 static void __kprobes
 t16_singlestep_it(probes_opcode_t insn,
-		  struct arch_probes_insn *asi, struct pt_regs *regs)
+				  struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	regs->ARM_pc += 2;
 	t16_simulate_it(insn, asi, regs);
@@ -405,7 +459,7 @@ t16_singlestep_it(probes_opcode_t insn,
 
 static enum probes_insn __kprobes
 t16_decode_it(probes_opcode_t insn, struct arch_probes_insn *asi,
-		const struct decode_header *d)
+			  const struct decode_header *d)
 {
 	asi->insn_singlestep = t16_singlestep_it;
 	return INSN_GOOD_NO_SLOT;
@@ -413,7 +467,7 @@ t16_decode_it(probes_opcode_t insn, struct arch_probes_insn *asi,
 
 static void __kprobes
 t16_simulate_cond_branch(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+						 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc + 2;
 	long offset = insn & 0x7f;
@@ -423,7 +477,7 @@ t16_simulate_cond_branch(probes_opcode_t insn,
 
 static enum probes_insn __kprobes
 t16_decode_cond_branch(probes_opcode_t insn, struct arch_probes_insn *asi,
-		const struct decode_header *d)
+					   const struct decode_header *d)
 {
 	int cc = (insn >> 8) & 0xf;
 	asi->insn_check_cc = probes_condition_checks[cc];
@@ -433,7 +487,7 @@ t16_decode_cond_branch(probes_opcode_t insn, struct arch_probes_insn *asi,
 
 static void __kprobes
 t16_simulate_branch(probes_opcode_t insn,
-		   struct arch_probes_insn *asi, struct pt_regs *regs)
+					struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc + 2;
 	long offset = insn & 0x3ff;
@@ -443,7 +497,7 @@ t16_simulate_branch(probes_opcode_t insn,
 
 static unsigned long __kprobes
 t16_emulate_loregs(probes_opcode_t insn,
-		   struct arch_probes_insn *asi, struct pt_regs *regs)
+				   struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long oldcpsr = regs->ARM_cpsr;
 	unsigned long newcpsr;
@@ -456,33 +510,36 @@ t16_emulate_loregs(probes_opcode_t insn,
 		"mrs	%[newcpsr], cpsr	\n\t"
 		: [newcpsr] "=r" (newcpsr)
 		: [oldcpsr] "r" (oldcpsr), [regs] "r" (regs),
-		  [fn] "r" (asi->insn_fn)
+		[fn] "r" (asi->insn_fn)
 		: "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
-		  "lr", "memory", "cc"
-		);
+		"lr", "memory", "cc"
+	);
 
 	return (oldcpsr & ~APSR_MASK) | (newcpsr & APSR_MASK);
 }
 
 static void __kprobes
 t16_emulate_loregs_rwflags(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+						   struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	regs->ARM_cpsr = t16_emulate_loregs(insn, asi, regs);
 }
 
 static void __kprobes
 t16_emulate_loregs_noitrwflags(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+							   struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long cpsr = t16_emulate_loregs(insn, asi, regs);
+
 	if (!in_it_block(cpsr))
+	{
 		regs->ARM_cpsr = cpsr;
+	}
 }
 
 static void __kprobes
 t16_emulate_hiregs(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+				   struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	unsigned long pc = regs->ARM_pc + 2;
 	int rdn = (insn & 0x7) | ((insn & 0x80) >> 4);
@@ -505,7 +562,9 @@ t16_emulate_hiregs(probes_opcode_t insn,
 	);
 
 	if (rdn == 15)
+	{
 		rdnv &= ~1;
+	}
 
 	regs->uregs[rdn] = rdnv;
 	regs->ARM_cpsr = (regs->ARM_cpsr & ~APSR_MASK) | (cpsr & APSR_MASK);
@@ -513,7 +572,7 @@ t16_emulate_hiregs(probes_opcode_t insn,
 
 static enum probes_insn __kprobes
 t16_decode_hiregs(probes_opcode_t insn, struct arch_probes_insn *asi,
-		const struct decode_header *d)
+				  const struct decode_header *d)
 {
 	insn &= ~0x00ff;
 	insn |= 0x001; /* Set Rdn = R1 and Rm = R0 */
@@ -524,7 +583,7 @@ t16_decode_hiregs(probes_opcode_t insn, struct arch_probes_insn *asi,
 
 static void __kprobes
 t16_emulate_push(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+				 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	__asm__ __volatile__ (
 		"ldr	r9, [%[regs], #13*4]	\n\t"
@@ -535,13 +594,13 @@ t16_emulate_push(probes_opcode_t insn,
 		:
 		: [regs] "r" (regs), [fn] "r" (asi->insn_fn)
 		: "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9",
-		  "lr", "memory", "cc"
-		);
+		"lr", "memory", "cc"
+	);
 }
 
 static enum probes_insn __kprobes
 t16_decode_push(probes_opcode_t insn, struct arch_probes_insn *asi,
-		const struct decode_header *d)
+				const struct decode_header *d)
 {
 	/*
 	 * To simulate a PUSH we use a Thumb-2 "STMDB R9!, {registers}"
@@ -558,7 +617,7 @@ t16_decode_push(probes_opcode_t insn, struct arch_probes_insn *asi,
 
 static void __kprobes
 t16_emulate_pop_nopc(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+					 struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	__asm__ __volatile__ (
 		"ldr	r9, [%[regs], #13*4]	\n\t"
@@ -569,13 +628,13 @@ t16_emulate_pop_nopc(probes_opcode_t insn,
 		:
 		: [regs] "r" (regs), [fn] "r" (asi->insn_fn)
 		: "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r9",
-		  "lr", "memory", "cc"
-		);
+		"lr", "memory", "cc"
+	);
 }
 
 static void __kprobes
 t16_emulate_pop_pc(probes_opcode_t insn,
-		struct arch_probes_insn *asi, struct pt_regs *regs)
+				   struct arch_probes_insn *asi, struct pt_regs *regs)
 {
 	register unsigned long pc asm("r8");
 
@@ -588,15 +647,15 @@ t16_emulate_pop_pc(probes_opcode_t insn,
 		: "=r" (pc)
 		: [regs] "r" (regs), [fn] "r" (asi->insn_fn)
 		: "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r9",
-		  "lr", "memory", "cc"
-		);
+		"lr", "memory", "cc"
+	);
 
 	bx_write_pc(pc, regs);
 }
 
 static enum probes_insn __kprobes
 t16_decode_pop(probes_opcode_t insn, struct arch_probes_insn *asi,
-		const struct decode_header *d)
+			   const struct decode_header *d)
 {
 	/*
 	 * To simulate a POP we use a Thumb-2 "LDMDB R9!, {registers}"
@@ -608,11 +667,12 @@ t16_decode_pop(probes_opcode_t insn, struct arch_probes_insn *asi,
 	/* 2nd half (register list) */
 	((u16 *)asi->insn)[1] = __opcode_to_mem_thumb16(insn & 0x1ff);
 	asi->insn_handler = insn & 0x100 ? t16_emulate_pop_pc
-					 : t16_emulate_pop_nopc;
+	: t16_emulate_pop_nopc;
 	return INSN_GOOD;
 }
 
-const union decode_action kprobes_t16_actions[NUM_PROBES_T16_ACTIONS] = {
+const union decode_action kprobes_t16_actions[NUM_PROBES_T16_ACTIONS] =
+{
 	[PROBES_T16_ADD_SP] = {.handler = t16_simulate_add_sp_imm},
 	[PROBES_T16_CBZ] = {.handler = t16_simulate_cbz},
 	[PROBES_T16_SIGN_EXTEND] = {.handler = t16_emulate_loregs_rwflags},
@@ -635,7 +695,8 @@ const union decode_action kprobes_t16_actions[NUM_PROBES_T16_ACTIONS] = {
 	[PROBES_T16_BRANCH] = {.handler = t16_simulate_branch},
 };
 
-const union decode_action kprobes_t32_actions[NUM_PROBES_T32_ACTIONS] = {
+const union decode_action kprobes_t32_actions[NUM_PROBES_T32_ACTIONS] =
+{
 	[PROBES_T32_LDMSTM] = {.decoder = t32_decode_ldmstm},
 	[PROBES_T32_LDRDSTRD] = {.handler = t32_emulate_ldrdstrd},
 	[PROBES_T32_TABLE_BRANCH] = {.handler = t32_simulate_table_branch},
@@ -663,7 +724,8 @@ const union decode_action kprobes_t32_actions[NUM_PROBES_T32_ACTIONS] = {
 	[PROBES_T32_MUL_ADD] = {.handler = t32_emulate_rd8rn16rm0_rwflags},
 	[PROBES_T32_MUL_ADD2] = {.handler = t32_emulate_rd8rn16rm0ra12_noflags},
 	[PROBES_T32_MUL_ADD_LONG] = {
-		.handler = t32_emulate_rdlo12rdhi8rn16rm0_noflags},
+		.handler = t32_emulate_rdlo12rdhi8rn16rm0_noflags
+	},
 };
 
 const struct decode_checker *kprobes_t32_checkers[] = {t32_stack_checker, NULL};

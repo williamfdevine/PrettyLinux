@@ -208,15 +208,18 @@ static __always_inline unsigned long dwarf_read_arch_reg(unsigned int reg)
 {
 	unsigned long value = 0;
 
-	switch (reg) {
-	case 14:
-		__asm__ __volatile__("mov r14, %0\n" : "=r" (value));
-		break;
-	case 15:
-		__asm__ __volatile__("mov r15, %0\n" : "=r" (value));
-		break;
-	default:
-		BUG();
+	switch (reg)
+	{
+		case 14:
+			__asm__ __volatile__("mov r14, %0\n" : "=r" (value));
+			break;
+
+		case 15:
+			__asm__ __volatile__("mov r15, %0\n" : "=r" (value));
+			break;
+
+		default:
+			BUG();
 	}
 
 	return value;
@@ -225,7 +228,8 @@ static __always_inline unsigned long dwarf_read_arch_reg(unsigned int reg)
 /**
  *	dwarf_cie - Common Information Entry
  */
-struct dwarf_cie {
+struct dwarf_cie
+{
 	unsigned long length;
 	unsigned long cie_id;
 	unsigned char version;
@@ -255,7 +259,8 @@ struct dwarf_cie {
 /**
  *	dwarf_fde - Frame Description Entry
  */
-struct dwarf_fde {
+struct dwarf_fde
+{
 	unsigned long length;
 	unsigned long cie_pointer;
 	struct dwarf_cie *cie;
@@ -273,7 +278,8 @@ struct dwarf_fde {
 /**
  *	dwarf_frame - DWARF information for a frame in the call stack
  */
-struct dwarf_frame {
+struct dwarf_frame
+{
 	struct dwarf_frame *prev, *next;
 
 	unsigned long pc;
@@ -301,7 +307,8 @@ struct dwarf_frame {
  *	dwarf_reg - DWARF register
  *	@flags: Describes how to calculate the value of this register
  */
-struct dwarf_reg {
+struct dwarf_reg
+{
 	struct list_head link;
 
 	unsigned int number;
@@ -376,11 +383,11 @@ static inline unsigned int DW_CFA_operand(unsigned long insn)
 #define DW_EXT_DWARF64	DW_EXT_HI
 
 extern struct dwarf_frame *dwarf_unwind_stack(unsigned long,
-					      struct dwarf_frame *);
+		struct dwarf_frame *);
 extern void dwarf_free_frame(struct dwarf_frame *);
 
 extern int module_dwarf_finalize(const Elf_Ehdr *, const Elf_Shdr *,
-				 struct module *);
+								 struct module *);
 extern void module_dwarf_cleanup(struct module *);
 
 #endif /* !__ASSEMBLY__ */

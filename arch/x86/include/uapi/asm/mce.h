@@ -5,7 +5,8 @@
 #include <linux/ioctl.h>
 
 /* Fields are zero when not available */
-struct mce {
+struct mce
+{
 	__u64 status;
 	__u64 misc;
 	__u64 addr;

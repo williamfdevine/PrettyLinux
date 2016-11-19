@@ -41,9 +41,9 @@ asmlinkage void insn_access_error(unsigned long esfr1, unsigned long epcr0, unsi
 	siginfo_t info;
 
 	die_if_kernel("-- Insn Access Error --\n"
-		      "EPCR0 : %08lx\n"
-		      "ESR0  : %08lx\n",
-		      epcr0, esr0);
+				  "EPCR0 : %08lx\n"
+				  "ESR0  : %08lx\n",
+				  epcr0, esr0);
 
 	info.si_signo	= SIGSEGV;
 	info.si_code	= SEGV_ACCERR;
@@ -66,34 +66,38 @@ asmlinkage void illegal_instruction(unsigned long esfr1, unsigned long epcr0, un
 	siginfo_t info;
 
 	die_if_kernel("-- Illegal Instruction --\n"
-		      "EPCR0 : %08lx\n"
-		      "ESR0  : %08lx\n"
-		      "ESFR1 : %08lx\n",
-		      epcr0, esr0, esfr1);
+				  "EPCR0 : %08lx\n"
+				  "ESR0  : %08lx\n"
+				  "ESFR1 : %08lx\n",
+				  epcr0, esr0, esfr1);
 
 	info.si_errno	= 0;
 	info.si_addr	= (void __user *) ((epcr0 & EPCR0_V) ? (epcr0 & EPCR0_PC) : __frame->pc);
 
-	switch (__frame->tbr & TBR_TT) {
-	case TBR_TT_ILLEGAL_INSTR:
-		info.si_signo	= SIGILL;
-		info.si_code	= ILL_ILLOPC;
-		break;
-	case TBR_TT_PRIV_INSTR:
-		info.si_signo	= SIGILL;
-		info.si_code	= ILL_PRVOPC;
-		break;
-	case TBR_TT_TRAP2 ... TBR_TT_TRAP126:
-		info.si_signo	= SIGILL;
-		info.si_code	= ILL_ILLTRP;
-		break;
-	/* GDB uses "tira gr0, #1" as a breakpoint instruction.  */
-	case TBR_TT_TRAP1:
-	case TBR_TT_BREAK:
-		info.si_signo	= SIGTRAP;
-		info.si_code	=
-			(__frame->__status & REG__STATUS_STEPPED) ? TRAP_TRACE : TRAP_BRKPT;
-		break;
+	switch (__frame->tbr & TBR_TT)
+	{
+		case TBR_TT_ILLEGAL_INSTR:
+			info.si_signo	= SIGILL;
+			info.si_code	= ILL_ILLOPC;
+			break;
+
+		case TBR_TT_PRIV_INSTR:
+			info.si_signo	= SIGILL;
+			info.si_code	= ILL_PRVOPC;
+			break;
+
+		case TBR_TT_TRAP2 ... TBR_TT_TRAP126:
+			info.si_signo	= SIGILL;
+			info.si_code	= ILL_ILLTRP;
+			break;
+
+		/* GDB uses "tira gr0, #1" as a breakpoint instruction.  */
+		case TBR_TT_TRAP1:
+		case TBR_TT_BREAK:
+			info.si_signo	= SIGTRAP;
+			info.si_code	=
+				(__frame->__status & REG__STATUS_STEPPED) ? TRAP_TRACE : TRAP_BRKPT;
+			break;
 	}
 
 	force_sig_info(info.si_signo, &info, current);
@@ -107,7 +111,7 @@ asmlinkage void illegal_instruction(unsigned long esfr1, unsigned long epcr0, un
  * - replacement memory value placed in gr9
  */
 asmlinkage void atomic_operation(unsigned long esfr1, unsigned long epcr0,
-				 unsigned long esr0)
+								 unsigned long esr0)
 {
 	static DEFINE_SPINLOCK(atomic_op_lock);
 	unsigned long x, y, z;
@@ -120,192 +124,265 @@ asmlinkage void atomic_operation(unsigned long esfr1, unsigned long epcr0,
 	z = 0;
 
 	oldfs = get_fs();
-	if (!user_mode(__frame))
-		set_fs(KERNEL_DS);
 
-	switch (__frame->tbr & TBR_TT) {
+	if (!user_mode(__frame))
+	{
+		set_fs(KERNEL_DS);
+	}
+
+	switch (__frame->tbr & TBR_TT)
+	{
 		/* TIRA gr0,#120
 		 * u32 __atomic_user_cmpxchg32(u32 *ptr, u32 test, u32 new)
 		 */
-	case TBR_TT_ATOMIC_CMPXCHG32:
-		p = (unsigned long __user *) __frame->gr8;
-		x = __frame->gr9;
-		y = __frame->gr10;
+		case TBR_TT_ATOMIC_CMPXCHG32:
+			p = (unsigned long __user *) __frame->gr8;
+			x = __frame->gr9;
+			y = __frame->gr10;
 
-		for (;;) {
-			ret = get_user(z, p);
-			if (ret < 0)
-				goto error;
+			for (;;)
+			{
+				ret = get_user(z, p);
 
-			if (z != x)
-				goto done;
+				if (ret < 0)
+				{
+					goto error;
+				}
 
-			spin_lock_irq(&atomic_op_lock);
-
-			if (__get_user(z, p) == 0) {
 				if (z != x)
-					goto done2;
+				{
+					goto done;
+				}
 
-				if (__put_user(y, p) == 0)
-					goto done2;
-				goto error2;
+				spin_lock_irq(&atomic_op_lock);
+
+				if (__get_user(z, p) == 0)
+				{
+					if (z != x)
+					{
+						goto done2;
+					}
+
+					if (__put_user(y, p) == 0)
+					{
+						goto done2;
+					}
+
+					goto error2;
+				}
+
+				spin_unlock_irq(&atomic_op_lock);
 			}
-
-			spin_unlock_irq(&atomic_op_lock);
-		}
 
 		/* TIRA gr0,#121
 		 * u32 __atomic_kernel_xchg32(void *v, u32 new)
 		 */
-	case TBR_TT_ATOMIC_XCHG32:
-		p = (unsigned long __user *) __frame->gr8;
-		y = __frame->gr9;
+		case TBR_TT_ATOMIC_XCHG32:
+			p = (unsigned long __user *) __frame->gr8;
+			y = __frame->gr9;
 
-		for (;;) {
-			ret = get_user(z, p);
-			if (ret < 0)
-				goto error;
+			for (;;)
+			{
+				ret = get_user(z, p);
 
-			spin_lock_irq(&atomic_op_lock);
+				if (ret < 0)
+				{
+					goto error;
+				}
 
-			if (__get_user(z, p) == 0) {
-				if (__put_user(y, p) == 0)
-					goto done2;
-				goto error2;
+				spin_lock_irq(&atomic_op_lock);
+
+				if (__get_user(z, p) == 0)
+				{
+					if (__put_user(y, p) == 0)
+					{
+						goto done2;
+					}
+
+					goto error2;
+				}
+
+				spin_unlock_irq(&atomic_op_lock);
 			}
-
-			spin_unlock_irq(&atomic_op_lock);
-		}
 
 		/* TIRA gr0,#122
 		 * ulong __atomic_kernel_XOR_return(ulong i, ulong *v)
 		 */
-	case TBR_TT_ATOMIC_XOR:
-		p = (unsigned long __user *) __frame->gr8;
-		x = __frame->gr9;
+		case TBR_TT_ATOMIC_XOR:
+			p = (unsigned long __user *) __frame->gr8;
+			x = __frame->gr9;
 
-		for (;;) {
-			ret = get_user(z, p);
-			if (ret < 0)
-				goto error;
+			for (;;)
+			{
+				ret = get_user(z, p);
 
-			spin_lock_irq(&atomic_op_lock);
+				if (ret < 0)
+				{
+					goto error;
+				}
 
-			if (__get_user(z, p) == 0) {
-				y = x ^ z;
-				if (__put_user(y, p) == 0)
-					goto done2;
-				goto error2;
+				spin_lock_irq(&atomic_op_lock);
+
+				if (__get_user(z, p) == 0)
+				{
+					y = x ^ z;
+
+					if (__put_user(y, p) == 0)
+					{
+						goto done2;
+					}
+
+					goto error2;
+				}
+
+				spin_unlock_irq(&atomic_op_lock);
 			}
-
-			spin_unlock_irq(&atomic_op_lock);
-		}
 
 		/* TIRA gr0,#123
 		 * ulong __atomic_kernel_OR_return(ulong i, ulong *v)
 		 */
-	case TBR_TT_ATOMIC_OR:
-		p = (unsigned long __user *) __frame->gr8;
-		x = __frame->gr9;
+		case TBR_TT_ATOMIC_OR:
+			p = (unsigned long __user *) __frame->gr8;
+			x = __frame->gr9;
 
-		for (;;) {
-			ret = get_user(z, p);
-			if (ret < 0)
-				goto error;
+			for (;;)
+			{
+				ret = get_user(z, p);
 
-			spin_lock_irq(&atomic_op_lock);
+				if (ret < 0)
+				{
+					goto error;
+				}
 
-			if (__get_user(z, p) == 0) {
-				y = x ^ z;
-				if (__put_user(y, p) == 0)
-					goto done2;
-				goto error2;
+				spin_lock_irq(&atomic_op_lock);
+
+				if (__get_user(z, p) == 0)
+				{
+					y = x ^ z;
+
+					if (__put_user(y, p) == 0)
+					{
+						goto done2;
+					}
+
+					goto error2;
+				}
+
+				spin_unlock_irq(&atomic_op_lock);
 			}
-
-			spin_unlock_irq(&atomic_op_lock);
-		}
 
 		/* TIRA gr0,#124
 		 * ulong __atomic_kernel_AND_return(ulong i, ulong *v)
 		 */
-	case TBR_TT_ATOMIC_AND:
-		p = (unsigned long __user *) __frame->gr8;
-		x = __frame->gr9;
+		case TBR_TT_ATOMIC_AND:
+			p = (unsigned long __user *) __frame->gr8;
+			x = __frame->gr9;
 
-		for (;;) {
-			ret = get_user(z, p);
-			if (ret < 0)
-				goto error;
+			for (;;)
+			{
+				ret = get_user(z, p);
 
-			spin_lock_irq(&atomic_op_lock);
+				if (ret < 0)
+				{
+					goto error;
+				}
 
-			if (__get_user(z, p) == 0) {
-				y = x & z;
-				if (__put_user(y, p) == 0)
-					goto done2;
-				goto error2;
+				spin_lock_irq(&atomic_op_lock);
+
+				if (__get_user(z, p) == 0)
+				{
+					y = x & z;
+
+					if (__put_user(y, p) == 0)
+					{
+						goto done2;
+					}
+
+					goto error2;
+				}
+
+				spin_unlock_irq(&atomic_op_lock);
 			}
-
-			spin_unlock_irq(&atomic_op_lock);
-		}
 
 		/* TIRA gr0,#125
 		 * int __atomic_user_sub_return(atomic_t *v, int i)
 		 */
-	case TBR_TT_ATOMIC_SUB:
-		p = (unsigned long __user *) __frame->gr8;
-		x = __frame->gr9;
+		case TBR_TT_ATOMIC_SUB:
+			p = (unsigned long __user *) __frame->gr8;
+			x = __frame->gr9;
 
-		for (;;) {
-			ret = get_user(z, p);
-			if (ret < 0)
-				goto error;
+			for (;;)
+			{
+				ret = get_user(z, p);
 
-			spin_lock_irq(&atomic_op_lock);
+				if (ret < 0)
+				{
+					goto error;
+				}
 
-			if (__get_user(z, p) == 0) {
-				y = z - x;
-				if (__put_user(y, p) == 0)
-					goto done2;
-				goto error2;
+				spin_lock_irq(&atomic_op_lock);
+
+				if (__get_user(z, p) == 0)
+				{
+					y = z - x;
+
+					if (__put_user(y, p) == 0)
+					{
+						goto done2;
+					}
+
+					goto error2;
+				}
+
+				spin_unlock_irq(&atomic_op_lock);
 			}
-
-			spin_unlock_irq(&atomic_op_lock);
-		}
 
 		/* TIRA gr0,#126
 		 * int __atomic_user_add_return(atomic_t *v, int i)
 		 */
-	case TBR_TT_ATOMIC_ADD:
-		p = (unsigned long __user *) __frame->gr8;
-		x = __frame->gr9;
+		case TBR_TT_ATOMIC_ADD:
+			p = (unsigned long __user *) __frame->gr8;
+			x = __frame->gr9;
 
-		for (;;) {
-			ret = get_user(z, p);
-			if (ret < 0)
-				goto error;
+			for (;;)
+			{
+				ret = get_user(z, p);
 
-			spin_lock_irq(&atomic_op_lock);
+				if (ret < 0)
+				{
+					goto error;
+				}
 
-			if (__get_user(z, p) == 0) {
-				y = z + x;
-				if (__put_user(y, p) == 0)
-					goto done2;
-				goto error2;
+				spin_lock_irq(&atomic_op_lock);
+
+				if (__get_user(z, p) == 0)
+				{
+					y = z + x;
+
+					if (__put_user(y, p) == 0)
+					{
+						goto done2;
+					}
+
+					goto error2;
+				}
+
+				spin_unlock_irq(&atomic_op_lock);
 			}
 
-			spin_unlock_irq(&atomic_op_lock);
-		}
-
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 
 done2:
 	spin_unlock_irq(&atomic_op_lock);
 done:
+
 	if (!user_mode(__frame))
+	{
 		set_fs(oldfs);
+	}
+
 	__frame->gr5 = z;
 	__frame->gr9 = y;
 	return;
@@ -313,8 +390,12 @@ done:
 error2:
 	spin_unlock_irq(&atomic_op_lock);
 error:
+
 	if (!user_mode(__frame))
+	{
 		set_fs(oldfs);
+	}
+
 	__frame->pc -= 4;
 
 	die_if_kernel("-- Atomic Op Error --\n");
@@ -336,9 +417,9 @@ asmlinkage void media_exception(unsigned long msr0, unsigned long msr1)
 	siginfo_t info;
 
 	die_if_kernel("-- Media Exception --\n"
-		      "MSR0 : %08lx\n"
-		      "MSR1 : %08lx\n",
-		      msr0, msr1);
+				  "MSR0 : %08lx\n"
+				  "MSR1 : %08lx\n",
+				  msr0, msr1);
 
 	info.si_signo	= SIGFPE;
 	info.si_code	= FPE_MDAOVF;
@@ -353,8 +434,8 @@ asmlinkage void media_exception(unsigned long msr0, unsigned long msr1)
  * instruction or data access exception
  */
 asmlinkage void memory_access_exception(unsigned long esr0,
-					unsigned long ear0,
-					unsigned long epcr0)
+										unsigned long ear0,
+										unsigned long epcr0)
 {
 	siginfo_t info;
 
@@ -362,17 +443,20 @@ asmlinkage void memory_access_exception(unsigned long esr0,
 	unsigned long fixup;
 
 	fixup = search_exception_table(__frame->pc);
-	if (fixup) {
+
+	if (fixup)
+	{
 		__frame->pc = fixup;
 		return;
 	}
+
 #endif
 
 	die_if_kernel("-- Memory Access Exception --\n"
-		      "ESR0  : %08lx\n"
-		      "EAR0  : %08lx\n"
-		      "EPCR0 : %08lx\n",
-		      esr0, ear0, epcr0);
+				  "ESR0  : %08lx\n"
+				  "EAR0  : %08lx\n"
+				  "EPCR0 : %08lx\n",
+				  esr0, ear0, epcr0);
 
 	info.si_signo	= SIGSEGV;
 	info.si_code	= SEGV_ACCERR;
@@ -380,7 +464,9 @@ asmlinkage void memory_access_exception(unsigned long esr0,
 	info.si_addr	= NULL;
 
 	if ((esr0 & (ESRx_VALID | ESR0_EAV)) == (ESRx_VALID | ESR0_EAV))
+	{
 		info.si_addr = (void __user *) ear0;
+	}
 
 	force_sig_info(info.si_signo, &info, current);
 
@@ -402,15 +488,15 @@ asmlinkage void data_access_error(unsigned long esfr1, unsigned long esr15, unsi
 	siginfo_t info;
 
 	die_if_kernel("-- Data Access Error --\n"
-		      "ESR15 : %08lx\n"
-		      "EAR15 : %08lx\n",
-		      esr15, ear15);
+				  "ESR15 : %08lx\n"
+				  "EAR15 : %08lx\n",
+				  esr15, ear15);
 
 	info.si_signo	= SIGSEGV;
 	info.si_code	= SEGV_ACCERR;
 	info.si_errno	= 0;
 	info.si_addr	= (void __user *)
-		(((esr15 & (ESRx_VALID|ESR15_EAV)) == (ESRx_VALID|ESR15_EAV)) ? ear15 : 0);
+					  (((esr15 & (ESRx_VALID | ESR15_EAV)) == (ESRx_VALID | ESR15_EAV)) ? ear15 : 0);
 
 	force_sig_info(info.si_signo, &info, current);
 } /* end data_access_error() */
@@ -422,8 +508,8 @@ asmlinkage void data_access_error(unsigned long esfr1, unsigned long esr15, unsi
 asmlinkage void data_store_error(unsigned long esfr1, unsigned long esr15)
 {
 	die_if_kernel("-- Data Store Error --\n"
-		      "ESR15 : %08lx\n",
-		      esr15);
+				  "ESR15 : %08lx\n",
+				  esr15);
 	BUG();
 } /* end data_store_error() */
 
@@ -436,9 +522,9 @@ asmlinkage void division_exception(unsigned long esfr1, unsigned long esr0, unsi
 	siginfo_t info;
 
 	die_if_kernel("-- Division Exception --\n"
-		      "ESR0 : %08lx\n"
-		      "ISR  : %08lx\n",
-		      esr0, isr);
+				  "ESR0 : %08lx\n"
+				  "ISR  : %08lx\n",
+				  esr0, isr);
 
 	info.si_signo	= SIGFPE;
 	info.si_code	= FPE_INTDIV;
@@ -453,16 +539,16 @@ asmlinkage void division_exception(unsigned long esfr1, unsigned long esr0, unsi
  *
  */
 asmlinkage void compound_exception(unsigned long esfr1,
-				   unsigned long esr0, unsigned long esr14, unsigned long esr15,
-				   unsigned long msr0, unsigned long msr1)
+								   unsigned long esr0, unsigned long esr14, unsigned long esr15,
+								   unsigned long msr0, unsigned long msr1)
 {
 	die_if_kernel("-- Compound Exception --\n"
-		      "ESR0  : %08lx\n"
-		      "ESR15 : %08lx\n"
-		      "ESR15 : %08lx\n"
-		      "MSR0  : %08lx\n"
-		      "MSR1  : %08lx\n",
-		      esr0, esr14, esr15, msr0, msr1);
+				  "ESR0  : %08lx\n"
+				  "ESR15 : %08lx\n"
+				  "ESR15 : %08lx\n"
+				  "MSR0  : %08lx\n"
+				  "MSR1  : %08lx\n",
+				  esr0, esr14, esr15, msr0, msr1);
 	BUG();
 } /* end compound_exception() */
 
@@ -473,10 +559,11 @@ void show_stack(struct task_struct *task, unsigned long *sp)
 void show_trace_task(struct task_struct *tsk)
 {
 	printk("CONTEXT: stack=0x%lx frame=0x%p LR=0x%lx RET=0x%lx\n",
-	       tsk->thread.sp, tsk->thread.frame, tsk->thread.lr, tsk->thread.sched_lr);
+		   tsk->thread.sp, tsk->thread.frame, tsk->thread.lr, tsk->thread.sched_lr);
 }
 
-static const char *regnames[] = {
+static const char *regnames[] =
+{
 	"PSR ", "ISR ", "CCR ", "CCCR",
 	"LR  ", "LCR ", "PC  ", "_stt",
 	"sys ", "GR8*", "GNE0", "GNE1",
@@ -500,17 +587,23 @@ void show_regs(struct pt_regs *regs)
 	show_regs_print_info(KERN_DEFAULT);
 
 	printk("Frame: @%08lx [%s]\n",
-	       (unsigned long) regs,
-	       regs->psr & PSR_S ? "kernel" : "user");
+		   (unsigned long) regs,
+		   regs->psr & PSR_S ? "kernel" : "user");
 
 	reg = (unsigned long *) regs;
-	for (loop = 0; loop < NR_PT_REGS; loop++) {
+
+	for (loop = 0; loop < NR_PT_REGS; loop++)
+	{
 		printk("%s %08lx", regnames[loop + 0], reg[loop + 0]);
 
 		if (loop == NR_PT_REGS - 1 || loop % 5 == 4)
+		{
 			printk("\n");
+		}
 		else
+		{
 			printk(" | ");
+		}
 	}
 }
 
@@ -520,7 +613,9 @@ void die_if_kernel(const char *str, ...)
 	va_list va;
 
 	if (user_mode(__frame))
+	{
 		return;
+	}
 
 	va_start(va, str);
 	vsnprintf(buffer, sizeof(buffer), str, va);
@@ -546,17 +641,23 @@ static void show_backtrace_regs(struct pt_regs *frame)
 
 	/* print the registers for this frame */
 	printk("<-- %s Frame: @%p -->\n",
-	       frame->psr & PSR_S ? "Kernel Mode" : "User Mode",
-	       frame);
+		   frame->psr & PSR_S ? "Kernel Mode" : "User Mode",
+		   frame);
 
 	reg = (unsigned long *) frame;
-	for (loop = 0; loop < NR_PT_REGS; loop++) {
+
+	for (loop = 0; loop < NR_PT_REGS; loop++)
+	{
 		printk("%s %08lx", regnames[loop + 0], reg[loop + 0]);
 
 		if (loop == NR_PT_REGS - 1 || loop % 5 == 4)
+		{
 			printk("\n");
+		}
 		else
+		{
 			printk(" | ");
+		}
 	}
 
 	printk("--------\n");
@@ -575,42 +676,56 @@ void show_backtrace(struct pt_regs *frame, unsigned long sp)
 	base = ((((unsigned long) frame) + 8191) & ~8191) - sizeof(struct user_context);
 	frame0 = (struct pt_regs *) base;
 
-	if (sp) {
+	if (sp)
+	{
 		tos = sp;
 		stop = (unsigned long) frame;
 	}
 
 	printk("\nProcess %s (pid: %d)\n\n", current->comm, current->pid);
 
-	for (;;) {
+	for (;;)
+	{
 		/* dump stack segment between frames */
 		//printk("%08lx -> %08lx\n", tos, stop);
 		format = 0;
-		while (tos < stop) {
+
+		while (tos < stop)
+		{
 			if (format == 0)
+			{
 				printk(" %04lx :", tos & 0xffff);
+			}
 
 			printk(" %08lx", *(unsigned long *) tos);
 
 			tos += 4;
 			format++;
-			if (format == 8) {
+
+			if (format == 8)
+			{
 				printk("\n");
 				format = 0;
 			}
 		}
 
 		if (format > 0)
+		{
 			printk("\n");
+		}
 
 		/* dump frame 0 outside of the loop */
 		if (frame == frame0)
+		{
 			break;
+		}
 
 		tos = frame->sp;
-		if (((unsigned long) frame) + sizeof(*frame) != tos) {
+
+		if (((unsigned long) frame) + sizeof(*frame) != tos)
+		{
 			printk("-- TOS %08lx does not follow frame %p --\n",
-			       tos, frame);
+				   tos, frame);
 			break;
 		}
 
@@ -618,13 +733,15 @@ void show_backtrace(struct pt_regs *frame, unsigned long sp)
 
 		/* dump the stack between this frame and the next */
 		stop = (unsigned long) frame->next_frame;
+
 		if (stop != base &&
-		    (stop < tos ||
-		     stop > base ||
-		     (stop < base && stop + sizeof(*frame) > base) ||
-		     stop & 3)) {
+			(stop < tos ||
+			 stop > base ||
+			 (stop < base && stop + sizeof(*frame) > base) ||
+			 stop & 3))
+		{
 			printk("-- next_frame %08lx is invalid (range %08lx-%08lx) --\n",
-			       stop, tos, base);
+				   stop, tos, base);
 			break;
 		}
 

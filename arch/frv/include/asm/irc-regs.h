@@ -19,14 +19,14 @@
 #define __set_TM1(V)	do { __reg(0xfeff9808) = (V); mb(); } while(0)
 
 #define __set_TM1x(XI,V)			\
-do {						\
-	int shift = (XI) * 2 + 16;		\
-	unsigned long tm1 = __reg(0xfeff9808);	\
-	tm1 &= ~(0x3 << shift);			\
-	tm1 |= (V) << shift;			\
-	__reg(0xfeff9808) = tm1;		\
-	mb();					\
-} while(0)
+	do {						\
+		int shift = (XI) * 2 + 16;		\
+		unsigned long tm1 = __reg(0xfeff9808);	\
+		tm1 &= ~(0x3 << shift);			\
+		tm1 |= (V) << shift;			\
+		__reg(0xfeff9808) = tm1;		\
+		mb();					\
+	} while(0)
 
 #define __get_RS(C)	({ (__reg(0xfeff9810) >> ((C)+16)) & 1; })
 

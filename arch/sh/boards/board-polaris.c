@@ -25,12 +25,14 @@
 #define WAIT_STATES_10	(0x7)
 
 /* Dummy supplies, where voltage doesn't matter */
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
 	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
 };
 
-static struct resource smsc911x_resources[] = {
+static struct resource smsc911x_resources[] =
+{
 	[0] = {
 		.name		= "smsc911x-memory",
 		.start		= PA_EXT5,
@@ -45,14 +47,16 @@ static struct resource smsc911x_resources[] = {
 	},
 };
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
 	.flags		= SMSC911X_USE_32BIT,
 	.phy_interface	= PHY_INTERFACE_MODE_MII,
 };
 
-static struct platform_device smsc911x_device = {
+static struct platform_device smsc911x_device =
+{
 	.name		= "smsc911x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smsc911x_resources),
@@ -64,18 +68,21 @@ static struct platform_device smsc911x_device = {
 
 static unsigned char heartbeat_bit_pos[] = { 0, 1, 2, 3 };
 
-static struct heartbeat_data heartbeat_data = {
+static struct heartbeat_data heartbeat_data =
+{
 	.bit_pos	= heartbeat_bit_pos,
 	.nr_bits	= ARRAY_SIZE(heartbeat_bit_pos),
 };
 
-static struct resource heartbeat_resource = {
+static struct resource heartbeat_resource =
+{
 	.start	= PORT_PCDR,
 	.end	= PORT_PCDR,
 	.flags	= IORESOURCE_MEM | IORESOURCE_MEM_8BIT,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.dev	= {
@@ -85,7 +92,8 @@ static struct platform_device heartbeat_device = {
 	.resource	= &heartbeat_resource,
 };
 
-static struct platform_device *polaris_devices[] __initdata = {
+static struct platform_device *polaris_devices[] __initdata =
+{
 	&smsc911x_device,
 	&heartbeat_device,
 };
@@ -110,21 +118,24 @@ static int __init polaris_initialise(void)
 	__raw_writew(bcr_mask, BCR2);
 
 	return platform_add_devices(polaris_devices,
-				    ARRAY_SIZE(polaris_devices));
+								ARRAY_SIZE(polaris_devices));
 }
 arch_initcall(polaris_initialise);
 
-static struct ipr_data ipr_irq_table[] = {
+static struct ipr_data ipr_irq_table[] =
+{
 	/* External IRQs */
 	{ IRQ0_IRQ, 0,  0,  1, },	/* IRQ0 */
 	{ IRQ1_IRQ, 0,  4,  1, },	/* IRQ1 */
 };
 
-static unsigned long ipr_offsets[] = {
+static unsigned long ipr_offsets[] =
+{
 	INTC_IPRC
 };
 
-static struct ipr_desc ipr_irq_desc = {
+static struct ipr_desc ipr_irq_desc =
+{
 	.ipr_offsets	= ipr_offsets,
 	.nr_offsets	= ARRAY_SIZE(ipr_offsets),
 
@@ -149,7 +160,8 @@ static void __init init_polaris_irq(void)
 	register_ipr_controller(&ipr_irq_desc);
 }
 
-static struct sh_machine_vector mv_polaris __initmv = {
+static struct sh_machine_vector mv_polaris __initmv =
+{
 	.mv_name		= "Polaris",
 	.mv_init_irq		= init_polaris_irq,
 };

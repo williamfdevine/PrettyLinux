@@ -17,7 +17,8 @@
 
 const struct fsl_pm_ops *qoriq_pm_ops;
 
-static const struct of_device_id mpc85xx_common_ids[] __initconst = {
+static const struct of_device_id mpc85xx_common_ids[] __initconst =
+{
 	{ .type = "soc", },
 	{ .compatible = "soc", },
 	{ .compatible = "simple-bus", },
@@ -58,7 +59,9 @@ static void cpm2_cascade(struct irq_desc *desc)
 	int cascade_irq;
 
 	while ((cascade_irq = cpm2_get_irq()) >= 0)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	chip->irq_eoi(&desc->irq_data);
 }
@@ -71,12 +74,17 @@ void __init mpc85xx_cpm2_pic_init(void)
 
 	/* Setup CPM2 PIC */
 	np = of_find_compatible_node(NULL, NULL, "fsl,cpm2-pic");
-	if (np == NULL) {
+
+	if (np == NULL)
+	{
 		printk(KERN_ERR "PIC init: can not find fsl,cpm2-pic node\n");
 		return;
 	}
+
 	irq = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		of_node_put(np);
 		printk(KERN_ERR "PIC init: got no IRQ for cpm cascade\n");
 		return;
@@ -94,16 +102,21 @@ void __init mpc85xx_qe_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,qe");
-	if (!np) {
+
+	if (!np)
+	{
 		np = of_find_node_by_name(NULL, "qe");
-		if (!np) {
+
+		if (!np)
+		{
 			pr_err("%s: Could not find Quicc Engine node\n",
-					__func__);
+				   __func__);
 			return;
 		}
 	}
 
-	if (!of_device_is_available(np)) {
+	if (!of_device_is_available(np))
+	{
 		of_node_put(np);
 		return;
 	}
@@ -117,14 +130,16 @@ void __init mpc85xx_qe_par_io_init(void)
 	struct device_node *np;
 
 	np = of_find_node_by_name(NULL, "par_io");
-	if (np) {
+
+	if (np)
+	{
 		struct device_node *ucc;
 
 		par_io_init(np);
 		of_node_put(np);
 
 		for_each_node_by_name(ucc, "ucc")
-			par_io_of_config(ucc);
+		par_io_of_config(ucc);
 
 	}
 }

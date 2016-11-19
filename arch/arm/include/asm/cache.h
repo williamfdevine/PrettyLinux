@@ -20,7 +20,7 @@
  * With EABI on ARMv5 and above we must have 64-bit aligned slab pointers.
  */
 #if defined(CONFIG_AEABI) && (__LINUX_ARM_ARCH__ >= 5)
-#define ARCH_SLAB_MINALIGN 8
+	#define ARCH_SLAB_MINALIGN 8
 #endif
 
 #define __read_mostly __attribute__((__section__(".data..read_mostly")))

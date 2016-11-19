@@ -45,10 +45,10 @@ csum_partial_copy_from_user(const void __user *src, void *dst, int len, __wsum s
 static inline __sum16 csum_fold(__wsum sum)
 {
 	__asm__(
-	"add	%0, %1, %1, ror #16	@ csum_fold"
-	: "=r" (sum)
-	: "r" (sum)
-	: "cc");
+		"add	%0, %1, %1, ror #16	@ csum_fold"
+		: "=r" (sum)
+		: "r" (sum)
+		: "cc");
 	return (__force __sum16)(~(__force u32)sum >> 16);
 }
 
@@ -63,7 +63,7 @@ ip_fast_csum(const void *iph, unsigned int ihl)
 	__wsum sum;
 
 	__asm__ __volatile__(
-	"ldr	%0, [%1], #4		@ ip_fast_csum		\n\
+		"ldr	%0, [%1], #4		@ ip_fast_csum		\n\
 	ldr	%3, [%1], #4					\n\
 	sub	%2, %2, #5					\n\
 	adds	%0, %0, %3					\n\
@@ -77,52 +77,57 @@ ip_fast_csum(const void *iph, unsigned int ihl)
 	bne	1b			@ the carry flag	\n\
 	adcs	%0, %0, %3					\n\
 	adc	%0, %0, #0"
-	: "=r" (sum), "=r" (iph), "=r" (ihl), "=r" (tmp1)
-	: "1" (iph), "2" (ihl)
-	: "cc", "memory");
+		: "=r" (sum), "=r" (iph), "=r" (ihl), "=r" (tmp1)
+		: "1" (iph), "2" (ihl)
+		: "cc", "memory");
 	return csum_fold(sum);
 }
 
 static inline __wsum
 csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len,
-		   __u8 proto, __wsum sum)
+				   __u8 proto, __wsum sum)
 {
 	u32 lenprot = len + proto;
-	if (__builtin_constant_p(sum) && sum == 0) {
+
+	if (__builtin_constant_p(sum) && sum == 0)
+	{
 		__asm__(
-		"adds	%0, %1, %2	@ csum_tcpudp_nofold0	\n\t"
+			"adds	%0, %1, %2	@ csum_tcpudp_nofold0	\n\t"
 #ifdef __ARMEB__
-		"adcs	%0, %0, %3				\n\t"
+			"adcs	%0, %0, %3				\n\t"
 #else
-		"adcs	%0, %0, %3, ror #8			\n\t"
+			"adcs	%0, %0, %3, ror #8			\n\t"
 #endif
-		"adc	%0, %0, #0"
-		: "=&r" (sum)
-		: "r" (daddr), "r" (saddr), "r" (lenprot)
-		: "cc");
-	} else {
-		__asm__(
-		"adds	%0, %1, %2	@ csum_tcpudp_nofold	\n\t"
-		"adcs	%0, %0, %3				\n\t"
-#ifdef __ARMEB__
-		"adcs	%0, %0, %4				\n\t"
-#else
-		"adcs	%0, %0, %4, ror #8			\n\t"
-#endif
-		"adc	%0, %0, #0"
-		: "=&r"(sum)
-		: "r" (sum), "r" (daddr), "r" (saddr), "r" (lenprot)
-		: "cc");
+			"adc	%0, %0, #0"
+			: "=&r" (sum)
+			: "r" (daddr), "r" (saddr), "r" (lenprot)
+			: "cc");
 	}
+	else
+	{
+		__asm__(
+			"adds	%0, %1, %2	@ csum_tcpudp_nofold	\n\t"
+			"adcs	%0, %0, %3				\n\t"
+#ifdef __ARMEB__
+			"adcs	%0, %0, %4				\n\t"
+#else
+			"adcs	%0, %0, %4, ror #8			\n\t"
+#endif
+			"adc	%0, %0, #0"
+			: "=&r"(sum)
+			: "r" (sum), "r" (daddr), "r" (saddr), "r" (lenprot)
+			: "cc");
+	}
+
 	return sum;
-}	
+}
 /*
  * computes the checksum of the TCP/UDP pseudo-header
  * returns a 16-bit checksum, already complemented
  */
 static inline __sum16
 csum_tcpudp_magic(__be32 saddr, __be32 daddr, __u32 len,
-		  __u8 proto, __wsum sum)
+				  __u8 proto, __wsum sum)
 {
 	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
 }
@@ -141,13 +146,13 @@ ip_compute_csum(const void *buff, int len)
 #define _HAVE_ARCH_IPV6_CSUM
 extern __wsum
 __csum_ipv6_magic(const struct in6_addr *saddr, const struct in6_addr *daddr, __be32 len,
-		__be32 proto, __wsum sum);
+				  __be32 proto, __wsum sum);
 
 static inline __sum16
 csum_ipv6_magic(const struct in6_addr *saddr, const struct in6_addr *daddr,
-		__u32 len, __u8 proto, __wsum sum)
+				__u32 len, __u8 proto, __wsum sum)
 {
 	return csum_fold(__csum_ipv6_magic(saddr, daddr, htonl(len),
-					   htonl(proto), sum));
+									   htonl(proto), sum));
 }
 #endif

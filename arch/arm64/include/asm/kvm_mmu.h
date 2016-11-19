@@ -98,10 +98,10 @@
  */
 .macro kern_hyp_va	reg
 alternative_if_not ARM64_HAS_VIRT_HOST_EXTN
-	and     \reg, \reg, #HYP_PAGE_OFFSET_HIGH_MASK
+and     \reg, \reg, #HYP_PAGE_OFFSET_HIGH_MASK
 alternative_else_nop_endif
 alternative_if ARM64_HYP_OFFSET_LOW
-	and     \reg, \reg, #HYP_PAGE_OFFSET_LOW_MASK
+and     \reg, \reg, #HYP_PAGE_OFFSET_LOW_MASK
 alternative_else_nop_endif
 .endm
 
@@ -116,15 +116,15 @@ alternative_else_nop_endif
 static inline unsigned long __kern_hyp_va(unsigned long v)
 {
 	asm volatile(ALTERNATIVE("and %0, %0, %1",
-				 "nop",
-				 ARM64_HAS_VIRT_HOST_EXTN)
-		     : "+r" (v)
-		     : "i" (HYP_PAGE_OFFSET_HIGH_MASK));
+							 "nop",
+							 ARM64_HAS_VIRT_HOST_EXTN)
+				 : "+r" (v)
+				 : "i" (HYP_PAGE_OFFSET_HIGH_MASK));
 	asm volatile(ALTERNATIVE("nop",
-				 "and %0, %0, %1",
-				 ARM64_HYP_OFFSET_LOW)
-		     : "+r" (v)
-		     : "i" (HYP_PAGE_OFFSET_LOW_MASK));
+							 "and %0, %0, %1",
+							 ARM64_HYP_OFFSET_LOW)
+				 : "+r" (v)
+				 : "i" (HYP_PAGE_OFFSET_LOW_MASK));
 	return v;
 }
 
@@ -147,7 +147,7 @@ void stage2_unmap_vm(struct kvm *kvm);
 int kvm_alloc_stage2_pgd(struct kvm *kvm);
 void kvm_free_stage2_pgd(struct kvm *kvm);
 int kvm_phys_addr_ioremap(struct kvm *kvm, phys_addr_t guest_ipa,
-			  phys_addr_t pa, unsigned long size, bool writable);
+						  phys_addr_t pa, unsigned long size, bool writable);
 
 int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run);
 
@@ -180,14 +180,14 @@ static inline void kvm_set_s2pte_readonly(pte_t *pte)
 	unsigned long tmp;
 
 	asm volatile("//	kvm_set_s2pte_readonly\n"
-	"	prfm	pstl1strm, %2\n"
-	"1:	ldxr	%0, %2\n"
-	"	and	%0, %0, %3		// clear PTE_S2_RDWR\n"
-	"	orr	%0, %0, %4		// set PTE_S2_RDONLY\n"
-	"	stxr	%w1, %0, %2\n"
-	"	cbnz	%w1, 1b\n"
-	: "=&r" (pteval), "=&r" (tmp), "+Q" (pte_val(*pte))
-	: "L" (~PTE_S2_RDWR), "L" (PTE_S2_RDONLY));
+				 "	prfm	pstl1strm, %2\n"
+				 "1:	ldxr	%0, %2\n"
+				 "	and	%0, %0, %3		// clear PTE_S2_RDWR\n"
+				 "	orr	%0, %0, %4		// set PTE_S2_RDONLY\n"
+				 "	stxr	%w1, %0, %2\n"
+				 "	cbnz	%w1, 1b\n"
+				 : "=&r" (pteval), "=&r" (tmp), "+Q" (pte_val(*pte))
+				 : "L" (~PTE_S2_RDWR), "L" (PTE_S2_RDONLY));
 }
 
 static inline bool kvm_s2pte_readonly(pte_t *pte)
@@ -214,15 +214,15 @@ static inline bool kvm_page_empty(void *ptr)
 #define hyp_pte_table_empty(ptep) kvm_page_empty(ptep)
 
 #ifdef __PAGETABLE_PMD_FOLDED
-#define hyp_pmd_table_empty(pmdp) (0)
+	#define hyp_pmd_table_empty(pmdp) (0)
 #else
-#define hyp_pmd_table_empty(pmdp) kvm_page_empty(pmdp)
+	#define hyp_pmd_table_empty(pmdp) kvm_page_empty(pmdp)
 #endif
 
 #ifdef __PAGETABLE_PUD_FOLDED
-#define hyp_pud_table_empty(pudp) (0)
+	#define hyp_pud_table_empty(pudp) (0)
 #else
-#define hyp_pud_table_empty(pudp) kvm_page_empty(pudp)
+	#define hyp_pud_table_empty(pudp) kvm_page_empty(pudp)
 #endif
 
 struct kvm;
@@ -235,19 +235,24 @@ static inline bool vcpu_has_cache_enabled(struct kvm_vcpu *vcpu)
 }
 
 static inline void __coherent_cache_guest_page(struct kvm_vcpu *vcpu,
-					       kvm_pfn_t pfn,
-					       unsigned long size,
-					       bool ipa_uncached)
+		kvm_pfn_t pfn,
+		unsigned long size,
+		bool ipa_uncached)
 {
 	void *va = page_address(pfn_to_page(pfn));
 
 	if (!vcpu_has_cache_enabled(vcpu) || ipa_uncached)
+	{
 		kvm_flush_dcache_to_poc(va, size);
+	}
 
-	if (!icache_is_aliasing()) {		/* PIPT */
+	if (!icache_is_aliasing())  		/* PIPT */
+	{
 		flush_icache_range((unsigned long)va,
-				   (unsigned long)va + size);
-	} else if (!icache_is_aivivt()) {	/* non ASID-tagged VIVT */
+						   (unsigned long)va + size);
+	}
+	else if (!icache_is_aivivt())  	/* non ASID-tagged VIVT */
+	{
 		/* any kind of VIPT cache */
 		__flush_icache_all();
 	}
@@ -282,9 +287,9 @@ static inline bool __kvm_cpu_uses_extended_idmap(void)
 }
 
 static inline void __kvm_extend_hypmap(pgd_t *boot_hyp_pgd,
-				       pgd_t *hyp_pgd,
-				       pgd_t *merged_hyp_pgd,
-				       unsigned long hyp_idmap_start)
+									   pgd_t *hyp_pgd,
+									   pgd_t *merged_hyp_pgd,
+									   unsigned long hyp_idmap_start)
 {
 	int idmap_idx;
 

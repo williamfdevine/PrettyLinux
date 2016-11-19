@@ -35,16 +35,17 @@
 #define ERR_DATA_BUFFER_SIZE 3 		// Three 8-byte;
 
 #define define_one_ro(name) 						\
-static DEVICE_ATTR(name, 0444, show_##name, NULL)
+	static DEVICE_ATTR(name, 0444, show_##name, NULL)
 
 #define define_one_rw(name) 						\
-static DEVICE_ATTR(name, 0644, show_##name, store_##name)
+	static DEVICE_ATTR(name, 0644, show_##name, store_##name)
 
 static u64 call_start[NR_CPUS];
 static u64 phys_addr[NR_CPUS];
 static u64 err_type_info[NR_CPUS];
 static u64 err_struct_info[NR_CPUS];
-static struct {
+static struct
+{
 	u64 data1;
 	u64 data2;
 	u64 data3;
@@ -54,23 +55,23 @@ static u64 capabilities[NR_CPUS];
 static u64 resources[NR_CPUS];
 
 #define show(name) 							\
-static ssize_t 								\
-show_##name(struct device *dev, struct device_attribute *attr,	\
-		char *buf)						\
-{									\
-	u32 cpu=dev->id;						\
-	return sprintf(buf, "%lx\n", name[cpu]);			\
-}
+	static ssize_t 								\
+	show_##name(struct device *dev, struct device_attribute *attr,	\
+				char *buf)						\
+	{									\
+		u32 cpu=dev->id;						\
+		return sprintf(buf, "%lx\n", name[cpu]);			\
+	}
 
 #define store(name)							\
-static ssize_t 								\
-store_##name(struct device *dev, struct device_attribute *attr,	\
-					const char *buf, size_t size)	\
-{									\
-	unsigned int cpu=dev->id;					\
-	name[cpu] = simple_strtoull(buf, NULL, 16);			\
-	return size;							\
-}
+	static ssize_t 								\
+	store_##name(struct device *dev, struct device_attribute *attr,	\
+				 const char *buf, size_t size)	\
+	{									\
+		unsigned int cpu=dev->id;					\
+		name[cpu] = simple_strtoull(buf, NULL, 16);			\
+		return size;							\
+	}
 
 show(call_start)
 
@@ -79,9 +80,9 @@ show(call_start)
  */
 static ssize_t
 store_call_start(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t size)
+				 const char *buf, size_t size)
 {
-	unsigned int cpu=dev->id;
+	unsigned int cpu = dev->id;
 	unsigned long call_start = simple_strtoull(buf, NULL, 16);
 
 #ifdef ERR_INJ_DEBUG
@@ -89,30 +90,35 @@ store_call_start(struct device *dev, struct device_attribute *attr,
 	printk(KERN_DEBUG "err_type_info=%lx,\n", err_type_info[cpu]);
 	printk(KERN_DEBUG "err_struct_info=%lx,\n", err_struct_info[cpu]);
 	printk(KERN_DEBUG "err_data_buffer=%lx, %lx, %lx.\n",
-			  err_data_buffer[cpu].data1,
-			  err_data_buffer[cpu].data2,
-			  err_data_buffer[cpu].data3);
+		   err_data_buffer[cpu].data1,
+		   err_data_buffer[cpu].data2,
+		   err_data_buffer[cpu].data3);
 #endif
-	switch (call_start) {
-	    case 0: /* Do nothing. */
-		break;
-	    case 1: /* Call pal_mc_error_inject in physical mode. */
-		status[cpu]=ia64_pal_mc_error_inject_phys(err_type_info[cpu],
-					err_struct_info[cpu],
-					ia64_tpa(&err_data_buffer[cpu]),
-					&capabilities[cpu],
-			 		&resources[cpu]);
-		break;
-	    case 2: /* Call pal_mc_error_inject in virtual mode. */
-		status[cpu]=ia64_pal_mc_error_inject_virt(err_type_info[cpu],
-					err_struct_info[cpu],
-					ia64_tpa(&err_data_buffer[cpu]),
-					&capabilities[cpu],
-			 		&resources[cpu]);
-		break;
-	    default:
-		status[cpu] = -EINVAL;
-		break;
+
+	switch (call_start)
+	{
+		case 0: /* Do nothing. */
+			break;
+
+		case 1: /* Call pal_mc_error_inject in physical mode. */
+			status[cpu] = ia64_pal_mc_error_inject_phys(err_type_info[cpu],
+						  err_struct_info[cpu],
+						  ia64_tpa(&err_data_buffer[cpu]),
+						  &capabilities[cpu],
+						  &resources[cpu]);
+			break;
+
+		case 2: /* Call pal_mc_error_inject in virtual mode. */
+			status[cpu] = ia64_pal_mc_error_inject_virt(err_type_info[cpu],
+						  err_struct_info[cpu],
+						  ia64_tpa(&err_data_buffer[cpu]),
+						  &capabilities[cpu],
+						  &resources[cpu]);
+			break;
+
+		default:
+			status[cpu] = -EINVAL;
+			break;
 	}
 
 #ifdef ERR_INJ_DEBUG
@@ -128,24 +134,26 @@ store(err_type_info)
 
 static ssize_t
 show_virtual_to_phys(struct device *dev, struct device_attribute *attr,
-			char *buf)
+					 char *buf)
 {
-	unsigned int cpu=dev->id;
+	unsigned int cpu = dev->id;
 	return sprintf(buf, "%lx\n", phys_addr[cpu]);
 }
 
 static ssize_t
 store_virtual_to_phys(struct device *dev, struct device_attribute *attr,
-			const char *buf, size_t size)
+					  const char *buf, size_t size)
 {
-	unsigned int cpu=dev->id;
-	u64 virt_addr=simple_strtoull(buf, NULL, 16);
+	unsigned int cpu = dev->id;
+	u64 virt_addr = simple_strtoull(buf, NULL, 16);
 	int ret;
 
 	ret = get_user_pages(virt_addr, 1, FOLL_WRITE, NULL, NULL);
-	if (ret<=0) {
+
+	if (ret <= 0)
+	{
 #ifdef ERR_INJ_DEBUG
-		printk("Virtual address %lx is not existing.\n",virt_addr);
+		printk("Virtual address %lx is not existing.\n", virt_addr);
 #endif
 		return -EINVAL;
 	}
@@ -159,37 +167,40 @@ store(err_struct_info)
 
 static ssize_t
 show_err_data_buffer(struct device *dev,
-			struct device_attribute *attr, char *buf)
+					 struct device_attribute *attr, char *buf)
 {
-	unsigned int cpu=dev->id;
+	unsigned int cpu = dev->id;
 
 	return sprintf(buf, "%lx, %lx, %lx\n",
-			err_data_buffer[cpu].data1,
-			err_data_buffer[cpu].data2,
-			err_data_buffer[cpu].data3);
+				   err_data_buffer[cpu].data1,
+				   err_data_buffer[cpu].data2,
+				   err_data_buffer[cpu].data3);
 }
 
 static ssize_t
 store_err_data_buffer(struct device *dev,
-			struct device_attribute *attr,
-			const char *buf, size_t size)
+					  struct device_attribute *attr,
+					  const char *buf, size_t size)
 {
-	unsigned int cpu=dev->id;
+	unsigned int cpu = dev->id;
 	int ret;
 
 #ifdef ERR_INJ_DEBUG
 	printk("write err_data_buffer=[%lx,%lx,%lx] on cpu%d\n",
-		 err_data_buffer[cpu].data1,
-		 err_data_buffer[cpu].data2,
-		 err_data_buffer[cpu].data3,
-		 cpu);
+		   err_data_buffer[cpu].data1,
+		   err_data_buffer[cpu].data2,
+		   err_data_buffer[cpu].data3,
+		   cpu);
 #endif
-	ret=sscanf(buf, "%lx, %lx, %lx",
-			&err_data_buffer[cpu].data1,
-			&err_data_buffer[cpu].data2,
-			&err_data_buffer[cpu].data3);
-	if (ret!=ERR_DATA_BUFFER_SIZE)
+	ret = sscanf(buf, "%lx, %lx, %lx",
+				 &err_data_buffer[cpu].data1,
+				 &err_data_buffer[cpu].data2,
+				 &err_data_buffer[cpu].data3);
+
+	if (ret != ERR_DATA_BUFFER_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	return size;
 }
@@ -207,7 +218,8 @@ define_one_ro(status);
 define_one_ro(capabilities);
 define_one_ro(resources);
 
-static struct attribute *default_attrs[] = {
+static struct attribute *default_attrs[] =
+{
 	&dev_attr_call_start.attr,
 	&dev_attr_virtual_to_phys.attr,
 	&dev_attr_err_type_info.attr,
@@ -219,7 +231,8 @@ static struct attribute *default_attrs[] = {
 	NULL
 };
 
-static struct attribute_group err_inject_attr_group = {
+static struct attribute_group err_inject_attr_group =
+{
 	.attrs = default_attrs,
 	.name = "err_inject"
 };
@@ -235,21 +248,24 @@ static int err_inject_remove_dev(struct device *sys_dev)
 	return 0;
 }
 static int err_inject_cpu_callback(struct notifier_block *nfb,
-		unsigned long action, void *hcpu)
+								   unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long)hcpu;
 	struct device *sys_dev;
 
 	sys_dev = get_cpu_device(cpu);
-	switch (action) {
-	case CPU_ONLINE:
-	case CPU_ONLINE_FROZEN:
-		err_inject_add_dev(sys_dev);
-		break;
-	case CPU_DEAD:
-	case CPU_DEAD_FROZEN:
-		err_inject_remove_dev(sys_dev);
-		break;
+
+	switch (action)
+	{
+		case CPU_ONLINE:
+		case CPU_ONLINE_FROZEN:
+			err_inject_add_dev(sys_dev);
+			break;
+
+		case CPU_DEAD:
+		case CPU_DEAD_FROZEN:
+			err_inject_remove_dev(sys_dev);
+			break;
 	}
 
 	return NOTIFY_OK;
@@ -271,9 +287,10 @@ err_inject_init(void)
 
 	cpu_notifier_register_begin();
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		err_inject_cpu_callback(&err_inject_cpu_notifier, CPU_ONLINE,
-				(void *)(long)i);
+								(void *)(long)i);
 	}
 
 	__register_hotcpu_notifier(&err_inject_cpu_notifier);
@@ -295,7 +312,8 @@ err_inject_exit(void)
 
 	cpu_notifier_register_begin();
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		sys_dev = get_cpu_device(i);
 		sysfs_remove_group(&sys_dev->kobj, &err_inject_attr_group);
 	}

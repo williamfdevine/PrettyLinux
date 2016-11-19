@@ -13,13 +13,14 @@
 #include <linux/of_address.h>
 #include <linux/of_platform.h>
 
-static const char *const zx296702_dt_compat[] __initconst = {
+static const char *const zx296702_dt_compat[] __initconst =
+{
 	"zte,zx296702",
 	NULL,
 };
 
 DT_MACHINE_START(ZX, "ZTE ZX296702 (Device Tree)")
-	.dt_compat	= zx296702_dt_compat,
-	.l2c_aux_val    = 0,
-	.l2c_aux_mask   = ~0,
-MACHINE_END
+.dt_compat	= zx296702_dt_compat,
+  .l2c_aux_val    = 0,
+   .l2c_aux_mask   = ~0,
+	MACHINE_END

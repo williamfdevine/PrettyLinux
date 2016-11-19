@@ -79,7 +79,8 @@
 
 struct pll_data;
 
-struct clk {
+struct clk
+{
 	struct list_head	node;
 	struct module		*owner;
 	const char		*name;
@@ -105,7 +106,8 @@ struct clk {
 
 #define MAX_PLL_SYSCLKS 16
 
-struct pll_data {
+struct pll_data
+{
 	void __iomem *base;
 	u32 num;
 	u32 flags;
@@ -124,24 +126,24 @@ struct pll_data {
 #define CLK(dev, con, ck)	\
 	{			\
 		.dev_id = dev,	\
-		.con_id = con,	\
-		.clk = ck,	\
+				  .con_id = con,	\
+							.clk = ck,	\
 	}			\
 
-extern void c6x_clks_init(struct clk_lookup *clocks);
-extern int clk_register(struct clk *clk);
-extern void clk_unregister(struct clk *clk);
-extern void c64x_setup_clocks(void);
+	extern void c6x_clks_init(struct clk_lookup *clocks);
+	extern int clk_register(struct clk *clk);
+	extern void clk_unregister(struct clk *clk);
+	extern void c64x_setup_clocks(void);
 
-extern struct pll_data c6x_soc_pll1;
+	extern struct pll_data c6x_soc_pll1;
 
-extern struct clk clkin1;
-extern struct clk c6x_core_clk;
-extern struct clk c6x_i2c_clk;
-extern struct clk c6x_watchdog_clk;
-extern struct clk c6x_mcbsp1_clk;
-extern struct clk c6x_mcbsp2_clk;
-extern struct clk c6x_mdio_clk;
+	extern struct clk clkin1;
+	extern struct clk c6x_core_clk;
+	extern struct clk c6x_i2c_clk;
+	extern struct clk c6x_watchdog_clk;
+	extern struct clk c6x_mcbsp1_clk;
+	extern struct clk c6x_mcbsp2_clk;
+	extern struct clk c6x_mdio_clk;
 
 #endif
 

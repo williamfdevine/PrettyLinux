@@ -46,30 +46,38 @@ static int __init parse_tag_acorn(const struct tag *tag)
 	memc_ctrl_reg = tag->u.acorn.memc_control_reg;
 	number_mfm_drives = tag->u.acorn.adfsdrives;
 
-	switch (tag->u.acorn.vram_pages) {
-	case 512:
-		vram_size += PAGE_SIZE * 256;
-	case 256:
-		vram_size += PAGE_SIZE * 256;
-	default:
-		break;
+	switch (tag->u.acorn.vram_pages)
+	{
+		case 512:
+			vram_size += PAGE_SIZE * 256;
+
+		case 256:
+			vram_size += PAGE_SIZE * 256;
+
+		default:
+			break;
 	}
+
 #if 0
-	if (vram_size) {
+
+	if (vram_size)
+	{
 		desc->video_start = 0x02000000;
 		desc->video_end   = 0x02000000 + vram_size;
 	}
+
 #endif
 	return 0;
 }
 
 __tagtable(ATAG_ACORN, parse_tag_acorn);
 
-static struct map_desc rpc_io_desc[] __initdata = {
- 	{	/* VRAM		*/
+static struct map_desc rpc_io_desc[] __initdata =
+{
+	{	/* VRAM		*/
 		.virtual	=  SCREEN_BASE,
 		.pfn		= __phys_to_pfn(SCREEN_START),
-		.length		= 	2*1048576,
+		.length		= 	2 * 1048576,
 		.type		= MT_DEVICE
 	}, {	/* IO space	*/
 		.virtual	=  (u32)IO_BASE,
@@ -99,13 +107,15 @@ static void __init rpc_map_io(void)
 	elf_hwcap &= ~HWCAP_HALF;
 }
 
-static struct resource acornfb_resources[] = {
+static struct resource acornfb_resources[] =
+{
 	/* VIDC */
 	DEFINE_RES_MEM(0x03400000, 0x00200000),
 	DEFINE_RES_IRQ(IRQ_VSYNCPULSE),
 };
 
-static struct platform_device acornfb_device = {
+static struct platform_device acornfb_device =
+{
 	.name			= "acornfb",
 	.id			= -1,
 	.dev			= {
@@ -115,23 +125,27 @@ static struct platform_device acornfb_device = {
 	.resource		= acornfb_resources,
 };
 
-static struct resource iomd_resources[] = {
+static struct resource iomd_resources[] =
+{
 	DEFINE_RES_MEM(0x03200000, 0x10000),
 };
 
-static struct platform_device iomd_device = {
+static struct platform_device iomd_device =
+{
 	.name			= "iomd",
 	.id			= -1,
 	.num_resources		= ARRAY_SIZE(iomd_resources),
 	.resource		= iomd_resources,
 };
 
-static struct resource iomd_kart_resources[] = {
+static struct resource iomd_kart_resources[] =
+{
 	DEFINE_RES_IRQ(IRQ_KEYBOARDRX),
 	DEFINE_RES_IRQ(IRQ_KEYBOARDTX),
 };
 
-static struct platform_device kbd_device = {
+static struct platform_device kbd_device =
+{
 	.name			= "kart",
 	.id			= -1,
 	.dev			= {
@@ -141,7 +155,8 @@ static struct platform_device kbd_device = {
 	.resource		= iomd_kart_resources,
 };
 
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	{
 		.mapbase	= 0x03010fe0,
 		.irq		= IRQ_SERIALPORT,
@@ -153,7 +168,8 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	{ },
 };
 
-static struct platform_device serial_device = {
+static struct platform_device serial_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -161,17 +177,20 @@ static struct platform_device serial_device = {
 	},
 };
 
-static struct pata_platform_info pata_platform_data = {
+static struct pata_platform_info pata_platform_data =
+{
 	.ioport_shift		= 2,
 };
 
-static struct resource pata_resources[] = {
+static struct resource pata_resources[] =
+{
 	DEFINE_RES_MEM(0x030107c0, 0x20),
 	DEFINE_RES_MEM(0x03010fd8, 0x04),
 	DEFINE_RES_IRQ(IRQ_HARDDISK),
 };
 
-static struct platform_device pata_device = {
+static struct platform_device pata_device =
+{
 	.name			= "pata_platform",
 	.id			= -1,
 	.num_resources		= ARRAY_SIZE(pata_resources),
@@ -182,7 +201,8 @@ static struct platform_device pata_device = {
 	},
 };
 
-static struct platform_device *devs[] __initdata = {
+static struct platform_device *devs[] __initdata =
+{
 	&iomd_device,
 	&kbd_device,
 	&serial_device,
@@ -190,7 +210,8 @@ static struct platform_device *devs[] __initdata = {
 	&pata_device,
 };
 
-static struct i2c_board_info i2c_rtc = {
+static struct i2c_board_info i2c_rtc =
+{
 	I2C_BOARD_INFO("pcf8583", 0x50)
 };
 
@@ -215,12 +236,12 @@ static void rpc_restart(enum reboot_mode mode, const char *cmd)
 void ioc_timer_init(void);
 
 MACHINE_START(RISCPC, "Acorn-RiscPC")
-	/* Maintainer: Russell King */
-	.atag_offset	= 0x100,
+/* Maintainer: Russell King */
+.atag_offset	= 0x100,
 	.reserve_lp0	= 1,
-	.reserve_lp1	= 1,
-	.map_io		= rpc_map_io,
-	.init_irq	= rpc_init_irq,
-	.init_time	= ioc_timer_init,
-	.restart	= rpc_restart,
-MACHINE_END
+		.reserve_lp1	= 1,
+			.map_io		= rpc_map_io,
+				.init_irq	= rpc_init_irq,
+				   .init_time	= ioc_timer_init,
+					 .restart	= rpc_restart,
+						 MACHINE_END

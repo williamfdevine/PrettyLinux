@@ -63,27 +63,37 @@ u32 pic32_get_sysclk(void)
 	frcdivn = ((1 << frcdiv) + 1) + (128 * (frcdiv == 7));
 
 	if (pllodiv < 2)
+	{
 		pllodiv = 2;
+	}
 	else if (pllodiv < 5)
+	{
 		pllodiv = (1 << pllodiv);
+	}
 	else
+	{
 		pllodiv = 32;
+	}
 
 	curr_osc = (int)((osccon >> 12) & CUROSC_MASK);
 
-	switch (curr_osc) {
-	case FRC1:
-	case FRC2:
-		osc_freq = FRC_CLK / frcdivn;
-		break;
-	case SPLL:
-		osc_freq = ((pllclk / pllidiv) * pllmult) / pllodiv;
-		break;
-	case POSC:
-		osc_freq = PIC32_POSC_FREQ;
-		break;
-	default:
-		break;
+	switch (curr_osc)
+	{
+		case FRC1:
+		case FRC2:
+			osc_freq = FRC_CLK / frcdivn;
+			break;
+
+		case SPLL:
+			osc_freq = ((pllclk / pllidiv) * pllmult) / pllodiv;
+			break;
+
+		case POSC:
+			osc_freq = PIC32_POSC_FREQ;
+			break;
+
+		default:
+			break;
 	}
 
 	iounmap(osc_base);

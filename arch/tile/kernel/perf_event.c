@@ -47,7 +47,8 @@
 #define AUX_PERF_COUNT_0_IDX	2
 #define AUX_PERF_COUNT_1_IDX	3
 
-struct cpu_hw_events {
+struct cpu_hw_events
+{
 	int			n_events;
 	struct perf_event	*events[TILE_MAX_COUNTERS]; /* counter order */
 	struct perf_event	*event_list[TILE_MAX_COUNTERS]; /* enabled
@@ -58,14 +59,15 @@ struct cpu_hw_events {
 };
 
 /* TILE arch specific performance monitor unit */
-struct tile_pmu {
+struct tile_pmu
+{
 	const char	*name;
 	int		version;
 	const int	*hw_events;	/* generic hw events table */
 	/* generic hw cache events table */
 	const int	(*cache_events)[PERF_COUNT_HW_CACHE_MAX]
-				       [PERF_COUNT_HW_CACHE_OP_MAX]
-				       [PERF_COUNT_HW_CACHE_RESULT_MAX];
+	[PERF_COUNT_HW_CACHE_OP_MAX]
+	[PERF_COUNT_HW_CACHE_RESULT_MAX];
 	int		(*map_hw_event)(u64);	 /*method used to map
 						  hw events */
 	int		(*map_cache_event)(u64); /*method used to map
@@ -87,7 +89,8 @@ static DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events);
 
 #ifndef __tilegx__
 /* TILEPro hardware events map */
-static const int tile_hw_event_map[] = {
+static const int tile_hw_event_map[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES]		= 0x01, /* ONE */
 	[PERF_COUNT_HW_INSTRUCTIONS]		= 0x06, /* MP_BUNDLE_RETIRED */
 	[PERF_COUNT_HW_CACHE_REFERENCES]	= TILE_OP_UNSUPP,
@@ -100,7 +103,8 @@ static const int tile_hw_event_map[] = {
 };
 #else
 /* TILEGx hardware events map */
-static const int tile_hw_event_map[] = {
+static const int tile_hw_event_map[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES]		= 0x181, /* ONE */
 	[PERF_COUNT_HW_INSTRUCTIONS]		= 0xdb, /* INSTRUCTION_BUNDLE */
 	[PERF_COUNT_HW_CACHE_REFERENCES]	= TILE_OP_UNSUPP,
@@ -124,188 +128,190 @@ static const int tile_hw_event_map[] = {
 #ifndef __tilegx__
 /* TILEPro hardware cache event map */
 static const int tile_cache_event_map[PERF_COUNT_HW_CACHE_MAX]
-				     [PERF_COUNT_HW_CACHE_OP_MAX]
-				     [PERF_COUNT_HW_CACHE_RESULT_MAX] = {
-[C(L1D)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = 0x21, /* RD_MISS */
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
+	[C(L1D)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = 0x21, /* RD_MISS */
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = 0x22, /* WR_MISS */
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = 0x22, /* WR_MISS */
+	[C(L1I)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = 0x12, /* MP_ICACHE_HIT_ISSUED */
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+	[C(LL)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-},
-[C(L1I)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = 0x12, /* MP_ICACHE_HIT_ISSUED */
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+	[C(DTLB)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = 0x1d, /* TLB_CNT */
+			[C(RESULT_MISS)] = 0x20, /* TLB_EXCEPTION */
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+	[C(ITLB)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = 0x13, /* MP_ITLB_HIT_ISSUED */
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+	[C(BPU)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-},
-[C(LL)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-},
-[C(DTLB)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = 0x1d, /* TLB_CNT */
-		[C(RESULT_MISS)] = 0x20, /* TLB_EXCEPTION */
-	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-},
-[C(ITLB)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = 0x13, /* MP_ITLB_HIT_ISSUED */
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-},
-[C(BPU)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-},
 };
 #else
 /* TILEGx hardware events map */
 static const int tile_cache_event_map[PERF_COUNT_HW_CACHE_MAX]
-				     [PERF_COUNT_HW_CACHE_OP_MAX]
-				     [PERF_COUNT_HW_CACHE_RESULT_MAX] = {
-[C(L1D)] = {
-	/*
-	 * Like some other architectures (e.g. ARM), the performance
-	 * counters don't differentiate between read and write
-	 * accesses/misses, so this isn't strictly correct, but it's the
-	 * best we can do. Writes and reads get combined.
-	 */
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = 0x44, /* RD_MISS */
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
+	[C(L1D)] = {
+		/*
+		 * Like some other architectures (e.g. ARM), the performance
+		 * counters don't differentiate between read and write
+		 * accesses/misses, so this isn't strictly correct, but it's the
+		 * best we can do. Writes and reads get combined.
+		 */
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = 0x44, /* RD_MISS */
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = 0x45, /* WR_MISS */
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = 0x45, /* WR_MISS */
+	[C(L1I)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+	[C(LL)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-},
-[C(L1I)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+	[C(DTLB)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = 0x40, /* TLB_CNT */
+			[C(RESULT_MISS)] = 0x43, /* TLB_EXCEPTION */
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = 0x40, /* TLB_CNT */
+			[C(RESULT_MISS)] = 0x43, /* TLB_EXCEPTION */
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+	[C(ITLB)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = 0xd4, /* ITLB_MISS_INT */
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = 0xd4, /* ITLB_MISS_INT */
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+	[C(BPU)] = {
+		[C(OP_READ)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_WRITE)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
+		[C(OP_PREFETCH)] = {
+			[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
+			[C(RESULT_MISS)] = TILE_OP_UNSUPP,
+		},
 	},
-},
-[C(LL)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-},
-[C(DTLB)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = 0x40, /* TLB_CNT */
-		[C(RESULT_MISS)] = 0x43, /* TLB_EXCEPTION */
-	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = 0x40, /* TLB_CNT */
-		[C(RESULT_MISS)] = 0x43, /* TLB_EXCEPTION */
-	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-},
-[C(ITLB)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = 0xd4, /* ITLB_MISS_INT */
-	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = 0xd4, /* ITLB_MISS_INT */
-	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-},
-[C(BPU)] = {
-	[C(OP_READ)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_WRITE)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-	[C(OP_PREFETCH)] = {
-		[C(RESULT_ACCESS)] = TILE_OP_UNSUPP,
-		[C(RESULT_MISS)] = TILE_OP_UNSUPP,
-	},
-},
 };
 #endif
 
@@ -321,7 +327,8 @@ static int tile_pmu_handle_irq(struct pt_regs *regs, int fault);
  * To avoid new_raw_count getting larger then pre_raw_count
  * in tile_perf_event_update(), we limit the value of max_period to 2^31 - 1.
  */
-static const struct tile_pmu tilepmu = {
+static const struct tile_pmu tilepmu =
+{
 #ifndef __tilegx__
 	.name = "tilepro",
 #else
@@ -357,22 +364,27 @@ static inline u64 read_counter(int idx)
 	u64 val = 0;
 
 	/* __insn_mfspr() only takes an immediate argument */
-	switch (idx) {
-	case PERF_COUNT_0_IDX:
-		val = __insn_mfspr(SPR_PERF_COUNT_0);
-		break;
-	case PERF_COUNT_1_IDX:
-		val = __insn_mfspr(SPR_PERF_COUNT_1);
-		break;
-	case AUX_PERF_COUNT_0_IDX:
-		val = __insn_mfspr(SPR_AUX_PERF_COUNT_0);
-		break;
-	case AUX_PERF_COUNT_1_IDX:
-		val = __insn_mfspr(SPR_AUX_PERF_COUNT_1);
-		break;
-	default:
-		WARN_ON_ONCE(idx > AUX_PERF_COUNT_1_IDX ||
-				idx < PERF_COUNT_0_IDX);
+	switch (idx)
+	{
+		case PERF_COUNT_0_IDX:
+			val = __insn_mfspr(SPR_PERF_COUNT_0);
+			break;
+
+		case PERF_COUNT_1_IDX:
+			val = __insn_mfspr(SPR_PERF_COUNT_1);
+			break;
+
+		case AUX_PERF_COUNT_0_IDX:
+			val = __insn_mfspr(SPR_AUX_PERF_COUNT_0);
+			break;
+
+		case AUX_PERF_COUNT_1_IDX:
+			val = __insn_mfspr(SPR_AUX_PERF_COUNT_1);
+			break;
+
+		default:
+			WARN_ON_ONCE(idx > AUX_PERF_COUNT_1_IDX ||
+						 idx < PERF_COUNT_0_IDX);
 	}
 
 	return val;
@@ -384,22 +396,27 @@ static inline u64 read_counter(int idx)
 static inline void write_counter(int idx, u64 value)
 {
 	/* __insn_mtspr() only takes an immediate argument */
-	switch (idx) {
-	case PERF_COUNT_0_IDX:
-		__insn_mtspr(SPR_PERF_COUNT_0, value);
-		break;
-	case PERF_COUNT_1_IDX:
-		__insn_mtspr(SPR_PERF_COUNT_1, value);
-		break;
-	case AUX_PERF_COUNT_0_IDX:
-		__insn_mtspr(SPR_AUX_PERF_COUNT_0, value);
-		break;
-	case AUX_PERF_COUNT_1_IDX:
-		__insn_mtspr(SPR_AUX_PERF_COUNT_1, value);
-		break;
-	default:
-		WARN_ON_ONCE(idx > AUX_PERF_COUNT_1_IDX ||
-				idx < PERF_COUNT_0_IDX);
+	switch (idx)
+	{
+		case PERF_COUNT_0_IDX:
+			__insn_mtspr(SPR_PERF_COUNT_0, value);
+			break;
+
+		case PERF_COUNT_1_IDX:
+			__insn_mtspr(SPR_PERF_COUNT_1, value);
+			break;
+
+		case AUX_PERF_COUNT_0_IDX:
+			__insn_mtspr(SPR_AUX_PERF_COUNT_0, value);
+			break;
+
+		case AUX_PERF_COUNT_1_IDX:
+			__insn_mtspr(SPR_AUX_PERF_COUNT_1, value);
+			break;
+
+		default:
+			WARN_ON_ONCE(idx > AUX_PERF_COUNT_1_IDX ||
+						 idx < PERF_COUNT_0_IDX);
 	}
 }
 
@@ -418,28 +435,37 @@ static inline void tile_pmu_enable_event(struct perf_event *event)
 	 */
 
 	if (WARN_ON_ONCE(idx == -1))
+	{
 		return;
+	}
 
 	if (idx < tile_pmu->num_base_counters)
+	{
 		cfg = __insn_mfspr(SPR_PERF_COUNT_CTL);
+	}
 	else
+	{
 		cfg = __insn_mfspr(SPR_AUX_PERF_COUNT_CTL);
+	}
 
-	switch (idx) {
-	case PERF_COUNT_0_IDX:
-	case AUX_PERF_COUNT_0_IDX:
-		mask = TILE_EVENT_MASK;
-		shift = 0;
-		break;
-	case PERF_COUNT_1_IDX:
-	case AUX_PERF_COUNT_1_IDX:
-		mask = TILE_EVENT_MASK << 16;
-		shift = 16;
-		break;
-	default:
-		WARN_ON_ONCE(idx < PERF_COUNT_0_IDX ||
-			idx > AUX_PERF_COUNT_1_IDX);
-		return;
+	switch (idx)
+	{
+		case PERF_COUNT_0_IDX:
+		case AUX_PERF_COUNT_0_IDX:
+			mask = TILE_EVENT_MASK;
+			shift = 0;
+			break;
+
+		case PERF_COUNT_1_IDX:
+		case AUX_PERF_COUNT_1_IDX:
+			mask = TILE_EVENT_MASK << 16;
+			shift = 16;
+			break;
+
+		default:
+			WARN_ON_ONCE(idx < PERF_COUNT_0_IDX ||
+						 idx > AUX_PERF_COUNT_1_IDX);
+			return;
 	}
 
 	/* Clear mask bits to enable the event. */
@@ -447,9 +473,13 @@ static inline void tile_pmu_enable_event(struct perf_event *event)
 	cfg |= hwc->config << shift;
 
 	if (idx < tile_pmu->num_base_counters)
+	{
 		__insn_mtspr(SPR_PERF_COUNT_CTL, cfg);
+	}
 	else
+	{
 		__insn_mtspr(SPR_AUX_PERF_COUNT_CTL, cfg);
+	}
 }
 
 /*
@@ -463,35 +493,48 @@ static inline void tile_pmu_disable_event(struct perf_event *event)
 	int idx = hwc->idx;
 
 	if (idx == -1)
+	{
 		return;
+	}
 
 	if (idx < tile_pmu->num_base_counters)
+	{
 		cfg = __insn_mfspr(SPR_PERF_COUNT_CTL);
+	}
 	else
+	{
 		cfg = __insn_mfspr(SPR_AUX_PERF_COUNT_CTL);
+	}
 
-	switch (idx) {
-	case PERF_COUNT_0_IDX:
-	case AUX_PERF_COUNT_0_IDX:
-		mask = TILE_PLM_MASK;
-		break;
-	case PERF_COUNT_1_IDX:
-	case AUX_PERF_COUNT_1_IDX:
-		mask = TILE_PLM_MASK << 16;
-		break;
-	default:
-		WARN_ON_ONCE(idx < PERF_COUNT_0_IDX ||
-			idx > AUX_PERF_COUNT_1_IDX);
-		return;
+	switch (idx)
+	{
+		case PERF_COUNT_0_IDX:
+		case AUX_PERF_COUNT_0_IDX:
+			mask = TILE_PLM_MASK;
+			break;
+
+		case PERF_COUNT_1_IDX:
+		case AUX_PERF_COUNT_1_IDX:
+			mask = TILE_PLM_MASK << 16;
+			break;
+
+		default:
+			WARN_ON_ONCE(idx < PERF_COUNT_0_IDX ||
+						 idx > AUX_PERF_COUNT_1_IDX);
+			return;
 	}
 
 	/* Set mask bits to disable the event. */
 	cfg |= mask;
 
 	if (idx < tile_pmu->num_base_counters)
+	{
 		__insn_mtspr(SPR_PERF_COUNT_CTL, cfg);
+	}
 	else
+	{
 		__insn_mtspr(SPR_AUX_PERF_COUNT_CTL, cfg);
+	}
 }
 
 /*
@@ -520,9 +563,12 @@ again:
 	new_raw_count = read_counter(idx);
 
 	oldval = local64_cmpxchg(&hwc->prev_count, prev_raw_count,
-				 new_raw_count);
+							 new_raw_count);
+
 	if (oldval != prev_raw_count)
+	{
 		goto again;
+	}
 
 	/*
 	 * Now we have the new raw value and have updated the prev
@@ -556,27 +602,32 @@ static int tile_event_set_period(struct perf_event *event)
 	/*
 	 * If we are way outside a reasonable range then just skip forward:
 	 */
-	if (unlikely(left <= -period)) {
+	if (unlikely(left <= -period))
+	{
 		left = period;
 		local64_set(&hwc->period_left, left);
 		hwc->last_period = period;
 		ret = 1;
 	}
 
-	if (unlikely(left <= 0)) {
+	if (unlikely(left <= 0))
+	{
 		left += period;
 		local64_set(&hwc->period_left, left);
 		hwc->last_period = period;
 		ret = 1;
 	}
+
 	if (left > tile_pmu->max_period)
+	{
 		left = tile_pmu->max_period;
+	}
 
 	/*
 	 * The hw event starts counting from this event offset,
 	 * mark it to be able to extra future deltas:
 	 */
-	local64_set(&hwc->prev_count, (u64)-left);
+	local64_set(&hwc->prev_count, (u64) - left);
 
 	write_counter(idx, (u64)(-left) & tile_pmu->cntval_mask);
 
@@ -594,14 +645,16 @@ static void tile_pmu_stop(struct perf_event *event, int flags)
 	struct hw_perf_event *hwc = &event->hw;
 	int idx = hwc->idx;
 
-	if (__test_and_clear_bit(idx, cpuc->active_mask)) {
+	if (__test_and_clear_bit(idx, cpuc->active_mask))
+	{
 		tile_pmu_disable_event(event);
 		cpuc->events[hwc->idx] = NULL;
 		WARN_ON_ONCE(hwc->state & PERF_HES_STOPPED);
 		hwc->state |= PERF_HES_STOPPED;
 	}
 
-	if ((flags & PERF_EF_UPDATE) && !(hwc->state & PERF_HES_UPTODATE)) {
+	if ((flags & PERF_EF_UPDATE) && !(hwc->state & PERF_HES_UPTODATE))
+	{
 		/*
 		 * Drain the remaining delta count out of a event
 		 * that we are disabling:
@@ -620,12 +673,17 @@ static void tile_pmu_start(struct perf_event *event, int flags)
 	int idx = event->hw.idx;
 
 	if (WARN_ON_ONCE(!(event->hw.state & PERF_HES_STOPPED)))
+	{
 		return;
+	}
 
 	if (WARN_ON_ONCE(idx == -1))
+	{
 		return;
+	}
 
-	if (flags & PERF_EF_RELOAD) {
+	if (flags & PERF_EF_RELOAD)
+	{
 		WARN_ON_ONCE(!(event->hw.state & PERF_HES_UPTODATE));
 		tile_event_set_period(event);
 	}
@@ -661,14 +719,19 @@ static int tile_pmu_add(struct perf_event *event, int flags)
 	 * We are full.
 	 */
 	if (cpuc->n_events == tile_pmu->num_counters)
+	{
 		return -ENOSPC;
+	}
 
 	cpuc->event_list[cpuc->n_events] = event;
 	cpuc->n_events++;
 
 	hwc->state = PERF_HES_UPTODATE | PERF_HES_STOPPED;
+
 	if (!(flags & PERF_EF_START))
+	{
 		hwc->state |= PERF_HES_ARCH;
+	}
 
 	/*
 	 * Find first empty counter.
@@ -681,7 +744,9 @@ static int tile_pmu_add(struct perf_event *event, int flags)
 
 	/* Should not happen. */
 	if (WARN_ON_ONCE(b == max_cnt))
+	{
 		return -ENOSPC;
+	}
 
 	/*
 	 * Assign counter to event.
@@ -693,7 +758,9 @@ static int tile_pmu_add(struct perf_event *event, int flags)
 	 * Start if requested.
 	 */
 	if (flags & PERF_EF_START)
+	{
 		tile_pmu_start(event, PERF_EF_RELOAD);
+	}
 
 	return 0;
 }
@@ -712,10 +779,15 @@ static void tile_pmu_del(struct perf_event *event, int flags)
 	/*
 	 * Remove event from list, compact list if necessary.
 	 */
-	for (i = 0; i < cpuc->n_events; i++) {
-		if (cpuc->event_list[i] == event) {
+	for (i = 0; i < cpuc->n_events; i++)
+	{
+		if (cpuc->event_list[i] == event)
+		{
 			while (++i < cpuc->n_events)
-				cpuc->event_list[i-1] = cpuc->event_list[i];
+			{
+				cpuc->event_list[i - 1] = cpuc->event_list[i];
+			}
+
 			--cpuc->n_events;
 			cpuc->events[event->hw.idx] = NULL;
 			__clear_bit(event->hw.idx, &cpuc->used_mask);
@@ -723,11 +795,15 @@ static void tile_pmu_del(struct perf_event *event, int flags)
 			break;
 		}
 	}
+
 	/*
 	 * If there are no events left, then mask PMU interrupt.
 	 */
 	if (cpuc->n_events == 0)
+	{
 		mask_pmc_interrupts();
+	}
+
 	perf_event_update_userpage(event);
 }
 
@@ -745,7 +821,10 @@ static inline void tile_pmu_read(struct perf_event *event)
 static int tile_map_hw_event(u64 config)
 {
 	if (config >= tile_pmu->max_events)
+	{
 		return -EINVAL;
+	}
+
 	return tile_pmu->hw_events[config];
 }
 
@@ -758,23 +837,37 @@ static int tile_map_cache_event(u64 config)
 	int code;
 
 	if (!tile_pmu->cache_events)
+	{
 		return -ENOENT;
+	}
 
 	cache_type = (config >>  0) & 0xff;
+
 	if (cache_type >= PERF_COUNT_HW_CACHE_MAX)
+	{
 		return -EINVAL;
+	}
 
 	cache_op = (config >>  8) & 0xff;
+
 	if (cache_op >= PERF_COUNT_HW_CACHE_OP_MAX)
+	{
 		return -EINVAL;
+	}
 
 	cache_result = (config >> 16) & 0xff;
+
 	if (cache_result >= PERF_COUNT_HW_CACHE_RESULT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	code = (*tile_pmu->cache_events)[cache_type][cache_op][cache_result];
+
 	if (code == TILE_OP_UNSUPP)
+	{
 		return -EINVAL;
+	}
 
 	return code;
 }
@@ -782,7 +875,9 @@ static int tile_map_cache_event(u64 config)
 static void tile_event_destroy(struct perf_event *event)
 {
 	if (atomic_dec_return(&tile_active_events) == 0)
+	{
 		release_pmc_hardware();
+	}
 }
 
 static int __tile_event_init(struct perf_event *event)
@@ -791,41 +886,55 @@ static int __tile_event_init(struct perf_event *event)
 	struct hw_perf_event *hwc = &event->hw;
 	int code;
 
-	switch (attr->type) {
-	case PERF_TYPE_HARDWARE:
-		code = tile_pmu->map_hw_event(attr->config);
-		break;
-	case PERF_TYPE_HW_CACHE:
-		code = tile_pmu->map_cache_event(attr->config);
-		break;
-	case PERF_TYPE_RAW:
-		code = attr->config & TILE_EVENT_MASK;
-		break;
-	default:
-		/* Should not happen. */
-		return -EOPNOTSUPP;
+	switch (attr->type)
+	{
+		case PERF_TYPE_HARDWARE:
+			code = tile_pmu->map_hw_event(attr->config);
+			break;
+
+		case PERF_TYPE_HW_CACHE:
+			code = tile_pmu->map_cache_event(attr->config);
+			break;
+
+		case PERF_TYPE_RAW:
+			code = attr->config & TILE_EVENT_MASK;
+			break;
+
+		default:
+			/* Should not happen. */
+			return -EOPNOTSUPP;
 	}
 
 	if (code < 0)
+	{
 		return code;
+	}
 
 	hwc->config = code;
 	hwc->idx = -1;
 
 	if (attr->exclude_user)
+	{
 		hwc->config |= TILE_CTL_EXCL_USER;
+	}
 
 	if (attr->exclude_kernel)
+	{
 		hwc->config |= TILE_CTL_EXCL_KERNEL;
+	}
 
 	if (attr->exclude_hv)
+	{
 		hwc->config |= TILE_CTL_EXCL_HV;
+	}
 
-	if (!hwc->sample_period) {
+	if (!hwc->sample_period)
+	{
 		hwc->sample_period = tile_pmu->max_period;
 		hwc->last_period = hwc->sample_period;
 		local64_set(&hwc->period_left, hwc->sample_period);
 	}
+
 	event->destroy = tile_event_destroy;
 	return 0;
 }
@@ -836,34 +945,44 @@ static int tile_event_init(struct perf_event *event)
 	perf_irq_t old_irq_handler = NULL;
 
 	if (atomic_inc_return(&tile_active_events) == 1)
+	{
 		old_irq_handler = reserve_pmc_hardware(tile_pmu_handle_irq);
+	}
 
-	if (old_irq_handler) {
+	if (old_irq_handler)
+	{
 		pr_warn("PMC hardware busy (reserved by oprofile)\n");
 
 		atomic_dec(&tile_active_events);
 		return -EBUSY;
 	}
 
-	switch (event->attr.type) {
-	case PERF_TYPE_RAW:
-	case PERF_TYPE_HARDWARE:
-	case PERF_TYPE_HW_CACHE:
-		break;
+	switch (event->attr.type)
+	{
+		case PERF_TYPE_RAW:
+		case PERF_TYPE_HARDWARE:
+		case PERF_TYPE_HW_CACHE:
+			break;
 
-	default:
-		return -ENOENT;
+		default:
+			return -ENOENT;
 	}
 
 	err = __tile_event_init(event);
-	if (err) {
+
+	if (err)
+	{
 		if (event->destroy)
+		{
 			event->destroy(event);
+		}
 	}
+
 	return err;
 }
 
-static struct pmu tilera_pmu = {
+static struct pmu tilera_pmu =
+{
 	.event_init	= tile_event_init,
 	.add		= tile_pmu_add,
 	.del		= tile_pmu_del,
@@ -890,33 +1009,48 @@ int tile_pmu_handle_irq(struct pt_regs *regs, int fault)
 	__this_cpu_inc(perf_irqs);
 
 	if (!atomic_read(&tile_active_events))
+	{
 		return 0;
+	}
 
 	status = pmc_get_overflow();
 	pmc_ack_overflow(status);
 
-	for_each_set_bit(bit, &status, tile_pmu->num_counters) {
+	for_each_set_bit(bit, &status, tile_pmu->num_counters)
+	{
 
 		event = cpuc->events[bit];
 
 		if (!event)
+		{
 			continue;
+		}
 
 		if (!test_bit(bit, cpuc->active_mask))
+		{
 			continue;
+		}
 
 		hwc = &event->hw;
 
 		val = tile_perf_event_update(event);
+
 		if (val & (1ULL << (tile_pmu->cntval_bits - 1)))
+		{
 			continue;
+		}
 
 		perf_sample_data_init(&data, 0, event->hw.last_period);
+
 		if (!tile_event_set_period(event))
+		{
 			continue;
+		}
 
 		if (perf_event_overflow(event, &data, regs))
+		{
 			tile_pmu_stop(event, 0);
+		}
 	}
 
 	return 0;
@@ -942,7 +1076,7 @@ arch_initcall(init_hw_perf_events);
  * Tile specific backtracing code for perf_events.
  */
 static inline void perf_callchain(struct perf_callchain_entry_ctx *entry,
-		    struct pt_regs *regs)
+								  struct pt_regs *regs)
 {
 	struct KBacktraceIterator kbt;
 	unsigned int i;
@@ -974,32 +1108,44 @@ static inline void perf_callchain(struct perf_callchain_entry_ctx *entry,
 	 */
 
 	if (KBacktraceIterator_end(&kbt))
+	{
 		return;
+	}
+
 	KBacktraceIterator_next(&kbt);
 
 	/*
 	 * Set stack depth to 16 for user and kernel space respectively, that
 	 * is, total 32 stack frames.
 	 */
-	for (i = 0; i < 16; ++i) {
+	for (i = 0; i < 16; ++i)
+	{
 		unsigned long pc;
+
 		if (KBacktraceIterator_end(&kbt))
+		{
 			break;
+		}
+
 		pc = kbt.it.pc;
+
 		if (pc != handle_syscall_pc)
+		{
 			perf_callchain_store(entry, pc);
+		}
+
 		KBacktraceIterator_next(&kbt);
 	}
 }
 
 void perf_callchain_user(struct perf_callchain_entry_ctx *entry,
-		    struct pt_regs *regs)
+						 struct pt_regs *regs)
 {
 	perf_callchain(entry, regs);
 }
 
 void perf_callchain_kernel(struct perf_callchain_entry_ctx *entry,
-		      struct pt_regs *regs)
+						   struct pt_regs *regs)
 {
 	perf_callchain(entry, regs);
 }

@@ -28,11 +28,11 @@ EXPORT_SYMBOL(find_first_zero_bit);
 EXPORT_SYMBOL(find_next_zero_bit);
 EXPORT_SYMBOL(find_next_bit);
 
-	/* platform dependent support */
+/* platform dependent support */
 EXPORT_SYMBOL(__udelay);
 EXPORT_SYMBOL(__const_udelay);
 
-	/* string / mem functions */
+/* string / mem functions */
 EXPORT_SYMBOL(strchr);
 EXPORT_SYMBOL(strrchr);
 EXPORT_SYMBOL(memset);
@@ -40,7 +40,7 @@ EXPORT_SYMBOL(memcpy);
 EXPORT_SYMBOL(memmove);
 EXPORT_SYMBOL(memchr);
 
-	/* user mem (segment) */
+/* user mem (segment) */
 EXPORT_SYMBOL(__strnlen_user);
 EXPORT_SYMBOL(__strncpy_from_user);
 

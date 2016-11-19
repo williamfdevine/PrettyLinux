@@ -20,12 +20,13 @@ static void __init bcm21664_init(void)
 	kona_l2_cache_init();
 }
 
-static const char * const bcm21664_dt_compat[] = {
+static const char *const bcm21664_dt_compat[] =
+{
 	"brcm,bcm21664",
 	NULL,
 };
 
 DT_MACHINE_START(BCM21664_DT, "BCM21664 Broadcom Application Processor")
-	.init_machine = bcm21664_init,
-	.dt_compat = bcm21664_dt_compat,
-MACHINE_END
+.init_machine = bcm21664_init,
+ .dt_compat = bcm21664_dt_compat,
+  MACHINE_END

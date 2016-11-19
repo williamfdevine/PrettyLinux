@@ -2,11 +2,12 @@
 
 #include <asm/cpu_type.h>
 
-struct irq_bucket {
-        struct irq_bucket *next;
-        unsigned int real_irq;
-        unsigned int irq;
-        unsigned int pil;
+struct irq_bucket
+{
+	struct irq_bucket *next;
+	unsigned int real_irq;
+	unsigned int irq;
+	unsigned int pil;
 };
 
 #define SUN4M_HARD_INT(x)       (0x000000001 << (x))
@@ -25,14 +26,16 @@ extern struct irq_bucket *irq_map[SUN4D_MAX_IRQ];
 /* sun4m specific type definitions */
 
 /* This maps direct to CPU specific interrupt registers */
-struct sun4m_irq_percpu {
+struct sun4m_irq_percpu
+{
 	u32	pending;
 	u32	clear;
 	u32	set;
 };
 
 /* This maps direct to global interrupt registers */
-struct sun4m_irq_global {
+struct sun4m_irq_global
+{
 	u32	pending;
 	u32	mask;
 	u32	mask_clear;
@@ -53,10 +56,11 @@ extern struct sun4m_irq_global __iomem *sun4m_irq_global;
  * The individual platforms assign their platform
  * specifics in their init functions.
  */
-struct sparc_config {
+struct sparc_config
+{
 	void (*init_timers)(void);
 	unsigned int (*build_device_irq)(struct platform_device *op,
-	                                 unsigned int real_irq);
+									 unsigned int real_irq);
 
 	/* generic clockevent features - see FEAT_* above */
 	int features;

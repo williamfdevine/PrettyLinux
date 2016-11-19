@@ -23,7 +23,7 @@
 #include <asm/pm.h>
 
 #ifdef CONFIG_BF60x
-struct bfin_cpu_pm_fns *bfin_cpu_pm;
+	struct bfin_cpu_pm_fns *bfin_cpu_pm;
 #endif
 
 void bfin_pm_suspend_standby_enter(void)
@@ -50,15 +50,21 @@ void bfin_pm_suspend_standby_enter(void)
 #ifdef SIC_IWR0
 	bfin_write_SIC_IWR0(IWR_DISABLE_ALL);
 # ifdef SIC_IWR1
+
 	/* BF52x system reset does not properly reset SIC_IWR1 which
 	 * will screw up the bootrom as it relies on MDMA0/1 waking it
 	 * up from IDLE instructions.  See this report for more info:
 	 * http://blackfin.uclinux.org/gf/tracker/4323
 	 */
 	if (ANOMALY_05000435)
+	{
 		bfin_write_SIC_IWR1(IWR_ENABLE(10) | IWR_ENABLE(11));
+	}
 	else
+	{
 		bfin_write_SIC_IWR1(IWR_DISABLE_ALL);
+	}
+
 # endif
 # ifdef SIC_IWR2
 	bfin_write_SIC_IWR2(IWR_DISABLE_ALL);
@@ -73,14 +79,14 @@ void bfin_pm_suspend_standby_enter(void)
 int bf53x_suspend_l1_mem(unsigned char *memptr)
 {
 	dma_memcpy_nocache(memptr, (const void *) L1_CODE_START,
-			L1_CODE_LENGTH);
+					   L1_CODE_LENGTH);
 	dma_memcpy_nocache(memptr + L1_CODE_LENGTH,
-			(const void *) L1_DATA_A_START, L1_DATA_A_LENGTH);
+					   (const void *) L1_DATA_A_START, L1_DATA_A_LENGTH);
 	dma_memcpy_nocache(memptr + L1_CODE_LENGTH + L1_DATA_A_LENGTH,
-			(const void *) L1_DATA_B_START, L1_DATA_B_LENGTH);
+					   (const void *) L1_DATA_B_START, L1_DATA_B_LENGTH);
 	memcpy(memptr + L1_CODE_LENGTH + L1_DATA_A_LENGTH +
-			L1_DATA_B_LENGTH, (const void *) L1_SCRATCH_START,
-			L1_SCRATCH_LENGTH);
+		   L1_DATA_B_LENGTH, (const void *) L1_SCRATCH_START,
+		   L1_SCRATCH_LENGTH);
 
 	return 0;
 }
@@ -89,32 +95,36 @@ int bf53x_resume_l1_mem(unsigned char *memptr)
 {
 	dma_memcpy_nocache((void *) L1_CODE_START, memptr, L1_CODE_LENGTH);
 	dma_memcpy_nocache((void *) L1_DATA_A_START, memptr + L1_CODE_LENGTH,
-			L1_DATA_A_LENGTH);
+					   L1_DATA_A_LENGTH);
 	dma_memcpy_nocache((void *) L1_DATA_B_START, memptr + L1_CODE_LENGTH +
-			L1_DATA_A_LENGTH, L1_DATA_B_LENGTH);
+					   L1_DATA_A_LENGTH, L1_DATA_B_LENGTH);
 	memcpy((void *) L1_SCRATCH_START, memptr + L1_CODE_LENGTH +
-			L1_DATA_A_LENGTH + L1_DATA_B_LENGTH, L1_SCRATCH_LENGTH);
+		   L1_DATA_A_LENGTH + L1_DATA_B_LENGTH, L1_SCRATCH_LENGTH);
 
 	return 0;
 }
 
 #if defined(CONFIG_BFIN_EXTMEM_WRITEBACK) || defined(CONFIG_BFIN_L2_WRITEBACK)
-# ifdef CONFIG_BF60x
-__attribute__((l1_text))
-# endif
+#ifdef CONFIG_BF60x
+	__attribute__((l1_text))
+#endif
 static void flushinv_all_dcache(void)
 {
 	register u32 way, bank, subbank, set;
 	register u32 status, addr;
 	u32 dmem_ctl = bfin_read_DMEM_CONTROL();
 
-	for (bank = 0; bank < 2; ++bank) {
+	for (bank = 0; bank < 2; ++bank)
+	{
 		if (!(dmem_ctl & (1 << (DMC1_P - bank))))
+		{
 			continue;
+		}
 
 		for (way = 0; way < 2; ++way)
 			for (subbank = 0; subbank < 4; ++subbank)
-				for (set = 0; set < 64; ++set) {
+				for (set = 0; set < 64; ++set)
+				{
 
 					bfin_write_DTEST_COMMAND(
 						way << 26 |
@@ -127,7 +137,9 @@ static void flushinv_all_dcache(void)
 
 					/* only worry about valid/dirty entries */
 					if ((status & 0x3) != 0x3)
+					{
 						continue;
+					}
 
 
 					/* construct the address using the tag */
@@ -148,10 +160,11 @@ int bfin_pm_suspend_mem_enter(void)
 #endif
 
 	unsigned char *memptr = kmalloc(L1_CODE_LENGTH + L1_DATA_A_LENGTH
-					 + L1_DATA_B_LENGTH + L1_SCRATCH_LENGTH,
-					  GFP_ATOMIC);
+									+ L1_DATA_B_LENGTH + L1_SCRATCH_LENGTH,
+									GFP_ATOMIC);
 
-	if (memptr == NULL) {
+	if (memptr == NULL)
+	{
 		panic("bf53x_suspend_l1_mem malloc failed");
 		return -ENOMEM;
 	}
@@ -170,7 +183,8 @@ int bfin_pm_suspend_mem_enter(void)
 
 	ret = blackfin_dma_suspend();
 
-	if (ret) {
+	if (ret)
+	{
 		kfree(memptr);
 		return ret;
 	}
@@ -218,22 +232,22 @@ static int bfin_pm_valid(suspend_state_t state)
 {
 	return (state == PM_SUSPEND_STANDBY
 #if !(defined(BF533_FAMILY) || defined(CONFIG_BF561))
-	/*
-	 * On BF533/2/1:
-	 * If we enter Hibernate the SCKE Pin is driven Low,
-	 * so that the SDRAM enters Self Refresh Mode.
-	 * However when the reset sequence that follows hibernate
-	 * state is executed, SCKE is driven High, taking the
-	 * SDRAM out of Self Refresh.
-	 *
-	 * If you reconfigure and access the SDRAM "very quickly",
-	 * you are likely to avoid errors, otherwise the SDRAM
-	 * start losing its contents.
-	 * An external HW workaround is possible using logic gates.
-	 */
-	|| state == PM_SUSPEND_MEM
+			/*
+			 * On BF533/2/1:
+			 * If we enter Hibernate the SCKE Pin is driven Low,
+			 * so that the SDRAM enters Self Refresh Mode.
+			 * However when the reset sequence that follows hibernate
+			 * state is executed, SCKE is driven High, taking the
+			 * SDRAM out of Self Refresh.
+			 *
+			 * If you reconfigure and access the SDRAM "very quickly",
+			 * you are likely to avoid errors, otherwise the SDRAM
+			 * start losing its contents.
+			 * An external HW workaround is possible using logic gates.
+			 */
+			|| state == PM_SUSPEND_MEM
 #endif
-	);
+		   );
 }
 
 /*
@@ -243,15 +257,18 @@ static int bfin_pm_valid(suspend_state_t state)
  */
 static int bfin_pm_enter(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-		bfin_pm_suspend_standby_enter();
-		break;
-	case PM_SUSPEND_MEM:
-		bfin_pm_suspend_mem_enter();
-		break;
-	default:
-		return -EINVAL;
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+			bfin_pm_suspend_standby_enter();
+			break;
+
+		case PM_SUSPEND_MEM:
+			bfin_pm_suspend_mem_enter();
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -276,15 +293,19 @@ void bfin_pm_end(void)
 	usec64 = ((u64)cycle2 << 32) + cycle;
 	do_div(usec64, get_cclk() / USEC_PER_SEC);
 	usec = usec64;
+
 	if (usec == 0)
+	{
 		usec = 1;
+	}
 
 	pr_info("PM: resume of kernel completes after  %ld msec %03ld usec\n",
-		usec / USEC_PER_MSEC, usec % USEC_PER_MSEC);
+			usec / USEC_PER_MSEC, usec % USEC_PER_MSEC);
 }
 #endif
 
-static const struct platform_suspend_ops bfin_pm_ops = {
+static const struct platform_suspend_ops bfin_pm_ops =
+{
 	.enter = bfin_pm_enter,
 	.valid	= bfin_pm_valid,
 #ifdef CONFIG_BFIN_PM_WAKEUP_TIME_BENCH

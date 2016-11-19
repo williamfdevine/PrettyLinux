@@ -63,7 +63,8 @@ static int tf_prepare_idle(void)
 	return 0;
 }
 
-static const struct firmware_ops trusted_foundations_ops = {
+static const struct firmware_ops trusted_foundations_ops =
+{
 	.set_cpu_boot_addr = tf_set_cpu_boot_addr,
 	.prepare_idle = tf_prepare_idle,
 };
@@ -84,16 +85,27 @@ void of_register_trusted_foundations(void)
 	int err;
 
 	node = of_find_compatible_node(NULL, NULL, "tlm,trusted-foundations");
+
 	if (!node)
+	{
 		return;
+	}
 
 	err = of_property_read_u32(node, "tlm,version-major",
-				   &pdata.version_major);
+							   &pdata.version_major);
+
 	if (err != 0)
+	{
 		panic("Trusted Foundation: missing version-major property\n");
+	}
+
 	err = of_property_read_u32(node, "tlm,version-minor",
-				   &pdata.version_minor);
+							   &pdata.version_minor);
+
 	if (err != 0)
+	{
 		panic("Trusted Foundation: missing version-minor property\n");
+	}
+
 	register_trusted_foundations(&pdata);
 }

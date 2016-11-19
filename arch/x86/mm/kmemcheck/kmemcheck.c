@@ -33,15 +33,15 @@
 
 
 #ifdef CONFIG_KMEMCHECK_DISABLED_BY_DEFAULT
-#  define KMEMCHECK_ENABLED 0
+	#define KMEMCHECK_ENABLED 0
 #endif
 
 #ifdef CONFIG_KMEMCHECK_ENABLED_BY_DEFAULT
-#  define KMEMCHECK_ENABLED 1
+	#define KMEMCHECK_ENABLED 1
 #endif
 
 #ifdef CONFIG_KMEMCHECK_ONESHOT_BY_DEFAULT
-#  define KMEMCHECK_ENABLED 2
+	#define KMEMCHECK_ENABLED 2
 #endif
 
 int kmemcheck_enabled = KMEMCHECK_ENABLED;
@@ -49,18 +49,22 @@ int kmemcheck_enabled = KMEMCHECK_ENABLED;
 int __init kmemcheck_init(void)
 {
 #ifdef CONFIG_SMP
+
 	/*
 	 * Limit SMP to use a single CPU. We rely on the fact that this code
 	 * runs before SMP is set up.
 	 */
-	if (setup_max_cpus > 1) {
+	if (setup_max_cpus > 1)
+	{
 		printk(KERN_INFO
-			"kmemcheck: Limiting number of CPUs to 1.\n");
+			   "kmemcheck: Limiting number of CPUs to 1.\n");
 		setup_max_cpus = 1;
 	}
+
 #endif
 
-	if (!kmemcheck_selftest()) {
+	if (!kmemcheck_selftest())
+	{
 		printk(KERN_INFO "kmemcheck: self-tests failed; disabling\n");
 		kmemcheck_enabled = 0;
 		return -EINVAL;
@@ -81,11 +85,17 @@ static int __init param_kmemcheck(char *str)
 	int ret;
 
 	if (!str)
+	{
 		return -EINVAL;
+	}
 
 	ret = kstrtoint(str, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	kmemcheck_enabled = val;
 	return 0;
 }
@@ -97,8 +107,11 @@ int kmemcheck_show_addr(unsigned long address)
 	pte_t *pte;
 
 	pte = kmemcheck_pte_lookup(address);
+
 	if (!pte)
+	{
 		return 0;
+	}
 
 	set_pte(pte, __pte(pte_val(*pte) | _PAGE_PRESENT));
 	__flush_tlb_one(address);
@@ -110,15 +123,19 @@ int kmemcheck_hide_addr(unsigned long address)
 	pte_t *pte;
 
 	pte = kmemcheck_pte_lookup(address);
+
 	if (!pte)
+	{
 		return 0;
+	}
 
 	set_pte(pte, __pte(pte_val(*pte) & ~_PAGE_PRESENT));
 	__flush_tlb_one(address);
 	return 1;
 }
 
-struct kmemcheck_context {
+struct kmemcheck_context
+{
 	bool busy;
 	int balance;
 
@@ -160,8 +177,11 @@ static unsigned int kmemcheck_show_all(void)
 	unsigned int n;
 
 	n = 0;
+
 	for (i = 0; i < data->n_addrs; ++i)
+	{
 		n += kmemcheck_show_addr(data->addr[i]);
+	}
 
 	return n;
 }
@@ -173,8 +193,11 @@ static unsigned int kmemcheck_hide_all(void)
 	unsigned int n;
 
 	n = 0;
+
 	for (i = 0; i < data->n_addrs; ++i)
+	{
 		n += kmemcheck_hide_addr(data->addr[i]);
+	}
 
 	return n;
 }
@@ -188,7 +211,8 @@ void kmemcheck_show(struct pt_regs *regs)
 
 	BUG_ON(!irqs_disabled());
 
-	if (unlikely(data->balance != 0)) {
+	if (unlikely(data->balance != 0))
+	{
 		kmemcheck_show_all();
 		kmemcheck_error_save_bug(regs);
 		data->balance = 0;
@@ -200,7 +224,9 @@ void kmemcheck_show(struct pt_regs *regs)
 	 * this is not an error.
 	 */
 	if (kmemcheck_show_all() == 0)
+	{
 		return;
+	}
 
 	++data->balance;
 
@@ -214,7 +240,9 @@ void kmemcheck_show(struct pt_regs *regs)
 	 * the original flags:
 	 */
 	if (!(regs->flags & X86_EFLAGS_TF))
+	{
 		data->flags = regs->flags;
+	}
 
 	regs->flags |= X86_EFLAGS_TF;
 	regs->flags &= ~X86_EFLAGS_IF;
@@ -230,42 +258,61 @@ void kmemcheck_hide(struct pt_regs *regs)
 
 	BUG_ON(!irqs_disabled());
 
-	if (unlikely(data->balance != 1)) {
+	if (unlikely(data->balance != 1))
+	{
 		kmemcheck_show_all();
 		kmemcheck_error_save_bug(regs);
 		data->n_addrs = 0;
 		data->balance = 0;
 
 		if (!(data->flags & X86_EFLAGS_TF))
+		{
 			regs->flags &= ~X86_EFLAGS_TF;
+		}
+
 		if (data->flags & X86_EFLAGS_IF)
+		{
 			regs->flags |= X86_EFLAGS_IF;
+		}
+
 		return;
 	}
 
 	if (kmemcheck_enabled)
+	{
 		n = kmemcheck_hide_all();
+	}
 	else
+	{
 		n = kmemcheck_show_all();
+	}
 
 	if (n == 0)
+	{
 		return;
+	}
 
 	--data->balance;
 
 	data->n_addrs = 0;
 
 	if (!(data->flags & X86_EFLAGS_TF))
+	{
 		regs->flags &= ~X86_EFLAGS_TF;
+	}
+
 	if (data->flags & X86_EFLAGS_IF)
+	{
 		regs->flags |= X86_EFLAGS_IF;
+	}
 }
 
 void kmemcheck_show_pages(struct page *p, unsigned int n)
 {
 	unsigned int i;
 
-	for (i = 0; i < n; ++i) {
+	for (i = 0; i < n; ++i)
+	{
 		unsigned long address;
 		pte_t *pte;
 		unsigned int level;
@@ -291,7 +338,8 @@ void kmemcheck_hide_pages(struct page *p, unsigned int n)
 {
 	unsigned int i;
 
-	for (i = 0; i < n; ++i) {
+	for (i = 0; i < n; ++i)
+	{
 		unsigned long address;
 		pte_t *pte;
 		unsigned int level;
@@ -309,25 +357,35 @@ void kmemcheck_hide_pages(struct page *p, unsigned int n)
 
 /* Access may NOT cross page boundary */
 static void kmemcheck_read_strict(struct pt_regs *regs,
-	unsigned long addr, unsigned int size)
+								  unsigned long addr, unsigned int size)
 {
 	void *shadow;
 	enum kmemcheck_shadow status;
 
 	shadow = kmemcheck_shadow_lookup(addr);
+
 	if (!shadow)
+	{
 		return;
+	}
 
 	kmemcheck_save_addr(addr);
 	status = kmemcheck_shadow_test(shadow, size);
+
 	if (status == KMEMCHECK_SHADOW_INITIALIZED)
+	{
 		return;
+	}
 
 	if (kmemcheck_enabled)
+	{
 		kmemcheck_error_save(status, addr, size, regs);
+	}
 
 	if (kmemcheck_enabled == 2)
+	{
 		kmemcheck_enabled = 0;
+	}
 
 	/* Don't warn about it again. */
 	kmemcheck_shadow_set(shadow, size);
@@ -339,8 +397,11 @@ bool kmemcheck_is_obj_initialized(unsigned long addr, size_t size)
 	void *shadow;
 
 	shadow = kmemcheck_shadow_lookup(addr);
+
 	if (!shadow)
+	{
 		return true;
+	}
 
 	status = kmemcheck_shadow_test_all(shadow, size);
 
@@ -349,13 +410,14 @@ bool kmemcheck_is_obj_initialized(unsigned long addr, size_t size)
 
 /* Access may cross page boundary */
 static void kmemcheck_read(struct pt_regs *regs,
-	unsigned long addr, unsigned int size)
+						   unsigned long addr, unsigned int size)
 {
 	unsigned long page = addr & PAGE_MASK;
 	unsigned long next_addr = addr + size - 1;
 	unsigned long next_page = next_addr & PAGE_MASK;
 
-	if (likely(page == next_page)) {
+	if (likely(page == next_page))
+	{
 		kmemcheck_read_strict(regs, addr, size);
 		return;
 	}
@@ -372,26 +434,30 @@ static void kmemcheck_read(struct pt_regs *regs,
 }
 
 static void kmemcheck_write_strict(struct pt_regs *regs,
-	unsigned long addr, unsigned int size)
+								   unsigned long addr, unsigned int size)
 {
 	void *shadow;
 
 	shadow = kmemcheck_shadow_lookup(addr);
+
 	if (!shadow)
+	{
 		return;
+	}
 
 	kmemcheck_save_addr(addr);
 	kmemcheck_shadow_set(shadow, size);
 }
 
 static void kmemcheck_write(struct pt_regs *regs,
-	unsigned long addr, unsigned int size)
+							unsigned long addr, unsigned int size)
 {
 	unsigned long page = addr & PAGE_MASK;
 	unsigned long next_addr = addr + size - 1;
 	unsigned long next_page = next_addr & PAGE_MASK;
 
-	if (likely(page == next_page)) {
+	if (likely(page == next_page))
+	{
 		kmemcheck_write_strict(regs, addr, size);
 		return;
 	}
@@ -406,7 +472,7 @@ static void kmemcheck_write(struct pt_regs *regs,
  * a page (and each page will have different shadow addresses).
  */
 static void kmemcheck_copy(struct pt_regs *regs,
-	unsigned long src_addr, unsigned long dst_addr, unsigned int size)
+						   unsigned long src_addr, unsigned long dst_addr, unsigned int size)
 {
 	uint8_t shadow[8];
 	enum kmemcheck_shadow status;
@@ -425,43 +491,73 @@ static void kmemcheck_copy(struct pt_regs *regs,
 	next_addr = src_addr + size - 1;
 	next_page = next_addr & PAGE_MASK;
 
-	if (likely(page == next_page)) {
+	if (likely(page == next_page))
+	{
 		/* Same page */
 		x = kmemcheck_shadow_lookup(src_addr);
-		if (x) {
+
+		if (x)
+		{
 			kmemcheck_save_addr(src_addr);
+
 			for (i = 0; i < size; ++i)
+			{
 				shadow[i] = x[i];
-		} else {
-			for (i = 0; i < size; ++i)
-				shadow[i] = KMEMCHECK_SHADOW_INITIALIZED;
+			}
 		}
-	} else {
+		else
+		{
+			for (i = 0; i < size; ++i)
+			{
+				shadow[i] = KMEMCHECK_SHADOW_INITIALIZED;
+			}
+		}
+	}
+	else
+	{
 		n = next_page - src_addr;
 		BUG_ON(n > sizeof(shadow));
 
 		/* First page */
 		x = kmemcheck_shadow_lookup(src_addr);
-		if (x) {
+
+		if (x)
+		{
 			kmemcheck_save_addr(src_addr);
+
 			for (i = 0; i < n; ++i)
+			{
 				shadow[i] = x[i];
-		} else {
+			}
+		}
+		else
+		{
 			/* Not tracked */
 			for (i = 0; i < n; ++i)
+			{
 				shadow[i] = KMEMCHECK_SHADOW_INITIALIZED;
+			}
 		}
 
 		/* Second page */
 		x = kmemcheck_shadow_lookup(next_page);
-		if (x) {
+
+		if (x)
+		{
 			kmemcheck_save_addr(next_page);
+
 			for (i = n; i < size; ++i)
+			{
 				shadow[i] = x[i - n];
-		} else {
+			}
+		}
+		else
+		{
 			/* Not tracked */
 			for (i = n; i < size; ++i)
+			{
 				shadow[i] = KMEMCHECK_SHADOW_INITIALIZED;
+			}
 		}
 	}
 
@@ -469,25 +565,36 @@ static void kmemcheck_copy(struct pt_regs *regs,
 	next_addr = dst_addr + size - 1;
 	next_page = next_addr & PAGE_MASK;
 
-	if (likely(page == next_page)) {
+	if (likely(page == next_page))
+	{
 		/* Same page */
 		x = kmemcheck_shadow_lookup(dst_addr);
-		if (x) {
+
+		if (x)
+		{
 			kmemcheck_save_addr(dst_addr);
-			for (i = 0; i < size; ++i) {
+
+			for (i = 0; i < size; ++i)
+			{
 				x[i] = shadow[i];
 				shadow[i] = KMEMCHECK_SHADOW_INITIALIZED;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		n = next_page - dst_addr;
 		BUG_ON(n > sizeof(shadow));
 
 		/* First page */
 		x = kmemcheck_shadow_lookup(dst_addr);
-		if (x) {
+
+		if (x)
+		{
 			kmemcheck_save_addr(dst_addr);
-			for (i = 0; i < n; ++i) {
+
+			for (i = 0; i < n; ++i)
+			{
 				x[i] = shadow[i];
 				shadow[i] = KMEMCHECK_SHADOW_INITIALIZED;
 			}
@@ -495,9 +602,13 @@ static void kmemcheck_copy(struct pt_regs *regs,
 
 		/* Second page */
 		x = kmemcheck_shadow_lookup(next_page);
-		if (x) {
+
+		if (x)
+		{
 			kmemcheck_save_addr(next_page);
-			for (i = n; i < size; ++i) {
+
+			for (i = n; i < size; ++i)
+			{
 				x[i - n] = shadow[i];
 				shadow[i] = KMEMCHECK_SHADOW_INITIALIZED;
 			}
@@ -505,23 +616,31 @@ static void kmemcheck_copy(struct pt_regs *regs,
 	}
 
 	status = kmemcheck_shadow_test(shadow, size);
+
 	if (status == KMEMCHECK_SHADOW_INITIALIZED)
+	{
 		return;
+	}
 
 	if (kmemcheck_enabled)
+	{
 		kmemcheck_error_save(status, src_addr, size, regs);
+	}
 
 	if (kmemcheck_enabled == 2)
+	{
 		kmemcheck_enabled = 0;
+	}
 }
 
-enum kmemcheck_method {
+enum kmemcheck_method
+{
 	KMEMCHECK_READ,
 	KMEMCHECK_WRITE,
 };
 
 static void kmemcheck_access(struct pt_regs *regs,
-	unsigned long fallback_address, enum kmemcheck_method fallback_method)
+							 unsigned long fallback_address, enum kmemcheck_method fallback_method)
 {
 	const uint8_t *insn;
 	const uint8_t *insn_primary;
@@ -530,7 +649,8 @@ static void kmemcheck_access(struct pt_regs *regs,
 	struct kmemcheck_context *data = this_cpu_ptr(&kmemcheck_context);
 
 	/* Recursive fault -- ouch. */
-	if (data->busy) {
+	if (data->busy)
+	{
 		kmemcheck_show_addr(fallback_address);
 		kmemcheck_error_save_bug(regs);
 		return;
@@ -543,59 +663,69 @@ static void kmemcheck_access(struct pt_regs *regs,
 
 	kmemcheck_opcode_decode(insn, &size);
 
-	switch (insn_primary[0]) {
+	switch (insn_primary[0])
+	{
 #ifdef CONFIG_KMEMCHECK_BITOPS_OK
+
 		/* AND, OR, XOR */
 		/*
 		 * Unfortunately, these instructions have to be excluded from
 		 * our regular checking since they access only some (and not
 		 * all) bits. This clears out "bogus" bitfield-access warnings.
 		 */
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-		switch ((insn_primary[1] >> 3) & 7) {
-			/* OR */
-		case 1:
-			/* AND */
-		case 4:
-			/* XOR */
-		case 6:
-			kmemcheck_write(regs, fallback_address, size);
-			goto out;
+		case 0x80:
+		case 0x81:
+		case 0x82:
+		case 0x83:
+			switch ((insn_primary[1] >> 3) & 7)
+			{
+				/* OR */
+				case 1:
 
-			/* ADD */
-		case 0:
-			/* ADC */
-		case 2:
-			/* SBB */
-		case 3:
-			/* SUB */
-		case 5:
-			/* CMP */
-		case 7:
+				/* AND */
+				case 4:
+
+				/* XOR */
+				case 6:
+					kmemcheck_write(regs, fallback_address, size);
+					goto out;
+
+				/* ADD */
+				case 0:
+
+				/* ADC */
+				case 2:
+
+				/* SBB */
+				case 3:
+
+				/* SUB */
+				case 5:
+
+				/* CMP */
+				case 7:
+					break;
+			}
+
 			break;
-		}
-		break;
 #endif
 
 		/* MOVS, MOVSB, MOVSW, MOVSD */
-	case 0xa4:
-	case 0xa5:
-		/*
-		 * These instructions are special because they take two
-		 * addresses, but we only get one page fault.
-		 */
-		kmemcheck_copy(regs, regs->si, regs->di, size);
-		goto out;
+		case 0xa4:
+		case 0xa5:
+			/*
+			 * These instructions are special because they take two
+			 * addresses, but we only get one page fault.
+			 */
+			kmemcheck_copy(regs, regs->si, regs->di, size);
+			goto out;
 
 		/* CMPS, CMPSB, CMPSW, CMPSD */
-	case 0xa6:
-	case 0xa7:
-		kmemcheck_read(regs, regs->si, size);
-		kmemcheck_read(regs, regs->di, size);
-		goto out;
+		case 0xa6:
+		case 0xa7:
+			kmemcheck_read(regs, regs->si, size);
+			kmemcheck_read(regs, regs->di, size);
+			goto out;
 	}
 
 	/*
@@ -603,13 +733,15 @@ static void kmemcheck_access(struct pt_regs *regs,
 	 * page fault handler to determine the address and type of memory
 	 * access.
 	 */
-	switch (fallback_method) {
-	case KMEMCHECK_READ:
-		kmemcheck_read(regs, fallback_address, size);
-		goto out;
-	case KMEMCHECK_WRITE:
-		kmemcheck_write(regs, fallback_address, size);
-		goto out;
+	switch (fallback_method)
+	{
+		case KMEMCHECK_READ:
+			kmemcheck_read(regs, fallback_address, size);
+			goto out;
+
+		case KMEMCHECK_WRITE:
+			kmemcheck_write(regs, fallback_address, size);
+			goto out;
 	}
 
 out:
@@ -617,7 +749,7 @@ out:
 }
 
 bool kmemcheck_fault(struct pt_regs *regs, unsigned long address,
-	unsigned long error_code)
+					 unsigned long error_code)
 {
 	pte_t *pte;
 
@@ -628,20 +760,32 @@ bool kmemcheck_fault(struct pt_regs *regs, unsigned long address,
 	 * invoking kmemcheck for PnP BIOS calls.
 	 */
 	if (regs->flags & X86_VM_MASK)
+	{
 		return false;
+	}
+
 	if (regs->cs != __KERNEL_CS)
+	{
 		return false;
+	}
 
 	pte = kmemcheck_pte_lookup(address);
+
 	if (!pte)
+	{
 		return false;
+	}
 
 	WARN_ON_ONCE(in_nmi());
 
 	if (error_code & 2)
+	{
 		kmemcheck_access(regs, address, KMEMCHECK_WRITE);
+	}
 	else
+	{
 		kmemcheck_access(regs, address, KMEMCHECK_READ);
+	}
 
 	kmemcheck_show(regs);
 	return true;
@@ -650,7 +794,9 @@ bool kmemcheck_fault(struct pt_regs *regs, unsigned long address,
 bool kmemcheck_trap(struct pt_regs *regs)
 {
 	if (!kmemcheck_active(regs))
+	{
 		return false;
+	}
 
 	/* We're done. */
 	kmemcheck_hide(regs);

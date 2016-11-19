@@ -27,7 +27,8 @@ static inline void mask_rm7k_irq(struct irq_data *d)
 	clear_c0_intcontrol(0x100 << (d->irq - RM7K_CPU_IRQ_BASE));
 }
 
-static struct irq_chip rm7k_irq_controller = {
+static struct irq_chip rm7k_irq_controller =
+{
 	.name = "RM7000",
 	.irq_ack = mask_rm7k_irq,
 	.irq_mask = mask_rm7k_irq,
@@ -45,5 +46,5 @@ void __init rm7k_cpu_irq_init(void)
 
 	for (i = base; i < base + 4; i++)
 		irq_set_chip_and_handler(i, &rm7k_irq_controller,
-					 handle_percpu_irq);
+								 handle_percpu_irq);
 }

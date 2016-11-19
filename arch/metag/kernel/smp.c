@@ -51,13 +51,15 @@ void *secondary_data_stack;
  * structures for inter-processor calls
  * - A collection of single bit ipi messages.
  */
-struct ipi_data {
+struct ipi_data
+{
 	spinlock_t lock;
 	unsigned long ipi_count;
 	unsigned long bits;
 };
 
-static DEFINE_PER_CPU(struct ipi_data, ipi_data) = {
+static DEFINE_PER_CPU(struct ipi_data, ipi_data) =
+{
 	.lock	= __SPIN_LOCK_UNLOCKED(ipi_data.lock),
 };
 
@@ -119,45 +121,54 @@ static int boot_secondary(unsigned int thread, struct task_struct *idle)
  * those changes.
  */
 static void describe_cachepart_change(unsigned int thread, const char *label,
-				      unsigned int sz, unsigned int old,
-				      unsigned int new)
+									  unsigned int sz, unsigned int old,
+									  unsigned int new)
 {
 	unsigned int lor1, land1, gor1, gand1;
 	unsigned int lor2, land2, gor2, gand2;
 	unsigned int diff = old ^ new;
 
 	if (!diff)
+	{
 		return;
+	}
 
 	pr_info("Thread %d: %s partition changed:", thread, label);
-	if (diff & (SYSC_xCPARTL_OR_BITS | SYSC_xCPARTL_AND_BITS)) {
+
+	if (diff & (SYSC_xCPARTL_OR_BITS | SYSC_xCPARTL_AND_BITS))
+	{
 		lor1   = (old & SYSC_xCPARTL_OR_BITS)  >> SYSC_xCPARTL_OR_S;
 		lor2   = (new & SYSC_xCPARTL_OR_BITS)  >> SYSC_xCPARTL_OR_S;
 		land1  = (old & SYSC_xCPARTL_AND_BITS) >> SYSC_xCPARTL_AND_S;
 		land2  = (new & SYSC_xCPARTL_AND_BITS) >> SYSC_xCPARTL_AND_S;
 		pr_cont(" L:%#x+%#x->%#x+%#x",
-			(lor1 * sz) >> 4,
-			((land1 + 1) * sz) >> 4,
-			(lor2 * sz) >> 4,
-			((land2 + 1) * sz) >> 4);
+				(lor1 * sz) >> 4,
+				((land1 + 1) * sz) >> 4,
+				(lor2 * sz) >> 4,
+				((land2 + 1) * sz) >> 4);
 	}
-	if (diff & (SYSC_xCPARTG_OR_BITS | SYSC_xCPARTG_AND_BITS)) {
+
+	if (diff & (SYSC_xCPARTG_OR_BITS | SYSC_xCPARTG_AND_BITS))
+	{
 		gor1   = (old & SYSC_xCPARTG_OR_BITS)  >> SYSC_xCPARTG_OR_S;
 		gor2   = (new & SYSC_xCPARTG_OR_BITS)  >> SYSC_xCPARTG_OR_S;
 		gand1  = (old & SYSC_xCPARTG_AND_BITS) >> SYSC_xCPARTG_AND_S;
 		gand2  = (new & SYSC_xCPARTG_AND_BITS) >> SYSC_xCPARTG_AND_S;
 		pr_cont(" G:%#x+%#x->%#x+%#x",
-			(gor1 * sz) >> 4,
-			((gand1 + 1) * sz) >> 4,
-			(gor2 * sz) >> 4,
-			((gand2 + 1) * sz) >> 4);
+				(gor1 * sz) >> 4,
+				((gand1 + 1) * sz) >> 4,
+				(gor2 * sz) >> 4,
+				((gand2 + 1) * sz) >> 4);
 	}
+
 	if (diff & SYSC_CWRMODE_BIT)
 		pr_cont(" %sWR",
-			(new & SYSC_CWRMODE_BIT) ? "+" : "-");
+				(new & SYSC_CWRMODE_BIT) ? "+" : "-");
+
 	if (diff & SYSC_DCPART_GCON_BIT)
 		pr_cont(" %sGCOn",
-			(new & SYSC_DCPART_GCON_BIT) ? "+" : "-");
+				(new & SYSC_DCPART_GCON_BIT) ? "+" : "-");
+
 	pr_cont("\n");
 }
 
@@ -206,11 +217,11 @@ static void setup_smp_cache(unsigned int thread)
 	dcsz = get_dcache_size();
 	icsz = get_dcache_size();
 	describe_cachepart_change(this_thread, "dcache", dcsz,
-				  dcpart_this, dcpart_new);
+							  dcpart_this, dcpart_new);
 	describe_cachepart_change(thread, "dcache", dcsz,
-				  dcpart_old, dcpart_new);
+							  dcpart_old, dcpart_new);
 	describe_cachepart_change(thread, "icache", icsz,
-				  icpart_old, icpart_new);
+							  icpart_old, icpart_new);
 }
 
 int __cpu_up(unsigned int cpu, struct task_struct *idle)
@@ -235,21 +246,26 @@ int __cpu_up(unsigned int cpu, struct task_struct *idle)
 	 * Now bring the CPU into our world.
 	 */
 	ret = boot_secondary(thread, idle);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		/*
 		 * CPU was successfully started, wait for it
 		 * to come online or time out.
 		 */
 		wait_for_completion_timeout(&cpu_running,
-					    msecs_to_jiffies(1000));
+									msecs_to_jiffies(1000));
 
 		if (!cpu_online(cpu))
+		{
 			ret = -EIO;
+		}
 	}
 
 	secondary_data_stack = NULL;
 
-	if (ret) {
+	if (ret)
+	{
 		pr_crit("CPU%u: processor failed to boot\n", cpu);
 
 		/*
@@ -299,7 +315,9 @@ int __cpu_disable(void)
 void __cpu_die(unsigned int cpu)
 {
 	if (!cpu_wait_death(cpu, 1))
+	{
 		pr_err("CPU%u: unable to kill\n", cpu);
+	}
 }
 
 /*
@@ -364,7 +382,9 @@ asmlinkage void secondary_start_kernel(void)
 	per_cpu(pTBI, cpu) = __TBI(TBID_ISTAT_BIT);
 
 	if (!per_cpu(pTBI, cpu))
+	{
 		panic("No TBI found!");
+	}
 
 	per_cpu_trap_init(cpu);
 	irq_ctx_init(cpu);
@@ -376,7 +396,7 @@ asmlinkage void secondary_start_kernel(void)
 	notify_cpu_starting(cpu);
 
 	pr_info("CPU%u (thread %u): Booted secondary processor\n",
-		cpu, cpu_2_hwthread_id[cpu]);
+			cpu, cpu_2_hwthread_id[cpu]);
 
 	calibrate_delay();
 	smp_store_cpu_info(cpu);
@@ -405,12 +425,12 @@ void __init smp_cpus_done(unsigned int max_cpus)
 	unsigned long bogosum = 0;
 
 	for_each_online_cpu(cpu)
-		bogosum += per_cpu(cpu_data, cpu).loops_per_jiffy;
+	bogosum += per_cpu(cpu_data, cpu).loops_per_jiffy;
 
 	pr_info("SMP: Total of %d processors activated (%lu.%02lu BogoMIPS).\n",
-		num_online_cpus(),
-		bogosum / (500000/HZ),
-		(bogosum / (5000/HZ)) % 100);
+			num_online_cpus(),
+			bogosum / (500000 / HZ),
+			(bogosum / (5000 / HZ)) % 100);
 }
 
 void __init smp_prepare_cpus(unsigned int max_cpus)
@@ -431,7 +451,9 @@ void __init smp_prepare_boot_cpu(void)
 	per_cpu(pTBI, cpu) = __TBI(TBID_ISTAT_BIT);
 
 	if (!per_cpu(pTBI, cpu))
+	{
 		panic("No TBI found!");
+	}
 }
 
 static void smp_cross_call(cpumask_t callmap, enum ipi_msg_type msg);
@@ -445,7 +467,8 @@ static void send_ipi_message(const struct cpumask *mask, enum ipi_msg_type msg)
 	cpumask_clear(&map);
 	local_irq_save(flags);
 
-	for_each_cpu(cpu, mask) {
+	for_each_cpu(cpu, mask)
+	{
 		struct ipi_data *ipi = &per_cpu(ipi_data, cpu);
 
 		spin_lock(&ipi->lock);
@@ -469,7 +492,8 @@ static void send_ipi_message(const struct cpumask *mask, enum ipi_msg_type msg)
 		 * So only add 'cpu' to 'map' if we haven't already
 		 * queued a KICK interrupt for 'msg'.
 		 */
-		if (!(ipi->bits & (1 << msg))) {
+		if (!(ipi->bits & (1 << msg)))
+		{
 			ipi->bits |= 1 << msg;
 			cpumask_set_cpu(cpu, &map);
 		}
@@ -502,7 +526,7 @@ void show_ipi_list(struct seq_file *p)
 	seq_puts(p, "IPI:");
 
 	for_each_present_cpu(cpu)
-		seq_printf(p, " %10lu", per_cpu(ipi_data, cpu).ipi_count);
+	seq_printf(p, " %10lu", per_cpu(ipi_data, cpu).ipi_count);
 
 	seq_putc(p, '\n');
 }
@@ -533,23 +557,26 @@ static int do_IPI(void)
 	ipi->bits &= ~nextmsg;
 	spin_unlock(&ipi->lock);
 
-	if (nextmsg) {
+	if (nextmsg)
+	{
 		handled = 1;
 
 		nextmsg = ffz(~nextmsg);
-		switch (nextmsg) {
-		case IPI_RESCHEDULE:
-			scheduler_ipi();
-			break;
 
-		case IPI_CALL_FUNC:
-			generic_smp_call_function_interrupt();
-			break;
+		switch (nextmsg)
+		{
+			case IPI_RESCHEDULE:
+				scheduler_ipi();
+				break;
 
-		default:
-			pr_crit("CPU%u: Unknown IPI message 0x%lx\n",
-				cpu, nextmsg);
-			break;
+			case IPI_CALL_FUNC:
+				generic_smp_call_function_interrupt();
+				break;
+
+			default:
+				pr_crit("CPU%u: Unknown IPI message 0x%lx\n",
+						cpu, nextmsg);
+				break;
 		}
 	}
 
@@ -566,7 +593,8 @@ static void stop_this_cpu(void *data)
 	unsigned int cpu = smp_processor_id();
 
 	if (system_state == SYSTEM_BOOTING ||
-	    system_state == SYSTEM_RUNNING) {
+		system_state == SYSTEM_RUNNING)
+	{
 		spin_lock(&stop_lock);
 		pr_crit("CPU%u: stopping\n", cpu);
 		dump_stack();
@@ -604,7 +632,8 @@ static void kick_raise_softirq(cpumask_t callmap, unsigned int irq)
 {
 	int cpu;
 
-	for_each_cpu(cpu, &callmap) {
+	for_each_cpu(cpu, &callmap)
+	{
 		unsigned int thread;
 
 		thread = cpu_2_hwthread_id[cpu];
@@ -616,14 +645,15 @@ static void kick_raise_softirq(cpumask_t callmap, unsigned int irq)
 }
 
 static TBIRES ipi_handler(TBIRES State, int SigNum, int Triggers,
-		   int Inst, PTBI pTBI, int *handled)
+						  int Inst, PTBI pTBI, int *handled)
 {
 	*handled = do_IPI();
 
 	return State;
 }
 
-static struct kick_irq_handler ipi_irq = {
+static struct kick_irq_handler ipi_irq =
+{
 	.func = ipi_handler,
 };
 
@@ -637,9 +667,12 @@ static inline unsigned int get_core_count(void)
 	int i;
 	unsigned int ret = 0;
 
-	for (i = 0; i < CONFIG_NR_CPUS; i++) {
+	for (i = 0; i < CONFIG_NR_CPUS; i++)
+	{
 		if (core_reg_read(TXUCT_ID, TXENABLE_REGNUM, i))
+		{
 			ret++;
+		}
 	}
 
 	return ret;
@@ -655,13 +688,16 @@ void __init smp_init_cpus(void)
 
 	/* If no hwthread_map early param was set use default mapping */
 	for (i = 0; i < NR_CPUS; i++)
-		if (cpu_2_hwthread_id[i] == BAD_HWTHREAD_ID) {
+		if (cpu_2_hwthread_id[i] == BAD_HWTHREAD_ID)
+		{
 			cpu_2_hwthread_id[i] = i;
 			hwthread_id_2_cpu[i] = i;
 		}
 
 	for (i = 0; i < ncores; i++)
+	{
 		set_cpu_possible(i, true);
+	}
 
 	kick_register_func(&ipi_irq);
 }

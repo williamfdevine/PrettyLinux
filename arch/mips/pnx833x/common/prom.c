@@ -33,12 +33,17 @@ void __init prom_init_cmdline(void)
 	char *c = &(arcs_cmdline[0]);
 	int i;
 
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		strcpy(c, argv[i]);
 		c += strlen(argv[i]);
-		if (i < argc-1)
+
+		if (i < argc - 1)
+		{
 			*c++ = ' ';
+		}
 	}
+
 	*c = 0;
 }
 
@@ -50,9 +55,13 @@ char __init *prom_getenv(char *envname)
 
 	i = strlen(envname);
 
-	while (*env) {
-		if (strncmp(envname, *env, i) == 0 && *(*env+i) == '=')
+	while (*env)
+	{
+		if (strncmp(envname, *env, i) == 0 && *(*env + i) == '=')
+		{
 			return *env + i + 1;
+		}
+
 		env++;
 	}
 

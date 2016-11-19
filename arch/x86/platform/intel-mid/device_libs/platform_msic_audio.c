@@ -28,7 +28,8 @@ static void *msic_audio_platform_data(void *info)
 
 	pdev = platform_device_register_simple("sst-platform", -1, NULL, 0);
 
-	if (IS_ERR(pdev)) {
+	if (IS_ERR(pdev))
+	{
 		pr_err("failed to create audio platform device\n");
 		return NULL;
 	}
@@ -36,7 +37,8 @@ static void *msic_audio_platform_data(void *info)
 	return msic_generic_platform_data(info, INTEL_MSIC_BLOCK_AUDIO);
 }
 
-static const struct devs_id msic_audio_dev_id __initconst = {
+static const struct devs_id msic_audio_dev_id __initconst =
+{
 	.name = "msic_audio",
 	.type = SFI_DEV_TYPE_IPC,
 	.delay = 1,

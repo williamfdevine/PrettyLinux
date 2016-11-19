@@ -30,9 +30,11 @@
  * processes are sign extended.
  */
 #ifdef __KERNEL__
-struct user_pt_regs {
+struct user_pt_regs
+{
 #else
-struct pt_regs {
+struct pt_regs
+{
 #endif
 	/* Saved main processor registers. */
 	__u64 regs[32];
@@ -67,11 +69,13 @@ struct pt_regs {
 #define PTRACE_GET_THREAD_AREA_3264	0xc4
 
 /* Read and write watchpoint registers.	 */
-enum pt_watch_style {
+enum pt_watch_style
+{
 	pt_watch_style_mips32,
 	pt_watch_style_mips64
 };
-struct mips32_watch_regs {
+struct mips32_watch_regs
+{
 	unsigned int watchlo[8];
 	/* Lower 16 bits of watchhi. */
 	unsigned short watchhi[8];
@@ -86,16 +90,19 @@ struct mips32_watch_regs {
 	unsigned int num_valid;
 } __attribute__((aligned(8)));
 
-struct mips64_watch_regs {
+struct mips64_watch_regs
+{
 	unsigned long long watchlo[8];
 	unsigned short watchhi[8];
 	unsigned short watch_masks[8];
 	unsigned int num_valid;
 } __attribute__((aligned(8)));
 
-struct pt_watch_regs {
+struct pt_watch_regs
+{
 	enum pt_watch_style style;
-	union {
+	union
+	{
 		struct mips32_watch_regs mips32;
 		struct mips64_watch_regs mips64;
 	};

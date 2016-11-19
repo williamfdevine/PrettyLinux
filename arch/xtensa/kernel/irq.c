@@ -34,9 +34,10 @@ asmlinkage void do_IRQ(int hwirq, struct pt_regs *regs)
 {
 	int irq = irq_find_mapping(NULL, hwirq);
 
-	if (hwirq >= NR_IRQS) {
+	if (hwirq >= NR_IRQS)
+	{
 		printk(KERN_EMERG "%s: cannot handle IRQ %d\n",
-				__func__, hwirq);
+			   __func__, hwirq);
 	}
 
 #ifdef CONFIG_DEBUG_STACKOVERFLOW
@@ -49,7 +50,7 @@ asmlinkage void do_IRQ(int hwirq, struct pt_regs *regs)
 
 		if (unlikely(sp < (sizeof(thread_info) + 1024)))
 			printk("Stack overflow in do_IRQ: %ld\n",
-			       sp - sizeof(struct thread_info));
+				   sp - sizeof(struct thread_info));
 	}
 #endif
 	generic_handle_irq(irq);
@@ -64,86 +65,114 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 #if XTENSA_FAKE_NMI
 	seq_printf(p, "%*s:", prec, "NMI");
 	for_each_online_cpu(cpu)
-		seq_printf(p, " %10lu", per_cpu(nmi_count, cpu));
+	seq_printf(p, " %10lu", per_cpu(nmi_count, cpu));
 	seq_puts(p, "   Non-maskable interrupts\n");
 #endif
 	return 0;
 }
 
 int xtensa_irq_domain_xlate(const u32 *intspec, unsigned int intsize,
-		unsigned long int_irq, unsigned long ext_irq,
-		unsigned long *out_hwirq, unsigned int *out_type)
+							unsigned long int_irq, unsigned long ext_irq,
+							unsigned long *out_hwirq, unsigned int *out_type)
 {
 	if (WARN_ON(intsize < 1 || intsize > 2))
+	{
 		return -EINVAL;
-	if (intsize == 2 && intspec[1] == 1) {
+	}
+
+	if (intsize == 2 && intspec[1] == 1)
+	{
 		int_irq = xtensa_map_ext_irq(ext_irq);
+
 		if (int_irq < XCHAL_NUM_INTERRUPTS)
+		{
 			*out_hwirq = int_irq;
+		}
 		else
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		*out_hwirq = int_irq;
 	}
+
 	*out_type = IRQ_TYPE_NONE;
 	return 0;
 }
 
 int xtensa_irq_map(struct irq_domain *d, unsigned int irq,
-		irq_hw_number_t hw)
+				   irq_hw_number_t hw)
 {
 	struct irq_chip *irq_chip = d->host_data;
 	u32 mask = 1 << hw;
 
-	if (mask & XCHAL_INTTYPE_MASK_SOFTWARE) {
+	if (mask & XCHAL_INTTYPE_MASK_SOFTWARE)
+	{
 		irq_set_chip_and_handler_name(irq, irq_chip,
-				handle_simple_irq, "level");
-		irq_set_status_flags(irq, IRQ_LEVEL);
-	} else if (mask & XCHAL_INTTYPE_MASK_EXTERN_EDGE) {
-		irq_set_chip_and_handler_name(irq, irq_chip,
-				handle_edge_irq, "edge");
-		irq_clear_status_flags(irq, IRQ_LEVEL);
-	} else if (mask & XCHAL_INTTYPE_MASK_EXTERN_LEVEL) {
-		irq_set_chip_and_handler_name(irq, irq_chip,
-				handle_level_irq, "level");
-		irq_set_status_flags(irq, IRQ_LEVEL);
-	} else if (mask & XCHAL_INTTYPE_MASK_TIMER) {
-		irq_set_chip_and_handler_name(irq, irq_chip,
-				handle_percpu_irq, "timer");
-		irq_clear_status_flags(irq, IRQ_LEVEL);
-#ifdef XCHAL_INTTYPE_MASK_PROFILING
-	} else if (mask & XCHAL_INTTYPE_MASK_PROFILING) {
-		irq_set_chip_and_handler_name(irq, irq_chip,
-				handle_percpu_irq, "profiling");
-		irq_set_status_flags(irq, IRQ_LEVEL);
-#endif
-	} else {/* XCHAL_INTTYPE_MASK_WRITE_ERROR */
-		/* XCHAL_INTTYPE_MASK_NMI */
-		irq_set_chip_and_handler_name(irq, irq_chip,
-				handle_level_irq, "level");
+									  handle_simple_irq, "level");
 		irq_set_status_flags(irq, IRQ_LEVEL);
 	}
+	else if (mask & XCHAL_INTTYPE_MASK_EXTERN_EDGE)
+	{
+		irq_set_chip_and_handler_name(irq, irq_chip,
+									  handle_edge_irq, "edge");
+		irq_clear_status_flags(irq, IRQ_LEVEL);
+	}
+	else if (mask & XCHAL_INTTYPE_MASK_EXTERN_LEVEL)
+	{
+		irq_set_chip_and_handler_name(irq, irq_chip,
+									  handle_level_irq, "level");
+		irq_set_status_flags(irq, IRQ_LEVEL);
+	}
+	else if (mask & XCHAL_INTTYPE_MASK_TIMER)
+	{
+		irq_set_chip_and_handler_name(irq, irq_chip,
+									  handle_percpu_irq, "timer");
+		irq_clear_status_flags(irq, IRQ_LEVEL);
+#ifdef XCHAL_INTTYPE_MASK_PROFILING
+	}
+	else if (mask & XCHAL_INTTYPE_MASK_PROFILING)
+	{
+		irq_set_chip_and_handler_name(irq, irq_chip,
+									  handle_percpu_irq, "profiling");
+		irq_set_status_flags(irq, IRQ_LEVEL);
+#endif
+	}
+	else    /* XCHAL_INTTYPE_MASK_WRITE_ERROR */
+	{
+		/* XCHAL_INTTYPE_MASK_NMI */
+		irq_set_chip_and_handler_name(irq, irq_chip,
+									  handle_level_irq, "level");
+		irq_set_status_flags(irq, IRQ_LEVEL);
+	}
+
 	return 0;
 }
 
 unsigned xtensa_map_ext_irq(unsigned ext_irq)
 {
 	unsigned mask = XCHAL_INTTYPE_MASK_EXTERN_EDGE |
-		XCHAL_INTTYPE_MASK_EXTERN_LEVEL;
+					XCHAL_INTTYPE_MASK_EXTERN_LEVEL;
 	unsigned i;
 
-	for (i = 0; mask; ++i, mask >>= 1) {
+	for (i = 0; mask; ++i, mask >>= 1)
+	{
 		if ((mask & 1) && ext_irq-- == 0)
+		{
 			return i;
+		}
 	}
+
 	return XCHAL_NUM_INTERRUPTS;
 }
 
 unsigned xtensa_get_ext_irq_no(unsigned irq)
 {
 	unsigned mask = (XCHAL_INTTYPE_MASK_EXTERN_EDGE |
-		XCHAL_INTTYPE_MASK_EXTERN_LEVEL) &
-		((1u << irq) - 1);
+					 XCHAL_INTTYPE_MASK_EXTERN_LEVEL) &
+					((1u << irq) - 1);
 	return hweight32(mask);
 }
 
@@ -175,26 +204,34 @@ void migrate_irqs(void)
 {
 	unsigned int i, cpu = smp_processor_id();
 
-	for_each_active_irq(i) {
+	for_each_active_irq(i)
+	{
 		struct irq_data *data = irq_get_irq_data(i);
 		struct cpumask *mask;
 		unsigned int newcpu;
 
 		if (irqd_is_per_cpu(data))
+		{
 			continue;
+		}
 
 		mask = irq_data_get_affinity_mask(data);
+
 		if (!cpumask_test_cpu(cpu, mask))
+		{
 			continue;
+		}
 
 		newcpu = cpumask_any_and(mask, cpu_online_mask);
 
-		if (newcpu >= nr_cpu_ids) {
+		if (newcpu >= nr_cpu_ids)
+		{
 			pr_info_ratelimited("IRQ%u no longer affine to CPU%u\n",
-					    i, cpu);
+								i, cpu);
 
 			cpumask_setall(mask);
 		}
+
 		irq_set_affinity(i, mask);
 	}
 }

@@ -1,7 +1,8 @@
 #ifndef __ASM_SH7720_H__
 #define __ASM_SH7720_H__
 
-enum {
+enum
+{
 	/* PTA */
 	GPIO_PTA7, GPIO_PTA6, GPIO_PTA5, GPIO_PTA4,
 	GPIO_PTA3, GPIO_PTA2, GPIO_PTA1, GPIO_PTA0,

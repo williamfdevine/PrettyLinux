@@ -50,7 +50,8 @@ static void mpic_pasemi_msi_unmask_irq(struct irq_data *data)
 	pci_msi_unmask_irq(data);
 }
 
-static struct irq_chip mpic_pasemi_msi_chip = {
+static struct irq_chip mpic_pasemi_msi_chip =
+{
 	.irq_shutdown		= mpic_pasemi_msi_mask_irq,
 	.irq_mask		= mpic_pasemi_msi_mask_irq,
 	.irq_unmask		= mpic_pasemi_msi_unmask_irq,
@@ -67,9 +68,12 @@ static void pasemi_msi_teardown_msi_irqs(struct pci_dev *pdev)
 
 	pr_debug("pasemi_msi_teardown_msi_irqs, pdev %p\n", pdev);
 
-	for_each_pci_msi_entry(entry, pdev) {
+	for_each_pci_msi_entry(entry, pdev)
+	{
 		if (!entry->irq)
+		{
 			continue;
+		}
 
 		hwirq = virq_to_hw(entry->irq);
 		irq_set_msi_desc(entry->irq, NULL);
@@ -88,32 +92,40 @@ static int pasemi_msi_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
 	int hwirq;
 
 	if (type == PCI_CAP_ID_MSIX)
+	{
 		pr_debug("pasemi_msi: MSI-X untested, trying anyway\n");
+	}
+
 	pr_debug("pasemi_msi_setup_msi_irqs, pdev %p nvec %d type %d\n",
-		 pdev, nvec, type);
+			 pdev, nvec, type);
 
 	msg.address_hi = 0;
 	msg.address_lo = PASEMI_MSI_ADDR;
 
-	for_each_pci_msi_entry(entry, pdev) {
+	for_each_pci_msi_entry(entry, pdev)
+	{
 		/* Allocate 16 interrupts for now, since that's the grouping for
 		 * affinity. This can be changed later if it turns out 32 is too
 		 * few MSIs for someone, but restrictions will apply to how the
 		 * sources can be changed independently.
 		 */
 		hwirq = msi_bitmap_alloc_hwirqs(&msi_mpic->msi_bitmap,
-						ALLOC_CHUNK);
-		if (hwirq < 0) {
+										ALLOC_CHUNK);
+
+		if (hwirq < 0)
+		{
 			pr_debug("pasemi_msi: failed allocating hwirq\n");
 			return hwirq;
 		}
 
 		virq = irq_create_mapping(msi_mpic->irqhost, hwirq);
-		if (!virq) {
+
+		if (!virq)
+		{
 			pr_debug("pasemi_msi: failed mapping hwirq 0x%x\n",
-				  hwirq);
+					 hwirq);
 			msi_bitmap_free_hwirqs(&msi_mpic->msi_bitmap, hwirq,
-					       ALLOC_CHUNK);
+								   ALLOC_CHUNK);
 			return -ENOSPC;
 		}
 
@@ -128,12 +140,12 @@ static int pasemi_msi_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
 		irq_set_irq_type(virq, IRQ_TYPE_EDGE_RISING);
 
 		pr_debug("pasemi_msi: allocated virq 0x%x (hw 0x%x) " \
-			 "addr 0x%x\n", virq, hwirq, msg.address_lo);
+				 "addr 0x%x\n", virq, hwirq, msg.address_lo);
 
 		/* Likewise, the device writes [0...511] into the target
 		 * register to generate MSI [512...1023]
 		 */
-		msg.data = hwirq-0x200;
+		msg.data = hwirq - 0x200;
 		pci_write_msi_msg(virq, &msg);
 	}
 
@@ -147,13 +159,18 @@ int mpic_pasemi_msi_init(struct mpic *mpic)
 	struct device_node *of_node;
 
 	of_node = irq_domain_get_of_node(mpic->irqhost);
+
 	if (!of_node ||
-	    !of_device_is_compatible(of_node,
-				     "pasemi,pwrficient-openpic"))
+		!of_device_is_compatible(of_node,
+								 "pasemi,pwrficient-openpic"))
+	{
 		return -ENODEV;
+	}
 
 	rc = mpic_msi_init_allocator(mpic);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_debug("pasemi_msi: Error allocating bitmap!\n");
 		return rc;
 	}
@@ -161,7 +178,8 @@ int mpic_pasemi_msi_init(struct mpic *mpic)
 	pr_debug("pasemi_msi: Registering PA Semi MPIC MSI callbacks\n");
 
 	msi_mpic = mpic;
-	list_for_each_entry(phb, &hose_list, list_node) {
+	list_for_each_entry(phb, &hose_list, list_node)
+	{
 		WARN_ON(phb->controller_ops.setup_msi_irqs);
 		phb->controller_ops.setup_msi_irqs = pasemi_msi_setup_msi_irqs;
 		phb->controller_ops.teardown_msi_irqs = pasemi_msi_teardown_msi_irqs;

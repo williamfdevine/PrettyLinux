@@ -21,26 +21,26 @@
 #define H_PAGE_HASHPTE		(1ul << 61)	/* PTE has associated HPTE */
 
 #ifdef CONFIG_PPC_64K_PAGES
-#include <asm/book3s/64/hash-64k.h>
+	#include <asm/book3s/64/hash-64k.h>
 #else
-#include <asm/book3s/64/hash-4k.h>
+	#include <asm/book3s/64/hash-4k.h>
 #endif
 
 /*
  * Size of EA range mapped by our pagetables.
  */
 #define H_PGTABLE_EADDR_SIZE	(H_PTE_INDEX_SIZE + H_PMD_INDEX_SIZE + \
-				 H_PUD_INDEX_SIZE + H_PGD_INDEX_SIZE + PAGE_SHIFT)
+								 H_PUD_INDEX_SIZE + H_PGD_INDEX_SIZE + PAGE_SHIFT)
 #define H_PGTABLE_RANGE		(ASM_CONST(1) << H_PGTABLE_EADDR_SIZE)
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-/*
- * only with hash we need to use the second half of pmd page table
- * to store pointer to deposited pgtable_t
- */
-#define H_PMD_CACHE_INDEX	(H_PMD_INDEX_SIZE + 1)
+	/*
+	* only with hash we need to use the second half of pmd page table
+	* to store pointer to deposited pgtable_t
+	*/
+	#define H_PMD_CACHE_INDEX	(H_PMD_INDEX_SIZE + 1)
 #else
-#define H_PMD_CACHE_INDEX	H_PMD_INDEX_SIZE
+	#define H_PMD_CACHE_INDEX	H_PMD_INDEX_SIZE
 #endif
 /*
  * Define the address range of the kernel non-linear virtual area
@@ -76,8 +76,8 @@
 #define H_VMEMMAP_BASE		(VMEMMAP_REGION_ID << REGION_SHIFT)
 
 #ifdef CONFIG_PPC_MM_SLICES
-#define HAVE_ARCH_UNMAPPED_AREA
-#define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
+	#define HAVE_ARCH_UNMAPPED_AREA
+	#define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
 #endif /* CONFIG_PPC_MM_SLICES */
 
 
@@ -97,37 +97,43 @@ static inline int hash__pgd_bad(pgd_t pgd)
 }
 
 extern void hpte_need_flush(struct mm_struct *mm, unsigned long addr,
-			    pte_t *ptep, unsigned long pte, int huge);
+							pte_t *ptep, unsigned long pte, int huge);
 extern unsigned long htab_convert_pte_flags(unsigned long pteflags);
 /* Atomic PTE updates */
 static inline unsigned long hash__pte_update(struct mm_struct *mm,
-					 unsigned long addr,
-					 pte_t *ptep, unsigned long clr,
-					 unsigned long set,
-					 int huge)
+		unsigned long addr,
+		pte_t *ptep, unsigned long clr,
+		unsigned long set,
+		int huge)
 {
 	__be64 old_be, tmp_be;
 	unsigned long old;
 
 	__asm__ __volatile__(
-	"1:	ldarx	%0,0,%3		# pte_update\n\
+		"1:	ldarx	%0,0,%3		# pte_update\n\
 	and.	%1,%0,%6\n\
 	bne-	1b \n\
 	andc	%1,%0,%4 \n\
 	or	%1,%1,%7\n\
 	stdcx.	%1,0,%3 \n\
 	bne-	1b"
-	: "=&r" (old_be), "=&r" (tmp_be), "=m" (*ptep)
-	: "r" (ptep), "r" (cpu_to_be64(clr)), "m" (*ptep),
-	  "r" (cpu_to_be64(H_PAGE_BUSY)), "r" (cpu_to_be64(set))
-	: "cc" );
+		: "=&r" (old_be), "=&r" (tmp_be), "=m" (*ptep)
+		: "r" (ptep), "r" (cpu_to_be64(clr)), "m" (*ptep),
+		"r" (cpu_to_be64(H_PAGE_BUSY)), "r" (cpu_to_be64(set))
+		: "cc" );
+
 	/* huge pages use the old page table lock */
 	if (!huge)
+	{
 		assert_pte_locked(mm, addr);
+	}
 
 	old = be64_to_cpu(old_be);
+
 	if (old & H_PAGE_HASHPTE)
+	{
 		hpte_need_flush(mm, addr, ptep, old, huge);
+	}
 
 	return old;
 }
@@ -140,20 +146,20 @@ static inline void hash__ptep_set_access_flags(pte_t *ptep, pte_t entry)
 	__be64 old, tmp, val, mask;
 
 	mask = cpu_to_be64(_PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_READ | _PAGE_WRITE |
-			   _PAGE_EXEC | _PAGE_SOFT_DIRTY);
+					   _PAGE_EXEC | _PAGE_SOFT_DIRTY);
 
 	val = pte_raw(entry) & mask;
 
 	__asm__ __volatile__(
-	"1:	ldarx	%0,0,%4\n\
+		"1:	ldarx	%0,0,%4\n\
 		and.	%1,%0,%6\n\
 		bne-	1b \n\
 		or	%0,%3,%0\n\
 		stdcx.	%0,0,%4\n\
 		bne-	1b"
-	:"=&r" (old), "=&r" (tmp), "=m" (*ptep)
-	:"r" (val), "r" (ptep), "m" (*ptep), "r" (cpu_to_be64(H_PAGE_BUSY))
-	:"cc");
+		:"=&r" (old), "=&r" (tmp), "=m" (*ptep)
+		:"r" (val), "r" (ptep), "m" (*ptep), "r" (cpu_to_be64(H_PAGE_BUSY))
+		:"cc");
 }
 
 static inline int hash__pte_same(pte_t pte_a, pte_t pte_b)
@@ -172,7 +178,7 @@ static inline int hash__pte_none(pte_t pte)
  * I'm keeping it in one place rather than spread around
  */
 static inline void hash__set_pte_at(struct mm_struct *mm, unsigned long addr,
-				  pte_t *ptep, pte_t pte, int percpu)
+									pte_t *ptep, pte_t pte, int percpu)
 {
 	/*
 	 * Anything else just stores the PTE normally. That covers all 64-bit
@@ -183,11 +189,11 @@ static inline void hash__set_pte_at(struct mm_struct *mm, unsigned long addr,
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 extern void hpte_do_hugepage_flush(struct mm_struct *mm, unsigned long addr,
-				   pmd_t *pmdp, unsigned long old_pmd);
+								   pmd_t *pmdp, unsigned long old_pmd);
 #else
 static inline void hpte_do_hugepage_flush(struct mm_struct *mm,
-					  unsigned long addr, pmd_t *pmdp,
-					  unsigned long old_pmd)
+		unsigned long addr, pmd_t *pmdp,
+		unsigned long old_pmd)
 {
 	WARN(1, "%s called with THP disabled\n", __func__);
 }
@@ -195,12 +201,12 @@ static inline void hpte_do_hugepage_flush(struct mm_struct *mm,
 
 
 extern int hash__map_kernel_page(unsigned long ea, unsigned long pa,
-			     unsigned long flags);
+								 unsigned long flags);
 extern int __meminit hash__vmemmap_create_mapping(unsigned long start,
-					      unsigned long page_size,
-					      unsigned long phys);
+		unsigned long page_size,
+		unsigned long phys);
 extern void hash__vmemmap_remove_mapping(unsigned long start,
-				     unsigned long page_size);
+		unsigned long page_size);
 #endif /* !__ASSEMBLY__ */
 #endif /* __KERNEL__ */
 #endif /* _ASM_POWERPC_BOOK3S_64_HASH_H */

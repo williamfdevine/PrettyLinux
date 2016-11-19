@@ -20,7 +20,8 @@
 #include "pmu.h"
 
 /* duplicated from amd_perfmon_event_map, K7 and above should work. */
-static struct kvm_event_hw_type_mapping amd_event_mapping[] = {
+static struct kvm_event_hw_type_mapping amd_event_mapping[] =
+{
 	[0] = { 0x76, 0x00, PERF_COUNT_HW_CPU_CYCLES },
 	[1] = { 0xc0, 0x00, PERF_COUNT_HW_INSTRUCTIONS },
 	[2] = { 0x7d, 0x07, PERF_COUNT_HW_CACHE_REFERENCES },
@@ -32,18 +33,22 @@ static struct kvm_event_hw_type_mapping amd_event_mapping[] = {
 };
 
 static unsigned amd_find_arch_event(struct kvm_pmu *pmu,
-				    u8 event_select,
-				    u8 unit_mask)
+									u8 event_select,
+									u8 unit_mask)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(amd_event_mapping); i++)
 		if (amd_event_mapping[i].eventsel == event_select
-		    && amd_event_mapping[i].unit_mask == unit_mask)
+			&& amd_event_mapping[i].unit_mask == unit_mask)
+		{
 			break;
+		}
 
 	if (i == ARRAY_SIZE(amd_event_mapping))
+	{
 		return PERF_COUNT_HW_MAX;
+	}
 
 	return amd_event_mapping[i].event_type;
 }
@@ -84,8 +89,12 @@ static struct kvm_pmc *amd_msr_idx_to_pmc(struct kvm_vcpu *vcpu, unsigned idx)
 	struct kvm_pmc *counters;
 
 	idx &= ~(3u << 30);
+
 	if (idx >= pmu->nr_arch_gp_counters)
+	{
 		return NULL;
+	}
+
 	counters = pmu->gp_counters;
 
 	return &counters[idx];
@@ -97,7 +106,7 @@ static bool amd_is_valid_msr(struct kvm_vcpu *vcpu, u32 msr)
 	int ret = false;
 
 	ret = get_gp_pmc(pmu, msr, MSR_K7_PERFCTR0) ||
-		get_gp_pmc(pmu, msr, MSR_K7_EVNTSEL0);
+		  get_gp_pmc(pmu, msr, MSR_K7_EVNTSEL0);
 
 	return ret;
 }
@@ -109,13 +118,18 @@ static int amd_pmu_get_msr(struct kvm_vcpu *vcpu, u32 msr, u64 *data)
 
 	/* MSR_K7_PERFCTRn */
 	pmc = get_gp_pmc(pmu, msr, MSR_K7_PERFCTR0);
-	if (pmc) {
+
+	if (pmc)
+	{
 		*data = pmc_read_counter(pmc);
 		return 0;
 	}
+
 	/* MSR_K7_EVNTSELn */
 	pmc = get_gp_pmc(pmu, msr, MSR_K7_EVNTSEL0);
-	if (pmc) {
+
+	if (pmc)
+	{
 		*data = pmc->eventsel;
 		return 0;
 	}
@@ -132,16 +146,25 @@ static int amd_pmu_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
 
 	/* MSR_K7_PERFCTRn */
 	pmc = get_gp_pmc(pmu, msr, MSR_K7_PERFCTR0);
-	if (pmc) {
+
+	if (pmc)
+	{
 		pmc->counter += data - pmc_read_counter(pmc);
 		return 0;
 	}
+
 	/* MSR_K7_EVNTSELn */
 	pmc = get_gp_pmc(pmu, msr, MSR_K7_EVNTSEL0);
-	if (pmc) {
+
+	if (pmc)
+	{
 		if (data == pmc->eventsel)
+		{
 			return 0;
-		if (!(data & pmu->reserved_bits)) {
+		}
+
+		if (!(data & pmu->reserved_bits))
+		{
 			reprogram_gp_counter(pmc, data);
 			return 0;
 		}
@@ -169,7 +192,8 @@ static void amd_pmu_init(struct kvm_vcpu *vcpu)
 	struct kvm_pmu *pmu = vcpu_to_pmu(vcpu);
 	int i;
 
-	for (i = 0; i < AMD64_NUM_COUNTERS ; i++) {
+	for (i = 0; i < AMD64_NUM_COUNTERS ; i++)
+	{
 		pmu->gp_counters[i].type = KVM_PMC_GP;
 		pmu->gp_counters[i].vcpu = vcpu;
 		pmu->gp_counters[i].idx = i;
@@ -181,7 +205,8 @@ static void amd_pmu_reset(struct kvm_vcpu *vcpu)
 	struct kvm_pmu *pmu = vcpu_to_pmu(vcpu);
 	int i;
 
-	for (i = 0; i < AMD64_NUM_COUNTERS; i++) {
+	for (i = 0; i < AMD64_NUM_COUNTERS; i++)
+	{
 		struct kvm_pmc *pmc = &pmu->gp_counters[i];
 
 		pmc_stop_counter(pmc);
@@ -189,7 +214,8 @@ static void amd_pmu_reset(struct kvm_vcpu *vcpu)
 	}
 }
 
-struct kvm_pmu_ops amd_pmu_ops = {
+struct kvm_pmu_ops amd_pmu_ops =
+{
 	.find_arch_event = amd_find_arch_event,
 	.find_fixed_event = amd_find_fixed_event,
 	.pmc_is_enabled = amd_pmc_is_enabled,

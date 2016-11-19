@@ -29,10 +29,12 @@
  * part of the user ABI so we need to map from the perf PMU name for
  * supported PMUs.
  */
-static struct op_perf_name {
+static struct op_perf_name
+{
 	char *perf_name;
 	char *op_name;
-} op_perf_name_map[] = {
+} op_perf_name_map[] =
+{
 	{ "armv5_xscale1",	"arm/xscale1"	},
 	{ "armv5_xscale2",	"arm/xscale2"	},
 	{ "armv6_1136",		"arm/armv6"	},
@@ -49,10 +51,14 @@ char *op_name_from_perf_id(void)
 	struct op_perf_name names;
 	const char *perf_name = perf_pmu_name();
 
-	for (i = 0; i < ARRAY_SIZE(op_perf_name_map); ++i) {
+	for (i = 0; i < ARRAY_SIZE(op_perf_name_map); ++i)
+	{
 		names = op_perf_name_map[i];
+
 		if (!strcmp(names.perf_name, perf_name))
+		{
 			return names.op_name;
+		}
 	}
 
 	return NULL;
@@ -63,7 +69,8 @@ static int report_trace(struct stackframe *frame, void *d)
 {
 	unsigned int *depth = d;
 
-	if (*depth) {
+	if (*depth)
+	{
 		oprofile_add_trace(frame->pc);
 		(*depth)--;
 	}
@@ -77,37 +84,46 @@ static int report_trace(struct stackframe *frame, void *d)
  * structure so the address of this struct is:
  * (struct frame_tail *)(xxx->fp)-1
  */
-struct frame_tail {
+struct frame_tail
+{
 	struct frame_tail *fp;
 	unsigned long sp;
 	unsigned long lr;
 } __attribute__((packed));
 
-static struct frame_tail* user_backtrace(struct frame_tail *tail)
+static struct frame_tail *user_backtrace(struct frame_tail *tail)
 {
 	struct frame_tail buftail[2];
 
 	/* Also check accessibility of one struct frame_tail beyond */
 	if (!access_ok(VERIFY_READ, tail, sizeof(buftail)))
+	{
 		return NULL;
+	}
+
 	if (__copy_from_user_inatomic(buftail, tail, sizeof(buftail)))
+	{
 		return NULL;
+	}
 
 	oprofile_add_trace(buftail[0].lr);
 
 	/* frame pointers should strictly progress back up the stack
 	 * (towards higher addresses) */
 	if (tail + 1 >= buftail[0].fp)
+	{
 		return NULL;
+	}
 
-	return buftail[0].fp-1;
+	return buftail[0].fp - 1;
 }
 
-static void arm_backtrace(struct pt_regs * const regs, unsigned int depth)
+static void arm_backtrace(struct pt_regs *const regs, unsigned int depth)
 {
 	struct frame_tail *tail = ((struct frame_tail *) regs->ARM_fp) - 1;
 
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		struct stackframe frame;
 		arm_get_current_stackframe(regs, &frame);
 		walk_stackframe(&frame, report_trace, &depth);
@@ -115,7 +131,9 @@ static void arm_backtrace(struct pt_regs * const regs, unsigned int depth)
 	}
 
 	while (depth-- && tail && !((unsigned long) tail & 3))
+	{
 		tail = user_backtrace(tail);
+	}
 }
 
 int __init oprofile_arch_init(struct oprofile_operations *ops)

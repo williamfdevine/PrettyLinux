@@ -16,7 +16,8 @@
 #define BUG_PREFIX 0x0D7F
 #define BUG_MAGIC  0x00001234
 
-struct bug_frame {
+struct bug_frame
+{
 	unsigned short prefix;
 	unsigned int magic;
 	unsigned short clear;
@@ -33,9 +34,9 @@ struct bug_frame {
  */
 #define BUG()								\
 	__asm__ __volatile__ ("clear.d [" __stringify(BUG_MAGIC) "]\n\t"\
-				"movu.w %0,$r0\n\t"			\
-				"jump %1\n\t"				\
-				: : "i" (__LINE__), "i" (__FILE__))
+						  "movu.w %0,$r0\n\t"			\
+						  "jump %1\n\t"				\
+						  : : "i" (__LINE__), "i" (__FILE__))
 #else
 /* This version will have to do for now, until the compiler is fixed.
  * The drawbacks of this version are that the file name will appear multiple
@@ -44,11 +45,11 @@ struct bug_frame {
  */
 #define BUG()								\
 	__asm__ __volatile__ ("clear.d [" __stringify(BUG_MAGIC) "]\n\t"\
-			      "movu.w " __stringify(__LINE__) ",$r0\n\t"\
-			      "jump 0f\n\t"				\
-			      ".section .rodata\n"			\
-			      "0:\t.string \"" __FILE__ "\"\n\t"	\
-			      ".previous")
+						  "movu.w " __stringify(__LINE__) ",$r0\n\t"\
+						  "jump 0f\n\t"				\
+						  ".section .rodata\n"			\
+						  "0:\t.string \"" __FILE__ "\"\n\t"	\
+						  ".previous")
 #endif
 
 #else

@@ -25,38 +25,39 @@
 
 #ifdef __KERNEL__
 
-struct Hydra {
-    /* DBDMA Controller Register Space */
-    char Pad1[0x30];
-    u_int CachePD;
-    u_int IDs;
-    u_int Feature_Control;
-    char Pad2[0x7fc4];
-    /* DBDMA Channel Register Space */
-    char SCSI_DMA[0x100];
-    char Pad3[0x300];
-    char SCCA_Tx_DMA[0x100];
-    char SCCA_Rx_DMA[0x100];
-    char SCCB_Tx_DMA[0x100];
-    char SCCB_Rx_DMA[0x100];
-    char Pad4[0x7800];
-    /* Device Register Space */
-    char SCSI[0x1000];
-    char ADB[0x1000];
-    char SCC_Legacy[0x1000];
-    char SCC[0x1000];
-    char Pad9[0x2000];
-    char VIA[0x2000];
-    char Pad10[0x28000];
-    char OpenPIC[0x40000];
+struct Hydra
+{
+	/* DBDMA Controller Register Space */
+	char Pad1[0x30];
+	u_int CachePD;
+	u_int IDs;
+	u_int Feature_Control;
+	char Pad2[0x7fc4];
+	/* DBDMA Channel Register Space */
+	char SCSI_DMA[0x100];
+	char Pad3[0x300];
+	char SCCA_Tx_DMA[0x100];
+	char SCCA_Rx_DMA[0x100];
+	char SCCB_Tx_DMA[0x100];
+	char SCCB_Rx_DMA[0x100];
+	char Pad4[0x7800];
+	/* Device Register Space */
+	char SCSI[0x1000];
+	char ADB[0x1000];
+	char SCC_Legacy[0x1000];
+	char SCC[0x1000];
+	char Pad9[0x2000];
+	char VIA[0x2000];
+	char Pad10[0x28000];
+	char OpenPIC[0x40000];
 };
 
 extern volatile struct Hydra __iomem *Hydra;
 
 
-    /*
-     *  Feature Control Register
-     */
+/*
+ *  Feature Control Register
+ */
 
 #define HYDRA_FC_SCC_CELL_EN	0x00000001	/* Enable SCC Clock */
 #define HYDRA_FC_SCSI_CELL_EN	0x00000002	/* Enable SCSI Clock */
@@ -69,9 +70,9 @@ extern volatile struct Hydra __iomem *Hydra;
 #define HYDRA_FC_MPIC_IS_MASTER	0x00000100	/* OpenPIC Master Mode */
 
 
-    /*
-     *  OpenPIC Interrupt Sources
-     */
+/*
+ *  OpenPIC Interrupt Sources
+ */
 
 #define HYDRA_INT_SIO		0
 #define HYDRA_INT_SCSI_DMA	1

@@ -78,12 +78,15 @@ void __init setup_arch(char **cmdline_p)
 
 	high_memory = &dram_end;
 
-	if(romfs_in_flash || !romfs_length) {
+	if (romfs_in_flash || !romfs_length)
+	{
 		/* if we have the romfs in flash, or if there is no rom filesystem,
 		 * our free area starts directly after the BSS
 		 */
 		memory_start = (unsigned long) &_end;
-	} else {
+	}
+	else
+	{
 		/* otherwise the free area starts after the ROM filesystem */
 		printk("ROM fs in RAM, size %lu bytes\n", romfs_length);
 		memory_start = romfs_start + romfs_length;
@@ -101,17 +104,17 @@ void __init setup_arch(char **cmdline_p)
 	 * to the end of DRAM.
 	 */
 
-        /*
-         * partially used pages are not usable - thus
-         * we are rounding upwards:
-         */
+	/*
+	 * partially used pages are not usable - thus
+	 * we are rounding upwards:
+	 */
 
-        start_pfn = PFN_UP(memory_start);  /* usually c0000000 + kernel + romfs */
+	start_pfn = PFN_UP(memory_start);  /* usually c0000000 + kernel + romfs */
 	max_pfn =   PFN_DOWN((unsigned long)high_memory); /* usually c0000000 + dram size */
 
-        /*
-         * Initialize the boot-time allocator (start, end)
-	 *
+	/*
+	 * Initialize the boot-time allocator (start, end)
+	*
 	 * We give it access to all our DRAM, but we could as well just have
 	 * given it a small slice. No point in doing that though, unless we
 	 * have non-contiguous memory and want the boot-stuff to be in, say,
@@ -123,27 +126,27 @@ void __init setup_arch(char **cmdline_p)
 	 *
 	 * We need to use init_bootmem_node instead of init_bootmem
 	 * because our map starts at a quite high address (min_low_pfn).
-         */
+	       */
 
 	max_low_pfn = max_pfn;
 	min_low_pfn = PAGE_OFFSET >> PAGE_SHIFT;
 
 	bootmap_size = init_bootmem_node(NODE_DATA(0), start_pfn,
-					 min_low_pfn,
-					 max_low_pfn);
+									 min_low_pfn,
+									 max_low_pfn);
 
 	/* And free all memory not belonging to the kernel (addr, size) */
 
 	free_bootmem(PFN_PHYS(start_pfn), PFN_PHYS(max_pfn - start_pfn));
 
-        /*
-         * Reserve the bootmem bitmap itself as well. We do this in two
-         * steps (first step was init_bootmem()) because this catches
-         * the (very unlikely) case of us accidentally initializing the
-         * bootmem allocator with an invalid RAM area.
-	 *
+	/*
+	 * Reserve the bootmem bitmap itself as well. We do this in two
+	 * steps (first step was init_bootmem()) because this catches
+	 * the (very unlikely) case of us accidentally initializing the
+	 * bootmem allocator with an invalid RAM area.
+	*
 	 * Arguments are start, size
-         */
+	       */
 
 	reserve_bootmem(PFN_PHYS(start_pfn), bootmap_size, BOOTMEM_DEFAULT);
 
@@ -156,10 +159,13 @@ void __init setup_arch(char **cmdline_p)
 	*cmdline_p = cris_command_line;
 
 #ifdef CONFIG_ETRAX_CMDLINE
-        if (!strcmp(cris_command_line, "")) {
+
+	if (!strcmp(cris_command_line, ""))
+	{
 		strlcpy(cris_command_line, CONFIG_ETRAX_CMDLINE, COMMAND_LINE_SIZE);
 		cris_command_line[COMMAND_LINE_SIZE - 1] = '\0';
 	}
+
 #endif
 
 	/* Save command line for future references. */
@@ -191,7 +197,8 @@ static void c_stop(struct seq_file *m, void *v)
 
 extern int show_cpuinfo(struct seq_file *m, void *v);
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start = c_start,
 	.next  = c_next,
 	.stop  = c_stop,
@@ -203,8 +210,9 @@ static int __init topology_init(void)
 {
 	int i;
 
-	for_each_possible_cpu(i) {
-		 return register_cpu(&cpu_devices[i], i);
+	for_each_possible_cpu(i)
+	{
+		return register_cpu(&cpu_devices[i], i);
 	}
 
 	return 0;

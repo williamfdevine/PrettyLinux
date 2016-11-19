@@ -47,7 +47,7 @@ void cache_push_v(unsigned long vaddr, int len)
  */
 
 unsigned long kernel_map(unsigned long paddr, unsigned long size,
-			 int nocacheflag, unsigned long *memavailp)
+						 int nocacheflag, unsigned long *memavailp)
 {
 	return paddr;
 }

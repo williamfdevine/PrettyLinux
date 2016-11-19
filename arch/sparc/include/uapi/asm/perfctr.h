@@ -1,5 +1,5 @@
 /*----------------------------------------
-  PERFORMANCE INSTRUMENTATION  
+  PERFORMANCE INSTRUMENTATION
   Guillaume Thouvenin           08/10/98
   David S. Miller               10/06/98
   ---------------------------------------*/
@@ -20,7 +20,8 @@
  * process either exits or performs an exec.  That is, performance
  * counters remain enabled for fork/clone children.
  */
-enum perfctr_opcode {
+enum perfctr_opcode
+{
 	/* Enable UltraSparc performance counters, ARG0 is pointer
 	 * to 64-bit accumulator for D0 counter in PIC, ARG1 is pointer
 	 * to 64-bit accumulator for D1 counter.  ARG2 is a pointer to
@@ -158,9 +159,10 @@ enum perfctr_opcode {
 #define  US3_RE_RAW_MISS	0x00013800
 #define  US3_FM_PIPE_COMPLETION	0x00014000
 
-struct vcounter_struct {
-  unsigned long long vcnt0;
-  unsigned long long vcnt1;
+struct vcounter_struct
+{
+	unsigned long long vcnt0;
+	unsigned long long vcnt1;
 };
 
 #endif /* !(PERF_COUNTER_API) */

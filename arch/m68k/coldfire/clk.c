@@ -49,7 +49,8 @@ static void __clk_disable0(struct clk *clk)
 	__raw_writeb(clk->slot, MCFPM_PPMSR0);
 }
 
-struct clk_ops clk_ops0 = {
+struct clk_ops clk_ops0 =
+{
 	.enable		= __clk_enable0,
 	.disable	= __clk_disable0,
 };
@@ -65,7 +66,8 @@ static void __clk_disable1(struct clk *clk)
 	__raw_writeb(clk->slot, MCFPM_PPMSR1);
 }
 
-struct clk_ops clk_ops1 = {
+struct clk_ops clk_ops1 =
+{
 	.enable		= __clk_enable1,
 	.disable	= __clk_disable1,
 };
@@ -80,7 +82,10 @@ struct clk *clk_get(struct device *dev, const char *id)
 
 	for (i = 0; (clk = mcf_clks[i]) != NULL; ++i)
 		if (!strcmp(clk->name, clk_name))
+		{
 			return clk;
+		}
+
 	pr_warn("clk_get: didn't find clock %s\n", clk_name);
 	return ERR_PTR(-ENOENT);
 }
@@ -90,8 +95,12 @@ int clk_enable(struct clk *clk)
 {
 	unsigned long flags;
 	spin_lock_irqsave(&clk_lock, flags);
+
 	if ((clk->enabled++ == 0) && clk->clk_ops)
+	{
 		clk->clk_ops->enable(clk);
+	}
+
 	spin_unlock_irqrestore(&clk_lock, flags);
 
 	return 0;
@@ -103,11 +112,17 @@ void clk_disable(struct clk *clk)
 	unsigned long flags;
 
 	if (!clk)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&clk_lock, flags);
+
 	if ((--clk->enabled == 0) && clk->clk_ops)
+	{
 		clk->clk_ops->disable(clk);
+	}
+
 	spin_unlock_irqrestore(&clk_lock, flags);
 }
 EXPORT_SYMBOL(clk_disable);
@@ -115,7 +130,9 @@ EXPORT_SYMBOL(clk_disable);
 void clk_put(struct clk *clk)
 {
 	if (clk->enabled != 0)
+	{
 		pr_warn("clk_put %s still enabled\n", clk->name);
+	}
 }
 EXPORT_SYMBOL(clk_put);
 

@@ -77,8 +77,10 @@ typedef unsigned long elf_greg_t;
 #define ELF_NGREG 38
 typedef elf_greg_t elf_gregset_t[ELF_NGREG];
 
-typedef struct {
-	union {
+typedef struct
+{
+	union
+	{
 		unsigned long	pr_regs[32];
 		double		pr_dregs[16];
 	} pr_fr;
@@ -120,7 +122,7 @@ typedef struct {
 
 /* Most sun4m's have them all.  */
 #define ELF_HWCAP	(HWCAP_SPARC_FLUSH | HWCAP_SPARC_STBAR | \
-			 HWCAP_SPARC_SWAP | HWCAP_SPARC_MULDIV)
+					 HWCAP_SPARC_SWAP | HWCAP_SPARC_MULDIV)
 
 /* This yields a string that ld.so will use to load implementation
    specific libraries for optimization.  This is more specific in

@@ -109,28 +109,28 @@
 #ifdef CONFIG_CPU_HAS_SYNC
 #define __sync()				\
 	__asm__ __volatile__(			\
-		".set	push\n\t"		\
-		".set	noreorder\n\t"		\
-		".set	mips2\n\t"		\
-		"sync\n\t"			\
-		".set	pop"			\
-		: /* no output */		\
-		: /* no input */		\
-		: "memory")
+									".set	push\n\t"		\
+									".set	noreorder\n\t"		\
+									".set	mips2\n\t"		\
+									"sync\n\t"			\
+									".set	pop"			\
+									: /* no output */		\
+									: /* no input */		\
+									: "memory")
 #else
 #define __sync()	do { } while(0)
 #endif
 
 #define __fast_iob()				\
 	__asm__ __volatile__(			\
-		".set	push\n\t"		\
-		".set	noreorder\n\t"		\
-		"lw	$0,%0\n\t"		\
-		"nop\n\t"			\
-		".set	pop"			\
-		: /* no output */		\
-		: "m" (*(int *)CKSEG1)		\
-		: "memory")
+									".set	push\n\t"		\
+									".set	noreorder\n\t"		\
+									"lw	$0,%0\n\t"		\
+									"nop\n\t"			\
+									".set	pop"			\
+									: /* no output */		\
+									: "m" (*(int *)CKSEG1)		\
+									: "memory")
 #ifdef CONFIG_CPU_CAVIUM_OCTEON
 # define OCTEON_SYNCW_STR	".set push\n.set arch=octeon\nsyncw\nsyncw\n.set pop\n"
 # define __syncw()	__asm__ __volatile__(OCTEON_SYNCW_STR : : : "memory")
@@ -146,15 +146,15 @@
 # ifdef CONFIG_SGI_IP28
 #  define fast_iob()				\
 	__asm__ __volatile__(			\
-		".set	push\n\t"		\
-		".set	noreorder\n\t"		\
-		"lw	$0,%0\n\t"		\
-		"sync\n\t"			\
-		"lw	$0,%0\n\t"		\
-		".set	pop"			\
-		: /* no output */		\
-		: "m" (*(int *)CKSEG1ADDR(0x1fa00004)) \
-		: "memory")
+									".set	push\n\t"		\
+									".set	noreorder\n\t"		\
+									"lw	$0,%0\n\t"		\
+									"sync\n\t"			\
+									"lw	$0,%0\n\t"		\
+									".set	pop"			\
+									: /* no output */		\
+									: "m" (*(int *)CKSEG1ADDR(0x1fa00004)) \
+									: "memory")
 # else
 #  define fast_iob()				\
 	do {					\
@@ -166,15 +166,15 @@
 
 #ifdef CONFIG_CPU_HAS_WB
 
-#include <asm/wbflush.h>
+	#include <asm/wbflush.h>
 
-#define mb()		wbflush()
-#define iob()		wbflush()
+	#define mb()		wbflush()
+	#define iob()		wbflush()
 
 #else /* !CONFIG_CPU_HAS_WB */
 
-#define mb()		fast_mb()
-#define iob()		fast_iob()
+	#define mb()		fast_mb()
+	#define iob()		fast_iob()
 
 #endif /* !CONFIG_CPU_HAS_WB */
 
@@ -182,25 +182,25 @@
 #define rmb()		fast_rmb()
 
 #if defined(CONFIG_WEAK_ORDERING)
-# ifdef CONFIG_CPU_CAVIUM_OCTEON
-#  define __smp_mb()	__sync()
-#  define __smp_rmb()	barrier()
-#  define __smp_wmb()	__syncw()
-# else
-#  define __smp_mb()	__asm__ __volatile__("sync" : : :"memory")
-#  define __smp_rmb()	__asm__ __volatile__("sync" : : :"memory")
-#  define __smp_wmb()	__asm__ __volatile__("sync" : : :"memory")
-# endif
+	#ifdef CONFIG_CPU_CAVIUM_OCTEON
+		#define __smp_mb()	__sync()
+		#define __smp_rmb()	barrier()
+		#define __smp_wmb()	__syncw()
+	#else
+		#define __smp_mb()	__asm__ __volatile__("sync" : : :"memory")
+		#define __smp_rmb()	__asm__ __volatile__("sync" : : :"memory")
+		#define __smp_wmb()	__asm__ __volatile__("sync" : : :"memory")
+	#endif
 #else
-#define __smp_mb()	barrier()
-#define __smp_rmb()	barrier()
-#define __smp_wmb()	barrier()
+	#define __smp_mb()	barrier()
+	#define __smp_rmb()	barrier()
+	#define __smp_wmb()	barrier()
 #endif
 
 #if defined(CONFIG_WEAK_REORDERING_BEYOND_LLSC) && defined(CONFIG_SMP)
-#define __WEAK_LLSC_MB		"	sync	\n"
+	#define __WEAK_LLSC_MB		"	sync	\n"
 #else
-#define __WEAK_LLSC_MB		"		\n"
+	#define __WEAK_LLSC_MB		"		\n"
 #endif
 
 #define smp_llsc_mb()	__asm__ __volatile__(__WEAK_LLSC_MB : : :"memory")
@@ -210,9 +210,9 @@
 #define __smp_mb__before_llsc() __smp_wmb()
 /* Cause previous writes to become visible on all CPUs as soon as possible */
 #define nudge_writes() __asm__ __volatile__(".set push\n\t"		\
-					    ".set arch=octeon\n\t"	\
-					    "syncw\n\t"			\
-					    ".set pop" : : : "memory")
+		".set arch=octeon\n\t"	\
+		"syncw\n\t"			\
+		".set pop" : : : "memory")
 #else
 #define smp_mb__before_llsc() smp_llsc_mb()
 #define __smp_mb__before_llsc() smp_llsc_mb()

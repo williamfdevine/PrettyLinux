@@ -11,7 +11,8 @@
  * We do not use the word_at_a_time struct on Alpha, but it needs to be
  * implemented to humour the generic code.
  */
-struct word_at_a_time {
+struct word_at_a_time
+{
 	const unsigned long unused;
 };
 
@@ -45,9 +46,13 @@ static inline unsigned long find_zero(unsigned long bits)
 	t1 = bits & 0xf0;
 	t2 = bits & 0xcc;
 	t3 = bits & 0xaa;
-	if (t1) t1 = 4;
-	if (t2) t2 = 2;
-	if (t3) t3 = 1;
+
+	if (t1) { t1 = 4; }
+
+	if (t2) { t2 = 2; }
+
+	if (t3) { t3 = 1; }
+
 	return t1 + t2 + t3;
 #endif
 }

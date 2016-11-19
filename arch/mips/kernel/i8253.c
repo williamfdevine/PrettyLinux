@@ -17,7 +17,8 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction irq0  = {
+static struct irqaction irq0  =
+{
 	.handler = timer_interrupt,
 	.flags = IRQF_NOBALANCING | IRQF_TIMER,
 	.name = "timer"
@@ -32,7 +33,9 @@ void __init setup_pit_timer(void)
 static int __init init_pit_clocksource(void)
 {
 	if (num_possible_cpus() > 1) /* PIT does not scale! */
+	{
 		return 0;
+	}
 
 	return clocksource_i8253_init();
 }

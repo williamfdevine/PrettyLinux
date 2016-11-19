@@ -31,7 +31,8 @@
 /* assume no Mini-AB port */
 
 #ifdef CONFIG_ARCH_OMAP15XX
-static struct omap_usb_config generic1510_usb_config __initdata = {
+static struct omap_usb_config generic1510_usb_config __initdata =
+{
 	.register_host	= 1,
 	.register_dev	= 1,
 	.hmc_mode	= 16,
@@ -40,7 +41,8 @@ static struct omap_usb_config generic1510_usb_config __initdata = {
 #endif
 
 #if defined(CONFIG_ARCH_OMAP16XX)
-static struct omap_usb_config generic1610_usb_config __initdata = {
+static struct omap_usb_config generic1610_usb_config __initdata =
+{
 #ifdef CONFIG_USB_OTG
 	.otg		= 1,
 #endif
@@ -54,7 +56,9 @@ static struct omap_usb_config generic1610_usb_config __initdata = {
 static void __init omap_generic_init(void)
 {
 #ifdef CONFIG_ARCH_OMAP15XX
-	if (cpu_is_omap15xx()) {
+
+	if (cpu_is_omap15xx())
+	{
 		/* mux pins for uarts */
 		omap_cfg_reg(UART1_TX);
 		omap_cfg_reg(UART1_RTS);
@@ -65,11 +69,15 @@ static void __init omap_generic_init(void)
 
 		omap1_usb_init(&generic1510_usb_config);
 	}
+
 #endif
 #if defined(CONFIG_ARCH_OMAP16XX)
-	if (!cpu_is_omap1510()) {
+
+	if (!cpu_is_omap1510())
+	{
 		omap1_usb_init(&generic1610_usb_config);
 	}
+
 #endif
 
 	omap_serial_init();
@@ -77,14 +85,14 @@ static void __init omap_generic_init(void)
 }
 
 MACHINE_START(OMAP_GENERIC, "Generic OMAP1510/1610/1710")
-	/* Maintainer: Tony Lindgren <tony@atomide.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Tony Lindgren <tony@atomide.com> */
+.atag_offset	= 0x100,
 	.map_io		= omap16xx_map_io,
-	.init_early	= omap1_init_early,
-	.init_irq	= omap1_init_irq,
-	.handle_irq	= omap1_handle_irq,
-	.init_machine	= omap_generic_init,
-	.init_late	= omap1_init_late,
-	.init_time	= omap1_timer_init,
-	.restart	= omap1_restart,
-MACHINE_END
+		.init_early	= omap1_init_early,
+		 .init_irq	= omap1_init_irq,
+			.handle_irq	= omap1_handle_irq,
+			 .init_machine	= omap_generic_init,
+				.init_late	= omap1_init_late,
+				  .init_time	= omap1_timer_init,
+					.restart	= omap1_restart,
+						MACHINE_END

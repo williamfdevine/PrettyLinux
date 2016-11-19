@@ -259,14 +259,24 @@ static inline int local_add_unless(local_t *l, long a, long u)
 {
 	long c, old;
 	c = local_read(l);
-	for (;;) {
+
+	for (;;)
+	{
 		if (unlikely(c == (u)))
+		{
 			break;
+		}
+
 		old = local_cmpxchg((l), c, c + (a));
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return c != (u);
 }
 

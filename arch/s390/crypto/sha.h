@@ -22,7 +22,8 @@
 #define SHA_MAX_STATE_SIZE	(SHA512_DIGEST_SIZE / 4)
 #define SHA_MAX_BLOCK_SIZE      SHA512_BLOCK_SIZE
 
-struct s390_sha_ctx {
+struct s390_sha_ctx
+{
 	u64 count;              /* message length in bytes */
 	u32 state[SHA_MAX_STATE_SIZE];
 	u8 buf[2 * SHA_MAX_BLOCK_SIZE];

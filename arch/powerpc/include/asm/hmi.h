@@ -31,7 +31,8 @@
  * during HMI to avoid TB corruption. This structure is allocated once
  * per each core and shared by all threads on that core.
  */
-struct sibling_subcore_state {
+struct sibling_subcore_state
+{
 	unsigned long	flags;
 	u8		in_guest[MAX_SUBCORE_PER_CORE];
 };

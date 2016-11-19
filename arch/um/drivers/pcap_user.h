@@ -1,11 +1,12 @@
-/* 
+/*
  * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
  * Licensed under the GPL
  */
 
 #include <net_user.h>
 
-struct pcap_data {
+struct pcap_data
+{
 	char *host_if;
 	int promisc;
 	int optimize;

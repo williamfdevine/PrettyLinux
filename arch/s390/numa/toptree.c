@@ -30,7 +30,9 @@ struct toptree *toptree_alloc(int level, int id)
 	struct toptree *res = kzalloc(sizeof(struct toptree), GFP_KERNEL);
 
 	if (!res)
+	{
 		return res;
+	}
 
 	INIT_LIST_HEAD(&res->children);
 	INIT_LIST_HEAD(&res->sibling);
@@ -70,9 +72,12 @@ void toptree_free(struct toptree *cand)
 	struct toptree *child, *tmp;
 
 	if (cand->parent)
+	{
 		toptree_remove(cand);
+	}
+
 	toptree_for_each_child_safe(child, tmp, cand)
-		toptree_free(child);
+	toptree_free(child);
 	kfree(cand);
 }
 
@@ -94,9 +99,12 @@ void toptree_update_mask(struct toptree *cand)
 
 	cpumask_clear(&cand->mask);
 	list_for_each_entry(child, &cand->children, sibling)
-		cpumask_or(&cand->mask, &cand->mask, &child->mask);
+	cpumask_or(&cand->mask, &cand->mask, &child->mask);
+
 	if (cand->parent)
+	{
 		toptree_update_mask(cand->parent);
+	}
 }
 
 /**
@@ -113,9 +121,15 @@ void toptree_update_mask(struct toptree *cand)
 static int toptree_insert(struct toptree *cand, struct toptree *target)
 {
 	if (!cand || !target)
+	{
 		return -1;
+	}
+
 	if (target->level != (cand->level + 1))
+	{
 		return -1;
+	}
+
 	list_add_tail(&cand->sibling, &target->children);
 	cand->parent = target;
 	toptree_update_mask(target);
@@ -134,7 +148,7 @@ static void toptree_move_children(struct toptree *cand, struct toptree *target)
 	struct toptree *child, *tmp;
 
 	toptree_for_each_child_safe(child, tmp, cand)
-		toptree_move(child, target);
+	toptree_move(child, target);
 }
 
 /**
@@ -151,23 +165,28 @@ void toptree_unify(struct toptree *cand)
 
 	/* Threads cannot be split, cores are not split */
 	if (cand->level < 2)
+	{
 		return;
+	}
 
 	cand_copy = toptree_alloc(cand->level, 0);
-	toptree_for_each_child_safe(child, tmp, cand) {
+	toptree_for_each_child_safe(child, tmp, cand)
+	{
 		struct toptree *tmpchild;
 
-		if (!cpumask_empty(&child->mask)) {
+		if (!cpumask_empty(&child->mask))
+		{
 			tmpchild = toptree_get_child(cand_copy, child->id);
 			toptree_move_children(child, tmpchild);
 		}
+
 		toptree_free(child);
 	}
 	toptree_move_children(cand_copy, cand);
 	toptree_free(cand_copy);
 
 	toptree_for_each_child(child, cand)
-		toptree_unify(child);
+	toptree_unify(child);
 }
 
 /**
@@ -190,7 +209,8 @@ void toptree_move(struct toptree *cand, struct toptree *target)
 {
 	struct toptree *stack_target, *real_insert_point, *ptr, *tmp;
 
-	if (cand->level + 1 == target->level) {
+	if (cand->level + 1 == target->level)
+	{
 		toptree_remove(cand);
 		toptree_insert(cand, target);
 		return;
@@ -200,15 +220,21 @@ void toptree_move(struct toptree *cand, struct toptree *target)
 	ptr = cand;
 	stack_target = NULL;
 
-	do {
+	do
+	{
 		tmp = stack_target;
 		stack_target = toptree_alloc(ptr->level + 1,
-					     ptr->parent->id);
+									 ptr->parent->id);
 		toptree_insert(tmp, stack_target);
+
 		if (!real_insert_point)
+		{
 			real_insert_point = stack_target;
+		}
+
 		ptr = ptr->parent;
-	} while (stack_target->level < (target->level - 1));
+	}
+	while (stack_target->level < (target->level - 1));
 
 	toptree_remove(cand);
 	toptree_insert(cand, real_insert_point);
@@ -229,9 +255,13 @@ struct toptree *toptree_get_child(struct toptree *cand, int id)
 	struct toptree *child;
 
 	toptree_for_each_child(child, cand)
-		if (child->id == id)
-			return child;
-	child = toptree_alloc(cand->level-1, id);
+
+	if (child->id == id)
+	{
+		return child;
+	}
+
+	child = toptree_alloc(cand->level - 1, id);
 	toptree_insert(child, cand);
 	return child;
 }
@@ -250,15 +280,23 @@ struct toptree *toptree_first(struct toptree *context, int level)
 	struct toptree *child, *tmp;
 
 	if (context->level == level)
+	{
 		return context;
+	}
 
-	if (!list_empty(&context->children)) {
-		list_for_each_entry(child, &context->children, sibling) {
+	if (!list_empty(&context->children))
+	{
+		list_for_each_entry(child, &context->children, sibling)
+		{
 			tmp = toptree_first(child, level);
+
 			if (tmp)
+			{
 				return tmp;
+			}
 		}
 	}
+
 	return NULL;
 }
 
@@ -273,11 +311,16 @@ struct toptree *toptree_first(struct toptree *context, int level)
 static struct toptree *toptree_next_sibling(struct toptree *cur)
 {
 	if (cur->parent == NULL)
+	{
 		return NULL;
+	}
 
 	if (cur == list_last_entry(&cur->parent->children,
-				   struct toptree, sibling))
+							   struct toptree, sibling))
+	{
 		return NULL;
+	}
+
 	return (struct toptree *) list_next_entry(cur, sibling);
 }
 
@@ -293,33 +336,48 @@ static struct toptree *toptree_next_sibling(struct toptree *cur)
  * or NULL when there is no next node.
  */
 struct toptree *toptree_next(struct toptree *cur, struct toptree *context,
-			     int level)
+							 int level)
 {
 	struct toptree *cur_context, *tmp;
 
 	if (!cur)
+	{
 		return NULL;
+	}
 
 	if (context->level == level)
+	{
 		return NULL;
+	}
 
 	tmp = toptree_next_sibling(cur);
+
 	if (tmp != NULL)
+	{
 		return tmp;
+	}
 
 	cur_context = cur;
-	while (cur_context->level < context->level - 1) {
+
+	while (cur_context->level < context->level - 1)
+	{
 		/* Step up */
 		cur_context = cur_context->parent;
 		/* Step aside */
 		tmp = toptree_next_sibling(cur_context);
-		if (tmp != NULL) {
+
+		if (tmp != NULL)
+		{
 			/* Step down */
 			tmp = toptree_first(tmp, level);
+
 			if (tmp != NULL)
+			{
 				return tmp;
+			}
 		}
 	}
+
 	return NULL;
 }
 
@@ -337,6 +395,6 @@ int toptree_count(struct toptree *context, int level)
 	int cnt = 0;
 
 	toptree_for_each(cur, context, level)
-		cnt++;
+	cnt++;
 	return cnt;
 }

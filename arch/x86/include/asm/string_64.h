@@ -11,16 +11,16 @@ static __always_inline void *__inline_memcpy(void *to, const void *from, size_t 
 {
 	unsigned long d0, d1, d2;
 	asm volatile("rep ; movsl\n\t"
-		     "testb $2,%b4\n\t"
-		     "je 1f\n\t"
-		     "movsw\n"
-		     "1:\ttestb $1,%b4\n\t"
-		     "je 2f\n\t"
-		     "movsb\n"
-		     "2:"
-		     : "=&c" (d0), "=&D" (d1), "=&S" (d2)
-		     : "0" (n / 4), "q" (n), "1" ((long)to), "2" ((long)from)
-		     : "memory");
+				 "testb $2,%b4\n\t"
+				 "je 1f\n\t"
+				 "movsw\n"
+				 "1:\ttestb $1,%b4\n\t"
+				 "je 2f\n\t"
+				 "movsb\n"
+				 "2:"
+				 : "=&c" (d0), "=&D" (d1), "=&S" (d2)
+				 : "0" (n / 4), "q" (n), "1" ((long)to), "2" ((long)from)
+				 : "memory");
 	return to;
 }
 
@@ -34,15 +34,15 @@ extern void *__memcpy(void *to, const void *from, size_t len);
 #ifndef CONFIG_KMEMCHECK
 #if (__GNUC__ == 4 && __GNUC_MINOR__ < 3) || __GNUC__ < 4
 #define memcpy(dst, src, len)					\
-({								\
-	size_t __len = (len);					\
-	void *__ret;						\
-	if (__builtin_constant_p(len) && __len >= 64)		\
-		__ret = __memcpy((dst), (src), __len);		\
-	else							\
-		__ret = __builtin_memcpy((dst), (src), __len);	\
-	__ret;							\
-})
+	({								\
+		size_t __len = (len);					\
+		void *__ret;						\
+		if (__builtin_constant_p(len) && __len >= 64)		\
+			__ret = __memcpy((dst), (src), __len);		\
+		else							\
+			__ret = __builtin_memcpy((dst), (src), __len);	\
+		__ret;							\
+	})
 #endif
 #else
 /*
@@ -68,15 +68,15 @@ int strcmp(const char *cs, const char *ct);
 
 #if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
 
-/*
- * For files that not instrumented (e.g. mm/slub.c) we
- * should use not instrumented version of mem* functions.
- */
+	/*
+	* For files that not instrumented (e.g. mm/slub.c) we
+	* should use not instrumented version of mem* functions.
+	*/
 
-#undef memcpy
-#define memcpy(dst, src, len) __memcpy(dst, src, len)
-#define memmove(dst, src, len) __memmove(dst, src, len)
-#define memset(s, c, n) __memset(s, c, n)
+	#undef memcpy
+	#define memcpy(dst, src, len) __memcpy(dst, src, len)
+	#define memmove(dst, src, len) __memmove(dst, src, len)
+	#define memset(s, c, n) __memset(s, c, n)
 #endif
 
 __must_check int memcpy_mcsafe_unrolled(void *dst, const void *src, size_t cnt);
@@ -100,11 +100,15 @@ static __always_inline __must_check int
 memcpy_mcsafe(void *dst, const void *src, size_t cnt)
 {
 #ifdef CONFIG_X86_MCE
+
 	if (static_branch_unlikely(&mcsafe_key))
+	{
 		return memcpy_mcsafe_unrolled(dst, src, cnt);
+	}
 	else
 #endif
 		memcpy(dst, src, cnt);
+
 	return 0;
 }
 

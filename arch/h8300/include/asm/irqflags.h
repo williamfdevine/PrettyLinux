@@ -27,7 +27,7 @@ static inline h8300flags arch_local_irq_save(void)
 	h8300flags flags;
 
 	__asm__ volatile ("stc ccr,%w0\n\t"
-		      "orc  #0xc0,ccr" : "=r" (flags));
+					  "orc  #0xc0,ccr" : "=r" (flags));
 	return flags;
 }
 
@@ -60,7 +60,7 @@ static inline void arch_local_irq_disable(void)
 static inline void arch_local_irq_enable(void)
 {
 	__asm__ volatile ("andc #0x7f,ccr\n\t"
-		      "andc #0xf0,exr\n\t");
+					  "andc #0xf0,exr\n\t");
 }
 
 static inline h8300flags arch_local_irq_save(void)
@@ -68,17 +68,17 @@ static inline h8300flags arch_local_irq_save(void)
 	h8300flags flags;
 
 	__asm__ volatile ("stc ccr,%w0\n\t"
-		      "stc exr,%x0\n\t"
-		      "orc  #0x80,ccr\n\t"
-		      : "=r" (flags));
+					  "stc exr,%x0\n\t"
+					  "orc  #0x80,ccr\n\t"
+					  : "=r" (flags));
 	return flags;
 }
 
 static inline void arch_local_irq_restore(h8300flags flags)
 {
 	__asm__ volatile ("ldc %w0,ccr\n\t"
-		      "ldc %x0,exr"
-		      : : "r" (flags) : "cc");
+					  "ldc %x0,exr"
+					  : : "r" (flags) : "cc");
 }
 
 static inline int arch_irqs_disabled_flags(h8300flags flags)

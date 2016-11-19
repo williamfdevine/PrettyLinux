@@ -24,8 +24,8 @@
 /* Perf definitions for PMU event attributes in sysfs */
 extern __init const struct attribute_group **cpumf_cf_event_group(void);
 extern ssize_t cpumf_events_sysfs_show(struct device *dev,
-				       struct device_attribute *attr,
-				       char *page);
+									   struct device_attribute *attr,
+									   char *page);
 #define EVENT_VAR(_cat, _name)		event_attr_##_cat##_##_name
 #define EVENT_PTR(_cat, _name)		(&EVENT_VAR(_cat, _name).attr.attr)
 
@@ -41,9 +41,10 @@ extern unsigned long perf_misc_flags(struct pt_regs *regs);
 #define perf_misc_flags(regs) perf_misc_flags(regs)
 
 /* Perf pt_regs extension for sample-data-entry indicators */
-struct perf_sf_sde_regs {
-	unsigned char in_guest:1;	  /* guest sample */
-	unsigned long reserved:63;	  /* reserved */
+struct perf_sf_sde_regs
+{
+	unsigned char in_guest: 1;	 /* guest sample */
+	unsigned long reserved: 63;	 /* reserved */
 };
 
 /* Perf PMU definitions for the counter facility */
@@ -56,7 +57,7 @@ struct perf_sf_sde_regs {
 #define PERF_CPUM_SF_BASIC_MODE		0x0001	  /* Basic-sampling flag */
 #define PERF_CPUM_SF_DIAG_MODE		0x0002	  /* Diagnostic-sampling flag */
 #define PERF_CPUM_SF_MODE_MASK		(PERF_CPUM_SF_BASIC_MODE| \
-					 PERF_CPUM_SF_DIAG_MODE)
+									 PERF_CPUM_SF_DIAG_MODE)
 #define PERF_CPUM_SF_FULL_BLOCKS	0x0004	  /* Process full SDBs only */
 
 #define REG_NONE		0
@@ -74,7 +75,8 @@ struct perf_sf_sde_regs {
  * to user space.  Note that raw sample data must be aligned and, thus, might
  * be padded with zeros.
  */
-struct sf_raw_sample {
+struct sf_raw_sample
+{
 #define SF_RAW_SAMPLE_BASIC	PERF_CPUM_SF_BASIC_MODE
 #define SF_RAW_SAMPLE_DIAG	PERF_CPUM_SF_DIAG_MODE
 	u64			format;

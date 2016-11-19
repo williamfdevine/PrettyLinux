@@ -35,7 +35,9 @@ static DEFINE_SPINLOCK(rtciobrg_lock);
 void sirfsoc_rtc_iobrg_wait_sync(void)
 {
 	while (readl_relaxed(sirfsoc_rtciobrg_base + SIRFSOC_CPUIOBRG_CTRL))
+	{
 		cpu_relax();
+	}
 }
 
 void sirfsoc_rtc_iobrg_besyncing(void)
@@ -92,7 +94,7 @@ void sirfsoc_rtc_iobrg_writel(u32 val, u32 addr)
 {
 	unsigned long flags;
 
-	 /* TODO: add hwspinlock to sync with M3 */
+	/* TODO: add hwspinlock to sync with M3 */
 	spin_lock_irqsave(&rtciobrg_lock, flags);
 
 	sirfsoc_rtc_iobrg_pre_writel(val, addr);
@@ -107,20 +109,21 @@ EXPORT_SYMBOL_GPL(sirfsoc_rtc_iobrg_writel);
 
 
 static int regmap_iobg_regwrite(void *context, unsigned int reg,
-				   unsigned int val)
+								unsigned int val)
 {
 	sirfsoc_rtc_iobrg_writel(val, reg);
 	return 0;
 }
 
 static int regmap_iobg_regread(void *context, unsigned int reg,
-				  unsigned int *val)
+							   unsigned int *val)
 {
 	*val = (u32)sirfsoc_rtc_iobrg_readl(reg);
 	return 0;
 }
 
-static struct regmap_bus regmap_iobg = {
+static struct regmap_bus regmap_iobg =
+{
 	.reg_write = regmap_iobg_regwrite,
 	.reg_read = regmap_iobg_regread,
 };
@@ -136,7 +139,7 @@ static struct regmap_bus regmap_iobg = {
  * device management code.
  */
 struct regmap *devm_regmap_init_iobg(struct device *dev,
-				    const struct regmap_config *config)
+									 const struct regmap_config *config)
 {
 	const struct regmap_bus *bus = &regmap_iobg;
 
@@ -144,7 +147,8 @@ struct regmap *devm_regmap_init_iobg(struct device *dev,
 }
 EXPORT_SYMBOL_GPL(devm_regmap_init_iobg);
 
-static const struct of_device_id rtciobrg_ids[] = {
+static const struct of_device_id rtciobrg_ids[] =
+{
 	{ .compatible = "sirf,prima2-rtciobg" },
 	{}
 };
@@ -154,13 +158,17 @@ static int sirfsoc_rtciobrg_probe(struct platform_device *op)
 	struct device_node *np = op->dev.of_node;
 
 	sirfsoc_rtciobrg_base = of_iomap(np, 0);
+
 	if (!sirfsoc_rtciobrg_base)
+	{
 		panic("unable to map rtc iobrg registers\n");
+	}
 
 	return 0;
 }
 
-static struct platform_driver sirfsoc_rtciobrg_driver = {
+static struct platform_driver sirfsoc_rtciobrg_driver =
+{
 	.probe		= sirfsoc_rtciobrg_probe,
 	.driver = {
 		.name = "sirfsoc-rtciobrg",

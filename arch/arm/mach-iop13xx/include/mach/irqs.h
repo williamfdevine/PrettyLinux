@@ -84,7 +84,7 @@ static inline u32 read_intpnd_3(void)
 #define IRQ_IOP13XX_XINT5	(29)
 #define IRQ_IOP13XX_XINT6	(30)
 #define IRQ_IOP13XX_XINT7	(31)
-				      /* IINTSRC1 bit */
+/* IINTSRC1 bit */
 #define IRQ_IOP13XX_XINT8	(32)  /* 0  */
 #define IRQ_IOP13XX_XINT9	(33)  /* 1  */
 #define IRQ_IOP13XX_XINT10	(34)  /* 2  */
@@ -117,7 +117,7 @@ static inline u32 read_intpnd_3(void)
 #define IRQ_IOP13XX_RSVD_61	(61)  /* 29 */
 #define IRQ_IOP13XX_MSG_ERR	(62)  /* 30 */
 #define IRQ_IOP13XX_RSVD_63	(63)  /* 31 */
-				      /* IINTSRC2 bit */
+/* IINTSRC2 bit */
 #define IRQ_IOP13XX_INTERPROC	(64)  /* 0  */
 #define IRQ_IOP13XX_RSVD_65	(65)  /* 1  */
 #define IRQ_IOP13XX_RSVD_66	(66)  /* 2  */
@@ -150,7 +150,7 @@ static inline u32 read_intpnd_3(void)
 #define IRQ_IOP13XX_RSVD_93	(93)  /* 29 */
 #define IRQ_IOP13XX_SIB_ERR	(94)  /* 30 */
 #define IRQ_IOP13XX_SRAM_ERR	(95)  /* 31 */
-				      /* IINTSRC3 bit */
+/* IINTSRC3 bit */
 #define IRQ_IOP13XX_I2C_2	(96)  /* 0  */
 #define IRQ_IOP13XX_ATUE_BIST	(97)  /* 1  */
 #define IRQ_IOP13XX_ATUE_CRW	(98)  /* 2  */
@@ -185,10 +185,10 @@ static inline u32 read_intpnd_3(void)
 #define IRQ_IOP13XX_HPI	(127) /* 31 */
 
 #ifdef CONFIG_PCI_MSI
-#define IRQ_IOP13XX_MSI_0	(IRQ_IOP13XX_HPI + 1)
-#define NR_IOP13XX_IRQS 	(IRQ_IOP13XX_MSI_0 + 128)
+	#define IRQ_IOP13XX_MSI_0	(IRQ_IOP13XX_HPI + 1)
+	#define NR_IOP13XX_IRQS 	(IRQ_IOP13XX_MSI_0 + 128)
 #else
-#define NR_IOP13XX_IRQS	(IRQ_IOP13XX_HPI + 1)
+	#define NR_IOP13XX_IRQS	(IRQ_IOP13XX_HPI + 1)
 #endif
 
 #endif /* _IOP13XX_IRQ_H_ */

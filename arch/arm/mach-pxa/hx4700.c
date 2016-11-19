@@ -61,7 +61,8 @@
 #define ASIC3_PHYS      PXA_CS3_PHYS
 #define ASIC3_SD_PHYS   (PXA_CS3_PHYS + 0x02000000)
 
-static unsigned long hx4700_pin_config[] __initdata = {
+static unsigned long hx4700_pin_config[] __initdata =
+{
 
 	/* SDRAM and Static Memory I/O Signals */
 	GPIO20_nSDCS_2,
@@ -158,7 +159,8 @@ static unsigned long hx4700_pin_config[] __initdata = {
  * IRDA
  */
 
-static struct pxaficp_platform_data ficp_info = {
+static struct pxaficp_platform_data ficp_info =
+{
 	.gpio_pwdown		= GPIO105_HX4700_nIR_ON,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
@@ -170,28 +172,31 @@ static struct pxaficp_platform_data ficp_info = {
 #define INIT_KEY(_code, _gpio, _active_low, _desc)	\
 	{						\
 		.code       = KEY_##_code,		\
-		.gpio       = _gpio,			\
-		.active_low = _active_low,		\
-		.desc       = _desc,			\
-		.type       = EV_KEY,			\
-		.wakeup     = 1,			\
+					  .gpio       = _gpio,			\
+									.active_low = _active_low,		\
+											.desc       = _desc,			\
+													.type       = EV_KEY,			\
+															.wakeup     = 1,			\
 	}
 
-static struct gpio_keys_button gpio_keys_buttons[] = {
+static struct gpio_keys_button gpio_keys_buttons[] =
+{
 	INIT_KEY(POWER,       GPIO0_HX4700_nKEY_POWER,   1, "Power button"),
 	INIT_KEY(MAIL,        GPIO94_HX4700_KEY_MAIL,    0, "Mail button"),
-	INIT_KEY(ADDRESSBOOK, GPIO99_HX4700_KEY_CONTACTS,0, "Contacts button"),
+	INIT_KEY(ADDRESSBOOK, GPIO99_HX4700_KEY_CONTACTS, 0, "Contacts button"),
 	INIT_KEY(RECORD,      GPIOD6_nKEY_RECORD,        1, "Record button"),
 	INIT_KEY(CALENDAR,    GPIOD1_nKEY_CALENDAR,      1, "Calendar button"),
 	INIT_KEY(HOMEPAGE,    GPIOD3_nKEY_HOME,          1, "Home button"),
 };
 
-static struct gpio_keys_platform_data gpio_keys_data = {
+static struct gpio_keys_platform_data gpio_keys_data =
+{
 	.buttons = gpio_keys_buttons,
 	.nbuttons = ARRAY_SIZE(gpio_keys_buttons),
 };
 
-static struct platform_device gpio_keys = {
+static struct platform_device gpio_keys =
+{
 	.name = "gpio-keys",
 	.dev  = {
 		.platform_data = &gpio_keys_data,
@@ -203,12 +208,14 @@ static struct platform_device gpio_keys = {
  * Synaptics NavPoint connected to SSP1
  */
 
-static struct navpoint_platform_data navpoint_platform_data = {
+static struct navpoint_platform_data navpoint_platform_data =
+{
 	.port	= 1,
 	.gpio	= GPIO102_HX4700_SYNAPTICS_POWER_ON,
 };
 
-static struct platform_device navpoint = {
+static struct platform_device navpoint =
+{
 	.name	= "navpoint",
 	.id	= -1,
 	.dev = {
@@ -220,7 +227,8 @@ static struct platform_device navpoint = {
  * ASIC3
  */
 
-static u16 asic3_gpio_config[] = {
+static u16 asic3_gpio_config[] =
+{
 	/* ASIC3 GPIO banks A and B along with some of C and D
 	   implement the buffering for the CF slot. */
 	ASIC3_CONFIG_GPIO(0, 1, 1, 0),
@@ -280,7 +288,8 @@ static u16 asic3_gpio_config[] = {
 	ASIC3_GPIOD15_nPIOW,
 };
 
-static struct asic3_led asic3_leds[ASIC3_NUM_LEDS] = {
+static struct asic3_led asic3_leds[ASIC3_NUM_LEDS] =
+{
 	[0] = {
 		.name = "hx4700:amber",
 		.default_trigger = "ds2760-battery.0-charging-blink-full-solid",
@@ -295,7 +304,8 @@ static struct asic3_led asic3_leds[ASIC3_NUM_LEDS] = {
 	},
 };
 
-static struct resource asic3_resources[] = {
+static struct resource asic3_resources[] =
+{
 	/* GPIO part */
 	[0] = DEFINE_RES_MEM(ASIC3_PHYS, ASIC3_MAP_SIZE_16BIT),
 	[1] = DEFINE_RES_IRQ(PXA_GPIO_TO_IRQ(GPIO12_HX4700_ASIC3_IRQ)),
@@ -304,7 +314,8 @@ static struct resource asic3_resources[] = {
 	[3] = DEFINE_RES_IRQ(PXA_GPIO_TO_IRQ(GPIO66_HX4700_ASIC3_nSDIO_IRQ)),
 };
 
-static struct asic3_platform_data asic3_platform_data = {
+static struct asic3_platform_data asic3_platform_data =
+{
 	.gpio_config     = asic3_gpio_config,
 	.gpio_config_num = ARRAY_SIZE(asic3_gpio_config),
 	.irq_base        = IRQ_BOARD_START,
@@ -313,7 +324,8 @@ static struct asic3_platform_data asic3_platform_data = {
 	.leds            = asic3_leds,
 };
 
-static struct platform_device asic3 = {
+static struct platform_device asic3 =
+{
 	.name          = "asic3",
 	.id            = -1,
 	.resource      = asic3_resources,
@@ -327,11 +339,13 @@ static struct platform_device asic3 = {
  * EGPIO
  */
 
-static struct resource egpio_resources[] = {
+static struct resource egpio_resources[] =
+{
 	[0] = DEFINE_RES_MEM(PXA_CS5_PHYS, 0x4),
 };
 
-static struct htc_egpio_chip egpio_chips[] = {
+static struct htc_egpio_chip egpio_chips[] =
+{
 	[0] = {
 		.reg_start = 0,
 		.gpio_base = HX4700_EGPIO_BASE,
@@ -340,14 +354,16 @@ static struct htc_egpio_chip egpio_chips[] = {
 	},
 };
 
-static struct htc_egpio_platform_data egpio_info = {
+static struct htc_egpio_platform_data egpio_info =
+{
 	.reg_width = 16,
 	.bus_width = 16,
 	.chip      = egpio_chips,
 	.num_chips = ARRAY_SIZE(egpio_chips),
 };
 
-static struct platform_device egpio = {
+static struct platform_device egpio =
+{
 	.name          = "htc-egpio",
 	.id            = -1,
 	.resource      = egpio_resources,
@@ -416,13 +432,15 @@ static void w3220_lcd_resume(struct w100fb_par *wfb)
 #define w3220_lcd_suspend	NULL
 #endif
 
-static struct w100_tg_info w3220_tg_info = {
+static struct w100_tg_info w3220_tg_info =
+{
 	.suspend	= w3220_lcd_suspend,
 	.resume		= w3220_lcd_resume,
 };
 
 /*  				 W3220_VGA		QVGA */
-static struct w100_gen_regs w3220_regs = {
+static struct w100_gen_regs w3220_regs =
+{
 	.lcd_format =        0x00000003,
 	.lcdd_cntl1 =        0x00000000,
 	.lcdd_cntl2 =        0x0003ffff,
@@ -431,55 +449,57 @@ static struct w100_gen_regs w3220_regs = {
 	.genlcd_cntl3 =      0x000102aa,
 };
 
-static struct w100_mode w3220_modes[] = {
+static struct w100_mode w3220_modes[] =
 {
-	.xres 		= 480,
-	.yres 		= 640,
-	.left_margin 	= 15,
-	.right_margin 	= 16,
-	.upper_margin 	= 8,
-	.lower_margin 	= 7,
-	.crtc_ss	= 0x00000000,
-	.crtc_ls	= 0xa1ff01f9,	/* 0x21ff01f9 */
-	.crtc_gs	= 0xc0000000,	/* 0x40000000 */
-	.crtc_vpos_gs	= 0x0000028f,
-	.crtc_ps1_active = 0x00000000,	/* 0x41060010 */
-	.crtc_rev	= 0,
-	.crtc_dclk	= 0x80000000,
-	.crtc_gclk	= 0x040a0104,
-	.crtc_goe	= 0,
-	.pll_freq 	= 95,
-	.pixclk_divider = 4,
-	.pixclk_divider_rotated = 4,
-	.pixclk_src     = CLK_SRC_PLL,
-	.sysclk_divider = 0,
-	.sysclk_src     = CLK_SRC_PLL,
-},
-{
-	.xres 		= 240,
-	.yres 		= 320,
-	.left_margin 	= 9,
-	.right_margin 	= 8,
-	.upper_margin 	= 5,
-	.lower_margin 	= 4,
-	.crtc_ss	= 0x80150014,
-	.crtc_ls        = 0xa0fb00f7,
-	.crtc_gs	= 0xc0080007,
-	.crtc_vpos_gs	= 0x00080007,
-	.crtc_rev	= 0x0000000a,
-	.crtc_dclk	= 0x81700030,
-	.crtc_gclk	= 0x8015010f,
-	.crtc_goe	= 0x00000000,
-	.pll_freq 	= 95,
-	.pixclk_divider = 4,
-	.pixclk_divider_rotated = 4,
-	.pixclk_src     = CLK_SRC_PLL,
-	.sysclk_divider = 0,
-	.sysclk_src     = CLK_SRC_PLL,
-},
+	{
+		.xres 		= 480,
+		.yres 		= 640,
+		.left_margin 	= 15,
+		.right_margin 	= 16,
+		.upper_margin 	= 8,
+		.lower_margin 	= 7,
+		.crtc_ss	= 0x00000000,
+		.crtc_ls	= 0xa1ff01f9,	/* 0x21ff01f9 */
+		.crtc_gs	= 0xc0000000,	/* 0x40000000 */
+		.crtc_vpos_gs	= 0x0000028f,
+		.crtc_ps1_active = 0x00000000,	/* 0x41060010 */
+		.crtc_rev	= 0,
+		.crtc_dclk	= 0x80000000,
+		.crtc_gclk	= 0x040a0104,
+		.crtc_goe	= 0,
+		.pll_freq 	= 95,
+		.pixclk_divider = 4,
+		.pixclk_divider_rotated = 4,
+		.pixclk_src     = CLK_SRC_PLL,
+		.sysclk_divider = 0,
+		.sysclk_src     = CLK_SRC_PLL,
+	},
+	{
+		.xres 		= 240,
+		.yres 		= 320,
+		.left_margin 	= 9,
+		.right_margin 	= 8,
+		.upper_margin 	= 5,
+		.lower_margin 	= 4,
+		.crtc_ss	= 0x80150014,
+		.crtc_ls        = 0xa0fb00f7,
+		.crtc_gs	= 0xc0080007,
+		.crtc_vpos_gs	= 0x00080007,
+		.crtc_rev	= 0x0000000a,
+		.crtc_dclk	= 0x81700030,
+		.crtc_gclk	= 0x8015010f,
+		.crtc_goe	= 0x00000000,
+		.pll_freq 	= 95,
+		.pixclk_divider = 4,
+		.pixclk_divider_rotated = 4,
+		.pixclk_src     = CLK_SRC_PLL,
+		.sysclk_divider = 0,
+		.sysclk_src     = CLK_SRC_PLL,
+	},
 };
 
-struct w100_mem_info w3220_mem_info = {
+struct w100_mem_info w3220_mem_info =
+{
 	.ext_cntl        = 0x09640011,
 	.sdram_mode_reg  = 0x00600021,
 	.ext_timing_cntl = 0x1a001545,	/* 0x15001545 */
@@ -487,7 +507,8 @@ struct w100_mem_info w3220_mem_info = {
 	.size            = 0x1fffff,
 };
 
-struct w100_bm_mem_info w3220_bm_mem_info = {
+struct w100_bm_mem_info w3220_bm_mem_info =
+{
 	.ext_mem_bw = 0x50413e01,
 	.offset = 0,
 	.ext_timing_ctl = 0x00043f7f,
@@ -497,7 +518,8 @@ struct w100_bm_mem_info w3220_bm_mem_info = {
 	.config = 0x08301480,
 };
 
-static struct w100_gpio_regs w3220_gpio_info = {
+static struct w100_gpio_regs w3220_gpio_info =
+{
 	.init_data1 = 0xdfe00100,	/* GPIO_DATA */
 	.gpio_dir1  = 0xffff0000,	/* GPIO_CNTL1 */
 	.gpio_oe1   = 0x00000000,	/* GPIO_CNTL2 */
@@ -506,7 +528,8 @@ static struct w100_gpio_regs w3220_gpio_info = {
 	.gpio_oe2   = 0x00000000,	/* GPIO_CNTL4 */
 };
 
-static struct w100fb_mach_info w3220_info = {
+static struct w100fb_mach_info w3220_info =
+{
 	.tg        = &w3220_tg_info,
 	.mem       = &w3220_mem_info,
 	.bm_mem    = &w3220_bm_mem_info,
@@ -517,11 +540,13 @@ static struct w100fb_mach_info w3220_info = {
 	.xtal_freq = 16000000,
 };
 
-static struct resource w3220_resources[] = {
+static struct resource w3220_resources[] =
+{
 	[0] = DEFINE_RES_MEM(ATI_W3220_PHYS, SZ_16M),
 };
 
-static struct platform_device w3220 = {
+static struct platform_device w3220 =
+{
 	.name	= "w100fb",
 	.id	= -1,
 	.dev	= {
@@ -534,16 +559,22 @@ static struct platform_device w3220 = {
 static void hx4700_lcd_set_power(struct plat_lcd_data *pd, unsigned int power)
 {
 	if (power)
+	{
 		sony_lcd_init();
+	}
 	else
+	{
 		sony_lcd_off();
+	}
 }
 
-static struct plat_lcd_data hx4700_lcd_data = {
+static struct plat_lcd_data hx4700_lcd_data =
+{
 	.set_power = hx4700_lcd_set_power,
 };
 
-static struct platform_device hx4700_lcd = {
+static struct platform_device hx4700_lcd =
+{
 	.name = "platform-lcd",
 	.id   = -1,
 	.dev  = {
@@ -556,13 +587,15 @@ static struct platform_device hx4700_lcd = {
  * Backlight
  */
 
-static struct platform_pwm_backlight_data backlight_data = {
+static struct platform_pwm_backlight_data backlight_data =
+{
 	.max_brightness = 200,
 	.dft_brightness = 100,
 	.enable_gpio    = -1,
 };
 
-static struct platform_device backlight = {
+static struct platform_device backlight =
+{
 	.name = "pwm-backlight",
 	.id   = -1,
 	.dev  = {
@@ -571,22 +604,25 @@ static struct platform_device backlight = {
 	},
 };
 
-static struct pwm_lookup hx4700_pwm_lookup[] = {
+static struct pwm_lookup hx4700_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa27x-pwm.1", 0, "pwm-backlight", NULL,
-		   30923, PWM_POLARITY_NORMAL),
+	30923, PWM_POLARITY_NORMAL),
 };
 
 /*
  * USB "Transceiver"
  */
 
-static struct gpio_vbus_mach_info gpio_vbus_info = {
+static struct gpio_vbus_mach_info gpio_vbus_info =
+{
 	.gpio_pullup        = GPIO76_HX4700_USBC_PUEN,
 	.gpio_vbus          = GPIOD14_nUSBC_DETECT,
 	.gpio_vbus_inverted = 1,
 };
 
-static struct platform_device gpio_vbus = {
+static struct platform_device gpio_vbus =
+{
 	.name          = "gpio-vbus",
 	.id            = -1,
 	.dev = {
@@ -598,7 +634,8 @@ static struct platform_device gpio_vbus = {
  * Touchscreen - TSC2046 connected to SSP2
  */
 
-static const struct ads7846_platform_data tsc2046_info = {
+static const struct ads7846_platform_data tsc2046_info =
+{
 	.model            = 7846,
 	.vref_delay_usecs = 100,
 	.pressure_max     = 1024,
@@ -608,14 +645,16 @@ static const struct ads7846_platform_data tsc2046_info = {
 	.gpio_pendown     = GPIO58_HX4700_TSC2046_nPENIRQ,
 };
 
-static struct pxa2xx_spi_chip tsc2046_chip = {
+static struct pxa2xx_spi_chip tsc2046_chip =
+{
 	.tx_threshold = 1,
 	.rx_threshold = 2,
 	.timeout      = 64,
 	.gpio_cs      = GPIO88_HX4700_TSC2046_CS,
 };
 
-static struct spi_board_info tsc2046_board_info[] __initdata = {
+static struct spi_board_info tsc2046_board_info[] __initdata =
+{
 	{
 		.modalias        = "ads7846",
 		.bus_num         = 2,
@@ -626,7 +665,8 @@ static struct spi_board_info tsc2046_board_info[] __initdata = {
 	},
 };
 
-static struct pxa2xx_spi_master pxa_ssp2_master_info = {
+static struct pxa2xx_spi_master pxa_ssp2_master_info =
+{
 	.num_chipselect = 1,
 	.enable_dma     = 1,
 };
@@ -650,11 +690,13 @@ static void power_supply_exit(struct device *dev)
 	gpio_free(GPIOD9_nAC_IN);
 }
 
-static char *hx4700_supplicants[] = {
+static char *hx4700_supplicants[] =
+{
 	"ds2760-battery.0", "backup-battery"
 };
 
-static struct pda_power_pdata power_supply_info = {
+static struct pda_power_pdata power_supply_info =
+{
 	.init            = power_supply_init,
 	.is_ac_online    = hx4700_is_ac_online,
 	.exit            = power_supply_exit,
@@ -662,16 +704,18 @@ static struct pda_power_pdata power_supply_info = {
 	.num_supplicants = ARRAY_SIZE(hx4700_supplicants),
 };
 
-static struct resource power_supply_resources[] = {
+static struct resource power_supply_resources[] =
+{
 	[0] = DEFINE_RES_NAMED(PXA_GPIO_TO_IRQ(GPIOD9_nAC_IN), 1, "ac",
-		IORESOURCE_IRQ |
-		IORESOURCE_IRQ_HIGHEDGE | IORESOURCE_IRQ_LOWEDGE),
+	IORESOURCE_IRQ |
+	IORESOURCE_IRQ_HIGHEDGE | IORESOURCE_IRQ_LOWEDGE),
 	[1] = DEFINE_RES_NAMED(PXA_GPIO_TO_IRQ(GPIOD14_nUSBC_DETECT), 1, "usb",
-		IORESOURCE_IRQ |
-		IORESOURCE_IRQ_HIGHEDGE | IORESOURCE_IRQ_LOWEDGE),
+	IORESOURCE_IRQ |
+	IORESOURCE_IRQ_HIGHEDGE | IORESOURCE_IRQ_LOWEDGE),
 };
 
-static struct platform_device power_supply = {
+static struct platform_device power_supply =
+{
 	.name = "pda-power",
 	.id   = -1,
 	.dev  = {
@@ -685,30 +729,35 @@ static struct platform_device power_supply = {
  * Battery charger
  */
 
-static struct regulator_consumer_supply bq24022_consumers[] = {
+static struct regulator_consumer_supply bq24022_consumers[] =
+{
 	REGULATOR_SUPPLY("vbus_draw", NULL),
 	REGULATOR_SUPPLY("ac_draw", NULL),
 };
 
-static struct regulator_init_data bq24022_init_data = {
+static struct regulator_init_data bq24022_init_data =
+{
 	.constraints = {
 		.max_uA         = 500000,
-		.valid_ops_mask = REGULATOR_CHANGE_CURRENT|REGULATOR_CHANGE_STATUS,
+		.valid_ops_mask = REGULATOR_CHANGE_CURRENT | REGULATOR_CHANGE_STATUS,
 	},
 	.num_consumer_supplies  = ARRAY_SIZE(bq24022_consumers),
 	.consumer_supplies      = bq24022_consumers,
 };
 
-static struct gpio bq24022_gpios[] = {
+static struct gpio bq24022_gpios[] =
+{
 	{ GPIO96_HX4700_BQ24022_ISET2, GPIOF_OUT_INIT_LOW, "bq24022_iset2" },
 };
 
-static struct gpio_regulator_state bq24022_states[] = {
+static struct gpio_regulator_state bq24022_states[] =
+{
 	{ .value = 100000, .gpios = (0 << 0) },
 	{ .value = 500000, .gpios = (1 << 0) },
 };
 
-static struct gpio_regulator_config bq24022_info = {
+static struct gpio_regulator_config bq24022_info =
+{
 	.supply_name = "bq24022",
 
 	.enable_gpio = GPIO72_HX4700_BQ24022_nCHARGE_EN,
@@ -725,7 +774,8 @@ static struct gpio_regulator_config bq24022_info = {
 	.init_data = &bq24022_init_data,
 };
 
-static struct platform_device bq24022 = {
+static struct platform_device bq24022 =
+{
 	.name = "gpio-regulator",
 	.id   = -1,
 	.dev  = {
@@ -742,17 +792,20 @@ static void hx4700_set_vpp(struct platform_device *pdev, int vpp)
 	gpio_set_value(GPIO91_HX4700_FLASH_VPEN, vpp);
 }
 
-static struct resource strataflash_resource[] = {
+static struct resource strataflash_resource[] =
+{
 	[0] = DEFINE_RES_MEM(PXA_CS0_PHYS, SZ_64M),
 	[1] = DEFINE_RES_MEM(PXA_CS0_PHYS + SZ_64M, SZ_64M),
 };
 
-static struct physmap_flash_data strataflash_data = {
+static struct physmap_flash_data strataflash_data =
+{
 	.width = 4,
 	.set_vpp = hx4700_set_vpp,
 };
 
-static struct platform_device strataflash = {
+static struct platform_device strataflash =
+{
 	.name          = "physmap-flash",
 	.id            = -1,
 	.resource      = strataflash_resource,
@@ -769,7 +822,8 @@ static struct platform_device strataflash = {
 static struct regulator_consumer_supply max1587a_consumer =
 	REGULATOR_SUPPLY("vcc_core", NULL);
 
-static struct regulator_init_data max1587a_v3_info = {
+static struct regulator_init_data max1587a_v3_info =
+{
 	.constraints = {
 		.name = "vcc_core range",
 		.min_uV =  900000,
@@ -781,19 +835,22 @@ static struct regulator_init_data max1587a_v3_info = {
 	.consumer_supplies     = &max1587a_consumer,
 };
 
-static struct max1586_subdev_data max1587a_subdev = {
+static struct max1586_subdev_data max1587a_subdev =
+{
 	.name = "vcc_core",
 	.id   = MAX1586_V3,
 	.platform_data = &max1587a_v3_info,
 };
 
-static struct max1586_platform_data max1587a_info = {
+static struct max1586_platform_data max1587a_info =
+{
 	.num_subdevs = 1,
 	.subdevs     = &max1587a_subdev,
 	.v3_gain     = MAX1586_GAIN_R24_3k32, /* 730..1550 mV */
 };
 
-static struct i2c_board_info __initdata pi2c_board_info[] = {
+static struct i2c_board_info __initdata pi2c_board_info[] =
+{
 	{
 		I2C_BOARD_INFO("max1586", 0x14),
 		.platform_data = &max1587a_info,
@@ -804,19 +861,22 @@ static struct i2c_board_info __initdata pi2c_board_info[] = {
  * Asahi Kasei AK4641 on I2C
  */
 
-static struct ak4641_platform_data ak4641_info = {
+static struct ak4641_platform_data ak4641_info =
+{
 	.gpio_power = GPIO27_HX4700_CODEC_ON,
 	.gpio_npdn  = GPIO109_HX4700_CODEC_nPDN,
 };
 
-static struct i2c_board_info i2c_board_info[] __initdata = {
+static struct i2c_board_info i2c_board_info[] __initdata =
+{
 	{
 		I2C_BOARD_INFO("ak4641", 0x12),
 		.platform_data = &ak4641_info,
 	},
 };
 
-static struct platform_device audio = {
+static struct platform_device audio =
+{
 	.name	= "hx4700-audio",
 	.id	= -1,
 };
@@ -826,7 +886,8 @@ static struct platform_device audio = {
  * Platform devices
  */
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&asic3,
 	&gpio_keys,
 	&navpoint,
@@ -841,7 +902,8 @@ static struct platform_device *devices[] __initdata = {
 	&audio,
 };
 
-static struct gpio global_gpios[] = {
+static struct gpio global_gpios[] =
+{
 	{ GPIO12_HX4700_ASIC3_IRQ, GPIOF_IN, "ASIC3_IRQ" },
 	{ GPIO13_HX4700_W3220_IRQ, GPIOF_IN, "W3220_IRQ" },
 	{ GPIO14_HX4700_nWLAN_IRQ, GPIOF_IN, "WLAN_IRQ" },
@@ -868,8 +930,11 @@ static void __init hx4700_init(void)
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(hx4700_pin_config));
 	gpio_set_wake(GPIO12_HX4700_ASIC3_IRQ, 1);
 	ret = gpio_request_array(ARRAY_AND_SIZE(global_gpios));
+
 	if (ret)
+	{
 		pr_err ("hx4700: Failed to request GPIOs.\n");
+	}
 
 	pxa_set_ffuart_info(NULL);
 	pxa_set_btuart_info(NULL);
@@ -895,12 +960,12 @@ static void __init hx4700_init(void)
 }
 
 MACHINE_START(H4700, "HP iPAQ HX4700")
-	.atag_offset  = 0x100,
-	.map_io       = pxa27x_map_io,
-	.nr_irqs      = HX4700_NR_IRQS,
-	.init_irq     = pxa27x_init_irq,
+.atag_offset  = 0x100,
+ .map_io       = pxa27x_map_io,
+  .nr_irqs      = HX4700_NR_IRQS,
+   .init_irq     = pxa27x_init_irq,
 	.handle_irq     = pxa27x_handle_irq,
-	.init_machine = hx4700_init,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+	 .init_machine = hx4700_init,
+	  .init_time	= pxa_timer_init,
+		.restart	= pxa_restart,
+			MACHINE_END

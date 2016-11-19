@@ -21,7 +21,7 @@
 #include <asm/machdep.h>
 #include <asm/MC68EZ328.h>
 #ifdef CONFIG_UCSIMM
-#include <asm/bootstd.h>
+	#include <asm/bootstd.h>
 #endif
 
 /***************************************************************************/
@@ -32,14 +32,14 @@ int m68328_hwclk(int set, struct rtc_time *t);
 
 void m68ez328_reset(void)
 {
-  local_irq_disable();
-  asm volatile (
-    "moveal #0x10c00000, %a0;\n"
-    "moveb #0, 0xFFFFF300;\n"
-    "moveal 0(%a0), %sp;\n"
-    "moveal 4(%a0), %a0;\n"
-    "jmp (%a0);\n"
-    );
+	local_irq_disable();
+	asm volatile (
+		"moveal #0x10c00000, %a0;\n"
+		"moveb #0, 0xFFFFF300;\n"
+		"moveal 0(%a0), %sp;\n"
+		"moveal 4(%a0), %a0;\n"
+		"jmp (%a0);\n"
+	);
 }
 
 /***************************************************************************/
@@ -48,30 +48,32 @@ unsigned char *cs8900a_hwaddr;
 static int errno;
 
 #ifdef CONFIG_UCSIMM
-_bsc0(char *, getserialnum)
-_bsc1(unsigned char *, gethwaddr, int, a)
-_bsc1(char *, getbenv, char *, a)
+	_bsc0(char *, getserialnum)
+	_bsc1(unsigned char *, gethwaddr, int, a)
+	_bsc1(char *, getbenv, char *, a)
 #endif
 
 void __init config_BSP(char *command, int len)
 {
-  unsigned char *p;
+	unsigned char *p;
 
-  printk(KERN_INFO "\n68EZ328 DragonBallEZ support (C) 1999 Rt-Control, Inc\n");
+	printk(KERN_INFO "\n68EZ328 DragonBallEZ support (C) 1999 Rt-Control, Inc\n");
 
 #ifdef CONFIG_UCSIMM
-  printk(KERN_INFO "uCsimm serial string [%s]\n",getserialnum());
-  p = cs8900a_hwaddr = gethwaddr(0);
-  printk(KERN_INFO "uCsimm hwaddr %pM\n", p);
+	printk(KERN_INFO "uCsimm serial string [%s]\n", getserialnum());
+	p = cs8900a_hwaddr = gethwaddr(0);
+	printk(KERN_INFO "uCsimm hwaddr %pM\n", p);
 
-  p = getbenv("APPEND");
-  if (p) strcpy(p,command);
-  else command[0] = 0;
+	p = getbenv("APPEND");
+
+	if (p) { strcpy(p, command); }
+	else { command[0] = 0; }
+
 #endif
 
-  mach_sched_init = hw_timer_init;
-  mach_hwclk = m68328_hwclk;
-  mach_reset = m68ez328_reset;
+	mach_sched_init = hw_timer_init;
+	mach_hwclk = m68328_hwclk;
+	mach_reset = m68ez328_reset;
 }
 
 /***************************************************************************/

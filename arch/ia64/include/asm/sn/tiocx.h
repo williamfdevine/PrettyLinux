@@ -11,13 +11,15 @@
 
 #ifdef __KERNEL__
 
-struct cx_id_s {
+struct cx_id_s
+{
 	unsigned int part_num;
 	unsigned int mfg_num;
 	int nasid;
 };
 
-struct cx_dev {
+struct cx_dev
+{
 	struct cx_id_s cx_id;
 	int bt;				/* board/blade type */
 	void *soft;			/* driver specific */
@@ -26,24 +28,26 @@ struct cx_dev {
 	struct cx_drv *driver;
 };
 
-struct cx_device_id {
+struct cx_device_id
+{
 	unsigned int part_num;
 	unsigned int mfg_num;
 };
 
-struct cx_drv {
+struct cx_drv
+{
 	char *name;
 	const struct cx_device_id *id_table;
 	struct device_driver driver;
-	int (*probe) (struct cx_dev * dev, const struct cx_device_id * id);
-	int (*remove) (struct cx_dev * dev);
+	int (*probe) (struct cx_dev *dev, const struct cx_device_id *id);
+	int (*remove) (struct cx_dev *dev);
 };
 
 /* create DMA address by stripping AS bits */
 #define TIOCX_DMA_ADDR(a) (u64)((u64)(a) & 0xffffcfffffffffUL)
 
 #define TIOCX_TO_TIOCX_DMA_ADDR(a) (u64)(((u64)(a) & 0xfffffffff) |  \
-                                  ((((u64)(a)) & 0xffffc000000000UL) <<2))
+		((((u64)(a)) & 0xffffc000000000UL) <<2))
 
 #define TIO_CE_ASIC_PARTNUM 0xce00
 #define TIOCX_CORELET 3

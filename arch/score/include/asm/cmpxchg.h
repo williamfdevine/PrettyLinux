@@ -21,26 +21,30 @@ unsigned long __xchg(volatile unsigned long *m, unsigned long val)
 
 #define xchg(ptr, v)						\
 	((__typeof__(*(ptr))) __xchg((unsigned long *)(ptr),	\
-					(unsigned long)(v)))
+								 (unsigned long)(v)))
 
 static inline unsigned long __cmpxchg(volatile unsigned long *m,
-				unsigned long old, unsigned long new)
+									  unsigned long old, unsigned long new)
 {
 	unsigned long retval;
 	unsigned long flags;
 
 	local_irq_save(flags);
 	retval = *m;
+
 	if (retval == old)
+	{
 		*m = new;
+	}
+
 	local_irq_restore(flags);
 	return retval;
 }
 
 #define cmpxchg(ptr, o, n)					\
 	((__typeof__(*(ptr))) __cmpxchg((unsigned long *)(ptr),	\
-					(unsigned long)(o),	\
-					(unsigned long)(n)))
+									(unsigned long)(o),	\
+									(unsigned long)(n)))
 
 #include <asm-generic/cmpxchg-local.h>
 

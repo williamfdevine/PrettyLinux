@@ -17,14 +17,14 @@
 
 extern void dvma_init(void);
 extern int dvma_map_iommu(unsigned long kaddr, unsigned long baddr,
-			  int len);
+						  int len);
 
 #define dvma_malloc(x) dvma_malloc_align(x, 0)
 #define dvma_map(x, y) dvma_map_align(x, y, 0)
 #define dvma_map_vme(x, y) (dvma_map(x, y) & 0xfffff)
 #define dvma_map_align_vme(x, y, z) (dvma_map_align (x, y, z) & 0xfffff)
 extern unsigned long dvma_map_align(unsigned long kaddr, int len,
-			    int align);
+									int align);
 extern void *dvma_malloc_align(unsigned long len, unsigned long align);
 
 extern void dvma_unmap(void *baddr);
@@ -47,7 +47,7 @@ extern void dvma_free(void *vaddr);
    byte boundaries */
 #define DVMA_REGION_SIZE 0x10000
 #define DVMA_ALIGN(addr) (((addr)+DVMA_REGION_SIZE-1) & \
-                         ~(DVMA_REGION_SIZE-1))
+						  ~(DVMA_REGION_SIZE-1))
 
 /* virt <-> phys conversions */
 #define dvma_vtop(x) ((unsigned long)(x) & 0xffffff)
@@ -58,7 +58,7 @@ extern void dvma_free(void *vaddr);
 #define dvma_btov(x) dvma_ptov(x)
 
 static inline int dvma_map_cpu(unsigned long kaddr, unsigned long vaddr,
-			       int len)
+							   int len)
 {
 	return 0;
 }
@@ -85,15 +85,17 @@ extern int dvma_map_cpu(unsigned long kaddr, unsigned long vaddr, int len);
    ESP scsi on sun3x */
 
 /* Structure to describe the current status of DMA registers on the Sparc */
-struct sparc_dma_registers {
-  __volatile__ unsigned long cond_reg;	/* DMA condition register */
-  __volatile__ unsigned long st_addr;	/* Start address of this transfer */
-  __volatile__ unsigned long  cnt;	/* How many bytes to transfer */
-  __volatile__ unsigned long dma_test;	/* DMA test register */
+struct sparc_dma_registers
+{
+	__volatile__ unsigned long cond_reg;	/* DMA condition register */
+	__volatile__ unsigned long st_addr;	/* Start address of this transfer */
+	__volatile__ unsigned long  cnt;	/* How many bytes to transfer */
+	__volatile__ unsigned long dma_test;	/* DMA test register */
 };
 
 /* DVMA chip revisions */
-enum dvma_rev {
+enum dvma_rev
+{
 	dvmarev0,
 	dvmaesc1,
 	dvmarev1,
@@ -106,7 +108,8 @@ enum dvma_rev {
 #define DMA_HASCOUNT(rev)  ((rev)==dvmaesc1)
 
 /* Linux DMA information structure, filled during probe. */
-struct Linux_SBus_DMA {
+struct Linux_SBus_DMA
+{
 	struct Linux_SBus_DMA *next;
 	struct linux_sbus_device *SBus_dev;
 	struct sparc_dma_registers *regs;
@@ -202,9 +205,9 @@ extern struct Linux_SBus_DMA *dma_chain;
 #define DMA_PUNTFIFO(regs) ((((regs)->cond_reg) |= DMA_FIFO_INV))
 #define DMA_SETSTART(regs, addr)  ((((regs)->st_addr) = (char *) addr))
 #define DMA_BEGINDMA_W(regs) \
-        ((((regs)->cond_reg |= (DMA_ST_WRITE|DMA_ENABLE|DMA_INT_ENAB))))
+	((((regs)->cond_reg |= (DMA_ST_WRITE|DMA_ENABLE|DMA_INT_ENAB))))
 #define DMA_BEGINDMA_R(regs) \
-        ((((regs)->cond_reg |= ((DMA_ENABLE|DMA_INT_ENAB)&(~DMA_ST_WRITE)))))
+	((((regs)->cond_reg |= ((DMA_ENABLE|DMA_INT_ENAB)&(~DMA_ST_WRITE)))))
 
 /* For certain DMA chips, we need to disable ints upon irq entry
  * and turn them back on when we are done.  So in any ESP interrupt
@@ -212,27 +215,27 @@ extern struct Linux_SBus_DMA *dma_chain;
  * when leaving the handler.  You have been warned...
  */
 #define DMA_IRQ_ENTRY(dma, dregs) do { \
-        if(DMA_ISBROKEN(dma)) DMA_INTSOFF(dregs); \
-   } while (0)
+		if(DMA_ISBROKEN(dma)) DMA_INTSOFF(dregs); \
+	} while (0)
 
 #define DMA_IRQ_EXIT(dma, dregs) do { \
-	if(DMA_ISBROKEN(dma)) DMA_INTSON(dregs); \
-   } while(0)
+		if(DMA_ISBROKEN(dma)) DMA_INTSON(dregs); \
+	} while(0)
 
 /* Reset the friggin' thing... */
 #define DMA_RESET(dma) do { \
-	struct sparc_dma_registers *regs = dma->regs;                      \
-	/* Let the current FIFO drain itself */                            \
-	sparc_dma_pause(regs, (DMA_FIFO_ISDRAIN));                         \
-	/* Reset the logic */                                              \
-	regs->cond_reg |= (DMA_RST_SCSI);     /* assert */                 \
-	__delay(400);                         /* let the bits set ;) */    \
-	regs->cond_reg &= ~(DMA_RST_SCSI);    /* de-assert */              \
-	sparc_dma_enable_interrupts(regs);    /* Re-enable interrupts */   \
-	/* Enable FAST transfers if available */                           \
-	if(dma->revision>dvmarev1) regs->cond_reg |= DMA_3CLKS;            \
-	dma->running = 0;                                                  \
-} while(0)
+		struct sparc_dma_registers *regs = dma->regs;                      \
+		/* Let the current FIFO drain itself */                            \
+		sparc_dma_pause(regs, (DMA_FIFO_ISDRAIN));                         \
+		/* Reset the logic */                                              \
+		regs->cond_reg |= (DMA_RST_SCSI);     /* assert */                 \
+		__delay(400);                         /* let the bits set ;) */    \
+		regs->cond_reg &= ~(DMA_RST_SCSI);    /* de-assert */              \
+		sparc_dma_enable_interrupts(regs);    /* Re-enable interrupts */   \
+		/* Enable FAST transfers if available */                           \
+		if(dma->revision>dvmarev1) regs->cond_reg |= DMA_3CLKS;            \
+		dma->running = 0;                                                  \
+	} while(0)
 
 
 #endif /* !CONFIG_SUN3 */

@@ -52,7 +52,8 @@ static inline void load_context(mm_context_t context)
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next, struct task_struct *tsk)
 {
 
-	if (prev != next) {
+	if (prev != next)
+	{
 		mtctl(__pa(next->pgd), 25);
 		load_context(next->context);
 	}
@@ -73,8 +74,10 @@ static inline void activate_mm(struct mm_struct *prev, struct mm_struct *next)
 	BUG_ON(next == &init_mm); /* Should never happen */
 
 	if (next->context == 0)
-	    next->context = alloc_sid();
+	{
+		next->context = alloc_sid();
+	}
 
-	switch_mm(prev,next,current);
+	switch_mm(prev, next, current);
 }
 #endif

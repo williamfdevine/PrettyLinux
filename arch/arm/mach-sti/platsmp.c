@@ -79,10 +79,15 @@ static int sti_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
 
 	timeout = jiffies + (1 * HZ);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		smp_rmb();
+
 		if (pen_release == -1)
+		{
 			break;
+		}
 
 		udelay(10);
 	}
@@ -107,26 +112,33 @@ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
 
 	np = of_find_compatible_node(NULL, NULL, "arm,cortex-a9-scu");
 
-	if (np) {
+	if (np)
+	{
 		scu_base = of_iomap(np, 0);
 		scu_enable(scu_base);
 		of_node_put(np);
 	}
 
 	if (max_cpus <= 1)
+	{
 		return;
+	}
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 
 		np = of_get_cpu_node(cpu, NULL);
 
 		if (!np)
+		{
 			continue;
+		}
 
 		if (of_property_read_u32(np, "cpu-release-addr",
-						&release_phys)) {
+								 &release_phys))
+		{
 			pr_err("CPU %d: missing or invalid cpu-release-addr "
-				"property\n", cpu);
+				   "property\n", cpu);
 			continue;
 		}
 
@@ -152,11 +164,14 @@ static void __init sti_smp_prepare_cpus(unsigned int max_cpus)
 		sync_cache_w(cpu_strt_ptr);
 
 		if (!memblock_is_memory(release_phys))
+		{
 			iounmap(cpu_strt_ptr);
+		}
 	}
 }
 
-const struct smp_operations sti_smp_ops __initconst = {
+const struct smp_operations sti_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= sti_smp_prepare_cpus,
 	.smp_secondary_init	= sti_secondary_init,
 	.smp_boot_secondary	= sti_boot_secondary,

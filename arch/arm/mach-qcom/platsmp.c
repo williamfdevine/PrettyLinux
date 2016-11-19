@@ -70,15 +70,20 @@ static int scss_release_secondary(unsigned int cpu)
 	void __iomem *base;
 
 	node = of_find_compatible_node(NULL, NULL, "qcom,gcc-msm8660");
-	if (!node) {
+
+	if (!node)
+	{
 		pr_err("%s: can't find node\n", __func__);
 		return -ENXIO;
 	}
 
 	base = of_iomap(node, 0);
 	of_node_put(node);
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
 
 	writel_relaxed(0, base + VDD_SC1_ARRAY_CLAMP_GFS_CTL);
 	writel_relaxed(0, base + SCSS_CPU1CORE_RESET);
@@ -97,29 +102,40 @@ static int kpssv1_release_secondary(unsigned int cpu)
 	u32 val;
 
 	cpu_node = of_get_cpu_node(cpu, NULL);
+
 	if (!cpu_node)
+	{
 		return -ENODEV;
+	}
 
 	acc_node = of_parse_phandle(cpu_node, "qcom,acc", 0);
-	if (!acc_node) {
+
+	if (!acc_node)
+	{
 		ret = -ENODEV;
 		goto out_acc;
 	}
 
 	saw_node = of_parse_phandle(cpu_node, "qcom,saw", 0);
-	if (!saw_node) {
+
+	if (!saw_node)
+	{
 		ret = -ENODEV;
 		goto out_saw;
 	}
 
 	reg = of_iomap(acc_node, 0);
-	if (!reg) {
+
+	if (!reg)
+	{
 		ret = -ENOMEM;
 		goto out_acc_map;
 	}
 
 	saw_reg = of_iomap(saw_node, 0);
-	if (!saw_reg) {
+
+	if (!saw_reg)
+	{
 		ret = -ENOMEM;
 		goto out_saw_map;
 	}
@@ -177,35 +193,48 @@ static int kpssv2_release_secondary(unsigned int cpu)
 	int ret;
 
 	cpu_node = of_get_cpu_node(cpu, NULL);
+
 	if (!cpu_node)
+	{
 		return -ENODEV;
+	}
 
 	acc_node = of_parse_phandle(cpu_node, "qcom,acc", 0);
-	if (!acc_node) {
+
+	if (!acc_node)
+	{
 		ret = -ENODEV;
 		goto out_acc;
 	}
 
 	l2_node = of_parse_phandle(cpu_node, "next-level-cache", 0);
-	if (!l2_node) {
+
+	if (!l2_node)
+	{
 		ret = -ENODEV;
 		goto out_l2;
 	}
 
 	saw_node = of_parse_phandle(l2_node, "qcom,saw", 0);
-	if (!saw_node) {
+
+	if (!saw_node)
+	{
 		ret = -ENODEV;
 		goto out_saw;
 	}
 
 	reg = of_iomap(acc_node, 0);
-	if (!reg) {
+
+	if (!reg)
+	{
 		ret = -ENOMEM;
 		goto out_map;
 	}
 
 	l2_saw_base = of_iomap(saw_node, 0);
-	if (!l2_saw_base) {
+
+	if (!l2_saw_base)
+	{
 		ret = -ENOMEM;
 		goto out_saw_map;
 	}
@@ -221,7 +250,7 @@ static int kpssv2_release_secondary(unsigned int cpu)
 	reg_val |= 0x3f << BHS_SEG_SHIFT;
 	writel_relaxed(reg_val, reg + APC_PWR_GATE_CTL);
 	mb();
-	 /* wait for the BHS to settle */
+	/* wait for the BHS to settle */
 	udelay(1);
 
 	/* Finally turn on the bypass so that BHS supplies power */
@@ -274,10 +303,14 @@ static int qcom_boot_secondary(unsigned int cpu, int (*func)(unsigned int))
 {
 	int ret = 0;
 
-	if (!per_cpu(cold_boot_done, cpu)) {
+	if (!per_cpu(cold_boot_done, cpu))
+	{
 		ret = func(cpu);
+
 		if (!ret)
+		{
 			per_cpu(cold_boot_done, cpu) = true;
+		}
 	}
 
 	/*
@@ -322,17 +355,23 @@ static void __init qcom_smp_prepare_cpus(unsigned int max_cpus)
 	int cpu;
 
 	if (qcom_scm_set_cold_boot_addr(secondary_startup_arm,
-					cpu_present_mask)) {
-		for_each_present_cpu(cpu) {
+									cpu_present_mask))
+	{
+		for_each_present_cpu(cpu)
+		{
 			if (cpu == smp_processor_id())
+			{
 				continue;
+			}
+
 			set_cpu_present(cpu, false);
 		}
 		pr_warn("Failed to set CPU boot address, disabling SMP\n");
 	}
 }
 
-static const struct smp_operations smp_msm8660_ops __initconst = {
+static const struct smp_operations smp_msm8660_ops __initconst =
+{
 	.smp_prepare_cpus	= qcom_smp_prepare_cpus,
 	.smp_secondary_init	= qcom_secondary_init,
 	.smp_boot_secondary	= msm8660_boot_secondary,
@@ -342,7 +381,8 @@ static const struct smp_operations smp_msm8660_ops __initconst = {
 };
 CPU_METHOD_OF_DECLARE(qcom_smp, "qcom,gcc-msm8660", &smp_msm8660_ops);
 
-static const struct smp_operations qcom_smp_kpssv1_ops __initconst = {
+static const struct smp_operations qcom_smp_kpssv1_ops __initconst =
+{
 	.smp_prepare_cpus	= qcom_smp_prepare_cpus,
 	.smp_secondary_init	= qcom_secondary_init,
 	.smp_boot_secondary	= kpssv1_boot_secondary,
@@ -352,7 +392,8 @@ static const struct smp_operations qcom_smp_kpssv1_ops __initconst = {
 };
 CPU_METHOD_OF_DECLARE(qcom_smp_kpssv1, "qcom,kpss-acc-v1", &qcom_smp_kpssv1_ops);
 
-static const struct smp_operations qcom_smp_kpssv2_ops __initconst = {
+static const struct smp_operations qcom_smp_kpssv2_ops __initconst =
+{
 	.smp_prepare_cpus	= qcom_smp_prepare_cpus,
 	.smp_secondary_init	= qcom_secondary_init,
 	.smp_boot_secondary	= kpssv2_boot_secondary,

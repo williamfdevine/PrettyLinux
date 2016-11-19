@@ -37,7 +37,8 @@ static int module_id;
 module_param_named(lmid, module_id, int, 0444);
 MODULE_PARM_DESC(lmid, "logic module stack position");
 
-struct impd1_module {
+struct impd1_module
+{
 	void __iomem	*base;
 	void __iomem	*vic_base;
 };
@@ -57,8 +58,9 @@ EXPORT_SYMBOL(impd1_tweak_control);
 /*
  * MMC support
  */
-static struct mmci_platform_data mmc_data = {
-	.ocr_mask	= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct mmci_platform_data mmc_data =
+{
+	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
 };
 
 /*
@@ -73,7 +75,8 @@ static struct mmci_platform_data mmc_data = {
 
 #if PANEL == VGA
 #define PANELTYPE	vga
-static struct clcd_panel vga = {
+static struct clcd_panel vga =
+{
 	.mode		= {
 		.name		= "VGA",
 		.refresh	= 60,
@@ -101,7 +104,8 @@ static struct clcd_panel vga = {
 
 #elif PANEL == SVGA
 #define PANELTYPE	svga
-static struct clcd_panel svga = {
+static struct clcd_panel svga =
+{
 	.mode		= {
 		.name		= "SVGA",
 		.refresh	= 0,
@@ -129,7 +133,8 @@ static struct clcd_panel svga = {
 
 #elif PANEL == PROSPECTOR
 #define PANELTYPE	prospector
-static struct clcd_panel prospector = {
+static struct clcd_panel prospector =
+{
 	.mode		= {
 		.name		= "PROSPECTOR",
 		.refresh	= 0,
@@ -161,7 +166,8 @@ static struct clcd_panel prospector = {
 /*
  * Untested.
  */
-static struct clcd_panel ltm10c209 = {
+static struct clcd_panel ltm10c209 =
+{
 	.mode		= {
 		.name		= "LTM10C209",
 		.refresh	= 0,
@@ -203,7 +209,7 @@ static void impd1fb_clcd_disable(struct clcd_fb *fb)
 static void impd1fb_clcd_enable(struct clcd_fb *fb)
 {
 	impd1_tweak_control(fb->dev->dev.parent, IMPD1_CTRL_DISP_MASK,
-			fb->panel->connector | IMPD1_CTRL_DISP_ENABLE);
+						fb->panel->connector | IMPD1_CTRL_DISP_ENABLE);
 }
 
 static int impd1fb_clcd_setup(struct clcd_fb *fb)
@@ -214,13 +220,16 @@ static int impd1fb_clcd_setup(struct clcd_fb *fb)
 
 	fb->panel = &PANELTYPE;
 
-	if (!request_mem_region(framebase, framesize, "clcd framebuffer")) {
+	if (!request_mem_region(framebase, framesize, "clcd framebuffer"))
+	{
 		printk(KERN_ERR "IM-PD1: unable to reserve framebuffer\n");
 		return -EBUSY;
 	}
 
 	fb->fb.screen_base = ioremap(framebase, framesize);
-	if (!fb->fb.screen_base) {
+
+	if (!fb->fb.screen_base)
+	{
 		printk(KERN_ERR "IM-PD1: unable to map framebuffer\n");
 		ret = -ENOMEM;
 		goto free_buffer;
@@ -231,7 +240,7 @@ static int impd1fb_clcd_setup(struct clcd_fb *fb)
 
 	return 0;
 
- free_buffer:
+free_buffer:
 	release_mem_region(framebase, framesize);
 	return ret;
 }
@@ -244,7 +253,7 @@ static int impd1fb_clcd_mmap(struct clcd_fb *fb, struct vm_area_struct *vma)
 	size = vma->vm_end - vma->vm_start;
 
 	return remap_pfn_range(vma, vma->vm_start, start, size,
-			       vma->vm_page_prot);
+						   vma->vm_page_prot);
 }
 
 static void impd1fb_clcd_remove(struct clcd_fb *fb)
@@ -253,7 +262,8 @@ static void impd1fb_clcd_remove(struct clcd_fb *fb)
 	release_mem_region(fb->fb.fix.smem_start, fb->fb.fix.smem_len);
 }
 
-static struct clcd_board impd1_clcd_data = {
+static struct clcd_board impd1_clcd_data =
+{
 	.name		= "IM-PD/1",
 	.caps		= CLCD_CAP_5551 | CLCD_CAP_888,
 	.check		= clcdfb_check,
@@ -265,14 +275,16 @@ static struct clcd_board impd1_clcd_data = {
 	.remove		= impd1fb_clcd_remove,
 };
 
-struct impd1_device {
+struct impd1_device
+{
 	unsigned long	offset;
 	unsigned int	irq[2];
 	unsigned int	id;
 	void		*platform_data;
 };
 
-static struct impd1_device impd1_devs[] = {
+static struct impd1_device impd1_devs[] =
+{
 	{
 		.offset	= 0x00100000,
 		.irq	= { 1 },
@@ -331,43 +343,59 @@ static int __ref impd1_probe(struct lm_device *dev)
 	int i;
 
 	if (dev->id != module_id)
+	{
 		return -EINVAL;
+	}
 
 	if (!devm_request_mem_region(&dev->dev, dev->resource.start,
-				     SZ_4K, "LM registers"))
+								 SZ_4K, "LM registers"))
+	{
 		return -EBUSY;
+	}
 
 	impd1 = devm_kzalloc(&dev->dev, sizeof(struct impd1_module),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!impd1)
+	{
 		return -ENOMEM;
+	}
 
 	impd1->base = devm_ioremap(&dev->dev, dev->resource.start, SZ_4K);
+
 	if (!impd1->base)
+	{
 		return -ENOMEM;
+	}
 
 	integrator_impd1_clk_init(impd1->base, dev->id);
 
 	if (!devm_request_mem_region(&dev->dev,
-				     dev->resource.start + 0x03000000,
-				     SZ_4K, "VIC"))
+								 dev->resource.start + 0x03000000,
+								 SZ_4K, "VIC"))
+	{
 		return -EBUSY;
+	}
 
 	impd1->vic_base = devm_ioremap(&dev->dev,
-				       dev->resource.start + 0x03000000,
-				       SZ_4K);
+								   dev->resource.start + 0x03000000,
+								   SZ_4K);
+
 	if (!impd1->vic_base)
+	{
 		return -ENOMEM;
+	}
 
 	irq_base = vic_init_cascaded(impd1->vic_base, dev->irq,
-				     IMPD1_VALID_IRQS, 0);
+								 IMPD1_VALID_IRQS, 0);
 
 	lm_set_drvdata(dev, impd1);
 
 	dev_info(&dev->dev, "IM-PD1 found at 0x%08lx\n",
-		 (unsigned long)dev->resource.start);
+			 (unsigned long)dev->resource.start);
 
-	for (i = 0; i < ARRAY_SIZE(impd1_devs); i++) {
+	for (i = 0; i < ARRAY_SIZE(impd1_devs); i++)
+	{
 		struct impd1_device *idev = impd1_devs + i;
 		struct amba_device *d;
 		unsigned long pc_base;
@@ -377,22 +405,28 @@ static int __ref impd1_probe(struct lm_device *dev)
 
 		/* Translate IRQs to IM-PD1 local numberspace */
 		if (irq1)
+		{
 			irq1 += irq_base;
+		}
+
 		if (irq2)
+		{
 			irq2 += irq_base;
+		}
 
 		pc_base = dev->resource.start + idev->offset;
 		snprintf(devname, 32, "lm%x:%5.5lx", dev->id, idev->offset >> 12);
 
 		/* Add GPIO descriptor lookup table for the PL061 block */
-		if (idev->offset == 0x00400000) {
+		if (idev->offset == 0x00400000)
+		{
 			struct gpiod_lookup_table *lookup;
 			char *chipname;
 			char *mmciname;
 
 			lookup = devm_kzalloc(&dev->dev,
-					      sizeof(*lookup) + 3 * sizeof(struct gpiod_lookup),
-					      GFP_KERNEL);
+								  sizeof(*lookup) + 3 * sizeof(struct gpiod_lookup),
+								  GFP_KERNEL);
 			chipname = devm_kstrdup(&dev->dev, devname, GFP_KERNEL);
 			mmciname = kasprintf(GFP_KERNEL, "lm%x:00700", dev->id);
 			lookup->dev_id = mmciname;
@@ -421,10 +455,12 @@ static int __ref impd1_probe(struct lm_device *dev)
 		}
 
 		d = amba_ahb_device_add_res(&dev->dev, devname, pc_base, SZ_4K,
-					    irq1, irq2,
-					    idev->platform_data, idev->id,
-					    &dev->resource);
-		if (IS_ERR(d)) {
+									irq1, irq2,
+									idev->platform_data, idev->id,
+									&dev->resource);
+
+		if (IS_ERR(d))
+		{
 			dev_err(&dev->dev, "unable to register device: %ld\n", PTR_ERR(d));
 			continue;
 		}
@@ -447,7 +483,8 @@ static void impd1_remove(struct lm_device *dev)
 	lm_set_drvdata(dev, NULL);
 }
 
-static struct lm_driver impd1_driver = {
+static struct lm_driver impd1_driver =
+{
 	.drv = {
 		.name	= "impd1",
 		/*

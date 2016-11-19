@@ -22,40 +22,43 @@
 typedef void (*kernel_entry_t)(unsigned long r3, unsigned long r4, void *r5);
 
 /* Platform specific operations */
-struct platform_ops {
+struct platform_ops
+{
 	void	(*fixups)(void);
 	void	(*image_hdr)(const void *);
-	void *	(*malloc)(unsigned long size);
+	void 	*(*malloc)(unsigned long size);
 	void	(*free)(void *ptr);
-	void *	(*realloc)(void *ptr, unsigned long size);
+	void 	*(*realloc)(void *ptr, unsigned long size);
 	void	(*exit)(void);
-	void *	(*vmlinux_alloc)(unsigned long size);
+	void 	*(*vmlinux_alloc)(unsigned long size);
 };
 extern struct platform_ops platform_ops;
 
 /* Device Tree operations */
-struct dt_ops {
-	void *	(*finddevice)(const char *name);
+struct dt_ops
+{
+	void 	*(*finddevice)(const char *name);
 	int	(*getprop)(const void *phandle, const char *name, void *buf,
-			const int buflen);
+				   const int buflen);
 	int	(*setprop)(const void *phandle, const char *name,
-			const void *buf, const int buflen);
+				   const void *buf, const int buflen);
 	int (*del_node)(const void *phandle);
 	void *(*get_parent)(const void *phandle);
 	/* The node must not already exist. */
 	void *(*create_node)(const void *parent, const char *name);
 	void *(*find_node_by_prop_value)(const void *prev,
-	                                 const char *propname,
-	                                 const char *propval, int proplen);
+									 const char *propname,
+									 const char *propval, int proplen);
 	void *(*find_node_by_compatible)(const void *prev,
-	                                 const char *compat);
+									 const char *compat);
 	unsigned long (*finalize)(void);
 	char *(*get_path)(const void *phandle, char *buf, int len);
 };
 extern struct dt_ops dt_ops;
 
 /* Console operations */
-struct console_ops {
+struct console_ops
+{
 	int	(*open)(void);
 	void	(*write)(const char *buf, int len);
 	void	(*edit_cmdline)(char *buf, int len, unsigned int getline_timeout);
@@ -65,7 +68,8 @@ struct console_ops {
 extern struct console_ops console_ops;
 
 /* Serial console operations */
-struct serial_console_data {
+struct serial_console_data
+{
 	int		(*open)(void);
 	void		(*putc)(unsigned char c);
 	unsigned char	(*getc)(void);
@@ -73,7 +77,8 @@ struct serial_console_data {
 	void		(*close)(void);
 };
 
-struct loader_info {
+struct loader_info
+{
 	void *promptr;
 	unsigned long initrd_addr, initrd_size;
 	char *cmdline;
@@ -91,7 +96,7 @@ int mpc5200_psc_console_init(void *devp, struct serial_console_data *scdp);
 int uartlite_console_init(void *devp, struct serial_console_data *scdp);
 int opal_console_init(void *devp, struct serial_console_data *scdp);
 void *simple_alloc_init(char *base, unsigned long heap_size,
-			unsigned long granularity, unsigned long max_allocs);
+						unsigned long granularity, unsigned long max_allocs);
 extern void flush_cache(void *, unsigned long);
 int dt_xlate_reg(void *node, int res, unsigned long *addr, unsigned long *size);
 int dt_xlate_addr(void *node, u32 *buf, int buflen, unsigned long *xlated_addr);
@@ -110,7 +115,7 @@ static inline int getprop(void *devp, const char *name, void *buf, int buflen)
 }
 
 static inline int setprop(void *devp, const char *name,
-                          const void *buf, int buflen)
+						  const void *buf, int buflen)
 {
 	return (dt_ops.setprop) ? dt_ops.setprop(devp, name, buf, buflen) : -1;
 }
@@ -123,7 +128,9 @@ static inline int setprop(void *devp, const char *name,
 static inline int setprop_str(void *devp, const char *name, const char *buf)
 {
 	if (dt_ops.setprop)
+	{
 		return dt_ops.setprop(devp, name, buf, strlen(buf) + 1);
+	}
 
 	return -1;
 }
@@ -145,26 +152,26 @@ static inline void *create_node(const void *parent, const char *name)
 
 
 static inline void *find_node_by_prop_value(const void *prev,
-                                            const char *propname,
-                                            const char *propval, int proplen)
+		const char *propname,
+		const char *propval, int proplen)
 {
 	if (dt_ops.find_node_by_prop_value)
 		return dt_ops.find_node_by_prop_value(prev, propname,
-		                                      propval, proplen);
+											  propval, proplen);
 
 	return NULL;
 }
 
 static inline void *find_node_by_prop_value_str(const void *prev,
-                                                const char *propname,
-                                                const char *propval)
+		const char *propname,
+		const char *propval)
 {
 	return find_node_by_prop_value(prev, propname, propval,
-	                               strlen(propval) + 1);
+								   strlen(propval) + 1);
 }
 
 static inline void *find_node_by_devtype(const void *prev,
-                                         const char *type)
+		const char *type)
 {
 	return find_node_by_prop_value_str(prev, "device_type", type);
 }
@@ -173,20 +180,26 @@ static inline void *find_node_by_alias(const char *alias)
 {
 	void *devp = finddevice("/aliases");
 
-	if (devp) {
+	if (devp)
+	{
 		char path[MAX_PATH_LEN];
+
 		if (getprop(devp, alias, path, MAX_PATH_LEN) > 0)
+		{
 			return finddevice(path);
+		}
 	}
 
 	return NULL;
 }
 
 static inline void *find_node_by_compatible(const void *prev,
-                                            const char *compat)
+		const char *compat)
 {
 	if (dt_ops.find_node_by_compatible)
+	{
 		return dt_ops.find_node_by_compatible(prev, compat);
+	}
 
 	return NULL;
 }
@@ -204,13 +217,15 @@ void __dt_fixup_mac_addresses(u32 startindex, ...);
 static inline void *find_node_by_linuxphandle(const u32 linuxphandle)
 {
 	return find_node_by_prop_value(NULL, "linux,phandle",
-			(char *)&linuxphandle, sizeof(u32));
+								   (char *)&linuxphandle, sizeof(u32));
 }
 
 static inline char *get_path(const void *phandle, char *buf, int len)
 {
 	if (dt_ops.get_path)
+	{
 		return dt_ops.get_path(phandle, buf, len);
+	}
 
 	return NULL;
 }
@@ -223,14 +238,19 @@ static inline void *malloc(unsigned long size)
 static inline void free(void *ptr)
 {
 	if (platform_ops.free)
+	{
 		platform_ops.free(ptr);
+	}
 }
 
 static inline void exit(void)
 {
 	if (platform_ops.exit)
+	{
 		platform_ops.exit();
-	for(;;);
+	}
+
+	for (;;);
 }
 #define fatal(args...) { printf(args); exit(); }
 
@@ -261,6 +281,6 @@ int __ilog2_u32(u32 n)
 }
 
 long partial_decompress(void *inbuf, unsigned long input_size, void *outbuf,
-	unsigned long output_size, unsigned long skip);
+						unsigned long output_size, unsigned long skip);
 
 #endif /* _PPC_BOOT_OPS_H_ */

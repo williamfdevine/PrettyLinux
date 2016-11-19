@@ -74,15 +74,21 @@ void __init setup_arch(char **cmdline_p)
 	 * prior to invoking setup_arch_memory().
 	 */
 	if (*(int *)((unsigned long)_end + 8) == 0x1f1f1f1f)
+	{
 		on_simulator = 1;
+	}
 	else
+	{
 		on_simulator = 0;
+	}
 
 	if (p[0] != '\0')
+	{
 		strlcpy(boot_command_line, p, COMMAND_LINE_SIZE);
+	}
 	else
 		strlcpy(boot_command_line, default_command_line,
-			COMMAND_LINE_SIZE);
+				COMMAND_LINE_SIZE);
 
 	/*
 	 * boot_command_line and the value set up by setup_arch
@@ -107,7 +113,7 @@ void __init setup_arch(char **cmdline_p)
  */
 static void *c_start(struct seq_file *m, loff_t *pos)
 {
-	return *pos < nr_cpu_ids ? (void *)((unsigned long) *pos + 1) : NULL;
+	return *pos < nr_cpu_ids ? (void *)((unsigned long) * pos + 1) : NULL;
 }
 
 static void *c_next(struct seq_file *m, void *v, loff_t *pos)
@@ -129,20 +135,25 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	int cpu = (unsigned long) v - 1;
 
 #ifdef CONFIG_SMP
+
 	if (!cpu_online(cpu))
+	{
 		return 0;
+	}
+
 #endif
 
 	seq_printf(m, "processor\t: %d\n", cpu);
 	seq_printf(m, "model name\t: Hexagon Virtual Machine\n");
 	seq_printf(m, "BogoMips\t: %lu.%02lu\n",
-		(loops_per_jiffy * HZ) / 500000,
-		((loops_per_jiffy * HZ) / 5000) % 100);
+			   (loops_per_jiffy * HZ) / 500000,
+			   ((loops_per_jiffy * HZ) / 5000) % 100);
 	seq_printf(m, "\n");
 	return 0;
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start  = &c_start,
 	.next   = &c_next,
 	.stop   = &c_stop,

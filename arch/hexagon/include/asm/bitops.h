@@ -47,15 +47,15 @@ static inline int test_and_clear_bit(int nr, volatile void *addr)
 	int oldval;
 
 	__asm__ __volatile__ (
-	"	{R10 = %1; R11 = asr(%2,#5); }\n"
-	"	{R10 += asl(R11,#2); R11 = and(%2,#0x1f)}\n"
-	"1:	R12 = memw_locked(R10);\n"
-	"	{ P0 = tstbit(R12,R11); R12 = clrbit(R12,R11); }\n"
-	"	memw_locked(R10,P1) = R12;\n"
-	"	{if !P1 jump 1b; %0 = mux(P0,#1,#0);}\n"
-	: "=&r" (oldval)
-	: "r" (addr), "r" (nr)
-	: "r10", "r11", "r12", "p0", "p1", "memory"
+		"	{R10 = %1; R11 = asr(%2,#5); }\n"
+		"	{R10 += asl(R11,#2); R11 = and(%2,#0x1f)}\n"
+		"1:	R12 = memw_locked(R10);\n"
+		"	{ P0 = tstbit(R12,R11); R12 = clrbit(R12,R11); }\n"
+		"	memw_locked(R10,P1) = R12;\n"
+		"	{if !P1 jump 1b; %0 = mux(P0,#1,#0);}\n"
+		: "=&r" (oldval)
+		: "r" (addr), "r" (nr)
+		: "r10", "r11", "r12", "p0", "p1", "memory"
 	);
 
 	return oldval;
@@ -71,15 +71,15 @@ static inline int test_and_set_bit(int nr, volatile void *addr)
 	int oldval;
 
 	__asm__ __volatile__ (
-	"	{R10 = %1; R11 = asr(%2,#5); }\n"
-	"	{R10 += asl(R11,#2); R11 = and(%2,#0x1f)}\n"
-	"1:	R12 = memw_locked(R10);\n"
-	"	{ P0 = tstbit(R12,R11); R12 = setbit(R12,R11); }\n"
-	"	memw_locked(R10,P1) = R12;\n"
-	"	{if !P1 jump 1b; %0 = mux(P0,#1,#0);}\n"
-	: "=&r" (oldval)
-	: "r" (addr), "r" (nr)
-	: "r10", "r11", "r12", "p0", "p1", "memory"
+		"	{R10 = %1; R11 = asr(%2,#5); }\n"
+		"	{R10 += asl(R11,#2); R11 = and(%2,#0x1f)}\n"
+		"1:	R12 = memw_locked(R10);\n"
+		"	{ P0 = tstbit(R12,R11); R12 = setbit(R12,R11); }\n"
+		"	memw_locked(R10,P1) = R12;\n"
+		"	{if !P1 jump 1b; %0 = mux(P0,#1,#0);}\n"
+		: "=&r" (oldval)
+		: "r" (addr), "r" (nr)
+		: "r10", "r11", "r12", "p0", "p1", "memory"
 	);
 
 
@@ -97,15 +97,15 @@ static inline int test_and_change_bit(int nr, volatile void *addr)
 	int oldval;
 
 	__asm__ __volatile__ (
-	"	{R10 = %1; R11 = asr(%2,#5); }\n"
-	"	{R10 += asl(R11,#2); R11 = and(%2,#0x1f)}\n"
-	"1:	R12 = memw_locked(R10);\n"
-	"	{ P0 = tstbit(R12,R11); R12 = togglebit(R12,R11); }\n"
-	"	memw_locked(R10,P1) = R12;\n"
-	"	{if !P1 jump 1b; %0 = mux(P0,#1,#0);}\n"
-	: "=&r" (oldval)
-	: "r" (addr), "r" (nr)
-	: "r10", "r11", "r12", "p0", "p1", "memory"
+		"	{R10 = %1; R11 = asr(%2,#5); }\n"
+		"	{R10 += asl(R11,#2); R11 = and(%2,#0x1f)}\n"
+		"1:	R12 = memw_locked(R10);\n"
+		"	{ P0 = tstbit(R12,R11); R12 = togglebit(R12,R11); }\n"
+		"	memw_locked(R10,P1) = R12;\n"
+		"	{if !P1 jump 1b; %0 = mux(P0,#1,#0);}\n"
+		: "=&r" (oldval)
+		: "r" (addr), "r" (nr)
+		: "r10", "r11", "r12", "p0", "p1", "memory"
 	);
 
 	return oldval;
@@ -177,10 +177,10 @@ static inline int __test_bit(int nr, const volatile unsigned long *addr)
 	int retval;
 
 	asm volatile(
-	"{P0 = tstbit(%1,%2); if (P0.new) %0 = #1; if (!P0.new) %0 = #0;}\n"
-	: "=&r" (retval)
-	: "r" (addr[BIT_WORD(nr)]), "r" (nr % BITS_PER_LONG)
-	: "p0"
+		"{P0 = tstbit(%1,%2); if (P0.new) %0 = #1; if (!P0.new) %0 = #0;}\n"
+		: "=&r" (retval)
+		: "r" (addr[BIT_WORD(nr)]), "r" (nr % BITS_PER_LONG)
+		: "p0"
 	);
 
 	return retval;

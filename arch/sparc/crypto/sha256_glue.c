@@ -24,7 +24,7 @@
 #include "opcodes.h"
 
 asmlinkage void sha256_sparc64_transform(u32 *digest, const char *data,
-					 unsigned int rounds);
+		unsigned int rounds);
 
 static int sha224_sparc64_init(struct shash_desc *desc)
 {
@@ -59,17 +59,21 @@ static int sha256_sparc64_init(struct shash_desc *desc)
 }
 
 static void __sha256_sparc64_update(struct sha256_state *sctx, const u8 *data,
-				    unsigned int len, unsigned int partial)
+									unsigned int len, unsigned int partial)
 {
 	unsigned int done = 0;
 
 	sctx->count += len;
-	if (partial) {
+
+	if (partial)
+	{
 		done = SHA256_BLOCK_SIZE - partial;
 		memcpy(sctx->buf + partial, data, done);
 		sha256_sparc64_transform(sctx->state, sctx->buf, 1);
 	}
-	if (len - done >= SHA256_BLOCK_SIZE) {
+
+	if (len - done >= SHA256_BLOCK_SIZE)
+	{
 		const unsigned int rounds = (len - done) / SHA256_BLOCK_SIZE;
 
 		sha256_sparc64_transform(sctx->state, data + done, rounds);
@@ -80,17 +84,21 @@ static void __sha256_sparc64_update(struct sha256_state *sctx, const u8 *data,
 }
 
 static int sha256_sparc64_update(struct shash_desc *desc, const u8 *data,
-				 unsigned int len)
+								 unsigned int len)
 {
 	struct sha256_state *sctx = shash_desc_ctx(desc);
 	unsigned int partial = sctx->count % SHA256_BLOCK_SIZE;
 
 	/* Handle the fast case right here */
-	if (partial + len < SHA256_BLOCK_SIZE) {
+	if (partial + len < SHA256_BLOCK_SIZE)
+	{
 		sctx->count += len;
 		memcpy(sctx->buf + partial, data, len);
-	} else
+	}
+	else
+	{
 		__sha256_sparc64_update(sctx, data, len, partial);
+	}
 
 	return 0;
 }
@@ -107,20 +115,26 @@ static int sha256_sparc64_final(struct shash_desc *desc, u8 *out)
 
 	/* Pad out to 56 mod 64 and append length */
 	index = sctx->count % SHA256_BLOCK_SIZE;
-	padlen = (index < 56) ? (56 - index) : ((SHA256_BLOCK_SIZE+56) - index);
+	padlen = (index < 56) ? (56 - index) : ((SHA256_BLOCK_SIZE + 56) - index);
 
 	/* We need to fill a whole block for __sha256_sparc64_update() */
-	if (padlen <= 56) {
+	if (padlen <= 56)
+	{
 		sctx->count += padlen;
 		memcpy(sctx->buf + index, padding, padlen);
-	} else {
+	}
+	else
+	{
 		__sha256_sparc64_update(sctx, padding, padlen, index);
 	}
+
 	__sha256_sparc64_update(sctx, (const u8 *)&bits, sizeof(bits), 56);
 
 	/* Store state in digest */
 	for (i = 0; i < 8; i++)
+	{
 		dst[i] = cpu_to_be32(sctx->state[i]);
+	}
 
 	/* Wipe context */
 	memset(sctx, 0, sizeof(*sctx));
@@ -156,7 +170,8 @@ static int sha256_sparc64_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg sha256 = {
+static struct shash_alg sha256 =
+{
 	.digestsize	=	SHA256_DIGEST_SIZE,
 	.init		=	sha256_sparc64_init,
 	.update		=	sha256_sparc64_update,
@@ -167,7 +182,7 @@ static struct shash_alg sha256 = {
 	.statesize	=	sizeof(struct sha256_state),
 	.base		=	{
 		.cra_name	=	"sha256",
-		.cra_driver_name=	"sha256-sparc64",
+		.cra_driver_name =	"sha256-sparc64",
 		.cra_priority	=	SPARC_CR_OPCODE_PRIORITY,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA256_BLOCK_SIZE,
@@ -175,7 +190,8 @@ static struct shash_alg sha256 = {
 	}
 };
 
-static struct shash_alg sha224 = {
+static struct shash_alg sha224 =
+{
 	.digestsize	=	SHA224_DIGEST_SIZE,
 	.init		=	sha224_sparc64_init,
 	.update		=	sha256_sparc64_update,
@@ -183,7 +199,7 @@ static struct shash_alg sha224 = {
 	.descsize	=	sizeof(struct sha256_state),
 	.base		=	{
 		.cra_name	=	"sha224",
-		.cra_driver_name=	"sha224-sparc64",
+		.cra_driver_name =	"sha224-sparc64",
 		.cra_priority	=	SPARC_CR_OPCODE_PRIORITY,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA224_BLOCK_SIZE,
@@ -196,24 +212,35 @@ static bool __init sparc64_has_sha256_opcode(void)
 	unsigned long cfr;
 
 	if (!(sparc64_elf_hwcap & HWCAP_SPARC_CRYPTO))
+	{
 		return false;
+	}
 
 	__asm__ __volatile__("rd %%asr26, %0" : "=r" (cfr));
+
 	if (!(cfr & CFR_SHA256))
+	{
 		return false;
+	}
 
 	return true;
 }
 
 static int __init sha256_sparc64_mod_init(void)
 {
-	if (sparc64_has_sha256_opcode()) {
+	if (sparc64_has_sha256_opcode())
+	{
 		int ret = crypto_register_shash(&sha224);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		ret = crypto_register_shash(&sha256);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			crypto_unregister_shash(&sha224);
 			return ret;
 		}
@@ -221,6 +248,7 @@ static int __init sha256_sparc64_mod_init(void)
 		pr_info("Using sparc64 sha256 opcode optimized SHA-256/SHA-224 implementation\n");
 		return 0;
 	}
+
 	pr_info("sparc64 sha256 opcode not available.\n");
 	return -ENODEV;
 }

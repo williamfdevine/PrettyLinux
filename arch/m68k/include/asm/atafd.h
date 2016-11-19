@@ -3,10 +3,11 @@
 
 /* Definitions for the Atari Floppy driver */
 
-struct atari_format_descr {
-    int track;			/* to be formatted */
-    int head;			/*   ""     ""     */
-    int sect_offset;		/* offset of first sector */
+struct atari_format_descr
+{
+	int track;			/* to be formatted */
+	int head;			/*   ""     ""     */
+	int sect_offset;		/* offset of first sector */
 };
 
 #endif

@@ -54,7 +54,8 @@
 #define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB)
 #define UFCON (S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE)
 
-static struct s3c2410_uartcfg real6410_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg real6410_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	= 0,
 		.flags	= 0,
@@ -87,18 +88,21 @@ static struct s3c2410_uartcfg real6410_uartcfgs[] __initdata = {
 
 /* DM9000AEP 10/100 ethernet controller */
 
-static struct resource real6410_dm9k_resource[] = {
+static struct resource real6410_dm9k_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C64XX_PA_XM0CSN1, 2),
 	[1] = DEFINE_RES_MEM(S3C64XX_PA_XM0CSN1 + 4, 2),
 	[2] = DEFINE_RES_NAMED(S3C_EINT(7), 1, NULL, IORESOURCE_IRQ \
-					| IORESOURCE_IRQ_HIGHLEVEL),
+	| IORESOURCE_IRQ_HIGHLEVEL),
 };
 
-static struct dm9000_plat_data real6410_dm9k_pdata = {
+static struct dm9000_plat_data real6410_dm9k_pdata =
+{
 	.flags		= (DM9000_PLATF_16BITONLY | DM9000_PLATF_NO_EEPROM),
 };
 
-static struct platform_device real6410_device_eth = {
+static struct platform_device real6410_device_eth =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(real6410_dm9k_resource),
@@ -108,14 +112,16 @@ static struct platform_device real6410_device_eth = {
 	},
 };
 
-static struct s3c_fb_pd_win real6410_lcd_type0_fb_win = {
+static struct s3c_fb_pd_win real6410_lcd_type0_fb_win =
+{
 	.max_bpp	= 32,
 	.default_bpp	= 16,
 	.xres		= 480,
 	.yres		= 272,
 };
 
-static struct fb_videomode real6410_lcd_type0_timing = {
+static struct fb_videomode real6410_lcd_type0_timing =
+{
 	/* 4.3" 480x272 */
 	.left_margin	= 3,
 	.right_margin	= 2,
@@ -125,14 +131,16 @@ static struct fb_videomode real6410_lcd_type0_timing = {
 	.vsync_len	= 1,
 };
 
-static struct s3c_fb_pd_win real6410_lcd_type1_fb_win = {
+static struct s3c_fb_pd_win real6410_lcd_type1_fb_win =
+{
 	.max_bpp	= 32,
 	.default_bpp	= 16,
 	.xres		= 800,
 	.yres		= 480,
 };
 
-static struct fb_videomode real6410_lcd_type1_timing = {
+static struct fb_videomode real6410_lcd_type1_timing =
+{
 	/* 7.0" 800x480 */
 	.left_margin	= 8,
 	.right_margin	= 13,
@@ -144,7 +152,8 @@ static struct fb_videomode real6410_lcd_type1_timing = {
 	.yres		= 480,
 };
 
-static struct s3c_fb_platdata real6410_lcd_pdata[] __initdata = {
+static struct s3c_fb_platdata real6410_lcd_pdata[] __initdata =
+{
 	{
 		.setup_gpio	= s3c64xx_fb_gpio_setup_24bpp,
 		.vtiming	= &real6410_lcd_type0_timing,
@@ -161,7 +170,8 @@ static struct s3c_fb_platdata real6410_lcd_pdata[] __initdata = {
 	{ },
 };
 
-static struct mtd_partition real6410_nand_part[] = {
+static struct mtd_partition real6410_nand_part[] =
+{
 	[0] = {
 		.name	= "uboot",
 		.size	= SZ_1M,
@@ -179,7 +189,8 @@ static struct mtd_partition real6410_nand_part[] = {
 	},
 };
 
-static struct s3c2410_nand_set real6410_nand_sets[] = {
+static struct s3c2410_nand_set real6410_nand_sets[] =
+{
 	[0] = {
 		.name		= "nand",
 		.nr_chips	= 1,
@@ -188,7 +199,8 @@ static struct s3c2410_nand_set real6410_nand_sets[] = {
 	},
 };
 
-static struct s3c2410_platform_nand real6410_nand_info = {
+static struct s3c2410_platform_nand real6410_nand_info =
+{
 	.tacls		= 25,
 	.twrph0		= 55,
 	.twrph1		= 40,
@@ -196,7 +208,8 @@ static struct s3c2410_platform_nand real6410_nand_info = {
 	.sets		= real6410_nand_sets,
 };
 
-static struct platform_device *real6410_devices[] __initdata = {
+static struct platform_device *real6410_devices[] __initdata =
+{
 	&real6410_device_eth,
 	&s3c_device_hsmmc0,
 	&s3c_device_hsmmc1,
@@ -239,7 +252,8 @@ static int __init real6410_features_setup(char *str)
 {
 	if (str)
 		strlcpy(real6410_features_str, str,
-			sizeof(real6410_features_str));
+				sizeof(real6410_features_str));
+
 	return 1;
 }
 
@@ -247,39 +261,48 @@ __setup("real6410=", real6410_features_setup);
 
 #define FEATURE_SCREEN (1 << 0)
 
-struct real6410_features_t {
+struct real6410_features_t
+{
 	int done;
 	int lcd_index;
 };
 
 static void real6410_parse_features(
-		struct real6410_features_t *features,
-		const char *features_str)
+	struct real6410_features_t *features,
+	const char *features_str)
 {
 	const char *fp = features_str;
 
 	features->done = 0;
 	features->lcd_index = 0;
 
-	while (*fp) {
+	while (*fp)
+	{
 		char f = *fp++;
 
-		switch (f) {
-		case '0'...'9':	/* tft screen */
-			if (features->done & FEATURE_SCREEN) {
-				printk(KERN_INFO "REAL6410: '%c' ignored, "
-					"screen type already set\n", f);
-			} else {
-				int li = f - '0';
-				if (li >= ARRAY_SIZE(real6410_lcd_pdata))
-					printk(KERN_INFO "REAL6410: '%c' out "
-						"of range LCD mode\n", f);
-				else {
-					features->lcd_index = li;
+		switch (f)
+		{
+			case '0'...'9':	/* tft screen */
+				if (features->done & FEATURE_SCREEN)
+				{
+					printk(KERN_INFO "REAL6410: '%c' ignored, "
+						   "screen type already set\n", f);
 				}
-			}
-			features->done |= FEATURE_SCREEN;
-			break;
+				else
+				{
+					int li = f - '0';
+
+					if (li >= ARRAY_SIZE(real6410_lcd_pdata))
+						printk(KERN_INFO "REAL6410: '%c' out "
+							   "of range LCD mode\n", f);
+					else
+					{
+						features->lcd_index = li;
+					}
+				}
+
+				features->done |= FEATURE_SCREEN;
+				break;
 		}
 	}
 }
@@ -290,14 +313,14 @@ static void __init real6410_machine_init(void)
 	struct real6410_features_t features = { 0 };
 
 	printk(KERN_INFO "REAL6410: Option string real6410=%s\n",
-			real6410_features_str);
+		   real6410_features_str);
 
 	/* Parse the feature string */
 	real6410_parse_features(&features, real6410_features_str);
 
 	printk(KERN_INFO "REAL6410: selected LCD display is %dx%d\n",
-		real6410_lcd_pdata[features.lcd_index].win[0]->xres,
-		real6410_lcd_pdata[features.lcd_index].win[0]->yres);
+		   real6410_lcd_pdata[features.lcd_index].win[0]->xres,
+		   real6410_lcd_pdata[features.lcd_index].win[0]->yres);
 
 	s3c_fb_set_platdata(&real6410_lcd_pdata[features.lcd_index]);
 	s3c_nand_set_platdata(&real6410_nand_info);
@@ -306,22 +329,22 @@ static void __init real6410_machine_init(void)
 	/* configure nCS1 width to 16 bits */
 
 	cs1 = __raw_readl(S3C64XX_SROM_BW) &
-		~(S3C64XX_SROM_BW__CS_MASK << S3C64XX_SROM_BW__NCS1__SHIFT);
+		  ~(S3C64XX_SROM_BW__CS_MASK << S3C64XX_SROM_BW__NCS1__SHIFT);
 	cs1 |= ((1 << S3C64XX_SROM_BW__DATAWIDTH__SHIFT) |
-		(1 << S3C64XX_SROM_BW__WAITENABLE__SHIFT) |
-		(1 << S3C64XX_SROM_BW__BYTEENABLE__SHIFT)) <<
-			S3C64XX_SROM_BW__NCS1__SHIFT;
+			(1 << S3C64XX_SROM_BW__WAITENABLE__SHIFT) |
+			(1 << S3C64XX_SROM_BW__BYTEENABLE__SHIFT)) <<
+		   S3C64XX_SROM_BW__NCS1__SHIFT;
 	__raw_writel(cs1, S3C64XX_SROM_BW);
 
 	/* set timing for nCS1 suitable for ethernet chip */
 
 	__raw_writel((0 << S3C64XX_SROM_BCX__PMC__SHIFT) |
-		(6 << S3C64XX_SROM_BCX__TACP__SHIFT) |
-		(4 << S3C64XX_SROM_BCX__TCAH__SHIFT) |
-		(1 << S3C64XX_SROM_BCX__TCOH__SHIFT) |
-		(13 << S3C64XX_SROM_BCX__TACC__SHIFT) |
-		(4 << S3C64XX_SROM_BCX__TCOS__SHIFT) |
-		(0 << S3C64XX_SROM_BCX__TACS__SHIFT), S3C64XX_SROM_BC1);
+				 (6 << S3C64XX_SROM_BCX__TACP__SHIFT) |
+				 (4 << S3C64XX_SROM_BCX__TCAH__SHIFT) |
+				 (1 << S3C64XX_SROM_BCX__TCOH__SHIFT) |
+				 (13 << S3C64XX_SROM_BCX__TACC__SHIFT) |
+				 (4 << S3C64XX_SROM_BCX__TCOS__SHIFT) |
+				 (0 << S3C64XX_SROM_BCX__TACS__SHIFT), S3C64XX_SROM_BC1);
 
 	gpio_request(S3C64XX_GPF(15), "LCD power");
 
@@ -329,12 +352,12 @@ static void __init real6410_machine_init(void)
 }
 
 MACHINE_START(REAL6410, "REAL6410")
-	/* Maintainer: Darius Augulis <augulis.darius@gmail.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Darius Augulis <augulis.darius@gmail.com> */
+.atag_offset	= 0x100,
 	.nr_irqs	= S3C64XX_NR_IRQS,
-	.init_irq	= s3c6410_init_irq,
-	.map_io		= real6410_map_io,
-	.init_machine	= real6410_machine_init,
-	.init_time	= samsung_timer_init,
-	.restart	= s3c64xx_restart,
-MACHINE_END
+		.init_irq	= s3c6410_init_irq,
+		   .map_io		= real6410_map_io,
+			   .init_machine	= real6410_machine_init,
+				  .init_time	= samsung_timer_init,
+					.restart	= s3c64xx_restart,
+						MACHINE_END

@@ -41,10 +41,12 @@ static int __init blackfin_dma_init(void)
 	bfin_write_DMAC_TC_PER(0x0111);
 #endif
 
-	for (i = 0; i < MAX_DMA_CHANNELS; i++) {
+	for (i = 0; i < MAX_DMA_CHANNELS; i++)
+	{
 		atomic_set(&dma_ch[i].chan_status, 0);
 		dma_ch[i].regs = dma_io_base_addr[i];
 	}
+
 #if defined(CH_MEM_STREAM3_SRC) && defined(CONFIG_BF60x)
 	/* Mark MEMDMA Channel 3 as requested since we're using it internally */
 	request_dma(CH_MEM_STREAM3_DEST, "Blackfin dma_memcpy");
@@ -57,7 +59,7 @@ static int __init blackfin_dma_init(void)
 
 #if defined(CONFIG_DEB_DMA_URGENT)
 	bfin_write_EBIU_DDRQUE(bfin_read_EBIU_DDRQUE()
-			 | DEB1_URGENT | DEB2_URGENT | DEB3_URGENT);
+						   | DEB1_URGENT | DEB2_URGENT | DEB3_URGENT);
 #endif
 
 	return 0;
@@ -71,7 +73,9 @@ static int proc_dma_show(struct seq_file *m, void *v)
 
 	for (i = 0; i < MAX_DMA_CHANNELS; ++i)
 		if (dma_channel_active(i))
+		{
 			seq_printf(m, "%2d: %s\n", i, dma_ch[i].device_id);
+		}
 
 	return 0;
 }
@@ -81,7 +85,8 @@ static int proc_dma_open(struct inode *inode, struct file *file)
 	return single_open(file, proc_dma_show, NULL);
 }
 
-static const struct file_operations proc_dma_operations = {
+static const struct file_operations proc_dma_operations =
+{
 	.open		= proc_dma_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -101,16 +106,24 @@ static void set_dma_peripheral_map(unsigned int channel, const char *device_id)
 #ifdef CONFIG_BF54x
 	unsigned int per_map;
 
-	switch (channel) {
+	switch (channel)
+	{
 		case CH_UART2_RX: per_map = 0xC << 12; break;
+
 		case CH_UART2_TX: per_map = 0xD << 12; break;
+
 		case CH_UART3_RX: per_map = 0xE << 12; break;
+
 		case CH_UART3_TX: per_map = 0xF << 12; break;
+
 		default:          return;
 	}
 
 	if (strncmp(device_id, "BFIN_UART", 9) == 0)
+	{
 		dma_ch[channel].regs->peripheral_map = per_map;
+	}
+
 #endif
 }
 
@@ -124,19 +137,26 @@ int request_dma(unsigned int channel, const char *device_id)
 	pr_debug("request_dma() : BEGIN\n");
 
 	if (device_id == NULL)
+	{
 		printk(KERN_WARNING "request_dma(%u): no device_id given\n", channel);
+	}
 
 #if defined(CONFIG_BF561) && ANOMALY_05000182
-	if (channel >= CH_IMEM_STREAM0_DEST && channel <= CH_IMEM_STREAM1_DEST) {
-		if (get_cclk() > 500000000) {
+
+	if (channel >= CH_IMEM_STREAM0_DEST && channel <= CH_IMEM_STREAM1_DEST)
+	{
+		if (get_cclk() > 500000000)
+		{
 			printk(KERN_WARNING
-			       "Request IMDMA failed due to ANOMALY 05000182\n");
+				   "Request IMDMA failed due to ANOMALY 05000182\n");
 			return -EFAULT;
 		}
 	}
+
 #endif
 
-	if (atomic_cmpxchg(&dma_ch[channel].chan_status, 0, 1)) {
+	if (atomic_cmpxchg(&dma_ch[channel].chan_status, 0, 1))
+	{
 		pr_debug("DMA CHANNEL IN USE\n");
 		return -EBUSY;
 	}
@@ -160,12 +180,15 @@ int set_dma_callback(unsigned int channel, irq_handler_t callback, void *data)
 	unsigned int irq;
 
 	BUG_ON(channel >= MAX_DMA_CHANNELS || !callback ||
-			!atomic_read(&dma_ch[channel].chan_status));
+		   !atomic_read(&dma_ch[channel].chan_status));
 
 	irq = channel2irq(channel);
 	ret = request_irq(irq, callback, 0, dma_ch[channel].device_id, data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dma_ch[channel].irq = irq;
 	dma_ch[channel].data = data;
@@ -191,14 +214,16 @@ void free_dma(unsigned int channel)
 {
 	pr_debug("freedma() : BEGIN\n");
 	BUG_ON(channel >= MAX_DMA_CHANNELS ||
-			!atomic_read(&dma_ch[channel].chan_status));
+		   !atomic_read(&dma_ch[channel].chan_status));
 
 	/* Halt the DMA */
 	disable_dma(channel);
 	clear_dma_buffer(channel);
 
 	if (dma_ch[channel].irq)
+	{
 		free_irq(dma_ch[channel].irq, dma_ch[channel].data);
+	}
 
 	/* Clear the DMA Variable in the Channel */
 	atomic_set(&dma_ch[channel].chan_status, 0);
@@ -208,21 +233,26 @@ void free_dma(unsigned int channel)
 EXPORT_SYMBOL(free_dma);
 
 #ifdef CONFIG_PM
-# ifndef MAX_DMA_SUSPEND_CHANNELS
-#  define MAX_DMA_SUSPEND_CHANNELS MAX_DMA_CHANNELS
-# endif
+#ifndef MAX_DMA_SUSPEND_CHANNELS
+	#define MAX_DMA_SUSPEND_CHANNELS MAX_DMA_CHANNELS
+#endif
 # ifndef CONFIG_BF60x
 int blackfin_dma_suspend(void)
 {
 	int i;
 
-	for (i = 0; i < MAX_DMA_CHANNELS; ++i) {
-		if (dma_ch[i].regs->cfg & DMAEN) {
+	for (i = 0; i < MAX_DMA_CHANNELS; ++i)
+	{
+		if (dma_ch[i].regs->cfg & DMAEN)
+		{
 			printk(KERN_ERR "DMA Channel %d failed to suspend\n", i);
 			return -EBUSY;
 		}
+
 		if (i < MAX_DMA_SUSPEND_CHANNELS)
+		{
 			dma_ch[i].saved_peripheral_map = dma_ch[i].regs->peripheral_map;
+		}
 	}
 
 #if ANOMALY_05000480
@@ -235,11 +265,16 @@ void blackfin_dma_resume(void)
 {
 	int i;
 
-	for (i = 0; i < MAX_DMA_CHANNELS; ++i) {
+	for (i = 0; i < MAX_DMA_CHANNELS; ++i)
+	{
 		dma_ch[i].regs->cfg = 0;
+
 		if (i < MAX_DMA_SUSPEND_CHANNELS)
+		{
 			dma_ch[i].regs->peripheral_map = dma_ch[i].saved_peripheral_map;
+		}
 	}
+
 #if ANOMALY_05000480
 	bfin_write_DMAC_TC_PER(0x0111);
 #endif
@@ -285,19 +320,27 @@ void __init early_dma_memcpy(void *pdst, const void *psrc, size_t size)
 	BUG_ON(size % 4);
 
 	src_ch = 0;
+
 	/* Find an avalible memDMA channel */
-	while (1) {
-		if (src_ch == (struct dma_register *)MDMA_S0_NEXT_DESC_PTR) {
+	while (1)
+	{
+		if (src_ch == (struct dma_register *)MDMA_S0_NEXT_DESC_PTR)
+		{
 			dst_ch = (struct dma_register *)MDMA_D1_NEXT_DESC_PTR;
 			src_ch = (struct dma_register *)MDMA_S1_NEXT_DESC_PTR;
-		} else {
+		}
+		else
+		{
 			dst_ch = (struct dma_register *)MDMA_D0_NEXT_DESC_PTR;
 			src_ch = (struct dma_register *)MDMA_S0_NEXT_DESC_PTR;
 		}
 
 		if (!DMA_MMR_READ(&src_ch->cfg))
+		{
 			break;
-		else if (DMA_MMR_READ(&dst_ch->irq_status) & DMA_DONE) {
+		}
+		else if (DMA_MMR_READ(&dst_ch->irq_status) & DMA_DONE)
+		{
 			DMA_MMR_WRITE(&src_ch->cfg, 0);
 			break;
 		}
@@ -329,12 +372,16 @@ void __init early_dma_memcpy(void *pdst, const void *psrc, size_t size)
 	__builtin_bfin_ssync();
 
 #ifdef CONFIG_BF60x
+
 	/* Work around a possible MDMA anomaly. Running 2 MDMA channels to
 	 * transfer DDR data to L1 SRAM may corrupt data.
 	 * Should be reverted after this issue is root caused.
 	 */
 	while (!(DMA_MMR_READ(&dst_ch->irq_status) & DMA_DONE))
+	{
 		continue;
+	}
+
 #endif
 }
 
@@ -343,8 +390,10 @@ void __init early_dma_memcpy_done(void)
 	early_shadow_stamp();
 
 	while ((bfin_read_MDMA_S0_CONFIG() && !(bfin_read_MDMA_D0_IRQ_STATUS() & DMA_DONE)) ||
-	       (bfin_read_MDMA_S1_CONFIG() && !(bfin_read_MDMA_D1_IRQ_STATUS() & DMA_DONE)))
+		   (bfin_read_MDMA_S1_CONFIG() && !(bfin_read_MDMA_D1_IRQ_STATUS() & DMA_DONE)))
+	{
 		continue;
+	}
 
 	bfin_write_MDMA_D0_IRQ_STATUS(DMA_DONE | DMA_ERR);
 	bfin_write_MDMA_D1_IRQ_STATUS(DMA_DONE | DMA_ERR);
@@ -362,39 +411,39 @@ void __init early_dma_memcpy_done(void)
 }
 
 #if defined(CH_MEM_STREAM3_SRC) && defined(CONFIG_BF60x)
-#define bfin_read_MDMA_S_CONFIG bfin_read_MDMA_S3_CONFIG
-#define bfin_write_MDMA_S_CONFIG bfin_write_MDMA_S3_CONFIG
-#define bfin_write_MDMA_S_START_ADDR bfin_write_MDMA_S3_START_ADDR
-#define bfin_write_MDMA_S_IRQ_STATUS bfin_write_MDMA_S3_IRQ_STATUS
-#define bfin_write_MDMA_S_X_COUNT bfin_write_MDMA_S3_X_COUNT
-#define bfin_write_MDMA_S_X_MODIFY bfin_write_MDMA_S3_X_MODIFY
-#define bfin_write_MDMA_S_Y_COUNT bfin_write_MDMA_S3_Y_COUNT
-#define bfin_write_MDMA_S_Y_MODIFY bfin_write_MDMA_S3_Y_MODIFY
-#define bfin_write_MDMA_D_CONFIG bfin_write_MDMA_D3_CONFIG
-#define bfin_write_MDMA_D_START_ADDR bfin_write_MDMA_D3_START_ADDR
-#define bfin_read_MDMA_D_IRQ_STATUS bfin_read_MDMA_D3_IRQ_STATUS
-#define bfin_write_MDMA_D_IRQ_STATUS bfin_write_MDMA_D3_IRQ_STATUS
-#define bfin_write_MDMA_D_X_COUNT bfin_write_MDMA_D3_X_COUNT
-#define bfin_write_MDMA_D_X_MODIFY bfin_write_MDMA_D3_X_MODIFY
-#define bfin_write_MDMA_D_Y_COUNT bfin_write_MDMA_D3_Y_COUNT
-#define bfin_write_MDMA_D_Y_MODIFY bfin_write_MDMA_D3_Y_MODIFY
+	#define bfin_read_MDMA_S_CONFIG bfin_read_MDMA_S3_CONFIG
+	#define bfin_write_MDMA_S_CONFIG bfin_write_MDMA_S3_CONFIG
+	#define bfin_write_MDMA_S_START_ADDR bfin_write_MDMA_S3_START_ADDR
+	#define bfin_write_MDMA_S_IRQ_STATUS bfin_write_MDMA_S3_IRQ_STATUS
+	#define bfin_write_MDMA_S_X_COUNT bfin_write_MDMA_S3_X_COUNT
+	#define bfin_write_MDMA_S_X_MODIFY bfin_write_MDMA_S3_X_MODIFY
+	#define bfin_write_MDMA_S_Y_COUNT bfin_write_MDMA_S3_Y_COUNT
+	#define bfin_write_MDMA_S_Y_MODIFY bfin_write_MDMA_S3_Y_MODIFY
+	#define bfin_write_MDMA_D_CONFIG bfin_write_MDMA_D3_CONFIG
+	#define bfin_write_MDMA_D_START_ADDR bfin_write_MDMA_D3_START_ADDR
+	#define bfin_read_MDMA_D_IRQ_STATUS bfin_read_MDMA_D3_IRQ_STATUS
+	#define bfin_write_MDMA_D_IRQ_STATUS bfin_write_MDMA_D3_IRQ_STATUS
+	#define bfin_write_MDMA_D_X_COUNT bfin_write_MDMA_D3_X_COUNT
+	#define bfin_write_MDMA_D_X_MODIFY bfin_write_MDMA_D3_X_MODIFY
+	#define bfin_write_MDMA_D_Y_COUNT bfin_write_MDMA_D3_Y_COUNT
+	#define bfin_write_MDMA_D_Y_MODIFY bfin_write_MDMA_D3_Y_MODIFY
 #else
-#define bfin_read_MDMA_S_CONFIG bfin_read_MDMA_S0_CONFIG
-#define bfin_write_MDMA_S_CONFIG bfin_write_MDMA_S0_CONFIG
-#define bfin_write_MDMA_S_START_ADDR bfin_write_MDMA_S0_START_ADDR
-#define bfin_write_MDMA_S_IRQ_STATUS bfin_write_MDMA_S0_IRQ_STATUS
-#define bfin_write_MDMA_S_X_COUNT bfin_write_MDMA_S0_X_COUNT
-#define bfin_write_MDMA_S_X_MODIFY bfin_write_MDMA_S0_X_MODIFY
-#define bfin_write_MDMA_S_Y_COUNT bfin_write_MDMA_S0_Y_COUNT
-#define bfin_write_MDMA_S_Y_MODIFY bfin_write_MDMA_S0_Y_MODIFY
-#define bfin_write_MDMA_D_CONFIG bfin_write_MDMA_D0_CONFIG
-#define bfin_write_MDMA_D_START_ADDR bfin_write_MDMA_D0_START_ADDR
-#define bfin_read_MDMA_D_IRQ_STATUS bfin_read_MDMA_D0_IRQ_STATUS
-#define bfin_write_MDMA_D_IRQ_STATUS bfin_write_MDMA_D0_IRQ_STATUS
-#define bfin_write_MDMA_D_X_COUNT bfin_write_MDMA_D0_X_COUNT
-#define bfin_write_MDMA_D_X_MODIFY bfin_write_MDMA_D0_X_MODIFY
-#define bfin_write_MDMA_D_Y_COUNT bfin_write_MDMA_D0_Y_COUNT
-#define bfin_write_MDMA_D_Y_MODIFY bfin_write_MDMA_D0_Y_MODIFY
+	#define bfin_read_MDMA_S_CONFIG bfin_read_MDMA_S0_CONFIG
+	#define bfin_write_MDMA_S_CONFIG bfin_write_MDMA_S0_CONFIG
+	#define bfin_write_MDMA_S_START_ADDR bfin_write_MDMA_S0_START_ADDR
+	#define bfin_write_MDMA_S_IRQ_STATUS bfin_write_MDMA_S0_IRQ_STATUS
+	#define bfin_write_MDMA_S_X_COUNT bfin_write_MDMA_S0_X_COUNT
+	#define bfin_write_MDMA_S_X_MODIFY bfin_write_MDMA_S0_X_MODIFY
+	#define bfin_write_MDMA_S_Y_COUNT bfin_write_MDMA_S0_Y_COUNT
+	#define bfin_write_MDMA_S_Y_MODIFY bfin_write_MDMA_S0_Y_MODIFY
+	#define bfin_write_MDMA_D_CONFIG bfin_write_MDMA_D0_CONFIG
+	#define bfin_write_MDMA_D_START_ADDR bfin_write_MDMA_D0_START_ADDR
+	#define bfin_read_MDMA_D_IRQ_STATUS bfin_read_MDMA_D0_IRQ_STATUS
+	#define bfin_write_MDMA_D_IRQ_STATUS bfin_write_MDMA_D0_IRQ_STATUS
+	#define bfin_write_MDMA_D_X_COUNT bfin_write_MDMA_D0_X_COUNT
+	#define bfin_write_MDMA_D_X_MODIFY bfin_write_MDMA_D0_X_MODIFY
+	#define bfin_write_MDMA_D_Y_COUNT bfin_write_MDMA_D0_Y_COUNT
+	#define bfin_write_MDMA_D_Y_MODIFY bfin_write_MDMA_D0_Y_MODIFY
 #endif
 
 /**
@@ -421,9 +470,12 @@ static void __dma_memcpy(u32 daddr, s16 dmod, u32 saddr, s16 smod, size_t cnt, u
 
 	if (bfin_read_MDMA_S_CONFIG())
 		while (!(bfin_read_MDMA_D_IRQ_STATUS() & DMA_DONE))
+		{
 			continue;
+		}
 
-	if (conf & DMA2D) {
+	if (conf & DMA2D)
+	{
 		/* For larger bit sizes, we've already divided down cnt so it
 		 * is no longer a multiple of 64k.  So we have to break down
 		 * the limit here so it is a multiple of the incoming size.
@@ -452,10 +504,15 @@ static void __dma_memcpy(u32 daddr, s16 dmod, u32 saddr, s16 smod, size_t cnt, u
 	bfin_write_MDMA_S_IRQ_STATUS(DMA_DONE | DMA_ERR);
 
 	bfin_write_MDMA_S_CONFIG(DMAEN | conf);
+
 	if (conf & DMA2D)
+	{
 		bfin_write_MDMA_D_CONFIG(WNR | DI_EN_Y | DMAEN | conf);
+	}
 	else
+	{
 		bfin_write_MDMA_D_CONFIG(WNR | DI_EN_X | DMAEN | conf);
+	}
 
 	spin_unlock_irqrestore(&mdma_lock, flags);
 
@@ -463,9 +520,13 @@ static void __dma_memcpy(u32 daddr, s16 dmod, u32 saddr, s16 smod, size_t cnt, u
 
 	while (!(bfin_read_MDMA_D_IRQ_STATUS() & DMA_DONE))
 		if (bfin_read_MDMA_S_CONFIG())
+		{
 			continue;
+		}
 		else
+		{
 			return;
+		}
 
 	bfin_write_MDMA_D_IRQ_STATUS(DMA_DONE | DMA_ERR);
 
@@ -487,15 +548,22 @@ static void *_dma_memcpy(void *pdst, const void *psrc, size_t size)
 	unsigned long src = (unsigned long)psrc;
 
 	if (size == 0)
+	{
 		return NULL;
+	}
 
-	if (dst % 4 == 0 && src % 4 == 0 && size % 4 == 0) {
+	if (dst % 4 == 0 && src % 4 == 0 && size % 4 == 0)
+	{
 		conf = WDSIZE_32;
 		shift = 2;
-	} else if (dst % 2 == 0 && src % 2 == 0 && size % 2 == 0) {
+	}
+	else if (dst % 2 == 0 && src % 2 == 0 && size % 2 == 0)
+	{
 		conf = WDSIZE_16;
 		shift = 1;
-	} else {
+	}
+	else
+	{
 		conf = WDSIZE_8;
 		shift = 0;
 	}
@@ -505,16 +573,23 @@ static void *_dma_memcpy(void *pdst, const void *psrc, size_t size)
 	 * copy run backwards instead.
 	 */
 	mod = 1 << shift;
-	if (src < dst) {
+
+	if (src < dst)
+	{
 		mod *= -1;
 		dst += size + mod;
 		src += size + mod;
 	}
+
 	size >>= shift;
 
 #ifndef DMA_MMR_SIZE_32
+
 	if (size > 0x10000)
+	{
 		conf |= DMA2D;
+	}
+
 #endif
 
 	__dma_memcpy(dst, mod, src, mod, size, conf);
@@ -535,10 +610,14 @@ void *dma_memcpy(void *pdst, const void *psrc, size_t size)
 	unsigned long src = (unsigned long)psrc;
 
 	if (bfin_addr_dcacheable(src))
+	{
 		blackfin_dcache_flush_range(src, src + size);
+	}
 
 	if (bfin_addr_dcacheable(dst))
+	{
 		blackfin_dcache_invalidate_range(dst, dst + size);
+	}
 
 	return dma_memcpy_nocache(pdst, psrc, size);
 }
@@ -561,8 +640,12 @@ void *dma_memcpy_nocache(void *pdst, const void *psrc, size_t size)
 
 	bulk = size & ~0xffff;
 	rest = size - bulk;
+
 	if (bulk)
+	{
 		_dma_memcpy(pdst, psrc, bulk);
+	}
+
 	_dma_memcpy(pdst + bulk, psrc + bulk, rest);
 #endif
 	return pdst;
@@ -577,33 +660,39 @@ EXPORT_SYMBOL(dma_memcpy_nocache);
 void *safe_dma_memcpy(void *dst, const void *src, size_t size)
 {
 	if (!access_ok(VERIFY_WRITE, dst, size))
+	{
 		return NULL;
+	}
+
 	if (!access_ok(VERIFY_READ, src, size))
+	{
 		return NULL;
+	}
+
 	return dma_memcpy(dst, src, size);
 }
 EXPORT_SYMBOL(safe_dma_memcpy);
 
 static void _dma_out(unsigned long addr, unsigned long buf, unsigned DMA_MMR_SIZE_TYPE len,
-                     u16 size, u16 dma_size)
+					 u16 size, u16 dma_size)
 {
 	blackfin_dcache_flush_range(buf, buf + len * size);
 	__dma_memcpy(addr, 0, buf, size, len, dma_size);
 }
 
 static void _dma_in(unsigned long addr, unsigned long buf, unsigned DMA_MMR_SIZE_TYPE len,
-                    u16 size, u16 dma_size)
+					u16 size, u16 dma_size)
 {
 	blackfin_dcache_invalidate_range(buf, buf + len * size);
 	__dma_memcpy(buf, size, addr, 0, len, dma_size);
 }
 
 #define MAKE_DMA_IO(io, bwl, isize, dmasize, cnst) \
-void dma_##io##s##bwl(unsigned long addr, cnst void *buf, unsigned DMA_MMR_SIZE_TYPE len) \
-{ \
-	_dma_##io(addr, (unsigned long)buf, len, isize, WDSIZE_##dmasize); \
-} \
-EXPORT_SYMBOL(dma_##io##s##bwl)
+	void dma_##io##s##bwl(unsigned long addr, cnst void *buf, unsigned DMA_MMR_SIZE_TYPE len) \
+	{ \
+		_dma_##io(addr, (unsigned long)buf, len, isize, WDSIZE_##dmasize); \
+	} \
+	EXPORT_SYMBOL(dma_##io##s##bwl)
 MAKE_DMA_IO(out, b, 1,  8, const);
 MAKE_DMA_IO(in,  b, 1,  8, );
 MAKE_DMA_IO(out, w, 2, 16, const);

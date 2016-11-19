@@ -57,7 +57,7 @@
 #define VIPER_CPLD_V2P(x)	((x) - VIPER_CPLD_BASE + VIPER_CPLD_PHYS)
 
 #ifndef __ASSEMBLY__
-#  define __VIPER_CPLD_REG(x)	(*((volatile u16 *)VIPER_CPLD_P2V(x)))
+	#define __VIPER_CPLD_REG(x)	(*((volatile u16 *)VIPER_CPLD_P2V(x)))
 #endif
 
 /* board level registers in the CPLD: (offsets from CPLD_BASE) ... */

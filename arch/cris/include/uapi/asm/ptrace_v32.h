@@ -53,7 +53,8 @@
  * themselves
  */
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long orig_r10;
 	/* pushed by movem r13, [sp] in SAVE_ALL. */
 	unsigned long r0;
@@ -92,7 +93,8 @@ struct pt_regs {
  * _resume.
  */
 
-struct switch_stack {
+struct switch_stack
+{
 	unsigned long r0;
 	unsigned long r1;
 	unsigned long r2;
@@ -108,10 +110,10 @@ struct switch_stack {
 
 #ifdef __KERNEL__
 
-#define arch_has_single_step() (1)
-#define user_mode(regs) (((regs)->ccs & (1 << (U_CCS_BITNR + CCS_SHIFT))) != 0)
-#define instruction_pointer(regs) ((regs)->erp)
-#define profile_pc(regs) instruction_pointer(regs)
+	#define arch_has_single_step() (1)
+	#define user_mode(regs) (((regs)->ccs & (1 << (U_CCS_BITNR + CCS_SHIFT))) != 0)
+	#define instruction_pointer(regs) ((regs)->erp)
+	#define profile_pc(regs) instruction_pointer(regs)
 
 #endif  /*  __KERNEL__  */
 

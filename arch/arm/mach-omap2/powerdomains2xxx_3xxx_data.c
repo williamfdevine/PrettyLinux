@@ -42,7 +42,8 @@
  * The GFX powerdomain is not present on 3430ES2, but currently we do not
  * have a macro to filter it out at compile-time.
  */
-struct powerdomain gfx_omap2_pwrdm = {
+struct powerdomain gfx_omap2_pwrdm =
+{
 	.name		  = "gfx_pwrdm",
 	.prcm_offs	  = GFX_MOD,
 	.pwrsts		  = PWRSTS_OFF_RET_ON,
@@ -57,7 +58,8 @@ struct powerdomain gfx_omap2_pwrdm = {
 	.voltdm		  = { .name = "core" },
 };
 
-struct powerdomain wkup_omap2_pwrdm = {
+struct powerdomain wkup_omap2_pwrdm =
+{
 	.name		= "wkup_pwrdm",
 	.prcm_offs	= WKUP_MOD,
 	.pwrsts		= PWRSTS_ON,

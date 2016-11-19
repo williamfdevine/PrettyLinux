@@ -45,7 +45,8 @@ module_param(force, bool, 0444);
 /* FIXME: Award bios is not automatically detected as Alix platform */
 MODULE_PARM_DESC(force, "Force detection as ALIX.2/ALIX.3 platform");
 
-static struct gpio_keys_button alix_gpio_buttons[] = {
+static struct gpio_keys_button alix_gpio_buttons[] =
+{
 	{
 		.code			= KEY_RESTART,
 		.gpio			= 24,
@@ -57,13 +58,15 @@ static struct gpio_keys_button alix_gpio_buttons[] = {
 		.can_disable		= 0,
 	}
 };
-static struct gpio_keys_platform_data alix_buttons_data = {
+static struct gpio_keys_platform_data alix_buttons_data =
+{
 	.buttons			= alix_gpio_buttons,
 	.nbuttons			= ARRAY_SIZE(alix_gpio_buttons),
 	.poll_interval			= 20,
 };
 
-static struct platform_device alix_buttons_dev = {
+static struct platform_device alix_buttons_dev =
+{
 	.name				= "gpio-keys-polled",
 	.id				= 1,
 	.dev = {
@@ -71,7 +74,8 @@ static struct platform_device alix_buttons_dev = {
 	}
 };
 
-static struct gpio_led alix_leds[] = {
+static struct gpio_led alix_leds[] =
+{
 	{
 		.name = "alix:1",
 		.gpio = 6,
@@ -92,18 +96,21 @@ static struct gpio_led alix_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data alix_leds_data = {
+static struct gpio_led_platform_data alix_leds_data =
+{
 	.num_leds = ARRAY_SIZE(alix_leds),
 	.leds = alix_leds,
 };
 
-static struct platform_device alix_leds_dev = {
+static struct platform_device alix_leds_dev =
+{
 	.name = "leds-gpio",
 	.id = -1,
 	.dev.platform_data = &alix_leds_data,
 };
 
-static struct platform_device *alix_devs[] __initdata = {
+static struct platform_device *alix_devs[] __initdata =
+{
 	&alix_buttons_dev,
 	&alix_leds_dev,
 };
@@ -115,8 +122,8 @@ static void __init register_alix(void)
 }
 
 static bool __init alix_present(unsigned long bios_phys,
-				const char *alix_sig,
-				size_t alix_sig_len)
+								const char *alix_sig,
+								size_t alix_sig_len)
 {
 	const size_t bios_len = BIOS_REGION_SIZE;
 	const char *bios_virt;
@@ -124,39 +131,52 @@ static bool __init alix_present(unsigned long bios_phys,
 	const char *p;
 	char name[64];
 
-	if (force) {
+	if (force)
+	{
 		printk(KERN_NOTICE "%s: forced to skip BIOS test, "
-		       "assume system is ALIX.2/ALIX.3\n",
-		       KBUILD_MODNAME);
+			   "assume system is ALIX.2/ALIX.3\n",
+			   KBUILD_MODNAME);
 		return true;
 	}
 
 	bios_virt = phys_to_virt(bios_phys);
 	scan_end = bios_virt + bios_len - (alix_sig_len + 2);
-	for (p = bios_virt; p < scan_end; p++) {
+
+	for (p = bios_virt; p < scan_end; p++)
+	{
 		const char *tail;
 		char *a;
 
 		if (memcmp(p, alix_sig, alix_sig_len) != 0)
+		{
 			continue;
+		}
 
 		memcpy(name, p, sizeof(name));
 
 		/* remove the first \0 character from string */
 		a = strchr(name, '\0');
+
 		if (a)
+		{
 			*a = ' ';
+		}
 
 		/* cut the string at a newline */
 		a = strchr(name, '\r');
+
 		if (a)
+		{
 			*a = '\0';
+		}
 
 		tail = p + alix_sig_len;
-		if ((tail[0] == '2' || tail[0] == '3' || tail[0] == '6')) {
+
+		if ((tail[0] == '2' || tail[0] == '3' || tail[0] == '6'))
+		{
 			printk(KERN_INFO
-			       "%s: system is recognized as \"%s\"\n",
-			       KBUILD_MODNAME, name);
+				   "%s: system is recognized as \"%s\"\n",
+				   KBUILD_MODNAME, name);
 			return true;
 		}
 	}
@@ -169,15 +189,21 @@ static bool __init alix_present_dmi(void)
 	const char *vendor, *product;
 
 	vendor = dmi_get_system_info(DMI_SYS_VENDOR);
+
 	if (!vendor || strcmp(vendor, "PC Engines"))
+	{
 		return false;
+	}
 
 	product = dmi_get_system_info(DMI_PRODUCT_NAME);
+
 	if (!product || (strcmp(product, "ALIX.2D") && strcmp(product, "ALIX.6")))
+	{
 		return false;
+	}
 
 	printk(KERN_INFO "%s: system is recognized as \"%s %s\"\n",
-	       KBUILD_MODNAME, vendor, product);
+		   KBUILD_MODNAME, vendor, product);
 
 	return true;
 }
@@ -188,12 +214,16 @@ static int __init alix_init(void)
 	const char coreboot_sig[] = "PC Engines\0ALIX.";
 
 	if (!is_geode())
+	{
 		return 0;
+	}
 
 	if (alix_present(BIOS_SIGNATURE_TINYBIOS, tinybios_sig, sizeof(tinybios_sig) - 1) ||
-	    alix_present(BIOS_SIGNATURE_COREBOOT, coreboot_sig, sizeof(coreboot_sig) - 1) ||
-	    alix_present_dmi())
+		alix_present(BIOS_SIGNATURE_COREBOOT, coreboot_sig, sizeof(coreboot_sig) - 1) ||
+		alix_present_dmi())
+	{
 		register_alix();
+	}
 
 	return 0;
 }

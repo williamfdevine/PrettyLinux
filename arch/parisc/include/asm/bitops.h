@@ -2,7 +2,7 @@
 #define _PARISC_BITOPS_H
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <linux/compiler.h>
@@ -26,7 +26,7 @@
  *	__*_bit() are "relaxed" and don't use spinlock or volatile.
  */
 
-static __inline__ void set_bit(int nr, volatile unsigned long * addr)
+static __inline__ void set_bit(int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = 1UL << CHOP_SHIFTCOUNT(nr);
 	unsigned long flags;
@@ -37,7 +37,7 @@ static __inline__ void set_bit(int nr, volatile unsigned long * addr)
 	_atomic_spin_unlock_irqrestore(addr, flags);
 }
 
-static __inline__ void clear_bit(int nr, volatile unsigned long * addr)
+static __inline__ void clear_bit(int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = ~(1UL << CHOP_SHIFTCOUNT(nr));
 	unsigned long flags;
@@ -48,7 +48,7 @@ static __inline__ void clear_bit(int nr, volatile unsigned long * addr)
 	_atomic_spin_unlock_irqrestore(addr, flags);
 }
 
-static __inline__ void change_bit(int nr, volatile unsigned long * addr)
+static __inline__ void change_bit(int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = 1UL << CHOP_SHIFTCOUNT(nr);
 	unsigned long flags;
@@ -59,7 +59,7 @@ static __inline__ void change_bit(int nr, volatile unsigned long * addr)
 	_atomic_spin_unlock_irqrestore(addr, flags);
 }
 
-static __inline__ int test_and_set_bit(int nr, volatile unsigned long * addr)
+static __inline__ int test_and_set_bit(int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = 1UL << CHOP_SHIFTCOUNT(nr);
 	unsigned long old;
@@ -70,14 +70,18 @@ static __inline__ int test_and_set_bit(int nr, volatile unsigned long * addr)
 	_atomic_spin_lock_irqsave(addr, flags);
 	old = *addr;
 	set = (old & mask) ? 1 : 0;
+
 	if (!set)
+	{
 		*addr = old | mask;
+	}
+
 	_atomic_spin_unlock_irqrestore(addr, flags);
 
 	return set;
 }
 
-static __inline__ int test_and_clear_bit(int nr, volatile unsigned long * addr)
+static __inline__ int test_and_clear_bit(int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = 1UL << CHOP_SHIFTCOUNT(nr);
 	unsigned long old;
@@ -88,14 +92,18 @@ static __inline__ int test_and_clear_bit(int nr, volatile unsigned long * addr)
 	_atomic_spin_lock_irqsave(addr, flags);
 	old = *addr;
 	set = (old & mask) ? 1 : 0;
+
 	if (set)
+	{
 		*addr = old & ~mask;
+	}
+
 	_atomic_spin_unlock_irqrestore(addr, flags);
 
 	return set;
 }
 
-static __inline__ int test_and_change_bit(int nr, volatile unsigned long * addr)
+static __inline__ int test_and_change_bit(int nr, volatile unsigned long *addr)
 {
 	unsigned long mask = 1UL << CHOP_SHIFTCOUNT(nr);
 	unsigned long oldbit;
@@ -126,7 +134,7 @@ static __inline__ int test_and_change_bit(int nr, volatile unsigned long * addr)
  *
  * This algorithm avoids branches by making use of nullification.
  * One side effect of "extr" instructions is it sets PSW[N] bit.
- * How PSW[N] (nullify next insn) gets set is determined by the 
+ * How PSW[N] (nullify next insn) gets set is determined by the
  * "condition" field (eg "<>" or "TR" below) in the extr* insn.
  * Only the 1st and one of either the 2cd or 3rd insn will get executed.
  * Each set of 3 insn will get executed in 2 cycles on PA8x00 vs 16 or so
@@ -160,7 +168,7 @@ static __inline__ unsigned long __ffs(unsigned long x)
 		" addi    -2,%1,%1\n"
 		" extru,=  %0,31,1,%%r0\n"	/* check last bit */
 		" addi    -1,%1,%1\n"
-			: "+r" (x), "=r" (ret) );
+		: "+r" (x), "=r" (ret) );
 	return ret;
 }
 
@@ -184,25 +192,28 @@ static __inline__ int ffs(int x)
 static __inline__ int fls(int x)
 {
 	int ret;
+
 	if (!x)
+	{
 		return 0;
+	}
 
 	__asm__(
-	"	ldi		1,%1\n"
-	"	extru,<>	%0,15,16,%%r0\n"
-	"	zdep,TR		%0,15,16,%0\n"		/* xxxx0000 */
-	"	addi		16,%1,%1\n"
-	"	extru,<>	%0,7,8,%%r0\n"
-	"	zdep,TR		%0,23,24,%0\n"		/* xx000000 */
-	"	addi		8,%1,%1\n"
-	"	extru,<>	%0,3,4,%%r0\n"
-	"	zdep,TR		%0,27,28,%0\n"		/* x0000000 */
-	"	addi		4,%1,%1\n"
-	"	extru,<>	%0,1,2,%%r0\n"
-	"	zdep,TR		%0,29,30,%0\n"		/* y0000000 (y&3 = 0) */
-	"	addi		2,%1,%1\n"
-	"	extru,=		%0,0,1,%%r0\n"
-	"	addi		1,%1,%1\n"		/* if y & 8, add 1 */
+		"	ldi		1,%1\n"
+		"	extru,<>	%0,15,16,%%r0\n"
+		"	zdep,TR		%0,15,16,%0\n"		/* xxxx0000 */
+		"	addi		16,%1,%1\n"
+		"	extru,<>	%0,7,8,%%r0\n"
+		"	zdep,TR		%0,23,24,%0\n"		/* xx000000 */
+		"	addi		8,%1,%1\n"
+		"	extru,<>	%0,3,4,%%r0\n"
+		"	zdep,TR		%0,27,28,%0\n"		/* x0000000 */
+		"	addi		4,%1,%1\n"
+		"	extru,<>	%0,1,2,%%r0\n"
+		"	zdep,TR		%0,29,30,%0\n"		/* y0000000 (y&3 = 0) */
+		"	addi		2,%1,%1\n"
+		"	extru,=		%0,0,1,%%r0\n"
+		"	addi		1,%1,%1\n"		/* if y & 8, add 1 */
 		: "+r" (x), "=r" (ret) );
 
 	return ret;
@@ -220,8 +231,8 @@ static __inline__ int fls(int x)
 
 #ifdef __KERNEL__
 
-#include <asm-generic/bitops/le.h>
-#include <asm-generic/bitops/ext2-atomic-setbit.h>
+	#include <asm-generic/bitops/le.h>
+	#include <asm-generic/bitops/ext2-atomic-setbit.h>
 
 #endif	/* __KERNEL__ */
 

@@ -54,7 +54,8 @@
  * More ones like CP and general purpose register values are preserved
  * with the stack pointer in sleep.S.
  */
-enum {
+enum
+{
 	SLEEP_SAVE_PSTR,
 	SLEEP_SAVE_COUNT
 };
@@ -75,10 +76,11 @@ static void pxa25x_cpu_pm_enter(suspend_state_t state)
 	/* Clear reset status */
 	RCSR = RCSR_HWR | RCSR_WDR | RCSR_SMR | RCSR_GPR;
 
-	switch (state) {
-	case PM_SUSPEND_MEM:
-		cpu_suspend(PWRMODE_SLEEP, pxa25x_finish_suspend);
-		break;
+	switch (state)
+	{
+		case PM_SUSPEND_MEM:
+			cpu_suspend(PWRMODE_SLEEP, pxa25x_finish_suspend);
+			break;
 	}
 }
 
@@ -95,7 +97,8 @@ static void pxa25x_cpu_pm_finish(void)
 	PSPR = 0;
 }
 
-static struct pxa_cpu_pm_fns pxa25x_cpu_pm_fns = {
+static struct pxa_cpu_pm_fns pxa25x_cpu_pm_fns =
+{
 	.save_count	= SLEEP_SAVE_COUNT,
 	.valid		= suspend_valid_only_mem,
 	.save		= pxa25x_cpu_pm_save,
@@ -122,9 +125,12 @@ static int pxa25x_set_wake(struct irq_data *d, unsigned int on)
 	uint32_t mask = 0;
 
 	if (gpio >= 0 && gpio < 85)
+	{
 		return gpio_set_wake(gpio, on);
+	}
 
-	if (d->irq == IRQ_RTCAlrm) {
+	if (d->irq == IRQ_RTCAlrm)
+	{
 		mask = PWER_RTC;
 		goto set_pwer;
 	}
@@ -132,10 +138,15 @@ static int pxa25x_set_wake(struct irq_data *d, unsigned int on)
 	return -EINVAL;
 
 set_pwer:
+
 	if (on)
+	{
 		PWER |= mask;
+	}
 	else
-		PWER &=~mask;
+	{
+		PWER &= ~mask;
+	}
 
 	return 0;
 }
@@ -162,7 +173,8 @@ pxa25x_dt_init_irq(struct device_node *node, struct device_node *parent)
 }
 IRQCHIP_DECLARE(pxa25x_intc, "marvell,pxa-intc", pxa25x_dt_init_irq);
 
-static struct map_desc pxa25x_io_desc[] __initdata = {
+static struct map_desc pxa25x_io_desc[] __initdata =
+{
 	{	/* Mem Ctl */
 		.virtual	= (unsigned long)SMEMC_VIRT,
 		.pfn		= __phys_to_pfn(PXA2XX_SMEMC_BASE),
@@ -183,12 +195,14 @@ void __init pxa25x_map_io(void)
 	pxa25x_get_clk_frequency_khz(1);
 }
 
-static struct pxa_gpio_platform_data pxa25x_gpio_info __initdata = {
+static struct pxa_gpio_platform_data pxa25x_gpio_info __initdata =
+{
 	.irq_base	= PXA_GPIO_TO_IRQ(0),
 	.gpio_set_wake	= gpio_set_wake,
 };
 
-static struct platform_device *pxa25x_devices[] __initdata = {
+static struct platform_device *pxa25x_devices[] __initdata =
+{
 	&pxa25x_device_udc,
 	&pxa_device_pmu,
 	&pxa_device_i2s,
@@ -205,7 +219,8 @@ static int __init pxa25x_init(void)
 {
 	int ret = 0;
 
-	if (cpu_is_pxa25x()) {
+	if (cpu_is_pxa25x())
+	{
 
 		reset_status = RCSR;
 
@@ -214,11 +229,12 @@ static int __init pxa25x_init(void)
 		register_syscore_ops(&pxa_irq_syscore_ops);
 		register_syscore_ops(&pxa2xx_mfp_syscore_ops);
 
-		if (!of_have_populated_dt()) {
+		if (!of_have_populated_dt())
+		{
 			pxa2xx_set_dmac_info(16, 40);
 			pxa_register_device(&pxa25x_device_gpio, &pxa25x_gpio_info);
 			ret = platform_add_devices(pxa25x_devices,
-						   ARRAY_SIZE(pxa25x_devices));
+									   ARRAY_SIZE(pxa25x_devices));
 		}
 	}
 

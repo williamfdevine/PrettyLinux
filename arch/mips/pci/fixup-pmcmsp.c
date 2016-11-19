@@ -47,7 +47,8 @@
 
 #if defined(CONFIG_PMC_MSP7120_GW)
 /* Garibaldi Board IRQ wiring to PCI slots */
-static char irq_tab[][5] __initdata = {
+static char irq_tab[][5] __initdata =
+{
 	/* INTA	   INTB	   INTC	   INTD */
 	{0,	0,	0,	0,	0 },	/*    (AD[0]): Unused */
 	{0,	0,	0,	0,	0 },	/*    (AD[1]): Unused */
@@ -86,7 +87,8 @@ static char irq_tab[][5] __initdata = {
 #elif defined(CONFIG_PMC_MSP7120_EVAL)
 
 /* MSP7120 Eval Board IRQ wiring to PCI slots */
-static char irq_tab[][5] __initdata = {
+static char irq_tab[][5] __initdata =
+{
 	/* INTA	   INTB	   INTC	   INTD */
 	{0,	0,	0,	0,	0 },	/*    (AD[0]): Unused */
 	{0,	0,	0,	0,	0 },	/*    (AD[1]): Unused */
@@ -125,7 +127,8 @@ static char irq_tab[][5] __initdata = {
 #else
 
 /* Unknown board -- don't assign any IRQs */
-static char irq_tab[][5] __initdata = {
+static char irq_tab[][5] __initdata =
+{
 	/* INTA	   INTB	   INTC	   INTD */
 	{0,	0,	0,	0,	0 },	/*    (AD[0]): Unused */
 	{0,	0,	0,	0,	0 },	/*    (AD[1]): Unused */
@@ -208,7 +211,7 @@ int __init pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	printk(KERN_WARNING "PCI: unknown board, no PCI IRQs assigned.\n");
 #endif
 	printk(KERN_WARNING "PCI: irq_tab returned %d for slot=%d pin=%d\n",
-		irq_tab[slot][pin], slot, pin);
+		   irq_tab[slot][pin], slot, pin);
 
 	return irq_tab[slot][pin];
 }

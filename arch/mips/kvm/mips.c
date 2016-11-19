@@ -33,11 +33,12 @@
 #include "trace.h"
 
 #ifndef VECTORSPACING
-#define VECTORSPACING 0x100	/* for EI/VI mode */
+	#define VECTORSPACING 0x100	/* for EI/VI mode */
 #endif
 
 #define VCPU_STAT(x) offsetof(struct kvm_vcpu, stat.x)
-struct kvm_stats_debugfs_item debugfs_entries[] = {
+struct kvm_stats_debugfs_item debugfs_entries[] =
+{
 	{ "wait",	  VCPU_STAT(wait_exits),	 KVM_STAT_VCPU },
 	{ "cache",	  VCPU_STAT(cache_exits),	 KVM_STAT_VCPU },
 	{ "signal",	  VCPU_STAT(signal_exits),	 KVM_STAT_VCPU },
@@ -67,7 +68,8 @@ static int kvm_mips_reset_vcpu(struct kvm_vcpu *vcpu)
 {
 	int i;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		vcpu->arch.guest_kernel_asid[i] = 0;
 		vcpu->arch.guest_user_asid[i] = 0;
 	}
@@ -118,7 +120,7 @@ static void kvm_mips_init_tlbs(struct kvm *kvm)
 	kvm->arch.commpage_tlb = wired;
 
 	kvm_debug("[%d] commpage TLB: %d\n", smp_processor_id(),
-		  kvm->arch.commpage_tlb);
+			  kvm->arch.commpage_tlb);
 }
 
 static void kvm_mips_init_vm_percpu(void *arg)
@@ -132,9 +134,10 @@ static void kvm_mips_init_vm_percpu(void *arg)
 
 int kvm_arch_init_vm(struct kvm *kvm, unsigned long type)
 {
-	if (atomic_inc_return(&kvm_mips_instance) == 1) {
+	if (atomic_inc_return(&kvm_mips_instance) == 1)
+	{
 		kvm_debug("%s: 1st KVM instance, setup host TLB parameters\n",
-			  __func__);
+				  __func__);
 		on_each_cpu(kvm_mips_init_vm_percpu, kvm, 1);
 	}
 
@@ -157,20 +160,27 @@ void kvm_mips_free_vcpus(struct kvm *kvm)
 	struct kvm_vcpu *vcpu;
 
 	/* Put the pages we reserved for the guest pmap */
-	for (i = 0; i < kvm->arch.guest_pmap_npages; i++) {
+	for (i = 0; i < kvm->arch.guest_pmap_npages; i++)
+	{
 		if (kvm->arch.guest_pmap[i] != KVM_INVALID_PAGE)
+		{
 			kvm_release_pfn_clean(kvm->arch.guest_pmap[i]);
+		}
 	}
+
 	kfree(kvm->arch.guest_pmap);
 
-	kvm_for_each_vcpu(i, vcpu, kvm) {
+	kvm_for_each_vcpu(i, vcpu, kvm)
+	{
 		kvm_arch_vcpu_free(vcpu);
 	}
 
 	mutex_lock(&kvm->lock);
 
 	for (i = 0; i < atomic_read(&kvm->online_vcpus); i++)
+	{
 		kvm->vcpus[i] = NULL;
+	}
 
 	atomic_set(&kvm->online_vcpus, 0);
 
@@ -191,67 +201,75 @@ void kvm_arch_destroy_vm(struct kvm *kvm)
 	kvm_mips_free_vcpus(kvm);
 
 	/* If this is the last instance, restore wired count */
-	if (atomic_dec_return(&kvm_mips_instance) == 0) {
+	if (atomic_dec_return(&kvm_mips_instance) == 0)
+	{
 		kvm_debug("%s: last KVM instance, restoring TLB parameters\n",
-			  __func__);
+				  __func__);
 		on_each_cpu(kvm_mips_uninit_tlbs, NULL, 1);
 	}
 }
 
 long kvm_arch_dev_ioctl(struct file *filp, unsigned int ioctl,
-			unsigned long arg)
+						unsigned long arg)
 {
 	return -ENOIOCTLCMD;
 }
 
 int kvm_arch_create_memslot(struct kvm *kvm, struct kvm_memory_slot *slot,
-			    unsigned long npages)
+							unsigned long npages)
 {
 	return 0;
 }
 
 int kvm_arch_prepare_memory_region(struct kvm *kvm,
-				   struct kvm_memory_slot *memslot,
-				   const struct kvm_userspace_memory_region *mem,
-				   enum kvm_mr_change change)
+								   struct kvm_memory_slot *memslot,
+								   const struct kvm_userspace_memory_region *mem,
+								   enum kvm_mr_change change)
 {
 	return 0;
 }
 
 void kvm_arch_commit_memory_region(struct kvm *kvm,
-				   const struct kvm_userspace_memory_region *mem,
-				   const struct kvm_memory_slot *old,
-				   const struct kvm_memory_slot *new,
-				   enum kvm_mr_change change)
+								   const struct kvm_userspace_memory_region *mem,
+								   const struct kvm_memory_slot *old,
+								   const struct kvm_memory_slot *new,
+								   enum kvm_mr_change change)
 {
 	unsigned long npages = 0;
 	int i;
 
 	kvm_debug("%s: kvm: %p slot: %d, GPA: %llx, size: %llx, QVA: %llx\n",
-		  __func__, kvm, mem->slot, mem->guest_phys_addr,
-		  mem->memory_size, mem->userspace_addr);
+			  __func__, kvm, mem->slot, mem->guest_phys_addr,
+			  mem->memory_size, mem->userspace_addr);
 
 	/* Setup Guest PMAP table */
-	if (!kvm->arch.guest_pmap) {
+	if (!kvm->arch.guest_pmap)
+	{
 		if (mem->slot == 0)
+		{
 			npages = mem->memory_size >> PAGE_SHIFT;
+		}
 
-		if (npages) {
+		if (npages)
+		{
 			kvm->arch.guest_pmap_npages = npages;
 			kvm->arch.guest_pmap =
-			    kzalloc(npages * sizeof(unsigned long), GFP_KERNEL);
+				kzalloc(npages * sizeof(unsigned long), GFP_KERNEL);
 
-			if (!kvm->arch.guest_pmap) {
+			if (!kvm->arch.guest_pmap)
+			{
 				kvm_err("Failed to allocate guest PMAP\n");
 				return;
 			}
 
 			kvm_debug("Allocated space for Guest PMAP Table (%ld pages) @ %p\n",
-				  npages, kvm->arch.guest_pmap);
+					  npages, kvm->arch.guest_pmap);
 
 			/* Now setup the page table */
 			for (i = 0; i < npages; i++)
+			{
 				kvm->arch.guest_pmap[i] = KVM_INVALID_PAGE;
+			}
 		}
 	}
 }
@@ -266,7 +284,9 @@ static inline void dump_handler(const char *symbol, void *start, void *end)
 	pr_debug("\t.set noreorder\n");
 
 	for (p = start; p < (u32 *)end; ++p)
+	{
 		pr_debug("\t.word\t0x%08x\t\t# %p\n", *p, p);
+	}
 
 	pr_debug("\t.set\tpop\n");
 
@@ -281,7 +301,8 @@ struct kvm_vcpu *kvm_arch_vcpu_create(struct kvm *kvm, unsigned int id)
 
 	struct kvm_vcpu *vcpu = kzalloc(sizeof(struct kvm_vcpu), GFP_KERNEL);
 
-	if (!vcpu) {
+	if (!vcpu)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
@@ -289,7 +310,9 @@ struct kvm_vcpu *kvm_arch_vcpu_create(struct kvm *kvm, unsigned int id)
 	err = kvm_vcpu_init(vcpu, kvm, id);
 
 	if (err)
+	{
 		goto out_free_cpu;
+	}
 
 	kvm_debug("kvm @ %p: create cpu %d at %p\n", kvm, id, vcpu);
 
@@ -298,27 +321,34 @@ struct kvm_vcpu *kvm_arch_vcpu_create(struct kvm *kvm, unsigned int id)
 	 * guest mode exits
 	 */
 	if (cpu_has_veic || cpu_has_vint)
+	{
 		size = 0x200 + VECTORSPACING * 64;
+	}
 	else
+	{
 		size = 0x4000;
+	}
 
 	gebase = kzalloc(ALIGN(size, PAGE_SIZE), GFP_KERNEL);
 
-	if (!gebase) {
+	if (!gebase)
+	{
 		err = -ENOMEM;
 		goto out_uninit_cpu;
 	}
+
 	kvm_debug("Allocated %d bytes for KVM Exception Handlers @ %p\n",
-		  ALIGN(size, PAGE_SIZE), gebase);
+			  ALIGN(size, PAGE_SIZE), gebase);
 
 	/*
 	 * Check new ebase actually fits in CP0_EBase. The lack of a write gate
 	 * limits us to the low 512MB of physical address space. If the memory
 	 * we allocate is out of range, just give up now.
 	 */
-	if (!cpu_has_ebase_wg && virt_to_phys(gebase) >= 0x20000000) {
+	if (!cpu_has_ebase_wg && virt_to_phys(gebase) >= 0x20000000)
+	{
 		kvm_err("CP0_EBase.WG required for guest exception base %pK\n",
-			gebase);
+				gebase);
 		err = -ENOMEM;
 		goto out_free_gebase;
 	}
@@ -336,11 +366,12 @@ struct kvm_vcpu *kvm_arch_vcpu_create(struct kvm *kvm, unsigned int id)
 	kvm_mips_build_exception(gebase + 0x180, handler);
 
 	/* For vectored interrupts poke the exception code @ all offsets 0-7 */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		kvm_debug("L1 Vectored handler @ %p\n",
-			  gebase + 0x200 + (i * VECTORSPACING));
+				  gebase + 0x200 + (i * VECTORSPACING));
 		kvm_mips_build_exception(gebase + 0x200 + i * VECTORSPACING,
-					 handler);
+								 handler);
 	}
 
 	/* General exit handler */
@@ -361,7 +392,7 @@ struct kvm_vcpu *kvm_arch_vcpu_create(struct kvm *kvm, unsigned int id)
 
 	/* Invalidate the icache for these ranges */
 	local_flush_icache_range((unsigned long)gebase,
-				(unsigned long)gebase + ALIGN(size, PAGE_SIZE));
+							 (unsigned long)gebase + ALIGN(size, PAGE_SIZE));
 
 	/*
 	 * Allocate comm page for guest kernel, a TLB will be reserved for
@@ -369,7 +400,8 @@ struct kvm_vcpu *kvm_arch_vcpu_create(struct kvm *kvm, unsigned int id)
 	 */
 	vcpu->arch.kseg0_commpage = kzalloc(PAGE_SIZE << 1, GFP_KERNEL);
 
-	if (!vcpu->arch.kseg0_commpage) {
+	if (!vcpu->arch.kseg0_commpage)
+	{
 		err = -ENOMEM;
 		goto out_free_gebase;
 	}
@@ -417,7 +449,7 @@ void kvm_arch_vcpu_destroy(struct kvm_vcpu *vcpu)
 }
 
 int kvm_arch_vcpu_ioctl_set_guest_debug(struct kvm_vcpu *vcpu,
-					struct kvm_guest_debug *dbg)
+										struct kvm_guest_debug *dbg)
 {
 	return -ENOIOCTLCMD;
 }
@@ -435,16 +467,23 @@ static void kvm_mips_check_asids(struct kvm_vcpu *vcpu)
 	 * execution, regenerate the host ASID so as to invalidate stale TLB
 	 * entries.
 	 */
-	if (!KVM_GUEST_KERNEL_MODE(vcpu)) {
+	if (!KVM_GUEST_KERNEL_MODE(vcpu))
+	{
 		gasid = kvm_read_c0_guest_entryhi(cop0) & KVM_ENTRYHI_ASID;
-		if (gasid != vcpu->arch.last_user_gasid) {
+
+		if (gasid != vcpu->arch.last_user_gasid)
+		{
 			kvm_get_new_mmu_context(&vcpu->arch.guest_user_mm, cpu,
-						vcpu);
+									vcpu);
 			vcpu->arch.guest_user_asid[cpu] =
 				vcpu->arch.guest_user_mm.context.asid[cpu];
 			for_each_possible_cpu(i)
-				if (i != cpu)
-					vcpu->arch.guest_user_asid[cpu] = 0;
+
+			if (i != cpu)
+			{
+				vcpu->arch.guest_user_asid[cpu] = 0;
+			}
+
 			vcpu->arch.last_user_gasid = gasid;
 		}
 	}
@@ -456,11 +495,17 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu, struct kvm_run *run)
 	sigset_t sigsaved;
 
 	if (vcpu->sigset_active)
+	{
 		sigprocmask(SIG_SETMASK, &vcpu->sigset, &sigsaved);
+	}
 
-	if (vcpu->mmio_needed) {
+	if (vcpu->mmio_needed)
+	{
 		if (!vcpu->mmio_is_write)
+		{
 			kvm_mips_complete_mmio_load(vcpu, run);
+		}
+
 		vcpu->mmio_needed = 0;
 	}
 
@@ -469,7 +514,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu, struct kvm_run *run)
 	local_irq_disable();
 	/* Check if we have any exceptions/interrupts pending */
 	kvm_mips_deliver_interrupts(vcpu,
-				    kvm_read_c0_guest_cause(vcpu->arch.cop0));
+								kvm_read_c0_guest_cause(vcpu->arch.cop0));
 
 	guest_enter_irqoff();
 
@@ -490,58 +535,72 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu, struct kvm_run *run)
 	local_irq_enable();
 
 	if (vcpu->sigset_active)
+	{
 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+	}
 
 	return r;
 }
 
 int kvm_vcpu_ioctl_interrupt(struct kvm_vcpu *vcpu,
-			     struct kvm_mips_interrupt *irq)
+							 struct kvm_mips_interrupt *irq)
 {
 	int intr = (int)irq->irq;
 	struct kvm_vcpu *dvcpu = NULL;
 
 	if (intr == 3 || intr == -3 || intr == 4 || intr == -4)
 		kvm_debug("%s: CPU: %d, INTR: %d\n", __func__, irq->cpu,
-			  (int)intr);
+				  (int)intr);
 
 	if (irq->cpu == -1)
+	{
 		dvcpu = vcpu;
+	}
 	else
+	{
 		dvcpu = vcpu->kvm->vcpus[irq->cpu];
+	}
 
-	if (intr == 2 || intr == 3 || intr == 4) {
+	if (intr == 2 || intr == 3 || intr == 4)
+	{
 		kvm_mips_callbacks->queue_io_int(dvcpu, irq);
 
-	} else if (intr == -2 || intr == -3 || intr == -4) {
+	}
+	else if (intr == -2 || intr == -3 || intr == -4)
+	{
 		kvm_mips_callbacks->dequeue_io_int(dvcpu, irq);
-	} else {
+	}
+	else
+	{
 		kvm_err("%s: invalid interrupt ioctl (%d:%d)\n", __func__,
-			irq->cpu, irq->irq);
+				irq->cpu, irq->irq);
 		return -EINVAL;
 	}
 
 	dvcpu->arch.wait = 0;
 
 	if (swait_active(&dvcpu->wq))
+	{
 		swake_up(&dvcpu->wq);
+	}
 
 	return 0;
 }
 
 int kvm_arch_vcpu_ioctl_get_mpstate(struct kvm_vcpu *vcpu,
-				    struct kvm_mp_state *mp_state)
+									struct kvm_mp_state *mp_state)
 {
 	return -ENOIOCTLCMD;
 }
 
 int kvm_arch_vcpu_ioctl_set_mpstate(struct kvm_vcpu *vcpu,
-				    struct kvm_mp_state *mp_state)
+									struct kvm_mp_state *mp_state)
 {
 	return -ENOIOCTLCMD;
 }
 
-static u64 kvm_mips_get_one_regs[] = {
+static u64 kvm_mips_get_one_regs[] =
+{
 	KVM_REG_MIPS_R0,
 	KVM_REG_MIPS_R1,
 	KVM_REG_MIPS_R2,
@@ -609,17 +668,20 @@ static u64 kvm_mips_get_one_regs[] = {
 	KVM_REG_MIPS_COUNT_HZ,
 };
 
-static u64 kvm_mips_get_one_regs_fpu[] = {
+static u64 kvm_mips_get_one_regs_fpu[] =
+{
 	KVM_REG_MIPS_FCR_IR,
 	KVM_REG_MIPS_FCR_CSR,
 };
 
-static u64 kvm_mips_get_one_regs_msa[] = {
+static u64 kvm_mips_get_one_regs_msa[] =
+{
 	KVM_REG_MIPS_MSA_IR,
 	KVM_REG_MIPS_MSA_CSR,
 };
 
-static u64 kvm_mips_get_one_regs_kscratch[] = {
+static u64 kvm_mips_get_one_regs_kscratch[] =
+{
 	KVM_REG_MIPS_CP0_KSCRATCH1,
 	KVM_REG_MIPS_CP0_KSCRATCH2,
 	KVM_REG_MIPS_CP0_KSCRATCH3,
@@ -633,14 +695,23 @@ static unsigned long kvm_mips_num_regs(struct kvm_vcpu *vcpu)
 	unsigned long ret;
 
 	ret = ARRAY_SIZE(kvm_mips_get_one_regs);
-	if (kvm_mips_guest_can_have_fpu(&vcpu->arch)) {
+
+	if (kvm_mips_guest_can_have_fpu(&vcpu->arch))
+	{
 		ret += ARRAY_SIZE(kvm_mips_get_one_regs_fpu) + 48;
+
 		/* odd doubles */
 		if (boot_cpu_data.fpu_id & MIPS_FPIR_F64)
+		{
 			ret += 16;
+		}
 	}
+
 	if (kvm_mips_guest_can_have_msa(&vcpu->arch))
+	{
 		ret += ARRAY_SIZE(kvm_mips_get_one_regs_msa) + 32;
+	}
+
 	ret += __arch_hweight8(vcpu->arch.kscratch_enabled);
 	ret += kvm_mips_callbacks->num_regs(vcpu);
 
@@ -653,54 +724,87 @@ static int kvm_mips_copy_reg_indices(struct kvm_vcpu *vcpu, u64 __user *indices)
 	unsigned int i;
 
 	if (copy_to_user(indices, kvm_mips_get_one_regs,
-			 sizeof(kvm_mips_get_one_regs)))
+					 sizeof(kvm_mips_get_one_regs)))
+	{
 		return -EFAULT;
+	}
+
 	indices += ARRAY_SIZE(kvm_mips_get_one_regs);
 
-	if (kvm_mips_guest_can_have_fpu(&vcpu->arch)) {
+	if (kvm_mips_guest_can_have_fpu(&vcpu->arch))
+	{
 		if (copy_to_user(indices, kvm_mips_get_one_regs_fpu,
-				 sizeof(kvm_mips_get_one_regs_fpu)))
+						 sizeof(kvm_mips_get_one_regs_fpu)))
+		{
 			return -EFAULT;
+		}
+
 		indices += ARRAY_SIZE(kvm_mips_get_one_regs_fpu);
 
-		for (i = 0; i < 32; ++i) {
+		for (i = 0; i < 32; ++i)
+		{
 			index = KVM_REG_MIPS_FPR_32(i);
+
 			if (copy_to_user(indices, &index, sizeof(index)))
+			{
 				return -EFAULT;
+			}
+
 			++indices;
 
 			/* skip odd doubles if no F64 */
 			if (i & 1 && !(boot_cpu_data.fpu_id & MIPS_FPIR_F64))
+			{
 				continue;
+			}
 
 			index = KVM_REG_MIPS_FPR_64(i);
+
 			if (copy_to_user(indices, &index, sizeof(index)))
+			{
 				return -EFAULT;
+			}
+
 			++indices;
 		}
 	}
 
-	if (kvm_mips_guest_can_have_msa(&vcpu->arch)) {
+	if (kvm_mips_guest_can_have_msa(&vcpu->arch))
+	{
 		if (copy_to_user(indices, kvm_mips_get_one_regs_msa,
-				 sizeof(kvm_mips_get_one_regs_msa)))
+						 sizeof(kvm_mips_get_one_regs_msa)))
+		{
 			return -EFAULT;
+		}
+
 		indices += ARRAY_SIZE(kvm_mips_get_one_regs_msa);
 
-		for (i = 0; i < 32; ++i) {
+		for (i = 0; i < 32; ++i)
+		{
 			index = KVM_REG_MIPS_VEC_128(i);
+
 			if (copy_to_user(indices, &index, sizeof(index)))
+			{
 				return -EFAULT;
+			}
+
 			++indices;
 		}
 	}
 
-	for (i = 0; i < 6; ++i) {
+	for (i = 0; i < 6; ++i)
+	{
 		if (!(vcpu->arch.kscratch_enabled & BIT(i + 2)))
+		{
 			continue;
+		}
 
 		if (copy_to_user(indices, &kvm_mips_get_one_regs_kscratch[i],
-				 sizeof(kvm_mips_get_one_regs_kscratch[i])))
+						 sizeof(kvm_mips_get_one_regs_kscratch[i])))
+		{
 			return -EFAULT;
+		}
+
 		++indices;
 	}
 
@@ -708,7 +812,7 @@ static int kvm_mips_copy_reg_indices(struct kvm_vcpu *vcpu, u64 __user *indices)
 }
 
 static int kvm_mips_get_reg(struct kvm_vcpu *vcpu,
-			    const struct kvm_one_reg *reg)
+							const struct kvm_one_reg *reg)
 {
 	struct mips_coproc *cop0 = vcpu->arch.cop0;
 	struct mips_fpu_struct *fpu = &vcpu->arch.fpu;
@@ -717,199 +821,287 @@ static int kvm_mips_get_reg(struct kvm_vcpu *vcpu,
 	s64 vs[2];
 	unsigned int idx;
 
-	switch (reg->id) {
-	/* General purpose registers */
-	case KVM_REG_MIPS_R0 ... KVM_REG_MIPS_R31:
-		v = (long)vcpu->arch.gprs[reg->id - KVM_REG_MIPS_R0];
-		break;
+	switch (reg->id)
+	{
+		/* General purpose registers */
+		case KVM_REG_MIPS_R0 ... KVM_REG_MIPS_R31:
+			v = (long)vcpu->arch.gprs[reg->id - KVM_REG_MIPS_R0];
+			break;
 #ifndef CONFIG_CPU_MIPSR6
-	case KVM_REG_MIPS_HI:
-		v = (long)vcpu->arch.hi;
-		break;
-	case KVM_REG_MIPS_LO:
-		v = (long)vcpu->arch.lo;
-		break;
+
+		case KVM_REG_MIPS_HI:
+			v = (long)vcpu->arch.hi;
+			break;
+
+		case KVM_REG_MIPS_LO:
+			v = (long)vcpu->arch.lo;
+			break;
 #endif
-	case KVM_REG_MIPS_PC:
-		v = (long)vcpu->arch.pc;
-		break;
 
-	/* Floating point registers */
-	case KVM_REG_MIPS_FPR_32(0) ... KVM_REG_MIPS_FPR_32(31):
-		if (!kvm_mips_guest_has_fpu(&vcpu->arch))
-			return -EINVAL;
-		idx = reg->id - KVM_REG_MIPS_FPR_32(0);
-		/* Odd singles in top of even double when FR=0 */
-		if (kvm_read_c0_guest_status(cop0) & ST0_FR)
-			v = get_fpr32(&fpu->fpr[idx], 0);
-		else
-			v = get_fpr32(&fpu->fpr[idx & ~1], idx & 1);
-		break;
-	case KVM_REG_MIPS_FPR_64(0) ... KVM_REG_MIPS_FPR_64(31):
-		if (!kvm_mips_guest_has_fpu(&vcpu->arch))
-			return -EINVAL;
-		idx = reg->id - KVM_REG_MIPS_FPR_64(0);
-		/* Can't access odd doubles in FR=0 mode */
-		if (idx & 1 && !(kvm_read_c0_guest_status(cop0) & ST0_FR))
-			return -EINVAL;
-		v = get_fpr64(&fpu->fpr[idx], 0);
-		break;
-	case KVM_REG_MIPS_FCR_IR:
-		if (!kvm_mips_guest_has_fpu(&vcpu->arch))
-			return -EINVAL;
-		v = boot_cpu_data.fpu_id;
-		break;
-	case KVM_REG_MIPS_FCR_CSR:
-		if (!kvm_mips_guest_has_fpu(&vcpu->arch))
-			return -EINVAL;
-		v = fpu->fcr31;
-		break;
+		case KVM_REG_MIPS_PC:
+			v = (long)vcpu->arch.pc;
+			break;
 
-	/* MIPS SIMD Architecture (MSA) registers */
-	case KVM_REG_MIPS_VEC_128(0) ... KVM_REG_MIPS_VEC_128(31):
-		if (!kvm_mips_guest_has_msa(&vcpu->arch))
-			return -EINVAL;
-		/* Can't access MSA registers in FR=0 mode */
-		if (!(kvm_read_c0_guest_status(cop0) & ST0_FR))
-			return -EINVAL;
-		idx = reg->id - KVM_REG_MIPS_VEC_128(0);
+		/* Floating point registers */
+		case KVM_REG_MIPS_FPR_32(0) ... KVM_REG_MIPS_FPR_32(31):
+			if (!kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			idx = reg->id - KVM_REG_MIPS_FPR_32(0);
+
+			/* Odd singles in top of even double when FR=0 */
+			if (kvm_read_c0_guest_status(cop0) & ST0_FR)
+			{
+				v = get_fpr32(&fpu->fpr[idx], 0);
+			}
+			else
+			{
+				v = get_fpr32(&fpu->fpr[idx & ~1], idx & 1);
+			}
+
+			break;
+
+		case KVM_REG_MIPS_FPR_64(0) ... KVM_REG_MIPS_FPR_64(31):
+			if (!kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			idx = reg->id - KVM_REG_MIPS_FPR_64(0);
+
+			/* Can't access odd doubles in FR=0 mode */
+			if (idx & 1 && !(kvm_read_c0_guest_status(cop0) & ST0_FR))
+			{
+				return -EINVAL;
+			}
+
+			v = get_fpr64(&fpu->fpr[idx], 0);
+			break;
+
+		case KVM_REG_MIPS_FCR_IR:
+			if (!kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			v = boot_cpu_data.fpu_id;
+			break;
+
+		case KVM_REG_MIPS_FCR_CSR:
+			if (!kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			v = fpu->fcr31;
+			break;
+
+		/* MIPS SIMD Architecture (MSA) registers */
+		case KVM_REG_MIPS_VEC_128(0) ... KVM_REG_MIPS_VEC_128(31):
+			if (!kvm_mips_guest_has_msa(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			/* Can't access MSA registers in FR=0 mode */
+			if (!(kvm_read_c0_guest_status(cop0) & ST0_FR))
+			{
+				return -EINVAL;
+			}
+
+			idx = reg->id - KVM_REG_MIPS_VEC_128(0);
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-		/* least significant byte first */
-		vs[0] = get_fpr64(&fpu->fpr[idx], 0);
-		vs[1] = get_fpr64(&fpu->fpr[idx], 1);
+			/* least significant byte first */
+			vs[0] = get_fpr64(&fpu->fpr[idx], 0);
+			vs[1] = get_fpr64(&fpu->fpr[idx], 1);
 #else
-		/* most significant byte first */
-		vs[0] = get_fpr64(&fpu->fpr[idx], 1);
-		vs[1] = get_fpr64(&fpu->fpr[idx], 0);
+			/* most significant byte first */
+			vs[0] = get_fpr64(&fpu->fpr[idx], 1);
+			vs[1] = get_fpr64(&fpu->fpr[idx], 0);
 #endif
-		break;
-	case KVM_REG_MIPS_MSA_IR:
-		if (!kvm_mips_guest_has_msa(&vcpu->arch))
-			return -EINVAL;
-		v = boot_cpu_data.msa_id;
-		break;
-	case KVM_REG_MIPS_MSA_CSR:
-		if (!kvm_mips_guest_has_msa(&vcpu->arch))
-			return -EINVAL;
-		v = fpu->msacsr;
-		break;
+			break;
 
-	/* Co-processor 0 registers */
-	case KVM_REG_MIPS_CP0_INDEX:
-		v = (long)kvm_read_c0_guest_index(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CONTEXT:
-		v = (long)kvm_read_c0_guest_context(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_USERLOCAL:
-		v = (long)kvm_read_c0_guest_userlocal(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_PAGEMASK:
-		v = (long)kvm_read_c0_guest_pagemask(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_WIRED:
-		v = (long)kvm_read_c0_guest_wired(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_HWRENA:
-		v = (long)kvm_read_c0_guest_hwrena(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_BADVADDR:
-		v = (long)kvm_read_c0_guest_badvaddr(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_ENTRYHI:
-		v = (long)kvm_read_c0_guest_entryhi(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_COMPARE:
-		v = (long)kvm_read_c0_guest_compare(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_STATUS:
-		v = (long)kvm_read_c0_guest_status(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CAUSE:
-		v = (long)kvm_read_c0_guest_cause(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_EPC:
-		v = (long)kvm_read_c0_guest_epc(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_PRID:
-		v = (long)kvm_read_c0_guest_prid(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CONFIG:
-		v = (long)kvm_read_c0_guest_config(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CONFIG1:
-		v = (long)kvm_read_c0_guest_config1(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CONFIG2:
-		v = (long)kvm_read_c0_guest_config2(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CONFIG3:
-		v = (long)kvm_read_c0_guest_config3(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CONFIG4:
-		v = (long)kvm_read_c0_guest_config4(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CONFIG5:
-		v = (long)kvm_read_c0_guest_config5(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_CONFIG7:
-		v = (long)kvm_read_c0_guest_config7(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_ERROREPC:
-		v = (long)kvm_read_c0_guest_errorepc(cop0);
-		break;
-	case KVM_REG_MIPS_CP0_KSCRATCH1 ... KVM_REG_MIPS_CP0_KSCRATCH6:
-		idx = reg->id - KVM_REG_MIPS_CP0_KSCRATCH1 + 2;
-		if (!(vcpu->arch.kscratch_enabled & BIT(idx)))
-			return -EINVAL;
-		switch (idx) {
-		case 2:
-			v = (long)kvm_read_c0_guest_kscratch1(cop0);
+		case KVM_REG_MIPS_MSA_IR:
+			if (!kvm_mips_guest_has_msa(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			v = boot_cpu_data.msa_id;
 			break;
-		case 3:
-			v = (long)kvm_read_c0_guest_kscratch2(cop0);
+
+		case KVM_REG_MIPS_MSA_CSR:
+			if (!kvm_mips_guest_has_msa(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			v = fpu->msacsr;
 			break;
-		case 4:
-			v = (long)kvm_read_c0_guest_kscratch3(cop0);
+
+		/* Co-processor 0 registers */
+		case KVM_REG_MIPS_CP0_INDEX:
+			v = (long)kvm_read_c0_guest_index(cop0);
 			break;
-		case 5:
-			v = (long)kvm_read_c0_guest_kscratch4(cop0);
+
+		case KVM_REG_MIPS_CP0_CONTEXT:
+			v = (long)kvm_read_c0_guest_context(cop0);
 			break;
-		case 6:
-			v = (long)kvm_read_c0_guest_kscratch5(cop0);
+
+		case KVM_REG_MIPS_CP0_USERLOCAL:
+			v = (long)kvm_read_c0_guest_userlocal(cop0);
 			break;
-		case 7:
-			v = (long)kvm_read_c0_guest_kscratch6(cop0);
+
+		case KVM_REG_MIPS_CP0_PAGEMASK:
+			v = (long)kvm_read_c0_guest_pagemask(cop0);
 			break;
-		}
-		break;
-	/* registers to be handled specially */
-	default:
-		ret = kvm_mips_callbacks->get_one_reg(vcpu, reg, &v);
-		if (ret)
-			return ret;
-		break;
+
+		case KVM_REG_MIPS_CP0_WIRED:
+			v = (long)kvm_read_c0_guest_wired(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_HWRENA:
+			v = (long)kvm_read_c0_guest_hwrena(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_BADVADDR:
+			v = (long)kvm_read_c0_guest_badvaddr(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_ENTRYHI:
+			v = (long)kvm_read_c0_guest_entryhi(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_COMPARE:
+			v = (long)kvm_read_c0_guest_compare(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_STATUS:
+			v = (long)kvm_read_c0_guest_status(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_CAUSE:
+			v = (long)kvm_read_c0_guest_cause(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_EPC:
+			v = (long)kvm_read_c0_guest_epc(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_PRID:
+			v = (long)kvm_read_c0_guest_prid(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_CONFIG:
+			v = (long)kvm_read_c0_guest_config(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_CONFIG1:
+			v = (long)kvm_read_c0_guest_config1(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_CONFIG2:
+			v = (long)kvm_read_c0_guest_config2(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_CONFIG3:
+			v = (long)kvm_read_c0_guest_config3(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_CONFIG4:
+			v = (long)kvm_read_c0_guest_config4(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_CONFIG5:
+			v = (long)kvm_read_c0_guest_config5(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_CONFIG7:
+			v = (long)kvm_read_c0_guest_config7(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_ERROREPC:
+			v = (long)kvm_read_c0_guest_errorepc(cop0);
+			break;
+
+		case KVM_REG_MIPS_CP0_KSCRATCH1 ... KVM_REG_MIPS_CP0_KSCRATCH6:
+			idx = reg->id - KVM_REG_MIPS_CP0_KSCRATCH1 + 2;
+
+			if (!(vcpu->arch.kscratch_enabled & BIT(idx)))
+			{
+				return -EINVAL;
+			}
+
+			switch (idx)
+			{
+				case 2:
+					v = (long)kvm_read_c0_guest_kscratch1(cop0);
+					break;
+
+				case 3:
+					v = (long)kvm_read_c0_guest_kscratch2(cop0);
+					break;
+
+				case 4:
+					v = (long)kvm_read_c0_guest_kscratch3(cop0);
+					break;
+
+				case 5:
+					v = (long)kvm_read_c0_guest_kscratch4(cop0);
+					break;
+
+				case 6:
+					v = (long)kvm_read_c0_guest_kscratch5(cop0);
+					break;
+
+				case 7:
+					v = (long)kvm_read_c0_guest_kscratch6(cop0);
+					break;
+			}
+
+			break;
+
+		/* registers to be handled specially */
+		default:
+			ret = kvm_mips_callbacks->get_one_reg(vcpu, reg, &v);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			break;
 	}
-	if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U64) {
+
+	if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U64)
+	{
 		u64 __user *uaddr64 = (u64 __user *)(long)reg->addr;
 
 		return put_user(v, uaddr64);
-	} else if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U32) {
+	}
+	else if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U32)
+	{
 		u32 __user *uaddr32 = (u32 __user *)(long)reg->addr;
 		u32 v32 = (u32)v;
 
 		return put_user(v32, uaddr32);
-	} else if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U128) {
+	}
+	else if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U128)
+	{
 		void __user *uaddr = (void __user *)(long)reg->addr;
 
 		return copy_to_user(uaddr, vs, 16) ? -EFAULT : 0;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 }
 
 static int kvm_mips_set_reg(struct kvm_vcpu *vcpu,
-			    const struct kvm_one_reg *reg)
+							const struct kvm_one_reg *reg)
 {
 	struct mips_coproc *cop0 = vcpu->arch.cop0;
 	struct mips_fpu_struct *fpu = &vcpu->arch.fpu;
@@ -917,262 +1109,384 @@ static int kvm_mips_set_reg(struct kvm_vcpu *vcpu,
 	s64 vs[2];
 	unsigned int idx;
 
-	if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U64) {
+	if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U64)
+	{
 		u64 __user *uaddr64 = (u64 __user *)(long)reg->addr;
 
 		if (get_user(v, uaddr64) != 0)
+		{
 			return -EFAULT;
-	} else if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U32) {
+		}
+	}
+	else if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U32)
+	{
 		u32 __user *uaddr32 = (u32 __user *)(long)reg->addr;
 		s32 v32;
 
 		if (get_user(v32, uaddr32) != 0)
+		{
 			return -EFAULT;
+		}
+
 		v = (s64)v32;
-	} else if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U128) {
+	}
+	else if ((reg->id & KVM_REG_SIZE_MASK) == KVM_REG_SIZE_U128)
+	{
 		void __user *uaddr = (void __user *)(long)reg->addr;
 
 		return copy_from_user(vs, uaddr, 16) ? -EFAULT : 0;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
-	switch (reg->id) {
-	/* General purpose registers */
-	case KVM_REG_MIPS_R0:
-		/* Silently ignore requests to set $0 */
-		break;
-	case KVM_REG_MIPS_R1 ... KVM_REG_MIPS_R31:
-		vcpu->arch.gprs[reg->id - KVM_REG_MIPS_R0] = v;
-		break;
+	switch (reg->id)
+	{
+		/* General purpose registers */
+		case KVM_REG_MIPS_R0:
+			/* Silently ignore requests to set $0 */
+			break;
+
+		case KVM_REG_MIPS_R1 ... KVM_REG_MIPS_R31:
+			vcpu->arch.gprs[reg->id - KVM_REG_MIPS_R0] = v;
+			break;
 #ifndef CONFIG_CPU_MIPSR6
-	case KVM_REG_MIPS_HI:
-		vcpu->arch.hi = v;
-		break;
-	case KVM_REG_MIPS_LO:
-		vcpu->arch.lo = v;
-		break;
+
+		case KVM_REG_MIPS_HI:
+			vcpu->arch.hi = v;
+			break;
+
+		case KVM_REG_MIPS_LO:
+			vcpu->arch.lo = v;
+			break;
 #endif
-	case KVM_REG_MIPS_PC:
-		vcpu->arch.pc = v;
-		break;
 
-	/* Floating point registers */
-	case KVM_REG_MIPS_FPR_32(0) ... KVM_REG_MIPS_FPR_32(31):
-		if (!kvm_mips_guest_has_fpu(&vcpu->arch))
-			return -EINVAL;
-		idx = reg->id - KVM_REG_MIPS_FPR_32(0);
-		/* Odd singles in top of even double when FR=0 */
-		if (kvm_read_c0_guest_status(cop0) & ST0_FR)
-			set_fpr32(&fpu->fpr[idx], 0, v);
-		else
-			set_fpr32(&fpu->fpr[idx & ~1], idx & 1, v);
-		break;
-	case KVM_REG_MIPS_FPR_64(0) ... KVM_REG_MIPS_FPR_64(31):
-		if (!kvm_mips_guest_has_fpu(&vcpu->arch))
-			return -EINVAL;
-		idx = reg->id - KVM_REG_MIPS_FPR_64(0);
-		/* Can't access odd doubles in FR=0 mode */
-		if (idx & 1 && !(kvm_read_c0_guest_status(cop0) & ST0_FR))
-			return -EINVAL;
-		set_fpr64(&fpu->fpr[idx], 0, v);
-		break;
-	case KVM_REG_MIPS_FCR_IR:
-		if (!kvm_mips_guest_has_fpu(&vcpu->arch))
-			return -EINVAL;
-		/* Read-only */
-		break;
-	case KVM_REG_MIPS_FCR_CSR:
-		if (!kvm_mips_guest_has_fpu(&vcpu->arch))
-			return -EINVAL;
-		fpu->fcr31 = v;
-		break;
+		case KVM_REG_MIPS_PC:
+			vcpu->arch.pc = v;
+			break;
 
-	/* MIPS SIMD Architecture (MSA) registers */
-	case KVM_REG_MIPS_VEC_128(0) ... KVM_REG_MIPS_VEC_128(31):
-		if (!kvm_mips_guest_has_msa(&vcpu->arch))
-			return -EINVAL;
-		idx = reg->id - KVM_REG_MIPS_VEC_128(0);
+		/* Floating point registers */
+		case KVM_REG_MIPS_FPR_32(0) ... KVM_REG_MIPS_FPR_32(31):
+			if (!kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			idx = reg->id - KVM_REG_MIPS_FPR_32(0);
+
+			/* Odd singles in top of even double when FR=0 */
+			if (kvm_read_c0_guest_status(cop0) & ST0_FR)
+			{
+				set_fpr32(&fpu->fpr[idx], 0, v);
+			}
+			else
+			{
+				set_fpr32(&fpu->fpr[idx & ~1], idx & 1, v);
+			}
+
+			break;
+
+		case KVM_REG_MIPS_FPR_64(0) ... KVM_REG_MIPS_FPR_64(31):
+			if (!kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			idx = reg->id - KVM_REG_MIPS_FPR_64(0);
+
+			/* Can't access odd doubles in FR=0 mode */
+			if (idx & 1 && !(kvm_read_c0_guest_status(cop0) & ST0_FR))
+			{
+				return -EINVAL;
+			}
+
+			set_fpr64(&fpu->fpr[idx], 0, v);
+			break;
+
+		case KVM_REG_MIPS_FCR_IR:
+			if (!kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			/* Read-only */
+			break;
+
+		case KVM_REG_MIPS_FCR_CSR:
+			if (!kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			fpu->fcr31 = v;
+			break;
+
+		/* MIPS SIMD Architecture (MSA) registers */
+		case KVM_REG_MIPS_VEC_128(0) ... KVM_REG_MIPS_VEC_128(31):
+			if (!kvm_mips_guest_has_msa(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			idx = reg->id - KVM_REG_MIPS_VEC_128(0);
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-		/* least significant byte first */
-		set_fpr64(&fpu->fpr[idx], 0, vs[0]);
-		set_fpr64(&fpu->fpr[idx], 1, vs[1]);
+			/* least significant byte first */
+			set_fpr64(&fpu->fpr[idx], 0, vs[0]);
+			set_fpr64(&fpu->fpr[idx], 1, vs[1]);
 #else
-		/* most significant byte first */
-		set_fpr64(&fpu->fpr[idx], 1, vs[0]);
-		set_fpr64(&fpu->fpr[idx], 0, vs[1]);
+			/* most significant byte first */
+			set_fpr64(&fpu->fpr[idx], 1, vs[0]);
+			set_fpr64(&fpu->fpr[idx], 0, vs[1]);
 #endif
-		break;
-	case KVM_REG_MIPS_MSA_IR:
-		if (!kvm_mips_guest_has_msa(&vcpu->arch))
-			return -EINVAL;
-		/* Read-only */
-		break;
-	case KVM_REG_MIPS_MSA_CSR:
-		if (!kvm_mips_guest_has_msa(&vcpu->arch))
-			return -EINVAL;
-		fpu->msacsr = v;
-		break;
+			break;
 
-	/* Co-processor 0 registers */
-	case KVM_REG_MIPS_CP0_INDEX:
-		kvm_write_c0_guest_index(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_CONTEXT:
-		kvm_write_c0_guest_context(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_USERLOCAL:
-		kvm_write_c0_guest_userlocal(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_PAGEMASK:
-		kvm_write_c0_guest_pagemask(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_WIRED:
-		kvm_write_c0_guest_wired(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_HWRENA:
-		kvm_write_c0_guest_hwrena(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_BADVADDR:
-		kvm_write_c0_guest_badvaddr(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_ENTRYHI:
-		kvm_write_c0_guest_entryhi(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_STATUS:
-		kvm_write_c0_guest_status(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_EPC:
-		kvm_write_c0_guest_epc(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_PRID:
-		kvm_write_c0_guest_prid(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_ERROREPC:
-		kvm_write_c0_guest_errorepc(cop0, v);
-		break;
-	case KVM_REG_MIPS_CP0_KSCRATCH1 ... KVM_REG_MIPS_CP0_KSCRATCH6:
-		idx = reg->id - KVM_REG_MIPS_CP0_KSCRATCH1 + 2;
-		if (!(vcpu->arch.kscratch_enabled & BIT(idx)))
-			return -EINVAL;
-		switch (idx) {
-		case 2:
-			kvm_write_c0_guest_kscratch1(cop0, v);
+		case KVM_REG_MIPS_MSA_IR:
+			if (!kvm_mips_guest_has_msa(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			/* Read-only */
 			break;
-		case 3:
-			kvm_write_c0_guest_kscratch2(cop0, v);
+
+		case KVM_REG_MIPS_MSA_CSR:
+			if (!kvm_mips_guest_has_msa(&vcpu->arch))
+			{
+				return -EINVAL;
+			}
+
+			fpu->msacsr = v;
 			break;
-		case 4:
-			kvm_write_c0_guest_kscratch3(cop0, v);
+
+		/* Co-processor 0 registers */
+		case KVM_REG_MIPS_CP0_INDEX:
+			kvm_write_c0_guest_index(cop0, v);
 			break;
-		case 5:
-			kvm_write_c0_guest_kscratch4(cop0, v);
+
+		case KVM_REG_MIPS_CP0_CONTEXT:
+			kvm_write_c0_guest_context(cop0, v);
 			break;
-		case 6:
-			kvm_write_c0_guest_kscratch5(cop0, v);
+
+		case KVM_REG_MIPS_CP0_USERLOCAL:
+			kvm_write_c0_guest_userlocal(cop0, v);
 			break;
-		case 7:
-			kvm_write_c0_guest_kscratch6(cop0, v);
+
+		case KVM_REG_MIPS_CP0_PAGEMASK:
+			kvm_write_c0_guest_pagemask(cop0, v);
 			break;
-		}
-		break;
-	/* registers to be handled specially */
-	default:
-		return kvm_mips_callbacks->set_one_reg(vcpu, reg, v);
+
+		case KVM_REG_MIPS_CP0_WIRED:
+			kvm_write_c0_guest_wired(cop0, v);
+			break;
+
+		case KVM_REG_MIPS_CP0_HWRENA:
+			kvm_write_c0_guest_hwrena(cop0, v);
+			break;
+
+		case KVM_REG_MIPS_CP0_BADVADDR:
+			kvm_write_c0_guest_badvaddr(cop0, v);
+			break;
+
+		case KVM_REG_MIPS_CP0_ENTRYHI:
+			kvm_write_c0_guest_entryhi(cop0, v);
+			break;
+
+		case KVM_REG_MIPS_CP0_STATUS:
+			kvm_write_c0_guest_status(cop0, v);
+			break;
+
+		case KVM_REG_MIPS_CP0_EPC:
+			kvm_write_c0_guest_epc(cop0, v);
+			break;
+
+		case KVM_REG_MIPS_CP0_PRID:
+			kvm_write_c0_guest_prid(cop0, v);
+			break;
+
+		case KVM_REG_MIPS_CP0_ERROREPC:
+			kvm_write_c0_guest_errorepc(cop0, v);
+			break;
+
+		case KVM_REG_MIPS_CP0_KSCRATCH1 ... KVM_REG_MIPS_CP0_KSCRATCH6:
+			idx = reg->id - KVM_REG_MIPS_CP0_KSCRATCH1 + 2;
+
+			if (!(vcpu->arch.kscratch_enabled & BIT(idx)))
+			{
+				return -EINVAL;
+			}
+
+			switch (idx)
+			{
+				case 2:
+					kvm_write_c0_guest_kscratch1(cop0, v);
+					break;
+
+				case 3:
+					kvm_write_c0_guest_kscratch2(cop0, v);
+					break;
+
+				case 4:
+					kvm_write_c0_guest_kscratch3(cop0, v);
+					break;
+
+				case 5:
+					kvm_write_c0_guest_kscratch4(cop0, v);
+					break;
+
+				case 6:
+					kvm_write_c0_guest_kscratch5(cop0, v);
+					break;
+
+				case 7:
+					kvm_write_c0_guest_kscratch6(cop0, v);
+					break;
+			}
+
+			break;
+
+		/* registers to be handled specially */
+		default:
+			return kvm_mips_callbacks->set_one_reg(vcpu, reg, v);
 	}
+
 	return 0;
 }
 
 static int kvm_vcpu_ioctl_enable_cap(struct kvm_vcpu *vcpu,
-				     struct kvm_enable_cap *cap)
+									 struct kvm_enable_cap *cap)
 {
 	int r = 0;
 
 	if (!kvm_vm_ioctl_check_extension(vcpu->kvm, cap->cap))
+	{
 		return -EINVAL;
-	if (cap->flags)
-		return -EINVAL;
-	if (cap->args[0])
-		return -EINVAL;
+	}
 
-	switch (cap->cap) {
-	case KVM_CAP_MIPS_FPU:
-		vcpu->arch.fpu_enabled = true;
-		break;
-	case KVM_CAP_MIPS_MSA:
-		vcpu->arch.msa_enabled = true;
-		break;
-	default:
-		r = -EINVAL;
-		break;
+	if (cap->flags)
+	{
+		return -EINVAL;
+	}
+
+	if (cap->args[0])
+	{
+		return -EINVAL;
+	}
+
+	switch (cap->cap)
+	{
+		case KVM_CAP_MIPS_FPU:
+			vcpu->arch.fpu_enabled = true;
+			break;
+
+		case KVM_CAP_MIPS_MSA:
+			vcpu->arch.msa_enabled = true;
+			break;
+
+		default:
+			r = -EINVAL;
+			break;
 	}
 
 	return r;
 }
 
 long kvm_arch_vcpu_ioctl(struct file *filp, unsigned int ioctl,
-			 unsigned long arg)
+						 unsigned long arg)
 {
 	struct kvm_vcpu *vcpu = filp->private_data;
 	void __user *argp = (void __user *)arg;
 	long r;
 
-	switch (ioctl) {
-	case KVM_SET_ONE_REG:
-	case KVM_GET_ONE_REG: {
-		struct kvm_one_reg reg;
+	switch (ioctl)
+	{
+		case KVM_SET_ONE_REG:
+		case KVM_GET_ONE_REG:
+			{
+				struct kvm_one_reg reg;
 
-		if (copy_from_user(&reg, argp, sizeof(reg)))
-			return -EFAULT;
-		if (ioctl == KVM_SET_ONE_REG)
-			return kvm_mips_set_reg(vcpu, &reg);
-		else
-			return kvm_mips_get_reg(vcpu, &reg);
-	}
-	case KVM_GET_REG_LIST: {
-		struct kvm_reg_list __user *user_list = argp;
-		struct kvm_reg_list reg_list;
-		unsigned n;
+				if (copy_from_user(&reg, argp, sizeof(reg)))
+				{
+					return -EFAULT;
+				}
 
-		if (copy_from_user(&reg_list, user_list, sizeof(reg_list)))
-			return -EFAULT;
-		n = reg_list.n;
-		reg_list.n = kvm_mips_num_regs(vcpu);
-		if (copy_to_user(user_list, &reg_list, sizeof(reg_list)))
-			return -EFAULT;
-		if (n < reg_list.n)
-			return -E2BIG;
-		return kvm_mips_copy_reg_indices(vcpu, user_list->reg);
-	}
-	case KVM_NMI:
-		/* Treat the NMI as a CPU reset */
-		r = kvm_mips_reset_vcpu(vcpu);
-		break;
-	case KVM_INTERRUPT:
-		{
-			struct kvm_mips_interrupt irq;
+				if (ioctl == KVM_SET_ONE_REG)
+				{
+					return kvm_mips_set_reg(vcpu, &reg);
+				}
+				else
+				{
+					return kvm_mips_get_reg(vcpu, &reg);
+				}
+			}
 
-			r = -EFAULT;
-			if (copy_from_user(&irq, argp, sizeof(irq)))
-				goto out;
+		case KVM_GET_REG_LIST:
+			{
+				struct kvm_reg_list __user *user_list = argp;
+				struct kvm_reg_list reg_list;
+				unsigned n;
 
-			kvm_debug("[%d] %s: irq: %d\n", vcpu->vcpu_id, __func__,
-				  irq.irq);
+				if (copy_from_user(&reg_list, user_list, sizeof(reg_list)))
+				{
+					return -EFAULT;
+				}
 
-			r = kvm_vcpu_ioctl_interrupt(vcpu, &irq);
+				n = reg_list.n;
+				reg_list.n = kvm_mips_num_regs(vcpu);
+
+				if (copy_to_user(user_list, &reg_list, sizeof(reg_list)))
+				{
+					return -EFAULT;
+				}
+
+				if (n < reg_list.n)
+				{
+					return -E2BIG;
+				}
+
+				return kvm_mips_copy_reg_indices(vcpu, user_list->reg);
+			}
+
+		case KVM_NMI:
+			/* Treat the NMI as a CPU reset */
+			r = kvm_mips_reset_vcpu(vcpu);
 			break;
-		}
-	case KVM_ENABLE_CAP: {
-		struct kvm_enable_cap cap;
 
-		r = -EFAULT;
-		if (copy_from_user(&cap, argp, sizeof(cap)))
-			goto out;
-		r = kvm_vcpu_ioctl_enable_cap(vcpu, &cap);
-		break;
-	}
-	default:
-		r = -ENOIOCTLCMD;
+		case KVM_INTERRUPT:
+			{
+				struct kvm_mips_interrupt irq;
+
+				r = -EFAULT;
+
+				if (copy_from_user(&irq, argp, sizeof(irq)))
+				{
+					goto out;
+				}
+
+				kvm_debug("[%d] %s: irq: %d\n", vcpu->vcpu_id, __func__,
+						  irq.irq);
+
+				r = kvm_vcpu_ioctl_interrupt(vcpu, &irq);
+				break;
+			}
+
+		case KVM_ENABLE_CAP:
+			{
+				struct kvm_enable_cap cap;
+
+				r = -EFAULT;
+
+				if (copy_from_user(&cap, argp, sizeof(cap)))
+				{
+					goto out;
+				}
+
+				r = kvm_vcpu_ioctl_enable_cap(vcpu, &cap);
+				break;
+			}
+
+		default:
+			r = -ENOIOCTLCMD;
 	}
 
 out:
@@ -1192,11 +1506,15 @@ int kvm_vm_ioctl_get_dirty_log(struct kvm *kvm, struct kvm_dirty_log *log)
 	mutex_lock(&kvm->slots_lock);
 
 	r = kvm_get_dirty_log(kvm, log, &is_dirty);
+
 	if (r)
+	{
 		goto out;
+	}
 
 	/* If nothing is dirty, don't bother messing with page tables. */
-	if (is_dirty) {
+	if (is_dirty)
+	{
 		slots = kvm_memslots(kvm);
 		memslot = id_to_memslot(slots, log->slot);
 
@@ -1204,7 +1522,7 @@ int kvm_vm_ioctl_get_dirty_log(struct kvm *kvm, struct kvm_dirty_log *log)
 		ga_end = ga + (memslot->npages << PAGE_SHIFT);
 
 		kvm_info("%s: dirty, ga: %#lx, ga_end %#lx\n", __func__, ga,
-			 ga_end);
+				 ga_end);
 
 		n = kvm_dirty_bitmap_bytes(memslot);
 		memset(memslot->dirty_bitmap, 0, n);
@@ -1221,9 +1539,10 @@ long kvm_arch_vm_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
 {
 	long r;
 
-	switch (ioctl) {
-	default:
-		r = -ENOIOCTLCMD;
+	switch (ioctl)
+	{
+		default:
+			r = -ENOIOCTLCMD;
 	}
 
 	return r;
@@ -1231,7 +1550,8 @@ long kvm_arch_vm_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
 
 int kvm_arch_init(void *opaque)
 {
-	if (kvm_mips_callbacks) {
+	if (kvm_mips_callbacks)
+	{
 		kvm_err("kvm: module already exists\n");
 		return -EEXIST;
 	}
@@ -1245,13 +1565,13 @@ void kvm_arch_exit(void)
 }
 
 int kvm_arch_vcpu_ioctl_get_sregs(struct kvm_vcpu *vcpu,
-				  struct kvm_sregs *sregs)
+								  struct kvm_sregs *sregs)
 {
 	return -ENOIOCTLCMD;
 }
 
 int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
-				  struct kvm_sregs *sregs)
+								  struct kvm_sregs *sregs)
 {
 	return -ENOIOCTLCMD;
 }
@@ -1279,37 +1599,43 @@ int kvm_vm_ioctl_check_extension(struct kvm *kvm, long ext)
 {
 	int r;
 
-	switch (ext) {
-	case KVM_CAP_ONE_REG:
-	case KVM_CAP_ENABLE_CAP:
-		r = 1;
-		break;
-	case KVM_CAP_COALESCED_MMIO:
-		r = KVM_COALESCED_MMIO_PAGE_OFFSET;
-		break;
-	case KVM_CAP_MIPS_FPU:
-		/* We don't handle systems with inconsistent cpu_has_fpu */
-		r = !!raw_cpu_has_fpu;
-		break;
-	case KVM_CAP_MIPS_MSA:
-		/*
-		 * We don't support MSA vector partitioning yet:
-		 * 1) It would require explicit support which can't be tested
-		 *    yet due to lack of support in current hardware.
-		 * 2) It extends the state that would need to be saved/restored
-		 *    by e.g. QEMU for migration.
-		 *
-		 * When vector partitioning hardware becomes available, support
-		 * could be added by requiring a flag when enabling
-		 * KVM_CAP_MIPS_MSA capability to indicate that userland knows
-		 * to save/restore the appropriate extra state.
-		 */
-		r = cpu_has_msa && !(boot_cpu_data.msa_id & MSA_IR_WRPF);
-		break;
-	default:
-		r = 0;
-		break;
+	switch (ext)
+	{
+		case KVM_CAP_ONE_REG:
+		case KVM_CAP_ENABLE_CAP:
+			r = 1;
+			break;
+
+		case KVM_CAP_COALESCED_MMIO:
+			r = KVM_COALESCED_MMIO_PAGE_OFFSET;
+			break;
+
+		case KVM_CAP_MIPS_FPU:
+			/* We don't handle systems with inconsistent cpu_has_fpu */
+			r = !!raw_cpu_has_fpu;
+			break;
+
+		case KVM_CAP_MIPS_MSA:
+			/*
+			 * We don't support MSA vector partitioning yet:
+			 * 1) It would require explicit support which can't be tested
+			 *    yet due to lack of support in current hardware.
+			 * 2) It extends the state that would need to be saved/restored
+			 *    by e.g. QEMU for migration.
+			 *
+			 * When vector partitioning hardware becomes available, support
+			 * could be added by requiring a flag when enabling
+			 * KVM_CAP_MIPS_MSA capability to indicate that userland knows
+			 * to save/restore the appropriate extra state.
+			 */
+			r = cpu_has_msa && !(boot_cpu_data.msa_id & MSA_IR_WRPF);
+			break;
+
+		default:
+			r = 0;
+			break;
 	}
+
 	return r;
 }
 
@@ -1324,25 +1650,29 @@ int kvm_arch_vcpu_dump_regs(struct kvm_vcpu *vcpu)
 	struct mips_coproc *cop0;
 
 	if (!vcpu)
+	{
 		return -1;
+	}
 
 	kvm_debug("VCPU Register Dump:\n");
 	kvm_debug("\tpc = 0x%08lx\n", vcpu->arch.pc);
 	kvm_debug("\texceptions: %08lx\n", vcpu->arch.pending_exceptions);
 
-	for (i = 0; i < 32; i += 4) {
+	for (i = 0; i < 32; i += 4)
+	{
 		kvm_debug("\tgpr%02d: %08lx %08lx %08lx %08lx\n", i,
-		       vcpu->arch.gprs[i],
-		       vcpu->arch.gprs[i + 1],
-		       vcpu->arch.gprs[i + 2], vcpu->arch.gprs[i + 3]);
+				  vcpu->arch.gprs[i],
+				  vcpu->arch.gprs[i + 1],
+				  vcpu->arch.gprs[i + 2], vcpu->arch.gprs[i + 3]);
 	}
+
 	kvm_debug("\thi: 0x%08lx\n", vcpu->arch.hi);
 	kvm_debug("\tlo: 0x%08lx\n", vcpu->arch.lo);
 
 	cop0 = vcpu->arch.cop0;
 	kvm_debug("\tStatus: 0x%08lx, Cause: 0x%08lx\n",
-		  kvm_read_c0_guest_status(cop0),
-		  kvm_read_c0_guest_cause(cop0));
+			  kvm_read_c0_guest_status(cop0),
+			  kvm_read_c0_guest_cause(cop0));
 
 	kvm_debug("\tEPC: 0x%08lx\n", kvm_read_c0_guest_epc(cop0));
 
@@ -1354,7 +1684,10 @@ int kvm_arch_vcpu_ioctl_set_regs(struct kvm_vcpu *vcpu, struct kvm_regs *regs)
 	int i;
 
 	for (i = 1; i < ARRAY_SIZE(vcpu->arch.gprs); i++)
+	{
 		vcpu->arch.gprs[i] = regs->gpr[i];
+	}
+
 	vcpu->arch.gprs[0] = 0; /* zero is special, and cannot be set. */
 	vcpu->arch.hi = regs->hi;
 	vcpu->arch.lo = regs->lo;
@@ -1368,7 +1701,9 @@ int kvm_arch_vcpu_ioctl_get_regs(struct kvm_vcpu *vcpu, struct kvm_regs *regs)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(vcpu->arch.gprs); i++)
+	{
 		regs->gpr[i] = vcpu->arch.gprs[i];
+	}
 
 	regs->hi = vcpu->arch.hi;
 	regs->lo = vcpu->arch.lo;
@@ -1384,8 +1719,11 @@ static void kvm_mips_comparecount_func(unsigned long data)
 	kvm_mips_callbacks->queue_timer_int(vcpu);
 
 	vcpu->arch.wait = 0;
+
 	if (swait_active(&vcpu->wq))
+	{
 		swake_up(&vcpu->wq);
+	}
 }
 
 /* low level hrtimer wake routine */
@@ -1402,13 +1740,13 @@ int kvm_arch_vcpu_init(struct kvm_vcpu *vcpu)
 {
 	kvm_mips_callbacks->vcpu_init(vcpu);
 	hrtimer_init(&vcpu->arch.comparecount_timer, CLOCK_MONOTONIC,
-		     HRTIMER_MODE_REL);
+				 HRTIMER_MODE_REL);
 	vcpu->arch.comparecount_timer.function = kvm_mips_comparecount_wakeup;
 	return 0;
 }
 
 int kvm_arch_vcpu_ioctl_translate(struct kvm_vcpu *vcpu,
-				  struct kvm_translation *tr)
+								  struct kvm_translation *tr)
 {
 	return 0;
 }
@@ -1424,7 +1762,9 @@ static void kvm_mips_set_c0_status(void)
 	u32 status = read_c0_status();
 
 	if (cpu_has_dsp)
+	{
 		status |= (ST0_MX);
+	}
 
 	write_c0_status(status);
 	ehb();
@@ -1458,7 +1798,7 @@ int kvm_mips_handle_exit(struct kvm_run *run, struct kvm_vcpu *vcpu)
 	local_irq_enable();
 
 	kvm_debug("kvm_mips_handle_exit: cause: %#x, PC: %p, kvm_run: %p, kvm_vcpu: %p\n",
-			cause, opc, run, vcpu);
+			  cause, opc, run, vcpu);
 	trace_kvm_exit(vcpu, exccode);
 
 	/*
@@ -1466,111 +1806,122 @@ int kvm_mips_handle_exit(struct kvm_run *run, struct kvm_vcpu *vcpu)
 	 * causing an exception to be delivered to the Guest Kernel
 	 */
 	er = kvm_mips_check_privilege(cause, opc, run, vcpu);
-	if (er == EMULATE_PRIV_FAIL) {
+
+	if (er == EMULATE_PRIV_FAIL)
+	{
 		goto skip_emul;
-	} else if (er == EMULATE_FAIL) {
+	}
+	else if (er == EMULATE_FAIL)
+	{
 		run->exit_reason = KVM_EXIT_INTERNAL_ERROR;
 		ret = RESUME_HOST;
 		goto skip_emul;
 	}
 
-	switch (exccode) {
-	case EXCCODE_INT:
-		kvm_debug("[%d]EXCCODE_INT @ %p\n", vcpu->vcpu_id, opc);
+	switch (exccode)
+	{
+		case EXCCODE_INT:
+			kvm_debug("[%d]EXCCODE_INT @ %p\n", vcpu->vcpu_id, opc);
 
-		++vcpu->stat.int_exits;
+			++vcpu->stat.int_exits;
 
-		if (need_resched())
-			cond_resched();
+			if (need_resched())
+			{
+				cond_resched();
+			}
 
-		ret = RESUME_GUEST;
-		break;
+			ret = RESUME_GUEST;
+			break;
 
-	case EXCCODE_CPU:
-		kvm_debug("EXCCODE_CPU: @ PC: %p\n", opc);
+		case EXCCODE_CPU:
+			kvm_debug("EXCCODE_CPU: @ PC: %p\n", opc);
 
-		++vcpu->stat.cop_unusable_exits;
-		ret = kvm_mips_callbacks->handle_cop_unusable(vcpu);
-		/* XXXKYMA: Might need to return to user space */
-		if (run->exit_reason == KVM_EXIT_IRQ_WINDOW_OPEN)
+			++vcpu->stat.cop_unusable_exits;
+			ret = kvm_mips_callbacks->handle_cop_unusable(vcpu);
+
+			/* XXXKYMA: Might need to return to user space */
+			if (run->exit_reason == KVM_EXIT_IRQ_WINDOW_OPEN)
+			{
+				ret = RESUME_HOST;
+			}
+
+			break;
+
+		case EXCCODE_MOD:
+			++vcpu->stat.tlbmod_exits;
+			ret = kvm_mips_callbacks->handle_tlb_mod(vcpu);
+			break;
+
+		case EXCCODE_TLBS:
+			kvm_debug("TLB ST fault:  cause %#x, status %#lx, PC: %p, BadVaddr: %#lx\n",
+					  cause, kvm_read_c0_guest_status(vcpu->arch.cop0), opc,
+					  badvaddr);
+
+			++vcpu->stat.tlbmiss_st_exits;
+			ret = kvm_mips_callbacks->handle_tlb_st_miss(vcpu);
+			break;
+
+		case EXCCODE_TLBL:
+			kvm_debug("TLB LD fault: cause %#x, PC: %p, BadVaddr: %#lx\n",
+					  cause, opc, badvaddr);
+
+			++vcpu->stat.tlbmiss_ld_exits;
+			ret = kvm_mips_callbacks->handle_tlb_ld_miss(vcpu);
+			break;
+
+		case EXCCODE_ADES:
+			++vcpu->stat.addrerr_st_exits;
+			ret = kvm_mips_callbacks->handle_addr_err_st(vcpu);
+			break;
+
+		case EXCCODE_ADEL:
+			++vcpu->stat.addrerr_ld_exits;
+			ret = kvm_mips_callbacks->handle_addr_err_ld(vcpu);
+			break;
+
+		case EXCCODE_SYS:
+			++vcpu->stat.syscall_exits;
+			ret = kvm_mips_callbacks->handle_syscall(vcpu);
+			break;
+
+		case EXCCODE_RI:
+			++vcpu->stat.resvd_inst_exits;
+			ret = kvm_mips_callbacks->handle_res_inst(vcpu);
+			break;
+
+		case EXCCODE_BP:
+			++vcpu->stat.break_inst_exits;
+			ret = kvm_mips_callbacks->handle_break(vcpu);
+			break;
+
+		case EXCCODE_TR:
+			++vcpu->stat.trap_inst_exits;
+			ret = kvm_mips_callbacks->handle_trap(vcpu);
+			break;
+
+		case EXCCODE_MSAFPE:
+			++vcpu->stat.msa_fpe_exits;
+			ret = kvm_mips_callbacks->handle_msa_fpe(vcpu);
+			break;
+
+		case EXCCODE_FPE:
+			++vcpu->stat.fpe_exits;
+			ret = kvm_mips_callbacks->handle_fpe(vcpu);
+			break;
+
+		case EXCCODE_MSADIS:
+			++vcpu->stat.msa_disabled_exits;
+			ret = kvm_mips_callbacks->handle_msa_disabled(vcpu);
+			break;
+
+		default:
+			kvm_err("Exception Code: %d, not yet handled, @ PC: %p, inst: 0x%08x  BadVaddr: %#lx Status: %#lx\n",
+					exccode, opc, kvm_get_inst(opc, vcpu), badvaddr,
+					kvm_read_c0_guest_status(vcpu->arch.cop0));
+			kvm_arch_vcpu_dump_regs(vcpu);
+			run->exit_reason = KVM_EXIT_INTERNAL_ERROR;
 			ret = RESUME_HOST;
-		break;
-
-	case EXCCODE_MOD:
-		++vcpu->stat.tlbmod_exits;
-		ret = kvm_mips_callbacks->handle_tlb_mod(vcpu);
-		break;
-
-	case EXCCODE_TLBS:
-		kvm_debug("TLB ST fault:  cause %#x, status %#lx, PC: %p, BadVaddr: %#lx\n",
-			  cause, kvm_read_c0_guest_status(vcpu->arch.cop0), opc,
-			  badvaddr);
-
-		++vcpu->stat.tlbmiss_st_exits;
-		ret = kvm_mips_callbacks->handle_tlb_st_miss(vcpu);
-		break;
-
-	case EXCCODE_TLBL:
-		kvm_debug("TLB LD fault: cause %#x, PC: %p, BadVaddr: %#lx\n",
-			  cause, opc, badvaddr);
-
-		++vcpu->stat.tlbmiss_ld_exits;
-		ret = kvm_mips_callbacks->handle_tlb_ld_miss(vcpu);
-		break;
-
-	case EXCCODE_ADES:
-		++vcpu->stat.addrerr_st_exits;
-		ret = kvm_mips_callbacks->handle_addr_err_st(vcpu);
-		break;
-
-	case EXCCODE_ADEL:
-		++vcpu->stat.addrerr_ld_exits;
-		ret = kvm_mips_callbacks->handle_addr_err_ld(vcpu);
-		break;
-
-	case EXCCODE_SYS:
-		++vcpu->stat.syscall_exits;
-		ret = kvm_mips_callbacks->handle_syscall(vcpu);
-		break;
-
-	case EXCCODE_RI:
-		++vcpu->stat.resvd_inst_exits;
-		ret = kvm_mips_callbacks->handle_res_inst(vcpu);
-		break;
-
-	case EXCCODE_BP:
-		++vcpu->stat.break_inst_exits;
-		ret = kvm_mips_callbacks->handle_break(vcpu);
-		break;
-
-	case EXCCODE_TR:
-		++vcpu->stat.trap_inst_exits;
-		ret = kvm_mips_callbacks->handle_trap(vcpu);
-		break;
-
-	case EXCCODE_MSAFPE:
-		++vcpu->stat.msa_fpe_exits;
-		ret = kvm_mips_callbacks->handle_msa_fpe(vcpu);
-		break;
-
-	case EXCCODE_FPE:
-		++vcpu->stat.fpe_exits;
-		ret = kvm_mips_callbacks->handle_fpe(vcpu);
-		break;
-
-	case EXCCODE_MSADIS:
-		++vcpu->stat.msa_disabled_exits;
-		ret = kvm_mips_callbacks->handle_msa_disabled(vcpu);
-		break;
-
-	default:
-		kvm_err("Exception Code: %d, not yet handled, @ PC: %p, inst: 0x%08x  BadVaddr: %#lx Status: %#lx\n",
-			exccode, opc, kvm_get_inst(opc, vcpu), badvaddr,
-			kvm_read_c0_guest_status(vcpu->arch.cop0));
-		kvm_arch_vcpu_dump_regs(vcpu);
-		run->exit_reason = KVM_EXIT_INTERNAL_ERROR;
-		ret = RESUME_HOST;
-		break;
+			break;
 
 	}
 
@@ -1578,11 +1929,15 @@ skip_emul:
 	local_irq_disable();
 
 	if (er == EMULATE_DONE && !(ret & RESUME_HOST))
+	{
 		kvm_mips_deliver_interrupts(vcpu, cause);
+	}
 
-	if (!(ret & RESUME_HOST)) {
+	if (!(ret & RESUME_HOST))
+	{
 		/* Only check for signals if not already exiting to userspace */
-		if (signal_pending(current)) {
+		if (signal_pending(current))
+		{
 			run->exit_reason = KVM_EXIT_INTR;
 			ret = (-EINTR << 2) | RESUME_HOST;
 			++vcpu->stat.signal_exits;
@@ -1590,7 +1945,8 @@ skip_emul:
 		}
 	}
 
-	if (ret == RESUME_GUEST) {
+	if (ret == RESUME_GUEST)
+	{
 		trace_kvm_reenter(vcpu);
 
 		kvm_mips_check_asids(vcpu);
@@ -1605,12 +1961,16 @@ skip_emul:
 		 * kvm_mips_csr_die_notifier() for how that is handled).
 		 */
 		if (kvm_mips_guest_has_fpu(&vcpu->arch) &&
-		    read_c0_status() & ST0_CU1)
+			read_c0_status() & ST0_CU1)
+		{
 			__kvm_restore_fcsr(&vcpu->arch);
+		}
 
 		if (kvm_mips_guest_has_msa(&vcpu->arch) &&
-		    read_c0_config5() & MIPS_CONF5_MSAEN)
+			read_c0_config5() & MIPS_CONF5_MSAEN)
+		{
 			__kvm_restore_msacsr(&vcpu->arch);
+		}
 	}
 
 	/* Disable HTW before returning to guest or host */
@@ -1640,26 +2000,34 @@ void kvm_own_fpu(struct kvm_vcpu *vcpu)
 	 * not to clobber the status register directly via the commpage.
 	 */
 	if (cpu_has_msa && sr & ST0_CU1 && !(sr & ST0_FR) &&
-	    vcpu->arch.aux_inuse & KVM_MIPS_AUX_MSA)
+		vcpu->arch.aux_inuse & KVM_MIPS_AUX_MSA)
+	{
 		kvm_lose_fpu(vcpu);
+	}
 
 	/*
 	 * Enable FPU for guest
 	 * We set FR and FRE according to guest context
 	 */
 	change_c0_status(ST0_CU1 | ST0_FR, sr);
-	if (cpu_has_fre) {
+
+	if (cpu_has_fre)
+	{
 		cfg5 = kvm_read_c0_guest_config5(cop0);
 		change_c0_config5(MIPS_CONF5_FRE, cfg5);
 	}
+
 	enable_fpu_hazard();
 
 	/* If guest FPU state not active, restore it now */
-	if (!(vcpu->arch.aux_inuse & KVM_MIPS_AUX_FPU)) {
+	if (!(vcpu->arch.aux_inuse & KVM_MIPS_AUX_FPU))
+	{
 		__kvm_restore_fpu(&vcpu->arch);
 		vcpu->arch.aux_inuse |= KVM_MIPS_AUX_FPU;
 		trace_kvm_aux(vcpu, KVM_TRACE_AUX_RESTORE, KVM_TRACE_AUX_FPU);
-	} else {
+	}
+	else
+	{
 		trace_kvm_aux(vcpu, KVM_TRACE_AUX_ENABLE, KVM_TRACE_AUX_FPU);
 	}
 
@@ -1679,7 +2047,8 @@ void kvm_own_msa(struct kvm_vcpu *vcpu)
 	 * Enable FPU if enabled in guest, since we're restoring FPU context
 	 * anyway. We set FR and FRE according to guest context.
 	 */
-	if (kvm_mips_guest_has_fpu(&vcpu->arch)) {
+	if (kvm_mips_guest_has_fpu(&vcpu->arch))
+	{
 		sr = kvm_read_c0_guest_status(cop0);
 
 		/*
@@ -1687,12 +2056,16 @@ void kvm_own_msa(struct kvm_vcpu *vcpu)
 		 * interacts with MSA state, so play it safe and save it first.
 		 */
 		if (!(sr & ST0_FR) &&
-		    (vcpu->arch.aux_inuse & (KVM_MIPS_AUX_FPU |
-				KVM_MIPS_AUX_MSA)) == KVM_MIPS_AUX_FPU)
+			(vcpu->arch.aux_inuse & (KVM_MIPS_AUX_FPU |
+									 KVM_MIPS_AUX_MSA)) == KVM_MIPS_AUX_FPU)
+		{
 			kvm_lose_fpu(vcpu);
+		}
 
 		change_c0_status(ST0_CU1 | ST0_FR, sr);
-		if (sr & ST0_CU1 && cpu_has_fre) {
+
+		if (sr & ST0_CU1 && cpu_has_fre)
+		{
 			cfg5 = kvm_read_c0_guest_config5(cop0);
 			change_c0_config5(MIPS_CONF5_FRE, cfg5);
 		}
@@ -1702,27 +2075,34 @@ void kvm_own_msa(struct kvm_vcpu *vcpu)
 	set_c0_config5(MIPS_CONF5_MSAEN);
 	enable_fpu_hazard();
 
-	switch (vcpu->arch.aux_inuse & (KVM_MIPS_AUX_FPU | KVM_MIPS_AUX_MSA)) {
-	case KVM_MIPS_AUX_FPU:
-		/*
-		 * Guest FPU state already loaded, only restore upper MSA state
-		 */
-		__kvm_restore_msa_upper(&vcpu->arch);
-		vcpu->arch.aux_inuse |= KVM_MIPS_AUX_MSA;
-		trace_kvm_aux(vcpu, KVM_TRACE_AUX_RESTORE, KVM_TRACE_AUX_MSA);
-		break;
-	case 0:
-		/* Neither FPU or MSA already active, restore full MSA state */
-		__kvm_restore_msa(&vcpu->arch);
-		vcpu->arch.aux_inuse |= KVM_MIPS_AUX_MSA;
-		if (kvm_mips_guest_has_fpu(&vcpu->arch))
-			vcpu->arch.aux_inuse |= KVM_MIPS_AUX_FPU;
-		trace_kvm_aux(vcpu, KVM_TRACE_AUX_RESTORE,
-			      KVM_TRACE_AUX_FPU_MSA);
-		break;
-	default:
-		trace_kvm_aux(vcpu, KVM_TRACE_AUX_ENABLE, KVM_TRACE_AUX_MSA);
-		break;
+	switch (vcpu->arch.aux_inuse & (KVM_MIPS_AUX_FPU | KVM_MIPS_AUX_MSA))
+	{
+		case KVM_MIPS_AUX_FPU:
+			/*
+			 * Guest FPU state already loaded, only restore upper MSA state
+			 */
+			__kvm_restore_msa_upper(&vcpu->arch);
+			vcpu->arch.aux_inuse |= KVM_MIPS_AUX_MSA;
+			trace_kvm_aux(vcpu, KVM_TRACE_AUX_RESTORE, KVM_TRACE_AUX_MSA);
+			break;
+
+		case 0:
+			/* Neither FPU or MSA already active, restore full MSA state */
+			__kvm_restore_msa(&vcpu->arch);
+			vcpu->arch.aux_inuse |= KVM_MIPS_AUX_MSA;
+
+			if (kvm_mips_guest_has_fpu(&vcpu->arch))
+			{
+				vcpu->arch.aux_inuse |= KVM_MIPS_AUX_FPU;
+			}
+
+			trace_kvm_aux(vcpu, KVM_TRACE_AUX_RESTORE,
+						  KVM_TRACE_AUX_FPU_MSA);
+			break;
+
+		default:
+			trace_kvm_aux(vcpu, KVM_TRACE_AUX_ENABLE, KVM_TRACE_AUX_MSA);
+			break;
 	}
 
 	preempt_enable();
@@ -1733,16 +2113,21 @@ void kvm_own_msa(struct kvm_vcpu *vcpu)
 void kvm_drop_fpu(struct kvm_vcpu *vcpu)
 {
 	preempt_disable();
-	if (cpu_has_msa && vcpu->arch.aux_inuse & KVM_MIPS_AUX_MSA) {
+
+	if (cpu_has_msa && vcpu->arch.aux_inuse & KVM_MIPS_AUX_MSA)
+	{
 		disable_msa();
 		trace_kvm_aux(vcpu, KVM_TRACE_AUX_DISCARD, KVM_TRACE_AUX_MSA);
 		vcpu->arch.aux_inuse &= ~KVM_MIPS_AUX_MSA;
 	}
-	if (vcpu->arch.aux_inuse & KVM_MIPS_AUX_FPU) {
+
+	if (vcpu->arch.aux_inuse & KVM_MIPS_AUX_FPU)
+	{
 		clear_c0_status(ST0_CU1 | ST0_FR);
 		trace_kvm_aux(vcpu, KVM_TRACE_AUX_DISCARD, KVM_TRACE_AUX_FPU);
 		vcpu->arch.aux_inuse &= ~KVM_MIPS_AUX_FPU;
 	}
+
 	preempt_enable();
 }
 
@@ -1757,7 +2142,9 @@ void kvm_lose_fpu(struct kvm_vcpu *vcpu)
 	 */
 
 	preempt_disable();
-	if (cpu_has_msa && vcpu->arch.aux_inuse & KVM_MIPS_AUX_MSA) {
+
+	if (cpu_has_msa && vcpu->arch.aux_inuse & KVM_MIPS_AUX_MSA)
+	{
 		set_c0_config5(MIPS_CONF5_MSAEN);
 		enable_fpu_hazard();
 
@@ -1766,12 +2153,17 @@ void kvm_lose_fpu(struct kvm_vcpu *vcpu)
 
 		/* Disable MSA & FPU */
 		disable_msa();
-		if (vcpu->arch.aux_inuse & KVM_MIPS_AUX_FPU) {
+
+		if (vcpu->arch.aux_inuse & KVM_MIPS_AUX_FPU)
+		{
 			clear_c0_status(ST0_CU1 | ST0_FR);
 			disable_fpu_hazard();
 		}
+
 		vcpu->arch.aux_inuse &= ~(KVM_MIPS_AUX_FPU | KVM_MIPS_AUX_MSA);
-	} else if (vcpu->arch.aux_inuse & KVM_MIPS_AUX_FPU) {
+	}
+	else if (vcpu->arch.aux_inuse & KVM_MIPS_AUX_FPU)
+	{
 		set_c0_status(ST0_CU1);
 		enable_fpu_hazard();
 
@@ -1783,6 +2175,7 @@ void kvm_lose_fpu(struct kvm_vcpu *vcpu)
 		clear_c0_status(ST0_CU1 | ST0_FR);
 		disable_fpu_hazard();
 	}
+
 	preempt_enable();
 }
 
@@ -1792,7 +2185,7 @@ void kvm_lose_fpu(struct kvm_vcpu *vcpu)
  * exception if cause bits are set in the value being written.
  */
 static int kvm_mips_csr_die_notify(struct notifier_block *self,
-				   unsigned long cmd, void *ptr)
+								   unsigned long cmd, void *ptr)
 {
 	struct die_args *args = (struct die_args *)ptr;
 	struct pt_regs *regs = args->regs;
@@ -1800,29 +2193,44 @@ static int kvm_mips_csr_die_notify(struct notifier_block *self,
 
 	/* Only interested in FPE and MSAFPE */
 	if (cmd != DIE_FP && cmd != DIE_MSAFP)
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* Return immediately if guest context isn't active */
 	if (!(current->flags & PF_VCPU))
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* Should never get here from user mode */
 	BUG_ON(user_mode(regs));
 
 	pc = instruction_pointer(regs);
-	switch (cmd) {
-	case DIE_FP:
-		/* match 2nd instruction in __kvm_restore_fcsr */
-		if (pc != (unsigned long)&__kvm_restore_fcsr + 4)
-			return NOTIFY_DONE;
-		break;
-	case DIE_MSAFP:
-		/* match 2nd/3rd instruction in __kvm_restore_msacsr */
-		if (!cpu_has_msa ||
-		    pc < (unsigned long)&__kvm_restore_msacsr + 4 ||
-		    pc > (unsigned long)&__kvm_restore_msacsr + 8)
-			return NOTIFY_DONE;
-		break;
+
+	switch (cmd)
+	{
+		case DIE_FP:
+
+			/* match 2nd instruction in __kvm_restore_fcsr */
+			if (pc != (unsigned long)&__kvm_restore_fcsr + 4)
+			{
+				return NOTIFY_DONE;
+			}
+
+			break;
+
+		case DIE_MSAFP:
+
+			/* match 2nd/3rd instruction in __kvm_restore_msacsr */
+			if (!cpu_has_msa ||
+				pc < (unsigned long)&__kvm_restore_msacsr + 4 ||
+				pc > (unsigned long)&__kvm_restore_msacsr + 8)
+			{
+				return NOTIFY_DONE;
+			}
+
+			break;
 	}
 
 	/* Move PC forward a little and continue executing */
@@ -1831,7 +2239,8 @@ static int kvm_mips_csr_die_notify(struct notifier_block *self,
 	return NOTIFY_STOP;
 }
 
-static struct notifier_block kvm_mips_csr_die_notifier = {
+static struct notifier_block kvm_mips_csr_die_notifier =
+{
 	.notifier_call = kvm_mips_csr_die_notify,
 };
 
@@ -1840,13 +2249,18 @@ static int __init kvm_mips_init(void)
 	int ret;
 
 	ret = kvm_mips_entry_setup();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = kvm_init(NULL, sizeof(struct kvm_vcpu), 0, THIS_MODULE);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	register_die_notifier(&kvm_mips_csr_die_notifier);
 

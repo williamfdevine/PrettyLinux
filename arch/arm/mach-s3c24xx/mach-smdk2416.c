@@ -57,7 +57,8 @@
 #include "common.h"
 #include "common-smdk.h"
 
-static struct map_desc smdk2416_iodesc[] __initdata = {
+static struct map_desc smdk2416_iodesc[] __initdata =
+{
 	/* ISA IO Space map (memory space selected by A24) */
 
 	{
@@ -67,7 +68,7 @@ static struct map_desc smdk2416_iodesc[] __initdata = {
 		.type		= MT_DEVICE,
 	}, {
 		.virtual	= (u32)S3C24XX_VA_ISA_WORD + 0x10000,
-		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1<<24)),
+		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1 << 24)),
 		.length		= SZ_4M,
 		.type		= MT_DEVICE,
 	}, {
@@ -77,23 +78,24 @@ static struct map_desc smdk2416_iodesc[] __initdata = {
 		.type		= MT_DEVICE,
 	}, {
 		.virtual	= (u32)S3C24XX_VA_ISA_BYTE + 0x10000,
-		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1<<24)),
+		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1 << 24)),
 		.length		= SZ_4M,
 		.type		= MT_DEVICE,
 	}
 };
 
 #define UCON (S3C2410_UCON_DEFAULT	| \
-		S3C2440_UCON_PCLK	| \
-		S3C2443_UCON_RXERR_IRQEN)
+			  S3C2440_UCON_PCLK	| \
+			  S3C2443_UCON_RXERR_IRQEN)
 
 #define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE)
 
 #define UFCON (S3C2410_UFCON_RXTRIG8	| \
-		S3C2410_UFCON_FIFOMODE	| \
-		S3C2440_UFCON_TXTRIG16)
+			   S3C2410_UFCON_FIFOMODE	| \
+			   S3C2440_UFCON_TXTRIG16)
 
-static struct s3c2410_uartcfg smdk2416_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg smdk2416_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -140,13 +142,15 @@ static void smdk2416_hsudc_gpio_uninit(void)
 	s3c_gpio_cfgpin(S3C2410_GPH(14), S3C_GPIO_SFN(0));
 }
 
-static struct s3c24xx_hsudc_platdata smdk2416_hsudc_platdata = {
+static struct s3c24xx_hsudc_platdata smdk2416_hsudc_platdata =
+{
 	.epnum = 9,
 	.gpio_init = smdk2416_hsudc_gpio_init,
 	.gpio_uninit = smdk2416_hsudc_gpio_uninit,
 };
 
-static struct s3c_fb_pd_win smdk2416_fb_win[] = {
+static struct s3c_fb_pd_win smdk2416_fb_win[] =
+{
 	[0] = {
 		.default_bpp	= 16,
 		.max_bpp	= 32,
@@ -155,7 +159,8 @@ static struct s3c_fb_pd_win smdk2416_fb_win[] = {
 	},
 };
 
-static struct fb_videomode smdk2416_lcd_timing = {
+static struct fb_videomode smdk2416_lcd_timing =
+{
 	.pixclock	= 41094,
 	.left_margin	= 8,
 	.right_margin	= 13,
@@ -171,23 +176,27 @@ static void s3c2416_fb_gpio_setup_24bpp(void)
 {
 	unsigned int gpio;
 
-	for (gpio = S3C2410_GPC(1); gpio <= S3C2410_GPC(4); gpio++) {
+	for (gpio = S3C2410_GPC(1); gpio <= S3C2410_GPC(4); gpio++)
+	{
 		s3c_gpio_cfgpin(gpio, S3C_GPIO_SFN(2));
 		s3c_gpio_setpull(gpio, S3C_GPIO_PULL_NONE);
 	}
 
-	for (gpio = S3C2410_GPC(8); gpio <= S3C2410_GPC(15); gpio++) {
+	for (gpio = S3C2410_GPC(8); gpio <= S3C2410_GPC(15); gpio++)
+	{
 		s3c_gpio_cfgpin(gpio, S3C_GPIO_SFN(2));
 		s3c_gpio_setpull(gpio, S3C_GPIO_PULL_NONE);
 	}
 
-	for (gpio = S3C2410_GPD(0); gpio <= S3C2410_GPD(15); gpio++) {
+	for (gpio = S3C2410_GPD(0); gpio <= S3C2410_GPD(15); gpio++)
+	{
 		s3c_gpio_cfgpin(gpio, S3C_GPIO_SFN(2));
 		s3c_gpio_setpull(gpio, S3C_GPIO_PULL_NONE);
 	}
 }
 
-static struct s3c_fb_platdata smdk2416_fb_platdata = {
+static struct s3c_fb_platdata smdk2416_fb_platdata =
+{
 	.win[0]		= &smdk2416_fb_win[0],
 	.vtiming	= &smdk2416_lcd_timing,
 	.setup_gpio	= s3c2416_fb_gpio_setup_24bpp,
@@ -195,19 +204,22 @@ static struct s3c_fb_platdata smdk2416_fb_platdata = {
 	.vidcon1	= VIDCON1_INV_HSYNC | VIDCON1_INV_VSYNC,
 };
 
-static struct s3c_sdhci_platdata smdk2416_hsmmc0_pdata __initdata = {
+static struct s3c_sdhci_platdata smdk2416_hsmmc0_pdata __initdata =
+{
 	.max_width		= 4,
 	.cd_type		= S3C_SDHCI_CD_GPIO,
 	.ext_cd_gpio		= S3C2410_GPF(1),
 	.ext_cd_gpio_invert	= 1,
 };
 
-static struct s3c_sdhci_platdata smdk2416_hsmmc1_pdata __initdata = {
+static struct s3c_sdhci_platdata smdk2416_hsmmc1_pdata __initdata =
+{
 	.max_width		= 4,
 	.cd_type		= S3C_SDHCI_CD_NONE,
 };
 
-static struct platform_device *smdk2416_devices[] __initdata = {
+static struct platform_device *smdk2416_devices[] __initdata =
+{
 	&s3c_device_fb,
 	&s3c_device_wdt,
 	&s3c_device_ohci,
@@ -255,11 +267,11 @@ static void __init smdk2416_machine_init(void)
 }
 
 MACHINE_START(SMDK2416, "SMDK2416")
-	/* Maintainer: Yauhen Kharuzhy <jekhor@gmail.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Yauhen Kharuzhy <jekhor@gmail.com> */
+.atag_offset	= 0x100,
 
 	.init_irq	= s3c2416_init_irq,
-	.map_io		= smdk2416_map_io,
-	.init_machine	= smdk2416_machine_init,
-	.init_time	= smdk2416_init_time,
-MACHINE_END
+	   .map_io		= smdk2416_map_io,
+		   .init_machine	= smdk2416_machine_init,
+			  .init_time	= smdk2416_init_time,
+				MACHINE_END

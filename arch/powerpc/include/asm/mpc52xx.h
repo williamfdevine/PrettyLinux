@@ -14,9 +14,9 @@
 #define __ASM_POWERPC_MPC52xx_H__
 
 #ifndef __ASSEMBLY__
-#include <asm/types.h>
-#include <asm/prom.h>
-#include <asm/mpc5xxx.h>
+	#include <asm/types.h>
+	#include <asm/prom.h>
+	#include <asm/mpc5xxx.h>
 #endif /* __ASSEMBLY__ */
 
 #include <linux/suspend.h>
@@ -34,7 +34,8 @@
 #ifndef __ASSEMBLY__
 
 /* Memory Mapping Control */
-struct mpc52xx_mmap_ctl {
+struct mpc52xx_mmap_ctl
+{
 	u32 mbar;		/* MMAP_CTRL + 0x00 */
 
 	u32 cs0_start;		/* MMAP_CTRL + 0x04 */
@@ -67,7 +68,8 @@ struct mpc52xx_mmap_ctl {
 };
 
 /* SDRAM control */
-struct mpc52xx_sdram {
+struct mpc52xx_sdram
+{
 	u32 mode;		/* SDRAM + 0x00 */
 	u32 ctrl;		/* SDRAM + 0x04 */
 	u32 config1;		/* SDRAM + 0x08 */
@@ -75,7 +77,8 @@ struct mpc52xx_sdram {
 };
 
 /* SDMA */
-struct mpc52xx_sdma {
+struct mpc52xx_sdma
+{
 	u32 taskBar;		/* SDMA + 0x00 */
 	u32 currentPointer;	/* SDMA + 0x04 */
 	u32 endPointer;		/* SDMA + 0x08 */
@@ -105,7 +108,8 @@ struct mpc52xx_sdma {
 };
 
 /* GPT */
-struct mpc52xx_gpt {
+struct mpc52xx_gpt
+{
 	u32 mode;		/* GPTx + 0x00 */
 	u32 count;		/* GPTx + 0x04 */
 	u32 pwm;		/* GPTx + 0x08 */
@@ -113,7 +117,8 @@ struct mpc52xx_gpt {
 };
 
 /* GPIO */
-struct mpc52xx_gpio {
+struct mpc52xx_gpio
+{
 	u32 port_config;	/* GPIO + 0x00 */
 	u32 simple_gpioe;	/* GPIO + 0x04 */
 	u32 simple_ode;		/* GPIO + 0x08 */
@@ -149,7 +154,8 @@ struct mpc52xx_gpio {
 #define MPC52xx_GPIO_PCI_DIS			(1<<15)
 
 /* GPIO with WakeUp*/
-struct mpc52xx_gpio_wkup {
+struct mpc52xx_gpio_wkup
+{
 	u8 wkup_gpioe;		/* GPIO_WKUP + 0x00 */
 	u8 reserved1[3];	/* GPIO_WKUP + 0x03 */
 	u8 wkup_ode;		/* GPIO_WKUP + 0x04 */
@@ -173,7 +179,8 @@ struct mpc52xx_gpio_wkup {
 };
 
 /* XLB Bus control */
-struct mpc52xx_xlb {
+struct mpc52xx_xlb
+{
 	u8 reserved[0x40];
 	u32 config;		/* XLB + 0x40 */
 	u32 version;		/* XLB + 0x44 */
@@ -194,7 +201,8 @@ struct mpc52xx_xlb {
 #define MPC52xx_XLB_CFG_SNOOP		(1 << 15)
 
 /* Clock Distribution control */
-struct mpc52xx_cdm {
+struct mpc52xx_cdm
+{
 	u32 jtag_id;		/* CDM + 0x00  reg0 read only */
 	u32 rstcfg;		/* CDM + 0x04  reg1 read only */
 	u32 breadcrumb;		/* CDM + 0x08  reg2 */
@@ -241,7 +249,8 @@ struct mpc52xx_cdm {
 };
 
 /* Interrupt controller Register set */
-struct mpc52xx_intr {
+struct mpc52xx_intr
+{
 	u32 per_mask;		/* INTR + 0x00 */
 	u32 per_pri1;		/* INTR + 0x04 */
 	u32 per_pri2;		/* INTR + 0x08 */
@@ -281,7 +290,7 @@ extern void __noreturn mpc52xx_restart(char *cmd);
 struct mpc52xx_gpt_priv;
 extern struct mpc52xx_gpt_priv *mpc52xx_gpt_from_irq(int irq);
 extern int mpc52xx_gpt_start_timer(struct mpc52xx_gpt_priv *gpt, u64 period,
-                            int continuous);
+								   int continuous);
 extern u64 mpc52xx_gpt_timer_period(struct mpc52xx_gpt_priv *gpt);
 extern int mpc52xx_gpt_stop_timer(struct mpc52xx_gpt_priv *gpt);
 
@@ -292,7 +301,8 @@ extern int mpc52xx_gpt_stop_timer(struct mpc52xx_gpt_priv *gpt);
 #define MPC52XX_LPBFIFO_FLAG_NO_DMA		(1<<2)
 #define MPC52XX_LPBFIFO_FLAG_POLL_DMA		(1<<3)
 
-struct mpc52xx_lpbfifo_request {
+struct mpc52xx_lpbfifo_request
+{
 	struct list_head list;
 
 	/* localplus bus address */
@@ -341,7 +351,8 @@ static inline void mpc52xx_setup_pci(void) { }
 #endif /* __ASSEMBLY__ */
 
 #ifdef CONFIG_PM
-struct mpc52xx_suspend {
+struct mpc52xx_suspend
+{
 	void (*board_suspend_prepare)(void __iomem *mbar);
 	void (*board_resume_finish)(void __iomem *mbar);
 };
@@ -351,13 +362,13 @@ extern int __init mpc52xx_pm_init(void);
 extern int mpc52xx_set_wakeup_gpio(u8 pin, u8 level);
 
 #ifdef CONFIG_PPC_LITE5200
-extern int __init lite5200_pm_init(void);
+	extern int __init lite5200_pm_init(void);
 
-/* lite5200 calls mpc5200 suspend functions, so here they are */
-extern int mpc52xx_pm_prepare(void);
-extern int mpc52xx_pm_enter(suspend_state_t);
-extern void mpc52xx_pm_finish(void);
-extern char saved_sram[0x4000]; /* reuse buffer from mpc52xx suspend */
+	/* lite5200 calls mpc5200 suspend functions, so here they are */
+	extern int mpc52xx_pm_prepare(void);
+	extern int mpc52xx_pm_enter(suspend_state_t);
+	extern void mpc52xx_pm_finish(void);
+	extern char saved_sram[0x4000]; /* reuse buffer from mpc52xx suspend */
 #endif
 #endif /* CONFIG_PM */
 

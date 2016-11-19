@@ -10,6 +10,6 @@
    /sbin/loader, which of course is _not_ a TASO application.  */
 #define SET_AOUT_PERSONALITY(BFPM, EX) \
 	set_personality (((BFPM->taso || EX.ah.entry < 0x100000000L \
-			   ? ADDR_LIMIT_32BIT : 0) | PER_OSF4))
+					   ? ADDR_LIMIT_32BIT : 0) | PER_OSF4))
 
 #endif /* __A_OUT_GNU_H__ */

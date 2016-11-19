@@ -58,7 +58,7 @@ void __init efi_map_region(efi_memory_desc_t *md)
 void __init efi_map_region_fixed(efi_memory_desc_t *md) {}
 void __init parse_efi_setup(u64 phys_addr, u32 data_len) {}
 
-pgd_t * __init efi_call_phys_prolog(void)
+pgd_t *__init efi_call_phys_prolog(void)
 {
 	struct desc_ptr gdt_descr;
 	pgd_t *save_pgd;
@@ -90,5 +90,7 @@ void __init efi_call_phys_epilog(pgd_t *save_pgd)
 void __init efi_runtime_update_mappings(void)
 {
 	if (__supported_pte_mask & _PAGE_NX)
+	{
 		runtime_code_page_mkexec();
+	}
 }

@@ -34,17 +34,18 @@
 #define NUC900_GPIO_CHIP(name, base_gpio, nr_gpio)			\
 	{								\
 		.chip = {						\
-			.label		  = name,			\
-			.direction_input  = nuc900_dir_input,		\
-			.direction_output = nuc900_dir_output,		\
-			.get		  = nuc900_gpio_get,		\
-			.set		  = nuc900_gpio_set,		\
-			.base		  = base_gpio,			\
-			.ngpio		  = nr_gpio,			\
-		}							\
+										.label		  = name,			\
+										.direction_input  = nuc900_dir_input,		\
+										.direction_output = nuc900_dir_output,		\
+										.get		  = nuc900_gpio_get,		\
+										.set		  = nuc900_gpio_set,		\
+										.base		  = base_gpio,			\
+										.ngpio		  = nr_gpio,			\
+				}							\
 	}
 
-struct nuc900_gpio_chip {
+struct nuc900_gpio_chip
+{
 	struct gpio_chip	chip;
 	void __iomem		*regbase;	/* Base of group register*/
 	spinlock_t 		gpio_lock;
@@ -74,9 +75,13 @@ static void nuc900_gpio_set(struct gpio_chip *chip, unsigned offset, int val)
 	regval = __raw_readl(pio);
 
 	if (val)
+	{
 		regval |= GPIO_GPIO(offset);
+	}
 	else
+	{
 		regval &= ~GPIO_GPIO(offset);
+	}
 
 	__raw_writel(regval, pio);
 
@@ -118,9 +123,13 @@ static int nuc900_dir_output(struct gpio_chip *chip, unsigned offset, int val)
 	regval = __raw_readl(outreg);
 
 	if (val)
+	{
 		regval |= GPIO_GPIO(offset);
+	}
 	else
+	{
 		regval &= ~GPIO_GPIO(offset);
+	}
 
 	__raw_writel(regval, outreg);
 
@@ -129,7 +138,8 @@ static int nuc900_dir_output(struct gpio_chip *chip, unsigned offset, int val)
 	return 0;
 }
 
-static struct nuc900_gpio_chip nuc900_gpio[] = {
+static struct nuc900_gpio_chip nuc900_gpio[] =
+{
 	NUC900_GPIO_CHIP("GROUPC", 0, 16),
 	NUC900_GPIO_CHIP("GROUPD", 16, 10),
 	NUC900_GPIO_CHIP("GROUPE", 26, 14),
@@ -144,7 +154,8 @@ void __init nuc900_init_gpio(int nr_group)
 	unsigned	i;
 	struct nuc900_gpio_chip *gpio_chip;
 
-	for (i = 0; i < nr_group; i++) {
+	for (i = 0; i < nr_group; i++)
+	{
 		gpio_chip = &nuc900_gpio[i];
 		spin_lock_init(&gpio_chip->gpio_lock);
 		gpio_chip->regbase = GPIO_BASE + i * GROUPINERV;

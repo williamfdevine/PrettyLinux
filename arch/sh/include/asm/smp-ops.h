@@ -1,7 +1,8 @@
 #ifndef __ASM_SH_SMP_OPS_H
 #define __ASM_SH_SMP_OPS_H
 
-struct plat_smp_ops {
+struct plat_smp_ops
+{
 	void (*smp_setup)(void);
 	unsigned int (*smp_processor_id)(void);
 	void (*prepare_cpus)(unsigned int max_cpus);

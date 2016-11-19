@@ -45,30 +45,42 @@ int mxc_iomux_v3_setup_pad(iomux_v3_cfg_t pad)
 	u32 pad_ctrl = (pad & MUX_PAD_CTRL_MASK) >> MUX_PAD_CTRL_SHIFT;
 
 	if (mux_ctrl_ofs)
+	{
 		imx_writel(mux_mode, base + mux_ctrl_ofs);
+	}
 
 	if (sel_input_ofs)
+	{
 		imx_writel(sel_input, base + sel_input_ofs);
+	}
 
 	if (!(pad_ctrl & NO_PAD_CTRL) && pad_ctrl_ofs)
+	{
 		imx_writel(pad_ctrl, base + pad_ctrl_ofs);
+	}
 
 	return 0;
 }
 
 int mxc_iomux_v3_setup_multiple_pads(const iomux_v3_cfg_t *pad_list,
-		unsigned count)
+									 unsigned count)
 {
 	const iomux_v3_cfg_t *p = pad_list;
 	int i;
 	int ret;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		ret = mxc_iomux_v3_setup_pad(*p);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		p++;
 	}
+
 	return 0;
 }
 

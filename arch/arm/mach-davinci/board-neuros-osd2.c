@@ -56,7 +56,8 @@
 
 #define NAND_BLOCK_SIZE		SZ_128K
 
-static struct mtd_partition davinci_ntosd2_nandflash_partition[] = {
+static struct mtd_partition davinci_ntosd2_nandflash_partition[] =
+{
 	{
 		/* UBL (a few copies) plus U-Boot */
 		.name		= "bootloader",
@@ -85,7 +86,8 @@ static struct mtd_partition davinci_ntosd2_nandflash_partition[] = {
 	/* A few blocks at end hold a flash Bad Block Table. */
 };
 
-static struct davinci_nand_pdata davinci_ntosd2_nandflash_data = {
+static struct davinci_nand_pdata davinci_ntosd2_nandflash_data =
+{
 	.parts		= davinci_ntosd2_nandflash_partition,
 	.nr_parts	= ARRAY_SIZE(davinci_ntosd2_nandflash_partition),
 	.ecc_mode	= NAND_ECC_HW,
@@ -93,7 +95,8 @@ static struct davinci_nand_pdata davinci_ntosd2_nandflash_data = {
 	.bbt_options	= NAND_BBT_USE_FLASH,
 };
 
-static struct resource davinci_ntosd2_nandflash_resource[] = {
+static struct resource davinci_ntosd2_nandflash_resource[] =
+{
 	{
 		.start		= DM644X_ASYNC_EMIF_DATA_CE0_BASE,
 		.end		= DM644X_ASYNC_EMIF_DATA_CE0_BASE + SZ_16M - 1,
@@ -105,7 +108,8 @@ static struct resource davinci_ntosd2_nandflash_resource[] = {
 	},
 };
 
-static struct platform_device davinci_ntosd2_nandflash_device = {
+static struct platform_device davinci_ntosd2_nandflash_device =
+{
 	.name		= "davinci_nand",
 	.id		= 0,
 	.dev		= {
@@ -117,7 +121,8 @@ static struct platform_device davinci_ntosd2_nandflash_device = {
 
 static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
 
-static struct platform_device davinci_fb_device = {
+static struct platform_device davinci_fb_device =
+{
 	.name		= "davincifb",
 	.id		= -1,
 	.dev = {
@@ -127,19 +132,22 @@ static struct platform_device davinci_fb_device = {
 	.num_resources = 0,
 };
 
-static struct gpio_led ntosd2_leds[] = {
+static struct gpio_led ntosd2_leds[] =
+{
 	{ .name = "led1_green", .gpio = GPIO(10), },
 	{ .name = "led1_red",   .gpio = GPIO(11), },
 	{ .name = "led2_green", .gpio = GPIO(12), },
 	{ .name = "led2_red",   .gpio = GPIO(13), },
 };
 
-static struct gpio_led_platform_data ntosd2_leds_data = {
+static struct gpio_led_platform_data ntosd2_leds_data =
+{
 	.num_leds	= ARRAY_SIZE(ntosd2_leds),
 	.leds		= ntosd2_leds,
 };
 
-static struct platform_device ntosd2_leds_dev = {
+static struct platform_device ntosd2_leds_dev =
+{
 	.name = "leds-gpio",
 	.id   = -1,
 	.dev = {
@@ -148,7 +156,8 @@ static struct platform_device ntosd2_leds_dev = {
 };
 
 
-static struct platform_device *davinci_ntosd2_devices[] __initdata = {
+static struct platform_device *davinci_ntosd2_devices[] __initdata =
+{
 	&davinci_fb_device,
 	&ntosd2_leds_dev,
 };
@@ -158,7 +167,8 @@ static void __init davinci_ntosd2_map_io(void)
 	dm644x_init();
 }
 
-static struct davinci_mmc_config davinci_ntosd2_mmc_config = {
+static struct davinci_mmc_config davinci_ntosd2_mmc_config =
+{
 	.wires		= 4,
 };
 
@@ -173,29 +183,36 @@ static __init void davinci_ntosd2_init(void)
 	struct davinci_soc_info *soc_info = &davinci_soc_info;
 
 	ret = dm644x_gpio_register();
+
 	if (ret)
+	{
 		pr_warn("%s: GPIO init failed: %d\n", __func__, ret);
+	}
 
 	aemif_clk = clk_get(NULL, "aemif");
 	clk_prepare_enable(aemif_clk);
 
-	if (HAS_ATA) {
+	if (HAS_ATA)
+	{
 		if (HAS_NAND)
 			pr_warn("WARNING: both IDE and Flash are enabled, but they share AEMIF pins\n"
-				"\tDisable IDE for NAND/NOR support\n");
+					"\tDisable IDE for NAND/NOR support\n");
+
 		davinci_init_ide();
-	} else if (HAS_NAND) {
+	}
+	else if (HAS_NAND)
+	{
 		davinci_cfg_reg(DM644X_HPIEN_DISABLE);
 		davinci_cfg_reg(DM644X_ATAEN_DISABLE);
 
 		/* only one device will be jumpered and detected */
 		if (HAS_NAND)
 			platform_device_register(
-					&davinci_ntosd2_nandflash_device);
+				&davinci_ntosd2_nandflash_device);
 	}
 
 	platform_add_devices(davinci_ntosd2_devices,
-				ARRAY_SIZE(davinci_ntosd2_devices));
+						 ARRAY_SIZE(davinci_ntosd2_devices));
 
 	davinci_serial_init(dm644x_serial_device);
 	dm644x_init_asp();
@@ -221,13 +238,13 @@ static __init void davinci_ntosd2_init(void)
 }
 
 MACHINE_START(NEUROS_OSD2, "Neuros OSD2")
-	/* Maintainer: Neuros Technologies <neuros@groups.google.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Neuros Technologies <neuros@groups.google.com> */
+.atag_offset	= 0x100,
 	.map_io		 = davinci_ntosd2_map_io,
-	.init_irq	= davinci_irq_init,
-	.init_time	= davinci_timer_init,
-	.init_machine = davinci_ntosd2_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= davinci_restart,
-MACHINE_END
+		.init_irq	= davinci_irq_init,
+		   .init_time	= davinci_timer_init,
+			 .init_machine = davinci_ntosd2_init,
+			  .init_late	= davinci_init_late,
+				.dma_zone_size	= SZ_128M,
+				  .restart	= davinci_restart,
+					  MACHINE_END

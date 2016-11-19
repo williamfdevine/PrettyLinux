@@ -11,7 +11,9 @@ mtfsfi(unsigned int crfD, unsigned int IMM)
 	u32 mask = 0xf;
 
 	if (!crfD)
+	{
 		mask = 9;
+	}
 
 	__FPU_FPSCR &= ~(mask << ((7 - crfD) << 2));
 	__FPU_FPSCR |= (IMM & 0xf) << ((7 - crfD) << 2);

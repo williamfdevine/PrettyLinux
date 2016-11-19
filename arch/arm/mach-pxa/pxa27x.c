@@ -44,11 +44,14 @@
 void pxa27x_clear_otgph(void)
 {
 	if (cpu_is_pxa27x() && (PSSR & PSSR_OTGPH))
+	{
 		PSSR |= PSSR_OTGPH;
+	}
 }
 EXPORT_SYMBOL(pxa27x_clear_otgph);
 
-static unsigned long ac97_reset_config[] = {
+static unsigned long ac97_reset_config[] =
+{
 	GPIO113_AC97_nRESET_GPIO_HIGH,
 	GPIO113_AC97_nRESET,
 	GPIO95_AC97_nRESET_GPIO_HIGH,
@@ -67,11 +70,11 @@ void pxa27x_configure_ac97reset(int reset_gpio, bool to_gpio)
 
 	if (reset_gpio == 113)
 		pxa2xx_mfp_config(to_gpio ? &ac97_reset_config[0] :
-				  &ac97_reset_config[1], 1);
+						  &ac97_reset_config[1], 1);
 
 	if (reset_gpio == 95)
 		pxa2xx_mfp_config(to_gpio ? &ac97_reset_config[2] :
-				  &ac97_reset_config[3], 1);
+						  &ac97_reset_config[3], 1);
 }
 EXPORT_SYMBOL_GPL(pxa27x_configure_ac97reset);
 
@@ -87,11 +90,12 @@ static unsigned int pwrmode = PWRMODE_SLEEP;
 
 int pxa27x_set_pwrmode(unsigned int mode)
 {
-	switch (mode) {
-	case PWRMODE_SLEEP:
-	case PWRMODE_DEEPSLEEP:
-		pwrmode = mode;
-		return 0;
+	switch (mode)
+	{
+		case PWRMODE_SLEEP:
+		case PWRMODE_DEEPSLEEP:
+			pwrmode = mode;
+			return 0;
 	}
 
 	return -EINVAL;
@@ -102,7 +106,8 @@ int pxa27x_set_pwrmode(unsigned int mode)
  * More ones like CP and general purpose register values are preserved
  * with the stack pointer in sleep.S.
  */
-enum {
+enum
+{
 	SLEEP_SAVE_PSTR,
 	SLEEP_SAVE_MDREFR,
 	SLEEP_SAVE_PCFR,
@@ -134,7 +139,7 @@ void pxa27x_cpu_pm_enter(suspend_state_t state)
 	u64 acc0;
 
 	asm volatile(".arch_extension xscale\n\t"
-		     "mra %Q0, %R0, acc0" : "=r" (acc0));
+				 "mra %Q0, %R0, acc0" : "=r" (acc0));
 #endif
 
 	/* ensure voltage-change sequencer not initiated, which hangs */
@@ -146,17 +151,19 @@ void pxa27x_cpu_pm_enter(suspend_state_t state)
 	/* Clear reset status */
 	RCSR = RCSR_HWR | RCSR_WDR | RCSR_SMR | RCSR_GPR;
 
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-		pxa_cpu_standby();
-		break;
-	case PM_SUSPEND_MEM:
-		cpu_suspend(pwrmode, pxa27x_finish_suspend);
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+			pxa_cpu_standby();
+			break;
+
+		case PM_SUSPEND_MEM:
+			cpu_suspend(pwrmode, pxa27x_finish_suspend);
 #ifndef CONFIG_IWMMXT
-		asm volatile(".arch_extension xscale\n\t"
-			     "mar acc0, %Q0, %R0" : "=r" (acc0));
+			asm volatile(".arch_extension xscale\n\t"
+						 "mar acc0, %Q0, %R0" : "=r" (acc0));
 #endif
-		break;
+			break;
 	}
 }
 
@@ -178,7 +185,8 @@ static void pxa27x_cpu_pm_finish(void)
 	PSPR = 0;
 }
 
-static struct pxa_cpu_pm_fns pxa27x_cpu_pm_fns = {
+static struct pxa_cpu_pm_fns pxa27x_cpu_pm_fns =
+{
 	.save_count	= SLEEP_SAVE_COUNT,
 	.save		= pxa27x_cpu_pm_save,
 	.restore	= pxa27x_cpu_pm_restore,
@@ -205,26 +213,37 @@ static int pxa27x_set_wake(struct irq_data *d, unsigned int on)
 	uint32_t mask;
 
 	if (gpio >= 0 && gpio < 128)
+	{
 		return gpio_set_wake(gpio, on);
+	}
 
 	if (d->irq == IRQ_KEYPAD)
+	{
 		return keypad_set_wake(on);
+	}
 
-	switch (d->irq) {
-	case IRQ_RTCAlrm:
-		mask = PWER_RTC;
-		break;
-	case IRQ_USB:
-		mask = 1u << 26;
-		break;
-	default:
-		return -EINVAL;
+	switch (d->irq)
+	{
+		case IRQ_RTCAlrm:
+			mask = PWER_RTC;
+			break;
+
+		case IRQ_USB:
+			mask = 1u << 26;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (on)
+	{
 		PWER |= mask;
+	}
 	else
-		PWER &=~mask;
+	{
+		PWER &= ~mask;
+	}
 
 	return 0;
 }
@@ -244,7 +263,8 @@ pxa27x_dt_init_irq(struct device_node *node, struct device_node *parent)
 }
 IRQCHIP_DECLARE(pxa27x_intc, "marvell,pxa-intc", pxa27x_dt_init_irq);
 
-static struct map_desc pxa27x_io_desc[] __initdata = {
+static struct map_desc pxa27x_io_desc[] __initdata =
+{
 	{	/* Mem Ctl */
 		.virtual	= (unsigned long)SMEMC_VIRT,
 		.pfn		= __phys_to_pfn(PXA2XX_SMEMC_BASE),
@@ -276,12 +296,14 @@ void __init pxa27x_set_i2c_power_info(struct i2c_pxa_platform_data *info)
 	pxa_register_device(&pxa27x_device_i2c_power, info);
 }
 
-static struct pxa_gpio_platform_data pxa27x_gpio_info __initdata = {
+static struct pxa_gpio_platform_data pxa27x_gpio_info __initdata =
+{
 	.irq_base	= PXA_GPIO_TO_IRQ(0),
 	.gpio_set_wake	= gpio_set_wake,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&pxa27x_device_udc,
 	&pxa_device_pmu,
 	&pxa_device_i2s,
@@ -301,7 +323,8 @@ static int __init pxa27x_init(void)
 {
 	int ret = 0;
 
-	if (cpu_is_pxa27x()) {
+	if (cpu_is_pxa27x())
+	{
 
 		reset_status = RCSR;
 
@@ -310,12 +333,13 @@ static int __init pxa27x_init(void)
 		register_syscore_ops(&pxa_irq_syscore_ops);
 		register_syscore_ops(&pxa2xx_mfp_syscore_ops);
 
-		if (!of_have_populated_dt()) {
+		if (!of_have_populated_dt())
+		{
 			pxa_register_device(&pxa27x_device_gpio,
-					    &pxa27x_gpio_info);
+								&pxa27x_gpio_info);
 			pxa2xx_set_dmac_info(32, 75);
 			ret = platform_add_devices(devices,
-						   ARRAY_SIZE(devices));
+									   ARRAY_SIZE(devices));
 		}
 	}
 

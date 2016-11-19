@@ -32,15 +32,15 @@
 #define GXIO_USB_HOST_OP_CHECK_MMIO_OFFSET IORPC_OPCODE(IORPC_FORMAT_NONE_NOUSER, 0x8001)
 
 int gxio_usb_host_cfg_interrupt(gxio_usb_host_context_t *context, int inter_x,
-				int inter_y, int inter_ipi, int inter_event);
+								int inter_y, int inter_ipi, int inter_event);
 
 int gxio_usb_host_register_client_memory(gxio_usb_host_context_t *context,
-					 HV_PTE pte, unsigned int flags);
+		HV_PTE pte, unsigned int flags);
 
 int gxio_usb_host_get_mmio_base(gxio_usb_host_context_t *context,
-				HV_PTE *base);
+								HV_PTE *base);
 
 int gxio_usb_host_check_mmio_offset(gxio_usb_host_context_t *context,
-				    unsigned long offset, unsigned long size);
+									unsigned long offset, unsigned long size);
 
 #endif /* !__GXIO_USB_HOST_LINUX_RPC_H__ */

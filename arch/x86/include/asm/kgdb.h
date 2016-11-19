@@ -23,7 +23,8 @@
  *  Just why GDB uses a different order is a historical mystery.
  */
 #ifdef CONFIG_X86_32
-enum regnames {
+enum regnames
+{
 	GDB_AX,			/* 0 */
 	GDB_CX,			/* 1 */
 	GDB_DX,			/* 2 */
@@ -45,7 +46,8 @@ enum regnames {
 #define DBG_MAX_REG_NUM		16
 #define NUMREGBYTES		((GDB_GS+1)*4)
 #else /* ! CONFIG_X86_32 */
-enum regnames {
+enum regnames
+{
 	GDB_AX,			/* 0 */
 	GDB_BX,			/* 1 */
 	GDB_CX,			/* 2 */
@@ -86,6 +88,6 @@ static inline void arch_kgdb_breakpoint(void)
 #define GDB_ADJUSTS_BREAK_OFFSET
 
 extern int kgdb_ll_trap(int cmd, const char *str,
-			struct pt_regs *regs, long err, int trap, int sig);
+						struct pt_regs *regs, long err, int trap, int sig);
 
 #endif /* _ASM_X86_KGDB_H */

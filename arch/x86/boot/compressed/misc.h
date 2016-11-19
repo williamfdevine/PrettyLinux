@@ -24,9 +24,9 @@
 #include "../ctype.h"
 
 #ifdef CONFIG_X86_64
-#define memptr long
+	#define memptr long
 #else
-#define memptr unsigned
+	#define memptr unsigned
 #endif
 
 /* misc.c */
@@ -59,27 +59,27 @@ static inline void debug_puthex(const char *s)
 #endif
 
 #if CONFIG_EARLY_PRINTK || CONFIG_RANDOMIZE_BASE
-/* cmdline.c */
-int cmdline_find_option(const char *option, char *buffer, int bufsize);
-int cmdline_find_option_bool(const char *option);
+	/* cmdline.c */
+	int cmdline_find_option(const char *option, char *buffer, int bufsize);
+	int cmdline_find_option_bool(const char *option);
 #endif
 
 
 #if CONFIG_RANDOMIZE_BASE
 /* kaslr.c */
 void choose_random_location(unsigned long input,
-			    unsigned long input_size,
-			    unsigned long *output,
-			    unsigned long output_size,
-			    unsigned long *virt_addr);
+							unsigned long input_size,
+							unsigned long *output,
+							unsigned long output_size,
+							unsigned long *virt_addr);
 /* cpuflags.c */
 bool has_cpuflag(int flag);
 #else
 static inline void choose_random_location(unsigned long input,
-					  unsigned long input_size,
-					  unsigned long *output,
-					  unsigned long output_size,
-					  unsigned long *virt_addr)
+		unsigned long input_size,
+		unsigned long *output,
+		unsigned long output_size,
+		unsigned long *virt_addr)
 {
 	/* No change from existing output location. */
 	*virt_addr = *output;

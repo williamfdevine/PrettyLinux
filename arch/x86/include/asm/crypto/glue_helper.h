@@ -13,18 +13,20 @@
 typedef void (*common_glue_func_t)(void *ctx, u8 *dst, const u8 *src);
 typedef void (*common_glue_cbc_func_t)(void *ctx, u128 *dst, const u128 *src);
 typedef void (*common_glue_ctr_func_t)(void *ctx, u128 *dst, const u128 *src,
-				       le128 *iv);
+									   le128 *iv);
 typedef void (*common_glue_xts_func_t)(void *ctx, u128 *dst, const u128 *src,
-				       le128 *iv);
+									   le128 *iv);
 
 #define GLUE_FUNC_CAST(fn) ((common_glue_func_t)(fn))
 #define GLUE_CBC_FUNC_CAST(fn) ((common_glue_cbc_func_t)(fn))
 #define GLUE_CTR_FUNC_CAST(fn) ((common_glue_ctr_func_t)(fn))
 #define GLUE_XTS_FUNC_CAST(fn) ((common_glue_xts_func_t)(fn))
 
-struct common_glue_func_entry {
+struct common_glue_func_entry
+{
 	unsigned int num_blocks; /* number of blocks that @fn will process */
-	union {
+	union
+	{
 		common_glue_func_t ecb;
 		common_glue_cbc_func_t cbc;
 		common_glue_ctr_func_t ctr;
@@ -32,7 +34,8 @@ struct common_glue_func_entry {
 	} fn_u;
 };
 
-struct common_glue_ctx {
+struct common_glue_ctx
+{
 	unsigned int num_funcs;
 	int fpu_blocks_limit; /* -1 means fpu not needed at all */
 
@@ -44,23 +47,30 @@ struct common_glue_ctx {
 };
 
 static inline bool glue_fpu_begin(unsigned int bsize, int fpu_blocks_limit,
-				  struct blkcipher_desc *desc,
-				  bool fpu_enabled, unsigned int nbytes)
+								  struct blkcipher_desc *desc,
+								  bool fpu_enabled, unsigned int nbytes)
 {
 	if (likely(fpu_blocks_limit < 0))
+	{
 		return false;
+	}
 
 	if (fpu_enabled)
+	{
 		return true;
+	}
 
 	/*
 	 * Vector-registers are only used when chunk to be processed is large
 	 * enough, so do not enable FPU until it is necessary.
 	 */
 	if (nbytes < bsize * (unsigned int)fpu_blocks_limit)
+	{
 		return false;
+	}
 
-	if (desc) {
+	if (desc)
+	{
 		/* prevent sleeping if FPU is in use */
 		desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
 	}
@@ -72,7 +82,9 @@ static inline bool glue_fpu_begin(unsigned int bsize, int fpu_blocks_limit,
 static inline void glue_fpu_end(bool fpu_enabled)
 {
 	if (fpu_enabled)
+	{
 		kernel_fpu_end();
+	}
 }
 
 static inline void le128_to_be128(be128 *dst, const le128 *src)
@@ -93,8 +105,11 @@ static inline void le128_inc(le128 *i)
 	u64 b = le64_to_cpu(i->b);
 
 	b++;
+
 	if (!b)
+	{
 		a++;
+	}
 
 	i->a = cpu_to_le64(a);
 	i->b = cpu_to_le64(b);
@@ -111,35 +126,35 @@ static inline void le128_gf128mul_x_ble(le128 *dst, const le128 *src)
 }
 
 extern int glue_ecb_crypt_128bit(const struct common_glue_ctx *gctx,
-				 struct blkcipher_desc *desc,
-				 struct scatterlist *dst,
-				 struct scatterlist *src, unsigned int nbytes);
+								 struct blkcipher_desc *desc,
+								 struct scatterlist *dst,
+								 struct scatterlist *src, unsigned int nbytes);
 
 extern int glue_cbc_encrypt_128bit(const common_glue_func_t fn,
-				   struct blkcipher_desc *desc,
-				   struct scatterlist *dst,
-				   struct scatterlist *src,
-				   unsigned int nbytes);
+								   struct blkcipher_desc *desc,
+								   struct scatterlist *dst,
+								   struct scatterlist *src,
+								   unsigned int nbytes);
 
 extern int glue_cbc_decrypt_128bit(const struct common_glue_ctx *gctx,
-				   struct blkcipher_desc *desc,
-				   struct scatterlist *dst,
-				   struct scatterlist *src,
-				   unsigned int nbytes);
+								   struct blkcipher_desc *desc,
+								   struct scatterlist *dst,
+								   struct scatterlist *src,
+								   unsigned int nbytes);
 
 extern int glue_ctr_crypt_128bit(const struct common_glue_ctx *gctx,
-				 struct blkcipher_desc *desc,
-				 struct scatterlist *dst,
-				 struct scatterlist *src, unsigned int nbytes);
+								 struct blkcipher_desc *desc,
+								 struct scatterlist *dst,
+								 struct scatterlist *src, unsigned int nbytes);
 
 extern int glue_xts_crypt_128bit(const struct common_glue_ctx *gctx,
-				 struct blkcipher_desc *desc,
-				 struct scatterlist *dst,
-				 struct scatterlist *src, unsigned int nbytes,
-				 common_glue_func_t tweak_fn, void *tweak_ctx,
-				 void *crypt_ctx);
+								 struct blkcipher_desc *desc,
+								 struct scatterlist *dst,
+								 struct scatterlist *src, unsigned int nbytes,
+								 common_glue_func_t tweak_fn, void *tweak_ctx,
+								 void *crypt_ctx);
 
 extern void glue_xts_crypt_128bit_one(void *ctx, u128 *dst, const u128 *src,
-				      le128 *iv, common_glue_func_t fn);
+									  le128 *iv, common_glue_func_t fn);
 
 #endif /* _CRYPTO_GLUE_HELPER_H */

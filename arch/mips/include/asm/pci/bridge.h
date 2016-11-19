@@ -65,7 +65,8 @@ typedef volatile bridge_ate_t  *bridge_ate_p;
  * Generated from Bridge spec dated 04oct95
  */
 
-typedef volatile struct bridge_s {
+typedef volatile struct bridge_s
+{
 	/* Local Registers			       0x000000-0x00FFFF */
 
 	/* standard widget configuration	       0x000000-0x000057 */
@@ -145,7 +146,8 @@ typedef volatile struct bridge_s {
 	bridgereg_t	_pad_000128;
 	bridgereg_t	b_int_host_err;			/* 0x00012C */
 
-	struct {
+	struct
+	{
 		bridgereg_t	__pad;			/* 0x0001{30,,,68} */
 		bridgereg_t	addr;			/* 0x0001{34,,,6C} */
 	} b_int_addr[8];				/* 0x000130 */
@@ -153,17 +155,20 @@ typedef volatile struct bridge_s {
 	bridgereg_t	_pad_000170[36];
 
 	/* Device 0x000200-0x0003FF */
-	struct {
+	struct
+	{
 		bridgereg_t	__pad;			/* 0x0002{00,,,38} */
 		bridgereg_t	reg;			/* 0x0002{04,,,3C} */
 	} b_device[8];					/* 0x000200 */
 
-	struct {
+	struct
+	{
 		bridgereg_t	__pad;			/* 0x0002{40,,,78} */
 		bridgereg_t	reg;			/* 0x0002{44,,,7C} */
 	} b_wr_req_buf[8];				/* 0x000240 */
 
-	struct {
+	struct
+	{
 		bridgereg_t	__pad;			/* 0x0002{80,,,88} */
 		bridgereg_t	reg;			/* 0x0002{84,,,8C} */
 	} b_rrb_map[2];					/* 0x000280 */
@@ -180,9 +185,11 @@ typedef volatile struct bridge_s {
 	char		_pad_000300[0x10000 - 0x000300];
 
 	/* Internal Address Translation Entry RAM 0x010000-0x0103FF */
-	union {
+	union
+	{
 		bridge_ate_t	wr;			/* write-only */
-		struct {
+		struct
+		{
 			bridgereg_t	_p_pad;
 			bridgereg_t	rd;		/* read-only */
 		}			hi;
@@ -191,7 +198,8 @@ typedef volatile struct bridge_s {
 	char	_pad_010400[0x11000 - 0x010400];
 
 	/* Internal Address Translation Entry RAM LOW 0x011000-0x0113FF */
-	struct {
+	struct
+	{
 		bridgereg_t	_p_pad;
 		bridgereg_t	rd;		/* read-only */
 	} b_int_ate_ram_lo[128];
@@ -199,12 +207,14 @@ typedef volatile struct bridge_s {
 	char	_pad_011400[0x20000 - 0x011400];
 
 	/* PCI Device Configuration Spaces 0x020000-0x027FFF */
-	union {				/* make all access sizes available. */
+	union  				/* make all access sizes available. */
+	{
 		u8	c[0x1000 / 1];
 		u16	s[0x1000 / 2];
 		u32	l[0x1000 / 4];
 		u64	d[0x1000 / 8];
-		union {
+		union
+		{
 			u8	c[0x100 / 1];
 			u16	s[0x100 / 2];
 			u32	l[0x100 / 4];
@@ -212,8 +222,9 @@ typedef volatile struct bridge_s {
 		} f[8];
 	} b_type0_cfg_dev[8];					/* 0x020000 */
 
-    /* PCI Type 1 Configuration Space 0x028000-0x028FFF */
-	union {				/* make all access sizes available. */
+	/* PCI Type 1 Configuration Space 0x028000-0x028FFF */
+	union  				/* make all access sizes available. */
+	{
 		u8	c[0x1000 / 1];
 		u16	s[0x1000 / 2];
 		u32	l[0x1000 / 4];
@@ -223,7 +234,8 @@ typedef volatile struct bridge_s {
 	char	_pad_029000[0x007000];			/* 0x029000-0x030000 */
 
 	/* PCI Interrupt Acknowledge Cycle 0x030000 */
-	union {
+	union
+	{
 		u8	c[8 / 1];
 		u16	s[8 / 2];
 		u32	l[8 / 4];
@@ -236,10 +248,11 @@ typedef volatile struct bridge_s {
 	bridge_ate_t	b_ext_ate_ram[0x10000];
 
 	/* Reserved 0x100000-0x1FFFFF */
-	char	_pad_100000[0x200000-0x100000];
+	char	_pad_100000[0x200000 - 0x100000];
 
 	/* PCI/GIO Device Spaces 0x200000-0xBFFFFF */
-	union {				/* make all access sizes available. */
+	union  				/* make all access sizes available. */
+	{
 		u8	c[0x100000 / 1];
 		u16	s[0x100000 / 2];
 		u32	l[0x100000 / 4];
@@ -253,7 +266,8 @@ typedef volatile struct bridge_s {
 #define b_devio(n)	b_devio_raw[((n)<2)?(n*2):(n+2)]
 
 	/* External Flash Proms 1,0 0xC00000-0xFFFFFF */
-	union {		/* make all access sizes available. */
+	union  		/* make all access sizes available. */
+	{
 		u8	c[0x400000 / 1];	/* read-only */
 		u16	s[0x400000 / 2];	/* read-write */
 		u32	l[0x400000 / 4];	/* read-only */
@@ -265,21 +279,24 @@ typedef volatile struct bridge_s {
  * Field formats for Error Command Word and Auxiliary Error Command Word
  * of bridge.
  */
-typedef struct bridge_err_cmdword_s {
-	union {
+typedef struct bridge_err_cmdword_s
+{
+	union
+	{
 		u32		cmd_word;
-		struct {
-			u32	didn:4,		/* Destination ID  */
-				sidn:4,		/* Source ID	   */
-				pactyp:4,	/* Packet type	   */
-				tnum:5,		/* Trans Number	   */
-				coh:1,		/* Coh Transaction */
-				ds:2,		/* Data size	   */
-				gbr:1,		/* GBR enable	   */
-				vbpm:1,		/* VBPM message	   */
-				error:1,	/* Error occurred  */
-				barr:1,		/* Barrier op	   */
-				rsvd:8;
+		struct
+		{
+			u32	didn: 4,		/* Destination ID  */
+				sidn: 4,		/* Source ID	   */
+				pactyp: 4,	/* Packet type	   */
+				tnum: 5,		/* Trans Number	   */
+				coh: 1,		/* Coh Transaction */
+				ds: 2,		/* Data size	   */
+				gbr: 1,		/* GBR enable	   */
+				vbpm: 1,		/* VBPM message	   */
+				error: 1,	/* Error occurred  */
+				barr: 1,		/* Barrier op	   */
+				rsvd: 8;
 		} berr_st;
 	} berr_un;
 } bridge_err_cmdword_t;
@@ -359,10 +376,10 @@ typedef struct bridge_err_cmdword_s {
 #define BRIDGE_TYPE0_CFG_SLOT_OFF	0x00001000	/* Type 0 Cfg Slot Offset (1..7) */
 #define BRIDGE_TYPE0_CFG_FUNC_OFF	0x00000100	/* Type 0 Cfg Func Offset (1..7) */
 #define BRIDGE_TYPE0_CFG_DEV(s)		(BRIDGE_TYPE0_CFG_DEV0+\
-					 (s)*BRIDGE_TYPE0_CFG_SLOT_OFF)
+									 (s)*BRIDGE_TYPE0_CFG_SLOT_OFF)
 #define BRIDGE_TYPE0_CFG_DEVF(s, f)	(BRIDGE_TYPE0_CFG_DEV0+\
-					 (s)*BRIDGE_TYPE0_CFG_SLOT_OFF+\
-					 (f)*BRIDGE_TYPE0_CFG_FUNC_OFF)
+									 (s)*BRIDGE_TYPE0_CFG_SLOT_OFF+\
+									 (f)*BRIDGE_TYPE0_CFG_FUNC_OFF)
 
 #define BRIDGE_TYPE1_CFG	0x00028000	/* Type 1 Cfg space */
 
@@ -448,12 +465,12 @@ typedef struct bridge_err_cmdword_s {
 #define BRIDGE_RESP_ERRRUPPR_BUFMASK	(0xFFFF)
 
 #define BRIDGE_RESP_ERRUPPR_BUFNUM(x)	\
-			(((x) & BRIDGE_RESP_ERRUPPR_BUFNUM_MASK) >> \
-				BRIDGE_RESP_ERRUPPR_BUFNUM_SHFT)
+	(((x) & BRIDGE_RESP_ERRUPPR_BUFNUM_MASK) >> \
+	 BRIDGE_RESP_ERRUPPR_BUFNUM_SHFT)
 
 #define BRIDGE_RESP_ERRUPPR_DEVICE(x)	\
-			(((x) &	 BRIDGE_RESP_ERRUPPR_DEVNUM_MASK) >> \
-				 BRIDGE_RESP_ERRUPPR_DEVNUM_SHFT)
+	(((x) &	 BRIDGE_RESP_ERRUPPR_DEVNUM_MASK) >> \
+	 BRIDGE_RESP_ERRUPPR_DEVNUM_SHFT)
 
 /* Bridge direct mapping register bits definition */
 #define BRIDGE_DIRMAP_W_ID_SHFT		20
@@ -513,40 +530,40 @@ typedef struct bridge_err_cmdword_s {
 #define BRIDGE_ISR_INT(x)		(0x1 << (x))
 
 #define BRIDGE_ISR_LINK_ERROR		\
-		(BRIDGE_ISR_LLP_REC_SNERR|BRIDGE_ISR_LLP_REC_CBERR|	\
-		 BRIDGE_ISR_LLP_RCTY|BRIDGE_ISR_LLP_TX_RETRY|		\
-		 BRIDGE_ISR_LLP_TCTY)
+	(BRIDGE_ISR_LLP_REC_SNERR|BRIDGE_ISR_LLP_REC_CBERR|	\
+	 BRIDGE_ISR_LLP_RCTY|BRIDGE_ISR_LLP_TX_RETRY|		\
+	 BRIDGE_ISR_LLP_TCTY)
 
 #define BRIDGE_ISR_PCIBUS_PIOERR	\
-		(BRIDGE_ISR_PCI_MST_TIMEOUT|BRIDGE_ISR_PCI_ABORT)
+	(BRIDGE_ISR_PCI_MST_TIMEOUT|BRIDGE_ISR_PCI_ABORT)
 
 #define BRIDGE_ISR_PCIBUS_ERROR		\
-		(BRIDGE_ISR_PCIBUS_PIOERR|BRIDGE_ISR_PCI_PERR|		\
-		 BRIDGE_ISR_PCI_SERR|BRIDGE_ISR_PCI_RETRY_CNT|		\
-		 BRIDGE_ISR_PCI_PARITY)
+	(BRIDGE_ISR_PCIBUS_PIOERR|BRIDGE_ISR_PCI_PERR|		\
+	 BRIDGE_ISR_PCI_SERR|BRIDGE_ISR_PCI_RETRY_CNT|		\
+	 BRIDGE_ISR_PCI_PARITY)
 
 #define BRIDGE_ISR_XTALK_ERROR		\
-		(BRIDGE_ISR_XREAD_REQ_TIMEOUT|BRIDGE_ISR_XREQ_FIFO_OFLOW|\
-		 BRIDGE_ISR_UNSUPPORTED_XOP|BRIDGE_ISR_INVLD_ADDR|	\
-		 BRIDGE_ISR_REQ_XTLK_ERR|BRIDGE_ISR_RESP_XTLK_ERR|	\
-		 BRIDGE_ISR_BAD_XREQ_PKT|BRIDGE_ISR_BAD_XRESP_PKT|	\
-		 BRIDGE_ISR_UNEXP_RESP)
+	(BRIDGE_ISR_XREAD_REQ_TIMEOUT|BRIDGE_ISR_XREQ_FIFO_OFLOW|\
+	 BRIDGE_ISR_UNSUPPORTED_XOP|BRIDGE_ISR_INVLD_ADDR|	\
+	 BRIDGE_ISR_REQ_XTLK_ERR|BRIDGE_ISR_RESP_XTLK_ERR|	\
+	 BRIDGE_ISR_BAD_XREQ_PKT|BRIDGE_ISR_BAD_XRESP_PKT|	\
+	 BRIDGE_ISR_UNEXP_RESP)
 
 #define BRIDGE_ISR_ERRORS		\
-		(BRIDGE_ISR_LINK_ERROR|BRIDGE_ISR_PCIBUS_ERROR|		\
-		 BRIDGE_ISR_XTALK_ERROR|BRIDGE_ISR_SSRAM_PERR|		\
-		 BRIDGE_ISR_PMU_ESIZE_FAULT)
+	(BRIDGE_ISR_LINK_ERROR|BRIDGE_ISR_PCIBUS_ERROR|		\
+	 BRIDGE_ISR_XTALK_ERROR|BRIDGE_ISR_SSRAM_PERR|		\
+	 BRIDGE_ISR_PMU_ESIZE_FAULT)
 
 /*
  * List of Errors which are fatal and kill the system
  */
 #define BRIDGE_ISR_ERROR_FATAL		\
-		((BRIDGE_ISR_XTALK_ERROR & ~BRIDGE_ISR_XREAD_REQ_TIMEOUT)|\
-		 BRIDGE_ISR_PCI_SERR|BRIDGE_ISR_PCI_PARITY )
+	((BRIDGE_ISR_XTALK_ERROR & ~BRIDGE_ISR_XREAD_REQ_TIMEOUT)|\
+	 BRIDGE_ISR_PCI_SERR|BRIDGE_ISR_PCI_PARITY )
 
 #define BRIDGE_ISR_ERROR_DUMP		\
-		(BRIDGE_ISR_PCIBUS_ERROR|BRIDGE_ISR_PMU_ESIZE_FAULT|	\
-		 BRIDGE_ISR_XTALK_ERROR|BRIDGE_ISR_SSRAM_PERR)
+	(BRIDGE_ISR_PCIBUS_ERROR|BRIDGE_ISR_PMU_ESIZE_FAULT|	\
+	 BRIDGE_ISR_XTALK_ERROR|BRIDGE_ISR_SSRAM_PERR)
 
 /* Bridge interrupt enable register bits definition */
 #define BRIDGE_IMR_UNEXP_RESP		BRIDGE_ISR_UNEXP_RESP
@@ -588,30 +605,30 @@ typedef struct bridge_err_cmdword_s {
 #define BRIDGE_IRR_ALL_CLR		0x7f
 
 #define BRIDGE_IRR_CRP_GRP		(BRIDGE_ISR_UNEXP_RESP | \
-					 BRIDGE_ISR_XREQ_FIFO_OFLOW)
+								 BRIDGE_ISR_XREQ_FIFO_OFLOW)
 #define BRIDGE_IRR_RESP_BUF_GRP		(BRIDGE_ISR_BAD_XRESP_PKT | \
-					 BRIDGE_ISR_RESP_XTLK_ERR | \
-					 BRIDGE_ISR_XREAD_REQ_TIMEOUT)
+									 BRIDGE_ISR_RESP_XTLK_ERR | \
+									 BRIDGE_ISR_XREAD_REQ_TIMEOUT)
 #define BRIDGE_IRR_REQ_DSP_GRP		(BRIDGE_ISR_UNSUPPORTED_XOP | \
-					 BRIDGE_ISR_BAD_XREQ_PKT | \
-					 BRIDGE_ISR_REQ_XTLK_ERR | \
-					 BRIDGE_ISR_INVLD_ADDR)
+									 BRIDGE_ISR_BAD_XREQ_PKT | \
+									 BRIDGE_ISR_REQ_XTLK_ERR | \
+									 BRIDGE_ISR_INVLD_ADDR)
 #define BRIDGE_IRR_LLP_GRP		(BRIDGE_ISR_LLP_REC_SNERR | \
-					 BRIDGE_ISR_LLP_REC_CBERR | \
-					 BRIDGE_ISR_LLP_RCTY | \
-					 BRIDGE_ISR_LLP_TX_RETRY | \
-					 BRIDGE_ISR_LLP_TCTY)
+								 BRIDGE_ISR_LLP_REC_CBERR | \
+								 BRIDGE_ISR_LLP_RCTY | \
+								 BRIDGE_ISR_LLP_TX_RETRY | \
+								 BRIDGE_ISR_LLP_TCTY)
 #define BRIDGE_IRR_SSRAM_GRP		(BRIDGE_ISR_SSRAM_PERR | \
-					 BRIDGE_ISR_PMU_ESIZE_FAULT)
+									 BRIDGE_ISR_PMU_ESIZE_FAULT)
 #define BRIDGE_IRR_PCI_GRP		(BRIDGE_ISR_PCI_ABORT | \
-					 BRIDGE_ISR_PCI_PARITY | \
-					 BRIDGE_ISR_PCI_SERR | \
-					 BRIDGE_ISR_PCI_PERR | \
-					 BRIDGE_ISR_PCI_MST_TIMEOUT | \
-					 BRIDGE_ISR_PCI_RETRY_CNT)
+								 BRIDGE_ISR_PCI_PARITY | \
+								 BRIDGE_ISR_PCI_SERR | \
+								 BRIDGE_ISR_PCI_PERR | \
+								 BRIDGE_ISR_PCI_MST_TIMEOUT | \
+								 BRIDGE_ISR_PCI_RETRY_CNT)
 
 #define BRIDGE_IRR_GIO_GRP		(BRIDGE_ISR_GIO_B_ENBL_ERR | \
-					 BRIDGE_ISR_GIO_MST_TIMEOUT)
+								 BRIDGE_ISR_GIO_MST_TIMEOUT)
 
 /* Bridge INT_DEV register bits definition */
 #define BRIDGE_INT_DEV_SHFT(n)		((n)*3)
@@ -664,17 +681,17 @@ typedef struct bridge_err_cmdword_s {
 #define BRIDGE_DEV_OFF_ADDR_SHFT	20
 
 #define BRIDGE_DEV_PMU_BITS		(BRIDGE_DEV_PMU_WRGA_EN		| \
-					 BRIDGE_DEV_SWAP_PMU)
+								 BRIDGE_DEV_SWAP_PMU)
 #define BRIDGE_DEV_D32_BITS		(BRIDGE_DEV_DIR_WRGA_EN		| \
-					 BRIDGE_DEV_SWAP_DIR		| \
-					 BRIDGE_DEV_PREF		| \
-					 BRIDGE_DEV_PRECISE		| \
-					 BRIDGE_DEV_COH			| \
-					 BRIDGE_DEV_BARRIER)
+								 BRIDGE_DEV_SWAP_DIR		| \
+								 BRIDGE_DEV_PREF		| \
+								 BRIDGE_DEV_PRECISE		| \
+								 BRIDGE_DEV_COH			| \
+								 BRIDGE_DEV_BARRIER)
 #define BRIDGE_DEV_D64_BITS		(BRIDGE_DEV_DIR_WRGA_EN		| \
-					 BRIDGE_DEV_SWAP_DIR		| \
-					 BRIDGE_DEV_COH			| \
-					 BRIDGE_DEV_BARRIER)
+								 BRIDGE_DEV_SWAP_DIR		| \
+								 BRIDGE_DEV_COH			| \
+								 BRIDGE_DEV_BARRIER)
 
 /* Bridge Error Upper register bit field definition */
 #define BRIDGE_ERRUPPR_DEVMASTER	(0x1 << 20)	/* Device was master */
@@ -755,7 +772,7 @@ typedef struct bridge_err_cmdword_s {
 
 #define IS_PCI32_LOCAL(x)	((ulong_t)(x) < PCI32_MAPPED_BASE)
 #define IS_PCI32_MAPPED(x)	((ulong_t)(x) < PCI32_DIRECT_BASE && \
-					(ulong_t)(x) >= PCI32_MAPPED_BASE)
+							 (ulong_t)(x) >= PCI32_MAPPED_BASE)
 #define IS_PCI32_DIRECT(x)	((ulong_t)(x) >= PCI32_MAPPED_BASE)
 #define IS_PCI64(x)		((ulong_t)(x) >= PCI64_BASE)
 
@@ -774,7 +791,7 @@ typedef struct bridge_err_cmdword_s {
 
 #define IS_GIO_LOCAL(x)		((ulong_t)(x) < GIO_MAPPED_BASE)
 #define IS_GIO_MAPPED(x)	((ulong_t)(x) < GIO_DIRECT_BASE && \
-					(ulong_t)(x) >= GIO_MAPPED_BASE)
+							 (ulong_t)(x) >= GIO_MAPPED_BASE)
 #define IS_GIO_DIRECT(x)	((ulong_t)(x) >= GIO_MAPPED_BASE)
 
 /* PCI to xtalk mapping */
@@ -785,7 +802,7 @@ typedef struct bridge_err_cmdword_s {
 #define BRIDGE_DIRECT_32_SEG_SIZE	BRIDGE_DMA_DIRECT_SIZE
 #define BRIDGE_DIRECT_32_TO_XTALK(dir_off,adr)		\
 	((dir_off) * BRIDGE_DIRECT_32_SEG_SIZE +	\
-		((adr) & (BRIDGE_DIRECT_32_SEG_SIZE - 1)) + PHYS_RAMBASE)
+	 ((adr) & (BRIDGE_DIRECT_32_SEG_SIZE - 1)) + PHYS_RAMBASE)
 
 /* 64-bit address attribute masks */
 #define PCI64_ATTR_TARG_MASK	0xf000000000000000
@@ -799,18 +816,20 @@ typedef struct bridge_err_cmdword_s {
 
 #ifndef __ASSEMBLY__
 /* Address translation entry for mapped pci32 accesses */
-typedef union ate_u {
+typedef union ate_u
+{
 	u64	ent;
-	struct ate_s {
-		u64	rmf:16;
-		u64	addr:36;
-		u64	targ:4;
-		u64	reserved:3;
-		u64	barrier:1;
-		u64	prefetch:1;
-		u64	precise:1;
-		u64	coherent:1;
-		u64	valid:1;
+	struct ate_s
+	{
+		u64	rmf: 16;
+		u64	addr: 36;
+		u64	targ: 4;
+		u64	reserved: 3;
+		u64	barrier: 1;
+		u64	prefetch: 1;
+		u64	precise: 1;
+		u64	coherent: 1;
+		u64	valid: 1;
 	} field;
 } ate_t;
 #endif /* !__ASSEMBLY__ */
@@ -826,12 +845,13 @@ typedef union ate_u {
 #define ATE_RMFSHIFT		48
 
 #define mkate(xaddr, xid, attr) ((xaddr) & 0x0000fffffffff000ULL) | \
-				((xid)<<ATE_TIDSHIFT) | \
-				(attr)
+	((xid)<<ATE_TIDSHIFT) | \
+	(attr)
 
 #define BRIDGE_INTERNAL_ATES	128
 
-struct bridge_controller {
+struct bridge_controller
+{
 	struct pci_controller	pc;
 	struct resource		mem;
 	struct resource		io;

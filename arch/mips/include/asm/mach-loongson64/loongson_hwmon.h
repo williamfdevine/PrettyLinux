@@ -11,14 +11,16 @@ typedef int (*get_temp_fun)(int);
 extern int loongson3_cpu_temp(int);
 
 /* 0:Max speed, 1:Manual, 2:Auto */
-enum fan_control_mode {
+enum fan_control_mode
+{
 	FAN_FULL_MODE = 0,
 	FAN_MANUAL_MODE = 1,
 	FAN_AUTO_MODE = 2,
 	FAN_MODE_END
 };
 
-struct temp_range {
+struct temp_range
+{
 	u8 low;
 	u8 high;
 	u8 level;
@@ -32,7 +34,8 @@ struct temp_range {
 #define MAX_FAN_LEVEL	255
 
 /* loongson_fan_policy works when fan work at FAN_AUTO_MODE */
-struct loongson_fan_policy {
+struct loongson_fan_policy
+{
 	u8	type;
 
 	/* percent only used when type is CONSTANT_SPEED_POLICY */

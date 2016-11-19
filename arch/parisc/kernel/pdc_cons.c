@@ -1,4 +1,4 @@
-/* 
+/*
  *    PDC Console support - ie use firmware to dump text via boot console
  *
  *    Copyright (C) 1999-2003 Matthew Wilcox <willy at parisc-linux.org>
@@ -31,7 +31,7 @@
  */
 
 /*
- *  The PDC console is a simple console, which can be used for debugging 
+ *  The PDC console is a simple console, which can be used for debugging
  *  boot related problems on HP PA-RISC machines. It is also useful when no
  *  other console works.
  *
@@ -39,7 +39,7 @@
  *  from and to PDC's boot path.
  */
 
-/* Define EARLY_BOOTUP_DEBUG to debug kernel related boot problems. 
+/* Define EARLY_BOOTUP_DEBUG to debug kernel related boot problems.
  * On production kernels EARLY_BOOTUP_DEBUG should be undefined. */
 #define EARLY_BOOTUP_DEBUG
 
@@ -62,9 +62,13 @@ static void pdc_console_write(struct console *co, const char *s, unsigned count)
 	unsigned long flags;
 
 	spin_lock_irqsave(&pdc_console_lock, flags);
-	do {
+
+	do
+	{
 		i += pdc_iodc_print(s + i, count - i);
-	} while (i < count);
+	}
+	while (i < count);
+
 	spin_unlock_irqrestore(&pdc_console_lock, flags);
 }
 
@@ -105,7 +109,8 @@ static int pdc_console_tty_open(struct tty_struct *tty, struct file *filp)
 
 static void pdc_console_tty_close(struct tty_struct *tty, struct file *filp)
 {
-	if (tty->count == 1) {
+	if (tty->count == 1)
+	{
 		del_timer_sync(&pdc_console_timer);
 		tty_port_tty_set(&tty_port, NULL);
 	}
@@ -127,7 +132,8 @@ static int pdc_console_tty_chars_in_buffer(struct tty_struct *tty)
 	return 0; /* no buffer */
 }
 
-static const struct tty_operations pdc_console_tty_ops = {
+static const struct tty_operations pdc_console_tty_ops =
+{
 	.open = pdc_console_tty_open,
 	.close = pdc_console_tty_close,
 	.write = pdc_console_tty_write,
@@ -139,19 +145,28 @@ static void pdc_console_poll(unsigned long unused)
 {
 	int data, count = 0;
 
-	while (1) {
+	while (1)
+	{
 		data = pdc_console_poll_key(NULL);
+
 		if (data == -1)
+		{
 			break;
+		}
+
 		tty_insert_flip_char(&tty_port, data & 0xFF, TTY_NORMAL);
 		count ++;
 	}
 
 	if (count)
+	{
 		tty_flip_buffer_push(&tty_port);
+	}
 
 	if (pdc_cons.flags & CON_ENABLED)
+	{
 		mod_timer(&pdc_console_timer, jiffies + PDC_CONS_POLL_DELAY);
+	}
 }
 
 static struct tty_driver *pdc_console_tty_driver;
@@ -168,11 +183,16 @@ static int __init pdc_console_tty_driver_init(void)
 
 	console_lock();
 	for_each_console(tmp)
-		if (tmp == &pdc_cons)
-			break;
+
+	if (tmp == &pdc_cons)
+	{
+		break;
+	}
+
 	console_unlock();
 
-	if (!tmp) {
+	if (!tmp)
+	{
 		printk(KERN_INFO "PDC console driver not registered anymore, not creating %s\n", pdc_cons.name);
 		return -ENODEV;
 	}
@@ -183,7 +203,9 @@ static int __init pdc_console_tty_driver_init(void)
 	pdc_console_tty_driver = alloc_tty_driver(1);
 
 	if (!pdc_console_tty_driver)
+	{
 		return -ENOMEM;
+	}
 
 	tty_port_init(&tty_port);
 
@@ -194,12 +216,14 @@ static int __init pdc_console_tty_driver_init(void)
 	pdc_console_tty_driver->type = TTY_DRIVER_TYPE_SYSTEM;
 	pdc_console_tty_driver->init_termios = tty_std_termios;
 	pdc_console_tty_driver->flags = TTY_DRIVER_REAL_RAW |
-		TTY_DRIVER_RESET_TERMIOS;
+									TTY_DRIVER_RESET_TERMIOS;
 	tty_set_operations(pdc_console_tty_driver, &pdc_console_tty_ops);
 	tty_port_link_device(&tty_port, pdc_console_tty_driver, 0);
 
 	err = tty_register_driver(pdc_console_tty_driver);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "Unable to register the PDC console TTY driver\n");
 		tty_port_destroy(&tty_port);
 		return err;
@@ -209,7 +233,7 @@ static int __init pdc_console_tty_driver_init(void)
 }
 device_initcall(pdc_console_tty_driver_init);
 
-static struct tty_driver * pdc_console_device (struct console *c, int *index)
+static struct tty_driver *pdc_console_device (struct console *c, int *index)
 {
 	*index = c->index;
 	return pdc_console_tty_driver;
@@ -218,7 +242,8 @@ static struct tty_driver * pdc_console_device (struct console *c, int *index)
 #define pdc_console_device NULL
 #endif
 
-static struct console pdc_cons = {
+static struct console pdc_cons =
+{
 	.name =		"ttyB",
 	.write =	pdc_console_write,
 	.device =	pdc_console_device,
@@ -232,12 +257,17 @@ static int pdc_console_initialized;
 static void pdc_console_init_force(void)
 {
 	if (pdc_console_initialized)
+	{
 		return;
+	}
+
 	++pdc_console_initialized;
-	
+
 	/* If the console is duplex then copy the COUT parameters to CIN. */
 	if (PAGE0->mem_cons.cl_class == CL_DUPLEX)
+	{
 		memcpy(&PAGE0->mem_kbd, &PAGE0->mem_cons, sizeof(PAGE0->mem_cons));
+	}
 
 	/* register the pdc console */
 	register_console(&pdc_cons);
@@ -267,14 +297,20 @@ void pdc_console_restart(void)
 	struct console *console;
 
 	if (pdc_console_initialized)
+	{
 		return;
+	}
 
 	/* If we've already seen the output, don't bother to print it again */
 	if (console_drivers != NULL)
+	{
 		pdc_cons.flags &= ~CON_PRINTBUFFER;
+	}
 
 	while ((console = console_drivers) != NULL)
+	{
 		unregister_console(console_drivers);
+	}
 
 	/* force registering the pdc console */
 	pdc_console_init_force();

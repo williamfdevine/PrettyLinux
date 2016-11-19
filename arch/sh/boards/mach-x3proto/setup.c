@@ -25,7 +25,8 @@
 #include <mach/hardware.h>
 #include <asm/smp-ops.h>
 
-static struct resource heartbeat_resources[] = {
+static struct resource heartbeat_resources[] =
+{
 	[0] = {
 		.start	= 0xb8140020,
 		.end	= 0xb8140020,
@@ -33,18 +34,21 @@ static struct resource heartbeat_resources[] = {
 	},
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(heartbeat_resources),
 	.resource	= heartbeat_resources,
 };
 
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start		= 0x18000300,
 		.end		= 0x18000300 + 0x10 - 1,
@@ -56,7 +60,8 @@ static struct resource smc91x_resources[] = {
 	},
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= -1,
 	.resource	= smc91x_resources,
@@ -66,12 +71,14 @@ static struct platform_device smc91x_device = {
 	},
 };
 
-static struct r8a66597_platdata r8a66597_data = {
+static struct r8a66597_platdata r8a66597_data =
+{
 	.xtal = R8A66597_PLATDATA_XTAL_12MHZ,
 	.vif = 1,
 };
 
-static struct resource r8a66597_usb_host_resources[] = {
+static struct resource r8a66597_usb_host_resources[] =
+{
 	[0] = {
 		.start	= 0x18040000,
 		.end	= 0x18080000 - 1,
@@ -83,7 +90,8 @@ static struct resource r8a66597_usb_host_resources[] = {
 	},
 };
 
-static struct platform_device r8a66597_usb_host_device = {
+static struct platform_device r8a66597_usb_host_device =
+{
 	.name		= "r8a66597_hcd",
 	.id		= -1,
 	.dev = {
@@ -95,12 +103,14 @@ static struct platform_device r8a66597_usb_host_device = {
 	.resource	= r8a66597_usb_host_resources,
 };
 
-static struct m66592_platdata usbf_platdata = {
+static struct m66592_platdata usbf_platdata =
+{
 	.xtal = M66592_PLATDATA_XTAL_24MHZ,
 	.vif = 1,
 };
 
-static struct resource m66592_usb_peripheral_resources[] = {
+static struct resource m66592_usb_peripheral_resources[] =
+{
 	[0] = {
 		.name	= "m66592_udc",
 		.start	= 0x18080000,
@@ -114,7 +124,8 @@ static struct resource m66592_usb_peripheral_resources[] = {
 	},
 };
 
-static struct platform_device m66592_usb_peripheral_device = {
+static struct platform_device m66592_usb_peripheral_device =
+{
 	.name		= "m66592_udc",
 	.id		= -1,
 	.dev = {
@@ -126,7 +137,8 @@ static struct platform_device m66592_usb_peripheral_device = {
 	.resource	= m66592_usb_peripheral_resources,
 };
 
-static struct gpio_keys_button baseboard_buttons[NR_BASEBOARD_GPIOS] = {
+static struct gpio_keys_button baseboard_buttons[NR_BASEBOARD_GPIOS] =
+{
 	{
 		.desc		= "key44",
 		.code		= KEY_POWER,
@@ -196,12 +208,14 @@ static struct gpio_keys_button baseboard_buttons[NR_BASEBOARD_GPIOS] = {
 	},
 };
 
-static struct gpio_keys_platform_data baseboard_buttons_data = {
+static struct gpio_keys_platform_data baseboard_buttons_data =
+{
 	.buttons	= baseboard_buttons,
 	.nbuttons	= ARRAY_SIZE(baseboard_buttons),
 };
 
-static struct platform_device baseboard_buttons_device = {
+static struct platform_device baseboard_buttons_device =
+{
 	.name		= "gpio-keys",
 	.id		= -1,
 	.dev		= {
@@ -209,7 +223,8 @@ static struct platform_device baseboard_buttons_device = {
 	},
 };
 
-static struct platform_device *x3proto_devices[] __initdata = {
+static struct platform_device *x3proto_devices[] __initdata =
+{
 	&heartbeat_device,
 	&smc91x_device,
 	&r8a66597_usb_host_device,
@@ -239,14 +254,19 @@ static int __init x3proto_devices_setup(void)
 	 * Now that ILSELs are available, set up the baseboard GPIOs.
 	 */
 	ret = x3proto_gpio_setup();
+
 	if (unlikely(ret))
+	{
 		return ret;
+	}
 
 	/*
 	 * Propagate dynamic GPIOs for the baseboard button device.
 	 */
 	for (i = 0; i < ARRAY_SIZE(baseboard_buttons); i++)
+	{
 		baseboard_buttons[i].gpio = x3proto_gpio_chip.base + i;
+	}
 
 	r8a66597_usb_host_resources[1].start =
 		r8a66597_usb_host_resources[1].end = ilsel_enable(ILSEL_USBH_I);
@@ -258,7 +278,7 @@ static int __init x3proto_devices_setup(void)
 		smc91x_resources[1].end = ilsel_enable(ILSEL_LAN);
 
 	return platform_add_devices(x3proto_devices,
-				    ARRAY_SIZE(x3proto_devices));
+								ARRAY_SIZE(x3proto_devices));
 }
 device_initcall(x3proto_devices_setup);
 
@@ -267,7 +287,8 @@ static void __init x3proto_setup(char **cmdline_p)
 	register_smp_ops(&shx3_smp_ops);
 }
 
-static struct sh_machine_vector mv_x3proto __initmv = {
+static struct sh_machine_vector mv_x3proto __initmv =
+{
 	.mv_name		= "x3proto",
 	.mv_setup		= x3proto_setup,
 };

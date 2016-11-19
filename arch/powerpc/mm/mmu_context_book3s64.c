@@ -36,19 +36,27 @@ int __init_new_context(void)
 	int err;
 
 again:
+
 	if (!ida_pre_get(&mmu_context_ida, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock(&mmu_context_lock);
 	err = ida_get_new_above(&mmu_context_ida, 1, &index);
 	spin_unlock(&mmu_context_lock);
 
 	if (err == -EAGAIN)
+	{
 		goto again;
+	}
 	else if (err)
+	{
 		return err;
+	}
 
-	if (index > MAX_USER_CONTEXT) {
+	if (index > MAX_USER_CONTEXT)
+	{
 		spin_lock(&mmu_context_lock);
 		ida_remove(&mmu_context_ida, index);
 		spin_unlock(&mmu_context_lock);
@@ -75,12 +83,18 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 	int index;
 
 	index = __init_new_context();
-	if (index < 0)
-		return index;
 
-	if (radix_enabled()) {
+	if (index < 0)
+	{
+		return index;
+	}
+
+	if (radix_enabled())
+	{
 		radix__init_new_context(mm, index);
-	} else {
+	}
+	else
+	{
 
 		/* The old code would re-promote on fork, we don't do that
 		 * when using slices as it could cause problem promoting slices
@@ -96,18 +110,25 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 		 * check against 0 is ok.
 		 */
 		if (mm->context.id == 0)
+		{
 			slice_set_user_psize(mm, mmu_virtual_psize);
+		}
+
 		subpage_prot_init_new_context(mm);
 	}
+
 	mm->context.id = index;
 #ifdef CONFIG_PPC_ICSWX
 	mm->context.cop_lockp = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
-	if (!mm->context.cop_lockp) {
+
+	if (!mm->context.cop_lockp)
+	{
 		__destroy_context(index);
 		subpage_prot_free(mm);
 		mm->context.id = MMU_NO_CONTEXT;
 		return -ENOMEM;
 	}
+
 	spin_lock_init(mm->context.cop_lockp);
 #endif /* CONFIG_PPC_ICSWX */
 
@@ -136,14 +157,19 @@ static void destroy_pagetable_page(struct mm_struct *mm)
 	struct page *page;
 
 	pte_frag = mm->context.pte_frag;
+
 	if (!pte_frag)
+	{
 		return;
+	}
 
 	page = virt_to_page(pte_frag);
 	/* drop all the pending references */
 	count = ((unsigned long)pte_frag & ~PAGE_MASK) >> PTE_FRAG_SIZE_SHIFT;
+
 	/* We allow PTE_FRAG_NR fragments from a PTE page */
-	if (page_ref_sub_and_test(page, PTE_FRAG_NR - count)) {
+	if (page_ref_sub_and_test(page, PTE_FRAG_NR - count))
+	{
 		pgtable_page_dtor(page);
 		free_hot_cold_page(page, 0);
 	}
@@ -170,9 +196,14 @@ void destroy_context(struct mm_struct *mm)
 #endif /* CONFIG_PPC_ICSWX */
 
 	if (radix_enabled())
+	{
 		process_tb[mm->context.id].prtb1 = 0;
+	}
 	else
+	{
 		subpage_prot_free(mm);
+	}
+
 	destroy_pagetable_page(mm);
 	__destroy_context(mm->context.id);
 	mm->context.id = MMU_NO_CONTEXT;
@@ -184,7 +215,7 @@ void radix__switch_mmu_context(struct mm_struct *prev, struct mm_struct *next)
 	asm volatile("isync": : :"memory");
 	mtspr(SPRN_PID, next->context.id);
 	asm volatile("isync \n"
-		     PPC_SLBIA(0x7)
-		     : : :"memory");
+				 PPC_SLBIA(0x7)
+				 : : :"memory");
 }
 #endif

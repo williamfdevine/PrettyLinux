@@ -90,16 +90,17 @@ void __init pxa910_init_irq(void)
 
 static int __init pxa910_init(void)
 {
-	if (cpu_is_pxa910()) {
+	if (cpu_is_pxa910())
+	{
 #ifdef CONFIG_CACHE_TAUROS2
 		tauros2_init(0);
 #endif
 		mfp_init_base(MFPR_VIRT_BASE);
 		mfp_init_addr(pxa910_mfp_addr_map);
 		pxa910_clk_init(APB_PHYS_BASE + 0x50000,
-				AXI_PHYS_BASE + 0x82800,
-				APB_PHYS_BASE + 0x15000,
-				APB_PHYS_BASE + 0x3b000);
+						AXI_PHYS_BASE + 0x82800,
+						APB_PHYS_BASE + 0x15000,
+						APB_PHYS_BASE + 0x3b000);
 	}
 
 	return 0;
@@ -147,7 +148,8 @@ PXA910_DEVICE(disp, "mmp-disp", 0, LCD, 0xd420b000, 0x1ec);
 PXA910_DEVICE(fb, "mmp-fb", -1, NONE, 0, 0);
 PXA910_DEVICE(panel, "tpo-hvga", -1, NONE, 0, 0);
 
-struct resource pxa910_resource_gpio[] = {
+struct resource pxa910_resource_gpio[] =
+{
 	{
 		.start	= 0xd4019000,
 		.end	= 0xd4019fff,
@@ -160,14 +162,16 @@ struct resource pxa910_resource_gpio[] = {
 	},
 };
 
-struct platform_device pxa910_device_gpio = {
+struct platform_device pxa910_device_gpio =
+{
 	.name		= "mmp-gpio",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pxa910_resource_gpio),
 	.resource	= pxa910_resource_gpio,
 };
 
-static struct resource pxa910_resource_rtc[] = {
+static struct resource pxa910_resource_rtc[] =
+{
 	{
 		.start	= 0xd4010000,
 		.end	= 0xd401003f,
@@ -185,7 +189,8 @@ static struct resource pxa910_resource_rtc[] = {
 	},
 };
 
-struct platform_device pxa910_device_rtc = {
+struct platform_device pxa910_device_rtc =
+{
 	.name		= "sa1100-rtc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(pxa910_resource_rtc),

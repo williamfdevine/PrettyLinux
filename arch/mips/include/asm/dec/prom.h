@@ -24,7 +24,7 @@
  * Many of these will work for MIPSen as well!
  */
 #define VEC_RESET		(u64 *)CKSEG1ADDR(0x1fc00000)
-							/* Prom base address */
+/* Prom base address */
 
 #define PMAX_PROM_ENTRY(x)	(VEC_RESET + (x))	/* Prom jump table */
 
@@ -49,11 +49,11 @@
 
 #ifdef CONFIG_64BIT
 
-#define prom_is_rex(magic)	1	/* KN04 and KN05 are REX PROMs.  */
+	#define prom_is_rex(magic)	1	/* KN04 and KN05 are REX PROMs.  */
 
 #else /* !CONFIG_64BIT */
 
-#define prom_is_rex(magic)	((magic) == REX_PROM_MAGIC)
+	#define prom_is_rex(magic)	((magic) == REX_PROM_MAGIC)
 
 #endif /* !CONFIG_64BIT */
 
@@ -77,7 +77,8 @@
 /*
  * Used by rex_getbitmap().
  */
-typedef struct {
+typedef struct
+{
 	int pagesize;
 	unsigned char bitmap[0];
 } memmap;
@@ -98,7 +99,7 @@ extern int (*__prom_getchar)(void);
 extern char *(*__prom_getenv)(char *);
 extern int (*__prom_printf)(char *, ...);
 
-extern int (*__pmax_open)(char*, int);
+extern int (*__pmax_open)(char *, int);
 extern int (*__pmax_lseek)(int, long, int);
 extern int (*__pmax_read)(int, void *, int);
 extern int (*__pmax_close)(int);
@@ -111,13 +112,13 @@ extern int (*__pmax_close)(int);
  * dispatcher to accommodate ABI incompatibilities.
  */
 #define __DEC_PROM_O32(fun, arg) fun arg __asm__(#fun); \
-				 __asm__(#fun " = call_o32")
+	__asm__(#fun " = call_o32")
 
 int __DEC_PROM_O32(_rex_bootinit, (int (*)(void), void *));
 int __DEC_PROM_O32(_rex_bootread, (int (*)(void), void *));
 int __DEC_PROM_O32(_rex_getbitmap, (int (*)(memmap *), void *, memmap *));
 unsigned long *__DEC_PROM_O32(_rex_slot_address,
-			     (unsigned long *(*)(int), void *, int));
+							  (unsigned long * (*)(int), void *, int));
 void *__DEC_PROM_O32(_rex_gettcinfo, (void *(*)(void), void *));
 int __DEC_PROM_O32(_rex_getsysid, (int (*)(void), void *));
 void __DEC_PROM_O32(_rex_clear_cache, (void (*)(void), void *));

@@ -42,18 +42,19 @@
 /* For imx6q sabrelite board: set KSZ9021RN RGMII pad skew */
 static int ksz9021rn_phy_fixup(struct phy_device *phydev)
 {
-	if (IS_BUILTIN(CONFIG_PHYLIB)) {
+	if (IS_BUILTIN(CONFIG_PHYLIB))
+	{
 		/* min rx data delay */
 		phy_write(phydev, MICREL_KSZ9021_EXTREG_CTRL,
-			0x8000 | MICREL_KSZ9021_RGMII_RX_DATA_PAD_SCEW);
+				  0x8000 | MICREL_KSZ9021_RGMII_RX_DATA_PAD_SCEW);
 		phy_write(phydev, MICREL_KSZ9021_EXTREG_DATA_WRITE, 0x0000);
 
 		/* max rx/tx clock delay, min rx/tx control delay */
 		phy_write(phydev, MICREL_KSZ9021_EXTREG_CTRL,
-			0x8000 | MICREL_KSZ9021_RGMII_CLK_CTRL_PAD_SCEW);
+				  0x8000 | MICREL_KSZ9021_RGMII_CLK_CTRL_PAD_SCEW);
 		phy_write(phydev, MICREL_KSZ9021_EXTREG_DATA_WRITE, 0xf0f0);
 		phy_write(phydev, MICREL_KSZ9021_EXTREG_CTRL,
-			MICREL_KSZ9021_RGMII_CLK_CTRL_PAD_SCEW);
+				  MICREL_KSZ9021_RGMII_CLK_CTRL_PAD_SCEW);
 	}
 
 	return 0;
@@ -89,10 +90,14 @@ static void ventana_pciesw_early_fixup(struct pci_dev *dev)
 	u32 dw;
 
 	if (!of_machine_is_compatible("gw,ventana"))
+	{
 		return;
+	}
 
 	if (dev->devfn != 0)
+	{
 		return;
+	}
 
 	pci_read_config_dword(dev, 0x62c, &dw);
 	dw |= 0xaaa8; // GPIO1-7 outputs
@@ -158,8 +163,11 @@ static int ar8035_phy_fixup(struct phy_device *dev)
 
 	/*check phy power*/
 	val = phy_read(dev, 0x0);
+
 	if (val & BMCR_PDOWN)
+	{
 		phy_write(dev, 0x0, val & ~BMCR_PDOWN);
+	}
 
 	return 0;
 }
@@ -168,15 +176,16 @@ static int ar8035_phy_fixup(struct phy_device *dev)
 
 static void __init imx6q_enet_phy_init(void)
 {
-	if (IS_BUILTIN(CONFIG_PHYLIB)) {
+	if (IS_BUILTIN(CONFIG_PHYLIB))
+	{
 		phy_register_fixup_for_uid(PHY_ID_KSZ9021, MICREL_PHY_ID_MASK,
-				ksz9021rn_phy_fixup);
+								   ksz9021rn_phy_fixup);
 		phy_register_fixup_for_uid(PHY_ID_KSZ9031, MICREL_PHY_ID_MASK,
-				ksz9031rn_phy_fixup);
+								   ksz9031rn_phy_fixup);
 		phy_register_fixup_for_uid(PHY_ID_AR8031, 0xffffffef,
-				ar8031_phy_fixup);
+								   ar8031_phy_fixup);
 		phy_register_fixup_for_uid(PHY_ID_AR8035, 0xffffffef,
-				ar8035_phy_fixup);
+								   ar8035_phy_fixup);
 	}
 }
 
@@ -189,19 +198,25 @@ static void __init imx6q_1588_init(void)
 	u32 clksel;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-fec");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_warn("%s: failed to find fec node\n", __func__);
 		return;
 	}
 
 	ptp_clk = of_clk_get(np, 2);
-	if (IS_ERR(ptp_clk)) {
+
+	if (IS_ERR(ptp_clk))
+	{
 		pr_warn("%s: failed to get ptp clock\n", __func__);
 		goto put_node;
 	}
 
 	enet_ref = clk_get_sys(NULL, "enet_ref");
-	if (IS_ERR(enet_ref)) {
+
+	if (IS_ERR(enet_ref))
+	{
 		pr_warn("%s: failed to get enet clock\n", __func__);
 		goto put_ptp_clk;
 	}
@@ -212,15 +227,18 @@ static void __init imx6q_1588_init(void)
 	 * (external OSC), and we need to clear the bit.
 	 */
 	clksel = clk_is_match(ptp_clk, enet_ref) ?
-				IMX6Q_GPR1_ENET_CLK_SEL_ANATOP :
-				IMX6Q_GPR1_ENET_CLK_SEL_PAD;
+			 IMX6Q_GPR1_ENET_CLK_SEL_ANATOP :
+			 IMX6Q_GPR1_ENET_CLK_SEL_PAD;
 	gpr = syscon_regmap_lookup_by_compatible("fsl,imx6q-iomuxc-gpr");
+
 	if (!IS_ERR(gpr))
 		regmap_update_bits(gpr, IOMUXC_GPR1,
-				IMX6Q_GPR1_ENET_CLK_SEL_MASK,
-				clksel);
+						   IMX6Q_GPR1_ENET_CLK_SEL_MASK,
+						   clksel);
 	else
+	{
 		pr_err("failed to find fsl,imx6q-iomuxc-gpr regmap\n");
+	}
 
 	clk_put(enet_ref);
 put_ptp_clk:
@@ -235,29 +253,33 @@ static void __init imx6q_axi_init(void)
 	unsigned int mask;
 
 	gpr = syscon_regmap_lookup_by_compatible("fsl,imx6q-iomuxc-gpr");
-	if (!IS_ERR(gpr)) {
+
+	if (!IS_ERR(gpr))
+	{
 		/*
 		 * Enable the cacheable attribute of VPU and IPU
 		 * AXI transactions.
 		 */
 		mask = IMX6Q_GPR4_VPU_WR_CACHE_SEL |
-			IMX6Q_GPR4_VPU_RD_CACHE_SEL |
-			IMX6Q_GPR4_VPU_P_WR_CACHE_VAL |
-			IMX6Q_GPR4_VPU_P_RD_CACHE_VAL_MASK |
-			IMX6Q_GPR4_IPU_WR_CACHE_CTL |
-			IMX6Q_GPR4_IPU_RD_CACHE_CTL;
+			   IMX6Q_GPR4_VPU_RD_CACHE_SEL |
+			   IMX6Q_GPR4_VPU_P_WR_CACHE_VAL |
+			   IMX6Q_GPR4_VPU_P_RD_CACHE_VAL_MASK |
+			   IMX6Q_GPR4_IPU_WR_CACHE_CTL |
+			   IMX6Q_GPR4_IPU_RD_CACHE_CTL;
 		regmap_update_bits(gpr, IOMUXC_GPR4, mask, mask);
 
 		/* Increase IPU read QoS priority */
 		regmap_update_bits(gpr, IOMUXC_GPR6,
-				IMX6Q_GPR6_IPU1_ID00_RD_QOS_MASK |
-				IMX6Q_GPR6_IPU1_ID01_RD_QOS_MASK,
-				(0xf << 16) | (0x7 << 20));
+						   IMX6Q_GPR6_IPU1_ID00_RD_QOS_MASK |
+						   IMX6Q_GPR6_IPU1_ID01_RD_QOS_MASK,
+						   (0xf << 16) | (0x7 << 20));
 		regmap_update_bits(gpr, IOMUXC_GPR7,
-				IMX6Q_GPR7_IPU2_ID00_RD_QOS_MASK |
-				IMX6Q_GPR7_IPU2_ID01_RD_QOS_MASK,
-				(0xf << 16) | (0x7 << 20));
-	} else {
+						   IMX6Q_GPR7_IPU2_ID00_RD_QOS_MASK |
+						   IMX6Q_GPR7_IPU2_ID01_RD_QOS_MASK,
+						   (0xf << 16) | (0x7 << 20));
+	}
+	else
+	{
 		pr_warn("failed to find fsl,imx6q-iomuxc-gpr regmap\n");
 	}
 }
@@ -267,14 +289,19 @@ static void __init imx6q_init_machine(void)
 	struct device *parent;
 
 	if (cpu_is_imx6q() && imx_get_soc_revision() == IMX_CHIP_REVISION_2_0)
+	{
 		imx_print_silicon_rev("i.MX6QP", IMX_CHIP_REVISION_1_0);
+	}
 	else
 		imx_print_silicon_rev(cpu_is_imx6dl() ? "i.MX6DL" : "i.MX6Q",
-				imx_get_soc_revision());
+							  imx_get_soc_revision());
 
 	parent = imx_soc_device_init();
+
 	if (parent == NULL)
+	{
 		pr_warn("failed to initialize soc device\n");
+	}
 
 	imx6q_enet_phy_init();
 
@@ -299,13 +326,17 @@ static void __init imx6q_opp_check_speed_grading(struct device *cpu_dev)
 	u32 val;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-ocotp");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_warn("failed to find ocotp node\n");
 		return;
 	}
 
 	base = of_iomap(np, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_warn("failed to map ocotp\n");
 		goto put_node;
 	}
@@ -324,15 +355,25 @@ static void __init imx6q_opp_check_speed_grading(struct device *cpu_dev)
 
 	if ((val != OCOTP_CFG3_SPEED_1P2GHZ) && cpu_is_imx6q())
 		if (dev_pm_opp_disable(cpu_dev, 1200000000))
+		{
 			pr_warn("failed to disable 1.2 GHz OPP\n");
+		}
+
 	if (val < OCOTP_CFG3_SPEED_996MHZ)
 		if (dev_pm_opp_disable(cpu_dev, 996000000))
+		{
 			pr_warn("failed to disable 996 MHz OPP\n");
-	if (cpu_is_imx6q()) {
+		}
+
+	if (cpu_is_imx6q())
+	{
 		if (val != OCOTP_CFG3_SPEED_852MHZ)
 			if (dev_pm_opp_disable(cpu_dev, 852000000))
+			{
 				pr_warn("failed to disable 852 MHz OPP\n");
+			}
 	}
+
 	iounmap(base);
 put_node:
 	of_node_put(np);
@@ -343,17 +384,22 @@ static void __init imx6q_opp_init(void)
 	struct device_node *np;
 	struct device *cpu_dev = get_cpu_device(0);
 
-	if (!cpu_dev) {
+	if (!cpu_dev)
+	{
 		pr_warn("failed to get cpu0 device\n");
 		return;
 	}
+
 	np = of_node_get(cpu_dev->of_node);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_warn("failed to find cpu0 node\n");
 		return;
 	}
 
-	if (dev_pm_opp_of_add_table(cpu_dev)) {
+	if (dev_pm_opp_of_add_table(cpu_dev))
+	{
 		pr_warn("failed to init OPP table\n");
 		goto put_node;
 	}
@@ -364,7 +410,8 @@ put_node:
 	of_node_put(np);
 }
 
-static struct platform_device imx6q_cpufreq_pdev = {
+static struct platform_device imx6q_cpufreq_pdev =
+{
 	.name = "imx6q-cpufreq",
 };
 
@@ -375,9 +422,12 @@ static void __init imx6q_init_late(void)
 	 * to run cpuidle on them.
 	 */
 	if (imx_get_soc_revision() > IMX_CHIP_REVISION_1_1)
+	{
 		imx6q_cpuidle_init();
+	}
 
-	if (IS_ENABLED(CONFIG_ARM_IMX6Q_CPUFREQ)) {
+	if (IS_ENABLED(CONFIG_ARM_IMX6Q_CPUFREQ))
+	{
 		imx6q_opp_init();
 		platform_device_register(&imx6q_cpufreq_pdev);
 	}
@@ -399,7 +449,8 @@ static void __init imx6q_init_irq(void)
 	imx6_pm_ccm_init("fsl,imx6q-ccm");
 }
 
-static const char * const imx6q_dt_compat[] __initconst = {
+static const char *const imx6q_dt_compat[] __initconst =
+{
 	"fsl,imx6dl",
 	"fsl,imx6q",
 	"fsl,imx6qp",
@@ -407,12 +458,12 @@ static const char * const imx6q_dt_compat[] __initconst = {
 };
 
 DT_MACHINE_START(IMX6Q, "Freescale i.MX6 Quad/DualLite (Device Tree)")
-	.l2c_aux_val 	= 0,
-	.l2c_aux_mask	= ~0,
-	.smp		= smp_ops(imx_smp_ops),
-	.map_io		= imx6q_map_io,
-	.init_irq	= imx6q_init_irq,
-	.init_machine	= imx6q_init_machine,
-	.init_late      = imx6q_init_late,
-	.dt_compat	= imx6q_dt_compat,
-MACHINE_END
+.l2c_aux_val 	= 0,
+   .l2c_aux_mask	= ~0,
+	  .smp		= smp_ops(imx_smp_ops),
+			 .map_io		= imx6q_map_io,
+				 .init_irq	= imx6q_init_irq,
+					.init_machine	= imx6q_init_machine,
+					   .init_late      = imx6q_init_late,
+						.dt_compat	= imx6q_dt_compat,
+						  MACHINE_END

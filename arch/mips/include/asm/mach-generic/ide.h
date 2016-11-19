@@ -23,25 +23,35 @@
 static inline void __ide_flush_prologue(void)
 {
 #ifdef CONFIG_SMP
+
 	if (cpu_has_dc_aliases || !cpu_has_ic_fills_f_dc)
+	{
 		preempt_disable();
+	}
+
 #endif
 }
 
 static inline void __ide_flush_epilogue(void)
 {
 #ifdef CONFIG_SMP
+
 	if (cpu_has_dc_aliases || !cpu_has_ic_fills_f_dc)
+	{
 		preempt_enable();
+	}
+
 #endif
 }
 
 static inline void __ide_flush_dcache_range(unsigned long addr, unsigned long size)
 {
-	if (cpu_has_dc_aliases || !cpu_has_ic_fills_f_dc) {
+	if (cpu_has_dc_aliases || !cpu_has_ic_fills_f_dc)
+	{
 		unsigned long end = addr + size;
 
-		while (addr < end) {
+		while (addr < end)
+		{
 			local_flush_data_cache_page((void *)addr);
 			addr += PAGE_SIZE;
 		}
@@ -57,7 +67,7 @@ static inline void __ide_flush_dcache_range(unsigned long addr, unsigned long si
  * is even better for performance anyway.
  */
 static inline void __ide_insw(unsigned long port, void *addr,
-	unsigned int count)
+							  unsigned int count)
 {
 	__ide_flush_prologue();
 	insw(port, addr, count);
@@ -74,7 +84,7 @@ static inline void __ide_insl(unsigned long port, void *addr, unsigned int count
 }
 
 static inline void __ide_outsw(unsigned long port, const void *addr,
-	unsigned long count)
+							   unsigned long count)
 {
 	__ide_flush_prologue();
 	outsw(port, addr, count);
@@ -83,7 +93,7 @@ static inline void __ide_outsw(unsigned long port, const void *addr,
 }
 
 static inline void __ide_outsl(unsigned long port, const void *addr,
-	unsigned long count)
+							   unsigned long count)
 {
 	__ide_flush_prologue();
 	outsl(port, addr, count);
@@ -115,7 +125,7 @@ static inline void __ide_mm_outsw(void __iomem *port, void *addr, u32 count)
 	__ide_flush_epilogue();
 }
 
-static inline void __ide_mm_outsl(void __iomem * port, void *addr, u32 count)
+static inline void __ide_mm_outsl(void __iomem *port, void *addr, u32 count)
 {
 	__ide_flush_prologue();
 	writesl(port, addr, count);

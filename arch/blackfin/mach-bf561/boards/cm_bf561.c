@@ -14,7 +14,7 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/flash.h>
 #if IS_ENABLED(CONFIG_USB_ISP1362_HCD)
-#include <linux/usb/isp1362.h>
+	#include <linux/usb/isp1362.h>
 #endif
 #include <linux/ata_platform.h>
 #include <linux/irq.h>
@@ -34,7 +34,8 @@ const char bfin_board_name[] = "Bluetechnix CM BF561";
 /* all SPI peripherals info goes here */
 
 #if IS_ENABLED(CONFIG_MTD_M25P80)
-static struct mtd_partition bfin_spi_flash_partitions[] = {
+static struct mtd_partition bfin_spi_flash_partitions[] =
+{
 	{
 		.name = "bootloader(spi)",
 		.size = 0x00020000,
@@ -51,7 +52,8 @@ static struct mtd_partition bfin_spi_flash_partitions[] = {
 	}
 };
 
-static struct flash_platform_data bfin_spi_flash_data = {
+static struct flash_platform_data bfin_spi_flash_data =
+{
 	.name = "m25p80",
 	.parts = bfin_spi_flash_partitions,
 	.nr_parts = ARRAY_SIZE(bfin_spi_flash_partitions),
@@ -59,12 +61,14 @@ static struct flash_platform_data bfin_spi_flash_data = {
 };
 
 /* SPI flash chip (m25p64) */
-static struct bfin5xx_spi_chip spi_flash_chip_info = {
+static struct bfin5xx_spi_chip spi_flash_chip_info =
+{
 	.enable_dma = 0,         /* use dma transfer with this chip*/
 };
 #endif
 
-static struct spi_board_info bfin_spi_board_info[] __initdata = {
+static struct spi_board_info bfin_spi_board_info[] __initdata =
+{
 #if IS_ENABLED(CONFIG_MTD_M25P80)
 	{
 		/* the modalias must be the same as spi device driver name */
@@ -98,7 +102,8 @@ static struct spi_board_info bfin_spi_board_info[] __initdata = {
 };
 
 /* SPI (0) */
-static struct resource bfin_spi0_resource[] = {
+static struct resource bfin_spi0_resource[] =
+{
 	[0] = {
 		.start = SPI0_REGBASE,
 		.end   = SPI0_REGBASE + 0xFF,
@@ -117,13 +122,15 @@ static struct resource bfin_spi0_resource[] = {
 };
 
 /* SPI controller data */
-static struct bfin5xx_spi_master bfin_spi0_info = {
+static struct bfin5xx_spi_master bfin_spi0_info =
+{
 	.num_chipselect = 8,
 	.enable_dma = 1,  /* master has the ability to do dma transfer */
 	.pin_req = {P_SPI0_SCK, P_SPI0_MISO, P_SPI0_MOSI, 0},
 };
 
-static struct platform_device bfin_spi0_device = {
+static struct platform_device bfin_spi0_device =
+{
 	.name = "bfin-spi",
 	.id = 0, /* Bus number */
 	.num_resources = ARRAY_SIZE(bfin_spi0_resource),
@@ -136,7 +143,8 @@ static struct platform_device bfin_spi0_device = {
 
 
 #if IS_ENABLED(CONFIG_FB_HITACHI_TX09)
-static struct platform_device hitachi_fb_device = {
+static struct platform_device hitachi_fb_device =
+{
 	.name = "hitachi-tx09",
 };
 #endif
@@ -145,14 +153,16 @@ static struct platform_device hitachi_fb_device = {
 #if IS_ENABLED(CONFIG_SMC91X)
 #include <linux/smc91x.h>
 
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags = SMC91X_USE_8BIT | SMC91X_USE_16BIT | SMC91X_USE_32BIT |
-		 SMC91X_NOWAIT,
+	SMC91X_NOWAIT,
 	.leda = RPC_LED_100_10,
 	.ledb = RPC_LED_TX_RX,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	{
 		.name = "smc91x-regs",
 		.start = 0x28000300,
@@ -164,7 +174,8 @@ static struct resource smc91x_resources[] = {
 		.flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
 	},
 };
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name = "smc91x",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(smc91x_resources),
@@ -178,7 +189,8 @@ static struct platform_device smc91x_device = {
 #if IS_ENABLED(CONFIG_SMSC911X)
 #include <linux/smsc911x.h>
 
-static struct resource smsc911x_resources[] = {
+static struct resource smsc911x_resources[] =
+{
 	{
 		.name = "smsc911x-memory",
 		.start = 0x24008000,
@@ -192,14 +204,16 @@ static struct resource smsc911x_resources[] = {
 	},
 };
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.flags = SMSC911X_USE_16BIT,
 	.irq_polarity = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type = SMSC911X_IRQ_TYPE_OPEN_DRAIN,
 	.phy_interface = PHY_INTERFACE_MODE_MII,
 };
 
-static struct platform_device smsc911x_device = {
+static struct platform_device smsc911x_device =
+{
 	.name = "smsc911x",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(smsc911x_resources),
@@ -211,7 +225,8 @@ static struct platform_device smsc911x_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_USB_NET2272)
-static struct resource net2272_bfin_resources[] = {
+static struct resource net2272_bfin_resources[] =
+{
 	{
 		.start = 0x24000000,
 		.end = 0x24000000 + 0x100,
@@ -223,7 +238,8 @@ static struct resource net2272_bfin_resources[] = {
 	},
 };
 
-static struct platform_device net2272_bfin_device = {
+static struct platform_device net2272_bfin_device =
+{
 	.name = "net2272",
 	.id = -1,
 	.num_resources = ARRAY_SIZE(net2272_bfin_resources),
@@ -232,7 +248,8 @@ static struct platform_device net2272_bfin_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_USB_ISP1362_HCD)
-static struct resource isp1362_hcd_resources[] = {
+static struct resource isp1362_hcd_resources[] =
+{
 	{
 		.start = 0x24008000,
 		.end = 0x24008000,
@@ -248,7 +265,8 @@ static struct resource isp1362_hcd_resources[] = {
 	},
 };
 
-static struct isp1362_platform_data isp1362_priv = {
+static struct isp1362_platform_data isp1362_priv =
+{
 	.sel15Kres = 1,
 	.clknotstop = 0,
 	.oc_enable = 0,
@@ -259,7 +277,8 @@ static struct isp1362_platform_data isp1362_priv = {
 	.power_switching_mode = 0,
 };
 
-static struct platform_device isp1362_hcd_device = {
+static struct platform_device isp1362_hcd_device =
+{
 	.name = "isp1362-hcd",
 	.id = 0,
 	.dev = {
@@ -272,10 +291,11 @@ static struct platform_device isp1362_hcd_device = {
 
 #if IS_ENABLED(CONFIG_SERIAL_BFIN)
 #ifdef CONFIG_SERIAL_BFIN_UART0
-static struct resource bfin_uart0_resources[] = {
+static struct resource bfin_uart0_resources[] =
+{
 	{
 		.start = BFIN_UART_THR,
-		.end = BFIN_UART_GCTL+2,
+		.end = BFIN_UART_GCTL + 2,
 		.flags = IORESOURCE_MEM,
 	},
 	{
@@ -305,11 +325,13 @@ static struct resource bfin_uart0_resources[] = {
 	},
 };
 
-static unsigned short bfin_uart0_peripherals[] = {
+static unsigned short bfin_uart0_peripherals[] =
+{
 	P_UART0_TX, P_UART0_RX, 0
 };
 
-static struct platform_device bfin_uart0_device = {
+static struct platform_device bfin_uart0_device =
+{
 	.name = "bfin-uart",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_uart0_resources),
@@ -323,7 +345,8 @@ static struct platform_device bfin_uart0_device = {
 
 #if IS_ENABLED(CONFIG_BFIN_SIR)
 #ifdef CONFIG_BFIN_SIR0
-static struct resource bfin_sir0_resources[] = {
+static struct resource bfin_sir0_resources[] =
+{
 	{
 		.start = 0xFFC00400,
 		.end = 0xFFC004FF,
@@ -331,17 +354,18 @@ static struct resource bfin_sir0_resources[] = {
 	},
 	{
 		.start = IRQ_UART0_RX,
-		.end = IRQ_UART0_RX+1,
+		.end = IRQ_UART0_RX + 1,
 		.flags = IORESOURCE_IRQ,
 	},
 	{
 		.start = CH_UART0_RX,
-		.end = CH_UART0_RX+1,
+		.end = CH_UART0_RX + 1,
 		.flags = IORESOURCE_DMA,
 	},
 };
 
-static struct platform_device bfin_sir0_device = {
+static struct platform_device bfin_sir0_device =
+{
 	.name = "bfin_sir",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_sir0_resources),
@@ -353,11 +377,13 @@ static struct platform_device bfin_sir0_device = {
 #if IS_ENABLED(CONFIG_PATA_PLATFORM)
 #define PATA_INT	IRQ_PF46
 
-static struct pata_platform_info bfin_pata_platform_data = {
+static struct pata_platform_info bfin_pata_platform_data =
+{
 	.ioport_shift = 2,
 };
 
-static struct resource bfin_pata_resources[] = {
+static struct resource bfin_pata_resources[] =
+{
 	{
 		.start = 0x2400C000,
 		.end = 0x2400C001F,
@@ -375,7 +401,8 @@ static struct resource bfin_pata_resources[] = {
 	},
 };
 
-static struct platform_device bfin_pata_device = {
+static struct platform_device bfin_pata_device =
+{
 	.name = "pata_platform",
 	.id = -1,
 	.num_resources = ARRAY_SIZE(bfin_pata_resources),
@@ -387,7 +414,8 @@ static struct platform_device bfin_pata_device = {
 #endif
 
 #if IS_ENABLED(CONFIG_MTD_PHYSMAP)
-static struct mtd_partition para_partitions[] = {
+static struct mtd_partition para_partitions[] =
+{
 	{
 		.name       = "bootloader(nor)",
 		.size       = 0x40000,
@@ -403,19 +431,22 @@ static struct mtd_partition para_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data para_flash_data = {
+static struct physmap_flash_data para_flash_data =
+{
 	.width      = 2,
 	.parts      = para_partitions,
 	.nr_parts   = ARRAY_SIZE(para_partitions),
 };
 
-static struct resource para_flash_resource = {
+static struct resource para_flash_resource =
+{
 	.start = 0x20000000,
 	.end   = 0x207fffff,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platform_device para_flash_device = {
+static struct platform_device para_flash_device =
+{
 	.name          = "physmap-flash",
 	.id            = 0,
 	.dev = {
@@ -440,20 +471,23 @@ static const unsigned int cclk_vlev_datasheet[] =
 	VRPAIR(VLEV_130, 600000000),
 };
 
-static struct bfin_dpmc_platform_data bfin_dmpc_vreg_data = {
+static struct bfin_dpmc_platform_data bfin_dmpc_vreg_data =
+{
 	.tuple_tab = cclk_vlev_datasheet,
 	.tabsize = ARRAY_SIZE(cclk_vlev_datasheet),
 	.vr_settling_time = 25 /* us */,
 };
 
-static struct platform_device bfin_dpmc = {
+static struct platform_device bfin_dpmc =
+{
 	.name = "bfin dpmc",
 	.dev = {
 		.platform_data = &bfin_dmpc_vreg_data,
 	},
 };
 
-static struct platform_device *cm_bf561_devices[] __initdata = {
+static struct platform_device *cm_bf561_devices[] __initdata =
+{
 
 	&bfin_dpmc,
 
@@ -508,8 +542,11 @@ static int __init net2272_init(void)
 	int ret;
 
 	ret = gpio_request(GPIO_PF46, "net2272");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Reset USB Chip, PF46 */
 	gpio_direction_output(GPIO_PF46, 0);
@@ -533,14 +570,17 @@ static int __init cm_bf561_init(void)
 #endif
 
 	if (net2272_init())
+	{
 		pr_warning("unable to configure net2272; it probably won't work\n");
+	}
 
 	return 0;
 }
 
 arch_initcall(cm_bf561_init);
 
-static struct platform_device *cm_bf561_early_devices[] __initdata = {
+static struct platform_device *cm_bf561_early_devices[] __initdata =
+{
 #if defined(CONFIG_SERIAL_BFIN_CONSOLE) || defined(CONFIG_EARLY_PRINTK)
 #ifdef CONFIG_SERIAL_BFIN_UART0
 	&bfin_uart0_device,
@@ -552,5 +592,5 @@ void __init native_machine_early_platform_add_devices(void)
 {
 	printk(KERN_INFO "register early platform devices\n");
 	early_platform_add_devices(cm_bf561_early_devices,
-		ARRAY_SIZE(cm_bf561_early_devices));
+							   ARRAY_SIZE(cm_bf561_early_devices));
 }

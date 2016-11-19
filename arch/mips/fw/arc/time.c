@@ -12,7 +12,7 @@
 #include <asm/fw/arc/types.h>
 #include <asm/sgialib.h>
 
-struct linux_tinfo * __init
+struct linux_tinfo *__init
 ArcGetTime(VOID)
 {
 	return (struct linux_tinfo *) ARC_CALL0(get_tinfo);

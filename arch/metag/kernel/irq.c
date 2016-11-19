@@ -16,9 +16,10 @@
 #include <asm/uaccess.h>
 
 #ifdef CONFIG_4KSTACKS
-union irq_ctx {
+union irq_ctx
+{
 	struct thread_info      tinfo;
-	u32                     stack[THREAD_SIZE/sizeof(u32)];
+	u32                     stack[THREAD_SIZE / sizeof(u32)];
 };
 
 static union irq_ctx *hardirq_ctx[NR_CPUS] __read_mostly;
@@ -60,7 +61,9 @@ void do_IRQ(int irq, struct pt_regs *regs)
 		sp &= THREAD_SIZE - 1;
 
 		if (unlikely(sp > (THREAD_SIZE - 1024)))
+		{
 			pr_err("Stack overflow in do_IRQ: %ld\n", sp);
+		}
 	}
 #endif
 
@@ -75,7 +78,8 @@ void do_IRQ(int irq, struct pt_regs *regs)
 	 * handler) we can't do that and just have to keep using the
 	 * current stack (which is the irq stack already after all)
 	 */
-	if (curctx != irqctx) {
+	if (curctx != irqctx)
+	{
 		/* build the stack frame on the IRQ stack */
 		isp = (u32 *) ((char *)irqctx + sizeof(struct thread_info));
 		irqctx->tinfo.task = curctx->tinfo.task;
@@ -100,10 +104,11 @@ void do_IRQ(int irq, struct pt_regs *regs)
 			:
 			: "r" (isp), "r" (desc), "r" (desc->handle_irq)
 			: "memory", "cc", "D1Ar1", "D0Ar2", "D1Ar3", "D0Ar4",
-			  "D1Ar5", "D0Ar6", "D0Re0", "D1Re0", "D0.4", "D1RtP",
-			  "D0.5"
-			);
-	} else
+			"D1Ar5", "D0Ar6", "D0Re0", "D1Re0", "D0.4", "D1RtP",
+			"D0.5"
+		);
+	}
+	else
 #endif
 		generic_handle_irq(irq);
 
@@ -126,7 +131,9 @@ void irq_ctx_init(int cpu)
 	union irq_ctx *irqctx;
 
 	if (hardirq_ctx[cpu])
+	{
 		return;
+	}
 
 	irqctx = (union irq_ctx *) &hardirq_stack[cpu * THREAD_SIZE];
 	irqctx->tinfo.task              = NULL;
@@ -145,7 +152,7 @@ void irq_ctx_init(int cpu)
 	softirq_ctx[cpu] = irqctx;
 
 	pr_info("CPU %u irqstacks, hard=%p soft=%p\n",
-		cpu, hardirq_ctx[cpu], softirq_ctx[cpu]);
+			cpu, hardirq_ctx[cpu], softirq_ctx[cpu]);
 }
 
 void irq_ctx_exit(int cpu)
@@ -176,13 +183,14 @@ void do_softirq_own_stack(void)
 		:
 		: "r" (isp)
 		: "memory", "cc", "D1Ar1", "D0Ar2", "D1Ar3", "D0Ar4",
-		  "D1Ar5", "D0Ar6", "D0Re0", "D1Re0", "D0.4", "D1RtP",
-		  "D0.5"
-		);
+		"D1Ar5", "D0Ar6", "D0Re0", "D1Re0", "D0.4", "D1RtP",
+		"D0.5"
+	);
 }
 #endif
 
-static struct irq_chip meta_irq_type = {
+static struct irq_chip meta_irq_type =
+{
 	.name = "META-IRQ",
 	.irq_startup = startup_meta_irq,
 	.irq_shutdown = shutdown_meta_irq,
@@ -209,7 +217,7 @@ int tbisig_map(unsigned int hw)
  * This sets up a virtual irq for a specified TBI signal number.
  */
 static int metag_tbisig_map(struct irq_domain *d, unsigned int irq,
-			    irq_hw_number_t hw)
+							irq_hw_number_t hw)
 {
 #ifdef CONFIG_SMP
 	irq_set_chip_and_handler(irq, &meta_irq_type, handle_percpu_irq);
@@ -219,7 +227,8 @@ static int metag_tbisig_map(struct irq_domain *d, unsigned int irq,
 	return 0;
 }
 
-static const struct irq_domain_ops metag_tbisig_domain_ops = {
+static const struct irq_domain_ops metag_tbisig_domain_ops =
+{
 	.map = metag_tbisig_map,
 };
 
@@ -236,9 +245,12 @@ static const struct irq_domain_ops metag_tbisig_domain_ops = {
 void __init init_IRQ(void)
 {
 	root_domain = irq_domain_add_linear(NULL, 32,
-					    &metag_tbisig_domain_ops, NULL);
+										&metag_tbisig_domain_ops, NULL);
+
 	if (unlikely(!root_domain))
+	{
 		panic("init_IRQ: cannot add root IRQ domain");
+	}
 
 	irq_ctx_init(smp_processor_id());
 
@@ -246,13 +258,18 @@ void __init init_IRQ(void)
 	init_external_IRQ();
 
 	if (machine_desc->init_irq)
+	{
 		machine_desc->init_irq();
+	}
 }
 
 int __init arch_probe_nr_irqs(void)
 {
 	if (machine_desc->nr_irqs)
+	{
 		nr_irqs = machine_desc->nr_irqs;
+	}
+
 	return 0;
 }
 
@@ -266,26 +283,34 @@ void migrate_irqs(void)
 {
 	unsigned int i, cpu = smp_processor_id();
 
-	for_each_active_irq(i) {
+	for_each_active_irq(i)
+	{
 		struct irq_data *data = irq_get_irq_data(i);
 		struct cpumask *mask;
 		unsigned int newcpu;
 
 		if (irqd_is_per_cpu(data))
+		{
 			continue;
+		}
 
 		mask = irq_data_get_affinity_mask(data);
+
 		if (!cpumask_test_cpu(cpu, mask))
+		{
 			continue;
+		}
 
 		newcpu = cpumask_any_and(mask, cpu_online_mask);
 
-		if (newcpu >= nr_cpu_ids) {
+		if (newcpu >= nr_cpu_ids)
+		{
 			pr_info_ratelimited("IRQ%u no longer affine to CPU%u\n",
-					    i, cpu);
+								i, cpu);
 
 			cpumask_setall(mask);
 		}
+
 		irq_set_affinity(i, mask);
 	}
 }

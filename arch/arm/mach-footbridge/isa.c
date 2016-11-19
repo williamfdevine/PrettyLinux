@@ -15,7 +15,8 @@
 
 #include "common.h"
 
-static struct resource rtc_resources[] = {
+static struct resource rtc_resources[] =
+{
 	[0] = {
 		.start	= 0x70,
 		.end	= 0x73,
@@ -28,14 +29,16 @@ static struct resource rtc_resources[] = {
 	}
 };
 
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name		= "rtc_cmos",
 	.id		= -1,
 	.resource	= rtc_resources,
 	.num_resources	= ARRAY_SIZE(rtc_resources),
 };
 
-static struct resource serial_resources[] = {
+static struct resource serial_resources[] =
+{
 	[0] = {
 		.start	= 0x3f8,
 		.end	= 0x3ff,
@@ -48,7 +51,8 @@ static struct resource serial_resources[] = {
 	},
 };
 
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	{
 		.iobase		= 0x3f8,
 		.irq		= IRQ_ISA_UART,
@@ -68,7 +72,8 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	{ },
 };
 
-static struct platform_device serial_device = {
+static struct platform_device serial_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -83,18 +88,29 @@ static int __init footbridge_isa_init(void)
 	int err = 0;
 
 	if (!footbridge_cfn_mode())
+	{
 		return 0;
+	}
 
 	/* Personal server doesn't have RTC */
-	if (!machine_is_personal_server()) {
+	if (!machine_is_personal_server())
+	{
 		isa_rtc_init();
 		err = platform_device_register(&rtc_device);
+
 		if (err)
+		{
 			printk(KERN_ERR "Unable to register RTC device: %d\n", err);
+		}
 	}
+
 	err = platform_device_register(&serial_device);
+
 	if (err)
+	{
 		printk(KERN_ERR "Unable to register serial device: %d\n", err);
+	}
+
 	return 0;
 }
 

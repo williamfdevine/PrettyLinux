@@ -7,7 +7,7 @@
  *	This file gets pulled in by asm/io.h from user space. We don't
  *	want most of this escaping.
  */
- 
+
 #ifdef __KERNEL__
 
 /* The following structure vectors all of the I/O and IRQ manipulation
@@ -26,7 +26,7 @@ struct rtc_time;
 struct alpha_machine_vector
 {
 	/* This "belongs" down below with the rest of the runtime
-	   variables, but it is convenient for entry.S if these 
+	   variables, but it is convenient for entry.S if these
 	   two slots are at the beginning of the struct.  */
 	unsigned long hae_cache;
 	unsigned long *hae_register;
@@ -43,7 +43,7 @@ struct alpha_machine_vector
 	unsigned long pci_dac_offset;
 
 	void (*mv_pci_tbi)(struct pci_controller *hose,
-			   dma_addr_t start, dma_addr_t end);
+					   dma_addr_t start, dma_addr_t end);
 
 	unsigned int (*mv_ioread8)(void __iomem *);
 	unsigned int (*mv_ioread16)(void __iomem *);
@@ -70,13 +70,13 @@ struct alpha_machine_vector
 	int (*mv_is_mmio)(const volatile void __iomem *);
 
 	void (*mv_switch_mm)(struct mm_struct *, struct mm_struct *,
-			     struct task_struct *);
+						 struct task_struct *);
 	void (*mv_activate_mm)(struct mm_struct *, struct mm_struct *);
 
 	void (*mv_flush_tlb_current)(struct mm_struct *);
-	void (*mv_flush_tlb_current_page)(struct mm_struct * mm,
-					  struct vm_area_struct *vma,
-					  unsigned long addr);
+	void (*mv_flush_tlb_current_page)(struct mm_struct *mm,
+									  struct vm_area_struct *vma,
+									  unsigned long addr);
 
 	void (*update_irq_hw)(unsigned long, unsigned long, int);
 	void (*ack_irq)(unsigned long);
@@ -105,37 +105,41 @@ struct alpha_machine_vector
 	unsigned long (*node_mem_size)(int);
 
 	/* System specific parameters.  */
-	union {
-	    struct {
-		unsigned long gru_int_req_bits;
-	    } cia;
+	union
+	{
+		struct
+		{
+			unsigned long gru_int_req_bits;
+		} cia;
 
-	    struct {
-		unsigned long gamma_bias;
-	    } t2;
+		struct
+		{
+			unsigned long gamma_bias;
+		} t2;
 
-	    struct {
-		unsigned int route_tab;
-	    } sio;
+		struct
+		{
+			unsigned int route_tab;
+		} sio;
 	} sys;
 };
 
 extern struct alpha_machine_vector alpha_mv;
 
 #ifdef CONFIG_ALPHA_GENERIC
-extern int alpha_using_srm;
-extern int alpha_using_qemu;
+	extern int alpha_using_srm;
+	extern int alpha_using_qemu;
 #else
-# ifdef CONFIG_ALPHA_SRM
-#  define alpha_using_srm 1
-# else
-#  define alpha_using_srm 0
-# endif
-# ifdef CONFIG_ALPHA_QEMU
-#  define alpha_using_qemu 1
-# else
-#  define alpha_using_qemu 0
-# endif
+	#ifdef CONFIG_ALPHA_SRM
+		#define alpha_using_srm 1
+	#else
+		#define alpha_using_srm 0
+	#endif
+	#ifdef CONFIG_ALPHA_QEMU
+		#define alpha_using_qemu 1
+	#else
+		#define alpha_using_qemu 0
+	#endif
 #endif /* GENERIC */
 
 #endif /* __KERNEL__ */

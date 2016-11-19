@@ -34,7 +34,8 @@
 #include "generic.h"
 #include "fb.h"
 
-static struct clcd_panel qvga = {
+static struct clcd_panel qvga =
+{
 	.mode		= {
 		.name		= "QVGA",
 		.refresh	= 60,
@@ -90,7 +91,8 @@ static int nxeb500hmi_clcd_setup(struct clcd_fb *fb)
 	return netx_clcd_setup(fb);
 }
 
-static struct clcd_board clcd_data = {
+static struct clcd_board clcd_data =
+{
 	.name		= "netX",
 	.check		= nxeb500hmi_check,
 	.decode		= clcdfb_decode,
@@ -100,11 +102,13 @@ static struct clcd_board clcd_data = {
 	.remove		= netx_clcd_remove,
 };
 
-static struct netxeth_platform_data eth0_platform_data = {
+static struct netxeth_platform_data eth0_platform_data =
+{
 	.xcno = 0,
 };
 
-static struct platform_device netx_eth0_device = {
+static struct platform_device netx_eth0_device =
+{
 	.name		= "netx-eth",
 	.id		= 0,
 	.num_resources	= 0,
@@ -114,11 +118,13 @@ static struct platform_device netx_eth0_device = {
 	}
 };
 
-static struct netxeth_platform_data eth1_platform_data = {
+static struct netxeth_platform_data eth1_platform_data =
+{
 	.xcno = 1,
 };
 
-static struct platform_device netx_eth1_device = {
+static struct platform_device netx_eth1_device =
+{
 	.name		= "netx-eth",
 	.id		= 1,
 	.num_resources	= 0,
@@ -128,7 +134,8 @@ static struct platform_device netx_eth1_device = {
 	}
 };
 
-static struct resource netx_cf_resources[] = {
+static struct resource netx_cf_resources[] =
+{
 	[0] = {
 		.start	= 0x20000000,
 		.end	= 0x25ffffff,
@@ -136,14 +143,16 @@ static struct resource netx_cf_resources[] = {
 	},
 };
 
-static struct platform_device netx_cf_device = {
+static struct platform_device netx_cf_device =
+{
 	.name		= "netx-cf",
 	.id		= 0,
 	.resource	= netx_cf_resources,
 	.num_resources	= ARRAY_SIZE(netx_cf_resources),
 };
 
-static struct resource netx_uart0_resources[] = {
+static struct resource netx_uart0_resources[] =
+{
 	[0] = {
 		.start	= 0x00100A00,
 		.end	= 0x00100A3F,
@@ -156,14 +165,16 @@ static struct resource netx_uart0_resources[] = {
 	},
 };
 
-static struct platform_device netx_uart0_device = {
+static struct platform_device netx_uart0_device =
+{
 	.name		= "netx-uart",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(netx_uart0_resources),
 	.resource	= netx_uart0_resources,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&netx_eth0_device,
 	&netx_eth1_device,
 	&netx_cf_device,
@@ -177,10 +188,10 @@ static void __init nxeb500hmi_init(void)
 }
 
 MACHINE_START(NXEB500HMI, "Hilscher nxeb500hmi")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= netx_map_io,
-	.init_irq	= netx_init_irq,
-	.init_time	= netx_timer_init,
-	.init_machine	= nxeb500hmi_init,
-	.restart	= netx_restart,
-MACHINE_END
+		.init_irq	= netx_init_irq,
+		   .init_time	= netx_timer_init,
+			 .init_machine	= nxeb500hmi_init,
+				.restart	= netx_restart,
+					MACHINE_END

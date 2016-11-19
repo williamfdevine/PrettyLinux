@@ -27,16 +27,21 @@ extern void cobalt_machine_halt(void);
 
 const char *get_system_type(void)
 {
-	switch (cobalt_board_id) {
+	switch (cobalt_board_id)
+	{
 		case COBALT_BRD_ID_QUBE1:
 			return "Cobalt Qube";
+
 		case COBALT_BRD_ID_RAQ1:
 			return "Cobalt RaQ";
+
 		case COBALT_BRD_ID_QUBE2:
 			return "Cobalt Qube2";
+
 		case COBALT_BRD_ID_RAQ2:
 			return "Cobalt RaQ2";
 	}
+
 	return "MIPS Cobalt";
 }
 
@@ -45,7 +50,8 @@ const char *get_system_type(void)
  * keyboard controller is never used.
  * Also PCI-ISA bridge DMA controller is never used.
  */
-static struct resource cobalt_reserved_resources[] = {
+static struct resource cobalt_reserved_resources[] =
+{
 	{	/* dma1 */
 		.start	= 0x00,
 		.end	= 0x1f,
@@ -87,7 +93,9 @@ void __init plat_mem_setup(void)
 
 	/* These resources have been reserved by VIA SuperI/O chip. */
 	for (i = 0; i < ARRAY_SIZE(cobalt_reserved_resources); i++)
+	{
 		request_resource(&ioport_resource, cobalt_reserved_resources + i);
+	}
 }
 
 /*
@@ -106,10 +114,14 @@ void __init prom_init(void)
 	argc = fw_arg0 & 0x0000ffff;
 	argv = (char **)fw_arg1;
 
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		strlcat(arcs_cmdline, argv[i], COMMAND_LINE_SIZE);
+
 		if (i < (argc - 1))
+		{
 			strlcat(arcs_cmdline, " ", COMMAND_LINE_SIZE);
+		}
 	}
 
 	add_memory_region(0x0, memsz, BOOT_MEM_RAM);

@@ -10,7 +10,8 @@
 
 #define VTIMER_MAX_SLICE (0x7fffffffffffffffULL)
 
-struct vtimer_list {
+struct vtimer_list
+{
 	struct list_head entry;
 	u64 expires;
 	u64 interval;

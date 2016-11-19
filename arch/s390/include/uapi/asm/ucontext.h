@@ -16,7 +16,8 @@
  * if new CPU registers are added to the user state the size of the
  * struct ucontext_extended will increase.
  */
-struct ucontext_extended {
+struct ucontext_extended
+{
 	unsigned long	  uc_flags;
 	struct ucontext  *uc_link;
 	stack_t		  uc_stack;
@@ -27,7 +28,8 @@ struct ucontext_extended {
 	_sigregs_ext	  uc_mcontext_ext;
 };
 
-struct ucontext {
+struct ucontext
+{
 	unsigned long	  uc_flags;
 	struct ucontext  *uc_link;
 	stack_t		  uc_stack;

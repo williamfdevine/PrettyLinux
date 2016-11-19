@@ -89,14 +89,14 @@
  * more than 16KB of space.
  */
 #if 1
-  /*
-   * This is a stupid typo: the value was _meant_ to be 131072 (0x20000), but I typed it
-   * in wrong. ;-(  To preserve backwards compatibility, we leave the kernel at the
-   * incorrect value and fix libc only.
-   */
-# define MINSIGSTKSZ	131027	/* min. stack size for sigaltstack() */
+	/*
+	* This is a stupid typo: the value was _meant_ to be 131072 (0x20000), but I typed it
+	* in wrong. ;-(  To preserve backwards compatibility, we leave the kernel at the
+	* incorrect value and fix libc only.
+	*/
+	#define MINSIGSTKSZ	131027	/* min. stack size for sigaltstack() */
 #else
-# define MINSIGSTKSZ	131072	/* min. stack size for sigaltstack() */
+	#define MINSIGSTKSZ	131072	/* min. stack size for sigaltstack() */
 #endif
 #define SIGSTKSZ	262144	/* default stack size for sigaltstack() */
 
@@ -110,7 +110,8 @@
 /* Avoid too many header ordering problems.  */
 struct siginfo;
 
-typedef struct sigaltstack {
+typedef struct sigaltstack
+{
 	void __user *ss_sp;
 	int ss_flags;
 	size_t ss_size;

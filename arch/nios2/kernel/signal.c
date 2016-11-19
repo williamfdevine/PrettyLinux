@@ -29,14 +29,15 @@
  * That makes the cache flush below easier.
  */
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo info;
 	struct ucontext uc;
 };
 
 static inline int rt_restore_ucontext(struct pt_regs *regs,
-					struct switch_stack *sw,
-					struct ucontext *uc, int *pr2)
+									  struct switch_stack *sw,
+									  struct ucontext *uc, int *pr2)
 {
 	int temp;
 	unsigned long *gregs = uc->uc_mcontext.gregs;
@@ -46,8 +47,12 @@ static inline int rt_restore_ucontext(struct pt_regs *regs,
 	current->restart_block.fn = do_no_restart_syscall;
 
 	err = __get_user(temp, &uc->uc_mcontext.version);
+
 	if (temp != MCONTEXT_VERSION)
+	{
 		goto badframe;
+	}
+
 	/* restore passed registers */
 	err |= __get_user(regs->r1, &gregs[0]);
 	err |= __get_user(regs->r2, &gregs[1]);
@@ -88,8 +93,11 @@ static inline int rt_restore_ucontext(struct pt_regs *regs,
 	regs->orig_r2 = -1;		/* disable syscall checks */
 
 	err |= restore_altstack(&uc->uc_stack);
+
 	if (err)
+	{
 		goto badframe;
+	}
 
 	*pr2 = regs->r2;
 	return err;
@@ -107,15 +115,21 @@ asmlinkage int do_rt_sigreturn(struct switch_stack *sw)
 	int rval;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (rt_restore_ucontext(regs, sw, &frame->uc, &rval))
+	{
 		goto badframe;
+	}
 
 	return rval;
 
@@ -163,7 +177,7 @@ static inline int rt_setup_ucontext(struct ucontext *uc, struct pt_regs *regs)
 }
 
 static inline void *get_sigframe(struct ksignal *ksig, struct pt_regs *regs,
-				 size_t frame_size)
+								 size_t frame_size)
 {
 	unsigned long usp;
 
@@ -178,7 +192,7 @@ static inline void *get_sigframe(struct ksignal *ksig, struct pt_regs *regs,
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe *frame;
 	int err = 0;
@@ -186,7 +200,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(ksig, regs, sizeof(*frame));
 
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
+	}
 
 	/* Create the ucontext.  */
 	err |= __put_user(0, &frame->uc.uc_flags);
@@ -196,7 +212,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
 
 	if (err)
+	{
 		goto give_sigsegv;
+	}
 
 	/* Set up to return from userspace; jump to fixed address sigreturn
 	   trampoline on kuser page.  */
@@ -240,7 +258,8 @@ static int do_signal(struct pt_regs *regs)
 	/*
 	 * If we were from a system call, check for system call restarting...
 	 */
-	if (regs->orig_r2 >= 0) {
+	if (regs->orig_r2 >= 0)
+	{
 		continue_addr = regs->ea;
 		restart_addr = continue_addr - 4;
 		retval = regs->r2;
@@ -249,32 +268,38 @@ static int do_signal(struct pt_regs *regs)
 		 * Prepare for system call restart. We do this here so that a
 		 * debugger will see the already changed PC.
 		 */
-		switch (retval) {
-		case ERESTART_RESTARTBLOCK:
-			restart = -2;
-		case ERESTARTNOHAND:
-		case ERESTARTSYS:
-		case ERESTARTNOINTR:
-			restart++;
-			regs->r2 = regs->orig_r2;
-			regs->r7 = regs->orig_r7;
-			regs->ea = restart_addr;
-			break;
+		switch (retval)
+		{
+			case ERESTART_RESTARTBLOCK:
+				restart = -2;
+
+			case ERESTARTNOHAND:
+			case ERESTARTSYS:
+			case ERESTARTNOINTR:
+				restart++;
+				regs->r2 = regs->orig_r2;
+				regs->r7 = regs->orig_r7;
+				regs->ea = restart_addr;
+				break;
 		}
 	}
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* handler */
-		if (unlikely(restart && regs->ea == restart_addr)) {
+		if (unlikely(restart && regs->ea == restart_addr))
+		{
 			if (retval == ERESTARTNOHAND ||
-			    retval == ERESTART_RESTARTBLOCK ||
-			     (retval == ERESTARTSYS
-				&& !(ksig.ka.sa.sa_flags & SA_RESTART))) {
+				retval == ERESTART_RESTARTBLOCK ||
+				(retval == ERESTARTSYS
+				 && !(ksig.ka.sa.sa_flags & SA_RESTART)))
+			{
 				regs->r2 = EINTR;
 				regs->r7 = 1;
 				regs->ea = continue_addr;
 			}
 		}
+
 		handle_signal(&ksig, regs);
 		return 0;
 	}
@@ -282,7 +307,8 @@ static int do_signal(struct pt_regs *regs)
 	/*
 	 * No handler present
 	 */
-	if (unlikely(restart) && regs->ea == restart_addr) {
+	if (unlikely(restart) && regs->ea == restart_addr)
+	{
 		regs->ea = continue_addr;
 		regs->r2 = __NR_restart_syscall;
 	}
@@ -303,12 +329,16 @@ asmlinkage int do_notify_resume(struct pt_regs *regs)
 	 * if so.
 	 */
 	if (!user_mode(regs))
+	{
 		return 0;
+	}
 
-	if (test_thread_flag(TIF_SIGPENDING)) {
+	if (test_thread_flag(TIF_SIGPENDING))
+	{
 		int restart = do_signal(regs);
 
-		if (unlikely(restart)) {
+		if (unlikely(restart))
+		{
 			/*
 			 * Restart without handlers.
 			 * Deal with it without leaving
@@ -316,8 +346,11 @@ asmlinkage int do_notify_resume(struct pt_regs *regs)
 			 */
 			return restart;
 		}
-	} else if (test_and_clear_thread_flag(TIF_NOTIFY_RESUME))
+	}
+	else if (test_and_clear_thread_flag(TIF_NOTIFY_RESUME))
+	{
 		tracehook_notify_resume(regs);
+	}
 
 	return 0;
 }

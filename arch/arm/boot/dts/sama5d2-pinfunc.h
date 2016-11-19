@@ -1,5 +1,5 @@
 #define PINMUX_PIN(no, func, ioset) \
-(((no) & 0xffff) | (((func) & 0xf) << 16) | (((ioset) & 0xff) << 20))
+	(((no) & 0xffff) | (((func) & 0xf) << 16) | (((ioset) & 0xff) << 20))
 
 #define PIN_PA0				0
 #define PIN_PA0__GPIO			PINMUX_PIN(PIN_PA0, 0, 0)

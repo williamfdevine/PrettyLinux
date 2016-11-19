@@ -29,11 +29,13 @@
 struct msi_msg;
 struct irq_alloc_info;
 
-enum irq_remap_cap {
+enum irq_remap_cap
+{
 	IRQ_POSTING_CAP = 0,
 };
 
-struct vcpu_data {
+struct vcpu_data
+{
 	u64 pi_desc_addr;	/* Physical address of PI Descriptor */
 	u32 vector;		/* Guest vector of the interrupt */
 };

@@ -33,7 +33,8 @@
 #define __CVMX_ADDRESS_H__
 
 #if 0
-typedef enum {
+typedef enum
+{
 	CVMX_MIPS_SPACE_XKSEG = 3LL,
 	CVMX_MIPS_SPACE_XKPHYS = 2LL,
 	CVMX_MIPS_SPACE_XSSEG = 1LL,
@@ -41,7 +42,8 @@ typedef enum {
 } cvmx_mips_space_t;
 #endif
 
-typedef enum {
+typedef enum
+{
 	CVMX_MIPS_XKSEG_SPACE_KSEG0 = 0LL,
 	CVMX_MIPS_XKSEG_SPACE_KSEG1 = 1LL,
 	CVMX_MIPS_XKSEG_SPACE_SSEG = 2LL,
@@ -49,7 +51,8 @@ typedef enum {
 } cvmx_mips_xkseg_space_t;
 
 /* decodes <14:13> of a kseg3 window address */
-typedef enum {
+typedef enum
+{
 	CVMX_ADD_WIN_SCR = 0L,
 	/* see cvmx_add_win_dma_dec_t for further decode */
 	CVMX_ADD_WIN_DMA = 1L,
@@ -58,7 +61,8 @@ typedef enum {
 } cvmx_add_win_dec_t;
 
 /* decode within DMA space */
-typedef enum {
+typedef enum
+{
 	/*
 	 * Add store data to the write buffer entry, allocating it if
 	 * necessary.
@@ -101,89 +105,98 @@ typedef enum {
  *
  * Decode of all Octeon addresses
  */
-typedef union {
+typedef union
+{
 
 	uint64_t u64;
 #ifdef __BIG_ENDIAN_BITFIELD
 	/* mapped or unmapped virtual address */
-	struct {
-		uint64_t R:2;
-		uint64_t offset:62;
+	struct
+	{
+		uint64_t R: 2;
+		uint64_t offset: 62;
 	} sva;
 
 	/* mapped USEG virtual addresses (typically) */
-	struct {
-		uint64_t zeroes:33;
-		uint64_t offset:31;
+	struct
+	{
+		uint64_t zeroes: 33;
+		uint64_t offset: 31;
 	} suseg;
 
 	/* mapped or unmapped virtual address */
-	struct {
-		uint64_t ones:33;
-		uint64_t sp:2;
-		uint64_t offset:29;
+	struct
+	{
+		uint64_t ones: 33;
+		uint64_t sp: 2;
+		uint64_t offset: 29;
 	} sxkseg;
 
 	/*
 	 * physical address accessed through xkphys unmapped virtual
 	 * address.
 	 */
-	struct {
-		uint64_t R:2;	/* CVMX_MIPS_SPACE_XKPHYS in this case */
-		uint64_t cca:3; /* ignored by octeon */
-		uint64_t mbz:10;
-		uint64_t pa:49; /* physical address */
+	struct
+	{
+		uint64_t R: 2;	/* CVMX_MIPS_SPACE_XKPHYS in this case */
+		uint64_t cca: 3; /* ignored by octeon */
+		uint64_t mbz: 10;
+		uint64_t pa: 49; /* physical address */
 	} sxkphys;
 
 	/* physical address */
-	struct {
-		uint64_t mbz:15;
+	struct
+	{
+		uint64_t mbz: 15;
 		/* if set, the address is uncached and resides on MCB bus */
-		uint64_t is_io:1;
+		uint64_t is_io: 1;
 		/*
 		 * the hardware ignores this field when is_io==0, else
 		 * device ID.
 		 */
-		uint64_t did:8;
+		uint64_t did: 8;
 		/* the hardware ignores <39:36> in Octeon I */
-		uint64_t unaddr:4;
-		uint64_t offset:36;
+		uint64_t unaddr: 4;
+		uint64_t offset: 36;
 	} sphys;
 
 	/* physical mem address */
-	struct {
+	struct
+	{
 		/* techically, <47:40> are dont-cares */
-		uint64_t zeroes:24;
+		uint64_t zeroes: 24;
 		/* the hardware ignores <39:36> in Octeon I */
-		uint64_t unaddr:4;
-		uint64_t offset:36;
+		uint64_t unaddr: 4;
+		uint64_t offset: 36;
 	} smem;
 
 	/* physical IO address */
-	struct {
-		uint64_t mem_region:2;
-		uint64_t mbz:13;
+	struct
+	{
+		uint64_t mem_region: 2;
+		uint64_t mbz: 13;
 		/* 1 in this case */
-		uint64_t is_io:1;
+		uint64_t is_io: 1;
 		/*
 		 * The hardware ignores this field when is_io==0, else
 		 * device ID.
 		 */
-		uint64_t did:8;
+		uint64_t did: 8;
 		/* the hardware ignores <39:36> in Octeon I */
-		uint64_t unaddr:4;
-		uint64_t offset:36;
+		uint64_t unaddr: 4;
+		uint64_t offset: 36;
 	} sio;
 
 	/*
 	 * Scratchpad virtual address - accessed through a window at
 	 * the end of kseg3
 	 */
-	struct {
-		uint64_t ones:49;
+	struct
+	{
+		uint64_t ones: 49;
 		/* CVMX_ADD_WIN_SCR (0) in this case */
-		cvmx_add_win_dec_t csrdec:2;
-		uint64_t addr:13;
+		cvmx_add_win_dec_t csrdec: 2;
+		uint64_t addr: 13;
 	} sscr;
 
 	/* there should only be stores to IOBDMA space, no loads */
@@ -191,82 +204,94 @@ typedef union {
 	 * IOBDMA virtual address - accessed through a window at the
 	 * end of kseg3
 	 */
-	struct {
-		uint64_t ones:49;
-		uint64_t csrdec:2;	/* CVMX_ADD_WIN_DMA (1) in this case */
-		uint64_t unused2:3;
-		uint64_t type:3;
-		uint64_t addr:7;
+	struct
+	{
+		uint64_t ones: 49;
+		uint64_t csrdec: 2;	/* CVMX_ADD_WIN_DMA (1) in this case */
+		uint64_t unused2: 3;
+		uint64_t type: 3;
+		uint64_t addr: 7;
 	} sdma;
 
-	struct {
-		uint64_t didspace:24;
-		uint64_t unused:40;
+	struct
+	{
+		uint64_t didspace: 24;
+		uint64_t unused: 40;
 	} sfilldidspace;
 #else
-	struct {
-		uint64_t offset:62;
-		uint64_t R:2;
+	struct
+	{
+		uint64_t offset: 62;
+		uint64_t R: 2;
 	} sva;
 
-	struct {
-		uint64_t offset:31;
-		uint64_t zeroes:33;
+	struct
+	{
+		uint64_t offset: 31;
+		uint64_t zeroes: 33;
 	} suseg;
 
-	struct {
-		uint64_t offset:29;
-		uint64_t sp:2;
-		uint64_t ones:33;
+	struct
+	{
+		uint64_t offset: 29;
+		uint64_t sp: 2;
+		uint64_t ones: 33;
 	} sxkseg;
 
-	struct {
-		uint64_t pa:49;
-		uint64_t mbz:10;
-		uint64_t cca:3;
-		uint64_t R:2;
+	struct
+	{
+		uint64_t pa: 49;
+		uint64_t mbz: 10;
+		uint64_t cca: 3;
+		uint64_t R: 2;
 	} sxkphys;
 
-	struct {
-		uint64_t offset:36;
-		uint64_t unaddr:4;
-		uint64_t did:8;
-		uint64_t is_io:1;
-		uint64_t mbz:15;
+	struct
+	{
+		uint64_t offset: 36;
+		uint64_t unaddr: 4;
+		uint64_t did: 8;
+		uint64_t is_io: 1;
+		uint64_t mbz: 15;
 	} sphys;
 
-	struct {
-		uint64_t offset:36;
-		uint64_t unaddr:4;
-		uint64_t zeroes:24;
+	struct
+	{
+		uint64_t offset: 36;
+		uint64_t unaddr: 4;
+		uint64_t zeroes: 24;
 	} smem;
 
-	struct {
-		uint64_t offset:36;
-		uint64_t unaddr:4;
-		uint64_t did:8;
-		uint64_t is_io:1;
-		uint64_t mbz:13;
-		uint64_t mem_region:2;
+	struct
+	{
+		uint64_t offset: 36;
+		uint64_t unaddr: 4;
+		uint64_t did: 8;
+		uint64_t is_io: 1;
+		uint64_t mbz: 13;
+		uint64_t mem_region: 2;
 	} sio;
 
-	struct {
-		uint64_t addr:13;
-		cvmx_add_win_dec_t csrdec:2;
-		uint64_t ones:49;
+	struct
+	{
+		uint64_t addr: 13;
+		cvmx_add_win_dec_t csrdec: 2;
+		uint64_t ones: 49;
 	} sscr;
 
-	struct {
-		uint64_t addr:7;
-		uint64_t type:3;
-		uint64_t unused2:3;
-		uint64_t csrdec:2;
-		uint64_t ones:49;
+	struct
+	{
+		uint64_t addr: 7;
+		uint64_t type: 3;
+		uint64_t unused2: 3;
+		uint64_t csrdec: 2;
+		uint64_t ones: 49;
 	} sdma;
 
-	struct {
-		uint64_t unused:40;
-		uint64_t didspace:24;
+	struct
+	{
+		uint64_t unused: 40;
+		uint64_t didspace: 24;
 	} sfilldidspace;
 #endif
 
@@ -290,13 +315,13 @@ typedef union {
 /* These macros simplify the process of creating common IO addresses */
 #define CVMX_ADD_SEG(segment, add) ((((uint64_t)segment) << 62) | (add))
 #ifndef CVMX_ADD_IO_SEG
-#define CVMX_ADD_IO_SEG(add) CVMX_ADD_SEG(CVMX_IO_SEG, (add))
+	#define CVMX_ADD_IO_SEG(add) CVMX_ADD_SEG(CVMX_IO_SEG, (add))
 #endif
 #define CVMX_ADDR_DIDSPACE(did) (((CVMX_IO_SEG) << 22) | ((1ULL) << 8) | (did))
 #define CVMX_ADDR_DID(did) (CVMX_ADDR_DIDSPACE(did) << 40)
 #define CVMX_FULL_DID(did, subdid) (((did) << 3) | (subdid))
 
-  /* from include/ncb_rsl_id.v */
+/* from include/ncb_rsl_id.v */
 #define CVMX_OCT_DID_MIS 0ULL	/* misc stuff */
 #define CVMX_OCT_DID_GMX0 1ULL
 #define CVMX_OCT_DID_GMX1 2ULL
@@ -310,7 +335,7 @@ typedef union {
 #define CVMX_OCT_DID_PKT 10ULL
 #define CVMX_OCT_DID_TIM 11ULL
 #define CVMX_OCT_DID_TAG 12ULL
-  /* the rest are not on the IO bus */
+/* the rest are not on the IO bus */
 #define CVMX_OCT_DID_L2C 16ULL
 #define CVMX_OCT_DID_LMC 17ULL
 #define CVMX_OCT_DID_SPX0 18ULL

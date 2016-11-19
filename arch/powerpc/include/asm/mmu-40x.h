@@ -53,7 +53,8 @@
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
+typedef struct
+{
 	unsigned int	id;
 	unsigned int	active;
 	unsigned long	vdso_base;

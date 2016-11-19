@@ -24,8 +24,8 @@ extern void build_tlb_refill_handler(void);
 
 /* CP0 hazard avoidance. */
 #define BARRIER __asm__ __volatile__(".set noreorder\n\t" \
-				     "nop; nop; nop; nop; nop; nop;\n\t" \
-				     ".set reorder\n\t")
+									 "nop; nop; nop; nop; nop; nop;\n\t" \
+									 ".set reorder\n\t")
 
 void local_flush_tlb_all(void)
 {
@@ -38,13 +38,15 @@ void local_flush_tlb_all(void)
 	old_ctx = read_c0_entryhi();
 	write_c0_entrylo(0);
 
-	for (entry = 0; entry < TFP_TLB_SIZE; entry++) {
+	for (entry = 0; entry < TFP_TLB_SIZE; entry++)
+	{
 		write_c0_tlbset(entry >> TFP_TLB_SET_SHIFT);
 		write_c0_vaddr(entry << PAGE_SHIFT);
 		write_c0_entryhi(CKSEG0 + (entry << (PAGE_SHIFT + 1)));
 		mtc0_tlbw_hazard();
 		tlb_write();
 	}
+
 	tlbw_use_hazard();
 	write_c0_entryhi(old_ctx);
 	local_irq_restore(flags);
@@ -55,11 +57,13 @@ void local_flush_tlb_mm(struct mm_struct *mm)
 	int cpu = smp_processor_id();
 
 	if (cpu_context(cpu, mm) != 0)
+	{
 		drop_mmu_context(mm, cpu);
+	}
 }
 
 void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-	unsigned long end)
+						   unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	int cpu = smp_processor_id();
@@ -67,14 +71,17 @@ void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 	int oldpid, newpid, size;
 
 	if (!cpu_context(cpu, mm))
+	{
 		return;
+	}
 
 	size = (end - start + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
 	size = (size + 1) >> 1;
 
 	local_irq_save(flags);
 
-	if (size > TFP_TLB_SIZE / 2) {
+	if (size > TFP_TLB_SIZE / 2)
+	{
 		drop_mmu_context(mm, cpu);
 		goto out_restore;
 	}
@@ -87,7 +94,9 @@ void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 	start &= PAGE_MASK;
 	end += (PAGE_SIZE - 1);
 	end &= PAGE_MASK;
-	while (start < end) {
+
+	while (start < end)
+	{
 		signed long idx;
 
 		write_c0_vaddr(start);
@@ -95,12 +104,16 @@ void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 		start += PAGE_SIZE;
 		tlb_probe();
 		idx = read_c0_tlbset();
+
 		if (idx < 0)
+		{
 			continue;
+		}
 
 		write_c0_entryhi(CKSEG0 + (idx << (PAGE_SHIFT + 1)));
 		tlb_write();
 	}
+
 	write_c0_entryhi(oldpid);
 
 out_restore:
@@ -115,7 +128,8 @@ void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 	size = (end - start + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
 	size = (size + 1) >> 1;
 
-	if (size > TFP_TLB_SIZE / 2) {
+	if (size > TFP_TLB_SIZE / 2)
+	{
 		local_flush_tlb_all();
 		return;
 	}
@@ -127,7 +141,9 @@ void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 	start &= PAGE_MASK;
 	end += (PAGE_SIZE - 1);
 	end &= PAGE_MASK;
-	while (start < end) {
+
+	while (start < end)
+	{
 		signed long idx;
 
 		write_c0_vaddr(start);
@@ -135,8 +151,11 @@ void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 		start += PAGE_SIZE;
 		tlb_probe();
 		idx = read_c0_tlbset();
+
 		if (idx < 0)
+		{
 			continue;
+		}
 
 		write_c0_entryhi(CKSEG0 + (idx << (PAGE_SHIFT + 1)));
 		tlb_write();
@@ -153,7 +172,9 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 	signed long idx;
 
 	if (!cpu_context(cpu, vma->vm_mm))
+	{
 		return;
+	}
 
 	newpid = cpu_asid(cpu, vma->vm_mm);
 	page &= PAGE_MASK;
@@ -163,8 +184,11 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 	write_c0_entryhi(newpid);
 	tlb_probe();
 	idx = read_c0_tlbset();
+
 	if (idx < 0)
+	{
 		goto finish;
+	}
 
 	write_c0_entrylo(0);
 	write_c0_entryhi(CKSEG0 + (idx << (PAGE_SHIFT + 1)));
@@ -180,7 +204,7 @@ finish:
  * updates the TLB with the new pte(s), and another which also checks
  * for the R4k "end of page" hardware bug and does the needy.
  */
-void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
+void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
 {
 	unsigned long flags;
 	pgd_t *pgdp;
@@ -192,7 +216,9 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
 	 * Handle debugger faulting in for debugee.
 	 */
 	if (current->active_mm != vma->vm_mm)
+	{
 		return;
+	}
 
 	pid = read_c0_entryhi() & cpu_asid_mask(&current_cpu_data);
 

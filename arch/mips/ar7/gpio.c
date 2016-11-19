@@ -26,7 +26,8 @@
 #define AR7_GPIO_MAX 32
 #define TITAN_GPIO_MAX 51
 
-struct ar7_gpio_chip {
+struct ar7_gpio_chip
+{
 	void __iomem		*regs;
 	struct gpio_chip	chip;
 };
@@ -49,20 +50,24 @@ static int titan_gpio_get_value(struct gpio_chip *chip, unsigned gpio)
 }
 
 static void ar7_gpio_set_value(struct gpio_chip *chip,
-				unsigned gpio, int value)
+							   unsigned gpio, int value)
 {
 	struct ar7_gpio_chip *gpch = gpiochip_get_data(chip);
 	void __iomem *gpio_out = gpch->regs + AR7_GPIO_OUTPUT;
 	unsigned tmp;
 
 	tmp = readl(gpio_out) & ~(1 << gpio);
+
 	if (value)
+	{
 		tmp |= 1 << gpio;
+	}
+
 	writel(tmp, gpio_out);
 }
 
 static void titan_gpio_set_value(struct gpio_chip *chip,
-				unsigned gpio, int value)
+								 unsigned gpio, int value)
 {
 	struct ar7_gpio_chip *gpch = gpiochip_get_data(chip);
 	void __iomem *gpio_out0 = gpch->regs + TITAN_GPIO_OUTPUT_0;
@@ -70,8 +75,12 @@ static void titan_gpio_set_value(struct gpio_chip *chip,
 	unsigned tmp;
 
 	tmp = readl(gpio >> 5 ? gpio_out1 : gpio_out0) & ~(1 << (gpio & 0x1f));
+
 	if (value)
+	{
 		tmp |= 1 << (gpio & 0x1f);
+	}
+
 	writel(tmp, gpio >> 5 ? gpio_out1 : gpio_out0);
 }
 
@@ -92,15 +101,17 @@ static int titan_gpio_direction_input(struct gpio_chip *chip, unsigned gpio)
 	void __iomem *gpio_dir1 = gpch->regs + TITAN_GPIO_DIR_1;
 
 	if (gpio >= TITAN_GPIO_MAX)
+	{
 		return -EINVAL;
+	}
 
 	writel(readl(gpio >> 5 ? gpio_dir1 : gpio_dir0) | (1 << (gpio & 0x1f)),
-			gpio >> 5 ? gpio_dir1 : gpio_dir0);
+		   gpio >> 5 ? gpio_dir1 : gpio_dir0);
 	return 0;
 }
 
 static int ar7_gpio_direction_output(struct gpio_chip *chip,
-					unsigned gpio, int value)
+									 unsigned gpio, int value)
 {
 	struct ar7_gpio_chip *gpch = gpiochip_get_data(chip);
 	void __iomem *gpio_dir = gpch->regs + AR7_GPIO_DIR;
@@ -112,23 +123,26 @@ static int ar7_gpio_direction_output(struct gpio_chip *chip,
 }
 
 static int titan_gpio_direction_output(struct gpio_chip *chip,
-					unsigned gpio, int value)
+									   unsigned gpio, int value)
 {
 	struct ar7_gpio_chip *gpch = gpiochip_get_data(chip);
 	void __iomem *gpio_dir0 = gpch->regs + TITAN_GPIO_DIR_0;
 	void __iomem *gpio_dir1 = gpch->regs + TITAN_GPIO_DIR_1;
 
 	if (gpio >= TITAN_GPIO_MAX)
+	{
 		return -EINVAL;
+	}
 
 	titan_gpio_set_value(chip, gpio, value);
 	writel(readl(gpio >> 5 ? gpio_dir1 : gpio_dir0) & ~(1 <<
-		(gpio & 0x1f)), gpio >> 5 ? gpio_dir1 : gpio_dir0);
+			(gpio & 0x1f)), gpio >> 5 ? gpio_dir1 : gpio_dir0);
 
 	return 0;
 }
 
-static struct ar7_gpio_chip ar7_gpio_chip = {
+static struct ar7_gpio_chip ar7_gpio_chip =
+{
 	.chip = {
 		.label			= "ar7-gpio",
 		.direction_input	= ar7_gpio_direction_input,
@@ -140,7 +154,8 @@ static struct ar7_gpio_chip ar7_gpio_chip = {
 	}
 };
 
-static struct ar7_gpio_chip titan_gpio_chip = {
+static struct ar7_gpio_chip titan_gpio_chip =
+{
 	.chip = {
 		.label			= "titan-gpio",
 		.direction_input	= titan_gpio_direction_input,
@@ -167,7 +182,7 @@ static inline int ar7_gpio_enable_titan(unsigned gpio)
 	void __iomem *gpio_en1 = titan_gpio_chip.regs  + TITAN_GPIO_ENBL_1;
 
 	writel(readl(gpio >> 5 ? gpio_en1 : gpio_en0) | (1 << (gpio & 0x1f)),
-		gpio >> 5 ? gpio_en1 : gpio_en0);
+		   gpio >> 5 ? gpio_en1 : gpio_en0);
 
 	return 0;
 }
@@ -175,7 +190,7 @@ static inline int ar7_gpio_enable_titan(unsigned gpio)
 int ar7_gpio_enable(unsigned gpio)
 {
 	return ar7_is_titan() ? ar7_gpio_enable_titan(gpio) :
-				ar7_gpio_enable_ar7(gpio);
+		   ar7_gpio_enable_ar7(gpio);
 }
 EXPORT_SYMBOL(ar7_gpio_enable);
 
@@ -194,7 +209,7 @@ static inline int ar7_gpio_disable_titan(unsigned gpio)
 	void __iomem *gpio_en1 = titan_gpio_chip.regs + TITAN_GPIO_ENBL_1;
 
 	writel(readl(gpio >> 5 ? gpio_en1 : gpio_en0) & ~(1 << (gpio & 0x1f)),
-			gpio >> 5 ? gpio_en1 : gpio_en0);
+		   gpio >> 5 ? gpio_en1 : gpio_en0);
 
 	return 0;
 }
@@ -202,17 +217,19 @@ static inline int ar7_gpio_disable_titan(unsigned gpio)
 int ar7_gpio_disable(unsigned gpio)
 {
 	return ar7_is_titan() ? ar7_gpio_disable_titan(gpio) :
-				ar7_gpio_disable_ar7(gpio);
+		   ar7_gpio_disable_ar7(gpio);
 }
 EXPORT_SYMBOL(ar7_gpio_disable);
 
-struct titan_gpio_cfg {
+struct titan_gpio_cfg
+{
 	u32 reg;
 	u32 shift;
 	u32 func;
 };
 
-static const struct titan_gpio_cfg titan_gpio_table[] = {
+static const struct titan_gpio_cfg titan_gpio_table[] =
+{
 	/* reg, start bit, mux value */
 	{4, 24, 1},
 	{4, 26, 1},
@@ -275,7 +292,9 @@ static int titan_gpio_pinsel(unsigned gpio)
 	void __iomem *pin_sel = (void __iomem *)KSEG1ADDR(AR7_REGS_PINSEL);
 
 	if (gpio >= ARRAY_SIZE(titan_gpio_table))
+	{
 		return -EINVAL;
+	}
 
 	gpio_cfg = titan_gpio_table[gpio];
 	pin_sel_reg = gpio_cfg.reg - 1;
@@ -284,7 +303,9 @@ static int titan_gpio_pinsel(unsigned gpio)
 
 	/* Check the mux status */
 	if (!((mux_status == 0) || (mux_status == gpio_cfg.func)))
+	{
 		return 0;
+	}
 
 	/* Set the pin sel value */
 	tmp = readl(pin_sel + pin_sel_reg);
@@ -299,7 +320,8 @@ static void titan_gpio_init(void)
 {
 	unsigned i;
 
-	for (i = 44; i < 48; i++) {
+	for (i = 44; i < 48; i++)
+	{
 		titan_gpio_pinsel(i);
 		ar7_gpio_enable_titan(i);
 		titan_gpio_direction_input(&titan_gpio_chip.chip, i);
@@ -312,32 +334,42 @@ int __init ar7_gpio_init(void)
 	struct ar7_gpio_chip *gpch;
 	unsigned size;
 
-	if (!ar7_is_titan()) {
+	if (!ar7_is_titan())
+	{
 		gpch = &ar7_gpio_chip;
 		size = 0x10;
-	} else {
+	}
+	else
+	{
 		gpch = &titan_gpio_chip;
 		size = 0x1f;
 	}
 
 	gpch->regs = ioremap_nocache(AR7_REGS_GPIO, size);
-	if (!gpch->regs) {
+
+	if (!gpch->regs)
+	{
 		printk(KERN_ERR "%s: failed to ioremap regs\n",
-					gpch->chip.label);
+			   gpch->chip.label);
 		return -ENOMEM;
 	}
 
 	ret = gpiochip_add_data(&gpch->chip, gpch);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: failed to add gpiochip\n",
-					gpch->chip.label);
+			   gpch->chip.label);
 		return ret;
 	}
+
 	printk(KERN_INFO "%s: registered %d GPIOs\n",
-				gpch->chip.label, gpch->chip.ngpio);
+		   gpch->chip.label, gpch->chip.ngpio);
 
 	if (ar7_is_titan())
+	{
 		titan_gpio_init();
+	}
 
 	return ret;
 }

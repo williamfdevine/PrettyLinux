@@ -45,7 +45,8 @@
  *
  * cti struct used to operate cti registers.
  */
-struct cti {
+struct cti
+{
 	void __iomem *base;
 	int irq;
 	int trig_out_for_irq;
@@ -63,7 +64,7 @@ struct cti {
  * @base, @irq and @trig_out to cti.
  */
 static inline void cti_init(struct cti *cti,
-	void __iomem *base, int irq, int trig_out)
+							void __iomem *base, int irq, int trig_out)
 {
 	cti->base = base;
 	cti->irq  = irq;
@@ -81,7 +82,7 @@ static inline void cti_init(struct cti *cti,
  * out of @trig_out using the channel @chan.
  */
 static inline void cti_map_trigger(struct cti *cti,
-	int trig_in, int trig_out, int chan)
+								   int trig_in, int trig_out, int chan)
 {
 	void __iomem *base = cti->base;
 	unsigned long val;

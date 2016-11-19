@@ -12,7 +12,8 @@
 #define LTQ_SYS_TYPE_LEN	0x100
 #define LTQ_SYS_REV_LEN		0x10
 
-struct ltq_soc_info {
+struct ltq_soc_info
+{
 	unsigned char *name;
 	unsigned int rev;
 	unsigned char rev_type[LTQ_SYS_REV_LEN];

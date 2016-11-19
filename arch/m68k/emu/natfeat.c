@@ -22,19 +22,19 @@
 extern long nf_get_id_phys(unsigned long feature_name);
 
 asm("\n"
-"	.global nf_get_id_phys,nf_call\n"
-"nf_get_id_phys:\n"
-"	.short	0x7300\n"
-"	rts\n"
-"nf_call:\n"
-"	.short	0x7301\n"
-"	rts\n"
-"1:	moveq.l	#0,%d0\n"
-"	rts\n"
-"	.section __ex_table,\"a\"\n"
-"	.long	nf_get_id_phys,1b\n"
-"	.long	nf_call,1b\n"
-"	.previous");
+	"	.global nf_get_id_phys,nf_call\n"
+	"nf_get_id_phys:\n"
+	"	.short	0x7300\n"
+	"	rts\n"
+	"nf_call:\n"
+	"	.short	0x7301\n"
+	"	rts\n"
+	"1:	moveq.l	#0,%d0\n"
+	"	rts\n"
+	"	.section __ex_table,\"a\"\n"
+	"	.long	nf_get_id_phys,1b\n"
+	"	.long	nf_call,1b\n"
+	"	.previous");
 EXPORT_SYMBOL_GPL(nf_call);
 
 long nf_get_id(const char *feature_name)
@@ -44,8 +44,11 @@ long nf_get_id(const char *feature_name)
 	size_t n;
 
 	n = strlcpy(name_copy, feature_name, sizeof(name_copy));
+
 	if (n >= sizeof(name_copy))
+	{
 		return 0;
+	}
 
 	return nf_get_id_phys(virt_to_phys(name_copy));
 }
@@ -68,7 +71,9 @@ static void nf_poweroff(void)
 	long id = nf_get_id("NF_SHUTDOWN");
 
 	if (id)
+	{
 		nf_call(id);
+	}
 }
 
 void __init nf_init(void)
@@ -77,18 +82,26 @@ void __init nf_init(void)
 	char buf[256];
 
 	id = nf_get_id("NF_VERSION");
+
 	if (!id)
+	{
 		return;
+	}
+
 	version = nf_call(id);
 
 	id = nf_get_id("NF_NAME");
+
 	if (!id)
+	{
 		return;
+	}
+
 	nf_call(id, virt_to_phys(buf), 256);
 	buf[255] = 0;
 
 	pr_info("NatFeats found (%s, %lu.%lu)\n", buf, version >> 16,
-		version & 0xffff);
+			version & 0xffff);
 
 	mach_power_off = nf_poweroff;
 }

@@ -27,9 +27,9 @@
  *  675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
- /*
-  * some definitions add by takuzo@sm.sony.co.jp and sato@sm.sony.co.jp
-  */
+/*
+ * some definitions add by takuzo@sm.sony.co.jp and sato@sm.sony.co.jp
+ */
 
 #ifndef _AU1000_H_
 #define _AU1000_H_
@@ -497,18 +497,18 @@
 
 #ifdef CONFIG_PCI
 
-#define IOPORT_RESOURCE_START	0x00001000	/* skip legacy probing */
-#define IOPORT_RESOURCE_END	0xffffffff
-#define IOMEM_RESOURCE_START	0x10000000
-#define IOMEM_RESOURCE_END	0xfffffffffULL
+	#define IOPORT_RESOURCE_START	0x00001000	/* skip legacy probing */
+	#define IOPORT_RESOURCE_END	0xffffffff
+	#define IOMEM_RESOURCE_START	0x10000000
+	#define IOMEM_RESOURCE_END	0xfffffffffULL
 
 #else
 
-/* Don't allow any legacy ports probing */
-#define IOPORT_RESOURCE_START	0x10000000
-#define IOPORT_RESOURCE_END	0xffffffff
-#define IOMEM_RESOURCE_START	0x10000000
-#define IOMEM_RESOURCE_END	0xfffffffffULL
+	/* Don't allow any legacy ports probing */
+	#define IOPORT_RESOURCE_START	0x10000000
+	#define IOPORT_RESOURCE_END	0xffffffff
+	#define IOMEM_RESOURCE_START	0x10000000
+	#define IOMEM_RESOURCE_END	0xfffffffffULL
 
 #endif
 
@@ -632,12 +632,14 @@ static inline void alchemy_wrsmem(unsigned long v, int regofs)
 /* Early Au1000 have a write-only SYS_CPUPLL register. */
 static inline int au1xxx_cpu_has_pll_wo(void)
 {
-	switch (read_c0_prid()) {
-	case 0x00030100:	/* Au1000 DA */
-	case 0x00030201:	/* Au1000 HA */
-	case 0x00030202:	/* Au1000 HB */
-		return 1;
+	switch (read_c0_prid())
+	{
+		case 0x00030100:	/* Au1000 DA */
+		case 0x00030201:	/* Au1000 HA */
+		case 0x00030202:	/* Au1000 HB */
+			return 1;
 	}
+
 	return 0;
 }
 
@@ -649,22 +651,25 @@ static inline int au1xxx_cpu_needs_config_od(void)
 	 * early revisions of Alchemy SOCs.  It disables the bus trans-
 	 * action overlapping and needs to be set to fix various errata.
 	 */
-	switch (read_c0_prid()) {
-	case 0x00030100: /* Au1000 DA */
-	case 0x00030201: /* Au1000 HA */
-	case 0x00030202: /* Au1000 HB */
-	case 0x01030200: /* Au1500 AB */
-	/*
-	 * Au1100/Au1200 errata actually keep silence about this bit,
-	 * so we set it just in case for those revisions that require
-	 * it to be set according to the (now gone) cpu_table.
-	 */
-	case 0x02030200: /* Au1100 AB */
-	case 0x02030201: /* Au1100 BA */
-	case 0x02030202: /* Au1100 BC */
-	case 0x04030201: /* Au1200 AC */
-		return 1;
+	switch (read_c0_prid())
+	{
+		case 0x00030100: /* Au1000 DA */
+		case 0x00030201: /* Au1000 HA */
+		case 0x00030202: /* Au1000 HB */
+		case 0x01030200: /* Au1500 AB */
+
+		/*
+		 * Au1100/Au1200 errata actually keep silence about this bit,
+		 * so we set it just in case for those revisions that require
+		 * it to be set according to the (now gone) cpu_table.
+		 */
+		case 0x02030200: /* Au1100 AB */
+		case 0x02030201: /* Au1100 BA */
+		case 0x02030202: /* Au1100 BC */
+		case 0x04030201: /* Au1200 AC */
+			return 1;
 	}
+
 	return 0;
 }
 
@@ -678,26 +683,32 @@ static inline int au1xxx_cpu_needs_config_od(void)
 
 static inline int alchemy_get_cputype(void)
 {
-	switch (read_c0_prid() & (PRID_OPT_MASK | PRID_COMP_MASK)) {
-	case 0x00030000:
-		return ALCHEMY_CPU_AU1000;
-		break;
-	case 0x01030000:
-		return ALCHEMY_CPU_AU1500;
-		break;
-	case 0x02030000:
-		return ALCHEMY_CPU_AU1100;
-		break;
-	case 0x03030000:
-		return ALCHEMY_CPU_AU1550;
-		break;
-	case 0x04030000:
-	case 0x05030000:
-		return ALCHEMY_CPU_AU1200;
-		break;
-	case 0x800c0000:
-		return ALCHEMY_CPU_AU1300;
-		break;
+	switch (read_c0_prid() & (PRID_OPT_MASK | PRID_COMP_MASK))
+	{
+		case 0x00030000:
+			return ALCHEMY_CPU_AU1000;
+			break;
+
+		case 0x01030000:
+			return ALCHEMY_CPU_AU1500;
+			break;
+
+		case 0x02030000:
+			return ALCHEMY_CPU_AU1100;
+			break;
+
+		case 0x03030000:
+			return ALCHEMY_CPU_AU1550;
+			break;
+
+		case 0x04030000:
+		case 0x05030000:
+			return ALCHEMY_CPU_AU1200;
+			break;
+
+		case 0x800c0000:
+			return ALCHEMY_CPU_AU1300;
+			break;
 	}
 
 	return ALCHEMY_CPU_UNKNOWN;
@@ -706,17 +717,21 @@ static inline int alchemy_get_cputype(void)
 /* return number of uarts on a given cputype */
 static inline int alchemy_get_uarts(int type)
 {
-	switch (type) {
-	case ALCHEMY_CPU_AU1000:
-	case ALCHEMY_CPU_AU1300:
-		return 4;
-	case ALCHEMY_CPU_AU1500:
-	case ALCHEMY_CPU_AU1200:
-		return 2;
-	case ALCHEMY_CPU_AU1100:
-	case ALCHEMY_CPU_AU1550:
-		return 3;
+	switch (type)
+	{
+		case ALCHEMY_CPU_AU1000:
+		case ALCHEMY_CPU_AU1300:
+			return 4;
+
+		case ALCHEMY_CPU_AU1500:
+		case ALCHEMY_CPU_AU1200:
+			return 2;
+
+		case ALCHEMY_CPU_AU1100:
+		case ALCHEMY_CPU_AU1550:
+			return 3;
 	}
+
 	return 0;
 }
 
@@ -726,12 +741,14 @@ static inline void alchemy_uart_enable(u32 uart_phys)
 	void __iomem *addr = (void __iomem *)KSEG1ADDR(uart_phys);
 
 	/* reset, enable clock, deassert reset */
-	if ((__raw_readl(addr + 0x100) & 3) != 3) {
+	if ((__raw_readl(addr + 0x100) & 3) != 3)
+	{
 		__raw_writel(0, addr + 0x100);
 		wmb(); /* drain writebuffer */
 		__raw_writel(1, addr + 0x100);
 		wmb(); /* drain writebuffer */
 	}
+
 	__raw_writel(3, addr + 0x100);
 	wmb(); /* drain writebuffer */
 }
@@ -751,13 +768,21 @@ static inline void alchemy_uart_putchar(u32 uart_phys, u8 c)
 
 	/* check LSR TX_EMPTY bit */
 	timeout = 0xffffff;
-	do {
+
+	do
+	{
 		if (__raw_readl(base + 0x1c) & 0x20)
+		{
 			break;
+		}
+
 		/* slow down */
 		for (i = 10000; i; i--)
+		{
 			asm volatile ("nop");
-	} while (--timeout);
+		}
+	}
+	while (--timeout);
 
 	__raw_writel(c, base + 0x04);	/* tx */
 	wmb(); /* drain writebuffer */
@@ -766,14 +791,17 @@ static inline void alchemy_uart_putchar(u32 uart_phys, u8 c)
 /* return number of ethernet MACs on a given cputype */
 static inline int alchemy_get_macs(int type)
 {
-	switch (type) {
-	case ALCHEMY_CPU_AU1000:
-	case ALCHEMY_CPU_AU1500:
-	case ALCHEMY_CPU_AU1550:
-		return 2;
-	case ALCHEMY_CPU_AU1100:
-		return 1;
+	switch (type)
+	{
+		case ALCHEMY_CPU_AU1000:
+		case ALCHEMY_CPU_AU1500:
+		case ALCHEMY_CPU_AU1550:
+			return 2;
+
+		case ALCHEMY_CPU_AU1100:
+			return 1;
 	}
+
 	return 0;
 }
 
@@ -784,7 +812,8 @@ void alchemy_sleep_au1300(void);
 void au_sleep(void);
 
 /* USB: arch/mips/alchemy/common/usb.c */
-enum alchemy_usb_block {
+enum alchemy_usb_block
+{
 	ALCHEMY_USB_OHCI0,
 	ALCHEMY_USB_UDC0,
 	ALCHEMY_USB_EHCI0,
@@ -794,7 +823,8 @@ enum alchemy_usb_block {
 int alchemy_usb_control(int block, int enable);
 
 /* PCI controller platform data */
-struct alchemy_pci_platdata {
+struct alchemy_pci_platdata
+{
 	int (*board_map_irq)(const struct pci_dev *d, u8 slot, u8 pin);
 	int (*board_pci_idsel)(unsigned int devsel, int assert);
 	/* bits to set/clear in PCI_CONFIG register */
@@ -811,7 +841,8 @@ struct alchemy_pci_platdata {
 #define AU1000_IRDA_PHY_MODE_SIR	1
 #define AU1000_IRDA_PHY_MODE_FIR	2
 
-struct au1k_irda_platform_data {
+struct au1k_irda_platform_data
+{
 	void (*set_phy_mode)(int mode);
 };
 
@@ -821,7 +852,8 @@ struct au1k_irda_platform_data {
  * Call "au1300_pinfunc_to_dev()" or "au1300_pinfunc_to_gpio()" to
  * assign one of these to either the GPIO controller or the device.
  */
-enum au1300_multifunc_pins {
+enum au1300_multifunc_pins
+{
 	/* wake-from-str pins 0-3 */
 	AU1300_PIN_WAKE0 = 0, AU1300_PIN_WAKE1, AU1300_PIN_WAKE2,
 	AU1300_PIN_WAKE3,
@@ -879,7 +911,8 @@ extern void au1300_set_irq_priority(unsigned int irq, int p);
 extern void au1300_set_dbdma_gpio(int dchan, unsigned int gpio);
 
 /* Au1300 allows to disconnect certain blocks from internal power supply */
-enum au1300_vss_block {
+enum au1300_vss_block
+{
 	AU1300_VSS_MPE = 0,
 	AU1300_VSS_BSA,
 	AU1300_VSS_GPE,
@@ -888,7 +921,8 @@ enum au1300_vss_block {
 
 extern void au1300_vss_block_control(int block, int enable);
 
-enum soc_au1000_ints {
+enum soc_au1000_ints
+{
 	AU1000_FIRST_INT	= AU1000_INTC0_INT_BASE,
 	AU1000_UART0_INT	= AU1000_FIRST_INT,
 	AU1000_UART1_INT,
@@ -950,7 +984,8 @@ enum soc_au1000_ints {
 	AU1000_GPIO31_INT,
 };
 
-enum soc_au1100_ints {
+enum soc_au1100_ints
+{
 	AU1100_FIRST_INT	= AU1000_INTC0_INT_BASE,
 	AU1100_UART0_INT	= AU1100_FIRST_INT,
 	AU1100_UART1_INT,
@@ -1012,7 +1047,8 @@ enum soc_au1100_ints {
 	AU1100_GPIO31_INT,
 };
 
-enum soc_au1500_ints {
+enum soc_au1500_ints
+{
 	AU1500_FIRST_INT	= AU1000_INTC0_INT_BASE,
 	AU1500_UART0_INT	= AU1500_FIRST_INT,
 	AU1500_PCI_INTA,
@@ -1073,7 +1109,8 @@ enum soc_au1500_ints {
 	AU1500_GPIO208_215_INT,
 };
 
-enum soc_au1550_ints {
+enum soc_au1550_ints
+{
 	AU1550_FIRST_INT	= AU1000_INTC0_INT_BASE,
 	AU1550_UART0_INT	= AU1550_FIRST_INT,
 	AU1550_PCI_INTA,
@@ -1138,7 +1175,8 @@ enum soc_au1550_ints {
 	AU1550_GPIO208_215_INT, /* Logical or of GPIO208:215 */
 };
 
-enum soc_au1200_ints {
+enum soc_au1200_ints
+{
 	AU1200_FIRST_INT	= AU1000_INTC0_INT_BASE,
 	AU1200_UART0_INT	= AU1200_FIRST_INT,
 	AU1200_SWT_INT,

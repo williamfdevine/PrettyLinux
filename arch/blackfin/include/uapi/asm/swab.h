@@ -16,9 +16,9 @@ static __inline__ __attribute_const__ __u32 __arch_swahb32(__u32 xx)
 {
 	__u32 tmp;
 	__asm__("%1 = %0 >> 8 (V);\n\t"
-		"%0 = %0 << 8 (V);\n\t"
-		"%0 = %0 | %1;\n\t"
-		: "+d"(xx), "=&d"(tmp));
+			"%0 = %0 << 8 (V);\n\t"
+			"%0 = %0 | %1;\n\t"
+			: "+d"(xx), "=&d"(tmp));
 	return xx;
 }
 #define __arch_swahb32 __arch_swahb32

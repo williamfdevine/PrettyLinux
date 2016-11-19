@@ -26,11 +26,13 @@
 
 static DEFINE_RAW_SPINLOCK(pci_pic_lock);
 
-struct pq2ads_pci_pic {
+struct pq2ads_pci_pic
+{
 	struct device_node *node;
 	struct irq_domain *host;
 
-	struct {
+	struct
+	{
 		u32 stat;
 		u32 mask;
 	} __iomem *regs;
@@ -43,7 +45,8 @@ static void pq2ads_pci_mask_irq(struct irq_data *d)
 	struct pq2ads_pci_pic *priv = irq_data_get_irq_chip_data(d);
 	int irq = NUM_IRQS - irqd_to_hwirq(d) - 1;
 
-	if (irq != -1) {
+	if (irq != -1)
+	{
 		unsigned long flags;
 		raw_spin_lock_irqsave(&pci_pic_lock, flags);
 
@@ -59,7 +62,8 @@ static void pq2ads_pci_unmask_irq(struct irq_data *d)
 	struct pq2ads_pci_pic *priv = irq_data_get_irq_chip_data(d);
 	int irq = NUM_IRQS - irqd_to_hwirq(d) - 1;
 
-	if (irq != -1) {
+	if (irq != -1)
+	{
 		unsigned long flags;
 
 		raw_spin_lock_irqsave(&pci_pic_lock, flags);
@@ -68,7 +72,8 @@ static void pq2ads_pci_unmask_irq(struct irq_data *d)
 	}
 }
 
-static struct irq_chip pq2ads_pci_ic = {
+static struct irq_chip pq2ads_pci_ic =
+{
 	.name = "PQ2 ADS PCI",
 	.irq_mask = pq2ads_pci_mask_irq,
 	.irq_mask_ack = pq2ads_pci_mask_irq,
@@ -84,17 +89,22 @@ static void pq2ads_pci_irq_demux(struct irq_desc *desc)
 	u32 stat, mask, pend;
 	int bit;
 
-	for (;;) {
+	for (;;)
+	{
 		stat = in_be32(&priv->regs->stat);
 		mask = in_be32(&priv->regs->mask);
 
 		pend = stat & ~mask;
 
 		if (!pend)
+		{
 			break;
+		}
 
-		for (bit = 0; pend != 0; ++bit, pend <<= 1) {
-			if (pend & 0x80000000) {
+		for (bit = 0; pend != 0; ++bit, pend <<= 1)
+		{
+			if (pend & 0x80000000)
+			{
 				int virq = irq_linear_revmap(priv->host, bit);
 				generic_handle_irq(virq);
 			}
@@ -103,7 +113,7 @@ static void pq2ads_pci_irq_demux(struct irq_desc *desc)
 }
 
 static int pci_pic_host_map(struct irq_domain *h, unsigned int virq,
-			    irq_hw_number_t hw)
+							irq_hw_number_t hw)
 {
 	irq_set_status_flags(virq, IRQ_LEVEL);
 	irq_set_chip_data(virq, h->host_data);
@@ -111,7 +121,8 @@ static int pci_pic_host_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops pci_pic_host_ops = {
+static const struct irq_domain_ops pci_pic_host_ops =
+{
 	.map = pci_pic_host_map,
 };
 
@@ -124,21 +135,27 @@ int __init pq2ads_pci_init_irq(void)
 	int irq;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,pq2ads-pci-pic");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_ERR "No pci pic node in device tree.\n");
 		of_node_put(np);
 		goto out;
 	}
 
 	irq = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		printk(KERN_ERR "No interrupt in pci pic node.\n");
 		of_node_put(np);
 		goto out;
 	}
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		of_node_put(np);
 		ret = -ENOMEM;
 		goto out_unmap_irq;
@@ -146,7 +163,9 @@ int __init pq2ads_pci_init_irq(void)
 
 	/* PCI interrupt controller registers: status and mask */
 	priv->regs = of_iomap(np, 0);
-	if (!priv->regs) {
+
+	if (!priv->regs)
+	{
 		printk(KERN_ERR "Cannot map PCI PIC registers.\n");
 		goto out_free_kmalloc;
 	}
@@ -156,7 +175,9 @@ int __init pq2ads_pci_init_irq(void)
 	mb();
 
 	host = irq_domain_add_linear(np, NUM_IRQS, &pci_pic_host_ops, priv);
-	if (!host) {
+
+	if (!host)
+	{
 		ret = -ENOMEM;
 		goto out_unmap_regs;
 	}

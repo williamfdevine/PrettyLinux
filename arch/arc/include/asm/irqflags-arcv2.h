@@ -45,7 +45,7 @@
 
 /* seed value for status register */
 #define ISA_INIT_STATUS_BITS	(STATUS_IE_MASK | STATUS_AD_MASK | \
-					(ARCV2_IRQ_DEF_PRIO << 1))
+								 (ARCV2_IRQ_DEF_PRIO << 1))
 
 /* SLEEP needs default irq priority (<=) which can interrupt the doze */
 #define ISA_SLEEP_ARG		(0x10 | ARCV2_IRQ_DEF_PRIO)
@@ -80,7 +80,9 @@ static inline void arch_local_irq_enable(void)
 	unsigned int irqact = read_aux_reg(AUX_IRQ_ACT);
 
 	if (irqact & 0xffff)
+	{
 		write_aux_reg(AUX_IRQ_ACT, irqact & ~0xffff);
+	}
 
 	__asm__ __volatile__("	seti	\n" : : : "memory");
 }
@@ -101,18 +103,18 @@ static inline long arch_local_save_flags(void)
 	unsigned long temp;
 
 	__asm__ __volatile__(
-	"	lr  %0, [status32]	\n"
-	: "=&r"(temp)
-	:
-	: "memory");
+		"	lr  %0, [status32]	\n"
+		: "=&r"(temp)
+		:
+		: "memory");
 
 	/* To be compatible with irq_save()/irq_restore()
 	 * encode the irq bits as expected by CLRI/SETI
 	 * (this was needed to make CONFIG_TRACE_IRQFLAGS work)
 	 */
 	temp = (1 << 5) |
-		((!!(temp & STATUS_IE_MASK)) << CLRI_STATUS_IE_BIT) |
-		((temp >> 1) & CLRI_STATUS_E_MASK);
+		   ((!!(temp & STATUS_IE_MASK)) << CLRI_STATUS_IE_BIT) |
+		   ((temp >> 1) & CLRI_STATUS_E_MASK);
 	return temp;
 }
 
@@ -143,31 +145,31 @@ static inline void arc_softirq_clear(int irq)
 
 #ifdef CONFIG_TRACE_IRQFLAGS
 
-.macro TRACE_ASM_IRQ_DISABLE
+	.macro TRACE_ASM_IRQ_DISABLE
 	bl	trace_hardirqs_off
-.endm
+	.endm
 
-.macro TRACE_ASM_IRQ_ENABLE
+	.macro TRACE_ASM_IRQ_ENABLE
 	bl	trace_hardirqs_on
-.endm
+	.endm
 
 #else
 
-.macro TRACE_ASM_IRQ_DISABLE
-.endm
+	.macro TRACE_ASM_IRQ_DISABLE
+	.endm
 
-.macro TRACE_ASM_IRQ_ENABLE
-.endm
+	.macro TRACE_ASM_IRQ_ENABLE
+	.endm
 
 #endif
 .macro IRQ_DISABLE  scratch
-	clri
-	TRACE_ASM_IRQ_DISABLE
+clri
+TRACE_ASM_IRQ_DISABLE
 .endm
 
 .macro IRQ_ENABLE  scratch
-	TRACE_ASM_IRQ_ENABLE
-	seti
+TRACE_ASM_IRQ_ENABLE
+seti
 .endm
 
 #endif	/* __ASSEMBLY__ */

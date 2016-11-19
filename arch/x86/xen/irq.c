@@ -53,13 +53,21 @@ __visible void xen_restore_fl(unsigned long flags)
 	vcpu = this_cpu_read(xen_vcpu);
 	vcpu->evtchn_upcall_mask = flags;
 
-	if (flags == 0) {
+	if (flags == 0)
+	{
 		barrier(); /* unmask then check (avoid races) */
+
 		if (unlikely(vcpu->evtchn_upcall_pending))
+		{
 			xen_force_evtchn_callback();
+		}
+
 		preempt_enable();
-	} else
+	}
+	else
+	{
 		preempt_enable_no_resched();
+	}
 }
 PV_CALLEE_SAVE_REGS_THUNK(xen_restore_fl);
 
@@ -92,8 +100,11 @@ asmlinkage __visible void xen_irq_enable(void)
 	   pending event will get dealt with anyway. */
 
 	barrier(); /* unmask then check (avoid races) */
+
 	if (unlikely(vcpu->evtchn_upcall_pending))
+	{
 		xen_force_evtchn_callback();
+	}
 
 	preempt_enable();
 }
@@ -103,19 +114,24 @@ static void xen_safe_halt(void)
 {
 	/* Blocking includes an implicit local_irq_enable(). */
 	if (HYPERVISOR_sched_op(SCHEDOP_block, NULL) != 0)
+	{
 		BUG();
+	}
 }
 
 static void xen_halt(void)
 {
 	if (irqs_disabled())
 		HYPERVISOR_vcpu_op(VCPUOP_down,
-				   xen_vcpu_nr(smp_processor_id()), NULL);
+						   xen_vcpu_nr(smp_processor_id()), NULL);
 	else
+	{
 		xen_safe_halt();
+	}
 }
 
-static const struct pv_irq_ops xen_irq_ops __initconst = {
+static const struct pv_irq_ops xen_irq_ops __initconst =
+{
 	.save_fl = PV_CALLEE_SAVE(xen_save_fl),
 	.restore_fl = PV_CALLEE_SAVE(xen_restore_fl),
 	.irq_disable = PV_CALLEE_SAVE(xen_irq_disable),
@@ -132,6 +148,9 @@ void __init xen_init_irq_ops(void)
 {
 	/* For PVH we use default pv_irq_ops settings. */
 	if (!xen_feature(XENFEAT_hvm_callback_vector))
+	{
 		pv_irq_ops = xen_irq_ops;
+	}
+
 	x86_init.irqs.intr_init = xen_init_IRQ;
 }

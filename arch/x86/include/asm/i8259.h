@@ -52,7 +52,8 @@ static inline void outb_pic(unsigned char value, unsigned int port)
 
 extern struct irq_chip i8259A_chip;
 
-struct legacy_pic {
+struct legacy_pic
+{
 	int nr_legacy_irqs;
 	struct irq_chip *chip;
 	void (*mask)(unsigned int irq);

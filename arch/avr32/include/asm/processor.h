@@ -14,8 +14,8 @@
 #define TASK_SIZE	0x80000000
 
 #ifdef __KERNEL__
-#define STACK_TOP	TASK_SIZE
-#define STACK_TOP_MAX	STACK_TOP
+	#define STACK_TOP	TASK_SIZE
+	#define STACK_TOP_MAX	STACK_TOP
 #endif
 
 #ifndef __ASSEMBLY__
@@ -26,19 +26,22 @@ static inline void *current_text_addr(void)
 	return pc;
 }
 
-enum arch_type {
+enum arch_type
+{
 	ARCH_AVR32A,
 	ARCH_AVR32B,
 	ARCH_MAX
 };
 
-enum cpu_type {
+enum cpu_type
+{
 	CPU_MORGAN,
 	CPU_AT32AP,
 	CPU_MAX
 };
 
-enum tlb_config {
+enum tlb_config
+{
 	TLB_NONE,
 	TLB_SPLIT,
 	TLB_UNIFIED,
@@ -53,7 +56,8 @@ enum tlb_config {
 #define AVR32_FEATURE_JAVA	(1 << 5)
 #define AVR32_FEATURE_FPU	(1 << 6)
 
-struct avr32_cpuinfo {
+struct avr32_cpuinfo
+{
 	struct clk *clk;
 	unsigned long loops_per_jiffy;
 	enum arch_type arch_type;
@@ -95,7 +99,8 @@ extern struct avr32_cpuinfo boot_cpu_data;
 #define cpu_relax_lowlatency()        cpu_relax()
 #define cpu_sync_pipeline()	asm volatile("sub pc, -2" : : : "memory")
 
-struct cpu_context {
+struct cpu_context
+{
 	unsigned long sr;
 	unsigned long pc;
 	unsigned long ksp;	/* Kernel stack pointer */
@@ -110,17 +115,18 @@ struct cpu_context {
 };
 
 /* This struct contains the CPU context as stored by switch_to() */
-struct thread_struct {
+struct thread_struct
+{
 	struct cpu_context cpu_context;
 	unsigned long single_step_addr;
 	u16 single_step_insn;
 };
 
 #define INIT_THREAD {						\
-	.cpu_context = {					\
-		.ksp = sizeof(init_stack) + (long)&init_stack,	\
-	},							\
-}
+		.cpu_context = {					\
+											.ksp = sizeof(init_stack) + (long)&init_stack,	\
+					   },							\
+	}
 
 /*
  * Do necessary setup to start up a newly executed thread.
@@ -145,7 +151,7 @@ struct pt_regs;
 extern unsigned long get_wchan(struct task_struct *p);
 extern void show_regs_log_lvl(struct pt_regs *regs, const char *log_lvl);
 extern void show_stack_log_lvl(struct task_struct *tsk, unsigned long sp,
-			       struct pt_regs *regs, const char *log_lvl);
+							   struct pt_regs *regs, const char *log_lvl);
 
 #define task_pt_regs(p) \
 	((struct pt_regs *)(THREAD_SIZE + task_stack_page(p)) - 1)

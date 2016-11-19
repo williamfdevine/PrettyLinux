@@ -18,7 +18,8 @@
 /* please ensure the length of the machtype string is less than 50 */
 #define MACHTYPE_LEN 50
 
-static const char *system_types[] = {
+static const char *system_types[] =
+{
 	[MACH_LOONGSON_UNKNOWN]	= "unknown loongson machine",
 	[MACH_LEMOTE_FL2E]	= "lemote-fuloong-2e-box",
 	[MACH_LEMOTE_FL2F]	= "lemote-fuloong-2f-box",
@@ -48,19 +49,26 @@ void __init prom_init_machtype(void)
 	mips_machtype = LOONGSON_MACHTYPE;
 
 	p = strstr(arcs_cmdline, "machtype=");
-	if (!p) {
+
+	if (!p)
+	{
 		mach_prom_init_machtype();
 		return;
 	}
+
 	p += strlen("machtype=");
 	strncpy(str, p, MACHTYPE_LEN);
 	str[MACHTYPE_LEN] = '\0';
 	p = strstr(str, " ");
+
 	if (p)
+	{
 		*p = '\0';
+	}
 
 	for (; system_types[machtype]; machtype++)
-		if (strstr(system_types[machtype], str)) {
+		if (strstr(system_types[machtype], str))
+		{
 			mips_machtype = machtype;
 			break;
 		}

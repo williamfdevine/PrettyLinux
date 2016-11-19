@@ -75,10 +75,11 @@ void die(char *str, struct pt_regs *fp, int nr)
 	show_regs(fp);
 
 	pr_err("Process %s (pid: %d, stackpage=%08lx)\n",
-	       current->comm, current->pid, (PAGE_SIZE +
-					     (unsigned long) current));
+		   current->comm, current->pid, (PAGE_SIZE +
+										 (unsigned long) current));
 
 	dump_stack();
+
 	while (1)
 		;
 }
@@ -86,14 +87,17 @@ void die(char *str, struct pt_regs *fp, int nr)
 static void die_if_kernel(char *str, struct pt_regs *fp, int nr)
 {
 	if (user_mode(fp))
+	{
 		return;
+	}
 
 	die(str, fp, nr);
 }
 
 
 /* Internal exceptions */
-static struct exception_info iexcept_table[10] = {
+static struct exception_info iexcept_table[10] =
+{
 	{ "Oops - instruction fetch", SIGBUS, BUS_ADRERR },
 	{ "Oops - fetch packet", SIGBUS, BUS_ADRERR },
 	{ "Oops - execute packet", SIGILL, ILL_ILLOPC },
@@ -107,7 +111,8 @@ static struct exception_info iexcept_table[10] = {
 };
 
 /* External exceptions */
-static struct exception_info eexcept_table[128] = {
+static struct exception_info eexcept_table[128] =
+{
 	{ "Oops - external exception", SIGBUS, BUS_ADRERR },
 	{ "Oops - external exception", SIGBUS, BUS_ADRERR },
 	{ "Oops - external exception", SIGBUS, BUS_ADRERR },
@@ -248,8 +253,8 @@ static void do_trap(struct exception_info *except_info, struct pt_regs *regs)
 
 	if (except_info->code != TRAP_BRKPT)
 		pr_err("TRAP: %s PC[0x%lx] signo[%d] code[%d]\n",
-		       except_info->kernel_str, regs->pc,
-		       except_info->signo, except_info->code);
+			   except_info->kernel_str, regs->pc,
+			   except_info->signo, except_info->code);
 
 	die_if_kernel(except_info->kernel_str, regs, addr);
 
@@ -273,15 +278,19 @@ static int process_iexcept(struct pt_regs *regs)
 
 	pr_err("IEXCEPT: PC[0x%lx]\n", regs->pc);
 
-	while (iexcept_report) {
+	while (iexcept_report)
+	{
 		iexcept_num = __ffs(iexcept_report);
 		iexcept_report &= ~(1 << iexcept_num);
 		set_iexcept(iexcept_report);
-		if (*(unsigned int *)regs->pc == BKPT_OPCODE) {
+
+		if (*(unsigned int *)regs->pc == BKPT_OPCODE)
+		{
 			/* This is a breakpoint */
-			struct exception_info bkpt_exception = {
+			struct exception_info bkpt_exception =
+			{
 				"Oops - undefined instruction",
-				  SIGTRAP, TRAP_BRKPT
+				SIGTRAP, TRAP_BRKPT
 			};
 			do_trap(&bkpt_exception, regs);
 			iexcept_report &= ~(0xFF);
@@ -291,6 +300,7 @@ static int process_iexcept(struct pt_regs *regs)
 
 		do_trap(&iexcept_table[iexcept_num], regs);
 	}
+
 	return 0;
 }
 
@@ -304,7 +314,9 @@ static void process_eexcept(struct pt_regs *regs)
 	pr_err("EEXCEPT: PC[0x%lx]\n", regs->pc);
 
 	while ((evt = soc_get_exception()) >= 0)
+	{
 		do_trap(&eexcept_table[evt], regs);
+	}
 
 	ack_exception(EXCEPT_TYPE_EXC);
 }
@@ -318,35 +330,48 @@ asmlinkage int process_exception(struct pt_regs *regs)
 	unsigned int type_num;
 	unsigned int ie_num = 9; /* default is unknown exception */
 
-	while ((type = get_except_type()) != 0) {
+	while ((type = get_except_type()) != 0)
+	{
 		type_num = fls(type) - 1;
 
-		switch (type_num) {
-		case EXCEPT_TYPE_NXF:
-			ack_exception(EXCEPT_TYPE_NXF);
-			if (c6x_nmi_handler)
-				(c6x_nmi_handler)(regs);
-			else
-				pr_alert("NMI interrupt!\n");
-			break;
+		switch (type_num)
+		{
+			case EXCEPT_TYPE_NXF:
+				ack_exception(EXCEPT_TYPE_NXF);
 
-		case EXCEPT_TYPE_IXF:
-			if (process_iexcept(regs))
-				return 1;
-			break;
+				if (c6x_nmi_handler)
+				{
+					(c6x_nmi_handler)(regs);
+				}
+				else
+				{
+					pr_alert("NMI interrupt!\n");
+				}
 
-		case EXCEPT_TYPE_EXC:
-			process_eexcept(regs);
-			break;
+				break;
 
-		case EXCEPT_TYPE_SXF:
-			ie_num = 8;
-		default:
-			ack_exception(type_num);
-			do_trap(&iexcept_table[ie_num], regs);
-			break;
+			case EXCEPT_TYPE_IXF:
+				if (process_iexcept(regs))
+				{
+					return 1;
+				}
+
+				break;
+
+			case EXCEPT_TYPE_EXC:
+				process_eexcept(regs);
+				break;
+
+			case EXCEPT_TYPE_SXF:
+				ie_num = 8;
+
+			default:
+				ack_exception(type_num);
+				do_trap(&iexcept_table[ie_num], regs);
+				break;
 		}
 	}
+
 	return 0;
 }
 
@@ -359,8 +384,11 @@ static void show_trace(unsigned long *stack, unsigned long *endstack)
 
 	pr_debug("Call trace:");
 	i = 0;
-	while (stack + 1 <= endstack) {
+
+	while (stack + 1 <= endstack)
+	{
 		addr = *stack++;
+
 		/*
 		 * If the address is either in the text segment of the
 		 * kernel, or in the region which contains vmalloc'ed
@@ -369,16 +397,22 @@ static void show_trace(unsigned long *stack, unsigned long *endstack)
 		 * down the cause of the crash will be able to figure
 		 * out the call path that was taken.
 		 */
-		if (__kernel_text_address(addr)) {
+		if (__kernel_text_address(addr))
+		{
 #ifndef CONFIG_KALLSYMS
+
 			if (i % 5 == 0)
+			{
 				pr_debug("\n	    ");
+			}
+
 #endif
 			pr_debug(" [<%08lx>]", addr);
 			print_symbol(" %s\n", addr);
 			i++;
 		}
 	}
+
 	pr_debug("\n");
 }
 
@@ -387,25 +421,40 @@ void show_stack(struct task_struct *task, unsigned long *stack)
 	unsigned long *p, *endstack;
 	int i;
 
-	if (!stack) {
+	if (!stack)
+	{
 		if (task && task != current)
 			/* We know this is a kernel stack,
 			   so this is the start/end */
+		{
 			stack = (unsigned long *)thread_saved_ksp(task);
+		}
 		else
+		{
 			stack = (unsigned long *)&stack;
+		}
 	}
+
 	endstack = (unsigned long *)(((unsigned long)stack + THREAD_SIZE - 1)
-				     & -THREAD_SIZE);
+								 & -THREAD_SIZE);
 
 	pr_debug("Stack from %08lx:", (unsigned long)stack);
-	for (i = 0, p = stack; i < kstack_depth_to_print; i++) {
+
+	for (i = 0, p = stack; i < kstack_depth_to_print; i++)
+	{
 		if (p + 1 > endstack)
+		{
 			break;
+		}
+
 		if (i % 8 == 0)
+		{
 			pr_cont("\n	    ");
+		}
+
 		pr_cont(" %08lx", *p++);
 	}
+
 	pr_cont("\n");
 	show_trace(stack, endstack);
 }

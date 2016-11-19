@@ -47,7 +47,9 @@ unsigned long profile_pc(struct pt_regs *regs)
 	struct stackframe frame;
 
 	if (!in_lock_functions(regs->pc))
+	{
 		return regs->pc;
+	}
 
 	frame.fp = regs->regs[29];
 	frame.sp = regs->sp;
@@ -55,11 +57,17 @@ unsigned long profile_pc(struct pt_regs *regs)
 #ifdef CONFIG_FUNCTION_GRAPH_TRACER
 	frame.graph = -1; /* no task info */
 #endif
-	do {
+
+	do
+	{
 		int ret = unwind_frame(NULL, &frame);
+
 		if (ret < 0)
+		{
 			return 0;
-	} while (in_lock_functions(frame.pc));
+		}
+	}
+	while (in_lock_functions(frame.pc));
 
 	return frame.pc;
 }
@@ -75,8 +83,11 @@ void __init time_init(void)
 	tick_setup_hrtimer_broadcast();
 
 	arch_timer_rate = arch_timer_get_rate();
+
 	if (!arch_timer_rate)
+	{
 		panic("Unable to initialise architected timer.\n");
+	}
 
 	/* Calibrate the delay loop directly */
 	lpj_fine = arch_timer_rate / HZ;

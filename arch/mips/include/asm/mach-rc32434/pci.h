@@ -32,13 +32,15 @@
 #define PCI0_BASE_ADDR		0x18080000
 #define PCI_LBA_COUNT		4
 
-struct pci_map {
+struct pci_map
+{
 	u32 address;		/* Address. */
 	u32 control;		/* Control. */
 	u32 mapping;		/* mapping. */
 };
 
-struct pci_reg {
+struct pci_reg
+{
 	u32 pcic;
 	u32 pcis;
 	u32 pcism;
@@ -56,7 +58,8 @@ struct pci_reg {
 
 #define PCI_MSU_COUNT		2
 
-struct pci_msu {
+struct pci_msu
+{
 	u32 pciim[PCI_MSU_COUNT];
 	u32 pciom[PCI_MSU_COUNT];
 	u32 pciid;
@@ -320,7 +323,7 @@ struct pci_msu {
 #define PCIM_H_IA_FIX		0x4
 #define PCIM_H_IA_RR		0x5
 #if 0
-#define PCI_ADDR_START		0x13000000
+	#define PCI_ADDR_START		0x13000000
 #endif
 
 #define PCI_ADDR_START		0x50000000
@@ -364,25 +367,25 @@ struct pci_msu {
 #define KORINA_CONFIG24_ADDR	0x80000060
 #define KORINA_CONFIG25_ADDR	0x80000064
 #define KORINA_CMD		(PCI_CFG04_CMD_IO_ENA | \
-				 PCI_CFG04_CMD_MEM_ENA | \
-				 PCI_CFG04_CMD_BM_ENA | \
-				 PCI_CFG04_CMD_MW_INV | \
-				 PCI_CFG04_CMD_PAR_ENA | \
-				 PCI_CFG04_CMD_SER_ENA)
+						 PCI_CFG04_CMD_MEM_ENA | \
+						 PCI_CFG04_CMD_BM_ENA | \
+						 PCI_CFG04_CMD_MW_INV | \
+						 PCI_CFG04_CMD_PAR_ENA | \
+						 PCI_CFG04_CMD_SER_ENA)
 
 #define KORINA_STAT		(PCI_CFG04_STAT_MDPE | \
-				 PCI_CFG04_STAT_STA | \
-				 PCI_CFG04_STAT_RTA | \
-				 PCI_CFG04_STAT_RMA | \
-				 PCI_CFG04_STAT_SSE | \
-				 PCI_CFG04_STAT_PE)
+						 PCI_CFG04_STAT_STA | \
+						 PCI_CFG04_STAT_RTA | \
+						 PCI_CFG04_STAT_RMA | \
+						 PCI_CFG04_STAT_SSE | \
+						 PCI_CFG04_STAT_PE)
 
 #define KORINA_CNFG1		((KORINA_STAT<<16)|KORINA_CMD)
 
 #define KORINA_REVID		0
 #define KORINA_CLASS_CODE	0
 #define KORINA_CNFG2		((KORINA_CLASS_CODE<<8) | \
-				  KORINA_REVID)
+							 KORINA_REVID)
 
 #define KORINA_CACHE_LINE_SIZE	4
 #define KORINA_MASTER_LAT	0x3c
@@ -390,9 +393,9 @@ struct pci_msu {
 #define KORINA_BIST		0
 
 #define KORINA_CNFG3 ((KORINA_BIST << 24) | \
-		      (KORINA_HEADER_TYPE<<16) | \
-		      (KORINA_MASTER_LAT<<8) | \
-		      KORINA_CACHE_LINE_SIZE)
+					  (KORINA_HEADER_TYPE<<16) | \
+					  (KORINA_MASTER_LAT<<8) | \
+					  KORINA_CACHE_LINE_SIZE)
 
 #define KORINA_BAR0	0x00000008	/* 128 MB Memory */
 #define KORINA_BAR1	0x18800001	/* 1 MB IO */
@@ -411,7 +414,7 @@ struct pci_msu {
 #define KORINA_CNFG9		0
 #define KORINA_CNFG10		0
 #define KORINA_CNFG11	((KORINA_SUBSYS_VENDOR_ID<<16) | \
-			  KORINA_SUBSYSTEM_ID)
+						 KORINA_SUBSYSTEM_ID)
 #define KORINA_INT_LINE		1
 #define KORINA_INT_PIN		1
 #define KORINA_MIN_GNT		8
@@ -420,13 +423,13 @@ struct pci_msu {
 #define KORINA_CNFG13		0
 #define KORINA_CNFG14		0
 #define KORINA_CNFG15	((KORINA_MAX_LAT<<24) | \
-			 (KORINA_MIN_GNT<<16) | \
-			 (KORINA_INT_PIN<<8)  | \
-			  KORINA_INT_LINE)
+						 (KORINA_MIN_GNT<<16) | \
+						 (KORINA_INT_PIN<<8)  | \
+						 KORINA_INT_LINE)
 #define KORINA_RETRY_LIMIT	0x80
 #define KORINA_TRDY_LIMIT	0x80
 #define KORINA_CNFG16 ((KORINA_RETRY_LIMIT<<8) | \
-			KORINA_TRDY_LIMIT)
+					   KORINA_TRDY_LIMIT)
 #define PCI_PBAxC_R		0x0
 #define PCI_PBAxC_RL		0x1
 #define PCI_PBAxC_RM		0x2
@@ -434,16 +437,16 @@ struct pci_msu {
 
 #if defined(__MIPSEB__)
 #define KORINA_PBA0C	(PCI_PBAC_MRL | PCI_PBAC_SB | \
-			  ((PCI_PBAxC_RM & 0x3) << PCI_PBAC_MR_BIT) | \
-			  PCI_PBAC_PP | \
-			  (SIZE_128MB<<SIZE_SHFT) | \
-			   PCI_PBAC_P)
+						 ((PCI_PBAxC_RM & 0x3) << PCI_PBAC_MR_BIT) | \
+						 PCI_PBAC_PP | \
+						 (SIZE_128MB<<SIZE_SHFT) | \
+						 PCI_PBAC_P)
 #else
 #define KORINA_PBA0C	(PCI_PBAC_MRL | \
-			  ((PCI_PBAxC_RM & 0x3) << PCI_PBAC_MR_BIT) | \
-			  PCI_PBAC_PP | \
-			  (SIZE_128MB<<SIZE_SHFT) | \
-			   PCI_PBAC_P)
+						 ((PCI_PBAxC_RM & 0x3) << PCI_PBAC_MR_BIT) | \
+						 PCI_PBAC_PP | \
+						 (SIZE_128MB<<SIZE_SHFT) | \
+						 PCI_PBAC_P)
 #endif
 #define KORINA_CNFG17	KORINA_PBA0C
 #define KORINA_PBA0M	0x0
@@ -451,10 +454,10 @@ struct pci_msu {
 
 #if defined(__MIPSEB__)
 #define KORINA_PBA1C	((SIZE_1MB<<SIZE_SHFT) | PCI_PBAC_SB | \
-			  PCI_PBAC_MSI)
+						 PCI_PBAC_MSI)
 #else
 #define KORINA_PBA1C	((SIZE_1MB<<SIZE_SHFT) | \
-			  PCI_PBAC_MSI)
+						 PCI_PBAC_MSI)
 #endif
 #define KORINA_CNFG19	KORINA_PBA1C
 #define KORINA_PBA1M	0x0
@@ -462,10 +465,10 @@ struct pci_msu {
 
 #if defined(__MIPSEB__)
 #define KORINA_PBA2C	((SIZE_2MB<<SIZE_SHFT) | PCI_PBAC_SB | \
-			  PCI_PBAC_MSI)
+						 PCI_PBAC_MSI)
 #else
 #define KORINA_PBA2C	((SIZE_2MB<<SIZE_SHFT) | \
-			  PCI_PBAC_MSI)
+						 PCI_PBAC_MSI)
 #endif
 #define KORINA_CNFG21	KORINA_PBA2C
 #define KORINA_PBA2M	0x18000000

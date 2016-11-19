@@ -27,16 +27,18 @@
  *   next is for use by the OS, e.g. for grouping regions into
  *        linked lists.
  */
-struct tag_mem_range {
+struct tag_mem_range
+{
 	u32			addr;
 	u32			size;
-	struct tag_mem_range *	next;
+	struct tag_mem_range 	*next;
 };
 
 /* The list ends with an ATAG_NONE node. */
 #define ATAG_NONE	0x00000000
 
-struct tag_header {
+struct tag_header
+{
 	u32 size;
 	u32 tag;
 };
@@ -44,7 +46,8 @@ struct tag_header {
 /* The list must start with an ATAG_CORE node */
 #define ATAG_CORE	0x54410001
 
-struct tag_core {
+struct tag_core
+{
 	u32 flags;
 	u32 pagesize;
 	u32 rootdev;
@@ -57,7 +60,8 @@ struct tag_core {
 /* command line: \0 terminated string */
 #define ATAG_CMDLINE	0x54410003
 
-struct tag_cmdline {
+struct tag_cmdline
+{
 	char	cmdline[1];	/* this is the minimum size */
 };
 
@@ -68,7 +72,8 @@ struct tag_cmdline {
 /* Information about various clocks present in the system */
 #define ATAG_CLOCK	0x54410005
 
-struct tag_clock {
+struct tag_clock
+{
 	u32	clock_id;	/* Which clock are we talking about? */
 	u32	clock_flags;	/* Special features */
 	u64	clock_hz;	/* Clock speed in Hz */
@@ -85,7 +90,8 @@ struct tag_clock {
 
 #define ATAG_ETHERNET	0x54410007
 
-struct tag_ethernet {
+struct tag_ethernet
+{
 	u8	mac_index;
 	u8	mii_phy_addr;
 	u8	hw_address[6];
@@ -96,13 +102,16 @@ struct tag_ethernet {
 /* board information */
 #define ATAG_BOARDINFO	0x54410008
 
-struct tag_boardinfo {
+struct tag_boardinfo
+{
 	u32	board_number;
 };
 
-struct tag {
+struct tag
+{
 	struct tag_header hdr;
-	union {
+	union
+	{
 		struct tag_core core;
 		struct tag_mem_range mem_range;
 		struct tag_cmdline cmdline;
@@ -112,7 +121,8 @@ struct tag {
 	} u;
 };
 
-struct tagtable {
+struct tagtable
+{
 	u32	tag;
 	int	(*parse)(struct tag *);
 };

@@ -35,7 +35,7 @@
 
 #define clear_user_page(pgaddr, vaddr, page)	memset((pgaddr), 0, PAGE_SIZE)
 #define copy_user_page(vto, vfrom, vaddr, topg) \
-			memcpy((vto), (vfrom), PAGE_SIZE)
+	memcpy((vto), (vfrom), PAGE_SIZE)
 
 /*
  * These are used to make use of C type-checking..
@@ -85,7 +85,7 @@ extern unsigned long max_pfn;
 #endif /* __KERNEL__ */
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/memory_model.h>
 #include <asm-generic/getorder.h>

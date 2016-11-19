@@ -24,7 +24,8 @@
 
 #include "common.h"
 
-static struct gpio_keys_button wbd222_keys[] = {
+static struct gpio_keys_button wbd222_keys[] =
+{
 	{
 		.code		= KEY_SETUP,
 		.gpio		= 5,
@@ -34,12 +35,14 @@ static struct gpio_keys_button wbd222_keys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data wbd222_keys_data = {
+static struct gpio_keys_platform_data wbd222_keys_data =
+{
 	.buttons	= wbd222_keys,
 	.nbuttons	= ARRAY_SIZE(wbd222_keys),
 };
 
-static struct platform_device wbd222_keys_device = {
+static struct platform_device wbd222_keys_device =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -47,7 +50,8 @@ static struct platform_device wbd222_keys_device = {
 	},
 };
 
-static struct gpio_led wbd222_leds[] = {
+static struct gpio_led wbd222_leds[] =
+{
 	{
 		.name			= "L3red",
 		.gpio			= 1,
@@ -66,12 +70,14 @@ static struct gpio_led wbd222_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data wbd222_leds_data = {
+static struct gpio_led_platform_data wbd222_leds_data =
+{
 	.num_leds	= ARRAY_SIZE(wbd222_leds),
 	.leds		= wbd222_leds,
 };
 
-static struct platform_device wbd222_leds_device = {
+static struct platform_device wbd222_leds_device =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -79,7 +85,8 @@ static struct platform_device wbd222_leds_device = {
 	},
 };
 
-static struct mtd_partition wbd222_partitions[] = {
+static struct mtd_partition wbd222_partitions[] =
+{
 	{
 		.name		= "RedBoot",
 		.offset		= 0,
@@ -117,17 +124,17 @@ static void __init wbd222_init(void)
 	gemini_gpio_init();
 	platform_register_uart();
 	platform_register_pflash(SZ_8M, wbd222_partitions,
-		wbd222_num_partitions);
+							 wbd222_num_partitions);
 	platform_device_register(&wbd222_leds_device);
 	platform_device_register(&wbd222_keys_device);
 	platform_register_rtc();
 }
 
 MACHINE_START(WBD222, "Wiliboard WBD-222")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= gemini_map_io,
-	.init_irq	= gemini_init_irq,
-	.init_time	= gemini_timer_init,
-	.init_machine	= wbd222_init,
-	.restart	= gemini_restart,
-MACHINE_END
+		.init_irq	= gemini_init_irq,
+		   .init_time	= gemini_timer_init,
+			 .init_machine	= wbd222_init,
+				.restart	= gemini_restart,
+					MACHINE_END

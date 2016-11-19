@@ -62,7 +62,8 @@
 #include "generic.h"
 #include "devices.h"
 
-static unsigned long corgi_pin_config[] __initdata = {
+static unsigned long corgi_pin_config[] __initdata =
+{
 	/* Static Memory I/O */
 	GPIO78_nCS_2,	/* w100fb */
 	GPIO80_nCS_4,	/* scoop */
@@ -150,7 +151,8 @@ static unsigned long corgi_pin_config[] __initdata = {
 /*
  * Corgi SCOOP Device
  */
-static struct resource corgi_scoop_resources[] = {
+static struct resource corgi_scoop_resources[] =
+{
 	[0] = {
 		.start		= 0x10800000,
 		.end		= 0x10800fff,
@@ -158,37 +160,42 @@ static struct resource corgi_scoop_resources[] = {
 	},
 };
 
-static struct scoop_config corgi_scoop_setup = {
+static struct scoop_config corgi_scoop_setup =
+{
 	.io_dir 	= CORGI_SCOOP_IO_DIR,
 	.io_out		= CORGI_SCOOP_IO_OUT,
 	.gpio_base	= CORGI_SCOOP_GPIO_BASE,
 };
 
-struct platform_device corgiscoop_device = {
+struct platform_device corgiscoop_device =
+{
 	.name		= "sharp-scoop",
 	.id		= -1,
 	.dev		= {
- 		.platform_data	= &corgi_scoop_setup,
+		.platform_data	= &corgi_scoop_setup,
 	},
 	.num_resources	= ARRAY_SIZE(corgi_scoop_resources),
 	.resource	= corgi_scoop_resources,
 };
 
-static struct scoop_pcmcia_dev corgi_pcmcia_scoop[] = {
+static struct scoop_pcmcia_dev corgi_pcmcia_scoop[] =
 {
-	.dev        = &corgiscoop_device.dev,
-	.irq        = CORGI_IRQ_GPIO_CF_IRQ,
-	.cd_irq     = CORGI_IRQ_GPIO_CF_CD,
-	.cd_irq_str = "PCMCIA0 CD",
-},
+	{
+		.dev        = &corgiscoop_device.dev,
+		.irq        = CORGI_IRQ_GPIO_CF_IRQ,
+		.cd_irq     = CORGI_IRQ_GPIO_CF_CD,
+		.cd_irq_str = "PCMCIA0 CD",
+	},
 };
 
-static struct scoop_pcmcia_config corgi_pcmcia_config = {
+static struct scoop_pcmcia_config corgi_pcmcia_config =
+{
 	.devs         = &corgi_pcmcia_scoop[0],
 	.num_devs     = 1,
 };
 
-static struct w100_mem_info corgi_fb_mem = {
+static struct w100_mem_info corgi_fb_mem =
+{
 	.ext_cntl          = 0x00040003,
 	.sdram_mode_reg    = 0x00650021,
 	.ext_timing_cntl   = 0x10002a4a,
@@ -196,7 +203,8 @@ static struct w100_mem_info corgi_fb_mem = {
 	.size              = 0x1fffff,
 };
 
-static struct w100_gen_regs corgi_fb_regs = {
+static struct w100_gen_regs corgi_fb_regs =
+{
 	.lcd_format    = 0x00000003,
 	.lcdd_cntl1    = 0x01CC0000,
 	.lcdd_cntl2    = 0x0003FFFF,
@@ -205,7 +213,8 @@ static struct w100_gen_regs corgi_fb_regs = {
 	.genlcd_cntl3  = 0x000102aa,
 };
 
-static struct w100_gpio_regs corgi_fb_gpio = {
+static struct w100_gpio_regs corgi_fb_gpio =
+{
 	.init_data1   = 0x000000bf,
 	.init_data2   = 0x00000000,
 	.gpio_dir1    = 0x00000000,
@@ -214,58 +223,60 @@ static struct w100_gpio_regs corgi_fb_gpio = {
 	.gpio_oe2     = 0x00000000,
 };
 
-static struct w100_mode corgi_fb_modes[] = {
+static struct w100_mode corgi_fb_modes[] =
 {
-	.xres            = 480,
-	.yres            = 640,
-	.left_margin     = 0x56,
-	.right_margin    = 0x55,
-	.upper_margin    = 0x03,
-	.lower_margin    = 0x00,
-	.crtc_ss         = 0x82360056,
-	.crtc_ls         = 0xA0280000,
-	.crtc_gs         = 0x80280028,
-	.crtc_vpos_gs    = 0x02830002,
-	.crtc_rev        = 0x00400008,
-	.crtc_dclk       = 0xA0000000,
-	.crtc_gclk       = 0x8015010F,
-	.crtc_goe        = 0x80100110,
-	.crtc_ps1_active = 0x41060010,
-	.pll_freq        = 75,
-	.fast_pll_freq   = 100,
-	.sysclk_src      = CLK_SRC_PLL,
-	.sysclk_divider  = 0,
-	.pixclk_src      = CLK_SRC_PLL,
-	.pixclk_divider  = 2,
-	.pixclk_divider_rotated = 6,
-},{
-	.xres            = 240,
-	.yres            = 320,
-	.left_margin     = 0x27,
-	.right_margin    = 0x2e,
-	.upper_margin    = 0x01,
-	.lower_margin    = 0x00,
-	.crtc_ss         = 0x81170027,
-	.crtc_ls         = 0xA0140000,
-	.crtc_gs         = 0xC0140014,
-	.crtc_vpos_gs    = 0x00010141,
-	.crtc_rev        = 0x00400008,
-	.crtc_dclk       = 0xA0000000,
-	.crtc_gclk       = 0x8015010F,
-	.crtc_goe        = 0x80100110,
-	.crtc_ps1_active = 0x41060010,
-	.pll_freq        = 0,
-	.fast_pll_freq   = 0,
-	.sysclk_src      = CLK_SRC_XTAL,
-	.sysclk_divider  = 0,
-	.pixclk_src      = CLK_SRC_XTAL,
-	.pixclk_divider  = 1,
-	.pixclk_divider_rotated = 1,
-},
+	{
+		.xres            = 480,
+		.yres            = 640,
+		.left_margin     = 0x56,
+		.right_margin    = 0x55,
+		.upper_margin    = 0x03,
+		.lower_margin    = 0x00,
+		.crtc_ss         = 0x82360056,
+		.crtc_ls         = 0xA0280000,
+		.crtc_gs         = 0x80280028,
+		.crtc_vpos_gs    = 0x02830002,
+		.crtc_rev        = 0x00400008,
+		.crtc_dclk       = 0xA0000000,
+		.crtc_gclk       = 0x8015010F,
+		.crtc_goe        = 0x80100110,
+		.crtc_ps1_active = 0x41060010,
+		.pll_freq        = 75,
+		.fast_pll_freq   = 100,
+		.sysclk_src      = CLK_SRC_PLL,
+		.sysclk_divider  = 0,
+		.pixclk_src      = CLK_SRC_PLL,
+		.pixclk_divider  = 2,
+		.pixclk_divider_rotated = 6,
+	}, {
+		.xres            = 240,
+		.yres            = 320,
+		.left_margin     = 0x27,
+		.right_margin    = 0x2e,
+		.upper_margin    = 0x01,
+		.lower_margin    = 0x00,
+		.crtc_ss         = 0x81170027,
+		.crtc_ls         = 0xA0140000,
+		.crtc_gs         = 0xC0140014,
+		.crtc_vpos_gs    = 0x00010141,
+		.crtc_rev        = 0x00400008,
+		.crtc_dclk       = 0xA0000000,
+		.crtc_gclk       = 0x8015010F,
+		.crtc_goe        = 0x80100110,
+		.crtc_ps1_active = 0x41060010,
+		.pll_freq        = 0,
+		.fast_pll_freq   = 0,
+		.sysclk_src      = CLK_SRC_XTAL,
+		.sysclk_divider  = 0,
+		.pixclk_src      = CLK_SRC_XTAL,
+		.pixclk_divider  = 1,
+		.pixclk_divider_rotated = 1,
+	},
 
 };
 
-static struct w100fb_mach_info corgi_fb_info = {
+static struct w100fb_mach_info corgi_fb_info =
+{
 	.init_mode  = INIT_MODE_ROTATED,
 	.mem        = &corgi_fb_mem,
 	.regs       = &corgi_fb_regs,
@@ -276,7 +287,8 @@ static struct w100fb_mach_info corgi_fb_info = {
 	.xtal_dbl   = 0,
 };
 
-static struct resource corgi_fb_resources[] = {
+static struct resource corgi_fb_resources[] =
+{
 	[0] = {
 		.start   = 0x08000000,
 		.end     = 0x08ffffff,
@@ -284,7 +296,8 @@ static struct resource corgi_fb_resources[] = {
 	},
 };
 
-static struct platform_device corgifb_device = {
+static struct platform_device corgifb_device =
+{
 	.name           = "w100fb",
 	.id             = -1,
 	.num_resources	= ARRAY_SIZE(corgi_fb_resources),
@@ -313,7 +326,8 @@ static struct platform_device corgifb_device = {
 #define CORGI_KEY_OK		KEY_F11
 #define CORGI_KEY_MENU		KEY_F12
 
-static const uint32_t corgikbd_keymap[] = {
+static const uint32_t corgikbd_keymap[] =
+{
 	KEY(0, 1, KEY_1),
 	KEY(0, 2, KEY_3),
 	KEY(0, 3, KEY_5),
@@ -380,17 +394,19 @@ static const uint32_t corgikbd_keymap[] = {
 	KEY(7, 4, CORGI_KEY_EXJOGUP),
 };
 
-static struct matrix_keymap_data corgikbd_keymap_data = {
+static struct matrix_keymap_data corgikbd_keymap_data =
+{
 	.keymap		= corgikbd_keymap,
 	.keymap_size	= ARRAY_SIZE(corgikbd_keymap),
 };
 
 static const int corgikbd_row_gpios[] =
-		{ 58, 59, 60, 61, 62, 63, 64, 65 };
+{ 58, 59, 60, 61, 62, 63, 64, 65 };
 static const int corgikbd_col_gpios[] =
-		{ 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77 };
+{ 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77 };
 
-static struct matrix_keypad_platform_data corgikbd_pdata = {
+static struct matrix_keypad_platform_data corgikbd_pdata =
+{
 	.keymap_data		= &corgikbd_keymap_data,
 	.row_gpios		= corgikbd_row_gpios,
 	.col_gpios		= corgikbd_col_gpios,
@@ -401,7 +417,8 @@ static struct matrix_keypad_platform_data corgikbd_pdata = {
 	.wakeup			= 1,
 };
 
-static struct platform_device corgikbd_device = {
+static struct platform_device corgikbd_device =
+{
 	.name		= "matrix-keypad",
 	.id		= -1,
 	.dev		= {
@@ -409,7 +426,8 @@ static struct platform_device corgikbd_device = {
 	},
 };
 
-static struct gpio_keys_button corgi_gpio_keys[] = {
+static struct gpio_keys_button corgi_gpio_keys[] =
+{
 	{
 		.type	= EV_SW,
 		.code	= SW_LID,
@@ -433,13 +451,15 @@ static struct gpio_keys_button corgi_gpio_keys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data corgi_gpio_keys_platform_data = {
+static struct gpio_keys_platform_data corgi_gpio_keys_platform_data =
+{
 	.buttons	= corgi_gpio_keys,
 	.nbuttons	= ARRAY_SIZE(corgi_gpio_keys),
 	.poll_interval	= 250,
 };
 
-static struct platform_device corgi_gpio_keys_device = {
+static struct platform_device corgi_gpio_keys_device =
+{
 	.name	= "gpio-keys-polled",
 	.id	= -1,
 	.dev	= {
@@ -450,7 +470,8 @@ static struct platform_device corgi_gpio_keys_device = {
 /*
  * Corgi LEDs
  */
-static struct gpio_led corgi_gpio_leds[] = {
+static struct gpio_led corgi_gpio_leds[] =
+{
 	{
 		.name			= "corgi:amber:charge",
 		.default_trigger	= "sharpsl-charge",
@@ -463,12 +484,14 @@ static struct gpio_led corgi_gpio_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data corgi_gpio_leds_info = {
+static struct gpio_led_platform_data corgi_gpio_leds_info =
+{
 	.leds		= corgi_gpio_leds,
 	.num_leds	= ARRAY_SIZE(corgi_gpio_leds),
 };
 
-static struct platform_device corgiled_device = {
+static struct platform_device corgiled_device =
+{
 	.name		= "leds-gpio",
 	.id		= -1,
 	.dev		= {
@@ -479,7 +502,8 @@ static struct platform_device corgiled_device = {
 /*
  * Corgi Audio
  */
-static struct platform_device corgi_audio_device = {
+static struct platform_device corgi_audio_device =
+{
 	.name	= "corgi-audio",
 	.id	= -1,
 };
@@ -490,9 +514,10 @@ static struct platform_device corgi_audio_device = {
  * The card detect interrupt isn't debounced so we delay it by 250ms
  * to give the card a chance to fully insert/eject.
  */
-static struct pxamci_platform_data corgi_mci_platform_data = {
+static struct pxamci_platform_data corgi_mci_platform_data =
+{
 	.detect_delay_ms	= 250,
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= CORGI_GPIO_nSD_DETECT,
 	.gpio_card_ro		= CORGI_GPIO_nSD_WP,
 	.gpio_power		= CORGI_GPIO_SD_PWR,
@@ -502,7 +527,8 @@ static struct pxamci_platform_data corgi_mci_platform_data = {
 /*
  * Irda
  */
-static struct pxaficp_platform_data corgi_ficp_platform_data = {
+static struct pxaficp_platform_data corgi_ficp_platform_data =
+{
 	.gpio_pwdown		= CORGI_GPIO_IR_ON,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
@@ -511,26 +537,33 @@ static struct pxaficp_platform_data corgi_ficp_platform_data = {
 /*
  * USB Device Controller
  */
-static struct pxa2xx_udc_mach_info udc_info __initdata = {
+static struct pxa2xx_udc_mach_info udc_info __initdata =
+{
 	/* no connect GPIO; corgi can't tell connection status */
 	.gpio_pullup		= CORGI_GPIO_USB_PULLUP,
 };
 
 #if IS_ENABLED(CONFIG_SPI_PXA2XX)
-static struct pxa2xx_spi_master corgi_spi_info = {
+static struct pxa2xx_spi_master corgi_spi_info =
+{
 	.num_chipselect	= 3,
 };
 
 static void corgi_wait_for_hsync(void)
 {
 	while (gpio_get_value(CORGI_GPIO_HSYNC))
+	{
 		cpu_relax();
+	}
 
 	while (!gpio_get_value(CORGI_GPIO_HSYNC))
+	{
 		cpu_relax();
+	}
 }
 
-static struct ads7846_platform_data corgi_ads7846_info = {
+static struct ads7846_platform_data corgi_ads7846_info =
+{
 	.model			= 7846,
 	.vref_delay_usecs	= 100,
 	.x_plate_ohms		= 419,
@@ -539,7 +572,8 @@ static struct ads7846_platform_data corgi_ads7846_info = {
 	.wait_for_sync		= corgi_wait_for_hsync,
 };
 
-static struct pxa2xx_spi_chip corgi_ads7846_chip = {
+static struct pxa2xx_spi_chip corgi_ads7846_chip =
+{
 	.gpio_cs	= CORGI_GPIO_ADS7846_CS,
 };
 
@@ -548,13 +582,16 @@ static void corgi_bl_kick_battery(void)
 	void (*kick_batt)(void);
 
 	kick_batt = symbol_get(sharpsl_battery_kick);
-	if (kick_batt) {
+
+	if (kick_batt)
+	{
 		kick_batt();
 		symbol_put(sharpsl_battery_kick);
 	}
 }
 
-static struct corgi_lcd_platform_data corgi_lcdcon_info = {
+static struct corgi_lcd_platform_data corgi_lcdcon_info =
+{
 	.init_mode		= CORGI_LCD_MODE_VGA,
 	.max_intensity		= 0x2f,
 	.default_intensity	= 0x1f,
@@ -564,22 +601,25 @@ static struct corgi_lcd_platform_data corgi_lcdcon_info = {
 	.kick_battery		= corgi_bl_kick_battery,
 };
 
-static struct pxa2xx_spi_chip corgi_lcdcon_chip = {
+static struct pxa2xx_spi_chip corgi_lcdcon_chip =
+{
 	.gpio_cs	= CORGI_GPIO_LCDCON_CS,
 };
 
-static struct pxa2xx_spi_chip corgi_max1111_chip = {
+static struct pxa2xx_spi_chip corgi_max1111_chip =
+{
 	.gpio_cs	= CORGI_GPIO_MAX1111_CS,
 };
 
-static struct spi_board_info corgi_spi_devices[] = {
+static struct spi_board_info corgi_spi_devices[] =
+{
 	{
 		.modalias	= "ads7846",
 		.max_speed_hz	= 1200000,
 		.bus_num	= 1,
 		.chip_select	= 0,
 		.platform_data	= &corgi_ads7846_info,
-		.controller_data= &corgi_ads7846_chip,
+		.controller_data = &corgi_ads7846_chip,
 		.irq		= PXA_GPIO_TO_IRQ(CORGI_GPIO_TP_INT),
 	}, {
 		.modalias	= "corgi-lcd",
@@ -587,13 +627,13 @@ static struct spi_board_info corgi_spi_devices[] = {
 		.bus_num	= 1,
 		.chip_select	= 1,
 		.platform_data	= &corgi_lcdcon_info,
-		.controller_data= &corgi_lcdcon_chip,
+		.controller_data = &corgi_lcdcon_chip,
 	}, {
 		.modalias	= "max1111",
 		.max_speed_hz	= 450000,
 		.bus_num	= 1,
 		.chip_select	= 2,
-		.controller_data= &corgi_max1111_chip,
+		.controller_data = &corgi_max1111_chip,
 	},
 };
 
@@ -606,7 +646,8 @@ static void __init corgi_init_spi(void)
 static inline void corgi_init_spi(void) {}
 #endif
 
-static struct mtd_partition sharpsl_nand_partitions[] = {
+static struct mtd_partition sharpsl_nand_partitions[] =
+{
 	{
 		.name = "System Area",
 		.offset = 0,
@@ -626,20 +667,23 @@ static struct mtd_partition sharpsl_nand_partitions[] = {
 
 static uint8_t scan_ff_pattern[] = { 0xff, 0xff };
 
-static struct nand_bbt_descr sharpsl_bbt = {
+static struct nand_bbt_descr sharpsl_bbt =
+{
 	.options = 0,
 	.offs = 4,
 	.len = 2,
 	.pattern = scan_ff_pattern
 };
 
-static struct sharpsl_nand_platform_data sharpsl_nand_platform_data = {
+static struct sharpsl_nand_platform_data sharpsl_nand_platform_data =
+{
 	.badblock_pattern	= &sharpsl_bbt,
 	.partitions		= sharpsl_nand_partitions,
 	.nr_partitions		= ARRAY_SIZE(sharpsl_nand_partitions),
 };
 
-static struct resource sharpsl_nand_resources[] = {
+static struct resource sharpsl_nand_resources[] =
+{
 	{
 		.start	= 0x0C000000,
 		.end	= 0x0C000FFF,
@@ -647,7 +691,8 @@ static struct resource sharpsl_nand_resources[] = {
 	},
 };
 
-static struct platform_device sharpsl_nand_device = {
+static struct platform_device sharpsl_nand_device =
+{
 	.name		= "sharpsl-nand",
 	.id		= -1,
 	.resource	= sharpsl_nand_resources,
@@ -655,21 +700,24 @@ static struct platform_device sharpsl_nand_device = {
 	.dev.platform_data	= &sharpsl_nand_platform_data,
 };
 
-static struct mtd_partition sharpsl_rom_parts[] = {
+static struct mtd_partition sharpsl_rom_parts[] =
+{
 	{
-		.name	="Boot PROM Filesystem",
+		.name	= "Boot PROM Filesystem",
 		.offset	= 0x00120000,
 		.size	= MTDPART_SIZ_FULL,
 	},
 };
 
-static struct physmap_flash_data sharpsl_rom_data = {
+static struct physmap_flash_data sharpsl_rom_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(sharpsl_rom_parts),
 	.parts		= sharpsl_rom_parts,
 };
 
-static struct resource sharpsl_rom_resources[] = {
+static struct resource sharpsl_rom_resources[] =
+{
 	{
 		.start	= 0x00000000,
 		.end	= 0x007fffff,
@@ -677,7 +725,8 @@ static struct resource sharpsl_rom_resources[] = {
 	},
 };
 
-static struct platform_device sharpsl_rom_device = {
+static struct platform_device sharpsl_rom_device =
+{
 	.name	= "physmap-flash",
 	.id	= -1,
 	.resource = sharpsl_rom_resources,
@@ -685,7 +734,8 @@ static struct platform_device sharpsl_rom_device = {
 	.dev.platform_data = &sharpsl_rom_data,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&corgiscoop_device,
 	&corgifb_device,
 	&corgi_gpio_keys_device,
@@ -696,7 +746,8 @@ static struct platform_device *devices[] __initdata = {
 	&sharpsl_rom_device,
 };
 
-static struct i2c_board_info __initdata corgi_i2c_devices[] = {
+static struct i2c_board_info __initdata corgi_i2c_devices[] =
+{
 	{ I2C_BOARD_INFO("wm8731", 0x1b) },
 };
 
@@ -704,7 +755,9 @@ static void corgi_poweroff(void)
 {
 	if (!machine_is_corgi())
 		/* Green LED off tells the bootloader to halt */
+	{
 		gpio_set_value(CORGI_GPIO_LED_GREEN, 0);
+	}
 
 	pxa_restart(REBOOT_HARD, NULL);
 }
@@ -713,7 +766,9 @@ static void corgi_restart(enum reboot_mode mode, const char *cmd)
 {
 	if (!machine_is_corgi())
 		/* Green LED on tells the bootloader to reboot */
+	{
 		gpio_set_value(CORGI_GPIO_LED_GREEN, 1);
+	}
 
 	pxa_restart(REBOOT_HARD, cmd);
 }
@@ -734,7 +789,9 @@ static void __init corgi_init(void)
 	gpio_set_wake(CORGI_GPIO_CHRG_FULL, 1);
 
 	if (!machine_is_corgi())
+	{
 		gpio_set_wake(CORGI_GPIO_MAIN_BAT_LOW, 1);
+	}
 
 	pxa_set_ffuart_info(NULL);
 	pxa_set_btuart_info(NULL);
@@ -742,7 +799,7 @@ static void __init corgi_init(void)
 
 	corgi_init_spi();
 
- 	pxa_set_udc_info(&udc_info);
+	pxa_set_udc_info(&udc_info);
 	pxa_set_mci_info(&corgi_mci_platform_data);
 	pxa_set_ficp_info(&corgi_ficp_platform_data);
 	pxa_set_i2c_info(NULL);
@@ -751,7 +808,9 @@ static void __init corgi_init(void)
 	platform_scoop_config = &corgi_pcmcia_config;
 
 	if (machine_is_husky())
+	{
 		sharpsl_nand_partitions[1].size = 53 * 1024 * 1024;
+	}
 
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 
@@ -761,14 +820,19 @@ static void __init corgi_init(void)
 static void __init fixup_corgi(struct tag *tags, char **cmdline)
 {
 	sharpsl_save_param();
+
 	if (machine_is_corgi())
+	{
 		memblock_add(0xa0000000, SZ_32M);
+	}
 	else
+	{
 		memblock_add(0xa0000000, SZ_64M);
+	}
 }
 
 #ifdef CONFIG_MACH_CORGI
-MACHINE_START(CORGI, "SHARP Corgi")
+	MACHINE_START(CORGI, "SHARP Corgi")
 	.fixup		= fixup_corgi,
 	.map_io		= pxa25x_map_io,
 	.nr_irqs	= PXA_NR_IRQS,
@@ -777,11 +841,11 @@ MACHINE_START(CORGI, "SHARP Corgi")
 	.init_machine	= corgi_init,
 	.init_time	= pxa_timer_init,
 	.restart	= corgi_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_SHEPHERD
-MACHINE_START(SHEPHERD, "SHARP Shepherd")
+	MACHINE_START(SHEPHERD, "SHARP Shepherd")
 	.fixup		= fixup_corgi,
 	.map_io		= pxa25x_map_io,
 	.nr_irqs	= PXA_NR_IRQS,
@@ -790,11 +854,11 @@ MACHINE_START(SHEPHERD, "SHARP Shepherd")
 	.init_machine	= corgi_init,
 	.init_time	= pxa_timer_init,
 	.restart	= corgi_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_HUSKY
-MACHINE_START(HUSKY, "SHARP Husky")
+	MACHINE_START(HUSKY, "SHARP Husky")
 	.fixup		= fixup_corgi,
 	.map_io		= pxa25x_map_io,
 	.nr_irqs	= PXA_NR_IRQS,
@@ -803,6 +867,6 @@ MACHINE_START(HUSKY, "SHARP Husky")
 	.init_machine	= corgi_init,
 	.init_time	= pxa_timer_init,
 	.restart	= corgi_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 

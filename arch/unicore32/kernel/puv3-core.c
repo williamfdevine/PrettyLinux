@@ -46,7 +46,8 @@ unsigned long long sched_clock(void)
 	return v;
 }
 
-static struct resource puv3_usb_resources[] = {
+static struct resource puv3_usb_resources[] =
+{
 	/* order is significant! */
 	{
 		.start		= io_v2p(PKUNITY_USB_BASE),
@@ -61,7 +62,8 @@ static struct resource puv3_usb_resources[] = {
 	},
 };
 
-static struct musb_hdrc_config	puv3_usb_config[] = {
+static struct musb_hdrc_config	puv3_usb_config[] =
+{
 	{
 		.num_eps = 16,
 		.multipoint = 1,
@@ -72,14 +74,16 @@ static struct musb_hdrc_config	puv3_usb_config[] = {
 	},
 };
 
-static struct musb_hdrc_platform_data puv3_usb_plat = {
+static struct musb_hdrc_platform_data puv3_usb_plat =
+{
 	.mode		= MUSB_HOST,
 	.min_power	= 100,
 	.clock		= 0,
 	.config		= puv3_usb_config,
 };
 
-static struct resource puv3_mmc_resources[] = {
+static struct resource puv3_mmc_resources[] =
+{
 	[0] = {
 		.start	= io_v2p(PKUNITY_SDC_BASE),
 		.end	= io_v2p(PKUNITY_SDC_BASE) + 0xfff,
@@ -92,7 +96,8 @@ static struct resource puv3_mmc_resources[] = {
 	},
 };
 
-static struct resource puv3_unigfx_resources[] = {
+static struct resource puv3_unigfx_resources[] =
+{
 	[0] = {
 		.start	= io_v2p(PKUNITY_UNIGFX_BASE),
 		.end	= io_v2p(PKUNITY_UNIGFX_BASE) + 0xfff,
@@ -100,7 +105,8 @@ static struct resource puv3_unigfx_resources[] = {
 	},
 };
 
-static struct resource puv3_rtc_resources[] = {
+static struct resource puv3_rtc_resources[] =
+{
 	[0] = {
 		.start = io_v2p(PKUNITY_RTC_BASE),
 		.end   = io_v2p(PKUNITY_RTC_BASE) + 0xff,
@@ -118,7 +124,8 @@ static struct resource puv3_rtc_resources[] = {
 	}
 };
 
-static struct resource puv3_pwm_resources[] = {
+static struct resource puv3_pwm_resources[] =
+{
 	[0] = {
 		.start	= io_v2p(PKUNITY_OST_BASE) + 0x80,
 		.end	= io_v2p(PKUNITY_OST_BASE) + 0xff,
@@ -126,7 +133,8 @@ static struct resource puv3_pwm_resources[] = {
 	},
 };
 
-static struct resource puv3_uart0_resources[] = {
+static struct resource puv3_uart0_resources[] =
+{
 	[0] = {
 		.start = io_v2p(PKUNITY_UART0_BASE),
 		.end   = io_v2p(PKUNITY_UART0_BASE) + 0xff,
@@ -139,7 +147,8 @@ static struct resource puv3_uart0_resources[] = {
 	}
 };
 
-static struct resource puv3_uart1_resources[] = {
+static struct resource puv3_uart1_resources[] =
+{
 	[0] = {
 		.start = io_v2p(PKUNITY_UART1_BASE),
 		.end   = io_v2p(PKUNITY_UART1_BASE) + 0xff,
@@ -152,7 +161,8 @@ static struct resource puv3_uart1_resources[] = {
 	}
 };
 
-static struct resource puv3_umal_resources[] = {
+static struct resource puv3_umal_resources[] =
+{
 	[0] = {
 		.start = io_v2p(PKUNITY_UMAL_BASE),
 		.end   = io_v2p(PKUNITY_UMAL_BASE) + 0x1fff,
@@ -175,7 +185,8 @@ static struct resource puv3_umal_resources[] = {
  * More ones like CP and general purpose register values are preserved
  * with the stack pointer in sleep.S.
  */
-enum {
+enum
+{
 	SLEEP_SAVE_PM_PLLDDRCFG,
 	SLEEP_SAVE_COUNT
 };
@@ -183,12 +194,12 @@ enum {
 
 static void puv3_cpu_pm_save(unsigned long *sleep_save)
 {
-/*	SAVE(PM_PLLDDRCFG); */
+	/*	SAVE(PM_PLLDDRCFG); */
 }
 
 static void puv3_cpu_pm_restore(unsigned long *sleep_save)
 {
-/*	RESTORE(PM_PLLDDRCFG); */
+	/*	RESTORE(PM_PLLDDRCFG); */
 }
 
 static int puv3_cpu_pm_prepare(void)
@@ -202,16 +213,17 @@ static void puv3_cpu_pm_enter(suspend_state_t state)
 {
 	/* Clear reset status */
 	writel(RESETC_RSSR_HWR | RESETC_RSSR_WDR
-			| RESETC_RSSR_SMR | RESETC_RSSR_SWR, RESETC_RSSR);
+		   | RESETC_RSSR_SMR | RESETC_RSSR_SWR, RESETC_RSSR);
 
-	switch (state) {
-/*	case PM_SUSPEND_ON:
-		puv3_cpu_idle();
-		break; */
-	case PM_SUSPEND_MEM:
-		puv3_cpu_pm_prepare();
-		puv3_cpu_suspend(PM_PMCR_SFB);
-		break;
+	switch (state)
+	{
+		/*	case PM_SUSPEND_ON:
+				puv3_cpu_idle();
+				break; */
+		case PM_SUSPEND_MEM:
+			puv3_cpu_pm_prepare();
+			puv3_cpu_suspend(PM_PMCR_SFB);
+			break;
 	}
 }
 
@@ -226,7 +238,8 @@ static void puv3_cpu_pm_finish(void)
 	/* PSPR = 0; */
 }
 
-static struct puv3_cpu_pm_fns puv3_cpu_pm_fnss = {
+static struct puv3_cpu_pm_fns puv3_cpu_pm_fnss =
+{
 	.save_count	= SLEEP_SAVE_COUNT,
 	.valid		= puv3_cpu_pm_valid,
 	.save		= puv3_cpu_pm_save,
@@ -258,22 +271,22 @@ void __init puv3_core_init(void)
 	puv3_ps2_init();
 
 	platform_device_register_simple("PKUnity-v3-RTC", -1,
-			puv3_rtc_resources, ARRAY_SIZE(puv3_rtc_resources));
+									puv3_rtc_resources, ARRAY_SIZE(puv3_rtc_resources));
 	platform_device_register_simple("PKUnity-v3-UMAL", -1,
-			puv3_umal_resources, ARRAY_SIZE(puv3_umal_resources));
+									puv3_umal_resources, ARRAY_SIZE(puv3_umal_resources));
 	platform_device_register_simple("PKUnity-v3-MMC", -1,
-			puv3_mmc_resources, ARRAY_SIZE(puv3_mmc_resources));
+									puv3_mmc_resources, ARRAY_SIZE(puv3_mmc_resources));
 	platform_device_register_simple("PKUnity-v3-UNIGFX", -1,
-			puv3_unigfx_resources, ARRAY_SIZE(puv3_unigfx_resources));
+									puv3_unigfx_resources, ARRAY_SIZE(puv3_unigfx_resources));
 	platform_device_register_simple("PKUnity-v3-PWM", -1,
-			puv3_pwm_resources, ARRAY_SIZE(puv3_pwm_resources));
+									puv3_pwm_resources, ARRAY_SIZE(puv3_pwm_resources));
 	platform_device_register_simple("PKUnity-v3-UART", 0,
-			puv3_uart0_resources, ARRAY_SIZE(puv3_uart0_resources));
+									puv3_uart0_resources, ARRAY_SIZE(puv3_uart0_resources));
 	platform_device_register_simple("PKUnity-v3-UART", 1,
-			puv3_uart1_resources, ARRAY_SIZE(puv3_uart1_resources));
+									puv3_uart1_resources, ARRAY_SIZE(puv3_uart1_resources));
 	platform_device_register_simple("PKUnity-v3-AC97", -1, NULL, 0);
 	platform_device_register_resndata(NULL, "musb_hdrc", -1,
-			puv3_usb_resources, ARRAY_SIZE(puv3_usb_resources),
-			&puv3_usb_plat, sizeof(puv3_usb_plat));
+									  puv3_usb_resources, ARRAY_SIZE(puv3_usb_resources),
+									  &puv3_usb_plat, sizeof(puv3_usb_plat));
 }
 

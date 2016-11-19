@@ -29,7 +29,8 @@ static void __init spear1310_dt_init(void)
 	platform_device_register_simple("spear-cpufreq", -1, NULL, 0);
 }
 
-static const char * const spear1310_dt_board_compat[] = {
+static const char *const spear1310_dt_board_compat[] =
+{
 	"st,spear1310",
 	"st,spear1310-evb",
 	NULL,
@@ -40,7 +41,8 @@ static const char * const spear1310_dt_board_compat[] = {
  * PHYSICAL		VIRTUAL
  * 0xD8000000		0xFA000000
  */
-static struct map_desc spear1310_io_desc[] __initdata = {
+static struct map_desc spear1310_io_desc[] __initdata =
+{
 	{
 		.virtual	= VA_SPEAR1310_RAS_GRP1_BASE,
 		.pfn		= __phys_to_pfn(SPEAR1310_RAS_GRP1_BASE),
@@ -56,10 +58,10 @@ static void __init spear1310_map_io(void)
 }
 
 DT_MACHINE_START(SPEAR1310_DT, "ST SPEAr1310 SoC with Flattened Device Tree")
-	.smp		=	smp_ops(spear13xx_smp_ops),
-	.map_io		=	spear1310_map_io,
-	.init_time	=	spear13xx_timer_init,
-	.init_machine	=	spear1310_dt_init,
-	.restart	=	spear_restart,
-	.dt_compat	=	spear1310_dt_board_compat,
-MACHINE_END
+.smp		=	smp_ops(spear13xx_smp_ops),
+	   .map_io		=	spear1310_map_io,
+		   .init_time	=	spear13xx_timer_init,
+			 .init_machine	=	spear1310_dt_init,
+				.restart	=	spear_restart,
+					.dt_compat	=	spear1310_dt_board_compat,
+					  MACHINE_END

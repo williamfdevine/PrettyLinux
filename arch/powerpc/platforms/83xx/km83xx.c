@@ -57,13 +57,18 @@ static void quirk_mpc8360e_qe_enet10(void)
 	int	ret;
 
 	np_par = of_find_node_by_name(NULL, "par_io");
-	if (np_par == NULL) {
+
+	if (np_par == NULL)
+	{
 		pr_warn("%s couldn;t find par_io node\n", __func__);
 		return;
 	}
+
 	/* Map Parallel I/O ports registers */
 	ret = of_address_to_resource(np_par, 0, &res);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("%s couldn;t map par_io registers\n", __func__);
 		return;
 	}
@@ -90,13 +95,16 @@ static void quirk_mpc8360e_qe_enet10(void)
 	 */
 	clrsetbits_be32((base + 0xac), 0x0000cff0, 0x00004550);
 
-	if (SVR_REV(svid) == 0x0021) {
+	if (SVR_REV(svid) == 0x0021)
+	{
 		/*
 		 * UCC2 option 1: write 0b1010 to bits 24:27
 		 * at address IMMRBAR+0x14AC
 		 */
 		clrsetbits_be32((base + 0xac), 0x000000f0, 0x000000a0);
-	} else if (SVR_REV(svid) == 0x0020) {
+	}
+	else if (SVR_REV(svid) == 0x0020)
+	{
 		/*
 		 * UCC1: write 0b11 to bits 18:19
 		 * at address IMMRBAR+0x14A8
@@ -115,6 +123,7 @@ static void quirk_mpc8360e_qe_enet10(void)
 		 */
 		setbits32((base + 0xac), 0x0000c000);
 	}
+
 	iounmap(base);
 	of_node_put(np_par);
 }
@@ -134,30 +143,36 @@ static void __init mpc83xx_km_setup_arch(void)
 
 #ifdef CONFIG_QUICC_ENGINE
 	np = of_find_node_by_name(NULL, "par_io");
-	if (np != NULL) {
+
+	if (np != NULL)
+	{
 		par_io_init(np);
 		of_node_put(np);
 
 		for_each_node_by_name(np, "spi")
-			par_io_of_config(np);
+		par_io_of_config(np);
 
 		for_each_node_by_name(np, "ucc")
-			par_io_of_config(np);
+		par_io_of_config(np);
 
 		/* Only apply this quirk when par_io is available */
 		np = of_find_compatible_node(NULL, "network", "ucc_geth");
-		if (np != NULL) {
+
+		if (np != NULL)
+		{
 			quirk_mpc8360e_qe_enet10();
 			of_node_put(np);
 		}
 	}
+
 #endif	/* CONFIG_QUICC_ENGINE */
 }
 
 machine_device_initcall(mpc83xx_km, mpc83xx_declare_of_platform_devices);
 
 /* list of the supported boards */
-static char *board[] __initdata = {
+static char *board[] __initdata =
+{
 	"Keymile,KMETER1",
 	"Keymile,kmpbec8321",
 	NULL
@@ -170,22 +185,28 @@ static int __init mpc83xx_km_probe(void)
 {
 	int i = 0;
 
-	while (board[i]) {
+	while (board[i])
+	{
 		if (of_machine_is_compatible(board[i]))
+		{
 			break;
+		}
+
 		i++;
 	}
+
 	return (board[i] != NULL);
 }
 
-define_machine(mpc83xx_km) {
+define_machine(mpc83xx_km)
+{
 	.name		= "mpc83xx-km-platform",
-	.probe		= mpc83xx_km_probe,
-	.setup_arch	= mpc83xx_km_setup_arch,
-	.init_IRQ	= mpc83xx_ipic_and_qe_init_IRQ,
-	.get_irq	= ipic_get_irq,
-	.restart	= mpc83xx_restart,
-	.time_init	= mpc83xx_time_init,
-	.calibrate_decr	= generic_calibrate_decr,
-	.progress	= udbg_progress,
+		  .probe		= mpc83xx_km_probe,
+			   .setup_arch	= mpc83xx_km_setup_arch,
+				.init_IRQ	= mpc83xx_ipic_and_qe_init_IRQ,
+				   .get_irq	= ipic_get_irq,
+					   .restart	= mpc83xx_restart,
+						   .time_init	= mpc83xx_time_init,
+							 .calibrate_decr	= generic_calibrate_decr,
+							  .progress	= udbg_progress,
 };

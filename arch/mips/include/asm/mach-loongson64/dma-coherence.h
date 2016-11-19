@@ -12,7 +12,7 @@
 #define __ASM_MACH_LOONGSON64_DMA_COHERENCE_H
 
 #ifdef CONFIG_SWIOTLB
-#include <linux/swiotlb.h>
+	#include <linux/swiotlb.h>
 #endif
 
 struct device;
@@ -20,7 +20,7 @@ struct device;
 extern dma_addr_t phys_to_dma(struct device *dev, phys_addr_t paddr);
 extern phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr);
 static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr,
-					  size_t size)
+		size_t size)
 {
 #ifdef CONFIG_CPU_LOONGSON3
 	return phys_to_dma(dev, virt_to_phys(addr));
@@ -30,7 +30,7 @@ static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr,
 }
 
 static inline dma_addr_t plat_map_dma_mem_page(struct device *dev,
-					       struct page *page)
+		struct page *page)
 {
 #ifdef CONFIG_CPU_LOONGSON3
 	return phys_to_dma(dev, page_to_phys(page));
@@ -40,7 +40,7 @@ static inline dma_addr_t plat_map_dma_mem_page(struct device *dev,
 }
 
 static inline unsigned long plat_dma_addr_to_phys(struct device *dev,
-	dma_addr_t dma_addr)
+		dma_addr_t dma_addr)
 {
 #if defined(CONFIG_CPU_LOONGSON3) && defined(CONFIG_64BIT)
 	return dma_to_phys(dev, dma_addr);
@@ -52,7 +52,7 @@ static inline unsigned long plat_dma_addr_to_phys(struct device *dev,
 }
 
 static inline void plat_unmap_dma_mem(struct device *dev, dma_addr_t dma_addr,
-	size_t size, enum dma_data_direction direction)
+									  size_t size, enum dma_data_direction direction)
 {
 }
 
@@ -64,7 +64,9 @@ static inline int plat_dma_supported(struct device *dev, u64 mask)
 	 * within a tighter range than GFP_DMA..
 	 */
 	if (mask < DMA_BIT_MASK(24))
+	{
 		return 0;
+	}
 
 	return 1;
 }

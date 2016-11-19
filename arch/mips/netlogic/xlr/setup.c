@@ -67,8 +67,11 @@ static void nlm_linux_exit(void)
 	gpiobase = nlm_mmio_base(NETLOGIC_IO_GPIO_OFFSET);
 	/* trigger a chip reset by writing 1 to GPIO_SWRESET_REG */
 	nlm_write_reg(gpiobase, GPIO_SWRESET_REG, 1);
+
 	for ( ; ; )
+	{
 		cpu_wait();
+	}
 }
 
 void __init plat_mem_setup(void)
@@ -96,7 +99,9 @@ void __init prom_free_prom_memory(void)
 void nlm_percpu_init(int hwcpuid)
 {
 	if (hwcpuid % 4 == 0)
+	{
 		xlr_percpu_fmn_init();
+	}
 }
 
 static void __init build_arcs_cmdline(int *argv)
@@ -106,34 +111,53 @@ static void __init build_arcs_cmdline(int *argv)
 
 	remain = sizeof(arcs_cmdline) - 1;
 	arcs_cmdline[0] = '\0';
-	for (i = 0; argv[i] != 0; i++) {
+
+	for (i = 0; argv[i] != 0; i++)
+	{
 		arg = (char *)(long)argv[i];
 		len = strlen(arg);
+
 		if (len + 1 > remain)
+		{
 			break;
+		}
+
 		strcat(arcs_cmdline, arg);
 		strcat(arcs_cmdline, " ");
 		remain -=  len + 1;
 	}
 
 	/* Add the default options here */
-	if ((strstr(arcs_cmdline, "console=")) == NULL) {
+	if ((strstr(arcs_cmdline, "console=")) == NULL)
+	{
 		arg = "console=ttyS0,38400 ";
 		len = strlen(arg);
+
 		if (len > remain)
+		{
 			goto fail;
+		}
+
 		strcat(arcs_cmdline, arg);
 		remain -= len;
 	}
+
 #ifdef CONFIG_BLK_DEV_INITRD
-	if ((strstr(arcs_cmdline, "rdinit=")) == NULL) {
+
+	if ((strstr(arcs_cmdline, "rdinit=")) == NULL)
+	{
 		arg = "rdinit=/sbin/init ";
 		len = strlen(arg);
+
 		if (len > remain)
+		{
 			goto fail;
+		}
+
 		strcat(arcs_cmdline, arg);
 		remain -= len;
 	}
+
 #endif
 	return;
 fail:
@@ -148,15 +172,22 @@ static void prom_add_memory(void)
 	int i;
 
 	bootm = (void *)(long)nlm_prom_info.psb_mem_map;
-	for (i = 0; i < bootm->nr_map; i++) {
+
+	for (i = 0; i < bootm->nr_map; i++)
+	{
 		if (bootm->map[i].type != BOOT_MEM_RAM)
+		{
 			continue;
+		}
+
 		start = bootm->map[i].addr;
 		size   = bootm->map[i].size;
 
 		/* Work around for using bootloader mem */
 		if (i == 0 && start == 0 && size == 0x0c000000)
+		{
 			size = 0x0ff00000;
+		}
 
 		add_memory_region(start, size - pref_backup, BOOT_MEM_RAM);
 	}
@@ -193,15 +224,19 @@ void __init prom_init(void)
 	reset_vec = (void *)CKSEG1ADDR(RESET_VEC_PHYS);
 	memset(reset_vec, 0, RESET_VEC_SIZE);
 	memcpy(reset_vec, (void *)nlm_reset_entry,
-			(nlm_reset_entry_end - nlm_reset_entry));
+		   (nlm_reset_entry_end - nlm_reset_entry));
 
 	build_arcs_cmdline(argv);
 	prom_add_memory();
 
 #ifdef CONFIG_SMP
+
 	for (i = 0; i < 32; i++)
 		if (nlm_prom_info.online_cpu_map & (1 << i))
+		{
 			cpumask_set_cpu(i, &nlm_cpumask);
+		}
+
 	nlm_wakeup_secondary_cpus();
 	register_smp_ops(&nlm_smp_ops);
 #endif

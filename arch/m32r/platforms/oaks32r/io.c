@@ -20,7 +20,7 @@ static inline void *_port2addr(unsigned long port)
 
 static inline  void *_port2addr_ne(unsigned long port)
 {
-	return (void *)((port<<1) + NONCACHE_OFFSET + 0x02000000);
+	return (void *)((port << 1) + NONCACHE_OFFSET + 0x02000000);
 }
 
 static inline void delay(void)
@@ -36,7 +36,7 @@ static inline void delay(void)
 
 static inline unsigned char _ne_inb(void *portp)
 {
-	return *(volatile unsigned char *)(portp+1);
+	return *(volatile unsigned char *)(portp + 1);
 }
 
 static inline unsigned short _ne_inw(void *portp)
@@ -44,32 +44,37 @@ static inline unsigned short _ne_inw(void *portp)
 	unsigned short tmp;
 
 	tmp = *(unsigned short *)(portp) & 0xff;
-	tmp |= *(unsigned short *)(portp+2) << 8;
+	tmp |= *(unsigned short *)(portp + 2) << 8;
 	return tmp;
 }
 
 static inline  void _ne_insb(void *portp, void *addr, unsigned long count)
 {
 	unsigned char *buf = addr;
+
 	while (count--)
-		*buf++ = *(volatile unsigned char *)(portp+1);
+	{
+		*buf++ = *(volatile unsigned char *)(portp + 1);
+	}
 }
 
 static inline void _ne_outb(unsigned char b, void *portp)
 {
-	*(volatile unsigned char *)(portp+1) = b;
+	*(volatile unsigned char *)(portp + 1) = b;
 }
 
 static inline void _ne_outw(unsigned short w, void *portp)
 {
 	*(volatile unsigned short *)portp =  (w >> 8);
-	*(volatile unsigned short *)(portp+2) =  (w & 0xff);
+	*(volatile unsigned short *)(portp + 2) =  (w & 0xff);
 }
 
 unsigned char _inb(unsigned long port)
 {
 	if (port >= 0x300 && port < 0x320)
+	{
 		return _ne_inb(PORT2ADDR_NE(port));
+	}
 
 	return *(volatile unsigned char *)PORT2ADDR(port);
 }
@@ -77,7 +82,9 @@ unsigned char _inb(unsigned long port)
 unsigned short _inw(unsigned long port)
 {
 	if (port >= 0x300 && port < 0x320)
+	{
 		return _ne_inw(PORT2ADDR_NE(port));
+	}
 
 	return *(volatile unsigned short *)PORT2ADDR(port);
 }
@@ -111,17 +118,25 @@ unsigned long _inl_p(unsigned long port)
 void _outb(unsigned char b, unsigned long port)
 {
 	if (port >= 0x300 && port < 0x320)
+	{
 		_ne_outb(b, PORT2ADDR_NE(port));
+	}
 	else
+	{
 		*(volatile unsigned char *)PORT2ADDR(port) = b;
+	}
 }
 
 void _outw(unsigned short w, unsigned long port)
 {
 	if (port >= 0x300 && port < 0x320)
+	{
 		_ne_outw(w, PORT2ADDR_NE(port));
+	}
 	else
+	{
 		*(volatile unsigned short *)PORT2ADDR(port) = w;
+	}
 }
 
 void _outl(unsigned long l, unsigned long port)
@@ -150,12 +165,18 @@ void _outl_p(unsigned long l, unsigned long port)
 void _insb(unsigned int port, void *addr, unsigned long count)
 {
 	if (port >= 0x300 && port < 0x320)
+	{
 		_ne_insb(PORT2ADDR_NE(port), addr, count);
-	else {
+	}
+	else
+	{
 		unsigned char *buf = addr;
 		unsigned char *portp = PORT2ADDR(port);
+
 		while (count--)
+		{
 			*buf++ = *(volatile unsigned char *)portp;
+		}
 	}
 }
 
@@ -164,14 +185,23 @@ void _insw(unsigned int port, void *addr, unsigned long count)
 	unsigned short *buf = addr;
 	unsigned short *portp;
 
-	if (port >= 0x300 && port < 0x320) {
+	if (port >= 0x300 && port < 0x320)
+	{
 		portp = PORT2ADDR_NE(port);
+
 		while (count--)
+		{
 			*buf++ = _ne_inw(portp);
-	} else {
+		}
+	}
+	else
+	{
 		portp = PORT2ADDR(port);
+
 		while (count--)
+		{
 			*buf++ = *(volatile unsigned short *)portp;
+		}
 	}
 }
 
@@ -181,8 +211,11 @@ void _insl(unsigned int port, void *addr, unsigned long count)
 	unsigned long *portp;
 
 	portp = PORT2ADDR(port);
+
 	while (count--)
+	{
 		*buf++ = *(volatile unsigned long *)portp;
+	}
 }
 
 void _outsb(unsigned int port, const void *addr, unsigned long count)
@@ -190,14 +223,23 @@ void _outsb(unsigned int port, const void *addr, unsigned long count)
 	const unsigned char *buf = addr;
 	unsigned char *portp;
 
-	if (port >= 0x300 && port < 0x320) {
+	if (port >= 0x300 && port < 0x320)
+	{
 		portp = PORT2ADDR_NE(port);
+
 		while (count--)
+		{
 			_ne_outb(*buf++, portp);
-	} else {
+		}
+	}
+	else
+	{
 		portp = PORT2ADDR(port);
+
 		while (count--)
+		{
 			*(volatile unsigned char *)portp = *buf++;
+		}
 	}
 }
 
@@ -206,14 +248,23 @@ void _outsw(unsigned int port, const void *addr, unsigned long count)
 	const unsigned short *buf = addr;
 	unsigned short *portp;
 
-	if (port >= 0x300 && port < 0x320) {
+	if (port >= 0x300 && port < 0x320)
+	{
 		portp = PORT2ADDR_NE(port);
+
 		while (count--)
+		{
 			_ne_outw(*buf++, portp);
-	} else {
+		}
+	}
+	else
+	{
 		portp = PORT2ADDR(port);
+
 		while (count--)
+		{
 			*(volatile unsigned short *)portp = *buf++;
+		}
 	}
 }
 
@@ -223,6 +274,9 @@ void _outsl(unsigned int port, const void *addr, unsigned long count)
 	unsigned char *portp;
 
 	portp = PORT2ADDR(port);
+
 	while (count--)
+	{
 		*(volatile unsigned long *)portp = *buf++;
+	}
 }

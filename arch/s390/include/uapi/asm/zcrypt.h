@@ -44,13 +44,14 @@
  * - length(b_key) = inputdatalength
  * - length(n_modulus) = inputdatalength
  */
-struct ica_rsa_modexpo {
-	char __user *	inputdata;
+struct ica_rsa_modexpo
+{
+	char __user 	*inputdata;
 	unsigned int	inputdatalength;
-	char __user *	outputdata;
+	char __user 	*outputdata;
 	unsigned int	outputdatalength;
-	char __user *	b_key;
-	char __user *	n_modulus;
+	char __user 	*b_key;
+	char __user 	*n_modulus;
 };
 
 /**
@@ -67,16 +68,17 @@ struct ica_rsa_modexpo {
  * - length(nq_key)	= inputdatalength/2
  * - length(u_mult_inv) = inputdatalength/2 + 8
  */
-struct ica_rsa_modexpo_crt {
-	char __user *	inputdata;
+struct ica_rsa_modexpo_crt
+{
+	char __user 	*inputdata;
 	unsigned int	inputdatalength;
-	char __user *	outputdata;
+	char __user 	*outputdata;
 	unsigned int	outputdatalength;
-	char __user *	bp_key;
-	char __user *	bq_key;
-	char __user *	np_prime;
-	char __user *	nq_prime;
-	char __user *	u_mult_inv;
+	char __user 	*bp_key;
+	char __user 	*bq_key;
+	char __user 	*np_prime;
+	char __user 	*nq_prime;
+	char __user 	*u_mult_inv;
 };
 
 /**
@@ -91,7 +93,8 @@ struct ica_rsa_modexpo_crt {
  *	    VUD block
  *	    key block
  */
-struct CPRBX {
+struct CPRBX
+{
 	unsigned short	cprb_len;	/* CPRB length	      220	 */
 	unsigned char	cprb_ver_id;	/* CPRB version id.   0x02	 */
 	unsigned char	pad_000[3];	/* Alignment pad bytes		 */
@@ -107,17 +110,17 @@ struct CPRBX {
 	unsigned char	pad_001[4];	/* reserved			 */
 	unsigned int	rpld_extbl;	/* replied extension block len	 */
 	unsigned char	padx000[16 - sizeof (char *)];
-	unsigned char *	req_parmb;	/* request parm block 'address'	 */
+	unsigned char 	*req_parmb;	/* request parm block 'address'	 */
 	unsigned char	padx001[16 - sizeof (char *)];
-	unsigned char *	req_datab;	/* request data block 'address'	 */
+	unsigned char 	*req_datab;	/* request data block 'address'	 */
 	unsigned char	padx002[16 - sizeof (char *)];
-	unsigned char *	rpl_parmb;	/* reply parm block 'address'	 */
+	unsigned char 	*rpl_parmb;	/* reply parm block 'address'	 */
 	unsigned char	padx003[16 - sizeof (char *)];
-	unsigned char *	rpl_datab;	/* reply data block 'address'	 */
+	unsigned char 	*rpl_datab;	/* reply data block 'address'	 */
 	unsigned char	padx004[16 - sizeof (char *)];
-	unsigned char *	req_extb;	/* request extension block 'addr'*/
+	unsigned char 	*req_extb;	/* request extension block 'addr'*/
 	unsigned char	padx005[16 - sizeof (char *)];
-	unsigned char *	rpl_extb;	/* reply extension block 'address'*/
+	unsigned char 	*rpl_extb;	/* reply extension block 'address'*/
 	unsigned short	ccp_rtcode;	/* server return code		 */
 	unsigned short	ccp_rscode;	/* server reason code		 */
 	unsigned int	mac_data_len;	/* Mac Data Length		 */
@@ -135,22 +138,23 @@ struct CPRBX {
 /**
  * xcRB
  */
-struct ica_xcRB {
+struct ica_xcRB
+{
 	unsigned short	agent_ID;
 	unsigned int	user_defined;
 	unsigned short	request_ID;
 	unsigned int	request_control_blk_length;
 	unsigned char	padding1[16 - sizeof (char *)];
-	char __user *	request_control_blk_addr;
+	char __user 	*request_control_blk_addr;
 	unsigned int	request_data_length;
 	char		padding2[16 - sizeof (char *)];
-	char __user *	request_data_address;
+	char __user 	*request_data_address;
 	unsigned int	reply_control_blk_length;
 	char		padding3[16 - sizeof (char *)];
-	char __user *	reply_control_blk_addr;
+	char __user 	*reply_control_blk_addr;
 	unsigned int	reply_data_length;
 	char		padding4[16 - sizeof (char *)];
-	char __user *	reply_data_addr;
+	char __user 	*reply_data_addr;
 	unsigned short	priority_window;
 	unsigned int	status;
 } __attribute__((packed));
@@ -169,7 +173,8 @@ struct ica_xcRB {
  * @reserved2:		Reserved
  * @payload_len:	Payload length
  */
-struct ep11_cprb {
+struct ep11_cprb
+{
 	uint16_t	cprb_len;
 	unsigned char	cprb_ver_id;
 	unsigned char	pad_000[2];
@@ -188,7 +193,8 @@ struct ep11_cprb {
  * @ap_id:	AP device id
  * @dom_id:	Usage domain id
  */
-struct ep11_target_dev {
+struct ep11_target_dev
+{
 	uint16_t ap_id;
 	uint16_t dom_id;
 };
@@ -204,7 +210,8 @@ struct ep11_target_dev {
  * @resp_len:		Response length
  * @resp:		Addr to response block
  */
-struct ep11_urb {
+struct ep11_urb
+{
 	uint16_t		targets_num;
 	uint64_t		targets;
 	uint64_t		weight;

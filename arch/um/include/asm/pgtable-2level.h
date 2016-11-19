@@ -26,11 +26,11 @@
 #define FIRST_USER_ADDRESS	0UL
 
 #define pte_ERROR(e) \
-        printk("%s:%d: bad pte %p(%08lx).\n", __FILE__, __LINE__, &(e), \
-	       pte_val(e))
+	printk("%s:%d: bad pte %p(%08lx).\n", __FILE__, __LINE__, &(e), \
+		   pte_val(e))
 #define pgd_ERROR(e) \
-        printk("%s:%d: bad pgd %p(%08lx).\n", __FILE__, __LINE__, &(e), \
-	       pgd_val(e))
+	printk("%s:%d: bad pgd %p(%08lx).\n", __FILE__, __LINE__, &(e), \
+		   pgd_val(e))
 
 static inline int pgd_newpage(pgd_t pgd)	{ return 0; }
 static inline void pgd_mkuptodate(pgd_t pgd)	{ }

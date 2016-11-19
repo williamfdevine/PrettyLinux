@@ -17,7 +17,8 @@
 /* THE pt_regs: Defines how regs are saved during entry into kernel */
 
 #ifdef CONFIG_ISA_ARCOMPACT
-struct pt_regs {
+struct pt_regs
+{
 
 	/* Real registers */
 	unsigned long bta;	/* bta_l1, bta_l2, erbta */
@@ -42,14 +43,16 @@ struct pt_regs {
 	 * 	Last word used by Linux for extra state mgmt (syscall-restart)
 	 * For interrupts, use artificial ECR values to note current prio-level
 	 */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-			unsigned long state:8, ecr_vec:8,
-				      ecr_cause:8, ecr_param:8;
+			unsigned long state: 8, ecr_vec: 8,
+					 ecr_cause: 8, ecr_param: 8;
 #else
-			unsigned long ecr_param:8, ecr_cause:8,
-				      ecr_vec:8, state:8;
+			unsigned long ecr_param: 8, ecr_cause: 8,
+					 ecr_vec: 8, state: 8;
 #endif
 		};
 		unsigned long event;
@@ -59,18 +62,21 @@ struct pt_regs {
 };
 #else
 
-struct pt_regs {
+struct pt_regs
+{
 
 	unsigned long orig_r0;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-			unsigned long state:8, ecr_vec:8,
-				      ecr_cause:8, ecr_param:8;
+			unsigned long state: 8, ecr_vec: 8,
+					 ecr_cause: 8, ecr_param: 8;
 #else
-			unsigned long ecr_param:8, ecr_cause:8,
-				      ecr_vec:8, state:8;
+			unsigned long ecr_param: 8, ecr_cause: 8,
+					 ecr_vec: 8, state: 8;
 #endif
 		};
 		unsigned long event;
@@ -102,7 +108,8 @@ struct pt_regs {
 
 /* Callee saved registers - need to be saved only when you are scheduled out */
 
-struct callee_regs {
+struct callee_regs
+{
 	unsigned long r25, r24, r23, r22, r21, r20, r19, r18, r17, r16, r15, r14, r13;
 };
 
@@ -113,13 +120,13 @@ struct callee_regs {
 #define user_mode(regs) (regs->status32 & STATUS_U_MASK)
 
 #define user_stack_pointer(regs)\
-({  unsigned int sp;		\
-	if (user_mode(regs))	\
-		sp = (regs)->sp;\
-	else			\
-		sp = -1;	\
-	sp;			\
-})
+	({  unsigned int sp;		\
+		if (user_mode(regs))	\
+			sp = (regs)->sp;\
+		else			\
+			sp = -1;	\
+		sp;			\
+	})
 
 /* return 1 if PC in delay slot */
 #define delay_mode(regs) ((regs->status32 & STATUS_DE_MASK) == STATUS_DE_MASK)
@@ -133,12 +140,12 @@ struct callee_regs {
 #define syscall_restartable(reg) !(reg->state &  STATE_SCALL_RESTARTED)
 
 #define current_pt_regs()					\
-({								\
-	/* open-coded current_thread_info() */			\
-	register unsigned long sp asm ("sp");			\
-	unsigned long pg_start = (sp & ~(THREAD_SIZE - 1));	\
-	(struct pt_regs *)(pg_start + THREAD_SIZE) - 1;	\
-})
+	({								\
+		/* open-coded current_thread_info() */			\
+		register unsigned long sp asm ("sp");			\
+		unsigned long pg_start = (sp & ~(THREAD_SIZE - 1));	\
+		(struct pt_regs *)(pg_start + THREAD_SIZE) - 1;	\
+	})
 
 static inline long regs_return_value(struct pt_regs *regs)
 {

@@ -4,7 +4,7 @@
  *	mcftimer.h -- ColdFire internal TIMER support defines.
  *
  *	(C) Copyright 1999-2006, Greg Ungerer <gerg@snapgear.com>
- * 	(C) Copyright 2000, Lineo Inc. (www.lineo.com) 
+ * 	(C) Copyright 2000, Lineo Inc. (www.lineo.com)
  */
 
 /****************************************************************************/
@@ -20,9 +20,9 @@
 #define	MCFTIMER_TCR		0x08		/* Timer Capture reg (r/w) */
 #define	MCFTIMER_TCN		0x0C		/* Timer Counter reg (r/w) */
 #if defined(CONFIG_M53xx) || defined(CONFIG_M5441x)
-#define	MCFTIMER_TER		0x03		/* Timer Event reg (r/w) */
+	#define	MCFTIMER_TER		0x03		/* Timer Event reg (r/w) */
 #else
-#define	MCFTIMER_TER		0x11		/* Timer Event reg (r/w) */
+	#define	MCFTIMER_TER		0x11		/* Timer Event reg (r/w) */
 #endif
 
 /*

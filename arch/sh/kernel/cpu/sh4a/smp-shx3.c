@@ -60,13 +60,14 @@ static void shx3_smp_setup(void)
 	 * Do this stupidly for now.. we don't have an easy way to probe
 	 * for the total number of cores.
 	 */
-	for (i = 1, num = 0; i < NR_CPUS; i++) {
+	for (i = 1, num = 0; i < NR_CPUS; i++)
+	{
 		set_cpu_possible(i, true);
 		__cpu_number_map[i] = ++num;
 		__cpu_logical_map[num] = i;
 	}
 
-        printk(KERN_INFO "Detected %i available secondary CPU(s)\n", num);
+	printk(KERN_INFO "Detected %i available secondary CPU(s)\n", num);
 }
 
 static void shx3_prepare_cpus(unsigned int max_cpus)
@@ -77,24 +78,34 @@ static void shx3_prepare_cpus(unsigned int max_cpus)
 
 	for (i = 0; i < SMP_MSG_NR; i++)
 		request_irq(104 + i, ipi_interrupt_handler,
-			    IRQF_PERCPU, "IPI", (void *)(long)i);
+					IRQF_PERCPU, "IPI", (void *)(long)i);
 
 	for (i = 0; i < max_cpus; i++)
+	{
 		set_cpu_present(i, true);
+	}
 }
 
 static void shx3_start_cpu(unsigned int cpu, unsigned long entry_point)
 {
 	if (__in_29bit_mode())
+	{
 		__raw_writel(entry_point, RESET_REG(cpu));
+	}
 	else
+	{
 		__raw_writel(virt_to_phys(entry_point), RESET_REG(cpu));
+	}
 
 	if (!(__raw_readl(STBCR_REG(cpu)) & STBCR_MSTP))
+	{
 		__raw_writel(STBCR_MSTP, STBCR_REG(cpu));
+	}
 
 	while (!(__raw_readl(STBCR_REG(cpu)) & STBCR_MSTP))
+	{
 		cpu_relax();
+	}
 
 	/* Start up secondary processor by sending a reset */
 	__raw_writel(STBCR_RESET | STBCR_LTSLP, STBCR_REG(cpu));
@@ -117,8 +128,12 @@ static void shx3_send_ipi(unsigned int cpu, unsigned int message)
 static void shx3_update_boot_vector(unsigned int cpu)
 {
 	__raw_writel(STBCR_MSTP, STBCR_REG(cpu));
+
 	while (!(__raw_readl(STBCR_REG(cpu)) & STBCR_MSTP))
+	{
 		cpu_relax();
+	}
+
 	__raw_writel(STBCR_RESET, STBCR_REG(cpu));
 }
 
@@ -131,12 +146,13 @@ static int shx3_cpu_prepare(unsigned int cpu)
 static int register_shx3_cpu_notifier(void)
 {
 	cpuhp_setup_state_nocalls(CPUHP_SH_SH3X_PREPARE, "sh/shx3:prepare",
-				  shx3_cpu_prepare, NULL);
+							  shx3_cpu_prepare, NULL);
 	return 0;
 }
 late_initcall(register_shx3_cpu_notifier);
 
-struct plat_smp_ops shx3_smp_ops = {
+struct plat_smp_ops shx3_smp_ops =
+{
 	.smp_setup		= shx3_smp_setup,
 	.prepare_cpus		= shx3_prepare_cpus,
 	.start_cpu		= shx3_start_cpu,

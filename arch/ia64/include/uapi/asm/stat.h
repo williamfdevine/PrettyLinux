@@ -6,7 +6,8 @@
  *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
  */
 
-struct stat {
+struct stat
+{
 	unsigned long	st_dev;
 	unsigned long	st_ino;
 	unsigned long	st_nlink;
@@ -29,7 +30,8 @@ struct stat {
 
 #define STAT_HAVE_NSEC 1
 
-struct ia64_oldstat {
+struct ia64_oldstat
+{
 	unsigned int	st_dev;
 	unsigned int	st_ino;
 	unsigned int	st_mode;

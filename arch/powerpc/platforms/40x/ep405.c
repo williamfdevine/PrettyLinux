@@ -49,7 +49,8 @@ static void __iomem *bcsr_regs;
 /* there's more, can't be bothered typing them tho */
 
 
-static const struct of_device_id ep405_of_bus[] __initconst = {
+static const struct of_device_id ep405_of_bus[] __initconst =
+{
 	{ .compatible = "ibm,plb3", },
 	{ .compatible = "ibm,opb", },
 	{ .compatible = "ibm,ebc", },
@@ -71,25 +72,36 @@ static void __init ep405_init_bcsr(void)
 
 	/* Find the bloody thing & map it */
 	bcsr_node = of_find_compatible_node(NULL, NULL, "ep405-bcsr");
-	if (bcsr_node == NULL) {
+
+	if (bcsr_node == NULL)
+	{
 		printk(KERN_ERR "EP405 BCSR not found !\n");
 		return;
 	}
+
 	bcsr_regs = of_iomap(bcsr_node, 0);
-	if (bcsr_regs == NULL) {
+
+	if (bcsr_regs == NULL)
+	{
 		printk(KERN_ERR "EP405 BCSR failed to map !\n");
 		return;
 	}
 
 	/* Get the irq-routing property and apply the routing to the CPLD */
 	irq_routing = of_get_property(bcsr_node, "irq-routing", NULL);
+
 	if (irq_routing == NULL)
+	{
 		return;
-	for (i = 0; i < 16; i++) {
+	}
+
+	for (i = 0; i < 16; i++)
+	{
 		u8 irq = irq_routing[i];
 		out_8(bcsr_regs + BCSR_XIRQ_SELECT, i);
 		out_8(bcsr_regs + BCSR_XIRQ_ROUTING, irq);
 	}
+
 	in_8(bcsr_regs + BCSR_XIRQ_SELECT);
 	mb();
 	out_8(bcsr_regs + BCSR_GPIO_IRQ_PAR_CTRL, 0xfe);
@@ -106,18 +118,21 @@ static void __init ep405_setup_arch(void)
 static int __init ep405_probe(void)
 {
 	if (!of_machine_is_compatible("ep405"))
+	{
 		return 0;
+	}
 
 	return 1;
 }
 
-define_machine(ep405) {
+define_machine(ep405)
+{
 	.name			= "EP405",
-	.probe			= ep405_probe,
-	.setup_arch		= ep405_setup_arch,
-	.progress		= udbg_progress,
-	.init_IRQ		= uic_init_tree,
-	.get_irq		= uic_get_irq,
-	.restart		= ppc4xx_reset_system,
-	.calibrate_decr		= generic_calibrate_decr,
+			 .probe			= ep405_probe,
+					 .setup_arch		= ep405_setup_arch,
+						 .progress		= udbg_progress,
+							   .init_IRQ		= uic_init_tree,
+									 .get_irq		= uic_get_irq,
+											.restart		= ppc4xx_reset_system,
+												   .calibrate_decr		= generic_calibrate_decr,
 };

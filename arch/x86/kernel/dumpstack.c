@@ -26,13 +26,15 @@ int kstack_depth_to_print = 3 * STACKSLOTS_PER_LINE;
 static int die_counter;
 
 bool in_task_stack(unsigned long *stack, struct task_struct *task,
-		   struct stack_info *info)
+				   struct stack_info *info)
 {
 	unsigned long *begin = task_stack_page(task);
 	unsigned long *end   = task_stack_page(task) + THREAD_SIZE;
 
 	if (stack < begin || stack >= end)
+	{
 		return false;
+	}
 
 	info->type	= STACK_TYPE_TASK;
 	info->begin	= begin;
@@ -43,12 +45,12 @@ bool in_task_stack(unsigned long *stack, struct task_struct *task,
 }
 
 static void printk_stack_address(unsigned long address, int reliable,
-				 char *log_lvl)
+								 char *log_lvl)
 {
 	touch_nmi_watchdog();
 	printk("%s [<%p>] %s%pB\n",
-		log_lvl, (void *)address, reliable ? "" : "? ",
-		(void *)address);
+		   log_lvl, (void *)address, reliable ? "" : "? ",
+		   (void *)address);
 }
 
 void printk_address(unsigned long address)
@@ -57,7 +59,7 @@ void printk_address(unsigned long address)
 }
 
 void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
-			unsigned long *stack, char *log_lvl)
+						unsigned long *stack, char *log_lvl)
 {
 	struct unwind_state state;
 	struct stack_info stack_info = {0};
@@ -82,7 +84,8 @@ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
 	 * - softirq stack
 	 * - hardirq stack
 	 */
-	for (; stack; stack = stack_info.next_sp) {
+	for (; stack; stack = stack_info.next_sp)
+	{
 		const char *str_begin, *str_end;
 
 		/*
@@ -90,14 +93,21 @@ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
 		 * to the bottom of the usable stack.
 		 */
 		if (task_stack_page(task) - (void *)stack < PAGE_SIZE)
+		{
 			stack = task_stack_page(task);
+		}
 
 		if (get_stack_info(stack, task, &stack_info, &visit_mask))
+		{
 			break;
+		}
 
 		stack_type_str(stack_info.type, &str_begin, &str_end);
+
 		if (str_begin)
+		{
 			printk("%s <%s> ", log_lvl, str_begin);
+		}
 
 		/*
 		 * Scan the stack, printing any text addresses we find.  At the
@@ -109,7 +119,8 @@ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
 		 * This also serves as a failsafe option in case the unwinder
 		 * goes off in the weeds.
 		 */
-		for (; stack < stack_info.end; stack++) {
+		for (; stack < stack_info.end; stack++)
+		{
 			unsigned long real_addr;
 			int reliable = 0;
 			unsigned long addr = *stack;
@@ -117,10 +128,14 @@ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
 				unwind_get_return_address_ptr(&state);
 
 			if (!__kernel_text_address(addr))
+			{
 				continue;
+			}
 
 			if (stack == ret_addr_p)
+			{
 				reliable = 1;
+			}
 
 			/*
 			 * When function graph tracing is enabled for a
@@ -132,13 +147,19 @@ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
 			 * tracing was involved.
 			 */
 			real_addr = ftrace_graph_ret_addr(task, &graph_idx,
-							  addr, stack);
+											  addr, stack);
+
 			if (real_addr != addr)
+			{
 				printk_stack_address(addr, 0, log_lvl);
+			}
+
 			printk_stack_address(real_addr, reliable, log_lvl);
 
 			if (!reliable)
+			{
 				continue;
+			}
 
 			/*
 			 * Get the next frame from the unwinder.  No need to
@@ -149,7 +170,9 @@ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
 		}
 
 		if (str_end)
+		{
 			printk("%s <%s> ", log_lvl, str_end);
+		}
 	}
 }
 
@@ -162,7 +185,9 @@ void show_stack(struct task_struct *task, unsigned long *sp)
 	 * if we're printing for %current.
 	 */
 	if (!sp && task == current)
+	{
 		sp = get_stack_pointer(current, NULL);
+	}
 
 	show_stack_log_lvl(task, NULL, sp, "");
 }
@@ -186,12 +211,17 @@ unsigned long oops_begin(void)
 	/* racy, but better than risking deadlock. */
 	raw_local_irq_save(flags);
 	cpu = smp_processor_id();
-	if (!arch_spin_trylock(&die_lock)) {
+
+	if (!arch_spin_trylock(&die_lock))
+	{
 		if (cpu == die_owner)
 			/* nested oops. should stop eventually */;
 		else
+		{
 			arch_spin_lock(&die_lock);
+		}
 	}
+
 	die_nest_count++;
 	die_owner = cpu;
 	console_verbose();
@@ -206,24 +236,38 @@ void __noreturn rewind_stack_do_exit(int signr);
 void oops_end(unsigned long flags, struct pt_regs *regs, int signr)
 {
 	if (regs && kexec_should_crash(current))
+	{
 		crash_kexec(regs);
+	}
 
 	bust_spinlocks(0);
 	die_owner = -1;
 	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
 	die_nest_count--;
+
 	if (!die_nest_count)
 		/* Nest count reaches zero, release the lock. */
+	{
 		arch_spin_unlock(&die_lock);
+	}
+
 	raw_local_irq_restore(flags);
 	oops_exit();
 
 	if (!signr)
+	{
 		return;
+	}
+
 	if (in_interrupt())
+	{
 		panic("Fatal exception in interrupt");
+	}
+
 	if (panic_on_oops)
+	{
 		panic("Fatal exception");
+	}
 
 	/*
 	 * We're not going to return, but we might be on an IST stack or
@@ -241,26 +285,33 @@ int __die(const char *str, struct pt_regs *regs, long err)
 	unsigned long sp;
 #endif
 	printk(KERN_DEFAULT
-	       "%s: %04lx [#%d]%s%s%s%s\n", str, err & 0xffff, ++die_counter,
-	       IS_ENABLED(CONFIG_PREEMPT) ? " PREEMPT"         : "",
-	       IS_ENABLED(CONFIG_SMP)     ? " SMP"             : "",
-	       debug_pagealloc_enabled()  ? " DEBUG_PAGEALLOC" : "",
-	       IS_ENABLED(CONFIG_KASAN)   ? " KASAN"           : "");
+		   "%s: %04lx [#%d]%s%s%s%s\n", str, err & 0xffff, ++die_counter,
+		   IS_ENABLED(CONFIG_PREEMPT) ? " PREEMPT"         : "",
+		   IS_ENABLED(CONFIG_SMP)     ? " SMP"             : "",
+		   debug_pagealloc_enabled()  ? " DEBUG_PAGEALLOC" : "",
+		   IS_ENABLED(CONFIG_KASAN)   ? " KASAN"           : "");
 
 	if (notify_die(DIE_OOPS, str, regs, err,
-			current->thread.trap_nr, SIGSEGV) == NOTIFY_STOP)
+				   current->thread.trap_nr, SIGSEGV) == NOTIFY_STOP)
+	{
 		return 1;
+	}
 
 	print_modules();
 	show_regs(regs);
 #ifdef CONFIG_X86_32
-	if (user_mode(regs)) {
+
+	if (user_mode(regs))
+	{
 		sp = regs->sp;
 		ss = regs->ss & 0xffff;
-	} else {
+	}
+	else
+	{
 		sp = kernel_stack_pointer(regs);
 		savesegment(ss, ss);
 	}
+
 	printk(KERN_EMERG "EIP: [<%08lx>] ", regs->ip);
 	print_symbol("%s", regs->ip);
 	printk(" SS:ESP %04x:%08lx\n", ss, sp);
@@ -284,10 +335,15 @@ void die(const char *str, struct pt_regs *regs, long err)
 	int sig = SIGSEGV;
 
 	if (!user_mode(regs))
+	{
 		report_bug(regs->ip, regs);
+	}
 
 	if (__die(str, regs, err))
+	{
 		sig = 0;
+	}
+
 	oops_end(flags, regs, sig);
 }
 
@@ -297,11 +353,17 @@ static int __init kstack_setup(char *s)
 	unsigned long val;
 
 	if (!s)
+	{
 		return -EINVAL;
+	}
 
 	ret = kstrtoul(s, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	kstack_depth_to_print = val;
 	return 0;
 }
@@ -313,15 +375,23 @@ static int __init code_bytes_setup(char *s)
 	unsigned long val;
 
 	if (!s)
+	{
 		return -EINVAL;
+	}
 
 	ret = kstrtoul(s, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	code_bytes = val;
+
 	if (code_bytes > 8192)
+	{
 		code_bytes = 8192;
+	}
 
 	return 1;
 }

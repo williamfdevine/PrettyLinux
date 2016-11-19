@@ -33,7 +33,8 @@
 #define read_c0_perfcnt() __read_64bit_c0_register($25, 0)
 #define write_c0_perfcnt(val) __write_64bit_c0_register($25, 0, val)
 
-static struct loongson2_register_config {
+static struct loongson2_register_config
+{
 	unsigned int ctrl;
 	unsigned long long reset_counter1;
 	unsigned long long reset_counter2;
@@ -60,22 +61,31 @@ static void loongson2_reg_setup(struct op_counter_config *cfg)
 	 * Compute the performance counter ctrl word.
 	 * For now, count kernel and user mode.
 	 */
-	if (cfg[0].enabled) {
+	if (cfg[0].enabled)
+	{
 		ctrl |= LOONGSON2_PERFCTRL_EVENT(0, cfg[0].event);
 		reg.reset_counter1 = 0x80000000ULL - cfg[0].count;
 	}
 
-	if (cfg[1].enabled) {
+	if (cfg[1].enabled)
+	{
 		ctrl |= LOONGSON2_PERFCTRL_EVENT(1, cfg[1].event);
 		reg.reset_counter2 = 0x80000000ULL - cfg[1].count;
 	}
 
-	if (cfg[0].enabled || cfg[1].enabled) {
+	if (cfg[0].enabled || cfg[1].enabled)
+	{
 		ctrl |= LOONGSON2_PERFCTRL_EXL | LOONGSON2_PERFCTRL_ENABLE;
+
 		if (cfg[0].kernel || cfg[1].kernel)
+		{
 			ctrl |= LOONGSON2_PERFCTRL_KERNEL;
+		}
+
 		if (cfg[0].user || cfg[1].user)
+		{
 			ctrl |= LOONGSON2_PERFCTRL_USER;
+		}
 	}
 
 	reg.ctrl = ctrl;
@@ -93,7 +103,9 @@ static void loongson2_cpu_start(void *args)
 {
 	/* Start all counters on current CPU */
 	if (reg.cnt1_enabled || reg.cnt2_enabled)
+	{
 		write_c0_perfctrl(reg.ctrl);
+	}
 }
 
 static void loongson2_cpu_stop(void *args)
@@ -111,24 +123,40 @@ static irqreturn_t loongson2_perfcount_handler(int irq, void *dev_id)
 
 	/* Check whether the irq belongs to me */
 	enabled = read_c0_perfctrl() & LOONGSON2_PERFCTRL_ENABLE;
+
 	if (!enabled)
+	{
 		return IRQ_NONE;
+	}
+
 	enabled = reg.cnt1_enabled | reg.cnt2_enabled;
+
 	if (!enabled)
+	{
 		return IRQ_NONE;
+	}
 
 	counter = read_c0_perfcnt();
 	counter1 = counter & 0xffffffff;
 	counter2 = counter >> 32;
 
-	if (counter1 & LOONGSON2_PERFCNT_OVERFLOW) {
+	if (counter1 & LOONGSON2_PERFCNT_OVERFLOW)
+	{
 		if (reg.cnt1_enabled)
+		{
 			oprofile_add_sample(regs, 0);
+		}
+
 		counter1 = reg.reset_counter1;
 	}
-	if (counter2 & LOONGSON2_PERFCNT_OVERFLOW) {
+
+	if (counter2 & LOONGSON2_PERFCNT_OVERFLOW)
+	{
 		if (reg.cnt2_enabled)
+		{
 			oprofile_add_sample(regs, 1);
+		}
+
 		counter2 = reg.reset_counter2;
 	}
 
@@ -140,7 +168,7 @@ static irqreturn_t loongson2_perfcount_handler(int irq, void *dev_id)
 static int __init loongson2_init(void)
 {
 	return request_irq(LOONGSON2_PERFCNT_IRQ, loongson2_perfcount_handler,
-			   IRQF_SHARED, "Perfcounter", oprofid);
+					   IRQF_SHARED, "Perfcounter", oprofid);
 }
 
 static void loongson2_exit(void)
@@ -149,7 +177,8 @@ static void loongson2_exit(void)
 	free_irq(LOONGSON2_PERFCNT_IRQ, oprofid);
 }
 
-struct op_mips_model op_model_loongson2_ops = {
+struct op_mips_model op_model_loongson2_ops =
+{
 	.reg_setup = loongson2_reg_setup,
 	.cpu_setup = loongson2_cpu_setup,
 	.init = loongson2_init,

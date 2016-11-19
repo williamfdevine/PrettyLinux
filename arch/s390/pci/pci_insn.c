@@ -15,7 +15,8 @@
 
 static inline void zpci_err_insn(u8 cc, u8 status, u64 req, u64 offset)
 {
-	struct {
+	struct
+	{
 		u64 req;
 		u64 offset;
 		u8 cc;
@@ -44,14 +45,21 @@ int zpci_mod_fc(u64 req, struct zpci_fib *fib)
 {
 	u8 cc, status;
 
-	do {
+	do
+	{
 		cc = __mpcifc(req, fib, &status);
+
 		if (cc == 2)
+		{
 			msleep(ZPCI_INSN_BUSY_DELAY);
-	} while (cc == 2);
+		}
+	}
+	while (cc == 2);
 
 	if (cc)
+	{
 		zpci_err_insn(cc, status, req, 0);
+	}
 
 	return (cc) ? -EIO : 0;
 }
@@ -78,14 +86,21 @@ int zpci_refresh_trans(u64 fn, u64 addr, u64 range)
 {
 	u8 cc, status;
 
-	do {
+	do
+	{
 		cc = __rpcit(fn, addr, range, &status);
+
 		if (cc == 2)
+		{
 			udelay(ZPCI_INSN_BUSY_DELAY);
-	} while (cc == 2);
+		}
+	}
+	while (cc == 2);
 
 	if (cc)
+	{
 		zpci_err_insn(cc, status, addr, range);
+	}
 
 	return (cc) ? -EIO : 0;
 }
@@ -126,8 +141,11 @@ static inline int __pcilg(u64 *data, u64 req, u64 offset, u8 *status)
 	int cc;
 
 	cc = ____pcilg(&__data, req, offset, status);
+
 	if (!cc)
+	{
 		*data = __data;
+	}
 
 	return cc;
 }
@@ -137,14 +155,21 @@ int zpci_load(u64 *data, u64 req, u64 offset)
 	u8 status;
 	int cc;
 
-	do {
+	do
+	{
 		cc = __pcilg(data, req, offset, &status);
+
 		if (cc == 2)
+		{
 			udelay(ZPCI_INSN_BUSY_DELAY);
-	} while (cc == 2);
+		}
+	}
+	while (cc == 2);
 
 	if (cc)
+	{
 		zpci_err_insn(cc, status, req, offset);
+	}
 
 	return (cc > 0) ? -EIO : cc;
 }
@@ -175,14 +200,21 @@ int zpci_store(u64 data, u64 req, u64 offset)
 	u8 status;
 	int cc;
 
-	do {
+	do
+	{
 		cc = __pcistg(data, req, offset, &status);
+
 		if (cc == 2)
+		{
 			udelay(ZPCI_INSN_BUSY_DELAY);
-	} while (cc == 2);
+		}
+	}
+	while (cc == 2);
 
 	if (cc)
+	{
 		zpci_err_insn(cc, status, req, offset);
+	}
 
 	return (cc > 0) ? -EIO : cc;
 }
@@ -211,14 +243,21 @@ int zpci_store_block(const u64 *data, u64 req, u64 offset)
 	u8 status;
 	int cc;
 
-	do {
+	do
+	{
 		cc = __pcistb(data, req, offset, &status);
+
 		if (cc == 2)
+		{
 			udelay(ZPCI_INSN_BUSY_DELAY);
-	} while (cc == 2);
+		}
+	}
+	while (cc == 2);
 
 	if (cc)
+	{
 		zpci_err_insn(cc, status, req, offset);
+	}
 
 	return (cc > 0) ? -EIO : cc;
 }

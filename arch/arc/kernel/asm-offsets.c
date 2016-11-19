@@ -25,13 +25,13 @@ int main(void)
 	DEFINE(THREAD_KSP, offsetof(struct thread_struct, ksp));
 	DEFINE(THREAD_CALLEE_REG, offsetof(struct thread_struct, callee_reg));
 	DEFINE(THREAD_FAULT_ADDR,
-	       offsetof(struct thread_struct, fault_address));
+		   offsetof(struct thread_struct, fault_address));
 
 	BLANK();
 
 	DEFINE(THREAD_INFO_FLAGS, offsetof(struct thread_info, flags));
 	DEFINE(THREAD_INFO_PREEMPT_COUNT,
-	       offsetof(struct thread_info, preempt_count));
+		   offsetof(struct thread_info, preempt_count));
 
 	BLANK();
 

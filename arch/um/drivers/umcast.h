@@ -8,7 +8,8 @@
 
 #include <net_user.h>
 
-struct umcast_data {
+struct umcast_data
+{
 	char *addr;
 	unsigned short lport;
 	unsigned short rport;
@@ -22,6 +23,6 @@ struct umcast_data {
 extern const struct net_user_info umcast_user_info;
 
 extern int umcast_user_write(int fd, void *buf, int len,
-			     struct umcast_data *pri);
+							 struct umcast_data *pri);
 
 #endif

@@ -30,7 +30,7 @@
  * function needs to change for PCI or PCIe based hosts.
  */
 extern int (*octeon_pcibios_map_irq)(const struct pci_dev *dev,
-				     u8 slot, u8 pin);
+									 u8 slot, u8 pin);
 
 /*
  * For PCI (not PCIe) the BAR2 base address.
@@ -49,7 +49,8 @@ extern u64 octeon_bar1_pci_phys;
 #define OCTEON_PCI_BAR1_HOLE_BITS 5
 #define OCTEON_PCI_BAR1_HOLE_SIZE (1ul<<(OCTEON_PCI_BAR1_HOLE_BITS+3))
 
-enum octeon_dma_bar_type {
+enum octeon_dma_bar_type
+{
 	OCTEON_DMA_BAR_TYPE_INVALID,
 	OCTEON_DMA_BAR_TYPE_SMALL,
 	OCTEON_DMA_BAR_TYPE_BIG,

@@ -18,14 +18,16 @@ int pcibr_invalidate_ate;	/* by default don't invalidate ATE on free */
  * mark_ate: Mark the ate as either free or inuse.
  */
 static void mark_ate(struct ate_resource *ate_resource, int start, int number,
-		     u64 value)
+					 u64 value)
 {
 	u64 *ate = ate_resource->ate;
 	int index;
 	int length = 0;
 
 	for (index = start; length < number; index++, length++)
+	{
 		ate[index] = value;
+	}
 }
 
 /*
@@ -33,31 +35,46 @@ static void mark_ate(struct ate_resource *ate_resource, int start, int number,
  *		   index for the desired consecutive count.
  */
 static int find_free_ate(struct ate_resource *ate_resource, int start,
-			 int count)
+						 int count)
 {
 	u64 *ate = ate_resource->ate;
 	int index;
 	int start_free;
 
-	for (index = start; index < ate_resource->num_ate;) {
-		if (!ate[index]) {
+	for (index = start; index < ate_resource->num_ate;)
+	{
+		if (!ate[index])
+		{
 			int i;
 			int free;
 			free = 0;
 			start_free = index;	/* Found start free ate */
-			for (i = start_free; i < ate_resource->num_ate; i++) {
-				if (!ate[i]) {	/* This is free */
+
+			for (i = start_free; i < ate_resource->num_ate; i++)
+			{
+				if (!ate[i])  	/* This is free */
+				{
 					if (++free == count)
+					{
 						return start_free;
-				} else {
+					}
+				}
+				else
+				{
 					index = i + 1;
 					break;
 				}
 			}
+
 			if (i >= ate_resource->num_ate)
+			{
 				return -1;
-		} else
-			index++;	/* Try next ate */
+			}
+		}
+		else
+		{
+			index++;    /* Try next ate */
+		}
 	}
 
 	return -1;
@@ -67,19 +84,22 @@ static int find_free_ate(struct ate_resource *ate_resource, int start,
  * free_ate_resource:  Free the requested number of ATEs.
  */
 static inline void free_ate_resource(struct ate_resource *ate_resource,
-				     int start)
+									 int start)
 {
 	mark_ate(ate_resource, start, ate_resource->ate[start], 0);
+
 	if ((ate_resource->lowest_free_index > start) ||
-	    (ate_resource->lowest_free_index < 0))
+		(ate_resource->lowest_free_index < 0))
+	{
 		ate_resource->lowest_free_index = start;
+	}
 }
 
 /*
  * alloc_ate_resource:  Allocate the requested number of ATEs.
  */
 static inline int alloc_ate_resource(struct ate_resource *ate_resource,
-				     int ate_needed)
+									 int ate_needed)
 {
 	int start_index;
 
@@ -87,19 +107,24 @@ static inline int alloc_ate_resource(struct ate_resource *ate_resource,
 	 * Check for ate exhaustion.
 	 */
 	if (ate_resource->lowest_free_index < 0)
+	{
 		return -1;
+	}
 
 	/*
 	 * Find the required number of free consecutive ates.
 	 */
 	start_index =
-	    find_free_ate(ate_resource, ate_resource->lowest_free_index,
-			  ate_needed);
+		find_free_ate(ate_resource, ate_resource->lowest_free_index,
+					  ate_needed);
+
 	if (start_index >= 0)
+	{
 		mark_ate(ate_resource, start_index, ate_needed, ate_needed);
+	}
 
 	ate_resource->lowest_free_index =
-	    find_free_ate(ate_resource, ate_resource->lowest_free_index, 1);
+		find_free_ate(ate_resource, ate_resource->lowest_free_index, 1);
 
 	return start_index;
 }
@@ -129,11 +154,13 @@ int pcibr_ate_alloc(struct pcibus_info *pcibus_info, int count)
  * internal maps or the external map RAM, as appropriate.
  */
 static inline u64 __iomem *pcibr_ate_addr(struct pcibus_info *pcibus_info,
-				       int ate_index)
+		int ate_index)
 {
-	if (ate_index < pcibus_info->pbi_int_ate_size) {
+	if (ate_index < pcibus_info->pbi_int_ate_size)
+	{
 		return pcireg_int_ate_addr(pcibus_info, ate_index);
 	}
+
 	panic("pcibr_ate_addr: invalid ate_index 0x%x", ate_index);
 }
 
@@ -142,14 +169,19 @@ static inline u64 __iomem *pcibr_ate_addr(struct pcibus_info *pcibus_info,
  */
 void inline
 ate_write(struct pcibus_info *pcibus_info, int ate_index, int count,
-	  volatile u64 ate)
+		  volatile u64 ate)
 {
-	while (count-- > 0) {
-		if (ate_index < pcibus_info->pbi_int_ate_size) {
+	while (count-- > 0)
+	{
+		if (ate_index < pcibus_info->pbi_int_ate_size)
+		{
 			pcireg_int_ate_set(pcibus_info, ate_index, ate);
-		} else {
+		}
+		else
+		{
 			panic("ate_write: invalid ate_index 0x%x", ate_index);
 		}
+
 		ate_index++;
 		ate += IOPGSIZE;
 	}
@@ -164,7 +196,8 @@ void pcibr_ate_free(struct pcibus_info *pcibus_info, int index)
 	int count;
 	unsigned long flags;
 
-	if (pcibr_invalidate_ate) {
+	if (pcibr_invalidate_ate)
+	{
 		/* For debugging purposes, clear the valid bit in the ATE */
 		ate = *pcibr_ate_addr(pcibus_info, index);
 		count = pcibus_info->pbi_int_ate_resource.ate[index];

@@ -13,12 +13,15 @@ static int tango_pm_powerdown(unsigned long arg)
 static int tango_pm_enter(suspend_state_t state)
 {
 	if (state == PM_SUSPEND_MEM)
+	{
 		return cpu_suspend(0, tango_pm_powerdown);
+	}
 
 	return -EINVAL;
 }
 
-static const struct platform_suspend_ops tango_pm_ops = {
+static const struct platform_suspend_ops tango_pm_ops =
+{
 	.enter = tango_pm_enter,
 	.valid = suspend_valid_only_mem,
 };

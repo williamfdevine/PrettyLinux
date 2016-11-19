@@ -15,27 +15,30 @@ asmlinkage unsigned long __raw_xchg_1_asm(volatile void *ptr, unsigned long valu
 asmlinkage unsigned long __raw_xchg_2_asm(volatile void *ptr, unsigned long value);
 asmlinkage unsigned long __raw_xchg_4_asm(volatile void *ptr, unsigned long value);
 asmlinkage unsigned long __raw_cmpxchg_1_asm(volatile void *ptr,
-					unsigned long new, unsigned long old);
+		unsigned long new, unsigned long old);
 asmlinkage unsigned long __raw_cmpxchg_2_asm(volatile void *ptr,
-					unsigned long new, unsigned long old);
+		unsigned long new, unsigned long old);
 asmlinkage unsigned long __raw_cmpxchg_4_asm(volatile void *ptr,
-					unsigned long new, unsigned long old);
+		unsigned long new, unsigned long old);
 
 static inline unsigned long __xchg(unsigned long x, volatile void *ptr,
-				   int size)
+								   int size)
 {
 	unsigned long tmp;
 
-	switch (size) {
-	case 1:
-		tmp = __raw_xchg_1_asm(ptr, x);
-		break;
-	case 2:
-		tmp = __raw_xchg_2_asm(ptr, x);
-		break;
-	case 4:
-		tmp = __raw_xchg_4_asm(ptr, x);
-		break;
+	switch (size)
+	{
+		case 1:
+			tmp = __raw_xchg_1_asm(ptr, x);
+			break;
+
+		case 2:
+			tmp = __raw_xchg_2_asm(ptr, x);
+			break;
+
+		case 4:
+			tmp = __raw_xchg_4_asm(ptr, x);
+			break;
 	}
 
 	return tmp;
@@ -47,66 +50,74 @@ static inline unsigned long __xchg(unsigned long x, volatile void *ptr,
  * indicated by comparing RETURN with OLD.
  */
 static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
-				      unsigned long new, int size)
+									  unsigned long new, int size)
 {
 	unsigned long tmp;
 
-	switch (size) {
-	case 1:
-		tmp = __raw_cmpxchg_1_asm(ptr, new, old);
-		break;
-	case 2:
-		tmp = __raw_cmpxchg_2_asm(ptr, new, old);
-		break;
-	case 4:
-		tmp = __raw_cmpxchg_4_asm(ptr, new, old);
-		break;
+	switch (size)
+	{
+		case 1:
+			tmp = __raw_cmpxchg_1_asm(ptr, new, old);
+			break;
+
+		case 2:
+			tmp = __raw_cmpxchg_2_asm(ptr, new, old);
+			break;
+
+		case 4:
+			tmp = __raw_cmpxchg_4_asm(ptr, new, old);
+			break;
 	}
 
 	return tmp;
 }
 #define cmpxchg(ptr, o, n) \
 	((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(o), \
-		(unsigned long)(n), sizeof(*(ptr))))
+								   (unsigned long)(n), sizeof(*(ptr))))
 
 #else /* !CONFIG_SMP */
 
 #include <mach/blackfin.h>
 #include <asm/irqflags.h>
 
-struct __xchg_dummy {
+struct __xchg_dummy
+{
 	unsigned long a[100];
 };
 #define __xg(x) ((volatile struct __xchg_dummy *)(x))
 
 static inline unsigned long __xchg(unsigned long x, volatile void *ptr,
-				   int size)
+								   int size)
 {
 	unsigned long tmp = 0;
 	unsigned long flags;
 
 	flags = hard_local_irq_save();
 
-	switch (size) {
-	case 1:
-		__asm__ __volatile__
+	switch (size)
+	{
+		case 1:
+			__asm__ __volatile__
 			("%0 = b%2 (z);\n\t"
 			 "b%2 = %1;\n\t"
 			 : "=&d" (tmp) : "d" (x), "m" (*__xg(ptr)) : "memory");
-		break;
-	case 2:
-		__asm__ __volatile__
+			break;
+
+		case 2:
+			__asm__ __volatile__
 			("%0 = w%2 (z);\n\t"
 			 "w%2 = %1;\n\t"
 			 : "=&d" (tmp) : "d" (x), "m" (*__xg(ptr)) : "memory");
-		break;
-	case 4:
-		__asm__ __volatile__
+			break;
+
+		case 4:
+			__asm__ __volatile__
 			("%0 = %2;\n\t"
 			 "%2 = %1;\n\t"
 			 : "=&d" (tmp) : "d" (x), "m" (*__xg(ptr)) : "memory");
-		break;
+			break;
 	}
+
 	hard_local_irq_restore(flags);
 	return tmp;
 }

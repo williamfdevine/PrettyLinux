@@ -17,7 +17,7 @@
  *  void (*)(struct pt_regs *regs);
  *  void (*)(struct pt_regs *regs, unsigned long exccause);
  */
-extern void * __init trap_set_handler(int cause, void *handler);
+extern void *__init trap_set_handler(int cause, void *handler);
 extern void do_unhandled(struct pt_regs *regs, unsigned long exccause);
 void secondary_trap_init(void);
 
@@ -65,7 +65,8 @@ static inline void spill_registers(void)
 #endif
 }
 
-struct debug_table {
+struct debug_table
+{
 	/* Pointer to debug exception handler */
 	void (*debug_exception)(void);
 	/* Temporary register save area */

@@ -39,7 +39,8 @@
 #define FACTORY_CONFIG_VERSION	0x00010001
 
 /* Data Held in On-Board I2C device */
-struct factory_config {
+struct factory_config
+{
 	u32	magic;
 	u32	version;
 	u8	mac[6];
@@ -52,12 +53,14 @@ struct factory_config {
 static struct factory_config factory_config;
 
 #ifdef CONFIG_CPU_FREQ
-struct part_no_info {
+struct part_no_info
+{
 	const char	*part_no;	/* part number string of interest */
 	int		max_freq;	/* khz */
 };
 
-static struct part_no_info mityomapl138_pn_info[] = {
+static struct part_no_info mityomapl138_pn_info[] =
+{
 	{
 		.part_no	= "L138-C",
 		.max_freq	= 300000,
@@ -92,7 +95,8 @@ static void mityomapl138_cpufreq_init(const char *partnum)
 {
 	int i, ret;
 
-	for (i = 0; partnum && i < ARRAY_SIZE(mityomapl138_pn_info); i++) {
+	for (i = 0; partnum && i < ARRAY_SIZE(mityomapl138_pn_info); i++)
+	{
 		/*
 		 * the part number has additional characters beyond what is
 		 * stored in the table.  This information is not needed for
@@ -101,15 +105,19 @@ static void mityomapl138_cpufreq_init(const char *partnum)
 		 * for a match.
 		 */
 		if (!strncmp(partnum, mityomapl138_pn_info[i].part_no,
-			     strlen(mityomapl138_pn_info[i].part_no))) {
+					 strlen(mityomapl138_pn_info[i].part_no)))
+		{
 			da850_max_speed = mityomapl138_pn_info[i].max_freq;
 			break;
 		}
 	}
 
 	ret = da850_register_cpufreq("pll0_sysclk3");
+
 	if (ret)
+	{
 		pr_warn("cpufreq registration failed: %d\n", ret);
+	}
 }
 #else
 static void mityomapl138_cpufreq_init(const char *partnum) { }
@@ -121,36 +129,44 @@ static void read_factory_config(struct nvmem_device *nvmem, void *context)
 	const char *partnum = NULL;
 	struct davinci_soc_info *soc_info = &davinci_soc_info;
 
-	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+	if (!IS_BUILTIN(CONFIG_NVMEM))
+	{
 		pr_warn("Factory Config not available without CONFIG_NVMEM\n");
 		goto bad_config;
 	}
 
 	ret = nvmem_device_read(nvmem, 0, sizeof(factory_config),
-				&factory_config);
-	if (ret != sizeof(struct factory_config)) {
+							&factory_config);
+
+	if (ret != sizeof(struct factory_config))
+	{
 		pr_warn("Read Factory Config Failed: %d\n", ret);
 		goto bad_config;
 	}
 
-	if (factory_config.magic != FACTORY_CONFIG_MAGIC) {
+	if (factory_config.magic != FACTORY_CONFIG_MAGIC)
+	{
 		pr_warn("Factory Config Magic Wrong (%X)\n",
-			factory_config.magic);
+				factory_config.magic);
 		goto bad_config;
 	}
 
-	if (factory_config.version != FACTORY_CONFIG_VERSION) {
+	if (factory_config.version != FACTORY_CONFIG_VERSION)
+	{
 		pr_warn("Factory Config Version Wrong (%X)\n",
-			factory_config.version);
+				factory_config.version);
 		goto bad_config;
 	}
 
 	pr_info("Found MAC = %pM\n", factory_config.mac);
+
 	if (is_valid_ether_addr(factory_config.mac))
 		memcpy(soc_info->emac_pdata->mac_addr,
-			factory_config.mac, ETH_ALEN);
+			   factory_config.mac, ETH_ALEN);
 	else
+	{
 		pr_warn("Invalid MAC found in factory config block\n");
+	}
 
 	partnum = factory_config.partnum;
 	pr_info("Part Number = %s\n", partnum);
@@ -160,7 +176,8 @@ bad_config:
 	mityomapl138_cpufreq_init(partnum);
 }
 
-static struct at24_platform_data mityomapl138_fd_chip = {
+static struct at24_platform_data mityomapl138_fd_chip =
+{
 	.byte_len	= 256,
 	.page_size	= 8,
 	.flags		= AT24_FLAG_READONLY | AT24_FLAG_IRUGO,
@@ -168,21 +185,24 @@ static struct at24_platform_data mityomapl138_fd_chip = {
 	.context	= NULL,
 };
 
-static struct davinci_i2c_platform_data mityomap_i2c_0_pdata = {
+static struct davinci_i2c_platform_data mityomap_i2c_0_pdata =
+{
 	.bus_freq	= 100,	/* kHz */
 	.bus_delay	= 0,	/* usec */
 };
 
 /* TPS65023 voltage regulator support */
 /* 1.2V Core */
-static struct regulator_consumer_supply tps65023_dcdc1_consumers[] = {
+static struct regulator_consumer_supply tps65023_dcdc1_consumers[] =
+{
 	{
 		.supply = "cvdd",
 	},
 };
 
 /* 1.8V */
-static struct regulator_consumer_supply tps65023_dcdc2_consumers[] = {
+static struct regulator_consumer_supply tps65023_dcdc2_consumers[] =
+{
 	{
 		.supply = "usb0_vdda18",
 	},
@@ -198,7 +218,8 @@ static struct regulator_consumer_supply tps65023_dcdc2_consumers[] = {
 };
 
 /* 1.2V */
-static struct regulator_consumer_supply tps65023_dcdc3_consumers[] = {
+static struct regulator_consumer_supply tps65023_dcdc3_consumers[] =
+{
 	{
 		.supply = "sata_vdd",
 	},
@@ -214,27 +235,30 @@ static struct regulator_consumer_supply tps65023_dcdc3_consumers[] = {
 };
 
 /* 1.8V Aux LDO, not used */
-static struct regulator_consumer_supply tps65023_ldo1_consumers[] = {
+static struct regulator_consumer_supply tps65023_ldo1_consumers[] =
+{
 	{
 		.supply = "1.8v_aux",
 	},
 };
 
 /* FPGA VCC Aux (2.5 or 3.3) LDO */
-static struct regulator_consumer_supply tps65023_ldo2_consumers[] = {
+static struct regulator_consumer_supply tps65023_ldo2_consumers[] =
+{
 	{
 		.supply = "vccaux",
 	},
 };
 
-static struct regulator_init_data tps65023_regulator_data[] = {
+static struct regulator_init_data tps65023_regulator_data[] =
+{
 	/* dcdc1 */
 	{
 		.constraints = {
 			.min_uV = 1150000,
 			.max_uV = 1350000,
 			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |
-					  REGULATOR_CHANGE_STATUS,
+			REGULATOR_CHANGE_STATUS,
 			.boot_on = 1,
 		},
 		.num_consumer_supplies = ARRAY_SIZE(tps65023_dcdc1_consumers),
@@ -279,7 +303,7 @@ static struct regulator_init_data tps65023_regulator_data[] = {
 			.min_uV = 2500000,
 			.max_uV = 3300000,
 			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |
-					  REGULATOR_CHANGE_STATUS,
+			REGULATOR_CHANGE_STATUS,
 			.boot_on = 1,
 		},
 		.num_consumer_supplies = ARRAY_SIZE(tps65023_ldo2_consumers),
@@ -287,7 +311,8 @@ static struct regulator_init_data tps65023_regulator_data[] = {
 	},
 };
 
-static struct i2c_board_info __initdata mityomap_tps65023_info[] = {
+static struct i2c_board_info __initdata mityomap_tps65023_info[] =
+{
 	{
 		I2C_BOARD_INFO("tps65023", 0x48),
 		.platform_data = &tps65023_regulator_data[0],
@@ -301,14 +326,15 @@ static struct i2c_board_info __initdata mityomap_tps65023_info[] = {
 static int __init pmic_tps65023_init(void)
 {
 	return i2c_register_board_info(1, mityomap_tps65023_info,
-					ARRAY_SIZE(mityomap_tps65023_info));
+								   ARRAY_SIZE(mityomap_tps65023_info));
 }
 
 /*
  * SPI Devices:
  *	SPI1_CS0: 8M Flash ST-M25P64-VME6G
  */
-static struct mtd_partition spi_flash_partitions[] = {
+static struct mtd_partition spi_flash_partitions[] =
+{
 	[0] = {
 		.name		= "ubl",
 		.offset		= 0,
@@ -355,20 +381,23 @@ static struct mtd_partition spi_flash_partitions[] = {
 	},
 };
 
-static struct flash_platform_data mityomapl138_spi_flash_data = {
+static struct flash_platform_data mityomapl138_spi_flash_data =
+{
 	.name		= "m25p80",
 	.parts		= spi_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(spi_flash_partitions),
 	.type		= "m24p64",
 };
 
-static struct davinci_spi_config spi_eprom_config = {
+static struct davinci_spi_config spi_eprom_config =
+{
 	.io_type	= SPI_IO_TYPE_DMA,
 	.c2tdelay	= 8,
 	.t2cdelay	= 8,
 };
 
-static struct spi_board_info mityomapl138_spi_flash_info[] = {
+static struct spi_board_info mityomapl138_spi_flash_info[] =
+{
 	{
 		.modalias		= "m25p80",
 		.platform_data		= &mityomapl138_spi_flash_data,
@@ -384,7 +413,8 @@ static struct spi_board_info mityomapl138_spi_flash_info[] = {
  * MityDSP-L138 includes a 256 MByte large-page NAND flash
  * (128K blocks).
  */
-static struct mtd_partition mityomapl138_nandflash_partition[] = {
+static struct mtd_partition mityomapl138_nandflash_partition[] =
+{
 	{
 		.name		= "rootfs",
 		.offset		= 0,
@@ -399,7 +429,8 @@ static struct mtd_partition mityomapl138_nandflash_partition[] = {
 	},
 };
 
-static struct davinci_nand_pdata mityomapl138_nandflash_data = {
+static struct davinci_nand_pdata mityomapl138_nandflash_data =
+{
 	.parts		= mityomapl138_nandflash_partition,
 	.nr_parts	= ARRAY_SIZE(mityomapl138_nandflash_partition),
 	.ecc_mode	= NAND_ECC_HW,
@@ -408,7 +439,8 @@ static struct davinci_nand_pdata mityomapl138_nandflash_data = {
 	.ecc_bits	= 1, /* 4 bit mode is not supported with 16 bit NAND */
 };
 
-static struct resource mityomapl138_nandflash_resource[] = {
+static struct resource mityomapl138_nandflash_resource[] =
+{
 	{
 		.start	= DA8XX_AEMIF_CS3_BASE,
 		.end	= DA8XX_AEMIF_CS3_BASE + SZ_512K + 2 * SZ_1K - 1,
@@ -421,7 +453,8 @@ static struct resource mityomapl138_nandflash_resource[] = {
 	},
 };
 
-static struct platform_device mityomapl138_nandflash_device = {
+static struct platform_device mityomapl138_nandflash_device =
+{
 	.name		= "davinci_nand",
 	.id		= 1,
 	.dev		= {
@@ -431,20 +464,24 @@ static struct platform_device mityomapl138_nandflash_device = {
 	.resource	= mityomapl138_nandflash_resource,
 };
 
-static struct platform_device *mityomapl138_devices[] __initdata = {
+static struct platform_device *mityomapl138_devices[] __initdata =
+{
 	&mityomapl138_nandflash_device,
 };
 
 static void __init mityomapl138_setup_nand(void)
 {
 	platform_add_devices(mityomapl138_devices,
-				 ARRAY_SIZE(mityomapl138_devices));
+						 ARRAY_SIZE(mityomapl138_devices));
 
 	if (davinci_aemif_setup(&mityomapl138_nandflash_device))
+	{
 		pr_warn("%s: Cannot configure AEMIF\n", __func__);
+	}
 }
 
-static const short mityomap_mii_pins[] = {
+static const short mityomap_mii_pins[] =
+{
 	DA850_MII_TXEN, DA850_MII_TXCLK, DA850_MII_COL, DA850_MII_TXD_3,
 	DA850_MII_TXD_2, DA850_MII_TXD_1, DA850_MII_TXD_0, DA850_MII_RXER,
 	DA850_MII_CRS, DA850_MII_RXCLK, DA850_MII_RXDV, DA850_MII_RXD_3,
@@ -453,7 +490,8 @@ static const short mityomap_mii_pins[] = {
 	-1
 };
 
-static const short mityomap_rmii_pins[] = {
+static const short mityomap_rmii_pins[] =
+{
 	DA850_RMII_TXD_0, DA850_RMII_TXD_1, DA850_RMII_TXEN,
 	DA850_RMII_CRS_DV, DA850_RMII_RXD_0, DA850_RMII_RXD_1,
 	DA850_RMII_RXER, DA850_RMII_MHZ_50_CLK, DA850_MDIO_CLK,
@@ -473,17 +511,21 @@ static void __init mityomapl138_config_emac(void)
 	cfg_chip3_base = DA8XX_SYSCFG0_VIRT(DA8XX_CFGCHIP3_REG);
 	val = __raw_readl(cfg_chip3_base);
 
-	if (soc_info->emac_pdata->rmii_en) {
+	if (soc_info->emac_pdata->rmii_en)
+	{
 		val |= BIT(8);
 		ret = davinci_cfg_reg_list(mityomap_rmii_pins);
 		pr_info("RMII PHY configured\n");
-	} else {
+	}
+	else
+	{
 		val &= ~BIT(8);
 		ret = davinci_cfg_reg_list(mityomap_mii_pins);
 		pr_info("MII PHY configured\n");
 	}
 
-	if (ret) {
+	if (ret)
+	{
 		pr_warn("mii/rmii mux setup failed: %d\n", ret);
 		return;
 	}
@@ -494,15 +536,20 @@ static void __init mityomapl138_config_emac(void)
 	soc_info->emac_pdata->phy_id = MITYOMAPL138_PHY_ID;
 
 	ret = da8xx_register_emac();
+
 	if (ret)
+	{
 		pr_warn("emac registration failed: %d\n", ret);
+	}
 }
 
-static struct davinci_pm_config da850_pm_pdata = {
+static struct davinci_pm_config da850_pm_pdata =
+{
 	.sleepcount = 128,
 };
 
-static struct platform_device da850_pm_device = {
+static struct platform_device da850_pm_device =
+{
 	.name	= "pm-davinci",
 	.dev = {
 		.platform_data  = &da850_pm_pdata,
@@ -516,55 +563,84 @@ static void __init mityomapl138_init(void)
 
 	/* for now, no special EDMA channels are reserved */
 	ret = da850_register_edma(NULL);
+
 	if (ret)
+	{
 		pr_warn("edma registration failed: %d\n", ret);
+	}
 
 	ret = da8xx_register_watchdog();
+
 	if (ret)
+	{
 		pr_warn("watchdog registration failed: %d\n", ret);
+	}
 
 	davinci_serial_init(da8xx_serial_device);
 
 	ret = da8xx_register_i2c(0, &mityomap_i2c_0_pdata);
+
 	if (ret)
+	{
 		pr_warn("i2c0 registration failed: %d\n", ret);
+	}
 
 	ret = pmic_tps65023_init();
+
 	if (ret)
+	{
 		pr_warn("TPS65023 PMIC init failed: %d\n", ret);
+	}
 
 	mityomapl138_setup_nand();
 
 	ret = spi_register_board_info(mityomapl138_spi_flash_info,
-				      ARRAY_SIZE(mityomapl138_spi_flash_info));
+								  ARRAY_SIZE(mityomapl138_spi_flash_info));
+
 	if (ret)
+	{
 		pr_warn("spi info registration failed: %d\n", ret);
+	}
 
 	ret = da8xx_register_spi_bus(1,
-				     ARRAY_SIZE(mityomapl138_spi_flash_info));
+								 ARRAY_SIZE(mityomapl138_spi_flash_info));
+
 	if (ret)
+	{
 		pr_warn("spi 1 registration failed: %d\n", ret);
+	}
 
 	mityomapl138_config_emac();
 
 	ret = da8xx_register_rtc();
+
 	if (ret)
+	{
 		pr_warn("rtc setup failed: %d\n", ret);
+	}
 
 	ret = da8xx_register_cpuidle();
+
 	if (ret)
+	{
 		pr_warn("cpuidle registration failed: %d\n", ret);
+	}
 
 	ret = da850_register_pm(&da850_pm_device);
+
 	if (ret)
+	{
 		pr_warn("suspend registration failed: %d\n", ret);
+	}
 }
 
 #ifdef CONFIG_SERIAL_8250_CONSOLE
 static int __init mityomapl138_console_init(void)
 {
 	if (!machine_is_mityomapl138())
+	{
 		return 0;
+	}
 
 	return add_preferred_console("ttyS", 1, "115200");
 }
@@ -577,12 +653,12 @@ static void __init mityomapl138_map_io(void)
 }
 
 MACHINE_START(MITYOMAPL138, "MityDSP-L138/MityARM-1808")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= mityomapl138_map_io,
-	.init_irq	= cp_intc_init,
-	.init_time	= davinci_timer_init,
-	.init_machine	= mityomapl138_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= da8xx_restart,
-MACHINE_END
+		.init_irq	= cp_intc_init,
+		   .init_time	= davinci_timer_init,
+			 .init_machine	= mityomapl138_init,
+				.init_late	= davinci_init_late,
+				  .dma_zone_size	= SZ_128M,
+					.restart	= da8xx_restart,
+						MACHINE_END

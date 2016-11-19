@@ -15,7 +15,7 @@ extern void sa11x0_init_late(void);
 
 #define SET_BANK(__nr,__start,__size) \
 	mi->bank[__nr].start = (__start), \
-	mi->bank[__nr].size = (__size)
+						   mi->bank[__nr].size = (__size)
 
 extern void sa1110_mb_enable(void);
 extern void sa1110_mb_disable(void);
@@ -27,7 +27,7 @@ struct flash_platform_data;
 struct resource;
 
 void sa11x0_register_mtd(struct flash_platform_data *flash,
-			 struct resource *res, int nr);
+						 struct resource *res, int nr);
 
 struct irda_platform_data;
 void sa11x0_register_irda(struct irda_platform_data *irda);

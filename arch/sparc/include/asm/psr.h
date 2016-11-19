@@ -23,9 +23,9 @@ static inline unsigned int get_psr(void)
 		"nop\n\t"
 		"nop\n\t"
 		"nop\n\t"
-	: "=r" (psr)
-	: /* no inputs */
-	: "memory");
+		: "=r" (psr)
+		: /* no inputs */
+		: "memory");
 
 	return psr;
 }
@@ -37,9 +37,9 @@ static inline void put_psr(unsigned int new_psr)
 		"nop\n\t"
 		"nop\n\t"
 		"nop\n\t"
-	: /* no outputs */
-	: "r" (new_psr)
-	: "memory", "cc");
+		: /* no outputs */
+		: "r" (new_psr)
+		: "memory", "cc");
 }
 
 /* Get the %fsr register.  Be careful, make sure the floating point
@@ -56,8 +56,8 @@ static inline unsigned int get_fsr(void)
 	__asm__ __volatile__(
 		"st	%%fsr, %1\n\t"
 		"ld	%1, %0\n\t"
-	: "=r" (fsr)
-	: "m" (fsr_storage));
+		: "=r" (fsr)
+		: "m" (fsr_storage));
 
 	return fsr;
 }

@@ -66,8 +66,11 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 	 * just to make sure we don't uselessly migrate as they come up.
 	 */
 	rc = sched_setaffinity(current->pid, cpumask_of(boot_cpu));
+
 	if (rc != 0)
+	{
 		pr_err("Couldn't set init affinity to boot cpu (%ld)\n", rc);
+	}
 
 	/* Print information about disabled and dataplane cpus. */
 	print_disabled_cpus();
@@ -82,13 +85,18 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 
 	/* Set up thread context for all new processors. */
 	cpu_count = 1;
-	for (cpu = 0; cpu < NR_CPUS; ++cpu)	{
+
+	for (cpu = 0; cpu < NR_CPUS; ++cpu)
+	{
 		struct task_struct *idle;
 
 		if (cpu == boot_cpu)
+		{
 			continue;
+		}
 
-		if (!cpu_possible(cpu)) {
+		if (!cpu_possible(cpu))
+		{
 			/*
 			 * Make this processor do nothing on boot.
 			 * Note that we don't give the boot_pc function
@@ -101,8 +109,12 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 
 		/* Create a new idle thread to run start_secondary() */
 		idle = fork_idle(cpu);
+
 		if (IS_ERR(idle))
+		{
 			panic("failed fork for CPU %d", cpu);
+		}
+
 		idle->thread.pc = (unsigned long) start_secondary;
 
 		/* Make this thread the boot thread for this processor */
@@ -111,11 +123,14 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 
 		++cpu_count;
 	}
+
 	BUG_ON(cpu_count > (max_cpus ? max_cpus : 1));
 
 	/* Fire up the other tiles, if any */
 	init_cpu_present(cpu_possible_mask);
-	if (cpumask_weight(cpu_present_mask) > 1) {
+
+	if (cpumask_weight(cpu_present_mask) > 1)
+	{
 		mb();  /* make sure all data is visible to new processors */
 		hv_start_all_tiles();
 	}
@@ -126,8 +141,12 @@ static __initdata struct cpumask init_affinity;
 static __init int reset_init_affinity(void)
 {
 	long rc = sched_setaffinity(current->pid, &init_affinity);
+
 	if (rc != 0)
+	{
 		pr_warn("couldn't reset init affinity (%ld)\n", rc);
+	}
+
 	return 0;
 }
 late_initcall(reset_init_affinity);
@@ -162,8 +181,12 @@ static void start_secondary(void)
 	/* Set up this thread as another owner of the init_mm */
 	atomic_inc(&init_mm.mm_count);
 	current->active_mm = &init_mm;
+
 	if (current->mm)
+	{
 		BUG();
+	}
+
 	enter_lazy_tlb(&init_mm, current);
 
 	/* Allow hypervisor messages to be received */
@@ -172,10 +195,14 @@ static void start_secondary(void)
 
 	/* Indicate that we're ready to come up. */
 	/* Must not do this before we're ready to receive messages */
-	if (cpumask_test_and_set_cpu(cpuid, &cpu_started)) {
+	if (cpumask_test_and_set_cpu(cpuid, &cpu_started))
+	{
 		pr_warn("CPU#%d already started!\n", cpuid);
+
 		for (;;)
+		{
 			local_irq_enable();
+		}
 	}
 
 	smp_nap();
@@ -215,12 +242,16 @@ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
 {
 	/* Wait 5s total for all CPUs for them to come online */
 	static int timeout;
-	for (; !cpumask_test_cpu(cpu, &cpu_started); timeout++) {
-		if (timeout >= 50000) {
+
+	for (; !cpumask_test_cpu(cpu, &cpu_started); timeout++)
+	{
+		if (timeout >= 50000)
+		{
 			pr_info("skipping unresponsive cpu%d\n", cpu);
 			local_irq_enable();
 			return -EIO;
 		}
+
 		udelay(100);
 	}
 
@@ -229,8 +260,12 @@ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
 
 	/* Unleash the CPU! */
 	send_IPI_single(cpu, MSG_TAG_START_CPU);
+
 	while (!cpumask_test_cpu(cpu, cpu_online_mask))
+	{
 		cpu_relax();
+	}
+
 	return 0;
 }
 
@@ -259,10 +294,14 @@ void __init smp_cpus_done(unsigned int max_cpus)
 	 * on this cpu.
 	 */
 	for (cpu = cpumask_first(&init_affinity);
-	     (next = cpumask_next(cpu, &init_affinity)) < nr_cpu_ids;
-	     cpu = next)
+		 (next = cpumask_next(cpu, &init_affinity)) < nr_cpu_ids;
+		 cpu = next)
 		;
+
 	rc = sched_setaffinity(current->pid, cpumask_of(cpu));
+
 	if (rc != 0)
+	{
 		pr_err("Couldn't set init affinity to cpu %d (%d)\n", cpu, rc);
+	}
 }

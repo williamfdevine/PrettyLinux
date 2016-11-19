@@ -24,15 +24,15 @@
  * instruction pointer ("program counter").
  */
 #define current_text_addr() ({ \
-void *pc; \
-unsigned long long __dummy = 0; \
-__asm__("gettr	tr0, %1\n\t" \
-	"pta	4, tr0\n\t" \
-	"gettr	tr0, %0\n\t" \
-	"ptabs	%1, tr0\n\t"	\
-	:"=r" (pc), "=r" (__dummy) \
-	: "1" (__dummy)); \
-pc; })
+		void *pc; \
+		unsigned long long __dummy = 0; \
+		__asm__("gettr	tr0, %1\n\t" \
+				"pta	4, tr0\n\t" \
+				"gettr	tr0, %0\n\t" \
+				"ptabs	%1, tr0\n\t"	\
+				:"=r" (pc), "=r" (__dummy) \
+				: "1" (__dummy)); \
+		pc; })
 
 #endif
 
@@ -64,9 +64,9 @@ pc; })
  *
  */
 #if defined(CONFIG_SH64_SR_WATCH)
-#define SR_MMU   0x84000000
+	#define SR_MMU   0x84000000
 #else
-#define SR_MMU   0x80000000
+	#define SR_MMU   0x80000000
 #endif
 
 #define SR_IMASK 0x000000f0
@@ -80,21 +80,24 @@ pc; })
    with fld.p, fst.p
  */
 
-struct sh_fpu_hard_struct {
+struct sh_fpu_hard_struct
+{
 	unsigned long fp_regs[64];
 	unsigned int fpscr;
 	/* long status; * software status information */
 };
 
 /* Dummy fpu emulator  */
-struct sh_fpu_soft_struct {
+struct sh_fpu_soft_struct
+{
 	unsigned long fp_regs[64];
 	unsigned int fpscr;
 	unsigned char lookahead;
 	unsigned long entry_pc;
 };
 
-union thread_xstate {
+union thread_xstate
+{
 	struct sh_fpu_hard_struct hardfpu;
 	struct sh_fpu_soft_struct softfpu;
 	/*
@@ -104,7 +107,8 @@ union thread_xstate {
 	unsigned long long alignment_dummy;
 };
 
-struct thread_struct {
+struct thread_struct
+{
 	unsigned long sp;
 	unsigned long pc;
 
@@ -115,7 +119,7 @@ struct thread_struct {
 	   switch, or of the register save area built for a kernel mode
 	   exception.  It is used for backtracing the stack of a sleeping task
 	   or one that traps in kernel mode. */
-        struct pt_regs *kregs;
+	struct pt_regs *kregs;
 	/* This stores the address of the pt_regs constructed on entry from
 	   user mode.  It is a fixed value over the lifetime of a process, or
 	   NULL for a kernel thread. */
@@ -139,17 +143,17 @@ struct thread_struct {
 };
 
 #define INIT_MMAP \
-{ &init_mm, 0, 0, NULL, PAGE_SHARED, VM_READ | VM_WRITE | VM_EXEC, 1, NULL, NULL }
+	{ &init_mm, 0, 0, NULL, PAGE_SHARED, VM_READ | VM_WRITE | VM_EXEC, 1, NULL, NULL }
 
 #define INIT_THREAD  {				\
-	.sp		= sizeof(init_stack) +	\
-			  (long) &init_stack,	\
-	.pc		= 0,			\
-        .kregs		= &fake_swapper_regs,	\
-	.uregs	        = NULL,			\
-	.address	= 0,			\
-	.flags		= 0,			\
-}
+		.sp		= sizeof(init_stack) +	\
+				  (long) &init_stack,	\
+				  .pc		= 0,			\
+							.kregs		= &fake_swapper_regs,	\
+										  .uregs	        = NULL,			\
+												  .address	= 0,			\
+														  .flags		= 0,			\
+	}
 
 /*
  * Do necessary setup to start up a newly executed thread.
@@ -184,10 +188,10 @@ static inline void disable_fpu(void)
 
 	/* Set FD flag in SR */
 	__asm__ __volatile__("getcon	" __SR ", %0\n\t"
-			     "or	%0, %1, %0\n\t"
-			     "putcon	%0, " __SR "\n\t"
-			     : "=&r" (__dummy)
-			     : "r" (SR_FD));
+						 "or	%0, %1, %0\n\t"
+						 "putcon	%0, " __SR "\n\t"
+						 : "=&r" (__dummy)
+						 : "r" (SR_FD));
 }
 
 static inline void enable_fpu(void)
@@ -196,26 +200,26 @@ static inline void enable_fpu(void)
 
 	/* Clear out FD flag in SR */
 	__asm__ __volatile__("getcon	" __SR ", %0\n\t"
-			     "and	%0, %1, %0\n\t"
-			     "putcon	%0, " __SR "\n\t"
-			     : "=&r" (__dummy)
-			     : "r" (~SR_FD));
+						 "and	%0, %1, %0\n\t"
+						 "putcon	%0, " __SR "\n\t"
+						 : "=&r" (__dummy)
+						 : "r" (~SR_FD));
 }
 
 /* Round to nearest, no exceptions on inexact, overflow, underflow,
    zero-divide, invalid.  Configure option for whether to flush denorms to
    zero, or except if a denorm is encountered.  */
 #if defined(CONFIG_SH64_FPU_DENORM_FLUSH)
-#define FPSCR_INIT  0x00040000
+	#define FPSCR_INIT  0x00040000
 #else
-#define FPSCR_INIT  0x00000000
+	#define FPSCR_INIT  0x00000000
 #endif
 
 #ifdef CONFIG_SH_FPU
-/* Initialise the FP state of a task */
-void fpinit(struct sh_fpu_hard_struct *fpregs);
+	/* Initialise the FP state of a task */
+	void fpinit(struct sh_fpu_hard_struct *fpregs);
 #else
-#define fpinit(fpregs)	do { } while (0)
+	#define fpinit(fpregs)	do { } while (0)
 #endif
 
 extern struct task_struct *last_task_used_math;

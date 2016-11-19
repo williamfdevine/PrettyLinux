@@ -41,27 +41,37 @@
 
 static int __cvmx_pko_int(int interface, int index)
 {
-	switch (interface) {
-	case 0:
-		return index;
-	case 1:
-		return 4;
-	case 2:
-		return index + 0x08;
-	case 3:
-		return index + 0x0c;
-	case 4:
-		return index + 0x10;
-	case 5:
-		return 0x1c;
-	case 6:
-		return 0x1d;
-	case 7:
-		return 0x1e;
-	case 8:
-		return 0x1f;
-	default:
-		return -1;
+	switch (interface)
+	{
+		case 0:
+			return index;
+
+		case 1:
+			return 4;
+
+		case 2:
+			return index + 0x08;
+
+		case 3:
+			return index + 0x0c;
+
+		case 4:
+			return index + 0x10;
+
+		case 5:
+			return 0x1c;
+
+		case 6:
+			return 0x1d;
+
+		case 7:
+			return 0x1e;
+
+		case 8:
+			return 0x1f;
+
+		default:
+			return -1;
 	}
 }
 
@@ -73,7 +83,8 @@ static void __cvmx_pko_iport_config(int pko_port)
 	const int static_priority_end = 1;
 	const int static_priority_base = 1;
 
-	for (queue = 0; queue < num_queues; queue++) {
+	for (queue = 0; queue < num_queues; queue++)
+	{
 		union cvmx_pko_mem_iqueue_ptrs config;
 		cvmx_cmd_queue_result_t cmd_res;
 		uint64_t *buf_ptr;
@@ -89,19 +100,19 @@ static void __cvmx_pko_iport_config(int pko_port)
 		config.s.qos_mask	= 0xff;
 
 		cmd_res = cvmx_cmd_queue_initialize(
-				CVMX_CMD_QUEUE_PKO(base_queue + queue),
-				CVMX_PKO_MAX_QUEUE_DEPTH,
-				CVMX_FPA_OUTPUT_BUFFER_POOL,
-				(CVMX_FPA_OUTPUT_BUFFER_POOL_SIZE -
-				 CVMX_PKO_COMMAND_BUFFER_SIZE_ADJUST * 8));
+					  CVMX_CMD_QUEUE_PKO(base_queue + queue),
+					  CVMX_PKO_MAX_QUEUE_DEPTH,
+					  CVMX_FPA_OUTPUT_BUFFER_POOL,
+					  (CVMX_FPA_OUTPUT_BUFFER_POOL_SIZE -
+					   CVMX_PKO_COMMAND_BUFFER_SIZE_ADJUST * 8));
 
 		WARN(cmd_res,
-		     "%s: cmd_res=%d pko_port=%d base_queue=%d num_queues=%d queue=%d\n",
-			__func__, (int)cmd_res, pko_port, base_queue,
-			num_queues, queue);
+			 "%s: cmd_res=%d pko_port=%d base_queue=%d num_queues=%d queue=%d\n",
+			 __func__, (int)cmd_res, pko_port, base_queue,
+			 num_queues, queue);
 
 		buf_ptr = (uint64_t *)cvmx_cmd_queue_buffer(
-				CVMX_CMD_QUEUE_PKO(base_queue + queue));
+					  CVMX_CMD_QUEUE_PKO(base_queue + queue));
 		config.s.buf_ptr = cvmx_ptr_to_phys(buf_ptr) >> 7;
 		CVMX_SYNCWS;
 		cvmx_write_csr(CVMX_PKO_MEM_IQUEUE_PTRS, config.u64);
@@ -113,7 +124,9 @@ static void __cvmx_pko_queue_alloc_o68(void)
 	int port;
 
 	for (port = 0; port < 48; port++)
+	{
 		__cvmx_pko_iport_config(port);
+	}
 }
 
 static void __cvmx_pko_port_map_o68(void)
@@ -128,7 +141,9 @@ static void __cvmx_pko_port_map_o68(void)
 	 */
 	config.u64 = 0;
 	config.s.eid = 31; /* Invalid */
-	for (port = 0; port < 128; port++) {
+
+	for (port = 0; port < 128; port++)
+	{
 		config.s.ipid = port;
 		cvmx_write_csr(CVMX_PKO_MEM_IPORT_PTRS, config.u64);
 	}
@@ -136,12 +151,16 @@ static void __cvmx_pko_port_map_o68(void)
 	/*
 	 * Set up PKO_MEM_IPORT_PTRS
 	 */
-	for (port = 0; port < 48; port++) {
+	for (port = 0; port < 48; port++)
+	{
 		interface = cvmx_helper_get_interface_num(port);
 		index = cvmx_helper_get_interface_index_num(port);
 		mode = cvmx_helper_interface_get_mode(interface);
+
 		if (mode == CVMX_HELPER_INTERFACE_MODE_DISABLED)
+		{
 			continue;
+		}
 
 		config.s.ipid = port;
 		config.s.qos_mask = 0xff;
@@ -150,7 +169,7 @@ static void __cvmx_pko_port_map_o68(void)
 		config.s.intr = __cvmx_pko_int(interface, index);
 		config.s.eid = config.s.intr;
 		config.s.pipe = (mode == CVMX_HELPER_INTERFACE_MODE_LOOP) ?
-			index : port;
+						index : port;
 		cvmx_write_csr(CVMX_PKO_MEM_IPORT_PTRS, config.u64);
 	}
 }
@@ -159,7 +178,8 @@ static void __cvmx_pko_chip_init(void)
 {
 	int i;
 
-	if (OCTEON_IS_MODEL(OCTEON_CN68XX)) {
+	if (OCTEON_IS_MODEL(OCTEON_CN68XX))
+	{
 		__cvmx_pko_port_map_o68();
 		__cvmx_pko_queue_alloc_o68();
 		return;
@@ -168,11 +188,12 @@ static void __cvmx_pko_chip_init(void)
 	/*
 	 * Initialize queues
 	 */
-	for (i = 0; i < CVMX_PKO_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CVMX_PKO_MAX_OUTPUT_QUEUES; i++)
+	{
 		const uint64_t priority = 8;
 
 		cvmx_pko_config_port(CVMX_PKO_MEM_QUEUE_PTRS_ILLEGAL_PID, i, 1,
-				     &priority);
+							 &priority);
 	}
 }
 
@@ -207,24 +228,37 @@ void cvmx_pko_initialize_global(void)
 	 * internal memory.
 	 */
 	if (OCTEON_IS_MODEL(OCTEON_CN38XX) || OCTEON_IS_MODEL(OCTEON_CN58XX)
-	    || OCTEON_IS_MODEL(OCTEON_CN56XX)
-	    || OCTEON_IS_MODEL(OCTEON_CN52XX)) {
+		|| OCTEON_IS_MODEL(OCTEON_CN56XX)
+		|| OCTEON_IS_MODEL(OCTEON_CN52XX))
+	{
 		int num_interfaces = cvmx_helper_get_number_of_interfaces();
 		int last_port =
-		    cvmx_helper_get_last_ipd_port(num_interfaces - 1);
+			cvmx_helper_get_last_ipd_port(num_interfaces - 1);
 		int max_queues =
-		    cvmx_pko_get_base_queue(last_port) +
-		    cvmx_pko_get_num_queues(last_port);
-		if (OCTEON_IS_MODEL(OCTEON_CN38XX)) {
+			cvmx_pko_get_base_queue(last_port) +
+			cvmx_pko_get_num_queues(last_port);
+
+		if (OCTEON_IS_MODEL(OCTEON_CN38XX))
+		{
 			if (max_queues <= 32)
+			{
 				cvmx_write_csr(CVMX_PKO_REG_QUEUE_MODE, 2);
+			}
 			else if (max_queues <= 64)
+			{
 				cvmx_write_csr(CVMX_PKO_REG_QUEUE_MODE, 1);
-		} else {
+			}
+		}
+		else
+		{
 			if (max_queues <= 64)
+			{
 				cvmx_write_csr(CVMX_PKO_REG_QUEUE_MODE, 2);
+			}
 			else if (max_queues <= 128)
+			{
 				cvmx_write_csr(CVMX_PKO_REG_QUEUE_MODE, 1);
+			}
 		}
 	}
 }
@@ -252,9 +286,10 @@ void cvmx_pko_enable(void)
 	union cvmx_pko_reg_flags flags;
 
 	flags.u64 = cvmx_read_csr(CVMX_PKO_REG_FLAGS);
+
 	if (flags.s.ena_pko)
 		cvmx_dprintf
-		    ("Warning: Enabling PKO when PKO already enabled.\n");
+		("Warning: Enabling PKO when PKO already enabled.\n");
 
 	flags.s.ena_dwb = 1;
 	flags.s.ena_pko = 1;
@@ -299,7 +334,8 @@ void cvmx_pko_shutdown(void)
 
 	cvmx_pko_disable();
 
-	for (queue = 0; queue < CVMX_PKO_MAX_OUTPUT_QUEUES; queue++) {
+	for (queue = 0; queue < CVMX_PKO_MAX_OUTPUT_QUEUES; queue++)
+	{
 		config.u64 = 0;
 		config.s.tail = 1;
 		config.s.index = 0;
@@ -307,15 +343,19 @@ void cvmx_pko_shutdown(void)
 		config.s.queue = queue & 0x7f;
 		config.s.qos_mask = 0;
 		config.s.buf_ptr = 0;
-		if (!OCTEON_IS_MODEL(OCTEON_CN3XXX)) {
+
+		if (!OCTEON_IS_MODEL(OCTEON_CN3XXX))
+		{
 			union cvmx_pko_reg_queue_ptrs1 config1;
 			config1.u64 = 0;
 			config1.s.qid7 = queue >> 7;
 			cvmx_write_csr(CVMX_PKO_REG_QUEUE_PTRS1, config1.u64);
 		}
+
 		cvmx_write_csr(CVMX_PKO_MEM_QUEUE_PTRS, config.u64);
 		cvmx_cmd_queue_shutdown(CVMX_CMD_QUEUE_PKO(queue));
 	}
+
 	__cvmx_pko_reset();
 }
 EXPORT_SYMBOL_GPL(cvmx_pko_shutdown);
@@ -338,8 +378,8 @@ EXPORT_SYMBOL_GPL(cvmx_pko_shutdown);
  *		     There must be num_queues elements in the array.
  */
 cvmx_pko_status_t cvmx_pko_config_port(uint64_t port, uint64_t base_queue,
-				       uint64_t num_queues,
-				       const uint64_t priority[])
+									   uint64_t num_queues,
+									   const uint64_t priority[])
 {
 	cvmx_pko_status_t result_code;
 	uint64_t queue;
@@ -349,45 +389,59 @@ cvmx_pko_status_t cvmx_pko_config_port(uint64_t port, uint64_t base_queue,
 	int static_priority_end = -1;
 
 	if (OCTEON_IS_MODEL(OCTEON_CN68XX))
+	{
 		return CVMX_PKO_SUCCESS;
+	}
 
 	if ((port >= CVMX_PKO_NUM_OUTPUT_PORTS)
-	    && (port != CVMX_PKO_MEM_QUEUE_PTRS_ILLEGAL_PID)) {
+		&& (port != CVMX_PKO_MEM_QUEUE_PTRS_ILLEGAL_PID))
+	{
 		cvmx_dprintf("ERROR: cvmx_pko_config_port: Invalid port %llu\n",
-			     (unsigned long long)port);
+					 (unsigned long long)port);
 		return CVMX_PKO_INVALID_PORT;
 	}
 
-	if (base_queue + num_queues > CVMX_PKO_MAX_OUTPUT_QUEUES) {
+	if (base_queue + num_queues > CVMX_PKO_MAX_OUTPUT_QUEUES)
+	{
 		cvmx_dprintf
-		    ("ERROR: cvmx_pko_config_port: Invalid queue range %llu\n",
-		     (unsigned long long)(base_queue + num_queues));
+		("ERROR: cvmx_pko_config_port: Invalid queue range %llu\n",
+		 (unsigned long long)(base_queue + num_queues));
 		return CVMX_PKO_INVALID_QUEUE;
 	}
 
-	if (port != CVMX_PKO_MEM_QUEUE_PTRS_ILLEGAL_PID) {
+	if (port != CVMX_PKO_MEM_QUEUE_PTRS_ILLEGAL_PID)
+	{
 		/*
 		 * Validate the static queue priority setup and set
 		 * static_priority_base and static_priority_end
 		 * accordingly.
 		 */
-		for (queue = 0; queue < num_queues; queue++) {
+		for (queue = 0; queue < num_queues; queue++)
+		{
 			/* Find first queue of static priority */
 			if (static_priority_base == -1
-			    && priority[queue] ==
-			    CVMX_PKO_QUEUE_STATIC_PRIORITY)
+				&& priority[queue] ==
+				CVMX_PKO_QUEUE_STATIC_PRIORITY)
+			{
 				static_priority_base = queue;
+			}
+
 			/* Find last queue of static priority */
 			if (static_priority_base != -1
-			    && static_priority_end == -1
-			    && priority[queue] != CVMX_PKO_QUEUE_STATIC_PRIORITY
-			    && queue)
+				&& static_priority_end == -1
+				&& priority[queue] != CVMX_PKO_QUEUE_STATIC_PRIORITY
+				&& queue)
+			{
 				static_priority_end = queue - 1;
+			}
 			else if (static_priority_base != -1
-				 && static_priority_end == -1
-				 && queue == num_queues - 1)
+					 && static_priority_end == -1
+					 && queue == num_queues - 1)
 				/* all queues are static priority */
+			{
 				static_priority_end = queue;
+			}
+
 			/*
 			 * Check to make sure all static priority
 			 * queues are contiguous.  Also catches some
@@ -395,30 +449,35 @@ cvmx_pko_status_t cvmx_pko_config_port(uint64_t port, uint64_t base_queue,
 			 * queue 0.
 			 */
 			if (static_priority_end != -1
-			    && (int)queue > static_priority_end
-			    && priority[queue] ==
-			    CVMX_PKO_QUEUE_STATIC_PRIORITY) {
+				&& (int)queue > static_priority_end
+				&& priority[queue] ==
+				CVMX_PKO_QUEUE_STATIC_PRIORITY)
+			{
 				cvmx_dprintf("ERROR: cvmx_pko_config_port: "
-					     "Static priority queues aren't "
-					     "contiguous or don't start at "
-					     "base queue. q: %d, eq: %d\n",
-					(int)queue, static_priority_end);
+							 "Static priority queues aren't "
+							 "contiguous or don't start at "
+							 "base queue. q: %d, eq: %d\n",
+							 (int)queue, static_priority_end);
 				return CVMX_PKO_INVALID_PRIORITY;
 			}
 		}
-		if (static_priority_base > 0) {
+
+		if (static_priority_base > 0)
+		{
 			cvmx_dprintf("ERROR: cvmx_pko_config_port: Static "
-				     "priority queues don't start at base "
-				     "queue. sq: %d\n",
-				static_priority_base);
+						 "priority queues don't start at base "
+						 "queue. sq: %d\n",
+						 static_priority_base);
 			return CVMX_PKO_INVALID_PRIORITY;
 		}
+
 #if 0
 		cvmx_dprintf("Port %d: Static priority queue base: %d, "
-			     "end: %d\n", port,
-			static_priority_base, static_priority_end);
+					 "end: %d\n", port,
+					 static_priority_base, static_priority_end);
 #endif
 	}
+
 	/*
 	 * At this point, static_priority_base and static_priority_end
 	 * are either both -1, or are valid start/end queue
@@ -429,11 +488,12 @@ cvmx_pko_status_t cvmx_pko_config_port(uint64_t port, uint64_t base_queue,
 
 #ifdef PKO_DEBUG
 	cvmx_dprintf("num queues: %d (%lld,%lld)\n", num_queues,
-		     CVMX_PKO_QUEUES_PER_PORT_INTERFACE0,
-		     CVMX_PKO_QUEUES_PER_PORT_INTERFACE1);
+				 CVMX_PKO_QUEUES_PER_PORT_INTERFACE0,
+				 CVMX_PKO_QUEUES_PER_PORT_INTERFACE1);
 #endif
 
-	for (queue = 0; queue < num_queues; queue++) {
+	for (queue = 0; queue < num_queues; queue++)
+	{
 		uint64_t *buf_ptr = NULL;
 
 		config1.u64 = 0;
@@ -446,101 +506,128 @@ cvmx_pko_status_t cvmx_pko_config_port(uint64_t port, uint64_t base_queue,
 		config.s.port = port;
 		config.s.queue = base_queue + queue;
 
-		if (!cvmx_octeon_is_pass1()) {
+		if (!cvmx_octeon_is_pass1())
+		{
 			config.s.static_p = static_priority_base >= 0;
 			config.s.static_q = (int)queue <= static_priority_end;
 			config.s.s_tail = (int)queue == static_priority_end;
 		}
+
 		/*
 		 * Convert the priority into an enable bit field. Try
 		 * to space the bits out evenly so the packet don't
 		 * get grouped up
 		 */
-		switch ((int)priority[queue]) {
-		case 0:
-			config.s.qos_mask = 0x00;
-			break;
-		case 1:
-			config.s.qos_mask = 0x01;
-			break;
-		case 2:
-			config.s.qos_mask = 0x11;
-			break;
-		case 3:
-			config.s.qos_mask = 0x49;
-			break;
-		case 4:
-			config.s.qos_mask = 0x55;
-			break;
-		case 5:
-			config.s.qos_mask = 0x57;
-			break;
-		case 6:
-			config.s.qos_mask = 0x77;
-			break;
-		case 7:
-			config.s.qos_mask = 0x7f;
-			break;
-		case 8:
-			config.s.qos_mask = 0xff;
-			break;
-		case CVMX_PKO_QUEUE_STATIC_PRIORITY:
-			/* Pass 1 will fall through to the error case */
-			if (!cvmx_octeon_is_pass1()) {
+		switch ((int)priority[queue])
+		{
+			case 0:
+				config.s.qos_mask = 0x00;
+				break;
+
+			case 1:
+				config.s.qos_mask = 0x01;
+				break;
+
+			case 2:
+				config.s.qos_mask = 0x11;
+				break;
+
+			case 3:
+				config.s.qos_mask = 0x49;
+				break;
+
+			case 4:
+				config.s.qos_mask = 0x55;
+				break;
+
+			case 5:
+				config.s.qos_mask = 0x57;
+				break;
+
+			case 6:
+				config.s.qos_mask = 0x77;
+				break;
+
+			case 7:
+				config.s.qos_mask = 0x7f;
+				break;
+
+			case 8:
 				config.s.qos_mask = 0xff;
 				break;
-			}
-		default:
-			cvmx_dprintf("ERROR: cvmx_pko_config_port: Invalid "
-				     "priority %llu\n",
-				(unsigned long long)priority[queue]);
-			config.s.qos_mask = 0xff;
-			result_code = CVMX_PKO_INVALID_PRIORITY;
-			break;
+
+			case CVMX_PKO_QUEUE_STATIC_PRIORITY:
+
+				/* Pass 1 will fall through to the error case */
+				if (!cvmx_octeon_is_pass1())
+				{
+					config.s.qos_mask = 0xff;
+					break;
+				}
+
+			default:
+				cvmx_dprintf("ERROR: cvmx_pko_config_port: Invalid "
+							 "priority %llu\n",
+							 (unsigned long long)priority[queue]);
+				config.s.qos_mask = 0xff;
+				result_code = CVMX_PKO_INVALID_PRIORITY;
+				break;
 		}
 
-		if (port != CVMX_PKO_MEM_QUEUE_PTRS_ILLEGAL_PID) {
+		if (port != CVMX_PKO_MEM_QUEUE_PTRS_ILLEGAL_PID)
+		{
 			cvmx_cmd_queue_result_t cmd_res =
-			    cvmx_cmd_queue_initialize(CVMX_CMD_QUEUE_PKO
-						      (base_queue + queue),
-						      CVMX_PKO_MAX_QUEUE_DEPTH,
-						      CVMX_FPA_OUTPUT_BUFFER_POOL,
-						      CVMX_FPA_OUTPUT_BUFFER_POOL_SIZE
-						      -
-						      CVMX_PKO_COMMAND_BUFFER_SIZE_ADJUST
-						      * 8);
-			if (cmd_res != CVMX_CMD_QUEUE_SUCCESS) {
-				switch (cmd_res) {
-				case CVMX_CMD_QUEUE_NO_MEMORY:
-					cvmx_dprintf("ERROR: "
-						     "cvmx_pko_config_port: "
-						     "Unable to allocate "
-						     "output buffer.\n");
-					return CVMX_PKO_NO_MEMORY;
-				case CVMX_CMD_QUEUE_ALREADY_SETUP:
-					cvmx_dprintf
-					    ("ERROR: cvmx_pko_config_port: Port already setup.\n");
-					return CVMX_PKO_PORT_ALREADY_SETUP;
-				case CVMX_CMD_QUEUE_INVALID_PARAM:
-				default:
-					cvmx_dprintf
-					    ("ERROR: cvmx_pko_config_port: Command queue initialization failed.\n");
-					return CVMX_PKO_CMD_QUEUE_INIT_ERROR;
+				cvmx_cmd_queue_initialize(CVMX_CMD_QUEUE_PKO
+										  (base_queue + queue),
+										  CVMX_PKO_MAX_QUEUE_DEPTH,
+										  CVMX_FPA_OUTPUT_BUFFER_POOL,
+										  CVMX_FPA_OUTPUT_BUFFER_POOL_SIZE
+										  -
+										  CVMX_PKO_COMMAND_BUFFER_SIZE_ADJUST
+										  * 8);
+
+			if (cmd_res != CVMX_CMD_QUEUE_SUCCESS)
+			{
+				switch (cmd_res)
+				{
+					case CVMX_CMD_QUEUE_NO_MEMORY:
+						cvmx_dprintf("ERROR: "
+									 "cvmx_pko_config_port: "
+									 "Unable to allocate "
+									 "output buffer.\n");
+						return CVMX_PKO_NO_MEMORY;
+
+					case CVMX_CMD_QUEUE_ALREADY_SETUP:
+						cvmx_dprintf
+						("ERROR: cvmx_pko_config_port: Port already setup.\n");
+						return CVMX_PKO_PORT_ALREADY_SETUP;
+
+					case CVMX_CMD_QUEUE_INVALID_PARAM:
+					default:
+						cvmx_dprintf
+						("ERROR: cvmx_pko_config_port: Command queue initialization failed.\n");
+						return CVMX_PKO_CMD_QUEUE_INIT_ERROR;
 				}
 			}
 
 			buf_ptr =
-			    (uint64_t *)
-			    cvmx_cmd_queue_buffer(CVMX_CMD_QUEUE_PKO
-						  (base_queue + queue));
+				(uint64_t *)
+				cvmx_cmd_queue_buffer(CVMX_CMD_QUEUE_PKO
+									  (base_queue + queue));
 			config.s.buf_ptr = cvmx_ptr_to_phys(buf_ptr);
-		} else
+		}
+		else
+		{
 			config.s.buf_ptr = 0;
+		}
 
 		CVMX_SYNCWS;
 
 		if (!OCTEON_IS_MODEL(OCTEON_CN3XXX))
+		{
 			cvmx_write_csr(CVMX_PKO_REG_QUEUE_PTRS1, config1.u64);
+		}
+
 		cvmx_write_csr(CVMX_PKO_MEM_QUEUE_PTRS, config.u64);
 	}
 
@@ -557,18 +644,26 @@ void cvmx_pko_show_queue_map()
 	int pko_output_ports = 36;
 
 	cvmx_dprintf("port");
+
 	for (port = 0; port < pko_output_ports; port++)
+	{
 		cvmx_dprintf("%3d ", port);
+	}
+
 	cvmx_dprintf("\n");
 
-	for (core = 0; core < CVMX_MAX_CORES; core++) {
+	for (core = 0; core < CVMX_MAX_CORES; core++)
+	{
 		cvmx_dprintf("\n%2d: ", core);
-		for (port = 0; port < pko_output_ports; port++) {
+
+		for (port = 0; port < pko_output_ports; port++)
+		{
 			cvmx_dprintf("%3d ",
-				     cvmx_pko_get_base_queue_per_core(port,
-								      core));
+						 cvmx_pko_get_base_queue_per_core(port,
+								 core));
 		}
 	}
+
 	cvmx_dprintf("\n");
 }
 #endif
@@ -592,14 +687,14 @@ int cvmx_pko_rate_limit_packets(int port, int packets_s, int burst)
 	pko_mem_port_rate0.u64 = 0;
 	pko_mem_port_rate0.s.pid = port;
 	pko_mem_port_rate0.s.rate_pkt =
-	    cvmx_sysinfo_get()->cpu_clock_hz / packets_s / 16;
+		cvmx_sysinfo_get()->cpu_clock_hz / packets_s / 16;
 	/* No cost per word since we are limited by packets/sec, not bits/sec */
 	pko_mem_port_rate0.s.rate_word = 0;
 
 	pko_mem_port_rate1.u64 = 0;
 	pko_mem_port_rate1.s.pid = port;
 	pko_mem_port_rate1.s.rate_lim =
-	    ((uint64_t) pko_mem_port_rate0.s.rate_pkt * burst) >> 8;
+		((uint64_t) pko_mem_port_rate0.s.rate_pkt * burst) >> 8;
 
 	cvmx_write_csr(CVMX_PKO_MEM_PORT_RATE0, pko_mem_port_rate0.u64);
 	cvmx_write_csr(CVMX_PKO_MEM_PORT_RATE1, pko_mem_port_rate1.u64);

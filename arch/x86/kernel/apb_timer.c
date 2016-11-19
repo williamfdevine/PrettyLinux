@@ -58,7 +58,8 @@ static void __iomem *apbt_virt_address;
  */
 static unsigned long apbt_freq;
 
-struct apbt_dev {
+struct apbt_dev
+{
 	struct dw_apb_clock_event_device	*timer;
 	unsigned int				num;
 	int					cpu;
@@ -76,7 +77,7 @@ static inline void __iomem *adev_virt_addr(struct apbt_dev *adev)
 static DEFINE_PER_CPU(struct apbt_dev, cpu_apbt_dev);
 
 #ifdef CONFIG_SMP
-static unsigned int apbt_num_timers_used;
+	static unsigned int apbt_num_timers_used;
 #endif
 
 static inline void apbt_set_mapping(void)
@@ -84,44 +85,58 @@ static inline void apbt_set_mapping(void)
 	struct sfi_timer_table_entry *mtmr;
 	int phy_cs_timer_id = 0;
 
-	if (apbt_virt_address) {
+	if (apbt_virt_address)
+	{
 		pr_debug("APBT base already mapped\n");
 		return;
 	}
+
 	mtmr = sfi_get_mtmr(APBT_CLOCKEVENT0_NUM);
-	if (mtmr == NULL) {
+
+	if (mtmr == NULL)
+	{
 		printk(KERN_ERR "Failed to get MTMR %d from SFI\n",
-		       APBT_CLOCKEVENT0_NUM);
+			   APBT_CLOCKEVENT0_NUM);
 		return;
 	}
+
 	apbt_address = (phys_addr_t)mtmr->phys_addr;
-	if (!apbt_address) {
+
+	if (!apbt_address)
+	{
 		printk(KERN_WARNING "No timer base from SFI, use default\n");
 		apbt_address = APBT_DEFAULT_BASE;
 	}
+
 	apbt_virt_address = ioremap_nocache(apbt_address, APBT_MMAP_SIZE);
-	if (!apbt_virt_address) {
-		pr_debug("Failed mapping APBT phy address at %lu\n",\
-			 (unsigned long)apbt_address);
+
+	if (!apbt_virt_address)
+	{
+		pr_debug("Failed mapping APBT phy address at %lu\n", \
+				 (unsigned long)apbt_address);
 		goto panic_noapbt;
 	}
+
 	apbt_freq = mtmr->freq_hz;
 	sfi_free_mtmr(mtmr);
 
 	/* Now figure out the physical timer id for clocksource device */
 	mtmr = sfi_get_mtmr(APBT_CLOCKSOURCE_NUM);
+
 	if (mtmr == NULL)
+	{
 		goto panic_noapbt;
+	}
 
 	/* Now figure out the physical timer id */
 	pr_debug("Use timer %d for clocksource\n",
-		 (int)(mtmr->phys_addr & 0xff) / APBTMRS_REG_SIZE);
+			 (int)(mtmr->phys_addr & 0xff) / APBTMRS_REG_SIZE);
 	phy_cs_timer_id = (unsigned int)(mtmr->phys_addr & 0xff) /
-		APBTMRS_REG_SIZE;
+					  APBTMRS_REG_SIZE;
 
 	clocksource_apbt = dw_apb_clocksource_init(APBT_CLOCKSOURCE_RATING,
-		"apbt0", apbt_virt_address + phy_cs_timer_id *
-		APBTMRS_REG_SIZE, apbt_freq);
+					   "apbt0", apbt_virt_address + phy_cs_timer_id *
+					   APBTMRS_REG_SIZE, apbt_freq);
 	return;
 
 panic_noapbt:
@@ -141,24 +156,27 @@ static int __init apbt_clockevent_register(void)
 	struct apbt_dev *adev = this_cpu_ptr(&cpu_apbt_dev);
 
 	mtmr = sfi_get_mtmr(APBT_CLOCKEVENT0_NUM);
-	if (mtmr == NULL) {
+
+	if (mtmr == NULL)
+	{
 		printk(KERN_ERR "Failed to get MTMR %d from SFI\n",
-		       APBT_CLOCKEVENT0_NUM);
+			   APBT_CLOCKEVENT0_NUM);
 		return -ENODEV;
 	}
 
 	adev->num = smp_processor_id();
 	adev->timer = dw_apb_clockevent_init(smp_processor_id(), "apbt0",
-		intel_mid_timer_options == INTEL_MID_TIMER_LAPIC_APBT ?
-		APBT_CLOCKEVENT_RATING - 100 : APBT_CLOCKEVENT_RATING,
-		adev_virt_addr(adev), 0, apbt_freq);
+										 intel_mid_timer_options == INTEL_MID_TIMER_LAPIC_APBT ?
+										 APBT_CLOCKEVENT_RATING - 100 : APBT_CLOCKEVENT_RATING,
+										 adev_virt_addr(adev), 0, apbt_freq);
 	/* Firmware does EOI handling for us. */
 	adev->timer->eoi = NULL;
 
-	if (intel_mid_timer_options == INTEL_MID_TIMER_LAPIC_APBT) {
+	if (intel_mid_timer_options == INTEL_MID_TIMER_LAPIC_APBT)
+	{
 		global_clock_event = &adev->timer->ced;
 		printk(KERN_DEBUG "%s clockevent registered as global\n",
-		       global_clock_event->name);
+			   global_clock_event->name);
 	}
 
 	dw_apb_clockevent_register(adev->timer);
@@ -183,21 +201,28 @@ void apbt_setup_secondary_clock(void)
 
 	/* Don't register boot CPU clockevent */
 	cpu = smp_processor_id();
+
 	if (!cpu)
+	{
 		return;
+	}
 
 	adev = this_cpu_ptr(&cpu_apbt_dev);
-	if (!adev->timer) {
+
+	if (!adev->timer)
+	{
 		adev->timer = dw_apb_clockevent_init(cpu, adev->name,
-			APBT_CLOCKEVENT_RATING, adev_virt_addr(adev),
-			adev->irq, apbt_freq);
+											 APBT_CLOCKEVENT_RATING, adev_virt_addr(adev),
+											 adev->irq, apbt_freq);
 		adev->timer->eoi = NULL;
-	} else {
+	}
+	else
+	{
 		dw_apb_clockevent_resume(adev->timer);
 	}
 
 	printk(KERN_INFO "Registering CPU %d clockevent device %s, cpu %08x\n",
-	       cpu, adev->name, adev->cpu);
+		   cpu, adev->name, adev->cpu);
 
 	apbt_setup_irq(adev);
 	dw_apb_clockevent_register(adev->timer);
@@ -220,12 +245,17 @@ static int apbt_cpu_dead(unsigned int cpu)
 	struct apbt_dev *adev = &per_cpu(cpu_apbt_dev, cpu);
 
 	dw_apb_clockevent_pause(adev->timer);
-	if (system_state == SYSTEM_RUNNING) {
+
+	if (system_state == SYSTEM_RUNNING)
+	{
 		pr_debug("skipping APBT CPU %u offline\n", cpu);
-	} else {
+	}
+	else
+	{
 		pr_debug("APBT clockevent for cpu %u offline\n", cpu);
 		dw_apb_clockevent_stop(adev->timer);
 	}
+
 	return 0;
 }
 
@@ -233,9 +263,12 @@ static __init int apbt_late_init(void)
 {
 	if (intel_mid_timer_options == INTEL_MID_TIMER_LAPIC_APBT ||
 		!apb_timer_block_enabled)
+	{
 		return 0;
+	}
+
 	return cpuhp_setup_state(CPUHP_X86_APB_DEAD, "X86_APB_DEAD", NULL,
-				 apbt_cpu_dead);
+							 apbt_cpu_dead);
 }
 fs_initcall(apbt_late_init);
 #else
@@ -262,14 +295,18 @@ static int apbt_clocksource_register(void)
 	 * 4 GHz == 50us
 	 * 1 GHz == 200us
 	 */
-	do {
+	do
+	{
 		rep_nop();
 		now = rdtsc();
-	} while ((now - start) < 200000UL);
+	}
+	while ((now - start) < 200000UL);
 
 	/* APBT is the only always on clocksource, it has to work! */
 	if (t1 == dw_apb_clocksource_read(clocksource_apbt))
+	{
 		panic("APBT counter not counting. APBT disabled\n");
+	}
 
 	dw_apb_clocksource_register(clocksource_apbt);
 
@@ -292,54 +329,86 @@ void __init apbt_time_init(void)
 #endif
 
 	if (apb_timer_block_enabled)
+	{
 		return;
+	}
+
 	apbt_set_mapping();
+
 	if (!apbt_virt_address)
+	{
 		goto out_noapbt;
+	}
+
 	/*
 	 * Read the frequency and check for a sane value, for ESL model
 	 * we extend the possible clock range to allow time scaling.
 	 */
 
-	if (apbt_freq < APBT_MIN_FREQ || apbt_freq > APBT_MAX_FREQ) {
+	if (apbt_freq < APBT_MIN_FREQ || apbt_freq > APBT_MAX_FREQ)
+	{
 		pr_debug("APBT has invalid freq 0x%lx\n", apbt_freq);
 		goto out_noapbt;
 	}
-	if (apbt_clocksource_register()) {
+
+	if (apbt_clocksource_register())
+	{
 		pr_debug("APBT has failed to register clocksource\n");
 		goto out_noapbt;
 	}
+
 	if (!apbt_clockevent_register())
+	{
 		apb_timer_block_enabled = 1;
-	else {
+	}
+	else
+	{
 		pr_debug("APBT has failed to register clockevent\n");
 		goto out_noapbt;
 	}
+
 #ifdef CONFIG_SMP
+
 	/* kernel cmdline disable apb timer, so we will use lapic timers */
-	if (intel_mid_timer_options == INTEL_MID_TIMER_LAPIC_APBT) {
+	if (intel_mid_timer_options == INTEL_MID_TIMER_LAPIC_APBT)
+	{
 		printk(KERN_INFO "apbt: disabled per cpu timer\n");
 		return;
 	}
+
 	pr_debug("%s: %d CPUs online\n", __func__, num_online_cpus());
+
 	if (num_possible_cpus() <= sfi_mtimer_num)
+	{
 		apbt_num_timers_used = num_possible_cpus();
+	}
 	else
+	{
 		apbt_num_timers_used = 1;
+	}
+
 	pr_debug("%s: %d APB timers used\n", __func__, apbt_num_timers_used);
 
 	/* here we set up per CPU timer data structure */
-	for (i = 0; i < apbt_num_timers_used; i++) {
+	for (i = 0; i < apbt_num_timers_used; i++)
+	{
 		adev = &per_cpu(cpu_apbt_dev, i);
 		adev->num = i;
 		adev->cpu = i;
 		p_mtmr = sfi_get_mtmr(i);
+
 		if (p_mtmr)
+		{
 			adev->irq = p_mtmr->irq;
+		}
 		else
+		{
 			printk(KERN_ERR "Failed to get timer for cpu %d\n", i);
+		}
+
 		snprintf(adev->name, sizeof(adev->name) - 1, "apbt%d", i);
 	}
+
 #endif
 
 	return;
@@ -365,12 +434,19 @@ unsigned long apbt_quick_calibrate(void)
 	/* check if the timer can count down, otherwise return */
 	old = dw_apb_clocksource_read(clocksource_apbt);
 	i = 10000;
-	while (--i) {
+
+	while (--i)
+	{
 		if (old != dw_apb_clocksource_read(clocksource_apbt))
+		{
 			break;
+		}
 	}
+
 	if (!i)
+	{
 		goto failed;
+	}
 
 	/* count 16 ms */
 	loop = (apbt_freq / 1000) << 4;
@@ -383,18 +459,23 @@ unsigned long apbt_quick_calibrate(void)
 
 	t1 = rdtsc();
 
-	do {
+	do
+	{
 		new = dw_apb_clocksource_read(clocksource_apbt);
-	} while (new < old);
+	}
+	while (new < old);
 
 	t2 = rdtsc();
 
 	shift = 5;
-	if (unlikely(loop >> shift == 0)) {
+
+	if (unlikely(loop >> shift == 0))
+	{
 		printk(KERN_INFO
-		       "APBT TSC calibration failed, not enough resolution\n");
+			   "APBT TSC calibration failed, not enough resolution\n");
 		return 0;
 	}
+
 	scale = (int)div_u64((t2 - t1), loop >> shift);
 	khz = (scale * (apbt_freq / 1000)) >> shift;
 	printk(KERN_INFO "TSC freq calculated by APB timer is %lu khz\n", khz);

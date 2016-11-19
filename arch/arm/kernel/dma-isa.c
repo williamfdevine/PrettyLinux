@@ -32,7 +32,8 @@
 #define ISA_DMA_ADDR		5
 #define ISA_DMA_COUNT		6
 
-static unsigned int isa_dma_port[8][7] = {
+static unsigned int isa_dma_port[8][7] =
+{
 	/* MASK   MODE   CLRFF  PAGE_HI PAGE_LO ADDR COUNT */
 	{  0x0a,  0x0b,  0x0c,  0x487,  0x087,  0x00, 0x01 },
 	{  0x0a,  0x0b,  0x0c,  0x483,  0x083,  0x02, 0x03 },
@@ -57,31 +58,35 @@ static int isa_get_dma_residue(unsigned int chan, dma_t *dma)
 
 static void isa_enable_dma(unsigned int chan, dma_t *dma)
 {
-	if (dma->invalid) {
+	if (dma->invalid)
+	{
 		unsigned long address, length;
 		unsigned int mode;
 		enum dma_data_direction direction;
 
 		mode = (chan & 3) | dma->dma_mode;
-		switch (dma->dma_mode & DMA_MODE_MASK) {
-		case DMA_MODE_READ:
-			direction = DMA_FROM_DEVICE;
-			break;
 
-		case DMA_MODE_WRITE:
-			direction = DMA_TO_DEVICE;
-			break;
+		switch (dma->dma_mode & DMA_MODE_MASK)
+		{
+			case DMA_MODE_READ:
+				direction = DMA_FROM_DEVICE;
+				break;
 
-		case DMA_MODE_CASCADE:
-			direction = DMA_BIDIRECTIONAL;
-			break;
+			case DMA_MODE_WRITE:
+				direction = DMA_TO_DEVICE;
+				break;
 
-		default:
-			direction = DMA_NONE;
-			break;
+			case DMA_MODE_CASCADE:
+				direction = DMA_BIDIRECTIONAL;
+				break;
+
+			default:
+				direction = DMA_NONE;
+				break;
 		}
 
-		if (!dma->sg) {
+		if (!dma->sg)
+		{
 			/*
 			 * Cope with ISA-style drivers which expect cache
 			 * coherence.
@@ -90,8 +95,8 @@ static void isa_enable_dma(unsigned int chan, dma_t *dma)
 			dma->sgcount = 1;
 			dma->buf.length = dma->count;
 			dma->buf.dma_address = dma_map_single(NULL,
-				dma->addr, dma->count,
-				direction);
+												  dma->addr, dma->count,
+												  direction);
 		}
 
 		address = dma->buf.dma_address;
@@ -100,7 +105,8 @@ static void isa_enable_dma(unsigned int chan, dma_t *dma)
 		outb(address >> 16, isa_dma_port[chan][ISA_DMA_PGLO]);
 		outb(address >> 24, isa_dma_port[chan][ISA_DMA_PGHI]);
 
-		if (chan >= 4) {
+		if (chan >= 4)
+		{
 			address >>= 1;
 			length >>= 1;
 		}
@@ -116,6 +122,7 @@ static void isa_enable_dma(unsigned int chan, dma_t *dma)
 		outb(mode, isa_dma_port[chan][ISA_DMA_MODE]);
 		dma->invalid = 0;
 	}
+
 	outb(chan & 3, isa_dma_port[chan][ISA_DMA_MASK]);
 }
 
@@ -124,7 +131,8 @@ static void isa_disable_dma(unsigned int chan, dma_t *dma)
 	outb(chan | 4, isa_dma_port[chan][ISA_DMA_MASK]);
 }
 
-static struct dma_ops isa_dma_ops = {
+static struct dma_ops isa_dma_ops =
+{
 	.type		= "ISA",
 	.enable		= isa_enable_dma,
 	.disable	= isa_disable_dma,
@@ -132,22 +140,23 @@ static struct dma_ops isa_dma_ops = {
 };
 
 static struct resource dma_resources[] = { {
-	.name	= "dma1",
-	.start	= 0x0000,
-	.end	= 0x000f
-}, {
-	.name	= "dma low page",
-	.start	= 0x0080,
-	.end 	= 0x008f
-}, {
-	.name	= "dma2",
-	.start	= 0x00c0,
-	.end	= 0x00df
-}, {
-	.name	= "dma high page",
-	.start	= 0x0480,
-	.end	= 0x048f
-} };
+		.name	= "dma1",
+		.start	= 0x0000,
+		.end	= 0x000f
+	}, {
+		.name	= "dma low page",
+		.start	= 0x0080,
+		.end 	= 0x008f
+	}, {
+		.name	= "dma2",
+		.start	= 0x00c0,
+		.end	= 0x00df
+	}, {
+		.name	= "dma high page",
+		.start	= 0x0480,
+		.end	= 0x048f
+	}
+};
 
 static dma_t isa_dma[8];
 
@@ -171,10 +180,12 @@ void __init isa_init_dma(void)
 	outb(0x55, 0x00);
 	outb(0xaa, 0x00);
 
-	if (inb(0) == 0x55 && inb(0) == 0xaa) {
+	if (inb(0) == 0x55 && inb(0) == 0xaa)
+	{
 		unsigned int chan, i;
 
-		for (chan = 0; chan < 8; chan++) {
+		for (chan = 0; chan < 8; chan++)
+		{
 			isa_dma[chan].d_ops = &isa_dma_ops;
 			isa_disable_dma(chan, NULL);
 		}
@@ -208,13 +219,17 @@ void __init isa_init_dma(void)
 		outb(0x33, 0x4d6);
 
 		for (i = 0; i < ARRAY_SIZE(dma_resources); i++)
+		{
 			request_resource(&ioport_resource, dma_resources + i);
+		}
 
-		for (chan = 0; chan < 8; chan++) {
+		for (chan = 0; chan < 8; chan++)
+		{
 			int ret = isa_dma_add(chan, &isa_dma[chan]);
+
 			if (ret)
 				pr_err("ISADMA%u: unable to register: %d\n",
-				       chan, ret);
+					   chan, ret);
 		}
 
 		request_dma(DMA_ISA_CASCADE, "cascade");

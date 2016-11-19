@@ -47,7 +47,8 @@ EXPORT_SYMBOL(reset_status);
 /*
  * This table is setup for a 3.6864MHz Crystal.
  */
-struct cpufreq_frequency_table sa11x0_freq_table[NR_FREQS+1] = {
+struct cpufreq_frequency_table sa11x0_freq_table[NR_FREQS + 1] =
+{
 	{ .frequency = 59000,	/*  59.0 MHz */},
 	{ .frequency = 73700,	/*  73.7 MHz */},
 	{ .frequency = 88500,	/*  88.5 MHz */},
@@ -70,7 +71,10 @@ struct cpufreq_frequency_table sa11x0_freq_table[NR_FREQS+1] = {
 unsigned int sa11x0_getspeed(unsigned int cpu)
 {
 	if (cpu)
+	{
 		return 0;
+	}
+
 	return sa11x0_freq_table[PPCR & 0xf].frequency;
 }
 
@@ -98,10 +102,13 @@ void sa11x0_restart(enum reboot_mode mode, const char *cmd)
 {
 	clear_reset_status(RESET_STATUS_ALL);
 
-	if (mode == REBOOT_SOFT) {
+	if (mode == REBOOT_SOFT)
+	{
 		/* Jump into ROM at address 0 */
 		soft_restart(0);
-	} else {
+	}
+	else
+	{
 		/* Use on-chip reset capability */
 		RSRR = RSRR_SWR;
 	}
@@ -112,20 +119,23 @@ static void sa11x0_register_device(struct platform_device *dev, void *data)
 	int err;
 	dev->dev.platform_data = data;
 	err = platform_device_register(dev);
+
 	if (err)
 		printk(KERN_ERR "Unable to register device %s: %d\n",
-			dev->name, err);
+			   dev->name, err);
 }
 
 
-static struct resource sa11x0udc_resources[] = {
+static struct resource sa11x0udc_resources[] =
+{
 	[0] = DEFINE_RES_MEM(__PREG(Ser0UDCCR), SZ_64K),
 	[1] = DEFINE_RES_IRQ(IRQ_Ser0UDC),
 };
 
 static u64 sa11x0udc_dma_mask = 0xffffffffUL;
 
-static struct platform_device sa11x0udc_device = {
+static struct platform_device sa11x0udc_device =
+{
 	.name		= "sa11x0-udc",
 	.id		= -1,
 	.dev		= {
@@ -136,31 +146,36 @@ static struct platform_device sa11x0udc_device = {
 	.resource	= sa11x0udc_resources,
 };
 
-static struct resource sa11x0uart1_resources[] = {
+static struct resource sa11x0uart1_resources[] =
+{
 	[0] = DEFINE_RES_MEM(__PREG(Ser1UTCR0), SZ_64K),
 	[1] = DEFINE_RES_IRQ(IRQ_Ser1UART),
 };
 
-static struct platform_device sa11x0uart1_device = {
+static struct platform_device sa11x0uart1_device =
+{
 	.name		= "sa11x0-uart",
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(sa11x0uart1_resources),
 	.resource	= sa11x0uart1_resources,
 };
 
-static struct resource sa11x0uart3_resources[] = {
+static struct resource sa11x0uart3_resources[] =
+{
 	[0] = DEFINE_RES_MEM(__PREG(Ser3UTCR0), SZ_64K),
 	[1] = DEFINE_RES_IRQ(IRQ_Ser3UART),
 };
 
-static struct platform_device sa11x0uart3_device = {
+static struct platform_device sa11x0uart3_device =
+{
 	.name		= "sa11x0-uart",
 	.id		= 3,
 	.num_resources	= ARRAY_SIZE(sa11x0uart3_resources),
 	.resource	= sa11x0uart3_resources,
 };
 
-static struct resource sa11x0mcp_resources[] = {
+static struct resource sa11x0mcp_resources[] =
+{
 	[0] = DEFINE_RES_MEM(__PREG(Ser4MCCR0), SZ_64K),
 	[1] = DEFINE_RES_MEM(__PREG(Ser4MCCR1), 4),
 	[2] = DEFINE_RES_IRQ(IRQ_Ser4MCP),
@@ -168,7 +183,8 @@ static struct resource sa11x0mcp_resources[] = {
 
 static u64 sa11x0mcp_dma_mask = 0xffffffffUL;
 
-static struct platform_device sa11x0mcp_device = {
+static struct platform_device sa11x0mcp_device =
+{
 	.name		= "sa11x0-mcp",
 	.id		= -1,
 	.dev = {
@@ -194,14 +210,16 @@ void sa11x0_register_mcp(struct mcp_plat_data *data)
 	sa11x0_register_device(&sa11x0mcp_device, data);
 }
 
-static struct resource sa11x0ssp_resources[] = {
+static struct resource sa11x0ssp_resources[] =
+{
 	[0] = DEFINE_RES_MEM(0x80070000, SZ_64K),
 	[1] = DEFINE_RES_IRQ(IRQ_Ser4SSP),
 };
 
 static u64 sa11x0ssp_dma_mask = 0xffffffffUL;
 
-static struct platform_device sa11x0ssp_device = {
+static struct platform_device sa11x0ssp_device =
+{
 	.name		= "sa11x0-ssp",
 	.id		= -1,
 	.dev = {
@@ -212,12 +230,14 @@ static struct platform_device sa11x0ssp_device = {
 	.resource	= sa11x0ssp_resources,
 };
 
-static struct resource sa11x0fb_resources[] = {
+static struct resource sa11x0fb_resources[] =
+{
 	[0] = DEFINE_RES_MEM(0xb0100000, SZ_64K),
 	[1] = DEFINE_RES_IRQ(IRQ_LCD),
 };
 
-static struct platform_device sa11x0fb_device = {
+static struct platform_device sa11x0fb_device =
+{
 	.name		= "sa11x0-fb",
 	.id		= -1,
 	.dev = {
@@ -232,18 +252,20 @@ void sa11x0_register_lcd(struct sa1100fb_mach_info *inf)
 	sa11x0_register_device(&sa11x0fb_device, inf);
 }
 
-static struct platform_device sa11x0pcmcia_device = {
+static struct platform_device sa11x0pcmcia_device =
+{
 	.name		= "sa11x0-pcmcia",
 	.id		= -1,
 };
 
-static struct platform_device sa11x0mtd_device = {
+static struct platform_device sa11x0mtd_device =
+{
 	.name		= "sa1100-mtd",
 	.id		= -1,
 };
 
 void sa11x0_register_mtd(struct flash_platform_data *flash,
-			 struct resource *res, int nr)
+						 struct resource *res, int nr)
 {
 	flash->name = "sa1100";
 	sa11x0mtd_device.resource = res;
@@ -251,14 +273,16 @@ void sa11x0_register_mtd(struct flash_platform_data *flash,
 	sa11x0_register_device(&sa11x0mtd_device, flash);
 }
 
-static struct resource sa11x0ir_resources[] = {
+static struct resource sa11x0ir_resources[] =
+{
 	DEFINE_RES_MEM(__PREG(Ser2UTCR0), 0x24),
 	DEFINE_RES_MEM(__PREG(Ser2HSCR0), 0x1c),
 	DEFINE_RES_MEM(__PREG(Ser2HSCR2), 0x04),
 	DEFINE_RES_IRQ(IRQ_Ser2ICP),
 };
 
-static struct platform_device sa11x0ir_device = {
+static struct platform_device sa11x0ir_device =
+{
 	.name		= "sa11x0-ir",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(sa11x0ir_resources),
@@ -270,20 +294,23 @@ void sa11x0_register_irda(struct irda_platform_data *irda)
 	sa11x0_register_device(&sa11x0ir_device, irda);
 }
 
-static struct resource sa1100_rtc_resources[] = {
+static struct resource sa1100_rtc_resources[] =
+{
 	DEFINE_RES_MEM(0x90010000, 0x40),
 	DEFINE_RES_IRQ_NAMED(IRQ_RTC1Hz, "rtc 1Hz"),
 	DEFINE_RES_IRQ_NAMED(IRQ_RTCAlrm, "rtc alarm"),
 };
 
-static struct platform_device sa11x0rtc_device = {
+static struct platform_device sa11x0rtc_device =
+{
 	.name		= "sa1100-rtc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(sa1100_rtc_resources),
 	.resource	= sa1100_rtc_resources,
 };
 
-static struct resource sa11x0dma_resources[] = {
+static struct resource sa11x0dma_resources[] =
+{
 	DEFINE_RES_MEM(DMA_PHYS, DMA_SIZE),
 	DEFINE_RES_IRQ(IRQ_DMA0),
 	DEFINE_RES_IRQ(IRQ_DMA1),
@@ -295,7 +322,8 @@ static struct resource sa11x0dma_resources[] = {
 
 static u64 sa11x0dma_dma_mask = DMA_BIT_MASK(32);
 
-static struct platform_device sa11x0dma_device = {
+static struct platform_device sa11x0dma_device =
+{
 	.name		= "sa11x0-dma",
 	.id		= -1,
 	.dev = {
@@ -306,7 +334,8 @@ static struct platform_device sa11x0dma_device = {
 	.resource	= sa11x0dma_resources,
 };
 
-static struct platform_device *sa11x0_devices[] __initdata = {
+static struct platform_device *sa11x0_devices[] __initdata =
+{
 	&sa11x0udc_device,
 	&sa11x0uart1_device,
 	&sa11x0uart3_device,
@@ -347,7 +376,8 @@ void __init sa11x0_init_late(void)
  * default mapping provided here.
  */
 
-static struct map_desc standard_io_desc[] __initdata = {
+static struct map_desc standard_io_desc[] __initdata =
+{
 	{	/* PCM */
 		.virtual	=  0xf8000000,
 		.pfn		= __phys_to_pfn(0x80000000),
@@ -405,7 +435,7 @@ void sa1110_mb_disable(void)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	
+
 	PGSR &= ~GPIO_MBGNT;
 	GPCR = GPIO_MBGNT;
 	GPDR = (GPDR & ~GPIO_MBREQ) | GPIO_MBGNT;
@@ -438,9 +468,13 @@ void sa1110_mb_enable(void)
 int sa11x0_gpio_set_wake(unsigned int gpio, unsigned int on)
 {
 	if (on)
+	{
 		PWER |= BIT(gpio);
+	}
 	else
+	{
 		PWER &= ~BIT(gpio);
+	}
 
 	return 0;
 }
@@ -448,12 +482,18 @@ int sa11x0_gpio_set_wake(unsigned int gpio, unsigned int on)
 int sa11x0_sc_set_wake(unsigned int irq, unsigned int on)
 {
 	if (BIT(irq) != IC_RTCAlrm)
+	{
 		return -EINVAL;
+	}
 
 	if (on)
+	{
 		PWER |= PWER_RTC;
+	}
 	else
+	{
 		PWER &= ~PWER_RTC;
+	}
 
 	return 0;
 }

@@ -55,10 +55,13 @@ int cfe_init(u64 handle, u64 ept)
 	return 0;
 }
 
-int cfe_iocb_dispatch(struct cfe_xiocb * xiocb)
+int cfe_iocb_dispatch(struct cfe_xiocb *xiocb)
 {
 	if (!cfe_dispfunc)
+	{
 		return -1;
+	}
+
 	return (*cfe_dispfunc) ((intptr_t) cfe_handle, (intptr_t) xiocb);
 }
 
@@ -151,7 +154,9 @@ cfe_enummem(int idx, int flags, u64 *start, u64 *length, u64 *type)
 	cfe_iocb_dispatch(&xiocb);
 
 	if (xiocb.xiocb_status < 0)
+	{
 		return xiocb.xiocb_status;
+	}
 
 	*start = xiocb.plist.xiocb_meminfo.mi_addr;
 	*length = xiocb.plist.xiocb_meminfo.mi_size;
@@ -207,7 +212,10 @@ int cfe_getdevinfo(char *name)
 	cfe_iocb_dispatch(&xiocb);
 
 	if (xiocb.xiocb_status < 0)
+	{
 		return xiocb.xiocb_status;
+	}
+
 	return xiocb.plist.xiocb_buffer.buf_ioctlcmd;
 }
 
@@ -233,7 +241,7 @@ int cfe_getenv(char *name, char *dest, int destlen)
 	return xiocb.xiocb_status;
 }
 
-int cfe_getfwinfo(cfe_fwinfo_t * info)
+int cfe_getfwinfo(cfe_fwinfo_t *info)
 {
 	struct cfe_xiocb xiocb;
 
@@ -246,7 +254,9 @@ int cfe_getfwinfo(cfe_fwinfo_t * info)
 	cfe_iocb_dispatch(&xiocb);
 
 	if (xiocb.xiocb_status < 0)
+	{
 		return xiocb.xiocb_status;
+	}
 
 	info->fwi_version = xiocb.plist.xiocb_fwinfo.fwi_version;
 	info->fwi_totalmem = xiocb.plist.xiocb_fwinfo.fwi_totalmem;
@@ -255,7 +265,7 @@ int cfe_getfwinfo(cfe_fwinfo_t * info)
 	info->fwi_bootarea_va = xiocb.plist.xiocb_fwinfo.fwi_bootarea_va;
 	info->fwi_bootarea_pa = xiocb.plist.xiocb_fwinfo.fwi_bootarea_pa;
 	info->fwi_bootarea_size =
-	    xiocb.plist.xiocb_fwinfo.fwi_bootarea_size;
+		xiocb.plist.xiocb_fwinfo.fwi_bootarea_size;
 #if 0
 	info->fwi_reserved1 = xiocb.plist.xiocb_fwinfo.fwi_reserved1;
 	info->fwi_reserved2 = xiocb.plist.xiocb_fwinfo.fwi_reserved2;
@@ -278,7 +288,10 @@ int cfe_getstdhandle(int flg)
 	cfe_iocb_dispatch(&xiocb);
 
 	if (xiocb.xiocb_status < 0)
+	{
 		return xiocb.xiocb_status;
+	}
+
 	return xiocb.xiocb_handle;
 }
 
@@ -314,13 +327,16 @@ int cfe_inpstat(int handle)
 	cfe_iocb_dispatch(&xiocb);
 
 	if (xiocb.xiocb_status < 0)
+	{
 		return xiocb.xiocb_status;
+	}
+
 	return xiocb.plist.xiocb_inpstat.inp_status;
 }
 
 int
 cfe_ioctl(int handle, unsigned int ioctlnum, unsigned char *buffer,
-	  int length, int *retlen, u64 offset)
+		  int length, int *retlen, u64 offset)
 {
 	struct cfe_xiocb xiocb;
 
@@ -337,7 +353,10 @@ cfe_ioctl(int handle, unsigned int ioctlnum, unsigned char *buffer,
 	cfe_iocb_dispatch(&xiocb);
 
 	if (retlen)
+	{
 		*retlen = xiocb.plist.xiocb_buffer.buf_retlen;
+	}
+
 	return xiocb.xiocb_status;
 }
 
@@ -357,7 +376,10 @@ int cfe_open(char *name)
 	cfe_iocb_dispatch(&xiocb);
 
 	if (xiocb.xiocb_status < 0)
+	{
 		return xiocb.xiocb_status;
+	}
+
 	return xiocb.xiocb_handle;
 }
 
@@ -382,7 +404,10 @@ int cfe_readblk(int handle, s64 offset, unsigned char *buffer, int length)
 	cfe_iocb_dispatch(&xiocb);
 
 	if (xiocb.xiocb_status < 0)
+	{
 		return xiocb.xiocb_status;
+	}
+
 	return xiocb.plist.xiocb_buffer.buf_retlen;
 }
 
@@ -427,6 +452,9 @@ int cfe_writeblk(int handle, s64 offset, const char *buffer, int length)
 	cfe_iocb_dispatch(&xiocb);
 
 	if (xiocb.xiocb_status < 0)
+	{
 		return xiocb.xiocb_status;
+	}
+
 	return xiocb.plist.xiocb_buffer.buf_retlen;
 }

@@ -29,11 +29,12 @@
 
 #include "ipic.h"
 
-static struct ipic * primary_ipic;
+static struct ipic *primary_ipic;
 static struct irq_chip ipic_level_irq_chip, ipic_edge_irq_chip;
 static DEFINE_RAW_SPINLOCK(ipic_lock);
 
-static struct ipic_info ipic_info[] = {
+static struct ipic_info ipic_info[] =
+{
 	[1] = {
 		.mask	= IPIC_SIMSR_H,
 		.prio	= IPIC_SIPRR_C,
@@ -515,7 +516,7 @@ static inline void ipic_write(volatile u32 __iomem *base, unsigned int reg, u32 
 	out_be32(base + (reg >> 2), value);
 }
 
-static inline struct ipic * ipic_from_irq(unsigned int virq)
+static inline struct ipic *ipic_from_irq(unsigned int virq)
 {
 	return primary_ipic;
 }
@@ -605,28 +606,37 @@ static int ipic_set_irq_type(struct irq_data *d, unsigned int flow_type)
 	unsigned int vold, vnew, edibit;
 
 	if (flow_type == IRQ_TYPE_NONE)
+	{
 		flow_type = IRQ_TYPE_LEVEL_LOW;
+	}
 
 	/* ipic supports only low assertion and high-to-low change senses
 	 */
-	if (!(flow_type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_EDGE_FALLING))) {
+	if (!(flow_type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_EDGE_FALLING)))
+	{
 		printk(KERN_ERR "ipic: sense type 0x%x not supported\n",
-			flow_type);
+			   flow_type);
 		return -EINVAL;
 	}
+
 	/* ipic supports only edge mode on external interrupts */
-	if ((flow_type & IRQ_TYPE_EDGE_FALLING) && !ipic_info[src].ack) {
+	if ((flow_type & IRQ_TYPE_EDGE_FALLING) && !ipic_info[src].ack)
+	{
 		printk(KERN_ERR "ipic: edge sense not supported on internal "
-				"interrupts\n");
+			   "interrupts\n");
 		return -EINVAL;
 
 	}
 
 	irqd_set_trigger_type(d, flow_type);
-	if (flow_type & IRQ_TYPE_LEVEL_LOW)  {
+
+	if (flow_type & IRQ_TYPE_LEVEL_LOW)
+	{
 		irq_set_handler_locked(d, handle_level_irq);
 		d->chip = &ipic_level_irq_chip;
-	} else {
+	}
+	else
+	{
 		irq_set_handler_locked(d, handle_edge_irq);
 		d->chip = &ipic_edge_irq_chip;
 	}
@@ -635,26 +645,40 @@ static int ipic_set_irq_type(struct irq_data *d, unsigned int flow_type)
 	 * internal IRQ senses are LEVEL_LOW
 	 */
 	if (src == IPIC_IRQ_EXT0)
+	{
 		edibit = 15;
+	}
+	else if (src >= IPIC_IRQ_EXT1 && src <= IPIC_IRQ_EXT7)
+	{
+		edibit = (14 - (src - IPIC_IRQ_EXT1));
+	}
 	else
-		if (src >= IPIC_IRQ_EXT1 && src <= IPIC_IRQ_EXT7)
-			edibit = (14 - (src - IPIC_IRQ_EXT1));
-		else
-			return (flow_type & IRQ_TYPE_LEVEL_LOW) ? 0 : -EINVAL;
+	{
+		return (flow_type & IRQ_TYPE_LEVEL_LOW) ? 0 : -EINVAL;
+	}
 
 	vold = ipic_read(ipic->regs, IPIC_SECNR);
-	if ((flow_type & IRQ_TYPE_SENSE_MASK) == IRQ_TYPE_EDGE_FALLING) {
+
+	if ((flow_type & IRQ_TYPE_SENSE_MASK) == IRQ_TYPE_EDGE_FALLING)
+	{
 		vnew = vold | (1 << edibit);
-	} else {
+	}
+	else
+	{
 		vnew = vold & ~(1 << edibit);
 	}
+
 	if (vold != vnew)
+	{
 		ipic_write(ipic->regs, IPIC_SECNR, vnew);
+	}
+
 	return IRQ_SET_MASK_OK_NOCOPY;
 }
 
 /* level interrupts and edge interrupts have different ack operations */
-static struct irq_chip ipic_level_irq_chip = {
+static struct irq_chip ipic_level_irq_chip =
+{
 	.name		= "IPIC",
 	.irq_unmask	= ipic_unmask_irq,
 	.irq_mask	= ipic_mask_irq,
@@ -662,7 +686,8 @@ static struct irq_chip ipic_level_irq_chip = {
 	.irq_set_type	= ipic_set_irq_type,
 };
 
-static struct irq_chip ipic_edge_irq_chip = {
+static struct irq_chip ipic_edge_irq_chip =
+{
 	.name		= "IPIC",
 	.irq_unmask	= ipic_unmask_irq,
 	.irq_mask	= ipic_mask_irq,
@@ -672,7 +697,7 @@ static struct irq_chip ipic_edge_irq_chip = {
 };
 
 static int ipic_host_match(struct irq_domain *h, struct device_node *node,
-			   enum irq_domain_bus_token bus_token)
+						   enum irq_domain_bus_token bus_token)
 {
 	/* Exact match, unless ipic node is NULL */
 	struct device_node *of_node = irq_domain_get_of_node(h);
@@ -680,7 +705,7 @@ static int ipic_host_match(struct irq_domain *h, struct device_node *node,
 }
 
 static int ipic_host_map(struct irq_domain *h, unsigned int virq,
-			 irq_hw_number_t hw)
+						 irq_hw_number_t hw)
 {
 	struct ipic *ipic = h->host_data;
 
@@ -693,29 +718,38 @@ static int ipic_host_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops ipic_host_ops = {
+static const struct irq_domain_ops ipic_host_ops =
+{
 	.match	= ipic_host_match,
 	.map	= ipic_host_map,
 	.xlate	= irq_domain_xlate_onetwocell,
 };
 
-struct ipic * __init ipic_init(struct device_node *node, unsigned int flags)
+struct ipic *__init ipic_init(struct device_node *node, unsigned int flags)
 {
 	struct ipic	*ipic;
 	struct resource res;
 	u32 temp = 0, ret;
 
 	ret = of_address_to_resource(node, 0, &res);
+
 	if (ret)
+	{
 		return NULL;
+	}
 
 	ipic = kzalloc(sizeof(*ipic), GFP_KERNEL);
+
 	if (ipic == NULL)
+	{
 		return NULL;
+	}
 
 	ipic->irqhost = irq_domain_add_linear(node, NR_IPIC_INTS,
-					      &ipic_host_ops, ipic);
-	if (ipic->irqhost == NULL) {
+										  &ipic_host_ops, ipic);
+
+	if (ipic->irqhost == NULL)
+	{
 		kfree(ipic);
 		return NULL;
 	}
@@ -728,33 +762,58 @@ struct ipic * __init ipic_init(struct device_node *node, unsigned int flags)
 	/* default priority scheme is grouped. If spread mode is required
 	 * configure SICFR accordingly */
 	if (flags & IPIC_SPREADMODE_GRP_A)
+	{
 		temp |= SICFR_IPSA;
+	}
+
 	if (flags & IPIC_SPREADMODE_GRP_B)
+	{
 		temp |= SICFR_IPSB;
+	}
+
 	if (flags & IPIC_SPREADMODE_GRP_C)
+	{
 		temp |= SICFR_IPSC;
+	}
+
 	if (flags & IPIC_SPREADMODE_GRP_D)
+	{
 		temp |= SICFR_IPSD;
+	}
+
 	if (flags & IPIC_SPREADMODE_MIX_A)
+	{
 		temp |= SICFR_MPSA;
+	}
+
 	if (flags & IPIC_SPREADMODE_MIX_B)
+	{
 		temp |= SICFR_MPSB;
+	}
 
 	ipic_write(ipic->regs, IPIC_SICFR, temp);
 
 	/* handle MCP route */
 	temp = 0;
+
 	if (flags & IPIC_DISABLE_MCP_OUT)
+	{
 		temp = SERCR_MCPR;
+	}
+
 	ipic_write(ipic->regs, IPIC_SERCR, temp);
 
 	/* handle routing of IRQ0 to MCP */
 	temp = ipic_read(ipic->regs, IPIC_SEMSR);
 
 	if (flags & IPIC_IRQ0_MCP)
+	{
 		temp |= SEMSR_SIRQ0;
+	}
 	else
+	{
 		temp &= ~SEMSR_SIRQ0;
+	}
 
 	ipic_write(ipic->regs, IPIC_SEMSR, temp);
 
@@ -777,18 +836,29 @@ int ipic_set_priority(unsigned int virq, unsigned int priority)
 	u32 temp;
 
 	if (priority > 7)
+	{
 		return -EINVAL;
+	}
+
 	if (src > 127)
+	{
 		return -EINVAL;
+	}
+
 	if (ipic_info[src].prio == 0)
+	{
 		return -EINVAL;
+	}
 
 	temp = ipic_read(ipic->regs, ipic_info[src].prio);
 
-	if (priority < 4) {
+	if (priority < 4)
+	{
 		temp &= ~(0x7 << (20 + (3 - priority) * 3));
 		temp |= ipic_info[src].prio_mask << (20 + (3 - priority) * 3);
-	} else {
+	}
+	else
+	{
 		temp &= ~(0x7 << (4 + (7 - priority) * 3));
 		temp |= ipic_info[src].prio_mask << (4 + (7 - priority) * 3);
 	}
@@ -864,13 +934,16 @@ unsigned int ipic_get_irq(void)
 	irq = ipic_read(primary_ipic->regs, IPIC_SIVCR) & IPIC_SIVCR_VECTOR_MASK;
 
 	if (irq == 0)    /* 0 --> no irq is pending */
+	{
 		return 0;
+	}
 
 	return irq_linear_revmap(primary_ipic->irqhost, irq);
 }
 
 #ifdef CONFIG_SUSPEND
-static struct {
+static struct
+{
 	u32 sicfr;
 	u32 siprr[2];
 	u32 simsr[2];
@@ -899,7 +972,8 @@ static int ipic_suspend(void)
 	ipic_saved_state.sermr = ipic_read(ipic->regs, IPIC_SERMR);
 	ipic_saved_state.sercr = ipic_read(ipic->regs, IPIC_SERCR);
 
-	if (fsl_deep_sleep()) {
+	if (fsl_deep_sleep())
+	{
 		/* In deep sleep, make sure there can be no
 		 * pending interrupts, as this can cause
 		 * problems on 831x.
@@ -935,7 +1009,8 @@ static void ipic_resume(void)
 #define ipic_resume NULL
 #endif
 
-static struct syscore_ops ipic_syscore_ops = {
+static struct syscore_ops ipic_syscore_ops =
+{
 	.suspend = ipic_suspend,
 	.resume = ipic_resume,
 };
@@ -943,7 +1018,9 @@ static struct syscore_ops ipic_syscore_ops = {
 static int __init init_ipic_syscore(void)
 {
 	if (!primary_ipic || !primary_ipic->regs)
+	{
 		return -ENODEV;
+	}
 
 	printk(KERN_DEBUG "Registering ipic system core operations\n");
 	register_syscore_ops(&ipic_syscore_ops);

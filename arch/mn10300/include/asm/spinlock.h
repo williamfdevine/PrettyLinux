@@ -68,7 +68,7 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 }
 
 static inline void arch_spin_lock_flags(arch_spinlock_t *lock,
-					 unsigned long flags)
+										unsigned long flags)
 {
 	int temp;
 
@@ -126,8 +126,11 @@ static inline void arch_read_lock(arch_rwlock_t *rw)
 #else
 	{
 		atomic_t *count = (atomic_t *)rw;
+
 		while (atomic_dec_return(count) < 0)
+		{
 			atomic_inc(count);
+		}
 	}
 #endif
 }
@@ -139,8 +142,11 @@ static inline void arch_write_lock(arch_rwlock_t *rw)
 #else
 	{
 		atomic_t *count = (atomic_t *)rw;
+
 		while (!atomic_sub_and_test(RW_LOCK_BIAS, count))
+		{
 			atomic_add(RW_LOCK_BIAS, count);
+		}
 	}
 #endif
 }
@@ -173,8 +179,12 @@ static inline int arch_read_trylock(arch_rwlock_t *lock)
 {
 	atomic_t *count = (atomic_t *)lock;
 	atomic_dec(count);
+
 	if (atomic_read(count) >= 0)
+	{
 		return 1;
+	}
+
 	atomic_inc(count);
 	return 0;
 }
@@ -182,8 +192,12 @@ static inline int arch_read_trylock(arch_rwlock_t *lock)
 static inline int arch_write_trylock(arch_rwlock_t *lock)
 {
 	atomic_t *count = (atomic_t *)lock;
+
 	if (atomic_sub_and_test(RW_LOCK_BIAS, count))
+	{
 		return 1;
+	}
+
 	atomic_add(RW_LOCK_BIAS, count);
 	return 0;
 }

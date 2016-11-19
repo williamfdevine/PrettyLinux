@@ -46,7 +46,7 @@
 #define GPIO_PORT_NUM		3
 
 static void _set_gpio_irqenable(void __iomem *base, unsigned int index,
-				int enable)
+								int enable)
 {
 	unsigned int reg;
 
@@ -90,31 +90,37 @@ static int gpio_set_irq_type(struct irq_data *d, unsigned int type)
 	reg_level = __raw_readl(base + GPIO_INT_LEVEL);
 	reg_both = __raw_readl(base + GPIO_INT_BOTH_EDGE);
 
-	switch (type) {
-	case IRQ_TYPE_EDGE_BOTH:
-		reg_type &= ~gpio_mask;
-		reg_both |= gpio_mask;
-		break;
-	case IRQ_TYPE_EDGE_RISING:
-		reg_type &= ~gpio_mask;
-		reg_both &= ~gpio_mask;
-		reg_level &= ~gpio_mask;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		reg_type &= ~gpio_mask;
-		reg_both &= ~gpio_mask;
-		reg_level |= gpio_mask;
-		break;
-	case IRQ_TYPE_LEVEL_HIGH:
-		reg_type |= gpio_mask;
-		reg_level &= ~gpio_mask;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		reg_type |= gpio_mask;
-		reg_level |= gpio_mask;
-		break;
-	default:
-		return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_EDGE_BOTH:
+			reg_type &= ~gpio_mask;
+			reg_both |= gpio_mask;
+			break;
+
+		case IRQ_TYPE_EDGE_RISING:
+			reg_type &= ~gpio_mask;
+			reg_both &= ~gpio_mask;
+			reg_level &= ~gpio_mask;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			reg_type &= ~gpio_mask;
+			reg_both &= ~gpio_mask;
+			reg_level |= gpio_mask;
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:
+			reg_type |= gpio_mask;
+			reg_level &= ~gpio_mask;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			reg_type |= gpio_mask;
+			reg_level |= gpio_mask;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	__raw_writel(reg_type, base + GPIO_INT_TYPE);
@@ -134,16 +140,21 @@ static void gpio_irq_handler(struct irq_desc *desc)
 	irq_stat = __raw_readl(GPIO_BASE(port) + GPIO_INT_STAT);
 
 	gpio_irq_no = GPIO_IRQ_BASE + port * 32;
-	for (; irq_stat != 0; irq_stat >>= 1, gpio_irq_no++) {
+
+	for (; irq_stat != 0; irq_stat >>= 1, gpio_irq_no++)
+	{
 
 		if ((irq_stat & 1) == 0)
+		{
 			continue;
+		}
 
 		generic_handle_irq(gpio_irq_no);
 	}
 }
 
-static struct irq_chip gpio_irq_chip = {
+static struct irq_chip gpio_irq_chip =
+{
 	.name = "GPIO",
 	.irq_ack = gpio_ack_irq,
 	.irq_mask = gpio_mask_irq,
@@ -152,16 +163,22 @@ static struct irq_chip gpio_irq_chip = {
 };
 
 static void _set_gpio_direction(struct gpio_chip *chip, unsigned offset,
-				int dir)
+								int dir)
 {
 	void __iomem *base = GPIO_BASE(offset / 32);
 	unsigned int reg;
 
 	reg = __raw_readl(base + GPIO_DIR);
+
 	if (dir)
+	{
 		reg |= 1 << (offset % 32);
+	}
 	else
+	{
 		reg &= ~(1 << (offset % 32));
+	}
+
 	__raw_writel(reg, base + GPIO_DIR);
 }
 
@@ -170,9 +187,13 @@ static void gemini_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	void __iomem *base = GPIO_BASE(offset / 32);
 
 	if (value)
+	{
 		__raw_writel(1 << (offset % 32), base + GPIO_DATA_SET);
+	}
 	else
+	{
 		__raw_writel(1 << (offset % 32), base + GPIO_DATA_CLR);
+	}
 }
 
 static int gemini_gpio_get(struct gpio_chip *chip, unsigned offset)
@@ -189,14 +210,15 @@ static int gemini_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int gemini_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
-					int value)
+										int value)
 {
 	_set_gpio_direction(chip, offset, 1);
 	gemini_gpio_set(chip, offset, value);
 	return 0;
 }
 
-static struct gpio_chip gemini_gpio_chip = {
+static struct gpio_chip gemini_gpio_chip =
+{
 	.label			= "Gemini",
 	.direction_input	= gemini_gpio_direction_input,
 	.get			= gemini_gpio_get,
@@ -210,21 +232,23 @@ void __init gemini_gpio_init(void)
 {
 	int i, j;
 
-	for (i = 0; i < GPIO_PORT_NUM; i++) {
+	for (i = 0; i < GPIO_PORT_NUM; i++)
+	{
 		/* disable, unmask and clear all interrupts */
 		__raw_writel(0x0, GPIO_BASE(i) + GPIO_INT_EN);
 		__raw_writel(0x0, GPIO_BASE(i) + GPIO_INT_MASK);
 		__raw_writel(~0x0, GPIO_BASE(i) + GPIO_INT_CLR);
 
 		for (j = GPIO_IRQ_BASE + i * 32;
-		     j < GPIO_IRQ_BASE + (i + 1) * 32; j++) {
+			 j < GPIO_IRQ_BASE + (i + 1) * 32; j++)
+		{
 			irq_set_chip_and_handler(j, &gpio_irq_chip,
-						 handle_edge_irq);
+									 handle_edge_irq);
 			irq_clear_status_flags(j, IRQ_NOREQUEST);
 		}
 
 		irq_set_chained_handler_and_data(IRQ_GPIO(i), gpio_irq_handler,
-						 (void *)i);
+										 (void *)i);
 	}
 
 	BUG_ON(gpiochip_add_data(&gemini_gpio_chip, NULL));

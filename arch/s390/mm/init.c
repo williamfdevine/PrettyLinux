@@ -57,15 +57,22 @@ static void __init setup_zero_pages(void)
 
 	/* Limit number of empty zero pages for small memory sizes */
 	while (order > 2 && (totalram_pages >> 10) < (1UL << order))
+	{
 		order--;
+	}
 
 	empty_zero_page = __get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
+
 	if (!empty_zero_page)
+	{
 		panic("Out of memory in setup_zero_pages");
+	}
 
 	page = virt_to_page((void *) empty_zero_page);
 	split_page(page, order);
-	for (i = 1 << order; i > 0; i--) {
+
+	for (i = 1 << order; i > 0; i--)
+	{
 		mark_page_reserved(page);
 		page++;
 	}
@@ -82,20 +89,25 @@ void __init paging_init(void)
 	unsigned long pgd_type, asce_bits;
 
 	init_mm.pgd = swapper_pg_dir;
-	if (VMALLOC_END > (1UL << 42)) {
+
+	if (VMALLOC_END > (1UL << 42))
+	{
 		asce_bits = _ASCE_TYPE_REGION2 | _ASCE_TABLE_LENGTH;
 		pgd_type = _REGION2_ENTRY_EMPTY;
-	} else {
+	}
+	else
+	{
 		asce_bits = _ASCE_TYPE_REGION3 | _ASCE_TABLE_LENGTH;
 		pgd_type = _REGION3_ENTRY_EMPTY;
 	}
+
 	init_mm.context.asce = (__pa(init_mm.pgd) & PAGE_MASK) | asce_bits;
 	S390_lowcore.kernel_asce = init_mm.context.asce;
 	clear_table((unsigned long *) init_mm.pgd, pgd_type,
-		    sizeof(unsigned long)*2048);
+				sizeof(unsigned long) * 2048);
 	vmem_map_init();
 
-        /* enable virtual mapping in kernel mode */
+	/* enable virtual mapping in kernel mode */
 	__ctl_load(S390_lowcore.kernel_asce, 1, 1);
 	__ctl_load(S390_lowcore.kernel_asce, 7, 7);
 	__ctl_load(S390_lowcore.kernel_asce, 13, 13);
@@ -123,7 +135,7 @@ void __init mem_init(void)
 	cpumask_set_cpu(0, mm_cpumask(&init_mm));
 
 	set_max_mapnr(max_low_pfn);
-        high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
 
 	/* Setup guest page hinting */
 	cmma_init();
@@ -144,7 +156,7 @@ void free_initmem(void)
 void __init free_initrd_mem(unsigned long start, unsigned long end)
 {
 	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
-			   "initrd");
+					   "initrd");
 }
 #endif
 
@@ -159,35 +171,58 @@ int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
 	int rc, i;
 
 	rc = vmem_add_mapping(start, size);
-	if (rc)
-		return rc;
 
-	for (i = 0; i < MAX_NR_ZONES; i++) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	for (i = 0; i < MAX_NR_ZONES; i++)
+	{
 		zone = pgdat->node_zones + i;
-		if (zone_idx(zone) != ZONE_MOVABLE) {
+
+		if (zone_idx(zone) != ZONE_MOVABLE)
+		{
 			/* Add range within existing zone limits, if possible */
 			zone_start_pfn = zone->zone_start_pfn;
 			zone_end_pfn = zone->zone_start_pfn +
-				       zone->spanned_pages;
-		} else {
+						   zone->spanned_pages;
+		}
+		else
+		{
 			/* Add remaining range to ZONE_MOVABLE */
 			zone_start_pfn = start_pfn;
 			zone_end_pfn = start_pfn + size_pages;
 		}
+
 		if (start_pfn < zone_start_pfn || start_pfn >= zone_end_pfn)
+		{
 			continue;
+		}
+
 		nr_pages = (start_pfn + size_pages > zone_end_pfn) ?
-			   zone_end_pfn - start_pfn : size_pages;
+				   zone_end_pfn - start_pfn : size_pages;
 		rc = __add_pages(nid, zone, start_pfn, nr_pages);
+
 		if (rc)
+		{
 			break;
+		}
+
 		start_pfn += nr_pages;
 		size_pages -= nr_pages;
+
 		if (!size_pages)
+		{
 			break;
+		}
 	}
+
 	if (rc)
+	{
 		vmem_remove_mapping(start, size);
+	}
+
 	return rc;
 }
 

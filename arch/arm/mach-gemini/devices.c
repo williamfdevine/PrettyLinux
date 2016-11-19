@@ -18,7 +18,8 @@
 #include <mach/hardware.h>
 #include <mach/global_reg.h>
 
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	{
 		.membase	= (void *)IO_ADDRESS(GEMINI_UART_BASE),
 		.mapbase	= GEMINI_UART_BASE,
@@ -32,7 +33,8 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	{},
 };
 
-static struct platform_device serial_device = {
+static struct platform_device serial_device =
+{
 	.name	= "serial8250",
 	.id	= PLAT8250_DEV_PLATFORM,
 	.dev	= {
@@ -45,14 +47,16 @@ int platform_register_uart(void)
 	return platform_device_register(&serial_device);
 }
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.start	= GEMINI_FLASH_BASE,
 	.flags	= IORESOURCE_MEM,
 };
 
 static struct physmap_flash_data pflash_platform_data = {};
 
-static struct platform_device pflash_device = {
+static struct platform_device pflash_device =
+{
 	.name	= "physmap-flash",
 	.id	= 0,
 	.dev 	= {
@@ -63,19 +67,25 @@ static struct platform_device pflash_device = {
 };
 
 int platform_register_pflash(unsigned int size, struct mtd_partition *parts,
-			     unsigned int nr_parts)
+							 unsigned int nr_parts)
 {
 	unsigned int reg;
 
 	reg = __raw_readl(IO_ADDRESS(GEMINI_GLOBAL_BASE) + GLOBAL_STATUS);
 
 	if ((reg & FLASH_TYPE_MASK) != FLASH_TYPE_PARALLEL)
+	{
 		return -ENXIO;
+	}
 
 	if (reg & FLASH_WIDTH_16BIT)
+	{
 		pflash_platform_data.width = 2;
+	}
 	else
+	{
 		pflash_platform_data.width = 1;
+	}
 
 	/* enable parallel flash pins and disable others */
 	reg = __raw_readl(IO_ADDRESS(GEMINI_GLOBAL_BASE) + GLOBAL_MISC_CTRL);
@@ -91,7 +101,8 @@ int platform_register_pflash(unsigned int size, struct mtd_partition *parts,
 	return platform_device_register(&pflash_device);
 }
 
-static struct resource gemini_rtc_resources[] = {
+static struct resource gemini_rtc_resources[] =
+{
 	[0] = {
 		.start  = GEMINI_RTC_BASE,
 		.end    = GEMINI_RTC_BASE + 0x24,
@@ -104,7 +115,8 @@ static struct resource gemini_rtc_resources[] = {
 	},
 };
 
-static struct platform_device gemini_rtc_device = {
+static struct platform_device gemini_rtc_device =
+{
 	.name		= "rtc-gemini",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(gemini_rtc_resources),

@@ -44,29 +44,29 @@ static unsigned long adjust_reg18(unsigned short data)
 {
 	unsigned long tmp1, tmp2;
 
-	tmp1 = (data<<1 | 0x00000001) & 0x000001FF;
-	tmp2 = (data<<2 | 0x00000200) & 0x0003FE00;
+	tmp1 = (data << 1 | 0x00000001) & 0x000001FF;
+	tmp2 = (data << 2 | 0x00000200) & 0x0003FE00;
 	return tmp1 | tmp2;
 }
 
 static void write_reg(void *sys_ops_handle,
-		       struct sh_mobile_lcdc_sys_bus_ops *sys_ops,
-		       unsigned short reg, unsigned short data)
+					  struct sh_mobile_lcdc_sys_bus_ops *sys_ops,
+					  unsigned short reg, unsigned short data)
 {
 	sys_ops->write_index(sys_ops_handle, adjust_reg18(reg << 8 | data));
 }
 
 static void write_reg16(void *sys_ops_handle,
-			struct sh_mobile_lcdc_sys_bus_ops *sys_ops,
-			unsigned short reg, unsigned short data)
+						struct sh_mobile_lcdc_sys_bus_ops *sys_ops,
+						unsigned short reg, unsigned short data)
 {
 	sys_ops->write_index(sys_ops_handle, adjust_reg18(reg));
 	sys_ops->write_data(sys_ops_handle, adjust_reg18(data));
 }
 
 static unsigned long read_reg16(void *sys_ops_handle,
-				struct sh_mobile_lcdc_sys_bus_ops *sys_ops,
-				unsigned short reg)
+								struct sh_mobile_lcdc_sys_bus_ops *sys_ops,
+								unsigned short reg)
 {
 	unsigned long data;
 
@@ -76,26 +76,31 @@ static unsigned long read_reg16(void *sys_ops_handle,
 }
 
 static void migor_lcd_qvga_seq(void *sys_ops_handle,
-			       struct sh_mobile_lcdc_sys_bus_ops *sys_ops,
-			       unsigned short const *data, int no_data)
+							   struct sh_mobile_lcdc_sys_bus_ops *sys_ops,
+							   unsigned short const *data, int no_data)
 {
 	int i;
 
 	for (i = 0; i < no_data; i += 2)
+	{
 		write_reg16(sys_ops_handle, sys_ops, data[i], data[i + 1]);
+	}
 }
 
-static const unsigned short sync_data[] = {
+static const unsigned short sync_data[] =
+{
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 };
 
-static const unsigned short magic0_data[] = {
+static const unsigned short magic0_data[] =
+{
 	0x0060, 0x2700, 0x0008, 0x0808, 0x0090, 0x001A, 0x0007, 0x0001,
 	0x0017, 0x0001, 0x0019, 0x0000, 0x0010, 0x17B0, 0x0011, 0x0116,
 	0x0012, 0x0198, 0x0013, 0x1400, 0x0029, 0x000C, 0x0012, 0x01B8,
 };
 
-static const unsigned short magic1_data[] = {
+static const unsigned short magic1_data[] =
+{
 	0x0030, 0x0307, 0x0031, 0x0303, 0x0032, 0x0603, 0x0033, 0x0202,
 	0x0034, 0x0202, 0x0035, 0x0202, 0x0036, 0x1F1F, 0x0037, 0x0303,
 	0x0038, 0x0303, 0x0039, 0x0603, 0x003A, 0x0202, 0x003B, 0x0102,
@@ -105,11 +110,13 @@ static const unsigned short magic1_data[] = {
 	0x0015, 0x8000,
 };
 
-static const unsigned short magic2_data[] = {
+static const unsigned short magic2_data[] =
+{
 	0x0061, 0x0001, 0x0092, 0x0100, 0x0093, 0x0001, 0x0007, 0x0021,
 };
 
-static const unsigned short magic3_data[] = {
+static const unsigned short magic3_data[] =
+{
 	0x0010, 0x16B0, 0x0011, 0x0111, 0x0007, 0x0061,
 };
 
@@ -123,7 +130,9 @@ int migor_lcd_qvga_setup(void *sohandle, struct sh_mobile_lcdc_sys_bus_ops *so)
 	migor_lcd_qvga_seq(sohandle, so, sync_data, ARRAY_SIZE(sync_data));
 
 	if (read_reg16(sohandle, so, 0) != 0x1505)
+	{
 		return -ENODEV;
+	}
 
 	pr_info("Migo-R QVGA LCD Module detected.\n");
 
@@ -152,7 +161,9 @@ int migor_lcd_qvga_setup(void *sohandle, struct sh_mobile_lcdc_sys_bus_ops *so)
 	write_reg16(sohandle, so, 0x0021, 0x0000); /* vert addr */
 
 	for (k = 0; k < (xres * 256); k++) /* yes, 256 words per line */
+	{
 		write_reg16(sohandle, so, 0x0022, 0x0000);
+	}
 
 	write_reg16(sohandle, so, 0x0020, 0x0000); /* reset horiz addr */
 	write_reg16(sohandle, so, 0x0021, 0x0000); /* reset vert addr */

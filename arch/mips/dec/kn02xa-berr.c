@@ -39,7 +39,7 @@ static inline void dec_kn02xa_be_ack(void)
 }
 
 static int dec_kn02xa_be_backend(struct pt_regs *regs, int is_fixup,
-				 int invoker)
+								 int invoker)
 {
 	volatile u32 *kn02xa_mer = (void *)CKSEG1ADDR(KN02XA_MER);
 	volatile u32 *kn02xa_ear = (void *)CKSEG1ADDR(KN02XA_EAR);
@@ -72,29 +72,34 @@ static int dec_kn02xa_be_backend(struct pt_regs *regs, int is_fixup,
 	address = ear & KN02XA_EAR_ADDRESS;
 
 	/* Low 256MB is decoded as memory, high -- as TC. */
-	if (address < 0x10000000) {
+	if (address < 0x10000000)
+	{
 		cycle = mreadstr;
 		event = paritystr;
-	} else {
+	}
+	else
+	{
 		cycle = invoker ? writestr : readstr;
 		event = timestr;
 	}
 
 	if (is_fixup)
+	{
 		action = MIPS_BE_FIXUP;
+	}
 
 	if (action != MIPS_BE_FIXUP)
 		printk(KERN_ALERT "Bus error %s: %s %s %s at %#010lx\n",
-			kind, agent, cycle, event, address);
+			   kind, agent, cycle, event, address);
 
 	if (action != MIPS_BE_FIXUP && address < 0x10000000)
 		printk(KERN_ALERT "  Byte lane status %#3x -- "
-		       "#3: %s, #2: %s, #1: %s, #0: %s\n",
-		       (mer & KN02XA_MER_BYTERR) >> 8,
-		       lanestat[(mer & KN02XA_MER_BYTERR_3) != 0],
-		       lanestat[(mer & KN02XA_MER_BYTERR_2) != 0],
-		       lanestat[(mer & KN02XA_MER_BYTERR_1) != 0],
-		       lanestat[(mer & KN02XA_MER_BYTERR_0) != 0]);
+			   "#3: %s, #2: %s, #1: %s, #0: %s\n",
+			   (mer & KN02XA_MER_BYTERR) >> 8,
+			   lanestat[(mer & KN02XA_MER_BYTERR_3) != 0],
+			   lanestat[(mer & KN02XA_MER_BYTERR_2) != 0],
+			   lanestat[(mer & KN02XA_MER_BYTERR_1) != 0],
+			   lanestat[(mer & KN02XA_MER_BYTERR_0) != 0]);
 
 	return action;
 }
@@ -110,7 +115,9 @@ irqreturn_t dec_kn02xa_be_interrupt(int irq, void *dev_id)
 	int action = dec_kn02xa_be_backend(regs, 0, 1);
 
 	if (action == MIPS_BE_DISCARD)
+	{
 		return IRQ_HANDLED;
+	}
 
 	/*
 	 * FIXME: Find the affected processes and kill them, otherwise
@@ -120,7 +127,7 @@ irqreturn_t dec_kn02xa_be_interrupt(int irq, void *dev_id)
 	 * may be irrelevant, but are printed for a reference.
 	 */
 	printk(KERN_ALERT "Fatal bus interrupt, epc == %08lx, ra == %08lx\n",
-	       regs->cp0_epc, regs->regs[31]);
+		   regs->cp0_epc, regs->regs[31]);
 	die("Unrecoverable bus error", regs);
 }
 
@@ -131,7 +138,10 @@ void __init dec_kn02xa_be_init(void)
 
 	/* For KN04 we need to make sure EE (?) is enabled in the MB.  */
 	if (current_cpu_type() == CPU_R4000SC)
+	{
 		*mbcs |= KN4K_MB_CSR_EE;
+	}
+
 	fast_iob();
 
 	/* Clear any leftover errors from the firmware. */

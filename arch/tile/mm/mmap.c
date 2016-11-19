@@ -35,12 +35,18 @@ static inline unsigned long mmap_base(struct mm_struct *mm)
 	unsigned long random_factor = 0;
 
 	if (current->flags & PF_RANDOMIZE)
-		random_factor = get_random_int() % (1024*1024);
+	{
+		random_factor = get_random_int() % (1024 * 1024);
+	}
 
 	if (gap < MIN_GAP)
+	{
 		gap = MIN_GAP;
+	}
 	else if (gap > MAX_GAP)
+	{
 		gap = MAX_GAP;
+	}
 
 	return PAGE_ALIGN(TASK_SIZE - gap - random_factor);
 }
@@ -64,11 +70,16 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
 	 *  8 bits of randomness in 32bit mmaps, 24 address space bits
 	 * 12 bits of randomness in 64bit mmaps, 28 address space bits
 	 */
-	if (current->flags & PF_RANDOMIZE) {
+	if (current->flags & PF_RANDOMIZE)
+	{
 		if (is_32bit)
-			random_factor = get_random_int() % (1<<8);
+		{
+			random_factor = get_random_int() % (1 << 8);
+		}
 		else
-			random_factor = get_random_int() % (1<<12);
+		{
+			random_factor = get_random_int() % (1 << 12);
+		}
 
 		random_factor <<= PAGE_SHIFT;
 	}
@@ -77,10 +88,13 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
 	 * Use standard layout if the expected stack growth is unlimited
 	 * or we are running native 64 bits.
 	 */
-	if (rlimit(RLIMIT_STACK) == RLIM_INFINITY) {
+	if (rlimit(RLIMIT_STACK) == RLIM_INFINITY)
+	{
 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
 		mm->get_unmapped_area = arch_get_unmapped_area;
-	} else {
+	}
+	else
+	{
 		mm->mmap_base = mmap_base(mm);
 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
 	}

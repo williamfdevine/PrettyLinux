@@ -8,7 +8,7 @@
  */
 
 #ifndef __ASM_ARCH_HARDWARE_H__
-#error "Do not include this directly, instead #include <mach/hardware.h>"
+	#error "Do not include this directly, instead #include <mach/hardware.h>"
 #endif
 
 #ifndef __ASSEMBLY__
@@ -18,9 +18,9 @@
 #include <asm/types.h>
 
 #ifndef	__ARMEB__
-#define	REG_OFFSET	0
+	#define	REG_OFFSET	0
 #else
-#define	REG_OFFSET	3
+	#define	REG_OFFSET	3
 #endif
 
 /*
@@ -38,10 +38,10 @@
 extern unsigned long ixp4xx_exp_bus_size;
 
 #define	IXP4XX_EXP_BUS_BASE(region)\
-		(IXP4XX_EXP_BUS_BASE_PHYS + ((region) * ixp4xx_exp_bus_size))
+	(IXP4XX_EXP_BUS_BASE_PHYS + ((region) * ixp4xx_exp_bus_size))
 
 #define IXP4XX_EXP_BUS_END(region)\
-		(IXP4XX_EXP_BUS_BASE(region) + ixp4xx_exp_bus_size - 1)
+	(IXP4XX_EXP_BUS_BASE(region) + ixp4xx_exp_bus_size - 1)
 
 /* Those macros can be used to adjust timing and configure
  * other features for each region.
@@ -74,7 +74,7 @@ extern unsigned long ixp4xx_exp_bus_size;
 /*
  * Clock Speed Definitions.
  */
-#define IXP4XX_PERIPHERAL_BUS_CLOCK 	(66) /* 66MHzi APB BUS   */ 
+#define IXP4XX_PERIPHERAL_BUS_CLOCK 	(66) /* 66MHzi APB BUS   */
 #define IXP4XX_UART_XTAL        	14745600
 
 /*
@@ -82,7 +82,8 @@ extern unsigned long ixp4xx_exp_bus_size;
  * to give information to th pata_ixp4xx driver. It is
  * passed as platform_data.
  */
-struct ixp4xx_pata_data {
+struct ixp4xx_pata_data
+{
 	volatile u32	*cs0_cfg;
 	volatile u32	*cs1_cfg;
 	unsigned long	cs0_bits;
@@ -96,7 +97,8 @@ struct ixp4xx_pata_data {
 #define IXP4XX_ETH_NPEC		0x20
 
 /* Information about built-in Ethernet MAC interfaces */
-struct eth_plat_info {
+struct eth_plat_info
+{
 	u8 phy;		/* MII PHY ID, 0 - 31 */
 	u8 rxq;		/* configurable, currently 0 - 31 only */
 	u8 txreadyq;
@@ -104,10 +106,11 @@ struct eth_plat_info {
 };
 
 /* Information about built-in HSS (synchronous serial) interfaces */
-struct hss_plat_info {
+struct hss_plat_info
+{
 	int (*set_clock)(int port, unsigned int clock_type);
 	int (*open)(int port, void *pdev,
-		    void (*set_carrier_cb)(void *pdev, int carrier));
+				void (*set_carrier_cb)(void *pdev, int carrier));
 	void (*close)(int port, void *pdev);
 	u8 txreadyq;
 };

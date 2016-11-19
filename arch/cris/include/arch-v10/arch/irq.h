@@ -69,7 +69,8 @@
 
 typedef void (*irqvectptr)(void);
 
-struct etrax_interrupt_vector {
+struct etrax_interrupt_vector
+{
 	irqvectptr v[256];
 };
 
@@ -79,62 +80,62 @@ void set_break_vector(int n, irqvectptr addr);
 
 #define __STR(x) #x
 #define STR(x) __STR(x)
- 
+
 /* SAVE_ALL saves registers so they match pt_regs */
 
 #define SAVE_ALL \
-  "move $irp,[$sp=$sp-16]\n\t" /* push instruction pointer and fake SBFS struct */ \
-  "push $srp\n\t"       /* push subroutine return pointer */ \
-  "push $dccr\n\t"      /* push condition codes */ \
-  "push $mof\n\t"       /* push multiply overflow reg */ \
-  "di\n\t"             /* need to disable irq's at this point */\
-  "subq 14*4,$sp\n\t"   /* make room for r0-r13 */ \
-  "movem $r13,[$sp]\n\t" /* push the r0-r13 registers */ \
-  "push $r10\n\t"       /* push orig_r10 */ \
-  "clear.d [$sp=$sp-4]\n\t"  /* frametype - this is a normal stackframe */
+	"move $irp,[$sp=$sp-16]\n\t" /* push instruction pointer and fake SBFS struct */ \
+	"push $srp\n\t"       /* push subroutine return pointer */ \
+	"push $dccr\n\t"      /* push condition codes */ \
+	"push $mof\n\t"       /* push multiply overflow reg */ \
+	"di\n\t"             /* need to disable irq's at this point */\
+	"subq 14*4,$sp\n\t"   /* make room for r0-r13 */ \
+	"movem $r13,[$sp]\n\t" /* push the r0-r13 registers */ \
+	"push $r10\n\t"       /* push orig_r10 */ \
+	"clear.d [$sp=$sp-4]\n\t"  /* frametype - this is a normal stackframe */
 
 /* BLOCK_IRQ and UNBLOCK_IRQ do the same as
  * crisv10_mask_irq and crisv10_unmask_irq */
 
 #define BLOCK_IRQ(mask,nr) \
-  "move.d " #mask ",$r0\n\t" \
-  "move.d $r0,[0xb00000d8]\n\t"
+	"move.d " #mask ",$r0\n\t" \
+	"move.d $r0,[0xb00000d8]\n\t"
 
 #define UNBLOCK_IRQ(mask) \
-  "move.d " #mask ",$r0\n\t" \
-  "move.d $r0,[0xb00000dc]\n\t"
+	"move.d " #mask ",$r0\n\t" \
+	"move.d $r0,[0xb00000dc]\n\t"
 
 #define IRQ_NAME2(nr) nr##_interrupt(void)
 #define IRQ_NAME(nr) IRQ_NAME2(IRQ##nr)
 #define sIRQ_NAME(nr) IRQ_NAME2(sIRQ##nr)
 #define BAD_IRQ_NAME(nr) IRQ_NAME2(bad_IRQ##nr)
 
-  /* the asm IRQ handler makes sure the causing IRQ is blocked, then it calls
-   * do_IRQ (with irq disabled still). after that it unblocks and jumps to
-   * ret_from_intr (entry.S)
-   *
-   * The reason the IRQ is blocked is to allow an sti() before the handler which
-   * will acknowledge the interrupt is run.
-   */
+/* the asm IRQ handler makes sure the causing IRQ is blocked, then it calls
+ * do_IRQ (with irq disabled still). after that it unblocks and jumps to
+ * ret_from_intr (entry.S)
+ *
+ * The reason the IRQ is blocked is to allow an sti() before the handler which
+ * will acknowledge the interrupt is run.
+ */
 
 #define BUILD_IRQ(nr,mask) \
-void IRQ_NAME(nr); \
-__asm__ ( \
-          ".text\n\t" \
-          "IRQ" #nr "_interrupt:\n\t" \
-	  SAVE_ALL \
-	  BLOCK_IRQ(mask,nr) /* this must be done to prevent irq loops when we ei later */ \
-	  "moveq "#nr",$r10\n\t" \
-	  "move.d $sp,$r11\n\t" \
-	  "jsr do_IRQ\n\t" /* irq.c, r10 and r11 are arguments */ \
-	  UNBLOCK_IRQ(mask) \
-	  "moveq 0,$r9\n\t" /* make ret_from_intr realise we came from an irq */ \
-	  "jump ret_from_intr\n\t");
+	void IRQ_NAME(nr); \
+	__asm__ ( \
+			  ".text\n\t" \
+			  "IRQ" #nr "_interrupt:\n\t" \
+			  SAVE_ALL \
+			  BLOCK_IRQ(mask,nr) /* this must be done to prevent irq loops when we ei later */ \
+			  "moveq "#nr",$r10\n\t" \
+			  "move.d $sp,$r11\n\t" \
+			  "jsr do_IRQ\n\t" /* irq.c, r10 and r11 are arguments */ \
+			  UNBLOCK_IRQ(mask) \
+			  "moveq 0,$r9\n\t" /* make ret_from_intr realise we came from an irq */ \
+			  "jump ret_from_intr\n\t");
 
-/* This is subtle. The timer interrupt is crucial and it should not be disabled for 
+/* This is subtle. The timer interrupt is crucial and it should not be disabled for
  * too long. However, if it had been a normal interrupt as per BUILD_IRQ, it would
  * have been BLOCK'ed, and then softirq's are run before we return here to UNBLOCK.
- * If the softirq's take too much time to run, the timer irq won't run and the 
+ * If the softirq's take too much time to run, the timer irq won't run and the
  * watchdog will kill us.
  *
  * Furthermore, if a lot of other irq's occur before we return here, the multiple_irq
@@ -147,15 +148,15 @@ __asm__ ( \
  */
 
 #define BUILD_TIMER_IRQ(nr,mask) \
-void IRQ_NAME(nr); \
-__asm__ ( \
-          ".text\n\t" \
-          "IRQ" #nr "_interrupt:\n\t" \
-	  SAVE_ALL \
-	  "moveq "#nr",$r10\n\t" \
-	  "move.d $sp,$r11\n\t" \
-	  "jsr do_IRQ\n\t" /* irq.c, r10 and r11 are arguments */ \
-	  "moveq 0,$r9\n\t" /* make ret_from_intr realise we came from an irq */ \
-	  "jump ret_from_intr\n\t");
+	void IRQ_NAME(nr); \
+	__asm__ ( \
+			  ".text\n\t" \
+			  "IRQ" #nr "_interrupt:\n\t" \
+			  SAVE_ALL \
+			  "moveq "#nr",$r10\n\t" \
+			  "move.d $sp,$r11\n\t" \
+			  "jsr do_IRQ\n\t" /* irq.c, r10 and r11 are arguments */ \
+			  "moveq 0,$r9\n\t" /* make ret_from_intr realise we came from an irq */ \
+			  "jump ret_from_intr\n\t");
 
 #endif

@@ -73,8 +73,8 @@
    execve().  Only list flags here that need to be cleared/set for BOTH clone2() and
    execve().  */
 #define IA64_PSR_BITS_TO_CLEAR	(IA64_PSR_MFL | IA64_PSR_MFH | IA64_PSR_DB | IA64_PSR_LP | \
-				 IA64_PSR_TB  | IA64_PSR_ID  | IA64_PSR_DA | IA64_PSR_DD | \
-				 IA64_PSR_SS  | IA64_PSR_ED  | IA64_PSR_IA)
+								 IA64_PSR_TB  | IA64_PSR_ID  | IA64_PSR_DA | IA64_PSR_DD | \
+								 IA64_PSR_SS  | IA64_PSR_ED  | IA64_PSR_IA)
 #define IA64_PSR_BITS_TO_SET	(IA64_PSR_DFH | IA64_PSR_SP)
 
 #define IA64_PSR_BE	(__IA64_UL(1) << IA64_PSR_BE_BIT)

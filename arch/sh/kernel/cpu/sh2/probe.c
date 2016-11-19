@@ -19,10 +19,12 @@
 #if defined(CONFIG_CPU_J2)
 extern u32 __iomem *j2_ccr_base;
 static int __init scan_cache(unsigned long node, const char *uname,
-			     int depth, void *data)
+							 int depth, void *data)
 {
 	if (!of_flat_dt_is_compatible(node, "jcore,cache"))
+	{
 		return 0;
+	}
 
 	j2_ccr_base = (u32 __iomem *)of_flat_dt_translate_address(node);
 
@@ -35,7 +37,7 @@ void __ref cpu_probe(void)
 #if defined(CONFIG_CPU_SUBTYPE_SH7619)
 	boot_cpu_data.type			= CPU_SH7619;
 	boot_cpu_data.dcache.ways		= 4;
-	boot_cpu_data.dcache.way_incr	= (1<<12);
+	boot_cpu_data.dcache.way_incr	= (1 << 12);
 	boot_cpu_data.dcache.sets		= 256;
 	boot_cpu_data.dcache.entry_shift	= 4;
 	boot_cpu_data.dcache.linesz		= L1_CACHE_BYTES;
@@ -44,9 +46,13 @@ void __ref cpu_probe(void)
 
 #if defined(CONFIG_CPU_J2)
 	unsigned cpu = hard_smp_processor_id();
-	if (cpu == 0) of_scan_flat_dt(scan_cache, NULL);
-	if (j2_ccr_base) __raw_writel(0x80000303, j2_ccr_base + 4*cpu);
-	if (cpu != 0) return;
+
+	if (cpu == 0) { of_scan_flat_dt(scan_cache, NULL); }
+
+	if (j2_ccr_base) { __raw_writel(0x80000303, j2_ccr_base + 4 * cpu); }
+
+	if (cpu != 0) { return; }
+
 	boot_cpu_data.type			= CPU_J2;
 
 	/* These defaults are appropriate for the original/current

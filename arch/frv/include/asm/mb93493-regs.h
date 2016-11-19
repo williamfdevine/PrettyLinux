@@ -19,9 +19,9 @@
 #define __get_MB93493(X)	({ *(volatile unsigned long *)(__region_CS3 + (X)); })
 
 #define __set_MB93493(X,V)						\
-do {									\
-	*(volatile unsigned long *)(__region_CS3 + (X)) = (V); mb();	\
-} while(0)
+	do {									\
+		*(volatile unsigned long *)(__region_CS3 + (X)) = (V); mb();	\
+	} while(0)
 
 #define __get_MB93493_STSR(X)	__get_MB93493(0x3c0 + (X) * 4)
 #define __set_MB93493_STSR(X,V)	__set_MB93493(0x3c0 + (X) * 4, (V))

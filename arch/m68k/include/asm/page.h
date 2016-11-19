@@ -7,9 +7,9 @@
 
 /* PAGE_SHIFT determines the page size */
 #if defined(CONFIG_SUN3) || defined(CONFIG_COLDFIRE)
-#define PAGE_SHIFT	13
+	#define PAGE_SHIFT	13
 #else
-#define PAGE_SHIFT	12
+	#define PAGE_SHIFT	12
 #endif
 #define PAGE_SIZE	(_AC(1, UL) << PAGE_SHIFT)
 #define PAGE_MASK	(~(PAGE_SIZE-1))
@@ -43,16 +43,16 @@ extern unsigned long _ramend;
 #endif /* !__ASSEMBLY__ */
 
 #ifdef CONFIG_MMU
-#include <asm/page_mm.h>
+	#include <asm/page_mm.h>
 #else
-#include <asm/page_no.h>
+	#include <asm/page_no.h>
 #endif
 
 #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
 #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/getorder.h>
 

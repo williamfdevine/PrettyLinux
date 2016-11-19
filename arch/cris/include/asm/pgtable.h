@@ -9,8 +9,8 @@
 #include <asm-generic/pgtable-nopmd.h>
 
 #ifndef __ASSEMBLY__
-#include <linux/sched.h>
-#include <asm/mmu.h>
+	#include <linux/sched.h>
+	#include <asm/mmu.h>
 #endif
 #include <arch/pgtable.h>
 
@@ -26,7 +26,7 @@
  * the CRIS page table tree.
  */
 #ifndef __ASSEMBLY__
-extern void paging_init(void);
+	extern void paging_init(void);
 #endif
 
 /* Certain architectures need to do special things when pte's
@@ -55,7 +55,7 @@ extern void paging_init(void);
 /*
  * entries per page directory level: we use a two-level, so
  * we don't really have any PMD directory physically.
- * pointers are 4 bytes so we can use the page size and 
+ * pointers are 4 bytes so we can use the page size and
  * divide it by 4 (shift by 2).
  */
 #define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-2))
@@ -71,8 +71,8 @@ extern void paging_init(void);
 
 /* zero page used for uninitialized stuff */
 #ifndef __ASSEMBLY__
-extern unsigned long empty_zero_page;
-#define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
+	extern unsigned long empty_zero_page;
+	#define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
 #endif
 
 /* number of bits that fit into a memory pointer */
@@ -87,7 +87,7 @@ extern unsigned long empty_zero_page;
 
 /* to find an entry in a page-table */
 #define PAGE_PTR(address) \
-((unsigned long)(address)>>(PAGE_SHIFT-SIZEOF_PTR_LOG2)&PTR_MASK&~PAGE_MASK)
+	((unsigned long)(address)>>(PAGE_SHIFT-SIZEOF_PTR_LOG2)&PTR_MASK&~PAGE_MASK)
 
 /* to set the page-dir */
 #define SET_PAGE_DIR(tsk,pgdir)
@@ -118,14 +118,14 @@ static inline int pte_special(pte_t pte)	{ return 0; }
 
 static inline pte_t pte_wrprotect(pte_t pte)
 {
-        pte_val(pte) &= ~(_PAGE_WRITE | _PAGE_SILENT_WRITE);
-        return pte;
+	pte_val(pte) &= ~(_PAGE_WRITE | _PAGE_SILENT_WRITE);
+	return pte;
 }
 
 static inline pte_t pte_mkclean(pte_t pte)
 {
-	pte_val(pte) &= ~(_PAGE_MODIFIED | _PAGE_SILENT_WRITE); 
-	return pte; 
+	pte_val(pte) &= ~(_PAGE_MODIFIED | _PAGE_SILENT_WRITE);
+	return pte;
 }
 
 static inline pte_t pte_mkold(pte_t pte)
@@ -136,31 +136,44 @@ static inline pte_t pte_mkold(pte_t pte)
 
 static inline pte_t pte_mkwrite(pte_t pte)
 {
-        pte_val(pte) |= _PAGE_WRITE;
-        if (pte_val(pte) & _PAGE_MODIFIED)
-                pte_val(pte) |= _PAGE_SILENT_WRITE;
-        return pte;
+	pte_val(pte) |= _PAGE_WRITE;
+
+	if (pte_val(pte) & _PAGE_MODIFIED)
+	{
+		pte_val(pte) |= _PAGE_SILENT_WRITE;
+	}
+
+	return pte;
 }
 
 static inline pte_t pte_mkdirty(pte_t pte)
 {
-        pte_val(pte) |= _PAGE_MODIFIED;
-        if (pte_val(pte) & _PAGE_WRITE)
-                pte_val(pte) |= _PAGE_SILENT_WRITE;
-        return pte;
+	pte_val(pte) |= _PAGE_MODIFIED;
+
+	if (pte_val(pte) & _PAGE_WRITE)
+	{
+		pte_val(pte) |= _PAGE_SILENT_WRITE;
+	}
+
+	return pte;
 }
 
 static inline pte_t pte_mkyoung(pte_t pte)
 {
-        pte_val(pte) |= _PAGE_ACCESSED;
-        if (pte_val(pte) & _PAGE_READ)
-        {
-                pte_val(pte) |= _PAGE_SILENT_READ;
-                if ((pte_val(pte) & (_PAGE_WRITE | _PAGE_MODIFIED)) ==
-		    (_PAGE_WRITE | _PAGE_MODIFIED))
-                        pte_val(pte) |= _PAGE_SILENT_WRITE;
-        }
-        return pte;
+	pte_val(pte) |= _PAGE_ACCESSED;
+
+	if (pte_val(pte) & _PAGE_READ)
+	{
+		pte_val(pte) |= _PAGE_SILENT_READ;
+
+		if ((pte_val(pte) & (_PAGE_WRITE | _PAGE_MODIFIED)) ==
+			(_PAGE_WRITE | _PAGE_MODIFIED))
+		{
+			pte_val(pte) |= _PAGE_SILENT_WRITE;
+		}
+	}
+
+	return pte;
 }
 static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
 
@@ -175,7 +188,7 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
  * addresses (the 0xc0xxxxxx's) goes as void *'s.
  */
 
-static inline pte_t __mk_pte(void * page, pgprot_t pgprot)
+static inline pte_t __mk_pte(void *page, pgprot_t pgprot)
 {
 	pte_t pte;
 	/* the PTE needs a physical address */
@@ -186,12 +199,12 @@ static inline pte_t __mk_pte(void * page, pgprot_t pgprot)
 #define mk_pte(page, pgprot) __mk_pte(page_address(page), (pgprot))
 
 #define mk_pte_phys(physpage, pgprot) \
-({                                                                      \
-        pte_t __pte;                                                    \
-                                                                        \
-        pte_val(__pte) = (physpage) + pgprot_val(pgprot);               \
-        __pte;                                                          \
-})
+	({                                                                      \
+		pte_t __pte;                                                    \
+		\
+		pte_val(__pte) = (physpage) + pgprot_val(pgprot);               \
+		__pte;                                                          \
+	})
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 { pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); return pte; }
@@ -222,7 +235,7 @@ static inline unsigned long __pte_page(pte_t pte)
  * don't need the __pa and __va transformations.
  */
 
-static inline void pmd_set(pmd_t * pmdp, pte_t * ptep)
+static inline void pmd_set(pmd_t *pmdp, pte_t *ptep)
 { pmd_val(*pmdp) = _PAGE_TABLE | (unsigned long) ptep; }
 
 #define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT))
@@ -232,7 +245,7 @@ static inline void pmd_set(pmd_t * pmdp, pte_t * ptep)
 #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
 
 /* to find an entry in a page-table-directory */
-static inline pgd_t * pgd_offset(const struct mm_struct *mm, unsigned long address)
+static inline pgd_t *pgd_offset(const struct mm_struct *mm, unsigned long address)
 {
 	return mm->pgd + pgd_index(address);
 }
@@ -253,9 +266,9 @@ static inline pgd_t * pgd_offset(const struct mm_struct *mm, unsigned long addre
 #define pfn_pte(pfn, prot)	__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
 
 #define pte_ERROR(e) \
-        printk("%s:%d: bad pte %p(%08lx).\n", __FILE__, __LINE__, &(e), pte_val(e))
+	printk("%s:%d: bad pte %p(%08lx).\n", __FILE__, __LINE__, &(e), pte_val(e))
 #define pgd_ERROR(e) \
-        printk("%s:%d: bad pgd %p(%08lx).\n", __FILE__, __LINE__, &(e), pgd_val(e))
+	printk("%s:%d: bad pgd %p(%08lx).\n", __FILE__, __LINE__, &(e), pgd_val(e))
 
 
 extern pgd_t swapper_pg_dir[PTRS_PER_PGD]; /* defined in head.S */
@@ -263,11 +276,11 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD]; /* defined in head.S */
 /*
  * CRIS doesn't have any external MMU info: the kernel page
  * tables contain all the necessary information.
- * 
+ *
  * Actually I am not sure on what this could be used for.
  */
-static inline void update_mmu_cache(struct vm_area_struct * vma,
-	unsigned long address, pte_t *ptep)
+static inline void update_mmu_cache(struct vm_area_struct *vma,
+									unsigned long address, pte_t *ptep)
 {
 }
 

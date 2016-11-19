@@ -36,7 +36,8 @@ static void shmobile_suspend_end(void)
 	cpu_idle_poll_ctrl(false);
 }
 
-struct platform_suspend_ops shmobile_suspend_ops = {
+struct platform_suspend_ops shmobile_suspend_ops =
+{
 	.begin		= shmobile_suspend_begin,
 	.end		= shmobile_suspend_end,
 	.enter		= shmobile_suspend_default_enter,

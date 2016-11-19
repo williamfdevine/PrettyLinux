@@ -80,14 +80,16 @@ iop33x_irq_unmask2(struct irq_data *d)
 	intctl1_write(iop33x_mask1);
 }
 
-struct irq_chip iop33x_irqchip1 = {
+struct irq_chip iop33x_irqchip1 =
+{
 	.name		= "IOP33x-1",
 	.irq_ack	= iop33x_irq_mask1,
 	.irq_mask	= iop33x_irq_mask1,
 	.irq_unmask	= iop33x_irq_unmask1,
 };
 
-struct irq_chip iop33x_irqchip2 = {
+struct irq_chip iop33x_irqchip2 =
+{
 	.name		= "IOP33x-2",
 	.irq_ack	= iop33x_irq_mask2,
 	.irq_mask	= iop33x_irq_mask2,
@@ -106,13 +108,17 @@ void __init iop33x_init_irq(void)
 	intstr1_write(0);
 	intbase_write(0);
 	intsize_write(1);
-	if (machine_is_iq80331())
-		*IOP3XX_PCIIRSR = 0x0f;
 
-	for (i = 0; i < NR_IRQS; i++) {
+	if (machine_is_iq80331())
+	{
+		*IOP3XX_PCIIRSR = 0x0f;
+	}
+
+	for (i = 0; i < NR_IRQS; i++)
+	{
 		irq_set_chip_and_handler(i,
-					 (i < 32) ? &iop33x_irqchip1 : &iop33x_irqchip2,
-					 handle_level_irq);
+								 (i < 32) ? &iop33x_irqchip1 : &iop33x_irqchip2,
+								 handle_level_irq);
 		irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
 }

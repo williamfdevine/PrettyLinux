@@ -70,7 +70,7 @@
 extern int can_boost(kprobe_opcode_t *instruction);
 /* Recover instruction if given address is probed */
 extern unsigned long recover_probed_instruction(kprobe_opcode_t *buf,
-					 unsigned long addr);
+		unsigned long addr);
 /*
  * Copy an instruction and adjust the displacement if the instruction
  * uses the %rip-relative addressing mode.
@@ -97,10 +97,10 @@ static inline unsigned long __recover_optprobed_insn(kprobe_opcode_t *buf, unsig
 
 #ifdef CONFIG_KPROBES_ON_FTRACE
 extern int skip_singlestep(struct kprobe *p, struct pt_regs *regs,
-			   struct kprobe_ctlblk *kcb);
+						   struct kprobe_ctlblk *kcb);
 #else
 static inline int skip_singlestep(struct kprobe *p, struct pt_regs *regs,
-				  struct kprobe_ctlblk *kcb)
+								  struct kprobe_ctlblk *kcb)
 {
 	return 0;
 }

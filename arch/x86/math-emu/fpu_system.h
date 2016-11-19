@@ -27,8 +27,12 @@ static inline struct desc_struct FPU_get_ldt_descriptor(unsigned seg)
 #ifdef CONFIG_MODIFY_LDT_SYSCALL
 	seg >>= 3;
 	mutex_lock(&current->mm->context.lock);
+
 	if (current->mm->context.ldt && seg < current->mm->context.ldt->size)
+	{
 		ret = current->mm->context.ldt->entries[seg];
+	}
+
 	mutex_unlock(&current->mm->context.lock);
 #endif
 	return ret;
@@ -39,12 +43,12 @@ static inline struct desc_struct FPU_get_ldt_descriptor(unsigned seg)
 #define SEG_GRANULARITY(x)	(((x).b & (1 << 23)) ? 4096 : 1)
 #define SEG_286_MODE(x)		((x).b & ( 0xff000000 | 0xf0000 | (1 << 23)))
 #define SEG_BASE_ADDR(s)	(((s).b & 0xff000000) \
-				 | (((s).b & 0xff) << 16) | ((s).a >> 16))
+							 | (((s).b & 0xff) << 16) | ((s).a >> 16))
 #define SEG_LIMIT(s)		(((s).b & 0xff0000) | ((s).a & 0xffff))
 #define SEG_EXECUTE_ONLY(s)	(((s).b & ((1 << 11) | (1 << 9))) == (1 << 11))
 #define SEG_WRITE_PERM(s)	(((s).b & ((1 << 11) | (1 << 9))) == (1 << 9))
 #define SEG_EXPAND_DOWN(s)	(((s).b & ((1 << 11) | (1 << 10))) \
-				 == (1 << 10))
+							 == (1 << 10))
 
 #define I387			(&current->thread.fpu.state)
 #define FPU_info		(I387->soft.info)
@@ -78,21 +82,21 @@ static inline struct desc_struct FPU_get_ldt_descriptor(unsigned seg)
 #define operand_address		(*(struct address *)&I387->soft.foo)
 
 #define FPU_access_ok(x,y,z)	if ( !access_ok(x,y,z) ) \
-				math_abort(FPU_info,SIGSEGV)
+		math_abort(FPU_info,SIGSEGV)
 #define FPU_abort		math_abort(FPU_info, SIGSEGV)
 
 #undef FPU_IGNORE_CODE_SEGV
 #ifdef FPU_IGNORE_CODE_SEGV
-/* access_ok() is very expensive, and causes the emulator to run
-   about 20% slower if applied to the code. Anyway, errors due to bad
-   code addresses should be much rarer than errors due to bad data
-   addresses. */
-#define	FPU_code_access_ok(z)
+	/* access_ok() is very expensive, and causes the emulator to run
+	about 20% slower if applied to the code. Anyway, errors due to bad
+	code addresses should be much rarer than errors due to bad data
+	addresses. */
+	#define	FPU_code_access_ok(z)
 #else
-/* A simpler test than access_ok() can probably be done for
-   FPU_code_access_ok() because the only possible error is to step
-   past the upper boundary of a legal code area. */
-#define	FPU_code_access_ok(z) FPU_access_ok(VERIFY_READ,(void __user *)FPU_EIP,z)
+	/* A simpler test than access_ok() can probably be done for
+	FPU_code_access_ok() because the only possible error is to step
+	past the upper boundary of a legal code area. */
+	#define	FPU_code_access_ok(z) FPU_access_ok(VERIFY_READ,(void __user *)FPU_EIP,z)
 #endif
 
 #define FPU_get_user(x,y)       get_user((x),(y))

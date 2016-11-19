@@ -45,7 +45,8 @@ void __init ixdp425_pci_preinit(void)
 
 static int __init ixdp425_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static int pci_irq_table[IRQ_LINES] = {
+	static int pci_irq_table[IRQ_LINES] =
+	{
 		IXP4XX_GPIO_IRQ(INTA),
 		IXP4XX_GPIO_IRQ(INTB),
 		IXP4XX_GPIO_IRQ(INTC),
@@ -53,12 +54,15 @@ static int __init ixdp425_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	};
 
 	if (slot >= 1 && slot <= MAX_DEV && pin >= 1 && pin <= IRQ_LINES)
+	{
 		return pci_irq_table[(slot + pin - 2) % 4];
+	}
 
 	return -1;
 }
 
-struct hw_pci ixdp425_pci __initdata = {
+struct hw_pci ixdp425_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &ixp4xx_ops,
 	.preinit	= ixdp425_pci_preinit,
@@ -69,8 +73,11 @@ struct hw_pci ixdp425_pci __initdata = {
 int __init ixdp425_pci_init(void)
 {
 	if (machine_is_ixdp425() || machine_is_ixcdp1100() ||
-			machine_is_ixdp465() || machine_is_kixrp435())
+		machine_is_ixdp465() || machine_is_kixrp435())
+	{
 		pci_common_init(&ixdp425_pci);
+	}
+
 	return 0;
 }
 

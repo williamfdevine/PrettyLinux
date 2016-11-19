@@ -18,7 +18,8 @@ extern void vrefp(vector128 *dst, vector128 *src);
 extern void vrsqrtefp(vector128 *dst, vector128 *src);
 extern void vexptep(vector128 *dst, vector128 *src);
 
-static unsigned int exp2s[8] = {
+static unsigned int exp2s[8] =
+{
 	0x800000,
 	0x8b95c2,
 	0x9837f0,
@@ -40,43 +41,67 @@ static unsigned int eexp2(unsigned int s)
 
 	/* extract exponent field from input */
 	exp = ((s >> 23) & 0xff) - 127;
-	if (exp > 7) {
+
+	if (exp > 7)
+	{
 		/* check for NaN input */
 		if (exp == 128 && (s & 0x7fffff) != 0)
-			return s | 0x400000;	/* return QNaN */
+		{
+			return s | 0x400000;    /* return QNaN */
+		}
+
 		/* 2^-big = 0, 2^+big = +Inf */
-		return (s & 0x80000000)? 0: 0x7f800000;	/* 0 or +Inf */
+		return (s & 0x80000000) ? 0 : 0x7f800000;	/* 0 or +Inf */
 	}
+
 	if (exp < -23)
-		return 0x3f800000;	/* 1.0 */
+	{
+		return 0x3f800000;    /* 1.0 */
+	}
 
 	/* convert to fixed point integer in 9.23 representation */
 	pwr = (s & 0x7fffff) | 0x800000;
+
 	if (exp > 0)
+	{
 		pwr <<= exp;
+	}
 	else
+	{
 		pwr >>= -exp;
+	}
+
 	if (s & 0x80000000)
+	{
 		pwr = -pwr;
+	}
 
 	/* extract integer part, which becomes exponent part of result */
 	exp = (pwr >> 23) + 126;
+
 	if (exp >= 254)
+	{
 		return 0x7f800000;
+	}
+
 	if (exp < -23)
+	{
 		return 0;
+	}
 
 	/* table lookup on top 3 bits of fraction to get mantissa */
 	mant = exp2s[(pwr >> 20) & 7];
 
 	/* linear interpolation using remaining 20 bits of fraction */
 	asm("mulhwu %0,%1,%2" : "=r" (frac)
-	    : "r" (pwr << 12), "r" (0x172b83ff));
+		: "r" (pwr << 12), "r" (0x172b83ff));
 	asm("mulhwu %0,%1,%2" : "=r" (frac) : "r" (frac), "r" (mant));
 	mant += frac;
 
 	if (exp >= 0)
+	{
 		return mant + (exp << 23);
+	}
 
 	/* denormalized result */
 	exp = -exp;
@@ -94,58 +119,89 @@ static unsigned int elog2(unsigned int s)
 
 	exp = s & 0x7f800000;
 	mant = s & 0x7fffff;
-	if (exp == 0x7f800000) {	/* Inf or NaN */
+
+	if (exp == 0x7f800000)  	/* Inf or NaN */
+	{
 		if (mant != 0)
-			s |= 0x400000;	/* turn NaN into QNaN */
+		{
+			s |= 0x400000;    /* turn NaN into QNaN */
+		}
+
 		return s;
 	}
-	if ((exp | mant) == 0)		/* +0 or -0 */
-		return 0xff800000;	/* return -Inf */
 
-	if (exp == 0) {
+	if ((exp | mant) == 0)		/* +0 or -0 */
+	{
+		return 0xff800000;    /* return -Inf */
+	}
+
+	if (exp == 0)
+	{
 		/* denormalized */
 		asm("cntlzw %0,%1" : "=r" (lz) : "r" (mant));
 		mant <<= lz - 8;
 		exp = (-118 - lz) << 23;
-	} else {
+	}
+	else
+	{
 		mant |= 0x800000;
 		exp -= 127 << 23;
 	}
 
-	if (mant >= 0xb504f3) {				/* 2^0.5 * 2^23 */
+	if (mant >= 0xb504f3)  				/* 2^0.5 * 2^23 */
+	{
 		exp |= 0x400000;			/* 0.5 * 2^23 */
 		asm("mulhwu %0,%1,%2" : "=r" (mant)
-		    : "r" (mant), "r" (0xb504f334));	/* 2^-0.5 * 2^32 */
+			: "r" (mant), "r" (0xb504f334));	/* 2^-0.5 * 2^32 */
 	}
-	if (mant >= 0x9837f0) {				/* 2^0.25 * 2^23 */
+
+	if (mant >= 0x9837f0)  				/* 2^0.25 * 2^23 */
+	{
 		exp |= 0x200000;			/* 0.25 * 2^23 */
 		asm("mulhwu %0,%1,%2" : "=r" (mant)
-		    : "r" (mant), "r" (0xd744fccb));	/* 2^-0.25 * 2^32 */
+			: "r" (mant), "r" (0xd744fccb));	/* 2^-0.25 * 2^32 */
 	}
-	if (mant >= 0x8b95c2) {				/* 2^0.125 * 2^23 */
+
+	if (mant >= 0x8b95c2)  				/* 2^0.125 * 2^23 */
+	{
 		exp |= 0x100000;			/* 0.125 * 2^23 */
 		asm("mulhwu %0,%1,%2" : "=r" (mant)
-		    : "r" (mant), "r" (0xeac0c6e8));	/* 2^-0.125 * 2^32 */
+			: "r" (mant), "r" (0xeac0c6e8));	/* 2^-0.125 * 2^32 */
 	}
-	if (mant > 0x800000) {				/* 1.0 * 2^23 */
+
+	if (mant > 0x800000)  				/* 1.0 * 2^23 */
+	{
 		/* calculate (mant - 1) * 1.381097463 */
 		/* 1.381097463 == 0.125 / (2^0.125 - 1) */
 		asm("mulhwu %0,%1,%2" : "=r" (frac)
-		    : "r" ((mant - 0x800000) << 1), "r" (0xb0c7cd3a));
+			: "r" ((mant - 0x800000) << 1), "r" (0xb0c7cd3a));
 		exp += frac;
 	}
+
 	s = exp & 0x80000000;
-	if (exp != 0) {
+
+	if (exp != 0)
+	{
 		if (s)
+		{
 			exp = -exp;
+		}
+
 		asm("cntlzw %0,%1" : "=r" (lz) : "r" (exp));
 		lz = 8 - lz;
+
 		if (lz > 0)
+		{
 			exp >>= lz;
+		}
 		else if (lz < 0)
+		{
 			exp <<= -lz;
+		}
+
 		s += ((lz + 126) << 23) + exp;
 	}
+
 	return s;
 }
 
@@ -157,20 +213,33 @@ static int ctsxs(unsigned int x, int scale, unsigned int *vscrp)
 
 	exp = (x >> 23) & 0xff;
 	mant = x & 0x7fffff;
+
 	if (exp == 255 && mant != 0)
-		return 0;		/* NaN -> 0 */
+	{
+		return 0;    /* NaN -> 0 */
+	}
+
 	exp = exp - 127 + scale;
+
 	if (exp < 0)
-		return 0;		/* round towards zero */
-	if (exp >= 31) {
+	{
+		return 0;    /* round towards zero */
+	}
+
+	if (exp >= 31)
+	{
 		/* saturate, unless the result would be -2^31 */
 		if (x + (scale << 23) != 0xcf000000)
+		{
 			*vscrp |= VSCR_SAT;
-		return (x & 0x80000000)? 0x80000000: 0x7fffffff;
+		}
+
+		return (x & 0x80000000) ? 0x80000000 : 0x7fffffff;
 	}
+
 	mant |= 0x800000;
 	mant = (mant << 7) >> (30 - exp);
-	return (x & 0x80000000)? -mant: mant;
+	return (x & 0x80000000) ? -mant : mant;
 }
 
 static unsigned int ctuxs(unsigned int x, int scale, unsigned int *vscrp)
@@ -180,21 +249,33 @@ static unsigned int ctuxs(unsigned int x, int scale, unsigned int *vscrp)
 
 	exp = (x >> 23) & 0xff;
 	mant = x & 0x7fffff;
+
 	if (exp == 255 && mant != 0)
-		return 0;		/* NaN -> 0 */
+	{
+		return 0;    /* NaN -> 0 */
+	}
+
 	exp = exp - 127 + scale;
+
 	if (exp < 0)
-		return 0;		/* round towards zero */
-	if (x & 0x80000000) {
+	{
+		return 0;    /* round towards zero */
+	}
+
+	if (x & 0x80000000)
+	{
 		/* negative => saturate to 0 */
 		*vscrp |= VSCR_SAT;
 		return 0;
 	}
-	if (exp >= 32) {
+
+	if (exp >= 32)
+	{
 		/* saturate */
 		*vscrp |= VSCR_SAT;
 		return 0xffffffff;
 	}
+
 	mant |= 0x800000;
 	mant = (mant << 8) >> (31 - exp);
 	return mant;
@@ -206,12 +287,22 @@ static unsigned int rfiz(unsigned int x)
 	int exp;
 
 	exp = ((x >> 23) & 0xff) - 127;
+
 	if (exp == 128 && (x & 0x7fffff) != 0)
-		return x | 0x400000;	/* NaN -> make it a QNaN */
+	{
+		return x | 0x400000;    /* NaN -> make it a QNaN */
+	}
+
 	if (exp >= 23)
-		return x;		/* it's an integer already (or Inf) */
+	{
+		return x;    /* it's an integer already (or Inf) */
+	}
+
 	if (exp < 0)
-		return x & 0x80000000;	/* |x| < 1.0 rounds to 0 */
+	{
+		return x & 0x80000000;    /* |x| < 1.0 rounds to 0 */
+	}
+
 	return x & ~(0x7fffff >> exp);
 }
 
@@ -221,15 +312,28 @@ static unsigned int rfii(unsigned int x)
 	int exp, mask;
 
 	exp = ((x >> 23) & 0xff) - 127;
+
 	if (exp == 128 && (x & 0x7fffff) != 0)
-		return x | 0x400000;	/* NaN -> make it a QNaN */
+	{
+		return x | 0x400000;    /* NaN -> make it a QNaN */
+	}
+
 	if (exp >= 23)
-		return x;		/* it's an integer already (or Inf) */
+	{
+		return x;    /* it's an integer already (or Inf) */
+	}
+
 	if ((x & 0x7fffffff) == 0)
-		return x;		/* +/-0 -> +/-0 */
+	{
+		return x;    /* +/-0 -> +/-0 */
+	}
+
 	if (exp < 0)
 		/* 0 < |x| < 1.0 rounds to +/- 1.0 */
+	{
 		return (x & 0x80000000) | 0x3f800000;
+	}
+
 	mask = 0x7fffff >> exp;
 	/* mantissa overflows into exponent - that's OK,
 	   it can't overflow into the sign bit */
@@ -242,15 +346,28 @@ static unsigned int rfin(unsigned int x)
 	int exp, half;
 
 	exp = ((x >> 23) & 0xff) - 127;
+
 	if (exp == 128 && (x & 0x7fffff) != 0)
-		return x | 0x400000;	/* NaN -> make it a QNaN */
+	{
+		return x | 0x400000;    /* NaN -> make it a QNaN */
+	}
+
 	if (exp >= 23)
-		return x;		/* it's an integer already (or Inf) */
+	{
+		return x;    /* it's an integer already (or Inf) */
+	}
+
 	if (exp < -1)
-		return x & 0x80000000;	/* |x| < 0.5 -> +/-0 */
+	{
+		return x & 0x80000000;    /* |x| < 0.5 -> +/-0 */
+	}
+
 	if (exp == -1)
 		/* 0.5 <= |x| < 1.0 rounds to +/- 1.0 */
+	{
 		return (x & 0x80000000) | 0x3f800000;
+	}
+
 	half = 0x400000 >> exp;
 	/* add 0.5 to the magnitude and chop off the fraction bits */
 	return (x + half) & ~(0x7fffff >> exp);
@@ -263,82 +380,125 @@ int emulate_altivec(struct pt_regs *regs)
 	vector128 *vrs;
 
 	if (get_user(instr, (unsigned int __user *) regs->nip))
+	{
 		return -EFAULT;
+	}
+
 	if ((instr >> 26) != 4)
-		return -EINVAL;		/* not an altivec instruction */
+	{
+		return -EINVAL;    /* not an altivec instruction */
+	}
+
 	vd = (instr >> 21) & 0x1f;
 	va = (instr >> 16) & 0x1f;
 	vb = (instr >> 11) & 0x1f;
 	vc = (instr >> 6) & 0x1f;
 
 	vrs = current->thread.vr_state.vr;
-	switch (instr & 0x3f) {
-	case 10:
-		switch (vc) {
-		case 0:	/* vaddfp */
-			vaddfp(&vrs[vd], &vrs[va], &vrs[vb]);
-			break;
-		case 1:	/* vsubfp */
-			vsubfp(&vrs[vd], &vrs[va], &vrs[vb]);
-			break;
-		case 4:	/* vrefp */
-			vrefp(&vrs[vd], &vrs[vb]);
-			break;
-		case 5:	/* vrsqrtefp */
-			vrsqrtefp(&vrs[vd], &vrs[vb]);
-			break;
-		case 6:	/* vexptefp */
-			for (i = 0; i < 4; ++i)
-				vrs[vd].u[i] = eexp2(vrs[vb].u[i]);
-			break;
-		case 7:	/* vlogefp */
-			for (i = 0; i < 4; ++i)
-				vrs[vd].u[i] = elog2(vrs[vb].u[i]);
-			break;
-		case 8:		/* vrfin */
-			for (i = 0; i < 4; ++i)
-				vrs[vd].u[i] = rfin(vrs[vb].u[i]);
-			break;
-		case 9:		/* vrfiz */
-			for (i = 0; i < 4; ++i)
-				vrs[vd].u[i] = rfiz(vrs[vb].u[i]);
-			break;
-		case 10:	/* vrfip */
-			for (i = 0; i < 4; ++i) {
-				u32 x = vrs[vb].u[i];
-				x = (x & 0x80000000)? rfiz(x): rfii(x);
-				vrs[vd].u[i] = x;
+
+	switch (instr & 0x3f)
+	{
+		case 10:
+			switch (vc)
+			{
+				case 0:	/* vaddfp */
+					vaddfp(&vrs[vd], &vrs[va], &vrs[vb]);
+					break;
+
+				case 1:	/* vsubfp */
+					vsubfp(&vrs[vd], &vrs[va], &vrs[vb]);
+					break;
+
+				case 4:	/* vrefp */
+					vrefp(&vrs[vd], &vrs[vb]);
+					break;
+
+				case 5:	/* vrsqrtefp */
+					vrsqrtefp(&vrs[vd], &vrs[vb]);
+					break;
+
+				case 6:	/* vexptefp */
+					for (i = 0; i < 4; ++i)
+					{
+						vrs[vd].u[i] = eexp2(vrs[vb].u[i]);
+					}
+
+					break;
+
+				case 7:	/* vlogefp */
+					for (i = 0; i < 4; ++i)
+					{
+						vrs[vd].u[i] = elog2(vrs[vb].u[i]);
+					}
+
+					break;
+
+				case 8:		/* vrfin */
+					for (i = 0; i < 4; ++i)
+					{
+						vrs[vd].u[i] = rfin(vrs[vb].u[i]);
+					}
+
+					break;
+
+				case 9:		/* vrfiz */
+					for (i = 0; i < 4; ++i)
+					{
+						vrs[vd].u[i] = rfiz(vrs[vb].u[i]);
+					}
+
+					break;
+
+				case 10:	/* vrfip */
+					for (i = 0; i < 4; ++i)
+					{
+						u32 x = vrs[vb].u[i];
+						x = (x & 0x80000000) ? rfiz(x) : rfii(x);
+						vrs[vd].u[i] = x;
+					}
+
+					break;
+
+				case 11:	/* vrfim */
+					for (i = 0; i < 4; ++i)
+					{
+						u32 x = vrs[vb].u[i];
+						x = (x & 0x80000000) ? rfii(x) : rfiz(x);
+						vrs[vd].u[i] = x;
+					}
+
+					break;
+
+				case 14:	/* vctuxs */
+					for (i = 0; i < 4; ++i)
+						vrs[vd].u[i] = ctuxs(vrs[vb].u[i], va,
+											 &current->thread.vr_state.vscr.u[3]);
+
+					break;
+
+				case 15:	/* vctsxs */
+					for (i = 0; i < 4; ++i)
+						vrs[vd].u[i] = ctsxs(vrs[vb].u[i], va,
+											 &current->thread.vr_state.vscr.u[3]);
+
+					break;
+
+				default:
+					return -EINVAL;
 			}
+
 			break;
-		case 11:	/* vrfim */
-			for (i = 0; i < 4; ++i) {
-				u32 x = vrs[vb].u[i];
-				x = (x & 0x80000000)? rfii(x): rfiz(x);
-				vrs[vd].u[i] = x;
-			}
+
+		case 46:	/* vmaddfp */
+			vmaddfp(&vrs[vd], &vrs[va], &vrs[vb], &vrs[vc]);
 			break;
-		case 14:	/* vctuxs */
-			for (i = 0; i < 4; ++i)
-				vrs[vd].u[i] = ctuxs(vrs[vb].u[i], va,
-					&current->thread.vr_state.vscr.u[3]);
+
+		case 47:	/* vnmsubfp */
+			vnmsubfp(&vrs[vd], &vrs[va], &vrs[vb], &vrs[vc]);
 			break;
-		case 15:	/* vctsxs */
-			for (i = 0; i < 4; ++i)
-				vrs[vd].u[i] = ctsxs(vrs[vb].u[i], va,
-					&current->thread.vr_state.vscr.u[3]);
-			break;
+
 		default:
 			return -EINVAL;
-		}
-		break;
-	case 46:	/* vmaddfp */
-		vmaddfp(&vrs[vd], &vrs[va], &vrs[vb], &vrs[vc]);
-		break;
-	case 47:	/* vnmsubfp */
-		vnmsubfp(&vrs[vd], &vrs[va], &vrs[vb], &vrs[vc]);
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return 0;

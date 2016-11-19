@@ -36,17 +36,20 @@
 /*
  * ARMv8 Reset Values
  */
-static const struct kvm_regs default_regs_reset = {
+static const struct kvm_regs default_regs_reset =
+{
 	.regs.pstate = (PSR_MODE_EL1h | PSR_A_BIT | PSR_I_BIT |
-			PSR_F_BIT | PSR_D_BIT),
+	PSR_F_BIT | PSR_D_BIT),
 };
 
-static const struct kvm_regs default_regs_reset32 = {
+static const struct kvm_regs default_regs_reset32 =
+{
 	.regs.pstate = (COMPAT_PSR_MODE_SVC | COMPAT_PSR_A_BIT |
-			COMPAT_PSR_I_BIT | COMPAT_PSR_F_BIT),
+	COMPAT_PSR_I_BIT | COMPAT_PSR_F_BIT),
 };
 
-static const struct kvm_irq_level default_vtimer_irq = {
+static const struct kvm_irq_level default_vtimer_irq =
+{
 	.irq	= 27,
 	.level	= 1,
 };
@@ -69,31 +72,43 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
 {
 	int r;
 
-	switch (ext) {
-	case KVM_CAP_ARM_EL1_32BIT:
-		r = cpu_has_32bit_el1();
-		break;
-	case KVM_CAP_GUEST_DEBUG_HW_BPS:
-		r = get_num_brps();
-		break;
-	case KVM_CAP_GUEST_DEBUG_HW_WPS:
-		r = get_num_wrps();
-		break;
-	case KVM_CAP_ARM_PMU_V3:
-		r = kvm_arm_support_pmu_v3();
-		break;
-	case KVM_CAP_SET_GUEST_DEBUG:
-	case KVM_CAP_VCPU_ATTRIBUTES:
-		r = 1;
-		break;
-	case KVM_CAP_MSI_DEVID:
-		if (!kvm)
-			r = -EINVAL;
-		else
-			r = kvm->arch.vgic.msis_require_devid;
-		break;
-	default:
-		r = 0;
+	switch (ext)
+	{
+		case KVM_CAP_ARM_EL1_32BIT:
+			r = cpu_has_32bit_el1();
+			break;
+
+		case KVM_CAP_GUEST_DEBUG_HW_BPS:
+			r = get_num_brps();
+			break;
+
+		case KVM_CAP_GUEST_DEBUG_HW_WPS:
+			r = get_num_wrps();
+			break;
+
+		case KVM_CAP_ARM_PMU_V3:
+			r = kvm_arm_support_pmu_v3();
+			break;
+
+		case KVM_CAP_SET_GUEST_DEBUG:
+		case KVM_CAP_VCPU_ATTRIBUTES:
+			r = 1;
+			break;
+
+		case KVM_CAP_MSI_DEVID:
+			if (!kvm)
+			{
+				r = -EINVAL;
+			}
+			else
+			{
+				r = kvm->arch.vgic.msis_require_devid;
+			}
+
+			break;
+
+		default:
+			r = 0;
 	}
 
 	return r;
@@ -112,18 +127,25 @@ int kvm_reset_vcpu(struct kvm_vcpu *vcpu)
 	const struct kvm_irq_level *cpu_vtimer_irq;
 	const struct kvm_regs *cpu_reset;
 
-	switch (vcpu->arch.target) {
-	default:
-		if (test_bit(KVM_ARM_VCPU_EL1_32BIT, vcpu->arch.features)) {
-			if (!cpu_has_32bit_el1())
-				return -EINVAL;
-			cpu_reset = &default_regs_reset32;
-		} else {
-			cpu_reset = &default_regs_reset;
-		}
+	switch (vcpu->arch.target)
+	{
+		default:
+			if (test_bit(KVM_ARM_VCPU_EL1_32BIT, vcpu->arch.features))
+			{
+				if (!cpu_has_32bit_el1())
+				{
+					return -EINVAL;
+				}
 
-		cpu_vtimer_irq = &default_vtimer_irq;
-		break;
+				cpu_reset = &default_regs_reset32;
+			}
+			else
+			{
+				cpu_reset = &default_regs_reset;
+			}
+
+			cpu_vtimer_irq = &default_vtimer_irq;
+			break;
 	}
 
 	/* Reset core registers */

@@ -21,19 +21,20 @@
 struct module;
 struct clk;
 
-struct omap_clk {
+struct omap_clk
+{
 	u16				cpu;
 	struct clk_lookup		lk;
 };
 
 #define CLK(dev, con, ck, cp)		\
 	{				\
-		 .cpu = cp,		\
-		.lk = {			\
-			.dev_id = dev,	\
-			.con_id = con,	\
-			.clk = ck,	\
-		},			\
+		.cpu = cp,		\
+			   .lk = {			\
+							   .dev_id = dev,	\
+							   .con_id = con,	\
+							   .clk = ck,	\
+					 },			\
 	}
 
 /* Platform flags for the clkdev-OMAP integration code */
@@ -67,13 +68,14 @@ struct omap_clk {
  * runtime calls in place of clk_enable()/clk_disable(), @find_idlest and
  * @find_companion must, unfortunately, remain.
  */
-struct clkops {
+struct clkops
+{
 	int			(*enable)(struct clk *);
 	void			(*disable)(struct clk *);
 	void			(*find_idlest)(struct clk *, void __iomem **,
-					       u8 *, u8 *);
+								   u8 *, u8 *);
 	void			(*find_companion)(struct clk *, void __iomem **,
-						  u8 *);
+									  u8 *);
 	void			(*allow_idle)(struct clk *);
 	void			(*deny_idle)(struct clk *);
 };
@@ -138,7 +140,8 @@ struct clkops {
  * XXX The notion of the clock's current rate probably needs to be
  * separated from the clock's target rate.
  */
-struct clk {
+struct clk
+{
 	struct list_head	node;
 	const struct clkops	*ops;
 	const char		*name;
@@ -162,7 +165,8 @@ struct clk {
 #endif
 };
 
-struct clk_functions {
+struct clk_functions
+{
 	int		(*clk_enable)(struct clk *clk);
 	void		(*clk_disable)(struct clk *clk);
 	long		(*clk_round_rate)(struct clk *clk, unsigned long rate);
@@ -216,18 +220,20 @@ extern long omap1_clk_round_rate_ckctl_arm(struct clk *clk, unsigned long rate);
 extern unsigned long omap1_watchdog_recalc(struct clk *clk);
 
 #ifdef CONFIG_OMAP_RESET_CLOCKS
-extern void omap1_clk_disable_unused(struct clk *clk);
+	extern void omap1_clk_disable_unused(struct clk *clk);
 #else
-#define omap1_clk_disable_unused	NULL
+	#define omap1_clk_disable_unused	NULL
 #endif
 
-struct uart_clk {
+struct uart_clk
+{
 	struct clk	clk;
 	unsigned long	sysc_addr;
 };
 
 /* Provide a method for preventing idling some ARM IDLECT clocks */
-struct arm_idlect1_clk {
+struct arm_idlect1_clk
+{
 	struct clk	clk;
 	unsigned long	no_idle_count;
 	__u8		idlect_shift;

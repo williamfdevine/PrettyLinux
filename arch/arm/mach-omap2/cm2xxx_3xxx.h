@@ -62,7 +62,7 @@ static inline void omap2_cm_write_mod_reg(u32 val, s16 module, u16 idx)
 
 /* Read-modify-write a register in a CM module. Caller must lock */
 static inline u32 omap2_cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module,
-					    s16 idx)
+		s16 idx)
 {
 	u32 v;
 

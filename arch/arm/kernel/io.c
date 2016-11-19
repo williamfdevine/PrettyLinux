@@ -44,7 +44,9 @@ EXPORT_SYMBOL(atomic_io_modify);
 void _memcpy_fromio(void *to, const volatile void __iomem *from, size_t count)
 {
 	unsigned char *t = to;
-	while (count) {
+
+	while (count)
+	{
 		count--;
 		*t = readb(from);
 		t++;
@@ -60,7 +62,9 @@ EXPORT_SYMBOL(_memcpy_fromio);
 void _memcpy_toio(volatile void __iomem *to, const void *from, size_t count)
 {
 	const unsigned char *f = from;
-	while (count) {
+
+	while (count)
+	{
 		count--;
 		writeb(*f, to);
 		f++;
@@ -75,7 +79,8 @@ EXPORT_SYMBOL(_memcpy_toio);
  */
 void _memset_io(volatile void __iomem *dst, int c, size_t count)
 {
-	while (count) {
+	while (count)
+	{
 		count--;
 		writeb(c, dst);
 		dst++;

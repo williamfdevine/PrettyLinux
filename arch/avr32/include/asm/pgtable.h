@@ -11,7 +11,7 @@
 #include <asm/addrspace.h>
 
 #ifndef __ASSEMBLY__
-#include <linux/sched.h>
+	#include <linux/sched.h>
 
 #endif /* !__ASSEMBLY__ */
 
@@ -33,35 +33,35 @@
 #define FIRST_USER_ADDRESS	0UL
 
 #ifndef __ASSEMBLY__
-extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
-extern void paging_init(void);
+	extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+	extern void paging_init(void);
 
-/*
- * ZERO_PAGE is a global shared page that is always zero: used for
- * zero-mapped memory areas etc.
- */
-extern struct page *empty_zero_page;
-#define ZERO_PAGE(vaddr) (empty_zero_page)
+	/*
+	* ZERO_PAGE is a global shared page that is always zero: used for
+	* zero-mapped memory areas etc.
+	*/
+	extern struct page *empty_zero_page;
+	#define ZERO_PAGE(vaddr) (empty_zero_page)
 
-/*
- * Just any arbitrary offset to the start of the vmalloc VM area: the
- * current 8 MiB value just means that there will be a 8 MiB "hole"
- * after the uncached physical memory (P2 segment) until the vmalloc
- * area starts. That means that any out-of-bounds memory accesses will
- * hopefully be caught; we don't know if the end of the P1/P2 segments
- * are actually used for anything, but it is anyway safer to let the
- * MMU catch these kinds of errors than to rely on the memory bus.
- *
- * A "hole" of the same size is added to the end of the P3 segment as
- * well. It might seem wasteful to use 16 MiB of virtual address space
- * on this, but we do have 512 MiB of it...
- *
- * The vmalloc() routines leave a hole of 4 KiB between each vmalloced
- * area for the same reason.
- */
-#define VMALLOC_OFFSET	(8 * 1024 * 1024)
-#define VMALLOC_START	(P3SEG + VMALLOC_OFFSET)
-#define VMALLOC_END	(P4SEG - VMALLOC_OFFSET)
+	/*
+	* Just any arbitrary offset to the start of the vmalloc VM area: the
+	* current 8 MiB value just means that there will be a 8 MiB "hole"
+	* after the uncached physical memory (P2 segment) until the vmalloc
+	* area starts. That means that any out-of-bounds memory accesses will
+	* hopefully be caught; we don't know if the end of the P1/P2 segments
+	* are actually used for anything, but it is anyway safer to let the
+	* MMU catch these kinds of errors than to rely on the memory bus.
+	*
+	* A "hole" of the same size is added to the end of the P3 segment as
+	* well. It might seem wasteful to use 16 MiB of virtual address space
+	* on this, but we do have 512 MiB of it...
+	*
+	* The vmalloc() routines leave a hole of 4 KiB between each vmalloced
+	* area for the same reason.
+	*/
+	#define VMALLOC_OFFSET	(8 * 1024 * 1024)
+	#define VMALLOC_START	(P3SEG + VMALLOC_OFFSET)
+	#define VMALLOC_END	(P4SEG - VMALLOC_OFFSET)
 #endif /* !__ASSEMBLY__ */
 
 /*
@@ -127,13 +127,13 @@ extern struct page *empty_zero_page;
 
 /* Flags that may be modified by software */
 #define _PAGE_CHG_MASK		(PTE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY \
-				 | _PAGE_FLAGS_CACHE_MASK)
+							 | _PAGE_FLAGS_CACHE_MASK)
 
 #define _PAGE_FLAGS_READ	(_PAGE_CACHABLE	| _PAGE_BUFFER)
 #define _PAGE_FLAGS_WRITE	(_PAGE_FLAGS_READ | _PAGE_RW | _PAGE_DIRTY)
 
 #define _PAGE_NORMAL(x)	__pgprot((x) | _PAGE_PRESENT | _PAGE_TYPE_SMALL	\
-				 | _PAGE_ACCESSED)
+								 | _PAGE_ACCESSED)
 
 #define PAGE_NONE	(_PAGE_ACCESSED | _PAGE_TYPE_NONE)
 #define PAGE_READ	(_PAGE_FLAGS_READ | _PAGE_USER)
@@ -282,7 +282,7 @@ static inline void pmd_clear(pmd_t *pmdp)
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
 	set_pte(&pte, __pte((pte_val(pte) & _PAGE_CHG_MASK)
-			    | pgprot_val(newprot)));
+						| pgprot_val(newprot)));
 	return pte;
 }
 
@@ -293,7 +293,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 
 /* to find an entry in a page-table-directory. */
 #define pgd_index(address)	(((address) >> PGDIR_SHIFT)	\
-				 & (PTRS_PER_PGD - 1))
+							 & (PTRS_PER_PGD - 1))
 #define pgd_offset(mm, address)	((mm)->pgd + pgd_index(address))
 
 /* to find an entry in a kernel page-table-directory */
@@ -310,8 +310,8 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 #define pte_unmap(pte)		do { } while (0)
 
 struct vm_area_struct;
-extern void update_mmu_cache(struct vm_area_struct * vma,
-			     unsigned long address, pte_t *ptep);
+extern void update_mmu_cache(struct vm_area_struct *vma,
+							 unsigned long address, pte_t *ptep);
 
 /*
  * Encode and decode a swap entry

@@ -30,8 +30,9 @@
  *	current->start_stack, so we round each of these in order to be able
  *	to write an integer number of pages.
  */
-struct user {
-	unsigned long	regs[EF_SIZE/8+32];	/* integer and fp regs */
+struct user
+{
+	unsigned long	regs[EF_SIZE / 8 + 32];	/* integer and fp regs */
 	size_t		u_tsize;		/* text size (pages) */
 	size_t		u_dsize;		/* data size (pages) */
 	size_t		u_ssize;		/* stack size (pages) */

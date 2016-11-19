@@ -22,7 +22,8 @@
 
 static spinlock_t lock = __SPIN_LOCK_UNLOCKED(x);
 
-struct {
+struct
+{
 	unsigned char busy;
 	unsigned char val;
 } signals[16] = {{0, 0}, };
@@ -36,13 +37,15 @@ int pl080_get_signal(const struct pl08x_channel_data *cd)
 
 	/* Return if signal is already acquired by somebody else */
 	if (signals[signal].busy &&
-			(signals[signal].val != cd->muxval)) {
+		(signals[signal].val != cd->muxval))
+	{
 		spin_unlock_irqrestore(&lock, flags);
 		return -EBUSY;
 	}
 
 	/* If acquiring for the first time, configure it */
-	if (!signals[signal].busy) {
+	if (!signals[signal].busy)
+	{
 		val = readl(DMA_CHN_CFG);
 
 		/*
@@ -70,7 +73,9 @@ void pl080_put_signal(const struct pl08x_channel_data *cd, int signal)
 
 	/* if signal is not used */
 	if (!signals[signal].busy)
+	{
 		BUG();
+	}
 
 	signals[signal].busy--;
 

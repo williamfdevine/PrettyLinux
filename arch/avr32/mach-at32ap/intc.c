@@ -19,7 +19,8 @@
 
 #include "intc.h"
 
-struct intc {
+struct intc
+{
 	void __iomem		*regs;
 	struct irq_chip		chip;
 #ifdef CONFIG_PM
@@ -44,7 +45,8 @@ static void intc_unmask_irq(struct irq_data *d)
 
 }
 
-static struct intc intc0 = {
+static struct intc intc0 =
+{
 	.chip = {
 		.name		= "intc",
 		.irq_mask	= intc_mask_irq,
@@ -78,7 +80,7 @@ asmlinkage void do_IRQ(int level, struct pt_regs *regs)
 	 */
 	status_reg = sysreg_read(SR);
 	status_reg &= ~(SYSREG_BIT(I0M) | SYSREG_BIT(I1M)
-			| SYSREG_BIT(I2M) | SYSREG_BIT(I3M));
+					| SYSREG_BIT(I2M) | SYSREG_BIT(I3M));
 	sysreg_write(SR, status_reg);
 
 	irq_exit();
@@ -96,12 +98,17 @@ void __init init_IRQ(void)
 	u32 offset, readback;
 
 	regs = platform_get_resource(&at32_intc0_device, IORESOURCE_MEM, 0);
-	if (!regs) {
+
+	if (!regs)
+	{
 		printk(KERN_EMERG "intc: no mmio resource defined\n");
 		goto fail;
 	}
+
 	pclk = clk_get(&at32_intc0_device.dev, "pclk");
-	if (IS_ERR(pclk)) {
+
+	if (IS_ERR(pclk))
+	{
 		printk(KERN_EMERG "intc: no clock defined\n");
 		goto fail;
 	}
@@ -109,9 +116,11 @@ void __init init_IRQ(void)
 	clk_enable(pclk);
 
 	intc0.regs = ioremap(regs->start, resource_size(regs));
-	if (!intc0.regs) {
+
+	if (!intc0.regs)
+	{
 		printk(KERN_EMERG "intc: failed to map registers (0x%08lx)\n",
-		       (unsigned long)regs->start);
+			   (unsigned long)regs->start);
 		goto fail;
 	}
 
@@ -122,17 +131,20 @@ void __init init_IRQ(void)
 	 *
 	 */
 	offset = (unsigned long)&irq_level0 - (unsigned long)&_evba;
-	for (i = 0; i < NR_INTERNAL_IRQS; i++) {
+
+	for (i = 0; i < NR_INTERNAL_IRQS; i++)
+	{
 		intc_writel(&intc0, INTPR0 + 4 * i, offset);
 		readback = intc_readl(&intc0, INTPR0 + 4 * i);
+
 		if (readback == offset)
 			irq_set_chip_and_handler(i, &intc0.chip,
-						 handle_simple_irq);
+									 handle_simple_irq);
 	}
 
 	/* Unmask all interrupt levels */
 	sysreg_write(SR, (sysreg_read(SR)
-			  & ~(SR_I3M | SR_I2M | SR_I1M | SR_I0M)));
+					  & ~(SR_I3M | SR_I2M | SR_I1M | SR_I0M)));
 
 	return;
 
@@ -150,17 +162,20 @@ static int intc_suspend(void)
 {
 	int i;
 
-	if (unlikely(!irqs_disabled())) {
+	if (unlikely(!irqs_disabled()))
+	{
 		pr_err("intc_suspend: called with interrupts enabled\n");
 		return -EINVAL;
 	}
 
-	if (unlikely(!intc0.suspend_ipr)) {
+	if (unlikely(!intc0.suspend_ipr))
+	{
 		pr_err("intc_suspend: suspend_ipr not initialized\n");
 		return -EINVAL;
 	}
 
-	for (i = 0; i < 64; i++) {
+	for (i = 0; i < 64; i++)
+	{
 		intc0.saved_ipr[i] = intc_readl(&intc0, INTPR0 + 4 * i);
 		intc_writel(&intc0, INTPR0 + 4 * i, intc0.suspend_ipr);
 	}
@@ -173,14 +188,17 @@ static void intc_resume(void)
 	int i;
 
 	for (i = 0; i < 64; i++)
+	{
 		intc_writel(&intc0, INTPR0 + 4 * i, intc0.saved_ipr[i]);
+	}
 }
 #else
 #define intc_suspend	NULL
 #define intc_resume	NULL
 #endif
 
-static struct syscore_ops intc_syscore_ops = {
+static struct syscore_ops intc_syscore_ops =
+{
 	.suspend	= intc_suspend,
 	.resume		= intc_resume,
 };

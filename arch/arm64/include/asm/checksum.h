@@ -36,10 +36,13 @@ static inline __sum16 ip_fast_csum(const void *iph, unsigned int ihl)
 	ihl -= 4;
 	tmp += ((tmp >> 64) | (tmp << 64));
 	sum = tmp >> 64;
-	do {
+
+	do
+	{
 		sum += *(const u32 *)iph;
 		iph += 4;
-	} while (--ihl);
+	}
+	while (--ihl);
 
 	sum += ((sum >> 32) | (sum << 32));
 	return csum_fold(sum >> 32);

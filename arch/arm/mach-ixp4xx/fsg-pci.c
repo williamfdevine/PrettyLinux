@@ -40,7 +40,8 @@ void __init fsg_pci_preinit(void)
 
 static int __init fsg_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static int pci_irq_table[IRQ_LINES] = {
+	static int pci_irq_table[IRQ_LINES] =
+	{
 		IXP4XX_GPIO_IRQ(INTC),
 		IXP4XX_GPIO_IRQ(INTB),
 		IXP4XX_GPIO_IRQ(INTA),
@@ -50,14 +51,18 @@ static int __init fsg_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	slot -= 11;
 
 	if (slot >= 1 && slot <= MAX_DEV && pin >= 1 && pin <= IRQ_LINES)
+	{
 		irq = pci_irq_table[slot - 1];
+	}
+
 	printk(KERN_INFO "%s: Mapped slot %d pin %d to IRQ %d\n",
-	       __func__, slot, pin, irq);
+		   __func__, slot, pin, irq);
 
 	return irq;
 }
 
-struct hw_pci fsg_pci __initdata = {
+struct hw_pci fsg_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &ixp4xx_ops,
 	.preinit =	  fsg_pci_preinit,
@@ -68,7 +73,10 @@ struct hw_pci fsg_pci __initdata = {
 int __init fsg_pci_init(void)
 {
 	if (machine_is_fsg())
+	{
 		pci_common_init(&fsg_pci);
+	}
+
 	return 0;
 }
 

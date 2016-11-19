@@ -38,7 +38,8 @@
 
 #include "mpc83xx.h"
 
-static const struct of_device_id mpc834x_itx_ids[] __initconst = {
+static const struct of_device_id mpc834x_itx_ids[] __initconst =
+{
 	{ .compatible = "fsl,pq2pro-localbus", },
 	{},
 };
@@ -70,14 +71,15 @@ static int __init mpc834x_itx_probe(void)
 	return of_machine_is_compatible("MPC834xMITX");
 }
 
-define_machine(mpc834x_itx) {
+define_machine(mpc834x_itx)
+{
 	.name			= "MPC834x ITX",
-	.probe			= mpc834x_itx_probe,
-	.setup_arch		= mpc834x_itx_setup_arch,
-	.init_IRQ		= mpc83xx_ipic_init_IRQ,
-	.get_irq		= ipic_get_irq,
-	.restart		= mpc83xx_restart,
-	.time_init		= mpc83xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mpc834x_itx_probe,
+					 .setup_arch		= mpc834x_itx_setup_arch,
+						 .init_IRQ		= mpc83xx_ipic_init_IRQ,
+							   .get_irq		= ipic_get_irq,
+									  .restart		= mpc83xx_restart,
+											 .time_init		= mpc83xx_time_init,
+												  .calibrate_decr		= generic_calibrate_decr,
+													  .progress		= udbg_progress,
 };

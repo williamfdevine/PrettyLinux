@@ -37,30 +37,31 @@
  */
 
 #ifndef _LINUX_INIT_H
-typedef int (*initcall_t)(void);
-typedef void (*exitcall_t)(void);
+	typedef int (*initcall_t)(void);
+	typedef void (*exitcall_t)(void);
 
-#include <linux/compiler.h>
+	#include <linux/compiler.h>
 
-/* These are for everybody (although not all archs will actually
-   discard it in modules) */
-#define __init		__section(.init.text)
-#define __initdata	__section(.init.data)
-#define __exitdata	__section(.exit.data)
-#define __exit_call	__used __section(.exitcall.exit)
+	/* These are for everybody (although not all archs will actually
+	discard it in modules) */
+	#define __init		__section(.init.text)
+	#define __initdata	__section(.init.data)
+	#define __exitdata	__section(.exit.data)
+	#define __exit_call	__used __section(.exitcall.exit)
 
-#ifdef MODULE
-#define __exit		__section(.exit.text)
-#else
-#define __exit		__used __section(.exit.text)
-#endif
+	#ifdef MODULE
+		#define __exit		__section(.exit.text)
+	#else
+		#define __exit		__used __section(.exit.text)
+	#endif
 
 #endif
 
 #ifndef MODULE
-struct uml_param {
-        const char *str;
-        int (*setup_func)(char *, int *);
+struct uml_param
+{
+	const char *str;
+	int (*setup_func)(char *, int *);
 };
 
 extern initcall_t __uml_initcall_start, __uml_initcall_end;

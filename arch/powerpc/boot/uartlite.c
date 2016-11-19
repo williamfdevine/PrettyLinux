@@ -26,7 +26,7 @@
 
 #define ULITE_CONTROL_RST_RX	0x02
 
-static void * reg_base;
+static void *reg_base;
 
 static int uartlite_open(void)
 {
@@ -38,16 +38,24 @@ static int uartlite_open(void)
 static void uartlite_putc(unsigned char c)
 {
 	u32 reg = ULITE_STATUS_TXFULL;
+
 	while (reg & ULITE_STATUS_TXFULL) /* spin on TXFULL bit */
+	{
 		reg = in_be32(reg_base + ULITE_STATUS);
+	}
+
 	out_be32(reg_base + ULITE_TX, c);
 }
 
 static unsigned char uartlite_getc(void)
 {
 	u32 reg = 0;
+
 	while (!(reg & ULITE_STATUS_RXVALID)) /* spin waiting for RXVALID bit */
+	{
 		reg = in_be32(reg_base + ULITE_STATUS);
+	}
+
 	return in_be32(reg_base + ULITE_RX);
 }
 
@@ -63,9 +71,13 @@ int uartlite_console_init(void *devp, struct serial_console_data *scdp)
 	unsigned long reg_phys;
 
 	n = getprop(devp, "virtual-reg", &reg_base, sizeof(reg_base));
-	if (n != sizeof(reg_base)) {
+
+	if (n != sizeof(reg_base))
+	{
 		if (!dt_xlate_reg(devp, 0, &reg_phys, NULL))
+		{
 			return -1;
+		}
 
 		reg_base = (void *)reg_phys;
 	}

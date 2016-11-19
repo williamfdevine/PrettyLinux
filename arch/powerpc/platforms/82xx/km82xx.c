@@ -34,8 +34,10 @@
 static void __init km82xx_pic_init(void)
 {
 	struct device_node *np = of_find_compatible_node(NULL, NULL,
-							"fsl,pq2-pic");
-	if (!np) {
+							 "fsl,pq2-pic");
+
+	if (!np)
+	{
 		pr_err("PIC init: can not find cpm-pic node\n");
 		return;
 	}
@@ -44,11 +46,13 @@ static void __init km82xx_pic_init(void)
 	of_node_put(np);
 }
 
-struct cpm_pin {
+struct cpm_pin
+{
 	int port, pin, flags;
 };
 
-static __initdata struct cpm_pin km82xx_pins[] = {
+static __initdata struct cpm_pin km82xx_pins[] =
+{
 	/* SMC1 */
 	{2, 4, CPM_PIN_INPUT | CPM_PIN_PRIMARY},
 	{2, 5, CPM_PIN_OUTPUT | CPM_PIN_PRIMARY},
@@ -139,7 +143,8 @@ static void __init init_ioports(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(km82xx_pins); i++) {
+	for (i = 0; i < ARRAY_SIZE(km82xx_pins); i++)
+	{
 		const struct cpm_pin *pin = &km82xx_pins[i];
 		cpm2_set_pin(pin->port, pin->pin, pin->flags);
 	}
@@ -165,7 +170,9 @@ static void __init init_ioports(void)
 static void __init km82xx_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("km82xx_setup_arch()", 0);
+	}
 
 	cpm2_reset();
 
@@ -177,10 +184,13 @@ static void __init km82xx_setup_arch(void)
 	init_ioports();
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("km82xx_setup_arch(), finish", 0);
+	}
 }
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .compatible = "simple-bus", },
 	{},
 };
@@ -204,11 +214,11 @@ static int __init km82xx_probe(void)
 define_machine(km82xx)
 {
 	.name = "Keymile km82xx",
-	.probe = km82xx_probe,
-	.setup_arch = km82xx_setup_arch,
-	.init_IRQ = km82xx_pic_init,
-	.get_irq = cpm2_get_irq,
-	.calibrate_decr = generic_calibrate_decr,
-	.restart = pq2_restart,
-	.progress = udbg_progress,
+	 .probe = km82xx_probe,
+	  .setup_arch = km82xx_setup_arch,
+	   .init_IRQ = km82xx_pic_init,
+		.get_irq = cpm2_get_irq,
+		 .calibrate_decr = generic_calibrate_decr,
+		  .restart = pq2_restart,
+		   .progress = udbg_progress,
 };

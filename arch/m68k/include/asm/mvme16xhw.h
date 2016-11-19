@@ -4,35 +4,37 @@
 #include <asm/irq.h>
 
 
-typedef struct {
+typedef struct
+{
 	u_char	ack_icr,
-		flt_icr,
-		sel_icr,
-		pe_icr,
-		bsy_icr,
-		spare1,
-		isr,
-		cr,
-		spare2,
-		spare3,
-		spare4,
-		data;
+			flt_icr,
+			sel_icr,
+			pe_icr,
+			bsy_icr,
+			spare1,
+			isr,
+			cr,
+			spare2,
+			spare3,
+			spare4,
+			data;
 } MVMElp, *MVMElpPtr;
 
 #define MVME_LPR_BASE	0xfff42030
 
 #define mvmelp   ((*(volatile MVMElpPtr)(MVME_LPR_BASE)))
 
-typedef struct {
+typedef struct
+{
 	unsigned char
-		ctrl,
-		bcd_sec,
-		bcd_min,
-		bcd_hr,
-		bcd_dow,
-		bcd_dom,
-		bcd_mth,
-		bcd_year;
+	ctrl,
+	bcd_sec,
+	bcd_min,
+	bcd_hr,
+	bcd_dow,
+	bcd_dom,
+	bcd_mth,
+	bcd_year;
 } MK48T08_t, *MK48T08ptr_t;
 
 #define RTC_WRITE	0x80

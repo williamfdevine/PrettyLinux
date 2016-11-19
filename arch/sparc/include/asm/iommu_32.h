@@ -18,7 +18,8 @@
  */
 
 /* The IOMMU registers occupy three pages in IO space. */
-struct iommu_regs {
+struct iommu_regs
+{
 	/* First page */
 	volatile unsigned long control;    /* IOMMU control */
 	volatile unsigned long base;       /* Physical base of iopte page table */
@@ -98,7 +99,8 @@ struct iommu_regs {
 #define IOPTE_VALID         0x00000002 /* IOPTE is valid */
 #define IOPTE_WAZ           0x00000001 /* Write as zeros */
 
-struct iommu_struct {
+struct iommu_struct
+{
 	struct iommu_regs __iomem *regs;
 	iopte_t *page_table;
 	/* For convenience */

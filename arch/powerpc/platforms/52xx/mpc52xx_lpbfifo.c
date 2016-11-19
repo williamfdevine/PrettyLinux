@@ -38,7 +38,8 @@ MODULE_LICENSE("GPL");
 #define LPBFIFO_REG_FIFO_CONTROL	(0x48)
 #define LPBFIFO_REG_FIFO_ALARM		(0x4C)
 
-struct mpc52xx_lpbfifo {
+struct mpc52xx_lpbfifo
+{
 	struct device *dev;
 	phys_addr_t regs_phys;
 	void __iomem *regs;
@@ -77,7 +78,9 @@ static void mpc52xx_lpbfifo_kick(struct mpc52xx_lpbfifo_request *req)
 
 	/* set master enable bit */
 	out_be32(lpbfifo.regs + LPBFIFO_REG_ENABLE, 0x00000001);
-	if (!dma) {
+
+	if (!dma)
+	{
 		/* While the FIFO can be setup for transfer sizes as large as
 		 * 16M-1, the FIFO itself is only 512 bytes deep and it does
 		 * not generate interrupts for FIFO full events (only transfer
@@ -88,19 +91,27 @@ static void mpc52xx_lpbfifo_kick(struct mpc52xx_lpbfifo_request *req)
 		 * This driver restricts the size of the transfer
 		 */
 		if (transfer_size > 512)
+		{
 			transfer_size = 512;
+		}
 
 		/* Load the FIFO with data */
-		if (write) {
+		if (write)
+		{
 			reg = lpbfifo.regs + LPBFIFO_REG_FIFO_DATA;
 			data = req->data + req->pos;
+
 			for (i = 0; i < transfer_size; i += 4)
+			{
 				out_be32(reg, *data++);
+			}
 		}
 
 		/* Unmask both error and completion irqs */
 		out_be32(lpbfifo.regs + LPBFIFO_REG_ENABLE, 0x00000301);
-	} else {
+	}
+	else
+	{
 		/* Choose the correct direction
 		 *
 		 * Configure the watermarks so DMA will always complete correctly.
@@ -108,22 +119,30 @@ static void mpc52xx_lpbfifo_kick(struct mpc52xx_lpbfifo_request *req)
 		 * there is a performance impacit.  However, if it is wrong there
 		 * is a risk of DMA not transferring the last chunk of data
 		 */
-		if (write) {
+		if (write)
+		{
 			out_be32(lpbfifo.regs + LPBFIFO_REG_FIFO_ALARM, 0x1e4);
 			out_8(lpbfifo.regs + LPBFIFO_REG_FIFO_CONTROL, 7);
 			lpbfifo.bcom_cur_task = lpbfifo.bcom_tx_task;
-		} else {
+		}
+		else
+		{
 			out_be32(lpbfifo.regs + LPBFIFO_REG_FIFO_ALARM, 0x1ff);
 			out_8(lpbfifo.regs + LPBFIFO_REG_FIFO_CONTROL, 0);
 			lpbfifo.bcom_cur_task = lpbfifo.bcom_rx_task;
 
-			if (poll_dma) {
-				if (lpbfifo.dma_irqs_enabled) {
+			if (poll_dma)
+			{
+				if (lpbfifo.dma_irqs_enabled)
+				{
 					disable_irq(bcom_get_task_irq(lpbfifo.bcom_rx_task));
 					lpbfifo.dma_irqs_enabled = 0;
 				}
-			} else {
-				if (!lpbfifo.dma_irqs_enabled) {
+			}
+			else
+			{
+				if (!lpbfifo.dma_irqs_enabled)
+				{
 					enable_irq(bcom_get_task_irq(lpbfifo.bcom_rx_task));
 					lpbfifo.dma_irqs_enabled = 1;
 				}
@@ -132,7 +151,9 @@ static void mpc52xx_lpbfifo_kick(struct mpc52xx_lpbfifo_request *req)
 
 		bd = bcom_prepare_next_buffer(lpbfifo.bcom_cur_task);
 		bd->status = transfer_size;
-		if (!write) {
+
+		if (!write)
+		{
 			/*
 			 * In the DMA read case, the DMA doesn't complete,
 			 * possibly due to incorrect watermarks in the ALARM
@@ -147,6 +168,7 @@ static void mpc52xx_lpbfifo_kick(struct mpc52xx_lpbfifo_request *req)
 			 */
 			transfer_size += 4; /* BLECH! */
 		}
+
 		bd->data[0] = req->data_phys + req->pos;
 		bcom_submit_next_buffer(lpbfifo.bcom_cur_task, NULL);
 
@@ -155,25 +177,37 @@ static void mpc52xx_lpbfifo_kick(struct mpc52xx_lpbfifo_request *req)
 
 		/* Unmask irqs */
 		if (write && (!poll_dma))
-			bit_fields |= 0x00000100; /* completion irq too */
+		{
+			bit_fields |= 0x00000100;    /* completion irq too */
+		}
+
 		out_be32(lpbfifo.regs + LPBFIFO_REG_ENABLE, bit_fields);
 	}
 
 	/* Set transfer size, width, chip select and READ mode */
 	out_be32(lpbfifo.regs + LPBFIFO_REG_START_ADDRESS,
-		 req->offset + req->pos);
+			 req->offset + req->pos);
 	out_be32(lpbfifo.regs + LPBFIFO_REG_PACKET_SIZE, transfer_size);
 
 	bit_fields = req->cs << 24 | 0x000008;
+
 	if (!write)
-		bit_fields |= 0x010000; /* read mode */
+	{
+		bit_fields |= 0x010000;    /* read mode */
+	}
+
 	out_be32(lpbfifo.regs + LPBFIFO_REG_CONTROL, bit_fields);
 
 	/* Kick it off */
 	if (!lpbfifo.req->defer_xfer_start)
+	{
 		out_8(lpbfifo.regs + LPBFIFO_REG_PACKET_SIZE, 0x01);
+	}
+
 	if (dma)
+	{
 		bcom_enable(lpbfifo.bcom_cur_task);
+	}
 }
 
 /**
@@ -233,7 +267,9 @@ static irqreturn_t mpc52xx_lpbfifo_irq(int irq, void *dev_id)
 	ts = get_tbl();
 
 	req = lpbfifo.req;
-	if (!req) {
+
+	if (!req)
+	{
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 		pr_err("bogus LPBFIFO IRQ\n");
 		return IRQ_HANDLED;
@@ -243,18 +279,21 @@ static irqreturn_t mpc52xx_lpbfifo_irq(int irq, void *dev_id)
 	write = req->flags & MPC52XX_LPBFIFO_FLAG_WRITE;
 	poll_dma = req->flags & MPC52XX_LPBFIFO_FLAG_POLL_DMA;
 
-	if (dma && !write) {
+	if (dma && !write)
+	{
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 		pr_err("bogus LPBFIFO IRQ (dma and not writing)\n");
 		return IRQ_HANDLED;
 	}
 
-	if ((status & 0x01) == 0) {
+	if ((status & 0x01) == 0)
+	{
 		goto out;
 	}
 
 	/* check abort bit */
-	if (status & 0x10) {
+	if (status & 0x10)
+	{
 		out_be32(lpbfifo.regs + LPBFIFO_REG_ENABLE, 0x01010000);
 		do_callback = 1;
 		goto out;
@@ -264,12 +303,16 @@ static irqreturn_t mpc52xx_lpbfifo_irq(int irq, void *dev_id)
 	count = in_be32(lpbfifo.regs + LPBFIFO_REG_BYTES_DONE_STATUS);
 	count &= 0x00ffffff;
 
-	if (!dma && !write) {
+	if (!dma && !write)
+	{
 		/* copy the data out of the FIFO */
 		reg = lpbfifo.regs + LPBFIFO_REG_FIFO_DATA;
 		data = req->data + req->pos;
+
 		for (i = 0; i < count; i += 4)
+		{
 			*data++ = in_be32(reg);
+		}
 	}
 
 	/* Update transfer position and count */
@@ -277,15 +320,20 @@ static irqreturn_t mpc52xx_lpbfifo_irq(int irq, void *dev_id)
 
 	/* Decide what to do next */
 	if (req->size - req->pos)
-		mpc52xx_lpbfifo_kick(req); /* more work to do */
+	{
+		mpc52xx_lpbfifo_kick(req);    /* more work to do */
+	}
 	else
+	{
 		do_callback = 1;
+	}
 
- out:
+out:
 	/* Clear the IRQ */
 	out_8(lpbfifo.regs + LPBFIFO_REG_BYTES_DONE_STATUS, 0x01);
 
-	if (dma && (status & 0x11)) {
+	if (dma && (status & 0x11))
+	{
 		/*
 		 * Count the DMA as complete only when the FIFO completion
 		 * status or abort bits are set.
@@ -298,22 +346,29 @@ static irqreturn_t mpc52xx_lpbfifo_irq(int irq, void *dev_id)
 		 */
 		bcom_retrieve_buffer(lpbfifo.bcom_cur_task, &status, NULL);
 	}
+
 	req->last_byte = ((u8 *)req->data)[req->size - 1];
 
 	/* When the do_callback flag is set; it means the transfer is finished
 	 * so set the FIFO as idle */
 	if (do_callback)
+	{
 		lpbfifo.req = NULL;
+	}
 
 	if (irq != 0) /* don't increment on polled case */
+	{
 		req->irq_count++;
+	}
 
 	req->irq_ticks += get_tbl() - ts;
 	spin_unlock_irqrestore(&lpbfifo.lock, flags);
 
 	/* Spinlock is released; it is now safe to call the callback */
 	if (do_callback && req->callback)
+	{
 		req->callback(req);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -334,20 +389,28 @@ static irqreturn_t mpc52xx_lpbfifo_bcom_irq(int irq, void *dev_id)
 	ts = get_tbl();
 
 	req = lpbfifo.req;
-	if (!req || (req->flags & MPC52XX_LPBFIFO_FLAG_NO_DMA)) {
+
+	if (!req || (req->flags & MPC52XX_LPBFIFO_FLAG_NO_DMA))
+	{
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 		return IRQ_HANDLED;
 	}
 
 	if (irq != 0) /* don't increment on polled case */
+	{
 		req->irq_count++;
+	}
 
-	if (!bcom_buffer_done(lpbfifo.bcom_cur_task)) {
+	if (!bcom_buffer_done(lpbfifo.bcom_cur_task))
+	{
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 
 		req->buffer_not_done_cnt++;
+
 		if ((req->buffer_not_done_cnt % 1000) == 0)
+		{
 			pr_err("transfer stalled\n");
+		}
 
 		return IRQ_HANDLED;
 	}
@@ -366,7 +429,9 @@ static irqreturn_t mpc52xx_lpbfifo_bcom_irq(int irq, void *dev_id)
 	spin_unlock_irqrestore(&lpbfifo.lock, flags);
 
 	if (req->callback)
+	{
 		req->callback(req);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -381,12 +446,16 @@ void mpc52xx_lpbfifo_poll(void)
 	int write = req->flags & MPC52XX_LPBFIFO_FLAG_WRITE;
 
 	/*
-	 * For more information, see comments on the "Fat Lady" 
+	 * For more information, see comments on the "Fat Lady"
 	 */
 	if (dma && write)
+	{
 		mpc52xx_lpbfifo_irq(0, NULL);
-	else 
+	}
+	else
+	{
 		mpc52xx_lpbfifo_bcom_irq(0, NULL);
+	}
 }
 EXPORT_SYMBOL(mpc52xx_lpbfifo_poll);
 
@@ -399,12 +468,15 @@ int mpc52xx_lpbfifo_submit(struct mpc52xx_lpbfifo_request *req)
 	unsigned long flags;
 
 	if (!lpbfifo.regs)
+	{
 		return -ENODEV;
+	}
 
 	spin_lock_irqsave(&lpbfifo.lock, flags);
 
 	/* If the req pointer is already set, then a transfer is in progress */
-	if (lpbfifo.req) {
+	if (lpbfifo.req)
+	{
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 		return -EBUSY;
 	}
@@ -427,7 +499,9 @@ int mpc52xx_lpbfifo_start_xfer(struct mpc52xx_lpbfifo_request *req)
 	unsigned long flags;
 
 	if (!lpbfifo.regs)
+	{
 		return -ENODEV;
+	}
 
 	spin_lock_irqsave(&lpbfifo.lock, flags);
 
@@ -435,7 +509,8 @@ int mpc52xx_lpbfifo_start_xfer(struct mpc52xx_lpbfifo_request *req)
 	 * If the req pointer is already set and a transfer was
 	 * started on submit, then this transfer is in progress
 	 */
-	if (lpbfifo.req && !lpbfifo.req->defer_xfer_start) {
+	if (lpbfifo.req && !lpbfifo.req->defer_xfer_start)
+	{
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 		return -EBUSY;
 	}
@@ -445,7 +520,8 @@ int mpc52xx_lpbfifo_start_xfer(struct mpc52xx_lpbfifo_request *req)
 	 * started, start it now
 	 */
 	if (lpbfifo.req && lpbfifo.req == req &&
-	    lpbfifo.req->defer_xfer_start) {
+		lpbfifo.req->defer_xfer_start)
+	{
 		out_8(lpbfifo.regs + LPBFIFO_REG_PACKET_SIZE, 0x01);
 	}
 
@@ -459,13 +535,16 @@ void mpc52xx_lpbfifo_abort(struct mpc52xx_lpbfifo_request *req)
 	unsigned long flags;
 
 	spin_lock_irqsave(&lpbfifo.lock, flags);
-	if (lpbfifo.req == req) {
+
+	if (lpbfifo.req == req)
+	{
 		/* Put it into reset and clear the state */
 		bcom_gen_bd_rx_reset(lpbfifo.bcom_rx_task);
 		bcom_gen_bd_tx_reset(lpbfifo.bcom_tx_task);
 		out_be32(lpbfifo.regs + LPBFIFO_REG_ENABLE, 0x01010000);
 		lpbfifo.req = NULL;
 	}
+
 	spin_unlock_irqrestore(&lpbfifo.lock, flags);
 }
 EXPORT_SYMBOL(mpc52xx_lpbfifo_abort);
@@ -476,18 +555,29 @@ static int mpc52xx_lpbfifo_probe(struct platform_device *op)
 	int rc = -ENOMEM;
 
 	if (lpbfifo.dev != NULL)
+	{
 		return -ENOSPC;
+	}
 
 	lpbfifo.irq = irq_of_parse_and_map(op->dev.of_node, 0);
+
 	if (!lpbfifo.irq)
+	{
 		return -ENODEV;
+	}
 
 	if (of_address_to_resource(op->dev.of_node, 0, &res))
+	{
 		return -ENODEV;
+	}
+
 	lpbfifo.regs_phys = res.start;
 	lpbfifo.regs = of_iomap(op->dev.of_node, 0);
+
 	if (!lpbfifo.regs)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&lpbfifo.lock);
 
@@ -496,42 +586,54 @@ static int mpc52xx_lpbfifo_probe(struct platform_device *op)
 
 	/* Register the interrupt handler */
 	rc = request_irq(lpbfifo.irq, mpc52xx_lpbfifo_irq, 0,
-			 "mpc52xx-lpbfifo", &lpbfifo);
+					 "mpc52xx-lpbfifo", &lpbfifo);
+
 	if (rc)
+	{
 		goto err_irq;
+	}
 
 	/* Request the Bestcomm receive (fifo --> memory) task and IRQ */
 	lpbfifo.bcom_rx_task =
 		bcom_gen_bd_rx_init(2, res.start + LPBFIFO_REG_FIFO_DATA,
-				    BCOM_INITIATOR_SCLPC, BCOM_IPR_SCLPC,
-				    16*1024*1024);
+							BCOM_INITIATOR_SCLPC, BCOM_IPR_SCLPC,
+							16 * 1024 * 1024);
+
 	if (!lpbfifo.bcom_rx_task)
+	{
 		goto err_bcom_rx;
+	}
 
 	rc = request_irq(bcom_get_task_irq(lpbfifo.bcom_rx_task),
-			 mpc52xx_lpbfifo_bcom_irq, 0,
-			 "mpc52xx-lpbfifo-rx", &lpbfifo);
+					 mpc52xx_lpbfifo_bcom_irq, 0,
+					 "mpc52xx-lpbfifo-rx", &lpbfifo);
+
 	if (rc)
+	{
 		goto err_bcom_rx_irq;
+	}
 
 	lpbfifo.dma_irqs_enabled = 1;
 
 	/* Request the Bestcomm transmit (memory --> fifo) task and IRQ */
 	lpbfifo.bcom_tx_task =
 		bcom_gen_bd_tx_init(2, res.start + LPBFIFO_REG_FIFO_DATA,
-				    BCOM_INITIATOR_SCLPC, BCOM_IPR_SCLPC);
+							BCOM_INITIATOR_SCLPC, BCOM_IPR_SCLPC);
+
 	if (!lpbfifo.bcom_tx_task)
+	{
 		goto err_bcom_tx;
+	}
 
 	lpbfifo.dev = &op->dev;
 	return 0;
 
- err_bcom_tx:
+err_bcom_tx:
 	free_irq(bcom_get_task_irq(lpbfifo.bcom_rx_task), &lpbfifo);
- err_bcom_rx_irq:
+err_bcom_rx_irq:
 	bcom_gen_bd_rx_release(lpbfifo.bcom_rx_task);
- err_bcom_rx:
- err_irq:
+err_bcom_rx:
+err_irq:
 	iounmap(lpbfifo.regs);
 	lpbfifo.regs = NULL;
 
@@ -543,7 +645,9 @@ static int mpc52xx_lpbfifo_probe(struct platform_device *op)
 static int mpc52xx_lpbfifo_remove(struct platform_device *op)
 {
 	if (lpbfifo.dev != &op->dev)
+	{
 		return 0;
+	}
 
 	/* Put FIFO in reset */
 	out_be32(lpbfifo.regs + LPBFIFO_REG_ENABLE, 0x01010000);
@@ -551,7 +655,7 @@ static int mpc52xx_lpbfifo_remove(struct platform_device *op)
 	/* Release the bestcomm transmit task */
 	free_irq(bcom_get_task_irq(lpbfifo.bcom_tx_task), &lpbfifo);
 	bcom_gen_bd_tx_release(lpbfifo.bcom_tx_task);
-	
+
 	/* Release the bestcomm receive task */
 	free_irq(bcom_get_task_irq(lpbfifo.bcom_rx_task), &lpbfifo);
 	bcom_gen_bd_rx_release(lpbfifo.bcom_rx_task);
@@ -564,13 +668,15 @@ static int mpc52xx_lpbfifo_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id mpc52xx_lpbfifo_match[] = {
+static const struct of_device_id mpc52xx_lpbfifo_match[] =
+{
 	{ .compatible = "fsl,mpc5200-lpbfifo", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, mpc52xx_lpbfifo_match);
 
-static struct platform_driver mpc52xx_lpbfifo_driver = {
+static struct platform_driver mpc52xx_lpbfifo_driver =
+{
 	.driver = {
 		.name = "mpc52xx-lpbfifo",
 		.of_match_table = mpc52xx_lpbfifo_match,

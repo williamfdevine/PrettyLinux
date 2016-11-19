@@ -34,19 +34,22 @@
 #include <asm/time.h>
 
 #ifdef CONFIG_DS1603
-#include "ds1603.h"
+	#include "ds1603.h"
 #endif
 
 
 /* And the same for proc */
 int proc_dolasatstring(struct ctl_table *table, int write,
-		       void *buffer, size_t *lenp, loff_t *ppos)
+					   void *buffer, size_t *lenp, loff_t *ppos)
 {
 	int r;
 
 	r = proc_dostring(table, write, buffer, lenp, ppos);
+
 	if ((!write) || r)
+	{
 		return r;
+	}
 
 	lasat_write_eeprom_info();
 
@@ -58,24 +61,34 @@ static int rtctmp;
 
 /* proc function to read/write RealTime Clock */
 int proc_dolasatrtc(struct ctl_table *table, int write,
-		       void *buffer, size_t *lenp, loff_t *ppos)
+					void *buffer, size_t *lenp, loff_t *ppos)
 {
 	struct timespec64 ts;
 	int r;
 
-	if (!write) {
+	if (!write)
+	{
 		read_persistent_clock64(&ts);
 		rtctmp = ts.tv_sec;
+
 		/* check for time < 0 and set to 0 */
 		if (rtctmp < 0)
+		{
 			rtctmp = 0;
+		}
 	}
+
 	r = proc_dointvec(table, write, buffer, lenp, ppos);
+
 	if (r)
+	{
 		return r;
+	}
 
 	if (write)
+	{
 		rtc_mips_set_mmss(rtctmp);
+	}
 
 	return 0;
 }
@@ -83,7 +96,7 @@ int proc_dolasatrtc(struct ctl_table *table, int write,
 
 #ifdef CONFIG_INET
 int proc_lasat_ip(struct ctl_table *table, int write,
-		       void *buffer, size_t *lenp, loff_t *ppos)
+				  void *buffer, size_t *lenp, loff_t *ppos)
 {
 	unsigned int ip;
 	char *p, c;
@@ -91,49 +104,80 @@ int proc_lasat_ip(struct ctl_table *table, int write,
 	char ipbuf[32];
 
 	if (!table->data || !table->maxlen || !*lenp ||
-	    (*ppos && !write)) {
+		(*ppos && !write))
+	{
 		*lenp = 0;
 		return 0;
 	}
 
-	if (write) {
+	if (write)
+	{
 		len = 0;
 		p = buffer;
-		while (len < *lenp) {
+
+		while (len < *lenp)
+		{
 			if (get_user(c, p++))
+			{
 				return -EFAULT;
+			}
+
 			if (c == 0 || c == '\n')
+			{
 				break;
+			}
+
 			len++;
 		}
-		if (len >= sizeof(ipbuf)-1)
+
+		if (len >= sizeof(ipbuf) - 1)
+		{
 			len = sizeof(ipbuf) - 1;
+		}
+
 		if (copy_from_user(ipbuf, buffer, len))
+		{
 			return -EFAULT;
+		}
+
 		ipbuf[len] = 0;
 		*ppos += *lenp;
 		/* Now see if we can convert it to a valid IP */
 		ip = in_aton(ipbuf);
 		*(unsigned int *)(table->data) = ip;
 		lasat_write_eeprom_info();
-	} else {
+	}
+	else
+	{
 		ip = *(unsigned int *)(table->data);
 		sprintf(ipbuf, "%d.%d.%d.%d",
-			(ip)	   & 0xff,
-			(ip >>	8) & 0xff,
-			(ip >> 16) & 0xff,
-			(ip >> 24) & 0xff);
+				(ip)	   & 0xff,
+				(ip >>	8) & 0xff,
+				(ip >> 16) & 0xff,
+				(ip >> 24) & 0xff);
 		len = strlen(ipbuf);
+
 		if (len > *lenp)
+		{
 			len = *lenp;
+		}
+
 		if (len)
 			if (copy_to_user(buffer, ipbuf, len))
+			{
 				return -EFAULT;
-		if (len < *lenp) {
+			}
+
+		if (len < *lenp)
+		{
 			if (put_user('\n', ((char *) buffer) + len))
+			{
 				return -EFAULT;
+			}
+
 			len++;
 		}
+
 		*lenp = len;
 		*ppos += len;
 	}
@@ -143,25 +187,32 @@ int proc_lasat_ip(struct ctl_table *table, int write,
 #endif
 
 int proc_lasat_prid(struct ctl_table *table, int write,
-		       void *buffer, size_t *lenp, loff_t *ppos)
+					void *buffer, size_t *lenp, loff_t *ppos)
 {
 	int r;
 
 	r = proc_dointvec(table, write, buffer, lenp, ppos);
+
 	if (r < 0)
+	{
 		return r;
-	if (write) {
+	}
+
+	if (write)
+	{
 		lasat_board_info.li_eeprom_info.prid =
 			lasat_board_info.li_prid;
 		lasat_write_eeprom_info();
 		lasat_init_board_info();
 	}
+
 	return 0;
 }
 
 extern int lasat_boot_to_service;
 
-static struct ctl_table lasat_table[] = {
+static struct ctl_table lasat_table[] =
+{
 	{
 		.procname	= "cpu-hz",
 		.data		= &lasat_board_info.li_cpu_hz,
@@ -210,7 +261,7 @@ static struct ctl_table lasat_table[] = {
 		.procname	= "passwd_hash",
 		.data		= &lasat_board_info.li_eeprom_info.passwd_hash,
 		.maxlen		=
-			sizeof(lasat_board_info.li_eeprom_info.passwd_hash),
+		sizeof(lasat_board_info.li_eeprom_info.passwd_hash),
 		.mode		= 0600,
 		.proc_handler	= proc_dolasatstring,
 	},
@@ -247,7 +298,8 @@ static struct ctl_table lasat_table[] = {
 	{}
 };
 
-static struct ctl_table lasat_root_table[] = {
+static struct ctl_table lasat_root_table[] =
+{
 	{
 		.procname	= "lasat",
 		.mode		=  0555,
@@ -262,7 +314,9 @@ static int __init lasat_register_sysctl(void)
 
 	lasat_table_header =
 		register_sysctl_table(lasat_root_table);
-	if (!lasat_table_header) {
+
+	if (!lasat_table_header)
+	{
 		printk(KERN_ERR "Unable to register LASAT sysctl\n");
 		return -ENOMEM;
 	}

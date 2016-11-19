@@ -30,7 +30,8 @@
 #define ALE_BIT 6
 #define BY_BIT 7
 
-struct mtd_info_wrapper {
+struct mtd_info_wrapper
+{
 	struct nand_chip chip;
 };
 
@@ -46,7 +47,7 @@ static struct mtd_info *crisv32_mtd;
  *	hardware specific access to control-lines
  */
 static void crisv32_hwcontrol(struct mtd_info *mtd, int cmd,
-			      unsigned int ctrl)
+							  unsigned int ctrl)
 {
 	unsigned long flags;
 	reg_gio_rw_pa_dout dout;
@@ -55,7 +56,8 @@ static void crisv32_hwcontrol(struct mtd_info *mtd, int cmd,
 	local_irq_save(flags);
 
 	/* control bits change */
-	if (ctrl & NAND_CTRL_CHANGE) {
+	if (ctrl & NAND_CTRL_CHANGE)
+	{
 		dout = REG_RD(gio, regi_gio, rw_pa_dout);
 		dout.data &= ~PIN_BITMASK;
 
@@ -66,20 +68,32 @@ static void crisv32_hwcontrol(struct mtd_info *mtd, int cmd,
 		 * Optimize for this case; works for 2.6.18 */
 		dout.data |= ((ctrl & CTRL_BITMASK) ^ NAND_NCE) << CE_BIT;
 #else
+
 		/* the slow way */
 		if (!(ctrl & NAND_NCE))
+		{
 			dout.data |= (1 << CE_BIT);
+		}
+
 		if (ctrl & NAND_CLE)
+		{
 			dout.data |= (1 << CLE_BIT);
+		}
+
 		if (ctrl & NAND_ALE)
+		{
 			dout.data |= (1 << ALE_BIT);
+		}
+
 #endif
 		REG_WR(gio, regi_gio, rw_pa_dout, dout);
 	}
 
 	/* command to chip */
 	if (cmd != NAND_CMD_NONE)
+	{
 		writeb(cmd, this->IO_ADDR_W);
+	}
 
 	local_irq_restore(flags);
 }
@@ -102,7 +116,7 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
 	void __iomem *write_cs;
 
 	reg_bif_core_rw_grp3_cfg bif_cfg = REG_RD(bif_core, regi_bif_core,
-		rw_grp3_cfg);
+									   rw_grp3_cfg);
 	reg_gio_rw_pa_oe pa_oe = REG_RD(gio, regi_gio, rw_pa_oe);
 	struct mtd_info_wrapper *wrapper;
 	struct nand_chip *this;
@@ -110,9 +124,11 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
 
 	/* Allocate memory for MTD device structure and private data */
 	wrapper = kzalloc(sizeof(struct mtd_info_wrapper), GFP_KERNEL);
-	if (!wrapper) {
+
+	if (!wrapper)
+	{
 		printk(KERN_ERR "Unable to allocate CRISv32 NAND MTD "
-			"device structure.\n");
+			   "device structure.\n");
 		err = -ENOMEM;
 		return NULL;
 	}
@@ -120,7 +136,8 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
 	read_cs = ioremap(MEM_CSP0_START | MEM_NON_CACHEABLE, 8192);
 	write_cs = ioremap(MEM_CSP1_START | MEM_NON_CACHEABLE, 8192);
 
-	if (!read_cs || !write_cs) {
+	if (!read_cs || !write_cs)
+	{
 		printk(KERN_ERR "CRISv32 NAND ioremap failed\n");
 		err = -EIO;
 		goto out_mtd;
@@ -154,7 +171,8 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
 	/* this->bbt_options = NAND_BBT_USE_FLASH; */
 
 	/* Scan to find existence of the device */
-	if (nand_scan(crisv32_mtd, 1)) {
+	if (nand_scan(crisv32_mtd, 1))
+	{
 		err = -ENXIO;
 		goto out_ior;
 	}

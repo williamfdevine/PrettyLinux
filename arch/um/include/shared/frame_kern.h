@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
  * Licensed under the GPL
  */
@@ -7,9 +7,9 @@
 #define __FRAME_KERN_H_
 
 extern int setup_signal_stack_sc(unsigned long stack_top, struct ksignal *ksig,
-				 struct pt_regs *regs, sigset_t *mask);
+								 struct pt_regs *regs, sigset_t *mask);
 extern int setup_signal_stack_si(unsigned long stack_top, struct ksignal *ksig,
-				 struct pt_regs *regs, sigset_t *mask);
+								 struct pt_regs *regs, sigset_t *mask);
 
 #endif
 

@@ -18,7 +18,7 @@ extern void local_flush_tlb_all(void);
 extern void local_flush_tlb_mm(struct mm_struct *);
 extern void local_flush_tlb_page(struct vm_area_struct *, unsigned long);
 extern void local_flush_tlb_range(struct vm_area_struct *, unsigned long,
-	unsigned long);
+								  unsigned long);
 
 #ifndef CONFIG_SMP
 #ifdef CONFIG_MMU
@@ -39,7 +39,7 @@ extern void smp_flush_tlb_all(void);
 extern void smp_flush_tlb_mm(struct mm_struct *);
 extern void smp_flush_tlb_page(struct vm_area_struct *, unsigned long);
 extern void smp_flush_tlb_range(struct vm_area_struct *, unsigned long,
-	unsigned long);
+								unsigned long);
 
 #define flush_tlb_all()			smp_flush_tlb_all()
 #define flush_tlb_mm(mm)		smp_flush_tlb_mm(mm)

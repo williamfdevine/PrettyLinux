@@ -21,9 +21,13 @@ static unsigned long psycho_pcislot_imap_offset(unsigned long ino)
 	unsigned int slot = (ino & 0x0c) >> 2;
 
 	if (bus == 0)
+	{
 		return PSYCHO_IMAP_A_SLOT0 + (slot * 8);
+	}
 	else
+	{
 		return PSYCHO_IMAP_B_SLOT0 + (slot * 8);
+	}
 }
 
 #define PSYCHO_OBIO_IMAP_BASE	0x1000UL
@@ -37,11 +41,11 @@ static unsigned long psycho_pcislot_imap_offset(unsigned long ino)
 
 #define psycho_iclr_offset(ino)					      \
 	((ino & 0x20) ? (PSYCHO_ICLR_SCSI + (((ino) & 0x1f) << 3)) :  \
-			(PSYCHO_ICLR_A_SLOT0 + (((ino) & 0x1f)<<3)))
+	 (PSYCHO_ICLR_A_SLOT0 + (((ino) & 0x1f)<<3)))
 
 static unsigned int psycho_irq_build(struct device_node *dp,
-				     unsigned int ino,
-				     void *_data)
+									 unsigned int ino,
+									 void *_data)
 {
 	unsigned long controller_regs = (unsigned long) _data;
 	unsigned long imap, iclr;
@@ -49,10 +53,14 @@ static unsigned int psycho_irq_build(struct device_node *dp,
 	int inofixup = 0;
 
 	ino &= 0x3f;
-	if (ino < PSYCHO_ONBOARD_IRQ_BASE) {
+
+	if (ino < PSYCHO_ONBOARD_IRQ_BASE)
+	{
 		/* PCI slot */
 		imap_off = psycho_pcislot_imap_offset(ino);
-	} else {
+	}
+	else
+	{
 		/* Onboard device */
 		imap_off = psycho_onboard_imap_offset(ino);
 	}
@@ -64,7 +72,9 @@ static unsigned int psycho_irq_build(struct device_node *dp,
 	iclr = controller_regs + iclr_off;
 
 	if ((ino & 0x20) == 0)
+	{
 		inofixup = ino & 0x03;
+	}
 
 	return build_irq(inofixup, iclr, imap);
 }
@@ -81,15 +91,16 @@ static void __init psycho_irq_trans_init(struct device_node *dp)
 }
 
 #define sabre_read(__reg) \
-({	u64 __ret; \
-	__asm__ __volatile__("ldxa [%1] %2, %0" \
-			     : "=r" (__ret) \
-			     : "r" (__reg), "i" (ASI_PHYS_BYPASS_EC_E) \
-			     : "memory"); \
-	__ret; \
-})
+	({	u64 __ret; \
+		__asm__ __volatile__("ldxa [%1] %2, %0" \
+							 : "=r" (__ret) \
+							 : "r" (__reg), "i" (ASI_PHYS_BYPASS_EC_E) \
+							 : "memory"); \
+		__ret; \
+	})
 
-struct sabre_irq_data {
+struct sabre_irq_data
+{
 	unsigned long controller_regs;
 	unsigned int pci_first_busno;
 };
@@ -128,12 +139,12 @@ static void sabre_wsync_handler(unsigned int ino, void *_arg1, void *_arg2)
 	config_space |= SABRE_CONFIG_ENCODE(bus, devfn, 0x00);
 
 	__asm__ __volatile__("membar #Sync\n\t"
-			     "lduha [%1] %2, %0\n\t"
-			     "membar #Sync"
-			     : "=r" (_unused)
-			     : "r" ((u16 *) config_space),
-			       "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 "lduha [%1] %2, %0\n\t"
+						 "membar #Sync"
+						 : "=r" (_unused)
+						 : "r" ((u16 *) config_space),
+						 "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 
 	sabre_read(sync_reg);
 }
@@ -164,9 +175,13 @@ static unsigned long sabre_pcislot_imap_offset(unsigned long ino)
 	unsigned int slot = (ino & 0x0c) >> 2;
 
 	if (bus == 0)
+	{
 		return SABRE_IMAP_A_SLOT0 + (slot * 8);
+	}
 	else
+	{
 		return SABRE_IMAP_B_SLOT0 + (slot * 8);
+	}
 }
 
 #define SABRE_OBIO_IMAP_BASE	0x1000UL
@@ -176,7 +191,7 @@ static unsigned long sabre_pcislot_imap_offset(unsigned long ino)
 
 #define sabre_iclr_offset(ino)					      \
 	((ino & 0x20) ? (SABRE_ICLR_SCSI + (((ino) & 0x1f) << 3)) :  \
-			(SABRE_ICLR_A_SLOT0 + (((ino) & 0x1f)<<3)))
+	 (SABRE_ICLR_A_SLOT0 + (((ino) & 0x1f)<<3)))
 
 static int sabre_device_needs_wsync(struct device_node *dp)
 {
@@ -191,35 +206,47 @@ static int sabre_device_needs_wsync(struct device_node *dp)
 	 *    will use the sabre_irq_build but do not need
 	 *    the DMA synchronization handling
 	 */
-	while (parent) {
+	while (parent)
+	{
 		if (!strcmp(parent->type, "pci"))
+		{
 			break;
+		}
+
 		parent = parent->parent;
 	}
 
 	if (!parent)
+	{
 		return 0;
+	}
 
 	parent_model = of_get_property(parent,
-				       "model", NULL);
+								   "model", NULL);
+
 	if (parent_model &&
-	    (!strcmp(parent_model, "SUNW,sabre") ||
-	     !strcmp(parent_model, "SUNW,simba")))
+		(!strcmp(parent_model, "SUNW,sabre") ||
+		 !strcmp(parent_model, "SUNW,simba")))
+	{
 		return 0;
+	}
 
 	parent_compat = of_get_property(parent,
-					"compatible", NULL);
+									"compatible", NULL);
+
 	if (parent_compat &&
-	    (!strcmp(parent_compat, "pci108e,a000") ||
-	     !strcmp(parent_compat, "pci108e,a001")))
+		(!strcmp(parent_compat, "pci108e,a000") ||
+		 !strcmp(parent_compat, "pci108e,a001")))
+	{
 		return 0;
+	}
 
 	return 1;
 }
 
 static unsigned int sabre_irq_build(struct device_node *dp,
-				    unsigned int ino,
-				    void *_data)
+									unsigned int ino,
+									void *_data)
 {
 	struct sabre_irq_data *irq_data = _data;
 	unsigned long controller_regs = irq_data->controller_regs;
@@ -230,10 +257,14 @@ static unsigned int sabre_irq_build(struct device_node *dp,
 	int irq;
 
 	ino &= 0x3f;
-	if (ino < SABRE_ONBOARD_IRQ_BASE) {
+
+	if (ino < SABRE_ONBOARD_IRQ_BASE)
+	{
 		/* PCI slot */
 		imap_off = sabre_pcislot_imap_offset(ino);
-	} else {
+	}
+	else
+	{
 		/* onboard device */
 		imap_off = sabre_onboard_imap_offset(ino);
 	}
@@ -245,7 +276,9 @@ static unsigned int sabre_irq_build(struct device_node *dp,
 	iclr = controller_regs + iclr_off;
 
 	if ((ino & 0x20) == 0)
+	{
 		inofixup = ino & 0x03;
+	}
 
 	irq = build_irq(inofixup, iclr, imap);
 
@@ -255,11 +288,13 @@ static unsigned int sabre_irq_build(struct device_node *dp,
 	 * is run.
 	 */
 	regs = of_get_property(dp, "reg", NULL);
-	if (regs && sabre_device_needs_wsync(dp)) {
+
+	if (regs && sabre_device_needs_wsync(dp))
+	{
 		irq_install_pre_handler(irq,
-					sabre_wsync_handler,
-					(void *) (long) regs->phys_hi,
-					(void *) irq_data);
+								sabre_wsync_handler,
+								(void *) (long) regs->phys_hi,
+								(void *) irq_data);
 	}
 
 	return irq;
@@ -302,32 +337,32 @@ static unsigned long schizo_iclr_offset(unsigned long ino)
 }
 
 static unsigned long schizo_ino_to_iclr(unsigned long pbm_regs,
-					unsigned int ino)
+										unsigned int ino)
 {
 
 	return pbm_regs + schizo_iclr_offset(ino);
 }
 
 static unsigned long schizo_ino_to_imap(unsigned long pbm_regs,
-					unsigned int ino)
+										unsigned int ino)
 {
 	return pbm_regs + schizo_imap_offset(ino);
 }
 
 #define schizo_read(__reg) \
-({	u64 __ret; \
-	__asm__ __volatile__("ldxa [%1] %2, %0" \
-			     : "=r" (__ret) \
-			     : "r" (__reg), "i" (ASI_PHYS_BYPASS_EC_E) \
-			     : "memory"); \
-	__ret; \
-})
+	({	u64 __ret; \
+		__asm__ __volatile__("ldxa [%1] %2, %0" \
+							 : "=r" (__ret) \
+							 : "r" (__reg), "i" (ASI_PHYS_BYPASS_EC_E) \
+							 : "memory"); \
+		__ret; \
+	})
 #define schizo_write(__reg, __val) \
 	__asm__ __volatile__("stxa %0, [%1] %2" \
-			     : /* no outputs */ \
-			     : "r" (__val), "r" (__reg), \
-			       "i" (ASI_PHYS_BYPASS_EC_E) \
-			     : "memory")
+						 : /* no outputs */ \
+						 : "r" (__val), "r" (__reg), \
+						 "i" (ASI_PHYS_BYPASS_EC_E) \
+						 : "memory")
 
 static void tomatillo_wsync_handler(unsigned int ino, void *_arg1, void *_arg2)
 {
@@ -340,34 +375,43 @@ static void tomatillo_wsync_handler(unsigned int ino, void *_arg1, void *_arg2)
 
 	limit = 100000;
 	val = 0;
-	while (--limit) {
+
+	while (--limit)
+	{
 		val = schizo_read(sync_reg);
+
 		if (!(val & mask))
+		{
 			break;
-	}
-	if (limit <= 0) {
-		printk("tomatillo_wsync_handler: DMA won't sync [%llx:%llx]\n",
-		       val, mask);
+		}
 	}
 
-	if (_arg1) {
+	if (limit <= 0)
+	{
+		printk("tomatillo_wsync_handler: DMA won't sync [%llx:%llx]\n",
+			   val, mask);
+	}
+
+	if (_arg1)
+	{
 		static unsigned char cacheline[64]
-			__attribute__ ((aligned (64)));
+		__attribute__ ((aligned (64)));
 
 		__asm__ __volatile__("rd %%fprs, %0\n\t"
-				     "or %0, %4, %1\n\t"
-				     "wr %1, 0x0, %%fprs\n\t"
-				     "stda %%f0, [%5] %6\n\t"
-				     "wr %0, 0x0, %%fprs\n\t"
-				     "membar #Sync"
-				     : "=&r" (mask), "=&r" (val)
-				     : "0" (mask), "1" (val),
-				     "i" (FPRS_FEF), "r" (&cacheline[0]),
-				     "i" (ASI_BLK_COMMIT_P));
+							 "or %0, %4, %1\n\t"
+							 "wr %1, 0x0, %%fprs\n\t"
+							 "stda %%f0, [%5] %6\n\t"
+							 "wr %0, 0x0, %%fprs\n\t"
+							 "membar #Sync"
+							 : "=&r" (mask), "=&r" (val)
+							 : "0" (mask), "1" (val),
+							 "i" (FPRS_FEF), "r" (&cacheline[0]),
+							 "i" (ASI_BLK_COMMIT_P));
 	}
 }
 
-struct schizo_irq_data {
+struct schizo_irq_data
+{
 	unsigned long pbm_regs;
 	unsigned long sync_reg;
 	u32 portid;
@@ -375,8 +419,8 @@ struct schizo_irq_data {
 };
 
 static unsigned int schizo_irq_build(struct device_node *dp,
-				     unsigned int ino,
-				     void *_data)
+									 unsigned int ino,
+									 void *_data)
 {
 	struct schizo_irq_data *irq_data = _data;
 	unsigned long pbm_regs = irq_data->pbm_regs;
@@ -404,26 +448,30 @@ static unsigned int schizo_irq_build(struct device_node *dp,
 
 	is_tomatillo = (irq_data->sync_reg != 0UL);
 
-	if (is_tomatillo) {
+	if (is_tomatillo)
+	{
 		if (irq_data->portid & 1)
+		{
 			ign_fixup = (1 << 6);
+		}
 	}
 
 	irq = build_irq(ign_fixup, iclr, imap);
 
-	if (is_tomatillo) {
+	if (is_tomatillo)
+	{
 		irq_install_pre_handler(irq,
-					tomatillo_wsync_handler,
-					((irq_data->chip_version <= 4) ?
-					 (void *) 1 : (void *) 0),
-					(void *) irq_data->sync_reg);
+								tomatillo_wsync_handler,
+								((irq_data->chip_version <= 4) ?
+								 (void *) 1 : (void *) 0),
+								(void *) irq_data->sync_reg);
 	}
 
 	return irq;
 }
 
 static void __init __schizo_irq_trans_init(struct device_node *dp,
-					   int is_tomatillo)
+		int is_tomatillo)
 {
 	const struct linux_prom64_registers *regs;
 	struct schizo_irq_data *irq_data;
@@ -437,10 +485,16 @@ static void __init __schizo_irq_trans_init(struct device_node *dp,
 	dp->irq_trans->data = irq_data;
 
 	irq_data->pbm_regs = regs[0].phys_addr;
+
 	if (is_tomatillo)
+	{
 		irq_data->sync_reg = regs[3].phys_addr + 0x1a18UL;
+	}
 	else
+	{
 		irq_data->sync_reg = 0UL;
+	}
+
 	irq_data->portid = of_getintprop_default(dp, "portid", 0);
 	irq_data->chip_version = of_getintprop_default(dp, "version#", 0);
 }
@@ -456,8 +510,8 @@ static void __init tomatillo_irq_trans_init(struct device_node *dp)
 }
 
 static unsigned int pci_sun4v_irq_build(struct device_node *dp,
-					unsigned int devino,
-					void *_data)
+										unsigned int devino,
+										void *_data)
 {
 	u32 devhandle = (u32) (unsigned long) _data;
 
@@ -473,10 +527,11 @@ static void __init pci_sun4v_irq_trans_init(struct device_node *dp)
 
 	regs = of_get_property(dp, "reg", NULL);
 	dp->irq_trans->data = (void *) (unsigned long)
-		((regs->phys_addr >> 32UL) & 0x0fffffff);
+						  ((regs->phys_addr >> 32UL) & 0x0fffffff);
 }
 
-struct fire_irq_data {
+struct fire_irq_data
+{
 	unsigned long pbm_regs;
 	u32 portid;
 };
@@ -495,20 +550,20 @@ static unsigned long fire_iclr_offset(unsigned long ino)
 }
 
 static unsigned long fire_ino_to_iclr(unsigned long pbm_regs,
-					    unsigned int ino)
+									  unsigned int ino)
 {
 	return pbm_regs + fire_iclr_offset(ino);
 }
 
 static unsigned long fire_ino_to_imap(unsigned long pbm_regs,
-					    unsigned int ino)
+									  unsigned int ino)
 {
 	return pbm_regs + fire_imap_offset(ino);
 }
 
 static unsigned int fire_irq_build(struct device_node *dp,
-					 unsigned int ino,
-					 void *_data)
+								   unsigned int ino,
+								   void *_data)
 {
 	struct fire_irq_data *irq_data = _data;
 	unsigned long pbm_regs = irq_data->pbm_regs;
@@ -586,7 +641,8 @@ static void __init fire_irq_trans_init(struct device_node *dp)
 #define SYSIO_IMAP_EUPA		0x3098UL
 
 #define bogon     ((unsigned long) -1)
-static unsigned long sysio_irq_offsets[] = {
+static unsigned long sysio_irq_offsets[] =
+{
 	/* SBUS Slot 0 --> 3, level 1 --> 7 */
 	SYSIO_IMAP_SLOT0, SYSIO_IMAP_SLOT0, SYSIO_IMAP_SLOT0, SYSIO_IMAP_SLOT0,
 	SYSIO_IMAP_SLOT0, SYSIO_IMAP_SLOT0, SYSIO_IMAP_SLOT0, SYSIO_IMAP_SLOT0,
@@ -645,8 +701,8 @@ static unsigned long sysio_imap_to_iclr(unsigned long imap)
 }
 
 static unsigned int sbus_of_build_irq(struct device_node *dp,
-				      unsigned int ino,
-				      void *_data)
+									  unsigned int ino,
+									  void *_data)
 {
 	unsigned long reg_base = (unsigned long) _data;
 	const struct linux_prom_registers *regs;
@@ -657,47 +713,63 @@ static unsigned int sbus_of_build_irq(struct device_node *dp,
 	ino &= 0x3f;
 
 	regs = of_get_property(dp, "reg", NULL);
+
 	if (regs)
+	{
 		sbus_slot = regs->which_io;
+	}
 
 	if (ino < 0x20)
+	{
 		ino += (sbus_slot * 8);
+	}
 
 	imap = sysio_irq_offsets[ino];
-	if (imap == ((unsigned long)-1)) {
+
+	if (imap == ((unsigned long) - 1))
+	{
 		prom_printf("get_irq_translations: Bad SYSIO INO[%x]\n",
-			    ino);
+					ino);
 		prom_halt();
 	}
+
 	imap += reg_base;
 
 	/* SYSIO inconsistency.  For external SLOTS, we have to select
 	 * the right ICLR register based upon the lower SBUS irq level
 	 * bits.
 	 */
-	if (ino >= 0x20) {
+	if (ino >= 0x20)
+	{
 		iclr = sysio_imap_to_iclr(imap);
-	} else {
+	}
+	else
+	{
 		sbus_level = ino & 0x7;
 
-		switch(sbus_slot) {
-		case 0:
-			iclr = reg_base + SYSIO_ICLR_SLOT0;
-			break;
-		case 1:
-			iclr = reg_base + SYSIO_ICLR_SLOT1;
-			break;
-		case 2:
-			iclr = reg_base + SYSIO_ICLR_SLOT2;
-			break;
-		default:
-		case 3:
-			iclr = reg_base + SYSIO_ICLR_SLOT3;
-			break;
+		switch (sbus_slot)
+		{
+			case 0:
+				iclr = reg_base + SYSIO_ICLR_SLOT0;
+				break;
+
+			case 1:
+				iclr = reg_base + SYSIO_ICLR_SLOT1;
+				break;
+
+			case 2:
+				iclr = reg_base + SYSIO_ICLR_SLOT2;
+				break;
+
+			default:
+			case 3:
+				iclr = reg_base + SYSIO_ICLR_SLOT3;
+				break;
 		}
 
 		iclr += ((unsigned long)sbus_level - 1UL) * 8UL;
 	}
+
 	return build_irq(sbus_level, iclr, imap);
 }
 
@@ -715,8 +787,8 @@ static void __init sbus_irq_trans_init(struct device_node *dp)
 
 
 static unsigned int central_build_irq(struct device_node *dp,
-				      unsigned int ino,
-				      void *_data)
+									  unsigned int ino,
+									  void *_data)
 {
 	struct device_node *central_dp = _data;
 	struct platform_device *central_op = of_find_device_by_node(central_dp);
@@ -724,13 +796,20 @@ static unsigned int central_build_irq(struct device_node *dp,
 	unsigned long imap, iclr;
 	u32 tmp;
 
-	if (!strcmp(dp->name, "eeprom")) {
+	if (!strcmp(dp->name, "eeprom"))
+	{
 		res = &central_op->resource[5];
-	} else if (!strcmp(dp->name, "zs")) {
+	}
+	else if (!strcmp(dp->name, "zs"))
+	{
 		res = &central_op->resource[4];
-	} else if (!strcmp(dp->name, "clock-board")) {
+	}
+	else if (!strcmp(dp->name, "clock-board"))
+	{
 		res = &central_op->resource[3];
-	} else {
+	}
+	else
+	{
 		return ino;
 	}
 
@@ -756,13 +835,15 @@ static void __init central_irq_trans_init(struct device_node *dp)
 	dp->irq_trans->data = dp;
 }
 
-struct irq_trans {
+struct irq_trans
+{
 	const char *name;
 	void (*init)(struct device_node *);
 };
 
 #ifdef CONFIG_PCI
-static struct irq_trans __initdata pci_irq_trans_table[] = {
+static struct irq_trans __initdata pci_irq_trans_table[] =
+{
 	{ "SUNW,sabre", sabre_irq_trans_init },
 	{ "pci108e,a000", sabre_irq_trans_init },
 	{ "pci108e,a001", sabre_irq_trans_init },
@@ -780,8 +861,8 @@ static struct irq_trans __initdata pci_irq_trans_table[] = {
 #endif
 
 static unsigned int sun4v_vdev_irq_build(struct device_node *dp,
-					 unsigned int devino,
-					 void *_data)
+		unsigned int devino,
+		void *_data)
 {
 	u32 devhandle = (u32) (unsigned long) _data;
 
@@ -797,7 +878,7 @@ static void __init sun4v_vdev_irq_trans_init(struct device_node *dp)
 
 	regs = of_get_property(dp, "reg", NULL);
 	dp->irq_trans->data = (void *) (unsigned long)
-		((regs->phys_addr >> 32UL) & 0x0fffffff);
+						  ((regs->phys_addr >> 32UL) & 0x0fffffff);
 }
 
 void __init irq_trans_init(struct device_node *dp)
@@ -809,33 +890,48 @@ void __init irq_trans_init(struct device_node *dp)
 
 #ifdef CONFIG_PCI
 	model = of_get_property(dp, "model", NULL);
+
 	if (!model)
+	{
 		model = of_get_property(dp, "compatible", NULL);
-	if (model) {
-		for (i = 0; i < ARRAY_SIZE(pci_irq_trans_table); i++) {
+	}
+
+	if (model)
+	{
+		for (i = 0; i < ARRAY_SIZE(pci_irq_trans_table); i++)
+		{
 			struct irq_trans *t = &pci_irq_trans_table[i];
 
-			if (!strcmp(model, t->name)) {
+			if (!strcmp(model, t->name))
+			{
 				t->init(dp);
 				return;
 			}
 		}
 	}
+
 #endif
 #ifdef CONFIG_SBUS
+
 	if (!strcmp(dp->name, "sbus") ||
-	    !strcmp(dp->name, "sbi")) {
+		!strcmp(dp->name, "sbi"))
+	{
 		sbus_irq_trans_init(dp);
 		return;
 	}
+
 #endif
+
 	if (!strcmp(dp->name, "fhc") &&
-	    !strcmp(dp->parent->name, "central")) {
+		!strcmp(dp->parent->name, "central"))
+	{
 		central_irq_trans_init(dp);
 		return;
 	}
+
 	if (!strcmp(dp->name, "virtual-devices") ||
-	    !strcmp(dp->name, "niu")) {
+		!strcmp(dp->name, "niu"))
+	{
 		sun4v_vdev_irq_trans_init(dp);
 		return;
 	}

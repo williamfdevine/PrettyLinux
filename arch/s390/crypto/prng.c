@@ -73,13 +73,15 @@ static int prng_errorflag;
 #define PRNG_RESEED_FAILED	 5
 #define PRNG_GEN_FAILED		 6
 
-struct prng_ws_s {
+struct prng_ws_s
+{
 	u8  parm_block[32];
 	u32 reseed_counter;
 	u64 byte_counter;
 };
 
-struct ppno_ws_s {
+struct ppno_ws_s
+{
 	u32 res;
 	u32 reseed_counter;
 	u64 stream_bytes;
@@ -87,9 +89,11 @@ struct ppno_ws_s {
 	u8  C[112];
 };
 
-struct prng_data_s {
+struct prng_data_s
+{
 	struct mutex mutex;
-	union {
+	union
+	{
 		struct prng_ws_s prngws;
 		struct ppno_ws_s ppnows;
 	};
@@ -101,11 +105,13 @@ struct prng_data_s {
 static struct prng_data_s *prng_data;
 
 /* initial parameter block for tdes mode, copied from libica */
-static const u8 initial_parm_block[32] __initconst = {
+static const u8 initial_parm_block[32] __initconst =
+{
 	0x0F, 0x2B, 0x8E, 0x63, 0x8C, 0x8E, 0xD2, 0x52,
 	0x64, 0xB7, 0xA0, 0x7B, 0x75, 0x28, 0xB8, 0xF4,
 	0x75, 0x5F, 0xD2, 0xA6, 0x8D, 0x97, 0x11, 0xFF,
-	0x49, 0xD8, 0x23, 0xF3, 0x7E, 0x21, 0xEC, 0xA0 };
+	0x49, 0xD8, 0x23, 0xF3, 0x7E, 0x21, 0xEC, 0xA0
+};
 
 
 /*** helper functions ***/
@@ -116,28 +122,44 @@ static int generate_entropy(u8 *ebuf, size_t nbytes)
 	u8 *pg, *h, hash[32];
 
 	pg = (u8 *) __get_free_page(GFP_KERNEL);
-	if (!pg) {
+
+	if (!pg)
+	{
 		prng_errorflag = PRNG_GEN_ENTROPY_FAILED;
 		return -ENOMEM;
 	}
 
-	while (nbytes) {
+	while (nbytes)
+	{
 		/* fill page with urandom bytes */
 		get_random_bytes(pg, PAGE_SIZE);
+
 		/* exor page with stckf values */
-		for (n = 0; n < PAGE_SIZE / sizeof(u64); n++) {
+		for (n = 0; n < PAGE_SIZE / sizeof(u64); n++)
+		{
 			u64 *p = ((u64 *)pg) + n;
 			*p ^= get_tod_clock_fast();
 		}
+
 		n = (nbytes < sizeof(hash)) ? nbytes : sizeof(hash);
+
 		if (n < sizeof(hash))
+		{
 			h = hash;
+		}
 		else
+		{
 			h = ebuf;
+		}
+
 		/* generate sha256 from this page */
 		cpacf_kimd(CPACF_KIMD_SHA_256, h, pg, PAGE_SIZE);
+
 		if (n < sizeof(hash))
+		{
 			memcpy(ebuf, hash, n);
+		}
+
 		ret += n;
 		ebuf += n;
 		nbytes -= n;
@@ -155,10 +177,11 @@ static void prng_tdes_add_entropy(void)
 	__u64 entropy[4];
 	unsigned int i;
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		cpacf_kmc(CPACF_KMC_PRNG, prng_data->prngws.parm_block,
-			  (char *) entropy, (char *) entropy,
-			  sizeof(entropy));
+				  (char *) entropy, (char *) entropy,
+				  sizeof(entropy));
 		memcpy(prng_data->prngws.parm_block, entropy, sizeof(entropy));
 	}
 }
@@ -174,12 +197,14 @@ static void prng_tdes_seed(int nbytes)
 	get_random_bytes(buf, nbytes);
 
 	/* Add the entropy */
-	while (nbytes >= 8) {
-		*((__u64 *)prng_data->prngws.parm_block) ^= *((__u64 *)(buf+i));
+	while (nbytes >= 8)
+	{
+		*((__u64 *)prng_data->prngws.parm_block) ^= *((__u64 *)(buf + i));
 		prng_tdes_add_entropy();
 		i += 8;
 		nbytes -= 8;
 	}
+
 	prng_tdes_add_entropy();
 	prng_data->prngws.reseed_counter = 0;
 }
@@ -190,16 +215,19 @@ static int __init prng_tdes_instantiate(void)
 	int datalen;
 
 	pr_debug("prng runs in TDES mode with "
-		 "chunksize=%d and reseed_limit=%u\n",
-		 prng_chunk_size, prng_reseed_limit);
+			 "chunksize=%d and reseed_limit=%u\n",
+			 prng_chunk_size, prng_reseed_limit);
 
 	/* memory allocation, prng_data struct init, mutex init */
 	datalen = sizeof(struct prng_data_s) + prng_chunk_size;
 	prng_data = kzalloc(datalen, GFP_KERNEL);
-	if (!prng_data) {
+
+	if (!prng_data)
+	{
 		prng_errorflag = PRNG_INSTANTIATE_FAILED;
 		return -ENOMEM;
 	}
+
 	mutex_init(&prng_data->mutex);
 	prng_data->buf = ((u8 *)prng_data) + sizeof(struct prng_data_s);
 	memcpy(prng_data->prngws.parm_block, initial_parm_block, 32);
@@ -214,7 +242,7 @@ static int __init prng_tdes_instantiate(void)
 static void prng_tdes_deinstantiate(void)
 {
 	pr_debug("The prng module stopped "
-		 "after running in triple DES mode\n");
+			 "after running in triple DES mode\n");
 	kzfree(prng_data);
 }
 
@@ -224,14 +252,17 @@ static void prng_tdes_deinstantiate(void)
 static int __init prng_sha512_selftest(void)
 {
 	/* NIST DRBG testvector for Hash Drbg, Sha-512, Count #0 */
-	static const u8 seed[] __initconst = {
+	static const u8 seed[] __initconst =
+	{
 		0x6b, 0x50, 0xa7, 0xd8, 0xf8, 0xa5, 0x5d, 0x7a,
 		0x3d, 0xf8, 0xbb, 0x40, 0xbc, 0xc3, 0xb7, 0x22,
 		0xd8, 0x70, 0x8d, 0xe6, 0x7f, 0xda, 0x01, 0x0b,
 		0x03, 0xc4, 0xc8, 0x4d, 0x72, 0x09, 0x6f, 0x8c,
 		0x3e, 0xc6, 0x49, 0xcc, 0x62, 0x56, 0xd9, 0xfa,
-		0x31, 0xdb, 0x7a, 0x29, 0x04, 0xaa, 0xf0, 0x25 };
-	static const u8 V0[] __initconst = {
+		0x31, 0xdb, 0x7a, 0x29, 0x04, 0xaa, 0xf0, 0x25
+	};
+	static const u8 V0[] __initconst =
+	{
 		0x00, 0xad, 0xe3, 0x6f, 0x9a, 0x01, 0xc7, 0x76,
 		0x61, 0x34, 0x35, 0xf5, 0x4e, 0x24, 0x74, 0x22,
 		0x21, 0x9a, 0x29, 0x89, 0xc7, 0x93, 0x2e, 0x60,
@@ -245,8 +276,10 @@ static int __init prng_sha512_selftest(void)
 		0x57, 0x4b, 0xf1, 0x5c, 0xca, 0x7e, 0x09, 0xc0,
 		0xd3, 0x89, 0xc6, 0xe0, 0xda, 0xc4, 0x81, 0x7e,
 		0x5b, 0xf9, 0xe1, 0x01, 0xc1, 0x92, 0x05, 0xea,
-		0xf5, 0x2f, 0xc6, 0xc6, 0xc7, 0x8f, 0xbc, 0xf4 };
-	static const u8 C0[] __initconst = {
+		0xf5, 0x2f, 0xc6, 0xc6, 0xc7, 0x8f, 0xbc, 0xf4
+	};
+	static const u8 C0[] __initconst =
+	{
 		0x00, 0xf4, 0xa3, 0xe5, 0xa0, 0x72, 0x63, 0x95,
 		0xc6, 0x4f, 0x48, 0xd0, 0x8b, 0x5b, 0x5f, 0x8e,
 		0x6b, 0x96, 0x1f, 0x16, 0xed, 0xbc, 0x66, 0x94,
@@ -260,8 +293,10 @@ static int __init prng_sha512_selftest(void)
 		0xcc, 0x45, 0xa5, 0xdb, 0x69, 0x0d, 0x81, 0xc9,
 		0x32, 0x92, 0xbc, 0x8f, 0x33, 0xe6, 0xf6, 0x09,
 		0x7c, 0x8e, 0x05, 0x19, 0x0d, 0xf1, 0xb6, 0xcc,
-		0xf3, 0x02, 0x21, 0x90, 0x25, 0xec, 0xed, 0x0e };
-	static const u8 random[] __initconst = {
+		0xf3, 0x02, 0x21, 0x90, 0x25, 0xec, 0xed, 0x0e
+	};
+	static const u8 random[] __initconst =
+	{
 		0x95, 0xb7, 0xf1, 0x7e, 0x98, 0x02, 0xd3, 0x57,
 		0x73, 0x92, 0xc6, 0xa9, 0xc0, 0x80, 0x83, 0xb6,
 		0x7d, 0xd1, 0x29, 0x22, 0x65, 0xb5, 0xf4, 0x2d,
@@ -293,7 +328,8 @@ static int __init prng_sha512_selftest(void)
 		0x63, 0xb4, 0x03, 0xdd, 0xf8, 0x8e, 0x12, 0x1b,
 		0x6e, 0x81, 0x9a, 0xc3, 0x81, 0x22, 0x6c, 0x13,
 		0x21, 0xe4, 0xb0, 0x86, 0x44, 0xf6, 0x72, 0x7c,
-		0x36, 0x8c, 0x5a, 0x9f, 0x7a, 0x4b, 0x3e, 0xe2 };
+		0x36, 0x8c, 0x5a, 0x9f, 0x7a, 0x4b, 0x3e, 0xe2
+	};
 
 	u8 buf[sizeof(random)];
 	struct ppno_ws_s ws;
@@ -302,27 +338,29 @@ static int __init prng_sha512_selftest(void)
 
 	/* initial seed */
 	cpacf_ppno(CPACF_PPNO_SHA512_DRNG_SEED,
-		   &ws, NULL, 0, seed, sizeof(seed));
+			   &ws, NULL, 0, seed, sizeof(seed));
 
 	/* check working states V and C */
 	if (memcmp(ws.V, V0, sizeof(V0)) != 0
-	    || memcmp(ws.C, C0, sizeof(C0)) != 0) {
+		|| memcmp(ws.C, C0, sizeof(C0)) != 0)
+	{
 		pr_err("The prng self test state test "
-		       "for the SHA-512 mode failed\n");
+			   "for the SHA-512 mode failed\n");
 		prng_errorflag = PRNG_SELFTEST_FAILED;
 		return -EIO;
 	}
 
 	/* generate random bytes */
 	cpacf_ppno(CPACF_PPNO_SHA512_DRNG_GEN,
-		   &ws, buf, sizeof(buf), NULL, 0);
+			   &ws, buf, sizeof(buf), NULL, 0);
 	cpacf_ppno(CPACF_PPNO_SHA512_DRNG_GEN,
-		   &ws, buf, sizeof(buf), NULL, 0);
+			   &ws, buf, sizeof(buf), NULL, 0);
 
 	/* check against expected data */
-	if (memcmp(buf, random, sizeof(random)) != 0) {
+	if (memcmp(buf, random, sizeof(random)) != 0)
+	{
 		pr_err("The prng self test data test "
-		       "for the SHA-512 mode failed\n");
+			   "for the SHA-512 mode failed\n");
 		prng_errorflag = PRNG_SELFTEST_FAILED;
 		return -EIO;
 	}
@@ -337,44 +375,59 @@ static int __init prng_sha512_instantiate(void)
 	u8 seed[64];
 
 	pr_debug("prng runs in SHA-512 mode "
-		 "with chunksize=%d and reseed_limit=%u\n",
-		 prng_chunk_size, prng_reseed_limit);
+			 "with chunksize=%d and reseed_limit=%u\n",
+			 prng_chunk_size, prng_reseed_limit);
 
 	/* memory allocation, prng_data struct init, mutex init */
 	datalen = sizeof(struct prng_data_s) + prng_chunk_size;
+
 	if (fips_enabled)
+	{
 		datalen += prng_chunk_size;
+	}
+
 	prng_data = kzalloc(datalen, GFP_KERNEL);
-	if (!prng_data) {
+
+	if (!prng_data)
+	{
 		prng_errorflag = PRNG_INSTANTIATE_FAILED;
 		return -ENOMEM;
 	}
+
 	mutex_init(&prng_data->mutex);
 	prng_data->buf = ((u8 *)prng_data) + sizeof(struct prng_data_s);
 
 	/* selftest */
 	ret = prng_sha512_selftest();
+
 	if (ret)
+	{
 		goto outfree;
+	}
 
 	/* generate initial seed bytestring, first 48 bytes of entropy */
 	ret = generate_entropy(seed, 48);
+
 	if (ret != 48)
+	{
 		goto outfree;
+	}
+
 	/* followed by 16 bytes of unique nonce */
 	get_tod_clock_ext(seed + 48);
 
 	/* initial seed of the ppno drng */
 	cpacf_ppno(CPACF_PPNO_SHA512_DRNG_SEED,
-		   &prng_data->ppnows, NULL, 0, seed, sizeof(seed));
+			   &prng_data->ppnows, NULL, 0, seed, sizeof(seed));
 
 	/* if fips mode is enabled, generate a first block of random
 	   bytes for the FIPS 140-2 Conditional Self Test */
-	if (fips_enabled) {
+	if (fips_enabled)
+	{
 		prng_data->prev = prng_data->buf + prng_chunk_size;
 		cpacf_ppno(CPACF_PPNO_SHA512_DRNG_GEN,
-			   &prng_data->ppnows,
-			   prng_data->prev, prng_chunk_size, NULL, 0);
+				   &prng_data->ppnows,
+				   prng_data->prev, prng_chunk_size, NULL, 0);
 	}
 
 	return 0;
@@ -399,12 +452,15 @@ static int prng_sha512_reseed(void)
 
 	/* generate 32 bytes of fresh entropy */
 	ret = generate_entropy(seed, sizeof(seed));
+
 	if (ret != sizeof(seed))
+	{
 		return ret;
+	}
 
 	/* do a reseed of the ppno drng with this bytestring */
 	cpacf_ppno(CPACF_PPNO_SHA512_DRNG_SEED,
-		   &prng_data->ppnows, NULL, 0, seed, sizeof(seed));
+			   &prng_data->ppnows, NULL, 0, seed, sizeof(seed));
 
 	return 0;
 }
@@ -415,22 +471,29 @@ static int prng_sha512_generate(u8 *buf, size_t nbytes)
 	int ret;
 
 	/* reseed needed ? */
-	if (prng_data->ppnows.reseed_counter > prng_reseed_limit) {
+	if (prng_data->ppnows.reseed_counter > prng_reseed_limit)
+	{
 		ret = prng_sha512_reseed();
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* PPNO generate */
 	cpacf_ppno(CPACF_PPNO_SHA512_DRNG_GEN,
-		   &prng_data->ppnows, buf, nbytes, NULL, 0);
+			   &prng_data->ppnows, buf, nbytes, NULL, 0);
 
 	/* FIPS 140-2 Conditional Self Test */
-	if (fips_enabled) {
-		if (!memcmp(prng_data->prev, buf, nbytes)) {
+	if (fips_enabled)
+	{
+		if (!memcmp(prng_data->prev, buf, nbytes))
+		{
 			prng_errorflag = PRNG_GEN_FAILED;
 			return -EILSEQ;
 		}
+
 		memcpy(prng_data->prev, buf, nbytes);
 	}
 
@@ -447,28 +510,42 @@ static int prng_open(struct inode *inode, struct file *file)
 
 
 static ssize_t prng_tdes_read(struct file *file, char __user *ubuf,
-			      size_t nbytes, loff_t *ppos)
+							  size_t nbytes, loff_t *ppos)
 {
 	int chunk, n, ret = 0;
 
 	/* lock prng_data struct */
 	if (mutex_lock_interruptible(&prng_data->mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
-	while (nbytes) {
-		if (need_resched()) {
-			if (signal_pending(current)) {
+	while (nbytes)
+	{
+		if (need_resched())
+		{
+			if (signal_pending(current))
+			{
 				if (ret == 0)
+				{
 					ret = -ERESTARTSYS;
+				}
+
 				break;
 			}
+
 			/* give mutex free before calling schedule() */
 			mutex_unlock(&prng_data->mutex);
 			schedule();
+
 			/* occopy mutex again */
-			if (mutex_lock_interruptible(&prng_data->mutex)) {
+			if (mutex_lock_interruptible(&prng_data->mutex))
+			{
 				if (ret == 0)
+				{
 					ret = -ERESTARTSYS;
+				}
+
 				return ret;
 			}
 		}
@@ -483,7 +560,9 @@ static ssize_t prng_tdes_read(struct file *file, char __user *ubuf,
 		n = (chunk + 7) & -8;
 
 		if (prng_data->prngws.reseed_counter > prng_reseed_limit)
+		{
 			prng_tdes_seed(8);
+		}
 
 		/* if the CPU supports PRNG stckf is present too */
 		*((unsigned long long *)prng_data->buf) = get_tod_clock_fast();
@@ -502,13 +581,15 @@ static ssize_t prng_tdes_read(struct file *file, char __user *ubuf,
 		 * prng_chunk_size to 8 bytes.
 		 */
 		cpacf_kmc(CPACF_KMC_PRNG, prng_data->prngws.parm_block,
-			  prng_data->buf, prng_data->buf, n);
+				  prng_data->buf, prng_data->buf, n);
 
 		prng_data->prngws.byte_counter += n;
 		prng_data->prngws.reseed_counter += n;
 
 		if (copy_to_user(ubuf, prng_data->buf, chunk))
+		{
 			return -EFAULT;
+		}
 
 		nbytes -= chunk;
 		ret += chunk;
@@ -523,62 +604,91 @@ static ssize_t prng_tdes_read(struct file *file, char __user *ubuf,
 
 
 static ssize_t prng_sha512_read(struct file *file, char __user *ubuf,
-				size_t nbytes, loff_t *ppos)
+								size_t nbytes, loff_t *ppos)
 {
 	int n, ret = 0;
 	u8 *p;
 
 	/* if errorflag is set do nothing and return 'broken pipe' */
 	if (prng_errorflag)
+	{
 		return -EPIPE;
+	}
 
 	/* lock prng_data struct */
 	if (mutex_lock_interruptible(&prng_data->mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
-	while (nbytes) {
-		if (need_resched()) {
-			if (signal_pending(current)) {
+	while (nbytes)
+	{
+		if (need_resched())
+		{
+			if (signal_pending(current))
+			{
 				if (ret == 0)
+				{
 					ret = -ERESTARTSYS;
+				}
+
 				break;
 			}
+
 			/* give mutex free before calling schedule() */
 			mutex_unlock(&prng_data->mutex);
 			schedule();
+
 			/* occopy mutex again */
-			if (mutex_lock_interruptible(&prng_data->mutex)) {
+			if (mutex_lock_interruptible(&prng_data->mutex))
+			{
 				if (ret == 0)
+				{
 					ret = -ERESTARTSYS;
+				}
+
 				return ret;
 			}
 		}
-		if (prng_data->rest) {
+
+		if (prng_data->rest)
+		{
 			/* push left over random bytes from the previous read */
 			p = prng_data->buf + prng_chunk_size - prng_data->rest;
 			n = (nbytes < prng_data->rest) ?
 				nbytes : prng_data->rest;
 			prng_data->rest -= n;
-		} else {
+		}
+		else
+		{
 			/* generate one chunk of random bytes into read buf */
 			p = prng_data->buf;
 			n = prng_sha512_generate(p, prng_chunk_size);
-			if (n < 0) {
+
+			if (n < 0)
+			{
 				ret = n;
 				break;
 			}
-			if (nbytes < prng_chunk_size) {
+
+			if (nbytes < prng_chunk_size)
+			{
 				n = nbytes;
 				prng_data->rest = prng_chunk_size - n;
-			} else {
+			}
+			else
+			{
 				n = prng_chunk_size;
 				prng_data->rest = 0;
 			}
 		}
-		if (copy_to_user(ubuf, p, n)) {
+
+		if (copy_to_user(ubuf, p, n))
+		{
 			ret = -EFAULT;
 			break;
 		}
+
 		ubuf += n;
 		nbytes -= n;
 		ret += n;
@@ -593,14 +703,16 @@ static ssize_t prng_sha512_read(struct file *file, char __user *ubuf,
 
 /*** sysfs stuff ***/
 
-static const struct file_operations prng_sha512_fops = {
+static const struct file_operations prng_sha512_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= &prng_open,
 	.release	= NULL,
 	.read		= &prng_sha512_read,
 	.llseek		= noop_llseek,
 };
-static const struct file_operations prng_tdes_fops = {
+static const struct file_operations prng_tdes_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= &prng_open,
 	.release	= NULL,
@@ -608,13 +720,15 @@ static const struct file_operations prng_tdes_fops = {
 	.llseek		= noop_llseek,
 };
 
-static struct miscdevice prng_sha512_dev = {
+static struct miscdevice prng_sha512_dev =
+{
 	.name	= "prandom",
 	.minor	= MISC_DYNAMIC_MINOR,
 	.mode	= 0644,
 	.fops	= &prng_sha512_fops,
 };
-static struct miscdevice prng_tdes_dev = {
+static struct miscdevice prng_tdes_dev =
+{
 	.name	= "prandom",
 	.minor	= MISC_DYNAMIC_MINOR,
 	.mode	= 0644,
@@ -624,8 +738,8 @@ static struct miscdevice prng_tdes_dev = {
 
 /* chunksize attribute (ro) */
 static ssize_t prng_chunksize_show(struct device *dev,
-				   struct device_attribute *attr,
-				   char *buf)
+								   struct device_attribute *attr,
+								   char *buf)
 {
 	return snprintf(buf, PAGE_SIZE, "%u\n", prng_chunk_size);
 }
@@ -633,17 +747,25 @@ static DEVICE_ATTR(chunksize, 0444, prng_chunksize_show, NULL);
 
 /* counter attribute (ro) */
 static ssize_t prng_counter_show(struct device *dev,
-				 struct device_attribute *attr,
-				 char *buf)
+								 struct device_attribute *attr,
+								 char *buf)
 {
 	u64 counter;
 
 	if (mutex_lock_interruptible(&prng_data->mutex))
+	{
 		return -ERESTARTSYS;
+	}
+
 	if (prng_mode == PRNG_MODE_SHA512)
+	{
 		counter = prng_data->ppnows.stream_bytes;
+	}
 	else
+	{
 		counter = prng_data->prngws.byte_counter;
+	}
+
 	mutex_unlock(&prng_data->mutex);
 
 	return snprintf(buf, PAGE_SIZE, "%llu\n", counter);
@@ -652,8 +774,8 @@ static DEVICE_ATTR(byte_counter, 0444, prng_counter_show, NULL);
 
 /* errorflag attribute (ro) */
 static ssize_t prng_errorflag_show(struct device *dev,
-				   struct device_attribute *attr,
-				   char *buf)
+								   struct device_attribute *attr,
+								   char *buf)
 {
 	return snprintf(buf, PAGE_SIZE, "%d\n", prng_errorflag);
 }
@@ -661,23 +783,30 @@ static DEVICE_ATTR(errorflag, 0444, prng_errorflag_show, NULL);
 
 /* mode attribute (ro) */
 static ssize_t prng_mode_show(struct device *dev,
-			      struct device_attribute *attr,
-			      char *buf)
+							  struct device_attribute *attr,
+							  char *buf)
 {
 	if (prng_mode == PRNG_MODE_TDES)
+	{
 		return snprintf(buf, PAGE_SIZE, "TDES\n");
+	}
 	else
+	{
 		return snprintf(buf, PAGE_SIZE, "SHA512\n");
+	}
 }
 static DEVICE_ATTR(mode, 0444, prng_mode_show, NULL);
 
 /* reseed attribute (w) */
 static ssize_t prng_reseed_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	if (mutex_lock_interruptible(&prng_data->mutex))
+	{
 		return -ERESTARTSYS;
+	}
+
 	prng_sha512_reseed();
 	mutex_unlock(&prng_data->mutex);
 
@@ -687,26 +816,35 @@ static DEVICE_ATTR(reseed, 0200, NULL, prng_reseed_store);
 
 /* reseed limit attribute (rw) */
 static ssize_t prng_reseed_limit_show(struct device *dev,
-				      struct device_attribute *attr,
-				      char *buf)
+									  struct device_attribute *attr,
+									  char *buf)
 {
 	return snprintf(buf, PAGE_SIZE, "%u\n", prng_reseed_limit);
 }
 static ssize_t prng_reseed_limit_store(struct device *dev,
-				       struct device_attribute *attr,
-				       const char *buf, size_t count)
+									   struct device_attribute *attr,
+									   const char *buf, size_t count)
 {
 	unsigned limit;
 
 	if (sscanf(buf, "%u\n", &limit) != 1)
+	{
 		return -EINVAL;
+	}
 
-	if (prng_mode == PRNG_MODE_SHA512) {
+	if (prng_mode == PRNG_MODE_SHA512)
+	{
 		if (limit < PRNG_RESEED_LIMIT_SHA512_LOWER)
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		if (limit < PRNG_RESEED_LIMIT_TDES_LOWER)
+		{
 			return -EINVAL;
+		}
 	}
 
 	prng_reseed_limit = limit;
@@ -714,18 +852,19 @@ static ssize_t prng_reseed_limit_store(struct device *dev,
 	return count;
 }
 static DEVICE_ATTR(reseed_limit, 0644,
-		   prng_reseed_limit_show, prng_reseed_limit_store);
+				   prng_reseed_limit_show, prng_reseed_limit_store);
 
 /* strength attribute (ro) */
 static ssize_t prng_strength_show(struct device *dev,
-				  struct device_attribute *attr,
-				  char *buf)
+								  struct device_attribute *attr,
+								  char *buf)
 {
 	return snprintf(buf, PAGE_SIZE, "256\n");
 }
 static DEVICE_ATTR(strength, 0444, prng_strength_show, NULL);
 
-static struct attribute *prng_sha512_dev_attrs[] = {
+static struct attribute *prng_sha512_dev_attrs[] =
+{
 	&dev_attr_errorflag.attr,
 	&dev_attr_chunksize.attr,
 	&dev_attr_byte_counter.attr,
@@ -735,17 +874,20 @@ static struct attribute *prng_sha512_dev_attrs[] = {
 	&dev_attr_strength.attr,
 	NULL
 };
-static struct attribute *prng_tdes_dev_attrs[] = {
+static struct attribute *prng_tdes_dev_attrs[] =
+{
 	&dev_attr_chunksize.attr,
 	&dev_attr_byte_counter.attr,
 	&dev_attr_mode.attr,
 	NULL
 };
 
-static struct attribute_group prng_sha512_dev_attr_group = {
+static struct attribute_group prng_sha512_dev_attr_group =
+{
 	.attrs = prng_sha512_dev_attrs
 };
-static struct attribute_group prng_tdes_dev_attr_group = {
+static struct attribute_group prng_tdes_dev_attr_group =
+{
 	.attrs = prng_tdes_dev_attrs
 };
 
@@ -758,79 +900,121 @@ static int __init prng_init(void)
 
 	/* check if the CPU has a PRNG */
 	if (!cpacf_query_func(CPACF_KMC, CPACF_KMC_PRNG))
+	{
 		return -EOPNOTSUPP;
-
-	/* choose prng mode */
-	if (prng_mode != PRNG_MODE_TDES) {
-		/* check for MSA5 support for PPNO operations */
-		if (!cpacf_query_func(CPACF_PPNO, CPACF_PPNO_SHA512_DRNG_GEN)) {
-			if (prng_mode == PRNG_MODE_SHA512) {
-				pr_err("The prng module cannot "
-				       "start in SHA-512 mode\n");
-				return -EOPNOTSUPP;
-			}
-			prng_mode = PRNG_MODE_TDES;
-		} else
-			prng_mode = PRNG_MODE_SHA512;
 	}
 
-	if (prng_mode == PRNG_MODE_SHA512) {
+	/* choose prng mode */
+	if (prng_mode != PRNG_MODE_TDES)
+	{
+		/* check for MSA5 support for PPNO operations */
+		if (!cpacf_query_func(CPACF_PPNO, CPACF_PPNO_SHA512_DRNG_GEN))
+		{
+			if (prng_mode == PRNG_MODE_SHA512)
+			{
+				pr_err("The prng module cannot "
+					   "start in SHA-512 mode\n");
+				return -EOPNOTSUPP;
+			}
+
+			prng_mode = PRNG_MODE_TDES;
+		}
+		else
+		{
+			prng_mode = PRNG_MODE_SHA512;
+		}
+	}
+
+	if (prng_mode == PRNG_MODE_SHA512)
+	{
 
 		/* SHA512 mode */
 
 		if (prng_chunk_size < PRNG_CHUNKSIZE_SHA512_MIN
-		    || prng_chunk_size > PRNG_CHUNKSIZE_SHA512_MAX)
+			|| prng_chunk_size > PRNG_CHUNKSIZE_SHA512_MAX)
+		{
 			return -EINVAL;
+		}
+
 		prng_chunk_size = (prng_chunk_size + 0x3f) & ~0x3f;
 
 		if (prng_reseed_limit == 0)
+		{
 			prng_reseed_limit = PRNG_RESEED_LIMIT_SHA512;
+		}
 		else if (prng_reseed_limit < PRNG_RESEED_LIMIT_SHA512_LOWER)
+		{
 			return -EINVAL;
+		}
 
 		ret = prng_sha512_instantiate();
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		ret = misc_register(&prng_sha512_dev);
-		if (ret) {
+
+		if (ret)
+		{
 			prng_sha512_deinstantiate();
 			goto out;
 		}
+
 		ret = sysfs_create_group(&prng_sha512_dev.this_device->kobj,
-					 &prng_sha512_dev_attr_group);
-		if (ret) {
+								 &prng_sha512_dev_attr_group);
+
+		if (ret)
+		{
 			misc_deregister(&prng_sha512_dev);
 			prng_sha512_deinstantiate();
 			goto out;
 		}
 
-	} else {
+	}
+	else
+	{
 
 		/* TDES mode */
 
 		if (prng_chunk_size < PRNG_CHUNKSIZE_TDES_MIN
-		    || prng_chunk_size > PRNG_CHUNKSIZE_TDES_MAX)
+			|| prng_chunk_size > PRNG_CHUNKSIZE_TDES_MAX)
+		{
 			return -EINVAL;
+		}
+
 		prng_chunk_size = (prng_chunk_size + 0x07) & ~0x07;
 
 		if (prng_reseed_limit == 0)
+		{
 			prng_reseed_limit = PRNG_RESEED_LIMIT_TDES;
+		}
 		else if (prng_reseed_limit < PRNG_RESEED_LIMIT_TDES_LOWER)
+		{
 			return -EINVAL;
+		}
 
 		ret = prng_tdes_instantiate();
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		ret = misc_register(&prng_tdes_dev);
-		if (ret) {
+
+		if (ret)
+		{
 			prng_tdes_deinstantiate();
 			goto out;
 		}
+
 		ret = sysfs_create_group(&prng_tdes_dev.this_device->kobj,
-					 &prng_tdes_dev_attr_group);
-		if (ret) {
+								 &prng_tdes_dev_attr_group);
+
+		if (ret)
+		{
 			misc_deregister(&prng_tdes_dev);
 			prng_tdes_deinstantiate();
 			goto out;
@@ -845,14 +1029,17 @@ out:
 
 static void __exit prng_exit(void)
 {
-	if (prng_mode == PRNG_MODE_SHA512) {
+	if (prng_mode == PRNG_MODE_SHA512)
+	{
 		sysfs_remove_group(&prng_sha512_dev.this_device->kobj,
-				   &prng_sha512_dev_attr_group);
+						   &prng_sha512_dev_attr_group);
 		misc_deregister(&prng_sha512_dev);
 		prng_sha512_deinstantiate();
-	} else {
+	}
+	else
+	{
 		sysfs_remove_group(&prng_tdes_dev.this_device->kobj,
-				   &prng_tdes_dev_attr_group);
+						   &prng_tdes_dev_attr_group);
 		misc_deregister(&prng_tdes_dev);
 		prng_tdes_deinstantiate();
 	}

@@ -54,7 +54,7 @@
 
 #define ESPFIX_MAX_CPUS		(ESPFIX_STACKS_PER_PAGE * ESPFIX_PAGE_SPACE)
 #if CONFIG_NR_CPUS > ESPFIX_MAX_CPUS
-# error "Need more than one PGD for the ESPFIX hack"
+	# error "Need more than one PGD for the ESPFIX hack"
 #endif
 
 #define PGALLOC_GFP (GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
@@ -71,7 +71,7 @@ static DEFINE_MUTEX(espfix_init_mutex);
 static void *espfix_pages[ESPFIX_MAX_PAGES];
 
 static __page_aligned_bss pud_t espfix_pud_page[PTRS_PER_PUD]
-	__aligned(PAGE_SIZE);
+__aligned(PAGE_SIZE);
 
 static unsigned int page_random, slot_random;
 
@@ -108,7 +108,8 @@ static void init_espfix_random(void)
 	 * This is run before the entropy pools are initialized,
 	 * but this is hopefully better than nothing.
 	 */
-	if (!arch_get_random_long(&rand)) {
+	if (!arch_get_random_long(&rand))
+	{
 		/* The constant is an arbitrary large prime */
 		rand = rdtsc();
 		rand *= 0xc345c6b72fd16123UL;
@@ -116,7 +117,7 @@ static void init_espfix_random(void)
 
 	slot_random = rand % ESPFIX_STACKS_PER_PAGE;
 	page_random = (rand / ESPFIX_STACKS_PER_PAGE)
-		& (ESPFIX_PAGE_SPACE - 1);
+				  & (ESPFIX_PAGE_SPACE - 1);
 }
 
 void __init init_espfix_bsp(void)
@@ -147,55 +148,76 @@ void init_espfix_ap(int cpu)
 
 	/* We only have to do this once... */
 	if (likely(per_cpu(espfix_stack, cpu)))
-		return;		/* Already initialized */
+	{
+		return;    /* Already initialized */
+	}
 
 	addr = espfix_base_addr(cpu);
-	page = cpu/ESPFIX_STACKS_PER_PAGE;
+	page = cpu / ESPFIX_STACKS_PER_PAGE;
 
 	/* Did another CPU already set this up? */
 	stack_page = ACCESS_ONCE(espfix_pages[page]);
+
 	if (likely(stack_page))
+	{
 		goto done;
+	}
 
 	mutex_lock(&espfix_init_mutex);
 
 	/* Did we race on the lock? */
 	stack_page = ACCESS_ONCE(espfix_pages[page]);
+
 	if (stack_page)
+	{
 		goto unlock_done;
+	}
 
 	node = cpu_to_node(cpu);
 	ptemask = __supported_pte_mask;
 
 	pud_p = &espfix_pud_page[pud_index(addr)];
 	pud = *pud_p;
-	if (!pud_present(pud)) {
+
+	if (!pud_present(pud))
+	{
 		struct page *page = alloc_pages_node(node, PGALLOC_GFP, 0);
 
 		pmd_p = (pmd_t *)page_address(page);
 		pud = __pud(__pa(pmd_p) | (PGTABLE_PROT & ptemask));
 		paravirt_alloc_pmd(&init_mm, __pa(pmd_p) >> PAGE_SHIFT);
+
 		for (n = 0; n < ESPFIX_PUD_CLONES; n++)
+		{
 			set_pud(&pud_p[n], pud);
+		}
 	}
 
 	pmd_p = pmd_offset(&pud, addr);
 	pmd = *pmd_p;
-	if (!pmd_present(pmd)) {
+
+	if (!pmd_present(pmd))
+	{
 		struct page *page = alloc_pages_node(node, PGALLOC_GFP, 0);
 
 		pte_p = (pte_t *)page_address(page);
 		pmd = __pmd(__pa(pte_p) | (PGTABLE_PROT & ptemask));
 		paravirt_alloc_pte(&init_mm, __pa(pte_p) >> PAGE_SHIFT);
+
 		for (n = 0; n < ESPFIX_PMD_CLONES; n++)
+		{
 			set_pmd(&pmd_p[n], pmd);
+		}
 	}
 
 	pte_p = pte_offset_kernel(&pmd, addr);
 	stack_page = page_address(alloc_pages_node(node, GFP_KERNEL, 0));
 	pte = __pte(__pa(stack_page) | (__PAGE_KERNEL_RO & ptemask));
+
 	for (n = 0; n < ESPFIX_PTE_CLONES; n++)
-		set_pte(&pte_p[n*PTE_STRIDE], pte);
+	{
+		set_pte(&pte_p[n * PTE_STRIDE], pte);
+	}
 
 	/* Job is done for this CPU and any CPU which shares this page */
 	ACCESS_ONCE(espfix_pages[page]) = stack_page;
@@ -205,5 +227,5 @@ unlock_done:
 done:
 	per_cpu(espfix_stack, cpu) = addr;
 	per_cpu(espfix_waddr, cpu) = (unsigned long)stack_page
-				      + (addr & ~PAGE_MASK);
+								 + (addr & ~PAGE_MASK);
 }

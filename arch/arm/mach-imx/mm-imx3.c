@@ -65,17 +65,20 @@ static void imx3_idle(void)
 }
 
 static void __iomem *imx3_ioremap_caller(phys_addr_t phys_addr, size_t size,
-					 unsigned int mtype, void *caller)
+		unsigned int mtype, void *caller)
 {
-	if (mtype == MT_DEVICE) {
+	if (mtype == MT_DEVICE)
+	{
 		/*
 		 * Access all peripherals below 0x80000000 as nonshared device
 		 * on mx3, but leave l2cc alone.  Otherwise cache corruptions
 		 * can occur.
 		 */
 		if (phys_addr < 0x80000000 &&
-				!addr_in_module(phys_addr, MX3x_L2CC))
+			!addr_in_module(phys_addr, MX3x_L2CC))
+		{
 			mtype = MT_DEVICE_NONSHARED;
+		}
 	}
 
 	return __arm_ioremap_caller(phys_addr, size, mtype, caller);
@@ -87,26 +90,32 @@ static void __init imx3_init_l2x0(void)
 	void __iomem *l2x0_base;
 	void __iomem *clkctl_base;
 
-/*
- * First of all, we must repair broken chip settings. There are some
- * i.MX35 CPUs in the wild, comming with bogus L2 cache settings. These
- * misconfigured CPUs will run amok immediately when the L2 cache gets enabled.
- * Workaraound is to setup the correct register setting prior enabling the
- * L2 cache. This should not hurt already working CPUs, as they are using the
- * same value.
- */
+	/*
+	 * First of all, we must repair broken chip settings. There are some
+	 * i.MX35 CPUs in the wild, comming with bogus L2 cache settings. These
+	 * misconfigured CPUs will run amok immediately when the L2 cache gets enabled.
+	 * Workaraound is to setup the correct register setting prior enabling the
+	 * L2 cache. This should not hurt already working CPUs, as they are using the
+	 * same value.
+	 */
 #define L2_MEM_VAL 0x10
 
 	clkctl_base = ioremap(MX35_CLKCTL_BASE_ADDR, 4096);
-	if (clkctl_base != NULL) {
+
+	if (clkctl_base != NULL)
+	{
 		writel(0x00000515, clkctl_base + L2_MEM_VAL);
 		iounmap(clkctl_base);
-	} else {
+	}
+	else
+	{
 		pr_err("L2 cache: Cannot fix timing. Trying to continue without\n");
 	}
 
 	l2x0_base = ioremap(MX3x_L2CC_BASE_ADDR, 4096);
-	if (!l2x0_base) {
+
+	if (!l2x0_base)
+	{
 		printk(KERN_ERR "remapping L2 cache area failed\n");
 		return;
 	}
@@ -116,7 +125,8 @@ static void __init imx3_init_l2x0(void)
 }
 
 #ifdef CONFIG_SOC_IMX31
-static struct map_desc mx31_io_desc[] __initdata = {
+static struct map_desc mx31_io_desc[] __initdata =
+{
 	imx_map_entry(MX31, X_MEMC, MT_DEVICE),
 	imx_map_entry(MX31, AVIC, MT_DEVICE_NONSHARED),
 	imx_map_entry(MX31, AIPS1, MT_DEVICE_NONSHARED),
@@ -156,26 +166,31 @@ void __init mx31_init_irq(void)
 	mxc_init_irq(MX31_IO_ADDRESS(MX31_AVIC_BASE_ADDR));
 }
 
-static struct sdma_script_start_addrs imx31_to1_sdma_script __initdata = {
+static struct sdma_script_start_addrs imx31_to1_sdma_script __initdata =
+{
 	.per_2_per_addr = 1677,
 };
 
-static struct sdma_script_start_addrs imx31_to2_sdma_script __initdata = {
+static struct sdma_script_start_addrs imx31_to2_sdma_script __initdata =
+{
 	.ap_2_ap_addr = 423,
 	.ap_2_bp_addr = 829,
 	.bp_2_ap_addr = 1029,
 };
 
-static struct sdma_platform_data imx31_sdma_pdata __initdata = {
+static struct sdma_platform_data imx31_sdma_pdata __initdata =
+{
 	.fw_name = "sdma-imx31-to2.bin",
 	.script_addrs = &imx31_to2_sdma_script,
 };
 
-static const struct resource imx31_audmux_res[] __initconst = {
+static const struct resource imx31_audmux_res[] __initconst =
+{
 	DEFINE_RES_MEM(MX31_AUDMUX_BASE_ADDR, SZ_16K),
 };
 
-static const struct resource imx31_rnga_res[] __initconst = {
+static const struct resource imx31_rnga_res[] __initconst =
+{
 	DEFINE_RES_MEM(MX31_RNGA_BASE_ADDR, SZ_16K),
 };
 
@@ -194,9 +209,10 @@ void __init imx31_soc_init(void)
 
 	pinctrl_provide_dummies();
 
-	if (to_version == 1) {
+	if (to_version == 1)
+	{
 		strncpy(imx31_sdma_pdata.fw_name, "sdma-imx31-to1.bin",
-			strlen(imx31_sdma_pdata.fw_name));
+				strlen(imx31_sdma_pdata.fw_name));
 		imx31_sdma_pdata.script_addrs = &imx31_to1_sdma_script;
 	}
 
@@ -206,14 +222,15 @@ void __init imx31_soc_init(void)
 	imx_set_aips(MX31_IO_ADDRESS(MX31_AIPS2_BASE_ADDR));
 
 	platform_device_register_simple("imx31-audmux", 0, imx31_audmux_res,
-					ARRAY_SIZE(imx31_audmux_res));
+									ARRAY_SIZE(imx31_audmux_res));
 	platform_device_register_simple("mxc_rnga", -1, imx31_rnga_res,
-					ARRAY_SIZE(imx31_rnga_res));
+									ARRAY_SIZE(imx31_rnga_res));
 }
 #endif /* ifdef CONFIG_SOC_IMX31 */
 
 #ifdef CONFIG_SOC_IMX35
-static struct map_desc mx35_io_desc[] __initdata = {
+static struct map_desc mx35_io_desc[] __initdata =
+{
 	imx_map_entry(MX35, X_MEMC, MT_DEVICE),
 	imx_map_entry(MX35, AVIC, MT_DEVICE_NONSHARED),
 	imx_map_entry(MX35, AIPS1, MT_DEVICE_NONSHARED),
@@ -250,7 +267,8 @@ void __init mx35_init_irq(void)
 	mxc_init_irq(MX35_IO_ADDRESS(MX35_AVIC_BASE_ADDR));
 }
 
-static struct sdma_script_start_addrs imx35_to1_sdma_script __initdata = {
+static struct sdma_script_start_addrs imx35_to1_sdma_script __initdata =
+{
 	.ap_2_ap_addr = 642,
 	.uart_2_mcu_addr = 817,
 	.mcu_2_app_addr = 747,
@@ -264,7 +282,8 @@ static struct sdma_script_start_addrs imx35_to1_sdma_script __initdata = {
 	.shp_2_mcu_addr = 892,
 };
 
-static struct sdma_script_start_addrs imx35_to2_sdma_script __initdata = {
+static struct sdma_script_start_addrs imx35_to2_sdma_script __initdata =
+{
 	.ap_2_ap_addr = 729,
 	.uart_2_mcu_addr = 904,
 	.per_2_app_addr = 1597,
@@ -280,12 +299,14 @@ static struct sdma_script_start_addrs imx35_to2_sdma_script __initdata = {
 	.shp_2_mcu_addr = 979,
 };
 
-static struct sdma_platform_data imx35_sdma_pdata __initdata = {
+static struct sdma_platform_data imx35_sdma_pdata __initdata =
+{
 	.fw_name = "sdma-imx35-to2.bin",
 	.script_addrs = &imx35_to2_sdma_script,
 };
 
-static const struct resource imx35_audmux_res[] __initconst = {
+static const struct resource imx35_audmux_res[] __initconst =
+{
 	DEFINE_RES_MEM(MX35_AUDMUX_BASE_ADDR, SZ_16K),
 };
 
@@ -303,9 +324,11 @@ void __init imx35_soc_init(void)
 	mxc_register_gpio("imx35-gpio", 2, MX35_GPIO3_BASE_ADDR, SZ_16K, MX35_INT_GPIO3, 0);
 
 	pinctrl_provide_dummies();
-	if (to_version == 1) {
+
+	if (to_version == 1)
+	{
 		strncpy(imx35_sdma_pdata.fw_name, "sdma-imx35-to1.bin",
-			strlen(imx35_sdma_pdata.fw_name));
+				strlen(imx35_sdma_pdata.fw_name));
 		imx35_sdma_pdata.script_addrs = &imx35_to1_sdma_script;
 	}
 
@@ -317,6 +340,6 @@ void __init imx35_soc_init(void)
 
 	/* i.mx35 has the i.mx31 type audmux */
 	platform_device_register_simple("imx31-audmux", 0, imx35_audmux_res,
-					ARRAY_SIZE(imx35_audmux_res));
+									ARRAY_SIZE(imx35_audmux_res));
 }
 #endif /* ifdef CONFIG_SOC_IMX35 */

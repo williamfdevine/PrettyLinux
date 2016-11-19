@@ -15,15 +15,15 @@ static inline int using_rollback_handler(void)
 }
 
 extern int mips_cpuidle_wait_enter(struct cpuidle_device *dev,
-				   struct cpuidle_driver *drv, int index);
+								   struct cpuidle_driver *drv, int index);
 
 #define MIPS_CPUIDLE_WAIT_STATE {\
-	.enter			= mips_cpuidle_wait_enter,\
-	.exit_latency		= 1,\
-	.target_residency	= 1,\
-	.power_usage		= UINT_MAX,\
-	.name			= "wait",\
-	.desc			= "MIPS wait",\
-}
+		.enter			= mips_cpuidle_wait_enter,\
+						  .exit_latency		= 1,\
+												.target_residency	= 1,\
+														.power_usage		= UINT_MAX,\
+																.name			= "wait",\
+																		.desc			= "MIPS wait",\
+	}
 
 #endif /* __ASM_IDLE_H  */

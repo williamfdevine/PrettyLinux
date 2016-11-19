@@ -1,7 +1,7 @@
 #ifdef __uClinux__
-#include <asm/io_no.h>
+	#include <asm/io_no.h>
 #else
-#include <asm/io_mm.h>
+	#include <asm/io_mm.h>
 #endif
 
 #define readb_relaxed(addr)	readb(addr)

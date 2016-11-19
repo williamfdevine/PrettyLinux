@@ -60,9 +60,10 @@
 #define GPIO_MC9S08DZ60_LCD_ENABLE 6
 #define GPIO_MC9S08DZ60_SPEAKER_ENABLE 8
 
-static const struct fb_videomode fb_modedb[] = {
+static const struct fb_videomode fb_modedb[] =
+{
 	{
-		 /* 800x480 @ 55 Hz */
+		/* 800x480 @ 55 Hz */
 		.name = "Ceramate-CLAA070VC01",
 		.refresh = 55,
 		.xres = 800,
@@ -77,16 +78,18 @@ static const struct fb_videomode fb_modedb[] = {
 		.sync = FB_SYNC_OE_ACT_HIGH,
 		.vmode = FB_VMODE_NONINTERLACED,
 		.flag = 0,
-	 },
+	},
 };
 
-static struct mx3fb_platform_data mx3fb_pdata __initdata = {
+static struct mx3fb_platform_data mx3fb_pdata __initdata =
+{
 	.name = "Ceramate-CLAA070VC01",
 	.mode = fb_modedb,
 	.num_modes = ARRAY_SIZE(fb_modedb),
 };
 
-static struct i2c_board_info __initdata i2c_devices_3ds[] = {
+static struct i2c_board_info __initdata i2c_devices_3ds[] =
+{
 	{
 		I2C_BOARD_INFO("mc9s08dz60", 0x69),
 	},
@@ -100,53 +103,68 @@ static int mc9s08dz60_gpiochip_match(struct gpio_chip *chip, void *data)
 }
 
 static void mx35_3ds_lcd_set_power(
-				struct plat_lcd_data *pd, unsigned int power)
+	struct plat_lcd_data *pd, unsigned int power)
 {
 	struct gpio_chip *chip;
 
-	if (!gpio_is_valid(lcd_power_gpio)) {
+	if (!gpio_is_valid(lcd_power_gpio))
+	{
 		chip = gpiochip_find(
-				"mc9s08dz60", mc9s08dz60_gpiochip_match);
-		if (chip) {
+				   "mc9s08dz60", mc9s08dz60_gpiochip_match);
+
+		if (chip)
+		{
 			lcd_power_gpio =
 				chip->base + GPIO_MC9S08DZ60_LCD_ENABLE;
-			if (gpio_request(lcd_power_gpio, "lcd_power") < 0) {
+
+			if (gpio_request(lcd_power_gpio, "lcd_power") < 0)
+			{
 				pr_err("error: gpio already requested!\n");
 				lcd_power_gpio = -ENXIO;
 			}
-		} else {
+		}
+		else
+		{
 			pr_err("error: didn't find mc9s08dz60 gpio chip\n");
 		}
 	}
 
 	if (gpio_is_valid(lcd_power_gpio))
+	{
 		gpio_set_value_cansleep(lcd_power_gpio, power);
+	}
 }
 
-static struct plat_lcd_data mx35_3ds_lcd_data = {
+static struct plat_lcd_data mx35_3ds_lcd_data =
+{
 	.set_power = mx35_3ds_lcd_set_power,
 };
 
-static struct platform_device mx35_3ds_lcd = {
+static struct platform_device mx35_3ds_lcd =
+{
 	.name = "platform-lcd",
 	.dev.platform_data = &mx35_3ds_lcd_data,
 };
 
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
-static struct physmap_flash_data mx35pdk_flash_data = {
+static struct physmap_flash_data mx35pdk_flash_data =
+{
 	.width  = 2,
 };
 
-static struct resource mx35pdk_flash_resource = {
+static struct resource mx35pdk_flash_resource =
+{
 	.start	= MX35_CS0_BASE_ADDR,
 	.end	= MX35_CS0_BASE_ADDR + SZ_64M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device mx35pdk_flash = {
+static struct platform_device mx35pdk_flash =
+{
 	.name	= "physmap-flash",
 	.id	= 0,
 	.dev	= {
@@ -156,17 +174,20 @@ static struct platform_device mx35pdk_flash = {
 	.num_resources = 1,
 };
 
-static const struct mxc_nand_platform_data mx35pdk_nand_board_info __initconst = {
+static const struct mxc_nand_platform_data mx35pdk_nand_board_info __initconst =
+{
 	.width = 1,
 	.hw_ecc = 1,
 	.flash_bbt = 1,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&mx35pdk_flash,
 };
 
-static const iomux_v3_cfg_t mx35pdk_pads[] __initconst = {
+static const iomux_v3_cfg_t mx35pdk_pads[] __initconst =
+{
 	/* UART1 */
 	MX35_PAD_CTS1__UART1_CTS,
 	MX35_PAD_RTS1__UART1_RTS,
@@ -258,7 +279,8 @@ static const iomux_v3_cfg_t mx35pdk_pads[] __initconst = {
 static phys_addr_t mx3_camera_base __initdata;
 #define MX35_3DS_CAMERA_BUF_SIZE SZ_8M
 
-static const struct mx3_camera_pdata mx35_3ds_camera_pdata __initconst = {
+static const struct mx3_camera_pdata mx35_3ds_camera_pdata __initconst =
+{
 	.flags = MX3_CAMERA_DATAWIDTH_8,
 	.mclk_10khz = 2000,
 };
@@ -270,20 +292,27 @@ static int __init imx35_3ds_init_camera(void)
 		imx35_alloc_mx3_camera(&mx35_3ds_camera_pdata);
 
 	if (IS_ERR(pdev))
+	{
 		return PTR_ERR(pdev);
+	}
 
 	if (!mx3_camera_base)
+	{
 		goto err;
+	}
 
 	dma = dma_declare_coherent_memory(&pdev->dev,
-					mx3_camera_base, mx3_camera_base,
-					MX35_3DS_CAMERA_BUF_SIZE,
-					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+									  mx3_camera_base, mx3_camera_base,
+									  MX35_3DS_CAMERA_BUF_SIZE,
+									  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
 
 	if (!(dma & DMA_MEMORY_MAP))
+	{
 		goto err;
+	}
 
 	ret = platform_device_add(pdev);
+
 	if (ret)
 err:
 		platform_device_put(pdev);
@@ -291,18 +320,21 @@ err:
 	return ret;
 }
 
-static struct i2c_board_info mx35_3ds_i2c_camera = {
+static struct i2c_board_info mx35_3ds_i2c_camera =
+{
 	I2C_BOARD_INFO("ov2640", 0x30),
 };
 
-static struct soc_camera_link iclink_ov2640 = {
+static struct soc_camera_link iclink_ov2640 =
+{
 	.bus_id		= 0,
 	.board_info	= &mx35_3ds_i2c_camera,
 	.i2c_adapter_id	= 0,
 	.power		= NULL,
 };
 
-static struct platform_device mx35_3ds_ov2640 = {
+static struct platform_device mx35_3ds_ov2640 =
+{
 	.name	= "soc-camera-pdrv",
 	.id	= 0,
 	.dev	= {
@@ -310,22 +342,26 @@ static struct platform_device mx35_3ds_ov2640 = {
 	},
 };
 
-static struct regulator_consumer_supply sw1_consumers[] = {
+static struct regulator_consumer_supply sw1_consumers[] =
+{
 	{
 		.supply = "cpu_vcc",
 	}
 };
 
-static struct regulator_consumer_supply vcam_consumers[] = {
+static struct regulator_consumer_supply vcam_consumers[] =
+{
 	/* sgtl5000 */
 	REGULATOR_SUPPLY("VDDA", "0-000a"),
 };
 
-static struct regulator_consumer_supply vaudio_consumers[] = {
+static struct regulator_consumer_supply vaudio_consumers[] =
+{
 	REGULATOR_SUPPLY("cmos_vio", "soc-camera-pdrv.0"),
 };
 
-static struct regulator_init_data sw1_init = {
+static struct regulator_init_data sw1_init =
+{
 	.constraints = {
 		.name = "SW1",
 		.min_uV = 600000,
@@ -339,7 +375,8 @@ static struct regulator_init_data sw1_init = {
 	.consumer_supplies = sw1_consumers,
 };
 
-static struct regulator_init_data sw2_init = {
+static struct regulator_init_data sw2_init =
+{
 	.constraints = {
 		.name = "SW2",
 		.always_on = 1,
@@ -347,7 +384,8 @@ static struct regulator_init_data sw2_init = {
 	}
 };
 
-static struct regulator_init_data sw3_init = {
+static struct regulator_init_data sw3_init =
+{
 	.constraints = {
 		.name = "SW3",
 		.always_on = 1,
@@ -355,7 +393,8 @@ static struct regulator_init_data sw3_init = {
 	}
 };
 
-static struct regulator_init_data sw4_init = {
+static struct regulator_init_data sw4_init =
+{
 	.constraints = {
 		.name = "SW4",
 		.always_on = 1,
@@ -363,49 +402,56 @@ static struct regulator_init_data sw4_init = {
 	}
 };
 
-static struct regulator_init_data viohi_init = {
+static struct regulator_init_data viohi_init =
+{
 	.constraints = {
 		.name = "VIOHI",
 		.boot_on = 1,
 	}
 };
 
-static struct regulator_init_data vusb_init = {
+static struct regulator_init_data vusb_init =
+{
 	.constraints = {
 		.name = "VUSB",
 		.boot_on = 1,
 	}
 };
 
-static struct regulator_init_data vdig_init = {
+static struct regulator_init_data vdig_init =
+{
 	.constraints = {
 		.name = "VDIG",
 		.boot_on = 1,
 	}
 };
 
-static struct regulator_init_data vpll_init = {
+static struct regulator_init_data vpll_init =
+{
 	.constraints = {
 		.name = "VPLL",
 		.boot_on = 1,
 	}
 };
 
-static struct regulator_init_data vusb2_init = {
+static struct regulator_init_data vusb2_init =
+{
 	.constraints = {
 		.name = "VUSB2",
 		.boot_on = 1,
 	}
 };
 
-static struct regulator_init_data vvideo_init = {
+static struct regulator_init_data vvideo_init =
+{
 	.constraints = {
 		.name = "VVIDEO",
 		.boot_on = 1
 	}
 };
 
-static struct regulator_init_data vaudio_init = {
+static struct regulator_init_data vaudio_init =
+{
 	.constraints = {
 		.name = "VAUDIO",
 		.min_uV = 2300000,
@@ -417,13 +463,14 @@ static struct regulator_init_data vaudio_init = {
 	.consumer_supplies = vaudio_consumers,
 };
 
-static struct regulator_init_data vcam_init = {
+static struct regulator_init_data vcam_init =
+{
 	.constraints = {
 		.name = "VCAM",
 		.min_uV = 2500000,
 		.max_uV = 3000000,
 		.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |
-					REGULATOR_CHANGE_MODE,
+		REGULATOR_CHANGE_MODE,
 		.valid_modes_mask = REGULATOR_MODE_FAST | REGULATOR_MODE_NORMAL,
 		.boot_on = 1
 	},
@@ -431,26 +478,30 @@ static struct regulator_init_data vcam_init = {
 	.consumer_supplies = vcam_consumers,
 };
 
-static struct regulator_init_data vgen1_init = {
+static struct regulator_init_data vgen1_init =
+{
 	.constraints = {
 		.name = "VGEN1",
 	}
 };
 
-static struct regulator_init_data vgen2_init = {
+static struct regulator_init_data vgen2_init =
+{
 	.constraints = {
 		.name = "VGEN2",
 		.boot_on = 1,
 	}
 };
 
-static struct regulator_init_data vgen3_init = {
+static struct regulator_init_data vgen3_init =
+{
 	.constraints = {
 		.name = "VGEN3",
 	}
 };
 
-static struct mc13xxx_regulator_init_data mx35_3ds_regulators[] = {
+static struct mc13xxx_regulator_init_data mx35_3ds_regulators[] =
+{
 	{ .id = MC13892_SW1, .init_data = &sw1_init },
 	{ .id = MC13892_SW2, .init_data = &sw2_init },
 	{ .id = MC13892_SW3, .init_data = &sw3_init },
@@ -468,7 +519,8 @@ static struct mc13xxx_regulator_init_data mx35_3ds_regulators[] = {
 	{ .id = MC13892_VUSB, .init_data = &vusb_init },
 };
 
-static struct mc13xxx_platform_data mx35_3ds_mc13892_data = {
+static struct mc13xxx_platform_data mx35_3ds_mc13892_data =
+{
 	.flags = MC13XXX_USE_RTC | MC13XXX_USE_TOUCHSCREEN,
 	.regulators = {
 		.num_regulators = ARRAY_SIZE(mx35_3ds_regulators),
@@ -478,7 +530,8 @@ static struct mc13xxx_platform_data mx35_3ds_mc13892_data = {
 
 #define GPIO_PMIC_INT IMX_GPIO_NR(2, 0)
 
-static struct i2c_board_info mx35_3ds_i2c_mc13892 = {
+static struct i2c_board_info mx35_3ds_i2c_mc13892 =
+{
 
 	I2C_BOARD_INFO("mc13892", 0x08),
 	.platform_data = &mx35_3ds_mc13892_data,
@@ -489,7 +542,8 @@ static void __init imx35_3ds_init_mc13892(void)
 {
 	int ret = gpio_request_one(GPIO_PMIC_INT, GPIOF_DIR_IN, "pmic irq");
 
-	if (ret) {
+	if (ret)
+	{
 		pr_err("failed to get pmic irq: %d\n", ret);
 		return;
 	}
@@ -504,17 +558,19 @@ static int mx35_3ds_otg_init(struct platform_device *pdev)
 }
 
 /* OTG config */
-static const struct fsl_usb2_platform_data usb_otg_pdata __initconst = {
+static const struct fsl_usb2_platform_data usb_otg_pdata __initconst =
+{
 	.operating_mode	= FSL_USB2_DR_DEVICE,
 	.phy_mode	= FSL_USB2_PHY_UTMI_WIDE,
 	.workaround	= FLS_USB2_WORKAROUND_ENGCM09152,
-/*
- * ENGCM09152 also requires a hardware change.
- * Please check the MX35 Chip Errata document for details.
- */
+	/*
+	 * ENGCM09152 also requires a hardware change.
+	 * Please check the MX35 Chip Errata document for details.
+	 */
 };
 
-static struct mxc_usbh_platform_data otg_pdata __initdata = {
+static struct mxc_usbh_platform_data otg_pdata __initdata =
+{
 	.init	= mx35_3ds_otg_init,
 	.portsc	= MXC_EHCI_MODE_UTMI,
 };
@@ -522,11 +578,12 @@ static struct mxc_usbh_platform_data otg_pdata __initdata = {
 static int mx35_3ds_usbh_init(struct platform_device *pdev)
 {
 	return mx35_initialize_usb_hw(pdev->id, MXC_EHCI_INTERFACE_SINGLE_UNI |
-			  MXC_EHCI_INTERNAL_PHY);
+								  MXC_EHCI_INTERNAL_PHY);
 }
 
 /* USB HOST config */
-static const struct mxc_usbh_platform_data usb_host_pdata __initconst = {
+static const struct mxc_usbh_platform_data usb_host_pdata __initconst =
+{
 	.init		= mx35_3ds_usbh_init,
 	.portsc		= MXC_EHCI_MODE_SERIAL,
 };
@@ -536,17 +593,23 @@ static bool otg_mode_host __initdata;
 static int __init mx35_3ds_otg_mode(char *options)
 {
 	if (!strcmp(options, "host"))
+	{
 		otg_mode_host = true;
+	}
 	else if (!strcmp(options, "device"))
+	{
 		otg_mode_host = false;
+	}
 	else
 		pr_info("otg_mode neither \"host\" nor \"device\". "
-			"Defaulting to device\n");
+				"Defaulting to device\n");
+
 	return 1;
 }
 __setup("otg_mode=", mx35_3ds_otg_mode);
 
-static const struct imxi2c_platform_data mx35_3ds_i2c0_data __initconst = {
+static const struct imxi2c_platform_data mx35_3ds_i2c0_data __initconst =
+{
 	.bitrate = 100000,
 };
 
@@ -567,12 +630,16 @@ static void __init mx35_3ds_init(void)
 	imx35_add_imx_uart0(&uart_pdata);
 
 	if (otg_mode_host)
+	{
 		imx35_add_mxc_ehci_otg(&otg_pdata);
+	}
 
 	imx35_add_mxc_ehci_hs(&usb_host_pdata);
 
 	if (!otg_mode_host)
+	{
 		imx35_add_fsl_usb2_udc(&usb_otg_pdata);
+	}
 
 	imx35_add_mxc_nand(&mx35pdk_nand_board_info);
 	imx35_add_sdhci_esdhc_imx(0, NULL);
@@ -593,7 +660,7 @@ static void __init mx35_3ds_late_init(void)
 
 	if (mxc_expio_init(MX35_CS5_BASE_ADDR, IMX_GPIO_NR(1, 1)))
 		pr_warn("Init of the debugboard failed, all "
-			"devices on the debugboard are unusable.\n");
+				"devices on the debugboard are unusable.\n");
 
 	imx35_fb_pdev = imx35_add_mx3_sdc_fb(&mx3fb_pdata);
 	mx35_3ds_lcd.dev.parent = &imx35_fb_pdev->dev;
@@ -611,18 +678,18 @@ static void __init mx35_3ds_reserve(void)
 {
 	/* reserve MX35_3DS_CAMERA_BUF_SIZE bytes for mx3-camera */
 	mx3_camera_base = arm_memblock_steal(MX35_3DS_CAMERA_BUF_SIZE,
-					 MX35_3DS_CAMERA_BUF_SIZE);
+										 MX35_3DS_CAMERA_BUF_SIZE);
 }
 
 MACHINE_START(MX35_3DS, "Freescale MX35PDK")
-	/* Maintainer: Freescale Semiconductor, Inc */
-	.atag_offset = 0x100,
-	.map_io = mx35_map_io,
-	.init_early = imx35_init_early,
-	.init_irq = mx35_init_irq,
+/* Maintainer: Freescale Semiconductor, Inc */
+.atag_offset = 0x100,
+ .map_io = mx35_map_io,
+  .init_early = imx35_init_early,
+   .init_irq = mx35_init_irq,
 	.init_time	= mx35pdk_timer_init,
-	.init_machine = mx35_3ds_init,
-	.init_late	= mx35_3ds_late_init,
-	.reserve = mx35_3ds_reserve,
-	.restart	= mxc_restart,
-MACHINE_END
+	  .init_machine = mx35_3ds_init,
+	   .init_late	= mx35_3ds_late_init,
+		 .reserve = mx35_3ds_reserve,
+		  .restart	= mxc_restart,
+			  MACHINE_END

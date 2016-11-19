@@ -19,10 +19,10 @@
 #define CGU_CTL_VAL ((CONFIG_VCO_MULT << 8) | CLKIN_HALF)
 #define CGU_DIV_VAL \
 	((CONFIG_CCLK_DIV   << CSEL_OFFSET)   | \
-	(CONFIG_SCLK_DIV << SYSSEL_OFFSET)   | \
-	(CONFIG_SCLK0_DIV  << S0SEL_OFFSET)  | \
-	(CONFIG_SCLK1_DIV  << S1SEL_OFFSET)  | \
-	(CONFIG_DCLK_DIV   << DSEL_OFFSET))
+	 (CONFIG_SCLK_DIV << SYSSEL_OFFSET)   | \
+	 (CONFIG_SCLK0_DIV  << S0SEL_OFFSET)  | \
+	 (CONFIG_SCLK1_DIV  << S1SEL_OFFSET)  | \
+	 (CONFIG_DCLK_DIV   << DSEL_OFFSET))
 
 #define CONFIG_BFIN_DCLK (((CONFIG_CLKIN_HZ * CONFIG_VCO_MULT) / CONFIG_DCLK_DIV) / 1000000)
 #if ((CONFIG_BFIN_DCLK != 125) && \
@@ -36,7 +36,7 @@
 #define SDGCTL_WIDTH (1 << 31)	/* SDRAM external data path width */
 #define PLL_CTL_VAL \
 	(((CONFIG_VCO_MULT & 63) << 9) | CLKIN_HALF | \
-		(PLL_BYPASS << 8) | (ANOMALY_05000305 ? 0 : 0x8000))
+	 (PLL_BYPASS << 8) | (ANOMALY_05000305 ? 0 : 0x8000))
 #endif
 
 __attribute__((l1_text))
@@ -57,7 +57,9 @@ void init_clocks(void)
 	init_dmc(CONFIG_BFIN_DCLK);
 #else
 	size_t i;
-	for (i = 0; i < MAX_DMA_CHANNELS; ++i) {
+
+	for (i = 0; i < MAX_DMA_CHANNELS; ++i)
+	{
 		struct dma_register *dma = dma_io_base_addr[i];
 		dma->cfg = 0;
 	}
@@ -67,15 +69,21 @@ void init_clocks(void)
 #ifdef SIC_IWR0
 	bfin_write_SIC_IWR0(IWR_ENABLE(0));
 # ifdef SIC_IWR1
+
 	/* BF52x system reset does not properly reset SIC_IWR1 which
 	 * will screw up the bootrom as it relies on MDMA0/1 waking it
 	 * up from IDLE instructions.  See this report for more info:
 	 * http://blackfin.uclinux.org/gf/tracker/4323
 	 */
 	if (ANOMALY_05000435)
+	{
 		bfin_write_SIC_IWR1(IWR_ENABLE(10) | IWR_ENABLE(11));
+	}
 	else
+	{
 		bfin_write_SIC_IWR1(IWR_DISABLE_ALL);
+	}
+
 # endif
 # ifdef SIC_IWR2
 	bfin_write_SIC_IWR2(IWR_DISABLE_ALL);

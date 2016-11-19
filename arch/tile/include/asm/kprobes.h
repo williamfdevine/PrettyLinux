@@ -32,17 +32,19 @@ typedef tile_bundle_bits kprobe_opcode_t;
 
 #define flush_insn_slot(p)						\
 	flush_icache_range((unsigned long)p->addr,			\
-			   (unsigned long)p->addr +			\
-			   (MAX_INSN_SIZE * sizeof(kprobe_opcode_t)))
+					   (unsigned long)p->addr +			\
+					   (MAX_INSN_SIZE * sizeof(kprobe_opcode_t)))
 
 struct kprobe;
 
 /* Architecture specific copy of original instruction. */
-struct arch_specific_insn {
+struct arch_specific_insn
+{
 	kprobe_opcode_t *insn;
 };
 
-struct prev_kprobe {
+struct prev_kprobe
+{
 	struct kprobe *kp;
 	unsigned long status;
 	unsigned long saved_pc;
@@ -51,15 +53,16 @@ struct prev_kprobe {
 #define MAX_JPROBES_STACK_SIZE 128
 #define MAX_JPROBES_STACK_ADDR \
 	(((unsigned long)current_thread_info()) + THREAD_SIZE - 32 \
-		- sizeof(struct pt_regs))
+	 - sizeof(struct pt_regs))
 
 #define MIN_JPROBES_STACK_SIZE(ADDR)					\
 	((((ADDR) + MAX_JPROBES_STACK_SIZE) > MAX_JPROBES_STACK_ADDR)	\
-		? MAX_JPROBES_STACK_ADDR - (ADDR)			\
-		: MAX_JPROBES_STACK_SIZE)
+	 ? MAX_JPROBES_STACK_ADDR - (ADDR)			\
+	 : MAX_JPROBES_STACK_SIZE)
 
 /* per-cpu kprobe control block. */
-struct kprobe_ctlblk {
+struct kprobe_ctlblk
+{
 	unsigned long kprobe_status;
 	unsigned long kprobe_saved_pc;
 	unsigned long jprobe_saved_sp;
@@ -74,6 +77,6 @@ extern tile_bundle_bits breakpoint_insn;
 void arch_remove_kprobe(struct kprobe *);
 
 extern int kprobe_exceptions_notify(struct notifier_block *self,
-			     unsigned long val, void *data);
+									unsigned long val, void *data);
 
 #endif /* _ASM_TILE_KPROBES_H */

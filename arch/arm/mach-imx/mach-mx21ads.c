@@ -58,7 +58,8 @@
 #define MX21ADS_IO_LED4_ON		(MX21ADS_MMGPIO_BASE + 14)
 #define MX21ADS_IO_LED3_ON		(MX21ADS_MMGPIO_BASE + 15)
 
-static const int mx21ads_pins[] __initconst = {
+static const int mx21ads_pins[] __initconst =
+{
 
 	/* CS8900A */
 	(GPIO_PORTE | GPIO_GPIO | GPIO_IN | 11),
@@ -134,14 +135,16 @@ static const int mx21ads_pins[] __initconst = {
 };
 
 /* ADS's NOR flash: 2x AM29BDS128HE9VKI on 32-bit bus */
-static struct physmap_flash_data mx21ads_flash_data = {
+static struct physmap_flash_data mx21ads_flash_data =
+{
 	.width = 4,
 };
 
 static struct resource mx21ads_flash_resource =
 	DEFINE_RES_MEM(MX21_CS0_BASE_ADDR, SZ_32M);
 
-static struct platform_device mx21ads_nor_mtd_device = {
+static struct platform_device mx21ads_nor_mtd_device =
+{
 	.name = "physmap-flash",
 	.id = 0,
 	.dev = {
@@ -151,35 +154,41 @@ static struct platform_device mx21ads_nor_mtd_device = {
 	.resource = &mx21ads_flash_resource,
 };
 
-static struct resource mx21ads_cs8900_resources[] __initdata = {
+static struct resource mx21ads_cs8900_resources[] __initdata =
+{
 	DEFINE_RES_MEM(MX21ADS_CS8900A_REG, SZ_1K),
 	/* irq number is run-time assigned */
 	DEFINE_RES_IRQ(-1),
 };
 
-static const struct platform_device_info mx21ads_cs8900_devinfo __initconst = {
+static const struct platform_device_info mx21ads_cs8900_devinfo __initconst =
+{
 	.name = "cs89x0",
 	.id = 0,
 	.res = mx21ads_cs8900_resources,
 	.num_res = ARRAY_SIZE(mx21ads_cs8900_resources),
 };
 
-static const struct imxuart_platform_data uart_pdata_rts __initconst = {
+static const struct imxuart_platform_data uart_pdata_rts __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
-static const struct imxuart_platform_data uart_pdata_norts __initconst = {
+static const struct imxuart_platform_data uart_pdata_norts __initconst =
+{
 };
 
 static struct resource mx21ads_mmgpio_resource =
 	DEFINE_RES_MEM_NAMED(MX21ADS_IO_REG, SZ_2, "dat");
 
-static struct bgpio_pdata mx21ads_mmgpio_pdata = {
+static struct bgpio_pdata mx21ads_mmgpio_pdata =
+{
 	.base	= MX21ADS_MMGPIO_BASE,
 	.ngpio	= 16,
 };
 
-static struct platform_device mx21ads_mmgpio = {
+static struct platform_device mx21ads_mmgpio =
+{
 	.name = "basic-mmio-gpio",
 	.id = PLATFORM_DEVID_AUTO,
 	.resource = &mx21ads_mmgpio_resource,
@@ -192,7 +201,8 @@ static struct platform_device mx21ads_mmgpio = {
 static struct regulator_consumer_supply mx21ads_lcd_regulator_consumer =
 	REGULATOR_SUPPLY("lcd", "imx-fb.0");
 
-static struct regulator_init_data mx21ads_lcd_regulator_init_data = {
+static struct regulator_init_data mx21ads_lcd_regulator_init_data =
+{
 	.constraints = {
 		.valid_ops_mask	= REGULATOR_CHANGE_STATUS,
 	},
@@ -200,7 +210,8 @@ static struct regulator_init_data mx21ads_lcd_regulator_init_data = {
 	.num_consumer_supplies	= 1,
 };
 
-static struct fixed_voltage_config mx21ads_lcd_regulator_pdata = {
+static struct fixed_voltage_config mx21ads_lcd_regulator_pdata =
+{
 	.supply_name	= "LCD",
 	.microvolts	= 3300000,
 	.gpio		= MX21ADS_IO_LCDON,
@@ -208,7 +219,8 @@ static struct fixed_voltage_config mx21ads_lcd_regulator_pdata = {
 	.init_data	= &mx21ads_lcd_regulator_init_data,
 };
 
-static struct platform_device mx21ads_lcd_regulator = {
+static struct platform_device mx21ads_lcd_regulator =
+{
 	.name = "reg-fixed-voltage",
 	.id = PLATFORM_DEVID_AUTO,
 	.dev = {
@@ -220,7 +232,8 @@ static struct platform_device mx21ads_lcd_regulator = {
  * Connected is a portrait Sharp-QVGA display
  * of type: LQ035Q7DB02
  */
-static struct imx_fb_videomode mx21ads_modes[] = {
+static struct imx_fb_videomode mx21ads_modes[] =
+{
 	{
 		.mode = {
 			.name		= "Sharp-LQ035Q7",
@@ -240,7 +253,8 @@ static struct imx_fb_videomode mx21ads_modes[] = {
 	},
 };
 
-static const struct imx_fb_platform_data mx21ads_fb_data __initconst = {
+static const struct imx_fb_platform_data mx21ads_fb_data __initconst =
+{
 	.mode = mx21ads_modes,
 	.num_modes = ARRAY_SIZE(mx21ads_modes),
 
@@ -255,16 +269,19 @@ static int mx21ads_sdhc_get_ro(struct device *dev)
 }
 
 static int mx21ads_sdhc_init(struct device *dev, irq_handler_t detect_irq,
-	void *data)
+							 void *data)
 {
 	int ret;
 
 	ret = gpio_request(MX21ADS_IO_SD_WP, "mmc-ro");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return request_irq(gpio_to_irq(MX21ADS_MMC_CD), detect_irq,
-			   IRQF_TRIGGER_FALLING, "mmc-detect", data);
+					   IRQF_TRIGGER_FALLING, "mmc-detect", data);
 }
 
 static void mx21ads_sdhc_exit(struct device *dev, void *data)
@@ -273,7 +290,8 @@ static void mx21ads_sdhc_exit(struct device *dev, void *data)
 	gpio_free(MX21ADS_IO_SD_WP);
 }
 
-static const struct imxmmc_platform_data mx21ads_sdhc_pdata __initconst = {
+static const struct imxmmc_platform_data mx21ads_sdhc_pdata __initconst =
+{
 	.ocr_avail = MMC_VDD_29_30 | MMC_VDD_30_31, /* 3.0V */
 	.get_ro = mx21ads_sdhc_get_ro,
 	.init = mx21ads_sdhc_init,
@@ -281,12 +299,14 @@ static const struct imxmmc_platform_data mx21ads_sdhc_pdata __initconst = {
 };
 
 static const struct mxc_nand_platform_data
-mx21ads_nand_board_info __initconst = {
+	mx21ads_nand_board_info __initconst =
+{
 	.width = 1,
 	.hw_ecc = 1,
 };
 
-static struct platform_device *platform_devices[] __initdata = {
+static struct platform_device *platform_devices[] __initdata =
+{
 	&mx21ads_mmgpio,
 	&mx21ads_lcd_regulator,
 	&mx21ads_nor_mtd_device,
@@ -297,7 +317,7 @@ static void __init mx21ads_board_init(void)
 	imx21_soc_init();
 
 	mxc_gpio_setup_multiple_pins(mx21ads_pins, ARRAY_SIZE(mx21ads_pins),
-			"mx21ads");
+								 "mx21ads");
 
 	imx21_add_imx_uart0(&uart_pdata_rts);
 	imx21_add_imx_uart2(&uart_pdata_norts);
@@ -314,9 +334,9 @@ static void __init mx21ads_late_init(void)
 	platform_add_devices(platform_devices, ARRAY_SIZE(platform_devices));
 
 	mx21ads_cs8900_resources[1].start =
-			gpio_to_irq(MX21ADS_CS8900A_IRQ_GPIO);
+		gpio_to_irq(MX21ADS_CS8900A_IRQ_GPIO);
 	mx21ads_cs8900_resources[1].end =
-			gpio_to_irq(MX21ADS_CS8900A_IRQ_GPIO);
+		gpio_to_irq(MX21ADS_CS8900A_IRQ_GPIO);
 	platform_device_register_full(&mx21ads_cs8900_devinfo);
 }
 
@@ -326,13 +346,13 @@ static void __init mx21ads_timer_init(void)
 }
 
 MACHINE_START(MX21ADS, "Freescale i.MX21ADS")
-	/* maintainer: Freescale Semiconductor, Inc. */
-	.atag_offset = 0x100,
-	.map_io		= mx21_map_io,
-	.init_early = imx21_init_early,
-	.init_irq = mx21_init_irq,
-	.init_time	= mx21ads_timer_init,
-	.init_machine	= mx21ads_board_init,
-	.init_late	= mx21ads_late_init,
-	.restart	= mxc_restart,
-MACHINE_END
+/* maintainer: Freescale Semiconductor, Inc. */
+.atag_offset = 0x100,
+ .map_io		= mx21_map_io,
+	 .init_early = imx21_init_early,
+	  .init_irq = mx21_init_irq,
+	   .init_time	= mx21ads_timer_init,
+		 .init_machine	= mx21ads_board_init,
+			.init_late	= mx21ads_late_init,
+			  .restart	= mxc_restart,
+				  MACHINE_END

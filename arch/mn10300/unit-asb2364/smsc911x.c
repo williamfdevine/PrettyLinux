@@ -17,13 +17,15 @@
 #include <linux/smsc911x.h>
 #include <unit/smsc911x.h>
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
 	.flags		= SMSC911X_USE_32BIT,
 };
 
-static struct resource smsc911x_resources[] = {
+static struct resource smsc911x_resources[] =
+{
 	[0] = {
 		.start	= SMSC911X_BASE,
 		.end	= SMSC911X_BASE_END,
@@ -36,7 +38,8 @@ static struct resource smsc911x_resources[] = {
 	},
 };
 
-static struct platform_device smsc911x_device = {
+static struct platform_device smsc911x_device =
+{
 	.name		= "smsc911x",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(smsc911x_resources),

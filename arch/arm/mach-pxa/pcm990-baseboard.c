@@ -42,7 +42,8 @@
 #include "devices.h"
 #include "generic.h"
 
-static unsigned long pcm990_pin_config[] __initdata = {
+static unsigned long pcm990_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO32_MMC_CLK,
 	GPIO112_MMC_CMD,
@@ -88,13 +89,16 @@ static void pcm990_cpld_writeb(u8 value, unsigned int reg)
 #ifndef CONFIG_PCM990_DISPLAY_NONE
 static void pcm990_lcd_power(int on, struct fb_var_screeninfo *var)
 {
-	if (on) {
+	if (on)
+	{
 		/* enable LCD-Latches
 		 * power on LCD
 		 */
 		pcm990_cpld_writeb(PCM990_CTRL_LCDPWR + PCM990_CTRL_LCDON,
-				PCM990_CTRL_REG3);
-	} else {
+						   PCM990_CTRL_REG3);
+	}
+	else
+	{
 		/* disable LCD-Latches
 		 * power off LCD
 		 */
@@ -104,7 +108,8 @@ static void pcm990_lcd_power(int on, struct fb_var_screeninfo *var)
 #endif
 
 #if defined(CONFIG_PCM990_DISPLAY_SHARP)
-static struct pxafb_mode_info fb_info_sharp_lq084v1dg21 = {
+static struct pxafb_mode_info fb_info_sharp_lq084v1dg21 =
+{
 	.pixclock		= 28000,
 	.xres			= 640,
 	.yres			= 480,
@@ -119,14 +124,16 @@ static struct pxafb_mode_info fb_info_sharp_lq084v1dg21 = {
 	.cmap_greyscale		= 0,
 };
 
-static struct pxafb_mach_info pcm990_fbinfo __initdata = {
+static struct pxafb_mach_info pcm990_fbinfo __initdata =
+{
 	.modes			= &fb_info_sharp_lq084v1dg21,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 	.pxafb_lcd_power	= pcm990_lcd_power,
 };
 #elif defined(CONFIG_PCM990_DISPLAY_NEC)
-struct pxafb_mode_info fb_info_nec_nl6448bc20_18d = {
+struct pxafb_mode_info fb_info_nec_nl6448bc20_18d =
+{
 	.pixclock		= 39720,
 	.xres			= 640,
 	.yres			= 480,
@@ -141,7 +148,8 @@ struct pxafb_mode_info fb_info_nec_nl6448bc20_18d = {
 	.cmap_greyscale		= 0,
 };
 
-static struct pxafb_mach_info pcm990_fbinfo __initdata = {
+static struct pxafb_mach_info pcm990_fbinfo __initdata =
+{
 	.modes			= &fb_info_nec_nl6448bc20_18d,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
@@ -149,18 +157,21 @@ static struct pxafb_mach_info pcm990_fbinfo __initdata = {
 };
 #endif
 
-static struct pwm_lookup pcm990_pwm_lookup[] = {
+static struct pwm_lookup pcm990_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa27x-pwm.0", 0, "pwm-backlight.0", NULL, 78770,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data pcm990_backlight_data = {
+static struct platform_pwm_backlight_data pcm990_backlight_data =
+{
 	.max_brightness	= 1023,
 	.dft_brightness	= 1023,
 	.enable_gpio	= -1,
 };
 
-static struct platform_device pcm990_backlight_device = {
+static struct platform_device pcm990_backlight_device =
+{
 	.name		= "pwm-backlight",
 	.dev		= {
 		.parent = &pxa27x_device_pwm0.dev,
@@ -283,7 +294,8 @@ static void pcm990_unmask_irq(struct irq_data *d)
 	pcm990_cpld_writeb(pcm990_irq_enabled, PCM990_CTRL_INTMSKENA);
 }
 
-static struct irq_chip pcm990_irq_chip = {
+static struct irq_chip pcm990_irq_chip =
+{
 	.irq_mask_ack	= pcm990_mask_ack_irq,
 	.irq_unmask	= pcm990_unmask_irq,
 };
@@ -296,16 +308,21 @@ static void pcm990_irq_handler(struct irq_desc *desc)
 	pending = ~pcm990_cpld_readb(PCM990_CTRL_INTSETCLR);
 	pending &= pcm990_irq_enabled;
 
-	do {
+	do
+	{
 		/* clear our parent IRQ */
 		desc->irq_data.chip->irq_ack(&desc->irq_data);
-		if (likely(pending)) {
+
+		if (likely(pending))
+		{
 			irq = PCM027_IRQ(0) + __ffs(pending);
 			generic_handle_irq(irq);
 		}
+
 		pending = ~pcm990_cpld_readb(PCM990_CTRL_INTSETCLR);
 		pending &= pcm990_irq_enabled;
-	} while (pending);
+	}
+	while (pending);
 }
 
 static void __init pcm990_init_irq(void)
@@ -313,9 +330,10 @@ static void __init pcm990_init_irq(void)
 	int irq;
 
 	/* setup extra PCM990 irqs */
-	for (irq = PCM027_IRQ(0); irq <= PCM027_IRQ(3); irq++) {
+	for (irq = PCM027_IRQ(0); irq <= PCM027_IRQ(3); irq++)
+	{
 		irq_set_chip_and_handler(irq, &pcm990_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
 
@@ -328,15 +346,16 @@ static void __init pcm990_init_irq(void)
 }
 
 static int pcm990_mci_init(struct device *dev, irq_handler_t mci_detect_int,
-			void *data)
+						   void *data)
 {
 	int err;
 
 	err = request_irq(PCM027_MMCDET_IRQ, mci_detect_int, 0,
-			     "MMC card detect", data);
+					  "MMC card detect", data);
+
 	if (err)
 		printk(KERN_ERR "pcm990_mci_init: MMC/SD: can't request MMC "
-				"card detect IRQ\n");
+			   "card detect IRQ\n");
 
 	return err;
 }
@@ -349,9 +368,13 @@ static int pcm990_mci_setpower(struct device *dev, unsigned int vdd)
 	val = pcm990_cpld_readb(PCM990_CTRL_REG5);
 
 	if ((1 << vdd) & p_d->ocr_mask)
+	{
 		val |= PCM990_CTRL_MMC2PWR;
+	}
 	else
+	{
 		val &= ~PCM990_CTRL_MMC2PWR;
+	}
 
 	pcm990_cpld_writeb(PCM990_CTRL_MMC2PWR, PCM990_CTRL_REG5);
 	return 0;
@@ -364,7 +387,8 @@ static void pcm990_mci_exit(struct device *dev, void *data)
 
 #define MSECS_PER_JIFFY (1000/HZ)
 
-static struct pxamci_platform_data pcm990_mci_platform_data = {
+static struct pxamci_platform_data pcm990_mci_platform_data =
+{
 	.detect_delay_ms	= 250,
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.init 			= pcm990_mci_init,
@@ -375,7 +399,8 @@ static struct pxamci_platform_data pcm990_mci_platform_data = {
 	.gpio_power		= -1,
 };
 
-static struct pxaohci_platform_data pcm990_ohci_platform_data = {
+static struct pxaohci_platform_data pcm990_ohci_platform_data =
+{
 	.port_mode	= PMM_PERPORT_MODE,
 	.flags		= ENABLE_PORT1 | POWER_CONTROL_LOW | POWER_SENSE_LOW,
 	.power_on_delay	= 10,
@@ -385,7 +410,8 @@ static struct pxaohci_platform_data pcm990_ohci_platform_data = {
  * PXA27x Camera specific stuff
  */
 #if defined(CONFIG_VIDEO_PXA27x) || defined(CONFIG_VIDEO_PXA27x_MODULE)
-static unsigned long pcm990_camera_pin_config[] = {
+static unsigned long pcm990_camera_pin_config[] =
+{
 	/* CIF */
 	GPIO98_CIF_DD_0,
 	GPIO105_CIF_DD_1,
@@ -408,34 +434,45 @@ static unsigned long pcm990_camera_pin_config[] = {
  *	MCLK_EN:	Master clock is generated by PXA
  *	PCP:		Data sampled on the falling edge of pixel clock
  */
-struct pxacamera_platform_data pcm990_pxacamera_platform_data = {
+struct pxacamera_platform_data pcm990_pxacamera_platform_data =
+{
 	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 | PXA_CAMERA_DATAWIDTH_10 |
-		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN/* | PXA_CAMERA_PCP*/,
+	PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN/* | PXA_CAMERA_PCP*/,
 	.mclk_10khz = 1000,
 };
 
 #include <linux/platform_data/pca953x.h>
 
-static struct pca953x_platform_data pca9536_data = {
+static struct pca953x_platform_data pca9536_data =
+{
 	.gpio_base	= PXA_NR_BUILTIN_GPIO,
 };
 
 static int gpio_bus_switch = -EINVAL;
 
 static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
-				       unsigned long flags)
+									   unsigned long flags)
 {
-	if (gpio_bus_switch < 0) {
+	if (gpio_bus_switch < 0)
+	{
 		if (flags == SOCAM_DATAWIDTH_10)
+		{
 			return 0;
+		}
 		else
+		{
 			return -EINVAL;
+		}
 	}
 
 	if (flags & SOCAM_DATAWIDTH_8)
+	{
 		gpio_set_value_cansleep(gpio_bus_switch, 1);
+	}
 	else
+	{
 		gpio_set_value_cansleep(gpio_bus_switch, 0);
+	}
 
 	return 0;
 }
@@ -444,31 +481,41 @@ static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
 {
 	int ret;
 
-	if (gpio_bus_switch < 0) {
+	if (gpio_bus_switch < 0)
+	{
 		ret = gpio_request(PXA_NR_BUILTIN_GPIO, "camera");
-		if (!ret) {
+
+		if (!ret)
+		{
 			gpio_bus_switch = PXA_NR_BUILTIN_GPIO;
 			gpio_direction_output(gpio_bus_switch, 0);
 		}
 	}
 
 	if (gpio_bus_switch >= 0)
+	{
 		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
+	}
 	else
+	{
 		return SOCAM_DATAWIDTH_10;
+	}
 }
 
 static void pcm990_camera_free_bus(struct soc_camera_link *link)
 {
 	if (gpio_bus_switch < 0)
+	{
 		return;
+	}
 
 	gpio_free(gpio_bus_switch);
 	gpio_bus_switch = -EINVAL;
 }
 
 /* Board I2C devices. */
-static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
+static struct i2c_board_info __initdata pcm990_i2c_devices[] =
+{
 	{
 		/* Must initialize before the camera(s) */
 		I2C_BOARD_INFO("pca9536", 0x41),
@@ -476,11 +523,13 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
 	},
 };
 
-static struct mt9v022_platform_data mt9v022_pdata = {
+static struct mt9v022_platform_data mt9v022_pdata =
+{
 	.y_skip_top = 1,
 };
 
-static struct i2c_board_info pcm990_camera_i2c[] = {
+static struct i2c_board_info pcm990_camera_i2c[] =
+{
 	{
 		I2C_BOARD_INFO("mt9v022", 0x48),
 	}, {
@@ -488,7 +537,8 @@ static struct i2c_board_info pcm990_camera_i2c[] = {
 	},
 };
 
-static struct soc_camera_link iclink[] = {
+static struct soc_camera_link iclink[] =
+{
 	{
 		.bus_id			= 0, /* Must match with the camera ID */
 		.board_info		= &pcm990_camera_i2c[0],
@@ -507,7 +557,8 @@ static struct soc_camera_link iclink[] = {
 	},
 };
 
-static struct platform_device pcm990_camera[] = {
+static struct platform_device pcm990_camera[] =
+{
 	{
 		.name	= "soc-camera-pdrv",
 		.id	= 0,
@@ -535,7 +586,9 @@ void __init pcm990_baseboard_init(void)
 	pxa2xx_mfp_config(ARRAY_AND_SIZE(pcm990_pin_config));
 
 	pcm990_cpld_base = ioremap(PCM990_CTRL_PHYS, PCM990_CTRL_SIZE);
-	if (!pcm990_cpld_base) {
+
+	if (!pcm990_cpld_base)
+	{
 		pr_err("pcm990: failed to ioremap cpld\n");
 		return;
 	}

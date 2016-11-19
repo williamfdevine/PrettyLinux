@@ -27,10 +27,10 @@
 #include <linux/dmi.h>
 
 #ifdef CONFIG_X86_32
-__visible unsigned long saved_context_ebx;
-__visible unsigned long saved_context_esp, saved_context_ebp;
-__visible unsigned long saved_context_esi, saved_context_edi;
-__visible unsigned long saved_context_eflags;
+	__visible unsigned long saved_context_ebx;
+	__visible unsigned long saved_context_esp, saved_context_ebp;
+	__visible unsigned long saved_context_esi, saved_context_edi;
+	__visible unsigned long saved_context_eflags;
 #endif
 struct saved_context saved_context;
 
@@ -39,7 +39,8 @@ static void msr_save_context(struct saved_context *ctxt)
 	struct saved_msr *msr = ctxt->saved_msrs.array;
 	struct saved_msr *end = msr + ctxt->saved_msrs.num;
 
-	while (msr < end) {
+	while (msr < end)
+	{
 		msr->valid = !rdmsrl_safe(msr->info.msr_no, &msr->info.reg.q);
 		msr++;
 	}
@@ -50,9 +51,13 @@ static void msr_restore_context(struct saved_context *ctxt)
 	struct saved_msr *msr = ctxt->saved_msrs.array;
 	struct saved_msr *end = msr + ctxt->saved_msrs.num;
 
-	while (msr < end) {
+	while (msr < end)
+	{
 		if (msr->valid)
+		{
 			wrmsrl(msr->info.msr_no, msr->info.reg.q);
+		}
+
 		msr++;
 	}
 }
@@ -85,7 +90,7 @@ static void __save_processor_state(struct saved_context *ctxt)
 #ifdef CONFIG_X86_32
 	store_idt(&ctxt->idt);
 #else
-/* CONFIG_X86_64 */
+	/* CONFIG_X86_64 */
 	store_idt((struct desc_ptr *)&ctxt->idt_limit);
 #endif
 	/*
@@ -109,7 +114,7 @@ static void __save_processor_state(struct saved_context *ctxt)
 	savesegment(gs, ctxt->gs);
 	savesegment(ss, ctxt->ss);
 #else
-/* CONFIG_X86_64 */
+	/* CONFIG_X86_64 */
 	asm volatile ("movw %%ds, %0" : "=m" (ctxt->ds));
 	asm volatile ("movw %%es, %0" : "=m" (ctxt->es));
 	asm volatile ("movw %%fs, %0" : "=m" (ctxt->fs));
@@ -135,7 +140,7 @@ static void __save_processor_state(struct saved_context *ctxt)
 	ctxt->cr8 = read_cr8();
 #endif
 	ctxt->misc_enable_saved = !rdmsrl_safe(MSR_IA32_MISC_ENABLE,
-					       &ctxt->misc_enable);
+										   &ctxt->misc_enable);
 	msr_save_context(ctxt);
 }
 
@@ -146,7 +151,7 @@ void save_processor_state(void)
 	x86_platform.save_sched_clock_state();
 }
 #ifdef CONFIG_X86_32
-EXPORT_SYMBOL(save_processor_state);
+	EXPORT_SYMBOL(save_processor_state);
 #endif
 
 static void do_fpu_end(void)
@@ -193,16 +198,23 @@ static void fix_processor_context(void)
 static void notrace __restore_processor_state(struct saved_context *ctxt)
 {
 	if (ctxt->misc_enable_saved)
+	{
 		wrmsrl(MSR_IA32_MISC_ENABLE, ctxt->misc_enable);
+	}
+
 	/*
 	 * control registers
 	 */
 	/* cr4 was introduced in the Pentium CPU */
 #ifdef CONFIG_X86_32
+
 	if (ctxt->cr4)
+	{
 		__write_cr4(ctxt->cr4);
+	}
+
 #else
-/* CONFIG X86_64 */
+	/* CONFIG X86_64 */
 	wrmsrl(MSR_EFER, ctxt->efer);
 	write_cr8(ctxt->cr8);
 	__write_cr4(ctxt->cr4);
@@ -218,7 +230,7 @@ static void notrace __restore_processor_state(struct saved_context *ctxt)
 #ifdef CONFIG_X86_32
 	load_idt(&ctxt->idt);
 #else
-/* CONFIG_X86_64 */
+	/* CONFIG_X86_64 */
 	load_idt((const struct desc_ptr *)&ctxt->idt_limit);
 #endif
 
@@ -235,9 +247,12 @@ static void notrace __restore_processor_state(struct saved_context *ctxt)
 	 * sysenter MSRs
 	 */
 	if (boot_cpu_has(X86_FEATURE_SEP))
+	{
 		enable_sep_cpu();
+	}
+
 #else
-/* CONFIG_X86_64 */
+	/* CONFIG_X86_64 */
 	asm volatile ("movw %0, %%ds" :: "r" (ctxt->ds));
 	asm volatile ("movw %0, %%es" :: "r" (ctxt->es));
 	asm volatile ("movw %0, %%fs" :: "r" (ctxt->fs));
@@ -264,7 +279,7 @@ void notrace restore_processor_state(void)
 	__restore_processor_state(&saved_context);
 }
 #ifdef CONFIG_X86_32
-EXPORT_SYMBOL(restore_processor_state);
+	EXPORT_SYMBOL(restore_processor_state);
 #endif
 
 #if defined(CONFIG_HIBERNATION) && defined(CONFIG_HOTPLUG_CPU)
@@ -303,7 +318,8 @@ int hibernate_resume_nonboot_cpu_disable(void)
  */
 static int bsp_check(void)
 {
-	if (cpumask_first(cpu_online_mask) != 0) {
+	if (cpumask_first(cpu_online_mask) != 0)
+	{
 		pr_warn("CPU0 is offline.\n");
 		return -ENODEV;
 	}
@@ -312,55 +328,64 @@ static int bsp_check(void)
 }
 
 static int bsp_pm_callback(struct notifier_block *nb, unsigned long action,
-			   void *ptr)
+						   void *ptr)
 {
 	int ret = 0;
 
-	switch (action) {
-	case PM_SUSPEND_PREPARE:
-	case PM_HIBERNATION_PREPARE:
-		ret = bsp_check();
-		break;
+	switch (action)
+	{
+		case PM_SUSPEND_PREPARE:
+		case PM_HIBERNATION_PREPARE:
+			ret = bsp_check();
+			break;
 #ifdef CONFIG_DEBUG_HOTPLUG_CPU0
-	case PM_RESTORE_PREPARE:
-		/*
-		 * When system resumes from hibernation, online CPU0 because
-		 * 1. it's required for resume and
-		 * 2. the CPU was online before hibernation
-		 */
-		if (!cpu_online(0))
-			_debug_hotplug_cpu(0, 1);
-		break;
-	case PM_POST_RESTORE:
-		/*
-		 * When a resume really happens, this code won't be called.
-		 *
-		 * This code is called only when user space hibernation software
-		 * prepares for snapshot device during boot time. So we just
-		 * call _debug_hotplug_cpu() to restore to CPU0's state prior to
-		 * preparing the snapshot device.
-		 *
-		 * This works for normal boot case in our CPU0 hotplug debug
-		 * mode, i.e. CPU0 is offline and user mode hibernation
-		 * software initializes during boot time.
-		 *
-		 * If CPU0 is online and user application accesses snapshot
-		 * device after boot time, this will offline CPU0 and user may
-		 * see different CPU0 state before and after accessing
-		 * the snapshot device. But hopefully this is not a case when
-		 * user debugging CPU0 hotplug. Even if users hit this case,
-		 * they can easily online CPU0 back.
-		 *
-		 * To simplify this debug code, we only consider normal boot
-		 * case. Otherwise we need to remember CPU0's state and restore
-		 * to that state and resolve racy conditions etc.
-		 */
-		_debug_hotplug_cpu(0, 0);
-		break;
+
+		case PM_RESTORE_PREPARE:
+
+			/*
+			 * When system resumes from hibernation, online CPU0 because
+			 * 1. it's required for resume and
+			 * 2. the CPU was online before hibernation
+			 */
+			if (!cpu_online(0))
+			{
+				_debug_hotplug_cpu(0, 1);
+			}
+
+			break;
+
+		case PM_POST_RESTORE:
+			/*
+			 * When a resume really happens, this code won't be called.
+			 *
+			 * This code is called only when user space hibernation software
+			 * prepares for snapshot device during boot time. So we just
+			 * call _debug_hotplug_cpu() to restore to CPU0's state prior to
+			 * preparing the snapshot device.
+			 *
+			 * This works for normal boot case in our CPU0 hotplug debug
+			 * mode, i.e. CPU0 is offline and user mode hibernation
+			 * software initializes during boot time.
+			 *
+			 * If CPU0 is online and user application accesses snapshot
+			 * device after boot time, this will offline CPU0 and user may
+			 * see different CPU0 state before and after accessing
+			 * the snapshot device. But hopefully this is not a case when
+			 * user debugging CPU0 hotplug. Even if users hit this case,
+			 * they can easily online CPU0 back.
+			 *
+			 * To simplify this debug code, we only consider normal boot
+			 * case. Otherwise we need to remember CPU0's state and restore
+			 * to that state and resolve racy conditions etc.
+			 */
+			_debug_hotplug_cpu(0, 0);
+			break;
 #endif
-	default:
-		break;
+
+		default:
+			break;
 	}
+
 	return notifier_from_errno(ret);
 }
 
@@ -382,22 +407,27 @@ static int msr_init_context(const u32 *msr_id, const int total_num)
 	int i = 0;
 	struct saved_msr *msr_array;
 
-	if (saved_context.saved_msrs.array || saved_context.saved_msrs.num > 0) {
+	if (saved_context.saved_msrs.array || saved_context.saved_msrs.num > 0)
+	{
 		pr_err("x86/pm: MSR quirk already applied, please check your DMI match table.\n");
 		return -EINVAL;
 	}
 
 	msr_array = kmalloc_array(total_num, sizeof(struct saved_msr), GFP_KERNEL);
-	if (!msr_array) {
+
+	if (!msr_array)
+	{
 		pr_err("x86/pm: Can not allocate memory to save/restore MSRs during suspend.\n");
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < total_num; i++) {
+	for (i = 0; i < total_num; i++)
+	{
 		msr_array[i].info.msr_no	= msr_id[i];
 		msr_array[i].valid		= false;
 		msr_array[i].info.reg.q		= 0;
 	}
+
 	saved_context.saved_msrs.num	= total_num;
 	saved_context.saved_msrs.array	= msr_array;
 
@@ -423,13 +453,14 @@ static int msr_initialize_bdw(const struct dmi_system_id *d)
 	return msr_init_context(bdw_msr_id, ARRAY_SIZE(bdw_msr_id));
 }
 
-static struct dmi_system_id msr_save_dmi_table[] = {
+static struct dmi_system_id msr_save_dmi_table[] =
+{
 	{
-	 .callback = msr_initialize_bdw,
-	 .ident = "BROADWELL BDX_EP",
-	 .matches = {
-		DMI_MATCH(DMI_PRODUCT_NAME, "GRANTLEY"),
-		DMI_MATCH(DMI_PRODUCT_VERSION, "E63448-400"),
+		.callback = msr_initialize_bdw,
+		.ident = "BROADWELL BDX_EP",
+		.matches = {
+			DMI_MATCH(DMI_PRODUCT_NAME, "GRANTLEY"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "E63448-400"),
 		},
 	},
 	{}

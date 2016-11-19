@@ -34,11 +34,12 @@
  * Otherwise, send an appropriate signal to the process.
  */
 static void spufs_handle_event(struct spu_context *ctx,
-				unsigned long ea, int type)
+							   unsigned long ea, int type)
 {
 	siginfo_t info;
 
-	if (ctx->flags & SPU_CREATE_EVENTS_ENABLED) {
+	if (ctx->flags & SPU_CREATE_EVENTS_ENABLED)
+	{
 		ctx->event_return |= type;
 		wake_up_all(&ctx->stop_wq);
 		return;
@@ -46,32 +47,38 @@ static void spufs_handle_event(struct spu_context *ctx,
 
 	memset(&info, 0, sizeof(info));
 
-	switch (type) {
-	case SPE_EVENT_INVALID_DMA:
-		info.si_signo = SIGBUS;
-		info.si_code = BUS_OBJERR;
-		break;
-	case SPE_EVENT_SPE_DATA_STORAGE:
-		info.si_signo = SIGSEGV;
-		info.si_addr = (void __user *)ea;
-		info.si_code = SEGV_ACCERR;
-		ctx->ops->restart_dma(ctx);
-		break;
-	case SPE_EVENT_DMA_ALIGNMENT:
-		info.si_signo = SIGBUS;
-		/* DAR isn't set for an alignment fault :( */
-		info.si_code = BUS_ADRALN;
-		break;
-	case SPE_EVENT_SPE_ERROR:
-		info.si_signo = SIGILL;
-		info.si_addr = (void __user *)(unsigned long)
-			ctx->ops->npc_read(ctx) - 4;
-		info.si_code = ILL_ILLOPC;
-		break;
+	switch (type)
+	{
+		case SPE_EVENT_INVALID_DMA:
+			info.si_signo = SIGBUS;
+			info.si_code = BUS_OBJERR;
+			break;
+
+		case SPE_EVENT_SPE_DATA_STORAGE:
+			info.si_signo = SIGSEGV;
+			info.si_addr = (void __user *)ea;
+			info.si_code = SEGV_ACCERR;
+			ctx->ops->restart_dma(ctx);
+			break;
+
+		case SPE_EVENT_DMA_ALIGNMENT:
+			info.si_signo = SIGBUS;
+			/* DAR isn't set for an alignment fault :( */
+			info.si_code = BUS_ADRALN;
+			break;
+
+		case SPE_EVENT_SPE_ERROR:
+			info.si_signo = SIGILL;
+			info.si_addr = (void __user *)(unsigned long)
+						   ctx->ops->npc_read(ctx) - 4;
+			info.si_code = ILL_ILLOPC;
+			break;
 	}
 
 	if (info.si_signo)
+	{
 		force_sig_info(info.si_signo, &info, current);
+	}
 }
 
 int spufs_handle_class0(struct spu_context *ctx)
@@ -79,19 +86,21 @@ int spufs_handle_class0(struct spu_context *ctx)
 	unsigned long stat = ctx->csa.class_0_pending & CLASS0_INTR_MASK;
 
 	if (likely(!stat))
+	{
 		return 0;
+	}
 
 	if (stat & CLASS0_DMA_ALIGNMENT_INTR)
 		spufs_handle_event(ctx, ctx->csa.class_0_dar,
-			SPE_EVENT_DMA_ALIGNMENT);
+						   SPE_EVENT_DMA_ALIGNMENT);
 
 	if (stat & CLASS0_INVALID_DMA_COMMAND_INTR)
 		spufs_handle_event(ctx, ctx->csa.class_0_dar,
-			SPE_EVENT_INVALID_DMA);
+						   SPE_EVENT_INVALID_DMA);
 
 	if (stat & CLASS0_SPU_ERROR_INTR)
 		spufs_handle_event(ctx, ctx->csa.class_0_dar,
-			SPE_EVENT_SPE_ERROR);
+						   SPE_EVENT_SPE_ERROR);
 
 	ctx->csa.class_0_pending = 0;
 
@@ -127,16 +136,21 @@ int spufs_handle_class1(struct spu_context *ctx)
 	dsisr = ctx->csa.class_1_dsisr;
 
 	if (!(dsisr & (MFC_DSISR_PTE_NOT_FOUND | MFC_DSISR_ACCESS_DENIED)))
+	{
 		return 0;
+	}
 
 	spuctx_switch_state(ctx, SPU_UTIL_IOWAIT);
 
 	pr_debug("ctx %p: ea %016llx, dsisr %016llx state %d\n", ctx, ea,
-		dsisr, ctx->state);
+			 dsisr, ctx->state);
 
 	ctx->stats.hash_flt++;
+
 	if (ctx->state == SPU_STATE_RUNNABLE)
+	{
 		ctx->spu->stats.hash_flt++;
+	}
 
 	/* we must not hold the lock when entering copro_handle_mm_fault */
 	spu_release(ctx);
@@ -149,7 +163,9 @@ int spufs_handle_class1(struct spu_context *ctx)
 
 	/* hashing failed, so try the actual fault handler */
 	if (ret)
+	{
 		ret = copro_handle_mm_fault(current->mm, ea, dsisr, &flt);
+	}
 
 	/*
 	 * This is nasty: we need the state_mutex for all the bookkeeping even
@@ -169,22 +185,38 @@ int spufs_handle_class1(struct spu_context *ctx)
 	 * state, restart the DMA.
 	 * In case of unhandled error report the problem to user space.
 	 */
-	if (!ret) {
+	if (!ret)
+	{
 		if (flt & VM_FAULT_MAJOR)
+		{
 			ctx->stats.maj_flt++;
+		}
 		else
+		{
 			ctx->stats.min_flt++;
-		if (ctx->state == SPU_STATE_RUNNABLE) {
+		}
+
+		if (ctx->state == SPU_STATE_RUNNABLE)
+		{
 			if (flt & VM_FAULT_MAJOR)
+			{
 				ctx->spu->stats.maj_flt++;
+			}
 			else
+			{
 				ctx->spu->stats.min_flt++;
+			}
 		}
 
 		if (ctx->spu)
+		{
 			ctx->ops->restart_dma(ctx);
-	} else
+		}
+	}
+	else
+	{
 		spufs_handle_event(ctx, ea, SPE_EVENT_SPE_DATA_STORAGE);
+	}
 
 	spuctx_switch_state(ctx, SPU_UTIL_SYSTEM);
 	return ret;

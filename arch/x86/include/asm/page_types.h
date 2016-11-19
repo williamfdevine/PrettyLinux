@@ -39,16 +39,16 @@
 	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #define __PHYSICAL_START	ALIGN(CONFIG_PHYSICAL_START, \
-				      CONFIG_PHYSICAL_ALIGN)
+								  CONFIG_PHYSICAL_ALIGN)
 
 #define __START_KERNEL		(__START_KERNEL_map + __PHYSICAL_START)
 
 #ifdef CONFIG_X86_64
-#include <asm/page_64_types.h>
-#define IOREMAP_MAX_ORDER       (PUD_SHIFT)
+	#include <asm/page_64_types.h>
+	#define IOREMAP_MAX_ORDER       (PUD_SHIFT)
 #else
-#include <asm/page_32_types.h>
-#define IOREMAP_MAX_ORDER       (PMD_SHIFT)
+	#include <asm/page_32_types.h>
+	#define IOREMAP_MAX_ORDER       (PMD_SHIFT)
 #endif	/* CONFIG_X86_64 */
 
 #ifndef __ASSEMBLY__
@@ -66,7 +66,7 @@ static inline phys_addr_t get_max_mapped(void)
 bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn);
 
 extern unsigned long init_memory_mapping(unsigned long start,
-					 unsigned long end);
+		unsigned long end);
 
 extern void initmem_init(void);
 

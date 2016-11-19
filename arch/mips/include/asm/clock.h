@@ -8,7 +8,8 @@
 
 struct clk;
 
-struct clk_ops {
+struct clk_ops
+{
 	void (*init) (struct clk *clk);
 	void (*enable) (struct clk *clk);
 	void (*disable) (struct clk *clk);
@@ -17,7 +18,8 @@ struct clk_ops {
 	long (*round_rate) (struct clk *clk, unsigned long rate);
 };
 
-struct clk {
+struct clk
+{
 	struct list_head node;
 	const char *name;
 	int id;

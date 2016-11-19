@@ -37,7 +37,7 @@
 #define _S390_BITOPS_H
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <linux/typecheck.h>
@@ -54,18 +54,18 @@
 #define __BITOPS_BARRIER	"bcr	14,0\n"
 
 #define __BITOPS_LOOP(__addr, __val, __op_string, __barrier)	\
-({								\
-	unsigned long __old;					\
-								\
-	typecheck(unsigned long *, (__addr));			\
-	asm volatile(						\
-		__op_string "	%0,%2,%1\n"			\
-		__barrier					\
-		: "=d" (__old),	"+Q" (*(__addr))		\
-		: "d" (__val)					\
-		: "cc", "memory");				\
-	__old;							\
-})
+	({								\
+		unsigned long __old;					\
+		\
+		typecheck(unsigned long *, (__addr));			\
+		asm volatile(						\
+											__op_string "	%0,%2,%1\n"			\
+											__barrier					\
+											: "=d" (__old),	"+Q" (*(__addr))		\
+											: "d" (__val)					\
+											: "cc", "memory");				\
+		__old;							\
+	})
 
 #else /* CONFIG_HAVE_MARCH_Z196_FEATURES */
 
@@ -75,21 +75,21 @@
 #define __BITOPS_BARRIER	"\n"
 
 #define __BITOPS_LOOP(__addr, __val, __op_string, __barrier)	\
-({								\
-	unsigned long __old, __new;				\
-								\
-	typecheck(unsigned long *, (__addr));			\
-	asm volatile(						\
-		"	lg	%0,%2\n"			\
-		"0:	lgr	%1,%0\n"			\
-		__op_string "	%1,%3\n"			\
-		"	csg	%0,%1,%2\n"			\
-		"	jl	0b"				\
-		: "=&d" (__old), "=&d" (__new), "+Q" (*(__addr))\
-		: "d" (__val)					\
-		: "cc", "memory");				\
-	__old;							\
-})
+	({								\
+		unsigned long __old, __new;				\
+		\
+		typecheck(unsigned long *, (__addr));			\
+		asm volatile(						\
+											"	lg	%0,%2\n"			\
+											"0:	lgr	%1,%0\n"			\
+											__op_string "	%1,%3\n"			\
+											"	csg	%0,%1,%2\n"			\
+											"	jl	0b"				\
+											: "=&d" (__old), "=&d" (__new), "+Q" (*(__addr))\
+											: "d" (__val)					\
+											: "cc", "memory");				\
+		__old;							\
+	})
 
 #endif /* CONFIG_HAVE_MARCH_Z196_FEATURES */
 
@@ -116,7 +116,9 @@ static inline void set_bit(unsigned long nr, volatile unsigned long *ptr)
 	unsigned long mask;
 
 #ifdef CONFIG_HAVE_MARCH_ZEC12_FEATURES
-	if (__builtin_constant_p(nr)) {
+
+	if (__builtin_constant_p(nr))
+	{
 		unsigned char *caddr = __bitops_byte(nr, ptr);
 
 		asm volatile(
@@ -126,6 +128,7 @@ static inline void set_bit(unsigned long nr, volatile unsigned long *ptr)
 			: "cc", "memory");
 		return;
 	}
+
 #endif
 	mask = 1UL << (nr & (BITS_PER_LONG - 1));
 	__BITOPS_LOOP(addr, mask, __BITOPS_OR, __BITOPS_NO_BARRIER);
@@ -137,7 +140,9 @@ static inline void clear_bit(unsigned long nr, volatile unsigned long *ptr)
 	unsigned long mask;
 
 #ifdef CONFIG_HAVE_MARCH_ZEC12_FEATURES
-	if (__builtin_constant_p(nr)) {
+
+	if (__builtin_constant_p(nr))
+	{
 		unsigned char *caddr = __bitops_byte(nr, ptr);
 
 		asm volatile(
@@ -147,6 +152,7 @@ static inline void clear_bit(unsigned long nr, volatile unsigned long *ptr)
 			: "cc", "memory");
 		return;
 	}
+
 #endif
 	mask = ~(1UL << (nr & (BITS_PER_LONG - 1)));
 	__BITOPS_LOOP(addr, mask, __BITOPS_AND, __BITOPS_NO_BARRIER);
@@ -158,7 +164,9 @@ static inline void change_bit(unsigned long nr, volatile unsigned long *ptr)
 	unsigned long mask;
 
 #ifdef CONFIG_HAVE_MARCH_ZEC12_FEATURES
-	if (__builtin_constant_p(nr)) {
+
+	if (__builtin_constant_p(nr))
+	{
 		unsigned char *caddr = __bitops_byte(nr, ptr);
 
 		asm volatile(
@@ -168,6 +176,7 @@ static inline void change_bit(unsigned long nr, volatile unsigned long *ptr)
 			: "cc", "memory");
 		return;
 	}
+
 #endif
 	mask = 1UL << (nr & (BITS_PER_LONG - 1));
 	__BITOPS_LOOP(addr, mask, __BITOPS_XOR, __BITOPS_NO_BARRIER);
@@ -213,7 +222,7 @@ static inline void __set_bit(unsigned long nr, volatile unsigned long *ptr)
 	*addr |= 1 << (nr & 7);
 }
 
-static inline void 
+static inline void
 __clear_bit(unsigned long nr, volatile unsigned long *ptr)
 {
 	unsigned char *addr = __bitops_byte(nr, ptr);
@@ -271,22 +280,25 @@ static inline int test_bit(unsigned long nr, const volatile unsigned long *ptr)
 }
 
 static inline int test_and_set_bit_lock(unsigned long nr,
-					volatile unsigned long *ptr)
+										volatile unsigned long *ptr)
 {
 	if (test_bit(nr, ptr))
+	{
 		return 1;
+	}
+
 	return test_and_set_bit(nr, ptr);
 }
 
 static inline void clear_bit_unlock(unsigned long nr,
-				    volatile unsigned long *ptr)
+									volatile unsigned long *ptr)
 {
 	smp_mb__before_atomic();
 	clear_bit(nr, ptr);
 }
 
 static inline void __clear_bit_unlock(unsigned long nr,
-				      volatile unsigned long *ptr)
+									  volatile unsigned long *ptr)
 {
 	smp_mb();
 	__clear_bit(nr, ptr);
@@ -299,7 +311,7 @@ static inline void __clear_bit_unlock(unsigned long nr,
  */
 unsigned long find_first_bit_inv(const unsigned long *addr, unsigned long size);
 unsigned long find_next_bit_inv(const unsigned long *addr, unsigned long size,
-				unsigned long offset);
+								unsigned long offset);
 
 static inline void set_bit_inv(unsigned long nr, volatile unsigned long *ptr)
 {
@@ -322,7 +334,7 @@ static inline void __clear_bit_inv(unsigned long nr, volatile unsigned long *ptr
 }
 
 static inline int test_bit_inv(unsigned long nr,
-			       const volatile unsigned long *ptr)
+							   const volatile unsigned long *ptr)
 {
 	return test_bit(nr ^ (BITS_PER_LONG - 1), ptr);
 }
@@ -339,37 +351,55 @@ static inline int test_bit_inv(unsigned long nr,
  */
 static inline unsigned char __flogr(unsigned long word)
 {
-	if (__builtin_constant_p(word)) {
+	if (__builtin_constant_p(word))
+	{
 		unsigned long bit = 0;
 
 		if (!word)
+		{
 			return 64;
-		if (!(word & 0xffffffff00000000UL)) {
+		}
+
+		if (!(word & 0xffffffff00000000UL))
+		{
 			word <<= 32;
 			bit += 32;
 		}
-		if (!(word & 0xffff000000000000UL)) {
+
+		if (!(word & 0xffff000000000000UL))
+		{
 			word <<= 16;
 			bit += 16;
 		}
-		if (!(word & 0xff00000000000000UL)) {
+
+		if (!(word & 0xff00000000000000UL))
+		{
 			word <<= 8;
 			bit += 8;
 		}
-		if (!(word & 0xf000000000000000UL)) {
+
+		if (!(word & 0xf000000000000000UL))
+		{
 			word <<= 4;
 			bit += 4;
 		}
-		if (!(word & 0xc000000000000000UL)) {
+
+		if (!(word & 0xc000000000000000UL))
+		{
 			word <<= 2;
 			bit += 2;
 		}
-		if (!(word & 0x8000000000000000UL)) {
+
+		if (!(word & 0x8000000000000000UL))
+		{
 			word <<= 1;
 			bit += 1;
 		}
+
 		return bit;
-	} else {
+	}
+	else
+	{
 		register unsigned long bit asm("4") = word;
 		register unsigned long out asm("5");
 

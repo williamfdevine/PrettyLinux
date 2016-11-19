@@ -43,7 +43,8 @@ static void ack_ioasic_irq(struct irq_data *d)
 	fast_iob();
 }
 
-static struct irq_chip ioasic_irq_type = {
+static struct irq_chip ioasic_irq_type =
+{
 	.name = "IO-ASIC",
 	.irq_ack = ack_ioasic_irq,
 	.irq_mask = mask_ioasic_irq,
@@ -60,7 +61,8 @@ static void clear_ioasic_dma_irq(struct irq_data *d)
 	fast_iob();
 }
 
-static struct irq_chip ioasic_dma_irq_type = {
+static struct irq_chip ioasic_dma_irq_type =
+{
 	.name = "IO-ASIC-DMA",
 	.irq_ack = clear_ioasic_dma_irq,
 	.irq_mask = mask_ioasic_irq,
@@ -106,11 +108,12 @@ void __init init_ioasic_irqs(int base)
 
 	for (i = base; i < base + IO_INR_DMA; i++)
 		irq_set_chip_and_handler(i, &ioasic_irq_type,
-					 handle_level_irq);
+								 handle_level_irq);
+
 	for (; i < base + IO_IRQ_LINES; i++)
 		irq_set_chip_and_handler(i, &ioasic_dma_irq_type,
-					 1 << (i - base) & IO_IRQ_DMA_INFO ?
-					 handle_edge_irq : handle_fasteoi_irq);
+								 1 << (i - base) & IO_IRQ_DMA_INFO ?
+								 handle_edge_irq : handle_fasteoi_irq);
 
 	ioasic_irq_base = base;
 }

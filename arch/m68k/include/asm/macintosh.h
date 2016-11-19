@@ -84,9 +84,9 @@ struct mac_model
 extern struct mac_model *macintosh_config;
 
 
-    /*
-     * Internal representation of the Mac hardware, filled in from bootinfo
-     */
+/*
+ * Internal representation of the Mac hardware, filled in from bootinfo
+ */
 
 struct mac_booter_data
 {

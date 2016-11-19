@@ -44,12 +44,14 @@
  */
 
 /* IVA2 (IVA2) */
-static struct omap_hwmod_rst_info omap2430_iva_resets[] = {
+static struct omap_hwmod_rst_info omap2430_iva_resets[] =
+{
 	{ .name = "logic", .rst_shift = 0 },
 	{ .name = "mmu", .rst_shift = 1 },
 };
 
-static struct omap_hwmod omap2430_iva_hwmod = {
+static struct omap_hwmod omap2430_iva_hwmod =
+{
 	.name		= "iva",
 	.class		= &iva_hwmod_class,
 	.clkdm_name	= "dsp_clkdm",
@@ -59,30 +61,34 @@ static struct omap_hwmod omap2430_iva_hwmod = {
 };
 
 /* I2C common */
-static struct omap_hwmod_class_sysconfig i2c_sysc = {
+static struct omap_hwmod_class_sysconfig i2c_sysc =
+{
 	.rev_offs	= 0x00,
 	.sysc_offs	= 0x20,
 	.syss_offs	= 0x10,
 	.sysc_flags	= (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE |
-			   SYSS_HAS_RESET_STATUS),
+	SYSS_HAS_RESET_STATUS),
 	.sysc_fields	= &omap_hwmod_sysc_type1,
 };
 
-static struct omap_hwmod_class i2c_class = {
+static struct omap_hwmod_class i2c_class =
+{
 	.name		= "i2c",
 	.sysc		= &i2c_sysc,
 	.rev		= OMAP_I2C_IP_VERSION_1,
 	.reset		= &omap_i2c_reset,
 };
 
-static struct omap_i2c_dev_attr i2c_dev_attr = {
+static struct omap_i2c_dev_attr i2c_dev_attr =
+{
 	.fifo_depth	= 8, /* bytes */
 	.flags		= OMAP_I2C_FLAG_BUS_SHIFT_2 |
-			  OMAP_I2C_FLAG_FORCE_19200_INT_CLK,
+	OMAP_I2C_FLAG_FORCE_19200_INT_CLK,
 };
 
 /* I2C1 */
-static struct omap_hwmod omap2430_i2c1_hwmod = {
+static struct omap_hwmod omap2430_i2c1_hwmod =
+{
 	.name		= "i2c1",
 	.flags		= HWMOD_16BIT_REG,
 	.main_clk	= "i2chs1_fck",
@@ -108,7 +114,8 @@ static struct omap_hwmod omap2430_i2c1_hwmod = {
 };
 
 /* I2C2 */
-static struct omap_hwmod omap2430_i2c2_hwmod = {
+static struct omap_hwmod omap2430_i2c2_hwmod =
+{
 	.name		= "i2c2",
 	.flags		= HWMOD_16BIT_REG,
 	.main_clk	= "i2chs2_fck",
@@ -126,7 +133,8 @@ static struct omap_hwmod omap2430_i2c2_hwmod = {
 };
 
 /* gpio5 */
-static struct omap_hwmod omap2430_gpio5_hwmod = {
+static struct omap_hwmod omap2430_gpio5_hwmod =
+{
 	.name		= "gpio5",
 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
 	.main_clk	= "gpio5_fck",
@@ -144,13 +152,15 @@ static struct omap_hwmod omap2430_gpio5_hwmod = {
 };
 
 /* dma attributes */
-static struct omap_dma_dev_attr dma_dev_attr = {
+static struct omap_dma_dev_attr dma_dev_attr =
+{
 	.dev_caps  = RESERVE_CHANNEL | DMA_LINKED_LCH | GLOBAL_PRIORITY |
-				IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORITY,
+	IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORITY,
 	.lch_count = 32,
 };
 
-static struct omap_hwmod omap2430_dma_system_hwmod = {
+static struct omap_hwmod omap2430_dma_system_hwmod =
+{
 	.name		= "dma",
 	.class		= &omap2xxx_dma_hwmod_class,
 	.mpu_irqs	= omap2_dma_system_irqs,
@@ -160,7 +170,8 @@ static struct omap_hwmod omap2430_dma_system_hwmod = {
 };
 
 /* mailbox */
-static struct omap_hwmod omap2430_mailbox_hwmod = {
+static struct omap_hwmod omap2430_mailbox_hwmod =
+{
 	.name		= "mailbox",
 	.class		= &omap2xxx_mailbox_hwmod_class,
 	.main_clk	= "mailboxes_ick",
@@ -176,11 +187,13 @@ static struct omap_hwmod omap2430_mailbox_hwmod = {
 };
 
 /* mcspi3 */
-static struct omap2_mcspi_dev_attr omap_mcspi3_dev_attr = {
+static struct omap2_mcspi_dev_attr omap_mcspi3_dev_attr =
+{
 	.num_chipselect = 2,
 };
 
-static struct omap_hwmod omap2430_mcspi3_hwmod = {
+static struct omap_hwmod omap2430_mcspi3_hwmod =
+{
 	.name		= "mcspi3",
 	.main_clk	= "mcspi3_fck",
 	.prcm		= {
@@ -197,25 +210,28 @@ static struct omap_hwmod omap2430_mcspi3_hwmod = {
 };
 
 /* usbhsotg */
-static struct omap_hwmod_class_sysconfig omap2430_usbhsotg_sysc = {
+static struct omap_hwmod_class_sysconfig omap2430_usbhsotg_sysc =
+{
 	.rev_offs	= 0x0400,
 	.sysc_offs	= 0x0404,
 	.syss_offs	= 0x0408,
-	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
-			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-			  SYSC_HAS_AUTOIDLE),
+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE |
+	SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+	SYSC_HAS_AUTOIDLE),
 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-			  MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
+	MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
 	.sysc_fields	= &omap_hwmod_sysc_type1,
 };
 
-static struct omap_hwmod_class usbotg_class = {
+static struct omap_hwmod_class usbotg_class =
+{
 	.name = "usbotg",
 	.sysc = &omap2430_usbhsotg_sysc,
 };
 
 /* usb_otg_hs */
-static struct omap_hwmod omap2430_usbhsotg_hwmod = {
+static struct omap_hwmod omap2430_usbhsotg_hwmod =
+{
 	.name		= "usb_otg_hs",
 	.main_clk	= "usbhs_ick",
 	.prcm		= {
@@ -234,7 +250,7 @@ static struct omap_hwmod omap2430_usbhsotg_hwmod = {
 	 * workaround is to disable the autoidle bit at module level.
 	 */
 	.flags		= HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE
-				| HWMOD_SWSUP_MSTANDBY,
+	| HWMOD_SWSUP_MSTANDBY,
 };
 
 /*
@@ -242,26 +258,30 @@ static struct omap_hwmod omap2430_usbhsotg_hwmod = {
  * multi channel buffered serial port controller
  */
 
-static struct omap_hwmod_class_sysconfig omap2430_mcbsp_sysc = {
+static struct omap_hwmod_class_sysconfig omap2430_mcbsp_sysc =
+{
 	.rev_offs	= 0x007C,
 	.sysc_offs	= 0x008C,
 	.sysc_flags	= (SYSC_HAS_SOFTRESET),
 	.sysc_fields    = &omap_hwmod_sysc_type1,
 };
 
-static struct omap_hwmod_class omap2430_mcbsp_hwmod_class = {
+static struct omap_hwmod_class omap2430_mcbsp_hwmod_class =
+{
 	.name = "mcbsp",
 	.sysc = &omap2430_mcbsp_sysc,
 	.rev  = MCBSP_CONFIG_TYPE2,
 };
 
-static struct omap_hwmod_opt_clk mcbsp_opt_clks[] = {
+static struct omap_hwmod_opt_clk mcbsp_opt_clks[] =
+{
 	{ .role = "pad_fck", .clk = "mcbsp_clks" },
 	{ .role = "prcm_fck", .clk = "func_96m_ck" },
 };
 
 /* mcbsp1 */
-static struct omap_hwmod omap2430_mcbsp1_hwmod = {
+static struct omap_hwmod omap2430_mcbsp1_hwmod =
+{
 	.name		= "mcbsp1",
 	.class		= &omap2430_mcbsp_hwmod_class,
 	.main_clk	= "mcbsp1_fck",
@@ -279,7 +299,8 @@ static struct omap_hwmod omap2430_mcbsp1_hwmod = {
 };
 
 /* mcbsp2 */
-static struct omap_hwmod omap2430_mcbsp2_hwmod = {
+static struct omap_hwmod omap2430_mcbsp2_hwmod =
+{
 	.name		= "mcbsp2",
 	.class		= &omap2430_mcbsp_hwmod_class,
 	.main_clk	= "mcbsp2_fck",
@@ -297,7 +318,8 @@ static struct omap_hwmod omap2430_mcbsp2_hwmod = {
 };
 
 /* mcbsp3 */
-static struct omap_hwmod omap2430_mcbsp3_hwmod = {
+static struct omap_hwmod omap2430_mcbsp3_hwmod =
+{
 	.name		= "mcbsp3",
 	.class		= &omap2430_mcbsp_hwmod_class,
 	.main_clk	= "mcbsp3_fck",
@@ -315,7 +337,8 @@ static struct omap_hwmod omap2430_mcbsp3_hwmod = {
 };
 
 /* mcbsp4 */
-static struct omap_hwmod omap2430_mcbsp4_hwmod = {
+static struct omap_hwmod omap2430_mcbsp4_hwmod =
+{
 	.name		= "mcbsp4",
 	.class		= &omap2430_mcbsp_hwmod_class,
 	.main_clk	= "mcbsp4_fck",
@@ -333,7 +356,8 @@ static struct omap_hwmod omap2430_mcbsp4_hwmod = {
 };
 
 /* mcbsp5 */
-static struct omap_hwmod omap2430_mcbsp5_hwmod = {
+static struct omap_hwmod omap2430_mcbsp5_hwmod =
+{
 	.name		= "mcbsp5",
 	.class		= &omap2430_mcbsp_hwmod_class,
 	.main_clk	= "mcbsp5_fck",
@@ -351,32 +375,37 @@ static struct omap_hwmod omap2430_mcbsp5_hwmod = {
 };
 
 /* MMC/SD/SDIO common */
-static struct omap_hwmod_class_sysconfig omap2430_mmc_sysc = {
+static struct omap_hwmod_class_sysconfig omap2430_mmc_sysc =
+{
 	.rev_offs	= 0x1fc,
 	.sysc_offs	= 0x10,
 	.syss_offs	= 0x14,
 	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
-			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-			   SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS),
+	SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+	SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS),
 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
 	.sysc_fields    = &omap_hwmod_sysc_type1,
 };
 
-static struct omap_hwmod_class omap2430_mmc_class = {
+static struct omap_hwmod_class omap2430_mmc_class =
+{
 	.name = "mmc",
 	.sysc = &omap2430_mmc_sysc,
 };
 
 /* MMC/SD/SDIO1 */
-static struct omap_hwmod_opt_clk omap2430_mmc1_opt_clks[] = {
+static struct omap_hwmod_opt_clk omap2430_mmc1_opt_clks[] =
+{
 	{ .role = "dbck", .clk = "mmchsdb1_fck" },
 };
 
-static struct omap_hsmmc_dev_attr mmc1_dev_attr = {
+static struct omap_hsmmc_dev_attr mmc1_dev_attr =
+{
 	.flags = OMAP_HSMMC_SUPPORTS_DUAL_VOLT,
 };
 
-static struct omap_hwmod omap2430_mmc1_hwmod = {
+static struct omap_hwmod omap2430_mmc1_hwmod =
+{
 	.name		= "mmc1",
 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
 	.opt_clks	= omap2430_mmc1_opt_clks,
@@ -396,11 +425,13 @@ static struct omap_hwmod omap2430_mmc1_hwmod = {
 };
 
 /* MMC/SD/SDIO2 */
-static struct omap_hwmod_opt_clk omap2430_mmc2_opt_clks[] = {
+static struct omap_hwmod_opt_clk omap2430_mmc2_opt_clks[] =
+{
 	{ .role = "dbck", .clk = "mmchsdb2_fck" },
 };
 
-static struct omap_hwmod omap2430_mmc2_hwmod = {
+static struct omap_hwmod omap2430_mmc2_hwmod =
+{
 	.name		= "mmc2",
 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
 	.opt_clks	= omap2430_mmc2_opt_clks,
@@ -419,7 +450,8 @@ static struct omap_hwmod omap2430_mmc2_hwmod = {
 };
 
 /* HDQ1W/1-wire */
-static struct omap_hwmod omap2430_hdq1w_hwmod = {
+static struct omap_hwmod omap2430_hdq1w_hwmod =
+{
 	.name		= "hdq1w",
 	.main_clk	= "hdq_fck",
 	.prcm		= {
@@ -440,7 +472,8 @@ static struct omap_hwmod omap2430_hdq1w_hwmod = {
 
 /* L3 -> L4_CORE interface */
 /* l3_core -> usbhsotg  interface */
-static struct omap_hwmod_ocp_if omap2430_usbhsotg__l3 = {
+static struct omap_hwmod_ocp_if omap2430_usbhsotg__l3 =
+{
 	.master		= &omap2430_usbhsotg_hwmod,
 	.slave		= &omap2xxx_l3_main_hwmod,
 	.clk		= "core_l3_ck",
@@ -448,7 +481,8 @@ static struct omap_hwmod_ocp_if omap2430_usbhsotg__l3 = {
 };
 
 /* L4 CORE -> I2C1 interface */
-static struct omap_hwmod_ocp_if omap2430_l4_core__i2c1 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__i2c1 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_i2c1_hwmod,
 	.clk		= "i2c1_ick",
@@ -456,7 +490,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__i2c1 = {
 };
 
 /* L4 CORE -> I2C2 interface */
-static struct omap_hwmod_ocp_if omap2430_l4_core__i2c2 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__i2c2 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_i2c2_hwmod,
 	.clk		= "i2c2_ick",
@@ -464,7 +499,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__i2c2 = {
 };
 
 /*  l4_core ->usbhsotg  interface */
-static struct omap_hwmod_ocp_if omap2430_l4_core__usbhsotg = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__usbhsotg =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_usbhsotg_hwmod,
 	.clk		= "usb_l4_ick",
@@ -472,7 +508,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__usbhsotg = {
 };
 
 /* L4 CORE -> MMC1 interface */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mmc1 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mmc1 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mmc1_hwmod,
 	.clk		= "mmchs1_ick",
@@ -480,7 +517,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mmc1 = {
 };
 
 /* L4 CORE -> MMC2 interface */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mmc2 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mmc2 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mmc2_hwmod,
 	.clk		= "mmchs2_ick",
@@ -488,7 +526,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mmc2 = {
 };
 
 /* l4 core -> mcspi3 interface */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi3 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi3 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mcspi3_hwmod,
 	.clk		= "mcspi3_ick",
@@ -496,7 +535,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi3 = {
 };
 
 /* IVA2 <- L3 interface */
-static struct omap_hwmod_ocp_if omap2430_l3__iva = {
+static struct omap_hwmod_ocp_if omap2430_l3__iva =
+{
 	.master		= &omap2xxx_l3_main_hwmod,
 	.slave		= &omap2430_iva_hwmod,
 	.clk		= "core_l3_ck",
@@ -504,7 +544,8 @@ static struct omap_hwmod_ocp_if omap2430_l3__iva = {
 };
 
 /* l4_wkup -> timer1 */
-static struct omap_hwmod_ocp_if omap2430_l4_wkup__timer1 = {
+static struct omap_hwmod_ocp_if omap2430_l4_wkup__timer1 =
+{
 	.master		= &omap2xxx_l4_wkup_hwmod,
 	.slave		= &omap2xxx_timer1_hwmod,
 	.clk		= "gpt1_ick",
@@ -512,7 +553,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__timer1 = {
 };
 
 /* l4_wkup -> wd_timer2 */
-static struct omap_hwmod_ocp_if omap2430_l4_wkup__wd_timer2 = {
+static struct omap_hwmod_ocp_if omap2430_l4_wkup__wd_timer2 =
+{
 	.master		= &omap2xxx_l4_wkup_hwmod,
 	.slave		= &omap2xxx_wd_timer2_hwmod,
 	.clk		= "mpu_wdt_ick",
@@ -520,7 +562,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__wd_timer2 = {
 };
 
 /* l4_wkup -> gpio1 */
-static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio1 = {
+static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio1 =
+{
 	.master		= &omap2xxx_l4_wkup_hwmod,
 	.slave		= &omap2xxx_gpio1_hwmod,
 	.clk		= "gpios_ick",
@@ -528,7 +571,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio1 = {
 };
 
 /* l4_wkup -> gpio2 */
-static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio2 = {
+static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio2 =
+{
 	.master		= &omap2xxx_l4_wkup_hwmod,
 	.slave		= &omap2xxx_gpio2_hwmod,
 	.clk		= "gpios_ick",
@@ -536,7 +580,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio2 = {
 };
 
 /* l4_wkup -> gpio3 */
-static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio3 = {
+static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio3 =
+{
 	.master		= &omap2xxx_l4_wkup_hwmod,
 	.slave		= &omap2xxx_gpio3_hwmod,
 	.clk		= "gpios_ick",
@@ -544,7 +589,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio3 = {
 };
 
 /* l4_wkup -> gpio4 */
-static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio4 = {
+static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio4 =
+{
 	.master		= &omap2xxx_l4_wkup_hwmod,
 	.slave		= &omap2xxx_gpio4_hwmod,
 	.clk		= "gpios_ick",
@@ -552,7 +598,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio4 = {
 };
 
 /* l4_core -> gpio5 */
-static struct omap_hwmod_ocp_if omap2430_l4_core__gpio5 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__gpio5 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_gpio5_hwmod,
 	.clk		= "gpio5_ick",
@@ -560,7 +607,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__gpio5 = {
 };
 
 /* dma_system -> L3 */
-static struct omap_hwmod_ocp_if omap2430_dma_system__l3 = {
+static struct omap_hwmod_ocp_if omap2430_dma_system__l3 =
+{
 	.master		= &omap2430_dma_system_hwmod,
 	.slave		= &omap2xxx_l3_main_hwmod,
 	.clk		= "core_l3_ck",
@@ -568,7 +616,8 @@ static struct omap_hwmod_ocp_if omap2430_dma_system__l3 = {
 };
 
 /* l4_core -> dma_system */
-static struct omap_hwmod_ocp_if omap2430_l4_core__dma_system = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__dma_system =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_dma_system_hwmod,
 	.clk		= "sdma_ick",
@@ -577,14 +626,16 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__dma_system = {
 };
 
 /* l4_core -> mailbox */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mailbox = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mailbox =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mailbox_hwmod,
 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 };
 
 /* l4_core -> mcbsp1 */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp1 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp1 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mcbsp1_hwmod,
 	.clk		= "mcbsp1_ick",
@@ -592,7 +643,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp1 = {
 };
 
 /* l4_core -> mcbsp2 */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp2 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp2 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mcbsp2_hwmod,
 	.clk		= "mcbsp2_ick",
@@ -600,7 +652,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp2 = {
 };
 
 /* l4_core -> mcbsp3 */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp3 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp3 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mcbsp3_hwmod,
 	.clk		= "mcbsp3_ick",
@@ -608,7 +661,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp3 = {
 };
 
 /* l4_core -> mcbsp4 */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp4 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp4 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mcbsp4_hwmod,
 	.clk		= "mcbsp4_ick",
@@ -616,7 +670,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp4 = {
 };
 
 /* l4_core -> mcbsp5 */
-static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp5 = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp5 =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_mcbsp5_hwmod,
 	.clk		= "mcbsp5_ick",
@@ -624,7 +679,8 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp5 = {
 };
 
 /* l4_core -> hdq1w */
-static struct omap_hwmod_ocp_if omap2430_l4_core__hdq1w = {
+static struct omap_hwmod_ocp_if omap2430_l4_core__hdq1w =
+{
 	.master		= &omap2xxx_l4_core_hwmod,
 	.slave		= &omap2430_hdq1w_hwmod,
 	.clk		= "hdq_ick",
@@ -633,21 +689,24 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__hdq1w = {
 };
 
 /* l4_wkup -> 32ksync_counter */
-static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k = {
+static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k =
+{
 	.master		= &omap2xxx_l4_wkup_hwmod,
 	.slave		= &omap2xxx_counter_32k_hwmod,
 	.clk		= "sync_32k_ick",
 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 };
 
-static struct omap_hwmod_ocp_if omap2430_l3__gpmc = {
+static struct omap_hwmod_ocp_if omap2430_l3__gpmc =
+{
 	.master		= &omap2xxx_l3_main_hwmod,
 	.slave		= &omap2xxx_gpmc_hwmod,
 	.clk		= "core_l3_ck",
 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 };
 
-static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
+static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata =
+{
 	&omap2xxx_l3_main__l4_core,
 	&omap2xxx_mpu__l3_main,
 	&omap2xxx_dss__l3,

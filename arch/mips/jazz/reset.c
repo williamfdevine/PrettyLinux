@@ -13,9 +13,12 @@ static void jazz_write_output(unsigned char val)
 {
 	int status;
 
-	do {
+	do
+	{
 		status = jazz_kh->command;
-	} while (status & KBD_STAT_IBF);
+	}
+	while (status & KBD_STAT_IBF);
+
 	jazz_kh->data = val;
 }
 
@@ -23,9 +26,12 @@ static void jazz_write_command(unsigned char val)
 {
 	int status;
 
-	do {
+	do
+	{
 		status = jazz_kh->command;
-	} while (status & KBD_STAT_IBF);
+	}
+	while (status & KBD_STAT_IBF);
+
 	jazz_kh->command = val;
 }
 
@@ -37,17 +43,22 @@ static unsigned char jazz_read_status(void)
 static inline void kb_wait(void)
 {
 	unsigned long start = jiffies;
-	unsigned long timeout = start + HZ/2;
+	unsigned long timeout = start + HZ / 2;
 
-	do {
+	do
+	{
 		if (! (jazz_read_status() & 0x02))
+		{
 			return;
-	} while (time_before_eq(jiffies, timeout));
+		}
+	}
+	while (time_before_eq(jiffies, timeout));
 }
 
 void jazz_machine_restart(char *command)
 {
-	while(1) {
+	while (1)
+	{
 		kb_wait();
 		jazz_write_command(0xd1);
 		kb_wait();

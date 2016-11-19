@@ -45,9 +45,13 @@ static inline long extended_cede_processor(unsigned long latency_hint)
 
 	rc = cede_processor();
 #ifdef CONFIG_TRACE_IRQFLAGS
-		/* Ensure that H_CEDE returns with IRQs on */
-		if (WARN_ON(!(mfmsr() & MSR_EE)))
-			__hard_irq_enable();
+
+	/* Ensure that H_CEDE returns with IRQs on */
+	if (WARN_ON(!(mfmsr() & MSR_EE)))
+	{
+		__hard_irq_enable();
+	}
+
 #endif
 
 	set_cede_latency_hint(old_latency_hint);
@@ -56,7 +60,7 @@ static inline long extended_cede_processor(unsigned long latency_hint)
 }
 
 static inline long vpa_call(unsigned long flags, unsigned long cpu,
-		unsigned long vpa)
+							unsigned long vpa)
 {
 	flags = flags << H_VPA_FUNC_SHIFT;
 
@@ -100,11 +104,13 @@ static inline long plpar_page_set_loaned(unsigned long vpa)
 	int i;
 
 	for (i = 0; !rc && i < PAGE_SIZE; i += cmo_page_sz)
+	{
 		rc = plpar_hcall_norets(H_PAGE_INIT, H_PAGE_SET_LOANED, vpa + i, 0);
+	}
 
 	for (i -= cmo_page_sz; rc && i != 0; i -= cmo_page_sz)
 		plpar_hcall_norets(H_PAGE_INIT, H_PAGE_SET_ACTIVE,
-				   vpa + i - cmo_page_sz, 0);
+						   vpa + i - cmo_page_sz, 0);
 
 	return rc;
 }
@@ -116,11 +122,13 @@ static inline long plpar_page_set_active(unsigned long vpa)
 	int i;
 
 	for (i = 0; !rc && i < PAGE_SIZE; i += cmo_page_sz)
+	{
 		rc = plpar_hcall_norets(H_PAGE_INIT, H_PAGE_SET_ACTIVE, vpa + i, 0);
+	}
 
 	for (i -= cmo_page_sz; rc && i != 0; i -= cmo_page_sz)
 		plpar_hcall_norets(H_PAGE_INIT, H_PAGE_SET_LOANED,
-				   vpa + i - cmo_page_sz, 0);
+						   vpa + i - cmo_page_sz, 0);
 
 	return rc;
 }
@@ -128,8 +136,8 @@ static inline long plpar_page_set_active(unsigned long vpa)
 extern void vpa_init(int cpu);
 
 static inline long plpar_pte_enter(unsigned long flags,
-		unsigned long hpte_group, unsigned long hpte_v,
-		unsigned long hpte_r, unsigned long *slot)
+								   unsigned long hpte_group, unsigned long hpte_v,
+								   unsigned long hpte_r, unsigned long *slot)
 {
 	long rc;
 	unsigned long retbuf[PLPAR_HCALL_BUFSIZE];
@@ -142,8 +150,8 @@ static inline long plpar_pte_enter(unsigned long flags,
 }
 
 static inline long plpar_pte_remove(unsigned long flags, unsigned long ptex,
-		unsigned long avpn, unsigned long *old_pteh_ret,
-		unsigned long *old_ptel_ret)
+									unsigned long avpn, unsigned long *old_pteh_ret,
+									unsigned long *old_ptel_ret)
 {
 	long rc;
 	unsigned long retbuf[PLPAR_HCALL_BUFSIZE];
@@ -158,8 +166,8 @@ static inline long plpar_pte_remove(unsigned long flags, unsigned long ptex,
 
 /* plpar_pte_remove_raw can be called in real mode. It calls plpar_hcall_raw */
 static inline long plpar_pte_remove_raw(unsigned long flags, unsigned long ptex,
-		unsigned long avpn, unsigned long *old_pteh_ret,
-		unsigned long *old_ptel_ret)
+										unsigned long avpn, unsigned long *old_pteh_ret,
+										unsigned long *old_ptel_ret)
 {
 	long rc;
 	unsigned long retbuf[PLPAR_HCALL_BUFSIZE];
@@ -173,7 +181,7 @@ static inline long plpar_pte_remove_raw(unsigned long flags, unsigned long ptex,
 }
 
 static inline long plpar_pte_read(unsigned long flags, unsigned long ptex,
-		unsigned long *old_pteh_ret, unsigned long *old_ptel_ret)
+								  unsigned long *old_pteh_ret, unsigned long *old_ptel_ret)
 {
 	long rc;
 	unsigned long retbuf[PLPAR_HCALL_BUFSIZE];
@@ -188,7 +196,7 @@ static inline long plpar_pte_read(unsigned long flags, unsigned long ptex,
 
 /* plpar_pte_read_raw can be called in real mode. It calls plpar_hcall_raw */
 static inline long plpar_pte_read_raw(unsigned long flags, unsigned long ptex,
-		unsigned long *old_pteh_ret, unsigned long *old_ptel_ret)
+									  unsigned long *old_pteh_ret, unsigned long *old_ptel_ret)
 {
 	long rc;
 	unsigned long retbuf[PLPAR_HCALL_BUFSIZE];
@@ -205,7 +213,7 @@ static inline long plpar_pte_read_raw(unsigned long flags, unsigned long ptex,
  * ptes must be 8*sizeof(unsigned long)
  */
 static inline long plpar_pte_read_4(unsigned long flags, unsigned long ptex,
-				    unsigned long *ptes)
+									unsigned long *ptes)
 
 {
 	long rc;
@@ -213,7 +221,7 @@ static inline long plpar_pte_read_4(unsigned long flags, unsigned long ptex,
 
 	rc = plpar_hcall9(H_READ, retbuf, flags | H_READ_4, ptex);
 
-	memcpy(ptes, retbuf, 8*sizeof(unsigned long));
+	memcpy(ptes, retbuf, 8 * sizeof(unsigned long));
 
 	return rc;
 }
@@ -223,7 +231,7 @@ static inline long plpar_pte_read_4(unsigned long flags, unsigned long ptex,
  * ptes must be 8*sizeof(unsigned long)
  */
 static inline long plpar_pte_read_4_raw(unsigned long flags, unsigned long ptex,
-					unsigned long *ptes)
+										unsigned long *ptes)
 
 {
 	long rc;
@@ -231,19 +239,19 @@ static inline long plpar_pte_read_4_raw(unsigned long flags, unsigned long ptex,
 
 	rc = plpar_hcall9_raw(H_READ, retbuf, flags | H_READ_4, ptex);
 
-	memcpy(ptes, retbuf, 8*sizeof(unsigned long));
+	memcpy(ptes, retbuf, 8 * sizeof(unsigned long));
 
 	return rc;
 }
 
 static inline long plpar_pte_protect(unsigned long flags, unsigned long ptex,
-		unsigned long avpn)
+									 unsigned long avpn)
 {
 	return plpar_hcall_norets(H_PROTECT, flags, ptex, avpn);
 }
 
 static inline long plpar_tce_get(unsigned long liobn, unsigned long ioba,
-		unsigned long *tce_ret)
+								 unsigned long *tce_ret)
 {
 	long rc;
 	unsigned long retbuf[PLPAR_HCALL_BUFSIZE];
@@ -256,7 +264,7 @@ static inline long plpar_tce_get(unsigned long liobn, unsigned long ioba,
 }
 
 static inline long plpar_tce_put(unsigned long liobn, unsigned long ioba,
-		unsigned long tceval)
+								 unsigned long tceval)
 {
 	return plpar_hcall_norets(H_PUT_TCE, liobn, ioba, tceval);
 }
@@ -268,14 +276,14 @@ static inline long plpar_tce_put_indirect(unsigned long liobn,
 }
 
 static inline long plpar_tce_stuff(unsigned long liobn, unsigned long ioba,
-		unsigned long tceval, unsigned long count)
+								   unsigned long tceval, unsigned long count)
 {
 	return plpar_hcall_norets(H_STUFF_TCE, liobn, ioba, tceval, count);
 }
 
 /* Set various resource mode parameters */
 static inline long plpar_set_mode(unsigned long mflags, unsigned long resource,
-		unsigned long value1, unsigned long value2)
+								  unsigned long value1, unsigned long value2)
 {
 	return plpar_hcall_norets(H_SET_MODE, mflags, resource, value1, value2);
 }
@@ -300,7 +308,8 @@ static inline long enable_reloc_on_exceptions(void)
  * If it returns H_LONG_BUSY_* it should be retried periodically until it
  * returns H_SUCCESS.
  */
-static inline long disable_reloc_on_exceptions(void) {
+static inline long disable_reloc_on_exceptions(void)
+{
 	return plpar_set_mode(0, H_SET_MODE_RESOURCE_ADDR_TRANS_MODE, 0, 0);
 }
 

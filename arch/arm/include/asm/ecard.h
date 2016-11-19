@@ -78,26 +78,28 @@
 #define PROD_YELLOWSTONE_RAPIDE32	0x0120
 
 #ifdef ECARD_C
-#define CONST
+	#define CONST
 #else
-#define CONST const
+	#define CONST const
 #endif
 
 #define MAX_ECARDS	9
 
-struct ecard_id {			/* Card ID structure		*/
+struct ecard_id  			/* Card ID structure		*/
+{
 	unsigned short	manufacturer;
 	unsigned short	product;
 	void		*data;
 };
 
-struct in_ecid {			/* Packed card ID information	*/
+struct in_ecid  			/* Packed card ID information	*/
+{
 	unsigned short	product;	/* Product code			*/
 	unsigned short	manufacturer;	/* Manufacturer code		*/
-	unsigned char	id:4;		/* Simple ID			*/
-	unsigned char	cd:1;		/* Chunk dir present		*/
-	unsigned char	is:1;		/* Interrupt status pointers	*/
-	unsigned char	w:2;		/* Width			*/
+	unsigned char	id: 4;		/* Simple ID			*/
+	unsigned char	cd: 1;		/* Chunk dir present		*/
+	unsigned char	is: 1;		/* Interrupt status pointers	*/
+	unsigned char	w: 2;		/* Width			*/
 	unsigned char	country;	/* Country			*/
 	unsigned char	irqmask;	/* IRQ mask			*/
 	unsigned char	fiqmask;	/* FIQ mask			*/
@@ -108,7 +110,8 @@ struct in_ecid {			/* Packed card ID information	*/
 typedef struct expansion_card ecard_t;
 typedef unsigned long *loader_t;
 
-typedef struct expansion_card_ops {	/* Card handler routines	*/
+typedef struct expansion_card_ops  	/* Card handler routines	*/
+{
 	void (*irqenable)(ecard_t *ec, int irqnr);
 	void (*irqdisable)(ecard_t *ec, int irqnr);
 	int  (*irqpending)(ecard_t *ec);
@@ -129,13 +132,14 @@ typedef struct expansion_card_ops {	/* Card handler routines	*/
 #define ecard_resource_start(ec,nr)	((ec)->resource[nr].start)
 #define ecard_resource_end(ec,nr)	((ec)->resource[nr].end)
 #define ecard_resource_len(ec,nr)	((ec)->resource[nr].end - \
-					 (ec)->resource[nr].start + 1)
+									 (ec)->resource[nr].start + 1)
 #define ecard_resource_flags(ec,nr)	((ec)->resource[nr].flags)
 
 /*
  * This contains all the info needed on an expansion card
  */
-struct expansion_card {
+struct expansion_card
+{
 	struct expansion_card  *next;
 
 	struct device		dev;
@@ -167,9 +171,11 @@ struct expansion_card {
 
 void ecard_setirq(struct expansion_card *ec, const struct expansion_card_ops *ops, void *irq_data);
 
-struct in_chunk_dir {
+struct in_chunk_dir
+{
 	unsigned int start_offset;
-	union {
+	union
+	{
 		unsigned char string[256];
 		unsigned char data[1];
 	} d;
@@ -191,14 +197,15 @@ extern int ecard_request_resources(struct expansion_card *ec);
 extern void ecard_release_resources(struct expansion_card *ec);
 
 void __iomem *ecardm_iomap(struct expansion_card *ec, unsigned int res,
-			   unsigned long offset, unsigned long maxsize);
+						   unsigned long offset, unsigned long maxsize);
 #define ecardm_iounmap(__ec, __addr)	devm_iounmap(&(__ec)->dev, __addr)
 
 extern struct bus_type ecard_bus_type;
 
 #define ECARD_DEV(_d)	container_of((_d), struct expansion_card, dev)
 
-struct ecard_driver {
+struct ecard_driver
+{
 	int			(*probe)(struct expansion_card *, const struct ecard_id *id);
 	void			(*remove)(struct expansion_card *);
 	void			(*shutdown)(struct expansion_card *);

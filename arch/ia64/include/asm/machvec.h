@@ -34,10 +34,10 @@ typedef u8 ia64_mv_irq_to_vector (int);
 typedef unsigned int ia64_mv_local_vector_to_irq (u8);
 typedef char *ia64_mv_pci_get_legacy_mem_t (struct pci_bus *);
 typedef int ia64_mv_pci_legacy_read_t (struct pci_bus *, u16 port, u32 *val,
-				       u8 size);
+									   u8 size);
 typedef int ia64_mv_pci_legacy_write_t (struct pci_bus *, u16 port, u32 val,
-					u8 size);
-typedef void ia64_mv_migrate_t(struct task_struct * task);
+										u8 size);
+typedef void ia64_mv_migrate_t(struct task_struct *task);
 typedef void ia64_mv_pci_fixup_bus_t (struct pci_bus *);
 typedef void ia64_mv_kernel_launch_event_t(void);
 
@@ -114,53 +114,54 @@ extern void machvec_tlb_migrate_finish (struct mm_struct *);
 #  include <asm/machvec_uv.h>
 # elif defined (CONFIG_IA64_GENERIC)
 
-# ifdef MACHVEC_PLATFORM_HEADER
-#  include MACHVEC_PLATFORM_HEADER
-# else
-#  define ia64_platform_name	ia64_mv.name
-#  define platform_setup	ia64_mv.setup
-#  define platform_cpu_init	ia64_mv.cpu_init
-#  define platform_irq_init	ia64_mv.irq_init
-#  define platform_send_ipi	ia64_mv.send_ipi
-#  define platform_timer_interrupt	ia64_mv.timer_interrupt
-#  define platform_global_tlb_purge	ia64_mv.global_tlb_purge
-#  define platform_tlb_migrate_finish	ia64_mv.tlb_migrate_finish
-#  define platform_dma_init		ia64_mv.dma_init
-#  define platform_dma_get_required_mask ia64_mv.dma_get_required_mask
-#  define platform_dma_get_ops		ia64_mv.dma_get_ops
-#  define platform_irq_to_vector	ia64_mv.irq_to_vector
-#  define platform_local_vector_to_irq	ia64_mv.local_vector_to_irq
-#  define platform_pci_get_legacy_mem	ia64_mv.pci_get_legacy_mem
-#  define platform_pci_legacy_read	ia64_mv.pci_legacy_read
-#  define platform_pci_legacy_write	ia64_mv.pci_legacy_write
-#  define platform_inb		ia64_mv.inb
-#  define platform_inw		ia64_mv.inw
-#  define platform_inl		ia64_mv.inl
-#  define platform_outb		ia64_mv.outb
-#  define platform_outw		ia64_mv.outw
-#  define platform_outl		ia64_mv.outl
-#  define platform_mmiowb	ia64_mv.mmiowb
-#  define platform_readb        ia64_mv.readb
-#  define platform_readw        ia64_mv.readw
-#  define platform_readl        ia64_mv.readl
-#  define platform_readq        ia64_mv.readq
-#  define platform_readb_relaxed        ia64_mv.readb_relaxed
-#  define platform_readw_relaxed        ia64_mv.readw_relaxed
-#  define platform_readl_relaxed        ia64_mv.readl_relaxed
-#  define platform_readq_relaxed        ia64_mv.readq_relaxed
-#  define platform_migrate		ia64_mv.migrate
-#  define platform_setup_msi_irq	ia64_mv.setup_msi_irq
-#  define platform_teardown_msi_irq	ia64_mv.teardown_msi_irq
-#  define platform_pci_fixup_bus	ia64_mv.pci_fixup_bus
-#  define platform_kernel_launch_event	ia64_mv.kernel_launch_event
-# endif
+#ifdef MACHVEC_PLATFORM_HEADER
+	#include MACHVEC_PLATFORM_HEADER
+#else
+	#define ia64_platform_name	ia64_mv.name
+	#define platform_setup	ia64_mv.setup
+	#define platform_cpu_init	ia64_mv.cpu_init
+	#define platform_irq_init	ia64_mv.irq_init
+	#define platform_send_ipi	ia64_mv.send_ipi
+	#define platform_timer_interrupt	ia64_mv.timer_interrupt
+	#define platform_global_tlb_purge	ia64_mv.global_tlb_purge
+	#define platform_tlb_migrate_finish	ia64_mv.tlb_migrate_finish
+	#define platform_dma_init		ia64_mv.dma_init
+	#define platform_dma_get_required_mask ia64_mv.dma_get_required_mask
+	#define platform_dma_get_ops		ia64_mv.dma_get_ops
+	#define platform_irq_to_vector	ia64_mv.irq_to_vector
+	#define platform_local_vector_to_irq	ia64_mv.local_vector_to_irq
+	#define platform_pci_get_legacy_mem	ia64_mv.pci_get_legacy_mem
+	#define platform_pci_legacy_read	ia64_mv.pci_legacy_read
+	#define platform_pci_legacy_write	ia64_mv.pci_legacy_write
+	#define platform_inb		ia64_mv.inb
+	#define platform_inw		ia64_mv.inw
+	#define platform_inl		ia64_mv.inl
+	#define platform_outb		ia64_mv.outb
+	#define platform_outw		ia64_mv.outw
+	#define platform_outl		ia64_mv.outl
+	#define platform_mmiowb	ia64_mv.mmiowb
+	#define platform_readb        ia64_mv.readb
+	#define platform_readw        ia64_mv.readw
+	#define platform_readl        ia64_mv.readl
+	#define platform_readq        ia64_mv.readq
+	#define platform_readb_relaxed        ia64_mv.readb_relaxed
+	#define platform_readw_relaxed        ia64_mv.readw_relaxed
+	#define platform_readl_relaxed        ia64_mv.readl_relaxed
+	#define platform_readq_relaxed        ia64_mv.readq_relaxed
+	#define platform_migrate		ia64_mv.migrate
+	#define platform_setup_msi_irq	ia64_mv.setup_msi_irq
+	#define platform_teardown_msi_irq	ia64_mv.teardown_msi_irq
+	#define platform_pci_fixup_bus	ia64_mv.pci_fixup_bus
+	#define platform_kernel_launch_event	ia64_mv.kernel_launch_event
+#endif
 
 /* __attribute__((__aligned__(16))) is required to make size of the
  * structure multiple of 16 bytes.
  * This will fillup the holes created because of section 3.3.1 in
  * Software Conventions guide.
  */
-struct ia64_machine_vector {
+struct ia64_machine_vector
+{
 	const char *name;
 	ia64_mv_setup_t *setup;
 	ia64_mv_cpu_init_t *cpu_init;
@@ -200,44 +201,44 @@ struct ia64_machine_vector {
 } __attribute__((__aligned__(16))); /* align attrib? see above comment */
 
 #define MACHVEC_INIT(name)			\
-{						\
-	#name,					\
-	platform_setup,				\
-	platform_cpu_init,			\
-	platform_irq_init,			\
-	platform_send_ipi,			\
-	platform_timer_interrupt,		\
-	platform_global_tlb_purge,		\
-	platform_tlb_migrate_finish,		\
-	platform_dma_init,			\
-	platform_dma_get_required_mask,		\
-	platform_dma_get_ops,			\
-	platform_irq_to_vector,			\
-	platform_local_vector_to_irq,		\
-	platform_pci_get_legacy_mem,		\
-	platform_pci_legacy_read,		\
-	platform_pci_legacy_write,		\
-	platform_inb,				\
-	platform_inw,				\
-	platform_inl,				\
-	platform_outb,				\
-	platform_outw,				\
-	platform_outl,				\
-	platform_mmiowb,			\
-	platform_readb,				\
-	platform_readw,				\
-	platform_readl,				\
-	platform_readq,				\
-	platform_readb_relaxed,			\
-	platform_readw_relaxed,			\
-	platform_readl_relaxed,			\
-	platform_readq_relaxed,			\
-	platform_migrate,			\
-	platform_setup_msi_irq,			\
-	platform_teardown_msi_irq,		\
-	platform_pci_fixup_bus,			\
-	platform_kernel_launch_event            \
-}
+	{						\
+		#name,					\
+		platform_setup,				\
+		platform_cpu_init,			\
+		platform_irq_init,			\
+		platform_send_ipi,			\
+		platform_timer_interrupt,		\
+		platform_global_tlb_purge,		\
+		platform_tlb_migrate_finish,		\
+		platform_dma_init,			\
+		platform_dma_get_required_mask,		\
+		platform_dma_get_ops,			\
+		platform_irq_to_vector,			\
+		platform_local_vector_to_irq,		\
+		platform_pci_get_legacy_mem,		\
+		platform_pci_legacy_read,		\
+		platform_pci_legacy_write,		\
+		platform_inb,				\
+		platform_inw,				\
+		platform_inl,				\
+		platform_outb,				\
+		platform_outw,				\
+		platform_outl,				\
+		platform_mmiowb,			\
+		platform_readb,				\
+		platform_readw,				\
+		platform_readl,				\
+		platform_readq,				\
+		platform_readb_relaxed,			\
+		platform_readw_relaxed,			\
+		platform_readl_relaxed,			\
+		platform_readq_relaxed,			\
+		platform_migrate,			\
+		platform_setup_msi_irq,			\
+		platform_teardown_msi_irq,		\
+		platform_pci_fixup_bus,			\
+		platform_kernel_launch_event            \
+	}
 
 extern struct ia64_machine_vector ia64_mv;
 extern void machvec_init (const char *name);
@@ -255,112 +256,112 @@ extern struct dma_map_ops *dma_get_ops(struct device *);
  * to update the machvec files for all existing platforms.
  */
 #ifndef platform_setup
-# define platform_setup			machvec_setup
+	#define platform_setup			machvec_setup
 #endif
 #ifndef platform_cpu_init
-# define platform_cpu_init		machvec_noop
+	#define platform_cpu_init		machvec_noop
 #endif
 #ifndef platform_irq_init
-# define platform_irq_init		machvec_noop
+	#define platform_irq_init		machvec_noop
 #endif
 
 #ifndef platform_send_ipi
-# define platform_send_ipi		ia64_send_ipi	/* default to architected version */
+	#define platform_send_ipi		ia64_send_ipi	/* default to architected version */
 #endif
 #ifndef platform_timer_interrupt
-# define platform_timer_interrupt 	machvec_timer_interrupt
+	#define platform_timer_interrupt 	machvec_timer_interrupt
 #endif
 #ifndef platform_global_tlb_purge
-# define platform_global_tlb_purge	ia64_global_tlb_purge /* default to architected version */
+	#define platform_global_tlb_purge	ia64_global_tlb_purge /* default to architected version */
 #endif
 #ifndef platform_tlb_migrate_finish
-# define platform_tlb_migrate_finish	machvec_noop_mm
+	#define platform_tlb_migrate_finish	machvec_noop_mm
 #endif
 #ifndef platform_kernel_launch_event
-# define platform_kernel_launch_event	machvec_noop
+	#define platform_kernel_launch_event	machvec_noop
 #endif
 #ifndef platform_dma_init
-# define platform_dma_init		swiotlb_dma_init
+	#define platform_dma_init		swiotlb_dma_init
 #endif
 #ifndef platform_dma_get_ops
-# define platform_dma_get_ops		dma_get_ops
+	#define platform_dma_get_ops		dma_get_ops
 #endif
 #ifndef platform_dma_get_required_mask
-# define  platform_dma_get_required_mask	ia64_dma_get_required_mask
+	#define  platform_dma_get_required_mask	ia64_dma_get_required_mask
 #endif
 #ifndef platform_irq_to_vector
-# define platform_irq_to_vector		__ia64_irq_to_vector
+	#define platform_irq_to_vector		__ia64_irq_to_vector
 #endif
 #ifndef platform_local_vector_to_irq
-# define platform_local_vector_to_irq	__ia64_local_vector_to_irq
+	#define platform_local_vector_to_irq	__ia64_local_vector_to_irq
 #endif
 #ifndef platform_pci_get_legacy_mem
-# define platform_pci_get_legacy_mem	ia64_pci_get_legacy_mem
+	#define platform_pci_get_legacy_mem	ia64_pci_get_legacy_mem
 #endif
 #ifndef platform_pci_legacy_read
-# define platform_pci_legacy_read	ia64_pci_legacy_read
-extern int ia64_pci_legacy_read(struct pci_bus *bus, u16 port, u32 *val, u8 size);
+	#define platform_pci_legacy_read	ia64_pci_legacy_read
+	extern int ia64_pci_legacy_read(struct pci_bus *bus, u16 port, u32 *val, u8 size);
 #endif
 #ifndef platform_pci_legacy_write
-# define platform_pci_legacy_write	ia64_pci_legacy_write
-extern int ia64_pci_legacy_write(struct pci_bus *bus, u16 port, u32 val, u8 size);
+	#define platform_pci_legacy_write	ia64_pci_legacy_write
+	extern int ia64_pci_legacy_write(struct pci_bus *bus, u16 port, u32 val, u8 size);
 #endif
 #ifndef platform_inb
-# define platform_inb		__ia64_inb
+	#define platform_inb		__ia64_inb
 #endif
 #ifndef platform_inw
-# define platform_inw		__ia64_inw
+	#define platform_inw		__ia64_inw
 #endif
 #ifndef platform_inl
-# define platform_inl		__ia64_inl
+	#define platform_inl		__ia64_inl
 #endif
 #ifndef platform_outb
-# define platform_outb		__ia64_outb
+	#define platform_outb		__ia64_outb
 #endif
 #ifndef platform_outw
-# define platform_outw		__ia64_outw
+	#define platform_outw		__ia64_outw
 #endif
 #ifndef platform_outl
-# define platform_outl		__ia64_outl
+	#define platform_outl		__ia64_outl
 #endif
 #ifndef platform_mmiowb
-# define platform_mmiowb	__ia64_mmiowb
+	#define platform_mmiowb	__ia64_mmiowb
 #endif
 #ifndef platform_readb
-# define platform_readb		__ia64_readb
+	#define platform_readb		__ia64_readb
 #endif
 #ifndef platform_readw
-# define platform_readw		__ia64_readw
+	#define platform_readw		__ia64_readw
 #endif
 #ifndef platform_readl
-# define platform_readl		__ia64_readl
+	#define platform_readl		__ia64_readl
 #endif
 #ifndef platform_readq
-# define platform_readq		__ia64_readq
+	#define platform_readq		__ia64_readq
 #endif
 #ifndef platform_readb_relaxed
-# define platform_readb_relaxed	__ia64_readb_relaxed
+	#define platform_readb_relaxed	__ia64_readb_relaxed
 #endif
 #ifndef platform_readw_relaxed
-# define platform_readw_relaxed	__ia64_readw_relaxed
+	#define platform_readw_relaxed	__ia64_readw_relaxed
 #endif
 #ifndef platform_readl_relaxed
-# define platform_readl_relaxed	__ia64_readl_relaxed
+	#define platform_readl_relaxed	__ia64_readl_relaxed
 #endif
 #ifndef platform_readq_relaxed
-# define platform_readq_relaxed	__ia64_readq_relaxed
+	#define platform_readq_relaxed	__ia64_readq_relaxed
 #endif
 #ifndef platform_migrate
-# define platform_migrate machvec_noop_task
+	#define platform_migrate machvec_noop_task
 #endif
 #ifndef platform_setup_msi_irq
-# define platform_setup_msi_irq		((ia64_mv_setup_msi_irq_t*)NULL)
+	#define platform_setup_msi_irq		((ia64_mv_setup_msi_irq_t*)NULL)
 #endif
 #ifndef platform_teardown_msi_irq
-# define platform_teardown_msi_irq	((ia64_mv_teardown_msi_irq_t*)NULL)
+	#define platform_teardown_msi_irq	((ia64_mv_teardown_msi_irq_t*)NULL)
 #endif
 #ifndef platform_pci_fixup_bus
-# define platform_pci_fixup_bus	machvec_noop_bus
+	#define platform_pci_fixup_bus	machvec_noop_bus
 #endif
 
 #endif /* _ASM_IA64_MACHVEC_H */

@@ -24,9 +24,9 @@ static DEFINE_RAW_SPINLOCK(native_tlbie_lock);
 #define RIC_FLUSH_ALL 2
 
 static inline void __tlbiel_pid(unsigned long pid, int set,
-				unsigned long ric)
+								unsigned long ric)
 {
-	unsigned long rb,rs,prs,r;
+	unsigned long rb, rs, prs, r;
 
 	rb = PPC_BIT(53); /* IS = 1 */
 	rb |= set << PPC_BITLSHIFT(51);
@@ -36,7 +36,7 @@ static inline void __tlbiel_pid(unsigned long pid, int set,
 
 	asm volatile("ptesync": : :"memory");
 	asm volatile(PPC_TLBIEL(%0, %4, %3, %2, %1)
-		     : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
+				 : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
 	asm volatile("ptesync": : :"memory");
 }
 
@@ -47,15 +47,17 @@ static inline void _tlbiel_pid(unsigned long pid, unsigned long ric)
 {
 	int set;
 
-	for (set = 0; set < POWER9_TLB_SETS_RADIX ; set++) {
+	for (set = 0; set < POWER9_TLB_SETS_RADIX ; set++)
+	{
 		__tlbiel_pid(pid, set, ric);
 	}
+
 	return;
 }
 
 static inline void _tlbie_pid(unsigned long pid, unsigned long ric)
 {
-	unsigned long rb,rs,prs,r;
+	unsigned long rb, rs, prs, r;
 
 	rb = PPC_BIT(53); /* IS = 1 */
 	rs = pid << PPC_BITLSHIFT(31);
@@ -64,14 +66,14 @@ static inline void _tlbie_pid(unsigned long pid, unsigned long ric)
 
 	asm volatile("ptesync": : :"memory");
 	asm volatile(PPC_TLBIE_5(%0, %4, %3, %2, %1)
-		     : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
+				 : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
 	asm volatile("eieio; tlbsync; ptesync": : :"memory");
 }
 
 static inline void _tlbiel_va(unsigned long va, unsigned long pid,
-			      unsigned long ap, unsigned long ric)
+							  unsigned long ap, unsigned long ric)
 {
-	unsigned long rb,rs,prs,r;
+	unsigned long rb, rs, prs, r;
 
 	rb = va & ~(PPC_BITMASK(52, 63));
 	rb |= ap << PPC_BITLSHIFT(58);
@@ -81,14 +83,14 @@ static inline void _tlbiel_va(unsigned long va, unsigned long pid,
 
 	asm volatile("ptesync": : :"memory");
 	asm volatile(PPC_TLBIEL(%0, %4, %3, %2, %1)
-		     : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
+				 : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
 	asm volatile("ptesync": : :"memory");
 }
 
 static inline void _tlbie_va(unsigned long va, unsigned long pid,
-			     unsigned long ap, unsigned long ric)
+							 unsigned long ap, unsigned long ric)
 {
-	unsigned long rb,rs,prs,r;
+	unsigned long rb, rs, prs, r;
 
 	rb = va & ~(PPC_BITMASK(52, 63));
 	rb |= ap << PPC_BITLSHIFT(58);
@@ -98,7 +100,7 @@ static inline void _tlbie_va(unsigned long va, unsigned long pid,
 
 	asm volatile("ptesync": : :"memory");
 	asm volatile(PPC_TLBIE_5(%0, %4, %3, %2, %1)
-		     : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
+				 : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
 	asm volatile("eieio; tlbsync; ptesync": : :"memory");
 }
 
@@ -119,8 +121,12 @@ void radix__local_flush_tlb_mm(struct mm_struct *mm)
 
 	preempt_disable();
 	pid = mm->context.id;
+
 	if (pid != MMU_NO_CONTEXT)
+	{
 		_tlbiel_pid(pid, RIC_FLUSH_ALL);
+	}
+
 	preempt_enable();
 }
 EXPORT_SYMBOL(radix__local_flush_tlb_mm);
@@ -133,35 +139,46 @@ void radix__local_flush_tlb_pwc(struct mmu_gather *tlb, unsigned long addr)
 	preempt_disable();
 
 	pid = mm->context.id;
+
 	if (pid != MMU_NO_CONTEXT)
+	{
 		_tlbiel_pid(pid, RIC_FLUSH_PWC);
+	}
 
 	preempt_enable();
 }
 EXPORT_SYMBOL(radix__local_flush_tlb_pwc);
 
 void radix__local_flush_tlb_page_psize(struct mm_struct *mm, unsigned long vmaddr,
-				       int psize)
+									   int psize)
 {
 	unsigned long pid;
 	unsigned long ap = mmu_get_ap(psize);
 
 	preempt_disable();
 	pid = mm ? mm->context.id : 0;
+
 	if (pid != MMU_NO_CONTEXT)
+	{
 		_tlbiel_va(vmaddr, pid, ap, RIC_FLUSH_TLB);
+	}
+
 	preempt_enable();
 }
 
 void radix__local_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
 #ifdef CONFIG_HUGETLB_PAGE
+
 	/* need the return fix for nohash.c */
 	if (vma && is_vm_hugetlb_page(vma))
+	{
 		return __local_flush_hugetlb_page(vma, vmaddr);
+	}
+
 #endif
 	radix__local_flush_tlb_page_psize(vma ? vma->vm_mm : NULL, vmaddr,
-					  mmu_virtual_psize);
+									  mmu_virtual_psize);
 }
 EXPORT_SYMBOL(radix__local_flush_tlb_page);
 
@@ -172,19 +189,33 @@ void radix__flush_tlb_mm(struct mm_struct *mm)
 
 	preempt_disable();
 	pid = mm->context.id;
-	if (unlikely(pid == MMU_NO_CONTEXT))
-		goto no_context;
 
-	if (!mm_is_thread_local(mm)) {
+	if (unlikely(pid == MMU_NO_CONTEXT))
+	{
+		goto no_context;
+	}
+
+	if (!mm_is_thread_local(mm))
+	{
 		int lock_tlbie = !mmu_has_feature(MMU_FTR_LOCKLESS_TLBIE);
 
 		if (lock_tlbie)
+		{
 			raw_spin_lock(&native_tlbie_lock);
+		}
+
 		_tlbie_pid(pid, RIC_FLUSH_ALL);
+
 		if (lock_tlbie)
+		{
 			raw_spin_unlock(&native_tlbie_lock);
-	} else
+		}
+	}
+	else
+	{
 		_tlbiel_pid(pid, RIC_FLUSH_ALL);
+	}
+
 no_context:
 	preempt_enable();
 }
@@ -198,44 +229,73 @@ void radix__flush_tlb_pwc(struct mmu_gather *tlb, unsigned long addr)
 	preempt_disable();
 
 	pid = mm->context.id;
-	if (unlikely(pid == MMU_NO_CONTEXT))
-		goto no_context;
 
-	if (!mm_is_thread_local(mm)) {
+	if (unlikely(pid == MMU_NO_CONTEXT))
+	{
+		goto no_context;
+	}
+
+	if (!mm_is_thread_local(mm))
+	{
 		int lock_tlbie = !mmu_has_feature(MMU_FTR_LOCKLESS_TLBIE);
 
 		if (lock_tlbie)
+		{
 			raw_spin_lock(&native_tlbie_lock);
+		}
+
 		_tlbie_pid(pid, RIC_FLUSH_PWC);
+
 		if (lock_tlbie)
+		{
 			raw_spin_unlock(&native_tlbie_lock);
-	} else
+		}
+	}
+	else
+	{
 		_tlbiel_pid(pid, RIC_FLUSH_PWC);
+	}
+
 no_context:
 	preempt_enable();
 }
 EXPORT_SYMBOL(radix__flush_tlb_pwc);
 
 void radix__flush_tlb_page_psize(struct mm_struct *mm, unsigned long vmaddr,
-				 int psize)
+								 int psize)
 {
 	unsigned long pid;
 	unsigned long ap = mmu_get_ap(psize);
 
 	preempt_disable();
 	pid = mm ? mm->context.id : 0;
+
 	if (unlikely(pid == MMU_NO_CONTEXT))
+	{
 		goto bail;
-	if (!mm_is_thread_local(mm)) {
+	}
+
+	if (!mm_is_thread_local(mm))
+	{
 		int lock_tlbie = !mmu_has_feature(MMU_FTR_LOCKLESS_TLBIE);
 
 		if (lock_tlbie)
+		{
 			raw_spin_lock(&native_tlbie_lock);
+		}
+
 		_tlbie_va(vmaddr, pid, ap, RIC_FLUSH_TLB);
+
 		if (lock_tlbie)
+		{
 			raw_spin_unlock(&native_tlbie_lock);
-	} else
+		}
+	}
+	else
+	{
 		_tlbiel_va(vmaddr, pid, ap, RIC_FLUSH_TLB);
+	}
+
 bail:
 	preempt_enable();
 }
@@ -243,11 +303,15 @@ bail:
 void radix__flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
 #ifdef CONFIG_HUGETLB_PAGE
+
 	if (vma && is_vm_hugetlb_page(vma))
+	{
 		return flush_hugetlb_page(vma, vmaddr);
+	}
+
 #endif
 	radix__flush_tlb_page_psize(vma ? vma->vm_mm : NULL, vmaddr,
-				    mmu_virtual_psize);
+								mmu_virtual_psize);
 }
 EXPORT_SYMBOL(radix__flush_tlb_page);
 
@@ -258,10 +322,16 @@ void radix__flush_tlb_kernel_range(unsigned long start, unsigned long end)
 	int lock_tlbie = !mmu_has_feature(MMU_FTR_LOCKLESS_TLBIE);
 
 	if (lock_tlbie)
+	{
 		raw_spin_lock(&native_tlbie_lock);
+	}
+
 	_tlbie_pid(0, RIC_FLUSH_ALL);
+
 	if (lock_tlbie)
+	{
 		raw_spin_unlock(&native_tlbie_lock);
+	}
 }
 EXPORT_SYMBOL(radix__flush_tlb_kernel_range);
 
@@ -270,7 +340,7 @@ EXPORT_SYMBOL(radix__flush_tlb_kernel_range);
  * we use this in code path where we don' track the page size.
  */
 void radix__flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-		     unsigned long end)
+							unsigned long end)
 
 {
 	struct mm_struct *mm = vma->vm_mm;
@@ -283,13 +353,22 @@ static int radix_get_mmu_psize(int page_size)
 	int psize;
 
 	if (page_size == (1UL << mmu_psize_defs[mmu_virtual_psize].shift))
+	{
 		psize = mmu_virtual_psize;
+	}
 	else if (page_size == (1UL << mmu_psize_defs[MMU_PAGE_2M].shift))
+	{
 		psize = MMU_PAGE_2M;
+	}
 	else if (page_size == (1UL << mmu_psize_defs[MMU_PAGE_1G].shift))
+	{
 		psize = MMU_PAGE_1G;
+	}
 	else
+	{
 		return -1;
+	}
+
 	return psize;
 }
 
@@ -300,13 +379,18 @@ void radix__tlb_flush(struct mmu_gather *tlb)
 	int page_size = tlb->page_size;
 
 	psize = radix_get_mmu_psize(page_size);
+
 	/*
 	 * if page size is not something we understand, do a full mm flush
 	 */
 	if (psize != -1 && !tlb->fullmm && !tlb->need_flush_all)
+	{
 		radix__flush_tlb_range_psize(mm, tlb->start, tlb->end, psize);
+	}
 	else
+	{
 		radix__flush_tlb_mm(mm);
+	}
 }
 
 #define TLB_FLUSH_ALL -1UL
@@ -317,7 +401,7 @@ void radix__tlb_flush(struct mmu_gather *tlb)
 static unsigned long tlb_single_page_flush_ceiling __read_mostly = 33;
 
 void radix__flush_tlb_range_psize(struct mm_struct *mm, unsigned long start,
-				  unsigned long end, int psize)
+								  unsigned long end, int psize)
 {
 	unsigned long pid;
 	unsigned long addr;
@@ -329,37 +413,58 @@ void radix__flush_tlb_range_psize(struct mm_struct *mm, unsigned long start,
 
 	preempt_disable();
 	pid = mm ? mm->context.id : 0;
+
 	if (unlikely(pid == MMU_NO_CONTEXT))
+	{
 		goto err_out;
+	}
 
 	if (end == TLB_FLUSH_ALL ||
-	    (end - start) > tlb_single_page_flush_ceiling * page_size) {
+		(end - start) > tlb_single_page_flush_ceiling * page_size)
+	{
 		if (local)
+		{
 			_tlbiel_pid(pid, RIC_FLUSH_TLB);
+		}
 		else
+		{
 			_tlbie_pid(pid, RIC_FLUSH_TLB);
+		}
+
 		goto err_out;
 	}
-	for (addr = start; addr < end; addr += page_size) {
+
+	for (addr = start; addr < end; addr += page_size)
+	{
 
 		if (local)
+		{
 			_tlbiel_va(addr, pid, ap, RIC_FLUSH_TLB);
-		else {
+		}
+		else
+		{
 			if (lock_tlbie)
+			{
 				raw_spin_lock(&native_tlbie_lock);
+			}
+
 			_tlbie_va(addr, pid, ap, RIC_FLUSH_TLB);
+
 			if (lock_tlbie)
+			{
 				raw_spin_unlock(&native_tlbie_lock);
+			}
 		}
 	}
+
 err_out:
 	preempt_enable();
 }
 
 void radix__flush_tlb_lpid_va(unsigned long lpid, unsigned long gpa,
-			      unsigned long page_size)
+							  unsigned long page_size)
 {
-	unsigned long rb,rs,prs,r;
+	unsigned long rb, rs, prs, r;
 	unsigned long ap;
 	unsigned long ric = RIC_FLUSH_TLB;
 
@@ -372,14 +477,14 @@ void radix__flush_tlb_lpid_va(unsigned long lpid, unsigned long gpa,
 
 	asm volatile("ptesync": : :"memory");
 	asm volatile(PPC_TLBIE_5(%0, %4, %3, %2, %1)
-		     : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
+				 : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
 	asm volatile("eieio; tlbsync; ptesync": : :"memory");
 }
 EXPORT_SYMBOL(radix__flush_tlb_lpid_va);
 
 void radix__flush_tlb_lpid(unsigned long lpid)
 {
-	unsigned long rb,rs,prs,r;
+	unsigned long rb, rs, prs, r;
 	unsigned long ric = RIC_FLUSH_ALL;
 
 	rb = 0x2 << PPC_BITLSHIFT(53); /* IS = 2 */
@@ -389,13 +494,13 @@ void radix__flush_tlb_lpid(unsigned long lpid)
 
 	asm volatile("ptesync": : :"memory");
 	asm volatile(PPC_TLBIE_5(%0, %4, %3, %2, %1)
-		     : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
+				 : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(rs) : "memory");
 	asm volatile("eieio; tlbsync; ptesync": : :"memory");
 }
 EXPORT_SYMBOL(radix__flush_tlb_lpid);
 
 void radix__flush_pmd_tlb_range(struct vm_area_struct *vma,
-				unsigned long start, unsigned long end)
+								unsigned long start, unsigned long end)
 {
 	radix__flush_tlb_range_psize(vma->vm_mm, start, end, MMU_PAGE_2M);
 }
@@ -403,7 +508,7 @@ EXPORT_SYMBOL(radix__flush_pmd_tlb_range);
 
 void radix__flush_tlb_all(void)
 {
-	unsigned long rb,prs,r,rs;
+	unsigned long rb, prs, r, rs;
 	unsigned long ric = RIC_FLUSH_ALL;
 
 	rb = 0x3 << PPC_BITLSHIFT(53); /* IS = 3 */
@@ -416,11 +521,11 @@ void radix__flush_tlb_all(void)
 	 * now flush guest entries by passing PRS = 1 and LPID != 0
 	 */
 	asm volatile(PPC_TLBIE_5(%0, %4, %3, %2, %1)
-		     : : "r"(rb), "i"(r), "i"(1), "i"(ric), "r"(rs) : "memory");
+				 : : "r"(rb), "i"(r), "i"(1), "i"(ric), "r"(rs) : "memory");
 	/*
 	 * now flush host entires by passing PRS = 0 and LPID == 0
 	 */
 	asm volatile(PPC_TLBIE_5(%0, %4, %3, %2, %1)
-		     : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(0) : "memory");
+				 : : "r"(rb), "i"(r), "i"(prs), "i"(ric), "r"(0) : "memory");
 	asm volatile("eieio; tlbsync; ptesync": : :"memory");
 }

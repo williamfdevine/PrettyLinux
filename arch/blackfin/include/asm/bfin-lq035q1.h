@@ -28,7 +28,8 @@
 #define USE_RGB565_8_BIT_PPI	2
 #define USE_RGB888_8_BIT_PPI	3
 
-struct bfin_lq035q1fb_disp_info {
+struct bfin_lq035q1fb_disp_info
+{
 
 	unsigned	mode;
 	unsigned	ppi_mode;

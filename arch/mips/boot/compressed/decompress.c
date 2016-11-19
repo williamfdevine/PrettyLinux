@@ -30,11 +30,11 @@ extern unsigned char __image_begin, __image_end;
 
 /* debug interfaces  */
 #ifdef CONFIG_DEBUG_ZBOOT
-extern void puts(const char *s);
-extern void puthex(unsigned long long val);
+	extern void puts(const char *s);
+	extern void puthex(unsigned long long val);
 #else
-#define puts(s) do {} while (0)
-#define puthex(val) do {} while (0)
+	#define puts(s) do {} while (0)
+	#define puthex(val) do {} while (0)
 #endif
 
 extern char __appended_dtb[];
@@ -53,27 +53,27 @@ void error(char *x)
 #define STATIC static
 
 #ifdef CONFIG_KERNEL_GZIP
-#include "../../../../lib/decompress_inflate.c"
+	#include "../../../../lib/decompress_inflate.c"
 #endif
 
 #ifdef CONFIG_KERNEL_BZIP2
-#include "../../../../lib/decompress_bunzip2.c"
+	#include "../../../../lib/decompress_bunzip2.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZ4
-#include "../../../../lib/decompress_unlz4.c"
+	#include "../../../../lib/decompress_unlz4.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZMA
-#include "../../../../lib/decompress_unlzma.c"
+	#include "../../../../lib/decompress_unlzma.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZO
-#include "../../../../lib/decompress_unlzo.c"
+	#include "../../../../lib/decompress_unlzo.c"
 #endif
 
 #ifdef CONFIG_KERNEL_XZ
-#include "../../../../lib/decompress_unxz.c"
+	#include "../../../../lib/decompress_unxz.c"
 #endif
 
 unsigned long __stack_chk_guard;
@@ -96,7 +96,7 @@ void decompress_kernel(unsigned long boot_heap_start)
 
 	zimage_start = (unsigned long)(&__image_begin);
 	zimage_size = (unsigned long)(&__image_end) -
-	    (unsigned long)(&__image_begin);
+				  (unsigned long)(&__image_begin);
 
 	puts("zimage at:     ");
 	puthex(zimage_start);
@@ -115,10 +115,11 @@ void decompress_kernel(unsigned long boot_heap_start)
 
 	/* Decompress the kernel with according algorithm */
 	__decompress((char *)zimage_start, zimage_size, 0, 0,
-		   (void *)VMLINUX_LOAD_ADDRESS_ULL, 0, 0, error);
+				 (void *)VMLINUX_LOAD_ADDRESS_ULL, 0, 0, error);
 
 	if (IS_ENABLED(CONFIG_MIPS_RAW_APPENDED_DTB) &&
-	    fdt_magic((void *)&__appended_dtb) == FDT_MAGIC) {
+		fdt_magic((void *)&__appended_dtb) == FDT_MAGIC)
+	{
 		unsigned int image_size, dtb_size;
 
 		dtb_size = fdt_totalsize((void *)&__appended_dtb);
@@ -128,7 +129,7 @@ void decompress_kernel(unsigned long boot_heap_start)
 
 		/* copy dtb to where the booted kernel will expect it */
 		memcpy((void *)VMLINUX_LOAD_ADDRESS_ULL + image_size,
-		       __appended_dtb, dtb_size);
+			   __appended_dtb, dtb_size);
 	}
 
 	/* FIXME: should we flush cache here? */

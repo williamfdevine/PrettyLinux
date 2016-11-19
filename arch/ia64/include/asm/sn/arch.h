@@ -49,7 +49,8 @@
  * frequently referenced. They are kept in the per-cpu data areas of each cpu.
  * They are kept together in a struct to minimize cache misses.
  */
-struct sn_hub_info_s {
+struct sn_hub_info_s
+{
 	u8 shub2;
 	u8 nasid_shift;
 	u8 as_shift;

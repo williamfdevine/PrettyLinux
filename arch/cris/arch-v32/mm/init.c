@@ -48,55 +48,55 @@ void __init cris_mmu_init(void)
 	 * See head.S for differences between ARTPEC-3 and ETRAX FS.
 	 */
 	mmu_config = ( REG_STATE(mmu, rw_mm_cfg, we, on)        |
-		       REG_STATE(mmu, rw_mm_cfg, acc, on)       |
-		       REG_STATE(mmu, rw_mm_cfg, ex, on)        |
-		       REG_STATE(mmu, rw_mm_cfg, inv, on)       |
+				   REG_STATE(mmu, rw_mm_cfg, acc, on)       |
+				   REG_STATE(mmu, rw_mm_cfg, ex, on)        |
+				   REG_STATE(mmu, rw_mm_cfg, inv, on)       |
 #ifdef CONFIG_CRIS_MACH_ARTPEC3
-		       REG_STATE(mmu, rw_mm_cfg, seg_f, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_e, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_d, linear) |
+				   REG_STATE(mmu, rw_mm_cfg, seg_f, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_e, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_d, linear) |
 #else
-		       REG_STATE(mmu, rw_mm_cfg, seg_f, linear) |
-		       REG_STATE(mmu, rw_mm_cfg, seg_e, linear) |
-		       REG_STATE(mmu, rw_mm_cfg, seg_d, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_f, linear) |
+				   REG_STATE(mmu, rw_mm_cfg, seg_e, linear) |
+				   REG_STATE(mmu, rw_mm_cfg, seg_d, page)   |
 #endif
-		       REG_STATE(mmu, rw_mm_cfg, seg_c, linear) |
-		       REG_STATE(mmu, rw_mm_cfg, seg_b, linear) |
-                       REG_STATE(mmu, rw_mm_cfg, seg_a, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_9, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_8, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_7, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_6, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_5, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_4, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_3, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_2, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_1, page)   |
-		       REG_STATE(mmu, rw_mm_cfg, seg_0, page));
+				   REG_STATE(mmu, rw_mm_cfg, seg_c, linear) |
+				   REG_STATE(mmu, rw_mm_cfg, seg_b, linear) |
+				   REG_STATE(mmu, rw_mm_cfg, seg_a, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_9, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_8, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_7, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_6, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_5, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_4, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_3, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_2, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_1, page)   |
+				   REG_STATE(mmu, rw_mm_cfg, seg_0, page));
 
 	/* See head.S for differences between ARTPEC-3 and ETRAX FS. */
 	mmu_kbase_hi = ( REG_FIELD(mmu, rw_mm_kbase_hi, base_f, 0x0) |
 #ifdef CONFIG_CRIS_MACH_ARTPEC3
-			 REG_FIELD(mmu, rw_mm_kbase_hi, base_e, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_hi, base_d, 0x5) |
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_e, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_d, 0x5) |
 #else
-			 REG_FIELD(mmu, rw_mm_kbase_hi, base_e, 0x8) |
-			 REG_FIELD(mmu, rw_mm_kbase_hi, base_d, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_e, 0x8) |
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_d, 0x0) |
 #endif
-                         REG_FIELD(mmu, rw_mm_kbase_hi, base_c, 0x4) |
-			 REG_FIELD(mmu, rw_mm_kbase_hi, base_b, 0xb) |
-			 REG_FIELD(mmu, rw_mm_kbase_hi, base_a, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_hi, base_9, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_hi, base_8, 0x0));
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_c, 0x4) |
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_b, 0xb) |
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_a, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_9, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_hi, base_8, 0x0));
 
 	mmu_kbase_lo = ( REG_FIELD(mmu, rw_mm_kbase_lo, base_7, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_lo, base_6, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_lo, base_5, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_lo, base_4, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_lo, base_3, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_lo, base_2, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_lo, base_1, 0x0) |
-			 REG_FIELD(mmu, rw_mm_kbase_lo, base_0, 0x0));
+					 REG_FIELD(mmu, rw_mm_kbase_lo, base_6, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_lo, base_5, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_lo, base_4, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_lo, base_3, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_lo, base_2, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_lo, base_1, 0x0) |
+					 REG_FIELD(mmu, rw_mm_kbase_lo, base_0, 0x0));
 
 	mmu_page_id = REG_FIELD(mmu, rw_mm_tlb_hi, pid, 0);
 
@@ -132,8 +132,10 @@ void __init paging_init(void)
 	printk("Setting up paging and the MMU.\n");
 
 	/* Clear out the init_mm.pgd that will contain the kernel's mappings. */
-	for(i = 0; i < PTRS_PER_PGD; i++)
+	for (i = 0; i < PTRS_PER_PGD; i++)
+	{
 		swapper_pg_dir[i] = __pgd(0);
+	}
 
 	cris_mmu_init();
 
@@ -148,7 +150,9 @@ void __init paging_init(void)
 	zones_size[0] = ((unsigned long) high_memory - PAGE_OFFSET) >> PAGE_SHIFT;
 
 	for (i = 1; i < MAX_NR_ZONES; i++)
+	{
 		zones_size[i] = 0;
+	}
 
 	/*
 	 * Use free_area_init_node instead of free_area_init, because it is

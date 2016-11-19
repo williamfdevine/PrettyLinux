@@ -35,7 +35,8 @@ static struct hard_trap_info
 {
 	unsigned int tt;		/* Trap type code for powerpc */
 	unsigned char signo;		/* Signal that we map this trap into */
-} hard_trap_info[] = {
+} hard_trap_info[] =
+{
 	{ 0x0100, 0x02 /* SIGINT */  },		/* system reset */
 	{ 0x0200, 0x0b /* SIGSEGV */ },		/* machine check */
 	{ 0x0300, 0x0b /* SIGSEGV */ },		/* data access */
@@ -96,7 +97,9 @@ static int computeSignal(unsigned int tt)
 
 	for (ht = hard_trap_info; ht->tt && ht->signo; ht++)
 		if (ht->tt == tt)
+		{
 			return ht->signo;
+		}
 
 	return SIGHUP;		/* default for things we don't know about */
 }
@@ -133,19 +136,25 @@ void kgdb_roundup_cpus(unsigned long flags)
 static int kgdb_debugger(struct pt_regs *regs)
 {
 	return !kgdb_handle_exception(1, computeSignal(TRAP(regs)),
-				      DIE_OOPS, regs);
+								  DIE_OOPS, regs);
 }
 
 static int kgdb_handle_breakpoint(struct pt_regs *regs)
 {
 	if (user_mode(regs))
+	{
 		return 0;
+	}
 
 	if (kgdb_handle_exception(1, SIGTRAP, 0, regs) != 0)
+	{
 		return 0;
+	}
 
 	if (*(u32 *) (regs->nip) == *(u32 *) (&arch_kgdb_ops.gdb_bpt_instr))
+	{
 		regs->nip += BREAK_INSTR_SIZE;
+	}
 
 	return 1;
 }
@@ -158,7 +167,9 @@ static int kgdb_singlestep(struct pt_regs *regs)
 		this_cpu_ptr(&kgdb_thread_info);
 
 	if (user_mode(regs))
+	{
 		return 0;
+	}
 
 	/*
 	 * On Book E and perhaps other processors, singlestep is handled on
@@ -170,20 +181,23 @@ static int kgdb_singlestep(struct pt_regs *regs)
 	 * afterwards.  On most processors the copy is avoided since
 	 * exception_thread_info == thread_info.
 	 */
-	thread_info = (struct thread_info *)(regs->gpr[1] & ~(THREAD_SIZE-1));
+	thread_info = (struct thread_info *)(regs->gpr[1] & ~(THREAD_SIZE - 1));
 	exception_thread_info = current_thread_info();
 
-	if (thread_info != exception_thread_info) {
+	if (thread_info != exception_thread_info)
+	{
 		/* Save the original current_thread_info. */
-		memcpy(backup_current_thread_info, exception_thread_info, sizeof *thread_info);
-		memcpy(exception_thread_info, thread_info, sizeof *thread_info);
+		memcpy(backup_current_thread_info, exception_thread_info, sizeof * thread_info);
+		memcpy(exception_thread_info, thread_info, sizeof * thread_info);
 	}
 
 	kgdb_handle_exception(0, SIGTRAP, 0, regs);
 
 	if (thread_info != exception_thread_info)
 		/* Restore current_thread_info lastly. */
-		memcpy(exception_thread_info, backup_current_thread_info, sizeof *thread_info);
+	{
+		memcpy(exception_thread_info, backup_current_thread_info, sizeof * thread_info);
+	}
 
 	return 1;
 }
@@ -191,36 +205,46 @@ static int kgdb_singlestep(struct pt_regs *regs)
 static int kgdb_iabr_match(struct pt_regs *regs)
 {
 	if (user_mode(regs))
+	{
 		return 0;
+	}
 
 	if (kgdb_handle_exception(0, computeSignal(TRAP(regs)), 0, regs) != 0)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
 static int kgdb_break_match(struct pt_regs *regs)
 {
 	if (user_mode(regs))
+	{
 		return 0;
+	}
 
 	if (kgdb_handle_exception(0, computeSignal(TRAP(regs)), 0, regs) != 0)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
 #define PACK64(ptr, src) do { *(ptr++) = (src); } while (0)
 
 #define PACK32(ptr, src) do {          \
-	u32 *ptr32;                   \
-	ptr32 = (u32 *)ptr;           \
-	*(ptr32++) = (src);           \
-	ptr = (unsigned long *)ptr32; \
+		u32 *ptr32;                   \
+		ptr32 = (u32 *)ptr;           \
+		*(ptr32++) = (src);           \
+		ptr = (unsigned long *)ptr32; \
 	} while (0)
 
 void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 {
 	struct pt_regs *regs = (struct pt_regs *)(p->thread.ksp +
-						  STACK_FRAME_OVERHEAD);
+						   STACK_FRAME_OVERHEAD);
 	unsigned long *ptr = gdb_regs;
 	int reg;
 
@@ -228,19 +252,27 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 
 	/* Regs GPR0-2 */
 	for (reg = 0; reg < 3; reg++)
+	{
 		PACK64(ptr, regs->gpr[reg]);
+	}
 
 	/* Regs GPR3-13 are caller saved, not in regs->gpr[] */
 	ptr += 11;
 
 	/* Regs GPR14-31 */
 	for (reg = 14; reg < 32; reg++)
+	{
 		PACK64(ptr, regs->gpr[reg]);
+	}
 
 #ifdef CONFIG_FSL_BOOKE
 #ifdef CONFIG_SPE
+
 	for (reg = 0; reg < 32; reg++)
+	{
 		PACK64(ptr, p->thread.evr[reg]);
+	}
+
 #else
 	ptr += 32;
 #endif
@@ -257,16 +289,16 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 	PACK32(ptr, regs->xer);
 
 	BUG_ON((unsigned long)ptr >
-	       (unsigned long)(((void *)gdb_regs) + NUMREGBYTES));
+		   (unsigned long)(((void *)gdb_regs) + NUMREGBYTES));
 }
 
 #define GDB_SIZEOF_REG sizeof(unsigned long)
 #define GDB_SIZEOF_REG_U32 sizeof(u32)
 
 #ifdef CONFIG_FSL_BOOKE
-#define GDB_SIZEOF_FLOAT_REG sizeof(unsigned long)
+	#define GDB_SIZEOF_FLOAT_REG sizeof(unsigned long)
 #else
-#define GDB_SIZEOF_FLOAT_REG sizeof(u64)
+	#define GDB_SIZEOF_FLOAT_REG sizeof(u64)
 #endif
 
 struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] =
@@ -348,20 +380,24 @@ struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] =
 char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return NULL;
+	}
 
 	if (regno < 32 || regno >= 64)
 		/* First 0 -> 31 gpr registers*/
 		/* pc, msr, ls... registers 64 -> 69 */
 		memcpy(mem, (void *)regs + dbg_reg_def[regno].offset,
-				dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 
-	if (regno >= 32 && regno < 64) {
+	if (regno >= 32 && regno < 64)
+	{
 		/* FP registers 32 -> 63 */
 #if defined(CONFIG_FSL_BOOKE) && defined(CONFIG_SPE)
 		if (current)
-			memcpy(mem, &current->thread.evr[regno-32],
-					dbg_reg_def[regno].size);
+			memcpy(mem, &current->thread.evr[regno - 32],
+				   dbg_reg_def[regno].size);
+
 #else
 		/* fp registers not used by kernel, leave zero */
 		memset(mem, 0, dbg_reg_def[regno].size);
@@ -374,19 +410,22 @@ char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 int dbg_set_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (regno < 32 || regno >= 64)
 		/* First 0 -> 31 gpr registers*/
 		/* pc, msr, ls... registers 64 -> 69 */
 		memcpy((void *)regs + dbg_reg_def[regno].offset, mem,
-				dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 
-	if (regno >= 32 && regno < 64) {
+	if (regno >= 32 && regno < 64)
+	{
 		/* FP registers 32 -> 63 */
 #if defined(CONFIG_FSL_BOOKE) && defined(CONFIG_SPE)
-		memcpy(&current->thread.evr[regno-32], mem,
-				dbg_reg_def[regno].size);
+		memcpy(&current->thread.evr[regno - 32], mem,
+			   dbg_reg_def[regno].size);
 #else
 		/* fp registers not used by kernel, leave zero */
 		return 0;
@@ -405,37 +444,44 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long pc)
  * This function does PowerPC specific procesing for interfacing to gdb.
  */
 int kgdb_arch_handle_exception(int vector, int signo, int err_code,
-			       char *remcom_in_buffer, char *remcom_out_buffer,
-			       struct pt_regs *linux_regs)
+							   char *remcom_in_buffer, char *remcom_out_buffer,
+							   struct pt_regs *linux_regs)
 {
 	char *ptr = &remcom_in_buffer[1];
 	unsigned long addr;
 
-	switch (remcom_in_buffer[0]) {
+	switch (remcom_in_buffer[0])
+	{
 		/*
 		 * sAA..AA   Step one instruction from AA..AA
 		 * This will return an error to gdb ..
 		 */
-	case 's':
-	case 'c':
-		/* handle the optional parameter */
-		if (kgdb_hex2long(&ptr, &addr))
-			linux_regs->nip = addr;
+		case 's':
+		case 'c':
 
-		atomic_set(&kgdb_cpu_doing_single_step, -1);
-		/* set the trace bit if we're stepping */
-		if (remcom_in_buffer[0] == 's') {
+			/* handle the optional parameter */
+			if (kgdb_hex2long(&ptr, &addr))
+			{
+				linux_regs->nip = addr;
+			}
+
+			atomic_set(&kgdb_cpu_doing_single_step, -1);
+
+			/* set the trace bit if we're stepping */
+			if (remcom_in_buffer[0] == 's')
+			{
 #ifdef CONFIG_PPC_ADV_DEBUG_REGS
-			mtspr(SPRN_DBCR0,
-			      mfspr(SPRN_DBCR0) | DBCR0_IC | DBCR0_IDM);
-			linux_regs->msr |= MSR_DE;
+				mtspr(SPRN_DBCR0,
+					  mfspr(SPRN_DBCR0) | DBCR0_IC | DBCR0_IDM);
+				linux_regs->msr |= MSR_DE;
 #else
-			linux_regs->msr |= MSR_SE;
+				linux_regs->msr |= MSR_SE;
 #endif
-			atomic_set(&kgdb_cpu_doing_single_step,
-				   raw_smp_processor_id());
-		}
-		return 0;
+				atomic_set(&kgdb_cpu_doing_single_step,
+						   raw_smp_processor_id());
+			}
+
+			return 0;
 	}
 
 	return -1;
@@ -444,7 +490,8 @@ int kgdb_arch_handle_exception(int vector, int signo, int err_code,
 /*
  * Global data
  */
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 #ifdef __LITTLE_ENDIAN__
 	.gdb_bpt_instr = {0x08, 0x10, 0x82, 0x7d},
 #else

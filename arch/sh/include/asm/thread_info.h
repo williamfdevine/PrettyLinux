@@ -25,7 +25,8 @@
 #ifndef __ASSEMBLY__
 #include <asm/processor.h>
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	__u32			status;		/* thread synchronous flags */
@@ -40,9 +41,9 @@ struct thread_info {
 #endif
 
 #if defined(CONFIG_4KSTACKS)
-#define THREAD_SHIFT	12
+	#define THREAD_SHIFT	12
 #else
-#define THREAD_SHIFT	13
+	#define THREAD_SHIFT	13
 #endif
 
 #define THREAD_SIZE	(1 << THREAD_SHIFT)
@@ -53,14 +54,14 @@ struct thread_info {
  */
 #ifndef __ASSEMBLY__
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.status		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.status		= 0,			\
+											.cpu		= 0,			\
+													.preempt_count	= INIT_PREEMPT_COUNT,	\
+															.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -131,18 +132,18 @@ extern void init_thread_xstate(void);
 
 /* work to do in syscall trace */
 #define _TIF_WORK_SYSCALL_MASK	(_TIF_SYSCALL_TRACE | _TIF_SINGLESTEP | \
-				 _TIF_SYSCALL_AUDIT | _TIF_SECCOMP    | \
-				 _TIF_SYSCALL_TRACEPOINT)
+								 _TIF_SYSCALL_AUDIT | _TIF_SECCOMP    | \
+								 _TIF_SYSCALL_TRACEPOINT)
 
 /* work to do on any return to u-space */
 #define _TIF_ALLWORK_MASK	(_TIF_SYSCALL_TRACE | _TIF_SIGPENDING      | \
-				 _TIF_NEED_RESCHED  | _TIF_SYSCALL_AUDIT   | \
-				 _TIF_SINGLESTEP    | _TIF_NOTIFY_RESUME   | \
-				 _TIF_SYSCALL_TRACEPOINT)
+							 _TIF_NEED_RESCHED  | _TIF_SYSCALL_AUDIT   | \
+							 _TIF_SINGLESTEP    | _TIF_NOTIFY_RESUME   | \
+							 _TIF_SYSCALL_TRACEPOINT)
 
 /* work to do on interrupt/exception return */
 #define _TIF_WORK_MASK		(_TIF_ALLWORK_MASK & ~(_TIF_SYSCALL_TRACE | \
-				 _TIF_SYSCALL_AUDIT | _TIF_SINGLESTEP))
+							 _TIF_SYSCALL_AUDIT | _TIF_SINGLESTEP))
 
 /*
  * Thread-synchronous status.
@@ -164,7 +165,7 @@ static inline void set_thread_fault_code(unsigned int val)
 {
 	struct thread_info *ti = current_thread_info();
 	ti->flags = (ti->flags & (~0 >> (32 - TI_FLAG_FAULT_CODE_SHIFT)))
-		| (val << TI_FLAG_FAULT_CODE_SHIFT);
+				| (val << TI_FLAG_FAULT_CODE_SHIFT);
 }
 
 static inline unsigned int get_thread_fault_code(void)

@@ -37,7 +37,7 @@
 #include <asm/setup.h>
 #include <asm/uaccess.h>
 #ifdef CONFIG_HARDWALL
-#include <asm/hardwall.h>
+	#include <asm/hardwall.h>
 #endif
 #include <arch/chip.h>
 #include <arch/abi.h>
@@ -51,15 +51,21 @@
 static int __init idle_setup(char *str)
 {
 	if (!str)
+	{
 		return -EINVAL;
+	}
 
-	if (!strcmp(str, "poll")) {
+	if (!strcmp(str, "poll"))
+	{
 		pr_info("using polling idle threads\n");
 		cpu_idle_poll_ctrl(true);
 		return 0;
-	} else if (!strcmp(str, "halt")) {
+	}
+	else if (!strcmp(str, "halt"))
+	{
 		return 0;
 	}
+
 	return -1;
 }
 early_param("idle", idle_setup);
@@ -78,7 +84,8 @@ void arch_release_thread_stack(unsigned long *stack)
 	struct thread_info *info = (void *)stack;
 	struct single_step_state *step_state = info->step_state;
 
-	if (step_state) {
+	if (step_state)
+	{
 
 		/*
 		 * FIXME: we don't munmap step_state->buffer
@@ -101,7 +108,7 @@ void arch_release_thread_stack(unsigned long *stack)
 static void save_arch_state(struct thread_struct *t);
 
 int copy_thread(unsigned long clone_flags, unsigned long sp,
-		unsigned long arg, struct task_struct *p)
+				unsigned long arg, struct task_struct *p)
 {
 	struct pt_regs *childregs = task_pt_regs(p);
 	unsigned long ksp;
@@ -127,11 +134,12 @@ int copy_thread(unsigned long clone_flags, unsigned long sp,
 	/* Record the pid of the task that created this one. */
 	p->thread.creator_pid = current->pid;
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		/* kernel thread */
 		memset(childregs, 0, sizeof(struct pt_regs));
 		memset(&callee_regs[2], 0,
-		       (CALLEE_SAVED_REGS_COUNT - 2) * sizeof(unsigned long));
+			   (CALLEE_SAVED_REGS_COUNT - 2) * sizeof(unsigned long));
 		callee_regs[0] = sp;   /* r30 = function */
 		callee_regs[1] = arg;  /* r31 = arg */
 		p->thread.pc = (unsigned long) ret_from_kernel_thread;
@@ -164,10 +172,14 @@ int copy_thread(unsigned long clone_flags, unsigned long sp,
 	 */
 	*childregs = *current_pt_regs();
 	childregs->regs[0] = 0;         /* return value is zero */
+
 	if (sp)
-		childregs->sp = sp;  /* override with new user stack pointer */
+	{
+		childregs->sp = sp;    /* override with new user stack pointer */
+	}
+
 	memcpy(callee_regs, &childregs->regs[CALLEE_SAVED_FIRST_REG],
-	       CALLEE_SAVED_REGS_COUNT * sizeof(unsigned long));
+		   CALLEE_SAVED_REGS_COUNT * sizeof(unsigned long));
 
 	/* Save user stack top pointer so we can ID the stack vm area later. */
 	p->thread.usp0 = childregs->sp;
@@ -177,7 +189,9 @@ int copy_thread(unsigned long clone_flags, unsigned long sp,
 	 * which is passed in as arg #5 to sys_clone().
 	 */
 	if (clone_flags & CLONE_SETTLS)
+	{
 		childregs->tp = childregs->regs[4];
+	}
 
 
 #if CHIP_HAS_TILE_DMA()
@@ -195,7 +209,7 @@ int copy_thread(unsigned long clone_flags, unsigned long sp,
 #ifdef CONFIG_HARDWALL
 	/* New thread does not own any networks. */
 	memset(&p->thread.hardwall[0], 0,
-	       sizeof(struct hardwall_task) * HARDWALL_TYPES);
+		   sizeof(struct hardwall_task) * HARDWALL_TYPES);
 #endif
 
 
@@ -217,7 +231,7 @@ int set_unalign_ctl(struct task_struct *tsk, unsigned int val)
 int get_unalign_ctl(struct task_struct *tsk, unsigned long adr)
 {
 	return put_user(task_thread_info(tsk)->align_ctl,
-			(unsigned int __user *)adr);
+					(unsigned int __user *)adr);
 }
 
 static struct task_struct corrupt_current = { .comm = "<corrupt>" };
@@ -229,12 +243,15 @@ static struct task_struct corrupt_current = { .comm = "<corrupt>" };
 struct task_struct *validate_current(void)
 {
 	struct task_struct *tsk = current;
+
 	if (unlikely((unsigned long)tsk < PAGE_OFFSET ||
-		     (high_memory && (void *)tsk > high_memory) ||
-		     ((unsigned long)tsk & (__alignof__(*tsk) - 1)) != 0)) {
+				 (high_memory && (void *)tsk > high_memory) ||
+				 ((unsigned long)tsk & (__alignof__(*tsk) - 1)) != 0))
+	{
 		pr_err("Corrupt 'current' %p (sp %#lx)\n", tsk, stack_pointer);
 		tsk = &corrupt_current;
 	}
+
 	return tsk;
 }
 
@@ -243,9 +260,9 @@ struct task_struct *sim_notify_fork(struct task_struct *prev)
 {
 	struct task_struct *tsk = current;
 	__insn_mtspr(SPR_SIM_CONTROL, SIM_CONTROL_OS_FORK_PARENT |
-		     (tsk->thread.creator_pid << _SIM_CONTROL_OPERATOR_BITS));
+				 (tsk->thread.creator_pid << _SIM_CONTROL_OPERATOR_BITS));
 	__insn_mtspr(SPR_SIM_CONTROL, SIM_CONTROL_OS_FORK |
-		     (tsk->pid << _SIM_CONTROL_OPERATOR_BITS));
+				 (tsk->pid << _SIM_CONTROL_OPERATOR_BITS));
 	return prev;
 }
 
@@ -290,7 +307,9 @@ static void save_tile_dma_state(struct tile_dma_state *dma)
 
 	/* If we're running, suspend the engine. */
 	if ((state & DMA_STATUS_MASK) == SPR_DMA_STATUS__RUNNING_MASK)
+	{
 		__insn_mtspr(SPR_DMA_CTR, SPR_DMA_CTR__SUSPEND_MASK);
+	}
 
 	/*
 	 * Wait for the engine to idle, then save regs.  Note that we
@@ -300,9 +319,11 @@ static void save_tile_dma_state(struct tile_dma_state *dma)
 	 * the case where the kernel suspended as part of the context
 	 * swap.
 	 */
-	do {
+	do
+	{
 		post_suspend_state = __insn_mfspr(SPR_DMA_USER_STATUS);
-	} while (post_suspend_state & SPR_DMA_STATUS__BUSY_MASK);
+	}
+	while (post_suspend_state & SPR_DMA_STATUS__BUSY_MASK);
 
 	dma->src = __insn_mfspr(SPR_DMA_SRC_ADDR);
 	dma->src_chunk = __insn_mfspr(SPR_DMA_SRC_CHUNK_ADDR);
@@ -312,7 +333,7 @@ static void save_tile_dma_state(struct tile_dma_state *dma)
 	dma->chunk_size = __insn_mfspr(SPR_DMA_CHUNK_SIZE);
 	dma->byte = __insn_mfspr(SPR_DMA_BYTE);
 	dma->status = (state & SPR_DMA_STATUS__RUNNING_MASK) |
-		(post_suspend_state & SPR_DMA_STATUS__DONE_MASK);
+				  (post_suspend_state & SPR_DMA_STATUS__DONE_MASK);
 }
 
 /* Restart a DMA that was running before we were context-switched out. */
@@ -325,11 +346,13 @@ static void restore_tile_dma_state(struct thread_struct *t)
 	 * length transaction.
 	 */
 	if ((dma->status & SPR_DMA_STATUS__DONE_MASK) &&
-	    !(__insn_mfspr(SPR_DMA_USER_STATUS) & SPR_DMA_STATUS__DONE_MASK)) {
+		!(__insn_mfspr(SPR_DMA_USER_STATUS) & SPR_DMA_STATUS__DONE_MASK))
+	{
 		__insn_mtspr(SPR_DMA_BYTE, 0);
 		__insn_mtspr(SPR_DMA_CTR, SPR_DMA_CTR__REQUEST_MASK);
+
 		while (__insn_mfspr(SPR_DMA_USER_STATUS) &
-		       SPR_DMA_STATUS__BUSY_MASK)
+			   SPR_DMA_STATUS__BUSY_MASK)
 			;
 	}
 
@@ -349,7 +372,8 @@ static void restore_tile_dma_state(struct thread_struct *t)
 	 * try to clear the TIF_ASYNC_TLB flag, since it's relatively
 	 * harmless if set, and it covers both DMA and the SN processor.
 	 */
-	if ((dma->status & DMA_STATUS_MASK) == SPR_DMA_STATUS__RUNNING_MASK) {
+	if ((dma->status & DMA_STATUS_MASK) == SPR_DMA_STATUS__RUNNING_MASK)
+	{
 		t->dma_async_tlb.fault_num = 0;
 		__insn_mtspr(SPR_DMA_CTR, SPR_DMA_CTR__REQUEST_MASK);
 	}
@@ -361,7 +385,7 @@ static void save_arch_state(struct thread_struct *t)
 {
 #if CHIP_HAS_SPLIT_INTR_MASK()
 	t->interrupt_mask = __insn_mfspr(SPR_INTERRUPT_MASK_0_0) |
-		((u64)__insn_mfspr(SPR_INTERRUPT_MASK_0_1) << 32);
+						((u64)__insn_mfspr(SPR_INTERRUPT_MASK_0_1) << 32);
 #else
 	t->interrupt_mask = __insn_mfspr(SPR_INTERRUPT_MASK_0);
 #endif
@@ -412,31 +436,40 @@ void _prepare_arch_switch(struct task_struct *next)
 {
 #if CHIP_HAS_TILE_DMA()
 	struct tile_dma_state *dma = &current->thread.tile_dma_state;
+
 	if (dma->enabled)
+	{
 		save_tile_dma_state(dma);
+	}
+
 #endif
 }
 
 
 struct task_struct *__sched _switch_to(struct task_struct *prev,
-				       struct task_struct *next)
+									   struct task_struct *next)
 {
 	/* DMA state is already saved; save off other arch state. */
 	save_arch_state(&prev->thread);
 
 #if CHIP_HAS_TILE_DMA()
+
 	/*
 	 * Restore DMA in new task if desired.
 	 * Note that it is only safe to restart here since interrupts
 	 * are disabled, so we can't take any DMATLB miss or access
 	 * interrupts before we have finished switching stacks.
 	 */
-	if (next->thread.tile_dma_state.enabled) {
+	if (next->thread.tile_dma_state.enabled)
+	{
 		restore_tile_dma_state(&next->thread);
 		grant_dma_mpls();
-	} else {
+	}
+	else
+	{
 		restrict_dma_mpls();
 	}
+
 #endif
 
 	/* Restore other arch state. */
@@ -450,7 +483,7 @@ struct task_struct *__sched _switch_to(struct task_struct *prev,
 	/* Notify the simulator of task exit. */
 	if (unlikely(prev->state == TASK_DEAD))
 		__insn_mtspr(SPR_SIM_CONTROL, SIM_CONTROL_OS_EXIT |
-			     (prev->pid << _SIM_CONTROL_OPERATOR_BITS));
+					 (prev->pid << _SIM_CONTROL_OPERATOR_BITS));
 
 	/*
 	 * Switch kernel SP, PC, and callee-saved registers.
@@ -475,23 +508,35 @@ struct task_struct *__sched _switch_to(struct task_struct *prev,
 void prepare_exit_to_usermode(struct pt_regs *regs, u32 thread_info_flags)
 {
 	if (WARN_ON(!user_mode(regs)))
+	{
 		return;
+	}
 
-	do {
+	do
+	{
 		local_irq_enable();
 
 		if (thread_info_flags & _TIF_NEED_RESCHED)
+		{
 			schedule();
+		}
 
 #if CHIP_HAS_TILE_DMA()
+
 		if (thread_info_flags & _TIF_ASYNC_TLB)
+		{
 			do_async_page_fault(regs);
+		}
+
 #endif
 
 		if (thread_info_flags & _TIF_SIGPENDING)
+		{
 			do_signal(regs);
+		}
 
-		if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+		if (thread_info_flags & _TIF_NOTIFY_RESUME)
+		{
 			clear_thread_flag(TIF_NOTIFY_RESUME);
 			tracehook_notify_resume(regs);
 		}
@@ -499,9 +544,11 @@ void prepare_exit_to_usermode(struct pt_regs *regs, u32 thread_info_flags)
 		local_irq_disable();
 		thread_info_flags = READ_ONCE(current_thread_info()->flags);
 
-	} while (thread_info_flags & _TIF_WORK_MASK);
+	}
+	while (thread_info_flags & _TIF_WORK_MASK);
 
-	if (thread_info_flags & _TIF_SINGLESTEP) {
+	if (thread_info_flags & _TIF_SINGLESTEP)
+	{
 		single_step_once(regs);
 #ifndef __tilegx__
 		/*
@@ -521,13 +568,18 @@ unsigned long get_wchan(struct task_struct *p)
 	struct KBacktraceIterator kbt;
 
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	for (KBacktraceIterator_init(&kbt, p, NULL);
-	     !KBacktraceIterator_end(&kbt);
-	     KBacktraceIterator_next(&kbt)) {
+		 !KBacktraceIterator_end(&kbt);
+		 KBacktraceIterator_next(&kbt))
+	{
 		if (!in_sched_functions(kbt.it.pc))
+		{
 			return kbt.it.pc;
+		}
 	}
 
 	return 0;
@@ -559,28 +611,32 @@ void tile_show_regs(struct pt_regs *regs)
 {
 	int i;
 #ifdef __tilegx__
+
 	for (i = 0; i < 17; i++)
 		pr_err(" r%-2d: "REGFMT" r%-2d: "REGFMT" r%-2d: "REGFMT"\n",
-		       i, regs->regs[i], i+18, regs->regs[i+18],
-		       i+36, regs->regs[i+36]);
+			   i, regs->regs[i], i + 18, regs->regs[i + 18],
+			   i + 36, regs->regs[i + 36]);
+
 	pr_err(" r17: "REGFMT" r35: "REGFMT" tp : "REGFMT"\n",
-	       regs->regs[17], regs->regs[35], regs->tp);
+		   regs->regs[17], regs->regs[35], regs->tp);
 	pr_err(" sp : "REGFMT" lr : "REGFMT"\n", regs->sp, regs->lr);
 #else
+
 	for (i = 0; i < 13; i++)
 		pr_err(" r%-2d: "REGFMT" r%-2d: "REGFMT
-		       " r%-2d: "REGFMT" r%-2d: "REGFMT"\n",
-		       i, regs->regs[i], i+14, regs->regs[i+14],
-		       i+27, regs->regs[i+27], i+40, regs->regs[i+40]);
+			   " r%-2d: "REGFMT" r%-2d: "REGFMT"\n",
+			   i, regs->regs[i], i + 14, regs->regs[i + 14],
+			   i + 27, regs->regs[i + 27], i + 40, regs->regs[i + 40]);
+
 	pr_err(" r13: "REGFMT" tp : "REGFMT" sp : "REGFMT" lr : "REGFMT"\n",
-	       regs->regs[13], regs->tp, regs->sp, regs->lr);
+		   regs->regs[13], regs->tp, regs->sp, regs->lr);
 #endif
 	pr_err(" pc : "REGFMT" ex1: %ld     faultnum: %ld flags:%s%s%s%s\n",
-	       regs->pc, regs->ex1, regs->faultnum,
-	       is_compat_task() ? " compat" : "",
-	       (regs->flags & PT_FLAGS_DISABLE_IRQ) ? " noirq" : "",
-	       !(regs->flags & PT_FLAGS_CALLER_SAVES) ? " nocallersave" : "",
-	       (regs->flags & PT_FLAGS_RESTORE_REGS) ? " restoreregs" : "");
+		   regs->pc, regs->ex1, regs->faultnum,
+		   is_compat_task() ? " compat" : "",
+		   (regs->flags & PT_FLAGS_DISABLE_IRQ) ? " noirq" : "",
+		   !(regs->flags & PT_FLAGS_CALLER_SAVES) ? " nocallersave" : "",
+		   (regs->flags & PT_FLAGS_RESTORE_REGS) ? " restoreregs" : "");
 }
 
 void show_regs(struct pt_regs *regs)
@@ -606,13 +662,19 @@ void nmi_raise_cpu_backtrace(struct cpumask *in_mask)
 	/* Tentatively dump stack on remote tiles via NMI. */
 	timeout = 100;
 	cpumask_copy(&mask, in_mask);
-	while (!cpumask_empty(&mask) && timeout) {
-		for_each_cpu(cpu, &mask) {
+
+	while (!cpumask_empty(&mask) && timeout)
+	{
+		for_each_cpu(cpu, &mask)
+		{
 			tile.x = cpu_x(cpu);
 			tile.y = cpu_y(cpu);
 			info[cpu] = hv_send_nmi(tile, TILE_NMI_DUMP_STACK, 0);
+
 			if (info[cpu].result == HV_NMI_RESULT_OK)
+			{
 				cpumask_clear_cpu(cpu, &mask);
+			}
 		}
 
 		mdelay(10);
@@ -621,28 +683,34 @@ void nmi_raise_cpu_backtrace(struct cpumask *in_mask)
 	}
 
 	/* Warn about cpus stuck in ICS. */
-	if (!cpumask_empty(&mask)) {
-		for_each_cpu(cpu, &mask) {
+	if (!cpumask_empty(&mask))
+	{
+		for_each_cpu(cpu, &mask)
+		{
 
 			/* Clear the bit as if nmi_cpu_backtrace() ran. */
 			cpumask_clear_cpu(cpu, in_mask);
 
-			switch (info[cpu].result) {
-			case HV_NMI_RESULT_FAIL_ICS:
-				pr_warn("Skipping stack dump of cpu %d in ICS at pc %#llx\n",
-					cpu, info[cpu].pc);
-				break;
-			case HV_NMI_RESULT_FAIL_HV:
-				pr_warn("Skipping stack dump of cpu %d in hypervisor\n",
-					cpu);
-				break;
-			case HV_ENOSYS:
-				WARN_ONCE(1, "Hypervisor too old to allow remote stack dumps.\n");
-				break;
-			default:  /* should not happen */
-				pr_warn("Skipping stack dump of cpu %d [%d,%#llx]\n",
-					cpu, info[cpu].result, info[cpu].pc);
-				break;
+			switch (info[cpu].result)
+			{
+				case HV_NMI_RESULT_FAIL_ICS:
+					pr_warn("Skipping stack dump of cpu %d in ICS at pc %#llx\n",
+							cpu, info[cpu].pc);
+					break;
+
+				case HV_NMI_RESULT_FAIL_HV:
+					pr_warn("Skipping stack dump of cpu %d in hypervisor\n",
+							cpu);
+					break;
+
+				case HV_ENOSYS:
+					WARN_ONCE(1, "Hypervisor too old to allow remote stack dumps.\n");
+					break;
+
+				default:  /* should not happen */
+					pr_warn("Skipping stack dump of cpu %d [%d,%#llx]\n",
+							cpu, info[cpu].result, info[cpu].pc);
+					break;
 			}
 		}
 	}
@@ -651,6 +719,6 @@ void nmi_raise_cpu_backtrace(struct cpumask *in_mask)
 void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
 {
 	nmi_trigger_cpumask_backtrace(mask, exclude_self,
-				      nmi_raise_cpu_backtrace);
+								  nmi_raise_cpu_backtrace);
 }
 #endif /* __tilegx_ */

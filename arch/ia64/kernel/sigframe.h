@@ -1,10 +1,12 @@
-struct sigscratch {
+struct sigscratch
+{
 	unsigned long scratch_unat;	/* ar.unat for the general registers saved in pt */
 	unsigned long ar_pfs;		/* for syscalls, the user-level function-state  */
 	struct pt_regs pt;
 };
 
-struct sigframe {
+struct sigframe
+{
 	/*
 	 * Place signal handler args where user-level unwinder can find them easily.
 	 * DO NOT MOVE THESE.  They are part of the IA-64 Linux ABI and there is

@@ -4,15 +4,15 @@
 #include <asm-generic/pgtable-nopmd.h>
 
 #ifndef __ASSEMBLY__
-#include <linux/sched.h>
-#include <linux/threads.h>
-#include <asm/io.h>			/* For sub-arch specific PPC_PIN_SIZE */
+	#include <linux/sched.h>
+	#include <linux/threads.h>
+	#include <asm/io.h>			/* For sub-arch specific PPC_PIN_SIZE */
 
-extern unsigned long ioremap_bot;
+	extern unsigned long ioremap_bot;
 
-#ifdef CONFIG_44x
-extern int icache_44x_need_flush;
-#endif
+	#ifdef CONFIG_44x
+		extern int icache_44x_need_flush;
+	#endif
 
 #endif /* __ASSEMBLY__ */
 
@@ -36,8 +36,8 @@ extern int icache_44x_need_flush;
  * we don't really have any PMD directory.
  */
 #ifndef __ASSEMBLY__
-#define PTE_TABLE_SIZE	(sizeof(pte_t) << PTE_SHIFT)
-#define PGD_TABLE_SIZE	(sizeof(pgd_t) << (32 - PGDIR_SHIFT))
+	#define PTE_TABLE_SIZE	(sizeof(pte_t) << PTE_SHIFT)
+	#define PGD_TABLE_SIZE	(sizeof(pgd_t) << (32 - PGDIR_SHIFT))
 #endif	/* __ASSEMBLY__ */
 
 #define PTRS_PER_PTE	(1 << PTE_SHIFT)
@@ -49,7 +49,7 @@ extern int icache_44x_need_flush;
 
 #define pte_ERROR(e) \
 	pr_err("%s:%d: bad pte %llx.\n", __FILE__, __LINE__, \
-		(unsigned long long)pte_val(e))
+		   (unsigned long long)pte_val(e))
 #define pgd_ERROR(e) \
 	pr_err("%s:%d: bad pgd %08lx.\n", __FILE__, __LINE__, pgd_val(e))
 
@@ -59,9 +59,9 @@ extern int icache_44x_need_flush;
  * virtual space that goes below PKMAP and FIXMAP
  */
 #ifdef CONFIG_HIGHMEM
-#define KVIRT_TOP	PKMAP_BASE
+	#define KVIRT_TOP	PKMAP_BASE
 #else
-#define KVIRT_TOP	(0xfe000000UL)	/* for now, could be FIXMAP_BASE ? */
+	#define KVIRT_TOP	(0xfe000000UL)	/* for now, could be FIXMAP_BASE ? */
 #endif
 
 /*
@@ -70,9 +70,9 @@ extern int icache_44x_need_flush;
  * and ioremap space
  */
 #ifdef CONFIG_NOT_COHERENT_CACHE
-#define IOREMAP_TOP	((KVIRT_TOP - CONFIG_CONSISTENT_SIZE) & PAGE_MASK)
+	#define IOREMAP_TOP	((KVIRT_TOP - CONFIG_CONSISTENT_SIZE) & PAGE_MASK)
 #else
-#define IOREMAP_TOP	KVIRT_TOP
+	#define IOREMAP_TOP	KVIRT_TOP
 #endif
 
 /*
@@ -94,9 +94,9 @@ extern int icache_44x_need_flush;
  */
 #define VMALLOC_OFFSET (0x1000000) /* 16M */
 #ifdef PPC_PIN_SIZE
-#define VMALLOC_START (((_ALIGN((long)high_memory, PPC_PIN_SIZE) + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
+	#define VMALLOC_START (((_ALIGN((long)high_memory, PPC_PIN_SIZE) + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
 #else
-#define VMALLOC_START ((((long)high_memory + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
+	#define VMALLOC_START ((((long)high_memory + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
 #endif
 #define VMALLOC_END	ioremap_bot
 
@@ -106,15 +106,15 @@ extern int icache_44x_need_flush;
  */
 
 #if defined(CONFIG_40x)
-#include <asm/nohash/32/pte-40x.h>
+	#include <asm/nohash/32/pte-40x.h>
 #elif defined(CONFIG_44x)
-#include <asm/nohash/32/pte-44x.h>
+	#include <asm/nohash/32/pte-44x.h>
 #elif defined(CONFIG_FSL_BOOKE) && defined(CONFIG_PTE_64BIT)
-#include <asm/nohash/pte-book3e.h>
+	#include <asm/nohash/pte-book3e.h>
 #elif defined(CONFIG_FSL_BOOKE)
-#include <asm/nohash/32/pte-fsl-booke.h>
+	#include <asm/nohash/32/pte-fsl-booke.h>
 #elif defined(CONFIG_8xx)
-#include <asm/nohash/32/pte-8xx.h>
+	#include <asm/nohash/32/pte-8xx.h>
 #endif
 
 /* And here we include common definitions */
@@ -140,15 +140,15 @@ static inline void pmd_clear(pmd_t *pmdp)
  * table entry.  flush_hash_pages is assembler (for speed) in hashtable.S.
  */
 extern int flush_hash_pages(unsigned context, unsigned long va,
-			    unsigned long pmdval, int count);
+							unsigned long pmdval, int count);
 
 /* Add an HPTE to the hash table */
 extern void add_hash_page(unsigned context, unsigned long va,
-			  unsigned long pmdval);
+						  unsigned long pmdval);
 
 /* Flush an entry from the TLB/hash table */
 extern void flush_hash_entry(struct mm_struct *mm, pte_t *ptep,
-			     unsigned long address);
+							 unsigned long address);
 
 /*
  * PTE updates. This function is called whenever an existing
@@ -167,8 +167,8 @@ extern void flush_hash_entry(struct mm_struct *mm, pte_t *ptep,
  */
 #ifndef CONFIG_PTE_64BIT
 static inline unsigned long pte_update(pte_t *p,
-				       unsigned long clr,
-				       unsigned long set)
+									   unsigned long clr,
+									   unsigned long set)
 {
 #ifdef PTE_ATOMIC_UPDATES
 	unsigned long old, tmp;
@@ -177,27 +177,31 @@ static inline unsigned long pte_update(pte_t *p,
 1:	lwarx	%0,0,%3\n\
 	andc	%1,%0,%4\n\
 	or	%1,%1,%5\n"
-	PPC405_ERR77(0,%3)
-"	stwcx.	%1,0,%3\n\
+						 PPC405_ERR77(0, %3)
+						 "	stwcx.	%1,0,%3\n\
 	bne-	1b"
-	: "=&r" (old), "=&r" (tmp), "=m" (*p)
-	: "r" (p), "r" (clr), "r" (set), "m" (*p)
-	: "cc" );
+						 : "=&r" (old), "=&r" (tmp), "=m" (*p)
+						 : "r" (p), "r" (clr), "r" (set), "m" (*p)
+						 : "cc" );
 #else /* PTE_ATOMIC_UPDATES */
 	unsigned long old = pte_val(*p);
 	*p = __pte((old & ~clr) | set);
 #endif /* !PTE_ATOMIC_UPDATES */
 
 #ifdef CONFIG_44x
+
 	if ((old & _PAGE_USER) && (old & _PAGE_EXEC))
+	{
 		icache_44x_need_flush = 1;
+	}
+
 #endif
 	return old;
 }
 #else /* CONFIG_PTE_64BIT */
 static inline unsigned long long pte_update(pte_t *p,
-					    unsigned long clr,
-					    unsigned long set)
+		unsigned long clr,
+		unsigned long set)
 {
 #ifdef PTE_ATOMIC_UPDATES
 	unsigned long long old;
@@ -208,20 +212,24 @@ static inline unsigned long long pte_update(pte_t *p,
 	lwzx	%0,0,%3\n\
 	andc	%1,%L0,%5\n\
 	or	%1,%1,%6\n"
-	PPC405_ERR77(0,%3)
-"	stwcx.	%1,0,%4\n\
+						 PPC405_ERR77(0, %3)
+						 "	stwcx.	%1,0,%4\n\
 	bne-	1b"
-	: "=&r" (old), "=&r" (tmp), "=m" (*p)
-	: "r" (p), "r" ((unsigned long)(p) + 4), "r" (clr), "r" (set), "m" (*p)
-	: "cc" );
+						 : "=&r" (old), "=&r" (tmp), "=m" (*p)
+						 : "r" (p), "r" ((unsigned long)(p) + 4), "r" (clr), "r" (set), "m" (*p)
+						 : "cc" );
 #else /* PTE_ATOMIC_UPDATES */
 	unsigned long long old = pte_val(*p);
 	*p = __pte((old & ~(unsigned long long)clr) | set);
 #endif /* !PTE_ATOMIC_UPDATES */
 
 #ifdef CONFIG_44x
+
 	if ((old & _PAGE_USER) && (old & _PAGE_EXEC))
+	{
 		icache_44x_need_flush = 1;
+	}
+
 #endif
 	return old;
 }
@@ -237,10 +245,13 @@ static inline int __ptep_test_and_clear_young(unsigned int context, unsigned lon
 	unsigned long old;
 	old = pte_update(ptep, _PAGE_ACCESSED, 0);
 #if _PAGE_HASHPTE != 0
-	if (old & _PAGE_HASHPTE) {
+
+	if (old & _PAGE_HASHPTE)
+	{
 		unsigned long ptephys = __pa(ptep) & PAGE_MASK;
 		flush_hash_pages(context, addr, ptephys, 1);
 	}
+
 #endif
 	return (old & _PAGE_ACCESSED) != 0;
 }
@@ -249,29 +260,29 @@ static inline int __ptep_test_and_clear_young(unsigned int context, unsigned lon
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
-				       pte_t *ptep)
+									   pte_t *ptep)
 {
 	return __pte(pte_update(ptep, ~_PAGE_HASHPTE, 0));
 }
 
 #define __HAVE_ARCH_PTEP_SET_WRPROTECT
 static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
-				      pte_t *ptep)
+									  pte_t *ptep)
 {
 	pte_update(ptep, (_PAGE_RW | _PAGE_HWWRITE), _PAGE_RO);
 }
 static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
-					   unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 	ptep_set_wrprotect(mm, addr, ptep);
 }
 
 
 static inline void __ptep_set_access_flags(struct mm_struct *mm,
-					   pte_t *ptep, pte_t entry)
+		pte_t *ptep, pte_t entry)
 {
 	unsigned long set = pte_val(entry) &
-		(_PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_RW | _PAGE_EXEC);
+						(_PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_RW | _PAGE_EXEC);
 	unsigned long clr = ~pte_val(entry) & _PAGE_RO;
 
 	pte_update(ptep, clr, set);
@@ -311,7 +322,7 @@ static inline void __ptep_set_access_flags(struct mm_struct *mm,
 	(((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
 #define pte_offset_kernel(dir, addr)	\
 	(pmd_bad(*(dir)) ? NULL : (pte_t *)pmd_page_vaddr(*(dir)) + \
-				  pte_index(addr))
+	 pte_index(addr))
 #define pte_offset_map(dir, addr)		\
 	((pte_t *) kmap_atomic(pmd_page(*(dir))) + pte_index(addr))
 #define pte_unmap(pte)		kunmap_atomic(pte)
@@ -329,16 +340,16 @@ static inline void __ptep_set_access_flags(struct mm_struct *mm,
 #define __swp_entry_to_pte(x)		((pte_t) { (x).val << 3 })
 
 #ifndef CONFIG_PPC_4K_PAGES
-void pgtable_cache_init(void);
+	void pgtable_cache_init(void);
 #else
-/*
- * No page table caches to initialise
- */
-#define pgtable_cache_init()	do { } while (0)
+	/*
+	* No page table caches to initialise
+	*/
+	#define pgtable_cache_init()	do { } while (0)
 #endif
 
 extern int get_pteptr(struct mm_struct *mm, unsigned long addr, pte_t **ptep,
-		      pmd_t **pmdp);
+					  pmd_t **pmdp);
 
 #endif /* !__ASSEMBLY__ */
 

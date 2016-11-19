@@ -4,13 +4,15 @@
 #include "opcode.h"
 #include "selftest.h"
 
-struct selftest_opcode {
+struct selftest_opcode
+{
 	unsigned int expected_size;
 	const uint8_t *insn;
 	const char *desc;
 };
 
-static const struct selftest_opcode selftest_opcodes[] = {
+static const struct selftest_opcode selftest_opcodes[] =
+{
 	/* REP MOVS */
 	{1, "\xf3\xa4", 		"rep movsb <mem8>, <mem8>"},
 	{4, "\xf3\xa5",			"rep movsl <mem32>, <mem32>"},
@@ -42,10 +44,12 @@ static bool selftest_opcode_one(const struct selftest_opcode *op)
 	kmemcheck_opcode_decode(op->insn, &size);
 
 	if (size == op->expected_size)
+	{
 		return true;
+	}
 
 	printk(KERN_WARNING "kmemcheck: opcode %s: expected size %d, got %d\n",
-		op->desc, op->expected_size, size);
+		   op->desc, op->expected_size, size);
 	return false;
 }
 
@@ -55,7 +59,9 @@ static bool selftest_opcodes_all(void)
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(selftest_opcodes); ++i)
+	{
 		pass = pass && selftest_opcode_one(&selftest_opcodes[i]);
+	}
 
 	return pass;
 }

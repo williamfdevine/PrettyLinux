@@ -34,7 +34,8 @@
 
 #define UBNT_XM_EEPROM_ADDR		(u8 *) KSEG1ADDR(0x1fff1000)
 
-static struct gpio_led ubnt_xm_leds_gpio[] __initdata = {
+static struct gpio_led ubnt_xm_leds_gpio[] __initdata =
+{
 	{
 		.name		= "ubnt-xm:red:link1",
 		.gpio		= UBNT_XM_GPIO_LED_L1,
@@ -54,7 +55,8 @@ static struct gpio_led ubnt_xm_leds_gpio[] __initdata = {
 	},
 };
 
-static struct gpio_keys_button ubnt_xm_gpio_keys[] __initdata = {
+static struct gpio_keys_button ubnt_xm_gpio_keys[] __initdata =
+{
 	{
 		.desc			= "reset",
 		.type			= EV_KEY,
@@ -65,7 +67,8 @@ static struct gpio_keys_button ubnt_xm_gpio_keys[] __initdata = {
 	}
 };
 
-static struct spi_board_info ubnt_xm_spi_info[] = {
+static struct spi_board_info ubnt_xm_spi_info[] =
+{
 	{
 		.bus_num	= 0,
 		.chip_select	= 0,
@@ -74,7 +77,8 @@ static struct spi_board_info ubnt_xm_spi_info[] = {
 	}
 };
 
-static struct ath79_spi_platform_data ubnt_xm_spi_data = {
+static struct ath79_spi_platform_data ubnt_xm_spi_data =
+{
 	.bus_num		= 0,
 	.num_chipselect		= 1,
 };
@@ -84,10 +88,11 @@ static struct ath9k_platform_data ubnt_xm_eeprom_data;
 
 static int ubnt_xm_pci_plat_dev_init(struct pci_dev *dev)
 {
-	switch (PCI_SLOT(dev->devfn)) {
-	case 0:
-		dev->dev.platform_data = &ubnt_xm_eeprom_data;
-		break;
+	switch (PCI_SLOT(dev->devfn))
+	{
+		case 0:
+			dev->dev.platform_data = &ubnt_xm_eeprom_data;
+			break;
 	}
 
 	return 0;
@@ -96,7 +101,7 @@ static int ubnt_xm_pci_plat_dev_init(struct pci_dev *dev)
 static void __init ubnt_xm_pci_init(void)
 {
 	memcpy(ubnt_xm_eeprom_data.eeprom_data, UBNT_XM_EEPROM_ADDR,
-	       sizeof(ubnt_xm_eeprom_data.eeprom_data));
+		   sizeof(ubnt_xm_eeprom_data.eeprom_data));
 
 	ath79_pci_set_plat_dev_init(ubnt_xm_pci_plat_dev_init);
 	ath79_register_pci();
@@ -108,19 +113,19 @@ static inline void ubnt_xm_pci_init(void) {}
 static void __init ubnt_xm_init(void)
 {
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(ubnt_xm_leds_gpio),
-				 ubnt_xm_leds_gpio);
+							 ubnt_xm_leds_gpio);
 
 	ath79_register_gpio_keys_polled(-1, UBNT_XM_KEYS_POLL_INTERVAL,
-					ARRAY_SIZE(ubnt_xm_gpio_keys),
-					ubnt_xm_gpio_keys);
+									ARRAY_SIZE(ubnt_xm_gpio_keys),
+									ubnt_xm_gpio_keys);
 
 	ath79_register_spi(&ubnt_xm_spi_data, ubnt_xm_spi_info,
-			   ARRAY_SIZE(ubnt_xm_spi_info));
+					   ARRAY_SIZE(ubnt_xm_spi_info));
 
 	ubnt_xm_pci_init();
 }
 
 MIPS_MACHINE(ATH79_MACH_UBNT_XM,
-	     "UBNT-XM",
-	     "Ubiquiti Networks XM (rev 1.0) board",
-	     ubnt_xm_init);
+			 "UBNT-XM",
+			 "Ubiquiti Networks XM (rev 1.0) board",
+			 ubnt_xm_init);

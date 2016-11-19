@@ -21,15 +21,16 @@
 static unsigned long pci_sram_allocated = 0xbc000000;
 
 static void *mn10300_dma_alloc(struct device *dev, size_t size,
-		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+							   dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
 {
 	unsigned long addr;
 	void *ret;
 
 	pr_debug("dma_alloc_coherent(%s,%zu,%x)\n",
-		 dev ? dev_name(dev) : "?", size, gfp);
+			 dev ? dev_name(dev) : "?", size, gfp);
 
-	if (0xbe000000 - pci_sram_allocated >= size) {
+	if (0xbe000000 - pci_sram_allocated >= size)
+	{
 		size = (size + 255) & ~255;
 		addr = pci_sram_allocated;
 		pci_sram_allocated += size;
@@ -41,11 +42,16 @@ static void *mn10300_dma_alloc(struct device *dev, size_t size,
 	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
 
 	if (dev == NULL || dev->coherent_dma_mask < 0xffffffff)
+	{
 		gfp |= GFP_DMA;
+	}
 
 	addr = __get_free_pages(gfp, get_order(size));
+
 	if (!addr)
+	{
 		return NULL;
+	}
 
 	/* map the coherent memory through the uncached memory window */
 	ret = (void *) (addr | 0x20000000);
@@ -63,24 +69,27 @@ done:
 }
 
 static void mn10300_dma_free(struct device *dev, size_t size, void *vaddr,
-		dma_addr_t dma_handle, unsigned long attrs)
+							 dma_addr_t dma_handle, unsigned long attrs)
 {
 	unsigned long addr = (unsigned long) vaddr & ~0x20000000;
 
 	if (addr >= 0x9c000000)
+	{
 		return;
+	}
 
 	free_pages(addr, get_order(size));
 }
 
 static int mn10300_dma_map_sg(struct device *dev, struct scatterlist *sglist,
-		int nents, enum dma_data_direction direction,
-		unsigned long attrs)
+							  int nents, enum dma_data_direction direction,
+							  unsigned long attrs)
 {
 	struct scatterlist *sg;
 	int i;
 
-	for_each_sg(sglist, sg, nents, i) {
+	for_each_sg(sglist, sg, nents, i)
+	{
 		BUG_ON(!sg_page(sg));
 
 		sg->dma_address = sg_phys(sg);
@@ -91,20 +100,20 @@ static int mn10300_dma_map_sg(struct device *dev, struct scatterlist *sglist,
 }
 
 static dma_addr_t mn10300_dma_map_page(struct device *dev, struct page *page,
-		unsigned long offset, size_t size,
-		enum dma_data_direction direction, unsigned long attrs)
+									   unsigned long offset, size_t size,
+									   enum dma_data_direction direction, unsigned long attrs)
 {
 	return page_to_bus(page) + offset;
 }
 
 static void mn10300_dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle,
-				size_t size, enum dma_data_direction direction)
+		size_t size, enum dma_data_direction direction)
 {
 	mn10300_dcache_flush_inv();
 }
 
 static void mn10300_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
-			    int nelems, enum dma_data_direction direction)
+		int nelems, enum dma_data_direction direction)
 {
 	mn10300_dcache_flush_inv();
 }
@@ -117,11 +126,15 @@ static int mn10300_dma_supported(struct device *dev, u64 mask)
 	 * GFP_DMA
 	 */
 	if (mask < 0x00ffffff)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
-struct dma_map_ops mn10300_dma_ops = {
+struct dma_map_ops mn10300_dma_ops =
+{
 	.alloc			= mn10300_dma_alloc,
 	.free			= mn10300_dma_free,
 	.map_page		= mn10300_dma_map_page,

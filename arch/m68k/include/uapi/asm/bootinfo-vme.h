@@ -9,17 +9,17 @@
 #include <linux/types.h>
 
 
-    /*
-     *  VME-specific tags
-     */
+/*
+ *  VME-specific tags
+ */
 
 #define BI_VME_TYPE		0x8000	/* VME sub-architecture (__be32) */
 #define BI_VME_BRDINFO		0x8001	/* VME board information (struct) */
 
 
-    /*
-     *  VME models (BI_VME_TYPE)
-     */
+/*
+ *  VME models (BI_VME_TYPE)
+ */
 
 #define VME_TYPE_TP34V		0x0034	/* Tadpole TP34V */
 #define VME_TYPE_MVME147	0x0147	/* Motorola MVME147 */
@@ -44,7 +44,8 @@
  * Note, bytes 12 and 13 are board no in BCD (0162,0166,0167,0177,etc)
  */
 
-typedef struct {
+typedef struct
+{
 	char	bdid[4];
 	__u8	rev, mth, day, yr;
 	__be16	size, reserved;
@@ -58,9 +59,9 @@ typedef struct {
 #endif /* __ASSEMBLY__ */
 
 
-    /*
-     *  Latest VME bootinfo versions
-     */
+/*
+ *  Latest VME bootinfo versions
+ */
 
 #define MVME147_BOOTI_VERSION	MK_BI_VERSION(2, 0)
 #define MVME16x_BOOTI_VERSION	MK_BI_VERSION(2, 0)

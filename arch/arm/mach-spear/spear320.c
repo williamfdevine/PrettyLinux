@@ -28,7 +28,8 @@
 #define SPEAR320_SSP1_BASE		UL(0xA6000000)
 
 /* DMAC platform data's slave info */
-struct pl08x_channel_data spear320_dma_info[] = {
+struct pl08x_channel_data spear320_dma_info[] =
+{
 	{
 		.bus_id = "uart0_rx",
 		.min_signal = 2,
@@ -188,7 +189,8 @@ struct pl08x_channel_data spear320_dma_info[] = {
 	},
 };
 
-static struct pl022_ssp_controller spear320_ssp_data[] = {
+static struct pl022_ssp_controller spear320_ssp_data[] =
+{
 	{
 		.bus_id = 1,
 		.enable_dma = 1,
@@ -206,7 +208,8 @@ static struct pl022_ssp_controller spear320_ssp_data[] = {
 	}
 };
 
-static struct amba_pl011_data spear320_uart_data[] = {
+static struct amba_pl011_data spear320_uart_data[] =
+{
 	{
 		.dma_filter = pl08x_filter_id,
 		.dma_tx_param = "uart1_tx",
@@ -219,19 +222,20 @@ static struct amba_pl011_data spear320_uart_data[] = {
 };
 
 /* Add SPEAr310 auxdata to pass platform data */
-static struct of_dev_auxdata spear320_auxdata_lookup[] __initdata = {
+static struct of_dev_auxdata spear320_auxdata_lookup[] __initdata =
+{
 	OF_DEV_AUXDATA("arm,pl022", SPEAR3XX_ICM1_SSP_BASE, NULL,
-			&pl022_plat_data),
+	&pl022_plat_data),
 	OF_DEV_AUXDATA("arm,pl080", SPEAR_ICM3_DMA_BASE, NULL,
-			&pl080_plat_data),
+	&pl080_plat_data),
 	OF_DEV_AUXDATA("arm,pl022", SPEAR320_SSP0_BASE, NULL,
-			&spear320_ssp_data[0]),
+	&spear320_ssp_data[0]),
 	OF_DEV_AUXDATA("arm,pl022", SPEAR320_SSP1_BASE, NULL,
-			&spear320_ssp_data[1]),
+	&spear320_ssp_data[1]),
 	OF_DEV_AUXDATA("arm,pl011", SPEAR320_UART1_BASE, NULL,
-			&spear320_uart_data[0]),
+	&spear320_uart_data[0]),
 	OF_DEV_AUXDATA("arm,pl011", SPEAR320_UART2_BASE, NULL,
-			&spear320_uart_data[1]),
+	&spear320_uart_data[1]),
 	{}
 };
 
@@ -243,14 +247,16 @@ static void __init spear320_dt_init(void)
 	of_platform_default_populate(NULL, spear320_auxdata_lookup, NULL);
 }
 
-static const char * const spear320_dt_board_compat[] = {
+static const char *const spear320_dt_board_compat[] =
+{
 	"st,spear320",
 	"st,spear320-evb",
 	"st,spear320-hmi",
 	NULL,
 };
 
-struct map_desc spear320_io_desc[] __initdata = {
+struct map_desc spear320_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)VA_SPEAR320_SOC_CONFIG_BASE,
 		.pfn		= __phys_to_pfn(SPEAR320_SOC_CONFIG_BASE),
@@ -266,9 +272,9 @@ static void __init spear320_map_io(void)
 }
 
 DT_MACHINE_START(SPEAR320_DT, "ST SPEAr320 SoC with Flattened Device Tree")
-	.map_io		=	spear320_map_io,
+.map_io		=	spear320_map_io,
 	.init_time	=	spear3xx_timer_init,
-	.init_machine	=	spear320_dt_init,
-	.restart	=	spear_restart,
-	.dt_compat	=	spear320_dt_board_compat,
-MACHINE_END
+	  .init_machine	=	spear320_dt_init,
+		 .restart	=	spear_restart,
+			 .dt_compat	=	spear320_dt_board_compat,
+			   MACHINE_END

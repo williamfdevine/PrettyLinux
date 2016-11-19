@@ -28,10 +28,10 @@
  * (Please, refer to include/asm-xtensa/platform.h for more information)
  */
 
-_F(void, setup, (char** cmd), { });
-_F(void, restart, (void), { while(1); });
-_F(void, halt, (void), { while(1); });
-_F(void, power_off, (void), { while(1); });
+_F(void, setup, (char **cmd), { });
+_F(void, restart, (void), { while (1); });
+_F(void, halt, (void), { while (1); });
+_F(void, power_off, (void), { while (1); });
 _F(void, idle, (void), { __asm__ __volatile__ ("waiti 0" ::: "memory"); });
 _F(void, heartbeat, (void), { });
 _F(int,  pcibios_fixup, (void), { return 0; });

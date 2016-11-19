@@ -15,7 +15,8 @@
 #include <mach/board.h>
 #include "merisc.h"
 
-static struct fb_videomode merisc_fb_videomode[] = {
+static struct fb_videomode merisc_fb_videomode[] =
+{
 	{
 		.refresh	= 44,
 		.xres		= 640,
@@ -33,7 +34,8 @@ static struct fb_videomode merisc_fb_videomode[] = {
 	},
 };
 
-static struct fb_monspecs merisc_fb_monspecs = {
+static struct fb_monspecs merisc_fb_monspecs =
+{
 	.manufacturer	= "Kyo",
 	.monitor	= "TCG075VG2AD",
 	.modedb		= merisc_fb_videomode,
@@ -45,12 +47,13 @@ static struct fb_monspecs merisc_fb_monspecs = {
 	.dclkmax	= 30000000,
 };
 
-struct atmel_lcdfb_pdata merisc_lcdc_data = {
+struct atmel_lcdfb_pdata merisc_lcdc_data =
+{
 	.default_bpp		= 24,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_MEMOR_BIG),
 	.default_monspecs	= &merisc_fb_monspecs,
 	.guard_time		= 2,
 };
@@ -58,7 +61,7 @@ struct atmel_lcdfb_pdata merisc_lcdc_data = {
 static int __init merisc_display_init(void)
 {
 	at32_add_device_lcdc(0, &merisc_lcdc_data, fbmem_start,
-			     fbmem_size, 0);
+						 fbmem_size, 0);
 
 	return 0;
 }

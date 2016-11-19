@@ -43,7 +43,8 @@ void core_reg_write(int unit, int reg, int thread, unsigned int val)
 	unsigned long flags;
 
 	/* TXUCT_ID has its own memory mapped registers */
-	if (unit == TXUCT_ID) {
+	if (unit == TXUCT_ID)
+	{
 		void __iomem *cu_reg = __CU_addr(thread, reg);
 		metag_out32(val, cu_reg);
 		return;
@@ -53,7 +54,9 @@ void core_reg_write(int unit, int reg, int thread, unsigned int val)
 
 	/* wait for ready */
 	while (!(metag_in32(TXUXXRXRQ) & TXUXXRXRQ_DREADY_BIT))
+	{
 		udelay(10);
+	}
 
 	/* set the value to write */
 	metag_out32(val, TXUXXRXDT);
@@ -64,7 +67,9 @@ void core_reg_write(int unit, int reg, int thread, unsigned int val)
 
 	/* wait for finish */
 	while (!(metag_in32(TXUXXRXRQ) & TXUXXRXRQ_DREADY_BIT))
+	{
 		udelay(10);
+	}
 
 	__global_unlock2(flags);
 }
@@ -86,7 +91,8 @@ unsigned int core_reg_read(int unit, int reg, int thread)
 	unsigned int val;
 
 	/* TXUCT_ID has its own memory mapped registers */
-	if (unit == TXUCT_ID) {
+	if (unit == TXUCT_ID)
+	{
 		void __iomem *cu_reg = __CU_addr(thread, reg);
 		val = metag_in32(cu_reg);
 		return val;
@@ -96,16 +102,20 @@ unsigned int core_reg_read(int unit, int reg, int thread)
 
 	/* wait for ready */
 	while (!(metag_in32(TXUXXRXRQ) & TXUXXRXRQ_DREADY_BIT))
+	{
 		udelay(10);
+	}
 
 	/* set the register to read */
 	val = (UNIT_VAL(unit) | REG_VAL(reg) | THREAD_VAL(thread) |
-							TXUXXRXRQ_RDnWR_BIT);
+		   TXUXXRXRQ_RDnWR_BIT);
 	metag_out32(val, TXUXXRXRQ);
 
 	/* wait for finish */
 	while (!(metag_in32(TXUXXRXRQ) & TXUXXRXRQ_DREADY_BIT))
+	{
 		udelay(10);
+	}
 
 	/* read the register value */
 	val = metag_in32(TXUXXRXDT);

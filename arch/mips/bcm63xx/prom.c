@@ -30,23 +30,41 @@ void __init prom_init(void)
 
 	/* disable all hardware blocks clock for now */
 	if (BCMCPU_IS_3368())
+	{
 		mask = CKCTL_3368_ALL_SAFE_EN;
+	}
 	else if (BCMCPU_IS_6328())
+	{
 		mask = CKCTL_6328_ALL_SAFE_EN;
+	}
 	else if (BCMCPU_IS_6338())
+	{
 		mask = CKCTL_6338_ALL_SAFE_EN;
+	}
 	else if (BCMCPU_IS_6345())
+	{
 		mask = CKCTL_6345_ALL_SAFE_EN;
+	}
 	else if (BCMCPU_IS_6348())
+	{
 		mask = CKCTL_6348_ALL_SAFE_EN;
+	}
 	else if (BCMCPU_IS_6358())
+	{
 		mask = CKCTL_6358_ALL_SAFE_EN;
+	}
 	else if (BCMCPU_IS_6362())
+	{
 		mask = CKCTL_6362_ALL_SAFE_EN;
+	}
 	else if (BCMCPU_IS_6368())
+	{
 		mask = CKCTL_6368_ALL_SAFE_EN;
+	}
 	else
+	{
 		mask = 0;
+	}
 
 	reg = bcm_perf_readl(PERF_CKCTL_REG);
 	reg &= ~mask;
@@ -56,24 +74,32 @@ void __init prom_init(void)
 	board_prom_init();
 
 	/* set up SMP */
-	if (!register_bmips_smp_ops()) {
+	if (!register_bmips_smp_ops())
+	{
 		/*
 		 * BCM6328 might not have its second CPU enabled, while BCM3368
 		 * and BCM6358 need special handling for their shared TLB, so
 		 * disable SMP for now.
 		 */
-		if (BCMCPU_IS_6328()) {
+		if (BCMCPU_IS_6328())
+		{
 			reg = bcm_readl(BCM_6328_OTP_BASE +
-					OTP_USER_BITS_6328_REG(3));
+							OTP_USER_BITS_6328_REG(3));
 
 			if (reg & OTP_6328_REG3_TP1_DISABLED)
+			{
 				bmips_smp_enabled = 0;
-		} else if (BCMCPU_IS_3368() || BCMCPU_IS_6358()) {
+			}
+		}
+		else if (BCMCPU_IS_3368() || BCMCPU_IS_6358())
+		{
 			bmips_smp_enabled = 0;
 		}
 
 		if (!bmips_smp_enabled)
+		{
 			return;
+		}
 
 		/*
 		 * The bootloader has set up the CPU1 reset vector at

@@ -50,7 +50,8 @@
 /*
  * bfin spi registers layout
  */
-struct bfin_spi_regs {
+struct bfin_spi_regs
+{
 	__BFP(ctl);
 	__BFP(flg);
 	__BFP(stat);
@@ -65,7 +66,8 @@ struct bfin_spi_regs {
 #define MAX_CTRL_CS          8  /* cs in spi controller */
 
 /* device.platform_data for SSP controller devices */
-struct bfin5xx_spi_master {
+struct bfin5xx_spi_master
+{
 	u16 num_chipselect;
 	u8 enable_dma;
 	u16 pin_req[7];
@@ -74,7 +76,8 @@ struct bfin5xx_spi_master {
 /* spi_board_info.controller_data for SPI slave devices,
  * copied to spi_device.platform_data ... mostly for dma tuning
  */
-struct bfin5xx_spi_chip {
+struct bfin5xx_spi_chip
+{
 	u16 ctl_reg;
 	u8 enable_dma;
 	u16 cs_chg_udelay; /* Some devices require 16-bit delays */

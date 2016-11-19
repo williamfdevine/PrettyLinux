@@ -55,7 +55,8 @@
  */
 #ifdef CONFIG_PPC_BOOK3E_MMU
 #ifdef CONFIG_PPC_FSL_BOOK3E
-struct mmu_psize_def mmu_psize_defs[MMU_PAGE_COUNT] = {
+struct mmu_psize_def mmu_psize_defs[MMU_PAGE_COUNT] =
+{
 	[MMU_PAGE_4K] = {
 		.shift	= 12,
 		.enc	= BOOK3E_PAGESZ_4K,
@@ -86,7 +87,8 @@ struct mmu_psize_def mmu_psize_defs[MMU_PAGE_COUNT] = {
 	},
 };
 #else
-struct mmu_psize_def mmu_psize_defs[MMU_PAGE_COUNT] = {
+struct mmu_psize_def mmu_psize_defs[MMU_PAGE_COUNT] =
+{
 	[MMU_PAGE_4K] = {
 		.shift	= 12,
 		.ind	= 20,
@@ -139,27 +141,27 @@ static inline int mmu_get_tsize(int psize)
  */
 #ifdef CONFIG_PPC64
 
-int mmu_linear_psize;		/* Page size used for the linear mapping */
-int mmu_pte_psize;		/* Page size used for PTE pages */
-int mmu_vmemmap_psize;		/* Page size used for the virtual mem map */
-int book3e_htw_mode;		/* HW tablewalk?  Value is PPC_HTW_* */
-unsigned long linear_map_top;	/* Top of linear mapping */
+	int mmu_linear_psize;		/* Page size used for the linear mapping */
+	int mmu_pte_psize;		/* Page size used for PTE pages */
+	int mmu_vmemmap_psize;		/* Page size used for the virtual mem map */
+	int book3e_htw_mode;		/* HW tablewalk?  Value is PPC_HTW_* */
+	unsigned long linear_map_top;	/* Top of linear mapping */
 
 
-/*
- * Number of bytes to add to SPRN_SPRG_TLB_EXFRAME on crit/mcheck/debug
- * exceptions.  This is used for bolted and e6500 TLB miss handlers which
- * do not modify this SPRG in the TLB miss code; for other TLB miss handlers,
- * this is set to zero.
- */
-int extlb_level_exc;
+	/*
+	* Number of bytes to add to SPRN_SPRG_TLB_EXFRAME on crit/mcheck/debug
+	* exceptions.  This is used for bolted and e6500 TLB miss handlers which
+	* do not modify this SPRG in the TLB miss code; for other TLB miss handlers,
+	* this is set to zero.
+	*/
+	int extlb_level_exc;
 
 #endif /* CONFIG_PPC64 */
 
 #ifdef CONFIG_PPC_FSL_BOOK3E
-/* next_tlbcam_idx is used to round-robin tlbcam entry assignment */
-DEFINE_PER_CPU(int, next_tlbcam_idx);
-EXPORT_PER_CPU_SYMBOL(next_tlbcam_idx);
+	/* next_tlbcam_idx is used to round-robin tlbcam entry assignment */
+	DEFINE_PER_CPU(int, next_tlbcam_idx);
+	EXPORT_PER_CPU_SYMBOL(next_tlbcam_idx);
 #endif
 
 /*
@@ -183,28 +185,36 @@ void local_flush_tlb_mm(struct mm_struct *mm)
 
 	preempt_disable();
 	pid = mm->context.id;
+
 	if (pid != MMU_NO_CONTEXT)
+	{
 		_tlbil_pid(pid);
+	}
+
 	preempt_enable();
 }
 EXPORT_SYMBOL(local_flush_tlb_mm);
 
 void __local_flush_tlb_page(struct mm_struct *mm, unsigned long vmaddr,
-			    int tsize, int ind)
+							int tsize, int ind)
 {
 	unsigned int pid;
 
 	preempt_disable();
 	pid = mm ? mm->context.id : 0;
+
 	if (pid != MMU_NO_CONTEXT)
+	{
 		_tlbil_va(vmaddr, pid, tsize, ind);
+	}
+
 	preempt_enable();
 }
 
 void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
 	__local_flush_tlb_page(vma ? vma->vm_mm : NULL, vmaddr,
-			       mmu_get_tsize(mmu_virtual_psize), 0);
+						   mmu_get_tsize(mmu_virtual_psize), 0);
 }
 EXPORT_SYMBOL(local_flush_tlb_page);
 
@@ -215,7 +225,8 @@ EXPORT_SYMBOL(local_flush_tlb_page);
 
 static DEFINE_RAW_SPINLOCK(tlbivax_lock);
 
-struct tlb_flush_param {
+struct tlb_flush_param
+{
 	unsigned long addr;
 	unsigned int pid;
 	unsigned int tsize;
@@ -259,22 +270,28 @@ void flush_tlb_mm(struct mm_struct *mm)
 
 	preempt_disable();
 	pid = mm->context.id;
+
 	if (unlikely(pid == MMU_NO_CONTEXT))
+	{
 		goto no_context;
-	if (!mm_is_core_local(mm)) {
+	}
+
+	if (!mm_is_core_local(mm))
+	{
 		struct tlb_flush_param p = { .pid = pid };
 		/* Ignores smp_processor_id() even if set. */
 		smp_call_function_many(mm_cpumask(mm),
-				       do_flush_tlb_mm_ipi, &p, 1);
+							   do_flush_tlb_mm_ipi, &p, 1);
 	}
+
 	_tlbil_pid(pid);
- no_context:
+no_context:
 	preempt_enable();
 }
 EXPORT_SYMBOL(flush_tlb_mm);
 
 void __flush_tlb_page(struct mm_struct *mm, unsigned long vmaddr,
-		      int tsize, int ind)
+					  int tsize, int ind)
 {
 	struct cpumask *cpu_mask;
 	unsigned int pid;
@@ -284,25 +301,45 @@ void __flush_tlb_page(struct mm_struct *mm, unsigned long vmaddr,
 	 * for user contexts.
 	 */
 	if (unlikely(WARN_ON(!mm)))
+	{
 		return;
+	}
 
 	preempt_disable();
 	pid = mm->context.id;
+
 	if (unlikely(pid == MMU_NO_CONTEXT))
+	{
 		goto bail;
+	}
+
 	cpu_mask = mm_cpumask(mm);
-	if (!mm_is_core_local(mm)) {
+
+	if (!mm_is_core_local(mm))
+	{
 		/* If broadcast tlbivax is supported, use it */
-		if (mmu_has_feature(MMU_FTR_USE_TLBIVAX_BCAST)) {
+		if (mmu_has_feature(MMU_FTR_USE_TLBIVAX_BCAST))
+		{
 			int lock = mmu_has_feature(MMU_FTR_LOCK_BCAST_INVAL);
+
 			if (lock)
+			{
 				raw_spin_lock(&tlbivax_lock);
+			}
+
 			_tlbivax_bcast(vmaddr, pid, tsize, ind);
+
 			if (lock)
+			{
 				raw_spin_unlock(&tlbivax_lock);
+			}
+
 			goto bail;
-		} else {
-			struct tlb_flush_param p = {
+		}
+		else
+		{
+			struct tlb_flush_param p =
+			{
 				.pid = pid,
 				.addr = vmaddr,
 				.tsize = tsize,
@@ -310,23 +347,28 @@ void __flush_tlb_page(struct mm_struct *mm, unsigned long vmaddr,
 			};
 			/* Ignores smp_processor_id() even if set in cpu_mask */
 			smp_call_function_many(cpu_mask,
-					       do_flush_tlb_page_ipi, &p, 1);
+								   do_flush_tlb_page_ipi, &p, 1);
 		}
 	}
+
 	_tlbil_va(vmaddr, pid, tsize, ind);
- bail:
+bail:
 	preempt_enable();
 }
 
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
 #ifdef CONFIG_HUGETLB_PAGE
+
 	if (vma && is_vm_hugetlb_page(vma))
+	{
 		flush_hugetlb_page(vma, vmaddr);
+	}
+
 #endif
 
 	__flush_tlb_page(vma ? vma->vm_mm : NULL, vmaddr,
-			 mmu_get_tsize(mmu_virtual_psize), 0);
+					 mmu_get_tsize(mmu_virtual_psize), 0);
 }
 EXPORT_SYMBOL(flush_tlb_page);
 
@@ -337,8 +379,12 @@ void __init early_init_mmu_47x(void)
 {
 #ifdef CONFIG_SMP
 	unsigned long root = of_get_flat_dt_root();
+
 	if (of_get_flat_dt_prop(root, "cooperative-partition", NULL))
+	{
 		mmu_clear_feature(MMU_FTR_USE_TLBIVAX_BCAST);
+	}
+
 #endif /* CONFIG_SMP */
 }
 #endif /* CONFIG_PPC_47x */
@@ -366,7 +412,7 @@ EXPORT_SYMBOL(flush_tlb_kernel_range);
  * for now, we keep it that way
  */
 void flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-		     unsigned long end)
+					 unsigned long end)
 
 {
 	flush_tlb_mm(vma->vm_mm);
@@ -393,7 +439,8 @@ void tlb_flush_pgtable(struct mmu_gather *tlb, unsigned long address)
 {
 	int tsize = mmu_psize_defs[mmu_pte_psize].enc;
 
-	if (book3e_htw_mode != PPC_HTW_NONE) {
+	if (book3e_htw_mode != PPC_HTW_NONE)
+	{
 		unsigned long start = address & PMD_MASK;
 		unsigned long end = address + PMD_SIZE;
 		unsigned long size = 1UL << mmu_psize_defs[mmu_pte_psize].shift;
@@ -402,11 +449,14 @@ void tlb_flush_pgtable(struct mmu_gather *tlb, unsigned long address)
 		 * while preempt & CPU mask mucking around, or even the IPI but
 		 * it will do for now
 		 */
-		while (start < end) {
+		while (start < end)
+		{
 			__flush_tlb_page(tlb->mm, start, tsize, 1);
 			start += size;
 		}
-	} else {
+	}
+	else
+	{
 		unsigned long rmask = 0xf000000000000000ul;
 		unsigned long rid = (address & rmask) | 0x1000000000000000ul;
 		unsigned long vpte = address & ~rmask;
@@ -432,14 +482,16 @@ static void setup_page_sizes(void)
 	unsigned int mmucfg = mfspr(SPRN_MMUCFG);
 	int fsl_mmu = mmu_has_feature(MMU_FTR_TYPE_FSL_E);
 
-	if (fsl_mmu && (mmucfg & MMUCFG_MAVN) == MMUCFG_MAVN_V1) {
+	if (fsl_mmu && (mmucfg & MMUCFG_MAVN) == MMUCFG_MAVN_V1)
+	{
 		unsigned int tlb1cfg = mfspr(SPRN_TLB1CFG);
 		unsigned int min_pg, max_pg;
 
 		min_pg = (tlb1cfg & TLBnCFG_MINSIZE) >> TLBnCFG_MINSIZE_SHIFT;
 		max_pg = (tlb1cfg & TLBnCFG_MAXSIZE) >> TLBnCFG_MAXSIZE_SHIFT;
 
-		for (psize = 0; psize < MMU_PAGE_COUNT; ++psize) {
+		for (psize = 0; psize < MMU_PAGE_COUNT; ++psize)
+		{
 			struct mmu_psize_def *def;
 			unsigned int shift;
 
@@ -447,19 +499,24 @@ static void setup_page_sizes(void)
 			shift = def->shift;
 
 			if (shift == 0 || shift & 1)
+			{
 				continue;
+			}
 
 			/* adjust to be in terms of 4^shift Kb */
 			shift = (shift - 10) >> 1;
 
 			if ((shift >= min_pg) && (shift <= max_pg))
+			{
 				def->flags |= MMU_PAGE_SIZE_DIRECT;
+			}
 		}
 
 		goto out;
 	}
 
-	if (fsl_mmu && (mmucfg & MMUCFG_MAVN) == MMUCFG_MAVN_V2) {
+	if (fsl_mmu && (mmucfg & MMUCFG_MAVN) == MMUCFG_MAVN_V2)
+	{
 		u32 tlb1cfg, tlb1ps;
 
 		tlb0cfg = mfspr(SPRN_TLB0CFG);
@@ -468,7 +525,9 @@ static void setup_page_sizes(void)
 		eptcfg = mfspr(SPRN_EPTCFG);
 
 		if ((tlb1cfg & TLBnCFG_IND) && (tlb0cfg & TLBnCFG_PT))
+		{
 			book3e_htw_mode = PPC_HTW_E6500;
+		}
 
 		/*
 		 * We expect 4K subpage size and unrestricted indirect size.
@@ -476,21 +535,28 @@ static void setup_page_sizes(void)
 		 * extension, indicated by PSn = 0 but SPSn != 0.
 		 */
 		if (eptcfg != 2)
+		{
 			book3e_htw_mode = PPC_HTW_NONE;
+		}
 
-		for (psize = 0; psize < MMU_PAGE_COUNT; ++psize) {
+		for (psize = 0; psize < MMU_PAGE_COUNT; ++psize)
+		{
 			struct mmu_psize_def *def = &mmu_psize_defs[psize];
 
-			if (tlb1ps & (1U << (def->shift - 10))) {
+			if (tlb1ps & (1U << (def->shift - 10)))
+			{
 				def->flags |= MMU_PAGE_SIZE_DIRECT;
 
 				if (book3e_htw_mode && psize == MMU_PAGE_2M)
+				{
 					def->flags |= MMU_PAGE_SIZE_INDIRECT;
+				}
 			}
 		}
 
 		goto out;
 	}
+
 #endif
 
 	tlb0cfg = mfspr(SPRN_TLB0CFG);
@@ -498,17 +564,22 @@ static void setup_page_sizes(void)
 	eptcfg = mfspr(SPRN_EPTCFG);
 
 	/* Look for supported direct sizes */
-	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize) {
+	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize)
+	{
 		struct mmu_psize_def *def = &mmu_psize_defs[psize];
 
 		if (tlb0ps & (1U << (def->shift - 10)))
+		{
 			def->flags |= MMU_PAGE_SIZE_DIRECT;
+		}
 	}
 
 	/* Indirect page sizes supported ? */
 	if ((tlb0cfg & TLBnCFG_IND) == 0 ||
-	    (tlb0cfg & TLBnCFG_PT) == 0)
+		(tlb0cfg & TLBnCFG_PT) == 0)
+	{
 		goto out;
+	}
 
 	book3e_htw_mode = PPC_HTW_IBM;
 
@@ -517,42 +588,59 @@ static void setup_page_sizes(void)
 	 * unambiguous, but we might want to be careful in the
 	 * future.
 	 */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		unsigned int ps, sps;
 
 		sps = eptcfg & 0x1f;
 		eptcfg >>= 5;
 		ps = eptcfg & 0x1f;
 		eptcfg >>= 5;
+
 		if (!ps || !sps)
+		{
 			continue;
-		for (psize = 0; psize < MMU_PAGE_COUNT; psize++) {
+		}
+
+		for (psize = 0; psize < MMU_PAGE_COUNT; psize++)
+		{
 			struct mmu_psize_def *def = &mmu_psize_defs[psize];
 
 			if (ps == (def->shift - 10))
+			{
 				def->flags |= MMU_PAGE_SIZE_INDIRECT;
+			}
+
 			if (sps == (def->shift - 10))
+			{
 				def->ind = ps + 10;
+			}
 		}
 	}
 
 out:
 	/* Cleanup array and print summary */
 	pr_info("MMU: Supported page sizes\n");
-	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize) {
+
+	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize)
+	{
 		struct mmu_psize_def *def = &mmu_psize_defs[psize];
-		const char *__page_type_names[] = {
+		const char *__page_type_names[] =
+		{
 			"unsupported",
 			"direct",
 			"indirect",
 			"direct & indirect"
 		};
-		if (def->flags == 0) {
-			def->shift = 0;	
+
+		if (def->flags == 0)
+		{
+			def->shift = 0;
 			continue;
 		}
+
 		pr_info("  %8ld KB as %s\n", 1ul << (def->shift - 10),
-			__page_type_names[def->flags & 0x3]);
+				__page_type_names[def->flags & 0x3]);
 	}
 }
 
@@ -563,21 +651,24 @@ static void setup_mmu_htw(void)
 	 * handlers to branch to the one dedicated to it.
 	 */
 
-	switch (book3e_htw_mode) {
-	case PPC_HTW_IBM:
-		patch_exception(0x1c0, exc_data_tlb_miss_htw_book3e);
-		patch_exception(0x1e0, exc_instruction_tlb_miss_htw_book3e);
-		break;
+	switch (book3e_htw_mode)
+	{
+		case PPC_HTW_IBM:
+			patch_exception(0x1c0, exc_data_tlb_miss_htw_book3e);
+			patch_exception(0x1e0, exc_instruction_tlb_miss_htw_book3e);
+			break;
 #ifdef CONFIG_PPC_FSL_BOOK3E
-	case PPC_HTW_E6500:
-		extlb_level_exc = EX_TLB_SIZE;
-		patch_exception(0x1c0, exc_data_tlb_miss_e6500_book3e);
-		patch_exception(0x1e0, exc_instruction_tlb_miss_e6500_book3e);
-		break;
+
+		case PPC_HTW_E6500:
+			extlb_level_exc = EX_TLB_SIZE;
+			patch_exception(0x1c0, exc_data_tlb_miss_e6500_book3e);
+			patch_exception(0x1e0, exc_instruction_tlb_miss_e6500_book3e);
+			break;
 #endif
 	}
+
 	pr_info("MMU: Book3E HW tablewalk %s\n",
-		book3e_htw_mode != PPC_HTW_NONE ? "enabled" : "not supported");
+			book3e_htw_mode != PPC_HTW_NONE ? "enabled" : "not supported");
 }
 
 /*
@@ -590,38 +681,43 @@ static void early_init_this_mmu(void)
 	/* Set MAS4 based on page table setting */
 
 	mas4 = 0x4 << MAS4_WIMGED_SHIFT;
-	switch (book3e_htw_mode) {
-	case PPC_HTW_E6500:
-		mas4 |= MAS4_INDD;
-		mas4 |= BOOK3E_PAGESZ_2M << MAS4_TSIZED_SHIFT;
-		mas4 |= MAS4_TLBSELD(1);
-		mmu_pte_psize = MMU_PAGE_2M;
-		break;
 
-	case PPC_HTW_IBM:
-		mas4 |= MAS4_INDD;
-#ifdef CONFIG_PPC_64K_PAGES
-		mas4 |=	BOOK3E_PAGESZ_256M << MAS4_TSIZED_SHIFT;
-		mmu_pte_psize = MMU_PAGE_256M;
-#else
-		mas4 |=	BOOK3E_PAGESZ_1M << MAS4_TSIZED_SHIFT;
-		mmu_pte_psize = MMU_PAGE_1M;
-#endif
-		break;
+	switch (book3e_htw_mode)
+	{
+		case PPC_HTW_E6500:
+			mas4 |= MAS4_INDD;
+			mas4 |= BOOK3E_PAGESZ_2M << MAS4_TSIZED_SHIFT;
+			mas4 |= MAS4_TLBSELD(1);
+			mmu_pte_psize = MMU_PAGE_2M;
+			break;
 
-	case PPC_HTW_NONE:
+		case PPC_HTW_IBM:
+			mas4 |= MAS4_INDD;
 #ifdef CONFIG_PPC_64K_PAGES
-		mas4 |=	BOOK3E_PAGESZ_64K << MAS4_TSIZED_SHIFT;
+			mas4 |=	BOOK3E_PAGESZ_256M << MAS4_TSIZED_SHIFT;
+			mmu_pte_psize = MMU_PAGE_256M;
 #else
-		mas4 |=	BOOK3E_PAGESZ_4K << MAS4_TSIZED_SHIFT;
+			mas4 |=	BOOK3E_PAGESZ_1M << MAS4_TSIZED_SHIFT;
+			mmu_pte_psize = MMU_PAGE_1M;
 #endif
-		mmu_pte_psize = mmu_virtual_psize;
-		break;
+			break;
+
+		case PPC_HTW_NONE:
+#ifdef CONFIG_PPC_64K_PAGES
+			mas4 |=	BOOK3E_PAGESZ_64K << MAS4_TSIZED_SHIFT;
+#else
+			mas4 |=	BOOK3E_PAGESZ_4K << MAS4_TSIZED_SHIFT;
+#endif
+			mmu_pte_psize = mmu_virtual_psize;
+			break;
 	}
+
 	mtspr(SPRN_MAS4, mas4);
 
 #ifdef CONFIG_PPC_FSL_BOOK3E
-	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E)) {
+
+	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E))
+	{
 		unsigned int num_cams;
 		int __maybe_unused cpu = smp_processor_id();
 		bool map = true;
@@ -634,14 +730,19 @@ static void early_init_this_mmu(void)
 		 * transient mapping would cause problems.
 		 */
 #ifdef CONFIG_SMP
+
 		if (hweight32(get_tensr()) > 1)
+		{
 			map = false;
+		}
+
 #endif
 
 		if (map)
 			linear_map_top = map_mem_in_cams(linear_map_top,
-							 num_cams, false);
+											 num_cams, false);
 	}
+
 #endif
 
 	/* A sync won't hurt us after mucking around with
@@ -667,9 +768,13 @@ static void __init early_init_mmu_global(void)
 	 * Freescale booke only supports 4K pages in TLB0, so use that.
 	 */
 	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E))
+	{
 		mmu_vmemmap_psize = MMU_PAGE_4K;
+	}
 	else
+	{
 		mmu_vmemmap_psize = MMU_PAGE_16M;
+	}
 
 	/* XXX This code only checks for TLB 0 capabilities and doesn't
 	 *     check what page size combos are supported by the HW. It
@@ -683,14 +788,18 @@ static void __init early_init_mmu_global(void)
 	setup_mmu_htw();
 
 #ifdef CONFIG_PPC_FSL_BOOK3E
-	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E)) {
-		if (book3e_htw_mode == PPC_HTW_NONE) {
+
+	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E))
+	{
+		if (book3e_htw_mode == PPC_HTW_NONE)
+		{
 			extlb_level_exc = EX_TLB_SIZE;
 			patch_exception(0x1c0, exc_data_tlb_miss_bolted_book3e);
 			patch_exception(0x1e0,
-				exc_instruction_tlb_miss_bolted_book3e);
+							exc_instruction_tlb_miss_bolted_book3e);
 		}
 	}
+
 #endif
 
 	/* Set the global containing the top of the linear mapping
@@ -702,7 +811,9 @@ static void __init early_init_mmu_global(void)
 static void __init early_mmu_set_memory_limit(void)
 {
 #ifdef CONFIG_PPC_FSL_BOOK3E
-	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E)) {
+
+	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E))
+	{
 		/*
 		 * Limit memory so we dont have linear faults.
 		 * Unlike memblock_set_current_limit, which limits
@@ -712,6 +823,7 @@ static void __init early_mmu_set_memory_limit(void)
 		 */
 		memblock_enforce_memory_limit(linear_map_top);
 	}
+
 #endif
 
 	memblock_set_current_limit(linear_map_top);
@@ -731,7 +843,7 @@ void early_init_mmu_secondary(void)
 }
 
 void setup_initial_memory_limit(phys_addr_t first_memblock_base,
-				phys_addr_t first_memblock_size)
+								phys_addr_t first_memblock_size)
 {
 	/* On non-FSL Embedded 64-bit, we adjust the RMA size to match
 	 * the bolted TLB entry. We know for now that only 1G
@@ -751,7 +863,8 @@ void setup_initial_memory_limit(phys_addr_t first_memblock_base,
 	 * avoid going over total available memory just in case...
 	 */
 #ifdef CONFIG_PPC_FSL_BOOK3E
-	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E)) {
+	if (mmu_has_feature(MMU_FTR_TYPE_FSL_E))
+	{
 		unsigned long linear_sz;
 		unsigned int num_cams;
 
@@ -759,10 +872,11 @@ void setup_initial_memory_limit(phys_addr_t first_memblock_base,
 		num_cams = (mfspr(SPRN_TLB1CFG) & TLBnCFG_N_ENTRY) / 4;
 
 		linear_sz = map_mem_in_cams(first_memblock_size, num_cams,
-					    true);
+									true);
 
 		ppc64_rma_size = min_t(u64, linear_sz, 0x40000000);
-	} else
+	}
+	else
 #endif
 		ppc64_rma_size = min_t(u64, first_memblock_size, 0x40000000);
 

@@ -66,23 +66,27 @@
 /*
  * User structures for general purpose, floating point and debug registers.
  */
-struct user_pt_regs {
+struct user_pt_regs
+{
 	__u64		regs[31];
 	__u64		sp;
 	__u64		pc;
 	__u64		pstate;
 };
 
-struct user_fpsimd_state {
+struct user_fpsimd_state
+{
 	__uint128_t	vregs[32];
 	__u32		fpsr;
 	__u32		fpcr;
 };
 
-struct user_hwdebug_state {
+struct user_hwdebug_state
+{
 	__u32		dbg_info;
 	__u32		pad;
-	struct {
+	struct
+	{
 		__u64	addr;
 		__u32	ctrl;
 		__u32	pad;

@@ -18,19 +18,19 @@
  * interrupts for atomic access than a LL/SC.
  */
 #ifdef CONFIG_SMP
-# define kernel_uses_llsc	1
+	#define kernel_uses_llsc	1
 #else
-# define kernel_uses_llsc	0
+	#define kernel_uses_llsc	0
 #endif
 
 #ifdef CONFIG_CPU_CAVIUM_OCTEON
-#define cpu_dcache_line_size()	128
-#define cpu_icache_line_size()	128
-#define cpu_has_octeon_cache	1
-#define cpu_has_4k_cache	0
+	#define cpu_dcache_line_size()	128
+	#define cpu_icache_line_size()	128
+	#define cpu_has_octeon_cache	1
+	#define cpu_has_4k_cache	0
 #else
-#define cpu_has_octeon_cache	0
-#define cpu_has_4k_cache	1
+	#define cpu_has_octeon_cache	0
+	#define cpu_has_4k_cache	1
 #endif
 
 #endif /* __ASM_MACH_PARAVIRT_CPU_FEATURE_OVERRIDES_H */

@@ -21,7 +21,8 @@
 #ifndef _MACH_TEGRA_PM_H_
 #define _MACH_TEGRA_PM_H_
 
-struct tegra_lp1_iram {
+struct tegra_lp1_iram
+{
 	void	*start_addr;
 	void	*end_addr;
 };

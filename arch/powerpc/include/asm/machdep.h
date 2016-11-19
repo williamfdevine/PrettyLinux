@@ -22,7 +22,7 @@
 #define CONFIG_PPC_HAS_FEATURE_CALLS
 
 struct pt_regs;
-struct pci_bus;	
+struct pci_bus;
 struct device_node;
 struct iommu_table;
 struct rtc_time;
@@ -31,11 +31,12 @@ struct pci_controller;
 struct kimage;
 struct pci_host_bridge;
 
-struct machdep_calls {
+struct machdep_calls
+{
 	char		*name;
 #ifdef CONFIG_PPC64
-	void __iomem *	(*ioremap)(phys_addr_t addr, unsigned long size,
-				   unsigned long flags, void *caller);
+	void __iomem 	*(*ioremap)(phys_addr_t addr, unsigned long size,
+								unsigned long flags, void *caller);
 	void		(*iounmap)(volatile void __iomem *token);
 
 #ifdef CONFIG_PM
@@ -69,7 +70,7 @@ struct machdep_calls {
 	void		(*pcibios_fixup)(void);
 	void		(*pci_irq_fixup)(struct pci_dev *dev);
 	int		(*pcibios_root_bridge_prepare)(struct pci_host_bridge
-				*bridge);
+										   *bridge);
 
 	/* To setup PHBs when using automatic OF platform driver for PCI */
 	int		(*pci_setup_phb)(struct pci_controller *host);
@@ -97,8 +98,8 @@ struct machdep_calls {
 	unsigned char 	(*nvram_read_val)(int addr);
 	void		(*nvram_write_val)(int addr, unsigned char val);
 	ssize_t		(*nvram_write)(char *buf, size_t count, loff_t *index);
-	ssize_t		(*nvram_read)(char *buf, size_t count, loff_t *index);	
-	ssize_t		(*nvram_size)(void);		
+	ssize_t		(*nvram_read)(char *buf, size_t count, loff_t *index);
+	ssize_t		(*nvram_size)(void);
 	void		(*nvram_sync)(void);
 
 	/* Exception handlers */
@@ -118,14 +119,14 @@ struct machdep_calls {
 	 */
 	long	 	(*feature_call)(unsigned int feature, ...);
 
-	/* Get legacy PCI/IDE interrupt mapping */ 
+	/* Get legacy PCI/IDE interrupt mapping */
 	int		(*pci_get_legacy_ide_irq)(struct pci_dev *dev, int channel);
-	
+
 	/* Get access protection for /dev/mem */
 	pgprot_t	(*phys_mem_access_prot)(struct file *file,
-						unsigned long pfn,
-						unsigned long size,
-						pgprot_t vma_prot);
+										unsigned long pfn,
+										unsigned long size,
+										pgprot_t vma_prot);
 
 	/*
 	 * Function for waiting for work with reduced power in idle loop;
@@ -139,11 +140,11 @@ struct machdep_calls {
 
 	/* Set DABR for this platform, leave empty for default implementation */
 	int		(*set_dabr)(unsigned long dabr,
-				    unsigned long dabrx);
+						unsigned long dabrx);
 
 	/* Set DAWR for this platform, leave empty for default implementation */
 	int		(*set_dawr)(unsigned long dawr,
-				    unsigned long dawrx);
+						unsigned long dawrx);
 
 #ifdef CONFIG_PPC32	/* XXX for now */
 	/* A general init function, called by ppc_init in init/main.c.
@@ -245,7 +246,7 @@ extern struct machdep_calls *machine_id;
 #define machine_is(name) \
 	({ \
 		extern struct machdep_calls mach_##name \
-			__attribute__((weak));		 \
+		__attribute__((weak));		 \
 		machine_id == &mach_##name; \
 	})
 
@@ -256,7 +257,8 @@ extern void probe_machine(void);
  * Power macintoshes have either a CUDA, PMU or SMU controlling
  * system reset, power, NVRAM, RTC.
  */
-typedef enum sys_ctrler_kind {
+typedef enum sys_ctrler_kind
+{
 	SYS_CTRLER_UNKNOWN = 0,
 	SYS_CTRLER_CUDA = 1,
 	SYS_CTRLER_PMU = 2,
@@ -269,7 +271,9 @@ extern sys_ctrler_t sys_ctrler;
 static inline void log_error(char *buf, unsigned int err_type, int fatal)
 {
 	if (ppc_md.log_error)
+	{
 		ppc_md.log_error(buf, err_type, fatal);
+	}
 }
 
 #define __define_machine_initcall(mach, fn, id) \

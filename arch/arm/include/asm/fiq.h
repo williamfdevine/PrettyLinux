@@ -18,7 +18,8 @@
 
 #include <asm/ptrace.h>
 
-struct fiq_handler {
+struct fiq_handler
+{
 	struct fiq_handler *next;
 	/* Name
 	 */

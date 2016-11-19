@@ -45,14 +45,14 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
-			"       movi    %0, 0\n"
-			"       wsr     %0, scompare1\n"
-			"1:     movi    %0, 1\n"
-			"       s32c1i  %0, %1, 0\n"
-			"       bnez    %0, 1b\n"
-			: "=&a" (tmp)
-			: "a" (&lock->slock)
-			: "memory");
+		"       movi    %0, 0\n"
+		"       wsr     %0, scompare1\n"
+		"1:     movi    %0, 1\n"
+		"       s32c1i  %0, %1, 0\n"
+		"       bnez    %0, 1b\n"
+		: "=&a" (tmp)
+		: "a" (&lock->slock)
+		: "memory");
 }
 
 /* Returns 1 if the lock is obtained, 0 otherwise. */
@@ -62,13 +62,13 @@ static inline int arch_spin_trylock(arch_spinlock_t *lock)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
-			"       movi    %0, 0\n"
-			"       wsr     %0, scompare1\n"
-			"       movi    %0, 1\n"
-			"       s32c1i  %0, %1, 0\n"
-			: "=&a" (tmp)
-			: "a" (&lock->slock)
-			: "memory");
+		"       movi    %0, 0\n"
+		"       wsr     %0, scompare1\n"
+		"       movi    %0, 1\n"
+		"       s32c1i  %0, %1, 0\n"
+		: "=&a" (tmp)
+		: "a" (&lock->slock)
+		: "memory");
 
 	return tmp == 0 ? 1 : 0;
 }
@@ -78,11 +78,11 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
-			"       movi    %0, 0\n"
-			"       s32ri   %0, %1, 0\n"
-			: "=&a" (tmp)
-			: "a" (&lock->slock)
-			: "memory");
+		"       movi    %0, 0\n"
+		"       s32ri   %0, %1, 0\n"
+		: "=&a" (tmp)
+		: "a" (&lock->slock)
+		: "memory");
 }
 
 /*
@@ -109,15 +109,15 @@ static inline void arch_write_lock(arch_rwlock_t *rw)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
-			"       movi    %0, 0\n"
-			"       wsr     %0, scompare1\n"
-			"1:     movi    %0, 1\n"
-			"       slli    %0, %0, 31\n"
-			"       s32c1i  %0, %1, 0\n"
-			"       bnez    %0, 1b\n"
-			: "=&a" (tmp)
-			: "a" (&rw->lock)
-			: "memory");
+		"       movi    %0, 0\n"
+		"       wsr     %0, scompare1\n"
+		"1:     movi    %0, 1\n"
+		"       slli    %0, %0, 31\n"
+		"       s32c1i  %0, %1, 0\n"
+		"       bnez    %0, 1b\n"
+		: "=&a" (tmp)
+		: "a" (&rw->lock)
+		: "memory");
 }
 
 /* Returns 1 if the lock is obtained, 0 otherwise. */
@@ -127,14 +127,14 @@ static inline int arch_write_trylock(arch_rwlock_t *rw)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
-			"       movi    %0, 0\n"
-			"       wsr     %0, scompare1\n"
-			"       movi    %0, 1\n"
-			"       slli    %0, %0, 31\n"
-			"       s32c1i  %0, %1, 0\n"
-			: "=&a" (tmp)
-			: "a" (&rw->lock)
-			: "memory");
+		"       movi    %0, 0\n"
+		"       wsr     %0, scompare1\n"
+		"       movi    %0, 1\n"
+		"       slli    %0, %0, 31\n"
+		"       s32c1i  %0, %1, 0\n"
+		: "=&a" (tmp)
+		: "a" (&rw->lock)
+		: "memory");
 
 	return tmp == 0 ? 1 : 0;
 }
@@ -144,11 +144,11 @@ static inline void arch_write_unlock(arch_rwlock_t *rw)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
-			"       movi    %0, 0\n"
-			"       s32ri   %0, %1, 0\n"
-			: "=&a" (tmp)
-			: "a" (&rw->lock)
-			: "memory");
+		"       movi    %0, 0\n"
+		"       s32ri   %0, %1, 0\n"
+		: "=&a" (tmp)
+		: "a" (&rw->lock)
+		: "memory");
 }
 
 static inline void arch_read_lock(arch_rwlock_t *rw)
@@ -157,15 +157,15 @@ static inline void arch_read_lock(arch_rwlock_t *rw)
 	unsigned long result;
 
 	__asm__ __volatile__(
-			"1:     l32i    %1, %2, 0\n"
-			"       bltz    %1, 1b\n"
-			"       wsr     %1, scompare1\n"
-			"       addi    %0, %1, 1\n"
-			"       s32c1i  %0, %2, 0\n"
-			"       bne     %0, %1, 1b\n"
-			: "=&a" (result), "=&a" (tmp)
-			: "a" (&rw->lock)
-			: "memory");
+		"1:     l32i    %1, %2, 0\n"
+		"       bltz    %1, 1b\n"
+		"       wsr     %1, scompare1\n"
+		"       addi    %0, %1, 1\n"
+		"       s32c1i  %0, %2, 0\n"
+		"       bne     %0, %1, 1b\n"
+		: "=&a" (result), "=&a" (tmp)
+		: "a" (&rw->lock)
+		: "memory");
 }
 
 /* Returns 1 if the lock is obtained, 0 otherwise. */
@@ -176,16 +176,16 @@ static inline int arch_read_trylock(arch_rwlock_t *rw)
 	unsigned long tmp;
 
 	__asm__ __volatile__(
-			"       l32i    %1, %2, 0\n"
-			"       addi    %0, %1, 1\n"
-			"       bltz    %0, 1f\n"
-			"       wsr     %1, scompare1\n"
-			"       s32c1i  %0, %2, 0\n"
-			"       sub     %0, %0, %1\n"
-			"1:\n"
-			: "=&a" (result), "=&a" (tmp)
-			: "a" (&rw->lock)
-			: "memory");
+		"       l32i    %1, %2, 0\n"
+		"       addi    %0, %1, 1\n"
+		"       bltz    %0, 1f\n"
+		"       wsr     %1, scompare1\n"
+		"       s32c1i  %0, %2, 0\n"
+		"       sub     %0, %0, %1\n"
+		"1:\n"
+		: "=&a" (result), "=&a" (tmp)
+		: "a" (&rw->lock)
+		: "memory");
 
 	return result == 0;
 }
@@ -195,14 +195,14 @@ static inline void arch_read_unlock(arch_rwlock_t *rw)
 	unsigned long tmp1, tmp2;
 
 	__asm__ __volatile__(
-			"1:     l32i    %1, %2, 0\n"
-			"       addi    %0, %1, -1\n"
-			"       wsr     %1, scompare1\n"
-			"       s32c1i  %0, %2, 0\n"
-			"       bne     %0, %1, 1b\n"
-			: "=&a" (tmp1), "=&a" (tmp2)
-			: "a" (&rw->lock)
-			: "memory");
+		"1:     l32i    %1, %2, 0\n"
+		"       addi    %0, %1, -1\n"
+		"       wsr     %1, scompare1\n"
+		"       s32c1i  %0, %2, 0\n"
+		"       bne     %0, %1, 1b\n"
+		: "=&a" (tmp1), "=&a" (tmp2)
+		: "a" (&rw->lock)
+		: "memory");
 }
 
 #define arch_read_lock_flags(lock, flags)	arch_read_lock(lock)

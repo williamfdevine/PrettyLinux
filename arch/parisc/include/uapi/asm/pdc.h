@@ -3,7 +3,7 @@
 
 /*
  *	PDC return values ...
- *	All PDC calls return a subset of these errors. 
+ *	All PDC calls return a subset of these errors.
  */
 
 #define PDC_WARN		  3	/* Call completed with a warning */
@@ -154,7 +154,7 @@
 #define PDC_PSW_GET_DEFAULTS	1	/* Return defaults              */
 #define PDC_PSW_SET_DEFAULTS	2	/* Set default                  */
 #define PDC_PSW_ENDIAN_BIT	1	/* set for big endian           */
-#define PDC_PSW_WIDE_BIT	2	/* set for wide mode            */ 
+#define PDC_PSW_WIDE_BIT	2	/* set for wide mode            */
 
 #define PDC_SYSTEM_MAP	22		/* find system modules		*/
 #define PDC_FIND_MODULE 	0
@@ -254,7 +254,7 @@
 #define PDC_PCI_PCI_INT_ROUTE_SIZE	13
 #define PDC_PCI_GET_INT_TBL_SIZE	PDC_PCI_PCI_INT_ROUTE_SIZE
 #define PDC_PCI_PCI_INT_ROUTE		14
-#define PDC_PCI_GET_INT_TBL		PDC_PCI_PCI_INT_ROUTE 
+#define PDC_PCI_GET_INT_TBL		PDC_PCI_PCI_INT_ROUTE
 #define PDC_PCI_READ_MON_TYPE		15
 #define PDC_PCI_WRITE_MON_TYPE		16
 
@@ -321,7 +321,7 @@
 
 /* constants for PDC_CHASSIS */
 #define OSTAT_OFF		0
-#define OSTAT_FLT		1 
+#define OSTAT_FLT		1
 #define OSTAT_TEST		2
 #define OSTAT_INIT		3
 #define OSTAT_SHUT		4
@@ -347,14 +347,16 @@
 #define	PF_AUTOSEARCH	0x40
 #define	PF_TIMER	0x0F
 
-struct device_path {		/* page 1-69 */
+struct device_path  		/* page 1-69 */
+{
 	unsigned char flags;	/* flags see above! */
 	unsigned char bc[6];	/* bus converter routing info */
 	unsigned char mod;
 	unsigned int  layers[6];/* device-specific layer-info */
 } __attribute__((aligned(8))) ;
 
-struct pz_device {
+struct pz_device
+{
 	struct	device_path dp;	/* see above */
 	/* struct	iomod *hpa; */
 	unsigned int hpa;	/* HPA base address */
@@ -366,7 +368,8 @@ struct pz_device {
 	unsigned short cl_class;/* see below */
 } __attribute__((aligned(8))) ;
 
-struct zeropage {
+struct zeropage
+{
 	/* [0x000] initialize vectors (VEC) */
 	unsigned int	vec_special;		/* must be zero */
 	/* int	(*vec_pow_fail)(void);*/
@@ -377,8 +380,8 @@ struct zeropage {
 	/* int	(*vec_rendz)(void); */
 	unsigned int vec_rendz;
 	int	vec_pow_fail_flen;
-	int	vec_pad[10];		
-	
+	int	vec_pad[10];
+
 	/* [0x040] reserved processor dependent */
 	int	pad0[112];
 

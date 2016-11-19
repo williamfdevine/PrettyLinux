@@ -16,7 +16,8 @@
 #ifndef __ASM_MACH_JZ4740_DMA_H__
 #define __ASM_MACH_JZ4740_DMA_H__
 
-enum jz4740_dma_request_type {
+enum jz4740_dma_request_type
+{
 	JZ4740_DMA_TYPE_AUTO_REQUEST	= 8,
 	JZ4740_DMA_TYPE_UART_TRANSMIT	= 20,
 	JZ4740_DMA_TYPE_UART_RECEIVE	= 21,

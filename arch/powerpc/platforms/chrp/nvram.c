@@ -29,17 +29,25 @@ static unsigned char chrp_nvram_read(int addr)
 	unsigned long flags;
 	unsigned char ret;
 
-	if (addr >= nvram_size) {
+	if (addr >= nvram_size)
+	{
 		printk(KERN_DEBUG "%s: read addr %d > nvram_size %u\n",
-		       current->comm, addr, nvram_size);
+			   current->comm, addr, nvram_size);
 		return 0xff;
 	}
+
 	spin_lock_irqsave(&nvram_lock, flags);
+
 	if ((rtas_call(rtas_token("nvram-fetch"), 3, 2, &done, addr,
-		       __pa(nvram_buf), 1) != 0) || 1 != done)
+				   __pa(nvram_buf), 1) != 0) || 1 != done)
+	{
 		ret = 0xff;
+	}
 	else
+	{
 		ret = nvram_buf[0];
+	}
+
 	spin_unlock_irqrestore(&nvram_lock, flags);
 
 	return ret;
@@ -50,16 +58,22 @@ static void chrp_nvram_write(int addr, unsigned char val)
 	unsigned int done;
 	unsigned long flags;
 
-	if (addr >= nvram_size) {
+	if (addr >= nvram_size)
+	{
 		printk(KERN_DEBUG "%s: write addr %d > nvram_size %u\n",
-		       current->comm, addr, nvram_size);
+			   current->comm, addr, nvram_size);
 		return;
 	}
+
 	spin_lock_irqsave(&nvram_lock, flags);
 	nvram_buf[0] = val;
+
 	if ((rtas_call(rtas_token("nvram-store"), 3, 2, &done, addr,
-		       __pa(nvram_buf), 1) != 0) || 1 != done)
+				   __pa(nvram_buf), 1) != 0) || 1 != done)
+	{
 		printk(KERN_DEBUG "rtas IO error storing 0x%02x at %d", val, addr);
+	}
+
 	spin_unlock_irqrestore(&nvram_lock, flags);
 }
 
@@ -70,11 +84,16 @@ void __init chrp_nvram_init(void)
 	unsigned int proplen;
 
 	nvram = of_find_node_by_type(NULL, "nvram");
+
 	if (nvram == NULL)
+	{
 		return;
+	}
 
 	nbytes_p = of_get_property(nvram, "#bytes", &proplen);
-	if (nbytes_p == NULL || proplen != sizeof(unsigned int)) {
+
+	if (nbytes_p == NULL || proplen != sizeof(unsigned int))
+	{
 		of_node_put(nvram);
 		return;
 	}

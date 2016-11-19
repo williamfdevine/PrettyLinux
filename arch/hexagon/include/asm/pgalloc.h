@@ -45,7 +45,7 @@ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
 	 * map with a copy of the kernel's persistent map.
 	 */
 
-	memcpy(pgd, swapper_pg_dir, PTRS_PER_PGD*sizeof(pgd_t));
+	memcpy(pgd, swapper_pg_dir, PTRS_PER_PGD * sizeof(pgd_t));
 	mm->context.generation = kmap_generation;
 
 	/* Physical version is what is passed to virtual machine on switch */
@@ -60,23 +60,29 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 }
 
 static inline struct page *pte_alloc_one(struct mm_struct *mm,
-					 unsigned long address)
+		unsigned long address)
 {
 	struct page *pte;
 
 	pte = alloc_page(GFP_KERNEL | __GFP_ZERO);
+
 	if (!pte)
+	{
 		return NULL;
-	if (!pgtable_page_ctor(pte)) {
+	}
+
+	if (!pgtable_page_ctor(pte))
+	{
 		__free_page(pte);
 		return NULL;
 	}
+
 	return pte;
 }
 
 /* _kernel variant gets to use a different allocator */
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					  unsigned long address)
+		unsigned long address)
 {
 	gfp_t flags =  GFP_KERNEL | __GFP_ZERO;
 	return (pte_t *) __get_free_page(flags);
@@ -94,14 +100,14 @@ static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
 }
 
 static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
-				pgtable_t pte)
+								pgtable_t pte)
 {
 	/*
 	 * Conveniently, zero in 3 LSB means indirect 4K page table.
 	 * Not so convenient when you're trying to vary the page size.
 	 */
 	set_pmd(pmd, __pmd(((unsigned long)page_to_pfn(pte) << PAGE_SHIFT) |
-		HEXAGON_L1_PTE_SIZE));
+					   HEXAGON_L1_PTE_SIZE));
 }
 
 /*
@@ -114,7 +120,7 @@ static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
  * kernel map of the active thread who's calling pmd_populate_kernel...
  */
 static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
-				       pte_t *pte)
+									   pte_t *pte)
 {
 	extern spinlock_t kmap_gen_lock;
 	pmd_t *ppmd;
@@ -135,14 +141,17 @@ static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
 	pmdindex = (pgd_t *)pmd - mm->pgd;
 	ppmd = (pmd_t *)current->active_mm->pgd + pmdindex;
 	set_pmd(ppmd, __pmd(((unsigned long)__pa(pte)) | HEXAGON_L1_PTE_SIZE));
+
 	if (pmdindex > max_kernel_seg)
+	{
 		max_kernel_seg = pmdindex;
+	}
 }
 
 #define __pte_free_tlb(tlb, pte, addr)		\
-do {						\
-	pgtable_page_dtor((pte));		\
-	tlb_remove_page((tlb), (pte));		\
-} while (0)
+	do {						\
+		pgtable_page_dtor((pte));		\
+		tlb_remove_page((tlb), (pte));		\
+	} while (0)
 
 #endif

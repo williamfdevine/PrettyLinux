@@ -46,7 +46,8 @@
 
 static struct class *cpuid_class;
 
-struct cpuid_regs {
+struct cpuid_regs
+{
 	u32 eax, ebx, ecx, edx;
 };
 
@@ -55,11 +56,11 @@ static void cpuid_smp_cpuid(void *cmd_block)
 	struct cpuid_regs *cmd = (struct cpuid_regs *)cmd_block;
 
 	cpuid_count(cmd->eax, cmd->ecx,
-		    &cmd->eax, &cmd->ebx, &cmd->ecx, &cmd->edx);
+				&cmd->eax, &cmd->ebx, &cmd->ecx, &cmd->edx);
 }
 
 static ssize_t cpuid_read(struct file *file, char __user *buf,
-			  size_t count, loff_t *ppos)
+						  size_t count, loff_t *ppos)
 {
 	char __user *tmp = buf;
 	struct cpuid_regs cmd;
@@ -69,18 +70,27 @@ static ssize_t cpuid_read(struct file *file, char __user *buf,
 	int err = 0;
 
 	if (count % 16)
-		return -EINVAL;	/* Invalid chunk size */
+	{
+		return -EINVAL;    /* Invalid chunk size */
+	}
 
-	for (; count; count -= 16) {
+	for (; count; count -= 16)
+	{
 		cmd.eax = pos;
 		cmd.ecx = pos >> 32;
 		err = smp_call_function_single(cpu, cpuid_smp_cpuid, &cmd, 1);
+
 		if (err)
+		{
 			break;
-		if (copy_to_user(tmp, &cmd, 16)) {
+		}
+
+		if (copy_to_user(tmp, &cmd, 16))
+		{
 			err = -EFAULT;
 			break;
 		}
+
 		tmp += 16;
 		bytes += 16;
 		*ppos = ++pos;
@@ -95,12 +105,18 @@ static int cpuid_open(struct inode *inode, struct file *file)
 	struct cpuinfo_x86 *c;
 
 	cpu = iminor(file_inode(file));
+
 	if (cpu >= nr_cpu_ids || !cpu_online(cpu))
-		return -ENXIO;	/* No such CPU */
+	{
+		return -ENXIO;    /* No such CPU */
+	}
 
 	c = &cpu_data(cpu);
+
 	if (c->cpuid_level < 0)
-		return -EIO;	/* CPUID not supported */
+	{
+		return -EIO;    /* CPUID not supported */
+	}
 
 	return 0;
 }
@@ -108,7 +124,8 @@ static int cpuid_open(struct inode *inode, struct file *file)
 /*
  * File operations we support
  */
-static const struct file_operations cpuid_fops = {
+static const struct file_operations cpuid_fops =
+{
 	.owner = THIS_MODULE,
 	.llseek = no_seek_end_llseek,
 	.read = cpuid_read,
@@ -120,7 +137,7 @@ static int cpuid_device_create(int cpu)
 	struct device *dev;
 
 	dev = device_create(cpuid_class, NULL, MKDEV(CPUID_MAJOR, cpu), NULL,
-			    "cpu%d", cpu);
+						"cpu%d", cpu);
 	return PTR_ERR_OR_ZERO(dev);
 }
 
@@ -130,21 +147,24 @@ static void cpuid_device_destroy(int cpu)
 }
 
 static int cpuid_class_cpu_callback(struct notifier_block *nfb,
-				    unsigned long action, void *hcpu)
+									unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long)hcpu;
 	int err = 0;
 
-	switch (action) {
-	case CPU_UP_PREPARE:
-		err = cpuid_device_create(cpu);
-		break;
-	case CPU_UP_CANCELED:
-	case CPU_UP_CANCELED_FROZEN:
-	case CPU_DEAD:
-		cpuid_device_destroy(cpu);
-		break;
+	switch (action)
+	{
+		case CPU_UP_PREPARE:
+			err = cpuid_device_create(cpu);
+			break;
+
+		case CPU_UP_CANCELED:
+		case CPU_UP_CANCELED_FROZEN:
+		case CPU_DEAD:
+			cpuid_device_destroy(cpu);
+			break;
 	}
+
 	return notifier_from_errno(err);
 }
 
@@ -164,24 +184,33 @@ static int __init cpuid_init(void)
 	i = 0;
 
 	if (__register_chrdev(CPUID_MAJOR, 0, NR_CPUS,
-			      "cpu/cpuid", &cpuid_fops)) {
+						  "cpu/cpuid", &cpuid_fops))
+	{
 		printk(KERN_ERR "cpuid: unable to get major %d for cpuid\n",
-		       CPUID_MAJOR);
+			   CPUID_MAJOR);
 		err = -EBUSY;
 		goto out;
 	}
+
 	cpuid_class = class_create(THIS_MODULE, "cpuid");
-	if (IS_ERR(cpuid_class)) {
+
+	if (IS_ERR(cpuid_class))
+	{
 		err = PTR_ERR(cpuid_class);
 		goto out_chrdev;
 	}
+
 	cpuid_class->devnode = cpuid_devnode;
 
 	cpu_notifier_register_begin();
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		err = cpuid_device_create(i);
+
 		if (err != 0)
+		{
 			goto out_class;
+		}
 	}
 	__register_hotcpu_notifier(&cpuid_class_cpu_notifier);
 	cpu_notifier_register_done();
@@ -191,7 +220,8 @@ static int __init cpuid_init(void)
 
 out_class:
 	i = 0;
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		cpuid_device_destroy(i);
 	}
 	cpu_notifier_register_done();
@@ -208,7 +238,7 @@ static void __exit cpuid_exit(void)
 
 	cpu_notifier_register_begin();
 	for_each_online_cpu(cpu)
-		cpuid_device_destroy(cpu);
+	cpuid_device_destroy(cpu);
 	class_destroy(cpuid_class);
 	__unregister_chrdev(CPUID_MAJOR, 0, NR_CPUS, "cpu/cpuid");
 	__unregister_hotcpu_notifier(&cpuid_class_cpu_notifier);

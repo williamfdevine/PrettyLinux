@@ -26,12 +26,12 @@
 	__asmlinkage_protect_n(ret, "m" (arg1), "m" (arg2), "m" (arg3))
 #define __asmlinkage_protect4(ret, arg1, arg2, arg3, arg4) \
 	__asmlinkage_protect_n(ret, "m" (arg1), "m" (arg2), "m" (arg3), \
-			      "m" (arg4))
+						   "m" (arg4))
 #define __asmlinkage_protect5(ret, arg1, arg2, arg3, arg4, arg5) \
 	__asmlinkage_protect_n(ret, "m" (arg1), "m" (arg2), "m" (arg3), \
-			      "m" (arg4), "m" (arg5))
+						   "m" (arg4), "m" (arg5))
 #define __asmlinkage_protect6(ret, arg1, arg2, arg3, arg4, arg5, arg6) \
 	__asmlinkage_protect_n(ret, "m" (arg1), "m" (arg2), "m" (arg3), \
-			      "m" (arg4), "m" (arg5), "m" (arg6))
+						   "m" (arg4), "m" (arg5), "m" (arg6))
 
 #endif

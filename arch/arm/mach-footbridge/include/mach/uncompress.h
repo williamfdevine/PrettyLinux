@@ -17,12 +17,19 @@
 
 static inline void putc(char c)
 {
-	if (machine_is_netwinder()) {
+	if (machine_is_netwinder())
+	{
 		while ((SER0_BASE[5] & 0x60) != 0x60)
+		{
 			barrier();
+		}
+
 		SER0_BASE[0] = c;
-	} else {
+	}
+	else
+	{
 		while (DC21285_BASE[6] & 8);
+
 		DC21285_BASE[0] = c;
 	}
 }

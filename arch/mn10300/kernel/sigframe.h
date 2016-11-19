@@ -16,7 +16,7 @@ struct sigframe
 	struct sigcontext *psc;
 	struct sigcontext sc;
 	struct fpucontext fpuctx;
-	unsigned long extramask[_NSIG_WORDS-1];
+	unsigned long extramask[_NSIG_WORDS - 1];
 	char retcode[8];
 };
 

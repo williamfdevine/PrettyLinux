@@ -25,11 +25,11 @@
 #define DCRN_SDRAM0_CFGDATA				0x011
 
 #define SDRAM0_READ(offset) ({\
-	mtdcr(DCRN_SDRAM0_CFGADDR, offset); \
-	mfdcr(DCRN_SDRAM0_CFGDATA); })
+		mtdcr(DCRN_SDRAM0_CFGADDR, offset); \
+		mfdcr(DCRN_SDRAM0_CFGDATA); })
 #define SDRAM0_WRITE(offset, data) ({\
-	mtdcr(DCRN_SDRAM0_CFGADDR, offset); \
-	mtdcr(DCRN_SDRAM0_CFGDATA, data); })
+		mtdcr(DCRN_SDRAM0_CFGADDR, offset); \
+		mtdcr(DCRN_SDRAM0_CFGDATA, data); })
 
 #define 	SDRAM0_B0CR				0x40
 #define 	SDRAM0_B1CR				0x44
@@ -37,7 +37,8 @@
 #define 	SDRAM0_B3CR				0x4c
 
 static const unsigned long sdram_bxcr[] = { SDRAM0_B0CR, SDRAM0_B1CR,
-					    SDRAM0_B2CR, SDRAM0_B3CR };
+											SDRAM0_B2CR, SDRAM0_B3CR
+										  };
 
 #define			SDRAM_CONFIG_BANK_ENABLE        0x00000001
 #define			SDRAM_CONFIG_SIZE_MASK          0x000e0000
@@ -95,15 +96,15 @@ static const unsigned long sdram_bxcr[] = { SDRAM0_B0CR, SDRAM0_B1CR,
 /* Helper macros to compute the actual clock divider values from the
  * encodings in the CPC0 register */
 #define	  CPC0_SYS0_FBDV(reg) \
-		((((((reg) & CPC0_SYS0_FBDV_MASK) >> 18) - 1) & 0xf) + 1)
+	((((((reg) & CPC0_SYS0_FBDV_MASK) >> 18) - 1) & 0xf) + 1)
 #define	  CPC0_SYS0_FWDVA(reg) \
-		(8 - (((reg) & CPC0_SYS0_FWDVA_MASK) >> 15))
+	(8 - (((reg) & CPC0_SYS0_FWDVA_MASK) >> 15))
 #define	  CPC0_SYS0_FWDVB(reg) \
-		(8 - (((reg) & CPC0_SYS0_FWDVB_MASK) >> 12))
+	(8 - (((reg) & CPC0_SYS0_FWDVB_MASK) >> 12))
 #define	  CPC0_SYS0_OPDV(reg) \
-		((((reg) & CPC0_SYS0_OPDV_MASK) >> 10) + 1)
+	((((reg) & CPC0_SYS0_OPDV_MASK) >> 10) + 1)
 #define	  CPC0_SYS0_EPDV(reg) \
-		((((reg) & CPC0_SYS0_EPDV_MASK) >> 8) + 1)
+	((((reg) & CPC0_SYS0_EPDV_MASK) >> 8) + 1)
 #define	  CPC0_SYS0_EXTSL				  0x00000080
 #define	  CPC0_SYS0_RW_MASK				  0x00000060
 #define	  CPC0_SYS0_RL					  0x00000010
@@ -134,7 +135,7 @@ static const unsigned long sdram_bxcr[] = { SDRAM0_B0CR, SDRAM0_B1CR,
 #define	  CPC0_CR0_U1EC					  0x00200000
 #define	  CPC0_CR0_UDIV_MASK				  0x001f0000
 #define	  CPC0_CR0_UDIV(reg) \
-		((((reg) & CPC0_CR0_UDIV_MASK) >> 16) + 1)
+	((((reg) & CPC0_CR0_UDIV_MASK) >> 16) + 1)
 #define DCRN_CPC0_MIRQ0					0x0ec
 #define DCRN_CPC0_MIRQ1					0x0ed
 #define DCRN_CPC0_JTAGID				0x0ef
@@ -178,11 +179,11 @@ static const unsigned long sdram_bxcr[] = { SDRAM0_B0CR, SDRAM0_B1CR,
 
 /* SDR read/write helper macros */
 #define SDR0_READ(offset) ({\
-	mtdcr(DCRN_SDR0_CONFIG_ADDR, offset); \
-	mfdcr(DCRN_SDR0_CONFIG_DATA); })
+		mtdcr(DCRN_SDR0_CONFIG_ADDR, offset); \
+		mfdcr(DCRN_SDR0_CONFIG_DATA); })
 #define SDR0_WRITE(offset, data) ({\
-	mtdcr(DCRN_SDR0_CONFIG_ADDR, offset); \
-	mtdcr(DCRN_SDR0_CONFIG_DATA, data); })
+		mtdcr(DCRN_SDR0_CONFIG_ADDR, offset); \
+		mtdcr(DCRN_SDR0_CONFIG_DATA, data); })
 
 #define DCRN_SDR0_UART0		0x0120
 #define DCRN_SDR0_UART1		0x0121
@@ -196,11 +197,11 @@ static const unsigned long sdram_bxcr[] = { SDRAM0_B0CR, SDRAM0_B1CR,
 #define DCRN_CPR0_CFGDATA				0xd
 
 #define CPR0_READ(offset) ({\
-	mtdcr(DCRN_CPR0_CFGADDR, offset); \
-	mfdcr(DCRN_CPR0_CFGDATA); })
+		mtdcr(DCRN_CPR0_CFGADDR, offset); \
+		mfdcr(DCRN_CPR0_CFGDATA); })
 #define CPR0_WRITE(offset, data) ({\
-	mtdcr(DCRN_CPR0_CFGADDR, offset); \
-	mtdcr(DCRN_CPR0_CFGDATA, data); })
+		mtdcr(DCRN_CPR0_CFGADDR, offset); \
+		mtdcr(DCRN_CPR0_CFGDATA, data); })
 
 
 

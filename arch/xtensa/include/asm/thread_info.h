@@ -14,7 +14,7 @@
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-# include <asm/processor.h>
+	#include <asm/processor.h>
 #endif
 
 /*
@@ -29,7 +29,8 @@
 
 #if XTENSA_HAVE_COPROCESSORS
 
-typedef struct xtregs_coprocessor {
+typedef struct xtregs_coprocessor
+{
 	xtregs_cp0_t cp0;
 	xtregs_cp1_t cp1;
 	xtregs_cp2_t cp2;
@@ -42,7 +43,8 @@ typedef struct xtregs_coprocessor {
 
 #endif
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	unsigned long		status;		/* thread-synchronous flags */
@@ -69,13 +71,13 @@ struct thread_info {
 #ifndef __ASSEMBLY__
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -84,8 +86,8 @@ struct thread_info {
 static inline struct thread_info *current_thread_info(void)
 {
 	struct thread_info *ti;
-	 __asm__("extui %0,a1,0,13\n\t"
-	         "xor %0, a1, %0" : "=&r" (ti) : );
+	__asm__("extui %0,a1,0,13\n\t"
+			"xor %0, a1, %0" : "=&r" (ti) : );
 	return ti;
 }
 

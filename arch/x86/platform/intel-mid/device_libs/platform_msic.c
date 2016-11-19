@@ -22,7 +22,8 @@
 
 struct intel_msic_platform_data msic_pdata;
 
-static struct resource msic_resources[] = {
+static struct resource msic_resources[] =
+{
 	{
 		.start	= INTEL_MSIC_IRQ_PHYS_BASE,
 		.end	= INTEL_MSIC_IRQ_PHYS_BASE + 64 - 1,
@@ -30,7 +31,8 @@ static struct resource msic_resources[] = {
 	},
 };
 
-static struct platform_device msic_device = {
+static struct platform_device msic_device =
+{
 	.name		= "intel_msic",
 	.id		= -1,
 	.dev		= {
@@ -41,9 +43,10 @@ static struct platform_device msic_device = {
 };
 
 static int msic_scu_status_change(struct notifier_block *nb,
-				  unsigned long code, void *data)
+								  unsigned long code, void *data)
 {
-	if (code == SCU_DOWN) {
+	if (code == SCU_DOWN)
+	{
 		platform_device_unregister(&msic_device);
 		return 0;
 	}
@@ -53,7 +56,8 @@ static int msic_scu_status_change(struct notifier_block *nb,
 
 static int __init msic_init(void)
 {
-	static struct notifier_block msic_scu_notifier = {
+	static struct notifier_block msic_scu_notifier =
+	{
 		.notifier_call	= msic_scu_status_change,
 	};
 
@@ -62,7 +66,9 @@ static int __init msic_init(void)
 	 * can be registered.
 	 */
 	if (intel_mid_has_msic())
+	{
 		intel_scu_notifier_add(&msic_scu_notifier);
+	}
 
 	return 0;
 }

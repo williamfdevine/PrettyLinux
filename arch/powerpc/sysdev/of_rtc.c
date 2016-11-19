@@ -15,10 +15,12 @@
 #include <linux/of_platform.h>
 #include <linux/slab.h>
 
-static __initdata struct {
+static __initdata struct
+{
 	const char *compatible;
 	char *plat_name;
-} of_rtc_table[] = {
+} of_rtc_table[] =
+{
 	{ "ds1743-nvram", "rtc-ds1742" },
 };
 
@@ -28,33 +30,39 @@ void __init of_instantiate_rtc(void)
 	int err;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(of_rtc_table); i++) {
+	for (i = 0; i < ARRAY_SIZE(of_rtc_table); i++)
+	{
 		char *plat_name = of_rtc_table[i].plat_name;
 
 		for_each_compatible_node(node, NULL,
-					 of_rtc_table[i].compatible) {
+								 of_rtc_table[i].compatible)
+		{
 			struct resource *res;
 
 			res = kmalloc(sizeof(*res), GFP_KERNEL);
-			if (!res) {
+
+			if (!res)
+			{
 				printk(KERN_ERR "OF RTC: Out of memory "
-				       "allocating resource structure for %s\n",
-				       node->full_name);
+					   "allocating resource structure for %s\n",
+					   node->full_name);
 				continue;
 			}
 
 			err = of_address_to_resource(node, 0, res);
-			if (err) {
+
+			if (err)
+			{
 				printk(KERN_ERR "OF RTC: Error "
-				       "translating resources for %s\n",
-				       node->full_name);
+					   "translating resources for %s\n",
+					   node->full_name);
 				continue;
 			}
 
 			printk(KERN_INFO "OF_RTC: %s is a %s @ 0x%llx-0x%llx\n",
-			       node->full_name, plat_name,
-			       (unsigned long long)res->start,
-			       (unsigned long long)res->end);
+				   node->full_name, plat_name,
+				   (unsigned long long)res->start,
+				   (unsigned long long)res->end);
 			platform_device_register_simple(plat_name, -1, res, 1);
 		}
 	}

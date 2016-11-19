@@ -33,7 +33,8 @@
 #include "generic.h"
 
 /* Flash bank 0 */
-static struct mtd_partition nanoengine_partitions[] = {
+static struct mtd_partition nanoengine_partitions[] =
+{
 	{
 		.name	= "nanoEngine boot firmware and parameter table",
 		.size		= 0x00010000,  /* 32K */
@@ -52,18 +53,21 @@ static struct mtd_partition nanoengine_partitions[] = {
 	}
 };
 
-static struct flash_platform_data nanoengine_flash_data = {
+static struct flash_platform_data nanoengine_flash_data =
+{
 	.map_name	= "jedec_probe",
 	.parts		= nanoengine_partitions,
 	.nr_parts	= ARRAY_SIZE(nanoengine_partitions),
 };
 
-static struct resource nanoengine_flash_resources[] = {
+static struct resource nanoengine_flash_resources[] =
+{
 	DEFINE_RES_MEM(SA1100_CS0_PHYS, SZ_32M),
 	DEFINE_RES_MEM(SA1100_CS1_PHYS, SZ_32M),
 };
 
-static struct map_desc nanoengine_io_desc[] __initdata = {
+static struct map_desc nanoengine_io_desc[] __initdata =
+{
 	{
 		/* System Registers */
 		.virtual	= 0xf0000000,
@@ -102,16 +106,16 @@ static void __init nanoengine_map_io(void)
 static void __init nanoengine_init(void)
 {
 	sa11x0_register_mtd(&nanoengine_flash_data, nanoengine_flash_resources,
-		ARRAY_SIZE(nanoengine_flash_resources));
+						ARRAY_SIZE(nanoengine_flash_resources));
 }
 
 MACHINE_START(NANOENGINE, "BSE nanoEngine")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= nanoengine_map_io,
-	.nr_irqs	= SA1100_NR_IRQS,
-	.init_irq	= sa1100_init_irq,
-	.init_time	= sa1100_timer_init,
-	.init_machine	= nanoengine_init,
-	.init_late	= sa11x0_init_late,
-	.restart	= sa11x0_restart,
-MACHINE_END
+		.nr_irqs	= SA1100_NR_IRQS,
+			.init_irq	= sa1100_init_irq,
+			   .init_time	= sa1100_timer_init,
+				 .init_machine	= nanoengine_init,
+					.init_late	= sa11x0_init_late,
+					  .restart	= sa11x0_restart,
+						  MACHINE_END

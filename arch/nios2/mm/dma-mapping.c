@@ -21,45 +21,52 @@
 #include <asm/cacheflush.h>
 
 static inline void __dma_sync_for_device(void *vaddr, size_t size,
-			      enum dma_data_direction direction)
+		enum dma_data_direction direction)
 {
-	switch (direction) {
-	case DMA_FROM_DEVICE:
-		invalidate_dcache_range((unsigned long)vaddr,
-			(unsigned long)(vaddr + size));
-		break;
-	case DMA_TO_DEVICE:
+	switch (direction)
+	{
+		case DMA_FROM_DEVICE:
+			invalidate_dcache_range((unsigned long)vaddr,
+									(unsigned long)(vaddr + size));
+			break;
+
+		case DMA_TO_DEVICE:
+
 		/*
 		 * We just need to flush the caches here , but Nios2 flush
 		 * instruction will do both writeback and invalidate.
 		 */
-	case DMA_BIDIRECTIONAL: /* flush and invalidate */
-		flush_dcache_range((unsigned long)vaddr,
-			(unsigned long)(vaddr + size));
-		break;
-	default:
-		BUG();
+		case DMA_BIDIRECTIONAL: /* flush and invalidate */
+			flush_dcache_range((unsigned long)vaddr,
+							   (unsigned long)(vaddr + size));
+			break;
+
+		default:
+			BUG();
 	}
 }
 
 static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
-			      enum dma_data_direction direction)
+									  enum dma_data_direction direction)
 {
-	switch (direction) {
-	case DMA_BIDIRECTIONAL:
-	case DMA_FROM_DEVICE:
-		invalidate_dcache_range((unsigned long)vaddr,
-			(unsigned long)(vaddr + size));
-		break;
-	case DMA_TO_DEVICE:
-		break;
-	default:
-		BUG();
+	switch (direction)
+	{
+		case DMA_BIDIRECTIONAL:
+		case DMA_FROM_DEVICE:
+			invalidate_dcache_range((unsigned long)vaddr,
+									(unsigned long)(vaddr + size));
+			break;
+
+		case DMA_TO_DEVICE:
+			break;
+
+		default:
+			BUG();
 	}
 }
 
 static void *nios2_dma_alloc(struct device *dev, size_t size,
-		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+							 dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
 {
 	void *ret;
 
@@ -70,13 +77,17 @@ static void *nios2_dma_alloc(struct device *dev, size_t size,
 	gfp |= __GFP_ZERO;
 
 	if (dev == NULL || (dev->coherent_dma_mask < 0xffffffff))
+	{
 		gfp |= GFP_DMA;
+	}
 
 	ret = (void *) __get_free_pages(gfp, get_order(size));
-	if (ret != NULL) {
+
+	if (ret != NULL)
+	{
 		*dma_handle = virt_to_phys(ret);
 		flush_dcache_range((unsigned long) ret,
-			(unsigned long) ret + size);
+						   (unsigned long) ret + size);
 		ret = UNCAC_ADDR(ret);
 	}
 
@@ -84,7 +95,7 @@ static void *nios2_dma_alloc(struct device *dev, size_t size,
 }
 
 static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
-		dma_addr_t dma_handle, unsigned long attrs)
+						   dma_addr_t dma_handle, unsigned long attrs)
 {
 	unsigned long addr = (unsigned long) CAC_ADDR((unsigned long) vaddr);
 
@@ -92,16 +103,19 @@ static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
 }
 
 static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
-		int nents, enum dma_data_direction direction,
-		unsigned long attrs)
+							int nents, enum dma_data_direction direction,
+							unsigned long attrs)
 {
 	int i;
 
-	for_each_sg(sg, sg, nents, i) {
+	for_each_sg(sg, sg, nents, i)
+	{
 		void *addr;
 
 		addr = sg_virt(sg);
-		if (addr) {
+
+		if (addr)
+		{
 			__dma_sync_for_device(addr, sg->length, direction);
 			sg->dma_address = sg_phys(sg);
 		}
@@ -111,9 +125,9 @@ static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
 }
 
 static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
-			unsigned long offset, size_t size,
-			enum dma_data_direction direction,
-			unsigned long attrs)
+									 unsigned long offset, size_t size,
+									 enum dma_data_direction direction,
+									 unsigned long attrs)
 {
 	void *addr = page_address(page) + offset;
 
@@ -122,26 +136,32 @@ static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
 }
 
 static void nios2_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
-		size_t size, enum dma_data_direction direction,
-		unsigned long attrs)
+								 size_t size, enum dma_data_direction direction,
+								 unsigned long attrs)
 {
 	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
 }
 
 static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
-		int nhwentries, enum dma_data_direction direction,
-		unsigned long attrs)
+							   int nhwentries, enum dma_data_direction direction,
+							   unsigned long attrs)
 {
 	void *addr;
 	int i;
 
 	if (direction == DMA_TO_DEVICE)
+	{
 		return;
+	}
 
-	for_each_sg(sg, sg, nhwentries, i) {
+	for_each_sg(sg, sg, nhwentries, i)
+	{
 		addr = sg_virt(sg);
+
 		if (addr)
+		{
 			__dma_sync_for_cpu(addr, sg->length, direction);
+		}
 	}
 }
 
@@ -160,14 +180,14 @@ static void nios2_dma_sync_single_for_device(struct device *dev,
 }
 
 static void nios2_dma_sync_sg_for_cpu(struct device *dev,
-		struct scatterlist *sg, int nelems,
-		enum dma_data_direction direction)
+									  struct scatterlist *sg, int nelems,
+									  enum dma_data_direction direction)
 {
 	int i;
 
 	/* Make sure that gcc doesn't leave the empty loop body.  */
 	for_each_sg(sg, sg, nelems, i)
-		__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
+	__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
 }
 
 static void nios2_dma_sync_sg_for_device(struct device *dev,
@@ -178,11 +198,12 @@ static void nios2_dma_sync_sg_for_device(struct device *dev,
 
 	/* Make sure that gcc doesn't leave the empty loop body.  */
 	for_each_sg(sg, sg, nelems, i)
-		__dma_sync_for_device(sg_virt(sg), sg->length, direction);
+	__dma_sync_for_device(sg_virt(sg), sg->length, direction);
 
 }
 
-struct dma_map_ops nios2_dma_ops = {
+struct dma_map_ops nios2_dma_ops =
+{
 	.alloc			= nios2_dma_alloc,
 	.free			= nios2_dma_free,
 	.map_page		= nios2_dma_map_page,

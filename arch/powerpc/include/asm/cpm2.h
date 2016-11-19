@@ -163,7 +163,8 @@ static inline void cpm2_fastbrg(uint brg, uint rate, int div16)
 
 /* Define enough so I can at least use the serial port as a UART.
  */
-typedef struct smc_uart {
+typedef struct smc_uart
+{
 	ushort	smc_rbase;	/* Rx Buffer descriptor base address */
 	ushort	smc_tbase;	/* Tx Buffer descriptor base address */
 	u_char	smc_rfcr;	/* Rx function code */
@@ -305,7 +306,8 @@ typedef struct smc_uart {
 #define SCCM_TX		((unsigned char)0x02)
 #define SCCM_RX		((unsigned char)0x01)
 
-typedef struct scc_param {
+typedef struct scc_param
+{
 	ushort	scc_rbase;	/* Rx Buffer descriptor base address */
 	ushort	scc_tbase;	/* Tx Buffer descriptor base address */
 	u_char	scc_rfcr;	/* Rx function code */
@@ -332,7 +334,8 @@ typedef struct scc_param {
 
 /* CPM Ethernet through SCC1.
  */
-typedef struct scc_enet {
+typedef struct scc_enet
+{
 	sccp_t	sen_genscc;
 	uint	sen_cpres;	/* Preset CRC */
 	uint	sen_cmask;	/* Constant mask for CRC */
@@ -413,7 +416,8 @@ typedef struct scc_enet {
 
 /* SCC as UART
 */
-typedef struct scc_uart {
+typedef struct scc_uart
+{
 	sccp_t	scc_genscc;
 	uint	scc_res1;	/* Reserved */
 	uint	scc_res2;	/* Reserved */
@@ -474,7 +478,8 @@ typedef struct scc_uart {
 
 /* CPM Transparent mode SCC.
  */
-typedef struct scc_trans {
+typedef struct scc_trans
+{
 	sccp_t	st_genscc;
 	uint	st_cpres;	/* Preset CRC */
 	uint	st_cmask;	/* Constant mask for CRC */
@@ -513,7 +518,8 @@ typedef struct scc_trans {
 
 /* Generic FCC parameter ram.
 */
-typedef struct fcc_param {
+typedef struct fcc_param
+{
 	ushort	fcc_riptr;	/* Rx Internal temp pointer */
 	ushort	fcc_tiptr;	/* Tx Internal temp pointer */
 	ushort	fcc_res1;
@@ -538,7 +544,8 @@ typedef struct fcc_param {
 
 /* Ethernet controller through FCC.
 */
-typedef struct fcc_enet {
+typedef struct fcc_enet
+{
 	fccp_t	fen_genfcc;
 	uint	fen_statbuf;	/* Internal status buffer */
 	uint	fen_camptr;	/* CAM address */
@@ -627,7 +634,8 @@ typedef struct fcc_enet {
 
 /* IIC parameter RAM.
 */
-typedef struct iic {
+typedef struct iic
+{
 	ushort	iic_rbase;	/* Rx Buffer descriptor base address */
 	ushort	iic_tbase;	/* Tx Buffer descriptor base address */
 	u_char	iic_rfcr;	/* Rx function code */
@@ -647,7 +655,8 @@ typedef struct iic {
 
 /* IDMA parameter RAM
 */
-typedef struct idma {
+typedef struct idma
+{
 	ushort ibase;		/* IDMA buffer descriptor table base address */
 	ushort dcm;		/* DMA channel mode */
 	ushort ibdptr;		/* IDMA current buffer descriptor pointer */
@@ -692,7 +701,8 @@ typedef struct idma {
 
 /* IDMA Buffer Descriptors
 */
-typedef struct idma_bd {
+typedef struct idma_bd
+{
 	uint flags;
 	uint len;	/* data length */
 	uint src;	/* source data buffer pointer */
@@ -719,7 +729,8 @@ typedef struct idma_bd {
 
 /* per-channel IDMA registers
 */
-typedef struct im_idma {
+typedef struct im_idma
+{
 	u_char idsr;			/* IDMAn event status register */
 	u_char res0[3];
 	u_char idmr;			/* IDMAn event mask register */
@@ -979,7 +990,7 @@ typedef struct im_idma {
 #define SCCR_PCIDF_SHIFT 3
 
 #ifndef CPM_IMMR_OFFSET
-#define CPM_IMMR_OFFSET	0x101a8
+	#define CPM_IMMR_OFFSET	0x101a8
 #endif
 
 #define FCC_PSMR_RMII	((uint)0x00020000)	/* Use RMII interface */
@@ -1031,7 +1042,7 @@ typedef struct im_idma {
 #define PA1_RXDAT	0x0003c000U
 #define PA1_PSORA0	(PA1_RXDAT | PA1_TXDAT)
 #define PA1_PSORA1	(PA1_COL | PA1_CRS | PA1_TXER | PA1_TXEN | \
-		PA1_RXDV | PA1_RXER)
+					 PA1_RXDV | PA1_RXER)
 #define PA1_DIRA0	(PA1_RXDAT | PA1_CRS | PA1_COL | PA1_RXER | PA1_RXDV)
 #define PA1_DIRA1	(PA1_TXDAT | PA1_TXEN | PA1_TXER)
 
@@ -1048,7 +1059,7 @@ typedef struct im_idma {
 #define PB2_TXDAT	0x000003c0U
 #define PB2_RXDAT	0x00003c00U
 #define PB2_PSORB0	(PB2_RXDAT | PB2_TXDAT | PB2_CRS | PB2_COL | \
-		PB2_RXER | PB2_RXDV | PB2_TXER)
+					 PB2_RXER | PB2_RXDV | PB2_TXER)
 #define PB2_PSORB1	(PB2_TXEN)
 #define PB2_DIRB0	(PB2_RXDAT | PB2_CRS | PB2_COL | PB2_RXER | PB2_RXDV)
 #define PB2_DIRB1	(PB2_TXDAT | PB2_TXEN | PB2_TXER)
@@ -1067,7 +1078,7 @@ typedef struct im_idma {
 #define PC3_TXDAT	0x00000010U
 #define PB3_RXDAT	0x00f00000U
 #define PB3_PSORB0	(PB3_RXDAT | PB3_TXDAT | PB3_CRS | PB3_COL | \
-		PB3_RXER | PB3_RXDV | PB3_TXER | PB3_TXEN)
+					 PB3_RXER | PB3_RXDV | PB3_TXER | PB3_TXEN)
 #define PB3_PSORB1	0
 #define PB3_DIRB0	(PB3_RXDAT | PB3_CRS | PB3_COL | PB3_RXER | PB3_RXDV)
 #define PB3_DIRB1	(PB3_TXDAT | PB3_TXEN | PB3_TXER)
@@ -1081,13 +1092,15 @@ typedef struct im_idma {
 
 /* Clocks and GRG's */
 
-enum cpm_clk_dir {
+enum cpm_clk_dir
+{
 	CPM_CLK_RX,
 	CPM_CLK_TX,
 	CPM_CLK_RTX
 };
 
-enum cpm_clk_target {
+enum cpm_clk_target
+{
 	CPM_CLK_SCC1,
 	CPM_CLK_SCC2,
 	CPM_CLK_SCC3,
@@ -1099,7 +1112,8 @@ enum cpm_clk_target {
 	CPM_CLK_SMC2,
 };
 
-enum cpm_clk {
+enum cpm_clk
+{
 	CPM_CLK_NONE = 0,
 	CPM_BRG1,	/* Baud Rate Generator  1 */
 	CPM_BRG2,	/* Baud Rate Generator  2 */

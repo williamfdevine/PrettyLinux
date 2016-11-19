@@ -60,11 +60,11 @@
 #define TEMP_MAX 125
 
 #define DEVICE_PREFIX_ATTR(_prefix,_name,_mode)			\
-struct device_attribute attr_ ## _prefix ## _ ## _name = {	\
-	.attr = { .name = __stringify(_name), .mode = _mode },	\
-	.show	= _prefix ## _show_ ## _name,			\
-	.store	= _prefix ## _store_ ## _name,			\
-};
+	struct device_attribute attr_ ## _prefix ## _ ## _name = {	\
+		.attr = { .name = __stringify(_name), .mode = _mode },	\
+				.show	= _prefix ## _show_ ## _name,			\
+						  .store	= _prefix ## _store_ ## _name,			\
+	};
 
 static inline u8 reg_to_temp(u8 reg_value)
 {
@@ -98,7 +98,7 @@ static u8 spu_read_register_value(struct device *dev, union spe_reg __iomem *reg
 }
 
 static ssize_t spu_show_temp(struct device *dev, struct device_attribute *attr,
-			char *buf)
+							 char *buf)
 {
 	u8 value;
 	struct cbe_pmd_regs __iomem *pmd_regs;
@@ -132,7 +132,9 @@ static ssize_t store_throttle(struct cbe_pmd_regs __iomem *pmd_regs, const char 
 	ret = sscanf(buf, "%u", &temp);
 
 	if (ret != 1 || temp < TEMP_MIN || temp > TEMP_MAX)
+	{
 		return -EINVAL;
+	}
 
 	new_value = temp_to_reg(temp);
 
@@ -148,37 +150,37 @@ static ssize_t store_throttle(struct cbe_pmd_regs __iomem *pmd_regs, const char 
 }
 
 static ssize_t spu_show_throttle_end(struct device *dev,
-			struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	return show_throttle(get_pmd_regs(dev), buf, 0);
 }
 
 static ssize_t spu_show_throttle_begin(struct device *dev,
-			struct device_attribute *attr, char *buf)
+									   struct device_attribute *attr, char *buf)
 {
 	return show_throttle(get_pmd_regs(dev), buf, 8);
 }
 
 static ssize_t spu_show_throttle_full_stop(struct device *dev,
-			struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	return show_throttle(get_pmd_regs(dev), buf, 16);
 }
 
 static ssize_t spu_store_throttle_end(struct device *dev,
-			struct device_attribute *attr, const char *buf, size_t size)
+									  struct device_attribute *attr, const char *buf, size_t size)
 {
 	return store_throttle(get_pmd_regs(dev), buf, size, 0);
 }
 
 static ssize_t spu_store_throttle_begin(struct device *dev,
-			struct device_attribute *attr, const char *buf, size_t size)
+										struct device_attribute *attr, const char *buf, size_t size)
 {
 	return store_throttle(get_pmd_regs(dev), buf, size, 8);
 }
 
 static ssize_t spu_store_throttle_full_stop(struct device *dev,
-			struct device_attribute *attr, const char *buf, size_t size)
+		struct device_attribute *attr, const char *buf, size_t size)
 {
 	return store_throttle(get_pmd_regs(dev), buf, size, 16);
 }
@@ -200,56 +202,57 @@ static ssize_t ppe_show_temp(struct device *dev, char *buf, int pos)
 /* shows the temperature of the DTS on the PPE,
  * located near the linear thermal sensor */
 static ssize_t ppe_show_temp0(struct device *dev,
-			struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	return ppe_show_temp(dev, buf, 32);
 }
 
 /* shows the temperature of the second DTS on the PPE */
 static ssize_t ppe_show_temp1(struct device *dev,
-			struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	return ppe_show_temp(dev, buf, 0);
 }
 
 static ssize_t ppe_show_throttle_end(struct device *dev,
-			struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	return show_throttle(cbe_get_cpu_pmd_regs(dev->id), buf, 32);
 }
 
 static ssize_t ppe_show_throttle_begin(struct device *dev,
-			struct device_attribute *attr, char *buf)
+									   struct device_attribute *attr, char *buf)
 {
 	return show_throttle(cbe_get_cpu_pmd_regs(dev->id), buf, 40);
 }
 
 static ssize_t ppe_show_throttle_full_stop(struct device *dev,
-			struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	return show_throttle(cbe_get_cpu_pmd_regs(dev->id), buf, 48);
 }
 
 static ssize_t ppe_store_throttle_end(struct device *dev,
-			struct device_attribute *attr, const char *buf, size_t size)
+									  struct device_attribute *attr, const char *buf, size_t size)
 {
 	return store_throttle(cbe_get_cpu_pmd_regs(dev->id), buf, size, 32);
 }
 
 static ssize_t ppe_store_throttle_begin(struct device *dev,
-			struct device_attribute *attr, const char *buf, size_t size)
+										struct device_attribute *attr, const char *buf, size_t size)
 {
 	return store_throttle(cbe_get_cpu_pmd_regs(dev->id), buf, size, 40);
 }
 
 static ssize_t ppe_store_throttle_full_stop(struct device *dev,
-			struct device_attribute *attr, const char *buf, size_t size)
+		struct device_attribute *attr, const char *buf, size_t size)
 {
 	return store_throttle(cbe_get_cpu_pmd_regs(dev->id), buf, size, 48);
 }
 
 
-static struct device_attribute attr_spu_temperature = {
+static struct device_attribute attr_spu_temperature =
+{
 	.attr = {.name = "temperature", .mode = 0400 },
 	.show = spu_show_temp,
 };
@@ -259,7 +262,8 @@ static DEVICE_PREFIX_ATTR(spu, throttle_begin, 0600);
 static DEVICE_PREFIX_ATTR(spu, throttle_full_stop, 0600);
 
 
-static struct attribute *spu_attributes[] = {
+static struct attribute *spu_attributes[] =
+{
 	&attr_spu_temperature.attr,
 	&attr_spu_throttle_end.attr,
 	&attr_spu_throttle_begin.attr,
@@ -267,17 +271,20 @@ static struct attribute *spu_attributes[] = {
 	NULL,
 };
 
-static struct attribute_group spu_attribute_group = {
+static struct attribute_group spu_attribute_group =
+{
 	.name	= "thermal",
 	.attrs	= spu_attributes,
 };
 
-static struct device_attribute attr_ppe_temperature0 = {
+static struct device_attribute attr_ppe_temperature0 =
+{
 	.attr = {.name = "temperature0", .mode = 0400 },
 	.show = ppe_show_temp0,
 };
 
-static struct device_attribute attr_ppe_temperature1 = {
+static struct device_attribute attr_ppe_temperature1 =
+{
 	.attr = {.name = "temperature1", .mode = 0400 },
 	.show = ppe_show_temp1,
 };
@@ -286,7 +293,8 @@ static DEVICE_PREFIX_ATTR(ppe, throttle_end, 0600);
 static DEVICE_PREFIX_ATTR(ppe, throttle_begin, 0600);
 static DEVICE_PREFIX_ATTR(ppe, throttle_full_stop, 0600);
 
-static struct attribute *ppe_attributes[] = {
+static struct attribute *ppe_attributes[] =
+{
 	&attr_ppe_temperature0.attr,
 	&attr_ppe_temperature1.attr,
 	&attr_ppe_throttle_end.attr,
@@ -295,7 +303,8 @@ static struct attribute *ppe_attributes[] = {
 	NULL,
 };
 
-static struct attribute_group ppe_attribute_group = {
+static struct attribute_group ppe_attribute_group =
+{
 	.name	= "thermal",
 	.attrs	= ppe_attributes,
 };
@@ -347,18 +356,21 @@ static int __init init_default_values(void)
 	 */
 	cr2 = 0x04;
 
-	for_each_possible_cpu (cpu) {
+	for_each_possible_cpu (cpu)
+	{
 		pr_debug("processing cpu %d\n", cpu);
 		dev = get_cpu_device(cpu);
 
-		if (!dev) {
+		if (!dev)
+		{
 			pr_info("invalid dev pointer for cbe_thermal\n");
 			return -EINVAL;
 		}
 
 		pmd_regs = cbe_get_cpu_pmd_regs(dev->id);
 
-		if (!pmd_regs) {
+		if (!pmd_regs)
+		{
 			pr_info("invalid CBE regs pointer for cbe_thermal\n");
 			return -EINVAL;
 		}
@@ -378,7 +390,8 @@ static int __init thermal_init(void)
 {
 	int rc = init_default_values();
 
-	if (rc == 0) {
+	if (rc == 0)
+	{
 		spu_add_dev_attr_group(&spu_attribute_group);
 		cpu_add_dev_attr_group(&ppe_attribute_group);
 	}

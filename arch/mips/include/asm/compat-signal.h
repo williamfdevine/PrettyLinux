@@ -11,7 +11,7 @@
 #include <asm/uaccess.h>
 
 static inline int __copy_conv_sigset_to_user(compat_sigset_t __user *d,
-	const sigset_t *s)
+		const sigset_t *s)
 {
 	int err;
 
@@ -27,10 +27,11 @@ static inline int __copy_conv_sigset_to_user(compat_sigset_t __user *d,
 }
 
 static inline int __copy_conv_sigset_from_user(sigset_t *d,
-	const compat_sigset_t __user *s)
+		const compat_sigset_t __user *s)
 {
 	int err;
-	union sigset_u {
+	union sigset_u
+	{
 		sigset_t	s;
 		compat_sigset_t c;
 	} *u = (union sigset_u *) d;

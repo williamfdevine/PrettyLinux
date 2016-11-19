@@ -29,64 +29,76 @@
  * The device code for this LCD module is 0x01221517.
  */
 
-static const unsigned char data_frame_if[] = {
+static const unsigned char data_frame_if[] =
+{
 	0x02, /* WEMODE: 1=cont, 0=one-shot */
 	0x00, 0x00,
 	0x00, /* EPF, DFM */
 	0x02, /* RIM[1] : 1 (18bpp) */
 };
 
-static const unsigned char data_panel[] = {
+static const unsigned char data_panel[] =
+{
 	0x0b,
 	0x63, /* 400 lines */
 	0x04, 0x00, 0x00, 0x04, 0x11, 0x00, 0x00,
 };
 
-static const unsigned char data_timing[] = {
+static const unsigned char data_timing[] =
+{
 	0x00, 0x00, 0x13, 0x08, 0x08,
 };
 
-static const unsigned char data_timing_src[] = {
+static const unsigned char data_timing_src[] =
+{
 	0x11, 0x01, 0x00, 0x01,
 };
 
-static const unsigned char data_gamma[] = {
+static const unsigned char data_gamma[] =
+{
 	0x01, 0x02, 0x08, 0x23,	0x03, 0x0c, 0x00, 0x06,	0x00, 0x00,
 	0x01, 0x00, 0x0c, 0x23, 0x03, 0x08, 0x02, 0x06, 0x00, 0x00,
 };
 
-static const unsigned char data_power[] = {
+static const unsigned char data_power[] =
+{
 	0x07, 0xc5, 0xdc, 0x02,	0x33, 0x0a,
 };
 
 static unsigned long read_reg(void *sohandle,
-			      struct sh_mobile_lcdc_sys_bus_ops *so)
+							  struct sh_mobile_lcdc_sys_bus_ops *so)
 {
 	return so->read_data(sohandle);
 }
 
 static void write_reg(void *sohandle,
-		      struct sh_mobile_lcdc_sys_bus_ops *so,
-		      int i, unsigned long v)
+					  struct sh_mobile_lcdc_sys_bus_ops *so,
+					  int i, unsigned long v)
 {
 	if (i)
-		so->write_data(sohandle, v); /* PTH4/LCDRS High [param, 17:0] */
+	{
+		so->write_data(sohandle, v);    /* PTH4/LCDRS High [param, 17:0] */
+	}
 	else
-		so->write_index(sohandle, v); /* PTH4/LCDRS Low [cmd, 7:0] */
+	{
+		so->write_index(sohandle, v);    /* PTH4/LCDRS Low [cmd, 7:0] */
+	}
 }
 
 static void write_data(void *sohandle,
-		       struct sh_mobile_lcdc_sys_bus_ops *so,
-		       unsigned char const *data, int no_data)
+					   struct sh_mobile_lcdc_sys_bus_ops *so,
+					   unsigned char const *data, int no_data)
 {
 	int i;
 
 	for (i = 0; i < no_data; i++)
+	{
 		write_reg(sohandle, so, 1, data[i]);
+	}
 }
 
 static unsigned long read_device_code(void *sohandle,
-				      struct sh_mobile_lcdc_sys_bus_ops *so)
+									  struct sh_mobile_lcdc_sys_bus_ops *so)
 {
 	unsigned long device_code;
 
@@ -115,13 +127,13 @@ static unsigned long read_device_code(void *sohandle,
 }
 
 static void write_memory_start(void *sohandle,
-			       struct sh_mobile_lcdc_sys_bus_ops *so)
+							   struct sh_mobile_lcdc_sys_bus_ops *so)
 {
 	write_reg(sohandle, so, 0, 0x2c);
 }
 
 static void clear_memory(void *sohandle,
-			 struct sh_mobile_lcdc_sys_bus_ops *so)
+						 struct sh_mobile_lcdc_sys_bus_ops *so)
 {
 	int i;
 
@@ -130,11 +142,13 @@ static void clear_memory(void *sohandle,
 
 	/* paint it black */
 	for (i = 0; i < (240 * 400); i++)
+	{
 		write_reg(sohandle, so, 1, 0x00);
+	}
 }
 
 static void display_on(void *sohandle,
-		       struct sh_mobile_lcdc_sys_bus_ops *so)
+					   struct sh_mobile_lcdc_sys_bus_ops *so)
 {
 	/* access protect off */
 	write_reg(sohandle, so, 0, 0xb0);
@@ -264,7 +278,9 @@ int kfr2r09_lcd_setup(void *sohandle, struct sh_mobile_lcdc_sys_bus_ops *so)
 	mdelay(20);
 
 	if (read_device_code(sohandle, so) != 0x01221517)
+	{
 		return -ENODEV;
+	}
 
 	pr_info("KFR2R09 WQVGA LCD Module detected.\n");
 

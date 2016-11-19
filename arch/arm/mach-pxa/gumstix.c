@@ -47,13 +47,15 @@
 
 #include "generic.h"
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.start	= 0x00000000,
 	.end	= SZ_64M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct mtd_partition gumstix_partitions[] = {
+static struct mtd_partition gumstix_partitions[] =
+{
 	{
 		.name =		"Bootloader",
 		.size =		0x00040000,
@@ -66,14 +68,16 @@ static struct mtd_partition gumstix_partitions[] = {
 	}
 };
 
-static struct flash_platform_data gumstix_flash_data = {
+static struct flash_platform_data gumstix_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.parts		= gumstix_partitions,
 	.nr_parts	= ARRAY_SIZE(gumstix_partitions),
 	.width		= 2,
 };
 
-static struct platform_device gumstix_flash_device = {
+static struct platform_device gumstix_flash_device =
+{
 	.name		= "pxa2xx-flash",
 	.id		= 0,
 	.dev = {
@@ -83,13 +87,15 @@ static struct platform_device gumstix_flash_device = {
 	.num_resources = 1,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&gumstix_flash_device,
 };
 
 #ifdef CONFIG_MMC_PXA
-static struct pxamci_platform_data gumstix_mci_platform_data = {
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct pxamci_platform_data gumstix_mci_platform_data =
+{
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect 	= -1,
 	.gpio_card_ro		= -1,
 	.gpio_power		= -1,
@@ -107,12 +113,14 @@ static void __init gumstix_mmc_init(void)
 #endif
 
 #ifdef CONFIG_USB_PXA25X
-static struct gpio_vbus_mach_info gumstix_udc_info = {
+static struct gpio_vbus_mach_info gumstix_udc_info =
+{
 	.gpio_vbus		= GPIO_GUMSTIX_USB_GPIOn,
 	.gpio_pullup		= GPIO_GUMSTIX_USB_GPIOx,
 };
 
-static struct platform_device gumstix_gpio_vbus = {
+static struct platform_device gumstix_gpio_vbus =
+{
 	.name	= "gpio-vbus",
 	.id	= -1,
 	.dev	= {
@@ -140,18 +148,31 @@ static void gumstix_setup_bt_clock(void)
 	int timeout = 500;
 
 	if (!(readl(OSCC) & OSCC_OOK))
+	{
 		pr_warn("32kHz clock was not on. Bootloader may need to be updated\n");
+	}
 	else
+	{
 		return;
+	}
 
 	writel(readl(OSCC) | OSCC_OON, OSCC);
-	do {
+
+	do
+	{
 		if (readl(OSCC) & OSCC_OOK)
+		{
 			break;
+		}
+
 		udelay(1);
-	} while (--timeout);
+	}
+	while (--timeout);
+
 	if (!timeout)
+	{
 		pr_err("Failed to start 32kHz clock\n");
+	}
 }
 
 static void __init gumstix_bluetooth_init(void)
@@ -161,16 +182,21 @@ static void __init gumstix_bluetooth_init(void)
 	gumstix_setup_bt_clock();
 
 	err = gpio_request(GPIO_GUMSTIX_BTRESET, "BTRST");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("gumstix: failed request gpio for bluetooth reset\n");
 		return;
 	}
 
 	err = gpio_direction_output(GPIO_GUMSTIX_BTRESET, 1);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("gumstix: can't reset bluetooth\n");
 		return;
 	}
+
 	gpio_set_value(GPIO_GUMSTIX_BTRESET, 0);
 	udelay(100);
 	gpio_set_value(GPIO_GUMSTIX_BTRESET, 1);
@@ -182,7 +208,8 @@ static void gumstix_bluetooth_init(void)
 }
 #endif
 
-static unsigned long gumstix_pin_config[] __initdata = {
+static unsigned long gumstix_pin_config[] __initdata =
+{
 	GPIO12_32KHz,
 	/* BTUART */
 	GPIO42_HWUART_RXD,
@@ -232,12 +259,12 @@ static void __init gumstix_init(void)
 }
 
 MACHINE_START(GUMSTIX, "Gumstix")
-	.atag_offset	= 0x100, /* match u-boot bi_boot_params */
+.atag_offset	= 0x100, /* match u-boot bi_boot_params */
 	.map_io		= pxa25x_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= gumstix_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa25x_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= gumstix_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

@@ -26,7 +26,8 @@ static void pcibios_bus_report_status(struct pci_bus *bus, u_int status_mask, in
 {
 	struct pci_dev *dev;
 
-	list_for_each_entry(dev, &bus->devices, bus_list) {
+	list_for_each_entry(dev, &bus->devices, bus_list)
+	{
 		u16 status;
 
 		/*
@@ -34,25 +35,37 @@ static void pcibios_bus_report_status(struct pci_bus *bus, u_int status_mask, in
 		 * that separately
 		 */
 		if (dev->bus->number == 0 && dev->devfn == 0)
+		{
 			continue;
+		}
 
 		pci_read_config_word(dev, PCI_STATUS, &status);
+
 		if (status == 0xffff)
+		{
 			continue;
+		}
 
 		if ((status & status_mask) == 0)
+		{
 			continue;
+		}
 
 		/* clear the status errors */
 		pci_write_config_word(dev, PCI_STATUS, status & status_mask);
 
 		if (warn)
+		{
 			printk("(%s: %04X) ", pci_name(dev), status);
+		}
 	}
 
 	list_for_each_entry(dev, &bus->devices, bus_list)
-		if (dev->subordinate)
-			pcibios_bus_report_status(dev->subordinate, status_mask, warn);
+
+	if (dev->subordinate)
+	{
+		pcibios_bus_report_status(dev->subordinate, status_mask, warn);
+	}
 }
 
 void pcibios_report_status(u_int status_mask, int warn)
@@ -60,7 +73,7 @@ void pcibios_report_status(u_int status_mask, int warn)
 	struct pci_bus *bus;
 
 	list_for_each_entry(bus, &pci_root_buses, node)
-		pcibios_bus_report_status(bus, status_mask, warn);
+	pcibios_bus_report_status(bus, status_mask, warn);
 }
 
 /*
@@ -143,10 +156,13 @@ static void pci_fixup_dec21285(struct pci_dev *dev)
 {
 	int i;
 
-	if (dev->devfn == 0) {
+	if (dev->devfn == 0)
+	{
 		dev->class &= 0xff;
 		dev->class |= PCI_CLASS_BRIDGE_HOST << 8;
-		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
+
+		for (i = 0; i < PCI_NUM_RESOURCES; i++)
+		{
 			dev->resource[i].start = 0;
 			dev->resource[i].end   = 0;
 			dev->resource[i].flags = 0;
@@ -164,11 +180,16 @@ static void pci_fixup_ide_bases(struct pci_dev *dev)
 	int i;
 
 	if ((dev->class >> 8) != PCI_CLASS_STORAGE_IDE)
+	{
 		return;
+	}
 
-	for (i = 0; i < PCI_NUM_RESOURCES; i++) {
+	for (i = 0; i < PCI_NUM_RESOURCES; i++)
+	{
 		r = dev->resource + i;
-		if ((r->start & ~0x80) == 0x374) {
+
+		if ((r->start & ~0x80) == 0x374)
+		{
 			r->start |= 2;
 			r->end = r->start;
 		}
@@ -203,21 +224,25 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_DEC, PCI_DEVICE_ID_DEC_21142, pci_fixup_d
  */
 static void pci_fixup_cy82c693(struct pci_dev *dev)
 {
-	if ((dev->class >> 8) == PCI_CLASS_STORAGE_IDE) {
+	if ((dev->class >> 8) == PCI_CLASS_STORAGE_IDE)
+	{
 		u32 base0, base1;
 
-		if (dev->class & 0x80) {	/* primary */
+		if (dev->class & 0x80)  	/* primary */
+		{
 			base0 = 0x1f0;
 			base1 = 0x3f4;
-		} else {			/* secondary */
+		}
+		else  			/* secondary */
+		{
 			base0 = 0x170;
 			base1 = 0x374;
 		}
 
 		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0,
-				       base0 | PCI_BASE_ADDRESS_SPACE_IO);
+							   base0 | PCI_BASE_ADDRESS_SPACE_IO);
 		pci_write_config_dword(dev, PCI_BASE_ADDRESS_1,
-				       base1 | PCI_BASE_ADDRESS_SPACE_IO);
+							   base1 | PCI_BASE_ADDRESS_SPACE_IO);
 
 		dev->resource[0].start = 0;
 		dev->resource[0].end   = 0;
@@ -226,7 +251,9 @@ static void pci_fixup_cy82c693(struct pci_dev *dev)
 		dev->resource[1].start = 0;
 		dev->resource[1].end   = 0;
 		dev->resource[1].flags = 0;
-	} else if (PCI_FUNC(dev->devfn) == 0) {
+	}
+	else if (PCI_FUNC(dev->devfn) == 0)
+	{
 		/*
 		 * Setup IDE IRQ routing.
 		 */
@@ -254,12 +281,15 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_CONTAQ, PCI_DEVICE_ID_CONTAQ_82C693, pci_
 static void pci_fixup_it8152(struct pci_dev *dev)
 {
 	int i;
+
 	/* fixup for ITE 8152 devices */
 	/* FIXME: add defines for class 0x68000 and 0x80103 */
 	if ((dev->class >> 8) == PCI_CLASS_BRIDGE_HOST ||
-	    dev->class == 0x68000 ||
-	    dev->class == 0x80103) {
-		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
+		dev->class == 0x68000 ||
+		dev->class == 0x80103)
+	{
+		for (i = 0; i < PCI_NUM_RESOURCES; i++)
+		{
 			dev->resource[i].start = 0;
 			dev->resource[i].end   = 0;
 			dev->resource[i].flags = 0;
@@ -275,10 +305,10 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ITE, PCI_DEVICE_ID_ITE_8152, pci_fixup_it
 static inline int pdev_bad_for_parity(struct pci_dev *dev)
 {
 	return ((dev->vendor == PCI_VENDOR_ID_INTERG &&
-		 (dev->device == PCI_DEVICE_ID_INTERG_2000 ||
-		  dev->device == PCI_DEVICE_ID_INTERG_2010)) ||
-		(dev->vendor == PCI_VENDOR_ID_ITE &&
-		 dev->device == PCI_DEVICE_ID_ITE_8152));
+			 (dev->device == PCI_DEVICE_ID_INTERG_2000 ||
+			  dev->device == PCI_DEVICE_ID_INTERG_2010)) ||
+			(dev->vendor == PCI_VENDOR_ID_ITE &&
+			 dev->device == PCI_DEVICE_ID_ITE_8152));
 
 }
 
@@ -295,7 +325,8 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 	 * Walk the devices on this bus, working out what we can
 	 * and can't support.
 	 */
-	list_for_each_entry(dev, &bus->devices, bus_list) {
+	list_for_each_entry(dev, &bus->devices, bus_list)
+	{
 		u16 status;
 
 		pci_read_config_word(dev, PCI_STATUS, &status);
@@ -307,31 +338,37 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 		 * on saves us one PCI cycle per transaction.
 		 */
 		if (!(status & PCI_STATUS_FAST_BACK))
+		{
 			features &= ~PCI_COMMAND_FAST_BACK;
+		}
 
 		if (pdev_bad_for_parity(dev))
+		{
 			features &= ~(PCI_COMMAND_SERR | PCI_COMMAND_PARITY);
+		}
 
-		switch (dev->class >> 8) {
-		case PCI_CLASS_BRIDGE_PCI:
-			pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &status);
-			status |= PCI_BRIDGE_CTL_PARITY|PCI_BRIDGE_CTL_MASTER_ABORT;
-			status &= ~(PCI_BRIDGE_CTL_BUS_RESET|PCI_BRIDGE_CTL_FAST_BACK);
-			pci_write_config_word(dev, PCI_BRIDGE_CONTROL, status);
-			break;
+		switch (dev->class >> 8)
+		{
+			case PCI_CLASS_BRIDGE_PCI:
+				pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &status);
+				status |= PCI_BRIDGE_CTL_PARITY | PCI_BRIDGE_CTL_MASTER_ABORT;
+				status &= ~(PCI_BRIDGE_CTL_BUS_RESET | PCI_BRIDGE_CTL_FAST_BACK);
+				pci_write_config_word(dev, PCI_BRIDGE_CONTROL, status);
+				break;
 
-		case PCI_CLASS_BRIDGE_CARDBUS:
-			pci_read_config_word(dev, PCI_CB_BRIDGE_CONTROL, &status);
-			status |= PCI_CB_BRIDGE_CTL_PARITY|PCI_CB_BRIDGE_CTL_MASTER_ABORT;
-			pci_write_config_word(dev, PCI_CB_BRIDGE_CONTROL, status);
-			break;
+			case PCI_CLASS_BRIDGE_CARDBUS:
+				pci_read_config_word(dev, PCI_CB_BRIDGE_CONTROL, &status);
+				status |= PCI_CB_BRIDGE_CTL_PARITY | PCI_CB_BRIDGE_CTL_MASTER_ABORT;
+				pci_write_config_word(dev, PCI_CB_BRIDGE_CONTROL, status);
+				break;
 		}
 	}
 
 	/*
 	 * Now walk the devices again, this time setting them up.
 	 */
-	list_for_each_entry(dev, &bus->devices, bus_list) {
+	list_for_each_entry(dev, &bus->devices, bus_list)
+	{
 		u16 cmd;
 
 		pci_read_config_word(dev, PCI_COMMAND, &cmd);
@@ -339,24 +376,30 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 		pci_write_config_word(dev, PCI_COMMAND, cmd);
 
 		pci_write_config_byte(dev, PCI_CACHE_LINE_SIZE,
-				      L1_CACHE_BYTES >> 2);
+							  L1_CACHE_BYTES >> 2);
 	}
 
 	/*
 	 * Propagate the flags to the PCI bridge.
 	 */
-	if (bus->self && bus->self->hdr_type == PCI_HEADER_TYPE_BRIDGE) {
+	if (bus->self && bus->self->hdr_type == PCI_HEADER_TYPE_BRIDGE)
+	{
 		if (features & PCI_COMMAND_FAST_BACK)
+		{
 			bus->bridge_ctl |= PCI_BRIDGE_CTL_FAST_BACK;
+		}
+
 		if (features & PCI_COMMAND_PARITY)
+		{
 			bus->bridge_ctl |= PCI_BRIDGE_CTL_PARITY;
+		}
 	}
 
 	/*
 	 * Report what we did for this bus
 	 */
 	pr_info("PCI: bus%d: Fast back to back transfers %sabled\n",
-		bus->number, (features & PCI_COMMAND_FAST_BACK) ? "en" : "dis");
+			bus->number, (features & PCI_COMMAND_FAST_BACK) ? "en" : "dis");
 }
 EXPORT_SYMBOL(pcibios_fixup_bus);
 
@@ -381,13 +424,17 @@ static u8 pcibios_swizzle(struct pci_dev *dev, u8 *pin)
 	int slot, oldpin = *pin;
 
 	if (sys->swizzle)
+	{
 		slot = sys->swizzle(dev, pin);
+	}
 	else
+	{
 		slot = pci_common_swizzle(dev, pin);
+	}
 
 	if (debug_pci)
 		printk("PCI: %s swizzling pin %d => pin %d slot %d\n",
-			pci_name(dev), oldpin, *pin, slot);
+			   pci_name(dev), oldpin, *pin, slot);
 
 	return slot;
 }
@@ -401,24 +448,27 @@ static int pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	int irq = -1;
 
 	if (sys->map_irq)
+	{
 		irq = sys->map_irq(dev, slot, pin);
+	}
 
 	if (debug_pci)
 		printk("PCI: %s mapping slot %d pin %d => irq %d\n",
-			pci_name(dev), slot, pin, irq);
+			   pci_name(dev), slot, pin, irq);
 
 	return irq;
 }
 
 static int pcibios_init_resource(int busnr, struct pci_sys_data *sys,
-				 int io_optional)
+								 int io_optional)
 {
 	int ret;
 	struct resource_entry *window;
 
-	if (list_empty(&sys->resources)) {
+	if (list_empty(&sys->resources))
+	{
 		pci_add_resource_offset(&sys->resources,
-			 &iomem_resource, sys->mem_offset);
+								&iomem_resource, sys->mem_offset);
 	}
 
 	/*
@@ -427,11 +477,16 @@ static int pcibios_init_resource(int busnr, struct pci_sys_data *sys,
 	 * any I/O space it needs.
 	 */
 	if (io_optional)
+	{
 		return 0;
+	}
 
 	resource_list_for_each_entry(window, &sys->resources)
-		if (resource_type(window->res) == IORESOURCE_IO)
-			return 0;
+
+	if (resource_type(window->res) == IORESOURCE_IO)
+	{
+		return 0;
+	}
 
 	sys->io_res.start = (busnr * SZ_64K) ?  : pcibios_min_io;
 	sys->io_res.end = (busnr + 1) * SZ_64K - 1;
@@ -440,27 +495,34 @@ static int pcibios_init_resource(int busnr, struct pci_sys_data *sys,
 	sprintf(sys->io_res_name, "PCI%d I/O", busnr);
 
 	ret = request_resource(&ioport_resource, &sys->io_res);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("PCI: unable to allocate I/O port region (%d)\n", ret);
 		return ret;
 	}
+
 	pci_add_resource_offset(&sys->resources, &sys->io_res,
-				sys->io_offset);
+							sys->io_offset);
 
 	return 0;
 }
 
 static void pcibios_init_hw(struct device *parent, struct hw_pci *hw,
-			    struct list_head *head)
+							struct list_head *head)
 {
 	struct pci_sys_data *sys = NULL;
 	int ret;
 	int nr, busnr;
 
-	for (nr = busnr = 0; nr < hw->nr_controllers; nr++) {
+	for (nr = busnr = 0; nr < hw->nr_controllers; nr++)
+	{
 		sys = kzalloc(sizeof(struct pci_sys_data), GFP_KERNEL);
+
 		if (WARN(!sys, "PCI: unable to allocate sys data!"))
+		{
 			break;
+		}
 
 		sys->busnr   = busnr;
 		sys->swizzle = hw->swizzle;
@@ -468,27 +530,35 @@ static void pcibios_init_hw(struct device *parent, struct hw_pci *hw,
 		INIT_LIST_HEAD(&sys->resources);
 
 		if (hw->private_data)
+		{
 			sys->private_data = hw->private_data[nr];
+		}
 
 		ret = hw->setup(nr, sys);
 
-		if (ret > 0) {
+		if (ret > 0)
+		{
 			struct pci_host_bridge *host_bridge;
 
 			ret = pcibios_init_resource(nr, sys, hw->io_optional);
-			if (ret)  {
+
+			if (ret)
+			{
 				kfree(sys);
 				break;
 			}
 
 			if (hw->scan)
+			{
 				sys->bus = hw->scan(nr, sys);
+			}
 			else
 				sys->bus = pci_scan_root_bus_msi(parent,
-					sys->busnr, hw->ops, sys,
-					&sys->resources, hw->msi_ctrl);
+												 sys->busnr, hw->ops, sys,
+												 &sys->resources, hw->msi_ctrl);
 
-			if (WARN(!sys->bus, "PCI: unable to scan bus!")) {
+			if (WARN(!sys->bus, "PCI: unable to scan bus!"))
+			{
 				kfree(sys);
 				break;
 			}
@@ -499,10 +569,15 @@ static void pcibios_init_hw(struct device *parent, struct hw_pci *hw,
 
 			host_bridge = pci_find_host_bridge(sys->bus);
 			host_bridge->align_resource = hw->align_resource;
-		} else {
+		}
+		else
+		{
 			kfree(sys);
+
 			if (ret < 0)
+			{
 				break;
+			}
 		}
 	}
 }
@@ -513,15 +588,23 @@ void pci_common_init_dev(struct device *parent, struct hw_pci *hw)
 	LIST_HEAD(head);
 
 	pci_add_flags(PCI_REASSIGN_ALL_RSRC);
+
 	if (hw->preinit)
+	{
 		hw->preinit();
+	}
+
 	pcibios_init_hw(parent, hw, &head);
+
 	if (hw->postinit)
+	{
 		hw->postinit();
+	}
 
 	pci_fixup_irqs(pcibios_swizzle, pcibios_map_irq);
 
-	list_for_each_entry(sys, &head, node) {
+	list_for_each_entry(sys, &head, node)
+	{
 		struct pci_bus *bus = sys->bus;
 
 		/*
@@ -529,16 +612,19 @@ void pci_common_init_dev(struct device *parent, struct hw_pci *hw)
 		 * ioport_resource trees in either pci_bus_claim_resources()
 		 * or pci_bus_assign_resources().
 		 */
-		if (pci_has_flag(PCI_PROBE_ONLY)) {
+		if (pci_has_flag(PCI_PROBE_ONLY))
+		{
 			pci_bus_claim_resources(bus);
-		} else {
+		}
+		else
+		{
 			struct pci_bus *child;
 
 			pci_bus_size_bridges(bus);
 			pci_bus_assign_resources(bus);
 
 			list_for_each_entry(child, &bus->children, node)
-				pcie_bus_configure_settings(child);
+			pcie_bus_configure_settings(child);
 		}
 
 		pci_bus_add_devices(bus);
@@ -552,12 +638,14 @@ void pcibios_set_master(struct pci_dev *dev)
 }
 #endif
 
-char * __init pcibios_setup(char *str)
+char *__init pcibios_setup(char *str)
 {
-	if (!strcmp(str, "debug")) {
+	if (!strcmp(str, "debug"))
+	{
 		debug_pci = 1;
 		return NULL;
 	}
+
 	return str;
 }
 
@@ -577,14 +665,16 @@ char * __init pcibios_setup(char *str)
  * which might be mirrored at 0x0100-0x03ff..
  */
 resource_size_t pcibios_align_resource(void *data, const struct resource *res,
-				resource_size_t size, resource_size_t align)
+									   resource_size_t size, resource_size_t align)
 {
 	struct pci_dev *dev = data;
 	resource_size_t start = res->start;
 	struct pci_host_bridge *host_bridge;
 
 	if (res->flags & IORESOURCE_IO && start & 0x300)
+	{
 		start = (start + 0x3ff) & ~0x3ff;
+	}
 
 	start = (start + align - 1) & ~(align - 1);
 
@@ -592,16 +682,18 @@ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
 
 	if (host_bridge->align_resource)
 		return host_bridge->align_resource(dev, res,
-				start, size, align);
+										   start, size, align);
 
 	return start;
 }
 
 int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
-			enum pci_mmap_state mmap_state, int write_combine)
+						enum pci_mmap_state mmap_state, int write_combine)
 {
 	if (mmap_state == pci_mmap_io)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Mark this as IO
@@ -609,16 +701,19 @@ int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
 	if (remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
-			     vma->vm_end - vma->vm_start,
-			     vma->vm_page_prot))
+						vma->vm_end - vma->vm_start,
+						vma->vm_page_prot))
+	{
 		return -EAGAIN;
+	}
 
 	return 0;
 }
 
 void __init pci_map_io_early(unsigned long pfn)
 {
-	struct map_desc pci_io_desc = {
+	struct map_desc pci_io_desc =
+	{
 		.virtual	= PCI_IO_VIRT_BASE,
 		.type		= MT_DEVICE,
 		.length		= SZ_64K,

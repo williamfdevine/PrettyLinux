@@ -103,7 +103,7 @@ int main(void)
 	DEFINE(THREAD_XTREGS_USER, offsetof (struct thread_info, xtregs_user));
 	DEFINE(XTREGS_USER_SIZE, sizeof(xtregs_user_t));
 	DEFINE(THREAD_CURRENT_DS, offsetof (struct task_struct, \
-	       thread.current_ds));
+										thread.current_ds));
 
 	/* struct mm_struct */
 	DEFINE(MM_USERS, offsetof(struct mm_struct, mm_users));
@@ -120,13 +120,13 @@ int main(void)
 
 	/* struct debug_table */
 	DEFINE(DT_DEBUG_EXCEPTION,
-	       offsetof(struct debug_table, debug_exception));
+		   offsetof(struct debug_table, debug_exception));
 	DEFINE(DT_DEBUG_SAVE, offsetof(struct debug_table, debug_save));
 #ifdef CONFIG_HAVE_HW_BREAKPOINT
 	DEFINE(DT_DBREAKC_SAVE, offsetof(struct debug_table, dbreakc_save));
 	DEFINE(DT_ICOUNT_SAVE, offsetof(struct debug_table, icount_save));
 	DEFINE(DT_ICOUNT_LEVEL_SAVE,
-	       offsetof(struct debug_table, icount_level_save));
+		   offsetof(struct debug_table, icount_level_save));
 #endif
 
 	return 0;

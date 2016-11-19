@@ -26,13 +26,17 @@
 void __init bsc913x_qds_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN |
-	  MPIC_SINGLE_DEST_CPU,
-	  0, 256, " OpenPIC  ");
+								   MPIC_SINGLE_DEST_CPU,
+								   0, 256, " OpenPIC  ");
 
 	if (!mpic)
+	{
 		pr_err("bsc913x: Failed to allocate MPIC structure\n");
+	}
 	else
+	{
 		mpic_init(mpic);
+	}
 }
 
 /*
@@ -41,7 +45,9 @@ void __init bsc913x_qds_pic_init(void)
 static void __init bsc913x_qds_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("bsc913x_qds_setup_arch()", 0);
+	}
 
 #if defined(CONFIG_SMP)
 	mpc85xx_smp_init();
@@ -63,15 +69,16 @@ static int __init bsc9132_qds_probe(void)
 	return of_machine_is_compatible("fsl,bsc9132qds");
 }
 
-define_machine(bsc9132_qds) {
+define_machine(bsc9132_qds)
+{
 	.name			= "BSC9132 QDS",
-	.probe			= bsc9132_qds_probe,
-	.setup_arch		= bsc913x_qds_setup_arch,
-	.init_IRQ		= bsc913x_qds_pic_init,
+			 .probe			= bsc9132_qds_probe,
+					 .setup_arch		= bsc913x_qds_setup_arch,
+						 .init_IRQ		= bsc913x_qds_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
 #endif
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+								 .get_irq		= mpic_get_irq,
+										.calibrate_decr		= generic_calibrate_decr,
+											.progress		= udbg_progress,
 };

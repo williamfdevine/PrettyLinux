@@ -47,9 +47,13 @@
 int holly_exclude_device(struct pci_controller *hose, u_char bus, u_char devfn)
 {
 	if (bus == 0 && PCI_SLOT(devfn) == 0)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 	else
+	{
 		return PCIBIOS_SUCCESSFUL;
+	}
 }
 
 static void holly_remap_bridge(void)
@@ -63,7 +67,9 @@ static void holly_remap_bridge(void)
 	 * rely on PIBS
 	 */
 	lut_addr = 0x900;
-	for (i = 0; i < 31; i++) {
+
+	for (i = 0; i < 31; i++)
+	{
 		tsi108_write_reg(TSI108_PB_OFFSET + lut_addr, 0x00000201);
 		lut_addr += 4;
 		tsi108_write_reg(TSI108_PB_OFFSET + lut_addr, 0x0);
@@ -96,13 +102,15 @@ static void holly_remap_bridge(void)
 	lut_addr = 0x500;
 	lut_val = 0x00000002;
 
-	for (i = 0; i < 32; i++) {
+	for (i = 0; i < 32; i++)
+	{
 		tsi108_write_reg(TSI108_PCI_OFFSET + lut_addr, lut_val);
 		lut_addr += 4;
 		tsi108_write_reg(TSI108_PCI_OFFSET + lut_addr, 0x40000000);
 		lut_addr += 4;
 		lut_val += 0x02000000;
 	}
+
 	tsi108_write_reg(TSI108_PCI_P2O_PAGE_SIZES, 0x00007900);
 
 	/* Set 64-bit PCI bus address for system memory */
@@ -115,7 +123,9 @@ static void __init holly_setup_arch(void)
 	struct device_node *np;
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("holly_setup_arch():set_bridge", 0);
+	}
 
 	tsi108_csr_vir_base = get_vir_csrbase();
 
@@ -123,12 +133,18 @@ static void __init holly_setup_arch(void)
 	holly_remap_bridge();
 
 	np = of_find_node_by_type(NULL, "pci");
+
 	if (np)
+	{
 		tsi108_setup_pci(np, HOLLY_PCI_CFG_PHYS, 1);
+	}
 
 	ppc_md.pci_exclude_device = holly_exclude_device;
+
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("tsi108: resources set", 0x100);
+	}
 
 	printk(KERN_INFO "PPC750GX/CL Platform\n");
 }
@@ -154,9 +170,9 @@ static void __init holly_init_IRQ(void)
 #endif
 
 	mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN |
-			MPIC_SPV_EOI | MPIC_NO_PTHROU_DIS | MPIC_REGSET_TSI108,
-			24, 0,
-			"Tsi108_PIC");
+					  MPIC_SPV_EOI | MPIC_NO_PTHROU_DIS | MPIC_REGSET_TSI108,
+					  24, 0,
+					  "Tsi108_PIC");
 
 	BUG_ON(mpic == NULL);
 
@@ -166,13 +182,17 @@ static void __init holly_init_IRQ(void)
 
 #ifdef CONFIG_PCI
 	tsi_pci = of_find_node_by_type(NULL, "pci");
-	if (tsi_pci == NULL) {
+
+	if (tsi_pci == NULL)
+	{
 		printk(KERN_ERR "%s: No tsi108 pci node found !\n", __func__);
 		return;
 	}
 
 	cascade_node = of_find_node_by_type(NULL, "pic-router");
-	if (cascade_node == NULL) {
+
+	if (cascade_node == NULL)
+	{
 		printk(KERN_ERR "%s: No tsi108 pci cascade node found !\n", __func__);
 		return;
 	}
@@ -205,10 +225,13 @@ void __noreturn holly_restart(char *cmd)
 	local_irq_disable();
 
 	bridge = of_find_node_by_type(NULL, "tsi-bridge");
-	if (bridge) {
+
+	if (bridge)
+	{
 		prop = of_get_property(bridge, "reg", &size);
 		addr = of_translate_address(bridge, prop);
 	}
+
 	addr += (TSI108_PB_OFFSET + 0x414);
 
 	ocn_bar1 = ioremap(addr, 0x4);
@@ -236,6 +259,7 @@ void __noreturn holly_restart(char *cmd)
 void holly_power_off(void)
 {
 	local_irq_disable();
+
 	/* No way to shut power off with software */
 	for (;;) ;
 }
@@ -251,7 +275,10 @@ void holly_halt(void)
 static int __init holly_probe(void)
 {
 	if (!of_machine_is_compatible("ibm,holly"))
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -260,24 +287,27 @@ static int ppc750_machine_check_exception(struct pt_regs *regs)
 	const struct exception_table_entry *entry;
 
 	/* Are we prepared to handle this fault */
-	if ((entry = search_exception_tables(regs->nip)) != NULL) {
+	if ((entry = search_exception_tables(regs->nip)) != NULL)
+	{
 		tsi108_clear_pci_cfg_error();
 		regs->msr |= MSR_RI;
 		regs->nip = entry->fixup;
 		return 1;
 	}
+
 	return 0;
 }
 
-define_machine(holly){
+define_machine(holly)
+{
 	.name                   	= "PPC750 GX/CL TSI",
-	.probe                  	= holly_probe,
-	.setup_arch             	= holly_setup_arch,
-	.init_IRQ               	= holly_init_IRQ,
-	.show_cpuinfo           	= holly_show_cpuinfo,
-	.get_irq                	= mpic_get_irq,
-	.restart                	= holly_restart,
-	.calibrate_decr         	= generic_calibrate_decr,
-	.machine_check_exception	= ppc750_machine_check_exception,
-	.progress               	= udbg_progress,
+		.probe                  	= holly_probe,
+			.setup_arch             	= holly_setup_arch,
+				.init_IRQ               	= holly_init_IRQ,
+					.show_cpuinfo           	= holly_show_cpuinfo,
+						.get_irq                	= mpic_get_irq,
+							.restart                	= holly_restart,
+								.calibrate_decr         	= generic_calibrate_decr,
+									.machine_check_exception	= ppc750_machine_check_exception,
+										.progress               	= udbg_progress,
 };

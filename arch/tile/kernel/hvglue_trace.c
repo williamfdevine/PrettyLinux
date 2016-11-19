@@ -187,32 +187,32 @@
 
 /* List all the hypervisor API functions. */
 HV_WRAP4(void, hv_init, HV_VersionNumber, interface_version_number,
-	 int, chip_num, int, chip_rev_num, int, client_pl)
+		 int, chip_num, int, chip_rev_num, int, client_pl)
 HV_WRAP1(long, hv_sysconf, HV_SysconfQuery, query)
 HV_WRAP3(int, hv_confstr, HV_ConfstrQuery, query, HV_VirtAddr, buf, int, len)
 #if CHIP_HAS_IPI()
-HV_WRAP3(int, hv_get_ipi_pte, HV_Coord, tile, int, pl, HV_PTE*, pte)
-HV_WRAP3(int, hv_console_set_ipi, int, ipi, int, event, HV_Coord, coord);
+	HV_WRAP3(int, hv_get_ipi_pte, HV_Coord, tile, int, pl, HV_PTE *, pte)
+	HV_WRAP3(int, hv_console_set_ipi, int, ipi, int, event, HV_Coord, coord);
 #else
-HV_WRAP1(void, hv_enable_intr, HV_IntrMask, enab_mask)
-HV_WRAP1(void, hv_disable_intr, HV_IntrMask, disab_mask)
-HV_WRAP1(void, hv_clear_intr, HV_IntrMask, clear_mask)
-HV_WRAP1(void, hv_raise_intr, HV_IntrMask, raise_mask)
-HV_WRAP2(HV_Errno, hv_trigger_ipi, HV_Coord, tile, int, interrupt)
+	HV_WRAP1(void, hv_enable_intr, HV_IntrMask, enab_mask)
+	HV_WRAP1(void, hv_disable_intr, HV_IntrMask, disab_mask)
+	HV_WRAP1(void, hv_clear_intr, HV_IntrMask, clear_mask)
+	HV_WRAP1(void, hv_raise_intr, HV_IntrMask, raise_mask)
+	HV_WRAP2(HV_Errno, hv_trigger_ipi, HV_Coord, tile, int, interrupt)
 #endif /* !CHIP_HAS_IPI() */
 HV_WRAP3(int, hv_store_mapping, HV_VirtAddr, va, unsigned int, len,
-	 HV_PhysAddr, pa)
+		 HV_PhysAddr, pa)
 HV_WRAP2(HV_PhysAddr, hv_inquire_realpa, HV_PhysAddr, cpa, unsigned int, len)
 HV_WRAP0(HV_RTCTime, hv_get_rtc)
 HV_WRAP1(void, hv_set_rtc, HV_RTCTime, time)
 HV_WRAP4(int, hv_install_context, HV_PhysAddr, page_table, HV_PTE, access,
-	 HV_ASID, asid, __hv32, flags)
+		 HV_ASID, asid, __hv32, flags)
 HV_WRAP2(int, hv_set_pte_super_shift, int, level, int, log2_count)
 HV_WRAP0(HV_Context, hv_inquire_context)
 HV_WRAP1(int, hv_flush_asid, HV_ASID, asid)
 HV_WRAP2(int, hv_flush_page, HV_VirtAddr, address, HV_PageSize, page_size)
 HV_WRAP3(int, hv_flush_pages, HV_VirtAddr, start, HV_PageSize, page_size,
-	 unsigned long, size)
+		 unsigned long, size)
 HV_WRAP1(int, hv_flush_all, int, preserve_global)
 HV_WRAP2(void, hv_restart, HV_VirtAddr, cmd, HV_VirtAddr, args)
 HV_WRAP0(void, hv_halt)
@@ -220,10 +220,10 @@ HV_WRAP0(void, hv_power_off)
 HV_WRAP1(int, hv_reexec, HV_PhysAddr, entry)
 HV_WRAP0(HV_Topology, hv_inquire_topology)
 HV_WRAP3(HV_Errno, hv_inquire_tiles, HV_InqTileSet, set, HV_VirtAddr, cpumask,
-	 int, length)
+		 int, length)
 HV_WRAP1(HV_PhysAddrRange, hv_inquire_physical, int, idx)
 HV_WRAP2(HV_MemoryControllerInfo, hv_inquire_memory_controller, HV_Coord, coord,
-	 int, controller)
+		 int, controller)
 HV_WRAP1(HV_VirtAddrRange, hv_inquire_virtual, int, idx)
 HV_WRAP1(HV_ASIDRange, hv_inquire_asid, int, idx)
 HV_WRAP1(void, hv_nanosleep, int, nanosecs)
@@ -234,37 +234,37 @@ HV_WRAP0(void, hv_downcall_dispatch)
 HV_WRAP1(int, hv_fs_findfile, HV_VirtAddr, filename)
 HV_WRAP1(HV_FS_StatInfo, hv_fs_fstat, int, inode)
 HV_WRAP4(int, hv_fs_pread, int, inode, HV_VirtAddr, buf,
-	 int, length, int, offset)
+		 int, length, int, offset)
 HV_WRAP2(unsigned long long, hv_physaddr_read64, HV_PhysAddr, addr,
-	 HV_PTE, access)
+		 HV_PTE, access)
 HV_WRAP3(void, hv_physaddr_write64, HV_PhysAddr, addr, HV_PTE, access,
-	 unsigned long long, val)
+		 unsigned long long, val)
 HV_WRAP2(int, hv_get_command_line, HV_VirtAddr, buf, int, length)
 HV_WRAP2(HV_Errno, hv_set_command_line, HV_VirtAddr, buf, int, length)
 HV_WRAP1(void, hv_set_caching, unsigned long, bitmask)
 HV_WRAP2(void, hv_bzero_page, HV_VirtAddr, va, unsigned int, size)
-HV_WRAP1(HV_Errno, hv_register_message_state, HV_MsgState*, msgstate)
+HV_WRAP1(HV_Errno, hv_register_message_state, HV_MsgState *, msgstate)
 HV_WRAP4(int, hv_send_message, HV_Recipient *, recips, int, nrecip,
-	 HV_VirtAddr, buf, int, buflen)
+		 HV_VirtAddr, buf, int, buflen)
 HV_WRAP3(HV_RcvMsgInfo, hv_receive_message, HV_MsgState, msgstate,
-	 HV_VirtAddr, buf, int, buflen)
+		 HV_VirtAddr, buf, int, buflen)
 HV_WRAP0(void, hv_start_all_tiles)
 HV_WRAP2(int, hv_dev_open, HV_VirtAddr, name, __hv32, flags)
 HV_WRAP1(int, hv_dev_close, int, devhdl)
 HV_WRAP5(int, hv_dev_pread, int, devhdl, __hv32, flags, HV_VirtAddr, va,
-	 __hv32, len, __hv64, offset)
+		 __hv32, len, __hv64, offset)
 HV_WRAP5(int, hv_dev_pwrite, int, devhdl, __hv32, flags, HV_VirtAddr, va,
-	 __hv32, len, __hv64, offset)
+		 __hv32, len, __hv64, offset)
 HV_WRAP3(int, hv_dev_poll, int, devhdl, __hv32, events, HV_IntArg, intarg)
 HV_WRAP1(int, hv_dev_poll_cancel, int, devhdl)
 HV_WRAP6(int, hv_dev_preada, int, devhdl, __hv32, flags, __hv32, sgl_len,
-	 HV_SGL *, sglp, __hv64, offset, HV_IntArg, intarg)
+		 HV_SGL *, sglp, __hv64, offset, HV_IntArg, intarg)
 HV_WRAP6(int, hv_dev_pwritea, int, devhdl, __hv32, flags, __hv32, sgl_len,
-	 HV_SGL *, sglp, __hv64, offset, HV_IntArg, intarg)
+		 HV_SGL *, sglp, __hv64, offset, HV_IntArg, intarg)
 HV_WRAP9(int, hv_flush_remote, HV_PhysAddr, cache_pa,
-	 unsigned long, cache_control, unsigned long*, cache_cpumask,
-	 HV_VirtAddr, tlb_va, unsigned long, tlb_length,
-	 unsigned long, tlb_pgsize, unsigned long*, tlb_cpumask,
-	 HV_Remote_ASID*, asids, int, asidcount)
+		 unsigned long, cache_control, unsigned long *, cache_cpumask,
+		 HV_VirtAddr, tlb_va, unsigned long, tlb_length,
+		 unsigned long, tlb_pgsize, unsigned long *, tlb_cpumask,
+		 HV_Remote_ASID *, asids, int, asidcount)
 HV_WRAP3(HV_NMI_Info, hv_send_nmi, HV_Coord, tile, unsigned long, info,
-	 __hv64, flags)
+		 __hv64, flags)

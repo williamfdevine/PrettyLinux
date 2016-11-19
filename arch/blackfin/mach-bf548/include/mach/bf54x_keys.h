@@ -7,7 +7,8 @@
 #ifndef _BFIN_KPAD_H
 #define _BFIN_KPAD_H
 
-struct bfin_kpad_platform_data {
+struct bfin_kpad_platform_data
+{
 	int rows;
 	int cols;
 	const unsigned int *keymap;

@@ -40,20 +40,22 @@ static inline void __flush_cache_all(void)
 static inline void flush_cache_mm(struct mm_struct *mm)
 {
 	if (mm == current->mm)
+	{
 		__flush_cache_all();
+	}
 }
 
 #define flush_cache_dup_mm(mm) flush_cache_mm(mm)
 
 /* flush a range of addresses from this mm */
 static inline void flush_cache_range(struct vm_area_struct *vma,
-				     unsigned long start, unsigned long end)
+									 unsigned long start, unsigned long end)
 {
 	flush_cache_mm(vma->vm_mm);
 }
 
 static inline void flush_cache_page(struct vm_area_struct *vma,
-				    unsigned long vmaddr, unsigned long pfn)
+									unsigned long vmaddr, unsigned long pfn)
 {
 	flush_cache_mm(vma->vm_mm);
 }
@@ -68,7 +70,7 @@ static inline void flush_dcache_page(struct page *page)
 #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
 
 static inline void flush_icache_page(struct vm_area_struct *vma,
-				     struct page *page)
+									 struct page *page)
 {
 	metag_code_cache_flush(page_to_virt(page), PAGE_SIZE);
 }
@@ -116,7 +118,7 @@ static inline void flush_dcache_page(struct page *page)
 
 /* Push n pages at kernel virtual address and clear the icache */
 static inline void flush_icache_range(unsigned long address,
-				      unsigned long endaddr)
+									  unsigned long endaddr)
 {
 #ifdef CONFIG_SMP
 	metag_out32(1, SYSC_ICACHE_FLUSH);
@@ -155,19 +157,25 @@ static inline void cachewd_line(void *addr, unsigned int data)
 
 /* Perform a certain CACHEW op on each cache line in a range */
 static inline void cachew_region_op(void *start, unsigned long size,
-				    unsigned int op)
+									unsigned int op)
 {
 	unsigned long offset = (unsigned long)start & 0x3f;
 	int i;
-	if (offset) {
+
+	if (offset)
+	{
 		size += offset;
 		start -= offset;
 	}
+
 	i = (size - 1) >> 6;
-	do {
+
+	do
+	{
 		__builtin_meta2_cachewd(start, op);
 		start += 0x40;
-	} while (i--);
+	}
+	while (i--);
 }
 
 /* prevent write fence and flushbacks being reordered in L2 */
@@ -198,11 +206,17 @@ static inline void l2c_fence(void *addr)
 static inline void flush_dcache_region(void *start, unsigned long size)
 {
 	/* metag_data_cache_flush won't flush L2 cache lines if size >= 4096 */
-	if (meta_l2c_is_enabled()) {
+	if (meta_l2c_is_enabled())
+	{
 		cachew_region_op(start, size, CACHEW_FLUSH_L1D_L2);
+
 		if (meta_l2c_is_writeback())
+		{
 			l2c_fence_flush(start + size - 1);
-	} else {
+		}
+	}
+	else
+	{
 		metag_data_cache_flush(start, size);
 	}
 }
@@ -210,7 +224,8 @@ static inline void flush_dcache_region(void *start, unsigned long size)
 /* Write back dirty lines to memory (or do nothing if no writeback caches) */
 static inline void writeback_dcache_region(void *start, unsigned long size)
 {
-	if (meta_l2c_is_enabled() && meta_l2c_is_writeback()) {
+	if (meta_l2c_is_enabled() && meta_l2c_is_writeback())
+	{
 		cachew_region_op(start, size, CACHEW_WRITEBACK_L1D_L2);
 		l2c_fence(start + size - 1);
 	}
@@ -220,9 +235,13 @@ static inline void writeback_dcache_region(void *start, unsigned long size)
 static inline void invalidate_dcache_region(void *start, unsigned long size)
 {
 	if (meta_l2c_is_enabled())
+	{
 		cachew_region_op(start, size, CACHEW_INVALIDATE_L1D_L2);
+	}
 	else
+	{
 		metag_data_cache_flush(start, size);
+	}
 }
 #else
 #define flush_dcache_region(s, l)	metag_data_cache_flush((s), (l))
@@ -231,18 +250,18 @@ static inline void invalidate_dcache_region(void *start, unsigned long size)
 #endif
 
 static inline void copy_to_user_page(struct vm_area_struct *vma,
-				     struct page *page, unsigned long vaddr,
-				     void *dst, const void *src,
-				     unsigned long len)
+									 struct page *page, unsigned long vaddr,
+									 void *dst, const void *src,
+									 unsigned long len)
 {
 	memcpy(dst, src, len);
 	flush_icache_range((unsigned long)dst, (unsigned long)dst + len);
 }
 
 static inline void copy_from_user_page(struct vm_area_struct *vma,
-				       struct page *page, unsigned long vaddr,
-				       void *dst, const void *src,
-				       unsigned long len)
+									   struct page *page, unsigned long vaddr,
+									   void *dst, const void *src,
+									   unsigned long len)
 {
 	memcpy(dst, src, len);
 }

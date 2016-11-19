@@ -21,9 +21,9 @@
 #include "prm2xxx_3xxx.h"
 
 #define OMAP2420_PRM_REGADDR(module, reg)				\
-		OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE + (module) + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE + (module) + (reg))
 #define OMAP2430_PRM_REGADDR(module, reg)				\
-		OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE + (module) + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE + (module) + (reg))
 
 /*
  * OMAP2-specific global PRM registers
@@ -120,11 +120,11 @@
 #define OMAP24XX_PRCM_IRQENABLE_IVA			0x00fc
 
 #ifndef __ASSEMBLER__
-/* Function prototypes */
-extern int omap2xxx_clkdm_sleep(struct clockdomain *clkdm);
-extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
+	/* Function prototypes */
+	extern int omap2xxx_clkdm_sleep(struct clockdomain *clkdm);
+	extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
 
-int __init omap2xxx_prm_init(const struct omap_prcm_init_data *data);
+	int __init omap2xxx_prm_init(const struct omap_prcm_init_data *data);
 
 #endif
 

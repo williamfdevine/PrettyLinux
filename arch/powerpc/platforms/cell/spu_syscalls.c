@@ -40,8 +40,12 @@ static inline struct spufs_calls *spufs_calls_get(void)
 
 	rcu_read_lock();
 	calls = rcu_dereference(spufs_calls);
+
 	if (calls && !try_module_get(calls->owner))
+	{
 		calls = NULL;
+	}
+
 	rcu_read_unlock();
 
 	return calls;
@@ -67,24 +71,33 @@ static inline void spufs_calls_put(struct spufs_calls *calls) { }
 #endif /* CONFIG_SPU_FS_MODULE */
 
 SYSCALL_DEFINE4(spu_create, const char __user *, name, unsigned int, flags,
-	umode_t, mode, int, neighbor_fd)
+				umode_t, mode, int, neighbor_fd)
 {
 	long ret;
 	struct spufs_calls *calls;
 
 	calls = spufs_calls_get();
-	if (!calls)
-		return -ENOSYS;
 
-	if (flags & SPU_CREATE_AFFINITY_SPU) {
+	if (!calls)
+	{
+		return -ENOSYS;
+	}
+
+	if (flags & SPU_CREATE_AFFINITY_SPU)
+	{
 		struct fd neighbor = fdget(neighbor_fd);
 		ret = -EBADF;
-		if (neighbor.file) {
+
+		if (neighbor.file)
+		{
 			ret = calls->create_thread(name, flags, mode, neighbor.file);
 			fdput(neighbor);
 		}
-	} else
+	}
+	else
+	{
 		ret = calls->create_thread(name, flags, mode, NULL);
+	}
 
 	spufs_calls_put(calls);
 	return ret;
@@ -97,12 +110,17 @@ asmlinkage long sys_spu_run(int fd, __u32 __user *unpc, __u32 __user *ustatus)
 	struct spufs_calls *calls;
 
 	calls = spufs_calls_get();
+
 	if (!calls)
+	{
 		return -ENOSYS;
+	}
 
 	ret = -EBADF;
 	arg = fdget(fd);
-	if (arg.file) {
+
+	if (arg.file)
+	{
 		ret = calls->spu_run(arg.file, unpc, ustatus);
 		fdput(arg);
 	}
@@ -118,8 +136,11 @@ int elf_coredump_extra_notes_size(void)
 	int ret;
 
 	calls = spufs_calls_get();
+
 	if (!calls)
+	{
 		return 0;
+	}
 
 	ret = calls->coredump_extra_notes_size();
 
@@ -134,8 +155,11 @@ int elf_coredump_extra_notes_write(struct coredump_params *cprm)
 	int ret;
 
 	calls = spufs_calls_get();
+
 	if (!calls)
+	{
 		return 0;
+	}
 
 	ret = calls->coredump_extra_notes_write(cprm);
 
@@ -150,8 +174,11 @@ void notify_spus_active(void)
 	struct spufs_calls *calls;
 
 	calls = spufs_calls_get();
+
 	if (!calls)
+	{
 		return;
+	}
 
 	calls->notify_spus_active();
 	spufs_calls_put(calls);
@@ -162,7 +189,9 @@ void notify_spus_active(void)
 int register_spu_syscalls(struct spufs_calls *calls)
 {
 	if (spufs_calls)
+	{
 		return -EBUSY;
+	}
 
 	rcu_assign_pointer(spufs_calls, calls);
 	return 0;

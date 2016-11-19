@@ -50,14 +50,17 @@
  *   sets the limit
  */
 
-extern pte_t * pkmap_page_table;
-static pte_t * fixmap_page_table;
+extern pte_t *pkmap_page_table;
+static pte_t *fixmap_page_table;
 
 void *kmap(struct page *page)
 {
 	BUG_ON(in_interrupt());
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
 
 	return kmap_high(page);
 }
@@ -70,15 +73,18 @@ void *kmap_atomic(struct page *page)
 
 	preempt_disable();
 	pagefault_disable();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
 
 	cpu_idx = kmap_atomic_idx_push();
 	idx = cpu_idx + KM_TYPE_NR * smp_processor_id();
 	vaddr = FIXMAP_ADDR(idx);
 
 	set_pte_at(&init_mm, vaddr, fixmap_page_table + idx,
-		   mk_pte(page, kmap_prot));
+			   mk_pte(page, kmap_prot));
 
 	return (void *)vaddr;
 }
@@ -88,7 +94,8 @@ void __kunmap_atomic(void *kv)
 {
 	unsigned long kvaddr = (unsigned long)kv;
 
-	if (kvaddr >= FIXMAP_BASE && kvaddr < (FIXMAP_BASE + FIXMAP_SIZE)) {
+	if (kvaddr >= FIXMAP_BASE && kvaddr < (FIXMAP_BASE + FIXMAP_SIZE))
+	{
 
 		/*
 		 * Because preemption is disabled, this vaddr can be associated
@@ -112,7 +119,7 @@ void __kunmap_atomic(void *kv)
 }
 EXPORT_SYMBOL(__kunmap_atomic);
 
-static noinline pte_t * __init alloc_kmap_pgtable(unsigned long kvaddr)
+static noinline pte_t *__init alloc_kmap_pgtable(unsigned long kvaddr)
 {
 	pgd_t *pgd_k;
 	pud_t *pud_k;

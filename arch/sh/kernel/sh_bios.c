@@ -26,7 +26,7 @@
 void *gdb_vbr_vector = NULL;
 
 static inline long sh_bios_call(long func, long arg0, long arg1, long arg2,
-				    long arg3)
+								long arg3)
 {
 	register long r0 __asm__("r0") = func;
 	register long r4 __asm__("r4") = arg0;
@@ -35,11 +35,13 @@ static inline long sh_bios_call(long func, long arg0, long arg1, long arg2,
 	register long r7 __asm__("r7") = arg3;
 
 	if (!gdb_vbr_vector)
+	{
 		return -ENOSYS;
+	}
 
 	__asm__ __volatile__("trapa	#0x3f":"=z"(r0)
-			     :"0"(r0), "r"(r4), "r"(r5), "r"(r6), "r"(r7)
-			     :"memory");
+						 :"0"(r0), "r"(r4), "r"(r5), "r"(r6), "r"(r7)
+						 :"memory");
 	return r0;
 }
 
@@ -75,16 +77,22 @@ void sh_bios_vbr_init(void)
 	unsigned long vbr;
 
 	if (unlikely(gdb_vbr_vector))
+	{
 		return;
+	}
 
 	__asm__ __volatile__ ("stc vbr, %0" : "=r" (vbr));
 
-	if (vbr) {
+	if (vbr)
+	{
 		gdb_vbr_vector = (void *)(vbr + 0x100);
 		printk(KERN_NOTICE "Setting GDB trap vector to %p\n",
-		       gdb_vbr_vector);
-	} else
+			   gdb_vbr_vector);
+	}
+	else
+	{
 		printk(KERN_NOTICE "SH-BIOS not detected\n");
+	}
 }
 
 /**
@@ -109,7 +117,7 @@ void sh_bios_vbr_reload(void)
  *	Print a string through the BIOS
  */
 static void sh_console_write(struct console *co, const char *s,
-				 unsigned count)
+							 unsigned count)
 {
 	sh_bios_console_write(s, count);
 }
@@ -137,7 +145,8 @@ static int __init sh_console_setup(struct console *co, char *options)
 	return 0;
 }
 
-static struct console bios_console = {
+static struct console bios_console =
+{
 	.name		= "bios",
 	.write		= sh_console_write,
 	.setup		= sh_console_setup,
@@ -150,19 +159,31 @@ static int __init setup_early_printk(char *buf)
 	int keep_early = 0;
 
 	if (!buf)
+	{
 		return 0;
+	}
 
 	if (strstr(buf, "keep"))
+	{
 		keep_early = 1;
+	}
 
 	if (!strncmp(buf, "bios", 4))
+	{
 		early_console = &bios_console;
+	}
 
-	if (likely(early_console)) {
+	if (likely(early_console))
+	{
 		if (keep_early)
+		{
 			early_console->flags &= ~CON_BOOT;
+		}
 		else
+		{
 			early_console->flags |= CON_BOOT;
+		}
+
 		register_console(early_console);
 	}
 

@@ -51,15 +51,26 @@ unsigned long thread_saved_pc(struct task_struct *tsk)
 	struct stack_frame *sf, *low, *high;
 
 	if (!tsk || !task_stack_page(tsk))
+	{
 		return 0;
+	}
+
 	low = task_stack_page(tsk);
 	high = (struct stack_frame *) task_pt_regs(tsk);
 	sf = (struct stack_frame *) tsk->thread.ksp;
+
 	if (sf <= low || sf > high)
+	{
 		return 0;
+	}
+
 	sf = (struct stack_frame *) sf->back_chain;
+
 	if (sf <= low || sf > high)
+	{
 		return 0;
+	}
+
 	return sf->gprs[8];
 }
 
@@ -71,7 +82,9 @@ extern void kernel_thread_starter(void);
 void exit_thread(struct task_struct *tsk)
 {
 	if (tsk == current)
+	{
 		exit_thread_runtime_instr();
+	}
 }
 
 void flush_thread(void)
@@ -101,7 +114,7 @@ int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
 }
 
 int copy_thread(unsigned long clone_flags, unsigned long new_stackp,
-		unsigned long arg, struct task_struct *p)
+				unsigned long arg, struct task_struct *p)
 {
 	struct thread_info *ti;
 	struct fake_frame
@@ -132,13 +145,14 @@ int copy_thread(unsigned long clone_flags, unsigned long new_stackp,
 	frame->sf.gprs[9] = (unsigned long) frame;
 
 	/* Store access registers to kernel stack of new process. */
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		/* kernel thread */
 		memset(&frame->childregs, 0, sizeof(struct pt_regs));
 		frame->childregs.psw.mask = PSW_KERNEL_BITS | PSW_MASK_DAT |
-				PSW_MASK_IO | PSW_MASK_EXT | PSW_MASK_MCHECK;
+									PSW_MASK_IO | PSW_MASK_EXT | PSW_MASK_MCHECK;
 		frame->childregs.psw.addr =
-				(unsigned long) kernel_thread_starter;
+			(unsigned long) kernel_thread_starter;
 		frame->childregs.gprs[9] = new_stackp; /* function */
 		frame->childregs.gprs[10] = arg;
 		frame->childregs.gprs[11] = (unsigned long) do_exit;
@@ -146,26 +160,36 @@ int copy_thread(unsigned long clone_flags, unsigned long new_stackp,
 
 		return 0;
 	}
+
 	frame->childregs = *current_pt_regs();
 	frame->childregs.gprs[2] = 0;	/* child returns 0 on fork. */
 	frame->childregs.flags = 0;
+
 	if (new_stackp)
+	{
 		frame->childregs.gprs[15] = new_stackp;
+	}
 
 	/* Don't copy runtime instrumentation info */
 	p->thread.ri_cb = NULL;
 	frame->childregs.psw.mask &= ~PSW_MASK_RI;
 
 	/* Set a new TLS ?  */
-	if (clone_flags & CLONE_SETTLS) {
+	if (clone_flags & CLONE_SETTLS)
+	{
 		unsigned long tls = frame->childregs.gprs[6];
-		if (is_compat_task()) {
+
+		if (is_compat_task())
+		{
 			p->thread.acrs[0] = (unsigned int)tls;
-		} else {
+		}
+		else
+		{
 			p->thread.acrs[0] = (unsigned int)(tls >> 32);
 			p->thread.acrs[1] = (unsigned int)tls;
 		}
 	}
+
 	return 0;
 }
 
@@ -178,17 +202,19 @@ asmlinkage void execve_tail(void)
 /*
  * fill in the FPU structure for a core dump.
  */
-int dump_fpu (struct pt_regs * regs, s390_fp_regs *fpregs)
+int dump_fpu (struct pt_regs *regs, s390_fp_regs *fpregs)
 {
 	save_fpu_regs();
 	fpregs->fpc = current->thread.fpu.fpc;
 	fpregs->pad = 0;
+
 	if (MACHINE_HAS_VX)
 		convert_vx_to_fp((freg_t *)&fpregs->fprs,
-				 current->thread.fpu.vxrs);
+						 current->thread.fpu.vxrs);
 	else
 		memcpy(&fpregs->fprs, current->thread.fpu.fprs,
-		       sizeof(fpregs->fprs));
+			   sizeof(fpregs->fprs));
+
 	return 1;
 }
 EXPORT_SYMBOL(dump_fpu);
@@ -200,27 +226,46 @@ unsigned long get_wchan(struct task_struct *p)
 	int count;
 
 	if (!p || p == current || p->state == TASK_RUNNING || !task_stack_page(p))
+	{
 		return 0;
+	}
+
 	low = task_stack_page(p);
 	high = (struct stack_frame *) task_pt_regs(p);
 	sf = (struct stack_frame *) p->thread.ksp;
+
 	if (sf <= low || sf > high)
+	{
 		return 0;
-	for (count = 0; count < 16; count++) {
-		sf = (struct stack_frame *) sf->back_chain;
-		if (sf <= low || sf > high)
-			return 0;
-		return_address = sf->gprs[8];
-		if (!in_sched_functions(return_address))
-			return return_address;
 	}
+
+	for (count = 0; count < 16; count++)
+	{
+		sf = (struct stack_frame *) sf->back_chain;
+
+		if (sf <= low || sf > high)
+		{
+			return 0;
+		}
+
+		return_address = sf->gprs[8];
+
+		if (!in_sched_functions(return_address))
+		{
+			return return_address;
+		}
+	}
+
 	return 0;
 }
 
 unsigned long arch_align_stack(unsigned long sp)
 {
 	if (!(current->personality & ADDR_NO_RANDOMIZE) && randomize_va_space)
+	{
 		sp -= get_random_int() & ~PAGE_MASK;
+	}
+
 	return sp & ~0xf;
 }
 

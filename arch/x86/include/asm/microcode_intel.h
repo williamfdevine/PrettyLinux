@@ -3,7 +3,8 @@
 
 #include <asm/microcode.h>
 
-struct microcode_header_intel {
+struct microcode_header_intel
+{
 	unsigned int            hdrver;
 	unsigned int            rev;
 	unsigned int            date;
@@ -16,19 +17,22 @@ struct microcode_header_intel {
 	unsigned int            reserved[3];
 };
 
-struct microcode_intel {
+struct microcode_intel
+{
 	struct microcode_header_intel hdr;
 	unsigned int            bits[0];
 };
 
 /* microcode format is extended from prescott processors */
-struct extended_signature {
+struct extended_signature
+{
 	unsigned int            sig;
 	unsigned int            pf;
 	unsigned int            cksum;
 };
 
-struct extended_sigtable {
+struct extended_sigtable
+{
 	unsigned int            count;
 	unsigned int            cksum;
 	unsigned int            reserved[3];

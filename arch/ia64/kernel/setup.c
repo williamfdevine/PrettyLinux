@@ -62,19 +62,19 @@
 #include <asm/hpsim.h>
 
 #if defined(CONFIG_SMP) && (IA64_CPU_SIZE > PAGE_SIZE)
-# error "struct cpuinfo_ia64 too big!"
+	# error "struct cpuinfo_ia64 too big!"
 #endif
 
 #ifdef CONFIG_SMP
-unsigned long __per_cpu_offset[NR_CPUS];
-EXPORT_SYMBOL(__per_cpu_offset);
+	unsigned long __per_cpu_offset[NR_CPUS];
+	EXPORT_SYMBOL(__per_cpu_offset);
 #endif
 
 DEFINE_PER_CPU(struct cpuinfo_ia64, ia64_cpu_info);
 EXPORT_SYMBOL(ia64_cpu_info);
 DEFINE_PER_CPU(unsigned long, local_per_cpu_offset);
 #ifdef CONFIG_SMP
-EXPORT_SYMBOL(local_per_cpu_offset);
+	EXPORT_SYMBOL(local_per_cpu_offset);
 #endif
 unsigned long ia64_cycles_per_usec;
 struct ia64_boot_param *ia64_boot_param;
@@ -82,17 +82,20 @@ struct screen_info screen_info;
 unsigned long vga_console_iobase;
 unsigned long vga_console_membase;
 
-static struct resource data_resource = {
+static struct resource data_resource =
+{
 	.name	= "Kernel data",
 	.flags	= IORESOURCE_BUSY | IORESOURCE_SYSTEM_RAM
 };
 
-static struct resource code_resource = {
+static struct resource code_resource =
+{
 	.name	= "Kernel code",
 	.flags	= IORESOURCE_BUSY | IORESOURCE_SYSTEM_RAM
 };
 
-static struct resource bss_resource = {
+static struct resource bss_resource =
+{
 	.name	= "Kernel bss",
 	.flags	= IORESOURCE_BUSY | IORESOURCE_SYSTEM_RAM
 };
@@ -152,11 +155,15 @@ filter_rsvd_memory (u64 start, u64 end, void *arg)
 	int i;
 
 #if IGNORE_PFN0
-	if (start == PAGE_OFFSET) {
+
+	if (start == PAGE_OFFSET)
+	{
 		printk(KERN_WARNING "warning: skipping physical page 0\n");
 		start += PAGE_SIZE;
-		if (start >= end) return 0;
+
+		if (start >= end) { return 0; }
 	}
+
 #endif
 	/*
 	 * lowest possible address(walker uses virtual)
@@ -164,18 +171,22 @@ filter_rsvd_memory (u64 start, u64 end, void *arg)
 	prev_start = PAGE_OFFSET;
 	func = arg;
 
-	for (i = 0; i < num_rsvd_regions; ++i) {
+	for (i = 0; i < num_rsvd_regions; ++i)
+	{
 		range_start = max(start, prev_start);
 		range_end   = min(end, rsvd_region[i].start);
 
 		if (range_start < range_end)
+		{
 			call_pernode_memory(__pa(range_start), range_end - range_start, func);
+		}
 
 		/* nothing more available in this segment */
-		if (range_end == end) return 0;
+		if (range_end == end) { return 0; }
 
 		prev_start = rsvd_region[i].end;
 	}
+
 	/* end of memory marker allows full processing inside loop body */
 	return 0;
 }
@@ -190,16 +201,26 @@ filter_memory(u64 start, u64 end, void *arg)
 	void (*func)(unsigned long, unsigned long, int);
 
 #if IGNORE_PFN0
-	if (start == PAGE_OFFSET) {
+
+	if (start == PAGE_OFFSET)
+	{
 		printk(KERN_WARNING "warning: skipping physical page 0\n");
 		start += PAGE_SIZE;
+
 		if (start >= end)
+		{
 			return 0;
+		}
 	}
+
 #endif
 	func = arg;
+
 	if (start < end)
+	{
 		call_pernode_memory(__pa(start), end - start, func);
+	}
+
 	return 0;
 }
 
@@ -209,9 +230,12 @@ sort_regions (struct rsvd_region *rsvd_region, int max)
 	int j;
 
 	/* simple bubble sorting */
-	while (max--) {
-		for (j = 0; j < max; ++j) {
-			if (rsvd_region[j].start > rsvd_region[j+1].start) {
+	while (max--)
+	{
+		for (j = 0; j < max; ++j)
+		{
+			if (rsvd_region[j].start > rsvd_region[j + 1].start)
+			{
 				struct rsvd_region tmp;
 				tmp = rsvd_region[j];
 				rsvd_region[j] = rsvd_region[j + 1];
@@ -226,15 +250,24 @@ static int __init
 merge_regions (struct rsvd_region *rsvd_region, int max)
 {
 	int i;
-	for (i = 1; i < max; ++i) {
-		if (rsvd_region[i].start >= rsvd_region[i-1].end)
+
+	for (i = 1; i < max; ++i)
+	{
+		if (rsvd_region[i].start >= rsvd_region[i - 1].end)
+		{
 			continue;
-		if (rsvd_region[i].end > rsvd_region[i-1].end)
-			rsvd_region[i-1].end = rsvd_region[i].end;
+		}
+
+		if (rsvd_region[i].end > rsvd_region[i - 1].end)
+		{
+			rsvd_region[i - 1].end = rsvd_region[i].end;
+		}
+
 		--max;
-		memmove(&rsvd_region[i], &rsvd_region[i+1],
-			(max - i) * sizeof(struct rsvd_region));
+		memmove(&rsvd_region[i], &rsvd_region[i + 1],
+				(max - i) * sizeof(struct rsvd_region));
 	}
+
 	return max;
 }
 
@@ -250,7 +283,7 @@ static int __init register_memory(void)
 	bss_resource.start  = ia64_tpa(__bss_start);
 	bss_resource.end    = ia64_tpa(_end) - 1;
 	efi_initialize_iomem_resources(&code_resource, &data_resource,
-			&bss_resource);
+								   &bss_resource);
 
 	return 0;
 }
@@ -273,9 +306,13 @@ __initcall(register_memory);
 static int __init check_crashkernel_memory(unsigned long pbase, size_t size)
 {
 	if (ia64_platform_is("sn2") || ia64_platform_is("uv"))
+	{
 		return 1;
+	}
 	else
+	{
 		return pbase < (1UL << 32);
+	}
 }
 
 static void __init setup_crashkernel(unsigned long total, int *n)
@@ -284,30 +321,35 @@ static void __init setup_crashkernel(unsigned long total, int *n)
 	int ret;
 
 	ret = parse_crashkernel(boot_command_line, total,
-			&size, &base);
-	if (ret == 0 && size > 0) {
-		if (!base) {
+							&size, &base);
+
+	if (ret == 0 && size > 0)
+	{
+		if (!base)
+		{
 			sort_regions(rsvd_region, *n);
 			*n = merge_regions(rsvd_region, *n);
 			base = kdump_find_rsvd_region(size,
-					rsvd_region, *n);
+										  rsvd_region, *n);
 		}
 
-		if (!check_crashkernel_memory(base, size)) {
+		if (!check_crashkernel_memory(base, size))
+		{
 			pr_warning("crashkernel: There would be kdump memory "
-				"at %ld GB but this is unusable because it "
-				"must\nbe below 4 GB. Change the memory "
-				"configuration of the machine.\n",
-				(unsigned long)(base >> 30));
+					   "at %ld GB but this is unusable because it "
+					   "must\nbe below 4 GB. Change the memory "
+					   "configuration of the machine.\n",
+					   (unsigned long)(base >> 30));
 			return;
 		}
 
-		if (base != ~0UL) {
+		if (base != ~0UL)
+		{
 			printk(KERN_INFO "Reserving %ldMB of memory at %ldMB "
-					"for crashkernel (System RAM: %ldMB)\n",
-					(unsigned long)(size >> 20),
-					(unsigned long)(base >> 20),
-					(unsigned long)(total >> 20));
+				   "for crashkernel (System RAM: %ldMB)\n",
+				   (unsigned long)(size >> 20),
+				   (unsigned long)(base >> 20),
+				   (unsigned long)(total >> 20));
 			rsvd_region[*n].start =
 				(unsigned long)__va(base);
 			rsvd_region[*n].end =
@@ -317,12 +359,13 @@ static void __init setup_crashkernel(unsigned long total, int *n)
 			crashk_res.end = base + size - 1;
 		}
 	}
+
 	efi_memmap_res.start = ia64_boot_param->efi_memmap;
 	efi_memmap_res.end = efi_memmap_res.start +
-		ia64_boot_param->efi_memmap_size;
+						 ia64_boot_param->efi_memmap_size;
 	boot_param_res.start = __pa(ia64_boot_param);
 	boot_param_res.end = boot_param_res.start +
-		sizeof(*ia64_boot_param);
+						 sizeof(*ia64_boot_param);
 }
 #else
 static inline void __init setup_crashkernel(unsigned long total, int *n)
@@ -355,7 +398,7 @@ reserve_memory (void)
 
 	rsvd_region[n].start = (unsigned long) __va(ia64_boot_param->command_line);
 	rsvd_region[n].end   = (rsvd_region[n].start
-				+ strlen(__va(ia64_boot_param->command_line)) + 1);
+							+ strlen(__va(ia64_boot_param->command_line)) + 1);
 	n++;
 
 	rsvd_region[n].start = (unsigned long) ia64_imva((void *)KERNEL_START);
@@ -363,17 +406,24 @@ reserve_memory (void)
 	n++;
 
 #ifdef CONFIG_BLK_DEV_INITRD
-	if (ia64_boot_param->initrd_start) {
+
+	if (ia64_boot_param->initrd_start)
+	{
 		rsvd_region[n].start = (unsigned long)__va(ia64_boot_param->initrd_start);
 		rsvd_region[n].end   = rsvd_region[n].start + ia64_boot_param->initrd_size;
 		n++;
 	}
+
 #endif
 
 #ifdef CONFIG_CRASH_DUMP
+
 	if (reserve_elfcorehdr(&rsvd_region[n].start,
-			       &rsvd_region[n].end) == 0)
+						   &rsvd_region[n].end) == 0)
+	{
 		n++;
+	}
+
 #endif
 
 	total_memory = efi_memmap_init(&rsvd_region[n].start, &rsvd_region[n].end);
@@ -404,13 +454,16 @@ void __init
 find_initrd (void)
 {
 #ifdef CONFIG_BLK_DEV_INITRD
-	if (ia64_boot_param->initrd_start) {
+
+	if (ia64_boot_param->initrd_start)
+	{
 		initrd_start = (unsigned long)__va(ia64_boot_param->initrd_start);
-		initrd_end   = initrd_start+ia64_boot_param->initrd_size;
+		initrd_end   = initrd_start + ia64_boot_param->initrd_size;
 
 		printk(KERN_INFO "Initial ramdisk at: 0x%lx (%llu bytes)\n",
-		       initrd_start, ia64_boot_param->initrd_size);
+			   initrd_start, ia64_boot_param->initrd_size);
 	}
+
 #endif
 }
 
@@ -435,11 +488,14 @@ io_port_init (void)
 	 * virtual mmio_base from the appropriate io_space[].
 	 */
 	phys_iobase = efi_get_iobase();
-	if (!phys_iobase) {
+
+	if (!phys_iobase)
+	{
 		phys_iobase = ia64_get_kr(IA64_KR_IO_BASE);
 		printk(KERN_INFO "No I/O port range found in EFI memory map, "
-			"falling back to AR.KR0 (0x%lx)\n", phys_iobase);
+			   "falling back to AR.KR0 (0x%lx)\n", phys_iobase);
 	}
+
 	ia64_iobase = (unsigned long) ioremap(phys_iobase, 0);
 	ia64_set_kr(IA64_KR_IO_BASE, __pa(ia64_iobase));
 
@@ -466,16 +522,26 @@ early_console_setup (char *cmdline)
 #ifdef CONFIG_SERIAL_SGI_L1_CONSOLE
 	{
 		extern int sn_serial_console_early_setup(void);
+
 		if (!sn_serial_console_early_setup())
+		{
 			earlycons++;
+		}
 	}
 #endif
 #ifdef CONFIG_EFI_PCDP
+
 	if (!efi_setup_pcdp_console(cmdline))
+	{
 		earlycons++;
+	}
+
 #endif
+
 	if (!simcons_register())
+	{
 		earlycons++;
+	}
 
 	return (earlycons) ? 0 : -1;
 }
@@ -509,9 +575,12 @@ int __init reserve_elfcorehdr(u64 *start, u64 *end)
 	 */
 
 	if (!is_vmcore_usable())
+	{
 		return -EINVAL;
+	}
 
-	if ((length = vmcore_find_descriptor_size(elfcorehdr_addr)) == 0) {
+	if ((length = vmcore_find_descriptor_size(elfcorehdr_addr)) == 0)
+	{
 		vmcore_unusable();
 		return -EINVAL;
 	}
@@ -548,7 +617,9 @@ setup_arch (char **cmdline_p)
 	parse_early_param();
 
 	if (early_console_setup(*cmdline_p) == 0)
+	{
 		mark_bsp_online();
+	}
 
 #ifdef CONFIG_ACPI
 	/* Initialize the ACPI boot-time table parser */
@@ -561,8 +632,8 @@ setup_arch (char **cmdline_p)
 	prefill_possible_map();
 #  endif
 	per_cpu_scan_finalize((cpumask_weight(&early_cpu_possible_map) == 0 ?
-		32 : cpumask_weight(&early_cpu_possible_map)),
-		additional_cpus > 0 ? additional_cpus : 0);
+						   32 : cpumask_weight(&early_cpu_possible_map)),
+						  additional_cpus > 0 ? additional_cpus : 0);
 # endif
 #endif /* CONFIG_APCI_BOOT */
 
@@ -581,7 +652,9 @@ setup_arch (char **cmdline_p)
 		unsigned long num_phys_stacked;
 
 		if (ia64_pal_rse_info(&num_phys_stacked, 0) == 0 && num_phys_stacked > 96)
+		{
 			ia64_patch_rse((u64) __start___rse_patchlist, (u64) __end___rse_patchlist);
+		}
 	}
 #endif
 
@@ -593,11 +666,14 @@ setup_arch (char **cmdline_p)
 	mmu_context_init();	/* initialize context_id bitmap */
 
 #ifdef CONFIG_VT
-	if (!conswitchp) {
+
+	if (!conswitchp)
+	{
 # if defined(CONFIG_DUMMY_CONSOLE)
 		conswitchp = &dummy_con;
 # endif
 # if defined(CONFIG_VGA_CONSOLE)
+
 		/*
 		 * Non-legacy systems may route legacy VGA MMIO range to system
 		 * memory.  vga_con probes the MMIO hole, so memory looks like
@@ -605,14 +681,20 @@ setup_arch (char **cmdline_p)
 		 * memory so we can avoid this problem.
 		 */
 		if (efi_mem_type(0xA0000) != EFI_CONVENTIONAL_MEMORY)
+		{
 			conswitchp = &vga_con;
+		}
+
 # endif
 	}
+
 #endif
 
 	/* enable IA-64 Machine Check Abort Handling unless disabled */
 	if (!nomca)
+	{
 		ia64_mca_init();
+	}
 
 	platform_setup(cmdline_p);
 #ifndef CONFIG_IA64_HP_SIM
@@ -634,10 +716,12 @@ show_cpuinfo (struct seq_file *m, void *v)
 #	define lpj	loops_per_jiffy
 #	define cpunum	0
 #endif
-	static struct {
+	static struct
+	{
 		unsigned long mask;
 		const char *feature_name;
-	} feature_bits[] = {
+	} feature_bits[] =
+	{
 		{ 1UL << 0, "branchlong" },
 		{ 1UL << 1, "spontaneous deferral"},
 		{ 1UL << 2, "16-byte atomic ops" }
@@ -655,57 +739,70 @@ show_cpuinfo (struct seq_file *m, void *v)
 	cp = features;
 	size = sizeof(features);
 	sep = "";
-	for (i = 0; i < ARRAY_SIZE(feature_bits) && size > 1; ++i) {
-		if (mask & feature_bits[i].mask) {
+
+	for (i = 0; i < ARRAY_SIZE(feature_bits) && size > 1; ++i)
+	{
+		if (mask & feature_bits[i].mask)
+		{
 			cp += snprintf(cp, size, "%s%s", sep,
-				       feature_bits[i].feature_name),
-			sep = ", ";
+						   feature_bits[i].feature_name),
+				  sep = ", ";
 			mask &= ~feature_bits[i].mask;
 			size = sizeof(features) - (cp - features);
 		}
 	}
-	if (mask && size > 1) {
+
+	if (mask && size > 1)
+	{
 		/* print unknown features as a hex value */
 		snprintf(cp, size, "%s0x%lx", sep, mask);
 	}
 
 	proc_freq = cpufreq_quick_get(cpunum);
+
 	if (!proc_freq)
+	{
 		proc_freq = c->proc_freq / 1000;
+	}
 
 	seq_printf(m,
-		   "processor  : %d\n"
-		   "vendor     : %s\n"
-		   "arch       : IA-64\n"
-		   "family     : %u\n"
-		   "model      : %u\n"
-		   "model name : %s\n"
-		   "revision   : %u\n"
-		   "archrev    : %u\n"
-		   "features   : %s\n"
-		   "cpu number : %lu\n"
-		   "cpu regs   : %u\n"
-		   "cpu MHz    : %lu.%03lu\n"
-		   "itc MHz    : %lu.%06lu\n"
-		   "BogoMIPS   : %lu.%02lu\n",
-		   cpunum, c->vendor, c->family, c->model,
-		   c->model_name, c->revision, c->archrev,
-		   features, c->ppn, c->number,
-		   proc_freq / 1000, proc_freq % 1000,
-		   c->itc_freq / 1000000, c->itc_freq % 1000000,
-		   lpj*HZ/500000, (lpj*HZ/5000) % 100);
+			   "processor  : %d\n"
+			   "vendor     : %s\n"
+			   "arch       : IA-64\n"
+			   "family     : %u\n"
+			   "model      : %u\n"
+			   "model name : %s\n"
+			   "revision   : %u\n"
+			   "archrev    : %u\n"
+			   "features   : %s\n"
+			   "cpu number : %lu\n"
+			   "cpu regs   : %u\n"
+			   "cpu MHz    : %lu.%03lu\n"
+			   "itc MHz    : %lu.%06lu\n"
+			   "BogoMIPS   : %lu.%02lu\n",
+			   cpunum, c->vendor, c->family, c->model,
+			   c->model_name, c->revision, c->archrev,
+			   features, c->ppn, c->number,
+			   proc_freq / 1000, proc_freq % 1000,
+			   c->itc_freq / 1000000, c->itc_freq % 1000000,
+			   lpj * HZ / 500000, (lpj * HZ / 5000) % 100);
 #ifdef CONFIG_SMP
 	seq_printf(m, "siblings   : %u\n",
-		   cpumask_weight(&cpu_core_map[cpunum]));
+			   cpumask_weight(&cpu_core_map[cpunum]));
+
 	if (c->socket_id != -1)
+	{
 		seq_printf(m, "physical id: %u\n", c->socket_id);
+	}
+
 	if (c->threads_per_core > 1 || c->cores_per_socket > 1)
 		seq_printf(m,
-			   "core id    : %u\n"
-			   "thread id  : %u\n",
-			   c->core_id, c->thread_id);
+				   "core id    : %u\n"
+				   "thread id  : %u\n",
+				   c->core_id, c->thread_id);
+
 #endif
-	seq_printf(m,"\n");
+	seq_printf(m, "\n");
 
 	return 0;
 }
@@ -714,8 +811,12 @@ static void *
 c_start (struct seq_file *m, loff_t *pos)
 {
 #ifdef CONFIG_SMP
+
 	while (*pos < nr_cpu_ids && !cpu_online(*pos))
+	{
 		++*pos;
+	}
+
 #endif
 	return *pos < nr_cpu_ids ? cpu_data(*pos) : NULL;
 }
@@ -732,7 +833,8 @@ c_stop (struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start =	c_start,
 	.next =		c_next,
 	.stop =		c_stop,
@@ -750,34 +852,51 @@ get_model_name(__u8 family, __u8 model)
 	int i;
 
 	memcpy(brand, "Unknown", 8);
-	if (ia64_pal_get_brand_info(brand)) {
+
+	if (ia64_pal_get_brand_info(brand))
+	{
 		if (family == 0x7)
+		{
 			memcpy(brand, "Merced", 7);
-		else if (family == 0x1f) switch (model) {
-			case 0: memcpy(brand, "McKinley", 9); break;
-			case 1: memcpy(brand, "Madison", 8); break;
-			case 2: memcpy(brand, "Madison up to 9M cache", 23); break;
 		}
+		else if (family == 0x1f) switch (model)
+			{
+				case 0: memcpy(brand, "McKinley", 9); break;
+
+				case 1: memcpy(brand, "Madison", 8); break;
+
+				case 2: memcpy(brand, "Madison up to 9M cache", 23); break;
+			}
 	}
+
 	for (i = 0; i < MAX_BRANDS; i++)
 		if (strcmp(brandname[i], brand) == 0)
+		{
 			return brandname[i];
+		}
+
 	for (i = 0; i < MAX_BRANDS; i++)
 		if (brandname[i][0] == '\0')
+		{
 			return strcpy(brandname[i], brand);
+		}
+
 	if (overflow++ == 0)
 		printk(KERN_ERR
-		       "%s: Table overflow. Some processor model information will be missing\n",
-		       __func__);
+			   "%s: Table overflow. Some processor model information will be missing\n",
+			   __func__);
+
 	return "Unknown";
 }
 
 static void
 identify_cpu (struct cpuinfo_ia64 *c)
 {
-	union {
+	union
+	{
 		unsigned long bits[5];
-		struct {
+		struct
+		{
 			/* id 0 & 1: */
 			char vendor[16];
 
@@ -801,14 +920,17 @@ identify_cpu (struct cpuinfo_ia64 *c)
 	pal_status_t status;
 	unsigned long impl_va_msb = 50, phys_addr_size = 44;	/* Itanium defaults */
 	int i;
+
 	for (i = 0; i < 5; ++i)
+	{
 		cpuid.bits[i] = ia64_get_cpuid(i);
+	}
 
 	memcpy(c->vendor, cpuid.field.vendor, 16);
 #ifdef CONFIG_SMP
 	c->cpu = smp_processor_id();
 
-	/* below default values will be overwritten  by identify_siblings() 
+	/* below default values will be overwritten  by identify_siblings()
 	 * for Multi-Threading/Multi-Core capable CPUs
 	 */
 	c->threads_per_core = c->cores_per_socket = c->num_log = 1;
@@ -817,7 +939,10 @@ identify_cpu (struct cpuinfo_ia64 *c)
 	identify_siblings(c);
 
 	if (c->threads_per_core > smp_num_siblings)
+	{
 		smp_num_siblings = c->threads_per_core;
+	}
+
 #endif
 	c->ppn = cpuid.field.ppn;
 	c->number = cpuid.field.number;
@@ -829,12 +954,15 @@ identify_cpu (struct cpuinfo_ia64 *c)
 	c->model_name = get_model_name(c->family, c->model);
 
 	status = ia64_pal_vm_summary(&vm1, &vm2);
-	if (status == PAL_STATUS_SUCCESS) {
+
+	if (status == PAL_STATUS_SUCCESS)
+	{
 		impl_va_msb = vm2.pal_vm_info_2_s.impl_va_msb;
 		phys_addr_size = vm1.pal_vm_info_1_s.phys_add_size;
 	}
-	c->unimpl_va_mask = ~((7L<<61) | ((1L << (impl_va_msb + 1)) - 1));
-	c->unimpl_pa_mask = ~((1L<<63) | ((1L << phys_addr_size) - 1));
+
+	c->unimpl_va_mask = ~((7L << 61) | ((1L << (impl_va_msb + 1)) - 1));
+	c->unimpl_pa_mask = ~((1L << 63) | ((1L << phys_addr_size) - 1));
 }
 
 /*
@@ -852,57 +980,79 @@ get_cache_info(void)
 	pal_cache_config_info_t cci;
 	long status;
 
-        status = ia64_pal_cache_summary(&levels, &unique_caches);
-        if (status != 0) {
-                printk(KERN_ERR "%s: ia64_pal_cache_summary() failed (status=%ld)\n",
-                       __func__, status);
-                max = SMP_CACHE_BYTES;
+	status = ia64_pal_cache_summary(&levels, &unique_caches);
+
+	if (status != 0)
+	{
+		printk(KERN_ERR "%s: ia64_pal_cache_summary() failed (status=%ld)\n",
+			   __func__, status);
+		max = SMP_CACHE_BYTES;
 		/* Safest setup for "flush_icache_range()" */
 		ia64_i_cache_stride_shift = I_CACHE_STRIDE_SHIFT;
 		/* Safest setup for "clflush_cache_range()" */
 		ia64_cache_stride_shift = CACHE_STRIDE_SHIFT;
 		goto out;
-        }
+	}
 
-	for (l = 0; l < levels; ++l) {
+	for (l = 0; l < levels; ++l)
+	{
 		/* cache_type (data_or_unified)=2 */
 		status = ia64_pal_cache_config_info(l, 2, &cci);
-		if (status != 0) {
+
+		if (status != 0)
+		{
 			printk(KERN_ERR "%s: ia64_pal_cache_config_info"
-				"(l=%lu, 2) failed (status=%ld)\n",
-				__func__, l, status);
+				   "(l=%lu, 2) failed (status=%ld)\n",
+				   __func__, l, status);
 			max = SMP_CACHE_BYTES;
 			/* The safest setup for "flush_icache_range()" */
 			cci.pcci_stride = I_CACHE_STRIDE_SHIFT;
 			/* The safest setup for "clflush_cache_range()" */
 			ia64_cache_stride_shift = CACHE_STRIDE_SHIFT;
 			cci.pcci_unified = 1;
-		} else {
+		}
+		else
+		{
 			if (cci.pcci_stride < ia64_cache_stride_shift)
+			{
 				ia64_cache_stride_shift = cci.pcci_stride;
+			}
 
 			line_size = 1 << cci.pcci_line_size;
+
 			if (line_size > max)
+			{
 				max = line_size;
+			}
 		}
 
-		if (!cci.pcci_unified) {
+		if (!cci.pcci_unified)
+		{
 			/* cache_type (instruction)=1*/
 			status = ia64_pal_cache_config_info(l, 1, &cci);
-			if (status != 0) {
+
+			if (status != 0)
+			{
 				printk(KERN_ERR "%s: ia64_pal_cache_config_info"
-					"(l=%lu, 1) failed (status=%ld)\n",
-					__func__, l, status);
+					   "(l=%lu, 1) failed (status=%ld)\n",
+					   __func__, l, status);
 				/* The safest setup for flush_icache_range() */
 				cci.pcci_stride = I_CACHE_STRIDE_SHIFT;
 			}
 		}
+
 		if (cci.pcci_stride < ia64_i_cache_stride_shift)
+		{
 			ia64_i_cache_stride_shift = cci.pcci_stride;
+		}
 	}
-  out:
+
+out:
+
 	if (max > ia64_max_cacheline_size)
+	{
 		ia64_max_cacheline_size = max;
+	}
 }
 
 /*
@@ -922,14 +1072,18 @@ cpu_init (void)
 
 	cpu_data = per_cpu_init();
 #ifdef CONFIG_SMP
+
 	/*
 	 * insert boot cpu into sibling and core mapes
 	 * (must be done after per_cpu area is setup)
 	 */
-	if (smp_processor_id() == 0) {
+	if (smp_processor_id() == 0)
+	{
 		cpumask_set_cpu(0, &per_cpu(cpu_sibling_map, 0));
 		cpumask_set_cpu(0, &cpu_core_map[0]);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Set ar.k3 so that assembly code in MCA handler can compute
 		 * physical addresses of per cpu variables with a simple:
@@ -938,8 +1092,9 @@ cpu_init (void)
 		 * the TLB when needed. head.S already did this for cpu0.
 		 */
 		ia64_set_kr(IA64_KR_PER_CPU_DATA,
-			    ia64_tpa(cpu_data) - (long) __per_cpu_start);
+					ia64_tpa(cpu_data) - (long) __per_cpu_start);
 	}
+
 #endif
 
 	get_cache_info();
@@ -958,11 +1113,13 @@ cpu_init (void)
 #		define FEATURE_SET 16
 		struct ia64_pal_retval iprv;
 
-		if (cpu_info->family == 0x1f) {
+		if (cpu_info->family == 0x1f)
+		{
 			PAL_CALL_PHYS(iprv, PAL_PROC_GET_FEATURES, 0, FEATURE_SET, 0);
+
 			if ((iprv.status == 0) && (iprv.v0 & 0x80) && (iprv.v2 & 0x80))
 				PAL_CALL_PHYS(iprv, PAL_PROC_SET_FEATURES,
-				              (iprv.v1 | 0x80), FEATURE_SET, 0);
+							  (iprv.v1 | 0x80), FEATURE_SET, 0);
 		}
 	}
 #endif
@@ -991,7 +1148,7 @@ cpu_init (void)
 	 * be fine).
 	 */
 	ia64_setreg(_IA64_REG_CR_DCR,  (  IA64_DCR_DP | IA64_DCR_DK | IA64_DCR_DX | IA64_DCR_DR
-					| IA64_DCR_DA | IA64_DCR_DD | IA64_DCR_LC));
+									  | IA64_DCR_DA | IA64_DCR_DD | IA64_DCR_LC));
 	atomic_inc(&init_mm.mm_count);
 	current->active_mm = &init_mm;
 	BUG_ON(current->mm);
@@ -1014,36 +1171,50 @@ cpu_init (void)
 
 	/* Clear any pending interrupts left by SAL/EFI */
 	while (ia64_get_ivr() != IA64_SPURIOUS_INT_VECTOR)
+	{
 		ia64_eoi();
+	}
 
 #ifdef CONFIG_SMP
 	normal_xtp();
 #endif
 
 	/* set ia64_ctx.max_rid to the maximum RID that is supported by all CPUs: */
-	if (ia64_pal_vm_summary(NULL, &vmi) == 0) {
+	if (ia64_pal_vm_summary(NULL, &vmi) == 0)
+	{
 		max_ctx = (1U << (vmi.pal_vm_info_2_s.rid_size - 3)) - 1;
 		setup_ptcg_sem(vmi.pal_vm_info_2_s.max_purges, NPTCG_FROM_PAL);
-	} else {
+	}
+	else
+	{
 		printk(KERN_WARNING "cpu_init: PAL VM summary failed, assuming 18 RID bits\n");
 		max_ctx = (1U << 15) - 1;	/* use architected minimum */
 	}
-	while (max_ctx < ia64_ctx.max_ctx) {
+
+	while (max_ctx < ia64_ctx.max_ctx)
+	{
 		unsigned int old = ia64_ctx.max_ctx;
+
 		if (cmpxchg(&ia64_ctx.max_ctx, old, max_ctx) == old)
+		{
 			break;
+		}
 	}
 
-	if (ia64_pal_rse_info(&num_phys_stacked, NULL) != 0) {
+	if (ia64_pal_rse_info(&num_phys_stacked, NULL) != 0)
+	{
 		printk(KERN_WARNING "cpu_init: PAL RSE info failed; assuming 96 physical "
-		       "stacked regs\n");
+			   "stacked regs\n");
 		num_phys_stacked = 96;
 	}
+
 	/* size of physical stacked register partition plus 8 bytes: */
-	if (num_phys_stacked > max_num_phys_stacked) {
-		ia64_patch_phys_stack_reg(num_phys_stacked*8 + 8);
+	if (num_phys_stacked > max_num_phys_stacked)
+	{
+		ia64_patch_phys_stack_reg(num_phys_stacked * 8 + 8);
 		max_num_phys_stacked = num_phys_stacked;
 	}
+
 	platform_cpu_init();
 }
 
@@ -1051,7 +1222,7 @@ void __init
 check_bugs (void)
 {
 	ia64_patch_mckinley_e9((unsigned long) __start___mckinley_e9_bundles,
-			       (unsigned long) __end___mckinley_e9_bundles);
+						   (unsigned long) __end___mckinley_e9_bundles);
 }
 
 static int __init run_dmi_scan(void)

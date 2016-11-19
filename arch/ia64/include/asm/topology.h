@@ -30,8 +30,8 @@
  * Returns a bitmask of CPUs on Node 'node'.
  */
 #define cpumask_of_node(node) ((node) == -1 ?				\
-			       cpu_all_mask :				\
-			       &node_to_cpu_mask[node])
+							   cpu_all_mask :				\
+							   &node_to_cpu_mask[node])
 
 /*
  * Returns the number of the node containing Node 'nid'.
@@ -50,17 +50,17 @@ void build_cpu_to_node_map(void);
 #endif /* CONFIG_NUMA */
 
 #ifdef CONFIG_SMP
-#define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
-#define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
-#define topology_core_cpumask(cpu)		(&cpu_core_map[cpu])
-#define topology_sibling_cpumask(cpu)		(&per_cpu(cpu_sibling_map, cpu))
+	#define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
+	#define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
+	#define topology_core_cpumask(cpu)		(&cpu_core_map[cpu])
+	#define topology_sibling_cpumask(cpu)		(&per_cpu(cpu_sibling_map, cpu))
 #endif
 
 extern void arch_fix_phys_package_id(int num, u32 slot);
 
 #define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) == -1 ?		\
-				 cpu_all_mask :				\
-				 cpumask_of_node(pcibus_to_node(bus)))
+								 cpu_all_mask :				\
+								 cpumask_of_node(pcibus_to_node(bus)))
 
 #include <asm-generic/topology.h>
 

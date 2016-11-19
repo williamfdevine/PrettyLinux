@@ -149,7 +149,7 @@
 	({						\
 		unsigned int _id = (id) >> 4 & 0xfff;	\
 		_id == 0x688;				\
-	 })
+	})
 #else
 #define __cpu_is_pxa300(id)	(0)
 #endif
@@ -159,7 +159,7 @@
 	({						\
 		unsigned int _id = (id) >> 4 & 0xfff;	\
 		_id == 0x689;				\
-	 })
+	})
 #else
 #define __cpu_is_pxa310(id)	(0)
 #endif
@@ -169,7 +169,7 @@
 	({						\
 		unsigned int _id = (id) >> 4 & 0xfff;	\
 		_id == 0x603 || _id == 0x682;		\
-	 })
+	})
 #else
 #define __cpu_is_pxa320(id)	(0)
 #endif
@@ -179,7 +179,7 @@
 	({						\
 		unsigned int _id = (id) >> 4 & 0xfff;	\
 		_id == 0x683;				\
-	 })
+	})
 #else
 #define __cpu_is_pxa930(id)	(0)
 #endif
@@ -189,7 +189,7 @@
 	({						\
 		unsigned int _id = (id) >> 4 & 0xfff;	\
 		_id == 0x693;				\
-	 })
+	})
 #else
 #define __cpu_is_pxa935(id)	(0)
 #endif
@@ -222,27 +222,27 @@
 #define cpu_is_pxa300()					\
 	({						\
 		__cpu_is_pxa300(read_cpuid_id());	\
-	 })
+	})
 
 #define cpu_is_pxa310()					\
 	({						\
 		__cpu_is_pxa310(read_cpuid_id());	\
-	 })
+	})
 
 #define cpu_is_pxa320()					\
 	({						\
 		__cpu_is_pxa320(read_cpuid_id());	\
-	 })
+	})
 
 #define cpu_is_pxa930()					\
 	({						\
 		__cpu_is_pxa930(read_cpuid_id());	\
-	 })
+	})
 
 #define cpu_is_pxa935()					\
 	({						\
 		__cpu_is_pxa935(read_cpuid_id());	\
-	 })
+	})
 
 
 
@@ -255,7 +255,7 @@
 	({						\
 		unsigned int _id = (id) >> 13 & 0x7;	\
 		_id <= 0x2;				\
-	 })
+	})
 #else
 #define __cpu_is_pxa2xx(id)	(0)
 #endif
@@ -264,10 +264,10 @@
 #define __cpu_is_pxa3xx(id)				\
 	({						\
 		__cpu_is_pxa300(id)			\
-			|| __cpu_is_pxa310(id)		\
-			|| __cpu_is_pxa320(id)		\
-			|| __cpu_is_pxa93x(id);		\
-	 })
+		|| __cpu_is_pxa310(id)		\
+		|| __cpu_is_pxa320(id)		\
+		|| __cpu_is_pxa93x(id);		\
+	})
 #else
 #define __cpu_is_pxa3xx(id)	(0)
 #endif
@@ -276,8 +276,8 @@
 #define __cpu_is_pxa93x(id)				\
 	({						\
 		__cpu_is_pxa930(id)			\
-			|| __cpu_is_pxa935(id);		\
-	 })
+		|| __cpu_is_pxa935(id);		\
+	})
 #else
 #define __cpu_is_pxa93x(id)	(0)
 #endif
@@ -285,17 +285,17 @@
 #define cpu_is_pxa2xx()					\
 	({						\
 		__cpu_is_pxa2xx(read_cpuid_id());	\
-	 })
+	})
 
 #define cpu_is_pxa3xx()					\
 	({						\
 		__cpu_is_pxa3xx(read_cpuid_id());	\
-	 })
+	})
 
 #define cpu_is_pxa93x()					\
 	({						\
 		__cpu_is_pxa93x(read_cpuid_id());	\
-	 })
+	})
 
 
 /*

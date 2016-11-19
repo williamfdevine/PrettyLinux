@@ -33,13 +33,21 @@ static void davinci_save_ddr_power(int enter, bool pdown)
 
 	val = __raw_readl(ddr2_reg_base + DDR2_SDRCR_OFFSET);
 
-	if (enter) {
+	if (enter)
+	{
 		if (pdown)
+		{
 			val |= DDR2_SRPD_BIT;
+		}
 		else
+		{
 			val &= ~DDR2_SRPD_BIT;
+		}
+
 		val |= DDR2_LPMODEN_BIT;
-	} else {
+	}
+	else
+	{
 		val &= ~(DDR2_SRPD_BIT | DDR2_LPMODEN_BIT);
 	}
 
@@ -48,7 +56,7 @@ static void davinci_save_ddr_power(int enter, bool pdown)
 
 /* Actual code that puts the SoC in different idle states */
 static int davinci_enter_idle(struct cpuidle_device *dev,
-			      struct cpuidle_driver *drv, int index)
+							  struct cpuidle_driver *drv, int index)
 {
 	davinci_save_ddr_power(1, ddr2_pdown);
 	cpu_do_idle();
@@ -57,7 +65,8 @@ static int davinci_enter_idle(struct cpuidle_device *dev,
 	return index;
 }
 
-static struct cpuidle_driver davinci_idle_driver = {
+static struct cpuidle_driver davinci_idle_driver =
+{
 	.name			= "cpuidle-davinci",
 	.owner			= THIS_MODULE,
 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
@@ -75,7 +84,8 @@ static int __init davinci_cpuidle_probe(struct platform_device *pdev)
 {
 	struct davinci_cpuidle_config *pdata = pdev->dev.platform_data;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "cannot get platform data\n");
 		return -ENOENT;
 	}
@@ -87,7 +97,8 @@ static int __init davinci_cpuidle_probe(struct platform_device *pdev)
 	return cpuidle_register(&davinci_idle_driver, NULL);
 }
 
-static struct platform_driver davinci_cpuidle_driver = {
+static struct platform_driver davinci_cpuidle_driver =
+{
 	.driver = {
 		.name	= "cpuidle-davinci",
 	},
@@ -96,7 +107,7 @@ static struct platform_driver davinci_cpuidle_driver = {
 static int __init davinci_cpuidle_init(void)
 {
 	return platform_driver_probe(&davinci_cpuidle_driver,
-						davinci_cpuidle_probe);
+								 davinci_cpuidle_probe);
 }
 device_initcall(davinci_cpuidle_init);
 

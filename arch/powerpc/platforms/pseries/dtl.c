@@ -31,7 +31,8 @@
 #include <asm/plpar_wrappers.h>
 #include <asm/machdep.h>
 
-struct dtl {
+struct dtl
+{
 	struct dtl_entry	*buf;
 	struct dentry		*file;
 	int			cpu;
@@ -57,7 +58,8 @@ static u8 dtl_event_mask = 0x7;
 static int dtl_buf_entries = N_DISPATCH_LOG;
 
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
-struct dtl_ring {
+struct dtl_ring
+{
 	u64	write_index;
 	struct dtl_entry *write_ptr;
 	struct dtl_entry *buf;
@@ -80,18 +82,26 @@ static void consume_dtle(struct dtl_entry *dtle, u64 index)
 	struct lppaca *vpa = local_paca->lppaca_ptr;
 
 	if (!wp)
+	{
 		return;
+	}
 
 	*wp = *dtle;
 	barrier();
 
 	/* check for hypervisor ring buffer overflow, ignore this entry if so */
 	if (index + N_DISPATCH_LOG < be64_to_cpu(vpa->dtl_idx))
+	{
 		return;
+	}
 
 	++wp;
+
 	if (wp == dtlr->buf_end)
+	{
 		wp = dtlr->buf;
+	}
+
 	dtlr->write_ptr = wp;
 
 	/* incrementing write_index makes the new entry visible */
@@ -133,7 +143,9 @@ static void dtl_stop(struct dtl *dtl)
 	lppaca_of(dtl->cpu).dtl_enable_mask = dtlr->saved_dtl_mask;
 
 	if (atomic_dec_and_test(&dtl_count))
+	{
 		dtl_consumer = NULL;
+	}
 }
 
 static u64 dtl_current_index(struct dtl *dtl)
@@ -155,9 +167,11 @@ static int dtl_start(struct dtl *dtl)
 	hwcpu = get_hard_smp_processor_id(dtl->cpu);
 	addr = __pa(dtl->buf);
 	ret = register_dtl(hwcpu, addr);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_WARNING "%s: DTL registration for cpu %d (hw %d) "
-		       "failed with %d\n", __func__, dtl->cpu, hwcpu, ret);
+			   "failed with %d\n", __func__, dtl->cpu, hwcpu, ret);
 		return -EIO;
 	}
 
@@ -196,35 +210,50 @@ static int dtl_enable(struct dtl *dtl)
 	struct dtl_entry *buf = NULL;
 
 	if (!dtl_cache)
+	{
 		return -ENOMEM;
+	}
 
 	/* only allow one reader */
 	if (dtl->buf)
+	{
 		return -EBUSY;
+	}
 
 	n_entries = dtl_buf_entries;
 	buf = kmem_cache_alloc_node(dtl_cache, GFP_KERNEL, cpu_to_node(dtl->cpu));
-	if (!buf) {
+
+	if (!buf)
+	{
 		printk(KERN_WARNING "%s: buffer alloc failed for cpu %d\n",
-				__func__, dtl->cpu);
+			   __func__, dtl->cpu);
 		return -ENOMEM;
 	}
 
 	spin_lock(&dtl->lock);
 	rc = -EBUSY;
-	if (!dtl->buf) {
+
+	if (!dtl->buf)
+	{
 		/* store the original allocation size for use during read */
 		dtl->buf_entries = n_entries;
 		dtl->buf = buf;
 		dtl->last_idx = 0;
 		rc = dtl_start(dtl);
+
 		if (rc)
+		{
 			dtl->buf = NULL;
+		}
 	}
+
 	spin_unlock(&dtl->lock);
 
 	if (rc)
+	{
 		kmem_cache_free(dtl_cache, buf);
+	}
+
 	return rc;
 }
 
@@ -246,8 +275,11 @@ static int dtl_file_open(struct inode *inode, struct file *filp)
 	int rc;
 
 	rc = dtl_enable(dtl);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	filp->private_data = dtl;
 	return 0;
@@ -261,14 +293,16 @@ static int dtl_file_release(struct inode *inode, struct file *filp)
 }
 
 static ssize_t dtl_file_read(struct file *filp, char __user *buf, size_t len,
-		loff_t *pos)
+							 loff_t *pos)
 {
 	long int rc, n_read, n_req, read_size;
 	struct dtl *dtl;
 	u64 cur_idx, last_idx, i;
 
 	if ((len % sizeof(struct dtl_entry)) != 0)
+	{
 		return -EINVAL;
+	}
 
 	dtl = filp->private_data;
 
@@ -284,29 +318,41 @@ static ssize_t dtl_file_read(struct file *filp, char __user *buf, size_t len,
 	last_idx = dtl->last_idx;
 
 	if (last_idx + dtl->buf_entries <= cur_idx)
+	{
 		last_idx = cur_idx - dtl->buf_entries + 1;
+	}
 
 	if (last_idx + n_req > cur_idx)
+	{
 		n_req = cur_idx - last_idx;
+	}
 
 	if (n_req > 0)
+	{
 		dtl->last_idx = last_idx + n_req;
+	}
 
 	spin_unlock(&dtl->lock);
 
 	if (n_req <= 0)
+	{
 		return 0;
+	}
 
 	i = last_idx % dtl->buf_entries;
 
 	/* read the tail of the buffer if we've wrapped */
-	if (i + n_req > dtl->buf_entries) {
+	if (i + n_req > dtl->buf_entries)
+	{
 		read_size = dtl->buf_entries - i;
 
 		rc = copy_to_user(buf, &dtl->buf[i],
-				read_size * sizeof(struct dtl_entry));
+						  read_size * sizeof(struct dtl_entry));
+
 		if (rc)
+		{
 			return -EFAULT;
+		}
 
 		i = 0;
 		n_req -= read_size;
@@ -316,15 +362,19 @@ static ssize_t dtl_file_read(struct file *filp, char __user *buf, size_t len,
 
 	/* .. and now the head */
 	rc = copy_to_user(buf, &dtl->buf[i], n_req * sizeof(struct dtl_entry));
+
 	if (rc)
+	{
 		return -EFAULT;
+	}
 
 	n_read += n_req;
 
 	return n_read * sizeof(struct dtl_entry);
 }
 
-static const struct file_operations dtl_fops = {
+static const struct file_operations dtl_fops =
+{
 	.open		= dtl_file_open,
 	.release	= dtl_file_release,
 	.read		= dtl_file_read,
@@ -340,8 +390,11 @@ static int dtl_setup_file(struct dtl *dtl)
 	sprintf(name, "cpu-%d", dtl->cpu);
 
 	dtl->file = debugfs_create_file(name, 0400, dtl_dir, dtl, &dtl_fops);
+
 	if (!dtl->file)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -352,37 +405,46 @@ static int dtl_init(void)
 	int rc, i;
 
 	if (!firmware_has_feature(FW_FEATURE_SPLPAR))
+	{
 		return -ENODEV;
+	}
 
 	/* set up common debugfs structure */
 
 	rc = -ENOMEM;
 	dtl_dir = debugfs_create_dir("dtl", powerpc_debugfs_root);
-	if (!dtl_dir) {
+
+	if (!dtl_dir)
+	{
 		printk(KERN_WARNING "%s: can't create dtl root dir\n",
-				__func__);
+			   __func__);
 		goto err;
 	}
 
 	event_mask_file = debugfs_create_x8("dtl_event_mask", 0600,
-				dtl_dir, &dtl_event_mask);
+										dtl_dir, &dtl_event_mask);
 	buf_entries_file = debugfs_create_u32("dtl_buf_entries", 0400,
-				dtl_dir, &dtl_buf_entries);
+										  dtl_dir, &dtl_buf_entries);
 
-	if (!event_mask_file || !buf_entries_file) {
+	if (!event_mask_file || !buf_entries_file)
+	{
 		printk(KERN_WARNING "%s: can't create dtl files\n", __func__);
 		goto err_remove_dir;
 	}
 
 	/* set up the per-cpu log structures */
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		struct dtl *dtl = &per_cpu(cpu_dtl, i);
 		spin_lock_init(&dtl->lock);
 		dtl->cpu = i;
 
 		rc = dtl_setup_file(dtl);
+
 		if (rc)
+		{
 			goto err_remove_dir;
+		}
 	}
 
 	return 0;

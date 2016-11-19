@@ -9,7 +9,7 @@
  */
 
 #if !defined(CONFIG_ETRAX_ARCH_V10) && !defined(CONFIG_ETRAX_ARCH_V32)
-#error One of ARCH v10 and ARCH v32 must be true!
+	#error One of ARCH v10 and ARCH v32 must be true!
 #endif
 
 int main(void)

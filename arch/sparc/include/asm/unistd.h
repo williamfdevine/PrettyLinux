@@ -18,7 +18,7 @@
 
 #ifdef __32bit_syscall_numbers__
 #else
-#define __NR_time		231 /* Linux sparc32                               */
+	#define __NR_time		231 /* Linux sparc32                               */
 #endif
 #define __ARCH_WANT_OLD_READDIR
 #define __ARCH_WANT_STAT64
@@ -38,10 +38,10 @@
 #define __ARCH_WANT_SYS_SIGPENDING
 #define __ARCH_WANT_SYS_SIGPROCMASK
 #ifdef __32bit_syscall_numbers__
-#define __ARCH_WANT_SYS_IPC
+	#define __ARCH_WANT_SYS_IPC
 #else
-#define __ARCH_WANT_COMPAT_SYS_TIME
-#define __ARCH_WANT_COMPAT_SYS_SENDFILE
+	#define __ARCH_WANT_COMPAT_SYS_TIME
+	#define __ARCH_WANT_COMPAT_SYS_SENDFILE
 #endif
 
 #endif /* _SPARC_UNISTD_H */

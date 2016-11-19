@@ -21,7 +21,8 @@
 
 #include "mpc10x.h"
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .type = "soc", },
 	{ .compatible = "simple-bus", },
 	{},
@@ -44,13 +45,18 @@ static int __init linkstation_add_bridge(struct device_node *dev)
 	printk("Adding PCI host bridge %s\n", dev->full_name);
 
 	bus_range = of_get_property(dev, "bus-range", &len);
+
 	if (bus_range == NULL || len < 2 * sizeof(int))
 		printk(KERN_WARNING "Can't get bus-range for %s, assume"
-				" bus 0\n", dev->full_name);
+			   " bus 0\n", dev->full_name);
 
 	hose = pcibios_alloc_controller(dev);
+
 	if (hose == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	hose->first_busno = bus_range ? bus_range[0] : 0;
 	hose->last_busno = bus_range ? bus_range[1] : 0xff;
 	setup_indirect_pci(hose, 0xfec00000, 0xfee00000, 0);
@@ -68,7 +74,7 @@ static void __init linkstation_setup_arch(void)
 
 	/* Lookup PCI host bridges */
 	for_each_compatible_node(np, "pci", "mpc10x-pci")
-		linkstation_add_bridge(np);
+	linkstation_add_bridge(np);
 
 	printk(KERN_INFO "BUFFALO Network Attached Storage Series\n");
 	printk(KERN_INFO "(C) 2002-2005 BUFFALO INC.\n");
@@ -109,8 +115,10 @@ static void __noreturn linkstation_restart(char *cmd)
 	/* Send reboot command */
 	avr_uart_send('C');
 
-	for(;;)  /* Spin until reset happens */
-		avr_uart_send('G');	/* "kick" */
+	for (;;) /* Spin until reset happens */
+	{
+		avr_uart_send('G');    /* "kick" */
+	}
 }
 
 static void __noreturn linkstation_power_off(void)
@@ -122,8 +130,11 @@ static void __noreturn linkstation_power_off(void)
 	/* send shutdown command */
 	avr_uart_send('E');
 
-	for(;;)  /* Spin until power-off happens */
-		avr_uart_send('G');	/* "kick" */
+	for (;;) /* Spin until power-off happens */
+	{
+		avr_uart_send('G');    /* "kick" */
+	}
+
 	/* NOTREACHED */
 }
 
@@ -142,21 +153,24 @@ static void linkstation_show_cpuinfo(struct seq_file *m)
 static int __init linkstation_probe(void)
 {
 	if (!of_machine_is_compatible("linkstation"))
+	{
 		return 0;
+	}
 
 	pm_power_off = linkstation_power_off;
 
 	return 1;
 }
 
-define_machine(linkstation){
+define_machine(linkstation)
+{
 	.name 			= "Buffalo Linkstation",
-	.probe 			= linkstation_probe,
-	.setup_arch 		= linkstation_setup_arch,
-	.init_IRQ 		= linkstation_init_IRQ,
-	.show_cpuinfo 		= linkstation_show_cpuinfo,
-	.get_irq 		= mpic_get_irq,
-	.restart 		= linkstation_restart,
-	.halt	 		= linkstation_halt,
-	.calibrate_decr 	= generic_calibrate_decr,
+			.probe 			= linkstation_probe,
+				   .setup_arch 		= linkstation_setup_arch,
+						  .init_IRQ 		= linkstation_init_IRQ,
+							   .show_cpuinfo 		= linkstation_show_cpuinfo,
+									.get_irq 		= mpic_get_irq,
+										  .restart 		= linkstation_restart,
+												.halt	 		= linkstation_halt,
+														.calibrate_decr 	= generic_calibrate_decr,
 };

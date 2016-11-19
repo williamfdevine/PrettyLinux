@@ -21,7 +21,8 @@
 DEFINE_SPINLOCK(rtc_lock);
 EXPORT_SYMBOL(rtc_lock);
 
-static const __initdata struct resource res[] = {
+static const __initdata struct resource res[] =
+{
 	DEFINE_RES_IO(RTC_PORT(0), RTC_IO_EXTENT),
 	DEFINE_RES_IRQ(RTC_IRQ),
 };

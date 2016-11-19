@@ -25,12 +25,14 @@
 
 #include <sound/atmel-ac97c.h>
 
-static struct ac97c_platform_data __initdata ac97c0_data = {
+static struct ac97c_platform_data __initdata ac97c0_data =
+{
 	.reset_pin = GPIO_PIN_PB(19),
 };
 
 #ifdef CONFIG_BOARD_ATNGW100_EVKLCD10X_VGA
-static struct fb_videomode __initdata tcg057vglad_modes[] = {
+static struct fb_videomode __initdata tcg057vglad_modes[] =
+{
 	{
 		.name		= "640x480 @ 50",
 		.refresh	= 50,
@@ -46,7 +48,8 @@ static struct fb_videomode __initdata tcg057vglad_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata atevklcd10x_default_monspecs = {
+static struct fb_monspecs __initdata atevklcd10x_default_monspecs =
+{
 	.manufacturer		= "KYO",
 	.monitor		= "TCG057VGLAD",
 	.modedb			= tcg057vglad_modes,
@@ -58,17 +61,19 @@ static struct fb_monspecs __initdata atevklcd10x_default_monspecs = {
 	.dclkmax		= 28330000,
 };
 
-static struct atmel_lcdfb_pdata __initdata atevklcd10x_lcdc_data = {
+static struct atmel_lcdfb_pdata __initdata atevklcd10x_lcdc_data =
+{
 	.default_bpp		= 16,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_MEMOR_BIG),
 	.default_monspecs	= &atevklcd10x_default_monspecs,
 	.guard_time		= 2,
 };
 #elif CONFIG_BOARD_ATNGW100_EVKLCD10X_QVGA
-static struct fb_videomode __initdata tcg057qvlad_modes[] = {
+static struct fb_videomode __initdata tcg057qvlad_modes[] =
+{
 	{
 		.name		= "320x240 @ 50",
 		.refresh	= 50,
@@ -84,7 +89,8 @@ static struct fb_videomode __initdata tcg057qvlad_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata atevklcd10x_default_monspecs = {
+static struct fb_monspecs __initdata atevklcd10x_default_monspecs =
+{
 	.manufacturer		= "KYO",
 	.monitor		= "TCG057QVLAD",
 	.modedb			= tcg057qvlad_modes,
@@ -96,17 +102,19 @@ static struct fb_monspecs __initdata atevklcd10x_default_monspecs = {
 	.dclkmax		= 7000000,
 };
 
-static struct atmel_lcdfb_pdata __initdata atevklcd10x_lcdc_data = {
+static struct atmel_lcdfb_pdata __initdata atevklcd10x_lcdc_data =
+{
 	.default_bpp		= 16,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_MEMOR_BIG),
 	.default_monspecs	= &atevklcd10x_default_monspecs,
 	.guard_time		= 2,
 };
 #elif CONFIG_BOARD_ATNGW100_EVKLCD10X_POW_QVGA
-static struct fb_videomode __initdata ph320240t_modes[] = {
+static struct fb_videomode __initdata ph320240t_modes[] =
+{
 	{
 		.name		= "320x240 @ 60",
 		.refresh	= 60,
@@ -122,7 +130,8 @@ static struct fb_videomode __initdata ph320240t_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata atevklcd10x_default_monspecs = {
+static struct fb_monspecs __initdata atevklcd10x_default_monspecs =
+{
 	.manufacturer		= "POW",
 	.monitor		= "PH320240T",
 	.modedb			= ph320240t_modes,
@@ -134,12 +143,13 @@ static struct fb_monspecs __initdata atevklcd10x_default_monspecs = {
 	.dclkmax		= 6400000,
 };
 
-static struct atmel_lcdfb_pdata __initdata atevklcd10x_lcdc_data = {
+static struct atmel_lcdfb_pdata __initdata atevklcd10x_lcdc_data =
+{
 	.default_bpp		= 16,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_MEMOR_BIG),
 	.default_monspecs	= &atevklcd10x_default_monspecs,
 	.guard_time		= 2,
 };
@@ -163,13 +173,13 @@ static int __init atevklcd10x_init(void)
 		atevklcd10x_lcdc_power_control;
 
 	at32_add_device_lcdc(0, &atevklcd10x_lcdc_data,
-			fbmem_start, fbmem_size,
+						 fbmem_start, fbmem_size,
 #ifdef CONFIG_BOARD_ATNGW100_MKII
-			ATMEL_LCDC_PRI_18BIT | ATMEL_LCDC_PC_DVAL
+						 ATMEL_LCDC_PRI_18BIT | ATMEL_LCDC_PC_DVAL
 #else
-			ATMEL_LCDC_ALT_18BIT | ATMEL_LCDC_PE_DVAL
+						 ATMEL_LCDC_ALT_18BIT | ATMEL_LCDC_PE_DVAL
 #endif
-			);
+						);
 
 	at32_add_device_ac97c(0, &ac97c0_data, AC97C_BOTH);
 

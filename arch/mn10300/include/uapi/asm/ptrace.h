@@ -44,7 +44,8 @@
  * This defines the way registers are stored in the event of an exception
  * - the strange order is due to the MOVM instruction
  */
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long		a3;		/* syscall arg 3 */
 	unsigned long		a2;		/* syscall arg 4 */
 	unsigned long		d3;		/* syscall arg 5 */

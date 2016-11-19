@@ -13,19 +13,22 @@ extern int pdc_type;
 #define PDC_TYPE_SYSTEM_MAP	 1 /* 32-bit, but supports PDC_SYSTEM_MAP */
 #define PDC_TYPE_SNAKE		 2 /* Doesn't support SYSTEM_MAP */
 
-struct pdc_chassis_info {       /* for PDC_CHASSIS_INFO */
+struct pdc_chassis_info         /* for PDC_CHASSIS_INFO */
+{
 	unsigned long actcnt;   /* actual number of bytes returned */
 	unsigned long maxcnt;   /* maximum number of bytes that could be returned */
 };
 
-struct pdc_coproc_cfg {         /* for PDC_COPROC_CFG */
-        unsigned long ccr_functional;
-        unsigned long ccr_present;
-        unsigned long revision;
-        unsigned long model;
+struct pdc_coproc_cfg           /* for PDC_COPROC_CFG */
+{
+	unsigned long ccr_functional;
+	unsigned long ccr_present;
+	unsigned long revision;
+	unsigned long model;
 };
 
-struct pdc_model {		/* for PDC_MODEL */
+struct pdc_model  		/* for PDC_MODEL */
+{
 	unsigned long hversion;
 	unsigned long sversion;
 	unsigned long hw_id;
@@ -37,36 +40,39 @@ struct pdc_model {		/* for PDC_MODEL */
 	unsigned long curr_key;
 };
 
-struct pdc_cache_cf {		/* for PDC_CACHE  (I/D-caches) */
-    unsigned long
+struct pdc_cache_cf  		/* for PDC_CACHE  (I/D-caches) */
+{
+	unsigned long
 #ifdef CONFIG_64BIT
-		cc_padW:32,
+	cc_padW: 32,
 #endif
-		cc_alias: 4,	/* alias boundaries for virtual addresses   */
-		cc_block: 4,	/* to determine most efficient stride */
-		cc_line	: 3,	/* maximum amount written back as a result of store (multiple of 16 bytes) */
-		cc_shift: 2,	/* how much to shift cc_block left */
-		cc_wt	: 1,	/* 0 = WT-Dcache, 1 = WB-Dcache */
-		cc_sh	: 2,	/* 0 = separate I/D-cache, else shared I/D-cache */
-		cc_cst  : 3,	/* 0 = incoherent D-cache, 1=coherent D-cache */
-		cc_pad1 : 10,	/* reserved */
-		cc_hv   : 3;	/* hversion dependent */
+			 cc_alias: 4,	/* alias boundaries for virtual addresses   */
+			 cc_block: 4,	/* to determine most efficient stride */
+			 cc_line	: 3,	/* maximum amount written back as a result of store (multiple of 16 bytes) */
+			 cc_shift: 2,	/* how much to shift cc_block left */
+			 cc_wt	: 1,	/* 0 = WT-Dcache, 1 = WB-Dcache */
+			 cc_sh	: 2,	/* 0 = separate I/D-cache, else shared I/D-cache */
+			 cc_cst  : 3,	/* 0 = incoherent D-cache, 1=coherent D-cache */
+			 cc_pad1 : 10,	/* reserved */
+			 cc_hv   : 3;	/* hversion dependent */
 };
 
-struct pdc_tlb_cf {		/* for PDC_CACHE (I/D-TLB's) */
-    unsigned long tc_pad0:12,	/* reserved */
+struct pdc_tlb_cf  		/* for PDC_CACHE (I/D-TLB's) */
+{
+	unsigned long tc_pad0: 12,	/* reserved */
 #ifdef CONFIG_64BIT
-		tc_padW:32,
+			 tc_padW: 32,
 #endif
-		tc_sh	: 2,	/* 0 = separate I/D-TLB, else shared I/D-TLB */
-		tc_hv   : 1,	/* HV */
-		tc_page : 1,	/* 0 = 2K page-size-machine, 1 = 4k page size */
-		tc_cst  : 3,	/* 0 = incoherent operations, else coherent operations */
-		tc_aid  : 5,	/* ITLB: width of access ids of processor (encoded!) */
-		tc_sr   : 8;	/* ITLB: width of space-registers (encoded) */
+			 tc_sh	: 2,	/* 0 = separate I/D-TLB, else shared I/D-TLB */
+			 tc_hv   : 1,	/* HV */
+			 tc_page : 1,	/* 0 = 2K page-size-machine, 1 = 4k page size */
+			 tc_cst  : 3,	/* 0 = incoherent operations, else coherent operations */
+			 tc_aid  : 5,	/* ITLB: width of access ids of processor (encoded!) */
+			 tc_sr   : 8;	/* ITLB: width of space-registers (encoded) */
 };
 
-struct pdc_cache_info {		/* main-PDC_CACHE-structure (caches & TLB's) */
+struct pdc_cache_info  		/* main-PDC_CACHE-structure (caches & TLB's) */
+{
 	/* I-cache */
 	unsigned long	ic_size;	/* size in bytes */
 	struct pdc_cache_cf ic_conf;	/* configuration */
@@ -107,34 +113,37 @@ struct pdc_cache_info {		/* main-PDC_CACHE-structure (caches & TLB's) */
 /* If you start using the next struct, you'll have to adjust it to
  * work with 64-bit firmware I think -PB
  */
-struct pdc_iodc {     /* PDC_IODC */
+struct pdc_iodc       /* PDC_IODC */
+{
 	unsigned char   hversion_model;
 	unsigned char 	hversion;
 	unsigned char 	spa;
 	unsigned char 	type;
-	unsigned int	sversion_rev:4;
-	unsigned int	sversion_model:19;
-	unsigned int	sversion_opt:8;
+	unsigned int	sversion_rev: 4;
+	unsigned int	sversion_model: 19;
+	unsigned int	sversion_opt: 8;
 	unsigned char	rev;
 	unsigned char	dep;
 	unsigned char	features;
 	unsigned char	pad1;
-	unsigned int	checksum:16;
-	unsigned int	length:16;
+	unsigned int	checksum: 16;
+	unsigned int	length: 16;
 	unsigned int    pad[15];
 } __attribute__((aligned(8))) ;
 #endif
 
 #ifndef CONFIG_PA20
 /* no BLTBs in pa2.0 processors */
-struct pdc_btlb_info_range {
+struct pdc_btlb_info_range
+{
 	__u8 res00;
 	__u8 num_i;
 	__u8 num_d;
 	__u8 num_comb;
 };
 
-struct pdc_btlb_info {	/* PDC_BLOCK_TLB, return of PDC_BTLB_INFO */
+struct pdc_btlb_info  	/* PDC_BLOCK_TLB, return of PDC_BTLB_INFO */
+{
 	unsigned int min_size;	/* minimum size of BTLB in pages */
 	unsigned int max_size;	/* maximum size of BTLB in pages */
 	struct pdc_btlb_info_range fixed_range_info;
@@ -144,67 +153,77 @@ struct pdc_btlb_info {	/* PDC_BLOCK_TLB, return of PDC_BTLB_INFO */
 #endif /* !CONFIG_PA20 */
 
 #ifdef CONFIG_64BIT
-struct pdc_memory_table_raddr { /* PDC_MEM/PDC_MEM_TABLE (return info) */
+struct pdc_memory_table_raddr   /* PDC_MEM/PDC_MEM_TABLE (return info) */
+{
 	unsigned long entries_returned;
 	unsigned long entries_total;
 };
 
-struct pdc_memory_table {       /* PDC_MEM/PDC_MEM_TABLE (arguments) */
+struct pdc_memory_table         /* PDC_MEM/PDC_MEM_TABLE (arguments) */
+{
 	unsigned long paddr;
 	unsigned int  pages;
 	unsigned int  reserved;
 };
 #endif /* CONFIG_64BIT */
 
-struct pdc_system_map_mod_info { /* PDC_SYSTEM_MAP/FIND_MODULE */
+struct pdc_system_map_mod_info   /* PDC_SYSTEM_MAP/FIND_MODULE */
+{
 	unsigned long mod_addr;
 	unsigned long mod_pgs;
 	unsigned long add_addrs;
 };
 
-struct pdc_system_map_addr_info { /* PDC_SYSTEM_MAP/FIND_ADDRESS */
+struct pdc_system_map_addr_info   /* PDC_SYSTEM_MAP/FIND_ADDRESS */
+{
 	unsigned long mod_addr;
 	unsigned long mod_pgs;
 };
 
-struct pdc_initiator { /* PDC_INITIATOR */
+struct pdc_initiator   /* PDC_INITIATOR */
+{
 	int host_id;
 	int factor;
 	int width;
 	int mode;
 };
 
-struct hardware_path {
+struct hardware_path
+{
 	char  flags;	/* see bit definitions below */
 	char  bc[6];	/* Bus Converter routing info to a specific */
-			/* I/O adaptor (< 0 means none, > 63 resvd) */
+	/* I/O adaptor (< 0 means none, > 63 resvd) */
 	char  mod;	/* fixed field of specified module */
 };
 
 /*
  * Device path specifications used by PDC.
  */
-struct pdc_module_path {
+struct pdc_module_path
+{
 	struct hardware_path path;
 	unsigned int layers[6]; /* device-specific info (ctlr #, unit # ...) */
 };
 
 #ifndef CONFIG_PA20
 /* Only used on some pre-PA2.0 boxes */
-struct pdc_memory_map {		/* PDC_MEMORY_MAP */
+struct pdc_memory_map  		/* PDC_MEMORY_MAP */
+{
 	unsigned long hpa;	/* mod's register set address */
 	unsigned long more_pgs;	/* number of additional I/O pgs */
 };
 #endif
 
-struct pdc_tod {
-	unsigned long tod_sec; 
+struct pdc_tod
+{
+	unsigned long tod_sec;
 	unsigned long tod_usec;
 };
 
 /* architected results from PDC_PIM/transfer hpmc on a PA1.1 machine */
 
-struct pdc_hpmc_pim_11 { /* PDC_PIM */
+struct pdc_hpmc_pim_11   /* PDC_PIM */
+{
 	__u32 gr[32];
 	__u32 cr[32];
 	__u32 sr[8];
@@ -237,7 +256,8 @@ struct pdc_hpmc_pim_11 { /* PDC_PIM */
  * data.
  */
 
-struct pdc_hpmc_pim_20 { /* PDC_PIM */
+struct pdc_hpmc_pim_20   /* PDC_PIM */
+{
 	__u64 gr[32];
 	__u64 cr[32];
 	__u64 sr[8];
@@ -270,11 +290,11 @@ int pdc_chassis_warn(unsigned long *warn);
 int pdc_coproc_cfg(struct pdc_coproc_cfg *pdc_coproc_info);
 int pdc_coproc_cfg_unlocked(struct pdc_coproc_cfg *pdc_coproc_info);
 int pdc_iodc_read(unsigned long *actcnt, unsigned long hpa, unsigned int index,
-		  void *iodc_data, unsigned int iodc_data_size);
+				  void *iodc_data, unsigned int iodc_data_size);
 int pdc_system_map_find_mods(struct pdc_system_map_mod_info *pdc_mod_info,
-			     struct pdc_module_path *mod_path, long mod_index);
+							 struct pdc_module_path *mod_path, long mod_index);
 int pdc_system_map_find_addrs(struct pdc_system_map_addr_info *pdc_addr_info,
-			      long mod_index, long addr_index);
+							  long mod_index, long addr_index);
 int pdc_model_info(struct pdc_model *model);
 int pdc_model_sysmodel(char *name);
 int pdc_model_cpuid(unsigned long *cpu_id);
@@ -283,8 +303,8 @@ int pdc_model_capabilities(unsigned long *capabilities);
 int pdc_cache_info(struct pdc_cache_info *cache);
 int pdc_spaceid_bits(unsigned long *space_bits);
 #ifndef CONFIG_PA20
-int pdc_btlb_info(struct pdc_btlb_info *btlb);
-int pdc_mem_map_hpa(struct pdc_memory_map *r_addr, struct pdc_module_path *mod_path);
+	int pdc_btlb_info(struct pdc_btlb_info *btlb);
+	int pdc_mem_map_hpa(struct pdc_memory_map *r_addr, struct pdc_module_path *mod_path);
 #endif /* !CONFIG_PA20 */
 int pdc_lan_station_id(char *lan_addr, unsigned long net_hpa);
 
@@ -303,7 +323,7 @@ int pdc_tod_set(unsigned long sec, unsigned long usec);
 
 #ifdef CONFIG_64BIT
 int pdc_mem_mem_table(struct pdc_memory_table_raddr *r_addr,
-		struct pdc_memory_table *tbl, unsigned long entries);
+					  struct pdc_memory_table *tbl, unsigned long entries);
 #endif
 
 void set_firmware_width(void);
@@ -319,19 +339,28 @@ int pdc_iodc_print(const unsigned char *str, unsigned count);
 
 void pdc_emergency_unlock(void);
 int pdc_sti_call(unsigned long func, unsigned long flags,
-                 unsigned long inptr, unsigned long outputr,
-                 unsigned long glob_cfg);
+				 unsigned long inptr, unsigned long outputr,
+				 unsigned long glob_cfg);
 
-static inline char * os_id_to_string(u16 os_id) {
-	switch(os_id) {
-	case OS_ID_NONE:	return "No OS";
-	case OS_ID_HPUX:	return "HP-UX";
-	case OS_ID_MPEXL:	return "MPE-iX";
-	case OS_ID_OSF:		return "OSF";
-	case OS_ID_HPRT:	return "HP-RT";
-	case OS_ID_NOVEL:	return "Novell Netware";
-	case OS_ID_LINUX:	return "Linux";
-	default:	return "Unknown";
+static inline char *os_id_to_string(u16 os_id)
+{
+	switch (os_id)
+	{
+		case OS_ID_NONE:	return "No OS";
+
+		case OS_ID_HPUX:	return "HP-UX";
+
+		case OS_ID_MPEXL:	return "MPE-iX";
+
+		case OS_ID_OSF:		return "OSF";
+
+		case OS_ID_HPRT:	return "HP-RT";
+
+		case OS_ID_NOVEL:	return "Novell Netware";
+
+		case OS_ID_LINUX:	return "Linux";
+
+		default:	return "Unknown";
 	}
 }
 

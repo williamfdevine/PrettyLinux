@@ -30,7 +30,8 @@
 
 #define FLINT_NR_IRQS	(MMP_NR_IRQS + 48)
 
-static unsigned long flint_pin_config[] __initdata = {
+static unsigned long flint_pin_config[] __initdata =
+{
 	/* UART1 */
 	GPIO45_UART1_RXD,
 	GPIO46_UART1_TXD,
@@ -78,15 +79,18 @@ static unsigned long flint_pin_config[] __initdata = {
 	GPIO160_ND_RDY1,
 };
 
-static struct pxa_gpio_platform_data mmp2_gpio_pdata = {
+static struct pxa_gpio_platform_data mmp2_gpio_pdata =
+{
 	.irq_base	= MMP_GPIO_TO_IRQ(0),
 };
 
-static struct smc91x_platdata flint_smc91x_info = {
+static struct smc91x_platdata flint_smc91x_info =
+{
 	.flags  = SMC91X_USE_16BIT | SMC91X_NOWAIT,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start  = SMC_CS1_PHYS_BASE + 0x300,
 		.end    = SMC_CS1_PHYS_BASE + 0xfffff,
@@ -99,7 +103,8 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name           = "smc91x",
 	.id             = 0,
 	.dev            = {
@@ -117,7 +122,7 @@ static void __init flint_init(void)
 	mmp2_add_uart(1);
 	mmp2_add_uart(2);
 	platform_device_add_data(&mmp2_device_gpio, &mmp2_gpio_pdata,
-				 sizeof(struct pxa_gpio_platform_data));
+							 sizeof(struct pxa_gpio_platform_data));
 	platform_device_register(&mmp2_device_gpio);
 
 	/* off-chip devices */
@@ -125,10 +130,10 @@ static void __init flint_init(void)
 }
 
 MACHINE_START(FLINT, "Flint Development Platform")
-	.map_io		= mmp_map_io,
+.map_io		= mmp_map_io,
 	.nr_irqs	= FLINT_NR_IRQS,
-	.init_irq       = mmp2_init_irq,
-	.init_time	= mmp2_timer_init,
-	.init_machine   = flint_init,
-	.restart	= mmp_restart,
-MACHINE_END
+		.init_irq       = mmp2_init_irq,
+		 .init_time	= mmp2_timer_init,
+		   .init_machine   = flint_init,
+			.restart	= mmp_restart,
+				MACHINE_END

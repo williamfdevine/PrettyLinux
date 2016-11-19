@@ -33,7 +33,9 @@ void lpc32xx_get_uid(u32 devid[4])
 	int i;
 
 	for (i = 0; i < 4; i++)
+	{
 		devid[i] = __raw_readl(LPC32XX_CLKPWR_DEVID(i << 2));
+	}
 }
 
 /*
@@ -43,7 +45,8 @@ void lpc32xx_get_uid(u32 devid[4])
 static u32 iram_size;
 u32 lpc32xx_return_iram_size(void)
 {
-	if (iram_size == 0) {
+	if (iram_size == 0)
+	{
 		u32 savedval1, savedval2;
 		void __iomem *iramptr1, *iramptr2;
 
@@ -52,22 +55,33 @@ u32 lpc32xx_return_iram_size(void)
 		savedval1 = __raw_readl(iramptr1);
 		savedval2 = __raw_readl(iramptr2);
 
-		if (savedval1 == savedval2) {
+		if (savedval1 == savedval2)
+		{
 			__raw_writel(savedval2 + 1, iramptr2);
+
 			if (__raw_readl(iramptr1) == savedval2 + 1)
+			{
 				iram_size = LPC32XX_IRAM_BANK_SIZE;
+			}
 			else
+			{
 				iram_size = LPC32XX_IRAM_BANK_SIZE * 2;
+			}
+
 			__raw_writel(savedval2, iramptr2);
-		} else
+		}
+		else
+		{
 			iram_size = LPC32XX_IRAM_BANK_SIZE * 2;
+		}
 	}
 
 	return iram_size;
 }
 EXPORT_SYMBOL_GPL(lpc32xx_return_iram_size);
 
-static struct map_desc lpc32xx_io_desc[] __initdata = {
+static struct map_desc lpc32xx_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)IO_ADDRESS(LPC32XX_AHB0_START),
 		.pfn		= __phys_to_pfn(LPC32XX_AHB0_START),
@@ -106,9 +120,10 @@ static int __init lpc32xx_check_uid(void)
 	lpc32xx_get_uid(uid);
 
 	printk(KERN_INFO "LPC32XX unique ID: %08x%08x%08x%08x\n",
-		uid[3], uid[2], uid[1], uid[0]);
+		   uid[3], uid[2], uid[1], uid[0]);
 
-	if (!system_serial_low && !system_serial_high) {
+	if (!system_serial_low && !system_serial_high)
+	{
 		system_serial_low = uid[0];
 		system_serial_high = uid[1];
 	}

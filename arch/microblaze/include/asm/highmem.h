@@ -44,7 +44,7 @@ extern pte_t *pkmap_page_table;
 #define LAST_PKMAP	(1 << PKMAP_ORDER)
 
 #define PKMAP_BASE	((FIXADDR_START - PAGE_SIZE * (LAST_PKMAP + 1)) \
-								& PMD_MASK)
+					 & PMD_MASK)
 
 #define LAST_PKMAP_MASK	(LAST_PKMAP - 1)
 #define PKMAP_NR(virt)  ((virt - PKMAP_BASE) >> PAGE_SHIFT)
@@ -58,16 +58,24 @@ extern void __kunmap_atomic(void *kvaddr);
 static inline void *kmap(struct page *page)
 {
 	might_sleep();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
+
 	return kmap_high(page);
 }
 
 static inline void kunmap(struct page *page)
 {
 	BUG_ON(in_interrupt());
+
 	if (!PageHighMem(page))
+	{
 		return;
+	}
+
 	kunmap_high(page);
 }
 

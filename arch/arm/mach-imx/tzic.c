@@ -60,13 +60,21 @@ static int tzic_set_irq_fiq(unsigned int hwirq, unsigned int type)
 	unsigned int index, mask, value;
 
 	index = hwirq >> 5;
+
 	if (unlikely(index >= 4))
+	{
 		return -EINVAL;
+	}
+
 	mask = 1U << (hwirq & 0x1F);
 
 	value = imx_readl(tzic_base + TZIC_INTSEC0(index)) | mask;
+
 	if (type)
+	{
 		value &= ~mask;
+	}
+
 	imx_writel(value, tzic_base + TZIC_INTSEC0(index));
 
 	return 0;
@@ -89,7 +97,7 @@ static void tzic_irq_resume(struct irq_data *d)
 	int idx = d->hwirq >> 5;
 
 	imx_writel(imx_readl(tzic_base + TZIC_ENSET0(idx)),
-		   tzic_base + TZIC_WAKEUP0(idx));
+			   tzic_base + TZIC_WAKEUP0(idx));
 }
 
 #else
@@ -97,7 +105,8 @@ static void tzic_irq_resume(struct irq_data *d)
 #define tzic_irq_resume NULL
 #endif
 
-static struct mxc_extra_irq tzic_extra_irq = {
+static struct mxc_extra_irq tzic_extra_irq =
+{
 #ifdef CONFIG_FIQ
 	.set_irq_fiq = tzic_set_irq_fiq,
 #endif
@@ -109,7 +118,7 @@ static __init void tzic_init_gc(int idx, unsigned int irq_start)
 	struct irq_chip_type *ct;
 
 	gc = irq_alloc_generic_chip("tzic", 1, irq_start, tzic_base,
-				    handle_level_irq);
+								handle_level_irq);
 	gc->private = &tzic_extra_irq;
 	gc->wake_enabled = IRQ_MSK(32);
 
@@ -130,21 +139,25 @@ static void __exception_irq_entry tzic_handle_irq(struct pt_regs *regs)
 	u32 stat;
 	int i, irqofs, handled;
 
-	do {
+	do
+	{
 		handled = 0;
 
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++)
+		{
 			stat = imx_readl(tzic_base + TZIC_HIPND(i)) &
-				imx_readl(tzic_base + TZIC_INTSEC0(i));
+				   imx_readl(tzic_base + TZIC_INTSEC0(i));
 
-			while (stat) {
+			while (stat)
+			{
 				handled = 1;
 				irqofs = fls(stat) - 1;
 				handle_domain_irq(domain, irqofs + i * 32, regs);
 				stat &= ~(1 << irqofs);
 			}
 		}
-	} while (handled);
+	}
+	while (handled);
 }
 
 /*
@@ -170,11 +183,15 @@ static int __init tzic_init_dt(struct device_node *np, struct device_node *p)
 	imx_writel(0x02, tzic_base + TZIC_SYNCCTRL);
 
 	for (i = 0; i < 4; i++)
+	{
 		imx_writel(0xFFFFFFFF, tzic_base + TZIC_INTSEC0(i));
+	}
 
 	/* disable all interrupts */
 	for (i = 0; i < 4; i++)
+	{
 		imx_writel(0xFFFFFFFF, tzic_base + TZIC_ENCLEAR0(i));
+	}
 
 	/* all IRQ no FIQ Warning :: No selection */
 
@@ -182,11 +199,13 @@ static int __init tzic_init_dt(struct device_node *np, struct device_node *p)
 	WARN_ON(irq_base < 0);
 
 	domain = irq_domain_add_legacy(np, TZIC_NUM_IRQS, irq_base, 0,
-				       &irq_domain_simple_ops, NULL);
+								   &irq_domain_simple_ops, NULL);
 	WARN_ON(!domain);
 
 	for (i = 0; i < 4; i++, irq_base += 32)
+	{
 		tzic_init_gc(i, irq_base);
+	}
 
 	set_handle_irq(tzic_handle_irq);
 
@@ -215,12 +234,15 @@ int tzic_enable_wake(void)
 	unsigned int i;
 
 	imx_writel(1, tzic_base + TZIC_DSMINT);
+
 	if (unlikely(imx_readl(tzic_base + TZIC_DSMINT) == 0))
+	{
 		return -EAGAIN;
+	}
 
 	for (i = 0; i < 4; i++)
 		imx_writel(imx_readl(tzic_base + TZIC_ENSET0(i)),
-			   tzic_base + TZIC_WAKEUP0(i));
+				   tzic_base + TZIC_WAKEUP0(i));
 
 	return 0;
 }

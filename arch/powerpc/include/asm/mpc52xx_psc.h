@@ -26,9 +26,9 @@
 
 /* Max number of PSCs */
 #ifdef CONFIG_PPC_MPC512x
-#define MPC52xx_PSC_MAXNUM     12
+	#define MPC52xx_PSC_MAXNUM     12
 #else
-#define MPC52xx_PSC_MAXNUM	6
+	#define MPC52xx_PSC_MAXNUM	6
 #endif
 
 /* Programmable Serial Controller (PSC) status register bits */
@@ -149,13 +149,16 @@
 #define MPC52xx_PSC_SICR_DISABLEEOF		(1 << 10)
 
 /* Structure of the hardware registers */
-struct mpc52xx_psc {
-	union {
+struct mpc52xx_psc
+{
+	union
+	{
 		u8	mode;		/* PSC + 0x00 */
 		u8	mr2;
 	};
 	u8		reserved0[3];
-	union {				/* PSC + 0x04 */
+	union  				/* PSC + 0x04 */
+	{
 		u16	status;
 		u16	clock_select;
 	} sr_csr;
@@ -164,7 +167,8 @@ struct mpc52xx_psc {
 	u16		reserved1;
 	u8		command;	/* PSC + 0x08 */
 	u8		reserved2[3];
-	union {				/* PSC + 0x0c */
+	union  				/* PSC + 0x0c */
+	{
 		u8	buffer_8;
 		u16	buffer_16;
 		u32	buffer_32;
@@ -172,14 +176,16 @@ struct mpc52xx_psc {
 #define mpc52xx_psc_buffer_8	buffer.buffer_8
 #define mpc52xx_psc_buffer_16	buffer.buffer_16
 #define mpc52xx_psc_buffer_32	buffer.buffer_32
-	union {				/* PSC + 0x10 */
+	union  				/* PSC + 0x10 */
+	{
 		u8	ipcr;
 		u8	acr;
 	} ipcr_acr;
 #define mpc52xx_psc_ipcr	ipcr_acr.ipcr
 #define mpc52xx_psc_acr		ipcr_acr.acr
 	u8		reserved3[3];
-	union {				/* PSC + 0x14 */
+	union  				/* PSC + 0x14 */
+	{
 		u16	isr;
 		u16	imr;
 	} isr_imr;
@@ -217,7 +223,8 @@ struct mpc52xx_psc {
 	u8		reserved17[3];
 };
 
-struct mpc52xx_psc_fifo {
+struct mpc52xx_psc_fifo
+{
 	u16		rfnum;		/* PSC + 0x58 */
 	u16		reserved18;
 	u16		tfnum;		/* PSC + 0x5c */
@@ -262,7 +269,8 @@ struct mpc52xx_psc_fifo {
 #define MPC512x_PSC_FIFO_ALARM		0x4
 #define MPC512x_PSC_FIFO_URERR		0x8
 
-struct mpc512x_psc_fifo {
+struct mpc512x_psc_fifo
+{
 	u32		reserved1[10];
 	u32		txcmd;		/* PSC + 0x80 */
 	u32		txalarm;	/* PSC + 0x84 */
@@ -273,7 +281,8 @@ struct mpc512x_psc_fifo {
 	u32		txptr;		/* PSC + 0x98 */
 	u32		txsz;		/* PSC + 0x9c */
 	u32		reserved2[7];
-	union {
+	union
+	{
 		u8	txdata_8;
 		u16	txdata_16;
 		u32	txdata_32;
@@ -290,7 +299,8 @@ struct mpc512x_psc_fifo {
 	u32		rxptr;		/* PSC + 0xd8 */
 	u32		rxsz;		/* PSC + 0xdc */
 	u32		reserved3[7];
-	union {
+	union
+	{
 		u8	rxdata_8;
 		u16	rxdata_16;
 		u32	rxdata_32;
@@ -300,12 +310,14 @@ struct mpc512x_psc_fifo {
 #define rxdata_32 rxdata.rxdata_32
 };
 
-struct mpc5125_psc {
+struct mpc5125_psc
+{
 	u8		mr1;			/* PSC + 0x00 */
 	u8		reserved0[3];
 	u8		mr2;			/* PSC + 0x04 */
 	u8		reserved1[3];
-	struct {
+	struct
+	{
 		u16		status;		/* PSC + 0x08 */
 		u8		reserved2[2];
 		u8		clock_select;	/* PSC + 0x0c */
@@ -313,18 +325,21 @@ struct mpc5125_psc {
 	} sr_csr;
 	u8		command;		/* PSC + 0x10 */
 	u8		reserved4[3];
-	union {					/* PSC + 0x14 */
+	union  					/* PSC + 0x14 */
+	{
 		u8		buffer_8;
 		u16		buffer_16;
 		u32		buffer_32;
 	} buffer;
-	struct {
+	struct
+	{
 		u8		ipcr;		/* PSC + 0x18 */
 		u8		reserved5[3];
 		u8		acr;		/* PSC + 0x1c */
 		u8		reserved6[3];
 	} ipcr_acr;
-	struct {
+	struct
+	{
 		u16		isr;		/* PSC + 0x20 */
 		u8		reserved7[2];
 		u16		imr;		/* PSC + 0x24 */

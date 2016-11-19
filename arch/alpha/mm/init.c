@@ -33,7 +33,7 @@
 #include <asm/setup.h>
 #include <asm/sections.h>
 
-extern void die_if_kernel(char *,struct pt_regs *,long);
+extern void die_if_kernel(char *, struct pt_regs *, long);
 
 static struct pcb_struct original_pcb;
 
@@ -44,18 +44,21 @@ pgd_alloc(struct mm_struct *mm)
 
 	ret = (pgd_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
 	init = pgd_offset(&init_mm, 0UL);
-	if (ret) {
+
+	if (ret)
+	{
 #ifdef CONFIG_ALPHA_LARGE_VMALLOC
 		memcpy (ret + USER_PTRS_PER_PGD, init + USER_PTRS_PER_PGD,
-			(PTRS_PER_PGD - USER_PTRS_PER_PGD - 1)*sizeof(pgd_t));
+				(PTRS_PER_PGD - USER_PTRS_PER_PGD - 1)*sizeof(pgd_t));
 #else
-		pgd_val(ret[PTRS_PER_PGD-2]) = pgd_val(init[PTRS_PER_PGD-2]);
+		pgd_val(ret[PTRS_PER_PGD - 2]) = pgd_val(init[PTRS_PER_PGD - 2]);
 #endif
 
 		/* The last PGD entry is the VPTB self-map.  */
-		pgd_val(ret[PTRS_PER_PGD-1])
-		  = pte_val(mk_pte(virt_to_page(ret), PAGE_KERNEL));
+		pgd_val(ret[PTRS_PER_PGD - 1])
+			= pte_val(mk_pte(virt_to_page(ret), PAGE_KERNEL));
 	}
+
 	return ret;
 }
 
@@ -110,9 +113,10 @@ switch_to_system_map(void)
 	pgd_val(swapper_pg_dir[1023]) =
 		(newptbr << 32) | pgprot_val(PAGE_KERNEL);
 
-	/* Set the vptb.  This is often done by the bootloader, but 
+	/* Set the vptb.  This is often done by the bootloader, but
 	   shouldn't be required.  */
-	if (hwrpb->vptb != 0xfffffffe00000000UL) {
+	if (hwrpb->vptb != 0xfffffffe00000000UL)
+	{
 		wrvptptr(0xfffffffe00000000UL);
 		hwrpb->vptb = 0xfffffffe00000000UL;
 		hwrpb_update_checksum(hwrpb);
@@ -131,19 +135,21 @@ switch_to_system_map(void)
 	   since KSEG values also happen to work, folks get confused.
 	   Check this here.  */
 
-	if (original_pcb_ptr < PAGE_OFFSET) {
+	if (original_pcb_ptr < PAGE_OFFSET)
+	{
 		original_pcb_ptr = (unsigned long)
-			phys_to_virt(original_pcb_ptr);
+						   phys_to_virt(original_pcb_ptr);
 	}
+
 	original_pcb = *(struct pcb_struct *) original_pcb_ptr;
 }
 
 int callback_init_done;
 
-void * __init
-callback_init(void * kernel_end)
+void *__init
+callback_init(void *kernel_end)
 {
-	struct crb_struct * crb;
+	struct crb_struct *crb;
 	pgd_t *pgd;
 	pmd_t *pmd;
 	void *two_pages;
@@ -151,18 +157,21 @@ callback_init(void * kernel_end)
 	/* Starting at the HWRPB, locate the CRB. */
 	crb = (struct crb_struct *)((char *)hwrpb + hwrpb->crb_offset);
 
-	if (alpha_using_srm) {
+	if (alpha_using_srm)
+	{
 		/* Tell the console whither it is to be remapped. */
 		if (srm_fixup(VMALLOC_START, (unsigned long)hwrpb))
-			__halt();		/* "We're boned."  --Bender */
+		{
+			__halt();    /* "We're boned."  --Bender */
+		}
 
 		/* Edit the procedure descriptors for DISPATCH and FIXUP. */
 		crb->dispatch_va = (struct procdesc_struct *)
-			(VMALLOC_START + (unsigned long)crb->dispatch_va
-			 - crb->map[0].va);
+						   (VMALLOC_START + (unsigned long)crb->dispatch_va
+							- crb->map[0].va);
 		crb->fixup_va = (struct procdesc_struct *)
-			(VMALLOC_START + (unsigned long)crb->fixup_va
-			 - crb->map[0].va);
+						(VMALLOC_START + (unsigned long)crb->fixup_va
+						 - crb->map[0].va);
 	}
 
 	switch_to_system_map();
@@ -178,16 +187,17 @@ callback_init(void * kernel_end)
 	   forking other tasks.  */
 
 	two_pages = (void *)
-	  (((unsigned long)kernel_end + ~PAGE_MASK) & PAGE_MASK);
-	kernel_end = two_pages + 2*PAGE_SIZE;
-	memset(two_pages, 0, 2*PAGE_SIZE);
+				(((unsigned long)kernel_end + ~PAGE_MASK) & PAGE_MASK);
+	kernel_end = two_pages + 2 * PAGE_SIZE;
+	memset(two_pages, 0, 2 * PAGE_SIZE);
 
 	pgd = pgd_offset_k(VMALLOC_START);
 	pgd_set(pgd, (pmd_t *)two_pages);
 	pmd = pmd_offset(pgd, VMALLOC_START);
 	pmd_set(pmd, (pte_t *)(two_pages + PAGE_SIZE));
 
-	if (alpha_using_srm) {
+	if (alpha_using_srm)
+	{
 		static struct vm_struct console_remap_vm;
 		unsigned long nr_pages = 0;
 		unsigned long vaddr;
@@ -195,7 +205,9 @@ callback_init(void * kernel_end)
 
 		/* calculate needed size */
 		for (i = 0; i < crb->map_entries; ++i)
+		{
 			nr_pages += crb->map[i].count;
+		}
 
 		/* register the vm area */
 		console_remap_vm.flags = VM_ALLOC;
@@ -206,21 +218,26 @@ callback_init(void * kernel_end)
 
 		/* Set up the third level PTEs and update the virtual
 		   addresses of the CRB entries.  */
-		for (i = 0; i < crb->map_entries; ++i) {
+		for (i = 0; i < crb->map_entries; ++i)
+		{
 			unsigned long pfn = crb->map[i].pa >> PAGE_SHIFT;
 			crb->map[i].va = vaddr;
-			for (j = 0; j < crb->map[i].count; ++j) {
+
+			for (j = 0; j < crb->map[i].count; ++j)
+			{
 				/* Newer consoles (especially on larger
 				   systems) may require more pages of
 				   PTEs. Grab additional pages as needed. */
-				if (pmd != pmd_offset(pgd, vaddr)) {
+				if (pmd != pmd_offset(pgd, vaddr))
+				{
 					memset(kernel_end, 0, PAGE_SIZE);
 					pmd = pmd_offset(pgd, vaddr);
 					pmd_set(pmd, (pte_t *)kernel_end);
 					kernel_end += PAGE_SIZE;
 				}
+
 				set_pte(pte_offset_kernel(pmd, vaddr),
-					pfn_pte(pfn, PAGE_KERNEL));
+						pfn_pte(pfn, PAGE_KERNEL));
 				pfn++;
 				vaddr += PAGE_SIZE;
 			}
@@ -245,8 +262,11 @@ void __init paging_init(void)
 	high_pfn = max_pfn = max_low_pfn;
 
 	if (dma_pfn >= high_pfn)
+	{
 		zones_size[ZONE_DMA] = high_pfn;
-	else {
+	}
+	else
+	{
 		zones_size[ZONE_DMA] = dma_pfn;
 		zones_size[ZONE_NORMAL] = high_pfn - dma_pfn;
 	}

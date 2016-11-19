@@ -25,19 +25,20 @@ struct perf_event;
  * This struct provides the constants and functions needed to
  * describe the PMU on a particular POWER-family CPU.
  */
-struct power_pmu {
+struct power_pmu
+{
 	const char	*name;
 	int		n_counter;
 	int		max_alternatives;
 	unsigned long	add_fields;
 	unsigned long	test_adder;
 	int		(*compute_mmcr)(u64 events[], int n_ev,
-				unsigned int hwc[], unsigned long mmcr[],
-				struct perf_event *pevents[]);
+							unsigned int hwc[], unsigned long mmcr[],
+							struct perf_event *pevents[]);
 	int		(*get_constraint)(u64 event_id, unsigned long *mskp,
-				unsigned long *valp);
+							  unsigned long *valp);
 	int		(*get_alternatives)(u64 event_id, unsigned int flags,
-				u64 alt[]);
+								u64 alt[]);
 	u64             (*bhrb_filter_map)(u64 branch_sample_type);
 	void            (*config_bhrb)(u64 pmu_bhrb_filter);
 	void		(*disable_pmc)(unsigned int pmc, unsigned long mmcr[]);
@@ -47,8 +48,8 @@ struct power_pmu {
 	int		n_generic;
 	int		*generic_events;
 	int		(*cache_events)[PERF_COUNT_HW_CACHE_MAX]
-			       [PERF_COUNT_HW_CACHE_OP_MAX]
-			       [PERF_COUNT_HW_CACHE_RESULT_MAX];
+	[PERF_COUNT_HW_CACHE_OP_MAX]
+	[PERF_COUNT_HW_CACHE_RESULT_MAX];
 
 	/* BHRB entries in the PMU */
 	int		bhrb_nr;
@@ -85,7 +86,7 @@ extern unsigned long int read_bhrb(int n);
  * if we have hardware PMU support.
  */
 #ifdef CONFIG_PPC_PERF_CTRS
-#define perf_misc_flags(regs)	perf_misc_flags(regs)
+	#define perf_misc_flags(regs)	perf_misc_flags(regs)
 #endif
 
 /*
@@ -127,7 +128,7 @@ extern unsigned long int read_bhrb(int n);
  */
 
 extern ssize_t power_events_sysfs_show(struct device *dev,
-				struct device_attribute *attr, char *page);
+									   struct device_attribute *attr, char *page);
 
 /*
  * EVENT_VAR() is same as PMU_EVENT_VAR with a suffix.
@@ -147,7 +148,7 @@ extern ssize_t power_events_sysfs_show(struct device *dev,
 
 #define	EVENT_ATTR(_name, _id, _suffix)					\
 	PMU_EVENT_ATTR(_name, EVENT_VAR(_id, _suffix), _id,		\
-			power_events_sysfs_show)
+				   power_events_sysfs_show)
 
 #define	GENERIC_EVENT_ATTR(_name, _id)	EVENT_ATTR(_name, _id, _g)
 #define	GENERIC_EVENT_PTR(_id)		EVENT_PTR(_id, _g)

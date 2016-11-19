@@ -31,12 +31,17 @@ static char __initdata command_line[COMMAND_LINE_SIZE] = { 0 };
 
 static void __init add_arg(char *arg)
 {
-	if (strlen(command_line) + strlen(arg) + 1 > COMMAND_LINE_SIZE) {
+	if (strlen(command_line) + strlen(arg) + 1 > COMMAND_LINE_SIZE)
+	{
 		printf("add_arg: Too many command line arguments!\n");
 		exit(1);
 	}
+
 	if (strlen(command_line) > 0)
+	{
 		strcat(command_line, " ");
+	}
+
 	strcat(command_line, arg);
 }
 
@@ -45,14 +50,15 @@ static void __init add_arg(char *arg)
  * XXX This structure is used only in the non-SMP case.  Maybe this
  * should be moved to smp.c.
  */
-struct cpuinfo_um boot_cpu_data = {
+struct cpuinfo_um boot_cpu_data =
+{
 	.loops_per_jiffy	= 0,
 	.ipi_pipe		= { -1, -1 }
 };
 
 union thread_union cpu0_irqstack
 	__attribute__((__section__(".data..init_irqstack"))) =
-		{ INIT_THREAD_INFO(init_task) };
+{ INIT_THREAD_INFO(init_task) };
 
 unsigned long thread_saved_pc(struct task_struct *task)
 {
@@ -73,8 +79,8 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	seq_printf(m, "mode\t\t: skas\n");
 	seq_printf(m, "host\t\t: %s\n", host_info);
 	seq_printf(m, "bogomips\t: %lu.%02lu\n\n",
-		   loops_per_jiffy/(500000/HZ),
-		   (loops_per_jiffy/(5000/HZ)) % 100);
+			   loops_per_jiffy / (500000 / HZ),
+			   (loops_per_jiffy / (5000 / HZ)) % 100);
 
 	return 0;
 }
@@ -94,7 +100,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,
@@ -119,8 +126,8 @@ static int have_root __initdata = 0;
 long long physmem_size = 32 * 1024 * 1024;
 
 static const char *usage_string =
-"User Mode Linux v%s\n"
-"	available at http://user-mode-linux.sourceforge.net/\n\n";
+	"User Mode Linux v%s\n"
+	"	available at http://user-mode-linux.sourceforge.net/\n\n";
 
 static int __init uml_version_setup(char *line, int *add)
 {
@@ -131,9 +138,9 @@ static int __init uml_version_setup(char *line, int *add)
 }
 
 __uml_setup("--version", uml_version_setup,
-"--version\n"
-"    Prints the version number of the kernel.\n\n"
-);
+			"--version\n"
+			"    Prints the version number of the kernel.\n\n"
+		   );
 
 static int __init uml_root_setup(char *line, int *add)
 {
@@ -142,13 +149,13 @@ static int __init uml_root_setup(char *line, int *add)
 }
 
 __uml_setup("root=", uml_root_setup,
-"root=<file containing the root fs>\n"
-"    This is actually used by the generic kernel in exactly the same\n"
-"    way as in any other kernel. If you configure a number of block\n"
-"    devices and want to boot off something other than ubd0, you \n"
-"    would use something like:\n"
-"        root=/dev/ubd5\n\n"
-);
+			"root=<file containing the root fs>\n"
+			"    This is actually used by the generic kernel in exactly the same\n"
+			"    way as in any other kernel. If you configure a number of block\n"
+			"    devices and want to boot off something other than ubd0, you \n"
+			"    would use something like:\n"
+			"        root=/dev/ubd5\n\n"
+		   );
 
 static int __init no_skas_debug_setup(char *line, int *add)
 {
@@ -159,9 +166,9 @@ static int __init no_skas_debug_setup(char *line, int *add)
 }
 
 __uml_setup("debug", no_skas_debug_setup,
-"debug\n"
-"    this flag is not needed to run gdb on UML in skas mode\n\n"
-);
+			"debug\n"
+			"    this flag is not needed to run gdb on UML in skas mode\n\n"
+		   );
 
 static int __init Usage(char *line, int *add)
 {
@@ -169,30 +176,39 @@ static int __init Usage(char *line, int *add)
 
 	printf(usage_string, init_utsname()->release);
 	p = &__uml_help_start;
-	while (p < &__uml_help_end) {
+
+	while (p < &__uml_help_end)
+	{
 		printf("%s", *p);
 		p++;
 	}
+
 	exit(0);
 	return 0;
 }
 
 __uml_setup("--help", Usage,
-"--help\n"
-"    Prints this message.\n\n"
-);
+			"--help\n"
+			"    Prints this message.\n\n"
+		   );
 
 static void __init uml_checksetup(char *line, int *add)
 {
 	struct uml_param *p;
 
 	p = &__uml_setup_start;
-	while (p < &__uml_setup_end) {
+
+	while (p < &__uml_setup_end)
+	{
 		size_t n;
 
 		n = strlen(p->str);
+
 		if (!strncmp(line, p->str, n) && p->setup_func(line + n, add))
+		{
 			return;
+		}
+
 		p++;
 	}
 }
@@ -202,15 +218,18 @@ static void __init uml_postsetup(void)
 	initcall_t *p;
 
 	p = &__uml_postsetup_start;
-	while (p < &__uml_postsetup_end) {
+
+	while (p < &__uml_postsetup_end)
+	{
 		(*p)();
 		p++;
 	}
+
 	return;
 }
 
 static int panic_exit(struct notifier_block *self, unsigned long unused1,
-		      void *unused2)
+					  void *unused2)
 {
 	kmsg_dump(KMSG_DUMP_PANIC);
 	bust_spinlocks(1);
@@ -220,7 +239,8 @@ static int panic_exit(struct notifier_block *self, unsigned long unused1,
 	return 0;
 }
 
-static struct notifier_block panic_exit_notifier = {
+static struct notifier_block panic_exit_notifier =
+{
 	.notifier_call 		= panic_exit,
 	.next 			= NULL,
 	.priority 		= 0
@@ -229,7 +249,7 @@ static struct notifier_block panic_exit_notifier = {
 void uml_finishsetup(void)
 {
 	atomic_notifier_chain_register(&panic_notifier_list,
-				       &panic_exit_notifier);
+								   &panic_exit_notifier);
 
 	uml_postsetup();
 
@@ -256,16 +276,26 @@ int __init linux_main(int argc, char **argv)
 	unsigned int i;
 	int add;
 
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		if ((i == 1) && (argv[i][0] == ' '))
+		{
 			continue;
+		}
+
 		add = 1;
 		uml_checksetup(argv[i], &add);
+
 		if (add)
+		{
 			add_arg(argv[i]);
+		}
 	}
+
 	if (have_root == 0)
+	{
 		add_arg(DEFAULT_COMMAND_LINE);
+	}
 
 	host_task_size = os_get_top_address();
 	/*
@@ -286,9 +316,11 @@ int __init linux_main(int argc, char **argv)
 	 */
 
 	diff = UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
-	if (diff > 1024 * 1024) {
+
+	if (diff > 1024 * 1024)
+	{
 		printf("Adding %ld bytes to physical memory to account for "
-		       "exec-shield gap\n", diff);
+			   "exec-shield gap\n", diff);
 		physmem_size += UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
 	}
 
@@ -308,7 +340,9 @@ int __init linux_main(int argc, char **argv)
 	 * so this makes sure that's true for highmem
 	 */
 	max_physmem &= ~((1 << (PAGE_SHIFT + MAX_ORDER)) - 1);
-	if (physmem_size + iomem_size > max_physmem) {
+
+	if (physmem_size + iomem_size > max_physmem)
+	{
 		highmem = physmem_size + iomem_size - max_physmem;
 		physmem_size -= highmem;
 	}
@@ -323,13 +357,17 @@ int __init linux_main(int argc, char **argv)
 	stack = (unsigned long) argv;
 	stack &= ~(1024 * 1024 - 1);
 	avail = stack - start_vm;
+
 	if (physmem_size > avail)
+	{
 		virtmem_size = avail;
+	}
+
 	end_vm = start_vm + virtmem_size;
 
 	if (virtmem_size < physmem_size)
 		printf("Kernel virtual memory size shrunk to %lu bytes\n",
-		       virtmem_size);
+			   virtmem_size);
 
 	os_flush_stdout();
 

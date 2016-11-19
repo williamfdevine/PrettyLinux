@@ -4,17 +4,17 @@
 struct task_struct; /* one of the stranger aspects of C forward declarations */
 
 struct task_struct *__switch_to_asm(struct task_struct *prev,
-				    struct task_struct *next);
+									struct task_struct *next);
 
 __visible struct task_struct *__switch_to(struct task_struct *prev,
-					  struct task_struct *next);
+		struct task_struct *next);
 struct tss_struct;
 void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
-		      struct tss_struct *tss);
+					  struct tss_struct *tss);
 
 /* This runs runs on the previous thread's stack. */
 static inline void prepare_switch_to(struct task_struct *prev,
-				     struct task_struct *next)
+									 struct task_struct *next)
 {
 #ifdef CONFIG_VMAP_STACK
 	/*
@@ -37,7 +37,8 @@ static inline void prepare_switch_to(struct task_struct *prev,
 asmlinkage void ret_from_fork(void);
 
 /* data that is pointed to by thread.sp */
-struct inactive_task_frame {
+struct inactive_task_frame
+{
 #ifdef CONFIG_X86_64
 	unsigned long r15;
 	unsigned long r14;
@@ -52,16 +53,17 @@ struct inactive_task_frame {
 	unsigned long ret_addr;
 };
 
-struct fork_frame {
+struct fork_frame
+{
 	struct inactive_task_frame frame;
 	struct pt_regs regs;
 };
 
 #define switch_to(prev, next, last)					\
-do {									\
-	prepare_switch_to(prev, next);					\
-									\
-	((last) = __switch_to_asm((prev), (next)));			\
-} while (0)
+	do {									\
+		prepare_switch_to(prev, next);					\
+		\
+		((last) = __switch_to_asm((prev), (next)));			\
+	} while (0)
 
 #endif /* _ASM_X86_SWITCH_TO_H */

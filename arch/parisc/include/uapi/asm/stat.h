@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct stat {
+struct stat
+{
 	unsigned int	st_dev;		/* dev_t is 32 bits on parisc */
 	unsigned int	st_ino;		/* 32 bits */
 	unsigned short	st_mode;	/* 16 bits */
@@ -40,7 +41,8 @@ struct stat {
  * How 64-bit apps are going to be compiled, I have no idea.  But at least
  * this way, we don't have a wrapper in the kernel.
  */
-struct stat64 {
+struct stat64
+{
 	unsigned long long	st_dev;
 	unsigned int		__pad1;
 

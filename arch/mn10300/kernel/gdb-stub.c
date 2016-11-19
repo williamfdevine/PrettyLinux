@@ -162,7 +162,8 @@ static char	input_buffer[BUFMAX];
 static char	output_buffer[BUFMAX];
 static char	trans_buffer[BUFMAX];
 
-struct gdbstub_bkpt {
+struct gdbstub_bkpt
+{
 	u8	*addr;		/* address of breakpoint */
 	u8	len;		/* size of breakpoint */
 	u8	origbytes[7];	/* original bytes */
@@ -179,9 +180,9 @@ static int computeSignal(enum exception_code excep);
 static int hex(unsigned char ch);
 static int hexToInt(char **ptr, int *intValue);
 static unsigned char *mem2hex(const void *mem, char *buf, int count,
-			      int may_fault);
+							  int may_fault);
 static const char *hex2mem(const char *buf, void *_mem, int count,
-			   int may_fault);
+						   int may_fault);
 
 /*
  * Convert ch from a hex digit to an int
@@ -189,11 +190,20 @@ static const char *hex2mem(const char *buf, void *_mem, int count,
 static int hex(unsigned char ch)
 {
 	if (ch >= 'a' && ch <= 'f')
+	{
 		return ch - 'a' + 10;
+	}
+
 	if (ch >= '0' && ch <= '9')
+	{
 		return ch - '0';
+	}
+
 	if (ch >= 'A' && ch <= 'F')
+	{
 		return ch - 'A' + 10;
+	}
+
 	return -1;
 }
 
@@ -222,8 +232,12 @@ void gdbstub_printk(const char *fmt, ...)
 static inline char *gdbstub_strcpy(char *dst, const char *src)
 {
 	int loop = 0;
+
 	while ((dst[loop] = src[loop]))
-	       loop++;
+	{
+		loop++;
+	}
+
 	return dst;
 }
 
@@ -237,14 +251,17 @@ static void getpacket(char *buffer)
 	unsigned char ch;
 	int count, i, ret, error;
 
-	for (;;) {
+	for (;;)
+	{
 		/*
 		 * wait around for the start character,
 		 * ignore all other characters
 		 */
-		do {
+		do
+		{
 			gdbstub_io_rx_char(&ch, 0);
-		} while (ch != '$');
+		}
+		while (ch != '$');
 
 		checksum = 0;
 		xmitcsum = -1;
@@ -254,53 +271,74 @@ static void getpacket(char *buffer)
 		/*
 		 * now, read until a # or end of buffer is found
 		 */
-		while (count < BUFMAX) {
+		while (count < BUFMAX)
+		{
 			ret = gdbstub_io_rx_char(&ch, 0);
+
 			if (ret < 0)
+			{
 				error = ret;
+			}
 
 			if (ch == '#')
+			{
 				break;
+			}
+
 			checksum += ch;
 			buffer[count] = ch;
 			count++;
 		}
 
-		if (error == -EIO) {
+		if (error == -EIO)
+		{
 			gdbstub_proto("### GDB Rx Error - Skipping packet"
-				      " ###\n");
+						  " ###\n");
 			gdbstub_proto("### GDB Tx NAK\n");
 			gdbstub_io_tx_char('-');
 			continue;
 		}
 
 		if (count >= BUFMAX || error)
+		{
 			continue;
+		}
 
 		buffer[count] = 0;
 
 		/* read the checksum */
 		ret = gdbstub_io_rx_char(&ch, 0);
+
 		if (ret < 0)
+		{
 			error = ret;
+		}
+
 		xmitcsum = hex(ch) << 4;
 
 		ret = gdbstub_io_rx_char(&ch, 0);
+
 		if (ret < 0)
+		{
 			error = ret;
+		}
+
 		xmitcsum |= hex(ch);
 
-		if (error) {
+		if (error)
+		{
 			if (error == -EIO)
 				gdbstub_io("### GDB Rx Error -"
-					   " Skipping packet\n");
+						   " Skipping packet\n");
+
 			gdbstub_io("### GDB Tx NAK\n");
 			gdbstub_io_tx_char('-');
 			continue;
 		}
 
 		/* check the checksum */
-		if (checksum != xmitcsum) {
+		if (checksum != xmitcsum)
+		{
 			gdbstub_io("### GDB Tx NAK\n");
 			gdbstub_io_tx_char('-');	/* failed checksum */
 			continue;
@@ -314,7 +352,8 @@ static void getpacket(char *buffer)
 		 * if a sequence char is present,
 		 * reply the sequence ID
 		 */
-		if (buffer[2] == ':') {
+		if (buffer[2] == ':')
+		{
 			gdbstub_io_tx_char(buffer[0]);
 			gdbstub_io_tx_char(buffer[1]);
 
@@ -322,10 +361,16 @@ static void getpacket(char *buffer)
 			 * remove sequence chars from buffer
 			 */
 			count = 0;
+
 			while (buffer[count])
+			{
 				count++;
+			}
+
 			for (i = 3; i <= count; i++)
+			{
 				buffer[i - 3] = buffer[i];
+			}
 		}
 
 		break;
@@ -348,12 +393,14 @@ static int putpacket(char *buffer)
 	 */
 	gdbstub_proto("### GDB Tx $'%s'#?? ###\n", buffer);
 
-	do {
+	do
+	{
 		gdbstub_io_tx_char('$');
 		checksum = 0;
 		count = 0;
 
-		while ((ch = buffer[count]) != 0) {
+		while ((ch = buffer[count]) != 0)
+		{
 			gdbstub_io_tx_char(ch);
 			checksum += ch;
 			count += 1;
@@ -363,13 +410,15 @@ static int putpacket(char *buffer)
 		gdbstub_io_tx_char(hex_asc_hi(checksum));
 		gdbstub_io_tx_char(hex_asc_lo(checksum));
 
-	} while (gdbstub_io_rx_char(&ch, 0),
-		 ch == '-' && (gdbstub_io("### GDB Rx NAK\n"), 0),
-		 ch != '-' && ch != '+' &&
-		 (gdbstub_io("### GDB Rx ??? %02x\n", ch), 0),
-		 ch != '+' && ch != '$');
+	}
+	while (gdbstub_io_rx_char(&ch, 0),
+		   ch == '-' && (gdbstub_io("### GDB Rx NAK\n"), 0),
+		   ch != '-' && ch != '+' &&
+		   (gdbstub_io("### GDB Rx ??? %02x\n", ch), 0),
+		   ch != '+' && ch != '$');
 
-	if (ch == '+') {
+	if (ch == '+')
+	{
 		gdbstub_io("### GDB Rx ACK\n");
 		return 0;
 	}
@@ -390,10 +439,14 @@ static int hexToInt(char **ptr, int *intValue)
 
 	*intValue = 0;
 
-	while (**ptr) {
+	while (**ptr)
+	{
 		hexValue = hex(**ptr);
+
 		if (hexValue < 0)
+		{
 			break;
+		}
 
 		*intValue = (*intValue << 4) | hexValue;
 		numChars++;
@@ -412,7 +465,8 @@ static int hexToInt(char **ptr, int *intValue)
  *
  * This is where we save the original instructions.
  */
-static struct gdb_bp_save {
+static struct gdb_bp_save
+{
 	u8	*addr;
 	u8	opcode[2];
 } step_bp[2];
@@ -442,16 +496,25 @@ static int __gdbstub_mark_bp(u8 *addr, int ix)
 {
 	/* vmalloc area */
 	if (((u8 *) VMALLOC_START <= addr) && (addr < (u8 *) VMALLOC_END))
+	{
 		goto okay;
+	}
+
 	/* SRAM, SDRAM */
 	if (((u8 *) 0x80000000UL <= addr) && (addr < (u8 *) 0xa0000000UL))
+	{
 		goto okay;
+	}
+
 	return 0;
 
 okay:
+
 	if (gdbstub_read_byte(addr + 0, &step_bp[ix].opcode[0]) < 0 ||
-	    gdbstub_read_byte(addr + 1, &step_bp[ix].opcode[1]) < 0)
+		gdbstub_read_byte(addr + 1, &step_bp[ix].opcode[1]) < 0)
+	{
 		return 0;
+	}
 
 	step_bp[ix].addr = addr;
 	return 1;
@@ -460,19 +523,31 @@ okay:
 static inline void __gdbstub_restore_bp(void)
 {
 #ifdef GDBSTUB_USE_F7F7_AS_BREAKPOINT
-	if (step_bp[0].addr) {
+
+	if (step_bp[0].addr)
+	{
 		gdbstub_write_byte(step_bp[0].opcode[0], step_bp[0].addr + 0);
 		gdbstub_write_byte(step_bp[0].opcode[1], step_bp[0].addr + 1);
 	}
-	if (step_bp[1].addr) {
+
+	if (step_bp[1].addr)
+	{
 		gdbstub_write_byte(step_bp[1].opcode[0], step_bp[1].addr + 0);
 		gdbstub_write_byte(step_bp[1].opcode[1], step_bp[1].addr + 1);
 	}
+
 #else
+
 	if (step_bp[0].addr)
+	{
 		gdbstub_write_byte(step_bp[0].opcode[0], step_bp[0].addr + 0);
+	}
+
 	if (step_bp[1].addr)
+	{
 		gdbstub_write_byte(step_bp[1].opcode[0], step_bp[1].addr + 0);
+	}
+
 #endif
 
 	gdbstub_flush_caches = 1;
@@ -504,227 +579,365 @@ static int gdbstub_single_step(struct pt_regs *regs)
 
 	pc = (u8 *) regs->pc;
 	sp = (u8 *) (regs + 1);
+
 	if (gdbstub_read_byte(pc, &cur) < 0)
+	{
 		return -EFAULT;
+	}
 
 	gdbstub_bkpt("Single Step from %p { %02x }\n", pc, cur);
 
 	gdbstub_flush_caches = 1;
 
 	size = gdbstub_insn_sizes[cur];
-	if (size > 0) {
+
+	if (size > 0)
+	{
 		if (!__gdbstub_mark_bp(pc + size, 0))
+		{
 			goto fault;
-	} else {
-		switch (cur) {
+		}
+	}
+	else
+	{
+		switch (cur)
+		{
 			/* Bxx (d8,PC) */
-		case 0xc0 ... 0xca:
-			if (gdbstub_read_byte(pc + 1, (u8 *) &x) < 0)
-				goto fault;
-			if (!__gdbstub_mark_bp(pc + 2, 0))
-				goto fault;
-			if ((x < 0 || x > 2) &&
-			    !__gdbstub_mark_bp(pc + (s8) x, 1))
-				goto fault;
-			break;
+			case 0xc0 ... 0xca:
+				if (gdbstub_read_byte(pc + 1, (u8 *) &x) < 0)
+				{
+					goto fault;
+				}
+
+				if (!__gdbstub_mark_bp(pc + 2, 0))
+				{
+					goto fault;
+				}
+
+				if ((x < 0 || x > 2) &&
+					!__gdbstub_mark_bp(pc + (s8) x, 1))
+				{
+					goto fault;
+				}
+
+				break;
 
 			/* LXX (d8,PC) */
-		case 0xd0 ... 0xda:
-			if (!__gdbstub_mark_bp(pc + 1, 0))
-				goto fault;
-			if (regs->pc != regs->lar &&
-			    !__gdbstub_mark_bp((u8 *) regs->lar, 1))
-				goto fault;
-			break;
+			case 0xd0 ... 0xda:
+				if (!__gdbstub_mark_bp(pc + 1, 0))
+				{
+					goto fault;
+				}
+
+				if (regs->pc != regs->lar &&
+					!__gdbstub_mark_bp((u8 *) regs->lar, 1))
+				{
+					goto fault;
+				}
+
+				break;
 
 			/* SETLB - loads the next for bytes into the LIR
 			 * register */
-		case 0xdb:
-			if (!__gdbstub_mark_bp(pc + 1, 0))
-				goto fault;
-			break;
+			case 0xdb:
+				if (!__gdbstub_mark_bp(pc + 1, 0))
+				{
+					goto fault;
+				}
+
+				break;
 
 			/* JMP (d16,PC) or CALL (d16,PC) */
-		case 0xcc:
-		case 0xcd:
-			if (gdbstub_read_byte(pc + 1, ((u8 *) &x) + 0) < 0 ||
-			    gdbstub_read_byte(pc + 2, ((u8 *) &x) + 1) < 0)
-				goto fault;
-			if (!__gdbstub_mark_bp(pc + (s16) x, 0))
-				goto fault;
-			break;
+			case 0xcc:
+			case 0xcd:
+				if (gdbstub_read_byte(pc + 1, ((u8 *) &x) + 0) < 0 ||
+					gdbstub_read_byte(pc + 2, ((u8 *) &x) + 1) < 0)
+				{
+					goto fault;
+				}
+
+				if (!__gdbstub_mark_bp(pc + (s16) x, 0))
+				{
+					goto fault;
+				}
+
+				break;
 
 			/* JMP (d32,PC) or CALL (d32,PC) */
-		case 0xdc:
-		case 0xdd:
-			if (gdbstub_read_byte(pc + 1, ((u8 *) &x) + 0) < 0 ||
-			    gdbstub_read_byte(pc + 2, ((u8 *) &x) + 1) < 0 ||
-			    gdbstub_read_byte(pc + 3, ((u8 *) &x) + 2) < 0 ||
-			    gdbstub_read_byte(pc + 4, ((u8 *) &x) + 3) < 0)
-				goto fault;
-			if (!__gdbstub_mark_bp(pc + (s32) x, 0))
-				goto fault;
-			break;
+			case 0xdc:
+			case 0xdd:
+				if (gdbstub_read_byte(pc + 1, ((u8 *) &x) + 0) < 0 ||
+					gdbstub_read_byte(pc + 2, ((u8 *) &x) + 1) < 0 ||
+					gdbstub_read_byte(pc + 3, ((u8 *) &x) + 2) < 0 ||
+					gdbstub_read_byte(pc + 4, ((u8 *) &x) + 3) < 0)
+				{
+					goto fault;
+				}
+
+				if (!__gdbstub_mark_bp(pc + (s32) x, 0))
+				{
+					goto fault;
+				}
+
+				break;
 
 			/* RETF */
-		case 0xde:
-			if (!__gdbstub_mark_bp((u8 *) regs->mdr, 0))
-				goto fault;
-			break;
+			case 0xde:
+				if (!__gdbstub_mark_bp((u8 *) regs->mdr, 0))
+				{
+					goto fault;
+				}
+
+				break;
 
 			/* RET */
-		case 0xdf:
-			if (gdbstub_read_byte(pc + 2, (u8 *) &x) < 0)
-				goto fault;
-			sp += (s8)x;
-			if (gdbstub_read_byte(sp + 0, ((u8 *) &x) + 0) < 0 ||
-			    gdbstub_read_byte(sp + 1, ((u8 *) &x) + 1) < 0 ||
-			    gdbstub_read_byte(sp + 2, ((u8 *) &x) + 2) < 0 ||
-			    gdbstub_read_byte(sp + 3, ((u8 *) &x) + 3) < 0)
-				goto fault;
-			if (!__gdbstub_mark_bp((u8 *) x, 0))
-				goto fault;
-			break;
-
-		case 0xf0:
-			if (gdbstub_read_byte(pc + 1, &cur) < 0)
-				goto fault;
-
-			if (cur >= 0xf0 && cur <= 0xf7) {
-				/* JMP (An) / CALLS (An) */
-				switch (cur & 3) {
-				case 0: x = regs->a0; break;
-				case 1: x = regs->a1; break;
-				case 2: x = regs->a2; break;
-				case 3: x = regs->a3; break;
+			case 0xdf:
+				if (gdbstub_read_byte(pc + 2, (u8 *) &x) < 0)
+				{
+					goto fault;
 				}
-				if (!__gdbstub_mark_bp((u8 *) x, 0))
-					goto fault;
-			} else if (cur == 0xfc) {
-				/* RETS */
-				if (gdbstub_read_byte(
-					    sp + 0, ((u8 *) &x) + 0) < 0 ||
-				    gdbstub_read_byte(
-					    sp + 1, ((u8 *) &x) + 1) < 0 ||
-				    gdbstub_read_byte(
-					    sp + 2, ((u8 *) &x) + 2) < 0 ||
-				    gdbstub_read_byte(
-					    sp + 3, ((u8 *) &x) + 3) < 0)
-					goto fault;
-				if (!__gdbstub_mark_bp((u8 *) x, 0))
-					goto fault;
-			} else if (cur == 0xfd) {
-				/* RTI */
-				if (gdbstub_read_byte(
-					    sp + 4, ((u8 *) &x) + 0) < 0 ||
-				    gdbstub_read_byte(
-					    sp + 5, ((u8 *) &x) + 1) < 0 ||
-				    gdbstub_read_byte(
-					    sp + 6, ((u8 *) &x) + 2) < 0 ||
-				    gdbstub_read_byte(
-					    sp + 7, ((u8 *) &x) + 3) < 0)
-					goto fault;
-				if (!__gdbstub_mark_bp((u8 *) x, 0))
-					goto fault;
-			} else {
-				if (!__gdbstub_mark_bp(pc + 2, 0))
-					goto fault;
-			}
 
-			break;
+				sp += (s8)x;
+
+				if (gdbstub_read_byte(sp + 0, ((u8 *) &x) + 0) < 0 ||
+					gdbstub_read_byte(sp + 1, ((u8 *) &x) + 1) < 0 ||
+					gdbstub_read_byte(sp + 2, ((u8 *) &x) + 2) < 0 ||
+					gdbstub_read_byte(sp + 3, ((u8 *) &x) + 3) < 0)
+				{
+					goto fault;
+				}
+
+				if (!__gdbstub_mark_bp((u8 *) x, 0))
+				{
+					goto fault;
+				}
+
+				break;
+
+			case 0xf0:
+				if (gdbstub_read_byte(pc + 1, &cur) < 0)
+				{
+					goto fault;
+				}
+
+				if (cur >= 0xf0 && cur <= 0xf7)
+				{
+					/* JMP (An) / CALLS (An) */
+					switch (cur & 3)
+					{
+						case 0: x = regs->a0; break;
+
+						case 1: x = regs->a1; break;
+
+						case 2: x = regs->a2; break;
+
+						case 3: x = regs->a3; break;
+					}
+
+					if (!__gdbstub_mark_bp((u8 *) x, 0))
+					{
+						goto fault;
+					}
+				}
+				else if (cur == 0xfc)
+				{
+					/* RETS */
+					if (gdbstub_read_byte(
+							sp + 0, ((u8 *) &x) + 0) < 0 ||
+						gdbstub_read_byte(
+							sp + 1, ((u8 *) &x) + 1) < 0 ||
+						gdbstub_read_byte(
+							sp + 2, ((u8 *) &x) + 2) < 0 ||
+						gdbstub_read_byte(
+							sp + 3, ((u8 *) &x) + 3) < 0)
+					{
+						goto fault;
+					}
+
+					if (!__gdbstub_mark_bp((u8 *) x, 0))
+					{
+						goto fault;
+					}
+				}
+				else if (cur == 0xfd)
+				{
+					/* RTI */
+					if (gdbstub_read_byte(
+							sp + 4, ((u8 *) &x) + 0) < 0 ||
+						gdbstub_read_byte(
+							sp + 5, ((u8 *) &x) + 1) < 0 ||
+						gdbstub_read_byte(
+							sp + 6, ((u8 *) &x) + 2) < 0 ||
+						gdbstub_read_byte(
+							sp + 7, ((u8 *) &x) + 3) < 0)
+					{
+						goto fault;
+					}
+
+					if (!__gdbstub_mark_bp((u8 *) x, 0))
+					{
+						goto fault;
+					}
+				}
+				else
+				{
+					if (!__gdbstub_mark_bp(pc + 2, 0))
+					{
+						goto fault;
+					}
+				}
+
+				break;
 
 			/* potential 3-byte conditional branches */
-		case 0xf8:
-			if (gdbstub_read_byte(pc + 1, &cur) < 0)
-				goto fault;
-			if (!__gdbstub_mark_bp(pc + 3, 0))
-				goto fault;
+			case 0xf8:
+				if (gdbstub_read_byte(pc + 1, &cur) < 0)
+				{
+					goto fault;
+				}
 
-			if (cur >= 0xe8 && cur <= 0xeb) {
-				if (gdbstub_read_byte(
-					    pc + 2, ((u8 *) &x) + 0) < 0)
+				if (!__gdbstub_mark_bp(pc + 3, 0))
+				{
 					goto fault;
-				if ((x < 0 || x > 3) &&
-				    !__gdbstub_mark_bp(pc + (s8) x, 1))
-					goto fault;
-			}
-			break;
+				}
 
-		case 0xfa:
-			if (gdbstub_read_byte(pc + 1, &cur) < 0)
-				goto fault;
+				if (cur >= 0xe8 && cur <= 0xeb)
+				{
+					if (gdbstub_read_byte(
+							pc + 2, ((u8 *) &x) + 0) < 0)
+					{
+						goto fault;
+					}
 
-			if (cur == 0xff) {
-				/* CALLS (d16,PC) */
-				if (gdbstub_read_byte(
-					    pc + 2, ((u8 *) &x) + 0) < 0 ||
-				    gdbstub_read_byte(
-					    pc + 3, ((u8 *) &x) + 1) < 0)
-					goto fault;
-				if (!__gdbstub_mark_bp(pc + (s16) x, 0))
-					goto fault;
-			} else {
-				if (!__gdbstub_mark_bp(pc + 4, 0))
-					goto fault;
-			}
-			break;
+					if ((x < 0 || x > 3) &&
+						!__gdbstub_mark_bp(pc + (s8) x, 1))
+					{
+						goto fault;
+					}
+				}
 
-		case 0xfc:
-			if (gdbstub_read_byte(pc + 1, &cur) < 0)
-				goto fault;
-			if (cur == 0xff) {
-				/* CALLS (d32,PC) */
-				if (gdbstub_read_byte(
-					    pc + 2, ((u8 *) &x) + 0) < 0 ||
-				    gdbstub_read_byte(
-					    pc + 3, ((u8 *) &x) + 1) < 0 ||
-				    gdbstub_read_byte(
-					    pc + 4, ((u8 *) &x) + 2) < 0 ||
-				    gdbstub_read_byte(
-					    pc + 5, ((u8 *) &x) + 3) < 0)
+				break;
+
+			case 0xfa:
+				if (gdbstub_read_byte(pc + 1, &cur) < 0)
+				{
 					goto fault;
-				if (!__gdbstub_mark_bp(
-					    pc + (s32) x, 0))
+				}
+
+				if (cur == 0xff)
+				{
+					/* CALLS (d16,PC) */
+					if (gdbstub_read_byte(
+							pc + 2, ((u8 *) &x) + 0) < 0 ||
+						gdbstub_read_byte(
+							pc + 3, ((u8 *) &x) + 1) < 0)
+					{
+						goto fault;
+					}
+
+					if (!__gdbstub_mark_bp(pc + (s16) x, 0))
+					{
+						goto fault;
+					}
+				}
+				else
+				{
+					if (!__gdbstub_mark_bp(pc + 4, 0))
+					{
+						goto fault;
+					}
+				}
+
+				break;
+
+			case 0xfc:
+				if (gdbstub_read_byte(pc + 1, &cur) < 0)
+				{
 					goto fault;
-			} else {
-				if (!__gdbstub_mark_bp(
-					    pc + 6, 0))
-					goto fault;
-			}
-			break;
+				}
+
+				if (cur == 0xff)
+				{
+					/* CALLS (d32,PC) */
+					if (gdbstub_read_byte(
+							pc + 2, ((u8 *) &x) + 0) < 0 ||
+						gdbstub_read_byte(
+							pc + 3, ((u8 *) &x) + 1) < 0 ||
+						gdbstub_read_byte(
+							pc + 4, ((u8 *) &x) + 2) < 0 ||
+						gdbstub_read_byte(
+							pc + 5, ((u8 *) &x) + 3) < 0)
+					{
+						goto fault;
+					}
+
+					if (!__gdbstub_mark_bp(
+							pc + (s32) x, 0))
+					{
+						goto fault;
+					}
+				}
+				else
+				{
+					if (!__gdbstub_mark_bp(
+							pc + 6, 0))
+					{
+						goto fault;
+					}
+				}
+
+				break;
 
 		}
 	}
 
 	gdbstub_bkpt("Step: %02x at %p; %02x at %p\n",
-		     step_bp[0].opcode[0], step_bp[0].addr,
-		     step_bp[1].opcode[0], step_bp[1].addr);
+				 step_bp[0].opcode[0], step_bp[0].addr,
+				 step_bp[1].opcode[0], step_bp[1].addr);
 
-	if (step_bp[0].addr) {
+	if (step_bp[0].addr)
+	{
 #ifdef GDBSTUB_USE_F7F7_AS_BREAKPOINT
+
 		if (gdbstub_write_byte(0xF7, step_bp[0].addr + 0) < 0 ||
-		    gdbstub_write_byte(0xF7, step_bp[0].addr + 1) < 0)
+			gdbstub_write_byte(0xF7, step_bp[0].addr + 1) < 0)
+		{
 			goto fault;
+		}
+
 #else
+
 		if (gdbstub_write_byte(0xFF, step_bp[0].addr + 0) < 0)
+		{
 			goto fault;
+		}
+
 #endif
 	}
 
-	if (step_bp[1].addr) {
+	if (step_bp[1].addr)
+	{
 #ifdef GDBSTUB_USE_F7F7_AS_BREAKPOINT
+
 		if (gdbstub_write_byte(0xF7, step_bp[1].addr + 0) < 0 ||
-		    gdbstub_write_byte(0xF7, step_bp[1].addr + 1) < 0)
+			gdbstub_write_byte(0xF7, step_bp[1].addr + 1) < 0)
+		{
 			goto fault;
+		}
+
 #else
+
 		if (gdbstub_write_byte(0xFF, step_bp[1].addr + 0) < 0)
+		{
 			goto fault;
+		}
+
 #endif
 	}
 
 	return 0;
 
- fault:
+fault:
 	/* uh-oh - silly address alert, try and restore things */
 	__gdbstub_restore_bp();
 	return -EFAULT;
@@ -745,16 +958,21 @@ void gdbstub_console_write(struct console *con, const char *p, unsigned n)
 
 	outbuf[0] = 'O';
 
-	while (n > 0) {
+	while (n > 0)
+	{
 		qty = 1;
 
-		while (n > 0 && qty < 20) {
+		while (n > 0 && qty < 20)
+		{
 			mem2hex(p, outbuf + qty, 2, 0);
 			qty += 2;
-			if (*p == 0x0a) {
+
+			if (*p == 0x0a)
+			{
 				mem2hex(gdbstub_cr, outbuf + qty, 2, 0);
 				qty += 2;
 			}
+
 			p++;
 			n--;
 		}
@@ -771,7 +989,8 @@ static kdev_t gdbstub_console_dev(struct console *con)
 	return MKDEV(1, 3); /* /dev/null */
 }
 
-static struct console gdbstub_console = {
+static struct console gdbstub_console =
+{
 	.name	= "gdb",
 	.write	= gdbstub_console_write,
 	.device	= gdbstub_console_dev,
@@ -794,26 +1013,38 @@ unsigned char *mem2hex(const void *_mem, char *buf, int count, int may_fault)
 	const u8 *mem = _mem;
 	u8 ch[4];
 
-	if ((u32) mem & 1 && count >= 1) {
+	if ((u32) mem & 1 && count >= 1)
+	{
 		if (gdbstub_read_byte(mem, ch) != 0)
+		{
 			return 0;
+		}
+
 		buf = hex_byte_pack(buf, ch[0]);
 		mem++;
 		count--;
 	}
 
-	if ((u32) mem & 3 && count >= 2) {
+	if ((u32) mem & 3 && count >= 2)
+	{
 		if (gdbstub_read_word(mem, ch) != 0)
+		{
 			return 0;
+		}
+
 		buf = hex_byte_pack(buf, ch[0]);
 		buf = hex_byte_pack(buf, ch[1]);
 		mem += 2;
 		count -= 2;
 	}
 
-	while (count >= 4) {
+	while (count >= 4)
+	{
 		if (gdbstub_read_dword(mem, ch) != 0)
+		{
 			return 0;
+		}
+
 		buf = hex_byte_pack(buf, ch[0]);
 		buf = hex_byte_pack(buf, ch[1]);
 		buf = hex_byte_pack(buf, ch[2]);
@@ -822,18 +1053,26 @@ unsigned char *mem2hex(const void *_mem, char *buf, int count, int may_fault)
 		count -= 4;
 	}
 
-	if (count >= 2) {
+	if (count >= 2)
+	{
 		if (gdbstub_read_word(mem, ch) != 0)
+		{
 			return 0;
+		}
+
 		buf = hex_byte_pack(buf, ch[0]);
 		buf = hex_byte_pack(buf, ch[1]);
 		mem += 2;
 		count -= 2;
 	}
 
-	if (count >= 1) {
+	if (count >= 1)
+	{
 		if (gdbstub_read_byte(mem, ch) != 0)
+		{
 			return 0;
+		}
+
 		buf = hex_byte_pack(buf, ch[0]);
 	}
 
@@ -851,32 +1090,44 @@ static
 const char *hex2mem(const char *buf, void *_mem, int count, int may_fault)
 {
 	u8 *mem = _mem;
-	union {
+	union
+	{
 		u32 val;
 		u8 b[4];
 	} ch;
 
-	if ((u32) mem & 1 && count >= 1) {
+	if ((u32) mem & 1 && count >= 1)
+	{
 		ch.b[0]  = hex(*buf++) << 4;
 		ch.b[0] |= hex(*buf++);
+
 		if (gdbstub_write_byte(ch.val, mem) != 0)
+		{
 			return 0;
+		}
+
 		mem++;
 		count--;
 	}
 
-	if ((u32) mem & 3 && count >= 2) {
+	if ((u32) mem & 3 && count >= 2)
+	{
 		ch.b[0]  = hex(*buf++) << 4;
 		ch.b[0] |= hex(*buf++);
 		ch.b[1]  = hex(*buf++) << 4;
 		ch.b[1] |= hex(*buf++);
+
 		if (gdbstub_write_word(ch.val, mem) != 0)
+		{
 			return 0;
+		}
+
 		mem += 2;
 		count -= 2;
 	}
 
-	while (count >= 4) {
+	while (count >= 4)
+	{
 		ch.b[0]  = hex(*buf++) << 4;
 		ch.b[0] |= hex(*buf++);
 		ch.b[1]  = hex(*buf++) << 4;
@@ -885,28 +1136,41 @@ const char *hex2mem(const char *buf, void *_mem, int count, int may_fault)
 		ch.b[2] |= hex(*buf++);
 		ch.b[3]  = hex(*buf++) << 4;
 		ch.b[3] |= hex(*buf++);
+
 		if (gdbstub_write_dword(ch.val, mem) != 0)
+		{
 			return 0;
+		}
+
 		mem += 4;
 		count -= 4;
 	}
 
-	if (count >= 2) {
+	if (count >= 2)
+	{
 		ch.b[0]  = hex(*buf++) << 4;
 		ch.b[0] |= hex(*buf++);
 		ch.b[1]  = hex(*buf++) << 4;
 		ch.b[1] |= hex(*buf++);
+
 		if (gdbstub_write_word(ch.val, mem) != 0)
+		{
 			return 0;
+		}
+
 		mem += 2;
 		count -= 2;
 	}
 
-	if (count >= 1) {
+	if (count >= 1)
+	{
 		ch.b[0]  = hex(*buf++) << 4;
 		ch.b[0] |= hex(*buf++);
+
 		if (gdbstub_write_byte(ch.val, mem) != 0)
+		{
 			return 0;
+		}
 	}
 
 	return buf;
@@ -917,10 +1181,12 @@ const char *hex2mem(const char *buf, void *_mem, int count, int may_fault)
  * signals, which are primarily what GDB understands.  It also indicates
  * which hardware traps we need to commandeer when initializing the stub.
  */
-static const struct excep_to_sig_map {
+static const struct excep_to_sig_map
+{
 	enum exception_code	excep;	/* MN10300 exception code */
 	unsigned char		signo;	/* Signal that we map this into */
-} excep_to_sig_map[] = {
+} excep_to_sig_map[] =
+{
 	{ EXCEP_ITLBMISS,	SIGSEGV		},
 	{ EXCEP_DTLBMISS,	SIGSEGV		},
 	{ EXCEP_TRAP,		SIGTRAP		},
@@ -961,7 +1227,9 @@ static int computeSignal(enum exception_code excep)
 
 	for (map = excep_to_sig_map; map->signo; map++)
 		if (map->excep == excep)
+		{
 			return map->signo;
+		}
 
 	return SIGHUP; /* default for things we don't know about */
 }
@@ -1018,7 +1286,7 @@ static void gdbstub_store_fpu(void)
 		: "=d"(gdbstub_fpcr)
 		: "g" (&gdbstub_fpufs_array), "i"(EPSW_FE)
 		: "a1"
-		);
+	);
 #endif
 }
 
@@ -1091,50 +1359,67 @@ int gdbstub_set_breakpoint(u8 *addr, int len)
 
 	for (bkpt = 255; bkpt >= 0; bkpt--)
 		if (!gdbstub_bkpts[bkpt].addr)
+		{
 			break;
+		}
+
 	if (bkpt < 0)
+	{
 		return -ENOSPC;
+	}
 
 	for (loop = 0; loop < len; loop++)
 		if (gdbstub_read_byte(&addr[loop],
-				      &gdbstub_bkpts[bkpt].origbytes[loop]
-				      ) < 0)
+							  &gdbstub_bkpts[bkpt].origbytes[loop]
+							 ) < 0)
+		{
 			return -EFAULT;
+		}
 
 	gdbstub_flush_caches = 1;
 
 #ifdef GDBSTUB_USE_F7F7_AS_BREAKPOINT
+
 	for (loop = 0; loop < len; loop++)
 		if (gdbstub_write_byte(0xF7, &addr[loop]) < 0)
+		{
 			goto restore;
+		}
+
 #else
+
 	for (loop = 0; loop < len; loop++)
 		if (gdbstub_write_byte(0xFF, &addr[loop]) < 0)
+		{
 			goto restore;
+		}
+
 #endif
 
 	gdbstub_bkpts[bkpt].addr = addr;
 	gdbstub_bkpts[bkpt].len = len;
 
 	gdbstub_bkpt("Set BKPT[%02x]: %p-%p {%02x%02x%02x%02x%02x%02x%02x}\n",
-		     bkpt,
-		     gdbstub_bkpts[bkpt].addr,
-		     gdbstub_bkpts[bkpt].addr + gdbstub_bkpts[bkpt].len - 1,
-		     gdbstub_bkpts[bkpt].origbytes[0],
-		     gdbstub_bkpts[bkpt].origbytes[1],
-		     gdbstub_bkpts[bkpt].origbytes[2],
-		     gdbstub_bkpts[bkpt].origbytes[3],
-		     gdbstub_bkpts[bkpt].origbytes[4],
-		     gdbstub_bkpts[bkpt].origbytes[5],
-		     gdbstub_bkpts[bkpt].origbytes[6]
-		     );
+				 bkpt,
+				 gdbstub_bkpts[bkpt].addr,
+				 gdbstub_bkpts[bkpt].addr + gdbstub_bkpts[bkpt].len - 1,
+				 gdbstub_bkpts[bkpt].origbytes[0],
+				 gdbstub_bkpts[bkpt].origbytes[1],
+				 gdbstub_bkpts[bkpt].origbytes[2],
+				 gdbstub_bkpts[bkpt].origbytes[3],
+				 gdbstub_bkpts[bkpt].origbytes[4],
+				 gdbstub_bkpts[bkpt].origbytes[5],
+				 gdbstub_bkpts[bkpt].origbytes[6]
+				);
 
 	return 0;
 
 restore:
+
 	for (xloop = 0; xloop < loop; xloop++)
 		gdbstub_write_byte(gdbstub_bkpts[bkpt].origbytes[xloop],
-				   addr + xloop);
+						   addr + xloop);
+
 	return -EFAULT;
 }
 
@@ -1153,10 +1438,15 @@ int gdbstub_clear_breakpoint(u8 *addr, int len)
 
 	for (bkpt = 255; bkpt >= 0; bkpt--)
 		if (gdbstub_bkpts[bkpt].addr == addr &&
-		    gdbstub_bkpts[bkpt].len == len)
+			gdbstub_bkpts[bkpt].len == len)
+		{
 			break;
+		}
+
 	if (bkpt < 0)
+	{
 		return -ENOENT;
+	}
 
 	gdbstub_bkpts[bkpt].addr = NULL;
 
@@ -1164,8 +1454,10 @@ int gdbstub_clear_breakpoint(u8 *addr, int len)
 
 	for (loop = 0; loop < len; loop++)
 		if (gdbstub_write_byte(gdbstub_bkpts[bkpt].origbytes[loop],
-				       addr + loop) < 0)
+							   addr + loop) < 0)
+		{
 			return -EFAULT;
+		}
 
 	return 0;
 }
@@ -1187,7 +1479,9 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 	int loop;
 
 	if (excep == EXCEP_FPU_DISABLED)
+	{
 		return -ENOTSUPP;
+	}
 
 	gdbstub_flush_caches = 0;
 
@@ -1201,26 +1495,38 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 	gdbstub_store_fpu();
 
 #ifdef CONFIG_GDBSTUB_IMMEDIATE
+
 	/* skip the initial pause loop */
 	if (regs->pc == (unsigned long) __gdbstub_pause)
+	{
 		regs->pc = (unsigned long) start_kernel;
+	}
+
 #endif
 
 	/* if we were single stepping, restore the opcodes hoisted for the
 	 * breakpoint[s] */
 	broke = 0;
 #ifdef CONFIG_GDBSTUB_ALLOW_SINGLE_STEP
+
 	if ((step_bp[0].addr && step_bp[0].addr == (u8 *) regs->pc) ||
-	    (step_bp[1].addr && step_bp[1].addr == (u8 *) regs->pc))
+		(step_bp[1].addr && step_bp[1].addr == (u8 *) regs->pc))
+	{
 		broke = 1;
+	}
 
 	__gdbstub_restore_bp();
 #endif
 
-	if (gdbstub_rx_unget) {
+	if (gdbstub_rx_unget)
+	{
 		sigval = SIGINT;
+
 		if (gdbstub_rx_unget != 3)
+		{
 			goto packet_waiting;
+		}
+
 		gdbstub_rx_unget = 0;
 	}
 
@@ -1228,22 +1534,27 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 	sigval = broke ? SIGTRAP : computeSignal(excep);
 
 	/* send information about a BUG() */
-	if (!user_mode(regs) && excep == EXCEP_SYSCALL15) {
+	if (!user_mode(regs) && excep == EXCEP_SYSCALL15)
+	{
 		const struct bug_entry *bug;
 
 		bug = find_bug(regs->pc);
+
 		if (bug)
+		{
 			goto found_bug;
+		}
+
 		length = snprintf(trans_buffer, sizeof(trans_buffer),
-				  "BUG() at address %lx\n", regs->pc);
+						  "BUG() at address %lx\n", regs->pc);
 		goto send_bug_pkt;
 
-	found_bug:
+found_bug:
 		length = snprintf(trans_buffer, sizeof(trans_buffer),
-				  "BUG() at address %lx (%s:%d)\n",
-				  regs->pc, bug->file, bug->line);
+						  "BUG() at address %lx (%s:%d)\n",
+						  regs->pc, bug->file, bug->line);
 
-	send_bug_pkt:
+send_bug_pkt:
 		ptr = output_buffer;
 		*ptr++ = 'O';
 		ptr = mem2hex(trans_buffer, ptr, length, 0);
@@ -1252,7 +1563,9 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 
 		regs->pc -= 2;
 		sigval = SIGABRT;
-	} else if (regs->pc == (unsigned long) __gdbstub_bug_trap) {
+	}
+	else if (regs->pc == (unsigned long) __gdbstub_bug_trap)
+	{
 		regs->pc = regs->mdr;
 		sigval = SIGABRT;
 	}
@@ -1261,7 +1574,8 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 	 * send a message to the debugger's user saying what happened if it may
 	 * not be clear cut (we can't map exceptions onto signals properly)
 	 */
-	if (sigval != SIGINT && sigval != SIGTRAP && sigval != SIGILL) {
+	if (sigval != SIGINT && sigval != SIGTRAP && sigval != SIGILL)
+	{
 		static const char title[] = "Excep ", tbcberr[] = "BCBERR ";
 		static const char crlf[] = "\r\n";
 		char hx;
@@ -1351,303 +1665,352 @@ static int gdbstub(struct pt_regs *regs, enum exception_code excep)
 	putpacket(output_buffer);	/* send it off... */
 
 packet_waiting:
+
 	/*
 	 * Wait for input from remote GDB
 	 */
-	while (1) {
+	while (1)
+	{
 		output_buffer[0] = 0;
 		getpacket(input_buffer);
 
-		switch (input_buffer[0]) {
+		switch (input_buffer[0])
+		{
 			/* request repeat of last signal number */
-		case '?':
-			output_buffer[0] = 'S';
-			output_buffer[1] = hex_asc_hi(sigval);
-			output_buffer[2] = hex_asc_lo(sigval);
-			output_buffer[3] = 0;
-			break;
+			case '?':
+				output_buffer[0] = 'S';
+				output_buffer[1] = hex_asc_hi(sigval);
+				output_buffer[2] = hex_asc_lo(sigval);
+				output_buffer[3] = 0;
+				break;
 
-		case 'd':
-			/* toggle debug flag */
-			break;
+			case 'd':
+				/* toggle debug flag */
+				break;
 
 			/*
 			 * Return the value of the CPU registers
 			 */
-		case 'g':
-			zero = 0;
-			ssp = (u32) (regs + 1);
-			ptr = output_buffer;
-			ptr = mem2hex(&regs->d0, ptr, 4, 0);
-			ptr = mem2hex(&regs->d1, ptr, 4, 0);
-			ptr = mem2hex(&regs->d2, ptr, 4, 0);
-			ptr = mem2hex(&regs->d3, ptr, 4, 0);
-			ptr = mem2hex(&regs->a0, ptr, 4, 0);
-			ptr = mem2hex(&regs->a1, ptr, 4, 0);
-			ptr = mem2hex(&regs->a2, ptr, 4, 0);
-			ptr = mem2hex(&regs->a3, ptr, 4, 0);
+			case 'g':
+				zero = 0;
+				ssp = (u32) (regs + 1);
+				ptr = output_buffer;
+				ptr = mem2hex(&regs->d0, ptr, 4, 0);
+				ptr = mem2hex(&regs->d1, ptr, 4, 0);
+				ptr = mem2hex(&regs->d2, ptr, 4, 0);
+				ptr = mem2hex(&regs->d3, ptr, 4, 0);
+				ptr = mem2hex(&regs->a0, ptr, 4, 0);
+				ptr = mem2hex(&regs->a1, ptr, 4, 0);
+				ptr = mem2hex(&regs->a2, ptr, 4, 0);
+				ptr = mem2hex(&regs->a3, ptr, 4, 0);
 
-			ptr = mem2hex(&ssp, ptr, 4, 0);		/* 8 */
-			ptr = mem2hex(&regs->pc, ptr, 4, 0);
-			ptr = mem2hex(&regs->mdr, ptr, 4, 0);
-			ptr = mem2hex(&regs->epsw, ptr, 4, 0);
-			ptr = mem2hex(&regs->lir, ptr, 4, 0);
-			ptr = mem2hex(&regs->lar, ptr, 4, 0);
-			ptr = mem2hex(&regs->mdrq, ptr, 4, 0);
+				ptr = mem2hex(&ssp, ptr, 4, 0);		/* 8 */
+				ptr = mem2hex(&regs->pc, ptr, 4, 0);
+				ptr = mem2hex(&regs->mdr, ptr, 4, 0);
+				ptr = mem2hex(&regs->epsw, ptr, 4, 0);
+				ptr = mem2hex(&regs->lir, ptr, 4, 0);
+				ptr = mem2hex(&regs->lar, ptr, 4, 0);
+				ptr = mem2hex(&regs->mdrq, ptr, 4, 0);
 
-			ptr = mem2hex(&regs->e0, ptr, 4, 0);	/* 15 */
-			ptr = mem2hex(&regs->e1, ptr, 4, 0);
-			ptr = mem2hex(&regs->e2, ptr, 4, 0);
-			ptr = mem2hex(&regs->e3, ptr, 4, 0);
-			ptr = mem2hex(&regs->e4, ptr, 4, 0);
-			ptr = mem2hex(&regs->e5, ptr, 4, 0);
-			ptr = mem2hex(&regs->e6, ptr, 4, 0);
-			ptr = mem2hex(&regs->e7, ptr, 4, 0);
+				ptr = mem2hex(&regs->e0, ptr, 4, 0);	/* 15 */
+				ptr = mem2hex(&regs->e1, ptr, 4, 0);
+				ptr = mem2hex(&regs->e2, ptr, 4, 0);
+				ptr = mem2hex(&regs->e3, ptr, 4, 0);
+				ptr = mem2hex(&regs->e4, ptr, 4, 0);
+				ptr = mem2hex(&regs->e5, ptr, 4, 0);
+				ptr = mem2hex(&regs->e6, ptr, 4, 0);
+				ptr = mem2hex(&regs->e7, ptr, 4, 0);
 
-			ptr = mem2hex(&ssp, ptr, 4, 0);
-			ptr = mem2hex(&regs, ptr, 4, 0);
-			ptr = mem2hex(&regs->sp, ptr, 4, 0);
-			ptr = mem2hex(&regs->mcrh, ptr, 4, 0);	/* 26 */
-			ptr = mem2hex(&regs->mcrl, ptr, 4, 0);
-			ptr = mem2hex(&regs->mcvf, ptr, 4, 0);
+				ptr = mem2hex(&ssp, ptr, 4, 0);
+				ptr = mem2hex(&regs, ptr, 4, 0);
+				ptr = mem2hex(&regs->sp, ptr, 4, 0);
+				ptr = mem2hex(&regs->mcrh, ptr, 4, 0);	/* 26 */
+				ptr = mem2hex(&regs->mcrl, ptr, 4, 0);
+				ptr = mem2hex(&regs->mcvf, ptr, 4, 0);
 
-			ptr = mem2hex(&gdbstub_fpcr, ptr, 4, 0); /* 29 - FPCR */
-			ptr = mem2hex(&zero, ptr, 4, 0);
-			ptr = mem2hex(&zero, ptr, 4, 0);
-			for (loop = 0; loop < 32; loop++)
-				ptr = mem2hex(&gdbstub_fpufs_array[loop],
-					      ptr, 4, 0); /* 32 - FS0-31 */
+				ptr = mem2hex(&gdbstub_fpcr, ptr, 4, 0); /* 29 - FPCR */
+				ptr = mem2hex(&zero, ptr, 4, 0);
+				ptr = mem2hex(&zero, ptr, 4, 0);
 
-			break;
+				for (loop = 0; loop < 32; loop++)
+					ptr = mem2hex(&gdbstub_fpufs_array[loop],
+								  ptr, 4, 0); /* 32 - FS0-31 */
+
+				break;
 
 			/*
 			 * set the value of the CPU registers - return OK
 			 */
-		case 'G':
-		{
-			const char *ptr;
+			case 'G':
+				{
+					const char *ptr;
 
-			ptr = &input_buffer[1];
-			ptr = hex2mem(ptr, &regs->d0, 4, 0);
-			ptr = hex2mem(ptr, &regs->d1, 4, 0);
-			ptr = hex2mem(ptr, &regs->d2, 4, 0);
-			ptr = hex2mem(ptr, &regs->d3, 4, 0);
-			ptr = hex2mem(ptr, &regs->a0, 4, 0);
-			ptr = hex2mem(ptr, &regs->a1, 4, 0);
-			ptr = hex2mem(ptr, &regs->a2, 4, 0);
-			ptr = hex2mem(ptr, &regs->a3, 4, 0);
+					ptr = &input_buffer[1];
+					ptr = hex2mem(ptr, &regs->d0, 4, 0);
+					ptr = hex2mem(ptr, &regs->d1, 4, 0);
+					ptr = hex2mem(ptr, &regs->d2, 4, 0);
+					ptr = hex2mem(ptr, &regs->d3, 4, 0);
+					ptr = hex2mem(ptr, &regs->a0, 4, 0);
+					ptr = hex2mem(ptr, &regs->a1, 4, 0);
+					ptr = hex2mem(ptr, &regs->a2, 4, 0);
+					ptr = hex2mem(ptr, &regs->a3, 4, 0);
 
-			ptr = hex2mem(ptr, &ssp, 4, 0);		/* 8 */
-			ptr = hex2mem(ptr, &regs->pc, 4, 0);
-			ptr = hex2mem(ptr, &regs->mdr, 4, 0);
-			ptr = hex2mem(ptr, &regs->epsw, 4, 0);
-			ptr = hex2mem(ptr, &regs->lir, 4, 0);
-			ptr = hex2mem(ptr, &regs->lar, 4, 0);
-			ptr = hex2mem(ptr, &regs->mdrq, 4, 0);
+					ptr = hex2mem(ptr, &ssp, 4, 0);		/* 8 */
+					ptr = hex2mem(ptr, &regs->pc, 4, 0);
+					ptr = hex2mem(ptr, &regs->mdr, 4, 0);
+					ptr = hex2mem(ptr, &regs->epsw, 4, 0);
+					ptr = hex2mem(ptr, &regs->lir, 4, 0);
+					ptr = hex2mem(ptr, &regs->lar, 4, 0);
+					ptr = hex2mem(ptr, &regs->mdrq, 4, 0);
 
-			ptr = hex2mem(ptr, &regs->e0, 4, 0);	/* 15 */
-			ptr = hex2mem(ptr, &regs->e1, 4, 0);
-			ptr = hex2mem(ptr, &regs->e2, 4, 0);
-			ptr = hex2mem(ptr, &regs->e3, 4, 0);
-			ptr = hex2mem(ptr, &regs->e4, 4, 0);
-			ptr = hex2mem(ptr, &regs->e5, 4, 0);
-			ptr = hex2mem(ptr, &regs->e6, 4, 0);
-			ptr = hex2mem(ptr, &regs->e7, 4, 0);
+					ptr = hex2mem(ptr, &regs->e0, 4, 0);	/* 15 */
+					ptr = hex2mem(ptr, &regs->e1, 4, 0);
+					ptr = hex2mem(ptr, &regs->e2, 4, 0);
+					ptr = hex2mem(ptr, &regs->e3, 4, 0);
+					ptr = hex2mem(ptr, &regs->e4, 4, 0);
+					ptr = hex2mem(ptr, &regs->e5, 4, 0);
+					ptr = hex2mem(ptr, &regs->e6, 4, 0);
+					ptr = hex2mem(ptr, &regs->e7, 4, 0);
 
-			ptr = hex2mem(ptr, &ssp, 4, 0);
-			ptr = hex2mem(ptr, &zero, 4, 0);
-			ptr = hex2mem(ptr, &regs->sp, 4, 0);
-			ptr = hex2mem(ptr, &regs->mcrh, 4, 0);	/* 26 */
-			ptr = hex2mem(ptr, &regs->mcrl, 4, 0);
-			ptr = hex2mem(ptr, &regs->mcvf, 4, 0);
+					ptr = hex2mem(ptr, &ssp, 4, 0);
+					ptr = hex2mem(ptr, &zero, 4, 0);
+					ptr = hex2mem(ptr, &regs->sp, 4, 0);
+					ptr = hex2mem(ptr, &regs->mcrh, 4, 0);	/* 26 */
+					ptr = hex2mem(ptr, &regs->mcrl, 4, 0);
+					ptr = hex2mem(ptr, &regs->mcvf, 4, 0);
 
-			ptr = hex2mem(ptr, &zero, 4, 0);	/* 29 - FPCR */
-			ptr = hex2mem(ptr, &zero, 4, 0);
-			ptr = hex2mem(ptr, &zero, 4, 0);
-			for (loop = 0; loop < 32; loop++)     /* 32 - FS0-31 */
-				ptr = hex2mem(ptr, &zero, 4, 0);
+					ptr = hex2mem(ptr, &zero, 4, 0);	/* 29 - FPCR */
+					ptr = hex2mem(ptr, &zero, 4, 0);
+					ptr = hex2mem(ptr, &zero, 4, 0);
+
+					for (loop = 0; loop < 32; loop++)     /* 32 - FS0-31 */
+					{
+						ptr = hex2mem(ptr, &zero, 4, 0);
+					}
 
 #if 0
-			/*
-			 * See if the stack pointer has moved. If so, then copy
-			 * the saved locals and ins to the new location.
-			 */
-			unsigned long *newsp = (unsigned long *) registers[SP];
-			if (sp != newsp)
-				sp = memcpy(newsp, sp, 16 * 4);
+					/*
+					 * See if the stack pointer has moved. If so, then copy
+					 * the saved locals and ins to the new location.
+					 */
+					unsigned long *newsp = (unsigned long *) registers[SP];
+
+					if (sp != newsp)
+					{
+						sp = memcpy(newsp, sp, 16 * 4);
+					}
+
 #endif
 
-			gdbstub_strcpy(output_buffer, "OK");
-		}
-		break;
+					gdbstub_strcpy(output_buffer, "OK");
+				}
+				break;
 
-		/*
-		 * mAA..AA,LLLL  Read LLLL bytes at address AA..AA
-		 */
-		case 'm':
-			ptr = &input_buffer[1];
+			/*
+			 * mAA..AA,LLLL  Read LLLL bytes at address AA..AA
+			 */
+			case 'm':
+				ptr = &input_buffer[1];
 
-			if (hexToInt(&ptr, &addr) &&
-			    *ptr++ == ',' &&
-			    hexToInt(&ptr, &length)
-			    ) {
-				if (mem2hex((char *) addr, output_buffer,
-					    length, 1))
-					break;
-				gdbstub_strcpy(output_buffer, "E03");
-			} else {
-				gdbstub_strcpy(output_buffer, "E01");
-			}
-			break;
+				if (hexToInt(&ptr, &addr) &&
+					*ptr++ == ',' &&
+					hexToInt(&ptr, &length)
+				   )
+				{
+					if (mem2hex((char *) addr, output_buffer,
+								length, 1))
+					{
+						break;
+					}
+
+					gdbstub_strcpy(output_buffer, "E03");
+				}
+				else
+				{
+					gdbstub_strcpy(output_buffer, "E01");
+				}
+
+				break;
 
 			/*
 			 * MAA..AA,LLLL: Write LLLL bytes at address AA.AA
 			 * return OK
 			 */
-		case 'M':
-			ptr = &input_buffer[1];
+			case 'M':
+				ptr = &input_buffer[1];
 
-			if (hexToInt(&ptr, &addr) &&
-			    *ptr++ == ',' &&
-			    hexToInt(&ptr, &length) &&
-			    *ptr++ == ':'
-			    ) {
-				if (hex2mem(ptr, (char *) addr, length, 1))
-					gdbstub_strcpy(output_buffer, "OK");
+				if (hexToInt(&ptr, &addr) &&
+					*ptr++ == ',' &&
+					hexToInt(&ptr, &length) &&
+					*ptr++ == ':'
+				   )
+				{
+					if (hex2mem(ptr, (char *) addr, length, 1))
+					{
+						gdbstub_strcpy(output_buffer, "OK");
+					}
+					else
+					{
+						gdbstub_strcpy(output_buffer, "E03");
+					}
+
+					gdbstub_flush_caches = 1;
+				}
 				else
-					gdbstub_strcpy(output_buffer, "E03");
+				{
+					gdbstub_strcpy(output_buffer, "E02");
+				}
 
-				gdbstub_flush_caches = 1;
-			} else {
-				gdbstub_strcpy(output_buffer, "E02");
-			}
-			break;
+				break;
 
 			/*
 			 * cAA..AA    Continue at address AA..AA(optional)
 			 */
-		case 'c':
-			/* try to read optional parameter, pc unchanged if no
-			 * parm */
+			case 'c':
+				/* try to read optional parameter, pc unchanged if no
+				 * parm */
 
-			ptr = &input_buffer[1];
-			if (hexToInt(&ptr, &addr))
-				regs->pc = addr;
-			goto done;
+				ptr = &input_buffer[1];
+
+				if (hexToInt(&ptr, &addr))
+				{
+					regs->pc = addr;
+				}
+
+				goto done;
 
 			/*
 			 * kill the program
 			 */
-		case 'k' :
-			goto done;	/* just continue */
+			case 'k' :
+				goto done;	/* just continue */
 
 			/*
 			 * Reset the whole machine (FIXME: system dependent)
 			 */
-		case 'r':
-			break;
+			case 'r':
+				break;
 
 			/*
 			 * Step to next instruction
 			 */
-		case 's':
-			/* Using the T flag doesn't seem to perform single
-			 * stepping (it seems to wind up being caught by the
-			 * JTAG unit), so we have to use breakpoints and
-			 * continue instead.
-			 */
+			case 's':
+				/* Using the T flag doesn't seem to perform single
+				 * stepping (it seems to wind up being caught by the
+				 * JTAG unit), so we have to use breakpoints and
+				 * continue instead.
+				 */
 #ifdef CONFIG_GDBSTUB_ALLOW_SINGLE_STEP
-			if (gdbstub_single_step(regs) < 0)
-				/* ignore any fault error for now */
-				gdbstub_printk("unable to set single-step"
-					       " bp\n");
-			goto done;
+				if (gdbstub_single_step(regs) < 0)
+					/* ignore any fault error for now */
+					gdbstub_printk("unable to set single-step"
+								   " bp\n");
+
+				goto done;
 #else
-			gdbstub_strcpy(output_buffer, "E01");
-			break;
+				gdbstub_strcpy(output_buffer, "E01");
+				break;
 #endif
 
 			/*
 			 * Set baud rate (bBB)
 			 */
-		case 'b':
-			do {
-				int baudrate;
+			case 'b':
+				do
+				{
+					int baudrate;
 
-				ptr = &input_buffer[1];
-				if (!hexToInt(&ptr, &baudrate)) {
-					gdbstub_strcpy(output_buffer, "B01");
-					break;
-				}
+					ptr = &input_buffer[1];
 
-				if (baudrate) {
-					/* ACK before changing speed */
-					putpacket("OK");
-					gdbstub_io_set_baud(baudrate);
+					if (!hexToInt(&ptr, &baudrate))
+					{
+						gdbstub_strcpy(output_buffer, "B01");
+						break;
+					}
+
+					if (baudrate)
+					{
+						/* ACK before changing speed */
+						putpacket("OK");
+						gdbstub_io_set_baud(baudrate);
+					}
 				}
-			} while (0);
-			break;
+				while (0);
+
+				break;
 
 			/*
 			 * Set breakpoint
 			 */
-		case 'Z':
-			ptr = &input_buffer[1];
+			case 'Z':
+				ptr = &input_buffer[1];
 
-			if (!hexToInt(&ptr, &loop) || *ptr++ != ',' ||
-			    !hexToInt(&ptr, &addr) || *ptr++ != ',' ||
-			    !hexToInt(&ptr, &length)
-			    ) {
-				gdbstub_strcpy(output_buffer, "E01");
+				if (!hexToInt(&ptr, &loop) || *ptr++ != ',' ||
+					!hexToInt(&ptr, &addr) || *ptr++ != ',' ||
+					!hexToInt(&ptr, &length)
+				   )
+				{
+					gdbstub_strcpy(output_buffer, "E01");
+					break;
+				}
+
+				/* only support software breakpoints */
+				gdbstub_strcpy(output_buffer, "E03");
+
+				if (loop != 0 ||
+					length < 1 ||
+					length > 7 ||
+					(unsigned long) addr < 4096)
+				{
+					break;
+				}
+
+				if (gdbstub_set_breakpoint((u8 *) addr, length) < 0)
+				{
+					break;
+				}
+
+				gdbstub_strcpy(output_buffer, "OK");
 				break;
-			}
-
-			/* only support software breakpoints */
-			gdbstub_strcpy(output_buffer, "E03");
-			if (loop != 0 ||
-			    length < 1 ||
-			    length > 7 ||
-			    (unsigned long) addr < 4096)
-				break;
-
-			if (gdbstub_set_breakpoint((u8 *) addr, length) < 0)
-				break;
-
-			gdbstub_strcpy(output_buffer, "OK");
-			break;
 
 			/*
 			 * Clear breakpoint
 			 */
-		case 'z':
-			ptr = &input_buffer[1];
+			case 'z':
+				ptr = &input_buffer[1];
 
-			if (!hexToInt(&ptr, &loop) || *ptr++ != ',' ||
-			    !hexToInt(&ptr, &addr) || *ptr++ != ',' ||
-			    !hexToInt(&ptr, &length)
-			    ) {
-				gdbstub_strcpy(output_buffer, "E01");
+				if (!hexToInt(&ptr, &loop) || *ptr++ != ',' ||
+					!hexToInt(&ptr, &addr) || *ptr++ != ',' ||
+					!hexToInt(&ptr, &length)
+				   )
+				{
+					gdbstub_strcpy(output_buffer, "E01");
+					break;
+				}
+
+				/* only support software breakpoints */
+				gdbstub_strcpy(output_buffer, "E03");
+
+				if (loop != 0 ||
+					length < 1 ||
+					length > 7 ||
+					(unsigned long) addr < 4096)
+				{
+					break;
+				}
+
+				if (gdbstub_clear_breakpoint((u8 *) addr, length) < 0)
+				{
+					break;
+				}
+
+				gdbstub_strcpy(output_buffer, "OK");
 				break;
-			}
 
-			/* only support software breakpoints */
-			gdbstub_strcpy(output_buffer, "E03");
-			if (loop != 0 ||
-			    length < 1 ||
-			    length > 7 ||
-			    (unsigned long) addr < 4096)
+			default:
+				gdbstub_proto("### GDB Unsupported Cmd '%s'\n",
+							  input_buffer);
 				break;
-
-			if (gdbstub_clear_breakpoint((u8 *) addr, length) < 0)
-				break;
-
-			gdbstub_strcpy(output_buffer, "OK");
-			break;
-
-		default:
-			gdbstub_proto("### GDB Unsupported Cmd '%s'\n",
-				      input_buffer);
-			break;
 		}
 
 		/* reply to the request */
@@ -1655,6 +2018,7 @@ packet_waiting:
 	}
 
 done:
+
 	/*
 	 * Need to flush the instruction cache here, as we may
 	 * have deposited a breakpoint, and the icache probably
@@ -1664,12 +2028,17 @@ done:
 	 * NB: We flush both caches, just to be sure...
 	 */
 	if (gdbstub_flush_caches)
+	{
 		debugger_local_cache_flushinv();
+	}
 
 	gdbstub_load_fpu();
 	mn10300_set_gdbleds(0);
+
 	if (excep == EXCEP_NMI)
+	{
 		NMICR = NMICR_NMIF;
+	}
 
 	touch_softlockup_watchdog();
 
@@ -1690,16 +2059,20 @@ int at_debugger_breakpoint(struct pt_regs *regs)
  * handle event interception
  */
 asmlinkage int debugger_intercept(enum exception_code excep,
-				  int signo, int si_code, struct pt_regs *regs)
+								  int signo, int si_code, struct pt_regs *regs)
 {
 	static u8 notfirst = 1;
 	int ret;
 
 	if (gdbstub_busy)
+	{
 		gdbstub_printk("--> gdbstub reentered itself\n");
+	}
+
 	gdbstub_busy = 1;
 
-	if (notfirst) {
+	if (notfirst)
+	{
 		unsigned long mdr;
 		asm("mov mdr,%0" : "=d"(mdr));
 
@@ -1732,7 +2105,9 @@ asmlinkage int debugger_intercept(enum exception_code excep,
 		gdbstub_entry(
 			"threadinfo=%p task=%p)\n",
 			current_thread_info(), current);
-	} else {
+	}
+	else
+	{
 		notfirst = 1;
 	}
 
@@ -1747,43 +2122,49 @@ asmlinkage int debugger_intercept(enum exception_code excep,
  * handle the GDB stub itself causing an exception
  */
 asmlinkage void gdbstub_exception(struct pt_regs *regs,
-				  enum exception_code excep)
+								  enum exception_code excep)
 {
 	unsigned long mdr;
 
 	asm("mov mdr,%0" : "=d"(mdr));
 	gdbstub_entry("--> gdbstub exception({%p},%04x) [MDR=%lx]\n",
-		      regs, excep, mdr);
+				  regs, excep, mdr);
 
 	while ((unsigned long) regs == 0xffffffff) {}
 
 	/* handle guarded memory accesses where we know it might fault */
-	if (regs->pc == (unsigned) gdbstub_read_byte_guard) {
+	if (regs->pc == (unsigned) gdbstub_read_byte_guard)
+	{
 		regs->pc = (unsigned) gdbstub_read_byte_cont;
 		goto fault;
 	}
 
-	if (regs->pc == (unsigned) gdbstub_read_word_guard) {
+	if (regs->pc == (unsigned) gdbstub_read_word_guard)
+	{
 		regs->pc = (unsigned) gdbstub_read_word_cont;
 		goto fault;
 	}
 
-	if (regs->pc == (unsigned) gdbstub_read_dword_guard) {
+	if (regs->pc == (unsigned) gdbstub_read_dword_guard)
+	{
 		regs->pc = (unsigned) gdbstub_read_dword_cont;
 		goto fault;
 	}
 
-	if (regs->pc == (unsigned) gdbstub_write_byte_guard) {
+	if (regs->pc == (unsigned) gdbstub_write_byte_guard)
+	{
 		regs->pc = (unsigned) gdbstub_write_byte_cont;
 		goto fault;
 	}
 
-	if (regs->pc == (unsigned) gdbstub_write_word_guard) {
+	if (regs->pc == (unsigned) gdbstub_write_word_guard)
+	{
 		regs->pc = (unsigned) gdbstub_write_word_cont;
 		goto fault;
 	}
 
-	if (regs->pc == (unsigned) gdbstub_write_dword_guard) {
+	if (regs->pc == (unsigned) gdbstub_write_dword_guard)
+	{
 		regs->pc = (unsigned) gdbstub_write_dword_cont;
 		goto fault;
 	}
@@ -1822,7 +2203,8 @@ void gdbstub_exit(int status)
 	checksum = 0;
 	count = 0;
 
-	while ((ch = output_buffer[count]) != 0) {
+	while ((ch = output_buffer[count]) != 0)
+	{
 		gdbstub_io_tx_char(ch);
 		checksum += ch;
 		count += 1;
@@ -1867,12 +2249,19 @@ asmlinkage void __init gdbstub_init(void)
 	/* in case GDB is started before us, ACK any packets that are already
 	 * sitting there (presumably "$?#xx")
 	 */
-	do { gdbstub_io_rx_char(&ch, 0); } while (ch != '$');
-	do { gdbstub_io_rx_char(&ch, 0); } while (ch != '#');
+	do { gdbstub_io_rx_char(&ch, 0); }
+	while (ch != '$');
+
+	do { gdbstub_io_rx_char(&ch, 0); }
+	while (ch != '#');
+
 	/* eat first csum byte */
-	do { ret = gdbstub_io_rx_char(&ch, 0); } while (ret != 0);
+	do { ret = gdbstub_io_rx_char(&ch, 0); }
+	while (ret != 0);
+
 	/* eat second csum byte */
-	do { ret = gdbstub_io_rx_char(&ch, 0); } while (ret != 0);
+	do { ret = gdbstub_io_rx_char(&ch, 0); }
+	while (ret != 0);
 
 	gdbstub_io("### GDB Tx NAK\n");
 	gdbstub_io_tx_char('-'); /* NAK it */
@@ -1910,14 +2299,21 @@ asmlinkage void gdbstub_rx_irq(struct pt_regs *regs, enum exception_code excep)
 
 	gdbstub_entry("--> gdbstub_rx_irq\n");
 
-	do {
+	do
+	{
 		ret = gdbstub_io_rx_char(&ch, 1);
-		if (ret != -EIO && ret != -EAGAIN) {
+
+		if (ret != -EIO && ret != -EAGAIN)
+		{
 			if (ret != -EINTR)
+			{
 				gdbstub_rx_unget = ch;
+			}
+
 			gdbstub(regs, excep);
 		}
-	} while (ret != -EAGAIN);
+	}
+	while (ret != -EAGAIN);
 
 	gdbstub_entry("<-- gdbstub_rx_irq\n");
 }

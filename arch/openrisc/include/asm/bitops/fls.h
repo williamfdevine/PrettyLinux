@@ -20,8 +20,8 @@ static inline int fls(int x)
 	int ret;
 
 	__asm__ ("l.fl1 %0,%1"
-		 : "=r" (ret)
-		 : "r" (x));
+			 : "=r" (ret)
+			 : "r" (x));
 
 	return ret;
 }

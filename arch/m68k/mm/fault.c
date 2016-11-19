@@ -26,14 +26,19 @@ int send_fault_sig(struct pt_regs *regs)
 	siginfo.si_code = current->thread.code;
 	siginfo.si_addr = (void *)current->thread.faddr;
 	pr_debug("send_fault_sig: %p,%d,%d\n", siginfo.si_addr,
-		 siginfo.si_signo, siginfo.si_code);
+			 siginfo.si_signo, siginfo.si_code);
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		force_sig_info(siginfo.si_signo,
-			       &siginfo, current);
-	} else {
+					   &siginfo, current);
+	}
+	else
+	{
 		if (handle_kernel_fault(regs))
+		{
 			return -1;
+		}
 
 		//if (siginfo.si_signo == SIGBUS)
 		//	force_sig_info(siginfo.si_signo,
@@ -44,9 +49,14 @@ int send_fault_sig(struct pt_regs *regs)
 		 * terminate things with extreme prejudice.
 		 */
 		if ((unsigned long)siginfo.si_addr < PAGE_SIZE)
+		{
 			pr_alert("Unable to handle kernel NULL pointer dereference");
+		}
 		else
+		{
 			pr_alert("Unable to handle kernel access");
+		}
+
 		pr_cont(" at virtual address %p\n", siginfo.si_addr);
 		die_if_kernel("Oops", regs, 0 /*error_code*/);
 		do_exit(SIGKILL);
@@ -67,67 +77,101 @@ int send_fault_sig(struct pt_regs *regs)
  * returns 0.
  */
 int do_page_fault(struct pt_regs *regs, unsigned long address,
-			      unsigned long error_code)
+				  unsigned long error_code)
 {
 	struct mm_struct *mm = current->mm;
-	struct vm_area_struct * vma;
+	struct vm_area_struct *vma;
 	int fault;
 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
 
 	pr_debug("do page fault:\nregs->sr=%#x, regs->pc=%#lx, address=%#lx, %ld, %p\n",
-		regs->sr, regs->pc, address, error_code, mm ? mm->pgd : NULL);
+			 regs->sr, regs->pc, address, error_code, mm ? mm->pgd : NULL);
 
 	/*
 	 * If we're in an interrupt or have no user
 	 * context, we must not take the fault..
 	 */
 	if (faulthandler_disabled() || !mm)
+	{
 		goto no_context;
+	}
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 retry:
 	down_read(&mm->mmap_sem);
 
 	vma = find_vma(mm, address);
+
 	if (!vma)
+	{
 		goto map_err;
+	}
+
 	if (vma->vm_flags & VM_IO)
+	{
 		goto acc_err;
+	}
+
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
+
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto map_err;
-	if (user_mode(regs)) {
+	}
+
+	if (user_mode(regs))
+	{
 		/* Accessing the stack below usp is always a bug.  The
 		   "+ 256" is there due to some instructions doing
 		   pre-decrement on the stack and that doesn't show up
 		   until later.  */
 		if (address + 256 < rdusp())
+		{
 			goto map_err;
+		}
 	}
-	if (expand_stack(vma, address))
-		goto map_err;
 
-/*
- * Ok, we have a good vm_area for this memory access, so
- * we can handle it..
- */
+	if (expand_stack(vma, address))
+	{
+		goto map_err;
+	}
+
+	/*
+	 * Ok, we have a good vm_area for this memory access, so
+	 * we can handle it..
+	 */
 good_area:
 	pr_debug("do_page_fault: good_area\n");
-	switch (error_code & 3) {
+
+	switch (error_code & 3)
+	{
 		default:	/* 3: write, present */
-			/* fall through */
+
+		/* fall through */
 		case 2:		/* write, not present */
 			if (!(vma->vm_flags & VM_WRITE))
+			{
 				goto acc_err;
+			}
+
 			flags |= FAULT_FLAG_WRITE;
 			break;
+
 		case 1:		/* read, present */
 			goto acc_err;
+
 		case 0:		/* read, not present */
 			if (!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)))
+			{
 				goto acc_err;
+			}
 	}
 
 	/*
@@ -140,15 +184,25 @@ good_area:
 	pr_debug("handle_mm_fault returns %d\n", fault);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return 0;
+	}
 
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto map_err;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto bus_err;
+		}
+
 		BUG();
 	}
 
@@ -157,12 +211,19 @@ good_area:
 	 * initial attempt. If we go through a retry, it is extremely
 	 * likely that the page will be found in page cache at that point.
 	 */
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
 		if (fault & VM_FAULT_MAJOR)
+		{
 			current->maj_flt++;
+		}
 		else
+		{
 			current->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			/* Clear FAULT_FLAG_ALLOW_RETRY to avoid any risk
 			 * of starvation. */
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
@@ -181,14 +242,18 @@ good_area:
 	up_read(&mm->mmap_sem);
 	return 0;
 
-/*
- * We ran out of memory, or some other thing happened to us that made
- * us unable to handle the page fault gracefully.
- */
+	/*
+	 * We ran out of memory, or some other thing happened to us that made
+	 * us unable to handle the page fault gracefully.
+	 */
 out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return 0;
 

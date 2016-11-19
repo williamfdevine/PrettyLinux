@@ -18,9 +18,9 @@
  * This does not affect luserland.
  */
 #if (defined(CONFIG_CPU_R5000) || defined(CONFIG_CPU_NEVADA)) && defined(CONFIG_64BIT)
-#define cpu_has_llsc		0
+	#define cpu_has_llsc		0
 #else
-#define cpu_has_llsc		1
+	#define cpu_has_llsc		1
 #endif
 
 /* Settings which are common for all ip32 CPUs */

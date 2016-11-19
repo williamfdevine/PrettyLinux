@@ -28,7 +28,8 @@
  * SBUS interrupts are encodes as a combination of board, level and slot.
  */
 
-struct sun4d_handler_data {
+struct sun4d_handler_data
+{
 	unsigned int cpuid;    /* target cpu */
 	unsigned int real_irq; /* interrupt level */
 };
@@ -39,7 +40,8 @@ static unsigned int sun4d_encode_irq(int board, int lvl, int slot)
 	return (board + 1) << 5 | (lvl << 2) | slot;
 }
 
-struct sun4d_timer_regs {
+struct sun4d_timer_regs
+{
 	u32	l10_timer_limit;
 	u32	l10_cur_countx;
 	u32	l10_limit_noclear;
@@ -56,7 +58,8 @@ static struct sun4d_timer_regs __iomem *sun4d_timers;
  */
 static unsigned char board_to_cpu[32];
 
-static int pil_to_sbus[] = {
+static int pil_to_sbus[] =
+{
 	0,
 	0,
 	1,
@@ -104,12 +107,17 @@ static void sun4d_sbus_handler_irq(int sbusl)
 	bw_clear_intr_mask(sbusl, bus_mask);
 
 	sbil = (sbusl << 2);
+
 	/* Loop for each pending SBI */
-	for (sbino = 0; bus_mask; sbino++, bus_mask >>= 1) {
+	for (sbino = 0; bus_mask; sbino++, bus_mask >>= 1)
+	{
 		unsigned int idx, mask;
 
 		if (!(bus_mask & 1))
+		{
 			continue;
+		}
+
 		/* XXX This seems to ACK the irq twice.  acquire_sbi()
 		 * XXX uses swap, therefore this writes 0xf << sbil,
 		 * XXX then later release_sbi() will write the individual
@@ -120,24 +128,31 @@ static void sun4d_sbus_handler_irq(int sbusl)
 
 		/* Loop for each pending SBI slot */
 		slot = (1 << sbil);
-		for (idx = 0; mask != 0; idx++, slot <<= 1) {
+
+		for (idx = 0; mask != 0; idx++, slot <<= 1)
+		{
 			unsigned int pil;
 			struct irq_bucket *p;
 
 			if (!(mask & slot))
+			{
 				continue;
+			}
 
 			mask &= ~slot;
 			pil = sun4d_encode_irq(sbino, sbusl, idx);
 
 			p = irq_map[pil];
-			while (p) {
+
+			while (p)
+			{
 				struct irq_bucket *next;
 
 				next = p->next;
 				generic_handle_irq(p->irq);
 				p = next;
 			}
+
 			release_sbi(SBI2DEVID(sbino), slot);
 		}
 	}
@@ -155,32 +170,43 @@ void sun4d_handler_irq(unsigned int pil, struct pt_regs *regs)
 	cc_set_iclr(1 << pil);
 
 #ifdef CONFIG_SMP
+
 	/*
 	 * Check IPI data structures after IRQ has been cleared. Hard and Soft
 	 * IRQ can happen at the same time, so both cases are always handled.
 	 */
 	if (pil == SUN4D_IPI_IRQ)
+	{
 		sun4d_ipi_interrupt();
+	}
+
 #endif
 
 	old_regs = set_irq_regs(regs);
 	irq_enter();
-	if (sbusl == 0) {
+
+	if (sbusl == 0)
+	{
 		/* cpu interrupt */
 		struct irq_bucket *p;
 
 		p = irq_map[pil];
-		while (p) {
+
+		while (p)
+		{
 			struct irq_bucket *next;
 
 			next = p->next;
 			generic_handle_irq(p->irq);
 			p = next;
 		}
-	} else {
+	}
+	else
+	{
 		/* SBUS interrupt */
 		sun4d_sbus_handler_irq(sbusl);
 	}
+
 	irq_exit();
 	set_irq_regs(old_regs);
 }
@@ -236,7 +262,8 @@ static void sun4d_shutdown_irq(struct irq_data *data)
 	irq_unlink(data->irq);
 }
 
-static struct irq_chip sun4d_irq = {
+static struct irq_chip sun4d_irq =
+{
 	.name		= "sun4d",
 	.irq_startup	= sun4d_startup_irq,
 	.irq_shutdown	= sun4d_shutdown_irq,
@@ -253,8 +280,12 @@ void __init sun4d_distribute_irqs(void)
 	int cpuid = cpu_logical_map(1);
 
 	if (cpuid == -1)
+	{
 		cpuid = cpu_logical_map(0);
-	for_each_node_by_name(dp, "sbi") {
+	}
+
+	for_each_node_by_name(dp, "sbi")
+	{
 		int devid = of_getintprop_default(dp, "device-id", 0);
 		int board = of_getintprop_default(dp, "board#", 0);
 		board_to_cpu[board] = cpuid;
@@ -279,39 +310,48 @@ static void __init sun4d_load_profile_irqs(void)
 {
 	int cpu = 0, mid;
 
-	while (!cpu_find_by_instance(cpu, NULL, &mid)) {
+	while (!cpu_find_by_instance(cpu, NULL, &mid))
+	{
 		sun4d_load_profile_irq(mid >> 3, 0);
 		cpu++;
 	}
 }
 
 static unsigned int _sun4d_build_device_irq(unsigned int real_irq,
-                                            unsigned int pil,
-                                            unsigned int board)
+		unsigned int pil,
+		unsigned int board)
 {
 	struct sun4d_handler_data *handler_data;
 	unsigned int irq;
 
 	irq = irq_alloc(real_irq, pil);
-	if (irq == 0) {
+
+	if (irq == 0)
+	{
 		prom_printf("IRQ: allocate for %d %d %d failed\n",
-			real_irq, pil, board);
+					real_irq, pil, board);
 		goto err_out;
 	}
 
 	handler_data = irq_get_handler_data(irq);
+
 	if (unlikely(handler_data))
+	{
 		goto err_out;
+	}
 
 	handler_data = kzalloc(sizeof(struct sun4d_handler_data), GFP_ATOMIC);
-	if (unlikely(!handler_data)) {
+
+	if (unlikely(!handler_data))
+	{
 		prom_printf("IRQ: kzalloc(sun4d_handler_data) failed.\n");
 		prom_halt();
 	}
+
 	handler_data->cpuid    = board_to_cpu[board];
 	handler_data->real_irq = real_irq;
 	irq_set_chip_and_handler_name(irq, &sun4d_irq,
-	                              handle_level_irq, "level");
+								  handle_level_irq, "level");
 	irq_set_handler_data(irq, handler_data);
 
 err_out:
@@ -321,7 +361,7 @@ err_out:
 
 
 static unsigned int sun4d_build_device_irq(struct platform_device *op,
-                                           unsigned int real_irq)
+		unsigned int real_irq)
 {
 	struct device_node *dp = op->dev.of_node;
 	struct device_node *board_parent, *bus = dp->parent;
@@ -333,25 +373,35 @@ static unsigned int sun4d_build_device_irq(struct platform_device *op,
 	int sbusl;
 
 	irq = real_irq;
-	while (bus) {
-		if (!strcmp(bus->name, "sbi")) {
+
+	while (bus)
+	{
+		if (!strcmp(bus->name, "sbi"))
+		{
 			bus_connection = "io-unit";
 			break;
 		}
 
-		if (!strcmp(bus->name, "bootbus")) {
+		if (!strcmp(bus->name, "bootbus"))
+		{
 			bus_connection = "cpu-unit";
 			break;
 		}
 
 		bus = bus->parent;
 	}
+
 	if (!bus)
+	{
 		goto err_out;
+	}
 
 	regs = of_get_property(dp, "reg", NULL);
+
 	if (!regs)
+	{
 		goto err_out;
+	}
 
 	slot = regs->which_io;
 
@@ -359,24 +409,33 @@ static unsigned int sun4d_build_device_irq(struct platform_device *op,
 	 * If Bus nodes parent is not io-unit/cpu-unit or the io-unit/cpu-unit
 	 * lacks a "board#" property, something is very wrong.
 	 */
-	if (!bus->parent || strcmp(bus->parent->name, bus_connection)) {
+	if (!bus->parent || strcmp(bus->parent->name, bus_connection))
+	{
 		printk(KERN_ERR "%s: Error, parent is not %s.\n",
-			bus->full_name, bus_connection);
+			   bus->full_name, bus_connection);
 		goto err_out;
 	}
+
 	board_parent = bus->parent;
 	board = of_getintprop_default(board_parent, "board#", -1);
-	if (board == -1) {
+
+	if (board == -1)
+	{
 		printk(KERN_ERR "%s: Error, lacks board# property.\n",
-			board_parent->full_name);
+			   board_parent->full_name);
 		goto err_out;
 	}
 
 	sbusl = pil_to_sbus[real_irq];
+
 	if (sbusl)
+	{
 		pil = sun4d_encode_irq(board, sbusl, slot);
+	}
 	else
+	{
 		pil = real_irq;
+	}
 
 	irq = _sun4d_build_device_irq(real_irq, pil, board);
 err_out:
@@ -384,7 +443,7 @@ err_out:
 }
 
 static unsigned int sun4d_build_timer_irq(unsigned int board,
-                                          unsigned int real_irq)
+		unsigned int real_irq)
 {
 	return _sun4d_build_device_irq(real_irq, real_irq, board);
 }
@@ -424,7 +483,9 @@ static void __init sun4d_init_timers(void)
 	int board;
 
 	dp = of_find_node_by_name(NULL, "cpu-unit");
-	if (!dp) {
+
+	if (!dp)
+	{
 		prom_printf("sun4d_init_timers: Unable to find cpu-unit\n");
 		prom_halt();
 	}
@@ -434,13 +495,17 @@ static void __init sun4d_init_timers(void)
 	 * bootbus.
 	 */
 	reg = of_get_property(dp, "reg", NULL);
-	if (!reg) {
+
+	if (!reg)
+	{
 		prom_printf("sun4d_init_timers: No reg property\n");
 		prom_halt();
 	}
 
 	board = of_getintprop_default(dp, "board#", -1);
-	if (board == -1) {
+
+	if (board == -1)
+	{
 		prom_printf("sun4d_init_timers: No board# property on cpu-unit\n");
 		prom_halt();
 	}
@@ -451,8 +516,10 @@ static void __init sun4d_init_timers(void)
 	res.end = reg[2] - 1;
 	res.flags = reg[0] & 0xff;
 	sun4d_timers = of_ioremap(&res, BW_TIMER_LIMIT,
-				  sizeof(struct sun4d_timer_regs), "user timer");
-	if (!sun4d_timers) {
+							  sizeof(struct sun4d_timer_regs), "user timer");
+
+	if (!sun4d_timers)
+	{
 		prom_printf("sun4d_init_timers: Can't map timer regs\n");
 		prom_halt();
 	}
@@ -465,17 +532,20 @@ static void __init sun4d_init_timers(void)
 #endif
 	sparc_config.features |= FEAT_L10_CLOCKSOURCE;
 	sbus_writel(timer_value(sparc_config.cs_period),
-		    &sun4d_timers->l10_timer_limit);
+				&sun4d_timers->l10_timer_limit);
 
 	master_l10_counter = &sun4d_timers->l10_cur_count;
 
 	irq = sun4d_build_timer_irq(board, SUN4D_TIMER_IRQ);
 	err = request_irq(irq, timer_interrupt, IRQF_TIMER, "timer", NULL);
-	if (err) {
+
+	if (err)
+	{
 		prom_printf("sun4d_init_timers: request_irq() failed with %d\n",
-		             err);
+					err);
 		prom_halt();
 	}
+
 	sun4d_load_profile_irqs();
 	sun4d_fixup_trap_table();
 }
@@ -486,7 +556,8 @@ void __init sun4d_init_sbi_irq(void)
 	int target_cpu;
 
 	target_cpu = boot_cpu_id;
-	for_each_node_by_name(dp, "sbi") {
+	for_each_node_by_name(dp, "sbi")
+	{
 		int devid = of_getintprop_default(dp, "device-id", 0);
 		int board = of_getintprop_default(dp, "board#", 0);
 		unsigned int mask;
@@ -496,9 +567,11 @@ void __init sun4d_init_sbi_irq(void)
 
 		/* Get rid of pending irqs from PROM */
 		mask = acquire_sbi(devid, 0xffffffff);
-		if (mask) {
+
+		if (mask)
+		{
 			printk(KERN_ERR "Clearing pending IRQs %08x on SBI %d\n",
-			       mask, board);
+				   mask, board);
 			release_sbi(devid, mask);
 		}
 	}

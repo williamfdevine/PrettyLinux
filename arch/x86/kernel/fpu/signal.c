@@ -20,22 +20,26 @@ static struct _fpx_sw_bytes fx_sw_reserved, fx_sw_reserved_ia32;
  * user fpstate pointer in the sigcontext.
  */
 static inline int check_for_xstate(struct fxregs_state __user *buf,
-				   void __user *fpstate,
-				   struct _fpx_sw_bytes *fx_sw)
+								   void __user *fpstate,
+								   struct _fpx_sw_bytes *fx_sw)
 {
 	int min_xstate_size = sizeof(struct fxregs_state) +
-			      sizeof(struct xstate_header);
+						  sizeof(struct xstate_header);
 	unsigned int magic2;
 
 	if (__copy_from_user(fx_sw, &buf->sw_reserved[0], sizeof(*fx_sw)))
+	{
 		return -1;
+	}
 
 	/* Check for the first magic field and other error scenarios. */
 	if (fx_sw->magic1 != FP_XSTATE_MAGIC1 ||
-	    fx_sw->xstate_size < min_xstate_size ||
-	    fx_sw->xstate_size > fpu_user_xstate_size ||
-	    fx_sw->xstate_size > fx_sw->extended_size)
+		fx_sw->xstate_size < min_xstate_size ||
+		fx_sw->xstate_size > fpu_user_xstate_size ||
+		fx_sw->xstate_size > fx_sw->extended_size)
+	{
 		return -1;
+	}
 
 	/*
 	 * Check for the presence of second magic word at the end of memory
@@ -44,8 +48,10 @@ static inline int check_for_xstate(struct fxregs_state __user *buf,
 	 * in the memory layout.
 	 */
 	if (__get_user(magic2, (__u32 __user *)(fpstate + fx_sw->xstate_size))
-	    || magic2 != FP_XSTATE_MAGIC2)
+		|| magic2 != FP_XSTATE_MAGIC2)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -55,7 +61,8 @@ static inline int check_for_xstate(struct fxregs_state __user *buf,
  */
 static inline int save_fsave_header(struct task_struct *tsk, void __user *buf)
 {
-	if (use_fxsr()) {
+	if (use_fxsr())
+	{
 		struct xregs_state *xsave = &tsk->thread.fpu.state.xsave;
 		struct user_i387_ia32_struct env;
 		struct _fpstate_32 __user *fp = buf;
@@ -63,14 +70,21 @@ static inline int save_fsave_header(struct task_struct *tsk, void __user *buf)
 		convert_from_fxsr(&env, tsk);
 
 		if (__copy_to_user(buf, &env, sizeof(env)) ||
-		    __put_user(xsave->i387.swd, &fp->status) ||
-		    __put_user(X86_FXSR_MAGIC, &fp->magic))
+			__put_user(xsave->i387.swd, &fp->status) ||
+			__put_user(X86_FXSR_MAGIC, &fp->magic))
+		{
 			return -1;
-	} else {
+		}
+	}
+	else
+	{
 		struct fregs_state __user *fp = buf;
 		u32 swd;
+
 		if (__get_user(swd, &fp->swd) || __put_user(swd, &fp->status))
+		{
 			return -1;
+		}
 	}
 
 	return 0;
@@ -88,10 +102,12 @@ static inline int save_xstate_epilog(void __user *buf, int ia32_frame)
 	err = __copy_to_user(&x->i387.sw_reserved, sw_bytes, sizeof(*sw_bytes));
 
 	if (!use_xsave())
+	{
 		return err;
+	}
 
 	err |= __put_user(FP_XSTATE_MAGIC2,
-			  (__u32 *)(buf + fpu_user_xstate_size));
+					  (__u32 *)(buf + fpu_user_xstate_size));
 
 	/*
 	 * Read the xfeatures which we copied (directly from the cpu or
@@ -122,14 +138,23 @@ static inline int copy_fpregs_to_sigframe(struct xregs_state __user *buf)
 	int err;
 
 	if (use_xsave())
+	{
 		err = copy_xregs_to_user(buf);
+	}
 	else if (use_fxsr())
+	{
 		err = copy_fxregs_to_user((struct fxregs_state __user *) buf);
+	}
 	else
+	{
 		err = copy_fregs_to_user((struct fregs_state __user *) buf);
+	}
 
 	if (unlikely(err) && __clear_user(buf, fpu_user_xstate_size))
+	{
 		err = -EFAULT;
+	}
+
 	return err;
 }
 
@@ -160,59 +185,78 @@ int copy_fpstate_to_sigframe(void __user *buf, void __user *buf_fx, int size)
 	int ia32_fxstate = (buf != buf_fx);
 
 	ia32_fxstate &= (IS_ENABLED(CONFIG_X86_32) ||
-			 IS_ENABLED(CONFIG_IA32_EMULATION));
+					 IS_ENABLED(CONFIG_IA32_EMULATION));
 
 	if (!access_ok(VERIFY_WRITE, buf, size))
+	{
 		return -EACCES;
+	}
 
 	if (!static_cpu_has(X86_FEATURE_FPU))
 		return fpregs_soft_get(current, NULL, 0,
-			sizeof(struct user_i387_ia32_struct), NULL,
-			(struct _fpstate_32 __user *) buf) ? -1 : 1;
+							   sizeof(struct user_i387_ia32_struct), NULL,
+							   (struct _fpstate_32 __user *) buf) ? -1 : 1;
 
-	if (fpregs_active() || using_compacted_format()) {
+	if (fpregs_active() || using_compacted_format())
+	{
 		/* Save the live register state to the user directly. */
 		if (copy_fpregs_to_sigframe(buf_fx))
+		{
 			return -1;
+		}
+
 		/* Update the thread's fxstate to save the fsave header. */
 		if (ia32_fxstate)
+		{
 			copy_fxregs_to_kernel(&tsk->thread.fpu);
-	} else {
+		}
+	}
+	else
+	{
 		/*
 		 * It is a *bug* if kernel uses compacted-format for xsave
 		 * area and we copy it out directly to a signal frame. It
 		 * should have been handled above by saving the registers
 		 * directly.
 		 */
-		if (boot_cpu_has(X86_FEATURE_XSAVES)) {
+		if (boot_cpu_has(X86_FEATURE_XSAVES))
+		{
 			WARN_ONCE(1, "x86/fpu: saving compacted-format xsave area to a signal frame!\n");
 			return -1;
 		}
 
 		fpstate_sanitize_xstate(&tsk->thread.fpu);
+
 		if (__copy_to_user(buf_fx, xsave, fpu_user_xstate_size))
+		{
 			return -1;
+		}
 	}
 
 	/* Save the fsave header for the 32-bit frames. */
 	if ((ia32_fxstate || !use_fxsr()) && save_fsave_header(tsk, buf))
+	{
 		return -1;
+	}
 
 	if (use_fxsr() && save_xstate_epilog(buf_fx, ia32_fxstate))
+	{
 		return -1;
+	}
 
 	return 0;
 }
 
 static inline void
 sanitize_restored_xstate(struct task_struct *tsk,
-			 struct user_i387_ia32_struct *ia32_env,
-			 u64 xfeatures, int fx_only)
+						 struct user_i387_ia32_struct *ia32_env,
+						 u64 xfeatures, int fx_only)
 {
 	struct xregs_state *xsave = &tsk->thread.fpu.state.xsave;
 	struct xstate_header *header = &xsave->header;
 
-	if (use_xsave()) {
+	if (use_xsave())
+	{
 		/* These bits must be zero. */
 		memset(header->reserved, 0, 48);
 
@@ -221,12 +265,17 @@ sanitize_restored_xstate(struct task_struct *tsk,
 		 * layout and not enabled by the OS.
 		 */
 		if (fx_only)
+		{
 			header->xfeatures = XFEATURE_MASK_FPSSE;
+		}
 		else
+		{
 			header->xfeatures &= (xfeatures_mask & xfeatures);
+		}
 	}
 
-	if (use_fxsr()) {
+	if (use_fxsr())
+	{
 		/*
 		 * mscsr reserved bits must be masked to zero for security
 		 * reasons.
@@ -242,21 +291,34 @@ sanitize_restored_xstate(struct task_struct *tsk,
  */
 static inline int copy_user_to_fpregs_zeroing(void __user *buf, u64 xbv, int fx_only)
 {
-	if (use_xsave()) {
-		if ((unsigned long)buf % 64 || fx_only) {
+	if (use_xsave())
+	{
+		if ((unsigned long)buf % 64 || fx_only)
+		{
 			u64 init_bv = xfeatures_mask & ~XFEATURE_MASK_FPSSE;
 			copy_kernel_to_xregs(&init_fpstate.xsave, init_bv);
 			return copy_user_to_fxregs(buf);
-		} else {
+		}
+		else
+		{
 			u64 init_bv = xfeatures_mask & ~xbv;
+
 			if (unlikely(init_bv))
+			{
 				copy_kernel_to_xregs(&init_fpstate.xsave, init_bv);
+			}
+
 			return copy_user_to_xregs(buf, xbv);
 		}
-	} else if (use_fxsr()) {
+	}
+	else if (use_fxsr())
+	{
 		return copy_user_to_fxregs(buf);
-	} else
+	}
+	else
+	{
 		return copy_user_to_fregs(buf);
+	}
 }
 
 static int __fpu__restore_sig(void __user *buf, void __user *buf_fx, int size)
@@ -269,26 +331,32 @@ static int __fpu__restore_sig(void __user *buf, void __user *buf_fx, int size)
 	int fx_only = 0;
 
 	ia32_fxstate &= (IS_ENABLED(CONFIG_X86_32) ||
-			 IS_ENABLED(CONFIG_IA32_EMULATION));
+					 IS_ENABLED(CONFIG_IA32_EMULATION));
 
-	if (!buf) {
+	if (!buf)
+	{
 		fpu__clear(fpu);
 		return 0;
 	}
 
 	if (!access_ok(VERIFY_READ, buf, size))
+	{
 		return -EACCES;
+	}
 
 	fpu__activate_curr(fpu);
 
 	if (!static_cpu_has(X86_FEATURE_FPU))
 		return fpregs_soft_set(current, NULL,
-				       0, sizeof(struct user_i387_ia32_struct),
-				       NULL, buf) != 0;
+							   0, sizeof(struct user_i387_ia32_struct),
+							   NULL, buf) != 0;
 
-	if (use_xsave()) {
+	if (use_xsave())
+	{
 		struct _fpx_sw_bytes fx_sw_user;
-		if (unlikely(check_for_xstate(buf_fx, buf_fx, &fx_sw_user))) {
+
+		if (unlikely(check_for_xstate(buf_fx, buf_fx, &fx_sw_user)))
+		{
 			/*
 			 * Couldn't find the extended state information in the
 			 * memory layout. Restore just the FP/SSE and init all
@@ -297,13 +365,16 @@ static int __fpu__restore_sig(void __user *buf, void __user *buf_fx, int size)
 			state_size = sizeof(struct fxregs_state);
 			fx_only = 1;
 			trace_x86_fpu_xstate_check_failed(fpu);
-		} else {
+		}
+		else
+		{
 			state_size = fx_sw_user.xstate_size;
 			xfeatures = fx_sw_user.xfeatures;
 		}
 	}
 
-	if (ia32_fxstate) {
+	if (ia32_fxstate)
+	{
 		/*
 		 * For 32-bit frames with fxstate, copy the user state to the
 		 * thread's fpu state, reconstruct fxstate from the fsave
@@ -323,37 +394,49 @@ static int __fpu__restore_sig(void __user *buf, void __user *buf_fx, int size)
 		 */
 		fpu__drop(fpu);
 
-		if (using_compacted_format()) {
+		if (using_compacted_format())
+		{
 			err = copyin_to_xsaves(NULL, buf_fx,
-					       &fpu->state.xsave);
-		} else {
+								   &fpu->state.xsave);
+		}
+		else
+		{
 			err = __copy_from_user(&fpu->state.xsave,
-					       buf_fx, state_size);
+								   buf_fx, state_size);
 		}
 
-		if (err || __copy_from_user(&env, buf, sizeof(env))) {
+		if (err || __copy_from_user(&env, buf, sizeof(env)))
+		{
 			fpstate_init(&fpu->state);
 			trace_x86_fpu_init_state(fpu);
 			err = -1;
-		} else {
+		}
+		else
+		{
 			sanitize_restored_xstate(tsk, &env, xfeatures, fx_only);
 		}
 
 		fpu->fpstate_active = 1;
-		if (use_eager_fpu()) {
+
+		if (use_eager_fpu())
+		{
 			preempt_disable();
 			fpu__restore(fpu);
 			preempt_enable();
 		}
 
 		return err;
-	} else {
+	}
+	else
+	{
 		/*
 		 * For 64-bit frames and 32-bit fsave frames, restore the user
 		 * state to the registers directly (with exceptions handled).
 		 */
 		user_fpu_begin();
-		if (copy_user_to_fpregs_zeroing(buf_fx, xfeatures, fx_only)) {
+
+		if (copy_user_to_fpregs_zeroing(buf_fx, xfeatures, fx_only))
+		{
 			fpu__clear(fpu);
 			return -1;
 		}
@@ -365,7 +448,7 @@ static int __fpu__restore_sig(void __user *buf, void __user *buf_fx, int size)
 static inline int xstate_sigframe_size(void)
 {
 	return use_xsave() ? fpu_user_xstate_size + FP_XSTATE_MAGIC2_SIZE :
-			fpu_user_xstate_size;
+		   fpu_user_xstate_size;
 }
 
 /*
@@ -376,7 +459,8 @@ int fpu__restore_sig(void __user *buf, int ia32_frame)
 	void __user *buf_fx = buf;
 	int size = xstate_sigframe_size();
 
-	if (ia32_frame && use_fxsr()) {
+	if (ia32_frame && use_fxsr())
+	{
 		buf_fx = buf + sizeof(struct fregs_state);
 		size += sizeof(struct fregs_state);
 	}
@@ -386,12 +470,14 @@ int fpu__restore_sig(void __user *buf, int ia32_frame)
 
 unsigned long
 fpu__alloc_mathframe(unsigned long sp, int ia32_frame,
-		     unsigned long *buf_fx, unsigned long *size)
+					 unsigned long *buf_fx, unsigned long *size)
 {
 	unsigned long frame_size = xstate_sigframe_size();
 
 	*buf_fx = sp = round_down(sp - frame_size, 64);
-	if (ia32_frame && use_fxsr()) {
+
+	if (ia32_frame && use_fxsr())
+	{
 		frame_size += sizeof(struct fregs_state);
 		sp -= sizeof(struct fregs_state);
 	}
@@ -417,7 +503,8 @@ void fpu__init_prepare_fx_sw_frame(void)
 	fx_sw_reserved.xstate_size = fpu_user_xstate_size;
 
 	if (IS_ENABLED(CONFIG_IA32_EMULATION) ||
-	    IS_ENABLED(CONFIG_X86_32)) {
+		IS_ENABLED(CONFIG_X86_32))
+	{
 		int fsave_header_size = sizeof(struct fregs_state);
 
 		fx_sw_reserved_ia32 = fx_sw_reserved;

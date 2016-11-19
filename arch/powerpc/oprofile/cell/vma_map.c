@@ -26,7 +26,8 @@
 
 void vma_map_free(struct vma_to_fileoffset_map *map)
 {
-	while (map) {
+	while (map)
+	{
 		struct vma_to_fileoffset_map *next = map->next;
 		kfree(map);
 		map = next;
@@ -35,7 +36,7 @@ void vma_map_free(struct vma_to_fileoffset_map *map)
 
 unsigned int
 vma_map_lookup(struct vma_to_fileoffset_map *map, unsigned int vma,
-	       const struct spu *aSpu, int *grd_val)
+			   const struct spu *aSpu, int *grd_val)
 {
 	/*
 	 * Default the offset to the physical address + a flag value.
@@ -47,16 +48,25 @@ vma_map_lookup(struct vma_to_fileoffset_map *map, unsigned int vma,
 	u32 offset = 0x10000000 + vma;
 	u32 ovly_grd;
 
-	for (; map; map = map->next) {
+	for (; map; map = map->next)
+	{
 		if (vma < map->vma || vma >= map->vma + map->size)
+		{
 			continue;
+		}
 
-		if (map->guard_ptr) {
+		if (map->guard_ptr)
+		{
 			ovly_grd = *(u32 *)(aSpu->local_store + map->guard_ptr);
+
 			if (ovly_grd != map->guard_val)
+			{
 				continue;
+			}
+
 			*grd_val = ovly_grd;
 		}
+
 		offset = vma - map->vma + map->offset;
 		break;
 	}
@@ -66,14 +76,16 @@ vma_map_lookup(struct vma_to_fileoffset_map *map, unsigned int vma,
 
 static struct vma_to_fileoffset_map *
 vma_map_add(struct vma_to_fileoffset_map *map, unsigned int vma,
-	    unsigned int size, unsigned int offset, unsigned int guard_ptr,
-	    unsigned int guard_val)
+			unsigned int size, unsigned int offset, unsigned int guard_ptr,
+			unsigned int guard_val)
 {
 	struct vma_to_fileoffset_map *new =
 		kzalloc(sizeof(struct vma_to_fileoffset_map), GFP_KERNEL);
-	if (!new) {
+
+	if (!new)
+	{
 		printk(KERN_ERR "SPU_PROF: %s, line %d: malloc failed\n",
-		       __func__, __LINE__);
+			   __func__, __LINE__);
 		vma_map_free(map);
 		return NULL;
 	}
@@ -93,9 +105,10 @@ vma_map_add(struct vma_to_fileoffset_map *map, unsigned int vma,
  * A pointer to the first vma_map in the generated list
  * of vma_maps is returned.  */
 struct vma_to_fileoffset_map *create_vma_map(const struct spu *aSpu,
-					     unsigned long __spu_elf_start)
+		unsigned long __spu_elf_start)
 {
-	static const unsigned char expected[EI_PAD] = {
+	static const unsigned char expected[EI_PAD] =
+	{
 		[EI_MAG0] = ELFMAG0,
 		[EI_MAG1] = ELFMAG1,
 		[EI_MAG2] = ELFMAG2,
@@ -130,94 +143,145 @@ struct vma_to_fileoffset_map *create_vma_map(const struct spu *aSpu,
 	/* Get and validate ELF header.	 */
 
 	if (copy_from_user(&ehdr, spu_elf_start, sizeof (ehdr)))
+	{
 		goto fail;
+	}
 
-	if (memcmp(ehdr.e_ident, expected, EI_PAD) != 0) {
+	if (memcmp(ehdr.e_ident, expected, EI_PAD) != 0)
+	{
 		printk(KERN_ERR "SPU_PROF: "
-		       "%s, line %d: Unexpected e_ident parsing SPU ELF\n",
-		       __func__, __LINE__);
+			   "%s, line %d: Unexpected e_ident parsing SPU ELF\n",
+			   __func__, __LINE__);
 		goto fail;
 	}
-	if (ehdr.e_machine != EM_SPU) {
+
+	if (ehdr.e_machine != EM_SPU)
+	{
 		printk(KERN_ERR "SPU_PROF: "
-		       "%s, line %d: Unexpected e_machine parsing SPU ELF\n",
-		       __func__,  __LINE__);
+			   "%s, line %d: Unexpected e_machine parsing SPU ELF\n",
+			   __func__,  __LINE__);
 		goto fail;
 	}
-	if (ehdr.e_type != ET_EXEC) {
+
+	if (ehdr.e_type != ET_EXEC)
+	{
 		printk(KERN_ERR "SPU_PROF: "
-		       "%s, line %d: Unexpected e_type parsing SPU ELF\n",
-		       __func__, __LINE__);
+			   "%s, line %d: Unexpected e_type parsing SPU ELF\n",
+			   __func__, __LINE__);
 		goto fail;
 	}
+
 	phdr_start = spu_elf_start + ehdr.e_phoff;
 	shdr_start = spu_elf_start + ehdr.e_shoff;
 
 	/* Traverse program headers.  */
-	for (i = 0; i < ehdr.e_phnum; i++) {
+	for (i = 0; i < ehdr.e_phnum; i++)
+	{
 		if (copy_from_user(&phdr, phdr_start + i, sizeof(phdr)))
+		{
 			goto fail;
+		}
 
 		if (phdr.p_type != PT_LOAD)
+		{
 			continue;
+		}
+
 		if (phdr.p_flags & (1 << 27))
+		{
 			continue;
+		}
 
 		map = vma_map_add(map, phdr.p_vaddr, phdr.p_memsz,
-				  phdr.p_offset, 0, 0);
+						  phdr.p_offset, 0, 0);
+
 		if (!map)
+		{
 			goto fail;
+		}
 	}
 
 	pr_debug("SPU_PROF: Created non-overlay maps\n");
+
 	/* Traverse section table and search for overlay-related symbols.  */
-	for (i = 0; i < ehdr.e_shnum; i++) {
+	for (i = 0; i < ehdr.e_shnum; i++)
+	{
 		if (copy_from_user(&shdr, shdr_start + i, sizeof(shdr)))
+		{
 			goto fail;
+		}
 
 		if (shdr.sh_type != SHT_SYMTAB)
+		{
 			continue;
+		}
+
 		if (shdr.sh_entsize != sizeof (sym))
+		{
 			continue;
+		}
 
 		if (copy_from_user(&shdr_str,
-				   shdr_start + shdr.sh_link,
-				   sizeof(shdr)))
+						   shdr_start + shdr.sh_link,
+						   sizeof(shdr)))
+		{
 			goto fail;
+		}
 
 		if (shdr_str.sh_type != SHT_STRTAB)
+		{
 			goto fail;
+		}
 
-		for (j = 0; j < shdr.sh_size / sizeof (sym); j++) {
+		for (j = 0; j < shdr.sh_size / sizeof (sym); j++)
+		{
 			if (copy_from_user(&sym, spu_elf_start +
-						 shdr.sh_offset +
-						 j * sizeof (sym),
-					   sizeof (sym)))
+							   shdr.sh_offset +
+							   j * sizeof (sym),
+							   sizeof (sym)))
+			{
 				goto fail;
+			}
 
-			if (copy_from_user(name, 
-					   spu_elf_start + shdr_str.sh_offset +
-					   sym.st_name,
-					   20))
+			if (copy_from_user(name,
+							   spu_elf_start + shdr_str.sh_offset +
+							   sym.st_name,
+							   20))
+			{
 				goto fail;
+			}
 
 			if (memcmp(name, "_ovly_table", 12) == 0)
+			{
 				ovly_table_sym = sym.st_value;
+			}
+
 			if (memcmp(name, "_ovly_buf_table", 16) == 0)
+			{
 				ovly_buf_table_sym = sym.st_value;
+			}
+
 			if (memcmp(name, "_ovly_table_end", 16) == 0)
+			{
 				ovly_table_end_sym = sym.st_value;
+			}
+
 			if (memcmp(name, "_ovly_buf_table_end", 20) == 0)
+			{
 				ovly_buf_table_end_sym = sym.st_value;
+			}
 		}
 	}
 
 	/* If we don't have overlays, we're done.  */
 	if (ovly_table_sym == 0 || ovly_buf_table_sym == 0
-	    || ovly_table_end_sym == 0 || ovly_buf_table_end_sym == 0) {
+		|| ovly_table_end_sym == 0 || ovly_buf_table_end_sym == 0)
+	{
 		pr_debug("SPU_PROF: No overlay table found\n");
 		goto out;
-	} else {
+	}
+	else
+	{
 		pr_debug("SPU_PROF: Overlay table found\n");
 	}
 
@@ -229,22 +293,28 @@ struct vma_to_fileoffset_map *create_vma_map(const struct spu *aSpu,
 	 * u32 word per entry.
 	 */
 	overlay_tbl_offset = vma_map_lookup(map, ovly_table_sym,
-					    aSpu, &grd_val);
-	if (overlay_tbl_offset > 0x10000000) {
+										aSpu, &grd_val);
+
+	if (overlay_tbl_offset > 0x10000000)
+	{
 		printk(KERN_ERR "SPU_PROF: "
-		       "%s, line %d: Error finding SPU overlay table\n",
-		       __func__, __LINE__);
+			   "%s, line %d: Error finding SPU overlay table\n",
+			   __func__, __LINE__);
 		goto fail;
 	}
+
 	ovly_table = spu_elf_start + overlay_tbl_offset;
 
 	n_ovlys = (ovly_table_end_sym -
-		   ovly_table_sym) / sizeof (ovly);
+			   ovly_table_sym) / sizeof (ovly);
 
 	/* Traverse overlay table.  */
-	for (i = 0; i < n_ovlys; i++) {
+	for (i = 0; i < n_ovlys; i++)
+	{
 		if (copy_from_user(&ovly, ovly_table + i, sizeof (ovly)))
+		{
 			goto fail;
+		}
 
 		/* The ovly.vma/size/offset arguments are analogous to the same
 		 * arguments used above for non-overlay maps.  The final two
@@ -270,14 +340,18 @@ struct vma_to_fileoffset_map *create_vma_map(const struct spu *aSpu,
 		 *	  _ovly_table.
 		 */
 		map = vma_map_add(map, ovly.vma, ovly.size, ovly.offset,
-				  ovly_buf_table_sym + (ovly.buf-1) * 4, i+1);
+						  ovly_buf_table_sym + (ovly.buf - 1) * 4, i + 1);
+
 		if (!map)
+		{
 			goto fail;
+		}
 	}
+
 	goto out;
 
- fail:
+fail:
 	map = NULL;
- out:
+out:
 	return map;
 }

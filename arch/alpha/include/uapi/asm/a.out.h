@@ -7,7 +7,7 @@
  * OSF/1 ECOFF header structs.  ECOFF files consist of:
  * 	- a file header (struct filehdr),
  *	- an a.out header (struct aouthdr),
- *	- one or more section headers (struct scnhdr). 
+ *	- one or more section headers (struct scnhdr).
  *	  The filhdr's "f_nscns" field contains the
  *	  number of section headers.
  */
@@ -85,7 +85,7 @@ struct exec
 #define SCNROUND	16
 
 #define N_TXTOFF(x) \
-  ((long) N_MAGIC(x) == ZMAGIC ? 0 : \
-   (sizeof(struct exec) + (x).fh.f_nscns*SCNHSZ + SCNROUND - 1) & ~(SCNROUND - 1))
+	((long) N_MAGIC(x) == ZMAGIC ? 0 : \
+	 (sizeof(struct exec) + (x).fh.f_nscns*SCNHSZ + SCNROUND - 1) & ~(SCNROUND - 1))
 
 #endif /* _UAPI__ALPHA_A_OUT_H__ */

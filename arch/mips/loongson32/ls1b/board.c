@@ -16,11 +16,13 @@
 #include <nand.h>
 #include <platform.h>
 
-struct plat_ls1x_dma ls1x_dma_pdata = {
+struct plat_ls1x_dma ls1x_dma_pdata =
+{
 	.nr_channels	= 3,
 };
 
-static struct mtd_partition ls1x_nand_parts[] = {
+static struct mtd_partition ls1x_nand_parts[] =
+{
 	{
 		.name        = "kernel",
 		.offset      = 0,
@@ -33,14 +35,16 @@ static struct mtd_partition ls1x_nand_parts[] = {
 	},
 };
 
-struct plat_ls1x_nand ls1x_nand_pdata = {
+struct plat_ls1x_nand ls1x_nand_pdata =
+{
 	.parts		= ls1x_nand_parts,
 	.nr_parts	= ARRAY_SIZE(ls1x_nand_parts),
 	.hold_cycle	= 0x2,
 	.wait_cycle	= 0xc,
 };
 
-static const struct gpio_led ls1x_gpio_leds[] __initconst = {
+static const struct gpio_led ls1x_gpio_leds[] __initconst =
+{
 	{
 		.name			= "LED9",
 		.default_trigger	= "heartbeat",
@@ -56,12 +60,14 @@ static const struct gpio_led ls1x_gpio_leds[] __initconst = {
 	},
 };
 
-static const struct gpio_led_platform_data ls1x_led_pdata __initconst = {
+static const struct gpio_led_platform_data ls1x_led_pdata __initconst =
+{
 	.num_leds	= ARRAY_SIZE(ls1x_gpio_leds),
 	.leds		= ls1x_gpio_leds,
 };
 
-static struct platform_device *ls1b_platform_devices[] __initdata = {
+static struct platform_device *ls1b_platform_devices[] __initdata =
+{
 	&ls1x_uart_pdev,
 	&ls1x_cpufreq_pdev,
 	&ls1x_dma_pdev,
@@ -83,7 +89,7 @@ static int __init ls1b_platform_init(void)
 	gpio_led_register_device(-1, &ls1x_led_pdata);
 
 	return platform_add_devices(ls1b_platform_devices,
-				   ARRAY_SIZE(ls1b_platform_devices));
+								ARRAY_SIZE(ls1b_platform_devices));
 }
 
 arch_initcall(ls1b_platform_init);

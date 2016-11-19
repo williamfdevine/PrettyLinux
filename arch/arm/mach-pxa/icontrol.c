@@ -40,7 +40,8 @@
 #define ICONTROL_MCP251x_nIRQ3	(76)
 #define ICONTROL_MCP251x_nIRQ4	(77)
 
-static struct pxa2xx_spi_chip mcp251x_chip_info1 = {
+static struct pxa2xx_spi_chip mcp251x_chip_info1 =
+{
 	.tx_threshold   = 8,
 	.rx_threshold   = 128,
 	.dma_burst_size = 8,
@@ -48,7 +49,8 @@ static struct pxa2xx_spi_chip mcp251x_chip_info1 = {
 	.gpio_cs        = ICONTROL_MCP251x_nCS1
 };
 
-static struct pxa2xx_spi_chip mcp251x_chip_info2 = {
+static struct pxa2xx_spi_chip mcp251x_chip_info2 =
+{
 	.tx_threshold   = 8,
 	.rx_threshold   = 128,
 	.dma_burst_size = 8,
@@ -56,7 +58,8 @@ static struct pxa2xx_spi_chip mcp251x_chip_info2 = {
 	.gpio_cs        = ICONTROL_MCP251x_nCS2
 };
 
-static struct pxa2xx_spi_chip mcp251x_chip_info3 = {
+static struct pxa2xx_spi_chip mcp251x_chip_info3 =
+{
 	.tx_threshold   = 8,
 	.rx_threshold   = 128,
 	.dma_burst_size = 8,
@@ -64,7 +67,8 @@ static struct pxa2xx_spi_chip mcp251x_chip_info3 = {
 	.gpio_cs        = ICONTROL_MCP251x_nCS3
 };
 
-static struct pxa2xx_spi_chip mcp251x_chip_info4 = {
+static struct pxa2xx_spi_chip mcp251x_chip_info4 =
+{
 	.tx_threshold   = 8,
 	.rx_threshold   = 128,
 	.dma_burst_size = 8,
@@ -72,11 +76,13 @@ static struct pxa2xx_spi_chip mcp251x_chip_info4 = {
 	.gpio_cs        = ICONTROL_MCP251x_nCS4
 };
 
-static struct mcp251x_platform_data mcp251x_info = {
+static struct mcp251x_platform_data mcp251x_info =
+{
 	.oscillator_frequency = 16E6,
 };
 
-static struct spi_board_info mcp251x_board_info[] = {
+static struct spi_board_info mcp251x_board_info[] =
+{
 	{
 		.modalias        = "mcp2515",
 		.max_speed_hz    = 6500000,
@@ -115,17 +121,20 @@ static struct spi_board_info mcp251x_board_info[] = {
 	}
 };
 
-static struct pxa2xx_spi_master pxa_ssp3_spi_master_info = {
+static struct pxa2xx_spi_master pxa_ssp3_spi_master_info =
+{
 	.num_chipselect = 2,
 	.enable_dma     = 1
 };
 
-static struct pxa2xx_spi_master pxa_ssp4_spi_master_info = {
+static struct pxa2xx_spi_master pxa_ssp4_spi_master_info =
+{
 	.num_chipselect = 2,
 	.enable_dma     = 1
 };
 
-struct platform_device pxa_spi_ssp3 = {
+struct platform_device pxa_spi_ssp3 =
+{
 	.name          = "pxa2xx-spi",
 	.id            = 3,
 	.dev           = {
@@ -133,7 +142,8 @@ struct platform_device pxa_spi_ssp3 = {
 	}
 };
 
-struct platform_device pxa_spi_ssp4 = {
+struct platform_device pxa_spi_ssp4 =
+{
 	.name          = "pxa2xx-spi",
 	.id            = 4,
 	.dev           = {
@@ -141,12 +151,14 @@ struct platform_device pxa_spi_ssp4 = {
 	}
 };
 
-static struct platform_device *icontrol_spi_devices[] __initdata = {
+static struct platform_device *icontrol_spi_devices[] __initdata =
+{
 	&pxa_spi_ssp3,
 	&pxa_spi_ssp4,
 };
 
-static mfp_cfg_t mfp_can_cfg[] __initdata = {
+static mfp_cfg_t mfp_can_cfg[] __initdata =
+{
 	/* CAN CS lines */
 	GPIO15_GPIO,
 	GPIO16_GPIO,
@@ -189,12 +201,12 @@ static void __init icontrol_init(void)
 }
 
 MACHINE_START(ICONTROL, "iControl/SafeTcam boards using Embedian MXM-8x10 CoM")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa3xx_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa3xx_init_irq,
-	.handle_irq	= pxa3xx_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= icontrol_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa3xx_init_irq,
+			   .handle_irq	= pxa3xx_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= icontrol_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

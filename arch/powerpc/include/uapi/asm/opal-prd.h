@@ -41,12 +41,14 @@
 
 #ifndef __ASSEMBLY__
 
-struct opal_prd_info {
+struct opal_prd_info
+{
 	__u64	version;
 	__u64	reserved[3];
 };
 
-struct opal_prd_scom {
+struct opal_prd_scom
+{
 	__u64	chip;
 	__u64	addr;
 	__u64	data;

@@ -8,9 +8,9 @@
 #include <linux/param.h>
 #include <linux/module.h>
 #ifdef CONFIG_SMP
-#include <linux/sched.h>
-#include <asm/current.h>
-#include <asm/smp.h>
+	#include <linux/sched.h>
+	#include <asm/current.h>
+	#include <asm/smp.h>
 #endif  /* CONFIG_SMP */
 #include <asm/processor.h>
 

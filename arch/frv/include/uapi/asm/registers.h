@@ -57,11 +57,11 @@
 #define _ASM_REGISTERS_H
 
 #ifndef __ASSEMBLY__
-#define __OFFSET(X,N)	((X)+(N)*4)
-#define __OFFSETC(X,N)	xxxxxxxxxxxxxxxxxxxxxxxx
+	#define __OFFSET(X,N)	((X)+(N)*4)
+	#define __OFFSETC(X,N)	xxxxxxxxxxxxxxxxxxxxxxxx
 #else
-#define __OFFSET(X,N)	((X)+(N)*4)
-#define __OFFSETC(X,N)	((X)+(N))
+	#define __OFFSET(X,N)	((X)+(N)*4)
+	#define __OFFSETC(X,N)	((X)+(N))
 #endif
 
 /*****************************************************************************/
@@ -73,7 +73,8 @@
  */
 #ifndef __ASSEMBLY__
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long		psr;		/* Processor Status Register */
 	unsigned long		isr;		/* Integer Status Register */
 	unsigned long		ccr;		/* Condition Code Register */
@@ -178,7 +179,8 @@ struct user_int_regs
 	unsigned long		gner[2];
 	unsigned long long	iacc[1];
 
-	union {
+	union
+	{
 		unsigned long	tbr;
 		unsigned long	gr[64];
 	};
@@ -206,8 +208,10 @@ struct user_context
 	void *extension;
 } __attribute__((aligned(8)));
 
-struct frv_frame0 {
-	union {
+struct frv_frame0
+{
+	union
+	{
 		struct pt_regs		regs;
 		struct user_context	uc;
 	};

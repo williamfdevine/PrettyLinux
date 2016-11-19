@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct css_general_char {
+struct css_general_char
+{
 	u64 : 12;
 	u32 dynio : 1;	 /* bit 12 */
 	u32 : 4;
@@ -29,8 +30,8 @@ struct css_general_char {
 	u32 fcx : 1;	 /* bit 88 */
 	u32 : 19;
 	u32 alt_ssi : 1; /* bit 108 */
-	u32:1;
-	u32 narf:1;	 /* bit 110 */
+	u32: 1;
+	u32 narf: 1;	 /* bit 110 */
 } __packed;
 
 extern struct css_general_char css_general_characteristics;

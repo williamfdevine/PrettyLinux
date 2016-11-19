@@ -33,7 +33,8 @@
 
 
 #ifdef CONFIG_MACH_COLIBRI_EVALBOARD
-static mfp_cfg_t colibri_pxa300_evalboard_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa300_evalboard_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO7_MMC1_CLK,
 	GPIO14_MMC1_CMD,
@@ -66,12 +67,14 @@ static mfp_cfg_t colibri_pxa300_evalboard_pin_config[] __initdata = {};
 /*
  * Asix AX88796 Ethernet
  */
-static struct ax_plat_data colibri_asix_platdata = {
+static struct ax_plat_data colibri_asix_platdata =
+{
 	.flags		= 0, /* defined later */
 	.wordlength	= 2,
 };
 
-static struct resource colibri_asix_resource[] = {
+static struct resource colibri_asix_resource[] =
+{
 	[0] = {
 		.start = PXA3xx_CS2_PHYS,
 		.end   = PXA3xx_CS2_PHYS + (0x20 * 2) - 1,
@@ -84,7 +87,8 @@ static struct resource colibri_asix_resource[] = {
 	}
 };
 
-static struct platform_device asix_device = {
+static struct platform_device asix_device =
+{
 	.name		= "ax88796",
 	.id		= 0,
 	.num_resources 	= ARRAY_SIZE(colibri_asix_resource),
@@ -94,7 +98,8 @@ static struct platform_device asix_device = {
 	}
 };
 
-static mfp_cfg_t colibri_pxa300_eth_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa300_eth_pin_config[] __initdata =
+{
 	GPIO1_nCS2,			/* AX88796 chip select */
 	GPIO26_GPIO | MFP_PULL_HIGH	/* AX88796 IRQ */
 };
@@ -110,7 +115,8 @@ static inline void __init colibri_pxa300_init_eth(void) {}
 #endif /* CONFIG_AX88796 */
 
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static mfp_cfg_t colibri_pxa300_lcd_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa300_lcd_pin_config[] __initdata =
+{
 	GPIO54_LCD_LDD_0,
 	GPIO55_LCD_LDD_1,
 	GPIO56_LCD_LDD_2,
@@ -147,7 +153,8 @@ static inline void colibri_pxa300_init_lcd(void) {}
 #endif /* CONFIG_FB_PXA || CONFIG_FB_PXA_MODULE */
 
 #if defined(CONFIG_SND_AC97_CODEC) || defined(CONFIG_SND_AC97_CODEC_MODULE)
-static mfp_cfg_t colibri_pxa310_ac97_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa310_ac97_pin_config[] __initdata =
+{
 	GPIO24_AC97_SYSCLK,
 	GPIO23_AC97_nACRESET,
 	GPIO25_AC97_SDATA_IN_0,
@@ -160,7 +167,9 @@ static inline void __init colibri_pxa310_init_ac97(void)
 {
 	/* no AC97 codec on Colibri PXA300 */
 	if (!cpu_is_pxa310())
+	{
 		return;
+	}
 
 	pxa3xx_mfp_config(ARRAY_AND_SIZE(colibri_pxa310_ac97_pin_config));
 	pxa_set_ac97_info(NULL);
@@ -183,13 +192,13 @@ void __init colibri_pxa300_init(void)
 }
 
 MACHINE_START(COLIBRI300, "Toradex Colibri PXA300")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.init_machine	= colibri_pxa300_init,
-	.map_io		= pxa3xx_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa3xx_init_irq,
-	.handle_irq	= pxa3xx_handle_irq,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+	   .map_io		= pxa3xx_map_io,
+		   .nr_irqs	= PXA_NR_IRQS,
+			   .init_irq	= pxa3xx_init_irq,
+				  .handle_irq	= pxa3xx_handle_irq,
+				   .init_time	= pxa_timer_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END
 

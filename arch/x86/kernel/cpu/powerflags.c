@@ -6,7 +6,8 @@
 
 #include <asm/cpufeature.h>
 
-const char *const x86_power_flags[32] = {
+const char *const x86_power_flags[32] =
+{
 	"ts",	/* temperature sensor */
 	"fid",  /* frequency id control */
 	"vid",  /* voltage id control */

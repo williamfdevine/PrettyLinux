@@ -46,7 +46,8 @@
 
 static int msi_irqs;
 
-struct ppc4xx_msi {
+struct ppc4xx_msi
+{
 	u32 msi_addr_lo;
 	u32 msi_addr_hi;
 	void __iomem *msi_regs;
@@ -58,17 +59,22 @@ struct ppc4xx_msi {
 static struct ppc4xx_msi ppc4xx_msi;
 
 static int ppc4xx_msi_init_allocator(struct platform_device *dev,
-		struct ppc4xx_msi *msi_data)
+									 struct ppc4xx_msi *msi_data)
 {
 	int err;
 
 	err = msi_bitmap_alloc(&msi_data->bitmap, msi_irqs,
-			      dev->dev.of_node);
+						   dev->dev.of_node);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = msi_bitmap_reserve_dt_hwirqs(&msi_data->bitmap);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		msi_bitmap_free(&msi_data->bitmap);
 		return err;
 	}
@@ -85,28 +91,44 @@ static int ppc4xx_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
 	struct ppc4xx_msi *msi_data = &ppc4xx_msi;
 
 	dev_dbg(&dev->dev, "PCIE-MSI:%s called. vec %x type %d\n",
-		__func__, nvec, type);
+			__func__, nvec, type);
+
 	if (type == PCI_CAP_ID_MSIX)
+	{
 		pr_debug("ppc4xx msi: MSI-X untested, trying anyway.\n");
+	}
 
 	msi_data->msi_virqs = kmalloc((msi_irqs) * sizeof(int), GFP_KERNEL);
-	if (!msi_data->msi_virqs)
-		return -ENOMEM;
 
-	for_each_pci_msi_entry(entry, dev) {
+	if (!msi_data->msi_virqs)
+	{
+		return -ENOMEM;
+	}
+
+	for_each_pci_msi_entry(entry, dev)
+	{
 		int_no = msi_bitmap_alloc_hwirqs(&msi_data->bitmap, 1);
+
 		if (int_no >= 0)
+		{
 			break;
-		if (int_no < 0) {
-			pr_debug("%s: fail allocating msi interrupt\n",
-					__func__);
 		}
+
+		if (int_no < 0)
+		{
+			pr_debug("%s: fail allocating msi interrupt\n",
+					 __func__);
+		}
+
 		virq = irq_of_parse_and_map(msi_data->msi_dev, int_no);
-		if (!virq) {
+
+		if (!virq)
+		{
 			dev_err(&dev->dev, "%s: fail mapping irq\n", __func__);
 			msi_bitmap_free_hwirqs(&msi_data->bitmap, int_no, 1);
 			return -ENOSPC;
 		}
+
 		dev_dbg(&dev->dev, "%s: virq = %d\n", __func__, virq);
 
 		/* Setup msi address space */
@@ -128,9 +150,13 @@ void ppc4xx_teardown_msi_irqs(struct pci_dev *dev)
 
 	dev_dbg(&dev->dev, "PCIE-MSI: tearing down msi irqs\n");
 
-	for_each_pci_msi_entry(entry, dev) {
+	for_each_pci_msi_entry(entry, dev)
+	{
 		if (!entry->irq)
+		{
 			continue;
+		}
+
 		hwirq = virq_to_hw(entry->irq);
 		irq_set_msi_desc(entry->irq, NULL);
 		irq_dispose_mapping(entry->irq);
@@ -139,7 +165,7 @@ void ppc4xx_teardown_msi_irqs(struct pci_dev *dev)
 }
 
 static int ppc4xx_setup_pcieh_hw(struct platform_device *dev,
-				 struct resource res, struct ppc4xx_msi *msi)
+								 struct resource res, struct ppc4xx_msi *msi)
 {
 	const u32 *msi_data;
 	const u32 *msi_mask;
@@ -148,42 +174,63 @@ static int ppc4xx_setup_pcieh_hw(struct platform_device *dev,
 	void *msi_virt;
 
 	sdr_addr = of_get_property(dev->dev.of_node, "sdr-base", NULL);
+
 	if (!sdr_addr)
+	{
 		return -1;
+	}
 
 	mtdcri(SDR0, *sdr_addr, upper_32_bits(res.start));	/*HIGH addr */
 	mtdcri(SDR0, *sdr_addr + 1, lower_32_bits(res.start));	/* Low addr */
 
 	msi->msi_dev = of_find_node_by_name(NULL, "ppc4xx-msi");
+
 	if (!msi->msi_dev)
+	{
 		return -ENODEV;
+	}
 
 	msi->msi_regs = of_iomap(msi->msi_dev, 0);
-	if (!msi->msi_regs) {
+
+	if (!msi->msi_regs)
+	{
 		dev_err(&dev->dev, "of_iomap problem failed\n");
 		return -ENOMEM;
 	}
+
 	dev_dbg(&dev->dev, "PCIE-MSI: msi register mapped 0x%x 0x%x\n",
-		(u32) (msi->msi_regs + PEIH_TERMADH), (u32) (msi->msi_regs));
+			(u32) (msi->msi_regs + PEIH_TERMADH), (u32) (msi->msi_regs));
 
 	msi_virt = dma_alloc_coherent(&dev->dev, 64, &msi_phys, GFP_KERNEL);
+
 	if (!msi_virt)
+	{
 		return -ENOMEM;
+	}
+
 	msi->msi_addr_hi = upper_32_bits(msi_phys);
 	msi->msi_addr_lo = lower_32_bits(msi_phys & 0xffffffff);
 	dev_dbg(&dev->dev, "PCIE-MSI: msi address high 0x%x, low 0x%x\n",
-		msi->msi_addr_hi, msi->msi_addr_lo);
+			msi->msi_addr_hi, msi->msi_addr_lo);
 
 	/* Progam the Interrupt handler Termination addr registers */
 	out_be32(msi->msi_regs + PEIH_TERMADH, msi->msi_addr_hi);
 	out_be32(msi->msi_regs + PEIH_TERMADL, msi->msi_addr_lo);
 
 	msi_data = of_get_property(dev->dev.of_node, "msi-data", NULL);
+
 	if (!msi_data)
+	{
 		return -1;
+	}
+
 	msi_mask = of_get_property(dev->dev.of_node, "msi-mask", NULL);
+
 	if (!msi_mask)
+	{
 		return -1;
+	}
+
 	/* Program MSI Expected data and Mask bits */
 	out_be32(msi->msi_regs + PEIH_MSIED, *msi_data);
 	out_be32(msi->msi_regs + PEIH_MSIMK, *msi_mask);
@@ -199,14 +246,21 @@ static int ppc4xx_of_msi_remove(struct platform_device *dev)
 	int i;
 	int virq;
 
-	for (i = 0; i < msi_irqs; i++) {
+	for (i = 0; i < msi_irqs; i++)
+	{
 		virq = msi->msi_virqs[i];
+
 		if (virq)
+		{
 			irq_dispose_mapping(virq);
+		}
 	}
 
 	if (msi->bitmap.bitmap)
+	{
 		msi_bitmap_free(&msi->bitmap);
+	}
+
 	iounmap(msi->msi_regs);
 	of_node_put(msi->msi_dev);
 	kfree(msi);
@@ -224,35 +278,49 @@ static int ppc4xx_msi_probe(struct platform_device *dev)
 	dev_dbg(&dev->dev, "PCIE-MSI: Setting up MSI support...\n");
 
 	msi = kzalloc(sizeof(struct ppc4xx_msi), GFP_KERNEL);
-	if (!msi) {
+
+	if (!msi)
+	{
 		dev_err(&dev->dev, "No memory for MSI structure\n");
 		return -ENOMEM;
 	}
+
 	dev->dev.platform_data = msi;
 
 	/* Get MSI ranges */
 	err = of_address_to_resource(dev->dev.of_node, 0, &res);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&dev->dev, "%s resource error!\n",
-			dev->dev.of_node->full_name);
+				dev->dev.of_node->full_name);
 		goto error_out;
 	}
 
 	msi_irqs = of_irq_count(dev->dev.of_node);
+
 	if (!msi_irqs)
+	{
 		return -ENODEV;
+	}
 
 	if (ppc4xx_setup_pcieh_hw(dev, res, msi))
+	{
 		goto error_out;
+	}
 
 	err = ppc4xx_msi_init_allocator(dev, msi);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&dev->dev, "Error allocating MSI bitmap\n");
 		goto error_out;
 	}
+
 	ppc4xx_msi = *msi;
 
-	list_for_each_entry(phb, &hose_list, list_node) {
+	list_for_each_entry(phb, &hose_list, list_node)
+	{
 		phb->controller_ops.setup_msi_irqs = ppc4xx_setup_msi_irqs;
 		phb->controller_ops.teardown_msi_irqs = ppc4xx_teardown_msi_irqs;
 	}
@@ -262,19 +330,21 @@ error_out:
 	ppc4xx_of_msi_remove(dev);
 	return err;
 }
-static const struct of_device_id ppc4xx_msi_ids[] = {
+static const struct of_device_id ppc4xx_msi_ids[] =
+{
 	{
 		.compatible = "amcc,ppc4xx-msi",
 	},
 	{}
 };
-static struct platform_driver ppc4xx_msi_driver = {
+static struct platform_driver ppc4xx_msi_driver =
+{
 	.probe = ppc4xx_msi_probe,
 	.remove = ppc4xx_of_msi_remove,
 	.driver = {
-		   .name = "ppc4xx-msi",
-		   .of_match_table = ppc4xx_msi_ids,
-		   },
+		.name = "ppc4xx-msi",
+		.of_match_table = ppc4xx_msi_ids,
+	},
 
 };
 

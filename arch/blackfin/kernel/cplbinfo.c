@@ -17,7 +17,8 @@
 #include <asm/cplbinit.h>
 #include <asm/blackfin.h>
 
-static char const page_strtbl[][4] = {
+static char const page_strtbl[][4] =
+{
 	"1K", "4K", "1M", "4M",
 #ifdef CONFIG_BF60x
 	"16K", "64K", "16M", "64M",
@@ -26,7 +27,8 @@ static char const page_strtbl[][4] = {
 #define page(flags)    (((flags) & 0x70000) >> 16)
 #define strpage(flags) page_strtbl[page(flags)]
 
-struct cplbinfo_data {
+struct cplbinfo_data
+{
 	loff_t pos;
 	char cplb_type;
 	u32 mem_control;
@@ -56,23 +58,26 @@ static int cplbinfo_show(struct seq_file *m, void *p)
 	data = cdata->tbl[pos].data;
 
 	seq_printf(m,
-		"%d\t0x%08lx\t%05lx\t%s\t%c\t%c\t%c\t%c\n",
-		(int)pos, addr, data, strpage(data),
-		(data & CPLB_USER_RD) ? 'Y' : 'N',
-		(data & CPLB_USER_WR) ? 'Y' : 'N',
-		(data & CPLB_SUPV_WR) ? 'Y' : 'N',
-		pos < cdata->switched ? 'N' : 'Y');
+			   "%d\t0x%08lx\t%05lx\t%s\t%c\t%c\t%c\t%c\n",
+			   (int)pos, addr, data, strpage(data),
+			   (data & CPLB_USER_RD) ? 'Y' : 'N',
+			   (data & CPLB_USER_WR) ? 'Y' : 'N',
+			   (data & CPLB_SUPV_WR) ? 'Y' : 'N',
+			   pos < cdata->switched ? 'N' : 'Y');
 
 	return 0;
 }
 
 static void cplbinfo_seq_init(struct cplbinfo_data *cdata, unsigned int cpu)
 {
-	if (cdata->cplb_type == 'I') {
+	if (cdata->cplb_type == 'I')
+	{
 		cdata->mem_control = bfin_read_IMEM_CONTROL();
 		cdata->tbl = icplb_tbl[cpu];
 		cdata->switched = first_switched_icplb;
-	} else {
+	}
+	else
+	{
 		cdata->mem_control = bfin_read_DMEM_CONTROL();
 		cdata->tbl = dcplb_tbl[cpu];
 		cdata->switched = first_switched_dcplb;
@@ -83,13 +88,17 @@ static void *cplbinfo_start(struct seq_file *m, loff_t *pos)
 {
 	struct cplbinfo_data *cdata = m->private;
 
-	if (!*pos) {
+	if (!*pos)
+	{
 		seq_printf(m, "%cCPLBs are %sabled: 0x%x\n", cdata->cplb_type,
-			(cdata->mem_control & ENDCPLB ? "en" : "dis"),
-			cdata->mem_control);
+				   (cdata->mem_control & ENDCPLB ? "en" : "dis"),
+				   cdata->mem_control);
 		cplbinfo_print_header(m);
-	} else if (cplbinfo_nomore(cdata))
+	}
+	else if (cplbinfo_nomore(cdata))
+	{
 		return NULL;
+	}
 
 	get_cpu();
 	return cdata;
@@ -99,10 +108,15 @@ static void *cplbinfo_next(struct seq_file *m, void *p, loff_t *pos)
 {
 	struct cplbinfo_data *cdata = p;
 	cdata->pos = ++(*pos);
+
 	if (cplbinfo_nomore(cdata))
+	{
 		return NULL;
+	}
 	else
+	{
 		return cdata;
+	}
 }
 
 static void cplbinfo_stop(struct seq_file *m, void *p)
@@ -110,7 +124,8 @@ static void cplbinfo_stop(struct seq_file *m, void *p)
 	put_cpu();
 }
 
-static const struct seq_operations cplbinfo_sops = {
+static const struct seq_operations cplbinfo_sops =
+{
 	.start = cplbinfo_start,
 	.next  = cplbinfo_next,
 	.stop  = cplbinfo_stop,
@@ -131,11 +146,17 @@ static int cplbinfo_open(struct inode *inode, struct file *file)
 	cpu &= ~CPLBINFO_DCPLB_FLAG;
 
 	if (!cpu_online(cpu))
+	{
 		return -ENODEV;
+	}
 
 	ret = seq_open_private(file, &cplbinfo_sops, sizeof(*cdata));
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	m = file->private_data;
 	cdata = m->private;
 
@@ -146,7 +167,8 @@ static int cplbinfo_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations cplbinfo_fops = {
+static const struct file_operations cplbinfo_fops =
+{
 	.open    = cplbinfo_open,
 	.read    = seq_read,
 	.llseek  = seq_lseek,
@@ -160,19 +182,26 @@ static int __init cplbinfo_init(void)
 	unsigned int cpu;
 
 	cplb_dir = proc_mkdir("cplbinfo", NULL);
-	if (!cplb_dir)
-		return -ENOMEM;
 
-	for_each_possible_cpu(cpu) {
+	if (!cplb_dir)
+	{
+		return -ENOMEM;
+	}
+
+	for_each_possible_cpu(cpu)
+	{
 		sprintf(buf, "cpu%i", cpu);
 		cpu_dir = proc_mkdir(buf, cplb_dir);
+
 		if (!cpu_dir)
+		{
 			return -ENOMEM;
+		}
 
 		proc_create_data("icplb", S_IRUGO, cpu_dir, &cplbinfo_fops,
-			(void *)cpu);
+						 (void *)cpu);
 		proc_create_data("dcplb", S_IRUGO, cpu_dir, &cplbinfo_fops,
-			(void *)(cpu | CPLBINFO_DCPLB_FLAG));
+						 (void *)(cpu | CPLBINFO_DCPLB_FLAG));
 	}
 
 	return 0;

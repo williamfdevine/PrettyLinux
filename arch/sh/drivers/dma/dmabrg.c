@@ -66,7 +66,8 @@
 #define DMABRGI1	69
 #define DMABRGI2	70
 
-struct dmabrg_handler {
+struct dmabrg_handler
+{
 	void (*handler)(void *);
 	void *data;
 } *dmabrg_handlers;
@@ -93,17 +94,25 @@ static irqreturn_t dmabrg_irq(int irq, void *data)
 
 	/* USB stuff, get it out of the way first */
 	if (dcr & 1)
+	{
 		dmabrg_call_handler(DMABRGIRQ_USBDMA);
+	}
+
 	if (dcr & 2)
+	{
 		dmabrg_call_handler(DMABRGIRQ_USBDMAERR);
+	}
 
 	/* Audio */
 	dcr >>= 16;
-	while (dcr) {
+
+	while (dcr)
+	{
 		i = __ffs(dcr);
 		dcr &= dcr - 1;
 		dmabrg_call_handler(i + DMABRGIRQ_A0TXF);
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -123,17 +132,22 @@ static void dmabrg_enable_irq(unsigned int dmairq)
 	__raw_writel(dcr, DMABRGCR);
 }
 
-int dmabrg_request_irq(unsigned int dmairq, void(*handler)(void*),
-		       void *data)
+int dmabrg_request_irq(unsigned int dmairq, void(*handler)(void *),
+					   void *data)
 {
 	if ((dmairq > 9) || !handler)
+	{
 		return -ENOENT;
+	}
+
 	if (dmabrg_handlers[dmairq].handler)
+	{
 		return -EBUSY;
+	}
 
 	dmabrg_handlers[dmairq].handler = handler;
 	dmabrg_handlers[dmairq].data = data;
-	
+
 	dmabrg_enable_irq(dmairq);
 	return 0;
 }
@@ -141,7 +155,8 @@ EXPORT_SYMBOL_GPL(dmabrg_request_irq);
 
 void dmabrg_free_irq(unsigned int dmairq)
 {
-	if (likely(dmairq < 10)) {
+	if (likely(dmairq < 10))
+	{
 		dmabrg_disable_irq(dmairq);
 		dmabrg_handlers[dmairq].handler = NULL;
 		dmabrg_handlers[dmairq].data = NULL;
@@ -155,15 +170,22 @@ static int __init dmabrg_init(void)
 	int ret;
 
 	dmabrg_handlers = kzalloc(10 * sizeof(struct dmabrg_handler),
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!dmabrg_handlers)
+	{
 		return -ENOMEM;
+	}
 
 #ifdef CONFIG_SH_DMA
 	/* request DMAC channel 0 before anyone else can get it */
 	ret = request_dma(0, "DMAC 0 (DMABRG)");
+
 	if (ret < 0)
+	{
 		printk(KERN_INFO "DMABRG: DMAC ch0 not reserved!\n");
+	}
+
 #endif
 
 	__raw_writel(0, DMABRGCR);
@@ -172,22 +194,31 @@ static int __init dmabrg_init(void)
 
 	/* enable DMABRG mode, enable the DMAC */
 	or = __raw_readl(DMAOR);
-	__raw_writel(or | DMAOR_BRG | DMAOR_DMEN, DMAOR);
+	__raw_writel( or | DMAOR_BRG | DMAOR_DMEN, DMAOR);
 
 	ret = request_irq(DMABRGI0, dmabrg_irq, 0,
-			"DMABRG USB address error", NULL);
+					  "DMABRG USB address error", NULL);
+
 	if (ret)
+	{
 		goto out0;
+	}
 
 	ret = request_irq(DMABRGI1, dmabrg_irq, 0,
-			"DMABRG Transfer End", NULL);
+					  "DMABRG Transfer End", NULL);
+
 	if (ret)
+	{
 		goto out1;
+	}
 
 	ret = request_irq(DMABRGI2, dmabrg_irq, 0,
-			"DMABRG Transfer Half", NULL);
+					  "DMABRG Transfer Half", NULL);
+
 	if (ret == 0)
+	{
 		return ret;
+	}
 
 	free_irq(DMABRGI1, NULL);
 out1:	free_irq(DMABRGI0, NULL);

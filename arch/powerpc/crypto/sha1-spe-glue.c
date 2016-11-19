@@ -58,7 +58,9 @@ static inline void ppc_sha1_clear_context(struct sha1_state *sctx)
 
 	/* make sure we can clear the fast way */
 	BUILD_BUG_ON(sizeof(struct sha1_state) % 4);
-	do { *ptr++ = 0; } while (--count);
+
+	do { *ptr++ = 0; }
+	while (--count);
 }
 
 static int ppc_spe_sha1_init(struct shash_desc *desc)
@@ -76,7 +78,7 @@ static int ppc_spe_sha1_init(struct shash_desc *desc)
 }
 
 static int ppc_spe_sha1_update(struct shash_desc *desc, const u8 *data,
-			unsigned int len)
+							   unsigned int len)
 {
 	struct sha1_state *sctx = shash_desc_ctx(desc);
 	const unsigned int offset = sctx->count & 0x3f;
@@ -84,7 +86,8 @@ static int ppc_spe_sha1_update(struct shash_desc *desc, const u8 *data,
 	unsigned int bytes;
 	const u8 *src = data;
 
-	if (avail > len) {
+	if (avail > len)
+	{
 		sctx->count += len;
 		memcpy((char *)sctx->buffer + offset, src, len);
 		return 0;
@@ -92,7 +95,8 @@ static int ppc_spe_sha1_update(struct shash_desc *desc, const u8 *data,
 
 	sctx->count += len;
 
-	if (offset) {
+	if (offset)
+	{
 		memcpy((char *)sctx->buffer + offset, src, avail);
 
 		spe_begin();
@@ -103,7 +107,8 @@ static int ppc_spe_sha1_update(struct shash_desc *desc, const u8 *data,
 		src += avail;
 	}
 
-	while (len > 63) {
+	while (len > 63)
+	{
 		bytes = (len > MAX_BYTES) ? MAX_BYTES : len;
 		bytes = bytes & ~0x3f;
 
@@ -116,6 +121,7 @@ static int ppc_spe_sha1_update(struct shash_desc *desc, const u8 *data,
 	};
 
 	memcpy((char *)sctx->buffer, src, len);
+
 	return 0;
 }
 
@@ -133,7 +139,8 @@ static int ppc_spe_sha1_final(struct shash_desc *desc, u8 *out)
 
 	spe_begin();
 
-	if (padlen < 0) {
+	if (padlen < 0)
+	{
 		memset(p, 0x00, padlen + sizeof (u64));
 		ppc_spe_sha1_transform(sctx->state, sctx->buffer, 1);
 		p = (char *)sctx->buffer;
@@ -172,7 +179,8 @@ static int ppc_spe_sha1_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	SHA1_DIGEST_SIZE,
 	.init		=	ppc_spe_sha1_init,
 	.update		=	ppc_spe_sha1_update,
@@ -183,7 +191,7 @@ static struct shash_alg alg = {
 	.statesize	=	sizeof(struct sha1_state),
 	.base		=	{
 		.cra_name	=	"sha1",
-		.cra_driver_name=	"sha1-ppc-spe",
+		.cra_driver_name =	"sha1-ppc-spe",
 		.cra_priority	=	300,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA1_BLOCK_SIZE,

@@ -32,10 +32,13 @@ static void __iomem *mpsc_intr_cause;
 static void mv64x60_udbg_putc(char c)
 {
 	if (c == '\n')
+	{
 		mv64x60_udbg_putc('\r');
+	}
 
-	while(in_le32(mpsc_base + MPSC_0_CR2_OFFSET) & MPSC_CHR_2_TCS)
+	while (in_le32(mpsc_base + MPSC_0_CR2_OFFSET) & MPSC_CHR_2_TCS)
 		;
+
 	out_le32(mpsc_base + MPSC_0_CR1_OFFSET, c);
 	out_le32(mpsc_base + MPSC_0_CR2_OFFSET, MPSC_CHR_2_TCS);
 }
@@ -62,7 +65,9 @@ static int mv64x60_udbg_getc(void)
 static int mv64x60_udbg_getc_poll(void)
 {
 	if (!mv64x60_udbg_testc())
+	{
 		return -1;
+	}
 
 	return mv64x60_udbg_getc();
 }
@@ -78,62 +83,95 @@ static void mv64x60_udbg_init(void)
 	int err;
 
 	path = of_get_property(of_chosen, "linux,stdout-path", NULL);
+
 	if (!path)
+	{
 		return;
+	}
 
 	stdout = of_find_node_by_path(path);
-	if (!stdout)
-		return;
 
-	for_each_compatible_node(np, NULL, "marvell,mv64360-mpsc") {
+	if (!stdout)
+	{
+		return;
+	}
+
+	for_each_compatible_node(np, NULL, "marvell,mv64360-mpsc")
+	{
 		if (np == stdout)
+		{
 			break;
+		}
 	}
 
 	of_node_put(stdout);
+
 	if (!np)
+	{
 		return;
+	}
 
 	block_index = of_get_property(np, "cell-index", NULL);
-	if (!block_index)
-		goto error;
 
-	switch (*block_index) {
-	case 0:
-		intr_cause_offset = MPSC_INTR_CAUSE_OFF_0;
-		break;
-	case 1:
-		intr_cause_offset = MPSC_INTR_CAUSE_OFF_1;
-		break;
-	default:
+	if (!block_index)
+	{
 		goto error;
 	}
 
+	switch (*block_index)
+	{
+		case 0:
+			intr_cause_offset = MPSC_INTR_CAUSE_OFF_0;
+			break;
+
+		case 1:
+			intr_cause_offset = MPSC_INTR_CAUSE_OFF_1;
+			break;
+
+		default:
+			goto error;
+	}
+
 	err = of_address_to_resource(np, 0, &r[0]);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	ph = of_get_property(np, "mpscintr", NULL);
 	mpscintr = of_find_node_by_phandle(*ph);
+
 	if (!mpscintr)
+	{
 		goto error;
+	}
 
 	err = of_address_to_resource(mpscintr, 0, &r[1]);
 	of_node_put(mpscintr);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	of_node_put(np);
 
 	mpsc_base = ioremap(r[0].start, resource_size(&r[0]));
+
 	if (!mpsc_base)
+	{
 		return;
+	}
 
 	mpsc_intr_cause = ioremap(r[1].start, resource_size(&r[1]));
-	if (!mpsc_intr_cause) {
+
+	if (!mpsc_intr_cause)
+	{
 		iounmap(mpsc_base);
 		return;
 	}
+
 	mpsc_intr_cause += intr_cause_offset;
 
 	udbg_putc = mv64x60_udbg_putc;

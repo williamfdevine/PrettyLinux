@@ -7,7 +7,8 @@
 #ifndef _SPARC_MACHINES_H
 #define _SPARC_MACHINES_H
 
-struct Sun_Machine_Models {
+struct Sun_Machine_Models
+{
 	char *name;
 	unsigned char id_machtype;
 };

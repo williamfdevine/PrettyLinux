@@ -7,25 +7,38 @@
 
 static void
 amd_get_mtrr(unsigned int reg, unsigned long *base,
-	     unsigned long *size, mtrr_type *type)
+			 unsigned long *size, mtrr_type *type)
 {
 	unsigned long low, high;
 
 	rdmsr(MSR_K6_UWCCR, low, high);
+
 	/* Upper dword is region 1, lower is region 0 */
 	if (reg == 1)
+	{
 		low = high;
+	}
+
 	/* The base masks off on the right alignment */
 	*base = (low & 0xFFFE0000) >> PAGE_SHIFT;
 	*type = 0;
+
 	if (low & 1)
+	{
 		*type = MTRR_TYPE_UNCACHABLE;
+	}
+
 	if (low & 2)
+	{
 		*type = MTRR_TYPE_WRCOMB;
-	if (!(low & 3)) {
+	}
+
+	if (!(low & 3))
+	{
 		*size = 0;
 		return;
 	}
+
 	/*
 	 * This needs a little explaining. The size is stored as an
 	 * inverted mask of bits of 128K granularity 15 bits long offset
@@ -64,12 +77,16 @@ amd_set_mtrr(unsigned int reg, unsigned long base, unsigned long size, mtrr_type
 	 * Low is MTRR0, High MTRR 1
 	 */
 	rdmsr(MSR_K6_UWCCR, regs[0], regs[1]);
+
 	/*
 	 * Blank to disable
 	 */
-	if (size == 0) {
+	if (size == 0)
+	{
 		regs[reg] = 0;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Set the register to the base, the type (off by one) and an
 		 * inverted bitmask of the size The size is the only odd
@@ -80,7 +97,7 @@ amd_set_mtrr(unsigned int reg, unsigned long base, unsigned long size, mtrr_type
 		 *  But ~(x - 1) == ~x + 1 == -x. Two's complement rocks!
 		 */
 		regs[reg] = (-size >> (15 - PAGE_SHIFT) & 0x0001FFFC)
-		    | (base << PAGE_SHIFT) | (type + 1);
+					| (base << PAGE_SHIFT) | (type + 1);
 	}
 
 	/*
@@ -103,12 +120,16 @@ amd_validate_add_page(unsigned long base, unsigned long size, unsigned int type)
 	 * o base suitably aligned to the power
 	 */
 	if (type > MTRR_TYPE_WRCOMB || size < (1 << (17 - PAGE_SHIFT))
-	    || (size & ~(size - 1)) - size || (base & (size - 1)))
+		|| (size & ~(size - 1)) - size || (base & (size - 1)))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static const struct mtrr_ops amd_mtrr_ops = {
+static const struct mtrr_ops amd_mtrr_ops =
+{
 	.vendor            = X86_VENDOR_AMD,
 	.set               = amd_set_mtrr,
 	.get               = amd_get_mtrr,

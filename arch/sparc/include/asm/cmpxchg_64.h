@@ -11,15 +11,15 @@ static inline unsigned long xchg32(__volatile__ unsigned int *m, unsigned int va
 	unsigned long tmp1, tmp2;
 
 	__asm__ __volatile__(
-"	mov		%0, %1\n"
-"1:	lduw		[%4], %2\n"
-"	cas		[%4], %2, %0\n"
-"	cmp		%2, %0\n"
-"	bne,a,pn	%%icc, 1b\n"
-"	 mov		%1, %0\n"
-	: "=&r" (val), "=&r" (tmp1), "=&r" (tmp2)
-	: "0" (val), "r" (m)
-	: "cc", "memory");
+		"	mov		%0, %1\n"
+		"1:	lduw		[%4], %2\n"
+		"	cas		[%4], %2, %0\n"
+		"	cmp		%2, %0\n"
+		"	bne,a,pn	%%icc, 1b\n"
+		"	 mov		%1, %0\n"
+		: "=&r" (val), "=&r" (tmp1), "=&r" (tmp2)
+		: "0" (val), "r" (m)
+		: "cc", "memory");
 	return val;
 }
 
@@ -28,15 +28,15 @@ static inline unsigned long xchg64(__volatile__ unsigned long *m, unsigned long 
 	unsigned long tmp1, tmp2;
 
 	__asm__ __volatile__(
-"	mov		%0, %1\n"
-"1:	ldx		[%4], %2\n"
-"	casx		[%4], %2, %0\n"
-"	cmp		%2, %0\n"
-"	bne,a,pn	%%xcc, 1b\n"
-"	 mov		%1, %0\n"
-	: "=&r" (val), "=&r" (tmp1), "=&r" (tmp2)
-	: "0" (val), "r" (m)
-	: "cc", "memory");
+		"	mov		%0, %1\n"
+		"1:	ldx		[%4], %2\n"
+		"	casx		[%4], %2, %0\n"
+		"	cmp		%2, %0\n"
+		"	bne,a,pn	%%xcc, 1b\n"
+		"	 mov		%1, %0\n"
+		: "=&r" (val), "=&r" (tmp1), "=&r" (tmp2)
+		: "0" (val), "r" (m)
+		: "cc", "memory");
 	return val;
 }
 
@@ -44,15 +44,18 @@ static inline unsigned long xchg64(__volatile__ unsigned long *m, unsigned long 
 
 void __xchg_called_with_bad_pointer(void);
 
-static inline unsigned long __xchg(unsigned long x, __volatile__ void * ptr,
-				       int size)
+static inline unsigned long __xchg(unsigned long x, __volatile__ void *ptr,
+								   int size)
 {
-	switch (size) {
-	case 4:
-		return xchg32(ptr, x);
-	case 8:
-		return xchg64(ptr, x);
+	switch (size)
+	{
+		case 4:
+			return xchg32(ptr, x);
+
+		case 8:
+			return xchg64(ptr, x);
 	}
+
 	__xchg_called_with_bad_pointer();
 	return x;
 }
@@ -69,9 +72,9 @@ static inline unsigned long
 __cmpxchg_u32(volatile int *m, int old, int new)
 {
 	__asm__ __volatile__("cas [%2], %3, %0"
-			     : "=&r" (new)
-			     : "0" (new), "r" (m), "r" (old)
-			     : "memory");
+						 : "=&r" (new)
+						 : "0" (new), "r" (m), "r" (old)
+						 : "memory");
 
 	return new;
 }
@@ -80,9 +83,9 @@ static inline unsigned long
 __cmpxchg_u64(volatile long *m, unsigned long old, unsigned long new)
 {
 	__asm__ __volatile__("casx [%2], %3, %0"
-			     : "=&r" (new)
-			     : "0" (new), "r" (m), "r" (old)
-			     : "memory");
+						 : "=&r" (new)
+						 : "0" (new), "r" (m), "r" (old)
+						 : "memory");
 
 	return new;
 }
@@ -94,23 +97,26 @@ void __cmpxchg_called_with_bad_pointer(void);
 static inline unsigned long
 __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new, int size)
 {
-	switch (size) {
+	switch (size)
+	{
 		case 4:
 			return __cmpxchg_u32(ptr, old, new);
+
 		case 8:
 			return __cmpxchg_u64(ptr, old, new);
 	}
+
 	__cmpxchg_called_with_bad_pointer();
 	return old;
 }
 
 #define cmpxchg(ptr,o,n)						 \
-  ({									 \
-     __typeof__(*(ptr)) _o_ = (o);					 \
-     __typeof__(*(ptr)) _n_ = (n);					 \
-     (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
-				    (unsigned long)_n_, sizeof(*(ptr))); \
-  })
+	({									 \
+		__typeof__(*(ptr)) _o_ = (o);					 \
+		__typeof__(*(ptr)) _n_ = (n);					 \
+		(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
+									   (unsigned long)_n_, sizeof(*(ptr))); \
+	})
 
 /*
  * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
@@ -118,14 +124,16 @@ __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new, int size)
  */
 
 static inline unsigned long __cmpxchg_local(volatile void *ptr,
-				      unsigned long old,
-				      unsigned long new, int size)
+		unsigned long old,
+		unsigned long new, int size)
 {
-	switch (size) {
-	case 4:
-	case 8:	return __cmpxchg(ptr, old, new, size);
-	default:
-		return __cmpxchg_local_generic(ptr, old, new, size);
+	switch (size)
+	{
+		case 4:
+		case 8:	return __cmpxchg(ptr, old, new, size);
+
+		default:
+			return __cmpxchg_local_generic(ptr, old, new, size);
 	}
 
 	return old;
@@ -133,12 +141,12 @@ static inline unsigned long __cmpxchg_local(volatile void *ptr,
 
 #define cmpxchg_local(ptr, o, n)				  	\
 	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-			(unsigned long)(n), sizeof(*(ptr))))
+										 (unsigned long)(n), sizeof(*(ptr))))
 #define cmpxchg64_local(ptr, o, n)					\
-  ({									\
-	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
-	cmpxchg_local((ptr), (o), (n));					\
-  })
+	({									\
+		BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
+		cmpxchg_local((ptr), (o), (n));					\
+	})
 #define cmpxchg64(ptr, o, n)	cmpxchg64_local((ptr), (o), (n))
 
 #endif /* __ARCH_SPARC64_CMPXCHG__ */

@@ -26,7 +26,7 @@
  */
 
 #if CONFIG_KERNEL_PL != 1 && CONFIG_KERNEL_PL != 2
-#error CONFIG_KERNEL_PL must be 1 or 2
+	#error CONFIG_KERNEL_PL must be 1 or 2
 #endif
 
 /* Concatenate 4 strings. */

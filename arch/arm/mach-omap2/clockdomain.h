@@ -68,8 +68,10 @@
  * Autodeps are deprecated and should be removed after
  * omap_hwmod-based fine-grained module idle control is added.
  */
-struct clkdm_autodep {
-	union {
+struct clkdm_autodep
+{
+	union
+	{
 		const char *name;
 		struct clockdomain *ptr;
 	} clkdm;
@@ -87,7 +89,8 @@ struct clkdm_autodep {
  *
  * XXX Should also include hardware (fixed) dependencies.
  */
-struct clkdm_dep {
+struct clkdm_dep
+{
 	const char *clkdm_name;
 	struct clockdomain *clkdm;
 	s16 wkdep_usecount;
@@ -123,9 +126,11 @@ struct omap_hwmod;
  * @clkdm_offs should be a macro ending in _CDOFFS from the OMAP4 CM instance
  *     definitions (OMAP4 only)
  */
-struct clockdomain {
+struct clockdomain
+{
 	const char *name;
-	union {
+	union
+	{
 		const char *name;
 		struct powerdomain *ptr;
 	} pwrdm;
@@ -160,7 +165,8 @@ struct clockdomain {
  * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
  * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
  */
-struct clkdm_ops {
+struct clkdm_ops
+{
 	int	(*clkdm_add_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
 	int	(*clkdm_del_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
 	int	(*clkdm_read_wkdep)(struct clockdomain *clkdm1, struct clockdomain *clkdm2);
@@ -185,7 +191,7 @@ int clkdm_complete_init(void);
 struct clockdomain *clkdm_lookup(const char *name);
 
 int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
-			void *user);
+				   void *user);
 struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm);
 
 int clkdm_add_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2);

@@ -51,7 +51,8 @@
 
 /* Initial IO mappings */
 
-static struct map_desc s3c2410_iodesc[] __initdata = {
+static struct map_desc s3c2410_iodesc[] __initdata =
+{
 	IODESC_ENT(CLKPWR),
 	IODESC_ENT(TIMER),
 	IODESC_ENT(WATCHDOG),
@@ -80,7 +81,8 @@ void __init s3c2410_map_io(void)
 	iotable_init(s3c2410_iodesc, ARRAY_SIZE(s3c2410_iodesc));
 }
 
-struct bus_type s3c2410_subsys = {
+struct bus_type s3c2410_subsys =
+{
 	.name = "s3c2410-core",
 	.dev_name = "s3c2410-core",
 };
@@ -88,12 +90,14 @@ struct bus_type s3c2410_subsys = {
 /* Note, we would have liked to name this s3c2410-core, but we cannot
  * register two subsystems with the same name.
  */
-struct bus_type s3c2410a_subsys = {
+struct bus_type s3c2410a_subsys =
+{
 	.name = "s3c2410a-core",
 	.dev_name = "s3c2410a-core",
 };
 
-static struct device s3c2410_dev = {
+static struct device s3c2410_dev =
+{
 	.bus		= &s3c2410_subsys,
 };
 

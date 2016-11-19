@@ -27,11 +27,13 @@
 #define HAS_IRQ_BUG	0x0080
 #define HAS_MMU_BUG	0x0100
 
-static struct cpu_info {
+static struct cpu_info
+{
 	char *model;
 	unsigned short cache;
 	unsigned short flags;
-} cpu_info[] = {
+} cpu_info[] =
+{
 	/* The first four models will never ever run this code and are
 	   only here for display.  */
 	{ "ETRAX 1",         0, 0 },
@@ -59,39 +61,43 @@ int show_cpuinfo(struct seq_file *m, void *v)
 	revision = rdvr();
 
 	if (revision >= ARRAY_SIZE(cpu_info))
+	{
 		info = &cpu_info[ARRAY_SIZE(cpu_info) - 1];
+	}
 	else
+	{
 		info = &cpu_info[revision];
+	}
 
 	seq_printf(m,
-		   "processor\t: 0\n"
-		   "cpu\t\t: CRIS\n"
-		   "cpu revision\t: %lu\n"
-		   "cpu model\t: %s\n"
-		   "cache size\t: %d kB\n"
-		   "fpu\t\t: %s\n"
-		   "mmu\t\t: %s\n"
-		   "mmu DMA bug\t: %s\n"
-		   "ethernet\t: %s Mbps\n"
-		   "token ring\t: %s\n"
-		   "scsi\t\t: %s\n"
-		   "ata\t\t: %s\n"
-		   "usb\t\t: %s\n"
-		   "bogomips\t: %lu.%02lu\n",
+			   "processor\t: 0\n"
+			   "cpu\t\t: CRIS\n"
+			   "cpu revision\t: %lu\n"
+			   "cpu model\t: %s\n"
+			   "cache size\t: %d kB\n"
+			   "fpu\t\t: %s\n"
+			   "mmu\t\t: %s\n"
+			   "mmu DMA bug\t: %s\n"
+			   "ethernet\t: %s Mbps\n"
+			   "token ring\t: %s\n"
+			   "scsi\t\t: %s\n"
+			   "ata\t\t: %s\n"
+			   "usb\t\t: %s\n"
+			   "bogomips\t: %lu.%02lu\n",
 
-		   revision,
-		   info->model,
-		   info->cache,
-		   info->flags & HAS_FPU ? "yes" : "no",
-		   info->flags & HAS_MMU ? "yes" : "no",
-		   info->flags & HAS_MMU_BUG ? "yes" : "no",
-		   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
-		   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
-		   info->flags & HAS_SCSI ? "yes" : "no",
-		   info->flags & HAS_ATA ? "yes" : "no",
-		   info->flags & HAS_USB ? "yes" : "no",
-		   (loops_per_jiffy * HZ + 500) / 500000,
-		   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
+			   revision,
+			   info->model,
+			   info->cache,
+			   info->flags & HAS_FPU ? "yes" : "no",
+			   info->flags & HAS_MMU ? "yes" : "no",
+			   info->flags & HAS_MMU_BUG ? "yes" : "no",
+			   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
+			   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
+			   info->flags & HAS_SCSI ? "yes" : "no",
+			   info->flags & HAS_ATA ? "yes" : "no",
+			   info->flags & HAS_USB ? "yes" : "no",
+			   (loops_per_jiffy * HZ + 500) / 500000,
+			   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
 
 	return 0;
 }
@@ -102,5 +108,5 @@ void
 show_etrax_copyright(void)
 {
 	printk(KERN_INFO
-               "Linux/CRIS port on ETRAX 100LX (c) 2001 Axis Communications AB\n");
+		   "Linux/CRIS port on ETRAX 100LX (c) 2001 Axis Communications AB\n");
 }

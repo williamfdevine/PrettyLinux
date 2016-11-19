@@ -5,8 +5,9 @@
 #include <asm/sn/types.h>
 #include <asm/mmzone.h>
 
-struct cpuinfo_ip27 {
-//	cpuid_t		p_cpuid;	/* PROM assigned cpuid */
+struct cpuinfo_ip27
+{
+	//	cpuid_t		p_cpuid;	/* PROM assigned cpuid */
 	cnodeid_t	p_nodeid;	/* my node ID in compact-id-space */
 	nasid_t		p_nasid;	/* my node ID in numa-as-id-space */
 	unsigned char	p_slice;	/* Physical position on node board */
@@ -25,8 +26,8 @@ extern struct cpuinfo_ip27 sn_cpu_info[NR_CPUS];
 #define cpu_to_node(cpu)	(sn_cpu_info[(cpu)].p_nodeid)
 #define parent_node(node)	(node)
 #define cpumask_of_node(node)	((node) == -1 ?				\
-				 cpu_all_mask :				\
-				 &hub_data(node)->h_cpus)
+								 cpu_all_mask :				\
+								 &hub_data(node)->h_cpus)
 struct pci_bus;
 extern int pcibus_to_node(struct pci_bus *);
 

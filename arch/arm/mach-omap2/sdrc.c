@@ -32,7 +32,8 @@ static struct omap_sdrc_params *sdrc_init_params_cs0, *sdrc_init_params_cs1;
 void __iomem *omap2_sdrc_base;
 void __iomem *omap2_sms_base;
 
-struct omap2_sms_regs {
+struct omap2_sms_regs
+{
 	u32	sms_sysconfig;
 };
 
@@ -86,25 +87,33 @@ void omap2_sms_restore_context(void)
  * Returns 0 upon success or -1 upon failure.
  */
 int omap2_sdrc_get_params(unsigned long r,
-			  struct omap_sdrc_params **sdrc_cs0,
-			  struct omap_sdrc_params **sdrc_cs1)
+						  struct omap_sdrc_params **sdrc_cs0,
+						  struct omap_sdrc_params **sdrc_cs1)
 {
 	struct omap_sdrc_params *sp0, *sp1;
 
 	if (!sdrc_init_params_cs0)
+	{
 		return -1;
+	}
 
 	sp0 = sdrc_init_params_cs0;
 	sp1 = sdrc_init_params_cs1;
 
-	while (sp0->rate && sp0->rate != r) {
+	while (sp0->rate && sp0->rate != r)
+	{
 		sp0++;
+
 		if (sdrc_init_params_cs1)
+		{
 			sp1++;
+		}
 	}
 
 	if (!sp0->rate)
+	{
 		return -1;
+	}
 
 	*sdrc_cs0 = sp0;
 	*sdrc_cs1 = sp1;
@@ -128,7 +137,7 @@ void __init omap2_set_globals_sdrc(void __iomem *sdrc, void __iomem *sms)
  * bootloaders.
  */
 void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
-			    struct omap_sdrc_params *sdrc_cs1)
+							struct omap_sdrc_params *sdrc_cs1)
 {
 	u32 l;
 

@@ -49,7 +49,7 @@ asmlinkage long sys_arch_prctl(int, unsigned long);
 
 /* kernel/sys_x86_64.c */
 asmlinkage long sys_mmap(unsigned long, unsigned long, unsigned long,
-			 unsigned long, unsigned long, unsigned long);
+						 unsigned long, unsigned long, unsigned long);
 
 #endif /* CONFIG_X86_32 */
 #endif /* _ASM_X86_SYSCALLS_H */

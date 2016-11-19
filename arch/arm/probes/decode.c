@@ -167,7 +167,8 @@ static unsigned long __kprobes __check_al(unsigned long cpsr)
 	return true;
 }
 
-probes_check_cc * const probes_condition_checks[16] = {
+probes_check_cc *const probes_condition_checks[16] =
+{
 	&__check_eq, &__check_ne, &__check_cs, &__check_cc,
 	&__check_mi, &__check_pl, &__check_vs, &__check_vc,
 	&__check_hi, &__check_ls, &__check_ge, &__check_lt,
@@ -176,14 +177,14 @@ probes_check_cc * const probes_condition_checks[16] = {
 
 
 void __kprobes probes_simulate_nop(probes_opcode_t opcode,
-	struct arch_probes_insn *asi,
-	struct pt_regs *regs)
+								   struct arch_probes_insn *asi,
+								   struct pt_regs *regs)
 {
 }
 
 void __kprobes probes_emulate_none(probes_opcode_t opcode,
-	struct arch_probes_insn *asi,
-	struct pt_regs *regs)
+								   struct arch_probes_insn *asi,
+								   struct pt_regs *regs)
 {
 	asi->insn_fn();
 }
@@ -197,23 +198,30 @@ void __kprobes probes_emulate_none(probes_opcode_t opcode,
  */
 static probes_opcode_t __kprobes
 prepare_emulated_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
-		      bool thumb)
+					  bool thumb)
 {
 #ifdef CONFIG_THUMB2_KERNEL
-	if (thumb) {
+
+	if (thumb)
+	{
 		u16 *thumb_insn = (u16 *)asi->insn;
 		/* Thumb bx lr */
 		thumb_insn[1] = __opcode_to_mem_thumb16(0x4770);
 		thumb_insn[2] = __opcode_to_mem_thumb16(0x4770);
 		return insn;
 	}
+
 	asi->insn[1] = __opcode_to_mem_arm(0xe12fff1e); /* ARM bx lr */
 #else
 	asi->insn[1] = __opcode_to_mem_arm(0xe1a0f00e); /* mov pc, lr */
 #endif
+
 	/* Make an ARM instruction unconditional */
 	if (insn < 0xe0000000)
+	{
 		insn = (insn | 0xe0000000) & ~0x10000000;
+	}
+
 	return insn;
 }
 
@@ -223,16 +231,23 @@ prepare_emulated_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
  */
 static void  __kprobes
 set_emulated_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
-		  bool thumb)
+				  bool thumb)
 {
 #ifdef CONFIG_THUMB2_KERNEL
-	if (thumb) {
+
+	if (thumb)
+	{
 		u16 *ip = (u16 *)asi->insn;
+
 		if (is_wide_instruction(insn))
+		{
 			*ip++ = __opcode_to_mem_thumb16(insn >> 16);
+		}
+
 		*ip++ = __opcode_to_mem_thumb16(insn);
 		return;
 	}
+
 #endif
 	asi->insn[0] = __opcode_to_mem_arm(insn);
 }
@@ -263,60 +278,85 @@ static bool __kprobes decode_regs(probes_opcode_t *pinsn, u32 regs, bool modify)
 	probes_opcode_t insn = *pinsn;
 	probes_opcode_t mask = 0xf; /* Start at least significant nibble */
 
-	for (; regs != 0; regs >>= 4, mask <<= 4) {
+	for (; regs != 0; regs >>= 4, mask <<= 4)
+	{
 
 		probes_opcode_t new_bits = INSN_NEW_BITS;
 
-		switch (regs & 0xf) {
+		switch (regs & 0xf)
+		{
 
-		case REG_TYPE_NONE:
-			/* Nibble not a register, skip to next */
-			continue;
+			case REG_TYPE_NONE:
+				/* Nibble not a register, skip to next */
+				continue;
 
-		case REG_TYPE_ANY:
-			/* Any register is allowed */
-			break;
+			case REG_TYPE_ANY:
+				/* Any register is allowed */
+				break;
 
-		case REG_TYPE_SAMEAS16:
-			/* Replace register with same as at bit position 16 */
-			new_bits = INSN_SAMEAS16_BITS;
-			break;
+			case REG_TYPE_SAMEAS16:
+				/* Replace register with same as at bit position 16 */
+				new_bits = INSN_SAMEAS16_BITS;
+				break;
 
-		case REG_TYPE_SP:
-			/* Only allow SP (R13) */
-			if ((insn ^ 0xdddddddd) & mask)
-				goto reject;
-			break;
+			case REG_TYPE_SP:
 
-		case REG_TYPE_PC:
-			/* Only allow PC (R15) */
-			if ((insn ^ 0xffffffff) & mask)
-				goto reject;
-			break;
+				/* Only allow SP (R13) */
+				if ((insn ^ 0xdddddddd) & mask)
+				{
+					goto reject;
+				}
 
-		case REG_TYPE_NOSP:
-			/* Reject SP (R13) */
-			if (((insn ^ 0xdddddddd) & mask) == 0)
-				goto reject;
-			break;
+				break;
 
-		case REG_TYPE_NOSPPC:
-		case REG_TYPE_NOSPPCX:
-			/* Reject SP and PC (R13 and R15) */
-			if (((insn ^ 0xdddddddd) & 0xdddddddd & mask) == 0)
-				goto reject;
-			break;
+			case REG_TYPE_PC:
 
-		case REG_TYPE_NOPCWB:
-			if (!is_writeback(insn))
-				break; /* No writeback, so any register is OK */
+				/* Only allow PC (R15) */
+				if ((insn ^ 0xffffffff) & mask)
+				{
+					goto reject;
+				}
+
+				break;
+
+			case REG_TYPE_NOSP:
+
+				/* Reject SP (R13) */
+				if (((insn ^ 0xdddddddd) & mask) == 0)
+				{
+					goto reject;
+				}
+
+				break;
+
+			case REG_TYPE_NOSPPC:
+			case REG_TYPE_NOSPPCX:
+
+				/* Reject SP and PC (R13 and R15) */
+				if (((insn ^ 0xdddddddd) & 0xdddddddd & mask) == 0)
+				{
+					goto reject;
+				}
+
+				break;
+
+			case REG_TYPE_NOPCWB:
+				if (!is_writeback(insn))
+				{
+					break;    /* No writeback, so any register is OK */
+				}
+
 			/* fall through... */
-		case REG_TYPE_NOPC:
-		case REG_TYPE_NOPCX:
-			/* Reject PC (R15) */
-			if (((insn ^ 0xffffffff) & mask) == 0)
-				goto reject;
-			break;
+			case REG_TYPE_NOPC:
+			case REG_TYPE_NOPCX:
+
+				/* Reject PC (R15) */
+				if (((insn ^ 0xffffffff) & mask) == 0)
+				{
+					goto reject;
+				}
+
+				break;
 		}
 
 		/* Replace value of nibble with new register number... */
@@ -325,7 +365,9 @@ static bool __kprobes decode_regs(probes_opcode_t *pinsn, u32 regs, bool modify)
 	}
 
 	if (modify)
+	{
 		*pinsn = insn;
+	}
 
 	return true;
 
@@ -333,7 +375,8 @@ reject:
 	return false;
 }
 
-static const int decode_struct_sizes[NUM_DECODE_TYPES] = {
+static const int decode_struct_sizes[NUM_DECODE_TYPES] =
+{
 	[DECODE_TYPE_TABLE]	= sizeof(struct decode_table),
 	[DECODE_TYPE_CUSTOM]	= sizeof(struct decode_custom),
 	[DECODE_TYPE_SIMULATE]	= sizeof(struct decode_simulate),
@@ -343,27 +386,39 @@ static const int decode_struct_sizes[NUM_DECODE_TYPES] = {
 };
 
 static int run_checkers(const struct decode_checker *checkers[],
-		int action, probes_opcode_t insn,
-		struct arch_probes_insn *asi,
-		const struct decode_header *h)
+						int action, probes_opcode_t insn,
+						struct arch_probes_insn *asi,
+						const struct decode_header *h)
 {
 	const struct decode_checker **p;
 
 	if (!checkers)
+	{
 		return INSN_GOOD;
+	}
 
 	p = checkers;
-	while (*p != NULL) {
+
+	while (*p != NULL)
+	{
 		int retval;
 		probes_check_t *checker_func = (*p)[action].checker;
 
 		retval = INSN_GOOD;
+
 		if (checker_func)
+		{
 			retval = checker_func(insn, asi, h);
+		}
+
 		if (retval == INSN_REJECTED)
+		{
 			return retval;
+		}
+
 		p++;
 	}
+
 	return INSN_GOOD;
 }
 
@@ -412,9 +467,9 @@ static int run_checkers(const struct decode_checker *checkers[],
  */
 int __kprobes
 probes_decode_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
-		   const union decode_item *table, bool thumb,
-		   bool emulate, const union decode_action *actions,
-		   const struct decode_checker *checkers[])
+				   const union decode_item *table, bool thumb,
+				   bool emulate, const union decode_action *actions,
+				   const struct decode_checker *checkers[])
 {
 	const struct decode_header *h = (struct decode_header *)table;
 	const struct decode_header *next;
@@ -443,79 +498,106 @@ probes_decode_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
 	asi->register_usage_flags = ~0UL;
 
 	if (emulate)
+	{
 		insn = prepare_emulated_insn(insn, asi, thumb);
+	}
 
-	for (;; h = next) {
+	for (;; h = next)
+	{
 		enum decode_type type = h->type_regs.bits & DECODE_TYPE_MASK;
 		u32 regs = h->type_regs.bits >> DECODE_TYPE_BITS;
 
 		if (type == DECODE_TYPE_END)
+		{
 			return INSN_REJECTED;
+		}
 
 		next = (struct decode_header *)
-				((uintptr_t)h + decode_struct_sizes[type]);
+			   ((uintptr_t)h + decode_struct_sizes[type]);
 
 		if (!matched && (insn & h->mask.bits) != h->value.bits)
+		{
 			continue;
+		}
 
 		if (!decode_regs(&insn, regs, emulate))
+		{
 			return INSN_REJECTED;
-
-		switch (type) {
-
-		case DECODE_TYPE_TABLE: {
-			struct decode_table *d = (struct decode_table *)h;
-			next = (struct decode_header *)d->table.table;
-			break;
 		}
 
-		case DECODE_TYPE_CUSTOM: {
-			int err;
-			struct decode_custom *d = (struct decode_custom *)h;
-			int action = d->decoder.action;
+		switch (type)
+		{
 
-			err = run_checkers(checkers, action, origin_insn, asi, h);
-			if (err == INSN_REJECTED)
+			case DECODE_TYPE_TABLE:
+				{
+					struct decode_table *d = (struct decode_table *)h;
+					next = (struct decode_header *)d->table.table;
+					break;
+				}
+
+			case DECODE_TYPE_CUSTOM:
+				{
+					int err;
+					struct decode_custom *d = (struct decode_custom *)h;
+					int action = d->decoder.action;
+
+					err = run_checkers(checkers, action, origin_insn, asi, h);
+
+					if (err == INSN_REJECTED)
+					{
+						return INSN_REJECTED;
+					}
+
+					return actions[action].decoder(insn, asi, h);
+				}
+
+			case DECODE_TYPE_SIMULATE:
+				{
+					int err;
+					struct decode_simulate *d = (struct decode_simulate *)h;
+					int action = d->handler.action;
+
+					err = run_checkers(checkers, action, origin_insn, asi, h);
+
+					if (err == INSN_REJECTED)
+					{
+						return INSN_REJECTED;
+					}
+
+					asi->insn_handler = actions[action].handler;
+					return INSN_GOOD_NO_SLOT;
+				}
+
+			case DECODE_TYPE_EMULATE:
+				{
+					int err;
+					struct decode_emulate *d = (struct decode_emulate *)h;
+					int action = d->handler.action;
+
+					err = run_checkers(checkers, action, origin_insn, asi, h);
+
+					if (err == INSN_REJECTED)
+					{
+						return INSN_REJECTED;
+					}
+
+					if (!emulate)
+					{
+						return actions[action].decoder(insn, asi, h);
+					}
+
+					asi->insn_handler = actions[action].handler;
+					set_emulated_insn(insn, asi, thumb);
+					return INSN_GOOD;
+				}
+
+			case DECODE_TYPE_OR:
+				matched = true;
+				break;
+
+			case DECODE_TYPE_REJECT:
+			default:
 				return INSN_REJECTED;
-			return actions[action].decoder(insn, asi, h);
-		}
-
-		case DECODE_TYPE_SIMULATE: {
-			int err;
-			struct decode_simulate *d = (struct decode_simulate *)h;
-			int action = d->handler.action;
-
-			err = run_checkers(checkers, action, origin_insn, asi, h);
-			if (err == INSN_REJECTED)
-				return INSN_REJECTED;
-			asi->insn_handler = actions[action].handler;
-			return INSN_GOOD_NO_SLOT;
-		}
-
-		case DECODE_TYPE_EMULATE: {
-			int err;
-			struct decode_emulate *d = (struct decode_emulate *)h;
-			int action = d->handler.action;
-
-			err = run_checkers(checkers, action, origin_insn, asi, h);
-			if (err == INSN_REJECTED)
-				return INSN_REJECTED;
-
-			if (!emulate)
-				return actions[action].decoder(insn, asi, h);
-
-			asi->insn_handler = actions[action].handler;
-			set_emulated_insn(insn, asi, thumb);
-			return INSN_GOOD;
-		}
-
-		case DECODE_TYPE_OR:
-			matched = true;
-			break;
-
-		case DECODE_TYPE_REJECT:
-		default:
-			return INSN_REJECTED;
 		}
 	}
 }

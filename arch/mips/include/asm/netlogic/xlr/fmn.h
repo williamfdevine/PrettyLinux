@@ -202,39 +202,39 @@
 static inline void nlm_msgsnd(unsigned int stid)
 {
 	__asm__ volatile (
-	    ".set	push\n"
-	    ".set	noreorder\n"
-	    ".set	noat\n"
-	    "move	$1, %0\n"
-	    "c2		0x10001\n"	/* msgsnd $1 */
-	    ".set	pop\n"
-	    : : "r" (stid) : "$1"
+		".set	push\n"
+		".set	noreorder\n"
+		".set	noat\n"
+		"move	$1, %0\n"
+		"c2		0x10001\n"	/* msgsnd $1 */
+		".set	pop\n"
+		: : "r" (stid) : "$1"
 	);
 }
 
 static inline void nlm_msgld(unsigned int pri)
 {
 	__asm__ volatile (
-	    ".set	push\n"
-	    ".set	noreorder\n"
-	    ".set	noat\n"
-	    "move	$1, %0\n"
-	    "c2		0x10002\n"    /* msgld $1 */
-	    ".set	pop\n"
-	    : : "r" (pri) : "$1"
+		".set	push\n"
+		".set	noreorder\n"
+		".set	noat\n"
+		"move	$1, %0\n"
+		"c2		0x10002\n"    /* msgld $1 */
+		".set	pop\n"
+		: : "r" (pri) : "$1"
 	);
 }
 
 static inline void nlm_msgwait(unsigned int mask)
 {
 	__asm__ volatile (
-	    ".set	push\n"
-	    ".set	noreorder\n"
-	    ".set	noat\n"
-	    "move	$8, %0\n"
-	    "c2		0x10003\n"    /* msgwait $1 */
-	    ".set	pop\n"
-	    : : "r" (mask) : "$1"
+		".set	push\n"
+		".set	noreorder\n"
+		".set	noat\n"
+		"move	$8, %0\n"
+		"c2		0x10003\n"    /* msgwait $1 */
+		".set	pop\n"
+		: : "r" (mask) : "$1"
 	);
 }
 
@@ -259,13 +259,14 @@ static inline void nlm_fmn_setup_intr(int irq, unsigned int tmask)
 	uint32_t config;
 
 	config = (1 << 24)	/* interrupt water mark - 1 msg */
-		| (irq << 16)	/* irq */
-		| (tmask << 8)	/* thread mask */
-		| 0x2;		/* enable watermark intr, disable empty intr */
+			 | (irq << 16)	/* irq */
+			 | (tmask << 8)	/* thread mask */
+			 | 0x2;		/* enable watermark intr, disable empty intr */
 	nlm_write_c2_config(config);
 }
 
-struct nlm_fmn_msg {
+struct nlm_fmn_msg
+{
 	uint64_t msg0;
 	uint64_t msg1;
 	uint64_t msg2;
@@ -273,7 +274,7 @@ struct nlm_fmn_msg {
 };
 
 static inline int nlm_fmn_send(unsigned int size, unsigned int code,
-		unsigned int stid, struct nlm_fmn_msg *msg)
+							   unsigned int stid, struct nlm_fmn_msg *msg)
 {
 	unsigned int dest;
 	uint32_t status;
@@ -298,13 +299,20 @@ static inline int nlm_fmn_send(unsigned int size, unsigned int code,
 	 * transient condition, unless there is a configuration
 	 * failure, or the receiver is stuck.
 	 */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		nlm_msgsnd(dest);
 		status = nlm_read_c2_status0();
+
 		if ((status & 0x2) == 1)
+		{
 			pr_info("Send pending fail!\n");
+		}
+
 		if ((status & 0x4) == 0)
+		{
 			return 0;
+		}
 	}
 
 	/* If there is a credit failure, return error */
@@ -312,21 +320,26 @@ static inline int nlm_fmn_send(unsigned int size, unsigned int code,
 }
 
 static inline int nlm_fmn_receive(int bucket, int *size, int *code, int *stid,
-		struct nlm_fmn_msg *msg)
+								  struct nlm_fmn_msg *msg)
 {
 	uint32_t status, tmp;
 
 	nlm_msgld(bucket);
 
 	/* wait for load pending to clear */
-	do {
+	do
+	{
 		status = nlm_read_c2_status0();
-	} while ((status & 0x08) != 0);
+	}
+	while ((status & 0x08) != 0);
 
 	/* receive error bits */
 	tmp = status & 0x30;
+
 	if (tmp != 0)
+	{
 		return tmp;
+	}
 
 	*size = ((status & 0xc0) >> 6) + 1;
 	*code = (status & 0xff00) >> 8;
@@ -339,14 +352,16 @@ static inline int nlm_fmn_receive(int bucket, int *size, int *code, int *stid,
 	return 0;
 }
 
-struct xlr_fmn_info {
+struct xlr_fmn_info
+{
 	int num_buckets;
 	int start_stn_id;
 	int end_stn_id;
 	int credit_config[128];
 };
 
-struct xlr_board_fmn_config {
+struct xlr_board_fmn_config
+{
 	int bucket_size[128];		/* size of buckets for all stations */
 	struct xlr_fmn_info cpu[8];
 	struct xlr_fmn_info gmac[2];
@@ -357,8 +372,8 @@ struct xlr_board_fmn_config {
 };
 
 extern int nlm_register_fmn_handler(int start, int end,
-	void (*fn)(int, int, int, int, struct nlm_fmn_msg *, void *),
-	void *arg);
+									void (*fn)(int, int, int, int, struct nlm_fmn_msg *, void *),
+									void *arg);
 extern void xlr_percpu_fmn_init(void);
 extern void nlm_setup_fmn_irq(void);
 extern void xlr_board_info_setup(void);

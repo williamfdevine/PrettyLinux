@@ -29,7 +29,9 @@ static void __init *msic_gpio_platform_data(void *info)
 	int gpio = get_gpio_by_name("msic_gpio_base");
 
 	if (gpio < 0)
+	{
 		return NULL;
+	}
 
 	msic_gpio_pdata.gpio_base = gpio;
 	msic_pdata.gpio = &msic_gpio_pdata;
@@ -37,7 +39,8 @@ static void __init *msic_gpio_platform_data(void *info)
 	return msic_generic_platform_data(info, INTEL_MSIC_BLOCK_GPIO);
 }
 
-static const struct devs_id msic_gpio_dev_id __initconst = {
+static const struct devs_id msic_gpio_dev_id __initconst =
+{
 	.name = "msic_gpio",
 	.type = SFI_DEV_TYPE_IPC,
 	.delay = 1,

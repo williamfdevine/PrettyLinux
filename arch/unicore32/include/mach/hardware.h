@@ -18,11 +18,11 @@
 #include <mach/PKUnity.h>
 
 #ifndef __ASSEMBLY__
-#define io_p2v(x)	(void __iomem *)((x) - PKUNITY_MMIO_BASE)
-#define io_v2p(x)	(phys_addr_t)((x) + PKUNITY_MMIO_BASE)
+	#define io_p2v(x)	(void __iomem *)((x) - PKUNITY_MMIO_BASE)
+	#define io_v2p(x)	(phys_addr_t)((x) + PKUNITY_MMIO_BASE)
 #else
-#define io_p2v(x)	((x) - PKUNITY_MMIO_BASE)
-#define io_v2p(x)	((x) + PKUNITY_MMIO_BASE)
+	#define io_p2v(x)	((x) - PKUNITY_MMIO_BASE)
+	#define io_v2p(x)	((x) + PKUNITY_MMIO_BASE)
 #endif
 
 #define PCIBIOS_MIN_IO			0x4000 /* should lower than 64KB */

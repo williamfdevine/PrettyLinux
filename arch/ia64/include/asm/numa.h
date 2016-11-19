@@ -35,14 +35,16 @@ extern int num_node_memblks;		/* total number of memory chunks */
  * obtain information about memory nodes.
 */
 
-struct node_memblk_s {
+struct node_memblk_s
+{
 	unsigned long start_paddr;
 	unsigned long size;
 	int nid;		/* which logical node contains this chunk? */
 	int bank;		/* which mem bank on this node */
 };
 
-struct node_cpuid_s {
+struct node_cpuid_s
+{
 	u16	phys_id;	/* id << 8 | eid */
 	int	nid;		/* logical node containing this CPU */
 };

@@ -33,12 +33,14 @@
 #define PB44_KEYS_POLL_INTERVAL		20	/* msecs */
 #define PB44_KEYS_DEBOUNCE_INTERVAL	(3 * PB44_KEYS_POLL_INTERVAL)
 
-static struct i2c_gpio_platform_data pb44_i2c_gpio_data = {
+static struct i2c_gpio_platform_data pb44_i2c_gpio_data =
+{
 	.sda_pin	= PB44_GPIO_I2C_SDA,
 	.scl_pin	= PB44_GPIO_I2C_SCL,
 };
 
-static struct platform_device pb44_i2c_gpio_device = {
+static struct platform_device pb44_i2c_gpio_device =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev = {
@@ -46,18 +48,21 @@ static struct platform_device pb44_i2c_gpio_device = {
 	}
 };
 
-static struct pcf857x_platform_data pb44_pcf857x_data = {
+static struct pcf857x_platform_data pb44_pcf857x_data =
+{
 	.gpio_base	= PB44_GPIO_EXP_BASE,
 };
 
-static struct i2c_board_info pb44_i2c_board_info[] __initdata = {
+static struct i2c_board_info pb44_i2c_board_info[] __initdata =
+{
 	{
 		I2C_BOARD_INFO("pcf8575", 0x20),
 		.platform_data	= &pb44_pcf857x_data,
 	},
 };
 
-static struct gpio_led pb44_leds_gpio[] __initdata = {
+static struct gpio_led pb44_leds_gpio[] __initdata =
+{
 	{
 		.name		= "pb44:amber:jump1",
 		.gpio		= PB44_GPIO_LED_JUMP1,
@@ -69,7 +74,8 @@ static struct gpio_led pb44_leds_gpio[] __initdata = {
 	},
 };
 
-static struct gpio_keys_button pb44_gpio_keys[] __initdata = {
+static struct gpio_keys_button pb44_gpio_keys[] __initdata =
+{
 	{
 		.desc		= "soft_reset",
 		.type		= EV_KEY,
@@ -87,7 +93,8 @@ static struct gpio_keys_button pb44_gpio_keys[] __initdata = {
 	}
 };
 
-static struct spi_board_info pb44_spi_info[] = {
+static struct spi_board_info pb44_spi_info[] =
+{
 	{
 		.bus_num	= 0,
 		.chip_select	= 0,
@@ -96,7 +103,8 @@ static struct spi_board_info pb44_spi_info[] = {
 	},
 };
 
-static struct ath79_spi_platform_data pb44_spi_data = {
+static struct ath79_spi_platform_data pb44_spi_data =
+{
 	.bus_num		= 0,
 	.num_chipselect		= 1,
 };
@@ -104,19 +112,19 @@ static struct ath79_spi_platform_data pb44_spi_data = {
 static void __init pb44_init(void)
 {
 	i2c_register_board_info(0, pb44_i2c_board_info,
-				ARRAY_SIZE(pb44_i2c_board_info));
+							ARRAY_SIZE(pb44_i2c_board_info));
 	platform_device_register(&pb44_i2c_gpio_device);
 
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(pb44_leds_gpio),
-				 pb44_leds_gpio);
+							 pb44_leds_gpio);
 	ath79_register_gpio_keys_polled(-1, PB44_KEYS_POLL_INTERVAL,
-					ARRAY_SIZE(pb44_gpio_keys),
-					pb44_gpio_keys);
+									ARRAY_SIZE(pb44_gpio_keys),
+									pb44_gpio_keys);
 	ath79_register_spi(&pb44_spi_data, pb44_spi_info,
-			   ARRAY_SIZE(pb44_spi_info));
+					   ARRAY_SIZE(pb44_spi_info));
 	ath79_register_usb();
 	ath79_register_pci();
 }
 
 MIPS_MACHINE(ATH79_MACH_PB44, "PB44", "Atheros PB44 reference board",
-	     pb44_init);
+			 pb44_init);

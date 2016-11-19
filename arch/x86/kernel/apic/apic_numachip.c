@@ -30,7 +30,8 @@ static unsigned int numachip1_get_apic_id(unsigned long x)
 	unsigned long value;
 	unsigned int id = (x >> 24) & 0xff;
 
-	if (static_cpu_has(X86_FEATURE_NODEID_MSR)) {
+	if (static_cpu_has(X86_FEATURE_NODEID_MSR))
+	{
 		rdmsrl(MSR_FAM10H_NODE_ID, value);
 		id |= (value << 2) & 0xff00;
 	}
@@ -86,7 +87,7 @@ static int numachip_wakeup_secondary(int phys_apicid, unsigned long start_rip)
 {
 	numachip_apic_icr_write(phys_apicid, APIC_DM_INIT);
 	numachip_apic_icr_write(phys_apicid, APIC_DM_STARTUP |
-		(start_rip >> 12));
+							(start_rip >> 12));
 
 	return 0;
 }
@@ -100,16 +101,18 @@ static void numachip_send_IPI_one(int cpu, int vector)
 	local_apicid = __this_cpu_read(x86_cpu_to_apicid);
 
 	/* Send via local APIC where non-local part matches */
-	if (!((apicid ^ local_apicid) >> NUMACHIP_LAPIC_BITS)) {
+	if (!((apicid ^ local_apicid) >> NUMACHIP_LAPIC_BITS))
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
 		__default_send_IPI_dest_field(apicid, vector,
-			APIC_DEST_PHYSICAL);
+									  APIC_DEST_PHYSICAL);
 		local_irq_restore(flags);
 		preempt_enable();
 		return;
 	}
+
 	preempt_enable();
 
 	dmode = (vector == NMI_VECTOR) ? APIC_DM_NMI : APIC_DM_FIXED;
@@ -121,18 +124,21 @@ static void numachip_send_IPI_mask(const struct cpumask *mask, int vector)
 	unsigned int cpu;
 
 	for_each_cpu(cpu, mask)
-		numachip_send_IPI_one(cpu, vector);
+	numachip_send_IPI_one(cpu, vector);
 }
 
 static void numachip_send_IPI_mask_allbutself(const struct cpumask *mask,
-						int vector)
+		int vector)
 {
 	unsigned int this_cpu = smp_processor_id();
 	unsigned int cpu;
 
-	for_each_cpu(cpu, mask) {
+	for_each_cpu(cpu, mask)
+	{
 		if (cpu != this_cpu)
+		{
 			numachip_send_IPI_one(cpu, vector);
+		}
 	}
 }
 
@@ -141,9 +147,12 @@ static void numachip_send_IPI_allbutself(int vector)
 	unsigned int this_cpu = smp_processor_id();
 	unsigned int cpu;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cpu != this_cpu)
+		{
 			numachip_send_IPI_one(cpu, vector);
+		}
 	}
 }
 
@@ -175,7 +184,8 @@ static void fixup_cpu_id(struct cpuinfo_x86 *c, int node)
 	this_cpu_write(cpu_llc_id, node);
 
 	/* Account for nodes per socket in multi-core-module processors */
-	if (static_cpu_has(X86_FEATURE_NODEID_MSR)) {
+	if (static_cpu_has(X86_FEATURE_NODEID_MSR))
+	{
 		rdmsrl(MSR_FAM10H_NODE_ID, val);
 		nodes = ((val >> 3) & 7) + 1;
 	}
@@ -186,17 +196,20 @@ static void fixup_cpu_id(struct cpuinfo_x86 *c, int node)
 static int __init numachip_system_init(void)
 {
 	/* Map the LCSR area and set up the apic_icr_write function */
-	switch (numachip_system) {
-	case 1:
-		init_extra_mapping_uc(NUMACHIP_LCSR_BASE, NUMACHIP_LCSR_SIZE);
-		numachip_apic_icr_write = numachip1_apic_icr_write;
-		break;
-	case 2:
-		init_extra_mapping_uc(NUMACHIP2_LCSR_BASE, NUMACHIP2_LCSR_SIZE);
-		numachip_apic_icr_write = numachip2_apic_icr_write;
-		break;
-	default:
-		return 0;
+	switch (numachip_system)
+	{
+		case 1:
+			init_extra_mapping_uc(NUMACHIP_LCSR_BASE, NUMACHIP_LCSR_SIZE);
+			numachip_apic_icr_write = numachip1_apic_icr_write;
+			break;
+
+		case 2:
+			init_extra_mapping_uc(NUMACHIP2_LCSR_BASE, NUMACHIP2_LCSR_SIZE);
+			numachip_apic_icr_write = numachip2_apic_icr_write;
+			break;
+
+		default:
+			return 0;
 	}
 
 	x86_cpuinit.fixup_cpu_id = fixup_cpu_id;
@@ -209,8 +222,10 @@ early_initcall(numachip_system_init);
 static int numachip1_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 {
 	if ((strncmp(oem_id, "NUMASC", 6) != 0) ||
-	    (strncmp(oem_table_id, "NCONNECT", 8) != 0))
+		(strncmp(oem_table_id, "NCONNECT", 8) != 0))
+	{
 		return 0;
+	}
 
 	numachip_system = 1;
 
@@ -220,8 +235,10 @@ static int numachip1_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 static int numachip2_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 {
 	if ((strncmp(oem_id, "NUMASC", 6) != 0) ||
-	    (strncmp(oem_table_id, "NCONECT2", 8) != 0))
+		(strncmp(oem_table_id, "NCONECT2", 8) != 0))
+	{
 		return 0;
+	}
 
 	numachip_system = 2;
 
@@ -239,7 +256,8 @@ static u32 numachip_safe_apic_wait_icr_idle(void)
 	return 0;
 }
 
-static const struct apic apic_numachip1 __refconst = {
+static const struct apic apic_numachip1 __refconst =
+{
 	.name				= "NumaConnect system",
 	.probe				= numachip1_probe,
 	.acpi_madt_oem_check		= numachip1_acpi_madt_oem_check,
@@ -290,7 +308,8 @@ static const struct apic apic_numachip1 __refconst = {
 
 apic_driver(apic_numachip1);
 
-static const struct apic apic_numachip2 __refconst = {
+static const struct apic apic_numachip2 __refconst =
+{
 	.name				= "NumaConnect2 system",
 	.probe				= numachip2_probe,
 	.acpi_madt_oem_check		= numachip2_acpi_madt_oem_check,

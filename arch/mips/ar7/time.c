@@ -34,7 +34,9 @@ void __init plat_time_init(void)
 	ar7_init_clocks();
 
 	cpu_clk = clk_get(NULL, "cpu");
-	if (IS_ERR(cpu_clk)) {
+
+	if (IS_ERR(cpu_clk))
+	{
 		printk(KERN_ERR "unable to get cpu clock\n");
 		return;
 	}

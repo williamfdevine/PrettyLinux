@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
  * Licensed under the GPL
  */
@@ -15,10 +15,10 @@ extern int ptrace_setregs(long pid, unsigned long *regs_in);
 /* syscall emulation path in ptrace */
 
 #ifndef PTRACE_SYSEMU
-#define PTRACE_SYSEMU 31
+	#define PTRACE_SYSEMU 31
 #endif
 #ifndef PTRACE_SYSEMU_SINGLESTEP
-#define PTRACE_SYSEMU_SINGLESTEP 32
+	#define PTRACE_SYSEMU_SINGLESTEP 32
 #endif
 
 /* On architectures, that started to support PTRACE_O_TRACESYSGOOD
@@ -38,7 +38,7 @@ extern int ptrace_setregs(long pid, unsigned long *regs_in);
  * the new 0x4200 with the name PTRACE_OLDSETOPTIONS.
  */
 #ifndef PTRACE_OLDSETOPTIONS
-#define PTRACE_OLDSETOPTIONS PTRACE_SETOPTIONS
+	#define PTRACE_OLDSETOPTIONS PTRACE_SETOPTIONS
 #endif
 
 void set_using_sysemu(int value);
@@ -51,6 +51,6 @@ extern int sysemu_supported;
 		{ PTRACE_SYSEMU, PTRACE_SYSEMU, PTRACE_SINGLESTEP }, \
 		{ PTRACE_SYSEMU, PTRACE_SYSEMU_SINGLESTEP, \
 		  PTRACE_SYSEMU_SINGLESTEP } }) \
-		[sysemu_mode][singlestep_mode])
+	[sysemu_mode][singlestep_mode])
 
 #endif

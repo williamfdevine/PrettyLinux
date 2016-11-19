@@ -23,7 +23,7 @@
 #include <asm/pgalloc.h>
 
 DEFINE_PER_CPU(unsigned long, asid_cache) = ASID_USER_FIRST;
-void bad_page_fault(struct pt_regs*, unsigned long, int);
+void bad_page_fault(struct pt_regs *, unsigned long, int);
 
 #undef DEBUG_PAGE_FAULT
 
@@ -37,7 +37,7 @@ void bad_page_fault(struct pt_regs*, unsigned long, int);
 
 void do_page_fault(struct pt_regs *regs)
 {
-	struct vm_area_struct * vma;
+	struct vm_area_struct *vma;
 	struct mm_struct *mm = current->mm;
 	unsigned int exccause = regs->exccause;
 	unsigned int address = regs->excvaddr;
@@ -53,40 +53,57 @@ void do_page_fault(struct pt_regs *regs)
 	 * 'reference' page table is init_mm.pgd.
 	 */
 	if (address >= TASK_SIZE && !user_mode(regs))
+	{
 		goto vmalloc_fault;
+	}
 
 	/* If we're in an interrupt or have no user
 	 * context, we must not take the fault..
 	 */
-	if (faulthandler_disabled() || !mm) {
+	if (faulthandler_disabled() || !mm)
+	{
 		bad_page_fault(regs, address, SIGSEGV);
 		return;
 	}
 
 	is_write = (exccause == EXCCAUSE_STORE_CACHE_ATTRIBUTE) ? 1 : 0;
 	is_exec =  (exccause == EXCCAUSE_ITLB_PRIVILEGE ||
-		    exccause == EXCCAUSE_ITLB_MISS ||
-		    exccause == EXCCAUSE_FETCH_CACHE_ATTRIBUTE) ? 1 : 0;
+				exccause == EXCCAUSE_ITLB_MISS ||
+				exccause == EXCCAUSE_FETCH_CACHE_ATTRIBUTE) ? 1 : 0;
 
 #ifdef DEBUG_PAGE_FAULT
 	printk("[%s:%d:%08x:%d:%08x:%s%s]\n", current->comm, current->pid,
-	       address, exccause, regs->pc, is_write? "w":"", is_exec? "x":"");
+		   address, exccause, regs->pc, is_write ? "w" : "", is_exec ? "x" : "");
 #endif
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 retry:
 	down_read(&mm->mmap_sem);
 	vma = find_vma(mm, address);
 
 	if (!vma)
+	{
 		goto bad_area;
+	}
+
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
+
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
+	}
+
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
 
 	/* Ok, we have a good vm_area for this memory access, so
 	 * we can handle it..
@@ -95,16 +112,27 @@ retry:
 good_area:
 	info.si_code = SEGV_ACCERR;
 
-	if (is_write) {
+	if (is_write)
+	{
 		if (!(vma->vm_flags & VM_WRITE))
+		{
 			goto bad_area;
+		}
+
 		flags |= FAULT_FLAG_WRITE;
-	} else if (is_exec) {
+	}
+	else if (is_exec)
+	{
 		if (!(vma->vm_flags & VM_EXEC))
+		{
 			goto bad_area;
-	} else	/* Allow read even from write-only pages. */
+		}
+	}
+	else	/* Allow read even from write-only pages. */
 		if (!(vma->vm_flags & (VM_READ | VM_WRITE)))
+		{
 			goto bad_area;
+		}
 
 	/* If for any reason at all we couldn't handle the fault,
 	 * make sure we exit gracefully rather than endlessly redo
@@ -113,30 +141,48 @@ good_area:
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return;
+	}
 
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
 		if (fault & VM_FAULT_MAJOR)
+		{
 			current->maj_flt++;
+		}
 		else
+		{
 			current->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 			flags |= FAULT_FLAG_TRIED;
 
-			 /* No need to up_read(&mm->mmap_sem) as we would
-			 * have already released it in __lock_page_or_retry
-			 * in mm/filemap.c.
-			 */
+			/* No need to up_read(&mm->mmap_sem) as we would
+			* have already released it in __lock_page_or_retry
+			* in mm/filemap.c.
+			*/
 
 			goto retry;
 		}
@@ -144,10 +190,15 @@ good_area:
 
 	up_read(&mm->mmap_sem);
 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+
 	if (flags & VM_FAULT_MAJOR)
+	{
 		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
+	}
 	else
+	{
 		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
+	}
 
 	return;
 
@@ -156,7 +207,9 @@ good_area:
 	 */
 bad_area:
 	up_read(&mm->mmap_sem);
-	if (user_mode(regs)) {
+
+	if (user_mode(regs))
+	{
 		current->thread.bad_vaddr = address;
 		current->thread.error_code = is_write;
 		info.si_signo = SIGSEGV;
@@ -166,6 +219,7 @@ bad_area:
 		force_sig_info(SIGSEGV, &info, current);
 		return;
 	}
+
 	bad_page_fault(regs, address, SIGSEGV);
 	return;
 
@@ -175,10 +229,16 @@ bad_area:
 	 */
 out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(regs))
+	{
 		bad_page_fault(regs, address, SIGKILL);
+	}
 	else
+	{
 		pagefault_out_of_memory();
+	}
+
 	return;
 
 do_sigbus:
@@ -196,7 +256,10 @@ do_sigbus:
 
 	/* Kernel mode? Handle exceptions or die */
 	if (!user_mode(regs))
+	{
 		bad_page_fault(regs, address, SIGBUS);
+	}
+
 	return;
 
 vmalloc_fault:
@@ -211,26 +274,36 @@ vmalloc_fault:
 		pte_t *pte_k;
 
 		if (act_mm == NULL)
+		{
 			goto bad_page_fault;
+		}
 
 		pgd = act_mm->pgd + index;
 		pgd_k = init_mm.pgd + index;
 
 		if (!pgd_present(*pgd_k))
+		{
 			goto bad_page_fault;
+		}
 
 		pgd_val(*pgd) = pgd_val(*pgd_k);
 
 		pmd = pmd_offset(pgd, address);
 		pmd_k = pmd_offset(pgd_k, address);
+
 		if (!pmd_present(*pmd) || !pmd_present(*pmd_k))
+		{
 			goto bad_page_fault;
+		}
 
 		pmd_val(*pmd) = pmd_val(*pmd_k);
 		pte_k = pte_offset_kernel(pmd_k, address);
 
 		if (!pte_present(*pte_k))
+		{
 			goto bad_page_fault;
+		}
+
 		return;
 	}
 bad_page_fault:
@@ -242,14 +315,15 @@ bad_page_fault:
 void
 bad_page_fault(struct pt_regs *regs, unsigned long address, int sig)
 {
-	extern void die(const char*, struct pt_regs*, long);
+	extern void die(const char *, struct pt_regs *, long);
 	const struct exception_table_entry *entry;
 
 	/* Are we prepared to handle this kernel fault?  */
-	if ((entry = search_exception_tables(regs->pc)) != NULL) {
+	if ((entry = search_exception_tables(regs->pc)) != NULL)
+	{
 #ifdef DEBUG_PAGE_FAULT
 		printk(KERN_DEBUG "%s: Exception at pc=%#010lx (%lx)\n",
-				current->comm, regs->pc, entry->fixup);
+			   current->comm, regs->pc, entry->fixup);
 #endif
 		current->thread.bad_uaddr = address;
 		regs->pc = entry->fixup;
@@ -260,8 +334,8 @@ bad_page_fault(struct pt_regs *regs, unsigned long address, int sig)
 	 * terminate things with extreme prejudice.
 	 */
 	printk(KERN_ALERT "Unable to handle kernel paging request at virtual "
-	       "address %08lx\n pc = %08lx, ra = %08lx\n",
-	       address, regs->pc, regs->areg[0]);
+		   "address %08lx\n pc = %08lx, ra = %08lx\n",
+		   address, regs->pc, regs->areg[0]);
 	die("Oops", regs, sig);
 	do_exit(sig);
 }

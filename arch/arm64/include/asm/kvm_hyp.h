@@ -29,9 +29,9 @@
 	({								\
 		u64 reg;						\
 		asm volatile(ALTERNATIVE("mrs %0, " __stringify(r##nvh),\
-					 "mrs_s %0, " __stringify(r##vh),\
-					 ARM64_HAS_VIRT_HOST_EXTN)	\
-			     : "=r" (reg));				\
+								 "mrs_s %0, " __stringify(r##vh),\
+								 ARM64_HAS_VIRT_HOST_EXTN)	\
+					 : "=r" (reg));				\
 		reg;							\
 	})
 
@@ -39,8 +39,8 @@
 	do {								\
 		u64 __val = (u64)(v);					\
 		asm volatile(ALTERNATIVE("msr " __stringify(r##nvh) ", %x0",\
-					 "msr_s " __stringify(r##vh) ", %x0",\
-					 ARM64_HAS_VIRT_HOST_EXTN)	\
+								 "msr_s " __stringify(r##vh) ", %x0",\
+								 ARM64_HAS_VIRT_HOST_EXTN)	\
 					 : : "rZ" (__val));		\
 	} while (0)
 
@@ -53,9 +53,9 @@
 	({								\
 		u64 reg;						\
 		asm volatile(ALTERNATIVE("mrs %0, " __stringify(r##_EL2),\
-					 "mrs %0, " __stringify(r##_EL1),\
-					 ARM64_HAS_VIRT_HOST_EXTN)	\
-			     : "=r" (reg));				\
+								 "mrs %0, " __stringify(r##_EL1),\
+								 ARM64_HAS_VIRT_HOST_EXTN)	\
+					 : "=r" (reg));				\
 		reg;							\
 	})
 
@@ -63,8 +63,8 @@
 	do {								\
 		u64 __val = (u64)(v);					\
 		asm volatile(ALTERNATIVE("msr " __stringify(r##_EL2) ", %x0",\
-					 "msr " __stringify(r##_EL1) ", %x0",\
-					 ARM64_HAS_VIRT_HOST_EXTN)	\
+								 "msr " __stringify(r##_EL1) ", %x0",\
+								 ARM64_HAS_VIRT_HOST_EXTN)	\
 					 : : "rZ" (__val));		\
 	} while (0)
 
@@ -111,15 +111,15 @@
  * @cond: a CPU feature (as described in asm/cpufeature.h)
  */
 #define hyp_alternate_select(fname, orig, alt, cond)			\
-typeof(orig) * __hyp_text fname(void)					\
-{									\
-	typeof(alt) *val = orig;					\
-	asm volatile(ALTERNATIVE("nop		\n",			\
-				 "mov	%0, %1	\n",			\
-				 cond)					\
-		     : "+r" (val) : "r" (alt));				\
-	return val;							\
-}
+	typeof(orig) * __hyp_text fname(void)					\
+	{									\
+		typeof(alt) *val = orig;					\
+		asm volatile(ALTERNATIVE("nop		\n",			\
+								 "mov	%0, %1	\n",			\
+								 cond)					\
+					 : "+r" (val) : "r" (alt));				\
+		return val;							\
+	}
 
 void __vgic_v2_save_state(struct kvm_vcpu *vcpu);
 void __vgic_v2_restore_state(struct kvm_vcpu *vcpu);
@@ -139,11 +139,11 @@ void __sysreg32_save_state(struct kvm_vcpu *vcpu);
 void __sysreg32_restore_state(struct kvm_vcpu *vcpu);
 
 void __debug_save_state(struct kvm_vcpu *vcpu,
-			struct kvm_guest_debug_arch *dbg,
-			struct kvm_cpu_context *ctxt);
+						struct kvm_guest_debug_arch *dbg,
+						struct kvm_cpu_context *ctxt);
 void __debug_restore_state(struct kvm_vcpu *vcpu,
-			   struct kvm_guest_debug_arch *dbg,
-			   struct kvm_cpu_context *ctxt);
+						   struct kvm_guest_debug_arch *dbg,
+						   struct kvm_cpu_context *ctxt);
 void __debug_cond_save_host_state(struct kvm_vcpu *vcpu);
 void __debug_cond_restore_host_state(struct kvm_vcpu *vcpu);
 

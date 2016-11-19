@@ -128,7 +128,7 @@
  * Clock and Power control register offsets
  */
 #define _PMREG(x)				io_p2v(LPC32XX_CLK_PM_BASE +\
-						(x))
+									   (x))
 #define LPC32XX_CLKPWR_DEBUG_CTRL		_PMREG(0x000)
 #define LPC32XX_CLKPWR_BOOTMAP			_PMREG(0x014)
 #define LPC32XX_CLKPWR_P01_ER			_PMREG(0x018)
@@ -645,7 +645,7 @@
  * UART control structure offsets
  */
 #define _UCREG(x)				io_p2v(\
-						LPC32XX_UART_CTRL_BASE + (x))
+									   LPC32XX_UART_CTRL_BASE + (x))
 #define LPC32XX_UARTCTL_CTRL			_UCREG(0x00)
 #define LPC32XX_UARTCTL_CLKMODE			_UCREG(0x04)
 #define LPC32XX_UARTCTL_CLOOP			_UCREG(0x08)

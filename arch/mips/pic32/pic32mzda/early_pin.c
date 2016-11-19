@@ -74,7 +74,8 @@ static const struct
 {
 	int function;
 	int reg;
-} input_pin_reg[] = {
+} input_pin_reg[] =
+{
 	{ IN_FUNC_INT3, INT3R },
 	{ IN_FUNC_T2CK, T2CKR },
 	{ IN_FUNC_T6CK, T6CKR },
@@ -133,8 +134,10 @@ void pic32_pps_input(int function, int pin)
 	void __iomem *pps_base = ioremap_nocache(PPS_BASE, 0xF4);
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(input_pin_reg); i++) {
-		if (input_pin_reg[i].function == function) {
+	for (i = 0; i < ARRAY_SIZE(input_pin_reg); i++)
+	{
+		if (input_pin_reg[i].function == function)
+		{
 			__raw_writel(pin, pps_base + input_pin_reg[i].reg);
 			return;
 		}
@@ -202,7 +205,8 @@ static const struct
 {
 	int pin;
 	int reg;
-} output_pin_reg[] = {
+} output_pin_reg[] =
+{
 	{ OUT_RPD2, RPD2R },
 	{ OUT_RPG8, RPG8R },
 	{ OUT_RPF4, RPF4R },
@@ -263,10 +267,12 @@ void pic32_pps_output(int function, int pin)
 	void __iomem *pps_base = ioremap_nocache(PPS_BASE, 0x170);
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(output_pin_reg); i++) {
-		if (output_pin_reg[i].pin == pin) {
+	for (i = 0; i < ARRAY_SIZE(output_pin_reg); i++)
+	{
+		if (output_pin_reg[i].pin == pin)
+		{
 			__raw_writel(function,
-				pps_base + output_pin_reg[i].reg);
+						 pps_base + output_pin_reg[i].reg);
 			return;
 		}
 	}

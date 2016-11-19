@@ -11,7 +11,8 @@
  * - 2 miscellaneous 32-bit values
  */
 
-struct msqid64_ds {
+struct msqid64_ds
+{
 	struct ipc64_perm	msg_perm;
 	__kernel_time_t		msg_stime;	/* last msgsnd time */
 	unsigned long		__unused1;

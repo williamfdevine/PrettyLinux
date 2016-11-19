@@ -28,11 +28,11 @@ static inline void loongson_reboot(void)
 	func = (void *)ioremap_nocache(LOONGSON_BOOT_BASE, 4);
 
 	__asm__ __volatile__(
-	"	.set	noat						\n"
-	"	jr	%[func]						\n"
-	"	.set	at						\n"
-	: /* No outputs */
-	: [func] "r" (func));
+		"	.set	noat						\n"
+		"	jr	%[func]						\n"
+		"	.set	at						\n"
+		: /* No outputs */
+		: [func] "r" (func));
 #endif
 }
 
@@ -48,10 +48,15 @@ static void loongson_restart(char *command)
 	void (*fw_restart)(void) = (void *)loongson_sysconf.restart_addr;
 
 	fw_restart();
-	while (1) {
+
+	while (1)
+	{
 		if (cpu_wait)
+		{
 			cpu_wait();
+		}
 	}
+
 #endif
 }
 
@@ -64,19 +69,28 @@ static void loongson_poweroff(void)
 	void (*fw_poweroff)(void) = (void *)loongson_sysconf.poweroff_addr;
 
 	fw_poweroff();
-	while (1) {
+
+	while (1)
+	{
 		if (cpu_wait)
+		{
 			cpu_wait();
+		}
 	}
+
 #endif
 }
 
 static void loongson_halt(void)
 {
 	pr_notice("\n\n** You can safely turn off the power now **\n\n");
-	while (1) {
+
+	while (1)
+	{
 		if (cpu_wait)
+		{
 			cpu_wait();
+		}
 	}
 }
 

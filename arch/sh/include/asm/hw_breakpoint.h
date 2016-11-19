@@ -8,14 +8,16 @@
 #include <linux/kdebug.h>
 #include <linux/types.h>
 
-struct arch_hw_breakpoint {
+struct arch_hw_breakpoint
+{
 	char		*name; /* Contains name of the symbol to set bkpt */
 	unsigned long	address;
 	u16		len;
 	u16		type;
 };
 
-enum {
+enum
+{
 	SH_BREAKPOINT_READ	= (1 << 1),
 	SH_BREAKPOINT_WRITE	= (1 << 2),
 	SH_BREAKPOINT_RW	= SH_BREAKPOINT_READ | SH_BREAKPOINT_WRITE,
@@ -26,7 +28,8 @@ enum {
 	SH_BREAKPOINT_LEN_8	= (1 << 14),
 };
 
-struct sh_ubc {
+struct sh_ubc
+{
 	const char	*name;
 	unsigned int	num_events;
 	unsigned int	trap_nr;
@@ -56,7 +59,7 @@ static inline int hw_breakpoint_slots(int type)
 extern int arch_check_bp_in_kernelspace(struct perf_event *bp);
 extern int arch_validate_hwbkpt_settings(struct perf_event *bp);
 extern int hw_breakpoint_exceptions_notify(struct notifier_block *unused,
-					   unsigned long val, void *data);
+		unsigned long val, void *data);
 
 int arch_install_hw_breakpoint(struct perf_event *bp);
 void arch_uninstall_hw_breakpoint(struct perf_event *bp);

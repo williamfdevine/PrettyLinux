@@ -32,27 +32,27 @@
 /* #define DEBUG_SR */
 
 #ifdef DEBUG_MMU
-#define dprintk_mmu(a, ...) printk(KERN_INFO a, __VA_ARGS__)
+	#define dprintk_mmu(a, ...) printk(KERN_INFO a, __VA_ARGS__)
 #else
-#define dprintk_mmu(a, ...) do { } while(0)
+	#define dprintk_mmu(a, ...) do { } while(0)
 #endif
 
 #ifdef DEBUG_SR
-#define dprintk_sr(a, ...) printk(KERN_INFO a, __VA_ARGS__)
+	#define dprintk_sr(a, ...) printk(KERN_INFO a, __VA_ARGS__)
 #else
-#define dprintk_sr(a, ...) do { } while(0)
+	#define dprintk_sr(a, ...) do { } while(0)
 #endif
 
 #if PAGE_SHIFT != 12
-#error Unknown page size
+	#error Unknown page size
 #endif
 
 #ifdef CONFIG_SMP
-#error XXX need to grab mmu_hash_lock
+	#error XXX need to grab mmu_hash_lock
 #endif
 
 #ifdef CONFIG_PTE_64BIT
-#error Only 32 bit pages are supported for now
+	#error Only 32 bit pages are supported for now
 #endif
 
 static ulong htab;
@@ -63,7 +63,7 @@ void kvmppc_mmu_invalidate_pte(struct kvm_vcpu *vcpu, struct hpte_cache *pte)
 	volatile u32 *pteg;
 
 	/* Remove from host HTAB */
-	pteg = (u32*)pte->slot;
+	pteg = (u32 *)pte->slot;
 	pteg[0] = 0;
 
 	/* And make sure it's gone from the TLB too */
@@ -78,13 +78,13 @@ void kvmppc_mmu_invalidate_pte(struct kvm_vcpu *vcpu, struct hpte_cache *pte)
 static u16 kvmppc_sid_hash(struct kvm_vcpu *vcpu, u64 gvsid)
 {
 	return (u16)(((gvsid >> (SID_MAP_BITS * 7)) & SID_MAP_MASK) ^
-		     ((gvsid >> (SID_MAP_BITS * 6)) & SID_MAP_MASK) ^
-		     ((gvsid >> (SID_MAP_BITS * 5)) & SID_MAP_MASK) ^
-		     ((gvsid >> (SID_MAP_BITS * 4)) & SID_MAP_MASK) ^
-		     ((gvsid >> (SID_MAP_BITS * 3)) & SID_MAP_MASK) ^
-		     ((gvsid >> (SID_MAP_BITS * 2)) & SID_MAP_MASK) ^
-		     ((gvsid >> (SID_MAP_BITS * 1)) & SID_MAP_MASK) ^
-		     ((gvsid >> (SID_MAP_BITS * 0)) & SID_MAP_MASK));
+				 ((gvsid >> (SID_MAP_BITS * 6)) & SID_MAP_MASK) ^
+				 ((gvsid >> (SID_MAP_BITS * 5)) & SID_MAP_MASK) ^
+				 ((gvsid >> (SID_MAP_BITS * 4)) & SID_MAP_MASK) ^
+				 ((gvsid >> (SID_MAP_BITS * 3)) & SID_MAP_MASK) ^
+				 ((gvsid >> (SID_MAP_BITS * 2)) & SID_MAP_MASK) ^
+				 ((gvsid >> (SID_MAP_BITS * 1)) & SID_MAP_MASK) ^
+				 ((gvsid >> (SID_MAP_BITS * 0)) & SID_MAP_MASK));
 }
 
 
@@ -94,20 +94,26 @@ static struct kvmppc_sid_map *find_sid_vsid(struct kvm_vcpu *vcpu, u64 gvsid)
 	u16 sid_map_mask;
 
 	if (kvmppc_get_msr(vcpu) & MSR_PR)
+	{
 		gvsid |= VSID_PR;
+	}
 
 	sid_map_mask = kvmppc_sid_hash(vcpu, gvsid);
 	map = &to_book3s(vcpu)->sid_map[sid_map_mask];
-	if (map->guest_vsid == gvsid) {
+
+	if (map->guest_vsid == gvsid)
+	{
 		dprintk_sr("SR: Searching 0x%llx -> 0x%llx\n",
-			    gvsid, map->host_vsid);
+				   gvsid, map->host_vsid);
 		return map;
 	}
 
 	map = &to_book3s(vcpu)->sid_map[SID_MAP_MASK - sid_map_mask];
-	if (map->guest_vsid == gvsid) {
+
+	if (map->guest_vsid == gvsid)
+	{
 		dprintk_sr("SR: Searching 0x%llx -> 0x%llx\n",
-			    gvsid, map->host_vsid);
+				   gvsid, map->host_vsid);
 		return map;
 	}
 
@@ -116,7 +122,7 @@ static struct kvmppc_sid_map *find_sid_vsid(struct kvm_vcpu *vcpu, u64 gvsid)
 }
 
 static u32 *kvmppc_mmu_get_pteg(struct kvm_vcpu *vcpu, u32 vsid, u32 eaddr,
-				bool primary)
+								bool primary)
 {
 	u32 page, hash;
 	ulong pteg = htab;
@@ -124,23 +130,26 @@ static u32 *kvmppc_mmu_get_pteg(struct kvm_vcpu *vcpu, u32 vsid, u32 eaddr,
 	page = (eaddr & ~ESID_MASK) >> 12;
 
 	hash = ((vsid ^ page) << 6);
+
 	if (!primary)
+	{
 		hash = ~hash;
+	}
 
 	hash &= htabmask;
 
 	pteg |= hash;
 
 	dprintk_mmu("htab: %lx | hash: %x | htabmask: %x | pteg: %lx\n",
-		htab, hash, htabmask, pteg);
+				htab, hash, htabmask, pteg);
 
-	return (u32*)pteg;
+	return (u32 *)pteg;
 }
 
 extern char etext[];
 
 int kvmppc_mmu_map_page(struct kvm_vcpu *vcpu, struct kvmppc_pte *orig_pte,
-			bool iswrite)
+						bool iswrite)
 {
 	kvm_pfn_t hpaddr;
 	u64 vpn;
@@ -158,28 +167,36 @@ int kvmppc_mmu_map_page(struct kvm_vcpu *vcpu, struct kvmppc_pte *orig_pte,
 
 	/* Get host physical address for gpa */
 	hpaddr = kvmppc_gpa_to_pfn(vcpu, orig_pte->raddr, iswrite, &writable);
-	if (is_error_noslot_pfn(hpaddr)) {
+
+	if (is_error_noslot_pfn(hpaddr))
+	{
 		printk(KERN_INFO "Couldn't get guest page for gpa %lx!\n",
-				 orig_pte->raddr);
+			   orig_pte->raddr);
 		r = -EINVAL;
 		goto out;
 	}
+
 	hpaddr <<= PAGE_SHIFT;
 
 	/* and write the mapping ea -> hpa into the pt */
 	vcpu->arch.mmu.esid_to_vsid(vcpu, orig_pte->eaddr >> SID_SHIFT, &vsid);
 	map = find_sid_vsid(vcpu, vsid);
-	if (!map) {
+
+	if (!map)
+	{
 		kvmppc_mmu_map_segment(vcpu, eaddr);
 		map = find_sid_vsid(vcpu, vsid);
 	}
+
 	BUG_ON(!map);
 
 	vsid = map->host_vsid;
 	vpn = (vsid << (SID_SHIFT - VPN_SHIFT)) |
-		((eaddr & ~ESID_MASK) >> VPN_SHIFT);
+		  ((eaddr & ~ESID_MASK) >> VPN_SHIFT);
 next_pteg:
-	if (rr == 16) {
+
+	if (rr == 16)
+	{
 		primary = !primary;
 		evict = true;
 		rr = 0;
@@ -188,7 +205,8 @@ next_pteg:
 	pteg = kvmppc_mmu_get_pteg(vcpu, vsid, eaddr, primary);
 
 	/* not evicting yet */
-	if (!evict && (pteg[rr] & PTE_V)) {
+	if (!evict && (pteg[rr] & PTE_V))
+	{
 		rr += 2;
 		goto next_pteg;
 	}
@@ -204,25 +222,32 @@ next_pteg:
 	dprintk_mmu("KVM:   %08x - %08x\n", pteg[14], pteg[15]);
 
 	pteg0 = ((eaddr & 0x0fffffff) >> 22) | (vsid << 7) | PTE_V |
-		(primary ? 0 : PTE_SEC);
+			(primary ? 0 : PTE_SEC);
 	pteg1 = hpaddr | PTE_M | PTE_R | PTE_C;
 
-	if (orig_pte->may_write && writable) {
+	if (orig_pte->may_write && writable)
+	{
 		pteg1 |= PP_RWRW;
 		mark_page_dirty(vcpu->kvm, orig_pte->raddr >> PAGE_SHIFT);
-	} else {
+	}
+	else
+	{
 		pteg1 |= PP_RWRX;
 	}
 
 	if (orig_pte->may_execute)
+	{
 		kvmppc_mmu_flush_icache(hpaddr >> PAGE_SHIFT);
+	}
 
 	local_irq_disable();
 
-	if (pteg[rr]) {
+	if (pteg[rr])
+	{
 		pteg[rr] = 0;
 		asm volatile ("sync");
 	}
+
 	pteg[rr + 1] = pteg1;
 	pteg[rr] = pteg0;
 	asm volatile ("sync");
@@ -243,17 +268,19 @@ next_pteg:
 	/* Now tell our Shadow PTE code about the new page */
 
 	pte = kvmppc_mmu_hpte_cache_next(vcpu);
-	if (!pte) {
+
+	if (!pte)
+	{
 		kvm_release_pfn_clean(hpaddr >> PAGE_SHIFT);
 		r = -EAGAIN;
 		goto out;
 	}
 
 	dprintk_mmu("KVM: %c%c Map 0x%llx: [%lx] 0x%llx (0x%llx) -> %lx\n",
-		    orig_pte->may_write ? 'w' : '-',
-		    orig_pte->may_execute ? 'x' : '-',
-		    orig_pte->eaddr, (ulong)pteg, vpn,
-		    orig_pte->vpage, hpaddr);
+				orig_pte->may_write ? 'w' : '-',
+				orig_pte->may_execute ? 'x' : '-',
+				orig_pte->eaddr, (ulong)pteg, vpn,
+				orig_pte->vpage, hpaddr);
 
 	pte->slot = (ulong)&pteg[rr];
 	pte->host_vpn = vpn;
@@ -280,14 +307,19 @@ static struct kvmppc_sid_map *create_sid_map(struct kvm_vcpu *vcpu, u64 gvsid)
 	static int backwards_map = 0;
 
 	if (kvmppc_get_msr(vcpu) & MSR_PR)
+	{
 		gvsid |= VSID_PR;
+	}
 
 	/* We might get collisions that trap in preceding order, so let's
 	   map them differently */
 
 	sid_map_mask = kvmppc_sid_hash(vcpu, gvsid);
+
 	if (backwards_map)
+	{
 		sid_map_mask = SID_MAP_MASK - sid_map_mask;
+	}
 
 	map = &to_book3s(vcpu)->sid_map[sid_map_mask];
 
@@ -295,13 +327,15 @@ static struct kvmppc_sid_map *create_sid_map(struct kvm_vcpu *vcpu, u64 gvsid)
 	backwards_map = !backwards_map;
 
 	/* Uh-oh ... out of mappings. Let's flush! */
-	if (vcpu_book3s->vsid_next >= VSID_POOL_SIZE) {
+	if (vcpu_book3s->vsid_next >= VSID_POOL_SIZE)
+	{
 		vcpu_book3s->vsid_next = 0;
 		memset(vcpu_book3s->sid_map, 0,
-		       sizeof(struct kvmppc_sid_map) * SID_MAP_NUM);
+			   sizeof(struct kvmppc_sid_map) * SID_MAP_NUM);
 		kvmppc_mmu_pte_flush(vcpu, 0, 0);
 		kvmppc_mmu_flush_segments(vcpu);
 	}
+
 	map->host_vsid = vcpu_book3s->vsid_pool[vcpu_book3s->vsid_next];
 	vcpu_book3s->vsid_next++;
 
@@ -320,7 +354,8 @@ int kvmppc_mmu_map_segment(struct kvm_vcpu *vcpu, ulong eaddr)
 	struct kvmppc_book3s_shadow_vcpu *svcpu = svcpu_get(vcpu);
 	int r = 0;
 
-	if (vcpu->arch.mmu.esid_to_vsid(vcpu, esid, &gvsid)) {
+	if (vcpu->arch.mmu.esid_to_vsid(vcpu, esid, &gvsid))
+	{
 		/* Invalidate an entry */
 		svcpu->sr[esid] = SR_INVALID;
 		r = -ENOENT;
@@ -328,8 +363,11 @@ int kvmppc_mmu_map_segment(struct kvm_vcpu *vcpu, ulong eaddr)
 	}
 
 	map = find_sid_vsid(vcpu, gvsid);
+
 	if (!map)
+	{
 		map = create_sid_map(vcpu, gvsid);
+	}
 
 	map->guest_esid = esid;
 	sr = map->host_vsid | SR_KP;
@@ -348,8 +386,11 @@ void kvmppc_mmu_flush_segments(struct kvm_vcpu *vcpu)
 	struct kvmppc_book3s_shadow_vcpu *svcpu = svcpu_get(vcpu);
 
 	dprintk_sr("MMU: flushing all segments (%d)\n", ARRAY_SIZE(svcpu->sr));
+
 	for (i = 0; i < ARRAY_SIZE(svcpu->sr); i++)
+	{
 		svcpu->sr[i] = SR_INVALID;
+	}
 
 	svcpu_put(svcpu);
 }
@@ -360,8 +401,12 @@ void kvmppc_mmu_destroy_pr(struct kvm_vcpu *vcpu)
 
 	kvmppc_mmu_hpte_destroy(vcpu);
 	preempt_disable();
+
 	for (i = 0; i < SID_CONTEXTS; i++)
+	{
 		__destroy_context(to_book3s(vcpu)->context_id[i]);
+	}
+
 	preempt_enable();
 }
 
@@ -376,15 +421,22 @@ int kvmppc_mmu_init(struct kvm_vcpu *vcpu)
 	int i;
 	int j;
 
-	for (i = 0; i < SID_CONTEXTS; i++) {
+	for (i = 0; i < SID_CONTEXTS; i++)
+	{
 		err = __init_new_context();
+
 		if (err < 0)
+		{
 			goto init_fail;
+		}
+
 		vcpu3s->context_id[i] = err;
 
 		/* Remember context id for this combination */
 		for (j = 0; j < 16; j++)
+		{
 			vcpu3s->vsid_pool[(i * 16) + j] = CTX_TO_VSID(err, j);
+		}
 	}
 
 	vcpu3s->vsid_next = 0;
@@ -399,9 +451,13 @@ int kvmppc_mmu_init(struct kvm_vcpu *vcpu)
 	return 0;
 
 init_fail:
-	for (j = 0; j < i; j++) {
+
+	for (j = 0; j < i; j++)
+	{
 		if (!vcpu3s->context_id[j])
+		{
 			continue;
+		}
 
 		__destroy_context(to_book3s(vcpu)->context_id[j]);
 	}

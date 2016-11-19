@@ -37,7 +37,8 @@ static void cksrc_dc21285_disable(struct clocksource *cs)
 	*CSR_TIMER2_CNTL = 0;
 }
 
-static struct clocksource cksrc_dc21285 = {
+static struct clocksource cksrc_dc21285 =
+{
 	.name		= "dc21285_timer2",
 	.rating		= 200,
 	.read		= cksrc_dc21285_read,
@@ -48,7 +49,7 @@ static struct clocksource cksrc_dc21285 = {
 };
 
 static int ckevt_dc21285_set_next_event(unsigned long delta,
-	struct clock_event_device *c)
+										struct clock_event_device *c)
 {
 	*CSR_TIMER1_CLR = 0;
 	*CSR_TIMER1_LOAD = delta;
@@ -68,14 +69,15 @@ static int ckevt_dc21285_set_periodic(struct clock_event_device *c)
 	*CSR_TIMER1_CLR = 0;
 	*CSR_TIMER1_LOAD = (mem_fclk_21285 + 8 * HZ) / (16 * HZ);
 	*CSR_TIMER1_CNTL = TIMER_CNTL_ENABLE | TIMER_CNTL_AUTORELOAD |
-			   TIMER_CNTL_DIV16;
+					   TIMER_CNTL_DIV16;
 	return 0;
 }
 
-static struct clock_event_device ckevt_dc21285 = {
+static struct clock_event_device ckevt_dc21285 =
+{
 	.name			= "dc21285_timer1",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.rating			= 200,
 	.irq			= IRQ_TIMER1,
 	.set_next_event		= ckevt_dc21285_set_next_event,
@@ -93,14 +95,17 @@ static irqreturn_t timer1_interrupt(int irq, void *dev_id)
 
 	/* Stop the timer if in one-shot mode */
 	if (clockevent_state_oneshot(ce))
+	{
 		*CSR_TIMER1_CNTL = 0;
+	}
 
 	ce->event_handler(ce);
 
 	return IRQ_HANDLED;
 }
 
-static struct irqaction footbridge_timer_irq = {
+static struct irqaction footbridge_timer_irq =
+{
 	.name		= "dc21285_timer1",
 	.handler	= timer1_interrupt,
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,

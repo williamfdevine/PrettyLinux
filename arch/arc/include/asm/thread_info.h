@@ -19,9 +19,9 @@
 #include <asm/page.h>
 
 #ifdef CONFIG_16KSTACKS
-#define THREAD_SIZE_ORDER 1
+	#define THREAD_SIZE_ORDER 1
 #else
-#define THREAD_SIZE_ORDER 0
+	#define THREAD_SIZE_ORDER 0
 #endif
 
 #define THREAD_SIZE     (PAGE_SIZE << THREAD_SIZE_ORDER)
@@ -39,7 +39,8 @@
  * - if the contents of this structure are changed, the assembly constants
  *   must also be changed
  */
-struct thread_info {
+struct thread_info
+{
 	unsigned long flags;		/* low level flags */
 	int preempt_count;		/* 0 => preemptable, <0 => BUG */
 	struct task_struct *task;	/* main task structure */
@@ -54,13 +55,13 @@ struct thread_info {
  * preempt_count needs to be 1 initially, until the scheduler is functional.
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task       = &tsk,			\
-	.flags      = 0,			\
-	.cpu        = 0,			\
-	.preempt_count  = INIT_PREEMPT_COUNT,	\
-	.addr_limit = KERNEL_DS,		\
-}
+	{						\
+		.task       = &tsk,			\
+					  .flags      = 0,			\
+									.cpu        = 0,			\
+											.preempt_count  = INIT_PREEMPT_COUNT,	\
+													.addr_limit = KERNEL_DS,		\
+	}
 
 #define init_thread_info    (init_thread_union.thread_info)
 #define init_stack          (init_thread_union.stack)
@@ -99,7 +100,7 @@ static inline __attribute_const__ struct thread_info *current_thread_info(void)
 
 /* work to do on interrupt/exception return */
 #define _TIF_WORK_MASK		(_TIF_NEED_RESCHED | _TIF_SIGPENDING | \
-				 _TIF_NOTIFY_RESUME)
+							 _TIF_NOTIFY_RESUME)
 
 /*
  * _TIF_ALLWORK_MASK includes SYSCALL_TRACE, but we don't need it.

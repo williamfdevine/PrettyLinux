@@ -17,25 +17,25 @@
 #define in_syscall(regs) (((regs)->tbr & TBR_TT) == TBR_TT_TRAP0)
 #ifndef __ASSEMBLY__
 
-struct task_struct;
+	struct task_struct;
 
-/*
- * we dedicate GR28 to keeping a pointer to the current exception frame
- * - gr28 is destroyed on entry to the kernel from userspace
- */
-register struct pt_regs *__frame asm("gr28");
+	/*
+	* we dedicate GR28 to keeping a pointer to the current exception frame
+	* - gr28 is destroyed on entry to the kernel from userspace
+	*/
+	register struct pt_regs *__frame asm("gr28");
 
-#define user_mode(regs)			(!((regs)->psr & PSR_S))
-#define instruction_pointer(regs)	((regs)->pc)
-#define user_stack_pointer(regs)	((regs)->sp)
-#define current_pt_regs()		(__frame)
+	#define user_mode(regs)			(!((regs)->psr & PSR_S))
+	#define instruction_pointer(regs)	((regs)->pc)
+	#define user_stack_pointer(regs)	((regs)->sp)
+	#define current_pt_regs()		(__frame)
 
-extern unsigned long user_stack(const struct pt_regs *);
-#define profile_pc(regs) ((regs)->pc)
+	extern unsigned long user_stack(const struct pt_regs *);
+	#define profile_pc(regs) ((regs)->pc)
 
-#define task_pt_regs(task) ((task)->thread.frame0)
+	#define task_pt_regs(task) ((task)->thread.frame0)
 
-#define arch_has_single_step()	(1)
+	#define arch_has_single_step()	(1)
 
 #endif /* !__ASSEMBLY__ */
 #endif /* _ASM_PTRACE_H */

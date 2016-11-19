@@ -10,10 +10,10 @@
 /* For compilation on a host that doesn't support AT_SYSINFO (Linux 2.4)  */
 
 #ifndef AT_SYSINFO
-#define AT_SYSINFO 32
+	#define AT_SYSINFO 32
 #endif
 #ifndef AT_SYSINFO_EHDR
-#define AT_SYSINFO_EHDR 33
+	#define AT_SYSINFO_EHDR 33
 #endif
 
 #endif

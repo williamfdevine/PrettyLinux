@@ -74,23 +74,27 @@ static uint64_t cvmx_bootmem_phy_get_next(uint64_t addr)
 }
 
 void *cvmx_bootmem_alloc_range(uint64_t size, uint64_t alignment,
-			       uint64_t min_addr, uint64_t max_addr)
+							   uint64_t min_addr, uint64_t max_addr)
 {
 	int64_t address;
 	address =
-	    cvmx_bootmem_phy_alloc(size, min_addr, max_addr, alignment, 0);
+		cvmx_bootmem_phy_alloc(size, min_addr, max_addr, alignment, 0);
 
 	if (address > 0)
+	{
 		return cvmx_phys_to_ptr(address);
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 void *cvmx_bootmem_alloc_address(uint64_t size, uint64_t address,
-				 uint64_t alignment)
+								 uint64_t alignment)
 {
 	return cvmx_bootmem_alloc_range(size, alignment, address,
-					address + size);
+									address + size);
 }
 
 void *cvmx_bootmem_alloc(uint64_t size, uint64_t alignment)
@@ -99,29 +103,34 @@ void *cvmx_bootmem_alloc(uint64_t size, uint64_t alignment)
 }
 
 void *cvmx_bootmem_alloc_named_range(uint64_t size, uint64_t min_addr,
-				     uint64_t max_addr, uint64_t align,
-				     char *name)
+									 uint64_t max_addr, uint64_t align,
+									 char *name)
 {
 	int64_t addr;
 
 	addr = cvmx_bootmem_phy_named_block_alloc(size, min_addr, max_addr,
-						  align, name, 0);
+			align, name, 0);
+
 	if (addr >= 0)
+	{
 		return cvmx_phys_to_ptr(addr);
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 void *cvmx_bootmem_alloc_named_address(uint64_t size, uint64_t address,
-				       char *name)
+									   char *name)
 {
-    return cvmx_bootmem_alloc_named_range(size, address, address + size,
-					  0, name);
+	return cvmx_bootmem_alloc_named_range(size, address, address + size,
+										  0, name);
 }
 
 void *cvmx_bootmem_alloc_named(uint64_t size, uint64_t alignment, char *name)
 {
-    return cvmx_bootmem_alloc_named_range(size, 0, 0, alignment, name);
+	return cvmx_bootmem_alloc_named_range(size, 0, 0, alignment, name);
 }
 EXPORT_SYMBOL(cvmx_bootmem_alloc_named);
 
@@ -138,12 +147,12 @@ EXPORT_SYMBOL(cvmx_bootmem_find_named_block);
 
 void cvmx_bootmem_lock(void)
 {
-	cvmx_spinlock_lock((cvmx_spinlock_t *) &(cvmx_bootmem_desc->lock));
+	cvmx_spinlock_lock((cvmx_spinlock_t *) & (cvmx_bootmem_desc->lock));
 }
 
 void cvmx_bootmem_unlock(void)
 {
-	cvmx_spinlock_unlock((cvmx_spinlock_t *) &(cvmx_bootmem_desc->lock));
+	cvmx_spinlock_unlock((cvmx_spinlock_t *) & (cvmx_bootmem_desc->lock));
 }
 
 int cvmx_bootmem_init(void *mem_desc_ptr)
@@ -162,7 +171,8 @@ int cvmx_bootmem_init(void *mem_desc_ptr)
 	 * mappings so that the physical addresses can be used
 	 * directly
 	 */
-	if (!cvmx_bootmem_desc) {
+	if (!cvmx_bootmem_desc)
+	{
 #if   defined(CVMX_ABI_64)
 		/* Set XKPHYS bit */
 		cvmx_bootmem_desc = cvmx_phys_to_ptr(CAST64(mem_desc_ptr));
@@ -183,8 +193,8 @@ int cvmx_bootmem_init(void *mem_desc_ptr)
  */
 
 int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
-			       uint64_t address_max, uint64_t alignment,
-			       uint32_t flags)
+							   uint64_t address_max, uint64_t alignment,
+							   uint32_t flags)
 {
 
 	uint64_t head_addr;
@@ -196,19 +206,20 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 
 #ifdef DEBUG
 	cvmx_dprintf("cvmx_bootmem_phy_alloc: req_size: 0x%llx, "
-		     "min_addr: 0x%llx, max_addr: 0x%llx, align: 0x%llx\n",
-		     (unsigned long long)req_size,
-		     (unsigned long long)address_min,
-		     (unsigned long long)address_max,
-		     (unsigned long long)alignment);
+				 "min_addr: 0x%llx, max_addr: 0x%llx, align: 0x%llx\n",
+				 (unsigned long long)req_size,
+				 (unsigned long long)address_min,
+				 (unsigned long long)address_max,
+				 (unsigned long long)alignment);
 #endif
 
-	if (cvmx_bootmem_desc->major_version > 3) {
+	if (cvmx_bootmem_desc->major_version > 3)
+	{
 		cvmx_dprintf("ERROR: Incompatible bootmem descriptor "
-			     "version: %d.%d at addr: %p\n",
-			     (int)cvmx_bootmem_desc->major_version,
-			     (int)cvmx_bootmem_desc->minor_version,
-			     cvmx_bootmem_desc);
+					 "version: %d.%d at addr: %p\n",
+					 (int)cvmx_bootmem_desc->major_version,
+					 (int)cvmx_bootmem_desc->minor_version,
+					 cvmx_bootmem_desc);
 		goto error_out;
 	}
 
@@ -222,11 +233,13 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 
 	/* 0 is not a valid req_size for this allocator */
 	if (!req_size)
+	{
 		goto error_out;
+	}
 
 	/* Round req_size up to mult of minimum alignment bytes */
 	req_size = (req_size + (CVMX_BOOTMEM_ALIGNMENT_SIZE - 1)) &
-		~(CVMX_BOOTMEM_ALIGNMENT_SIZE - 1);
+			   ~(CVMX_BOOTMEM_ALIGNMENT_SIZE - 1);
 
 	/*
 	 * Convert !0 address_min and 0 address_max to special case of
@@ -235,9 +248,13 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 	 * tranformation will be validated.
 	 */
 	if (address_min && !address_max)
+	{
 		address_max = address_min + req_size;
+	}
 	else if (!address_min && !address_max)
-		address_max = ~0ull;  /* If no limits given, use max limits */
+	{
+		address_max = ~0ull;    /* If no limits given, use max limits */
+	}
 
 
 	/*
@@ -245,7 +262,9 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 	 * req_size the same as the alignment req_size.
 	 */
 	if (alignment < CVMX_BOOTMEM_ALIGNMENT_SIZE)
+	{
 		alignment = CVMX_BOOTMEM_ALIGNMENT_SIZE;
+	}
 
 	/*
 	 * Adjust address minimum based on requested alignment (round
@@ -253,7 +272,9 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 	 * impossible requests up front. (NOP for address_min == 0)
 	 */
 	if (alignment)
+	{
 		address_min = ALIGN(address_min, alignment);
+	}
 
 	/*
 	 * Reject inconsistent args.  We have adjusted these, so this
@@ -261,27 +282,35 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 	 * would pass for the values the user supplied.
 	 */
 	if (req_size > address_max - address_min)
+	{
 		goto error_out;
+	}
 
 	/* Walk through the list entries - first fit found is returned */
 
 	if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
+	{
 		cvmx_bootmem_lock();
+	}
+
 	head_addr = cvmx_bootmem_desc->head_addr;
 	ent_addr = head_addr;
+
 	for (; ent_addr;
-	     prev_addr = ent_addr,
-	     ent_addr = cvmx_bootmem_phy_get_next(ent_addr)) {
+		 prev_addr = ent_addr,
+		 ent_addr = cvmx_bootmem_phy_get_next(ent_addr))
+	{
 		uint64_t usable_base, usable_max;
 		uint64_t ent_size = cvmx_bootmem_phy_get_size(ent_addr);
 
 		if (cvmx_bootmem_phy_get_next(ent_addr)
-		    && ent_addr > cvmx_bootmem_phy_get_next(ent_addr)) {
+			&& ent_addr > cvmx_bootmem_phy_get_next(ent_addr))
+		{
 			cvmx_dprintf("Internal bootmem_alloc() error: ent: "
-				"0x%llx, next: 0x%llx\n",
-				(unsigned long long)ent_addr,
-				(unsigned long long)
-				cvmx_bootmem_phy_get_next(ent_addr));
+						 "0x%llx, next: 0x%llx\n",
+						 (unsigned long long)ent_addr,
+						 (unsigned long long)
+						 cvmx_bootmem_phy_get_next(ent_addr));
 			goto error_out;
 		}
 
@@ -291,7 +320,7 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 		 * satisfy request.
 		 */
 		usable_base =
-		    ALIGN(max(address_min, ent_addr), alignment);
+			ALIGN(max(address_min, ent_addr), alignment);
 		usable_max = min(address_max, ent_addr + ent_size);
 		/*
 		 * We should be able to allocate block at address
@@ -299,21 +328,26 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 		 */
 
 		desired_min_addr = usable_base;
+
 		/*
 		 * Determine if request can be satisfied from the
 		 * current entry.
 		 */
 		if (!((ent_addr + ent_size) > usable_base
-				&& ent_addr < address_max
-				&& req_size <= usable_max - usable_base))
+			  && ent_addr < address_max
+			  && req_size <= usable_max - usable_base))
+		{
 			continue;
+		}
+
 		/*
 		 * We have found an entry that has room to satisfy the
 		 * request, so allocate it from this entry.  If end
 		 * CVMX_BOOTMEM_FLAG_END_ALLOC set, then allocate from
 		 * the end of this block rather than the beginning.
 		 */
-		if (flags & CVMX_BOOTMEM_FLAG_END_ALLOC) {
+		if (flags & CVMX_BOOTMEM_FLAG_END_ALLOC)
+		{
 			desired_min_addr = usable_max - req_size;
 			/*
 			 * Align desired address down to required
@@ -323,25 +357,27 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 		}
 
 		/* Match at start of entry */
-		if (desired_min_addr == ent_addr) {
-			if (req_size < ent_size) {
+		if (desired_min_addr == ent_addr)
+		{
+			if (req_size < ent_size)
+			{
 				/*
 				 * big enough to create a new block
 				 * from top portion of block.
 				 */
 				new_ent_addr = ent_addr + req_size;
 				cvmx_bootmem_phy_set_next(new_ent_addr,
-					cvmx_bootmem_phy_get_next(ent_addr));
+										  cvmx_bootmem_phy_get_next(ent_addr));
 				cvmx_bootmem_phy_set_size(new_ent_addr,
-							ent_size -
-							req_size);
+										  ent_size -
+										  req_size);
 
 				/*
 				 * Adjust next pointer as following
 				 * code uses this.
 				 */
 				cvmx_bootmem_phy_set_next(ent_addr,
-							new_ent_addr);
+										  new_ent_addr);
 			}
 
 			/*
@@ -350,7 +386,7 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 			 */
 			if (prev_addr)
 				cvmx_bootmem_phy_set_next(prev_addr,
-					cvmx_bootmem_phy_get_next(ent_addr));
+										  cvmx_bootmem_phy_get_next(ent_addr));
 			else
 				/*
 				 * head of list being returned, so
@@ -360,9 +396,13 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 					cvmx_bootmem_phy_get_next(ent_addr);
 
 			if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
+			{
 				cvmx_bootmem_unlock();
+			}
+
 			return desired_min_addr;
 		}
+
 		/*
 		 * block returned doesn't start at beginning of entry,
 		 * so we know that we will be splitting a block off
@@ -376,22 +416,27 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 		 */
 		new_ent_addr = desired_min_addr;
 		cvmx_bootmem_phy_set_next(new_ent_addr,
-					cvmx_bootmem_phy_get_next
-					(ent_addr));
+								  cvmx_bootmem_phy_get_next
+								  (ent_addr));
 		cvmx_bootmem_phy_set_size(new_ent_addr,
-					cvmx_bootmem_phy_get_size
-					(ent_addr) -
-					(desired_min_addr -
-						ent_addr));
+								  cvmx_bootmem_phy_get_size
+								  (ent_addr) -
+								  (desired_min_addr -
+								   ent_addr));
 		cvmx_bootmem_phy_set_size(ent_addr,
-					desired_min_addr - ent_addr);
+								  desired_min_addr - ent_addr);
 		cvmx_bootmem_phy_set_next(ent_addr, new_ent_addr);
 		/* Loop again to handle actual alloc from new block */
 	}
+
 error_out:
+
 	/* We didn't find anything, so return error */
 	if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
+	{
 		cvmx_bootmem_unlock();
+	}
+
 	return -1;
 }
 
@@ -403,101 +448,130 @@ int __cvmx_bootmem_phy_free(uint64_t phy_addr, uint64_t size, uint32_t flags)
 
 #ifdef DEBUG
 	cvmx_dprintf("__cvmx_bootmem_phy_free addr: 0x%llx, size: 0x%llx\n",
-		     (unsigned long long)phy_addr, (unsigned long long)size);
+				 (unsigned long long)phy_addr, (unsigned long long)size);
 #endif
-	if (cvmx_bootmem_desc->major_version > 3) {
+
+	if (cvmx_bootmem_desc->major_version > 3)
+	{
 		cvmx_dprintf("ERROR: Incompatible bootmem descriptor "
-			     "version: %d.%d at addr: %p\n",
-			     (int)cvmx_bootmem_desc->major_version,
-			     (int)cvmx_bootmem_desc->minor_version,
-			     cvmx_bootmem_desc);
+					 "version: %d.%d at addr: %p\n",
+					 (int)cvmx_bootmem_desc->major_version,
+					 (int)cvmx_bootmem_desc->minor_version,
+					 cvmx_bootmem_desc);
 		return 0;
 	}
 
 	/* 0 is not a valid size for this allocator */
 	if (!size)
+	{
 		return 0;
+	}
 
 	if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
+	{
 		cvmx_bootmem_lock();
+	}
+
 	cur_addr = cvmx_bootmem_desc->head_addr;
-	if (cur_addr == 0 || phy_addr < cur_addr) {
+
+	if (cur_addr == 0 || phy_addr < cur_addr)
+	{
 		/* add at front of list - special case with changing head ptr */
 		if (cur_addr && phy_addr + size > cur_addr)
-			goto bootmem_free_done; /* error, overlapping section */
-		else if (phy_addr + size == cur_addr) {
+		{
+			goto bootmem_free_done;    /* error, overlapping section */
+		}
+		else if (phy_addr + size == cur_addr)
+		{
 			/* Add to front of existing first block */
 			cvmx_bootmem_phy_set_next(phy_addr,
-						  cvmx_bootmem_phy_get_next
-						  (cur_addr));
+									  cvmx_bootmem_phy_get_next
+									  (cur_addr));
 			cvmx_bootmem_phy_set_size(phy_addr,
-						  cvmx_bootmem_phy_get_size
-						  (cur_addr) + size);
+									  cvmx_bootmem_phy_get_size
+									  (cur_addr) + size);
 			cvmx_bootmem_desc->head_addr = phy_addr;
 
-		} else {
+		}
+		else
+		{
 			/* New block before first block.  OK if cur_addr is 0 */
 			cvmx_bootmem_phy_set_next(phy_addr, cur_addr);
 			cvmx_bootmem_phy_set_size(phy_addr, size);
 			cvmx_bootmem_desc->head_addr = phy_addr;
 		}
+
 		retval = 1;
 		goto bootmem_free_done;
 	}
 
 	/* Find place in list to add block */
-	while (cur_addr && phy_addr > cur_addr) {
+	while (cur_addr && phy_addr > cur_addr)
+	{
 		prev_addr = cur_addr;
 		cur_addr = cvmx_bootmem_phy_get_next(cur_addr);
 	}
 
-	if (!cur_addr) {
+	if (!cur_addr)
+	{
 		/*
 		 * We have reached the end of the list, add on to end,
 		 * checking to see if we need to combine with last
 		 * block
 		 */
 		if (prev_addr + cvmx_bootmem_phy_get_size(prev_addr) ==
-		    phy_addr) {
+			phy_addr)
+		{
 			cvmx_bootmem_phy_set_size(prev_addr,
-						  cvmx_bootmem_phy_get_size
-						  (prev_addr) + size);
-		} else {
+									  cvmx_bootmem_phy_get_size
+									  (prev_addr) + size);
+		}
+		else
+		{
 			cvmx_bootmem_phy_set_next(prev_addr, phy_addr);
 			cvmx_bootmem_phy_set_size(phy_addr, size);
 			cvmx_bootmem_phy_set_next(phy_addr, 0);
 		}
+
 		retval = 1;
 		goto bootmem_free_done;
-	} else {
+	}
+	else
+	{
 		/*
 		 * insert between prev and cur nodes, checking for
 		 * merge with either/both.
 		 */
 		if (prev_addr + cvmx_bootmem_phy_get_size(prev_addr) ==
-		    phy_addr) {
+			phy_addr)
+		{
 			/* Merge with previous */
 			cvmx_bootmem_phy_set_size(prev_addr,
-						  cvmx_bootmem_phy_get_size
-						  (prev_addr) + size);
-			if (phy_addr + size == cur_addr) {
+									  cvmx_bootmem_phy_get_size
+									  (prev_addr) + size);
+
+			if (phy_addr + size == cur_addr)
+			{
 				/* Also merge with current */
 				cvmx_bootmem_phy_set_size(prev_addr,
-					cvmx_bootmem_phy_get_size(cur_addr) +
-					cvmx_bootmem_phy_get_size(prev_addr));
+										  cvmx_bootmem_phy_get_size(cur_addr) +
+										  cvmx_bootmem_phy_get_size(prev_addr));
 				cvmx_bootmem_phy_set_next(prev_addr,
-					cvmx_bootmem_phy_get_next(cur_addr));
+										  cvmx_bootmem_phy_get_next(cur_addr));
 			}
+
 			retval = 1;
 			goto bootmem_free_done;
-		} else if (phy_addr + size == cur_addr) {
+		}
+		else if (phy_addr + size == cur_addr)
+		{
 			/* Merge with current */
 			cvmx_bootmem_phy_set_size(phy_addr,
-						  cvmx_bootmem_phy_get_size
-						  (cur_addr) + size);
+									  cvmx_bootmem_phy_get_size
+									  (cur_addr) + size);
 			cvmx_bootmem_phy_set_next(phy_addr,
-						  cvmx_bootmem_phy_get_next
-						  (cur_addr));
+									  cvmx_bootmem_phy_get_next
+									  (cur_addr));
 			cvmx_bootmem_phy_set_next(prev_addr, phy_addr);
 			retval = 1;
 			goto bootmem_free_done;
@@ -509,17 +583,22 @@ int __cvmx_bootmem_phy_free(uint64_t phy_addr, uint64_t size, uint32_t flags)
 		cvmx_bootmem_phy_set_next(prev_addr, phy_addr);
 
 	}
+
 	retval = 1;
 
 bootmem_free_done:
+
 	if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
+	{
 		cvmx_bootmem_unlock();
+	}
+
 	return retval;
 
 }
 
 struct cvmx_bootmem_named_block_desc *
-	cvmx_bootmem_phy_named_block_find(char *name, uint32_t flags)
+cvmx_bootmem_phy_named_block_find(char *name, uint32_t flags)
 {
 	unsigned int i;
 	struct cvmx_bootmem_named_block_desc *named_block_array_ptr;
@@ -527,45 +606,59 @@ struct cvmx_bootmem_named_block_desc *
 #ifdef DEBUG
 	cvmx_dprintf("cvmx_bootmem_phy_named_block_find: %s\n", name);
 #endif
+
 	/*
 	 * Lock the structure to make sure that it is not being
 	 * changed while we are examining it.
 	 */
 	if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
+	{
 		cvmx_bootmem_lock();
+	}
 
 	/* Use XKPHYS for 64 bit linux */
 	named_block_array_ptr = (struct cvmx_bootmem_named_block_desc *)
-	    cvmx_phys_to_ptr(cvmx_bootmem_desc->named_block_array_addr);
+							cvmx_phys_to_ptr(cvmx_bootmem_desc->named_block_array_addr);
 
 #ifdef DEBUG
 	cvmx_dprintf
-	    ("cvmx_bootmem_phy_named_block_find: named_block_array_ptr: %p\n",
-	     named_block_array_ptr);
+	("cvmx_bootmem_phy_named_block_find: named_block_array_ptr: %p\n",
+	 named_block_array_ptr);
 #endif
-	if (cvmx_bootmem_desc->major_version == 3) {
+
+	if (cvmx_bootmem_desc->major_version == 3)
+	{
 		for (i = 0;
-		     i < cvmx_bootmem_desc->named_block_num_blocks; i++) {
+			 i < cvmx_bootmem_desc->named_block_num_blocks; i++)
+		{
 			if ((name && named_block_array_ptr[i].size
-			     && !strncmp(name, named_block_array_ptr[i].name,
-					 cvmx_bootmem_desc->named_block_name_len
-					 - 1))
-			    || (!name && !named_block_array_ptr[i].size)) {
+				 && !strncmp(name, named_block_array_ptr[i].name,
+							 cvmx_bootmem_desc->named_block_name_len
+							 - 1))
+				|| (!name && !named_block_array_ptr[i].size))
+			{
 				if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
+				{
 					cvmx_bootmem_unlock();
+				}
 
 				return &(named_block_array_ptr[i]);
 			}
 		}
-	} else {
-		cvmx_dprintf("ERROR: Incompatible bootmem descriptor "
-			     "version: %d.%d at addr: %p\n",
-			     (int)cvmx_bootmem_desc->major_version,
-			     (int)cvmx_bootmem_desc->minor_version,
-			     cvmx_bootmem_desc);
 	}
+	else
+	{
+		cvmx_dprintf("ERROR: Incompatible bootmem descriptor "
+					 "version: %d.%d at addr: %p\n",
+					 (int)cvmx_bootmem_desc->major_version,
+					 (int)cvmx_bootmem_desc->minor_version,
+					 cvmx_bootmem_desc);
+	}
+
 	if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
+	{
 		cvmx_bootmem_unlock();
+	}
 
 	return NULL;
 }
@@ -574,14 +667,16 @@ int cvmx_bootmem_phy_named_block_free(char *name, uint32_t flags)
 {
 	struct cvmx_bootmem_named_block_desc *named_block_ptr;
 
-	if (cvmx_bootmem_desc->major_version != 3) {
+	if (cvmx_bootmem_desc->major_version != 3)
+	{
 		cvmx_dprintf("ERROR: Incompatible bootmem descriptor version: "
-			     "%d.%d at addr: %p\n",
-			     (int)cvmx_bootmem_desc->major_version,
-			     (int)cvmx_bootmem_desc->minor_version,
-			     cvmx_bootmem_desc);
+					 "%d.%d at addr: %p\n",
+					 (int)cvmx_bootmem_desc->major_version,
+					 (int)cvmx_bootmem_desc->minor_version,
+					 cvmx_bootmem_desc);
 		return 0;
 	}
+
 #ifdef DEBUG
 	cvmx_dprintf("cvmx_bootmem_phy_named_block_free: %s\n", name);
 #endif
@@ -593,19 +688,21 @@ int cvmx_bootmem_phy_named_block_free(char *name, uint32_t flags)
 	cvmx_bootmem_lock();
 
 	named_block_ptr =
-	    cvmx_bootmem_phy_named_block_find(name,
-					      CVMX_BOOTMEM_FLAG_NO_LOCKING);
-	if (named_block_ptr) {
+		cvmx_bootmem_phy_named_block_find(name,
+										  CVMX_BOOTMEM_FLAG_NO_LOCKING);
+
+	if (named_block_ptr)
+	{
 #ifdef DEBUG
 		cvmx_dprintf("cvmx_bootmem_phy_named_block_free: "
-			     "%s, base: 0x%llx, size: 0x%llx\n",
-			     name,
-			     (unsigned long long)named_block_ptr->base_addr,
-			     (unsigned long long)named_block_ptr->size);
+					 "%s, base: 0x%llx, size: 0x%llx\n",
+					 name,
+					 (unsigned long long)named_block_ptr->base_addr,
+					 (unsigned long long)named_block_ptr->size);
 #endif
 		__cvmx_bootmem_phy_free(named_block_ptr->base_addr,
-					named_block_ptr->size,
-					CVMX_BOOTMEM_FLAG_NO_LOCKING);
+								named_block_ptr->size,
+								CVMX_BOOTMEM_FLAG_NO_LOCKING);
 		named_block_ptr->size = 0;
 		/* Set size to zero to indicate block not used. */
 	}
@@ -615,29 +712,31 @@ int cvmx_bootmem_phy_named_block_free(char *name, uint32_t flags)
 }
 
 int64_t cvmx_bootmem_phy_named_block_alloc(uint64_t size, uint64_t min_addr,
-					   uint64_t max_addr,
-					   uint64_t alignment,
-					   char *name,
-					   uint32_t flags)
+		uint64_t max_addr,
+		uint64_t alignment,
+		char *name,
+		uint32_t flags)
 {
 	int64_t addr_allocated;
 	struct cvmx_bootmem_named_block_desc *named_block_desc_ptr;
 
 #ifdef DEBUG
 	cvmx_dprintf("cvmx_bootmem_phy_named_block_alloc: size: 0x%llx, min: "
-		     "0x%llx, max: 0x%llx, align: 0x%llx, name: %s\n",
-		     (unsigned long long)size,
-		     (unsigned long long)min_addr,
-		     (unsigned long long)max_addr,
-		     (unsigned long long)alignment,
-		     name);
+				 "0x%llx, max: 0x%llx, align: 0x%llx, name: %s\n",
+				 (unsigned long long)size,
+				 (unsigned long long)min_addr,
+				 (unsigned long long)max_addr,
+				 (unsigned long long)alignment,
+				 name);
 #endif
-	if (cvmx_bootmem_desc->major_version != 3) {
+
+	if (cvmx_bootmem_desc->major_version != 3)
+	{
 		cvmx_dprintf("ERROR: Incompatible bootmem descriptor version: "
-			     "%d.%d at addr: %p\n",
-			     (int)cvmx_bootmem_desc->major_version,
-			     (int)cvmx_bootmem_desc->minor_version,
-			     cvmx_bootmem_desc);
+					 "%d.%d at addr: %p\n",
+					 (int)cvmx_bootmem_desc->major_version,
+					 (int)cvmx_bootmem_desc->minor_version,
+					 cvmx_bootmem_desc);
 		return -1;
 	}
 
@@ -646,21 +745,27 @@ int64_t cvmx_bootmem_phy_named_block_alloc(uint64_t size, uint64_t min_addr,
 	 * be atomic.
 	 */
 	if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
-		cvmx_spinlock_lock((cvmx_spinlock_t *)&(cvmx_bootmem_desc->lock));
+	{
+		cvmx_spinlock_lock((cvmx_spinlock_t *) & (cvmx_bootmem_desc->lock));
+	}
 
 	/* Get pointer to first available named block descriptor */
 	named_block_desc_ptr =
 		cvmx_bootmem_phy_named_block_find(NULL,
-						  flags | CVMX_BOOTMEM_FLAG_NO_LOCKING);
+										  flags | CVMX_BOOTMEM_FLAG_NO_LOCKING);
 
 	/*
 	 * Check to see if name already in use, return error if name
 	 * not available or no more room for blocks.
 	 */
 	if (cvmx_bootmem_phy_named_block_find(name,
-					      flags | CVMX_BOOTMEM_FLAG_NO_LOCKING) || !named_block_desc_ptr) {
+										  flags | CVMX_BOOTMEM_FLAG_NO_LOCKING) || !named_block_desc_ptr)
+	{
 		if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
-			cvmx_spinlock_unlock((cvmx_spinlock_t *)&(cvmx_bootmem_desc->lock));
+		{
+			cvmx_spinlock_unlock((cvmx_spinlock_t *) & (cvmx_bootmem_desc->lock));
+		}
+
 		return -1;
 	}
 
@@ -674,18 +779,23 @@ int64_t cvmx_bootmem_phy_named_block_alloc(uint64_t size, uint64_t min_addr,
 	size = ALIGN(size, CVMX_BOOTMEM_ALIGNMENT_SIZE);
 
 	addr_allocated = cvmx_bootmem_phy_alloc(size, min_addr, max_addr,
-						alignment,
-						flags | CVMX_BOOTMEM_FLAG_NO_LOCKING);
-	if (addr_allocated >= 0) {
+											alignment,
+											flags | CVMX_BOOTMEM_FLAG_NO_LOCKING);
+
+	if (addr_allocated >= 0)
+	{
 		named_block_desc_ptr->base_addr = addr_allocated;
 		named_block_desc_ptr->size = size;
 		strncpy(named_block_desc_ptr->name, name,
-			cvmx_bootmem_desc->named_block_name_len);
+				cvmx_bootmem_desc->named_block_name_len);
 		named_block_desc_ptr->name[cvmx_bootmem_desc->named_block_name_len - 1] = 0;
 	}
 
 	if (!(flags & CVMX_BOOTMEM_FLAG_NO_LOCKING))
-		cvmx_spinlock_unlock((cvmx_spinlock_t *)&(cvmx_bootmem_desc->lock));
+	{
+		cvmx_spinlock_unlock((cvmx_spinlock_t *) & (cvmx_bootmem_desc->lock));
+	}
+
 	return addr_allocated;
 }
 

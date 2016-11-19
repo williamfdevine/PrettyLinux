@@ -3,7 +3,7 @@
 
 #include <asm/bitsperlong.h>
 
-/* 
+/*
  * The msqid64_ds structure for parisc architecture, copied from sparc.
  * Note extra padding because this structure is passed back and forth
  * between kernel and user space.
@@ -13,7 +13,8 @@
  * - 2 miscellaneous 32-bit values
  */
 
-struct msqid64_ds {
+struct msqid64_ds
+{
 	struct ipc64_perm msg_perm;
 #if __BITS_PER_LONG != 64
 	unsigned int   __pad1;

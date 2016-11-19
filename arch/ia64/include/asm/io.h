@@ -46,7 +46,8 @@
 
 #define IO_SPACE_SPARSE_ENCODING(p)	((((p) >> 2) << 12) | ((p) & 0xfff))
 
-struct io_space {
+struct io_space
+{
 	unsigned long mmio_base;	/* base in MMIO space */
 	int sparse;
 };
@@ -83,7 +84,7 @@ virt_to_phys (volatile void *address)
 	return (unsigned long) address - PAGE_OFFSET;
 }
 
-static inline void*
+static inline void *
 phys_to_virt (unsigned long address)
 {
 	return (void *) (address + PAGE_OFFSET);
@@ -124,7 +125,7 @@ static inline void ___ia64_mmiowb(void)
 	ia64_mfa();
 }
 
-static inline void*
+static inline void *
 __ia64_mk_io_addr (unsigned long port)
 {
 	struct io_space *space;
@@ -132,10 +133,15 @@ __ia64_mk_io_addr (unsigned long port)
 
 	space = &io_space[IO_SPACE_NR(port)];
 	port = IO_SPACE_PORT(port);
+
 	if (space->sparse)
+	{
 		offset = IO_SPACE_SPARSE_ENCODING(port);
+	}
 	else
+	{
 		offset = port;
+	}
 
 	return (void *) (space->mmio_base | offset);
 }
@@ -234,7 +240,9 @@ __insb (unsigned long port, void *dst, unsigned long count)
 	unsigned char *dp = dst;
 
 	while (count--)
+	{
 		*dp++ = platform_inb(port);
+	}
 }
 
 static inline void
@@ -243,7 +251,9 @@ __insw (unsigned long port, void *dst, unsigned long count)
 	unsigned short *dp = dst;
 
 	while (count--)
+	{
 		put_unaligned(platform_inw(port), dp++);
+	}
 }
 
 static inline void
@@ -252,7 +262,9 @@ __insl (unsigned long port, void *dst, unsigned long count)
 	unsigned int *dp = dst;
 
 	while (count--)
+	{
 		put_unaligned(platform_inl(port), dp++);
+	}
 }
 
 static inline void
@@ -261,7 +273,9 @@ __outsb (unsigned long port, const void *src, unsigned long count)
 	const unsigned char *sp = src;
 
 	while (count--)
+	{
 		platform_outb(*sp++, port);
+	}
 }
 
 static inline void
@@ -270,7 +284,9 @@ __outsw (unsigned long port, const void *src, unsigned long count)
 	const unsigned short *sp = src;
 
 	while (count--)
+	{
 		platform_outw(get_unaligned(sp++), port);
+	}
 }
 
 static inline void
@@ -279,7 +295,9 @@ __outsl (unsigned long port, const void *src, unsigned long count)
 	const unsigned int *sp = src;
 
 	while (count--)
+	{
 		platform_outl(get_unaligned(sp++), port);
+	}
 }
 
 /*
@@ -404,31 +422,31 @@ __writeq (unsigned long val, volatile void __iomem *addr)
 #define __raw_writeq	writeq
 
 #ifndef inb_p
-# define inb_p		inb
+	#define inb_p		inb
 #endif
 #ifndef inw_p
-# define inw_p		inw
+	#define inw_p		inw
 #endif
 #ifndef inl_p
-# define inl_p		inl
+	#define inl_p		inl
 #endif
 
 #ifndef outb_p
-# define outb_p		outb
+	#define outb_p		outb
 #endif
 #ifndef outw_p
-# define outw_p		outw
+	#define outw_p		outw
 #endif
 #ifndef outl_p
-# define outl_p		outl
+	#define outl_p		outl
 #endif
 
 # ifdef __KERNEL__
 
-extern void __iomem * ioremap(unsigned long offset, unsigned long size);
-extern void __iomem * ioremap_nocache (unsigned long offset, unsigned long size);
+extern void __iomem *ioremap(unsigned long offset, unsigned long size);
+extern void __iomem *ioremap_nocache (unsigned long offset, unsigned long size);
 extern void iounmap (volatile void __iomem *addr);
-static inline void __iomem * ioremap_cache (unsigned long phys_addr, unsigned long size)
+static inline void __iomem *ioremap_cache (unsigned long phys_addr, unsigned long size)
 {
 	return ioremap(phys_addr, size);
 }

@@ -45,7 +45,8 @@ iop32x_irq_unmask(struct irq_data *d)
 	intctl_write(iop32x_mask);
 }
 
-struct irq_chip ext_chip = {
+struct irq_chip ext_chip =
+{
 	.name		= "IOP32x",
 	.irq_ack	= iop32x_irq_mask,
 	.irq_mask	= iop32x_irq_mask,
@@ -60,14 +61,18 @@ void __init iop32x_init_irq(void)
 
 	intctl_write(0);
 	intstr_write(0);
-	if (machine_is_glantank() ||
-	    machine_is_iq80321() ||
-	    machine_is_iq31244() ||
-	    machine_is_n2100() ||
-	    machine_is_em7210())
-		*IOP3XX_PCIIRSR = 0x0f;
 
-	for (i = 0; i < NR_IRQS; i++) {
+	if (machine_is_glantank() ||
+		machine_is_iq80321() ||
+		machine_is_iq31244() ||
+		machine_is_n2100() ||
+		machine_is_em7210())
+	{
+		*IOP3XX_PCIIRSR = 0x0f;
+	}
+
+	for (i = 0; i < NR_IRQS; i++)
+	{
 		irq_set_chip_and_handler(i, &ext_chip, handle_level_irq);
 		irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}

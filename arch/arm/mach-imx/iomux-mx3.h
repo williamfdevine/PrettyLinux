@@ -46,7 +46,8 @@
 /*
  * various IOMUX pad functions
  */
-enum iomux_pad_config {
+enum iomux_pad_config
+{
 	PAD_CTL_NOLOOPBACK	= 0x0 << 9,
 	PAD_CTL_LOOPBACK	= 0x1 << 9,
 	PAD_CTL_PKE_NONE	= 0x0 << 8,
@@ -71,7 +72,8 @@ enum iomux_pad_config {
 /*
  * various IOMUX general purpose functions
  */
-enum iomux_gp_func {
+enum iomux_gp_func
+{
 	MUX_PGP_FIRI			= 1 << 0,
 	MUX_DDR_MODE			= 1 << 1,
 	MUX_PGP_CSPI_BB			= 1 << 2,
@@ -118,7 +120,7 @@ int mxc_iomux_alloc_pin(unsigned int pin, const char *label);
  * convenient way to call the above function with tables
  */
 int mxc_iomux_setup_multiple_pins(const unsigned int *pin_list, unsigned count,
-		const char *label);
+								  const char *label);
 
 /*
  * releases a single pin:
@@ -167,7 +169,8 @@ void mxc_iomux_mode(unsigned int pin_mode);
  * value is constructed based on the rules described above.
  */
 
-enum iomux_pins {
+enum iomux_pins
+{
 	MX31_PIN_TTM_PAD	= IOMUX_PIN(0xff,   0),
 	MX31_PIN_CSPI3_SPI_RDY	= IOMUX_PIN(0xff,   1),
 	MX31_PIN_CSPI3_SCLK	= IOMUX_PIN(0xff,   2),

@@ -30,25 +30,25 @@
 #define kernel_sb(reg, addr)		"sb " reg ", " addr "\n"
 
 #ifdef CONFIG_32BIT
-/*
- * No 'sd' or 'ld' instructions in 32-bit but the code will
- * do the correct thing
- */
-#define kernel_sd(reg, addr)		user_sw(reg, addr)
-#define kernel_ld(reg, addr)		user_lw(reg, addr)
+	/*
+	* No 'sd' or 'ld' instructions in 32-bit but the code will
+	* do the correct thing
+	*/
+	#define kernel_sd(reg, addr)		user_sw(reg, addr)
+	#define kernel_ld(reg, addr)		user_lw(reg, addr)
 #else
-#define kernel_sd(reg, addr)		"sd " reg", " addr "\n"
-#define kernel_ld(reg, addr)		"ld " reg", " addr "\n"
+	#define kernel_sd(reg, addr)		"sd " reg", " addr "\n"
+	#define kernel_ld(reg, addr)		"ld " reg", " addr "\n"
 #endif /* CONFIG_32BIT */
 
 #ifdef CONFIG_EVA
 
 #define __BUILD_EVA_INSN(insn, reg, addr)				\
-				"	.set	push\n"			\
-				"	.set	mips0\n"		\
-				"	.set	eva\n"			\
-				"	"insn" "reg", "addr "\n"	\
-				"	.set	pop\n"
+	"	.set	push\n"			\
+	"	.set	mips0\n"		\
+	"	.set	eva\n"			\
+	"	"insn" "reg", "addr "\n"	\
+	"	.set	pop\n"
 
 #define user_cache(op, base)		__BUILD_EVA_INSN("cachee", op, base)
 #define user_ll(reg, addr)		__BUILD_EVA_INSN("lle", reg, addr)
@@ -87,11 +87,11 @@
 #define user_sb(reg, addr)		kernel_sb(reg, addr)
 
 #ifdef CONFIG_32BIT
-#define user_sd(reg, addr)		kernel_sw(reg, addr)
-#define user_ld(reg, addr)		kernel_lw(reg, addr)
+	#define user_sd(reg, addr)		kernel_sw(reg, addr)
+	#define user_ld(reg, addr)		kernel_lw(reg, addr)
 #else
-#define user_sd(reg, addr)		kernel_sd(reg, addr)
-#define user_ld(reg, addr)		kernel_ld(reg, addr)
+	#define user_sd(reg, addr)		kernel_sd(reg, addr)
+	#define user_ld(reg, addr)		kernel_ld(reg, addr)
 #endif /* CONFIG_32BIT */
 
 #endif /* CONFIG_EVA */
@@ -114,25 +114,25 @@
 #define kernel_sb(reg, addr)		sb reg, addr
 
 #ifdef CONFIG_32BIT
-/*
- * No 'sd' or 'ld' instructions in 32-bit but the code will
- * do the correct thing
- */
-#define kernel_sd(reg, addr)		user_sw(reg, addr)
-#define kernel_ld(reg, addr)		user_lw(reg, addr)
+	/*
+	* No 'sd' or 'ld' instructions in 32-bit but the code will
+	* do the correct thing
+	*/
+	#define kernel_sd(reg, addr)		user_sw(reg, addr)
+	#define kernel_ld(reg, addr)		user_lw(reg, addr)
 #else
-#define kernel_sd(reg, addr)		sd reg, addr
-#define kernel_ld(reg, addr)		ld reg, addr
+	#define kernel_sd(reg, addr)		sd reg, addr
+	#define kernel_ld(reg, addr)		ld reg, addr
 #endif /* CONFIG_32BIT */
 
 #ifdef CONFIG_EVA
 
 #define __BUILD_EVA_INSN(insn, reg, addr)			\
-				.set	push;			\
-				.set	mips0;			\
-				.set	eva;			\
-				insn reg, addr;			\
-				.set	pop;
+	.set	push;			\
+	.set	mips0;			\
+	.set	eva;			\
+	insn reg, addr;			\
+	.set	pop;
 
 #define user_cache(op, base)		__BUILD_EVA_INSN(cachee, op, base)
 #define user_ll(reg, addr)		__BUILD_EVA_INSN(lle, reg, addr)
@@ -170,11 +170,11 @@
 #define user_sb(reg, addr)		kernel_sb(reg, addr)
 
 #ifdef CONFIG_32BIT
-#define user_sd(reg, addr)		kernel_sw(reg, addr)
-#define user_ld(reg, addr)		kernel_lw(reg, addr)
+	#define user_sd(reg, addr)		kernel_sw(reg, addr)
+	#define user_ld(reg, addr)		kernel_lw(reg, addr)
 #else
-#define user_sd(reg, addr)		kernel_sd(reg, addr)
-#define user_ld(reg, addr)		kernel_sd(reg, addr)
+	#define user_sd(reg, addr)		kernel_sd(reg, addr)
+	#define user_ld(reg, addr)		kernel_sd(reg, addr)
 #endif /* CONFIG_32BIT */
 
 #endif /* CONFIG_EVA */

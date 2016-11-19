@@ -26,7 +26,8 @@
 
 /* Powerdomains */
 
-static struct powerdomain dsp_pwrdm = {
+static struct powerdomain dsp_pwrdm =
+{
 	.name		  = "dsp_pwrdm",
 	.prcm_offs	  = OMAP24XX_DSP_MOD,
 	.pwrsts		  = PWRSTS_OFF_RET_ON,
@@ -41,7 +42,8 @@ static struct powerdomain dsp_pwrdm = {
 	.voltdm		  = { .name = "core" },
 };
 
-static struct powerdomain mpu_24xx_pwrdm = {
+static struct powerdomain mpu_24xx_pwrdm =
+{
 	.name		  = "mpu_pwrdm",
 	.prcm_offs	  = MPU_MOD,
 	.pwrsts		  = PWRSTS_OFF_RET_ON,
@@ -56,7 +58,8 @@ static struct powerdomain mpu_24xx_pwrdm = {
 	.voltdm		  = { .name = "core" },
 };
 
-static struct powerdomain core_24xx_pwrdm = {
+static struct powerdomain core_24xx_pwrdm =
+{
 	.name		  = "core_pwrdm",
 	.prcm_offs	  = CORE_MOD,
 	.pwrsts		  = PWRSTS_OFF_RET_ON,
@@ -82,7 +85,8 @@ static struct powerdomain core_24xx_pwrdm = {
 
 /* XXX 2430 KILLDOMAINWKUP bit?  No current users apparently */
 
-static struct powerdomain mdm_pwrdm = {
+static struct powerdomain mdm_pwrdm =
+{
 	.name		  = "mdm_pwrdm",
 	.prcm_offs	  = OMAP2430_MDM_MOD,
 	.pwrsts		  = PWRSTS_OFF_RET_ON,
@@ -101,7 +105,8 @@ static struct powerdomain mdm_pwrdm = {
  *
  */
 
-static struct powerdomain *powerdomains_omap24xx[] __initdata = {
+static struct powerdomain *powerdomains_omap24xx[] __initdata =
+{
 	&wkup_omap2_pwrdm,
 	&gfx_omap2_pwrdm,
 	&dsp_pwrdm,
@@ -110,7 +115,8 @@ static struct powerdomain *powerdomains_omap24xx[] __initdata = {
 	NULL
 };
 
-static struct powerdomain *powerdomains_omap2430[] __initdata = {
+static struct powerdomain *powerdomains_omap2430[] __initdata =
+{
 	&mdm_pwrdm,
 	NULL
 };
@@ -118,7 +124,9 @@ static struct powerdomain *powerdomains_omap2430[] __initdata = {
 void __init omap242x_powerdomains_init(void)
 {
 	if (!cpu_is_omap2420())
+	{
 		return;
+	}
 
 	pwrdm_register_platform_funcs(&omap2_pwrdm_operations);
 	pwrdm_register_pwrdms(powerdomains_omap24xx);
@@ -128,7 +136,9 @@ void __init omap242x_powerdomains_init(void)
 void __init omap243x_powerdomains_init(void)
 {
 	if (!cpu_is_omap2430())
+	{
 		return;
+	}
 
 	pwrdm_register_platform_funcs(&omap2_pwrdm_operations);
 	pwrdm_register_pwrdms(powerdomains_omap24xx);

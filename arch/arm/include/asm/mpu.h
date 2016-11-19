@@ -32,9 +32,9 @@
 
 /* Main region should only be shared for SMP */
 #ifdef CONFIG_SMP
-#define MPU_RGN_NORMAL		(MPU_RGN_CACHEABLE | MPU_ACR_SHARED)
+	#define MPU_RGN_NORMAL		(MPU_RGN_CACHEABLE | MPU_ACR_SHARED)
 #else
-#define MPU_RGN_NORMAL		MPU_RGN_CACHEABLE
+	#define MPU_RGN_NORMAL		MPU_RGN_CACHEABLE
 #endif
 
 /* Access permission bits of ACR (only define those that we use)*/
@@ -56,14 +56,16 @@
 
 #ifndef __ASSEMBLY__
 
-struct mpu_rgn {
+struct mpu_rgn
+{
 	/* Assume same attributes for d/i-side  */
 	u32 drbar;
 	u32 drsr;
 	u32 dracr;
 };
 
-struct mpu_rgn_info {
+struct mpu_rgn_info
+{
 	u32 mpuir;
 	struct mpu_rgn rgns[MPU_MAX_REGIONS];
 };

@@ -20,9 +20,9 @@
 #define _ASM_SETUP_H
 
 #ifdef __KERNEL__
-#include <linux/init.h>
+	#include <linux/init.h>
 #else
-#define __init
+	#define __init
 #endif
 
 #include <asm-generic/setup.h>

@@ -50,7 +50,9 @@ void set_spu_profiling_frequency(unsigned int freq_khz, unsigned int cycles_rese
 	unsigned long ns_per_cyc;
 
 	if (!freq_khz)
-		freq_khz = ppc_proc_freq/1000;
+	{
+		freq_khz = ppc_proc_freq / 1000;
+	}
 
 	/* To calculate a timeout in nanoseconds, the basic
 	 * formula is ns = cycles_reset * (NSEC_PER_SEC / cpu frequency).
@@ -66,7 +68,7 @@ void set_spu_profiling_frequency(unsigned int freq_khz, unsigned int cycles_rese
 	 * kernel thread scheduling varies under a heavy system load.
 	 */
 
-	ns_per_cyc = (USEC_PER_SEC << SCALE_SHIFT)/freq_khz;
+	ns_per_cyc = (USEC_PER_SEC << SCALE_SHIFT) / freq_khz;
 	profiling_interval = (ns_per_cyc * cycles_reset) >> SCALE_SHIFT;
 
 }
@@ -93,7 +95,8 @@ static void spu_pc_extract(int cpu, int entry)
 
 	cbe_read_trace_buffer(cpu, trace_buffer);
 
-	for (spu = SPUS_PER_TB_ENTRY-1; spu >= 0; spu--) {
+	for (spu = SPUS_PER_TB_ENTRY - 1; spu >= 0; spu--)
+	{
 		/* spu PC trace entry is upper 16 bits of the
 		 * 18 bit SPU program counter
 		 */
@@ -117,7 +120,9 @@ static int cell_spu_pc_collection(int cpu)
 	entry = 0;
 
 	trace_addr = cbe_read_pm(cpu, trace_address);
-	while (!(trace_addr & CBE_PM_TRACE_BUF_EMPTY)) {
+
+	while (!(trace_addr & CBE_PM_TRACE_BUF_EMPTY))
+	{
 		/* there is data in the trace buffer to process */
 		spu_pc_extract(cpu, entry);
 
@@ -125,7 +130,9 @@ static int cell_spu_pc_collection(int cpu)
 
 		if (entry >= TRACE_ARRAY_SIZE)
 			/* spu_samples is full */
+		{
 			break;
+		}
 
 		trace_addr = cbe_read_pm(cpu, trace_address);
 	}
@@ -140,11 +147,16 @@ static enum hrtimer_restart profile_spus(struct hrtimer *timer)
 	int cpu, node, k, num_samples, spu_num;
 
 	if (!spu_prof_running)
+	{
 		goto stop;
+	}
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cbe_get_hw_thread_id(cpu))
+		{
 			continue;
+		}
 
 		node = cbe_cpu_to_node(cpu);
 
@@ -157,36 +169,42 @@ static enum hrtimer_restart profile_spus(struct hrtimer *timer)
 		 * cpu.	 The sample array is not per cpu.
 		 */
 		spin_lock_irqsave(&oprof_spu_smpl_arry_lck,
-				  oprof_spu_smpl_arry_lck_flags);
+						  oprof_spu_smpl_arry_lck_flags);
 		num_samples = cell_spu_pc_collection(cpu);
 
-		if (num_samples == 0) {
+		if (num_samples == 0)
+		{
 			spin_unlock_irqrestore(&oprof_spu_smpl_arry_lck,
-					       oprof_spu_smpl_arry_lck_flags);
+								   oprof_spu_smpl_arry_lck_flags);
 			continue;
 		}
 
-		for (k = 0; k < SPUS_PER_NODE; k++) {
+		for (k = 0; k < SPUS_PER_NODE; k++)
+		{
 			spu_num = k + (node * SPUS_PER_NODE);
 			spu_sync_buffer(spu_num,
-					samples + (k * TRACE_ARRAY_SIZE),
-					num_samples);
+							samples + (k * TRACE_ARRAY_SIZE),
+							num_samples);
 		}
 
 		spin_unlock_irqrestore(&oprof_spu_smpl_arry_lck,
-				       oprof_spu_smpl_arry_lck_flags);
+							   oprof_spu_smpl_arry_lck_flags);
 
 	}
 	smp_wmb();	/* insure spu event buffer updates are written */
-			/* don't want events intermingled... */
+	/* don't want events intermingled... */
 
 	kt = ktime_set(0, profiling_interval);
+
 	if (!spu_prof_running)
+	{
 		goto stop;
+	}
+
 	hrtimer_forward(timer, timer->base->get_time(), kt);
 	return HRTIMER_RESTART;
 
- stop:
+stop:
 	printk(KERN_INFO "SPU_PROF: spu-prof timer ending\n");
 	return HRTIMER_NORESTART;
 }
@@ -211,10 +229,12 @@ int start_spu_profiling_cycles(unsigned int cycles_reset)
 
 	/* Allocate arrays for collecting SPU PC samples */
 	samples = kzalloc(SPUS_PER_NODE *
-			  TRACE_ARRAY_SIZE * sizeof(u32), GFP_KERNEL);
+					  TRACE_ARRAY_SIZE * sizeof(u32), GFP_KERNEL);
 
 	if (!samples)
+	{
 		return -ENOMEM;
+	}
 
 	spu_prof_running = 1;
 	hrtimer_start(&timer, kt, HRTIMER_MODE_REL);

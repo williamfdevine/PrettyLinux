@@ -27,15 +27,15 @@
  * PAGE_SHIFT determines the actual kernel page size.
  */
 #if defined(CONFIG_IA64_PAGE_SIZE_4KB)
-# define PAGE_SHIFT	12
+	#define PAGE_SHIFT	12
 #elif defined(CONFIG_IA64_PAGE_SIZE_8KB)
-# define PAGE_SHIFT	13
+	#define PAGE_SHIFT	13
 #elif defined(CONFIG_IA64_PAGE_SIZE_16KB)
-# define PAGE_SHIFT	14
+	#define PAGE_SHIFT	14
 #elif defined(CONFIG_IA64_PAGE_SIZE_64KB)
-# define PAGE_SHIFT	16
+	#define PAGE_SHIFT	16
 #else
-# error Unsupported page size!
+	# error Unsupported page size!
 #endif
 
 #define PAGE_SIZE		(__IA64_UL_CONST(1) << PAGE_SHIFT)
@@ -46,13 +46,13 @@
 
 
 #ifdef CONFIG_HUGETLB_PAGE
-# define HPAGE_REGION_BASE	RGN_BASE(RGN_HPAGE)
-# define HPAGE_SHIFT		hpage_shift
-# define HPAGE_SHIFT_DEFAULT	28	/* check ia64 SDM for architecture supported size */
-# define HPAGE_SIZE		(__IA64_UL_CONST(1) << HPAGE_SHIFT)
-# define HPAGE_MASK		(~(HPAGE_SIZE - 1))
+	#define HPAGE_REGION_BASE	RGN_BASE(RGN_HPAGE)
+	#define HPAGE_SHIFT		hpage_shift
+	#define HPAGE_SHIFT_DEFAULT	28	/* check ia64 SDM for architecture supported size */
+	#define HPAGE_SIZE		(__IA64_UL_CONST(1) << HPAGE_SHIFT)
+	#define HPAGE_MASK		(~(HPAGE_SIZE - 1))
 
-# define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+	#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
 #endif /* CONFIG_HUGETLB_PAGE */
 
 #ifdef __ASSEMBLY__
@@ -69,64 +69,66 @@ extern void copy_page (void *to, void *from);
  * flush_dcache_page() can't be defined until later...
  */
 #define clear_user_page(addr, vaddr, page)	\
-do {						\
-	clear_page(addr);			\
-	flush_dcache_page(page);		\
-} while (0)
+	do {						\
+		clear_page(addr);			\
+		flush_dcache_page(page);		\
+	} while (0)
 
 #define copy_user_page(to, from, vaddr, page)	\
-do {						\
-	copy_page((to), (from));		\
-	flush_dcache_page(page);		\
-} while (0)
+	do {						\
+		copy_page((to), (from));		\
+		flush_dcache_page(page);		\
+	} while (0)
 
 
 #define __alloc_zeroed_user_highpage(movableflags, vma, vaddr)		\
-({									\
-	struct page *page = alloc_page_vma(				\
-		GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr);	\
-	if (page)							\
- 		flush_dcache_page(page);				\
-	page;								\
-})
+	({									\
+		struct page *page = alloc_page_vma(				\
+							GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr);	\
+		if (page)							\
+			flush_dcache_page(page);				\
+		page;								\
+	})
 
 #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
 
 #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
 
 #ifdef CONFIG_VIRTUAL_MEM_MAP
-extern int ia64_pfn_valid (unsigned long pfn);
+	extern int ia64_pfn_valid (unsigned long pfn);
 #else
-# define ia64_pfn_valid(pfn) 1
+	#define ia64_pfn_valid(pfn) 1
 #endif
 
 #ifdef CONFIG_VIRTUAL_MEM_MAP
-extern struct page *vmem_map;
-#ifdef CONFIG_DISCONTIGMEM
-# define page_to_pfn(page)	((unsigned long) (page - vmem_map))
-# define pfn_to_page(pfn)	(vmem_map + (pfn))
-# define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+	extern struct page *vmem_map;
+	#ifdef CONFIG_DISCONTIGMEM
+		#define page_to_pfn(page)	((unsigned long) (page - vmem_map))
+		#define pfn_to_page(pfn)	(vmem_map + (pfn))
+		#define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+	#else
+		#include <asm-generic/memory_model.h>
+	#endif
 #else
-# include <asm-generic/memory_model.h>
-#endif
-#else
-# include <asm-generic/memory_model.h>
+	#include <asm-generic/memory_model.h>
 #endif
 
 #ifdef CONFIG_FLATMEM
-# define pfn_valid(pfn)		(((pfn) < max_mapnr) && ia64_pfn_valid(pfn))
+	#define pfn_valid(pfn)		(((pfn) < max_mapnr) && ia64_pfn_valid(pfn))
 #elif defined(CONFIG_DISCONTIGMEM)
-extern unsigned long min_low_pfn;
-extern unsigned long max_low_pfn;
-# define pfn_valid(pfn)		(((pfn) >= min_low_pfn) && ((pfn) < max_low_pfn) && ia64_pfn_valid(pfn))
+	extern unsigned long min_low_pfn;
+	extern unsigned long max_low_pfn;
+	#define pfn_valid(pfn)		(((pfn) >= min_low_pfn) && ((pfn) < max_low_pfn) && ia64_pfn_valid(pfn))
 #endif
 
 #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 #define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
 
-typedef union ia64_va {
-	struct {
+typedef union ia64_va
+{
+	struct
+	{
 		unsigned long off : 61;		/* intra-region offset */
 		unsigned long reg :  3;		/* region number */
 	} f;
@@ -148,7 +150,7 @@ typedef union ia64_va {
 
 #ifdef CONFIG_HUGETLB_PAGE
 # define htlbpage_to_page(x)	(((unsigned long) REGION_NUMBER(x) << 61)			\
-				 | (REGION_OFFSET(x) >> (HPAGE_SHIFT-PAGE_SHIFT)))
+								 | (REGION_OFFSET(x) >> (HPAGE_SHIFT-PAGE_SHIFT)))
 # define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
 extern unsigned int hpage_shift;
 #endif
@@ -161,30 +163,34 @@ get_order (unsigned long size)
 
 	order = ia64_getf_exp(d);
 	order = order - PAGE_SHIFT - 0xffff + 1;
+
 	if (order < 0)
+	{
 		order = 0;
+	}
+
 	return order;
 }
 
 #endif /* !__ASSEMBLY__ */
 
 #ifdef STRICT_MM_TYPECHECKS
-  /*
-   * These are used to make use of C type-checking..
-   */
-  typedef struct { unsigned long pte; } pte_t;
-  typedef struct { unsigned long pmd; } pmd_t;
+/*
+ * These are used to make use of C type-checking..
+ */
+typedef struct { unsigned long pte; } pte_t;
+typedef struct { unsigned long pmd; } pmd_t;
 #if CONFIG_PGTABLE_LEVELS == 4
-  typedef struct { unsigned long pud; } pud_t;
+typedef struct { unsigned long pud; } pud_t;
 #endif
-  typedef struct { unsigned long pgd; } pgd_t;
-  typedef struct { unsigned long pgprot; } pgprot_t;
-  typedef struct page *pgtable_t;
+typedef struct { unsigned long pgd; } pgd_t;
+typedef struct { unsigned long pgprot; } pgprot_t;
+typedef struct page *pgtable_t;
 
 # define pte_val(x)	((x).pte)
 # define pmd_val(x)	((x).pmd)
 #if CONFIG_PGTABLE_LEVELS == 4
-# define pud_val(x)	((x).pud)
+	#define pud_val(x)	((x).pud)
 #endif
 # define pgd_val(x)	((x).pgd)
 # define pgprot_val(x)	((x).pgprot)
@@ -194,16 +200,16 @@ get_order (unsigned long size)
 # define __pgprot(x)	((pgprot_t) { (x) } )
 
 #else /* !STRICT_MM_TYPECHECKS */
-  /*
-   * .. while these make it easier on the compiler
-   */
-# ifndef __ASSEMBLY__
-    typedef unsigned long pte_t;
-    typedef unsigned long pmd_t;
-    typedef unsigned long pgd_t;
-    typedef unsigned long pgprot_t;
-    typedef struct page *pgtable_t;
-# endif
+/*
+ * .. while these make it easier on the compiler
+ */
+#ifndef __ASSEMBLY__
+	typedef unsigned long pte_t;
+	typedef unsigned long pmd_t;
+	typedef unsigned long pgd_t;
+	typedef unsigned long pgprot_t;
+	typedef struct page *pgtable_t;
+#endif
 
 # define pte_val(x)	(x)
 # define pmd_val(x)	(x)
@@ -218,9 +224,9 @@ get_order (unsigned long size)
 #define PAGE_OFFSET			RGN_BASE(RGN_KERNEL)
 
 #define VM_DATA_DEFAULT_FLAGS		(VM_READ | VM_WRITE |					\
-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |		\
-					 (((current->personality & READ_IMPLIES_EXEC) != 0)	\
-					  ? VM_EXEC : 0))
+									 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |		\
+									 (((current->personality & READ_IMPLIES_EXEC) != 0)	\
+									  ? VM_EXEC : 0))
 
 #define GATE_ADDR		RGN_BASE(RGN_GATE)
 

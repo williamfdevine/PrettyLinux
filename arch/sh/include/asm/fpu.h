@@ -35,18 +35,22 @@ extern int do_fpu_inst(unsigned short, struct pt_regs *);
 extern int init_fpu(struct task_struct *);
 
 extern int fpregs_get(struct task_struct *target,
-		      const struct user_regset *regset,
-		      unsigned int pos, unsigned int count,
-		      void *kbuf, void __user *ubuf);
+					  const struct user_regset *regset,
+					  unsigned int pos, unsigned int count,
+					  void *kbuf, void __user *ubuf);
 
 static inline void __unlazy_fpu(struct task_struct *tsk, struct pt_regs *regs)
 {
-	if (task_thread_info(tsk)->status & TS_USEDFPU) {
+	if (task_thread_info(tsk)->status & TS_USEDFPU)
+	{
 		task_thread_info(tsk)->status &= ~TS_USEDFPU;
 		save_fpu(tsk);
 		release_fpu(regs);
-	} else
+	}
+	else
+	{
 		tsk->thread.fpu_counter = 0;
+	}
 }
 
 static inline void unlazy_fpu(struct task_struct *tsk, struct pt_regs *regs)
@@ -59,10 +63,13 @@ static inline void unlazy_fpu(struct task_struct *tsk, struct pt_regs *regs)
 static inline void clear_fpu(struct task_struct *tsk, struct pt_regs *regs)
 {
 	preempt_disable();
-	if (task_thread_info(tsk)->status & TS_USEDFPU) {
+
+	if (task_thread_info(tsk)->status & TS_USEDFPU)
+	{
 		task_thread_info(tsk)->status &= ~TS_USEDFPU;
 		release_fpu(regs);
 	}
+
 	preempt_enable();
 }
 

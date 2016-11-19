@@ -35,7 +35,7 @@
 #include <asm/sections.h>
 
 #ifdef CONFIG_MMU
-extern void init_mmu(void);
+	extern void init_mmu(void);
 #endif
 
 extern char _end[];
@@ -46,13 +46,14 @@ extern char _end[];
 struct cpuinfo_m32r boot_cpu_data;
 
 #ifdef CONFIG_BLK_DEV_RAM
-extern int rd_doload;	/* 1 = load ramdisk, 0 = don't load */
-extern int rd_prompt;	/* 1 = prompt for ramdisk, 0 = don't prompt */
-extern int rd_image_start;	/* starting block # of image */
+	extern int rd_doload;	/* 1 = load ramdisk, 0 = don't load */
+	extern int rd_prompt;	/* 1 = prompt for ramdisk, 0 = don't prompt */
+	extern int rd_image_start;	/* starting block # of image */
 #endif
 
 #if defined(CONFIG_VGA_CONSOLE)
-struct screen_info screen_info = {
+struct screen_info screen_info =
+{
 	.orig_video_lines      = 25,
 	.orig_video_cols       = 80,
 	.orig_video_mode       = 0,
@@ -66,14 +67,16 @@ extern int root_mountflags;
 
 static char __initdata command_line[COMMAND_LINE_SIZE];
 
-static struct resource data_resource = {
+static struct resource data_resource =
+{
 	.name   = "Kernel data",
 	.start  = 0,
 	.end    = 0,
 	.flags  = IORESOURCE_BUSY | IORESOURCE_SYSTEM_RAM
 };
 
-static struct resource code_resource = {
+static struct resource code_resource =
+{
 	.name   = "Kernel code",
 	.start  = 0,
 	.end    = 0,
@@ -89,7 +92,7 @@ EXPORT_SYMBOL(memory_end);
 void __init setup_arch(char **);
 int get_cpuinfo(char *);
 
-static __inline__ void parse_mem_cmdline(char ** cmdline_p)
+static __inline__ void parse_mem_cmdline(char **cmdline_p)
 {
 	char c = ' ';
 	char *to = command_line;
@@ -99,37 +102,51 @@ static __inline__ void parse_mem_cmdline(char ** cmdline_p)
 
 	/* Save unparsed command line copy for /proc/cmdline */
 	memcpy(boot_command_line, COMMAND_LINE, COMMAND_LINE_SIZE);
-	boot_command_line[COMMAND_LINE_SIZE-1] = '\0';
+	boot_command_line[COMMAND_LINE_SIZE - 1] = '\0';
 
-	memory_start = (unsigned long)CONFIG_MEMORY_START+PAGE_OFFSET;
-	memory_end = memory_start+(unsigned long)CONFIG_MEMORY_SIZE;
+	memory_start = (unsigned long)CONFIG_MEMORY_START + PAGE_OFFSET;
+	memory_end = memory_start + (unsigned long)CONFIG_MEMORY_SIZE;
 
-	for ( ; ; ) {
-		if (c == ' ' && !memcmp(from, "mem=", 4)) {
+	for ( ; ; )
+	{
+		if (c == ' ' && !memcmp(from, "mem=", 4))
+		{
 			if (to != command_line)
+			{
 				to--;
+			}
 
 			{
 				unsigned long mem_size;
 
 				usermem = 1;
-				mem_size = memparse(from+4, &from);
+				mem_size = memparse(from + 4, &from);
 				memory_end = memory_start + mem_size;
 			}
 		}
+
 		c = *(from++);
+
 		if (!c)
+		{
 			break;
+		}
 
 		if (COMMAND_LINE_SIZE <= ++len)
+		{
 			break;
+		}
 
 		*(to++) = c;
 	}
+
 	*to = '\0';
 	*cmdline_p = command_line;
+
 	if (usermem)
+	{
 		printk(KERN_INFO "user-defined physical RAM map:\n");
+	}
 }
 
 #ifndef CONFIG_DISCONTIGMEM
@@ -144,7 +161,7 @@ static unsigned long __init setup_memory(void)
 	 * Initialize the boot-time allocator (with low memory only):
 	 */
 	bootmap_size = init_bootmem_node(NODE_DATA(0), start_pfn,
-		CONFIG_MEMORY_START>>PAGE_SHIFT, max_low_pfn);
+									 CONFIG_MEMORY_START >> PAGE_SHIFT, max_low_pfn);
 
 	/*
 	 * Register fully available low RAM pages with the bootmem allocator.
@@ -165,7 +182,9 @@ static unsigned long __init setup_memory(void)
 		last_pfn = PFN_DOWN(__pa(memory_end));
 
 		if (last_pfn > max_low_pfn)
+		{
 			last_pfn = max_low_pfn;
+		}
 
 		pages = last_pfn - curr_pfn;
 		free_bootmem(PFN_PHYS(curr_pfn), PFN_PHYS(pages));
@@ -179,9 +198,9 @@ static unsigned long __init setup_memory(void)
 	 * an invalid RAM area.
 	 */
 	reserve_bootmem(CONFIG_MEMORY_START + PAGE_SIZE,
-		(PFN_PHYS(start_pfn) + bootmap_size + PAGE_SIZE - 1)
-		- CONFIG_MEMORY_START,
-		BOOTMEM_DEFAULT);
+					(PFN_PHYS(start_pfn) + bootmap_size + PAGE_SIZE - 1)
+					- CONFIG_MEMORY_START,
+					BOOTMEM_DEFAULT);
 
 	/*
 	 * reserve physical page 0 - it's a special BIOS page on many boxes,
@@ -194,27 +213,33 @@ static unsigned long __init setup_memory(void)
 	 */
 #ifdef CONFIG_MEMHOLE
 	reserve_bootmem(CONFIG_MEMHOLE_START, CONFIG_MEMHOLE_SIZE,
-			BOOTMEM_DEFAULT);
+					BOOTMEM_DEFAULT);
 #endif
 
 #ifdef CONFIG_BLK_DEV_INITRD
-	if (LOADER_TYPE && INITRD_START) {
-		if (INITRD_START + INITRD_SIZE <= (max_low_pfn << PAGE_SHIFT)) {
+
+	if (LOADER_TYPE && INITRD_START)
+	{
+		if (INITRD_START + INITRD_SIZE <= (max_low_pfn << PAGE_SHIFT))
+		{
 			reserve_bootmem(INITRD_START, INITRD_SIZE,
-					BOOTMEM_DEFAULT);
+							BOOTMEM_DEFAULT);
 			initrd_start = INITRD_START + PAGE_OFFSET;
 			initrd_end = initrd_start + INITRD_SIZE;
 			printk("initrd:start[%08lx],size[%08lx]\n",
-				initrd_start, INITRD_SIZE);
-		} else {
+				   initrd_start, INITRD_SIZE);
+		}
+		else
+		{
 			printk("initrd extends beyond end of memory "
-				"(0x%08lx > 0x%08lx)\ndisabling initrd\n",
-				INITRD_START + INITRD_SIZE,
-				max_low_pfn << PAGE_SHIFT);
+				   "(0x%08lx > 0x%08lx)\ndisabling initrd\n",
+				   INITRD_START + INITRD_SIZE,
+				   max_low_pfn << PAGE_SHIFT);
 
 			initrd_start = 0;
 		}
 	}
+
 #endif
 
 	return max_low_pfn;
@@ -238,7 +263,9 @@ void __init setup_arch(char **cmdline_p)
 #endif
 
 	if (!MOUNT_ROOT_RDONLY)
+	{
 		root_mountflags &= ~MS_RDONLY;
+	}
 
 #ifdef CONFIG_VT
 #if defined(CONFIG_VGA_CONSOLE)
@@ -260,9 +287,9 @@ void __init setup_arch(char **cmdline_p)
 	init_mm.brk = (unsigned long) _end;
 
 	code_resource.start = virt_to_phys(_text);
-	code_resource.end = virt_to_phys(_etext)-1;
+	code_resource.end = virt_to_phys(_etext) - 1;
 	data_resource.start = virt_to_phys(_etext);
-	data_resource.end = virt_to_phys(_edata)-1;
+	data_resource.end = virt_to_phys(_edata) - 1;
 
 	parse_mem_cmdline(cmdline_p);
 
@@ -278,7 +305,7 @@ static int __init topology_init(void)
 	int i;
 
 	for_each_present_cpu(i)
-		register_cpu(&cpu_devices[i], i);
+	register_cpu(&cpu_devices[i], i);
 
 	return 0;
 }
@@ -295,36 +322,40 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	unsigned long cpu = c - cpu_data;
 
 #ifdef CONFIG_SMP
+
 	if (!cpu_online(cpu))
+	{
 		return 0;
+	}
+
 #endif	/* CONFIG_SMP */
 
 	seq_printf(m, "processor\t: %ld\n", cpu);
 
 #if defined(CONFIG_CHIP_VDEC2)
 	seq_printf(m, "cpu family\t: VDEC2\n"
-		"cache size\t: Unknown\n");
+			   "cache size\t: Unknown\n");
 #elif defined(CONFIG_CHIP_M32700)
-	seq_printf(m,"cpu family\t: M32700\n"
-		"cache size\t: I-8KB/D-8KB\n");
+	seq_printf(m, "cpu family\t: M32700\n"
+			   "cache size\t: I-8KB/D-8KB\n");
 #elif defined(CONFIG_CHIP_M32102)
-	seq_printf(m,"cpu family\t: M32102\n"
-		"cache size\t: I-8KB\n");
+	seq_printf(m, "cpu family\t: M32102\n"
+			   "cache size\t: I-8KB\n");
 #elif defined(CONFIG_CHIP_OPSP)
-	seq_printf(m,"cpu family\t: OPSP\n"
-		"cache size\t: I-8KB/D-8KB\n");
+	seq_printf(m, "cpu family\t: OPSP\n"
+			   "cache size\t: I-8KB/D-8KB\n");
 #elif defined(CONFIG_CHIP_MP)
 	seq_printf(m, "cpu family\t: M32R-MP\n"
-		"cache size\t: I-xxKB/D-xxKB\n");
+			   "cache size\t: I-xxKB/D-xxKB\n");
 #elif  defined(CONFIG_CHIP_M32104)
-	seq_printf(m,"cpu family\t: M32104\n"
-		"cache size\t: I-8KB/D-8KB\n");
+	seq_printf(m, "cpu family\t: M32104\n"
+			   "cache size\t: I-8KB/D-8KB\n");
 #else
 	seq_printf(m, "cpu family\t: Unknown\n");
 #endif
 	seq_printf(m, "bogomips\t: %lu.%02lu\n",
-		c->loops_per_jiffy/(500000/HZ),
-		(c->loops_per_jiffy/(5000/HZ)) % 100);
+			   c->loops_per_jiffy / (500000 / HZ),
+			   (c->loops_per_jiffy / (5000 / HZ)) % 100);
 #if defined(CONFIG_PLAT_MAPPI)
 	seq_printf(m, "Machine\t\t: Mappi Evaluation board\n");
 #elif defined(CONFIG_PLAT_MAPPI2)
@@ -347,7 +378,7 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 
 #define PRINT_CLOCK(name, value)				\
 	seq_printf(m, name " clock\t: %d.%02dMHz\n",		\
-		((value) / 1000000), ((value) % 1000000)/10000)
+			   ((value) / 1000000), ((value) % 1000000)/10000)
 
 	PRINT_CLOCK("CPU", (int)c->cpu_clock);
 	PRINT_CLOCK("Bus", (int)c->bus_clock);
@@ -372,7 +403,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start = c_start,
 	.next = c_next,
 	.stop = c_stop,
@@ -395,18 +427,26 @@ void __init cpu_init (void)
 {
 	int cpu_id = smp_processor_id();
 
-	if (test_and_set_bit(cpu_id, &cpu_initialized)) {
+	if (test_and_set_bit(cpu_id, &cpu_initialized))
+	{
 		printk(KERN_WARNING "CPU#%d already initialized!\n", cpu_id);
+
 		for ( ; ; )
+		{
 			local_irq_enable();
+		}
 	}
+
 	printk(KERN_INFO "Initializing CPU#%d\n", cpu_id);
 
 	/* Set up and load the per-CPU TSS and LDT */
 	atomic_inc(&init_mm.mm_count);
 	current->active_mm = &init_mm;
+
 	if (current->mm)
+	{
 		BUG();
+	}
 
 	/* Force FPU initialization */
 	current_thread_info()->status = 0;

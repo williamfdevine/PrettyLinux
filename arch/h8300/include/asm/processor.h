@@ -43,8 +43,8 @@ static inline void wrusp(unsigned long usp)
 #define TASK_SIZE	(0xFFFFFFFFUL)
 
 #ifdef __KERNEL__
-#define STACK_TOP	TASK_SIZE
-#define STACK_TOP_MAX	STACK_TOP
+	#define STACK_TOP	TASK_SIZE
+	#define STACK_TOP_MAX	STACK_TOP
 #endif
 
 /*
@@ -53,27 +53,29 @@ static inline void wrusp(unsigned long usp)
  */
 #define TASK_UNMAPPED_BASE	0
 
-struct thread_struct {
+struct thread_struct
+{
 	unsigned long  ksp;		/* kernel stack pointer */
 	unsigned long  usp;		/* user stack pointer */
 	unsigned long  ccr;		/* saved status register */
 	unsigned long  esp0;            /* points to SR of stack frame */
-	struct {
+	struct
+	{
 		unsigned short *addr;
 		unsigned short inst;
 	} breakinfo;
 };
 
 #define INIT_THREAD  {						\
-	.ksp  = sizeof(init_stack) + (unsigned long)init_stack, \
-	.usp  = 0,						\
-	.ccr  = PS_S,						\
-	.esp0 = 0,						\
-	.breakinfo = {						\
-		.addr = (unsigned short *)-1,			\
-		.inst = 0					\
-	}							\
-}
+		.ksp  = sizeof(init_stack) + (unsigned long)init_stack, \
+				.usp  = 0,						\
+						.ccr  = PS_S,						\
+								.esp0 = 0,						\
+										.breakinfo = {						\
+																			.addr = (unsigned short *)-1,			\
+																			.inst = 0					\
+													 }							\
+	}
 
 /*
  * Do necessary setup to start up a newly executed thread.
@@ -83,23 +85,23 @@ struct thread_struct {
  */
 #if defined(CONFIG_CPU_H8300H)
 #define start_thread(_regs, _pc, _usp)				\
-do {								\
-	(_regs)->pc = (_pc);					\
-	(_regs)->ccr = 0x00;	   /* clear all flags */	\
-	(_regs)->er5 = current->mm->start_data;	/* GOT base */	\
-	(_regs)->sp = ((unsigned long)(_usp)) - sizeof(unsigned long) * 3; \
-} while (0)
+	do {								\
+		(_regs)->pc = (_pc);					\
+		(_regs)->ccr = 0x00;	   /* clear all flags */	\
+		(_regs)->er5 = current->mm->start_data;	/* GOT base */	\
+		(_regs)->sp = ((unsigned long)(_usp)) - sizeof(unsigned long) * 3; \
+	} while (0)
 #endif
 #if defined(CONFIG_CPU_H8S)
 #define start_thread(_regs, _pc, _usp)				\
-do {								\
-	(_regs)->pc = (_pc);					\
-	(_regs)->ccr = 0x00;	   /* clear kernel flag */	\
-	(_regs)->exr = 0x78;	   /* enable all interrupts */	\
-	(_regs)->er5 = current->mm->start_data;	/* GOT base */	\
-	/* 14 = space for retaddr(4), vector(4), er0(4) and exr(2) on stack */ \
-	(_regs)->sp = ((unsigned long)(_usp)) - 14;		\
-} while (0)
+	do {								\
+		(_regs)->pc = (_pc);					\
+		(_regs)->ccr = 0x00;	   /* clear kernel flag */	\
+		(_regs)->exr = 0x78;	   /* enable all interrupts */	\
+		(_regs)->er5 = current->mm->start_data;	/* GOT base */	\
+		/* 14 = space for retaddr(4), vector(4), er0(4) and exr(2) on stack */ \
+		(_regs)->sp = ((unsigned long)(_usp)) - 14;		\
+	} while (0)
 #endif
 
 /* Forward declaration, a strange C thing */
@@ -120,7 +122,7 @@ unsigned long get_wchan(struct task_struct *p);
 	({			 \
 		unsigned long eip = 0;	      \
 		if ((tsk)->thread.esp0 > PAGE_SIZE &&	\
-		    MAP_NR((tsk)->thread.esp0) < max_mapnr)	 \
+			MAP_NR((tsk)->thread.esp0) < max_mapnr)	 \
 			eip = ((struct pt_regs *) (tsk)->thread.esp0)->pc; \
 		eip; })
 
@@ -130,8 +132,8 @@ unsigned long get_wchan(struct task_struct *p);
 #define cpu_relax_lowlatency()	cpu_relax()
 
 #define HARD_RESET_NOW() ({		\
-	local_irq_disable();		\
-	asm("jmp @@0");			\
-})
+		local_irq_disable();		\
+		asm("jmp @@0");			\
+	})
 
 #endif

@@ -13,7 +13,8 @@
 #ifndef _RALINK_REGS_H_
 #define _RALINK_REGS_H_
 
-enum ralink_soc_type {
+enum ralink_soc_type
+{
 	RALINK_UNKNOWN = 0,
 	RT2880_SOC,
 	RT3883_SOC,

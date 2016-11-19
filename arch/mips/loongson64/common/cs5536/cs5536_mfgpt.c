@@ -65,7 +65,8 @@ static int mfgpt_timer_set_periodic(struct clock_event_device *evt)
 
 static int mfgpt_timer_shutdown(struct clock_event_device *evt)
 {
-	if (clockevent_state_periodic(evt) || clockevent_state_oneshot(evt)) {
+	if (clockevent_state_periodic(evt) || clockevent_state_oneshot(evt))
+	{
 		raw_spin_lock(&mfgpt_lock);
 		disable_mfgpt0_counter();
 		raw_spin_unlock(&mfgpt_lock);
@@ -74,7 +75,8 @@ static int mfgpt_timer_shutdown(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device mfgpt_clockevent = {
+static struct clock_event_device mfgpt_clockevent =
+{
 	.name = "mfgpt",
 	.features = CLOCK_EVT_FEAT_PERIODIC,
 
@@ -104,7 +106,8 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction irq5 = {
+static struct irqaction irq5 =
+{
 	.handler = timer_interrupt,
 	.flags = IRQF_NOBALANCING | IRQF_TIMER,
 	.name = "timer"
@@ -181,7 +184,9 @@ static cycle_t mfgpt_read(struct clocksource *cs)
 	 * we just do the simple thing now.
 	 */
 	if (count < old_count && jifs == old_jifs)
+	{
 		count = old_count;
+	}
 
 	old_count = count;
 	old_jifs = jifs;
@@ -191,7 +196,8 @@ static cycle_t mfgpt_read(struct clocksource *cs)
 	return (cycle_t) (jifs * COMPARE) + count;
 }
 
-static struct clocksource clocksource_mfgpt = {
+static struct clocksource clocksource_mfgpt =
+{
 	.name = "mfgpt",
 	.rating = 120, /* Functional for real use, but not desired */
 	.read = mfgpt_read,
@@ -201,7 +207,9 @@ static struct clocksource clocksource_mfgpt = {
 int __init init_mfgpt_clocksource(void)
 {
 	if (num_possible_cpus() > 1)	/* MFGPT does not scale! */
+	{
 		return 0;
+	}
 
 	return clocksource_register_hz(&clocksource_mfgpt, MFGPT_TICK_RATE);
 }

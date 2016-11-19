@@ -9,18 +9,24 @@
 
 static inline void flush_tlb_kernel_page(void *addr)
 {
-	if (CPU_IS_COLDFIRE) {
+	if (CPU_IS_COLDFIRE)
+	{
 		mmu_write(MMUOR, MMUOR_CNL);
-	} else if (CPU_IS_040_OR_060) {
+	}
+	else if (CPU_IS_040_OR_060)
+	{
 		mm_segment_t old_fs = get_fs();
 		set_fs(KERNEL_DS);
 		__asm__ __volatile__(".chip 68040\n\t"
-				     "pflush (%0)\n\t"
-				     ".chip 68k"
-				     : : "a" (addr));
+							 "pflush (%0)\n\t"
+							 ".chip 68k"
+							 : : "a" (addr));
 		set_fs(old_fs);
-	} else if (CPU_IS_020_OR_030)
+	}
+	else if (CPU_IS_020_OR_030)
+	{
 		__asm__ __volatile__("pflush #4,#4,(%0)" : : "a" (addr));
+	}
 }
 
 /*
@@ -28,13 +34,18 @@ static inline void flush_tlb_kernel_page(void *addr)
  */
 static inline void __flush_tlb(void)
 {
-	if (CPU_IS_COLDFIRE) {
+	if (CPU_IS_COLDFIRE)
+	{
 		mmu_write(MMUOR, MMUOR_CNL);
-	} else if (CPU_IS_040_OR_060) {
+	}
+	else if (CPU_IS_040_OR_060)
+	{
 		__asm__ __volatile__(".chip 68040\n\t"
-				     "pflushan\n\t"
-				     ".chip 68k");
-	} else if (CPU_IS_020_OR_030) {
+							 "pflushan\n\t"
+							 ".chip 68k");
+	}
+	else if (CPU_IS_020_OR_030)
+	{
 		__asm__ __volatile__("pflush #0,#4");
 	}
 }
@@ -42,19 +53,25 @@ static inline void __flush_tlb(void)
 static inline void __flush_tlb040_one(unsigned long addr)
 {
 	__asm__ __volatile__(".chip 68040\n\t"
-			     "pflush (%0)\n\t"
-			     ".chip 68k"
-			     : : "a" (addr));
+						 "pflush (%0)\n\t"
+						 ".chip 68k"
+						 : : "a" (addr));
 }
 
 static inline void __flush_tlb_one(unsigned long addr)
 {
 	if (CPU_IS_COLDFIRE)
+	{
 		mmu_write(MMUOR, MMUOR_CNL);
+	}
 	else if (CPU_IS_040_OR_060)
+	{
 		__flush_tlb040_one(addr);
+	}
 	else if (CPU_IS_020_OR_030)
+	{
 		__asm__ __volatile__("pflush #0,#4,(%0)" : : "a" (addr));
+	}
 }
 
 #define flush_tlb() __flush_tlb()
@@ -64,13 +81,18 @@ static inline void __flush_tlb_one(unsigned long addr)
  */
 static inline void flush_tlb_all(void)
 {
-	if (CPU_IS_COLDFIRE) {
+	if (CPU_IS_COLDFIRE)
+	{
 		mmu_write(MMUOR, MMUOR_CNL);
-	} else if (CPU_IS_040_OR_060) {
+	}
+	else if (CPU_IS_040_OR_060)
+	{
 		__asm__ __volatile__(".chip 68040\n\t"
-				     "pflusha\n\t"
-				     ".chip 68k");
-	} else if (CPU_IS_020_OR_030) {
+							 "pflusha\n\t"
+							 ".chip 68k");
+	}
+	else if (CPU_IS_020_OR_030)
+	{
 		__asm__ __volatile__("pflusha");
 	}
 }
@@ -78,12 +100,15 @@ static inline void flush_tlb_all(void)
 static inline void flush_tlb_mm(struct mm_struct *mm)
 {
 	if (mm == current->active_mm)
+	{
 		__flush_tlb();
+	}
 }
 
 static inline void flush_tlb_page(struct vm_area_struct *vma, unsigned long addr)
 {
-	if (vma->vm_mm == current->active_mm) {
+	if (vma->vm_mm == current->active_mm)
+	{
 		mm_segment_t old_fs = get_fs();
 		set_fs(USER_DS);
 		__flush_tlb_one(addr);
@@ -92,10 +117,12 @@ static inline void flush_tlb_page(struct vm_area_struct *vma, unsigned long addr
 }
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	if (vma->vm_mm == current->active_mm)
+	{
 		__flush_tlb();
+	}
 }
 
 static inline void flush_tlb_kernel_range(unsigned long start, unsigned long end)
@@ -116,59 +143,69 @@ extern unsigned char pmeg_ctx[SUN3_PMEGS_NUM];
    sun?) */
 static inline void flush_tlb_all(void)
 {
-       unsigned long addr;
-       unsigned char ctx, oldctx;
+	unsigned long addr;
+	unsigned char ctx, oldctx;
 
-       oldctx = sun3_get_context();
-       for(addr = 0x00000000; addr < TASK_SIZE; addr += SUN3_PMEG_SIZE) {
-	       for(ctx = 0; ctx < 8; ctx++) {
-		       sun3_put_context(ctx);
-		       sun3_put_segmap(addr, SUN3_INVALID_PMEG);
-	       }
-       }
+	oldctx = sun3_get_context();
 
-       sun3_put_context(oldctx);
-       /* erase all of the userspace pmeg maps, we've clobbered them
-	  all anyway */
-       for(addr = 0; addr < SUN3_INVALID_PMEG; addr++) {
-	       if(pmeg_alloc[addr] == 1) {
-		       pmeg_alloc[addr] = 0;
-		       pmeg_ctx[addr] = 0;
-		       pmeg_vaddr[addr] = 0;
-	       }
-       }
+	for (addr = 0x00000000; addr < TASK_SIZE; addr += SUN3_PMEG_SIZE)
+	{
+		for (ctx = 0; ctx < 8; ctx++)
+		{
+			sun3_put_context(ctx);
+			sun3_put_segmap(addr, SUN3_INVALID_PMEG);
+		}
+	}
+
+	sun3_put_context(oldctx);
+
+	/* erase all of the userspace pmeg maps, we've clobbered them
+	all anyway */
+	for (addr = 0; addr < SUN3_INVALID_PMEG; addr++)
+	{
+		if (pmeg_alloc[addr] == 1)
+		{
+			pmeg_alloc[addr] = 0;
+			pmeg_ctx[addr] = 0;
+			pmeg_vaddr[addr] = 0;
+		}
+	}
 
 }
 
 /* Clear user TLB entries within the context named in mm */
 static inline void flush_tlb_mm (struct mm_struct *mm)
 {
-     unsigned char oldctx;
-     unsigned char seg;
-     unsigned long i;
+	unsigned char oldctx;
+	unsigned char seg;
+	unsigned long i;
 
-     oldctx = sun3_get_context();
-     sun3_put_context(mm->context);
+	oldctx = sun3_get_context();
+	sun3_put_context(mm->context);
 
-     for(i = 0; i < TASK_SIZE; i += SUN3_PMEG_SIZE) {
-	     seg = sun3_get_segmap(i);
-	     if(seg == SUN3_INVALID_PMEG)
-		     continue;
+	for (i = 0; i < TASK_SIZE; i += SUN3_PMEG_SIZE)
+	{
+		seg = sun3_get_segmap(i);
 
-	     sun3_put_segmap(i, SUN3_INVALID_PMEG);
-	     pmeg_alloc[seg] = 0;
-	     pmeg_ctx[seg] = 0;
-	     pmeg_vaddr[seg] = 0;
-     }
+		if (seg == SUN3_INVALID_PMEG)
+		{
+			continue;
+		}
 
-     sun3_put_context(oldctx);
+		sun3_put_segmap(i, SUN3_INVALID_PMEG);
+		pmeg_alloc[seg] = 0;
+		pmeg_ctx[seg] = 0;
+		pmeg_vaddr[seg] = 0;
+	}
+
+	sun3_put_context(oldctx);
 
 }
 
 /* Flush a single TLB page. In this case, we're limited to flushing a
    single PMEG */
 static inline void flush_tlb_page (struct vm_area_struct *vma,
-				   unsigned long addr)
+								   unsigned long addr)
 {
 	unsigned char oldctx;
 	unsigned char i;
@@ -176,20 +213,22 @@ static inline void flush_tlb_page (struct vm_area_struct *vma,
 	oldctx = sun3_get_context();
 	sun3_put_context(vma->vm_mm->context);
 	addr &= ~SUN3_PMEG_MASK;
-	if((i = sun3_get_segmap(addr)) != SUN3_INVALID_PMEG)
+
+	if ((i = sun3_get_segmap(addr)) != SUN3_INVALID_PMEG)
 	{
 		pmeg_alloc[i] = 0;
 		pmeg_ctx[i] = 0;
 		pmeg_vaddr[i] = 0;
 		sun3_put_segmap (addr,  SUN3_INVALID_PMEG);
 	}
+
 	sun3_put_context(oldctx);
 
 }
 /* Flush a range of pages from TLB. */
 
 static inline void flush_tlb_range (struct vm_area_struct *vma,
-		      unsigned long start, unsigned long end)
+									unsigned long start, unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	unsigned char seg, oldctx;
@@ -199,17 +238,22 @@ static inline void flush_tlb_range (struct vm_area_struct *vma,
 	oldctx = sun3_get_context();
 	sun3_put_context(mm->context);
 
-	while(start < end)
+	while (start < end)
 	{
-		if((seg = sun3_get_segmap(start)) == SUN3_INVALID_PMEG)
-		     goto next;
-		if(pmeg_ctx[seg] == mm->context) {
+		if ((seg = sun3_get_segmap(start)) == SUN3_INVALID_PMEG)
+		{
+			goto next;
+		}
+
+		if (pmeg_ctx[seg] == mm->context)
+		{
 			pmeg_alloc[seg] = 0;
 			pmeg_ctx[seg] = 0;
 			pmeg_vaddr[seg] = 0;
 		}
+
 		sun3_put_segmap(start, SUN3_INVALID_PMEG);
-	next:
+next:
 		start += SUN3_PMEG_SIZE;
 	}
 }
@@ -263,7 +307,7 @@ static inline void flush_tlb_page(struct vm_area_struct *vma, unsigned long addr
 }
 
 static inline void flush_tlb_range(struct mm_struct *mm,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	BUG();
 }

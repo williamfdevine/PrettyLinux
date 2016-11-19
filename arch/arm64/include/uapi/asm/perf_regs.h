@@ -1,7 +1,8 @@
 #ifndef _ASM_ARM64_PERF_REGS_H
 #define _ASM_ARM64_PERF_REGS_H
 
-enum perf_event_arm_regs {
+enum perf_event_arm_regs
+{
 	PERF_REG_ARM64_X0,
 	PERF_REG_ARM64_X1,
 	PERF_REG_ARM64_X2,

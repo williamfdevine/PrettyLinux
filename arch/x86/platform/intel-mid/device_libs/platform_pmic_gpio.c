@@ -27,7 +27,10 @@ static void __init *pmic_gpio_platform_data(void *info)
 	int gpio_base = get_gpio_by_name("pmic_gpio_base");
 
 	if (gpio_base < 0)
+	{
 		gpio_base = 64;
+	}
+
 	pmic_gpio_pdata.gpio_base = gpio_base;
 	pmic_gpio_pdata.irq_base = gpio_base + INTEL_MID_IRQ_OFFSET;
 	pmic_gpio_pdata.gpiointr = 0xffffeff8;
@@ -35,14 +38,16 @@ static void __init *pmic_gpio_platform_data(void *info)
 	return &pmic_gpio_pdata;
 }
 
-static const struct devs_id pmic_gpio_spi_dev_id __initconst = {
+static const struct devs_id pmic_gpio_spi_dev_id __initconst =
+{
 	.name = "pmic_gpio",
 	.type = SFI_DEV_TYPE_SPI,
 	.delay = 1,
 	.get_platform_data = &pmic_gpio_platform_data,
 };
 
-static const struct devs_id pmic_gpio_ipc_dev_id __initconst = {
+static const struct devs_id pmic_gpio_ipc_dev_id __initconst =
+{
 	.name = "pmic_gpio",
 	.type = SFI_DEV_TYPE_IPC,
 	.delay = 1,

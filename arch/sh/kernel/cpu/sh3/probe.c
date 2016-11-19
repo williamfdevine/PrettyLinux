@@ -31,9 +31,9 @@ void cpu_probe(void)
 
 	/* First, write back & invalidate */
 	data0  = __raw_readl(addr0);
-	__raw_writel(data0&~(SH_CACHE_VALID|SH_CACHE_UPDATED), addr0);
+	__raw_writel(data0 & ~(SH_CACHE_VALID | SH_CACHE_UPDATED), addr0);
 	data1  = __raw_readl(addr1);
-	__raw_writel(data1&~(SH_CACHE_VALID|SH_CACHE_UPDATED), addr1);
+	__raw_writel(data1 & ~(SH_CACHE_VALID | SH_CACHE_UPDATED), addr1);
 
 	/* Next, check if there's shadow or not */
 	data0 = __raw_readl(addr0);
@@ -45,8 +45,8 @@ void cpu_probe(void)
 	data3 = __raw_readl(addr0);
 
 	/* Lastly, invaliate them. */
-	__raw_writel(data0&~SH_CACHE_VALID, addr0);
-	__raw_writel(data2&~SH_CACHE_VALID, addr1);
+	__raw_writel(data0 & ~SH_CACHE_VALID, addr0);
+	__raw_writel(data2 & ~SH_CACHE_VALID, addr1);
 
 	back_to_cached();
 
@@ -59,14 +59,17 @@ void cpu_probe(void)
 	 * 7709A/7729 has 16K cache (256-entry), while 7702 has only
 	 * 2K(direct) 7702 is not supported (yet)
 	 */
-	if (data0 == data1 && data2 == data3) {	/* Shadow */
+	if (data0 == data1 && data2 == data3)  	/* Shadow */
+	{
 		boot_cpu_data.dcache.way_incr	= (1 << 11);
 		boot_cpu_data.dcache.entry_mask	= 0x7f0;
 		boot_cpu_data.dcache.sets	= 128;
 		boot_cpu_data.type = CPU_SH7708;
 
 		boot_cpu_data.flags |= CPU_HAS_MMU_PAGE_ASSOC;
-	} else {				/* 7709A or 7729  */
+	}
+	else  				/* 7709A or 7729  */
+	{
 		boot_cpu_data.dcache.way_incr	= (1 << 12);
 		boot_cpu_data.dcache.entry_mask	= 0xff0;
 		boot_cpu_data.dcache.sets	= 256;

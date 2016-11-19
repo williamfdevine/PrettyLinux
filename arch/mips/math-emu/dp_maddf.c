@@ -14,12 +14,13 @@
 
 #include "ieee754dp.h"
 
-enum maddf_flags {
+enum maddf_flags
+{
 	maddf_negate_product	= 1 << 0,
 };
 
 static union ieee754dp _dp_maddf(union ieee754dp z, union ieee754dp x,
-				 union ieee754dp y, enum maddf_flags flags)
+									 union ieee754dp y, enum maddf_flags flags)
 {
 	int re;
 	int rs;
@@ -48,99 +49,126 @@ static union ieee754dp _dp_maddf(union ieee754dp z, union ieee754dp x,
 
 	ieee754_clearcx();
 
-	switch (zc) {
-	case IEEE754_CLASS_SNAN:
-		ieee754_setcx(IEEE754_INVALID_OPERATION);
-		return ieee754dp_nanxcpt(z);
-	case IEEE754_CLASS_DNORM:
-		DPDNORMZ;
-	/* QNAN is handled separately below */
+	switch (zc)
+	{
+		case IEEE754_CLASS_SNAN:
+			ieee754_setcx(IEEE754_INVALID_OPERATION);
+			return ieee754dp_nanxcpt(z);
+
+		case IEEE754_CLASS_DNORM:
+			DPDNORMZ;
+			/* QNAN is handled separately below */
 	}
 
-	switch (CLPAIR(xc, yc)) {
-	case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_SNAN):
-	case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_SNAN):
-	case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_SNAN):
-	case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_SNAN):
-	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_SNAN):
-		return ieee754dp_nanxcpt(y);
+	switch (CLPAIR(xc, yc))
+	{
+		case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_SNAN):
+		case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_SNAN):
+		case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_SNAN):
+		case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_SNAN):
+		case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_SNAN):
+			return ieee754dp_nanxcpt(y);
 
-	case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_SNAN):
-	case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_QNAN):
-	case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_ZERO):
-	case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_NORM):
-	case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_DNORM):
-	case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_INF):
-		return ieee754dp_nanxcpt(x);
+		case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_SNAN):
+		case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_QNAN):
+		case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_ZERO):
+		case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_NORM):
+		case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_DNORM):
+		case CLPAIR(IEEE754_CLASS_SNAN, IEEE754_CLASS_INF):
+			return ieee754dp_nanxcpt(x);
 
-	case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_QNAN):
-	case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_QNAN):
-	case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_QNAN):
-	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_QNAN):
-		return y;
+		case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_QNAN):
+		case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_QNAN):
+		case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_QNAN):
+		case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_QNAN):
+			return y;
 
-	case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_QNAN):
-	case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_ZERO):
-	case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_NORM):
-	case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_DNORM):
-	case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_INF):
-		return x;
+		case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_QNAN):
+		case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_ZERO):
+		case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_NORM):
+		case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_DNORM):
+		case CLPAIR(IEEE754_CLASS_QNAN, IEEE754_CLASS_INF):
+			return x;
 
 
-	/*
-	 * Infinity handling
-	 */
-	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_ZERO):
-	case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_INF):
-		if (zc == IEEE754_CLASS_QNAN)
+		/*
+		 * Infinity handling
+		 */
+		case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_ZERO):
+		case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_INF):
+			if (zc == IEEE754_CLASS_QNAN)
+			{
+				return z;
+			}
+
+			ieee754_setcx(IEEE754_INVALID_OPERATION);
+			return ieee754dp_indef();
+
+		case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_INF):
+		case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_INF):
+		case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_NORM):
+		case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_DNORM):
+		case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_INF):
+			if (zc == IEEE754_CLASS_QNAN)
+			{
+				return z;
+			}
+
+			return ieee754dp_inf(xs ^ ys);
+
+		case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_ZERO):
+		case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_NORM):
+		case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_DNORM):
+		case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_ZERO):
+		case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_ZERO):
+			if (zc == IEEE754_CLASS_INF)
+			{
+				return ieee754dp_inf(zs);
+			}
+
+			/* Multiplication is 0 so just return z */
 			return z;
-		ieee754_setcx(IEEE754_INVALID_OPERATION);
-		return ieee754dp_indef();
 
-	case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_INF):
-	case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_INF):
-	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_NORM):
-	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_DNORM):
-	case CLPAIR(IEEE754_CLASS_INF, IEEE754_CLASS_INF):
-		if (zc == IEEE754_CLASS_QNAN)
-			return z;
-		return ieee754dp_inf(xs ^ ys);
+		case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_DNORM):
+			DPDNORMX;
 
-	case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_ZERO):
-	case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_NORM):
-	case CLPAIR(IEEE754_CLASS_ZERO, IEEE754_CLASS_DNORM):
-	case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_ZERO):
-	case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_ZERO):
-		if (zc == IEEE754_CLASS_INF)
-			return ieee754dp_inf(zs);
-		/* Multiplication is 0 so just return z */
-		return z;
+		case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_DNORM):
+			if (zc == IEEE754_CLASS_QNAN)
+			{
+				return z;
+			}
+			else if (zc == IEEE754_CLASS_INF)
+			{
+				return ieee754dp_inf(zs);
+			}
 
-	case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_DNORM):
-		DPDNORMX;
+			DPDNORMY;
+			break;
 
-	case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_DNORM):
-		if (zc == IEEE754_CLASS_QNAN)
-			return z;
-		else if (zc == IEEE754_CLASS_INF)
-			return ieee754dp_inf(zs);
-		DPDNORMY;
-		break;
+		case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_NORM):
+			if (zc == IEEE754_CLASS_QNAN)
+			{
+				return z;
+			}
+			else if (zc == IEEE754_CLASS_INF)
+			{
+				return ieee754dp_inf(zs);
+			}
 
-	case CLPAIR(IEEE754_CLASS_DNORM, IEEE754_CLASS_NORM):
-		if (zc == IEEE754_CLASS_QNAN)
-			return z;
-		else if (zc == IEEE754_CLASS_INF)
-			return ieee754dp_inf(zs);
-		DPDNORMX;
-		break;
+			DPDNORMX;
+			break;
 
-	case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_NORM):
-		if (zc == IEEE754_CLASS_QNAN)
-			return z;
-		else if (zc == IEEE754_CLASS_INF)
-			return ieee754dp_inf(zs);
-		/* fall through to real computations */
+		case CLPAIR(IEEE754_CLASS_NORM, IEEE754_CLASS_NORM):
+			if (zc == IEEE754_CLASS_QNAN)
+			{
+				return z;
+			}
+			else if (zc == IEEE754_CLASS_INF)
+			{
+				return ieee754dp_inf(zs);
+			}
+
+			/* fall through to real computations */
 	}
 
 	/* Finally get to do some computation */
@@ -157,8 +185,11 @@ static union ieee754dp _dp_maddf(union ieee754dp z, union ieee754dp x,
 
 	re = xe + ye;
 	rs = xs ^ ys;
+
 	if (flags & maddf_negate_product)
+	{
 		rs ^= 1;
+	}
 
 	/* shunt to top of word */
 	xm <<= 64 - (DP_FBITS + 1);
@@ -200,14 +231,18 @@ static union ieee754dp _dp_maddf(union ieee754dp z, union ieee754dp x,
 	/*
 	 * Sticky shift down to normal rounding precision.
 	 */
-	if ((s64) rm < 0) {
+	if ((s64) rm < 0)
+	{
 		rm = (rm >> (64 - (DP_FBITS + 1 + 3))) |
-		     ((rm << (DP_FBITS + 1 + 3)) != 0);
+			 ((rm << (DP_FBITS + 1 + 3)) != 0);
 		re++;
-	} else {
-		rm = (rm >> (64 - (DP_FBITS + 1 + 3 + 1))) |
-		     ((rm << (DP_FBITS + 1 + 3 + 1)) != 0);
 	}
+	else
+	{
+		rm = (rm >> (64 - (DP_FBITS + 1 + 3 + 1))) |
+			 ((rm << (DP_FBITS + 1 + 3 + 1)) != 0);
+	}
+
 	assert(rm & (DP_HIDDEN_BIT << 3));
 
 	/* And now the addition */
@@ -218,14 +253,17 @@ static union ieee754dp _dp_maddf(union ieee754dp z, union ieee754dp x,
 	 */
 	zm <<= 3;
 
-	if (ze > re) {
+	if (ze > re)
+	{
 		/*
 		 * Have to shift y fraction right to align.
 		 */
 		s = ze - re;
 		rm = XDPSRS(rm, s);
 		re += s;
-	} else if (re > ze) {
+	}
+	else if (re > ze)
+	{
 		/*
 		 * Have to shift x fraction right to align.
 		 */
@@ -233,34 +271,46 @@ static union ieee754dp _dp_maddf(union ieee754dp z, union ieee754dp x,
 		zm = XDPSRS(zm, s);
 		ze += s;
 	}
+
 	assert(ze == re);
 	assert(ze <= DP_EMAX);
 
-	if (zs == rs) {
+	if (zs == rs)
+	{
 		/*
 		 * Generate 28 bit result of adding two 27 bit numbers
 		 * leaving result in xm, xs and xe.
 		 */
 		zm = zm + rm;
 
-		if (zm >> (DP_FBITS + 1 + 3)) { /* carry out */
+		if (zm >> (DP_FBITS + 1 + 3))   /* carry out */
+		{
 			zm = XDPSRS1(zm);
 			ze++;
 		}
-	} else {
-		if (zm >= rm) {
+	}
+	else
+	{
+		if (zm >= rm)
+		{
 			zm = zm - rm;
-		} else {
+		}
+		else
+		{
 			zm = rm - zm;
 			zs = rs;
 		}
+
 		if (zm == 0)
+		{
 			return ieee754dp_zero(ieee754_csr.rm == FPU_CSR_RD);
+		}
 
 		/*
 		 * Normalize to rounding precision.
 		 */
-		while ((zm >> (DP_FBITS + 3)) == 0) {
+		while ((zm >> (DP_FBITS + 3)) == 0)
+		{
 			zm <<= 1;
 			ze--;
 		}
@@ -270,13 +320,13 @@ static union ieee754dp _dp_maddf(union ieee754dp z, union ieee754dp x,
 }
 
 union ieee754dp ieee754dp_maddf(union ieee754dp z, union ieee754dp x,
-				union ieee754dp y)
+									union ieee754dp y)
 {
 	return _dp_maddf(z, x, y, 0);
 }
 
 union ieee754dp ieee754dp_msubf(union ieee754dp z, union ieee754dp x,
-				union ieee754dp y)
+									union ieee754dp y)
 {
 	return _dp_maddf(z, x, y, maddf_negate_product);
 }

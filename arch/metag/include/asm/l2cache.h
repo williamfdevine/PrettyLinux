@@ -50,10 +50,14 @@ static inline int meta_l2c_is_unified(void)
 static inline unsigned int meta_l2c_size(void)
 {
 	unsigned int size_s;
+
 	if (!meta_l2c_is_present())
+	{
 		return 0;
+	}
+
 	size_s = (meta_l2c_config() & METAC_CORECFG3_L2C_SIZE_BITS)
-			>> METAC_CORECFG3_L2C_SIZE_S;
+			 >> METAC_CORECFG3_L2C_SIZE_S;
 	/* L2CSIZE is in KiB */
 	return 1024 << size_s;
 }
@@ -62,10 +66,14 @@ static inline unsigned int meta_l2c_size(void)
 static inline unsigned int meta_l2c_ways(void)
 {
 	unsigned int ways_s;
+
 	if (!meta_l2c_is_present())
+	{
 		return 0;
+	}
+
 	ways_s = (meta_l2c_config() & METAC_CORECFG3_L2C_NUM_WAYS_BITS)
-			>> METAC_CORECFG3_L2C_NUM_WAYS_S;
+			 >> METAC_CORECFG3_L2C_NUM_WAYS_S;
 	return 0x1 << ways_s;
 }
 
@@ -73,15 +81,22 @@ static inline unsigned int meta_l2c_ways(void)
 static inline unsigned int meta_l2c_linesize(void)
 {
 	unsigned int line_size;
+
 	if (!meta_l2c_is_present())
+	{
 		return 0;
+	}
+
 	line_size = (meta_l2c_config() & METAC_CORECFG3_L2C_LINE_SIZE_BITS)
-			>> METAC_CORECFG3_L2C_LINE_SIZE_S;
-	switch (line_size) {
-	case METAC_CORECFG3_L2C_LINE_SIZE_64B:
-		return 64;
-	default:
-		return 0;
+				>> METAC_CORECFG3_L2C_LINE_SIZE_S;
+
+	switch (line_size)
+	{
+		case METAC_CORECFG3_L2C_LINE_SIZE_64B:
+			return 64;
+
+		default:
+			return 0;
 	}
 }
 
@@ -89,7 +104,7 @@ static inline unsigned int meta_l2c_linesize(void)
 static inline unsigned int meta_l2c_revision(void)
 {
 	return (meta_l2c_config() & METAC_CORECFG3_L2C_REV_ID_BITS)
-			>> METAC_CORECFG3_L2C_REV_ID_S;
+		   >> METAC_CORECFG3_L2C_REV_ID_S;
 }
 
 
@@ -101,6 +116,7 @@ static inline unsigned int meta_l2c_revision(void)
 static inline void _meta_l2c_init(void)
 {
 	metag_out32(SYSC_L2C_INIT_INIT, SYSC_L2C_INIT);
+
 	while (metag_in32(SYSC_L2C_INIT) == SYSC_L2C_INIT_IN_PROGRESS)
 		/* do nothing */;
 }
@@ -112,6 +128,7 @@ static inline void _meta_l2c_init(void)
 static inline void _meta_l2c_purge(void)
 {
 	metag_out32(SYSC_L2C_PURGE_PURGE, SYSC_L2C_PURGE);
+
 	while (metag_in32(SYSC_L2C_PURGE) == SYSC_L2C_PURGE_IN_PROGRESS)
 		/* do nothing */;
 }
@@ -122,10 +139,16 @@ static inline void _meta_l2c_enable(int enabled)
 	unsigned int enable;
 
 	enable = metag_in32(SYSC_L2C_ENABLE);
+
 	if (enabled)
+	{
 		enable |= SYSC_L2C_ENABLE_ENABLE_BIT;
+	}
 	else
+	{
 		enable &= ~SYSC_L2C_ENABLE_ENABLE_BIT;
+	}
+
 	metag_out32(enable, SYSC_L2C_ENABLE);
 }
 
@@ -135,10 +158,16 @@ static inline void _meta_l2c_pf_enable(int pfenabled)
 	unsigned int enable;
 
 	enable = metag_in32(SYSC_L2C_ENABLE);
+
 	if (pfenabled)
+	{
 		enable |= SYSC_L2C_ENABLE_PFENABLE_BIT;
+	}
 	else
+	{
 		enable &= ~SYSC_L2C_ENABLE_PFENABLE_BIT;
+	}
+
 	metag_out32(enable, SYSC_L2C_ENABLE);
 }
 
@@ -210,7 +239,9 @@ static inline int meta_l2c_writeback(void)
 
 	/* no need to purge if it's not a writeback cache */
 	if (!meta_l2c_is_writeback())
+	{
 		return 1;
+	}
 
 	/*
 	 * Purge only works if the L2 is enabled, and involves reading back to
@@ -218,10 +249,13 @@ static inline int meta_l2c_writeback(void)
 	 */
 	__global_lock1(flags);
 	en = meta_l2c_is_enabled();
-	if (likely(en)) {
+
+	if (likely(en))
+	{
 		wr_fence();
 		_meta_l2c_purge();
 	}
+
 	__global_unlock1(flags);
 
 	return !en;

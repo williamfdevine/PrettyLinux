@@ -10,13 +10,13 @@
 
 #define pte_ERROR(e)							\
 	pr_err("%s:%d: bad pte %p(%08lx%08lx)\n",			\
-	       __FILE__, __LINE__, &(e), (e).pte_high, (e).pte_low)
+		   __FILE__, __LINE__, &(e), (e).pte_high, (e).pte_low)
 #define pmd_ERROR(e)							\
 	pr_err("%s:%d: bad pmd %p(%016Lx)\n",				\
-	       __FILE__, __LINE__, &(e), pmd_val(e))
+		   __FILE__, __LINE__, &(e), pmd_val(e))
 #define pgd_ERROR(e)							\
 	pr_err("%s:%d: bad pgd %p(%016Lx)\n",				\
-	       __FILE__, __LINE__, &(e), pgd_val(e))
+		   __FILE__, __LINE__, &(e), pgd_val(e))
 
 /* Rules for using set_pte: the pte being assigned *must* be
  * either not present or in a state where the hardware will
@@ -73,13 +73,15 @@ static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
 	u32 *tmp = (u32 *)pmdp;
 
 	ret = (pmdval_t) (*tmp);
-	if (ret) {
+
+	if (ret)
+	{
 		/*
 		 * If the low part is null, we must not read the high part
 		 * or we can end up with a partial pmd.
 		 */
 		smp_rmb();
-		ret |= ((pmdval_t)*(tmp + 1)) << 32;
+		ret |= ((pmdval_t) * (tmp + 1)) << 32;
 	}
 
 	return (pmd_t) { ret };
@@ -106,7 +108,7 @@ static inline void native_set_pud(pud_t *pudp, pud_t pud)
  * barrier.
  */
 static inline void native_pte_clear(struct mm_struct *mm, unsigned long addr,
-				    pte_t *ptep)
+									pte_t *ptep)
 {
 	ptep->pte_low = 0;
 	smp_wmb();
@@ -154,8 +156,10 @@ static inline pte_t native_ptep_get_and_clear(pte_t *ptep)
 #endif
 
 #ifdef CONFIG_SMP
-union split_pmd {
-	struct {
+union split_pmd
+{
+	struct
+	{
 		u32 pmd_low;
 		u32 pmd_high;
 	};

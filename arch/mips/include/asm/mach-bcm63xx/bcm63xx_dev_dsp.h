@@ -1,7 +1,8 @@
 #ifndef __BCM63XX_DSP_H
 #define __BCM63XX_DSP_H
 
-struct bcm63xx_dsp_platform_data {
+struct bcm63xx_dsp_platform_data
+{
 	unsigned gpio_rst;
 	unsigned gpio_int;
 	unsigned cs;

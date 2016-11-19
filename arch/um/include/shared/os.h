@@ -31,16 +31,17 @@
 #define OS_ACC_RW_OK   (OS_ACC_W_OK | OS_ACC_R_OK) /* Test for RW permission */
 
 #ifdef CONFIG_64BIT
-#define OS_LIB_PATH	"/usr/lib64/"
+	#define OS_LIB_PATH	"/usr/lib64/"
 #else
-#define OS_LIB_PATH	"/usr/lib/"
+	#define OS_LIB_PATH	"/usr/lib/"
 #endif
 
 /*
  * types taken from stat_file() in hostfs_user.c
  * (if they are wrong here, they are wrong there...).
  */
-struct uml_stat {
+struct uml_stat
+{
 	int                ust_dev;        /* device */
 	unsigned long long ust_ino;        /* inode */
 	int                ust_mode;       /* protection */
@@ -55,7 +56,8 @@ struct uml_stat {
 	unsigned long      ust_ctime;      /* time of last change */
 };
 
-struct openflags {
+struct openflags
+{
 	unsigned int r : 1;
 	unsigned int w : 1;
 	unsigned int s : 1;	/* O_SYNC */
@@ -67,7 +69,7 @@ struct openflags {
 };
 
 #define OPENFLAGS() ((struct openflags) { .r = 0, .w = 0, .s = 0, .c = 0, \
-					  .t = 0, .a = 0, .e = 0, .cl = 0 })
+			.t = 0, .a = 0, .e = 0, .cl = 0 })
 
 static inline struct openflags of_read(struct openflags flags)
 {
@@ -165,11 +167,11 @@ extern int os_file_mode(const char *file, struct openflags *mode_out);
 extern int os_lock_file(int fd, int excl);
 extern void os_flush_stdout(void);
 extern int os_stat_filesystem(char *path, long *bsize_out,
-			      long long *blocks_out, long long *bfree_out,
-			      long long *bavail_out, long long *files_out,
-			      long long *ffree_out, void *fsid_out,
-			      int fsid_size, long *namelen_out,
-			      long *spare_out);
+							  long long *blocks_out, long long *bfree_out,
+							  long long *bavail_out, long long *files_out,
+							  long long *ffree_out, void *fsid_out,
+							  int fsid_size, long *namelen_out,
+							  long *spare_out);
 extern int os_change_dir(char *dir);
 extern int os_fchange_dir(int fd);
 extern unsigned os_major(unsigned long long dev);
@@ -198,9 +200,9 @@ extern int os_getpgrp(void);
 extern void init_new_thread_signals(void);
 
 extern int os_map_memory(void *virt, int fd, unsigned long long off,
-			 unsigned long len, int r, int w, int x);
+						 unsigned long len, int r, int w, int x);
 extern int os_protect_memory(void *addr, unsigned long len,
-			     int r, int w, int x);
+							 int r, int w, int x);
 extern int os_unmap_memory(void *addr, int len);
 extern int os_drop_memory(void *addr, int length);
 extern int can_drop_memory(void);
@@ -212,7 +214,7 @@ extern int execvp_noalloc(char *buf, const char *file, char *const argv[]);
 /* helper.c */
 extern int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv);
 extern int run_helper_thread(int (*proc)(void *), void *arg,
-			     unsigned int flags, unsigned long *stack_out);
+							 unsigned int flags, unsigned long *stack_out);
 extern int helper_wait(int pid);
 
 
@@ -245,30 +247,30 @@ extern void os_fix_helper_signals(void);
 
 /* time.c */
 extern void os_idle_sleep(unsigned long long nsecs);
-extern int os_timer_create(void* timer);
-extern int os_timer_set_interval(void* timer, void* its);
+extern int os_timer_create(void *timer);
+extern int os_timer_set_interval(void *timer, void *its);
 extern int os_timer_one_shot(int ticks);
 extern long long os_timer_disable(void);
-extern long os_timer_remain(void* timer);
+extern long os_timer_remain(void *timer);
 extern void uml_idle_timer(void);
 extern long long os_persistent_clock_emulation(void);
 extern long long os_nsecs(void);
 extern long long os_vnsecs(void);
 
 /* skas/mem.c */
-extern long run_syscall_stub(struct mm_id * mm_idp,
-			     int syscall, unsigned long *args, long expected,
-			     void **addr, int done);
-extern long syscall_stub_data(struct mm_id * mm_idp,
-			      unsigned long *data, int data_count,
-			      void **addr, void **stub_addr);
-extern int map(struct mm_id * mm_idp, unsigned long virt,
-	       unsigned long len, int prot, int phys_fd,
-	       unsigned long long offset, int done, void **data);
-extern int unmap(struct mm_id * mm_idp, unsigned long addr, unsigned long len,
-		 int done, void **data);
-extern int protect(struct mm_id * mm_idp, unsigned long addr,
-		   unsigned long len, unsigned int prot, int done, void **data);
+extern long run_syscall_stub(struct mm_id *mm_idp,
+							 int syscall, unsigned long *args, long expected,
+							 void **addr, int done);
+extern long syscall_stub_data(struct mm_id *mm_idp,
+							  unsigned long *data, int data_count,
+							  void **addr, void **stub_addr);
+extern int map(struct mm_id *mm_idp, unsigned long virt,
+			   unsigned long len, int prot, int phys_fd,
+			   unsigned long long offset, int done, void **data);
+extern int unmap(struct mm_id *mm_idp, unsigned long addr, unsigned long len,
+				 int done, void **data);
+extern int protect(struct mm_id *mm_idp, unsigned long addr,
+				   unsigned long len, unsigned int prot, int done, void **data);
 
 /* skas/process.c */
 extern int is_skas_winch(int pid, int fd, void *data);
@@ -276,12 +278,12 @@ extern int start_userspace(unsigned long stub_stack);
 extern int copy_context_skas0(unsigned long stack, int pid);
 extern void userspace(struct uml_pt_regs *regs);
 extern int map_stub_pages(int fd, unsigned long code, unsigned long data,
-			  unsigned long stack);
+						  unsigned long stack);
 extern void new_thread(void *stack, jmp_buf *buf, void (*handler)(void));
 extern void switch_threads(jmp_buf *me, jmp_buf *you);
 extern int start_idle_thread(void *stack, jmp_buf *switch_buf);
 extern void initial_thread_cb_skas(void (*proc)(void *),
-				 void *arg);
+								   void *arg);
 extern void halt_skas(void);
 extern void reboot_skas(void);
 
@@ -289,9 +291,9 @@ extern void reboot_skas(void);
 extern int os_waiting_for_events(struct irq_fd *active_fds);
 extern int os_create_pollfd(int fd, int events, void *tmp_pfd, int size_tmpfds);
 extern void os_free_irq_by_cb(int (*test)(struct irq_fd *, void *), void *arg,
-		struct irq_fd *active_fds, struct irq_fd ***last_irq_ptr2);
+							  struct irq_fd *active_fds, struct irq_fd ***last_irq_ptr2);
 extern void os_free_irq_later(struct irq_fd *active_fds,
-		int irq, void *dev_id);
+							  int irq, void *dev_id);
 extern int os_get_pollfd(int i);
 extern void os_set_pollfd(int i, int fd);
 extern void os_set_ioignore(void);

@@ -68,7 +68,8 @@ phys_addr_t __fdt_pointer __initdata;
 /*
  * Standard memory resources
  */
-static struct resource mem_res[] = {
+static struct resource mem_res[] =
+{
 	{
 		.name = "Kernel code",
 		.start = 0,
@@ -126,13 +127,15 @@ static void __init smp_build_mpidr_hash(void)
 	 * not contribute to affinity levels, ie they never toggle.
 	 */
 	for_each_possible_cpu(i)
-		mask |= (cpu_logical_map(i) ^ cpu_logical_map(0));
+	mask |= (cpu_logical_map(i) ^ cpu_logical_map(0));
 	pr_debug("mask of set bits %#llx\n", mask);
+
 	/*
 	 * Find and stash the last and first bit set at all affinity levels to
 	 * check how many bits are required to represent them.
 	 */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		affinity = MPIDR_AFFINITY_LEVEL(mask, i);
 		/*
 		 * Find the MSB bit and LSB bits position
@@ -143,6 +146,7 @@ static void __init smp_build_mpidr_hash(void)
 		fs[i] = affinity ? ffs(affinity) - 1 : 0;
 		bits[i] = ls - fs[i];
 	}
+
 	/*
 	 * An index can be created from the MPIDR_EL1 by isolating the
 	 * significant bits at each affinity level and by shifting
@@ -156,39 +160,45 @@ static void __init smp_build_mpidr_hash(void)
 	mpidr_hash.shift_aff[0] = MPIDR_LEVEL_SHIFT(0) + fs[0];
 	mpidr_hash.shift_aff[1] = MPIDR_LEVEL_SHIFT(1) + fs[1] - bits[0];
 	mpidr_hash.shift_aff[2] = MPIDR_LEVEL_SHIFT(2) + fs[2] -
-						(bits[1] + bits[0]);
+							  (bits[1] + bits[0]);
 	mpidr_hash.shift_aff[3] = MPIDR_LEVEL_SHIFT(3) +
-				  fs[3] - (bits[2] + bits[1] + bits[0]);
+							  fs[3] - (bits[2] + bits[1] + bits[0]);
 	mpidr_hash.mask = mask;
 	mpidr_hash.bits = bits[3] + bits[2] + bits[1] + bits[0];
 	pr_debug("MPIDR hash: aff0[%u] aff1[%u] aff2[%u] aff3[%u] mask[%#llx] bits[%u]\n",
-		mpidr_hash.shift_aff[0],
-		mpidr_hash.shift_aff[1],
-		mpidr_hash.shift_aff[2],
-		mpidr_hash.shift_aff[3],
-		mpidr_hash.mask,
-		mpidr_hash.bits);
+			 mpidr_hash.shift_aff[0],
+			 mpidr_hash.shift_aff[1],
+			 mpidr_hash.shift_aff[2],
+			 mpidr_hash.shift_aff[3],
+			 mpidr_hash.mask,
+			 mpidr_hash.bits);
+
 	/*
 	 * 4x is an arbitrary value used to warn on a hash table much bigger
 	 * than expected on most systems.
 	 */
 	if (mpidr_hash_size() > 4 * num_possible_cpus())
+	{
 		pr_warn("Large number of MPIDR hash buckets detected\n");
+	}
 }
 
 static void __init setup_machine_fdt(phys_addr_t dt_phys)
 {
 	void *dt_virt = fixmap_remap_fdt(dt_phys);
 
-	if (!dt_virt || !early_init_dt_scan(dt_virt)) {
+	if (!dt_virt || !early_init_dt_scan(dt_virt))
+	{
 		pr_crit("\n"
-			"Error: invalid device tree blob at physical address %pa (virtual address 0x%p)\n"
-			"The dtb must be 8-byte aligned and must not exceed 2 MB in size\n"
-			"\nPlease check your bootloader.",
-			&dt_phys, dt_virt);
+				"Error: invalid device tree blob at physical address %pa (virtual address 0x%p)\n"
+				"The dtb must be 8-byte aligned and must not exceed 2 MB in size\n"
+				"\nPlease check your bootloader.",
+				&dt_phys, dt_virt);
 
 		while (true)
+		{
 			cpu_relax();
+		}
 	}
 
 	dump_stack_set_arch_desc("%s (DT)", of_flat_dt_get_machine_name());
@@ -204,30 +214,41 @@ static void __init request_standard_resources(void)
 	kernel_data.start   = virt_to_phys(_sdata);
 	kernel_data.end     = virt_to_phys(_end - 1);
 
-	for_each_memblock(memory, region) {
+	for_each_memblock(memory, region)
+	{
 		res = alloc_bootmem_low(sizeof(*res));
-		if (memblock_is_nomap(region)) {
+
+		if (memblock_is_nomap(region))
+		{
 			res->name  = "reserved";
 			res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-		} else {
+		}
+		else
+		{
 			res->name  = "System RAM";
 			res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
 		}
+
 		res->start = __pfn_to_phys(memblock_region_memory_base_pfn(region));
 		res->end = __pfn_to_phys(memblock_region_memory_end_pfn(region)) - 1;
 
 		request_resource(&iomem_resource, res);
 
 		if (kernel_code.start >= res->start &&
-		    kernel_code.end <= res->end)
+			kernel_code.end <= res->end)
+		{
 			request_resource(res, &kernel_code);
+		}
+
 		if (kernel_data.start >= res->start &&
-		    kernel_data.end <= res->end)
+			kernel_data.end <= res->end)
+		{
 			request_resource(res, &kernel_data);
+		}
 	}
 }
 
-u64 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = INVALID_HWID };
+u64 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS - 1] = INVALID_HWID };
 
 void __init setup_arch(char **cmdline_p)
 {
@@ -272,7 +293,9 @@ void __init setup_arch(char **cmdline_p)
 	acpi_boot_table_init();
 
 	if (acpi_disabled)
+	{
 		unflatten_device_tree();
+	}
 
 	bootmem_init();
 
@@ -283,9 +306,13 @@ void __init setup_arch(char **cmdline_p)
 	early_ioremap_reset();
 
 	if (acpi_disabled)
+	{
 		psci_dt_init();
+	}
 	else
+	{
 		psci_acpi_init();
+	}
 
 	cpu_read_bootcpu_ops();
 	smp_init_cpus();
@@ -298,11 +325,13 @@ void __init setup_arch(char **cmdline_p)
 	conswitchp = &dummy_con;
 #endif
 #endif
-	if (boot_args[1] || boot_args[2] || boot_args[3]) {
+
+	if (boot_args[1] || boot_args[2] || boot_args[3])
+	{
 		pr_err("WARNING: x1-x3 nonzero in violation of boot protocol:\n"
-			"\tx1: %016llx\n\tx2: %016llx\n\tx3: %016llx\n"
-			"This indicates a broken bootloader or old kernel\n",
-			boot_args[1], boot_args[2], boot_args[3]);
+			   "\tx1: %016llx\n\tx2: %016llx\n\tx3: %016llx\n"
+			   "This indicates a broken bootloader or old kernel\n",
+			   boot_args[1], boot_args[2], boot_args[3]);
 	}
 }
 
@@ -311,9 +340,10 @@ static int __init topology_init(void)
 	int i;
 
 	for_each_online_node(i)
-		register_one_node(i);
+	register_one_node(i);
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		struct cpu *cpu = &per_cpu(cpu_data.cpu, i);
 		cpu->hotpluggable = 1;
 		register_cpu(cpu, i);
@@ -327,27 +357,32 @@ subsys_initcall(topology_init);
  * Dump out kernel offset information on panic.
  */
 static int dump_kernel_offset(struct notifier_block *self, unsigned long v,
-			      void *p)
+							  void *p)
 {
 	u64 const kaslr_offset = kimage_vaddr - KIMAGE_VADDR;
 
-	if (IS_ENABLED(CONFIG_RANDOMIZE_BASE) && kaslr_offset > 0) {
+	if (IS_ENABLED(CONFIG_RANDOMIZE_BASE) && kaslr_offset > 0)
+	{
 		pr_emerg("Kernel Offset: 0x%llx from 0x%lx\n",
-			 kaslr_offset, KIMAGE_VADDR);
-	} else {
+				 kaslr_offset, KIMAGE_VADDR);
+	}
+	else
+	{
 		pr_emerg("Kernel Offset: disabled\n");
 	}
+
 	return 0;
 }
 
-static struct notifier_block kernel_offset_notifier = {
+static struct notifier_block kernel_offset_notifier =
+{
 	.notifier_call = dump_kernel_offset
 };
 
 static int __init register_kernel_offset_dumper(void)
 {
 	atomic_notifier_chain_register(&panic_notifier_list,
-				       &kernel_offset_notifier);
+								   &kernel_offset_notifier);
 	return 0;
 }
 __initcall(register_kernel_offset_dumper);

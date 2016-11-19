@@ -110,44 +110,44 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
 #define DEBUG_OMAPUART_FLAGS	(HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET)
 
 #ifdef CONFIG_OMAP_GPMC_DEBUG
-#define DEBUG_OMAP_GPMC_HWMOD_FLAGS	HWMOD_INIT_NO_RESET
+	#define DEBUG_OMAP_GPMC_HWMOD_FLAGS	HWMOD_INIT_NO_RESET
 #else
-#define DEBUG_OMAP_GPMC_HWMOD_FLAGS	0
+	#define DEBUG_OMAP_GPMC_HWMOD_FLAGS	0
 #endif
 
 #if defined(CONFIG_DEBUG_OMAP2UART1)
-#undef DEBUG_OMAP2UART1_FLAGS
-#define DEBUG_OMAP2UART1_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_OMAP2UART1_FLAGS
+	#define DEBUG_OMAP2UART1_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_OMAP2UART2)
-#undef DEBUG_OMAP2UART2_FLAGS
-#define DEBUG_OMAP2UART2_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_OMAP2UART2_FLAGS
+	#define DEBUG_OMAP2UART2_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_OMAP2UART3)
-#undef DEBUG_OMAP2UART3_FLAGS
-#define DEBUG_OMAP2UART3_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_OMAP2UART3_FLAGS
+	#define DEBUG_OMAP2UART3_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_OMAP3UART3)
-#undef DEBUG_OMAP3UART3_FLAGS
-#define DEBUG_OMAP3UART3_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_OMAP3UART3_FLAGS
+	#define DEBUG_OMAP3UART3_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_OMAP3UART4)
-#undef DEBUG_OMAP3UART4_FLAGS
-#define DEBUG_OMAP3UART4_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_OMAP3UART4_FLAGS
+	#define DEBUG_OMAP3UART4_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_OMAP4UART3)
-#undef DEBUG_OMAP4UART3_FLAGS
-#define DEBUG_OMAP4UART3_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_OMAP4UART3_FLAGS
+	#define DEBUG_OMAP4UART3_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_OMAP4UART4)
-#undef DEBUG_OMAP4UART4_FLAGS
-#define DEBUG_OMAP4UART4_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_OMAP4UART4_FLAGS
+	#define DEBUG_OMAP4UART4_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_TI81XXUART1)
-#undef DEBUG_TI81XXUART1_FLAGS
-#define DEBUG_TI81XXUART1_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_TI81XXUART1_FLAGS
+	#define DEBUG_TI81XXUART1_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_TI81XXUART2)
-#undef DEBUG_TI81XXUART2_FLAGS
-#define DEBUG_TI81XXUART2_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_TI81XXUART2_FLAGS
+	#define DEBUG_TI81XXUART2_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_TI81XXUART3)
-#undef DEBUG_TI81XXUART3_FLAGS
-#define DEBUG_TI81XXUART3_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_TI81XXUART3_FLAGS
+	#define DEBUG_TI81XXUART3_FLAGS DEBUG_OMAPUART_FLAGS
 #elif defined(CONFIG_DEBUG_AM33XXUART1)
-#undef DEBUG_AM33XXUART1_FLAGS
-#define DEBUG_AM33XXUART1_FLAGS DEBUG_OMAPUART_FLAGS
+	#undef DEBUG_AM33XXUART1_FLAGS
+	#define DEBUG_AM33XXUART1_FLAGS DEBUG_OMAPUART_FLAGS
 #endif
 
 /**
@@ -157,7 +157,8 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
  *
  * Note that this is currently built during init as needed.
  */
-struct omap_hwmod_mux_info {
+struct omap_hwmod_mux_info
+{
 	int				nr_pads;
 	struct omap_device_pad		*pads;
 	int				nr_pads_dynamic;
@@ -175,7 +176,8 @@ struct omap_hwmod_mux_info {
  * by platform_get_resource_byname().  It is defined locally to the
  * hwmod.
  */
-struct omap_hwmod_irq_info {
+struct omap_hwmod_irq_info
+{
 	const char	*name;
 	s16		irq;
 };
@@ -189,7 +191,8 @@ struct omap_hwmod_irq_info {
  * by platform_get_resource_byname().  It is defined locally to the
  * hwmod.
  */
-struct omap_hwmod_dma_info {
+struct omap_hwmod_dma_info
+{
 	const char	*name;
 	s16		dma_req;
 };
@@ -203,7 +206,8 @@ struct omap_hwmod_dma_info {
  * @name should be something short, e.g., "cpu0" or "rst". It is defined
  * locally to the hwmod.
  */
-struct omap_hwmod_rst_info {
+struct omap_hwmod_rst_info
+{
 	const char	*name;
 	u8		rst_shift;
 	u8		st_shift;
@@ -218,7 +222,8 @@ struct omap_hwmod_rst_info {
  * The module's interface clock and main functional clock should not
  * be added as optional clocks.
  */
-struct omap_hwmod_opt_clk {
+struct omap_hwmod_opt_clk
+{
 	const char	*role;
 	const char	*clk;
 	struct clk	*_clk;
@@ -236,7 +241,8 @@ struct omap_hwmod_opt_clk {
  * @l4_prot_group: L4 protection group ID
  * @flags: (see omap_hwmod_omap2_firewall.flags macros above)
  */
-struct omap_hwmod_omap2_firewall {
+struct omap_hwmod_omap2_firewall
+{
 	u8 l3_perm_bit;
 	u8 l4_fw_region;
 	u8 l4_prot_group;
@@ -263,7 +269,8 @@ struct omap_hwmod_omap2_firewall {
  * Address space doesn't necessarily follow physical interconnect
  * structure.  GPMC is one example.
  */
-struct omap_hwmod_addr_space {
+struct omap_hwmod_addr_space
+{
 	const char *name;
 	u32 pa_start;
 	u32 pa_end;
@@ -307,13 +314,15 @@ struct omap_hwmod_addr_space {
  * Parameter names beginning with an underscore are managed internally by
  * the omap_hwmod code and should not be set during initialization.
  */
-struct omap_hwmod_ocp_if {
+struct omap_hwmod_ocp_if
+{
 	struct omap_hwmod		*master;
 	struct omap_hwmod		*slave;
 	struct omap_hwmod_addr_space	*addr;
 	const char			*clk;
 	struct clk			*_clk;
-	union {
+	union
+	{
 		struct omap_hwmod_omap2_firewall omap2;
 	}				fw;
 	u8				width;
@@ -366,7 +375,8 @@ struct omap_hwmod_ocp_if {
  * @autoidle_shift: Offset of the autoidle bit
  * @dmadisable_shift: Offset of the dmadisable bit
  */
-struct omap_hwmod_sysc_fields {
+struct omap_hwmod_sysc_fields
+{
 	u8 midle_shift;
 	u8 clkact_shift;
 	u8 sidle_shift;
@@ -402,7 +412,8 @@ struct omap_hwmod_sysc_fields {
  * If the device follows a different scheme for the sysconfig register ,
  * then this field has to be populated with the correct offset structure.
  */
-struct omap_hwmod_class_sysconfig {
+struct omap_hwmod_class_sysconfig
+{
 	u32 rev_offs;
 	u32 sysc_offs;
 	u32 syss_offs;
@@ -428,7 +439,8 @@ struct omap_hwmod_class_sysconfig {
  * exceptions, so @idlest_reg_id, @idlest_idle_bit, @idlest_stdby_bit
  * are needed for the IDLEST registers (c.f. 2430 I2CHS, 3430 USBHOST)
  */
-struct omap_hwmod_omap2_prcm {
+struct omap_hwmod_omap2_prcm
+{
 	s16 module_offs;
 	u8 prcm_reg_id;
 	u8 module_bit;
@@ -467,7 +479,8 @@ struct omap_hwmod_omap2_prcm {
  * defined in cases where @context_offs register is shared by two or
  * more hwmods.
  */
-struct omap_hwmod_omap4_prcm {
+struct omap_hwmod_omap4_prcm
+{
 	u16		clkctrl_offs;
 	u16		rstctrl_offs;
 	u16		rstst_offs;
@@ -524,7 +537,7 @@ struct omap_hwmod_omap4_prcm {
  * HWMOD_SWSUP_SIDLE_ACT: omap_hwmod code should manually bring the module
  *     out of idle, but rely on smart-idle to the put it back in idle,
  *     so the wakeups are still functional (Only known case for now is UART)
- * HWMOD_RECONFIG_IO_CHAIN: omap_hwmod code needs to reconfigure wake-up 
+ * HWMOD_RECONFIG_IO_CHAIN: omap_hwmod code needs to reconfigure wake-up
  *     events by calling _reconfigure_io_chain() when a device is enabled
  *     or idled.
  * HWMOD_OPT_CLKS_NEEDED: The optional clocks are needed for the module to
@@ -605,7 +618,8 @@ struct omap_hwmod_omap4_prcm {
  * mach-omap2/omap_hwmod.c.  This is needed for IP blocks which have
  * unusual reset sequences - usually processor IP blocks like the IVA.
  */
-struct omap_hwmod_class {
+struct omap_hwmod_class
+{
 	const char				*name;
 	struct omap_hwmod_class_sysconfig	*sysc;
 	u32					rev;
@@ -621,7 +635,8 @@ struct omap_hwmod_class {
  * @ocp_if: OCP interface structure record pointer
  * @node: list_head pointing to next struct omap_hwmod_link in a list
  */
-struct omap_hwmod_link {
+struct omap_hwmod_link
+{
 	struct omap_hwmod_ocp_if	*ocp_if;
 	struct list_head		node;
 };
@@ -671,7 +686,8 @@ struct omap_hwmod_link {
  * handling for hwmods with multiple parents (e.g., OMAP4+ DSS with
  * multiple register targets across different interconnects).
  */
-struct omap_hwmod {
+struct omap_hwmod
+{
 	const char			*name;
 	struct omap_hwmod_class		*class;
 	struct omap_device		*od;
@@ -679,7 +695,8 @@ struct omap_hwmod {
 	struct omap_hwmod_irq_info	*mpu_irqs;
 	struct omap_hwmod_dma_info	*sdma_reqs;
 	struct omap_hwmod_rst_info	*rst_lines;
-	union {
+	union
+	{
 		struct omap_hwmod_omap2_prcm omap2;
 		struct omap_hwmod_omap4_prcm omap4;
 	}				prcm;
@@ -714,7 +731,7 @@ struct omap_hwmod {
 
 struct omap_hwmod *omap_hwmod_lookup(const char *name);
 int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
-			void *data);
+						void *data);
 
 int __init omap_hwmod_setup_one(const char *name);
 
@@ -733,7 +750,7 @@ int omap_hwmod_count_resources(struct omap_hwmod *oh, unsigned long flags);
 int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
 int omap_hwmod_fill_dma_resources(struct omap_hwmod *oh, struct resource *res);
 int omap_hwmod_get_resource_byname(struct omap_hwmod *oh, unsigned int type,
-				   const char *name, struct resource *res);
+								   const char *name, struct resource *res);
 
 struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh);
 void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh);
@@ -742,9 +759,9 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh);
 int omap_hwmod_disable_wakeup(struct omap_hwmod *oh);
 
 int omap_hwmod_for_each_by_class(const char *classname,
-				 int (*fn)(struct omap_hwmod *oh,
-					   void *user),
-				 void *user);
+								 int (*fn)(struct omap_hwmod *oh,
+										 void *user),
+								 void *user);
 
 int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
 int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);

@@ -46,7 +46,8 @@
  *               to wrong parameters or error conditions. Called from the
  *               CPU being suspended. Must be called with IRQs disabled.
  */
-struct cpu_operations {
+struct cpu_operations
+{
 	const char	*name;
 	int		(*cpu_init)(unsigned int);
 	int		(*cpu_prepare)(unsigned int);

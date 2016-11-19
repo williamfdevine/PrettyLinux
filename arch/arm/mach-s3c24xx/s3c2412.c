@@ -61,7 +61,8 @@ static inline void s3c2412_init_gpio2(void)
 
 /* Initial IO mappings */
 
-static struct map_desc s3c2412_iodesc[] __initdata = {
+static struct map_desc s3c2412_iodesc[] __initdata =
+{
 	IODESC_ENT(CLKPWR),
 	IODESC_ENT(TIMER),
 	IODESC_ENT(WATCHDOG),
@@ -152,7 +153,8 @@ void __init s3c2412_map_io(void)
  * as a driver which may support both 2410 and 2440 may try and use it.
 */
 
-struct bus_type s3c2412_subsys = {
+struct bus_type s3c2412_subsys =
+{
 	.name = "s3c2412-core",
 	.dev_name = "s3c2412-core",
 };
@@ -164,7 +166,8 @@ static int __init s3c2412_core_init(void)
 
 core_initcall(s3c2412_core_init);
 
-static struct device s3c2412_dev = {
+static struct device s3c2412_dev =
+{
 	.bus		= &s3c2412_subsys,
 };
 

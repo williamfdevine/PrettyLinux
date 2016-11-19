@@ -23,9 +23,13 @@ static void arch_decomp_puts(const char *ptr)
 {
 	char c;
 
-	while ((c = *ptr++) != '\0') {
+	while ((c = *ptr++) != '\0')
+	{
 		if (c == '\n')
+		{
 			putc('\r');
+		}
+
 		putc(c);
 	}
 }

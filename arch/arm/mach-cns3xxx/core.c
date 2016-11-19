@@ -26,7 +26,8 @@
 #include "core.h"
 #include "pm.h"
 
-static struct map_desc cns3xxx_io_desc[] __initdata = {
+static struct map_desc cns3xxx_io_desc[] __initdata =
+{
 	{
 		.virtual	= CNS3XXX_TC11MP_SCU_BASE_VIRT,
 		.pfn		= __phys_to_pfn(CNS3XXX_TC11MP_SCU_BASE),
@@ -91,7 +92,7 @@ void __init cns3xxx_map_io(void)
 void __init cns3xxx_init_irq(void)
 {
 	gic_init(0, 29, IOMEM(CNS3XXX_TC11MP_GIC_DIST_BASE_VIRT),
-		 IOMEM(CNS3XXX_TC11MP_GIC_CPU_BASE_VIRT));
+			 IOMEM(CNS3XXX_TC11MP_GIC_CPU_BASE_VIRT));
 }
 
 void cns3xxx_power_off(void)
@@ -143,7 +144,7 @@ static int cns3xxx_set_periodic(struct clock_event_device *clk)
 }
 
 static int cns3xxx_timer_set_next_event(unsigned long evt,
-					struct clock_event_device *unused)
+										struct clock_event_device *unused)
 {
 	unsigned long ctrl = readl(cns3xxx_tmr1 + TIMER1_2_CONTROL_OFFSET);
 
@@ -153,10 +154,11 @@ static int cns3xxx_timer_set_next_event(unsigned long evt,
 	return 0;
 }
 
-static struct clock_event_device cns3xxx_tmr1_clockevent = {
+static struct clock_event_device cns3xxx_tmr1_clockevent =
+{
 	.name			= "cns3xxx timer1",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= cns3xxx_shutdown,
 	.set_state_periodic	= cns3xxx_set_periodic,
 	.set_state_oneshot	= cns3xxx_set_oneshot,
@@ -170,8 +172,8 @@ static void __init cns3xxx_clockevents_init(unsigned int timer_irq)
 {
 	cns3xxx_tmr1_clockevent.irq = timer_irq;
 	clockevents_config_and_register(&cns3xxx_tmr1_clockevent,
-					(cns3xxx_cpu_clock() >> 3) * 1000000,
-					0xf, 0xffffffff);
+									(cns3xxx_cpu_clock() >> 3) * 1000000,
+									0xf, 0xffffffff);
 }
 
 /*
@@ -192,7 +194,8 @@ static irqreturn_t cns3xxx_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction cns3xxx_timer_irq = {
+static struct irqaction cns3xxx_timer_irq =
+{
 	.name		= "timer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= cns3xxx_timer_interrupt,
@@ -268,7 +271,9 @@ void __init cns3xxx_l2x0_init(void)
 	u32 val;
 
 	if (WARN_ON(!base))
+	{
 		return;
+	}
 
 	/*
 	 * Tag RAM Control register
@@ -312,12 +317,13 @@ static int csn3xxx_usb_power_on(struct platform_device *pdev)
 	 *
 	 * Set USB AHB INCR length to 16
 	 */
-	if (atomic_inc_return(&usb_pwr_ref) == 1) {
+	if (atomic_inc_return(&usb_pwr_ref) == 1)
+	{
 		cns3xxx_pwr_power_up(1 << PM_PLL_HM_PD_CTRL_REG_OFFSET_PLL_USB);
 		cns3xxx_pwr_clk_en(1 << PM_CLK_GATE_REG_OFFSET_USB_HOST);
 		cns3xxx_pwr_soft_rst(1 << PM_SOFT_RST_REG_OFFST_USB_HOST);
 		__raw_writel((__raw_readl(MISC_CHIP_CONFIG_REG) | (0X2 << 24)),
-			MISC_CHIP_CONFIG_REG);
+					 MISC_CHIP_CONFIG_REG);
 	}
 
 	return 0;
@@ -332,21 +338,26 @@ static void csn3xxx_usb_power_off(struct platform_device *pdev)
 	 * power down at the last down device.
 	 */
 	if (atomic_dec_return(&usb_pwr_ref) == 0)
+	{
 		cns3xxx_pwr_clk_dis(1 << PM_CLK_GATE_REG_OFFSET_USB_HOST);
+	}
 }
 
-static struct usb_ehci_pdata cns3xxx_usb_ehci_pdata = {
+static struct usb_ehci_pdata cns3xxx_usb_ehci_pdata =
+{
 	.power_on	= csn3xxx_usb_power_on,
 	.power_off	= csn3xxx_usb_power_off,
 };
 
-static struct usb_ohci_pdata cns3xxx_usb_ohci_pdata = {
+static struct usb_ohci_pdata cns3xxx_usb_ohci_pdata =
+{
 	.num_ports	= 1,
 	.power_on	= csn3xxx_usb_power_on,
 	.power_off	= csn3xxx_usb_power_off,
 };
 
-static const struct of_dev_auxdata const cns3xxx_auxdata[] __initconst = {
+static const struct of_dev_auxdata const cns3xxx_auxdata[] __initconst =
+{
 	{ "intel,usb-ehci", CNS3XXX_USB_BASE, "ehci-platform", &cns3xxx_usb_ehci_pdata },
 	{ "intel,usb-ohci", CNS3XXX_USB_OHCI_BASE, "ohci-platform", &cns3xxx_usb_ohci_pdata },
 	{ "cavium,cns3420-ahci", CNS3XXX_SATA2_BASE, "ahci", NULL },
@@ -361,34 +372,38 @@ static void __init cns3xxx_init(void)
 	cns3xxx_l2x0_init();
 
 	dn = of_find_compatible_node(NULL, NULL, "cavium,cns3420-ahci");
-	if (of_device_is_available(dn)) {
+
+	if (of_device_is_available(dn))
+	{
 		u32 tmp;
-	
+
 		tmp = __raw_readl(MISC_SATA_POWER_MODE);
 		tmp |= 0x1 << 16; /* Disable SATA PHY 0 from SLUMBER Mode */
 		tmp |= 0x1 << 17; /* Disable SATA PHY 1 from SLUMBER Mode */
 		__raw_writel(tmp, MISC_SATA_POWER_MODE);
-	
+
 		/* Enable SATA PHY */
 		cns3xxx_pwr_power_up(0x1 << PM_PLL_HM_PD_CTRL_REG_OFFSET_SATA_PHY0);
 		cns3xxx_pwr_power_up(0x1 << PM_PLL_HM_PD_CTRL_REG_OFFSET_SATA_PHY1);
-	
+
 		/* Enable SATA Clock */
 		cns3xxx_pwr_clk_en(0x1 << PM_CLK_GATE_REG_OFFSET_SATA);
-	
+
 		/* De-Asscer SATA Reset */
 		cns3xxx_pwr_soft_rst(CNS3XXX_PWR_SOFTWARE_RST(SATA));
 	}
 
 	dn = of_find_compatible_node(NULL, NULL, "cavium,cns3420-sdhci");
-	if (of_device_is_available(dn)) {
+
+	if (of_device_is_available(dn))
+	{
 		u32 __iomem *gpioa = IOMEM(CNS3XXX_MISC_BASE_VIRT + 0x0014);
 		u32 gpioa_pins = __raw_readl(gpioa);
-	
+
 		/* MMC/SD pins share with GPIOA */
 		gpioa_pins |= 0x1fff0004;
 		__raw_writel(gpioa_pins, gpioa);
-	
+
 		cns3xxx_pwr_clk_en(CNS3XXX_PWR_CLK_EN(SDIO));
 		cns3xxx_pwr_soft_rst(CNS3XXX_PWR_SOFTWARE_RST(SDIO));
 	}
@@ -398,18 +413,19 @@ static void __init cns3xxx_init(void)
 	of_platform_default_populate(NULL, cns3xxx_auxdata, NULL);
 }
 
-static const char *const cns3xxx_dt_compat[] __initconst = {
+static const char *const cns3xxx_dt_compat[] __initconst =
+{
 	"cavium,cns3410",
 	"cavium,cns3420",
 	NULL,
 };
 
 DT_MACHINE_START(CNS3XXX_DT, "Cavium Networks CNS3xxx")
-	.dt_compat	= cns3xxx_dt_compat,
-	.map_io		= cns3xxx_map_io,
-	.init_irq	= cns3xxx_init_irq,
-	.init_time	= cns3xxx_timer_init,
-	.init_machine	= cns3xxx_init,
-	.init_late	= cns3xxx_pcie_init_late,
-	.restart	= cns3xxx_restart,
-MACHINE_END
+.dt_compat	= cns3xxx_dt_compat,
+  .map_io		= cns3xxx_map_io,
+	  .init_irq	= cns3xxx_init_irq,
+		 .init_time	= cns3xxx_timer_init,
+		   .init_machine	= cns3xxx_init,
+			  .init_late	= cns3xxx_pcie_init_late,
+				.restart	= cns3xxx_restart,
+					MACHINE_END

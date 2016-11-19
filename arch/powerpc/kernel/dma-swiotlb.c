@@ -29,8 +29,12 @@ static u64 swiotlb_powerpc_get_required(struct device *dev)
 	u64 end, mask, max_direct_dma_addr = dev->archdata.max_direct_dma_addr;
 
 	end = memblock_end_of_DRAM();
+
 	if (max_direct_dma_addr && end > max_direct_dma_addr)
+	{
 		end = max_direct_dma_addr;
+	}
+
 	end += get_dma_offset(dev);
 
 	mask = 1ULL << (fls64(end) - 1);
@@ -46,7 +50,8 @@ static u64 swiotlb_powerpc_get_required(struct device *dev)
  * map_page, and unmap_page on highmem, use normal dma_ops
  * for everything else.
  */
-struct dma_map_ops swiotlb_dma_ops = {
+struct dma_map_ops swiotlb_dma_ops =
+{
 	.alloc = __dma_direct_alloc_coherent,
 	.free = __dma_direct_free_coherent,
 	.mmap = dma_direct_mmap_coherent,
@@ -75,26 +80,31 @@ void pci_dma_dev_setup_swiotlb(struct pci_dev *pdev)
 }
 
 static int ppc_swiotlb_bus_notify(struct notifier_block *nb,
-				  unsigned long action, void *data)
+								  unsigned long action, void *data)
 {
 	struct device *dev = data;
 	struct dev_archdata *sd;
 
 	/* We are only intereted in device addition */
 	if (action != BUS_NOTIFY_ADD_DEVICE)
+	{
 		return 0;
+	}
 
 	sd = &dev->archdata;
 	sd->max_direct_dma_addr = 0;
 
 	/* May need to bounce if the device can't address all of DRAM */
 	if ((dma_get_mask(dev) + 1) < memblock_end_of_DRAM())
+	{
 		set_dma_ops(dev, &swiotlb_dma_ops);
+	}
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block ppc_swiotlb_plat_bus_notifier = {
+static struct notifier_block ppc_swiotlb_plat_bus_notifier =
+{
 	.notifier_call = ppc_swiotlb_bus_notify,
 	.priority = 0,
 };
@@ -102,13 +112,14 @@ static struct notifier_block ppc_swiotlb_plat_bus_notifier = {
 int __init swiotlb_setup_bus_notifier(void)
 {
 	bus_register_notifier(&platform_bus_type,
-			      &ppc_swiotlb_plat_bus_notifier);
+						  &ppc_swiotlb_plat_bus_notifier);
 	return 0;
 }
 
 void __init swiotlb_detect_4g(void)
 {
-	if ((memblock_end_of_DRAM() - 1) > 0xffffffff) {
+	if ((memblock_end_of_DRAM() - 1) > 0xffffffff)
+	{
 		ppc_swiotlb_enable = 1;
 #ifdef CONFIG_ZONE_DMA32
 		limit_zone_pfn(ZONE_DMA32, (1ULL << 32) >> PAGE_SHIFT);
@@ -119,9 +130,13 @@ void __init swiotlb_detect_4g(void)
 static int __init check_swiotlb_enabled(void)
 {
 	if (ppc_swiotlb_enable)
+	{
 		swiotlb_print_info();
+	}
 	else
+	{
 		swiotlb_free();
+	}
 
 	return 0;
 }

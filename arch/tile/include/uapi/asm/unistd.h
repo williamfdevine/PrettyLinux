@@ -14,8 +14,8 @@
 
 #define __ARCH_WANT_RENAMEAT
 #if !defined(__LP64__) || defined(__SYSCALL_COMPAT)
-/* Use the flavor of this syscall that matches the 32-bit API better. */
-#define __ARCH_WANT_SYNC_FILE_RANGE2
+	/* Use the flavor of this syscall that matches the 32-bit API better. */
+	#define __ARCH_WANT_SYNC_FILE_RANGE2
 #endif
 
 /* Use the standard ABI for syscalls. */
@@ -28,10 +28,10 @@
 __SYSCALL(__NR_cacheflush, sys_cacheflush)
 
 #ifndef __tilegx__
-/* "Fast" syscalls provide atomic support for 32-bit chips. */
-#define __NR_FAST_cmpxchg	-1
-#define __NR_FAST_atomic_update	-2
-#define __NR_FAST_cmpxchg64	-3
-#define __NR_cmpxchg_badaddr	(__NR_arch_specific_syscall + 0)
-__SYSCALL(__NR_cmpxchg_badaddr, sys_cmpxchg_badaddr)
+	/* "Fast" syscalls provide atomic support for 32-bit chips. */
+	#define __NR_FAST_cmpxchg	-1
+	#define __NR_FAST_atomic_update	-2
+	#define __NR_FAST_cmpxchg64	-3
+	#define __NR_cmpxchg_badaddr	(__NR_arch_specific_syscall + 0)
+	__SYSCALL(__NR_cmpxchg_badaddr, sys_cmpxchg_badaddr)
 #endif

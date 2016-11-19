@@ -43,12 +43,13 @@
 struct corelock_slot corelock __attribute__ ((__section__(".l2.bss")));
 
 #ifdef CONFIG_ICACHE_FLUSH_L1
-unsigned long blackfin_iflush_l1_entry[NR_CPUS];
+	unsigned long blackfin_iflush_l1_entry[NR_CPUS];
 #endif
 
 struct blackfin_initial_pda initial_pda_coreb;
 
-enum ipi_message_type {
+enum ipi_message_type
+{
 	BFIN_IPI_NONE,
 	BFIN_IPI_TIMER,
 	BFIN_IPI_RESCHEDULE,
@@ -56,7 +57,8 @@ enum ipi_message_type {
 	BFIN_IPI_CPU_STOP,
 };
 
-struct blackfin_flush_data {
+struct blackfin_flush_data
+{
 	unsigned long start;
 	unsigned long end;
 };
@@ -71,7 +73,8 @@ static DEFINE_SPINLOCK(stop_lock);
 #define BFIN_IPI_MSGQ_LEN 5
 
 /* Simple FIFO buffer, overflow leads to panic */
-struct ipi_data {
+struct ipi_data
+{
 	atomic_t count;
 	atomic_t bits;
 };
@@ -90,7 +93,9 @@ static void ipi_cpu_stop(unsigned int cpu)
 	local_irq_disable();
 
 	while (1)
+	{
 		SSYNC();
+	}
 }
 
 static void ipi_flush_icache(void *info)
@@ -99,7 +104,7 @@ static void ipi_flush_icache(void *info)
 
 	/* Invalidate the memory holding the bounds of the flushed region. */
 	blackfin_dcache_invalidate_range((unsigned long)fdata,
-					 (unsigned long)fdata + sizeof(*fdata));
+									 (unsigned long)fdata + sizeof(*fdata));
 
 	/* Make sure all write buffers in the data side of the core
 	 * are flushed before trying to invalidate the icache.  This
@@ -147,30 +152,43 @@ static irqreturn_t ipi_handler_int1(int irq, void *dev_instance)
 
 	smp_rmb();
 	bfin_ipi_data = this_cpu_ptr(&bfin_ipi);
-	while ((pending = atomic_xchg(&bfin_ipi_data->bits, 0)) != 0) {
+
+	while ((pending = atomic_xchg(&bfin_ipi_data->bits, 0)) != 0)
+	{
 		msg = 0;
-		do {
+
+		do
+		{
 			msg = find_next_bit(&pending, BITS_PER_LONG, msg + 1);
-			switch (msg) {
-			case BFIN_IPI_TIMER:
-				ipi_timer();
-				break;
-			case BFIN_IPI_RESCHEDULE:
-				scheduler_ipi();
-				break;
-			case BFIN_IPI_CALL_FUNC:
-				generic_smp_call_function_interrupt();
-				break;
-			case BFIN_IPI_CPU_STOP:
-				ipi_cpu_stop(cpu);
-				break;
-			default:
-				goto out;
+
+			switch (msg)
+			{
+				case BFIN_IPI_TIMER:
+					ipi_timer();
+					break;
+
+				case BFIN_IPI_RESCHEDULE:
+					scheduler_ipi();
+					break;
+
+				case BFIN_IPI_CALL_FUNC:
+					generic_smp_call_function_interrupt();
+					break;
+
+				case BFIN_IPI_CPU_STOP:
+					ipi_cpu_stop(cpu);
+					break;
+
+				default:
+					goto out;
 			}
+
 			atomic_dec(&bfin_ipi_data->count);
-		} while (msg < BITS_PER_LONG);
+		}
+		while (msg < BITS_PER_LONG);
 
 	}
+
 out:
 	return IRQ_HANDLED;
 }
@@ -179,7 +197,8 @@ static void bfin_ipi_init(void)
 {
 	unsigned int cpu;
 	struct ipi_data *bfin_ipi_data;
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		bfin_ipi_data = &per_cpu(bfin_ipi, cpu);
 		atomic_set(&bfin_ipi_data->bits, 0);
 		atomic_set(&bfin_ipi_data->count, 0);
@@ -193,7 +212,8 @@ void send_ipi(const struct cpumask *cpumask, enum ipi_message_type msg)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	for_each_cpu(cpu, cpumask) {
+	for_each_cpu(cpu, cpumask)
+	{
 		bfin_ipi_data = &per_cpu(bfin_ipi, cpu);
 		atomic_or((1 << msg), &bfin_ipi_data->bits);
 		atomic_inc(&bfin_ipi_data->count);
@@ -201,7 +221,7 @@ void send_ipi(const struct cpumask *cpumask, enum ipi_message_type msg)
 	local_irq_restore(flags);
 	smp_wmb();
 	for_each_cpu(cpu, cpumask)
-		platform_send_ipi_cpu(cpu, IRQ_SUPPLE_1);
+	platform_send_ipi_cpu(cpu, IRQ_SUPPLE_1);
 }
 
 void arch_send_call_function_single_ipi(int cpu)
@@ -238,8 +258,11 @@ void smp_send_stop(void)
 	preempt_disable();
 	cpumask_copy(&callmap, cpu_online_mask);
 	cpumask_clear_cpu(smp_processor_id(), &callmap);
+
 	if (!cpumask_empty(&callmap))
+	{
 		send_ipi(&callmap, BFIN_IPI_CPU_STOP);
+	}
 
 	preempt_enable();
 
@@ -273,8 +296,8 @@ static void setup_secondary(unsigned int cpu)
 	/* Enable interrupt levels IVG7-15. IARs have been already
 	 * programmed by the boot CPU.  */
 	bfin_irq_flags |= IMASK_IVG15 |
-	    IMASK_IVG14 | IMASK_IVG13 | IMASK_IVG12 | IMASK_IVG11 |
-	    IMASK_IVG10 | IMASK_IVG9 | IMASK_IVG8 | IMASK_IVG7 | IMASK_IVGHW;
+					  IMASK_IVG14 | IMASK_IVG13 | IMASK_IVG12 | IMASK_IVG11 |
+					  IMASK_IVG10 | IMASK_IVG9 | IMASK_IVG8 | IMASK_IVG7 | IMASK_IVGHW;
 }
 
 void secondary_start_kernel(void)
@@ -282,19 +305,20 @@ void secondary_start_kernel(void)
 	unsigned int cpu = smp_processor_id();
 	struct mm_struct *mm = &init_mm;
 
-	if (_bfin_swrst & SWRST_DBL_FAULT_B) {
+	if (_bfin_swrst & SWRST_DBL_FAULT_B)
+	{
 		printk(KERN_EMERG "CoreB Recovering from DOUBLE FAULT event\n");
 #ifdef CONFIG_DEBUG_DOUBLEFAULT
 		printk(KERN_EMERG " While handling exception (EXCAUSE = %#x) at %pF\n",
-			initial_pda_coreb.seqstat_doublefault & SEQSTAT_EXCAUSE,
-			initial_pda_coreb.retx_doublefault);
+			   initial_pda_coreb.seqstat_doublefault & SEQSTAT_EXCAUSE,
+			   initial_pda_coreb.retx_doublefault);
 		printk(KERN_NOTICE "   DCPLB_FAULT_ADDR: %pF\n",
-			initial_pda_coreb.dcplb_doublefault_addr);
+			   initial_pda_coreb.dcplb_doublefault_addr);
 		printk(KERN_NOTICE "   ICPLB_FAULT_ADDR: %pF\n",
-			initial_pda_coreb.icplb_doublefault_addr);
+			   initial_pda_coreb.icplb_doublefault_addr);
 #endif
 		printk(KERN_NOTICE " The instruction at %pF caused a double exception\n",
-			initial_pda_coreb.retx);
+			   initial_pda_coreb.retx);
 	}
 
 	/*
@@ -354,13 +378,13 @@ void __init smp_cpus_done(unsigned int max_cpus)
 	unsigned int cpu;
 
 	for_each_online_cpu(cpu)
-		bogosum += loops_per_jiffy;
+	bogosum += loops_per_jiffy;
 
 	printk(KERN_INFO "SMP: Total of %d processors activated "
-	       "(%lu.%02lu BogoMIPS).\n",
-	       num_online_cpus(),
-	       bogosum / (500000/HZ),
-	       (bogosum / (5000/HZ)) % 100);
+		   "(%lu.%02lu BogoMIPS).\n",
+		   num_online_cpus(),
+		   bogosum / (500000 / HZ),
+		   (bogosum / (5000 / HZ)) % 100);
 }
 
 void smp_icache_flush_range_others(unsigned long start, unsigned long end)
@@ -369,8 +393,12 @@ void smp_icache_flush_range_others(unsigned long start, unsigned long end)
 	smp_flush_data.end = end;
 
 	preempt_disable();
+
 	if (smp_call_function(&ipi_flush_icache, &smp_flush_data, 1))
+	{
 		printk(KERN_WARNING "SMP: failed to run I-cache flush request on other CPUs\n");
+	}
+
 	preempt_enable();
 }
 EXPORT_SYMBOL_GPL(smp_icache_flush_range_others);
@@ -407,7 +435,9 @@ int __cpu_disable(void)
 	unsigned int cpu = smp_processor_id();
 
 	if (cpu == 0)
+	{
 		return -EPERM;
+	}
 
 	set_cpu_online(cpu, false);
 	return 0;

@@ -3,8 +3,8 @@
 
 /* Reserve these numbers for any future use of a VDSO.  */
 #if 0
-#define AT_SYSINFO		32
-#define AT_SYSINFO_EHDR		33
+	#define AT_SYSINFO		32
+	#define AT_SYSINFO_EHDR		33
 #endif
 
 /* More complete cache descriptions than AT_[DIU]CACHEBSIZE.  If the

@@ -18,7 +18,8 @@
 #include "devices-imx31.h"
 #include "iomux-mx3.h"
 
-static unsigned int pcm037_eet_pins[] = {
+static unsigned int pcm037_eet_pins[] =
+{
 	/* Reserve and hardwire GPIO 57 high - S6E63D6 chipselect */
 	IOMUX_MODE(MX31_PIN_KEY_COL7, IOMUX_CONFIG_GPIO),
 	/* GPIO keys */
@@ -45,7 +46,8 @@ static unsigned int pcm037_eet_pins[] = {
 };
 
 /* SPI */
-static struct spi_board_info pcm037_spi_dev[] = {
+static struct spi_board_info pcm037_spi_dev[] =
+{
 	{
 		.modalias	= "dac124s085",
 		.max_speed_hz	= 400000,
@@ -58,13 +60,15 @@ static struct spi_board_info pcm037_spi_dev[] = {
 /* Platform Data for MXC CSPI */
 static int pcm037_spi1_cs[] = {MXC_SPI_CS(1), IOMUX_TO_GPIO(MX31_PIN_KEY_COL7)};
 
-static const struct spi_imx_master pcm037_spi1_pdata __initconst = {
+static const struct spi_imx_master pcm037_spi1_pdata __initconst =
+{
 	.chipselect = pcm037_spi1_cs,
 	.num_chipselect = ARRAY_SIZE(pcm037_spi1_cs),
 };
 
 /* GPIO-keys input device */
-static struct gpio_keys_button pcm037_gpio_keys[] = {
+static struct gpio_keys_button pcm037_gpio_keys[] =
+{
 	{
 		.type	= EV_KEY,
 		.code	= KEY_L,
@@ -153,7 +157,8 @@ static struct gpio_keys_button pcm037_gpio_keys[] = {
 };
 
 static const struct gpio_keys_platform_data
-		pcm037_gpio_keys_platform_data __initconst = {
+	pcm037_gpio_keys_platform_data __initconst =
+{
 	.buttons	= pcm037_gpio_keys,
 	.nbuttons	= ARRAY_SIZE(pcm037_gpio_keys),
 	.rep		= 0, /* No auto-repeat */
@@ -162,10 +167,12 @@ static const struct gpio_keys_platform_data
 int __init pcm037_eet_init_devices(void)
 {
 	if (pcm037_variant() != PCM037_EET)
+	{
 		return 0;
+	}
 
 	mxc_iomux_setup_multiple_pins(pcm037_eet_pins,
-				ARRAY_SIZE(pcm037_eet_pins), "pcm037_eet");
+								  ARRAY_SIZE(pcm037_eet_pins), "pcm037_eet");
 
 	/* SPI */
 	spi_register_board_info(pcm037_spi_dev, ARRAY_SIZE(pcm037_spi_dev));

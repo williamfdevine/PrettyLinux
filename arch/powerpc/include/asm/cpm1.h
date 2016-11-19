@@ -73,7 +73,8 @@ extern void cpm_reset(void);
 /* Define enough so I can at least use the serial port as a UART.
  * The MBX uses SMC1 as the host serial port.
  */
-typedef struct smc_uart {
+typedef struct smc_uart
+{
 	ushort	smc_rbase;	/* Rx Buffer descriptor base address */
 	ushort	smc_tbase;	/* Tx Buffer descriptor base address */
 	u_char	smc_rfcr;	/* Rx function code */
@@ -125,7 +126,8 @@ typedef struct smc_uart {
  * each direction are either unique or properly overlap, so we can
  * include them in one structure.
  */
-typedef struct smc_centronics {
+typedef struct smc_centronics
+{
 	ushort	scent_rbase;
 	ushort	scent_tbase;
 	u_char	scent_cfcr;
@@ -284,7 +286,8 @@ typedef struct smc_centronics {
 #define	SCCM_TX		((unsigned char)0x02)
 #define	SCCM_RX		((unsigned char)0x01)
 
-typedef struct scc_param {
+typedef struct scc_param
+{
 	ushort	scc_rbase;	/* Rx Buffer descriptor base address */
 	ushort	scc_tbase;	/* Tx Buffer descriptor base address */
 	u_char	scc_rfcr;	/* Rx function code */
@@ -310,7 +313,8 @@ typedef struct scc_param {
 
 /* CPM Ethernet through SCCx.
  */
-typedef struct scc_enet {
+typedef struct scc_enet
+{
 	sccp_t	sen_genscc;
 	uint	sen_cpres;	/* Preset CRC */
 	uint	sen_cmask;	/* Constant mask for CRC */
@@ -390,7 +394,8 @@ typedef struct scc_enet {
 
 /* SCC as UART
 */
-typedef struct scc_uart {
+typedef struct scc_uart
+{
 	sccp_t	scc_genscc;
 	char	res1[8];	/* Reserved */
 	ushort	scc_maxidl;	/* Maximum idle chars */
@@ -450,7 +455,8 @@ typedef struct scc_uart {
 
 /* CPM Transparent mode SCC.
  */
-typedef struct scc_trans {
+typedef struct scc_trans
+{
 	sccp_t	st_genscc;
 	uint	st_cpres;	/* Preset CRC */
 	uint	st_cmask;	/* Constant mask for CRC */
@@ -458,7 +464,8 @@ typedef struct scc_trans {
 
 /* IIC parameter RAM.
 */
-typedef struct iic {
+typedef struct iic
+{
 	ushort	iic_rbase;	/* Rx Buffer descriptor base address */
 	ushort	iic_tbase;	/* Tx Buffer descriptor base address */
 	u_char	iic_rfcr;	/* Rx function code */
@@ -489,7 +496,8 @@ typedef struct iic {
 /* RISC Timer Parameter RAM offset */
 #define PROFF_RTMR	((uint)0x01B0)
 
-typedef struct risc_timer_pram {
+typedef struct risc_timer_pram
+{
 	unsigned short	tm_base;	/* RISC Timer Table Base Address */
 	unsigned short	tm_ptr;		/* RISC Timer Table Pointer (internal) */
 	unsigned short	r_tmr;		/* RISC Timer Mode Register */
@@ -561,7 +569,8 @@ typedef struct risc_timer_pram {
 #define CPM_PIN_GPIO      4
 #define CPM_PIN_OPENDRAIN 8
 
-enum cpm_port {
+enum cpm_port
+{
 	CPM_PORTA,
 	CPM_PORTB,
 	CPM_PORTC,
@@ -571,13 +580,15 @@ enum cpm_port {
 
 void cpm1_set_pin(enum cpm_port port, int pin, int flags);
 
-enum cpm_clk_dir {
+enum cpm_clk_dir
+{
 	CPM_CLK_RX,
 	CPM_CLK_TX,
 	CPM_CLK_RTX
 };
 
-enum cpm_clk_target {
+enum cpm_clk_target
+{
 	CPM_CLK_SCC1,
 	CPM_CLK_SCC2,
 	CPM_CLK_SCC3,
@@ -586,7 +597,8 @@ enum cpm_clk_target {
 	CPM_CLK_SMC2,
 };
 
-enum cpm_clk {
+enum cpm_clk
+{
 	CPM_BRG1,	/* Baud Rate Generator  1 */
 	CPM_BRG2,	/* Baud Rate Generator  2 */
 	CPM_BRG3,	/* Baud Rate Generator  3 */

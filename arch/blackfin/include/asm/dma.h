@@ -23,20 +23,20 @@
 #define DATA_SIZE_16		1
 #define DATA_SIZE_32		2
 #ifdef CONFIG_BF60x
-#define DATA_SIZE_64		3
+	#define DATA_SIZE_64		3
 #endif
 
 #define DMA_FLOW_STOP		0
 #define DMA_FLOW_AUTO		1
 #ifdef CONFIG_BF60x
-#define DMA_FLOW_LIST		4
-#define DMA_FLOW_ARRAY		5
-#define DMA_FLOW_LIST_DEMAND	6
-#define DMA_FLOW_ARRAY_DEMAND	7
+	#define DMA_FLOW_LIST		4
+	#define DMA_FLOW_ARRAY		5
+	#define DMA_FLOW_LIST_DEMAND	6
+	#define DMA_FLOW_ARRAY_DEMAND	7
 #else
-#define DMA_FLOW_ARRAY		4
-#define DMA_FLOW_SMALL		6
-#define DMA_FLOW_LARGE		7
+	#define DMA_FLOW_ARRAY		4
+	#define DMA_FLOW_SMALL		6
+	#define DMA_FLOW_LARGE		7
 #endif
 
 #define DIMENSION_LINEAR	0
@@ -47,7 +47,7 @@
 
 #define INTR_DISABLE		0
 #ifdef CONFIG_BF60x
-#define INTR_ON_PERI			1
+	#define INTR_ON_PERI			1
 #endif
 #define INTR_ON_BUF			2
 #define INTR_ON_ROW			3
@@ -56,23 +56,25 @@
 #define DMA_SYNC_RESTART		1
 
 #ifdef DMA_MMR_SIZE_32
-#define DMA_MMR_SIZE_TYPE long
-#define DMA_MMR_READ bfin_read32
-#define DMA_MMR_WRITE bfin_write32
+	#define DMA_MMR_SIZE_TYPE long
+	#define DMA_MMR_READ bfin_read32
+	#define DMA_MMR_WRITE bfin_write32
 #else
-#define DMA_MMR_SIZE_TYPE short
-#define DMA_MMR_READ bfin_read16
-#define DMA_MMR_WRITE bfin_write16
+	#define DMA_MMR_SIZE_TYPE short
+	#define DMA_MMR_READ bfin_read16
+	#define DMA_MMR_WRITE bfin_write16
 #endif
 
-struct dma_desc_array {
+struct dma_desc_array
+{
 	unsigned long start_addr;
 	unsigned DMA_MMR_SIZE_TYPE cfg;
 	unsigned DMA_MMR_SIZE_TYPE x_count;
 	DMA_MMR_SIZE_TYPE x_modify;
 } __attribute__((packed));
 
-struct dmasg {
+struct dmasg
+{
 	void *next_desc_addr;
 	unsigned long start_addr;
 	unsigned DMA_MMR_SIZE_TYPE cfg;
@@ -82,7 +84,8 @@ struct dmasg {
 	DMA_MMR_SIZE_TYPE y_modify;
 } __attribute__((packed));
 
-struct dma_register {
+struct dma_register
+{
 	void *next_desc_ptr;	/* DMA Next Descriptor Pointer register */
 	unsigned long start_addr;	/* DMA Start address  register */
 #ifdef CONFIG_BF60x
@@ -160,7 +163,8 @@ struct dma_register {
 
 };
 
-struct dma_channel {
+struct dma_channel
+{
 	const char *device_id;
 	atomic_t chan_status;
 	volatile struct dma_register *regs;
@@ -173,15 +177,15 @@ struct dma_channel {
 };
 
 #ifdef CONFIG_PM
-int blackfin_dma_suspend(void);
-void blackfin_dma_resume(void);
+	int blackfin_dma_suspend(void);
+	void blackfin_dma_resume(void);
 #endif
 
 /*******************************************************************************
 *	DMA API's
 *******************************************************************************/
 extern struct dma_channel dma_ch[MAX_DMA_CHANNELS];
-extern struct dma_register * const dma_io_base_addr[MAX_DMA_CHANNELS];
+extern struct dma_register *const dma_io_base_addr[MAX_DMA_CHANNELS];
 extern int channel2irq(unsigned int channel);
 
 static inline void set_dma_start_addr(unsigned int channel, unsigned long addr)
@@ -224,40 +228,48 @@ static inline void set_dma_curr_addr(unsigned int channel, unsigned long addr)
 #ifdef CONFIG_BF60x
 static inline unsigned long
 set_bfin_dma_config2(char direction, char flow_mode, char intr_mode,
-		     char dma_mode, char mem_width, char syncmode, char peri_width)
+					 char dma_mode, char mem_width, char syncmode, char peri_width)
 {
 	unsigned long config = 0;
 
-	switch (intr_mode) {
-	case INTR_ON_BUF:
-		if (dma_mode == DIMENSION_2D)
-			config = DI_EN_Y;
-		else
+	switch (intr_mode)
+	{
+		case INTR_ON_BUF:
+			if (dma_mode == DIMENSION_2D)
+			{
+				config = DI_EN_Y;
+			}
+			else
+			{
+				config = DI_EN_X;
+			}
+
+			break;
+
+		case INTR_ON_ROW:
 			config = DI_EN_X;
-		break;
-	case INTR_ON_ROW:
-		config = DI_EN_X;
-		break;
-	case INTR_ON_PERI:
-		config = DI_EN_P;
-		break;
+			break;
+
+		case INTR_ON_PERI:
+			config = DI_EN_P;
+			break;
 	};
 
 	return config | (direction << 1) | (mem_width << 8) | (dma_mode << 26) |
-		(flow_mode << 12) | (syncmode << 2) | (peri_width << 4);
+		   (flow_mode << 12) | (syncmode << 2) | (peri_width << 4);
 }
 #endif
 
 static inline unsigned DMA_MMR_SIZE_TYPE
 set_bfin_dma_config(char direction, char flow_mode,
-		    char intr_mode, char dma_mode, char mem_width, char syncmode)
+					char intr_mode, char dma_mode, char mem_width, char syncmode)
 {
 #ifdef CONFIG_BF60x
 	return set_bfin_dma_config2(direction, flow_mode, intr_mode, dma_mode,
-		mem_width, syncmode, mem_width);
+								mem_width, syncmode, mem_width);
 #else
 	return (direction << 1) | (mem_width << 2) | (dma_mode << 4) |
-		(intr_mode << 6) | (flow_mode << 12) | (syncmode << 5);
+		   (intr_mode << 6) | (flow_mode << 12) | (syncmode << 5);
 #endif
 }
 

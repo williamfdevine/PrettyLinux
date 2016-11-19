@@ -11,7 +11,7 @@
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-#include <asm/processor.h>
+	#include <asm/processor.h>
 #endif
 
 /*
@@ -22,7 +22,8 @@
  */
 #ifndef __ASSEMBLY__
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	unsigned long		status;		/* thread-synchronous flags */
@@ -47,13 +48,13 @@ struct thread_info {
 #ifndef __ASSEMBLY__
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -78,7 +79,7 @@ static inline void set_thread_fault_code(unsigned int val)
 {
 	struct thread_info *ti = current_thread_info();
 	ti->flags = (ti->flags & (~0 >> (32 - TI_FLAG_FAULT_CODE_SHIFT)))
-		| (val << TI_FLAG_FAULT_CODE_SHIFT);
+				| (val << TI_FLAG_FAULT_CODE_SHIFT);
 }
 
 static inline unsigned int get_thread_fault_code(void)

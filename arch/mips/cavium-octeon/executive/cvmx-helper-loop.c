@@ -53,7 +53,8 @@ int __cvmx_helper_loop_probe(int interface)
 
 	/* We need to disable length checking so packet < 64 bytes and jumbo
 	   frames don't get errors */
-	for (port = 0; port < num_ports; port++) {
+	for (port = 0; port < num_ports; port++)
+	{
 		union cvmx_pip_prt_cfgx port_cfg;
 		int ipd_port = cvmx_helper_get_ipd_port(interface, port);
 		port_cfg.u64 = cvmx_read_csr(CVMX_PIP_PRT_CFGX(ipd_port));

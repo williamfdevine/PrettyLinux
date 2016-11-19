@@ -39,10 +39,14 @@ static inline int uart_is_enabled(void)
 static inline void putc(char c)
 {
 	if (!uart_is_enabled())
+	{
 		return;
+	}
 
 	while (!(uart_read(UART_LSR) & UART_LSR_THRE))
+	{
 		barrier();
+	}
 
 	uart_write(c, UART_TX);
 }
@@ -62,11 +66,14 @@ static inline void arch_decomp_setup(void)
 	uart_is_pxa = 1;
 
 	if (machine_is_littleton() || machine_is_intelmote2()
-	    || machine_is_csb726() || machine_is_stargate2()
-	    || machine_is_cm_x300() || machine_is_balloon3())
+		|| machine_is_csb726() || machine_is_stargate2()
+		|| machine_is_cm_x300() || machine_is_balloon3())
+	{
 		uart_base = STUART_BASE;
+	}
 
-	if (machine_is_arcom_zeus()) {
+	if (machine_is_arcom_zeus())
+	{
 		uart_base = 0x10000000;	/* nCS4 */
 		uart_shift = 1;
 		uart_is_pxa = 0;

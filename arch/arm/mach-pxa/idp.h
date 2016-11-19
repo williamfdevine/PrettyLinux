@@ -45,16 +45,16 @@
 #define IDP_CPLD_SIZE		(1*1024*1024)
 
 #if (IDP_CPLD_VIRT + IDP_CPLD_SIZE) > 0xfc000000
-#error Your custom IO space is getting a bit large !!
+	#error Your custom IO space is getting a bit large !!
 #endif
 
 #define CPLD_P2V(x)		((x) - IDP_CPLD_PHYS + IDP_CPLD_VIRT)
 #define CPLD_V2P(x)		((x) - IDP_CPLD_VIRT + IDP_CPLD_PHYS)
 
 #ifndef __ASSEMBLY__
-#  define __CPLD_REG(x)		(*((volatile unsigned long *)CPLD_P2V(x)))
+	#define __CPLD_REG(x)		(*((volatile unsigned long *)CPLD_P2V(x)))
 #else
-#  define __CPLD_REG(x)		CPLD_P2V(x)
+	#define __CPLD_REG(x)		CPLD_P2V(x)
 #endif
 
 /* board level registers in the CPLD: (offsets from CPLD_VIRT) */
@@ -185,14 +185,14 @@
 #define KEYBD_MATRIX_KEYSTATE_DEBOUNCE_CONSTANT		2
 
 #define KEYBD_MATRIX_SET_OUTPUTS(outputs) \
-{\
-	IDP_CPLD_KB_COL_LOW = outputs;\
-	IDP_CPLD_KB_COL_HIGH = outputs >> 7;\
-}
+	{\
+		IDP_CPLD_KB_COL_LOW = outputs;\
+		IDP_CPLD_KB_COL_HIGH = outputs >> 7;\
+	}
 
 #define KEYBD_MATRIX_GET_INPUTS(inputs) \
-{\
-	inputs = (IDP_CPLD_KB_ROW & 0x7f);\
-}
+	{\
+		inputs = (IDP_CPLD_KB_ROW & 0x7f);\
+	}
 
 

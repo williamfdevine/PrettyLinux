@@ -5,7 +5,8 @@
 
 extern const char *npe_names[];
 
-struct npe_regs {
+struct npe_regs
+{
 	u32 exec_addr, exec_data, exec_status_cmd, exec_count;
 	u32 action_points[4];
 	u32 watchpoint_fifo, watch_count;
@@ -14,7 +15,8 @@ struct npe_regs {
 	u32 mailbox_status, /*messaging_*/ in_out_fifo;
 };
 
-struct npe {
+struct npe
+{
 	struct resource *mem_res;
 	struct npe_regs __iomem *regs;
 	u32 regs_phys;

@@ -56,24 +56,36 @@ static void spu_buff_add(unsigned long int value, int spu)
 	 */
 	int full = 1;
 
-	if (spu_buff[spu].head >= spu_buff[spu].tail) {
+	if (spu_buff[spu].head >= spu_buff[spu].tail)
+	{
 		if ((spu_buff[spu].head - spu_buff[spu].tail)
-		    <  (max_spu_buff - 1))
+			<  (max_spu_buff - 1))
+		{
 			full = 0;
+		}
 
-	} else if (spu_buff[spu].tail > spu_buff[spu].head) {
+	}
+	else if (spu_buff[spu].tail > spu_buff[spu].head)
+	{
 		if ((spu_buff[spu].tail - spu_buff[spu].head)
-		    > 1)
+			> 1)
+		{
 			full = 0;
+		}
 	}
 
-	if (!full) {
+	if (!full)
+	{
 		spu_buff[spu].buff[spu_buff[spu].head] = value;
 		spu_buff[spu].head++;
 
 		if (spu_buff[spu].head >= max_spu_buff)
+		{
 			spu_buff[spu].head = 0;
-	} else {
+		}
+	}
+	else
+	{
 		/* From the user's perspective make the SPU buffer
 		 * size management/overflow look like we are using
 		 * per cpu buffers.  The user uses the same
@@ -94,12 +106,15 @@ static void sync_spu_buff(void)
 	unsigned long flags;
 	int curr_head;
 
-	for (spu = 0; spu < num_spu_nodes; spu++) {
+	for (spu = 0; spu < num_spu_nodes; spu++)
+	{
 		/* In case there was an issue and the buffer didn't
 		 * get created skip it.
 		 */
 		if (spu_buff[spu].buff == NULL)
+		{
 			continue;
+		}
 
 		/* Hold the lock to make sure the head/tail
 		 * doesn't change while spu_buff_add() is
@@ -114,8 +129,8 @@ static void sync_spu_buff(void)
 		 * data can still be added to the head of the buffer.
 		 */
 		oprofile_put_buff(spu_buff[spu].buff,
-				  spu_buff[spu].tail,
-				  curr_head, max_spu_buff);
+						  spu_buff[spu].tail,
+						  curr_head, max_spu_buff);
 
 		spin_lock_irqsave(&buffer_lock, flags);
 		spu_buff[spu].tail = curr_head;
@@ -131,11 +146,14 @@ static void wq_sync_spu_buff(struct work_struct *work)
 
 	/* only reschedule if profiling is not done */
 	if (spu_prof_running)
+	{
 		schedule_delayed_work(&spu_work, DEFAULT_TIMER_EXPIRE);
+	}
 }
 
 /* Container for caching information about an active SPU task. */
-struct cached_info {
+struct cached_info
+{
 	struct vma_to_fileoffset_map *map;
 	struct spu *the_spu;	/* needed to access pointer to local_store */
 	struct kref cache_ref;
@@ -162,23 +180,28 @@ static struct cached_info *get_cached_info(struct spu *the_spu, int spu_num)
 	struct kref *ref;
 	struct cached_info *ret_info;
 
-	if (spu_num >= num_spu_nodes) {
+	if (spu_num >= num_spu_nodes)
+	{
 		printk(KERN_ERR "SPU_PROF: "
-		       "%s, line %d: Invalid index %d into spu info cache\n",
-		       __func__, __LINE__, spu_num);
+			   "%s, line %d: Invalid index %d into spu info cache\n",
+			   __func__, __LINE__, spu_num);
 		ret_info = NULL;
 		goto out;
 	}
-	if (!spu_info[spu_num] && the_spu) {
+
+	if (!spu_info[spu_num] && the_spu)
+	{
 		ref = spu_get_profile_private_kref(the_spu->ctx);
-		if (ref) {
+
+		if (ref)
+		{
 			spu_info[spu_num] = container_of(ref, struct cached_info, cache_ref);
 			kref_get(&spu_info[spu_num]->cache_ref);
 		}
 	}
 
 	ret_info = spu_info[spu_num];
- out:
+out:
 	return ret_info;
 }
 
@@ -200,7 +223,8 @@ prepare_cached_spu_info(struct spu *spu, unsigned long objectId)
 	 */
 	info = get_cached_info(spu, spu->number);
 
-	if (info) {
+	if (info)
+	{
 		pr_debug("Found cached SPU info.\n");
 		goto out;
 	}
@@ -209,18 +233,23 @@ prepare_cached_spu_info(struct spu *spu, unsigned long objectId)
 	 * spu->number is a system-wide value, not a per-node value.
 	 */
 	info = kzalloc(sizeof(struct cached_info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		printk(KERN_ERR "SPU_PROF: "
-		       "%s, line %d: create vma_map failed\n",
-		       __func__, __LINE__);
+			   "%s, line %d: create vma_map failed\n",
+			   __func__, __LINE__);
 		retval = -ENOMEM;
 		goto err_alloc;
 	}
+
 	new_map = create_vma_map(spu, objectId);
-	if (!new_map) {
+
+	if (!new_map)
+	{
 		printk(KERN_ERR "SPU_PROF: "
-		       "%s, line %d: create vma_map failed\n",
-		       __func__, __LINE__);
+			   "%s, line %d: create vma_map failed\n",
+			   __func__, __LINE__);
 		retval = -ENOMEM;
 		goto err_alloc;
 	}
@@ -242,7 +271,7 @@ prepare_cached_spu_info(struct spu *spu, unsigned long objectId)
 	 */
 	try_module_get(THIS_MODULE);
 	spu_set_profile_private_kref(spu->ctx, &info->cache_ref,
-				destroy_cached_info);
+								 destroy_cached_info);
 	spin_unlock_irqrestore(&cache_lock, flags);
 	goto out;
 
@@ -260,24 +289,32 @@ static int release_cached_info(int spu_index)
 {
 	int index, end;
 
-	if (spu_index == RELEASE_ALL) {
+	if (spu_index == RELEASE_ALL)
+	{
 		end = num_spu_nodes;
 		index = 0;
-	} else {
-		if (spu_index >= num_spu_nodes) {
+	}
+	else
+	{
+		if (spu_index >= num_spu_nodes)
+		{
 			printk(KERN_ERR "SPU_PROF: "
-				"%s, line %d: "
-				"Invalid index %d into spu info cache\n",
-				__func__, __LINE__, spu_index);
+				   "%s, line %d: "
+				   "Invalid index %d into spu info cache\n",
+				   __func__, __LINE__, spu_index);
 			goto out;
 		}
+
 		end = spu_index + 1;
 		index = spu_index;
 	}
-	for (; index < end; index++) {
-		if (spu_info[index]) {
+
+	for (; index < end; index++)
+	{
+		if (spu_info[index])
+		{
 			kref_put(&spu_info[index]->cache_ref,
-				 destroy_cached_info);
+					 destroy_cached_info);
 			spu_info[index] = NULL;
 		}
 	}
@@ -300,7 +337,10 @@ static inline unsigned long fast_get_dcookie(struct path *path)
 	unsigned long cookie;
 
 	if (path->dentry->d_flags & DCACHE_COOKIE)
+	{
 		return (unsigned long)path->dentry;
+	}
+
 	get_dcookie(path, &cookie);
 	return cookie;
 }
@@ -317,8 +357,8 @@ static inline unsigned long fast_get_dcookie(struct path *path)
  */
 static unsigned long
 get_exec_dcookie_and_offset(struct spu *spu, unsigned int *offsetp,
-			    unsigned long *spu_bin_dcookie,
-			    unsigned long spu_ref)
+							unsigned long *spu_bin_dcookie,
+							unsigned long spu_ref)
 {
 	unsigned long app_cookie = 0;
 	unsigned int my_offset = 0;
@@ -327,25 +367,37 @@ get_exec_dcookie_and_offset(struct spu *spu, unsigned int *offsetp,
 	struct mm_struct *mm = spu->mm;
 
 	if (!mm)
+	{
 		goto out;
+	}
 
 	exe_file = get_mm_exe_file(mm);
-	if (exe_file) {
+
+	if (exe_file)
+	{
 		app_cookie = fast_get_dcookie(&exe_file->f_path);
 		pr_debug("got dcookie for %pD\n", exe_file);
 		fput(exe_file);
 	}
 
 	down_read(&mm->mmap_sem);
-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+
+	for (vma = mm->mmap; vma; vma = vma->vm_next)
+	{
 		if (vma->vm_start > spu_ref || vma->vm_end <= spu_ref)
+		{
 			continue;
+		}
+
 		my_offset = spu_ref - vma->vm_start;
+
 		if (!vma->vm_file)
+		{
 			goto fail_no_image_cookie;
+		}
 
 		pr_debug("Found spu ELF at %X(object-id:%lx) for file %pD\n",
-			 my_offset, spu_ref, vma->vm_file);
+				 my_offset, spu_ref, vma->vm_file);
 		*offsetp = my_offset;
 		break;
 	}
@@ -362,8 +414,8 @@ fail_no_image_cookie:
 	up_read(&mm->mmap_sem);
 
 	printk(KERN_ERR "SPU_PROF: "
-		"%s, line %d: Cannot find dcookie for SPU binary\n",
-		__func__, __LINE__);
+		   "%s, line %d: Cannot find dcookie for SPU binary\n",
+		   __func__, __LINE__);
 	goto out;
 }
 
@@ -381,14 +433,19 @@ static int process_context_switch(struct spu *spu, unsigned long objectId)
 	unsigned long spu_cookie = 0, app_dcookie;
 
 	retval = prepare_cached_spu_info(spu, objectId);
+
 	if (retval)
+	{
 		goto out;
+	}
 
 	/* Get dcookie first because a mutex_lock is taken in that
 	 * code path, so interrupts must not be disabled.
 	 */
 	app_dcookie = get_exec_dcookie_and_offset(spu, &offset, &spu_cookie, objectId);
-	if (!app_dcookie || !spu_cookie) {
+
+	if (!app_dcookie || !spu_cookie)
+	{
 		retval  = -ENOENT;
 		goto out;
 	}
@@ -412,7 +469,7 @@ static int process_context_switch(struct spu *spu, unsigned long objectId)
 
 	spin_unlock_irqrestore(&buffer_lock, flags);
 	smp_wmb();	/* insure spu event buffer updates are written */
-			/* don't want entries intermingled... */
+	/* don't want entries intermingled... */
 out:
 	return retval;
 }
@@ -424,37 +481,47 @@ out:
  * The data arg is of type 'struct spu *'.
  */
 static int spu_active_notify(struct notifier_block *self, unsigned long val,
-				void *data)
+							 void *data)
 {
 	int retval;
 	unsigned long flags;
 	struct spu *the_spu = data;
 
 	pr_debug("SPU event notification arrived\n");
-	if (!val) {
+
+	if (!val)
+	{
 		spin_lock_irqsave(&cache_lock, flags);
 		retval = release_cached_info(the_spu->number);
 		spin_unlock_irqrestore(&cache_lock, flags);
-	} else {
+	}
+	else
+	{
 		retval = process_context_switch(the_spu, val);
 	}
+
 	return retval;
 }
 
-static struct notifier_block spu_active = {
+static struct notifier_block spu_active =
+{
 	.notifier_call = spu_active_notify,
 };
 
 static int number_of_online_nodes(void)
 {
-        u32 cpu; u32 tmp;
-        int nodes = 0;
-        for_each_online_cpu(cpu) {
-                tmp = cbe_cpu_to_node(cpu) + 1;
-                if (tmp > nodes)
-                        nodes++;
-        }
-        return nodes;
+	u32 cpu; u32 tmp;
+	int nodes = 0;
+	for_each_online_cpu(cpu)
+	{
+		tmp = cbe_cpu_to_node(cpu) + 1;
+
+		if (tmp > nodes)
+		{
+			nodes++;
+		}
+	}
+	return nodes;
 }
 
 static int oprofile_spu_buff_create(void)
@@ -463,7 +530,8 @@ static int oprofile_spu_buff_create(void)
 
 	max_spu_buff = oprofile_get_cpu_buffer_size();
 
-	for (spu = 0; spu < num_spu_nodes; spu++) {
+	for (spu = 0; spu < num_spu_nodes; spu++)
+	{
 		/* create circular buffers to store the data in.
 		 * use locks to manage accessing the buffers
 		 */
@@ -477,24 +545,28 @@ static int oprofile_spu_buff_create(void)
 		 */
 
 		spu_buff[spu].buff = kzalloc((max_spu_buff
-					      * sizeof(unsigned long)),
-					     GFP_KERNEL);
+									  * sizeof(unsigned long)),
+									 GFP_KERNEL);
 
-		if (!spu_buff[spu].buff) {
+		if (!spu_buff[spu].buff)
+		{
 			printk(KERN_ERR "SPU_PROF: "
-			       "%s, line %d:  oprofile_spu_buff_create "
-		       "failed to allocate spu buffer %d.\n",
-			       __func__, __LINE__, spu);
+				   "%s, line %d:  oprofile_spu_buff_create "
+				   "failed to allocate spu buffer %d.\n",
+				   __func__, __LINE__, spu);
 
 			/* release the spu buffers that have been allocated */
-			while (spu >= 0) {
+			while (spu >= 0)
+			{
 				kfree(spu_buff[spu].buff);
 				spu_buff[spu].buff = 0;
 				spu--;
 			}
+
 			return -ENOMEM;
 		}
 	}
+
 	return 0;
 }
 
@@ -523,25 +595,34 @@ int spu_sync_start(void)
 	 * the kernel buffer.
 	 */
 	ret = oprofile_spu_buff_create();
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	spin_lock_irqsave(&buffer_lock, flags);
-	for (spu = 0; spu < num_spu_nodes; spu++) {
+
+	for (spu = 0; spu < num_spu_nodes; spu++)
+	{
 		spu_buff_add(ESCAPE_CODE, spu);
 		spu_buff_add(SPU_PROFILING_CODE, spu);
 		spu_buff_add(num_spu_nodes, spu);
 	}
+
 	spin_unlock_irqrestore(&buffer_lock, flags);
 
-	for (spu = 0; spu < num_spu_nodes; spu++) {
+	for (spu = 0; spu < num_spu_nodes; spu++)
+	{
 		spu_buff[spu].ctx_sw_seen = 0;
 		spu_buff[spu].last_guard_val = 0;
 	}
 
 	/* Register for SPU events  */
 	register_ret = spu_switch_event_register(&spu_active);
-	if (register_ret) {
+
+	if (register_ret)
+	{
 		ret = SYNC_START_ERROR;
 		goto out;
 	}
@@ -553,7 +634,7 @@ out:
 
 /* Record SPU program counter samples to the oprofile event buffer. */
 void spu_sync_buffer(int spu_num, unsigned int *samples,
-		     int num_samples)
+					 int num_samples)
 {
 	unsigned long long file_offset;
 	unsigned long flags;
@@ -571,25 +652,33 @@ void spu_sync_buffer(int spu_num, unsigned int *samples,
 	 */
 	spin_lock_irqsave(&cache_lock, flags);
 	c_info = get_cached_info(NULL, spu_num);
-	if (!c_info) {
+
+	if (!c_info)
+	{
 		/* This legitimately happens when the SPU task ends before all
 		 * samples are recorded.
 		 * No big deal -- so we just drop a few samples.
 		 */
 		pr_debug("SPU_PROF: No cached SPU contex "
-			  "for SPU #%d. Dropping samples.\n", spu_num);
+				 "for SPU #%d. Dropping samples.\n", spu_num);
 		goto out;
 	}
 
 	map = c_info->map;
 	the_spu = c_info->the_spu;
 	spin_lock(&buffer_lock);
-	for (i = 0; i < num_samples; i++) {
-		unsigned int sample = *(samples+i);
+
+	for (i = 0; i < num_samples; i++)
+	{
+		unsigned int sample = *(samples + i);
 		int grd_val = 0;
 		file_offset = 0;
+
 		if (sample == 0)
+		{
 			continue;
+		}
+
 		file_offset = vma_map_lookup( map, sample, the_spu, &grd_val);
 
 		/* If overlays are used by this SPU application, the guard
@@ -597,7 +686,8 @@ void spu_sync_buffer(int spu_num, unsigned int *samples,
 		 * use.	 We need to discard samples taken during the time
 		 * period which an overlay occurs (i.e., guard value changes).
 		 */
-		if (grd_val && grd_val != spu_buff[spu_num].last_guard_val) {
+		if (grd_val && grd_val != spu_buff[spu_num].last_guard_val)
+		{
 			spu_buff[spu_num].last_guard_val = grd_val;
 			/* Drop the rest of the samples. */
 			break;
@@ -610,8 +700,9 @@ void spu_sync_buffer(int spu_num, unsigned int *samples,
 		 */
 		if (spu_buff[spu_num].ctx_sw_seen)
 			spu_buff_add((file_offset | spu_num_shifted),
-					 spu_num);
+						 spu_num);
 	}
+
 	spin_unlock(&buffer_lock);
 out:
 	spin_unlock_irqrestore(&cache_lock, flags);
@@ -628,9 +719,9 @@ int spu_sync_stop(void)
 
 	if (ret)
 		printk(KERN_ERR "SPU_PROF: "
-		       "%s, line %d: spu_switch_event_unregister "	\
-		       "returned %d\n",
-		       __func__, __LINE__, ret);
+			   "%s, line %d: spu_switch_event_unregister "	\
+			   "returned %d\n",
+			   __func__, __LINE__, ret);
 
 	/* flush any remaining data in the per SPU buffers */
 	sync_spu_buff();
@@ -645,7 +736,8 @@ int spu_sync_stop(void)
 	 */
 	cancel_delayed_work(&spu_work);
 
-	for (k = 0; k < num_spu_nodes; k++) {
+	for (k = 0; k < num_spu_nodes; k++)
+	{
 		spu_buff[k].ctx_sw_seen = 0;
 
 		/*
@@ -655,6 +747,7 @@ int spu_sync_stop(void)
 		kfree(spu_buff[k].buff);
 		spu_buff[k].buff = 0;
 	}
+
 	pr_debug("spu_sync_stop -- done.\n");
 	return ret;
 }

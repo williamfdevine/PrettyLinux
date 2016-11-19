@@ -17,11 +17,13 @@
 
 #define NUM_EXTERNAL_IRQS 16	/* IRL0 .. IRL15 */
 
-static const struct {
+static const struct
+{
 	unsigned char fpgaIrq;
 	unsigned char mapped;
 	const char *name;
-} fpgaIrqTable[NUM_EXTERNAL_IRQS] = {
+} fpgaIrqTable[NUM_EXTERNAL_IRQS] =
+{
 	{ 0,				0,	"unused"   },		/* IRQ #0	IRL=15	0x200  */
 	{ MICRODEV_FPGA_IRQ_KEYBOARD,	1,	"keyboard" },		/* IRQ #1	IRL=14	0x220  */
 	{ MICRODEV_FPGA_IRQ_SERIAL1,	1,	"Serial #1"},		/* IRQ #2	IRL=13	0x240  */
@@ -41,27 +43,27 @@ static const struct {
 };
 
 #if (MICRODEV_LINUX_IRQ_KEYBOARD != 1)
-#  error Inconsistancy in defining the IRQ# for Keyboard!
+	#  error Inconsistancy in defining the IRQ# for Keyboard!
 #endif
 
 #if (MICRODEV_LINUX_IRQ_ETHERNET != 3)
-#  error Inconsistancy in defining the IRQ# for Ethernet!
+	#  error Inconsistancy in defining the IRQ# for Ethernet!
 #endif
 
 #if (MICRODEV_LINUX_IRQ_USB_HC != 7)
-#  error Inconsistancy in defining the IRQ# for USB!
+	#  error Inconsistancy in defining the IRQ# for USB!
 #endif
 
 #if (MICRODEV_LINUX_IRQ_MOUSE != 12)
-#  error Inconsistancy in defining the IRQ# for PS/2 Mouse!
+	#  error Inconsistancy in defining the IRQ# for PS/2 Mouse!
 #endif
 
 #if (MICRODEV_LINUX_IRQ_IDE2 != 13)
-#  error Inconsistancy in defining the IRQ# for secondary IDE!
+	#  error Inconsistancy in defining the IRQ# for secondary IDE!
 #endif
 
 #if (MICRODEV_LINUX_IRQ_IDE1 != 14)
-#  error Inconsistancy in defining the IRQ# for primary IDE!
+	#  error Inconsistancy in defining the IRQ# for primary IDE!
 #endif
 
 static void disable_microdev_irq(struct irq_data *data)
@@ -70,9 +72,14 @@ static void disable_microdev_irq(struct irq_data *data)
 	unsigned int fpgaIrq;
 
 	if (irq >= NUM_EXTERNAL_IRQS)
+	{
 		return;
+	}
+
 	if (!fpgaIrqTable[irq].mapped)
+	{
 		return;
+	}
 
 	fpgaIrq = fpgaIrqTable[irq].fpgaIrq;
 
@@ -87,9 +94,14 @@ static void enable_microdev_irq(struct irq_data *data)
 	unsigned int fpgaIrq;
 
 	if (unlikely(irq >= NUM_EXTERNAL_IRQS))
+	{
 		return;
+	}
+
 	if (unlikely(!fpgaIrqTable[irq].mapped))
+	{
 		return;
+	}
 
 	pri = 15 - irq;
 
@@ -106,7 +118,8 @@ static void enable_microdev_irq(struct irq_data *data)
 	__raw_writel(MICRODEV_FPGA_INTC_MASK(fpgaIrq), MICRODEV_FPGA_INTENB_REG);
 }
 
-static struct irq_chip microdev_irq_type = {
+static struct irq_chip microdev_irq_type =
+{
 	.name = "MicroDev-IRQ",
 	.irq_unmask = enable_microdev_irq,
 	.irq_mask = disable_microdev_irq,
@@ -128,19 +141,21 @@ extern void __init init_microdev_irq(void)
 	__raw_writel(~0ul, MICRODEV_FPGA_INTDSB_REG);
 
 	for (i = 0; i < NUM_EXTERNAL_IRQS; i++)
+	{
 		make_microdev_irq(i);
+	}
 }
 
 extern void microdev_print_fpga_intc_status(void)
 {
-	volatile unsigned int * const intenb = (unsigned int*)MICRODEV_FPGA_INTENB_REG;
-	volatile unsigned int * const intdsb = (unsigned int*)MICRODEV_FPGA_INTDSB_REG;
-	volatile unsigned int * const intpria = (unsigned int*)MICRODEV_FPGA_INTPRI_REG(0);
-	volatile unsigned int * const intprib = (unsigned int*)MICRODEV_FPGA_INTPRI_REG(8);
-	volatile unsigned int * const intpric = (unsigned int*)MICRODEV_FPGA_INTPRI_REG(16);
-	volatile unsigned int * const intprid = (unsigned int*)MICRODEV_FPGA_INTPRI_REG(24);
-	volatile unsigned int * const intsrc = (unsigned int*)MICRODEV_FPGA_INTSRC_REG;
-	volatile unsigned int * const intreq = (unsigned int*)MICRODEV_FPGA_INTREQ_REG;
+	volatile unsigned int *const intenb = (unsigned int *)MICRODEV_FPGA_INTENB_REG;
+	volatile unsigned int *const intdsb = (unsigned int *)MICRODEV_FPGA_INTDSB_REG;
+	volatile unsigned int *const intpria = (unsigned int *)MICRODEV_FPGA_INTPRI_REG(0);
+	volatile unsigned int *const intprib = (unsigned int *)MICRODEV_FPGA_INTPRI_REG(8);
+	volatile unsigned int *const intpric = (unsigned int *)MICRODEV_FPGA_INTPRI_REG(16);
+	volatile unsigned int *const intprid = (unsigned int *)MICRODEV_FPGA_INTPRI_REG(24);
+	volatile unsigned int *const intsrc = (unsigned int *)MICRODEV_FPGA_INTSRC_REG;
+	volatile unsigned int *const intreq = (unsigned int *)MICRODEV_FPGA_INTREQ_REG;
 
 	printk("-------------------------- microdev_print_fpga_intc_status() ------------------\n");
 	printk("FPGA_INTENB = 0x%08x\n", *intenb);

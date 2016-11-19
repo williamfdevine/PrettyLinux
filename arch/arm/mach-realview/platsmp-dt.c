@@ -21,19 +21,21 @@
 
 #define REALVIEW_SYS_FLAGSSET_OFFSET	0x30
 
-static const struct of_device_id realview_scu_match[] = {
+static const struct of_device_id realview_scu_match[] =
+{
 	{ .compatible = "arm,arm11mp-scu", },
 	{ .compatible = "arm,cortex-a9-scu", },
 	{ .compatible = "arm,cortex-a5-scu", },
 	{ }
 };
 
-static const struct of_device_id realview_syscon_match[] = {
-        { .compatible = "arm,core-module-integrator", },
-        { .compatible = "arm,realview-eb-syscon", },
-        { .compatible = "arm,realview-pb11mp-syscon", },
-        { .compatible = "arm,realview-pbx-syscon", },
-        { },
+static const struct of_device_id realview_syscon_match[] =
+{
+	{ .compatible = "arm,core-module-integrator", },
+	{ .compatible = "arm,realview-eb-syscon", },
+	{ .compatible = "arm,realview-pb11mp-syscon", },
+	{ .compatible = "arm,realview-pbx-syscon", },
+	{ },
 };
 
 static void __init realview_smp_prepare_cpus(unsigned int max_cpus)
@@ -45,13 +47,18 @@ static void __init realview_smp_prepare_cpus(unsigned int max_cpus)
 	int i;
 
 	np = of_find_matching_node(NULL, realview_scu_match);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("PLATSMP: No SCU base address\n");
 		return;
 	}
+
 	scu_base = of_iomap(np, 0);
 	of_node_put(np);
-	if (!scu_base) {
+
+	if (!scu_base)
+	{
 		pr_err("PLATSMP: No SCU remap\n");
 		return;
 	}
@@ -59,27 +66,38 @@ static void __init realview_smp_prepare_cpus(unsigned int max_cpus)
 	scu_enable(scu_base);
 	ncores = scu_get_core_count(scu_base);
 	pr_info("SCU: %d cores detected\n", ncores);
+
 	for (i = 0; i < ncores; i++)
+	{
 		set_cpu_possible(i, true);
+	}
+
 	iounmap(scu_base);
 
 	/* The syscon contains the magic SMP start address registers */
 	np = of_find_matching_node(NULL, realview_syscon_match);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("PLATSMP: No syscon match\n");
 		return;
 	}
+
 	map = syscon_node_to_regmap(np);
-	if (IS_ERR(map)) {
+
+	if (IS_ERR(map))
+	{
 		pr_err("PLATSMP: No syscon regmap\n");
 		return;
 	}
+
 	/* Put the boot address in this magic register */
 	regmap_write(map, REALVIEW_SYS_FLAGSSET_OFFSET,
-		     virt_to_phys(versatile_secondary_startup));
+				 virt_to_phys(versatile_secondary_startup));
 }
 
-static const struct smp_operations realview_dt_smp_ops __initconst = {
+static const struct smp_operations realview_dt_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= realview_smp_prepare_cpus,
 	.smp_secondary_init	= versatile_secondary_init,
 	.smp_boot_secondary	= versatile_boot_secondary,

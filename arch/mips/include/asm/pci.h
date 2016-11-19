@@ -27,7 +27,8 @@
  * multiple PCI channels may have multiple PCI host controllers or a
  * single controller supporting multiple channels.
  */
-struct pci_controller {
+struct pci_controller
+{
 	struct list_head list;
 	struct pci_bus *bus;
 	struct device_node *of_node;
@@ -67,26 +68,26 @@ extern int pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin);
 /* Do platform specific device initialization at pci_enable_device() time */
 extern int pcibios_plat_dev_init(struct pci_dev *dev);
 
-extern char * (*pcibios_plat_setup)(char *str);
+extern char *(*pcibios_plat_setup)(char *str);
 
 #ifdef CONFIG_OF
 /* this function parses memory ranges from a device node */
 extern void pci_load_of_ranges(struct pci_controller *hose,
-			       struct device_node *node);
+							   struct device_node *node);
 #else
 static inline void pci_load_of_ranges(struct pci_controller *hose,
-				      struct device_node *node) {}
+									  struct device_node *node) {}
 #endif
 
 #ifdef CONFIG_PCI_DOMAINS_GENERIC
 static inline void set_pci_need_domain_info(struct pci_controller *hose,
-					    int need_domain_info)
+		int need_domain_info)
 {
 	/* nothing to do */
 }
 #elif defined(CONFIG_PCI_DOMAINS)
 static inline void set_pci_need_domain_info(struct pci_controller *hose,
-					    int need_domain_info)
+		int need_domain_info)
 {
 	hose->need_domain_info = need_domain_info;
 }
@@ -112,7 +113,7 @@ extern void pcibios_set_master(struct pci_dev *dev);
 #define HAVE_PCI_MMAP
 
 extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
-	enum pci_mmap_state mmap_state, int write_combine);
+							   enum pci_mmap_state mmap_state, int write_combine);
 
 #define HAVE_ARCH_PCI_RESOURCE_TO_USER
 

@@ -21,7 +21,8 @@
  * the allocation of hardware channels to clients.
 */
 
-enum dma_ch {
+enum dma_ch
+{
 	DMACH_XD0 = 0,
 	DMACH_XD1,
 	DMACH_SDI,

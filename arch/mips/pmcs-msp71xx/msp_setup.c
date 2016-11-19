@@ -24,8 +24,8 @@
 #include <msp_regs.h>
 
 #if defined(CONFIG_PMC_MSP7120_GW)
-#include <msp_regops.h>
-#define MSP_BOARD_RESET_GPIO	9
+	#include <msp_regops.h>
+	#define MSP_BOARD_RESET_GPIO	9
 #endif
 
 extern void msp_serial_setup(void);
@@ -58,8 +58,10 @@ void msp7120_reset(void)
 	);
 
 	for (iptr = (void *)((unsigned int)start & ~(L1_CACHE_BYTES - 1));
-	     iptr < end; iptr += L1_CACHE_BYTES)
+		 iptr < end; iptr += L1_CACHE_BYTES)
+	{
 		cache_op(Fill, iptr);
+	}
 
 	__asm__ __volatile__ (
 		"startpoint:					\n"
@@ -128,12 +130,18 @@ void msp_restart(char *command)
 void msp_halt(void)
 {
 	printk(KERN_WARNING "\n** You can safely turn off the power\n");
+
 	while (1)
+
 		/* If possible call official function to get CPU WARs */
 		if (cpu_wait)
+		{
 			(*cpu_wait)();
+		}
 		else
+		{
 			__asm__(".set\tmips3\n\t" "wait\n\t" ".set\tmips0");
+		}
 }
 
 void msp_power_off(void)
@@ -167,49 +175,54 @@ void __init prom_init(void)
 	family = identify_family();
 	revision = identify_revision();
 
-	switch (family) {
-	case FAMILY_FPGA:
-		if (FPGA_IS_MSP4200(revision)) {
-			/* Old-style revision ID */
-			mips_machtype = MACH_MSP4200_FPGA;
-		} else {
-			mips_machtype = MACH_MSP_OTHER;
-		}
-		break;
+	switch (family)
+	{
+		case FAMILY_FPGA:
+			if (FPGA_IS_MSP4200(revision))
+			{
+				/* Old-style revision ID */
+				mips_machtype = MACH_MSP4200_FPGA;
+			}
+			else
+			{
+				mips_machtype = MACH_MSP_OTHER;
+			}
 
-	case FAMILY_MSP4200:
+			break;
+
+		case FAMILY_MSP4200:
 #if defined(CONFIG_PMC_MSP4200_EVAL)
-		mips_machtype  = MACH_MSP4200_EVAL;
+			mips_machtype  = MACH_MSP4200_EVAL;
 #elif defined(CONFIG_PMC_MSP4200_GW)
-		mips_machtype  = MACH_MSP4200_GW;
+			mips_machtype  = MACH_MSP4200_GW;
 #else
-		mips_machtype = MACH_MSP_OTHER;
+			mips_machtype = MACH_MSP_OTHER;
 #endif
-		break;
+			break;
 
-	case FAMILY_MSP4200_FPGA:
-		mips_machtype  = MACH_MSP4200_FPGA;
-		break;
+		case FAMILY_MSP4200_FPGA:
+			mips_machtype  = MACH_MSP4200_FPGA;
+			break;
 
-	case FAMILY_MSP7100:
+		case FAMILY_MSP7100:
 #if defined(CONFIG_PMC_MSP7120_EVAL)
-		mips_machtype = MACH_MSP7120_EVAL;
+			mips_machtype = MACH_MSP7120_EVAL;
 #elif defined(CONFIG_PMC_MSP7120_GW)
-		mips_machtype = MACH_MSP7120_GW;
+			mips_machtype = MACH_MSP7120_GW;
 #else
-		mips_machtype = MACH_MSP_OTHER;
+			mips_machtype = MACH_MSP_OTHER;
 #endif
-		break;
+			break;
 
-	case FAMILY_MSP7100_FPGA:
-		mips_machtype  = MACH_MSP7120_FPGA;
-		break;
+		case FAMILY_MSP7100_FPGA:
+			mips_machtype  = MACH_MSP7120_FPGA;
+			break;
 
-	default:
-		/* we don't recognize the machine */
-		mips_machtype  = MACH_UNKNOWN;
-		panic("***Bogosity factor five***, exiting");
-		break;
+		default:
+			/* we don't recognize the machine */
+			mips_machtype  = MACH_UNKNOWN;
+			panic("***Bogosity factor five***, exiting");
+			break;
 	}
 
 	prom_init_cmdline();

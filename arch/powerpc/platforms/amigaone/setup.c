@@ -44,17 +44,24 @@ static int __init amigaone_add_bridge(struct device_node *dev)
 
 	cfg_addr = of_get_address(dev, 0, NULL, NULL);
 	cfg_data = of_get_address(dev, 1, NULL, NULL);
+
 	if ((cfg_addr == NULL) || (cfg_data == NULL))
+	{
 		return -ENODEV;
+	}
 
 	bus_range = of_get_property(dev, "bus-range", &len);
+
 	if ((bus_range == NULL) || (len < 2 * sizeof(int)))
 		printk(KERN_WARNING "Can't get bus-range for %s, assume"
-		       " bus 0\n", dev->full_name);
+			   " bus 0\n", dev->full_name);
 
 	hose = pcibios_alloc_controller(dev);
+
 	if (hose == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	hose->first_busno = bus_range ? bus_range[0] : 0;
 	hose->last_busno = bus_range ? bus_range[1] : 0xff;
@@ -75,12 +82,14 @@ void __init amigaone_setup_arch(void)
 
 	/* Lookup PCI host bridges. */
 	for_each_compatible_node(np, "pci", "mai-logic,articia-s")
-		phb = amigaone_add_bridge(np);
+	phb = amigaone_add_bridge(np);
 
 	BUG_ON(phb != 0);
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("Linux/PPC "UTS_RELEASE"\n", 0);
+	}
 }
 
 void __init amigaone_init_IRQ(void)
@@ -91,21 +100,27 @@ void __init amigaone_init_IRQ(void)
 
 	/* Search for ISA interrupt controller. */
 	pic = of_find_compatible_node(NULL, "interrupt-controller",
-	                              "pnpPNP,000");
+								  "pnpPNP,000");
 	BUG_ON(pic == NULL);
 
 	/* Look for interrupt acknowledge address in the PCI root node. */
 	np = of_find_compatible_node(NULL, "pci", "mai-logic,articia-s");
-	if (np) {
+
+	if (np)
+	{
 		prop = of_get_property(np, "8259-interrupt-acknowledge", NULL);
+
 		if (prop)
+		{
 			int_ack = prop[0];
+		}
+
 		of_node_put(np);
 	}
 
 	if (int_ack == 0)
 		printk(KERN_WARNING "Cannot find PCI interrupt acknowledge"
-		       " address, polling\n");
+			   " address, polling\n");
 
 	i8259_init(pic, int_ack);
 	ppc_md.get_irq = i8259_irq;
@@ -130,7 +145,7 @@ void __noreturn amigaone_restart(char *cmd)
 	/* Flush and disable caches. */
 	__flush_disable_L1();
 
-        /* Set SRR0 to the reset vector and turn on MSR_IP. */
+	/* Set SRR0 to the reset vector and turn on MSR_IP. */
 	mtspr(SPRN_SRR0, 0xfff00100);
 	mtspr(SPRN_SRR1, MSR_IP);
 
@@ -143,7 +158,8 @@ void __noreturn amigaone_restart(char *cmd)
 
 static int __init amigaone_probe(void)
 {
-	if (of_machine_is_compatible("eyetech,amigaone")) {
+	if (of_machine_is_compatible("eyetech,amigaone"))
+	{
 		/*
 		 * Coherent memory access cause complete system lockup! Thus
 		 * disable this CPU feature, even if the CPU needs it.
@@ -160,13 +176,14 @@ static int __init amigaone_probe(void)
 	return 0;
 }
 
-define_machine(amigaone) {
+define_machine(amigaone)
+{
 	.name			= "AmigaOne",
-	.probe			= amigaone_probe,
-	.setup_arch		= amigaone_setup_arch,
-	.show_cpuinfo		= amigaone_show_cpuinfo,
-	.init_IRQ		= amigaone_init_IRQ,
-	.restart		= amigaone_restart,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= amigaone_probe,
+					 .setup_arch		= amigaone_setup_arch,
+						 .show_cpuinfo		= amigaone_show_cpuinfo,
+							   .init_IRQ		= amigaone_init_IRQ,
+									 .restart		= amigaone_restart,
+											.calibrate_decr		= generic_calibrate_decr,
+												.progress		= udbg_progress,
 };

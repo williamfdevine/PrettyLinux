@@ -13,7 +13,7 @@
 ** E.g. 0, 8, 16, ...
 **
 ** Under a PCI bus, most HP platforms support PPBs up to two or three
-** levels deep. See "Bit3" product line. 
+** levels deep. See "Bit3" product line.
 */
 #define PCI_MAX_BUSSES	256
 
@@ -21,7 +21,7 @@
 /* To be used as: mdelay(pci_post_reset_delay);
  *
  * post_reset is the time the kernel should stall to prevent anyone from
- * accessing the PCI bus once #RESET is de-asserted. 
+ * accessing the PCI bus once #RESET is de-asserted.
  * PCI spec somewhere says 1 second but with multi-PCI bus systems,
  * this makes the boot time much longer than necessary.
  * 20ms seems to work for all the HP PCI implementations to date.
@@ -38,7 +38,8 @@
 **
 ** Data needed by pcibios layer belongs here.
 */
-struct pci_hba_data {
+struct pci_hba_data
+{
 	void __iomem   *base_addr;	/* aka Host Physical Address */
 	const struct parisc_device *dev; /* device from PA bus walk */
 	struct pci_bus *hba_bus;	/* primary PCI bus below HBA */
@@ -52,13 +53,13 @@ struct pci_hba_data {
 	/* NOTE: Dino code assumes it can use *all* of the lmmio_space,
 	 * elmmio_space and gmmio_space as a contiguous array of
 	 * resources.  This #define represents the array size */
-	#define DINO_MAX_LMMIO_RESOURCES	3
+#define DINO_MAX_LMMIO_RESOURCES	3
 
 	unsigned long   lmmio_space_offset;  /* CPU view - PCI view */
-	void *          iommu;          /* IOMMU this device is under */
+	void           *iommu;          /* IOMMU this device is under */
 	/* REVISIT - spinlock to protect resources? */
 
-	#define HBA_NAME_SIZE 16
+#define HBA_NAME_SIZE 16
 	char io_name[HBA_NAME_SIZE];
 	char lmmio_name[HBA_NAME_SIZE];
 	char elmmio_name[HBA_NAME_SIZE];
@@ -67,7 +68,7 @@ struct pci_hba_data {
 
 #define HBA_DATA(d)		((struct pci_hba_data *) (d))
 
-/* 
+/*
 ** We support 2^16 I/O ports per HBA.  These are set up in the form
 ** 0xbbxxxx, where bb is the bus number and xxxx is the I/O port
 ** space address.
@@ -81,9 +82,9 @@ struct pci_hba_data {
 #define PCI_PORT_ADDR(a)	((a) & (HBA_PORT_SPACE_SIZE - 1))
 
 #ifdef CONFIG_64BIT
-#define PCI_F_EXTEND		0xffffffff00000000UL
+	#define PCI_F_EXTEND		0xffffffff00000000UL
 #else	/* !CONFIG_64BIT */
-#define PCI_F_EXTEND		0UL
+	#define PCI_F_EXTEND		0UL
 #endif /* !CONFIG_64BIT */
 
 /*
@@ -99,19 +100,19 @@ struct pci_dev;
  * this boolean for bounce buffer decisions.
  */
 #ifdef CONFIG_PA20
-/* All PA-2.0 machines have an IOMMU. */
-#define PCI_DMA_BUS_IS_PHYS	0
-#define parisc_has_iommu()	do { } while (0)
+	/* All PA-2.0 machines have an IOMMU. */
+	#define PCI_DMA_BUS_IS_PHYS	0
+	#define parisc_has_iommu()	do { } while (0)
 #else
 
-#if defined(CONFIG_IOMMU_CCIO) || defined(CONFIG_IOMMU_SBA)
-extern int parisc_bus_is_phys; 	/* in arch/parisc/kernel/setup.c */
-#define PCI_DMA_BUS_IS_PHYS	parisc_bus_is_phys
-#define parisc_has_iommu()	do { parisc_bus_is_phys = 0; } while (0)
-#else
-#define PCI_DMA_BUS_IS_PHYS	1
-#define parisc_has_iommu()	do { } while (0)
-#endif
+	#if defined(CONFIG_IOMMU_CCIO) || defined(CONFIG_IOMMU_SBA)
+		extern int parisc_bus_is_phys; 	/* in arch/parisc/kernel/setup.c */
+		#define PCI_DMA_BUS_IS_PHYS	parisc_bus_is_phys
+		#define parisc_has_iommu()	do { parisc_bus_is_phys = 0; } while (0)
+	#else
+		#define PCI_DMA_BUS_IS_PHYS	1
+		#define parisc_has_iommu()	do { } while (0)
+	#endif
 
 #endif	/* !CONFIG_PA20 */
 
@@ -138,17 +139,19 @@ extern int parisc_bus_is_phys; 	/* in arch/parisc/kernel/setup.c */
 **
 ** I've helped device driver writers debug both types of problems.
 */
-struct pci_port_ops {
-	  u8 (*inb)  (struct pci_hba_data *hba, u16 port);
-	 u16 (*inw)  (struct pci_hba_data *hba, u16 port);
-	 u32 (*inl)  (struct pci_hba_data *hba, u16 port);
+struct pci_port_ops
+{
+	u8 (*inb)  (struct pci_hba_data *hba, u16 port);
+	u16 (*inw)  (struct pci_hba_data *hba, u16 port);
+	u32 (*inl)  (struct pci_hba_data *hba, u16 port);
 	void (*outb) (struct pci_hba_data *hba, u16 port,  u8 data);
 	void (*outw) (struct pci_hba_data *hba, u16 port, u16 data);
 	void (*outl) (struct pci_hba_data *hba, u16 port, u32 data);
 };
 
 
-struct pci_bios_ops {
+struct pci_bios_ops
+{
 	void (*init)(void);
 	void (*fixup_bus)(struct pci_bus *bus);
 };
@@ -202,6 +205,6 @@ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 #define HAVE_PCI_MMAP
 
 extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
-	enum pci_mmap_state mmap_state, int write_combine);
+							   enum pci_mmap_state mmap_state, int write_combine);
 
 #endif /* __ASM_PARISC_PCI_H */

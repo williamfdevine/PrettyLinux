@@ -22,10 +22,10 @@
 static inline void msi_set_sync(void)
 {
 	__asm__ __volatile__ ("lda [%0] %1, %%g3\n\t"
-			      "andn %%g3, %2, %%g3\n\t"
-			      "sta %%g3, [%0] %1\n\t" : :
-			      "r" (MSI_MBUS_ARBEN),
-			      "i" (ASI_M_CTL), "r" (MSI_ASYNC_MODE) : "g3");
+						  "andn %%g3, %2, %%g3\n\t"
+						  "sta %%g3, [%0] %1\n\t" : :
+						  "r" (MSI_MBUS_ARBEN),
+						  "i" (ASI_M_CTL), "r" (MSI_ASYNC_MODE) : "g3");
 }
 
 #endif /* !(_SPARC_MSI_H) */

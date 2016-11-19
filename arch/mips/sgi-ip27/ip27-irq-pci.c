@@ -68,8 +68,11 @@ static inline int alloc_level(int cpu, int irq)
 	int level;
 
 	level = find_first_zero_bit(hub->irq_alloc_mask, LEVELS_PER_SLICE);
+
 	if (level >= LEVELS_PER_SLICE)
+	{
 		panic("Cpu %d flooded with devices", cpu);
+	}
 
 	__set_bit(level, hub->irq_alloc_mask);
 	si->level_to_irq[level] = irq;
@@ -81,11 +84,13 @@ static inline int find_level(cpuid_t *cpunum, int irq)
 {
 	int cpu, i;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		struct slice_data *si = cpu_data[cpu].data;
 
 		for (i = BASE_PCI_IRQ; i < LEVELS_PER_SLICE; i++)
-			if (si->level_to_irq[i] == irq) {
+			if (si->level_to_irq[i] == irq)
+			{
 				*cpunum = cpu;
 
 				return i;
@@ -102,10 +107,13 @@ static int intr_connect_level(int cpu, int bit)
 
 	set_bit(bit, si->irq_enable_mask);
 
-	if (!cputoslice(cpu)) {
+	if (!cputoslice(cpu))
+	{
 		REMOTE_HUB_S(nasid, PI_INT_MASK0_A, si->irq_enable_mask[0]);
 		REMOTE_HUB_S(nasid, PI_INT_MASK1_A, si->irq_enable_mask[1]);
-	} else {
+	}
+	else
+	{
 		REMOTE_HUB_S(nasid, PI_INT_MASK0_B, si->irq_enable_mask[0]);
 		REMOTE_HUB_S(nasid, PI_INT_MASK1_B, si->irq_enable_mask[1]);
 	}
@@ -120,10 +128,13 @@ static int intr_disconnect_level(int cpu, int bit)
 
 	clear_bit(bit, si->irq_enable_mask);
 
-	if (!cputoslice(cpu)) {
+	if (!cputoslice(cpu))
+	{
 		REMOTE_HUB_S(nasid, PI_INT_MASK0_A, si->irq_enable_mask[0]);
 		REMOTE_HUB_S(nasid, PI_INT_MASK1_A, si->irq_enable_mask[1]);
-	} else {
+	}
+	else
+	{
 		REMOTE_HUB_S(nasid, PI_INT_MASK0_B, si->irq_enable_mask[0]);
 		REMOTE_HUB_S(nasid, PI_INT_MASK1_B, si->irq_enable_mask[1]);
 	}
@@ -168,8 +179,8 @@ static unsigned int startup_bridge_irq(struct irq_data *d)
 	 * (slots) and intr pins.
 	 */
 	device = bridge->b_int_device;
-	device &= ~(7 << (pin*3));
-	device |= (pin << (pin*3));
+	device &= ~(7 << (pin * 3));
+	device |= (pin << (pin * 3));
 	bridge->b_int_device = device;
 
 	bridge->b_wid_tflush;
@@ -219,7 +230,8 @@ static inline void disable_bridge_irq(struct irq_data *d)
 	intr_disconnect_level(cpu, swlevel);
 }
 
-static struct irq_chip bridge_irq_type = {
+static struct irq_chip bridge_irq_type =
+{
 	.name		= "bridge",
 	.irq_startup	= startup_bridge_irq,
 	.irq_shutdown	= shutdown_bridge_irq,
@@ -239,7 +251,9 @@ int request_bridge_irq(struct bridge_controller *bc)
 	nasid_t nasid;
 
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	/*
 	 * "map" irq to a swlevel greater than 6 since the first 6 bits
@@ -247,7 +261,9 @@ int request_bridge_irq(struct bridge_controller *bc)
 	 */
 	cpu = bc->irq_cpu;
 	swlevel = alloc_level(cpu, irq);
-	if (unlikely(swlevel < 0)) {
+
+	if (unlikely(swlevel < 0))
+	{
 		free_irqno(irq);
 
 		return -EAGAIN;

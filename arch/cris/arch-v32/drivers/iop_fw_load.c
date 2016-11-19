@@ -23,12 +23,14 @@
 #error "This driver is broken with regard to its driver core usage."
 #error "Please contact <greg@kroah.com> for details on how to fix it properly."
 
-static struct device iop_spu_device[2] = {
+static struct device iop_spu_device[2] =
+{
 	{ .init_name =     "iop-spu0", },
 	{ .init_name =     "iop-spu1", },
 };
 
-static struct device iop_mpu_device = {
+static struct device iop_mpu_device =
+{
 	.init_name =       "iop-mpu",
 };
 
@@ -37,83 +39,106 @@ static int wait_mpu_idle(void)
 	reg_iop_mpu_r_stat mpu_stat;
 	unsigned int timeout = IOP_TIMEOUT;
 
-	do {
+	do
+	{
 		mpu_stat = REG_RD(iop_mpu, regi_iop_mpu, r_stat);
-	} while (mpu_stat.instr_reg_busy == regk_iop_mpu_yes && --timeout > 0);
-	if (timeout == 0) {
+	}
+	while (mpu_stat.instr_reg_busy == regk_iop_mpu_yes && --timeout > 0);
+
+	if (timeout == 0)
+	{
 		printk(KERN_ERR "Timeout waiting for MPU to be idle\n");
 		return -EBUSY;
 	}
+
 	return 0;
 }
 
 int iop_fw_load_spu(const unsigned char *fw_name, unsigned int spu_inst)
 {
-	reg_iop_sw_cpu_rw_mc_ctrl mc_ctrl = {
+	reg_iop_sw_cpu_rw_mc_ctrl mc_ctrl =
+	{
 		.wr_spu0_mem =    regk_iop_sw_cpu_no,
 		.wr_spu1_mem =    regk_iop_sw_cpu_no,
 		.size =           4,
 		.cmd =            regk_iop_sw_cpu_reg_copy,
 		.keep_owner =     regk_iop_sw_cpu_yes
 	};
-	reg_iop_spu_rw_ctrl spu_ctrl = {
+	reg_iop_spu_rw_ctrl spu_ctrl =
+	{
 		.en  =            regk_iop_spu_no,
 		.fsm =            regk_iop_spu_no,
 	};
 	reg_iop_sw_cpu_r_mc_stat mc_stat;
-        const struct firmware *fw_entry;
+	const struct firmware *fw_entry;
 	u32 *data;
 	unsigned int timeout;
 	int retval, i;
 
 	if (spu_inst > 1)
+	{
 		return -ENODEV;
+	}
 
 	/* get firmware */
 	retval = request_firmware(&fw_entry,
-				  fw_name,
-				  &iop_spu_device[spu_inst]);
+							  fw_name,
+							  &iop_spu_device[spu_inst]);
+
 	if (retval != 0)
 	{
 		printk(KERN_ERR
-		       "iop_load_spu: Failed to load firmware \"%s\"\n",
-		       fw_name);
+			   "iop_load_spu: Failed to load firmware \"%s\"\n",
+			   fw_name);
 		return retval;
 	}
+
 	data = (u32 *) fw_entry->data;
 
 	/* acquire ownership of memory controller */
-	switch (spu_inst) {
-	case 0:
-		mc_ctrl.wr_spu0_mem = regk_iop_sw_cpu_yes;
-		REG_WR(iop_spu, regi_iop_spu0, rw_ctrl, spu_ctrl);
-		break;
-	case 1:
-		mc_ctrl.wr_spu1_mem = regk_iop_sw_cpu_yes;
-		REG_WR(iop_spu, regi_iop_spu1, rw_ctrl, spu_ctrl);
-		break;
+	switch (spu_inst)
+	{
+		case 0:
+			mc_ctrl.wr_spu0_mem = regk_iop_sw_cpu_yes;
+			REG_WR(iop_spu, regi_iop_spu0, rw_ctrl, spu_ctrl);
+			break;
+
+		case 1:
+			mc_ctrl.wr_spu1_mem = regk_iop_sw_cpu_yes;
+			REG_WR(iop_spu, regi_iop_spu1, rw_ctrl, spu_ctrl);
+			break;
 	}
+
 	timeout = IOP_TIMEOUT;
-	do {
+
+	do
+	{
 		REG_WR(iop_sw_cpu, regi_iop_sw_cpu, rw_mc_ctrl, mc_ctrl);
 		mc_stat = REG_RD(iop_sw_cpu, regi_iop_sw_cpu, r_mc_stat);
-	} while (mc_stat.owned_by_cpu == regk_iop_sw_cpu_no && --timeout > 0);
-	if (timeout == 0) {
+	}
+	while (mc_stat.owned_by_cpu == regk_iop_sw_cpu_no && --timeout > 0);
+
+	if (timeout == 0)
+	{
 		printk(KERN_ERR "Timeout waiting to acquire MC\n");
 		retval = -EBUSY;
 		goto out;
 	}
 
 	/* write to SPU memory */
-	for (i = 0; i < (fw_entry->size/4); i++) {
-		switch (spu_inst) {
-		case 0:
-			REG_WR_INT(iop_spu, regi_iop_spu0, rw_seq_pc, (i*4));
-			break;
-		case 1:
-			REG_WR_INT(iop_spu, regi_iop_spu1, rw_seq_pc, (i*4));
-			break;
+	for (i = 0; i < (fw_entry->size / 4); i++)
+	{
+		switch (spu_inst)
+		{
+			case 0:
+				REG_WR_INT(iop_spu, regi_iop_spu0, rw_seq_pc, (i * 4));
+				break;
+
+			case 1:
+				REG_WR_INT(iop_spu, regi_iop_spu1, rw_seq_pc, (i * 4));
+				break;
 		}
+
 		REG_WR_INT(iop_sw_cpu, regi_iop_sw_cpu, rw_mc_data, *data);
 		data++;
 	}
@@ -121,7 +146,7 @@ int iop_fw_load_spu(const unsigned char *fw_name, unsigned int spu_inst)
 	/* release ownership of memory controller */
 	(void) REG_RD(iop_sw_cpu, regi_iop_sw_cpu, rs_mc_data);
 
- out:
+out:
 	release_firmware(fw_entry);
 	return retval;
 }
@@ -130,19 +155,21 @@ int iop_fw_load_mpu(unsigned char *fw_name)
 {
 	const unsigned int start_addr = 0;
 	reg_iop_mpu_rw_ctrl mpu_ctrl;
-        const struct firmware *fw_entry;
+	const struct firmware *fw_entry;
 	u32 *data;
 	int retval, i;
 
 	/* get firmware */
 	retval = request_firmware(&fw_entry, fw_name, &iop_mpu_device);
+
 	if (retval != 0)
 	{
 		printk(KERN_ERR
-		       "iop_load_spu: Failed to load firmware \"%s\"\n",
-		       fw_name);
+			   "iop_load_spu: Failed to load firmware \"%s\"\n",
+			   fw_name);
 		return retval;
 	}
+
 	data = (u32 *) fw_entry->data;
 
 	/* disable MPU */
@@ -150,18 +177,28 @@ int iop_fw_load_mpu(unsigned char *fw_name)
 	REG_WR(iop_mpu, regi_iop_mpu, rw_ctrl, mpu_ctrl);
 	/* put start address in R0 */
 	REG_WR_VECT(iop_mpu, regi_iop_mpu, rw_r, 0, start_addr);
+
 	/* write to memory by executing 'SWX i, 4, R0' for each word */
 	if ((retval = wait_mpu_idle()) != 0)
+	{
 		goto out;
+	}
+
 	REG_WR(iop_mpu, regi_iop_mpu, rw_instr, MPU_SWX_IIR_INSTR(0, 4, 0));
-	for (i = 0; i < (fw_entry->size / 4); i++) {
+
+	for (i = 0; i < (fw_entry->size / 4); i++)
+	{
 		REG_WR_INT(iop_mpu, regi_iop_mpu, rw_immediate, *data);
+
 		if ((retval = wait_mpu_idle()) != 0)
+		{
 			goto out;
+		}
+
 		data++;
 	}
 
- out:
+out:
 	release_firmware(fw_entry);
 	return retval;
 }
@@ -173,23 +210,41 @@ int iop_start_mpu(unsigned int start_addr)
 
 	/* disable MPU */
 	if ((retval = wait_mpu_idle()) != 0)
+	{
 		goto out;
+	}
+
 	REG_WR(iop_mpu, regi_iop_mpu, rw_instr, MPU_HALT());
+
 	if ((retval = wait_mpu_idle()) != 0)
+	{
 		goto out;
+	}
+
 	/* set PC and wait for it to bite */
 	if ((retval = wait_mpu_idle()) != 0)
+	{
 		goto out;
+	}
+
 	REG_WR_INT(iop_mpu, regi_iop_mpu, rw_instr, MPU_BA_I(start_addr));
+
 	if ((retval = wait_mpu_idle()) != 0)
+	{
 		goto out;
+	}
+
 	/* make sure the MPU starts executing with interrupts disabled */
 	REG_WR(iop_mpu, regi_iop_mpu, rw_instr, MPU_DI());
+
 	if ((retval = wait_mpu_idle()) != 0)
+	{
 		goto out;
+	}
+
 	/* enable MPU */
 	REG_WR(iop_mpu, regi_iop_mpu, rw_ctrl, mpu_ctrl);
- out:
+out:
 	return retval;
 }
 

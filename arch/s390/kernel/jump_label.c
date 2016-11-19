@@ -12,12 +12,14 @@
 
 #ifdef HAVE_JUMP_LABEL
 
-struct insn {
+struct insn
+{
 	u16 opcode;
 	s32 offset;
 } __packed;
 
-struct insn_args {
+struct insn_args
+{
 	struct jump_entry *entry;
 	enum jump_label_type type;
 };
@@ -37,7 +39,7 @@ static void jump_label_make_branch(struct jump_entry *entry, struct insn *insn)
 }
 
 static void jump_label_bug(struct jump_entry *entry, struct insn *expected,
-			   struct insn *new)
+						   struct insn *new)
 {
 	unsigned char *ipc = (unsigned char *)entry->code;
 	unsigned char *ipe = (unsigned char *)expected;
@@ -50,31 +52,44 @@ static void jump_label_bug(struct jump_entry *entry, struct insn *expected,
 	panic("Corrupted kernel text");
 }
 
-static struct insn orignop = {
+static struct insn orignop =
+{
 	.opcode = 0xc004,
 	.offset = JUMP_LABEL_NOP_OFFSET >> 1,
 };
 
 static void __jump_label_transform(struct jump_entry *entry,
-				   enum jump_label_type type,
-				   int init)
+								   enum jump_label_type type,
+								   int init)
 {
 	struct insn old, new;
 
-	if (type == JUMP_LABEL_JMP) {
+	if (type == JUMP_LABEL_JMP)
+	{
 		jump_label_make_nop(entry, &old);
 		jump_label_make_branch(entry, &new);
-	} else {
+	}
+	else
+	{
 		jump_label_make_branch(entry, &old);
 		jump_label_make_nop(entry, &new);
 	}
-	if (init) {
+
+	if (init)
+	{
 		if (memcmp((void *)entry->code, &orignop, sizeof(orignop)))
+		{
 			jump_label_bug(entry, &orignop, &new);
-	} else {
-		if (memcmp((void *)entry->code, &old, sizeof(old)))
-			jump_label_bug(entry, &old, &new);
+		}
 	}
+	else
+	{
+		if (memcmp((void *)entry->code, &old, sizeof(old)))
+		{
+			jump_label_bug(entry, &old, &new);
+		}
+	}
+
 	s390_kernel_write((void *)entry->code, &new, sizeof(new));
 }
 
@@ -87,7 +102,7 @@ static int __sm_arch_jump_label_transform(void *data)
 }
 
 void arch_jump_label_transform(struct jump_entry *entry,
-			       enum jump_label_type type)
+							   enum jump_label_type type)
 {
 	struct insn_args args;
 
@@ -98,7 +113,7 @@ void arch_jump_label_transform(struct jump_entry *entry,
 }
 
 void arch_jump_label_transform_static(struct jump_entry *entry,
-				      enum jump_label_type type)
+									  enum jump_label_type type)
 {
 	__jump_label_transform(entry, type, 1);
 }

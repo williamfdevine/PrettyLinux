@@ -76,7 +76,7 @@
 
 #define MCPCIA_MID(m)		((unsigned long)(m) << 33)
 
-/* Dodge has PCI0 and PCI1 at MID 4 and 5 respectively. 
+/* Dodge has PCI0 and PCI1 at MID 4 and 5 respectively.
    Durango adds PCI2 and PCI3 at MID 6 and 7 respectively.  */
 #define MCPCIA_HOSE2MID(h)	((h) + 4)
 
@@ -170,11 +170,11 @@
 /* Hack!  Only words for bus 0.  */
 
 #ifndef MCPCIA_ONE_HAE_WINDOW
-#define MCPCIA_HAE_ADDRESS	MCPCIA_HAE_MEM(4)
+	#define MCPCIA_HAE_ADDRESS	MCPCIA_HAE_MEM(4)
 #endif
 #define MCPCIA_IACK_SC		_MCPCIA_IACK_SC(4)
 
-/* 
+/*
  * The canonical non-remaped I/O and MEM addresses have these values
  * subtracted out.  This is arranged so that folks manipulating ISA
  * devices can use their familiar numbers and have them map to bus 0.
@@ -189,7 +189,8 @@
 /*
  * Data structure for handling MCPCIA machine checks:
  */
-struct el_MCPCIA_uncorrected_frame_mcheck {
+struct el_MCPCIA_uncorrected_frame_mcheck
+{
 	struct el_common header;
 	struct el_common_EV5_uncorrectable_mcheck procdata;
 };
@@ -198,8 +199,8 @@ struct el_MCPCIA_uncorrected_frame_mcheck {
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -319,7 +320,9 @@ __EXTERN_INLINE unsigned int mcpcia_ioread32(void __iomem *xaddr)
 	unsigned long addr = (unsigned long)xaddr;
 
 	if (!__mcpcia_is_mmio(addr))
+	{
 		addr = ((addr & 0xffff) << 5) + (addr & ~0xfffful) + 0x18;
+	}
 
 	return *(vuip)addr;
 }
@@ -329,7 +332,9 @@ __EXTERN_INLINE void mcpcia_iowrite32(u32 b, void __iomem *xaddr)
 	unsigned long addr = (unsigned long)xaddr;
 
 	if (!__mcpcia_is_mmio(addr))
+	{
 		addr = ((addr & 0xffff) << 5) + (addr & ~0xfffful) + 0x18;
+	}
 
 	*(vuip)addr = b;
 }
@@ -341,7 +346,7 @@ __EXTERN_INLINE void __iomem *mcpcia_ioportmap(unsigned long addr)
 }
 
 __EXTERN_INLINE void __iomem *mcpcia_ioremap(unsigned long addr,
-					     unsigned long size)
+		unsigned long size)
 {
 	return (void __iomem *)(addr + MCPCIA_MEM_BIAS);
 }
@@ -372,8 +377,8 @@ __EXTERN_INLINE int mcpcia_is_mmio(const volatile void __iomem *xaddr)
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

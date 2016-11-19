@@ -15,13 +15,14 @@
 
 #include <asm/mach/arch.h>
 
-static const char * const bcm63xx_dt_compat[] = {
+static const char *const bcm63xx_dt_compat[] =
+{
 	"brcm,bcm63138",
 	NULL
 };
 
 DT_MACHINE_START(BCM63XXX_DT, "BCM63xx DSL SoC")
-	.dt_compat	= bcm63xx_dt_compat,
-	.l2c_aux_val	= 0,
-	.l2c_aux_mask	= ~0,
-MACHINE_END
+.dt_compat	= bcm63xx_dt_compat,
+  .l2c_aux_val	= 0,
+	  .l2c_aux_mask	= ~0,
+		 MACHINE_END

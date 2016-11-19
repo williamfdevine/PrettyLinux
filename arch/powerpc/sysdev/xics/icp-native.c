@@ -28,17 +28,21 @@
 #include <asm/kvm_ppc.h>
 #include <asm/dbell.h>
 
-struct icp_ipl {
-	union {
+struct icp_ipl
+{
+	union
+	{
 		u32 word;
 		u8 bytes[4];
 	} xirr_poll;
-	union {
+	union
+	{
 		u32 word;
 		u8 bytes[4];
 	} xirr;
 	u32 dummy;
-	union {
+	union
+	{
 		u32 word;
 		u8 bytes[4];
 	} qirr;
@@ -56,8 +60,11 @@ static inline unsigned int icp_native_get_xirr(void)
 
 	/* Handled an interrupt latched by KVM */
 	xirr = kvmppc_get_xics_latch();
+
 	if (xirr)
+	{
 		return xirr;
+	}
 
 	return in_be32(&icp_native_regs[cpu]->xirr.word);
 }
@@ -124,10 +131,14 @@ static unsigned int icp_native_get_irq(void)
 	unsigned int irq;
 
 	if (vec == XICS_IRQ_SPURIOUS)
+	{
 		return 0;
+	}
 
 	irq = irq_find_mapping(xics_host, vec);
-	if (likely(irq)) {
+
+	if (likely(irq))
+	{
 		xics_push_cppr(vec);
 		return irq;
 	}
@@ -147,14 +158,19 @@ static void icp_native_cause_ipi(int cpu, unsigned long data)
 {
 	kvmppc_set_host_ipi(cpu, 1);
 #ifdef CONFIG_PPC_DOORBELL
-	if (cpu_has_feature(CPU_FTR_DBELL)) {
-		if (cpumask_test_cpu(cpu, cpu_sibling_mask(get_cpu()))) {
+
+	if (cpu_has_feature(CPU_FTR_DBELL))
+	{
+		if (cpumask_test_cpu(cpu, cpu_sibling_mask(get_cpu())))
+		{
 			doorbell_cause_ipi(cpu, data);
 			put_cpu();
 			return;
 		}
+
 		put_cpu();
 	}
+
 #endif
 	icp_native_set_qirr(cpu, IPI_PRIORITY);
 }
@@ -190,17 +206,24 @@ void icp_native_flush_interrupt(void)
 	unsigned int vec = xirr & 0x00ffffff;
 
 	if (vec == XICS_IRQ_SPURIOUS)
+	{
 		return;
-	if (vec == XICS_IPI) {
+	}
+
+	if (vec == XICS_IPI)
+	{
 		/* Clear pending IPI */
 		int cpu = smp_processor_id();
 		kvmppc_set_host_ipi(cpu, 0);
 		icp_native_set_qirr(cpu, 0xff);
-	} else {
+	}
+	else
+	{
 		pr_err("XICS: hw interrupt 0x%x to offline cpu, disabling\n",
-		       vec);
+			   vec);
 		xics_mask_unknown_vec(vec);
 	}
+
 	/* EOI the interrupt */
 	icp_native_set_xirr(xirr);
 }
@@ -224,7 +247,7 @@ static irqreturn_t icp_native_ipi_action(int irq, void *dev_id)
 #endif /* CONFIG_SMP */
 
 static int __init icp_native_map_one_cpu(int hw_id, unsigned long addr,
-					 unsigned long size)
+		unsigned long size)
 {
 	char *rname;
 	int i, cpu = -1;
@@ -232,10 +255,15 @@ static int __init icp_native_map_one_cpu(int hw_id, unsigned long addr,
 	/* This may look gross but it's good enough for now, we don't quite
 	 * have a hard -> linux processor id matching.
 	 */
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		if (!cpu_present(i))
+		{
 			continue;
-		if (hw_id == get_hard_smp_processor_id(i)) {
+		}
+
+		if (hw_id == get_hard_smp_processor_id(i))
+		{
 			cpu = i;
 			break;
 		}
@@ -245,32 +273,38 @@ static int __init icp_native_map_one_cpu(int hw_id, unsigned long addr,
 	 * with way more entries in there than you have CPUs
 	 */
 	if (cpu == -1)
+	{
 		return 0;
+	}
 
 	rname = kasprintf(GFP_KERNEL, "CPU %d [0x%x] Interrupt Presentation",
-			  cpu, hw_id);
+					  cpu, hw_id);
 
-	if (!request_mem_region(addr, size, rname)) {
+	if (!request_mem_region(addr, size, rname))
+	{
 		pr_warning("icp_native: Could not reserve ICP MMIO"
-			   " for CPU %d, interrupt server #0x%x\n",
-			   cpu, hw_id);
+				   " for CPU %d, interrupt server #0x%x\n",
+				   cpu, hw_id);
 		return -EBUSY;
 	}
 
 	icp_native_regs[cpu] = ioremap(addr, size);
 	kvmppc_set_xics_phys(cpu, addr);
-	if (!icp_native_regs[cpu]) {
+
+	if (!icp_native_regs[cpu])
+	{
 		pr_warning("icp_native: Failed ioremap for CPU %d, "
-			   "interrupt server #0x%x, addr %#lx\n",
-			   cpu, hw_id, addr);
+				   "interrupt server #0x%x, addr %#lx\n",
+				   cpu, hw_id, addr);
 		release_mem_region(addr, size);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
 static int __init icp_native_init_one_node(struct device_node *np,
-					   unsigned int *indx)
+		unsigned int *indx)
 {
 	unsigned int ilen;
 	const __be32 *ireg;
@@ -288,48 +322,63 @@ static int __init icp_native_init_one_node(struct device_node *np,
 	/* Do that ever happen ? we'll know soon enough... but even good'old
 	 * f80 does have that property ..
 	 */
-	WARN_ON((ireg == NULL) || (ilen != 2*sizeof(u32)));
+	WARN_ON((ireg == NULL) || (ilen != 2 * sizeof(u32)));
 
-	if (ireg) {
+	if (ireg)
+	{
 		*indx = of_read_number(ireg, 1);
-		if (ilen >= 2*sizeof(u32))
+
+		if (ilen >= 2 * sizeof(u32))
+		{
 			num_servers = of_read_number(ireg + 1, 1);
+		}
 	}
 
 	ireg = of_get_property(np, "reg", &ilen);
-	if (!ireg) {
+
+	if (!ireg)
+	{
 		pr_err("icp_native: Can't find interrupt reg property");
 		return -1;
 	}
 
 	reg_tuple_size = (of_n_addr_cells(np) + of_n_size_cells(np)) * 4;
+
 	if (((ilen % reg_tuple_size) != 0)
-	    || (num_servers && (num_servers != (ilen / reg_tuple_size)))) {
+		|| (num_servers && (num_servers != (ilen / reg_tuple_size))))
+	{
 		pr_err("icp_native: ICP reg len (%d) != num servers (%d)",
-		       ilen / reg_tuple_size, num_servers);
+			   ilen / reg_tuple_size, num_servers);
 		return -1;
 	}
 
-	for (i = 0; i < (ilen / reg_tuple_size); i++) {
+	for (i = 0; i < (ilen / reg_tuple_size); i++)
+	{
 		struct resource r;
 		int err;
 
 		err = of_address_to_resource(np, i, &r);
-		if (err) {
+
+		if (err)
+		{
 			pr_err("icp_native: Could not translate ICP MMIO"
-			       " for interrupt server 0x%x (%d)\n", *indx, err);
+				   " for interrupt server 0x%x (%d)\n", *indx, err);
 			return -1;
 		}
 
 		if (icp_native_map_one_cpu(*indx, r.start, resource_size(&r)))
+		{
 			return -1;
+		}
 
 		(*indx)++;
 	}
+
 	return 0;
 }
 
-static const struct icp_ops icp_native_ops = {
+static const struct icp_ops icp_native_ops =
+{
 	.get_irq	= icp_native_get_irq,
 	.eoi		= icp_native_eoi,
 	.set_priority	= icp_native_set_cpu_priority,
@@ -348,18 +397,28 @@ int __init icp_native_init(void)
 	int found = 0;
 
 	for_each_compatible_node(np, NULL, "ibm,ppc-xicp")
-		if (icp_native_init_one_node(np, &indx) == 0)
-			found = 1;
-	if (!found) {
+
+	if (icp_native_init_one_node(np, &indx) == 0)
+	{
+		found = 1;
+	}
+
+	if (!found)
+	{
 		for_each_node_by_type(np,
-			"PowerPC-External-Interrupt-Presentation") {
-				if (icp_native_init_one_node(np, &indx) == 0)
-					found = 1;
+							  "PowerPC-External-Interrupt-Presentation")
+		{
+			if (icp_native_init_one_node(np, &indx) == 0)
+			{
+				found = 1;
+			}
 		}
 	}
 
 	if (found == 0)
+	{
 		return -ENODEV;
+	}
 
 	icp_ops = &icp_native_ops;
 

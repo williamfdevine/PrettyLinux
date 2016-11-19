@@ -23,7 +23,7 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 
 static inline
 void dma_cache_sync(void *vaddr, size_t size,
-		    enum dma_data_direction direction)
+					enum dma_data_direction direction)
 {
 	mn10300_dcache_flush_inv();
 }

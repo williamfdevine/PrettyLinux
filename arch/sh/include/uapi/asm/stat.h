@@ -1,7 +1,8 @@
 #ifndef __ASM_SH_STAT_H
 #define __ASM_SH_STAT_H
 
-struct __old_kernel_stat {
+struct __old_kernel_stat
+{
 	unsigned short st_dev;
 	unsigned short st_ino;
 	unsigned short st_mode;
@@ -16,7 +17,8 @@ struct __old_kernel_stat {
 };
 
 #if defined(__SH5__) || defined(CONFIG_CPU_SH5)
-struct stat {
+struct stat
+{
 	unsigned short st_dev;
 	unsigned short __pad1;
 	unsigned long st_ino;
@@ -42,7 +44,8 @@ struct stat {
 /* This matches struct stat64 in glibc2.1, hence the absolutely
  * insane amounts of padding around dev_t's.
  */
-struct stat64 {
+struct stat64
+{
 	unsigned short	st_dev;
 	unsigned char	__pad0[10];
 
@@ -75,7 +78,8 @@ struct stat64 {
 	unsigned long	__unused2;
 };
 #else
-struct stat {
+struct stat
+{
 	unsigned long  st_dev;
 	unsigned long  st_ino;
 	unsigned short st_mode;
@@ -99,7 +103,8 @@ struct stat {
 /* This matches struct stat64 in glibc2.1, hence the absolutely
  * insane amounts of padding around dev_t's.
  */
-struct stat64 {
+struct stat64
+{
 	unsigned long long	st_dev;
 	unsigned char	__pad0[4];
 

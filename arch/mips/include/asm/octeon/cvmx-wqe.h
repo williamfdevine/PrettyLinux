@@ -45,43 +45,45 @@
 
 #define OCT_TAG_TYPE_STRING(x)						\
 	(((x) == CVMX_POW_TAG_TYPE_ORDERED) ?  "ORDERED" :		\
-		(((x) == CVMX_POW_TAG_TYPE_ATOMIC) ?  "ATOMIC" :	\
-			(((x) == CVMX_POW_TAG_TYPE_NULL) ?  "NULL" :	\
-				"NULL_NULL")))
+	 (((x) == CVMX_POW_TAG_TYPE_ATOMIC) ?  "ATOMIC" :	\
+	  (((x) == CVMX_POW_TAG_TYPE_NULL) ?  "NULL" :	\
+	   "NULL_NULL")))
 
 /**
  * HW decode / err_code in work queue entry
  */
-typedef union {
+typedef union
+{
 	uint64_t u64;
 
 	/* Use this struct if the hardware determines that the packet is IP */
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
 		/* HW sets this to the number of buffers used by this packet */
-		uint64_t bufs:8;
+		uint64_t bufs: 8;
 		/* HW sets to the number of L2 bytes prior to the IP */
-		uint64_t ip_offset:8;
+		uint64_t ip_offset: 8;
 		/* set to 1 if we found DSA/VLAN in the L2 */
-		uint64_t vlan_valid:1;
+		uint64_t vlan_valid: 1;
 		/* Set to 1 if the DSA/VLAN tag is stacked */
-		uint64_t vlan_stacked:1;
-		uint64_t unassigned:1;
+		uint64_t vlan_stacked: 1;
+		uint64_t unassigned: 1;
 		/* HW sets to the DSA/VLAN CFI flag (valid when vlan_valid) */
-		uint64_t vlan_cfi:1;
+		uint64_t vlan_cfi: 1;
 		/* HW sets to the DSA/VLAN_ID field (valid when vlan_valid) */
-		uint64_t vlan_id:12;
+		uint64_t vlan_id: 12;
 		/* Ring Identifier (if PCIe). Requires PIP_GBL_CTL[RING_EN]=1 */
-		uint64_t pr:4;
-		uint64_t unassigned2:8;
+		uint64_t pr: 4;
+		uint64_t unassigned2: 8;
 		/* the packet needs to be decompressed */
-		uint64_t dec_ipcomp:1;
+		uint64_t dec_ipcomp: 1;
 		/* the packet is either TCP or UDP */
-		uint64_t tcp_or_udp:1;
+		uint64_t tcp_or_udp: 1;
 		/* the packet needs to be decrypted (ESP or AH) */
-		uint64_t dec_ipsec:1;
+		uint64_t dec_ipsec: 1;
 		/* the packet is IPv6 */
-		uint64_t is_v6:1;
+		uint64_t is_v6: 1;
 
 		/*
 		 * (rcv_error, not_IP, IP_exc, is_frag, L4_error,
@@ -92,7 +94,7 @@ typedef union {
 		 * reserved for software use, hardware will clear on
 		 * packet creation.
 		 */
-		uint64_t software:1;
+		uint64_t software: 1;
 		/* exceptional conditions below */
 		/* the receive interface hardware detected an L4 error
 		 * (only applies if !is_frag) (only applies if
@@ -120,9 +122,9 @@ typedef union {
 		 * - 13 = TCP SYN FIN: the packet is TCP and both SYN
 		 *	  and FIN are set.
 		 */
-		uint64_t L4_error:1;
+		uint64_t L4_error: 1;
 		/* set if the packet is a fragment */
-		uint64_t is_frag:1;
+		uint64_t is_frag: 1;
 		/* the receive interface hardware detected an IP error
 		 * / exception (only applies if !rcv_error && !not_IP)
 		 * failure indicated in err_code below, decode:
@@ -140,117 +142,119 @@ typedef union {
 		 *	 Hop Count field are zero.
 		 * - 6 = IP Options
 		 */
-		uint64_t IP_exc:1;
+		uint64_t IP_exc: 1;
 		/*
 		 * Set if the hardware determined that the packet is a
 		 * broadcast.
 		 */
-		uint64_t is_bcast:1;
+		uint64_t is_bcast: 1;
 		/*
 		 * St if the hardware determined that the packet is a
 		 * multi-cast.
 		 */
-		uint64_t is_mcast:1;
+		uint64_t is_mcast: 1;
 		/*
 		 * Set if the packet may not be IP (must be zero in
 		 * this case).
 		 */
-		uint64_t not_IP:1;
+		uint64_t not_IP: 1;
 		/*
 		 * The receive interface hardware detected a receive
 		 * error (must be zero in this case).
 		 */
-		uint64_t rcv_error:1;
+		uint64_t rcv_error: 1;
 		/* lower err_code = first-level descriptor of the
 		 * work */
 		/* zero for packet submitted by hardware that isn't on
 		 * the slow path */
 		/* type is cvmx_pip_err_t */
-		uint64_t err_code:8;
+		uint64_t err_code: 8;
 #else
-	        uint64_t err_code:8;
-	        uint64_t rcv_error:1;
-	        uint64_t not_IP:1;
-	        uint64_t is_mcast:1;
-	        uint64_t is_bcast:1;
-	        uint64_t IP_exc:1;
-	        uint64_t is_frag:1;
-	        uint64_t L4_error:1;
-	        uint64_t software:1;
-	        uint64_t is_v6:1;
-	        uint64_t dec_ipsec:1;
-	        uint64_t tcp_or_udp:1;
-	        uint64_t dec_ipcomp:1;
-	        uint64_t unassigned2:4;
-	        uint64_t unassigned2a:4;
-	        uint64_t pr:4;
-	        uint64_t vlan_id:12;
-	        uint64_t vlan_cfi:1;
-	        uint64_t unassigned:1;
-	        uint64_t vlan_stacked:1;
-	        uint64_t vlan_valid:1;
-	        uint64_t ip_offset:8;
-	        uint64_t bufs:8;
+		uint64_t err_code: 8;
+		uint64_t rcv_error: 1;
+		uint64_t not_IP: 1;
+		uint64_t is_mcast: 1;
+		uint64_t is_bcast: 1;
+		uint64_t IP_exc: 1;
+		uint64_t is_frag: 1;
+		uint64_t L4_error: 1;
+		uint64_t software: 1;
+		uint64_t is_v6: 1;
+		uint64_t dec_ipsec: 1;
+		uint64_t tcp_or_udp: 1;
+		uint64_t dec_ipcomp: 1;
+		uint64_t unassigned2: 4;
+		uint64_t unassigned2a: 4;
+		uint64_t pr: 4;
+		uint64_t vlan_id: 12;
+		uint64_t vlan_cfi: 1;
+		uint64_t unassigned: 1;
+		uint64_t vlan_stacked: 1;
+		uint64_t vlan_valid: 1;
+		uint64_t ip_offset: 8;
+		uint64_t bufs: 8;
 #endif
 	} s;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t bufs:8;
-		uint64_t ip_offset:8;
-		uint64_t vlan_valid:1;
-		uint64_t vlan_stacked:1;
-		uint64_t unassigned:1;
-		uint64_t vlan_cfi:1;
-		uint64_t vlan_id:12;
-		uint64_t port:12;		/* MAC/PIP port number. */
-		uint64_t dec_ipcomp:1;
-		uint64_t tcp_or_udp:1;
-		uint64_t dec_ipsec:1;
-		uint64_t is_v6:1;
-		uint64_t software:1;
-		uint64_t L4_error:1;
-		uint64_t is_frag:1;
-		uint64_t IP_exc:1;
-		uint64_t is_bcast:1;
-		uint64_t is_mcast:1;
-		uint64_t not_IP:1;
-		uint64_t rcv_error:1;
-		uint64_t err_code:8;
+		uint64_t bufs: 8;
+		uint64_t ip_offset: 8;
+		uint64_t vlan_valid: 1;
+		uint64_t vlan_stacked: 1;
+		uint64_t unassigned: 1;
+		uint64_t vlan_cfi: 1;
+		uint64_t vlan_id: 12;
+		uint64_t port: 12;		/* MAC/PIP port number. */
+		uint64_t dec_ipcomp: 1;
+		uint64_t tcp_or_udp: 1;
+		uint64_t dec_ipsec: 1;
+		uint64_t is_v6: 1;
+		uint64_t software: 1;
+		uint64_t L4_error: 1;
+		uint64_t is_frag: 1;
+		uint64_t IP_exc: 1;
+		uint64_t is_bcast: 1;
+		uint64_t is_mcast: 1;
+		uint64_t not_IP: 1;
+		uint64_t rcv_error: 1;
+		uint64_t err_code: 8;
 #else
-		uint64_t err_code:8;
-		uint64_t rcv_error:1;
-		uint64_t not_IP:1;
-		uint64_t is_mcast:1;
-		uint64_t is_bcast:1;
-		uint64_t IP_exc:1;
-		uint64_t is_frag:1;
-		uint64_t L4_error:1;
-		uint64_t software:1;
-		uint64_t is_v6:1;
-		uint64_t dec_ipsec:1;
-		uint64_t tcp_or_udp:1;
-		uint64_t dec_ipcomp:1;
-		uint64_t port:12;
-		uint64_t vlan_id:12;
-		uint64_t vlan_cfi:1;
-		uint64_t unassigned:1;
-		uint64_t vlan_stacked:1;
-		uint64_t vlan_valid:1;
-		uint64_t ip_offset:8;
-		uint64_t bufs:8;
+		uint64_t err_code: 8;
+		uint64_t rcv_error: 1;
+		uint64_t not_IP: 1;
+		uint64_t is_mcast: 1;
+		uint64_t is_bcast: 1;
+		uint64_t IP_exc: 1;
+		uint64_t is_frag: 1;
+		uint64_t L4_error: 1;
+		uint64_t software: 1;
+		uint64_t is_v6: 1;
+		uint64_t dec_ipsec: 1;
+		uint64_t tcp_or_udp: 1;
+		uint64_t dec_ipcomp: 1;
+		uint64_t port: 12;
+		uint64_t vlan_id: 12;
+		uint64_t vlan_cfi: 1;
+		uint64_t unassigned: 1;
+		uint64_t vlan_stacked: 1;
+		uint64_t vlan_valid: 1;
+		uint64_t ip_offset: 8;
+		uint64_t bufs: 8;
 #endif
 	} s_cn68xx;
 
 	/* use this to get at the 16 vlan bits */
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t unused1:16;
-		uint64_t vlan:16;
-		uint64_t unused2:32;
+		uint64_t unused1: 16;
+		uint64_t vlan: 16;
+		uint64_t unused2: 32;
 #else
-	        uint64_t unused2:32;
-	        uint64_t vlan:16;
-	        uint64_t unused1:16;
+		uint64_t unused2: 32;
+		uint64_t vlan: 16;
+		uint64_t unused1: 16;
 
 #endif
 	} svlan;
@@ -259,66 +263,67 @@ typedef union {
 	 * use this struct if the hardware could not determine that
 	 * the packet is ip.
 	 */
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
 		/*
 		 * HW sets this to the number of buffers used by this
 		 * packet.
 		 */
-		uint64_t bufs:8;
-		uint64_t unused:8;
+		uint64_t bufs: 8;
+		uint64_t unused: 8;
 		/* set to 1 if we found DSA/VLAN in the L2 */
-		uint64_t vlan_valid:1;
+		uint64_t vlan_valid: 1;
 		/* Set to 1 if the DSA/VLAN tag is stacked */
-		uint64_t vlan_stacked:1;
-		uint64_t unassigned:1;
+		uint64_t vlan_stacked: 1;
+		uint64_t unassigned: 1;
 		/*
 		 * HW sets to the DSA/VLAN CFI flag (valid when
 		 * vlan_valid)
 		 */
-		uint64_t vlan_cfi:1;
+		uint64_t vlan_cfi: 1;
 		/*
 		 * HW sets to the DSA/VLAN_ID field (valid when
 		 * vlan_valid).
 		 */
-		uint64_t vlan_id:12;
+		uint64_t vlan_id: 12;
 		/*
 		 * Ring Identifier (if PCIe). Requires
 		 * PIP_GBL_CTL[RING_EN]=1
 		 */
-		uint64_t pr:4;
-		uint64_t unassigned2:12;
+		uint64_t pr: 4;
+		uint64_t unassigned2: 12;
 		/*
 		 * reserved for software use, hardware will clear on
 		 * packet creation.
 		 */
-		uint64_t software:1;
-		uint64_t unassigned3:1;
+		uint64_t software: 1;
+		uint64_t unassigned3: 1;
 		/*
 		 * set if the hardware determined that the packet is
 		 * rarp.
 		 */
-		uint64_t is_rarp:1;
+		uint64_t is_rarp: 1;
 		/*
 		 * set if the hardware determined that the packet is
 		 * arp
 		 */
-		uint64_t is_arp:1;
+		uint64_t is_arp: 1;
 		/*
 		 * set if the hardware determined that the packet is a
 		 * broadcast.
 		 */
-		uint64_t is_bcast:1;
+		uint64_t is_bcast: 1;
 		/*
 		 * set if the hardware determined that the packet is a
 		 * multi-cast
 		 */
-		uint64_t is_mcast:1;
+		uint64_t is_mcast: 1;
 		/*
 		 * set if the packet may not be IP (must be one in
 		 * this case)
 		 */
-		uint64_t not_IP:1;
+		uint64_t not_IP: 1;
 		/* The receive interface hardware detected a receive
 		 * error.  Failure indicated in err_code below,
 		 * decode:
@@ -366,7 +371,7 @@ typedef union {
 		 *	  enough to contain the L2.
 		 */
 
-		uint64_t rcv_error:1;
+		uint64_t rcv_error: 1;
 		/*
 		 * lower err_code = first-level descriptor of the
 		 * work
@@ -376,34 +381,36 @@ typedef union {
 		 * the slow path
 		 */
 		/* type is cvmx_pip_err_t (union, so can't use directly */
-		uint64_t err_code:8;
+		uint64_t err_code: 8;
 #else
-	        uint64_t err_code:8;
-	        uint64_t rcv_error:1;
-	        uint64_t not_IP:1;
-	        uint64_t is_mcast:1;
-	        uint64_t is_bcast:1;
-	        uint64_t is_arp:1;
-	        uint64_t is_rarp:1;
-	        uint64_t unassigned3:1;
-	        uint64_t software:1;
-	        uint64_t unassigned2:4;
-	        uint64_t unassigned2a:8;
-	        uint64_t pr:4;
-	        uint64_t vlan_id:12;
-	        uint64_t vlan_cfi:1;
-	        uint64_t unassigned:1;
-	        uint64_t vlan_stacked:1;
-	        uint64_t vlan_valid:1;
-	        uint64_t unused:8;
-	        uint64_t bufs:8;
+		uint64_t err_code: 8;
+		uint64_t rcv_error: 1;
+		uint64_t not_IP: 1;
+		uint64_t is_mcast: 1;
+		uint64_t is_bcast: 1;
+		uint64_t is_arp: 1;
+		uint64_t is_rarp: 1;
+		uint64_t unassigned3: 1;
+		uint64_t software: 1;
+		uint64_t unassigned2: 4;
+		uint64_t unassigned2a: 8;
+		uint64_t pr: 4;
+		uint64_t vlan_id: 12;
+		uint64_t vlan_cfi: 1;
+		uint64_t unassigned: 1;
+		uint64_t vlan_stacked: 1;
+		uint64_t vlan_valid: 1;
+		uint64_t unused: 8;
+		uint64_t bufs: 8;
 #endif
 	} snoip;
 
 } cvmx_pip_wqe_word2;
 
-union cvmx_pip_wqe_word0 {
-	struct {
+union cvmx_pip_wqe_word0
+{
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
 		/**
 		 * raw chksum result generated by the HW
@@ -419,125 +426,131 @@ union cvmx_pip_wqe_word0 {
 		 * entry is scheduled to a PP (Only 36 bits used in
 		 * Octeon 1)
 		 */
-		uint64_t next_ptr:40;
+		uint64_t next_ptr: 40;
 #else
-		uint64_t next_ptr:40;
+		uint64_t next_ptr: 40;
 		uint8_t unused;
 		uint16_t hw_chksum;
 #endif
 	} cn38xx;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t l4ptr:8;       /* 56..63 */
-		uint64_t unused0:8;     /* 48..55 */
-		uint64_t l3ptr:8;       /* 40..47 */
-		uint64_t l2ptr:8;       /* 32..39 */
-		uint64_t unused1:18;    /* 14..31 */
-		uint64_t bpid:6;        /* 8..13 */
-		uint64_t unused2:2;     /* 6..7 */
-		uint64_t pknd:6;        /* 0..5 */
+		uint64_t l4ptr: 8;      /* 56..63 */
+		uint64_t unused0: 8;    /* 48..55 */
+		uint64_t l3ptr: 8;      /* 40..47 */
+		uint64_t l2ptr: 8;      /* 32..39 */
+		uint64_t unused1: 18;   /* 14..31 */
+		uint64_t bpid: 6;       /* 8..13 */
+		uint64_t unused2: 2;    /* 6..7 */
+		uint64_t pknd: 6;       /* 0..5 */
 #else
-		uint64_t pknd:6;        /* 0..5 */
-		uint64_t unused2:2;     /* 6..7 */
-		uint64_t bpid:6;        /* 8..13 */
-		uint64_t unused1:18;    /* 14..31 */
-		uint64_t l2ptr:8;       /* 32..39 */
-		uint64_t l3ptr:8;       /* 40..47 */
-		uint64_t unused0:8;     /* 48..55 */
-		uint64_t l4ptr:8;       /* 56..63 */
+		uint64_t pknd: 6;       /* 0..5 */
+		uint64_t unused2: 2;    /* 6..7 */
+		uint64_t bpid: 6;       /* 8..13 */
+		uint64_t unused1: 18;   /* 14..31 */
+		uint64_t l2ptr: 8;      /* 32..39 */
+		uint64_t l3ptr: 8;      /* 40..47 */
+		uint64_t unused0: 8;    /* 48..55 */
+		uint64_t l4ptr: 8;      /* 56..63 */
 #endif
 	} cn68xx;
 };
 
-union cvmx_wqe_word0 {
+union cvmx_wqe_word0
+{
 	uint64_t u64;
 	union cvmx_pip_wqe_word0 pip;
 };
 
-union cvmx_wqe_word1 {
+union cvmx_wqe_word1
+{
 	uint64_t u64;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t len:16;
-		uint64_t varies:14;
+		uint64_t len: 16;
+		uint64_t varies: 14;
 		/**
 		 * the type of the tag (ORDERED, ATOMIC, NULL)
 		 */
-		uint64_t tag_type:2;
-		uint64_t tag:32;
+		uint64_t tag_type: 2;
+		uint64_t tag: 32;
 #else
-		uint64_t tag:32;
-		uint64_t tag_type:2;
-		uint64_t varies:14;
-		uint64_t len:16;
+		uint64_t tag: 32;
+		uint64_t tag_type: 2;
+		uint64_t varies: 14;
+		uint64_t len: 16;
 #endif
 	};
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t len:16;
-		uint64_t zero_0:1;
+		uint64_t len: 16;
+		uint64_t zero_0: 1;
 		/**
 		 * HW sets this to what it thought the priority of
 		 * the input packet was
 		 */
-		uint64_t qos:3;
+		uint64_t qos: 3;
 
-		uint64_t zero_1:1;
+		uint64_t zero_1: 1;
 		/**
 		 * the group that the work queue entry will be scheduled to
 		 */
-		uint64_t grp:6;
-		uint64_t zero_2:3;
-		uint64_t tag_type:2;
-		uint64_t tag:32;
+		uint64_t grp: 6;
+		uint64_t zero_2: 3;
+		uint64_t tag_type: 2;
+		uint64_t tag: 32;
 #else
-		uint64_t tag:32;
-		uint64_t tag_type:2;
-		uint64_t zero_2:3;
-		uint64_t grp:6;
-		uint64_t zero_1:1;
-		uint64_t qos:3;
-		uint64_t zero_0:1;
-		uint64_t len:16;
+		uint64_t tag: 32;
+		uint64_t tag_type: 2;
+		uint64_t zero_2: 3;
+		uint64_t grp: 6;
+		uint64_t zero_1: 1;
+		uint64_t qos: 3;
+		uint64_t zero_0: 1;
+		uint64_t len: 16;
 #endif
 	} cn68xx;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
 		/**
 		 * HW sets to the total number of bytes in the packet
 		 */
-		uint64_t len:16;
+		uint64_t len: 16;
 		/**
 		 * HW sets this to input physical port
 		 */
-		uint64_t ipprt:6;
+		uint64_t ipprt: 6;
 
 		/**
 		 * HW sets this to what it thought the priority of
 		 * the input packet was
 		 */
-		uint64_t qos:3;
+		uint64_t qos: 3;
 
 		/**
 		 * the group that the work queue entry will be scheduled to
 		 */
-		uint64_t grp:4;
+		uint64_t grp: 4;
 		/**
 		 * the type of the tag (ORDERED, ATOMIC, NULL)
 		 */
-		uint64_t tag_type:3;
+		uint64_t tag_type: 3;
 		/**
 		 * the synchronization/ordering tag
 		 */
-		uint64_t tag:32;
+		uint64_t tag: 32;
 #else
-		uint64_t tag:32;
-		uint64_t tag_type:2;
-		uint64_t zero_2:1;
-		uint64_t grp:4;
-		uint64_t qos:3;
-		uint64_t ipprt:6;
-		uint64_t len:16;
+		uint64_t tag: 32;
+		uint64_t tag_type: 2;
+		uint64_t zero_2: 1;
+		uint64_t grp: 4;
+		uint64_t qos: 3;
+		uint64_t ipprt: 6;
+		uint64_t len: 16;
 #endif
 	} cn38xx;
 };
@@ -547,51 +560,52 @@ union cvmx_wqe_word1 {
  *
  * must be 8-byte aligned
  */
-typedef struct {
+typedef struct
+{
 
-    /*****************************************************************
-     * WORD 0
-     *	HW WRITE: the following 64 bits are filled by HW when a packet arrives
-     */
+	/*****************************************************************
+	 * WORD 0
+	 *	HW WRITE: the following 64 bits are filled by HW when a packet arrives
+	 */
 	union cvmx_wqe_word0 word0;
 
-    /*****************************************************************
-     * WORD 1
-     *	HW WRITE: the following 64 bits are filled by HW when a packet arrives
-     */
+	/*****************************************************************
+	 * WORD 1
+	 *	HW WRITE: the following 64 bits are filled by HW when a packet arrives
+	 */
 	union cvmx_wqe_word1 word1;
 
-    /**
-     * WORD 2 HW WRITE: the following 64-bits are filled in by
-     *	 hardware when a packet arrives This indicates a variety of
-     *	 status and error conditions.
-     */
+	/**
+	 * WORD 2 HW WRITE: the following 64-bits are filled in by
+	 *	 hardware when a packet arrives This indicates a variety of
+	 *	 status and error conditions.
+	 */
 	cvmx_pip_wqe_word2 word2;
 
-    /**
-     * Pointer to the first segment of the packet.
-     */
+	/**
+	 * Pointer to the first segment of the packet.
+	 */
 	union cvmx_buf_ptr packet_ptr;
 
-    /**
-     *	 HW WRITE: octeon will fill in a programmable amount from the
-     *		   packet, up to (at most, but perhaps less) the amount
-     *		   needed to fill the work queue entry to 128 bytes
-     *
-     *	 If the packet is recognized to be IP, the hardware starts
-     *	 (except that the IPv4 header is padded for appropriate
-     *	 alignment) writing here where the IP header starts.  If the
-     *	 packet is not recognized to be IP, the hardware starts
-     *	 writing the beginning of the packet here.
-     */
+	/**
+	 *	 HW WRITE: octeon will fill in a programmable amount from the
+	 *		   packet, up to (at most, but perhaps less) the amount
+	 *		   needed to fill the work queue entry to 128 bytes
+	 *
+	 *	 If the packet is recognized to be IP, the hardware starts
+	 *	 (except that the IPv4 header is padded for appropriate
+	 *	 alignment) writing here where the IP header starts.  If the
+	 *	 packet is not recognized to be IP, the hardware starts
+	 *	 writing the beginning of the packet here.
+	 */
 	uint8_t packet_data[96];
 
-    /**
-     * If desired, SW can make the work Q entry any length. For the
-     * purposes of discussion here, Assume 128B always, as this is all that
-     * the hardware deals with.
-     *
-     */
+	/**
+	 * If desired, SW can make the work Q entry any length. For the
+	 * purposes of discussion here, Assume 128B always, as this is all that
+	 * the hardware deals with.
+	 *
+	 */
 
 } CVMX_CACHE_LINE_ALIGNED cvmx_wqe_t;
 
@@ -600,9 +614,13 @@ static inline int cvmx_wqe_get_port(cvmx_wqe_t *work)
 	int port;
 
 	if (octeon_has_feature(OCTEON_FEATURE_CN68XX_WQE))
+	{
 		port = work->word2.s_cn68xx.port;
+	}
 	else
+	{
 		port = work->word1.cn38xx.ipprt;
+	}
 
 	return port;
 }
@@ -610,9 +628,13 @@ static inline int cvmx_wqe_get_port(cvmx_wqe_t *work)
 static inline void cvmx_wqe_set_port(cvmx_wqe_t *work, int port)
 {
 	if (octeon_has_feature(OCTEON_FEATURE_CN68XX_WQE))
+	{
 		work->word2.s_cn68xx.port = port;
+	}
 	else
+	{
 		work->word1.cn38xx.ipprt = port;
+	}
 }
 
 static inline int cvmx_wqe_get_grp(cvmx_wqe_t *work)
@@ -620,9 +642,13 @@ static inline int cvmx_wqe_get_grp(cvmx_wqe_t *work)
 	int grp;
 
 	if (octeon_has_feature(OCTEON_FEATURE_CN68XX_WQE))
+	{
 		grp = work->word1.cn68xx.grp;
+	}
 	else
+	{
 		grp = work->word1.cn38xx.grp;
+	}
 
 	return grp;
 }
@@ -630,9 +656,13 @@ static inline int cvmx_wqe_get_grp(cvmx_wqe_t *work)
 static inline void cvmx_wqe_set_grp(cvmx_wqe_t *work, int grp)
 {
 	if (octeon_has_feature(OCTEON_FEATURE_CN68XX_WQE))
+	{
 		work->word1.cn68xx.grp = grp;
+	}
 	else
+	{
 		work->word1.cn38xx.grp = grp;
+	}
 }
 
 static inline int cvmx_wqe_get_qos(cvmx_wqe_t *work)
@@ -640,9 +670,13 @@ static inline int cvmx_wqe_get_qos(cvmx_wqe_t *work)
 	int qos;
 
 	if (octeon_has_feature(OCTEON_FEATURE_CN68XX_WQE))
+	{
 		qos = work->word1.cn68xx.qos;
+	}
 	else
+	{
 		qos = work->word1.cn38xx.qos;
+	}
 
 	return qos;
 }
@@ -650,9 +684,13 @@ static inline int cvmx_wqe_get_qos(cvmx_wqe_t *work)
 static inline void cvmx_wqe_set_qos(cvmx_wqe_t *work, int qos)
 {
 	if (octeon_has_feature(OCTEON_FEATURE_CN68XX_WQE))
+	{
 		work->word1.cn68xx.qos = qos;
+	}
 	else
+	{
 		work->word1.cn38xx.qos = qos;
+	}
 }
 
 #endif /* __CVMX_WQE_H__ */

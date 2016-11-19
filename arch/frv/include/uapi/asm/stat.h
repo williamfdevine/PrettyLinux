@@ -1,7 +1,8 @@
 #ifndef _ASM_STAT_H
 #define _ASM_STAT_H
 
-struct __old_kernel_stat {
+struct __old_kernel_stat
+{
 	unsigned short st_dev;
 	unsigned short st_ino;
 	unsigned short st_mode;
@@ -16,7 +17,8 @@ struct __old_kernel_stat {
 };
 
 /* This matches struct stat in uClibc/glibc.  */
-struct stat {
+struct stat
+{
 	unsigned char __pad1[6];
 	unsigned short st_dev;
 
@@ -62,7 +64,8 @@ struct stat {
    space that was formerly used by padding.  stat syscalls are still
    different from stat64, though, in that the former tests for
    overflow.  */
-struct stat64 {
+struct stat64
+{
 	unsigned char __pad1[6];
 	unsigned short st_dev;
 

@@ -105,7 +105,8 @@ static void __iomem *cpld;
  */
 #define NAND_BLOCK_SIZE		SZ_128K
 
-static struct mtd_partition davinci_nand_partitions[] = {
+static struct mtd_partition davinci_nand_partitions[] =
+{
 	{
 		/* UBL (a few copies) plus U-Boot */
 		.name		= "bootloader",
@@ -137,7 +138,8 @@ static struct mtd_partition davinci_nand_partitions[] = {
 	/* two blocks with bad block table (and mirror) at the end */
 };
 
-static struct davinci_nand_pdata davinci_nand_data = {
+static struct davinci_nand_pdata davinci_nand_data =
+{
 	.mask_chipsel		= BIT(14),
 	.parts			= davinci_nand_partitions,
 	.nr_parts		= ARRAY_SIZE(davinci_nand_partitions),
@@ -146,7 +148,8 @@ static struct davinci_nand_pdata davinci_nand_data = {
 	.ecc_bits		= 4,
 };
 
-static struct resource davinci_nand_resources[] = {
+static struct resource davinci_nand_resources[] =
+{
 	{
 		.start		= DM365_ASYNC_EMIF_DATA_CE0_BASE,
 		.end		= DM365_ASYNC_EMIF_DATA_CE0_BASE + SZ_32M - 1,
@@ -158,7 +161,8 @@ static struct resource davinci_nand_resources[] = {
 	},
 };
 
-static struct platform_device davinci_nand_device = {
+static struct platform_device davinci_nand_device =
+{
 	.name			= "davinci_nand",
 	.id			= 0,
 	.num_resources		= ARRAY_SIZE(davinci_nand_resources),
@@ -168,15 +172,17 @@ static struct platform_device davinci_nand_device = {
 	},
 };
 
-static struct at24_platform_data eeprom_info = {
-	.byte_len       = (256*1024) / 8,
+static struct at24_platform_data eeprom_info =
+{
+	.byte_len       = (256 * 1024) / 8,
 	.page_size      = 64,
 	.flags          = AT24_FLAG_ADDR16,
 	.setup          = davinci_get_mac_addr,
 	.context	= (void *)0x7f00,
 };
 
-static struct i2c_board_info i2c_info[] = {
+static struct i2c_board_info i2c_info[] =
+{
 	{
 		I2C_BOARD_INFO("24c256", 0x50),
 		.platform_data	= &eeprom_info,
@@ -186,7 +192,8 @@ static struct i2c_board_info i2c_info[] = {
 	},
 };
 
-static struct davinci_i2c_platform_data i2c_pdata = {
+static struct davinci_i2c_platform_data i2c_pdata =
+{
 	.bus_freq	= 400	/* kHz */,
 	.bus_delay	= 0	/* usec */,
 };
@@ -196,7 +203,8 @@ static int dm365evm_keyscan_enable(struct device *dev)
 	return davinci_cfg_reg(DM365_KEYSCAN);
 }
 
-static unsigned short dm365evm_keymap[] = {
+static unsigned short dm365evm_keymap[] =
+{
 	KEY_KP2,
 	KEY_LEFT,
 	KEY_EXIT,
@@ -216,7 +224,8 @@ static unsigned short dm365evm_keymap[] = {
 	0
 };
 
-static struct davinci_ks_platform_data dm365evm_ks_data = {
+static struct davinci_ks_platform_data dm365evm_ks_data =
+{
 	.device_enable	= dm365evm_keyscan_enable,
 	.keymap		= dm365evm_keymap,
 	.keymapsize	= ARRAY_SIZE(dm365evm_keymap),
@@ -230,7 +239,9 @@ static struct davinci_ks_platform_data dm365evm_ks_data = {
 static int cpld_mmc_get_cd(int module)
 {
 	if (!cpld)
+	{
 		return -ENXIO;
+	}
 
 	/* low == card present */
 	return !(__raw_readb(cpld + CPLD_CARDSTAT) & BIT(module ? 4 : 0));
@@ -239,13 +250,16 @@ static int cpld_mmc_get_cd(int module)
 static int cpld_mmc_get_ro(int module)
 {
 	if (!cpld)
+	{
 		return -ENXIO;
+	}
 
 	/* high == card's write protect switch active */
 	return !!(__raw_readb(cpld + CPLD_CARDSTAT) & BIT(module ? 5 : 1));
 }
 
-static struct davinci_mmc_config dm365evm_mmc_config = {
+static struct davinci_mmc_config dm365evm_mmc_config =
+{
 	.get_cd		= cpld_mmc_get_cd,
 	.get_ro		= cpld_mmc_get_ro,
 	.wires		= 4,
@@ -304,7 +318,8 @@ static void dm365evm_mmc_configure(void)
 	davinci_cfg_reg(DM365_SD1_DATA0);
 }
 
-static struct tvp514x_platform_data tvp5146_pdata = {
+static struct tvp514x_platform_data tvp5146_pdata =
+{
 	.clk_polarity = 0,
 	.hs_polarity = 1,
 	.vs_polarity = 1
@@ -312,7 +327,8 @@ static struct tvp514x_platform_data tvp5146_pdata = {
 
 #define TVP514X_STD_ALL        (V4L2_STD_NTSC | V4L2_STD_PAL)
 /* Inputs available at the TVP5146 */
-static struct v4l2_input tvp5146_inputs[] = {
+static struct v4l2_input tvp5146_inputs[] =
+{
 	{
 		.index = 0,
 		.name = "Composite",
@@ -332,18 +348,20 @@ static struct v4l2_input tvp5146_inputs[] = {
  * ouput that goes to vpfe. There is a one to one correspondence
  * with tvp5146_inputs
  */
-static struct vpfe_route tvp5146_routes[] = {
+static struct vpfe_route tvp5146_routes[] =
+{
 	{
 		.input = INPUT_CVBS_VI2B,
 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
 	},
-{
+	{
 		.input = INPUT_SVIDEO_VI2C_VI1C,
 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
 	},
 };
 
-static struct vpfe_subdev_info vpfe_sub_devs[] = {
+static struct vpfe_subdev_info vpfe_sub_devs[] =
+{
 	{
 		.name = "tvp5146",
 		.grp_id = 0,
@@ -363,7 +381,8 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
 	},
 };
 
-static struct vpfe_config vpfe_cfg = {
+static struct vpfe_config vpfe_cfg =
+{
 	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
 	.sub_devs = vpfe_sub_devs,
 	.i2c_adapter_id = 1,
@@ -372,7 +391,8 @@ static struct vpfe_config vpfe_cfg = {
 };
 
 /* venc standards timings */
-static struct vpbe_enc_mode_info dm365evm_enc_std_timing[] = {
+static struct vpbe_enc_mode_info dm365evm_enc_std_timing[] =
+{
 	{
 		.name		= "ntsc",
 		.timings_type	= VPBE_ENC_STD,
@@ -400,7 +420,8 @@ static struct vpbe_enc_mode_info dm365evm_enc_std_timing[] = {
 };
 
 /* venc dv timings */
-static struct vpbe_enc_mode_info dm365evm_enc_preset_timing[] = {
+static struct vpbe_enc_mode_info dm365evm_enc_preset_timing[] =
+{
 	{
 		.name		= "480p59_94",
 		.timings_type	= VPBE_ENC_DV_TIMINGS,
@@ -468,7 +489,8 @@ static struct vpbe_enc_mode_info dm365evm_enc_preset_timing[] = {
  * encoder.Driver uses this index to pass it to encoder when it supports more
  * than one output. Application uses index of the array to set an output.
  */
-static struct vpbe_output dm365evm_vpbe_outputs[] = {
+static struct vpbe_output dm365evm_vpbe_outputs[] =
+{
 	{
 		.output		= {
 			.index		= 0,
@@ -501,13 +523,15 @@ static struct vpbe_output dm365evm_vpbe_outputs[] = {
 /*
  * Amplifiers on the board
  */
-static struct ths7303_platform_data ths7303_pdata = {
+static struct ths7303_platform_data ths7303_pdata =
+{
 	.ch_1 = 3,
 	.ch_2 = 3,
 	.ch_3 = 3,
 };
 
-static struct amp_config_info vpbe_amp = {
+static struct amp_config_info vpbe_amp =
+{
 	.module_name	= "ths7303",
 	.is_i2c		= 1,
 	.board_info	= {
@@ -516,7 +540,8 @@ static struct amp_config_info vpbe_amp = {
 	}
 };
 
-static struct vpbe_config dm365evm_display_cfg = {
+static struct vpbe_config dm365evm_display_cfg =
+{
 	.module_name	= "dm365-vpbe-display",
 	.i2c_adapter_id	= 1,
 	.amp		= &vpbe_amp,
@@ -536,7 +561,8 @@ static void __init evm_init_i2c(void)
 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
 }
 
-static struct platform_device *dm365_evm_nand_devices[] __initdata = {
+static struct platform_device *dm365_evm_nand_devices[] __initdata =
+{
 	&davinci_nand_device,
 };
 
@@ -549,15 +575,18 @@ static inline int have_leds(void)
 #endif
 }
 
-struct cpld_led {
+struct cpld_led
+{
 	struct led_classdev	cdev;
 	u8			mask;
 };
 
-static const struct {
+static const struct
+{
 	const char *name;
 	const char *trigger;
-} cpld_leds[] = {
+} cpld_leds[] =
+{
 	{ "dm365evm::ds2", },
 	{ "dm365evm::ds3", },
 	{ "dm365evm::ds4", },
@@ -574,9 +603,14 @@ static void cpld_led_set(struct led_classdev *cdev, enum led_brightness b)
 	u8 reg = __raw_readb(cpld + CPLD_LEDS);
 
 	if (b != LED_OFF)
+	{
 		reg &= ~led->mask;
+	}
 	else
+	{
 		reg |= led->mask;
+	}
+
 	__raw_writeb(reg, cpld + CPLD_LEDS);
 }
 
@@ -593,16 +627,23 @@ static int __init cpld_leds_init(void)
 	int	i;
 
 	if (!have_leds() ||  !cpld)
+	{
 		return 0;
+	}
 
 	/* setup LEDs */
 	__raw_writeb(0xff, cpld + CPLD_LEDS);
-	for (i = 0; i < ARRAY_SIZE(cpld_leds); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(cpld_leds); i++)
+	{
 		struct cpld_led *led;
 
 		led = kzalloc(sizeof(*led), GFP_KERNEL);
+
 		if (!led)
+		{
 			break;
+		}
 
 		led->cdev.name = cpld_leds[i].name;
 		led->cdev.brightness_set = cpld_led_set;
@@ -610,7 +651,8 @@ static int __init cpld_leds_init(void)
 		led->cdev.default_trigger = cpld_leds[i].trigger;
 		led->mask = BIT(i);
 
-		if (led_classdev_register(NULL, &led->cdev) < 0) {
+		if (led_classdev_register(NULL, &led->cdev) < 0)
+		{
 			kfree(led);
 			break;
 		}
@@ -632,17 +674,26 @@ static void __init evm_init_cpld(void)
 	 * leave it on for later access to MMC and LED registers.
 	 */
 	aemif_clk = clk_get(NULL, "aemif");
+
 	if (IS_ERR(aemif_clk))
+	{
 		return;
+	}
+
 	clk_prepare_enable(aemif_clk);
 
 	if (request_mem_region(DM365_ASYNC_EMIF_DATA_CE1_BASE, SECTION_SIZE,
-			"cpld") == NULL)
+						   "cpld") == NULL)
+	{
 		goto fail;
+	}
+
 	cpld = ioremap(DM365_ASYNC_EMIF_DATA_CE1_BASE, SECTION_SIZE);
-	if (!cpld) {
+
+	if (!cpld)
+	{
 		release_mem_region(DM365_ASYNC_EMIF_DATA_CE1_BASE,
-				SECTION_SIZE);
+						   SECTION_SIZE);
 fail:
 		pr_err("ERROR: can't map CPLD\n");
 		clk_disable_unprepare(aemif_clk);
@@ -655,13 +706,16 @@ fail:
 	/* Read SW5 to set up NAND + keypad _or_ OneNAND (sync read).
 	 * NOTE:  SW4 bus width setting must match!
 	 */
-	if ((__raw_readb(cpld + CPLD_SWITCH) & BIT(5)) == 0) {
+	if ((__raw_readb(cpld + CPLD_SWITCH) & BIT(5)) == 0)
+	{
 		/* external keypad mux */
 		mux |= BIT(7);
 
 		platform_add_devices(dm365_evm_nand_devices,
-				ARRAY_SIZE(dm365_evm_nand_devices));
-	} else {
+							 ARRAY_SIZE(dm365_evm_nand_devices));
+	}
+	else
+	{
 		/* no OneNAND support yet */
 	}
 
@@ -675,13 +729,16 @@ fail:
 	 *
 	 * Runtime switching could work too, with limitations.
 	 */
-	if (have_imager()) {
+	if (have_imager())
+	{
 		label = "HD imager";
 		mux |= 2;
 
 		/* externally mux MMC1/ENET/AIC33 to imager */
 		mux |= BIT(6) | BIT(5) | BIT(3);
-	} else {
+	}
+	else
+	{
 		struct davinci_soc_info *soc_info = &davinci_soc_info;
 
 		/* we can use MMC1 ... */
@@ -696,17 +753,21 @@ fail:
 		/* ... and AIC33 */
 		resets &= ~BIT(1);
 
-		if (have_tvp7002()) {
+		if (have_tvp7002())
+		{
 			mux |= 1;
 			resets &= ~BIT(2);
 			label = "tvp7002 HD";
-		} else {
+		}
+		else
+		{
 			/* default to tvp5146 */
 			mux |= 5;
 			resets &= ~BIT(0);
 			label = "tvp5146 SD";
 		}
 	}
+
 	__raw_writeb(mux, cpld + CPLD_MUX);
 	__raw_writeb(resets, cpld + CPLD_RESETS);
 	pr_info("EVM: %s video input\n", label);
@@ -719,14 +780,16 @@ static void __init dm365_evm_map_io(void)
 	dm365_init();
 }
 
-static struct spi_eeprom at25640 = {
+static struct spi_eeprom at25640 =
+{
 	.byte_len	= SZ_64K / 8,
 	.name		= "at25640",
 	.page_size	= 32,
 	.flags		= EE_ADDR2,
 };
 
-static struct spi_board_info dm365_evm_spi_info[] __initconst = {
+static struct spi_board_info dm365_evm_spi_info[] __initconst =
+{
 	{
 		.modalias	= "at25",
 		.platform_data	= &at25640,
@@ -742,8 +805,11 @@ static __init void dm365_evm_init(void)
 	int ret;
 
 	ret = dm365_gpio_register();
+
 	if (ret)
+	{
 		pr_warn("%s: GPIO init failed: %d\n", __func__, ret);
+	}
 
 	evm_init_i2c();
 	davinci_serial_init(dm365_serial_device);
@@ -767,17 +833,17 @@ static __init void dm365_evm_init(void)
 	dm365_init_ks(&dm365evm_ks_data);
 
 	dm365_init_spi0(BIT(0), dm365_evm_spi_info,
-			ARRAY_SIZE(dm365_evm_spi_info));
+					ARRAY_SIZE(dm365_evm_spi_info));
 }
 
 MACHINE_START(DAVINCI_DM365_EVM, "DaVinci DM365 EVM")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= dm365_evm_map_io,
-	.init_irq	= davinci_irq_init,
-	.init_time	= davinci_timer_init,
-	.init_machine	= dm365_evm_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= davinci_restart,
-MACHINE_END
+		.init_irq	= davinci_irq_init,
+		   .init_time	= davinci_timer_init,
+			 .init_machine	= dm365_evm_init,
+				.init_late	= davinci_init_late,
+				  .dma_zone_size	= SZ_128M,
+					.restart	= davinci_restart,
+						MACHINE_END
 

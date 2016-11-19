@@ -22,9 +22,9 @@
 #define MAX_CPUS_PER_CLUSTER	4
 
 #ifdef CONFIG_MCPM_QUAD_CLUSTER
-#define MAX_NR_CLUSTERS		4
+	#define MAX_NR_CLUSTERS		4
 #else
-#define MAX_NR_CLUSTERS		2
+	#define MAX_NR_CLUSTERS		2
 #endif
 
 #ifndef __ASSEMBLY__
@@ -52,7 +52,7 @@ void mcpm_set_entry_vector(unsigned cpu, unsigned cluster, void *ptr);
  * address must be physical, and if 0 then nothing will happen.
  */
 void mcpm_set_early_poke(unsigned cpu, unsigned cluster,
-			 unsigned long poke_phys_addr, unsigned long poke_val);
+						 unsigned long poke_phys_addr, unsigned long poke_val);
 
 /*
  * CPU/cluster power operations API for higher subsystems to use.
@@ -218,7 +218,8 @@ int mcpm_cpu_powered_up(void);
  * Some reasonable timeout must be considered. Must return 0 for success or
  * negative error code.
  */
-struct mcpm_platform_ops {
+struct mcpm_platform_ops
+{
 	int (*cpu_powerup)(unsigned int cpu, unsigned int cluster);
 	int (*cluster_powerup)(unsigned int cluster);
 	void (*cpu_suspend_prepare)(unsigned int cpu, unsigned int cluster);
@@ -284,9 +285,11 @@ void __init mcpm_smp_set_ops(void);
  * When modifying this structure, make sure you update the MCPM_SYNC_ defines
  * to match.
  */
-struct mcpm_sync_struct {
+struct mcpm_sync_struct
+{
 	/* individual CPU states */
-	struct {
+	struct
+	{
 		s8 cpu __aligned(__CACHE_WRITEBACK_GRANULE);
 	} cpus[MAX_CPUS_PER_CLUSTER];
 
@@ -297,13 +300,14 @@ struct mcpm_sync_struct {
 	s8 inbound __aligned(__CACHE_WRITEBACK_GRANULE);
 };
 
-struct sync_struct {
+struct sync_struct
+{
 	struct mcpm_sync_struct clusters[MAX_NR_CLUSTERS];
 };
 
 #else
 
-/* 
+/*
  * asm-offsets.h causes trouble when included in .c files, and cacheflush.h
  * cannot be included in asm files.  Let's work around the conflict like this.
  */

@@ -120,16 +120,16 @@ static inline void locate_and_init_vga(void *(*sel_func)(void *, void *)) { }
 extern unsigned long srm_hae;
 extern int boot_cpuid;
 #ifdef CONFIG_VERBOSE_MCHECK
-extern unsigned long alpha_verbose_mcheck;
+	extern unsigned long alpha_verbose_mcheck;
 #endif
 
 /* srmcons.c */
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_SRM)
-extern void register_srm_console(void);
-extern void unregister_srm_console(void);
+	extern void register_srm_console(void);
+	extern void unregister_srm_console(void);
 #else
-#define register_srm_console()
-#define unregister_srm_console()
+	#define register_srm_console()
+	#define unregister_srm_console()
 #endif
 
 /* smp.c */
@@ -190,12 +190,12 @@ extern void srm_paging_stop(void);
 
 static inline int
 __alpha_remap_area_pages(unsigned long address, unsigned long phys_addr,
-			 unsigned long size, unsigned long flags)
+						 unsigned long size, unsigned long flags)
 {
 	pgprot_t prot;
 
 	prot = __pgprot(_PAGE_VALID | _PAGE_ASM | _PAGE_KRE
-			| _PAGE_KWE | flags);
+					| _PAGE_KWE | flags);
 	return ioremap_page_range(address, address + size, phys_addr, prot);
 }
 
@@ -219,4 +219,4 @@ extern struct mcheck_info
 #endif
 
 extern void process_mcheck_info(unsigned long vector, unsigned long la_ptr,
-				const char *machine, int expected);
+								const char *machine, int expected);

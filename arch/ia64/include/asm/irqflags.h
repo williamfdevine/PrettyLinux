@@ -18,7 +18,9 @@ extern unsigned long last_cli_ip;
 static inline void arch_maybe_save_ip(unsigned long flags)
 {
 	if (flags & IA64_PSR_I)
+	{
 		last_cli_ip = ia64_getreg(_IA64_REG_IP);
+	}
 }
 #else
 #define arch_maybe_save_ip(flags) do {} while (0)

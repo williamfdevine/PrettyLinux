@@ -26,7 +26,8 @@
  * @SOCK_PACKET - linux specific way of getting packets at the dev level.
  *		  For writing rarp and other similar things on the user level.
  */
-enum sock_type {
+enum sock_type
+{
 	SOCK_DGRAM	= 1,
 	SOCK_STREAM	= 2,
 	SOCK_RAW	= 3,

@@ -2,7 +2,8 @@
 #define __ASM_SH_KDEBUG_H
 
 /* Grossly misnamed. */
-enum die_val {
+enum die_val
+{
 	DIE_TRAP,
 	DIE_NMI,
 	DIE_OOPS,

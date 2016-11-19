@@ -49,7 +49,8 @@
  * This value will be used at the very early stage of serial setup.
  * The bigger value means no problem.
  */
-struct sh_cpuinfo cpu_data[NR_CPUS] __read_mostly = {
+struct sh_cpuinfo cpu_data[NR_CPUS] __read_mostly =
+{
 	[0] = {
 		.type			= CPU_SH_NONE,
 		.family			= CPU_FAMILY_UNKNOWN,
@@ -67,7 +68,7 @@ struct sh_machine_vector sh_mv = { .mv_name = "generic", };
 EXPORT_SYMBOL(sh_mv);
 
 #ifdef CONFIG_VT
-struct screen_info screen_info;
+	struct screen_info screen_info;
 #endif
 
 extern int root_mountflags;
@@ -78,17 +79,20 @@ extern int root_mountflags;
 
 static char __initdata command_line[COMMAND_LINE_SIZE] = { 0, };
 
-static struct resource code_resource = {
+static struct resource code_resource =
+{
 	.name = "Kernel code",
 	.flags = IORESOURCE_BUSY | IORESOURCE_SYSTEM_RAM,
 };
 
-static struct resource data_resource = {
+static struct resource data_resource =
+{
 	.name = "Kernel data",
 	.flags = IORESOURCE_BUSY | IORESOURCE_SYSTEM_RAM,
 };
 
-static struct resource bss_resource = {
+static struct resource bss_resource =
+{
 	.name	= "Kernel bss",
 	.flags	= IORESOURCE_BUSY | IORESOURCE_SYSTEM_RAM,
 };
@@ -106,7 +110,9 @@ int l1i_cache_shape, l1d_cache_shape, l2_cache_shape;
 static int __init early_parse_mem(char *p)
 {
 	if (!p)
+	{
 		return 1;
+	}
 
 	memory_limit = PAGE_ALIGN(memparse(p, &p));
 
@@ -126,28 +132,36 @@ void __init check_for_initrd(void)
 	 * ABI.
 	 */
 	if (!LOADER_TYPE || !INITRD_START || !INITRD_SIZE)
+	{
 		goto disable;
+	}
 
 	start = INITRD_START + __MEMORY_START;
 	end = start + INITRD_SIZE;
 
 	if (unlikely(end <= start))
+	{
 		goto disable;
-	if (unlikely(start & ~PAGE_MASK)) {
+	}
+
+	if (unlikely(start & ~PAGE_MASK))
+	{
 		pr_err("initrd must be page aligned\n");
 		goto disable;
 	}
 
-	if (unlikely(start < __MEMORY_START)) {
+	if (unlikely(start < __MEMORY_START))
+	{
 		pr_err("initrd start (%08lx) < __MEMORY_START(%x)\n",
-			start, __MEMORY_START);
+			   start, __MEMORY_START);
 		goto disable;
 	}
 
-	if (unlikely(end > memblock_end_of_DRAM())) {
+	if (unlikely(end > memblock_end_of_DRAM()))
+	{
 		pr_err("initrd extends beyond end of memory "
-		       "(0x%08lx > 0x%08lx)\ndisabling initrd\n",
-		       end, (unsigned long)memblock_end_of_DRAM());
+			   "(0x%08lx > 0x%08lx)\ndisabling initrd\n",
+			   end, (unsigned long)memblock_end_of_DRAM());
 		goto disable;
 	}
 
@@ -180,20 +194,22 @@ void calibrate_delay(void)
 	struct clk *clk = clk_get(NULL, "cpu_clk");
 
 	if (IS_ERR(clk))
+	{
 		panic("Need a sane CPU clock definition!");
+	}
 
 	loops_per_jiffy = (clk_get_rate(clk) >> 1) / HZ;
 
 	printk(KERN_INFO "Calibrating delay loop (skipped)... "
-			 "%lu.%02lu BogoMIPS PRESET (lpj=%lu)\n",
-			 loops_per_jiffy/(500000/HZ),
-			 (loops_per_jiffy/(5000/HZ)) % 100,
-			 loops_per_jiffy);
+		   "%lu.%02lu BogoMIPS PRESET (lpj=%lu)\n",
+		   loops_per_jiffy / (500000 / HZ),
+		   (loops_per_jiffy / (5000 / HZ)) % 100,
+		   loops_per_jiffy);
 }
 #endif
 
 void __init __add_active_range(unsigned int nid, unsigned long start_pfn,
-						unsigned long end_pfn)
+							   unsigned long end_pfn)
 {
 	struct resource *res = &mem_resources[nid];
 	unsigned long start, end;
@@ -208,9 +224,10 @@ void __init __add_active_range(unsigned int nid, unsigned long start_pfn,
 	res->end = end - 1;
 	res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
 
-	if (request_resource(&iomem_resource, res)) {
+	if (request_resource(&iomem_resource, res))
+	{
 		pr_err("unable to request memory_resource 0x%lx 0x%lx\n",
-		       start_pfn, end_pfn);
+			   start_pfn, end_pfn);
 		return;
 	}
 
@@ -232,10 +249,10 @@ void __init __add_active_range(unsigned int nid, unsigned long start_pfn,
 	 * We can hit this path with NUMA or memory hot-add.
 	 */
 	pmb_bolt_mapping((unsigned long)__va(start), start, end - start,
-			 PAGE_KERNEL);
+					 PAGE_KERNEL);
 
 	memblock_set_node(PFN_PHYS(start_pfn), PFN_PHYS(end_pfn - start_pfn),
-			  &memblock.memory, nid);
+					  &memblock.memory, nid);
 }
 
 void __init __weak plat_early_device_setup(void)
@@ -249,7 +266,7 @@ void __ref sh_fdt_init(phys_addr_t dt_phys)
 	void *dt_virt;
 
 	/* Avoid calling an __init function on secondary cpus. */
-	if (done) return;
+	if (done) { return; }
 
 #ifdef CONFIG_USE_BUILTIN_DTB
 	dt_virt = __dtb_start;
@@ -257,12 +274,15 @@ void __ref sh_fdt_init(phys_addr_t dt_phys)
 	dt_virt = phys_to_virt(dt_phys);
 #endif
 
-	if (!dt_virt || !early_init_dt_scan(dt_virt)) {
+	if (!dt_virt || !early_init_dt_scan(dt_virt))
+	{
 		pr_crit("Error: invalid device tree blob"
-			" at physical address %p\n", (void *)dt_phys);
+				" at physical address %p\n", (void *)dt_phys);
 
 		while (true)
+		{
 			cpu_relax();
+		}
 	}
 
 	done = 1;
@@ -276,15 +296,15 @@ void __init setup_arch(char **cmdline_p)
 	ROOT_DEV = old_decode_dev(ORIG_ROOT_DEV);
 
 	printk(KERN_NOTICE "Boot params:\n"
-			   "... MOUNT_ROOT_RDONLY - %08lx\n"
-			   "... RAMDISK_FLAGS     - %08lx\n"
-			   "... ORIG_ROOT_DEV     - %08lx\n"
-			   "... LOADER_TYPE       - %08lx\n"
-			   "... INITRD_START      - %08lx\n"
-			   "... INITRD_SIZE       - %08lx\n",
-			   MOUNT_ROOT_RDONLY, RAMDISK_FLAGS,
-			   ORIG_ROOT_DEV, LOADER_TYPE,
-			   INITRD_START, INITRD_SIZE);
+		   "... MOUNT_ROOT_RDONLY - %08lx\n"
+		   "... RAMDISK_FLAGS     - %08lx\n"
+		   "... ORIG_ROOT_DEV     - %08lx\n"
+		   "... LOADER_TYPE       - %08lx\n"
+		   "... INITRD_START      - %08lx\n"
+		   "... INITRD_SIZE       - %08lx\n",
+		   MOUNT_ROOT_RDONLY, RAMDISK_FLAGS,
+		   ORIG_ROOT_DEV, LOADER_TYPE,
+		   INITRD_START, INITRD_SIZE);
 
 #ifdef CONFIG_BLK_DEV_RAM
 	rd_image_start = RAMDISK_FLAGS & RAMDISK_IMAGE_START_MASK;
@@ -293,18 +313,21 @@ void __init setup_arch(char **cmdline_p)
 #endif
 
 	if (!MOUNT_ROOT_RDONLY)
+	{
 		root_mountflags &= ~MS_RDONLY;
+	}
+
 	init_mm.start_code = (unsigned long) _text;
 	init_mm.end_code = (unsigned long) _etext;
 	init_mm.end_data = (unsigned long) _edata;
 	init_mm.brk = (unsigned long) _end;
 
 	code_resource.start = virt_to_phys(_text);
-	code_resource.end = virt_to_phys(_etext)-1;
+	code_resource.end = virt_to_phys(_etext) - 1;
 	data_resource.start = virt_to_phys(_etext);
-	data_resource.end = virt_to_phys(_edata)-1;
+	data_resource.end = virt_to_phys(_edata) - 1;
 	bss_resource.start = virt_to_phys(__bss_start);
-	bss_resource.end = virt_to_phys(__bss_stop)-1;
+	bss_resource.end = virt_to_phys(__bss_stop) - 1;
 
 #ifdef CONFIG_CMDLINE_OVERWRITE
 	strlcpy(command_line, CONFIG_CMDLINE, sizeof(command_line));
@@ -337,7 +360,9 @@ void __init setup_arch(char **cmdline_p)
 
 	/* Perform the machine specific initialisation */
 	if (likely(sh_mv.mv_setup))
+	{
 		sh_mv.mv_setup(cmdline_p);
+	}
 
 	plat_smp_setup();
 }

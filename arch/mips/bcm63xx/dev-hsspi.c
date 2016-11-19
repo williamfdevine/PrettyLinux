@@ -14,7 +14,8 @@
 #include <bcm63xx_dev_hsspi.h>
 #include <bcm63xx_regs.h>
 
-static struct resource spi_resources[] = {
+static struct resource spi_resources[] =
+{
 	{
 		.start		= -1, /* filled at runtime */
 		.end		= -1, /* filled at runtime */
@@ -26,7 +27,8 @@ static struct resource spi_resources[] = {
 	},
 };
 
-static struct platform_device bcm63xx_hsspi_device = {
+static struct platform_device bcm63xx_hsspi_device =
+{
 	.name		= "bcm63xx-hsspi",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(spi_resources),
@@ -36,7 +38,9 @@ static struct platform_device bcm63xx_hsspi_device = {
 int __init bcm63xx_hsspi_register(void)
 {
 	if (!BCMCPU_IS_6328() && !BCMCPU_IS_6362())
+	{
 		return -ENODEV;
+	}
 
 	spi_resources[0].start = bcm63xx_regset_address(RSET_HSSPI);
 	spi_resources[0].end = spi_resources[0].start;

@@ -11,7 +11,7 @@ int kvm_iommu_map_guest(struct kvm *kvm);
 int kvm_iommu_unmap_guest(struct kvm *kvm);
 
 long kvm_vm_ioctl_assigned_device(struct kvm *kvm, unsigned ioctl,
-				  unsigned long arg);
+								  unsigned long arg);
 
 void kvm_free_all_assigned_devices(struct kvm *kvm);
 #else
@@ -21,7 +21,7 @@ static inline int kvm_iommu_unmap_guest(struct kvm *kvm)
 }
 
 static inline long kvm_vm_ioctl_assigned_device(struct kvm *kvm, unsigned ioctl,
-						unsigned long arg)
+		unsigned long arg)
 {
 	return -ENOTTY;
 }

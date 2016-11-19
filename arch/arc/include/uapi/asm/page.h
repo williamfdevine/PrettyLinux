@@ -13,18 +13,18 @@
 
 /* PAGE_SHIFT determines the page size */
 #if defined(CONFIG_ARC_PAGE_SIZE_16K)
-#define PAGE_SHIFT 14
+	#define PAGE_SHIFT 14
 #elif defined(CONFIG_ARC_PAGE_SIZE_4K)
-#define PAGE_SHIFT 12
+	#define PAGE_SHIFT 12
 #else
-/*
- * Default 8k
- * done this way (instead of under CONFIG_ARC_PAGE_SIZE_8K) because adhoc
- * user code (busybox appletlib.h) expects PAGE_SHIFT to be defined w/o
- * using the correct uClibc header and in their build our autoconf.h is
- * not available
- */
-#define PAGE_SHIFT 13
+	/*
+	* Default 8k
+	* done this way (instead of under CONFIG_ARC_PAGE_SIZE_8K) because adhoc
+	* user code (busybox appletlib.h) expects PAGE_SHIFT to be defined w/o
+	* using the correct uClibc header and in their build our autoconf.h is
+	* not available
+	*/
+	#define PAGE_SHIFT 13
 #endif
 
 #define PAGE_SIZE	_BITUL(PAGE_SHIFT)	/* Default 8K */

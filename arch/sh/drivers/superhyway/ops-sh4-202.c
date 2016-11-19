@@ -25,7 +25,8 @@
 #define PHYS_DMAC_BLOCK		P4SEGADDR(0x1fa00000)
 #define PHYS_PBR_BLOCK		P4SEGADDR(0x1fc00000)
 
-static struct resource emi_resources[] = {
+static struct resource emi_resources[] =
+{
 	[0] = {
 		.start	= PHYS_EMI_CBLOCK,
 		.end	= PHYS_EMI_CBLOCK + 0x00300000 - 1,
@@ -38,13 +39,15 @@ static struct resource emi_resources[] = {
 	},
 };
 
-static struct superhyway_device emi_device = {
+static struct superhyway_device emi_device =
+{
 	.name		= "emi",
 	.num_resources	= ARRAY_SIZE(emi_resources),
 	.resource	= emi_resources,
 };
 
-static struct resource femi_resources[] = {
+static struct resource femi_resources[] =
+{
 	[0] = {
 		.start	= PHYS_FEMI_CBLOCK,
 		.end	= PHYS_FEMI_CBLOCK + 0x00100000 - 1,
@@ -57,13 +60,15 @@ static struct resource femi_resources[] = {
 	},
 };
 
-static struct superhyway_device femi_device = {
+static struct superhyway_device femi_device =
+{
 	.name		= "femi",
 	.num_resources	= ARRAY_SIZE(femi_resources),
 	.resource	= femi_resources,
 };
 
-static struct resource epbr_resources[] = {
+static struct resource epbr_resources[] =
+{
 	[0] = {
 		.start	= P4SEGADDR(0x1e7ffff8),
 		.end	= P4SEGADDR(0x1e7ffff8 + (sizeof(u32) * 2) - 1),
@@ -76,25 +81,29 @@ static struct resource epbr_resources[] = {
 	},
 };
 
-static struct superhyway_device epbr_device = {
+static struct superhyway_device epbr_device =
+{
 	.name		= "epbr",
 	.num_resources	= ARRAY_SIZE(epbr_resources),
 	.resource	= epbr_resources,
 };
 
-static struct resource dmac_resource = {
+static struct resource dmac_resource =
+{
 	.start	= PHYS_DMAC_BLOCK,
 	.end	= PHYS_DMAC_BLOCK + 0x00100000 - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct superhyway_device dmac_device = {
+static struct superhyway_device dmac_device =
+{
 	.name		= "dmac",
 	.num_resources	= 1,
 	.resource	= &dmac_resource,
 };
 
-static struct resource pbr_resources[] = {
+static struct resource pbr_resources[] =
+{
 	[0] = {
 		.start	= P4SEGADDR(0x1ffffff8),
 		.end	= P4SEGADDR(0x1ffffff8 + (sizeof(u32) * 2) - 1),
@@ -107,13 +116,15 @@ static struct resource pbr_resources[] = {
 	},
 };
 
-static struct superhyway_device pbr_device = {
+static struct superhyway_device pbr_device =
+{
 	.name		= "pbr",
 	.num_resources	= ARRAY_SIZE(pbr_resources),
 	.resource	= pbr_resources,
 };
 
-static struct superhyway_device *sh4202_devices[] __initdata = {
+static struct superhyway_device *sh4202_devices[] __initdata =
+{
 	&emi_device, &femi_device, &epbr_device, &dmac_device, &pbr_device,
 };
 
@@ -153,12 +164,14 @@ static int sh4202_write_vcr(unsigned long base, struct superhyway_vcr_info vcr)
 	return 0;
 }
 
-static struct superhyway_ops sh4202_superhyway_ops = {
+static struct superhyway_ops sh4202_superhyway_ops =
+{
 	.read_vcr	= sh4202_read_vcr,
 	.write_vcr	= sh4202_write_vcr,
 };
 
-struct superhyway_bus superhyway_channels[] = {
+struct superhyway_bus superhyway_channels[] =
+{
 	{ &sh4202_superhyway_ops, },
 	{ 0, },
 };
@@ -166,6 +179,6 @@ struct superhyway_bus superhyway_channels[] = {
 int __init superhyway_scan_bus(struct superhyway_bus *bus)
 {
 	return superhyway_add_devices(bus, sh4202_devices,
-				      ARRAY_SIZE(sh4202_devices));
+								  ARRAY_SIZE(sh4202_devices));
 }
 

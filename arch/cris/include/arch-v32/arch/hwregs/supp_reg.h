@@ -4,11 +4,11 @@
 /* Macros for reading and writing support/special registers. */
 
 #ifndef STRINGIFYFY
-#define STRINGIFYFY(i) #i
+	#define STRINGIFYFY(i) #i
 #endif
 
 #ifndef STRINGIFY
-#define STRINGIFY(i) STRINGIFYFY(i)
+	#define STRINGIFY(i) STRINGIFYFY(i)
 #endif
 
 #define SPEC_REG_BZ     "BZ"
@@ -51,10 +51,10 @@
 #define RW_GC_R1        9
 
 #define SPEC_REG_WR(r,v) \
-__asm__ __volatile__ ("move %0, $" r : : "r" (v));
+	__asm__ __volatile__ ("move %0, $" r : : "r" (v));
 
 #define SPEC_REG_RD(r,v) \
-__asm__ __volatile__ ("move $" r ",%0" : "=r" (v));
+	__asm__ __volatile__ ("move $" r ",%0" : "=r" (v));
 
 #define NOP() \
 	__asm__ __volatile__ ("nop");
@@ -66,13 +66,13 @@ __asm__ __volatile__ ("move $" r ",%0" : "=r" (v));
 	NOP();
 
 #define SUPP_REG_WR(r,v) \
-__asm__ __volatile__ ("move %0, $S" STRINGIFYFY(r) "\n\t"	\
-		      "nop\n\t"					\
-		      "nop\n\t"					\
-		      "nop\n\t"					\
-		      : : "r" (v));
+	__asm__ __volatile__ ("move %0, $S" STRINGIFYFY(r) "\n\t"	\
+						  "nop\n\t"					\
+						  "nop\n\t"					\
+						  "nop\n\t"					\
+						  : : "r" (v));
 
 #define SUPP_REG_RD(r,v) \
-__asm__ __volatile__ ("move $S" STRINGIFYFY(r) ",%0" : "=r" (v));
+	__asm__ __volatile__ ("move $S" STRINGIFYFY(r) ",%0" : "=r" (v));
 
 #endif /* __SUPP_REG_H__ */

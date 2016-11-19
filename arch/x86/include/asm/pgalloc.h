@@ -15,7 +15,7 @@ static inline void paravirt_pgd_free(struct mm_struct *mm, pgd_t *pgd) {}
 static inline void paravirt_alloc_pte(struct mm_struct *mm, unsigned long pfn)	{}
 static inline void paravirt_alloc_pmd(struct mm_struct *mm, unsigned long pfn)	{}
 static inline void paravirt_alloc_pmd_clone(unsigned long pfn, unsigned long clonepfn,
-					    unsigned long start, unsigned long count) {}
+		unsigned long start, unsigned long count) {}
 static inline void paravirt_alloc_pud(struct mm_struct *mm, unsigned long pfn)	{}
 static inline void paravirt_release_pte(unsigned long pfn) {}
 static inline void paravirt_release_pmd(unsigned long pfn) {}
@@ -41,7 +41,7 @@ extern pgtable_t pte_alloc_one(struct mm_struct *, unsigned long);
 
 static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
 {
-	BUG_ON((unsigned long)pte & (PAGE_SIZE-1));
+	BUG_ON((unsigned long)pte & (PAGE_SIZE - 1));
 	free_page((unsigned long)pte);
 }
 
@@ -54,20 +54,20 @@ static inline void pte_free(struct mm_struct *mm, struct page *pte)
 extern void ___pte_free_tlb(struct mmu_gather *tlb, struct page *pte);
 
 static inline void __pte_free_tlb(struct mmu_gather *tlb, struct page *pte,
-				  unsigned long address)
+								  unsigned long address)
 {
 	___pte_free_tlb(tlb, pte);
 }
 
 static inline void pmd_populate_kernel(struct mm_struct *mm,
-				       pmd_t *pmd, pte_t *pte)
+									   pmd_t *pmd, pte_t *pte)
 {
 	paravirt_alloc_pte(mm, __pa(pte) >> PAGE_SHIFT);
 	set_pmd(pmd, __pmd(__pa(pte) | _PAGE_TABLE));
 }
 
 static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
-				struct page *pte)
+								struct page *pte)
 {
 	unsigned long pfn = page_to_pfn(pte);
 
@@ -84,20 +84,29 @@ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
 	gfp_t gfp = GFP_KERNEL_ACCOUNT | __GFP_ZERO;
 
 	if (mm == &init_mm)
+	{
 		gfp &= ~__GFP_ACCOUNT;
+	}
+
 	page = alloc_pages(gfp, 0);
+
 	if (!page)
+	{
 		return NULL;
-	if (!pgtable_pmd_page_ctor(page)) {
+	}
+
+	if (!pgtable_pmd_page_ctor(page))
+	{
 		__free_pages(page, 0);
 		return NULL;
 	}
+
 	return (pmd_t *)page_address(page);
 }
 
 static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
 {
-	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
+	BUG_ON((unsigned long)pmd & (PAGE_SIZE - 1));
 	pgtable_pmd_page_dtor(virt_to_page(pmd));
 	free_page((unsigned long)pmd);
 }
@@ -105,7 +114,7 @@ static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
 extern void ___pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd);
 
 static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd,
-				  unsigned long address)
+								  unsigned long address)
 {
 	___pmd_free_tlb(tlb, pmd);
 }
@@ -132,20 +141,23 @@ static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
 	gfp_t gfp = GFP_KERNEL_ACCOUNT;
 
 	if (mm == &init_mm)
+	{
 		gfp &= ~__GFP_ACCOUNT;
+	}
+
 	return (pud_t *)get_zeroed_page(gfp);
 }
 
 static inline void pud_free(struct mm_struct *mm, pud_t *pud)
 {
-	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
+	BUG_ON((unsigned long)pud & (PAGE_SIZE - 1));
 	free_page((unsigned long)pud);
 }
 
 extern void ___pud_free_tlb(struct mmu_gather *tlb, pud_t *pud);
 
 static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pud,
-				  unsigned long address)
+								  unsigned long address)
 {
 	___pud_free_tlb(tlb, pud);
 }

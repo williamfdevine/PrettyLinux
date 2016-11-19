@@ -15,17 +15,17 @@
 
 #ifdef CONFIG_SMP
 
-#ifdef HAVE_MODEL_SMALL_ATTRIBUTE
-# define PER_CPU_ATTRIBUTES	__attribute__((__model__ (__small__)))
-#endif
+	#ifdef HAVE_MODEL_SMALL_ATTRIBUTE
+		#define PER_CPU_ATTRIBUTES	__attribute__((__model__ (__small__)))
+	#endif
 
-#define __my_cpu_offset	__ia64_per_cpu_var(local_per_cpu_offset)
+	#define __my_cpu_offset	__ia64_per_cpu_var(local_per_cpu_offset)
 
-extern void *per_cpu_init(void);
+	extern void *per_cpu_init(void);
 
 #else /* ! SMP */
 
-#define per_cpu_init()				(__phys_per_cpu_start)
+	#define per_cpu_init()				(__phys_per_cpu_start)
 
 #endif	/* SMP */
 
@@ -38,9 +38,9 @@ extern void *per_cpu_init(void);
  * more efficient.
  */
 #define __ia64_per_cpu_var(var) (*({					\
-	__verify_pcpu_ptr(&(var));					\
-	((typeof(var) __kernel __force *)&(var));			\
-}))
+		__verify_pcpu_ptr(&(var));					\
+		((typeof(var) __kernel __force *)&(var));			\
+	}))
 
 #include <asm-generic/percpu.h>
 

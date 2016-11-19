@@ -62,29 +62,36 @@ early_param("noallocl2", set_noallocl2);
  * from the TLB flush set, and setting dataplane_tlb_state instead.
  */
 static void hv_flush_update(const struct cpumask *cache_cpumask,
-			    struct cpumask *tlb_cpumask,
-			    unsigned long tlb_va, unsigned long tlb_length,
-			    HV_Remote_ASID *asids, int asidcount)
+							struct cpumask *tlb_cpumask,
+							unsigned long tlb_va, unsigned long tlb_length,
+							HV_Remote_ASID *asids, int asidcount)
 {
 	struct cpumask mask;
 	int i, cpu;
 
 	cpumask_clear(&mask);
+
 	if (cache_cpumask)
+	{
 		cpumask_or(&mask, &mask, cache_cpumask);
-	if (tlb_cpumask && tlb_length) {
+	}
+
+	if (tlb_cpumask && tlb_length)
+	{
 		cpumask_or(&mask, &mask, tlb_cpumask);
 	}
 
 	for (i = 0; i < asidcount; ++i)
+	{
 		cpumask_set_cpu(asids[i].y * smp_width + asids[i].x, &mask);
+	}
 
 	/*
 	 * Don't bother to update atomically; losing a count
 	 * here is not that critical.
 	 */
 	for_each_cpu(cpu, &mask)
-		++per_cpu(irq_stat, cpu).irq_hv_flush_count;
+	++per_cpu(irq_stat, cpu).irq_hv_flush_count;
 }
 
 /*
@@ -105,11 +112,11 @@ static void hv_flush_update(const struct cpumask *cache_cpumask,
  * remotely (running concurrently with the actual evict, presumably).
  */
 void flush_remote(unsigned long cache_pfn, unsigned long cache_control,
-		  const struct cpumask *cache_cpumask_orig,
-		  HV_VirtAddr tlb_va, unsigned long tlb_length,
-		  unsigned long tlb_pgsize,
-		  const struct cpumask *tlb_cpumask_orig,
-		  HV_Remote_ASID *asids, int asidcount)
+				  const struct cpumask *cache_cpumask_orig,
+				  HV_VirtAddr tlb_va, unsigned long tlb_length,
+				  unsigned long tlb_pgsize,
+				  const struct cpumask *tlb_cpumask_orig,
+				  HV_Remote_ASID *asids, int asidcount)
 {
 	int rc;
 	struct cpumask cache_cpumask_copy, tlb_cpumask_copy;
@@ -121,53 +128,73 @@ void flush_remote(unsigned long cache_pfn, unsigned long cache_control,
 	/*
 	 * Canonicalize and copy the cpumasks.
 	 */
-	if (cache_cpumask_orig && cache_control) {
+	if (cache_cpumask_orig && cache_control)
+	{
 		cpumask_copy(&cache_cpumask_copy, cache_cpumask_orig);
 		cache_cpumask = &cache_cpumask_copy;
-	} else {
+	}
+	else
+	{
 		cpumask_clear(&cache_cpumask_copy);
 		cache_cpumask = NULL;
 	}
+
 	if (cache_cpumask == NULL)
+	{
 		cache_control = 0;
-	if (tlb_cpumask_orig && tlb_length) {
+	}
+
+	if (tlb_cpumask_orig && tlb_length)
+	{
 		cpumask_copy(&tlb_cpumask_copy, tlb_cpumask_orig);
 		tlb_cpumask = &tlb_cpumask_copy;
-	} else {
+	}
+	else
+	{
 		cpumask_clear(&tlb_cpumask_copy);
 		tlb_cpumask = NULL;
 	}
 
 	hv_flush_update(cache_cpumask, tlb_cpumask, tlb_va, tlb_length,
-			asids, asidcount);
+					asids, asidcount);
 	cache_pa = (HV_PhysAddr)cache_pfn << PAGE_SHIFT;
 	rc = hv_flush_remote(cache_pa, cache_control,
-			     cpumask_bits(cache_cpumask),
-			     tlb_va, tlb_length, tlb_pgsize,
-			     cpumask_bits(tlb_cpumask),
-			     asids, asidcount);
+						 cpumask_bits(cache_cpumask),
+						 tlb_va, tlb_length, tlb_pgsize,
+						 cpumask_bits(tlb_cpumask),
+						 asids, asidcount);
+
 	if (rc == 0)
+	{
 		return;
+	}
 
 	pr_err("hv_flush_remote(%#llx, %#lx, %p [%*pb], %#lx, %#lx, %#lx, %p [%*pb], %p, %d) = %d\n",
-	       cache_pa, cache_control, cache_cpumask,
-	       cpumask_pr_args(&cache_cpumask_copy),
-	       (unsigned long)tlb_va, tlb_length, tlb_pgsize, tlb_cpumask,
-	       cpumask_pr_args(&tlb_cpumask_copy), asids, asidcount, rc);
+		   cache_pa, cache_control, cache_cpumask,
+		   cpumask_pr_args(&cache_cpumask_copy),
+		   (unsigned long)tlb_va, tlb_length, tlb_pgsize, tlb_cpumask,
+		   cpumask_pr_args(&tlb_cpumask_copy), asids, asidcount, rc);
 	panic("Unsafe to continue.");
 }
 
-static void homecache_finv_page_va(void* va, int home)
+static void homecache_finv_page_va(void *va, int home)
 {
 	int cpu = get_cpu();
-	if (home == cpu) {
+
+	if (home == cpu)
+	{
 		finv_buffer_local(va, PAGE_SIZE);
-	} else if (home == PAGE_HOME_HASH) {
+	}
+	else if (home == PAGE_HOME_HASH)
+	{
 		finv_buffer_remote(va, PAGE_SIZE, 1);
-	} else {
+	}
+	else
+	{
 		BUG_ON(home < 0 || home >= NR_CPUS);
 		finv_buffer_remote(va, PAGE_SIZE, 0);
 	}
+
 	put_cpu();
 }
 
@@ -179,11 +206,14 @@ void homecache_finv_map_page(struct page *page, int home)
 	pte_t pte;
 
 	if (home == PAGE_HOME_UNCACHED)
+	{
 		return;
+	}
+
 	local_irq_save(flags);
 #ifdef CONFIG_HIGHMEM
 	va = __fix_to_virt(FIX_KMAP_BEGIN + kmap_atomic_idx_push() +
-			   (KM_TYPE_NR * smp_processor_id()));
+					   (KM_TYPE_NR * smp_processor_id()));
 #else
 	va = __fix_to_virt(FIX_HOMECACHE_BEGIN + smp_processor_id());
 #endif
@@ -202,9 +232,13 @@ void homecache_finv_map_page(struct page *page, int home)
 static void homecache_finv_page_home(struct page *page, int home)
 {
 	if (!PageHighMem(page) && home == page_home(page))
+	{
 		homecache_finv_page_va(page_address(page), home);
+	}
 	else
+	{
 		homecache_finv_map_page(page, home);
+	}
 }
 
 static inline bool incoherent_home(int home)
@@ -215,18 +249,28 @@ static inline bool incoherent_home(int home)
 static void homecache_finv_page_internal(struct page *page, int force_map)
 {
 	int home = page_home(page);
+
 	if (home == PAGE_HOME_UNCACHED)
+	{
 		return;
-	if (incoherent_home(home)) {
+	}
+
+	if (incoherent_home(home))
+	{
 		int cpu;
 		for_each_cpu(cpu, &cpu_cacheable_map)
-			homecache_finv_map_page(page, cpu);
-	} else if (force_map) {
+		homecache_finv_map_page(page, cpu);
+	}
+	else if (force_map)
+	{
 		/* Force if, e.g., the normal mapping is migrating. */
 		homecache_finv_map_page(page, home);
-	} else {
+	}
+	else
+	{
 		homecache_finv_page_home(page, home);
 	}
+
 	sim_validate_lines_evicted(PFN_PHYS(page_to_pfn(page)), PAGE_SIZE);
 }
 
@@ -244,17 +288,25 @@ void homecache_evict(const struct cpumask *mask)
 static int pte_to_home(pte_t pte)
 {
 	if (hv_pte_get_nc(pte))
+	{
 		return PAGE_HOME_IMMUTABLE;
-	switch (hv_pte_get_mode(pte)) {
-	case HV_PTE_MODE_CACHE_TILE_L3:
-		return get_remote_cache_cpu(pte);
-	case HV_PTE_MODE_CACHE_NO_L3:
-		return PAGE_HOME_INCOHERENT;
-	case HV_PTE_MODE_UNCACHED:
-		return PAGE_HOME_UNCACHED;
-	case HV_PTE_MODE_CACHE_HASH_L3:
-		return PAGE_HOME_HASH;
 	}
+
+	switch (hv_pte_get_mode(pte))
+	{
+		case HV_PTE_MODE_CACHE_TILE_L3:
+			return get_remote_cache_cpu(pte);
+
+		case HV_PTE_MODE_CACHE_NO_L3:
+			return PAGE_HOME_INCOHERENT;
+
+		case HV_PTE_MODE_UNCACHED:
+			return PAGE_HOME_UNCACHED;
+
+		case HV_PTE_MODE_CACHE_HASH_L3:
+			return PAGE_HOME_HASH;
+	}
+
 	panic("Bad PTE %#llx\n", pte.val);
 }
 
@@ -262,9 +314,13 @@ static int pte_to_home(pte_t pte)
 pte_t pte_set_home(pte_t pte, int home)
 {
 #if CHIP_HAS_MMIO()
+
 	/* Check for MMIO mappings and pass them through. */
 	if (hv_pte_get_mode(pte) == HV_PTE_MODE_MMIO)
+	{
 		return pte;
+	}
+
 #endif
 
 
@@ -276,61 +332,74 @@ pte_t pte_set_home(pte_t pte, int home)
 	 * the page to be writable underneath.  In this case,
 	 * just keep the PTE coherent.
 	 */
-	if (hv_pte_get_nc(pte) && home != PAGE_HOME_IMMUTABLE) {
+	if (hv_pte_get_nc(pte) && home != PAGE_HOME_IMMUTABLE)
+	{
 		pte = hv_pte_clear_nc(pte);
 		pr_err("non-immutable page incoherently referenced: %#llx\n",
-		       pte.val);
+			   pte.val);
 	}
 
-	switch (home) {
+	switch (home)
+	{
 
-	case PAGE_HOME_UNCACHED:
-		pte = hv_pte_set_mode(pte, HV_PTE_MODE_UNCACHED);
-		break;
+		case PAGE_HOME_UNCACHED:
+			pte = hv_pte_set_mode(pte, HV_PTE_MODE_UNCACHED);
+			break;
 
-	case PAGE_HOME_INCOHERENT:
-		pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_NO_L3);
-		break;
-
-	case PAGE_HOME_IMMUTABLE:
-		/*
-		 * We could home this page anywhere, since it's immutable,
-		 * but by default just home it to follow "hash_default".
-		 */
-		BUG_ON(hv_pte_get_writable(pte));
-		if (pte_get_forcecache(pte)) {
-			/* Upgrade "force any cpu" to "No L3" for immutable. */
-			if (hv_pte_get_mode(pte) == HV_PTE_MODE_CACHE_TILE_L3
-			    && pte_get_anyhome(pte)) {
-				pte = hv_pte_set_mode(pte,
-						      HV_PTE_MODE_CACHE_NO_L3);
-			}
-		} else
-		if (hash_default)
-			pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_HASH_L3);
-		else
+		case PAGE_HOME_INCOHERENT:
 			pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_NO_L3);
-		pte = hv_pte_set_nc(pte);
-		break;
+			break;
 
-	case PAGE_HOME_HASH:
-		pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_HASH_L3);
-		break;
+		case PAGE_HOME_IMMUTABLE:
+			/*
+			 * We could home this page anywhere, since it's immutable,
+			 * but by default just home it to follow "hash_default".
+			 */
+			BUG_ON(hv_pte_get_writable(pte));
 
-	default:
-		BUG_ON(home < 0 || home >= NR_CPUS ||
-		       !cpu_is_valid_lotar(home));
-		pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_TILE_L3);
-		pte = set_remote_cache_cpu(pte, home);
-		break;
+			if (pte_get_forcecache(pte))
+			{
+				/* Upgrade "force any cpu" to "No L3" for immutable. */
+				if (hv_pte_get_mode(pte) == HV_PTE_MODE_CACHE_TILE_L3
+					&& pte_get_anyhome(pte))
+				{
+					pte = hv_pte_set_mode(pte,
+										  HV_PTE_MODE_CACHE_NO_L3);
+				}
+			}
+			else if (hash_default)
+			{
+				pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_HASH_L3);
+			}
+			else
+			{
+				pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_NO_L3);
+			}
+
+			pte = hv_pte_set_nc(pte);
+			break;
+
+		case PAGE_HOME_HASH:
+			pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_HASH_L3);
+			break;
+
+		default:
+			BUG_ON(home < 0 || home >= NR_CPUS ||
+				   !cpu_is_valid_lotar(home));
+			pte = hv_pte_set_mode(pte, HV_PTE_MODE_CACHE_TILE_L3);
+			pte = set_remote_cache_cpu(pte, home);
+			break;
 	}
 
 	if (noallocl2)
+	{
 		pte = hv_pte_set_no_alloc_l2(pte);
+	}
 
 	/* Simplify "no local and no l3" to "uncached" */
 	if (hv_pte_get_no_alloc_l2(pte) && hv_pte_get_no_alloc_l1(pte) &&
-	    hv_pte_get_mode(pte) == HV_PTE_MODE_CACHE_NO_L3) {
+		hv_pte_get_mode(pte) == HV_PTE_MODE_CACHE_NO_L3)
+	{
 		pte = hv_pte_set_mode(pte, HV_PTE_MODE_UNCACHED);
 	}
 
@@ -350,9 +419,12 @@ EXPORT_SYMBOL(pte_set_home);
 
 int page_home(struct page *page)
 {
-	if (PageHighMem(page)) {
+	if (PageHighMem(page))
+	{
 		return PAGE_HOME_HASH;
-	} else {
+	}
+	else
+	{
 		unsigned long kva = (unsigned long)page_address(page);
 		return pte_to_home(*virt_to_kpte(kva));
 	}
@@ -369,10 +441,11 @@ void homecache_change_page_home(struct page *page, int order, int home)
 	BUG_ON(page_mapcount(page) != 0);
 	kva = (unsigned long) page_address(page);
 	flush_remote(0, HV_FLUSH_EVICT_L2, &cpu_cacheable_map,
-		     kva, pages * PAGE_SIZE, PAGE_SIZE, cpu_online_mask,
-		     NULL, 0);
+				 kva, pages * PAGE_SIZE, PAGE_SIZE, cpu_online_mask,
+				 NULL, 0);
 
-	for (i = 0; i < pages; ++i, kva += PAGE_SIZE) {
+	for (i = 0; i < pages; ++i, kva += PAGE_SIZE)
+	{
 		pte_t *ptep = virt_to_kpte(kva);
 		pte_t pteval = *ptep;
 		BUG_ON(!pte_present(pteval) || pte_huge(pteval));
@@ -382,35 +455,48 @@ void homecache_change_page_home(struct page *page, int order, int home)
 EXPORT_SYMBOL(homecache_change_page_home);
 
 struct page *homecache_alloc_pages(gfp_t gfp_mask,
-				   unsigned int order, int home)
+								   unsigned int order, int home)
 {
 	struct page *page;
 	BUG_ON(gfp_mask & __GFP_HIGHMEM);   /* must be lowmem */
 	page = alloc_pages(gfp_mask, order);
+
 	if (page)
+	{
 		homecache_change_page_home(page, order, home);
+	}
+
 	return page;
 }
 EXPORT_SYMBOL(homecache_alloc_pages);
 
 struct page *homecache_alloc_pages_node(int nid, gfp_t gfp_mask,
-					unsigned int order, int home)
+										unsigned int order, int home)
 {
 	struct page *page;
 	BUG_ON(gfp_mask & __GFP_HIGHMEM);   /* must be lowmem */
 	page = alloc_pages_node(nid, gfp_mask, order);
+
 	if (page)
+	{
 		homecache_change_page_home(page, order, home);
+	}
+
 	return page;
 }
 
 void __homecache_free_pages(struct page *page, unsigned int order)
 {
-	if (put_page_testzero(page)) {
+	if (put_page_testzero(page))
+	{
 		homecache_change_page_home(page, order, PAGE_HOME_HASH);
-		if (order == 0) {
+
+		if (order == 0)
+		{
 			free_hot_cold_page(page, false);
-		} else {
+		}
+		else
+		{
 			init_page_count(page);
 			__free_pages(page, order);
 		}
@@ -420,7 +506,8 @@ EXPORT_SYMBOL(__homecache_free_pages);
 
 void homecache_free_pages(unsigned long addr, unsigned int order)
 {
-	if (addr != 0) {
+	if (addr != 0)
+	{
 		VM_BUG_ON(!virt_addr_valid((void *)addr));
 		__homecache_free_pages(virt_to_page((void *)addr), order);
 	}

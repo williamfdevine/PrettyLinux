@@ -55,9 +55,9 @@
 #define PKMAP_BASE   ((FIXADDR_BOOT_START - PAGE_SIZE*LAST_PKMAP) & PGDIR_MASK)
 
 #ifdef CONFIG_HIGHMEM
-# define _VMALLOC_END	(PKMAP_BASE & ~(HPAGE_SIZE-1))
+	#define _VMALLOC_END	(PKMAP_BASE & ~(HPAGE_SIZE-1))
 #else
-# define _VMALLOC_END	(FIXADDR_START & ~(HPAGE_SIZE-1))
+	#define _VMALLOC_END	(FIXADDR_START & ~(HPAGE_SIZE-1))
 #endif
 
 /*
@@ -94,13 +94,13 @@ static inline int pgd_addr_invalid(unsigned long addr)
 #define __HAVE_ARCH_PTEP_SET_WRPROTECT
 
 extern int ptep_test_and_clear_young(struct vm_area_struct *,
-				     unsigned long addr, pte_t *);
+									 unsigned long addr, pte_t *);
 extern void ptep_set_wrprotect(struct mm_struct *,
-			       unsigned long addr, pte_t *);
+							   unsigned long addr, pte_t *);
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
-				       unsigned long addr, pte_t *ptep)
+									   unsigned long addr, pte_t *ptep)
 {
 	pte_t pte = *ptep;
 	pte_clear(_mm, addr, ptep);

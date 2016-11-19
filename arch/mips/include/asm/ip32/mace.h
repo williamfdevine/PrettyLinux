@@ -20,7 +20,8 @@
 /*
  * PCI interface
  */
-struct mace_pci {
+struct mace_pci
+{
 	volatile unsigned int error_addr;
 	volatile unsigned int error;
 #define MACEPCI_ERROR_MASTER_ABORT		BIT(31)
@@ -68,9 +69,10 @@ struct mace_pci {
 #define MACEPCI_CONTROL_TAR_INT			BIT(30)
 #define MACEPCI_CONTROL_MAR_INT			BIT(31)
 	volatile unsigned int rev;
-	unsigned int _pad[0xcf8/4 - 4];
+	unsigned int _pad[0xcf8 / 4 - 4];
 	volatile unsigned int config_addr;
-	union {
+	union
+	{
 		volatile unsigned char b[4];
 		volatile unsigned short w[2];
 		volatile unsigned int l;
@@ -87,14 +89,16 @@ struct mace_pci {
 /*
  * Video interface
  */
-struct mace_video {
+struct mace_video
+{
 	unsigned long xxx;	/* later... */
 };
 
 /*
  * Ethernet interface
  */
-struct mace_ethernet {
+struct mace_ethernet
+{
 	volatile u64 mac_ctrl;
 	volatile unsigned long int_stat;
 	volatile unsigned long dma_ctrl;
@@ -131,12 +135,14 @@ struct mace_ethernet {
  */
 
 /* Audio registers */
-struct mace_audio {
+struct mace_audio
+{
 	volatile unsigned long control;
 	volatile unsigned long codec_control;		/* codec status control */
 	volatile unsigned long codec_mask;		/* codec status input mask */
 	volatile unsigned long codec_read;		/* codec status read data */
-	struct {
+	struct
+	{
 		volatile unsigned long control;		/* channel control */
 		volatile unsigned long read_ptr;	/* channel read pointer */
 		volatile unsigned long write_ptr;	/* channel write pointer */
@@ -146,7 +152,8 @@ struct mace_audio {
 
 
 /* register definitions for parallel port DMA */
-struct mace_parport {
+struct mace_parport
+{
 	/* 0 - do nothing,
 	 * 1 - pulse terminal count to the device after buffer is drained */
 #define MACEPAR_CONTEXT_LASTFLAG	BIT(63)
@@ -178,7 +185,8 @@ struct mace_parport {
 };
 
 /* ISA Control and DMA registers */
-struct mace_isactrl {
+struct mace_isactrl
+{
 	volatile unsigned long ringbase;
 #define MACEISA_RINGBUFFERS_SIZE	(8 * 4096)
 
@@ -226,7 +234,7 @@ struct mace_isactrl {
 #define MACEISA_SERIAL2_RDMAT_INT	BIT(30)
 #define MACEISA_SERIAL2_RDMAOR_INT	BIT(31)
 
-	volatile unsigned long _pad[0x2000/8 - 4];
+	volatile unsigned long _pad[0x2000 / 8 - 4];
 
 	volatile unsigned long dp_ram[0x400];
 	struct mace_parport parport;
@@ -234,21 +242,24 @@ struct mace_isactrl {
 
 /* Keyboard & Mouse registers
  * -> drivers/input/serio/maceps2.c */
-struct mace_ps2port {
+struct mace_ps2port
+{
 	volatile unsigned long tx;
 	volatile unsigned long rx;
 	volatile unsigned long control;
 	volatile unsigned long status;
 };
 
-struct mace_ps2 {
+struct mace_ps2
+{
 	struct mace_ps2port keyb;
 	struct mace_ps2port mouse;
 };
 
 /* I2C registers
  * -> drivers/i2c/algos/i2c-algo-sgi.c */
-struct mace_i2c {
+struct mace_i2c
+{
 	volatile unsigned long config;
 #define MACEI2C_RESET		BIT(0)
 #define MACEI2C_FAST		BIT(1)
@@ -261,15 +272,18 @@ struct mace_i2c {
 };
 
 /* Timer registers */
-typedef union {
+typedef union
+{
 	volatile unsigned long ust_msc;
-	struct reg {
+	struct reg
+	{
 		volatile unsigned int ust;
 		volatile unsigned int msc;
 	} reg;
 } timer_reg;
 
-struct mace_timers {
+struct mace_timers
+{
 	volatile unsigned long ust;
 #define MACE_UST_PERIOD_NS	960
 
@@ -285,7 +299,8 @@ struct mace_timers {
 	timer_reg video_out;
 };
 
-struct mace_perif {
+struct mace_perif
+{
 	struct mace_audio audio;
 	char _pad0[0x10000 - sizeof(struct mace_audio)];
 
@@ -308,18 +323,22 @@ struct mace_perif {
  */
 
 /* Parallel port */
-struct mace_parallel {
+struct mace_parallel
+{
 };
 
-struct mace_ecp1284 {	/* later... */
+struct mace_ecp1284  	/* later... */
+{
 };
 
 /* Serial port */
-struct mace_serial {
+struct mace_serial
+{
 	volatile unsigned long xxx;	/* later... */
 };
 
-struct mace_isa {
+struct mace_isa
+{
 	struct mace_parallel parallel;
 	char _pad1[0x8000 - sizeof(struct mace_parallel)];
 
@@ -335,7 +354,8 @@ struct mace_isa {
 	volatile unsigned char rtc[0x10000];
 };
 
-struct sgi_mace {
+struct sgi_mace
+{
 	char _reserved[0x80000];
 
 	struct mace_pci pci;

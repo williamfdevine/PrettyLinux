@@ -4,17 +4,22 @@
 static void udelay(int loops)
 {
 	while (loops--)
-		io_delay();	/* Approximately 1 us */
+	{
+		io_delay();    /* Approximately 1 us */
+	}
 }
 
 static void beep(unsigned int hz)
 {
 	u8 enable;
 
-	if (!hz) {
+	if (!hz)
+	{
 		enable = 0x00;		/* Turn off speaker */
-	} else {
-		u16 div = 1193181/hz;
+	}
+	else
+	{
+		u16 div = 1193181 / hz;
 
 		outb(0xb6, 0x43);	/* Ctr 2, squarewave, load, binary */
 		io_delay();
@@ -25,6 +30,7 @@ static void beep(unsigned int hz)
 
 		enable = 0x03;		/* Turn on speaker */
 	}
+
 	inb(0x61);		/* Dummy read of System Control Port B */
 	io_delay();
 	outb(enable, 0x61);	/* Enable timer 2 output to speaker */
@@ -40,23 +46,27 @@ static void send_morse(const char *pattern)
 {
 	char s;
 
-	while ((s = *pattern++)) {
-		switch (s) {
-		case '.':
-			beep(DOT_HZ);
-			udelay(US_PER_DOT);
-			beep(0);
-			udelay(US_PER_DOT);
-			break;
-		case '-':
-			beep(DASH_HZ);
-			udelay(US_PER_DOT * 3);
-			beep(0);
-			udelay(US_PER_DOT);
-			break;
-		default:	/* Assume it's a space */
-			udelay(US_PER_DOT * 3);
-			break;
+	while ((s = *pattern++))
+	{
+		switch (s)
+		{
+			case '.':
+				beep(DOT_HZ);
+				udelay(US_PER_DOT);
+				beep(0);
+				udelay(US_PER_DOT);
+				break;
+
+			case '-':
+				beep(DASH_HZ);
+				udelay(US_PER_DOT * 3);
+				beep(0);
+				udelay(US_PER_DOT);
+				break;
+
+			default:	/* Assume it's a space */
+				udelay(US_PER_DOT * 3);
+				break;
 		}
 	}
 }
@@ -69,12 +79,17 @@ void main(void)
 			;
 
 	if (wakeup_header.realmode_flags & 4)
+	{
 		send_morse("...-");
+	}
 
 	if (wakeup_header.realmode_flags & 1)
+	{
 		asm volatile("lcallw   $0xc000,$3");
+	}
 
-	if (wakeup_header.realmode_flags & 2) {
+	if (wakeup_header.realmode_flags & 2)
+	{
 		/* Need to call BIOS */
 		probe_cards(0);
 		set_mode(wakeup_header.video_mode);

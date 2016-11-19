@@ -25,12 +25,15 @@ static inline void __flush_itlb_all (void)
 {
 	int w, i;
 
-	for (w = 0; w < ITLB_ARF_WAYS; w++) {
-		for (i = 0; i < (1 << XCHAL_ITLB_ARF_ENTRIES_LOG2); i++) {
+	for (w = 0; w < ITLB_ARF_WAYS; w++)
+	{
+		for (i = 0; i < (1 << XCHAL_ITLB_ARF_ENTRIES_LOG2); i++)
+		{
 			int e = w + (i << PAGE_SHIFT);
 			invalidate_itlb_entry_no_isync(e);
 		}
 	}
+
 	asm volatile ("isync\n");
 }
 
@@ -38,12 +41,15 @@ static inline void __flush_dtlb_all (void)
 {
 	int w, i;
 
-	for (w = 0; w < DTLB_ARF_WAYS; w++) {
-		for (i = 0; i < (1 << XCHAL_DTLB_ARF_ENTRIES_LOG2); i++) {
+	for (w = 0; w < DTLB_ARF_WAYS; w++)
+	{
+		for (i = 0; i < (1 << XCHAL_DTLB_ARF_ENTRIES_LOG2); i++)
+		{
 			int e = w + (i << PAGE_SHIFT);
 			invalidate_dtlb_entry_no_isync(e);
 		}
 	}
+
 	asm volatile ("isync\n");
 }
 
@@ -64,13 +70,16 @@ void local_flush_tlb_mm(struct mm_struct *mm)
 {
 	int cpu = smp_processor_id();
 
-	if (mm == current->active_mm) {
+	if (mm == current->active_mm)
+	{
 		unsigned long flags;
 		local_irq_save(flags);
 		mm->context.asid[cpu] = NO_CONTEXT;
 		activate_context(mm, cpu);
 		local_irq_restore(flags);
-	} else {
+	}
+	else
+	{
 		mm->context.asid[cpu] = NO_CONTEXT;
 		mm->context.cpu = -1;
 	}
@@ -80,60 +89,71 @@ void local_flush_tlb_mm(struct mm_struct *mm)
 #define _ITLB_ENTRIES (ITLB_ARF_WAYS << XCHAL_ITLB_ARF_ENTRIES_LOG2)
 #define _DTLB_ENTRIES (DTLB_ARF_WAYS << XCHAL_DTLB_ARF_ENTRIES_LOG2)
 #if _ITLB_ENTRIES > _DTLB_ENTRIES
-# define _TLB_ENTRIES _ITLB_ENTRIES
+	#define _TLB_ENTRIES _ITLB_ENTRIES
 #else
-# define _TLB_ENTRIES _DTLB_ENTRIES
+	#define _TLB_ENTRIES _DTLB_ENTRIES
 #endif
 
 void local_flush_tlb_range(struct vm_area_struct *vma,
-		unsigned long start, unsigned long end)
+						   unsigned long start, unsigned long end)
 {
 	int cpu = smp_processor_id();
 	struct mm_struct *mm = vma->vm_mm;
 	unsigned long flags;
 
 	if (mm->context.asid[cpu] == NO_CONTEXT)
+	{
 		return;
+	}
 
 #if 0
 	printk("[tlbrange<%02lx,%08lx,%08lx>]\n",
-			(unsigned long)mm->context.asid[cpu], start, end);
+		   (unsigned long)mm->context.asid[cpu], start, end);
 #endif
 	local_irq_save(flags);
 
-	if (end-start + (PAGE_SIZE-1) <= _TLB_ENTRIES << PAGE_SHIFT) {
+	if (end - start + (PAGE_SIZE - 1) <= _TLB_ENTRIES << PAGE_SHIFT)
+	{
 		int oldpid = get_rasid_register();
 
 		set_rasid_register(ASID_INSERT(mm->context.asid[cpu]));
 		start &= PAGE_MASK;
+
 		if (vma->vm_flags & VM_EXEC)
-			while(start < end) {
+			while (start < end)
+			{
 				invalidate_itlb_mapping(start);
 				invalidate_dtlb_mapping(start);
 				start += PAGE_SIZE;
 			}
 		else
-			while(start < end) {
+			while (start < end)
+			{
 				invalidate_dtlb_mapping(start);
 				start += PAGE_SIZE;
 			}
 
 		set_rasid_register(oldpid);
-	} else {
+	}
+	else
+	{
 		local_flush_tlb_mm(mm);
 	}
+
 	local_irq_restore(flags);
 }
 
 void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 {
 	int cpu = smp_processor_id();
-	struct mm_struct* mm = vma->vm_mm;
+	struct mm_struct *mm = vma->vm_mm;
 	unsigned long flags;
 	int oldpid;
 
 	if (mm->context.asid[cpu] == NO_CONTEXT)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
@@ -141,7 +161,10 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 	set_rasid_register(ASID_INSERT(mm->context.asid[cpu]));
 
 	if (vma->vm_flags & VM_EXEC)
+	{
 		invalidate_itlb_mapping(page);
+	}
+
 	invalidate_dtlb_mapping(page);
 
 	set_rasid_register(oldpid);
@@ -152,14 +175,19 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 {
 	if (end > start && start >= TASK_SIZE && end <= PAGE_OFFSET &&
-	    end - start < _TLB_ENTRIES << PAGE_SHIFT) {
+		end - start < _TLB_ENTRIES << PAGE_SHIFT)
+	{
 		start &= PAGE_MASK;
-		while (start < end) {
+
+		while (start < end)
+		{
 			invalidate_itlb_mapping(start);
 			invalidate_dtlb_mapping(start);
 			start += PAGE_SIZE;
 		}
-	} else {
+	}
+	else
+	{
 		local_flush_tlb_all();
 	}
 }
@@ -175,20 +203,36 @@ static unsigned get_pte_for_vaddr(unsigned vaddr)
 	pte_t *pte;
 
 	if (!mm)
+	{
 		mm = task->active_mm;
+	}
+
 	pgd = pgd_offset(mm, vaddr);
+
 	if (pgd_none_or_clear_bad(pgd))
+	{
 		return 0;
+	}
+
 	pmd = pmd_offset(pgd, vaddr);
+
 	if (pmd_none_or_clear_bad(pmd))
+	{
 		return 0;
+	}
+
 	pte = pte_offset_map(pmd, vaddr);
+
 	if (!pte)
+	{
 		return 0;
+	}
+
 	return pte_val(*pte);
 }
 
-enum {
+enum
+{
 	TLB_SUSPICIOUS	= 1,
 	TLB_INSANE	= 2,
 };
@@ -217,7 +261,7 @@ static int check_tlb_entry(unsigned w, unsigned e, bool dtlb)
 {
 	unsigned tlbidx = w | (e << PAGE_SHIFT);
 	unsigned r0 = dtlb ?
-		read_dtlb_virtual(tlbidx) : read_itlb_virtual(tlbidx);
+				  read_dtlb_virtual(tlbidx) : read_itlb_virtual(tlbidx);
 	unsigned vpn = (r0 & PAGE_MASK) | (e << PAGE_SHIFT);
 	unsigned pte = get_pte_for_vaddr(vpn);
 	unsigned mm_asid = (get_rasid_register() >> 8) & ASID_MASK;
@@ -225,33 +269,47 @@ static int check_tlb_entry(unsigned w, unsigned e, bool dtlb)
 	bool kernel = tlb_asid == 1;
 	int rc = 0;
 
-	if (tlb_asid > 0 && ((vpn < TASK_SIZE) == kernel)) {
+	if (tlb_asid > 0 && ((vpn < TASK_SIZE) == kernel))
+	{
 		pr_err("%cTLB: way: %u, entry: %u, VPN %08x in %s PTE\n",
-				dtlb ? 'D' : 'I', w, e, vpn,
-				kernel ? "kernel" : "user");
+			   dtlb ? 'D' : 'I', w, e, vpn,
+			   kernel ? "kernel" : "user");
 		rc |= TLB_INSANE;
 	}
 
-	if (tlb_asid == mm_asid) {
+	if (tlb_asid == mm_asid)
+	{
 		unsigned r1 = dtlb ? read_dtlb_translation(tlbidx) :
-			read_itlb_translation(tlbidx);
-		if ((pte ^ r1) & PAGE_MASK) {
+					  read_itlb_translation(tlbidx);
+
+		if ((pte ^ r1) & PAGE_MASK)
+		{
 			pr_err("%cTLB: way: %u, entry: %u, mapping: %08x->%08x, PTE: %08x\n",
-					dtlb ? 'D' : 'I', w, e, r0, r1, pte);
-			if (pte == 0 || !pte_present(__pte(pte))) {
+				   dtlb ? 'D' : 'I', w, e, r0, r1, pte);
+
+			if (pte == 0 || !pte_present(__pte(pte)))
+			{
 				struct page *p = pfn_to_page(r1 >> PAGE_SHIFT);
 				pr_err("page refcount: %d, mapcount: %d\n",
-						page_count(p),
-						page_mapcount(p));
+					   page_count(p),
+					   page_mapcount(p));
+
 				if (!page_count(p))
+				{
 					rc |= TLB_INSANE;
+				}
 				else if (page_mapcount(p))
+				{
 					rc |= TLB_SUSPICIOUS;
-			} else {
+				}
+			}
+			else
+			{
 				rc |= TLB_INSANE;
 			}
 		}
 	}
+
 	return rc;
 }
 
@@ -262,16 +320,29 @@ void check_tlb_sanity(void)
 	int bug = 0;
 
 	local_irq_save(flags);
+
 	for (w = 0; w < DTLB_ARF_WAYS; ++w)
 		for (e = 0; e < (1 << XCHAL_DTLB_ARF_ENTRIES_LOG2); ++e)
+		{
 			bug |= check_tlb_entry(w, e, true);
+		}
+
 	for (w = 0; w < ITLB_ARF_WAYS; ++w)
 		for (e = 0; e < (1 << XCHAL_ITLB_ARF_ENTRIES_LOG2); ++e)
+		{
 			bug |= check_tlb_entry(w, e, false);
+		}
+
 	if (bug & TLB_INSANE)
+	{
 		tlb_insane();
+	}
+
 	if (bug & TLB_SUSPICIOUS)
+	{
 		tlb_suspicious();
+	}
+
 	local_irq_restore(flags);
 }
 

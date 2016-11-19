@@ -55,9 +55,9 @@ typedef struct { pteval_t pgprot; } pgprot_t;
 #define __pgprot(x)	((pgprot_t) { (x) } )
 
 #if CONFIG_PGTABLE_LEVELS == 2
-#include <asm-generic/pgtable-nopmd.h>
+	#include <asm-generic/pgtable-nopmd.h>
 #elif CONFIG_PGTABLE_LEVELS == 3
-#include <asm-generic/pgtable-nopud.h>
+	#include <asm-generic/pgtable-nopud.h>
 #endif
 
 #endif	/* __ASM_PGTABLE_TYPES_H */

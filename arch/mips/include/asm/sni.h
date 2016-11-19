@@ -38,73 +38,73 @@ extern unsigned int sni_brd_type;
 #define SNI_PORT_BASE		CKSEG1ADDR(0xb4000000)
 
 #ifndef __MIPSEL__
-/*
- * ASIC PCI registers for big endian configuration.
- */
-#define PCIMT_UCONF		CKSEG1ADDR(0xbfff0004)
-#define PCIMT_IOADTIMEOUT2	CKSEG1ADDR(0xbfff000c)
-#define PCIMT_IOMEMCONF		CKSEG1ADDR(0xbfff0014)
-#define PCIMT_IOMMU		CKSEG1ADDR(0xbfff001c)
-#define PCIMT_IOADTIMEOUT1	CKSEG1ADDR(0xbfff0024)
-#define PCIMT_DMAACCESS		CKSEG1ADDR(0xbfff002c)
-#define PCIMT_DMAHIT		CKSEG1ADDR(0xbfff0034)
-#define PCIMT_ERRSTATUS		CKSEG1ADDR(0xbfff003c)
-#define PCIMT_ERRADDR		CKSEG1ADDR(0xbfff0044)
-#define PCIMT_SYNDROME		CKSEG1ADDR(0xbfff004c)
-#define PCIMT_ITPEND		CKSEG1ADDR(0xbfff0054)
-#define	 IT_INT2		0x01
-#define	 IT_INTD		0x02
-#define	 IT_INTC		0x04
-#define	 IT_INTB		0x08
-#define	 IT_INTA		0x10
-#define	 IT_EISA		0x20
-#define	 IT_SCSI		0x40
-#define	 IT_ETH			0x80
-#define PCIMT_IRQSEL		CKSEG1ADDR(0xbfff005c)
-#define PCIMT_TESTMEM		CKSEG1ADDR(0xbfff0064)
-#define PCIMT_ECCREG		CKSEG1ADDR(0xbfff006c)
-#define PCIMT_CONFIG_ADDRESS	CKSEG1ADDR(0xbfff0074)
-#define PCIMT_ASIC_ID		CKSEG1ADDR(0xbfff007c)	/* read */
-#define PCIMT_SOFT_RESET	CKSEG1ADDR(0xbfff007c)	/* write */
-#define PCIMT_PIA_OE		CKSEG1ADDR(0xbfff0084)
-#define PCIMT_PIA_DATAOUT	CKSEG1ADDR(0xbfff008c)
-#define PCIMT_PIA_DATAIN	CKSEG1ADDR(0xbfff0094)
-#define PCIMT_CACHECONF		CKSEG1ADDR(0xbfff009c)
-#define PCIMT_INVSPACE		CKSEG1ADDR(0xbfff00a4)
+	/*
+	* ASIC PCI registers for big endian configuration.
+	*/
+	#define PCIMT_UCONF		CKSEG1ADDR(0xbfff0004)
+	#define PCIMT_IOADTIMEOUT2	CKSEG1ADDR(0xbfff000c)
+	#define PCIMT_IOMEMCONF		CKSEG1ADDR(0xbfff0014)
+	#define PCIMT_IOMMU		CKSEG1ADDR(0xbfff001c)
+	#define PCIMT_IOADTIMEOUT1	CKSEG1ADDR(0xbfff0024)
+	#define PCIMT_DMAACCESS		CKSEG1ADDR(0xbfff002c)
+	#define PCIMT_DMAHIT		CKSEG1ADDR(0xbfff0034)
+	#define PCIMT_ERRSTATUS		CKSEG1ADDR(0xbfff003c)
+	#define PCIMT_ERRADDR		CKSEG1ADDR(0xbfff0044)
+	#define PCIMT_SYNDROME		CKSEG1ADDR(0xbfff004c)
+	#define PCIMT_ITPEND		CKSEG1ADDR(0xbfff0054)
+	#define	 IT_INT2		0x01
+	#define	 IT_INTD		0x02
+	#define	 IT_INTC		0x04
+	#define	 IT_INTB		0x08
+	#define	 IT_INTA		0x10
+	#define	 IT_EISA		0x20
+	#define	 IT_SCSI		0x40
+	#define	 IT_ETH			0x80
+	#define PCIMT_IRQSEL		CKSEG1ADDR(0xbfff005c)
+	#define PCIMT_TESTMEM		CKSEG1ADDR(0xbfff0064)
+	#define PCIMT_ECCREG		CKSEG1ADDR(0xbfff006c)
+	#define PCIMT_CONFIG_ADDRESS	CKSEG1ADDR(0xbfff0074)
+	#define PCIMT_ASIC_ID		CKSEG1ADDR(0xbfff007c)	/* read */
+	#define PCIMT_SOFT_RESET	CKSEG1ADDR(0xbfff007c)	/* write */
+	#define PCIMT_PIA_OE		CKSEG1ADDR(0xbfff0084)
+	#define PCIMT_PIA_DATAOUT	CKSEG1ADDR(0xbfff008c)
+	#define PCIMT_PIA_DATAIN	CKSEG1ADDR(0xbfff0094)
+	#define PCIMT_CACHECONF		CKSEG1ADDR(0xbfff009c)
+	#define PCIMT_INVSPACE		CKSEG1ADDR(0xbfff00a4)
 #else
-/*
- * ASIC PCI registers for little endian configuration.
- */
-#define PCIMT_UCONF		CKSEG1ADDR(0xbfff0000)
-#define PCIMT_IOADTIMEOUT2	CKSEG1ADDR(0xbfff0008)
-#define PCIMT_IOMEMCONF		CKSEG1ADDR(0xbfff0010)
-#define PCIMT_IOMMU		CKSEG1ADDR(0xbfff0018)
-#define PCIMT_IOADTIMEOUT1	CKSEG1ADDR(0xbfff0020)
-#define PCIMT_DMAACCESS		CKSEG1ADDR(0xbfff0028)
-#define PCIMT_DMAHIT		CKSEG1ADDR(0xbfff0030)
-#define PCIMT_ERRSTATUS		CKSEG1ADDR(0xbfff0038)
-#define PCIMT_ERRADDR		CKSEG1ADDR(0xbfff0040)
-#define PCIMT_SYNDROME		CKSEG1ADDR(0xbfff0048)
-#define PCIMT_ITPEND		CKSEG1ADDR(0xbfff0050)
-#define	 IT_INT2		0x01
-#define	 IT_INTD		0x02
-#define	 IT_INTC		0x04
-#define	 IT_INTB		0x08
-#define	 IT_INTA		0x10
-#define	 IT_EISA		0x20
-#define	 IT_SCSI		0x40
-#define	 IT_ETH			0x80
-#define PCIMT_IRQSEL		CKSEG1ADDR(0xbfff0058)
-#define PCIMT_TESTMEM		CKSEG1ADDR(0xbfff0060)
-#define PCIMT_ECCREG		CKSEG1ADDR(0xbfff0068)
-#define PCIMT_CONFIG_ADDRESS	CKSEG1ADDR(0xbfff0070)
-#define PCIMT_ASIC_ID		CKSEG1ADDR(0xbfff0078)	/* read */
-#define PCIMT_SOFT_RESET	CKSEG1ADDR(0xbfff0078)	/* write */
-#define PCIMT_PIA_OE		CKSEG1ADDR(0xbfff0080)
-#define PCIMT_PIA_DATAOUT	CKSEG1ADDR(0xbfff0088)
-#define PCIMT_PIA_DATAIN	CKSEG1ADDR(0xbfff0090)
-#define PCIMT_CACHECONF		CKSEG1ADDR(0xbfff0098)
-#define PCIMT_INVSPACE		CKSEG1ADDR(0xbfff00a0)
+	/*
+	* ASIC PCI registers for little endian configuration.
+	*/
+	#define PCIMT_UCONF		CKSEG1ADDR(0xbfff0000)
+	#define PCIMT_IOADTIMEOUT2	CKSEG1ADDR(0xbfff0008)
+	#define PCIMT_IOMEMCONF		CKSEG1ADDR(0xbfff0010)
+	#define PCIMT_IOMMU		CKSEG1ADDR(0xbfff0018)
+	#define PCIMT_IOADTIMEOUT1	CKSEG1ADDR(0xbfff0020)
+	#define PCIMT_DMAACCESS		CKSEG1ADDR(0xbfff0028)
+	#define PCIMT_DMAHIT		CKSEG1ADDR(0xbfff0030)
+	#define PCIMT_ERRSTATUS		CKSEG1ADDR(0xbfff0038)
+	#define PCIMT_ERRADDR		CKSEG1ADDR(0xbfff0040)
+	#define PCIMT_SYNDROME		CKSEG1ADDR(0xbfff0048)
+	#define PCIMT_ITPEND		CKSEG1ADDR(0xbfff0050)
+	#define	 IT_INT2		0x01
+	#define	 IT_INTD		0x02
+	#define	 IT_INTC		0x04
+	#define	 IT_INTB		0x08
+	#define	 IT_INTA		0x10
+	#define	 IT_EISA		0x20
+	#define	 IT_SCSI		0x40
+	#define	 IT_ETH			0x80
+	#define PCIMT_IRQSEL		CKSEG1ADDR(0xbfff0058)
+	#define PCIMT_TESTMEM		CKSEG1ADDR(0xbfff0060)
+	#define PCIMT_ECCREG		CKSEG1ADDR(0xbfff0068)
+	#define PCIMT_CONFIG_ADDRESS	CKSEG1ADDR(0xbfff0070)
+	#define PCIMT_ASIC_ID		CKSEG1ADDR(0xbfff0078)	/* read */
+	#define PCIMT_SOFT_RESET	CKSEG1ADDR(0xbfff0078)	/* write */
+	#define PCIMT_PIA_OE		CKSEG1ADDR(0xbfff0080)
+	#define PCIMT_PIA_DATAOUT	CKSEG1ADDR(0xbfff0088)
+	#define PCIMT_PIA_DATAIN	CKSEG1ADDR(0xbfff0090)
+	#define PCIMT_CACHECONF		CKSEG1ADDR(0xbfff0098)
+	#define PCIMT_INVSPACE		CKSEG1ADDR(0xbfff00a0)
 #endif
 
 #define PCIMT_PCI_CONF		CKSEG1ADDR(0xbfff0100)
@@ -177,10 +177,10 @@ extern unsigned int sni_brd_type;
 #define PCIMT_IRQ_ETHERNET	(MIPS_CPU_IRQ_BASE+6)
 
 #if 0
-#define PCIMT_IRQ_TEMPERATURE	24
-#define PCIMT_IRQ_EISA_NMI	25
-#define PCIMT_IRQ_POWER_OFF	26
-#define PCIMT_IRQ_BUTTON	27
+	#define PCIMT_IRQ_TEMPERATURE	24
+	#define PCIMT_IRQ_EISA_NMI	25
+	#define PCIMT_IRQ_POWER_OFF	26
+	#define PCIMT_IRQ_BUTTON	27
 #endif
 
 /*
@@ -199,10 +199,10 @@ extern unsigned int sni_brd_type;
  * SNI_IDPROM_CPUTYPE  CPU Type on RM400
  */
 #ifdef CONFIG_CPU_BIG_ENDIAN
-#define __SNI_END 0
+	#define __SNI_END 0
 #endif
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-#define __SNI_END 3
+	#define __SNI_END 3
 #endif
 #define SNI_IDPROM_BASE	       CKSEG1ADDR(0x1ff00000)
 #define SNI_IDPROM_MEMSIZE     (SNI_IDPROM_BASE + (0x28 ^ __SNI_END))

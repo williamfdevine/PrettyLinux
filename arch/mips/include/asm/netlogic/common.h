@@ -99,8 +99,8 @@ void nlm_setup_pic_irq(int node, int picirq, int irq, int irt);
 void nlm_set_pic_extra_ack(int node, int irq,  void (*xack)(struct irq_data *));
 
 #ifdef CONFIG_PCI_MSI
-void nlm_dispatch_msi(int node, int lirq);
-void nlm_dispatch_msix(int node, int msixirq);
+	void nlm_dispatch_msi(int node, int lirq);
+	void nlm_dispatch_msix(int node, int msixirq);
 #endif
 
 /*
@@ -117,7 +117,7 @@ static inline int nlm_irq_to_xirq(int node, int irq)
 static inline int nlm_cores_per_node(void)
 {
 	return ((read_c0_prid() & PRID_IMP_MASK)
-				== PRID_IMP_NETLOGIC_XLP9XX) ? 32 : 8;
+			== PRID_IMP_NETLOGIC_XLP9XX) ? 32 : 8;
 }
 #endif
 static inline int nlm_threads_per_node(void)

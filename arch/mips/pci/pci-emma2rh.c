@@ -29,14 +29,16 @@
 
 #include <asm/emma/emma2rh.h>
 
-static struct resource pci_io_resource = {
+static struct resource pci_io_resource =
+{
 	.name = "pci IO space",
 	.start = EMMA2RH_PCI_IO_BASE,
 	.end = EMMA2RH_PCI_IO_BASE + EMMA2RH_PCI_IO_SIZE - 1,
 	.flags = IORESOURCE_IO,
 };
 
-static struct resource pci_mem_resource = {
+static struct resource pci_mem_resource =
+{
 	.name = "pci memory space",
 	.start = EMMA2RH_PCI_MEM_BASE,
 	.end = EMMA2RH_PCI_MEM_BASE + EMMA2RH_PCI_MEM_SIZE - 1,
@@ -45,7 +47,8 @@ static struct resource pci_mem_resource = {
 
 extern struct pci_ops emma2rh_pci_ops;
 
-static struct pci_controller emma2rh_pci_controller = {
+static struct pci_controller emma2rh_pci_controller =
+{
 	.pci_ops = &emma2rh_pci_ops,
 	.mem_resource = &pci_mem_resource,
 	.io_resource = &pci_io_resource,
@@ -60,8 +63,8 @@ static void __init emma2rh_pci_init(void)
 
 	emma2rh_out32(EMMA2RH_PCI_IWIN0_CTR, 0x80000a18);
 	emma2rh_out32(EMMA2RH_PCI_CONFIG_BASE + PCI_COMMAND,
-		      PCI_STATUS_DEVSEL_MEDIUM | PCI_STATUS_CAP_LIST |
-		      PCI_COMMAND_MASTER | PCI_COMMAND_MEMORY);
+				  PCI_STATUS_DEVSEL_MEDIUM | PCI_STATUS_CAP_LIST |
+				  PCI_COMMAND_MASTER | PCI_COMMAND_MEMORY);
 	emma2rh_out32(EMMA2RH_PCI_CONFIG_BASE + PCI_BASE_ADDRESS_0, 0x10000000);
 	emma2rh_out32(EMMA2RH_PCI_CONFIG_BASE + PCI_BASE_ADDRESS_1, 0x00000000);
 

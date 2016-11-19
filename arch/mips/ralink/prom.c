@@ -35,22 +35,25 @@ static __init void prom_init_cmdline(int argc, char **argv)
 	int i;
 
 	pr_debug("prom: fw_arg0=%08x fw_arg1=%08x fw_arg2=%08x fw_arg3=%08x\n",
-	       (unsigned int)fw_arg0, (unsigned int)fw_arg1,
-	       (unsigned int)fw_arg2, (unsigned int)fw_arg3);
+			 (unsigned int)fw_arg0, (unsigned int)fw_arg1,
+			 (unsigned int)fw_arg2, (unsigned int)fw_arg3);
 
 	argc = fw_arg0;
 	argv = (char **) KSEG1ADDR(fw_arg1);
 
-	if (!argv) {
+	if (!argv)
+	{
 		pr_debug("argv=%p is invalid, skipping\n",
-		       argv);
+				 argv);
 		return;
 	}
 
-	for (i = 0; i < argc; i++) {
+	for (i = 0; i < argc; i++)
+	{
 		char *p = (char *) KSEG1ADDR(argv[i]);
 
-		if (CPHYSADDR(p) && *p) {
+		if (CPHYSADDR(p) && *p)
+		{
 			pr_debug("argv[%d]: %s\n", i, p);
 			strlcat(arcs_cmdline, " ", sizeof(arcs_cmdline));
 			strlcat(arcs_cmdline, p, sizeof(arcs_cmdline));

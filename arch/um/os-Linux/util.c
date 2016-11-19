@@ -18,8 +18,10 @@
 void stack_protections(unsigned long address)
 {
 	if (mprotect((void *) address, UM_THREAD_SIZE,
-		    PROT_READ | PROT_WRITE | PROT_EXEC) < 0)
+				 PROT_READ | PROT_WRITE | PROT_EXEC) < 0)
+	{
 		panic("protecting stack failed, errno = %d", errno);
+	}
 }
 
 int raw(int fd)
@@ -28,14 +30,20 @@ int raw(int fd)
 	int err;
 
 	CATCH_EINTR(err = tcgetattr(fd, &tt));
+
 	if (err < 0)
+	{
 		return -errno;
+	}
 
 	cfmakeraw(&tt);
 
 	CATCH_EINTR(err = tcsetattr(fd, TCSADRAIN, &tt));
+
 	if (err < 0)
+	{
 		return -errno;
+	}
 
 	/*
 	 * XXX tcsetattr could have applied only some changes
@@ -51,15 +59,21 @@ void setup_machinename(char *machine_out)
 	uname(&host);
 #ifdef UML_CONFIG_UML_X86
 # ifndef UML_CONFIG_64BIT
-	if (!strcmp(host.machine, "x86_64")) {
+
+	if (!strcmp(host.machine, "x86_64"))
+	{
 		strcpy(machine_out, "i686");
 		return;
 	}
+
 # else
-	if (!strcmp(host.machine, "i686")) {
+
+	if (!strcmp(host.machine, "i686"))
+	{
 		strcpy(machine_out, "x86_64");
 		return;
 	}
+
 # endif
 #endif
 	strcpy(machine_out, host.machine);
@@ -71,7 +85,7 @@ void setup_hostinfo(char *buf, int len)
 
 	uname(&host);
 	snprintf(buf, len, "%s %s %s %s %s", host.sysname, host.nodename,
-		 host.release, host.version, host.machine);
+			 host.release, host.version, host.machine);
 }
 
 /*
@@ -87,11 +101,15 @@ static inline void __attribute__ ((noreturn)) uml_abort(void)
 	fflush(NULL);
 
 	if (!sigemptyset(&sig) && !sigaddset(&sig, SIGABRT))
+	{
 		sigprocmask(SIG_UNBLOCK, &sig, 0);
+	}
 
 	for (;;)
 		if (kill(getpid(), SIGABRT) < 0)
+		{
 			exit(127);
+		}
 }
 
 /*
@@ -143,7 +161,9 @@ void os_dump_core(void)
 	 */
 
 	while ((pid = waitpid(-1, NULL, WNOHANG | __WALL)) > 0)
+	{
 		os_kill_ptraced_process(pid, 0);
+	}
 
 	uml_abort();
 }

@@ -15,10 +15,10 @@ struct siginfo;
 struct pt_regs;
 
 #ifndef __KERNEL__
-/* Here we must cater to libcs that poke about in kernel headers.  */
+	/* Here we must cater to libcs that poke about in kernel headers.  */
 
-#define NSIG            32
-typedef unsigned long sigset_t;
+	#define NSIG            32
+	typedef unsigned long sigset_t;
 
 #endif /* __KERNEL__ */
 
@@ -98,18 +98,20 @@ typedef unsigned long sigset_t;
 #ifndef __KERNEL__
 /* Here we must cater to libcs that poke about in kernel headers.  */
 
-struct sigaction {
-        union {
-          __sighandler_t _sa_handler;
-          void (*_sa_sigaction)(int, struct siginfo *, void *);
-        } _u;
+struct sigaction
+{
+	union
+	{
+		__sighandler_t _sa_handler;
+		void (*_sa_sigaction)(int, struct siginfo *, void *);
+	} _u;
 #ifndef __s390x__ /* lovely */
-        sigset_t sa_mask;
-        unsigned long sa_flags;
-        void (*sa_restorer)(void);
+	sigset_t sa_mask;
+	unsigned long sa_flags;
+	void (*sa_restorer)(void);
 #else  /* __s390x__ */
-        unsigned long sa_flags;
-        void (*sa_restorer)(void);
+	unsigned long sa_flags;
+	void (*sa_restorer)(void);
 	sigset_t sa_mask;
 #endif /* __s390x__ */
 };
@@ -119,10 +121,11 @@ struct sigaction {
 
 #endif /* __KERNEL__ */
 
-typedef struct sigaltstack {
-        void __user *ss_sp;
-        int ss_flags;
-        size_t ss_size;
+typedef struct sigaltstack
+{
+	void __user *ss_sp;
+	int ss_flags;
+	size_t ss_size;
 } stack_t;
 
 

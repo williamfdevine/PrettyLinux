@@ -24,28 +24,28 @@
 #include <asm/cpu-regs.h>
 
 #ifndef __ASSEMBLY__
-#include <asm/processor.h>
-#include <asm/cache.h>
-#include <linux/threads.h>
+	#include <asm/processor.h>
+	#include <asm/cache.h>
+	#include <linux/threads.h>
 
-#include <asm/bitops.h>
+	#include <asm/bitops.h>
 
-#include <linux/slab.h>
-#include <linux/list.h>
-#include <linux/spinlock.h>
+	#include <linux/slab.h>
+	#include <linux/list.h>
+	#include <linux/spinlock.h>
 
-/*
- * ZERO_PAGE is a global shared page that is always zero: used
- * for zero-mapped memory areas etc..
- */
-#define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
-extern unsigned long empty_zero_page[1024];
-extern spinlock_t pgd_lock;
-extern struct page *pgd_list;
+	/*
+	* ZERO_PAGE is a global shared page that is always zero: used
+	* for zero-mapped memory areas etc..
+	*/
+	#define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
+	extern unsigned long empty_zero_page[1024];
+	extern spinlock_t pgd_lock;
+	extern struct page *pgd_list;
 
-extern void pmd_ctor(void *, struct kmem_cache *, unsigned long);
-extern void pgtable_cache_init(void);
-extern void paging_init(void);
+	extern void pmd_ctor(void *, struct kmem_cache *, unsigned long);
+	extern void pgtable_cache_init(void);
+	extern void paging_init(void);
 
 #endif /* !__ASSEMBLY__ */
 
@@ -77,7 +77,7 @@ extern void paging_init(void);
 #define BOOT_KERNEL_PGD_PTRS	(1024 - BOOT_USER_PGD_PTRS)
 
 #ifndef __ASSEMBLY__
-extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+	extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
 #endif
 
 /*
@@ -93,17 +93,17 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
  * area to catch addressing errors.
  */
 #ifndef __ASSEMBLY__
-#define VMALLOC_OFFSET	(8UL * 1024 * 1024)
-#define VMALLOC_START	(0x70000000UL)
-#define VMALLOC_END	(0x7C000000UL)
+	#define VMALLOC_OFFSET	(8UL * 1024 * 1024)
+	#define VMALLOC_START	(0x70000000UL)
+	#define VMALLOC_END	(0x7C000000UL)
 #else
-#define VMALLOC_OFFSET	(8 * 1024 * 1024)
-#define VMALLOC_START	(0x70000000)
-#define VMALLOC_END	(0x7C000000)
+	#define VMALLOC_OFFSET	(8 * 1024 * 1024)
+	#define VMALLOC_START	(0x70000000)
+	#define VMALLOC_END	(0x7C000000)
 #endif
 
 #ifndef __ASSEMBLY__
-extern pte_t kernel_vmalloc_ptes[(VMALLOC_END - VMALLOC_START) / PAGE_SIZE];
+	extern pte_t kernel_vmalloc_ptes[(VMALLOC_END - VMALLOC_START) / PAGE_SIZE];
 #endif
 
 /* IPTEL2/DPTEL2 bit assignments */
@@ -217,9 +217,9 @@ extern pte_t kernel_vmalloc_ptes[(VMALLOC_END - VMALLOC_START) / PAGE_SIZE];
 
 #define pte_present(x)	(pte_val(x) & _PAGE_VALID)
 #define pte_clear(mm, addr, xp)				\
-do {							\
-	set_pte_at((mm), (addr), (xp), __pte(0));	\
-} while (0)
+	do {							\
+		set_pte_at((mm), (addr), (xp), __pte(0));	\
+	} while (0)
 
 #define pmd_none(x)	(!pmd_val(x))
 #define pmd_present(x)	(!pmd_none(x))
@@ -240,11 +240,11 @@ static inline int pte_read(pte_t pte)	{ return pte_val(pte) & __PAGE_PROT_USER; 
 static inline int pte_dirty(pte_t pte)	{ return pte_val(pte) & _PAGE_DIRTY; }
 static inline int pte_young(pte_t pte)	{ return pte_val(pte) & _PAGE_ACCESSED; }
 static inline int pte_write(pte_t pte)	{ return pte_val(pte) & __PAGE_PROT_WRITE; }
-static inline int pte_special(pte_t pte){ return 0; }
+static inline int pte_special(pte_t pte) { return 0; }
 
 static inline pte_t pte_rdprotect(pte_t pte)
 {
-	pte_val(pte) &= ~(__PAGE_PROT_USER|__PAGE_PROT_UWAUX); return pte;
+	pte_val(pte) &= ~(__PAGE_PROT_USER | __PAGE_PROT_UWAUX); return pte;
 }
 static inline pte_t pte_exprotect(pte_t pte)
 {
@@ -253,7 +253,7 @@ static inline pte_t pte_exprotect(pte_t pte)
 
 static inline pte_t pte_wrprotect(pte_t pte)
 {
-	pte_val(pte) &= ~(__PAGE_PROT_WRITE|__PAGE_PROT_UWAUX); return pte;
+	pte_val(pte) &= ~(__PAGE_PROT_WRITE | __PAGE_PROT_UWAUX); return pte;
 }
 
 static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
@@ -265,15 +265,23 @@ static inline pte_t pte_mkexec(pte_t pte)	{ pte_val(pte) &= ~_PAGE_NX; return pt
 static inline pte_t pte_mkread(pte_t pte)
 {
 	pte_val(pte) |= __PAGE_PROT_USER;
+
 	if (pte_write(pte))
+	{
 		pte_val(pte) |= __PAGE_PROT_UWAUX;
+	}
+
 	return pte;
 }
 static inline pte_t pte_mkwrite(pte_t pte)
 {
 	pte_val(pte) |= __PAGE_PROT_WRITE;
+
 	if (pte_val(pte) & __PAGE_PROT_USER)
+	{
 		pte_val(pte) |= __PAGE_PROT_UWAUX;
+	}
+
 	return pte;
 }
 
@@ -281,10 +289,10 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
 
 #define pte_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pte %08lx.\n", \
-	       __FILE__, __LINE__, pte_val(e))
+		   __FILE__, __LINE__, pte_val(e))
 #define pgd_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pgd %08lx.\n", \
-	       __FILE__, __LINE__, pgd_val(e))
+		   __FILE__, __LINE__, pgd_val(e))
 
 /*
  * The "pgd_xxx()" functions here are trivial for a folded two-level
@@ -344,26 +352,32 @@ static inline int pte_exec_kernel(pte_t pte)
 
 static inline
 int ptep_test_and_clear_dirty(struct vm_area_struct *vma, unsigned long addr,
-			      pte_t *ptep)
+							  pte_t *ptep)
 {
 	if (!pte_dirty(*ptep))
+	{
 		return 0;
+	}
+
 	return test_and_clear_bit(_PAGE_BIT_DIRTY, &ptep->pte);
 }
 
 static inline
 int ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned long addr,
-			      pte_t *ptep)
+							  pte_t *ptep)
 {
 	if (!pte_young(*ptep))
+	{
 		return 0;
+	}
+
 	return test_and_clear_bit(_PAGE_BIT_ACCESSED, &ptep->pte);
 }
 
 static inline
 void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
 {
-	pte_val(*ptep) &= ~(__PAGE_PROT_WRITE|__PAGE_PROT_UWAUX);
+	pte_val(*ptep) &= ~(__PAGE_PROT_WRITE | __PAGE_PROT_UWAUX);
 }
 
 static inline void ptep_mkdirty(pte_t *ptep)
@@ -471,7 +485,7 @@ static inline int set_kernel_exec(unsigned long vaddr, int enable)
  * the kernel page tables containing the necessary information by tlb-mn10300.S
  */
 extern void update_mmu_cache(struct vm_area_struct *vma,
-			     unsigned long address, pte_t *ptep);
+							 unsigned long address, pte_t *ptep);
 
 #endif /* !__ASSEMBLY__ */
 

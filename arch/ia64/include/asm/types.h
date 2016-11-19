@@ -22,7 +22,8 @@
  * These aren't exported outside the kernel to avoid name space clashes
  */
 
-struct fnptr {
+struct fnptr
+{
 	unsigned long ip;
 	unsigned long gp;
 };

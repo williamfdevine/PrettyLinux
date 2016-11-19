@@ -8,7 +8,8 @@
  * base board glue for PXA270 module
  */
 
-enum {
+enum
+{
 	COLIBRI_EVALBOARD = 0,
 	COLIBRI_PXA270_INCOME,
 };
@@ -42,7 +43,7 @@ static inline void colibri_pxa3xx_init_lcd(int bl_pin) {}
 #endif
 
 #if defined(CONFIG_AX88796)
-extern void colibri_pxa3xx_init_eth(struct ax_plat_data *plat_data);
+	extern void colibri_pxa3xx_init_eth(struct ax_plat_data *plat_data);
 #endif
 
 #if defined(CONFIG_MTD_NAND_PXA3xx) || defined(CONFIG_MTD_NAND_PXA3xx_MODULE)

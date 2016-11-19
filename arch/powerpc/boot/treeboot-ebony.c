@@ -28,5 +28,5 @@ void platform_init(void)
 
 	simple_alloc_init(_end, avail_ram, 32, 64);
 	ebony_init((u8 *)OPENBIOS_MAC_BASE,
-		   (u8 *)(OPENBIOS_MAC_BASE + OPENBIOS_MAC_OFFSET));
+			   (u8 *)(OPENBIOS_MAC_BASE + OPENBIOS_MAC_OFFSET));
 }

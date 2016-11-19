@@ -30,7 +30,9 @@ static irqreturn_t ssp_interrupt(int irq, void *dev_id)
 	unsigned int status = Ser4SSSR;
 
 	if (status & SSSR_ROR)
+	{
 		printk(KERN_WARNING "SSP: receiver overrun\n");
+	}
 
 	Ser4SSSR = SSSR_ROR;
 
@@ -55,18 +57,27 @@ int ssp_write_word(u16 data)
 {
 	int timeout = TIMEOUT;
 
-	while (!(Ser4SSSR & SSSR_TNF)) {
-	        if (!--timeout)
-	        	return -ETIMEDOUT;
+	while (!(Ser4SSSR & SSSR_TNF))
+	{
+		if (!--timeout)
+		{
+			return -ETIMEDOUT;
+		}
+
 		cpu_relax();
 	}
 
 	Ser4SSDR = data;
 
 	timeout = TIMEOUT;
-	while (!(Ser4SSSR & SSSR_BSY)) {
-	        if (!--timeout)
-	        	return -ETIMEDOUT;
+
+	while (!(Ser4SSSR & SSSR_BSY))
+	{
+		if (!--timeout)
+		{
+			return -ETIMEDOUT;
+		}
+
 		cpu_relax();
 	}
 
@@ -92,9 +103,13 @@ int ssp_read_word(u16 *data)
 {
 	int timeout = TIMEOUT;
 
-	while (!(Ser4SSSR & SSSR_RNE)) {
-	        if (!--timeout)
-	        	return -ETIMEDOUT;
+	while (!(Ser4SSSR & SSSR_RNE))
+	{
+		if (!--timeout)
+		{
+			return -ETIMEDOUT;
+		}
+
 		cpu_relax();
 	}
 
@@ -119,15 +134,24 @@ int ssp_flush(void)
 {
 	int timeout = TIMEOUT * 2;
 
-	do {
-		while (Ser4SSSR & SSSR_RNE) {
-		        if (!--timeout)
-		        	return -ETIMEDOUT;
+	do
+	{
+		while (Ser4SSSR & SSSR_RNE)
+		{
+			if (!--timeout)
+			{
+				return -ETIMEDOUT;
+			}
+
 			(void) Ser4SSDR;
 		}
-	        if (!--timeout)
-	        	return -ETIMEDOUT;
-	} while (Ser4SSSR & SSSR_BSY);
+
+		if (!--timeout)
+		{
+			return -ETIMEDOUT;
+		}
+	}
+	while (Ser4SSSR & SSSR_BSY);
 
 	return 0;
 }
@@ -196,21 +220,27 @@ int ssp_init(void)
 	int ret;
 
 	if (!(PPAR & PPAR_SPR) && (Ser4MCCR0 & MCCR0_MCE))
+	{
 		return -ENODEV;
+	}
 
-	if (!request_mem_region(__PREG(Ser4SSCR0), 0x18, "SSP")) {
+	if (!request_mem_region(__PREG(Ser4SSCR0), 0x18, "SSP"))
+	{
 		return -EBUSY;
 	}
 
 	Ser4SSSR = SSSR_ROR;
 
 	ret = request_irq(IRQ_Ser4SSP, ssp_interrupt, 0, "SSP", NULL);
+
 	if (ret)
+	{
 		goto out_region;
+	}
 
 	return 0;
 
- out_region:
+out_region:
 	release_mem_region(__PREG(Ser4SSCR0), 0x18);
 	return ret;
 }

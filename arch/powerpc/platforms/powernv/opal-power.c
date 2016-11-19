@@ -36,21 +36,27 @@ static bool detect_epow(void)
 	*/
 	epow_classes = cpu_to_be16(OPAL_SYSEPOW_MAX);
 	rc = opal_get_epow_status(opal_epow_status, &epow_classes);
-	if (rc != OPAL_SUCCESS) {
+
+	if (rc != OPAL_SUCCESS)
+	{
 		pr_err("Failed to get EPOW event information\n");
 		return false;
 	}
 
 	/* Look for EPOW events present */
-	for (i = 0; i < be16_to_cpu(epow_classes); i++) {
+	for (i = 0; i < be16_to_cpu(epow_classes); i++)
+	{
 		epow = be16_to_cpu(opal_epow_status[i]);
 
 		/* Filter events which do not need shutdown. */
 		if (i == OPAL_SYSEPOW_POWER)
 			epow &= ~(OPAL_SYSPOWER_CHNG | OPAL_SYSPOWER_FAIL |
-					OPAL_SYSPOWER_INCL);
+					  OPAL_SYSPOWER_INCL);
+
 		if (epow)
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -64,13 +70,16 @@ static bool poweroff_pending(void)
 
 	/* Check for DPO event */
 	rc = opal_get_dpo_status(&opal_dpo_timeout);
-	if (rc == OPAL_SUCCESS) {
+
+	if (rc == OPAL_SUCCESS)
+	{
 		pr_info("Existing DPO event detected.\n");
 		return true;
 	}
 
 	/* Check for EPOW event */
-	if (detect_epow()) {
+	if (detect_epow())
+	{
 		pr_info("Existing EPOW event detected.\n");
 		return true;
 	}
@@ -80,59 +89,73 @@ static bool poweroff_pending(void)
 
 /* OPAL power-control events notifier */
 static int opal_power_control_event(struct notifier_block *nb,
-					unsigned long msg_type, void *msg)
+									unsigned long msg_type, void *msg)
 {
 	uint64_t type;
 
-	switch (msg_type) {
-	case OPAL_MSG_EPOW:
-		if (detect_epow()) {
-			pr_info("EPOW msg received. Powering off system\n");
-			orderly_poweroff(true);
-		}
-		break;
-	case OPAL_MSG_DPO:
-		pr_info("DPO msg received. Powering off system\n");
-		orderly_poweroff(true);
-		break;
-	case OPAL_MSG_SHUTDOWN:
-		type = be64_to_cpu(((struct opal_msg *)msg)->params[0]);
-		switch (type) {
-		case SOFT_REBOOT:
-			pr_info("Reboot requested\n");
-			orderly_reboot();
+	switch (msg_type)
+	{
+		case OPAL_MSG_EPOW:
+			if (detect_epow())
+			{
+				pr_info("EPOW msg received. Powering off system\n");
+				orderly_poweroff(true);
+			}
+
 			break;
-		case SOFT_OFF:
-			pr_info("Poweroff requested\n");
+
+		case OPAL_MSG_DPO:
+			pr_info("DPO msg received. Powering off system\n");
 			orderly_poweroff(true);
 			break;
+
+		case OPAL_MSG_SHUTDOWN:
+			type = be64_to_cpu(((struct opal_msg *)msg)->params[0]);
+
+			switch (type)
+			{
+				case SOFT_REBOOT:
+					pr_info("Reboot requested\n");
+					orderly_reboot();
+					break;
+
+				case SOFT_OFF:
+					pr_info("Poweroff requested\n");
+					orderly_poweroff(true);
+					break;
+
+				default:
+					pr_err("Unknown power-control type %llu\n", type);
+			}
+
+			break;
+
 		default:
-			pr_err("Unknown power-control type %llu\n", type);
-		}
-		break;
-	default:
-		pr_err("Unknown OPAL message type %lu\n", msg_type);
+			pr_err("Unknown OPAL message type %lu\n", msg_type);
 	}
 
 	return 0;
 }
 
 /* OPAL EPOW event notifier block */
-static struct notifier_block opal_epow_nb = {
+static struct notifier_block opal_epow_nb =
+{
 	.notifier_call	= opal_power_control_event,
 	.next		= NULL,
 	.priority	= 0,
 };
 
 /* OPAL DPO event notifier block */
-static struct notifier_block opal_dpo_nb = {
+static struct notifier_block opal_dpo_nb =
+{
 	.notifier_call	= opal_power_control_event,
 	.next		= NULL,
 	.priority	= 0,
 };
 
 /* OPAL power-control event notifier block */
-static struct notifier_block opal_power_control_nb = {
+static struct notifier_block opal_power_control_nb =
+{
 	.notifier_call	= opal_power_control_event,
 	.next		= NULL,
 	.priority	= 0,
@@ -145,34 +168,50 @@ static int __init opal_power_control_init(void)
 
 	/* Register OPAL power-control events notifier */
 	ret = opal_message_notifier_register(OPAL_MSG_SHUTDOWN,
-						&opal_power_control_nb);
+										 &opal_power_control_nb);
+
 	if (ret)
+	{
 		pr_err("Failed to register SHUTDOWN notifier, ret = %d\n", ret);
+	}
 
 	/* Determine OPAL EPOW, DPO support */
 	np = of_find_node_by_path("/ibm,opal/epow");
-	if (np) {
+
+	if (np)
+	{
 		supported = of_device_is_compatible(np, "ibm,opal-v3-epow");
 		of_node_put(np);
 	}
 
 	if (!supported)
+	{
 		return 0;
+	}
+
 	pr_info("OPAL EPOW, DPO support detected.\n");
 
 	/* Register EPOW event notifier */
 	ret = opal_message_notifier_register(OPAL_MSG_EPOW, &opal_epow_nb);
+
 	if (ret)
+	{
 		pr_err("Failed to register EPOW notifier, ret = %d\n", ret);
+	}
 
 	/* Register DPO event notifier */
 	ret = opal_message_notifier_register(OPAL_MSG_DPO, &opal_dpo_nb);
+
 	if (ret)
+	{
 		pr_err("Failed to register DPO notifier, ret = %d\n", ret);
+	}
 
 	/* Check for any pending EPOW or DPO events. */
 	if (poweroff_pending())
+	{
 		orderly_poweroff(true);
+	}
 
 	return 0;
 }

@@ -36,12 +36,14 @@ static void omap3xxx_prm_ocp_barrier(void);
 static void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask);
 static void omap3xxx_prm_restore_irqen(u32 *saved_mask);
 
-static const struct omap_prcm_irq omap3_prcm_irqs[] = {
+static const struct omap_prcm_irq omap3_prcm_irqs[] =
+{
 	OMAP_PRCM_IRQ("wkup",	0,	0),
 	OMAP_PRCM_IRQ("io",	9,	1),
 };
 
-static struct omap_prcm_irq_setup omap3_prcm_irq_setup = {
+static struct omap_prcm_irq_setup omap3_prcm_irq_setup =
+{
 	.ack			= OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
 	.mask			= OMAP3_PRM_IRQENABLE_MPU_OFFSET,
 	.nr_regs		= 1,
@@ -60,17 +62,22 @@ static struct omap_prcm_irq_setup omap3_prcm_irq_setup = {
  *   register (which are specific to OMAP3xxx SoCs) to reset source ID
  *   bit shifts (which is an OMAP SoC-independent enumeration)
  */
-static struct prm_reset_src_map omap3xxx_prm_reset_src_map[] = {
+static struct prm_reset_src_map omap3xxx_prm_reset_src_map[] =
+{
 	{ OMAP3430_GLOBAL_COLD_RST_SHIFT, OMAP_GLOBAL_COLD_RST_SRC_ID_SHIFT },
 	{ OMAP3430_GLOBAL_SW_RST_SHIFT, OMAP_GLOBAL_WARM_RST_SRC_ID_SHIFT },
 	{ OMAP3430_SECURITY_VIOL_RST_SHIFT, OMAP_SECU_VIOL_RST_SRC_ID_SHIFT },
 	{ OMAP3430_MPU_WD_RST_SHIFT, OMAP_MPU_WD_RST_SRC_ID_SHIFT },
 	{ OMAP3430_SECURE_WD_RST_SHIFT, OMAP_MPU_WD_RST_SRC_ID_SHIFT },
 	{ OMAP3430_EXTERNAL_WARM_RST_SHIFT, OMAP_EXTWARM_RST_SRC_ID_SHIFT },
-	{ OMAP3430_VDD1_VOLTAGE_MANAGER_RST_SHIFT,
-	  OMAP_VDD_MPU_VM_RST_SRC_ID_SHIFT },
-	{ OMAP3430_VDD2_VOLTAGE_MANAGER_RST_SHIFT,
-	  OMAP_VDD_CORE_VM_RST_SRC_ID_SHIFT },
+	{
+		OMAP3430_VDD1_VOLTAGE_MANAGER_RST_SHIFT,
+		OMAP_VDD_MPU_VM_RST_SRC_ID_SHIFT
+	},
+	{
+		OMAP3430_VDD2_VOLTAGE_MANAGER_RST_SHIFT,
+		OMAP_VDD_CORE_VM_RST_SRC_ID_SHIFT
+	},
 	{ OMAP3430_ICEPICK_RST_SHIFT, OMAP_ICEPICK_RST_SRC_ID_SHIFT },
 	{ OMAP3430_ICECRUSHER_RST_SHIFT, OMAP_ICECRUSHER_RST_SRC_ID_SHIFT },
 	{ -1, -1 },
@@ -82,11 +89,13 @@ static struct prm_reset_src_map omap3xxx_prm_reset_src_map[] = {
  * struct omap3_vp - OMAP3 VP register access description.
  * @tranxdone_status: VP_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
  */
-struct omap3_vp {
+struct omap3_vp
+{
 	u32 tranxdone_status;
 };
 
-static struct omap3_vp omap3_vp[] = {
+static struct omap3_vp omap3_vp[] =
+{
 	[OMAP3_VP_VDD_MPU_ID] = {
 		.tranxdone_status = OMAP3430_VP1_TRANXDONE_ST_MASK,
 	},
@@ -103,7 +112,7 @@ static u32 omap3_prm_vp_check_txdone(u8 vp_id)
 	u32 irqstatus;
 
 	irqstatus = omap2_prm_read_mod_reg(OCP_MOD,
-					   OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+									   OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
 	return irqstatus & vp->tranxdone_status;
 }
 
@@ -112,7 +121,7 @@ static void omap3_prm_vp_clear_txdone(u8 vp_id)
 	struct omap3_vp *vp = &omap3_vp[vp_id];
 
 	omap2_prm_write_mod_reg(vp->tranxdone_status,
-				OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+							OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
 }
 
 u32 omap3_prm_vcvp_read(u8 offset)
@@ -140,7 +149,7 @@ u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset)
 static void omap3xxx_prm_dpll3_reset(void)
 {
 	omap2_prm_set_mod_reg_bits(OMAP_RST_DPLL3_MASK, OMAP3430_GR_MOD,
-				   OMAP2_RM_RSTCTRL);
+							   OMAP2_RM_RSTCTRL);
 	/* OCP barrier */
 	omap2_prm_read_mod_reg(OMAP3430_GR_MOD, OMAP2_RM_RSTCTRL);
 }
@@ -191,7 +200,7 @@ static void omap3xxx_prm_ocp_barrier(void)
 static void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask)
 {
 	saved_mask[0] = omap2_prm_read_mod_reg(OCP_MOD,
-					       OMAP3_PRM_IRQENABLE_MPU_OFFSET);
+										   OMAP3_PRM_IRQENABLE_MPU_OFFSET);
 	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
 
 	/* OCP barrier */
@@ -211,7 +220,7 @@ static void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask)
 static void omap3xxx_prm_restore_irqen(u32 *saved_mask)
 {
 	omap2_prm_write_mod_reg(saved_mask[0], OCP_MOD,
-				OMAP3_PRM_IRQENABLE_MPU_OFFSET);
+							OMAP3_PRM_IRQENABLE_MPU_OFFSET);
 }
 
 /**
@@ -234,30 +243,39 @@ static int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
 	u16 fclk_off = (regs == 3) ? OMAP3430ES2_CM_FCLKEN3 : CM_FCLKEN1;
 	u16 iclk_off = (regs == 3) ? CM_ICLKEN3 : CM_ICLKEN1;
 	u16 grpsel_off = (regs == 3) ?
-		OMAP3430ES2_PM_MPUGRPSEL3 : OMAP3430_PM_MPUGRPSEL;
+					 OMAP3430ES2_PM_MPUGRPSEL3 : OMAP3430_PM_MPUGRPSEL;
 	int c = 0;
 
 	wkst = omap2_prm_read_mod_reg(module, wkst_off);
 	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
 	wkst &= wkst_mask;
-	if (wkst) {
+
+	if (wkst)
+	{
 		iclk = omap2_cm_read_mod_reg(module, iclk_off);
 		fclk = omap2_cm_read_mod_reg(module, fclk_off);
-		while (wkst) {
+
+		while (wkst)
+		{
 			clken = wkst;
 			omap2_cm_set_mod_reg_bits(clken, module, iclk_off);
+
 			/*
 			 * For USBHOST, we don't know whether HOST1 or
 			 * HOST2 woke us up, so enable both f-clocks
 			 */
 			if (module == OMAP3430ES2_USBHOST_MOD)
+			{
 				clken |= 1 << OMAP3430ES2_EN_USBHOST2_SHIFT;
+			}
+
 			omap2_cm_set_mod_reg_bits(clken, module, fclk_off);
 			omap2_prm_write_mod_reg(wkst, module, wkst_off);
 			wkst = omap2_prm_read_mod_reg(module, wkst_off);
 			wkst &= wkst_mask;
 			c++;
 		}
+
 		omap2_cm_write_mod_reg(iclk, module, iclk_off);
 		omap2_cm_write_mod_reg(fclk, module, fclk_off);
 	}
@@ -276,7 +294,7 @@ void __init omap3_prm_reset_modem(void)
 	omap2_prm_write_mod_reg(
 		OMAP3430_RM_RSTCTRL_CORE_MODEM_SW_RSTPWRON_MASK |
 		OMAP3430_RM_RSTCTRL_CORE_MODEM_SW_RST_MASK,
-				CORE_MOD, OMAP2_RM_RSTCTRL);
+		CORE_MOD, OMAP2_RM_RSTCTRL);
 	omap2_prm_write_mod_reg(0, CORE_MOD, OMAP2_RM_RSTCTRL);
 }
 
@@ -298,62 +316,64 @@ void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
 	 * take care of this.
 	 */
 	omap2_prm_rmw_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK,
-				   1 << OMAP_AUTOEXTCLKMODE_SHIFT,
-				   OMAP3430_GR_MOD,
-				   OMAP3_PRM_CLKSRC_CTRL_OFFSET);
+							   1 << OMAP_AUTOEXTCLKMODE_SHIFT,
+							   OMAP3430_GR_MOD,
+							   OMAP3_PRM_CLKSRC_CTRL_OFFSET);
 
 	/* setup wakup source */
 	omap2_prm_write_mod_reg(OMAP3430_EN_IO_MASK | OMAP3430_EN_GPIO1_MASK |
-				OMAP3430_EN_GPT1_MASK | OMAP3430_EN_GPT12_MASK,
-				WKUP_MOD, PM_WKEN);
+							OMAP3430_EN_GPT1_MASK | OMAP3430_EN_GPT12_MASK,
+							WKUP_MOD, PM_WKEN);
 	/* No need to write EN_IO, that is always enabled */
 	omap2_prm_write_mod_reg(OMAP3430_GRPSEL_GPIO1_MASK |
-				OMAP3430_GRPSEL_GPT1_MASK |
-				OMAP3430_GRPSEL_GPT12_MASK,
-				WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
+							OMAP3430_GRPSEL_GPT1_MASK |
+							OMAP3430_GRPSEL_GPT12_MASK,
+							WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
 
 	/* Enable PM_WKEN to support DSS LPR */
 	omap2_prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS_MASK,
-				OMAP3430_DSS_MOD, PM_WKEN);
+							OMAP3430_DSS_MOD, PM_WKEN);
 
-	if (has_uart4) {
+	if (has_uart4)
+	{
 		en_uart4_mask = OMAP3630_EN_UART4_MASK;
 		grpsel_uart4_mask = OMAP3630_GRPSEL_UART4_MASK;
 	}
 
 	/* Enable wakeups in PER */
 	omap2_prm_write_mod_reg(en_uart4_mask |
-				OMAP3430_EN_GPIO2_MASK |
-				OMAP3430_EN_GPIO3_MASK |
-				OMAP3430_EN_GPIO4_MASK |
-				OMAP3430_EN_GPIO5_MASK |
-				OMAP3430_EN_GPIO6_MASK |
-				OMAP3430_EN_UART3_MASK |
-				OMAP3430_EN_MCBSP2_MASK |
-				OMAP3430_EN_MCBSP3_MASK |
-				OMAP3430_EN_MCBSP4_MASK,
-				OMAP3430_PER_MOD, PM_WKEN);
+							OMAP3430_EN_GPIO2_MASK |
+							OMAP3430_EN_GPIO3_MASK |
+							OMAP3430_EN_GPIO4_MASK |
+							OMAP3430_EN_GPIO5_MASK |
+							OMAP3430_EN_GPIO6_MASK |
+							OMAP3430_EN_UART3_MASK |
+							OMAP3430_EN_MCBSP2_MASK |
+							OMAP3430_EN_MCBSP3_MASK |
+							OMAP3430_EN_MCBSP4_MASK,
+							OMAP3430_PER_MOD, PM_WKEN);
 
 	/* and allow them to wake up MPU */
 	omap2_prm_write_mod_reg(grpsel_uart4_mask |
-				OMAP3430_GRPSEL_GPIO2_MASK |
-				OMAP3430_GRPSEL_GPIO3_MASK |
-				OMAP3430_GRPSEL_GPIO4_MASK |
-				OMAP3430_GRPSEL_GPIO5_MASK |
-				OMAP3430_GRPSEL_GPIO6_MASK |
-				OMAP3430_GRPSEL_UART3_MASK |
-				OMAP3430_GRPSEL_MCBSP2_MASK |
-				OMAP3430_GRPSEL_MCBSP3_MASK |
-				OMAP3430_GRPSEL_MCBSP4_MASK,
-				OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
+							OMAP3430_GRPSEL_GPIO2_MASK |
+							OMAP3430_GRPSEL_GPIO3_MASK |
+							OMAP3430_GRPSEL_GPIO4_MASK |
+							OMAP3430_GRPSEL_GPIO5_MASK |
+							OMAP3430_GRPSEL_GPIO6_MASK |
+							OMAP3430_GRPSEL_UART3_MASK |
+							OMAP3430_GRPSEL_MCBSP2_MASK |
+							OMAP3430_GRPSEL_MCBSP3_MASK |
+							OMAP3430_GRPSEL_MCBSP4_MASK,
+							OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
 
 	/* Don't attach IVA interrupts */
-	if (has_iva) {
+	if (has_iva)
+	{
 		omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
 		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
 		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
 		omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD,
-					OMAP3430_PM_IVAGRPSEL);
+								OMAP3430_PM_IVAGRPSEL);
 	}
 
 	/* Clear any pending 'reset' flags */
@@ -364,7 +384,7 @@ void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
 	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_NEON_MOD, OMAP2_RM_RSTST);
 	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_DSS_MOD, OMAP2_RM_RSTST);
 	omap2_prm_write_mod_reg(0xffffffff, OMAP3430ES2_USBHOST_MOD,
-				OMAP2_RM_RSTST);
+							OMAP2_RM_RSTST);
 
 	/* Clear any pending PRCM interrupts */
 	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
@@ -384,9 +404,9 @@ void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
 static void omap3430_pre_es3_1_reconfigure_io_chain(void)
 {
 	omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
-				     PM_WKEN);
+								 PM_WKEN);
 	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
-				   PM_WKEN);
+							   PM_WKEN);
 	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
 }
 
@@ -404,19 +424,22 @@ static void omap3_prm_reconfigure_io_chain(void)
 	int i = 0;
 
 	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
-				   PM_WKEN);
+							   PM_WKEN);
 
 	omap_test_timeout(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST) &
-			  OMAP3430_ST_IO_CHAIN_MASK,
-			  MAX_IOPAD_LATCH_TIME, i);
+					  OMAP3430_ST_IO_CHAIN_MASK,
+					  MAX_IOPAD_LATCH_TIME, i);
+
 	if (i == MAX_IOPAD_LATCH_TIME)
+	{
 		pr_warn("PRM: I/O chain clock line assertion timed out\n");
+	}
 
 	omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
-				     PM_WKEN);
+								 PM_WKEN);
 
 	omap2_prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK, WKUP_MOD,
-				   PM_WKST);
+							   PM_WKST);
 
 	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST);
 }
@@ -434,7 +457,7 @@ static void __init omap3xxx_prm_enable_io_wakeup(void)
 {
 	if (prm_features & PRM_HAS_IO_WAKEUP)
 		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
-					   PM_WKEN);
+								   PM_WKEN);
 }
 
 /**
@@ -452,9 +475,14 @@ static u32 omap3xxx_prm_read_reset_sources(void)
 	v = omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTST);
 
 	p = omap3xxx_prm_reset_src_map;
-	while (p->reg_shift >= 0 && p->std_shift >= 0) {
+
+	while (p->reg_shift >= 0 && p->std_shift >= 0)
+	{
 		if (v & (1 << p->reg_shift))
+		{
 			r |= 1 << p->std_shift;
+		}
+
 		p++;
 	}
 
@@ -476,18 +504,20 @@ void omap3xxx_prm_iva_idle(void)
 
 	/* if no clock activity, nothing else to do */
 	if (!(omap2_cm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSTST) &
-	      OMAP3430_CLKACTIVITY_IVA2_MASK))
+		  OMAP3430_CLKACTIVITY_IVA2_MASK))
+	{
 		return;
+	}
 
 	/* Reset IVA2 */
 	omap2_prm_write_mod_reg(OMAP3430_RST1_IVA2_MASK |
-				OMAP3430_RST2_IVA2_MASK |
-				OMAP3430_RST3_IVA2_MASK,
-				OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
+							OMAP3430_RST2_IVA2_MASK |
+							OMAP3430_RST3_IVA2_MASK,
+							OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
 
 	/* Enable IVA2 clock */
 	omap2_cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK,
-			       OMAP3430_IVA2_MOD, CM_FCLKEN);
+						   OMAP3430_IVA2_MOD, CM_FCLKEN);
 
 	/* Un-reset IVA2 */
 	omap2_prm_write_mod_reg(0, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
@@ -497,9 +527,9 @@ void omap3xxx_prm_iva_idle(void)
 
 	/* Reset IVA2 */
 	omap2_prm_write_mod_reg(OMAP3430_RST1_IVA2_MASK |
-				OMAP3430_RST2_IVA2_MASK |
-				OMAP3430_RST3_IVA2_MASK,
-				OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
+							OMAP3430_RST2_IVA2_MASK |
+							OMAP3430_RST3_IVA2_MASK,
+							OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
 }
 
 /**
@@ -512,10 +542,11 @@ void omap3xxx_prm_iva_idle(void)
 int omap3xxx_prm_clear_global_cold_reset(void)
 {
 	if (omap2_prm_read_mod_reg(OMAP3430_GR_MOD, OMAP3_PRM_RSTST_OFFSET) &
-	    OMAP3430_GLOBAL_COLD_RST_MASK) {
+		OMAP3430_GLOBAL_COLD_RST_MASK)
+	{
 		omap2_prm_set_mod_reg_bits(OMAP3430_GLOBAL_COLD_RST_MASK,
-					   OMAP3430_GR_MOD,
-					   OMAP3_PRM_RSTST_OFFSET);
+								   OMAP3430_GR_MOD,
+								   OMAP3_PRM_RSTST_OFFSET);
 		return 1;
 	}
 
@@ -525,10 +556,10 @@ int omap3xxx_prm_clear_global_cold_reset(void)
 void omap3_prm_save_scratchpad_contents(u32 *ptr)
 {
 	*ptr++ = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
-					OMAP3_PRM_CLKSRC_CTRL_OFFSET);
+									OMAP3_PRM_CLKSRC_CTRL_OFFSET);
 
 	*ptr++ = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
-					OMAP3_PRM_CLKSEL_OFFSET);
+									OMAP3_PRM_CLKSEL_OFFSET);
 }
 
 /* Powerdomain low-level functions */
@@ -536,69 +567,75 @@ void omap3_prm_save_scratchpad_contents(u32 *ptr)
 static int omap3_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
 {
 	omap2_prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
-				   (pwrst << OMAP_POWERSTATE_SHIFT),
-				   pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
+							   (pwrst << OMAP_POWERSTATE_SHIFT),
+							   pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
 	return 0;
 }
 
 static int omap3_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
 {
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-					     OMAP2_PM_PWSTCTRL,
-					     OMAP_POWERSTATE_MASK);
+										 OMAP2_PM_PWSTCTRL,
+										 OMAP_POWERSTATE_MASK);
 }
 
 static int omap3_pwrdm_read_pwrst(struct powerdomain *pwrdm)
 {
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-					     OMAP2_PM_PWSTST,
-					     OMAP_POWERSTATEST_MASK);
+										 OMAP2_PM_PWSTST,
+										 OMAP_POWERSTATEST_MASK);
 }
 
 /* Applicable only for OMAP3. Not supported on OMAP2 */
 static int omap3_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
 {
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-					     OMAP3430_PM_PREPWSTST,
-					     OMAP3430_LASTPOWERSTATEENTERED_MASK);
+										 OMAP3430_PM_PREPWSTST,
+										 OMAP3430_LASTPOWERSTATEENTERED_MASK);
 }
 
 static int omap3_pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
 {
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-					     OMAP2_PM_PWSTST,
-					     OMAP3430_LOGICSTATEST_MASK);
+										 OMAP2_PM_PWSTST,
+										 OMAP3430_LOGICSTATEST_MASK);
 }
 
 static int omap3_pwrdm_read_logic_retst(struct powerdomain *pwrdm)
 {
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-					     OMAP2_PM_PWSTCTRL,
-					     OMAP3430_LOGICSTATEST_MASK);
+										 OMAP2_PM_PWSTCTRL,
+										 OMAP3430_LOGICSTATEST_MASK);
 }
 
 static int omap3_pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
 {
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-					     OMAP3430_PM_PREPWSTST,
-					     OMAP3430_LASTLOGICSTATEENTERED_MASK);
+										 OMAP3430_PM_PREPWSTST,
+										 OMAP3430_LASTLOGICSTATEENTERED_MASK);
 }
 
 static int omap3_get_mem_bank_lastmemst_mask(u8 bank)
 {
-	switch (bank) {
-	case 0:
-		return OMAP3430_LASTMEM1STATEENTERED_MASK;
-	case 1:
-		return OMAP3430_LASTMEM2STATEENTERED_MASK;
-	case 2:
-		return OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_MASK;
-	case 3:
-		return OMAP3430_LASTL2FLATMEMSTATEENTERED_MASK;
-	default:
-		WARN_ON(1); /* should never happen */
-		return -EEXIST;
+	switch (bank)
+	{
+		case 0:
+			return OMAP3430_LASTMEM1STATEENTERED_MASK;
+
+		case 1:
+			return OMAP3430_LASTMEM2STATEENTERED_MASK;
+
+		case 2:
+			return OMAP3430_LASTSHAREDL2CACHEFLATSTATEENTERED_MASK;
+
+		case 3:
+			return OMAP3430_LASTL2FLATMEMSTATEENTERED_MASK;
+
+		default:
+			WARN_ON(1); /* should never happen */
+			return -EEXIST;
 	}
+
 	return 0;
 }
 
@@ -609,7 +646,7 @@ static int omap3_pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
 	m = omap3_get_mem_bank_lastmemst_mask(bank);
 
 	return omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-				OMAP3430_PM_PREPWSTST, m);
+										 OMAP3430_PM_PREPWSTST, m);
 }
 
 static int omap3_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
@@ -621,18 +658,19 @@ static int omap3_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
 static int omap3_pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm)
 {
 	return omap2_prm_rmw_mod_reg_bits(0,
-					  1 << OMAP3430ES2_SAVEANDRESTORE_SHIFT,
-					  pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
+									  1 << OMAP3430ES2_SAVEANDRESTORE_SHIFT,
+									  pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
 }
 
 static int omap3_pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
 {
 	return omap2_prm_rmw_mod_reg_bits(1 << OMAP3430ES2_SAVEANDRESTORE_SHIFT,
-					  0, pwrdm->prcm_offs,
-					  OMAP2_PM_PWSTCTRL);
+									  0, pwrdm->prcm_offs,
+									  OMAP2_PM_PWSTCTRL);
 }
 
-struct pwrdm_ops omap3_pwrdm_operations = {
+struct pwrdm_ops omap3_pwrdm_operations =
+{
 	.pwrdm_set_next_pwrst	= omap3_pwrdm_set_next_pwrst,
 	.pwrdm_read_next_pwrst	= omap3_pwrdm_read_next_pwrst,
 	.pwrdm_read_pwrst	= omap3_pwrdm_read_pwrst,
@@ -658,7 +696,8 @@ struct pwrdm_ops omap3_pwrdm_operations = {
 
 static int omap3xxx_prm_late_init(void);
 
-static struct prm_ll_data omap3xxx_prm_ll_data = {
+static struct prm_ll_data omap3xxx_prm_ll_data =
+{
 	.read_reset_sources = &omap3xxx_prm_read_reset_sources,
 	.late_init = &omap3xxx_prm_late_init,
 	.assert_hardreset = &omap2_prm_assert_hardreset,
@@ -673,14 +712,18 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
 int __init omap3xxx_prm_init(const struct omap_prcm_init_data *data)
 {
 	omap2_clk_legacy_provider_init(TI_CLKM_PRM,
-				       prm_base + OMAP3430_IVA2_MOD);
+								   prm_base + OMAP3430_IVA2_MOD);
+
 	if (omap3_has_io_wakeup())
+	{
 		prm_features |= PRM_HAS_IO_WAKEUP;
+	}
 
 	return prm_register(&omap3xxx_prm_ll_data);
 }
 
-static const struct of_device_id omap3_prm_dt_match_table[] = {
+static const struct of_device_id omap3_prm_dt_match_table[] =
+{
 	{ .compatible = "ti,omap3-prm" },
 	{ }
 };
@@ -690,7 +733,9 @@ static int omap3xxx_prm_late_init(void)
 	int ret;
 
 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
+	{
 		return 0;
+	}
 
 	if (omap3_has_io_chain_ctrl())
 		omap3_prcm_irq_setup.reconfigure_io_chain =
@@ -699,23 +744,30 @@ static int omap3xxx_prm_late_init(void)
 		omap3_prcm_irq_setup.reconfigure_io_chain =
 			omap3430_pre_es3_1_reconfigure_io_chain;
 
-	if (of_have_populated_dt()) {
+	if (of_have_populated_dt())
+	{
 		struct device_node *np;
 		int irq_num;
 
 		np = of_find_matching_node(NULL, omap3_prm_dt_match_table);
-		if (np) {
+
+		if (np)
+		{
 			irq_num = of_irq_get(np, 0);
+
 			if (irq_num >= 0)
+			{
 				omap3_prcm_irq_setup.irq = irq_num;
+			}
 		}
 	}
 
 	omap3xxx_prm_enable_io_wakeup();
 	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
+
 	if (!ret)
 		irq_set_status_flags(omap_prcm_event_to_irq("io"),
-				     IRQ_NOAUTOEN);
+							 IRQ_NOAUTOEN);
 
 	return ret;
 }

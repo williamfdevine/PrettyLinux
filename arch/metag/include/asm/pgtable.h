@@ -10,15 +10,15 @@
 
 /* Invalid regions on Meta: 0x00000000-0x001FFFFF and 0xFFFF0000-0xFFFFFFFF */
 #if PAGE_OFFSET >= LINGLOBAL_BASE
-#define CONSISTENT_START	0xF7000000
-#define CONSISTENT_END		0xF73FFFFF
-#define VMALLOC_START		0xF8000000
-#define VMALLOC_END		0xFFFEFFFF
+	#define CONSISTENT_START	0xF7000000
+	#define CONSISTENT_END		0xF73FFFFF
+	#define VMALLOC_START		0xF8000000
+	#define VMALLOC_END		0xFFFEFFFF
 #else
-#define CONSISTENT_START	0x77000000
-#define CONSISTENT_END		0x773FFFFF
-#define VMALLOC_START		0x78000000
-#define VMALLOC_END		0x7FFFFFFF
+	#define CONSISTENT_START	0x77000000
+	#define CONSISTENT_END		0x773FFFFF
+	#define VMALLOC_START		0x78000000
+	#define VMALLOC_END		0x7FFFFFFF
 #endif
 
 /*
@@ -51,20 +51,20 @@
 #define FIRST_USER_PGD_NR	pgd_index(FIRST_USER_ADDRESS)
 
 #define PAGE_NONE	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | \
-				 _PAGE_CACHEABLE)
+							 _PAGE_CACHEABLE)
 
 #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_WRITE | \
-				 _PAGE_ACCESSED | _PAGE_CACHEABLE)
+							 _PAGE_ACCESSED | _PAGE_CACHEABLE)
 #define PAGE_SHARED_C	PAGE_SHARED
 #define PAGE_COPY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | \
-				 _PAGE_CACHEABLE)
+							 _PAGE_CACHEABLE)
 #define PAGE_COPY_C	PAGE_COPY
 
 #define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | \
-				 _PAGE_CACHEABLE)
+								 _PAGE_CACHEABLE)
 #define PAGE_KERNEL	__pgprot(_PAGE_PRESENT | _PAGE_DIRTY | \
-				 _PAGE_ACCESSED | _PAGE_WRITE | \
-				 _PAGE_CACHEABLE | _PAGE_KERNEL)
+							 _PAGE_ACCESSED | _PAGE_WRITE | \
+							 _PAGE_CACHEABLE | _PAGE_KERNEL)
 
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY
@@ -111,7 +111,7 @@ extern unsigned long empty_zero_page;
 
 #define pmd_none(x)		(!pmd_val(x))
 #define pmd_bad(x)		((pmd_val(x) & ~(PAGE_MASK | _PAGE_SZ_MASK)) \
-					!= (_PAGE_TABLE & ~_PAGE_SZ_MASK))
+						 != (_PAGE_TABLE & ~_PAGE_SZ_MASK))
 #define pmd_present(x)		(pmd_val(x) & _PAGE_PRESENT)
 #define pmd_clear(xp)		do { pmd_val(*(xp)) = 0; } while (0)
 
@@ -162,14 +162,18 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 static inline unsigned long pmd_page_vaddr(pmd_t pmd)
 {
 	unsigned long paddr = pmd_val(pmd) & PAGE_MASK;
+
 	if (!paddr)
+	{
 		return 0;
+	}
+
 	return (unsigned long)__va(paddr);
 }
 
 #define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT))
 #define pmd_page_shift(pmd)	(12 + ((pmd_val(pmd) & _PAGE_SZ_MASK) \
-					>> _PAGE_SZ_SHIFT))
+								   >> _PAGE_SZ_SHIFT))
 #define pmd_num_ptrs(pmd)	(PGDIR_SIZE >> pmd_page_shift(pmd))
 
 /*
@@ -178,7 +182,7 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
  */
 #if PAGE_OFFSET >= LINGLOBAL_BASE
 #define pgd_index(address)	((((address) & ~0x80000000) >> PGDIR_SHIFT) \
-							& (PTRS_PER_PGD-1))
+							 & (PTRS_PER_PGD-1))
 #else
 #define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
 #endif
@@ -191,11 +195,11 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
 
 /* Find an entry in the second-level page table.. */
 #if !defined(CONFIG_HUGETLB_PAGE)
-  /* all pages are of size (1 << PAGE_SHIFT), so no need to read 1st level pt */
+/* all pages are of size (1 << PAGE_SHIFT), so no need to read 1st level pt */
 # define pte_index(pmd, address) \
 	(((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
 #else
-  /* some pages are huge, so read 1st level pt to find out */
+/* some pages are huge, so read 1st level pt to find out */
 # define pte_index(pmd, address) \
 	(((address) >> pmd_page_shift(pmd)) & (pmd_num_ptrs(pmd) - 1))
 #endif
@@ -217,7 +221,7 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
  * tables contain all the necessary information.
  */
 static inline void update_mmu_cache(struct vm_area_struct *vma,
-				    unsigned long address, pte_t *pte)
+									unsigned long address, pte_t *pte)
 {
 }
 
@@ -228,7 +232,7 @@ static inline void update_mmu_cache(struct vm_area_struct *vma,
 #define __swp_type(x)			(((x).val >> 1) & 0xff)
 #define __swp_offset(x)			((x).val >> 10)
 #define __swp_entry(type, offset)	((swp_entry_t) { ((type) << 1) | \
-					 ((offset) << 10) })
+		((offset) << 10) })
 #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
 #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
 
@@ -252,14 +256,14 @@ void paging_init(unsigned long mem_end);
  */
 #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
 #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
-({									  \
-	int __changed = !pte_same(*(__ptep), __entry);			  \
-	if (__changed) {						  \
-		set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
-	}								  \
-	flush_tlb_page(__vma, __address);				  \
-	__changed;							  \
-})
+	({									  \
+		int __changed = !pte_same(*(__ptep), __entry);			  \
+		if (__changed) {						  \
+			set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
+		}								  \
+		flush_tlb_page(__vma, __address);				  \
+		__changed;							  \
+	})
 #endif
 
 #include <asm-generic/pgtable.h>

@@ -23,9 +23,9 @@
 #include <asm-generic/sections.h>
 
 #if defined(KBUILD_MCOUNT_RA_ADDRESS) && defined(CONFIG_32BIT)
-#define MCOUNT_OFFSET_INSNS 5
+	#define MCOUNT_OFFSET_INSNS 5
 #else
-#define MCOUNT_OFFSET_INSNS 4
+	#define MCOUNT_OFFSET_INSNS 4
 #endif
 
 #ifdef CONFIG_DYNAMIC_FTRACE
@@ -47,8 +47,11 @@ void arch_ftrace_update_code(int command)
 static inline int in_kernel_space(unsigned long ip)
 {
 	if (ip >= (unsigned long)_stext &&
-	    ip <= (unsigned long)_etext)
+		ip <= (unsigned long)_etext)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -96,7 +99,9 @@ static int ftrace_modify_code(unsigned long ip, unsigned int new_code)
 	safe_store_code(new_code, ip, faulted);
 
 	if (unlikely(faulted))
+	{
 		return -EFAULT;
+	}
 
 	old_fs = get_fs();
 	set_fs(get_ds());
@@ -108,19 +113,25 @@ static int ftrace_modify_code(unsigned long ip, unsigned int new_code)
 
 #ifndef CONFIG_64BIT
 static int ftrace_modify_code_2(unsigned long ip, unsigned int new_code1,
-				unsigned int new_code2)
+								unsigned int new_code2)
 {
 	int faulted;
 	mm_segment_t old_fs;
 
 	safe_store_code(new_code1, ip, faulted);
+
 	if (unlikely(faulted))
+	{
 		return -EFAULT;
+	}
 
 	ip += 4;
 	safe_store_code(new_code2, ip, faulted);
+
 	if (unlikely(faulted))
+	{
 		return -EFAULT;
+	}
 
 	ip -= 4;
 	old_fs = get_fs();
@@ -132,20 +143,26 @@ static int ftrace_modify_code_2(unsigned long ip, unsigned int new_code1,
 }
 
 static int ftrace_modify_code_2r(unsigned long ip, unsigned int new_code1,
-				 unsigned int new_code2)
+								 unsigned int new_code2)
 {
 	int faulted;
 	mm_segment_t old_fs;
 
 	ip += 4;
 	safe_store_code(new_code2, ip, faulted);
+
 	if (unlikely(faulted))
+	{
 		return -EFAULT;
+	}
 
 	ip -= 4;
 	safe_store_code(new_code1, ip, faulted);
+
 	if (unlikely(faulted))
+	{
 		return -EFAULT;
+	}
 
 	old_fs = get_fs();
 	set_fs(get_ds());
@@ -189,7 +206,7 @@ static int ftrace_modify_code_2r(unsigned long ip, unsigned int new_code1,
 #define INSN_B_1F (0x10000000 | MCOUNT_OFFSET_INSNS)
 
 int ftrace_make_nop(struct module *mod,
-		    struct dyn_ftrace *rec, unsigned long addr)
+					struct dyn_ftrace *rec, unsigned long addr)
 {
 	unsigned int new;
 	unsigned long ip = rec->ip;
@@ -224,7 +241,7 @@ int ftrace_make_call(struct dyn_ftrace *rec, unsigned long addr)
 	return ftrace_modify_code(ip, new);
 #else
 	return ftrace_modify_code_2r(ip, new, in_kernel_space(ip) ?
-						INSN_NOP : insn_la_mcount[1]);
+								 INSN_NOP : insn_la_mcount[1]);
 #endif
 }
 
@@ -261,7 +278,7 @@ extern void ftrace_graph_call(void);
 int ftrace_enable_ftrace_graph_caller(void)
 {
 	return ftrace_modify_code(FTRACE_GRAPH_CALL_IP,
-			insn_j_ftrace_graph_caller);
+							  insn_j_ftrace_graph_caller);
 }
 
 int ftrace_disable_ftrace_graph_caller(void)
@@ -278,7 +295,7 @@ int ftrace_disable_ftrace_graph_caller(void)
 #define OFFSET_MASK	0xffff	/* stack offset range: 0 ~ PT_SIZE */
 
 unsigned long ftrace_get_parent_ra_addr(unsigned long self_ra, unsigned long
-		old_parent_ra, unsigned long parent_ra_addr, unsigned long fp)
+										old_parent_ra, unsigned long parent_ra_addr, unsigned long fp)
 {
 	unsigned long sp, ip, tmp;
 	unsigned int code;
@@ -295,33 +312,46 @@ unsigned long ftrace_get_parent_ra_addr(unsigned long self_ra, unsigned long
 	 * search the text until finding the non-store instruction or "s{d,w}
 	 * ra, offset(sp)" instruction
 	 */
-	do {
+	do
+	{
 		/* get the code at "ip": code = *(unsigned int *)ip; */
 		safe_load_code(code, ip, faulted);
 
 		if (unlikely(faulted))
+		{
 			return 0;
+		}
+
 		/*
 		 * If we hit the non-store instruction before finding where the
 		 * ra is stored, then this is a leaf function and it does not
 		 * store the ra on the stack
 		 */
 		if ((code & S_R_SP) != S_R_SP)
+		{
 			return parent_ra_addr;
+		}
 
 		/* Move to the next instruction */
 		ip -= 4;
-	} while ((code & S_RA_SP) != S_RA_SP);
+	}
+	while ((code & S_RA_SP) != S_RA_SP);
 
 	sp = fp + (code & OFFSET_MASK);
 
 	/* tmp = *(unsigned long *)sp; */
 	safe_load_stack(tmp, sp, faulted);
+
 	if (unlikely(faulted))
+	{
 		return 0;
+	}
 
 	if (tmp == old_parent_ra)
+	{
 		return sp;
+	}
+
 	return 0;
 }
 
@@ -332,19 +362,23 @@ unsigned long ftrace_get_parent_ra_addr(unsigned long self_ra, unsigned long
  * in current thread info.
  */
 void prepare_ftrace_return(unsigned long *parent_ra_addr, unsigned long self_ra,
-			   unsigned long fp)
+						   unsigned long fp)
 {
 	unsigned long old_parent_ra;
 	struct ftrace_graph_ent trace;
 	unsigned long return_hooker = (unsigned long)
-	    &return_to_handler;
+								  &return_to_handler;
 	int faulted, insns;
 
 	if (unlikely(ftrace_graph_is_dead()))
+	{
 		return;
+	}
 
 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+	{
 		return;
+	}
 
 	/*
 	 * "parent_ra_addr" is the stack address saved the return address of
@@ -365,25 +399,37 @@ void prepare_ftrace_return(unsigned long *parent_ra_addr, unsigned long self_ra,
 
 	/* old_parent_ra = *parent_ra_addr; */
 	safe_load_stack(old_parent_ra, parent_ra_addr, faulted);
+
 	if (unlikely(faulted))
+	{
 		goto out;
+	}
+
 #ifndef KBUILD_MCOUNT_RA_ADDRESS
 	parent_ra_addr = (unsigned long *)ftrace_get_parent_ra_addr(self_ra,
-			old_parent_ra, (unsigned long)parent_ra_addr, fp);
+					 old_parent_ra, (unsigned long)parent_ra_addr, fp);
+
 	/*
 	 * If fails when getting the stack address of the non-leaf function's
 	 * ra, stop function graph tracer and return
 	 */
 	if (parent_ra_addr == 0)
+	{
 		goto out;
+	}
+
 #endif
 	/* *parent_ra_addr = return_hooker; */
 	safe_store_stack(return_hooker, parent_ra_addr, faulted);
+
 	if (unlikely(faulted))
+	{
 		goto out;
+	}
 
 	if (ftrace_push_return_trace(old_parent_ra, self_ra, &trace.depth, fp,
-				     NULL) == -EBUSY) {
+								 NULL) == -EBUSY)
+	{
 		*parent_ra_addr = old_parent_ra;
 		return;
 	}
@@ -398,10 +444,12 @@ void prepare_ftrace_return(unsigned long *parent_ra_addr, unsigned long self_ra,
 	trace.func = self_ra - (MCOUNT_INSN_SIZE * insns);
 
 	/* Only trace if the calling function expects to */
-	if (!ftrace_graph_entry(&trace)) {
+	if (!ftrace_graph_entry(&trace))
+	{
 		current->curr_ret_stack--;
 		*parent_ra_addr = old_parent_ra;
 	}
+
 	return;
 out:
 	ftrace_graph_stop();
@@ -423,14 +471,26 @@ unsigned long __init arch_syscall_addr(int nr)
 unsigned long __init arch_syscall_addr(int nr)
 {
 #ifdef CONFIG_MIPS32_N32
+
 	if (nr >= __NR_N32_Linux && nr <= __NR_N32_Linux + __NR_N32_Linux_syscalls)
+	{
 		return (unsigned long)sysn32_call_table[nr - __NR_N32_Linux];
+	}
+
 #endif
+
 	if (nr >= __NR_64_Linux  && nr <= __NR_64_Linux + __NR_64_Linux_syscalls)
+	{
 		return (unsigned long)sys_call_table[nr - __NR_64_Linux];
+	}
+
 #ifdef CONFIG_MIPS32_O32
+
 	if (nr >= __NR_O32_Linux && nr <= __NR_O32_Linux + __NR_O32_Linux_syscalls)
+	{
 		return (unsigned long)sys32_call_table[nr - __NR_O32_Linux];
+	}
+
 #endif
 
 	return (unsigned long) &sys_ni_syscall;

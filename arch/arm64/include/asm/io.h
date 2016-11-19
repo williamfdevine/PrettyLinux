@@ -66,9 +66,9 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
 {
 	u8 val;
 	asm volatile(ALTERNATIVE("ldrb %w0, [%1]",
-				 "ldarb %w0, [%1]",
-				 ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE)
-		     : "=r" (val) : "r" (addr));
+							 "ldarb %w0, [%1]",
+							 ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE)
+				 : "=r" (val) : "r" (addr));
 	return val;
 }
 
@@ -78,9 +78,9 @@ static inline u16 __raw_readw(const volatile void __iomem *addr)
 	u16 val;
 
 	asm volatile(ALTERNATIVE("ldrh %w0, [%1]",
-				 "ldarh %w0, [%1]",
-				 ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE)
-		     : "=r" (val) : "r" (addr));
+							 "ldarh %w0, [%1]",
+							 ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE)
+				 : "=r" (val) : "r" (addr));
 	return val;
 }
 
@@ -89,9 +89,9 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 {
 	u32 val;
 	asm volatile(ALTERNATIVE("ldr %w0, [%1]",
-				 "ldar %w0, [%1]",
-				 ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE)
-		     : "=r" (val) : "r" (addr));
+							 "ldar %w0, [%1]",
+							 ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE)
+				 : "=r" (val) : "r" (addr));
 	return val;
 }
 
@@ -100,9 +100,9 @@ static inline u64 __raw_readq(const volatile void __iomem *addr)
 {
 	u64 val;
 	asm volatile(ALTERNATIVE("ldr %0, [%1]",
-				 "ldar %0, [%1]",
-				 ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE)
-		     : "=r" (val) : "r" (addr));
+							 "ldar %0, [%1]",
+							 ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE)
+				 : "=r" (val) : "r" (addr));
 	return val;
 }
 
@@ -198,7 +198,7 @@ extern int devmem_is_allowed(unsigned long pfn);
 
 struct bio_vec;
 extern bool xen_biovec_phys_mergeable(const struct bio_vec *vec1,
-				      const struct bio_vec *vec2);
+									  const struct bio_vec *vec2);
 #define BIOVEC_PHYS_MERGEABLE(vec1, vec2)				\
 	(__BIOVEC_PHYS_MERGEABLE(vec1, vec2) &&				\
 	 (!xen_domain() || xen_biovec_phys_mergeable(vec1, vec2)))

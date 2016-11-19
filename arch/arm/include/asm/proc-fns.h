@@ -23,7 +23,8 @@ struct mm_struct;
 /*
  * Don't change this structure - ASM code relies on it.
  */
-extern struct processor {
+extern struct processor
+{
 	/* MISC
 	 * get data abort address/flags
 	 */
@@ -78,33 +79,33 @@ extern struct processor {
 } processor;
 
 #ifndef MULTI_CPU
-extern void cpu_proc_init(void);
-extern void cpu_proc_fin(void);
-extern int cpu_do_idle(void);
-extern void cpu_dcache_clean_area(void *, int);
-extern void cpu_do_switch_mm(phys_addr_t pgd_phys, struct mm_struct *mm);
-#ifdef CONFIG_ARM_LPAE
-extern void cpu_set_pte_ext(pte_t *ptep, pte_t pte);
-#else
-extern void cpu_set_pte_ext(pte_t *ptep, pte_t pte, unsigned int ext);
-#endif
-extern void cpu_reset(unsigned long addr) __attribute__((noreturn));
+	extern void cpu_proc_init(void);
+	extern void cpu_proc_fin(void);
+	extern int cpu_do_idle(void);
+	extern void cpu_dcache_clean_area(void *, int);
+	extern void cpu_do_switch_mm(phys_addr_t pgd_phys, struct mm_struct *mm);
+	#ifdef CONFIG_ARM_LPAE
+		extern void cpu_set_pte_ext(pte_t *ptep, pte_t pte);
+	#else
+		extern void cpu_set_pte_ext(pte_t *ptep, pte_t pte, unsigned int ext);
+	#endif
+	extern void cpu_reset(unsigned long addr) __attribute__((noreturn));
 
-/* These three are private to arch/arm/kernel/suspend.c */
-extern void cpu_do_suspend(void *);
-extern void cpu_do_resume(void *);
+	/* These three are private to arch/arm/kernel/suspend.c */
+	extern void cpu_do_suspend(void *);
+	extern void cpu_do_resume(void *);
 #else
-#define cpu_proc_init			processor._proc_init
-#define cpu_proc_fin			processor._proc_fin
-#define cpu_reset			processor.reset
-#define cpu_do_idle			processor._do_idle
-#define cpu_dcache_clean_area		processor.dcache_clean_area
-#define cpu_set_pte_ext			processor.set_pte_ext
-#define cpu_do_switch_mm		processor.switch_mm
+	#define cpu_proc_init			processor._proc_init
+	#define cpu_proc_fin			processor._proc_fin
+	#define cpu_reset			processor.reset
+	#define cpu_do_idle			processor._do_idle
+	#define cpu_dcache_clean_area		processor.dcache_clean_area
+	#define cpu_set_pte_ext			processor.set_pte_ext
+	#define cpu_do_switch_mm		processor.switch_mm
 
-/* These three are private to arch/arm/kernel/suspend.c */
-#define cpu_do_suspend			processor.do_suspend
-#define cpu_do_resume			processor.do_resume
+	/* These three are private to arch/arm/kernel/suspend.c */
+	#define cpu_do_suspend			processor.do_suspend
+	#define cpu_do_resume			processor.do_resume
 #endif
 
 extern void cpu_resume(void);
@@ -121,7 +122,7 @@ extern void cpu_resume(void);
 	({							\
 		u64 ttbr;					\
 		__asm__("mrrc	p15, " #nr ", %Q0, %R0, c2"	\
-			: "=r" (ttbr));				\
+				: "=r" (ttbr));				\
 		ttbr;						\
 	})
 
@@ -136,7 +137,7 @@ extern void cpu_resume(void);
 	({						\
 		unsigned long pg;			\
 		__asm__("mrc	p15, 0, %0, c2, c0, 0"	\
-			 : "=r" (pg) : : "cc");		\
+				: "=r" (pg) : : "cc");		\
 		pg &= ~0x3fff;				\
 		(pgd_t *)phys_to_virt(pg);		\
 	})

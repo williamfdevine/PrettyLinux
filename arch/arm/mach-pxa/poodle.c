@@ -55,7 +55,8 @@
 #include "generic.h"
 #include "devices.h"
 
-static unsigned long poodle_pin_config[] __initdata = {
+static unsigned long poodle_pin_config[] __initdata =
+{
 	/* I/O */
 	GPIO79_nCS_3,
 	GPIO80_nCS_4,
@@ -118,7 +119,8 @@ static unsigned long poodle_pin_config[] __initdata = {
 	GPIO22_GPIO,	/* POODLE_GPIO_IR_ON */
 };
 
-static struct resource poodle_scoop_resources[] = {
+static struct resource poodle_scoop_resources[] =
+{
 	[0] = {
 		.start		= 0x10800000,
 		.end		= 0x10800fff,
@@ -126,13 +128,15 @@ static struct resource poodle_scoop_resources[] = {
 	},
 };
 
-static struct scoop_config poodle_scoop_setup = {
+static struct scoop_config poodle_scoop_setup =
+{
 	.io_dir		= POODLE_SCOOP_IO_DIR,
 	.io_out		= POODLE_SCOOP_IO_OUT,
 	.gpio_base	= POODLE_SCOOP_GPIO_BASE,
 };
 
-struct platform_device poodle_scoop_device = {
+struct platform_device poodle_scoop_device =
+{
 	.name		= "sharp-scoop",
 	.id		= -1,
 	.dev		= {
@@ -142,16 +146,18 @@ struct platform_device poodle_scoop_device = {
 	.resource	= poodle_scoop_resources,
 };
 
-static struct scoop_pcmcia_dev poodle_pcmcia_scoop[] = {
+static struct scoop_pcmcia_dev poodle_pcmcia_scoop[] =
 {
-	.dev        = &poodle_scoop_device.dev,
-	.irq        = POODLE_IRQ_GPIO_CF_IRQ,
-	.cd_irq     = POODLE_IRQ_GPIO_CF_CD,
-	.cd_irq_str = "PCMCIA0 CD",
-},
+	{
+		.dev        = &poodle_scoop_device.dev,
+		.irq        = POODLE_IRQ_GPIO_CF_IRQ,
+		.cd_irq     = POODLE_IRQ_GPIO_CF_CD,
+		.cd_irq_str = "PCMCIA0 CD",
+	},
 };
 
-static struct scoop_pcmcia_config poodle_pcmcia_config = {
+static struct scoop_pcmcia_config poodle_pcmcia_config =
+{
 	.devs         = &poodle_pcmcia_scoop[0],
 	.num_devs     = 1,
 };
@@ -159,13 +165,15 @@ static struct scoop_pcmcia_config poodle_pcmcia_config = {
 EXPORT_SYMBOL(poodle_scoop_device);
 
 
-static struct platform_device poodle_audio_device = {
+static struct platform_device poodle_audio_device =
+{
 	.name	= "poodle-audio",
 	.id	= -1,
 };
 
 /* LoCoMo device */
-static struct resource locomo_resources[] = {
+static struct resource locomo_resources[] =
+{
 	[0] = {
 		.start		= 0x10000000,
 		.end		= 0x10001fff,
@@ -178,11 +186,13 @@ static struct resource locomo_resources[] = {
 	},
 };
 
-static struct locomo_platform_data locomo_info = {
+static struct locomo_platform_data locomo_info =
+{
 	.irq_base	= IRQ_BOARD_START,
 };
 
-struct platform_device poodle_locomo_device = {
+struct platform_device poodle_locomo_device =
+{
 	.name		= "locomo",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(locomo_resources),
@@ -195,11 +205,13 @@ struct platform_device poodle_locomo_device = {
 EXPORT_SYMBOL(poodle_locomo_device);
 
 #if defined(CONFIG_SPI_PXA2XX) || defined(CONFIG_SPI_PXA2XX_MODULE)
-static struct pxa2xx_spi_master poodle_spi_info = {
+static struct pxa2xx_spi_master poodle_spi_info =
+{
 	.num_chipselect	= 1,
 };
 
-static struct ads7846_platform_data poodle_ads7846_info = {
+static struct ads7846_platform_data poodle_ads7846_info =
+{
 	.model			= 7846,
 	.vref_delay_usecs	= 100,
 	.x_plate_ohms		= 419,
@@ -207,17 +219,19 @@ static struct ads7846_platform_data poodle_ads7846_info = {
 	.gpio_pendown		= POODLE_GPIO_TP_INT,
 };
 
-static struct pxa2xx_spi_chip poodle_ads7846_chip = {
+static struct pxa2xx_spi_chip poodle_ads7846_chip =
+{
 	.gpio_cs		= POODLE_GPIO_TP_CS,
 };
 
-static struct spi_board_info poodle_spi_devices[] = {
+static struct spi_board_info poodle_spi_devices[] =
+{
 	{
 		.modalias	= "ads7846",
 		.max_speed_hz	= 10000,
 		.bus_num	= 1,
 		.platform_data	= &poodle_ads7846_info,
-		.controller_data= &poodle_ads7846_chip,
+		.controller_data = &poodle_ads7846_chip,
 		.irq		= PXA_GPIO_TO_IRQ(POODLE_GPIO_TP_INT),
 	},
 };
@@ -242,12 +256,18 @@ static int poodle_mci_init(struct device *dev, irq_handler_t poodle_detect_int, 
 	int err;
 
 	err = gpio_request(POODLE_GPIO_SD_PWR, "SD_PWR");
+
 	if (err)
+	{
 		goto err_free_2;
+	}
 
 	err = gpio_request(POODLE_GPIO_SD_PWR1, "SD_PWR1");
+
 	if (err)
+	{
 		goto err_free_3;
+	}
 
 	gpio_direction_output(POODLE_GPIO_SD_PWR, 0);
 	gpio_direction_output(POODLE_GPIO_SD_PWR1, 0);
@@ -262,13 +282,16 @@ err_free_2:
 
 static int poodle_mci_setpower(struct device *dev, unsigned int vdd)
 {
-	struct pxamci_platform_data* p_d = dev->platform_data;
+	struct pxamci_platform_data *p_d = dev->platform_data;
 
-	if ((1 << vdd) & p_d->ocr_mask) {
+	if ((1 << vdd) & p_d->ocr_mask)
+	{
 		gpio_set_value(POODLE_GPIO_SD_PWR, 1);
 		mdelay(2);
 		gpio_set_value(POODLE_GPIO_SD_PWR1, 1);
-	} else {
+	}
+	else
+	{
 		gpio_set_value(POODLE_GPIO_SD_PWR1, 0);
 		gpio_set_value(POODLE_GPIO_SD_PWR, 0);
 	}
@@ -282,9 +305,10 @@ static void poodle_mci_exit(struct device *dev, void *data)
 	gpio_free(POODLE_GPIO_SD_PWR);
 }
 
-static struct pxamci_platform_data poodle_mci_platform_data = {
+static struct pxamci_platform_data poodle_mci_platform_data =
+{
 	.detect_delay_ms	= 250,
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.init 			= poodle_mci_init,
 	.setpower 		= poodle_mci_setpower,
 	.exit			= poodle_mci_exit,
@@ -297,7 +321,8 @@ static struct pxamci_platform_data poodle_mci_platform_data = {
 /*
  * Irda
  */
-static struct pxaficp_platform_data poodle_ficp_platform_data = {
+static struct pxaficp_platform_data poodle_ficp_platform_data =
+{
 	.gpio_pwdown		= POODLE_GPIO_IR_ON,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
@@ -306,14 +331,16 @@ static struct pxaficp_platform_data poodle_ficp_platform_data = {
 /*
  * USB Device Controller
  */
-static struct pxa2xx_udc_mach_info udc_info __initdata = {
+static struct pxa2xx_udc_mach_info udc_info __initdata =
+{
 	/* no connect GPIO; poodle can't tell connection status */
 	.gpio_pullup	= POODLE_GPIO_USB_PULLUP,
 };
 
 
 /* PXAFB device */
-static struct pxafb_mode_info poodle_fb_mode = {
+static struct pxafb_mode_info poodle_fb_mode =
+{
 	.pixclock	= 144700,
 	.xres		= 320,
 	.yres		= 240,
@@ -327,13 +354,15 @@ static struct pxafb_mode_info poodle_fb_mode = {
 	.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 };
 
-static struct pxafb_mach_info poodle_fb_info = {
+static struct pxafb_mach_info poodle_fb_info =
+{
 	.modes		= &poodle_fb_mode,
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_TFT_16BPP,
 };
 
-static struct mtd_partition sharpsl_nand_partitions[] = {
+static struct mtd_partition sharpsl_nand_partitions[] =
+{
 	{
 		.name = "System Area",
 		.offset = 0,
@@ -353,20 +382,23 @@ static struct mtd_partition sharpsl_nand_partitions[] = {
 
 static uint8_t scan_ff_pattern[] = { 0xff, 0xff };
 
-static struct nand_bbt_descr sharpsl_bbt = {
+static struct nand_bbt_descr sharpsl_bbt =
+{
 	.options = 0,
 	.offs = 4,
 	.len = 2,
 	.pattern = scan_ff_pattern
 };
 
-static struct sharpsl_nand_platform_data sharpsl_nand_platform_data = {
+static struct sharpsl_nand_platform_data sharpsl_nand_platform_data =
+{
 	.badblock_pattern	= &sharpsl_bbt,
 	.partitions		= sharpsl_nand_partitions,
 	.nr_partitions		= ARRAY_SIZE(sharpsl_nand_partitions),
 };
 
-static struct resource sharpsl_nand_resources[] = {
+static struct resource sharpsl_nand_resources[] =
+{
 	{
 		.start	= 0x0C000000,
 		.end	= 0x0C000FFF,
@@ -374,7 +406,8 @@ static struct resource sharpsl_nand_resources[] = {
 	},
 };
 
-static struct platform_device sharpsl_nand_device = {
+static struct platform_device sharpsl_nand_device =
+{
 	.name		= "sharpsl-nand",
 	.id		= -1,
 	.resource	= sharpsl_nand_resources,
@@ -382,21 +415,24 @@ static struct platform_device sharpsl_nand_device = {
 	.dev.platform_data	= &sharpsl_nand_platform_data,
 };
 
-static struct mtd_partition sharpsl_rom_parts[] = {
+static struct mtd_partition sharpsl_rom_parts[] =
+{
 	{
-		.name	="Boot PROM Filesystem",
+		.name	= "Boot PROM Filesystem",
 		.offset	= 0x00120000,
 		.size	= MTDPART_SIZ_FULL,
 	},
 };
 
-static struct physmap_flash_data sharpsl_rom_data = {
+static struct physmap_flash_data sharpsl_rom_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(sharpsl_rom_parts),
 	.parts		= sharpsl_rom_parts,
 };
 
-static struct resource sharpsl_rom_resources[] = {
+static struct resource sharpsl_rom_resources[] =
+{
 	{
 		.start	= 0x00000000,
 		.end	= 0x007fffff,
@@ -404,7 +440,8 @@ static struct resource sharpsl_rom_resources[] = {
 	},
 };
 
-static struct platform_device sharpsl_rom_device = {
+static struct platform_device sharpsl_rom_device =
+{
 	.name	= "physmap-flash",
 	.id	= -1,
 	.resource = sharpsl_rom_resources,
@@ -412,7 +449,8 @@ static struct platform_device sharpsl_rom_device = {
 	.dev.platform_data = &sharpsl_rom_data,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&poodle_locomo_device,
 	&poodle_scoop_device,
 	&poodle_audio_device,
@@ -420,7 +458,8 @@ static struct platform_device *devices[] __initdata = {
 	&sharpsl_rom_device,
 };
 
-static struct i2c_board_info __initdata poodle_i2c_devices[] = {
+static struct i2c_board_info __initdata poodle_i2c_devices[] =
+{
 	{ I2C_BOARD_INFO("wm8731", 0x1b) },
 };
 
@@ -446,8 +485,11 @@ static void __init poodle_init(void)
 	platform_scoop_config = &poodle_pcmcia_config;
 
 	ret = platform_add_devices(devices, ARRAY_SIZE(devices));
+
 	if (ret)
+	{
 		pr_warn("poodle: Unable to register LoCoMo device\n");
+	}
 
 	pxa_set_fb_info(&poodle_locomo_device.dev, &poodle_fb_info);
 	pxa_set_udc_info(&udc_info);
@@ -466,12 +508,12 @@ static void __init fixup_poodle(struct tag *tags, char **cmdline)
 }
 
 MACHINE_START(POODLE, "SHARP Poodle")
-	.fixup		= fixup_poodle,
-	.map_io		= pxa25x_map_io,
-	.nr_irqs	= POODLE_NR_IRQS,	/* 4 for LoCoMo */
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= poodle_init,
-	.restart	= pxa_restart,
-MACHINE_END
+.fixup		= fixup_poodle,
+	 .map_io		= pxa25x_map_io,
+		 .nr_irqs	= POODLE_NR_IRQS,	/* 4 for LoCoMo */
+			 .init_irq	= pxa25x_init_irq,
+				.handle_irq	= pxa25x_handle_irq,
+				 .init_time	= pxa_timer_init,
+				   .init_machine	= poodle_init,
+					  .restart	= pxa_restart,
+						  MACHINE_END

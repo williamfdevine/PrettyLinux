@@ -36,21 +36,26 @@
 #ifdef CONFIG_PCI
 static int dsm320_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	switch (slot) {
-	case 0:
-		/* PCI-AHB bridge? */
-		return KS8695_IRQ_EXTERN0;
-	case 18:
-		/* Mini PCI slot */
-		return KS8695_IRQ_EXTERN2;
-	case 20:
-		/* RealMAGIC chip */
-		return KS8695_IRQ_EXTERN0;
+	switch (slot)
+	{
+		case 0:
+			/* PCI-AHB bridge? */
+			return KS8695_IRQ_EXTERN0;
+
+		case 18:
+			/* Mini PCI slot */
+			return KS8695_IRQ_EXTERN2;
+
+		case 20:
+			/* RealMAGIC chip */
+			return KS8695_IRQ_EXTERN0;
 	}
+
 	BUG();
 }
 
-static struct ks8695_pci_cfg __initdata dsm320_pci = {
+static struct ks8695_pci_cfg __initdata dsm320_pci =
+{
 	.mode		= KS8695_MODE_MINIPCI,
 	.map_irq	= dsm320_pci_map_irq,
 };
@@ -70,12 +75,14 @@ static void __init dsm320_register_pci(void)
 static inline void __init dsm320_register_pci(void) { }
 #endif
 
-static struct physmap_flash_data dsm320_nor_pdata = {
+static struct physmap_flash_data dsm320_nor_pdata =
+{
 	.width		= 4,
 	.nr_parts	= 0,
 };
 
-static struct resource dsm320_nor_resource[] = {
+static struct resource dsm320_nor_resource[] =
+{
 	[0] = {
 		.start = SZ_32M, /* We expect the bootloader to map
 				  * the flash here.
@@ -85,7 +92,8 @@ static struct resource dsm320_nor_resource[] = {
 	}
 };
 
-static struct platform_device dsm320_device_nor = {
+static struct platform_device dsm320_device_nor =
+{
 	.name		= "physmap-flash",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(dsm320_nor_resource),
@@ -100,8 +108,11 @@ void __init dsm320_register_nor(void)
 	int ret;
 
 	ret = platform_device_register(&dsm320_device_nor);
+
 	if (ret < 0)
+	{
 		printk(KERN_ERR "failed to register physmap-flash device\n");
+	}
 }
 
 static void __init dsm320_init(void)
@@ -120,11 +131,11 @@ static void __init dsm320_init(void)
 }
 
 MACHINE_START(DSM320, "D-Link DSM-320 Wireless Media Player")
-	/* Maintainer: Simtec Electronics. */
-	.atag_offset	= 0x100,
+/* Maintainer: Simtec Electronics. */
+.atag_offset	= 0x100,
 	.map_io		= ks8695_map_io,
-	.init_irq	= ks8695_init_irq,
-	.init_machine	= dsm320_init,
-	.init_time	= ks8695_timer_init,
-	.restart	= ks8695_restart,
-MACHINE_END
+		.init_irq	= ks8695_init_irq,
+		   .init_machine	= dsm320_init,
+			  .init_time	= ks8695_timer_init,
+				.restart	= ks8695_restart,
+					MACHINE_END

@@ -13,7 +13,7 @@
 static void default_threshold_interrupt(void)
 {
 	pr_err("Unexpected threshold interrupt at vector %x\n",
-		THRESHOLD_APIC_VECTOR);
+		   THRESHOLD_APIC_VECTOR);
 }
 
 void (*mce_threshold_vector)(void) = default_threshold_interrupt;

@@ -8,7 +8,7 @@
 #define SYS_ify(syscall_name)   __NR_##syscall_name
 
 #ifndef ASM_LINE_SEP
-# define ASM_LINE_SEP ;
+	#define ASM_LINE_SEP ;
 #endif
 
 /* Definition taken from glibc 2.3.3
@@ -16,14 +16,14 @@
  */
 
 #ifdef PIC
-/* WARNING: CANNOT BE USED IN A NOP! */
-# define K_STW_ASM_PIC	"       copy %%r19, %%r4\n"
-# define K_LDW_ASM_PIC	"       copy %%r4, %%r19\n"
-# define K_USING_GR4	"%r4",
+	/* WARNING: CANNOT BE USED IN A NOP! */
+	#define K_STW_ASM_PIC	"       copy %%r19, %%r4\n"
+	#define K_LDW_ASM_PIC	"       copy %%r4, %%r19\n"
+	#define K_USING_GR4	"%r4",
 #else
-# define K_STW_ASM_PIC	" \n"
-# define K_LDW_ASM_PIC	" \n"
-# define K_USING_GR4
+	#define K_STW_ASM_PIC	" \n"
+	#define K_LDW_ASM_PIC	" \n"
+	#define K_USING_GR4
 #endif
 
 /* GCC has to be warned that a syscall may clobber all the ABI
@@ -38,32 +38,32 @@
    across the syscall. */
 
 #define K_CALL_CLOB_REGS "%r1", "%r2", K_USING_GR4 \
-	        	 "%r20", "%r29", "%r31"
+	"%r20", "%r29", "%r31"
 
 #undef K_INLINE_SYSCALL
 #define K_INLINE_SYSCALL(name, nr, args...)	({			\
-	long __sys_res;							\
-	{								\
-		register unsigned long __res __asm__("r28");		\
-		K_LOAD_ARGS_##nr(args)					\
-		/* FIXME: HACK stw/ldw r19 around syscall */		\
-		__asm__ volatile(					\
-			K_STW_ASM_PIC					\
-			"	ble  0x100(%%sr2, %%r0)\n"		\
-			"	ldi %1, %%r20\n"			\
-			K_LDW_ASM_PIC					\
-			: "=r" (__res)					\
-			: "i" (SYS_ify(name)) K_ASM_ARGS_##nr   	\
-			: "memory", K_CALL_CLOB_REGS K_CLOB_ARGS_##nr	\
-		);							\
-		__sys_res = (long)__res;				\
-	}								\
-	if ( (unsigned long)__sys_res >= (unsigned long)-4095 ){	\
-		errno = -__sys_res;		        		\
-		__sys_res = -1;						\
-	}								\
-	__sys_res;							\
-})
+		long __sys_res;							\
+		{								\
+			register unsigned long __res __asm__("r28");		\
+			K_LOAD_ARGS_##nr(args)					\
+			/* FIXME: HACK stw/ldw r19 around syscall */		\
+			__asm__ volatile(					\
+												K_STW_ASM_PIC					\
+												"	ble  0x100(%%sr2, %%r0)\n"		\
+												"	ldi %1, %%r20\n"			\
+												K_LDW_ASM_PIC					\
+												: "=r" (__res)					\
+												: "i" (SYS_ify(name)) K_ASM_ARGS_##nr   	\
+												: "memory", K_CALL_CLOB_REGS K_CLOB_ARGS_##nr	\
+							);							\
+			__sys_res = (long)__res;				\
+		}								\
+		if ( (unsigned long)__sys_res >= (unsigned long)-4095 ){	\
+			errno = -__sys_res;		        		\
+			__sys_res = -1;						\
+		}								\
+		__sys_res;							\
+	})
 
 #define K_LOAD_ARGS_0()
 #define K_LOAD_ARGS_1(r26)					\
@@ -104,41 +104,41 @@
 #define K_CLOB_ARGS_0 K_CLOB_ARGS_1, "%r26"
 
 #define _syscall0(type,name)						\
-type name(void)								\
-{									\
-    return K_INLINE_SYSCALL(name, 0);	                                \
-}
+	type name(void)								\
+	{									\
+		return K_INLINE_SYSCALL(name, 0);	                                \
+	}
 
 #define _syscall1(type,name,type1,arg1)					\
-type name(type1 arg1)							\
-{									\
-    return K_INLINE_SYSCALL(name, 1, arg1);	                        \
-}
+	type name(type1 arg1)							\
+	{									\
+		return K_INLINE_SYSCALL(name, 1, arg1);	                        \
+	}
 
 #define _syscall2(type,name,type1,arg1,type2,arg2)			\
-type name(type1 arg1, type2 arg2)					\
-{									\
-    return K_INLINE_SYSCALL(name, 2, arg1, arg2);	                \
-}
+	type name(type1 arg1, type2 arg2)					\
+	{									\
+		return K_INLINE_SYSCALL(name, 2, arg1, arg2);	                \
+	}
 
 #define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)		\
-type name(type1 arg1, type2 arg2, type3 arg3)				\
-{									\
-    return K_INLINE_SYSCALL(name, 3, arg1, arg2, arg3);	                \
-}
+	type name(type1 arg1, type2 arg2, type3 arg3)				\
+	{									\
+		return K_INLINE_SYSCALL(name, 3, arg1, arg2, arg3);	                \
+	}
 
 #define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4)		\
-{									\
-    return K_INLINE_SYSCALL(name, 4, arg1, arg2, arg3, arg4);	        \
-}
+	type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4)		\
+	{									\
+		return K_INLINE_SYSCALL(name, 4, arg1, arg2, arg3, arg4);	        \
+	}
 
 /* select takes 5 arguments */
 #define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5) \
-type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
-{									\
-    return K_INLINE_SYSCALL(name, 5, arg1, arg2, arg3, arg4, arg5);	\
-}
+	type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
+	{									\
+		return K_INLINE_SYSCALL(name, 5, arg1, arg2, arg3, arg4, arg5);	\
+	}
 
 #define __ARCH_WANT_OLD_READDIR
 #define __ARCH_WANT_STAT64

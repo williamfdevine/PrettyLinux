@@ -70,7 +70,8 @@ static int sha1_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	SHA1_DIGEST_SIZE,
 	.init		=	sha1_init,
 	.update		=	s390_sha_update,
@@ -81,7 +82,7 @@ static struct shash_alg alg = {
 	.statesize	=	sizeof(struct sha1_state),
 	.base		=	{
 		.cra_name	=	"sha1",
-		.cra_driver_name=	"sha1-s390",
+		.cra_driver_name =	"sha1-s390",
 		.cra_priority	=	300,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA1_BLOCK_SIZE,
@@ -92,7 +93,10 @@ static struct shash_alg alg = {
 static int __init sha1_s390_init(void)
 {
 	if (!cpacf_query_func(CPACF_KIMD, CPACF_KIMD_SHA_1))
+	{
 		return -EOPNOTSUPP;
+	}
+
 	return crypto_register_shash(&alg);
 }
 

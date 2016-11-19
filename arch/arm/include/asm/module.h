@@ -6,7 +6,8 @@
 struct unwind_table;
 
 #ifdef CONFIG_ARM_UNWIND
-enum {
+enum
+{
 	ARM_SEC_INIT,
 	ARM_SEC_DEVINIT,
 	ARM_SEC_CORE,
@@ -18,7 +19,8 @@ enum {
 };
 #endif
 
-struct mod_arch_specific {
+struct mod_arch_specific
+{
 #ifdef CONFIG_ARM_UNWIND
 	struct unwind_table *unwind[ARM_SEC_MAX];
 #endif
@@ -37,16 +39,16 @@ u32 get_module_plt(struct module *mod, unsigned long loc, Elf32_Addr val);
 
 /* Add __virt_to_phys patching state as well */
 #ifdef CONFIG_ARM_PATCH_PHYS_VIRT
-#define MODULE_ARCH_VERMAGIC_P2V "p2v8 "
+	#define MODULE_ARCH_VERMAGIC_P2V "p2v8 "
 #else
-#define MODULE_ARCH_VERMAGIC_P2V ""
+	#define MODULE_ARCH_VERMAGIC_P2V ""
 #endif
 
 /* Add instruction set architecture tag to distinguish ARM/Thumb kernels */
 #ifdef CONFIG_THUMB2_KERNEL
-#define MODULE_ARCH_VERMAGIC_ARMTHUMB "thumb2 "
+	#define MODULE_ARCH_VERMAGIC_ARMTHUMB "thumb2 "
 #else
-#define MODULE_ARCH_VERMAGIC_ARMTHUMB ""
+	#define MODULE_ARCH_VERMAGIC_ARMTHUMB ""
 #endif
 
 #define MODULE_ARCH_VERMAGIC \

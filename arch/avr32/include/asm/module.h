@@ -3,12 +3,14 @@
 
 #include <asm-generic/module.h>
 
-struct mod_arch_syminfo {
+struct mod_arch_syminfo
+{
 	unsigned long got_offset;
 	int got_initialized;
 };
 
-struct mod_arch_specific {
+struct mod_arch_specific
+{
 	/* Starting offset of got in the module core memory. */
 	unsigned long got_offset;
 	/* Size of the got. */

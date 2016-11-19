@@ -46,7 +46,7 @@ void __cmx2xx_pci_init_irq(int irq_gpio)
 	irq_set_irq_type(gpio_to_irq(irq_gpio), IRQ_TYPE_EDGE_RISING);
 
 	irq_set_chained_handler(gpio_to_irq(irq_gpio),
-				cmx2xx_it8152_irq_demux);
+							cmx2xx_it8152_irq_demux);
 }
 
 #ifdef CONFIG_PM
@@ -84,8 +84,11 @@ static int __init cmx2xx_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	dev_dbg(&dev->dev, "%s: slot=%x, pin=%x\n", __func__, slot, pin);
 
 	irq = it8152_pci_map_irq(dev, slot, pin);
+
 	if (irq)
+	{
 		return irq;
+	}
 
 	/*
 	  Here comes the ugly part. The routing is baseboard specific,
@@ -94,31 +97,46 @@ static int __init cmx2xx_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	*/
 	/* ATXBASE PCI slot */
 	if (slot == 7)
+	{
 		return IT8152_PCI_INTA;
+	}
 
 	/* ATXBase/SB-X2XX CardBus */
 	if (slot == 8 || slot == 0)
+	{
 		return IT8152_PCI_INTB;
+	}
 
 	/* ATXBase Ethernet */
 	if (slot == 9)
+	{
 		return IT8152_PCI_INTA;
+	}
 
 	/* CM-x255 Onboard Ethernet */
 	if (slot == 15)
+	{
 		return IT8152_PCI_INTC;
+	}
 
 	/* SB-x2xx Ethernet */
 	if (slot == 16)
+	{
 		return IT8152_PCI_INTA;
+	}
 
 	/* PC104+ interrupt routing */
 	if ((slot == 17) || (slot == 19))
+	{
 		return IT8152_PCI_INTA;
-	if ((slot == 18) || (slot == 20))
-		return IT8152_PCI_INTB;
+	}
 
-	return(0);
+	if ((slot == 18) || (slot == 20))
+	{
+		return IT8152_PCI_INTB;
+	}
+
+	return (0);
 }
 
 static void cmx2xx_pci_preinit(void)
@@ -129,7 +147,9 @@ static void cmx2xx_pci_preinit(void)
 	pcibios_min_mem = 0;
 
 	__raw_writel(0x800, IT8152_PCI_CFG_ADDR);
-	if (__raw_readl(IT8152_PCI_CFG_DATA) == 0x81521283) {
+
+	if (__raw_readl(IT8152_PCI_CFG_DATA) == 0x81521283)
+	{
 		pr_info("PCI Bridge found.\n");
 
 		/* set PCI I/O base at 0 */
@@ -144,7 +164,9 @@ static void cmx2xx_pci_preinit(void)
 
 		/* CardBus Controller on ATXbase baseboard */
 		writel(0x4000, IT8152_PCI_CFG_ADDR);
-		if (readl(IT8152_PCI_CFG_DATA) == 0xAC51104C) {
+
+		if (readl(IT8152_PCI_CFG_DATA) == 0xAC51104C)
+		{
 			pr_info("CardBus Bridge found.\n");
 
 			/* Configure socket 0 */
@@ -156,8 +178,8 @@ static void cmx2xx_pci_preinit(void)
 
 			writel(0x4090, IT8152_PCI_CFG_ADDR);
 			writel(((readl(IT8152_PCI_CFG_DATA) & 0xffff) |
-				0x60440000),
-			       IT8152_PCI_CFG_DATA);
+					0x60440000),
+				   IT8152_PCI_CFG_DATA);
 
 			writel(0x4018, IT8152_PCI_CFG_ADDR);
 			writel(0xb0000000, IT8152_PCI_CFG_DATA);
@@ -171,8 +193,8 @@ static void cmx2xx_pci_preinit(void)
 
 			writel(0x4190, IT8152_PCI_CFG_ADDR);
 			writel(((readl(IT8152_PCI_CFG_DATA) & 0xffff) |
-				0x60440000),
-			       IT8152_PCI_CFG_DATA);
+					0x60440000),
+				   IT8152_PCI_CFG_DATA);
 
 			writel(0x4118, IT8152_PCI_CFG_ADDR);
 			writel(0xb0000000, IT8152_PCI_CFG_DATA);
@@ -180,7 +202,8 @@ static void cmx2xx_pci_preinit(void)
 	}
 }
 
-static struct hw_pci cmx2xx_pci __initdata = {
+static struct hw_pci cmx2xx_pci __initdata =
+{
 	.map_irq	= cmx2xx_pci_map_irq,
 	.nr_controllers	= 1,
 	.ops		= &it8152_ops,
@@ -191,7 +214,9 @@ static struct hw_pci cmx2xx_pci __initdata = {
 static int __init cmx2xx_init_pci(void)
 {
 	if (machine_is_armcore())
+	{
 		pci_common_init(&cmx2xx_pci);
+	}
 
 	return 0;
 }

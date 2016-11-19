@@ -23,18 +23,21 @@
 #ifndef __ASSEMBLY__
 
 /* Unwind reason code according the the ARM EABI documents */
-enum unwind_reason_code {
+enum unwind_reason_code
+{
 	URC_OK = 0,			/* operation completed successfully */
 	URC_CONTINUE_UNWIND = 8,
 	URC_FAILURE = 9			/* unspecified failure of some kind */
 };
 
-struct unwind_idx {
+struct unwind_idx
+{
 	unsigned long addr_offset;
 	unsigned long insn;
 };
 
-struct unwind_table {
+struct unwind_table
+{
 	struct list_head list;
 	const struct unwind_idx *start;
 	const struct unwind_idx *origin;
@@ -44,18 +47,18 @@ struct unwind_table {
 };
 
 extern struct unwind_table *unwind_table_add(unsigned long start,
-					     unsigned long size,
-					     unsigned long text_addr,
-					     unsigned long text_size);
+		unsigned long size,
+		unsigned long text_addr,
+		unsigned long text_size);
 extern void unwind_table_del(struct unwind_table *tab);
 extern void unwind_backtrace(struct pt_regs *regs, struct task_struct *tsk);
 
 #endif	/* !__ASSEMBLY__ */
 
 #ifdef CONFIG_ARM_UNWIND
-#define UNWIND(code...)		code
+	#define UNWIND(code...)		code
 #else
-#define UNWIND(code...)
+	#define UNWIND(code...)
 #endif
 
 #endif	/* __ASM_UNWIND_H */

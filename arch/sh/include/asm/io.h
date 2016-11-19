@@ -64,21 +64,21 @@
 #define writesl(p,d,l)		__raw_writesl(p,d,l)
 
 #define __BUILD_UNCACHED_IO(bwlq, type)					\
-static inline type read##bwlq##_uncached(unsigned long addr)		\
-{									\
-	type ret;							\
-	jump_to_uncached();						\
-	ret = __raw_read##bwlq(addr);					\
-	back_to_cached();						\
-	return ret;							\
-}									\
-									\
-static inline void write##bwlq##_uncached(type v, unsigned long addr)	\
-{									\
-	jump_to_uncached();						\
-	__raw_write##bwlq(v, addr);					\
-	back_to_cached();						\
-}
+	static inline type read##bwlq##_uncached(unsigned long addr)		\
+	{									\
+		type ret;							\
+		jump_to_uncached();						\
+		ret = __raw_read##bwlq(addr);					\
+		back_to_cached();						\
+		return ret;							\
+	}									\
+	\
+	static inline void write##bwlq##_uncached(type v, unsigned long addr)	\
+	{									\
+		jump_to_uncached();						\
+		__raw_write##bwlq(v, addr);					\
+		back_to_cached();						\
+	}
 
 __BUILD_UNCACHED_IO(b, u8)
 __BUILD_UNCACHED_IO(w, u16)
@@ -86,38 +86,38 @@ __BUILD_UNCACHED_IO(l, u32)
 __BUILD_UNCACHED_IO(q, u64)
 
 #define __BUILD_MEMORY_STRING(pfx, bwlq, type)				\
-									\
-static inline void							\
-pfx##writes##bwlq(volatile void __iomem *mem, const void *addr,		\
-		  unsigned int count)					\
-{									\
-	const volatile type *__addr = addr;				\
-									\
-	while (count--) {						\
-		__raw_write##bwlq(*__addr, mem);			\
-		__addr++;						\
-	}								\
-}									\
-									\
-static inline void pfx##reads##bwlq(volatile void __iomem *mem,		\
-				    void *addr, unsigned int count)	\
-{									\
-	volatile type *__addr = addr;					\
-									\
-	while (count--) {						\
-		*__addr = __raw_read##bwlq(mem);			\
-		__addr++;						\
-	}								\
-}
+	\
+	static inline void							\
+	pfx##writes##bwlq(volatile void __iomem *mem, const void *addr,		\
+					  unsigned int count)					\
+	{									\
+		const volatile type *__addr = addr;				\
+		\
+		while (count--) {						\
+			__raw_write##bwlq(*__addr, mem);			\
+			__addr++;						\
+		}								\
+	}									\
+	\
+	static inline void pfx##reads##bwlq(volatile void __iomem *mem,		\
+										void *addr, unsigned int count)	\
+	{									\
+		volatile type *__addr = addr;					\
+		\
+		while (count--) {						\
+			*__addr = __raw_read##bwlq(mem);			\
+			__addr++;						\
+		}								\
+	}
 
 __BUILD_MEMORY_STRING(__raw_, b, u8)
 __BUILD_MEMORY_STRING(__raw_, w, u16)
 
 #ifdef CONFIG_SUPERH32
-void __raw_writesl(void __iomem *addr, const void *data, int longlen);
-void __raw_readsl(const void __iomem *addr, void *data, int longlen);
+	void __raw_writesl(void __iomem *addr, const void *data, int longlen);
+	void __raw_readsl(const void __iomem *addr, void *data, int longlen);
 #else
-__BUILD_MEMORY_STRING(__raw_, l, u32)
+	__BUILD_MEMORY_STRING(__raw_, l, u32)
 #endif
 
 __BUILD_MEMORY_STRING(__raw_, q, u64)
@@ -143,39 +143,39 @@ static inline void __set_io_port_base(unsigned long pbase)
 }
 
 #ifdef CONFIG_GENERIC_IOMAP
-#define __ioport_map ioport_map
+	#define __ioport_map ioport_map
 #else
-extern void __iomem *__ioport_map(unsigned long addr, unsigned int size);
+	extern void __iomem *__ioport_map(unsigned long addr, unsigned int size);
 #endif
 
 #ifdef CONF_SLOWDOWN_IO
-#define SLOW_DOWN_IO __raw_readw(sh_io_port_base)
+	#define SLOW_DOWN_IO __raw_readw(sh_io_port_base)
 #else
-#define SLOW_DOWN_IO
+	#define SLOW_DOWN_IO
 #endif
 
 #define __BUILD_IOPORT_SINGLE(pfx, bwlq, type, p, slow)			\
-									\
-static inline void pfx##out##bwlq##p(type val, unsigned long port)	\
-{									\
-	volatile type *__addr;						\
-									\
-	__addr = __ioport_map(port, sizeof(type));			\
-	*__addr = val;							\
-	slow;								\
-}									\
-									\
-static inline type pfx##in##bwlq##p(unsigned long port)			\
-{									\
-	volatile type *__addr;						\
-	type __val;							\
-									\
-	__addr = __ioport_map(port, sizeof(type));			\
-	__val = *__addr;						\
-	slow;								\
-									\
-	return __val;							\
-}
+	\
+	static inline void pfx##out##bwlq##p(type val, unsigned long port)	\
+	{									\
+		volatile type *__addr;						\
+		\
+		__addr = __ioport_map(port, sizeof(type));			\
+		*__addr = val;							\
+		slow;								\
+	}									\
+	\
+	static inline type pfx##in##bwlq##p(unsigned long port)			\
+	{									\
+		volatile type *__addr;						\
+		type __val;							\
+		\
+		__addr = __ioport_map(port, sizeof(type));			\
+		__val = *__addr;						\
+		slow;								\
+		\
+		return __val;							\
+	}
 
 #define __BUILD_IOPORT_PFX(bus, bwlq, type)				\
 	__BUILD_IOPORT_SINGLE(bus, bwlq, type, ,)			\
@@ -190,28 +190,28 @@ BUILDIO_IOPORT(l, u32)
 BUILDIO_IOPORT(q, u64)
 
 #define __BUILD_IOPORT_STRING(bwlq, type)				\
-									\
-static inline void outs##bwlq(unsigned long port, const void *addr,	\
-			      unsigned int count)			\
-{									\
-	const volatile type *__addr = addr;				\
-									\
-	while (count--) {						\
-		out##bwlq(*__addr, port);				\
-		__addr++;						\
-	}								\
-}									\
-									\
-static inline void ins##bwlq(unsigned long port, void *addr,		\
-			     unsigned int count)			\
-{									\
-	volatile type *__addr = addr;					\
-									\
-	while (count--) {						\
-		*__addr = in##bwlq(port);				\
-		__addr++;						\
-	}								\
-}
+	\
+	static inline void outs##bwlq(unsigned long port, const void *addr,	\
+								  unsigned int count)			\
+	{									\
+		const volatile type *__addr = addr;				\
+		\
+		while (count--) {						\
+			out##bwlq(*__addr, port);				\
+			__addr++;						\
+		}								\
+	}									\
+	\
+	static inline void ins##bwlq(unsigned long port, void *addr,		\
+								 unsigned int count)			\
+	{									\
+		volatile type *__addr = addr;					\
+		\
+		while (count--) {						\
+			*__addr = in##bwlq(port);				\
+			__addr++;						\
+		}								\
+	}
 
 __BUILD_IOPORT_STRING(b, u8)
 __BUILD_IOPORT_STRING(w, u16)
@@ -238,14 +238,14 @@ void memset_io(volatile void __iomem *, int, unsigned long);
 /* Quad-word real-mode I/O, don't ask.. */
 unsigned long long peek_real_address_q(unsigned long long addr);
 unsigned long long poke_real_address_q(unsigned long long addr,
-				       unsigned long long val);
+									   unsigned long long val);
 
 #if !defined(CONFIG_MMU)
-#define virt_to_phys(address)	((unsigned long)(address))
-#define phys_to_virt(address)	((void *)(address))
+	#define virt_to_phys(address)	((unsigned long)(address))
+	#define phys_to_virt(address)	((void *)(address))
 #else
-#define virt_to_phys(address)	(__pa(address))
-#define phys_to_virt(address)	(__va(address))
+	#define virt_to_phys(address)	(__pa(address))
+	#define phys_to_virt(address)	(__va(address))
 #endif
 
 /*
@@ -267,7 +267,7 @@ unsigned long long poke_real_address_q(unsigned long long addr,
  */
 #ifdef CONFIG_MMU
 void __iomem *__ioremap_caller(phys_addr_t offset, unsigned long size,
-			       pgprot_t prot, void *caller);
+							   pgprot_t prot, void *caller);
 void __iounmap(void __iomem *addr);
 
 static inline void __iomem *
@@ -288,7 +288,8 @@ __ioremap_29bit(phys_addr_t offset, unsigned long size, pgprot_t prot)
 	 * In the P3 case or for addresses outside of the 29-bit space,
 	 * mapping must be done by the PMB or by using page tables.
 	 */
-	if (likely(PXSEG(offset) < P3SEG && PXSEG(last_addr) < P3SEG)) {
+	if (likely(PXSEG(offset) < P3SEG && PXSEG(last_addr) < P3SEG))
+	{
 		u64 flags = pgprot_val(prot);
 
 		/*
@@ -296,16 +297,24 @@ __ioremap_29bit(phys_addr_t offset, unsigned long size, pgprot_t prot)
 		 * to be kicked down to page table mappings.
 		 */
 		if (unlikely(flags & _PAGE_PCC_MASK))
+		{
 			return NULL;
+		}
+
 		if (unlikely(flags & _PAGE_CACHABLE))
+		{
 			return (void __iomem *)P1SEGADDR(offset);
+		}
 
 		return (void __iomem *)P2SEGADDR(offset);
 	}
 
 	/* P4 above the store queues are always mapped. */
 	if (unlikely(offset >= P3_ADDR_MAX))
+	{
 		return (void __iomem *)P4SEGADDR(offset);
+	}
+
 #endif
 
 	return NULL;
@@ -317,12 +326,18 @@ __ioremap_mode(phys_addr_t offset, unsigned long size, pgprot_t prot)
 	void __iomem *ret;
 
 	ret = __ioremap_trapped(offset, size);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = __ioremap_29bit(offset, size, prot);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return __ioremap(offset, size, prot);
 }

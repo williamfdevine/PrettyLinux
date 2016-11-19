@@ -55,7 +55,8 @@ static int set_wake(struct irq_data *data, unsigned int on)
 	return 0;
 }
 
-static struct irq_chip hexagon_irq_chip = {
+static struct irq_chip hexagon_irq_chip =
+{
 	.name		= "HEXAGON",
 	.irq_mask	= mask_irq,
 	.irq_unmask	= unmask_irq,
@@ -82,9 +83,10 @@ void __init init_IRQ(void)
 {
 	int irq;
 
-	for (irq = 0; irq < HEXAGON_CPUINTS; irq++) {
+	for (irq = 0; irq < HEXAGON_CPUINTS; irq++)
+	{
 		mask_irq_num(irq);
 		irq_set_chip_and_handler(irq, &hexagon_irq_chip,
-						 handle_fasteoi_irq);
+								 handle_fasteoi_irq);
 	}
 }

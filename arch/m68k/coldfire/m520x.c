@@ -47,7 +47,8 @@ DEFINE_CLK(0, "sys.0", 40, MCF_BUSCLK);
 DEFINE_CLK(0, "gpio.0", 41, MCF_BUSCLK);
 DEFINE_CLK(0, "sdram.0", 42, MCF_CLK);
 
-struct clk *mcf_clks[] = {
+struct clk *mcf_clks[] =
+{
 	&__clk_0_2, /* flexbus */
 	&__clk_0_12, /* fec.0 */
 	&__clk_0_17, /* edma */
@@ -71,10 +72,11 @@ struct clk *mcf_clks[] = {
 	&__clk_0_40, /* sys.0 */
 	&__clk_0_41, /* gpio.0 */
 	&__clk_0_42, /* sdram.0 */
-NULL,
+	NULL,
 };
 
-static struct clk * const enable_clks[] __initconst = {
+static struct clk *const enable_clks[] __initconst =
+{
 	&__clk_0_2, /* flexbus */
 	&__clk_0_18, /* intc.0 */
 	&__clk_0_21, /* iack.0 */
@@ -91,7 +93,8 @@ static struct clk * const enable_clks[] __initconst = {
 	&__clk_0_42, /* sdram.0 */
 };
 
-static struct clk * const disable_clks[] __initconst = {
+static struct clk *const disable_clks[] __initconst =
+{
 	&__clk_0_12, /* fec.0 */
 	&__clk_0_17, /* edma */
 	&__clk_0_22, /* mcfi2c.0 */
@@ -110,10 +113,15 @@ static void __init m520x_clk_init(void)
 
 	/* make sure these clocks are enabled */
 	for (i = 0; i < ARRAY_SIZE(enable_clks); ++i)
+	{
 		__clk_init_enabled(enable_clks[i]);
+	}
+
 	/* make sure these clocks are disabled */
 	for (i = 0; i < ARRAY_SIZE(disable_clks); ++i)
+	{
 		__clk_init_disabled(disable_clks[i]);
+	}
 }
 
 /***************************************************************************/
@@ -148,7 +156,7 @@ static void __init m520x_uarts_init(void)
 	par2 = readb(MCF_GPIO_PAR_FECI2C);
 	par2 &= ~0x0F;
 	par2 |= MCF_GPIO_PAR_FECI2C_PAR_SCL_UTXD2 |
-		MCF_GPIO_PAR_FECI2C_PAR_SDA_URXD2;
+			MCF_GPIO_PAR_FECI2C_PAR_SDA_URXD2;
 	writeb(par2, MCF_GPIO_PAR_FECI2C);
 }
 

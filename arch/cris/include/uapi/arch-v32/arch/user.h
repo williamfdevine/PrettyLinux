@@ -3,7 +3,8 @@
 
 /* User-mode register used for core dumps. */
 
-struct user_regs_struct {
+struct user_regs_struct
+{
 	unsigned long r0;	/* General registers. */
 	unsigned long r1;
 	unsigned long r2;

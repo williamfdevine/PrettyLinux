@@ -21,7 +21,8 @@
  * This struct defines the way the registers are stored on the
  * kernel stack during a system call or other kernel entry.
  */
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long pc;		/*   4 */
 	unsigned long ps;		/*   8 */
 	unsigned long depc;		/*  12 */
@@ -56,11 +57,11 @@ struct pt_regs {
 
 # define arch_has_single_step()	(1)
 # define task_pt_regs(tsk) ((struct pt_regs*) \
-	(task_stack_page(tsk) + KERNEL_STACK_SIZE - (XCHAL_NUM_AREGS-16)*4) - 1)
+							(task_stack_page(tsk) + KERNEL_STACK_SIZE - (XCHAL_NUM_AREGS-16)*4) - 1)
 # define user_mode(regs) (((regs)->ps & 0x00000020)!=0)
 # define instruction_pointer(regs) ((regs)->pc)
 # define return_pointer(regs) (MAKE_PC_FROM_RA((regs)->areg[0], \
-					       (regs)->areg[1]))
+							   (regs)->areg[1]))
 
 # ifndef CONFIG_SMP
 #  define profile_pc(regs) instruction_pointer(regs)

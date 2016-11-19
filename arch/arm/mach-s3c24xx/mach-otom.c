@@ -37,8 +37,9 @@
 #include "common.h"
 #include "otom.h"
 
-static struct map_desc otom11_iodesc[] __initdata = {
-  /* Device area */
+static struct map_desc otom11_iodesc[] __initdata =
+{
+	/* Device area */
 	{ (u32)OTOM_VA_CS8900A_BASE, OTOM_PA_CS8900A_BASE, SZ_16M, MT_DEVICE },
 };
 
@@ -46,7 +47,8 @@ static struct map_desc otom11_iodesc[] __initdata = {
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG12 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg otom11_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg otom11_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -73,11 +75,13 @@ static struct s3c2410_uartcfg otom11_uartcfgs[] __initdata = {
 
 /* NOR Flash on NexVision OTOM board */
 
-static struct resource otom_nor_resource[] = {
+static struct resource otom_nor_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS0, SZ_4M),
 };
 
-static struct platform_device otom_device_nor = {
+static struct platform_device otom_device_nor =
+{
 	.name		= "mtd-flash",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(otom_nor_resource),
@@ -86,13 +90,14 @@ static struct platform_device otom_device_nor = {
 
 /* Standard OTOM devices */
 
-static struct platform_device *otom11_devices[] __initdata = {
+static struct platform_device *otom11_devices[] __initdata =
+{
 	&s3c_device_ohci,
 	&s3c_device_lcd,
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
 	&s3c_device_iis,
- 	&s3c_device_rtc,
+	&s3c_device_rtc,
 	&otom_device_nor,
 };
 
@@ -116,10 +121,10 @@ static void __init otom11_init(void)
 }
 
 MACHINE_START(OTOM, "Nex Vision - Otom 1.1")
-	/* Maintainer: Guillaume GOURAT <guillaume.gourat@nexvision.tv> */
-	.atag_offset	= 0x100,
+/* Maintainer: Guillaume GOURAT <guillaume.gourat@nexvision.tv> */
+.atag_offset	= 0x100,
 	.map_io		= otom11_map_io,
-	.init_machine	= otom11_init,
-	.init_irq	= s3c2410_init_irq,
-	.init_time	= otom11_init_time,
-MACHINE_END
+		.init_machine	= otom11_init,
+		   .init_irq	= s3c2410_init_irq,
+			  .init_time	= otom11_init_time,
+				MACHINE_END

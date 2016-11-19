@@ -10,7 +10,7 @@
  */
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <linux/compiler.h>
@@ -44,11 +44,14 @@ set_bit (int nr, volatile void *addr)
 
 	m = (volatile __u32 *) addr + (nr >> 5);
 	bit = 1 << (nr & 31);
-	do {
+
+	do
+	{
 		CMPXCHG_BUGCHECK(m);
 		old = *m;
 		new = old | bit;
-	} while (cmpxchg_acq(m, old, new) != old);
+	}
+	while (cmpxchg_acq(m, old, new) != old);
 }
 
 /**
@@ -85,11 +88,14 @@ clear_bit (int nr, volatile void *addr)
 
 	m = (volatile __u32 *) addr + (nr >> 5);
 	mask = ~(1 << (nr & 31));
-	do {
+
+	do
+	{
 		CMPXCHG_BUGCHECK(m);
 		old = *m;
 		new = old & mask;
-	} while (cmpxchg_acq(m, old, new) != old);
+	}
+	while (cmpxchg_acq(m, old, new) != old);
 }
 
 /**
@@ -109,11 +115,14 @@ clear_bit_unlock (int nr, volatile void *addr)
 
 	m = (volatile __u32 *) addr + (nr >> 5);
 	mask = ~(1 << (nr & 31));
-	do {
+
+	do
+	{
 		CMPXCHG_BUGCHECK(m);
 		old = *m;
 		new = old & mask;
-	} while (cmpxchg_rel(m, old, new) != old);
+	}
+	while (cmpxchg_rel(m, old, new) != old);
 }
 
 /**
@@ -127,7 +136,7 @@ clear_bit_unlock (int nr, volatile void *addr)
 static __inline__ void
 __clear_bit_unlock(int nr, void *addr)
 {
-	__u32 * const m = (__u32 *) addr + (nr >> 5);
+	__u32 *const m = (__u32 *) addr + (nr >> 5);
 	__u32 const new = *m & ~(1 << (nr & 31));
 
 	ia64_st4_rel_nta(m, new);
@@ -166,11 +175,14 @@ change_bit (int nr, volatile void *addr)
 
 	m = (volatile __u32 *) addr + (nr >> 5);
 	bit = (1 << (nr & 31));
-	do {
+
+	do
+	{
 		CMPXCHG_BUGCHECK(m);
 		old = *m;
 		new = old ^ bit;
-	} while (cmpxchg_acq(m, old, new) != old);
+	}
+	while (cmpxchg_acq(m, old, new) != old);
 }
 
 /**
@@ -193,7 +205,7 @@ __change_bit (int nr, volatile void *addr)
  * @nr: Bit to set
  * @addr: Address to count from
  *
- * This operation is atomic and cannot be reordered.  
+ * This operation is atomic and cannot be reordered.
  * It also implies the acquisition side of the memory barrier.
  */
 static __inline__ int
@@ -205,11 +217,15 @@ test_and_set_bit (int nr, volatile void *addr)
 
 	m = (volatile __u32 *) addr + (nr >> 5);
 	bit = 1 << (nr & 31);
-	do {
+
+	do
+	{
 		CMPXCHG_BUGCHECK(m);
 		old = *m;
 		new = old | bit;
-	} while (cmpxchg_acq(m, old, new) != old);
+	}
+	while (cmpxchg_acq(m, old, new) != old);
+
 	return (old & bit) != 0;
 }
 
@@ -227,7 +243,7 @@ test_and_set_bit (int nr, volatile void *addr)
  * @nr: Bit to set
  * @addr: Address to count from
  *
- * This operation is non-atomic and can be reordered.  
+ * This operation is non-atomic and can be reordered.
  * If two examples of this operation race, one can appear to succeed
  * but actually fail.  You must protect multiple accesses with a lock.
  */
@@ -247,7 +263,7 @@ __test_and_set_bit (int nr, volatile void *addr)
  * @nr: Bit to clear
  * @addr: Address to count from
  *
- * This operation is atomic and cannot be reordered.  
+ * This operation is atomic and cannot be reordered.
  * It also implies the acquisition side of the memory barrier.
  */
 static __inline__ int
@@ -259,11 +275,15 @@ test_and_clear_bit (int nr, volatile void *addr)
 
 	m = (volatile __u32 *) addr + (nr >> 5);
 	mask = ~(1 << (nr & 31));
-	do {
+
+	do
+	{
 		CMPXCHG_BUGCHECK(m);
 		old = *m;
 		new = old & mask;
-	} while (cmpxchg_acq(m, old, new) != old);
+	}
+	while (cmpxchg_acq(m, old, new) != old);
+
 	return (old & ~mask) != 0;
 }
 
@@ -272,12 +292,12 @@ test_and_clear_bit (int nr, volatile void *addr)
  * @nr: Bit to clear
  * @addr: Address to count from
  *
- * This operation is non-atomic and can be reordered.  
+ * This operation is non-atomic and can be reordered.
  * If two examples of this operation race, one can appear to succeed
  * but actually fail.  You must protect multiple accesses with a lock.
  */
 static __inline__ int
-__test_and_clear_bit(int nr, volatile void * addr)
+__test_and_clear_bit(int nr, volatile void *addr)
 {
 	__u32 *p = (__u32 *) addr + (nr >> 5);
 	__u32 m = 1 << (nr & 31);
@@ -292,7 +312,7 @@ __test_and_clear_bit(int nr, volatile void * addr)
  * @nr: Bit to change
  * @addr: Address to count from
  *
- * This operation is atomic and cannot be reordered.  
+ * This operation is atomic and cannot be reordered.
  * It also implies the acquisition side of the memory barrier.
  */
 static __inline__ int
@@ -304,11 +324,15 @@ test_and_change_bit (int nr, volatile void *addr)
 
 	m = (volatile __u32 *) addr + (nr >> 5);
 	bit = (1 << (nr & 31));
-	do {
+
+	do
+	{
 		CMPXCHG_BUGCHECK(m);
 		old = *m;
 		new = old ^ bit;
-	} while (cmpxchg_acq(m, old, new) != old);
+	}
+	while (cmpxchg_acq(m, old, new) != old);
+
 	return (old & bit) != 0;
 }
 
@@ -363,7 +387,7 @@ __ffs (unsigned long x)
 {
 	unsigned long result;
 
-	result = ia64_popcnt((x-1) & ~x);
+	result = ia64_popcnt((x - 1) & ~x);
 	return result;
 }
 
@@ -393,7 +417,10 @@ fls (int t)
 	unsigned long x = t & 0xffffffffu;
 
 	if (!x)
+	{
 		return 0;
+	}
+
 	x |= x >> 1;
 	x |= x >> 2;
 	x |= x >> 4;
@@ -445,11 +472,11 @@ static __inline__ unsigned long __arch_hweight64(unsigned long x)
 
 #ifdef __KERNEL__
 
-#include <asm-generic/bitops/le.h>
+	#include <asm-generic/bitops/le.h>
 
-#include <asm-generic/bitops/ext2-atomic-setbit.h>
+	#include <asm-generic/bitops/ext2-atomic-setbit.h>
 
-#include <asm-generic/bitops/sched.h>
+	#include <asm-generic/bitops/sched.h>
 
 #endif /* __KERNEL__ */
 

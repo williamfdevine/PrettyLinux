@@ -9,7 +9,7 @@
  */
 
 #ifdef __powerpc64__
-#    define __ARCH_SI_PREAMBLE_SIZE	(4 * sizeof(int))
+	#define __ARCH_SI_PREAMBLE_SIZE	(4 * sizeof(int))
 #endif
 
 #include <asm-generic/siginfo.h>

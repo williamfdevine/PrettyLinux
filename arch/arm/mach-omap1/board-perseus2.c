@@ -38,7 +38,8 @@
 #include "common.h"
 #include "fpga.h"
 
-static const unsigned int p2_keymap[] = {
+static const unsigned int p2_keymap[] =
+{
 	KEY(0, 0, KEY_UP),
 	KEY(1, 0, KEY_RIGHT),
 	KEY(2, 0, KEY_LEFT),
@@ -69,13 +70,15 @@ static const unsigned int p2_keymap[] = {
 	KEY(5, 4, KEY_POWER),
 };
 
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
 	.leda	= RPC_LED_100_10,
 	.ledb	= RPC_LED_TX_RX,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= H2P2_DBG_FPGA_ETHR_START,	/* Physical */
 		.end	= H2P2_DBG_FPGA_ETHR_START + 0xf,
@@ -88,51 +91,55 @@ static struct resource smc91x_resources[] = {
 	},
 };
 
-static struct mtd_partition nor_partitions[] = {
+static struct mtd_partition nor_partitions[] =
+{
 	/* bootloader (U-Boot, etc) in first sector */
 	{
-	      .name		= "bootloader",
-	      .offset		= 0,
-	      .size		= SZ_128K,
-	      .mask_flags	= MTD_WRITEABLE, /* force read-only */
+		.name		= "bootloader",
+		.offset		= 0,
+		.size		= SZ_128K,
+		.mask_flags	= MTD_WRITEABLE, /* force read-only */
 	},
 	/* bootloader params in the next sector */
 	{
-	      .name		= "params",
-	      .offset		= MTDPART_OFS_APPEND,
-	      .size		= SZ_128K,
-	      .mask_flags	= 0,
+		.name		= "params",
+		.offset		= MTDPART_OFS_APPEND,
+		.size		= SZ_128K,
+		.mask_flags	= 0,
 	},
 	/* kernel */
 	{
-	      .name		= "kernel",
-	      .offset		= MTDPART_OFS_APPEND,
-	      .size		= SZ_2M,
-	      .mask_flags	= 0
+		.name		= "kernel",
+		.offset		= MTDPART_OFS_APPEND,
+		.size		= SZ_2M,
+		.mask_flags	= 0
 	},
 	/* rest of flash is a file system */
 	{
-	      .name		= "rootfs",
-	      .offset		= MTDPART_OFS_APPEND,
-	      .size		= MTDPART_SIZ_FULL,
-	      .mask_flags	= 0
+		.name		= "rootfs",
+		.offset		= MTDPART_OFS_APPEND,
+		.size		= MTDPART_SIZ_FULL,
+		.mask_flags	= 0
 	},
 };
 
-static struct physmap_flash_data nor_data = {
+static struct physmap_flash_data nor_data =
+{
 	.width		= 2,
 	.set_vpp	= omap1_set_vpp,
 	.parts		= nor_partitions,
 	.nr_parts	= ARRAY_SIZE(nor_partitions),
 };
 
-static struct resource nor_resource = {
+static struct resource nor_resource =
+{
 	.start		= OMAP_CS0_PHYS,
 	.end		= OMAP_CS0_PHYS + SZ_32M - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device nor_device = {
+static struct platform_device nor_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -149,7 +156,8 @@ static int nand_dev_ready(struct mtd_info *mtd)
 	return gpio_get_value(P2_NAND_RB_GPIO_PIN);
 }
 
-static struct platform_nand_data nand_data = {
+static struct platform_nand_data nand_data =
+{
 	.chip	= {
 		.nr_chips		= 1,
 		.chip_offset		= 0,
@@ -161,13 +169,15 @@ static struct platform_nand_data nand_data = {
 	},
 };
 
-static struct resource nand_resource = {
+static struct resource nand_resource =
+{
 	.start		= OMAP_CS3_PHYS,
 	.end		= OMAP_CS3_PHYS + SZ_4K - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device nand_device = {
+static struct platform_device nand_device =
+{
 	.name		= "gen_nand",
 	.id		= 0,
 	.dev		= {
@@ -177,7 +187,8 @@ static struct platform_device nand_device = {
 	.resource	= &nand_resource,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.dev	= {
@@ -187,7 +198,8 @@ static struct platform_device smc91x_device = {
 	.resource	= smc91x_resources,
 };
 
-static struct resource kp_resources[] = {
+static struct resource kp_resources[] =
+{
 	[0] = {
 		.start	= INT_7XX_MPUIO_KEYPAD,
 		.end	= INT_7XX_MPUIO_KEYPAD,
@@ -195,12 +207,14 @@ static struct resource kp_resources[] = {
 	},
 };
 
-static const struct matrix_keymap_data p2_keymap_data = {
+static const struct matrix_keymap_data p2_keymap_data =
+{
 	.keymap		= p2_keymap,
 	.keymap_size	= ARRAY_SIZE(p2_keymap),
 };
 
-static struct omap_kp_platform_data kp_data = {
+static struct omap_kp_platform_data kp_data =
+{
 	.rows		= 8,
 	.cols		= 8,
 	.keymap_data	= &p2_keymap_data,
@@ -208,7 +222,8 @@ static struct omap_kp_platform_data kp_data = {
 	.dbounce	= true,
 };
 
-static struct platform_device kp_device = {
+static struct platform_device kp_device =
+{
 	.name		= "omap-keypad",
 	.id		= -1,
 	.dev		= {
@@ -218,14 +233,16 @@ static struct platform_device kp_device = {
 	.resource	= kp_resources,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&nor_device,
 	&nand_device,
 	&smc91x_device,
 	&kp_device,
 };
 
-static struct omap_lcd_config perseus2_lcd_config __initdata = {
+static struct omap_lcd_config perseus2_lcd_config __initdata =
+{
 	.ctrl_name	= "internal",
 };
 
@@ -234,7 +251,7 @@ static void __init perseus2_init_smc91x(void)
 	__raw_writeb(1, H2P2_DBG_FPGA_LAN_RESET);
 	mdelay(50);
 	__raw_writeb(__raw_readb(H2P2_DBG_FPGA_LAN_RESET) & ~1,
-		   H2P2_DBG_FPGA_LAN_RESET);
+				 H2P2_DBG_FPGA_LAN_RESET);
 	mdelay(50);
 }
 
@@ -302,7 +319,8 @@ static void __init omap_perseus2_init(void)
 }
 
 /* Only FPGA needs to be mapped here. All others are done with ioremap */
-static struct map_desc omap_perseus2_io_desc[] __initdata = {
+static struct map_desc omap_perseus2_io_desc[] __initdata =
+{
 	{
 		.virtual	= H2P2_DBG_FPGA_BASE,
 		.pfn		= __phys_to_pfn(H2P2_DBG_FPGA_START),
@@ -315,18 +333,18 @@ static void __init omap_perseus2_map_io(void)
 {
 	omap7xx_map_io();
 	iotable_init(omap_perseus2_io_desc,
-		     ARRAY_SIZE(omap_perseus2_io_desc));
+				 ARRAY_SIZE(omap_perseus2_io_desc));
 }
 
 MACHINE_START(OMAP_PERSEUS2, "OMAP730 Perseus2")
-	/* Maintainer: Kevin Hilman <kjh@hilman.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Kevin Hilman <kjh@hilman.org> */
+.atag_offset	= 0x100,
 	.map_io		= omap_perseus2_map_io,
-	.init_early     = omap1_init_early,
-	.init_irq	= omap1_init_irq,
-	.handle_irq	= omap1_handle_irq,
-	.init_machine	= omap_perseus2_init,
-	.init_late	= omap1_init_late,
-	.init_time	= omap1_timer_init,
-	.restart	= omap1_restart,
-MACHINE_END
+		.init_early     = omap1_init_early,
+		 .init_irq	= omap1_init_irq,
+			.handle_irq	= omap1_handle_irq,
+			 .init_machine	= omap_perseus2_init,
+				.init_late	= omap1_init_late,
+				  .init_time	= omap1_timer_init,
+					.restart	= omap1_restart,
+						MACHINE_END

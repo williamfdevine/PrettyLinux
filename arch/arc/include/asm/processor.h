@@ -20,8 +20,10 @@
 
 #ifdef CONFIG_ARC_FPU_SAVE_RESTORE
 /* These DPFP regs need to be saved/restored across ctx-sw */
-struct arc_fpu {
-	struct {
+struct arc_fpu
+{
+	struct
+	{
 		unsigned int l, h;
 	} aux_dpfp[2];
 };
@@ -31,7 +33,8 @@ struct arc_fpu {
  * However these items are not so important so as to earn a place in
  * struct thread_info
  */
-struct thread_struct {
+struct thread_struct
+{
 	unsigned long ksp;	/* kernel mode stack pointer */
 	unsigned long callee_reg;	/* pointer to callee regs */
 	unsigned long fault_address;	/* dbls as brkpt holder as well */
@@ -41,8 +44,8 @@ struct thread_struct {
 };
 
 #define INIT_THREAD  {                          \
-	.ksp = sizeof(init_stack) + (unsigned long) init_stack, \
-}
+		.ksp = sizeof(init_stack) + (unsigned long) init_stack, \
+	}
 
 /* Forward declaration, a strange C thing */
 struct task_struct;
@@ -84,15 +87,15 @@ struct task_struct;
 #define TSK_K_ESP(tsk)		(tsk->thread.ksp)
 
 #define TSK_K_REG(tsk, off)	(*((unsigned long *)(TSK_K_ESP(tsk) + \
-					sizeof(struct callee_regs) + off)))
+							   sizeof(struct callee_regs) + off)))
 
 #define TSK_K_BLINK(tsk)	TSK_K_REG(tsk, 4)
 #define TSK_K_FP(tsk)		TSK_K_REG(tsk, 0)
 
 #define thread_saved_pc(tsk)	TSK_K_BLINK(tsk)
 
-extern void start_thread(struct pt_regs * regs, unsigned long pc,
-			 unsigned long usp);
+extern void start_thread(struct pt_regs *regs, unsigned long pc,
+						 unsigned long usp);
 
 extern unsigned int get_wchan(struct task_struct *p);
 
@@ -132,22 +135,22 @@ extern unsigned int get_wchan(struct task_struct *p);
 #define USER_KERNEL_GUTTER    (VMALLOC_START - TASK_SIZE)
 
 #ifdef CONFIG_ARC_PLAT_EZNPS
-/* NPS architecture defines special window of 129M in user address space for
- * special memory areas, when accessing this window the MMU do not use TLB.
- * Instead MMU direct the access to:
- * 0x57f00000:0x57ffffff -- 1M of closely coupled memory (aka CMEM)
- * 0x58000000:0x5fffffff -- 16 huge pages, 8M each, with fixed map (aka FMTs)
- *
- * CMEM - is the fastest memory we got and its size is 16K.
- * FMT  - is used to map either to internal/external memory.
- * Internal memory is the second fast memory and its size is 16M
- * External memory is the biggest memory (16G) and also the slowest.
- *
- * STACK_TOP need to be PMD align (21bit) that is why we supply 0x57e00000.
- */
-#define STACK_TOP       0x57e00000
+	/* NPS architecture defines special window of 129M in user address space for
+	* special memory areas, when accessing this window the MMU do not use TLB.
+	* Instead MMU direct the access to:
+	* 0x57f00000:0x57ffffff -- 1M of closely coupled memory (aka CMEM)
+	* 0x58000000:0x5fffffff -- 16 huge pages, 8M each, with fixed map (aka FMTs)
+	*
+	* CMEM - is the fastest memory we got and its size is 16K.
+	* FMT  - is used to map either to internal/external memory.
+	* Internal memory is the second fast memory and its size is 16M
+	* External memory is the biggest memory (16G) and also the slowest.
+	*
+	* STACK_TOP need to be PMD align (21bit) that is why we supply 0x57e00000.
+	*/
+	#define STACK_TOP       0x57e00000
 #else
-#define STACK_TOP       TASK_SIZE
+	#define STACK_TOP       TASK_SIZE
 #endif
 
 #define STACK_TOP_MAX   STACK_TOP

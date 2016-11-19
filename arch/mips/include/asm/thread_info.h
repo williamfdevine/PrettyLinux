@@ -21,7 +21,8 @@
  * - if the contents of this structure are changed, the assembly constants
  *   must also be changed
  */
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	unsigned long		tp_value;	/* thread pointer */
@@ -41,13 +42,13 @@ struct thread_info {
  * macros/functions for gaining access to the thread information structure
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= _TIF_FIXADE,		\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= _TIF_FIXADE,		\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -64,22 +65,22 @@ static inline struct thread_info *current_thread_info(void)
 
 /* thread information allocation */
 #if defined(CONFIG_PAGE_SIZE_4KB) && defined(CONFIG_32BIT)
-#define THREAD_SIZE_ORDER (1)
+	#define THREAD_SIZE_ORDER (1)
 #endif
 #if defined(CONFIG_PAGE_SIZE_4KB) && defined(CONFIG_64BIT)
-#define THREAD_SIZE_ORDER (2)
+	#define THREAD_SIZE_ORDER (2)
 #endif
 #ifdef CONFIG_PAGE_SIZE_8KB
-#define THREAD_SIZE_ORDER (1)
+	#define THREAD_SIZE_ORDER (1)
 #endif
 #ifdef CONFIG_PAGE_SIZE_16KB
-#define THREAD_SIZE_ORDER (0)
+	#define THREAD_SIZE_ORDER (0)
 #endif
 #ifdef CONFIG_PAGE_SIZE_32KB
-#define THREAD_SIZE_ORDER (0)
+	#define THREAD_SIZE_ORDER (0)
 #endif
 #ifdef CONFIG_PAGE_SIZE_64KB
-#define THREAD_SIZE_ORDER (0)
+	#define THREAD_SIZE_ORDER (0)
 #endif
 
 #define THREAD_SIZE (PAGE_SIZE << THREAD_SIZE_ORDER)
@@ -139,12 +140,12 @@ static inline struct thread_info *current_thread_info(void)
 #define _TIF_SYSCALL_TRACEPOINT	(1<<TIF_SYSCALL_TRACEPOINT)
 
 #define _TIF_WORK_SYSCALL_ENTRY	(_TIF_NOHZ | _TIF_SYSCALL_TRACE |	\
-				 _TIF_SYSCALL_AUDIT | \
-				 _TIF_SYSCALL_TRACEPOINT | _TIF_SECCOMP)
+								 _TIF_SYSCALL_AUDIT | \
+								 _TIF_SYSCALL_TRACEPOINT | _TIF_SECCOMP)
 
 /* work to do in syscall_trace_leave() */
 #define _TIF_WORK_SYSCALL_EXIT	(_TIF_NOHZ | _TIF_SYSCALL_TRACE |	\
-				 _TIF_SYSCALL_AUDIT | _TIF_SYSCALL_TRACEPOINT)
+								 _TIF_SYSCALL_AUDIT | _TIF_SYSCALL_TRACEPOINT)
 
 /* work to do on interrupt/exception return */
 #define _TIF_WORK_MASK		\
@@ -152,27 +153,27 @@ static inline struct thread_info *current_thread_info(void)
 	 _TIF_UPROBE)
 /* work to do on any return to u-space */
 #define _TIF_ALLWORK_MASK	(_TIF_NOHZ | _TIF_WORK_MASK |		\
-				 _TIF_WORK_SYSCALL_EXIT |		\
-				 _TIF_SYSCALL_TRACEPOINT)
+							 _TIF_WORK_SYSCALL_EXIT |		\
+							 _TIF_SYSCALL_TRACEPOINT)
 
 /*
  * We stash processor id into a COP0 register to retrieve it fast
  * at kernel exception entry.
  */
 #if   defined(CONFIG_MIPS_PGD_C0_CONTEXT)
-#define SMP_CPUID_REG		20, 0	/* XCONTEXT */
-#define ASM_SMP_CPUID_REG	$20
-#define SMP_CPUID_PTRSHIFT	48
+	#define SMP_CPUID_REG		20, 0	/* XCONTEXT */
+	#define ASM_SMP_CPUID_REG	$20
+	#define SMP_CPUID_PTRSHIFT	48
 #else
-#define SMP_CPUID_REG		4, 0	/* CONTEXT */
-#define ASM_SMP_CPUID_REG	$4
-#define SMP_CPUID_PTRSHIFT	23
+	#define SMP_CPUID_REG		4, 0	/* CONTEXT */
+	#define ASM_SMP_CPUID_REG	$4
+	#define SMP_CPUID_PTRSHIFT	23
 #endif
 
 #ifdef CONFIG_64BIT
-#define SMP_CPUID_REGSHIFT	(SMP_CPUID_PTRSHIFT + 3)
+	#define SMP_CPUID_REGSHIFT	(SMP_CPUID_PTRSHIFT + 3)
 #else
-#define SMP_CPUID_REGSHIFT	(SMP_CPUID_PTRSHIFT + 2)
+	#define SMP_CPUID_REGSHIFT	(SMP_CPUID_PTRSHIFT + 2)
 #endif
 
 #define ASM_CPUID_MFC0		MFC0

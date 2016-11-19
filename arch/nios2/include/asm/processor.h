@@ -28,8 +28,8 @@
 
 #ifdef __KERNEL__
 
-#define STACK_TOP	TASK_SIZE
-#define STACK_TOP_MAX	STACK_TOP
+	#define STACK_TOP	TASK_SIZE
+	#define STACK_TOP_MAX	STACK_TOP
 
 #endif /* __KERNEL__ */
 
@@ -48,7 +48,8 @@
 # define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
 
 /* The Nios processor specific thread struct. */
-struct thread_struct {
+struct thread_struct
+{
 	struct pt_regs *kregs;
 
 	/* Context switch saved kernel state. */
@@ -60,13 +61,13 @@ struct thread_struct {
 	{ &init_mm, (0), (0), __pgprot(0x0), VM_READ | VM_WRITE | VM_EXEC }
 
 # define INIT_THREAD {			\
-	.kregs	= NULL,			\
-	.ksp	= 0,			\
-	.kpsr	= 0,			\
-}
+		.kregs	= NULL,			\
+				  .ksp	= 0,			\
+							.kpsr	= 0,			\
+	}
 
 extern void start_thread(struct pt_regs *regs, unsigned long pc,
-			unsigned long sp);
+						 unsigned long sp);
 
 struct task_struct;
 

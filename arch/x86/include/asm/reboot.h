@@ -5,7 +5,8 @@
 
 struct pt_regs;
 
-struct machine_ops {
+struct machine_ops
+{
 	void (*restart)(char *cmd);
 	void (*halt)(void);
 	void (*power_off)(void);
@@ -23,7 +24,7 @@ void __noreturn machine_real_restart(unsigned int type);
 #define MRR_BIOS	0
 #define MRR_APM		1
 
-typedef void (*nmi_shootdown_cb)(int, struct pt_regs*);
+typedef void (*nmi_shootdown_cb)(int, struct pt_regs *);
 void nmi_shootdown_cpus(nmi_shootdown_cb callback);
 void run_crash_ipi_callback(struct pt_regs *regs);
 

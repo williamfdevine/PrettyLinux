@@ -21,10 +21,10 @@
 #define KERNEL_MAP_END		(TMPALIAS_MAP_START)
 
 #ifndef __ASSEMBLY__
-extern void *parisc_vmalloc_start;
-#define PCXL_DMA_MAP_SIZE	(8*1024*1024)
-#define VMALLOC_START		((unsigned long)parisc_vmalloc_start)
-#define VMALLOC_END		(KERNEL_MAP_END)
+	extern void *parisc_vmalloc_start;
+	#define PCXL_DMA_MAP_SIZE	(8*1024*1024)
+	#define VMALLOC_START		((unsigned long)parisc_vmalloc_start)
+	#define VMALLOC_END		(KERNEL_MAP_END)
 #endif /*__ASSEMBLY__*/
 
 #endif /*_ASM_FIXMAP_H*/

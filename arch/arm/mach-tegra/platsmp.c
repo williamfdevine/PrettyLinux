@@ -93,13 +93,20 @@ static int tegra30_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 * tegra_cpu_init_mask which influences what tegra30_boot_secondary()
 	 * next time around.
 	 */
-	if (cpumask_test_cpu(cpu, &tegra_cpu_init_mask)) {
+	if (cpumask_test_cpu(cpu, &tegra_cpu_init_mask))
+	{
 		timeout = jiffies + msecs_to_jiffies(50);
-		do {
+
+		do
+		{
 			if (tegra_pmc_cpu_is_powered(cpu))
+			{
 				goto remove_clamps;
+			}
+
 			udelay(10);
-		} while (time_before(jiffies, timeout));
+		}
+		while (time_before(jiffies, timeout));
 	}
 
 	/*
@@ -109,8 +116,11 @@ static int tegra30_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 * manually.
 	 */
 	ret = tegra_pmc_cpu_power_on(cpu);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 remove_clamps:
 	/* CPU partition is powered. Enable the CPU clock. */
@@ -119,8 +129,11 @@ remove_clamps:
 
 	/* Remove I/O clamps. */
 	ret = tegra_pmc_cpu_remove_clamping(cpu);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	udelay(10);
 
@@ -135,7 +148,8 @@ static int tegra114_boot_secondary(unsigned int cpu, struct task_struct *idle)
 
 	cpu = cpu_logical_map(cpu);
 
-	if (cpumask_test_cpu(cpu, &tegra_cpu_init_mask)) {
+	if (cpumask_test_cpu(cpu, &tegra_cpu_init_mask))
+	{
 		/*
 		 * Warm boot flow
 		 * The flow controller in charge of the power state and
@@ -144,8 +158,10 @@ static int tegra114_boot_secondary(unsigned int cpu, struct task_struct *idle)
 		/* set SCLK as event trigger for flow controller */
 		flowctrl_write_cpu_csr(cpu, 1);
 		flowctrl_write_cpu_halt(cpu,
-				FLOW_CTRL_WAITEVENT | FLOW_CTRL_SCLK_RESUME);
-	} else {
+								FLOW_CTRL_WAITEVENT | FLOW_CTRL_SCLK_RESUME);
+	}
+	else
+	{
 		/*
 		 * Cold boot flow
 		 * The CPU is powered up by toggling PMC directly. It will
@@ -159,16 +175,27 @@ static int tegra114_boot_secondary(unsigned int cpu, struct task_struct *idle)
 }
 
 static int tegra_boot_secondary(unsigned int cpu,
-					  struct task_struct *idle)
+								struct task_struct *idle)
 {
 	if (IS_ENABLED(CONFIG_ARCH_TEGRA_2x_SOC) && tegra_get_chip_id() == TEGRA20)
+	{
 		return tegra20_boot_secondary(cpu, idle);
+	}
+
 	if (IS_ENABLED(CONFIG_ARCH_TEGRA_3x_SOC) && tegra_get_chip_id() == TEGRA30)
+	{
 		return tegra30_boot_secondary(cpu, idle);
+	}
+
 	if (IS_ENABLED(CONFIG_ARCH_TEGRA_114_SOC) && tegra_get_chip_id() == TEGRA114)
+	{
 		return tegra114_boot_secondary(cpu, idle);
+	}
+
 	if (IS_ENABLED(CONFIG_ARCH_TEGRA_124_SOC) && tegra_get_chip_id() == TEGRA124)
+	{
 		return tegra114_boot_secondary(cpu, idle);
+	}
 
 	return -EINVAL;
 }
@@ -179,10 +206,13 @@ static void __init tegra_smp_prepare_cpus(unsigned int max_cpus)
 	cpumask_set_cpu(0, &tegra_cpu_init_mask);
 
 	if (scu_a9_has_base())
+	{
 		scu_enable(IO_ADDRESS(scu_a9_get_base()));
+	}
 }
 
-const struct smp_operations tegra_smp_ops __initconst = {
+const struct smp_operations tegra_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= tegra_smp_prepare_cpus,
 	.smp_secondary_init	= tegra_secondary_init,
 	.smp_boot_secondary	= tegra_boot_secondary,

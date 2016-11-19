@@ -40,7 +40,7 @@
  *  - page registers for 5-7 don't use data bit 0, represent 128K pages
  *  - page registers for 0-3 use bit 0, represent 64K pages
  *
- * DMA transfers are limited to the lower 16MB of _physical_ memory.  
+ * DMA transfers are limited to the lower 16MB of _physical_ memory.
  * Note that addresses loaded into registers must be _physical_ addresses,
  * not logical addresses (which may differ if paging is active).
  *
@@ -50,7 +50,7 @@
  *    |  ...  |   |  ... |   |  ... |
  *    |  ...  |   |  ... |   |  ... |
  *    |  ...  |   |  ... |   |  ... |
- *   P7  ...  P0  A7 ... A0  A7 ... A0   
+ *   P7  ...  P0  A7 ... A0  A7 ... A0
  * |    Page    | Addr MSB | Addr LSB |   (DMA registers)
  *
  *  Address mapping for channels 5-7:
@@ -59,7 +59,7 @@
  *    |  ...  |   \   \   ... \  \  \  ... \  \
  *    |  ...  |    \   \   ... \  \  \  ... \  (not used)
  *    |  ...  |     \   \   ... \  \  \  ... \
- *   P7  ...  P1 (0) A7 A6  ... A0 A7 A6 ... A0   
+ *   P7  ...  P1 (0) A7 A6  ... A0 A7 A6 ... A0
  * |      Page      |  Addr MSB   |  Addr LSB  |   (DMA registers)
  *
  * Again, channels 5-7 transfer _physical_ words (16 bits), so addresses
@@ -68,7 +68,7 @@
  *
  * Transfer count (_not # bytes_) is limited to 64K, represented as actual
  * count - 1 : 64K => 0xFFFF, 1 => 0x0000.  Thus, count is always 1 or more,
- * and up to 128K bytes may be transferred on channels 5-7 in one operation. 
+ * and up to 128K bytes may be transferred on channels 5-7 in one operation.
  *
  */
 
@@ -104,26 +104,26 @@
 #define ALPHA_MAX_ISA_DMA_ADDRESS		0x100000000UL
 
 #ifdef CONFIG_ALPHA_GENERIC
-# define MAX_ISA_DMA_ADDRESS		(alpha_mv.max_isa_dma_address)
+	#define MAX_ISA_DMA_ADDRESS		(alpha_mv.max_isa_dma_address)
 #else
-# if defined(CONFIG_ALPHA_XL)
-#  define MAX_ISA_DMA_ADDRESS		ALPHA_XL_MAX_ISA_DMA_ADDRESS
-# elif defined(CONFIG_ALPHA_RUFFIAN)
-#  define MAX_ISA_DMA_ADDRESS		ALPHA_RUFFIAN_MAX_ISA_DMA_ADDRESS
-# elif defined(CONFIG_ALPHA_SABLE)
-#  define MAX_ISA_DMA_ADDRESS		ALPHA_SABLE_MAX_ISA_DMA_ADDRESS
-# elif defined(CONFIG_ALPHA_ALCOR)
-#  define MAX_ISA_DMA_ADDRESS		ALPHA_ALCOR_MAX_ISA_DMA_ADDRESS
-# else
-#  define MAX_ISA_DMA_ADDRESS		ALPHA_MAX_ISA_DMA_ADDRESS
-# endif
+	#if defined(CONFIG_ALPHA_XL)
+		#define MAX_ISA_DMA_ADDRESS		ALPHA_XL_MAX_ISA_DMA_ADDRESS
+	#elif defined(CONFIG_ALPHA_RUFFIAN)
+		#define MAX_ISA_DMA_ADDRESS		ALPHA_RUFFIAN_MAX_ISA_DMA_ADDRESS
+	#elif defined(CONFIG_ALPHA_SABLE)
+		#define MAX_ISA_DMA_ADDRESS		ALPHA_SABLE_MAX_ISA_DMA_ADDRESS
+	#elif defined(CONFIG_ALPHA_ALCOR)
+		#define MAX_ISA_DMA_ADDRESS		ALPHA_ALCOR_MAX_ISA_DMA_ADDRESS
+	#else
+		#define MAX_ISA_DMA_ADDRESS		ALPHA_MAX_ISA_DMA_ADDRESS
+	#endif
 #endif
 
 /* If we have the iommu, we don't have any address limitations on DMA.
    Otherwise (Nautilus, RX164), we have to have 0-16 Mb DMA zone
    like i386. */
 #define MAX_DMA_ADDRESS		(alpha_mv.mv_pci_tbi ?	\
-				 ~0UL : IDENT_ADDR + 0x01000000)
+							 ~0UL : IDENT_ADDR + 0x01000000)
 
 /* 8237 DMA controllers */
 #define IO_DMA1_BASE	0x00	/* 8 bit slave DMA, channels 0..3 */
@@ -212,18 +212,26 @@ static __inline__ void release_dma_lock(unsigned long flags)
 /* enable/disable a specific DMA channel */
 static __inline__ void enable_dma(unsigned int dmanr)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(dmanr,  DMA1_MASK_REG);
+	}
 	else
+	{
 		dma_outb(dmanr & 3,  DMA2_MASK_REG);
+	}
 }
 
 static __inline__ void disable_dma(unsigned int dmanr)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(dmanr | 4,  DMA1_MASK_REG);
+	}
 	else
+	{
 		dma_outb((dmanr & 3) | 4,  DMA2_MASK_REG);
+	}
 }
 
 /* Clear the 'DMA Pointer Flip Flop'.
@@ -235,28 +243,40 @@ static __inline__ void disable_dma(unsigned int dmanr)
  */
 static __inline__ void clear_dma_ff(unsigned int dmanr)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(0,  DMA1_CLEAR_FF_REG);
+	}
 	else
+	{
 		dma_outb(0,  DMA2_CLEAR_FF_REG);
+	}
 }
 
 /* set mode (above) for a specific DMA channel */
 static __inline__ void set_dma_mode(unsigned int dmanr, char mode)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(mode | dmanr,  DMA1_MODE_REG);
+	}
 	else
-		dma_outb(mode | (dmanr&3),  DMA2_MODE_REG);
+	{
+		dma_outb(mode | (dmanr & 3),  DMA2_MODE_REG);
+	}
 }
 
 /* set extended mode for a specific DMA channel */
 static __inline__ void set_dma_ext_mode(unsigned int dmanr, char ext_mode)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(ext_mode | dmanr,  DMA1_EXT_MODE_REG);
+	}
 	else
-		dma_outb(ext_mode | (dmanr&3),  DMA2_EXT_MODE_REG);
+	{
+		dma_outb(ext_mode | (dmanr & 3),  DMA2_EXT_MODE_REG);
+	}
 }
 
 /* Set only the page register bits of the transfer address.
@@ -265,31 +285,38 @@ static __inline__ void set_dma_ext_mode(unsigned int dmanr, char ext_mode)
  */
 static __inline__ void set_dma_page(unsigned int dmanr, unsigned int pagenr)
 {
-	switch(dmanr) {
+	switch (dmanr)
+	{
 		case 0:
 			dma_outb(pagenr, DMA_PAGE_0);
 			dma_outb((pagenr >> 8), DMA_HIPAGE_0);
 			break;
+
 		case 1:
 			dma_outb(pagenr, DMA_PAGE_1);
 			dma_outb((pagenr >> 8), DMA_HIPAGE_1);
 			break;
+
 		case 2:
 			dma_outb(pagenr, DMA_PAGE_2);
 			dma_outb((pagenr >> 8), DMA_HIPAGE_2);
 			break;
+
 		case 3:
 			dma_outb(pagenr, DMA_PAGE_3);
 			dma_outb((pagenr >> 8), DMA_HIPAGE_3);
 			break;
+
 		case 5:
 			dma_outb(pagenr & 0xfe, DMA_PAGE_5);
 			dma_outb((pagenr >> 8), DMA_HIPAGE_5);
 			break;
+
 		case 6:
 			dma_outb(pagenr & 0xfe, DMA_PAGE_6);
 			dma_outb((pagenr >> 8), DMA_HIPAGE_6);
 			break;
+
 		case 7:
 			dma_outb(pagenr & 0xfe, DMA_PAGE_7);
 			dma_outb((pagenr >> 8), DMA_HIPAGE_7);
@@ -303,14 +330,18 @@ static __inline__ void set_dma_page(unsigned int dmanr, unsigned int pagenr)
  */
 static __inline__ void set_dma_addr(unsigned int dmanr, unsigned int a)
 {
-	if (dmanr <= 3)  {
-	    dma_outb( a & 0xff, ((dmanr&3)<<1) + IO_DMA1_BASE );
-            dma_outb( (a>>8) & 0xff, ((dmanr&3)<<1) + IO_DMA1_BASE );
-	}  else  {
-	    dma_outb( (a>>1) & 0xff, ((dmanr&3)<<2) + IO_DMA2_BASE );
-	    dma_outb( (a>>9) & 0xff, ((dmanr&3)<<2) + IO_DMA2_BASE );
+	if (dmanr <= 3)
+	{
+		dma_outb( a & 0xff, ((dmanr & 3) << 1) + IO_DMA1_BASE );
+		dma_outb( (a >> 8) & 0xff, ((dmanr & 3) << 1) + IO_DMA1_BASE );
 	}
-	set_dma_page(dmanr, a>>16);	/* set hipage last to enable 32-bit mode */
+	else
+	{
+		dma_outb( (a >> 1) & 0xff, ((dmanr & 3) << 2) + IO_DMA2_BASE );
+		dma_outb( (a >> 9) & 0xff, ((dmanr & 3) << 2) + IO_DMA2_BASE );
+	}
+
+	set_dma_page(dmanr, a >> 16);	/* set hipage last to enable 32-bit mode */
 }
 
 
@@ -324,14 +355,18 @@ static __inline__ void set_dma_addr(unsigned int dmanr, unsigned int a)
  */
 static __inline__ void set_dma_count(unsigned int dmanr, unsigned int count)
 {
-        count--;
-	if (dmanr <= 3)  {
-	    dma_outb( count & 0xff, ((dmanr&3)<<1) + 1 + IO_DMA1_BASE );
-	    dma_outb( (count>>8) & 0xff, ((dmanr&3)<<1) + 1 + IO_DMA1_BASE );
-        } else {
-	    dma_outb( (count>>1) & 0xff, ((dmanr&3)<<2) + 2 + IO_DMA2_BASE );
-	    dma_outb( (count>>9) & 0xff, ((dmanr&3)<<2) + 2 + IO_DMA2_BASE );
-        }
+	count--;
+
+	if (dmanr <= 3)
+	{
+		dma_outb( count & 0xff, ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE );
+		dma_outb( (count >> 8) & 0xff, ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE );
+	}
+	else
+	{
+		dma_outb( (count >> 1) & 0xff, ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE );
+		dma_outb( (count >> 9) & 0xff, ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE );
+	}
 }
 
 
@@ -345,21 +380,21 @@ static __inline__ void set_dma_count(unsigned int dmanr, unsigned int count)
  */
 static __inline__ int get_dma_residue(unsigned int dmanr)
 {
-	unsigned int io_port = (dmanr<=3)? ((dmanr&3)<<1) + 1 + IO_DMA1_BASE
-					 : ((dmanr&3)<<2) + 2 + IO_DMA2_BASE;
+	unsigned int io_port = (dmanr <= 3) ? ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE
+						   : ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE;
 
 	/* using short to get 16-bit wrap around */
 	unsigned short count;
 
 	count = 1 + dma_inb(io_port);
 	count += dma_inb(io_port) << 8;
-	
-	return (dmanr<=3)? count : (count<<1);
+
+	return (dmanr <= 3) ? count : (count << 1);
 }
 
 
 /* These are in kernel/dma.c: */
-extern int request_dma(unsigned int dmanr, const char * device_id);	/* reserve a DMA channel */
+extern int request_dma(unsigned int dmanr, const char *device_id);	/* reserve a DMA channel */
 extern void free_dma(unsigned int dmanr);	/* release it again */
 #define KERNEL_HAVE_CHECK_DMA
 extern int check_dma(unsigned int dmanr);
@@ -367,9 +402,9 @@ extern int check_dma(unsigned int dmanr);
 /* From PCI */
 
 #ifdef CONFIG_PCI
-extern int isa_dma_bridge_buggy;
+	extern int isa_dma_bridge_buggy;
 #else
-#define isa_dma_bridge_buggy 	(0)
+	#define isa_dma_bridge_buggy 	(0)
 #endif
 
 

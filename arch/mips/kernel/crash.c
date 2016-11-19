@@ -27,20 +27,34 @@ static void crash_shutdown_secondary(void *passed_regs)
 	 * wrong, but we need something to keep from crashing again.
 	 */
 	if (!regs)
+	{
 		regs = get_irq_regs();
+	}
+
 	if (!regs)
+	{
 		regs = task_pt_regs(current);
+	}
 
 	if (!cpu_online(cpu))
+	{
 		return;
+	}
 
 	local_irq_disable();
+
 	if (!cpumask_test_cpu(cpu, &cpus_in_crash))
+	{
 		crash_save_cpu(regs, cpu);
+	}
+
 	cpumask_set_cpu(cpu, &cpus_in_crash);
 
 	while (!atomic_read(&kexec_ready_to_reboot))
+	{
 		cpu_relax();
+	}
+
 	relocated_kexec_smp_wait(NULL);
 	/* NOTREACHED */
 }
@@ -52,7 +66,9 @@ static void crash_kexec_prepare_cpus(void)
 	unsigned int ncpus;
 
 	if (cpus_stopped)
+	{
 		return;
+	}
 
 	ncpus = num_online_cpus() - 1;/* Excluding the panic cpu */
 
@@ -65,7 +81,9 @@ static void crash_kexec_prepare_cpus(void)
 	 */
 	pr_emerg("Sending IPI to other cpus...\n");
 	msecs = 10000;
-	while ((cpumask_weight(&cpus_in_crash) < ncpus) && (--msecs > 0)) {
+
+	while ((cpumask_weight(&cpus_in_crash) < ncpus) && (--msecs > 0))
+	{
 		cpu_relax();
 		mdelay(1);
 	}
@@ -77,7 +95,9 @@ static void crash_kexec_prepare_cpus(void)
 void crash_smp_send_stop(void)
 {
 	if (_crash_smp_send_stop)
+	{
 		_crash_smp_send_stop();
+	}
 
 	crash_kexec_prepare_cpus();
 }

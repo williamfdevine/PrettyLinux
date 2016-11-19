@@ -8,7 +8,8 @@
 
 #include <sysdep/ptrace.h>
 
-struct irq_fd {
+struct irq_fd
+{
 	struct irq_fd *next;
 	void *id;
 	int fd;

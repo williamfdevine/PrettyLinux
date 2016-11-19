@@ -42,13 +42,14 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 	int fault;
 
 #if 0
-	const char *atxc[16] = {
+	const char *atxc[16] =
+	{
 		[0x0] = "mmu-miss", [0x8] = "multi-dat", [0x9] = "multi-sat",
 		[0xa] = "tlb-miss", [0xc] = "privilege", [0xd] = "write-prot",
 	};
 
 	printk("do_page_fault(%d,%lx [%s],%lx)\n",
-	       datammu, esr0, atxc[esr0 >> 20 & 0xf], ear0);
+		   datammu, esr0, atxc[esr0 >> 20 & 0xf], ear0);
 #endif
 
 	mm = current->mm;
@@ -65,11 +66,17 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 	 * This verifies that the fault happens in kernel space
 	 * and that the fault was a page not present (invalid) error
 	 */
-	if (!user_mode(__frame) && (esr0 & ESR0_ATXC) == ESR0_ATXC_AMRTLB_MISS) {
+	if (!user_mode(__frame) && (esr0 & ESR0_ATXC) == ESR0_ATXC_AMRTLB_MISS)
+	{
 		if (ear0 >= VMALLOC_START && ear0 < VMALLOC_END)
+		{
 			goto kernel_pte_fault;
+		}
+
 		if (ear0 >= PKMAP_BASE && ear0 < PKMAP_END)
+		{
 			goto kernel_pte_fault;
+		}
 	}
 
 	info.si_code = SEGV_MAPERR;
@@ -79,84 +86,114 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 	 * context, we must not take the fault..
 	 */
 	if (faulthandler_disabled() || !mm)
+	{
 		goto no_context;
+	}
 
 	if (user_mode(__frame))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
 
 	down_read(&mm->mmap_sem);
 
 	vma = find_vma(mm, ear0);
-	if (!vma)
-		goto bad_area;
-	if (vma->vm_start <= ear0)
-		goto good_area;
-	if (!(vma->vm_flags & VM_GROWSDOWN))
-		goto bad_area;
 
-	if (user_mode(__frame)) {
+	if (!vma)
+	{
+		goto bad_area;
+	}
+
+	if (vma->vm_start <= ear0)
+	{
+		goto good_area;
+	}
+
+	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
+		goto bad_area;
+	}
+
+	if (user_mode(__frame))
+	{
 		/*
 		 * accessing the stack below %esp is always a bug.
 		 * The "+ 32" is there due to some instructions (like
 		 * pusha) doing post-decrement on the stack and that
 		 * doesn't show up until later..
 		 */
-		if ((ear0 & PAGE_MASK) + 2 * PAGE_SIZE < __frame->sp) {
+		if ((ear0 & PAGE_MASK) + 2 * PAGE_SIZE < __frame->sp)
+		{
 #if 0
 			printk("[%d] ### Access below stack @%lx (sp=%lx)\n",
-			       current->pid, ear0, __frame->sp);
+				   current->pid, ear0, __frame->sp);
 			show_registers(__frame);
 			printk("[%d] ### Code: [%08lx] %02x %02x %02x %02x %02x %02x %02x %02x\n",
-			       current->pid,
-			       __frame->pc,
-			       ((u8*)__frame->pc)[0],
-			       ((u8*)__frame->pc)[1],
-			       ((u8*)__frame->pc)[2],
-			       ((u8*)__frame->pc)[3],
-			       ((u8*)__frame->pc)[4],
-			       ((u8*)__frame->pc)[5],
-			       ((u8*)__frame->pc)[6],
-			       ((u8*)__frame->pc)[7]
-			       );
+				   current->pid,
+				   __frame->pc,
+				   ((u8 *)__frame->pc)[0],
+				   ((u8 *)__frame->pc)[1],
+				   ((u8 *)__frame->pc)[2],
+				   ((u8 *)__frame->pc)[3],
+				   ((u8 *)__frame->pc)[4],
+				   ((u8 *)__frame->pc)[5],
+				   ((u8 *)__frame->pc)[6],
+				   ((u8 *)__frame->pc)[7]
+				  );
 #endif
 			goto bad_area;
 		}
 	}
 
 	if (expand_stack(vma, ear0))
+	{
 		goto bad_area;
+	}
 
-/*
- * Ok, we have a good vm_area for this memory access, so
- * we can handle it..
- */
- good_area:
+	/*
+	 * Ok, we have a good vm_area for this memory access, so
+	 * we can handle it..
+	 */
+good_area:
 	info.si_code = SEGV_ACCERR;
-	switch (esr0 & ESR0_ATXC) {
-	default:
+
+	switch (esr0 & ESR0_ATXC)
+	{
+		default:
+
 		/* handle write to write protected page */
-	case ESR0_ATXC_WP_EXCEP:
+		case ESR0_ATXC_WP_EXCEP:
 #ifdef TEST_VERIFY_AREA
-		if (!(user_mode(__frame)))
-			printk("WP fault at %08lx\n", __frame->pc);
+			if (!(user_mode(__frame)))
+			{
+				printk("WP fault at %08lx\n", __frame->pc);
+			}
+
 #endif
-		if (!(vma->vm_flags & VM_WRITE))
-			goto bad_area;
-		flags |= FAULT_FLAG_WRITE;
-		break;
 
-		 /* handle read from protected page */
-	case ESR0_ATXC_PRIV_EXCEP:
-		goto bad_area;
+			if (!(vma->vm_flags & VM_WRITE))
+			{
+				goto bad_area;
+			}
 
-		 /* handle read, write or exec on absent page
-		  * - can't support write without permitting read
-		  * - don't support execute without permitting read and vice-versa
-		  */
-	case ESR0_ATXC_AMRTLB_MISS:
-		if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
+			flags |= FAULT_FLAG_WRITE;
+			break;
+
+		/* handle read from protected page */
+		case ESR0_ATXC_PRIV_EXCEP:
 			goto bad_area;
-		break;
+
+		/* handle read, write or exec on absent page
+		 * - can't support write without permitting read
+		 * - don't support execute without permitting read and vice-versa
+		 */
+		case ESR0_ATXC_AMRTLB_MISS:
+			if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
+			{
+				goto bad_area;
+			}
+
+			break;
 	}
 
 	/*
@@ -165,32 +202,47 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 	 * the fault.
 	 */
 	fault = handle_mm_fault(vma, ear0, flags);
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
+
 	if (fault & VM_FAULT_MAJOR)
+	{
 		current->maj_flt++;
+	}
 	else
+	{
 		current->min_flt++;
+	}
 
 	up_read(&mm->mmap_sem);
 	return;
 
-/*
- * Something tried to access memory that isn't in our memory map..
- * Fix it, but check if it's kernel or user first..
- */
- bad_area:
+	/*
+	 * Something tried to access memory that isn't in our memory map..
+	 * Fix it, but check if it's kernel or user first..
+	 */
+bad_area:
 	up_read(&mm->mmap_sem);
 
 	/* User mode accesses just cause a SIGSEGV */
-	if (user_mode(__frame)) {
+	if (user_mode(__frame))
+	{
 		info.si_signo = SIGSEGV;
 		info.si_errno = 0;
 		/* info.si_code has been set above */
@@ -199,24 +251,31 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 		return;
 	}
 
- no_context:
+no_context:
+
 	/* are we prepared to handle this kernel fault? */
-	if ((fixup = search_exception_table(__frame->pc)) != 0) {
+	if ((fixup = search_exception_table(__frame->pc)) != 0)
+	{
 		__frame->pc = fixup;
 		return;
 	}
 
-/*
- * Oops. The kernel tried to access some bad page. We'll have to
- * terminate things with extreme prejudice.
- */
+	/*
+	 * Oops. The kernel tried to access some bad page. We'll have to
+	 * terminate things with extreme prejudice.
+	 */
 
 	bust_spinlocks(1);
 
 	if (ear0 < PAGE_SIZE)
+	{
 		printk(KERN_ALERT "Unable to handle kernel NULL pointer dereference");
+	}
 	else
+	{
 		printk(KERN_ALERT "Unable to handle kernel paging request");
+	}
+
 	printk(" at virtual addr %08lx\n", ear0);
 	printk("  PC  : %08lx\n", __frame->pc);
 	printk("  EXC : esr0=%08lx ear0=%08lx\n", esr0, ear0);
@@ -235,13 +294,14 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 
 	printk(KERN_ALERT "  PGE : %8p { PME %08lx }\n", pge, _pme);
 
-	if (_pme & xAMPRx_V) {
+	if (_pme & xAMPRx_V)
+	{
 		unsigned long dampr, damlr, val;
 
 		asm volatile("movsg dampr2,%0 ! movgs %2,dampr2 ! movsg damlr2,%1"
-			     : "=&r"(dampr), "=r"(damlr)
-			     : "r" (_pme | xAMPRx_L|xAMPRx_SS_16Kb|xAMPRx_S|xAMPRx_C|xAMPRx_V)
-			     );
+					 : "=&r"(dampr), "=r"(damlr)
+					 : "r" (_pme | xAMPRx_L|xAMPRx_SS_16Kb|xAMPRx_S|xAMPRx_C|xAMPRx_V)
+					);
 
 		pte = (pte_t *) damlr + __pte_index(ear0);
 		val = pte_val(*pte);
@@ -254,18 +314,22 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 	die_if_kernel("Oops\n");
 	do_exit(SIGKILL);
 
-/*
- * We ran out of memory, or some other thing happened to us that made
- * us unable to handle the page fault gracefully.
- */
- out_of_memory:
+	/*
+	 * We ran out of memory, or some other thing happened to us that made
+	 * us unable to handle the page fault gracefully.
+	 */
+out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(__frame))
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return;
 
- do_sigbus:
+do_sigbus:
 	up_read(&mm->mmap_sem);
 
 	/*
@@ -280,13 +344,16 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 
 	/* Kernel mode? Handle exceptions or die */
 	if (!user_mode(__frame))
+	{
 		goto no_context;
+	}
+
 	return;
 
-/*
- * The fault was caused by a kernel PTE (such as installed by vmalloc or kmap)
- */
- kernel_pte_fault:
+	/*
+	 * The fault was caused by a kernel PTE (such as installed by vmalloc or kmap)
+	 */
+kernel_pte_fault:
 	{
 		/*
 		 * Synchronize this task's top level page-table
@@ -306,24 +373,37 @@ asmlinkage void do_page_fault(int datammu, unsigned long esr0, unsigned long ear
 		pgd_k = ((pgd_t *)(init_mm.pgd)) + index;
 
 		if (!pgd_present(*pgd_k))
+		{
 			goto no_context;
+		}
+
 		//set_pgd(pgd, *pgd_k); /////// gcc ICE's on this line
 
 		pud_k = pud_offset(pgd_k, ear0);
+
 		if (!pud_present(*pud_k))
+		{
 			goto no_context;
+		}
 
 		pmd_k = pmd_offset(pud_k, ear0);
+
 		if (!pmd_present(*pmd_k))
+		{
 			goto no_context;
+		}
 
 		pud = pud_offset(pgd, ear0);
 		pmd = pmd_offset(pud, ear0);
 		set_pmd(pmd, *pmd_k);
 
 		pte_k = pte_offset_kernel(pmd_k, ear0);
+
 		if (!pte_present(*pte_k))
+		{
 			goto no_context;
+		}
+
 		return;
 	}
 } /* end do_page_fault() */

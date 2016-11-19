@@ -23,13 +23,13 @@ extern void *gateway_page;
 static inline void set_gateway_tls(void __user *tls_ptr)
 {
 	void **gateway_tls = (void **)(gateway_page + USER_GATEWAY_TLS +
-				       hard_processor_id() * 4);
+								   hard_processor_id() * 4);
 
 	*gateway_tls = (__force void *)tls_ptr;
 #ifdef CONFIG_METAG_META12
 	/* Avoid cache aliases on virtually tagged cache. */
 	__builtin_dcache_flush((void *)USER_GATEWAY_PAGE + USER_GATEWAY_TLS +
-				       hard_processor_id() * sizeof(void *));
+						   hard_processor_id() * sizeof(void *));
 #endif
 }
 

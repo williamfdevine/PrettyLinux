@@ -25,7 +25,8 @@
 /* Avoid too many header ordering problems.  */
 struct siginfo;
 typedef unsigned long old_sigset_t;		/* at least 32 bits */
-typedef struct {
+typedef struct
+{
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
 
@@ -108,10 +109,12 @@ typedef struct {
 
 /* Here we must cater to libcs that poke about in kernel headers.  */
 
-struct sigaction {
-	union {
-	  __sighandler_t _sa_handler;
-	  void (*_sa_sigaction)(int, struct siginfo *, void *);
+struct sigaction
+{
+	union
+	{
+		__sighandler_t _sa_handler;
+		void (*_sa_sigaction)(int, struct siginfo *, void *);
 	} _u;
 	sigset_t sa_mask;
 	unsigned long sa_flags;
@@ -123,7 +126,8 @@ struct sigaction {
 
 #endif /* __KERNEL__ */
 
-typedef struct sigaltstack {
+typedef struct sigaltstack
+{
 	void *ss_sp;
 	int ss_flags;
 	size_t ss_size;

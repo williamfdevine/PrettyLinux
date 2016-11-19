@@ -27,15 +27,18 @@ follow_huge_addr(struct mm_struct *mm, unsigned long address, int write)
 	struct vm_area_struct *vma;
 
 	vma = find_vma(mm, addr);
+
 	if (!vma || !is_vm_hugetlb_page(vma))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	pte = huge_pte_offset(mm, address);
 
 	/* hugetlb should be locked, and hence, prefaulted */
 	WARN_ON(!pte || pte_none(*pte));
 
-	page = &pte_page(*pte)[vpfn % (HPAGE_SIZE/PAGE_SIZE)];
+	page = &pte_page(*pte)[vpfn % (HPAGE_SIZE / PAGE_SIZE)];
 
 	WARN_ON(!PageHead(page));
 
@@ -62,7 +65,7 @@ int pud_huge(pud_t pud)
 int pmd_huge(pmd_t pmd)
 {
 	return !pmd_none(pmd) &&
-		(pmd_val(pmd) & (_PAGE_PRESENT|_PAGE_PSE)) != _PAGE_PRESENT;
+		   (pmd_val(pmd) & (_PAGE_PRESENT | _PAGE_PSE)) != _PAGE_PRESENT;
 }
 
 int pud_huge(pud_t pud)
@@ -110,7 +113,8 @@ static unsigned long hugetlb_get_unmapped_area_topdown(struct file *file,
 	 * can happen with large stack limits and large mmap()
 	 * allocations.
 	 */
-	if (addr & ~PAGE_MASK) {
+	if (addr & ~PAGE_MASK)
+	{
 		VM_BUG_ON(addr != -ENOMEM);
 		info.flags = 0;
 		info.low_limit = TASK_UNMAPPED_BASE;
@@ -123,30 +127,44 @@ static unsigned long hugetlb_get_unmapped_area_topdown(struct file *file,
 
 unsigned long
 hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
-		unsigned long len, unsigned long pgoff, unsigned long flags)
+						  unsigned long len, unsigned long pgoff, unsigned long flags)
 {
 	struct hstate *h = hstate_file(file);
 	struct mm_struct *mm = current->mm;
 	struct vm_area_struct *vma;
 
 	if (len & ~huge_page_mask(h))
+	{
 		return -EINVAL;
-	if (len > TASK_SIZE)
-		return -ENOMEM;
+	}
 
-	if (flags & MAP_FIXED) {
+	if (len > TASK_SIZE)
+	{
+		return -ENOMEM;
+	}
+
+	if (flags & MAP_FIXED)
+	{
 		if (prepare_hugepage_range(file, addr, len))
+		{
 			return -EINVAL;
+		}
+
 		return addr;
 	}
 
-	if (addr) {
+	if (addr)
+	{
 		addr = ALIGN(addr, huge_page_size(h));
 		vma = find_vma(mm, addr);
+
 		if (TASK_SIZE - len >= addr &&
-		    (!vma || addr + len <= vma->vm_start))
+			(!vma || addr + len <= vma->vm_start))
+		{
 			return addr;
+		}
 	}
+
 	if (mm->get_unmapped_area == arch_get_unmapped_area)
 		return hugetlb_get_unmapped_area_bottomup(file, addr, len,
 				pgoff, flags);
@@ -160,16 +178,23 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
 static __init int setup_hugepagesz(char *opt)
 {
 	unsigned long ps = memparse(opt, &opt);
-	if (ps == PMD_SIZE) {
+
+	if (ps == PMD_SIZE)
+	{
 		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
-	} else if (ps == PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES)) {
+	}
+	else if (ps == PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES))
+	{
 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-	} else {
+	}
+	else
+	{
 		hugetlb_bad_size();
 		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
-			ps >> 20);
+			   ps >> 20);
 		return 0;
 	}
+
 	return 1;
 }
 __setup("hugepagesz=", setup_hugepagesz);
@@ -179,7 +204,10 @@ static __init int gigantic_pages_init(void)
 {
 	/* With compaction or CMA we can allocate gigantic pages at runtime */
 	if (boot_cpu_has(X86_FEATURE_GBPAGES) && !size_to_hstate(1UL << PUD_SHIFT))
+	{
 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
+	}
+
 	return 0;
 }
 arch_initcall(gigantic_pages_init);

@@ -31,10 +31,11 @@
 #define PS3FB_IOCTL_FSEL          _IOW('r', 6, int)  /* blit and flip request */
 
 #ifndef FBIO_WAITFORVSYNC
-#define FBIO_WAITFORVSYNC         _IOW('F', 0x20, __u32) /* wait for vsync */
+	#define FBIO_WAITFORVSYNC         _IOW('F', 0x20, __u32) /* wait for vsync */
 #endif
 
-struct ps3fb_ioctl_res {
+struct ps3fb_ioctl_res
+{
 	__u32 xres; /* frame buffer x_size */
 	__u32 yres; /* frame buffer y_size */
 	__u32 xoff; /* margine x  */

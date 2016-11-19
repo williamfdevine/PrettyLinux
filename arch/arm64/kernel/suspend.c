@@ -31,7 +31,10 @@ void __init cpu_suspend_set_dbg_restorer(int (*hw_bp_restore)(unsigned int))
 {
 	/* Prevent multiple restore hook initializations */
 	if (WARN_ON(hw_breakpoint_restore))
+	{
 		return;
+	}
+
 	hw_breakpoint_restore = hw_bp_restore;
 }
 
@@ -57,7 +60,7 @@ void notrace __cpu_suspend_exit(void)
 	 * features that might not have been set correctly.
 	 */
 	asm(ALTERNATIVE("nop", SET_PSTATE_PAN(1), ARM64_HAS_PAN,
-			CONFIG_ARM64_PAN));
+					CONFIG_ARM64_PAN));
 	uao_thread_switch(current);
 
 	/*
@@ -66,7 +69,9 @@ void notrace __cpu_suspend_exit(void)
 	 * through local_dbg_restore.
 	 */
 	if (hw_breakpoint_restore)
+	{
 		hw_breakpoint_restore(cpu);
+	}
 }
 
 /*
@@ -96,7 +101,8 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
 	 */
 	pause_graph_tracing();
 
-	if (__cpu_suspend_enter(&state)) {
+	if (__cpu_suspend_enter(&state))
+	{
 		/* Call the suspend finisher */
 		ret = fn(arg);
 
@@ -108,8 +114,12 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
 		 * to make sure a proper error condition is propagated
 		 */
 		if (!ret)
+		{
 			ret = -EOPNOTSUPP;
-	} else {
+		}
+	}
+	else
+	{
 		__cpu_suspend_exit();
 	}
 
@@ -129,10 +139,12 @@ static int __init cpu_suspend_init(void)
 {
 	/* ctx_ptr is an array of physical addresses */
 	sleep_save_stash = kcalloc(mpidr_hash_size(), sizeof(*sleep_save_stash),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
 
 	if (WARN_ON(!sleep_save_stash))
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

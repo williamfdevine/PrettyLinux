@@ -10,7 +10,8 @@
 
 atomic_t trace_idt_ctr = ATOMIC_INIT(0);
 struct desc_ptr trace_idt_descr = { NR_VECTORS * 16 - 1,
-				(unsigned long) trace_idt_table };
+		   (unsigned long) trace_idt_table
+};
 
 /* No need to be aligned, but done to keep all IDTs defined the same way. */
 gate_desc trace_idt_table[NR_VECTORS] __page_aligned_bss;
@@ -37,11 +38,14 @@ static void switch_idt(void *arg)
 void trace_irq_vector_regfunc(void)
 {
 	mutex_lock(&irq_vector_mutex);
-	if (!trace_irq_vector_refcount) {
+
+	if (!trace_irq_vector_refcount)
+	{
 		set_trace_idt_ctr(1);
 		smp_call_function(switch_idt, NULL, 0);
 		switch_idt(NULL);
 	}
+
 	trace_irq_vector_refcount++;
 	mutex_unlock(&irq_vector_mutex);
 }
@@ -50,10 +54,13 @@ void trace_irq_vector_unregfunc(void)
 {
 	mutex_lock(&irq_vector_mutex);
 	trace_irq_vector_refcount--;
-	if (!trace_irq_vector_refcount) {
+
+	if (!trace_irq_vector_refcount)
+	{
 		set_trace_idt_ctr(0);
 		smp_call_function(switch_idt, NULL, 0);
 		switch_idt(NULL);
 	}
+
 	mutex_unlock(&irq_vector_mutex);
 }

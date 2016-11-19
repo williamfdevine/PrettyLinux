@@ -4,7 +4,8 @@
 #include <asm/ptrace.h>
 #include <asm/atomic.h>
 
-enum ipi_vector {
+enum ipi_vector
+{
 	XEN_PLACEHOLDER_VECTOR,
 
 	/* Xen IPIs go here */

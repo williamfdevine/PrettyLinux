@@ -28,11 +28,13 @@ static void landisk_power_off(void)
 
 static struct resource cf_ide_resources[3];
 
-static struct pata_platform_info pata_info = {
+static struct pata_platform_info pata_info =
+{
 	.ioport_shift	= 1,
 };
 
-static struct platform_device cf_ide_device = {
+static struct platform_device cf_ide_device =
+{
 	.name		= "pata_platform",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(cf_ide_resources),
@@ -42,12 +44,14 @@ static struct platform_device cf_ide_device = {
 	},
 };
 
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name		= "rs5c313",
 	.id		= -1,
 };
 
-static struct platform_device *landisk_devices[] __initdata = {
+static struct platform_device *landisk_devices[] __initdata =
+{
 	&cf_ide_device,
 	&rtc_device,
 };
@@ -62,7 +66,9 @@ static int __init landisk_devices_setup(void)
 	paddrbase = virt_to_phys((void *)PA_AREA5_IO);
 	prot = PAGE_KERNEL_PCC(1, _PAGE_PCC_IO16);
 	cf_ide_base = ioremap_prot(paddrbase, PAGE_SIZE, pgprot_val(prot));
-	if (!cf_ide_base) {
+
+	if (!cf_ide_base)
+	{
 		printk("allocate_cf_area : can't open CF I/O window!\n");
 		return -ENOMEM;
 	}
@@ -78,7 +84,7 @@ static int __init landisk_devices_setup(void)
 	cf_ide_resources[2].flags = IORESOURCE_IRQ;
 
 	return platform_add_devices(landisk_devices,
-				    ARRAY_SIZE(landisk_devices));
+								ARRAY_SIZE(landisk_devices));
 }
 
 device_initcall(landisk_devices_setup);
@@ -95,7 +101,8 @@ static void __init landisk_setup(char **cmdline_p)
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_landisk __initmv = {
+static struct sh_machine_vector mv_landisk __initmv =
+{
 	.mv_name = "LANDISK",
 	.mv_setup = landisk_setup,
 	.mv_init_irq = init_landisk_IRQ,

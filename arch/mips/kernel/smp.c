@@ -84,8 +84,8 @@ static cpumask_t cpu_core_setup_map;
 cpumask_t cpu_coherent_mask;
 
 #ifdef CONFIG_GENERIC_IRQ_IPI
-static struct irq_desc *call_desc;
-static struct irq_desc *sched_desc;
+	static struct irq_desc *call_desc;
+	static struct irq_desc *sched_desc;
 #endif
 
 static inline void set_cpu_sibling_map(int cpu)
@@ -94,16 +94,22 @@ static inline void set_cpu_sibling_map(int cpu)
 
 	cpumask_set_cpu(cpu, &cpu_sibling_setup_map);
 
-	if (smp_num_siblings > 1) {
-		for_each_cpu(i, &cpu_sibling_setup_map) {
+	if (smp_num_siblings > 1)
+	{
+		for_each_cpu(i, &cpu_sibling_setup_map)
+		{
 			if (cpu_data[cpu].package == cpu_data[i].package &&
-				    cpu_data[cpu].core == cpu_data[i].core) {
+				cpu_data[cpu].core == cpu_data[i].core)
+			{
 				cpumask_set_cpu(i, &cpu_sibling_map[cpu]);
 				cpumask_set_cpu(cpu, &cpu_sibling_map[i]);
 			}
 		}
-	} else
+	}
+	else
+	{
 		cpumask_set_cpu(cpu, &cpu_sibling_map[cpu]);
+	}
 }
 
 static inline void set_cpu_core_map(int cpu)
@@ -112,8 +118,10 @@ static inline void set_cpu_core_map(int cpu)
 
 	cpumask_set_cpu(cpu, &cpu_core_setup_map);
 
-	for_each_cpu(i, &cpu_core_setup_map) {
-		if (cpu_data[cpu].package == cpu_data[i].package) {
+	for_each_cpu(i, &cpu_core_setup_map)
+	{
+		if (cpu_data[cpu].package == cpu_data[i].package)
+		{
 			cpumask_set_cpu(i, &cpu_core_map[cpu]);
 			cpumask_set_cpu(cpu, &cpu_core_map[i]);
 		}
@@ -131,19 +139,26 @@ void calculate_cpu_foreign_map(void)
 
 	/* Re-calculate the mask */
 	cpumask_clear(&temp_foreign_map);
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		core_present = 0;
 		for_each_cpu(k, &temp_foreign_map)
-			if (cpu_data[i].package == cpu_data[k].package &&
-			    cpu_data[i].core == cpu_data[k].core)
-				core_present = 1;
+
+		if (cpu_data[i].package == cpu_data[k].package &&
+			cpu_data[i].core == cpu_data[k].core)
+		{
+			core_present = 1;
+		}
+
 		if (!core_present)
+		{
 			cpumask_set_cpu(i, &temp_foreign_map);
+		}
 	}
 
 	for_each_online_cpu(i)
-		cpumask_andnot(&cpu_foreign_map[i],
-			       &temp_foreign_map, &cpu_sibling_map[i]);
+	cpumask_andnot(&cpu_foreign_map[i],
+				   &temp_foreign_map, &cpu_sibling_map[i]);
 }
 
 struct plat_smp_ops *mp_ops;
@@ -152,7 +167,9 @@ EXPORT_SYMBOL(mp_ops);
 void register_smp_ops(struct plat_smp_ops *ops)
 {
 	if (mp_ops)
+	{
 		printk(KERN_WARNING "Overriding previously set SMP ops\n");
+	}
 
 	mp_ops = ops;
 }
@@ -171,27 +188,33 @@ void mips_smp_send_ipi_mask(const struct cpumask *mask, unsigned int action)
 
 	local_irq_save(flags);
 
-	switch (action) {
-	case SMP_CALL_FUNCTION:
-		__ipi_send_mask(call_desc, mask);
-		break;
+	switch (action)
+	{
+		case SMP_CALL_FUNCTION:
+			__ipi_send_mask(call_desc, mask);
+			break;
 
-	case SMP_RESCHEDULE_YOURSELF:
-		__ipi_send_mask(sched_desc, mask);
-		break;
+		case SMP_RESCHEDULE_YOURSELF:
+			__ipi_send_mask(sched_desc, mask);
+			break;
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 
-	if (mips_cpc_present()) {
-		for_each_cpu(cpu, mask) {
+	if (mips_cpc_present())
+	{
+		for_each_cpu(cpu, mask)
+		{
 			core = cpu_data[cpu].core;
 
 			if (core == current_cpu_data.core)
+			{
 				continue;
+			}
 
-			while (!cpumask_test_cpu(cpu, &cpu_coherent_mask)) {
+			while (!cpumask_test_cpu(cpu, &cpu_coherent_mask))
+			{
 				mips_cm_lock_other(core, 0);
 				mips_cpc_lock_other(core);
 				write_cpc_co_cmd(CPC_Cx_CMD_PWRUP);
@@ -219,20 +242,22 @@ static irqreturn_t ipi_call_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction irq_resched = {
+static struct irqaction irq_resched =
+{
 	.handler	= ipi_resched_interrupt,
 	.flags		= IRQF_PERCPU,
 	.name		= "IPI resched"
 };
 
-static struct irqaction irq_call = {
+static struct irqaction irq_call =
+{
 	.handler	= ipi_call_interrupt,
 	.flags		= IRQF_PERCPU,
 	.name		= "IPI call"
 };
 
 static void smp_ipi_init_one(unsigned int virq,
-				    struct irqaction *action)
+							 struct irqaction *action)
 {
 	int ret;
 
@@ -258,7 +283,9 @@ int mips_smp_ipi_allocate(const struct cpumask *mask)
 	 * DT.
 	 */
 	if (node && !ipidomain)
+	{
 		ipidomain = irq_find_matching_host(NULL, DOMAIN_BUS_IPI);
+	}
 
 	/*
 	 * There are systems which only use IPI domains some of the time,
@@ -270,26 +297,38 @@ int mips_smp_ipi_allocate(const struct cpumask *mask)
 	 * is to return & hope some other code sets up the IPIs.
 	 */
 	if (!ipidomain)
+	{
 		return 0;
+	}
 
 	virq = irq_reserve_ipi(ipidomain, mask);
 	BUG_ON(!virq);
+
 	if (!call_virq)
+	{
 		call_virq = virq;
+	}
 
 	virq = irq_reserve_ipi(ipidomain, mask);
 	BUG_ON(!virq);
-	if (!sched_virq)
-		sched_virq = virq;
 
-	if (irq_domain_is_ipi_per_cpu(ipidomain)) {
+	if (!sched_virq)
+	{
+		sched_virq = virq;
+	}
+
+	if (irq_domain_is_ipi_per_cpu(ipidomain))
+	{
 		int cpu;
 
-		for_each_cpu(cpu, mask) {
+		for_each_cpu(cpu, mask)
+		{
 			smp_ipi_init_one(call_virq + cpu, &irq_call);
 			smp_ipi_init_one(sched_virq + cpu, &irq_resched);
 		}
-	} else {
+	}
+	else
+	{
 		smp_ipi_init_one(call_virq, &irq_call);
 		smp_ipi_init_one(sched_virq, &irq_resched);
 	}
@@ -311,18 +350,23 @@ int mips_smp_ipi_free(const struct cpumask *mask)
 	 * DT.
 	 */
 	if (node && !ipidomain)
+	{
 		ipidomain = irq_find_matching_host(NULL, DOMAIN_BUS_IPI);
+	}
 
 	BUG_ON(!ipidomain);
 
-	if (irq_domain_is_ipi_per_cpu(ipidomain)) {
+	if (irq_domain_is_ipi_per_cpu(ipidomain))
+	{
 		int cpu;
 
-		for_each_cpu(cpu, mask) {
+		for_each_cpu(cpu, mask)
+		{
 			remove_irq(call_virq + cpu, &irq_call);
 			remove_irq(sched_virq + cpu, &irq_resched);
 		}
 	}
+
 	irq_destroy_ipi(call_virq, mask);
 	irq_destroy_ipi(sched_virq, mask);
 	return 0;
@@ -398,6 +442,7 @@ static void stop_this_cpu(void *dummy)
 	set_cpu_online(smp_processor_id(), false);
 	calculate_cpu_foreign_map();
 	local_irq_disable();
+
 	while (1);
 }
 
@@ -440,7 +485,8 @@ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
 	/*
 	 * Trust is futile.  We should really have timeouts ...
 	 */
-	while (!cpumask_test_cpu(cpu, &cpu_callin_map)) {
+	while (!cpumask_test_cpu(cpu, &cpu_callin_map))
+	{
 		udelay(100);
 		schedule();
 	}
@@ -510,22 +556,30 @@ void flush_tlb_mm(struct mm_struct *mm)
 {
 	preempt_disable();
 
-	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm)) {
+	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm))
+	{
 		smp_on_other_tlbs(flush_tlb_mm_ipi, mm);
-	} else {
+	}
+	else
+	{
 		unsigned int cpu;
 
-		for_each_online_cpu(cpu) {
+		for_each_online_cpu(cpu)
+		{
 			if (cpu != smp_processor_id() && cpu_context(cpu, mm))
+			{
 				cpu_context(cpu, mm) = 0;
+			}
 		}
 	}
+
 	local_flush_tlb_mm(mm);
 
 	preempt_enable();
 }
 
-struct flush_tlb_data {
+struct flush_tlb_data
+{
 	struct vm_area_struct *vma;
 	unsigned long addr1;
 	unsigned long addr2;
@@ -543,19 +597,25 @@ void flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned l
 	struct mm_struct *mm = vma->vm_mm;
 
 	preempt_disable();
-	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm)) {
-		struct flush_tlb_data fd = {
+
+	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm))
+	{
+		struct flush_tlb_data fd =
+		{
 			.vma = vma,
 			.addr1 = start,
 			.addr2 = end,
 		};
 
 		smp_on_other_tlbs(flush_tlb_range_ipi, &fd);
-	} else {
+	}
+	else
+	{
 		unsigned int cpu;
 		int exec = vma->vm_flags & VM_EXEC;
 
-		for_each_online_cpu(cpu) {
+		for_each_online_cpu(cpu)
+		{
 			/*
 			 * flush_cache_range() will only fully flush icache if
 			 * the VMA is executable, otherwise we must invalidate
@@ -563,9 +623,12 @@ void flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned l
 			 * mm has been completely unused by that CPU.
 			 */
 			if (cpu != smp_processor_id() && cpu_context(cpu, mm))
+			{
 				cpu_context(cpu, mm) = !exec;
+			}
 		}
 	}
+
 	local_flush_tlb_range(vma, start, end);
 	preempt_enable();
 }
@@ -579,7 +642,8 @@ static void flush_tlb_kernel_range_ipi(void *info)
 
 void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 {
-	struct flush_tlb_data fd = {
+	struct flush_tlb_data fd =
+	{
 		.addr1 = start,
 		.addr2 = end,
 	};
@@ -597,17 +661,23 @@ static void flush_tlb_page_ipi(void *info)
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 {
 	preempt_disable();
-	if ((atomic_read(&vma->vm_mm->mm_users) != 1) || (current->mm != vma->vm_mm)) {
-		struct flush_tlb_data fd = {
+
+	if ((atomic_read(&vma->vm_mm->mm_users) != 1) || (current->mm != vma->vm_mm))
+	{
+		struct flush_tlb_data fd =
+		{
 			.vma = vma,
 			.addr1 = page,
 		};
 
 		smp_on_other_tlbs(flush_tlb_page_ipi, &fd);
-	} else {
+	}
+	else
+	{
 		unsigned int cpu;
 
-		for_each_online_cpu(cpu) {
+		for_each_online_cpu(cpu)
+		{
 			/*
 			 * flush_cache_page() only does partial flushes, so
 			 * invalidate ASID without it appearing to
@@ -615,9 +685,12 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 			 * by that CPU.
 			 */
 			if (cpu != smp_processor_id() && cpu_context(cpu, vma->vm_mm))
+			{
 				cpu_context(cpu, vma->vm_mm) = 1;
+			}
 		}
 	}
+
 	local_flush_tlb_page(vma, page);
 	preempt_enable();
 }
@@ -647,8 +720,11 @@ void dump_send_ipi(void (*dump_ipi_callback)(void *))
 	dump_ipi_function_ptr = dump_ipi_callback;
 	smp_mb();
 	for_each_online_cpu(i)
-		if (i != cpu)
-			mp_ops->send_ipi_single(i, SMP_DUMP);
+
+	if (i != cpu)
+	{
+		mp_ops->send_ipi_single(i, SMP_DUMP);
+	}
 
 }
 EXPORT_SYMBOL(dump_send_ipi);
@@ -665,12 +741,15 @@ void tick_broadcast(const struct cpumask *mask)
 	struct call_single_data *csd;
 	int cpu;
 
-	for_each_cpu(cpu, mask) {
+	for_each_cpu(cpu, mask)
+	{
 		count = &per_cpu(tick_broadcast_count, cpu);
 		csd = &per_cpu(tick_broadcast_csd, cpu);
 
 		if (atomic_inc_return(count) == 1)
+		{
 			smp_call_function_single_async(cpu, csd);
+		}
 	}
 }
 
@@ -686,7 +765,8 @@ static int __init tick_broadcast_init(void)
 	struct call_single_data *csd;
 	int cpu;
 
-	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+	for (cpu = 0; cpu < NR_CPUS; cpu++)
+	{
 		csd = &per_cpu(tick_broadcast_csd, cpu);
 		csd->func = tick_broadcast_callee;
 	}

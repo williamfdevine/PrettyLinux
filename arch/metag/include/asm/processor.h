@@ -30,19 +30,24 @@
  */
 #define TASK_UNMAPPED_BASE	META_MEMORY_BASE
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
 #ifdef CONFIG_METAG_FPU
-struct meta_fpu_context {
+struct meta_fpu_context
+{
 	TBICTXEXTFPU fpstate;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			TBICTXEXTBB4 fx8_15;
 			TBICTXEXTFPACC fpacc;
 		} fx8_15;
-		struct {
+		struct
+		{
 			TBICTXEXTFPACC fpacc;
 			TBICTXEXTBB4 unused;
 		} nofx8_15;
@@ -54,8 +59,10 @@ struct meta_fpu_context {};
 #endif
 
 #ifdef CONFIG_METAG_DSP
-struct meta_ext_context {
-	struct {
+struct meta_ext_context
+{
+	struct
+	{
 		TBIEXTCTX ctx;
 		TBICTXEXTBB8 bb8;
 		TBIDUAL ax[TBICTXEXTAXX_BYTES / sizeof(TBIDUAL)];
@@ -74,7 +81,8 @@ struct meta_ext_context {
 struct meta_ext_context {};
 #endif
 
-struct thread_struct {
+struct thread_struct
+{
 	PTBICTX kernel_context;
 	/* A copy of the user process Sig.SaveMask. */
 	unsigned int user_flags;
@@ -86,14 +94,14 @@ struct thread_struct {
 };
 
 #define INIT_THREAD  { \
-	NULL,			/* kernel_context */	\
-	0,			/* user_flags */	\
-	NULL,			/* fpu_context */	\
-	NULL,			/* tls_ptr */		\
-	1,			/* int_depth - we start in kernel */	\
-	0,			/* txdefr_failure */	\
-	NULL,			/* dsp_context */	\
-}
+		NULL,			/* kernel_context */	\
+		0,			/* user_flags */	\
+		NULL,			/* fpu_context */	\
+		NULL,			/* tls_ptr */		\
+		1,			/* int_depth - we start in kernel */	\
+		0,			/* txdefr_failure */	\
+		NULL,			/* dsp_context */	\
+	}
 
 /* Needed to make #define as we are referencing 'current', that is not visible
  * yet.
@@ -110,18 +118,18 @@ struct thread_struct {
 
  */
 #define start_thread(regs, pc, usp) do {				   \
-	unsigned int *argc = (unsigned int *) bprm->exec;		   \
-	current->thread.int_depth = 1;					   \
-	/* Force this process down to user land */			   \
-	regs->ctx.SaveMask = TBICTX_PRIV_BIT;				   \
-	regs->ctx.CurrPC = pc;						   \
-	regs->ctx.AX[0].U0 = usp;					   \
-	regs->ctx.DX[3].U1 = *((int *)argc);			/* argc */ \
-	regs->ctx.DX[3].U0 = (int)((int *)argc + 1);		/* argv */ \
-	regs->ctx.DX[2].U1 = (int)((int *)argc +			   \
-				   regs->ctx.DX[3].U1 + 2);	/* envp */ \
-	regs->ctx.DX[2].U0 = 0;				   /* rtld_fini */ \
-} while (0)
+		unsigned int *argc = (unsigned int *) bprm->exec;		   \
+		current->thread.int_depth = 1;					   \
+		/* Force this process down to user land */			   \
+		regs->ctx.SaveMask = TBICTX_PRIV_BIT;				   \
+		regs->ctx.CurrPC = pc;						   \
+		regs->ctx.AX[0].U0 = usp;					   \
+		regs->ctx.DX[3].U1 = *((int *)argc);			/* argc */ \
+		regs->ctx.DX[3].U0 = (int)((int *)argc + 1);		/* argv */ \
+		regs->ctx.DX[2].U1 = (int)((int *)argc +			   \
+								   regs->ctx.DX[3].U1 + 2);	/* envp */ \
+		regs->ctx.DX[2].U0 = 0;				   /* rtld_fini */ \
+	} while (0)
 
 /* Forward declaration, a strange C thing */
 struct task_struct;
@@ -161,12 +169,12 @@ static inline unsigned int hard_processor_id(void)
 	unsigned int id;
 
 	asm volatile ("MOV	%0, TXENABLE\n"
-		      "AND	%0, %0, %1\n"
-		      "LSR	%0, %0, %2\n"
-		      : "=&d" (id)
-		      : "I" (TXENABLE_THREAD_BITS),
-			"K" (TXENABLE_THREAD_S)
-		      );
+				  "AND	%0, %0, %1\n"
+				  "LSR	%0, %0, %2\n"
+				  : "=&d" (id)
+				  : "I" (TXENABLE_THREAD_BITS),
+				  "K" (TXENABLE_THREAD_S)
+				 );
 
 	return id;
 }
@@ -184,12 +192,12 @@ static inline unsigned int hard_processor_id(void)
 static inline void hard_processor_halt(int exit_code)
 {
 	asm volatile ("MOV	D1Ar1, %0\n"
-		      "MOV	D0Ar6, %1\n"
-		      "MSETL	[A0StP],D0Ar6,D0Ar4,D0Ar2\n"
-		      "1:\n"
-		      "SWITCH	#0xC30006\n"
-		      "B		1b\n"
-		      : : "r" (exit_code), "K" (OP3_EXIT));
+				  "MOV	D0Ar6, %1\n"
+				  "MSETL	[A0StP],D0Ar6,D0Ar4,D0Ar2\n"
+				  "1:\n"
+				  "SWITCH	#0xC30006\n"
+				  "B		1b\n"
+				  : : "r" (exit_code), "K" (OP3_EXIT));
 }
 
 /* Set these hooks to call SoC specific code to restart/halt/power off. */
@@ -197,7 +205,7 @@ extern void (*soc_restart)(char *cmd);
 extern void (*soc_halt)(void);
 
 extern void show_trace(struct task_struct *tsk, unsigned long *sp,
-		       struct pt_regs *regs);
+					   struct pt_regs *regs);
 
 extern const struct seq_operations cpuinfo_op;
 

@@ -35,7 +35,8 @@
 
 #include "probes-common.h"
 
-static const union mips_instruction breakpoint_insn = {
+static const union mips_instruction breakpoint_insn =
+{
 	.b_format = {
 		.opcode = spec_op,
 		.code = BRK_KPROBE_BP,
@@ -43,7 +44,8 @@ static const union mips_instruction breakpoint_insn = {
 	}
 };
 
-static const union mips_instruction breakpoint2_insn = {
+static const union mips_instruction breakpoint2_insn =
+{
 	.b_format = {
 		.opcode = spec_op,
 		.code = BRK_KPROBE_SSTEPBP,
@@ -70,16 +72,19 @@ static int __kprobes insn_has_ll_or_sc(union mips_instruction insn)
 {
 	int ret = 0;
 
-	switch (insn.i_format.opcode) {
-	case ll_op:
-	case lld_op:
-	case sc_op:
-	case scd_op:
-		ret = 1;
-		break;
-	default:
-		break;
+	switch (insn.i_format.opcode)
+	{
+		case ll_op:
+		case lld_op:
+		case sc_op:
+		case scd_op:
+			ret = 1;
+			break;
+
+		default:
+			break;
 	}
+
 	return ret;
 }
 
@@ -91,22 +96,25 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
 
 	insn = p->addr[0];
 
-	if (insn_has_ll_or_sc(insn)) {
+	if (insn_has_ll_or_sc(insn))
+	{
 		pr_notice("Kprobes for ll and sc instructions are not"
-			  "supported\n");
+				  "supported\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
 	if ((probe_kernel_read(&prev_insn, p->addr - 1,
-				sizeof(mips_instruction)) == 0) &&
-				insn_has_delayslot(prev_insn)) {
+						   sizeof(mips_instruction)) == 0) &&
+		insn_has_delayslot(prev_insn))
+	{
 		pr_notice("Kprobes for branch delayslot are not supported\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (__insn_is_compact_branch(insn)) {
+	if (__insn_is_compact_branch(insn))
+	{
 		pr_notice("Kprobes for compact branches are not supported\n");
 		ret = -EINVAL;
 		goto out;
@@ -114,7 +122,9 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
 
 	/* insn: must be on special executable page on mips. */
 	p->ainsn.insn = get_insn_slot();
-	if (!p->ainsn.insn) {
+
+	if (!p->ainsn.insn)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -133,9 +143,13 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
 	 * So, read the instruction and save it for later execution.
 	 */
 	if (insn_has_delayslot(insn))
+	{
 		memcpy(&p->ainsn.insn[0], p->addr + 1, sizeof(kprobe_opcode_t));
+	}
 	else
+	{
 		memcpy(&p->ainsn.insn[0], p->addr, sizeof(kprobe_opcode_t));
+	}
 
 	p->ainsn.insn[1] = breakpoint2_insn;
 	p->opcode = *p->addr;
@@ -158,7 +172,8 @@ void __kprobes arch_disarm_kprobe(struct kprobe *p)
 
 void __kprobes arch_remove_kprobe(struct kprobe *p)
 {
-	if (p->ainsn.insn) {
+	if (p->ainsn.insn)
+	{
 		free_insn_slot(p->ainsn.insn, 0);
 		p->ainsn.insn = NULL;
 	}
@@ -183,7 +198,7 @@ static void restore_previous_kprobe(struct kprobe_ctlblk *kcb)
 }
 
 static void set_current_kprobe(struct kprobe *p, struct pt_regs *regs,
-			       struct kprobe_ctlblk *kcb)
+							   struct kprobe_ctlblk *kcb)
 {
 	__this_cpu_write(current_kprobe, p);
 	kcb->kprobe_saved_SR = kcb->kprobe_old_SR = (regs->cp0_status & ST0_IE);
@@ -204,27 +219,39 @@ static void set_current_kprobe(struct kprobe *p, struct pt_regs *regs,
  * SKIP_DELAYSLOT in the kprobe control block
  */
 static int evaluate_branch_instruction(struct kprobe *p, struct pt_regs *regs,
-					struct kprobe_ctlblk *kcb)
+									   struct kprobe_ctlblk *kcb)
 {
 	union mips_instruction insn = p->opcode;
 	long epc;
 	int ret = 0;
 
 	epc = regs->cp0_epc;
+
 	if (epc & 3)
+	{
 		goto unaligned;
+	}
 
 	if (p->ainsn.insn->word == 0)
+	{
 		kcb->flags |= SKIP_DELAYSLOT;
+	}
 	else
+	{
 		kcb->flags &= ~SKIP_DELAYSLOT;
+	}
 
 	ret = __compute_return_epc_for_insn(regs, insn);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (ret == BRANCH_LIKELY_TAKEN)
+	{
 		kcb->flags |= SKIP_DELAYSLOT;
+	}
 
 	kcb->target_epc = regs->cp0_epc;
 
@@ -238,7 +265,7 @@ unaligned:
 }
 
 static void prepare_singlestep(struct kprobe *p, struct pt_regs *regs,
-						struct kprobe_ctlblk *kcb)
+							   struct kprobe_ctlblk *kcb)
 {
 	int ret = 0;
 
@@ -246,15 +273,21 @@ static void prepare_singlestep(struct kprobe *p, struct pt_regs *regs,
 
 	/* single step inline if the instruction is a break */
 	if (p->opcode.word == breakpoint_insn.word ||
-	    p->opcode.word == breakpoint2_insn.word)
+		p->opcode.word == breakpoint2_insn.word)
+	{
 		regs->cp0_epc = (unsigned long)p->addr;
-	else if (insn_has_delayslot(p->opcode)) {
+	}
+	else if (insn_has_delayslot(p->opcode))
+	{
 		ret = evaluate_branch_instruction(p, regs, kcb);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_notice("Kprobes: Error in evaluating branch\n");
 			return;
 		}
 	}
+
 	regs->cp0_epc = (unsigned long)&p->ainsn.insn[0];
 }
 
@@ -271,12 +304,15 @@ static void prepare_singlestep(struct kprobe *p, struct pt_regs *regs,
  * epc to be restored.
  */
 static void __kprobes resume_execution(struct kprobe *p,
-				       struct pt_regs *regs,
-				       struct kprobe_ctlblk *kcb)
+									   struct pt_regs *regs,
+									   struct kprobe_ctlblk *kcb)
 {
 	if (insn_has_delayslot(p->opcode))
+	{
 		regs->cp0_epc = kcb->target_epc;
-	else {
+	}
+	else
+	{
 		unsigned long orig_epc = kcb->kprobe_saved_epc;
 		regs->cp0_epc = orig_epc + 4;
 	}
@@ -299,15 +335,20 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 	kcb = get_kprobe_ctlblk();
 
 	/* Check we're not actually recursing */
-	if (kprobe_running()) {
+	if (kprobe_running())
+	{
 		p = get_kprobe(addr);
-		if (p) {
+
+		if (p)
+		{
 			if (kcb->kprobe_status == KPROBE_HIT_SS &&
-			    p->ainsn.insn->word == breakpoint_insn.word) {
+				p->ainsn.insn->word == breakpoint_insn.word)
+			{
 				regs->cp0_status &= ~ST0_IE;
 				regs->cp0_status |= kcb->kprobe_saved_SR;
 				goto no_kprobe;
 			}
+
 			/*
 			 * We have reentered the kprobe_handler(), since
 			 * another probe was hit while within the handler.
@@ -320,14 +361,20 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 			kprobes_inc_nmissed_count(p);
 			prepare_singlestep(p, regs, kcb);
 			kcb->kprobe_status = KPROBE_REENTER;
-			if (kcb->flags & SKIP_DELAYSLOT) {
+
+			if (kcb->flags & SKIP_DELAYSLOT)
+			{
 				resume_execution(p, regs, kcb);
 				restore_previous_kprobe(kcb);
 				preempt_enable_no_resched();
 			}
+
 			return 1;
-		} else {
-			if (addr->word != breakpoint_insn.word) {
+		}
+		else
+		{
+			if (addr->word != breakpoint_insn.word)
+			{
 				/*
 				 * The breakpoint instruction was removed by
 				 * another cpu right after we hit, no further
@@ -336,16 +383,24 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 				ret = 1;
 				goto no_kprobe;
 			}
+
 			p = __this_cpu_read(current_kprobe);
+
 			if (p->break_handler && p->break_handler(p, regs))
+			{
 				goto ss_probe;
+			}
 		}
+
 		goto no_kprobe;
 	}
 
 	p = get_kprobe(addr);
-	if (!p) {
-		if (addr->word != breakpoint_insn.word) {
+
+	if (!p)
+	{
+		if (addr->word != breakpoint_insn.word)
+		{
 			/*
 			 * The breakpoint instruction was removed right
 			 * after we hit it.  Another cpu has removed
@@ -355,6 +410,7 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 			 */
 			ret = 1;
 		}
+
 		/* Not one of ours: let kernel handle it */
 		goto no_kprobe;
 	}
@@ -362,21 +418,31 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 	set_current_kprobe(p, regs, kcb);
 	kcb->kprobe_status = KPROBE_HIT_ACTIVE;
 
-	if (p->pre_handler && p->pre_handler(p, regs)) {
+	if (p->pre_handler && p->pre_handler(p, regs))
+	{
 		/* handler has already set things up, so skip ss setup */
 		return 1;
 	}
 
 ss_probe:
 	prepare_singlestep(p, regs, kcb);
-	if (kcb->flags & SKIP_DELAYSLOT) {
+
+	if (kcb->flags & SKIP_DELAYSLOT)
+	{
 		kcb->kprobe_status = KPROBE_HIT_SSDONE;
+
 		if (p->post_handler)
+		{
 			p->post_handler(p, regs, 0);
+		}
+
 		resume_execution(p, regs, kcb);
 		preempt_enable_no_resched();
-	} else
+	}
+	else
+	{
 		kcb->kprobe_status = KPROBE_HIT_SS;
+	}
 
 	return 1;
 
@@ -392,9 +458,12 @@ static inline int post_kprobe_handler(struct pt_regs *regs)
 	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
 
 	if (!cur)
+	{
 		return 0;
+	}
 
-	if ((kcb->kprobe_status != KPROBE_REENTER) && cur->post_handler) {
+	if ((kcb->kprobe_status != KPROBE_REENTER) && cur->post_handler)
+	{
 		kcb->kprobe_status = KPROBE_HIT_SSDONE;
 		cur->post_handler(cur, regs, 0);
 	}
@@ -404,10 +473,12 @@ static inline int post_kprobe_handler(struct pt_regs *regs)
 	regs->cp0_status |= kcb->kprobe_saved_SR;
 
 	/* Restore back the original saved kprobes variables and continue. */
-	if (kcb->kprobe_status == KPROBE_REENTER) {
+	if (kcb->kprobe_status == KPROBE_REENTER)
+	{
 		restore_previous_kprobe(kcb);
 		goto out;
 	}
+
 	reset_current_kprobe();
 out:
 	preempt_enable_no_resched();
@@ -421,15 +492,19 @@ static inline int kprobe_fault_handler(struct pt_regs *regs, int trapnr)
 	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
 
 	if (cur->fault_handler && cur->fault_handler(cur, regs, trapnr))
+	{
 		return 1;
+	}
 
-	if (kcb->kprobe_status & KPROBE_HIT_SS) {
+	if (kcb->kprobe_status & KPROBE_HIT_SS)
+	{
 		resume_execution(cur, regs, kcb);
 		regs->cp0_status |= kcb->kprobe_old_SR;
 
 		reset_current_kprobe();
 		preempt_enable_no_resched();
 	}
+
 	return 0;
 }
 
@@ -437,34 +512,47 @@ static inline int kprobe_fault_handler(struct pt_regs *regs, int trapnr)
  * Wrapper routine for handling exceptions.
  */
 int __kprobes kprobe_exceptions_notify(struct notifier_block *self,
-				       unsigned long val, void *data)
+									   unsigned long val, void *data)
 {
 
 	struct die_args *args = (struct die_args *)data;
 	int ret = NOTIFY_DONE;
 
-	switch (val) {
-	case DIE_BREAK:
-		if (kprobe_handler(args->regs))
-			ret = NOTIFY_STOP;
-		break;
-	case DIE_SSTEPBP:
-		if (post_kprobe_handler(args->regs))
-			ret = NOTIFY_STOP;
-		break;
+	switch (val)
+	{
+		case DIE_BREAK:
+			if (kprobe_handler(args->regs))
+			{
+				ret = NOTIFY_STOP;
+			}
 
-	case DIE_PAGE_FAULT:
-		/* kprobe_running() needs smp_processor_id() */
-		preempt_disable();
+			break;
 
-		if (kprobe_running()
-		    && kprobe_fault_handler(args->regs, args->trapnr))
-			ret = NOTIFY_STOP;
-		preempt_enable();
-		break;
-	default:
-		break;
+		case DIE_SSTEPBP:
+			if (post_kprobe_handler(args->regs))
+			{
+				ret = NOTIFY_STOP;
+			}
+
+			break;
+
+		case DIE_PAGE_FAULT:
+			/* kprobe_running() needs smp_processor_id() */
+			preempt_disable();
+
+			if (kprobe_running()
+				&& kprobe_fault_handler(args->regs, args->trapnr))
+			{
+				ret = NOTIFY_STOP;
+			}
+
+			preempt_enable();
+			break;
+
+		default:
+			break;
 	}
+
 	return ret;
 }
 
@@ -477,7 +565,7 @@ int __kprobes setjmp_pre_handler(struct kprobe *p, struct pt_regs *regs)
 	kcb->jprobe_saved_sp = regs->regs[29];
 
 	memcpy(kcb->jprobes_stack, (void *)kcb->jprobe_saved_sp,
-	       MIN_JPROBES_STACK_SIZE(kcb->jprobe_saved_sp));
+		   MIN_JPROBES_STACK_SIZE(kcb->jprobe_saved_sp));
 
 	regs->cp0_epc = (unsigned long)(jp->entry);
 
@@ -502,14 +590,16 @@ int __kprobes longjmp_break_handler(struct kprobe *p, struct pt_regs *regs)
 	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
 
 	if (regs->cp0_epc >= (unsigned long)jprobe_return &&
-	    regs->cp0_epc <= (unsigned long)jprobe_return_end) {
+		regs->cp0_epc <= (unsigned long)jprobe_return_end)
+	{
 		*regs = kcb->jprobe_saved_regs;
 		memcpy((void *)kcb->jprobe_saved_sp, kcb->jprobes_stack,
-		       MIN_JPROBES_STACK_SIZE(kcb->jprobe_saved_sp));
+			   MIN_JPROBES_STACK_SIZE(kcb->jprobe_saved_sp));
 		preempt_enable_no_resched();
 
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -536,7 +626,7 @@ static void __used kretprobe_trampoline_holder(void)
 void kretprobe_trampoline(void);
 
 void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
-				      struct pt_regs *regs)
+									  struct pt_regs *regs)
 {
 	ri->ret_addr = (kprobe_opcode_t *) regs->regs[31];
 
@@ -548,7 +638,7 @@ void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
  * Called when the probe at kretprobe trampoline is hit
  */
 static int __kprobes trampoline_probe_handler(struct kprobe *p,
-						struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	struct kretprobe_instance *ri = NULL;
 	struct hlist_head *head, empty_rp;
@@ -572,13 +662,18 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
 	 *	 real return address, and all the rest will point to
 	 *	 kretprobe_trampoline
 	 */
-	hlist_for_each_entry_safe(ri, tmp, head, hlist) {
+	hlist_for_each_entry_safe(ri, tmp, head, hlist)
+	{
 		if (ri->task != current)
 			/* another task is sharing our hash bucket */
+		{
 			continue;
+		}
 
 		if (ri->rp && ri->rp->handler)
+		{
 			ri->rp->handler(ri, regs);
+		}
 
 		orig_ret_address = (unsigned long)ri->ret_addr;
 		recycle_rp_inst(ri, &empty_rp);
@@ -589,7 +684,9 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
 			 * instances associated with this task are for
 			 * other calls deeper on the call stack
 			 */
+		{
 			break;
+		}
 	}
 
 	kretprobe_assert(ri, orig_ret_address, trampoline_address);
@@ -599,7 +696,8 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
 	kretprobe_hash_unlock(current, &flags);
 	preempt_enable_no_resched();
 
-	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist) {
+	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist)
+	{
 		hlist_del(&ri->hlist);
 		kfree(ri);
 	}
@@ -614,12 +712,15 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
 int __kprobes arch_trampoline_kprobe(struct kprobe *p)
 {
 	if (p->addr == (kprobe_opcode_t *)kretprobe_trampoline)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
-static struct kprobe trampoline_p = {
+static struct kprobe trampoline_p =
+{
 	.addr = (kprobe_opcode_t *)kretprobe_trampoline,
 	.pre_handler = trampoline_probe_handler
 };

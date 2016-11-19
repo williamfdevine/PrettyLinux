@@ -17,9 +17,9 @@
 
 /* Include the proper base SPR definition file. */
 #ifdef __tilegx__
-#include <arch/spr_def_64.h>
+	#include <arch/spr_def_64.h>
 #else
-#include <arch/spr_def_32.h>
+	#include <arch/spr_def_32.h>
 #endif
 
 

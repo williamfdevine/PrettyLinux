@@ -138,23 +138,23 @@
 #define P4_CONFIG_EVENT_ALIAS_MASK			  \
 	(p4_config_pack_escr(P4_CONFIG_MASK_ESCR)	| \
 	 p4_config_pack_cccr(P4_CCCR_EDGE		| \
-			     P4_CCCR_THRESHOLD_MASK	| \
-			     P4_CCCR_COMPLEMENT		| \
-			     P4_CCCR_COMPARE))
+						 P4_CCCR_THRESHOLD_MASK	| \
+						 P4_CCCR_COMPLEMENT		| \
+						 P4_CCCR_COMPARE))
 
 #define  P4_CONFIG_EVENT_ALIAS_IMMUTABLE_BITS		  \
 	((P4_CONFIG_HT)					| \
 	 p4_config_pack_escr(P4_ESCR_T0_OS		| \
-			     P4_ESCR_T0_USR		| \
-			     P4_ESCR_T1_OS		| \
-			     P4_ESCR_T1_USR)		| \
+						 P4_ESCR_T0_USR		| \
+						 P4_ESCR_T1_OS		| \
+						 P4_ESCR_T1_USR)		| \
 	 p4_config_pack_cccr(P4_CCCR_OVF		| \
-			     P4_CCCR_CASCADE		| \
-			     P4_CCCR_FORCE_OVF		| \
-			     P4_CCCR_THREAD_ANY		| \
-			     P4_CCCR_OVF_PMI_T0		| \
-			     P4_CCCR_OVF_PMI_T1		| \
-			     P4_CONFIG_ALIASABLE))
+						 P4_CCCR_CASCADE		| \
+						 P4_CCCR_FORCE_OVF		| \
+						 P4_CCCR_THREAD_ANY		| \
+						 P4_CCCR_OVF_PMI_T0		| \
+						 P4_CCCR_OVF_PMI_T1		| \
+						 P4_CONFIG_ALIASABLE))
 
 static inline bool p4_is_event_cascaded(u64 config)
 {
@@ -188,8 +188,12 @@ static inline int p4_ht_active(void)
 static inline int p4_ht_thread(int cpu)
 {
 #ifdef CONFIG_SMP
+
 	if (smp_num_siblings == 2)
+	{
 		return cpu != cpumask_first(this_cpu_cpumask_var_ptr(cpu_sibling_map));
+	}
+
 #endif
 	return 0;
 }
@@ -209,9 +213,13 @@ static inline u32 p4_default_cccr_conf(int cpu)
 	u32 cccr = P4_CCCR_THREAD_ANY;
 
 	if (!p4_ht_thread(cpu))
+	{
 		cccr |= P4_CCCR_OVF_PMI_T0;
+	}
 	else
+	{
 		cccr |= P4_CCCR_OVF_PMI_T1;
+	}
 
 	return cccr;
 }
@@ -220,16 +228,29 @@ static inline u32 p4_default_escr_conf(int cpu, int exclude_os, int exclude_usr)
 {
 	u32 escr = 0;
 
-	if (!p4_ht_thread(cpu)) {
+	if (!p4_ht_thread(cpu))
+	{
 		if (!exclude_os)
+		{
 			escr |= P4_ESCR_T0_OS;
+		}
+
 		if (!exclude_usr)
+		{
 			escr |= P4_ESCR_T0_USR;
-	} else {
+		}
+	}
+	else
+	{
 		if (!exclude_os)
+		{
 			escr |= P4_ESCR_T1_OS;
+		}
+
 		if (!exclude_usr)
+		{
 			escr |= P4_ESCR_T1_USR;
+		}
 	}
 
 	return escr;
@@ -241,7 +262,8 @@ static inline u32 p4_default_escr_conf(int cpu, int exclude_os, int exclude_usr)
  * the kernel to determinate which CCCR and COUNTER should be
  * used to track an event
  */
-enum P4_EVENTS {
+enum P4_EVENTS
+{
 	P4_EVENT_TC_DELIVER_MODE,
 	P4_EVENT_BPU_FETCH_REQUEST,
 	P4_EVENT_ITLB_REFERENCE,
@@ -308,7 +330,8 @@ enum P4_EVENTS {
  * working so that we should not use this CCCR and respective
  * counter as result
  */
-enum P4_EVENT_OPCODES {
+enum P4_EVENT_OPCODES
+{
 	P4_OPCODE(P4_EVENT_TC_DELIVER_MODE)		= P4_OPCODE_PACK(0x01, 0x01),
 	/*
 	 * MSR_P4_TC_ESCR0:	4, 5
@@ -590,7 +613,8 @@ enum P4_EVENT_OPCODES {
  *
  *	P4_ESCR_EMASK_BIT(P4_EVENT_TC_DELIVER_MODE, DD)
  */
-enum P4_ESCR_EMASKS {
+enum P4_ESCR_EMASKS
+{
 	P4_GEN_ESCR_EMASK(P4_EVENT_TC_DELIVER_MODE, DD, 0),
 	P4_GEN_ESCR_EMASK(P4_EVENT_TC_DELIVER_MODE, DB, 1),
 	P4_GEN_ESCR_EMASK(P4_EVENT_TC_DELIVER_MODE, DI, 2),
@@ -801,7 +825,8 @@ enum P4_ESCR_EMASKS {
 
 #define p4_config_pebs_has(v, mask)	(p4_config_unpack_pebs(v) & (mask))
 
-enum P4_PEBS_METRIC {
+enum P4_PEBS_METRIC
+{
 	P4_PEBS_METRIC__none,
 
 	P4_PEBS_METRIC__1stl_cache_load_miss_retired,

@@ -29,10 +29,13 @@ void __delay(unsigned long loops)
 	unsigned long bclock, now;
 
 	rdtimer(bclock);
-	do {
+
+	do
+	{
 		asm("NOP");
 		rdtimer(now);
-	} while ((now-bclock) < loops);
+	}
+	while ((now - bclock) < loops);
 }
 EXPORT_SYMBOL(__delay);
 

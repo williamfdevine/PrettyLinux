@@ -23,7 +23,8 @@
 
 #include <linux/types.h>
 
-struct hexagon_vdso {
+struct hexagon_vdso
+{
 	u32 rt_signal_trampoline[2];
 };
 

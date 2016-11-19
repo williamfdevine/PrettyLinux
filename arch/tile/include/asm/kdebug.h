@@ -17,7 +17,8 @@
 
 #include <linux/notifier.h>
 
-enum die_val {
+enum die_val
+{
 	DIE_OOPS = 1,
 	DIE_BREAK,
 	DIE_SSTEPBP,

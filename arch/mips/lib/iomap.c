@@ -103,7 +103,8 @@ EXPORT_SYMBOL(iowrite32be);
  */
 static inline void mmio_insb(void __iomem *addr, u8 *dst, int count)
 {
-	while (--count >= 0) {
+	while (--count >= 0)
+	{
 		u8 data = __mem_readb(addr);
 		*dst = data;
 		dst++;
@@ -112,7 +113,8 @@ static inline void mmio_insb(void __iomem *addr, u8 *dst, int count)
 
 static inline void mmio_insw(void __iomem *addr, u16 *dst, int count)
 {
-	while (--count >= 0) {
+	while (--count >= 0)
+	{
 		u16 data = __mem_readw(addr);
 		*dst = data;
 		dst++;
@@ -121,7 +123,8 @@ static inline void mmio_insw(void __iomem *addr, u16 *dst, int count)
 
 static inline void mmio_insl(void __iomem *addr, u32 *dst, int count)
 {
-	while (--count >= 0) {
+	while (--count >= 0)
+	{
 		u32 data = __mem_readl(addr);
 		*dst = data;
 		dst++;
@@ -130,7 +133,8 @@ static inline void mmio_insl(void __iomem *addr, u32 *dst, int count)
 
 static inline void mmio_outsb(void __iomem *addr, const u8 *src, int count)
 {
-	while (--count >= 0) {
+	while (--count >= 0)
+	{
 		__mem_writeb(*src, addr);
 		src++;
 	}
@@ -138,7 +142,8 @@ static inline void mmio_outsb(void __iomem *addr, const u8 *src, int count)
 
 static inline void mmio_outsw(void __iomem *addr, const u16 *src, int count)
 {
-	while (--count >= 0) {
+	while (--count >= 0)
+	{
 		__mem_writew(*src, addr);
 		src++;
 	}
@@ -146,7 +151,8 @@ static inline void mmio_outsw(void __iomem *addr, const u16 *src, int count)
 
 static inline void mmio_outsl(void __iomem *addr, const u32 *src, int count)
 {
-	while (--count >= 0) {
+	while (--count >= 0)
+	{
 		__mem_writel(*src, addr);
 		src++;
 	}
@@ -211,7 +217,9 @@ static void __iomem *ioport_map_legacy(unsigned long port, unsigned int nr)
 void __iomem *ioport_map(unsigned long port, unsigned int nr)
 {
 	if (port > PIO_MASK)
+	{
 		return NULL;
+	}
 
 	return ioport_map_legacy(port, nr);
 }

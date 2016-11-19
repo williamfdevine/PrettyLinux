@@ -49,33 +49,38 @@
 
 /* LED devices */
 
-static struct s3c24xx_led_platdata smdk_pdata_led4 = {
+static struct s3c24xx_led_platdata smdk_pdata_led4 =
+{
 	.gpio		= S3C2410_GPF(4),
 	.flags		= S3C24XX_LEDF_ACTLOW | S3C24XX_LEDF_TRISTATE,
 	.name		= "led4",
 	.def_trigger	= "timer",
 };
 
-static struct s3c24xx_led_platdata smdk_pdata_led5 = {
+static struct s3c24xx_led_platdata smdk_pdata_led5 =
+{
 	.gpio		= S3C2410_GPF(5),
 	.flags		= S3C24XX_LEDF_ACTLOW | S3C24XX_LEDF_TRISTATE,
 	.name		= "led5",
 	.def_trigger	= "nand-disk",
 };
 
-static struct s3c24xx_led_platdata smdk_pdata_led6 = {
+static struct s3c24xx_led_platdata smdk_pdata_led6 =
+{
 	.gpio		= S3C2410_GPF(6),
 	.flags		= S3C24XX_LEDF_ACTLOW | S3C24XX_LEDF_TRISTATE,
 	.name		= "led6",
 };
 
-static struct s3c24xx_led_platdata smdk_pdata_led7 = {
+static struct s3c24xx_led_platdata smdk_pdata_led7 =
+{
 	.gpio		= S3C2410_GPF(7),
 	.flags		= S3C24XX_LEDF_ACTLOW | S3C24XX_LEDF_TRISTATE,
 	.name		= "led7",
 };
 
-static struct platform_device smdk_led4 = {
+static struct platform_device smdk_led4 =
+{
 	.name		= "s3c24xx_led",
 	.id		= 0,
 	.dev		= {
@@ -83,7 +88,8 @@ static struct platform_device smdk_led4 = {
 	},
 };
 
-static struct platform_device smdk_led5 = {
+static struct platform_device smdk_led5 =
+{
 	.name		= "s3c24xx_led",
 	.id		= 1,
 	.dev		= {
@@ -91,7 +97,8 @@ static struct platform_device smdk_led5 = {
 	},
 };
 
-static struct platform_device smdk_led6 = {
+static struct platform_device smdk_led6 =
+{
 	.name		= "s3c24xx_led",
 	.id		= 2,
 	.dev		= {
@@ -99,7 +106,8 @@ static struct platform_device smdk_led6 = {
 	},
 };
 
-static struct platform_device smdk_led7 = {
+static struct platform_device smdk_led7 =
+{
 	.name		= "s3c24xx_led",
 	.id		= 3,
 	.dev		= {
@@ -109,7 +117,8 @@ static struct platform_device smdk_led7 = {
 
 /* NAND parititon from 2.4.18-swl5 */
 
-static struct mtd_partition smdk_default_nand_part[] = {
+static struct mtd_partition smdk_default_nand_part[] =
+{
 	[0] = {
 		.name	= "Boot Agent",
 		.size	= SZ_16K,
@@ -152,7 +161,8 @@ static struct mtd_partition smdk_default_nand_part[] = {
 	}
 };
 
-static struct s3c2410_nand_set smdk_nand_sets[] = {
+static struct s3c2410_nand_set smdk_nand_sets[] =
+{
 	[0] = {
 		.name		= "NAND",
 		.nr_chips	= 1,
@@ -165,7 +175,8 @@ static struct s3c2410_nand_set smdk_nand_sets[] = {
  * chips and beyond.
 */
 
-static struct s3c2410_platform_nand smdk_nand_info = {
+static struct s3c2410_platform_nand smdk_nand_info =
+{
 	.tacls		= 20,
 	.twrph0		= 60,
 	.twrph1		= 20,
@@ -175,7 +186,8 @@ static struct s3c2410_platform_nand smdk_nand_info = {
 
 /* devices we initialise */
 
-static struct platform_device __initdata *smdk_devs[] = {
+static struct platform_device __initdata *smdk_devs[] =
+{
 	&s3c_device_nand,
 	&smdk_led4,
 	&smdk_led5,
@@ -183,7 +195,8 @@ static struct platform_device __initdata *smdk_devs[] = {
 	&smdk_led7,
 };
 
-static const struct gpio smdk_led_gpios[] = {
+static const struct gpio smdk_led_gpios[] =
+{
 	{ S3C2410_GPF(4), GPIOF_OUT_INIT_HIGH, NULL },
 	{ S3C2410_GPF(5), GPIOF_OUT_INIT_HIGH, NULL },
 	{ S3C2410_GPF(6), GPIOF_OUT_INIT_HIGH, NULL },
@@ -195,12 +208,17 @@ void __init smdk_machine_init(void)
 	/* Configure the LEDs (even if we have no LED support)*/
 
 	int ret = gpio_request_array(smdk_led_gpios,
-				     ARRAY_SIZE(smdk_led_gpios));
+								 ARRAY_SIZE(smdk_led_gpios));
+
 	if (!WARN_ON(ret < 0))
+	{
 		gpio_free_array(smdk_led_gpios, ARRAY_SIZE(smdk_led_gpios));
+	}
 
 	if (machine_is_smdk2443())
+	{
 		smdk_nand_info.twrph0 = 50;
+	}
 
 	s3c_nand_set_platdata(&smdk_nand_info);
 

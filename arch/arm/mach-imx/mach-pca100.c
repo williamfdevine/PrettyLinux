@@ -47,7 +47,8 @@
 #define SPI1_SS1 (GPIO_PORTD + 27)
 #define SD2_CD (GPIO_PORTC + 29)
 
-static const int pca100_pins[] __initconst = {
+static const int pca100_pins[] __initconst =
+{
 	/* UART1 */
 	PE12_PF_UART1_TXD,
 	PE13_PF_UART1_RXD,
@@ -154,27 +155,32 @@ static const int pca100_pins[] __initconst = {
 	GPIO_PORTE | 5 | GPIO_GPIO | GPIO_IN, /* GPIO2_IRQ */
 };
 
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
 static const struct mxc_nand_platform_data
-pca100_nand_board_info __initconst = {
+	pca100_nand_board_info __initconst =
+{
 	.width = 1,
 	.hw_ecc = 1,
 };
 
-static const struct imxi2c_platform_data pca100_i2c1_data __initconst = {
+static const struct imxi2c_platform_data pca100_i2c1_data __initconst =
+{
 	.bitrate = 100000,
 };
 
-static struct at24_platform_data board_eeprom = {
+static struct at24_platform_data board_eeprom =
+{
 	.byte_len = 4096,
 	.page_size = 32,
 	.flags = AT24_FLAG_ADDR16,
 };
 
-static struct i2c_board_info pca100_i2c_devices[] = {
+static struct i2c_board_info pca100_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("at24", 0x52), /* E0=0, E1=1, E2=0 */
 		.platform_data = &board_eeprom,
@@ -185,14 +191,16 @@ static struct i2c_board_info pca100_i2c_devices[] = {
 	}
 };
 
-static struct spi_eeprom at25320 = {
+static struct spi_eeprom at25320 =
+{
 	.name		= "at25320an",
 	.byte_len	= 4096,
 	.page_size	= 32,
 	.flags		= EE_ADDR2,
 };
 
-static struct spi_board_info pca100_spi_board_info[] __initdata = {
+static struct spi_board_info pca100_spi_board_info[] __initdata =
+{
 	{
 		.modalias = "at25",
 		.max_speed_hz = 30000,
@@ -204,7 +212,8 @@ static struct spi_board_info pca100_spi_board_info[] __initdata = {
 
 static int pca100_spi_cs[] = {SPI1_SS0, SPI1_SS1};
 
-static const struct spi_imx_master pca100_spi0_data __initconst = {
+static const struct spi_imx_master pca100_spi0_data __initconst =
+{
 	.chipselect	= pca100_spi_cs,
 	.num_chipselect = ARRAY_SIZE(pca100_spi_cs),
 };
@@ -234,22 +243,24 @@ static void pca100_ac97_cold_reset(struct snd_ac97 *ac97)
 	msleep(2);
 }
 
-static const struct imx_ssi_platform_data pca100_ssi_pdata __initconst = {
+static const struct imx_ssi_platform_data pca100_ssi_pdata __initconst =
+{
 	.ac97_reset		= pca100_ac97_cold_reset,
 	.ac97_warm_reset	= pca100_ac97_warm_reset,
 	.flags			= IMX_SSI_USE_AC97,
 };
 
 static int pca100_sdhc2_init(struct device *dev, irq_handler_t detect_irq,
-		void *data)
+							 void *data)
 {
 	int ret;
 
 	ret = request_irq(gpio_to_irq(IMX_GPIO_NR(3, 29)), detect_irq,
-			  IRQF_TRIGGER_FALLING, "imx-mmc-detect", data);
+					  IRQF_TRIGGER_FALLING, "imx-mmc-detect", data);
+
 	if (ret)
 		printk(KERN_ERR
-			"pca100: Failed to request irq for sd/mmc detection\n");
+			   "pca100: Failed to request irq for sd/mmc detection\n");
 
 	return ret;
 }
@@ -259,7 +270,8 @@ static void pca100_sdhc2_exit(struct device *dev, void *data)
 	free_irq(gpio_to_irq(IMX_GPIO_NR(3, 29)), data);
 }
 
-static const struct imxmmc_platform_data sdhc_pdata __initconst = {
+static const struct imxmmc_platform_data sdhc_pdata __initconst =
+{
 	.init = pca100_sdhc2_init,
 	.exit = pca100_sdhc2_exit,
 };
@@ -273,7 +285,8 @@ static int otg_phy_init(struct platform_device *pdev)
 	return mx27_initialize_usb_hw(pdev->id, MXC_EHCI_INTERFACE_DIFF_UNI);
 }
 
-static struct mxc_usbh_platform_data otg_pdata __initdata = {
+static struct mxc_usbh_platform_data otg_pdata __initdata =
+{
 	.init	= otg_phy_init,
 	.portsc	= MXC_EHCI_MODE_ULPI,
 };
@@ -287,12 +300,14 @@ static int usbh2_phy_init(struct platform_device *pdev)
 	return mx27_initialize_usb_hw(pdev->id, MXC_EHCI_INTERFACE_DIFF_UNI);
 }
 
-static struct mxc_usbh_platform_data usbh2_pdata __initdata = {
+static struct mxc_usbh_platform_data usbh2_pdata __initdata =
+{
 	.init	= usbh2_phy_init,
 	.portsc	= MXC_EHCI_MODE_ULPI,
 };
 
-static const struct fsl_usb2_platform_data otg_device_pdata __initconst = {
+static const struct fsl_usb2_platform_data otg_device_pdata __initconst =
+{
 	.operating_mode = FSL_USB2_DR_DEVICE,
 	.phy_mode       = FSL_USB2_PHY_ULPI,
 };
@@ -302,18 +317,24 @@ static bool otg_mode_host __initdata;
 static int __init pca100_otg_mode(char *options)
 {
 	if (!strcmp(options, "host"))
+	{
 		otg_mode_host = true;
+	}
 	else if (!strcmp(options, "device"))
+	{
 		otg_mode_host = false;
+	}
 	else
 		pr_info("otg_mode neither \"host\" nor \"device\". "
-			"Defaulting to device\n");
+				"Defaulting to device\n");
+
 	return 1;
 }
 __setup("otg_mode=", pca100_otg_mode);
 
 /* framebuffer info */
-static struct imx_fb_videomode pca100_fb_modes[] = {
+static struct imx_fb_videomode pca100_fb_modes[] =
+{
 	{
 		.mode = {
 			.name		= "EMERGING-ETV570G0DHU",
@@ -342,7 +363,8 @@ static struct imx_fb_videomode pca100_fb_modes[] = {
 	},
 };
 
-static const struct imx_fb_platform_data pca100_fb_data __initconst = {
+static const struct imx_fb_platform_data pca100_fb_data __initconst =
+{
 	.mode = pca100_fb_modes,
 	.num_modes = ARRAY_SIZE(pca100_fb_modes),
 
@@ -358,9 +380,12 @@ static void __init pca100_init(void)
 	imx27_soc_init();
 
 	ret = mxc_gpio_setup_multiple_pins(pca100_pins,
-			ARRAY_SIZE(pca100_pins), "PCA100");
+									   ARRAY_SIZE(pca100_pins), "PCA100");
+
 	if (ret)
+	{
 		printk(KERN_ERR "pca100: Failed to setup pins (%d)\n", ret);
+	}
 
 	imx27_add_imx_uart0(&uart_pdata);
 
@@ -368,14 +393,14 @@ static void __init pca100_init(void)
 
 	/* only the i2c master 1 is used on this CPU card */
 	i2c_register_board_info(1, pca100_i2c_devices,
-				ARRAY_SIZE(pca100_i2c_devices));
+							ARRAY_SIZE(pca100_i2c_devices));
 
 	imx27_add_imx_i2c(1, &pca100_i2c1_data);
 
 	mxc_gpio_mode(GPIO_PORTD | 28 | GPIO_GPIO | GPIO_IN);
 	mxc_gpio_mode(GPIO_PORTD | 27 | GPIO_GPIO | GPIO_IN);
 	spi_register_board_info(pca100_spi_board_info,
-				ARRAY_SIZE(pca100_spi_board_info));
+							ARRAY_SIZE(pca100_spi_board_info));
 	imx27_add_spi_imx0(&pca100_spi0_data);
 
 	imx27_add_imx_fb(&pca100_fb_data);
@@ -396,22 +421,29 @@ static void __init pca100_late_init(void)
 	gpio_request(USBH2_PHY_CS_GPIO, "usb-host2-cs");
 	gpio_direction_output(USBH2_PHY_CS_GPIO, 1);
 
-	if (otg_mode_host) {
+	if (otg_mode_host)
+	{
 		otg_pdata.otg = imx_otg_ulpi_create(ULPI_OTG_DRVVBUS |
-				ULPI_OTG_DRVVBUS_EXT);
+											ULPI_OTG_DRVVBUS_EXT);
 
 		if (otg_pdata.otg)
+		{
 			imx27_add_mxc_ehci_otg(&otg_pdata);
-	} else {
+		}
+	}
+	else
+	{
 		gpio_set_value(OTG_PHY_CS_GPIO, 0);
 		imx27_add_fsl_usb2_udc(&otg_device_pdata);
 	}
 
 	usbh2_pdata.otg = imx_otg_ulpi_create(
-			ULPI_OTG_DRVVBUS | ULPI_OTG_DRVVBUS_EXT);
+						  ULPI_OTG_DRVVBUS | ULPI_OTG_DRVVBUS_EXT);
 
 	if (usbh2_pdata.otg)
+	{
 		imx27_add_mxc_ehci_hs(2, &usbh2_pdata);
+	}
 }
 
 static void __init pca100_timer_init(void)
@@ -420,12 +452,12 @@ static void __init pca100_timer_init(void)
 }
 
 MACHINE_START(PCA100, "phyCARD-i.MX27")
-	.atag_offset = 0x100,
-	.map_io = mx27_map_io,
-	.init_early = imx27_init_early,
-	.init_irq = mx27_init_irq,
+.atag_offset = 0x100,
+ .map_io = mx27_map_io,
+  .init_early = imx27_init_early,
+   .init_irq = mx27_init_irq,
 	.init_machine	= pca100_init,
-	.init_late	= pca100_late_init,
-	.init_time	= pca100_timer_init,
-	.restart	= mxc_restart,
-MACHINE_END
+	   .init_late	= pca100_late_init,
+		 .init_time	= pca100_timer_init,
+		   .restart	= mxc_restart,
+			   MACHINE_END

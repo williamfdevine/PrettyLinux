@@ -39,20 +39,20 @@ extern unsigned int vced_count, vcei_count;
 #define HAVE_ARCH_PICK_MMAP_LAYOUT 1
 
 #ifdef CONFIG_32BIT
-#ifdef CONFIG_KVM_GUEST
-/* User space process size is limited to 1GB in KVM Guest Mode */
-#define TASK_SIZE	0x3fff8000UL
-#else
-/*
- * User space process size: 2GB. This is hardcoded into a few places,
- * so don't change it unless you know what you are doing.
- */
-#define TASK_SIZE	0x80000000UL
-#endif
+	#ifdef CONFIG_KVM_GUEST
+		/* User space process size is limited to 1GB in KVM Guest Mode */
+		#define TASK_SIZE	0x3fff8000UL
+	#else
+		/*
+		* User space process size: 2GB. This is hardcoded into a few places,
+		* so don't change it unless you know what you are doing.
+		*/
+		#define TASK_SIZE	0x80000000UL
+	#endif
 
-#define STACK_TOP_MAX	TASK_SIZE
+	#define STACK_TOP_MAX	TASK_SIZE
 
-#define TASK_IS_32BIT_ADDR 1
+	#define TASK_IS_32BIT_ADDR 1
 
 #endif
 
@@ -66,9 +66,9 @@ extern unsigned int vced_count, vcei_count;
  */
 #define TASK_SIZE32	0x7fff8000UL
 #ifdef CONFIG_MIPS_VA_BITS_48
-#define TASK_SIZE64     (0x1UL << ((cpu_data[0].vmbits>48)?48:cpu_data[0].vmbits))
+	#define TASK_SIZE64     (0x1UL << ((cpu_data[0].vmbits>48)?48:cpu_data[0].vmbits))
 #else
-#define TASK_SIZE64     0x10000000000UL
+	#define TASK_SIZE64     0x10000000000UL
 #endif
 #define TASK_SIZE (test_thread_flag(TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE64)
 #define STACK_TOP_MAX	TASK_SIZE64
@@ -96,33 +96,34 @@ extern unsigned int vced_count, vcei_count;
 #define NUM_FPU_REGS	32
 
 #ifdef CONFIG_CPU_HAS_MSA
-# define FPU_REG_WIDTH	128
+	#define FPU_REG_WIDTH	128
 #else
-# define FPU_REG_WIDTH	64
+	#define FPU_REG_WIDTH	64
 #endif
 
-union fpureg {
+union fpureg
+{
 	__u32	val32[FPU_REG_WIDTH / 32];
 	__u64	val64[FPU_REG_WIDTH / 64];
 };
 
 #ifdef CONFIG_CPU_LITTLE_ENDIAN
-# define FPR_IDX(width, idx)	(idx)
+	#define FPR_IDX(width, idx)	(idx)
 #else
-# define FPR_IDX(width, idx)	((idx) ^ ((64 / (width)) - 1))
+	#define FPR_IDX(width, idx)	((idx) ^ ((64 / (width)) - 1))
 #endif
 
 #define BUILD_FPR_ACCESS(width) \
-static inline u##width get_fpr##width(union fpureg *fpr, unsigned idx)	\
-{									\
-	return fpr->val##width[FPR_IDX(width, idx)];			\
-}									\
-									\
-static inline void set_fpr##width(union fpureg *fpr, unsigned idx,	\
-				  u##width val)				\
-{									\
-	fpr->val##width[FPR_IDX(width, idx)] = val;			\
-}
+	static inline u##width get_fpr##width(union fpureg *fpr, unsigned idx)	\
+	{									\
+		return fpr->val##width[FPR_IDX(width, idx)];			\
+	}									\
+	\
+	static inline void set_fpr##width(union fpureg *fpr, unsigned idx,	\
+									  u##width val)				\
+	{									\
+		fpr->val##width[FPR_IDX(width, idx)] = val;			\
+	}
 
 BUILD_FPR_ACCESS(32)
 BUILD_FPR_ACCESS(64)
@@ -133,7 +134,8 @@ BUILD_FPR_ACCESS(64)
  * See arch/mips/include/asm/fpu_emulator.h.
  */
 
-struct mips_fpu_struct {
+struct mips_fpu_struct
+{
 	union fpureg	fpr[NUM_FPU_REGS];
 	unsigned int	fcr31;
 	unsigned int	msacsr;
@@ -143,16 +145,18 @@ struct mips_fpu_struct {
 
 typedef __u32 dspreg_t;
 
-struct mips_dsp_state {
+struct mips_dsp_state
+{
 	dspreg_t	dspr[NUM_DSP_REGS];
 	unsigned int	dspcontrol;
 };
 
 #define INIT_CPUMASK { \
-	{0,} \
-}
+		{0,} \
+	}
 
-struct mips3264_watch_reg_state {
+struct mips3264_watch_reg_state
+{
 	/* The width of watchlo is 32 in a 32 bit kernel and 64 in a
 	   64 bit kernel.  We use unsigned long as it has the same
 	   property. */
@@ -161,13 +165,15 @@ struct mips3264_watch_reg_state {
 	u16 watchhi[NUM_WATCH_REGS];
 };
 
-union mips_watch_reg_state {
+union mips_watch_reg_state
+{
 	struct mips3264_watch_reg_state mips3264;
 };
 
 #if defined(CONFIG_CPU_CAVIUM_OCTEON)
 
-struct octeon_cop2_state {
+struct octeon_cop2_state
+{
 	/* DMFC2 rt, 0x0201 */
 	unsigned long	cop2_crc_iv;
 	/* DMFC2 rt, 0x0202 (Set with DMTC2 rt, 0x1202) */
@@ -176,7 +182,7 @@ struct octeon_cop2_state {
 	unsigned long	cop2_crc_poly;
 	/* DMFC2 rt, 0x0402; DMFC2 rt, 0x040A */
 	unsigned long	cop2_llm_dat[2];
-       /* DMFC2 rt, 0x0084 */
+	/* DMFC2 rt, 0x0084 */
 	unsigned long	cop2_3des_iv;
 	/* DMFC2 rt, 0x0080; DMFC2 rt, 0x0081; DMFC2 rt, 0x0082 */
 	unsigned long	cop2_3des_key[3];
@@ -215,13 +221,15 @@ struct octeon_cop2_state {
 #define COP2_INIT						\
 	.cp2			= {0,},
 
-struct octeon_cvmseg_state {
+struct octeon_cvmseg_state
+{
 	unsigned long cvmseg[CONFIG_CAVIUM_OCTEON_CVMSEG_SIZE]
-			    [cpu_dcache_line_size() / sizeof(unsigned long)];
+	[cpu_dcache_line_size() / sizeof(unsigned long)];
 };
 
 #elif defined(CONFIG_CPU_XLP)
-struct nlm_cop2_state {
+struct nlm_cop2_state
+{
 	u64	rx[4];
 	u64	tx[4];
 	u32	tx_msg_status;
@@ -234,16 +242,17 @@ struct nlm_cop2_state {
 #define COP2_INIT
 #endif
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
 #ifdef CONFIG_CPU_HAS_MSA
-# define ARCH_MIN_TASKALIGN	16
-# define FPU_ALIGN		__aligned(16)
+	#define ARCH_MIN_TASKALIGN	16
+	#define FPU_ALIGN		__aligned(16)
 #else
-# define ARCH_MIN_TASKALIGN	8
-# define FPU_ALIGN
+	#define ARCH_MIN_TASKALIGN	8
+	#define FPU_ALIGN
 #endif
 
 struct mips_abi;
@@ -251,7 +260,8 @@ struct mips_abi;
 /*
  * If you change thread_struct remember to change the #defines below too!
  */
-struct thread_struct {
+struct thread_struct
+{
 	/* Saved main processor registers. */
 	unsigned long reg16;
 	unsigned long reg17, reg18, reg19, reg20, reg21, reg22, reg23;
@@ -299,69 +309,69 @@ struct thread_struct {
 #ifdef CONFIG_MIPS_MT_FPAFF
 #define FPAFF_INIT						\
 	.emulated_fp			= 0,			\
-	.user_cpus_allowed		= INIT_CPUMASK,
+							  .user_cpus_allowed		= INIT_CPUMASK,
 #else
 #define FPAFF_INIT
 #endif /* CONFIG_MIPS_MT_FPAFF */
 
 #define INIT_THREAD  {						\
-	/*							\
-	 * Saved main processor registers			\
-	 */							\
-	.reg16			= 0,				\
-	.reg17			= 0,				\
-	.reg18			= 0,				\
-	.reg19			= 0,				\
-	.reg20			= 0,				\
-	.reg21			= 0,				\
-	.reg22			= 0,				\
-	.reg23			= 0,				\
-	.reg29			= 0,				\
-	.reg30			= 0,				\
-	.reg31			= 0,				\
-	/*							\
-	 * Saved cp0 stuff					\
-	 */							\
-	.cp0_status		= 0,				\
-	/*							\
-	 * Saved FPU/FPU emulator stuff				\
-	 */							\
-	.fpu			= {				\
+		/*							\
+		 * Saved main processor registers			\
+		 */							\
+		.reg16			= 0,				\
+						  .reg17			= 0,				\
+											.reg18			= 0,				\
+													.reg19			= 0,				\
+															.reg20			= 0,				\
+																	.reg21			= 0,				\
+																			.reg22			= 0,				\
+																					.reg23			= 0,				\
+																							.reg29			= 0,				\
+																									.reg30			= 0,				\
+																											.reg31			= 0,				\
+																													/*							\
+																													 * Saved cp0 stuff					\
+																													 */							\
+																													.cp0_status		= 0,				\
+																															/*							\
+																															 * Saved FPU/FPU emulator stuff				\
+																															 */							\
+																															.fpu			= {				\
 		.fpr		= {{{0,},},},			\
 		.fcr31		= 0,				\
-		.msacsr		= 0,				\
-	},							\
-	/*							\
-	 * FPU affinity state (null if not FPAFF)		\
-	 */							\
-	FPAFF_INIT						\
-	/* Delay slot emulation */				\
-	.bd_emu_frame = ATOMIC_INIT(BD_EMUFRAME_NONE),		\
-	.bd_emu_branch_pc = 0,					\
-	.bd_emu_cont_pc = 0,					\
-	/*							\
-	 * Saved DSP stuff					\
-	 */							\
-	.dsp			= {				\
-		.dspr		= {0, },			\
-		.dspcontrol	= 0,				\
-	},							\
-	/*							\
-	 * saved watch register stuff				\
-	 */							\
-	.watch = {{{0,},},},					\
-	/*							\
-	 * Other stuff associated with the process		\
-	 */							\
-	.cp0_badvaddr		= 0,				\
-	.cp0_baduaddr		= 0,				\
-	.error_code		= 0,				\
-	.trap_nr		= 0,				\
-	/*							\
-	 * Platform specific cop2 registers(null if no COP2)	\
-	 */							\
-	COP2_INIT						\
-}
+					  .msacsr		= 0,				\
+																																	 },							\
+		/*							\
+		 * FPU affinity state (null if not FPAFF)		\
+		 */							\
+		FPAFF_INIT						\
+		/* Delay slot emulation */				\
+		.bd_emu_frame = ATOMIC_INIT(BD_EMUFRAME_NONE),		\
+						.bd_emu_branch_pc = 0,					\
+											.bd_emu_cont_pc = 0,					\
+													/*							\
+													 * Saved DSP stuff					\
+													 */							\
+													.dsp			= {				\
+																					.dspr		= {0, },			\
+																					.dspcontrol	= 0,				\
+															 },							\
+															/*							\
+															 * saved watch register stuff				\
+															 */							\
+		.watch = {{{0,},},},					\
+		/*							\
+		 * Other stuff associated with the process		\
+		 */							\
+		.cp0_badvaddr		= 0,				\
+							  .cp0_baduaddr		= 0,				\
+									  .error_code		= 0,				\
+											  .trap_nr		= 0,				\
+													  /*							\
+													   * Platform specific cop2 registers(null if no COP2)	\
+													   */							\
+													  COP2_INIT						\
+	}
 
 struct task_struct;
 
@@ -373,7 +383,7 @@ extern unsigned long thread_saved_pc(struct task_struct *tsk);
 /*
  * Do necessary setup to start up a newly executed thread.
  */
-extern void start_thread(struct pt_regs * regs, unsigned long pc, unsigned long sp);
+extern void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp);
 
 static inline void flush_thread(void)
 {
@@ -382,7 +392,7 @@ static inline void flush_thread(void)
 unsigned long get_wchan(struct task_struct *p);
 
 #define __KSTK_TOS(tsk) ((unsigned long)task_stack_page(tsk) + \
-			 THREAD_SIZE - 32 - sizeof(struct pt_regs))
+						 THREAD_SIZE - 32 - sizeof(struct pt_regs))
 #define task_pt_regs(tsk) ((struct pt_regs *)__KSTK_TOS(tsk))
 #define KSTK_EIP(tsk) (task_pt_regs(tsk)->cp0_epc)
 #define KSTK_ESP(tsk) (task_pt_regs(tsk)->regs[29])
@@ -407,11 +417,11 @@ unsigned long get_wchan(struct task_struct *p);
 
 #ifdef CONFIG_CPU_HAS_PREFETCH
 
-#define ARCH_HAS_PREFETCH
-#define prefetch(x) __builtin_prefetch((x), 0, 1)
+	#define ARCH_HAS_PREFETCH
+	#define prefetch(x) __builtin_prefetch((x), 0, 1)
 
-#define ARCH_HAS_PREFETCHW
-#define prefetchw(x) __builtin_prefetch((x), 1, 1)
+	#define ARCH_HAS_PREFETCHW
+	#define prefetchw(x) __builtin_prefetch((x), 1, 1)
 
 #endif
 
@@ -421,7 +431,7 @@ unsigned long get_wchan(struct task_struct *p);
  */
 extern int mips_get_process_fp_mode(struct task_struct *task);
 extern int mips_set_process_fp_mode(struct task_struct *task,
-				    unsigned int value);
+									unsigned int value);
 
 #define GET_FP_MODE(task)		mips_get_process_fp_mode(task)
 #define SET_FP_MODE(task,value)		mips_set_process_fp_mode(task, value)

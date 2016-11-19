@@ -14,9 +14,9 @@
 #define imx_sdhci_esdhc_imx_data_entry_single(soc, _devid, _id, hwid) \
 	{								\
 		.devid = _devid,					\
-		.id = _id,						\
-		.iobase = soc ## _ESDHC ## hwid ## _BASE_ADDR,	\
-		.irq = soc ## _INT_ESDHC ## hwid,			\
+				 .id = _id,						\
+					   .iobase = soc ## _ESDHC ## hwid ## _BASE_ADDR,	\
+								 .irq = soc ## _INT_ESDHC ## hwid,			\
 	}
 
 #define imx_sdhci_esdhc_imx_data_entry(soc, devid, id, hwid)	\
@@ -24,7 +24,8 @@
 
 #ifdef CONFIG_SOC_IMX25
 const struct imx_sdhci_esdhc_imx_data
-imx25_sdhci_esdhc_imx_data[] __initconst = {
+	imx25_sdhci_esdhc_imx_data[] __initconst =
+{
 #define imx25_sdhci_esdhc_imx_data_entry(_id, _hwid)			\
 	imx_sdhci_esdhc_imx_data_entry(MX25, "sdhci-esdhc-imx25", _id, _hwid)
 	imx25_sdhci_esdhc_imx_data_entry(0, 1),
@@ -34,7 +35,8 @@ imx25_sdhci_esdhc_imx_data[] __initconst = {
 
 #ifdef CONFIG_SOC_IMX35
 const struct imx_sdhci_esdhc_imx_data
-imx35_sdhci_esdhc_imx_data[] __initconst = {
+	imx35_sdhci_esdhc_imx_data[] __initconst =
+{
 #define imx35_sdhci_esdhc_imx_data_entry(_id, _hwid)			\
 	imx_sdhci_esdhc_imx_data_entry(MX35, "sdhci-esdhc-imx35", _id, _hwid)
 	imx35_sdhci_esdhc_imx_data_entry(0, 1),
@@ -43,16 +45,18 @@ imx35_sdhci_esdhc_imx_data[] __initconst = {
 };
 #endif /* ifdef CONFIG_SOC_IMX35 */
 
-static const struct esdhc_platform_data default_esdhc_pdata __initconst = {
+static const struct esdhc_platform_data default_esdhc_pdata __initconst =
+{
 	.wp_type = ESDHC_WP_NONE,
 	.cd_type = ESDHC_CD_NONE,
 };
 
 struct platform_device *__init imx_add_sdhci_esdhc_imx(
-		const struct imx_sdhci_esdhc_imx_data *data,
-		const struct esdhc_platform_data *pdata)
+	const struct imx_sdhci_esdhc_imx_data *data,
+	const struct esdhc_platform_data *pdata)
 {
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start = data->iobase,
 			.end = data->iobase + SZ_16K - 1,
@@ -69,9 +73,11 @@ struct platform_device *__init imx_add_sdhci_esdhc_imx(
 	 * which means no WP/CD support
 	 */
 	if (!pdata)
+	{
 		pdata = &default_esdhc_pdata;
+	}
 
 	return imx_add_platform_device_dmamask(data->devid, data->id, res,
-			ARRAY_SIZE(res), pdata, sizeof(*pdata),
-			DMA_BIT_MASK(32));
+										   ARRAY_SIZE(res), pdata, sizeof(*pdata),
+										   DMA_BIT_MASK(32));
 }

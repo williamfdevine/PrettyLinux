@@ -28,7 +28,7 @@ void arc_init_IRQ(void)
 {
 	int level_mask = 0;
 
-       /* Is timer high priority Interrupt (Level2 in ARCompact jargon) */
+	/* Is timer high priority Interrupt (Level2 in ARCompact jargon) */
 	level_mask |= IS_ENABLED(CONFIG_ARC_COMPACT_IRQ_LEVELS) << TIMER0_IRQ;
 
 	/*
@@ -38,7 +38,9 @@ void arc_init_IRQ(void)
 	write_aux_reg(AUX_IRQ_LEV, level_mask);
 
 	if (level_mask)
+	{
 		pr_info("Level-2 interrupts bitset %x\n", level_mask);
+	}
 }
 
 /*
@@ -70,27 +72,32 @@ static void arc_irq_unmask(struct irq_data *data)
 	write_aux_reg(AUX_IENABLE, ienb);
 }
 
-static struct irq_chip onchip_intc = {
+static struct irq_chip onchip_intc =
+{
 	.name           = "ARC In-core Intc",
 	.irq_mask	= arc_irq_mask,
 	.irq_unmask	= arc_irq_unmask,
 };
 
 static int arc_intc_domain_map(struct irq_domain *d, unsigned int irq,
-			       irq_hw_number_t hw)
+							   irq_hw_number_t hw)
 {
-	switch (hw) {
-	case TIMER0_IRQ:
-		irq_set_percpu_devid(irq);
-		irq_set_chip_and_handler(irq, &onchip_intc, handle_percpu_irq);
-		break;
-	default:
-		irq_set_chip_and_handler(irq, &onchip_intc, handle_level_irq);
+	switch (hw)
+	{
+		case TIMER0_IRQ:
+			irq_set_percpu_devid(irq);
+			irq_set_chip_and_handler(irq, &onchip_intc, handle_percpu_irq);
+			break;
+
+		default:
+			irq_set_chip_and_handler(irq, &onchip_intc, handle_level_irq);
 	}
+
 	return 0;
 }
 
-static const struct irq_domain_ops arc_intc_domain_ops = {
+static const struct irq_domain_ops arc_intc_domain_ops =
+{
 	.xlate = irq_domain_xlate_onecell,
 	.map = arc_intc_domain_map,
 };
@@ -101,12 +108,17 @@ init_onchip_IRQ(struct device_node *intc, struct device_node *parent)
 	struct irq_domain *root_domain;
 
 	if (parent)
+	{
 		panic("DeviceTree incore intc not a root irq controller\n");
+	}
 
 	root_domain = irq_domain_add_linear(intc, NR_CPU_IRQS,
-					    &arc_intc_domain_ops, NULL);
+										&arc_intc_domain_ops, NULL);
+
 	if (!root_domain)
+	{
 		panic("root irq domain not avail\n");
+	}
 
 	/*
 	 * Needed for primary domain lookup to succeed
@@ -150,9 +162,13 @@ void arch_local_irq_enable(void)
 	unsigned long flags = arch_local_save_flags();
 
 	if (flags & STATUS_A2_MASK)
+	{
 		flags |= STATUS_E2_MASK;
+	}
 	else if (flags & STATUS_A1_MASK)
+	{
 		flags |= STATUS_E1_MASK;
+	}
 
 	arch_local_irq_restore(flags);
 }

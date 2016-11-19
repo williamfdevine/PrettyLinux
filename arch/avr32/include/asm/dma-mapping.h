@@ -2,7 +2,7 @@
 #define __ASM_AVR32_DMA_MAPPING_H
 
 extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-	int direction);
+						   int direction);
 
 extern struct dma_map_ops avr32_dma_ops;
 

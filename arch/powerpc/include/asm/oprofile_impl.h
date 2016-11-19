@@ -16,7 +16,8 @@
 #define OP_MAX_COUNTER 8
 
 /* Per-counter configuration as set via oprofilefs.  */
-struct op_counter_config {
+struct op_counter_config
+{
 	unsigned long enabled;
 	unsigned long event;
 	unsigned long count;
@@ -27,7 +28,8 @@ struct op_counter_config {
 };
 
 /* System-wide configuration as set via oprofilefs.  */
-struct op_system_config {
+struct op_system_config
+{
 #ifdef CONFIG_PPC64
 	unsigned long mmcr0;
 	unsigned long mmcr1;
@@ -44,10 +46,11 @@ struct op_system_config {
 };
 
 /* Per-arch configuration */
-struct op_powerpc_model {
+struct op_powerpc_model
+{
 	int (*reg_setup) (struct op_counter_config *,
-			   struct op_system_config *,
-			   int num_counters);
+					  struct op_system_config *,
+					  int num_counters);
 	int  (*cpu_setup) (struct op_counter_config *);
 	int  (*start) (struct op_counter_config *);
 	int  (*global_start) (struct op_counter_config *);
@@ -56,7 +59,7 @@ struct op_powerpc_model {
 	int (*sync_start)(void);
 	int (*sync_stop)(void);
 	void (*handle_interrupt) (struct pt_regs *,
-				  struct op_counter_config *);
+							  struct op_counter_config *);
 	int num_counters;
 };
 
@@ -70,70 +73,88 @@ extern struct op_powerpc_model op_model_pa6t;
 /* All the classic PPC parts use these */
 static inline unsigned int classic_ctr_read(unsigned int i)
 {
-	switch(i) {
-	case 0:
-		return mfspr(SPRN_PMC1);
-	case 1:
-		return mfspr(SPRN_PMC2);
-	case 2:
-		return mfspr(SPRN_PMC3);
-	case 3:
-		return mfspr(SPRN_PMC4);
-	case 4:
-		return mfspr(SPRN_PMC5);
-	case 5:
-		return mfspr(SPRN_PMC6);
+	switch (i)
+	{
+		case 0:
+			return mfspr(SPRN_PMC1);
 
-/* No PPC32 chip has more than 6 so far */
+		case 1:
+			return mfspr(SPRN_PMC2);
+
+		case 2:
+			return mfspr(SPRN_PMC3);
+
+		case 3:
+			return mfspr(SPRN_PMC4);
+
+		case 4:
+			return mfspr(SPRN_PMC5);
+
+		case 5:
+			return mfspr(SPRN_PMC6);
+
+			/* No PPC32 chip has more than 6 so far */
 #ifdef CONFIG_PPC64
-	case 6:
-		return mfspr(SPRN_PMC7);
-	case 7:
-		return mfspr(SPRN_PMC8);
+
+		case 6:
+			return mfspr(SPRN_PMC7);
+
+		case 7:
+			return mfspr(SPRN_PMC8);
 #endif
-	default:
-		return 0;
+
+		default:
+			return 0;
 	}
 }
 
 static inline void classic_ctr_write(unsigned int i, unsigned int val)
 {
-	switch(i) {
-	case 0:
-		mtspr(SPRN_PMC1, val);
-		break;
-	case 1:
-		mtspr(SPRN_PMC2, val);
-		break;
-	case 2:
-		mtspr(SPRN_PMC3, val);
-		break;
-	case 3:
-		mtspr(SPRN_PMC4, val);
-		break;
-	case 4:
-		mtspr(SPRN_PMC5, val);
-		break;
-	case 5:
-		mtspr(SPRN_PMC6, val);
-		break;
+	switch (i)
+	{
+		case 0:
+			mtspr(SPRN_PMC1, val);
+			break;
 
-/* No PPC32 chip has more than 6, yet */
+		case 1:
+			mtspr(SPRN_PMC2, val);
+			break;
+
+		case 2:
+			mtspr(SPRN_PMC3, val);
+			break;
+
+		case 3:
+			mtspr(SPRN_PMC4, val);
+			break;
+
+		case 4:
+			mtspr(SPRN_PMC5, val);
+			break;
+
+		case 5:
+			mtspr(SPRN_PMC6, val);
+			break;
+
+			/* No PPC32 chip has more than 6, yet */
 #ifdef CONFIG_PPC64
-	case 6:
-		mtspr(SPRN_PMC7, val);
-		break;
-	case 7:
-		mtspr(SPRN_PMC8, val);
-		break;
+
+		case 6:
+			mtspr(SPRN_PMC7, val);
+			break;
+
+		case 7:
+			mtspr(SPRN_PMC8, val);
+			break;
 #endif
-	default:
-		break;
+
+		default:
+			break;
 	}
 }
 
 
-extern void op_powerpc_backtrace(struct pt_regs * const regs, unsigned int depth);
+extern void op_powerpc_backtrace(struct pt_regs *const regs, unsigned int depth);
 
 #endif /* __KERNEL__ */
 #endif /* _ASM_POWERPC_OPROFILE_IMPL_H */

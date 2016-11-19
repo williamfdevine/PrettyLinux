@@ -80,9 +80,9 @@ static inline void arch_local_irq_restore(unsigned long flags)
 {
 	asm volatile(
 		"msr	daif, %0		// arch_local_irq_restore"
-	:
-	: "r" (flags)
-	: "memory");
+		:
+		: "r" (flags)
+		: "memory");
 }
 
 static inline int arch_irqs_disabled_flags(unsigned long flags)
@@ -97,17 +97,17 @@ static inline int arch_irqs_disabled_flags(unsigned long flags)
 	do {								\
 		typecheck(unsigned long, flags);			\
 		asm volatile(						\
-		"mrs    %0, daif		// local_dbg_save\n"	\
-		"msr    daifset, #8"					\
-		: "=r" (flags) : : "memory");				\
+											"mrs    %0, daif		// local_dbg_save\n"	\
+											"msr    daifset, #8"					\
+											: "=r" (flags) : : "memory");				\
 	} while (0)
 
 #define local_dbg_restore(flags)					\
 	do {								\
 		typecheck(unsigned long, flags);			\
 		asm volatile(						\
-		"msr    daif, %0		// local_dbg_restore\n"	\
-		: : "r" (flags) : "memory");				\
+											"msr    daif, %0		// local_dbg_restore\n"	\
+											: : "r" (flags) : "memory");				\
 	} while (0)
 
 #endif

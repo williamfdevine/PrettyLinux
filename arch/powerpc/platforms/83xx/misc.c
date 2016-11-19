@@ -43,13 +43,16 @@ void __noreturn mpc83xx_restart(char *cmd)
 
 	local_irq_disable();
 
-	if (restart_reg_base) {
+	if (restart_reg_base)
+	{
 		/* enable software reset "RSTE" */
 		out_be32(restart_reg_base + (RST_PROT_REG >> 2), 0x52535445);
 
 		/* set software hard reset */
 		out_be32(restart_reg_base + (RST_CTRL_REG >> 2), 0x2);
-	} else {
+	}
+	else
+	{
 		printk (KERN_EMERG "Error: Restart registers not mapped, spinning!\n");
 	}
 
@@ -77,10 +80,16 @@ void __init mpc83xx_ipic_init_IRQ(void)
 
 	/* looking for fsl,pq2pro-pic which is asl compatible with fsl,ipic */
 	np = of_find_compatible_node(NULL, NULL, "fsl,ipic");
+
 	if (!np)
+	{
 		np = of_find_node_by_type(NULL, "ipic");
+	}
+
 	if (!np)
+	{
 		return;
+	}
 
 	ipic_init(np, 0);
 
@@ -98,11 +107,17 @@ void __init mpc83xx_qe_init_IRQ(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,qe-ic");
-	if (!np) {
+
+	if (!np)
+	{
 		np = of_find_node_by_type(NULL, "qeic");
+
 		if (!np)
+		{
 			return;
+		}
 	}
+
 	qe_ic_init(np, 0, qe_ic_cascade_low_ipic, qe_ic_cascade_high_ipic);
 	of_node_put(np);
 }
@@ -114,7 +129,8 @@ void __init mpc83xx_ipic_and_qe_init_IRQ(void)
 }
 #endif /* CONFIG_QUICC_ENGINE */
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .type = "soc", },
 	{ .compatible = "soc", },
 	{ .compatible = "simple-bus" },
@@ -137,16 +153,18 @@ void __init mpc83xx_setup_pci(void)
 	struct device_node *np;
 
 	for_each_compatible_node(np, "pci", "fsl,mpc8349-pci")
-		mpc83xx_add_bridge(np);
+	mpc83xx_add_bridge(np);
 	for_each_compatible_node(np, "pci", "fsl,mpc8314-pcie")
-		mpc83xx_add_bridge(np);
+	mpc83xx_add_bridge(np);
 }
 #endif
 
 void __init mpc83xx_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mpc83xx_setup_arch()", 0);
+	}
 
 	mpc83xx_setup_pci();
 }

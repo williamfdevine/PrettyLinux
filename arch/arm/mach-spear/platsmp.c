@@ -72,10 +72,15 @@ static int spear13xx_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	write_pen_release(cpu);
 
 	timeout = jiffies + (1 * HZ);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		smp_rmb();
+
 		if (pen_release == -1)
+		{
 			break;
+		}
 
 		udelay(10);
 	}
@@ -97,14 +102,17 @@ static void __init spear13xx_smp_init_cpus(void)
 {
 	unsigned int i, ncores = scu_get_core_count(scu_base);
 
-	if (ncores > nr_cpu_ids) {
+	if (ncores > nr_cpu_ids)
+	{
 		pr_warn("SMP: %u cores greater than maximum (%u), clipping\n",
-			ncores, nr_cpu_ids);
+				ncores, nr_cpu_ids);
 		ncores = nr_cpu_ids;
 	}
 
 	for (i = 0; i < ncores; i++)
+	{
 		set_cpu_possible(i, true);
+	}
 }
 
 static void __init spear13xx_smp_prepare_cpus(unsigned int max_cpus)
@@ -120,12 +128,13 @@ static void __init spear13xx_smp_prepare_cpus(unsigned int max_cpus)
 	__raw_writel(virt_to_phys(spear13xx_secondary_startup), SYS_LOCATION);
 }
 
-const struct smp_operations spear13xx_smp_ops __initconst = {
-       .smp_init_cpus		= spear13xx_smp_init_cpus,
-       .smp_prepare_cpus	= spear13xx_smp_prepare_cpus,
-       .smp_secondary_init	= spear13xx_secondary_init,
-       .smp_boot_secondary	= spear13xx_boot_secondary,
+const struct smp_operations spear13xx_smp_ops __initconst =
+{
+	.smp_init_cpus		= spear13xx_smp_init_cpus,
+	.smp_prepare_cpus	= spear13xx_smp_prepare_cpus,
+	.smp_secondary_init	= spear13xx_secondary_init,
+	.smp_boot_secondary	= spear13xx_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU
-       .cpu_die			= spear13xx_cpu_die,
+	.cpu_die			= spear13xx_cpu_die,
 #endif
 };

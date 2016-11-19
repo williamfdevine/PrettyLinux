@@ -33,19 +33,26 @@ __do_compat_cache_op(unsigned long start, unsigned long end)
 {
 	long ret;
 
-	do {
+	do
+	{
 		unsigned long chunk = min(PAGE_SIZE, end - start);
 
 		if (fatal_signal_pending(current))
+		{
 			return 0;
+		}
 
 		ret = __flush_cache_user_range(start, start + chunk);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		cond_resched();
 		start += chunk;
-	} while (start < end);
+	}
+	while (start < end);
 
 	return 0;
 }
@@ -54,10 +61,14 @@ static inline long
 do_compat_cache_op(unsigned long start, unsigned long end, int flags)
 {
 	if (end < start || flags)
+	{
 		return -EINVAL;
+	}
 
 	if (!access_ok(VERIFY_READ, start, end - start))
+	{
 		return -EFAULT;
+	}
 
 	return __do_compat_cache_op(start, end);
 }
@@ -68,36 +79,37 @@ long compat_arm_syscall(struct pt_regs *regs)
 {
 	unsigned int no = regs->regs[7];
 
-	switch (no) {
-	/*
-	 * Flush a region from virtual address 'r0' to virtual address 'r1'
-	 * _exclusive_.  There is no alignment requirement on either address;
-	 * user space does not need to know the hardware cache layout.
-	 *
-	 * r2 contains flags.  It should ALWAYS be passed as ZERO until it
-	 * is defined to be something else.  For now we ignore it, but may
-	 * the fires of hell burn in your belly if you break this rule. ;)
-	 *
-	 * (at a later date, we may want to allow this call to not flush
-	 * various aspects of the cache.  Passing '0' will guarantee that
-	 * everything necessary gets flushed to maintain consistency in
-	 * the specified region).
-	 */
-	case __ARM_NR_compat_cacheflush:
-		return do_compat_cache_op(regs->regs[0], regs->regs[1], regs->regs[2]);
-
-	case __ARM_NR_compat_set_tls:
-		current->thread.tp_value = regs->regs[0];
-
+	switch (no)
+	{
 		/*
-		 * Protect against register corruption from context switch.
-		 * See comment in tls_thread_flush.
+		 * Flush a region from virtual address 'r0' to virtual address 'r1'
+		 * _exclusive_.  There is no alignment requirement on either address;
+		 * user space does not need to know the hardware cache layout.
+		 *
+		 * r2 contains flags.  It should ALWAYS be passed as ZERO until it
+		 * is defined to be something else.  For now we ignore it, but may
+		 * the fires of hell burn in your belly if you break this rule. ;)
+		 *
+		 * (at a later date, we may want to allow this call to not flush
+		 * various aspects of the cache.  Passing '0' will guarantee that
+		 * everything necessary gets flushed to maintain consistency in
+		 * the specified region).
 		 */
-		barrier();
-		write_sysreg(regs->regs[0], tpidrro_el0);
-		return 0;
+		case __ARM_NR_compat_cacheflush:
+			return do_compat_cache_op(regs->regs[0], regs->regs[1], regs->regs[2]);
 
-	default:
-		return -ENOSYS;
+		case __ARM_NR_compat_set_tls:
+			current->thread.tp_value = regs->regs[0];
+
+			/*
+			 * Protect against register corruption from context switch.
+			 * See comment in tls_thread_flush.
+			 */
+			barrier();
+			write_sysreg(regs->regs[0], tpidrro_el0);
+			return 0;
+
+		default:
+			return -ENOSYS;
 	}
 }

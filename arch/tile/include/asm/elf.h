@@ -37,14 +37,14 @@ typedef double elf_fpreg_t;
 typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 
 #ifdef __tilegx__
-#define ELF_CLASS	ELFCLASS64
+	#define ELF_CLASS	ELFCLASS64
 #else
-#define ELF_CLASS	ELFCLASS32
+	#define ELF_CLASS	ELFCLASS32
 #endif
 #ifdef __BIG_ENDIAN__
-#define ELF_DATA	ELFDATA2MSB
+	#define ELF_DATA	ELFDATA2MSB
 #else
-#define ELF_DATA	ELFDATA2LSB
+	#define ELF_DATA	ELFDATA2LSB
 #endif
 
 /*
@@ -65,21 +65,21 @@ enum { ELF_ARCH = CHIP_ELF_TYPE() };
 
 /* The module loader only handles a few relocation types. */
 #ifndef __tilegx__
-#define R_TILE_32                 1
-#define R_TILE_JOFFLONG_X1       15
-#define R_TILE_IMM16_X0_LO       25
-#define R_TILE_IMM16_X1_LO       26
-#define R_TILE_IMM16_X0_HA       29
-#define R_TILE_IMM16_X1_HA       30
+	#define R_TILE_32                 1
+	#define R_TILE_JOFFLONG_X1       15
+	#define R_TILE_IMM16_X0_LO       25
+	#define R_TILE_IMM16_X1_LO       26
+	#define R_TILE_IMM16_X0_HA       29
+	#define R_TILE_IMM16_X1_HA       30
 #else
-#define R_TILEGX_64                       1
-#define R_TILEGX_JUMPOFF_X1              21
-#define R_TILEGX_IMM16_X0_HW0            36
-#define R_TILEGX_IMM16_X1_HW0            37
-#define R_TILEGX_IMM16_X0_HW1            38
-#define R_TILEGX_IMM16_X1_HW1            39
-#define R_TILEGX_IMM16_X0_HW2_LAST       48
-#define R_TILEGX_IMM16_X1_HW2_LAST       49
+	#define R_TILEGX_64                       1
+	#define R_TILEGX_JUMPOFF_X1              21
+	#define R_TILEGX_IMM16_X0_HW0            36
+	#define R_TILEGX_IMM16_X1_HW0            37
+	#define R_TILEGX_IMM16_X0_HW1            38
+	#define R_TILEGX_IMM16_X1_HW1            39
+	#define R_TILEGX_IMM16_X0_HW2_LAST       48
+	#define R_TILEGX_IMM16_X1_HW2_LAST       49
 #endif
 
 /* Use standard page size for core dumps. */
@@ -95,7 +95,7 @@ enum { ELF_ARCH = CHIP_ELF_TYPE() };
 
 #define ELF_CORE_COPY_REGS(_dest, _regs)			\
 	memcpy((char *) &_dest, (char *) _regs,			\
-	       sizeof(struct pt_regs));
+		   sizeof(struct pt_regs));
 
 /* No additional FP registers to copy. */
 #define ELF_CORE_COPY_FPREGS(t, fpu) 0
@@ -128,12 +128,12 @@ extern int dump_task_regs(struct task_struct *, elf_gregset_t *);
 /* Support auto-mapping of the user interrupt vectors. */
 struct linux_binprm;
 extern int arch_setup_additional_pages(struct linux_binprm *bprm,
-				       int executable_stack);
+									   int executable_stack);
 /* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
 #define ARCH_DLINFO \
-do { \
-	NEW_AUX_ENT(AT_SYSINFO_EHDR, VDSO_BASE); \
-} while (0)
+	do { \
+		NEW_AUX_ENT(AT_SYSINFO_EHDR, VDSO_BASE); \
+	} while (0)
 
 struct mm_struct;
 extern unsigned long arch_randomize_brk(struct mm_struct *mm);
@@ -163,15 +163,15 @@ extern unsigned long arch_randomize_brk(struct mm_struct *mm);
  */
 #undef SET_PERSONALITY
 #define SET_PERSONALITY(ex) \
-do { \
-	set_personality(PER_LINUX | (current->personality & (~PER_MASK))); \
-	current_thread_info()->status &= ~TS_COMPAT; \
-} while (0)
+	do { \
+		set_personality(PER_LINUX | (current->personality & (~PER_MASK))); \
+		current_thread_info()->status &= ~TS_COMPAT; \
+	} while (0)
 #define COMPAT_SET_PERSONALITY(ex) \
-do { \
-	set_personality(PER_LINUX | (current->personality & (~PER_MASK))); \
-	current_thread_info()->status |= TS_COMPAT; \
-} while (0)
+	do { \
+		set_personality(PER_LINUX | (current->personality & (~PER_MASK))); \
+		current_thread_info()->status |= TS_COMPAT; \
+	} while (0)
 
 #define COMPAT_ELF_ET_DYN_BASE (0xffffffff / 3 * 2)
 

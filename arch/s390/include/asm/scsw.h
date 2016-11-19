@@ -35,7 +35,8 @@
  * @cstat: subchannel status
  * @count: residual count
  */
-struct cmd_scsw {
+struct cmd_scsw
+{
 	__u32 key  : 4;
 	__u32 sctl : 1;
 	__u32 eswf : 1;
@@ -77,26 +78,27 @@ struct cmd_scsw {
  * @fcxs: FCX status
  * @schxs: subchannel-extended status
  */
-struct tm_scsw {
-	u32 key:4;
-	u32 :1;
-	u32 eswf:1;
-	u32 cc:2;
-	u32 fmt:3;
-	u32 x:1;
-	u32 q:1;
-	u32 :1;
-	u32 ectl:1;
-	u32 pno:1;
-	u32 :1;
-	u32 fctl:3;
-	u32 actl:7;
-	u32 stctl:5;
+struct tm_scsw
+{
+	u32 key: 4;
+	u32 : 1;
+	u32 eswf: 1;
+	u32 cc: 2;
+	u32 fmt: 3;
+	u32 x: 1;
+	u32 q: 1;
+	u32 : 1;
+	u32 ectl: 1;
+	u32 pno: 1;
+	u32 : 1;
+	u32 fctl: 3;
+	u32 actl: 7;
+	u32 stctl: 5;
 	u32 tcw;
-	u32 dstat:8;
-	u32 cstat:8;
-	u32 fcxs:8;
-	u32 schxs:8;
+	u32 dstat: 8;
+	u32 cstat: 8;
+	u32 fcxs: 8;
+	u32 schxs: 8;
 } __attribute__ ((packed));
 
 /**
@@ -112,21 +114,22 @@ struct tm_scsw {
  * @dstat: device status
  * @cstat: subchannel status
  */
-struct eadm_scsw {
-	u32 key:4;
-	u32:1;
-	u32 eswf:1;
-	u32 cc:2;
-	u32:6;
-	u32 ectl:1;
-	u32:2;
-	u32 fctl:3;
-	u32 actl:7;
-	u32 stctl:5;
+struct eadm_scsw
+{
+	u32 key: 4;
+	u32: 1;
+	u32 eswf: 1;
+	u32 cc: 2;
+	u32: 6;
+	u32 ectl: 1;
+	u32: 2;
+	u32 fctl: 3;
+	u32 actl: 7;
+	u32 stctl: 5;
 	u32 aob;
-	u32 dstat:8;
-	u32 cstat:8;
-	u32:16;
+	u32 dstat: 8;
+	u32 cstat: 8;
+	u32: 16;
 } __packed;
 
 /**
@@ -135,7 +138,8 @@ struct eadm_scsw {
  * @tm: transport-mode SCSW
  * @eadm: eadm SCSW
  */
-union scsw {
+union scsw
+{
 	struct cmd_scsw cmd;
 	struct tm_scsw tm;
 	struct eadm_scsw eadm;
@@ -232,9 +236,13 @@ static inline int scsw_is_tm(union scsw *scsw)
 static inline u32 scsw_key(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.key;
+	}
 	else
+	{
 		return scsw->cmd.key;
+	}
 }
 
 /**
@@ -247,9 +255,13 @@ static inline u32 scsw_key(union scsw *scsw)
 static inline u32 scsw_eswf(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.eswf;
+	}
 	else
+	{
 		return scsw->cmd.eswf;
+	}
 }
 
 /**
@@ -262,9 +274,13 @@ static inline u32 scsw_eswf(union scsw *scsw)
 static inline u32 scsw_cc(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.cc;
+	}
 	else
+	{
 		return scsw->cmd.cc;
+	}
 }
 
 /**
@@ -277,9 +293,13 @@ static inline u32 scsw_cc(union scsw *scsw)
 static inline u32 scsw_ectl(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.ectl;
+	}
 	else
+	{
 		return scsw->cmd.ectl;
+	}
 }
 
 /**
@@ -292,9 +312,13 @@ static inline u32 scsw_ectl(union scsw *scsw)
 static inline u32 scsw_pno(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.pno;
+	}
 	else
+	{
 		return scsw->cmd.pno;
+	}
 }
 
 /**
@@ -307,9 +331,13 @@ static inline u32 scsw_pno(union scsw *scsw)
 static inline u32 scsw_fctl(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.fctl;
+	}
 	else
+	{
 		return scsw->cmd.fctl;
+	}
 }
 
 /**
@@ -322,9 +350,13 @@ static inline u32 scsw_fctl(union scsw *scsw)
 static inline u32 scsw_actl(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.actl;
+	}
 	else
+	{
 		return scsw->cmd.actl;
+	}
 }
 
 /**
@@ -337,9 +369,13 @@ static inline u32 scsw_actl(union scsw *scsw)
 static inline u32 scsw_stctl(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.stctl;
+	}
 	else
+	{
 		return scsw->cmd.stctl;
+	}
 }
 
 /**
@@ -352,9 +388,13 @@ static inline u32 scsw_stctl(union scsw *scsw)
 static inline u32 scsw_dstat(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.dstat;
+	}
 	else
+	{
 		return scsw->cmd.dstat;
+	}
 }
 
 /**
@@ -367,9 +407,13 @@ static inline u32 scsw_dstat(union scsw *scsw)
 static inline u32 scsw_cstat(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw->tm.cstat;
+	}
 	else
+	{
 		return scsw->cmd.cstat;
+	}
 }
 
 /**
@@ -418,7 +462,7 @@ static inline int scsw_cmd_is_valid_eswf(union scsw *scsw)
 static inline int scsw_cmd_is_valid_cc(union scsw *scsw)
 {
 	return (scsw->cmd.fctl & SCSW_FCTL_START_FUNC) &&
-	       (scsw->cmd.stctl & SCSW_STCTL_STATUS_PEND);
+		   (scsw->cmd.stctl & SCSW_STCTL_STATUS_PEND);
 }
 
 /**
@@ -491,7 +535,7 @@ static inline int scsw_cmd_is_valid_ssi(union scsw *scsw)
 static inline int scsw_cmd_is_valid_zcc(union scsw *scsw)
 {
 	return (scsw->cmd.fctl & SCSW_FCTL_START_FUNC) &&
-	       (scsw->cmd.stctl & SCSW_STCTL_INTER_STATUS);
+		   (scsw->cmd.stctl & SCSW_STCTL_INTER_STATUS);
 }
 
 /**
@@ -504,8 +548,8 @@ static inline int scsw_cmd_is_valid_zcc(union scsw *scsw)
 static inline int scsw_cmd_is_valid_ectl(union scsw *scsw)
 {
 	return (scsw->cmd.stctl & SCSW_STCTL_STATUS_PEND) &&
-	       !(scsw->cmd.stctl & SCSW_STCTL_INTER_STATUS) &&
-	       (scsw->cmd.stctl & SCSW_STCTL_ALERT_STATUS);
+		   !(scsw->cmd.stctl & SCSW_STCTL_INTER_STATUS) &&
+		   (scsw->cmd.stctl & SCSW_STCTL_ALERT_STATUS);
 }
 
 /**
@@ -518,10 +562,10 @@ static inline int scsw_cmd_is_valid_ectl(union scsw *scsw)
 static inline int scsw_cmd_is_valid_pno(union scsw *scsw)
 {
 	return (scsw->cmd.fctl != 0) &&
-	       (scsw->cmd.stctl & SCSW_STCTL_STATUS_PEND) &&
-	       (!(scsw->cmd.stctl & SCSW_STCTL_INTER_STATUS) ||
-		 ((scsw->cmd.stctl & SCSW_STCTL_INTER_STATUS) &&
-		  (scsw->cmd.actl & SCSW_ACTL_SUSPENDED)));
+		   (scsw->cmd.stctl & SCSW_STCTL_STATUS_PEND) &&
+		   (!(scsw->cmd.stctl & SCSW_STCTL_INTER_STATUS) ||
+			((scsw->cmd.stctl & SCSW_STCTL_INTER_STATUS) &&
+			 (scsw->cmd.actl & SCSW_ACTL_SUSPENDED)));
 }
 
 /**
@@ -573,7 +617,7 @@ static inline int scsw_cmd_is_valid_stctl(union scsw *scsw)
 static inline int scsw_cmd_is_valid_dstat(union scsw *scsw)
 {
 	return (scsw->cmd.stctl & SCSW_STCTL_STATUS_PEND) &&
-	       (scsw->cmd.cc != 3);
+		   (scsw->cmd.cc != 3);
 }
 
 /**
@@ -586,7 +630,7 @@ static inline int scsw_cmd_is_valid_dstat(union scsw *scsw)
 static inline int scsw_cmd_is_valid_cstat(union scsw *scsw)
 {
 	return (scsw->cmd.stctl & SCSW_STCTL_STATUS_PEND) &&
-	       (scsw->cmd.cc != 3);
+		   (scsw->cmd.cc != 3);
 }
 
 /**
@@ -623,7 +667,7 @@ static inline int scsw_tm_is_valid_eswf(union scsw *scsw)
 static inline int scsw_tm_is_valid_cc(union scsw *scsw)
 {
 	return (scsw->tm.fctl & SCSW_FCTL_START_FUNC) &&
-	       (scsw->tm.stctl & SCSW_STCTL_STATUS_PEND);
+		   (scsw->tm.stctl & SCSW_STCTL_STATUS_PEND);
 }
 
 /**
@@ -672,8 +716,8 @@ static inline int scsw_tm_is_valid_q(union scsw *scsw)
 static inline int scsw_tm_is_valid_ectl(union scsw *scsw)
 {
 	return (scsw->tm.stctl & SCSW_STCTL_STATUS_PEND) &&
-	       !(scsw->tm.stctl & SCSW_STCTL_INTER_STATUS) &&
-	       (scsw->tm.stctl & SCSW_STCTL_ALERT_STATUS);
+		   !(scsw->tm.stctl & SCSW_STCTL_INTER_STATUS) &&
+		   (scsw->tm.stctl & SCSW_STCTL_ALERT_STATUS);
 }
 
 /**
@@ -686,10 +730,10 @@ static inline int scsw_tm_is_valid_ectl(union scsw *scsw)
 static inline int scsw_tm_is_valid_pno(union scsw *scsw)
 {
 	return (scsw->tm.fctl != 0) &&
-	       (scsw->tm.stctl & SCSW_STCTL_STATUS_PEND) &&
-	       (!(scsw->tm.stctl & SCSW_STCTL_INTER_STATUS) ||
-		 ((scsw->tm.stctl & SCSW_STCTL_INTER_STATUS) &&
-		  (scsw->tm.actl & SCSW_ACTL_SUSPENDED)));
+		   (scsw->tm.stctl & SCSW_STCTL_STATUS_PEND) &&
+		   (!(scsw->tm.stctl & SCSW_STCTL_INTER_STATUS) ||
+			((scsw->tm.stctl & SCSW_STCTL_INTER_STATUS) &&
+			 (scsw->tm.actl & SCSW_ACTL_SUSPENDED)));
 }
 
 /**
@@ -741,7 +785,7 @@ static inline int scsw_tm_is_valid_stctl(union scsw *scsw)
 static inline int scsw_tm_is_valid_dstat(union scsw *scsw)
 {
 	return (scsw->tm.stctl & SCSW_STCTL_STATUS_PEND) &&
-	       (scsw->tm.cc != 3);
+		   (scsw->tm.cc != 3);
 }
 
 /**
@@ -754,7 +798,7 @@ static inline int scsw_tm_is_valid_dstat(union scsw *scsw)
 static inline int scsw_tm_is_valid_cstat(union scsw *scsw)
 {
 	return (scsw->tm.stctl & SCSW_STCTL_STATUS_PEND) &&
-	       (scsw->tm.cc != 3);
+		   (scsw->tm.cc != 3);
 }
 
 /**
@@ -779,9 +823,9 @@ static inline int scsw_tm_is_valid_fcxs(union scsw *scsw)
 static inline int scsw_tm_is_valid_schxs(union scsw *scsw)
 {
 	return (scsw->tm.cstat & (SCHN_STAT_PROG_CHECK |
-				  SCHN_STAT_INTF_CTRL_CHK |
-				  SCHN_STAT_PROT_CHECK |
-				  SCHN_STAT_CHN_DATA_CHK));
+							  SCHN_STAT_INTF_CTRL_CHK |
+							  SCHN_STAT_PROT_CHECK |
+							  SCHN_STAT_CHN_DATA_CHK));
 }
 
 /**
@@ -795,9 +839,13 @@ static inline int scsw_tm_is_valid_schxs(union scsw *scsw)
 static inline int scsw_is_valid_actl(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_actl(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_actl(scsw);
+	}
 }
 
 /**
@@ -811,9 +859,13 @@ static inline int scsw_is_valid_actl(union scsw *scsw)
 static inline int scsw_is_valid_cc(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_cc(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_cc(scsw);
+	}
 }
 
 /**
@@ -827,9 +879,13 @@ static inline int scsw_is_valid_cc(union scsw *scsw)
 static inline int scsw_is_valid_cstat(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_cstat(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_cstat(scsw);
+	}
 }
 
 /**
@@ -843,9 +899,13 @@ static inline int scsw_is_valid_cstat(union scsw *scsw)
 static inline int scsw_is_valid_dstat(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_dstat(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_dstat(scsw);
+	}
 }
 
 /**
@@ -859,9 +919,13 @@ static inline int scsw_is_valid_dstat(union scsw *scsw)
 static inline int scsw_is_valid_ectl(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_ectl(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_ectl(scsw);
+	}
 }
 
 /**
@@ -875,9 +939,13 @@ static inline int scsw_is_valid_ectl(union scsw *scsw)
 static inline int scsw_is_valid_eswf(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_eswf(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_eswf(scsw);
+	}
 }
 
 /**
@@ -891,9 +959,13 @@ static inline int scsw_is_valid_eswf(union scsw *scsw)
 static inline int scsw_is_valid_fctl(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_fctl(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_fctl(scsw);
+	}
 }
 
 /**
@@ -907,9 +979,13 @@ static inline int scsw_is_valid_fctl(union scsw *scsw)
 static inline int scsw_is_valid_key(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_key(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_key(scsw);
+	}
 }
 
 /**
@@ -923,9 +999,13 @@ static inline int scsw_is_valid_key(union scsw *scsw)
 static inline int scsw_is_valid_pno(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_pno(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_pno(scsw);
+	}
 }
 
 /**
@@ -939,9 +1019,13 @@ static inline int scsw_is_valid_pno(union scsw *scsw)
 static inline int scsw_is_valid_stctl(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_valid_stctl(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_valid_stctl(scsw);
+	}
 }
 
 /**
@@ -954,7 +1038,7 @@ static inline int scsw_is_valid_stctl(union scsw *scsw)
 static inline int scsw_cmd_is_solicited(union scsw *scsw)
 {
 	return (scsw->cmd.cc != 0) || (scsw->cmd.stctl !=
-		(SCSW_STCTL_STATUS_PEND | SCSW_STCTL_ALERT_STATUS));
+								   (SCSW_STCTL_STATUS_PEND | SCSW_STCTL_ALERT_STATUS));
 }
 
 /**
@@ -967,7 +1051,7 @@ static inline int scsw_cmd_is_solicited(union scsw *scsw)
 static inline int scsw_tm_is_solicited(union scsw *scsw)
 {
 	return (scsw->tm.cc != 0) || (scsw->tm.stctl !=
-		(SCSW_STCTL_STATUS_PEND | SCSW_STCTL_ALERT_STATUS));
+								  (SCSW_STCTL_STATUS_PEND | SCSW_STCTL_ALERT_STATUS));
 }
 
 /**
@@ -980,9 +1064,13 @@ static inline int scsw_tm_is_solicited(union scsw *scsw)
 static inline int scsw_is_solicited(union scsw *scsw)
 {
 	if (scsw_is_tm(scsw))
+	{
 		return scsw_tm_is_solicited(scsw);
+	}
 	else
+	{
 		return scsw_cmd_is_solicited(scsw);
+	}
 }
 
 #endif /* _ASM_S390_SCSW_H_ */

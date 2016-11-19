@@ -34,16 +34,18 @@
 static char default_command_line[COMMAND_LINE_SIZE] __initdata = CONFIG_CMDLINE;
 
 #ifndef MEM_SIZE
-#define MEM_SIZE	(16*1024*1024)
+	#define MEM_SIZE	(16*1024*1024)
 #endif
 
-static struct {
+static struct
+{
 	struct tag_header hdr1;
 	struct tag_core   core;
 	struct tag_header hdr2;
 	struct tag_mem32  mem;
 	struct tag_header hdr3;
-} default_tags __initdata = {
+} default_tags __initdata =
+{
 	{ tag_size(tag_core), ATAG_CORE },
 	{ 1, PAGE_SIZE, 0xff },
 	{ tag_size(tag_mem32), ATAG_MEM },
@@ -53,11 +55,16 @@ static struct {
 
 static int __init parse_tag_core(const struct tag *tag)
 {
-	if (tag->hdr.size > 2) {
+	if (tag->hdr.size > 2)
+	{
 		if ((tag->u.core.flags & 1) == 0)
+		{
 			root_mountflags &= ~MS_RDONLY;
+		}
+
 		ROOT_DEV = old_decode_dev(tag->u.core.rootdev);
 	}
+
 	return 0;
 }
 
@@ -98,7 +105,9 @@ static int __init parse_tag_ramdisk(const struct tag *tag)
 	rd_prompt = (tag->u.ramdisk.flags & 2) == 0;
 
 	if (tag->u.ramdisk.size)
+	{
 		rd_size = tag->u.ramdisk.size;
+	}
 
 	return 0;
 }
@@ -128,12 +137,12 @@ static int __init parse_tag_cmdline(const struct tag *tag)
 #if defined(CONFIG_CMDLINE_EXTEND)
 	strlcat(default_command_line, " ", COMMAND_LINE_SIZE);
 	strlcat(default_command_line, tag->u.cmdline.cmdline,
-		COMMAND_LINE_SIZE);
+			COMMAND_LINE_SIZE);
 #elif defined(CONFIG_CMDLINE_FORCE)
 	pr_warn("Ignoring tag cmdline (using the default kernel command line)\n");
 #else
 	strlcpy(default_command_line, tag->u.cmdline.cmdline,
-		COMMAND_LINE_SIZE);
+			COMMAND_LINE_SIZE);
 #endif
 	return 0;
 }
@@ -151,7 +160,8 @@ static int __init parse_tag(const struct tag *tag)
 	struct tagtable *t;
 
 	for (t = &__tagtable_begin; t < &__tagtable_end; t++)
-		if (tag->hdr.tag == t->tag) {
+		if (tag->hdr.tag == t->tag)
+		{
 			t->parse(tag);
 			break;
 		}
@@ -168,17 +178,19 @@ static void __init parse_tags(const struct tag *t)
 	for (; t->hdr.size; t = tag_next(t))
 		if (!parse_tag(t))
 			pr_warn("Ignoring unrecognised tag 0x%08x\n",
-				t->hdr.tag);
+					t->hdr.tag);
 }
 
 static void __init squash_mem_tags(struct tag *tag)
 {
 	for (; tag->hdr.size; tag = tag_next(tag))
 		if (tag->hdr.tag == ATAG_MEM)
+		{
 			tag->hdr.tag = ATAG_NONE;
+		}
 }
 
-const struct machine_desc * __init
+const struct machine_desc *__init
 setup_machine_tags(phys_addr_t __atags_pointer, unsigned int machine_nr)
 {
 	struct tag *tags = (struct tag *)&default_tags;
@@ -191,42 +203,61 @@ setup_machine_tags(phys_addr_t __atags_pointer, unsigned int machine_nr)
 	 * locate machine in the list of supported machines.
 	 */
 	for_each_machine_desc(p)
-		if (machine_nr == p->nr) {
-			pr_info("Machine: %s\n", p->name);
-			mdesc = p;
-			break;
-		}
 
-	if (!mdesc) {
+	if (machine_nr == p->nr)
+	{
+		pr_info("Machine: %s\n", p->name);
+		mdesc = p;
+		break;
+	}
+
+	if (!mdesc)
+	{
 		early_print("\nError: unrecognized/unsupported machine ID"
-			    " (r1 = 0x%08x).\n\n", machine_nr);
+					" (r1 = 0x%08x).\n\n", machine_nr);
 		dump_machine_table(); /* does not return */
 	}
 
 	if (__atags_pointer)
+	{
 		tags = phys_to_virt(__atags_pointer);
+	}
 	else if (mdesc->atag_offset)
+	{
 		tags = (void *)(PAGE_OFFSET + mdesc->atag_offset);
+	}
 
 #if defined(CONFIG_DEPRECATED_PARAM_STRUCT)
+
 	/*
 	 * If we have the old style parameters, convert them to
 	 * a tag list.
 	 */
 	if (tags->hdr.tag != ATAG_CORE)
+	{
 		convert_to_tag_list(tags);
+	}
+
 #endif
-	if (tags->hdr.tag != ATAG_CORE) {
+
+	if (tags->hdr.tag != ATAG_CORE)
+	{
 		early_print("Warning: Neither atags nor dtb found\n");
 		tags = (struct tag *)&default_tags;
 	}
 
 	if (mdesc->fixup)
+	{
 		mdesc->fixup(tags, &from);
+	}
 
-	if (tags->hdr.tag == ATAG_CORE) {
+	if (tags->hdr.tag == ATAG_CORE)
+	{
 		if (memblock_phys_mem_size())
+		{
 			squash_mem_tags(tags);
+		}
+
 		save_atags(tags);
 		parse_tags(tags);
 	}

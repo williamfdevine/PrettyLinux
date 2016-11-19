@@ -12,7 +12,7 @@
  * the page size is smaller than 16K.
  */
 #if PAGE_SHIFT < 14
-#define DCACHE_ALIASING_POSSIBLE
+	#define DCACHE_ALIASING_POSSIBLE
 #endif
 
 #define HPAGE_SHIFT		23
@@ -21,18 +21,18 @@
 #define REAL_HPAGE_SIZE		(_AC(1,UL) << REAL_HPAGE_SHIFT)
 
 #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
-#define HPAGE_SIZE		(_AC(1,UL) << HPAGE_SHIFT)
-#define HPAGE_MASK		(~(HPAGE_SIZE - 1UL))
-#define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
-#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
-#define REAL_HPAGE_PER_HPAGE	(_AC(1,UL) << (HPAGE_SHIFT - REAL_HPAGE_SHIFT))
+	#define HPAGE_SIZE		(_AC(1,UL) << HPAGE_SHIFT)
+	#define HPAGE_MASK		(~(HPAGE_SIZE - 1UL))
+	#define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+	#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+	#define REAL_HPAGE_PER_HPAGE	(_AC(1,UL) << (HPAGE_SHIFT - REAL_HPAGE_SHIFT))
 #endif
 
 #ifndef __ASSEMBLY__
 
 #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
-struct pt_regs;
-void hugetlb_setup(struct pt_regs *regs);
+	struct pt_regs;
+	void hugetlb_setup(struct pt_regs *regs);
 #endif
 
 #define WANT_PAGE_VIRTUAL
@@ -113,8 +113,8 @@ extern unsigned long sparc64_va_hole_bottom;
 #define VA_EXCLUDE_END   (sparc64_va_hole_top + (1UL << 32UL))
 
 #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
-				 _AC(0x0000000070000000,UL) : \
-				 VA_EXCLUDE_END)
+							 _AC(0x0000000070000000,UL) : \
+							 VA_EXCLUDE_END)
 
 #include <asm-generic/memory_model.h>
 
@@ -133,22 +133,22 @@ extern unsigned long PAGE_OFFSET;
 
 #ifndef __ASSEMBLY__
 
-#define __pa(x)			((unsigned long)(x) - PAGE_OFFSET)
-#define __va(x)			((void *)((unsigned long) (x) + PAGE_OFFSET))
+	#define __pa(x)			((unsigned long)(x) - PAGE_OFFSET)
+	#define __va(x)			((void *)((unsigned long) (x) + PAGE_OFFSET))
 
-#define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
+	#define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
 
-#define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr)>>PAGE_SHIFT)
+	#define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr)>>PAGE_SHIFT)
 
-#define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+	#define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
 
-#define virt_to_phys __pa
-#define phys_to_virt __va
+	#define virt_to_phys __pa
+	#define phys_to_virt __va
 
 #endif /* !(__ASSEMBLY__) */
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/getorder.h>
 

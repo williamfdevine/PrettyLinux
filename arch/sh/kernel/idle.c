@@ -48,7 +48,9 @@ void __init select_idle_routine(void)
 	 * If a platform has set its own idle routine, leave it alone.
 	 */
 	if (!sh_idle)
+	{
 		sh_idle = default_idle;
+	}
 }
 
 void stop_this_cpu(void *unused)
@@ -57,5 +59,7 @@ void stop_this_cpu(void *unused)
 	set_cpu_online(smp_processor_id(), false);
 
 	for (;;)
+	{
 		cpu_sleep();
+	}
 }

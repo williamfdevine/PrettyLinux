@@ -22,25 +22,25 @@
 #include <asm-generic/mm_hooks.h>
 
 #define htw_set_pwbase(pgd)						\
-do {									\
-	if (cpu_has_htw) {						\
-		write_c0_pwbase(pgd);					\
-		back_to_back_c0_hazard();				\
-	}								\
-} while (0)
+	do {									\
+		if (cpu_has_htw) {						\
+			write_c0_pwbase(pgd);					\
+			back_to_back_c0_hazard();				\
+		}								\
+	} while (0)
 
 #define TLBMISS_HANDLER_SETUP_PGD(pgd)					\
-do {									\
-	extern void tlbmiss_handler_setup_pgd(unsigned long);		\
-	tlbmiss_handler_setup_pgd((unsigned long)(pgd));		\
-	htw_set_pwbase((unsigned long)pgd);				\
-} while (0)
+	do {									\
+		extern void tlbmiss_handler_setup_pgd(unsigned long);		\
+		tlbmiss_handler_setup_pgd((unsigned long)(pgd));		\
+		htw_set_pwbase((unsigned long)pgd);				\
+	} while (0)
 
 #ifdef CONFIG_MIPS_PGD_C0_CONTEXT
 
 #define TLBMISS_HANDLER_RESTORE()					\
 	write_c0_xcontext((unsigned long) smp_processor_id() <<		\
-			  SMP_CPUID_REGSHIFT)
+					  SMP_CPUID_REGSHIFT)
 
 #define TLBMISS_HANDLER_SETUP()						\
 	do {								\
@@ -59,7 +59,7 @@ extern unsigned long pgd_current[];
 
 #define TLBMISS_HANDLER_RESTORE()					\
 	write_c0_context((unsigned long) smp_processor_id() <<		\
-			 SMP_CPUID_REGSHIFT)
+					 SMP_CPUID_REGSHIFT)
 
 #define TLBMISS_HANDLER_SETUP()						\
 	TLBMISS_HANDLER_RESTORE();					\
@@ -100,16 +100,23 @@ get_new_mmu_context(struct mm_struct *mm, unsigned long cpu)
 	extern void kvm_local_flush_tlb_all(void);
 	unsigned long asid = asid_cache(cpu);
 
-	if (!((asid += cpu_asid_inc()) & cpu_asid_mask(&cpu_data[cpu]))) {
+	if (!((asid += cpu_asid_inc()) & cpu_asid_mask(&cpu_data[cpu])))
+	{
 		if (cpu_has_vtag_icache)
+		{
 			flush_icache_all();
+		}
+
 #ifdef CONFIG_KVM
 		kvm_local_flush_tlb_all();      /* start new asid cycle */
 #else
 		local_flush_tlb_all();	/* start new asid cycle */
 #endif
+
 		if (!asid)		/* fix version if needed */
+		{
 			asid = asid_first_version(cpu);
+		}
 	}
 
 	cpu_context(cpu, mm) = asid_cache(cpu) = asid;
@@ -125,7 +132,7 @@ init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 	int i;
 
 	for_each_possible_cpu(i)
-		cpu_context(i, mm) = 0;
+	cpu_context(i, mm) = 0;
 
 	atomic_set(&mm->context.fp_mode_switching, 0);
 
@@ -137,16 +144,20 @@ init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 }
 
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
 	unsigned int cpu = smp_processor_id();
 	unsigned long flags;
 	local_irq_save(flags);
 
 	htw_stop();
+
 	/* Check if our ASID is of an older version and thus invalid */
 	if ((cpu_context(cpu, next) ^ asid_cache(cpu)) & asid_version_mask(cpu))
+	{
 		get_new_mmu_context(next, cpu);
+	}
+
 	write_c0_entryhi(cpu_asid(cpu, next));
 	TLBMISS_HANDLER_SETUP_PGD(next->pgd);
 
@@ -211,13 +222,17 @@ drop_mmu_context(struct mm_struct *mm, unsigned cpu)
 	local_irq_save(flags);
 	htw_stop();
 
-	if (cpumask_test_cpu(cpu, mm_cpumask(mm)))  {
+	if (cpumask_test_cpu(cpu, mm_cpumask(mm)))
+	{
 		get_new_mmu_context(mm, cpu);
 		write_c0_entryhi(cpu_asid(cpu, mm));
-	} else {
+	}
+	else
+	{
 		/* will get a new context next time */
 		cpu_context(cpu, mm) = 0;
 	}
+
 	htw_start();
 	local_irq_restore(flags);
 }

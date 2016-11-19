@@ -27,14 +27,18 @@
  * This routine is called only after all the CPUs are online
  */
 void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
-					unsigned int cpu)
+										unsigned int cpu)
 {
 	struct cpuinfo_x86 *c = &cpu_data(cpu);
 
 	flags->bm_check = 0;
+
 	if (num_online_cpus() == 1)
+	{
 		flags->bm_check = 1;
-	else if (c->x86_vendor == X86_VENDOR_INTEL) {
+	}
+	else if (c->x86_vendor == X86_VENDOR_INTEL)
+	{
 		/*
 		 * Today all MP CPUs that support C3 share cache.
 		 * And caches should not be flushed by software while
@@ -50,15 +54,19 @@ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
 	 * P4, Core and beyond CPUs
 	 */
 	if (c->x86_vendor == X86_VENDOR_INTEL &&
-	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 0x0f)))
-			flags->bm_control = 0;
+		(c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 0x0f)))
+	{
+		flags->bm_control = 0;
+	}
 }
 EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
 
 /* The code below handles cstate entry with monitor-mwait pair on Intel*/
 
-struct cstate_entry {
-	struct {
+struct cstate_entry
+{
+	struct
+	{
 		unsigned int eax;
 		unsigned int ecx;
 	} states[ACPI_PROCESSOR_MAX_POWER];
@@ -82,13 +90,15 @@ static long acpi_processor_ffh_cstate_probe_cpu(void *_cx)
 
 	/* Check whether this particular cx_type (in CST) is supported or not */
 	cstate_type = ((cx->address >> MWAIT_SUBSTATE_SIZE) &
-			MWAIT_CSTATE_MASK) + 1;
+				   MWAIT_CSTATE_MASK) + 1;
 	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
 	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
 
 	retval = 0;
+
 	/* If the HW does not support any sub-states in this C-state */
-	if (num_cstate_subtype == 0) {
+	if (num_cstate_subtype == 0)
+	{
 		pr_warn(FW_BUG "ACPI MWAIT C-state 0x%x not supported by HW (0x%x)\n", cx->address, edx_part);
 		retval = -1;
 		goto out;
@@ -96,36 +106,43 @@ static long acpi_processor_ffh_cstate_probe_cpu(void *_cx)
 
 	/* mwait ecx extensions INTERRUPT_BREAK should be supported for C2/C3 */
 	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
-	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK)) {
+		!(ecx & CPUID5_ECX_INTERRUPT_BREAK))
+	{
 		retval = -1;
 		goto out;
 	}
 
-	if (!mwait_supported[cstate_type]) {
+	if (!mwait_supported[cstate_type])
+	{
 		mwait_supported[cstate_type] = 1;
 		printk(KERN_DEBUG
-			"Monitor-Mwait will be used to enter C-%d "
-			"state\n", cx->type);
+			   "Monitor-Mwait will be used to enter C-%d "
+			   "state\n", cx->type);
 	}
+
 	snprintf(cx->desc,
-			ACPI_CX_DESC_LEN, "ACPI FFH INTEL MWAIT 0x%x",
-			cx->address);
+			 ACPI_CX_DESC_LEN, "ACPI FFH INTEL MWAIT 0x%x",
+			 cx->address);
 out:
 	return retval;
 }
 
 int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-		struct acpi_processor_cx *cx, struct acpi_power_register *reg)
+									struct acpi_processor_cx *cx, struct acpi_power_register *reg)
 {
 	struct cstate_entry *percpu_entry;
 	struct cpuinfo_x86 *c = &cpu_data(cpu);
 	long retval;
 
 	if (!cpu_cstate_entry || c->cpuid_level < CPUID_MWAIT_LEAF)
+	{
 		return -1;
+	}
 
 	if (reg->bit_offset != NATIVE_CSTATE_BEYOND_HALT)
+	{
 		return -1;
+	}
 
 	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
 	percpu_entry->states[cx->index].eax = 0;
@@ -134,7 +151,9 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
 	/* Make sure we are running on right CPU */
 
 	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
-	if (retval == 0) {
+
+	if (retval == 0)
+	{
 		/* Use the hint in CST */
 		percpu_entry->states[cx->index].eax = cx->address;
 		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
@@ -146,7 +165,9 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
 	 * ref: "Intel Processor Vendor-Specific ACPI Interface Specification"
 	 */
 	if ((c->x86_vendor == X86_VENDOR_INTEL) && !(reg->access_size & 0x2))
+	{
 		cx->bm_sts_skip = 1;
+	}
 
 	return retval;
 }
@@ -159,15 +180,18 @@ void __cpuidle acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cx)
 
 	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
 	mwait_idle_with_hints(percpu_entry->states[cx->index].eax,
-	                      percpu_entry->states[cx->index].ecx);
+						  percpu_entry->states[cx->index].ecx);
 }
 EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_enter);
 
 static int __init ffh_cstate_init(void)
 {
 	struct cpuinfo_x86 *c = &boot_cpu_data;
+
 	if (c->x86_vendor != X86_VENDOR_INTEL)
+	{
 		return -1;
+	}
 
 	cpu_cstate_entry = alloc_percpu(struct cstate_entry);
 	return 0;

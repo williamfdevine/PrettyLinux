@@ -38,15 +38,16 @@
 #define PSERIES_IOEI_SCOPE_SERVICE_PROC		0x51
 
 /* Platform Event Log Format, Version 6, data portition of IO event section */
-struct pseries_io_event {
+struct pseries_io_event
+{
 	uint8_t event_type;		/* 0x00 IO-Event Type		*/
 	uint8_t rpc_data_len;		/* 0x01 RPC data length		*/
 	uint8_t scope;			/* 0x02 Error/Event Scope	*/
 	uint8_t event_subtype;		/* 0x03 I/O-Event Sub-Type	*/
 	uint32_t drc_index;		/* 0x04 DRC Index		*/
 	uint8_t rpc_data[PSERIES_IOEI_RPC_MAX_LEN];
-					/* 0x08 RPC Data (0-216 bytes,	*/
-					/* padded to 4 bytes alignment)	*/
+	/* 0x08 RPC Data (0-216 bytes,	*/
+	/* padded to 4 bytes alignment)	*/
 };
 
 extern struct atomic_notifier_head pseries_ioei_notifier_list;

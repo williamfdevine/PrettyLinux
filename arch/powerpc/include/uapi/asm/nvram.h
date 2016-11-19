@@ -28,7 +28,8 @@
 
 /* PowerMac specific nvram stuffs */
 
-enum {
+enum
+{
 	pmac_nvram_OF,		/* Open Firmware partition */
 	pmac_nvram_XPRAM,	/* MacOS XPRAM partition */
 	pmac_nvram_NR		/* MacOS Name Registry partition */
@@ -40,7 +41,8 @@ enum {
 #define PMAC_XPRAM_SOUND_VOLUME	0x08
 
 /* Machine location structure in PowerMac XPRAM */
-struct pmac_machine_location {
+struct pmac_machine_location
+{
 	unsigned int	latitude;	/* 2+30 bit Fractional number */
 	unsigned int	longitude;	/* 2+30 bit Fractional number */
 	unsigned int	delta;		/* mix of GMT delta and DLS */
@@ -54,7 +56,7 @@ struct pmac_machine_location {
  */
 
 #define OBSOLETE_PMAC_NVRAM_GET_OFFSET \
-				_IOWR('p', 0x40, int)
+	_IOWR('p', 0x40, int)
 
 #define IOC_NVRAM_GET_OFFSET	_IOWR('p', 0x42, int)	/* Get NVRAM partition offset */
 #define IOC_NVRAM_SYNC		_IO('p', 0x43)		/* Sync NVRAM image */

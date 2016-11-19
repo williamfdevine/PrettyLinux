@@ -57,7 +57,8 @@
 #define PALMZ71_SLIDER_GPIO	OMAP_MPUIO(3)
 #define PALMZ71_MMC_IN_GPIO	OMAP_MPUIO(4)
 
-static const unsigned int palmz71_keymap[] = {
+static const unsigned int palmz71_keymap[] =
+{
 	KEY(0, 0, KEY_F1),
 	KEY(1, 0, KEY_F2),
 	KEY(2, 0, KEY_F3),
@@ -71,12 +72,14 @@ static const unsigned int palmz71_keymap[] = {
 	KEY(0, 2, KEY_CAMERA),
 };
 
-static const struct matrix_keymap_data palmz71_keymap_data = {
+static const struct matrix_keymap_data palmz71_keymap_data =
+{
 	.keymap		= palmz71_keymap,
 	.keymap_size	= ARRAY_SIZE(palmz71_keymap),
 };
 
-static struct omap_kp_platform_data palmz71_kp_data = {
+static struct omap_kp_platform_data palmz71_kp_data =
+{
 	.rows	= 8,
 	.cols	= 8,
 	.keymap_data	= &palmz71_keymap_data,
@@ -84,7 +87,8 @@ static struct omap_kp_platform_data palmz71_kp_data = {
 	.delay	= 80,
 };
 
-static struct resource palmz71_kp_resources[] = {
+static struct resource palmz71_kp_resources[] =
+{
 	[0] = {
 		.start	= INT_KEYBOARD,
 		.end	= INT_KEYBOARD,
@@ -92,7 +96,8 @@ static struct resource palmz71_kp_resources[] = {
 	},
 };
 
-static struct platform_device palmz71_kp_device = {
+static struct platform_device palmz71_kp_device =
+{
 	.name	= "omap-keypad",
 	.id	= -1,
 	.dev	= {
@@ -102,7 +107,8 @@ static struct platform_device palmz71_kp_device = {
 	.resource	= palmz71_kp_resources,
 };
 
-static struct mtd_partition palmz71_rom_partitions[] = {
+static struct mtd_partition palmz71_rom_partitions[] =
+{
 	/* PalmOS "Small ROM", contains the bootloader and the debugger */
 	{
 		.name		= "smallrom",
@@ -123,20 +129,23 @@ static struct mtd_partition palmz71_rom_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data palmz71_rom_data = {
+static struct physmap_flash_data palmz71_rom_data =
+{
 	.width		= 2,
 	.set_vpp	= omap1_set_vpp,
 	.parts		= palmz71_rom_partitions,
 	.nr_parts	= ARRAY_SIZE(palmz71_rom_partitions),
 };
 
-static struct resource palmz71_rom_resource = {
+static struct resource palmz71_rom_resource =
+{
 	.start	= OMAP_CS0_PHYS,
 	.end	= OMAP_CS0_PHYS + SZ_8M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device palmz71_rom_device = {
+static struct platform_device palmz71_rom_device =
+{
 	.name	= "physmap-flash",
 	.id	= -1,
 	.dev = {
@@ -146,21 +155,25 @@ static struct platform_device palmz71_rom_device = {
 	.resource	= &palmz71_rom_resource,
 };
 
-static struct platform_device palmz71_lcd_device = {
+static struct platform_device palmz71_lcd_device =
+{
 	.name	= "lcd_palmz71",
 	.id	= -1,
 };
 
-static struct platform_device palmz71_spi_device = {
+static struct platform_device palmz71_spi_device =
+{
 	.name	= "spi_palmz71",
 	.id	= -1,
 };
 
-static struct omap_backlight_config palmz71_backlight_config = {
+static struct omap_backlight_config palmz71_backlight_config =
+{
 	.default_intensity	= 0xa0,
 };
 
-static struct platform_device palmz71_backlight_device = {
+static struct platform_device palmz71_backlight_device =
+{
 	.name	= "omap-bl",
 	.id	= -1,
 	.dev	= {
@@ -168,7 +181,8 @@ static struct platform_device palmz71_backlight_device = {
 	},
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&palmz71_rom_device,
 	&palmz71_kp_device,
 	&palmz71_lcd_device,
@@ -182,7 +196,8 @@ palmz71_get_pendown_state(void)
 	return !gpio_get_value(PALMZ71_PENIRQ_GPIO);
 }
 
-static const struct ads7846_platform_data palmz71_ts_info = {
+static const struct ads7846_platform_data palmz71_ts_info =
+{
 	.model			= 7846,
 	.vref_delay_usecs	= 100,	/* internal, no capacitor */
 	.x_plate_ohms		= 419,
@@ -191,37 +206,44 @@ static const struct ads7846_platform_data palmz71_ts_info = {
 };
 
 static struct spi_board_info __initdata palmz71_boardinfo[] = { {
-	/* MicroWire (bus 2) CS0 has an ads7846e */
-	.modalias	= "ads7846",
-	.platform_data	= &palmz71_ts_info,
-	.max_speed_hz	= 120000	/* max sample rate at 3V */
-				* 26	/* command + data + overhead */,
-	.bus_num	= 2,
-	.chip_select	= 0,
-} };
+		/* MicroWire (bus 2) CS0 has an ads7846e */
+		.modalias	= "ads7846",
+		.platform_data	= &palmz71_ts_info,
+		.max_speed_hz	= 120000	/* max sample rate at 3V */
+		* 26	/* command + data + overhead */,
+		.bus_num	= 2,
+		.chip_select	= 0,
+	}
+};
 
-static struct omap_usb_config palmz71_usb_config __initdata = {
+static struct omap_usb_config palmz71_usb_config __initdata =
+{
 	.register_dev	= 1,	/* Mini-B only receptacle */
 	.hmc_mode	= 0,
 	.pins[0]	= 2,
 };
 
-static struct omap_lcd_config palmz71_lcd_config __initdata = {
+static struct omap_lcd_config palmz71_lcd_config __initdata =
+{
 	.ctrl_name = "internal",
 };
 
 static irqreturn_t
 palmz71_powercable(int irq, void *dev_id)
 {
-	if (gpio_get_value(PALMZ71_USBDETECT_GPIO)) {
+	if (gpio_get_value(PALMZ71_USBDETECT_GPIO))
+	{
 		printk(KERN_INFO "PM: Power cable connected\n");
 		irq_set_irq_type(gpio_to_irq(PALMZ71_USBDETECT_GPIO),
-				 IRQ_TYPE_EDGE_FALLING);
-	} else {
+						 IRQ_TYPE_EDGE_FALLING);
+	}
+	else
+	{
 		printk(KERN_INFO "PM: Power cable disconnected\n");
 		irq_set_irq_type(gpio_to_irq(PALMZ71_USBDETECT_GPIO),
-				 IRQ_TYPE_EDGE_RISING);
+						 IRQ_TYPE_EDGE_RISING);
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -229,8 +251,11 @@ static void __init
 omap_mpu_wdt_mode(int mode)
 {
 	if (mode)
+	{
 		omap_writew(0x8000, OMAP_WDT_TIMER_MODE);
-	else {
+	}
+	else
+	{
 		omap_writew(0x00f5, OMAP_WDT_TIMER_MODE);
 		omap_writew(0x00a0, OMAP_WDT_TIMER_MODE);
 	}
@@ -239,28 +264,37 @@ omap_mpu_wdt_mode(int mode)
 static void __init
 palmz71_gpio_setup(int early)
 {
-	if (early) {
+	if (early)
+	{
 		/* Only set GPIO1 so we have a working serial */
 		gpio_direction_output(1, 1);
-	} else {
+	}
+	else
+	{
 		/* Set MMC/SD host WP pin as input */
-		if (gpio_request(PALMZ71_MMC_WP_GPIO, "MMC WP") < 0) {
+		if (gpio_request(PALMZ71_MMC_WP_GPIO, "MMC WP") < 0)
+		{
 			printk(KERN_ERR "Could not reserve WP GPIO!\n");
 			return;
 		}
+
 		gpio_direction_input(PALMZ71_MMC_WP_GPIO);
 
 		/* Monitor the Power-cable-connected signal */
-		if (gpio_request(PALMZ71_USBDETECT_GPIO, "USB detect") < 0) {
+		if (gpio_request(PALMZ71_USBDETECT_GPIO, "USB detect") < 0)
+		{
 			printk(KERN_ERR
-				"Could not reserve cable signal GPIO!\n");
+				   "Could not reserve cable signal GPIO!\n");
 			return;
 		}
+
 		gpio_direction_input(PALMZ71_USBDETECT_GPIO);
+
 		if (request_irq(gpio_to_irq(PALMZ71_USBDETECT_GPIO),
-				palmz71_powercable, 0, "palmz71-cable", NULL))
+						palmz71_powercable, 0, "palmz71-cable", NULL))
 			printk(KERN_ERR
-					"IRQ request for power cable failed!\n");
+				   "IRQ request for power cable failed!\n");
+
 		palmz71_powercable(gpio_to_irq(PALMZ71_USBDETECT_GPIO), NULL);
 	}
 }
@@ -283,7 +317,7 @@ omap_palmz71_init(void)
 
 	palmz71_boardinfo[0].irq = gpio_to_irq(PALMZ71_PENIRQ_GPIO);
 	spi_register_board_info(palmz71_boardinfo,
-				ARRAY_SIZE(palmz71_boardinfo));
+							ARRAY_SIZE(palmz71_boardinfo));
 	omap1_usb_init(&palmz71_usb_config);
 	omap_serial_init();
 	omap_register_i2c_bus(1, 100, NULL, 0);
@@ -293,13 +327,13 @@ omap_palmz71_init(void)
 }
 
 MACHINE_START(OMAP_PALMZ71, "OMAP310 based Palm Zire71")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= omap15xx_map_io,
-	.init_early     = omap1_init_early,
-	.init_irq	= omap1_init_irq,
-	.handle_irq	= omap1_handle_irq,
-	.init_machine	= omap_palmz71_init,
-	.init_late	= omap1_init_late,
-	.init_time	= omap1_timer_init,
-	.restart	= omap1_restart,
-MACHINE_END
+		.init_early     = omap1_init_early,
+		 .init_irq	= omap1_init_irq,
+			.handle_irq	= omap1_handle_irq,
+			 .init_machine	= omap_palmz71_init,
+				.init_late	= omap1_init_late,
+				  .init_time	= omap1_timer_init,
+					.restart	= omap1_restart,
+						MACHINE_END

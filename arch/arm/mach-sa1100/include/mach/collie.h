@@ -29,8 +29,8 @@ extern void locomolcd_power(int on);
 #define COLLIE_SCP_LB_VOL_CHG	SCOOP_GPCR_PA19
 
 #define COLLIE_SCOOP_IO_DIR	(COLLIE_SCP_MUTE_L | COLLIE_SCP_MUTE_R | \
-				COLLIE_SCP_5VON | COLLIE_SCP_AMP_ON | \
-				COLLIE_SCP_LB_VOL_CHG)
+							 COLLIE_SCP_5VON | COLLIE_SCP_AMP_ON | \
+							 COLLIE_SCP_LB_VOL_CHG)
 #define COLLIE_SCOOP_IO_OUT	(COLLIE_SCP_MUTE_L | COLLIE_SCP_MUTE_R)
 
 /* GPIOs for gpiolib  */
@@ -90,6 +90,6 @@ extern void locomolcd_power(int on);
 #define COLLIE_GPIO_TMP_ON      	(COLLIE_TC35143_GPIO_BASE + 9)
 #define COLLIE_TC35143_GPIO_IN		(UCB_IO_0 | UCB_IO_2 | UCB_IO_5)
 #define COLLIE_TC35143_GPIO_OUT		(UCB_IO_1 | UCB_IO_3 | UCB_IO_4 \
-						| UCB_IO_6)
+									 | UCB_IO_6)
 
 #endif

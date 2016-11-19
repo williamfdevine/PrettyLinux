@@ -54,7 +54,8 @@ extern int smp_ipi_irq_setup(int cpu, irq_hw_number_t hwirq);
  * @ipi_send:		To send IPI to a @cpu
  * @ips_clear:		To clear IPI received at @irq
  */
-struct plat_smp_ops {
+struct plat_smp_ops
+{
 	const char 	*info;
 	void		(*init_early_smp)(void);
 	void		(*init_per_cpu)(int cpu);
@@ -111,24 +112,24 @@ extern arch_spinlock_t smp_atomic_ops_lock;
 extern arch_spinlock_t smp_bitops_lock;
 
 #define atomic_ops_lock(flags)	do {		\
-	local_irq_save(flags);			\
-	arch_spin_lock(&smp_atomic_ops_lock);	\
-} while (0)
+		local_irq_save(flags);			\
+		arch_spin_lock(&smp_atomic_ops_lock);	\
+	} while (0)
 
 #define atomic_ops_unlock(flags) do {		\
-	arch_spin_unlock(&smp_atomic_ops_lock);	\
-	local_irq_restore(flags);		\
-} while (0)
+		arch_spin_unlock(&smp_atomic_ops_lock);	\
+		local_irq_restore(flags);		\
+	} while (0)
 
 #define bitops_lock(flags)	do {		\
-	local_irq_save(flags);			\
-	arch_spin_lock(&smp_bitops_lock);	\
-} while (0)
+		local_irq_save(flags);			\
+		arch_spin_lock(&smp_bitops_lock);	\
+	} while (0)
 
 #define bitops_unlock(flags) do {		\
-	arch_spin_unlock(&smp_bitops_lock);	\
-	local_irq_restore(flags);		\
-} while (0)
+		arch_spin_unlock(&smp_bitops_lock);	\
+		local_irq_restore(flags);		\
+	} while (0)
 
 #else /* !CONFIG_SMP */
 

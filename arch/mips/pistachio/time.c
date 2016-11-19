@@ -42,13 +42,17 @@ void __init plat_time_init(void)
 	clocksource_probe();
 
 	np = of_get_cpu_node(0, NULL);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("Failed to get CPU node\n");
 		return;
 	}
 
 	clk = of_clk_get(np, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("Failed to get CPU clock: %ld\n", PTR_ERR(clk));
 		return;
 	}

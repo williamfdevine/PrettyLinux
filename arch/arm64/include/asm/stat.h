@@ -26,7 +26,8 @@
  * struct stat64 is needed for compat tasks only. Its definition is different
  * from the generic struct stat64.
  */
-struct stat64 {
+struct stat64
+{
 	compat_u64	st_dev;
 	unsigned char   __pad0[4];
 

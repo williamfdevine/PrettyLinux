@@ -16,16 +16,17 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #ifdef __sun__
-#include <inttypes.h>
+	#include <inttypes.h>
 #else
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 
 /* This gets tacked on the front of the image.  There are also a few
  * bytes allocated after the _start label used by the boot rom (see
  * head.S for details).
  */
-typedef struct boot_block {
+typedef struct boot_block
+{
 	uint32_t bb_magic;		/* 0x0052504F */
 	uint32_t bb_dest;		/* Target address of the image */
 	uint32_t bb_num_512blocks;	/* Size, rounded-up, in 512 byte blks */
@@ -46,12 +47,14 @@ int main(int argc, char *argv[])
 	struct	stat	st;
 	boot_block_t	bt;
 
-	if (argc < 5) {
-		fprintf(stderr, "usage: %s <zImage-file> <boot-image> <load address> <entry point>\n",argv[0]);
+	if (argc < 5)
+	{
+		fprintf(stderr, "usage: %s <zImage-file> <boot-image> <load address> <entry point>\n", argv[0]);
 		exit(1);
 	}
 
-	if (stat(argv[1], &st) < 0) {
+	if (stat(argv[1], &st) < 0)
+	{
 		perror("stat");
 		exit(2);
 	}
@@ -78,35 +81,43 @@ int main(int argc, char *argv[])
 	bt.reserved[0] = 0;
 	bt.reserved[1] = 0;
 
-	if ((in_fd = open(argv[1], O_RDONLY)) < 0) {
+	if ((in_fd = open(argv[1], O_RDONLY)) < 0)
+	{
 		perror("zImage open");
 		exit(3);
 	}
 
-	if ((out_fd = open(argv[2], (O_RDWR | O_CREAT | O_TRUNC), 0666)) < 0) {
+	if ((out_fd = open(argv[2], (O_RDWR | O_CREAT | O_TRUNC), 0666)) < 0)
+	{
 		perror("bootfile open");
 		exit(3);
 	}
 
 	cksum = 0;
 	cp = (void *)&bt;
+
 	for (i = 0; i < sizeof(bt) / sizeof(unsigned int); i++)
+	{
 		cksum += *cp++;
+	}
 
 	/* Assume zImage is an ELF file, and skip the 64K header.
 	*/
-	if (read(in_fd, tmpbuf, sizeof(tmpbuf)) != sizeof(tmpbuf)) {
+	if (read(in_fd, tmpbuf, sizeof(tmpbuf)) != sizeof(tmpbuf))
+	{
 		fprintf(stderr, "%s is too small to be an ELF image\n",
 				argv[1]);
 		exit(4);
 	}
 
-	if (tmpbuf[0] != htonl(0x7f454c46)) {
+	if (tmpbuf[0] != htonl(0x7f454c46))
+	{
 		fprintf(stderr, "%s is not an ELF image\n", argv[1]);
 		exit(4);
 	}
 
-	if (lseek(in_fd, (64 * 1024), SEEK_SET) < 0) {
+	if (lseek(in_fd, (64 * 1024), SEEK_SET) < 0)
+	{
 		fprintf(stderr, "%s failed to seek in ELF image\n", argv[1]);
 		exit(4);
 	}
@@ -115,20 +126,29 @@ int main(int argc, char *argv[])
 
 	/* And away we go......
 	*/
-	if (write(out_fd, &bt, sizeof(bt)) != sizeof(bt)) {
+	if (write(out_fd, &bt, sizeof(bt)) != sizeof(bt))
+	{
 		perror("boot-image write");
 		exit(5);
 	}
 
-	while (nblks-- > 0) {
-		if (read(in_fd, tmpbuf, sizeof(tmpbuf)) < 0) {
+	while (nblks-- > 0)
+	{
+		if (read(in_fd, tmpbuf, sizeof(tmpbuf)) < 0)
+		{
 			perror("zImage read");
 			exit(5);
 		}
+
 		cp = tmpbuf;
+
 		for (i = 0; i < sizeof(tmpbuf) / sizeof(unsigned int); i++)
+		{
 			cksum += *cp++;
-		if (write(out_fd, tmpbuf, sizeof(tmpbuf)) != sizeof(tmpbuf)) {
+		}
+
+		if (write(out_fd, tmpbuf, sizeof(tmpbuf)) != sizeof(tmpbuf))
+		{
 			perror("boot-image write");
 			exit(5);
 		}
@@ -137,11 +157,15 @@ int main(int argc, char *argv[])
 	/* rewrite the header with the computed checksum.
 	*/
 	bt.bb_checksum = htonl(cksum);
-	if (lseek(out_fd, 0, SEEK_SET) < 0) {
+
+	if (lseek(out_fd, 0, SEEK_SET) < 0)
+	{
 		perror("rewrite seek");
 		exit(1);
 	}
-	if (write(out_fd, &bt, sizeof(bt)) != sizeof(bt)) {
+
+	if (write(out_fd, &bt, sizeof(bt)) != sizeof(bt))
+	{
 		perror("boot-image rewrite");
 		exit(1);
 	}

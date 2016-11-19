@@ -50,11 +50,12 @@ static int q40_set_rtc_pll(struct rtc_pll_info *pll);
 extern void q40_mksound(unsigned int /*freq*/, unsigned int /*ticks*/);
 
 static void q40_mem_console_write(struct console *co, const char *b,
-				  unsigned int count);
+								  unsigned int count);
 
 extern int ql_ticks;
 
-static struct console q40_console_driver = {
+static struct console q40_console_driver =
+{
 	.name	= "debug",
 	.write	= q40_mem_console_write,
 	.flags	= CON_PRINTBUFFER,
@@ -67,12 +68,14 @@ extern char *q40_mem_cptr; /*=(char *)0xff020000;*/
 static int _cpleft;
 
 static void q40_mem_console_write(struct console *co, const char *s,
-				  unsigned int count)
+								  unsigned int count)
 {
 	const char *p = s;
 
-	if (count < _cpleft) {
-		while (count-- > 0) {
+	if (count < _cpleft)
+	{
+		while (count-- > 0)
+		{
 			*q40_mem_cptr = *p++;
 			q40_mem_cptr += 4;
 			_cpleft--;
@@ -83,11 +86,13 @@ static void q40_mem_console_write(struct console *co, const char *s,
 static int __init q40_debug_setup(char *arg)
 {
 	/* useful for early debugging stages - writes kernel messages into SRAM */
-	if (MACH_IS_Q40 && !strncmp(arg, "mem", 3)) {
+	if (MACH_IS_Q40 && !strncmp(arg, "mem", 3))
+	{
 		/*printk("using NVRAM debug, q40_mem_cptr=%p\n",q40_mem_cptr);*/
-		_cpleft = 2000 - ((long)q40_mem_cptr-0xff020000) / 4;
+		_cpleft = 2000 - ((long)q40_mem_cptr - 0xff020000) / 4;
 		register_console(&q40_console_driver);
 	}
+
 	return 0;
 }
 
@@ -99,10 +104,12 @@ void printq40(char *str)
 	int l = strlen(str);
 	char *p = q40_mem_cptr;
 
-	while (l-- > 0 && _cpleft-- > 0) {
+	while (l-- > 0 && _cpleft-- > 0)
+	{
 		*p = *str++;
 		p += 4;
 	}
+
 	q40_mem_cptr = p;
 }
 #endif
@@ -113,33 +120,41 @@ static int halted;
 static void q40_heartbeat(int on)
 {
 	if (halted)
+	{
 		return;
+	}
 
 	if (on)
+	{
 		Q40_LED_ON();
+	}
 	else
+	{
 		Q40_LED_OFF();
+	}
 }
 #endif
 
 static void q40_reset(void)
 {
-        halted = 1;
-        printk("\n\n*******************************************\n"
-		"Called q40_reset : press the RESET button!!\n"
-		"*******************************************\n");
+	halted = 1;
+	printk("\n\n*******************************************\n"
+		   "Called q40_reset : press the RESET button!!\n"
+		   "*******************************************\n");
 	Q40_LED_ON();
+
 	while (1)
 		;
 }
 
 static void q40_halt(void)
 {
-        halted = 1;
-        printk("\n\n*******************\n"
+	halted = 1;
+	printk("\n\n*******************\n"
 		   "  Called q40_halt\n"
 		   "*******************\n");
 	Q40_LED_ON();
+
 	while (1)
 		;
 }
@@ -151,7 +166,7 @@ static void q40_get_model(char *model)
 
 static unsigned int serports[] =
 {
-	0x3f8,0x2f8,0x3e8,0x2e8,0
+	0x3f8, 0x2f8, 0x3e8, 0x2e8, 0
 };
 
 static void __init q40_disable_irqs(void)
@@ -159,8 +174,12 @@ static void __init q40_disable_irqs(void)
 	unsigned i, j;
 
 	j = 0;
+
 	while ((i = serports[j++]))
+	{
 		outb(0, i + UART_IER);
+	}
+
 	master_outb(0, EXT_ENABLE_REG);
 	master_outb(0, KEY_IRQ_ENABLE_REG);
 }
@@ -194,7 +213,7 @@ void __init config_q40(void)
 	/* no DMA at all, but ide-scsi requires it.. make sure
 	 * all physical RAM fits into the boundary - otherwise
 	 * allocator may play costly and useless tricks */
-	mach_max_dma_address = 1024*1024*1024;
+	mach_max_dma_address = 1024 * 1024 * 1024;
 }
 
 
@@ -227,7 +246,8 @@ static u32 q40_gettimeoffset(void)
 
 static int q40_hwclk(int op, struct rtc_time *t)
 {
-	if (op) {
+	if (op)
+	{
 		/* Write.... */
 		Q40_RTC_CTRL |= Q40_RTC_WRITE;
 
@@ -236,17 +256,22 @@ static int q40_hwclk(int op, struct rtc_time *t)
 		Q40_RTC_HOUR = bin2bcd(t->tm_hour);
 		Q40_RTC_DATE = bin2bcd(t->tm_mday);
 		Q40_RTC_MNTH = bin2bcd(t->tm_mon + 1);
-		Q40_RTC_YEAR = bin2bcd(t->tm_year%100);
+		Q40_RTC_YEAR = bin2bcd(t->tm_year % 100);
+
 		if (t->tm_wday >= 0)
-			Q40_RTC_DOW = bin2bcd(t->tm_wday+1);
+		{
+			Q40_RTC_DOW = bin2bcd(t->tm_wday + 1);
+		}
 
 		Q40_RTC_CTRL &= ~(Q40_RTC_WRITE);
-	} else {
+	}
+	else
+	{
 		/* Read....  */
 		Q40_RTC_CTRL |= Q40_RTC_READ;
 
 		t->tm_year = bcd2bin (Q40_RTC_YEAR);
-		t->tm_mon  = bcd2bin (Q40_RTC_MNTH)-1;
+		t->tm_mon  = bcd2bin (Q40_RTC_MNTH) - 1;
 		t->tm_mday = bcd2bin (Q40_RTC_DATE);
 		t->tm_hour = bcd2bin (Q40_RTC_HOUR);
 		t->tm_min  = bcd2bin (Q40_RTC_MINS);
@@ -255,8 +280,11 @@ static int q40_hwclk(int op, struct rtc_time *t)
 		Q40_RTC_CTRL &= ~(Q40_RTC_READ);
 
 		if (t->tm_year < 70)
+		{
 			t->tm_year += 100;
-		t->tm_wday = bcd2bin(Q40_RTC_DOW)-1;
+		}
+
+		t->tm_wday = bcd2bin(Q40_RTC_DOW) - 1;
 	}
 
 	return 0;
@@ -282,14 +310,18 @@ static int q40_set_clock_mmss(unsigned long nowtime)
 	rtc_minutes = bcd2bin(Q40_RTC_MINS);
 
 	if ((rtc_minutes < real_minutes ?
-	     real_minutes - rtc_minutes :
-	     rtc_minutes - real_minutes) < 30) {
+		 real_minutes - rtc_minutes :
+		 rtc_minutes - real_minutes) < 30)
+	{
 		Q40_RTC_CTRL |= Q40_RTC_WRITE;
 		Q40_RTC_MINS = bin2bcd(real_minutes);
 		Q40_RTC_SECS = bin2bcd(real_seconds);
 		Q40_RTC_CTRL &= ~(Q40_RTC_WRITE);
-	} else
+	}
+	else
+	{
 		retval = -1;
+	}
 
 	return retval;
 }
@@ -304,8 +336,12 @@ static int q40_get_rtc_pll(struct rtc_pll_info *pll)
 	int tmp = Q40_RTC_CTRL;
 
 	pll->pll_value = tmp & Q40_RTC_PLL_MASK;
+
 	if (tmp & Q40_RTC_PLL_SIGN)
+	{
 		pll->pll_value = -pll->pll_value;
+	}
+
 	pll->pll_max = 31;
 	pll->pll_min = -31;
 	pll->pll_posmult = 512;
@@ -317,17 +353,21 @@ static int q40_get_rtc_pll(struct rtc_pll_info *pll)
 
 static int q40_set_rtc_pll(struct rtc_pll_info *pll)
 {
-	if (!pll->pll_ctrl) {
+	if (!pll->pll_ctrl)
+	{
 		/* the docs are a bit unclear so I am doublesetting */
 		/* RTC_WRITE here ... */
-		int tmp = (pll->pll_value & 31) | (pll->pll_value<0 ? 32 : 0) |
-			  Q40_RTC_WRITE;
+		int tmp = (pll->pll_value & 31) | (pll->pll_value < 0 ? 32 : 0) |
+				  Q40_RTC_WRITE;
 		Q40_RTC_CTRL |= Q40_RTC_WRITE;
 		Q40_RTC_CTRL = tmp;
 		Q40_RTC_CTRL &= ~(Q40_RTC_WRITE);
 		return 0;
-	} else
+	}
+	else
+	{
 		return -EINVAL;
+	}
 }
 
 static __init int q40_add_kbd_device(void)
@@ -335,7 +375,9 @@ static __init int q40_add_kbd_device(void)
 	struct platform_device *pdev;
 
 	if (!MACH_IS_Q40)
+	{
 		return -ENODEV;
+	}
 
 	pdev = platform_device_register_simple("q40kbd", -1, NULL, 0);
 	return PTR_ERR_OR_ZERO(pdev);

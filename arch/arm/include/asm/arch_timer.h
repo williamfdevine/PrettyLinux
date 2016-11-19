@@ -20,23 +20,30 @@ int arch_timer_arch_init(void);
 static __always_inline
 void arch_timer_reg_write_cp15(int access, enum arch_timer_reg reg, u32 val)
 {
-	if (access == ARCH_TIMER_PHYS_ACCESS) {
-		switch (reg) {
-		case ARCH_TIMER_REG_CTRL:
-			asm volatile("mcr p15, 0, %0, c14, c2, 1" : : "r" (val));
-			break;
-		case ARCH_TIMER_REG_TVAL:
-			asm volatile("mcr p15, 0, %0, c14, c2, 0" : : "r" (val));
-			break;
+	if (access == ARCH_TIMER_PHYS_ACCESS)
+	{
+		switch (reg)
+		{
+			case ARCH_TIMER_REG_CTRL:
+				asm volatile("mcr p15, 0, %0, c14, c2, 1" : : "r" (val));
+				break;
+
+			case ARCH_TIMER_REG_TVAL:
+				asm volatile("mcr p15, 0, %0, c14, c2, 0" : : "r" (val));
+				break;
 		}
-	} else if (access == ARCH_TIMER_VIRT_ACCESS) {
-		switch (reg) {
-		case ARCH_TIMER_REG_CTRL:
-			asm volatile("mcr p15, 0, %0, c14, c3, 1" : : "r" (val));
-			break;
-		case ARCH_TIMER_REG_TVAL:
-			asm volatile("mcr p15, 0, %0, c14, c3, 0" : : "r" (val));
-			break;
+	}
+	else if (access == ARCH_TIMER_VIRT_ACCESS)
+	{
+		switch (reg)
+		{
+			case ARCH_TIMER_REG_CTRL:
+				asm volatile("mcr p15, 0, %0, c14, c3, 1" : : "r" (val));
+				break;
+
+			case ARCH_TIMER_REG_TVAL:
+				asm volatile("mcr p15, 0, %0, c14, c3, 0" : : "r" (val));
+				break;
 		}
 	}
 
@@ -48,23 +55,30 @@ u32 arch_timer_reg_read_cp15(int access, enum arch_timer_reg reg)
 {
 	u32 val = 0;
 
-	if (access == ARCH_TIMER_PHYS_ACCESS) {
-		switch (reg) {
-		case ARCH_TIMER_REG_CTRL:
-			asm volatile("mrc p15, 0, %0, c14, c2, 1" : "=r" (val));
-			break;
-		case ARCH_TIMER_REG_TVAL:
-			asm volatile("mrc p15, 0, %0, c14, c2, 0" : "=r" (val));
-			break;
+	if (access == ARCH_TIMER_PHYS_ACCESS)
+	{
+		switch (reg)
+		{
+			case ARCH_TIMER_REG_CTRL:
+				asm volatile("mrc p15, 0, %0, c14, c2, 1" : "=r" (val));
+				break;
+
+			case ARCH_TIMER_REG_TVAL:
+				asm volatile("mrc p15, 0, %0, c14, c2, 0" : "=r" (val));
+				break;
 		}
-	} else if (access == ARCH_TIMER_VIRT_ACCESS) {
-		switch (reg) {
-		case ARCH_TIMER_REG_CTRL:
-			asm volatile("mrc p15, 0, %0, c14, c3, 1" : "=r" (val));
-			break;
-		case ARCH_TIMER_REG_TVAL:
-			asm volatile("mrc p15, 0, %0, c14, c3, 0" : "=r" (val));
-			break;
+	}
+	else if (access == ARCH_TIMER_VIRT_ACCESS)
+	{
+		switch (reg)
+		{
+			case ARCH_TIMER_REG_CTRL:
+				asm volatile("mrc p15, 0, %0, c14, c3, 1" : "=r" (val));
+				break;
+
+			case ARCH_TIMER_REG_TVAL:
+				asm volatile("mrc p15, 0, %0, c14, c3, 0" : "=r" (val));
+				break;
 		}
 	}
 

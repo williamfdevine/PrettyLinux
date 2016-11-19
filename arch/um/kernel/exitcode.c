@@ -37,25 +37,32 @@ static int exitcode_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t exitcode_proc_write(struct file *file,
-		const char __user *buffer, size_t count, loff_t *pos)
+								   const char __user *buffer, size_t count, loff_t *pos)
 {
 	char *end, buf[sizeof("nnnnn\0")];
 	size_t size;
 	int tmp;
 
 	size = min(count, sizeof(buf));
+
 	if (copy_from_user(buf, buffer, size))
+	{
 		return -EFAULT;
+	}
 
 	tmp = simple_strtol(buf, &end, 0);
+
 	if ((*end != '\0') && !isspace(*end))
+	{
 		return -EINVAL;
+	}
 
 	uml_exitcode = tmp;
 	return count;
 }
 
-static const struct file_operations exitcode_proc_fops = {
+static const struct file_operations exitcode_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= exitcode_proc_open,
 	.read		= seq_read,
@@ -69,11 +76,14 @@ static int make_proc_exitcode(void)
 	struct proc_dir_entry *ent;
 
 	ent = proc_create("exitcode", 0600, NULL, &exitcode_proc_fops);
-	if (ent == NULL) {
+
+	if (ent == NULL)
+	{
 		printk(KERN_WARNING "make_proc_exitcode : Failed to register "
-		       "/proc/exitcode\n");
+			   "/proc/exitcode\n");
 		return 0;
 	}
+
 	return 0;
 }
 

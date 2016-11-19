@@ -26,7 +26,8 @@
 #include "kirkwood-pm.h"
 #include "common.h"
 
-static struct resource kirkwood_cpufreq_resources[] = {
+static struct resource kirkwood_cpufreq_resources[] =
+{
 	[0] = {
 		.start  = CPU_CONTROL_PHYS,
 		.end    = CPU_CONTROL_PHYS + 3,
@@ -34,7 +35,8 @@ static struct resource kirkwood_cpufreq_resources[] = {
 	},
 };
 
-static struct platform_device kirkwood_cpufreq_device = {
+static struct platform_device kirkwood_cpufreq_device =
+{
 	.name		= "kirkwood-cpufreq",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(kirkwood_cpufreq_resources),
@@ -46,7 +48,8 @@ static void __init kirkwood_cpufreq_init(void)
 	platform_device_register(&kirkwood_cpufreq_device);
 }
 
-static struct resource kirkwood_cpuidle_resource[] = {
+static struct resource kirkwood_cpuidle_resource[] =
+{
 	{
 		.flags	= IORESOURCE_MEM,
 		.start	= DDR_OPERATION_BASE,
@@ -54,7 +57,8 @@ static struct resource kirkwood_cpuidle_resource[] = {
 	},
 };
 
-static struct platform_device kirkwood_cpuidle = {
+static struct platform_device kirkwood_cpuidle =
+{
 	.name		= "kirkwood_cpuidle",
 	.id		= -1,
 	.resource	= kirkwood_cpuidle_resource,
@@ -80,7 +84,8 @@ static void __init kirkwood_dt_eth_fixup(void)
 	 * As a workaround, we get the MAC address from mv643xx_eth registers
 	 * and update the port device node if no valid MAC address is set.
 	 */
-	for_each_compatible_node(np, NULL, "marvell,kirkwood-eth-port") {
+	for_each_compatible_node(np, NULL, "marvell,kirkwood-eth-port")
+	{
 		struct device_node *pnp = of_get_parent(np);
 		struct clk *clk;
 		struct property *pmac;
@@ -89,35 +94,50 @@ static void __init kirkwood_dt_eth_fixup(void)
 		u32 reg;
 
 		if (!pnp)
+		{
 			continue;
+		}
 
 		/* skip disabled nodes or nodes with valid MAC address*/
 		if (!of_device_is_available(pnp) || of_get_mac_address(np))
+		{
 			goto eth_fixup_skip;
+		}
 
 		clk = of_clk_get(pnp, 0);
+
 		if (IS_ERR(clk))
+		{
 			goto eth_fixup_skip;
+		}
 
 		io = of_iomap(pnp, 0);
+
 		if (!io)
+		{
 			goto eth_fixup_no_map;
+		}
 
 		/* ensure port clock is not gated to not hang CPU */
 		clk_prepare_enable(clk);
 
 		/* store MAC address register contents in local-mac-address */
 		pr_err(FW_INFO "%s: local-mac-address is not set\n",
-		       np->full_name);
+			   np->full_name);
 
 		pmac = kzalloc(sizeof(*pmac) + 6, GFP_KERNEL);
+
 		if (!pmac)
+		{
 			goto eth_fixup_no_mem;
+		}
 
 		pmac->value = pmac + 1;
 		pmac->length = 6;
 		pmac->name = kstrdup("local-mac-address", GFP_KERNEL);
-		if (!pmac->name) {
+
+		if (!pmac->name)
+		{
 			kfree(pmac);
 			goto eth_fixup_no_mem;
 		}
@@ -158,9 +178,10 @@ static void kirkwood_disable_mbus_error_propagation(void)
 	writel(readl(cpu_config) & ~CPU_CONFIG_ERROR_PROP, cpu_config);
 }
 
-static struct of_dev_auxdata auxdata[] __initdata = {
+static struct of_dev_auxdata auxdata[] __initdata =
+{
 	OF_DEV_AUXDATA("marvell,kirkwood-audio", 0xf10a0000,
-		       "mvebu-audio", NULL),
+	"mvebu-audio", NULL),
 	{ /* sentinel */ }
 };
 
@@ -182,14 +203,15 @@ static void __init kirkwood_dt_init(void)
 	of_platform_default_populate(NULL, auxdata, NULL);
 }
 
-static const char * const kirkwood_dt_board_compat[] __initconst = {
+static const char *const kirkwood_dt_board_compat[] __initconst =
+{
 	"marvell,kirkwood",
 	NULL
 };
 
 DT_MACHINE_START(KIRKWOOD_DT, "Marvell Kirkwood (Flattened Device Tree)")
-	/* Maintainer: Jason Cooper <jason@lakedaemon.net> */
-	.init_machine	= kirkwood_dt_init,
-	.restart	= mvebu_restart,
-	.dt_compat	= kirkwood_dt_board_compat,
-MACHINE_END
+/* Maintainer: Jason Cooper <jason@lakedaemon.net> */
+.init_machine	= kirkwood_dt_init,
+   .restart	= mvebu_restart,
+	   .dt_compat	= kirkwood_dt_board_compat,
+		 MACHINE_END

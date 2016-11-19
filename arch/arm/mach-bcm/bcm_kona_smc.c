@@ -24,7 +24,8 @@
 static u32		bcm_smc_buffer_phys;	/* physical address */
 static void __iomem	*bcm_smc_buffer;	/* virtual address */
 
-struct bcm_kona_smc_data {
+struct bcm_kona_smc_data
+{
 	unsigned service_id;
 	unsigned arg0;
 	unsigned arg1;
@@ -33,7 +34,8 @@ struct bcm_kona_smc_data {
 	unsigned result;
 };
 
-static const struct of_device_id const bcm_kona_smc_ids[] __initconst = {
+static const struct of_device_id const bcm_kona_smc_ids[] __initconst =
+{
 	{.compatible = "brcm,kona-smc"},
 	{.compatible = "bcm,kona-smc"}, /* deprecated name */
 	{},
@@ -50,25 +52,41 @@ int __init bcm_kona_smc_init(void)
 
 	/* Read buffer addr and size from the device tree node */
 	node = of_find_matching_node(NULL, bcm_kona_smc_ids);
+
 	if (!node)
+	{
 		return -ENODEV;
+	}
 
 	prop_val = of_get_address(node, 0, &prop_size, NULL);
+
 	if (!prop_val)
+	{
 		return -EINVAL;
+	}
 
 	/* We assume space for four 32-bit arguments */
 	if (prop_size < 4 * sizeof(u32) || prop_size > (u64)ULONG_MAX)
+	{
 		return -EINVAL;
+	}
+
 	buffer_size = (unsigned long)prop_size;
 
 	buffer_phys = be32_to_cpup(prop_val);
+
 	if (!buffer_phys)
+	{
 		return -EINVAL;
+	}
 
 	bcm_smc_buffer = ioremap(buffer_phys, buffer_size);
+
 	if (!bcm_smc_buffer)
+	{
 		return -ENOMEM;
+	}
+
 	bcm_smc_buffer_phys = buffer_phys;
 
 	pr_info("Kona Secure API initialized\n");
@@ -161,7 +179,7 @@ static void __bcm_kona_smc(void *info)
 }
 
 unsigned bcm_kona_smc(unsigned service_id, unsigned arg0, unsigned arg1,
-		  unsigned arg2, unsigned arg3)
+					  unsigned arg2, unsigned arg3)
 {
 	struct bcm_kona_smc_data data;
 

@@ -95,9 +95,9 @@
 #define nlm_write_uart_reg(b, r, v)	nlm_write_reg(b, r, v)
 #define nlm_get_uart_pcibase(node, inst)	\
 	nlm_pcicfg_base(cpu_is_xlp9xx() ?  XLP9XX_IO_UART_OFFSET(node) : \
-						XLP_IO_UART_OFFSET(node, inst))
+					XLP_IO_UART_OFFSET(node, inst))
 #define nlm_get_uart_regbase(node, inst)	\
-			(nlm_get_uart_pcibase(node, inst) + XLP_IO_PCI_HDRSZ)
+	(nlm_get_uart_pcibase(node, inst) + XLP_IO_PCI_HDRSZ)
 
 static inline void
 nlm_uart_set_baudrate(uint64_t base, int baud)
@@ -109,9 +109,9 @@ nlm_uart_set_baudrate(uint64_t base, int baud)
 	/* enable divisor register, and write baud values */
 	nlm_write_uart_reg(base, UART_LINE_CTL, lcr | (1 << 7));
 	nlm_write_uart_reg(base, UART_DIVISOR0,
-			(BAUD_DIVISOR(baud) & 0xff));
+					   (BAUD_DIVISOR(baud) & 0xff));
 	nlm_write_uart_reg(base, UART_DIVISOR1,
-			((BAUD_DIVISOR(baud) >> 8) & 0xff));
+					   ((BAUD_DIVISOR(baud) >> 8) & 0xff));
 
 	/* restore default lcr */
 	nlm_write_uart_reg(base, UART_LINE_CTL, lcr);
@@ -122,10 +122,14 @@ nlm_uart_outbyte(uint64_t base, char c)
 {
 	uint32_t lsr;
 
-	for (;;) {
+	for (;;)
+	{
 		lsr = nlm_read_uart_reg(base, UART_LINE_STS);
+
 		if (lsr & 0x20)
+		{
 			break;
+		}
 	}
 
 	nlm_write_uart_reg(base, UART_TX_DATA, (int)c);
@@ -136,13 +140,18 @@ nlm_uart_inbyte(uint64_t base)
 {
 	int data, lsr;
 
-	for (;;) {
+	for (;;)
+	{
 		lsr = nlm_read_uart_reg(base, UART_LINE_STS);
-		if (lsr & 0x80) { /* parity/frame/break-error - push a zero */
+
+		if (lsr & 0x80)   /* parity/frame/break-error - push a zero */
+		{
 			data = 0;
 			break;
 		}
-		if (lsr & 0x01) {	/* Rx data */
+
+		if (lsr & 0x01)  	/* Rx data */
+		{
 			data = nlm_read_uart_reg(base, UART_RX_DATA);
 			break;
 		}
@@ -153,22 +162,33 @@ nlm_uart_inbyte(uint64_t base)
 
 static inline int
 nlm_uart_init(uint64_t base, int baud, int databits, int stopbits,
-	int parity, int int_en, int loopback)
+			  int parity, int int_en, int loopback)
 {
 	uint32_t lcr;
 
 	lcr = 0;
+
 	if (databits >= 8)
+	{
 		lcr |= LCR_8BITS;
+	}
 	else if (databits == 7)
+	{
 		lcr |= LCR_7BITS;
+	}
 	else if (databits == 6)
+	{
 		lcr |= LCR_6BITS;
+	}
 	else
+	{
 		lcr |= LCR_5BITS;
+	}
 
 	if (stopbits > 1)
+	{
 		lcr |= LCR_STOPB;
+	}
 
 	lcr |= parity << 3;
 
@@ -181,10 +201,14 @@ nlm_uart_init(uint64_t base, int baud, int databits, int stopbits,
 	nlm_uart_set_baudrate(base, baud);
 
 	if (loopback)
+	{
 		nlm_write_uart_reg(base, UART_MODEM_CTL, 0x1f);
+	}
 
 	if (int_en)
+	{
 		nlm_write_uart_reg(base, UART_INT_EN, IER_ERXRDY | IER_ETXRDY);
+	}
 
 	return 0;
 }

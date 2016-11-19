@@ -10,28 +10,30 @@
 #include <linux/ptrace.h>
 #include <asm/switch_to.h>
 
-enum stack_type {
+enum stack_type
+{
 	STACK_TYPE_UNKNOWN,
 	STACK_TYPE_TASK,
 	STACK_TYPE_IRQ,
 	STACK_TYPE_SOFTIRQ,
 	STACK_TYPE_EXCEPTION,
-	STACK_TYPE_EXCEPTION_LAST = STACK_TYPE_EXCEPTION + N_EXCEPTION_STACKS-1,
+	STACK_TYPE_EXCEPTION_LAST = STACK_TYPE_EXCEPTION + N_EXCEPTION_STACKS - 1,
 };
 
-struct stack_info {
+struct stack_info
+{
 	enum stack_type type;
 	unsigned long *begin, *end, *next_sp;
 };
 
 bool in_task_stack(unsigned long *stack, struct task_struct *task,
-		   struct stack_info *info);
+				   struct stack_info *info);
 
 int get_stack_info(unsigned long *stack, struct task_struct *task,
-		   struct stack_info *info, unsigned long *visit_mask);
+				   struct stack_info *info, unsigned long *visit_mask);
 
 void stack_type_str(enum stack_type type, const char **begin,
-		    const char **end);
+					const char **end);
 
 static inline bool on_stack(struct stack_info *info, void *addr, size_t len)
 {
@@ -39,16 +41,16 @@ static inline bool on_stack(struct stack_info *info, void *addr, size_t len)
 	void *end   = info->end;
 
 	return (info->type != STACK_TYPE_UNKNOWN &&
-		addr >= begin && addr < end &&
-		addr + len > begin && addr + len <= end);
+			addr >= begin && addr < end &&
+			addr + len > begin && addr + len <= end);
 }
 
 extern int kstack_depth_to_print;
 
 #ifdef CONFIG_X86_32
-#define STACKSLOTS_PER_LINE 8
+	#define STACKSLOTS_PER_LINE 8
 #else
-#define STACKSLOTS_PER_LINE 4
+	#define STACKSLOTS_PER_LINE 4
 #endif
 
 #ifdef CONFIG_FRAME_POINTER
@@ -56,10 +58,14 @@ static inline unsigned long *
 get_frame_pointer(struct task_struct *task, struct pt_regs *regs)
 {
 	if (regs)
+	{
 		return (unsigned long *)regs->bp;
+	}
 
 	if (task == current)
+	{
 		return __builtin_frame_address(0);
+	}
 
 	return (unsigned long *)((struct inactive_task_frame *)task->thread.sp)->bp;
 }
@@ -75,31 +81,37 @@ static inline unsigned long *
 get_stack_pointer(struct task_struct *task, struct pt_regs *regs)
 {
 	if (regs)
+	{
 		return (unsigned long *)kernel_stack_pointer(regs);
+	}
 
 	if (task == current)
+	{
 		return __builtin_frame_address(0);
+	}
 
 	return (unsigned long *)task->thread.sp;
 }
 
 void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
-			unsigned long *stack, char *log_lvl);
+						unsigned long *stack, char *log_lvl);
 
 void show_stack_log_lvl(struct task_struct *task, struct pt_regs *regs,
-			unsigned long *sp, char *log_lvl);
+						unsigned long *sp, char *log_lvl);
 
 extern unsigned int code_bytes;
 
 /* The form of the top of the frame on the stack */
-struct stack_frame {
+struct stack_frame
+{
 	struct stack_frame *next_frame;
 	unsigned long return_address;
 };
 
-struct stack_frame_ia32 {
-    u32 next_frame;
-    u32 return_address;
+struct stack_frame_ia32
+{
+	u32 next_frame;
+	u32 return_address;
 };
 
 static inline unsigned long caller_frame_pointer(void)

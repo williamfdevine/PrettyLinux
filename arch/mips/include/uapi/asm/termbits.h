@@ -21,7 +21,8 @@ typedef unsigned int tcflag_t;
  * replacement for it in struct termio
  */
 #define NCCS	23
-struct termios {
+struct termios
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
@@ -30,7 +31,8 @@ struct termios {
 	cc_t c_cc[NCCS];		/* control characters */
 };
 
-struct termios2 {
+struct termios2
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
@@ -41,7 +43,8 @@ struct termios2 {
 	speed_t c_ospeed;		/* output speed */
 };
 
-struct ktermios {
+struct ktermios
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
@@ -66,10 +69,10 @@ struct ktermios {
 #define VSTOP		 9		/* Stop (X-OFF) character [IXON, IXOFF].  */
 #define VSUSP		10		/* Suspend character [ISIG].  */
 #if 0
-/*
- * VDSUSP is not supported
- */
-#define VDSUSP		11		/* Delayed suspend character [ISIG].  */
+	/*
+	* VDSUSP is not supported
+	*/
+	#define VDSUSP		11		/* Delayed suspend character [ISIG].  */
 #endif
 #define VREPRINT	12		/* Reprint-line character [ICANON].  */
 #define VDISCARD	13		/* Discard character [IEXTEN].	*/

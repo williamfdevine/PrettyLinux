@@ -76,18 +76,19 @@
 #define SMSC_CONFIG_REGISTERS	8
 
 #define SMSC_SUPERIO_READ_INDEXED(index) ({ \
-	outb((index), SMSC_INDEX_PORT_ADDR); \
-	inb(SMSC_DATA_PORT_ADDR); })
+		outb((index), SMSC_INDEX_PORT_ADDR); \
+		inb(SMSC_DATA_PORT_ADDR); })
 #define SMSC_SUPERIO_WRITE_INDEXED(val, index) ({ \
-	outb((index), SMSC_INDEX_PORT_ADDR); \
-	outb((val),   SMSC_DATA_PORT_ADDR); })
+		outb((index), SMSC_INDEX_PORT_ADDR); \
+		outb((val),   SMSC_DATA_PORT_ADDR); })
 
 #define IDE1_PRIMARY_BASE	0x01f0
 #define IDE1_SECONDARY_BASE	0x03f6
 
 unsigned long smsc_superio_virt;
 
-int platform_int_priority[NR_INTC_IRQS] = {
+int platform_int_priority[NR_INTC_IRQS] =
+{
 	IR0, IR1, IR2, IR3, PCA, PCB, PCC, PCD,	/* IRQ  0- 7 */
 	RES, RES, RES, RES, SER, ERR, PW3, PW2,	/* IRQ  8-15 */
 	PW1, PW0, DM0, DM1, DM2, DM3, DAE, RES,	/* IRQ 16-23 */
@@ -103,7 +104,9 @@ static int __init smsc_superio_setup(void)
 	unsigned char devid, devrev;
 
 	smsc_superio_virt = (unsigned long)ioremap_nocache(SMSC_SUPERIO_BASE, 1024);
-	if (!smsc_superio_virt) {
+
+	if (!smsc_superio_virt)
+	{
 		panic("Unable to remap SMSC SuperIO\n");
 	}
 
@@ -140,19 +143,19 @@ static int __init smsc_superio_setup(void)
 	SMSC_SUPERIO_WRITE_INDEXED(1, SMSC_ACTIVATE_INDEX);
 
 	SMSC_SUPERIO_WRITE_INDEXED(IDE1_PRIMARY_BASE >> 8,
-				   SMSC_PRIMARY_BASE_INDEX + 0);
+							   SMSC_PRIMARY_BASE_INDEX + 0);
 	SMSC_SUPERIO_WRITE_INDEXED(IDE1_PRIMARY_BASE & 0xff,
-				   SMSC_PRIMARY_BASE_INDEX + 1);
+							   SMSC_PRIMARY_BASE_INDEX + 1);
 
 	SMSC_SUPERIO_WRITE_INDEXED(IDE1_SECONDARY_BASE >> 8,
-				   SMSC_SECONDARY_BASE_INDEX + 0);
+							   SMSC_SECONDARY_BASE_INDEX + 0);
 	SMSC_SUPERIO_WRITE_INDEXED(IDE1_SECONDARY_BASE & 0xff,
-				   SMSC_SECONDARY_BASE_INDEX + 1);
+							   SMSC_SECONDARY_BASE_INDEX + 1);
 
 	SMSC_SUPERIO_WRITE_INDEXED(14, SMSC_PRIMARY_INT_INDEX);
 
 	SMSC_SUPERIO_WRITE_INDEXED(SMSC_CONFIG_REGISTERS,
-				   SMCS_LOGICAL_DEV_INDEX);
+							   SMCS_LOGICAL_DEV_INDEX);
 
 	SMSC_SUPERIO_WRITE_INDEXED(0x00, 0xc2); /* GP42 = nIDE1_OE */
 	SMSC_SUPERIO_WRITE_INDEXED(0x01, 0xc5); /* GP45 = IDE1_IRQ */
@@ -169,7 +172,8 @@ device_initcall(smsc_superio_setup);
 
 static void __iomem *cayman_ioport_map(unsigned long port, unsigned int len)
 {
-	if (port < 0x400) {
+	if (port < 0x400)
+	{
 		extern unsigned long smsc_superio_virt;
 		return (void __iomem *)((port << 2) | smsc_superio_virt);
 	}
@@ -179,7 +183,8 @@ static void __iomem *cayman_ioport_map(unsigned long port, unsigned int len)
 
 extern void init_cayman_irq(void);
 
-static struct sh_machine_vector mv_cayman __initmv = {
+static struct sh_machine_vector mv_cayman __initmv =
+{
 	.mv_name		= "Hitachi Cayman",
 	.mv_ioport_map		= cayman_ioport_map,
 	.mv_init_irq		= init_cayman_irq,

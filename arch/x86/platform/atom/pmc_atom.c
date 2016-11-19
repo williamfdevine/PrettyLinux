@@ -24,12 +24,14 @@
 
 #include <asm/pmc_atom.h>
 
-struct pmc_bit_map {
+struct pmc_bit_map
+{
 	const char *name;
 	u32 bit_mask;
 };
 
-struct pmc_reg_map {
+struct pmc_reg_map
+{
 	const struct pmc_bit_map *d3_sts_0;
 	const struct pmc_bit_map *d3_sts_1;
 	const struct pmc_bit_map *func_dis;
@@ -37,7 +39,8 @@ struct pmc_reg_map {
 	const struct pmc_bit_map *pss;
 };
 
-struct pmc_dev {
+struct pmc_dev
+{
 	u32 base_addr;
 	void __iomem *regmap;
 	const struct pmc_reg_map *map;
@@ -50,7 +53,8 @@ struct pmc_dev {
 static struct pmc_dev pmc_device;
 static u32 acpi_base_addr;
 
-static const struct pmc_bit_map d3_sts_0_map[] = {
+static const struct pmc_bit_map d3_sts_0_map[] =
+{
 	{"LPSS1_F0_DMA",	BIT_LPSS1_F0_DMA},
 	{"LPSS1_F1_PWM1",	BIT_LPSS1_F1_PWM1},
 	{"LPSS1_F2_PWM2",	BIT_LPSS1_F2_PWM2},
@@ -86,7 +90,8 @@ static const struct pmc_bit_map d3_sts_0_map[] = {
 	{},
 };
 
-static struct pmc_bit_map byt_d3_sts_1_map[] = {
+static struct pmc_bit_map byt_d3_sts_1_map[] =
+{
 	{"SMB",			BIT_SMB},
 	{"OTG_SS_PHY",		BIT_OTG_SS_PHY},
 	{"USH_SS_PHY",		BIT_USH_SS_PHY},
@@ -94,21 +99,24 @@ static struct pmc_bit_map byt_d3_sts_1_map[] = {
 	{},
 };
 
-static struct pmc_bit_map cht_d3_sts_1_map[] = {
+static struct pmc_bit_map cht_d3_sts_1_map[] =
+{
 	{"SMB",			BIT_SMB},
 	{"GMM",			BIT_STS_GMM},
 	{"ISH",			BIT_STS_ISH},
 	{},
 };
 
-static struct pmc_bit_map cht_func_dis_2_map[] = {
+static struct pmc_bit_map cht_func_dis_2_map[] =
+{
 	{"SMB",			BIT_SMB},
 	{"GMM",			BIT_FD_GMM},
 	{"ISH",			BIT_FD_ISH},
 	{},
 };
 
-static const struct pmc_bit_map byt_pss_map[] = {
+static const struct pmc_bit_map byt_pss_map[] =
+{
 	{"GBE",			PMC_PSS_BIT_GBE},
 	{"SATA",		PMC_PSS_BIT_SATA},
 	{"HDA",			PMC_PSS_BIT_HDA},
@@ -130,7 +138,8 @@ static const struct pmc_bit_map byt_pss_map[] = {
 	{},
 };
 
-static const struct pmc_bit_map cht_pss_map[] = {
+static const struct pmc_bit_map cht_pss_map[] =
+{
 	{"SATA",		PMC_PSS_BIT_SATA},
 	{"HDA",			PMC_PSS_BIT_HDA},
 	{"SEC",			PMC_PSS_BIT_SEC},
@@ -153,7 +162,8 @@ static const struct pmc_bit_map cht_pss_map[] = {
 	{},
 };
 
-static const struct pmc_reg_map byt_reg_map = {
+static const struct pmc_reg_map byt_reg_map =
+{
 	.d3_sts_0	= d3_sts_0_map,
 	.d3_sts_1	= byt_d3_sts_1_map,
 	.func_dis	= d3_sts_0_map,
@@ -161,7 +171,8 @@ static const struct pmc_reg_map byt_reg_map = {
 	.pss		= byt_pss_map,
 };
 
-static const struct pmc_reg_map cht_reg_map = {
+static const struct pmc_reg_map cht_reg_map =
+{
 	.d3_sts_0	= d3_sts_0_map,
 	.d3_sts_1	= cht_d3_sts_1_map,
 	.func_dis	= d3_sts_0_map,
@@ -184,7 +195,9 @@ int pmc_atom_read(int offset, u32 *value)
 	struct pmc_dev *pmc = &pmc_device;
 
 	if (!pmc->init)
+	{
 		return -ENODEV;
+	}
 
 	*value = pmc_reg_read(pmc, offset);
 	return 0;
@@ -196,7 +209,9 @@ int pmc_atom_write(int offset, u32 value)
 	struct pmc_dev *pmc = &pmc_device;
 
 	if (!pmc->init)
+	{
 		return -ENODEV;
+	}
 
 	pmc_reg_write(pmc, offset, value);
 	return 0;
@@ -235,17 +250,18 @@ static void pmc_hw_reg_setup(struct pmc_dev *pmc)
 
 #ifdef CONFIG_DEBUG_FS
 static void pmc_dev_state_print(struct seq_file *s, int reg_index,
-				u32 sts, const struct pmc_bit_map *sts_map,
-				u32 fd, const struct pmc_bit_map *fd_map)
+								u32 sts, const struct pmc_bit_map *sts_map,
+								u32 fd, const struct pmc_bit_map *fd_map)
 {
 	int offset = PMC_REG_BIT_WIDTH * reg_index;
 	int index;
 
-	for (index = 0; sts_map[index].name; index++) {
+	for (index = 0; sts_map[index].name; index++)
+	{
 		seq_printf(s, "Dev: %-2d - %-32s\tState: %s [%s]\n",
-			offset + index, sts_map[index].name,
-			fd_map[index].bit_mask & fd ?  "Disabled" : "Enabled ",
-			sts_map[index].bit_mask & sts ?  "D3" : "D0");
+				   offset + index, sts_map[index].name,
+				   fd_map[index].bit_mask & fd ?  "Disabled" : "Enabled ",
+				   sts_map[index].bit_mask & sts ?  "D3" : "D0");
 	}
 }
 
@@ -275,7 +291,8 @@ static int pmc_dev_state_open(struct inode *inode, struct file *file)
 	return single_open(file, pmc_dev_state_show, inode->i_private);
 }
 
-static const struct file_operations pmc_dev_state_ops = {
+static const struct file_operations pmc_dev_state_ops =
+{
 	.open		= pmc_dev_state_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -289,11 +306,13 @@ static int pmc_pss_state_show(struct seq_file *s, void *unused)
 	u32 pss = pmc_reg_read(pmc, PMC_PSS);
 	int index;
 
-	for (index = 0; map[index].name; index++) {
+	for (index = 0; map[index].name; index++)
+	{
 		seq_printf(s, "Island: %-2d - %-32s\tState: %s\n",
-			index, map[index].name,
-			map[index].bit_mask & pss ? "Off" : "On");
+				   index, map[index].name,
+				   map[index].bit_mask & pss ? "Off" : "On");
 	}
+
 	return 0;
 }
 
@@ -302,7 +321,8 @@ static int pmc_pss_state_open(struct inode *inode, struct file *file)
 	return single_open(file, pmc_pss_state_show, inode->i_private);
 }
 
-static const struct file_operations pmc_pss_state_ops = {
+static const struct file_operations pmc_pss_state_ops =
+{
 	.open		= pmc_pss_state_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -333,7 +353,8 @@ static int pmc_sleep_tmr_open(struct inode *inode, struct file *file)
 	return single_open(file, pmc_sleep_tmr_show, inode->i_private);
 }
 
-static const struct file_operations pmc_sleep_tmr_ops = {
+static const struct file_operations pmc_sleep_tmr_ops =
+{
 	.open		= pmc_sleep_tmr_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -350,25 +371,37 @@ static int pmc_dbgfs_register(struct pmc_dev *pmc)
 	struct dentry *dir, *f;
 
 	dir = debugfs_create_dir("pmc_atom", NULL);
+
 	if (!dir)
+	{
 		return -ENOMEM;
+	}
 
 	pmc->dbgfs_dir = dir;
 
 	f = debugfs_create_file("dev_state", S_IFREG | S_IRUGO,
-				dir, pmc, &pmc_dev_state_ops);
+							dir, pmc, &pmc_dev_state_ops);
+
 	if (!f)
+	{
 		goto err;
+	}
 
 	f = debugfs_create_file("pss_state", S_IFREG | S_IRUGO,
-				dir, pmc, &pmc_pss_state_ops);
+							dir, pmc, &pmc_pss_state_ops);
+
 	if (!f)
+	{
 		goto err;
+	}
 
 	f = debugfs_create_file("sleep_state", S_IFREG | S_IRUGO,
-				dir, pmc, &pmc_sleep_tmr_ops);
+							dir, pmc, &pmc_sleep_tmr_ops);
+
 	if (!f)
+	{
 		goto err;
+	}
 
 	return 0;
 err:
@@ -394,13 +427,17 @@ static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* Install power off function */
 	if (acpi_base_addr != 0 && pm_power_off == NULL)
+	{
 		pm_power_off = pmc_power_off;
+	}
 
 	pci_read_config_dword(pdev, PMC_BASE_ADDR_OFFSET, &pmc->base_addr);
 	pmc->base_addr &= PMC_BASE_ADDR_MASK;
 
 	pmc->regmap = ioremap_nocache(pmc->base_addr, PMC_MMIO_REG_LEN);
-	if (!pmc->regmap) {
+
+	if (!pmc->regmap)
+	{
 		dev_err(&pdev->dev, "error: ioremap failed\n");
 		return -ENOMEM;
 	}
@@ -411,8 +448,11 @@ static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pmc_hw_reg_setup(pmc);
 
 	ret = pmc_dbgfs_register(pmc);
+
 	if (ret)
+	{
 		dev_warn(&pdev->dev, "debugfs register failed\n");
+	}
 
 	pmc->init = true;
 	return ret;
@@ -423,9 +463,10 @@ static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
  *
  * used by pci_match_id() call below.
  */
-static const struct pci_device_id pmc_pci_ids[] = {
-	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_VLV_PMC), (kernel_ulong_t)&byt_reg_map },
-	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_CHT_PMC), (kernel_ulong_t)&cht_reg_map },
+static const struct pci_device_id pmc_pci_ids[] =
+{
+	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_VLV_PMC), (kernel_ulong_t) &byt_reg_map },
+	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_CHT_PMC), (kernel_ulong_t) &cht_reg_map },
 	{ 0, },
 };
 
@@ -442,10 +483,14 @@ static int __init pmc_atom_init(void)
 	 * main driver that binds to the pci_device is lpc_ich
 	 * and have to find & bind to the device this way.
 	 */
-	for_each_pci_dev(pdev) {
+	for_each_pci_dev(pdev)
+	{
 		ent = pci_match_id(pmc_pci_ids, pdev);
+
 		if (ent)
+		{
 			return pmc_setup_dev(pdev, ent);
+		}
 	}
 	/* Device not found. */
 	return -ENODEV;

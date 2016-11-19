@@ -25,13 +25,15 @@
 #include "common.h"
 #include "orion5x.h"
 
-static struct mv643xx_eth_platform_data rd88f6183ap_ge_eth_data = {
+static struct mv643xx_eth_platform_data rd88f6183ap_ge_eth_data =
+{
 	.phy_addr	= -1,
 	.speed		= SPEED_1000,
 	.duplex		= DUPLEX_FULL,
 };
 
-static struct dsa_chip_data rd88f6183ap_ge_switch_chip_data = {
+static struct dsa_chip_data rd88f6183ap_ge_switch_chip_data =
+{
 	.port_names[0]	= "lan1",
 	.port_names[1]	= "lan2",
 	.port_names[2]	= "lan3",
@@ -40,12 +42,14 @@ static struct dsa_chip_data rd88f6183ap_ge_switch_chip_data = {
 	.port_names[5]	= "cpu",
 };
 
-static struct dsa_platform_data __initdata rd88f6183ap_ge_switch_plat_data = {
+static struct dsa_platform_data __initdata rd88f6183ap_ge_switch_plat_data =
+{
 	.nr_chips	= 1,
 	.chip		= &rd88f6183ap_ge_switch_chip_data,
 };
 
-static struct mtd_partition rd88f6183ap_ge_partitions[] = {
+static struct mtd_partition rd88f6183ap_ge_partitions[] =
+{
 	{
 		.name	= "kernel",
 		.offset	= 0x00000000,
@@ -61,13 +65,15 @@ static struct mtd_partition rd88f6183ap_ge_partitions[] = {
 	},
 };
 
-static struct flash_platform_data rd88f6183ap_ge_spi_slave_data = {
+static struct flash_platform_data rd88f6183ap_ge_spi_slave_data =
+{
 	.type		= "m25p64",
 	.nr_parts	= ARRAY_SIZE(rd88f6183ap_ge_partitions),
 	.parts		= rd88f6183ap_ge_partitions,
 };
 
-static struct spi_board_info __initdata rd88f6183ap_ge_spi_slave_info[] = {
+static struct spi_board_info __initdata rd88f6183ap_ge_spi_slave_info[] =
+{
 	{
 		.modalias	= "m25p80",
 		.platform_data	= &rd88f6183ap_ge_spi_slave_data,
@@ -91,12 +97,13 @@ static void __init rd88f6183ap_ge_init(void)
 	orion5x_eth_init(&rd88f6183ap_ge_eth_data);
 	orion5x_eth_switch_init(&rd88f6183ap_ge_switch_plat_data);
 	spi_register_board_info(rd88f6183ap_ge_spi_slave_info,
-				ARRAY_SIZE(rd88f6183ap_ge_spi_slave_info));
+							ARRAY_SIZE(rd88f6183ap_ge_spi_slave_info));
 	orion5x_spi_init();
 	orion5x_uart0_init();
 }
 
-static struct hw_pci rd88f6183ap_ge_pci __initdata = {
+static struct hw_pci rd88f6183ap_ge_pci __initdata =
+{
 	.nr_controllers	= 2,
 	.setup		= orion5x_pci_sys_setup,
 	.scan		= orion5x_pci_sys_scan_bus,
@@ -105,7 +112,8 @@ static struct hw_pci rd88f6183ap_ge_pci __initdata = {
 
 static int __init rd88f6183ap_ge_pci_init(void)
 {
-	if (machine_is_rd88f6183ap_ge()) {
+	if (machine_is_rd88f6183ap_ge())
+	{
 		orion5x_pci_disable();
 		pci_common_init(&rd88f6183ap_ge_pci);
 	}
@@ -115,14 +123,14 @@ static int __init rd88f6183ap_ge_pci_init(void)
 subsys_initcall(rd88f6183ap_ge_pci_init);
 
 MACHINE_START(RD88F6183AP_GE, "Marvell Orion-1-90 AP GE Reference Design")
-	/* Maintainer: Lennert Buytenhek <buytenh@marvell.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Lennert Buytenhek <buytenh@marvell.com> */
+.atag_offset	= 0x100,
 	.nr_irqs	= ORION5X_NR_IRQS,
-	.init_machine	= rd88f6183ap_ge_init,
-	.map_io		= orion5x_map_io,
-	.init_early	= orion5x_init_early,
-	.init_irq	= orion5x_init_irq,
-	.init_time	= orion5x_timer_init,
-	.fixup		= tag_fixup_mem32,
-	.restart	= orion5x_restart,
-MACHINE_END
+		.init_machine	= rd88f6183ap_ge_init,
+		   .map_io		= orion5x_map_io,
+			   .init_early	= orion5x_init_early,
+				.init_irq	= orion5x_init_irq,
+				   .init_time	= orion5x_timer_init,
+					 .fixup		= tag_fixup_mem32,
+						  .restart	= orion5x_restart,
+							  MACHINE_END

@@ -13,7 +13,8 @@
 #define _ASM_KDEBUG_H
 
 /* Grossly misnamed. */
-enum die_val {
+enum die_val
+{
 	DIE_OOPS = 1,
 	DIE_BREAKPOINT,
 	DIE_GPF,

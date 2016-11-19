@@ -21,7 +21,7 @@
 #include <linux/slab.h>
 #include <asm/processor.h>
 
-extern void sh_backtrace(struct pt_regs * const regs, unsigned int depth);
+extern void sh_backtrace(struct pt_regs *const regs, unsigned int depth);
 
 #ifdef CONFIG_HW_PERF_EVENTS
 /*
@@ -39,12 +39,17 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
 	ops->backtrace = sh_backtrace;
 
 	if (perf_num_counters() == 0)
+	{
 		return -ENODEV;
+	}
 
 	sh_pmu_op_name = kasprintf(GFP_KERNEL, "%s/%s",
-				   UTS_MACHINE, perf_pmu_name());
+							   UTS_MACHINE, perf_pmu_name());
+
 	if (unlikely(!sh_pmu_op_name))
+	{
 		return -ENOMEM;
+	}
 
 	return oprofile_perf_init(ops);
 }

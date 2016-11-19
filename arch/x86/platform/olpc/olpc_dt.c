@@ -30,10 +30,14 @@ static phandle __init olpc_dt_getsibling(phandle node)
 	void *res[] = { &node };
 
 	if ((s32)node == -1)
+	{
 		return 0;
+	}
 
 	if (olpc_ofw("peer", args, res) || (s32)node == -1)
+	{
 		return 0;
+	}
 
 	return node;
 }
@@ -44,9 +48,12 @@ static phandle __init olpc_dt_getchild(phandle node)
 	void *res[] = { &node };
 
 	if ((s32)node == -1)
+	{
 		return 0;
+	}
 
-	if (olpc_ofw("child", args, res) || (s32)node == -1) {
+	if (olpc_ofw("child", args, res) || (s32)node == -1)
+	{
 		pr_err("PROM: %s: fetching child failed!\n", __func__);
 		return 0;
 	}
@@ -61,9 +68,12 @@ static int __init olpc_dt_getproplen(phandle node, const char *prop)
 	void *res[] = { &len };
 
 	if ((s32)node == -1)
+	{
 		return -1;
+	}
 
-	if (olpc_ofw("getproplen", args, res)) {
+	if (olpc_ofw("getproplen", args, res))
+	{
 		pr_err("PROM: %s: getproplen failed!\n", __func__);
 		return -1;
 	}
@@ -72,18 +82,23 @@ static int __init olpc_dt_getproplen(phandle node, const char *prop)
 }
 
 static int __init olpc_dt_getproperty(phandle node, const char *prop,
-		char *buf, int bufsize)
+									  char *buf, int bufsize)
 {
 	int plen;
 
 	plen = olpc_dt_getproplen(node, prop);
-	if (plen > bufsize || plen < 1) {
+
+	if (plen > bufsize || plen < 1)
+	{
 		return -1;
-	} else {
+	}
+	else
+	{
 		const void *args[] = { (void *)node, prop, buf, (void *)plen };
 		void *res[] = { &plen };
 
-		if (olpc_ofw("getprop", args, res)) {
+		if (olpc_ofw("getprop", args, res))
+		{
 			pr_err("PROM: %s: getprop failed!\n", __func__);
 			return -1;
 		}
@@ -101,38 +116,47 @@ static int __init olpc_dt_nextprop(phandle node, char *prev, char *buf)
 	buf[0] = '\0';
 
 	if ((s32)node == -1)
+	{
 		return -1;
+	}
 
 	if (olpc_ofw("nextprop", args, res) || success != 1)
+	{
 		return -1;
+	}
 
 	return 0;
 }
 
 static int __init olpc_dt_pkg2path(phandle node, char *buf,
-		const int buflen, int *len)
+								   const int buflen, int *len)
 {
 	const void *args[] = { (void *)node, buf, (void *)buflen };
 	void *res[] = { len };
 
 	if ((s32)node == -1)
+	{
 		return -1;
+	}
 
 	if (olpc_ofw("package-to-path", args, res) || *len < 1)
+	{
 		return -1;
+	}
 
 	return 0;
 }
 
 static unsigned int prom_early_allocated __initdata;
 
-void * __init prom_early_alloc(unsigned long size)
+void *__init prom_early_alloc(unsigned long size)
 {
 	static u8 *mem;
 	static size_t free_mem;
 	void *res;
 
-	if (free_mem < size) {
+	if (free_mem < size)
+	{
 		const size_t chunk_size = max(PAGE_SIZE, size);
 
 		/*
@@ -156,7 +180,8 @@ void * __init prom_early_alloc(unsigned long size)
 	return res;
 }
 
-static struct of_pdt_ops prom_olpc_ops __initdata = {
+static struct of_pdt_ops prom_olpc_ops __initdata =
+{
 	.nextprop = olpc_dt_nextprop,
 	.getproplen = olpc_dt_getproplen,
 	.getproperty = olpc_dt_getproperty,
@@ -171,13 +196,16 @@ static phandle __init olpc_dt_finddevice(const char *path)
 	const void *args[] = { path };
 	void *res[] = { &node };
 
-	if (olpc_ofw("finddevice", args, res)) {
+	if (olpc_ofw("finddevice", args, res))
+	{
 		pr_err("olpc_dt: finddevice failed!\n");
 		return 0;
 	}
 
 	if ((s32) node == -1)
+	{
 		return 0;
+	}
 
 	return node;
 }
@@ -188,7 +216,8 @@ static int __init olpc_dt_interpret(const char *words)
 	const void *args[] = { words };
 	void *res[] = { &result };
 
-	if (olpc_ofw("interpret", args, res)) {
+	if (olpc_ofw("interpret", args, res))
+	{
 		pr_err("olpc_dt: interpret failed!\n");
 		return -1;
 	}
@@ -207,13 +236,19 @@ static u32 __init olpc_dt_get_board_revision(void)
 	int r;
 
 	node = olpc_dt_finddevice("/");
+
 	if (!node)
+	{
 		return 0;
+	}
 
 	r = olpc_dt_getproperty(node, "board-revision-int",
-				(char *) &rev, sizeof(rev));
+							(char *) &rev, sizeof(rev));
+
 	if (r < 0)
+	{
 		return 0;
+	}
 
 	return be32_to_cpu(rev);
 }
@@ -226,43 +261,55 @@ void __init olpc_dt_fixup(void)
 	u32 board_rev;
 
 	node = olpc_dt_finddevice("/battery@0");
+
 	if (!node)
+	{
 		return;
+	}
 
 	/*
 	 * If the battery node has a compatible property, we are running a new
 	 * enough firmware and don't have fixups to make.
 	 */
 	r = olpc_dt_getproperty(node, "compatible", buf, sizeof(buf));
+
 	if (r > 0)
+	{
 		return;
+	}
 
 	pr_info("PROM DT: Old firmware detected, applying fixes\n");
 
 	/* Add olpc,xo1-battery compatible marker to battery node */
 	olpc_dt_interpret("\" /battery@0\" find-device"
-		" \" olpc,xo1-battery\" +compatible"
-		" device-end");
+					  " \" olpc,xo1-battery\" +compatible"
+					  " device-end");
 
 	board_rev = olpc_dt_get_board_revision();
-	if (!board_rev)
-		return;
 
-	if (board_rev >= olpc_board_pre(0xd0)) {
+	if (!board_rev)
+	{
+		return;
+	}
+
+	if (board_rev >= olpc_board_pre(0xd0))
+	{
 		/* XO-1.5: add dcon device */
 		olpc_dt_interpret("\" /pci/display@1\" find-device"
-			" new-device"
-			" \" dcon\" device-name \" olpc,xo1-dcon\" +compatible"
-			" finish-device device-end");
-	} else {
+						  " new-device"
+						  " \" dcon\" device-name \" olpc,xo1-dcon\" +compatible"
+						  " finish-device device-end");
+	}
+	else
+	{
 		/* XO-1: add dcon device, mark RTC as olpc,xo1-rtc */
 		olpc_dt_interpret("\" /pci/display@1,1\" find-device"
-			" new-device"
-			" \" dcon\" device-name \" olpc,xo1-dcon\" +compatible"
-			" finish-device device-end"
-			" \" /rtc\" find-device"
-			" \" olpc,xo1-rtc\" +compatible"
-			" device-end");
+						  " new-device"
+						  " \" dcon\" device-name \" olpc,xo1-dcon\" +compatible"
+						  " finish-device device-end"
+						  " \" /rtc\" find-device"
+						  " \" olpc,xo1-rtc\" +compatible"
+						  " device-end");
 	}
 }
 
@@ -271,15 +318,20 @@ void __init olpc_dt_build_devicetree(void)
 	phandle root;
 
 	if (!olpc_ofw_is_installed())
+	{
 		return;
+	}
 
 	olpc_dt_fixup();
 
 	root = olpc_dt_getsibling(0);
-	if (!root) {
+
+	if (!root)
+	{
 		pr_err("PROM: unable to get root node from OFW!\n");
 		return;
 	}
+
 	of_pdt_build_devicetree(root, &prom_olpc_ops);
 
 	pr_info("PROM DT: Built device tree with %u bytes of memory.\n",
@@ -287,7 +339,8 @@ void __init olpc_dt_build_devicetree(void)
 }
 
 /* A list of DT node/bus matches that we want to expose as platform devices */
-static struct of_device_id __initdata of_ids[] = {
+static struct of_device_id __initdata of_ids[] =
+{
 	{ .compatible = "olpc,xo1-battery" },
 	{ .compatible = "olpc,xo1-dcon" },
 	{ .compatible = "olpc,xo1-rtc" },
@@ -297,8 +350,12 @@ static struct of_device_id __initdata of_ids[] = {
 static int __init olpc_create_platform_devices(void)
 {
 	if (machine_is_olpc())
+	{
 		return of_platform_bus_probe(NULL, of_ids, NULL);
+	}
 	else
+	{
 		return 0;
+	}
 }
 device_initcall(olpc_create_platform_devices);

@@ -40,7 +40,8 @@
 /* Default "unsigned long" context */
 typedef unsigned long mm_context_id_t[NR_CPUS];
 
-typedef struct {
+typedef struct
+{
 #ifdef CONFIG_MMU
 	mm_context_id_t		id;
 	void			*vdso;
@@ -59,23 +60,23 @@ bool __in_29bit_mode(void);
 
 void pmb_init(void);
 int pmb_bolt_mapping(unsigned long virt, phys_addr_t phys,
-		     unsigned long size, pgprot_t prot);
+					 unsigned long size, pgprot_t prot);
 void __iomem *pmb_remap_caller(phys_addr_t phys, unsigned long size,
-			       pgprot_t prot, void *caller);
+							   pgprot_t prot, void *caller);
 int pmb_unmap(void __iomem *addr);
 
 #else
 
 static inline int
 pmb_bolt_mapping(unsigned long virt, phys_addr_t phys,
-		 unsigned long size, pgprot_t prot)
+				 unsigned long size, pgprot_t prot)
 {
 	return -EINVAL;
 }
 
 static inline void __iomem *
 pmb_remap_caller(phys_addr_t phys, unsigned long size,
-		 pgprot_t prot, void *caller)
+				 pgprot_t prot, void *caller)
 {
 	return NULL;
 }
@@ -88,9 +89,9 @@ static inline int pmb_unmap(void __iomem *addr)
 #define pmb_init(addr)		do { } while (0)
 
 #ifdef CONFIG_29BIT
-#define __in_29bit_mode()	(1)
+	#define __in_29bit_mode()	(1)
 #else
-#define __in_29bit_mode()	(0)
+	#define __in_29bit_mode()	(0)
 #endif
 
 #endif /* CONFIG_PMB */

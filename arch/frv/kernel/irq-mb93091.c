@@ -68,7 +68,8 @@ static void frv_fpga_unmask(struct irq_data *d)
 	__set_IMR(imr);
 }
 
-static struct irq_chip frv_fpga_pic = {
+static struct irq_chip frv_fpga_pic =
+{
 	.name		= "mb93091",
 	.irq_ack	= frv_fpga_ack,
 	.irq_mask	= frv_fpga_mask,
@@ -87,7 +88,8 @@ static irqreturn_t fpga_interrupt(int irq, void *_mask)
 	mask = mask & ~imr & __get_IFR();
 
 	/* poll all the triggered IRQs */
-	while (mask) {
+	while (mask)
+	{
 		int irq;
 
 		asm("scan %1,gr0,%0" : "=r"(irq) : "r"(mask));
@@ -104,7 +106,8 @@ static irqreturn_t fpga_interrupt(int irq, void *_mask)
  * define an interrupt action for each FPGA PIC output
  * - use dev_id to indicate the FPGA PIC input to output mappings
  */
-static struct irqaction fpga_irq[4]  = {
+static struct irqaction fpga_irq[4]  =
+{
 	[0] = {
 		.handler	= fpga_interrupt,
 		.flags		= IRQF_SHARED,
@@ -145,7 +148,9 @@ void __init fpga_init(void)
 	__clr_IFR(0x0000);
 
 	for (irq = IRQ_BASE_FPGA + 1; irq <= IRQ_BASE_FPGA + 14; irq++)
+	{
 		irq_set_chip_and_handler(irq, &frv_fpga_pic, handle_level_irq);
+	}
 
 	irq_set_chip_and_handler(IRQ_FPGA_NMI, &frv_fpga_pic, handle_edge_irq);
 

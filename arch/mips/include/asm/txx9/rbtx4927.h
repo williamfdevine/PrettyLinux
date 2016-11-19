@@ -52,7 +52,7 @@
 #define rbtx4927_softint_addr	((__u8 __iomem *)RBTX4927_SOFTINT_ADDR)
 #define rbtx4927_softreset_addr ((__u8 __iomem *)RBTX4927_SOFTRESET_ADDR)
 #define rbtx4927_softresetlock_addr	\
-				((__u8 __iomem *)RBTX4927_SOFTRESETLOCK_ADDR)
+	((__u8 __iomem *)RBTX4927_SOFTRESETLOCK_ADDR)
 #define rbtx4927_pcireset_addr	((__u8 __iomem *)RBTX4927_PCIRESET_ADDR)
 
 /* bits for ISTAT/IMASK/IMSTAT */
@@ -76,9 +76,9 @@
 #define RBTX4927_IRQ_IOCINT	(TXX9_IRQ_BASE + TX4927_IR_INT(1))
 
 #ifdef CONFIG_PCI
-#define RBTX4927_ISA_IO_OFFSET RBTX4927_PCIIO
+	#define RBTX4927_ISA_IO_OFFSET RBTX4927_PCIIO
 #else
-#define RBTX4927_ISA_IO_OFFSET 0
+	#define RBTX4927_ISA_IO_OFFSET 0
 #endif
 
 #define RBTX4927_RTL_8019_BASE (RBTX4927_ETHER_ADDR - mips_io_port_base)

@@ -31,8 +31,8 @@ void machine_crash_shutdown(struct pt_regs *regs)
 }
 
 typedef void (*relocate_kernel_t)(unsigned long ptr,
-				  unsigned long start,
-				  unsigned long cpu_mmu_flags) __noreturn;
+								  unsigned long start,
+								  unsigned long cpu_mmu_flags) __noreturn;
 
 void machine_kexec(struct kimage *image)
 {
@@ -42,7 +42,7 @@ void machine_kexec(struct kimage *image)
 	reboot_code_buffer = page_address(image->control_code_page);
 
 	memcpy(reboot_code_buffer, relocate_new_kernel,
-	       relocate_new_kernel_size);
+		   relocate_new_kernel_size);
 
 	/*
 	 * we do not want to be bothered.
@@ -53,6 +53,6 @@ void machine_kexec(struct kimage *image)
 	__flush_cache_all();
 	cpu_mmu_flags = m68k_cputype | m68k_mmutype << 8;
 	((relocate_kernel_t) reboot_code_buffer)(image->head & PAGE_MASK,
-						 image->start,
-						 cpu_mmu_flags);
+			image->start,
+			cpu_mmu_flags);
 }

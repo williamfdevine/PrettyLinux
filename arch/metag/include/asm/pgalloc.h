@@ -19,8 +19,8 @@
 static inline void pgd_ctor(pgd_t *pgd)
 {
 	memcpy(pgd + USER_PTRS_PER_PGD,
-	       swapper_pg_dir + USER_PTRS_PER_PGD,
-	       (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
+		   swapper_pg_dir + USER_PTRS_PER_PGD,
+		   (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 }
 #else
 #define pgd_ctor(x)	do { } while (0)
@@ -29,8 +29,12 @@ static inline void pgd_ctor(pgd_t *pgd)
 static inline pgd_t *pgd_alloc(struct mm_struct *mm)
 {
 	pgd_t *pgd = (pgd_t *)get_zeroed_page(GFP_KERNEL);
+
 	if (pgd)
+	{
 		pgd_ctor(pgd);
+	}
+
 	return pgd;
 }
 
@@ -40,23 +44,29 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 }
 
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					  unsigned long address)
+		unsigned long address)
 {
 	pte_t *pte = (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
 	return pte;
 }
 
 static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
-				      unsigned long address)
+									  unsigned long address)
 {
 	struct page *pte;
 	pte = alloc_pages(GFP_KERNEL  | __GFP_ZERO, 0);
+
 	if (!pte)
+	{
 		return NULL;
-	if (!pgtable_page_ctor(pte)) {
+	}
+
+	if (!pgtable_page_ctor(pte))
+	{
 		__free_page(pte);
 		return NULL;
 	}
+
 	return pte;
 }
 

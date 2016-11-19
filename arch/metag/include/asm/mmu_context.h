@@ -11,12 +11,12 @@
 #include <linux/io.h>
 
 static inline void enter_lazy_tlb(struct mm_struct *mm,
-				  struct task_struct *tsk)
+								  struct task_struct *tsk)
 {
 }
 
 static inline int init_new_context(struct task_struct *tsk,
-				   struct mm_struct *mm)
+								   struct mm_struct *mm)
 {
 #ifndef CONFIG_METAG_META21_MMU
 	/* We use context to store a pointer to the page holding the
@@ -40,7 +40,8 @@ static inline void destroy_context(struct mm_struct *mm)
 {
 	struct tcm_allocation *pos, *n;
 
-	list_for_each_entry_safe(pos, n,  &mm->context.tcm, list) {
+	list_for_each_entry_safe(pos, n,  &mm->context.tcm, list)
+	{
 		tcm_free(pos->tag, pos->addr, pos->size);
 		list_del(&pos->list);
 		kfree(pos);
@@ -63,7 +64,7 @@ static inline void load_pgd(pgd_t *pgd, int thread)
 	 *  able to access this.
 	 */
 	metag_out32(0x900 | _PAGE_CACHEABLE | _PAGE_PRIV | _PAGE_WRITE |
-		    _PAGE_PRESENT, phys0);
+				_PAGE_PRESENT, phys0);
 	/* Set new MMU base address */
 	metag_out32(__pa(pgd) & MMCU_TBLPHYS1_ADDR_BITS, phys1);
 }
@@ -78,17 +79,25 @@ static inline void switch_mmu(struct mm_struct *prev, struct mm_struct *next)
 
 	/* prev->context == prev->pgd in the case where we are initially
 	   switching from the init task to the first process. */
-	if (prev->context.pgd_base != (unsigned long) prev->pgd) {
+	if (prev->context.pgd_base != (unsigned long) prev->pgd)
+	{
 		for (i = FIRST_USER_PGD_NR; i < USER_PTRS_PER_PGD; i++)
+		{
 			((pgd_t *) prev->context.pgd_base)[i] = prev->pgd[i];
-	} else
+		}
+	}
+	else
+	{
 		prev->pgd = (pgd_t *)mmu_get_base();
+	}
 
 	next->pgd = prev->pgd;
 	prev->pgd = (pgd_t *) prev->context.pgd_base;
 
 	for (i = FIRST_USER_PGD_NR; i < USER_PTRS_PER_PGD; i++)
+	{
 		next->pgd[i] = ((pgd_t *) next->context.pgd_base)[i];
+	}
 
 	flush_cache_all();
 #endif
@@ -96,14 +105,16 @@ static inline void switch_mmu(struct mm_struct *prev, struct mm_struct *next)
 }
 
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
 	if (prev != next)
+	{
 		switch_mmu(prev, next);
+	}
 }
 
 static inline void activate_mm(struct mm_struct *prev_mm,
-			       struct mm_struct *next_mm)
+							   struct mm_struct *next_mm)
 {
 	switch_mmu(prev_mm, next_mm);
 }

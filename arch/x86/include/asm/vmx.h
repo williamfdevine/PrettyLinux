@@ -111,7 +111,8 @@
 #define VMX_MISC_ACTIVITY_HLT			0x00000040
 
 /* VMCS Encodings */
-enum vmcs_field {
+enum vmcs_field
+{
 	VIRTUAL_PROCESSOR_ID            = 0x00000000,
 	POSTED_INTR_NV                  = 0x00000002,
 	GUEST_ES_SELECTOR               = 0x00000800,
@@ -180,7 +181,7 @@ enum vmcs_field {
 	GUEST_IA32_EFER			= 0x00002806,
 	GUEST_IA32_EFER_HIGH		= 0x00002807,
 	GUEST_IA32_PERF_GLOBAL_CTRL	= 0x00002808,
-	GUEST_IA32_PERF_GLOBAL_CTRL_HIGH= 0x00002809,
+	GUEST_IA32_PERF_GLOBAL_CTRL_HIGH = 0x00002809,
 	GUEST_PDPTR0                    = 0x0000280a,
 	GUEST_PDPTR0_HIGH               = 0x0000280b,
 	GUEST_PDPTR1                    = 0x0000280c,
@@ -450,7 +451,8 @@ enum vmcs_field {
 #define ASM_VMX_INVEPT		  ".byte 0x66, 0x0f, 0x38, 0x80, 0x08"
 #define ASM_VMX_INVVPID		  ".byte 0x66, 0x0f, 0x38, 0x81, 0x08"
 
-struct vmx_msr_entry {
+struct vmx_msr_entry
+{
 	u32 index;
 	u32 reserved;
 	u64 value;
@@ -467,7 +469,8 @@ struct vmx_msr_entry {
 /*
  * VM-instruction error numbers
  */
-enum vm_instruction_error_number {
+enum vm_instruction_error_number
+{
 	VMXERR_VMCALL_IN_VMX_ROOT_OPERATION = 1,
 	VMXERR_VMCLEAR_INVALID_ADDRESS = 2,
 	VMXERR_VMCLEAR_VMXON_POINTER = 3,

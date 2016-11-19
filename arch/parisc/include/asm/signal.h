@@ -15,13 +15,15 @@
 
 typedef unsigned long old_sigset_t;		/* at least 32 bits */
 
-typedef struct {
+typedef struct
+{
 	/* next_signal() assumes this is a long - no choice */
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
 
 #ifndef __KERNEL__
-struct sigaction {
+struct sigaction
+{
 	__sighandler_t sa_handler;
 	unsigned long sa_flags;
 	sigset_t sa_mask;		/* mask last for extensibility */

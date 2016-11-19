@@ -9,7 +9,8 @@
 #define __ASM_POWERPC_MPC5121_H__
 
 /* MPC512x Reset module registers */
-struct mpc512x_reset_module {
+struct mpc512x_reset_module
+{
 	u32	rcwlr;	/* Reset Configuration Word Low Register */
 	u32	rcwhr;	/* Reset Configuration Word High Register */
 	u32	reserved1;
@@ -24,7 +25,8 @@ struct mpc512x_reset_module {
 /*
  * Clock Control Module
  */
-struct mpc512x_ccm {
+struct mpc512x_ccm
+{
 	u32	spmr;	/* System PLL Mode Register */
 	u32	sccr1;	/* System Clock Control Register 1 */
 	u32	sccr2;	/* System Clock Control Register 2 */
@@ -48,7 +50,8 @@ struct mpc512x_ccm {
 /*
  * LPC Module
  */
-struct mpc512x_lpc {
+struct mpc512x_lpc
+{
 	u32	cs_cfg[8];	/* CS config */
 	u32	cs_ctrl;	/* CS Control Register */
 	u32	cs_status;	/* CS Status Register */
@@ -63,7 +66,8 @@ int mpc512x_cs_config(unsigned int cs, u32 val);
 /*
  * SCLPC Module (LPB FIFO)
  */
-struct mpc512x_lpbfifo {
+struct mpc512x_lpbfifo
+{
 	u32	pkt_size;	/* SCLPC Packet Size Register */
 	u32	start_addr;	/* SCLPC Start Address Register */
 	u32	ctrl;		/* SCLPC Control Register */
@@ -95,7 +99,8 @@ struct mpc512x_lpbfifo {
 #define MPC512X_SCLPC_FIFO_CTRL(x)	(((x) & 0x7) << 24)
 #define MPC512X_SCLPC_FIFO_ALARM(x)	((x) & 0x3ff)
 
-enum lpb_dev_portsize {
+enum lpb_dev_portsize
+{
 	LPB_DEV_PORTSIZE_UNDEFINED = 0,
 	LPB_DEV_PORTSIZE_1_BYTE = 1,
 	LPB_DEV_PORTSIZE_2_BYTES = 2,
@@ -103,12 +108,14 @@ enum lpb_dev_portsize {
 	LPB_DEV_PORTSIZE_8_BYTES = 8
 };
 
-enum mpc512x_lpbfifo_req_dir {
+enum mpc512x_lpbfifo_req_dir
+{
 	MPC512X_LPBFIFO_REQ_DIR_READ,
 	MPC512X_LPBFIFO_REQ_DIR_WRITE
 };
 
-struct mpc512x_lpbfifo_request {
+struct mpc512x_lpbfifo_request
+{
 	phys_addr_t dev_phys_addr; /* physical address of some device on LPB */
 	void *ram_virt_addr; /* virtual address of some region in RAM */
 	u32 size;

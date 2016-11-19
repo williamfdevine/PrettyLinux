@@ -108,6 +108,6 @@ extern int kgdb_fault_expected;
  */
 
 #define NUMREGBYTES	((_GP_REGS * 8) + (_FP_REGS * 16) + \
-			(_EXTRA_REGS * 4))
+					 (_EXTRA_REGS * 4))
 
 #endif /* __ASM_KGDB_H */

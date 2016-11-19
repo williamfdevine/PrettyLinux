@@ -29,14 +29,14 @@
 
 #define DEBUG	0
 #define BAD_ERROR(err)	(((err) < 0) \
-			 && ((err) != -FDT_ERR_NOTFOUND) \
-			 && ((err) != -FDT_ERR_EXISTS))
+						 && ((err) != -FDT_ERR_NOTFOUND) \
+						 && ((err) != -FDT_ERR_EXISTS))
 
 #define check_err(err) \
 	({ \
 		if (BAD_ERROR(err) || ((err < 0) && DEBUG)) \
 			printf("%s():%d  %s\n\r", __func__, __LINE__, \
-			       fdt_strerror(err)); \
+				   fdt_strerror(err)); \
 		if (BAD_ERROR(err)) \
 			exit(); \
 		(err < 0) ? -1 : 0; \
@@ -63,12 +63,17 @@ static void expand_buf(int minexpand)
 
 	size = _ALIGN(size + minexpand, EXPAND_GRANULARITY);
 	buf = platform_ops.realloc(buf, size);
+
 	if (!buf)
+	{
 		fatal("Couldn't find %d bytes to expand device tree\n\r", size);
+	}
+
 	rc = fdt_open_into(fdt, buf, size);
+
 	if (rc != 0)
 		fatal("Couldn't expand fdt into new buffer: %s\n\r",
-		      fdt_strerror(rc));
+			  fdt_strerror(rc));
 
 	fdt = buf;
 }
@@ -79,25 +84,31 @@ static void *fdt_wrapper_finddevice(const char *path)
 }
 
 static int fdt_wrapper_getprop(const void *devp, const char *name,
-			       void *buf, const int buflen)
+							   void *buf, const int buflen)
 {
 	const void *p;
 	int len;
 
 	p = fdt_getprop(fdt, devp_offset(devp), name, &len);
+
 	if (!p)
+	{
 		return check_err(len);
+	}
+
 	memcpy(buf, p, min(len, buflen));
 	return len;
 }
 
 static int fdt_wrapper_setprop(const void *devp, const char *name,
-			       const void *buf, const int len)
+							   const void *buf, const int len)
 {
 	int rc;
 
 	rc = fdt_setprop(fdt, devp_offset(devp), name, buf, len);
-	if (rc == -FDT_ERR_NOSPACE) {
+
+	if (rc == -FDT_ERR_NOSPACE)
+	{
 		expand_buf(len + 16);
 		rc = fdt_setprop(fdt, devp_offset(devp), name, buf, len);
 	}
@@ -120,7 +131,9 @@ static void *fdt_wrapper_create_node(const void *devp, const char *name)
 	int offset;
 
 	offset = fdt_add_subnode(fdt, devp_offset(devp), name);
-	if (offset == -FDT_ERR_NOSPACE) {
+
+	if (offset == -FDT_ERR_NOSPACE)
+	{
 		expand_buf(strlen(name) + 16);
 		offset = fdt_add_subnode(fdt, devp_offset(devp), name);
 	}
@@ -129,20 +142,20 @@ static void *fdt_wrapper_create_node(const void *devp, const char *name)
 }
 
 static void *fdt_wrapper_find_node_by_prop_value(const void *prev,
-						 const char *name,
-						 const char *val,
-						 int len)
+		const char *name,
+		const char *val,
+		int len)
 {
 	int offset = fdt_node_offset_by_prop_value(fdt, devp_offset_find(prev),
-	                                           name, val, len);
+				 name, val, len);
 	return offset_devp(offset);
 }
 
 static void *fdt_wrapper_find_node_by_compatible(const void *prev,
-						 const char *val)
+		const char *val)
 {
 	int offset = fdt_node_offset_by_compatible(fdt, devp_offset_find(prev),
-	                                           val);
+				 val);
 	return offset_devp(offset);
 }
 
@@ -151,8 +164,12 @@ static char *fdt_wrapper_get_path(const void *devp, char *buf, int len)
 	int rc;
 
 	rc = fdt_get_path(fdt, devp_offset(devp), buf, len);
+
 	if (check_err(rc))
+	{
 		return NULL;
+	}
+
 	return buf;
 }
 
@@ -161,9 +178,11 @@ static unsigned long fdt_wrapper_finalize(void)
 	int rc;
 
 	rc = fdt_pack(fdt);
+
 	if (rc != 0)
 		fatal("Couldn't pack flat tree: %s\n\r",
-		      fdt_strerror(rc));
+			  fdt_strerror(rc));
+
 	return (unsigned long)fdt;
 }
 
@@ -187,13 +206,18 @@ void fdt_init(void *blob)
 	fdt = blob;
 	bufsize = fdt_totalsize(fdt) + EXPAND_GRANULARITY;
 	buf = malloc(bufsize);
-	if(!buf)
+
+	if (!buf)
+	{
 		fatal("malloc failed. can't relocate the device tree\n\r");
+	}
 
 	err = fdt_open_into(fdt, buf, bufsize);
 
 	if (err != 0)
+	{
 		fatal("fdt_init(): %s\n\r", fdt_strerror(err));
+	}
 
 	fdt = buf;
 }

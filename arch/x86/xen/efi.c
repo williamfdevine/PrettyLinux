@@ -30,7 +30,8 @@
 
 static efi_char16_t vendor[100] __initdata;
 
-static efi_system_table_t efi_systab_xen __initdata = {
+static efi_system_table_t efi_systab_xen __initdata =
+{
 	.hdr = {
 		.signature	= EFI_SYSTEM_TABLE_SIGNATURE,
 		.revision	= 0, /* Initialized later. */
@@ -47,14 +48,15 @@ static efi_system_table_t efi_systab_xen __initdata = {
 	.stderr_handle	= EFI_INVALID_TABLE_ADDR, /* Not used under Xen. */
 	.stderr		= EFI_INVALID_TABLE_ADDR, /* Not used under Xen. */
 	.runtime	= (efi_runtime_services_t *)EFI_INVALID_TABLE_ADDR,
-						  /* Not used under Xen. */
+	/* Not used under Xen. */
 	.boottime	= (efi_boot_services_t *)EFI_INVALID_TABLE_ADDR,
-						  /* Not used under Xen. */
+	/* Not used under Xen. */
 	.nr_tables	= 0,			  /* Initialized later. */
 	.tables		= EFI_INVALID_TABLE_ADDR  /* Initialized later. */
 };
 
-static const struct efi efi_xen __initconst = {
+static const struct efi efi_xen __initconst =
+{
 	.systab                   = NULL, /* Initialized later. */
 	.runtime_version	  = 0,    /* Initialized later. */
 	.mps                      = EFI_INVALID_TABLE_ADDR,
@@ -88,7 +90,8 @@ static const struct efi efi_xen __initconst = {
 
 static efi_system_table_t __init *xen_efi_probe(void)
 {
-	struct xen_platform_op op = {
+	struct xen_platform_op op =
+	{
 		.cmd = XENPF_firmware_info,
 		.u.firmware_info = {
 			.type = XEN_FW_EFI_INFO,
@@ -98,7 +101,9 @@ static efi_system_table_t __init *xen_efi_probe(void)
 	union xenpf_efi_info *info = &op.u.firmware_info.u.efi_info;
 
 	if (!xen_initial_domain() || HYPERVISOR_platform_op(&op) < 0)
+	{
 		return NULL;
+	}
 
 	/* Here we know that Xen runs on EFI platform. */
 
@@ -113,25 +118,33 @@ static efi_system_table_t __init *xen_efi_probe(void)
 	info->vendor.bufsz = sizeof(vendor);
 	set_xen_guest_handle(info->vendor.name, vendor);
 
-	if (HYPERVISOR_platform_op(&op) == 0) {
+	if (HYPERVISOR_platform_op(&op) == 0)
+	{
 		efi_systab_xen.fw_vendor = __pa_symbol(vendor);
 		efi_systab_xen.fw_revision = info->vendor.revision;
-	} else
+	}
+	else
+	{
 		efi_systab_xen.fw_vendor = __pa_symbol(L"UNKNOWN");
+	}
 
 	op.cmd = XENPF_firmware_info;
 	op.u.firmware_info.type = XEN_FW_EFI_INFO;
 	op.u.firmware_info.index = XEN_FW_EFI_VERSION;
 
 	if (HYPERVISOR_platform_op(&op) == 0)
+	{
 		efi_systab_xen.hdr.revision = info->version;
+	}
 
 	op.cmd = XENPF_firmware_info;
 	op.u.firmware_info.type = XEN_FW_EFI_INFO;
 	op.u.firmware_info.index = XEN_FW_EFI_RT_VERSION;
 
 	if (HYPERVISOR_platform_op(&op) == 0)
+	{
 		efi.runtime_version = info->version;
+	}
 
 	return &efi_systab_xen;
 }
@@ -143,7 +156,9 @@ void __init xen_efi_init(void)
 	efi_systab_xen = xen_efi_probe();
 
 	if (efi_systab_xen == NULL)
+	{
 		return;
+	}
 
 	strncpy((char *)&boot_params.efi_info.efi_loader_signature, "Xen",
 			sizeof(boot_params.efi_info.efi_loader_signature));

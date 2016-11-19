@@ -19,54 +19,54 @@ extern unsigned long mmu_context_bmap[];
 
 void get_new_mmu_context(struct mm_struct *mm);
 #ifdef CONFIG_SMP
-void smp_new_mmu_context_version(void);
+	void smp_new_mmu_context_version(void);
 #else
-#define smp_new_mmu_context_version() do { } while (0)
+	#define smp_new_mmu_context_version() do { } while (0)
 #endif
 
 int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
 void destroy_context(struct mm_struct *mm);
 
 void __tsb_context_switch(unsigned long pgd_pa,
-			  struct tsb_config *tsb_base,
-			  struct tsb_config *tsb_huge,
-			  unsigned long tsb_descr_pa);
+						  struct tsb_config *tsb_base,
+						  struct tsb_config *tsb_huge,
+						  unsigned long tsb_descr_pa);
 
 static inline void tsb_context_switch(struct mm_struct *mm)
 {
 	__tsb_context_switch(__pa(mm->pgd),
-			     &mm->context.tsb_block[0],
+						 &mm->context.tsb_block[0],
 #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
-			     (mm->context.tsb_block[1].tsb ?
-			      &mm->context.tsb_block[1] :
-			      NULL)
+						 (mm->context.tsb_block[1].tsb ?
+						  &mm->context.tsb_block[1] :
+						  NULL)
 #else
-			     NULL
+						 NULL
 #endif
-			     , __pa(&mm->context.tsb_descr[0]));
+						 , __pa(&mm->context.tsb_descr[0]));
 }
 
 void tsb_grow(struct mm_struct *mm,
-	      unsigned long tsb_index,
-	      unsigned long mm_rss);
+			  unsigned long tsb_index,
+			  unsigned long mm_rss);
 #ifdef CONFIG_SMP
-void smp_tsb_sync(struct mm_struct *mm);
+	void smp_tsb_sync(struct mm_struct *mm);
 #else
-#define smp_tsb_sync(__mm) do { } while (0)
+	#define smp_tsb_sync(__mm) do { } while (0)
 #endif
 
 /* Set MMU context in the actual hardware. */
 #define load_secondary_context(__mm) \
 	__asm__ __volatile__( \
-	"\n661:	stxa		%0, [%1] %2\n" \
-	"	.section	.sun4v_1insn_patch, \"ax\"\n" \
-	"	.word		661b\n" \
-	"	stxa		%0, [%1] %3\n" \
-	"	.previous\n" \
-	"	flush		%%g6\n" \
-	: /* No outputs */ \
-	: "r" (CTX_HWBITS((__mm)->context)), \
-	  "r" (SECONDARY_CONTEXT), "i" (ASI_DMMU), "i" (ASI_MMU))
+						  "\n661:	stxa		%0, [%1] %2\n" \
+						  "	.section	.sun4v_1insn_patch, \"ax\"\n" \
+						  "	.word		661b\n" \
+						  "	stxa		%0, [%1] %3\n" \
+						  "	.previous\n" \
+						  "	flush		%%g6\n" \
+						  : /* No outputs */ \
+						  : "r" (CTX_HWBITS((__mm)->context)), \
+						  "r" (SECONDARY_CONTEXT), "i" (ASI_DMMU), "i" (ASI_MMU))
 
 void __flush_tlb_mm(unsigned long, unsigned long);
 
@@ -77,12 +77,17 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
 	int cpu;
 
 	if (unlikely(mm == &init_mm))
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&mm->context.lock, flags);
 	ctx_valid = CTX_VALID(mm->context);
+
 	if (!ctx_valid)
+	{
 		get_new_mmu_context(mm);
+	}
 
 	/* We have to be extremely careful here or else we will miss
 	 * a TSB grow if we switch back and forth between a kernel
@@ -122,11 +127,14 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
 	 * local TLB.
 	 */
 	cpu = smp_processor_id();
-	if (!ctx_valid || !cpumask_test_cpu(cpu, mm_cpumask(mm))) {
+
+	if (!ctx_valid || !cpumask_test_cpu(cpu, mm_cpumask(mm)))
+	{
 		cpumask_set_cpu(cpu, mm_cpumask(mm));
 		__flush_tlb_mm(CTX_HWBITS(mm->context),
-			       SECONDARY_CONTEXT);
+					   SECONDARY_CONTEXT);
 	}
+
 	spin_unlock_irqrestore(&mm->context.lock, flags);
 }
 
@@ -139,11 +147,18 @@ static inline void activate_mm(struct mm_struct *active_mm, struct mm_struct *mm
 	int cpu;
 
 	spin_lock_irqsave(&mm->context.lock, flags);
+
 	if (!CTX_VALID(mm->context))
+	{
 		get_new_mmu_context(mm);
+	}
+
 	cpu = smp_processor_id();
+
 	if (!cpumask_test_cpu(cpu, mm_cpumask(mm)))
+	{
 		cpumask_set_cpu(cpu, mm_cpumask(mm));
+	}
 
 	load_secondary_context(mm);
 	__flush_tlb_mm(CTX_HWBITS(mm->context), SECONDARY_CONTEXT);

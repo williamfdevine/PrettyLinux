@@ -37,9 +37,12 @@
  */
 void bust_spinlocks(int yes)
 {
-	if (yes) {
+	if (yes)
+	{
 		oops_in_progress = 1;
-	} else {
+	}
+	else
+	{
 		int loglevel_save = console_loglevel;
 #ifdef CONFIG_VT
 		unblank_screen();
@@ -73,26 +76,32 @@ static void print_pagetable_entries(pgd_t *pgdir, unsigned long address)
 
 	pgd = pgdir + __pgd_offset(address);
 	printk(KERN_DEBUG "pgd entry %p: %016Lx\n",
-	       pgd, (long long) pgd_val(*pgd));
+		   pgd, (long long) pgd_val(*pgd));
 
-	if (!pgd_present(*pgd)) {
+	if (!pgd_present(*pgd))
+	{
 		printk(KERN_DEBUG "... pgd not present!\n");
 		return;
 	}
+
 	pmd = pmd_offset(pgd, address);
 	printk(KERN_DEBUG "pmd entry %p: %016Lx\n",
-	       pmd, (long long)pmd_val(*pmd));
+		   pmd, (long long)pmd_val(*pmd));
 
-	if (!pmd_present(*pmd)) {
+	if (!pmd_present(*pmd))
+	{
 		printk(KERN_DEBUG "... pmd not present!\n");
 		return;
 	}
+
 	pte = pte_offset(pmd, address);
 	printk(KERN_DEBUG "pte entry %p: %016Lx\n",
-	       pte, (long long) pte_val(*pte));
+		   pte, (long long) pte_val(*pte));
 
 	if (!pte_present(*pte))
+	{
 		printk(KERN_DEBUG "... pte not present!\n");
+	}
 }
 #endif
 
@@ -116,7 +125,7 @@ static void print_pagetable_entries(pgd_t *pgdir, unsigned long address)
  *
  */
 asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long fault_code,
-			      unsigned long address)
+							  unsigned long address)
 {
 	struct vm_area_struct *vma;
 	struct task_struct *tsk;
@@ -127,18 +136,21 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long fault_code,
 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
 
 #ifdef CONFIG_GDBSTUB
+
 	/* handle GDB stub causing a fault */
-	if (gdbstub_busy) {
+	if (gdbstub_busy)
+	{
 		gdbstub_exception(regs, TBR & TBR_INT_CODE);
 		return;
 	}
+
 #endif
 
 #if 0
 	printk(KERN_DEBUG "--- do_page_fault(%p,%s:%04lx,%08lx)\n",
-	       regs,
-	       fault_code & 0x10000 ? "ins" : "data",
-	       fault_code & 0xffff, address);
+		   regs,
+		   fault_code & 0x10000 ? "ins" : "data",
+		   fault_code & 0xffff, address);
 #endif
 
 	tsk = current;
@@ -156,10 +168,12 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long fault_code,
 	 * and that the fault was a page not present (invalid) error
 	 */
 	if (address >= VMALLOC_START && address < VMALLOC_END &&
-	    (fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_SR &&
-	    (fault_code & MMUFCR_xFC_PGINVAL) == MMUFCR_xFC_PGINVAL
-	    )
+		(fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_SR &&
+		(fault_code & MMUFCR_xFC_PGINVAL) == MMUFCR_xFC_PGINVAL
+	   )
+	{
 		goto vmalloc_fault;
+	}
 
 	mm = tsk->mm;
 	info.si_code = SEGV_MAPERR;
@@ -169,84 +183,114 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long fault_code,
 	 * context, we must not take the fault..
 	 */
 	if (faulthandler_disabled() || !mm)
+	{
 		goto no_context;
+	}
 
 	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_USR)
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 retry:
 	down_read(&mm->mmap_sem);
 
 	vma = find_vma(mm, address);
-	if (!vma)
-		goto bad_area;
-	if (vma->vm_start <= address)
-		goto good_area;
-	if (!(vma->vm_flags & VM_GROWSDOWN))
-		goto bad_area;
 
-	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_USR) {
+	if (!vma)
+	{
+		goto bad_area;
+	}
+
+	if (vma->vm_start <= address)
+	{
+		goto good_area;
+	}
+
+	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
+		goto bad_area;
+	}
+
+	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_USR)
+	{
 		/* accessing the stack below the stack pointer is always a
 		 * bug */
-		if ((address & PAGE_MASK) + 2 * PAGE_SIZE < regs->sp) {
+		if ((address & PAGE_MASK) + 2 * PAGE_SIZE < regs->sp)
+		{
 #if 0
 			printk(KERN_WARNING
-			       "[%d] ### Access below stack @%lx (sp=%lx)\n",
-			       current->pid, address, regs->sp);
+				   "[%d] ### Access below stack @%lx (sp=%lx)\n",
+				   current->pid, address, regs->sp);
 			printk(KERN_WARNING
-			       "vma [%08x - %08x]\n",
-			       vma->vm_start, vma->vm_end);
+				   "vma [%08x - %08x]\n",
+				   vma->vm_start, vma->vm_end);
 			show_registers(regs);
 			printk(KERN_WARNING
-			       "[%d] ### Code: [%08lx]"
-			       " %02x %02x %02x %02x %02x %02x %02x %02x\n",
-			       current->pid,
-			       regs->pc,
-			       ((u8 *) regs->pc)[0],
-			       ((u8 *) regs->pc)[1],
-			       ((u8 *) regs->pc)[2],
-			       ((u8 *) regs->pc)[3],
-			       ((u8 *) regs->pc)[4],
-			       ((u8 *) regs->pc)[5],
-			       ((u8 *) regs->pc)[6],
-			       ((u8 *) regs->pc)[7]
-			       );
+				   "[%d] ### Code: [%08lx]"
+				   " %02x %02x %02x %02x %02x %02x %02x %02x\n",
+				   current->pid,
+				   regs->pc,
+				   ((u8 *) regs->pc)[0],
+				   ((u8 *) regs->pc)[1],
+				   ((u8 *) regs->pc)[2],
+				   ((u8 *) regs->pc)[3],
+				   ((u8 *) regs->pc)[4],
+				   ((u8 *) regs->pc)[5],
+				   ((u8 *) regs->pc)[6],
+				   ((u8 *) regs->pc)[7]
+				  );
 #endif
 			goto bad_area;
 		}
 	}
 
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
 
-/*
- * Ok, we have a good vm_area for this memory access, so
- * we can handle it..
- */
+	/*
+	 * Ok, we have a good vm_area for this memory access, so
+	 * we can handle it..
+	 */
 good_area:
 	info.si_code = SEGV_ACCERR;
-	switch (fault_code & (MMUFCR_xFC_PGINVAL|MMUFCR_xFC_TYPE)) {
-	default:	/* 3: write, present */
-	case MMUFCR_xFC_TYPE_WRITE:
+
+	switch (fault_code & (MMUFCR_xFC_PGINVAL | MMUFCR_xFC_TYPE))
+	{
+		default:	/* 3: write, present */
+		case MMUFCR_xFC_TYPE_WRITE:
 #ifdef TEST_VERIFY_AREA
-		if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_SR)
-			printk(KERN_DEBUG "WP fault at %08lx\n", regs->pc);
+			if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_SR)
+			{
+				printk(KERN_DEBUG "WP fault at %08lx\n", regs->pc);
+			}
+
 #endif
+
 		/* write to absent page */
-	case MMUFCR_xFC_PGINVAL | MMUFCR_xFC_TYPE_WRITE:
-		if (!(vma->vm_flags & VM_WRITE))
-			goto bad_area;
-		flags |= FAULT_FLAG_WRITE;
-		break;
+		case MMUFCR_xFC_PGINVAL | MMUFCR_xFC_TYPE_WRITE:
+			if (!(vma->vm_flags & VM_WRITE))
+			{
+				goto bad_area;
+			}
+
+			flags |= FAULT_FLAG_WRITE;
+			break;
 
 		/* read from protected page */
-	case MMUFCR_xFC_TYPE_READ:
-		goto bad_area;
+		case MMUFCR_xFC_TYPE_READ:
+			goto bad_area;
 
 		/* read from absent page present */
-	case MMUFCR_xFC_PGINVAL | MMUFCR_xFC_TYPE_READ:
-		if (!(vma->vm_flags & (VM_READ | VM_EXEC)))
-			goto bad_area;
-		break;
+		case MMUFCR_xFC_PGINVAL | MMUFCR_xFC_TYPE_READ:
+			if (!(vma->vm_flags & (VM_READ | VM_EXEC)))
+			{
+				goto bad_area;
+			}
+
+			break;
 	}
 
 	/*
@@ -257,29 +301,47 @@ good_area:
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return;
+	}
 
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
 		if (fault & VM_FAULT_MAJOR)
+		{
 			current->maj_flt++;
+		}
 		else
+		{
 			current->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 
-			 /* No need to up_read(&mm->mmap_sem) as we would
-			 * have already released it in __lock_page_or_retry
-			 * in mm/filemap.c.
-			 */
+			/* No need to up_read(&mm->mmap_sem) as we would
+			* have already released it in __lock_page_or_retry
+			* in mm/filemap.c.
+			*/
 
 			goto retry;
 		}
@@ -288,15 +350,16 @@ good_area:
 	up_read(&mm->mmap_sem);
 	return;
 
-/*
- * Something tried to access memory that isn't in our memory map..
- * Fix it, but check if it's kernel or user first..
- */
+	/*
+	 * Something tried to access memory that isn't in our memory map..
+	 * Fix it, but check if it's kernel or user first..
+	 */
 bad_area:
 	up_read(&mm->mmap_sem);
 
 	/* User mode accesses just cause a SIGSEGV */
-	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_USR) {
+	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_USR)
+	{
 		info.si_signo = SIGSEGV;
 		info.si_errno = 0;
 		/* info.si_code has been set above */
@@ -306,34 +369,40 @@ bad_area:
 	}
 
 no_context:
+
 	/* Are we prepared to handle this kernel fault?  */
 	if (fixup_exception(regs))
+	{
 		return;
+	}
 
-/*
- * Oops. The kernel tried to access some bad page. We'll have to
- * terminate things with extreme prejudice.
- */
+	/*
+	 * Oops. The kernel tried to access some bad page. We'll have to
+	 * terminate things with extreme prejudice.
+	 */
 
 	bust_spinlocks(1);
 
 	if (address < PAGE_SIZE)
 		printk(KERN_ALERT
-		       "Unable to handle kernel NULL pointer dereference");
+			   "Unable to handle kernel NULL pointer dereference");
 	else
 		printk(KERN_ALERT
-		       "Unable to handle kernel paging request");
+			   "Unable to handle kernel paging request");
+
 	printk(" at virtual address %08lx\n", address);
 	printk(" printing pc:\n");
 	printk(KERN_ALERT "%08lx\n", regs->pc);
 
 	debugger_intercept(fault_code & 0x00010000 ? EXCEP_IAERROR : EXCEP_DAERROR,
-			   SIGSEGV, SEGV_ACCERR, regs);
+					   SIGSEGV, SEGV_ACCERR, regs);
 
 	page = PTBR;
 	page = ((unsigned long *) __va(page))[address >> 22];
 	printk(KERN_ALERT "*pde = %08lx\n", page);
-	if (page & 1) {
+
+	if (page & 1)
+	{
 		page &= PAGE_MASK;
 		address &= 0x003ff000;
 		page = ((unsigned long *) __va(page))[address >> PAGE_SHIFT];
@@ -343,16 +412,19 @@ no_context:
 	die("Oops", regs, fault_code);
 	do_exit(SIGKILL);
 
-/*
- * We ran out of memory, or some other thing happened to us that made
- * us unable to handle the page fault gracefully.
- */
+	/*
+	 * We ran out of memory, or some other thing happened to us that made
+	 * us unable to handle the page fault gracefully.
+	 */
 out_of_memory:
 	up_read(&mm->mmap_sem);
-	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_USR) {
+
+	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_USR)
+	{
 		pagefault_out_of_memory();
 		return;
 	}
+
 	goto no_context;
 
 do_sigbus:
@@ -370,7 +442,10 @@ do_sigbus:
 
 	/* Kernel mode? Handle exceptions or die */
 	if ((fault_code & MMUFCR_xFC_ACCESS) == MMUFCR_xFC_ACCESS_SR)
+	{
 		goto no_context;
+	}
+
 	return;
 
 vmalloc_fault:
@@ -391,15 +466,23 @@ vmalloc_fault:
 		pgd_k = init_mm.pgd + index;
 
 		if (!pgd_present(*pgd_k))
+		{
 			goto no_context;
+		}
 
 		pud_k = pud_offset(pgd_k, address);
+
 		if (!pud_present(*pud_k))
+		{
 			goto no_context;
+		}
 
 		pmd_k = pmd_offset(pud_k, address);
+
 		if (!pmd_present(*pmd_k))
+		{
 			goto no_context;
+		}
 
 		pgd = (pgd_t *) PTBR + index;
 		pud = pud_offset(pgd, address);
@@ -407,8 +490,12 @@ vmalloc_fault:
 		set_pmd(pmd, *pmd_k);
 
 		pte_k = pte_offset_kernel(pmd_k, address);
+
 		if (!pte_present(*pte_k))
+		{
 			goto no_context;
+		}
+
 		return;
 	}
 }

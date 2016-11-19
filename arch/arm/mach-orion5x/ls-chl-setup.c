@@ -41,17 +41,20 @@
  * 256KB NOR Flash on BOOT Device
  ****************************************************************************/
 
-static struct physmap_flash_data lschl_nor_flash_data = {
+static struct physmap_flash_data lschl_nor_flash_data =
+{
 	.width = 1,
 };
 
-static struct resource lschl_nor_flash_resource = {
+static struct resource lschl_nor_flash_resource =
+{
 	.flags	= IORESOURCE_MEM,
 	.start	= LSCHL_NOR_BOOT_BASE,
 	.end	= LSCHL_NOR_BOOT_BASE + LSCHL_NOR_BOOT_SIZE - 1,
 };
 
-static struct platform_device lschl_nor_flash = {
+static struct platform_device lschl_nor_flash =
+{
 	.name = "physmap-flash",
 	.id = 0,
 	.dev = {
@@ -65,7 +68,8 @@ static struct platform_device lschl_nor_flash = {
  * Ethernet
  ****************************************************************************/
 
-static struct mv643xx_eth_platform_data lschl_eth_data = {
+static struct mv643xx_eth_platform_data lschl_eth_data =
+{
 	.phy_addr = MV643XX_ETH_PHY_ADDR(8),
 };
 
@@ -73,7 +77,8 @@ static struct mv643xx_eth_platform_data lschl_eth_data = {
  * RTC 5C372a on I2C bus
  ****************************************************************************/
 
-static struct i2c_board_info __initdata lschl_i2c_rtc = {
+static struct i2c_board_info __initdata lschl_i2c_rtc =
+{
 	I2C_BOARD_INFO("rs5c372a", 0x32),
 };
 
@@ -86,7 +91,8 @@ static struct i2c_board_info __initdata lschl_i2c_rtc = {
 #define LSCHL_GPIO_LED_FUNC	17
 #define LSCHL_GPIO_LED_PWR	0
 
-static struct gpio_led lschl_led_pins[] = {
+static struct gpio_led lschl_led_pins[] =
+{
 	{
 		.name = "alarm:red",
 		.gpio = LSCHL_GPIO_LED_ALARM,
@@ -105,12 +111,14 @@ static struct gpio_led lschl_led_pins[] = {
 	},
 };
 
-static struct gpio_led_platform_data lschl_led_data = {
+static struct gpio_led_platform_data lschl_led_data =
+{
 	.leds = lschl_led_pins,
 	.num_leds = ARRAY_SIZE(lschl_led_pins),
 };
 
-static struct platform_device lschl_leds = {
+static struct platform_device lschl_leds =
+{
 	.name = "leds-gpio",
 	.id = -1,
 	.dev = {
@@ -121,7 +129,8 @@ static struct platform_device lschl_leds = {
 /*****************************************************************************
  * SATA
  ****************************************************************************/
-static struct mv_sata_platform_data lschl_sata_data = {
+static struct mv_sata_platform_data lschl_sata_data =
+{
 	.n_ports = 2,
 };
 
@@ -159,7 +168,8 @@ static void lschl_power_off(void)
 #define LSCHL_SW_AUTOPOWER	0x01
 #define LSCHL_SW_FUNC		0x02
 
-static struct gpio_keys_button lschl_buttons[] = {
+static struct gpio_keys_button lschl_buttons[] =
+{
 	{
 		.type = EV_SW,
 		.code = LSCHL_SW_POWER,
@@ -181,12 +191,14 @@ static struct gpio_keys_button lschl_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data lschl_button_data = {
+static struct gpio_keys_platform_data lschl_button_data =
+{
 	.buttons = lschl_buttons,
 	.nbuttons = ARRAY_SIZE(lschl_buttons),
 };
 
-static struct platform_device lschl_button_device = {
+static struct platform_device lschl_button_device =
+{
 	.name = "gpio-keys",
 	.id = -1,
 	.num_resources = 0,
@@ -205,11 +217,13 @@ static struct platform_device lschl_button_device = {
 #define LSCHL_GPIO_FAN_HIGH	14
 #define LSCHL_GPIO_FAN_LOCK	6
 
-static struct gpio_fan_alarm lschl_alarm = {
+static struct gpio_fan_alarm lschl_alarm =
+{
 	.gpio = LSCHL_GPIO_FAN_LOCK,
 };
 
-static struct gpio_fan_speed lschl_speeds[] = {
+static struct gpio_fan_speed lschl_speeds[] =
+{
 	{
 		.rpm = 0,
 		.ctrl_val = 3,
@@ -225,11 +239,13 @@ static struct gpio_fan_speed lschl_speeds[] = {
 	},
 };
 
-static int lschl_gpio_list[] = {
+static int lschl_gpio_list[] =
+{
 	LSCHL_GPIO_FAN_HIGH, LSCHL_GPIO_FAN_LOW,
 };
 
-static struct gpio_fan_platform_data lschl_fan_data = {
+static struct gpio_fan_platform_data lschl_fan_data =
+{
 	.num_ctrl = ARRAY_SIZE(lschl_gpio_list),
 	.ctrl = lschl_gpio_list,
 	.alarm = &lschl_alarm,
@@ -237,7 +253,8 @@ static struct gpio_fan_platform_data lschl_fan_data = {
 	.speed = lschl_speeds,
 };
 
-static struct platform_device lschl_fan_device = {
+static struct platform_device lschl_fan_device =
+{
 	.name = "gpio-fan",
 	.id = -1,
 	.num_resources = 0,
@@ -250,7 +267,8 @@ static struct platform_device lschl_fan_device = {
  * GPIO Data
  ****************************************************************************/
 
-static unsigned int lschl_mpp_modes[] __initdata = {
+static unsigned int lschl_mpp_modes[] __initdata =
+{
 	MPP0_GPIO, /* LED POWER */
 	MPP1_GPIO, /* HDD POWER */
 	MPP2_GPIO, /* LED ALARM */
@@ -295,9 +313,9 @@ static void __init lschl_init(void)
 	orion5x_xor_init();
 
 	mvebu_mbus_add_window_by_id(ORION_MBUS_DEVBUS_BOOT_TARGET,
-				    ORION_MBUS_DEVBUS_BOOT_ATTR,
-				    LSCHL_NOR_BOOT_BASE,
-				    LSCHL_NOR_BOOT_SIZE);
+								ORION_MBUS_DEVBUS_BOOT_ATTR,
+								LSCHL_NOR_BOOT_BASE,
+								LSCHL_NOR_BOOT_SIZE);
 	platform_device_register(&lschl_nor_flash);
 
 	platform_device_register(&lschl_leds);
@@ -318,14 +336,14 @@ static void __init lschl_init(void)
 }
 
 MACHINE_START(LINKSTATION_LSCHL, "Buffalo Linkstation LiveV3 (LS-CHL)")
-	/* Maintainer: Ash Hughes <ashley.hughes@blueyonder.co.uk> */
-	.atag_offset	= 0x100,
+/* Maintainer: Ash Hughes <ashley.hughes@blueyonder.co.uk> */
+.atag_offset	= 0x100,
 	.nr_irqs	= ORION5X_NR_IRQS,
-	.init_machine	= lschl_init,
-	.map_io		= orion5x_map_io,
-	.init_early	= orion5x_init_early,
-	.init_irq	= orion5x_init_irq,
-	.init_time	= orion5x_timer_init,
-	.fixup		= tag_fixup_mem32,
-	.restart	= orion5x_restart,
-MACHINE_END
+		.init_machine	= lschl_init,
+		   .map_io		= orion5x_map_io,
+			   .init_early	= orion5x_init_early,
+				.init_irq	= orion5x_init_irq,
+				   .init_time	= orion5x_timer_init,
+					 .fixup		= tag_fixup_mem32,
+						  .restart	= orion5x_restart,
+							  MACHINE_END

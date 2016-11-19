@@ -23,16 +23,21 @@ static int __init nios2_soc_device_init(void)
 	const char *machine;
 
 	soc_dev_attr = kzalloc(sizeof(*soc_dev_attr), GFP_KERNEL);
-	if (soc_dev_attr) {
+
+	if (soc_dev_attr)
+	{
 		machine = of_flat_dt_get_machine_name();
+
 		if (machine)
 			soc_dev_attr->machine = kasprintf(GFP_KERNEL, "%s",
-						machine);
+											  machine);
 
 		soc_dev_attr->family = "Nios II";
 
 		soc_dev = soc_device_register(soc_dev_attr);
-		if (IS_ERR(soc_dev)) {
+
+		if (IS_ERR(soc_dev))
+		{
 			kfree(soc_dev_attr->machine);
 			kfree(soc_dev_attr);
 		}

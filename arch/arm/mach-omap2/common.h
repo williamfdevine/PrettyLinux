@@ -95,8 +95,8 @@ extern void omap4_local_timer_init(void);
 #ifdef CONFIG_CACHE_L2X0
 int omap_l2_cache_init(void);
 #define OMAP_L2C_AUX_CTRL	(L2C_AUX_CTRL_SHARED_OVERRIDE | \
-				 L310_AUX_CTRL_DATA_PREFETCH | \
-				 L310_AUX_CTRL_INSTR_PREFETCH)
+							 L310_AUX_CTRL_DATA_PREFETCH | \
+							 L310_AUX_CTRL_INSTR_PREFETCH)
 void omap4_l2c310_write_sec(unsigned long val, unsigned reg);
 #else
 static inline int omap_l2_cache_init(void)
@@ -221,13 +221,13 @@ void __init ti81xx_map_io(void);
  * timed out.
  */
 #define omap_test_timeout(cond, timeout, index)			\
-({								\
-	for (index = 0; index < timeout; index++) {		\
-		if (cond)					\
-			break;					\
-		udelay(1);					\
-	}							\
-})
+	({								\
+		for (index = 0; index < timeout; index++) {		\
+			if (cond)					\
+				break;					\
+			udelay(1);					\
+		}							\
+	})
 
 extern struct device *omap2_get_mpuss_device(void);
 extern struct device *omap2_get_iva_device(void);
@@ -238,7 +238,7 @@ unsigned int omap4_xlate_irq(unsigned int hwirq);
 void omap_gic_of_init(void);
 
 #ifdef CONFIG_CACHE_L2X0
-extern void __iomem *omap4_get_l2cache_base(void);
+	extern void __iomem *omap4_get_l2cache_base(void);
 #endif
 
 struct device_node;
@@ -266,18 +266,18 @@ extern void omap4_secondary_startup(void);
 extern void omap4460_secondary_startup(void);
 
 #ifdef CONFIG_SMP
-/* Needed for secondary core boot */
-extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
-extern void omap_auxcoreboot_addr(u32 cpu_addr);
-extern u32 omap_read_auxcoreboot0(void);
+	/* Needed for secondary core boot */
+	extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
+	extern void omap_auxcoreboot_addr(u32 cpu_addr);
+	extern u32 omap_read_auxcoreboot0(void);
 
-extern void omap4_cpu_die(unsigned int cpu);
-extern int omap4_cpu_kill(unsigned int cpu);
+	extern void omap4_cpu_die(unsigned int cpu);
+	extern int omap4_cpu_kill(unsigned int cpu);
 
-extern const struct smp_operations omap4_smp_ops;
+	extern const struct smp_operations omap4_smp_ops;
 
-extern void omap5_secondary_startup(void);
-extern void omap5_secondary_hyp_startup(void);
+	extern void omap5_secondary_startup(void);
+	extern void omap5_secondary_hyp_startup(void);
 #endif
 
 #if defined(CONFIG_SMP) && defined(CONFIG_PM)
@@ -288,7 +288,7 @@ extern void omap4_cpu_resume(void);
 extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
 #else
 static inline int omap4_enter_lowpower(unsigned int cpu,
-					unsigned int power_state)
+									   unsigned int power_state)
 {
 	cpu_do_idle();
 	return 0;
@@ -321,7 +321,7 @@ void omap_pcs_legacy_init(int irq, void (*rearm)(void));
 
 struct omap_sdrc_params;
 extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
-				      struct omap_sdrc_params *sdrc_cs1);
+						   struct omap_sdrc_params *sdrc_cs1);
 struct omap2_hsmmc_info;
 extern void omap_reserve(void);
 

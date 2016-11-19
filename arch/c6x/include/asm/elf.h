@@ -34,11 +34,11 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 #define elf_check_const_displacement(x) (0)
 
 #define ELF_FDPIC_PLAT_INIT(_regs, _exec_map, _interp_map, _dynamic_addr) \
-do {								\
-	_regs->b4	= (_exec_map);				\
-	_regs->a6	= (_interp_map);			\
-	_regs->b6	= (_dynamic_addr);			\
-} while (0)
+	do {								\
+		_regs->b4	= (_exec_map);				\
+		_regs->a6	= (_interp_map);			\
+		_regs->b6	= (_dynamic_addr);			\
+	} while (0)
 
 #define ELF_FDPIC_CORE_EFLAGS	0
 
@@ -48,9 +48,9 @@ do {								\
  * These are used to set parameters in the core dumps.
  */
 #ifdef __LITTLE_ENDIAN__
-#define ELF_DATA	ELFDATA2LSB
+	#define ELF_DATA	ELFDATA2LSB
 #else
-#define ELF_DATA	ELFDATA2MSB
+	#define ELF_DATA	ELFDATA2MSB
 #endif
 
 #define ELF_CLASS	ELFCLASS32
@@ -64,7 +64,7 @@ do {								\
 
 #define ELF_CORE_COPY_REGS(_dest, _regs)		\
 	memcpy((char *) &_dest, (char *) _regs,		\
-	sizeof(struct pt_regs));
+		   sizeof(struct pt_regs));
 
 /* This yields a mask that user programs can use to figure out what
    instruction set this cpu supports.  */

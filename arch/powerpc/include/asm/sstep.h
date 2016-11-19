@@ -26,7 +26,8 @@ struct pt_regs;
 /* Emulate instructions that cause a transfer of control. */
 extern int emulate_step(struct pt_regs *regs, unsigned int instr);
 
-enum instruction_type {
+enum instruction_type
+{
 	COMPUTE,		/* arith/logical/CR op, etc. */
 	LOAD,
 	LOAD_MULTI,
@@ -74,7 +75,8 @@ enum instruction_type {
 
 #define MKOP(t, f, s)	((t) | (f) | SIZE(s))
 
-struct instruction_op {
+struct instruction_op
+{
 	int type;
 	int reg;
 	unsigned long val;
@@ -86,4 +88,4 @@ struct instruction_op {
 };
 
 extern int analyse_instr(struct instruction_op *op, struct pt_regs *regs,
-			 unsigned int instr);
+						 unsigned int instr);

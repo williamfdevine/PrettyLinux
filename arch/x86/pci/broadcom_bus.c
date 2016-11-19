@@ -38,7 +38,8 @@ static void __init cnb20le_res(u8 bus, u8 slot, u8 func)
 	 * These do not exist anywhere in the bridge registers, AFAICT. I do
 	 * not have the datasheet, so this is the best I can do.
 	 */
-	if (fbus == 0) {
+	if (fbus == 0)
+	{
 		update_res(info, 0x01f0, 0x01f7, IORESOURCE_IO, 0);
 		update_res(info, 0x03f6, 0x03f6, IORESOURCE_IO, 0);
 		update_res(info, 0x0170, 0x0177, IORESOURCE_IO, 0);
@@ -49,7 +50,9 @@ static void __init cnb20le_res(u8 bus, u8 slot, u8 func)
 	/* read the non-prefetchable memory window */
 	word1 = read_pci_config_16(bus, slot, func, 0xc0);
 	word2 = read_pci_config_16(bus, slot, func, 0xc2);
-	if (word1 != word2) {
+
+	if (word1 != word2)
+	{
 		res.start = (word1 << 16) | 0x0000;
 		res.end   = (word2 << 16) | 0xffff;
 		res.flags = IORESOURCE_MEM;
@@ -59,7 +62,9 @@ static void __init cnb20le_res(u8 bus, u8 slot, u8 func)
 	/* read the prefetchable memory window */
 	word1 = read_pci_config_16(bus, slot, func, 0xc4);
 	word2 = read_pci_config_16(bus, slot, func, 0xc6);
-	if (word1 != word2) {
+
+	if (word1 != word2)
+	{
 		res.start = ((resource_size_t) word1 << 16) | 0x0000;
 		res.end   = ((resource_size_t) word2 << 16) | 0xffff;
 		res.flags = IORESOURCE_MEM | IORESOURCE_PREFETCH;
@@ -69,7 +74,9 @@ static void __init cnb20le_res(u8 bus, u8 slot, u8 func)
 	/* read the IO port window */
 	word1 = read_pci_config_16(bus, slot, func, 0xd0);
 	word2 = read_pci_config_16(bus, slot, func, 0xd2);
-	if (word1 != word2) {
+
+	if (word1 != word2)
+	{
 		res.start = word1;
 		res.end   = word2;
 		res.flags = IORESOURCE_IO;
@@ -83,7 +90,7 @@ static void __init cnb20le_res(u8 bus, u8 slot, u8 func)
 	printk(KERN_INFO "CNB20LE PCI Host Bridge (domain 0000 %pR)\n", &res);
 
 	list_for_each_entry(root_res, &info->resources, list)
-		printk(KERN_INFO "host bridge window %pR\n", &root_res->res);
+	printk(KERN_INFO "host bridge window %pR\n", &root_res->res);
 }
 
 static int __init broadcom_postcore_init(void)
@@ -93,12 +100,16 @@ static int __init broadcom_postcore_init(void)
 	u16 vendor, device;
 
 #ifdef CONFIG_ACPI
+
 	/*
 	 * We should get host bridge information from ACPI unless the BIOS
 	 * doesn't support it.
 	 */
 	if (acpi_os_get_root_pointer())
+	{
 		return 0;
+	}
+
 #endif
 
 	id = read_pci_config(bus, slot, 0, PCI_VENDOR_ID);
@@ -106,10 +117,12 @@ static int __init broadcom_postcore_init(void)
 	device = (id >> 16) & 0xffff;
 
 	if (vendor == PCI_VENDOR_ID_SERVERWORKS &&
-	    device == PCI_DEVICE_ID_SERVERWORKS_LE) {
+		device == PCI_DEVICE_ID_SERVERWORKS_LE)
+	{
 		cnb20le_res(bus, slot, 0);
 		cnb20le_res(bus, slot, 1);
 	}
+
 	return 0;
 }
 

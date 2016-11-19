@@ -12,15 +12,18 @@
 
 #include "voltage.h"
 
-static struct voltagedomain omap2_voltdm_core = {
+static struct voltagedomain omap2_voltdm_core =
+{
 	.name = "core",
 };
 
-static struct voltagedomain omap2_voltdm_wkup = {
+static struct voltagedomain omap2_voltdm_wkup =
+{
 	.name = "wakeup",
 };
 
-static struct voltagedomain *voltagedomains_omap2[] __initdata = {
+static struct voltagedomain *voltagedomains_omap2[] __initdata =
+{
 	&omap2_voltdm_core,
 	&omap2_voltdm_wkup,
 	NULL,

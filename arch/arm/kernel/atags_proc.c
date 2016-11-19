@@ -4,19 +4,21 @@
 #include <asm/types.h>
 #include <asm/page.h>
 
-struct buffer {
+struct buffer
+{
 	size_t size;
 	char data[];
 };
 
 static ssize_t atags_read(struct file *file, char __user *buf,
-			  size_t count, loff_t *ppos)
+						  size_t count, loff_t *ppos)
 {
 	struct buffer *b = PDE_DATA(file_inode(file));
 	return simple_read_from_buffer(buf, count, ppos, b->data, b->size);
 }
 
-static const struct file_operations atags_fops = {
+static const struct file_operations atags_fops =
+{
 	.read = atags_read,
 	.llseek = default_llseek,
 };
@@ -40,7 +42,8 @@ static int __init init_atags_procfs(void)
 	struct buffer *b;
 	size_t size;
 
-	if (tag->hdr.tag != ATAG_CORE) {
+	if (tag->hdr.tag != ATAG_CORE)
+	{
 		pr_info("No ATAGs?");
 		return -EINVAL;
 	}
@@ -54,15 +57,21 @@ static int __init init_atags_procfs(void)
 	WARN_ON(tag->hdr.tag != ATAG_NONE);
 
 	b = kmalloc(sizeof(*b) + size, GFP_KERNEL);
+
 	if (!b)
+	{
 		goto nomem;
+	}
 
 	b->size = size;
 	memcpy(b->data, atags_copy, size);
 
 	tags_entry = proc_create_data("atags", 0400, NULL, &atags_fops, b);
+
 	if (!tags_entry)
+	{
 		goto nomem;
+	}
 
 	return 0;
 

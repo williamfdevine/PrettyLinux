@@ -9,7 +9,8 @@
 
 #include <linux/spinlock.h>
 
-struct bit_map {
+struct bit_map
+{
 	spinlock_t lock;
 	unsigned long *map;
 	int size;

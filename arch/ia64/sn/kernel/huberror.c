@@ -20,7 +20,7 @@
 
 void hubiio_crb_error_handler(struct hubdev_info *hubdev_info);
 extern void bte_crb_error_handler(cnodeid_t, int, int, ioerror_t *,
-				  int);
+								  int);
 static irqreturn_t hub_eint_handler(int irq, void *arg)
 {
 	struct hubdev_info *hubdev_info;
@@ -32,25 +32,34 @@ static irqreturn_t hub_eint_handler(int irq, void *arg)
 	hubdev_info = (struct hubdev_info *)arg;
 	nasid = hubdev_info->hdi_nasid;
 
-	if (is_shub1()) {
+	if (is_shub1())
+	{
 		SAL_CALL_NOLOCK(ret_stuff, SN_SAL_HUB_ERROR_INTERRUPT,
-			(u64) nasid, 0, 0, 0, 0, 0, 0);
+						(u64) nasid, 0, 0, 0, 0, 0, 0);
 
 		if ((int)ret_stuff.v0)
 			panic("%s: Fatal %s Error", __func__,
-				((nasid & 1) ? "TIO" : "HUBII"));
+				  ((nasid & 1) ? "TIO" : "HUBII"));
 
 		if (!(nasid & 1)) /* Not a TIO, handle CRB errors */
+		{
 			(void)hubiio_crb_error_handler(hubdev_info);
-	} else
-		if (nasid & 1) {	/* TIO errors */
-			SAL_CALL_NOLOCK(ret_stuff, SN_SAL_HUB_ERROR_INTERRUPT,
-				(u64) nasid, 0, 0, 0, 0, 0, 0);
+		}
+	}
+	else if (nasid & 1)  	/* TIO errors */
+	{
+		SAL_CALL_NOLOCK(ret_stuff, SN_SAL_HUB_ERROR_INTERRUPT,
+						(u64) nasid, 0, 0, 0, 0, 0, 0);
 
-			if ((int)ret_stuff.v0)
-				panic("%s: Fatal TIO Error", __func__);
-		} else
-			bte_error_handler((unsigned long)NODEPDA(nasid_to_cnodeid(nasid)));
+		if ((int)ret_stuff.v0)
+		{
+			panic("%s: Fatal TIO Error", __func__);
+		}
+	}
+	else
+	{
+		bte_error_handler((unsigned long)NODEPDA(nasid_to_cnodeid(nasid)));
+	}
 
 	return IRQ_HANDLED;
 }
@@ -75,29 +84,32 @@ void hubiio_crb_free(struct hubdev_info *hubdev_info, int crbnum)
 	 * here to be sure the error is not processed twice.
 	 */
 	icrbb.ii_icrb0_b_regval = REMOTE_HUB_L(hubdev_info->hdi_nasid,
-					       IIO_ICRB_B(crbnum));
+										   IIO_ICRB_B(crbnum));
 	icrbb.b_mark = 0;
 	REMOTE_HUB_S(hubdev_info->hdi_nasid, IIO_ICRB_B(crbnum),
-		     icrbb.ii_icrb0_b_regval);
+				 icrbb.ii_icrb0_b_regval);
 	/*
 	 * Deallocate the register wait till hub indicates it's done.
 	 */
 	REMOTE_HUB_S(hubdev_info->hdi_nasid, IIO_ICDR, (IIO_ICDR_PND | crbnum));
+
 	while (REMOTE_HUB_L(hubdev_info->hdi_nasid, IIO_ICDR) & IIO_ICDR_PND)
+	{
 		cpu_relax();
+	}
 
 }
 
 /*
  * hubiio_crb_error_handler
  *
- *	This routine gets invoked when a hub gets an error 
+ *	This routine gets invoked when a hub gets an error
  *	interrupt. So, the routine is running in interrupt context
  *	at error interrupt level.
  * Action:
  *	It's responsible for identifying ALL the CRBs that are marked
- *	with error, and process them. 
- *	
+ *	with error, and process them.
+ *
  * 	If you find the CRB that's marked with error, map this to the
  *	reason it caused error, and invoke appropriate error handler.
  *
@@ -105,7 +117,7 @@ void hubiio_crb_free(struct hubdev_info *hubdev_info, int crbnum)
  *
  * NOTE:
  *	Use REMOTE_HUB_* macro instead of LOCAL_HUB_* so that the interrupt
- *	handler can be run on any node. (not necessarily the node 
+ *	handler can be run on any node. (not necessarily the node
  *	corresponding to the hub that encountered error).
  */
 
@@ -130,11 +142,13 @@ void hubiio_crb_error_handler(struct hubdev_info *hubdev_info)
 	 * Scan through all CRBs in the Hub, and handle the errors
 	 * in any of the CRBs marked.
 	 */
-	for (i = 0; i < IIO_NUM_CRBS; i++) {
+	for (i = 0; i < IIO_NUM_CRBS; i++)
+	{
 		/* Check this crb entry to see if it is in error. */
 		icrbb.ii_icrb0_b_regval = REMOTE_HUB_L(nasid, IIO_ICRB_B(i));
 
-		if (icrbb.b_mark == 0) {
+		if (icrbb.b_mark == 0)
+		{
 			continue;
 		}
 
@@ -153,22 +167,27 @@ void hubiio_crb_error_handler(struct hubdev_info *hubdev_info)
 		 * and handle it separately.
 		 */
 		if (icrbd.d_bteop ||
-		    ((icrbb.b_initiator == IIO_ICRB_INIT_BTE0 ||
-		      icrbb.b_initiator == IIO_ICRB_INIT_BTE1) &&
-		     (icrbb.b_imsgtype == IIO_ICRB_IMSGT_BTE ||
-		      icrbb.b_imsgtype == IIO_ICRB_IMSGT_SN1NET))) {
+			((icrbb.b_initiator == IIO_ICRB_INIT_BTE0 ||
+			  icrbb.b_initiator == IIO_ICRB_INIT_BTE1) &&
+			 (icrbb.b_imsgtype == IIO_ICRB_IMSGT_BTE ||
+			  icrbb.b_imsgtype == IIO_ICRB_IMSGT_SN1NET)))
+		{
 
 			int bte_num;
 
 			if (icrbd.d_bteop)
+			{
 				bte_num = icrbc.c_btenum;
+			}
 			else	/* b_initiator bit 2 gives BTE number */
+			{
 				bte_num = (icrbb.b_initiator & 0x4) >> 2;
+			}
 
 			hubiio_crb_free(hubdev_info, i);
 
 			bte_crb_error_handler(nasid_to_cnodeid(nasid), bte_num,
-					      i, &ioerror, icrbd.d_bteop);
+								  i, &ioerror, icrbd.d_bteop);
 			num_errors++;
 			continue;
 		}
@@ -187,11 +206,13 @@ void hub_error_init(struct hubdev_info *hubdev_info)
 {
 
 	if (request_irq(SGI_II_ERROR, hub_eint_handler, IRQF_SHARED,
-			"SN_hub_error", hubdev_info)) {
+					"SN_hub_error", hubdev_info))
+	{
 		printk(KERN_ERR "hub_error_init: Failed to request_irq for 0x%p\n",
-		    hubdev_info);
+			   hubdev_info);
 		return;
 	}
+
 	irq_set_handler(SGI_II_ERROR, handle_level_irq);
 	sn_set_err_irq_affinity(SGI_II_ERROR);
 }
@@ -207,13 +228,15 @@ void hub_error_init(struct hubdev_info *hubdev_info)
 void ice_error_init(struct hubdev_info *hubdev_info)
 {
 
-        if (request_irq
-            (SGI_TIO_ERROR, (void *)hub_eint_handler, IRQF_SHARED, "SN_TIO_error",
-             (void *)hubdev_info)) {
-                printk("ice_error_init: request_irq() error hubdev_info 0x%p\n",
-                       hubdev_info);
+	if (request_irq
+		(SGI_TIO_ERROR, (void *)hub_eint_handler, IRQF_SHARED, "SN_TIO_error",
+		 (void *)hubdev_info))
+	{
+		printk("ice_error_init: request_irq() error hubdev_info 0x%p\n",
+			   hubdev_info);
 		return;
 	}
+
 	irq_set_handler(SGI_TIO_ERROR, handle_level_irq);
 	sn_set_err_irq_affinity(SGI_TIO_ERROR);
 }

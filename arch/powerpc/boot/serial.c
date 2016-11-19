@@ -30,7 +30,9 @@ static void serial_write(const char *buf, int len)
 	struct serial_console_data *scdp = console_ops.data;
 
 	while (*buf != '\0')
+	{
 		scdp->putc(*buf++);
+	}
 }
 
 static void serial_edit_cmdline(char *buf, int len, unsigned int timeout)
@@ -44,33 +46,48 @@ static void serial_edit_cmdline(char *buf, int len, unsigned int timeout)
 	cp = &buf[count];
 	count++;
 
-	do {
-		if (scdp->tstc()) {
-			while (((ch = scdp->getc()) != '\n') && (ch != '\r')) {
+	do
+	{
+		if (scdp->tstc())
+		{
+			while (((ch = scdp->getc()) != '\n') && (ch != '\r'))
+			{
 				/* Test for backspace/delete */
-				if ((ch == '\b') || (ch == '\177')) {
-					if (cp != buf) {
+				if ((ch == '\b') || (ch == '\177'))
+				{
+					if (cp != buf)
+					{
 						cp--;
 						count--;
 						printf("\b \b");
 					}
-				/* Test for ^x/^u (and wipe the line) */
-				} else if ((ch == '\030') || (ch == '\025')) {
-					while (cp != buf) {
+
+					/* Test for ^x/^u (and wipe the line) */
+				}
+				else if ((ch == '\030') || (ch == '\025'))
+				{
+					while (cp != buf)
+					{
 						cp--;
 						count--;
 						printf("\b \b");
 					}
-				} else if (count < len) {
-						*cp++ = ch;
-						count++;
-						scdp->putc(ch);
+				}
+				else if (count < len)
+				{
+					*cp++ = ch;
+					count++;
+					scdp->putc(ch);
 				}
 			}
+
 			break;  /* Exit 'timer' loop */
 		}
+
 		udelay(1000);  /* 1 msec */
-	} while (timer++ < timeout);
+	}
+	while (timer++ < timeout);
+
 	*cp = 0;
 }
 
@@ -79,7 +96,9 @@ static void serial_close(void)
 	struct serial_console_data *scdp = console_ops.data;
 
 	if (scdp->close)
+	{
 		scdp->close();
+	}
 }
 
 static void *serial_get_stdout_devp(void)
@@ -89,18 +108,28 @@ static void *serial_get_stdout_devp(void)
 	char path[MAX_PATH_LEN];
 
 	devp = finddevice("/chosen");
-	if (devp == NULL)
-		goto err_out;
 
-	if (getprop(devp, "linux,stdout-path", path, MAX_PATH_LEN) > 0) {
+	if (devp == NULL)
+	{
+		goto err_out;
+	}
+
+	if (getprop(devp, "linux,stdout-path", path, MAX_PATH_LEN) > 0)
+	{
 		devp = finddevice(path);
+
 		if (devp == NULL)
+		{
 			goto err_out;
+		}
 
 		if ((getprop(devp, "device_type", devtype, sizeof(devtype)) > 0)
-				&& !strcmp(devtype, "serial"))
+			&& !strcmp(devtype, "serial"))
+		{
 			return devp;
+		}
 	}
+
 err_out:
 	return NULL;
 }
@@ -114,40 +143,59 @@ int serial_console_init(void)
 	int rc = -1;
 
 	devp = serial_get_stdout_devp();
+
 	if (devp == NULL)
+	{
 		goto err_out;
+	}
 
 	if (dt_is_compatible(devp, "ns16550") ||
-	    dt_is_compatible(devp, "pnpPNP,501"))
+		dt_is_compatible(devp, "pnpPNP,501"))
+	{
 		rc = ns16550_console_init(devp, &serial_cd);
+	}
 	else if (dt_is_compatible(devp, "marvell,mv64360-mpsc"))
+	{
 		rc = mpsc_console_init(devp, &serial_cd);
+	}
 	else if (dt_is_compatible(devp, "fsl,cpm1-scc-uart") ||
-	         dt_is_compatible(devp, "fsl,cpm1-smc-uart") ||
-	         dt_is_compatible(devp, "fsl,cpm2-scc-uart") ||
-	         dt_is_compatible(devp, "fsl,cpm2-smc-uart"))
+			 dt_is_compatible(devp, "fsl,cpm1-smc-uart") ||
+			 dt_is_compatible(devp, "fsl,cpm2-scc-uart") ||
+			 dt_is_compatible(devp, "fsl,cpm2-smc-uart"))
+	{
 		rc = cpm_console_init(devp, &serial_cd);
+	}
 	else if (dt_is_compatible(devp, "fsl,mpc5200-psc-uart"))
+	{
 		rc = mpc5200_psc_console_init(devp, &serial_cd);
+	}
 	else if (dt_is_compatible(devp, "xlnx,opb-uartlite-1.00.b") ||
-		 dt_is_compatible(devp, "xlnx,xps-uartlite-1.00.a"))
+			 dt_is_compatible(devp, "xlnx,xps-uartlite-1.00.a"))
+	{
 		rc = uartlite_console_init(devp, &serial_cd);
+	}
 	else if (dt_is_compatible(devp, "ibm,opal-console-raw"))
+	{
 		rc = opal_console_init(devp, &serial_cd);
+	}
 
 	/* Add other serial console driver calls here */
 
-	if (!rc) {
+	if (!rc)
+	{
 		console_ops.open = serial_open;
 		console_ops.write = serial_write;
 		console_ops.close = serial_close;
 		console_ops.data = &serial_cd;
 
 		if (serial_cd.getc)
+		{
 			console_ops.edit_cmdline = serial_edit_cmdline;
+		}
 
 		return 0;
 	}
+
 err_out:
 	return -1;
 }

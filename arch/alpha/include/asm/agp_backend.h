@@ -1,8 +1,10 @@
 #ifndef _ALPHA_AGP_BACKEND_H
 #define _ALPHA_AGP_BACKEND_H 1
 
-typedef	union _alpha_agp_mode {
-	struct {
+typedef	union _alpha_agp_mode
+{
+	struct
+	{
 		u32 rate : 3;
 		u32 reserved0 : 1;
 		u32 fw : 1;
@@ -16,20 +18,23 @@ typedef	union _alpha_agp_mode {
 	u32 lw;
 } alpha_agp_mode;
 
-typedef struct _alpha_agp_info {
-	struct pci_controller *hose;
-	struct {
-		dma_addr_t bus_base;
-		unsigned long size;
-		void *sysdata;
-	} aperture;
-	alpha_agp_mode capability;
-	alpha_agp_mode mode;
-	void *private;
-	struct alpha_agp_ops *ops;
+typedef struct _alpha_agp_info
+{
+		struct pci_controller *hose;
+		struct
+		{
+			dma_addr_t bus_base;
+			unsigned long size;
+			void *sysdata;
+		} aperture;
+		alpha_agp_mode capability;
+		alpha_agp_mode mode;
+		void *private;
+		struct alpha_agp_ops *ops;
 } alpha_agp_info;
 
-struct alpha_agp_ops {
+struct alpha_agp_ops
+{
 	int (*setup)(alpha_agp_info *);
 	void (*cleanup)(alpha_agp_info *);
 	int (*configure)(alpha_agp_info *);

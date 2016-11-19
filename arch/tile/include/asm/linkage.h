@@ -27,25 +27,25 @@
  */
 
 #define STD_ENTRY(name) \
-  .pushsection .text.##name, "ax"; \
-  ENTRY(name); \
-  FEEDBACK_ENTER(name)
+	.pushsection .text.##name, "ax"; \
+	ENTRY(name); \
+	FEEDBACK_ENTER(name)
 
 #define STD_ENTRY_SECTION(name, section) \
-  .pushsection section, "ax"; \
-  ENTRY(name); \
-  FEEDBACK_ENTER_EXPLICIT(name, section, .Lend_##name - name)
+	.pushsection section, "ax"; \
+	ENTRY(name); \
+	FEEDBACK_ENTER_EXPLICIT(name, section, .Lend_##name - name)
 
 #define STD_ENDPROC(name) \
-  ENDPROC(name); \
-  .Lend_##name:; \
-  .popsection
+	ENDPROC(name); \
+	.Lend_##name:; \
+	.popsection
 
 /* Create a file-static function entry set up for feedback gathering. */
 #define STD_ENTRY_LOCAL(name) \
-  .pushsection .text.##name, "ax"; \
-  ALIGN; \
-  name:; \
-  FEEDBACK_ENTER(name)
+	.pushsection .text.##name, "ax"; \
+	ALIGN; \
+	name:; \
+	FEEDBACK_ENTER(name)
 
 #endif /* _ASM_TILE_LINKAGE_H */

@@ -4,14 +4,15 @@
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-#include <asm/processor.h>
-#include <asm/types.h>
-#include <asm/hwrpb.h>
-#include <asm/sysinfo.h>
+	#include <asm/processor.h>
+	#include <asm/types.h>
+	#include <asm/hwrpb.h>
+	#include <asm/sysinfo.h>
 #endif
 
 #ifndef __ASSEMBLY__
-struct thread_info {
+struct thread_info
+{
 	struct pcb_struct	pcb;		/* palcode state */
 
 	struct task_struct	*task;		/* main task structure */
@@ -32,11 +33,11 @@ struct thread_info {
  * Macros/functions for gaining access to the thread information structure.
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.addr_limit	= KERNEL_DS,		\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-}
+	{						\
+		.task		= &tsk,			\
+					  .addr_limit	= KERNEL_DS,		\
+									.preempt_count	= INIT_PREEMPT_COUNT,	\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -77,37 +78,37 @@ register struct thread_info *__current_thread_info __asm__("$8");
 
 /* Work to do on interrupt/exception return.  */
 #define _TIF_WORK_MASK		(_TIF_SIGPENDING | _TIF_NEED_RESCHED | \
-				 _TIF_NOTIFY_RESUME)
+							 _TIF_NOTIFY_RESUME)
 
 /* Work to do on any return to userspace.  */
 #define _TIF_ALLWORK_MASK	(_TIF_WORK_MASK		\
-				 | _TIF_SYSCALL_TRACE)
+							 | _TIF_SYSCALL_TRACE)
 
 #define TS_UAC_NOPRINT		0x0001	/* ! Preserve the following three */
 #define TS_UAC_NOFIX		0x0002	/* ! flags as they match          */
 #define TS_UAC_SIGBUS		0x0004	/* ! userspace part of 'osf_sysinfo' */
 
 #define SET_UNALIGN_CTL(task,value)	({				\
-	__u32 status = task_thread_info(task)->status & ~UAC_BITMASK;	\
-	if (value & PR_UNALIGN_NOPRINT)					\
-		status |= TS_UAC_NOPRINT;				\
-	if (value & PR_UNALIGN_SIGBUS)					\
-		status |= TS_UAC_SIGBUS;				\
-	if (value & 4)	/* alpha-specific */				\
-		status |= TS_UAC_NOFIX;					\
-	task_thread_info(task)->status = status;			\
-	0; })
+		__u32 status = task_thread_info(task)->status & ~UAC_BITMASK;	\
+		if (value & PR_UNALIGN_NOPRINT)					\
+			status |= TS_UAC_NOPRINT;				\
+		if (value & PR_UNALIGN_SIGBUS)					\
+			status |= TS_UAC_SIGBUS;				\
+		if (value & 4)	/* alpha-specific */				\
+			status |= TS_UAC_NOFIX;					\
+		task_thread_info(task)->status = status;			\
+		0; })
 
 #define GET_UNALIGN_CTL(task,value)	({				\
-	__u32 status = task_thread_info(task)->status & ~UAC_BITMASK;	\
-	__u32 res = 0;							\
-	if (status & TS_UAC_NOPRINT)					\
-		res |= PR_UNALIGN_NOPRINT;				\
-	if (status & TS_UAC_SIGBUS)					\
-		res |= PR_UNALIGN_SIGBUS;				\
-	if (status & TS_UAC_NOFIX)					\
-		res |= 4;						\
-	put_user(res, (int __user *)(value));				\
+		__u32 status = task_thread_info(task)->status & ~UAC_BITMASK;	\
+		__u32 res = 0;							\
+		if (status & TS_UAC_NOPRINT)					\
+			res |= PR_UNALIGN_NOPRINT;				\
+		if (status & TS_UAC_SIGBUS)					\
+			res |= PR_UNALIGN_SIGBUS;				\
+		if (status & TS_UAC_NOFIX)					\
+			res |= 4;						\
+		put_user(res, (int __user *)(value));				\
 	})
 
 #endif /* __KERNEL__ */

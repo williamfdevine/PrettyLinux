@@ -38,7 +38,8 @@ struct samsung_gpio_chip;
  * @save: Routine to save the state of the GPIO block
  * @resume: Routine to resume the GPIO block.
  */
-struct samsung_gpio_pm {
+struct samsung_gpio_pm
+{
 	void (*save)(struct samsung_gpio_chip *chip);
 	void (*resume)(struct samsung_gpio_chip *chip);
 };
@@ -67,7 +68,8 @@ struct samsung_gpio_cfg;
  * CPU cores trying to get one lock for different GPIO banks, where each
  * bank of GPIO has its own register space and configuration registers.
  */
-struct samsung_gpio_chip {
+struct samsung_gpio_chip
+{
 	struct gpio_chip	chip;
 	struct samsung_gpio_cfg	*config;
 	struct samsung_gpio_pm	*pm;
@@ -116,9 +118,11 @@ static inline struct samsung_gpio_chip *samsung_gpiolib_getchip(unsigned int pin
 	struct samsung_gpio_chip *chip;
 
 	if (pin > S3C_GPIO_END)
+	{
 		return NULL;
+	}
 
-	chip = &s3c24xx_gpios[pin/32];
+	chip = &s3c24xx_gpios[pin / 32];
 	return ((pin - chip->chip.base) < chip->chip.ngpio) ? chip : NULL;
 }
 
@@ -126,15 +130,15 @@ static inline void s3c_gpiolib_track(struct samsung_gpio_chip *chip) { }
 #endif
 
 #ifdef CONFIG_PM
-extern struct samsung_gpio_pm samsung_gpio_pm_1bit;
-extern struct samsung_gpio_pm samsung_gpio_pm_2bit;
-extern struct samsung_gpio_pm samsung_gpio_pm_4bit;
-#define __gpio_pm(x) x
+	extern struct samsung_gpio_pm samsung_gpio_pm_1bit;
+	extern struct samsung_gpio_pm samsung_gpio_pm_2bit;
+	extern struct samsung_gpio_pm samsung_gpio_pm_4bit;
+	#define __gpio_pm(x) x
 #else
-#define samsung_gpio_pm_1bit NULL
-#define samsung_gpio_pm_2bit NULL
-#define samsung_gpio_pm_4bit NULL
-#define __gpio_pm(x) NULL
+	#define samsung_gpio_pm_1bit NULL
+	#define samsung_gpio_pm_2bit NULL
+	#define samsung_gpio_pm_4bit NULL
+	#define __gpio_pm(x) NULL
 
 #endif /* CONFIG_PM */
 

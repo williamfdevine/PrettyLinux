@@ -39,21 +39,21 @@
 #include <asm/traps.h>
 #include <asm/sibyte/sb1250.h>
 #if defined(CONFIG_SIBYTE_BCM1x55) || defined(CONFIG_SIBYTE_BCM1x80)
-#include <asm/sibyte/bcm1480_regs.h>
+	#include <asm/sibyte/bcm1480_regs.h>
 #elif defined(CONFIG_SIBYTE_SB1250) || defined(CONFIG_SIBYTE_BCM112X)
-#include <asm/sibyte/sb1250_regs.h>
+	#include <asm/sibyte/sb1250_regs.h>
 #else
-#error invalid SiByte board configuration
+	#error invalid SiByte board configuration
 #endif
 #include <asm/sibyte/sb1250_genbus.h>
 #include <asm/sibyte/board.h>
 
 #if defined(CONFIG_SIBYTE_BCM1x55) || defined(CONFIG_SIBYTE_BCM1x80)
-extern void bcm1480_setup(void);
+	extern void bcm1480_setup(void);
 #elif defined(CONFIG_SIBYTE_SB1250) || defined(CONFIG_SIBYTE_BCM112X)
-extern void sb1250_setup(void);
+	extern void sb1250_setup(void);
 #else
-#error invalid SiByte board configuration
+	#error invalid SiByte board configuration
 #endif
 
 extern int xicor_probe(void);
@@ -71,15 +71,18 @@ const char *get_system_type(void)
 
 int swarm_be_handler(struct pt_regs *regs, int is_fixup)
 {
-	if (!is_fixup && (regs->cp0_cause & 4)) {
+	if (!is_fixup && (regs->cp0_cause & 4))
+	{
 		/* Data bus error - print PA */
 		printk("DBE physical address: %010Lx\n",
-		       __read_64bit_c0_register($26, 1));
+			   __read_64bit_c0_register($26, 1));
 	}
+
 	return is_fixup ? MIPS_BE_FIXUP : MIPS_BE_FATAL;
 }
 
-enum swarm_rtc_type {
+enum swarm_rtc_type
+{
 	RTC_NONE,
 	RTC_XICOR,
 	RTC_M41T81,
@@ -91,36 +94,39 @@ void read_persistent_clock(struct timespec *ts)
 {
 	unsigned long sec;
 
-	switch (swarm_rtc_type) {
-	case RTC_XICOR:
-		sec = xicor_get_time();
-		break;
+	switch (swarm_rtc_type)
+	{
+		case RTC_XICOR:
+			sec = xicor_get_time();
+			break;
 
-	case RTC_M41T81:
-		sec = m41t81_get_time();
-		break;
+		case RTC_M41T81:
+			sec = m41t81_get_time();
+			break;
 
-	case RTC_NONE:
-	default:
-		sec = mktime(2000, 1, 1, 0, 0, 0);
-		break;
+		case RTC_NONE:
+		default:
+			sec = mktime(2000, 1, 1, 0, 0, 0);
+			break;
 	}
+
 	ts->tv_sec = sec;
 	ts->tv_nsec = 0;
 }
 
 int rtc_mips_set_time(unsigned long sec)
 {
-	switch (swarm_rtc_type) {
-	case RTC_XICOR:
-		return xicor_set_time(sec);
+	switch (swarm_rtc_type)
+	{
+		case RTC_XICOR:
+			return xicor_set_time(sec);
 
-	case RTC_M41T81:
-		return m41t81_set_time(sec);
+		case RTC_M41T81:
+			return m41t81_set_time(sec);
 
-	case RTC_NONE:
-	default:
-		return -1;
+		case RTC_NONE:
+		default:
+			return -1;
 	}
 }
 
@@ -137,31 +143,37 @@ void __init plat_mem_setup(void)
 	board_be_handler = swarm_be_handler;
 
 	if (xicor_probe())
+	{
 		swarm_rtc_type = RTC_XICOR;
+	}
+
 	if (m41t81_probe())
+	{
 		swarm_rtc_type = RTC_M41T81;
+	}
 
 #ifdef CONFIG_VT
-	screen_info = (struct screen_info) {
+	screen_info = (struct screen_info)
+	{
 		.orig_video_page	= 52,
-		.orig_video_mode	= 3,
-		.orig_video_cols	= 80,
-		.flags			= 12,
-		.orig_video_ega_bx	= 3,
-		.orig_video_lines	= 25,
-		.orig_video_isVGA	= 0x22,
-		.orig_video_points	= 16,
-       };
-       /* XXXKW for CFE, get lines/cols from environment */
+			.orig_video_mode	= 3,
+				.orig_video_cols	= 80,
+					.flags			= 12,
+							.orig_video_ega_bx	= 3,
+							  .orig_video_lines	= 25,
+								 .orig_video_isVGA	= 0x22,
+									.orig_video_points	= 16,
+	};
+	/* XXXKW for CFE, get lines/cols from environment */
 #endif
 }
 
 #ifdef LEDS_PHYS
 
 #ifdef CONFIG_SIBYTE_CARMEL
-/* XXXKW need to detect Monterey/LittleSur/etc */
-#undef LEDS_PHYS
-#define LEDS_PHYS MLEDS_PHYS
+	/* XXXKW need to detect Monterey/LittleSur/etc */
+	#undef LEDS_PHYS
+	#define LEDS_PHYS MLEDS_PHYS
 #endif
 
 void setleds(char *str)
@@ -169,13 +181,18 @@ void setleds(char *str)
 	void *reg;
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		reg = IOADDR(LEDS_PHYS) + 0x20 + ((3 - i) << 3);
 
 		if (!str[i])
+		{
 			writeb(' ', reg);
+		}
 		else
+		{
 			writeb(str[i], reg);
+		}
 	}
 }
 

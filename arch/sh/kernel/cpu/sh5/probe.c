@@ -28,11 +28,16 @@ void cpu_probe(void)
 	 * hard to set up correctly.
 	 */
 	cir = peek_real_address_q(0x0d000008);
+
 	if ((cir & 0xffff) == 0x5103)
+	{
 		boot_cpu_data.type = CPU_SH5_103;
+	}
 	else if (((cir >> 32) & 0xffff) == 0x51e2)
 		/* CPU.VCR aliased at CIR address on SH5-101 */
+	{
 		boot_cpu_data.type = CPU_SH5_101;
+	}
 
 	boot_cpu_data.family = CPU_FAMILY_SH5;
 
@@ -45,7 +50,7 @@ void cpu_probe(void)
 	boot_cpu_data.icache.way_incr		= (1 << 13);
 	boot_cpu_data.icache.entry_shift	= 5;
 	boot_cpu_data.icache.way_size		= boot_cpu_data.icache.sets *
-						  boot_cpu_data.icache.linesz;
+										  boot_cpu_data.icache.linesz;
 	boot_cpu_data.icache.entry_mask		= 0x1fe0;
 	boot_cpu_data.icache.flags		= 0;
 

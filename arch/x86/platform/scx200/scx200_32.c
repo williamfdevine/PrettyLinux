@@ -26,18 +26,20 @@ unsigned long scx200_gpio_shadow[2];
 
 unsigned scx200_cb_base = 0;
 
-static struct pci_device_id scx200_tbl[] = {
+static struct pci_device_id scx200_tbl[] =
+{
 	{ PCI_VDEVICE(NS, PCI_DEVICE_ID_NS_SCx200_BRIDGE) },
 	{ PCI_VDEVICE(NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE) },
 	{ PCI_VDEVICE(NS, PCI_DEVICE_ID_NS_SCx200_XBUS)   },
 	{ PCI_VDEVICE(NS, PCI_DEVICE_ID_NS_SC1100_XBUS)   },
 	{ },
 };
-MODULE_DEVICE_TABLE(pci,scx200_tbl);
+MODULE_DEVICE_TABLE(pci, scx200_tbl);
 
 static int scx200_probe(struct pci_dev *, const struct pci_device_id *);
 
-static struct pci_driver scx200_pci_driver = {
+static struct pci_driver scx200_pci_driver =
+{
 	.name = "scx200",
 	.id_table = scx200_tbl,
 	.probe = scx200_probe,
@@ -51,7 +53,9 @@ static void scx200_init_shadow(void)
 
 	/* read the current values driven on the GPIO signals */
 	for (bank = 0; bank < 2; ++bank)
+	{
 		scx200_gpio_shadow[bank] = inl(scx200_gpio_base + 0x10 * bank);
+	}
 }
 
 static int scx200_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
@@ -59,12 +63,14 @@ static int scx200_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	unsigned base;
 
 	if (pdev->device == PCI_DEVICE_ID_NS_SCx200_BRIDGE ||
-	    pdev->device == PCI_DEVICE_ID_NS_SC1100_BRIDGE) {
+		pdev->device == PCI_DEVICE_ID_NS_SC1100_BRIDGE)
+	{
 		base = pci_resource_start(pdev, 0);
 		pr_info("GPIO base 0x%x\n", base);
 
 		if (!request_region(base, SCx200_GPIO_SIZE,
-				    "NatSemi SCx200 GPIO")) {
+							"NatSemi SCx200 GPIO"))
+		{
 			pr_err("can't allocate I/O for GPIOs\n");
 			return -EBUSY;
 		}
@@ -72,19 +78,29 @@ static int scx200_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 		scx200_gpio_base = base;
 		scx200_init_shadow();
 
-	} else {
+	}
+	else
+	{
 		/* find the base of the Configuration Block */
-		if (scx200_cb_probe(SCx200_CB_BASE_FIXED)) {
+		if (scx200_cb_probe(SCx200_CB_BASE_FIXED))
+		{
 			scx200_cb_base = SCx200_CB_BASE_FIXED;
-		} else {
+		}
+		else
+		{
 			pci_read_config_dword(pdev, SCx200_CBA_SCRATCH, &base);
-			if (scx200_cb_probe(base)) {
+
+			if (scx200_cb_probe(base))
+			{
 				scx200_cb_base = base;
-			} else {
+			}
+			else
+			{
 				pr_warn("Configuration Block not found\n");
 				return -ENODEV;
 			}
 		}
+
 		pr_info("Configuration Block base 0x%x\n", scx200_cb_base);
 	}
 

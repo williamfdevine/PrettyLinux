@@ -74,7 +74,8 @@ static struct sh_pmu sh7750_pmu;
  *	0x29		Pipeline freeze by FPU
  */
 
-static const int sh7750_general_events[] = {
+static const int sh7750_general_events[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES]		= 0x0023,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= 0x000a,
 	[PERF_COUNT_HW_CACHE_REFERENCES]	= 0x0006,	/* I-cache */
@@ -87,9 +88,9 @@ static const int sh7750_general_events[] = {
 #define C(x)	PERF_COUNT_HW_CACHE_##x
 
 static const int sh7750_cache_events
-			[PERF_COUNT_HW_CACHE_MAX]
-			[PERF_COUNT_HW_CACHE_OP_MAX]
-			[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+[PERF_COUNT_HW_CACHE_MAX]
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
 {
 	[ C(L1D) ] = {
 		[ C(OP_READ) ] = {
@@ -205,7 +206,7 @@ static int sh7750_event_map(int event)
 static u64 sh7750_pmu_read(int idx)
 {
 	return (u64)((u64)(__raw_readl(PMCTRH(idx)) & 0xffff) << 32) |
-			   __raw_readl(PMCTRL(idx));
+		   __raw_readl(PMCTRL(idx));
 }
 
 static void sh7750_pmu_disable(struct hw_perf_event *hwc, int idx)
@@ -228,7 +229,9 @@ static void sh7750_pmu_disable_all(void)
 	int i;
 
 	for (i = 0; i < sh7750_pmu.num_events; i++)
+	{
 		__raw_writew(__raw_readw(PMCR(i)) & ~PMCR_PMEN, PMCR(i));
+	}
 }
 
 static void sh7750_pmu_enable_all(void)
@@ -236,10 +239,13 @@ static void sh7750_pmu_enable_all(void)
 	int i;
 
 	for (i = 0; i < sh7750_pmu.num_events; i++)
+	{
 		__raw_writew(__raw_readw(PMCR(i)) | PMCR_PMEN, PMCR(i));
+	}
 }
 
-static struct sh_pmu sh7750_pmu = {
+static struct sh_pmu sh7750_pmu =
+{
 	.name		= "sh7750",
 	.num_events	= 2,
 	.event_map	= sh7750_event_map,
@@ -258,7 +264,8 @@ static int __init sh7750_pmu_init(void)
 	/*
 	 * Make sure this CPU actually has perf counters.
 	 */
-	if (!(boot_cpu_data.flags & CPU_HAS_PERF_COUNTER)) {
+	if (!(boot_cpu_data.flags & CPU_HAS_PERF_COUNTER))
+	{
 		pr_notice("HW perf events unsupported, software events only.\n");
 		return -ENODEV;
 	}

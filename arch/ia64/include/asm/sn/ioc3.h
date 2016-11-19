@@ -5,7 +5,8 @@
 #define IA64_SN_IOC3_H
 
 /* serial port register map */
-struct ioc3_serialregs {
+struct ioc3_serialregs
+{
 	uint32_t sscr;
 	uint32_t stpir;
 	uint32_t stcir;
@@ -16,17 +17,21 @@ struct ioc3_serialregs {
 };
 
 /* SUPERIO uart register map */
-struct ioc3_uartregs {
+struct ioc3_uartregs
+{
 	char iu_lcr;
-	union {
+	union
+	{
 		char iir;	/* read only */
 		char fcr;	/* write only */
 	} u3;
-	union {
+	union
+	{
 		char ier;	/* DLAB == 0 */
 		char dlm;	/* DLAB == 1 */
 	} u2;
-	union {
+	union
+	{
 		char rbr;	/* read only, DLAB == 0 */
 		char thr;	/* write only, DLAB == 0 */
 		char dll;	/* DLAB == 1 */
@@ -45,14 +50,16 @@ struct ioc3_uartregs {
 #define iu_iir u3.iir
 #define iu_fcr u3.fcr
 
-struct ioc3_sioregs {
+struct ioc3_sioregs
+{
 	char fill[0x170];
 	struct ioc3_uartregs uartb;
 	struct ioc3_uartregs uarta;
 };
 
 /* PCI IO/mem space register map */
-struct ioc3 {
+struct ioc3
+{
 	uint32_t pci_id;
 	uint32_t pci_scr;
 	uint32_t pci_rev;
@@ -194,27 +201,27 @@ struct ioc3 {
 
 /* per device interrupt masks */
 #define SIO_IR_SA		(SIO_IR_SA_TX_MT | \
-				 SIO_IR_SA_RX_FULL | \
-				 SIO_IR_SA_RX_HIGH | \
-				 SIO_IR_SA_RX_TIMER | \
-				 SIO_IR_SA_DELTA_DCD | \
-				 SIO_IR_SA_DELTA_CTS | \
-				 SIO_IR_SA_INT | \
-				 SIO_IR_SA_TX_EXPLICIT | \
-				 SIO_IR_SA_MEMERR)
+						 SIO_IR_SA_RX_FULL | \
+						 SIO_IR_SA_RX_HIGH | \
+						 SIO_IR_SA_RX_TIMER | \
+						 SIO_IR_SA_DELTA_DCD | \
+						 SIO_IR_SA_DELTA_CTS | \
+						 SIO_IR_SA_INT | \
+						 SIO_IR_SA_TX_EXPLICIT | \
+						 SIO_IR_SA_MEMERR)
 
 #define SIO_IR_SB		(SIO_IR_SB_TX_MT | \
-				 SIO_IR_SB_RX_FULL | \
-				 SIO_IR_SB_RX_HIGH | \
-				 SIO_IR_SB_RX_TIMER | \
-				 SIO_IR_SB_DELTA_DCD | \
-				 SIO_IR_SB_DELTA_CTS | \
-				 SIO_IR_SB_INT | \
-				 SIO_IR_SB_TX_EXPLICIT | \
-				 SIO_IR_SB_MEMERR)
+						 SIO_IR_SB_RX_FULL | \
+						 SIO_IR_SB_RX_HIGH | \
+						 SIO_IR_SB_RX_TIMER | \
+						 SIO_IR_SB_DELTA_DCD | \
+						 SIO_IR_SB_DELTA_CTS | \
+						 SIO_IR_SB_INT | \
+						 SIO_IR_SB_TX_EXPLICIT | \
+						 SIO_IR_SB_MEMERR)
 
 #define SIO_IR_PP		(SIO_IR_PP_INT | SIO_IR_PP_INTA | \
-				 SIO_IR_PP_INTB | SIO_IR_PP_MEMERR)
+						 SIO_IR_PP_INTB | SIO_IR_PP_MEMERR)
 #define SIO_IR_RT		(SIO_IR_RT_INT | SIO_IR_GEN_INT1)
 
 /* bitmasks for SIO_CR */

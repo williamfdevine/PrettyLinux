@@ -99,9 +99,13 @@ static void set_str(u8 value)
 static inline void set_control(int line, int value)
 {
 	if (value)
+	{
 		control_value |=  (1 << line);
+	}
 	else
+	{
 		control_value &= ~(1 << line);
+	}
 }
 
 
@@ -112,7 +116,8 @@ static void output_control(void)
 	gpio_direction_output(GPIO_SCL, 1);
 	gpio_direction_output(GPIO_SDA, 1);
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		set_scl(0);
 		set_sda(control_value & (0x80 >> i)); /* MSB first */
 		set_scl(1);	/* active edge */
@@ -133,20 +138,21 @@ static int hss_set_clock(int port, unsigned int clock_type)
 {
 	int ctrl_int = port ? CONTROL_HSS1_CLK_INT : CONTROL_HSS0_CLK_INT;
 
-	switch (clock_type) {
-	case CLOCK_DEFAULT:
-	case CLOCK_EXT:
-		set_control(ctrl_int, 0);
-		output_control();
-		return CLOCK_EXT;
+	switch (clock_type)
+	{
+		case CLOCK_DEFAULT:
+		case CLOCK_EXT:
+			set_control(ctrl_int, 0);
+			output_control();
+			return CLOCK_EXT;
 
-	case CLOCK_INT:
-		set_control(ctrl_int, 1);
-		output_control();
-		return CLOCK_INT;
+		case CLOCK_INT:
+			set_control(ctrl_int, 1);
+			output_control();
+			return CLOCK_INT;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -160,23 +166,28 @@ static irqreturn_t hss_dcd_irq(int irq, void *pdev)
 
 
 static int hss_open(int port, void *pdev,
-		    void (*set_carrier_cb)(void *pdev, int carrier))
+					void (*set_carrier_cb)(void *pdev, int carrier))
 {
 	int i, irq;
 
 	if (!port)
+	{
 		irq = IXP4XX_GPIO_IRQ(GPIO_HSS0_DCD_N);
+	}
 	else
+	{
 		irq = IXP4XX_GPIO_IRQ(GPIO_HSS1_DCD_N);
+	}
 
 	i = gpio_get_value(port ? GPIO_HSS1_DCD_N : GPIO_HSS0_DCD_N);
 	set_carrier_cb(pdev, !i);
 
 	set_carrier_cb_tab[!!port] = set_carrier_cb;
 
-	if ((i = request_irq(irq, hss_dcd_irq, 0, "IXP4xx HSS", pdev)) != 0) {
+	if ((i = request_irq(irq, hss_dcd_irq, 0, "IXP4xx HSS", pdev)) != 0)
+	{
 		printk(KERN_ERR "ixp4xx_hss: failed to request IRQ%i (%i)\n",
-		       irq, i);
+			   irq, i);
 		return i;
 	}
 
@@ -189,7 +200,7 @@ static int hss_open(int port, void *pdev,
 static void hss_close(int port, void *pdev)
 {
 	free_irq(port ? IXP4XX_GPIO_IRQ(GPIO_HSS1_DCD_N) :
-		 IXP4XX_GPIO_IRQ(GPIO_HSS0_DCD_N), pdev);
+			 IXP4XX_GPIO_IRQ(GPIO_HSS0_DCD_N), pdev);
 	set_carrier_cb_tab[!!port] = NULL; /* catch bugs */
 
 	set_control(port ? CONTROL_HSS1_DTR_N : CONTROL_HSS0_DTR_N, 1);
@@ -199,16 +210,19 @@ static void hss_close(int port, void *pdev)
 
 
 /* Flash memory */
-static struct flash_platform_data flash_data = {
+static struct flash_platform_data flash_data =
+{
 	.map_name	= "cfi_probe",
 	.width		= 2,
 };
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device device_flash = {
+static struct platform_device device_flash =
+{
 	.name		= "IXP4XX-Flash",
 	.id		= 0,
 	.dev		= { .platform_data = &flash_data },
@@ -218,12 +232,14 @@ static struct platform_device device_flash = {
 
 
 /* I^2C interface */
-static struct i2c_gpio_platform_data i2c_data = {
+static struct i2c_gpio_platform_data i2c_data =
+{
 	.sda_pin	= GPIO_SDA,
 	.scl_pin	= GPIO_SCL,
 };
 
-static struct platform_device device_i2c = {
+static struct platform_device device_i2c =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev		= { .platform_data = &i2c_data },
@@ -231,7 +247,8 @@ static struct platform_device device_i2c = {
 
 
 /* IXP425 2 UART ports */
-static struct resource uart_resources[] = {
+static struct resource uart_resources[] =
+{
 	{
 		.start		= IXP4XX_UART1_BASE_PHYS,
 		.end		= IXP4XX_UART1_BASE_PHYS + 0x0fff,
@@ -244,11 +261,12 @@ static struct resource uart_resources[] = {
 	}
 };
 
-static struct plat_serial8250_port uart_data[] = {
+static struct plat_serial8250_port uart_data[] =
+{
 	{
 		.mapbase	= IXP4XX_UART1_BASE_PHYS,
 		.membase	= (char __iomem *)IXP4XX_UART1_BASE_VIRT +
-			REG_OFFSET,
+		REG_OFFSET,
 		.irq		= IRQ_IXP4XX_UART1,
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,
 		.iotype		= UPIO_MEM,
@@ -258,7 +276,7 @@ static struct plat_serial8250_port uart_data[] = {
 	{
 		.mapbase	= IXP4XX_UART2_BASE_PHYS,
 		.membase	= (char __iomem *)IXP4XX_UART2_BASE_VIRT +
-			REG_OFFSET,
+		REG_OFFSET,
 		.irq		= IRQ_IXP4XX_UART2,
 		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,
 		.iotype		= UPIO_MEM,
@@ -268,7 +286,8 @@ static struct plat_serial8250_port uart_data[] = {
 	{ },
 };
 
-static struct platform_device device_uarts = {
+static struct platform_device device_uarts =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev.platform_data	= uart_data,
@@ -278,7 +297,8 @@ static struct platform_device device_uarts = {
 
 
 /* Built-in 10/100 Ethernet MAC interfaces */
-static struct eth_plat_info eth_plat[] = {
+static struct eth_plat_info eth_plat[] =
+{
 	{
 		.phy		= 0,
 		.rxq		= 3,
@@ -290,7 +310,8 @@ static struct eth_plat_info eth_plat[] = {
 	}
 };
 
-static struct platform_device device_eth_tab[] = {
+static struct platform_device device_eth_tab[] =
+{
 	{
 		.name			= "ixp4xx_eth",
 		.id			= IXP4XX_ETH_NPEB,
@@ -304,7 +325,8 @@ static struct platform_device device_eth_tab[] = {
 
 
 /* IXP425 2 synchronous serial ports */
-static struct hss_plat_info hss_plat[] = {
+static struct hss_plat_info hss_plat[] =
+{
 	{
 		.set_clock	= hss_set_clock,
 		.open		= hss_open,
@@ -318,7 +340,8 @@ static struct hss_plat_info hss_plat[] = {
 	}
 };
 
-static struct platform_device device_hss_tab[] = {
+static struct platform_device device_hss_tab[] =
+{
 	{
 		.name			= "ixp4xx_hss",
 		.id			= 0,
@@ -331,7 +354,8 @@ static struct platform_device device_hss_tab[] = {
 };
 
 
-static struct platform_device *device_tab[7] __initdata = {
+static struct platform_device *device_tab[7] __initdata =
+{
 	&device_flash,		/* index 0 */
 };
 
@@ -362,12 +386,14 @@ static void __init gmlr_init(void)
 
 	if ((flash = ioremap(IXP4XX_EXP_BUS_BASE_PHYS, 0x80)) == NULL)
 		printk(KERN_ERR "goramo-mlr: unable to access system"
-		       " configuration data\n");
-	else {
+			   " configuration data\n");
+	else
+	{
 		system_rev = __raw_readl(flash + CFG_REV);
 		hw_bits = __raw_readl(flash + CFG_HW_BITS);
 
-		for (i = 0; i < ETH_ALEN; i++) {
+		for (i = 0; i < ETH_ALEN; i++)
+		{
 			eth_plat[0].hwaddr[i] =
 				flash_readb(flash, CFG_ETH0_ADDRESS + i);
 			eth_plat[1].hwaddr[i] =
@@ -386,33 +412,49 @@ static void __init gmlr_init(void)
 		iounmap(flash);
 	}
 
-	switch (hw_bits & (CFG_HW_HAS_UART0 | CFG_HW_HAS_UART1)) {
-	case CFG_HW_HAS_UART0:
-		memset(&uart_data[1], 0, sizeof(uart_data[1]));
-		device_uarts.num_resources = 1;
-		break;
+	switch (hw_bits & (CFG_HW_HAS_UART0 | CFG_HW_HAS_UART1))
+	{
+		case CFG_HW_HAS_UART0:
+			memset(&uart_data[1], 0, sizeof(uart_data[1]));
+			device_uarts.num_resources = 1;
+			break;
 
-	case CFG_HW_HAS_UART1:
-		device_uarts.dev.platform_data = &uart_data[1];
-		device_uarts.resource = &uart_resources[1];
-		device_uarts.num_resources = 1;
-		break;
+		case CFG_HW_HAS_UART1:
+			device_uarts.dev.platform_data = &uart_data[1];
+			device_uarts.resource = &uart_resources[1];
+			device_uarts.num_resources = 1;
+			break;
 	}
+
 	if (hw_bits & (CFG_HW_HAS_UART0 | CFG_HW_HAS_UART1))
-		device_tab[devices++] = &device_uarts; /* max index 1 */
+	{
+		device_tab[devices++] = &device_uarts;    /* max index 1 */
+	}
 
 	if (hw_bits & CFG_HW_HAS_ETH0)
-		device_tab[devices++] = &device_eth_tab[0]; /* max index 2 */
+	{
+		device_tab[devices++] = &device_eth_tab[0];    /* max index 2 */
+	}
+
 	if (hw_bits & CFG_HW_HAS_ETH1)
-		device_tab[devices++] = &device_eth_tab[1]; /* max index 3 */
+	{
+		device_tab[devices++] = &device_eth_tab[1];    /* max index 3 */
+	}
 
 	if (hw_bits & CFG_HW_HAS_HSS0)
-		device_tab[devices++] = &device_hss_tab[0]; /* max index 4 */
+	{
+		device_tab[devices++] = &device_hss_tab[0];    /* max index 4 */
+	}
+
 	if (hw_bits & CFG_HW_HAS_HSS1)
-		device_tab[devices++] = &device_hss_tab[1]; /* max index 5 */
+	{
+		device_tab[devices++] = &device_hss_tab[1];    /* max index 5 */
+	}
 
 	if (hw_bits & CFG_HW_HAS_EEPROM)
-		device_tab[devices++] = &device_i2c; /* max index 6 */
+	{
+		device_tab[devices++] = &device_i2c;    /* max index 6 */
+	}
 
 	gpio_request(GPIO_SCL, "SCL/clock");
 	gpio_request(GPIO_SDA, "SDA/data");
@@ -460,10 +502,13 @@ static void __init gmlr_pci_preinit(void)
 static void __init gmlr_pci_postinit(void)
 {
 	if ((hw_bits & CFG_HW_USB_PORTS) >= 2 &&
-	    (hw_bits & CFG_HW_USB_PORTS) < 5) {
+		(hw_bits & CFG_HW_USB_PORTS) < 5)
+	{
 		/* need to adjust number of USB ports on NEC chip */
 		u32 value, addr = BIT(32 - SLOT_NEC) | 0xE0;
-		if (!ixp4xx_pci_read(addr, NP_CMD_CONFIGREAD, &value)) {
+
+		if (!ixp4xx_pci_read(addr, NP_CMD_CONFIGREAD, &value))
+		{
 			value &= ~7;
 			value |= (hw_bits & CFG_HW_USB_PORTS);
 			ixp4xx_pci_write(addr, NP_CMD_CONFIGWRITE, value);
@@ -473,15 +518,20 @@ static void __init gmlr_pci_postinit(void)
 
 static int __init gmlr_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	switch(slot) {
-	case SLOT_ETHA:	return IXP4XX_GPIO_IRQ(GPIO_IRQ_ETHA);
-	case SLOT_ETHB:	return IXP4XX_GPIO_IRQ(GPIO_IRQ_ETHB);
-	case SLOT_NEC:	return IXP4XX_GPIO_IRQ(GPIO_IRQ_NEC);
-	default:	return IXP4XX_GPIO_IRQ(GPIO_IRQ_MPCI);
+	switch (slot)
+	{
+		case SLOT_ETHA:	return IXP4XX_GPIO_IRQ(GPIO_IRQ_ETHA);
+
+		case SLOT_ETHB:	return IXP4XX_GPIO_IRQ(GPIO_IRQ_ETHB);
+
+		case SLOT_NEC:	return IXP4XX_GPIO_IRQ(GPIO_IRQ_NEC);
+
+		default:	return IXP4XX_GPIO_IRQ(GPIO_IRQ_MPCI);
 	}
 }
 
-static struct hw_pci gmlr_hw_pci __initdata = {
+static struct hw_pci gmlr_hw_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &ixp4xx_ops,
 	.preinit	= gmlr_pci_preinit,
@@ -493,8 +543,11 @@ static struct hw_pci gmlr_hw_pci __initdata = {
 static int __init gmlr_pci_init(void)
 {
 	if (machine_is_goramo_mlr() &&
-	    (hw_bits & (CFG_HW_USB_PORTS | CFG_HW_HAS_PCI_SLOT)))
+		(hw_bits & (CFG_HW_USB_PORTS | CFG_HW_HAS_PCI_SLOT)))
+	{
 		pci_common_init(&gmlr_hw_pci);
+	}
+
 	return 0;
 }
 
@@ -503,15 +556,15 @@ subsys_initcall(gmlr_pci_init);
 
 
 MACHINE_START(GORAMO_MLR, "MultiLink")
-	/* Maintainer: Krzysztof Halasa */
-	.map_io		= ixp4xx_map_io,
+/* Maintainer: Krzysztof Halasa */
+.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
-	.init_irq	= ixp4xx_init_irq,
-	.init_time	= ixp4xx_timer_init,
-	.atag_offset	= 0x100,
-	.init_machine	= gmlr_init,
+	 .init_irq	= ixp4xx_init_irq,
+		.init_time	= ixp4xx_timer_init,
+		  .atag_offset	= 0x100,
+			  .init_machine	= gmlr_init,
 #if defined(CONFIG_PCI)
 	.dma_zone_size	= SZ_64M,
 #endif
-	.restart	= ixp4xx_restart,
-MACHINE_END
+				 .restart	= ixp4xx_restart,
+					 MACHINE_END

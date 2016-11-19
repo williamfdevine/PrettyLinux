@@ -51,10 +51,15 @@ int __cvmx_helper_xaui_enumerate(int interface)
 
 	/* If HiGig2 is enabled return 16 ports, otherwise return 1 port */
 	gmx_hg2_control.u64 = cvmx_read_csr(CVMX_GMXX_HG2_CONTROL(interface));
+
 	if (gmx_hg2_control.s.hg2tx_en)
+	{
 		return 16;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 /**
@@ -88,7 +93,8 @@ int __cvmx_helper_xaui_probe(int interface)
 	 * interface to the XAUI. This allows us to use HiGig2
 	 * backpressure per port.
 	 */
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		union cvmx_pko_mem_port_ptrs pko_mem_port_ptrs;
 		pko_mem_port_ptrs.u64 = 0;
 		/*
@@ -102,6 +108,7 @@ int __cvmx_helper_xaui_probe(int interface)
 		pko_mem_port_ptrs.s.pid = interface * 16 + i;
 		cvmx_write_csr(CVMX_PKO_MEM_PORT_PTRS, pko_mem_port_ptrs.u64);
 	}
+
 	return __cvmx_helper_xaui_enumerate(interface);
 }
 
@@ -125,7 +132,8 @@ int __cvmx_helper_xaui_enable(int interface)
 	union cvmx_pcsxx_int_en_reg pcsx_int_en_reg;
 
 	/* Setup PKND */
-	if (octeon_has_feature(OCTEON_FEATURE_PKND)) {
+	if (octeon_has_feature(OCTEON_FEATURE_PKND))
+	{
 		gmx_cfg.u64 = cvmx_read_csr(CVMX_GMXX_PRTX_CFG(0, interface));
 		gmx_cfg.s.pknd = cvmx_helper_get_ipd_port(interface, 0);
 		cvmx_write_csr(CVMX_GMXX_PRTX_CFG(0, interface), gmx_cfg.u64);
@@ -161,26 +169,36 @@ int __cvmx_helper_xaui_enable(int interface)
 
 	/* Issuing a reset here seems to hang some CN68XX chips. */
 	if (!OCTEON_IS_MODEL(OCTEON_CN68XX_PASS1_X) &&
-	    !OCTEON_IS_MODEL(OCTEON_CN68XX_PASS2_X))
+		!OCTEON_IS_MODEL(OCTEON_CN68XX_PASS2_X))
+	{
 		xauiCtl.s.reset = 1;
+	}
 
 	cvmx_write_csr(CVMX_PCSXX_CONTROL1_REG(interface), xauiCtl.u64);
 
 	/* Wait for PCS to come out of reset */
 	if (CVMX_WAIT_FOR_FIELD64
-	    (CVMX_PCSXX_CONTROL1_REG(interface), union cvmx_pcsxx_control1_reg,
-	     reset, ==, 0, 10000))
+		(CVMX_PCSXX_CONTROL1_REG(interface), union cvmx_pcsxx_control1_reg,
+		 reset, ==, 0, 10000))
+	{
 		return -1;
+	}
+
 	/* Wait for PCS to be aligned */
 	if (CVMX_WAIT_FOR_FIELD64
-	    (CVMX_PCSXX_10GBX_STATUS_REG(interface),
-	     union cvmx_pcsxx_10gbx_status_reg, alignd, ==, 1, 10000))
+		(CVMX_PCSXX_10GBX_STATUS_REG(interface),
+		 union cvmx_pcsxx_10gbx_status_reg, alignd, ==, 1, 10000))
+	{
 		return -1;
+	}
+
 	/* Wait for RX to be ready */
 	if (CVMX_WAIT_FOR_FIELD64
-	    (CVMX_GMXX_RX_XAUI_CTL(interface), union cvmx_gmxx_rx_xaui_ctl,
-		    status, ==, 0, 10000))
+		(CVMX_GMXX_RX_XAUI_CTL(interface), union cvmx_gmxx_rx_xaui_ctl,
+		 status, ==, 0, 10000))
+	{
 		return -1;
+	}
 
 	/* (6) Configure GMX */
 	gmx_cfg.u64 = cvmx_read_csr(CVMX_GMXX_PRTX_CFG(0, interface));
@@ -189,14 +207,19 @@ int __cvmx_helper_xaui_enable(int interface)
 
 	/* Wait for GMX RX to be idle */
 	if (CVMX_WAIT_FOR_FIELD64
-	    (CVMX_GMXX_PRTX_CFG(0, interface), union cvmx_gmxx_prtx_cfg,
-		    rx_idle, ==, 1, 10000))
+		(CVMX_GMXX_PRTX_CFG(0, interface), union cvmx_gmxx_prtx_cfg,
+		 rx_idle, ==, 1, 10000))
+	{
 		return -1;
+	}
+
 	/* Wait for GMX TX to be idle */
 	if (CVMX_WAIT_FOR_FIELD64
-	    (CVMX_GMXX_PRTX_CFG(0, interface), union cvmx_gmxx_prtx_cfg,
-		    tx_idle, ==, 1, 10000))
+		(CVMX_GMXX_PRTX_CFG(0, interface), union cvmx_gmxx_prtx_cfg,
+		 tx_idle, ==, 1, 10000))
+	{
 		return -1;
+	}
 
 	/* GMX configure */
 	gmx_cfg.u64 = cvmx_read_csr(CVMX_GMXX_PRTX_CFG(0, interface));
@@ -210,25 +233,33 @@ int __cvmx_helper_xaui_enable(int interface)
 
 	/* (7) Clear out any error state */
 	cvmx_write_csr(CVMX_GMXX_RXX_INT_REG(0, interface),
-		       cvmx_read_csr(CVMX_GMXX_RXX_INT_REG(0, interface)));
+				   cvmx_read_csr(CVMX_GMXX_RXX_INT_REG(0, interface)));
 	cvmx_write_csr(CVMX_GMXX_TX_INT_REG(interface),
-		       cvmx_read_csr(CVMX_GMXX_TX_INT_REG(interface)));
+				   cvmx_read_csr(CVMX_GMXX_TX_INT_REG(interface)));
 	cvmx_write_csr(CVMX_PCSXX_INT_REG(interface),
-		       cvmx_read_csr(CVMX_PCSXX_INT_REG(interface)));
+				   cvmx_read_csr(CVMX_PCSXX_INT_REG(interface)));
 
 	/* Wait for receive link */
 	if (CVMX_WAIT_FOR_FIELD64
-	    (CVMX_PCSXX_STATUS1_REG(interface), union cvmx_pcsxx_status1_reg,
-	     rcv_lnk, ==, 1, 10000))
+		(CVMX_PCSXX_STATUS1_REG(interface), union cvmx_pcsxx_status1_reg,
+		 rcv_lnk, ==, 1, 10000))
+	{
 		return -1;
+	}
+
 	if (CVMX_WAIT_FOR_FIELD64
-	    (CVMX_PCSXX_STATUS2_REG(interface), union cvmx_pcsxx_status2_reg,
-	     xmtflt, ==, 0, 10000))
+		(CVMX_PCSXX_STATUS2_REG(interface), union cvmx_pcsxx_status2_reg,
+		 xmtflt, ==, 0, 10000))
+	{
 		return -1;
+	}
+
 	if (CVMX_WAIT_FOR_FIELD64
-	    (CVMX_PCSXX_STATUS2_REG(interface), union cvmx_pcsxx_status2_reg,
-	     rcvflt, ==, 0, 10000))
+		(CVMX_PCSXX_STATUS2_REG(interface), union cvmx_pcsxx_status2_reg,
+		 rcvflt, ==, 0, 10000))
+	{
 		return -1;
+	}
 
 	cvmx_write_csr(CVMX_GMXX_RXX_INT_EN(0, interface), gmx_rx_int_en.u64);
 	cvmx_write_csr(CVMX_GMXX_TX_INT_EN(interface), gmx_tx_int_en.u64);
@@ -273,21 +304,25 @@ cvmx_helper_link_info_t __cvmx_helper_xaui_link_get(int ipd_port)
 	gmxx_tx_xaui_ctl.u64 = cvmx_read_csr(CVMX_GMXX_TX_XAUI_CTL(interface));
 	gmxx_rx_xaui_ctl.u64 = cvmx_read_csr(CVMX_GMXX_RX_XAUI_CTL(interface));
 	pcsxx_status1_reg.u64 =
-	    cvmx_read_csr(CVMX_PCSXX_STATUS1_REG(interface));
+		cvmx_read_csr(CVMX_PCSXX_STATUS1_REG(interface));
 	result.u64 = 0;
 
 	/* Only return a link if both RX and TX are happy */
 	if ((gmxx_tx_xaui_ctl.s.ls == 0) && (gmxx_rx_xaui_ctl.s.status == 0) &&
-	    (pcsxx_status1_reg.s.rcv_lnk == 1)) {
+		(pcsxx_status1_reg.s.rcv_lnk == 1))
+	{
 		result.s.link_up = 1;
 		result.s.full_duplex = 1;
 		result.s.speed = 10000;
-	} else {
+	}
+	else
+	{
 		/* Disable GMX and PCSX interrupts. */
 		cvmx_write_csr(CVMX_GMXX_RXX_INT_EN(0, interface), 0x0);
 		cvmx_write_csr(CVMX_GMXX_TX_INT_EN(interface), 0x0);
 		cvmx_write_csr(CVMX_PCSXX_INT_EN_REG(interface), 0x0);
 	}
+
 	return result;
 }
 
@@ -314,11 +349,15 @@ int __cvmx_helper_xaui_link_set(int ipd_port, cvmx_helper_link_info_t link_info)
 
 	/* If the link shouldn't be up, then just return */
 	if (!link_info.s.link_up)
+	{
 		return 0;
+	}
 
 	/* Do nothing if both RX and TX are happy */
 	if ((gmxx_tx_xaui_ctl.s.ls == 0) && (gmxx_rx_xaui_ctl.s.status == 0))
+	{
 		return 0;
+	}
 
 	/* Bring the link up */
 	return __cvmx_helper_xaui_enable(interface);
@@ -338,8 +377,8 @@ int __cvmx_helper_xaui_link_set(int ipd_port, cvmx_helper_link_info_t link_info)
  * Returns Zero on success, negative on failure.
  */
 extern int __cvmx_helper_xaui_configure_loopback(int ipd_port,
-						 int enable_internal,
-						 int enable_external)
+		int enable_internal,
+		int enable_external)
 {
 	int interface = cvmx_helper_get_interface_num(ipd_port);
 	union cvmx_pcsxx_control1_reg pcsxx_control1_reg;
@@ -347,17 +386,17 @@ extern int __cvmx_helper_xaui_configure_loopback(int ipd_port,
 
 	/* Set the internal loop */
 	pcsxx_control1_reg.u64 =
-	    cvmx_read_csr(CVMX_PCSXX_CONTROL1_REG(interface));
+		cvmx_read_csr(CVMX_PCSXX_CONTROL1_REG(interface));
 	pcsxx_control1_reg.s.loopbck1 = enable_internal;
 	cvmx_write_csr(CVMX_PCSXX_CONTROL1_REG(interface),
-		       pcsxx_control1_reg.u64);
+				   pcsxx_control1_reg.u64);
 
 	/* Set the external loop */
 	gmxx_xaui_ext_loopback.u64 =
-	    cvmx_read_csr(CVMX_GMXX_XAUI_EXT_LOOPBACK(interface));
+		cvmx_read_csr(CVMX_GMXX_XAUI_EXT_LOOPBACK(interface));
 	gmxx_xaui_ext_loopback.s.en = enable_external;
 	cvmx_write_csr(CVMX_GMXX_XAUI_EXT_LOOPBACK(interface),
-		       gmxx_xaui_ext_loopback.u64);
+				   gmxx_xaui_ext_loopback.u64);
 
 	/* Take the link through a reset */
 	return __cvmx_helper_xaui_enable(interface);

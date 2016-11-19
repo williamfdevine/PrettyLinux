@@ -20,7 +20,8 @@
 #include <asm/msi_bitmap.h>
 #include <asm/ppc-pci.h>
 
-struct ppc4xx_hsta_msi {
+struct ppc4xx_hsta_msi
+{
 	struct device *dev;
 
 	/* The ioremapped HSTA MSI IO space */
@@ -46,21 +47,27 @@ static int hsta_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
 	u64 addr;
 
 	/* We don't support MSI-X */
-	if (type == PCI_CAP_ID_MSIX) {
+	if (type == PCI_CAP_ID_MSIX)
+	{
 		pr_debug("%s: MSI-X not supported.\n", __func__);
 		return -EINVAL;
 	}
 
-	for_each_pci_msi_entry(entry, dev) {
+	for_each_pci_msi_entry(entry, dev)
+	{
 		irq = msi_bitmap_alloc_hwirqs(&ppc4xx_hsta_msi.bmp, 1);
-		if (irq < 0) {
+
+		if (irq < 0)
+		{
 			pr_debug("%s: Failed to allocate msi interrupt\n",
-				 __func__);
+					 __func__);
 			return irq;
 		}
 
 		hwirq = ppc4xx_hsta_msi.irq_map[irq];
-		if (!hwirq) {
+
+		if (!hwirq)
+		{
 			pr_err("%s: Failed mapping irq %d\n", __func__, irq);
 			return -EINVAL;
 		}
@@ -69,7 +76,7 @@ static int hsta_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
 		 * HSTA generates interrupts on writes to 128-bit aligned
 		 * addresses.
 		 */
-		addr = ppc4xx_hsta_msi.address + irq*0x10;
+		addr = ppc4xx_hsta_msi.address + irq * 0x10;
 		msg.address_hi = upper_32_bits(addr);
 		msg.address_lo = lower_32_bits(addr);
 
@@ -77,15 +84,17 @@ static int hsta_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
 		msg.data = 0;
 
 		pr_debug("%s: Setup irq %d (0x%0llx)\n", __func__, hwirq,
-			 (((u64) msg.address_hi) << 32) | msg.address_lo);
+				 (((u64) msg.address_hi) << 32) | msg.address_lo);
 
-		if (irq_set_msi_desc(hwirq, entry)) {
+		if (irq_set_msi_desc(hwirq, entry))
+		{
 			pr_err(
-			"%s: Invalid hwirq %d specified in device tree\n",
-			__func__, hwirq);
+				"%s: Invalid hwirq %d specified in device tree\n",
+				__func__, hwirq);
 			msi_bitmap_free_hwirqs(&ppc4xx_hsta_msi.bmp, irq, 1);
 			return -EINVAL;
 		}
+
 		pci_write_msi_msg(hwirq, &msg);
 	}
 
@@ -99,7 +108,9 @@ static int hsta_find_hwirq_offset(int hwirq)
 	/* Find the offset given the hwirq */
 	for (irq = 0; irq < ppc4xx_hsta_msi.irq_count; irq++)
 		if (ppc4xx_hsta_msi.irq_map[irq] == hwirq)
+		{
 			return irq;
+		}
 
 	return -EINVAL;
 }
@@ -109,9 +120,12 @@ static void hsta_teardown_msi_irqs(struct pci_dev *dev)
 	struct msi_desc *entry;
 	int irq;
 
-	for_each_pci_msi_entry(entry, dev) {
+	for_each_pci_msi_entry(entry, dev)
+	{
 		if (!entry->irq)
+		{
 			continue;
+		}
 
 		irq = hsta_find_hwirq_offset(entry->irq);
 
@@ -120,7 +134,7 @@ static void hsta_teardown_msi_irqs(struct pci_dev *dev)
 		irq_set_msi_desc(entry->irq, NULL);
 		msi_bitmap_free_hwirqs(&ppc4xx_hsta_msi.bmp, irq, 1);
 		pr_debug("%s: Teardown IRQ %u (index %u)\n", __func__,
-			 entry->irq, irq);
+				 entry->irq, irq);
 	}
 }
 
@@ -132,13 +146,17 @@ static int hsta_msi_probe(struct platform_device *pdev)
 	struct pci_controller *phb;
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!mem) {
+
+	if (!mem)
+	{
 		dev_err(dev, "Unable to get mmio space\n");
 		return -EINVAL;
 	}
 
 	irq_count = of_irq_count(dev->of_node);
-	if (!irq_count) {
+
+	if (!irq_count)
+	{
 		dev_err(dev, "Unable to find IRQ range\n");
 		return -EINVAL;
 	}
@@ -147,33 +165,44 @@ static int hsta_msi_probe(struct platform_device *pdev)
 	ppc4xx_hsta_msi.address = mem->start;
 	ppc4xx_hsta_msi.data = ioremap(mem->start, resource_size(mem));
 	ppc4xx_hsta_msi.irq_count = irq_count;
-	if (!ppc4xx_hsta_msi.data) {
+
+	if (!ppc4xx_hsta_msi.data)
+	{
 		dev_err(dev, "Unable to map memory\n");
 		return -ENOMEM;
 	}
 
 	ret = msi_bitmap_alloc(&ppc4xx_hsta_msi.bmp, irq_count, dev->of_node);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ppc4xx_hsta_msi.irq_map = kmalloc(sizeof(int) * irq_count, GFP_KERNEL);
-	if (!ppc4xx_hsta_msi.irq_map) {
+
+	if (!ppc4xx_hsta_msi.irq_map)
+	{
 		ret = -ENOMEM;
 		goto out1;
 	}
 
 	/* Setup a mapping from irq offsets to hardware irq numbers */
-	for (irq = 0; irq < irq_count; irq++) {
+	for (irq = 0; irq < irq_count; irq++)
+	{
 		ppc4xx_hsta_msi.irq_map[irq] =
 			irq_of_parse_and_map(dev->of_node, irq);
-		if (!ppc4xx_hsta_msi.irq_map[irq]) {
+
+		if (!ppc4xx_hsta_msi.irq_map[irq])
+		{
 			dev_err(dev, "Unable to map IRQ\n");
 			ret = -EINVAL;
 			goto out2;
 		}
 	}
 
-	list_for_each_entry(phb, &hose_list, list_node) {
+	list_for_each_entry(phb, &hose_list, list_node)
+	{
 		phb->controller_ops.setup_msi_irqs = hsta_setup_msi_irqs;
 		phb->controller_ops.teardown_msi_irqs = hsta_teardown_msi_irqs;
 	}
@@ -190,14 +219,16 @@ out:
 	return ret;
 }
 
-static const struct of_device_id hsta_msi_ids[] = {
+static const struct of_device_id hsta_msi_ids[] =
+{
 	{
 		.compatible = "ibm,hsta-msi",
 	},
 	{}
 };
 
-static struct platform_driver hsta_msi_driver = {
+static struct platform_driver hsta_msi_driver =
+{
 	.probe = hsta_msi_probe,
 	.driver = {
 		.name = "hsta-msi",

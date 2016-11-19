@@ -36,12 +36,16 @@ void __noreturn pq2_restart(char *cmd)
 
 #ifdef CONFIG_PCI
 static int pq2_pci_exclude_device(struct pci_controller *hose,
-                                  u_char bus, u8 devfn)
+								  u_char bus, u8 devfn)
 {
 	if (bus == 0 && PCI_SLOT(devfn) == 0)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 	else
+	{
 		return PCIBIOS_SUCCESSFUL;
+	}
 }
 
 static void __init pq2_pci_add_bridge(struct device_node *np)
@@ -50,13 +54,18 @@ static void __init pq2_pci_add_bridge(struct device_node *np)
 	struct resource r;
 
 	if (of_address_to_resource(np, 0, &r) || r.end - r.start < 0x10b)
+	{
 		goto err;
+	}
 
 	pci_add_flags(PCI_REASSIGN_ALL_BUS);
 
 	hose = pcibios_alloc_controller(np);
+
 	if (!hose)
+	{
 		return;
+	}
 
 	hose->dn = np;
 
@@ -76,6 +85,6 @@ void __init pq2_init_pci(void)
 	ppc_md.pci_exclude_device = pq2_pci_exclude_device;
 
 	for_each_compatible_node(np, NULL, "fsl,pq2-pci")
-		pq2_pci_add_bridge(np);
+	pq2_pci_add_bridge(np);
 }
 #endif

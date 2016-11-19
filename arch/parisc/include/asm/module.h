@@ -13,10 +13,11 @@ struct mod_arch_specific
 {
 	unsigned long got_offset, got_count, got_max;
 	unsigned long fdesc_offset, fdesc_count, fdesc_max;
-	struct {
+	struct
+	{
 		unsigned long stub_offset;
 		unsigned int stub_entries;
-		} *section;
+	} *section;
 	int unwind_section;
 	struct unwind_table *unwind;
 };

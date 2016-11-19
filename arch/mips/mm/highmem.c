@@ -16,8 +16,12 @@ void *kmap(struct page *page)
 	void *addr;
 
 	might_sleep();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
+
 	addr = kmap_high(page);
 	flush_tlb_one((unsigned long)addr);
 
@@ -28,8 +32,12 @@ EXPORT_SYMBOL(kmap);
 void kunmap(struct page *page)
 {
 	BUG_ON(in_interrupt());
+
 	if (!PageHighMem(page))
+	{
 		return;
+	}
+
 	kunmap_high(page);
 }
 EXPORT_SYMBOL(kunmap);
@@ -50,19 +58,22 @@ void *kmap_atomic(struct page *page)
 
 	preempt_disable();
 	pagefault_disable();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
 
 	type = kmap_atomic_idx_push();
-	idx = type + KM_TYPE_NR*smp_processor_id();
+	idx = type + KM_TYPE_NR * smp_processor_id();
 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
 #ifdef CONFIG_DEBUG_HIGHMEM
 	BUG_ON(!pte_none(*(kmap_pte - idx)));
 #endif
-	set_pte(kmap_pte-idx, mk_pte(page, PAGE_KERNEL));
+	set_pte(kmap_pte - idx, mk_pte(page, PAGE_KERNEL));
 	local_flush_tlb_one((unsigned long)vaddr);
 
-	return (void*) vaddr;
+	return (void *) vaddr;
 }
 EXPORT_SYMBOL(kmap_atomic);
 
@@ -71,7 +82,8 @@ void __kunmap_atomic(void *kvaddr)
 	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
 	int type __maybe_unused;
 
-	if (vaddr < FIXADDR_START) { // FIXME
+	if (vaddr < FIXADDR_START)   // FIXME
+	{
 		pagefault_enable();
 		preempt_enable();
 		return;
@@ -88,7 +100,7 @@ void __kunmap_atomic(void *kvaddr)
 		 * force other mappings to Oops if they'll try to access
 		 * this pte without first remap it
 		 */
-		pte_clear(&init_mm, vaddr, kmap_pte-idx);
+		pte_clear(&init_mm, vaddr, kmap_pte - idx);
 		local_flush_tlb_one(vaddr);
 	}
 #endif
@@ -111,12 +123,12 @@ void *kmap_atomic_pfn(unsigned long pfn)
 	pagefault_disable();
 
 	type = kmap_atomic_idx_push();
-	idx = type + KM_TYPE_NR*smp_processor_id();
+	idx = type + KM_TYPE_NR * smp_processor_id();
 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
-	set_pte(kmap_pte-idx, pfn_pte(pfn, PAGE_KERNEL));
+	set_pte(kmap_pte - idx, pfn_pte(pfn, PAGE_KERNEL));
 	flush_tlb_one(vaddr);
 
-	return (void*) vaddr;
+	return (void *) vaddr;
 }
 
 void __init kmap_init(void)

@@ -56,11 +56,11 @@
 #define DMAC_CHANNEL(ch)	FIELD(1, 1, (ch))
 
 #define DMAC_CONTROL_SIZE_BYTE(v)       (FIELD((v), 12, 14) | \
-					FIELD(0, 3, 9) | FIELD(0, 3, 6))
+		FIELD(0, 3, 9) | FIELD(0, 3, 6))
 #define DMAC_CONTROL_SIZE_HWORD(v)      (FIELD((v) >> 1, 12, 14) | \
-					FIELD(1, 3, 9) | FIELD(1, 3, 6))
+		FIELD(1, 3, 9) | FIELD(1, 3, 6))
 #define DMAC_CONTROL_SIZE_WORD(v)       (FIELD((v) >> 2, 12, 14) | \
-					FIELD(2, 3, 9) | FIELD(2, 3, 6))
+		FIELD(2, 3, 9) | FIELD(2, 3, 6))
 #define DMAC_CONTROL_DI                 FIELD(1, 1, 13)
 #define DMAC_CONTROL_SI                 FIELD(1, 1, 12)
 #define DMAC_CONTROL_BURST_1BYTE        (FIELD(0, 3, 3) | FIELD(0, 3, 0))

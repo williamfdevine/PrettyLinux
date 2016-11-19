@@ -2,7 +2,7 @@
  *  linux/arch/cris/mm/tlb.c
  *
  *  Copyright (C) 2000, 2001  Axis Communications AB
- *  
+ *
  *  Authors:   Bjorn Wesen (bjornw@axis.com)
  *
  */
@@ -43,7 +43,8 @@ alloc_context(struct mm_struct *mm)
 
 	old_mm = page_id_map[map_replace_ptr];
 
-	if(old_mm) {
+	if (old_mm)
+	{
 		/* throw out any TLB entries belonging to the mm we replace
 		 * in the map
 		 */
@@ -59,19 +60,23 @@ alloc_context(struct mm_struct *mm)
 
 	map_replace_ptr++;
 
-	if(map_replace_ptr == INVALID_PAGEID)
-		map_replace_ptr = 0;         /* wrap around */	
+	if (map_replace_ptr == INVALID_PAGEID)
+	{
+		map_replace_ptr = 0;    /* wrap around */
+	}
 }
 
-/* 
+/*
  * if needed, get a new MMU context for the mm. otherwise nothing is done.
  */
 
 void
 get_mmu_context(struct mm_struct *mm)
 {
-	if(mm->context.page_id == NO_CONTEXT)
+	if (mm->context.page_id == NO_CONTEXT)
+	{
 		alloc_context(mm);
+	}
 }
 
 /* called by __exit_mm to destroy the used MMU context if any before
@@ -85,7 +90,8 @@ get_mmu_context(struct mm_struct *mm)
 void
 destroy_context(struct mm_struct *mm)
 {
-	if(mm->context.page_id != NO_CONTEXT) {
+	if (mm->context.page_id != NO_CONTEXT)
+	{
 		D(printk("destroy_context %d (%p)\n", mm->context.page_id, mm));
 		flush_tlb_mm(mm);  /* TODO this might be redundant ? */
 		page_id_map[mm->context.page_id] = NULL;
@@ -102,8 +108,10 @@ tlb_init(void)
 	/* clear the page_id map */
 
 	for (i = 1; i < ARRAY_SIZE(page_id_map); i++)
+	{
 		page_id_map[i] = NULL;
-	
+	}
+
 	/* invalidate the entire TLB */
 
 	flush_tlb_all();

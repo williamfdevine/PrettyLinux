@@ -12,7 +12,7 @@
  */
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <linux/compiler.h>
@@ -41,7 +41,7 @@
  * Note that @nr may be almost arbitrarily large; this function is not
  * restricted to acting on a single-word quantity.
  */
-static __inline__ void set_bit(int nr, volatile void * addr)
+static __inline__ void set_bit(int nr, volatile void *addr)
 {
 	__u32 mask;
 	volatile __u32 *a = addr;
@@ -77,7 +77,7 @@ static __inline__ void set_bit(int nr, volatile void * addr)
  * you should call smp_mb__before_atomic() and/or smp_mb__after_atomic()
  * in order to ensure changes are visible on other processors.
  */
-static __inline__ void clear_bit(int nr, volatile void * addr)
+static __inline__ void clear_bit(int nr, volatile void *addr)
 {
 	__u32 mask;
 	volatile __u32 *a = addr;
@@ -113,7 +113,7 @@ static __inline__ void clear_bit(int nr, volatile void * addr)
  * Note that @nr may be almost arbitrarily large; this function is not
  * restricted to acting on a single-word quantity.
  */
-static __inline__ void change_bit(int nr, volatile void * addr)
+static __inline__ void change_bit(int nr, volatile void *addr)
 {
 	__u32  mask;
 	volatile __u32  *a = addr;
@@ -147,7 +147,7 @@ static __inline__ void change_bit(int nr, volatile void * addr)
  * This operation is atomic and cannot be reordered.
  * It also implies a memory barrier.
  */
-static __inline__ int test_and_set_bit(int nr, volatile void * addr)
+static __inline__ int test_and_set_bit(int nr, volatile void *addr)
 {
 	__u32 mask, oldbit;
 	volatile __u32 *a = addr;
@@ -182,7 +182,7 @@ static __inline__ int test_and_set_bit(int nr, volatile void * addr)
  * This operation is atomic and cannot be reordered.
  * It also implies a memory barrier.
  */
-static __inline__ int test_and_clear_bit(int nr, volatile void * addr)
+static __inline__ int test_and_clear_bit(int nr, volatile void *addr)
 {
 	__u32 mask, oldbit;
 	volatile __u32 *a = addr;
@@ -219,7 +219,7 @@ static __inline__ int test_and_clear_bit(int nr, volatile void * addr)
  * This operation is atomic and cannot be reordered.
  * It also implies a memory barrier.
  */
-static __inline__ int test_and_change_bit(int nr, volatile void * addr)
+static __inline__ int test_and_change_bit(int nr, volatile void *addr)
 {
 	__u32 mask, oldbit;
 	volatile __u32 *a = addr;
@@ -255,18 +255,18 @@ static __inline__ int test_and_change_bit(int nr, volatile void * addr)
 
 #ifdef __KERNEL__
 
-#include <asm-generic/bitops/sched.h>
-#include <asm-generic/bitops/find.h>
-#include <asm-generic/bitops/ffs.h>
-#include <asm-generic/bitops/hweight.h>
-#include <asm-generic/bitops/lock.h>
+	#include <asm-generic/bitops/sched.h>
+	#include <asm-generic/bitops/find.h>
+	#include <asm-generic/bitops/ffs.h>
+	#include <asm-generic/bitops/hweight.h>
+	#include <asm-generic/bitops/lock.h>
 
 #endif /* __KERNEL__ */
 
 #ifdef __KERNEL__
 
-#include <asm-generic/bitops/le.h>
-#include <asm-generic/bitops/ext2-atomic.h>
+	#include <asm-generic/bitops/le.h>
+	#include <asm-generic/bitops/ext2-atomic.h>
 
 #endif /* __KERNEL__ */
 

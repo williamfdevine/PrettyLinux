@@ -27,7 +27,8 @@
 /* Initialized by bootloader-specific startup code. */
 struct tag *bootloader_tags __initdata;
 
-static struct fb_videomode __initdata ltv350qv_modes[] = {
+static struct fb_videomode __initdata ltv350qv_modes[] =
+{
 	{
 		.name		= "320x240 @ 75",
 		.refresh	= 75,
@@ -43,7 +44,8 @@ static struct fb_videomode __initdata ltv350qv_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata atstk1000_default_monspecs = {
+static struct fb_monspecs __initdata atstk1000_default_monspecs =
+{
 	.manufacturer		= "SNG",
 	.monitor		= "LTV350QV",
 	.modedb			= ltv350qv_modes,
@@ -55,13 +57,14 @@ static struct fb_monspecs __initdata atstk1000_default_monspecs = {
 	.dclkmax		= 30000000,
 };
 
-struct atmel_lcdfb_pdata __initdata atstk1000_lcdc_data = {
+struct atmel_lcdfb_pdata __initdata atstk1000_lcdc_data =
+{
 	.default_bpp		= 24,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_INVCLK
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_INVCLK
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_MEMOR_BIG),
 	.default_monspecs	= &atstk1000_default_monspecs,
 	.guard_time		= 2,
 };
@@ -69,7 +72,8 @@ struct atmel_lcdfb_pdata __initdata atstk1000_lcdc_data = {
 #ifdef CONFIG_BOARD_ATSTK1000_J2_LED
 #include <linux/leds.h>
 
-static struct gpio_led stk1000_j2_led[] = {
+static struct gpio_led stk1000_j2_led[] =
+{
 #ifdef CONFIG_BOARD_ATSTK1000_J2_LED8
 #define LEDSTRING "J2 jumpered to LED8"
 	{ .name = "led0:amber", .gpio = GPIO_PIN_PB( 8), },
@@ -79,29 +83,37 @@ static struct gpio_led stk1000_j2_led[] = {
 	{ .name = "led4:amber", .gpio = GPIO_PIN_PB(14), },
 	{ .name = "led5:amber", .gpio = GPIO_PIN_PB(15), },
 	{ .name = "led6:amber", .gpio = GPIO_PIN_PB(16), },
-	{ .name = "led7:amber", .gpio = GPIO_PIN_PB(30),
-			.default_trigger = "heartbeat", },
+	{
+		.name = "led7:amber", .gpio = GPIO_PIN_PB(30),
+		.default_trigger = "heartbeat",
+	},
 #else	/* RGB */
 #define LEDSTRING "J2 jumpered to RGB LEDs"
 	{ .name = "r1:red",     .gpio = GPIO_PIN_PB( 8), },
 	{ .name = "g1:green",   .gpio = GPIO_PIN_PB(10), },
 	{ .name = "b1:blue",    .gpio = GPIO_PIN_PB(14), },
 
-	{ .name = "r2:red",     .gpio = GPIO_PIN_PB( 9),
-			.default_trigger = "heartbeat", },
+	{
+		.name = "r2:red",     .gpio = GPIO_PIN_PB( 9),
+		.default_trigger = "heartbeat",
+	},
 	{ .name = "g2:green",   .gpio = GPIO_PIN_PB(13), },
-	{ .name = "b2:blue",    .gpio = GPIO_PIN_PB(15),
-			.default_trigger = "heartbeat", },
+	{
+		.name = "b2:blue",    .gpio = GPIO_PIN_PB(15),
+		.default_trigger = "heartbeat",
+	},
 	/* PB16, PB30 unused */
 #endif
 };
 
-static struct gpio_led_platform_data stk1000_j2_led_data = {
+static struct gpio_led_platform_data stk1000_j2_led_data =
+{
 	.num_leds	= ARRAY_SIZE(stk1000_j2_led),
 	.leds		= stk1000_j2_led,
 };
 
-static struct platform_device stk1000_j2_led_dev = {
+static struct platform_device stk1000_j2_led_dev =
+{
 	.name		= "leds-gpio",
 	.id		= 2,	/* gpio block J2 */
 	.dev		= {
@@ -114,7 +126,9 @@ void __init atstk1000_setup_j2_leds(void)
 	unsigned	i;
 
 	for (i = 0; i < ARRAY_SIZE(stk1000_j2_led); i++)
+	{
 		at32_select_gpio(stk1000_j2_led[i].gpio, AT32_GPIOF_OUTPUT);
+	}
 
 	printk("STK1000: " LEDSTRING "\n");
 	platform_device_register(&stk1000_j2_led_dev);

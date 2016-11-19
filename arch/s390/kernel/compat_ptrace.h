@@ -4,7 +4,8 @@
 #include <asm/ptrace.h>    /* needed for NUM_CR_WORDS */
 #include "compat_linux.h"  /* needed for psw_compat_t */
 
-struct compat_per_struct_kernel {
+struct compat_per_struct_kernel
+{
 	__u32 cr9;		/* PER control bits */
 	__u32 cr10;		/* PER starting address */
 	__u32 cr11;		/* PER ending address */
@@ -33,7 +34,8 @@ struct compat_user_regs_struct
 	u32  ieee_instruction_pointer;	/* obsolete, always 0 */
 };
 
-struct compat_user {
+struct compat_user
+{
 	/* We start with the registers, to mimic the way that "memory"
 	   is returned from the ptrace(3,...) function.  */
 	struct compat_user_regs_struct regs;
@@ -48,7 +50,7 @@ struct compat_user {
 				   esp register.  */
 	s32 signal;     	 /* Signal that caused the core dump. */
 	u32 u_ar0;               /* Used by gdb to help find the values for */
-	                         /* the registers. */
+	/* the registers. */
 	u32 magic;		 /* To uniquely identify a core file */
 	char u_comm[32];	 /* User command that was responsible */
 };

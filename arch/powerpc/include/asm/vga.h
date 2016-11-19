@@ -39,9 +39,9 @@ static inline u16 scr_readw(volatile const u16 *addr)
 #endif /* !CONFIG_VGA_CONSOLE && !CONFIG_MDA_CONSOLE */
 
 #ifdef __powerpc64__
-#define VGA_MAP_MEM(x,s) ((unsigned long) ioremap((x), s))
+	#define VGA_MAP_MEM(x,s) ((unsigned long) ioremap((x), s))
 #else
-#define VGA_MAP_MEM(x,s) (x)
+	#define VGA_MAP_MEM(x,s) (x)
 #endif
 
 #define vga_readb(x) (*(x))

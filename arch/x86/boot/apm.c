@@ -28,13 +28,19 @@ int query_apm_bios(void)
 	intcall(0x15, &ireg, &oreg);
 
 	if (oreg.flags & X86_EFLAGS_CF)
-		return -1;		/* No APM BIOS */
+	{
+		return -1;    /* No APM BIOS */
+	}
 
 	if (oreg.bx != 0x504d)		/* "PM" signature */
+	{
 		return -1;
+	}
 
 	if (!(oreg.cx & 0x02))		/* 32 bits supported? */
+	{
 		return -1;
+	}
 
 	/* Disconnect first, just in case */
 	ireg.al = 0x04;
@@ -53,7 +59,9 @@ int query_apm_bios(void)
 	boot_params.apm_bios_info.dseg_len    = oreg.di;
 
 	if (oreg.flags & X86_EFLAGS_CF)
+	{
 		return -1;
+	}
 
 	/* Redo the installation check as the 32-bit connect;
 	   some BIOSes return different flags this way... */
@@ -61,7 +69,8 @@ int query_apm_bios(void)
 	ireg.al = 0x00;
 	intcall(0x15, &ireg, &oreg);
 
-	if ((oreg.eflags & X86_EFLAGS_CF) || oreg.bx != 0x504d) {
+	if ((oreg.eflags & X86_EFLAGS_CF) || oreg.bx != 0x504d)
+	{
 		/* Failure with 32-bit connect, try to disconect and ignore */
 		ireg.al = 0x04;
 		intcall(0x15, &ireg, NULL);

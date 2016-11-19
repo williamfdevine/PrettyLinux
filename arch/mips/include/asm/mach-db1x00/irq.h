@@ -10,11 +10,11 @@
 
 
 #ifdef NR_IRQS
-#undef NR_IRQS
+	#undef NR_IRQS
 #endif
 
 #ifndef MIPS_CPU_IRQ_BASE
-#define MIPS_CPU_IRQ_BASE 0
+	#define MIPS_CPU_IRQ_BASE 0
 #endif
 
 /* 8 (MIPS) + 128 (au1300) + 16 (cpld) */

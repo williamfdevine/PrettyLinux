@@ -71,10 +71,10 @@
 #include "setup.h"
 
 #ifdef DEBUG
-#include <asm/udbg.h>
-#define DBG(fmt...) udbg_printf(fmt)
+	#include <asm/udbg.h>
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 /* The main machine-dep calls structure
@@ -91,8 +91,9 @@ unsigned long klimit = (unsigned long) _end;
 
 /*
  * This still seems to be needed... -- paulus
- */ 
-struct screen_info screen_info = {
+ */
+struct screen_info screen_info =
+{
 	.orig_x = 0,
 	.orig_y = 25,
 	.orig_video_cols = 80,
@@ -101,7 +102,7 @@ struct screen_info screen_info = {
 	.orig_video_points = 16
 };
 #if defined(CONFIG_FB_VGA16_MODULE)
-EXPORT_SYMBOL(screen_info);
+	EXPORT_SYMBOL(screen_info);
 #endif
 
 /* Variables required to store legacy IO irq routing */
@@ -111,9 +112,9 @@ int of_i8042_aux_irq;
 EXPORT_SYMBOL_GPL(of_i8042_aux_irq);
 
 #ifdef __DO_IRQ_CANON
-/* XXX should go elsewhere eventually */
-int ppc_do_canonicalize_irqs;
-EXPORT_SYMBOL(ppc_do_canonicalize_irqs);
+	/* XXX should go elsewhere eventually */
+	int ppc_do_canonicalize_irqs;
+	EXPORT_SYMBOL(ppc_do_canonicalize_irqs);
 #endif
 
 /* also used by kexec */
@@ -128,13 +129,16 @@ void machine_shutdown(void)
 #endif
 
 	if (ppc_md.machine_shutdown)
+	{
 		ppc_md.machine_shutdown();
+	}
 }
 
 static void machine_hang(void)
 {
 	pr_emerg("System Halted, OK to turn off power\n");
 	local_irq_disable();
+
 	while (1)
 		;
 }
@@ -142,8 +146,11 @@ static void machine_hang(void)
 void machine_restart(char *cmd)
 {
 	machine_shutdown();
+
 	if (ppc_md.restart)
+	{
 		ppc_md.restart(cmd);
+	}
 
 	smp_send_stop();
 
@@ -156,8 +163,11 @@ void machine_restart(char *cmd)
 void machine_power_off(void)
 {
 	machine_shutdown();
+
 	if (pm_power_off)
+	{
 		pm_power_off();
+	}
 
 	smp_send_stop();
 	machine_hang();
@@ -171,8 +181,11 @@ EXPORT_SYMBOL_GPL(pm_power_off);
 void machine_halt(void)
 {
 	machine_shutdown();
+
 	if (ppc_md.halt)
+	{
 		ppc_md.halt();
+	}
 
 	smp_send_stop();
 	machine_hang();
@@ -180,12 +193,12 @@ void machine_halt(void)
 
 
 #ifdef CONFIG_TAU
-extern u32 cpu_temp(unsigned long cpu);
-extern u32 cpu_temp_both(unsigned long cpu);
+	extern u32 cpu_temp(unsigned long cpu);
+	extern u32 cpu_temp_both(unsigned long cpu);
 #endif /* CONFIG_TAU */
 
 #ifdef CONFIG_SMP
-DEFINE_PER_CPU(unsigned int, cpu_pvr);
+	DEFINE_PER_CPU(unsigned int, cpu_pvr);
 #endif
 
 static void show_cpuinfo_summary(struct seq_file *m)
@@ -196,27 +209,40 @@ static void show_cpuinfo_summary(struct seq_file *m)
 	unsigned long bogosum = 0;
 	int i;
 	for_each_online_cpu(i)
-		bogosum += loops_per_jiffy;
+	bogosum += loops_per_jiffy;
 	seq_printf(m, "total bogomips\t: %lu.%02lu\n",
-		   bogosum/(500000/HZ), bogosum/(5000/HZ) % 100);
+			   bogosum / (500000 / HZ), bogosum / (5000 / HZ) % 100);
 #endif /* CONFIG_SMP && CONFIG_PPC32 */
 	seq_printf(m, "timebase\t: %lu\n", ppc_tb_freq);
+
 	if (ppc_md.name)
+	{
 		seq_printf(m, "platform\t: %s\n", ppc_md.name);
+	}
+
 	root = of_find_node_by_path("/");
+
 	if (root)
+	{
 		model = of_get_property(root, "model", NULL);
+	}
+
 	if (model)
+	{
 		seq_printf(m, "model\t\t: %s\n", model);
+	}
+
 	of_node_put(root);
 
 	if (ppc_md.show_cpuinfo != NULL)
+	{
 		ppc_md.show_cpuinfo(m);
+	}
 
 #ifdef CONFIG_PPC32
 	/* Display the amount of memory */
 	seq_printf(m, "Memory\t\t: %d MB\n",
-		   (unsigned int)(total_memory / (1024 * 1024)));
+			   (unsigned int)(total_memory / (1024 * 1024)));
 #endif
 }
 
@@ -231,7 +257,9 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	/* We only show online cpus: disable preempt (overzealous, I
 	 * knew) to prevent cpu going down. */
 	preempt_disable();
-	if (!cpu_online(cpu_id)) {
+
+	if (!cpu_online(cpu_id))
+	{
 		preempt_enable();
 		return 0;
 	}
@@ -248,31 +276,42 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	seq_printf(m, "cpu\t\t: ");
 
 	if (cur_cpu_spec->pvr_mask)
+	{
 		seq_printf(m, "%s", cur_cpu_spec->cpu_name);
+	}
 	else
+	{
 		seq_printf(m, "unknown (%08x)", pvr);
+	}
 
 #ifdef CONFIG_ALTIVEC
+
 	if (cpu_has_feature(CPU_FTR_ALTIVEC))
+	{
 		seq_printf(m, ", altivec supported");
+	}
+
 #endif /* CONFIG_ALTIVEC */
 
 	seq_printf(m, "\n");
 
 #ifdef CONFIG_TAU
-	if (cur_cpu_spec->cpu_features & CPU_FTR_TAU) {
+
+	if (cur_cpu_spec->cpu_features & CPU_FTR_TAU)
+	{
 #ifdef CONFIG_TAU_AVERAGE
 		/* more straightforward, but potentially misleading */
 		seq_printf(m,  "temperature \t: %u C (uncalibrated)\n",
-			   cpu_temp(cpu_id));
+				   cpu_temp(cpu_id));
 #else
 		/* show the actual temp sensor range */
 		u32 temp;
 		temp = cpu_temp_both(cpu_id);
 		seq_printf(m, "temperature \t: %u-%u C (uncalibrated)\n",
-			   temp & 0xff, temp >> 16);
+				   temp & 0xff, temp >> 16);
 #endif
 	}
+
 #endif /* CONFIG_TAU */
 
 	/*
@@ -282,45 +321,59 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	 * report the clock rate that is same across all cpus.
 	 */
 	if (ppc_md.get_proc_freq)
+	{
 		proc_freq = ppc_md.get_proc_freq(cpu_id);
+	}
 	else
+	{
 		proc_freq = ppc_proc_freq;
+	}
 
 	if (proc_freq)
 		seq_printf(m, "clock\t\t: %lu.%06luMHz\n",
-			   proc_freq / 1000000, proc_freq % 1000000);
+				   proc_freq / 1000000, proc_freq % 1000000);
 
 	if (ppc_md.show_percpuinfo != NULL)
+	{
 		ppc_md.show_percpuinfo(m, cpu_id);
+	}
 
 	/* If we are a Freescale core do a simple check so
 	 * we dont have to keep adding cases in the future */
-	if (PVR_VER(pvr) & 0x8000) {
-		switch (PVR_VER(pvr)) {
-		case 0x8000:	/* 7441/7450/7451, Voyager */
-		case 0x8001:	/* 7445/7455, Apollo 6 */
-		case 0x8002:	/* 7447/7457, Apollo 7 */
-		case 0x8003:	/* 7447A, Apollo 7 PM */
-		case 0x8004:	/* 7448, Apollo 8 */
-		case 0x800c:	/* 7410, Nitro */
-			maj = ((pvr >> 8) & 0xF);
-			min = PVR_MIN(pvr);
-			break;
-		default:	/* e500/book-e */
-			maj = PVR_MAJ(pvr);
-			min = PVR_MIN(pvr);
-			break;
+	if (PVR_VER(pvr) & 0x8000)
+	{
+		switch (PVR_VER(pvr))
+		{
+			case 0x8000:	/* 7441/7450/7451, Voyager */
+			case 0x8001:	/* 7445/7455, Apollo 6 */
+			case 0x8002:	/* 7447/7457, Apollo 7 */
+			case 0x8003:	/* 7447A, Apollo 7 PM */
+			case 0x8004:	/* 7448, Apollo 8 */
+			case 0x800c:	/* 7410, Nitro */
+				maj = ((pvr >> 8) & 0xF);
+				min = PVR_MIN(pvr);
+				break;
+
+			default:	/* e500/book-e */
+				maj = PVR_MAJ(pvr);
+				min = PVR_MIN(pvr);
+				break;
 		}
-	} else {
-		switch (PVR_VER(pvr)) {
+	}
+	else
+	{
+		switch (PVR_VER(pvr))
+		{
 			case 0x0020:	/* 403 family */
 				maj = PVR_MAJ(pvr) + 1;
 				min = PVR_MIN(pvr);
 				break;
+
 			case 0x1008:	/* 740P/750P ?? */
 				maj = ((pvr >> 8) & 0xFF) - 1;
 				min = pvr & 0xFF;
 				break;
+
 			default:
 				maj = (pvr >> 8) & 0xFF;
 				min = pvr & 0xFF;
@@ -329,12 +382,12 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	}
 
 	seq_printf(m, "revision\t: %hd.%hd (pvr %04x %04x)\n",
-		   maj, min, PVR_VER(pvr), PVR_REV(pvr));
+			   maj, min, PVR_VER(pvr), PVR_REV(pvr));
 
 #ifdef CONFIG_PPC32
 	seq_printf(m, "bogomips\t: %lu.%02lu\n",
-		   loops_per_jiffy / (500000/HZ),
-		   (loops_per_jiffy / (5000/HZ)) % 100);
+			   loops_per_jiffy / (500000 / HZ),
+			   (loops_per_jiffy / (5000 / HZ)) % 100);
 #endif
 
 #ifdef CONFIG_SMP
@@ -345,7 +398,9 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 
 	/* If this is the last cpu, print the summary */
 	if (cpumask_next(cpu_id, cpu_online_mask) >= nr_cpu_ids)
+	{
 		show_cpuinfo_summary(m);
+	}
 
 	return 0;
 }
@@ -353,11 +408,19 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 static void *c_start(struct seq_file *m, loff_t *pos)
 {
 	if (*pos == 0)	/* just in case, cpu 0 is not the first */
+	{
 		*pos = cpumask_first(cpu_online_mask);
+	}
 	else
+	{
 		*pos = cpumask_next(*pos - 1, cpu_online_mask);
+	}
+
 	if ((*pos) < nr_cpu_ids)
+	{
 		return (void *)(unsigned long)(*pos + 1);
+	}
+
 	return NULL;
 }
 
@@ -371,8 +434,9 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
-	.start =c_start,
+const struct seq_operations cpuinfo_op =
+{
+	.start = c_start,
 	.next =	c_next,
 	.stop =	c_stop,
 	.show =	show_cpuinfo,
@@ -382,19 +446,25 @@ void __init check_for_initrd(void)
 {
 #ifdef CONFIG_BLK_DEV_INITRD
 	DBG(" -> check_for_initrd()  initrd_start=0x%lx  initrd_end=0x%lx\n",
-	    initrd_start, initrd_end);
+		initrd_start, initrd_end);
 
 	/* If we were passed an initrd, set the ROOT_DEV properly if the values
 	 * look sensible. If not, clear initrd reference.
 	 */
 	if (is_kernel_addr(initrd_start) && is_kernel_addr(initrd_end) &&
-	    initrd_end > initrd_start)
+		initrd_end > initrd_start)
+	{
 		ROOT_DEV = Root_RAM0;
+	}
 	else
+	{
 		initrd_start = initrd_end = 0;
+	}
 
 	if (initrd_start)
+	{
 		pr_info("Found initrd at 0x%lx:0x%lx\n", initrd_start, initrd_end);
+	}
 
 	DBG(" <- check_for_initrd()\n");
 #endif /* CONFIG_BLK_DEV_INITRD */
@@ -424,10 +494,12 @@ static void __init cpu_init_thread_core_maps(int tpc)
 	BUG_ON(tpc != (1 << threads_shift));
 
 	for (i = 0; i < tpc; i++)
+	{
 		cpumask_set_cpu(i, &threads_core_mask);
+	}
 
 	printk(KERN_INFO "CPU maps initialized for %d thread%s per core\n",
-	       tpc, tpc > 1 ? "s" : "");
+		   tpc, tpc > 1 ? "s" : "");
 	printk(KERN_DEBUG " (thread shift is %d)\n", threads_shift);
 }
 
@@ -458,7 +530,8 @@ void __init smp_setup_cpu_maps(void)
 
 	DBG("smp_setup_cpu_maps()\n");
 
-	while ((dn = of_find_node_by_type(dn, "cpu")) && cpu < nr_cpu_ids) {
+	while ((dn = of_find_node_by_type(dn, "cpu")) && cpu < nr_cpu_ids)
+	{
 		const __be32 *intserv;
 		__be32 cpu_be;
 		int j, len;
@@ -466,14 +539,20 @@ void __init smp_setup_cpu_maps(void)
 		DBG("  * %s...\n", dn->full_name);
 
 		intserv = of_get_property(dn, "ibm,ppc-interrupt-server#s",
-				&len);
-		if (intserv) {
+								  &len);
+
+		if (intserv)
+		{
 			DBG("    ibm,ppc-interrupt-server#s -> %d threads\n",
-			    nthreads);
-		} else {
+				nthreads);
+		}
+		else
+		{
 			DBG("    no ibm,ppc-interrupt-server#s -> 1 thread\n");
 			intserv = of_get_property(dn, "reg", &len);
-			if (!intserv) {
+
+			if (!intserv)
+			{
 				cpu_be = cpu_to_be32(cpu);
 				intserv = &cpu_be;	/* assume logical == phys */
 				len = 4;
@@ -482,16 +561,18 @@ void __init smp_setup_cpu_maps(void)
 
 		nthreads = len / sizeof(int);
 
-		for (j = 0; j < nthreads && cpu < nr_cpu_ids; j++) {
+		for (j = 0; j < nthreads && cpu < nr_cpu_ids; j++)
+		{
 			bool avail;
 
 			DBG("    thread %d -> cpu %d (hard id %d)\n",
-			    j, cpu, be32_to_cpu(intserv[j]));
+				j, cpu, be32_to_cpu(intserv[j]));
 
 			avail = of_device_is_available(dn);
+
 			if (!avail)
 				avail = !of_property_match_string(dn,
-						"enable-method", "spin-table");
+												  "enable-method", "spin-table");
 
 			set_cpu_present(cpu, avail);
 			set_hard_smp_processor_id(cpu, be32_to_cpu(intserv[j]));
@@ -501,18 +582,21 @@ void __init smp_setup_cpu_maps(void)
 	}
 
 	/* If no SMT supported, nthreads is forced to 1 */
-	if (!cpu_has_feature(CPU_FTR_SMT)) {
+	if (!cpu_has_feature(CPU_FTR_SMT))
+	{
 		DBG("  SMT disabled ! nthreads forced to 1\n");
 		nthreads = 1;
 	}
 
 #ifdef CONFIG_PPC64
+
 	/*
 	 * On pSeries LPAR, we need to know how many cpus
 	 * could possibly be added to this partition.
 	 */
 	if (firmware_has_feature(FW_FEATURE_LPAR) &&
-	    (dn = of_find_node_by_path("/rtas"))) {
+		(dn = of_find_node_by_path("/rtas")))
+	{
 		int num_addr_cell, num_size_cell, maxcpus;
 		const __be32 *ireg;
 
@@ -522,34 +606,44 @@ void __init smp_setup_cpu_maps(void)
 		ireg = of_get_property(dn, "ibm,lrdr-capacity", NULL);
 
 		if (!ireg)
+		{
 			goto out;
+		}
 
 		maxcpus = be32_to_cpup(ireg + num_addr_cell + num_size_cell);
 
 		/* Double maxcpus for processors which have SMT capability */
 		if (cpu_has_feature(CPU_FTR_SMT))
+		{
 			maxcpus *= nthreads;
+		}
 
-		if (maxcpus > nr_cpu_ids) {
+		if (maxcpus > nr_cpu_ids)
+		{
 			printk(KERN_WARNING
-			       "Partition configured for %d cpus, "
-			       "operating system maximum is %d.\n",
-			       maxcpus, nr_cpu_ids);
+				   "Partition configured for %d cpus, "
+				   "operating system maximum is %d.\n",
+				   maxcpus, nr_cpu_ids);
 			maxcpus = nr_cpu_ids;
-		} else
+		}
+		else
 			printk(KERN_INFO "Partition configured for %d cpus.\n",
-			       maxcpus);
+				   maxcpus);
 
 		for (cpu = 0; cpu < maxcpus; cpu++)
+		{
 			set_cpu_possible(cpu, true);
-	out:
+		}
+
+out:
 		of_node_put(dn);
 	}
+
 	vdso_data->processorCount = num_present_cpus();
 #endif /* CONFIG_PPC64 */
 
-        /* Initialize CPU <=> thread mapping/
-	 *
+	/* Initialize CPU <=> thread mapping/
+	*
 	 * WARNING: We assume that the number of threads is the same for
 	 * every CPU in the system. If that is not the case, then some code
 	 * here will have to be reworked
@@ -572,16 +666,25 @@ static __init int add_pcspkr(void)
 
 	np = of_find_compatible_node(NULL, NULL, "pnpPNP,100");
 	of_node_put(np);
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	pd = platform_device_alloc("pcspkr", -1);
+
 	if (!pd)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add(pd);
+
 	if (ret)
+	{
 		platform_device_put(pd);
+	}
 
 	return ret;
 }
@@ -604,27 +707,36 @@ void probe_machine(void)
 	 * Check ppc_md is empty, if not we have a bug, ie, we setup an
 	 * entry before probe_machine() which will be overwritten
 	 */
-	for (i = 0; i < (sizeof(ppc_md) / sizeof(void *)); i++) {
-		if (((void **)&ppc_md)[i]) {
+	for (i = 0; i < (sizeof(ppc_md) / sizeof(void *)); i++)
+	{
+		if (((void **)&ppc_md)[i])
+		{
 			printk(KERN_ERR "Entry %d in ppc_md non empty before"
-			       " machine probe !\n", i);
+				   " machine probe !\n", i);
 		}
 	}
 
 	for (machine_id = &__machine_desc_start;
-	     machine_id < &__machine_desc_end;
-	     machine_id++) {
+		 machine_id < &__machine_desc_end;
+		 machine_id++)
+	{
 		DBG("  %s ...", machine_id->name);
 		memcpy(&ppc_md, machine_id, sizeof(struct machdep_calls));
-		if (ppc_md.probe()) {
+
+		if (ppc_md.probe())
+		{
 			DBG(" match !\n");
 			break;
 		}
+
 		DBG("\n");
 	}
+
 	/* What can we do if we didn't find ? */
-	if (machine_id >= &__machine_desc_end) {
+	if (machine_id >= &__machine_desc_end)
+	{
 		DBG("No suitable machine found !\n");
+
 		for (;;);
 	}
 
@@ -637,57 +749,87 @@ int check_legacy_ioport(unsigned long base_port)
 	struct device_node *parent, *np = NULL;
 	int ret = -ENODEV;
 
-	switch(base_port) {
-	case I8042_DATA_REG:
-		if (!(np = of_find_compatible_node(NULL, NULL, "pnpPNP,303")))
-			np = of_find_compatible_node(NULL, NULL, "pnpPNP,f03");
-		if (np) {
-			parent = of_get_parent(np);
+	switch (base_port)
+	{
+		case I8042_DATA_REG:
+			if (!(np = of_find_compatible_node(NULL, NULL, "pnpPNP,303")))
+			{
+				np = of_find_compatible_node(NULL, NULL, "pnpPNP,f03");
+			}
 
-			of_i8042_kbd_irq = irq_of_parse_and_map(parent, 0);
-			if (!of_i8042_kbd_irq)
+			if (np)
+			{
+				parent = of_get_parent(np);
+
+				of_i8042_kbd_irq = irq_of_parse_and_map(parent, 0);
+
+				if (!of_i8042_kbd_irq)
+				{
+					of_i8042_kbd_irq = 1;
+				}
+
+				of_i8042_aux_irq = irq_of_parse_and_map(parent, 1);
+
+				if (!of_i8042_aux_irq)
+				{
+					of_i8042_aux_irq = 12;
+				}
+
+				of_node_put(np);
+				np = parent;
+				break;
+			}
+
+			np = of_find_node_by_type(NULL, "8042");
+
+			/* Pegasos has no device_type on its 8042 node, look for the
+			 * name instead */
+			if (!np)
+			{
+				np = of_find_node_by_name(NULL, "8042");
+			}
+
+			if (np)
+			{
 				of_i8042_kbd_irq = 1;
-
-			of_i8042_aux_irq = irq_of_parse_and_map(parent, 1);
-			if (!of_i8042_aux_irq)
 				of_i8042_aux_irq = 12;
+			}
 
-			of_node_put(np);
-			np = parent;
 			break;
-		}
-		np = of_find_node_by_type(NULL, "8042");
-		/* Pegasos has no device_type on its 8042 node, look for the
-		 * name instead */
-		if (!np)
-			np = of_find_node_by_name(NULL, "8042");
-		if (np) {
-			of_i8042_kbd_irq = 1;
-			of_i8042_aux_irq = 12;
-		}
-		break;
-	case FDC_BASE: /* FDC1 */
-		np = of_find_node_by_type(NULL, "fdc");
-		break;
-	default:
-		/* ipmi is supposed to fail here */
-		break;
+
+		case FDC_BASE: /* FDC1 */
+			np = of_find_node_by_type(NULL, "fdc");
+			break;
+
+		default:
+			/* ipmi is supposed to fail here */
+			break;
 	}
+
 	if (!np)
+	{
 		return ret;
+	}
+
 	parent = of_get_parent(np);
-	if (parent) {
+
+	if (parent)
+	{
 		if (strcmp(parent->type, "isa") == 0)
+		{
 			ret = 0;
+		}
+
 		of_node_put(parent);
 	}
+
 	of_node_put(np);
 	return ret;
 }
 EXPORT_SYMBOL(check_legacy_ioport);
 
 static int ppc_panic_event(struct notifier_block *this,
-                             unsigned long event, void *ptr)
+						   unsigned long event, void *ptr)
 {
 	/*
 	 * If firmware-assisted dump has been registered then trigger
@@ -698,7 +840,8 @@ static int ppc_panic_event(struct notifier_block *this,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block ppc_panic_block = {
+static struct notifier_block ppc_panic_block =
+{
 	.notifier_call = ppc_panic_event,
 	.priority = INT_MIN /* may not return; must be done last */
 };
@@ -706,7 +849,10 @@ static struct notifier_block ppc_panic_block = {
 void __init setup_panic(void)
 {
 	if (!ppc_md.panic)
+	{
 		return;
+	}
+
 	atomic_notifier_chain_register(&panic_notifier_list, &ppc_panic_block);
 }
 
@@ -720,9 +866,9 @@ void __init setup_panic(void)
  */
 
 #ifdef CONFIG_NOT_COHERENT_CACHE
-#define KERNEL_COHERENCY	0
+	#define KERNEL_COHERENCY	0
 #else
-#define KERNEL_COHERENCY	1
+	#define KERNEL_COHERENCY	1
 #endif
 
 static int __init check_cache_coherency(void)
@@ -737,11 +883,12 @@ static int __init check_cache_coherency(void)
 
 	devtree_coherency = prop ? 0 : 1;
 
-	if (devtree_coherency != KERNEL_COHERENCY) {
+	if (devtree_coherency != KERNEL_COHERENCY)
+	{
 		printk(KERN_ERR
-			"kernel coherency:%s != device tree_coherency:%s\n",
-			KERNEL_COHERENCY ? "on" : "off",
-			devtree_coherency ? "on" : "off");
+			   "kernel coherency:%s != device tree_coherency:%s\n",
+			   KERNEL_COHERENCY ? "on" : "off",
+			   devtree_coherency ? "on" : "off");
 		BUG();
 	}
 
@@ -773,7 +920,7 @@ void arch_setup_pdev_archdata(struct platform_device *pdev)
 {
 	pdev->archdata.dma_mask = DMA_BIT_MASK(32);
 	pdev->dev.dma_mask = &pdev->archdata.dma_mask;
- 	set_dma_ops(&pdev->dev, &dma_direct_ops);
+	set_dma_ops(&pdev->dev, &dma_direct_ops);
 }
 
 static __init void print_system_info(void)
@@ -786,42 +933,60 @@ static __init void print_system_info(void)
 	pr_info("Hash_size         = 0x%lx\n", Hash_size);
 #endif
 	pr_info("phys_mem_size     = 0x%llx\n",
-		(unsigned long long)memblock_phys_mem_size());
+			(unsigned long long)memblock_phys_mem_size());
 
 	pr_info("dcache_bsize      = 0x%x\n", dcache_bsize);
 	pr_info("icache_bsize      = 0x%x\n", icache_bsize);
+
 	if (ucache_bsize != 0)
+	{
 		pr_info("ucache_bsize      = 0x%x\n", ucache_bsize);
+	}
 
 	pr_info("cpu_features      = 0x%016lx\n", cur_cpu_spec->cpu_features);
 	pr_info("  possible        = 0x%016lx\n",
-		(unsigned long)CPU_FTRS_POSSIBLE);
+			(unsigned long)CPU_FTRS_POSSIBLE);
 	pr_info("  always          = 0x%016lx\n",
-		(unsigned long)CPU_FTRS_ALWAYS);
+			(unsigned long)CPU_FTRS_ALWAYS);
 	pr_info("cpu_user_features = 0x%08x 0x%08x\n",
-		cur_cpu_spec->cpu_user_features,
-		cur_cpu_spec->cpu_user_features2);
+			cur_cpu_spec->cpu_user_features,
+			cur_cpu_spec->cpu_user_features2);
 	pr_info("mmu_features      = 0x%08x\n", cur_cpu_spec->mmu_features);
 #ifdef CONFIG_PPC64
 	pr_info("firmware_features = 0x%016lx\n", powerpc_firmware_features);
 #endif
 
 #ifdef CONFIG_PPC_STD_MMU_64
+
 	if (htab_address)
+	{
 		pr_info("htab_address      = 0x%p\n", htab_address);
+	}
+
 	if (htab_hash_mask)
+	{
 		pr_info("htab_hash_mask    = 0x%lx\n", htab_hash_mask);
+	}
+
 #endif
 #ifdef CONFIG_PPC_STD_MMU_32
+
 	if (Hash)
+	{
 		pr_info("Hash              = 0x%p\n", Hash);
+	}
+
 	if (Hash_mask)
+	{
 		pr_info("Hash_mask         = 0x%lx\n", Hash_mask);
+	}
+
 #endif
 
 	if (PHYSICAL_START > 0)
 		pr_info("physical_start    = 0x%llx\n",
-		       (unsigned long long)PHYSICAL_START);
+				(unsigned long long)PHYSICAL_START);
+
 	pr_info("-----------------------------------------------------\n");
 }
 
@@ -926,8 +1091,11 @@ void __init setup_arch(char **cmdline_p)
 #ifdef CONFIG_DUMMY_CONSOLE
 	conswitchp = &dummy_con;
 #endif
+
 	if (ppc_md.setup_arch)
+	{
 		ppc_md.setup_arch();
+	}
 
 	paging_init();
 
@@ -935,9 +1103,11 @@ void __init setup_arch(char **cmdline_p)
 	mmu_context_init();
 
 #ifdef CONFIG_PPC64
+
 	/* Interrupt code needs to be 64K-aligned. */
 	if ((unsigned long)_stext & 0xffff)
 		panic("Kernelbase not 64K-aligned (0x%lx)!\n",
-		      (unsigned long)_stext);
+			  (unsigned long)_stext);
+
 #endif
 }

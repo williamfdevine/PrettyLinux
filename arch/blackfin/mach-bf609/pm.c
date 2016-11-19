@@ -86,7 +86,8 @@
 
 
 /* Structures for the syscontrol() function */
-struct STRUCT_ROM_SYSCTRL {
+struct STRUCT_ROM_SYSCTRL
+{
 	uint32_t ulCGU_CTL;
 	uint32_t ulCGU_STAT;
 	uint32_t ulCGU_DIV;
@@ -107,7 +108,8 @@ struct STRUCT_ROM_SYSCTRL {
 	uint32_t ulReserved;
 };
 
-struct bfin_pm_data {
+struct bfin_pm_data
+{
 	uint32_t magic;
 	uint32_t resume_addr;
 	uint32_t sp;
@@ -120,16 +122,17 @@ uint32_t dactionflags;
 
 #define FUNC_ROM_SYSCONTROL 0xC8000080
 __attribute__((l1_data))
-static uint32_t (* const bfrom_SysControl)(uint32_t action_flags, struct STRUCT_ROM_SYSCTRL *settings, void *reserved) = (void *)FUNC_ROM_SYSCONTROL;
+static uint32_t (* const bfrom_SysControl)(uint32_t action_flags, struct STRUCT_ROM_SYSCTRL *settings,
+		void *reserved) = (void *)FUNC_ROM_SYSCONTROL;
 
 __attribute__((l1_text))
 void bfin_cpu_suspend(void)
 {
 	__asm__ __volatile__( \
-			".align 8;" \
-			"idle;" \
-			: : \
-			);
+						  ".align 8;" \
+						  "idle;" \
+						  : : \
+						);
 }
 
 __attribute__((l1_text))
@@ -147,7 +150,9 @@ void bf609_ddr_sr_exit(void)
 	 * should wait till CGU PLL is locked.
 	 */
 	while (bfin_read32(CGU0_STAT) & CLKSALGN)
+	{
 		continue;
+	}
 }
 
 __attribute__((l1_text))
@@ -163,11 +168,11 @@ __attribute__((l1_text))
 void bfin_hibernate_syscontrol(void)
 {
 	configvalues.ulWUA_Flags = (0xAD000000 | BITM_ROM_WUA_EN
-		| BITM_ROM_WUA_CGU | BITM_ROM_WUA_DDR | BITM_ROM_WUA_DDRDLLEN);
+								| BITM_ROM_WUA_CGU | BITM_ROM_WUA_DDR | BITM_ROM_WUA_DDRDLLEN);
 
 	dactionflags = (BITM_ROM_SYSCTRL_WUA_EN
-		| BITM_ROM_SYSCTRL_WUA_DPMWRITE | BITM_ROM_SYSCTRL_WUA_CGU
-		| BITM_ROM_SYSCTRL_WUA_DDR | BITM_ROM_SYSCTRL_WUA_DDRDLLEN);
+					| BITM_ROM_SYSCTRL_WUA_DPMWRITE | BITM_ROM_SYSCTRL_WUA_CGU
+					| BITM_ROM_SYSCTRL_WUA_DDR | BITM_ROM_SYSCTRL_WUA_DDRDLLEN);
 
 	bfrom_SysControl(dactionflags, &configvalues, NULL);
 
@@ -258,15 +263,25 @@ void bf609_cpu_pm_enter(suspend_state_t state)
 #endif
 
 	error = irq_set_irq_wake(255, 1);
-	if(error < 0)
-		printk(KERN_DEBUG "Unable to get irq wake\n");
-	error = irq_set_irq_wake(231, 1);
+
 	if (error < 0)
+	{
 		printk(KERN_DEBUG "Unable to get irq wake\n");
+	}
+
+	error = irq_set_irq_wake(231, 1);
+
+	if (error < 0)
+	{
+		printk(KERN_DEBUG "Unable to get irq wake\n");
+	}
 
 	if (state == PM_SUSPEND_STANDBY)
+	{
 		bfin_deepsleep(wakeup, wakeup_pol);
-	else {
+	}
+	else
+	{
 		bfin_hibernate(wakeup, wakeup_pol);
 	}
 
@@ -282,7 +297,8 @@ void bf609_cpu_pm_finish(void)
 
 }
 
-static struct bfin_cpu_pm_fns bf609_cpu_pm = {
+static struct bfin_cpu_pm_fns bf609_cpu_pm =
+{
 	.enter          = bf609_cpu_pm_enter,
 	.prepare        = bf609_cpu_pm_prepare,
 	.finish         = bf609_cpu_pm_finish,
@@ -300,7 +316,8 @@ static void smc_pm_syscore_resume(void)
 	bf609_nor_flash_init(NULL);
 }
 
-static struct syscore_ops smc_pm_syscore_ops = {
+static struct syscore_ops smc_pm_syscore_ops =
+{
 	.suspend        = smc_pm_syscore_suspend,
 	.resume         = smc_pm_syscore_resume,
 };
@@ -309,8 +326,12 @@ static struct syscore_ops smc_pm_syscore_ops = {
 static irqreturn_t test_isr(int irq, void *dev_id)
 {
 	printk(KERN_DEBUG "gpio irq %d\n", irq);
+
 	if (irq == 231)
+	{
 		bfin_sec_raise_irq(BFIN_SYSIRQ(IRQ_SOFT1));
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -332,27 +353,39 @@ static int __init bf609_init_pm(void)
 
 #ifdef CONFIG_PM_BFIN_WAKE_PE12
 	irq = gpio_to_irq(GPIO_PE12);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		error = irq;
 		printk(KERN_DEBUG "Unable to get irq number for GPIO %d, error %d\n",
-				GPIO_PE12, error);
+			   GPIO_PE12, error);
 	}
 
 	error = request_irq(irq, test_isr, IRQF_TRIGGER_RISING | IRQF_NO_SUSPEND
-				| IRQF_FORCE_RESUME, "gpiope12", NULL);
-	if(error < 0)
+						| IRQF_FORCE_RESUME, "gpiope12", NULL);
+
+	if (error < 0)
+	{
 		printk(KERN_DEBUG "Unable to get irq\n");
+	}
+
 #endif
 
 	error = request_irq(IRQ_CGU_EVT, dpm0_isr, IRQF_NO_SUSPEND |
-				IRQF_FORCE_RESUME, "cgu0 event", NULL);
-	if(error < 0)
+						IRQF_FORCE_RESUME, "cgu0 event", NULL);
+
+	if (error < 0)
+	{
 		printk(KERN_DEBUG "Unable to get irq\n");
+	}
 
 	error = request_irq(IRQ_DPM, dpm0_isr, IRQF_NO_SUSPEND |
-				IRQF_FORCE_RESUME, "dpm0 event", NULL);
+						IRQF_FORCE_RESUME, "dpm0 event", NULL);
+
 	if (error < 0)
+	{
 		printk(KERN_DEBUG "Unable to get irq\n");
+	}
 
 	bfin_cpu_pm = &bf609_cpu_pm;
 	return 0;

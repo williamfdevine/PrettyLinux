@@ -32,7 +32,8 @@
  *
  * See Documentation/virtual/kvm/ppc-pv.txt
  */
-struct kvm_vcpu_arch_shared {
+struct kvm_vcpu_arch_shared
+{
 	__u64 scratch1;
 	__u64 scratch2;
 	__u64 scratch3;

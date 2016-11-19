@@ -12,20 +12,22 @@
 #define _ASM_X86_UV_UV_IRQ_H
 
 /* If a generic version of this structure gets defined, eliminate this one. */
-struct uv_IO_APIC_route_entry {
+struct uv_IO_APIC_route_entry
+{
 	__u64	vector		:  8,
-		delivery_mode	:  3,
-		dest_mode	:  1,
-		delivery_status	:  1,
-		polarity	:  1,
-		__reserved_1	:  1,
-		trigger		:  1,
-		mask		:  1,
-		__reserved_2	: 15,
-		dest		: 32;
+				delivery_mode	:  3,
+				dest_mode	:  1,
+				delivery_status	:  1,
+				polarity	:  1,
+				__reserved_1	:  1,
+				trigger		:  1,
+				mask		:  1,
+				__reserved_2	: 15,
+				dest		: 32;
 };
 
-enum {
+enum
+{
 	UV_AFFINITY_ALL,
 	UV_AFFINITY_NODE,
 	UV_AFFINITY_CPU

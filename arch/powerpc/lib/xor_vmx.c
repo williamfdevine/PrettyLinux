@@ -23,10 +23,10 @@
  * Make it a bit simpler for it.
  */
 #if !defined(__CHECKER__)
-#include <altivec.h>
+	#include <altivec.h>
 #else
-#define vec_xor(a, b) a ^ b
-#define vector __attribute__((vector_size(16)))
+	#define vec_xor(a, b) a ^ b
+	#define vector __attribute__((vector_size(16)))
 #endif
 
 #include <linux/preempt.h>
@@ -65,7 +65,7 @@ typedef vector signed char unative_t;
 	} while (0)
 
 void xor_altivec_2(unsigned long bytes, unsigned long *v1_in,
-		   unsigned long *v2_in)
+				   unsigned long *v2_in)
 {
 	DEFINE(v1);
 	DEFINE(v2);
@@ -74,7 +74,8 @@ void xor_altivec_2(unsigned long bytes, unsigned long *v1_in,
 	preempt_disable();
 	enable_kernel_altivec();
 
-	do {
+	do
+	{
 		LOAD(v1);
 		LOAD(v2);
 		XOR(v1, v2);
@@ -82,7 +83,8 @@ void xor_altivec_2(unsigned long bytes, unsigned long *v1_in,
 
 		v1 += 4;
 		v2 += 4;
-	} while (--lines > 0);
+	}
+	while (--lines > 0);
 
 	disable_kernel_altivec();
 	preempt_enable();
@@ -90,7 +92,7 @@ void xor_altivec_2(unsigned long bytes, unsigned long *v1_in,
 EXPORT_SYMBOL(xor_altivec_2);
 
 void xor_altivec_3(unsigned long bytes, unsigned long *v1_in,
-		   unsigned long *v2_in, unsigned long *v3_in)
+				   unsigned long *v2_in, unsigned long *v3_in)
 {
 	DEFINE(v1);
 	DEFINE(v2);
@@ -100,7 +102,8 @@ void xor_altivec_3(unsigned long bytes, unsigned long *v1_in,
 	preempt_disable();
 	enable_kernel_altivec();
 
-	do {
+	do
+	{
 		LOAD(v1);
 		LOAD(v2);
 		LOAD(v3);
@@ -111,7 +114,8 @@ void xor_altivec_3(unsigned long bytes, unsigned long *v1_in,
 		v1 += 4;
 		v2 += 4;
 		v3 += 4;
-	} while (--lines > 0);
+	}
+	while (--lines > 0);
 
 	disable_kernel_altivec();
 	preempt_enable();
@@ -119,8 +123,8 @@ void xor_altivec_3(unsigned long bytes, unsigned long *v1_in,
 EXPORT_SYMBOL(xor_altivec_3);
 
 void xor_altivec_4(unsigned long bytes, unsigned long *v1_in,
-		   unsigned long *v2_in, unsigned long *v3_in,
-		   unsigned long *v4_in)
+				   unsigned long *v2_in, unsigned long *v3_in,
+				   unsigned long *v4_in)
 {
 	DEFINE(v1);
 	DEFINE(v2);
@@ -131,7 +135,8 @@ void xor_altivec_4(unsigned long bytes, unsigned long *v1_in,
 	preempt_disable();
 	enable_kernel_altivec();
 
-	do {
+	do
+	{
 		LOAD(v1);
 		LOAD(v2);
 		LOAD(v3);
@@ -145,7 +150,8 @@ void xor_altivec_4(unsigned long bytes, unsigned long *v1_in,
 		v2 += 4;
 		v3 += 4;
 		v4 += 4;
-	} while (--lines > 0);
+	}
+	while (--lines > 0);
 
 	disable_kernel_altivec();
 	preempt_enable();
@@ -153,8 +159,8 @@ void xor_altivec_4(unsigned long bytes, unsigned long *v1_in,
 EXPORT_SYMBOL(xor_altivec_4);
 
 void xor_altivec_5(unsigned long bytes, unsigned long *v1_in,
-		   unsigned long *v2_in, unsigned long *v3_in,
-		   unsigned long *v4_in, unsigned long *v5_in)
+				   unsigned long *v2_in, unsigned long *v3_in,
+				   unsigned long *v4_in, unsigned long *v5_in)
 {
 	DEFINE(v1);
 	DEFINE(v2);
@@ -166,7 +172,8 @@ void xor_altivec_5(unsigned long bytes, unsigned long *v1_in,
 	preempt_disable();
 	enable_kernel_altivec();
 
-	do {
+	do
+	{
 		LOAD(v1);
 		LOAD(v2);
 		LOAD(v3);
@@ -183,7 +190,8 @@ void xor_altivec_5(unsigned long bytes, unsigned long *v1_in,
 		v3 += 4;
 		v4 += 4;
 		v5 += 4;
-	} while (--lines > 0);
+	}
+	while (--lines > 0);
 
 	disable_kernel_altivec();
 	preempt_enable();

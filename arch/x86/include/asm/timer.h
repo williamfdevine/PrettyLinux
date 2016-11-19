@@ -23,7 +23,8 @@ extern int no_timer_check;
  *
  * See the comment near cycles_2_ns() for details on how we compute (b).
  */
-struct cyc2ns_data {
+struct cyc2ns_data
+{
 	u32 cyc2ns_mul;
 	u32 cyc2ns_shift;
 	u64 cyc2ns_offset;

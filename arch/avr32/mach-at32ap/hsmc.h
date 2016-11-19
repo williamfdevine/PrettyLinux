@@ -116,7 +116,7 @@
 	 & ((1 << HSMC_##name##_SIZE) - 1))
 #define HSMC_BFINS(name,value,old)					\
 	(((old) & ~(((1 << HSMC_##name##_SIZE) - 1)			\
-		    << HSMC_##name##_OFFSET)) | HSMC_BF(name,value))
+				<< HSMC_##name##_OFFSET)) | HSMC_BF(name,value))
 
 /* Register access macros */
 #define hsmc_readl(port,reg)						\

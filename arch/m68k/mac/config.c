@@ -86,49 +86,63 @@ int __init mac_parse_bootinfo(const struct bi_record *record)
 	int unknown = 0;
 	const void *data = record->data;
 
-	switch (be16_to_cpu(record->tag)) {
-	case BI_MAC_MODEL:
-		mac_bi_data.id = be32_to_cpup(data);
-		break;
-	case BI_MAC_VADDR:
-		mac_bi_data.videoaddr = be32_to_cpup(data);
-		break;
-	case BI_MAC_VDEPTH:
-		mac_bi_data.videodepth = be32_to_cpup(data);
-		break;
-	case BI_MAC_VROW:
-		mac_bi_data.videorow = be32_to_cpup(data);
-		break;
-	case BI_MAC_VDIM:
-		mac_bi_data.dimensions = be32_to_cpup(data);
-		break;
-	case BI_MAC_VLOGICAL:
-		mac_orig_videoaddr = be32_to_cpup(data);
-		mac_bi_data.videological =
-			VIDEOMEMBASE + (mac_orig_videoaddr & ~VIDEOMEMMASK);
-		break;
-	case BI_MAC_SCCBASE:
-		mac_bi_data.sccbase = be32_to_cpup(data);
-		break;
-	case BI_MAC_BTIME:
-		mac_bi_data.boottime = be32_to_cpup(data);
-		break;
-	case BI_MAC_GMTBIAS:
-		mac_bi_data.gmtbias = be32_to_cpup(data);
-		break;
-	case BI_MAC_MEMSIZE:
-		mac_bi_data.memsize = be32_to_cpup(data);
-		break;
-	case BI_MAC_CPUID:
-		mac_bi_data.cpuid = be32_to_cpup(data);
-		break;
-	case BI_MAC_ROMBASE:
-		mac_bi_data.rombase = be32_to_cpup(data);
-		break;
-	default:
-		unknown = 1;
-		break;
+	switch (be16_to_cpu(record->tag))
+	{
+		case BI_MAC_MODEL:
+			mac_bi_data.id = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_VADDR:
+			mac_bi_data.videoaddr = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_VDEPTH:
+			mac_bi_data.videodepth = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_VROW:
+			mac_bi_data.videorow = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_VDIM:
+			mac_bi_data.dimensions = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_VLOGICAL:
+			mac_orig_videoaddr = be32_to_cpup(data);
+			mac_bi_data.videological =
+				VIDEOMEMBASE + (mac_orig_videoaddr & ~VIDEOMEMMASK);
+			break;
+
+		case BI_MAC_SCCBASE:
+			mac_bi_data.sccbase = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_BTIME:
+			mac_bi_data.boottime = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_GMTBIAS:
+			mac_bi_data.gmtbias = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_MEMSIZE:
+			mac_bi_data.memsize = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_CPUID:
+			mac_bi_data.cpuid = be32_to_cpup(data);
+			break;
+
+		case BI_MAC_ROMBASE:
+			mac_bi_data.rombase = be32_to_cpup(data);
+			break;
+
+		default:
+			unknown = 1;
+			break;
 	}
+
 	return unknown;
 }
 
@@ -150,7 +164,9 @@ static void mac_cache_card_flush(int writeback)
 void __init config_mac(void)
 {
 	if (!MACH_IS_MAC)
+	{
 		printk(KERN_ERR "ERROR: no Mac, but config_mac() called!!\n");
+	}
 
 	mach_sched_init = mac_sched_init;
 	mach_init_IRQ = mac_init_IRQ;
@@ -180,8 +196,10 @@ void __init config_mac(void)
 	 */
 
 	if (macintosh_config->ident == MAC_MODEL_IICI
-	    || macintosh_config->ident == MAC_MODEL_IIFX)
+		|| macintosh_config->ident == MAC_MODEL_IIFX)
+	{
 		mach_l2_flush = mac_cache_card_flush;
+	}
 }
 
 
@@ -200,7 +218,8 @@ void __init config_mac(void)
 struct mac_model *macintosh_config;
 EXPORT_SYMBOL(macintosh_config);
 
-static struct mac_model mac_data_table[] = {
+static struct mac_model mac_data_table[] =
+{
 	/*
 	 * We'll pretend to be a Macintosh II, that's pretty safe.
 	 */
@@ -801,17 +820,20 @@ static struct mac_model mac_data_table[] = {
 	}
 };
 
-static struct resource scc_a_rsrcs[] = {
+static struct resource scc_a_rsrcs[] =
+{
 	{ .flags = IORESOURCE_MEM },
 	{ .flags = IORESOURCE_IRQ },
 };
 
-static struct resource scc_b_rsrcs[] = {
+static struct resource scc_b_rsrcs[] =
+{
 	{ .flags = IORESOURCE_MEM },
 	{ .flags = IORESOURCE_IRQ },
 };
 
-struct platform_device scc_a_pdev = {
+struct platform_device scc_a_pdev =
+{
 	.name           = "scc",
 	.id             = 0,
 	.num_resources  = ARRAY_SIZE(scc_a_rsrcs),
@@ -819,7 +841,8 @@ struct platform_device scc_a_pdev = {
 };
 EXPORT_SYMBOL(scc_a_pdev);
 
-struct platform_device scc_b_pdev = {
+struct platform_device scc_b_pdev =
+{
 	.name           = "scc",
 	.id             = 1,
 	.num_resources  = ARRAY_SIZE(scc_b_rsrcs),
@@ -833,17 +856,22 @@ static void __init mac_identify(void)
 
 	/* Penguin data useful? */
 	int model = mac_bi_data.id;
-	if (!model) {
+
+	if (!model)
+	{
 		/* no bootinfo model id -> NetBSD booter was used! */
 		/* XXX FIXME: breaks for model > 31 */
 		model = (mac_bi_data.cpuid >> 2) & 63;
 		printk(KERN_WARNING "No bootinfo model ID, using cpuid instead "
-		       "(obsolete bootloader?)\n");
+			   "(obsolete bootloader?)\n");
 	}
 
 	macintosh_config = mac_data_table;
-	for (m = macintosh_config; m->ident != -1; m++) {
-		if (m->ident == model) {
+
+	for (m = macintosh_config; m->ident != -1; m++)
+	{
+		if (m->ident == model)
+		{
 			macintosh_config = m;
 			break;
 		}
@@ -856,21 +884,28 @@ static void __init mac_identify(void)
 	scc_b_rsrcs[0].start = (resource_size_t) mac_bi_data.sccbase;
 	scc_b_rsrcs[0].end   = scc_b_rsrcs[0].start;
 
-	switch (macintosh_config->scc_type) {
-	case MAC_SCC_PSC:
-		scc_a_rsrcs[1].start = scc_a_rsrcs[1].end = IRQ_MAC_SCC_A;
-		scc_b_rsrcs[1].start = scc_b_rsrcs[1].end = IRQ_MAC_SCC_B;
-		break;
-	default:
-		/* On non-PSC machines, the serial ports share an IRQ. */
-		if (macintosh_config->ident == MAC_MODEL_IIFX) {
-			scc_a_rsrcs[1].start = scc_a_rsrcs[1].end = IRQ_MAC_SCC;
-			scc_b_rsrcs[1].start = scc_b_rsrcs[1].end = IRQ_MAC_SCC;
-		} else {
-			scc_a_rsrcs[1].start = scc_a_rsrcs[1].end = IRQ_AUTO_4;
-			scc_b_rsrcs[1].start = scc_b_rsrcs[1].end = IRQ_AUTO_4;
-		}
-		break;
+	switch (macintosh_config->scc_type)
+	{
+		case MAC_SCC_PSC:
+			scc_a_rsrcs[1].start = scc_a_rsrcs[1].end = IRQ_MAC_SCC_A;
+			scc_b_rsrcs[1].start = scc_b_rsrcs[1].end = IRQ_MAC_SCC_B;
+			break;
+
+		default:
+
+			/* On non-PSC machines, the serial ports share an IRQ. */
+			if (macintosh_config->ident == MAC_MODEL_IIFX)
+			{
+				scc_a_rsrcs[1].start = scc_a_rsrcs[1].end = IRQ_MAC_SCC;
+				scc_b_rsrcs[1].start = scc_b_rsrcs[1].end = IRQ_MAC_SCC;
+			}
+			else
+			{
+				scc_a_rsrcs[1].start = scc_a_rsrcs[1].end = IRQ_AUTO_4;
+				scc_b_rsrcs[1].start = scc_b_rsrcs[1].end = IRQ_AUTO_4;
+			}
+
+			break;
 	}
 
 	/*
@@ -887,17 +922,17 @@ static void __init mac_identify(void)
 	 */
 	printk(KERN_DEBUG " Penguin bootinfo data:\n");
 	printk(KERN_DEBUG " Video: addr 0x%lx "
-		"row 0x%lx depth %lx dimensions %ld x %ld\n",
-		mac_bi_data.videoaddr, mac_bi_data.videorow,
-		mac_bi_data.videodepth, mac_bi_data.dimensions & 0xFFFF,
-		mac_bi_data.dimensions >> 16);
+		   "row 0x%lx depth %lx dimensions %ld x %ld\n",
+		   mac_bi_data.videoaddr, mac_bi_data.videorow,
+		   mac_bi_data.videodepth, mac_bi_data.dimensions & 0xFFFF,
+		   mac_bi_data.dimensions >> 16);
 	printk(KERN_DEBUG " Videological 0x%lx phys. 0x%lx, SCC at 0x%lx\n",
-		mac_bi_data.videological, mac_orig_videoaddr,
-		mac_bi_data.sccbase);
+		   mac_bi_data.videological, mac_orig_videoaddr,
+		   mac_bi_data.sccbase);
 	printk(KERN_DEBUG " Boottime: 0x%lx GMTBias: 0x%lx\n",
-		mac_bi_data.boottime, mac_bi_data.gmtbias);
+		   mac_bi_data.boottime, mac_bi_data.gmtbias);
 	printk(KERN_DEBUG " Machine ID: %ld CPUid: 0x%lx memory size: 0x%lx\n",
-		mac_bi_data.id, mac_bi_data.cpuid, mac_bi_data.memsize);
+		   mac_bi_data.id, mac_bi_data.cpuid, mac_bi_data.memsize);
 
 	iop_init();
 	via_init();
@@ -923,14 +958,16 @@ static void mac_get_model(char *str)
 
 static struct resource swim_rsrc = { .flags = IORESOURCE_MEM };
 
-static struct platform_device swim_pdev = {
+static struct platform_device swim_pdev =
+{
 	.name		= "swim",
 	.id		= -1,
 	.num_resources	= 1,
 	.resource	= &swim_rsrc,
 };
 
-static const struct resource mac_scsi_iifx_rsrc[] __initconst = {
+static const struct resource mac_scsi_iifx_rsrc[] __initconst =
+{
 	{
 		.flags = IORESOURCE_IRQ,
 		.start = IRQ_MAC_SCSI,
@@ -942,7 +979,8 @@ static const struct resource mac_scsi_iifx_rsrc[] __initconst = {
 	},
 };
 
-static const struct resource mac_scsi_duo_rsrc[] __initconst = {
+static const struct resource mac_scsi_duo_rsrc[] __initconst =
+{
 	{
 		.flags = IORESOURCE_MEM,
 		.start = 0xFEE02000,
@@ -950,7 +988,8 @@ static const struct resource mac_scsi_duo_rsrc[] __initconst = {
 	},
 };
 
-static const struct resource mac_scsi_old_rsrc[] __initconst = {
+static const struct resource mac_scsi_old_rsrc[] __initconst =
+{
 	{
 		.flags = IORESOURCE_IRQ,
 		.start = IRQ_MAC_SCSI,
@@ -966,7 +1005,8 @@ static const struct resource mac_scsi_old_rsrc[] __initconst = {
 	},
 };
 
-static const struct resource mac_scsi_late_rsrc[] __initconst = {
+static const struct resource mac_scsi_late_rsrc[] __initconst =
+{
 	{
 		.flags = IORESOURCE_IRQ,
 		.start = IRQ_MAC_SCSI,
@@ -978,7 +1018,8 @@ static const struct resource mac_scsi_late_rsrc[] __initconst = {
 	},
 };
 
-static const struct resource mac_scsi_ccl_rsrc[] __initconst = {
+static const struct resource mac_scsi_ccl_rsrc[] __initconst =
+{
 	{
 		.flags = IORESOURCE_IRQ,
 		.start = IRQ_MAC_SCSI,
@@ -994,22 +1035,26 @@ static const struct resource mac_scsi_ccl_rsrc[] __initconst = {
 	},
 };
 
-static struct platform_device esp_0_pdev = {
+static struct platform_device esp_0_pdev =
+{
 	.name		= "mac_esp",
 	.id		= 0,
 };
 
-static struct platform_device esp_1_pdev = {
+static struct platform_device esp_1_pdev =
+{
 	.name		= "mac_esp",
 	.id		= 1,
 };
 
-static struct platform_device sonic_pdev = {
+static struct platform_device sonic_pdev =
+{
 	.name		= "macsonic",
 	.id		= -1,
 };
 
-static struct platform_device mace_pdev = {
+static struct platform_device mace_pdev =
+{
 	.name		= "macmace",
 	.id		= -1,
 };
@@ -1019,7 +1064,9 @@ int __init mac_platform_init(void)
 	u8 *swim_base;
 
 	if (!MACH_IS_MAC)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Serial devices
@@ -1032,108 +1079,125 @@ int __init mac_platform_init(void)
 	 * Floppy device
 	 */
 
-	switch (macintosh_config->floppy_type) {
-	case MAC_FLOPPY_SWIM_ADDR1:
-		swim_base = (u8 *)(VIA1_BASE + 0x1E000);
-		break;
-	case MAC_FLOPPY_SWIM_ADDR2:
-		swim_base = (u8 *)(VIA1_BASE + 0x16000);
-		break;
-	default:
-		swim_base = NULL;
-		break;
+	switch (macintosh_config->floppy_type)
+	{
+		case MAC_FLOPPY_SWIM_ADDR1:
+			swim_base = (u8 *)(VIA1_BASE + 0x1E000);
+			break;
+
+		case MAC_FLOPPY_SWIM_ADDR2:
+			swim_base = (u8 *)(VIA1_BASE + 0x16000);
+			break;
+
+		default:
+			swim_base = NULL;
+			break;
 	}
 
-	if (swim_base) {
+	if (swim_base)
+	{
 		swim_rsrc.start = (resource_size_t) swim_base,
-		swim_rsrc.end   = (resource_size_t) swim_base + 0x2000,
-		platform_device_register(&swim_pdev);
+				  swim_rsrc.end   = (resource_size_t) swim_base + 0x2000,
+							platform_device_register(&swim_pdev);
 	}
 
 	/*
 	 * SCSI device(s)
 	 */
 
-	switch (macintosh_config->scsi_type) {
-	case MAC_SCSI_QUADRA:
-	case MAC_SCSI_QUADRA3:
-		platform_device_register(&esp_0_pdev);
-		break;
-	case MAC_SCSI_QUADRA2:
-		platform_device_register(&esp_0_pdev);
-		if ((macintosh_config->ident == MAC_MODEL_Q900) ||
-		    (macintosh_config->ident == MAC_MODEL_Q950))
-			platform_device_register(&esp_1_pdev);
-		break;
-	case MAC_SCSI_IIFX:
-		/* Addresses from The Guide to Mac Family Hardware.
-		 * $5000 8000 - $5000 9FFF: SCSI DMA
-		 * $5000 C000 - $5000 DFFF: Alternate SCSI (DMA)
-		 * $5000 E000 - $5000 FFFF: Alternate SCSI (Hsk)
-		 * The SCSI DMA custom IC embeds the 53C80 core. mac_scsi does
-		 * not make use of its DMA or hardware handshaking logic.
-		 */
-		platform_device_register_simple("mac_scsi", 0,
-			mac_scsi_iifx_rsrc, ARRAY_SIZE(mac_scsi_iifx_rsrc));
-		break;
-	case MAC_SCSI_DUO:
-		/* Addresses from the Duo Dock II Developer Note.
-		 * $FEE0 2000 - $FEE0 3FFF: normal mode
-		 * $FEE0 4000 - $FEE0 5FFF: pseudo DMA without /DRQ
-		 * $FEE0 6000 - $FEE0 7FFF: pseudo DMA with /DRQ
-		 * The NetBSD code indicates that both 5380 chips share
-		 * an IRQ (?) which would need careful handling (see mac_esp).
-		 */
-		platform_device_register_simple("mac_scsi", 1,
-			mac_scsi_duo_rsrc, ARRAY_SIZE(mac_scsi_duo_rsrc));
+	switch (macintosh_config->scsi_type)
+	{
+		case MAC_SCSI_QUADRA:
+		case MAC_SCSI_QUADRA3:
+			platform_device_register(&esp_0_pdev);
+			break;
+
+		case MAC_SCSI_QUADRA2:
+			platform_device_register(&esp_0_pdev);
+
+			if ((macintosh_config->ident == MAC_MODEL_Q900) ||
+				(macintosh_config->ident == MAC_MODEL_Q950))
+			{
+				platform_device_register(&esp_1_pdev);
+			}
+
+			break;
+
+		case MAC_SCSI_IIFX:
+			/* Addresses from The Guide to Mac Family Hardware.
+			 * $5000 8000 - $5000 9FFF: SCSI DMA
+			 * $5000 C000 - $5000 DFFF: Alternate SCSI (DMA)
+			 * $5000 E000 - $5000 FFFF: Alternate SCSI (Hsk)
+			 * The SCSI DMA custom IC embeds the 53C80 core. mac_scsi does
+			 * not make use of its DMA or hardware handshaking logic.
+			 */
+			platform_device_register_simple("mac_scsi", 0,
+											mac_scsi_iifx_rsrc, ARRAY_SIZE(mac_scsi_iifx_rsrc));
+			break;
+
+		case MAC_SCSI_DUO:
+			/* Addresses from the Duo Dock II Developer Note.
+			 * $FEE0 2000 - $FEE0 3FFF: normal mode
+			 * $FEE0 4000 - $FEE0 5FFF: pseudo DMA without /DRQ
+			 * $FEE0 6000 - $FEE0 7FFF: pseudo DMA with /DRQ
+			 * The NetBSD code indicates that both 5380 chips share
+			 * an IRQ (?) which would need careful handling (see mac_esp).
+			 */
+			platform_device_register_simple("mac_scsi", 1,
+											mac_scsi_duo_rsrc, ARRAY_SIZE(mac_scsi_duo_rsrc));
+
 		/* fall through */
-	case MAC_SCSI_OLD:
-		/* Addresses from Developer Notes for Duo System,
-		 * PowerBook 180 & 160, 140 & 170, Macintosh IIsi
-		 * and also from The Guide to Mac Family Hardware for
-		 * SE/30, II, IIx, IIcx, IIci.
-		 * $5000 6000 - $5000 7FFF: pseudo-DMA with /DRQ
-		 * $5001 0000 - $5001 1FFF: normal mode
-		 * $5001 2000 - $5001 3FFF: pseudo-DMA without /DRQ
-		 * GMFH says that $5000 0000 - $50FF FFFF "wraps
-		 * $5000 0000 - $5001 FFFF eight times" (!)
-		 * mess.org says IIci and Color Classic do not alias
-		 * I/O address space.
-		 */
-		platform_device_register_simple("mac_scsi", 0,
-			mac_scsi_old_rsrc, ARRAY_SIZE(mac_scsi_old_rsrc));
-		break;
-	case MAC_SCSI_LATE:
-		/* PDMA logic in 68040 PowerBooks is somehow different to
-		 * '030 models. It's probably more like Quadras (see mac_esp).
-		 */
-		platform_device_register_simple("mac_scsi", 0,
-			mac_scsi_late_rsrc, ARRAY_SIZE(mac_scsi_late_rsrc));
-		break;
-	case MAC_SCSI_LC:
-		/* Addresses from Mac LC data in Designing Cards & Drivers 3ed.
-		 * Also from the Developer Notes for Classic II, LC III,
-		 * Color Classic and IIvx.
-		 * $50F0 6000 - $50F0 7FFF: SCSI handshake
-		 * $50F1 0000 - $50F1 1FFF: SCSI
-		 * $50F1 2000 - $50F1 3FFF: SCSI DMA
-		 */
-		platform_device_register_simple("mac_scsi", 0,
-			mac_scsi_ccl_rsrc, ARRAY_SIZE(mac_scsi_ccl_rsrc));
-		break;
+		case MAC_SCSI_OLD:
+			/* Addresses from Developer Notes for Duo System,
+			 * PowerBook 180 & 160, 140 & 170, Macintosh IIsi
+			 * and also from The Guide to Mac Family Hardware for
+			 * SE/30, II, IIx, IIcx, IIci.
+			 * $5000 6000 - $5000 7FFF: pseudo-DMA with /DRQ
+			 * $5001 0000 - $5001 1FFF: normal mode
+			 * $5001 2000 - $5001 3FFF: pseudo-DMA without /DRQ
+			 * GMFH says that $5000 0000 - $50FF FFFF "wraps
+			 * $5000 0000 - $5001 FFFF eight times" (!)
+			 * mess.org says IIci and Color Classic do not alias
+			 * I/O address space.
+			 */
+			platform_device_register_simple("mac_scsi", 0,
+											mac_scsi_old_rsrc, ARRAY_SIZE(mac_scsi_old_rsrc));
+			break;
+
+		case MAC_SCSI_LATE:
+			/* PDMA logic in 68040 PowerBooks is somehow different to
+			 * '030 models. It's probably more like Quadras (see mac_esp).
+			 */
+			platform_device_register_simple("mac_scsi", 0,
+											mac_scsi_late_rsrc, ARRAY_SIZE(mac_scsi_late_rsrc));
+			break;
+
+		case MAC_SCSI_LC:
+			/* Addresses from Mac LC data in Designing Cards & Drivers 3ed.
+			 * Also from the Developer Notes for Classic II, LC III,
+			 * Color Classic and IIvx.
+			 * $50F0 6000 - $50F0 7FFF: SCSI handshake
+			 * $50F1 0000 - $50F1 1FFF: SCSI
+			 * $50F1 2000 - $50F1 3FFF: SCSI DMA
+			 */
+			platform_device_register_simple("mac_scsi", 0,
+											mac_scsi_ccl_rsrc, ARRAY_SIZE(mac_scsi_ccl_rsrc));
+			break;
 	}
 
 	/*
 	 * Ethernet device
 	 */
 
-	switch (macintosh_config->ether_type) {
-	case MAC_ETHER_SONIC:
-		platform_device_register(&sonic_pdev);
-		break;
-	case MAC_ETHER_MACE:
-		platform_device_register(&mace_pdev);
-		break;
+	switch (macintosh_config->ether_type)
+	{
+		case MAC_ETHER_SONIC:
+			platform_device_register(&sonic_pdev);
+			break;
+
+		case MAC_ETHER_MACE:
+			platform_device_register(&mace_pdev);
+			break;
 	}
 
 	return 0;

@@ -53,21 +53,23 @@ static void chip_mask(struct irq_data *d)
 	WRCTL(CTL_IENABLE, ienable);
 }
 
-static struct irq_chip m_irq_chip = {
+static struct irq_chip m_irq_chip =
+{
 	.name		= "NIOS2-INTC",
 	.irq_unmask	= chip_unmask,
 	.irq_mask	= chip_mask,
 };
 
 static int irq_map(struct irq_domain *h, unsigned int virq,
-				irq_hw_number_t hw_irq_num)
+				   irq_hw_number_t hw_irq_num)
 {
 	irq_set_chip_and_handler(virq, &m_irq_chip, handle_level_irq);
 
 	return 0;
 }
 
-static struct irq_domain_ops irq_ops = {
+static struct irq_domain_ops irq_ops =
+{
 	.map	= irq_map,
 	.xlate	= irq_domain_xlate_onecell,
 };
@@ -78,8 +80,11 @@ void __init init_IRQ(void)
 	struct device_node *node;
 
 	node = of_find_compatible_node(NULL, NULL, "altr,nios2-1.0");
+
 	if (!node)
+	{
 		node = of_find_compatible_node(NULL, NULL, "altr,nios2-1.1");
+	}
 
 	BUG_ON(!node);
 

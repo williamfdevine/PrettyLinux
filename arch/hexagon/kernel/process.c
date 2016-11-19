@@ -69,7 +69,7 @@ unsigned long thread_saved_pc(struct task_struct *tsk)
  * Copy architecture-specific thread state
  */
 int copy_thread(unsigned long clone_flags, unsigned long usp,
-		unsigned long arg, struct task_struct *p)
+				unsigned long arg, struct task_struct *p)
 {
 	struct thread_info *ti = task_thread_info(p);
 	struct hexagon_switch_stack *ss;
@@ -77,7 +77,7 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	asmlinkage void ret_from_fork(void);
 
 	childregs = (struct pt_regs *) (((unsigned long) ti + THREAD_SIZE) -
-					sizeof(*childregs));
+									sizeof(*childregs));
 
 	ti->regs = childregs;
 
@@ -88,10 +88,12 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	 * we leave here will be overridden on return to userland.
 	 */
 	ss = (struct hexagon_switch_stack *) ((unsigned long) childregs -
-						    sizeof(*ss));
+										  sizeof(*ss));
 	ss->lr = (unsigned long)ret_from_fork;
 	p->thread.switch_sp = ss;
-	if (unlikely(p->flags & PF_KTHREAD)) {
+
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		memset(childregs, 0, sizeof(struct pt_regs));
 		/* r24 <- fn, r25 <- arg */
 		ss->r24 = usp;
@@ -99,11 +101,14 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 		pt_set_kmode(childregs);
 		return 0;
 	}
+
 	memcpy(childregs, current_pt_regs(), sizeof(*childregs));
 	ss->r2524 = 0;
 
 	if (usp)
+	{
 		pt_set_rte_sp(childregs, usp);
+	}
 
 	/* Child sees zero return value */
 	childregs->r00 = 0;
@@ -118,7 +123,9 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	 * ugp is used to provide TLS support.
 	 */
 	if (clone_flags & CLONE_SETTLS)
+	{
 		childregs->ugp = childregs->r04;
+	}
 
 	/*
 	 * Parent sees new pid -- not necessary, not even possible at
@@ -153,20 +160,33 @@ unsigned long get_wchan(struct task_struct *p)
 	unsigned long fp, pc;
 	unsigned long stack_page;
 	int count = 0;
+
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	stack_page = (unsigned long)task_stack_page(p);
 	fp = ((struct hexagon_switch_stack *)p->thread.switch_sp)->fp;
-	do {
+
+	do
+	{
 		if (fp < (stack_page + sizeof(struct thread_info)) ||
 			fp >= (THREAD_SIZE - 8 + stack_page))
+		{
 			return 0;
+		}
+
 		pc = ((unsigned long *)fp)[1];
+
 		if (!in_sched_functions(pc))
+		{
 			return pc;
+		}
+
 		fp = *(unsigned long *) fp;
-	} while (count++ < 16);
+	}
+	while (count++ < 16);
 
 	return 0;
 }
@@ -190,23 +210,27 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu)
 
 int do_work_pending(struct pt_regs *regs, u32 thread_info_flags)
 {
-	if (!(thread_info_flags & _TIF_WORK_MASK)) {
+	if (!(thread_info_flags & _TIF_WORK_MASK))
+	{
 		return 0;
 	}  /* shortcut -- no work to be done */
 
 	local_irq_enable();
 
-	if (thread_info_flags & _TIF_NEED_RESCHED) {
+	if (thread_info_flags & _TIF_NEED_RESCHED)
+	{
 		schedule();
 		return 1;
 	}
 
-	if (thread_info_flags & _TIF_SIGPENDING) {
+	if (thread_info_flags & _TIF_SIGPENDING)
+	{
 		do_signal(regs);
 		return 1;
 	}
 
-	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 		return 1;
@@ -214,5 +238,5 @@ int do_work_pending(struct pt_regs *regs, u32 thread_info_flags)
 
 	/* Should not even reach here */
 	panic("%s: bad thread_info flags 0x%08x\n", __func__,
-		thread_info_flags);
+		  thread_info_flags);
 }

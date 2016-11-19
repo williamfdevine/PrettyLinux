@@ -41,7 +41,7 @@
 #include <asm/mmu_context.h>
 
 static int handle_tlbmiss(unsigned long long protection_flags,
-			  unsigned long address)
+						  unsigned long address)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -49,27 +49,41 @@ static int handle_tlbmiss(unsigned long long protection_flags,
 	pte_t *pte;
 	pte_t entry;
 
-	if (is_vmalloc_addr((void *)address)) {
+	if (is_vmalloc_addr((void *)address))
+	{
 		pgd = pgd_offset_k(address);
-	} else {
+	}
+	else
+	{
 		if (unlikely(address >= TASK_SIZE || !current->mm))
+		{
 			return 1;
+		}
 
 		pgd = pgd_offset(current->mm, address);
 	}
 
 	pud = pud_offset(pgd, address);
+
 	if (pud_none(*pud) || !pud_present(*pud))
+	{
 		return 1;
+	}
 
 	pmd = pmd_offset(pud, address);
+
 	if (pmd_none(*pmd) || !pmd_present(*pmd))
+	{
 		return 1;
+	}
 
 	pte = pte_offset_kernel(pmd, address);
 	entry = *pte;
+
 	if (pte_none(entry) || !pte_present(entry))
+	{
 		return 1;
+	}
 
 	/*
 	 * If the page doesn't have sufficient protection bits set to
@@ -78,7 +92,9 @@ static int handle_tlbmiss(unsigned long long protection_flags,
 	 * handler.
 	 */
 	if ((pte_val(entry) & protection_flags) != protection_flags)
+	{
 		return 1;
+	}
 
 	update_mmu_cache(NULL, address, pte);
 
@@ -90,7 +106,8 @@ static int handle_tlbmiss(unsigned long long protection_flags,
  * arithmetic relative to a single base address.  This reduces the number
  * of movi/shori pairs needed just to load addresses of static data.
  */
-struct expevt_lookup {
+struct expevt_lookup
+{
 	unsigned short protection_flags[8];
 	unsigned char  is_text_access[8];
 	unsigned char  is_write_access[8];
@@ -103,7 +120,8 @@ struct expevt_lookup {
 
 /* Sized as 8 rather than 4 to allow checking the PTE's PRU bit against whether
    the fault happened in user mode or privileged mode. */
-static struct expevt_lookup expevt_lookup_table = {
+static struct expevt_lookup expevt_lookup_table =
+{
 	.protection_flags = {PRX, PRX, 0, 0, PRR, PRR, PRW, PRW},
 	.is_text_access   = {1,   1,   0, 0, 0,   0,   0,   0}
 };
@@ -112,9 +130,13 @@ static inline unsigned int
 expevt_to_fault_code(unsigned long expevt)
 {
 	if (expevt == 0xa40)
+	{
 		return FAULT_CODE_ITLB;
+	}
 	else if (expevt == 0x060)
+	{
 		return FAULT_CODE_WRITE;
+	}
 
 	return 0;
 }
@@ -129,7 +151,7 @@ expevt_to_fault_code(unsigned long expevt)
  */
 asmlinkage int __kprobes
 do_fast_page_fault(unsigned long long ssr_md, unsigned long long expevt,
-		   unsigned long address)
+				   unsigned long address)
 {
 	unsigned long long protection_flags;
 	unsigned long long index;
@@ -156,9 +178,14 @@ do_fast_page_fault(unsigned long long ssr_md, unsigned long long expevt,
 	protection_flags = expevt_lookup_table.protection_flags[index];
 
 	if (expevt_lookup_table.is_text_access[index])
+	{
 		fault_code |= FAULT_CODE_ITLB;
+	}
+
 	if (!ssr_md)
+	{
 		fault_code |= FAULT_CODE_USER;
+	}
 
 	set_thread_fault_code(fault_code);
 

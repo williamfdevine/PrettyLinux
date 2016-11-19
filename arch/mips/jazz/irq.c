@@ -46,7 +46,8 @@ void disable_r4030_irq(struct irq_data *d)
 	raw_spin_unlock_irqrestore(&r4030_lock, flags);
 }
 
-static struct irq_chip r4030_irq_type = {
+static struct irq_chip r4030_irq_type =
+{
 	.name = "R4030",
 	.irq_mask = disable_r4030_irq,
 	.irq_unmask = enable_r4030_irq,
@@ -57,7 +58,9 @@ void __init init_r4030_ints(void)
 	int i;
 
 	for (i = JAZZ_IRQ_START; i <= JAZZ_IRQ_END; i++)
+	{
 		irq_set_chip_and_handler(i, &r4030_irq_type, handle_level_irq);
+	}
 
 	r4030_write_reg16(JAZZ_IO_IRQ_ENABLE, 0);
 	r4030_read_reg16(JAZZ_IO_IRQ_SOURCE);		/* clear pending IRQs */
@@ -95,22 +98,33 @@ asmlinkage void plat_irq_dispatch(void)
 	unsigned int pending = read_c0_cause() & read_c0_status();
 	unsigned int irq;
 
-	if (pending & IE_IRQ4) {
+	if (pending & IE_IRQ4)
+	{
 		r4030_read_reg32(JAZZ_TIMER_REGISTER);
 		do_IRQ(JAZZ_TIMER_IRQ);
-	} else if (pending & IE_IRQ2) {
+	}
+	else if (pending & IE_IRQ2)
+	{
 		irq = *(volatile u8 *)JAZZ_EISA_IRQ_ACK;
 		do_IRQ(irq);
-	} else if (pending & IE_IRQ1) {
+	}
+	else if (pending & IE_IRQ1)
+	{
 		irq = *(volatile u8 *)JAZZ_IO_IRQ_SOURCE >> 2;
+
 		if (likely(irq > 0))
+		{
 			do_IRQ(irq + JAZZ_IRQ_START - 1);
+		}
 		else
+		{
 			panic("Unimplemented loc_no_irq handler");
+		}
 	}
 }
 
-struct clock_event_device r4030_clockevent = {
+struct clock_event_device r4030_clockevent =
+{
 	.name		= "r4030",
 	.features	= CLOCK_EVT_FEAT_PERIODIC,
 	.rating		= 300,
@@ -125,7 +139,8 @@ static irqreturn_t r4030_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction r4030_timer_irqaction = {
+static struct irqaction r4030_timer_irqaction =
+{
 	.handler	= r4030_timer_interrupt,
 	.flags		= IRQF_TIMER,
 	.name		= "R4030 timer",

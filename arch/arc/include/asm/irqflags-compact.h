@@ -68,13 +68,13 @@ static inline long arch_local_irq_save(void)
 	unsigned long temp, flags;
 
 	__asm__ __volatile__(
-	"	lr  %1, [status32]	\n"
-	"	bic %0, %1, %2		\n"
-	"	and.f 0, %1, %2	\n"
-	"	flag.nz %0		\n"
-	: "=r"(temp), "=r"(flags)
-	: "n"((STATUS_E1_MASK | STATUS_E2_MASK))
-	: "memory", "cc");
+		"	lr  %1, [status32]	\n"
+		"	bic %0, %1, %2		\n"
+		"	and.f 0, %1, %2	\n"
+		"	flag.nz %0		\n"
+		: "=r"(temp), "=r"(flags)
+		: "n"((STATUS_E1_MASK | STATUS_E2_MASK))
+		: "memory", "cc");
 
 	return flags;
 }
@@ -86,10 +86,10 @@ static inline void arch_local_irq_restore(unsigned long flags)
 {
 
 	__asm__ __volatile__(
-	"	flag %0			\n"
-	:
-	: "r"(flags)
-	: "memory");
+		"	flag %0			\n"
+		:
+		: "r"(flags)
+		: "memory");
 }
 
 /*
@@ -100,12 +100,12 @@ static inline void arch_local_irq_enable(void)
 	unsigned long temp;
 
 	__asm__ __volatile__(
-	"	lr   %0, [status32]	\n"
-	"	or   %0, %0, %1		\n"
-	"	flag %0			\n"
-	: "=&r"(temp)
-	: "n"((STATUS_E1_MASK | STATUS_E2_MASK))
-	: "cc", "memory");
+		"	lr   %0, [status32]	\n"
+		"	or   %0, %0, %1		\n"
+		"	flag %0			\n"
+		: "=&r"(temp)
+		: "n"((STATUS_E1_MASK | STATUS_E2_MASK))
+		: "cc", "memory");
 }
 
 
@@ -117,12 +117,12 @@ static inline void arch_local_irq_disable(void)
 	unsigned long temp;
 
 	__asm__ __volatile__(
-	"	lr  %0, [status32]	\n"
-	"	and %0, %0, %1		\n"
-	"	flag %0			\n"
-	: "=&r"(temp)
-	: "n"(~(STATUS_E1_MASK | STATUS_E2_MASK))
-	: "memory");
+		"	lr  %0, [status32]	\n"
+		"	and %0, %0, %1		\n"
+		"	flag %0			\n"
+		: "=&r"(temp)
+		: "n"(~(STATUS_E1_MASK | STATUS_E2_MASK))
+		: "memory");
 }
 
 /*
@@ -133,10 +133,10 @@ static inline long arch_local_save_flags(void)
 	unsigned long temp;
 
 	__asm__ __volatile__(
-	"	lr  %0, [status32]	\n"
-	: "=&r"(temp)
-	:
-	: "memory");
+		"	lr  %0, [status32]	\n"
+		: "=&r"(temp)
+		:
+		: "memory");
 
 	return temp;
 }
@@ -148,9 +148,9 @@ static inline int arch_irqs_disabled_flags(unsigned long flags)
 {
 	return !(flags & (STATUS_E1_MASK
 #ifdef CONFIG_ARC_COMPACT_IRQ_LEVELS
-			| STATUS_E2_MASK
+					  | STATUS_E2_MASK
 #endif
-		));
+					 ));
 }
 
 static inline int arch_irqs_disabled(void)
@@ -162,36 +162,36 @@ static inline int arch_irqs_disabled(void)
 
 #ifdef CONFIG_TRACE_IRQFLAGS
 
-.macro TRACE_ASM_IRQ_DISABLE
+	.macro TRACE_ASM_IRQ_DISABLE
 	bl	trace_hardirqs_off
-.endm
+	.endm
 
-.macro TRACE_ASM_IRQ_ENABLE
+	.macro TRACE_ASM_IRQ_ENABLE
 	bl	trace_hardirqs_on
-.endm
+	.endm
 
 #else
 
-.macro TRACE_ASM_IRQ_DISABLE
-.endm
+	.macro TRACE_ASM_IRQ_DISABLE
+	.endm
 
-.macro TRACE_ASM_IRQ_ENABLE
-.endm
+	.macro TRACE_ASM_IRQ_ENABLE
+	.endm
 
 #endif
 
 .macro IRQ_DISABLE  scratch
-	lr	\scratch, [status32]
-	bic	\scratch, \scratch, (STATUS_E1_MASK | STATUS_E2_MASK)
-	flag	\scratch
-	TRACE_ASM_IRQ_DISABLE
+lr	\scratch, [status32]
+bic	\scratch, \scratch, (STATUS_E1_MASK | STATUS_E2_MASK)
+flag	\scratch
+TRACE_ASM_IRQ_DISABLE
 .endm
 
 .macro IRQ_ENABLE  scratch
-	TRACE_ASM_IRQ_ENABLE
-	lr	\scratch, [status32]
-	or	\scratch, \scratch, (STATUS_E1_MASK | STATUS_E2_MASK)
-	flag	\scratch
+TRACE_ASM_IRQ_ENABLE
+lr	\scratch, [status32]
+or	\scratch, \scratch, (STATUS_E1_MASK | STATUS_E2_MASK)
+flag	\scratch
 .endm
 
 #endif	/* __ASSEMBLY__ */

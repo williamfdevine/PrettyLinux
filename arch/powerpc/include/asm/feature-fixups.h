@@ -18,31 +18,31 @@
  * located after the code it fixes up.
  */
 #if defined(CONFIG_PPC64) && !defined(__powerpc64__)
-/* 64 bits kernel, 32 bits code (ie. vdso32) */
-#define FTR_ENTRY_LONG		.llong
-#define FTR_ENTRY_OFFSET	.long 0xffffffff; .long
+	/* 64 bits kernel, 32 bits code (ie. vdso32) */
+	#define FTR_ENTRY_LONG		.llong
+	#define FTR_ENTRY_OFFSET	.long 0xffffffff; .long
 #elif defined(CONFIG_PPC64)
-#define FTR_ENTRY_LONG		.llong
-#define FTR_ENTRY_OFFSET	.llong
+	#define FTR_ENTRY_LONG		.llong
+	#define FTR_ENTRY_OFFSET	.llong
 #else
-#define FTR_ENTRY_LONG		.long
-#define FTR_ENTRY_OFFSET	.long
+	#define FTR_ENTRY_LONG		.long
+	#define FTR_ENTRY_OFFSET	.long
 #endif
 
 #define START_FTR_SECTION(label)	label##1:
 
 #define FTR_SECTION_ELSE_NESTED(label)			\
-label##2:						\
+	label##2:						\
 	.pushsection __ftr_alt_##label,"a";		\
 	.align 2;					\
-label##3:
+	label##3:
 
 #define MAKE_FTR_SECTION_ENTRY(msk, val, label, sect)		\
-label##4:							\
+	label##4:							\
 	.popsection;						\
 	.pushsection sect,"a";					\
 	.align 3;						\
-label##5:							\
+	label##5:							\
 	FTR_ENTRY_LONG msk;					\
 	FTR_ENTRY_LONG val;					\
 	FTR_ENTRY_OFFSET label##1b-label##5b;			\
@@ -177,16 +177,16 @@ label##5:							\
 /* LWSYNC feature sections */
 #define START_LWSYNC_SECTION(label)	label##1:
 #define MAKE_LWSYNC_SECTION_ENTRY(label, sect)		\
-label##2:						\
+	label##2:						\
 	.pushsection sect,"a";				\
 	.align 2;					\
-label##3:					       	\
+	label##3:					       	\
 	FTR_ENTRY_OFFSET label##1b-label##3b;		\
 	.popsection;
 
 #ifndef __ASSEMBLY__
-void apply_feature_fixups(void);
-void setup_feature_keys(void);
+	void apply_feature_fixups(void);
+	void setup_feature_keys(void);
 #endif
 
 #endif /* __ASM_POWERPC_FEATURE_FIXUPS_H */

@@ -9,7 +9,8 @@
  * Interested parties:  libc, gdb...
  */
 
-struct user_regs_struct {
+struct user_regs_struct
+{
 	unsigned long r0;
 	unsigned long r1;
 	unsigned long r2;

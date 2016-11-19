@@ -44,7 +44,8 @@
 /* table of ISA irq nos to the relevant mask... zero means
  * the irq is not implemented
 */
-static unsigned char bast_pc104_irqmasks[] = {
+static unsigned char bast_pc104_irqmasks[] =
+{
 	0,   /* 0 */
 	0,   /* 1 */
 	0,   /* 2 */
@@ -94,7 +95,8 @@ bast_pc104_unmask(struct irq_data *data)
 	__raw_writeb(temp, BAST_VA_PC104_IRQMASK);
 }
 
-static struct irq_chip  bast_pc104_chip = {
+static struct irq_chip  bast_pc104_chip =
+{
 	.irq_mask	= bast_pc104_mask,
 	.irq_unmask	= bast_pc104_unmask,
 	.irq_ack	= bast_pc104_maskack
@@ -108,16 +110,21 @@ static void bast_irq_pc104_demux(struct irq_desc *desc)
 
 	stat = __raw_readb(BAST_VA_PC104_IRQREQ) & 0xf;
 
-	if (unlikely(stat == 0)) {
+	if (unlikely(stat == 0))
+	{
 		/* ack if we get an irq with nothing (ie, startup) */
 
 		desc = irq_desc + BAST_IRQ_ISA;
 		desc->irq_data.chip->irq_ack(&desc->irq_data);
-	} else {
+	}
+	else
+	{
 		/* handle the IRQ */
 
-		for (i = 0; stat != 0; i++, stat >>= 1) {
-			if (stat & 1) {
+		for (i = 0; stat != 0; i++, stat >>= 1)
+		{
+			if (stat & 1)
+			{
 				irqno = bast_pc104_irqs[i];
 				generic_handle_irq(irqno);
 			}
@@ -129,7 +136,8 @@ static __init int bast_irq_init(void)
 {
 	unsigned int i;
 
-	if (machine_is_bast()) {
+	if (machine_is_bast())
+	{
 		printk(KERN_INFO "BAST PC104 IRQ routing, Copyright 2005 Simtec Electronics\n");
 
 		/* zap all the IRQs */
@@ -140,11 +148,12 @@ static __init int bast_irq_init(void)
 
 		/* register our IRQs */
 
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++)
+		{
 			unsigned int irqno = bast_pc104_irqs[i];
 
 			irq_set_chip_and_handler(irqno, &bast_pc104_chip,
-						 handle_level_irq);
+									 handle_level_irq);
 			irq_clear_status_flags(irqno, IRQ_NOREQUEST);
 		}
 	}

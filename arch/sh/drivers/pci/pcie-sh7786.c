@@ -22,7 +22,8 @@
 #include "pcie-sh7786.h"
 #include <asm/sizes.h>
 
-struct sh7786_pcie_port {
+struct sh7786_pcie_port
+{
 	struct pci_channel	*hose;
 	struct clk		*fclk, phy_clk;
 	unsigned int		index;
@@ -33,12 +34,14 @@ struct sh7786_pcie_port {
 static struct sh7786_pcie_port *sh7786_pcie_ports;
 static unsigned int nr_ports;
 
-static struct sh7786_pcie_hwops {
+static struct sh7786_pcie_hwops
+{
 	int (*core_init)(void);
 	async_func_t port_init_hw;
 } *sh7786_pcie_hwops;
 
-static struct resource sh7786_pci0_resources[] = {
+static struct resource sh7786_pci0_resources[] =
+{
 	{
 		.name	= "PCIe0 IO",
 		.start	= 0xfd000000,
@@ -62,7 +65,8 @@ static struct resource sh7786_pci0_resources[] = {
 	},
 };
 
-static struct resource sh7786_pci1_resources[] = {
+static struct resource sh7786_pci1_resources[] =
+{
 	{
 		.name	= "PCIe1 IO",
 		.start	= 0xfd800000,
@@ -86,7 +90,8 @@ static struct resource sh7786_pci1_resources[] = {
 	},
 };
 
-static struct resource sh7786_pci2_resources[] = {
+static struct resource sh7786_pci2_resources[] =
+{
 	{
 		.name	= "PCIe2 IO",
 		.start	= 0xfc800000,
@@ -113,22 +118,24 @@ static struct resource sh7786_pci2_resources[] = {
 extern struct pci_ops sh7786_pci_ops;
 
 #define DEFINE_CONTROLLER(start, idx)					\
-{									\
-	.pci_ops	= &sh7786_pci_ops,				\
-	.resources	= sh7786_pci##idx##_resources,			\
-	.nr_resources	= ARRAY_SIZE(sh7786_pci##idx##_resources),	\
-	.reg_base	= start,					\
-	.mem_offset	= 0,						\
-	.io_offset	= 0,						\
-}
+	{									\
+		.pci_ops	= &sh7786_pci_ops,				\
+					  .resources	= sh7786_pci##idx##_resources,			\
+									.nr_resources	= ARRAY_SIZE(sh7786_pci##idx##_resources),	\
+											.reg_base	= start,					\
+													.mem_offset	= 0,						\
+															.io_offset	= 0,						\
+	}
 
-static struct pci_channel sh7786_pci_channels[] = {
+static struct pci_channel sh7786_pci_channels[] =
+{
 	DEFINE_CONTROLLER(0xfe000000, 0),
 	DEFINE_CONTROLLER(0xfe200000, 1),
 	DEFINE_CONTROLLER(0xfcc00000, 2),
 };
 
-static struct clk fixed_pciexclkp = {
+static struct clk fixed_pciexclkp =
+{
 	.rate = 100000000,	/* 100 MHz reference clock */
 };
 
@@ -137,10 +144,12 @@ static void sh7786_pci_fixup(struct pci_dev *dev)
 	/*
 	 * Prevent enumeration of root complex resources.
 	 */
-	if (pci_is_root_bus(dev->bus) && dev->devfn == 0) {
+	if (pci_is_root_bus(dev->bus) && dev->devfn == 0)
+	{
 		int i;
 
-		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++)
+		{
 			dev->resource[i].start	= 0;
 			dev->resource[i].end	= 0;
 			dev->resource[i].flags	= 0;
@@ -148,15 +157,18 @@ static void sh7786_pci_fixup(struct pci_dev *dev)
 	}
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_RENESAS, PCI_DEVICE_ID_RENESAS_SH7786,
-			 sh7786_pci_fixup);
+						 sh7786_pci_fixup);
 
 static int __init phy_wait_for_ack(struct pci_channel *chan)
 {
 	unsigned int timeout = 100;
 
-	while (timeout--) {
+	while (timeout--)
+	{
 		if (pci_read_reg(chan, SH4A_PCIEPHYADRR) & (1 << BITS_ACK))
+		{
 			return 0;
+		}
 
 		udelay(100);
 	}
@@ -168,9 +180,12 @@ static int __init pci_wait_for_irq(struct pci_channel *chan, unsigned int mask)
 {
 	unsigned int timeout = 100;
 
-	while (timeout--) {
+	while (timeout--)
+	{
 		if ((pci_read_reg(chan, SH4A_PCIEINTR) & mask) == mask)
+		{
 			return 0;
+		}
 
 		udelay(100);
 	}
@@ -179,12 +194,12 @@ static int __init pci_wait_for_irq(struct pci_channel *chan, unsigned int mask)
 }
 
 static void __init phy_write_reg(struct pci_channel *chan, unsigned int addr,
-				 unsigned int lane, unsigned int data)
+								 unsigned int lane, unsigned int data)
 {
 	unsigned long phyaddr;
 
 	phyaddr = (1 << BITS_CMD) + ((lane & 0xf) << BITS_LANE) +
-			((addr & 0xff) << BITS_ADR);
+			  ((addr & 0xff) << BITS_ADR);
 
 	/* Set write data */
 	pci_write_reg(chan, data, SH4A_PCIEPHYDOUTR);
@@ -210,8 +225,11 @@ static int __init pcie_clk_init(struct sh7786_pcie_port *port)
 	 * First register the fixed clock
 	 */
 	ret = clk_register(&fixed_pciexclkp);
+
 	if (unlikely(ret != 0))
+	{
 		return ret;
+	}
 
 	/*
 	 * Grab the port's function clock, which the PHY clock depends
@@ -221,7 +239,9 @@ static int __init pcie_clk_init(struct sh7786_pcie_port *port)
 	snprintf(fclk_name, sizeof(fclk_name), "pcie%d_fck", port->index);
 
 	port->fclk = clk_get(NULL, fclk_name);
-	if (IS_ERR(port->fclk)) {
+
+	if (IS_ERR(port->fclk))
+	{
 		ret = PTR_ERR(port->fclk);
 		goto err_fclk;
 	}
@@ -240,8 +260,11 @@ static int __init pcie_clk_init(struct sh7786_pcie_port *port)
 	clk->enable_bit = BITS_CKE;
 
 	ret = sh_clk_mstp_register(clk, 1);
+
 	if (unlikely(ret < 0))
+	{
 		goto err_phy;
+	}
 
 	return 0;
 
@@ -277,9 +300,12 @@ static int __init phy_init(struct sh7786_pcie_port *port)
 	/* Disable clock */
 	clk_disable(&port->phy_clk);
 
-	while (timeout--) {
+	while (timeout--)
+	{
 		if (pci_read_reg(chan, SH4A_PCIEPHYSR))
+		{
 			return 0;
+		}
 
 		udelay(100);
 	}
@@ -320,9 +346,13 @@ static int __init pcie_init(struct sh7786_pcie_port *port)
 	data &= ~(PCI_EXP_FLAGS_TYPE << 16);
 
 	if (port->endpoint)
+	{
 		data |= PCI_EXP_TYPE_ENDPOINT << 20;
+	}
 	else
+	{
 		data |= PCI_EXP_TYPE_ROOT_PORT << 20;
+	}
 
 	data |= PCI_CAP_ID_EXP;
 	pci_write_reg(chan, data, SH4A_PCIEEXPCAP0);
@@ -364,12 +394,15 @@ static int __init pcie_init(struct sh7786_pcie_port *port)
 	 * If there's more than 512MB of memory, we need to roll over to
 	 * LAR1/LAMR1.
 	 */
-	if (memsize > SZ_512M) {
+	if (memsize > SZ_512M)
+	{
 		pci_write_reg(chan, memphys + SZ_512M, SH4A_PCIELAR1);
 		pci_write_reg(chan, ((memsize - SZ_512M) - SZ_256) | 1,
-			      SH4A_PCIELAMR1);
+					  SH4A_PCIELAMR1);
 		memsize = SZ_512M;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Otherwise just zero it out and disable it.
 		 */
@@ -412,7 +445,7 @@ static int __init pcie_init(struct sh7786_pcie_port *port)
 	data = pci_read_reg(chan, SH4A_PCIEPCICONF1);
 	data &= ~(PCI_STATUS_DEVSEL_MASK << 16);
 	data |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER |
-		(PCI_STATUS_CAP_LIST | PCI_STATUS_DEVSEL_FAST) << 16;
+			(PCI_STATUS_CAP_LIST | PCI_STATUS_DEVSEL_FAST) << 16;
 	pci_write_reg(chan, data, SH4A_PCIEPCICONF1);
 
 	pci_write_reg(chan, 0x80888000, SH4A_PCIETXVC0DCTLR);
@@ -420,15 +453,18 @@ static int __init pcie_init(struct sh7786_pcie_port *port)
 
 	wmb();
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		data = pci_read_reg(chan, SH4A_PCIEMACSR);
 		printk(KERN_NOTICE "PCI: PCIe#%d x%d link detected\n",
-		       port->index, (data >> 20) & 0x3f);
-	} else
+			   port->index, (data >> 20) & 0x3f);
+	}
+	else
 		printk(KERN_NOTICE "PCI: PCIe#%d link down\n",
-		       port->index);
+			   port->index);
 
-	for (i = win = 0; i < chan->nr_resources; i++) {
+	for (i = win = 0; i < chan->nr_resources; i++)
+	{
 		struct resource *res = chan->resources + i;
 		resource_size_t size;
 		u32 mask;
@@ -438,7 +474,9 @@ static int __init pcie_init(struct sh7786_pcie_port *port)
 		 * mode, so just skip them entirely.
 		 */
 		if ((res->flags & IORESOURCE_MEM_32BIT) && __in_29bit_mode())
+		{
 			continue;
+		}
 
 		pci_write_reg(chan, 0x00000000, SH4A_PCIEPTCTLR(win));
 
@@ -451,13 +489,16 @@ static int __init pcie_init(struct sh7786_pcie_port *port)
 		pci_write_reg(chan, mask << 18, SH4A_PCIEPAMR(win));
 
 		pci_write_reg(chan, upper_32_bits(res->start),
-			      SH4A_PCIEPARH(win));
+					  SH4A_PCIEPARH(win));
 		pci_write_reg(chan, lower_32_bits(res->start),
-			      SH4A_PCIEPARL(win));
+					  SH4A_PCIEPARL(win));
 
 		mask = MASK_PARE;
+
 		if (res->flags & IORESOURCE_IO)
+		{
 			mask |= MASK_SPC;
+		}
 
 		pci_write_reg(chan, mask, SH4A_PCIEPTCTLR(win));
 
@@ -469,7 +510,7 @@ static int __init pcie_init(struct sh7786_pcie_port *port)
 
 int __init pcibios_map_platform_irq(const struct pci_dev *pdev, u8 slot, u8 pin)
 {
-        return evt2irq(0xae0);
+	return evt2irq(0xae0);
 }
 
 static int __init sh7786_pcie_core_init(void)
@@ -493,23 +534,29 @@ static void __init sh7786_pcie_init_hw(void *data, async_cookie_t cookie)
 	 * Setup clocks, needed both for PHY and PCIe registers.
 	 */
 	ret = pcie_clk_init(port);
-	if (unlikely(ret < 0)) {
+
+	if (unlikely(ret < 0))
+	{
 		pr_err("clock initialization failed for port#%d\n",
-		       port->index);
+			   port->index);
 		return;
 	}
 
 	ret = phy_init(port);
-	if (unlikely(ret < 0)) {
+
+	if (unlikely(ret < 0))
+	{
 		pr_err("phy initialization failed for port#%d\n",
-		       port->index);
+			   port->index);
 		return;
 	}
 
 	ret = pcie_init(port);
-	if (unlikely(ret < 0)) {
+
+	if (unlikely(ret < 0))
+	{
 		pr_err("core initialization failed for port#%d\n",
-			       port->index);
+			   port->index);
 		return;
 	}
 
@@ -519,7 +566,8 @@ static void __init sh7786_pcie_init_hw(void *data, async_cookie_t cookie)
 	register_pci_controller(port->hose);
 }
 
-static struct sh7786_pcie_hwops sh7786_65nm_pcie_hwops __initdata = {
+static struct sh7786_pcie_hwops sh7786_65nm_pcie_hwops __initdata =
+{
 	.core_init	= sh7786_pcie_core_init,
 	.port_init_hw	= sh7786_pcie_init_hw,
 };
@@ -537,12 +585,17 @@ static int __init sh7786_pcie_init(void)
 	BUG_ON(nr_ports > ARRAY_SIZE(sh7786_pci_channels));
 
 	if (unlikely(nr_ports == 0))
+	{
 		return -ENODEV;
+	}
 
 	sh7786_pcie_ports = kzalloc(nr_ports * sizeof(struct sh7786_pcie_port),
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (unlikely(!sh7786_pcie_ports))
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Fetch any optional platform clock associated with this block.
@@ -553,7 +606,9 @@ static int __init sh7786_pcie_init(void)
 	 * of touching the existing MSTP bits or CPG clocks.
 	 */
 	platclk = clk_get(NULL, "pcie_plat_clk");
-	if (IS_ERR(platclk)) {
+
+	if (IS_ERR(platclk))
+	{
 		/* Sane hardware should probably get a WARN_ON.. */
 		platclk = NULL;
 	}
@@ -562,7 +617,8 @@ static int __init sh7786_pcie_init(void)
 
 	printk(KERN_NOTICE "PCI: probing %d ports.\n", nr_ports);
 
-	for (i = 0; i < nr_ports; i++) {
+	for (i = 0; i < nr_ports; i++)
+	{
 		struct sh7786_pcie_port *port = sh7786_pcie_ports + i;
 
 		port->index		= i;

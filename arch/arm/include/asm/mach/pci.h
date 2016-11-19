@@ -18,11 +18,12 @@ struct pci_ops;
 struct pci_bus;
 struct device;
 
-struct hw_pci {
+struct hw_pci
+{
 	struct msi_controller *msi_ctrl;
 	struct pci_ops	*ops;
 	int		nr_controllers;
-	unsigned int	io_optional:1;
+	unsigned int	io_optional: 1;
 	void		**private_data;
 	int		(*setup)(int nr, struct pci_sys_data *);
 	struct pci_bus *(*scan)(int nr, struct pci_sys_data *);
@@ -31,16 +32,17 @@ struct hw_pci {
 	u8		(*swizzle)(struct pci_dev *dev, u8 *pin);
 	int		(*map_irq)(const struct pci_dev *dev, u8 slot, u8 pin);
 	resource_size_t (*align_resource)(struct pci_dev *dev,
-					  const struct resource *res,
-					  resource_size_t start,
-					  resource_size_t size,
-					  resource_size_t align);
+									  const struct resource *res,
+									  resource_size_t start,
+									  resource_size_t size,
+									  resource_size_t align);
 };
 
 /*
  * Per-controller structure
  */
-struct pci_sys_data {
+struct pci_sys_data
+{
 	struct list_head node;
 	int		busnr;		/* primary bus number			*/
 	u64		mem_offset;	/* bus->cpu memory mapping offset	*/
@@ -49,9 +51,9 @@ struct pci_sys_data {
 	struct list_head resources;	/* root bus resources (apertures)       */
 	struct resource io_res;
 	char		io_res_name[12];
-					/* Bridge swizzling			*/
+	/* Bridge swizzling			*/
 	u8		(*swizzle)(struct pci_dev *, u8 *);
-					/* IRQ mapping				*/
+	/* IRQ mapping				*/
 	int		(*map_irq)(const struct pci_dev *, u8, u8);
 	void		*private_data;	/* platform controller private data	*/
 };

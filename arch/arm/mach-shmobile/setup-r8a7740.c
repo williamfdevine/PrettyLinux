@@ -37,7 +37,9 @@ static void __init r8a7740_meram_workaround(void)
 	void __iomem *reg;
 
 	reg = ioremap_nocache(MEBUFCNTR, 4);
-	if (reg) {
+
+	if (reg)
+	{
 		iowrite32(0x01600164, reg);
 		iounmap(reg);
 	}
@@ -78,17 +80,18 @@ static void __init r8a7740_generic_init(void)
 	r8a7740_meram_workaround();
 }
 
-static const char *const r8a7740_boards_compat_dt[] __initconst = {
+static const char *const r8a7740_boards_compat_dt[] __initconst =
+{
 	"renesas,r8a7740",
 	NULL,
 };
 
 DT_MACHINE_START(R8A7740_DT, "Generic R8A7740 (Flattened Device Tree)")
-	.l2c_aux_val	= 0,
+.l2c_aux_val	= 0,
 	.l2c_aux_mask	= ~0,
-	.init_early	= shmobile_init_delay,
-	.init_irq	= r8a7740_init_irq_of,
-	.init_machine	= r8a7740_generic_init,
-	.init_late	= shmobile_init_late,
-	.dt_compat	= r8a7740_boards_compat_dt,
-MACHINE_END
+	   .init_early	= shmobile_init_delay,
+		.init_irq	= r8a7740_init_irq_of,
+		   .init_machine	= r8a7740_generic_init,
+			  .init_late	= shmobile_init_late,
+				.dt_compat	= r8a7740_boards_compat_dt,
+				  MACHINE_END

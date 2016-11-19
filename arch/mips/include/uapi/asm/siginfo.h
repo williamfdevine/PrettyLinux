@@ -19,11 +19,11 @@
  * Careful to keep union _sifields from shifting ...
  */
 #if _MIPS_SZLONG == 32
-#define __ARCH_SI_PREAMBLE_SIZE (3 * sizeof(int))
+	#define __ARCH_SI_PREAMBLE_SIZE (3 * sizeof(int))
 #elif _MIPS_SZLONG == 64
-#define __ARCH_SI_PREAMBLE_SIZE (4 * sizeof(int))
+	#define __ARCH_SI_PREAMBLE_SIZE (4 * sizeof(int))
 #else
-#error _MIPS_SZLONG neither 32 nor 64
+	#error _MIPS_SZLONG neither 32 nor 64
 #endif
 
 #define __ARCH_SIGSYS
@@ -31,23 +31,27 @@
 #include <asm-generic/siginfo.h>
 
 /* We can't use generic siginfo_t, because our si_code and si_errno are swapped */
-typedef struct siginfo {
+typedef struct siginfo
+{
 	int si_signo;
 	int si_code;
 	int si_errno;
 	int __pad0[SI_MAX_SIZE / sizeof(int) - SI_PAD_SIZE - 3];
 
-	union {
+	union
+	{
 		int _pad[SI_PAD_SIZE];
 
 		/* kill() */
-		struct {
+		struct
+		{
 			__kernel_pid_t _pid;	/* sender's pid */
 			__ARCH_SI_UID_T _uid;	/* sender's uid */
 		} _kill;
 
 		/* POSIX.1b timers */
-		struct {
+		struct
+		{
 			__kernel_timer_t _tid;	/* timer id */
 			int _overrun;		/* overrun count */
 			char _pad[sizeof( __ARCH_SI_UID_T) - sizeof(int)];
@@ -56,14 +60,16 @@ typedef struct siginfo {
 		} _timer;
 
 		/* POSIX.1b signals */
-		struct {
+		struct
+		{
 			__kernel_pid_t _pid;	/* sender's pid */
 			__ARCH_SI_UID_T _uid;	/* sender's uid */
 			sigval_t _sigval;
 		} _rt;
 
 		/* SIGCHLD */
-		struct {
+		struct
+		{
 			__kernel_pid_t _pid;	/* which child */
 			__ARCH_SI_UID_T _uid;	/* sender's uid */
 			int _status;		/* exit code */
@@ -72,7 +78,8 @@ typedef struct siginfo {
 		} _sigchld;
 
 		/* IRIX SIGCHLD */
-		struct {
+		struct
+		{
 			__kernel_pid_t _pid;	/* which child */
 			__kernel_clock_t _utime;
 			int _status;		/* exit code */
@@ -80,15 +87,18 @@ typedef struct siginfo {
 		} _irix_sigchld;
 
 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-		struct {
+		struct
+		{
 			void __user *_addr; /* faulting insn/memory ref. */
 #ifdef __ARCH_SI_TRAPNO
 			int _trapno;	/* TRAP # which caused the signal */
 #endif
 			short _addr_lsb;
-			union {
+			union
+			{
 				/* used when si_code=SEGV_BNDERR */
-				struct {
+				struct
+				{
 					void __user *_lower;
 					void __user *_upper;
 				} _addr_bnd;
@@ -98,13 +108,15 @@ typedef struct siginfo {
 		} _sigfault;
 
 		/* SIGPOLL, SIGXFSZ (To do ...)	 */
-		struct {
+		struct
+		{
 			__ARCH_SI_BAND_T _band; /* POLL_IN, POLL_OUT, POLL_MSG */
 			int _fd;
 		} _sigpoll;
 
 		/* SIGSYS */
-		struct {
+		struct
+		{
 			void __user *_call_addr; /* calling user insn */
 			int _syscall;	/* triggering system call number */
 			unsigned int _arch;	/* AUDIT_ARCH_* of syscall */

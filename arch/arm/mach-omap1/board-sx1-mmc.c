@@ -23,25 +23,33 @@
 #if IS_ENABLED(CONFIG_MMC_OMAP)
 
 static int mmc_set_power(struct device *dev, int slot, int power_on,
-				int vdd)
+						 int vdd)
 {
 	int err;
 	u8 dat = 0;
 
 	err = sx1_i2c_read_byte(SOFIA_I2C_ADDR, SOFIA_POWER1_REG, &dat);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (power_on)
+	{
 		dat |= SOFIA_MMC_POWER;
+	}
 	else
+	{
 		dat &= ~SOFIA_MMC_POWER;
+	}
 
 	return sx1_i2c_write_byte(SOFIA_I2C_ADDR, SOFIA_POWER1_REG, dat);
 }
 
 /* Cover switch is at OMAP_MPUIO(3) */
-static struct omap_mmc_platform_data mmc1_data = {
+static struct omap_mmc_platform_data mmc1_data =
+{
 	.nr_slots                       = 1,
 	.slots[0]       = {
 		.set_power              = mmc_set_power,

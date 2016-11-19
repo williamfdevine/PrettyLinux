@@ -5,12 +5,14 @@ typedef int greg_t;
 #define NGREG 18
 typedef greg_t gregset_t[NGREG];
 
-typedef struct fpregset {
+typedef struct fpregset
+{
 	int f_fpcntl[3];
-	int f_fpregs[8*3];
+	int f_fpregs[8 * 3];
 } fpregset_t;
 
-struct mcontext {
+struct mcontext
+{
 	int version;
 	gregset_t gregs;
 	fpregset_t fpregs;
@@ -18,7 +20,8 @@ struct mcontext {
 
 #define MCONTEXT_VERSION 2
 
-struct ucontext {
+struct ucontext
+{
 	unsigned long	  uc_flags;
 	struct ucontext  *uc_link;
 	stack_t		  uc_stack;

@@ -58,16 +58,23 @@ SYSCALL_DEFINE3(arc_usr_cmpxchg, int *, uaddr, int, expected, int, new)
 	regs->status32 &= ~STATUS_Z_MASK;
 
 	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(int)))
+	{
 		return -EFAULT;
+	}
 
 	preempt_disable();
 
 	if (__get_user(uval, uaddr))
+	{
 		goto done;
+	}
 
-	if (uval == expected) {
+	if (uval == expected)
+	{
 		if (!__put_user(new, uaddr))
+		{
 			regs->status32 |= STATUS_Z_MASK;
+		}
 	}
 
 done:
@@ -122,8 +129,8 @@ asmlinkage void ret_from_fork(void);
  * ------------------  <===== END of PAGE
  */
 int copy_thread(unsigned long clone_flags,
-		unsigned long usp, unsigned long kthread_arg,
-		struct task_struct *p)
+				unsigned long usp, unsigned long kthread_arg,
+				struct task_struct *p)
 {
 	struct pt_regs *c_regs;        /* child's pt_regs */
 	unsigned long *childksp;       /* to unwind out of __switch_to() */
@@ -150,7 +157,8 @@ int copy_thread(unsigned long clone_flags,
 	childksp[0] = 0;			/* fp */
 	childksp[1] = (unsigned long)ret_from_fork; /* blink */
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		memset(c_regs, 0, sizeof(struct pt_regs));
 
 		c_callee->r13 = kthread_arg;
@@ -169,23 +177,28 @@ int copy_thread(unsigned long clone_flags,
 	*c_regs = *regs;
 
 	if (usp)
+	{
 		c_regs->sp = usp;
+	}
 
 	c_regs->r0 = 0;		/* fork returns 0 in child */
 
 	parent_callee = ((struct callee_regs *)regs) - 1;
 	*c_callee = *parent_callee;
 
-	if (unlikely(clone_flags & CLONE_SETTLS)) {
+	if (unlikely(clone_flags & CLONE_SETTLS))
+	{
 		/*
 		 * set task's userland tls data ptr from 4th arg
 		 * clone C-lib call is difft from clone sys-call
 		 */
 		task_thread_info(p)->thr_ptr = regs->r3;
-	} else {
+	}
+	else
+	{
 		/* Normal fork case: set parent's TLS ptr in child */
 		task_thread_info(p)->thr_ptr =
-		task_thread_info(current)->thr_ptr;
+			task_thread_info(current)->thr_ptr;
 	}
 
 	return 0;
@@ -194,7 +207,7 @@ int copy_thread(unsigned long clone_flags,
 /*
  * Do necessary setup to start up a new user task
  */
-void start_thread(struct pt_regs * regs, unsigned long pc, unsigned long usp)
+void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long usp)
 {
 	regs->sp = usp;
 	regs->ret = pc;
@@ -227,14 +240,17 @@ int elf_check_arch(const struct elf32_hdr *x)
 {
 	unsigned int eflags;
 
-	if (x->e_machine != EM_ARC_INUSE) {
+	if (x->e_machine != EM_ARC_INUSE)
+	{
 		pr_err("ELF not built for %s ISA\n",
-			is_isa_arcompact() ? "ARCompact":"ARCv2");
+			   is_isa_arcompact() ? "ARCompact" : "ARCv2");
 		return 0;
 	}
 
 	eflags = x->e_flags;
-	if ((eflags & EF_ARC_OSABI_MSK) != EF_ARC_OSABI_CURRENT) {
+
+	if ((eflags & EF_ARC_OSABI_MSK) != EF_ARC_OSABI_CURRENT)
+	{
 		pr_err("ABI mismatch - you need newer toolchain\n");
 		force_sigsegv(SIGSEGV, current);
 		return 0;

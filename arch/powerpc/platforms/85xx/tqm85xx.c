@@ -40,14 +40,14 @@
 #include "mpc85xx.h"
 
 #ifdef CONFIG_CPM2
-#include <asm/cpm2.h>
+	#include <asm/cpm2.h>
 #endif /* CONFIG_CPM2 */
 
 static void __init tqm85xx_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0,
-			MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+								   MPIC_BIG_ENDIAN,
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 
@@ -60,7 +60,9 @@ static void __init tqm85xx_pic_init(void)
 static void __init tqm85xx_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("tqm85xx_setup_arch()", 0);
+	}
 
 #ifdef CONFIG_CPM2
 	cpm2_reset();
@@ -91,7 +93,9 @@ static void tqm85xx_ti1520_fixup(struct pci_dev *pdev)
 
 	/* Do not do the fixup on other platforms! */
 	if (!machine_is(tqm85xx))
+	{
 		return;
+	}
 
 	dev_info(&pdev->dev, "Using TI 1520 fixup on TQM85xx\n");
 
@@ -104,11 +108,12 @@ static void tqm85xx_ti1520_fixup(struct pci_dev *pdev)
 
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_TI, PCI_DEVICE_ID_TI_1520,
-		tqm85xx_ti1520_fixup);
+						 tqm85xx_ti1520_fixup);
 
 machine_arch_initcall(tqm85xx, mpc85xx_common_publish_devices);
 
-static const char * const board[] __initconst = {
+static const char *const board[] __initconst =
+{
 	"tqc,tqm8540",
 	"tqc,tqm8541",
 	"tqc,tqm8548",
@@ -125,13 +130,14 @@ static int __init tqm85xx_probe(void)
 	return of_device_compatible_match(of_root, board);
 }
 
-define_machine(tqm85xx) {
+define_machine(tqm85xx)
+{
 	.name			= "TQM85xx",
-	.probe			= tqm85xx_probe,
-	.setup_arch		= tqm85xx_setup_arch,
-	.init_IRQ		= tqm85xx_pic_init,
-	.show_cpuinfo		= tqm85xx_show_cpuinfo,
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= tqm85xx_probe,
+					 .setup_arch		= tqm85xx_setup_arch,
+						 .init_IRQ		= tqm85xx_pic_init,
+							   .show_cpuinfo		= tqm85xx_show_cpuinfo,
+									 .get_irq		= mpic_get_irq,
+											.calibrate_decr		= generic_calibrate_decr,
+												.progress		= udbg_progress,
 };

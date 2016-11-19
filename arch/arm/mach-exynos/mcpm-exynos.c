@@ -41,37 +41,41 @@ static void __iomem *ns_sram_base_addr;
  */
 #define exynos_v7_exit_coherency_flush(level) \
 	asm volatile( \
-	"stmfd	sp!, {fp, ip}\n\t"\
-	"mrc	p15, 0, r0, c1, c0, 0	@ get SCTLR\n\t" \
-	"bic	r0, r0, #"__stringify(CR_C)"\n\t" \
-	"mcr	p15, 0, r0, c1, c0, 0	@ set SCTLR\n\t" \
-	"isb\n\t"\
-	"bl	v7_flush_dcache_"__stringify(level)"\n\t" \
-	"mrc	p15, 0, r0, c1, c0, 1	@ get ACTLR\n\t" \
-	"bic	r0, r0, #(1 << 6)	@ disable local coherency\n\t" \
-	/* Dummy Load of a device register to avoid Erratum 799270 */ \
-	"ldr	r4, [%0]\n\t" \
-	"and	r4, r4, #0\n\t" \
-	"orr	r0, r0, r4\n\t" \
-	"mcr	p15, 0, r0, c1, c0, 1	@ set ACTLR\n\t" \
-	"isb\n\t" \
-	"dsb\n\t" \
-	"ldmfd	sp!, {fp, ip}" \
-	: \
-	: "Ir" (pmu_base_addr + S5P_INFORM0) \
-	: "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", \
-	  "r9", "r10", "lr", "memory")
+				  "stmfd	sp!, {fp, ip}\n\t"\
+				  "mrc	p15, 0, r0, c1, c0, 0	@ get SCTLR\n\t" \
+				  "bic	r0, r0, #"__stringify(CR_C)"\n\t" \
+				  "mcr	p15, 0, r0, c1, c0, 0	@ set SCTLR\n\t" \
+				  "isb\n\t"\
+				  "bl	v7_flush_dcache_"__stringify(level)"\n\t" \
+				  "mrc	p15, 0, r0, c1, c0, 1	@ get ACTLR\n\t" \
+				  "bic	r0, r0, #(1 << 6)	@ disable local coherency\n\t" \
+				  /* Dummy Load of a device register to avoid Erratum 799270 */ \
+				  "ldr	r4, [%0]\n\t" \
+				  "and	r4, r4, #0\n\t" \
+				  "orr	r0, r0, r4\n\t" \
+				  "mcr	p15, 0, r0, c1, c0, 1	@ set ACTLR\n\t" \
+				  "isb\n\t" \
+				  "dsb\n\t" \
+				  "ldmfd	sp!, {fp, ip}" \
+				  : \
+				  : "Ir" (pmu_base_addr + S5P_INFORM0) \
+				  : "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", \
+				  "r9", "r10", "lr", "memory")
 
 static int exynos_cpu_powerup(unsigned int cpu, unsigned int cluster)
 {
 	unsigned int cpunr = cpu + (cluster * EXYNOS5420_CPUS_PER_CLUSTER);
 
 	pr_debug("%s: cpu %u cluster %u\n", __func__, cpu, cluster);
+
 	if (cpu >= EXYNOS5420_CPUS_PER_CLUSTER ||
 		cluster >= EXYNOS5420_NR_CLUSTERS)
+	{
 		return -EINVAL;
+	}
 
-	if (!exynos_cpu_power_state(cpunr)) {
+	if (!exynos_cpu_power_state(cpunr))
+	{
 		exynos_cpu_power_up(cpunr);
 
 		/*
@@ -81,7 +85,8 @@ static int exynos_cpu_powerup(unsigned int cpu, unsigned int cluster)
 		 * they should be reset during power up cpu.
 		 */
 		if (cluster &&
-		    cluster == MPIDR_AFFINITY_LEVEL(cpu_logical_map(0), 1)) {
+			cluster == MPIDR_AFFINITY_LEVEL(cpu_logical_map(0), 1))
+		{
 			/*
 			 * Before we reset the Little cores, we should wait
 			 * the SPARE2 register is set to 1 because the init
@@ -89,10 +94,12 @@ static int exynos_cpu_powerup(unsigned int cpu, unsigned int cluster)
 			 * initialization.
 			 */
 			while (!pmu_raw_readl(S5P_PMU_SPARE2))
+			{
 				udelay(10);
+			}
 
 			pmu_raw_writel(EXYNOS5420_KFC_CORE_RESET(cpu),
-					EXYNOS_SWRESET);
+						   EXYNOS_SWRESET);
 		}
 	}
 
@@ -102,8 +109,11 @@ static int exynos_cpu_powerup(unsigned int cpu, unsigned int cluster)
 static int exynos_cluster_powerup(unsigned int cluster)
 {
 	pr_debug("%s: cluster %u\n", __func__, cluster);
+
 	if (cluster >= EXYNOS5420_NR_CLUSTERS)
+	{
 		return -EINVAL;
+	}
 
 	exynos_cluster_power_up(cluster);
 	return 0;
@@ -115,7 +125,7 @@ static void exynos_cpu_powerdown_prepare(unsigned int cpu, unsigned int cluster)
 
 	pr_debug("%s: cpu %u cluster %u\n", __func__, cpu, cluster);
 	BUG_ON(cpu >= EXYNOS5420_CPUS_PER_CLUSTER ||
-			cluster >= EXYNOS5420_NR_CLUSTERS);
+		   cluster >= EXYNOS5420_NR_CLUSTERS);
 	exynos_cpu_power_down(cpunr);
 }
 
@@ -134,16 +144,17 @@ static void exynos_cpu_cache_disable(void)
 
 static void exynos_cluster_cache_disable(void)
 {
-	if (read_cpuid_part() == ARM_CPU_PART_CORTEX_A15) {
+	if (read_cpuid_part() == ARM_CPU_PART_CORTEX_A15)
+	{
 		/*
 		 * On the Cortex-A15 we need to disable
 		 * L2 prefetching before flushing the cache.
 		 */
 		asm volatile(
-		"mcr	p15, 1, %0, c15, c0, 3\n\t"
-		"isb\n\t"
-		"dsb"
-		: : "r" (0x400));
+			"mcr	p15, 1, %0, c15, c0, 3\n\t"
+			"isb\n\t"
+			"dsb"
+			: : "r" (0x400));
 	}
 
 	/* Flush all cache levels for this cluster. */
@@ -163,12 +174,15 @@ static int exynos_wait_for_powerdown(unsigned int cpu, unsigned int cluster)
 
 	pr_debug("%s: cpu %u cluster %u\n", __func__, cpu, cluster);
 	BUG_ON(cpu >= EXYNOS5420_CPUS_PER_CLUSTER ||
-			cluster >= EXYNOS5420_NR_CLUSTERS);
+		   cluster >= EXYNOS5420_NR_CLUSTERS);
 
 	/* Wait for the core state to be OFF */
-	while (tries--) {
+	while (tries--)
+	{
 		if ((exynos_cpu_power_state(cpunr) == 0))
-			return 0; /* success: the CPU is halted */
+		{
+			return 0;    /* success: the CPU is halted */
+		}
 
 		/* Otherwise, wait and retry: */
 		msleep(1);
@@ -183,7 +197,8 @@ static void exynos_cpu_is_up(unsigned int cpu, unsigned int cluster)
 	exynos_cpu_powerup(cpu, cluster);
 }
 
-static const struct mcpm_platform_ops exynos_power_ops = {
+static const struct mcpm_platform_ops exynos_power_ops =
+{
 	.cpu_powerup		= exynos_cpu_powerup,
 	.cluster_powerup	= exynos_cluster_powerup,
 	.cpu_powerdown_prepare	= exynos_cpu_powerdown_prepare,
@@ -200,12 +215,13 @@ static const struct mcpm_platform_ops exynos_power_ops = {
 static void __naked exynos_pm_power_up_setup(unsigned int affinity_level)
 {
 	asm volatile ("\n"
-	"cmp	r0, #1\n"
-	"bxne	lr\n"
-	"b	cci_enable_port_for_self");
+				  "cmp	r0, #1\n"
+				  "bxne	lr\n"
+				  "b	cci_enable_port_for_self");
 }
 
-static const struct of_device_id exynos_dt_mcpm_match[] = {
+static const struct of_device_id exynos_dt_mcpm_match[] =
+{
 	{ .compatible = "samsung,exynos5420" },
 	{ .compatible = "samsung,exynos5800" },
 	{},
@@ -224,7 +240,8 @@ static void exynos_mcpm_setup_entry_point(void)
 	__raw_writel(virt_to_phys(mcpm_entry_point), ns_sram_base_addr + 8);
 }
 
-static struct syscore_ops exynos_mcpm_syscore_ops = {
+static struct syscore_ops exynos_mcpm_syscore_ops =
+{
 	.resume	= exynos_mcpm_setup_entry_point,
 };
 
@@ -235,21 +252,32 @@ static int __init exynos_mcpm_init(void)
 	int ret;
 
 	node = of_find_matching_node(NULL, exynos_dt_mcpm_match);
+
 	if (!node)
+	{
 		return -ENODEV;
+	}
+
 	of_node_put(node);
 
 	if (!cci_probed())
+	{
 		return -ENODEV;
+	}
 
 	node = of_find_compatible_node(NULL, NULL,
-			"samsung,exynos4210-sysram-ns");
+								   "samsung,exynos4210-sysram-ns");
+
 	if (!node)
+	{
 		return -ENODEV;
+	}
 
 	ns_sram_base_addr = of_iomap(node, 0);
 	of_node_put(node);
-	if (!ns_sram_base_addr) {
+
+	if (!ns_sram_base_addr)
+	{
 		pr_err("failed to map non-secure iRAM base address\n");
 		return -ENOMEM;
 	}
@@ -261,11 +289,19 @@ static int __init exynos_mcpm_init(void)
 	pmu_raw_writel(EXYNOS5420_SWRESET_KFC_SEL, S5P_PMU_SPARE3);
 
 	ret = mcpm_platform_register(&exynos_power_ops);
+
 	if (!ret)
+	{
 		ret = mcpm_sync_init(exynos_pm_power_up_setup);
+	}
+
 	if (!ret)
-		ret = mcpm_loopback(exynos_cluster_cache_disable); /* turn on the CCI */
-	if (ret) {
+	{
+		ret = mcpm_loopback(exynos_cluster_cache_disable);    /* turn on the CCI */
+	}
+
+	if (ret)
+	{
 		iounmap(ns_sram_base_addr);
 		return ret;
 	}
@@ -286,11 +322,12 @@ static int __init exynos_mcpm_init(void)
 	 * EXYNOS5420_USE_L2_COMMON_UP_STATE ensures that cluster L2 will be
 	 * turned on before the first man is powered up.
 	 */
-	for (i = 0; i < EXYNOS5420_NR_CLUSTERS; i++) {
+	for (i = 0; i < EXYNOS5420_NR_CLUSTERS; i++)
+	{
 		value = pmu_raw_readl(EXYNOS_COMMON_OPTION(i));
 		value |= EXYNOS5420_ENABLE_AUTOMATIC_CORE_DOWN |
-			 EXYNOS5420_USE_ARM_CORE_DOWN_STATE    |
-			 EXYNOS5420_USE_L2_COMMON_UP_STATE;
+				 EXYNOS5420_USE_ARM_CORE_DOWN_STATE    |
+				 EXYNOS5420_USE_L2_COMMON_UP_STATE;
 		pmu_raw_writel(value, EXYNOS_COMMON_OPTION(i));
 	}
 

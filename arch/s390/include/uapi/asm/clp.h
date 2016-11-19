@@ -11,7 +11,8 @@
 #include <linux/types.h>
 #include <linux/ioctl.h>
 
-struct clp_req {
+struct clp_req
+{
 	unsigned int c : 1;
 	unsigned int r : 1;
 	unsigned int lps : 6;

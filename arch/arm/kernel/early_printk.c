@@ -16,9 +16,13 @@ extern void printch(int);
 
 static void early_write(const char *s, unsigned n)
 {
-	while (n-- > 0) {
+	while (n-- > 0)
+	{
 		if (*s == '\n')
+		{
 			printch('\r');
+		}
+
 		printch(*s);
 		s++;
 	}
@@ -29,7 +33,8 @@ static void early_console_write(struct console *con, const char *s, unsigned n)
 	early_write(s, n);
 }
 
-static struct console early_console_dev = {
+static struct console early_console_dev =
+{
 	.name =		"earlycon",
 	.write =	early_console_write,
 	.flags =	CON_PRINTBUFFER | CON_BOOT,

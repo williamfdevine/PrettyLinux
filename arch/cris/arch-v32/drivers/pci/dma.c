@@ -17,7 +17,7 @@
 #include <asm/io.h>
 
 static void *v32_dma_alloc(struct device *dev, size_t size,
-		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+						   dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
 {
 	void *ret;
 
@@ -25,19 +25,23 @@ static void *v32_dma_alloc(struct device *dev, size_t size,
 	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
 
 	if (dev == NULL || (dev->coherent_dma_mask < 0xffffffff))
+	{
 		gfp |= GFP_DMA;
+	}
 
 	ret = (void *)__get_free_pages(gfp,  get_order(size));
 
-	if (ret != NULL) {
+	if (ret != NULL)
+	{
 		memset(ret, 0, size);
 		*dma_handle = virt_to_phys(ret);
 	}
+
 	return ret;
 }
 
 static void v32_dma_free(struct device *dev, size_t size, void *vaddr,
-		dma_addr_t dma_handle, unsigned long attrs)
+						 dma_addr_t dma_handle, unsigned long attrs)
 {
 	free_pages((unsigned long)vaddr, get_order(size));
 }
@@ -50,8 +54,8 @@ static inline dma_addr_t v32_dma_map_page(struct device *dev,
 }
 
 static inline int v32_dma_map_sg(struct device *dev, struct scatterlist *sg,
-		int nents, enum dma_data_direction direction,
-		unsigned long attrs)
+								 int nents, enum dma_data_direction direction,
+								 unsigned long attrs)
 {
 	printk("Map sg\n");
 	return nents;
@@ -59,17 +63,21 @@ static inline int v32_dma_map_sg(struct device *dev, struct scatterlist *sg,
 
 static inline int v32_dma_supported(struct device *dev, u64 mask)
 {
-        /*
-         * we fall back to GFP_DMA when the mask isn't all 1s,
-         * so we can't guarantee allocations that must be
-         * within a tighter range than GFP_DMA..
-         */
-        if (mask < 0x00ffffff)
-                return 0;
+	/*
+	 * we fall back to GFP_DMA when the mask isn't all 1s,
+	 * so we can't guarantee allocations that must be
+	 * within a tighter range than GFP_DMA..
+	 */
+	if (mask < 0x00ffffff)
+	{
+		return 0;
+	}
+
 	return 1;
 }
 
-struct dma_map_ops v32_dma_ops = {
+struct dma_map_ops v32_dma_ops =
+{
 	.alloc			= v32_dma_alloc,
 	.free			= v32_dma_free,
 	.map_page		= v32_dma_map_page,

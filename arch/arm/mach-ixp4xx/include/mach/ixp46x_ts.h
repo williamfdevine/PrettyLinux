@@ -24,7 +24,8 @@
 #define DEFAULT_ADDEND 0xF0000029
 #define TICKS_NS_SHIFT 4
 
-struct ixp46x_channel_ctl {
+struct ixp46x_channel_ctl
+{
 	u32 ch_control;  /* 0x40 Time Synchronization Channel Control */
 	u32 ch_event;    /* 0x44 Time Synchronization Channel Event */
 	u32 tx_snap_lo;  /* 0x48 Transmit Snapshot Low Register */
@@ -35,7 +36,8 @@ struct ixp46x_channel_ctl {
 	u32 src_uuid_hi; /* 0x5C Sequence Identifier/Source UUID0 High */
 };
 
-struct ixp46x_ts_regs {
+struct ixp46x_ts_regs
+{
 	u32 control;     /* 0x00 Time Sync Control Register */
 	u32 event;       /* 0x04 Time Sync Event Register */
 	u32 addend;      /* 0x08 Time Sync Addend Register */

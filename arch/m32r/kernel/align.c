@@ -12,13 +12,21 @@ static int get_reg(struct pt_regs *regs, int nr)
 	int val;
 
 	if (nr < 4)
+	{
 		val = *(unsigned long *)(&regs->r0 + nr);
+	}
 	else if (nr < 7)
+	{
 		val = *(unsigned long *)(&regs->r4 + (nr - 4));
+	}
 	else if (nr < 13)
+	{
 		val = *(unsigned long *)(&regs->r7 + (nr - 7));
+	}
 	else
+	{
 		val = *(unsigned long *)(&regs->fp + (nr - 13));
+	}
 
 	return val;
 }
@@ -26,13 +34,21 @@ static int get_reg(struct pt_regs *regs, int nr)
 static void set_reg(struct pt_regs *regs, int nr, int val)
 {
 	if (nr < 4)
+	{
 		*(unsigned long *)(&regs->r0 + nr) = val;
+	}
 	else if (nr < 7)
+	{
 		*(unsigned long *)(&regs->r4 + (nr - 4)) = val;
+	}
 	else if (nr < 13)
+	{
 		*(unsigned long *)(&regs->r7 + (nr - 7)) = val;
+	}
 	else
+	{
 		*(unsigned long *)(&regs->fp + (nr - 13)) = val;
+	}
 }
 
 #define REG1(insn)	(((insn) & 0x0f00) >> 8)
@@ -126,9 +142,13 @@ static int emu_addx(unsigned short insn, struct pt_regs *regs)
 
 	/* C bit set */
 	if (val < tmp)
+	{
 		regs->psw |= PSW_BC;
+	}
 	else
+	{
 		regs->psw &= ~(PSW_BC);
+	}
 
 	return 0;
 }
@@ -148,9 +168,13 @@ static int emu_and(unsigned short insn, struct pt_regs *regs)
 static int emu_cmp(unsigned short insn, struct pt_regs *regs)
 {
 	if (get_reg(regs, REG1(insn)) < get_reg(regs, REG2(insn)))
+	{
 		regs->psw |= PSW_BC;
+	}
 	else
+	{
 		regs->psw &= ~(PSW_BC);
+	}
 
 	return 0;
 }
@@ -158,9 +182,13 @@ static int emu_cmp(unsigned short insn, struct pt_regs *regs)
 static int emu_cmpeq(unsigned short insn, struct pt_regs *regs)
 {
 	if (get_reg(regs, REG1(insn)) == get_reg(regs, REG2(insn)))
+	{
 		regs->psw |= PSW_BC;
+	}
 	else
+	{
 		regs->psw &= ~(PSW_BC);
+	}
 
 	return 0;
 }
@@ -169,9 +197,13 @@ static int emu_cmpu(unsigned short insn, struct pt_regs *regs)
 {
 	if ((unsigned int)get_reg(regs, REG1(insn))
 		< (unsigned int)get_reg(regs, REG2(insn)))
+	{
 		regs->psw |= PSW_BC;
+	}
 	else
+	{
 		regs->psw &= ~(PSW_BC);
+	}
 
 	return 0;
 }
@@ -179,9 +211,13 @@ static int emu_cmpu(unsigned short insn, struct pt_regs *regs)
 static int emu_cmpz(unsigned short insn, struct pt_regs *regs)
 {
 	if (!get_reg(regs, REG2(insn)))
+	{
 		regs->psw |= PSW_BC;
+	}
 	else
+	{
 		regs->psw &= ~(PSW_BC);
+	}
 
 	return 0;
 }
@@ -252,9 +288,13 @@ static int emu_subx(unsigned short insn, struct pt_regs *regs)
 
 	/* C bit set */
 	if (val > tmp)
+	{
 		regs->psw |= PSW_BC;
+	}
 	else
+	{
 		regs->psw &= ~(PSW_BC);
+	}
 
 	return 0;
 }
@@ -354,90 +394,120 @@ static int emu_m32r2(unsigned short insn, struct pt_regs *regs)
 	int res = -1;
 
 	if ((insn & 0x7fff) == ISA_NOP)	/* nop */
+	{
 		return 0;
+	}
 
-	switch(insn & 0x7000) {
-	case ISA_ADDI:		/* addi Rdest, #imm8 */
-		res = emu_addi(insn, regs);
-		break;
-	case ISA_LDI:		/* ldi Rdest, #imm8 */
-		res = emu_ldi(insn, regs);
-		break;
-	default:
-		break;
+	switch (insn & 0x7000)
+	{
+		case ISA_ADDI:		/* addi Rdest, #imm8 */
+			res = emu_addi(insn, regs);
+			break;
+
+		case ISA_LDI:		/* ldi Rdest, #imm8 */
+			res = emu_ldi(insn, regs);
+			break;
+
+		default:
+			break;
 	}
 
 	if (!res)
+	{
 		return 0;
+	}
 
-	switch(insn & 0x70f0) {
-	case ISA_ADD:		/* add Rdest, Rsrc */
-		res = emu_add(insn, regs);
-		break;
-	case ISA_ADDX:		/* addx Rdest, Rsrc */
-		res = emu_addx(insn, regs);
-		break;
-	case ISA_AND:		/* and Rdest, Rsrc */
-		res = emu_and(insn, regs);
-		break;
-	case ISA_CMP:		/* cmp Rsrc1, Rsrc2 */
-		res = emu_cmp(insn, regs);
-		break;
-	case ISA_CMPEQ:		/* cmpeq Rsrc1, Rsrc2 */
-		res = emu_cmpeq(insn, regs);
-		break;
-	case ISA_CMPU:		/* cmpu Rsrc1, Rsrc2 */
-		res = emu_cmpu(insn, regs);
-		break;
-	case ISA_CMPZ:		/* cmpz Rsrc */
-		res = emu_cmpz(insn, regs);
-		break;
-	case ISA_MV:		/* mv Rdest, Rsrc */
-		res = emu_mv(insn, regs);
-		break;
-	case ISA_NEG:		/* neg Rdest, Rsrc */
-		res = emu_neg(insn, regs);
-		break;
-	case ISA_NOT:		/* not Rdest, Rsrc */
-		res = emu_not(insn, regs);
-		break;
-	case ISA_OR:		/* or Rdest, Rsrc */
-		res = emu_or(insn, regs);
-		break;
-	case ISA_SUB:		/* sub Rdest, Rsrc */
-		res = emu_sub(insn, regs);
-		break;
-	case ISA_SUBX:		/* subx Rdest, Rsrc */
-		res = emu_subx(insn, regs);
-		break;
-	case ISA_XOR:		/* xor Rdest, Rsrc */
-		res = emu_xor(insn, regs);
-		break;
-	case ISA_MUL:		/* mul Rdest, Rsrc */
-		res = emu_mul(insn, regs);
-		break;
-	case ISA_MULLO_A0:	/* mullo Rsrc1, Rsrc2 */
-		res = emu_mullo_a0(insn, regs);
-		break;
-	case ISA_MULLO_A1:	/* mullo Rsrc1, Rsrc2 */
-		res = emu_mullo_a1(insn, regs);
-		break;
-	default:
-		break;
+	switch (insn & 0x70f0)
+	{
+		case ISA_ADD:		/* add Rdest, Rsrc */
+			res = emu_add(insn, regs);
+			break;
+
+		case ISA_ADDX:		/* addx Rdest, Rsrc */
+			res = emu_addx(insn, regs);
+			break;
+
+		case ISA_AND:		/* and Rdest, Rsrc */
+			res = emu_and(insn, regs);
+			break;
+
+		case ISA_CMP:		/* cmp Rsrc1, Rsrc2 */
+			res = emu_cmp(insn, regs);
+			break;
+
+		case ISA_CMPEQ:		/* cmpeq Rsrc1, Rsrc2 */
+			res = emu_cmpeq(insn, regs);
+			break;
+
+		case ISA_CMPU:		/* cmpu Rsrc1, Rsrc2 */
+			res = emu_cmpu(insn, regs);
+			break;
+
+		case ISA_CMPZ:		/* cmpz Rsrc */
+			res = emu_cmpz(insn, regs);
+			break;
+
+		case ISA_MV:		/* mv Rdest, Rsrc */
+			res = emu_mv(insn, regs);
+			break;
+
+		case ISA_NEG:		/* neg Rdest, Rsrc */
+			res = emu_neg(insn, regs);
+			break;
+
+		case ISA_NOT:		/* not Rdest, Rsrc */
+			res = emu_not(insn, regs);
+			break;
+
+		case ISA_OR:		/* or Rdest, Rsrc */
+			res = emu_or(insn, regs);
+			break;
+
+		case ISA_SUB:		/* sub Rdest, Rsrc */
+			res = emu_sub(insn, regs);
+			break;
+
+		case ISA_SUBX:		/* subx Rdest, Rsrc */
+			res = emu_subx(insn, regs);
+			break;
+
+		case ISA_XOR:		/* xor Rdest, Rsrc */
+			res = emu_xor(insn, regs);
+			break;
+
+		case ISA_MUL:		/* mul Rdest, Rsrc */
+			res = emu_mul(insn, regs);
+			break;
+
+		case ISA_MULLO_A0:	/* mullo Rsrc1, Rsrc2 */
+			res = emu_mullo_a0(insn, regs);
+			break;
+
+		case ISA_MULLO_A1:	/* mullo Rsrc1, Rsrc2 */
+			res = emu_mullo_a1(insn, regs);
+			break;
+
+		default:
+			break;
 	}
 
 	if (!res)
+	{
 		return 0;
+	}
 
-	switch(insn & 0x70ff) {
-	case ISA_MVFACMI_A0:	/* mvfacmi Rdest */
-		res = emu_mvfacmi_a0(insn, regs);
-		break;
-	case ISA_MVFACMI_A1:	/* mvfacmi Rdest */
-		res = emu_mvfacmi_a1(insn, regs);
-		break;
-	default:
-		break;
+	switch (insn & 0x70ff)
+	{
+		case ISA_MVFACMI_A0:	/* mvfacmi Rdest */
+			res = emu_mvfacmi_a0(insn, regs);
+			break;
+
+		case ISA_MVFACMI_A1:	/* mvfacmi Rdest */
+			res = emu_mvfacmi_a1(insn, regs);
+			break;
+
+		default:
+			break;
 	}
 
 	return res;
@@ -457,7 +527,7 @@ static int emu_m32r2(unsigned short insn, struct pt_regs *regs)
  */
 
 static int insn_check(unsigned long insn, struct pt_regs *regs,
-	unsigned char **ucp)
+					  unsigned char **ucp)
 {
 	int res = 0;
 
@@ -466,16 +536,22 @@ static int insn_check(unsigned long insn, struct pt_regs *regs,
 	 *  ld Rdest, @(disp16, Rsrc)
 	 *  st Rdest, @(disp16, Rsrc)
 	 */
-	if (insn & 0x80000000) {	/* 32bit insn */
+	if (insn & 0x80000000)  	/* 32bit insn */
+	{
 		*ucp += (short)(insn & 0x0000ffff);
 		regs->bpc += 4;
-	} else {			/* 16bit insn */
+	}
+	else  			/* 16bit insn */
+	{
 #ifdef CONFIG_ISA_DUAL_ISSUE
+
 		/* parallel exec check */
-		if (!(regs->bpc & 0x2) && insn & 0x8000) {
+		if (!(regs->bpc & 0x2) && insn & 0x8000)
+		{
 			res = emu_m32r2((unsigned short)insn, regs);
 			regs->bpc += 4;
-		} else
+		}
+		else
 #endif	/* CONFIG_ISA_DUAL_ISSUE */
 			regs->bpc += 2;
 	}
@@ -495,24 +571,35 @@ static int emu_ld(unsigned long insn32, struct pt_regs *regs)
 	ucp = (unsigned char *)get_reg(regs, src);
 
 	if (insn_check(insn32, regs, &ucp))
+	{
 		return -1;
+	}
 
 	size = insn16 & 0x0040 ? 4 : 2;
+
 	if (copy_from_user(&val, ucp, size))
+	{
 		return -1;
+	}
 
 	if (size == 2)
+	{
 		val >>= 16;
+	}
 
 	/* ldh sign check */
 	if ((insn16 & 0x00f0) == 0x00a0 && (val & 0x8000))
+	{
 		val |= 0xffff0000;
+	}
 
 	set_reg(regs, REG1(insn16), val);
 
 	/* ld increment check */
 	if ((insn16 & 0xf0f0) == ISA_LD2)	/* ld Rdest, @Rsrc+ */
+	{
 		set_reg(regs, src, (unsigned long)(ucp + 4));
+	}
 
 	return 0;
 }
@@ -530,28 +617,41 @@ static int emu_st(unsigned long insn32, struct pt_regs *regs)
 	ucp = (unsigned char *)get_reg(regs, src2);
 
 	if (insn_check(insn32, regs, &ucp))
+	{
 		return -1;
+	}
 
 	size = insn16 & 0x0040 ? 4 : 2;
 	val = get_reg(regs, REG1(insn16));
+
 	if (size == 2)
+	{
 		val <<= 16;
+	}
 
 	/* st inc/dec check */
-	if ((insn16 & 0xf0e0) == 0x2060) {
+	if ((insn16 & 0xf0e0) == 0x2060)
+	{
 		if (insn16 & 0x0010)
+		{
 			ucp -= 4;
+		}
 		else
+		{
 			ucp += 4;
+		}
 
 		set_reg(regs, src2, (unsigned long)ucp);
 	}
 
 	if (copy_to_user(ucp, &val, size))
+	{
 		return -1;
+	}
 
 	/* sth inc check */
-	if ((insn16 & 0xf0f0) == ISA_STH2) {
+	if ((insn16 & 0xf0f0) == ISA_STH2)
+	{
 		ucp += 2;
 		set_reg(regs, src2, (unsigned long)ucp);
 	}
@@ -568,16 +668,24 @@ int handle_unaligned_access(unsigned long insn32, struct pt_regs *regs)
 
 	/* ld or st check */
 	if ((insn16 & 0x7000) != 0x2000)
+	{
 		return -1;
+	}
 
 	/* insn alignment check */
 	if ((insn16 & 0x8000) && (regs->bpc & 3))
+	{
 		return -1;
+	}
 
 	if (insn16 & 0x0080)	/* ld */
+	{
 		res = emu_ld(insn32, regs);
+	}
 	else			/* st */
+	{
 		res = emu_st(insn32, regs);
+	}
 
 	return res;
 }

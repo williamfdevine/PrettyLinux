@@ -39,7 +39,7 @@
 
 extern void __init fpga_init(void);
 #ifdef CONFIG_FUJITSU_MB93493
-extern void __init mb93493_init(void);
+	extern void __init mb93493_init(void);
 #endif
 
 #define __reg16(ADDR) (*(volatile unsigned short *)(ADDR))
@@ -79,7 +79,8 @@ static void frv_cpupic_unmask(struct irq_data *d)
 	__clr_MASK(d->irq);
 }
 
-static struct irq_chip frv_cpu_pic = {
+static struct irq_chip frv_cpu_pic =
+{
 	.name		= "cpu",
 	.irq_ack	= frv_cpupic_ack,
 	.irq_mask	= frv_cpupic_mask,
@@ -117,7 +118,7 @@ void __init init_IRQ(void)
 
 	for (level = 1; level <= 14; level++)
 		irq_set_chip_and_handler(level, &frv_cpu_pic,
-					 handle_level_irq);
+								 handle_level_irq);
 
 	irq_set_handler(IRQ_CPU_TIMER0, handle_edge_irq);
 
@@ -131,18 +132,18 @@ void __init init_IRQ(void)
 
 	/* route internal interrupts */
 	set_IRR(4, IRQ_DMA3_LEVEL, IRQ_DMA2_LEVEL, IRQ_DMA1_LEVEL,
-		IRQ_DMA0_LEVEL);
+			IRQ_DMA0_LEVEL);
 	set_IRR(5, 0, IRQ_TIMER2_LEVEL, IRQ_TIMER1_LEVEL, IRQ_TIMER0_LEVEL);
 	set_IRR(6, IRQ_GDBSTUB_LEVEL, IRQ_GDBSTUB_LEVEL,
-		IRQ_UART1_LEVEL, IRQ_UART0_LEVEL);
+			IRQ_UART1_LEVEL, IRQ_UART0_LEVEL);
 	set_IRR(7, IRQ_DMA7_LEVEL, IRQ_DMA6_LEVEL, IRQ_DMA5_LEVEL,
-		IRQ_DMA4_LEVEL);
+			IRQ_DMA4_LEVEL);
 
 	/* route external interrupts */
 	set_IRR(2, IRQ_XIRQ7_LEVEL, IRQ_XIRQ6_LEVEL, IRQ_XIRQ5_LEVEL,
-		IRQ_XIRQ4_LEVEL);
+			IRQ_XIRQ4_LEVEL);
 	set_IRR(3, IRQ_XIRQ3_LEVEL, IRQ_XIRQ2_LEVEL, IRQ_XIRQ1_LEVEL,
-		IRQ_XIRQ0_LEVEL);
+			IRQ_XIRQ0_LEVEL);
 
 #if defined(CONFIG_MB93091_VDK)
 	__set_TM1(0x55550000);		/* XIRQ7-0 all active low */

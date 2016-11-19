@@ -60,14 +60,15 @@ static int __init sbc834x_probe(void)
 	return of_machine_is_compatible("SBC834xE");
 }
 
-define_machine(sbc834x) {
+define_machine(sbc834x)
+{
 	.name			= "SBC834xE",
-	.probe			= sbc834x_probe,
-	.setup_arch		= sbc834x_setup_arch,
-	.init_IRQ		= mpc83xx_ipic_init_IRQ,
-	.get_irq		= ipic_get_irq,
-	.restart		= mpc83xx_restart,
-	.time_init		= mpc83xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= sbc834x_probe,
+					 .setup_arch		= sbc834x_setup_arch,
+						 .init_IRQ		= mpc83xx_ipic_init_IRQ,
+							   .get_irq		= ipic_get_irq,
+									  .restart		= mpc83xx_restart,
+											 .time_init		= mpc83xx_time_init,
+												  .calibrate_decr		= generic_calibrate_decr,
+													  .progress		= udbg_progress,
 };

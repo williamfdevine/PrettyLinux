@@ -27,7 +27,7 @@ asmlinkage long sys32_stat64(const char __user *, struct stat64 __user *);
 asmlinkage long sys32_lstat64(const char __user *, struct stat64 __user *);
 asmlinkage long sys32_fstat64(unsigned int, struct stat64 __user *);
 asmlinkage long sys32_fstatat(unsigned int, const char __user *,
-			      struct stat64 __user *, int);
+							  struct stat64 __user *, int);
 struct mmap_arg_struct32;
 asmlinkage long sys32_mmap(struct mmap_arg_struct32 __user *);
 
@@ -41,10 +41,10 @@ long sys32_vm86_warning(void);
 
 asmlinkage ssize_t sys32_readahead(int, unsigned, unsigned, size_t);
 asmlinkage long sys32_sync_file_range(int, unsigned, unsigned,
-				      unsigned, unsigned, int);
+									  unsigned, unsigned, int);
 asmlinkage long sys32_fadvise64(int, unsigned, unsigned, size_t, int);
 asmlinkage long sys32_fallocate(int, int, unsigned,
-				unsigned, unsigned, unsigned);
+								unsigned, unsigned, unsigned);
 
 /* ia32/ia32_signal.c */
 asmlinkage long sys32_sigreturn(void);

@@ -17,7 +17,8 @@
 /*
  * list of the MMU contexts last allocated on each CPU
  */
-unsigned long mmu_context_cache[NR_CPUS] = {
+unsigned long mmu_context_cache[NR_CPUS] =
+{
 	[0 ... NR_CPUS - 1] =
 	MMU_CONTEXT_FIRST_VERSION * 2 - (1 - MMU_CONTEXT_TLBPID_LOCK_NR),
 };
@@ -43,19 +44,29 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long addr, pte_t *pte
 	cnx = mm_context(vma->vm_mm);
 #endif
 
-	if (cnx != MMU_NO_CONTEXT) {
+	if (cnx != MMU_NO_CONTEXT)
+	{
 		pteu = addr;
 #ifdef CONFIG_MN10300_TLB_USE_PIDR
 		pteu |= cnx & MMU_CONTEXT_TLBPID_MASK;
 #endif
-		if (!(pte_val(pte) & _PAGE_NX)) {
+
+		if (!(pte_val(pte) & _PAGE_NX))
+		{
 			IPTEU = pteu;
+
 			if (IPTEL & xPTEL_V)
+			{
 				IPTEL = ptel;
+			}
 		}
+
 		DPTEU = pteu;
+
 		if (DPTEL & xPTEL_V)
+		{
 			DPTEL = ptel;
+		}
 	}
 
 	local_irq_restore(flags);

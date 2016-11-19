@@ -58,7 +58,8 @@
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static unsigned long spitz_pin_config[] __initdata = {
+static unsigned long spitz_pin_config[] __initdata =
+{
 	/* Chip Selects */
 	GPIO78_nCS_2,	/* SCOOP #2 */
 	GPIO79_nCS_3,	/* NAND */
@@ -139,7 +140,8 @@ static unsigned long spitz_pin_config[] __initdata = {
  ******************************************************************************/
 #if defined(CONFIG_SHARP_SCOOP) || defined(CONFIG_SHARP_SCOOP_MODULE)
 /* SCOOP Device #1 */
-static struct resource spitz_scoop_1_resources[] = {
+static struct resource spitz_scoop_1_resources[] =
+{
 	[0] = {
 		.start		= 0x10800000,
 		.end		= 0x10800fff,
@@ -147,7 +149,8 @@ static struct resource spitz_scoop_1_resources[] = {
 	},
 };
 
-static struct scoop_config spitz_scoop_1_setup = {
+static struct scoop_config spitz_scoop_1_setup =
+{
 	.io_dir		= SPITZ_SCP_IO_DIR,
 	.io_out		= SPITZ_SCP_IO_OUT,
 	.suspend_clr	= SPITZ_SCP_SUS_CLR,
@@ -155,7 +158,8 @@ static struct scoop_config spitz_scoop_1_setup = {
 	.gpio_base	= SPITZ_SCP_GPIO_BASE,
 };
 
-struct platform_device spitz_scoop_1_device = {
+struct platform_device spitz_scoop_1_device =
+{
 	.name		= "sharp-scoop",
 	.id		= 0,
 	.dev		= {
@@ -166,7 +170,8 @@ struct platform_device spitz_scoop_1_device = {
 };
 
 /* SCOOP Device #2 */
-static struct resource spitz_scoop_2_resources[] = {
+static struct resource spitz_scoop_2_resources[] =
+{
 	[0] = {
 		.start		= 0x08800040,
 		.end		= 0x08800fff,
@@ -174,7 +179,8 @@ static struct resource spitz_scoop_2_resources[] = {
 	},
 };
 
-static struct scoop_config spitz_scoop_2_setup = {
+static struct scoop_config spitz_scoop_2_setup =
+{
 	.io_dir		= SPITZ_SCP2_IO_DIR,
 	.io_out		= SPITZ_SCP2_IO_OUT,
 	.suspend_clr	= SPITZ_SCP2_SUS_CLR,
@@ -182,7 +188,8 @@ static struct scoop_config spitz_scoop_2_setup = {
 	.gpio_base	= SPITZ_SCP2_GPIO_BASE,
 };
 
-struct platform_device spitz_scoop_2_device = {
+struct platform_device spitz_scoop_2_device =
+{
 	.name		= "sharp-scoop",
 	.id		= 1,
 	.dev		= {
@@ -198,7 +205,9 @@ static void __init spitz_scoop_init(void)
 
 	/* Akita doesn't have the second SCOOP chip */
 	if (!machine_is_akita())
+	{
 		platform_device_register(&spitz_scoop_2_device);
+	}
 }
 
 /* Power control is shared with between one of the CF slots and SD */
@@ -207,7 +216,8 @@ static void __maybe_unused spitz_card_pwr_ctrl(uint8_t enable, uint8_t new_cpr)
 	unsigned short cpr;
 	unsigned long flags;
 
-	if (new_cpr & 0x7) {
+	if (new_cpr & 0x7)
+	{
 		gpio_set_value(SPITZ_GPIO_CF_POWER, 1);
 		mdelay(5);
 	}
@@ -217,15 +227,20 @@ static void __maybe_unused spitz_card_pwr_ctrl(uint8_t enable, uint8_t new_cpr)
 	cpr = read_scoop_reg(&spitz_scoop_1_device.dev, SCOOP_CPR);
 
 	if (enable & new_cpr)
+	{
 		cpr |= new_cpr;
+	}
 	else
+	{
 		cpr &= ~enable;
+	}
 
 	write_scoop_reg(&spitz_scoop_1_device.dev, SCOOP_CPR, cpr);
 
 	local_irq_restore(flags);
 
-	if (!(cpr & 0x7)) {
+	if (!(cpr & 0x7))
+	{
 		mdelay(1);
 		gpio_set_value(SPITZ_GPIO_CF_POWER, 0);
 	}
@@ -247,10 +262,13 @@ static void spitz_pcmcia_pwr(struct device *scoop, uint16_t cpr, int nr)
 		spitz_card_pwr_ctrl(
 			cpr & (SCOOP_CPR_CF_3V | SCOOP_CPR_CF_XV), cpr);
 	else
+	{
 		write_scoop_reg(scoop, SCOOP_CPR, cpr);
+	}
 }
 
-static struct scoop_pcmcia_dev spitz_pcmcia_scoop[] = {
+static struct scoop_pcmcia_dev spitz_pcmcia_scoop[] =
+{
 	{
 		.dev		= &spitz_scoop_1_device.dev,
 		.irq		= SPITZ_IRQ_GPIO_CF_IRQ,
@@ -263,7 +281,8 @@ static struct scoop_pcmcia_dev spitz_pcmcia_scoop[] = {
 	},
 };
 
-static struct scoop_pcmcia_config spitz_pcmcia_config = {
+static struct scoop_pcmcia_config spitz_pcmcia_config =
+{
 	.devs		= &spitz_pcmcia_scoop[0],
 	.num_devs	= 2,
 	.power_ctrl	= spitz_pcmcia_pwr,
@@ -273,7 +292,9 @@ static void __init spitz_pcmcia_init(void)
 {
 	/* Akita has only one PCMCIA slot used */
 	if (machine_is_akita())
+	{
 		spitz_pcmcia_config.num_devs = 1;
+	}
 
 	platform_scoop_config = &spitz_pcmcia_config;
 }
@@ -301,7 +322,8 @@ static inline void spitz_pcmcia_init(void) {}
 #define SPITZ_KEY_OK		KEY_F11
 #define SPITZ_KEY_MENU		KEY_F12
 
-static const uint32_t spitz_keymap[] = {
+static const uint32_t spitz_keymap[] =
+{
 	KEY(0, 0, KEY_LEFTCTRL),
 	KEY(0, 1, KEY_1),
 	KEY(0, 2, KEY_3),
@@ -368,17 +390,19 @@ static const uint32_t spitz_keymap[] = {
 	KEY(6, 8, KEY_RIGHT),
 };
 
-static const struct matrix_keymap_data spitz_keymap_data = {
+static const struct matrix_keymap_data spitz_keymap_data =
+{
 	.keymap		= spitz_keymap,
 	.keymap_size	= ARRAY_SIZE(spitz_keymap),
 };
 
 static const uint32_t spitz_row_gpios[] =
-		{ 12, 17, 91, 34, 36, 38, 39 };
+{ 12, 17, 91, 34, 36, 38, 39 };
 static const uint32_t spitz_col_gpios[] =
-		{ 88, 23, 24, 25, 26, 27, 52, 103, 107, 108, 114 };
+{ 88, 23, 24, 25, 26, 27, 52, 103, 107, 108, 114 };
 
-static struct matrix_keypad_platform_data spitz_mkp_pdata = {
+static struct matrix_keypad_platform_data spitz_mkp_pdata =
+{
 	.keymap_data		= &spitz_keymap_data,
 	.row_gpios		= spitz_row_gpios,
 	.col_gpios		= spitz_col_gpios,
@@ -389,7 +413,8 @@ static struct matrix_keypad_platform_data spitz_mkp_pdata = {
 	.wakeup			= 1,
 };
 
-static struct platform_device spitz_mkp_device = {
+static struct platform_device spitz_mkp_device =
+{
 	.name		= "matrix-keypad",
 	.id		= -1,
 	.dev		= {
@@ -409,7 +434,8 @@ static inline void spitz_mkp_init(void) {}
  * GPIO keys
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-static struct gpio_keys_button spitz_gpio_keys[] = {
+static struct gpio_keys_button spitz_gpio_keys[] =
+{
 	{
 		.type	= EV_PWR,
 		.code	= KEY_SUSPEND,
@@ -432,12 +458,14 @@ static struct gpio_keys_button spitz_gpio_keys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data spitz_gpio_keys_platform_data = {
+static struct gpio_keys_platform_data spitz_gpio_keys_platform_data =
+{
 	.buttons	= spitz_gpio_keys,
 	.nbuttons	= ARRAY_SIZE(spitz_gpio_keys),
 };
 
-static struct platform_device spitz_gpio_keys_device = {
+static struct platform_device spitz_gpio_keys_device =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -457,7 +485,8 @@ static inline void spitz_keys_init(void) {}
  * LEDs
  ******************************************************************************/
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-static struct gpio_led spitz_gpio_leds[] = {
+static struct gpio_led spitz_gpio_leds[] =
+{
 	{
 		.name			= "spitz:amber:charge",
 		.default_trigger	= "sharpsl-charge",
@@ -470,12 +499,14 @@ static struct gpio_led spitz_gpio_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data spitz_gpio_leds_info = {
+static struct gpio_led_platform_data spitz_gpio_leds_info =
+{
 	.leds		= spitz_gpio_leds,
 	.num_leds	= ARRAY_SIZE(spitz_gpio_leds),
 };
 
-static struct platform_device spitz_led_device = {
+static struct platform_device spitz_led_device =
+{
 	.name		= "leds-gpio",
 	.id		= -1,
 	.dev		= {
@@ -498,13 +529,18 @@ static inline void spitz_leds_init(void) {}
 static void spitz_ads7846_wait_for_hsync(void)
 {
 	while (gpio_get_value(SPITZ_GPIO_HSYNC))
+	{
 		cpu_relax();
+	}
 
 	while (!gpio_get_value(SPITZ_GPIO_HSYNC))
+	{
 		cpu_relax();
+	}
 }
 
-static struct ads7846_platform_data spitz_ads7846_info = {
+static struct ads7846_platform_data spitz_ads7846_info =
+{
 	.model			= 7846,
 	.vref_delay_usecs	= 100,
 	.x_plate_ohms		= 419,
@@ -514,7 +550,8 @@ static struct ads7846_platform_data spitz_ads7846_info = {
 	.wait_for_sync		= spitz_ads7846_wait_for_hsync,
 };
 
-static struct pxa2xx_spi_chip spitz_ads7846_chip = {
+static struct pxa2xx_spi_chip spitz_ads7846_chip =
+{
 	.gpio_cs		= SPITZ_GPIO_ADS7846_CS,
 };
 
@@ -523,13 +560,16 @@ static void spitz_bl_kick_battery(void)
 	void (*kick_batt)(void);
 
 	kick_batt = symbol_get(sharpsl_battery_kick);
-	if (kick_batt) {
+
+	if (kick_batt)
+	{
 		kick_batt();
 		symbol_put(sharpsl_battery_kick);
 	}
 }
 
-static struct corgi_lcd_platform_data spitz_lcdcon_info = {
+static struct corgi_lcd_platform_data spitz_lcdcon_info =
+{
 	.init_mode		= CORGI_LCD_MODE_VGA,
 	.max_intensity		= 0x2f,
 	.default_intensity	= 0x1f,
@@ -539,15 +579,18 @@ static struct corgi_lcd_platform_data spitz_lcdcon_info = {
 	.kick_battery		= spitz_bl_kick_battery,
 };
 
-static struct pxa2xx_spi_chip spitz_lcdcon_chip = {
+static struct pxa2xx_spi_chip spitz_lcdcon_chip =
+{
 	.gpio_cs	= SPITZ_GPIO_LCDCON_CS,
 };
 
-static struct pxa2xx_spi_chip spitz_max1111_chip = {
+static struct pxa2xx_spi_chip spitz_max1111_chip =
+{
 	.gpio_cs	= SPITZ_GPIO_MAX1111_CS,
 };
 
-static struct spi_board_info spitz_spi_devices[] = {
+static struct spi_board_info spitz_spi_devices[] =
+{
 	{
 		.modalias		= "ads7846",
 		.max_speed_hz		= 1200000,
@@ -572,7 +615,8 @@ static struct spi_board_info spitz_spi_devices[] = {
 	},
 };
 
-static struct pxa2xx_spi_master spitz_spi_info = {
+static struct pxa2xx_spi_master spitz_spi_info =
+{
 	.num_chipselect	= 3,
 };
 
@@ -580,7 +624,8 @@ static void __init spitz_spi_init(void)
 {
 	struct corgi_lcd_platform_data *lcd_data = &spitz_lcdcon_info;
 
-	if (machine_is_akita()) {
+	if (machine_is_akita())
+	{
 		lcd_data->gpio_backlight_cont = AKITA_GPIO_BACKLIGHT_CONT;
 		lcd_data->gpio_backlight_on = AKITA_GPIO_BACKLIGHT_ON;
 	}
@@ -602,19 +647,24 @@ static inline void spitz_spi_init(void) {}
  */
 static int spitz_mci_setpower(struct device *dev, unsigned int vdd)
 {
-	struct pxamci_platform_data* p_d = dev->platform_data;
+	struct pxamci_platform_data *p_d = dev->platform_data;
 
 	if ((1 << vdd) & p_d->ocr_mask)
+	{
 		spitz_card_pwr_ctrl(SCOOP_CPR_SD_3V, SCOOP_CPR_SD_3V);
+	}
 	else
+	{
 		spitz_card_pwr_ctrl(SCOOP_CPR_SD_3V, 0x0);
+	}
 
 	return 0;
 }
 
-static struct pxamci_platform_data spitz_mci_platform_data = {
+static struct pxamci_platform_data spitz_mci_platform_data =
+{
 	.detect_delay_ms	= 250,
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.setpower		= spitz_mci_setpower,
 	.gpio_card_detect	= SPITZ_GPIO_nSD_DETECT,
 	.gpio_card_ro		= SPITZ_GPIO_nSD_WP,
@@ -638,8 +688,11 @@ static int spitz_ohci_init(struct device *dev)
 	int err;
 
 	err = gpio_request(SPITZ_GPIO_USB_HOST, "USB_HOST");
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Only Port 2 is connected, setup USB Port 2 Output Control Register */
 	UP2OCR = UP2OCR_HXS | UP2OCR_HXOE | UP2OCR_DPPDE | UP2OCR_DMPDE;
@@ -652,7 +705,8 @@ static void spitz_ohci_exit(struct device *dev)
 	gpio_free(SPITZ_GPIO_USB_HOST);
 }
 
-static struct pxaohci_platform_data spitz_ohci_platform_data = {
+static struct pxaohci_platform_data spitz_ohci_platform_data =
+{
 	.port_mode	= PMM_NPS_MODE,
 	.init		= spitz_ohci_init,
 	.exit		= spitz_ohci_exit,
@@ -672,16 +726,21 @@ static inline void spitz_uhc_init(void) {}
  * IrDA
  ******************************************************************************/
 #if defined(CONFIG_PXA_FICP) || defined(CONFIG_PXA_FICP_MODULE)
-static struct pxaficp_platform_data spitz_ficp_platform_data = {
+static struct pxaficp_platform_data spitz_ficp_platform_data =
+{
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
 static void __init spitz_irda_init(void)
 {
 	if (machine_is_akita())
+	{
 		spitz_ficp_platform_data.gpio_pwdown = AKITA_GPIO_IR_ON;
+	}
 	else
+	{
 		spitz_ficp_platform_data.gpio_pwdown = SPITZ_GPIO_IR_ON;
+	}
 
 	pxa_set_ficp_info(&spitz_ficp_platform_data);
 }
@@ -693,7 +752,8 @@ static inline void spitz_irda_init(void) {}
  * Framebuffer
  ******************************************************************************/
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static struct pxafb_mode_info spitz_pxafb_modes[] = {
+static struct pxafb_mode_info spitz_pxafb_modes[] =
+{
 	{
 		.pixclock       = 19231,
 		.xres           = 480,
@@ -721,7 +781,8 @@ static struct pxafb_mode_info spitz_pxafb_modes[] = {
 	},
 };
 
-static struct pxafb_mach_info spitz_pxafb_info = {
+static struct pxafb_mach_info spitz_pxafb_info =
+{
 	.modes          = spitz_pxafb_modes,
 	.num_modes      = ARRAY_SIZE(spitz_pxafb_modes),
 	.fixed_modes    = 1,
@@ -740,7 +801,8 @@ static inline void spitz_lcd_init(void) {}
  * NAND Flash
  ******************************************************************************/
 #if defined(CONFIG_MTD_NAND_SHARPSL) || defined(CONFIG_MTD_NAND_SHARPSL_MODULE)
-static struct mtd_partition spitz_nand_partitions[] = {
+static struct mtd_partition spitz_nand_partitions[] =
+{
 	{
 		.name = "System Area",
 		.offset = 0,
@@ -757,7 +819,8 @@ static struct mtd_partition spitz_nand_partitions[] = {
 
 static uint8_t scan_ff_pattern[] = { 0xff, 0xff };
 
-static struct nand_bbt_descr spitz_nand_bbt = {
+static struct nand_bbt_descr spitz_nand_bbt =
+{
 	.options	= 0,
 	.offs		= 4,
 	.len		= 2,
@@ -765,26 +828,29 @@ static struct nand_bbt_descr spitz_nand_bbt = {
 };
 
 static int akita_ooblayout_ecc(struct mtd_info *mtd, int section,
-			       struct mtd_oob_region *oobregion)
+							   struct mtd_oob_region *oobregion)
 {
 	if (section > 12)
+	{
 		return -ERANGE;
+	}
 
-	switch (section % 3) {
-	case 0:
-		oobregion->offset = 5;
-		oobregion->length = 1;
-		break;
+	switch (section % 3)
+	{
+		case 0:
+			oobregion->offset = 5;
+			oobregion->length = 1;
+			break;
 
-	case 1:
-		oobregion->offset = 1;
-		oobregion->length = 3;
-		break;
+		case 1:
+			oobregion->offset = 1;
+			oobregion->length = 3;
+			break;
 
-	case 2:
-		oobregion->offset = 6;
-		oobregion->length = 2;
-		break;
+		case 2:
+			oobregion->offset = 6;
+			oobregion->length = 2;
+			break;
 	}
 
 	oobregion->offset += (section / 3) * 0x10;
@@ -793,10 +859,12 @@ static int akita_ooblayout_ecc(struct mtd_info *mtd, int section,
 }
 
 static int akita_ooblayout_free(struct mtd_info *mtd, int section,
-				struct mtd_oob_region *oobregion)
+								struct mtd_oob_region *oobregion)
 {
 	if (section)
+	{
 		return -ERANGE;
+	}
 
 	oobregion->offset = 8;
 	oobregion->length = 9;
@@ -804,18 +872,21 @@ static int akita_ooblayout_free(struct mtd_info *mtd, int section,
 	return 0;
 }
 
-static const struct mtd_ooblayout_ops akita_ooblayout_ops = {
+static const struct mtd_ooblayout_ops akita_ooblayout_ops =
+{
 	.ecc = akita_ooblayout_ecc,
 	.free = akita_ooblayout_free,
 };
 
-static struct sharpsl_nand_platform_data spitz_nand_pdata = {
+static struct sharpsl_nand_platform_data spitz_nand_pdata =
+{
 	.badblock_pattern	= &spitz_nand_bbt,
 	.partitions		= spitz_nand_partitions,
 	.nr_partitions		= ARRAY_SIZE(spitz_nand_partitions),
 };
 
-static struct resource spitz_nand_resources[] = {
+static struct resource spitz_nand_resources[] =
+{
 	{
 		.start	= PXA_CS3_PHYS,
 		.end	= PXA_CS3_PHYS + SZ_4K - 1,
@@ -823,7 +894,8 @@ static struct resource spitz_nand_resources[] = {
 	},
 };
 
-static struct platform_device spitz_nand_device = {
+static struct platform_device spitz_nand_device =
+{
 	.name		= "sharpsl-nand",
 	.id		= -1,
 	.resource	= spitz_nand_resources,
@@ -835,13 +907,18 @@ static struct platform_device spitz_nand_device = {
 
 static void __init spitz_nand_init(void)
 {
-	if (machine_is_spitz()) {
+	if (machine_is_spitz())
+	{
 		spitz_nand_partitions[1].size = 5 * 1024 * 1024;
-	} else if (machine_is_akita()) {
+	}
+	else if (machine_is_akita())
+	{
 		spitz_nand_partitions[1].size = 58 * 1024 * 1024;
 		spitz_nand_bbt.len = 1;
 		spitz_nand_pdata.ecc_layout = &akita_ooblayout_ops;
-	} else if (machine_is_borzoi()) {
+	}
+	else if (machine_is_borzoi())
+	{
 		spitz_nand_partitions[1].size = 32 * 1024 * 1024;
 		spitz_nand_bbt.len = 1;
 		spitz_nand_pdata.ecc_layout = &akita_ooblayout_ops;
@@ -857,21 +934,24 @@ static inline void spitz_nand_init(void) {}
  * NOR Flash
  ******************************************************************************/
 #if defined(CONFIG_MTD_PHYSMAP) || defined(CONFIG_MTD_PHYSMAP_MODULE)
-static struct mtd_partition spitz_rom_parts[] = {
+static struct mtd_partition spitz_rom_parts[] =
+{
 	{
-		.name	="Boot PROM Filesystem",
+		.name	= "Boot PROM Filesystem",
 		.offset	= 0x00140000,
 		.size	= MTDPART_SIZ_FULL,
 	},
 };
 
-static struct physmap_flash_data spitz_rom_data = {
+static struct physmap_flash_data spitz_rom_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(spitz_rom_parts),
 	.parts		= spitz_rom_parts,
 };
 
-static struct resource spitz_rom_resources[] = {
+static struct resource spitz_rom_resources[] =
+{
 	{
 		.start	= PXA_CS0_PHYS,
 		.end	= PXA_CS0_PHYS + SZ_8M - 1,
@@ -879,7 +959,8 @@ static struct resource spitz_rom_resources[] = {
 	},
 };
 
-static struct platform_device spitz_rom_device = {
+static struct platform_device spitz_rom_device =
+{
 	.name		= "physmap-flash",
 	.id		= -1,
 	.resource	= spitz_rom_resources,
@@ -901,11 +982,13 @@ static inline void spitz_nor_init(void) {}
  * I2C devices
  ******************************************************************************/
 #if defined(CONFIG_I2C_PXA) || defined(CONFIG_I2C_PXA_MODULE)
-static struct pca953x_platform_data akita_pca953x_pdata = {
+static struct pca953x_platform_data akita_pca953x_pdata =
+{
 	.gpio_base		= AKITA_IOEXP_GPIO_BASE,
 };
 
-static struct i2c_board_info spitz_i2c_devs[] = {
+static struct i2c_board_info spitz_i2c_devs[] =
+{
 	{
 		.type		= "wm8750",
 		.addr		= 0x1b,
@@ -916,11 +999,13 @@ static struct i2c_board_info spitz_i2c_devs[] = {
 	},
 };
 
-static struct regulator_consumer_supply isl6271a_consumers[] = {
+static struct regulator_consumer_supply isl6271a_consumers[] =
+{
 	REGULATOR_SUPPLY("vcc_core", NULL),
 };
 
-static struct regulator_init_data isl6271a_info[] = {
+static struct regulator_init_data isl6271a_info[] =
+{
 	{
 		.constraints = {
 			.name		= "vcc_core range",
@@ -929,12 +1014,13 @@ static struct regulator_init_data isl6271a_info[] = {
 			.always_on	= 1,
 			.valid_ops_mask	= REGULATOR_CHANGE_VOLTAGE,
 		},
-	.consumer_supplies	= isl6271a_consumers,
-	.num_consumer_supplies	= ARRAY_SIZE(isl6271a_consumers),
+		.consumer_supplies	= isl6271a_consumers,
+		.num_consumer_supplies	= ARRAY_SIZE(isl6271a_consumers),
 	}
 };
 
-static struct i2c_board_info spitz_pi2c_devs[] = {
+static struct i2c_board_info spitz_pi2c_devs[] =
+{
 	{
 		.type		= "isl6271a",
 		.addr		= 0x0c,
@@ -948,7 +1034,9 @@ static void __init spitz_i2c_init(void)
 
 	/* Only Akita has the max7310 chip */
 	if (!machine_is_akita())
+	{
 		size--;
+	}
 
 	pxa_set_i2c_info(NULL);
 	pxa27x_set_i2c_power_info(NULL);
@@ -978,9 +1066,12 @@ static void spitz_poweroff(void)
 static void spitz_restart(enum reboot_mode mode, const char *cmd)
 {
 	uint32_t msc0 = __raw_readl(MSC0);
+
 	/* Bootloader magic for a reboot */
 	if ((msc0 & 0xffff0000) == 0x7ff00000)
+	{
 		__raw_writel((msc0 & 0xffff) | 0x7ee00000, MSC0);
+	}
 
 	spitz_poweroff();
 }
@@ -1026,7 +1117,7 @@ static void __init spitz_fixup(struct tag *tags, char **cmdline)
 }
 
 #ifdef CONFIG_MACH_SPITZ
-MACHINE_START(SPITZ, "SHARP Spitz")
+	MACHINE_START(SPITZ, "SHARP Spitz")
 	.fixup		= spitz_fixup,
 	.map_io		= pxa27x_map_io,
 	.nr_irqs	= PXA_NR_IRQS,
@@ -1035,11 +1126,11 @@ MACHINE_START(SPITZ, "SHARP Spitz")
 	.init_machine	= spitz_init,
 	.init_time	= pxa_timer_init,
 	.restart	= spitz_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_BORZOI
-MACHINE_START(BORZOI, "SHARP Borzoi")
+	MACHINE_START(BORZOI, "SHARP Borzoi")
 	.fixup		= spitz_fixup,
 	.map_io		= pxa27x_map_io,
 	.nr_irqs	= PXA_NR_IRQS,
@@ -1048,11 +1139,11 @@ MACHINE_START(BORZOI, "SHARP Borzoi")
 	.init_machine	= spitz_init,
 	.init_time	= pxa_timer_init,
 	.restart	= spitz_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_AKITA
-MACHINE_START(AKITA, "SHARP Akita")
+	MACHINE_START(AKITA, "SHARP Akita")
 	.fixup		= spitz_fixup,
 	.map_io		= pxa27x_map_io,
 	.nr_irqs	= PXA_NR_IRQS,
@@ -1061,5 +1152,5 @@ MACHINE_START(AKITA, "SHARP Akita")
 	.init_machine	= spitz_init,
 	.init_time	= pxa_timer_init,
 	.restart	= spitz_restart,
-MACHINE_END
+	MACHINE_END
 #endif

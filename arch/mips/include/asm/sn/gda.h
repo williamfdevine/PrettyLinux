@@ -43,7 +43,8 @@
 
 #ifndef __ASSEMBLY__
 
-typedef struct gda {
+typedef struct gda
+{
 	u32	g_magic;	/* GDA magic number */
 	u16	g_version;	/* Version of this structure */
 	u16	g_masterid;	/* The NASID:CPUNUM of the master cpu */
@@ -57,8 +58,8 @@ typedef struct gda {
 	void	*g_dbstab;	/* Address of idbg symbol table */
 	char	*g_nametab;	/* Address of idbg name table */
 	void	*g_ktext_repmask;
-				/* Pointer to a mask of nodes with copies
-				 * of the kernel. */
+	/* Pointer to a mask of nodes with copies
+	 * of the kernel. */
 	char	g_padding[56];	/* pad out to 128 bytes */
 	nasid_t g_nasidtable[MAX_COMPACT_NODES]; /* NASID of each node,
 						  * indexed by cnodeid.

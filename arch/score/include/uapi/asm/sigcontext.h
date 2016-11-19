@@ -5,7 +5,8 @@
  * Keep this struct definition in sync with the sigcontext fragment
  * in arch/score/tools/offset.c
  */
-struct sigcontext {
+struct sigcontext
+{
 	unsigned int		sc_regmask;
 	unsigned int		sc_psr;
 	unsigned int		sc_condition;

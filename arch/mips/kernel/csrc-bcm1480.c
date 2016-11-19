@@ -30,7 +30,8 @@ static cycle_t bcm1480_hpt_read(struct clocksource *cs)
 	return (cycle_t) __raw_readq(IOADDR(A_SCD_ZBBUS_CYCLE_COUNT));
 }
 
-struct clocksource bcm1480_clocksource = {
+struct clocksource bcm1480_clocksource =
+{
 	.name	= "zbbus-cycles",
 	.rating = 200,
 	.read	= bcm1480_hpt_read,

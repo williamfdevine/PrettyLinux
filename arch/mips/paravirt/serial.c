@@ -16,7 +16,7 @@
 int prom_putchar(char c)
 {
 	kvm_hypercall3(KVM_HC_MIPS_CONSOLE_OUTPUT, 0 /*  port 0 */,
-		(unsigned long)&c, 1 /* len == 1 */);
+				   (unsigned long)&c, 1 /* len == 1 */);
 
 	return 1;
 }
@@ -25,7 +25,7 @@ int prom_putchar(char c)
 static int paravirt_put_chars(u32 vtermno, const char *buf, int count)
 {
 	kvm_hypercall3(KVM_HC_MIPS_CONSOLE_OUTPUT, vtermno,
-		(unsigned long)buf, count);
+				   (unsigned long)buf, count);
 
 	return count;
 }

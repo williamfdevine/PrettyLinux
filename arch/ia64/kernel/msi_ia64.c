@@ -13,7 +13,7 @@ static struct irq_chip	ia64_msi_chip;
 
 #ifdef CONFIG_SMP
 static int ia64_set_msi_irq_affinity(struct irq_data *idata,
-				     const cpumask_t *cpu_mask, bool force)
+									 const cpumask_t *cpu_mask, bool force)
 {
 	struct msi_msg msg;
 	u32 addr, data;
@@ -21,7 +21,9 @@ static int ia64_set_msi_irq_affinity(struct irq_data *idata,
 	unsigned int irq = idata->irq;
 
 	if (irq_prepare_move(irq, cpu))
+	{
 		return -1;
+	}
 
 	__get_cached_msi_msg(irq_data_get_msi_desc(idata), &msg);
 
@@ -49,12 +51,15 @@ int ia64_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 	int	irq, vector;
 
 	irq = create_irq();
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	irq_set_msi_desc(irq, desc);
 	dest_phys_id = cpu_physical_id(cpumask_any_and(&(irq_to_domain(irq)),
-						       cpu_online_mask));
+								   cpu_online_mask));
 	vector = irq_to_vector(irq);
 
 	msg.address_hi = 0;
@@ -99,7 +104,8 @@ static int ia64_msi_retrigger_irq(struct irq_data *data)
 /*
  * Generic ops used on most IA64 platforms.
  */
-static struct irq_chip ia64_msi_chip = {
+static struct irq_chip ia64_msi_chip =
+{
 	.name			= "PCI-MSI",
 	.irq_mask		= pci_msi_mask_irq,
 	.irq_unmask		= pci_msi_unmask_irq,
@@ -114,7 +120,9 @@ static struct irq_chip ia64_msi_chip = {
 int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 {
 	if (platform_setup_msi_irq)
+	{
 		return platform_setup_msi_irq(pdev, desc);
+	}
 
 	return ia64_setup_msi_irq(pdev, desc);
 }
@@ -122,7 +130,9 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 void arch_teardown_msi_irq(unsigned int irq)
 {
 	if (platform_teardown_msi_irq)
+	{
 		return platform_teardown_msi_irq(irq);
+	}
 
 	return ia64_teardown_msi_irq(irq);
 }
@@ -130,7 +140,7 @@ void arch_teardown_msi_irq(unsigned int irq)
 #ifdef CONFIG_INTEL_IOMMU
 #ifdef CONFIG_SMP
 static int dmar_msi_set_affinity(struct irq_data *data,
-				 const struct cpumask *mask, bool force)
+								 const struct cpumask *mask, bool force)
 {
 	unsigned int irq = data->irq;
 	struct irq_cfg *cfg = irq_cfg + irq;
@@ -138,7 +148,9 @@ static int dmar_msi_set_affinity(struct irq_data *data,
 	int cpu = cpumask_first_and(mask, cpu_online_mask);
 
 	if (irq_prepare_move(irq, cpu))
+	{
 		return -1;
+	}
 
 	dmar_msi_read(irq, &msg);
 
@@ -154,7 +166,8 @@ static int dmar_msi_set_affinity(struct irq_data *data,
 }
 #endif /* CONFIG_SMP */
 
-static struct irq_chip dmar_msi_type = {
+static struct irq_chip dmar_msi_type =
+{
 	.name = "DMAR_MSI",
 	.irq_unmask = dmar_msi_unmask,
 	.irq_mask = dmar_msi_mask,
@@ -172,7 +185,7 @@ msi_compose_msg(struct pci_dev *pdev, unsigned int irq, struct msi_msg *msg)
 	unsigned dest;
 
 	dest = cpu_physical_id(cpumask_first_and(&(irq_to_domain(irq)),
-						 cpu_online_mask));
+						   cpu_online_mask));
 
 	msg->address_hi = 0;
 	msg->address_lo =
@@ -194,10 +207,12 @@ int dmar_alloc_hwirq(int id, int node, void *arg)
 	struct msi_msg msg;
 
 	irq = create_irq();
-	if (irq > 0) {
+
+	if (irq > 0)
+	{
 		irq_set_handler_data(irq, arg);
 		irq_set_chip_and_handler_name(irq, &dmar_msi_type,
-					      handle_edge_irq, "edge");
+									  handle_edge_irq, "edge");
 		msi_compose_msg(NULL, irq, &msg);
 		dmar_msi_write(irq, &msg);
 	}

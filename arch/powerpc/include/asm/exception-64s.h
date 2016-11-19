@@ -72,23 +72,23 @@
 #define EXCEPTION_RELON_PROLOG_PSERIES_1(label, h)			\
 	__EXCEPTION_RELON_PROLOG_PSERIES_1(label, h)			\
 
-/*
- * As EXCEPTION_PROLOG_PSERIES(), except we've already got relocation on
- * so no need to rfid.  Save lr in case we're CONFIG_RELOCATABLE, in which
- * case EXCEPTION_RELON_PROLOG_PSERIES_1 will be using lr.
- */
+	/*
+	 * As EXCEPTION_PROLOG_PSERIES(), except we've already got relocation on
+	 * so no need to rfid.  Save lr in case we're CONFIG_RELOCATABLE, in which
+	 * case EXCEPTION_RELON_PROLOG_PSERIES_1 will be using lr.
+	 */
 #define EXCEPTION_RELON_PROLOG_PSERIES(area, label, h, extra, vec)	\
 	EXCEPTION_PROLOG_0(area);					\
 	EXCEPTION_PROLOG_1(area, extra, vec);				\
 	EXCEPTION_RELON_PROLOG_PSERIES_1(label, h)
 
-/*
- * We're short on space and time in the exception prolog, so we can't
- * use the normal LOAD_REG_IMMEDIATE macro to load the address of label.
- * Instead we get the base of the kernel from paca->kernelbase and or in the low
- * part of label. This requires that the label be within 64KB of kernelbase, and
- * that kernelbase be 64K aligned.
- */
+	/*
+	 * We're short on space and time in the exception prolog, so we can't
+	 * use the normal LOAD_REG_IMMEDIATE macro to load the address of label.
+	 * Instead we get the base of the kernel from paca->kernelbase and or in the low
+	 * part of label. This requires that the label be within 64KB of kernelbase, and
+	 * that kernelbase be 64K aligned.
+	 */
 #define LOAD_HANDLER(reg, label)					\
 	ld	reg,PACAKBASE(r13);	/* get high part of &label */	\
 	ori	reg,reg,(FIXED_SYMBOL_ABS_ADDR(label))@l;
@@ -97,66 +97,66 @@
 	ld	reg,PACAKBASE(r13);					\
 	ori	reg,reg,(ABS_ADDR(label))@l;
 
-/* Exception register prefixes */
+	/* Exception register prefixes */
 #define EXC_HV	H
 #define EXC_STD
 
 #if defined(CONFIG_RELOCATABLE)
-/*
- * If we support interrupts with relocation on AND we're a relocatable kernel,
- * we need to use CTR to get to the 2nd level handler.  So, save/restore it
- * when required.
- */
-#define SAVE_CTR(reg, area)	mfctr	reg ; 	std	reg,area+EX_CTR(r13)
-#define GET_CTR(reg, area) 			ld	reg,area+EX_CTR(r13)
-#define RESTORE_CTR(reg, area)	ld	reg,area+EX_CTR(r13) ; mtctr reg
+	/*
+	* If we support interrupts with relocation on AND we're a relocatable kernel,
+	* we need to use CTR to get to the 2nd level handler.  So, save/restore it
+	* when required.
+	*/
+	#define SAVE_CTR(reg, area)	mfctr	reg ; 	std	reg,area+EX_CTR(r13)
+	#define GET_CTR(reg, area) 			ld	reg,area+EX_CTR(r13)
+	#define RESTORE_CTR(reg, area)	ld	reg,area+EX_CTR(r13) ; mtctr reg
 #else
-/* ...else CTR is unused and in register. */
-#define SAVE_CTR(reg, area)
-#define GET_CTR(reg, area) 	mfctr	reg
-#define RESTORE_CTR(reg, area)
+	/* ...else CTR is unused and in register. */
+	#define SAVE_CTR(reg, area)
+	#define GET_CTR(reg, area) 	mfctr	reg
+	#define RESTORE_CTR(reg, area)
 #endif
 
-/*
- * PPR save/restore macros used in exceptions_64s.S  
- * Used for P7 or later processors
- */
+	/*
+	 * PPR save/restore macros used in exceptions_64s.S
+	 * Used for P7 or later processors
+	 */
 #define SAVE_PPR(area, ra, rb)						\
-BEGIN_FTR_SECTION_NESTED(940)						\
+	BEGIN_FTR_SECTION_NESTED(940)						\
 	ld	ra,PACACURRENT(r13);					\
 	ld	rb,area+EX_PPR(r13);	/* Read PPR from paca */	\
 	std	rb,TASKTHREADPPR(ra);					\
-END_FTR_SECTION_NESTED(CPU_FTR_HAS_PPR,CPU_FTR_HAS_PPR,940)
+	END_FTR_SECTION_NESTED(CPU_FTR_HAS_PPR,CPU_FTR_HAS_PPR,940)
 
 #define RESTORE_PPR_PACA(area, ra)					\
-BEGIN_FTR_SECTION_NESTED(941)						\
+	BEGIN_FTR_SECTION_NESTED(941)						\
 	ld	ra,area+EX_PPR(r13);					\
 	mtspr	SPRN_PPR,ra;						\
-END_FTR_SECTION_NESTED(CPU_FTR_HAS_PPR,CPU_FTR_HAS_PPR,941)
+	END_FTR_SECTION_NESTED(CPU_FTR_HAS_PPR,CPU_FTR_HAS_PPR,941)
 
-/*
- * Get an SPR into a register if the CPU has the given feature
- */
+	/*
+	 * Get an SPR into a register if the CPU has the given feature
+	 */
 #define OPT_GET_SPR(ra, spr, ftr)					\
-BEGIN_FTR_SECTION_NESTED(943)						\
+	BEGIN_FTR_SECTION_NESTED(943)						\
 	mfspr	ra,spr;							\
-END_FTR_SECTION_NESTED(ftr,ftr,943)
+	END_FTR_SECTION_NESTED(ftr,ftr,943)
 
-/*
- * Set an SPR from a register if the CPU has the given feature
- */
+	/*
+	 * Set an SPR from a register if the CPU has the given feature
+	 */
 #define OPT_SET_SPR(ra, spr, ftr)					\
-BEGIN_FTR_SECTION_NESTED(943)						\
+	BEGIN_FTR_SECTION_NESTED(943)						\
 	mtspr	spr,ra;							\
-END_FTR_SECTION_NESTED(ftr,ftr,943)
+	END_FTR_SECTION_NESTED(ftr,ftr,943)
 
-/*
- * Save a register to the PACA if the CPU has the given feature
- */
+	/*
+	 * Save a register to the PACA if the CPU has the given feature
+	 */
 #define OPT_SAVE_REG_TO_PACA(offset, ra, ftr)				\
-BEGIN_FTR_SECTION_NESTED(943)						\
+	BEGIN_FTR_SECTION_NESTED(943)						\
 	std	ra,offset(r13);						\
-END_FTR_SECTION_NESTED(ftr,ftr,943)
+	END_FTR_SECTION_NESTED(ftr,ftr,943)
 
 #define EXCEPTION_PROLOG_0(area)					\
 	GET_PACA(r13);							\
@@ -202,14 +202,14 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 	bne	do_kvm_##h##n
 
 #ifdef CONFIG_KVM_BOOK3S_HV_POSSIBLE
-/*
- * If hv is possible, interrupts come into to the hv version
- * of the kvmppc_interrupt code, which then jumps to the PR handler,
- * kvmppc_interrupt_pr, if the guest is a PR guest.
- */
-#define kvmppc_interrupt kvmppc_interrupt_hv
+	/*
+	* If hv is possible, interrupts come into to the hv version
+	* of the kvmppc_interrupt code, which then jumps to the PR handler,
+	* kvmppc_interrupt_pr, if the guest is a PR guest.
+	*/
+	#define kvmppc_interrupt kvmppc_interrupt_hv
 #else
-#define kvmppc_interrupt kvmppc_interrupt_pr
+	#define kvmppc_interrupt kvmppc_interrupt_pr
 #endif
 
 #ifdef CONFIG_RELOCATABLE
@@ -256,40 +256,40 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 	std	r12,HSTATE_SCRATCH0(r13);				\
 	li	r12,n;							\
 	b	kvmppc_interrupt;					\
-89:	mtocrf	0x80,r9;						\
+	89:	mtocrf	0x80,r9;						\
 	ld	r9,area+EX_R9(r13);					\
 	b	kvmppc_skip_##h##interrupt
 
 #ifdef CONFIG_KVM_BOOK3S_64_HANDLER
-#define KVMTEST(h, n)			__KVMTEST(h, n)
-#define KVM_HANDLER(area, h, n)		__KVM_HANDLER(area, h, n)
-#define KVM_HANDLER_SKIP(area, h, n)	__KVM_HANDLER_SKIP(area, h, n)
+	#define KVMTEST(h, n)			__KVMTEST(h, n)
+	#define KVM_HANDLER(area, h, n)		__KVM_HANDLER(area, h, n)
+	#define KVM_HANDLER_SKIP(area, h, n)	__KVM_HANDLER_SKIP(area, h, n)
 
 #else
-#define KVMTEST(h, n)
-#define KVM_HANDLER(area, h, n)
-#define KVM_HANDLER_SKIP(area, h, n)
+	#define KVMTEST(h, n)
+	#define KVM_HANDLER(area, h, n)
+	#define KVM_HANDLER_SKIP(area, h, n)
 #endif
 
 #define NOTEST(n)
 
-/*
- * The common exception prolog is used for all except a few exceptions
- * such as a segment miss on a kernel address.  We have to be prepared
- * to take another exception from the point where we first touch the
- * kernel stack onwards.
- *
- * On entry r13 points to the paca, r9-r13 are saved in the paca,
- * r9 contains the saved CR, r11 and r12 contain the saved SRR0 and
- * SRR1, and relocation is on.
- */
+	/*
+	 * The common exception prolog is used for all except a few exceptions
+	 * such as a segment miss on a kernel address.  We have to be prepared
+	 * to take another exception from the point where we first touch the
+	 * kernel stack onwards.
+	 *
+	 * On entry r13 points to the paca, r9-r13 are saved in the paca,
+	 * r9 contains the saved CR, r11 and r12 contain the saved SRR0 and
+	 * SRR1, and relocation is on.
+	 */
 #define EXCEPTION_PROLOG_COMMON(n, area)				   \
 	andi.	r10,r12,MSR_PR;		/* See if coming from user	*/ \
 	mr	r10,r1;			/* Save r1			*/ \
 	subi	r1,r1,INT_FRAME_SIZE;	/* alloc frame on kernel stack	*/ \
 	beq-	1f;							   \
 	ld	r1,PACAKSAVE(r13);	/* kernel stack to use		*/ \
-1:	cmpdi	cr1,r1,-INT_FRAME_SIZE;	/* check if r1 is in userspace	*/ \
+	1:	cmpdi	cr1,r1,-INT_FRAME_SIZE;	/* check if r1 is in userspace	*/ \
 	blt+	cr1,3f;			/* abort if it is		*/ \
 	li	r1,(n);			/* will be reloaded later	*/ \
 	sth	r1,PACA_TRAP_SAVE(r13);					   \
@@ -297,7 +297,7 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 	addi	r3,r13,area;		/* r3 -> where regs are saved*/	   \
 	RESTORE_CTR(r1, area);						   \
 	b	bad_stack;						   \
-3:	std	r9,_CCR(r1);		/* save CR in stackframe	*/ \
+	3:	std	r9,_CCR(r1);		/* save CR in stackframe	*/ \
 	std	r11,_NIP(r1);		/* save SRR0 in stackframe	*/ \
 	std	r12,_MSR(r1);		/* save SRR1 in stackframe	*/ \
 	std	r10,0(r1);		/* make stack chain pointer	*/ \
@@ -306,11 +306,11 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 	beq	4f;			/* if from kernel mode		*/ \
 	ACCOUNT_CPU_USER_ENTRY(r13, r9, r10);				   \
 	SAVE_PPR(area, r9, r10);					   \
-4:	EXCEPTION_PROLOG_COMMON_2(area)					   \
+	4:	EXCEPTION_PROLOG_COMMON_2(area)					   \
 	EXCEPTION_PROLOG_COMMON_3(n)					   \
 	ACCOUNT_STOLEN_TIME
 
-/* Save original regs values from save area to stack frame. */
+	/* Save original regs values from save area to stack frame. */
 #define EXCEPTION_PROLOG_COMMON_2(area)					   \
 	ld	r9,area+EX_R9(r13);	/* move r9, r10 to stackframe	*/ \
 	ld	r10,area+EX_R10(r13);					   \
@@ -347,15 +347,15 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 	std	r10,RESULT(r1);		/* clear regs->result		*/ \
 	std	r11,STACK_FRAME_OVERHEAD-16(r1); /* mark the frame	*/
 
-/*
- * Exception vectors.
- */
+	/*
+	 * Exception vectors.
+	 */
 #define STD_EXCEPTION_PSERIES(vec, label)			\
 	SET_SCRATCH0(r13);		/* save r13 */		\
 	EXCEPTION_PROLOG_PSERIES(PACA_EXGEN, label,		\
-				 EXC_STD, KVMTEST_PR, vec);	\
+							 EXC_STD, KVMTEST_PR, vec);	\
 
-/* Version of above for when we have to branch out-of-line */
+	/* Version of above for when we have to branch out-of-line */
 #define __OOL_EXCEPTION(vec, label, hdlr)			\
 	SET_SCRATCH0(r13)					\
 	EXCEPTION_PROLOG_0(PACA_EXGEN)				\
@@ -368,7 +368,7 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 #define STD_EXCEPTION_HV(loc, vec, label)			\
 	SET_SCRATCH0(r13);	/* save r13 */			\
 	EXCEPTION_PROLOG_PSERIES(PACA_EXGEN, label,		\
-				 EXC_HV, KVMTEST_HV, vec);
+							 EXC_HV, KVMTEST_HV, vec);
 
 #define STD_EXCEPTION_HV_OOL(vec, label)			\
 	EXCEPTION_PROLOG_1(PACA_EXGEN, KVMTEST_HV, vec);	\
@@ -392,7 +392,7 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 	EXCEPTION_PROLOG_1(PACA_EXGEN, NOTEST, vec);		\
 	EXCEPTION_RELON_PROLOG_PSERIES_1(label, EXC_HV)
 
-/* This associate vector numbers with bits in paca->irq_happened */
+	/* This associate vector numbers with bits in paca->irq_happened */
 #define SOFTEN_VALUE_0x500	PACA_IRQ_EE
 #define SOFTEN_VALUE_0x900	PACA_IRQ_DEC
 #define SOFTEN_VALUE_0x980	PACA_IRQ_DEC
@@ -437,7 +437,7 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 
 #define MASKABLE_EXCEPTION_PSERIES(loc, vec, label)			\
 	_MASKABLE_EXCEPTION_PSERIES(vec, label,				\
-				    EXC_STD, SOFTEN_TEST_PR)
+								EXC_STD, SOFTEN_TEST_PR)
 
 #define MASKABLE_EXCEPTION_PSERIES_OOL(vec, label)			\
 	EXCEPTION_PROLOG_1(PACA_EXGEN, SOFTEN_TEST_PR, vec);		\
@@ -445,7 +445,7 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 
 #define MASKABLE_EXCEPTION_HV(loc, vec, label)				\
 	_MASKABLE_EXCEPTION_PSERIES(vec, label,				\
-				    EXC_HV, SOFTEN_TEST_HV)
+								EXC_HV, SOFTEN_TEST_HV)
 
 #define MASKABLE_EXCEPTION_HV_OOL(vec, label)				\
 	EXCEPTION_PROLOG_1(PACA_EXGEN, SOFTEN_TEST_HV, vec);		\
@@ -462,38 +462,38 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 
 #define MASKABLE_RELON_EXCEPTION_PSERIES(loc, vec, label)		\
 	_MASKABLE_RELON_EXCEPTION_PSERIES(vec, label,			\
-					  EXC_STD, SOFTEN_NOTEST_PR)
+									  EXC_STD, SOFTEN_NOTEST_PR)
 
 #define MASKABLE_RELON_EXCEPTION_HV(loc, vec, label)			\
 	_MASKABLE_RELON_EXCEPTION_PSERIES(vec, label,			\
-					  EXC_HV, SOFTEN_NOTEST_HV)
+									  EXC_HV, SOFTEN_NOTEST_HV)
 
 #define MASKABLE_RELON_EXCEPTION_HV_OOL(vec, label)			\
 	EXCEPTION_PROLOG_1(PACA_EXGEN, SOFTEN_NOTEST_HV, vec);		\
 	EXCEPTION_PROLOG_PSERIES_1(label, EXC_HV)
 
-/*
- * Our exception common code can be passed various "additions"
- * to specify the behaviour of interrupts, whether to kick the
- * runlatch, etc...
- */
+	/*
+	 * Our exception common code can be passed various "additions"
+	 * to specify the behaviour of interrupts, whether to kick the
+	 * runlatch, etc...
+	 */
 
-/*
- * This addition reconciles our actual IRQ state with the various software
- * flags that track it. This may call C code.
- */
+	/*
+	 * This addition reconciles our actual IRQ state with the various software
+	 * flags that track it. This may call C code.
+	 */
 #define ADD_RECONCILE	RECONCILE_IRQ_STATE(r10,r11)
 
 #define ADD_NVGPRS				\
 	bl	save_nvgprs
 
 #define RUNLATCH_ON				\
-BEGIN_FTR_SECTION				\
+	BEGIN_FTR_SECTION				\
 	CURRENT_THREAD_INFO(r3, r1);		\
 	ld	r4,TI_LOCAL_FLAGS(r3);		\
 	andi.	r0,r4,_TLF_RUNLATCH;		\
 	beql	ppc64_runlatch_on_trampoline;	\
-END_FTR_SECTION_IFSET(CPU_FTR_CTRL)
+	END_FTR_SECTION_IFSET(CPU_FTR_CTRL)
 
 #define EXCEPTION_COMMON(trap, label, hdlr, ret, additions)	\
 	EXCEPTION_PROLOG_COMMON(trap, PACA_EXGEN);		\
@@ -505,32 +505,32 @@ END_FTR_SECTION_IFSET(CPU_FTR_CTRL)
 
 #define STD_EXCEPTION_COMMON(trap, label, hdlr)			\
 	EXCEPTION_COMMON(trap, label, hdlr, ret_from_except,	\
-			 ADD_NVGPRS;ADD_RECONCILE)
+					 ADD_NVGPRS;ADD_RECONCILE)
 
-/*
- * Like STD_EXCEPTION_COMMON, but for exceptions that can occur
- * in the idle task and therefore need the special idle handling
- * (finish nap and runlatch)
- */
+	/*
+	 * Like STD_EXCEPTION_COMMON, but for exceptions that can occur
+	 * in the idle task and therefore need the special idle handling
+	 * (finish nap and runlatch)
+	 */
 #define STD_EXCEPTION_COMMON_ASYNC(trap, label, hdlr)		  \
 	EXCEPTION_COMMON(trap, label, hdlr, ret_from_except_lite, \
-			 FINISH_NAP;ADD_RECONCILE;RUNLATCH_ON)
+					 FINISH_NAP;ADD_RECONCILE;RUNLATCH_ON)
 
-/*
- * When the idle code in power4_idle puts the CPU into NAP mode,
- * it has to do so in a loop, and relies on the external interrupt
- * and decrementer interrupt entry code to get it out of the loop.
- * It sets the _TLF_NAPPING bit in current_thread_info()->local_flags
- * to signal that it is in the loop and needs help to get out.
- */
+	/*
+	 * When the idle code in power4_idle puts the CPU into NAP mode,
+	 * it has to do so in a loop, and relies on the external interrupt
+	 * and decrementer interrupt entry code to get it out of the loop.
+	 * It sets the _TLF_NAPPING bit in current_thread_info()->local_flags
+	 * to signal that it is in the loop and needs help to get out.
+	 */
 #ifdef CONFIG_PPC_970_NAP
 #define FINISH_NAP				\
-BEGIN_FTR_SECTION				\
+	BEGIN_FTR_SECTION				\
 	CURRENT_THREAD_INFO(r11, r1);		\
 	ld	r9,TI_LOCAL_FLAGS(r11);		\
 	andi.	r10,r9,_TLF_NAPPING;		\
 	bnel	power4_fixup_nap;		\
-END_FTR_SECTION_IFSET(CPU_FTR_CAN_NAP)
+	END_FTR_SECTION_IFSET(CPU_FTR_CAN_NAP)
 #else
 #define FINISH_NAP
 #endif

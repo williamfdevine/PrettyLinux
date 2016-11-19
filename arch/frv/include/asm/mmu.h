@@ -11,7 +11,8 @@
 #ifndef _ASM_MMU_H
 #define _ASM_MMU_H
 
-typedef struct {
+typedef struct
+{
 #ifdef CONFIG_MMU
 	struct list_head id_link;		/* link in list of context ID owners */
 	unsigned short	id;			/* MMU context ID */
@@ -34,8 +35,8 @@ typedef struct {
 } mm_context_t;
 
 #ifdef CONFIG_MMU
-extern int __nongpreldata cxn_pinned;
-extern int cxn_pin_by_pid(pid_t pid);
+	extern int __nongpreldata cxn_pinned;
+	extern int cxn_pin_by_pid(pid_t pid);
 #endif
 
 #endif /* _ASM_MMU_H */

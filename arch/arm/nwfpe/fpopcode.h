@@ -26,18 +26,18 @@
 
 /*
 ARM Floating Point Instruction Classes
-| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 |c o n d|1 1 0 P|U|u|W|L|   Rn  |v|  Fd |0|0|0|1|  o f f s e t  | CPDT
 |c o n d|1 1 0 P|U|w|W|L|   Rn  |x|  Fd |0|0|1|0|  o f f s e t  | CPDT (copro 2)
-| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 |c o n d|1 1 1 0|a|b|c|d|e|  Fn |j|  Fd |0|0|0|1|f|g|h|0|i|  Fm | CPDO
 |c o n d|1 1 1 0|a|b|c|L|e|  Fn |   Rd  |0|0|0|1|f|g|h|1|i|  Fm | CPRT
 |c o n d|1 1 1 0|a|b|c|1|e|  Fn |1|1|1|1|0|0|0|1|f|g|h|1|i|  Fm | comparisons
-| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | 
+| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
 
 CPDT		data transfer instructions
 		LDF, STF, LFM (copro 2), SFM (copro 2)
-		
+
 CPDO		dyadic arithmetic instructions
 		ADF, MUF, SUF, RSF, DVF, RDF,
 		POW, RPW, RMF, FML, FDV, FRD, POL
@@ -45,7 +45,7 @@ CPDO		dyadic arithmetic instructions
 CPDO		monadic arithmetic instructions
 		MVF, MNF, ABS, RND, SQT, LOG, LGN, EXP,
 		SIN, COS, TAN, ASN, ACS, ATN, URD, NRM
-		
+
 CPRT		joint arithmetic/data transfer instructions
 		FIX (arithmetic followed by load/store)
 		FLT (load/store followed by arithmetic)
@@ -59,7 +59,7 @@ U		up/down bit: 0 = stack grows down, 1 = stack grows up
 W		write back bit: 1 = update base register (Rn)
 L		load/store bit: 0 = store, 1 = load
 Rn		base register
-Rd		destination/source register		
+Rd		destination/source register
 Fd		floating point destination register
 Fn		floating point source register
 Fm		floating point source register or floating point constant
@@ -392,18 +392,22 @@ static inline unsigned int getTransferLength(const unsigned int opcode)
 {
 	unsigned int nRc;
 
-	switch (opcode & MASK_TRANSFER_LENGTH) {
-	case 0x00000000:
-		nRc = 1;
-		break;		/* single precision */
-	case 0x00008000:
-		nRc = 2;
-		break;		/* double precision */
-	case 0x00400000:
-		nRc = 3;
-		break;		/* extended precision */
-	default:
-		nRc = 0;
+	switch (opcode & MASK_TRANSFER_LENGTH)
+	{
+		case 0x00000000:
+			nRc = 1;
+			break;		/* single precision */
+
+		case 0x00008000:
+			nRc = 2;
+			break;		/* double precision */
+
+		case 0x00400000:
+			nRc = 3;
+			break;		/* extended precision */
+
+		default:
+			nRc = 0;
 	}
 
 	return (nRc);
@@ -413,21 +417,26 @@ static inline unsigned int getRegisterCount(const unsigned int opcode)
 {
 	unsigned int nRc;
 
-	switch (opcode & MASK_REGISTER_COUNT) {
-	case 0x00000000:
-		nRc = 4;
-		break;
-	case 0x00008000:
-		nRc = 1;
-		break;
-	case 0x00400000:
-		nRc = 2;
-		break;
-	case 0x00408000:
-		nRc = 3;
-		break;
-	default:
-		nRc = 0;
+	switch (opcode & MASK_REGISTER_COUNT)
+	{
+		case 0x00000000:
+			nRc = 4;
+			break;
+
+		case 0x00008000:
+			nRc = 1;
+			break;
+
+		case 0x00400000:
+			nRc = 2;
+			break;
+
+		case 0x00408000:
+			nRc = 3;
+			break;
+
+		default:
+			nRc = 0;
 	}
 
 	return (nRc);
@@ -437,18 +446,22 @@ static inline unsigned int getRoundingPrecision(const unsigned int opcode)
 {
 	unsigned int nRc;
 
-	switch (opcode & MASK_ROUNDING_PRECISION) {
-	case 0x00000000:
-		nRc = 1;
-		break;
-	case 0x00000080:
-		nRc = 2;
-		break;
-	case 0x00080000:
-		nRc = 3;
-		break;
-	default:
-		nRc = 0;
+	switch (opcode & MASK_ROUNDING_PRECISION)
+	{
+		case 0x00000000:
+			nRc = 1;
+			break;
+
+		case 0x00000080:
+			nRc = 2;
+			break;
+
+		case 0x00080000:
+			nRc = 3;
+			break;
+
+		default:
+			nRc = 0;
 	}
 
 	return (nRc);
@@ -458,18 +471,22 @@ static inline unsigned int getDestinationSize(const unsigned int opcode)
 {
 	unsigned int nRc;
 
-	switch (opcode & MASK_DESTINATION_SIZE) {
-	case 0x00000000:
-		nRc = typeSingle;
-		break;
-	case 0x00000080:
-		nRc = typeDouble;
-		break;
-	case 0x00080000:
-		nRc = typeExtended;
-		break;
-	default:
-		nRc = typeNone;
+	switch (opcode & MASK_DESTINATION_SIZE)
+	{
+		case 0x00000000:
+			nRc = typeSingle;
+			break;
+
+		case 0x00000080:
+			nRc = typeDouble;
+			break;
+
+		case 0x00080000:
+			nRc = typeExtended;
+			break;
+
+		default:
+			nRc = typeNone;
 	}
 
 	return (nRc);

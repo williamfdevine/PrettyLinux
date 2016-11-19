@@ -33,7 +33,9 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
 		: "t");
 
 	if (unlikely(!__done || __res != 0))
+	{
 		fail_fn(count);
+	}
 }
 
 static inline int
@@ -51,7 +53,9 @@ __mutex_fastpath_lock_retval(atomic_t *count)
 		: "t");
 
 	if (unlikely(!__done || __res != 0))
+	{
 		__res = -1;
+	}
 
 	return __res;
 }
@@ -71,7 +75,9 @@ __mutex_fastpath_unlock(atomic_t *count, void (*fail_fn)(atomic_t *))
 		: "t");
 
 	if (unlikely(!__done || __res <= 0))
+	{
 		fail_fn(count);
+	}
 }
 
 /*

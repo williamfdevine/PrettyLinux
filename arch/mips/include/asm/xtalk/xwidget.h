@@ -113,7 +113,8 @@
 #define WIDGET_NULL_PART_NUM	-1
 
 /* For Xtalk Widget identification */
-struct widget_ident {
+struct widget_ident
+{
 	u32 mfgr;
 	u32 part;
 	char *name;
@@ -121,7 +122,8 @@ struct widget_ident {
 };
 
 /* Known Xtalk Widgets */
-static const struct widget_ident __initconst widget_idents[] = {
+static const struct widget_ident __initconst widget_idents[] =
+{
 	{
 		WIDGET_XBOW_MFGR_NUM,
 		WIDGET_XBOW_PART_NUM,
@@ -207,7 +209,8 @@ static const struct widget_ident __initconst widget_idents[] = {
 typedef u32 widgetreg_t;
 
 /* widget configuration registers */
-typedef volatile struct widget_cfg {
+typedef volatile struct widget_cfg
+{
 	widgetreg_t		w_pad_0;		/* 0x00 */
 	widgetreg_t		w_id;			/* 0x04 */
 	widgetreg_t		w_pad_1;		/* 0x08 */
@@ -232,21 +235,23 @@ typedef volatile struct widget_cfg {
 	widgetreg_t		w_tflush;		/* 0x54 */
 } widget_cfg_t;
 
-typedef struct {
-	unsigned	didn:4;
-	unsigned	sidn:4;
-	unsigned	pactyp:4;
-	unsigned	tnum:5;
-	unsigned	ct:1;
-	unsigned	ds:2;
-	unsigned	gbr:1;
-	unsigned	vbpm:1;
-	unsigned	error:1;
-	unsigned	bo:1;
-	unsigned	other:8;
+typedef struct
+{
+	unsigned	didn: 4;
+	unsigned	sidn: 4;
+	unsigned	pactyp: 4;
+	unsigned	tnum: 5;
+	unsigned	ct: 1;
+	unsigned	ds: 2;
+	unsigned	gbr: 1;
+	unsigned	vbpm: 1;
+	unsigned	error: 1;
+	unsigned	bo: 1;
+	unsigned	other: 8;
 } w_err_cmd_word_f;
 
-typedef union {
+typedef union
+{
 	widgetreg_t		r;
 	w_err_cmd_word_f	f;
 } w_err_cmd_word_u;
@@ -256,7 +261,8 @@ typedef struct xwidget_info_s *xwidget_info_t;
 /*
  * Crosstalk Widget Hardware Identification, as defined in the Crosstalk spec.
  */
-typedef struct xwidget_hwid_s {
+typedef struct xwidget_hwid_s
+{
 	xwidget_part_num_t	part_num;
 	xwidget_rev_num_t	rev_num;
 	xwidget_mfg_num_t	mfg_num;
@@ -270,9 +276,9 @@ typedef struct xwidget_hwid_s {
  */
 #define XWIDGET_HARDWARE_ID_MATCH(hwid1, hwid2) \
 	(((hwid1)->part_num == (hwid2)->part_num) && \
-	(((hwid1)->mfg_num == XWIDGET_MFG_NUM_NONE) || \
-	((hwid2)->mfg_num == XWIDGET_MFG_NUM_NONE) || \
-	((hwid1)->mfg_num == (hwid2)->mfg_num)))
+	 (((hwid1)->mfg_num == XWIDGET_MFG_NUM_NONE) || \
+	  ((hwid2)->mfg_num == XWIDGET_MFG_NUM_NONE) || \
+	  ((hwid1)->mfg_num == (hwid2)->mfg_num)))
 
 #endif /* !__ASSEMBLY__ */
 

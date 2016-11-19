@@ -19,13 +19,14 @@ static void *bootinfo_copy;
 static size_t bootinfo_size;
 
 static ssize_t bootinfo_read(struct file *file, char __user *buf,
-			  size_t count, loff_t *ppos)
+							 size_t count, loff_t *ppos)
 {
 	return simple_read_from_buffer(buf, count, ppos, bootinfo_copy,
-				       bootinfo_size);
+								   bootinfo_size);
 }
 
-static const struct file_operations bootinfo_fops = {
+static const struct file_operations bootinfo_fops =
+{
 	.read = bootinfo_read,
 	.llseek = default_llseek,
 };
@@ -35,13 +36,15 @@ void __init save_bootinfo(const struct bi_record *bi)
 	const void *start = bi;
 	size_t size = sizeof(bi->tag);
 
-	while (be16_to_cpu(bi->tag) != BI_LAST) {
+	while (be16_to_cpu(bi->tag) != BI_LAST)
+	{
 		uint16_t n = be16_to_cpu(bi->size);
 		size += n;
 		bi = (struct bi_record *)((unsigned long)bi + n);
 	}
 
-	if (size > sizeof(bootinfo_tmp)) {
+	if (size > sizeof(bootinfo_tmp))
+	{
 		pr_err("Cannot save %zu bytes of bootinfo\n", size);
 		return;
 	}
@@ -60,14 +63,21 @@ static int __init init_bootinfo_procfs(void)
 	struct proc_dir_entry *pde;
 
 	if (!bootinfo_size)
+	{
 		return -EINVAL;
+	}
 
 	bootinfo_copy = kmemdup(bootinfo_tmp, bootinfo_size, GFP_KERNEL);
+
 	if (!bootinfo_copy)
+	{
 		return -ENOMEM;
+	}
 
 	pde = proc_create_data("bootinfo", 0400, NULL, &bootinfo_fops, NULL);
-	if (!pde) {
+
+	if (!pde)
+	{
 		kfree(bootinfo_copy);
 		return -ENOMEM;
 	}

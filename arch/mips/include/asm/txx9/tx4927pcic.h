@@ -12,7 +12,8 @@
 #include <linux/pci.h>
 #include <linux/irqreturn.h>
 
-struct tx4927_pcic_reg {
+struct tx4927_pcic_reg
+{
 	u32 pciid;
 	u32 pcistatus;
 	u32 pciccrev;
@@ -194,7 +195,7 @@ struct tx4927_pcic_reg {
 struct tx4927_pcic_reg __iomem *get_tx4927_pcicptr(
 	struct pci_controller *channel);
 void tx4927_pcic_setup(struct tx4927_pcic_reg __iomem *pcicptr,
-		       struct pci_controller *channel, int extarb);
+					   struct pci_controller *channel, int extarb);
 void tx4927_report_pcic_status(void);
 char *tx4927_pcibios_setup(char *str);
 void tx4927_dump_pcic_settings(void);

@@ -17,20 +17,22 @@
 
 /* XXX: Do we need to conditionalize on this?  */
 #ifdef USE_48_BIT_KSEG
-#define TS_BIAS 0x80000000000UL
+	#define TS_BIAS 0x80000000000UL
 #else
-#define TS_BIAS 0x10000000000UL
+	#define TS_BIAS 0x10000000000UL
 #endif
 
 /*
  * CChip, DChip, and PChip registers
  */
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned long csr __attribute__((aligned(64)));
 } tsunami_64;
 
-typedef struct {
+typedef struct
+{
 	tsunami_64	csc;
 	tsunami_64	mtr;
 	tsunami_64	misc;
@@ -63,13 +65,15 @@ typedef struct {
 	tsunami_64	iic3;
 } tsunami_cchip;
 
-typedef struct {
+typedef struct
+{
 	tsunami_64	dsc;
 	tsunami_64	str;
 	tsunami_64	drev;
 } tsunami_dchip;
 
-typedef struct {
+typedef struct
+{
 	tsunami_64	wsba[4];
 	tsunami_64	wsm[4];
 	tsunami_64	tba[4];
@@ -111,8 +115,10 @@ extern int TSUNAMI_bootcpu;
 #define perror_m_addrh 0x7000000000000UL
 #define perror_m_cmd 0xF0000000000000UL
 #define perror_m_syn 0xFF00000000000000UL
-union TPchipPERROR {   
-	struct  {
+union TPchipPERROR
+{
+	struct
+	{
 		unsigned int perror_v_lost : 1;
 		unsigned perror_v_serr : 1;
 		unsigned perror_v_perr : 1;
@@ -124,7 +130,7 @@ union TPchipPERROR {
 		unsigned perror_v_nds : 1;
 		unsigned perror_v_rto : 1;
 		unsigned perror_v_uecc : 1;
-		unsigned perror_v_cre : 1;                 
+		unsigned perror_v_cre : 1;
 		unsigned perror_v_rsvd1 : 4;
 		unsigned perror_v_addrl : 32;
 		unsigned perror_v_addrh : 3;
@@ -133,18 +139,20 @@ union TPchipPERROR {
 		unsigned perror_v_syn : 8;
 	} perror_r_bits;
 	int perror_q_whole [2];
-};                       
+};
 
 /*
  * TSUNAMI Pchip Window Space Base Address register.
  */
-#define wsba_m_ena 0x1                
+#define wsba_m_ena 0x1
 #define wsba_m_sg 0x2
 #define wsba_m_ptp 0x4
-#define wsba_m_addr 0xFFF00000  
-#define wmask_k_sz1gb 0x3FF00000                   
-union TPchipWSBA {
-	struct  {
+#define wsba_m_addr 0xFFF00000
+#define wmask_k_sz1gb 0x3FF00000
+union TPchipWSBA
+{
+	struct
+	{
 		unsigned wsba_v_ena : 1;
 		unsigned wsba_v_sg : 1;
 		unsigned wsba_v_ptp : 1;
@@ -183,8 +191,10 @@ union TPchipWSBA {
 #define pctl_m_pid 0xC00000000000UL
 #define pctl_m_rsvd2 0xFFFF000000000000UL
 
-union TPchipPCTL {
-	struct {
+union TPchipPCTL
+{
+	struct
+	{
 		unsigned pctl_v_fdsc : 1;
 		unsigned pctl_v_fbtb : 1;
 		unsigned pctl_v_thdis : 1;
@@ -229,8 +239,10 @@ union TPchipPCTL {
 #define perrmask_m_uecc 0x400
 #define perrmask_m_cre 0x800
 #define perrmask_m_rsvd 0xFFFFFFFFFFFFF000UL
-union TPchipPERRMASK {   
-	struct  {
+union TPchipPERRMASK
+{
+	struct
+	{
 		unsigned int perrmask_v_lost : 1;
 		unsigned perrmask_v_serr : 1;
 		unsigned perrmask_v_perr : 1;
@@ -242,12 +254,12 @@ union TPchipPERRMASK {
 		unsigned perrmask_v_nds : 1;
 		unsigned perrmask_v_rto : 1;
 		unsigned perrmask_v_uecc : 1;
-		unsigned perrmask_v_cre : 1;                 
+		unsigned perrmask_v_cre : 1;
 		unsigned perrmask_v_rsvd1 : 20;
 		unsigned perrmask_v_rsvd2 : 32;
 	} perrmask_r_bits;
 	int perrmask_q_whole [2];
-};                       
+};
 
 /*
  * Memory spaces:
@@ -263,7 +275,7 @@ union TPchipPERRMASK {
 #define TSUNAMI_IACK_SC		_TSUNAMI_IACK_SC(0) /* hack! */
 
 
-/* 
+/*
  * The canonical non-remaped I/O and MEM addresses have these values
  * subtracted out.  This is arranged so that folks manipulating ISA
  * devices can use their familiar numbers and have them map to bus 0.
@@ -281,15 +293,16 @@ union TPchipPERRMASK {
 /*
  * Data structure for handling TSUNAMI machine checks:
  */
-struct el_TSUNAMI_sysdata_mcheck {
+struct el_TSUNAMI_sysdata_mcheck
+{
 };
 
 
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -325,8 +338,8 @@ __EXTERN_INLINE int tsunami_is_mmio(const volatile void __iomem *xaddr)
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

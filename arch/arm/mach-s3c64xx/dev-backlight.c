@@ -20,7 +20,8 @@
 
 #include "backlight.h"
 
-struct samsung_bl_drvdata {
+struct samsung_bl_drvdata
+{
 	struct platform_pwm_backlight_data plat_data;
 	struct samsung_bl_gpio_info *gpio_info;
 };
@@ -30,11 +31,13 @@ static int samsung_bl_init(struct device *dev)
 	int ret = 0;
 	struct platform_pwm_backlight_data *pdata = dev->platform_data;
 	struct samsung_bl_drvdata *drvdata = container_of(pdata,
-					struct samsung_bl_drvdata, plat_data);
+										 struct samsung_bl_drvdata, plat_data);
 	struct samsung_bl_gpio_info *bl_gpio_info = drvdata->gpio_info;
 
 	ret = gpio_request(bl_gpio_info->no, "Backlight");
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "failed to request GPIO for LCD Backlight\n");
 		return ret;
 	}
@@ -49,7 +52,7 @@ static void samsung_bl_exit(struct device *dev)
 {
 	struct platform_pwm_backlight_data *pdata = dev->platform_data;
 	struct samsung_bl_drvdata *drvdata = container_of(pdata,
-					struct samsung_bl_drvdata, plat_data);
+										 struct samsung_bl_drvdata, plat_data);
 	struct samsung_bl_gpio_info *bl_gpio_info = drvdata->gpio_info;
 
 	s3c_gpio_cfgpin(bl_gpio_info->no, S3C_GPIO_OUTPUT);
@@ -65,7 +68,8 @@ static void samsung_bl_exit(struct device *dev)
  * for their specific boards
  */
 
-static struct samsung_bl_drvdata samsung_dfl_bl_data __initdata = {
+static struct samsung_bl_drvdata samsung_dfl_bl_data __initdata =
+{
 	.plat_data = {
 		.max_brightness = 255,
 		.dft_brightness = 255,
@@ -75,7 +79,8 @@ static struct samsung_bl_drvdata samsung_dfl_bl_data __initdata = {
 	},
 };
 
-static struct platform_device samsung_dfl_bl_device __initdata = {
+static struct platform_device samsung_dfl_bl_device __initdata =
+{
 	.name		= "pwm-backlight",
 };
 
@@ -85,7 +90,7 @@ static struct platform_device samsung_dfl_bl_device __initdata = {
  * @bl_data:	structure containing Backlight control data
  */
 void __init samsung_bl_set(struct samsung_bl_gpio_info *gpio_info,
-	struct platform_pwm_backlight_data *bl_data)
+						   struct platform_pwm_backlight_data *bl_data)
 {
 	int ret = 0;
 	struct platform_device *samsung_bl_device;
@@ -93,18 +98,23 @@ void __init samsung_bl_set(struct samsung_bl_gpio_info *gpio_info,
 	struct platform_pwm_backlight_data *samsung_bl_data;
 
 	samsung_bl_device = kmemdup(&samsung_dfl_bl_device,
-			sizeof(struct platform_device), GFP_KERNEL);
-	if (!samsung_bl_device) {
+								sizeof(struct platform_device), GFP_KERNEL);
+
+	if (!samsung_bl_device)
+	{
 		printk(KERN_ERR "%s: no memory for platform dev\n", __func__);
 		return;
 	}
 
 	samsung_bl_drvdata = kmemdup(&samsung_dfl_bl_data,
-				sizeof(samsung_dfl_bl_data), GFP_KERNEL);
-	if (!samsung_bl_drvdata) {
+								 sizeof(samsung_dfl_bl_data), GFP_KERNEL);
+
+	if (!samsung_bl_drvdata)
+	{
 		printk(KERN_ERR "%s: no memory for platform dev\n", __func__);
 		goto err_data;
 	}
+
 	samsung_bl_device->dev.platform_data = &samsung_bl_drvdata->plat_data;
 	samsung_bl_drvdata->gpio_info = gpio_info;
 	samsung_bl_data = &samsung_bl_drvdata->plat_data;
@@ -113,27 +123,55 @@ void __init samsung_bl_set(struct samsung_bl_gpio_info *gpio_info,
 	samsung_bl_device->dev.parent = &samsung_device_pwm.dev;
 
 	if (bl_data->max_brightness)
+	{
 		samsung_bl_data->max_brightness = bl_data->max_brightness;
+	}
+
 	if (bl_data->dft_brightness)
+	{
 		samsung_bl_data->dft_brightness = bl_data->dft_brightness;
+	}
+
 	if (bl_data->lth_brightness)
+	{
 		samsung_bl_data->lth_brightness = bl_data->lth_brightness;
+	}
+
 	if (bl_data->enable_gpio >= 0)
+	{
 		samsung_bl_data->enable_gpio = bl_data->enable_gpio;
+	}
+
 	if (bl_data->init)
+	{
 		samsung_bl_data->init = bl_data->init;
+	}
+
 	if (bl_data->notify)
+	{
 		samsung_bl_data->notify = bl_data->notify;
+	}
+
 	if (bl_data->notify_after)
+	{
 		samsung_bl_data->notify_after = bl_data->notify_after;
+	}
+
 	if (bl_data->exit)
+	{
 		samsung_bl_data->exit = bl_data->exit;
+	}
+
 	if (bl_data->check_fb)
+	{
 		samsung_bl_data->check_fb = bl_data->check_fb;
+	}
 
 	/* Register the Backlight dev */
 	ret = platform_device_register(samsung_bl_device);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "failed to register backlight device: %d\n", ret);
 		goto err_plat_reg2;
 	}

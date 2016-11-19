@@ -36,23 +36,27 @@
 struct mpc85xx_cache_sram *cache_sram;
 
 void *mpc85xx_cache_sram_alloc(unsigned int size,
-				phys_addr_t *phys, unsigned int align)
+							   phys_addr_t *phys, unsigned int align)
 {
 	unsigned long offset;
 	unsigned long flags;
 
 	if (unlikely(cache_sram == NULL))
-		return NULL;
-
-	if (!size || (size > cache_sram->size) || (align > cache_sram->size)) {
-		pr_err("%s(): size(=%x) or align(=%x) zero or too big\n",
-			__func__, size, align);
+	{
 		return NULL;
 	}
 
-	if ((align & (align - 1)) || align <= 1) {
+	if (!size || (size > cache_sram->size) || (align > cache_sram->size))
+	{
+		pr_err("%s(): size(=%x) or align(=%x) zero or too big\n",
+			   __func__, size, align);
+		return NULL;
+	}
+
+	if ((align & (align - 1)) || align <= 1)
+	{
 		pr_err("%s(): align(=%x) must be power of two and >1\n",
-			__func__, align);
+			   __func__, align);
 		return NULL;
 	}
 
@@ -61,7 +65,9 @@ void *mpc85xx_cache_sram_alloc(unsigned int size,
 	spin_unlock_irqrestore(&cache_sram->lock, flags);
 
 	if (IS_ERR_VALUE(offset))
+	{
 		return NULL;
+	}
 
 	*phys = cache_sram->base_phys + offset;
 
@@ -81,17 +87,20 @@ void mpc85xx_cache_sram_free(void *ptr)
 EXPORT_SYMBOL(mpc85xx_cache_sram_free);
 
 int __init instantiate_cache_sram(struct platform_device *dev,
-		struct sram_parameters sram_params)
+								  struct sram_parameters sram_params)
 {
 	int ret = 0;
 
-	if (cache_sram) {
+	if (cache_sram)
+	{
 		dev_err(&dev->dev, "Already initialized cache-sram\n");
 		return -EBUSY;
 	}
 
 	cache_sram = kzalloc(sizeof(struct mpc85xx_cache_sram), GFP_KERNEL);
-	if (!cache_sram) {
+
+	if (!cache_sram)
+	{
 		dev_err(&dev->dev, "Out of memory for cache_sram structure\n");
 		return -ENOMEM;
 	}
@@ -100,7 +109,8 @@ int __init instantiate_cache_sram(struct platform_device *dev,
 	cache_sram->size = sram_params.sram_size;
 
 	if (!request_mem_region(cache_sram->base_phys, cache_sram->size,
-						"fsl_85xx_cache_sram")) {
+							"fsl_85xx_cache_sram"))
+	{
 		dev_err(&dev->dev, "%s: request memory failed\n",
 				dev->dev.of_node->full_name);
 		ret = -ENXIO;
@@ -108,8 +118,10 @@ int __init instantiate_cache_sram(struct platform_device *dev,
 	}
 
 	cache_sram->base_virt = ioremap_prot(cache_sram->base_phys,
-				cache_sram->size, _PAGE_COHERENT | PAGE_KERNEL);
-	if (!cache_sram->base_virt) {
+										 cache_sram->size, _PAGE_COHERENT | PAGE_KERNEL);
+
+	if (!cache_sram->base_virt)
+	{
 		dev_err(&dev->dev, "%s: ioremap_prot failed\n",
 				dev->dev.of_node->full_name);
 		ret = -ENOMEM;
@@ -117,7 +129,9 @@ int __init instantiate_cache_sram(struct platform_device *dev,
 	}
 
 	cache_sram->rh = rh_create(sizeof(unsigned int));
-	if (IS_ERR(cache_sram->rh)) {
+
+	if (IS_ERR(cache_sram->rh))
+	{
 		dev_err(&dev->dev, "%s: Unable to create remote heap\n",
 				dev->dev.of_node->full_name);
 		ret = PTR_ERR(cache_sram->rh);
@@ -128,7 +142,7 @@ int __init instantiate_cache_sram(struct platform_device *dev,
 	spin_lock_init(&cache_sram->lock);
 
 	dev_info(&dev->dev, "[base:0x%llx, size:0x%x] configured and loaded\n",
-		(unsigned long long)cache_sram->base_phys, cache_sram->size);
+			 (unsigned long long)cache_sram->base_phys, cache_sram->size);
 
 	return 0;
 

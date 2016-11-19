@@ -15,9 +15,9 @@
 #undef DEBUG
 
 #ifdef DEBUG
-#define DBG(x...) printk(x)
+	#define DBG(x...) printk(x)
 #else
-#define DBG(x...)
+	#define DBG(x...)
 #endif
 
 extern unsigned int pci_probe;
@@ -35,9 +35,11 @@ extern int pcibios_set_irq_routing(struct pci_dev *dev, int pin, int irq);
 
 /* pci-irq.c */
 
-struct irq_info {
+struct irq_info
+{
 	u8 bus, devfn;			/* Bus, device and function */
-	struct {
+	struct
+	{
 		u8 link;		/* IRQ line ID, chipset dependent,
 					 * 0=not routed */
 		u16 bitmap;		/* Available IRQs */
@@ -46,7 +48,8 @@ struct irq_info {
 	u8 rfu;
 } __attribute__((packed));
 
-struct irq_routing_table {
+struct irq_routing_table
+{
 	u32 signature;			/* PIRQ_SIGNATURE should be here */
 	u16 version;			/* PIRQ_VERSION */
 	u16 size;			/* Table size in bytes */

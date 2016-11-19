@@ -49,10 +49,10 @@ static inline const struct cpumask *cpumask_of_node(int node)
 #include <asm-generic/topology.h>
 
 #ifdef CONFIG_SMP
-#define topology_physical_package_id(cpu)       ((void)(cpu), 0)
-#define topology_core_id(cpu)                   (cpu)
-#define topology_core_cpumask(cpu)              ((void)(cpu), cpu_online_mask)
-#define topology_sibling_cpumask(cpu)           cpumask_of(cpu)
+	#define topology_physical_package_id(cpu)       ((void)(cpu), 0)
+	#define topology_core_id(cpu)                   (cpu)
+	#define topology_core_cpumask(cpu)              ((void)(cpu), cpu_online_mask)
+	#define topology_sibling_cpumask(cpu)           cpumask_of(cpu)
 #endif
 
 #endif /* _ASM_TILE_TOPOLOGY_H */

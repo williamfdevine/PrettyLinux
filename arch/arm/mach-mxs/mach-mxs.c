@@ -96,7 +96,9 @@ static const u32 *mxs_get_ocotp(void)
 	static int once;
 
 	if (once)
+	{
 		return ocotp_words;
+	}
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,ocotp");
 	ocotp_base = of_iomap(np, 0);
@@ -114,11 +116,15 @@ static const u32 *mxs_get_ocotp(void)
 
 	/* check both BUSY and ERROR cleared */
 	while ((__raw_readl(ocotp_base) &
-		(BM_OCOTP_CTRL_BUSY | BM_OCOTP_CTRL_ERROR)) && --timeout)
+			(BM_OCOTP_CTRL_BUSY | BM_OCOTP_CTRL_ERROR)) && --timeout)
+	{
 		cpu_relax();
+	}
 
 	if (unlikely(!timeout))
+	{
 		goto error_unlock;
+	}
 
 	/* open OCOTP banks for read */
 	__mxs_setl(BM_OCOTP_CTRL_RD_BANK_OPEN, ocotp_base);
@@ -128,15 +134,20 @@ static const u32 *mxs_get_ocotp(void)
 
 	/* poll BUSY bit becoming cleared */
 	timeout = 0x400;
+
 	while ((__raw_readl(ocotp_base) & BM_OCOTP_CTRL_BUSY) && --timeout)
+	{
 		cpu_relax();
+	}
 
 	if (unlikely(!timeout))
+	{
 		goto error_unlock;
+	}
 
 	for (i = 0; i < OCOTP_WORD_COUNT; i++)
 		ocotp_words[i] = __raw_readl(ocotp_base + OCOTP_WORD_OFFSET +
-						i * 0x10);
+									 i * 0x10);
 
 	/* close banks for power saving */
 	__mxs_clrl(BM_OCOTP_CTRL_RD_BANK_OPEN, ocotp_base);
@@ -153,7 +164,8 @@ error_unlock:
 	return NULL;
 }
 
-enum mac_oui {
+enum mac_oui
+{
 	OUI_FSL,
 	OUI_DENX,
 	OUI_CRYSTALFONTZ,
@@ -170,24 +182,36 @@ static void __init update_fec_mac_prop(enum mac_oui oui)
 	u32 val;
 	int i;
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		np = of_find_compatible_node(from, NULL, "fsl,imx28-fec");
+
 		if (!np)
+		{
 			return;
+		}
 
 		from = np;
 
 		if (of_get_property(np, "local-mac-address", NULL))
+		{
 			continue;
+		}
 
 		newmac = kzalloc(sizeof(*newmac) + 6, GFP_KERNEL);
+
 		if (!newmac)
+		{
 			return;
+		}
+
 		newmac->value = newmac + 1;
 		newmac->length = 6;
 
 		newmac->name = kstrdup("local-mac-address", GFP_KERNEL);
-		if (!newmac->name) {
+
+		if (!newmac->name)
+		{
 			kfree(newmac);
 			return;
 		}
@@ -197,33 +221,40 @@ static void __init update_fec_mac_prop(enum mac_oui oui)
 		 * so hard-code OUI here.
 		 */
 		macaddr = newmac->value;
-		switch (oui) {
-		case OUI_FSL:
-			macaddr[0] = 0x00;
-			macaddr[1] = 0x04;
-			macaddr[2] = 0x9f;
-			break;
-		case OUI_DENX:
-			macaddr[0] = 0xc0;
-			macaddr[1] = 0xe5;
-			macaddr[2] = 0x4e;
-			break;
-		case OUI_CRYSTALFONTZ:
-			macaddr[0] = 0x58;
-			macaddr[1] = 0xb9;
-			macaddr[2] = 0xe1;
-			break;
-		case OUI_I2SE:
-			macaddr[0] = 0x00;
-			macaddr[1] = 0x01;
-			macaddr[2] = 0x87;
-			break;
-		case OUI_ARMADEUS:
-			macaddr[0] = 0x00;
-			macaddr[1] = 0x1e;
-			macaddr[2] = 0xac;
-			break;
+
+		switch (oui)
+		{
+			case OUI_FSL:
+				macaddr[0] = 0x00;
+				macaddr[1] = 0x04;
+				macaddr[2] = 0x9f;
+				break;
+
+			case OUI_DENX:
+				macaddr[0] = 0xc0;
+				macaddr[1] = 0xe5;
+				macaddr[2] = 0x4e;
+				break;
+
+			case OUI_CRYSTALFONTZ:
+				macaddr[0] = 0x58;
+				macaddr[1] = 0xb9;
+				macaddr[2] = 0xe1;
+				break;
+
+			case OUI_I2SE:
+				macaddr[0] = 0x00;
+				macaddr[1] = 0x01;
+				macaddr[2] = 0x87;
+				break;
+
+			case OUI_ARMADEUS:
+				macaddr[0] = 0x00;
+				macaddr[1] = 0x1e;
+				macaddr[2] = 0xac;
+				break;
 		}
+
 		val = ocotp[i];
 		macaddr[3] = (val >> 16) & 0xff;
 		macaddr[4] = (val >> 8) & 0xff;
@@ -238,7 +269,9 @@ static inline void enable_clk_enet_out(void)
 	struct clk *clk = clk_get_sys("enet_out", NULL);
 
 	if (!IS_ERR(clk))
+	{
 		clk_prepare_enable(clk);
+	}
 }
 
 static void __init imx28_evk_init(void)
@@ -265,7 +298,7 @@ static void __init apx4devkit_init(void)
 
 	if (IS_BUILTIN(CONFIG_PHYLIB))
 		phy_register_fixup_for_uid(PHY_ID_KSZ8051, MICREL_PHY_ID_MASK,
-					   apx4devkit_phy_fixup);
+								   apx4devkit_phy_fixup);
 }
 
 static void __init crystalfontz_init(void)
@@ -298,13 +331,16 @@ static const char __init *mxs_get_soc_id(void)
 	iounmap(digctl_base);
 	of_node_put(np);
 
-	switch (socid) {
-	case HW_DIGCTL_CHIPID_MX23:
-		return "i.MX23";
-	case HW_DIGCTL_CHIPID_MX28:
-		return "i.MX28";
-	default:
-		return "Unknown";
+	switch (socid)
+	{
+		case HW_DIGCTL_CHIPID_MX23:
+			return "i.MX23";
+
+		case HW_DIGCTL_CHIPID_MX28:
+			return "i.MX28";
+
+		default:
+			return "Unknown";
 	}
 }
 
@@ -312,33 +348,45 @@ static u32 __init mxs_get_cpu_rev(void)
 {
 	u32 rev = chipid & HW_DIGCTL_REV_MASK;
 
-	switch (socid) {
-	case HW_DIGCTL_CHIPID_MX23:
-		switch (rev) {
-		case 0x0:
-			return MXS_CHIP_REVISION_1_0;
-		case 0x1:
-			return MXS_CHIP_REVISION_1_1;
-		case 0x2:
-			return MXS_CHIP_REVISION_1_2;
-		case 0x3:
-			return MXS_CHIP_REVISION_1_3;
-		case 0x4:
-			return MXS_CHIP_REVISION_1_4;
+	switch (socid)
+	{
+		case HW_DIGCTL_CHIPID_MX23:
+			switch (rev)
+			{
+				case 0x0:
+					return MXS_CHIP_REVISION_1_0;
+
+				case 0x1:
+					return MXS_CHIP_REVISION_1_1;
+
+				case 0x2:
+					return MXS_CHIP_REVISION_1_2;
+
+				case 0x3:
+					return MXS_CHIP_REVISION_1_3;
+
+				case 0x4:
+					return MXS_CHIP_REVISION_1_4;
+
+				default:
+					return MXS_CHIP_REV_UNKNOWN;
+			}
+
+		case HW_DIGCTL_CHIPID_MX28:
+			switch (rev)
+			{
+				case 0x0:
+					return MXS_CHIP_REVISION_1_1;
+
+				case 0x1:
+					return MXS_CHIP_REVISION_1_2;
+
+				default:
+					return MXS_CHIP_REV_UNKNOWN;
+			}
+
 		default:
 			return MXS_CHIP_REV_UNKNOWN;
-		}
-	case HW_DIGCTL_CHIPID_MX28:
-		switch (rev) {
-		case 0x0:
-			return MXS_CHIP_REVISION_1_1;
-		case 0x1:
-			return MXS_CHIP_REVISION_1_2;
-		default:
-			return MXS_CHIP_REV_UNKNOWN;
-		}
-	default:
-		return MXS_CHIP_REV_UNKNOWN;
 	}
 }
 
@@ -348,9 +396,11 @@ static const char __init *mxs_get_revision(void)
 
 	if (rev != MXS_CHIP_REV_UNKNOWN)
 		return kasprintf(GFP_KERNEL, "%d.%d", (rev >> 4) & 0xf,
-				rev & 0xf);
+						 rev & 0xf);
 	else
+	{
 		return kasprintf(GFP_KERNEL, "%s", "Unknown");
+	}
 }
 
 #define MX23_CLKCTRL_RESET_OFFSET	0x120
@@ -362,13 +412,21 @@ static int __init mxs_restart_init(void)
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,clkctrl");
 	reset_addr = of_iomap(np, 0);
+
 	if (!reset_addr)
+	{
 		return -ENODEV;
+	}
 
 	if (of_device_is_compatible(np, "fsl,imx23-clkctrl"))
+	{
 		reset_addr += MX23_CLKCTRL_RESET_OFFSET;
+	}
 	else
+	{
 		reset_addr += MX28_CLKCTRL_RESET_OFFSET;
+	}
+
 	of_node_put(np);
 
 	return 0;
@@ -388,20 +446,28 @@ static void __init mxs_machine_init(void)
 	int ret;
 
 	soc_dev_attr = kzalloc(sizeof(*soc_dev_attr), GFP_KERNEL);
+
 	if (!soc_dev_attr)
+	{
 		return;
+	}
 
 	root = of_find_node_by_path("/");
 	ret = of_property_read_string(root, "model", &soc_dev_attr->machine);
+
 	if (ret)
+	{
 		return;
+	}
 
 	soc_dev_attr->family = "Freescale MXS Family";
 	soc_dev_attr->soc_id = mxs_get_soc_id();
 	soc_dev_attr->revision = mxs_get_revision();
 
 	soc_dev = soc_device_register(soc_dev_attr);
-	if (IS_ERR(soc_dev)) {
+
+	if (IS_ERR(soc_dev))
+	{
 		kfree(soc_dev_attr->revision);
 		kfree(soc_dev_attr);
 		return;
@@ -410,19 +476,34 @@ static void __init mxs_machine_init(void)
 	parent = soc_device_to_device(soc_dev);
 
 	if (of_machine_is_compatible("fsl,imx28-evk"))
+	{
 		imx28_evk_init();
+	}
+
 	if (of_machine_is_compatible("armadeus,imx28-apf28"))
+	{
 		imx28_apf28_init();
+	}
 	else if (of_machine_is_compatible("bluegiga,apx4devkit"))
+	{
 		apx4devkit_init();
+	}
 	else if (of_machine_is_compatible("crystalfontz,cfa10036"))
+	{
 		crystalfontz_init();
+	}
 	else if (of_machine_is_compatible("eukrea,mbmx283lc"))
+	{
 		eukrea_mbmx283lc_init();
+	}
 	else if (of_machine_is_compatible("i2se,duckbill"))
+	{
 		duckbill_init();
+	}
 	else if (of_machine_is_compatible("msr,m28cu3"))
+	{
 		m28cu3_init();
+	}
 
 	of_platform_default_populate(NULL, NULL, parent);
 
@@ -436,7 +517,8 @@ static void __init mxs_machine_init(void)
  */
 static void mxs_restart(enum reboot_mode mode, const char *cmd)
 {
-	if (reset_addr) {
+	if (reset_addr)
+	{
 		/* reset the chip */
 		__mxs_setl(MXS_CLKCTRL_RESET_CHIP, reset_addr);
 
@@ -450,16 +532,17 @@ static void mxs_restart(enum reboot_mode mode, const char *cmd)
 	soft_restart(0);
 }
 
-static const char *const mxs_dt_compat[] __initconst = {
+static const char *const mxs_dt_compat[] __initconst =
+{
 	"fsl,imx28",
 	"fsl,imx23",
 	NULL,
 };
 
 DT_MACHINE_START(MXS, "Freescale MXS (Device Tree)")
-	.handle_irq	= icoll_handle_irq,
-	.init_machine	= mxs_machine_init,
+.handle_irq	= icoll_handle_irq,
+ .init_machine	= mxs_machine_init,
 	.init_late      = mxs_pm_init,
-	.dt_compat	= mxs_dt_compat,
-	.restart	= mxs_restart,
-MACHINE_END
+	 .dt_compat	= mxs_dt_compat,
+	   .restart	= mxs_restart,
+		   MACHINE_END

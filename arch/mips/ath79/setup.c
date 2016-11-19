@@ -41,15 +41,20 @@ static char ath79_sys_type[ATH79_SYS_TYPE_LEN];
 static void ath79_restart(char *command)
 {
 	ath79_device_reset_set(AR71XX_RESET_FULL_CHIP);
+
 	for (;;)
 		if (cpu_wait)
+		{
 			cpu_wait();
+		}
 }
 
 static void ath79_halt(void)
 {
 	while (1)
+	{
 		cpu_wait();
+	}
 }
 
 static void __init ath79_detect_sys_type(void)
@@ -63,117 +68,127 @@ static void __init ath79_detect_sys_type(void)
 	id = ath79_reset_rr(AR71XX_RESET_REG_REV_ID);
 	major = id & REV_ID_MAJOR_MASK;
 
-	switch (major) {
-	case REV_ID_MAJOR_AR71XX:
-		minor = id & AR71XX_REV_ID_MINOR_MASK;
-		rev = id >> AR71XX_REV_ID_REVISION_SHIFT;
-		rev &= AR71XX_REV_ID_REVISION_MASK;
-		switch (minor) {
-		case AR71XX_REV_ID_MINOR_AR7130:
-			ath79_soc = ATH79_SOC_AR7130;
-			chip = "7130";
+	switch (major)
+	{
+		case REV_ID_MAJOR_AR71XX:
+			minor = id & AR71XX_REV_ID_MINOR_MASK;
+			rev = id >> AR71XX_REV_ID_REVISION_SHIFT;
+			rev &= AR71XX_REV_ID_REVISION_MASK;
+
+			switch (minor)
+			{
+				case AR71XX_REV_ID_MINOR_AR7130:
+					ath79_soc = ATH79_SOC_AR7130;
+					chip = "7130";
+					break;
+
+				case AR71XX_REV_ID_MINOR_AR7141:
+					ath79_soc = ATH79_SOC_AR7141;
+					chip = "7141";
+					break;
+
+				case AR71XX_REV_ID_MINOR_AR7161:
+					ath79_soc = ATH79_SOC_AR7161;
+					chip = "7161";
+					break;
+			}
+
 			break;
 
-		case AR71XX_REV_ID_MINOR_AR7141:
-			ath79_soc = ATH79_SOC_AR7141;
-			chip = "7141";
+		case REV_ID_MAJOR_AR7240:
+			ath79_soc = ATH79_SOC_AR7240;
+			chip = "7240";
+			rev = id & AR724X_REV_ID_REVISION_MASK;
 			break;
 
-		case AR71XX_REV_ID_MINOR_AR7161:
-			ath79_soc = ATH79_SOC_AR7161;
-			chip = "7161";
-			break;
-		}
-		break;
-
-	case REV_ID_MAJOR_AR7240:
-		ath79_soc = ATH79_SOC_AR7240;
-		chip = "7240";
-		rev = id & AR724X_REV_ID_REVISION_MASK;
-		break;
-
-	case REV_ID_MAJOR_AR7241:
-		ath79_soc = ATH79_SOC_AR7241;
-		chip = "7241";
-		rev = id & AR724X_REV_ID_REVISION_MASK;
-		break;
-
-	case REV_ID_MAJOR_AR7242:
-		ath79_soc = ATH79_SOC_AR7242;
-		chip = "7242";
-		rev = id & AR724X_REV_ID_REVISION_MASK;
-		break;
-
-	case REV_ID_MAJOR_AR913X:
-		minor = id & AR913X_REV_ID_MINOR_MASK;
-		rev = id >> AR913X_REV_ID_REVISION_SHIFT;
-		rev &= AR913X_REV_ID_REVISION_MASK;
-		switch (minor) {
-		case AR913X_REV_ID_MINOR_AR9130:
-			ath79_soc = ATH79_SOC_AR9130;
-			chip = "9130";
+		case REV_ID_MAJOR_AR7241:
+			ath79_soc = ATH79_SOC_AR7241;
+			chip = "7241";
+			rev = id & AR724X_REV_ID_REVISION_MASK;
 			break;
 
-		case AR913X_REV_ID_MINOR_AR9132:
-			ath79_soc = ATH79_SOC_AR9132;
-			chip = "9132";
+		case REV_ID_MAJOR_AR7242:
+			ath79_soc = ATH79_SOC_AR7242;
+			chip = "7242";
+			rev = id & AR724X_REV_ID_REVISION_MASK;
 			break;
-		}
-		break;
 
-	case REV_ID_MAJOR_AR9330:
-		ath79_soc = ATH79_SOC_AR9330;
-		chip = "9330";
-		rev = id & AR933X_REV_ID_REVISION_MASK;
-		break;
+		case REV_ID_MAJOR_AR913X:
+			minor = id & AR913X_REV_ID_MINOR_MASK;
+			rev = id >> AR913X_REV_ID_REVISION_SHIFT;
+			rev &= AR913X_REV_ID_REVISION_MASK;
 
-	case REV_ID_MAJOR_AR9331:
-		ath79_soc = ATH79_SOC_AR9331;
-		chip = "9331";
-		rev = id & AR933X_REV_ID_REVISION_MASK;
-		break;
+			switch (minor)
+			{
+				case AR913X_REV_ID_MINOR_AR9130:
+					ath79_soc = ATH79_SOC_AR9130;
+					chip = "9130";
+					break;
 
-	case REV_ID_MAJOR_AR9341:
-		ath79_soc = ATH79_SOC_AR9341;
-		chip = "9341";
-		rev = id & AR934X_REV_ID_REVISION_MASK;
-		break;
+				case AR913X_REV_ID_MINOR_AR9132:
+					ath79_soc = ATH79_SOC_AR9132;
+					chip = "9132";
+					break;
+			}
 
-	case REV_ID_MAJOR_AR9342:
-		ath79_soc = ATH79_SOC_AR9342;
-		chip = "9342";
-		rev = id & AR934X_REV_ID_REVISION_MASK;
-		break;
+			break;
 
-	case REV_ID_MAJOR_AR9344:
-		ath79_soc = ATH79_SOC_AR9344;
-		chip = "9344";
-		rev = id & AR934X_REV_ID_REVISION_MASK;
-		break;
+		case REV_ID_MAJOR_AR9330:
+			ath79_soc = ATH79_SOC_AR9330;
+			chip = "9330";
+			rev = id & AR933X_REV_ID_REVISION_MASK;
+			break;
 
-	case REV_ID_MAJOR_QCA9556:
-		ath79_soc = ATH79_SOC_QCA9556;
-		chip = "9556";
-		rev = id & QCA955X_REV_ID_REVISION_MASK;
-		break;
+		case REV_ID_MAJOR_AR9331:
+			ath79_soc = ATH79_SOC_AR9331;
+			chip = "9331";
+			rev = id & AR933X_REV_ID_REVISION_MASK;
+			break;
 
-	case REV_ID_MAJOR_QCA9558:
-		ath79_soc = ATH79_SOC_QCA9558;
-		chip = "9558";
-		rev = id & QCA955X_REV_ID_REVISION_MASK;
-		break;
+		case REV_ID_MAJOR_AR9341:
+			ath79_soc = ATH79_SOC_AR9341;
+			chip = "9341";
+			rev = id & AR934X_REV_ID_REVISION_MASK;
+			break;
 
-	default:
-		panic("ath79: unknown SoC, id:0x%08x", id);
+		case REV_ID_MAJOR_AR9342:
+			ath79_soc = ATH79_SOC_AR9342;
+			chip = "9342";
+			rev = id & AR934X_REV_ID_REVISION_MASK;
+			break;
+
+		case REV_ID_MAJOR_AR9344:
+			ath79_soc = ATH79_SOC_AR9344;
+			chip = "9344";
+			rev = id & AR934X_REV_ID_REVISION_MASK;
+			break;
+
+		case REV_ID_MAJOR_QCA9556:
+			ath79_soc = ATH79_SOC_QCA9556;
+			chip = "9556";
+			rev = id & QCA955X_REV_ID_REVISION_MASK;
+			break;
+
+		case REV_ID_MAJOR_QCA9558:
+			ath79_soc = ATH79_SOC_QCA9558;
+			chip = "9558";
+			rev = id & QCA955X_REV_ID_REVISION_MASK;
+			break;
+
+		default:
+			panic("ath79: unknown SoC, id:0x%08x", id);
 	}
 
 	ath79_soc_rev = rev;
 
 	if (soc_is_qca955x())
 		sprintf(ath79_sys_type, "Qualcomm Atheros QCA%s rev %u",
-			chip, rev);
+				chip, rev);
 	else
+	{
 		sprintf(ath79_sys_type, "Atheros AR%s rev %u", chip, rev);
+	}
+
 	pr_info("SoC: %s\n", ath79_sys_type);
 }
 
@@ -201,16 +216,22 @@ void __init plat_mem_setup(void)
 
 	/* Get the position of the FDT passed by the bootloader */
 	fdt_start = fw_getenvl("fdt_start");
-	if (fdt_start)
-		__dt_setup_arch((void *)KSEG0ADDR(fdt_start));
-	else if (fw_passed_dtb)
-		__dt_setup_arch((void *)KSEG0ADDR(fw_passed_dtb));
 
-	if (mips_machtype != ATH79_MACH_GENERIC_OF) {
+	if (fdt_start)
+	{
+		__dt_setup_arch((void *)KSEG0ADDR(fdt_start));
+	}
+	else if (fw_passed_dtb)
+	{
+		__dt_setup_arch((void *)KSEG0ADDR(fw_passed_dtb));
+	}
+
+	if (mips_machtype != ATH79_MACH_GENERIC_OF)
+	{
 		ath79_reset_base = ioremap_nocache(AR71XX_RESET_BASE,
-						   AR71XX_RESET_SIZE);
+										   AR71XX_RESET_SIZE);
 		ath79_pll_base = ioremap_nocache(AR71XX_PLL_BASE,
-						 AR71XX_PLL_SIZE);
+										 AR71XX_PLL_SIZE);
 		ath79_detect_sys_type();
 		ath79_ddr_ctrl_init();
 
@@ -233,13 +254,17 @@ static void __init ath79_of_plat_time_init(void)
 	of_clk_init(NULL);
 
 	np = of_get_cpu_node(0, NULL);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("Failed to get CPU node\n");
 		return;
 	}
 
 	clk = of_clk_get(np, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("Failed to get CPU clock: %ld\n", PTR_ERR(clk));
 		return;
 	}
@@ -247,7 +272,7 @@ static void __init ath79_of_plat_time_init(void)
 	cpu_clk_rate = clk_get_rate(clk);
 
 	pr_info("CPU clock: %lu.%03lu MHz\n",
-		cpu_clk_rate / 1000000, (cpu_clk_rate / 1000) % 1000);
+			cpu_clk_rate / 1000000, (cpu_clk_rate / 1000) % 1000);
 
 	mips_hpt_frequency = cpu_clk_rate / 2;
 
@@ -261,7 +286,8 @@ void __init plat_time_init(void)
 	unsigned long ddr_clk_rate;
 	unsigned long ref_clk_rate;
 
-	if (IS_ENABLED(CONFIG_OF) && mips_machtype == ATH79_MACH_GENERIC_OF) {
+	if (IS_ENABLED(CONFIG_OF) && mips_machtype == ATH79_MACH_GENERIC_OF)
+	{
 		ath79_of_plat_time_init();
 		return;
 	}
@@ -274,10 +300,10 @@ void __init plat_time_init(void)
 	ref_clk_rate = ath79_get_sys_clk_rate("ref");
 
 	pr_info("Clocks: CPU:%lu.%03luMHz, DDR:%lu.%03luMHz, AHB:%lu.%03luMHz, Ref:%lu.%03luMHz\n",
-		cpu_clk_rate / 1000000, (cpu_clk_rate / 1000) % 1000,
-		ddr_clk_rate / 1000000, (ddr_clk_rate / 1000) % 1000,
-		ahb_clk_rate / 1000000, (ahb_clk_rate / 1000) % 1000,
-		ref_clk_rate / 1000000, (ref_clk_rate / 1000) % 1000);
+			cpu_clk_rate / 1000000, (cpu_clk_rate / 1000) % 1000,
+			ddr_clk_rate / 1000000, (ddr_clk_rate / 1000) % 1000,
+			ahb_clk_rate / 1000000, (ahb_clk_rate / 1000) % 1000,
+			ref_clk_rate / 1000000, (ref_clk_rate / 1000) % 1000);
 
 	mips_hpt_frequency = cpu_clk_rate / 2;
 }
@@ -285,7 +311,9 @@ void __init plat_time_init(void)
 static int __init ath79_setup(void)
 {
 	if  (mips_machtype == ATH79_MACH_GENERIC_OF)
+	{
 		return 0;
+	}
 
 	ath79_gpio_init();
 	ath79_register_uart();
@@ -304,11 +332,11 @@ void __init device_tree_init(void)
 }
 
 MIPS_MACHINE(ATH79_MACH_GENERIC,
-	     "Generic",
-	     "Generic AR71XX/AR724X/AR913X based board",
-	     NULL);
+			 "Generic",
+			 "Generic AR71XX/AR724X/AR913X based board",
+			 NULL);
 
 MIPS_MACHINE(ATH79_MACH_GENERIC_OF,
-	     "DTB",
-	     "Generic AR71XX/AR724X/AR913X based board (DT)",
-	     NULL);
+			 "DTB",
+			 "Generic AR71XX/AR724X/AR913X based board (DT)",
+			 NULL);

@@ -123,10 +123,12 @@ static bool smp_no_nmi_ipi = false;
  */
 static void native_smp_send_reschedule(int cpu)
 {
-	if (unlikely(cpu_is_offline(cpu))) {
+	if (unlikely(cpu_is_offline(cpu)))
+	{
 		WARN_ON(1);
 		return;
 	}
+
 	apic->send_IPI(cpu, RESCHEDULE_VECTOR);
 }
 
@@ -139,7 +141,8 @@ void native_send_call_func_ipi(const struct cpumask *mask)
 {
 	cpumask_var_t allbutself;
 
-	if (!alloc_cpumask_var(&allbutself, GFP_ATOMIC)) {
+	if (!alloc_cpumask_var(&allbutself, GFP_ATOMIC))
+	{
 		apic->send_IPI_mask(mask, CALL_FUNCTION_VECTOR);
 		return;
 	}
@@ -148,10 +151,14 @@ void native_send_call_func_ipi(const struct cpumask *mask)
 	cpumask_clear_cpu(smp_processor_id(), allbutself);
 
 	if (cpumask_equal(mask, allbutself) &&
-	    cpumask_equal(cpu_online_mask, cpu_callout_mask))
+		cpumask_equal(cpu_online_mask, cpu_callout_mask))
+	{
 		apic->send_IPI_allbutself(CALL_FUNCTION_VECTOR);
+	}
 	else
+	{
 		apic->send_IPI_mask(mask, CALL_FUNCTION_VECTOR);
+	}
 
 	free_cpumask_var(allbutself);
 }
@@ -160,7 +167,9 @@ static int smp_stop_nmi_callback(unsigned int val, struct pt_regs *regs)
 {
 	/* We are registered on stopping cpu too, avoid spurious NMI */
 	if (raw_smp_processor_id() == atomic_read(&stopping_cpu))
+	{
 		return NMI_HANDLED;
+	}
 
 	stop_this_cpu(NULL);
 
@@ -184,7 +193,9 @@ static void native_stop_other_cpus(int wait)
 	unsigned long timeout;
 
 	if (reboot_force)
+	{
 		return;
+	}
 
 	/*
 	 * Use an own vector here because smp_call_function
@@ -200,10 +211,13 @@ static void native_stop_other_cpus(int wait)
 	 * code.  By syncing, we give the cpus up to one second to
 	 * finish their work before we force them off with the NMI.
 	 */
-	if (num_online_cpus() > 1) {
+	if (num_online_cpus() > 1)
+	{
 		/* did someone beat us here? */
 		if (atomic_cmpxchg(&stopping_cpu, -1, safe_smp_processor_id()) != -1)
+		{
 			return;
+		}
 
 		/* sync above data before sending IRQ */
 		wmb();
@@ -215,17 +229,23 @@ static void native_stop_other_cpus(int wait)
 		 * didn't ask us to wait.
 		 */
 		timeout = USEC_PER_SEC;
+
 		while (num_online_cpus() > 1 && (wait || timeout--))
+		{
 			udelay(1);
+		}
 	}
-	
+
 	/* if the REBOOT_VECTOR didn't work, try with the NMI */
-	if ((num_online_cpus() > 1) && (!smp_no_nmi_ipi))  {
+	if ((num_online_cpus() > 1) && (!smp_no_nmi_ipi))
+	{
 		if (register_nmi_handler(NMI_LOCAL, smp_stop_nmi_callback,
-					 NMI_FLAG_FIRST, "smp_stop"))
+								 NMI_FLAG_FIRST, "smp_stop"))
 			/* Note: we ignore failures here */
 			/* Hope the REBOOT_IRQ is good enough */
+		{
 			goto finish;
+		}
 
 		/* sync above data before sending IRQ */
 		wmb();
@@ -239,8 +259,11 @@ static void native_stop_other_cpus(int wait)
 		 * didn't ask us to wait.
 		 */
 		timeout = USEC_PER_MSEC * 10;
+
 		while (num_online_cpus() > 1 && (wait || timeout--))
+		{
 			udelay(1);
+		}
 	}
 
 finish:
@@ -340,7 +363,8 @@ static int __init nonmi_ipi_setup(char *str)
 
 __setup("nonmi_ipi", nonmi_ipi_setup);
 
-struct smp_ops smp_ops = {
+struct smp_ops smp_ops =
+{
 	.smp_prepare_boot_cpu	= native_smp_prepare_boot_cpu,
 	.smp_prepare_cpus	= native_smp_prepare_cpus,
 	.smp_cpus_done		= native_smp_cpus_done,

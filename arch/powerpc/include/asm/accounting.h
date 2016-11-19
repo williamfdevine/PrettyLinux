@@ -11,7 +11,8 @@
 #define __POWERPC_ACCOUNTING_H
 
 /* Stuff for accurate time accounting */
-struct cpu_accounting_data {
+struct cpu_accounting_data
+{
 	unsigned long user_time;	/* accumulated usermode TB ticks */
 	unsigned long system_time;	/* accumulated system TB ticks */
 	unsigned long user_time_scaled;	/* accumulated usermode SPURR ticks */

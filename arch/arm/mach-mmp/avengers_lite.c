@@ -27,13 +27,15 @@
 #include <linux/delay.h>
 
 /* Avengers lite MFP configurations */
-static unsigned long avengers_lite_pin_config_V16F[] __initdata = {
+static unsigned long avengers_lite_pin_config_V16F[] __initdata =
+{
 	/* DEBUG_UART */
 	GPIO88_UART2_TXD,
 	GPIO89_UART2_RXD,
 };
 
-static struct pxa_gpio_platform_data pxa168_gpio_pdata = {
+static struct pxa_gpio_platform_data pxa168_gpio_pdata =
+{
 	.irq_base	= MMP_GPIO_TO_IRQ(0),
 };
 
@@ -44,15 +46,15 @@ static void __init avengers_lite_init(void)
 	/* on-chip devices */
 	pxa168_add_uart(2);
 	platform_device_add_data(&pxa168_device_gpio, &pxa168_gpio_pdata,
-				 sizeof(struct pxa_gpio_platform_data));
+							 sizeof(struct pxa_gpio_platform_data));
 	platform_device_register(&pxa168_device_gpio);
 }
 
 MACHINE_START(AVENGERS_LITE, "PXA168 Avengers lite Development Platform")
-	.map_io		= mmp_map_io,
+.map_io		= mmp_map_io,
 	.nr_irqs	= MMP_NR_IRQS,
-	.init_irq       = pxa168_init_irq,
-	.init_time	= pxa168_timer_init,
-	.init_machine   = avengers_lite_init,
-	.restart	= pxa168_restart,
-MACHINE_END
+		.init_irq       = pxa168_init_irq,
+		 .init_time	= pxa168_timer_init,
+		   .init_machine   = avengers_lite_init,
+			.restart	= pxa168_restart,
+				MACHINE_END

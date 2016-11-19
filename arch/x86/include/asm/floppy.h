@@ -62,12 +62,19 @@ static irqreturn_t floppy_hardint(int irq, void *dev_id)
 	static int bytes;
 	static int dma_wait;
 #endif
+
 	if (!doing_pdma)
+	{
 		return floppy_interrupt(irq, dev_id);
+	}
 
 #ifdef TRACE_FLPY_INT
+
 	if (!calls)
+	{
 		bytes = virtual_dma_count;
+	}
+
 #endif
 
 	{
@@ -75,16 +82,27 @@ static irqreturn_t floppy_hardint(int irq, void *dev_id)
 		char *lptr;
 
 		st = 1;
+
 		for (lcount = virtual_dma_count, lptr = virtual_dma_addr;
-		     lcount; lcount--, lptr++) {
+			 lcount; lcount--, lptr++)
+		{
 			st = inb(virtual_dma_port + 4) & 0xa0;
+
 			if (st != 0xa0)
+			{
 				break;
+			}
+
 			if (virtual_dma_mode)
+			{
 				outb_p(*lptr, virtual_dma_port + 5);
+			}
 			else
+			{
 				*lptr = inb_p(virtual_dma_port + 5);
+			}
 		}
+
 		virtual_dma_count = lcount;
 		virtual_dma_addr = lptr;
 		st = inb(virtual_dma_port + 4);
@@ -93,15 +111,20 @@ static irqreturn_t floppy_hardint(int irq, void *dev_id)
 #ifdef TRACE_FLPY_INT
 	calls++;
 #endif
+
 	if (st == 0x20)
+	{
 		return IRQ_HANDLED;
-	if (!(st & 0x20)) {
+	}
+
+	if (!(st & 0x20))
+	{
 		virtual_dma_residue += virtual_dma_count;
 		virtual_dma_count = 0;
 #ifdef TRACE_FLPY_INT
 		printk(KERN_DEBUG "count=%x, residue=%x calls=%d bytes=%d dma_wait=%d\n",
-		       virtual_dma_count, virtual_dma_residue, calls, bytes,
-		       dma_wait);
+			   virtual_dma_count, virtual_dma_residue, calls, bytes,
+			   dma_wait);
 		calls = 0;
 		dma_wait = 0;
 #endif
@@ -109,9 +132,14 @@ static irqreturn_t floppy_hardint(int irq, void *dev_id)
 		floppy_interrupt(irq, dev_id);
 		return IRQ_HANDLED;
 	}
+
 #ifdef TRACE_FLPY_INT
+
 	if (!virtual_dma_count)
+	{
 		dma_wait++;
+	}
+
 #endif
 	return IRQ_HANDLED;
 }
@@ -119,7 +147,10 @@ static irqreturn_t floppy_hardint(int irq, void *dev_id)
 static void fd_disable_dma(void)
 {
 	if (!(can_use_virtual_dma & 1))
+	{
 		disable_dma(FLOPPY_DMA);
+	}
+
 	doing_pdma = 0;
 	virtual_dma_residue += virtual_dma_count;
 	virtual_dma_count = 0;
@@ -145,15 +176,15 @@ static int fd_request_irq(void)
 {
 	if (can_use_virtual_dma)
 		return request_irq(FLOPPY_IRQ, floppy_hardint,
-				   0, "floppy", NULL);
+						   0, "floppy", NULL);
 	else
 		return request_irq(FLOPPY_IRQ, floppy_interrupt,
-				   0, "floppy", NULL);
+						   0, "floppy", NULL);
 }
 
 static unsigned long dma_mem_alloc(unsigned long size)
 {
-	return __get_dma_pages(GFP_KERNEL|__GFP_NORETRY, get_order(size));
+	return __get_dma_pages(GFP_KERNEL | __GFP_NORETRY, get_order(size));
 }
 
 
@@ -168,23 +199,34 @@ static unsigned long vdma_mem_alloc(unsigned long size)
 static void _fd_dma_mem_free(unsigned long addr, unsigned long size)
 {
 	if ((unsigned long)addr >= (unsigned long)high_memory)
+	{
 		vfree((void *)addr);
+	}
 	else
+	{
 		free_pages(addr, get_order(size));
+	}
 }
 
 #define fd_dma_mem_free(addr, size)  _fd_dma_mem_free(addr, size)
 
 static void _fd_chose_dma_mode(char *addr, unsigned long size)
 {
-	if (can_use_virtual_dma == 2) {
+	if (can_use_virtual_dma == 2)
+	{
 		if ((unsigned long)addr >= (unsigned long)high_memory ||
-		    isa_virt_to_bus(addr) >= 0x1000000 ||
-		    _CROSS_64KB(addr, size, 0))
+			isa_virt_to_bus(addr) >= 0x1000000 ||
+			_CROSS_64KB(addr, size, 0))
+		{
 			use_virtual_dma = 1;
+		}
 		else
+		{
 			use_virtual_dma = 0;
-	} else {
+		}
+	}
+	else
+	{
 		use_virtual_dma = can_use_virtual_dma & 1;
 	}
 }
@@ -206,10 +248,13 @@ static int vdma_dma_setup(char *addr, unsigned long size, int mode, int io)
 static int hard_dma_setup(char *addr, unsigned long size, int mode, int io)
 {
 #ifdef FLOPPY_SANITY_CHECK
-	if (CROSS_64KB(addr, size)) {
-		printk("DMA crossing 64-K boundary %p-%p\n", addr, addr+size);
+
+	if (CROSS_64KB(addr, size))
+	{
+		printk("DMA crossing 64-K boundary %p-%p\n", addr, addr + size);
 		return -1;
 	}
+
 #endif
 	/* actual, physical DMA */
 	doing_pdma = 0;
@@ -221,13 +266,15 @@ static int hard_dma_setup(char *addr, unsigned long size, int mode, int io)
 	return 0;
 }
 
-static struct fd_routine_l {
+static struct fd_routine_l
+{
 	int (*_request_dma)(unsigned int dmanr, const char *device_id);
 	void (*_free_dma)(unsigned int dmanr);
 	int (*_get_dma_residue)(unsigned int dummy);
 	unsigned long (*_dma_mem_alloc)(unsigned long size);
 	int (*_dma_setup)(char *addr, unsigned long size, int mode, int io);
-} fd_routine[] = {
+} fd_routine[] =
+{
 	{
 		request_dma,
 		free_dma,
@@ -254,24 +301,24 @@ static int FDC2 = -1;
  * coincides with another rtc CMOS user.		Paul G.
  */
 #define FLOPPY0_TYPE					\
-({							\
-	unsigned long flags;				\
-	unsigned char val;				\
-	spin_lock_irqsave(&rtc_lock, flags);		\
-	val = (CMOS_READ(0x10) >> 4) & 15;		\
-	spin_unlock_irqrestore(&rtc_lock, flags);	\
-	val;						\
-})
+	({							\
+		unsigned long flags;				\
+		unsigned char val;				\
+		spin_lock_irqsave(&rtc_lock, flags);		\
+		val = (CMOS_READ(0x10) >> 4) & 15;		\
+		spin_unlock_irqrestore(&rtc_lock, flags);	\
+		val;						\
+	})
 
 #define FLOPPY1_TYPE					\
-({							\
-	unsigned long flags;				\
-	unsigned char val;				\
-	spin_lock_irqsave(&rtc_lock, flags);		\
-	val = CMOS_READ(0x10) & 15;			\
-	spin_unlock_irqrestore(&rtc_lock, flags);	\
-	val;						\
-})
+	({							\
+		unsigned long flags;				\
+		unsigned char val;				\
+		spin_lock_irqsave(&rtc_lock, flags);		\
+		val = CMOS_READ(0x10) & 15;			\
+		spin_unlock_irqrestore(&rtc_lock, flags);	\
+		val;						\
+	})
 
 #define N_FDC 2
 #define N_DRIVE 8

@@ -32,14 +32,16 @@
 
 #ifndef __ASSEMBLY__
 
-struct w90x900_uart_clksrc {
+struct w90x900_uart_clksrc
+{
 	const char	*name;
 	unsigned int	divisor;
 	unsigned int	min_baud;
 	unsigned int	max_baud;
 };
 
-struct w90x900_uartcfg {
+struct w90x900_uartcfg
+{
 	unsigned char	hwport;
 	unsigned char	unused;
 	unsigned short	flags;

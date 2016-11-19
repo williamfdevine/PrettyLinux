@@ -17,7 +17,7 @@
 #include <asm-generic/bitops/find.h>
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <asm-generic/bitops/sched.h>
@@ -116,15 +116,15 @@ static inline unsigned int __arch_hweight32(unsigned int w)
 	unsigned int res;
 
 	__asm__ ("%0.l = ONES %1;"
-		"%0 = %0.l (Z);"
-		: "=d" (res) : "d" (w));
+			 "%0 = %0.l (Z);"
+			 : "=d" (res) : "d" (w));
 	return res;
 }
 
 static inline unsigned int __arch_hweight64(__u64 w)
 {
 	return __arch_hweight32((unsigned int)(w >> 32)) +
-	       __arch_hweight32((unsigned int)w);
+		   __arch_hweight32((unsigned int)w);
 }
 
 static inline unsigned int __arch_hweight16(unsigned int w)

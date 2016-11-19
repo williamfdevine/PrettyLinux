@@ -23,7 +23,7 @@ void destroy_context(struct mm_struct *mm);
 
 /* Switch the current MM context. */
 void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
-	       struct task_struct *tsk);
+			   struct task_struct *tsk);
 
 #define deactivate_mm(tsk,mm)	do { } while (0)
 

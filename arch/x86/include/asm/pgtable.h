@@ -12,7 +12,7 @@
 #define pgprot_noncached(prot)						\
 	((boot_cpu_data.x86 > 3)					\
 	 ? (__pgprot(pgprot_val(prot) |					\
-		     cachemode2protval(_PAGE_CACHE_MODE_UC_MINUS)))	\
+				 cachemode2protval(_PAGE_CACHE_MODE_UC_MINUS)))	\
 	 : (prot))
 
 #ifndef __ASSEMBLY__
@@ -22,9 +22,9 @@ void ptdump_walk_pgd_level(struct seq_file *m, pgd_t *pgd);
 void ptdump_walk_pgd_level_checkwx(void);
 
 #ifdef CONFIG_DEBUG_WX
-#define debug_checkwx() ptdump_walk_pgd_level_checkwx()
+	#define debug_checkwx() ptdump_walk_pgd_level_checkwx()
 #else
-#define debug_checkwx() do { } while (0)
+	#define debug_checkwx() do { } while (0)
 #endif
 
 /*
@@ -32,7 +32,7 @@ void ptdump_walk_pgd_level_checkwx(void);
  * for zero-mapped memory areas etc..
  */
 extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)]
-	__visible;
+__visible;
 #define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
 
 extern spinlock_t pgd_lock;
@@ -53,16 +53,16 @@ extern struct mm_struct *pgd_page_get_mm(struct page *page);
 #define set_pmd(pmdp, pmd)		native_set_pmd(pmdp, pmd)
 
 #ifndef __PAGETABLE_PUD_FOLDED
-#define set_pgd(pgdp, pgd)		native_set_pgd(pgdp, pgd)
-#define pgd_clear(pgd)			native_pgd_clear(pgd)
+	#define set_pgd(pgdp, pgd)		native_set_pgd(pgdp, pgd)
+	#define pgd_clear(pgd)			native_pgd_clear(pgd)
 #endif
 
 #ifndef set_pud
-# define set_pud(pudp, pud)		native_set_pud(pudp, pud)
+	#define set_pud(pudp, pud)		native_set_pud(pudp, pud)
 #endif
 
 #ifndef __PAGETABLE_PMD_FOLDED
-#define pud_clear(pud)			native_pud_clear(pud)
+	#define pud_clear(pud)			native_pud_clear(pud)
 #endif
 
 #define pte_clear(mm, addr, ptep)	native_pte_clear(mm, addr, ptep)
@@ -74,13 +74,13 @@ extern struct mm_struct *pgd_page_get_mm(struct page *page);
 #define __pgd(x)	native_make_pgd(x)
 
 #ifndef __PAGETABLE_PUD_FOLDED
-#define pud_val(x)	native_pud_val(x)
-#define __pud(x)	native_make_pud(x)
+	#define pud_val(x)	native_pud_val(x)
+	#define __pud(x)	native_make_pud(x)
 #endif
 
 #ifndef __PAGETABLE_PMD_FOLDED
-#define pmd_val(x)	native_pmd_val(x)
-#define __pmd(x)	native_make_pmd(x)
+	#define pmd_val(x)	native_pmd_val(x)
+	#define __pmd(x)	native_make_pmd(x)
 #endif
 
 #define pte_val(x)	native_pte_val(x)
@@ -103,14 +103,19 @@ static inline int pte_dirty(pte_t pte)
 static inline u32 read_pkru(void)
 {
 	if (boot_cpu_has(X86_FEATURE_OSPKE))
+	{
 		return __read_pkru();
+	}
+
 	return 0;
 }
 
 static inline void write_pkru(u32 pkru)
 {
 	if (boot_cpu_has(X86_FEATURE_OSPKE))
+	{
 		__write_pkru(pkru);
+	}
 }
 
 static inline int pte_young(pte_t pte)
@@ -178,7 +183,7 @@ static inline int pmd_large(pmd_t pte)
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 static inline int pmd_trans_huge(pmd_t pmd)
 {
-	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
+	return (pmd_val(pmd) & (_PAGE_PSE | _PAGE_DEVMAP)) == _PAGE_PSE;
 }
 
 #define has_transparent_hugepage has_transparent_hugepage
@@ -271,7 +276,7 @@ static inline pte_t pte_mkspecial(pte_t pte)
 
 static inline pte_t pte_mkdevmap(pte_t pte)
 {
-	return pte_set_flags(pte, _PAGE_SPECIAL|_PAGE_DEVMAP);
+	return pte_set_flags(pte, _PAGE_SPECIAL | _PAGE_DEVMAP);
 }
 
 static inline pmd_t pmd_set_flags(pmd_t pmd, pmdval_t set)
@@ -375,7 +380,9 @@ static inline pgprotval_t massage_pgprot(pgprot_t pgprot)
 	pgprotval_t protval = pgprot_val(pgprot);
 
 	if (protval & _PAGE_PRESENT)
+	{
 		protval &= __supported_pte_mask;
+	}
 
 	return protval;
 }
@@ -383,13 +390,13 @@ static inline pgprotval_t massage_pgprot(pgprot_t pgprot)
 static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
 {
 	return __pte(((phys_addr_t)page_nr << PAGE_SHIFT) |
-		     massage_pgprot(pgprot));
+				 massage_pgprot(pgprot));
 }
 
 static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
 {
 	return __pmd(((phys_addr_t)page_nr << PAGE_SHIFT) |
-		     massage_pgprot(pgprot));
+				 massage_pgprot(pgprot));
 }
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
@@ -432,14 +439,16 @@ static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
 #define canon_pgprot(p) __pgprot(massage_pgprot(p))
 
 static inline int is_new_memtype_allowed(u64 paddr, unsigned long size,
-					 enum page_cache_mode pcm,
-					 enum page_cache_mode new_pcm)
+		enum page_cache_mode pcm,
+		enum page_cache_mode new_pcm)
 {
 	/*
 	 * PAT type is always WB for untracked ranges, so no need to check.
 	 */
 	if (x86_platform.is_untracked_pat_range(paddr, paddr + size))
+	{
 		return 1;
+	}
 
 	/*
 	 * Certain new memtypes are not allowed with certain
@@ -450,13 +459,14 @@ static inline int is_new_memtype_allowed(u64 paddr, unsigned long size,
 	 * - request is write-through, return cannot be write-combine
 	 */
 	if ((pcm == _PAGE_CACHE_MODE_UC_MINUS &&
-	     new_pcm == _PAGE_CACHE_MODE_WB) ||
-	    (pcm == _PAGE_CACHE_MODE_WC &&
-	     new_pcm == _PAGE_CACHE_MODE_WB) ||
-	    (pcm == _PAGE_CACHE_MODE_WT &&
-	     new_pcm == _PAGE_CACHE_MODE_WB) ||
-	    (pcm == _PAGE_CACHE_MODE_WT &&
-	     new_pcm == _PAGE_CACHE_MODE_WC)) {
+		 new_pcm == _PAGE_CACHE_MODE_WB) ||
+		(pcm == _PAGE_CACHE_MODE_WC &&
+		 new_pcm == _PAGE_CACHE_MODE_WB) ||
+		(pcm == _PAGE_CACHE_MODE_WT &&
+		 new_pcm == _PAGE_CACHE_MODE_WB) ||
+		(pcm == _PAGE_CACHE_MODE_WT &&
+		 new_pcm == _PAGE_CACHE_MODE_WC))
+	{
 		return 0;
 	}
 
@@ -468,9 +478,9 @@ pte_t *populate_extra_pte(unsigned long vaddr);
 #endif	/* __ASSEMBLY__ */
 
 #ifdef CONFIG_X86_32
-# include <asm/pgtable_32.h>
+	#include <asm/pgtable_32.h>
 #else
-# include <asm/pgtable_64.h>
+	#include <asm/pgtable_64.h>
 #endif
 
 #ifndef __ASSEMBLY__
@@ -505,11 +515,15 @@ static inline int pte_devmap(pte_t a)
 static inline bool pte_accessible(struct mm_struct *mm, pte_t a)
 {
 	if (pte_flags(a) & _PAGE_PRESENT)
+	{
 		return true;
+	}
 
 	if ((pte_flags(a) & _PAGE_PROTNONE) &&
-			mm_tlb_flush_pending(mm))
+		mm_tlb_flush_pending(mm))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -538,13 +552,13 @@ static inline int pmd_present(pmd_t pmd)
 static inline int pte_protnone(pte_t pte)
 {
 	return (pte_flags(pte) & (_PAGE_PROTNONE | _PAGE_PRESENT))
-		== _PAGE_PROTNONE;
+		   == _PAGE_PROTNONE;
 }
 
 static inline int pmd_protnone(pmd_t pmd)
 {
 	return (pmd_flags(pmd) & (_PAGE_PROTNONE | _PAGE_PRESENT))
-		== _PAGE_PROTNONE;
+		   == _PAGE_PROTNONE;
 }
 #endif /* CONFIG_NUMA_BALANCING */
 
@@ -646,7 +660,7 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
 static inline int pud_large(pud_t pud)
 {
 	return (pud_val(pud) & (_PAGE_PSE | _PAGE_PRESENT)) ==
-		(_PAGE_PSE | _PAGE_PRESENT);
+		   (_PAGE_PSE | _PAGE_PRESENT);
 }
 
 static inline int pud_bad(pud_t pud)
@@ -744,11 +758,11 @@ static inline void __meminit init_trampoline_default(void)
 	/* Default trampoline pgd value */
 	trampoline_pgd_entry = init_level4_pgt[pgd_index(__PAGE_OFFSET)];
 }
-# ifdef CONFIG_RANDOMIZE_MEMORY
-void __meminit init_trampoline(void);
-# else
-#  define init_trampoline init_trampoline_default
-# endif
+#ifdef CONFIG_RANDOMIZE_MEMORY
+	void __meminit init_trampoline(void);
+#else
+	#define init_trampoline init_trampoline_default
+#endif
 #else
 static inline void init_trampoline(void) { }
 #endif
@@ -772,28 +786,28 @@ static inline pmd_t native_local_pmdp_get_and_clear(pmd_t *pmdp)
 }
 
 static inline void native_set_pte_at(struct mm_struct *mm, unsigned long addr,
-				     pte_t *ptep , pte_t pte)
+									 pte_t *ptep , pte_t pte)
 {
 	native_set_pte(ptep, pte);
 }
 
 static inline void native_set_pmd_at(struct mm_struct *mm, unsigned long addr,
-				     pmd_t *pmdp , pmd_t pmd)
+									 pmd_t *pmdp , pmd_t pmd)
 {
 	native_set_pmd(pmdp, pmd);
 }
 
 #ifndef CONFIG_PARAVIRT
-/*
- * Rules for using pte_update - it must be called after any PTE update which
- * has not been done using the set_pte / clear_pte interfaces.  It is used by
- * shadow mode hypervisors to resynchronize the shadow page tables.  Kernel PTE
- * updates should either be sets, clears, or set_pte_atomic for P->P
- * transitions, which means this hook should only be called for user PTEs.
- * This hook implies a P->P protection or access change has taken place, which
- * requires a subsequent TLB flush.
- */
-#define pte_update(mm, addr, ptep)		do { } while (0)
+	/*
+	* Rules for using pte_update - it must be called after any PTE update which
+	* has not been done using the set_pte / clear_pte interfaces.  It is used by
+	* shadow mode hypervisors to resynchronize the shadow page tables.  Kernel PTE
+	* updates should either be sets, clears, or set_pte_atomic for P->P
+	* transitions, which means this hook should only be called for user PTEs.
+	* This hook implies a P->P protection or access change has taken place, which
+	* requires a subsequent TLB flush.
+	*/
+	#define pte_update(mm, addr, ptep)		do { } while (0)
 #endif
 
 /*
@@ -807,20 +821,20 @@ struct vm_area_struct;
 
 #define  __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
 extern int ptep_set_access_flags(struct vm_area_struct *vma,
-				 unsigned long address, pte_t *ptep,
-				 pte_t entry, int dirty);
+								 unsigned long address, pte_t *ptep,
+								 pte_t entry, int dirty);
 
 #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
 extern int ptep_test_and_clear_young(struct vm_area_struct *vma,
-				     unsigned long addr, pte_t *ptep);
+									 unsigned long addr, pte_t *ptep);
 
 #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
 extern int ptep_clear_flush_young(struct vm_area_struct *vma,
-				  unsigned long address, pte_t *ptep);
+								  unsigned long address, pte_t *ptep);
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
-				       pte_t *ptep)
+									   pte_t *ptep)
 {
 	pte_t pte = native_ptep_get_and_clear(ptep);
 	pte_update(mm, addr, ptep);
@@ -829,25 +843,30 @@ static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR_FULL
 static inline pte_t ptep_get_and_clear_full(struct mm_struct *mm,
-					    unsigned long addr, pte_t *ptep,
-					    int full)
+		unsigned long addr, pte_t *ptep,
+		int full)
 {
 	pte_t pte;
-	if (full) {
+
+	if (full)
+	{
 		/*
 		 * Full address destruction in progress; paravirt does not
 		 * care about updates and native needs no locking
 		 */
 		pte = native_local_ptep_get_and_clear(ptep);
-	} else {
+	}
+	else
+	{
 		pte = ptep_get_and_clear(mm, addr, ptep);
 	}
+
 	return pte;
 }
 
 #define __HAVE_ARCH_PTEP_SET_WRPROTECT
 static inline void ptep_set_wrprotect(struct mm_struct *mm,
-				      unsigned long addr, pte_t *ptep)
+									  unsigned long addr, pte_t *ptep)
 {
 	clear_bit(_PAGE_BIT_RW, (unsigned long *)&ptep->pte);
 	pte_update(mm, addr, ptep);
@@ -859,16 +878,16 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm,
 
 #define  __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
 extern int pmdp_set_access_flags(struct vm_area_struct *vma,
-				 unsigned long address, pmd_t *pmdp,
-				 pmd_t entry, int dirty);
+								 unsigned long address, pmd_t *pmdp,
+								 pmd_t entry, int dirty);
 
 #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
 extern int pmdp_test_and_clear_young(struct vm_area_struct *vma,
-				     unsigned long addr, pmd_t *pmdp);
+									 unsigned long addr, pmd_t *pmdp);
 
 #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
 extern int pmdp_clear_flush_young(struct vm_area_struct *vma,
-				  unsigned long address, pmd_t *pmdp);
+								  unsigned long address, pmd_t *pmdp);
 
 
 #define __HAVE_ARCH_PMD_WRITE
@@ -879,14 +898,14 @@ static inline int pmd_write(pmd_t pmd)
 
 #define __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
 static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm, unsigned long addr,
-				       pmd_t *pmdp)
+		pmd_t *pmdp)
 {
 	return native_pmdp_get_and_clear(pmdp);
 }
 
 #define __HAVE_ARCH_PMDP_SET_WRPROTECT
 static inline void pmdp_set_wrprotect(struct mm_struct *mm,
-				      unsigned long addr, pmd_t *pmdp)
+									  unsigned long addr, pmd_t *pmdp)
 {
 	clear_bit(_PAGE_BIT_RW, (unsigned long *)pmdp);
 }
@@ -903,7 +922,7 @@ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
  */
 static inline void clone_pgd_range(pgd_t *dst, pgd_t *src, int count)
 {
-       memcpy(dst, src, count * sizeof(pgd_t));
+	memcpy(dst, src, count * sizeof(pgd_t));
 }
 
 #define PTE_SHIFT ilog2(PTRS_PER_PTE)
@@ -925,11 +944,11 @@ static inline unsigned long page_level_mask(enum pg_level level)
  * tables contain all the necessary information.
  */
 static inline void update_mmu_cache(struct vm_area_struct *vma,
-		unsigned long addr, pte_t *ptep)
+									unsigned long addr, pte_t *ptep)
 {
 }
 static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
-		unsigned long addr, pmd_t *pmd)
+										unsigned long addr, pmd_t *pmd)
 {
 }
 
@@ -967,7 +986,7 @@ static inline bool __pkru_allows_write(u32 pkru, u16 pkey)
 	 * Access-disable disables writes too so we need to check
 	 * both bits here.
 	 */
-	return !(pkru & ((PKRU_AD_BIT|PKRU_WD_BIT) << pkru_pkey_bits));
+	return !(pkru & ((PKRU_AD_BIT | PKRU_WD_BIT) << pkru_pkey_bits));
 }
 
 static inline u16 pte_flags_pkey(unsigned long pte_flags)

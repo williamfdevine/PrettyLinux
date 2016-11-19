@@ -51,7 +51,7 @@
 
 /* which bits are used for cache control ... */
 #define _PAGE_CACHE_MASK	(_PAGE_CACHE_CTRL0 | _PAGE_CACHE_CTRL1 | \
-				 _PAGE_WR_COMBINE)
+							 _PAGE_WR_COMBINE)
 
 /* This is a mask of the bits that pte_modify is allowed to change. */
 #define _PAGE_CHG_MASK		(PAGE_MASK)
@@ -71,34 +71,34 @@
 #define _PAGE_SZ_MASK		(0xf << _PAGE_SZ_SHIFT)
 
 #if defined(CONFIG_PAGE_SIZE_4K)
-#define _PAGE_SZ		(_PAGE_SZ_4K)
+	#define _PAGE_SZ		(_PAGE_SZ_4K)
 #elif defined(CONFIG_PAGE_SIZE_8K)
-#define _PAGE_SZ		(_PAGE_SZ_8K)
+	#define _PAGE_SZ		(_PAGE_SZ_8K)
 #elif defined(CONFIG_PAGE_SIZE_16K)
-#define _PAGE_SZ		(_PAGE_SZ_16K)
+	#define _PAGE_SZ		(_PAGE_SZ_16K)
 #endif
 #define _PAGE_TABLE		(_PAGE_SZ | _PAGE_PRESENT)
 
 #if defined(CONFIG_HUGETLB_PAGE_SIZE_8K)
-# define _PAGE_SZHUGE		(_PAGE_SZ_8K)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_8K)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_16K)
-# define _PAGE_SZHUGE		(_PAGE_SZ_16K)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_16K)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_32K)
-# define _PAGE_SZHUGE		(_PAGE_SZ_32K)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_32K)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
-# define _PAGE_SZHUGE		(_PAGE_SZ_64K)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_64K)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_128K)
-# define _PAGE_SZHUGE		(_PAGE_SZ_128K)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_128K)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_256K)
-# define _PAGE_SZHUGE		(_PAGE_SZ_256K)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_256K)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
-# define _PAGE_SZHUGE		(_PAGE_SZ_512K)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_512K)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_1M)
-# define _PAGE_SZHUGE		(_PAGE_SZ_1M)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_1M)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_2M)
-# define _PAGE_SZHUGE		(_PAGE_SZ_2M)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_2M)
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_4M)
-# define _PAGE_SZHUGE		(_PAGE_SZ_4M)
+	#define _PAGE_SZHUGE		(_PAGE_SZ_4M)
 #endif
 
 #endif /* _METAG_PGTABLE_BITS_H */

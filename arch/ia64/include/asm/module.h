@@ -12,7 +12,8 @@
 
 struct elf64_shdr;			/* forward declration */
 
-struct mod_arch_specific {
+struct mod_arch_specific
+{
 	struct elf64_shdr *core_plt;	/* core PLT section */
 	struct elf64_shdr *init_plt;	/* init PLT section */
 	struct elf64_shdr *got;		/* global offset table */

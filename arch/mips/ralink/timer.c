@@ -29,7 +29,8 @@
 #define TMR0CTL_PRESCALE_VAL		(0xf - TMR0CTL_PRESCALER)
 #define TMR0CTL_PRESCALE_DIV		(65536 / BIT(TMR0CTL_PRESCALER))
 
-struct rt_timer {
+struct rt_timer
+{
 	struct device	*dev;
 	void __iomem	*membase;
 	int		irq;
@@ -61,13 +62,18 @@ static irqreturn_t rt_timer_irq(int irq, void *_rt)
 static int rt_timer_request(struct rt_timer *rt)
 {
 	int err = request_irq(rt->irq, rt_timer_irq, 0,
-						dev_name(rt->dev), rt);
-	if (err) {
+						  dev_name(rt->dev), rt);
+
+	if (err)
+	{
 		dev_err(rt->dev, "failed to request irq\n");
-	} else {
+	}
+	else
+	{
 		u32 t = TMR0CTL_MODE_PERIODIC | TMR0CTL_PRESCALE_VAL;
 		rt_timer_w32(rt, TIMER_REG_TMR0CTL, t);
 	}
+
 	return err;
 }
 
@@ -79,9 +85,13 @@ static void rt_timer_free(struct rt_timer *rt)
 static int rt_timer_config(struct rt_timer *rt, unsigned long divisor)
 {
 	if (rt->timer_freq < divisor)
+	{
 		rt->timer_div = rt->timer_freq;
+	}
 	else
+	{
 		rt->timer_div = divisor;
+	}
 
 	rt_timer_w32(rt, TIMER_REG_TMR0LOAD, rt->timer_freq / rt->timer_div);
 
@@ -117,30 +127,42 @@ static int rt_timer_probe(struct platform_device *pdev)
 	struct clk *clk;
 
 	rt = devm_kzalloc(&pdev->dev, sizeof(*rt), GFP_KERNEL);
-	if (!rt) {
+
+	if (!rt)
+	{
 		dev_err(&pdev->dev, "failed to allocate memory\n");
 		return -ENOMEM;
 	}
 
 	rt->irq = platform_get_irq(pdev, 0);
-	if (!rt->irq) {
+
+	if (!rt->irq)
+	{
 		dev_err(&pdev->dev, "failed to load irq\n");
 		return -ENOENT;
 	}
 
 	rt->membase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rt->membase))
+	{
 		return PTR_ERR(rt->membase);
+	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "failed get clock rate\n");
 		return PTR_ERR(clk);
 	}
 
 	rt->timer_freq = clk_get_rate(clk) / TMR0CTL_PRESCALE_DIV;
+
 	if (!rt->timer_freq)
+	{
 		return -EINVAL;
+	}
 
 	rt->dev = &pdev->dev;
 	platform_set_drvdata(pdev, rt);
@@ -154,12 +176,14 @@ static int rt_timer_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id rt_timer_match[] = {
+static const struct of_device_id rt_timer_match[] =
+{
 	{ .compatible = "ralink,rt2880-timer" },
 	{},
 };
 
-static struct platform_driver rt_timer_driver = {
+static struct platform_driver rt_timer_driver =
+{
 	.probe = rt_timer_probe,
 	.driver = {
 		.name			= "rt-timer",

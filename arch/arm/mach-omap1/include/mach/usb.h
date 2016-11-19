@@ -3,9 +3,9 @@
  * as does (on omap1) any nonzero value for config->otg port number
  */
 #if IS_ENABLED(CONFIG_USB_OMAP)
-#define	is_usb0_device(config)	1
+	#define	is_usb0_device(config)	1
 #else
-#define	is_usb0_device(config)	0
+	#define	is_usb0_device(config)	0
 #endif
 
 #include <linux/platform_data/usb-omap1.h>
@@ -100,7 +100,7 @@ static inline void omap1_usb_init(struct omap_usb_config *pdata)
 #	define	 B_SRP_STARTED		(1 << 7)
 #	define	 OPRT_CHG		(1 << 0)
 #define OTG_IRQ_SRC			(OTG_BASE + 0x14)	/* 16-bit */
-	// same bits as in IRQ_EN
+// same bits as in IRQ_EN
 #define OTG_OUTCTRL			(OTG_BASE + 0x18)	/* 16-bit */
 #	define	 OTGVPD			(1 << 14)
 #	define	 OTGVPU			(1 << 13)

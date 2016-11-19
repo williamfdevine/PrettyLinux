@@ -28,7 +28,8 @@
  * generic timer: fit the unconditionally updated fields in the first
  * 32 bytes.
  */
-struct vdso_data {
+struct vdso_data
+{
 	u32 seq_count;		/* sequence count - odd during updates */
 	u16 tk_is_cntvct;	/* fall back to syscall if false */
 	u16 cs_shift;		/* clocksource shift */
@@ -48,7 +49,8 @@ struct vdso_data {
 	u32 tz_dsttime;
 };
 
-union vdso_data_store {
+union vdso_data_store
+{
 	struct vdso_data data;
 	u8 page[PAGE_SIZE];
 };

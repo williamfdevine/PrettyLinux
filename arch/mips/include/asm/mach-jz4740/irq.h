@@ -20,9 +20,9 @@
 #define JZ4740_IRQ_BASE 8
 
 #ifdef CONFIG_MACH_JZ4740
-# define NR_INTC_IRQS	32
+	#define NR_INTC_IRQS	32
 #else
-# define NR_INTC_IRQS	64
+	#define NR_INTC_IRQS	64
 #endif
 
 /* 1st-level interrupts */

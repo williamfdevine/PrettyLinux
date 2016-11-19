@@ -38,7 +38,8 @@
 
 
 #if defined(CONFIG_USB_EHCI_HCD)
-static struct resource msp_usbhost0_resources[] = {
+static struct resource msp_usbhost0_resources[] =
+{
 	[0] = { /* EHCI-HS operational and capabilities registers */
 		.start	= MSP_USB0_HS_START,
 		.end	= MSP_USB0_HS_END,
@@ -63,7 +64,8 @@ static struct resource msp_usbhost0_resources[] = {
 
 static u64 msp_usbhost0_dma_mask = 0xffffffffUL;
 
-static struct mspusb_device msp_usbhost0_device = {
+static struct mspusb_device msp_usbhost0_device =
+{
 	.dev	= {
 		.name	= "pmcmsp-ehci",
 		.id	= 0,
@@ -78,7 +80,8 @@ static struct mspusb_device msp_usbhost0_device = {
 #endif /* CONFIG_USB_EHCI_HCD */
 
 #if defined(CONFIG_USB_GADGET)
-static struct resource msp_usbdev0_resources[] = {
+static struct resource msp_usbdev0_resources[] =
+{
 	[0] = { /* EHCI-HS operational and capabilities registers */
 		.start	= MSP_USB0_HS_START,
 		.end	= MSP_USB0_HS_END,
@@ -104,7 +107,8 @@ static struct resource msp_usbdev0_resources[] = {
 static u64 msp_usbdev_dma_mask = 0xffffffffUL;
 
 /* This may need to be converted to a mspusb_device, too. */
-static struct mspusb_device msp_usbdev0_device = {
+static struct mspusb_device msp_usbdev0_device =
+{
 	.dev	= {
 		.name	= "msp71xx_udc",
 		.id	= 0,
@@ -140,29 +144,37 @@ static int __init msp_usb_setup(void)
 
 	/* get environment string */
 	strp = prom_getenv((char *)&envstr[0]);
-	if (strp) {
+
+	if (strp)
+	{
 		/* compare string */
 		if (!strcmp(strp, "device"))
+		{
 			val = 0;
+		}
 	}
 
-	if (val) {
+	if (val)
+	{
 #if defined(CONFIG_USB_EHCI_HCD)
 		msp_devs[0] = &msp_usbhost0_device.dev;
 		ppfinit("platform add USB HOST done %s.\n", msp_devs[0]->name);
 #else
 		ppfinit("%s: echi_hcd not supported\n", __FILE__);
 #endif	/* CONFIG_USB_EHCI_HCD */
-	} else {
+	}
+	else
+	{
 #if defined(CONFIG_USB_GADGET)
 		/* get device mode structure */
 		msp_devs[0] = &msp_usbdev0_device.dev;
 		ppfinit("platform add USB DEVICE done %s.\n"
-					, msp_devs[0]->name);
+				, msp_devs[0]->name);
 #else
 		ppfinit("%s: usb_gadget not supported\n", __FILE__);
 #endif	/* CONFIG_USB_GADGET */
 	}
+
 	/* add device */
 	platform_add_devices(msp_devs, ARRAY_SIZE(msp_devs));
 

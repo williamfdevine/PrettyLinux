@@ -6,7 +6,8 @@ struct pt_regs;
 void bad_trap(struct pt_regs *, long);
 
 /* Grossly misnamed. */
-enum die_val {
+enum die_val
+{
 	DIE_OOPS = 1,
 	DIE_DEBUG,	/* ta 0x70 */
 	DIE_DEBUG_2,	/* ta 0x71 */

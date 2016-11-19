@@ -39,7 +39,8 @@ static int op_mips_create_files(struct dentry *root)
 {
 	int i;
 
-	for (i = 0; i < model->num_counters; ++i) {
+	for (i = 0; i < model->num_counters; ++i)
+	{
 		struct dentry *dir;
 		char buf[4];
 
@@ -77,39 +78,41 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
 	struct op_mips_model *lmodel = NULL;
 	int res;
 
-	switch (boot_cpu_type()) {
-	case CPU_5KC:
-	case CPU_M14KC:
-	case CPU_M14KEC:
-	case CPU_20KC:
-	case CPU_24K:
-	case CPU_25KF:
-	case CPU_34K:
-	case CPU_1004K:
-	case CPU_74K:
-	case CPU_1074K:
-	case CPU_INTERAPTIV:
-	case CPU_PROAPTIV:
-	case CPU_P5600:
-	case CPU_I6400:
-	case CPU_M5150:
-	case CPU_LOONGSON1:
-	case CPU_SB1:
-	case CPU_SB1A:
-	case CPU_R10000:
-	case CPU_R12000:
-	case CPU_R14000:
-	case CPU_R16000:
-	case CPU_XLR:
-		lmodel = &op_model_mipsxx_ops;
-		break;
+	switch (boot_cpu_type())
+	{
+		case CPU_5KC:
+		case CPU_M14KC:
+		case CPU_M14KEC:
+		case CPU_20KC:
+		case CPU_24K:
+		case CPU_25KF:
+		case CPU_34K:
+		case CPU_1004K:
+		case CPU_74K:
+		case CPU_1074K:
+		case CPU_INTERAPTIV:
+		case CPU_PROAPTIV:
+		case CPU_P5600:
+		case CPU_I6400:
+		case CPU_M5150:
+		case CPU_LOONGSON1:
+		case CPU_SB1:
+		case CPU_SB1A:
+		case CPU_R10000:
+		case CPU_R12000:
+		case CPU_R14000:
+		case CPU_R16000:
+		case CPU_XLR:
+			lmodel = &op_model_mipsxx_ops;
+			break;
 
-	case CPU_LOONGSON2:
-		lmodel = &op_model_loongson2_ops;
-		break;
-	case CPU_LOONGSON3:
-		lmodel = &op_model_loongson3_ops;
-		break;
+		case CPU_LOONGSON2:
+			lmodel = &op_model_loongson2_ops;
+			break;
+
+		case CPU_LOONGSON3:
+			lmodel = &op_model_loongson3_ops;
+			break;
 	};
 
 	/*
@@ -119,11 +122,16 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
 	ops->backtrace = op_mips_backtrace;
 
 	if (!lmodel)
+	{
 		return -ENODEV;
+	}
 
 	res = lmodel->init();
+
 	if (res)
+	{
 		return res;
+	}
 
 	model = lmodel;
 
@@ -135,7 +143,7 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
 	ops->cpu_type		= lmodel->cpu_type;
 
 	printk(KERN_INFO "oprofile: using %s performance monitoring.\n",
-	       lmodel->cpu_type);
+		   lmodel->cpu_type);
 
 	return 0;
 }
@@ -143,5 +151,7 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
 void oprofile_arch_exit(void)
 {
 	if (model)
+	{
 		model->exit();
+	}
 }

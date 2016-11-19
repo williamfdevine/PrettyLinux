@@ -9,14 +9,15 @@
  */
 #include <linux/kernel.h>
 
-struct word_at_a_time {
+struct word_at_a_time
+{
 	const unsigned long one_bits, high_bits;
 };
 
 #define WORD_AT_A_TIME_CONSTANTS { REPEAT_BYTE(0x01), REPEAT_BYTE(0x80) }
 
 static inline unsigned long has_zero(unsigned long a, unsigned long *bits,
-				     const struct word_at_a_time *c)
+									 const struct word_at_a_time *c)
 {
 	unsigned long mask = ((a - c->one_bits) & ~a) & c->high_bits;
 	*bits = mask;
@@ -69,27 +70,27 @@ static inline unsigned long load_unaligned_zeropad(const void *addr)
 
 	/* Load word from unaligned pointer addr */
 	asm(
-	"1:	ldr	%0, [%2]\n"
-	"2:\n"
-	"	.pushsection .text.fixup,\"ax\"\n"
-	"	.align 2\n"
-	"3:	and	%1, %2, #0x3\n"
-	"	bic	%2, %2, #0x3\n"
-	"	ldr	%0, [%2]\n"
-	"	lsl	%1, %1, #0x3\n"
+		"1:	ldr	%0, [%2]\n"
+		"2:\n"
+		"	.pushsection .text.fixup,\"ax\"\n"
+		"	.align 2\n"
+		"3:	and	%1, %2, #0x3\n"
+		"	bic	%2, %2, #0x3\n"
+		"	ldr	%0, [%2]\n"
+		"	lsl	%1, %1, #0x3\n"
 #ifndef __ARMEB__
-	"	lsr	%0, %0, %1\n"
+		"	lsr	%0, %0, %1\n"
 #else
-	"	lsl	%0, %0, %1\n"
+		"	lsl	%0, %0, %1\n"
 #endif
-	"	b	2b\n"
-	"	.popsection\n"
-	"	.pushsection __ex_table,\"a\"\n"
-	"	.align	3\n"
-	"	.long	1b, 3b\n"
-	"	.popsection"
-	: "=&r" (ret), "=&r" (offset)
-	: "r" (addr), "Qo" (*(unsigned long *)addr));
+		"	b	2b\n"
+		"	.popsection\n"
+		"	.pushsection __ex_table,\"a\"\n"
+		"	.align	3\n"
+		"	.long	1b, 3b\n"
+		"	.popsection"
+		: "=&r" (ret), "=&r" (offset)
+		: "r" (addr), "Qo" (*(unsigned long *)addr));
 
 	return ret;
 }

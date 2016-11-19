@@ -13,16 +13,17 @@
 #include <uapi/asm/setup.h>
 
 #ifdef CONFIG_ARC_PLAT_EZNPS
-#define COMMAND_LINE_SIZE 2048
+	#define COMMAND_LINE_SIZE 2048
 #else
-#define COMMAND_LINE_SIZE 256
+	#define COMMAND_LINE_SIZE 256
 #endif
 
 /*
  * Data structure to map a ID to string
  * Used a lot for bootup reporting of hardware diversity
  */
-struct id_to_str {
+struct id_to_str
+{
 	int id;
 	const char *str;
 };

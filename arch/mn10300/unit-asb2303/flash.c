@@ -24,7 +24,8 @@
  * default MTD partition table for both main flash devices, expected to be
  * overridden by RedBoot
  */
-static struct mtd_partition asb2303_partitions[] = {
+static struct mtd_partition asb2303_partitions[] =
+{
 	{
 		.name		= "Bootloader",
 		.size		= 0x00040000,
@@ -44,19 +45,22 @@ static struct mtd_partition asb2303_partitions[] = {
 /*
  * the ASB2303 Boot PROM definition
  */
-static struct physmap_flash_data asb2303_bootprom_data = {
+static struct physmap_flash_data asb2303_bootprom_data =
+{
 	.width		= 2,
 	.nr_parts	= 1,
 	.parts		= asb2303_partitions,
 };
 
-static struct resource asb2303_bootprom_resource = {
+static struct resource asb2303_bootprom_resource =
+{
 	.start		= ASB2303_PROM_ADDR,
 	.end		= ASB2303_PROM_ADDR + ASB2303_PROM_SIZE,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device asb2303_bootprom = {
+static struct platform_device asb2303_bootprom =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev.platform_data = &asb2303_bootprom_data,
@@ -67,19 +71,22 @@ static struct platform_device asb2303_bootprom = {
 /*
  * the ASB2303 System Flash definition
  */
-static struct physmap_flash_data asb2303_sysflash_data = {
+static struct physmap_flash_data asb2303_sysflash_data =
+{
 	.width		= 4,
 	.nr_parts	= 1,
 	.parts		= asb2303_partitions,
 };
 
-static struct resource asb2303_sysflash_resource = {
+static struct resource asb2303_sysflash_resource =
+{
 	.start		= ASB2303_FLASH_ADDR,
 	.end		= ASB2303_FLASH_ADDR + ASB2303_FLASH_SIZE,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device asb2303_sysflash = {
+static struct platform_device asb2303_sysflash =
+{
 	.name		= "physmap-flash",
 	.id		= 1,
 	.dev.platform_data = &asb2303_sysflash_data,

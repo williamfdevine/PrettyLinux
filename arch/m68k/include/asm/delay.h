@@ -11,23 +11,23 @@
  */
 
 #if defined(CONFIG_COLDFIRE)
-/*
- * The ColdFire runs the delay loop at significantly different speeds
- * depending upon long word alignment or not.  We'll pad it to
- * long word alignment which is the faster version.
- * The 0x4a8e is of course a 'tstl %fp' instruction.  This is better
- * than using a NOP (0x4e71) instruction because it executes in one
- * cycle not three and doesn't allow for an arbitrary delay waiting
- * for bus cycles to finish.  Also fp/a6 isn't likely to cause a
- * stall waiting for the register to become valid if such is added
- * to the coldfire at some stage.
- */
-#define	DELAY_ALIGN	".balignw 4, 0x4a8e\n\t"
+	/*
+	* The ColdFire runs the delay loop at significantly different speeds
+	* depending upon long word alignment or not.  We'll pad it to
+	* long word alignment which is the faster version.
+	* The 0x4a8e is of course a 'tstl %fp' instruction.  This is better
+	* than using a NOP (0x4e71) instruction because it executes in one
+	* cycle not three and doesn't allow for an arbitrary delay waiting
+	* for bus cycles to finish.  Also fp/a6 isn't likely to cause a
+	* stall waiting for the register to become valid if such is added
+	* to the coldfire at some stage.
+	*/
+	#define	DELAY_ALIGN	".balignw 4, 0x4a8e\n\t"
 #else
-/*
- * No instruction alignment required for other m68k types.
- */
-#define	DELAY_ALIGN
+	/*
+	* No instruction alignment required for other m68k types.
+	*/
+	#define	DELAY_ALIGN
 #endif
 
 static inline void __delay(unsigned long loops)
@@ -63,8 +63,8 @@ static inline void __xdelay(unsigned long xloops)
 	unsigned long tmp;
 
 	__asm__ ("mulul %2,%0:%1"
-		: "=d" (xloops), "=d" (tmp)
-		: "d" (xloops), "1" (loops_per_jiffy));
+			 : "=d" (xloops), "=d" (tmp)
+			 : "d" (xloops), "1" (loops_per_jiffy));
 	__delay(xloops * HZ);
 }
 
@@ -90,7 +90,7 @@ static inline void __udelay(unsigned long usecs)
  * a constant)
  */
 #define udelay(n) (__builtin_constant_p(n) ? \
-	((n) > 20000 ? __bad_udelay() : __const_udelay(n)) : __udelay(n))
+				   ((n) > 20000 ? __bad_udelay() : __const_udelay(n)) : __udelay(n))
 
 /*
  * nanosecond delay:

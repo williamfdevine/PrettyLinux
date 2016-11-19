@@ -13,21 +13,24 @@
 #include <loongson.h>
 #include <boot_param.h>
 
-static struct resource loongson_pci_mem_resource = {
+static struct resource loongson_pci_mem_resource =
+{
 	.name	= "pci memory space",
 	.start	= LOONGSON_PCI_MEM_START,
 	.end	= LOONGSON_PCI_MEM_END,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct resource loongson_pci_io_resource = {
+static struct resource loongson_pci_io_resource =
+{
 	.name	= "pci io space",
 	.start	= LOONGSON_PCI_IO_START,
 	.end	= IO_SPACE_LIMIT,
 	.flags	= IORESOURCE_IO,
 };
 
-static struct pci_controller  loongson_pci_controller = {
+static struct pci_controller  loongson_pci_controller =
+{
 	.pci_ops	= &loongson_pci_ops,
 	.io_resource	= &loongson_pci_io_resource,
 	.mem_resource	= &loongson_pci_mem_resource,
@@ -46,9 +49,9 @@ static void __init setup_pcimap(void)
 	 *	     [<2G]   [384M,448M] [320M,384M] [0M,64M]
 	 */
 	LOONGSON_PCIMAP = LOONGSON_PCIMAP_PCIMAP_2 |
-		LOONGSON_PCIMAP_WIN(2, LOONGSON_PCILO2_BASE) |
-		LOONGSON_PCIMAP_WIN(1, LOONGSON_PCILO1_BASE) |
-		LOONGSON_PCIMAP_WIN(0, 0);
+					  LOONGSON_PCIMAP_WIN(2, LOONGSON_PCILO2_BASE) |
+					  LOONGSON_PCIMAP_WIN(1, LOONGSON_PCILO1_BASE) |
+					  LOONGSON_PCIMAP_WIN(0, 0);
 
 	/*
 	 * PCI-DMA to local mapping: [2G,2G+256M] -> [0M,256M]
@@ -74,7 +77,7 @@ static void __init setup_pcimap(void)
 	 * set cpu addr window2 to map CPU address space to PCI address space
 	 */
 	LOONGSON_ADDRWIN_CPUTOPCI(ADDRWIN_WIN2, LOONGSON_CPU_MEM_SRC,
-		LOONGSON_PCI_MEM_DST, MMAP_CPUTOPCI_SIZE);
+							  LOONGSON_PCI_MEM_DST, MMAP_CPUTOPCI_SIZE);
 #endif
 }
 

@@ -46,15 +46,17 @@ cycles_t	pcycle_freq_mhz;
 cycles_t	thread_freq_mhz;
 cycles_t	sleep_clk_freq;
 
-static struct resource rtos_timer_resources[] = {
+static struct resource rtos_timer_resources[] =
+{
 	{
 		.start	= RTOS_TIMER_REGS_ADDR,
-		.end	= RTOS_TIMER_REGS_ADDR+PAGE_SIZE-1,
+		.end	= RTOS_TIMER_REGS_ADDR + PAGE_SIZE - 1,
 		.flags	= IORESOURCE_MEM,
 	},
 };
 
-static struct platform_device rtos_timer_device = {
+static struct platform_device rtos_timer_device =
+{
 	.name		= "rtos_timer",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(rtos_timer_resources),
@@ -62,7 +64,8 @@ static struct platform_device rtos_timer_device = {
 };
 
 /*  A lot of this stuff should move into a platform specific section.  */
-struct adsp_hw_timer_struct {
+struct adsp_hw_timer_struct
+{
 	u32 match;   /*  Match value  */
 	u32 count;
 	u32 enable;  /*  [1] - CLR_ON_MATCH_EN, [0] - EN  */
@@ -77,7 +80,8 @@ static cycle_t timer_get_cycles(struct clocksource *cs)
 	return (cycle_t) __vmgettime();
 }
 
-static struct clocksource hexagon_clocksource = {
+static struct clocksource hexagon_clocksource =
+{
 	.name		= "pcycles",
 	.rating		= 250,
 	.read		= timer_get_cycles,
@@ -106,7 +110,8 @@ static void broadcast(const struct cpumask *mask)
 #endif
 
 /* XXX Implement set_state_shutdown() */
-static struct clock_event_device hexagon_clockevent_dev = {
+static struct clock_event_device hexagon_clockevent_dev =
+{
 	.name		= "clockevent",
 	.features	= CLOCK_EVT_FEAT_ONESHOT,
 	.rating		= 400,
@@ -157,7 +162,8 @@ static irqreturn_t timer_interrupt(int irq, void *devid)
 }
 
 /*  This should also be pulled from devtree  */
-static struct irqaction rtos_timer_intdesc = {
+static struct irqaction rtos_timer_intdesc =
+{
 	.handler = timer_interrupt,
 	.flags = IRQF_TIMER | IRQF_TRIGGER_RISING,
 	.name = "rtos_timer"
@@ -180,14 +186,18 @@ void __init time_init_deferred(void)
 	ce_dev->cpumask = cpu_all_mask;
 
 	if (!resource)
+	{
 		resource = rtos_timer_device.resource;
+	}
 
 	/*  ioremap here means this has to run later, after paging init  */
 	rtos_timer = ioremap(resource->start, resource_size(resource));
 
-	if (!rtos_timer) {
+	if (!rtos_timer)
+	{
 		release_mem_region(resource->start, resource_size(resource));
 	}
+
 	clocksource_register_khz(&hexagon_clocksource, pcycle_freq_mhz * 1000);
 
 	/*  Note: the sim generic RTOS clock is apparently really 18750Hz  */
@@ -219,7 +229,9 @@ void __delay(unsigned long cycles)
 	unsigned long long start = __vmgettime();
 
 	while ((__vmgettime() - start) < cycles)
+	{
 		cpu_relax();
+	}
 }
 EXPORT_SYMBOL(__delay);
 
@@ -235,6 +247,8 @@ void __udelay(unsigned long usecs)
 	unsigned long long finish = (pcycle_freq_mhz * usecs) - fudgefactor;
 
 	while ((__vmgettime() - start) < finish)
-		cpu_relax(); /*  not sure how this improves readability  */
+	{
+		cpu_relax();    /*  not sure how this improves readability  */
+	}
 }
 EXPORT_SYMBOL(__udelay);

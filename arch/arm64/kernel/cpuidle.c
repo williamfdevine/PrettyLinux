@@ -23,8 +23,10 @@ int arm_cpuidle_init(unsigned int cpu)
 	int ret = -EOPNOTSUPP;
 
 	if (cpu_ops[cpu] && cpu_ops[cpu]->cpu_suspend &&
-			cpu_ops[cpu]->cpu_init_idle)
+		cpu_ops[cpu]->cpu_init_idle)
+	{
 		ret = cpu_ops[cpu]->cpu_init_idle(cpu);
+	}
 
 	return ret;
 }

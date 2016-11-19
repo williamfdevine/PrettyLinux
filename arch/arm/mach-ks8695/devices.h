@@ -13,17 +13,18 @@
 
 #include <linux/pci.h>
 
- /* Ethernet */
+/* Ethernet */
 extern void __init ks8695_add_device_wan(void);
 extern void __init ks8695_add_device_lan(void);
 extern void __init ks8695_add_device_hpna(void);
 
- /* PCI */
+/* PCI */
 #define KS8695_MODE_PCI		0
 #define KS8695_MODE_MINIPCI	1
 #define KS8695_MODE_CARDBUS	2
 
-struct ks8695_pci_cfg {
+struct ks8695_pci_cfg
+{
 	short mode;
 	int (*map_irq)(const struct pci_dev *, u8, u8);
 };

@@ -45,9 +45,11 @@ int ftrace_arch_code_modify_post_process(void)
 	return 0;
 }
 
-union ftrace_code_union {
+union ftrace_code_union
+{
 	char code[MCOUNT_INSN_SIZE];
-	struct {
+	struct
+	{
 		unsigned char e8;
 		int offset;
 	} __attribute__((packed));
@@ -89,7 +91,9 @@ static unsigned long text_ip_addr(unsigned long ip)
 	 * kernel identity mapping to modify code.
 	 */
 	if (within(ip, (unsigned long)_text, (unsigned long)_etext))
+	{
 		ip = (unsigned long)__va(__pa_symbol(ip));
+	}
 
 	return ip;
 }
@@ -101,7 +105,7 @@ static const unsigned char *ftrace_nop_replace(void)
 
 static int
 ftrace_modify_code_direct(unsigned long ip, unsigned const char *old_code,
-		   unsigned const char *new_code)
+						  unsigned const char *new_code)
 {
 	unsigned char replaced[MCOUNT_INSN_SIZE];
 
@@ -117,17 +121,23 @@ ftrace_modify_code_direct(unsigned long ip, unsigned const char *old_code,
 
 	/* read the text we want to modify */
 	if (probe_kernel_read(replaced, (void *)ip, MCOUNT_INSN_SIZE))
+	{
 		return -EFAULT;
+	}
 
 	/* Make sure it is what we expect it to be */
 	if (memcmp(replaced, old_code, MCOUNT_INSN_SIZE) != 0)
+	{
 		return -EINVAL;
+	}
 
 	ip = text_ip_addr(ip);
 
 	/* replace the text with the new text */
 	if (probe_kernel_write((void *)ip, new_code, MCOUNT_INSN_SIZE))
+	{
 		return -EPERM;
+	}
 
 	sync_core();
 
@@ -135,7 +145,7 @@ ftrace_modify_code_direct(unsigned long ip, unsigned const char *old_code,
 }
 
 int ftrace_make_nop(struct module *mod,
-		    struct dyn_ftrace *rec, unsigned long addr)
+					struct dyn_ftrace *rec, unsigned long addr)
 {
 	unsigned const char *new, *old;
 	unsigned long ip = rec->ip;
@@ -152,7 +162,9 @@ int ftrace_make_nop(struct module *mod,
 	 * just modify the code directly.
 	 */
 	if (addr == MCOUNT_ADDR)
+	{
 		return ftrace_modify_code_direct(rec->ip, old, new);
+	}
 
 	ftrace_expected = NULL;
 
@@ -208,7 +220,7 @@ atomic_t modifying_ftrace_code __read_mostly;
 
 static int
 ftrace_modify_code(unsigned long ip, unsigned const char *old_code,
-		   unsigned const char *new_code);
+				   unsigned const char *new_code);
 
 /*
  * Should never be called:
@@ -219,7 +231,7 @@ ftrace_modify_code(unsigned long ip, unsigned const char *old_code,
  *  regs, which ftrace_modify_call() is for.
  */
 int ftrace_modify_call(struct dyn_ftrace *rec, unsigned long old_addr,
-				 unsigned long addr)
+					   unsigned long addr)
 {
 	WARN_ON(1);
 	ftrace_expected = NULL;
@@ -259,7 +271,8 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
 	ret = update_ftrace_func(ip, new);
 
 	/* Also update the regs callback function */
-	if (!ret) {
+	if (!ret)
+	{
 		ip = (unsigned long)(&ftrace_regs_call);
 		new = ftrace_call_replace(ip, (unsigned long)func);
 		ret = update_ftrace_func(ip, new);
@@ -271,7 +284,9 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
 static int is_ftrace_caller(unsigned long ip)
 {
 	if (ip == ftrace_update_func)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -288,11 +303,16 @@ int ftrace_int3_handler(struct pt_regs *regs)
 	unsigned long ip;
 
 	if (WARN_ON_ONCE(!regs))
+	{
 		return 0;
+	}
 
 	ip = regs->ip - 1;
+
 	if (!ftrace_location(ip) && !is_ftrace_caller(ip))
+	{
 		return 0;
+	}
 
 	regs->ip += MCOUNT_INSN_SIZE - 1;
 
@@ -304,7 +324,9 @@ static int ftrace_write(unsigned long ip, const char *val, int size)
 	ip = text_ip_addr(ip);
 
 	if (probe_kernel_write((void *)ip, val, size))
+	{
 		return -EPERM;
+	}
 
 	return 0;
 }
@@ -315,13 +337,17 @@ static int add_break(unsigned long ip, const char *old)
 	unsigned char brk = BREAKPOINT_INSTRUCTION;
 
 	if (probe_kernel_read(replaced, (void *)ip, MCOUNT_INSN_SIZE))
+	{
 		return -EFAULT;
+	}
 
 	ftrace_expected = old;
 
 	/* Make sure it is what we expect it to be */
 	if (memcmp(replaced, old, MCOUNT_INSN_SIZE) != 0)
+	{
 		return -EINVAL;
+	}
 
 	return ftrace_write(ip, &brk, 1);
 }
@@ -355,19 +381,21 @@ static int add_breakpoints(struct dyn_ftrace *rec, int enable)
 
 	ret = ftrace_test_record(rec, enable);
 
-	switch (ret) {
-	case FTRACE_UPDATE_IGNORE:
-		return 0;
+	switch (ret)
+	{
+		case FTRACE_UPDATE_IGNORE:
+			return 0;
 
-	case FTRACE_UPDATE_MAKE_CALL:
-		/* converting nop to call */
-		return add_brk_on_nop(rec);
+		case FTRACE_UPDATE_MAKE_CALL:
+			/* converting nop to call */
+			return add_brk_on_nop(rec);
 
-	case FTRACE_UPDATE_MODIFY_CALL:
-	case FTRACE_UPDATE_MAKE_NOP:
-		/* converting a call to a nop */
-		return add_brk_on_call(rec, ftrace_addr);
+		case FTRACE_UPDATE_MODIFY_CALL:
+		case FTRACE_UPDATE_MAKE_NOP:
+			/* converting a call to a nop */
+			return add_brk_on_call(rec, ftrace_addr);
 	}
+
 	return 0;
 }
 
@@ -389,11 +417,15 @@ static int remove_breakpoint(struct dyn_ftrace *rec)
 
 	/* If we fail the read, just give up */
 	if (probe_kernel_read(ins, (void *)ip, MCOUNT_INSN_SIZE))
+	{
 		return -EFAULT;
+	}
 
 	/* If this does not have a breakpoint, we are done */
 	if (ins[0] != brk)
+	{
 		return 0;
+	}
 
 	nop = ftrace_nop_replace();
 
@@ -401,7 +433,8 @@ static int remove_breakpoint(struct dyn_ftrace *rec)
 	 * If the last 4 bytes of the instruction do not match
 	 * a nop, then we assume that this is a call to ftrace_addr.
 	 */
-	if (memcmp(&ins[1], &nop[1], MCOUNT_INSN_SIZE - 1) != 0) {
+	if (memcmp(&ins[1], &nop[1], MCOUNT_INSN_SIZE - 1) != 0)
+	{
 		/*
 		 * For extra paranoidism, we check if the breakpoint is on
 		 * a call that would actually jump to the ftrace_addr.
@@ -412,7 +445,9 @@ static int remove_breakpoint(struct dyn_ftrace *rec)
 		nop = ftrace_call_replace(ip, ftrace_addr);
 
 		if (memcmp(&ins[1], &nop[1], MCOUNT_INSN_SIZE - 1) == 0)
+		{
 			goto update;
+		}
 
 		/* Check both ftrace_addr and ftrace_old_addr */
 		ftrace_addr = ftrace_get_addr_curr(rec);
@@ -421,10 +456,12 @@ static int remove_breakpoint(struct dyn_ftrace *rec)
 		ftrace_expected = nop;
 
 		if (memcmp(&ins[1], &nop[1], MCOUNT_INSN_SIZE - 1) != 0)
+		{
 			return -EINVAL;
+		}
 	}
 
- update:
+update:
 	return ftrace_write(ip, nop, 1);
 }
 
@@ -463,18 +500,19 @@ static int add_update(struct dyn_ftrace *rec, int enable)
 
 	ftrace_addr  = ftrace_get_addr_new(rec);
 
-	switch (ret) {
-	case FTRACE_UPDATE_IGNORE:
-		return 0;
+	switch (ret)
+	{
+		case FTRACE_UPDATE_IGNORE:
+			return 0;
 
-	case FTRACE_UPDATE_MODIFY_CALL:
-	case FTRACE_UPDATE_MAKE_CALL:
-		/* converting nop to call */
-		return add_update_call(rec, ftrace_addr);
+		case FTRACE_UPDATE_MODIFY_CALL:
+		case FTRACE_UPDATE_MAKE_CALL:
+			/* converting nop to call */
+			return add_update_call(rec, ftrace_addr);
 
-	case FTRACE_UPDATE_MAKE_NOP:
-		/* converting a call to a nop */
-		return add_update_nop(rec);
+		case FTRACE_UPDATE_MAKE_NOP:
+			/* converting a call to a nop */
+			return add_update_nop(rec);
 	}
 
 	return 0;
@@ -509,18 +547,19 @@ static int finish_update(struct dyn_ftrace *rec, int enable)
 
 	ftrace_addr = ftrace_get_addr_new(rec);
 
-	switch (ret) {
-	case FTRACE_UPDATE_IGNORE:
-		return 0;
+	switch (ret)
+	{
+		case FTRACE_UPDATE_IGNORE:
+			return 0;
 
-	case FTRACE_UPDATE_MODIFY_CALL:
-	case FTRACE_UPDATE_MAKE_CALL:
-		/* converting nop to call */
-		return finish_update_call(rec, ftrace_addr);
+		case FTRACE_UPDATE_MODIFY_CALL:
+		case FTRACE_UPDATE_MAKE_CALL:
+			/* converting nop to call */
+			return finish_update_call(rec, ftrace_addr);
 
-	case FTRACE_UPDATE_MAKE_NOP:
-		/* converting a call to a nop */
-		return finish_update_nop(rec);
+		case FTRACE_UPDATE_MAKE_NOP:
+			/* converting a call to a nop */
+			return finish_update_nop(rec);
 	}
 
 	return 0;
@@ -537,10 +576,16 @@ static void run_sync(void)
 
 	/* We may be called with interrupts disbled (on bootup). */
 	if (enable_irqs)
+	{
 		local_irq_enable();
+	}
+
 	on_each_cpu(do_sync_core, NULL, 1);
+
 	if (enable_irqs)
+	{
 		local_irq_disable();
+	}
 }
 
 void ftrace_replace_code(int enable)
@@ -551,12 +596,17 @@ void ftrace_replace_code(int enable)
 	int count = 0;
 	int ret;
 
-	for_ftrace_rec_iter(iter) {
+	for_ftrace_rec_iter(iter)
+	{
 		rec = ftrace_rec_iter_record(iter);
 
 		ret = add_breakpoints(rec, enable);
+
 		if (ret)
+		{
 			goto remove_breakpoints;
+		}
+
 		count++;
 	}
 
@@ -565,12 +615,17 @@ void ftrace_replace_code(int enable)
 	report = "updating code";
 	count = 0;
 
-	for_ftrace_rec_iter(iter) {
+	for_ftrace_rec_iter(iter)
+	{
 		rec = ftrace_rec_iter_record(iter);
 
 		ret = add_update(rec, enable);
+
 		if (ret)
+		{
 			goto remove_breakpoints;
+		}
+
 		count++;
 	}
 
@@ -579,12 +634,17 @@ void ftrace_replace_code(int enable)
 	report = "removing breakpoints";
 	count = 0;
 
-	for_ftrace_rec_iter(iter) {
+	for_ftrace_rec_iter(iter)
+	{
 		rec = ftrace_rec_iter_record(iter);
 
 		ret = finish_update(rec, enable);
+
 		if (ret)
+		{
 			goto remove_breakpoints;
+		}
+
 		count++;
 	}
 
@@ -592,36 +652,46 @@ void ftrace_replace_code(int enable)
 
 	return;
 
- remove_breakpoints:
+remove_breakpoints:
 	pr_warn("Failed on %s (%d):\n", report, count);
 	ftrace_bug(ret, rec);
-	for_ftrace_rec_iter(iter) {
+	for_ftrace_rec_iter(iter)
+	{
 		rec = ftrace_rec_iter_record(iter);
+
 		/*
 		 * Breakpoints are handled only when this function is in
 		 * progress. The system could not work with them.
 		 */
 		if (remove_breakpoint(rec))
+		{
 			BUG();
+		}
 	}
 	run_sync();
 }
 
 static int
 ftrace_modify_code(unsigned long ip, unsigned const char *old_code,
-		   unsigned const char *new_code)
+				   unsigned const char *new_code)
 {
 	int ret;
 
 	ret = add_break(ip, old_code);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	run_sync();
 
 	ret = add_update_code(ip, new_code);
+
 	if (ret)
+	{
 		goto fail_update;
+	}
 
 	run_sync();
 
@@ -631,14 +701,18 @@ ftrace_modify_code(unsigned long ip, unsigned const char *old_code,
 	 * The system could not work if we could not remove it.
 	 */
 	BUG_ON(ret);
- out:
+out:
 	run_sync();
 	return ret;
 
- fail_update:
+fail_update:
+
 	/* Also here the system could not work with the breakpoint */
 	if (ftrace_write(ip, old_code, 1))
+	{
 		BUG();
+	}
+
 	goto out;
 }
 
@@ -714,9 +788,11 @@ extern void ftrace_regs_caller_op_ptr(void);
  * The ftrace_op_code_union is used to create a pointer to the
  * ftrace_ops that will be passed to the callback function.
  */
-union ftrace_op_code_union {
+union ftrace_op_code_union
+{
 	char code[OP_REF_SIZE];
-	struct {
+	struct
+	{
 		char op[3];
 		int offset;
 	} __attribute__((packed));
@@ -739,11 +815,14 @@ create_trampoline(struct ftrace_ops *ops, unsigned int *tramp_size)
 	union ftrace_op_code_union op_ptr;
 	int ret;
 
-	if (ops->flags & FTRACE_OPS_FL_SAVE_REGS) {
+	if (ops->flags & FTRACE_OPS_FL_SAVE_REGS)
+	{
 		start_offset = (unsigned long)ftrace_regs_caller;
 		end_offset = (unsigned long)ftrace_regs_caller_end;
 		op_offset = (unsigned long)ftrace_regs_caller_op_ptr;
-	} else {
+	}
+	else
+	{
 		start_offset = (unsigned long)ftrace_caller;
 		end_offset = (unsigned long)ftrace_epilogue;
 		op_offset = (unsigned long)ftrace_caller_op_ptr;
@@ -757,14 +836,19 @@ create_trampoline(struct ftrace_ops *ops, unsigned int *tramp_size)
 	 * the ftrace_ops this trampoline is used for.
 	 */
 	trampoline = alloc_tramp(size + MCOUNT_INSN_SIZE + sizeof(void *));
+
 	if (!trampoline)
+	{
 		return 0;
+	}
 
 	*tramp_size = size + MCOUNT_INSN_SIZE + sizeof(void *);
 
 	/* Copy ftrace_caller onto the trampoline memory */
 	ret = probe_kernel_read(trampoline, (void *)start_offset, size);
-	if (WARN_ON(ret < 0)) {
+
+	if (WARN_ON(ret < 0))
+	{
 		tramp_free(trampoline);
 		return 0;
 	}
@@ -790,7 +874,8 @@ create_trampoline(struct ftrace_ops *ops, unsigned int *tramp_size)
 	memcpy(&op_ptr, trampoline + op_offset, OP_REF_SIZE);
 
 	/* Are we pointing to the reference? */
-	if (WARN_ON(memcmp(op_ptr.op, op_ref, 3) != 0)) {
+	if (WARN_ON(memcmp(op_ptr.op, op_ref, 3) != 0))
+	{
 		tramp_free(trampoline);
 		return 0;
 	}
@@ -815,10 +900,13 @@ static unsigned long calc_trampoline_call_offset(bool save_regs)
 	unsigned long start_offset;
 	unsigned long call_offset;
 
-	if (save_regs) {
+	if (save_regs)
+	{
 		start_offset = (unsigned long)ftrace_regs_caller;
 		call_offset = (unsigned long)ftrace_regs_call;
-	} else {
+	}
+	else
+	{
 		start_offset = (unsigned long)ftrace_caller;
 		call_offset = (unsigned long)ftrace_call;
 	}
@@ -835,17 +923,26 @@ void arch_ftrace_update_trampoline(struct ftrace_ops *ops)
 	unsigned int size;
 	int ret;
 
-	if (ops->trampoline) {
+	if (ops->trampoline)
+	{
 		/*
 		 * The ftrace_ops caller may set up its own trampoline.
 		 * In such a case, this code must not modify it.
 		 */
 		if (!(ops->flags & FTRACE_OPS_FL_ALLOC_TRAMP))
+		{
 			return;
-	} else {
+		}
+	}
+	else
+	{
 		ops->trampoline = create_trampoline(ops, &size);
+
 		if (!ops->trampoline)
+		{
 			return;
+		}
+
 		ops->trampoline_size = size;
 	}
 
@@ -869,11 +966,15 @@ static void *addr_from_call(void *ptr)
 	int ret;
 
 	ret = probe_kernel_read(&calc, ptr, MCOUNT_INSN_SIZE);
+
 	if (WARN_ON_ONCE(ret < 0))
+	{
 		return NULL;
+	}
 
 	/* Make sure this is a call */
-	if (WARN_ON_ONCE(calc.e8 != 0xe8)) {
+	if (WARN_ON_ONCE(calc.e8 != 0xe8))
+	{
 		pr_warn("Expected e8, got %x\n", calc.e8);
 		return NULL;
 	}
@@ -882,7 +983,7 @@ static void *addr_from_call(void *ptr)
 }
 
 void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
-			   unsigned long frame_pointer);
+						   unsigned long frame_pointer);
 
 /*
  * If the ops->trampoline was not allocated, then it probably
@@ -894,14 +995,19 @@ static void *static_tramp_func(struct ftrace_ops *ops, struct dyn_ftrace *rec)
 	bool save_regs = rec->flags & FTRACE_FL_REGS_EN;
 	void *ptr;
 
-	if (ops && ops->trampoline) {
+	if (ops && ops->trampoline)
+	{
 #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+
 		/*
 		 * We only know about function graph tracer setting as static
 		 * trampoline.
 		 */
 		if (ops->trampoline == FTRACE_GRAPH_ADDR)
+		{
 			return (void *)prepare_ftrace_return;
+		}
+
 #endif
 		return NULL;
 	}
@@ -909,9 +1015,13 @@ static void *static_tramp_func(struct ftrace_ops *ops, struct dyn_ftrace *rec)
 	offset = calc_trampoline_call_offset(save_regs);
 
 	if (save_regs)
+	{
 		ptr = (void *)FTRACE_REGS_ADDR + offset;
+	}
 	else
+	{
 		ptr = (void *)FTRACE_ADDR + offset;
+	}
 
 	return addr_from_call(ptr);
 }
@@ -922,7 +1032,9 @@ void *arch_ftrace_trampoline_func(struct ftrace_ops *ops, struct dyn_ftrace *rec
 
 	/* If we didn't allocate this trampoline, consider it static */
 	if (!ops || !(ops->flags & FTRACE_OPS_FL_ALLOC_TRAMP))
+	{
 		return static_tramp_func(ops, rec);
+	}
 
 	offset = calc_trampoline_call_offset(ops->flags & FTRACE_OPS_FL_SAVE_REGS);
 	return addr_from_call((void *)ops->trampoline + offset);
@@ -931,7 +1043,9 @@ void *arch_ftrace_trampoline_func(struct ftrace_ops *ops, struct dyn_ftrace *rec
 void arch_ftrace_trampoline_free(struct ftrace_ops *ops)
 {
 	if (!ops || !(ops->flags & FTRACE_OPS_FL_ALLOC_TRAMP))
+	{
 		return;
+	}
 
 	tramp_free((void *)ops->trampoline);
 	ops->trampoline = 0;
@@ -975,19 +1089,23 @@ int ftrace_disable_ftrace_graph_caller(void)
  * in current thread info.
  */
 void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
-			   unsigned long frame_pointer)
+						   unsigned long frame_pointer)
 {
 	unsigned long old;
 	int faulted;
 	struct ftrace_graph_ent trace;
 	unsigned long return_hooker = (unsigned long)
-				&return_to_handler;
+								  &return_to_handler;
 
 	if (unlikely(ftrace_graph_is_dead()))
+	{
 		return;
+	}
 
 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+	{
 		return;
+	}
 
 	/*
 	 * Protect against fault, even if it shouldn't
@@ -1013,7 +1131,8 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
 		: "memory"
 	);
 
-	if (unlikely(faulted)) {
+	if (unlikely(faulted))
+	{
 		ftrace_graph_stop();
 		WARN_ON(1);
 		return;
@@ -1023,13 +1142,15 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
 	trace.depth = current->curr_ret_stack + 1;
 
 	/* Only trace if the calling function expects to */
-	if (!ftrace_graph_entry(&trace)) {
+	if (!ftrace_graph_entry(&trace))
+	{
 		*parent = old;
 		return;
 	}
 
 	if (ftrace_push_return_trace(old, self_addr, &trace.depth,
-				     frame_pointer, parent) == -EBUSY) {
+								 frame_pointer, parent) == -EBUSY)
+	{
 		*parent = old;
 		return;
 	}

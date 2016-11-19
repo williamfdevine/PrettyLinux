@@ -61,7 +61,8 @@ static void hackkit_uart_pm(struct uart_port *port, u_int state, u_int oldstate)
  *  static data
  */
 
-static struct map_desc hackkit_io_desc[] __initdata = {
+static struct map_desc hackkit_io_desc[] __initdata =
+{
 	{	/* Flash bank 0 */
 		.virtual	=  0xe8000000,
 		.pfn		= __phys_to_pfn(0x00000000),
@@ -70,7 +71,8 @@ static struct map_desc hackkit_io_desc[] __initdata = {
 	},
 };
 
-static struct sa1100_port_fns hackkit_port_fns __initdata = {
+static struct sa1100_port_fns hackkit_port_fns __initdata =
+{
 	.set_mctrl	= hackkit_set_mctrl,
 	.get_mctrl	= hackkit_get_mctrl,
 	.pm		= hackkit_uart_pm,
@@ -112,22 +114,33 @@ static void hackkit_uart_pm(struct uart_port *port, u_int state, u_int oldstate)
 static void hackkit_set_mctrl(struct uart_port *port, u_int mctrl)
 {
 #if 0
-	if (port->mapbase == _Ser1UTCR0) {
+
+	if (port->mapbase == _Ser1UTCR0)
+	{
 		u_int set = 0, clear = 0;
 
 		if (mctrl & TIOCM_RTS)
+		{
 			set |= PT_CTRL2_RS1_RTS;
+		}
 		else
+		{
 			clear |= PT_CTRL2_RS1_RTS;
+		}
 
 		if (mctrl & TIOCM_DTR)
+		{
 			set |= PT_CTRL2_RS1_DTR;
+		}
 		else
+		{
 			clear |= PT_CTRL2_RS1_DTR;
+		}
 
 		PTCTRL2_clear(clear);
 		PTCTRL2_set(set);
 	}
+
 #endif
 }
 
@@ -149,7 +162,8 @@ static u_int hackkit_get_mctrl(struct uart_port *port)
 	return ret;
 }
 
-static struct mtd_partition hackkit_partitions[] = {
+static struct mtd_partition hackkit_partitions[] =
+{
 	{
 		.name		= "BLOB",
 		.size		= 0x00040000,
@@ -178,7 +192,8 @@ static struct mtd_partition hackkit_partitions[] = {
 	}
 };
 
-static struct flash_platform_data hackkit_flash_data = {
+static struct flash_platform_data hackkit_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.parts		= hackkit_partitions,
 	.nr_parts	= ARRAY_SIZE(hackkit_partitions),
@@ -188,7 +203,8 @@ static struct resource hackkit_flash_resource =
 	DEFINE_RES_MEM(SA1100_CS0_PHYS, SZ_32M);
 
 /* LEDs */
-struct gpio_led hackkit_gpio_leds[] = {
+struct gpio_led hackkit_gpio_leds[] =
+{
 	{
 		.name			= "hackkit:red",
 		.default_trigger	= "cpu0",
@@ -201,12 +217,14 @@ struct gpio_led hackkit_gpio_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data hackkit_gpio_led_info = {
+static struct gpio_led_platform_data hackkit_gpio_led_info =
+{
 	.leds		= hackkit_gpio_leds,
 	.num_leds	= ARRAY_SIZE(hackkit_gpio_leds),
 };
 
-static struct platform_device hackkit_leds = {
+static struct platform_device hackkit_leds =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -225,12 +243,12 @@ static void __init hackkit_init(void)
  */
 
 MACHINE_START(HACKKIT, "HackKit Cpu Board")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= hackkit_map_io,
-	.nr_irqs	= SA1100_NR_IRQS,
-	.init_irq	= sa1100_init_irq,
-	.init_time	= sa1100_timer_init,
-	.init_machine	= hackkit_init,
-	.init_late	= sa11x0_init_late,
-	.restart	= sa11x0_restart,
-MACHINE_END
+		.nr_irqs	= SA1100_NR_IRQS,
+			.init_irq	= sa1100_init_irq,
+			   .init_time	= sa1100_timer_init,
+				 .init_machine	= hackkit_init,
+					.init_late	= sa11x0_init_late,
+					  .restart	= sa11x0_restart,
+						  MACHINE_END

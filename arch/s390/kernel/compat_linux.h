@@ -12,29 +12,30 @@
 	((unsigned long)(__x))
 
 /* Now 32bit compatibility types */
-struct ipc_kludge_32 {
-        __u32   msgp;                           /* pointer              */
-        __s32   msgtyp;
+struct ipc_kludge_32
+{
+	__u32   msgp;                           /* pointer              */
+	__s32   msgtyp;
 };
 
 /* asm/sigcontext.h */
 typedef union
 {
 	__u64   d;
-	__u32   f; 
+	__u32   f;
 } freg_t32;
 
 typedef struct
 {
 	unsigned int	fpc;
 	unsigned int	pad;
-	freg_t32	fprs[__NUM_FPRS];              
+	freg_t32	fprs[__NUM_FPRS];
 } _s390_fp_regs32;
 
-typedef struct 
+typedef struct
 {
-        __u32   mask;
-        __u32	addr;
+	__u32   mask;
+	__u32	addr;
 } _psw_t32 __attribute__ ((aligned(8)));
 
 typedef struct
@@ -72,9 +73,10 @@ struct sigcontext32
 /* asm/signal.h */
 
 /* asm/ucontext.h */
-struct ucontext32 {
+struct ucontext32
+{
 	__u32			uc_flags;
-	__u32			uc_link;	/* pointer */	
+	__u32			uc_link;	/* pointer */
 	compat_stack_t		uc_stack;
 	_sigregs32		uc_mcontext;
 	compat_sigset_t		uc_sigmask;
@@ -114,11 +116,12 @@ long compat_sys_s390_readahead(int fd, u32 high, u32 low, s32 count);
 long compat_sys_s390_stat64(const char __user *filename, struct stat64_emu31 __user *statbuf);
 long compat_sys_s390_lstat64(const char __user *filename, struct stat64_emu31 __user *statbuf);
 long compat_sys_s390_fstat64(unsigned int fd, struct stat64_emu31 __user *statbuf);
-long compat_sys_s390_fstatat64(unsigned int dfd, const char __user *filename, struct stat64_emu31 __user *statbuf, int flag);
+long compat_sys_s390_fstatat64(unsigned int dfd, const char __user *filename, struct stat64_emu31 __user *statbuf,
+							   int flag);
 long compat_sys_s390_old_mmap(struct mmap_arg_struct_emu31 __user *arg);
 long compat_sys_s390_mmap2(struct mmap_arg_struct_emu31 __user *arg);
-long compat_sys_s390_read(unsigned int fd, char __user * buf, compat_size_t count);
-long compat_sys_s390_write(unsigned int fd, const char __user * buf, compat_size_t count);
+long compat_sys_s390_read(unsigned int fd, char __user *buf, compat_size_t count);
+long compat_sys_s390_write(unsigned int fd, const char __user *buf, compat_size_t count);
 long compat_sys_s390_fadvise64(int fd, u32 high, u32 low, compat_size_t len, int advise);
 long compat_sys_s390_fadvise64_64(struct fadvise64_64_args __user *args);
 long compat_sys_s390_sync_file_range(int fd, u32 offhigh, u32 offlow, u32 nhigh, u32 nlow, unsigned int flags);

@@ -127,14 +127,22 @@ static void show_trace(struct task_struct *task, unsigned long *stack)
 	unsigned long addr;
 
 	if (!stack)
-		stack = (unsigned long*)&stack;
+	{
+		stack = (unsigned long *)&stack;
+	}
 
 	printk("Call Trace: ");
-	while (!kstack_end(stack)) {
+
+	while (!kstack_end(stack))
+	{
 		addr = *stack++;
+
 		if (__kernel_text_address(addr))
+		{
 			printk("[<%08lx>] %pSR\n", addr, (void *)addr);
+		}
 	}
+
 	printk("\n");
 }
 
@@ -148,21 +156,35 @@ void show_stack(struct task_struct *task, unsigned long *sp)
 	 * back trace for this cpu.
 	 */
 
-	if(sp==NULL) {
+	if (sp == NULL)
+	{
 		if (task)
+		{
 			sp = (unsigned long *)task->thread.sp;
+		}
 		else
-			sp=(unsigned long*)&sp;
+		{
+			sp = (unsigned long *)&sp;
+		}
 	}
 
 	stack = sp;
-	for(i=0; i < kstack_depth_to_print; i++) {
+
+	for (i = 0; i < kstack_depth_to_print; i++)
+	{
 		if (kstack_end(stack))
+		{
 			break;
+		}
+
 		if (i && ((i % 4) == 0))
+		{
 			printk("\n       ");
+		}
+
 		printk("%08lx ", *stack++);
 	}
+
 	printk("\n");
 	show_trace(task, sp);
 }
@@ -176,45 +198,59 @@ static void show_registers(struct pt_regs *regs)
 	printk("CPU:    %d\n", smp_processor_id());
 	show_regs(regs);
 
-	sp = (unsigned long) (1+regs);
-	if (user_mode(regs)) {
+	sp = (unsigned long) (1 + regs);
+
+	if (user_mode(regs))
+	{
 		in_kernel = 0;
 		sp = regs->spu;
 		printk("SPU: %08lx\n", sp);
-	} else {
+	}
+	else
+	{
 		printk("SPI: %08lx\n", sp);
 	}
+
 	printk("Process %s (pid: %d, process nr: %d, stackpage=%08lx)",
-		current->comm, task_pid_nr(current), 0xffff & i, 4096+(unsigned long)current);
+		   current->comm, task_pid_nr(current), 0xffff & i, 4096 + (unsigned long)current);
 
 	/*
 	 * When in-kernel, we also print out the stack and code at the
 	 * time of the fault..
 	 */
-	if (in_kernel) {
+	if (in_kernel)
+	{
 		printk("\nStack: ");
-		show_stack(current, (unsigned long*) sp);
+		show_stack(current, (unsigned long *) sp);
 
 		printk("\nCode: ");
-		if (regs->bpc < PAGE_OFFSET)
-			goto bad;
 
-		for(i=0;i<20;i++) {
+		if (regs->bpc < PAGE_OFFSET)
+		{
+			goto bad;
+		}
+
+		for (i = 0; i < 20; i++)
+		{
 			unsigned char c;
-			if (__get_user(c, &((unsigned char*)regs->bpc)[i])) {
+
+			if (__get_user(c, &((unsigned char *)regs->bpc)[i]))
+			{
 bad:
 				printk(" Bad PC value.");
 				break;
 			}
+
 			printk("%02x ", c);
 		}
 	}
+
 	printk("\n");
 }
 
 static DEFINE_SPINLOCK(die_lock);
 
-void die(const char * str, struct pt_regs * regs, long err)
+void die(const char *str, struct pt_regs *regs, long err)
 {
 	console_verbose();
 	spin_lock_irq(&die_lock);
@@ -226,50 +262,64 @@ void die(const char * str, struct pt_regs * regs, long err)
 	do_exit(SIGSEGV);
 }
 
-static __inline__ void die_if_kernel(const char * str,
-	struct pt_regs * regs, long err)
+static __inline__ void die_if_kernel(const char *str,
+									 struct pt_regs *regs, long err)
 {
 	if (!user_mode(regs))
+	{
 		die(str, regs, err);
+	}
 }
 
-static __inline__ void do_trap(int trapnr, int signr, const char * str,
-	struct pt_regs * regs, long error_code, siginfo_t *info)
+static __inline__ void do_trap(int trapnr, int signr, const char *str,
+							   struct pt_regs *regs, long error_code, siginfo_t *info)
 {
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		/* trap_signal */
 		struct task_struct *tsk = current;
 		tsk->thread.error_code = error_code;
 		tsk->thread.trap_no = trapnr;
+
 		if (info)
+		{
 			force_sig_info(signr, info, tsk);
+		}
 		else
+		{
 			force_sig(signr, tsk);
+		}
+
 		return;
-	} else {
+	}
+	else
+	{
 		/* kernel_trap */
 		if (!fixup_exception(regs))
+		{
 			die(str, regs, error_code);
+		}
+
 		return;
 	}
 }
 
 #define DO_ERROR(trapnr, signr, str, name) \
-asmlinkage void do_##name(struct pt_regs * regs, long error_code) \
-{ \
-	do_trap(trapnr, signr, NULL, regs, error_code, NULL); \
-}
+	asmlinkage void do_##name(struct pt_regs * regs, long error_code) \
+	{ \
+		do_trap(trapnr, signr, NULL, regs, error_code, NULL); \
+	}
 
 #define DO_ERROR_INFO(trapnr, signr, str, name, sicode, siaddr) \
-asmlinkage void do_##name(struct pt_regs * regs, long error_code) \
-{ \
-	siginfo_t info; \
-	info.si_signo = signr; \
-	info.si_errno = 0; \
-	info.si_code = sicode; \
-	info.si_addr = (void __user *)siaddr; \
-	do_trap(trapnr, signr, str, regs, error_code, &info); \
-}
+	asmlinkage void do_##name(struct pt_regs * regs, long error_code) \
+	{ \
+		siginfo_t info; \
+		info.si_signo = signr; \
+		info.si_errno = 0; \
+		info.si_code = sicode; \
+		info.si_addr = (void __user *)siaddr; \
+		do_trap(trapnr, signr, str, regs, error_code, &info); \
+	}
 
 DO_ERROR( 1, SIGTRAP, "debug trap", debug_trap)
 DO_ERROR_INFO(0x20, SIGILL,  "reserved instruction ", rie_handler, ILL_ILLOPC, regs->bpc)
@@ -287,32 +337,43 @@ asmlinkage void do_alignment_check(struct pt_regs *regs, long error_code)
 
 	oldfs = get_fs();
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		local_irq_enable();
 		current->thread.error_code = error_code;
 		current->thread.trap_no = 0x17;
 
 		set_fs(USER_DS);
-		if (copy_from_user(&insn, (void *)regs->bpc, 4)) {
+
+		if (copy_from_user(&insn, (void *)regs->bpc, 4))
+		{
 			set_fs(oldfs);
 			goto uspace_segv;
 		}
+
 		tmp = handle_unaligned_access(insn, regs);
 		set_fs(oldfs);
 
 		if (!tmp)
+		{
 			return;
+		}
 
-	uspace_segv:
+uspace_segv:
 		printk(KERN_NOTICE "Killing process \"%s\" due to unaligned "
-			"access\n", current->comm);
+			   "access\n", current->comm);
 		force_sig(SIGSEGV, current);
-	} else {
+	}
+	else
+	{
 		set_fs(KERNEL_DS);
-		if (copy_from_user(&insn, (void *)regs->bpc, 4)) {
+
+		if (copy_from_user(&insn, (void *)regs->bpc, 4))
+		{
 			set_fs(oldfs);
 			die("insn faulting in do_address_error", regs, 0);
 		}
+
 		handle_unaligned_access(insn, regs);
 		set_fs(oldfs);
 	}

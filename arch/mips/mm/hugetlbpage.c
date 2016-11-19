@@ -22,7 +22,7 @@
 #include <asm/tlbflush.h>
 
 pte_t *huge_pte_alloc(struct mm_struct *mm, unsigned long addr,
-		      unsigned long sz)
+					  unsigned long sz)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -30,8 +30,11 @@ pte_t *huge_pte_alloc(struct mm_struct *mm, unsigned long addr,
 
 	pgd = pgd_offset(mm, addr);
 	pud = pud_alloc(mm, pgd, addr);
+
 	if (pud)
+	{
 		pte = (pte_t *)pmd_alloc(mm, pud, addr);
+	}
 
 	return pte;
 }
@@ -43,11 +46,17 @@ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
 	pmd_t *pmd = NULL;
 
 	pgd = pgd_offset(mm, addr);
-	if (pgd_present(*pgd)) {
+
+	if (pgd_present(*pgd))
+	{
 		pud = pud_offset(pgd, addr);
+
 		if (pud_present(*pud))
+		{
 			pmd = pmd_offset(pud, addr);
+		}
 	}
+
 	return (pte_t *) pmd;
 }
 
@@ -57,9 +66,15 @@ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
 int is_aligned_hugepage_range(unsigned long addr, unsigned long len)
 {
 	if (len & ~HPAGE_MASK)
+	{
 		return -EINVAL;
+	}
+
 	if (addr & ~HPAGE_MASK)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 

@@ -14,14 +14,16 @@
 #include <linux/pm_clock.h>
 #include <linux/platform_device.h>
 
-static struct dev_pm_domain davinci_pm_domain = {
+static struct dev_pm_domain davinci_pm_domain =
+{
 	.ops = {
 		USE_PM_CLK_RUNTIME_OPS
 		USE_PLATFORM_PM_SLEEP_OPS
 	},
 };
 
-static struct pm_clk_notifier_block platform_bus_notifier = {
+static struct pm_clk_notifier_block platform_bus_notifier =
+{
 	.pm_domain = &davinci_pm_domain,
 	.con_ids = { "fck", "master", "slave", NULL },
 };

@@ -26,19 +26,26 @@ static int uprobes_substitute_pc(unsigned long *pinsn, u32 oregs)
 	u32 free = 0xffff;
 	u32 regs;
 
-	for (regs = oregs; regs; regs >>= 4, insn >>= 4) {
+	for (regs = oregs; regs; regs >>= 4, insn >>= 4)
+	{
 		if ((regs & 0xf) == REG_TYPE_NONE)
+		{
 			continue;
+		}
 
 		free &= ~(1 << (insn & 0xf));
 	}
 
 	/* No PC, no problem */
 	if (free & (1 << 15))
+	{
 		return 15;
+	}
 
 	if (!free)
+	{
 		return -1;
+	}
 
 	/*
 	 * fls instead of ffs ensures that for "ldrd r0, r1, [pc]" we would
@@ -51,12 +58,17 @@ static int uprobes_substitute_pc(unsigned long *pinsn, u32 oregs)
 	regs = oregs;
 	mask = 0xf;
 
-	for (; regs; regs >>= 4, mask <<= 4, free <<= 4, temp >>= 4) {
+	for (; regs; regs >>= 4, mask <<= 4, free <<= 4, temp >>= 4)
+	{
 		if ((regs & 0xf) == REG_TYPE_NONE)
+		{
 			continue;
+		}
 
 		if ((temp & 0xf) != 15)
+		{
 			continue;
+		}
 
 		insn &= ~mask;
 		insn |= free & mask;
@@ -67,8 +79,8 @@ static int uprobes_substitute_pc(unsigned long *pinsn, u32 oregs)
 }
 
 static void uprobe_set_pc(struct arch_uprobe *auprobe,
-			  struct arch_uprobe_task *autask,
-			  struct pt_regs *regs)
+						  struct arch_uprobe_task *autask,
+						  struct pt_regs *regs)
 {
 	u32 pcreg = auprobe->pcreg;
 
@@ -77,16 +89,16 @@ static void uprobe_set_pc(struct arch_uprobe *auprobe,
 }
 
 static void uprobe_unset_pc(struct arch_uprobe *auprobe,
-			    struct arch_uprobe_task *autask,
-			    struct pt_regs *regs)
+							struct arch_uprobe_task *autask,
+							struct pt_regs *regs)
 {
 	/* PC will be taken care of by common code */
 	regs->uregs[auprobe->pcreg] = autask->backup;
 }
 
 static void uprobe_aluwrite_pc(struct arch_uprobe *auprobe,
-			       struct arch_uprobe_task *autask,
-			       struct pt_regs *regs)
+							   struct arch_uprobe_task *autask,
+							   struct pt_regs *regs)
 {
 	u32 pcreg = auprobe->pcreg;
 
@@ -95,8 +107,8 @@ static void uprobe_aluwrite_pc(struct arch_uprobe *auprobe,
 }
 
 static void uprobe_write_pc(struct arch_uprobe *auprobe,
-			    struct arch_uprobe_task *autask,
-			    struct pt_regs *regs)
+							struct arch_uprobe_task *autask,
+							struct pt_regs *regs)
 {
 	u32 pcreg = auprobe->pcreg;
 
@@ -106,20 +118,25 @@ static void uprobe_write_pc(struct arch_uprobe *auprobe,
 
 enum probes_insn
 decode_pc_ro(probes_opcode_t insn, struct arch_probes_insn *asi,
-	     const struct decode_header *d)
+			 const struct decode_header *d)
 {
 	struct arch_uprobe *auprobe = container_of(asi, struct arch_uprobe,
-						   asi);
+								  asi);
 	struct decode_emulate *decode = (struct decode_emulate *) d;
 	u32 regs = decode->header.type_regs.bits >> DECODE_TYPE_BITS;
 	int reg;
 
 	reg = uprobes_substitute_pc(&auprobe->ixol[0], regs);
+
 	if (reg == 15)
+	{
 		return INSN_GOOD;
+	}
 
 	if (reg == -1)
+	{
 		return INSN_REJECTED;
+	}
 
 	auprobe->pcreg = reg;
 	auprobe->prehandler = uprobe_set_pc;
@@ -130,54 +147,60 @@ decode_pc_ro(probes_opcode_t insn, struct arch_probes_insn *asi,
 
 enum probes_insn
 decode_wb_pc(probes_opcode_t insn, struct arch_probes_insn *asi,
-	     const struct decode_header *d, bool alu)
+			 const struct decode_header *d, bool alu)
 {
 	struct arch_uprobe *auprobe = container_of(asi, struct arch_uprobe,
-						   asi);
+								  asi);
 	enum probes_insn ret = decode_pc_ro(insn, asi, d);
 
 	if (((insn >> 12) & 0xf) == 15)
 		auprobe->posthandler = alu ? uprobe_aluwrite_pc
-					   : uprobe_write_pc;
+		: uprobe_write_pc;
 
 	return ret;
 }
 
 enum probes_insn
 decode_rd12rn16rm0rs8_rwflags(probes_opcode_t insn,
-			      struct arch_probes_insn *asi,
-			      const struct decode_header *d)
+							  struct arch_probes_insn *asi,
+							  const struct decode_header *d)
 {
 	return decode_wb_pc(insn, asi, d, true);
 }
 
 enum probes_insn
 decode_ldr(probes_opcode_t insn, struct arch_probes_insn *asi,
-	   const struct decode_header *d)
+		   const struct decode_header *d)
 {
 	return decode_wb_pc(insn, asi, d, false);
 }
 
 enum probes_insn
 uprobe_decode_ldmstm(probes_opcode_t insn,
-		     struct arch_probes_insn *asi,
-		     const struct decode_header *d)
+					 struct arch_probes_insn *asi,
+					 const struct decode_header *d)
 {
 	struct arch_uprobe *auprobe = container_of(asi, struct arch_uprobe,
-						   asi);
+								  asi);
 	unsigned reglist = insn & 0xffff;
 	int rn = (insn >> 16) & 0xf;
 	int lbit = insn & (1 << 20);
 	unsigned used = reglist | (1 << rn);
 
 	if (rn == 15)
+	{
 		return INSN_REJECTED;
+	}
 
 	if (!(used & (1 << 15)))
+	{
 		return INSN_GOOD;
+	}
 
 	if (used & (1 << 14))
+	{
 		return INSN_REJECTED;
+	}
 
 	/* Use LR instead of PC */
 	insn ^= 0xc000;
@@ -186,15 +209,19 @@ uprobe_decode_ldmstm(probes_opcode_t insn,
 	auprobe->ixol[0] = __opcode_to_mem_arm(insn);
 
 	auprobe->prehandler = uprobe_set_pc;
+
 	if (lbit)
+	{
 		auprobe->posthandler = uprobe_write_pc;
+	}
 	else
-		auprobe->posthandler = uprobe_unset_pc;
+	{ auprobe->posthandler = uprobe_unset_pc; }
 
 	return INSN_GOOD;
 }
 
-const union decode_action uprobes_probes_actions[] = {
+const union decode_action uprobes_probes_actions[] =
+{
 	[PROBES_PRELOAD_IMM] = {.handler = probes_simulate_nop},
 	[PROBES_PRELOAD_REG] = {.handler = probes_simulate_nop},
 	[PROBES_BRANCH_IMM] = {.handler = simulate_blx1},
@@ -212,9 +239,11 @@ const union decode_action uprobes_probes_actions[] = {
 	[PROBES_STORE] = {.decoder = decode_pc_ro},
 	[PROBES_MOV_IP_SP] = {.handler = simulate_mov_ipsp},
 	[PROBES_DATA_PROCESSING_REG] = {
-		.decoder = decode_rd12rn16rm0rs8_rwflags},
+		.decoder = decode_rd12rn16rm0rs8_rwflags
+	},
 	[PROBES_DATA_PROCESSING_IMM] = {
-		.decoder = decode_rd12rn16rm0rs8_rwflags},
+		.decoder = decode_rd12rn16rm0rs8_rwflags
+	},
 	[PROBES_MOV_HALFWORD] = {.handler = probes_simulate_nop},
 	[PROBES_SEV] = {.handler = probes_simulate_nop},
 	[PROBES_WFE] = {.handler = probes_simulate_nop},

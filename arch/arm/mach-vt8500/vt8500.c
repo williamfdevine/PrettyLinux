@@ -46,10 +46,13 @@ static void __iomem *pmc_base;
 static void vt8500_restart(enum reboot_mode mode, const char *cmd)
 {
 	if (pmc_base)
+	{
 		writel(1, pmc_base + VT8500_PMSR_REG);
+	}
 }
 
-static struct map_desc vt8500_io_desc[] __initdata = {
+static struct map_desc vt8500_io_desc[] __initdata =
+{
 	/* SoC MMIO registers */
 	[0] = {
 		.virtual	= 0xf8000000,
@@ -81,85 +84,127 @@ static void __init vt8500_init(void)
 
 #ifdef CONFIG_FB_VT8500
 	fb = of_find_compatible_node(NULL, NULL, "via,vt8500-fb");
-	if (fb) {
+
+	if (fb)
+	{
 		np = of_find_compatible_node(NULL, NULL, "via,vt8500-gpio");
-		if (np) {
+
+		if (np)
+		{
 			gpio_base = of_iomap(np, 0);
 
 			if (!gpio_base)
 				pr_err("%s: of_iomap(gpio_mux) failed\n",
-								__func__);
+					   __func__);
 
 			of_node_put(np);
-		} else {
+		}
+		else
+		{
 			gpio_base = ioremap(LEGACY_GPIO_BASE, 0x1000);
+
 			if (!gpio_base)
 				pr_err("%s: ioremap(legacy_gpio_mux) failed\n",
-								__func__);
+					   __func__);
 		}
-		if (gpio_base) {
+
+		if (gpio_base)
+		{
 			writel(readl(gpio_base + VT8500_GPIO_MUX_REG) | 1,
-				gpio_base + VT8500_GPIO_MUX_REG);
+				   gpio_base + VT8500_GPIO_MUX_REG);
 			iounmap(gpio_base);
-		} else
+		}
+		else
+		{
 			pr_err("%s: Could not remap GPIO mux\n", __func__);
+		}
 
 		of_node_put(fb);
 	}
+
 #endif
 
 #ifdef CONFIG_FB_WM8505
 	fb = of_find_compatible_node(NULL, NULL, "wm,wm8505-fb");
-	if (fb) {
+
+	if (fb)
+	{
 		np = of_find_compatible_node(NULL, NULL, "wm,wm8505-gpio");
+
 		if (!np)
 			np = of_find_compatible_node(NULL, NULL,
-							"wm,wm8650-gpio");
-		if (np) {
+										 "wm,wm8650-gpio");
+
+		if (np)
+		{
 			gpio_base = of_iomap(np, 0);
 
 			if (!gpio_base)
 				pr_err("%s: of_iomap(gpio_mux) failed\n",
-								__func__);
+					   __func__);
 
 			of_node_put(np);
-		} else {
+		}
+		else
+		{
 			gpio_base = ioremap(LEGACY_GPIO_BASE, 0x1000);
+
 			if (!gpio_base)
 				pr_err("%s: ioremap(legacy_gpio_mux) failed\n",
-								__func__);
+					   __func__);
 		}
-		if (gpio_base) {
+
+		if (gpio_base)
+		{
 			writel(readl(gpio_base + VT8500_GPIO_MUX_REG) |
-				0x80000000, gpio_base + VT8500_GPIO_MUX_REG);
+				   0x80000000, gpio_base + VT8500_GPIO_MUX_REG);
 			iounmap(gpio_base);
-		} else
+		}
+		else
+		{
 			pr_err("%s: Could not remap GPIO mux\n", __func__);
+		}
 
 		of_node_put(fb);
 	}
+
 #endif
 
 	np = of_find_compatible_node(NULL, NULL, "via,vt8500-pmc");
-	if (np) {
+
+	if (np)
+	{
 		pmc_base = of_iomap(np, 0);
 
 		if (!pmc_base)
+		{
 			pr_err("%s:of_iomap(pmc) failed\n", __func__);
+		}
 
 		of_node_put(np);
-	} else {
-		pmc_base = ioremap(LEGACY_PMC_BASE, 0x1000);
-		if (!pmc_base)
-			pr_err("%s:ioremap(power_off) failed\n", __func__);
 	}
-	if (pmc_base)
-		pm_power_off = &vt8500_power_off;
 	else
+	{
+		pmc_base = ioremap(LEGACY_PMC_BASE, 0x1000);
+
+		if (!pmc_base)
+		{
+			pr_err("%s:ioremap(power_off) failed\n", __func__);
+		}
+	}
+
+	if (pmc_base)
+	{
+		pm_power_off = &vt8500_power_off;
+	}
+	else
+	{
 		pr_err("%s: PMC Hibernation register could not be remapped, not enabling power off!\n", __func__);
+	}
 }
 
-static const char * const vt8500_dt_compat[] = {
+static const char *const vt8500_dt_compat[] =
+{
 	"via,vt8500",
 	"wm,wm8650",
 	"wm,wm8505",
@@ -169,9 +214,9 @@ static const char * const vt8500_dt_compat[] = {
 };
 
 DT_MACHINE_START(WMT_DT, "VIA/Wondermedia SoC (Device Tree Support)")
-	.dt_compat	= vt8500_dt_compat,
-	.map_io		= vt8500_map_io,
-	.init_machine	= vt8500_init,
-	.restart	= vt8500_restart,
-MACHINE_END
+.dt_compat	= vt8500_dt_compat,
+  .map_io		= vt8500_map_io,
+	  .init_machine	= vt8500_init,
+		 .restart	= vt8500_restart,
+			 MACHINE_END
 

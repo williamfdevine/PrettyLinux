@@ -8,9 +8,9 @@
 #include <asm/page_types.h>
 
 #ifdef CONFIG_X86_64
-#include <asm/page_64.h>
+	#include <asm/page_64.h>
 #else
-#include <asm/page_32.h>
+	#include <asm/page_32.h>
 #endif	/* CONFIG_X86_64 */
 
 #ifndef __ASSEMBLY__
@@ -22,13 +22,13 @@ extern struct range pfn_mapped[];
 extern int nr_pfn_mapped;
 
 static inline void clear_user_page(void *page, unsigned long vaddr,
-				   struct page *pg)
+								   struct page *pg)
 {
 	clear_page(page);
 }
 
 static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
-				  struct page *topage)
+								  struct page *topage)
 {
 	copy_page(to, from);
 }
@@ -38,7 +38,7 @@ static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
 #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
 
 #ifndef __pa
-#define __pa(x)		__phys_addr((unsigned long)(x))
+	#define __pa(x)		__phys_addr((unsigned long)(x))
 #endif
 
 #define __pa_nodebug(x)	__phys_addr_nodebug((unsigned long)(x))
@@ -55,7 +55,7 @@ static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
 	__phys_addr_symbol(__phys_reloc_hide((unsigned long)(x)))
 
 #ifndef __va
-#define __va(x)			((void *)((unsigned long)(x)+PAGE_OFFSET))
+	#define __va(x)			((void *)((unsigned long)(x)+PAGE_OFFSET))
 #endif
 
 #define __boot_va(x)		__va(x)

@@ -20,28 +20,28 @@ struct device;
 extern void octeon_pci_dma_init(void);
 
 static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr,
-	size_t size)
+		size_t size)
 {
 	BUG();
 	return 0;
 }
 
 static inline dma_addr_t plat_map_dma_mem_page(struct device *dev,
-	struct page *page)
+		struct page *page)
 {
 	BUG();
 	return 0;
 }
 
 static inline unsigned long plat_dma_addr_to_phys(struct device *dev,
-	dma_addr_t dma_addr)
+		dma_addr_t dma_addr)
 {
 	BUG();
 	return 0;
 }
 
 static inline void plat_unmap_dma_mem(struct device *dev, dma_addr_t dma_addr,
-	size_t size, enum dma_data_direction direction)
+									  size_t size, enum dma_data_direction direction)
 {
 	BUG();
 }

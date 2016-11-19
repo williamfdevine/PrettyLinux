@@ -16,7 +16,7 @@ struct copro_slb
 };
 
 int copro_handle_mm_fault(struct mm_struct *mm, unsigned long ea,
-			  unsigned long dsisr, unsigned *flt);
+						  unsigned long dsisr, unsigned *flt);
 
 int copro_calculate_slb(struct mm_struct *mm, u64 ea, struct copro_slb *slb);
 

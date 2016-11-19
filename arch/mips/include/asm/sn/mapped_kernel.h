@@ -35,11 +35,11 @@
 #define MAPPED_KERN_RW_PHYSBASE(n) (hub_data(n)->kern_vars.kv_rw_baseaddr)
 
 #define MAPPED_KERN_RO_TO_PHYS(x) \
-				((unsigned long)MAPPED_ADDR_RO_TO_PHYS(x) | \
-				MAPPED_KERN_RO_PHYSBASE(get_compact_nodeid()))
+	((unsigned long)MAPPED_ADDR_RO_TO_PHYS(x) | \
+	 MAPPED_KERN_RO_PHYSBASE(get_compact_nodeid()))
 #define MAPPED_KERN_RW_TO_PHYS(x) \
-				((unsigned long)MAPPED_ADDR_RW_TO_PHYS(x) | \
-				MAPPED_KERN_RW_PHYSBASE(get_compact_nodeid()))
+	((unsigned long)MAPPED_ADDR_RW_TO_PHYS(x) | \
+	 MAPPED_KERN_RW_PHYSBASE(get_compact_nodeid()))
 
 #else /* CONFIG_MAPPED_KERNEL */
 

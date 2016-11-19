@@ -36,17 +36,21 @@ static int lm_bus_remove(struct device *dev)
 	struct lm_driver *lmdrv = to_lm_driver(dev->driver);
 
 	if (lmdrv->remove)
+	{
 		lmdrv->remove(lmdev);
+	}
+
 	return 0;
 }
 
-static struct bus_type lm_bustype = {
+static struct bus_type lm_bustype =
+{
 	.name		= "logicmodule",
 	.match		= lm_match,
 	.probe		= lm_bus_probe,
 	.remove		= lm_bus_remove,
-//	.suspend	= lm_bus_suspend,
-//	.resume		= lm_bus_resume,
+	//	.suspend	= lm_bus_suspend,
+	//	.resume		= lm_bus_resume,
 };
 
 static int __init lm_init(void)
@@ -82,16 +86,26 @@ int lm_device_register(struct lm_device *dev)
 	dev->dev.bus = &lm_bustype;
 
 	ret = dev_set_name(&dev->dev, "lm%d", dev->id);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->resource.name = dev_name(&dev->dev);
 
 	ret = request_resource(&iomem_resource, &dev->resource);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		ret = device_register(&dev->dev);
+
 		if (ret)
+		{
 			release_resource(&dev->resource);
+		}
 	}
+
 	return ret;
 }
 

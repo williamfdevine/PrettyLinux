@@ -9,7 +9,8 @@
 #define SCB_SLOT_OFFSET	24
 #define SCB_MI_MAX_SLOT 32
 
-struct scb_mi_prio {
+struct scb_mi_prio
+{
 	unsigned long scb_mi_arbr;
 	unsigned long scb_mi_arbw;
 	unsigned char scb_mi_slots;

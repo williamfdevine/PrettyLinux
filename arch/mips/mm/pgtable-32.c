@@ -18,7 +18,8 @@ void pgd_init(unsigned long page)
 	unsigned long *p = (unsigned long *) page;
 	int i;
 
-	for (i = 0; i < USER_PTRS_PER_PGD; i+=8) {
+	for (i = 0; i < USER_PTRS_PER_PGD; i += 8)
+	{
 		p[i + 0] = (unsigned long) invalid_pte_table;
 		p[i + 1] = (unsigned long) invalid_pte_table;
 		p[i + 2] = (unsigned long) invalid_pte_table;
@@ -44,7 +45,7 @@ void __init pagetable_init(void)
 	/* Initialize the entire pgd.  */
 	pgd_init((unsigned long)swapper_pg_dir);
 	pgd_init((unsigned long)swapper_pg_dir
-		 + sizeof(pgd_t) * USER_PTRS_PER_PGD);
+			 + sizeof(pgd_t) * USER_PTRS_PER_PGD);
 
 	pgd_base = swapper_pg_dir;
 
@@ -59,7 +60,7 @@ void __init pagetable_init(void)
 	 * Permanent kmaps:
 	 */
 	vaddr = PKMAP_BASE;
-	fixrange_init(vaddr, vaddr + PAGE_SIZE*LAST_PKMAP, pgd_base);
+	fixrange_init(vaddr, vaddr + PAGE_SIZE * LAST_PKMAP, pgd_base);
 
 	pgd = swapper_pg_dir + __pgd_offset(vaddr);
 	pud = pud_offset(pgd, vaddr);

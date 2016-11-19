@@ -180,7 +180,7 @@
 #define nlm_get_bridge_pcibase(node)	nlm_pcicfg_base(cpu_is_xlp9xx() ? \
 		XLP9XX_IO_BRIDGE_OFFSET(node) : XLP_IO_BRIDGE_OFFSET(node))
 #define nlm_get_bridge_regbase(node)	\
-			(nlm_get_bridge_pcibase(node) + XLP_IO_PCI_HDRSZ)
+	(nlm_get_bridge_pcibase(node) + XLP_IO_PCI_HDRSZ)
 
 #endif /* __ASSEMBLY__ */
 #endif /* __NLM_HAL_BRIDGE_H__ */

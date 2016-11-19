@@ -32,8 +32,8 @@ static int smp_highest_cpu;
 static inline unsigned long sun4d_swap(volatile unsigned long *ptr, unsigned long val)
 {
 	__asm__ __volatile__("swap [%1], %0\n\t" :
-			     "=&r" (val), "=&r" (ptr) :
-			     "0" (val), "1" (ptr));
+						 "=&r" (val), "=&r" (ptr) :
+						 "0" (val), "1" (ptr));
 	return val;
 }
 
@@ -45,9 +45,9 @@ static inline void show_leds(int cpuid)
 {
 	cpuid &= 0x1e;
 	__asm__ __volatile__ ("stba %0, [%1] %2" : :
-			      "r" ((cpu_leds[cpuid] << 4) | cpu_leds[cpuid+1]),
-			      "r" (ECSR_BASE(cpuid) | BB_LEDS),
-			      "i" (ASI_M_CTL));
+						  "r" ((cpu_leds[cpuid] << 4) | cpu_leds[cpuid+1]),
+						  "r" (ECSR_BASE(cpuid) | BB_LEDS),
+						  "i" (ASI_M_CTL));
 }
 
 void sun4d_cpu_pre_starting(void *arg)
@@ -79,15 +79,19 @@ void sun4d_cpu_pre_online(void *arg)
 	local_ops->tlb_all();
 
 	while ((unsigned long)current_set[cpuid] < PAGE_OFFSET)
+	{
 		barrier();
+	}
 
 	while (current_set[cpuid]->cpu != cpuid)
+	{
 		barrier();
+	}
 
 	/* Fix idle thread fields. */
 	__asm__ __volatile__("ld [%0], %%g6\n\t"
-			     : : "r" (&current_set[cpuid])
-			     : "memory" /* paranoid */);
+						 : : "r" (&current_set[cpuid])
+						 : "memory" /* paranoid */);
 
 	cpu_leds[cpuid] = 0x9;
 	show_leds(cpuid);
@@ -100,7 +104,9 @@ void sun4d_cpu_pre_online(void *arg)
 	local_ops->tlb_all();
 
 	while (!cpumask_test_cpu(cpuid, &smp_commenced_mask))
+	{
 		barrier();
+	}
 
 	spin_lock_irqsave(&sun4d_imsk_lock, flags);
 	cc_set_imsk(cc_get_imsk() & ~0x4000); /* Allow PIL 14 as well */
@@ -113,8 +119,12 @@ void sun4d_cpu_pre_online(void *arg)
 void __init smp4d_boot_cpus(void)
 {
 	smp4d_ipi_init();
+
 	if (boot_cpu_id)
+	{
 		current_set[0] = NULL;
+	}
+
 	local_ops->cache_all();
 }
 
@@ -139,22 +149,28 @@ int smp4d_boot_one_cpu(int i, struct task_struct *idle)
 	printk(KERN_INFO "Starting CPU %d at %p\n", i, entry);
 	local_ops->cache_all();
 	prom_startcpu(cpu_node,
-		      &smp_penguin_ctable, 0, (char *)entry);
+				  &smp_penguin_ctable, 0, (char *)entry);
 
 	printk(KERN_INFO "prom_startcpu returned :)\n");
 
 	/* wheee... it's going... */
-	for (timeout = 0; timeout < 10000; timeout++) {
+	for (timeout = 0; timeout < 10000; timeout++)
+	{
 		if (cpu_callin_map[i])
+		{
 			break;
+		}
+
 		udelay(200);
 	}
 
-	if (!(cpu_callin_map[i])) {
+	if (!(cpu_callin_map[i]))
+	{
 		printk(KERN_ERR "Processor %d is stuck.\n", i);
 		return -ENODEV;
 
 	}
+
 	local_ops->cache_all();
 	return 0;
 }
@@ -167,7 +183,8 @@ void __init smp4d_smp_done(void)
 	/* setup cpu list for irq rotation */
 	first = 0;
 	prev = &first;
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		*prev = i;
 		prev = &cpu_data(i).next;
 	}
@@ -180,7 +197,8 @@ void __init smp4d_smp_done(void)
 }
 
 /* Memory structure giving interrupt handler information about IPI generated */
-struct sun4d_ipi_work {
+struct sun4d_ipi_work
+{
 	int single;
 	int msk;
 	int resched;
@@ -196,7 +214,8 @@ static void __init smp4d_ipi_init(void)
 
 	printk(KERN_INFO "smp4d: setup IPI at IRQ %d\n", SUN4D_IPI_IRQ);
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		work = &per_cpu(sun4d_ipi_work, cpu);
 		work->single = work->msk = work->resched = 0;
 	}
@@ -206,15 +225,20 @@ void sun4d_ipi_interrupt(void)
 {
 	struct sun4d_ipi_work *work = this_cpu_ptr(&sun4d_ipi_work);
 
-	if (work->single) {
+	if (work->single)
+	{
 		work->single = 0;
 		smp_call_function_single_interrupt();
 	}
-	if (work->msk) {
+
+	if (work->msk)
+	{
 		work->msk = 0;
 		smp_call_function_interrupt();
 	}
-	if (work->resched) {
+
+	if (work->resched)
+	{
 		work->resched = 0;
 		smp_resched_interrupt();
 	}
@@ -266,7 +290,8 @@ static void sun4d_ipi_resched(int cpu)
 	sun4d_send_ipi(cpu, SUN4D_IPI_IRQ);
 }
 
-static struct smp_funcall {
+static struct smp_funcall
+{
 	smpfunc_t func;
 	unsigned long arg1;
 	unsigned long arg2;
@@ -281,10 +306,11 @@ static DEFINE_SPINLOCK(cross_call_lock);
 
 /* Cross calls must be serialized, at least currently. */
 static void sun4d_cross_call(smpfunc_t func, cpumask_t mask, unsigned long arg1,
-			     unsigned long arg2, unsigned long arg3,
-			     unsigned long arg4)
+							 unsigned long arg2, unsigned long arg3,
+							 unsigned long arg4)
 {
-	if (smp_processors_ready) {
+	if (smp_processors_ready)
+	{
 		register int high = smp_highest_cpu;
 		unsigned long flags;
 
@@ -316,8 +342,11 @@ static void sun4d_cross_call(smpfunc_t func, cpumask_t mask, unsigned long arg1,
 
 			cpumask_clear_cpu(smp_processor_id(), &mask);
 			cpumask_and(&mask, cpu_online_mask, &mask);
-			for (i = 0; i <= high; i++) {
-				if (cpumask_test_cpu(i, &mask)) {
+
+			for (i = 0; i <= high; i++)
+			{
+				if (cpumask_test_cpu(i, &mask))
+				{
 					ccall_info.processors_in[i] = 0;
 					ccall_info.processors_out[i] = 0;
 					sun4d_send_ipi(i, IRQ_CROSS_CALL);
@@ -329,20 +358,36 @@ static void sun4d_cross_call(smpfunc_t func, cpumask_t mask, unsigned long arg1,
 			register int i;
 
 			i = 0;
-			do {
+
+			do
+			{
 				if (!cpumask_test_cpu(i, &mask))
+				{
 					continue;
+				}
+
 				while (!ccall_info.processors_in[i])
+				{
 					barrier();
-			} while (++i <= high);
+				}
+			}
+			while (++i <= high);
 
 			i = 0;
-			do {
+
+			do
+			{
 				if (!cpumask_test_cpu(i, &mask))
+				{
 					continue;
+				}
+
 				while (!ccall_info.processors_out[i])
+				{
 					barrier();
-			} while (++i <= high);
+				}
+			}
+			while (++i <= high);
 		}
 
 		spin_unlock_irqrestore(&cross_call_lock, flags);
@@ -356,7 +401,7 @@ void smp4d_cross_call_irq(void)
 
 	ccall_info.processors_in[i] = 1;
 	ccall_info.func(ccall_info.arg1, ccall_info.arg2, ccall_info.arg3,
-			ccall_info.arg4, ccall_info.arg5);
+					ccall_info.arg4, ccall_info.arg5);
 	ccall_info.processors_out[i] = 1;
 }
 
@@ -373,9 +418,14 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs)
 	bw_clear_intr_mask(0, 1);	/* INTR_TABLE[0] & 1 is Profile IRQ */
 
 	cpu_tick[cpu]++;
-	if (!(cpu_tick[cpu] & 15)) {
+
+	if (!(cpu_tick[cpu] & 15))
+	{
 		if (cpu_tick[cpu] == 0x60)
+		{
 			cpu_tick[cpu] = 0;
+		}
+
 		cpu_leds[cpu] = led_mask[cpu_tick[cpu] >> 4];
 		show_leds(cpu);
 	}
@@ -389,7 +439,8 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs)
 	set_irq_regs(old_regs);
 }
 
-static const struct sparc32_ipi_ops sun4d_ipi_ops = {
+static const struct sparc32_ipi_ops sun4d_ipi_ops =
+{
 	.cross_call = sun4d_cross_call,
 	.resched    = sun4d_ipi_resched,
 	.single     = sun4d_ipi_single,
@@ -405,7 +456,8 @@ void __init sun4d_init_smp(void)
 
 	sparc32_ipi_ops = &sun4d_ipi_ops;
 
-	for (i = 0; i < NR_CPUS; i++) {
+	for (i = 0; i < NR_CPUS; i++)
+	{
 		ccall_info.processors_in[i] = 1;
 		ccall_info.processors_out[i] = 1;
 	}

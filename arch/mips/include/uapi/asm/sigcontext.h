@@ -30,7 +30,8 @@
  * Keep this struct definition in sync with the sigcontext fragment
  * in arch/mips/kernel/asm-offsets.c
  */
-struct sigcontext {
+struct sigcontext
+{
 	unsigned int		sc_regmask;	/* Unused */
 	unsigned int		sc_status;	/* Unused */
 	unsigned long long	sc_pc;
@@ -66,7 +67,8 @@ struct sigcontext {
  * DSP ASE in 2.6.12-rc4.  Turn sc_mdhi and sc_mdlo into an array of four
  * entries, add sc_dsp and sc_reserved for padding.  No prisoners.
  */
-struct sigcontext {
+struct sigcontext
+{
 	__u64	sc_regs[32];
 	__u64	sc_fpregs[32];
 	__u64	sc_mdhi;

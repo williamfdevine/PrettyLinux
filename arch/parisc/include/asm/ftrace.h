@@ -2,15 +2,15 @@
 #define _ASM_PARISC_FTRACE_H
 
 #ifndef __ASSEMBLY__
-extern void mcount(void);
+	extern void mcount(void);
 
-#define MCOUNT_INSN_SIZE 4
+	#define MCOUNT_INSN_SIZE 4
 
-extern unsigned long sys_call_table[];
+	extern unsigned long sys_call_table[];
 
-extern unsigned long return_address(unsigned int);
+	extern unsigned long return_address(unsigned int);
 
-#define ftrace_return_address(n) return_address(n)
+	#define ftrace_return_address(n) return_address(n)
 
 #endif /* __ASSEMBLY__ */
 

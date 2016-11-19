@@ -42,12 +42,13 @@ static void ebsa110_unmask_irq(struct irq_data *d)
 	__raw_writeb(1 << d->irq, IRQ_MSET);
 }
 
-static struct irq_chip ebsa110_irq_chip = {
+static struct irq_chip ebsa110_irq_chip =
+{
 	.irq_ack	= ebsa110_mask_irq,
 	.irq_mask	= ebsa110_mask_irq,
 	.irq_unmask	= ebsa110_unmask_irq,
 };
- 
+
 static void __init ebsa110_init_irq(void)
 {
 	unsigned long flags;
@@ -57,19 +58,23 @@ static void __init ebsa110_init_irq(void)
 	__raw_writeb(0xff, IRQ_MCLR);
 	__raw_writeb(0x55, IRQ_MSET);
 	__raw_writeb(0x00, IRQ_MSET);
+
 	if (__raw_readb(IRQ_MASK) != 0x55)
 		while (1);
+
 	__raw_writeb(0xff, IRQ_MCLR);	/* clear all interrupt enables */
 	local_irq_restore(flags);
 
-	for (irq = 0; irq < NR_IRQS; irq++) {
+	for (irq = 0; irq < NR_IRQS; irq++)
+	{
 		irq_set_chip_and_handler(irq, &ebsa110_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
 }
 
-static struct map_desc ebsa110_io_desc[] __initdata = {
+static struct map_desc ebsa110_io_desc[] __initdata =
+{
 	/*
 	 * sparse external-decode ISAIO space
 	 */
@@ -117,7 +122,7 @@ static void __init ebsa110_map_io(void)
 }
 
 static void __iomem *ebsa110_ioremap_caller(phys_addr_t cookie, size_t size,
-					    unsigned int flags, void *caller)
+		unsigned int flags, void *caller)
 {
 	return (void __iomem *)cookie;
 }
@@ -170,7 +175,9 @@ static u32 ebsa110_gettimeoffset(void)
 	 * If count > COUNT, make the number negative.
 	 */
 	if (count > COUNT)
+	{
 		count |= 0xffff0000;
+	}
 
 	offset = COUNT;
 	offset -= count;
@@ -204,7 +211,8 @@ ebsa110_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction ebsa110_timer_irq = {
+static struct irqaction ebsa110_timer_irq =
+{
 	.name		= "EBSA110 Timer Tick",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= ebsa110_timer_interrupt,
@@ -227,7 +235,8 @@ void __init ebsa110_timer_init(void)
 	setup_irq(IRQ_EBSA110_TIMER0, &ebsa110_timer_irq);
 }
 
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	{
 		.iobase		= 0x3f8,
 		.irq		= 1,
@@ -247,7 +256,8 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	{ },
 };
 
-static struct platform_device serial_device = {
+static struct platform_device serial_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -255,7 +265,8 @@ static struct platform_device serial_device = {
 	},
 };
 
-static struct resource am79c961_resources[] = {
+static struct resource am79c961_resources[] =
+{
 	{
 		.start		= 0x220,
 		.end		= 0x238,
@@ -267,14 +278,16 @@ static struct resource am79c961_resources[] = {
 	},
 };
 
-static struct platform_device am79c961_device = {
+static struct platform_device am79c961_device =
+{
 	.name			= "am79c961",
 	.id			= -1,
 	.num_resources		= ARRAY_SIZE(am79c961_resources),
 	.resource		= am79c961_resources,
 };
 
-static struct platform_device *ebsa110_devices[] = {
+static struct platform_device *ebsa110_devices[] =
+{
 	&serial_device,
 	&am79c961_device,
 };
@@ -317,13 +330,13 @@ static void ebsa110_restart(enum reboot_mode mode, const char *cmd)
 }
 
 MACHINE_START(EBSA110, "EBSA110")
-	/* Maintainer: Russell King */
-	.atag_offset	= 0x400,
+/* Maintainer: Russell King */
+.atag_offset	= 0x400,
 	.reserve_lp0	= 1,
-	.reserve_lp2	= 1,
-	.map_io		= ebsa110_map_io,
-	.init_early	= ebsa110_init_early,
-	.init_irq	= ebsa110_init_irq,
-	.init_time	= ebsa110_timer_init,
-	.restart	= ebsa110_restart,
-MACHINE_END
+		.reserve_lp2	= 1,
+			.map_io		= ebsa110_map_io,
+				.init_early	= ebsa110_init_early,
+				 .init_irq	= ebsa110_init_irq,
+					.init_time	= ebsa110_timer_init,
+					  .restart	= ebsa110_restart,
+						  MACHINE_END

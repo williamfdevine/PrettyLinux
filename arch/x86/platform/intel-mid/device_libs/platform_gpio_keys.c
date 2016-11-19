@@ -25,7 +25,8 @@
  * and register them dynamically. Please add all possible
  * buttons here, we will shrink them if no GPIO found.
  */
-static struct gpio_keys_button gpio_button[] = {
+static struct gpio_keys_button gpio_button[] =
+{
 	{KEY_POWER,		-1, 1, "power_btn",	EV_KEY, 0, 3000},
 	{KEY_PROG1,		-1, 1, "prog_btn1",	EV_KEY, 0, 20},
 	{KEY_PROG2,		-1, 1, "prog_btn2",	EV_KEY, 0, 20},
@@ -38,13 +39,15 @@ static struct gpio_keys_button gpio_button[] = {
 	{SW_KEYPAD_SLIDE,	-1, 1, "MagSw2",	EV_SW,  0, 20},
 };
 
-static struct gpio_keys_platform_data gpio_keys = {
+static struct gpio_keys_platform_data gpio_keys =
+{
 	.buttons	= gpio_button,
 	.rep		= 1,
 	.nbuttons	= -1, /* will fill it after search */
 };
 
-static struct platform_device pb_device = {
+static struct platform_device pb_device =
+{
 	.name		= DEVICE_NAME,
 	.id		= -1,
 	.dev		= {
@@ -62,22 +65,32 @@ static int __init pb_keys_init(void)
 	int i, num, good = 0;
 
 	num = sizeof(gpio_button) / sizeof(struct gpio_keys_button);
-	for (i = 0; i < num; i++) {
+
+	for (i = 0; i < num; i++)
+	{
 		gb[i].gpio = get_gpio_by_name(gb[i].desc);
 		pr_debug("info[%2d]: name = %s, gpio = %d\n", i, gb[i].desc,
-					gb[i].gpio);
+				 gb[i].gpio);
+
 		if (gb[i].gpio < 0)
+		{
 			continue;
+		}
 
 		if (i != good)
+		{
 			gb[good] = gb[i];
+		}
+
 		good++;
 	}
 
-	if (good) {
+	if (good)
+	{
 		gpio_keys.nbuttons = good;
 		return platform_device_register(&pb_device);
 	}
+
 	return 0;
 }
 late_initcall(pb_keys_init);

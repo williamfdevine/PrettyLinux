@@ -44,58 +44,58 @@
  * to the stack cost of the instruction.
  */
 asm (
-			".global optprobe_template_entry\n"
-			"optprobe_template_entry:\n"
-			".global optprobe_template_sub_sp\n"
-			"optprobe_template_sub_sp:"
-			"	sub	sp, sp, #0xff\n"
-			"	stmia	sp, {r0 - r14} \n"
-			".global optprobe_template_add_sp\n"
-			"optprobe_template_add_sp:"
-			"	add	r3, sp, #0xff\n"
-			"	str	r3, [sp, #52]\n"
-			"	mrs	r4, cpsr\n"
-			"	str	r4, [sp, #64]\n"
-			"	mov	r1, sp\n"
-			"	ldr	r0, 1f\n"
-			"	ldr	r2, 2f\n"
-			/*
-			 * AEABI requires an 8-bytes alignment stack. If
-			 * SP % 8 != 0 (SP % 4 == 0 should be ensured),
-			 * alloc more bytes here.
-			 */
-			"	and	r4, sp, #4\n"
-			"	sub	sp, sp, r4\n"
+	".global optprobe_template_entry\n"
+	"optprobe_template_entry:\n"
+	".global optprobe_template_sub_sp\n"
+	"optprobe_template_sub_sp:"
+	"	sub	sp, sp, #0xff\n"
+	"	stmia	sp, {r0 - r14} \n"
+	".global optprobe_template_add_sp\n"
+	"optprobe_template_add_sp:"
+	"	add	r3, sp, #0xff\n"
+	"	str	r3, [sp, #52]\n"
+	"	mrs	r4, cpsr\n"
+	"	str	r4, [sp, #64]\n"
+	"	mov	r1, sp\n"
+	"	ldr	r0, 1f\n"
+	"	ldr	r2, 2f\n"
+	/*
+	 * AEABI requires an 8-bytes alignment stack. If
+	 * SP % 8 != 0 (SP % 4 == 0 should be ensured),
+	 * alloc more bytes here.
+	 */
+	"	and	r4, sp, #4\n"
+	"	sub	sp, sp, r4\n"
 #if __LINUX_ARM_ARCH__ >= 5
-			"	blx	r2\n"
+	"	blx	r2\n"
 #else
-			"	mov     lr, pc\n"
-			"	mov	pc, r2\n"
+	"	mov     lr, pc\n"
+	"	mov	pc, r2\n"
 #endif
-			"	add	sp, sp, r4\n"
-			"	ldr	r1, [sp, #64]\n"
-			"	tst	r1, #"__stringify(PSR_T_BIT)"\n"
-			"	ldrne	r2, [sp, #60]\n"
-			"	orrne	r2, #1\n"
-			"	strne	r2, [sp, #60] @ set bit0 of PC for thumb\n"
-			"	msr	cpsr_cxsf, r1\n"
-			".global optprobe_template_restore_begin\n"
-			"optprobe_template_restore_begin:\n"
-			"	ldmia	sp, {r0 - r15}\n"
-			".global optprobe_template_restore_orig_insn\n"
-			"optprobe_template_restore_orig_insn:\n"
-			"	nop\n"
-			".global optprobe_template_restore_end\n"
-			"optprobe_template_restore_end:\n"
-			"	nop\n"
-			".global optprobe_template_val\n"
-			"optprobe_template_val:\n"
-			"1:	.long 0\n"
-			".global optprobe_template_call\n"
-			"optprobe_template_call:\n"
-			"2:	.long 0\n"
-			".global optprobe_template_end\n"
-			"optprobe_template_end:\n");
+	"	add	sp, sp, r4\n"
+	"	ldr	r1, [sp, #64]\n"
+	"	tst	r1, #"__stringify(PSR_T_BIT)"\n"
+	"	ldrne	r2, [sp, #60]\n"
+	"	orrne	r2, #1\n"
+	"	strne	r2, [sp, #60] @ set bit0 of PC for thumb\n"
+	"	msr	cpsr_cxsf, r1\n"
+	".global optprobe_template_restore_begin\n"
+	"optprobe_template_restore_begin:\n"
+	"	ldmia	sp, {r0 - r15}\n"
+	".global optprobe_template_restore_orig_insn\n"
+	"optprobe_template_restore_orig_insn:\n"
+	"	nop\n"
+	".global optprobe_template_restore_end\n"
+	"optprobe_template_restore_end:\n"
+	"	nop\n"
+	".global optprobe_template_val\n"
+	"optprobe_template_val:\n"
+	"1:	.long 0\n"
+	".global optprobe_template_call\n"
+	"optprobe_template_call:\n"
+	"2:	.long 0\n"
+	".global optprobe_template_end\n"
+	"optprobe_template_end:\n");
 
 #define TMPL_VAL_IDX \
 	((unsigned long *)&optprobe_template_val - (unsigned long *)&optprobe_template_entry)
@@ -138,13 +138,19 @@ int arch_check_optimized_kprobe(struct optimized_kprobe *op)
 static int can_optimize(struct kprobe *kp)
 {
 	if (kp->ainsn.stack_space < 0)
+	{
 		return 0;
+	}
+
 	/*
 	 * 255 is the biggest imm can be used in 'sub r0, r0, #<imm>'.
 	 * Number larger than 255 needs special encoding.
 	 */
 	if (kp->ainsn.stack_space > 255 - sizeof(struct pt_regs))
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -152,7 +158,8 @@ static int can_optimize(struct kprobe *kp)
 static void
 __arch_remove_optimized_kprobe(struct optimized_kprobe *op, int dirty)
 {
-	if (op->optinsn.insn) {
+	if (op->optinsn.insn)
+	{
 		free_optinsn_slot(op->optinsn.insn, dirty);
 		op->optinsn.insn = NULL;
 	}
@@ -173,9 +180,12 @@ optimized_callback(struct optimized_kprobe *op, struct pt_regs *regs)
 
 	local_irq_save(flags);
 
-	if (kprobe_running()) {
+	if (kprobe_running())
+	{
 		kprobes_inc_nmissed_count(&op->kp);
-	} else {
+	}
+	else
+	{
 		__this_cpu_write(current_kprobe, &op->kp);
 		kcb->kprobe_status = KPROBE_HIT_ACTIVE;
 		opt_pre_handler(&op->kp, regs);
@@ -187,7 +197,9 @@ optimized_callback(struct optimized_kprobe *op, struct pt_regs *regs)
 	 * executed directly during restore.
 	 */
 	if (!p->ainsn.kprobe_direct_exec)
+	{
 		op->kp.ainsn.insn_singlestep(p->opcode, &p->ainsn, regs);
+	}
 
 	local_irq_restore(flags);
 }
@@ -200,11 +212,16 @@ int arch_prepare_optimized_kprobe(struct optimized_kprobe *op, struct kprobe *or
 	unsigned long stack_protect = sizeof(struct pt_regs);
 
 	if (!can_optimize(orig))
+	{
 		return -EILSEQ;
+	}
 
 	code = get_optinsn_slot();
+
 	if (!code)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Verify if the address gap is in 32MiB range, because this uses
@@ -232,9 +249,10 @@ int arch_prepare_optimized_kprobe(struct optimized_kprobe *op, struct kprobe *or
 	 *  the last '3' is used for alignment checking.
 	 */
 	rel_chk = (unsigned long)((long)code -
-			(long)orig->addr + 8) & 0xfe000003;
+							  (long)orig->addr + 8) & 0xfe000003;
 
-	if ((rel_chk != 0) && (rel_chk != 0xfe000000)) {
+	if ((rel_chk != 0) && (rel_chk != 0xfe000000))
+	{
 		/*
 		 * Different from x86, we free code buf directly instead of
 		 * calling __arch_remove_optimized_kprobe() because
@@ -246,7 +264,7 @@ int arch_prepare_optimized_kprobe(struct optimized_kprobe *op, struct kprobe *or
 
 	/* Copy arch-dep-instance from template. */
 	memcpy(code, &optprobe_template_entry,
-			TMPL_END_IDX * sizeof(kprobe_opcode_t));
+		   TMPL_END_IDX * sizeof(kprobe_opcode_t));
 
 	/* Adjust buffer according to instruction. */
 	BUG_ON(orig->ainsn.stack_space < 0);
@@ -271,11 +289,15 @@ int arch_prepare_optimized_kprobe(struct optimized_kprobe *op, struct kprobe *or
 
 	/* If possible, copy insn and have it executed during restore */
 	orig->ainsn.kprobe_direct_exec = false;
-	if (can_kprobe_direct_exec(orig->ainsn.register_usage_flags)) {
+
+	if (can_kprobe_direct_exec(orig->ainsn.register_usage_flags))
+	{
 		kprobe_opcode_t final_branch = arm_gen_branch(
-				(unsigned long)(&code[TMPL_RESTORE_END]),
-				(unsigned long)(op->kp.addr) + 4);
-		if (final_branch != 0) {
+										   (unsigned long)(&code[TMPL_RESTORE_END]),
+										   (unsigned long)(op->kp.addr) + 4);
+
+		if (final_branch != 0)
+		{
 			/*
 			 * Replace original 'ldmia sp, {r0 - r15}' with
 			 * 'ldmia {r0 - r14}', restore all registers except pc.
@@ -292,7 +314,7 @@ int arch_prepare_optimized_kprobe(struct optimized_kprobe *op, struct kprobe *or
 	}
 
 	flush_icache_range((unsigned long)code,
-			   (unsigned long)(&code[TMPL_END_IDX]));
+					   (unsigned long)(&code[TMPL_END_IDX]));
 
 	/* Set op->optinsn.insn means prepared. */
 	op->optinsn.insn = code;
@@ -303,7 +325,8 @@ void __kprobes arch_optimize_kprobes(struct list_head *oplist)
 {
 	struct optimized_kprobe *op, *tmp;
 
-	list_for_each_entry_safe(op, tmp, oplist, list) {
+	list_for_each_entry_safe(op, tmp, oplist, list)
+	{
 		unsigned long insn;
 		WARN_ON(kprobe_disabled(&op->kp));
 
@@ -312,10 +335,10 @@ void __kprobes arch_optimize_kprobes(struct list_head *oplist)
 		 * by jump address
 		 */
 		memcpy(op->optinsn.copied_insn, op->kp.addr,
-				RELATIVEJUMP_SIZE);
+			   RELATIVEJUMP_SIZE);
 
 		insn = arm_gen_branch((unsigned long)op->kp.addr,
-				(unsigned long)op->optinsn.insn);
+							  (unsigned long)op->optinsn.insn);
 		BUG_ON(insn == 0);
 
 		/*
@@ -323,8 +346,8 @@ void __kprobes arch_optimize_kprobes(struct list_head *oplist)
 		 * is consitional
 		 */
 		insn = (__mem_to_opcode_arm(
-			  op->optinsn.copied_insn[0]) & 0xf0000000) |
-			(insn & 0x0fffffff);
+					op->optinsn.copied_insn[0]) & 0xf0000000) |
+			   (insn & 0x0fffffff);
 
 		/*
 		 * Similar to __arch_disarm_kprobe, operations which
@@ -347,21 +370,22 @@ void arch_unoptimize_kprobe(struct optimized_kprobe *op)
  * Caller must call with locking kprobe_mutex.
  */
 void arch_unoptimize_kprobes(struct list_head *oplist,
-			    struct list_head *done_list)
+							 struct list_head *done_list)
 {
 	struct optimized_kprobe *op, *tmp;
 
-	list_for_each_entry_safe(op, tmp, oplist, list) {
+	list_for_each_entry_safe(op, tmp, oplist, list)
+	{
 		arch_unoptimize_kprobe(op);
 		list_move(&op->list, done_list);
 	}
 }
 
 int arch_within_optimized_kprobe(struct optimized_kprobe *op,
-				unsigned long addr)
+								 unsigned long addr)
 {
 	return ((unsigned long)op->kp.addr <= addr &&
-		(unsigned long)op->kp.addr + RELATIVEJUMP_SIZE > addr);
+			(unsigned long)op->kp.addr + RELATIVEJUMP_SIZE > addr);
 }
 
 void arch_remove_optimized_kprobe(struct optimized_kprobe *op)

@@ -75,13 +75,17 @@ u32 cbe_read_phys_ctr(u32 cpu, u32 phys_ctr)
 {
 	u32 val_in_latch, val = 0;
 
-	if (phys_ctr < NR_PHYS_CTRS) {
+	if (phys_ctr < NR_PHYS_CTRS)
+	{
 		READ_SHADOW_REG(val_in_latch, counter_value_in_latch);
 
 		/* Read the latch or the actual counter, whichever is newer. */
-		if (val_in_latch & (1 << phys_ctr)) {
+		if (val_in_latch & (1 << phys_ctr))
+		{
 			READ_SHADOW_REG(val, pm_ctr[phys_ctr]);
-		} else {
+		}
+		else
+		{
 			READ_MMIO_UPPER32(val, pm_ctr[phys_ctr]);
 		}
 	}
@@ -95,7 +99,8 @@ void cbe_write_phys_ctr(u32 cpu, u32 phys_ctr, u32 val)
 	struct cbe_pmd_shadow_regs *shadow_regs;
 	u32 pm_ctrl;
 
-	if (phys_ctr < NR_PHYS_CTRS) {
+	if (phys_ctr < NR_PHYS_CTRS)
+	{
 		/* Writing to a counter only writes to a hardware latch.
 		 * The new value is not propagated to the actual counter
 		 * until the performance monitor is enabled.
@@ -103,13 +108,17 @@ void cbe_write_phys_ctr(u32 cpu, u32 phys_ctr, u32 val)
 		WRITE_WO_MMIO(pm_ctr[phys_ctr], val);
 
 		pm_ctrl = cbe_read_pm(cpu, pm_control);
-		if (pm_ctrl & CBE_PM_ENABLE_PERF_MON) {
+
+		if (pm_ctrl & CBE_PM_ENABLE_PERF_MON)
+		{
 			/* The counters are already active, so we need to
 			 * rewrite the pm_control register to "re-enable"
 			 * the PMU.
 			 */
 			cbe_write_pm(cpu, pm_control, pm_ctrl);
-		} else {
+		}
+		else
+		{
 			shadow_regs = cbe_get_cpu_pmd_shadow_regs(cpu);
 			shadow_regs->counter_value_in_latch |= (1 << phys_ctr);
 		}
@@ -131,7 +140,9 @@ u32 cbe_read_ctr(u32 cpu, u32 ctr)
 	val = cbe_read_phys_ctr(cpu, phys_ctr);
 
 	if (cbe_get_ctr_size(cpu, phys_ctr) == 16)
+	{
 		val = (ctr < NR_PHYS_CTRS) ? (val >> 16) : (val & 0xffff);
+	}
 
 	return val;
 }
@@ -144,13 +155,18 @@ void cbe_write_ctr(u32 cpu, u32 ctr, u32 val)
 
 	phys_ctr = ctr & (NR_PHYS_CTRS - 1);
 
-	if (cbe_get_ctr_size(cpu, phys_ctr) == 16) {
+	if (cbe_get_ctr_size(cpu, phys_ctr) == 16)
+	{
 		phys_val = cbe_read_phys_ctr(cpu, phys_ctr);
 
 		if (ctr < NR_PHYS_CTRS)
+		{
 			val = (val << 16) | (phys_val & 0xffff);
+		}
 		else
+		{
 			val = (val & 0xffff) | (phys_val & 0xffff0000);
+		}
 	}
 
 	cbe_write_phys_ctr(cpu, phys_ctr, val);
@@ -167,7 +183,9 @@ u32 cbe_read_pm07_control(u32 cpu, u32 ctr)
 	u32 pm07_control = 0;
 
 	if (ctr < NR_CTRS)
+	{
 		READ_SHADOW_REG(pm07_control, pm07_control[ctr]);
+	}
 
 	return pm07_control;
 }
@@ -176,7 +194,9 @@ EXPORT_SYMBOL_GPL(cbe_read_pm07_control);
 void cbe_write_pm07_control(u32 cpu, u32 ctr, u32 val)
 {
 	if (ctr < NR_CTRS)
+	{
 		WRITE_WO_MMIO(pm07_control[ctr], val);
+	}
 }
 EXPORT_SYMBOL_GPL(cbe_write_pm07_control);
 
@@ -188,38 +208,39 @@ u32 cbe_read_pm(u32 cpu, enum pm_reg_name reg)
 {
 	u32 val = 0;
 
-	switch (reg) {
-	case group_control:
-		READ_SHADOW_REG(val, group_control);
-		break;
+	switch (reg)
+	{
+		case group_control:
+			READ_SHADOW_REG(val, group_control);
+			break;
 
-	case debug_bus_control:
-		READ_SHADOW_REG(val, debug_bus_control);
-		break;
+		case debug_bus_control:
+			READ_SHADOW_REG(val, debug_bus_control);
+			break;
 
-	case trace_address:
-		READ_MMIO_UPPER32(val, trace_address);
-		break;
+		case trace_address:
+			READ_MMIO_UPPER32(val, trace_address);
+			break;
 
-	case ext_tr_timer:
-		READ_SHADOW_REG(val, ext_tr_timer);
-		break;
+		case ext_tr_timer:
+			READ_SHADOW_REG(val, ext_tr_timer);
+			break;
 
-	case pm_status:
-		READ_MMIO_UPPER32(val, pm_status);
-		break;
+		case pm_status:
+			READ_MMIO_UPPER32(val, pm_status);
+			break;
 
-	case pm_control:
-		READ_SHADOW_REG(val, pm_control);
-		break;
+		case pm_control:
+			READ_SHADOW_REG(val, pm_control);
+			break;
 
-	case pm_interval:
-		READ_MMIO_UPPER32(val, pm_interval);
-		break;
+		case pm_interval:
+			READ_MMIO_UPPER32(val, pm_interval);
+			break;
 
-	case pm_start_stop:
-		READ_SHADOW_REG(val, pm_start_stop);
-		break;
+		case pm_start_stop:
+			READ_SHADOW_REG(val, pm_start_stop);
+			break;
 	}
 
 	return val;
@@ -228,38 +249,39 @@ EXPORT_SYMBOL_GPL(cbe_read_pm);
 
 void cbe_write_pm(u32 cpu, enum pm_reg_name reg, u32 val)
 {
-	switch (reg) {
-	case group_control:
-		WRITE_WO_MMIO(group_control, val);
-		break;
+	switch (reg)
+	{
+		case group_control:
+			WRITE_WO_MMIO(group_control, val);
+			break;
 
-	case debug_bus_control:
-		WRITE_WO_MMIO(debug_bus_control, val);
-		break;
+		case debug_bus_control:
+			WRITE_WO_MMIO(debug_bus_control, val);
+			break;
 
-	case trace_address:
-		WRITE_WO_MMIO(trace_address, val);
-		break;
+		case trace_address:
+			WRITE_WO_MMIO(trace_address, val);
+			break;
 
-	case ext_tr_timer:
-		WRITE_WO_MMIO(ext_tr_timer, val);
-		break;
+		case ext_tr_timer:
+			WRITE_WO_MMIO(ext_tr_timer, val);
+			break;
 
-	case pm_status:
-		WRITE_WO_MMIO(pm_status, val);
-		break;
+		case pm_status:
+			WRITE_WO_MMIO(pm_status, val);
+			break;
 
-	case pm_control:
-		WRITE_WO_MMIO(pm_control, val);
-		break;
+		case pm_control:
+			WRITE_WO_MMIO(pm_control, val);
+			break;
 
-	case pm_interval:
-		WRITE_WO_MMIO(pm_interval, val);
-		break;
+		case pm_interval:
+			WRITE_WO_MMIO(pm_interval, val);
+			break;
 
-	case pm_start_stop:
-		WRITE_WO_MMIO(pm_start_stop, val);
-		break;
+		case pm_start_stop:
+			WRITE_WO_MMIO(pm_start_stop, val);
+			break;
 	}
 }
 EXPORT_SYMBOL_GPL(cbe_write_pm);
@@ -272,7 +294,8 @@ u32 cbe_get_ctr_size(u32 cpu, u32 phys_ctr)
 {
 	u32 pm_ctrl, size = 0;
 
-	if (phys_ctr < NR_PHYS_CTRS) {
+	if (phys_ctr < NR_PHYS_CTRS)
+	{
 		pm_ctrl = cbe_read_pm(cpu, pm_control);
 		size = (pm_ctrl & CBE_PM_16BIT_CTR(phys_ctr)) ? 16 : 32;
 	}
@@ -285,17 +308,21 @@ void cbe_set_ctr_size(u32 cpu, u32 phys_ctr, u32 ctr_size)
 {
 	u32 pm_ctrl;
 
-	if (phys_ctr < NR_PHYS_CTRS) {
+	if (phys_ctr < NR_PHYS_CTRS)
+	{
 		pm_ctrl = cbe_read_pm(cpu, pm_control);
-		switch (ctr_size) {
-		case 16:
-			pm_ctrl |= CBE_PM_16BIT_CTR(phys_ctr);
-			break;
 
-		case 32:
-			pm_ctrl &= ~CBE_PM_16BIT_CTR(phys_ctr);
-			break;
+		switch (ctr_size)
+		{
+			case 16:
+				pm_ctrl |= CBE_PM_16BIT_CTR(phys_ctr);
+				break;
+
+			case 32:
+				pm_ctrl &= ~CBE_PM_16BIT_CTR(phys_ctr);
+				break;
 		}
+
 		cbe_write_pm(cpu, pm_control, pm_ctrl);
 	}
 }
@@ -360,7 +387,9 @@ void cbe_enable_pm_interrupts(u32 cpu, u32 thread, u32 mask)
 
 	/* Enable the interrupt bits in the pm_status register. */
 	if (mask)
+	{
 		cbe_write_pm(cpu, pm_status, mask);
+	}
 }
 EXPORT_SYMBOL_GPL(cbe_enable_pm_interrupts);
 
@@ -382,20 +411,25 @@ static int __init cbe_init_pm_irq(void)
 	unsigned int irq;
 	int rc, node;
 
-	for_each_online_node(node) {
+	for_each_online_node(node)
+	{
 		irq = irq_create_mapping(NULL, IIC_IRQ_IOEX_PMI |
-					       (node << IIC_IRQ_NODE_SHIFT));
-		if (!irq) {
+								 (node << IIC_IRQ_NODE_SHIFT));
+
+		if (!irq)
+		{
 			printk("ERROR: Unable to allocate irq for node %d\n",
-			       node);
+				   node);
 			return -EINVAL;
 		}
 
 		rc = request_irq(irq, cbe_pm_irq,
-				 0, "cbe-pmu-0", NULL);
-		if (rc) {
+						 0, "cbe-pmu-0", NULL);
+
+		if (rc)
+		{
 			printk("ERROR: Request for irq on node %d failed\n",
-			       node);
+				   node);
 			return rc;
 		}
 	}
@@ -409,12 +443,13 @@ void cbe_sync_irq(int node)
 	unsigned int irq;
 
 	irq = irq_find_mapping(NULL,
-			       IIC_IRQ_IOEX_PMI
-			       | (node << IIC_IRQ_NODE_SHIFT));
+						   IIC_IRQ_IOEX_PMI
+						   | (node << IIC_IRQ_NODE_SHIFT));
 
-	if (!irq) {
+	if (!irq)
+	{
 		printk(KERN_WARNING "ERROR, unable to get existing irq %d " \
-		"for node %d\n", irq, node);
+			   "for node %d\n", irq, node);
 		return;
 	}
 

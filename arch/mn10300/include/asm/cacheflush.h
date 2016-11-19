@@ -59,13 +59,13 @@ extern void mn10300_dcache_flush_inv_range2(unsigned long start, unsigned long s
 #define mn10300_local_dcache_flush_range(start, end)	do {} while (0)
 #define mn10300_local_dcache_flush_range2(start, size)	do {} while (0)
 #define mn10300_local_dcache_flush_inv() \
-		mn10300_local_dcache_inv()
+	mn10300_local_dcache_inv()
 #define mn10300_local_dcache_flush_inv_page(start) \
-		mn10300_local_dcache_inv_page(start)
+	mn10300_local_dcache_inv_page(start)
 #define mn10300_local_dcache_flush_inv_range(start, end) \
-		mn10300_local_dcache_inv_range(start, end)
+	mn10300_local_dcache_inv_range(start, end)
 #define mn10300_local_dcache_flush_inv_range2(start, size) \
-		mn10300_local_dcache_inv_range2(start, size)
+	mn10300_local_dcache_inv_range2(start, size)
 #define mn10300_dcache_flush()				do {} while (0)
 #define mn10300_dcache_flush_page(start)		do {} while (0)
 #define mn10300_dcache_flush_range(start, end)		do {} while (0)
@@ -136,7 +136,7 @@ extern void flush_icache_page(struct vm_area_struct *vma, struct page *page);
 extern void flush_icache_range(unsigned long start, unsigned long end);
 #elif defined(CONFIG_MN10300_CACHE_INV_ICACHE)
 static inline void flush_icache_page(struct vm_area_struct *vma,
-				     struct page *page)
+									 struct page *page)
 {
 	mn10300_icache_inv_page(page_to_phys(page));
 }

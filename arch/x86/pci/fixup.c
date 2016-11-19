@@ -19,17 +19,26 @@ static void pci_fixup_i450nx(struct pci_dev *d)
 
 	dev_warn(&d->dev, "Searching for i450NX host bridges\n");
 	reg = 0xd0;
-	for(pxb = 0; pxb < 2; pxb++) {
+
+	for (pxb = 0; pxb < 2; pxb++)
+	{
 		pci_read_config_byte(d, reg++, &busno);
 		pci_read_config_byte(d, reg++, &suba);
 		pci_read_config_byte(d, reg++, &subb);
 		dev_dbg(&d->dev, "i450NX PXB %d: %02x/%02x/%02x\n", pxb, busno,
-			suba, subb);
+				suba, subb);
+
 		if (busno)
-			pcibios_scan_root(busno);	/* Bus A */
+		{
+			pcibios_scan_root(busno);    /* Bus A */
+		}
+
 		if (suba < subb)
-			pcibios_scan_root(suba+1);	/* Bus B */
+		{
+			pcibios_scan_root(suba + 1);    /* Bus B */
+		}
 	}
+
 	pcibios_last_bus = -1;
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82451NX, pci_fixup_i450nx);
@@ -57,8 +66,11 @@ static void pci_fixup_umc_ide(struct pci_dev *d)
 	int i;
 
 	dev_warn(&d->dev, "Fixing base address flags\n");
-	for(i = 0; i < 4; i++)
+
+	for (i = 0; i < 4; i++)
+	{
 		d->resource[i].flags |= PCI_BASE_ADDRESS_SPACE_IO;
+	}
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_UMC, PCI_DEVICE_ID_UMC_UM8886BF, pci_fixup_umc_ide);
 
@@ -109,7 +121,8 @@ static void pci_fixup_via_northbridge_bug(struct pci_dev *d)
 	int where = 0x55;
 	int mask = 0x1f; /* clear bits 5, 6, 7 by default */
 
-	if (d->device == PCI_DEVICE_ID_VIA_8367_0) {
+	if (d->device == PCI_DEVICE_ID_VIA_8367_0)
+	{
 		/* fix pci bus latency issues resulted by NB bios error
 		   it appears on bug free^Wreduced kt266x's bios forces
 		   NB latency to zero */
@@ -117,17 +130,21 @@ static void pci_fixup_via_northbridge_bug(struct pci_dev *d)
 
 		where = 0x95; /* the memory write queue timer register is
 				different for the KT266x's: 0x95 not 0x55 */
-	} else if (d->device == PCI_DEVICE_ID_VIA_8363_0 &&
-			(d->revision == VIA_8363_KL133_REVISION_ID ||
-			d->revision == VIA_8363_KM133_REVISION_ID)) {
-			mask = 0x3f; /* clear only bits 6 and 7; clearing bit 5
+	}
+	else if (d->device == PCI_DEVICE_ID_VIA_8363_0 &&
+			 (d->revision == VIA_8363_KL133_REVISION_ID ||
+			  d->revision == VIA_8363_KM133_REVISION_ID))
+	{
+		mask = 0x3f; /* clear only bits 6 and 7; clearing bit 5
 					causes screen corruption on the KL133/KM133 */
 	}
 
 	pci_read_config_byte(d, where, &v);
-	if (v & ~mask) {
+
+	if (v & ~mask)
+	{
 		dev_warn(&d->dev, "Disabling VIA memory write queue (PCI ID %04x, rev %02x): [%02x] %02x & %02x -> %02x\n", \
-			d->device, d->revision, where, v, mask, v & mask);
+				 d->device, d->revision, where, v, mask, v & mask);
 		v &= mask;
 		pci_write_config_byte(d, where, v);
 	}
@@ -153,10 +170,12 @@ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8367_0, pci_fixup_
 static void pci_fixup_transparent_bridge(struct pci_dev *dev)
 {
 	if ((dev->device & 0xff00) == 0x2400)
+	{
 		dev->transparent = 1;
+	}
 }
 DECLARE_PCI_FIXUP_CLASS_HEADER(PCI_VENDOR_ID_INTEL, PCI_ANY_ID,
-			 PCI_CLASS_BRIDGE_PCI, 8, pci_fixup_transparent_bridge);
+							   PCI_CLASS_BRIDGE_PCI, 8, pci_fixup_transparent_bridge);
 
 /*
  * Fixup for C1 Halt Disconnect problem on nForce2 systems.
@@ -187,7 +206,8 @@ static void pci_fixup_nforce2(struct pci_dev *dev)
 	/*
 	 * Apply fixup if needed, but don't touch disconnect state
 	 */
-	if ((val & 0x00FF0000) != 0x00010000) {
+	if ((val & 0x00FF0000) != 0x00010000)
+	{
 		dev_warn(&dev->dev, "nForce2 C1 Halt Disconnect fixup\n");
 		pci_write_config_dword(dev, 0x6c, (val & 0xFF00FFFF) | 0x00010000);
 	}
@@ -218,13 +238,16 @@ static int quirk_pcie_aspm_write(struct pci_bus *bus, unsigned int devfn, int wh
 	offset = quirk_aspm_offset[GET_INDEX(bus->self->device, devfn)];
 
 	if ((offset) && (where == offset))
+	{
 		value = value & ~PCI_EXP_LNKCTL_ASPMC;
+	}
 
 	return raw_pci_write(pci_domain_nr(bus), bus->number,
-						devfn, where, size, value);
+						 devfn, where, size, value);
 }
 
-static struct pci_ops quirk_pcie_aspm_ops = {
+static struct pci_ops quirk_pcie_aspm_ops =
+{
 	.read = quirk_pcie_aspm_read,
 	.write = quirk_pcie_aspm_write,
 };
@@ -244,7 +267,9 @@ static void pcie_rootport_aspm_quirk(struct pci_dev *pdev)
 	struct pci_dev *dev;
 
 	if ((pbus = pdev->subordinate) == NULL)
+	{
 		return;
+	}
 
 	/*
 	 * Check if the DID of pdev matches one of the six root ports. This
@@ -252,10 +277,13 @@ static void pcie_rootport_aspm_quirk(struct pci_dev *pdev)
 	 * hot-plug driver.
 	 */
 	if ((pdev->device < PCI_DEVICE_ID_INTEL_MCH_PA) ||
-	    (pdev->device > PCI_DEVICE_ID_INTEL_MCH_PC1))
+		(pdev->device > PCI_DEVICE_ID_INTEL_MCH_PC1))
+	{
 		return;
+	}
 
-	if (list_empty(&pbus->devices)) {
+	if (list_empty(&pbus->devices))
+	{
 		/*
 		 * If no device is attached to the root port at power-up or
 		 * after hot-remove, the pbus->devices is empty and this code
@@ -263,10 +291,14 @@ static void pcie_rootport_aspm_quirk(struct pci_dev *pdev)
 		 * ops, which is unmodified.
 		 */
 		for (i = GET_INDEX(pdev->device, 0); i <= GET_INDEX(pdev->device, 7); ++i)
+		{
 			quirk_aspm_offset[i] = 0;
+		}
 
 		pci_bus_set_ops(pbus, pbus->parent->ops);
-	} else {
+	}
+	else
+	{
 		/*
 		 * If devices are attached to the root port at power-up or
 		 * after hot-add, the code loops through the device list of
@@ -274,9 +306,9 @@ static void pcie_rootport_aspm_quirk(struct pci_dev *pdev)
 		 * bus ops.
 		 */
 		list_for_each_entry(dev, &pbus->devices, bus_list)
-			/* There are 0 to 8 devices attached to this bus */
-			quirk_aspm_offset[GET_INDEX(pdev->device, dev->devfn)] =
-				dev->pcie_cap + PCI_EXP_LNKCTL;
+		/* There are 0 to 8 devices attached to this bus */
+		quirk_aspm_offset[GET_INDEX(pdev->device, dev->devfn)] =
+			dev->pcie_cap + PCI_EXP_LNKCTL;
 
 		pci_bus_set_ops(pbus, &quirk_pcie_aspm_ops);
 		dev_info(&pbus->dev, "writes to ASPM control bits will be ignored\n");
@@ -316,7 +348,9 @@ static void pci_fixup_video(struct pci_dev *pdev)
 
 	/* Is VGA routed to us? */
 	bus = pdev->bus;
-	while (bus) {
+
+	while (bus)
+	{
 		bridge = bus->self;
 
 		/*
@@ -326,37 +360,50 @@ static void pci_fixup_video(struct pci_dev *pdev)
 		 * type BRIDGE, or CARDBUS. Host to PCI controllers use
 		 * PCI header type NORMAL.
 		 */
-		if (bridge && (pci_is_bridge(bridge))) {
+		if (bridge && (pci_is_bridge(bridge)))
+		{
 			pci_read_config_word(bridge, PCI_BRIDGE_CONTROL,
-						&config);
+								 &config);
+
 			if (!(config & PCI_BRIDGE_CTL_VGA))
+			{
 				return;
+			}
 		}
+
 		bus = bus->parent;
 	}
-	if (!vga_default_device() || pdev == vga_default_device()) {
+
+	if (!vga_default_device() || pdev == vga_default_device())
+	{
 		pci_read_config_word(pdev, PCI_COMMAND, &config);
-		if (config & (PCI_COMMAND_IO | PCI_COMMAND_MEMORY)) {
+
+		if (config & (PCI_COMMAND_IO | PCI_COMMAND_MEMORY))
+		{
 			res = &pdev->resource[PCI_ROM_RESOURCE];
 
 			pci_disable_rom(pdev);
+
 			if (res->parent)
+			{
 				release_resource(res);
+			}
 
 			res->start = 0xC0000;
 			res->end = res->start + 0x20000 - 1;
 			res->flags = IORESOURCE_MEM | IORESOURCE_ROM_SHADOW |
-				     IORESOURCE_PCI_FIXED;
+						 IORESOURCE_PCI_FIXED;
 			dev_info(&pdev->dev, "Video device with shadowed ROM at %pR\n",
-				 res);
+					 res);
 		}
 	}
 }
 DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_ANY_ID, PCI_ANY_ID,
-				PCI_CLASS_DISPLAY_VGA, 8, pci_fixup_video);
+							  PCI_CLASS_DISPLAY_VGA, 8, pci_fixup_video);
 
 
-static const struct dmi_system_id msi_k8t_dmi_table[] = {
+static const struct dmi_system_id msi_k8t_dmi_table[] =
+{
 	{
 		.ident = "MSI-K8T-Neo2Fir",
 		.matches = {
@@ -380,27 +427,33 @@ static const struct dmi_system_id msi_k8t_dmi_table[] = {
 static void pci_fixup_msi_k8t_onboard_sound(struct pci_dev *dev)
 {
 	unsigned char val;
+
 	if (!dmi_check_system(msi_k8t_dmi_table))
-		return; /* only applies to MSI K8T Neo2-FIR */
+	{
+		return;    /* only applies to MSI K8T Neo2-FIR */
+	}
 
 	pci_read_config_byte(dev, 0x50, &val);
-	if (val & 0x40) {
+
+	if (val & 0x40)
+	{
 		pci_write_config_byte(dev, 0x50, val & (~0x40));
 
 		/* verify the change for status output */
 		pci_read_config_byte(dev, 0x50, &val);
+
 		if (val & 0x40)
 			dev_info(&dev->dev, "Detected MSI K8T Neo2-FIR; "
-					"can't enable onboard soundcard!\n");
+					 "can't enable onboard soundcard!\n");
 		else
 			dev_info(&dev->dev, "Detected MSI K8T Neo2-FIR; "
-					"enabled onboard soundcard\n");
+					 "enabled onboard soundcard\n");
 	}
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8237,
-		pci_fixup_msi_k8t_onboard_sound);
+						 pci_fixup_msi_k8t_onboard_sound);
 DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8237,
-		pci_fixup_msi_k8t_onboard_sound);
+						 pci_fixup_msi_k8t_onboard_sound);
 
 /*
  * Some Toshiba laptops need extra code to enable their TI TSB43AB22/A.
@@ -413,7 +466,8 @@ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8237,
  */
 static u16 toshiba_line_size;
 
-static const struct dmi_system_id toshiba_ohci1394_dmi_table[] = {
+static const struct dmi_system_id toshiba_ohci1394_dmi_table[] =
+{
 	{
 		.ident = "Toshiba PS5 based laptop",
 		.matches = {
@@ -441,29 +495,33 @@ static const struct dmi_system_id toshiba_ohci1394_dmi_table[] = {
 static void pci_pre_fixup_toshiba_ohci1394(struct pci_dev *dev)
 {
 	if (!dmi_check_system(toshiba_ohci1394_dmi_table))
-		return; /* only applies to certain Toshibas (so far) */
+	{
+		return;    /* only applies to certain Toshibas (so far) */
+	}
 
 	dev->current_state = PCI_D3cold;
 	pci_read_config_word(dev, PCI_CACHE_LINE_SIZE, &toshiba_line_size);
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_TI, 0x8032,
-			 pci_pre_fixup_toshiba_ohci1394);
+						 pci_pre_fixup_toshiba_ohci1394);
 
 static void pci_post_fixup_toshiba_ohci1394(struct pci_dev *dev)
 {
 	if (!dmi_check_system(toshiba_ohci1394_dmi_table))
-		return; /* only applies to certain Toshibas (so far) */
+	{
+		return;    /* only applies to certain Toshibas (so far) */
+	}
 
 	/* Restore config space on Toshiba laptops */
 	pci_write_config_word(dev, PCI_CACHE_LINE_SIZE, toshiba_line_size);
 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, (u8 *)&dev->irq);
 	pci_write_config_dword(dev, PCI_BASE_ADDRESS_0,
-			       pci_resource_start(dev, 0));
+						   pci_resource_start(dev, 0));
 	pci_write_config_dword(dev, PCI_BASE_ADDRESS_1,
-			       pci_resource_start(dev, 1));
+						   pci_resource_start(dev, 1));
 }
 DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_TI, 0x8032,
-			 pci_post_fixup_toshiba_ohci1394);
+						 pci_post_fixup_toshiba_ohci1394);
 
 
 /*
@@ -479,9 +537,9 @@ static void pci_early_fixup_cyrix_5530(struct pci_dev *dev)
 	pci_write_config_byte(dev, 0x42, r);
 }
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY,
-			pci_early_fixup_cyrix_5530);
+						pci_early_fixup_cyrix_5530);
 DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY,
-			pci_early_fixup_cyrix_5530);
+						 pci_early_fixup_cyrix_5530);
 
 /*
  * Siemens Nixdorf AG FSC Multiprocessor Interrupt Controller:
@@ -492,7 +550,7 @@ static void pci_siemens_interrupt_controller(struct pci_dev *dev)
 	dev->resource[0].flags |= IORESOURCE_PCI_FIXED;
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SIEMENS, 0x0015,
-			  pci_siemens_interrupt_controller);
+						 pci_siemens_interrupt_controller);
 
 /*
  * SB600: Disable BAR1 on device 14.0 to avoid HPET resources from
@@ -511,7 +569,8 @@ static void sb600_disable_hpet_bar(struct pci_dev *dev)
 
 	pci_read_config_byte(dev, 0x08, &val);
 
-	if (val < 0x2F) {
+	if (val < 0x2F)
+	{
 		outb(0x55, 0xCD6);
 		val = inb(0xCD7);
 
@@ -527,7 +586,8 @@ static void sb600_hpet_quirk(struct pci_dev *dev)
 {
 	struct resource *r = &dev->resource[1];
 
-	if (r->flags & IORESOURCE_MEM && r->start == hpet_address) {
+	if (r->flags & IORESOURCE_MEM && r->start == hpet_address)
+	{
 		r->flags |= IORESOURCE_PCI_FIXED;
 		dev_info(&dev->dev, "reg 0x14 contains HPET; making it immovable\n");
 	}
@@ -545,10 +605,11 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ATI, 0x4385, sb600_hpet_quirk);
  */
 static void twinhead_reserve_killing_zone(struct pci_dev *dev)
 {
-        if (dev->subsystem_vendor == 0x14FF && dev->subsystem_device == 0xA003) {
-                pr_info("Reserving memory on Twinhead H12Y\n");
-                request_mem_region(0xFFB00000, 0x100000, "twinhead");
-        }
+	if (dev->subsystem_vendor == 0x14FF && dev->subsystem_device == 0xA003)
+	{
+		pr_info("Reserving memory on Twinhead H12Y\n");
+		request_mem_region(0xFFB00000, 0x100000, "twinhead");
+	}
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x27B9, twinhead_reserve_killing_zone);
 

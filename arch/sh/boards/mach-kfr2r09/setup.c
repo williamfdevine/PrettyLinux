@@ -52,13 +52,15 @@ static struct mtd_partition kfr2r09_nor_flash_partitions[] =
 	},
 };
 
-static struct physmap_flash_data kfr2r09_nor_flash_data = {
+static struct physmap_flash_data kfr2r09_nor_flash_data =
+{
 	.width		= 2,
 	.parts		= kfr2r09_nor_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(kfr2r09_nor_flash_partitions),
 };
 
-static struct resource kfr2r09_nor_flash_resources[] = {
+static struct resource kfr2r09_nor_flash_resources[] =
+{
 	[0] = {
 		.name		= "NOR Flash",
 		.start		= 0x00000000,
@@ -67,7 +69,8 @@ static struct resource kfr2r09_nor_flash_resources[] = {
 	}
 };
 
-static struct platform_device kfr2r09_nor_flash_device = {
+static struct platform_device kfr2r09_nor_flash_device =
+{
 	.name		= "physmap-flash",
 	.resource	= kfr2r09_nor_flash_resources,
 	.num_resources	= ARRAY_SIZE(kfr2r09_nor_flash_resources),
@@ -76,7 +79,8 @@ static struct platform_device kfr2r09_nor_flash_device = {
 	},
 };
 
-static struct resource kfr2r09_nand_flash_resources[] = {
+static struct resource kfr2r09_nand_flash_resources[] =
+{
 	[0] = {
 		.name		= "NAND Flash",
 		.start		= 0x10000000,
@@ -85,13 +89,15 @@ static struct resource kfr2r09_nand_flash_resources[] = {
 	}
 };
 
-static struct platform_device kfr2r09_nand_flash_device = {
+static struct platform_device kfr2r09_nand_flash_device =
+{
 	.name		= "onenand-flash",
 	.resource	= kfr2r09_nand_flash_resources,
 	.num_resources	= ARRAY_SIZE(kfr2r09_nand_flash_resources),
 };
 
-static struct sh_keysc_info kfr2r09_sh_keysc_info = {
+static struct sh_keysc_info kfr2r09_sh_keysc_info =
+{
 	.mode = SH_KEYSC_MODE_1, /* KEYOUT0->4, KEYIN0->4 */
 	.scan_timing = 3,
 	.delay = 10,
@@ -105,7 +111,8 @@ static struct sh_keysc_info kfr2r09_sh_keysc_info = {
 	},
 };
 
-static struct resource kfr2r09_sh_keysc_resources[] = {
+static struct resource kfr2r09_sh_keysc_resources[] =
+{
 	[0] = {
 		.name	= "KEYSC",
 		.start  = 0x044b0000,
@@ -118,7 +125,8 @@ static struct resource kfr2r09_sh_keysc_resources[] = {
 	},
 };
 
-static struct platform_device kfr2r09_sh_keysc_device = {
+static struct platform_device kfr2r09_sh_keysc_device =
+{
 	.name           = "sh_keysc",
 	.id             = 0, /* "keysc0" clock */
 	.num_resources  = ARRAY_SIZE(kfr2r09_sh_keysc_resources),
@@ -128,7 +136,8 @@ static struct platform_device kfr2r09_sh_keysc_device = {
 	},
 };
 
-static const struct fb_videomode kfr2r09_lcdc_modes[] = {
+static const struct fb_videomode kfr2r09_lcdc_modes[] =
+{
 	{
 		.name = "TX07D34VM0AAA",
 		.xres = 240,
@@ -143,7 +152,8 @@ static const struct fb_videomode kfr2r09_lcdc_modes[] = {
 	},
 };
 
-static struct sh_mobile_lcdc_info kfr2r09_sh_lcdc_info = {
+static struct sh_mobile_lcdc_info kfr2r09_sh_lcdc_info =
+{
 	.clock_source = LCDC_CLK_BUS,
 	.ch[0] = {
 		.chan = LCDC_CHAN_MAINLCD,
@@ -168,7 +178,8 @@ static struct sh_mobile_lcdc_info kfr2r09_sh_lcdc_info = {
 	}
 };
 
-static struct resource kfr2r09_sh_lcdc_resources[] = {
+static struct resource kfr2r09_sh_lcdc_resources[] =
+{
 	[0] = {
 		.name	= "LCDC",
 		.start	= 0xfe940000, /* P4-only space */
@@ -181,7 +192,8 @@ static struct resource kfr2r09_sh_lcdc_resources[] = {
 	},
 };
 
-static struct platform_device kfr2r09_sh_lcdc_device = {
+static struct platform_device kfr2r09_sh_lcdc_device =
+{
 	.name		= "sh_mobile_lcdc_fb",
 	.num_resources	= ARRAY_SIZE(kfr2r09_sh_lcdc_resources),
 	.resource	= kfr2r09_sh_lcdc_resources,
@@ -190,22 +202,26 @@ static struct platform_device kfr2r09_sh_lcdc_device = {
 	},
 };
 
-static struct lv5207lp_platform_data kfr2r09_backlight_data = {
+static struct lv5207lp_platform_data kfr2r09_backlight_data =
+{
 	.fbdev = &kfr2r09_sh_lcdc_device.dev,
 	.def_value = 13,
 	.max_value = 13,
 };
 
-static struct i2c_board_info kfr2r09_backlight_board_info = {
+static struct i2c_board_info kfr2r09_backlight_board_info =
+{
 	I2C_BOARD_INFO("lv5207lp", 0x75),
 	.platform_data = &kfr2r09_backlight_data,
 };
 
-static struct r8a66597_platdata kfr2r09_usb0_gadget_data = {
+static struct r8a66597_platdata kfr2r09_usb0_gadget_data =
+{
 	.on_chip = 1,
 };
 
-static struct resource kfr2r09_usb0_gadget_resources[] = {
+static struct resource kfr2r09_usb0_gadget_resources[] =
+{
 	[0] = {
 		.start	= 0x04d80000,
 		.end	= 0x04d80123,
@@ -218,7 +234,8 @@ static struct resource kfr2r09_usb0_gadget_resources[] = {
 	},
 };
 
-static struct platform_device kfr2r09_usb0_gadget_device = {
+static struct platform_device kfr2r09_usb0_gadget_device =
+{
 	.name		= "r8a66597_udc",
 	.id		= 0,
 	.dev = {
@@ -230,11 +247,13 @@ static struct platform_device kfr2r09_usb0_gadget_device = {
 	.resource	= kfr2r09_usb0_gadget_resources,
 };
 
-static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+static struct sh_mobile_ceu_info sh_mobile_ceu_info =
+{
 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
 };
 
-static struct resource kfr2r09_ceu_resources[] = {
+static struct resource kfr2r09_ceu_resources[] =
+{
 	[0] = {
 		.name	= "CEU",
 		.start	= 0xfe910000,
@@ -251,7 +270,8 @@ static struct resource kfr2r09_ceu_resources[] = {
 	},
 };
 
-static struct platform_device kfr2r09_ceu_device = {
+static struct platform_device kfr2r09_ceu_device =
+{
 	.name		= "sh_mobile_ceu",
 	.id             = 0, /* "ceu0" clock */
 	.num_resources	= ARRAY_SIZE(kfr2r09_ceu_resources),
@@ -261,7 +281,8 @@ static struct platform_device kfr2r09_ceu_device = {
 	},
 };
 
-static struct i2c_board_info kfr2r09_i2c_camera = {
+static struct i2c_board_info kfr2r09_i2c_camera =
+{
 	I2C_BOARD_INFO("rj54n1cb0c", 0x50),
 };
 
@@ -275,17 +296,24 @@ static int camera_power(struct device *dev, int mode)
 {
 	int ret;
 
-	if (mode) {
+	if (mode)
+	{
 		long rate;
 
 		camera_clk = clk_get(NULL, "video_clk");
+
 		if (IS_ERR(camera_clk))
+		{
 			return PTR_ERR(camera_clk);
+		}
 
 		rate = clk_round_rate(camera_clk, CEU_MCLK_FREQ);
 		ret = clk_set_rate(camera_clk, rate);
+
 		if (ret < 0)
+		{
 			goto eclkrate;
+		}
 
 		/* set DRVCRB
 		 *
@@ -296,22 +324,39 @@ static int camera_power(struct device *dev, int mode)
 
 		/* reset clear */
 		ret = gpio_request(GPIO_PTB4, NULL);
+
 		if (ret < 0)
+		{
 			goto eptb4;
+		}
+
 		ret = gpio_request(GPIO_PTB7, NULL);
+
 		if (ret < 0)
+		{
 			goto eptb7;
+		}
 
 		ret = gpio_direction_output(GPIO_PTB4, 1);
+
 		if (!ret)
+		{
 			ret = gpio_direction_output(GPIO_PTB7, 1);
+		}
+
 		if (ret < 0)
+		{
 			goto egpioout;
+		}
+
 		msleep(1);
 
 		ret = clk_enable(camera_clk);	/* start VIO_CKO */
+
 		if (ret < 0)
+		{
 			goto eclkon;
+		}
 
 		return 0;
 	}
@@ -332,19 +377,22 @@ eclkrate:
 	return ret;
 }
 
-static struct rj54n1_pdata rj54n1_priv = {
+static struct rj54n1_pdata rj54n1_priv =
+{
 	.mclk_freq	= CEU_MCLK_FREQ,
 	.ioctl_high	= false,
 };
 
-static struct soc_camera_link rj54n1_link = {
+static struct soc_camera_link rj54n1_link =
+{
 	.power		= camera_power,
 	.board_info	= &kfr2r09_i2c_camera,
 	.i2c_adapter_id	= 1,
 	.priv		= &rj54n1_priv,
 };
 
-static struct platform_device kfr2r09_camera = {
+static struct platform_device kfr2r09_camera =
+{
 	.name	= "soc-camera-pdrv",
 	.id	= 0,
 	.dev	= {
@@ -359,7 +407,8 @@ static struct regulator_consumer_supply fixed3v3_power_consumers[] =
 	REGULATOR_SUPPLY("vqmmc", "sh_mobile_sdhi.0"),
 };
 
-static struct resource kfr2r09_sh_sdhi0_resources[] = {
+static struct resource kfr2r09_sh_sdhi0_resources[] =
+{
 	[0] = {
 		.name	= "SDHI0",
 		.start  = 0x04ce0000,
@@ -372,14 +421,16 @@ static struct resource kfr2r09_sh_sdhi0_resources[] = {
 	},
 };
 
-static struct tmio_mmc_data sh7724_sdhi0_data = {
+static struct tmio_mmc_data sh7724_sdhi0_data =
+{
 	.chan_priv_tx	= (void *)SHDMA_SLAVE_SDHI0_TX,
 	.chan_priv_rx	= (void *)SHDMA_SLAVE_SDHI0_RX,
 	.flags		= TMIO_MMC_WRPROTECT_DISABLE,
 	.capabilities	= MMC_CAP_SDIO_IRQ,
 };
 
-static struct platform_device kfr2r09_sh_sdhi0_device = {
+static struct platform_device kfr2r09_sh_sdhi0_device =
+{
 	.name           = "sh_mobile_sdhi",
 	.num_resources  = ARRAY_SIZE(kfr2r09_sh_sdhi0_resources),
 	.resource       = kfr2r09_sh_sdhi0_resources,
@@ -388,7 +439,8 @@ static struct platform_device kfr2r09_sh_sdhi0_device = {
 	},
 };
 
-static struct platform_device *kfr2r09_devices[] __initdata = {
+static struct platform_device *kfr2r09_devices[] __initdata =
+{
 	&kfr2r09_nor_flash_device,
 	&kfr2r09_nand_flash_device,
 	&kfr2r09_sh_keysc_device,
@@ -413,8 +465,11 @@ static int kfr2r09_usb0_gadget_i2c_setup(void)
 	int ret;
 
 	a = i2c_get_adapter(0);
+
 	if (!a)
+	{
 		return -ENODEV;
+	}
 
 	/* set bit 1 (the second bit) of chip at 0x09, register 0x13 */
 	buf[0] = 0x13;
@@ -423,8 +478,11 @@ static int kfr2r09_usb0_gadget_i2c_setup(void)
 	msg.len = 1;
 	msg.flags = 0;
 	ret = i2c_transfer(a, &msg, 1);
+
 	if (ret != 1)
+	{
 		return -ENODEV;
+	}
 
 	buf[0] = 0;
 	msg.addr = 0x09;
@@ -432,8 +490,11 @@ static int kfr2r09_usb0_gadget_i2c_setup(void)
 	msg.len = 1;
 	msg.flags = I2C_M_RD;
 	ret = i2c_transfer(a, &msg, 1);
+
 	if (ret != 1)
+	{
 		return -ENODEV;
+	}
 
 	buf[1] = buf[0] | (1 << 1);
 	buf[0] = 0x13;
@@ -442,8 +503,11 @@ static int kfr2r09_usb0_gadget_i2c_setup(void)
 	msg.len = 2;
 	msg.flags = 0;
 	ret = i2c_transfer(a, &msg, 1);
+
 	if (ret != 1)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -456,8 +520,11 @@ static int kfr2r09_serial_i2c_setup(void)
 	int ret;
 
 	a = i2c_get_adapter(0);
+
 	if (!a)
+	{
 		return -ENODEV;
+	}
 
 	/* set bit 6 (the 7th bit) of chip at 0x09, register 0x13 */
 	buf[0] = 0x13;
@@ -466,8 +533,11 @@ static int kfr2r09_serial_i2c_setup(void)
 	msg.len = 1;
 	msg.flags = 0;
 	ret = i2c_transfer(a, &msg, 1);
+
 	if (ret != 1)
+	{
 		return -ENODEV;
+	}
 
 	buf[0] = 0;
 	msg.addr = 0x09;
@@ -475,8 +545,11 @@ static int kfr2r09_serial_i2c_setup(void)
 	msg.len = 1;
 	msg.flags = I2C_M_RD;
 	ret = i2c_transfer(a, &msg, 1);
+
 	if (ret != 1)
+	{
 		return -ENODEV;
+	}
 
 	buf[1] = buf[0] | (1 << 6);
 	buf[0] = 0x13;
@@ -485,8 +558,11 @@ static int kfr2r09_serial_i2c_setup(void)
 	msg.len = 2;
 	msg.flags = 0;
 	ret = i2c_transfer(a, &msg, 1);
+
 	if (ret != 1)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -509,11 +585,16 @@ static int kfr2r09_usb0_gadget_setup(void)
 	gpio_request(GPIO_PTN4, NULL); /* USB_DET */
 	gpio_direction_input(GPIO_PTN4);
 	plugged_in = gpio_get_value(GPIO_PTN4);
+
 	if (!plugged_in)
-		return -ENODEV; /* no cable plugged in */
+	{
+		return -ENODEV;    /* no cable plugged in */
+	}
 
 	if (kfr2r09_usb0_gadget_i2c_setup() != 0)
-		return -ENODEV; /* unable to configure using i2c */
+	{
+		return -ENODEV;    /* unable to configure using i2c */
+	}
 
 	__raw_writew((__raw_readw(PORT_MSELCRB) & ~0xc000) | 0x8000, PORT_MSELCRB);
 	gpio_request(GPIO_FN_PDSTATUS, NULL); /* R-standby disables USB clock */
@@ -535,14 +616,14 @@ static int __init kfr2r09_devices_setup(void)
 {
 	/* register board specific self-refresh code */
 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF |
-					SUSP_SH_RSTANDBY,
-					&kfr2r09_sdram_enter_start,
-					&kfr2r09_sdram_enter_end,
-					&kfr2r09_sdram_leave_start,
-					&kfr2r09_sdram_leave_end);
+									SUSP_SH_RSTANDBY,
+									&kfr2r09_sdram_enter_start,
+									&kfr2r09_sdram_enter_end,
+									&kfr2r09_sdram_leave_start,
+									&kfr2r09_sdram_leave_end);
 
 	regulator_register_always_on(0, "fixed-3.3V", fixed3v3_power_consumers,
-				     ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
+								 ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
 
 	/* enable SCIF1 serial port for YC401 console support */
 	gpio_request(GPIO_FN_SCIF1_RXD, NULL);
@@ -605,7 +686,9 @@ static int __init kfr2r09_devices_setup(void)
 
 	/* setup USB function */
 	if (kfr2r09_usb0_gadget_setup() == 0)
+	{
 		platform_device_register(&kfr2r09_usb0_gadget_device);
+	}
 
 	/* CEU */
 	gpio_request(GPIO_FN_VIO_CKO, NULL);
@@ -636,7 +719,7 @@ static int __init kfr2r09_devices_setup(void)
 	i2c_register_board_info(0, &kfr2r09_backlight_board_info, 1);
 
 	return platform_add_devices(kfr2r09_devices,
-				    ARRAY_SIZE(kfr2r09_devices));
+								ARRAY_SIZE(kfr2r09_devices));
 }
 device_initcall(kfr2r09_devices_setup);
 
@@ -654,7 +737,8 @@ static int kfr2r09_mode_pins(void)
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_kfr2r09 __initmv = {
+static struct sh_machine_vector mv_kfr2r09 __initmv =
+{
 	.mv_name		= "kfr2r09",
 	.mv_mode_pins		= kfr2r09_mode_pins,
 };

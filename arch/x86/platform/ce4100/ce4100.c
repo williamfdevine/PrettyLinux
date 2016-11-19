@@ -62,23 +62,35 @@ static unsigned int ce4100_mem_serial_in(struct uart_port *p, int offset)
 {
 	unsigned int ret, ier, lsr;
 
-	if (offset == UART_IIR) {
+	if (offset == UART_IIR)
+	{
 		offset = offset << p->regshift;
 		ret = readl(p->membase + offset);
-		if (ret & UART_IIR_NO_INT) {
+
+		if (ret & UART_IIR_NO_INT)
+		{
 			/* see if the TX interrupt should have really set */
 			ier = mem_serial_in(p, UART_IER);
+
 			/* see if the UART's XMIT interrupt is enabled */
-			if (ier & UART_IER_THRI) {
+			if (ier & UART_IER_THRI)
+			{
 				lsr = mem_serial_in(p, UART_LSR);
+
 				/* now check to see if the UART should be
 				   generating an interrupt (but isn't) */
 				if (lsr & (UART_LSR_THRE | UART_LSR_TEMT))
+				{
 					ret &= ~UART_IIR_NO_INT;
+				}
 			}
 		}
-	} else
+	}
+	else
+	{
 		ret =  mem_serial_in(p, offset);
+	}
+
 	return ret;
 }
 
@@ -89,19 +101,21 @@ static void ce4100_mem_serial_out(struct uart_port *p, int offset, int value)
 }
 
 static void ce4100_serial_fixup(int port, struct uart_port *up,
-	unsigned short *capabilites)
+								unsigned short *capabilites)
 {
 #ifdef CONFIG_EARLY_PRINTK
+
 	/*
 	 * Over ride the legacy port configuration that comes from
 	 * asm/serial.h. Using the ioport driver then switching to the
 	 * PCI memmaped driver hangs the IOAPIC
 	 */
-	if (up->iotype !=  UPIO_MEM32) {
+	if (up->iotype !=  UPIO_MEM32)
+	{
 		up->uartclk  = 14745600;
 		up->mapbase = 0xdffe0200;
 		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE,
-				up->mapbase & PAGE_MASK);
+						   up->mapbase & PAGE_MASK);
 		up->membase =
 			(void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
 		up->membase += up->mapbase & ~PAGE_MASK;
@@ -111,6 +125,7 @@ static void ce4100_serial_fixup(int port, struct uart_port *up,
 		up->regshift = 2;
 		up->irq = 4;
 	}
+
 #endif
 	up->iobase = 0;
 	up->serial_in = ce4100_mem_serial_in;

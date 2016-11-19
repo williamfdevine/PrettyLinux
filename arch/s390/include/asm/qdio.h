@@ -32,7 +32,8 @@
  * @ckey: access key for SBALs
  * @dkey: access key for SLSB
  */
-struct qdesfmt0 {
+struct qdesfmt0
+{
 	u64 sliba;
 	u64 sla;
 	u64 slsba;
@@ -59,7 +60,8 @@ struct qdesfmt0 {
  * @qkey: queue information block key
  * @qdf0: queue descriptions
  */
-struct qdr {
+struct qdr
+{
 	u32 qfmt   : 8;
 	u32 pfmt   : 8;
 	u32	   : 8;
@@ -97,7 +99,8 @@ struct qdr {
  * @ebcnam: adapter identifier in EBCDIC
  * @parm: implementation dependent parameters
  */
-struct qib {
+struct qib
+{
 	u32 qfmt   : 8;
 	u32 pfmt   : 8;
 	u32 rflags : 8;
@@ -118,7 +121,8 @@ struct qib {
  * struct slibe - storage list information block element (SLIBE)
  * @parms: implementation dependent parameters
  */
-struct slibe {
+struct slibe
+{
 	u64 parms;
 };
 
@@ -139,7 +143,8 @@ struct slibe {
  * @user1: user defineable value
  * @user2: user defineable value
  */
-struct qaob {
+struct qaob
+{
 	u64 res0[6];
 	u8 res1;
 	u8 res2;
@@ -163,7 +168,8 @@ struct qaob {
  * @slsba: SLSB address
  * @slibe: SLIB elements
  */
-struct slib {
+struct slib
+{
 	u64 nsliba;
 	u64 sla;
 	u64 slsba;
@@ -203,7 +209,8 @@ struct slib {
  * @length: length
  * @addr: address
 */
-struct qdio_buffer_element {
+struct qdio_buffer_element
+{
 	u8 eflags;
 	/* private: */
 	u8 res1;
@@ -218,7 +225,8 @@ struct qdio_buffer_element {
  * struct qdio_buffer - storage block address list (SBAL)
  * @element: SBAL entries
  */
-struct qdio_buffer {
+struct qdio_buffer
+{
 	struct qdio_buffer_element element[QDIO_MAX_ELEMENTS_PER_BUFFER];
 } __attribute__ ((packed, aligned(256)));
 
@@ -226,7 +234,8 @@ struct qdio_buffer {
  * struct sl_element - storage list entry
  * @sbal: absolute SBAL address
  */
-struct sl_element {
+struct sl_element
+{
 	unsigned long sbal;
 } __attribute__ ((packed));
 
@@ -234,7 +243,8 @@ struct sl_element {
  * struct sl - storage list (SL)
  * @element: SL entries
  */
-struct sl {
+struct sl
+{
 	struct sl_element element[QDIO_MAX_BUFFERS_PER_Q];
 } __attribute__ ((packed, aligned(1024)));
 
@@ -242,7 +252,8 @@ struct sl {
  * struct slsb - storage list state block (SLSB)
  * @val: state per buffer
  */
-struct slsb {
+struct slsb
+{
 	u8 val[QDIO_MAX_BUFFERS_PER_Q];
 } __attribute__ ((packed, aligned(256)));
 
@@ -255,7 +266,8 @@ struct slsb {
  * @user: pointer to upper layer program's state information related to SBAL
  *        (stored in user1 data of QAOB)
  */
-struct qdio_outbuf_state {
+struct qdio_outbuf_state
+{
 	u8 flags;
 	struct qaob *aob;
 	void *user;
@@ -283,9 +295,10 @@ struct qdio_outbuf_state {
 
 #define CHSC_AC3_FORMAT2_CQ_AVAILABLE	0x8000
 
-struct qdio_ssqd_desc {
+struct qdio_ssqd_desc
+{
 	u8 flags;
-	u8:8;
+	u8: 8;
 	u16 sch;
 	u8 qfmt;
 	u8 parm;
@@ -293,24 +306,24 @@ struct qdio_ssqd_desc {
 	u8 sch_class;
 	u8 pcnt;
 	u8 icnt;
-	u8:8;
+	u8: 8;
 	u8 ocnt;
-	u8:8;
+	u8: 8;
 	u8 mbccnt;
 	u16 qdioac2;
 	u64 sch_token;
 	u8 mro;
 	u8 mri;
 	u16 qdioac3;
-	u16:16;
-	u8:8;
+	u16: 16;
+	u8: 8;
 	u8 mmwc;
 } __attribute__ ((packed));
 
 /* params are: ccw_device, qdio_error, queue_number,
    first element processed, number of elements processed, int_parm */
 typedef void qdio_handler_t(struct ccw_device *, unsigned int, int,
-			    int, int, unsigned long);
+							int, int, unsigned long);
 
 /* qdio errors reported to the upper-layer program */
 #define QDIO_ERROR_ACTIVATE			0x0001
@@ -345,7 +358,8 @@ typedef void qdio_handler_t(struct ccw_device *, unsigned int, int,
  * @output_sbal_addr_array: address of no_output_qs * 128 pointers
  * @output_sbal_state_array: no_output_qs * 128 state info (for CQ or NULL)
  */
-struct qdio_initialize {
+struct qdio_initialize
+{
 	struct ccw_device *cdev;
 	unsigned char q_format;
 	unsigned char qdr_ac;
@@ -360,7 +374,7 @@ struct qdio_initialize {
 	qdio_handler_t *input_handler;
 	qdio_handler_t *output_handler;
 	void (**queue_start_poll_array) (struct ccw_device *, int,
-					  unsigned long);
+									 unsigned long);
 	int scan_threshold;
 	unsigned long int_parm;
 	void **input_sbal_addr_array;
@@ -383,15 +397,18 @@ enum qdio_brinfo_entry_type {l3_ipv6_addr, l3_ipv4_addr, l2_addr_lnid};
  *
  * The struct is passed to the callback function by qdio_brinfo_desc()
  */
-struct qdio_brinfo_entry_l3_ipv6 {
+struct qdio_brinfo_entry_l3_ipv6
+{
 	u64 nit;
 	struct { unsigned char _s6_addr[16]; } addr;
 } __packed;
-struct qdio_brinfo_entry_l3_ipv4 {
+struct qdio_brinfo_entry_l3_ipv4
+{
 	u64 nit;
 	struct { uint32_t _s_addr; } addr;
 } __packed;
-struct qdio_brinfo_entry_l2 {
+struct qdio_brinfo_entry_l2
+{
 	u64 nit;
 	struct { u8 mac[6]; u16 lnid; } addr_lnid;
 } __packed;
@@ -414,7 +431,7 @@ extern int qdio_establish(struct qdio_initialize *);
 extern int qdio_activate(struct ccw_device *);
 extern void qdio_release_aob(struct qaob *);
 extern int do_QDIO(struct ccw_device *, unsigned int, int, unsigned int,
-		   unsigned int);
+				   unsigned int);
 extern int qdio_start_irq(struct ccw_device *, int);
 extern int qdio_stop_irq(struct ccw_device *, int);
 extern int qdio_get_next_buffers(struct ccw_device *, int, int *, int *);
@@ -422,9 +439,9 @@ extern int qdio_shutdown(struct ccw_device *, int);
 extern int qdio_free(struct ccw_device *);
 extern int qdio_get_ssqd_desc(struct ccw_device *, struct qdio_ssqd_desc *);
 extern int qdio_pnso_brinfo(struct subchannel_id schid,
-		int cnc, u16 *response,
-		void (*cb)(void *priv, enum qdio_brinfo_entry_type type,
-				void *entry),
-		void *priv);
+							int cnc, u16 *response,
+							void (*cb)(void *priv, enum qdio_brinfo_entry_type type,
+									   void *entry),
+							void *priv);
 
 #endif /* __QDIO_H__ */

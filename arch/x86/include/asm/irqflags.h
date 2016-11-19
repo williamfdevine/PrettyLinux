@@ -22,10 +22,10 @@ static inline unsigned long native_save_fl(void)
 	 * documented behavior of the "pop" instruction.
 	 */
 	asm volatile("# __raw_save_flags\n\t"
-		     "pushf ; pop %0"
-		     : "=rm" (flags)
-		     : /* no input */
-		     : "memory");
+				 "pushf ; pop %0"
+				 : "=rm" (flags)
+				 : /* no input */
+				 : "memory");
 
 	return flags;
 }
@@ -33,9 +33,9 @@ static inline unsigned long native_save_fl(void)
 static inline void native_restore_fl(unsigned long flags)
 {
 	asm volatile("push %0 ; popf"
-		     : /* no output */
-		     :"g" (flags)
-		     :"memory", "cc");
+				 : /* no output */
+				 :"g" (flags)
+				 :"memory", "cc");
 }
 
 static inline void native_irq_disable(void)
@@ -167,11 +167,11 @@ static inline int arch_irqs_disabled(void)
 
 #ifdef __ASSEMBLY__
 #ifdef CONFIG_TRACE_IRQFLAGS
-#  define TRACE_IRQS_ON		call trace_hardirqs_on_thunk;
-#  define TRACE_IRQS_OFF	call trace_hardirqs_off_thunk;
+	#define TRACE_IRQS_ON		call trace_hardirqs_on_thunk;
+	#define TRACE_IRQS_OFF	call trace_hardirqs_off_thunk;
 #else
-#  define TRACE_IRQS_ON
-#  define TRACE_IRQS_OFF
+	#define TRACE_IRQS_ON
+	#define TRACE_IRQS_OFF
 #endif
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 #  ifdef CONFIG_X86_64

@@ -8,4 +8,4 @@
 # gcc 4.9+ has a real -m16 option so we can drop this hack long term.
 #
 
-	.code16gcc
+.code16gcc

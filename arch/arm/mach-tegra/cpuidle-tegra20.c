@@ -42,14 +42,15 @@
 static bool abort_flag;
 static atomic_t abort_barrier;
 static int tegra20_idle_lp2_coupled(struct cpuidle_device *dev,
-				    struct cpuidle_driver *drv,
-				    int index);
+									struct cpuidle_driver *drv,
+									int index);
 #define TEGRA20_MAX_STATES 2
 #else
 #define TEGRA20_MAX_STATES 1
 #endif
 
-static struct cpuidle_driver tegra_idle_driver = {
+static struct cpuidle_driver tegra_idle_driver =
+{
 	.name = "tegra_idle",
 	.owner = THIS_MODULE,
 	.states = {
@@ -79,9 +80,13 @@ static int tegra20_reset_sleeping_cpu_1(void)
 	tegra_pen_lock();
 
 	if (readb(tegra20_cpu1_resettable_status) == CPU_RESETTABLE)
+	{
 		tegra20_cpu_shutdown(1);
+	}
 	else
+	{
 		ret = -EINVAL;
+	}
 
 	tegra_pen_unlock();
 
@@ -109,7 +114,9 @@ static void tegra20_wake_cpu1_from_reset(void)
 static int tegra20_reset_cpu_1(void)
 {
 	if (!cpu_online(1) || !tegra20_reset_sleeping_cpu_1())
+	{
 		return 0;
+	}
 
 	tegra20_wake_cpu1_from_reset();
 	return -EBUSY;
@@ -126,14 +133,18 @@ static inline int tegra20_reset_cpu_1(void)
 #endif
 
 static bool tegra20_cpu_cluster_power_down(struct cpuidle_device *dev,
-					   struct cpuidle_driver *drv,
-					   int index)
+		struct cpuidle_driver *drv,
+		int index)
 {
 	while (tegra20_cpu_is_resettable_soon())
+	{
 		cpu_relax();
+	}
 
 	if (tegra20_reset_cpu_1() || !tegra_cpu_rail_off_ready())
+	{
 		return false;
+	}
 
 	tick_broadcast_enter();
 
@@ -142,15 +153,17 @@ static bool tegra20_cpu_cluster_power_down(struct cpuidle_device *dev,
 	tick_broadcast_exit();
 
 	if (cpu_online(1))
+	{
 		tegra20_wake_cpu1_from_reset();
+	}
 
 	return true;
 }
 
 #ifdef CONFIG_SMP
 static bool tegra20_idle_enter_lp2_cpu_1(struct cpuidle_device *dev,
-					 struct cpuidle_driver *drv,
-					 int index)
+		struct cpuidle_driver *drv,
+		int index)
 {
 	tick_broadcast_enter();
 
@@ -164,25 +177,28 @@ static bool tegra20_idle_enter_lp2_cpu_1(struct cpuidle_device *dev,
 }
 #else
 static inline bool tegra20_idle_enter_lp2_cpu_1(struct cpuidle_device *dev,
-						struct cpuidle_driver *drv,
-						int index)
+		struct cpuidle_driver *drv,
+		int index)
 {
 	return true;
 }
 #endif
 
 static int tegra20_idle_lp2_coupled(struct cpuidle_device *dev,
-				    struct cpuidle_driver *drv,
-				    int index)
+									struct cpuidle_driver *drv,
+									int index)
 {
 	bool entered_lp2 = false;
 
 	if (tegra_pending_sgi())
+	{
 		ACCESS_ONCE(abort_flag) = true;
+	}
 
 	cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
 
-	if (abort_flag) {
+	if (abort_flag)
+	{
 		cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
 		abort_flag = false;	/* clean flag for next coming */
 		return -EINTR;
@@ -194,9 +210,13 @@ static int tegra20_idle_lp2_coupled(struct cpuidle_device *dev,
 	cpu_pm_enter();
 
 	if (dev->cpu == 0)
+	{
 		entered_lp2 = tegra20_cpu_cluster_power_down(dev, drv, index);
+	}
 	else
+	{
 		entered_lp2 = tegra20_idle_enter_lp2_cpu_1(dev, drv, index);
+	}
 
 	cpu_pm_exit();
 	tegra_clear_cpu_in_lp2();

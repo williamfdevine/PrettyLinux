@@ -24,7 +24,8 @@ struct mtd_info;
  * parts:	optional array of mtd_partitions for static partitioning
  * nr_parts:	number of mtd_partitions for static partitoning
  */
-struct flash_platform_data {
+struct flash_platform_data
+{
 	const char	*map_name;
 	const char	*name;
 	unsigned int	width;

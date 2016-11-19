@@ -107,7 +107,7 @@ static inline void flush_tlb_mm(struct mm_struct *mm)
 }
 
 static inline void flush_tlb_page(struct vm_area_struct *vma,
-				  unsigned long uaddr)
+								  unsigned long uaddr)
 {
 	unsigned long addr = uaddr >> 12 | (ASID(vma->vm_mm) << 48);
 
@@ -123,13 +123,14 @@ static inline void flush_tlb_page(struct vm_area_struct *vma,
 #define MAX_TLB_RANGE	(1024UL << PAGE_SHIFT)
 
 static inline void __flush_tlb_range(struct vm_area_struct *vma,
-				     unsigned long start, unsigned long end,
-				     bool last_level)
+									 unsigned long start, unsigned long end,
+									 bool last_level)
 {
 	unsigned long asid = ASID(vma->vm_mm) << 48;
 	unsigned long addr;
 
-	if ((end - start) > MAX_TLB_RANGE) {
+	if ((end - start) > MAX_TLB_RANGE)
+	{
 		flush_tlb_mm(vma->vm_mm);
 		return;
 	}
@@ -138,17 +139,24 @@ static inline void __flush_tlb_range(struct vm_area_struct *vma,
 	end = asid | (end >> 12);
 
 	dsb(ishst);
-	for (addr = start; addr < end; addr += 1 << (PAGE_SHIFT - 12)) {
+
+	for (addr = start; addr < end; addr += 1 << (PAGE_SHIFT - 12))
+	{
 		if (last_level)
+		{
 			__tlbi(vale1is, addr);
+		}
 		else
+		{
 			__tlbi(vae1is, addr);
+		}
 	}
+
 	dsb(ish);
 }
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	__flush_tlb_range(vma, start, end, false);
 }
@@ -157,7 +165,8 @@ static inline void flush_tlb_kernel_range(unsigned long start, unsigned long end
 {
 	unsigned long addr;
 
-	if ((end - start) > MAX_TLB_RANGE) {
+	if ((end - start) > MAX_TLB_RANGE)
+	{
 		flush_tlb_all();
 		return;
 	}
@@ -166,8 +175,12 @@ static inline void flush_tlb_kernel_range(unsigned long start, unsigned long end
 	end >>= 12;
 
 	dsb(ishst);
+
 	for (addr = start; addr < end; addr += 1 << (PAGE_SHIFT - 12))
+	{
 		__tlbi(vaae1is, addr);
+	}
+
 	dsb(ish);
 	isb();
 }
@@ -177,7 +190,7 @@ static inline void flush_tlb_kernel_range(unsigned long start, unsigned long end
  * table levels (pgd/pud/pmd).
  */
 static inline void __flush_tlb_pgtable(struct mm_struct *mm,
-				       unsigned long uaddr)
+									   unsigned long uaddr)
 {
 	unsigned long addr = uaddr >> 12 | (ASID(mm) << 48);
 

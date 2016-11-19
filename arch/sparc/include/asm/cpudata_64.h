@@ -8,7 +8,8 @@
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
+typedef struct
+{
 	/* Dcache line 1 */
 	unsigned int	__softirq_pending; /* must be 1st, see rtrap.S */
 	unsigned int	__nmi_count;

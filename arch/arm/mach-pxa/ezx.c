@@ -50,18 +50,21 @@
 #define GPIO19_GEN1_CAM_RST		19
 #define GPIO28_GEN2_CAM_RST		28
 
-static struct pwm_lookup ezx_pwm_lookup[] __maybe_unused = {
+static struct pwm_lookup ezx_pwm_lookup[] __maybe_unused =
+{
 	PWM_LOOKUP("pxa27x-pwm.0", 0, "pwm-backlight.0", NULL, 78700,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data ezx_backlight_data = {
+static struct platform_pwm_backlight_data ezx_backlight_data =
+{
 	.max_brightness	= 1023,
 	.dft_brightness	= 1023,
 	.enable_gpio	= -1,
 };
 
-static struct platform_device ezx_backlight_device = {
+static struct platform_device ezx_backlight_device =
+{
 	.name		= "pwm-backlight",
 	.dev		= {
 		.parent	= &pxa27x_device_pwm0.dev,
@@ -69,7 +72,8 @@ static struct platform_device ezx_backlight_device = {
 	},
 };
 
-static struct pxafb_mode_info mode_ezx_old = {
+static struct pxafb_mode_info mode_ezx_old =
+{
 	.pixclock		= 150000,
 	.xres			= 240,
 	.yres			= 320,
@@ -83,13 +87,15 @@ static struct pxafb_mode_info mode_ezx_old = {
 	.sync			= 0,
 };
 
-static struct pxafb_mach_info ezx_fb_info_1 __maybe_unused = {
+static struct pxafb_mach_info ezx_fb_info_1 __maybe_unused =
+{
 	.modes		= &mode_ezx_old,
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_TFT_16BPP,
 };
 
-static struct pxafb_mode_info mode_72r89803y01 = {
+static struct pxafb_mode_info mode_72r89803y01 =
+{
 	.pixclock		= 192308,
 	.xres			= 240,
 	.yres			= 320,
@@ -104,17 +110,20 @@ static struct pxafb_mode_info mode_72r89803y01 = {
 	.sync			= 0,
 };
 
-static struct pxafb_mach_info ezx_fb_info_2 __maybe_unused = {
+static struct pxafb_mach_info ezx_fb_info_2 __maybe_unused =
+{
 	.modes		= &mode_72r89803y01,
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_TFT_18BPP,
 };
 
-static struct platform_device *ezx_devices[] __initdata __maybe_unused = {
+static struct platform_device *ezx_devices[] __initdata __maybe_unused =
+{
 	&ezx_backlight_device,
 };
 
-static unsigned long ezx_pin_config[] __initdata __maybe_unused = {
+static unsigned long ezx_pin_config[] __initdata __maybe_unused =
+{
 	/* PWM backlight */
 	GPIO16_PWM0_OUT,
 
@@ -164,7 +173,8 @@ static unsigned long ezx_pin_config[] __initdata __maybe_unused = {
 };
 
 #if defined(CONFIG_MACH_EZX_A780) || defined(CONFIG_MACH_EZX_E680)
-static unsigned long gen1_pin_config[] __initdata = {
+static unsigned long gen1_pin_config[] __initdata =
+{
 	/* flip / lockswitch */
 	GPIO12_GPIO | WAKEUP_ON_EDGE_BOTH,
 
@@ -219,7 +229,8 @@ static unsigned long gen1_pin_config[] __initdata = {
 
 #if defined(CONFIG_MACH_EZX_A1200) || defined(CONFIG_MACH_EZX_A910) || \
 	defined(CONFIG_MACH_EZX_E2) || defined(CONFIG_MACH_EZX_E6)
-static unsigned long gen2_pin_config[] __initdata = {
+static unsigned long gen2_pin_config[] __initdata =
+{
 	/* flip / lockswitch */
 	GPIO15_GPIO | WAKEUP_ON_EDGE_BOTH,
 
@@ -270,7 +281,8 @@ static unsigned long gen2_pin_config[] __initdata = {
 #endif
 
 #ifdef CONFIG_MACH_EZX_A780
-static unsigned long a780_pin_config[] __initdata = {
+static unsigned long a780_pin_config[] __initdata =
+{
 	/* keypad */
 	GPIO93_KP_DKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO100_KP_MKIN_0 | WAKEUP_ON_LEVEL_HIGH,
@@ -290,7 +302,8 @@ static unsigned long a780_pin_config[] __initdata = {
 #endif
 
 #ifdef CONFIG_MACH_EZX_E680
-static unsigned long e680_pin_config[] __initdata = {
+static unsigned long e680_pin_config[] __initdata =
+{
 	/* keypad */
 	GPIO93_KP_DKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO96_KP_DKIN_3 | WAKEUP_ON_LEVEL_HIGH,
@@ -320,7 +333,8 @@ static unsigned long e680_pin_config[] __initdata = {
 #endif
 
 #ifdef CONFIG_MACH_EZX_A1200
-static unsigned long a1200_pin_config[] __initdata = {
+static unsigned long a1200_pin_config[] __initdata =
+{
 	/* keypad */
 	GPIO100_KP_MKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO101_KP_MKIN_1 | WAKEUP_ON_LEVEL_HIGH,
@@ -337,7 +351,8 @@ static unsigned long a1200_pin_config[] __initdata = {
 #endif
 
 #ifdef CONFIG_MACH_EZX_A910
-static unsigned long a910_pin_config[] __initdata = {
+static unsigned long a910_pin_config[] __initdata =
+{
 	/* keypad */
 	GPIO100_KP_MKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO101_KP_MKIN_1 | WAKEUP_ON_LEVEL_HIGH,
@@ -362,7 +377,8 @@ static unsigned long a910_pin_config[] __initdata = {
 #endif
 
 #ifdef CONFIG_MACH_EZX_E2
-static unsigned long e2_pin_config[] __initdata = {
+static unsigned long e2_pin_config[] __initdata =
+{
 	/* keypad */
 	GPIO100_KP_MKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO101_KP_MKIN_1 | WAKEUP_ON_LEVEL_HIGH,
@@ -379,7 +395,8 @@ static unsigned long e2_pin_config[] __initdata = {
 #endif
 
 #ifdef CONFIG_MACH_EZX_E6
-static unsigned long e6_pin_config[] __initdata = {
+static unsigned long e6_pin_config[] __initdata =
+{
 	/* keypad */
 	GPIO100_KP_MKIN_0 | WAKEUP_ON_LEVEL_HIGH,
 	GPIO101_KP_MKIN_1 | WAKEUP_ON_LEVEL_HIGH,
@@ -397,7 +414,8 @@ static unsigned long e6_pin_config[] __initdata = {
 
 /* KEYPAD */
 #ifdef CONFIG_MACH_EZX_A780
-static const unsigned int a780_key_map[] = {
+static const unsigned int a780_key_map[] =
+{
 	KEY(0, 0, KEY_SEND),
 	KEY(0, 1, KEY_BACK),
 	KEY(0, 2, KEY_END),
@@ -429,12 +447,14 @@ static const unsigned int a780_key_map[] = {
 	KEY(4, 4, KEY_DOWN),
 };
 
-static struct matrix_keymap_data a780_matrix_keymap_data = {
+static struct matrix_keymap_data a780_matrix_keymap_data =
+{
 	.keymap			= a780_key_map,
 	.keymap_size		= ARRAY_SIZE(a780_key_map),
 };
 
-static struct pxa27x_keypad_platform_data a780_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data a780_keypad_platform_data =
+{
 	.matrix_key_rows = 5,
 	.matrix_key_cols = 5,
 	.matrix_keymap_data = &a780_matrix_keymap_data,
@@ -447,7 +467,8 @@ static struct pxa27x_keypad_platform_data a780_keypad_platform_data = {
 #endif /* CONFIG_MACH_EZX_A780 */
 
 #ifdef CONFIG_MACH_EZX_E680
-static const unsigned int e680_key_map[] = {
+static const unsigned int e680_key_map[] =
+{
 	KEY(0, 0, KEY_UP),
 	KEY(0, 1, KEY_RIGHT),
 	KEY(0, 2, KEY_RESERVED),
@@ -464,12 +485,14 @@ static const unsigned int e680_key_map[] = {
 	KEY(2, 3, KEY_KPENTER),
 };
 
-static struct matrix_keymap_data e680_matrix_keymap_data = {
+static struct matrix_keymap_data e680_matrix_keymap_data =
+{
 	.keymap			= e680_key_map,
 	.keymap_size		= ARRAY_SIZE(e680_key_map),
 };
 
-static struct pxa27x_keypad_platform_data e680_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data e680_keypad_platform_data =
+{
 	.matrix_key_rows = 3,
 	.matrix_key_cols = 4,
 	.matrix_keymap_data = &e680_matrix_keymap_data,
@@ -489,7 +512,8 @@ static struct pxa27x_keypad_platform_data e680_keypad_platform_data = {
 #endif /* CONFIG_MACH_EZX_E680 */
 
 #ifdef CONFIG_MACH_EZX_A1200
-static const unsigned int a1200_key_map[] = {
+static const unsigned int a1200_key_map[] =
+{
 	KEY(0, 0, KEY_RESERVED),
 	KEY(0, 1, KEY_RIGHT),
 	KEY(0, 2, KEY_PAGEDOWN),
@@ -526,12 +550,14 @@ static const unsigned int a1200_key_map[] = {
 	KEY(4, 5, KEY_RESERVED),
 };
 
-static struct matrix_keymap_data a1200_matrix_keymap_data = {
+static struct matrix_keymap_data a1200_matrix_keymap_data =
+{
 	.keymap			= a1200_key_map,
 	.keymap_size		= ARRAY_SIZE(a1200_key_map),
 };
 
-static struct pxa27x_keypad_platform_data a1200_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data a1200_keypad_platform_data =
+{
 	.matrix_key_rows = 5,
 	.matrix_key_cols = 6,
 	.matrix_keymap_data = &a1200_matrix_keymap_data,
@@ -541,7 +567,8 @@ static struct pxa27x_keypad_platform_data a1200_keypad_platform_data = {
 #endif /* CONFIG_MACH_EZX_A1200 */
 
 #ifdef CONFIG_MACH_EZX_E6
-static const unsigned int e6_key_map[] = {
+static const unsigned int e6_key_map[] =
+{
 	KEY(0, 0, KEY_RESERVED),
 	KEY(0, 1, KEY_RIGHT),
 	KEY(0, 2, KEY_PAGEDOWN),
@@ -578,12 +605,14 @@ static const unsigned int e6_key_map[] = {
 	KEY(4, 5, KEY_PREVIOUSSONG),
 };
 
-static struct matrix_keymap_data e6_keymap_data = {
+static struct matrix_keymap_data e6_keymap_data =
+{
 	.keymap			= e6_key_map,
 	.keymap_size		= ARRAY_SIZE(e6_key_map),
 };
 
-static struct pxa27x_keypad_platform_data e6_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data e6_keypad_platform_data =
+{
 	.matrix_key_rows = 5,
 	.matrix_key_cols = 6,
 	.matrix_keymap_data = &e6_keymap_data,
@@ -593,7 +622,8 @@ static struct pxa27x_keypad_platform_data e6_keypad_platform_data = {
 #endif /* CONFIG_MACH_EZX_E6 */
 
 #ifdef CONFIG_MACH_EZX_A910
-static const unsigned int a910_key_map[] = {
+static const unsigned int a910_key_map[] =
+{
 	KEY(0, 0, KEY_NUMERIC_6),
 	KEY(0, 1, KEY_RIGHT),
 	KEY(0, 2, KEY_PAGEDOWN),
@@ -630,12 +660,14 @@ static const unsigned int a910_key_map[] = {
 	KEY(4, 5, KEY_RESERVED),
 };
 
-static struct matrix_keymap_data a910_matrix_keymap_data = {
+static struct matrix_keymap_data a910_matrix_keymap_data =
+{
 	.keymap			= a910_key_map,
 	.keymap_size		= ARRAY_SIZE(a910_key_map),
 };
 
-static struct pxa27x_keypad_platform_data a910_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data a910_keypad_platform_data =
+{
 	.matrix_key_rows = 5,
 	.matrix_key_cols = 6,
 	.matrix_keymap_data = &a910_matrix_keymap_data,
@@ -645,7 +677,8 @@ static struct pxa27x_keypad_platform_data a910_keypad_platform_data = {
 #endif /* CONFIG_MACH_EZX_A910 */
 
 #ifdef CONFIG_MACH_EZX_E2
-static const unsigned int e2_key_map[] = {
+static const unsigned int e2_key_map[] =
+{
 	KEY(0, 0, KEY_NUMERIC_6),
 	KEY(0, 1, KEY_RIGHT),
 	KEY(0, 2, KEY_NUMERIC_9),
@@ -682,12 +715,14 @@ static const unsigned int e2_key_map[] = {
 	KEY(4, 5, KEY_RESERVED),
 };
 
-static struct matrix_keymap_data e2_matrix_keymap_data = {
+static struct matrix_keymap_data e2_matrix_keymap_data =
+{
 	.keymap			= e2_key_map,
 	.keymap_size		= ARRAY_SIZE(e2_key_map),
 };
 
-static struct pxa27x_keypad_platform_data e2_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data e2_keypad_platform_data =
+{
 	.matrix_key_rows = 5,
 	.matrix_key_cols = 6,
 	.matrix_keymap_data = &e2_matrix_keymap_data,
@@ -698,7 +733,8 @@ static struct pxa27x_keypad_platform_data e2_keypad_platform_data = {
 
 #ifdef CONFIG_MACH_EZX_A780
 /* gpio_keys */
-static struct gpio_keys_button a780_buttons[] = {
+static struct gpio_keys_button a780_buttons[] =
+{
 	[0] = {
 		.code       = SW_LID,
 		.gpio       = GPIO12_A780_FLIP_LID,
@@ -709,12 +745,14 @@ static struct gpio_keys_button a780_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data a780_gpio_keys_platform_data = {
+static struct gpio_keys_platform_data a780_gpio_keys_platform_data =
+{
 	.buttons  = a780_buttons,
 	.nbuttons = ARRAY_SIZE(a780_buttons),
 };
 
-static struct platform_device a780_gpio_keys = {
+static struct platform_device a780_gpio_keys =
+{
 	.name = "gpio-keys",
 	.id   = -1,
 	.dev  = {
@@ -732,13 +770,17 @@ static int a780_camera_init(void)
 	 * GPIO19_GEN1_CAM_RST is active on rising edge
 	 */
 	err = gpio_request(GPIO50_nCAM_EN, "nCAM_EN");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("%s: Failed to request nCAM_EN\n", __func__);
 		goto fail;
 	}
 
 	err = gpio_request(GPIO19_GEN1_CAM_RST, "CAM_RST");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("%s: Failed to request CAM_RST\n", __func__);
 		goto fail_gpio_cam_rst;
 	}
@@ -769,17 +811,20 @@ static int a780_camera_reset(struct device *dev)
 	return 0;
 }
 
-struct pxacamera_platform_data a780_pxacamera_platform_data = {
+struct pxacamera_platform_data a780_pxacamera_platform_data =
+{
 	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
-		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
+	PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
 	.mclk_10khz = 5000,
 };
 
-static struct i2c_board_info a780_camera_i2c_board_info = {
+static struct i2c_board_info a780_camera_i2c_board_info =
+{
 	I2C_BOARD_INFO("mt9m111", 0x5d),
 };
 
-static struct soc_camera_link a780_iclink = {
+static struct soc_camera_link a780_iclink =
+{
 	.bus_id         = 0,
 	.flags          = SOCAM_SENSOR_INVERT_PCLK,
 	.i2c_adapter_id = 0,
@@ -788,7 +833,8 @@ static struct soc_camera_link a780_iclink = {
 	.reset          = a780_camera_reset,
 };
 
-static struct platform_device a780_camera = {
+static struct platform_device a780_camera =
+{
 	.name   = "soc-camera-pdrv",
 	.id     = 0,
 	.dev    = {
@@ -796,7 +842,8 @@ static struct platform_device a780_camera = {
 	},
 };
 
-static struct platform_device *a780_devices[] __initdata = {
+static struct platform_device *a780_devices[] __initdata =
+{
 	&a780_gpio_keys,
 };
 
@@ -816,7 +863,8 @@ static void __init a780_init(void)
 
 	pxa_set_keypad_info(&a780_keypad_platform_data);
 
-	if (a780_camera_init() == 0) {
+	if (a780_camera_init() == 0)
+	{
 		pxa_set_camera_info(&a780_pxacamera_platform_data);
 		platform_device_register(&a780_camera);
 	}
@@ -827,20 +875,21 @@ static void __init a780_init(void)
 }
 
 MACHINE_START(EZX_A780, "Motorola EZX A780")
-	.atag_offset    = 0x100,
-	.map_io         = pxa27x_map_io,
-	.nr_irqs	= EZX_NR_IRQS,
-	.init_irq       = pxa27x_init_irq,
-	.handle_irq       = pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine   = a780_init,
-	.restart	= pxa_restart,
-MACHINE_END
+.atag_offset    = 0x100,
+ .map_io         = pxa27x_map_io,
+  .nr_irqs	= EZX_NR_IRQS,
+	  .init_irq       = pxa27x_init_irq,
+	   .handle_irq       = pxa27x_handle_irq,
+		.init_time	= pxa_timer_init,
+		  .init_machine   = a780_init,
+		   .restart	= pxa_restart,
+			   MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_EZX_E680
-/* gpio_keys */
-static struct gpio_keys_button e680_buttons[] = {
+			   /* gpio_keys */
+			   static struct gpio_keys_button e680_buttons[] =
+{
 	[0] = {
 		.code       = KEY_SCREENLOCK,
 		.gpio       = GPIO12_E680_LOCK_SWITCH,
@@ -851,12 +900,14 @@ static struct gpio_keys_button e680_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data e680_gpio_keys_platform_data = {
+static struct gpio_keys_platform_data e680_gpio_keys_platform_data =
+{
 	.buttons  = e680_buttons,
 	.nbuttons = ARRAY_SIZE(e680_buttons),
 };
 
-static struct platform_device e680_gpio_keys = {
+static struct platform_device e680_gpio_keys =
+{
 	.name = "gpio-keys",
 	.id   = -1,
 	.dev  = {
@@ -864,11 +915,13 @@ static struct platform_device e680_gpio_keys = {
 	},
 };
 
-static struct i2c_board_info __initdata e680_i2c_board_info[] = {
+static struct i2c_board_info __initdata e680_i2c_board_info[] =
+{
 	{ I2C_BOARD_INFO("tea5767", 0x81) },
 };
 
-static struct platform_device *e680_devices[] __initdata = {
+static struct platform_device *e680_devices[] __initdata =
+{
 	&e680_gpio_keys,
 };
 
@@ -895,20 +948,21 @@ static void __init e680_init(void)
 }
 
 MACHINE_START(EZX_E680, "Motorola EZX E680")
-	.atag_offset    = 0x100,
-	.map_io         = pxa27x_map_io,
-	.nr_irqs	= EZX_NR_IRQS,
-	.init_irq       = pxa27x_init_irq,
-	.handle_irq       = pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine   = e680_init,
-	.restart	= pxa_restart,
-MACHINE_END
+.atag_offset    = 0x100,
+ .map_io         = pxa27x_map_io,
+  .nr_irqs	= EZX_NR_IRQS,
+	  .init_irq       = pxa27x_init_irq,
+	   .handle_irq       = pxa27x_handle_irq,
+		.init_time	= pxa_timer_init,
+		  .init_machine   = e680_init,
+		   .restart	= pxa_restart,
+			   MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_EZX_A1200
-/* gpio_keys */
-static struct gpio_keys_button a1200_buttons[] = {
+			   /* gpio_keys */
+			   static struct gpio_keys_button a1200_buttons[] =
+{
 	[0] = {
 		.code       = SW_LID,
 		.gpio       = GPIO15_A1200_FLIP_LID,
@@ -919,12 +973,14 @@ static struct gpio_keys_button a1200_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data a1200_gpio_keys_platform_data = {
+static struct gpio_keys_platform_data a1200_gpio_keys_platform_data =
+{
 	.buttons  = a1200_buttons,
 	.nbuttons = ARRAY_SIZE(a1200_buttons),
 };
 
-static struct platform_device a1200_gpio_keys = {
+static struct platform_device a1200_gpio_keys =
+{
 	.name = "gpio-keys",
 	.id   = -1,
 	.dev  = {
@@ -932,11 +988,13 @@ static struct platform_device a1200_gpio_keys = {
 	},
 };
 
-static struct i2c_board_info __initdata a1200_i2c_board_info[] = {
+static struct i2c_board_info __initdata a1200_i2c_board_info[] =
+{
 	{ I2C_BOARD_INFO("tea5767", 0x81) },
 };
 
-static struct platform_device *a1200_devices[] __initdata = {
+static struct platform_device *a1200_devices[] __initdata =
+{
 	&a1200_gpio_keys,
 };
 
@@ -963,20 +1021,21 @@ static void __init a1200_init(void)
 }
 
 MACHINE_START(EZX_A1200, "Motorola EZX A1200")
-	.atag_offset    = 0x100,
-	.map_io         = pxa27x_map_io,
-	.nr_irqs	= EZX_NR_IRQS,
-	.init_irq       = pxa27x_init_irq,
-	.handle_irq       = pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine   = a1200_init,
-	.restart	= pxa_restart,
-MACHINE_END
+.atag_offset    = 0x100,
+ .map_io         = pxa27x_map_io,
+  .nr_irqs	= EZX_NR_IRQS,
+	  .init_irq       = pxa27x_init_irq,
+	   .handle_irq       = pxa27x_handle_irq,
+		.init_time	= pxa_timer_init,
+		  .init_machine   = a1200_init,
+		   .restart	= pxa_restart,
+			   MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_EZX_A910
-/* gpio_keys */
-static struct gpio_keys_button a910_buttons[] = {
+			   /* gpio_keys */
+			   static struct gpio_keys_button a910_buttons[] =
+{
 	[0] = {
 		.code       = SW_LID,
 		.gpio       = GPIO15_A910_FLIP_LID,
@@ -987,12 +1046,14 @@ static struct gpio_keys_button a910_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data a910_gpio_keys_platform_data = {
+static struct gpio_keys_platform_data a910_gpio_keys_platform_data =
+{
 	.buttons  = a910_buttons,
 	.nbuttons = ARRAY_SIZE(a910_buttons),
 };
 
-static struct platform_device a910_gpio_keys = {
+static struct platform_device a910_gpio_keys =
+{
 	.name = "gpio-keys",
 	.id   = -1,
 	.dev  = {
@@ -1010,13 +1071,17 @@ static int a910_camera_init(void)
 	 * GPIO28_GEN2_CAM_RST is active on rising edge
 	 */
 	err = gpio_request(GPIO50_nCAM_EN, "nCAM_EN");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("%s: Failed to request nCAM_EN\n", __func__);
 		goto fail;
 	}
 
 	err = gpio_request(GPIO28_GEN2_CAM_RST, "CAM_RST");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("%s: Failed to request CAM_RST\n", __func__);
 		goto fail_gpio_cam_rst;
 	}
@@ -1047,17 +1112,20 @@ static int a910_camera_reset(struct device *dev)
 	return 0;
 }
 
-struct pxacamera_platform_data a910_pxacamera_platform_data = {
+struct pxacamera_platform_data a910_pxacamera_platform_data =
+{
 	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
-		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
+	PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
 	.mclk_10khz = 5000,
 };
 
-static struct i2c_board_info a910_camera_i2c_board_info = {
+static struct i2c_board_info a910_camera_i2c_board_info =
+{
 	I2C_BOARD_INFO("mt9m111", 0x5d),
 };
 
-static struct soc_camera_link a910_iclink = {
+static struct soc_camera_link a910_iclink =
+{
 	.bus_id         = 0,
 	.i2c_adapter_id = 0,
 	.board_info     = &a910_camera_i2c_board_info,
@@ -1065,7 +1133,8 @@ static struct soc_camera_link a910_iclink = {
 	.reset          = a910_camera_reset,
 };
 
-static struct platform_device a910_camera = {
+static struct platform_device a910_camera =
+{
 	.name   = "soc-camera-pdrv",
 	.id     = 0,
 	.dev    = {
@@ -1074,7 +1143,8 @@ static struct platform_device a910_camera = {
 };
 
 /* leds-lp3944 */
-static struct lp3944_platform_data a910_lp3944_leds = {
+static struct lp3944_platform_data a910_lp3944_leds =
+{
 	.leds_size = LP3944_LEDS_MAX,
 	.leds = {
 		[0] = {
@@ -1117,14 +1187,16 @@ static struct lp3944_platform_data a910_lp3944_leds = {
 	},
 };
 
-static struct i2c_board_info __initdata a910_i2c_board_info[] = {
+static struct i2c_board_info __initdata a910_i2c_board_info[] =
+{
 	{
 		I2C_BOARD_INFO("lp3944", 0x60),
 		.platform_data = &a910_lp3944_leds,
 	},
 };
 
-static struct platform_device *a910_devices[] __initdata = {
+static struct platform_device *a910_devices[] __initdata =
+{
 	&a910_gpio_keys,
 };
 
@@ -1145,7 +1217,8 @@ static void __init a910_init(void)
 
 	pxa_set_keypad_info(&a910_keypad_platform_data);
 
-	if (a910_camera_init() == 0) {
+	if (a910_camera_init() == 0)
+	{
 		pxa_set_camera_info(&a910_pxacamera_platform_data);
 		platform_device_register(&a910_camera);
 	}
@@ -1156,20 +1229,21 @@ static void __init a910_init(void)
 }
 
 MACHINE_START(EZX_A910, "Motorola EZX A910")
-	.atag_offset    = 0x100,
-	.map_io         = pxa27x_map_io,
-	.nr_irqs	= EZX_NR_IRQS,
-	.init_irq       = pxa27x_init_irq,
-	.handle_irq       = pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine   = a910_init,
-	.restart	= pxa_restart,
-MACHINE_END
+.atag_offset    = 0x100,
+ .map_io         = pxa27x_map_io,
+  .nr_irqs	= EZX_NR_IRQS,
+	  .init_irq       = pxa27x_init_irq,
+	   .handle_irq       = pxa27x_handle_irq,
+		.init_time	= pxa_timer_init,
+		  .init_machine   = a910_init,
+		   .restart	= pxa_restart,
+			   MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_EZX_E6
-/* gpio_keys */
-static struct gpio_keys_button e6_buttons[] = {
+			   /* gpio_keys */
+			   static struct gpio_keys_button e6_buttons[] =
+{
 	[0] = {
 		.code       = KEY_SCREENLOCK,
 		.gpio       = GPIO15_E6_LOCK_SWITCH,
@@ -1180,12 +1254,14 @@ static struct gpio_keys_button e6_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data e6_gpio_keys_platform_data = {
+static struct gpio_keys_platform_data e6_gpio_keys_platform_data =
+{
 	.buttons  = e6_buttons,
 	.nbuttons = ARRAY_SIZE(e6_buttons),
 };
 
-static struct platform_device e6_gpio_keys = {
+static struct platform_device e6_gpio_keys =
+{
 	.name = "gpio-keys",
 	.id   = -1,
 	.dev  = {
@@ -1193,11 +1269,13 @@ static struct platform_device e6_gpio_keys = {
 	},
 };
 
-static struct i2c_board_info __initdata e6_i2c_board_info[] = {
+static struct i2c_board_info __initdata e6_i2c_board_info[] =
+{
 	{ I2C_BOARD_INFO("tea5767", 0x81) },
 };
 
-static struct platform_device *e6_devices[] __initdata = {
+static struct platform_device *e6_devices[] __initdata =
+{
 	&e6_gpio_keys,
 };
 
@@ -1224,23 +1302,25 @@ static void __init e6_init(void)
 }
 
 MACHINE_START(EZX_E6, "Motorola EZX E6")
-	.atag_offset    = 0x100,
-	.map_io         = pxa27x_map_io,
-	.nr_irqs	= EZX_NR_IRQS,
-	.init_irq       = pxa27x_init_irq,
-	.handle_irq       = pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine   = e6_init,
-	.restart	= pxa_restart,
-MACHINE_END
+.atag_offset    = 0x100,
+ .map_io         = pxa27x_map_io,
+  .nr_irqs	= EZX_NR_IRQS,
+	  .init_irq       = pxa27x_init_irq,
+	   .handle_irq       = pxa27x_handle_irq,
+		.init_time	= pxa_timer_init,
+		  .init_machine   = e6_init,
+		   .restart	= pxa_restart,
+			   MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_EZX_E2
-static struct i2c_board_info __initdata e2_i2c_board_info[] = {
+			   static struct i2c_board_info __initdata e2_i2c_board_info[] =
+{
 	{ I2C_BOARD_INFO("tea5767", 0x81) },
 };
 
-static struct platform_device *e2_devices[] __initdata = {
+static struct platform_device *e2_devices[] __initdata =
+{
 };
 
 static void __init e2_init(void)
@@ -1266,13 +1346,13 @@ static void __init e2_init(void)
 }
 
 MACHINE_START(EZX_E2, "Motorola EZX E2")
-	.atag_offset    = 0x100,
-	.map_io         = pxa27x_map_io,
-	.nr_irqs	= EZX_NR_IRQS,
-	.init_irq       = pxa27x_init_irq,
-	.handle_irq       = pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine   = e2_init,
-	.restart	= pxa_restart,
-MACHINE_END
+.atag_offset    = 0x100,
+ .map_io         = pxa27x_map_io,
+  .nr_irqs	= EZX_NR_IRQS,
+	  .init_irq       = pxa27x_init_irq,
+	   .handle_irq       = pxa27x_handle_irq,
+		.init_time	= pxa_timer_init,
+		  .init_machine   = e2_init,
+		   .restart	= pxa_restart,
+			   MACHINE_END
 #endif

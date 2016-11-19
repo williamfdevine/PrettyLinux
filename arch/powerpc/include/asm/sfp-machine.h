@@ -107,9 +107,9 @@
 
 #define __FPU_FPSCR	(current->thread.spefscr)
 #define __FPU_ENABLED_EXC		\
-({					\
-	(__FPU_FPSCR >> 2) & 0x1f;	\
-})
+	({					\
+		(__FPU_FPSCR >> 2) & 0x1f;	\
+	})
 #else
 /* Exception flags.  We use the bit positions of the appropriate bits
    in the FPSCR, which also correspond to the FE_* bits.  This makes
@@ -131,9 +131,9 @@
  * if exceptions signalled (if any) will not trap.
  */
 #define __FPU_ENABLED_EXC \
-({						\
-	(__FPU_FPSCR >> 3) & 0x1f;	\
-})
+	({						\
+		(__FPU_FPSCR >> 3) & 0x1f;	\
+	})
 
 #endif
 
@@ -142,20 +142,20 @@
  * we choose that one, otherwise we choose X.
  */
 #define _FP_CHOOSENAN(fs, wc, R, X, Y, OP)			\
-  do {								\
-    if ((_FP_FRAC_HIGH_RAW_##fs(Y) & _FP_QNANBIT_##fs)		\
-	&& !(_FP_FRAC_HIGH_RAW_##fs(X) & _FP_QNANBIT_##fs))	\
-      {								\
-	R##_s = X##_s;						\
-	_FP_FRAC_COPY_##wc(R,X);				\
-      }								\
-    else							\
-      {								\
-	R##_s = Y##_s;						\
-	_FP_FRAC_COPY_##wc(R,Y);				\
-      }								\
-    R##_c = FP_CLS_NAN;						\
-  } while (0)
+	do {								\
+		if ((_FP_FRAC_HIGH_RAW_##fs(Y) & _FP_QNANBIT_##fs)		\
+			&& !(_FP_FRAC_HIGH_RAW_##fs(X) & _FP_QNANBIT_##fs))	\
+		{								\
+			R##_s = X##_s;						\
+			_FP_FRAC_COPY_##wc(R,X);				\
+		}								\
+		else							\
+		{								\
+			R##_s = Y##_s;						\
+			_FP_FRAC_COPY_##wc(R,Y);				\
+		}								\
+		R##_c = FP_CLS_NAN;						\
+	} while (0)
 
 
 #include <linux/kernel.h>
@@ -165,38 +165,38 @@
 	((__FPU_ENABLED_EXC & (bits)) != 0)
 
 #define __FP_PACK_S(val,X)			\
-({  int __exc = _FP_PACK_CANONICAL(S,1,X);	\
-    if(!__exc || !__FPU_TRAP_P(__exc))		\
-        _FP_PACK_RAW_1_P(S,val,X);		\
-    __exc;					\
-})
+	({  int __exc = _FP_PACK_CANONICAL(S,1,X);	\
+		if(!__exc || !__FPU_TRAP_P(__exc))		\
+			_FP_PACK_RAW_1_P(S,val,X);		\
+		__exc;					\
+	})
 
 #define __FP_PACK_D(val,X)			\
-   do {									\
-	_FP_PACK_CANONICAL(D, 2, X);					\
-	if (!FP_CUR_EXCEPTIONS || !__FPU_TRAP_P(FP_CUR_EXCEPTIONS))	\
-		_FP_PACK_RAW_2_P(D, val, X);				\
-   } while (0)
+	do {									\
+		_FP_PACK_CANONICAL(D, 2, X);					\
+		if (!FP_CUR_EXCEPTIONS || !__FPU_TRAP_P(FP_CUR_EXCEPTIONS))	\
+			_FP_PACK_RAW_2_P(D, val, X);				\
+	} while (0)
 
 #define __FP_PACK_DS(val,X)							\
-   do {										\
-	   FP_DECL_S(__X);							\
-	   FP_CONV(S, D, 1, 2, __X, X);						\
-	   _FP_PACK_CANONICAL(S, 1, __X);					\
-	   if (!FP_CUR_EXCEPTIONS || !__FPU_TRAP_P(FP_CUR_EXCEPTIONS)) {	\
-		   _FP_UNPACK_CANONICAL(S, 1, __X);				\
-		   FP_CONV(D, S, 2, 1, X, __X);					\
-		   _FP_PACK_CANONICAL(D, 2, X);					\
-		   if (!FP_CUR_EXCEPTIONS || !__FPU_TRAP_P(FP_CUR_EXCEPTIONS))	\
-		   _FP_PACK_RAW_2_P(D, val, X);					\
-	   }									\
-   } while (0)
+	do {										\
+		FP_DECL_S(__X);							\
+		FP_CONV(S, D, 1, 2, __X, X);						\
+		_FP_PACK_CANONICAL(S, 1, __X);					\
+		if (!FP_CUR_EXCEPTIONS || !__FPU_TRAP_P(FP_CUR_EXCEPTIONS)) {	\
+			_FP_UNPACK_CANONICAL(S, 1, __X);				\
+			FP_CONV(D, S, 2, 1, X, __X);					\
+			_FP_PACK_CANONICAL(D, 2, X);					\
+			if (!FP_CUR_EXCEPTIONS || !__FPU_TRAP_P(FP_CUR_EXCEPTIONS))	\
+				_FP_PACK_RAW_2_P(D, val, X);					\
+		}									\
+	} while (0)
 
 /* Obtain the current rounding mode. */
 #define FP_ROUNDMODE			\
-({					\
-	__FPU_FPSCR & 0x3;		\
-})
+	({					\
+		__FPU_FPSCR & 0x3;		\
+	})
 
 /* the asm fragments go here: all these are taken from glibc-2.0.5's
  * stdlib/longlong.h
@@ -214,30 +214,30 @@
  * (i.e. carry out) is not stored anywhere, and is lost.
  */
 #define add_ssaaaa(sh, sl, ah, al, bh, bl)				\
-  do {									\
-    if (__builtin_constant_p (bh) && (bh) == 0)				\
-      __asm__ ("{a%I4|add%I4c} %1,%3,%4\n\t{aze|addze} %0,%2"		\
-	     : "=r" ((USItype)(sh)),					\
-	       "=&r" ((USItype)(sl))					\
-	     : "%r" ((USItype)(ah)),					\
-	       "%r" ((USItype)(al)),					\
-	       "rI" ((USItype)(bl)));					\
-    else if (__builtin_constant_p (bh) && (bh) ==~(USItype) 0)		\
-      __asm__ ("{a%I4|add%I4c} %1,%3,%4\n\t{ame|addme} %0,%2"		\
-	     : "=r" ((USItype)(sh)),					\
-	       "=&r" ((USItype)(sl))					\
-	     : "%r" ((USItype)(ah)),					\
-	       "%r" ((USItype)(al)),					\
-	       "rI" ((USItype)(bl)));					\
-    else								\
-      __asm__ ("{a%I5|add%I5c} %1,%4,%5\n\t{ae|adde} %0,%2,%3"		\
-	     : "=r" ((USItype)(sh)),					\
-	       "=&r" ((USItype)(sl))					\
-	     : "%r" ((USItype)(ah)),					\
-	       "r" ((USItype)(bh)),					\
-	       "%r" ((USItype)(al)),					\
-	       "rI" ((USItype)(bl)));					\
-  } while (0)
+	do {									\
+		if (__builtin_constant_p (bh) && (bh) == 0)				\
+			__asm__ ("{a%I4|add%I4c} %1,%3,%4\n\t{aze|addze} %0,%2"		\
+					 : "=r" ((USItype)(sh)),					\
+					 "=&r" ((USItype)(sl))					\
+					 : "%r" ((USItype)(ah)),					\
+					 "%r" ((USItype)(al)),					\
+					 "rI" ((USItype)(bl)));					\
+		else if (__builtin_constant_p (bh) && (bh) ==~(USItype) 0)		\
+			__asm__ ("{a%I4|add%I4c} %1,%3,%4\n\t{ame|addme} %0,%2"		\
+					 : "=r" ((USItype)(sh)),					\
+					 "=&r" ((USItype)(sl))					\
+					 : "%r" ((USItype)(ah)),					\
+					 "%r" ((USItype)(al)),					\
+					 "rI" ((USItype)(bl)));					\
+		else								\
+			__asm__ ("{a%I5|add%I5c} %1,%4,%5\n\t{ae|adde} %0,%2,%3"		\
+					 : "=r" ((USItype)(sh)),					\
+					 "=&r" ((USItype)(sl))					\
+					 : "%r" ((USItype)(ah)),					\
+					 "r" ((USItype)(bh)),					\
+					 "%r" ((USItype)(al)),					\
+					 "rI" ((USItype)(bl)));					\
+	} while (0)
 
 /* sub_ddmmss is used in op-2.h and udivmodti4.c and should be equivalent to
  * #define sub_ddmmss(sh, sl, ah, al, bh, bl) (sh = ah-bh - ((sl = al-bl) > al))
@@ -249,44 +249,44 @@
  * and is lost.
  */
 #define sub_ddmmss(sh, sl, ah, al, bh, bl)				\
-  do {									\
-    if (__builtin_constant_p (ah) && (ah) == 0)				\
-      __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{sfze|subfze} %0,%2"	\
-	       : "=r" ((USItype)(sh)),					\
-		 "=&r" ((USItype)(sl))					\
-	       : "r" ((USItype)(bh)),					\
-		 "rI" ((USItype)(al)),					\
-		 "r" ((USItype)(bl)));					\
-    else if (__builtin_constant_p (ah) && (ah) ==~(USItype) 0)		\
-      __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{sfme|subfme} %0,%2"	\
-	       : "=r" ((USItype)(sh)),					\
-		 "=&r" ((USItype)(sl))					\
-	       : "r" ((USItype)(bh)),					\
-		 "rI" ((USItype)(al)),					\
-		 "r" ((USItype)(bl)));					\
-    else if (__builtin_constant_p (bh) && (bh) == 0)			\
-      __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{ame|addme} %0,%2"		\
-	       : "=r" ((USItype)(sh)),					\
-		 "=&r" ((USItype)(sl))					\
-	       : "r" ((USItype)(ah)),					\
-		 "rI" ((USItype)(al)),					\
-		 "r" ((USItype)(bl)));					\
-    else if (__builtin_constant_p (bh) && (bh) ==~(USItype) 0)		\
-      __asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{aze|addze} %0,%2"		\
-	       : "=r" ((USItype)(sh)),					\
-		 "=&r" ((USItype)(sl))					\
-	       : "r" ((USItype)(ah)),					\
-		 "rI" ((USItype)(al)),					\
-		 "r" ((USItype)(bl)));					\
-    else								\
-      __asm__ ("{sf%I4|subf%I4c} %1,%5,%4\n\t{sfe|subfe} %0,%3,%2"	\
-	       : "=r" ((USItype)(sh)),					\
-		 "=&r" ((USItype)(sl))					\
-	       : "r" ((USItype)(ah)),					\
-		 "r" ((USItype)(bh)),					\
-		 "rI" ((USItype)(al)),					\
-		 "r" ((USItype)(bl)));					\
-  } while (0)
+	do {									\
+		if (__builtin_constant_p (ah) && (ah) == 0)				\
+			__asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{sfze|subfze} %0,%2"	\
+					 : "=r" ((USItype)(sh)),					\
+					 "=&r" ((USItype)(sl))					\
+					 : "r" ((USItype)(bh)),					\
+					 "rI" ((USItype)(al)),					\
+					 "r" ((USItype)(bl)));					\
+		else if (__builtin_constant_p (ah) && (ah) ==~(USItype) 0)		\
+			__asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{sfme|subfme} %0,%2"	\
+					 : "=r" ((USItype)(sh)),					\
+					 "=&r" ((USItype)(sl))					\
+					 : "r" ((USItype)(bh)),					\
+					 "rI" ((USItype)(al)),					\
+					 "r" ((USItype)(bl)));					\
+		else if (__builtin_constant_p (bh) && (bh) == 0)			\
+			__asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{ame|addme} %0,%2"		\
+					 : "=r" ((USItype)(sh)),					\
+					 "=&r" ((USItype)(sl))					\
+					 : "r" ((USItype)(ah)),					\
+					 "rI" ((USItype)(al)),					\
+					 "r" ((USItype)(bl)));					\
+		else if (__builtin_constant_p (bh) && (bh) ==~(USItype) 0)		\
+			__asm__ ("{sf%I3|subf%I3c} %1,%4,%3\n\t{aze|addze} %0,%2"		\
+					 : "=r" ((USItype)(sh)),					\
+					 "=&r" ((USItype)(sl))					\
+					 : "r" ((USItype)(ah)),					\
+					 "rI" ((USItype)(al)),					\
+					 "r" ((USItype)(bl)));					\
+		else								\
+			__asm__ ("{sf%I4|subf%I4c} %1,%5,%4\n\t{sfe|subfe} %0,%3,%2"	\
+					 : "=r" ((USItype)(sh)),					\
+					 "=&r" ((USItype)(sl))					\
+					 : "r" ((USItype)(ah)),					\
+					 "r" ((USItype)(bh)),					\
+					 "rI" ((USItype)(al)),					\
+					 "r" ((USItype)(bl)));					\
+	} while (0)
 
 /* asm fragments for mul and div */
 
@@ -295,14 +295,14 @@
  * word product in HIGH_PROD and LOW_PROD.
  */
 #define umul_ppmm(ph, pl, m0, m1)					\
-  do {									\
-    USItype __m0 = (m0), __m1 = (m1);					\
-    __asm__ ("mulhwu %0,%1,%2"						\
-	     : "=r" ((USItype)(ph))					\
-	     : "%r" (__m0),						\
-               "r" (__m1));						\
-    (pl) = __m0 * __m1;							\
-  } while (0)
+	do {									\
+		USItype __m0 = (m0), __m1 = (m1);					\
+		__asm__ ("mulhwu %0,%1,%2"						\
+				 : "=r" ((USItype)(ph))					\
+				 : "%r" (__m0),						\
+				 "r" (__m1));						\
+		(pl) = __m0 * __m1;							\
+	} while (0)
 
 /* udiv_qrnnd(quotient, remainder, high_numerator, low_numerator,
  * denominator) divides a UDWtype, composed by the UWtype integers
@@ -313,40 +313,40 @@
  * UDIV_NEEDS_NORMALIZATION is defined to 1.
  */
 #define udiv_qrnnd(q, r, n1, n0, d)					\
-  do {									\
-    UWtype __d1, __d0, __q1, __q0, __r1, __r0, __m;			\
-    __d1 = __ll_highpart (d);						\
-    __d0 = __ll_lowpart (d);						\
-									\
-    __r1 = (n1) % __d1;							\
-    __q1 = (n1) / __d1;							\
-    __m = (UWtype) __q1 * __d0;						\
-    __r1 = __r1 * __ll_B | __ll_highpart (n0);				\
-    if (__r1 < __m)							\
-      {									\
-	__q1--, __r1 += (d);						\
-	if (__r1 >= (d)) /* we didn't get carry when adding to __r1 */	\
-	  if (__r1 < __m)						\
-	    __q1--, __r1 += (d);					\
-      }									\
-    __r1 -= __m;							\
-									\
-    __r0 = __r1 % __d1;							\
-    __q0 = __r1 / __d1;							\
-    __m = (UWtype) __q0 * __d0;						\
-    __r0 = __r0 * __ll_B | __ll_lowpart (n0);				\
-    if (__r0 < __m)							\
-      {									\
-	__q0--, __r0 += (d);						\
-	if (__r0 >= (d))						\
-	  if (__r0 < __m)						\
-	    __q0--, __r0 += (d);					\
-      }									\
-    __r0 -= __m;							\
-									\
-    (q) = (UWtype) __q1 * __ll_B | __q0;				\
-    (r) = __r0;								\
-  } while (0)
+	do {									\
+		UWtype __d1, __d0, __q1, __q0, __r1, __r0, __m;			\
+		__d1 = __ll_highpart (d);						\
+		__d0 = __ll_lowpart (d);						\
+		\
+		__r1 = (n1) % __d1;							\
+		__q1 = (n1) / __d1;							\
+		__m = (UWtype) __q1 * __d0;						\
+		__r1 = __r1 * __ll_B | __ll_highpart (n0);				\
+		if (__r1 < __m)							\
+		{									\
+			__q1--, __r1 += (d);						\
+			if (__r1 >= (d)) /* we didn't get carry when adding to __r1 */	\
+				if (__r1 < __m)						\
+					__q1--, __r1 += (d);					\
+		}									\
+		__r1 -= __m;							\
+		\
+		__r0 = __r1 % __d1;							\
+		__q0 = __r1 / __d1;							\
+		__m = (UWtype) __q0 * __d0;						\
+		__r0 = __r0 * __ll_B | __ll_lowpart (n0);				\
+		if (__r0 < __m)							\
+		{									\
+			__q0--, __r0 += (d);						\
+			if (__r0 >= (d))						\
+				if (__r0 < __m)						\
+					__q0--, __r0 += (d);					\
+		}									\
+		__r0 -= __m;							\
+		\
+		(q) = (UWtype) __q1 * __ll_B | __q0;				\
+		(r) = __r0;								\
+	} while (0)
 
 #define UDIV_NEEDS_NORMALIZATION 1
 
@@ -354,9 +354,9 @@
 	return 0
 
 #ifdef __BIG_ENDIAN
-#define __BYTE_ORDER __BIG_ENDIAN
+	#define __BYTE_ORDER __BIG_ENDIAN
 #else
-#define __BYTE_ORDER __LITTLE_ENDIAN
+	#define __BYTE_ORDER __LITTLE_ENDIAN
 #endif
 
 /* Exception flags. */

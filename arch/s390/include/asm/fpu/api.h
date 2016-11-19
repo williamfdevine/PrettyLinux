@@ -58,7 +58,7 @@ static inline int test_fp_ctl(u32 fpc)
 		"0:	sfpc	%1\n"
 		"	la	%0,0\n"
 		"1:\n"
-		EX_TABLE(0b,1b)
+		EX_TABLE(0b, 1b)
 		: "=d" (rc), "=&d" (orig_fpc)
 		: "d" (fpc), "0" (-EINVAL));
 	return rc;
@@ -94,21 +94,31 @@ static inline void kernel_fpu_begin(struct kernel_fpu *state, u32 flags)
 {
 	preempt_disable();
 	state->mask = S390_lowcore.fpu_flags;
+
 	if (!test_cpu_flag(CIF_FPU))
 		/* Save user space FPU state and register contents */
+	{
 		save_fpu_regs();
+	}
 	else if (state->mask & flags)
 		/* Save FPU/vector register in-use by the kernel */
+	{
 		__kernel_fpu_begin(state, flags);
+	}
+
 	S390_lowcore.fpu_flags |= flags;
 }
 
 static inline void kernel_fpu_end(struct kernel_fpu *state, u32 flags)
 {
 	S390_lowcore.fpu_flags = state->mask;
+
 	if (state->mask & flags)
 		/* Restore FPU/vector register in-use by the kernel */
+	{
 		__kernel_fpu_end(state, flags);
+	}
+
 	preempt_enable();
 }
 

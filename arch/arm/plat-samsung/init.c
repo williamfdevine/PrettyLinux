@@ -33,37 +33,44 @@
 
 static struct cpu_table *cpu;
 
-static struct cpu_table * __init s3c_lookup_cpu(unsigned long idcode,
-						struct cpu_table *tab,
-						unsigned int count)
+static struct cpu_table *__init s3c_lookup_cpu(unsigned long idcode,
+		struct cpu_table *tab,
+		unsigned int count)
 {
-	for (; count != 0; count--, tab++) {
+	for (; count != 0; count--, tab++)
+	{
 		if ((idcode & tab->idmask) == (tab->idcode & tab->idmask))
+		{
 			return tab;
+		}
 	}
 
 	return NULL;
 }
 
 void __init s3c_init_cpu(unsigned long idcode,
-			 struct cpu_table *cputab, unsigned int cputab_size)
+						 struct cpu_table *cputab, unsigned int cputab_size)
 {
 	cpu = s3c_lookup_cpu(idcode, cputab, cputab_size);
 
-	if (cpu == NULL) {
+	if (cpu == NULL)
+	{
 		printk(KERN_ERR "Unknown CPU type 0x%08lx\n", idcode);
 		panic("Unknown S3C24XX CPU");
 	}
 
 	printk("CPU %s (id 0x%08lx)\n", cpu->name, idcode);
 
-	if (cpu->init == NULL) {
+	if (cpu->init == NULL)
+	{
 		printk(KERN_ERR "CPU %s support not enabled\n", cpu->name);
 		panic("Unsupported Samsung CPU");
 	}
 
 	if (cpu->map_io)
+	{
 		cpu->map_io();
+	}
 }
 
 /* s3c24xx_init_clocks
@@ -78,15 +85,23 @@ void __init s3c_init_cpu(unsigned long idcode,
 void __init s3c24xx_init_clocks(int xtal)
 {
 	if (xtal == 0)
-		xtal = 12*1000*1000;
+	{
+		xtal = 12 * 1000 * 1000;
+	}
 
 	if (cpu == NULL)
+	{
 		panic("s3c24xx_init_clocks: no cpu setup?\n");
+	}
 
 	if (cpu->init_clocks == NULL)
+	{
 		panic("s3c24xx_init_clocks: cpu has no clock init\n");
+	}
 	else
+	{
 		(cpu->init_clocks)(xtal);
+	}
 }
 
 /* uart management */
@@ -94,7 +109,7 @@ void __init s3c24xx_init_clocks(int xtal)
 static int nr_uarts __initdata = 0;
 
 #ifdef CONFIG_SERIAL_SAMSUNG_UARTS
-static struct s3c2410_uartcfg uart_cfgs[CONFIG_SERIAL_SAMSUNG_UARTS];
+	static struct s3c2410_uartcfg uart_cfgs[CONFIG_SERIAL_SAMSUNG_UARTS];
 #endif
 
 /* s3c24xx_init_uartdevs
@@ -107,8 +122,8 @@ static struct s3c2410_uartcfg uart_cfgs[CONFIG_SERIAL_SAMSUNG_UARTS];
 */
 
 void __init s3c24xx_init_uartdevs(char *name,
-				  struct s3c24xx_uart_resources *res,
-				  struct s3c2410_uartcfg *cfg, int no)
+								  struct s3c24xx_uart_resources *res,
+								  struct s3c2410_uartcfg *cfg, int no)
 {
 #ifdef CONFIG_SERIAL_SAMSUNG_UARTS
 	struct platform_device *platdev;
@@ -118,7 +133,8 @@ void __init s3c24xx_init_uartdevs(char *name,
 
 	memcpy(cfgptr, cfg, sizeof(struct s3c2410_uartcfg) * no);
 
-	for (uart = 0; uart < no; uart++, cfg++, cfgptr++) {
+	for (uart = 0; uart < no; uart++, cfg++, cfgptr++)
+	{
 		platdev = s3c24xx_uart_src[cfgptr->hwport];
 
 		resp = res + cfgptr->hwport;
@@ -139,12 +155,18 @@ void __init s3c24xx_init_uartdevs(char *name,
 void __init s3c24xx_init_uarts(struct s3c2410_uartcfg *cfg, int no)
 {
 	if (cpu == NULL)
+	{
 		return;
+	}
 
-	if (cpu->init_uarts == NULL && IS_ENABLED(CONFIG_SAMSUNG_ATAGS)) {
+	if (cpu->init_uarts == NULL && IS_ENABLED(CONFIG_SAMSUNG_ATAGS))
+	{
 		printk(KERN_ERR "s3c24xx_init_uarts: cpu has no uart init\n");
-	} else
+	}
+	else
+	{
 		(cpu->init_uarts)(cfg, no);
+	}
 }
 #endif
 
@@ -154,21 +176,31 @@ static int __init s3c_arch_init(void)
 
 	/* init is only needed for ATAGS based platforms */
 	if (!IS_ENABLED(CONFIG_ATAGS) ||
-	    (!soc_is_s3c24xx() && !soc_is_s3c64xx()))
+		(!soc_is_s3c24xx() && !soc_is_s3c64xx()))
+	{
 		return 0;
+	}
 
 	// do the correct init for cpu
 
-	if (cpu == NULL) {
+	if (cpu == NULL)
+	{
 		/* Not needed when booting with device tree. */
 		if (of_have_populated_dt())
+		{
 			return 0;
+		}
+
 		panic("s3c_arch_init: NULL cpu\n");
 	}
 
 	ret = (cpu->init)();
+
 	if (ret != 0)
+	{
 		return ret;
+	}
+
 #if IS_ENABLED(CONFIG_SAMSUNG_ATAGS)
 	ret = platform_add_devices(s3c24xx_uart_devs, nr_uarts);
 #endif

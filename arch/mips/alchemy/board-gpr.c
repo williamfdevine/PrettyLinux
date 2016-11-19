@@ -54,8 +54,12 @@ void __init prom_init(void)
 	prom_init_cmdline();
 
 	memsize_str = prom_getenv("memsize");
+
 	if (!memsize_str || kstrtoul(memsize_str, 0, &memsize))
+	{
 		memsize = 0x04000000;
+	}
+
 	add_memory_region(0, memsize, BOOT_MEM_RAM);
 }
 
@@ -76,14 +80,19 @@ static void gpr_reset(char *c)
 	alchemy_gpio_direction_output(1, 0);
 	udelay(1);
 	alchemy_gpio_set_value(1, 1);
+
 	while (1)
+	{
 		cpu_wait();
+	}
 }
 
 static void gpr_power_off(void)
 {
 	while (1)
+	{
 		cpu_wait();
+	}
 }
 
 void __init board_setup(void)
@@ -105,7 +114,8 @@ void __init board_setup(void)
 /*
  * Watchdog
  */
-static struct resource gpr_wdt_resource[] = {
+static struct resource gpr_wdt_resource[] =
+{
 	[0] = {
 		.start	= 1,
 		.end	= 1,
@@ -114,7 +124,8 @@ static struct resource gpr_wdt_resource[] = {
 	}
 };
 
-static struct platform_device gpr_wdt_device = {
+static struct platform_device gpr_wdt_device =
+{
 	.name = "adm6320-wdt",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(gpr_wdt_resource),
@@ -131,7 +142,8 @@ static struct platform_device gpr_wdt_device = {
  * 0x01d00000-0x01d40000 : "yamon env vars"
  * 0x00000000-0x00a00000 : "kernel+rootfs"
  */
-static struct mtd_partition gpr_mtd_partitions[] = {
+static struct mtd_partition gpr_mtd_partitions[] =
+{
 	{
 		.name	= "kernel",
 		.size	= 0x00200000,
@@ -165,19 +177,22 @@ static struct mtd_partition gpr_mtd_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data gpr_flash_data = {
+static struct physmap_flash_data gpr_flash_data =
+{
 	.width		= 4,
 	.nr_parts	= ARRAY_SIZE(gpr_mtd_partitions),
 	.parts		= gpr_mtd_partitions,
 };
 
-static struct resource gpr_mtd_resource = {
+static struct resource gpr_mtd_resource =
+{
 	.start	= 0x1e000000,
 	.end	= 0x1fffffff,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device gpr_mtd_device = {
+static struct platform_device gpr_mtd_device =
+{
 	.name		= "physmap-flash",
 	.dev		= {
 		.platform_data	= &gpr_flash_data,
@@ -189,7 +204,8 @@ static struct platform_device gpr_mtd_device = {
 /*
  * LEDs
  */
-static struct gpio_led gpr_gpio_leds[] = {
+static struct gpio_led gpr_gpio_leds[] =
+{
 	{	/* green */
 		.name			= "gpr:green",
 		.gpio			= 4,
@@ -202,12 +218,14 @@ static struct gpio_led gpr_gpio_leds[] = {
 	}
 };
 
-static struct gpio_led_platform_data gpr_led_data = {
+static struct gpio_led_platform_data gpr_led_data =
+{
 	.num_leds = ARRAY_SIZE(gpr_gpio_leds),
 	.leds = gpr_gpio_leds,
 };
 
-static struct platform_device gpr_led_devices = {
+static struct platform_device gpr_led_devices =
+{
 	.name = "leds-gpio",
 	.id = -1,
 	.dev = {
@@ -218,7 +236,8 @@ static struct platform_device gpr_led_devices = {
 /*
  * I2C
  */
-static struct i2c_gpio_platform_data gpr_i2c_data = {
+static struct i2c_gpio_platform_data gpr_i2c_data =
+{
 	.sda_pin		= 209,
 	.sda_is_open_drain	= 1,
 	.scl_pin		= 210,
@@ -227,13 +246,15 @@ static struct i2c_gpio_platform_data gpr_i2c_data = {
 	.timeout		= HZ,
 };
 
-static struct platform_device gpr_i2c_device = {
+static struct platform_device gpr_i2c_device =
+{
 	.name			= "i2c-gpio",
 	.id			= -1,
 	.dev.platform_data	= &gpr_i2c_data,
 };
 
-static struct i2c_board_info gpr_i2c_info[] __initdata = {
+static struct i2c_board_info gpr_i2c_info[] __initdata =
+{
 	{
 		I2C_BOARD_INFO("lm83", 0x18),
 		.type = "lm83"
@@ -242,7 +263,8 @@ static struct i2c_board_info gpr_i2c_info[] __initdata = {
 
 
 
-static struct resource alchemy_pci_host_res[] = {
+static struct resource alchemy_pci_host_res[] =
+{
 	[0] = {
 		.start	= AU1500_PCI_PHYS_ADDR,
 		.end	= AU1500_PCI_PHYS_ADDR + 0xfff,
@@ -253,25 +275,31 @@ static struct resource alchemy_pci_host_res[] = {
 static int gpr_map_pci_irq(const struct pci_dev *d, u8 slot, u8 pin)
 {
 	if ((slot == 0) && (pin == 1))
+	{
 		return AU1550_PCI_INTA;
+	}
 	else if ((slot == 0) && (pin == 2))
+	{
 		return AU1550_PCI_INTB;
+	}
 
 	return 0xff;
 }
 
-static struct alchemy_pci_platdata gpr_pci_pd = {
+static struct alchemy_pci_platdata gpr_pci_pd =
+{
 	.board_map_irq	= gpr_map_pci_irq,
 	.pci_cfg_set	= PCI_CONFIG_AEN | PCI_CONFIG_R2H | PCI_CONFIG_R1H |
-			  PCI_CONFIG_CH |
+	PCI_CONFIG_CH |
 #if defined(__MIPSEB__)
-			  PCI_CONFIG_SIC_HWA_DAT | PCI_CONFIG_SM,
+	PCI_CONFIG_SIC_HWA_DAT | PCI_CONFIG_SM,
 #else
-			  0,
+	0,
 #endif
 };
 
-static struct platform_device gpr_pci_host_dev = {
+static struct platform_device gpr_pci_host_dev =
+{
 	.dev.platform_data = &gpr_pci_pd,
 	.name		= "alchemy-pci",
 	.id		= 0,
@@ -279,7 +307,8 @@ static struct platform_device gpr_pci_host_dev = {
 	.resource	= alchemy_pci_host_res,
 };
 
-static struct platform_device *gpr_devices[] __initdata = {
+static struct platform_device *gpr_devices[] __initdata =
+{
 	&gpr_wdt_device,
 	&gpr_mtd_device,
 	&gpr_i2c_device,

@@ -18,16 +18,17 @@
 #include <asm/suspend.h>
 
 #ifdef CONFIG_XEN
-#include <xen/interface/xen.h>
+	#include <xen/interface/xen.h>
 #endif
 
 #ifdef CONFIG_X86_32
-# include "asm-offsets_32.c"
+	#include "asm-offsets_32.c"
 #else
-# include "asm-offsets_64.c"
+	#include "asm-offsets_64.c"
 #endif
 
-void common(void) {
+void common(void)
+{
 	BLANK();
 	OFFSET(TASK_threadsp, task_struct, thread.sp);
 #ifdef CONFIG_CC_STACKPROTECTOR

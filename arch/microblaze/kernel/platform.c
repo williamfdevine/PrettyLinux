@@ -15,7 +15,8 @@
 #include <asm/prom.h>
 #include <asm/setup.h>
 
-static struct of_device_id xilinx_of_bus_ids[] __initdata = {
+static struct of_device_id xilinx_of_bus_ids[] __initdata =
+{
 	{ .compatible = "simple-bus", },
 	{ .compatible = "xlnx,compound", },
 	{}

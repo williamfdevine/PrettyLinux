@@ -110,7 +110,8 @@ static nodepda_t *nodepdaindr[MAX_COMPACT_NODES];
  * code. This is just enough to make the console code think we're on a
  * VGA color display.
  */
-struct screen_info sn_screen_info = {
+struct screen_info sn_screen_info =
+{
 	.orig_x = 0,
 	.orig_y = 0,
 	.orig_video_mode = 3,
@@ -136,11 +137,15 @@ static int __init pxm_to_nasid(int pxm)
 	int nid;
 
 	nid = pxm_to_node(pxm);
-	for (i = 0; i < num_node_memblks; i++) {
-		if (node_memblk[i].nid == nid) {
+
+	for (i = 0; i < num_node_memblks; i++)
+	{
+		if (node_memblk[i].nid == nid)
+		{
 			return NASID_GET(node_memblk[i].start_paddr);
 		}
 	}
+
 	return -1;
 }
 
@@ -169,24 +174,32 @@ void __init early_sn_setup(void)
 	 */
 	efi_systab = (efi_system_table_t *) __va(ia64_boot_param->efi_systab);
 	config_tables = __va(efi_systab->tables);
-	for (i = 0; i < efi_systab->nr_tables; i++) {
+
+	for (i = 0; i < efi_systab->nr_tables; i++)
+	{
 		if (efi_guidcmp(config_tables[i].guid, SAL_SYSTEM_TABLE_GUID) ==
-		    0) {
+			0)
+		{
 			sal_systab = __va(config_tables[i].table);
 			p = (char *)(sal_systab + 1);
-			for (j = 0; j < sal_systab->entry_count; j++) {
-				if (*p == SAL_DESC_ENTRY_POINT) {
+
+			for (j = 0; j < sal_systab->entry_count; j++)
+			{
+				if (*p == SAL_DESC_ENTRY_POINT)
+				{
 					ep = (struct ia64_sal_desc_entry_point
-					      *)p;
+						  *)p;
 					ia64_sal_handler_init(__va
-							      (ep->sal_proc),
-							      __va(ep->gp));
+										  (ep->sal_proc),
+										  __va(ep->gp));
 					return;
 				}
+
 				p += SAL_DESC_SIZE(*p);
 			}
 		}
 	}
+
 	/* Uh-oh, SAL not available?? */
 	printk(KERN_ERR "failed to find SAL entry point\n");
 }
@@ -206,7 +219,10 @@ static inline int is_shub_1_1(int nasid)
 	int rev;
 
 	if (is_shub2())
+	{
 		return 0;
+	}
+
 	id = REMOTE_HUB_L(nasid, SH1_SHUB_ID);
 	rev = (id & SH1_SHUB_ID_REVISION_MASK) >> SH1_SHUB_ID_REVISION_SHFT;
 	return rev <= 2;
@@ -216,12 +232,18 @@ static void sn_check_for_wars(void)
 {
 	int cnode;
 
-	if (is_shub2()) {
+	if (is_shub2())
+	{
 		/* none yet */
-	} else {
-		for_each_online_node(cnode) {
+	}
+	else
+	{
+		for_each_online_node(cnode)
+		{
 			if (is_shub_1_1(cnodeid_to_nasid(cnode)))
+			{
 				shub_1_1_found = 1;
+			}
 		}
 	}
 }
@@ -244,11 +266,13 @@ static void sn_check_for_wars(void)
  * this file to a more public location just for Altix use was undesirable.
  */
 
-struct hcdp_uart_desc {
+struct hcdp_uart_desc
+{
 	u8	pad[45];
 };
 
-struct pcdp {
+struct pcdp
+{
 	u8	signature[4];	/* should be 'HCDP' */
 	u32	length;
 	u8	rev;		/* should be >=3 for pcdp, <3 for hcdp */
@@ -263,7 +287,8 @@ struct pcdp {
 	/* pcdp descriptors follow */
 }  __attribute__((packed));
 
-struct pcdp_device_desc {
+struct pcdp_device_desc
+{
 	u8	type;
 	u8	primary;
 	u16	length;
@@ -272,7 +297,8 @@ struct pcdp_device_desc {
 	/* device specific structure follows that */
 }  __attribute__((packed));
 
-struct pcdp_interface_pci {
+struct pcdp_interface_pci
+{
 	u8	type;		/* 1 == pci */
 	u8	reserved;
 	u16	length;
@@ -289,7 +315,8 @@ struct pcdp_interface_pci {
 	u8	translation;
 }  __attribute__((packed));
 
-struct pcdp_vga_device {
+struct pcdp_vga_device
+{
 	u8	num_eas_desc;
 	/* ACPI Extended Address Space Desc follows */
 }  __attribute__((packed));
@@ -324,29 +351,44 @@ sn_scan_pcdp(void)
 	extern struct efi efi;
 
 	if (efi.hcdp == EFI_INVALID_TABLE_ADDR)
-		return;		/* no hcdp/pcdp table */
+	{
+		return;    /* no hcdp/pcdp table */
+	}
 
 	pcdp = __va(efi.hcdp);
 
 	if (pcdp->rev < 3)
-		return;		/* only support PCDP (rev >= 3) */
+	{
+		return;    /* only support PCDP (rev >= 3) */
+	}
 
 	for (bp = (u8 *)&pcdp->uart[pcdp->num_type0];
-	     bp < (u8 *)pcdp + pcdp->length;
-	     bp += device.length) {
+		 bp < (u8 *)pcdp + pcdp->length;
+		 bp += device.length)
+	{
 		memcpy(&device, bp, sizeof(device));
+
 		if (! (device.primary & PCDP_PRIMARY_CONSOLE))
-			continue;	/* not primary console */
+		{
+			continue;    /* not primary console */
+		}
 
 		if (device.type != PCDP_CONSOLE_VGA)
-			continue;	/* not VGA descriptor */
+		{
+			continue;    /* not VGA descriptor */
+		}
 
-		memcpy(&if_pci, bp+sizeof(device), sizeof(if_pci));
+		memcpy(&if_pci, bp + sizeof(device), sizeof(if_pci));
+
 		if (if_pci.type != PCDP_IF_PCI)
-			continue;	/* not PCI interconnect */
+		{
+			continue;    /* not PCI interconnect */
+		}
 
 		if (if_pci.translation & PCDP_PCI_TRANS_IOPORT)
+		{
 			vga_console_iobase = if_pci.ioport_tra;
+		}
 
 		if (if_pci.translation & PCDP_PCI_TRANS_MMIO)
 			vga_console_membase =
@@ -410,33 +452,46 @@ void __init sn_setup(char **cmdline_p)
 	 */
 
 	if (! vga_console_membase)
+	{
 		sn_scan_pcdp();
+	}
 
 	/*
 	 *	Setup legacy IO space.
 	 *	vga_console_iobase maps to PCI IO Space address 0 on the
 	 * 	bus containing the VGA console.
 	 */
-	if (vga_console_iobase) {
+	if (vga_console_iobase)
+	{
 		io_space[0].mmio_base =
 			(unsigned long) ioremap(vga_console_iobase, 0);
 		io_space[0].sparse = 0;
 	}
 
-	if (vga_console_membase) {
+	if (vga_console_membase)
+	{
 		/* usable vga ... make tty0 the preferred default console */
 		if (!strstr(*cmdline_p, "console="))
+		{
 			add_preferred_console("tty", 0, NULL);
-	} else {
+		}
+	}
+	else
+	{
 		printk(KERN_DEBUG "SGI: Disabling VGA console\n");
+
 		if (!strstr(*cmdline_p, "console="))
+		{
 			add_preferred_console("ttySG", 0, NULL);
+		}
+
 #ifdef CONFIG_DUMMY_CONSOLE
 		conswitchp = &dummy_con;
 #else
 		conswitchp = NULL;
 #endif				/* CONFIG_DUMMY_CONSOLE */
 	}
+
 #endif				/* def(CONFIG_VT) && def(CONFIG_VGA_CONSOLE) */
 
 	MAX_DMA_ADDRESS = PAGE_OFFSET + MAX_PHYS_MEMORY;
@@ -447,15 +502,20 @@ void __init sn_setup(char **cmdline_p)
 	build_cnode_tables();
 
 	status =
-	    ia64_sal_freq_base(SAL_FREQ_BASE_REALTIME_CLOCK, &ticks_per_sec,
-			       &drift);
-	if (status != 0 || ticks_per_sec < 100000) {
+		ia64_sal_freq_base(SAL_FREQ_BASE_REALTIME_CLOCK, &ticks_per_sec,
+						   &drift);
+
+	if (status != 0 || ticks_per_sec < 100000)
+	{
 		printk(KERN_WARNING
-		       "unable to determine platform RTC clock frequency, guessing.\n");
+			   "unable to determine platform RTC clock frequency, guessing.\n");
 		/* PROM gives wrong value for clock freq. so guess */
 		sn_rtc_cycles_per_second = 1000000000000UL / 30000UL;
-	} else
+	}
+	else
+	{
 		sn_rtc_cycles_per_second = ticks_per_sec;
+	}
 
 	platform_intr_list[ACPI_INTERRUPT_CPEI] = IA64_CPE_VECTOR;
 
@@ -509,11 +569,12 @@ static void __init sn_init_pdas(char **cmdline_p)
 	/*
 	 * Allocate & initialize the nodepda for each node.
 	 */
-	for_each_online_node(cnode) {
+	for_each_online_node(cnode)
+	{
 		nodepdaindr[cnode] =
-		    alloc_bootmem_node(NODE_DATA(cnode), sizeof(nodepda_t));
+			alloc_bootmem_node(NODE_DATA(cnode), sizeof(nodepda_t));
 		memset(nodepdaindr[cnode]->phys_cpuid, -1,
-		    sizeof(nodepdaindr[cnode]->phys_cpuid));
+			   sizeof(nodepdaindr[cnode]->phys_cpuid));
 		spin_lock_init(&nodepdaindr[cnode]->ptc_lock);
 	}
 
@@ -522,21 +583,22 @@ static void __init sn_init_pdas(char **cmdline_p)
 	 */
 	for (cnode = num_online_nodes(); cnode < num_cnodes; cnode++)
 		nodepdaindr[cnode] =
-		    alloc_bootmem_node(NODE_DATA(0), sizeof(nodepda_t));
+			alloc_bootmem_node(NODE_DATA(0), sizeof(nodepda_t));
 
 	/*
 	 * Now copy the array of nodepda pointers to each nodepda.
 	 */
 	for (cnode = 0; cnode < num_cnodes; cnode++)
 		memcpy(nodepdaindr[cnode]->pernode_pdaindr, nodepdaindr,
-		       sizeof(nodepdaindr));
+			   sizeof(nodepdaindr));
 
 	/*
 	 * Set up IO related platform-dependent nodepda fields.
 	 * The following routine actually sets up the hubinfo struct
 	 * in nodepda.
 	 */
-	for_each_online_node(cnode) {
+	for_each_online_node(cnode)
+	{
 		bte_init_node(nodepdaindr[cnode], cnode);
 	}
 
@@ -544,7 +606,8 @@ static void __init sn_init_pdas(char **cmdline_p)
 	 * Initialize the per node hubdev.  This includes IO Nodes and
 	 * headless/memless nodes.
 	 */
-	for (cnode = 0; cnode < num_cnodes; cnode++) {
+	for (cnode = 0; cnode < num_cnodes; cnode++)
+	{
 		hubdev_init_node(nodepdaindr[cnode], cnode);
 	}
 }
@@ -570,23 +633,34 @@ void sn_cpu_init(void)
 	static int wars_have_been_checked, set_cpu0_number;
 
 	cpuid = smp_processor_id();
-	if (cpuid == 0 && IS_MEDUSA()) {
+
+	if (cpuid == 0 && IS_MEDUSA())
+	{
 		if (ia64_sn_is_fake_prom())
+		{
 			sn_prom_type = 2;
+		}
 		else
+		{
 			sn_prom_type = 1;
+		}
+
 		printk(KERN_INFO "Running on medusa with %s PROM\n",
-		       (sn_prom_type == 1) ? "real" : "fake");
+			   (sn_prom_type == 1) ? "real" : "fake");
 	}
 
 	memset(pda, 0, sizeof(*pda));
+
 	if (ia64_sn_get_sn_info(0, &sn_hub_info->shub2,
-				&sn_hub_info->nasid_bitmask,
-				&sn_hub_info->nasid_shift,
-				&sn_system_size, &sn_sharing_domain_size,
-				&sn_partition_id, &sn_coherency_id,
-				&sn_region_size))
+							&sn_hub_info->nasid_bitmask,
+							&sn_hub_info->nasid_shift,
+							&sn_system_size, &sn_sharing_domain_size,
+							&sn_partition_id, &sn_coherency_id,
+							&sn_region_size))
+	{
 		BUG();
+	}
+
 	sn_hub_info->as_shift = sn_hub_info->nasid_shift - 2;
 
 	/*
@@ -595,32 +669,45 @@ void sn_cpu_init(void)
 	 * Architecturally, cpu_init is always called twice on cpu 0. We
 	 * should set cpu_number on cpu 0 once.
 	 */
-	if (cpuid == 0) {
-		if (!set_cpu0_number) {
+	if (cpuid == 0)
+	{
+		if (!set_cpu0_number)
+		{
 			(void) ia64_sn_set_cpu_number(cpuid);
 			set_cpu0_number = 1;
 		}
-	} else
+	}
+	else
+	{
 		(void) ia64_sn_set_cpu_number(cpuid);
+	}
 
 	/*
 	 * The boot cpu makes this call again after platform initialization is
 	 * complete.
 	 */
 	if (nodepdaindr[0] == NULL)
+	{
 		return;
+	}
 
 	for (i = 0; i < MAX_PROM_FEATURE_SETS; i++)
 		if (ia64_sn_get_prom_feature_set(i, &sn_prom_features[i]) != 0)
+		{
 			break;
+		}
 
 	cpuphyid = get_sapicid();
 
 	if (ia64_sn_get_sapic_info(cpuphyid, &nasid, &subnode, &slice))
+	{
 		BUG();
+	}
 
-	for (i=0; i < MAX_NUMNODES; i++) {
-		if (nodepdaindr[i]) {
+	for (i = 0; i < MAX_NUMNODES; i++)
+	{
+		if (nodepdaindr[i])
+		{
 			nodepdaindr[i]->phys_cpuid[cpuid].nasid = nasid;
 			nodepdaindr[i]->phys_cpuid[cpuid].slice = slice;
 			nodepdaindr[i]->phys_cpuid[cpuid].subnode = subnode;
@@ -632,17 +719,18 @@ void sn_cpu_init(void)
 	__this_cpu_write(__sn_nodepda, nodepdaindr[cnode]);
 
 	pda->led_address =
-	    (typeof(pda->led_address)) (LED0 + (slice << LED_CPU_SHIFT));
+		(typeof(pda->led_address)) (LED0 + (slice << LED_CPU_SHIFT));
 	pda->led_state = LED_ALWAYS_SET;
 	pda->hb_count = HZ / 2;
 	pda->hb_state = 0;
 	pda->idle_flag = 0;
 
-	if (cpuid != 0) {
+	if (cpuid != 0)
+	{
 		/* copy cpu 0's sn_cnodeid_to_nasid table to this cpu's */
 		memcpy(sn_cnodeid_to_nasid,
-		       (&per_cpu(__sn_cnodeid_to_nasid, 0)),
-		       sizeof(__ia64_per_cpu_var(__sn_cnodeid_to_nasid)));
+			   (&per_cpu(__sn_cnodeid_to_nasid, 0)),
+			   sizeof(__ia64_per_cpu_var(__sn_cnodeid_to_nasid)));
 	}
 
 	/*
@@ -653,10 +741,12 @@ void sn_cpu_init(void)
 	 * isn't cpu 0.
 	 * Has to be done before assignment below.
 	 */
-	if (!wars_have_been_checked) {
+	if (!wars_have_been_checked)
+	{
 		sn_check_for_wars();
 		wars_have_been_checked = 1;
 	}
+
 	sn_hub_info->shub_1_1_found = shub_1_1_found;
 
 	/*
@@ -665,25 +755,27 @@ void sn_cpu_init(void)
 	{
 		u64 pio1[] = {SH1_PIO_WRITE_STATUS_0, 0, SH1_PIO_WRITE_STATUS_1, 0};
 		u64 pio2[] = {SH2_PIO_WRITE_STATUS_0, SH2_PIO_WRITE_STATUS_2,
-			SH2_PIO_WRITE_STATUS_1, SH2_PIO_WRITE_STATUS_3};
+					  SH2_PIO_WRITE_STATUS_1, SH2_PIO_WRITE_STATUS_3
+					 };
 		u64 *pio;
 		pio = is_shub1() ? pio1 : pio2;
 		pda->pio_write_status_addr =
-		   (volatile unsigned long *)GLOBAL_MMR_ADDR(nasid, pio[slice]);
+			(volatile unsigned long *)GLOBAL_MMR_ADDR(nasid, pio[slice]);
 		pda->pio_write_status_val = is_shub1() ? SH_PIO_WRITE_STATUS_PENDING_WRITE_COUNT_MASK : 0;
 	}
 
 	/*
 	 * WAR addresses for SHUB 1.x.
 	 */
-	if (local_node_data->active_cpu_count++ == 0 && is_shub1()) {
+	if (local_node_data->active_cpu_count++ == 0 && is_shub1())
+	{
 		int buddy_nasid;
 		buddy_nasid =
-		    cnodeid_to_nasid(numa_node_id() ==
-				     num_online_nodes() - 1 ? 0 : numa_node_id() + 1);
+			cnodeid_to_nasid(numa_node_id() ==
+							 num_online_nodes() - 1 ? 0 : numa_node_id() + 1);
 		pda->pio_shub_war_cam_addr =
-		    (volatile unsigned long *)GLOBAL_MMR_ADDR(nasid,
-							      SH1_PI_CAM_CONTROL);
+			(volatile unsigned long *)GLOBAL_MMR_ADDR(nasid,
+					SH1_PI_CAM_CONTROL);
 	}
 }
 
@@ -703,13 +795,14 @@ void __init build_cnode_tables(void)
 
 	memset(physical_node_map, -1, sizeof(physical_node_map));
 	memset(sn_cnodeid_to_nasid, -1,
-			sizeof(__ia64_per_cpu_var(__sn_cnodeid_to_nasid)));
+		   sizeof(__ia64_per_cpu_var(__sn_cnodeid_to_nasid)));
 
 	/*
 	 * First populate the tables with C/M bricks. This ensures that
 	 * cnode == node for all C & M bricks.
 	 */
-	for_each_online_node(node) {
+	for_each_online_node(node)
+	{
 		nasid = pxm_to_nasid(node_to_pxm(node));
 		sn_cnodeid_to_nasid[node] = nasid;
 		physical_node_map[nasid] = node;
@@ -717,7 +810,7 @@ void __init build_cnode_tables(void)
 
 	/*
 	 * num_cnodes is total number of C/M/TIO bricks. Because of the 256 node
-	 * limit on the number of nodes, we can't use the generic node numbers 
+	 * limit on the number of nodes, we can't use the generic node numbers
 	 * for this. Note that num_cnodes is incremented below as TIOs or
 	 * headless/memoryless nodes are discovered.
 	 */
@@ -725,20 +818,27 @@ void __init build_cnode_tables(void)
 
 	/* fakeprom does not support klgraph */
 	if (IS_RUNNING_ON_FAKE_PROM())
+	{
 		return;
+	}
 
 	/* Find TIOs & headless/memoryless nodes and add them to the tables */
-	for_each_online_node(node) {
+	for_each_online_node(node)
+	{
 		kl_config_hdr_t *klgraph_header;
 		nasid = cnodeid_to_nasid(node);
 		klgraph_header = ia64_sn_get_klconfig_addr(nasid);
 		BUG_ON(klgraph_header == NULL);
 		brd = NODE_OFFSET_TO_LBOARD(nasid, klgraph_header->ch_board_info);
-		while (brd) {
-			if (board_needs_cnode(brd->brd_type) && physical_node_map[brd->brd_nasid] < 0) {
+
+		while (brd)
+		{
+			if (board_needs_cnode(brd->brd_type) && physical_node_map[brd->brd_nasid] < 0)
+			{
 				sn_cnodeid_to_nasid[num_cnodes] = brd->brd_nasid;
 				physical_node_map[brd->brd_nasid] = num_cnodes++;
 			}
+
 			brd = find_lboard_next(brd);
 		}
 	}
@@ -751,8 +851,10 @@ nasid_slice_to_cpuid(int nasid, int slice)
 
 	for (cpu = 0; cpu < nr_cpu_ids; cpu++)
 		if (cpuid_to_nasid(cpu) == nasid &&
-					cpuid_to_slice(cpu) == slice)
+			cpuid_to_slice(cpu) == slice)
+		{
 			return cpu;
+		}
 
 	return -1;
 }
@@ -760,7 +862,10 @@ nasid_slice_to_cpuid(int nasid, int slice)
 int sn_prom_feature_available(int id)
 {
 	if (id >= BITS_PER_LONG * MAX_PROM_FEATURE_SETS)
+	{
 		return 0;
+	}
+
 	return test_bit(id, sn_prom_features);
 }
 
@@ -769,7 +874,9 @@ sn_kernel_launch_event(void)
 {
 	/* ignore status until we understand possible failure, if any*/
 	if (ia64_sn_kernel_launch_event())
+	{
 		printk(KERN_ERR "KEXEC is not supported in this PROM, Please update the PROM.\n");
+	}
 }
 EXPORT_SYMBOL(sn_prom_feature_available);
 

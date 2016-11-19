@@ -29,7 +29,8 @@
 #include "soc.h"
 #include "ts72xx.h"
 
-static struct map_desc ts72xx_io_desc[] __initdata = {
+static struct map_desc ts72xx_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)TS72XX_MODEL_VIRT_BASE,
 		.pfn		= __phys_to_pfn(TS72XX_MODEL_PHYS_BASE),
@@ -72,11 +73,12 @@ static void __init ts72xx_map_io(void)
 #define TS72XX_NAND_BUSY_ADDR_LINE	23	/* 0xN0800000 */
 
 static void ts72xx_nand_hwcontrol(struct mtd_info *mtd,
-				  int cmd, unsigned int ctrl)
+								  int cmd, unsigned int ctrl)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 
-	if (ctrl & NAND_CTRL_CHANGE) {
+	if (ctrl & NAND_CTRL_CHANGE)
+	{
 		void __iomem *addr = chip->IO_ADDR_R;
 		unsigned char bits;
 
@@ -91,7 +93,9 @@ static void ts72xx_nand_hwcontrol(struct mtd_info *mtd,
 	}
 
 	if (cmd != NAND_CMD_NONE)
+	{
 		__raw_writeb(cmd, chip->IO_ADDR_W);
+	}
 }
 
 static int ts72xx_nand_device_ready(struct mtd_info *mtd)
@@ -107,7 +111,8 @@ static int ts72xx_nand_device_ready(struct mtd_info *mtd)
 #define TS72XX_BOOTROM_PART_SIZE	(SZ_16K)
 #define TS72XX_REDBOOT_PART_SIZE	(SZ_2M + SZ_1M)
 
-static struct mtd_partition ts72xx_nand_parts[] = {
+static struct mtd_partition ts72xx_nand_parts[] =
+{
 	{
 		.name		= "TS-BOOTROM",
 		.offset		= 0,
@@ -117,7 +122,7 @@ static struct mtd_partition ts72xx_nand_parts[] = {
 		.name		= "Linux",
 		.offset		= MTDPART_OFS_RETAIN,
 		.size		= TS72XX_REDBOOT_PART_SIZE,
-				/* leave so much for last partition */
+		/* leave so much for last partition */
 	}, {
 		.name		= "RedBoot",
 		.offset		= MTDPART_OFS_APPEND,
@@ -126,7 +131,8 @@ static struct mtd_partition ts72xx_nand_parts[] = {
 	},
 };
 
-static struct platform_nand_data ts72xx_nand_data = {
+static struct platform_nand_data ts72xx_nand_data =
+{
 	.chip = {
 		.nr_chips	= 1,
 		.chip_offset	= 0,
@@ -140,7 +146,8 @@ static struct platform_nand_data ts72xx_nand_data = {
 	},
 };
 
-static struct resource ts72xx_nand_resource[] = {
+static struct resource ts72xx_nand_resource[] =
+{
 	{
 		.start		= 0,			/* filled in later */
 		.end		= 0,			/* filled in later */
@@ -148,7 +155,8 @@ static struct resource ts72xx_nand_resource[] = {
 	},
 };
 
-static struct platform_device ts72xx_nand_flash = {
+static struct platform_device ts72xx_nand_flash =
+{
 	.name			= "gen_nand",
 	.id			= -1,
 	.dev.platform_data	= &ts72xx_nand_data,
@@ -162,15 +170,22 @@ static void __init ts72xx_register_flash(void)
 	/*
 	 * TS7200 has NOR flash all other TS72xx board have NAND flash.
 	 */
-	if (board_is_ts7200()) {
+	if (board_is_ts7200())
+	{
 		ep93xx_register_flash(2, EP93XX_CS6_PHYS_BASE, SZ_16M);
-	} else {
+	}
+	else
+	{
 		resource_size_t start;
 
 		if (is_ts9420_installed())
+		{
 			start = EP93XX_CS7_PHYS_BASE;
+		}
 		else
+		{
 			start = EP93XX_CS6_PHYS_BASE;
+		}
 
 		ts72xx_nand_resource[0].start = start;
 		ts72xx_nand_resource[0].end = start + SZ_16M - 1;
@@ -192,12 +207,14 @@ static void ts72xx_rtc_writebyte(unsigned char value, unsigned long addr)
 	__raw_writeb(value, TS72XX_RTC_DATA_VIRT_BASE);
 }
 
-static struct m48t86_ops ts72xx_rtc_ops = {
+static struct m48t86_ops ts72xx_rtc_ops =
+{
 	.readbyte	= ts72xx_rtc_readbyte,
 	.writebyte	= ts72xx_rtc_writebyte,
 };
 
-static struct platform_device ts72xx_rtc_device = {
+static struct platform_device ts72xx_rtc_device =
+{
 	.name		= "rtc-m48t86",
 	.id		= -1,
 	.dev		= {
@@ -206,7 +223,8 @@ static struct platform_device ts72xx_rtc_device = {
 	.num_resources	= 0,
 };
 
-static struct resource ts72xx_wdt_resources[] = {
+static struct resource ts72xx_wdt_resources[] =
+{
 	{
 		.start	= TS72XX_WDT_CONTROL_PHYS_BASE,
 		.end	= TS72XX_WDT_CONTROL_PHYS_BASE + SZ_4K - 1,
@@ -219,14 +237,16 @@ static struct resource ts72xx_wdt_resources[] = {
 	},
 };
 
-static struct platform_device ts72xx_wdt_device = {
+static struct platform_device ts72xx_wdt_device =
+{
 	.name		= "ts72xx-wdt",
 	.id		= -1,
 	.num_resources 	= ARRAY_SIZE(ts72xx_wdt_resources),
 	.resource	= ts72xx_wdt_resources,
 };
 
-static struct ep93xx_eth_data __initdata ts72xx_eth_data = {
+static struct ep93xx_eth_data __initdata ts72xx_eth_data =
+{
 	.phy_id		= 1,
 };
 
@@ -241,12 +261,12 @@ static void __init ts72xx_init_machine(void)
 }
 
 MACHINE_START(TS72XX, "Technologic Systems TS-72xx SBC")
-	/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
+.atag_offset	= 0x100,
 	.map_io		= ts72xx_map_io,
-	.init_irq	= ep93xx_init_irq,
-	.init_time	= ep93xx_timer_init,
-	.init_machine	= ts72xx_init_machine,
-	.init_late	= ep93xx_init_late,
-	.restart	= ep93xx_restart,
-MACHINE_END
+		.init_irq	= ep93xx_init_irq,
+		   .init_time	= ep93xx_timer_init,
+			 .init_machine	= ts72xx_init_machine,
+				.init_late	= ep93xx_init_late,
+				  .restart	= ep93xx_restart,
+					  MACHINE_END

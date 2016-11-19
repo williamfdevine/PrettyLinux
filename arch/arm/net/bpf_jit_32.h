@@ -156,15 +156,15 @@
 #define ARM_EOR_I(rd, rn, imm)	_AL3_I(ARM_INST_EOR, rd, rn, imm)
 
 #define ARM_LDR_I(rt, rn, off)	(ARM_INST_LDR_I | (rt) << 12 | (rn) << 16 \
-				 | (off))
+								 | (off))
 #define ARM_LDRB_I(rt, rn, off)	(ARM_INST_LDRB_I | (rt) << 12 | (rn) << 16 \
-				 | (off))
+								 | (off))
 #define ARM_LDRB_R(rt, rn, rm)	(ARM_INST_LDRB_R | (rt) << 12 | (rn) << 16 \
-				 | (rm))
+								 | (rm))
 #define ARM_LDRH_I(rt, rn, off)	(ARM_INST_LDRH_I | (rt) << 12 | (rn) << 16 \
-				 | (((off) & 0xf0) << 4) | ((off) & 0xf))
+								 | (((off) & 0xf0) << 4) | ((off) & 0xf))
 #define ARM_LDRH_R(rt, rn, rm)	(ARM_INST_LDRH_R | (rt) << 12 | (rn) << 16 \
-				 | (rm))
+								 | (rm))
 
 #define ARM_LDM(rn, regs)	(ARM_INST_LDM | (rn) << 16 | (regs))
 
@@ -202,7 +202,7 @@
 #define ARM_SUB_I(rd, rn, imm)	_AL3_I(ARM_INST_SUB, rd, rn, imm)
 
 #define ARM_STR_I(rt, rn, off)	(ARM_INST_STR_I | (rt) << 12 | (rn) << 16 \
-				 | (off))
+								 | (off))
 
 #define ARM_TST_R(rn, rm)	_AL3_R(ARM_INST_TST, 0, rn, rm)
 #define ARM_TST_I(rn, imm)	_AL3_I(ARM_INST_TST, 0, rn, imm)
@@ -210,9 +210,9 @@
 #define ARM_UDIV(rd, rn, rm)	(ARM_INST_UDIV | (rd) << 16 | (rn) | (rm) << 8)
 
 #define ARM_UMULL(rd_lo, rd_hi, rn, rm)	(ARM_INST_UMULL | (rd_hi) << 16 \
-					 | (rd_lo) << 12 | (rm) << 8 | rn)
+		| (rd_lo) << 12 | (rm) << 8 | rn)
 
 #define ARM_MLS(rd, rn, rm, ra)	(ARM_INST_MLS | (rd) << 16 | (rn) | (rm) << 8 \
-				 | (ra) << 12)
+								 | (ra) << 12)
 
 #endif /* PFILTER_OPCODES_ARM_H */

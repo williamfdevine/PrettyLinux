@@ -31,7 +31,8 @@
  */
 
 /* A context object used to manage UART resources. */
-typedef struct {
+typedef struct
+{
 
 	/* File descriptor for calling up to the hypervisor. */
 	int fd;
@@ -56,9 +57,9 @@ typedef struct {
  *  configured to interrupt.
  */
 extern int gxio_uart_cfg_interrupt(gxio_uart_context_t *context,
-				   int bind_cpu_x,
-				   int bind_cpu_y,
-				   int bind_interrupt, int bind_event);
+								   int bind_cpu_x,
+								   int bind_cpu_y,
+								   int bind_interrupt, int bind_event);
 
 /* Initialize a UART context.
  *
@@ -93,7 +94,7 @@ extern int gxio_uart_destroy(gxio_uart_context_t *context);
  * @param word Data will be wrote to UART reigister.
  */
 extern void gxio_uart_write(gxio_uart_context_t *context, uint64_t offset,
-			    uint64_t word);
+							uint64_t word);
 
 /* Read UART register.
  * @param context Pointer to a gxio_uart_context_t.

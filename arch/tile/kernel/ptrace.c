@@ -67,8 +67,12 @@ static char *getregs(struct task_struct *child, struct pt_regs *uregs)
 	/* Set up flags ABI bits. */
 	uregs->flags = 0;
 #ifdef CONFIG_COMPAT
+
 	if (task_thread_info(child)->status & TS_COMPAT)
+	{
 		uregs->flags |= PT_FLAGS_COMPAT;
+	}
+
 #endif
 
 	return (char *)uregs;
@@ -88,42 +92,47 @@ static void putregs(struct task_struct *child, struct pt_regs *uregs)
 	*regs = *uregs;
 }
 
-enum tile_regset {
+enum tile_regset
+{
 	REGSET_GPR,
 };
 
 static int tile_gpr_get(struct task_struct *target,
-			  const struct user_regset *regset,
-			  unsigned int pos, unsigned int count,
-			  void *kbuf, void __user *ubuf)
+						const struct user_regset *regset,
+						unsigned int pos, unsigned int count,
+						void *kbuf, void __user *ubuf)
 {
 	struct pt_regs regs;
 
 	getregs(target, &regs);
 
 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf, &regs, 0,
-				   sizeof(regs));
+							   sizeof(regs));
 }
 
 static int tile_gpr_set(struct task_struct *target,
-			  const struct user_regset *regset,
-			  unsigned int pos, unsigned int count,
-			  const void *kbuf, const void __user *ubuf)
+						const struct user_regset *regset,
+						unsigned int pos, unsigned int count,
+						const void *kbuf, const void __user *ubuf)
 {
 	int ret;
 	struct pt_regs regs;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &regs, 0,
-				 sizeof(regs));
+							 sizeof(regs));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	putregs(target, &regs);
 
 	return 0;
 }
 
-static const struct user_regset tile_user_regset[] = {
+static const struct user_regset tile_user_regset[] =
+{
 	[REGSET_GPR] = {
 		.core_note_type = NT_PRSTATUS,
 		.n = ELF_NGREG,
@@ -134,7 +143,8 @@ static const struct user_regset tile_user_regset[] = {
 	},
 };
 
-static const struct user_regset_view tile_user_regset_view = {
+static const struct user_regset_view tile_user_regset_view =
+{
 	.name = CHIP_ARCH_NAME,
 	.e_machine = ELF_ARCH,
 	.ei_osabi = ELF_OSABI,
@@ -148,7 +158,7 @@ const struct user_regset_view *task_user_regset_view(struct task_struct *task)
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	unsigned long __user *datap = (long __user __force *)data;
 	unsigned long tmp;
@@ -156,87 +166,119 @@ long arch_ptrace(struct task_struct *child, long request,
 	char *childreg;
 	struct pt_regs copyregs;
 
-	switch (request) {
+	switch (request)
+	{
 
-	case PTRACE_PEEKUSR:  /* Read register from pt_regs. */
-		if (addr >= PTREGS_SIZE)
-			break;
-		childreg = getregs(child, &copyregs) + addr;
+		case PTRACE_PEEKUSR:  /* Read register from pt_regs. */
+			if (addr >= PTREGS_SIZE)
+			{
+				break;
+			}
+
+			childreg = getregs(child, &copyregs) + addr;
 #ifdef CONFIG_COMPAT
-		if (is_compat_task()) {
-			if (addr & (sizeof(compat_long_t)-1))
-				break;
-			ret = put_user(*(compat_long_t *)childreg,
-				       (compat_long_t __user *)datap);
-		} else
-#endif
-		{
-			if (addr & (sizeof(long)-1))
-				break;
-			ret = put_user(*(long *)childreg, datap);
-		}
-		break;
 
-	case PTRACE_POKEUSR:  /* Write register in pt_regs. */
-		if (addr >= PTREGS_SIZE)
+			if (is_compat_task())
+			{
+				if (addr & (sizeof(compat_long_t) - 1))
+				{
+					break;
+				}
+
+				ret = put_user(*(compat_long_t *)childreg,
+							   (compat_long_t __user *)datap);
+			}
+			else
+#endif
+			{
+				if (addr & (sizeof(long) - 1))
+				{
+					break;
+				}
+
+				ret = put_user(*(long *)childreg, datap);
+			}
+
 			break;
-		childreg = getregs(child, &copyregs) + addr;
-#ifdef CONFIG_COMPAT
-		if (is_compat_task()) {
-			if (addr & (sizeof(compat_long_t)-1))
+
+		case PTRACE_POKEUSR:  /* Write register in pt_regs. */
+			if (addr >= PTREGS_SIZE)
+			{
 				break;
-			*(compat_long_t *)childreg = data;
-		} else
+			}
+
+			childreg = getregs(child, &copyregs) + addr;
+#ifdef CONFIG_COMPAT
+
+			if (is_compat_task())
+			{
+				if (addr & (sizeof(compat_long_t) - 1))
+				{
+					break;
+				}
+
+				*(compat_long_t *)childreg = data;
+			}
+			else
 #endif
-		{
-			if (addr & (sizeof(long)-1))
-				break;
-			*(long *)childreg = data;
-		}
-		putregs(child, &copyregs);
-		ret = 0;
-		break;
+			{
+				if (addr & (sizeof(long) - 1))
+				{
+					break;
+				}
 
-	case PTRACE_GETREGS:  /* Get all registers from the child. */
-		ret = copy_regset_to_user(child, &tile_user_regset_view,
-					  REGSET_GPR, 0,
-					  sizeof(struct pt_regs), datap);
-		break;
+				*(long *)childreg = data;
+			}
 
-	case PTRACE_SETREGS:  /* Set all registers in the child. */
-		ret = copy_regset_from_user(child, &tile_user_regset_view,
-					    REGSET_GPR, 0,
-					    sizeof(struct pt_regs), datap);
-		break;
-
-	case PTRACE_GETFPREGS:  /* Get the child FPU state. */
-	case PTRACE_SETFPREGS:  /* Set the child FPU state. */
-		break;
-
-	case PTRACE_SETOPTIONS:
-		/* Support TILE-specific ptrace options. */
-		BUILD_BUG_ON(PTRACE_O_MASK_TILE & PTRACE_O_MASK);
-		tmp = data & PTRACE_O_MASK_TILE;
-		data &= ~PTRACE_O_MASK_TILE;
-		ret = ptrace_request(child, request, addr, data);
-		if (ret == 0) {
-			unsigned int flags = child->ptrace;
-			flags &= ~(PTRACE_O_MASK_TILE << PT_OPT_FLAG_SHIFT);
-			flags |= (tmp << PT_OPT_FLAG_SHIFT);
-			child->ptrace = flags;
-		}
-		break;
-
-	default:
-#ifdef CONFIG_COMPAT
-		if (task_thread_info(current)->status & TS_COMPAT) {
-			ret = compat_ptrace_request(child, request,
-						    addr, data);
+			putregs(child, &copyregs);
+			ret = 0;
 			break;
-		}
+
+		case PTRACE_GETREGS:  /* Get all registers from the child. */
+			ret = copy_regset_to_user(child, &tile_user_regset_view,
+									  REGSET_GPR, 0,
+									  sizeof(struct pt_regs), datap);
+			break;
+
+		case PTRACE_SETREGS:  /* Set all registers in the child. */
+			ret = copy_regset_from_user(child, &tile_user_regset_view,
+										REGSET_GPR, 0,
+										sizeof(struct pt_regs), datap);
+			break;
+
+		case PTRACE_GETFPREGS:  /* Get the child FPU state. */
+		case PTRACE_SETFPREGS:  /* Set the child FPU state. */
+			break;
+
+		case PTRACE_SETOPTIONS:
+			/* Support TILE-specific ptrace options. */
+			BUILD_BUG_ON(PTRACE_O_MASK_TILE & PTRACE_O_MASK);
+			tmp = data & PTRACE_O_MASK_TILE;
+			data &= ~PTRACE_O_MASK_TILE;
+			ret = ptrace_request(child, request, addr, data);
+
+			if (ret == 0)
+			{
+				unsigned int flags = child->ptrace;
+				flags &= ~(PTRACE_O_MASK_TILE << PT_OPT_FLAG_SHIFT);
+				flags |= (tmp << PT_OPT_FLAG_SHIFT);
+				child->ptrace = flags;
+			}
+
+			break;
+
+		default:
+#ifdef CONFIG_COMPAT
+			if (task_thread_info(current)->status & TS_COMPAT)
+			{
+				ret = compat_ptrace_request(child, request,
+											addr, data);
+				break;
+			}
+
 #endif
-		ret = ptrace_request(child, request, addr, data);
-		break;
+			ret = ptrace_request(child, request, addr, data);
+			break;
 	}
 
 	return ret;
@@ -245,7 +287,7 @@ long arch_ptrace(struct task_struct *child, long request,
 #ifdef CONFIG_COMPAT
 /* Not used; we handle compat issues in arch_ptrace() directly. */
 long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
-			       compat_ulong_t addr, compat_ulong_t data)
+						compat_ulong_t addr, compat_ulong_t data)
 {
 	BUG();
 }
@@ -256,16 +298,21 @@ int do_syscall_trace_enter(struct pt_regs *regs)
 	u32 work = ACCESS_ONCE(current_thread_info()->flags);
 
 	if ((work & _TIF_SYSCALL_TRACE) &&
-	    tracehook_report_syscall_entry(regs)) {
+		tracehook_report_syscall_entry(regs))
+	{
 		regs->regs[TREG_SYSCALL_NR] = -1;
 		return -1;
 	}
 
 	if (secure_computing(NULL) == -1)
+	{
 		return -1;
+	}
 
 	if (work & _TIF_SYSCALL_TRACEPOINT)
+	{
 		trace_sys_enter(regs, regs->regs[TREG_SYSCALL_NR]);
+	}
 
 	return regs->regs[TREG_SYSCALL_NR];
 }
@@ -282,16 +329,25 @@ void do_syscall_trace_exit(struct pt_regs *regs)
 	 * struct ptregs.
 	 */
 	errno = (long) regs->regs[0];
+
 	if (errno < 0 && errno > -4096)
+	{
 		regs->regs[1] = -errno;
+	}
 	else
+	{
 		regs->regs[1] = 0;
+	}
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE))
+	{
 		tracehook_report_syscall_exit(regs, 0);
+	}
 
 	if (test_thread_flag(TIF_SYSCALL_TRACEPOINT))
+	{
 		trace_sys_exit(regs, regs->regs[0]);
+	}
 }
 
 void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs)
@@ -308,7 +364,7 @@ void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs)
 }
 
 /* Handle synthetic interrupt delivered only by the simulator. */
-void __kprobes do_breakpoint(struct pt_regs* regs, int fault_num)
+void __kprobes do_breakpoint(struct pt_regs *regs, int fault_num)
 {
 	send_sigtrap(current, regs);
 }

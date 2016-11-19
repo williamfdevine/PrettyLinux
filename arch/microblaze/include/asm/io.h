@@ -17,32 +17,32 @@
 #include <linux/mm.h>          /* Get struct page {...} */
 
 #ifndef CONFIG_PCI
-#define _IO_BASE	0
-#define _ISA_MEM_BASE	0
+	#define _IO_BASE	0
+	#define _ISA_MEM_BASE	0
 #else
-#define _IO_BASE	isa_io_base
-#define _ISA_MEM_BASE	isa_mem_base
-struct pci_dev;
-extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
-#define pci_iounmap pci_iounmap
+	#define _IO_BASE	isa_io_base
+	#define _ISA_MEM_BASE	isa_mem_base
+	struct pci_dev;
+	extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
+	#define pci_iounmap pci_iounmap
 
-extern unsigned long isa_io_base;
-extern resource_size_t isa_mem_base;
+	extern unsigned long isa_io_base;
+	extern resource_size_t isa_mem_base;
 #endif
 
 #define PCI_IOBASE	((void __iomem *)_IO_BASE)
 #define IO_SPACE_LIMIT (0xFFFFFFFF)
 
 #ifdef CONFIG_MMU
-#define page_to_bus(page)	(page_to_phys(page))
+	#define page_to_bus(page)	(page_to_phys(page))
 
-extern void iounmap(void __iomem *addr);
+	extern void iounmap(void __iomem *addr);
 
-extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
-#define ioremap_nocache(addr, size)		ioremap((addr), (size))
-#define ioremap_fullcache(addr, size)		ioremap((addr), (size))
-#define ioremap_wc(addr, size)			ioremap((addr), (size))
-#define ioremap_wt(addr, size)			ioremap((addr), (size))
+	extern void __iomem *ioremap(phys_addr_t address, unsigned long size);
+	#define ioremap_nocache(addr, size)		ioremap((addr), (size))
+	#define ioremap_fullcache(addr, size)		ioremap((addr), (size))
+	#define ioremap_wc(addr, size)			ioremap((addr), (size))
+	#define ioremap_wt(addr, size)			ioremap((addr), (size))
 
 #endif /* CONFIG_MMU */
 

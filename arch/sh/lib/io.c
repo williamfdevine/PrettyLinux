@@ -19,9 +19,12 @@ void __raw_readsl(const void __iomem *addr, void *datap, int len)
 	u32 *data;
 
 	for (data = datap; (len != 0) && (((u32)data & 0x1f) != 0); len--)
+	{
 		*data++ = __raw_readl(addr);
+	}
 
-	if (likely(len >= (0x20 >> 2))) {
+	if (likely(len >= (0x20 >> 2)))
+	{
 		int tmp2, tmp3, tmp4, tmp5, tmp6;
 
 		__asm__ __volatile__(
@@ -52,20 +55,23 @@ void __raw_readsl(const void __iomem *addr, void *datap, int len)
 			"bf.s	1b		\n\t"
 			" add	#0x20, %0	\n\t"
 			: "=&r" (data), "=&r" (len),
-			  "=&r" (tmp2), "=&r" (tmp3), "=&r" (tmp4),
-			  "=&r" (tmp5), "=&r" (tmp6)
+			"=&r" (tmp2), "=&r" (tmp3), "=&r" (tmp4),
+			"=&r" (tmp5), "=&r" (tmp6)
 			: "r"(addr), "0" (data), "1" (len)
 			: "r0", "r7", "t", "memory");
 	}
 
 	for (; len != 0; len--)
+	{
 		*data++ = __raw_readl(addr);
+	}
 }
 EXPORT_SYMBOL(__raw_readsl);
 
 void __raw_writesl(void __iomem *addr, const void *data, int len)
 {
-	if (likely(len != 0)) {
+	if (likely(len != 0))
+	{
 		int tmp1;
 
 		__asm__ __volatile__ (

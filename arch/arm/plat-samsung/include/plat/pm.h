@@ -55,17 +55,17 @@ extern unsigned long s3c_pm_flags;
 extern int s3c2410_cpu_suspend(unsigned long);
 
 #ifdef CONFIG_PM_SLEEP
-extern int s3c_irq_wake(struct irq_data *data, unsigned int state);
-extern void s3c_cpu_resume(void);
+	extern int s3c_irq_wake(struct irq_data *data, unsigned int state);
+	extern void s3c_cpu_resume(void);
 #else
-#define s3c_irq_wake NULL
-#define s3c_cpu_resume NULL
+	#define s3c_irq_wake NULL
+	#define s3c_cpu_resume NULL
 #endif
 
 #ifdef CONFIG_SAMSUNG_PM
-extern int s3c_irqext_wake(struct irq_data *data, unsigned int state);
+	extern int s3c_irqext_wake(struct irq_data *data, unsigned int state);
 #else
-#define s3c_irqext_wake NULL
+	#define s3c_irqext_wake NULL
 #endif
 
 #ifdef CONFIG_S3C_PM_DEBUG_LED_SMDK

@@ -29,7 +29,7 @@
 static void print_fixup_info(const struct pci_dev *pdev)
 {
 	dev_info(&pdev->dev, "Device %x:%x, irq %d\n",
-			pdev->vendor, pdev->device, pdev->irq);
+			 pdev->vendor, pdev->device, pdev->irq);
 }
 
 int __init pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
@@ -43,26 +43,33 @@ static void pci_fixup_radeon(struct pci_dev *pdev)
 	struct resource *res = &pdev->resource[PCI_ROM_RESOURCE];
 
 	if (res->start)
+	{
 		return;
+	}
 
 	if (!loongson_sysconf.vgabios_addr)
+	{
 		return;
+	}
 
 	pci_disable_rom(pdev);
+
 	if (res->parent)
+	{
 		release_resource(res);
+	}
 
 	res->start = virt_to_phys((void *) loongson_sysconf.vgabios_addr);
-	res->end   = res->start + 256*1024 - 1;
+	res->end   = res->start + 256 * 1024 - 1;
 	res->flags = IORESOURCE_MEM | IORESOURCE_ROM_SHADOW |
-		     IORESOURCE_PCI_FIXED;
+				 IORESOURCE_PCI_FIXED;
 
 	dev_info(&pdev->dev, "BAR %d: assigned %pR for Radeon ROM\n",
-		 PCI_ROM_RESOURCE, res);
+			 PCI_ROM_RESOURCE, res);
 }
 
 DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_VENDOR_ID_ATI, PCI_ANY_ID,
-				PCI_CLASS_DISPLAY_VGA, 8, pci_fixup_radeon);
+							  PCI_CLASS_DISPLAY_VGA, 8, pci_fixup_radeon);
 
 /* Do platform specific device initialization at pci_enable_device() time */
 int pcibios_plat_dev_init(struct pci_dev *dev)

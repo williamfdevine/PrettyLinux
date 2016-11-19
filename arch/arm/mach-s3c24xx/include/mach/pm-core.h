@@ -52,15 +52,17 @@ static inline void s3c_pm_arch_stop_clocks(void)
  * print any IRQs asserted at resume time (ie, we woke from)
 */
 static inline void s3c_pm_show_resume_irqs(int start, unsigned long which,
-					   unsigned long mask)
+		unsigned long mask)
 {
 	int i;
 
 	which &= ~mask;
 
-	for (i = 0; i <= 31; i++) {
-		if (which & (1L<<i)) {
-			S3C_PMDBG("IRQ %d asserted at resume\n", start+i);
+	for (i = 0; i <= 31; i++)
+	{
+		if (which & (1L << i))
+		{
+			S3C_PMDBG("IRQ %d asserted at resume\n", start + i);
 		}
 	}
 }
@@ -68,18 +70,18 @@ static inline void s3c_pm_show_resume_irqs(int start, unsigned long which,
 static inline void s3c_pm_arch_show_resume_irqs(void)
 {
 	S3C_PMDBG("post sleep: IRQs 0x%08x, 0x%08x\n",
-		  __raw_readl(S3C2410_SRCPND),
-		  __raw_readl(S3C2410_EINTPEND));
+			  __raw_readl(S3C2410_SRCPND),
+			  __raw_readl(S3C2410_EINTPEND));
 
 	s3c_pm_show_resume_irqs(IRQ_EINT0, __raw_readl(S3C2410_SRCPND),
-				s3c_irqwake_intmask);
+							s3c_irqwake_intmask);
 
-	s3c_pm_show_resume_irqs(IRQ_EINT4-4, __raw_readl(S3C2410_EINTPEND),
-				s3c_irqwake_eintmask);
+	s3c_pm_show_resume_irqs(IRQ_EINT4 - 4, __raw_readl(S3C2410_EINTPEND),
+							s3c_irqwake_eintmask);
 }
 
 static inline void s3c_pm_arch_update_uart(void __iomem *regs,
-					   struct pm_uart_save *save)
+		struct pm_uart_save *save)
 {
 }
 

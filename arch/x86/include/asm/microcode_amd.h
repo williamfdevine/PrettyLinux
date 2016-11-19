@@ -10,7 +10,8 @@
 #define SECTION_HDR_SIZE		8
 #define CONTAINER_HDR_SZ		12
 
-struct equiv_cpu_entry {
+struct equiv_cpu_entry
+{
 	u32	installed_cpu;
 	u32	fixed_errata_mask;
 	u32	fixed_errata_compare;
@@ -18,7 +19,8 @@ struct equiv_cpu_entry {
 	u16	res;
 } __attribute__((packed));
 
-struct microcode_header_amd {
+struct microcode_header_amd
+{
 	u32	data_code;
 	u32	patch_id;
 	u16	mc_patch_data_id;
@@ -35,25 +37,32 @@ struct microcode_header_amd {
 	u32	match_reg[8];
 } __attribute__((packed));
 
-struct microcode_amd {
+struct microcode_amd
+{
 	struct microcode_header_amd	hdr;
 	unsigned int			mpb[0];
 };
 
 static inline u16 find_equiv_id(struct equiv_cpu_entry *equiv_cpu_table,
-				unsigned int sig)
+								unsigned int sig)
 {
 	int i = 0;
 
 	if (!equiv_cpu_table)
+	{
 		return 0;
+	}
 
-	while (equiv_cpu_table[i].installed_cpu != 0) {
+	while (equiv_cpu_table[i].installed_cpu != 0)
+	{
 		if (sig == equiv_cpu_table[i].installed_cpu)
+		{
 			return equiv_cpu_table[i].equiv_cpu;
+		}
 
 		i++;
 	}
+
 	return 0;
 }
 

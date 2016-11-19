@@ -38,7 +38,8 @@ static irqreturn_t timebase_interrupt(int irq, void *dev)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction tbint_irqaction = {
+static struct irqaction tbint_irqaction =
+{
 	.handler = timebase_interrupt,
 	.flags = IRQF_NO_THREAD,
 	.name = "tbint",
@@ -67,9 +68,12 @@ static int __init get_freq(char *name, unsigned long *val)
 	/* The cpu node should have timebase and clock frequency properties */
 	cpu = of_find_node_by_type(NULL, "cpu");
 
-	if (cpu) {
+	if (cpu)
+	{
 		fp = of_get_property(cpu, name, NULL);
-		if (fp) {
+
+		if (fp)
+		{
 			found = 1;
 			*val = *fp;
 		}
@@ -108,9 +112,10 @@ void __init mpc8xx_calibrate_decr(void)
 	/* Processor frequency is MHz.
 	 */
 	ppc_proc_freq = 50000000;
+
 	if (!get_freq("clock-frequency", &ppc_proc_freq))
 		printk(KERN_ERR "WARNING: Estimating processor frequency "
-		                "(not found)\n");
+			   "(not found)\n");
 
 	ppc_tb_freq = ppc_proc_freq / 16;
 	printk("Decrementer Frequency = 0x%lx\n", ppc_tb_freq);
@@ -147,16 +152,18 @@ void __init mpc8xx_calibrate_decr(void)
 	 * is wired into the vector table, nothing to do here for that.
 	 */
 	cpu = of_find_node_by_type(NULL, "cpu");
-	virq= irq_of_parse_and_map(cpu, 0);
+	virq = irq_of_parse_and_map(cpu, 0);
 	irq = virq_to_hw(virq);
 
 	sys_tmr2 = immr_map(im_sit);
-	out_be16(&sys_tmr2->sit_tbscr, ((1 << (7 - (irq/2))) << 8) |
-					(TBSCR_TBF | TBSCR_TBE));
+	out_be16(&sys_tmr2->sit_tbscr, ((1 << (7 - (irq / 2))) << 8) |
+			 (TBSCR_TBF | TBSCR_TBE));
 	immr_unmap(sys_tmr2);
 
 	if (setup_irq(virq, &tbint_irqaction))
+	{
 		panic("Could not allocate timer IRQ!");
+	}
 }
 
 /* The RTC on the MPC8xx is an internal register.
@@ -172,8 +179,8 @@ int mpc8xx_set_rtc_time(struct rtc_time *tm)
 
 	sys_tmr1 = immr_map(im_sitk);
 	sys_tmr2 = immr_map(im_sit);
-	time = mktime(tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
-	              tm->tm_hour, tm->tm_min, tm->tm_sec);
+	time = mktime(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+				  tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	out_be32(&sys_tmr1->sitk_rtck, KAPWR_KEY);
 	out_be32(&sys_tmr2->sit_rtc, time);
@@ -220,7 +227,9 @@ static void cpm_cascade(struct irq_desc *desc)
 	int cascade_irq = cpm_get_irq();
 
 	if (cascade_irq >= 0)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	chip->irq_eoi(&desc->irq_data);
 }
@@ -235,12 +244,16 @@ void __init mpc8xx_pics_init(void)
 {
 	int irq;
 
-	if (mpc8xx_pic_init()) {
+	if (mpc8xx_pic_init())
+	{
 		printk(KERN_ERR "Failed interrupt 8xx controller  initialization\n");
 		return;
 	}
 
 	irq = cpm_pic_init();
+
 	if (irq)
+	{
 		irq_set_chained_handler(irq, cpm_cascade);
+	}
 }

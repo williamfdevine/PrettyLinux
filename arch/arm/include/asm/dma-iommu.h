@@ -9,7 +9,8 @@
 #include <linux/kmemcheck.h>
 #include <linux/kref.h>
 
-struct dma_iommu_mapping {
+struct dma_iommu_mapping
+{
 	/* iommu specific data */
 	struct iommu_domain	*domain;
 
@@ -30,7 +31,7 @@ arm_iommu_create_mapping(struct bus_type *bus, dma_addr_t base, u64 size);
 void arm_iommu_release_mapping(struct dma_iommu_mapping *mapping);
 
 int arm_iommu_attach_device(struct device *dev,
-					struct dma_iommu_mapping *mapping);
+							struct dma_iommu_mapping *mapping);
 void arm_iommu_detach_device(struct device *dev);
 
 #endif /* __KERNEL__ */

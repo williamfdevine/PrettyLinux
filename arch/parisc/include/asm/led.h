@@ -30,13 +30,13 @@ int __init register_led_driver(int model, unsigned long cmd_reg, unsigned long d
 void __init register_led_regions(void);
 
 #ifdef CONFIG_CHASSIS_LCD_LED
-/* writes a string to the LCD display (if possible on this h/w) */
-int lcd_print(const char *str);
+	/* writes a string to the LCD display (if possible on this h/w) */
+	int lcd_print(const char *str);
 #else
-#define lcd_print(str)
+	#define lcd_print(str)
 #endif
 
-/* main LED initialization function (uses PDC) */ 
+/* main LED initialization function (uses PDC) */
 int __init led_init(void);
 
 #endif /* LED_H */

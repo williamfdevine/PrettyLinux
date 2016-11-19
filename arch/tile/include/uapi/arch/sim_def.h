@@ -291,7 +291,7 @@
 
 /** Computes the value to write to SPR_SIM_CONTROL to set tracing flags. */
 #define SIM_TRACE_SPR_ARG(mask) \
-  (SIM_CONTROL_SET_TRACING | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
+	(SIM_CONTROL_SET_TRACING | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
 
 
 /*
@@ -347,7 +347,7 @@
 
 /** Computes the value to write to SPR_SIM_CONTROL to dump machine state. */
 #define SIM_DUMP_SPR_ARG(mask) \
-  (SIM_CONTROL_DUMP | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
+	(SIM_CONTROL_DUMP | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
 
 
 /*
@@ -382,15 +382,15 @@
 
 /** Computes the value to write to SPR_SIM_CONTROL to clear chip statistics. */
 #define SIM_PROFILER_CHIP_CLEAR_SPR_ARG(mask) \
-  (SIM_CONTROL_PROFILER_CHIP_CLEAR | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
+	(SIM_CONTROL_PROFILER_CHIP_CLEAR | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
 
 /** Computes the value to write to SPR_SIM_CONTROL to disable chip statistics.*/
 #define SIM_PROFILER_CHIP_DISABLE_SPR_ARG(mask) \
-  (SIM_CONTROL_PROFILER_CHIP_DISABLE | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
+	(SIM_CONTROL_PROFILER_CHIP_DISABLE | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
 
 /** Computes the value to write to SPR_SIM_CONTROL to enable chip statistics. */
 #define SIM_PROFILER_CHIP_ENABLE_SPR_ARG(mask) \
-  (SIM_CONTROL_PROFILER_CHIP_ENABLE | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
+	(SIM_CONTROL_PROFILER_CHIP_ENABLE | ((mask) << _SIM_CONTROL_OPERATOR_BITS))
 
 
 
@@ -453,21 +453,21 @@
 
 /** How many bits are available for the rate. */
 #define SIM_CONTROL_SHAPING_RATE_BITS \
-  (32 - (_SIM_CONTROL_OPERATOR_BITS + \
-         SIM_CONTROL_SHAPING_SHIM_ID_BITS + \
-         SIM_CONTROL_SHAPING_TYPE_BITS + \
-         SIM_CONTROL_SHAPING_UNITS_BITS))
+	(32 - (_SIM_CONTROL_OPERATOR_BITS + \
+		   SIM_CONTROL_SHAPING_SHIM_ID_BITS + \
+		   SIM_CONTROL_SHAPING_TYPE_BITS + \
+		   SIM_CONTROL_SHAPING_UNITS_BITS))
 
 /** Computes the value to write to SPR_SIM_CONTROL to change a bitrate. */
 #define SIM_SHAPING_SPR_ARG(shim, type, units, rate) \
-  (SIM_CONTROL_SHAPING | \
-   ((shim) | \
-   ((type) << (SIM_CONTROL_SHAPING_SHIM_ID_BITS)) | \
-   ((units) << (SIM_CONTROL_SHAPING_SHIM_ID_BITS + \
-                SIM_CONTROL_SHAPING_TYPE_BITS)) | \
-   ((rate) << (SIM_CONTROL_SHAPING_SHIM_ID_BITS + \
-               SIM_CONTROL_SHAPING_TYPE_BITS + \
-               SIM_CONTROL_SHAPING_UNITS_BITS))) << _SIM_CONTROL_OPERATOR_BITS)
+	(SIM_CONTROL_SHAPING | \
+	 ((shim) | \
+	  ((type) << (SIM_CONTROL_SHAPING_SHIM_ID_BITS)) | \
+	  ((units) << (SIM_CONTROL_SHAPING_SHIM_ID_BITS + \
+				   SIM_CONTROL_SHAPING_TYPE_BITS)) | \
+	  ((rate) << (SIM_CONTROL_SHAPING_SHIM_ID_BITS + \
+				  SIM_CONTROL_SHAPING_TYPE_BITS + \
+				  SIM_CONTROL_SHAPING_UNITS_BITS))) << _SIM_CONTROL_OPERATOR_BITS)
 
 
 /*

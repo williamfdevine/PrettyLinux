@@ -29,7 +29,8 @@ static void apbc_clk_disable(struct clk *clk)
 	__raw_writel(0, clk->clk_rst);
 }
 
-struct clkops apbc_clk_ops = {
+struct clkops apbc_clk_ops =
+{
 	.enable		= apbc_clk_enable,
 	.disable	= apbc_clk_disable,
 };
@@ -44,7 +45,8 @@ static void apmu_clk_disable(struct clk *clk)
 	__raw_writel(0, clk->clk_rst);
 }
 
-struct clkops apmu_clk_ops = {
+struct clkops apmu_clk_ops =
+{
 	.enable		= apmu_clk_enable,
 	.disable	= apmu_clk_disable,
 };
@@ -56,8 +58,12 @@ int clk_enable(struct clk *clk)
 	unsigned long flags;
 
 	spin_lock_irqsave(&clocks_lock, flags);
+
 	if (clk->enabled++ == 0)
+	{
 		clk->ops->enable(clk);
+	}
+
 	spin_unlock_irqrestore(&clocks_lock, flags);
 	return 0;
 }
@@ -70,8 +76,12 @@ void clk_disable(struct clk *clk)
 	WARN_ON(clk->enabled == 0);
 
 	spin_lock_irqsave(&clocks_lock, flags);
+
 	if (--clk->enabled == 0)
+	{
 		clk->ops->disable(clk);
+	}
+
 	spin_unlock_irqrestore(&clocks_lock, flags);
 }
 EXPORT_SYMBOL(clk_disable);
@@ -81,9 +91,13 @@ unsigned long clk_get_rate(struct clk *clk)
 	unsigned long rate;
 
 	if (clk->ops->getrate)
+	{
 		rate = clk->ops->getrate(clk);
+	}
 	else
+	{
 		rate = clk->rate;
+	}
 
 	return rate;
 }
@@ -94,7 +108,8 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 	unsigned long flags;
 	int ret = -EINVAL;
 
-	if (clk->ops->setrate) {
+	if (clk->ops->setrate)
+	{
 		spin_lock_irqsave(&clocks_lock, flags);
 		ret = clk->ops->setrate(clk, rate);
 		spin_unlock_irqrestore(&clocks_lock, flags);

@@ -47,13 +47,15 @@ static void ce4100_reset(struct pci_dev *dev)
 {
 	int i;
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		outb(0x2, 0xcf9);
 		udelay(50);
 	}
 }
 
-struct device_fixup {
+struct device_fixup
+{
 	unsigned int vendor;
 	unsigned int device;
 	void (*reboot_fixup)(struct pci_dev *);
@@ -64,12 +66,13 @@ struct device_fixup {
  */
 #define PCI_DEVICE_ID_INTEL_CE4100	0x0708
 
-static const struct device_fixup fixups_table[] = {
-{ PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY, cs5530a_warm_reset },
-{ PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA, cs5536_warm_reset },
-{ PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE, cs5530a_warm_reset },
-{ PCI_VENDOR_ID_RDC, PCI_DEVICE_ID_RDC_R6030, rdc321x_reset },
-{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_CE4100, ce4100_reset },
+static const struct device_fixup fixups_table[] =
+{
+	{ PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY, cs5530a_warm_reset },
+	{ PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA, cs5536_warm_reset },
+	{ PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_SC1100_BRIDGE, cs5530a_warm_reset },
+	{ PCI_VENDOR_ID_RDC, PCI_DEVICE_ID_RDC_R6030, rdc321x_reset },
+	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_CE4100, ce4100_reset },
 };
 
 /*
@@ -87,13 +90,19 @@ void mach_reboot_fixups(void)
 	/* we can be called from sysrq-B code. In such a case it is
 	 * prohibited to dig PCI */
 	if (in_interrupt())
+	{
 		return;
+	}
 
-	for (i=0; i < ARRAY_SIZE(fixups_table); i++) {
+	for (i = 0; i < ARRAY_SIZE(fixups_table); i++)
+	{
 		cur = &(fixups_table[i]);
 		dev = pci_get_device(cur->vendor, cur->device, NULL);
+
 		if (!dev)
+		{
 			continue;
+		}
 
 		cur->reboot_fixup(dev);
 		pci_dev_put(dev);

@@ -26,9 +26,13 @@ static inline void unmask_msp_slp_irq(struct irq_data *d)
 
 	/* check for PER interrupt range */
 	if (irq < MSP_PER_INTBASE)
+	{
 		*SLP_INT_MSK_REG |= (1 << (irq - MSP_SLP_INTBASE));
+	}
 	else
+	{
 		*PER_INT_MSK_REG |= (1 << (irq - MSP_PER_INTBASE));
+	}
 }
 
 static inline void mask_msp_slp_irq(struct irq_data *d)
@@ -37,9 +41,13 @@ static inline void mask_msp_slp_irq(struct irq_data *d)
 
 	/* check for PER interrupt range */
 	if (irq < MSP_PER_INTBASE)
+	{
 		*SLP_INT_MSK_REG &= ~(1 << (irq - MSP_SLP_INTBASE));
+	}
 	else
+	{
 		*PER_INT_MSK_REG &= ~(1 << (irq - MSP_PER_INTBASE));
+	}
 }
 
 /*
@@ -52,12 +60,17 @@ static inline void ack_msp_slp_irq(struct irq_data *d)
 
 	/* check for PER interrupt range */
 	if (irq < MSP_PER_INTBASE)
+	{
 		*SLP_INT_STS_REG = (1 << (irq - MSP_SLP_INTBASE));
+	}
 	else
+	{
 		*PER_INT_STS_REG = (1 << (irq - MSP_PER_INTBASE));
+	}
 }
 
-static struct irq_chip msp_slp_irq_controller = {
+static struct irq_chip msp_slp_irq_controller =
+{
 	.name = "MSP_SLP",
 	.irq_ack = ack_msp_slp_irq,
 	.irq_mask = mask_msp_slp_irq,
@@ -77,7 +90,7 @@ void __init msp_slp_irq_init(void)
 	/* initialize all the IRQ descriptors */
 	for (i = MSP_SLP_INTBASE; i < MSP_PER_INTBASE + 32; i++)
 		irq_set_chip_and_handler(i, &msp_slp_irq_controller,
-					 handle_level_irq);
+								 handle_level_irq);
 }
 
 void msp_slp_irq_dispatch(void)
@@ -89,15 +102,17 @@ void msp_slp_irq_dispatch(void)
 	pending = *SLP_INT_STS_REG & *SLP_INT_MSK_REG;
 
 	/* check for PER interrupt */
-	if (pending == (1 << (MSP_INT_PER - MSP_SLP_INTBASE))) {
+	if (pending == (1 << (MSP_INT_PER - MSP_SLP_INTBASE)))
+	{
 		intbase = MSP_PER_INTBASE;
 		pending = *PER_INT_STS_REG & *PER_INT_MSK_REG;
 	}
 
 	/* check for spurious interrupt */
-	if (pending == 0x00000000) {
+	if (pending == 0x00000000)
+	{
 		printk(KERN_ERR "Spurious %s interrupt?\n",
-			(intbase == MSP_SLP_INTBASE) ? "SLP" : "PER");
+			   (intbase == MSP_SLP_INTBASE) ? "SLP" : "PER");
 		return;
 	}
 

@@ -28,7 +28,8 @@
 /*
  * helper for sa1100fb
  */
-static struct gpio h3100_lcd_gpio[] = {
+static struct gpio h3100_lcd_gpio[] =
+{
 	{ H3100_GPIO_LCD_3V_ON, GPIOF_OUT_INIT_LOW, "LCD 3V" },
 	{ H3XXX_EGPIO_LCD_ON, GPIOF_OUT_INIT_LOW, "LCD ON" },
 };
@@ -39,13 +40,20 @@ static bool h3100_lcd_request(void)
 	int rc;
 
 	if (h3100_lcd_ok)
+	{
 		return true;
+	}
 
 	rc = gpio_request_array(h3100_lcd_gpio, ARRAY_SIZE(h3100_lcd_gpio));
+
 	if (rc)
+	{
 		pr_err("%s: can't request GPIOs\n", __func__);
+	}
 	else
+	{
 		h3100_lcd_ok = true;
+	}
 
 	return h3100_lcd_ok;
 }
@@ -53,13 +61,16 @@ static bool h3100_lcd_request(void)
 static void h3100_lcd_power(int enable)
 {
 	if (!h3100_lcd_request())
+	{
 		return;
+	}
 
 	gpio_set_value(H3100_GPIO_LCD_3V_ON, enable);
 	gpio_set_value(H3XXX_EGPIO_LCD_ON, enable);
 }
 
-static struct sa1100fb_mach_info h3100_lcd_info = {
+static struct sa1100fb_mach_info h3100_lcd_info =
+{
 	.pixclock	= 406977, 	.bpp		= 4,
 	.xres		= 320,		.yres		= 240,
 
@@ -89,7 +100,8 @@ static void __init h3100_map_io(void)
 /*
  * This turns the IRDA power on or off on the Compaq H3100
  */
-static struct gpio h3100_irda_gpio[] = {
+static struct gpio h3100_irda_gpio[] =
+{
 	{ H3100_GPIO_IR_ON,	GPIOF_OUT_INIT_LOW, "IrDA power" },
 	{ H3100_GPIO_IR_FSEL,	GPIOF_OUT_INIT_LOW, "IrDA fsel" },
 };
@@ -115,7 +127,8 @@ static void h3100_irda_shutdown(struct device *dev)
 	return gpio_free_array(h3100_irda_gpio, sizeof(h3100_irda_gpio));
 }
 
-static struct irda_platform_data h3100_irda_data = {
+static struct irda_platform_data h3100_irda_data =
+{
 	.set_power	= h3100_irda_set_power,
 	.set_speed	= h3100_irda_set_speed,
 	.startup	= h3100_irda_startup,
@@ -131,13 +144,13 @@ static void __init h3100_mach_init(void)
 }
 
 MACHINE_START(H3100, "Compaq iPAQ H3100")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= h3100_map_io,
-	.nr_irqs	= SA1100_NR_IRQS,
-	.init_irq	= sa1100_init_irq,
-	.init_time	= sa1100_timer_init,
-	.init_machine	= h3100_mach_init,
-	.init_late	= sa11x0_init_late,
-	.restart	= sa11x0_restart,
-MACHINE_END
+		.nr_irqs	= SA1100_NR_IRQS,
+			.init_irq	= sa1100_init_irq,
+			   .init_time	= sa1100_timer_init,
+				 .init_machine	= h3100_mach_init,
+					.init_late	= sa11x0_init_late,
+					  .restart	= sa11x0_restart,
+						  MACHINE_END
 

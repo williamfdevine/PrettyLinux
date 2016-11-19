@@ -25,8 +25,8 @@ extern void platform_register_rtc(void);
 /* Common platform devices registration functions */
 extern int platform_register_uart(void);
 extern int platform_register_pflash(unsigned int size,
-				    struct mtd_partition *parts,
-				    unsigned int nr_parts);
+									struct mtd_partition *parts,
+									unsigned int nr_parts);
 
 extern void gemini_restart(enum reboot_mode mode, const char *cmd);
 

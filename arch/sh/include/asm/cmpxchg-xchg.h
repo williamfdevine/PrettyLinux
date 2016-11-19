@@ -29,23 +29,25 @@ static inline u32 __xchg_cmpxchg(volatile void *ptr, u32 x, int size)
 	u32 oldv, newv;
 	u32 ret;
 
-	do {
+	do
+	{
 		oldv = READ_ONCE(*p);
 		ret = (oldv & bitmask) >> bitoff;
 		newv = (oldv & ~bitmask) | (x << bitoff);
-	} while (__cmpxchg_u32(p, oldv, newv) != oldv);
+	}
+	while (__cmpxchg_u32(p, oldv, newv) != oldv);
 
 	return ret;
 }
 
 static inline unsigned long xchg_u16(volatile u16 *m, unsigned long val)
 {
-	return __xchg_cmpxchg(m, val, sizeof *m);
+	return __xchg_cmpxchg(m, val, sizeof * m);
 }
 
 static inline unsigned long xchg_u8(volatile u8 *m, unsigned long val)
 {
-	return __xchg_cmpxchg(m, val, sizeof *m);
+	return __xchg_cmpxchg(m, val, sizeof * m);
 }
 
 #endif /* __ASM_SH_CMPXCHG_XCHG_H */

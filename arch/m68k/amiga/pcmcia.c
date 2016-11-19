@@ -21,7 +21,7 @@
 #include <asm/amipcmcia.h>
 
 /* gayle config byte for program voltage and access speed */
-static unsigned char cfg_byte = GAYLE_CFG_0V|GAYLE_CFG_150NS;
+static unsigned char cfg_byte = GAYLE_CFG_0V | GAYLE_CFG_150NS;
 
 void pcmcia_reset(void)
 {
@@ -29,7 +29,9 @@ void pcmcia_reset(void)
 	unsigned char b;
 
 	gayle_reset = 0x00;
-	while (time_before(jiffies, reset_start_time + 1*HZ/100));
+
+	while (time_before(jiffies, reset_start_time + 1 * HZ / 100));
+
 	b = gayle_reset;
 }
 EXPORT_SYMBOL(pcmcia_reset);
@@ -48,17 +50,23 @@ int pcmcia_copy_tuple(unsigned char tuple_id, void *tuple, int max_len)
 
 	id = gayle_attribute[pos];
 
-	while((id != CISTPL_END) && (pos < 0x10000)) {
-		len = (int)gayle_attribute[pos+2] + 2;
-		if (id == tuple_id) {
-			len = (len > max_len)?max_len:len;
-			for (cnt = 0; cnt < len; cnt++) {
-				*dest++ = gayle_attribute[pos+(cnt<<1)];
+	while ((id != CISTPL_END) && (pos < 0x10000))
+	{
+		len = (int)gayle_attribute[pos + 2] + 2;
+
+		if (id == tuple_id)
+		{
+			len = (len > max_len) ? max_len : len;
+
+			for (cnt = 0; cnt < len; cnt++)
+			{
+				*dest++ = gayle_attribute[pos + (cnt << 1)];
 			}
 
 			return len;
 		}
-		pos += len<<1;
+
+		pos += len << 1;
 		id = gayle_attribute[pos];
 	}
 
@@ -70,18 +78,22 @@ void pcmcia_program_voltage(int voltage)
 {
 	unsigned char v;
 
-	switch (voltage) {
-	case PCMCIA_0V:
-		v = GAYLE_CFG_0V;
-		break;
-	case PCMCIA_5V:
-		v = GAYLE_CFG_5V;
-		break;
-	case PCMCIA_12V:
-		v = GAYLE_CFG_12V;
-		break;
-	default:
-		v = GAYLE_CFG_0V;
+	switch (voltage)
+	{
+		case PCMCIA_0V:
+			v = GAYLE_CFG_0V;
+			break;
+
+		case PCMCIA_5V:
+			v = GAYLE_CFG_5V;
+			break;
+
+		case PCMCIA_12V:
+			v = GAYLE_CFG_12V;
+			break;
+
+		default:
+			v = GAYLE_CFG_0V;
 	}
 
 	cfg_byte = (cfg_byte & 0xfc) | v;
@@ -95,13 +107,21 @@ void pcmcia_access_speed(int speed)
 	unsigned char s;
 
 	if (speed <= PCMCIA_SPEED_100NS)
+	{
 		s = GAYLE_CFG_100NS;
+	}
 	else if (speed <= PCMCIA_SPEED_150NS)
+	{
 		s = GAYLE_CFG_150NS;
+	}
 	else if (speed <= PCMCIA_SPEED_250NS)
+	{
 		s = GAYLE_CFG_250NS;
+	}
 	else
+	{
 		s = GAYLE_CFG_720NS;
+	}
 
 	cfg_byte = (cfg_byte & 0xf3) | s;
 	gayle.config = cfg_byte;
@@ -110,7 +130,7 @@ EXPORT_SYMBOL(pcmcia_access_speed);
 
 void pcmcia_write_enable(void)
 {
-	gayle.cardstatus = GAYLE_CS_WR|GAYLE_CS_DA;
+	gayle.cardstatus = GAYLE_CS_WR | GAYLE_CS_DA;
 }
 EXPORT_SYMBOL(pcmcia_write_enable);
 

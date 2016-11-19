@@ -23,18 +23,18 @@
 
 #ifndef _SFP_MACHINE_H
 #define _SFP_MACHINE_H
-   
+
 #define _FP_W_TYPE_SIZE		64
 #define _FP_W_TYPE		unsigned long
 #define _FP_WS_TYPE		signed long
 #define _FP_I_TYPE		long
 
 #define _FP_MUL_MEAT_S(R,X,Y)					\
-  _FP_MUL_MEAT_1_imm(_FP_WFRACBITS_S,R,X,Y)
+	_FP_MUL_MEAT_1_imm(_FP_WFRACBITS_S,R,X,Y)
 #define _FP_MUL_MEAT_D(R,X,Y)					\
-  _FP_MUL_MEAT_1_wide(_FP_WFRACBITS_D,R,X,Y,umul_ppmm)
+	_FP_MUL_MEAT_1_wide(_FP_WFRACBITS_D,R,X,Y,umul_ppmm)
 #define _FP_MUL_MEAT_Q(R,X,Y)					\
-  _FP_MUL_MEAT_2_wide(_FP_WFRACBITS_Q,R,X,Y,umul_ppmm)
+	_FP_MUL_MEAT_2_wide(_FP_WFRACBITS_Q,R,X,Y,umul_ppmm)
 
 #define _FP_DIV_MEAT_S(R,X,Y)	_FP_DIV_MEAT_1_imm(S,R,X,Y,_FP_DIV_HELP_imm)
 #define _FP_DIV_MEAT_D(R,X,Y)	_FP_DIV_MEAT_1_udiv(D,R,X,Y)
@@ -53,11 +53,11 @@
  * we should prefer any type of NaN in Fb, then Fa.
  */
 #define _FP_CHOOSENAN(fs, wc, R, X, Y, OP)			\
-  do {								\
-    R##_s = Y##_s;						\
-    _FP_FRAC_COPY_##wc(R,X);					\
-    R##_c = FP_CLS_NAN;						\
-  } while (0)
+	do {								\
+		R##_s = Y##_s;						\
+		_FP_FRAC_COPY_##wc(R,X);					\
+		R##_c = FP_CLS_NAN;						\
+	} while (0)
 
 /* Obtain the current rounding mode. */
 #define FP_ROUNDMODE	mode

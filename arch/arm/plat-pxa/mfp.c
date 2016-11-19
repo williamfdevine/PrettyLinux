@@ -92,7 +92,8 @@ static DEFINE_SPINLOCK(mfp_spin_lock);
 
 static void __iomem *mfpr_mmio_base;
 
-struct mfp_pin {
+struct mfp_pin
+{
 	unsigned long	config;		/* -1 for not configured */
 	unsigned long	mfpr_off;	/* MFPRxx Register offset */
 	unsigned long	mfpr_run;	/* Run-Mode Register Value */
@@ -102,7 +103,8 @@ struct mfp_pin {
 static struct mfp_pin mfp_table[MFP_PIN_MAX];
 
 /* mapping of MFP_LPM_* definitions to MFPR_LPM_* register bits */
-static const unsigned long mfpr_lpm[] = {
+static const unsigned long mfpr_lpm[] =
+{
 	MFPR_LPM_INPUT,
 	MFPR_LPM_DRIVE_LOW,
 	MFPR_LPM_DRIVE_HIGH,
@@ -113,7 +115,8 @@ static const unsigned long mfpr_lpm[] = {
 };
 
 /* mapping of MFP_PULL_* definitions to MFPR_PULL_* register bits */
-static const unsigned long mfpr_pull[] = {
+static const unsigned long mfpr_pull[] =
+{
 	MFPR_PULL_NONE,
 	MFPR_PULL_LOW,
 	MFPR_PULL_HIGH,
@@ -122,7 +125,8 @@ static const unsigned long mfpr_pull[] = {
 };
 
 /* mapping of MFP_LPM_EDGE_* definitions to MFPR_EDGE_* register bits */
-static const unsigned long mfpr_edge[] = {
+static const unsigned long mfpr_edge[] =
+{
 	MFPR_EDGE_NONE,
 	MFPR_EDGE_RISE,
 	MFPR_EDGE_FALL,
@@ -147,17 +151,26 @@ static unsigned long mfpr_off_readback;
 static inline void __mfp_config_run(struct mfp_pin *p)
 {
 	if (mfp_configured(p))
+	{
 		mfpr_writel(p->mfpr_off, p->mfpr_run);
+	}
 }
 
 static inline void __mfp_config_lpm(struct mfp_pin *p)
 {
-	if (mfp_configured(p)) {
+	if (mfp_configured(p))
+	{
 		unsigned long mfpr_clr = (p->mfpr_run & ~MFPR_EDGE_BOTH) | MFPR_EDGE_CLEAR;
+
 		if (mfpr_clr != p->mfpr_run)
+		{
 			mfpr_writel(p->mfpr_off, mfpr_clr);
+		}
+
 		if (p->mfpr_lpm != mfpr_clr)
+		{
 			mfpr_writel(p->mfpr_off, p->mfpr_lpm);
+		}
 	}
 }
 
@@ -168,7 +181,8 @@ void mfp_config(unsigned long *mfp_cfgs, int num)
 
 	spin_lock_irqsave(&mfp_spin_lock, flags);
 
-	for (i = 0; i < num; i++, mfp_cfgs++) {
+	for (i = 0; i < num; i++, mfp_cfgs++)
+	{
 		unsigned long tmp, c = *mfp_cfgs;
 		struct mfp_pin *p;
 		int pin, af, drv, lpm, edge, pull;
@@ -189,10 +203,13 @@ void mfp_config(unsigned long *mfp_cfgs, int num)
 		 */
 		tmp = MFPR_AF_SEL(af) | MFPR_DRIVE(drv);
 
-		if (likely(pull == MFP_PULL_NONE)) {
+		if (likely(pull == MFP_PULL_NONE))
+		{
 			p->mfpr_run = tmp | mfpr_lpm[lpm] | mfpr_edge[edge];
 			p->mfpr_lpm = p->mfpr_run;
-		} else {
+		}
+		else
+		{
 			p->mfpr_lpm = tmp | mfpr_lpm[lpm] | mfpr_edge[edge];
 			p->mfpr_run = tmp | mfpr_pull[pull];
 		}
@@ -235,7 +252,9 @@ void __init mfp_init_base(void __iomem *mfpr_base)
 
 	/* initialize the table with default - unconfigured */
 	for (i = 0; i < ARRAY_SIZE(mfp_table); i++)
+	{
 		mfp_table[i].config = -1;
+	}
 
 	mfpr_mmio_base = mfpr_base;
 }
@@ -251,16 +270,19 @@ void __init mfp_init_addr(struct mfp_addr_map *map)
 	/* mfp offset for readback */
 	mfpr_off_readback = map[0].offset;
 
-	for (p = map; p->start != MFP_PIN_INVALID; p++) {
+	for (p = map; p->start != MFP_PIN_INVALID; p++)
+	{
 		offset = p->offset;
 		i = p->start;
 
-		do {
+		do
+		{
 			mfp_table[i].mfpr_off = offset;
 			mfp_table[i].mfpr_run = 0;
 			mfp_table[i].mfpr_lpm = 0;
 			offset += 4; i++;
-		} while ((i <= p->end) && (p->end != -1));
+		}
+		while ((i <= p->end) && (p->end != -1));
 	}
 
 	spin_unlock_irqrestore(&mfp_spin_lock, flags);
@@ -272,7 +294,9 @@ void mfp_config_lpm(void)
 	int pin;
 
 	for (pin = 0; pin < ARRAY_SIZE(mfp_table); pin++, p++)
+	{
 		__mfp_config_lpm(p);
+	}
 }
 
 void mfp_config_run(void)
@@ -281,5 +305,7 @@ void mfp_config_run(void)
 	int pin;
 
 	for (pin = 0; pin < ARRAY_SIZE(mfp_table); pin++, p++)
+	{
 		__mfp_config_run(p);
+	}
 }

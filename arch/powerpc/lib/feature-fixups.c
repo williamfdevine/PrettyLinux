@@ -24,7 +24,8 @@
 #include <asm/setup.h>
 #include <asm/firmware.h>
 
-struct fixup_entry {
+struct fixup_entry
+{
 	unsigned long	mask;
 	unsigned long	value;
 	long		start_off;
@@ -44,20 +45,25 @@ static unsigned int *calc_addr(struct fixup_entry *fcur, long offset)
 }
 
 static int patch_alt_instruction(unsigned int *src, unsigned int *dest,
-				 unsigned int *alt_start, unsigned int *alt_end)
+								 unsigned int *alt_start, unsigned int *alt_end)
 {
 	unsigned int instr;
 
 	instr = *src;
 
-	if (instr_is_relative_branch(*src)) {
+	if (instr_is_relative_branch(*src))
+	{
 		unsigned int *target = (unsigned int *)branch_target(src);
 
 		/* Branch within the section doesn't need translating */
-		if (target < alt_start || target >= alt_end) {
+		if (target < alt_start || target >= alt_end)
+		{
 			instr = translate_branch(dest, src);
+
 			if (!instr)
+			{
 				return 1;
+			}
 		}
 	}
 
@@ -76,21 +82,30 @@ static int patch_feature_section(unsigned long value, struct fixup_entry *fcur)
 	alt_end = calc_addr(fcur, fcur->alt_end_off);
 
 	if ((alt_end - alt_start) > (end - start))
+	{
 		return 1;
+	}
 
 	if ((value & fcur->mask) == fcur->value)
+	{
 		return 0;
+	}
 
 	src = alt_start;
 	dest = start;
 
-	for (; src < alt_end; src++, dest++) {
+	for (; src < alt_end; src++, dest++)
+	{
 		if (patch_alt_instruction(src, dest, alt_start, alt_end))
+		{
 			return 1;
+		}
 	}
 
 	for (; dest < end; dest++)
+	{
 		patch_instruction(dest, PPC_INST_NOP);
+	}
 
 	return 0;
 }
@@ -102,15 +117,17 @@ void do_feature_fixups(unsigned long value, void *fixup_start, void *fixup_end)
 	fcur = fixup_start;
 	fend = fixup_end;
 
-	for (; fcur < fend; fcur++) {
-		if (patch_feature_section(value, fcur)) {
+	for (; fcur < fend; fcur++)
+	{
+		if (patch_feature_section(value, fcur))
+		{
 			WARN_ON(1);
 			printk("Unable to patch feature section at %p - %p" \
-				" with %p - %p\n",
-				calc_addr(fcur, fcur->start_off),
-				calc_addr(fcur, fcur->end_off),
-				calc_addr(fcur, fcur->alt_start_off),
-				calc_addr(fcur, fcur->alt_end_off));
+				   " with %p - %p\n",
+				   calc_addr(fcur, fcur->start_off),
+				   calc_addr(fcur, fcur->end_off),
+				   calc_addr(fcur, fcur->alt_start_off),
+				   calc_addr(fcur, fcur->alt_end_off));
 		}
 	}
 }
@@ -121,12 +138,15 @@ void do_lwsync_fixups(unsigned long value, void *fixup_start, void *fixup_end)
 	unsigned int *dest;
 
 	if (!(value & CPU_FTR_LWSYNC))
+	{
 		return ;
+	}
 
 	start = fixup_start;
 	end = fixup_end;
 
-	for (; start < end; start++) {
+	for (; start < end; start++)
+	{
 		dest = (void *)start + *start;
 		patch_instruction(dest, PPC_INST_LWSYNC);
 	}
@@ -139,24 +159,28 @@ static void do_final_fixups(void)
 	unsigned long length;
 
 	if (PHYSICAL_START == 0)
+	{
 		return;
+	}
 
 	src = (int *)(KERNELBASE + PHYSICAL_START);
 	dest = (int *)KERNELBASE;
 	length = (__end_interrupts - _stext) / sizeof(int);
 
-	while (length--) {
+	while (length--)
+	{
 		patch_instruction(dest, *src);
 		src++;
 		dest++;
 	}
+
 #endif
 }
 
 static unsigned long __initdata saved_cpu_features;
 static unsigned int __initdata saved_mmu_features;
 #ifdef CONFIG_PPC64
-static unsigned long __initdata saved_firmware_features;
+	static unsigned long __initdata saved_firmware_features;
 #endif
 
 void __init apply_feature_fixups(void)
@@ -171,21 +195,21 @@ void __init apply_feature_fixups(void)
 	 * (nop out sections not relevant to this CPU or this firmware).
 	 */
 	do_feature_fixups(spec->cpu_features,
-			  PTRRELOC(&__start___ftr_fixup),
-			  PTRRELOC(&__stop___ftr_fixup));
+					  PTRRELOC(&__start___ftr_fixup),
+					  PTRRELOC(&__stop___ftr_fixup));
 
 	do_feature_fixups(spec->mmu_features,
-			  PTRRELOC(&__start___mmu_ftr_fixup),
-			  PTRRELOC(&__stop___mmu_ftr_fixup));
+					  PTRRELOC(&__start___mmu_ftr_fixup),
+					  PTRRELOC(&__stop___mmu_ftr_fixup));
 
 	do_lwsync_fixups(spec->cpu_features,
-			 PTRRELOC(&__start___lwsync_fixup),
-			 PTRRELOC(&__stop___lwsync_fixup));
+					 PTRRELOC(&__start___lwsync_fixup),
+					 PTRRELOC(&__stop___lwsync_fixup));
 
 #ifdef CONFIG_PPC64
 	saved_firmware_features = powerpc_firmware_features;
 	do_feature_fixups(powerpc_firmware_features,
-			  &__start___fw_ftr_fixup, &__stop___fw_ftr_fixup);
+					  &__start___fw_ftr_fixup, &__stop___fw_ftr_fixup);
 #endif
 	do_final_fixups();
 }
@@ -205,12 +229,12 @@ void __init setup_feature_keys(void)
 static int __init check_features(void)
 {
 	WARN(saved_cpu_features != cur_cpu_spec->cpu_features,
-	     "CPU features changed after feature patching!\n");
+		 "CPU features changed after feature patching!\n");
 	WARN(saved_mmu_features != cur_cpu_spec->mmu_features,
-	     "MMU features changed after feature patching!\n");
+		 "MMU features changed after feature patching!\n");
 #ifdef CONFIG_PPC64
 	WARN(saved_firmware_features != powerpc_firmware_features,
-	     "Firmware features changed after feature patching!\n");
+		 "Firmware features changed after feature patching!\n");
 #endif
 
 	return 0;
@@ -381,11 +405,11 @@ static void test_cpu_macros(void)
 	extern u8 ftr_fixup_test_FTR_macros;
 	extern u8 ftr_fixup_test_FTR_macros_expected;
 	unsigned long size = &ftr_fixup_test_FTR_macros_expected -
-			     &ftr_fixup_test_FTR_macros;
+						 &ftr_fixup_test_FTR_macros;
 
 	/* The fixups have already been done for us during boot */
 	check(memcmp(&ftr_fixup_test_FTR_macros,
-		     &ftr_fixup_test_FTR_macros_expected, size) == 0);
+				 &ftr_fixup_test_FTR_macros_expected, size) == 0);
 }
 
 static void test_fw_macros(void)
@@ -394,11 +418,11 @@ static void test_fw_macros(void)
 	extern u8 ftr_fixup_test_FW_FTR_macros;
 	extern u8 ftr_fixup_test_FW_FTR_macros_expected;
 	unsigned long size = &ftr_fixup_test_FW_FTR_macros_expected -
-			     &ftr_fixup_test_FW_FTR_macros;
+						 &ftr_fixup_test_FW_FTR_macros;
 
 	/* The fixups have already been done for us during boot */
 	check(memcmp(&ftr_fixup_test_FW_FTR_macros,
-		     &ftr_fixup_test_FW_FTR_macros_expected, size) == 0);
+				 &ftr_fixup_test_FW_FTR_macros_expected, size) == 0);
 #endif
 }
 
@@ -409,15 +433,18 @@ static void test_lwsync_macros(void)
 	extern u8 lwsync_fixup_test_expected_LWSYNC;
 	extern u8 lwsync_fixup_test_expected_SYNC;
 	unsigned long size = &end_lwsync_fixup_test -
-			     &lwsync_fixup_test;
+						 &lwsync_fixup_test;
 
 	/* The fixups have already been done for us during boot */
-	if (cur_cpu_spec->cpu_features & CPU_FTR_LWSYNC) {
+	if (cur_cpu_spec->cpu_features & CPU_FTR_LWSYNC)
+	{
 		check(memcmp(&lwsync_fixup_test,
-			     &lwsync_fixup_test_expected_LWSYNC, size) == 0);
-	} else {
+					 &lwsync_fixup_test_expected_LWSYNC, size) == 0);
+	}
+	else
+	{
 		check(memcmp(&lwsync_fixup_test,
-			     &lwsync_fixup_test_expected_SYNC, size) == 0);
+					 &lwsync_fixup_test_expected_SYNC, size) == 0);
 	}
 }
 

@@ -22,7 +22,7 @@
 #include <asm/cacheflush.h>
 
 pte_t *huge_pte_alloc(struct mm_struct *mm,
-			unsigned long addr, unsigned long sz)
+					  unsigned long addr, unsigned long sz)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -30,12 +30,19 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
 	pte_t *pte = NULL;
 
 	pgd = pgd_offset(mm, addr);
-	if (pgd) {
+
+	if (pgd)
+	{
 		pud = pud_alloc(mm, pgd, addr);
-		if (pud) {
+
+		if (pud)
+		{
 			pmd = pmd_alloc(mm, pud, addr);
+
 			if (pmd)
+			{
 				pte = pte_alloc_map(mm, pmd, addr);
+			}
 		}
 	}
 
@@ -50,12 +57,19 @@ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
 	pte_t *pte = NULL;
 
 	pgd = pgd_offset(mm, addr);
-	if (pgd) {
+
+	if (pgd)
+	{
 		pud = pud_offset(pgd, addr);
-		if (pud) {
+
+		if (pud)
+		{
 			pmd = pmd_offset(pud, addr);
+
 			if (pmd)
+			{
 				pte = pte_offset_map(pmd, addr);
+			}
 		}
 	}
 

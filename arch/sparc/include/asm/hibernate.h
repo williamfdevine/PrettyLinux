@@ -7,7 +7,8 @@
 #ifndef ___SPARC_HIBERNATE_H
 #define ___SPARC_HIBERNATE_H
 
-struct saved_context {
+struct saved_context
+{
 	unsigned long fp;
 	unsigned long cwp;
 	unsigned long wstate;

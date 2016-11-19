@@ -48,7 +48,8 @@
 
 #include "common.h"
 
-static struct map_desc nexcoder_iodesc[] __initdata = {
+static struct map_desc nexcoder_iodesc[] __initdata =
+{
 	/* nothing here yet */
 };
 
@@ -56,7 +57,8 @@ static struct map_desc nexcoder_iodesc[] __initdata = {
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG12 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg nexcoder_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg nexcoder_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -82,15 +84,18 @@ static struct s3c2410_uartcfg nexcoder_uartcfgs[] __initdata = {
 
 /* NOR Flash on NexVision NexCoder 2440 board */
 
-static struct resource nexcoder_nor_resource[] = {
+static struct resource nexcoder_nor_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS0, SZ_8M),
 };
 
-static struct map_info nexcoder_nor_map = {
+static struct map_info nexcoder_nor_map =
+{
 	.bankwidth = 2,
 };
 
-static struct platform_device nexcoder_device_nor = {
+static struct platform_device nexcoder_device_nor =
+{
 	.name		= "mtd-flash",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(nexcoder_nor_resource),
@@ -103,13 +108,14 @@ static struct platform_device nexcoder_device_nor = {
 
 /* Standard Nexcoder devices */
 
-static struct platform_device *nexcoder_devices[] __initdata = {
+static struct platform_device *nexcoder_devices[] __initdata =
+{
 	&s3c_device_ohci,
 	&s3c_device_lcd,
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
 	&s3c_device_iis,
- 	&s3c_device_rtc,
+	&s3c_device_rtc,
 	&s3c_device_camif,
 	&s3c_device_spi0,
 	&s3c_device_spi1,
@@ -153,10 +159,10 @@ static void __init nexcoder_init(void)
 };
 
 MACHINE_START(NEXCODER_2440, "NexVision - Nexcoder 2440")
-	/* Maintainer: Guillaume GOURAT <guillaume.gourat@nexvision.tv> */
-	.atag_offset	= 0x100,
+/* Maintainer: Guillaume GOURAT <guillaume.gourat@nexvision.tv> */
+.atag_offset	= 0x100,
 	.map_io		= nexcoder_map_io,
-	.init_machine	= nexcoder_init,
-	.init_irq	= s3c2440_init_irq,
-	.init_time	= nexcoder_init_time,
-MACHINE_END
+		.init_machine	= nexcoder_init,
+		   .init_irq	= s3c2440_init_irq,
+			  .init_time	= nexcoder_init_time,
+				MACHINE_END

@@ -20,9 +20,9 @@
  */
 
 #ifdef CONFIG_MMU
-#define USER_RING		1	/* user ring level */
+	#define USER_RING		1	/* user ring level */
 #else
-#define USER_RING		0
+	#define USER_RING		0
 #endif
 #define KERNEL_RING		0	/* kernel ring level */
 
@@ -74,9 +74,9 @@
 #define TLBTEMP_BASE_1		(VMALLOC_END + 1)
 #define TLBTEMP_BASE_2		(TLBTEMP_BASE_1 + DCACHE_WAY_SIZE)
 #if 2 * DCACHE_WAY_SIZE > ICACHE_WAY_SIZE
-#define TLBTEMP_SIZE		(2 * DCACHE_WAY_SIZE)
+	#define TLBTEMP_SIZE		(2 * DCACHE_WAY_SIZE)
 #else
-#define TLBTEMP_SIZE		ICACHE_WAY_SIZE
+	#define TLBTEMP_SIZE		ICACHE_WAY_SIZE
 #endif
 
 /*
@@ -140,11 +140,11 @@
 
 /* We use invalid attribute values to distinguish special pte entries */
 #if XCHAL_HW_VERSION_MAJOR < 2000
-#define _PAGE_HW_VALID		0x01	/* older HW needed this bit set */
-#define _PAGE_NONE		0x04
+	#define _PAGE_HW_VALID		0x01	/* older HW needed this bit set */
+	#define _PAGE_NONE		0x04
 #else
-#define _PAGE_HW_VALID		0x00
-#define _PAGE_NONE		0x0f
+	#define _PAGE_HW_VALID		0x00
+	#define _PAGE_NONE		0x0f
 #endif
 
 #define _PAGE_USER		(1<<4)	/* user access (ring=1) */
@@ -172,9 +172,9 @@
 #define PAGE_KERNEL_EXEC   __pgprot(_PAGE_PRESENT|_PAGE_HW_WRITE|_PAGE_HW_EXEC)
 
 #if (DCACHE_WAY_SIZE > PAGE_SIZE)
-# define _PAGE_DIRECTORY   (_PAGE_HW_VALID | _PAGE_ACCESSED | _PAGE_CA_BYPASS)
+	#define _PAGE_DIRECTORY   (_PAGE_HW_VALID | _PAGE_ACCESSED | _PAGE_CA_BYPASS)
 #else
-# define _PAGE_DIRECTORY   (_PAGE_HW_VALID | _PAGE_ACCESSED | _PAGE_CA_WB)
+	#define _PAGE_DIRECTORY   (_PAGE_HW_VALID | _PAGE_ACCESSED | _PAGE_CA_WB)
 #endif
 
 #else /* no mmu */
@@ -225,7 +225,7 @@ extern unsigned long empty_zero_page[1024];
 #define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
 
 #ifdef CONFIG_MMU
-extern pgd_t swapper_pg_dir[PAGE_SIZE/sizeof(pgd_t)];
+extern pgd_t swapper_pg_dir[PAGE_SIZE / sizeof(pgd_t)];
 extern void paging_init(void);
 #else
 # define swapper_pg_dir NULL
@@ -263,20 +263,20 @@ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
 static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
 static inline int pte_special(pte_t pte) { return 0; }
 
-static inline pte_t pte_wrprotect(pte_t pte)	
-	{ pte_val(pte) &= ~(_PAGE_WRITABLE | _PAGE_HW_WRITE); return pte; }
+static inline pte_t pte_wrprotect(pte_t pte)
+{ pte_val(pte) &= ~(_PAGE_WRITABLE | _PAGE_HW_WRITE); return pte; }
 static inline pte_t pte_mkclean(pte_t pte)
-	{ pte_val(pte) &= ~(_PAGE_DIRTY | _PAGE_HW_WRITE); return pte; }
+{ pte_val(pte) &= ~(_PAGE_DIRTY | _PAGE_HW_WRITE); return pte; }
 static inline pte_t pte_mkold(pte_t pte)
-	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
+{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
 static inline pte_t pte_mkdirty(pte_t pte)
-	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
+{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
 static inline pte_t pte_mkyoung(pte_t pte)
-	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
 static inline pte_t pte_mkwrite(pte_t pte)
-	{ pte_val(pte) |= _PAGE_WRITABLE; return pte; }
+{ pte_val(pte) |= _PAGE_WRITABLE; return pte; }
 static inline pte_t pte_mkspecial(pte_t pte)
-	{ return pte; }
+{ return pte; }
 
 #define pgprot_noncached(prot) (__pgprot(pgprot_val(prot) & ~_PAGE_CA_MASK))
 
@@ -333,11 +333,15 @@ struct vm_area_struct;
 
 static inline int
 ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned long addr,
-			  pte_t *ptep)
+						  pte_t *ptep)
 {
 	pte_t pte = *ptep;
+
 	if (!pte_young(pte))
+	{
 		return 0;
+	}
+
 	update_pte(ptep, pte_mkold(pte));
 	return 1;
 }
@@ -386,7 +390,7 @@ ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
 #define __swp_offset(entry)	((entry).val >> 11)
 #define __swp_entry(type,offs)	\
 	((swp_entry_t){((type) << 6) | ((offs) << 11) | \
-	 _PAGE_CA_INVALID | _PAGE_USER})
+		_PAGE_CA_INVALID | _PAGE_USER})
 #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
 #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
 
@@ -410,20 +414,20 @@ ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
 #define _PTE_INDEX(rt,rs)	extui	rt, rs, PAGE_SHIFT, PTRS_PER_PTE_SHIFT
 
 #define _PGD_OFFSET(mm,adr,tmp)		l32i	mm, mm, MM_PGD;		\
-					_PGD_INDEX(tmp, adr);		\
-					addx4	mm, tmp, mm
+	_PGD_INDEX(tmp, adr);		\
+	addx4	mm, tmp, mm
 
 #define _PTE_OFFSET(pmd,adr,tmp)	_PTE_INDEX(tmp, adr);		\
-					srli	pmd, pmd, PAGE_SHIFT;	\
-					slli	pmd, pmd, PAGE_SHIFT;	\
-					addx4	pmd, tmp, pmd
+	srli	pmd, pmd, PAGE_SHIFT;	\
+	slli	pmd, pmd, PAGE_SHIFT;	\
+	addx4	pmd, tmp, pmd
 
 #else
 
 #define kern_addr_valid(addr)	(1)
 
-extern  void update_mmu_cache(struct vm_area_struct * vma,
-			      unsigned long address, pte_t *ptep);
+extern  void update_mmu_cache(struct vm_area_struct *vma,
+							  unsigned long address, pte_t *ptep);
 
 typedef pte_t *pte_addr_t;
 

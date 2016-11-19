@@ -10,7 +10,9 @@ __arm_gen_branch_thumb2(unsigned long pc, unsigned long addr, bool link)
 	long offset;
 
 	offset = (long)addr - (long)(pc + 4);
-	if (offset < -16777216 || offset > 16777214) {
+
+	if (offset < -16777216 || offset > 16777214)
+	{
 		WARN_ON_ONCE(1);
 		return 0;
 	}
@@ -26,8 +28,11 @@ __arm_gen_branch_thumb2(unsigned long pc, unsigned long addr, bool link)
 
 	first = 0xf000 | (s << 10) | imm10;
 	second = 0x9000 | (j1 << 13) | (j2 << 11) | imm11;
+
 	if (link)
+	{
 		second |= 1 << 14;
+	}
 
 	return __opcode_thumb32_compose(first, second);
 }
@@ -39,10 +44,14 @@ __arm_gen_branch_arm(unsigned long pc, unsigned long addr, bool link)
 	long offset;
 
 	if (link)
+	{
 		opcode |= 1 << 24;
+	}
 
 	offset = (long)addr - (long)(pc + 8);
-	if (unlikely(offset < -33554432 || offset > 33554428)) {
+
+	if (unlikely(offset < -33554432 || offset > 33554428))
+	{
 		WARN_ON_ONCE(1);
 		return 0;
 	}
@@ -56,7 +65,11 @@ unsigned long
 __arm_gen_branch(unsigned long pc, unsigned long addr, bool link)
 {
 	if (IS_ENABLED(CONFIG_THUMB2_KERNEL))
+	{
 		return __arm_gen_branch_thumb2(pc, addr, link);
+	}
 	else
+	{
 		return __arm_gen_branch_arm(pc, addr, link);
+	}
 }

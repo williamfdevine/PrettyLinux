@@ -13,7 +13,7 @@
  */
 
 #ifndef __ASM_ARCH_HARDWARE_H
-#error "include <mach/hardware.h> instead"
+	#error "include <mach/hardware.h> instead"
 #endif
 
 #define BADGE4_SA1111_BASE		(0x48000000)
@@ -71,5 +71,5 @@
 #define BADGE4_5V_INITIALLY		(1<<3)
 
 #ifndef __ASSEMBLY__
-extern void badge4_set_5V(unsigned subsystem, int on);
+	extern void badge4_set_5V(unsigned subsystem, int on);
 #endif

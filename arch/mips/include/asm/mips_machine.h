@@ -15,7 +15,8 @@
 
 #include <asm/bootinfo.h>
 
-struct mips_machine {
+struct mips_machine
+{
 	unsigned long		mach_type;
 	const char		*mach_id;
 	const char		*mach_name;
@@ -23,18 +24,18 @@ struct mips_machine {
 };
 
 #define MIPS_MACHINE(_type, _id, _name, _setup)			\
-static const char machine_name_##_type[] __initconst		\
-			__aligned(1) = _name;			\
-static const char machine_id_##_type[] __initconst		\
-			__aligned(1) = _id;			\
-static struct mips_machine machine_##_type			\
-		__used __section(.mips.machines.init) =		\
-{								\
-	.mach_type	= _type,				\
-	.mach_id	= machine_id_##_type,			\
-	.mach_name	= machine_name_##_type,			\
-	.mach_setup	= _setup,				\
-};
+	static const char machine_name_##_type[] __initconst		\
+	__aligned(1) = _name;			\
+	static const char machine_id_##_type[] __initconst		\
+	__aligned(1) = _id;			\
+	static struct mips_machine machine_##_type			\
+	__used __section(.mips.machines.init) =		\
+			{								\
+											.mach_type	= _type,				\
+											.mach_id	= machine_id_##_type,			\
+											.mach_name	= machine_name_##_type,			\
+											.mach_setup	= _setup,				\
+			};
 
 extern long __mips_machines_start;
 extern long __mips_machines_end;

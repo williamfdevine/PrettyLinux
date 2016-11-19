@@ -26,7 +26,7 @@ extern void __ashldi3(void);
 extern void __ashrdi3(void);
 extern void __lshrdi3(void);
 extern void __negdi2(void);
-extern void iounmap(volatile void * __iomem);
+extern void iounmap(volatile void *__iomem);
 
 /* Platform dependent support */
 EXPORT_SYMBOL(loops_per_usec);
@@ -47,21 +47,21 @@ EXPORT_SYMBOL(iounmap);
 
 #undef memcpy
 #undef memset
-extern void * memset(void *, int, __kernel_size_t);
-extern void * memcpy(void *, const void *, __kernel_size_t);
+extern void *memset(void *, int, __kernel_size_t);
+extern void *memcpy(void *, const void *, __kernel_size_t);
 EXPORT_SYMBOL(memcpy);
 EXPORT_SYMBOL(memset);
 #ifdef CONFIG_ETRAX_ARCH_V32
-#undef strcmp
-EXPORT_SYMBOL(strcmp);
+	#undef strcmp
+	EXPORT_SYMBOL(strcmp);
 #endif
 
 #ifdef CONFIG_ETRAX_FAST_TIMER
-/* Fast timer functions */
-EXPORT_SYMBOL(fast_timer_list);
-EXPORT_SYMBOL(start_one_shot_timer);
-EXPORT_SYMBOL(del_fast_timer);
-EXPORT_SYMBOL(schedule_usleep);
+	/* Fast timer functions */
+	EXPORT_SYMBOL(fast_timer_list);
+	EXPORT_SYMBOL(start_one_shot_timer);
+	EXPORT_SYMBOL(del_fast_timer);
+	EXPORT_SYMBOL(schedule_usleep);
 #endif
 EXPORT_SYMBOL(csum_partial);
 EXPORT_SYMBOL(csum_partial_copy_from_user);

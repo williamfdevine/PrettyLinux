@@ -9,16 +9,22 @@
 
 int __init pcibios_map_platform_irq(const struct pci_dev *, u8 slot, u8 pin)
 {
-        switch (slot) {
-        case 0: return evt2irq(0x3a0);
-        case 1: return evt2irq(0x3a0);	/* AMD Ethernet controller */
-        case 2: return -1;
-        case 3: return -1;
-        case 4: return -1;
-        default:
-                printk("PCI: Bad IRQ mapping request for slot %d\n", slot);
-                return -1;
-        }
+	switch (slot)
+	{
+		case 0: return evt2irq(0x3a0);
+
+		case 1: return evt2irq(0x3a0);	/* AMD Ethernet controller */
+
+		case 2: return -1;
+
+		case 3: return -1;
+
+		case 4: return -1;
+
+		default:
+			printk("PCI: Bad IRQ mapping request for slot %d\n", slot);
+			return -1;
+	}
 }
 
 #define PCIMCR_MRSET_OFF	0xBFFFFFFF
@@ -47,15 +53,15 @@ int pci_fixup_pcic(struct pci_channel *chan)
 	* (i.e. Another sbc may usr different SDRAM timing settings -- in order
 	* for the pcic to work, its settings need to be exactly the same.)
 	*/
-	bcr1 = (*(volatile unsigned long*)(SH7751_BCR1));
-	bcr2 = (*(volatile unsigned short*)(SH7751_BCR2));
-	wcr1 = (*(volatile unsigned long*)(SH7751_WCR1));
-	wcr2 = (*(volatile unsigned long*)(SH7751_WCR2));
-	wcr3 = (*(volatile unsigned long*)(SH7751_WCR3));
-	mcr = (*(volatile unsigned long*)(SH7751_MCR));
+	bcr1 = (*(volatile unsigned long *)(SH7751_BCR1));
+	bcr2 = (*(volatile unsigned short *)(SH7751_BCR2));
+	wcr1 = (*(volatile unsigned long *)(SH7751_WCR1));
+	wcr2 = (*(volatile unsigned long *)(SH7751_WCR2));
+	wcr3 = (*(volatile unsigned long *)(SH7751_WCR3));
+	mcr = (*(volatile unsigned long *)(SH7751_MCR));
 
 	bcr1 = bcr1 | 0x00080000;  /* Enable Bit 19, BREQEN */
-	(*(volatile unsigned long*)(SH7751_BCR1)) = bcr1;
+	(*(volatile unsigned long *)(SH7751_BCR1)) = bcr1;
 
 	bcr1 = bcr1 | 0x40080000;  /* Enable Bit 19 BREQEN, set PCIC to slave */
 	PCIC_WRITE(SH7751_PCIBCR1, bcr1);	 /* PCIC BCR1 */

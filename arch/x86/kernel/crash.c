@@ -43,17 +43,20 @@
 /* This primarily represents number of split ranges due to exclusion */
 #define CRASH_MAX_RANGES	16
 
-struct crash_mem_range {
+struct crash_mem_range
+{
 	u64 start, end;
 };
 
-struct crash_mem {
+struct crash_mem
+{
 	unsigned int nr_ranges;
 	struct crash_mem_range ranges[CRASH_MAX_RANGES];
 };
 
 /* Misc data about ram ranges needed to prepare elf headers */
-struct crash_elf_data {
+struct crash_elf_data
+{
 	struct kimage *image;
 	/*
 	 * Total number of ram ranges we have after various adjustments for
@@ -69,7 +72,8 @@ struct crash_elf_data {
 };
 
 /* Used while preparing memory map entries for second kernel */
-struct crash_memmap_data {
+struct crash_memmap_data
+{
 	struct boot_params *params;
 	/* Type of memory */
 	unsigned int type;
@@ -92,8 +96,12 @@ static inline void cpu_crash_vmclear_loaded_vmcss(void)
 
 	rcu_read_lock();
 	do_vmclear_operation = rcu_dereference(crash_vmclear_loaded_vmcss);
+
 	if (do_vmclear_operation)
+	{
 		do_vmclear_operation();
+	}
+
 	rcu_read_unlock();
 }
 
@@ -104,10 +112,12 @@ static void kdump_nmi_callback(int cpu, struct pt_regs *regs)
 #ifdef CONFIG_X86_32
 	struct pt_regs fixed_regs;
 
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		crash_fixup_ss_esp(&fixed_regs, regs);
 		regs = &fixed_regs;
 	}
+
 #endif
 	crash_save_cpu(regs, cpu);
 
@@ -146,12 +156,18 @@ void crash_smp_send_stop(void)
 	static int cpus_stopped;
 
 	if (cpus_stopped)
+	{
 		return;
+	}
 
 	if (smp_ops.crash_stop_other_cpus)
+	{
 		smp_ops.crash_stop_other_cpus();
+	}
 	else
+	{
 		smp_send_stop();
+	}
 
 	cpus_stopped = 1;
 }
@@ -219,14 +235,14 @@ static int get_nr_ram_ranges_callback(u64 start, u64 end, void *arg)
 
 /* Gather all the required information to prepare elf headers for ram regions */
 static void fill_up_crash_elf_data(struct crash_elf_data *ced,
-				   struct kimage *image)
+								   struct kimage *image)
 {
 	unsigned int nr_ranges = 0;
 
 	ced->image = image;
 
 	walk_system_ram_res(0, -1, &nr_ranges,
-				get_nr_ram_ranges_callback);
+						get_nr_ram_ranges_callback);
 
 	ced->max_nr_ranges = nr_ranges;
 
@@ -235,74 +251,103 @@ static void fill_up_crash_elf_data(struct crash_elf_data *ced,
 
 	/* If crashk_low_res is not 0, another range split possible */
 	if (crashk_low_res.end)
+	{
 		ced->max_nr_ranges++;
+	}
 }
 
 static int exclude_mem_range(struct crash_mem *mem,
-		unsigned long long mstart, unsigned long long mend)
+							 unsigned long long mstart, unsigned long long mend)
 {
 	int i, j;
 	unsigned long long start, end;
 	struct crash_mem_range temp_range = {0, 0};
 
-	for (i = 0; i < mem->nr_ranges; i++) {
+	for (i = 0; i < mem->nr_ranges; i++)
+	{
 		start = mem->ranges[i].start;
 		end = mem->ranges[i].end;
 
 		if (mstart > end || mend < start)
+		{
 			continue;
+		}
 
 		/* Truncate any area outside of range */
 		if (mstart < start)
+		{
 			mstart = start;
+		}
+
 		if (mend > end)
+		{
 			mend = end;
+		}
 
 		/* Found completely overlapping range */
-		if (mstart == start && mend == end) {
+		if (mstart == start && mend == end)
+		{
 			mem->ranges[i].start = 0;
 			mem->ranges[i].end = 0;
-			if (i < mem->nr_ranges - 1) {
+
+			if (i < mem->nr_ranges - 1)
+			{
 				/* Shift rest of the ranges to left */
-				for (j = i; j < mem->nr_ranges - 1; j++) {
+				for (j = i; j < mem->nr_ranges - 1; j++)
+				{
 					mem->ranges[j].start =
-						mem->ranges[j+1].start;
+						mem->ranges[j + 1].start;
 					mem->ranges[j].end =
-							mem->ranges[j+1].end;
+						mem->ranges[j + 1].end;
 				}
 			}
+
 			mem->nr_ranges--;
 			return 0;
 		}
 
-		if (mstart > start && mend < end) {
+		if (mstart > start && mend < end)
+		{
 			/* Split original range */
 			mem->ranges[i].end = mstart - 1;
 			temp_range.start = mend + 1;
 			temp_range.end = end;
-		} else if (mstart != start)
+		}
+		else if (mstart != start)
+		{
 			mem->ranges[i].end = mstart - 1;
+		}
 		else
+		{
 			mem->ranges[i].start = mend + 1;
+		}
+
 		break;
 	}
 
 	/* If a split happend, add the split to array */
 	if (!temp_range.end)
+	{
 		return 0;
+	}
 
 	/* Split happened */
-	if (i == CRASH_MAX_RANGES - 1) {
+	if (i == CRASH_MAX_RANGES - 1)
+	{
 		pr_err("Too many crash ranges after split\n");
 		return -ENOMEM;
 	}
 
 	/* Location where new range should go */
 	j = i + 1;
-	if (j < mem->nr_ranges) {
+
+	if (j < mem->nr_ranges)
+	{
 		/* Move over all ranges one slot towards the end */
 		for (i = mem->nr_ranges - 1; i >= j; i--)
+		{
 			mem->ranges[i + 1] = mem->ranges[i];
+		}
 	}
 
 	mem->ranges[j].start = temp_range.start;
@@ -316,7 +361,7 @@ static int exclude_mem_range(struct crash_mem *mem,
  * might lead to split and split ranges are put in ced->mem.ranges[] array
  */
 static int elf_header_exclude_ranges(struct crash_elf_data *ced,
-		unsigned long long mstart, unsigned long long mend)
+									 unsigned long long mstart, unsigned long long mend)
 {
 	struct crash_mem *cmem = &ced->mem;
 	int ret = 0;
@@ -329,13 +374,20 @@ static int elf_header_exclude_ranges(struct crash_elf_data *ced,
 
 	/* Exclude crashkernel region */
 	ret = exclude_mem_range(cmem, crashk_res.start, crashk_res.end);
-	if (ret)
-		return ret;
 
-	if (crashk_low_res.end) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (crashk_low_res.end)
+	{
 		ret = exclude_mem_range(cmem, crashk_low_res.start, crashk_low_res.end);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return ret;
@@ -355,13 +407,17 @@ static int prepare_elf64_ram_headers_callback(u64 start, u64 end, void *arg)
 
 	/* Exclude unwanted mem ranges */
 	ret = elf_header_exclude_ranges(ced, start, end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Go through all the ranges in ced->mem.ranges[] and prepare phdr */
 	cmem = &ced->mem;
 
-	for (i = 0; i < cmem->nr_ranges; i++) {
+	for (i = 0; i < cmem->nr_ranges; i++)
+	{
 		mstart = cmem->ranges[i].start;
 		mend = cmem->ranges[i].end;
 
@@ -369,7 +425,7 @@ static int prepare_elf64_ram_headers_callback(u64 start, u64 end, void *arg)
 		ced->bufp += sizeof(Elf64_Phdr);
 
 		phdr->p_type = PT_LOAD;
-		phdr->p_flags = PF_R|PF_W|PF_X;
+		phdr->p_flags = PF_R | PF_W | PF_X;
 		phdr->p_offset  = mstart;
 
 		/*
@@ -377,8 +433,10 @@ static int prepare_elf64_ram_headers_callback(u64 start, u64 end, void *arg)
 		 * segment.
 		 */
 		if (mstart == image->arch.backup_src_start &&
-		    (mend - mstart + 1) == image->arch.backup_src_sz)
+			(mend - mstart + 1) == image->arch.backup_src_sz)
+		{
 			phdr->p_offset = image->arch.backup_load_addr;
+		}
 
 		phdr->p_paddr = mstart;
 		phdr->p_vaddr = (unsigned long long) __va(mstart);
@@ -386,15 +444,15 @@ static int prepare_elf64_ram_headers_callback(u64 start, u64 end, void *arg)
 		phdr->p_align = 0;
 		ehdr->e_phnum++;
 		pr_debug("Crash PT_LOAD elf header. phdr=%p vaddr=0x%llx, paddr=0x%llx, sz=0x%llx e_phnum=%d p_offset=0x%llx\n",
-			phdr, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz,
-			ehdr->e_phnum, phdr->p_offset);
+				 phdr, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz,
+				 ehdr->e_phnum, phdr->p_offset);
 	}
 
 	return ret;
 }
 
 static int prepare_elf64_headers(struct crash_elf_data *ced,
-		void **addr, unsigned long *sz)
+								 void **addr, unsigned long *sz)
 {
 	Elf64_Ehdr *ehdr;
 	Elf64_Phdr *phdr;
@@ -421,8 +479,11 @@ static int prepare_elf64_headers(struct crash_elf_data *ced,
 	elf_sz = ALIGN(elf_sz, ELF_CORE_HEADER_ALIGN);
 
 	buf = vzalloc(elf_sz);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	bufp = buf;
 	ehdr = (Elf64_Ehdr *)bufp;
@@ -441,7 +502,8 @@ static int prepare_elf64_headers(struct crash_elf_data *ced,
 	ehdr->e_phentsize = sizeof(Elf64_Phdr);
 
 	/* Prepare one phdr of type PT_NOTE for each present cpu */
-	for_each_present_cpu(cpu) {
+	for_each_present_cpu(cpu)
+	{
 		phdr = (Elf64_Phdr *)bufp;
 		bufp += sizeof(Elf64_Phdr);
 		phdr->p_type = PT_NOTE;
@@ -464,7 +526,7 @@ static int prepare_elf64_headers(struct crash_elf_data *ced,
 	phdr = (Elf64_Phdr *)bufp;
 	bufp += sizeof(Elf64_Phdr);
 	phdr->p_type = PT_LOAD;
-	phdr->p_flags = PF_R|PF_W|PF_X;
+	phdr->p_flags = PF_R | PF_W | PF_X;
 	phdr->p_vaddr = (Elf64_Addr)_text;
 	phdr->p_filesz = phdr->p_memsz = _end - _text;
 	phdr->p_offset = phdr->p_paddr = __pa_symbol(_text);
@@ -475,9 +537,12 @@ static int prepare_elf64_headers(struct crash_elf_data *ced,
 	ced->ehdr = ehdr;
 	ced->bufp = bufp;
 	ret = walk_system_ram_res(0, -1, ced,
-			prepare_elf64_ram_headers_callback);
+							  prepare_elf64_ram_headers_callback);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*addr = buf;
 	*sz = elf_sz;
@@ -486,14 +551,17 @@ static int prepare_elf64_headers(struct crash_elf_data *ced,
 
 /* Prepare elf headers. Return addr and size */
 static int prepare_elf_headers(struct kimage *image, void **addr,
-					unsigned long *sz)
+							   unsigned long *sz)
 {
 	struct crash_elf_data *ced;
 	int ret;
 
 	ced = kzalloc(sizeof(*ced), GFP_KERNEL);
+
 	if (!ced)
+	{
 		return -ENOMEM;
+	}
 
 	fill_up_crash_elf_data(ced, image);
 
@@ -508,11 +576,14 @@ static int add_e820_entry(struct boot_params *params, struct e820entry *entry)
 	unsigned int nr_e820_entries;
 
 	nr_e820_entries = params->e820_entries;
+
 	if (nr_e820_entries >= E820MAX)
+	{
 		return 1;
+	}
 
 	memcpy(&params->e820_map[nr_e820_entries], entry,
-			sizeof(struct e820entry));
+		   sizeof(struct e820entry));
 	params->e820_entries++;
 	return 0;
 }
@@ -532,8 +603,8 @@ static int memmap_entry_callback(u64 start, u64 end, void *arg)
 }
 
 static int memmap_exclude_ranges(struct kimage *image, struct crash_mem *cmem,
-				 unsigned long long mstart,
-				 unsigned long long mend)
+								 unsigned long long mstart,
+								 unsigned long long mend)
 {
 	unsigned long start, end;
 	int ret = 0;
@@ -546,8 +617,11 @@ static int memmap_exclude_ranges(struct kimage *image, struct crash_mem *cmem,
 	start = image->arch.backup_load_addr;
 	end = start + image->arch.backup_src_sz - 1;
 	ret = exclude_mem_range(cmem, start, end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Exclude elf header region */
 	start = image->arch.elf_load_addr;
@@ -565,8 +639,11 @@ int crash_setup_memmap_entries(struct kimage *image, struct boot_params *params)
 	struct crash_mem *cmem;
 
 	cmem = vzalloc(sizeof(struct crash_mem));
+
 	if (!cmem)
+	{
 		return -ENOMEM;
+	}
 
 	memset(&cmd, 0, sizeof(struct crash_memmap_data));
 	cmd.params = params;
@@ -581,15 +658,16 @@ int crash_setup_memmap_entries(struct kimage *image, struct boot_params *params)
 	cmd.type = E820_ACPI;
 	flags = IORESOURCE_MEM | IORESOURCE_BUSY;
 	walk_iomem_res_desc(IORES_DESC_ACPI_TABLES, flags, 0, -1, &cmd,
-		       memmap_entry_callback);
+						memmap_entry_callback);
 
 	/* Add ACPI Non-volatile Storage */
 	cmd.type = E820_NVS;
 	walk_iomem_res_desc(IORES_DESC_ACPI_NV_STORAGE, flags, 0, -1, &cmd,
-			memmap_entry_callback);
+						memmap_entry_callback);
 
 	/* Add crashk_low_res region */
-	if (crashk_low_res.end) {
+	if (crashk_low_res.end)
+	{
 		ei.addr = crashk_low_res.start;
 		ei.size = crashk_low_res.end - crashk_low_res.start + 1;
 		ei.type = E820_RAM;
@@ -598,16 +676,23 @@ int crash_setup_memmap_entries(struct kimage *image, struct boot_params *params)
 
 	/* Exclude some ranges from crashk_res and add rest to memmap */
 	ret = memmap_exclude_ranges(image, cmem, crashk_res.start,
-						crashk_res.end);
-	if (ret)
-		goto out;
+								crashk_res.end);
 
-	for (i = 0; i < cmem->nr_ranges; i++) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	for (i = 0; i < cmem->nr_ranges; i++)
+	{
 		ei.size = cmem->ranges[i].end - cmem->ranges[i].start + 1;
 
 		/* If entry is less than a page, skip it */
 		if (ei.size < PAGE_SIZE)
+		{
 			continue;
+		}
+
 		ei.addr = cmem->ranges[i].start;
 		ei.type = E820_RAM;
 		add_e820_entry(params, &ei);
@@ -641,49 +726,62 @@ int crash_load_segments(struct kimage *image)
 	 */
 
 	ret = walk_system_ram_res(KEXEC_BACKUP_SRC_START, KEXEC_BACKUP_SRC_END,
-				image, determine_backup_region);
+							  image, determine_backup_region);
 
 	/* Zero or postive return values are ok */
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	src_start = image->arch.backup_src_start;
 	src_sz = image->arch.backup_src_sz;
 
 	/* Add backup segment. */
-	if (src_sz) {
+	if (src_sz)
+	{
 		/*
 		 * Ideally there is no source for backup segment. This is
 		 * copied in purgatory after crash. Just add a zero filled
 		 * segment for now to make sure checksum logic works fine.
 		 */
 		ret = kexec_add_buffer(image, (char *)&crash_zero_bytes,
-				       sizeof(crash_zero_bytes), src_sz,
-				       PAGE_SIZE, 0, -1, 0,
-				       &image->arch.backup_load_addr);
+							   sizeof(crash_zero_bytes), src_sz,
+							   PAGE_SIZE, 0, -1, 0,
+							   &image->arch.backup_load_addr);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		pr_debug("Loaded backup region at 0x%lx backup_start=0x%lx memsz=0x%lx\n",
-			 image->arch.backup_load_addr, src_start, src_sz);
+				 image->arch.backup_load_addr, src_start, src_sz);
 	}
 
 	/* Prepare elf headers and add a segment */
 	ret = prepare_elf_headers(image, &elf_addr, &elf_sz);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	image->arch.elf_headers = elf_addr;
 	image->arch.elf_headers_sz = elf_sz;
 
 	ret = kexec_add_buffer(image, (char *)elf_addr, elf_sz, elf_sz,
-			ELF_CORE_HEADER_ALIGN, 0, -1, 0,
-			&image->arch.elf_load_addr);
-	if (ret) {
+						   ELF_CORE_HEADER_ALIGN, 0, -1, 0,
+						   &image->arch.elf_load_addr);
+
+	if (ret)
+	{
 		vfree((void *)image->arch.elf_headers);
 		return ret;
 	}
+
 	pr_debug("Loaded ELF headers at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
-		 image->arch.elf_load_addr, elf_sz, elf_sz);
+			 image->arch.elf_load_addr, elf_sz, elf_sz);
 
 	return ret;
 }

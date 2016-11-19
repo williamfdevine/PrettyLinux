@@ -40,7 +40,8 @@
 #include "iomux-mx35.h"
 #include "ulpi.h"
 
-static const struct fb_videomode fb_modedb[] = {
+static const struct fb_videomode fb_modedb[] =
+{
 	{
 		/* 240x320 @ 60 Hz */
 		.name		= "Sharp-LQ035Q7",
@@ -76,23 +77,27 @@ static const struct fb_videomode fb_modedb[] = {
 	},
 };
 
-static struct mx3fb_platform_data mx3fb_pdata __initdata = {
+static struct mx3fb_platform_data mx3fb_pdata __initdata =
+{
 	.name		= "Sharp-LQ035Q7",
 	.mode		= fb_modedb,
 	.num_modes	= ARRAY_SIZE(fb_modedb),
 };
 
-static struct physmap_flash_data pcm043_flash_data = {
+static struct physmap_flash_data pcm043_flash_data =
+{
 	.width  = 2,
 };
 
-static struct resource pcm043_flash_resource = {
+static struct resource pcm043_flash_resource =
+{
 	.start	= 0xa0000000,
 	.end	= 0xa1ffffff,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device pcm043_flash = {
+static struct platform_device pcm043_flash =
+{
 	.name	= "physmap-flash",
 	.id	= 0,
 	.dev	= {
@@ -102,21 +107,25 @@ static struct platform_device pcm043_flash = {
 	.num_resources = 1,
 };
 
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
-static const struct imxi2c_platform_data pcm043_i2c0_data __initconst = {
+static const struct imxi2c_platform_data pcm043_i2c0_data __initconst =
+{
 	.bitrate = 50000,
 };
 
-static struct at24_platform_data board_eeprom = {
+static struct at24_platform_data board_eeprom =
+{
 	.byte_len = 4096,
 	.page_size = 32,
 	.flags = AT24_FLAG_ADDR16,
 };
 
-static struct i2c_board_info pcm043_i2c_devices[] = {
+static struct i2c_board_info pcm043_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("at24", 0x52), /* E0=0, E1=1, E2=0 */
 		.platform_data = &board_eeprom,
@@ -125,11 +134,13 @@ static struct i2c_board_info pcm043_i2c_devices[] = {
 	},
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&pcm043_flash,
 };
 
-static const iomux_v3_cfg_t pcm043_pads[] __initconst = {
+static const iomux_v3_cfg_t pcm043_pads[] __initconst =
+{
 	/* UART1 */
 	MX35_PAD_CTS1__UART1_CTS,
 	MX35_PAD_RTS1__UART1_RTS,
@@ -225,7 +236,9 @@ static void pcm043_ac97_warm_reset(struct snd_ac97 *ac97)
 	int ret;
 
 	ret = gpio_request(AC97_GPIO_TXFS, "SSI");
-	if (ret) {
+
+	if (ret)
+	{
 		printk("failed to get GPIO_TXFS: %d\n", ret);
 		return;
 	}
@@ -251,16 +264,25 @@ static void pcm043_ac97_cold_reset(struct snd_ac97 *ac97)
 	int ret;
 
 	ret = gpio_request(AC97_GPIO_TXFS, "SSI");
+
 	if (ret)
+	{
 		goto err1;
+	}
 
 	ret = gpio_request(AC97_GPIO_TXD, "SSI");
+
 	if (ret)
+	{
 		goto err2;
+	}
 
 	ret = gpio_request(AC97_GPIO_RESET, "SSI");
+
 	if (ret)
+	{
 		goto err3;
+	}
 
 	mxc_iomux_v3_setup_pad(txfs_gpio);
 	mxc_iomux_v3_setup_pad(txd_gpio);
@@ -283,19 +305,25 @@ err3:
 err2:
 	gpio_free(AC97_GPIO_TXFS);
 err1:
+
 	if (ret)
+	{
 		printk("%s failed with %d\n", __func__, ret);
+	}
+
 	mdelay(1);
 }
 
-static const struct imx_ssi_platform_data pcm043_ssi_pdata __initconst = {
+static const struct imx_ssi_platform_data pcm043_ssi_pdata __initconst =
+{
 	.ac97_reset = pcm043_ac97_cold_reset,
 	.ac97_warm_reset = pcm043_ac97_warm_reset,
 	.flags = IMX_SSI_USE_AC97,
 };
 
 static const struct mxc_nand_platform_data
-pcm037_nand_board_info __initconst = {
+	pcm037_nand_board_info __initconst =
+{
 	.width = 1,
 	.hw_ecc = 1,
 };
@@ -305,7 +333,8 @@ static int pcm043_otg_init(struct platform_device *pdev)
 	return mx35_initialize_usb_hw(pdev->id, MXC_EHCI_INTERFACE_DIFF_UNI);
 }
 
-static struct mxc_usbh_platform_data otg_pdata __initdata = {
+static struct mxc_usbh_platform_data otg_pdata __initdata =
+{
 	.init	= pcm043_otg_init,
 	.portsc	= MXC_EHCI_MODE_UTMI,
 };
@@ -313,15 +342,17 @@ static struct mxc_usbh_platform_data otg_pdata __initdata = {
 static int pcm043_usbh1_init(struct platform_device *pdev)
 {
 	return mx35_initialize_usb_hw(pdev->id, MXC_EHCI_INTERFACE_SINGLE_UNI |
-			MXC_EHCI_INTERNAL_PHY | MXC_EHCI_IPPUE_DOWN);
+								  MXC_EHCI_INTERNAL_PHY | MXC_EHCI_IPPUE_DOWN);
 }
 
-static const struct mxc_usbh_platform_data usbh1_pdata __initconst = {
+static const struct mxc_usbh_platform_data usbh1_pdata __initconst =
+{
 	.init	= pcm043_usbh1_init,
 	.portsc	= MXC_EHCI_MODE_SERIAL,
 };
 
-static const struct fsl_usb2_platform_data otg_device_pdata __initconst = {
+static const struct fsl_usb2_platform_data otg_device_pdata __initconst =
+{
 	.operating_mode = FSL_USB2_DR_DEVICE,
 	.phy_mode       = FSL_USB2_PHY_UTMI,
 };
@@ -331,17 +362,23 @@ static bool otg_mode_host __initdata;
 static int __init pcm043_otg_mode(char *options)
 {
 	if (!strcmp(options, "host"))
+	{
 		otg_mode_host = true;
+	}
 	else if (!strcmp(options, "device"))
+	{
 		otg_mode_host = false;
+	}
 	else
 		pr_info("otg_mode neither \"host\" nor \"device\". "
-			"Defaulting to device\n");
+				"Defaulting to device\n");
+
 	return 1;
 }
 __setup("otg_mode=", pcm043_otg_mode);
 
-static struct esdhc_platform_data sd1_pdata = {
+static struct esdhc_platform_data sd1_pdata =
+{
 	.wp_gpio = SD1_GPIO_WP,
 	.cd_gpio = SD1_GPIO_CD,
 	.wp_type = ESDHC_WP_GPIO,
@@ -367,23 +404,30 @@ static void __init pcm043_init(void)
 	imx35_add_imx_uart1(&uart_pdata);
 
 	i2c_register_board_info(0, pcm043_i2c_devices,
-			ARRAY_SIZE(pcm043_i2c_devices));
+							ARRAY_SIZE(pcm043_i2c_devices));
 
 	imx35_add_imx_i2c0(&pcm043_i2c0_data);
 
 	imx35_add_ipu_core();
 	imx35_add_mx3_sdc_fb(&mx3fb_pdata);
 
-	if (otg_mode_host) {
+	if (otg_mode_host)
+	{
 		otg_pdata.otg = imx_otg_ulpi_create(ULPI_OTG_DRVVBUS |
-				ULPI_OTG_DRVVBUS_EXT);
+											ULPI_OTG_DRVVBUS_EXT);
+
 		if (otg_pdata.otg)
+		{
 			imx35_add_mxc_ehci_otg(&otg_pdata);
+		}
 	}
+
 	imx35_add_mxc_ehci_hs(&usbh1_pdata);
 
 	if (!otg_mode_host)
+	{
 		imx35_add_fsl_usb2_udc(&otg_device_pdata);
+	}
 
 	imx35_add_flexcan1();
 }
@@ -401,13 +445,13 @@ static void __init pcm043_timer_init(void)
 }
 
 MACHINE_START(PCM043, "Phytec Phycore pcm043")
-	/* Maintainer: Pengutronix */
-	.atag_offset = 0x100,
-	.map_io = mx35_map_io,
-	.init_early = imx35_init_early,
-	.init_irq = mx35_init_irq,
+/* Maintainer: Pengutronix */
+.atag_offset = 0x100,
+ .map_io = mx35_map_io,
+  .init_early = imx35_init_early,
+   .init_irq = mx35_init_irq,
 	.init_time = pcm043_timer_init,
-	.init_machine	= pcm043_init,
-	.init_late	= pcm043_late_init,
-	.restart	= mxc_restart,
-MACHINE_END
+	 .init_machine	= pcm043_init,
+		.init_late	= pcm043_late_init,
+		  .restart	= mxc_restart,
+			  MACHINE_END

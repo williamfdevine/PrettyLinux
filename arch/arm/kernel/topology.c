@@ -53,7 +53,8 @@ static void set_capacity_scale(unsigned int cpu, unsigned long capacity)
 }
 
 #ifdef CONFIG_OF
-struct cpu_efficiency {
+struct cpu_efficiency
+{
 	const char *compatible;
 	unsigned long efficiency;
 };
@@ -68,7 +69,8 @@ struct cpu_efficiency {
  * Processors that are not defined in the table,
  * use the default SCHED_CAPACITY_SCALE value for cpu_scale.
  */
-static const struct cpu_efficiency table_efficiency[] = {
+static const struct cpu_efficiency table_efficiency[] =
+{
 	{"arm,cortex-a15", 3891},
 	{"arm,cortex-a7",  2048},
 	{NULL, },
@@ -97,30 +99,39 @@ static void __init parse_dt_topology(void)
 	int cpu = 0;
 
 	__cpu_capacity = kcalloc(nr_cpu_ids, sizeof(*__cpu_capacity),
-				 GFP_NOWAIT);
+							 GFP_NOWAIT);
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		const u32 *rate;
 		int len;
 
 		/* too early to use cpu->of_node */
 		cn = of_get_cpu_node(cpu, NULL);
-		if (!cn) {
+
+		if (!cn)
+		{
 			pr_err("missing device node for CPU %d\n", cpu);
 			continue;
 		}
 
 		for (cpu_eff = table_efficiency; cpu_eff->compatible; cpu_eff++)
 			if (of_device_is_compatible(cn, cpu_eff->compatible))
+			{
 				break;
+			}
 
 		if (cpu_eff->compatible == NULL)
+		{
 			continue;
+		}
 
 		rate = of_get_property(cn, "clock-frequency", &len);
-		if (!rate || len != 4) {
+
+		if (!rate || len != 4)
+		{
 			pr_err("%s missing clock-frequency property\n",
-				cn->full_name);
+				   cn->full_name);
 			continue;
 		}
 
@@ -128,11 +139,15 @@ static void __init parse_dt_topology(void)
 
 		/* Save min capacity of the system */
 		if (capacity < min_capacity)
+		{
 			min_capacity = capacity;
+		}
 
 		/* Save max capacity of the system */
 		if (capacity > max_capacity)
+		{
 			max_capacity = capacity;
+		}
 
 		cpu_capacity(cpu) = capacity;
 	}
@@ -144,12 +159,12 @@ static void __init parse_dt_topology(void)
 	 * SCHED_CAPACITY_SCALE, which is the default value, but with the
 	 * constraint explained near table_efficiency[].
 	 */
-	if (4*max_capacity < (3*(max_capacity + min_capacity)))
+	if (4 * max_capacity < (3 * (max_capacity + min_capacity)))
 		middle_capacity = (min_capacity + max_capacity)
-				>> (SCHED_CAPACITY_SHIFT+1);
+						  >> (SCHED_CAPACITY_SHIFT + 1);
 	else
 		middle_capacity = ((max_capacity / 3)
-				>> (SCHED_CAPACITY_SHIFT-1)) + 1;
+						   >> (SCHED_CAPACITY_SHIFT - 1)) + 1;
 
 }
 
@@ -161,12 +176,14 @@ static void __init parse_dt_topology(void)
 static void update_cpu_capacity(unsigned int cpu)
 {
 	if (!cpu_capacity(cpu))
+	{
 		return;
+	}
 
 	set_capacity_scale(cpu, cpu_capacity(cpu) / middle_capacity);
 
 	pr_info("CPU%u: update cpu_capacity %lu\n",
-		cpu, arch_scale_cpu_capacity(NULL, cpu));
+			cpu, arch_scale_cpu_capacity(NULL, cpu));
 }
 
 #else
@@ -174,9 +191,9 @@ static inline void parse_dt_topology(void) {}
 static inline void update_cpu_capacity(unsigned int cpuid) {}
 #endif
 
- /*
- * cpu topology table
- */
+/*
+* cpu topology table
+*/
 struct cputopo_arm cpu_topology[NR_CPUS];
 EXPORT_SYMBOL_GPL(cpu_topology);
 
@@ -200,22 +217,33 @@ static void update_siblings_masks(unsigned int cpuid)
 	int cpu;
 
 	/* update core and thread sibling masks */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		cpu_topo = &cpu_topology[cpu];
 
 		if (cpuid_topo->socket_id != cpu_topo->socket_id)
+		{
 			continue;
+		}
 
 		cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
+
 		if (cpu != cpuid)
+		{
 			cpumask_set_cpu(cpu, &cpuid_topo->core_sibling);
+		}
 
 		if (cpuid_topo->core_id != cpu_topo->core_id)
+		{
 			continue;
+		}
 
 		cpumask_set_cpu(cpuid, &cpu_topo->thread_sibling);
+
 		if (cpu != cpuid)
+		{
 			cpumask_set_cpu(cpu, &cpuid_topo->thread_sibling);
+		}
 	}
 	smp_wmb();
 }
@@ -232,29 +260,37 @@ void store_cpu_topology(unsigned int cpuid)
 
 	/* If the cpu topology has been already set, just return */
 	if (cpuid_topo->core_id != -1)
+	{
 		return;
+	}
 
 	mpidr = read_cpuid_mpidr();
 
 	/* create cpu topology mapping */
-	if ((mpidr & MPIDR_SMP_BITMASK) == MPIDR_SMP_VALUE) {
+	if ((mpidr & MPIDR_SMP_BITMASK) == MPIDR_SMP_VALUE)
+	{
 		/*
 		 * This is a multiprocessor system
 		 * multiprocessor format & multiprocessor mode field are set
 		 */
 
-		if (mpidr & MPIDR_MT_BITMASK) {
+		if (mpidr & MPIDR_MT_BITMASK)
+		{
 			/* core performance interdependency */
 			cpuid_topo->thread_id = MPIDR_AFFINITY_LEVEL(mpidr, 0);
 			cpuid_topo->core_id = MPIDR_AFFINITY_LEVEL(mpidr, 1);
 			cpuid_topo->socket_id = MPIDR_AFFINITY_LEVEL(mpidr, 2);
-		} else {
+		}
+		else
+		{
 			/* largely independent cores */
 			cpuid_topo->thread_id = -1;
 			cpuid_topo->core_id = MPIDR_AFFINITY_LEVEL(mpidr, 0);
 			cpuid_topo->socket_id = MPIDR_AFFINITY_LEVEL(mpidr, 1);
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * This is an uniprocessor system
 		 * we are in multiprocessor format but uniprocessor system
@@ -270,9 +306,9 @@ void store_cpu_topology(unsigned int cpuid)
 	update_cpu_capacity(cpuid);
 
 	pr_info("CPU%u: thread %d, cpu %d, socket %d, mpidr %x\n",
-		cpuid, cpu_topology[cpuid].thread_id,
-		cpu_topology[cpuid].core_id,
-		cpu_topology[cpuid].socket_id, mpidr);
+			cpuid, cpu_topology[cpuid].thread_id,
+			cpu_topology[cpuid].core_id,
+			cpu_topology[cpuid].socket_id, mpidr);
 }
 
 static inline int cpu_corepower_flags(void)
@@ -280,7 +316,8 @@ static inline int cpu_corepower_flags(void)
 	return SD_SHARE_PKG_RESOURCES  | SD_SHARE_POWERDOMAIN;
 }
 
-static struct sched_domain_topology_level arm_topology[] = {
+static struct sched_domain_topology_level arm_topology[] =
+{
 #ifdef CONFIG_SCHED_MC
 	{ cpu_corepower_mask, cpu_corepower_flags, SD_INIT_NAME(GMC) },
 	{ cpu_coregroup_mask, cpu_core_flags, SD_INIT_NAME(MC) },
@@ -298,7 +335,8 @@ void __init init_cpu_topology(void)
 	unsigned int cpu;
 
 	/* init core mask and capacity */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct cputopo_arm *cpu_topo = &(cpu_topology[cpu]);
 
 		cpu_topo->thread_id = -1;

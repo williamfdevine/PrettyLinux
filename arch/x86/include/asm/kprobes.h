@@ -63,7 +63,8 @@ void arch_remove_kprobe(struct kprobe *p);
 asmlinkage void kretprobe_trampoline(void);
 
 /* Architecture specific copy of original instruction*/
-struct arch_specific_insn {
+struct arch_specific_insn
+{
 	/* copy of the original instruction */
 	kprobe_opcode_t *insn;
 	/*
@@ -78,7 +79,8 @@ struct arch_specific_insn {
 	bool if_modifier;
 };
 
-struct arch_optimized_insn {
+struct arch_optimized_insn
+{
 	/* copy of the original instructions */
 	kprobe_opcode_t copied_insn[RELATIVE_ADDR_SIZE];
 	/* detour code buffer */
@@ -93,7 +95,8 @@ static inline int arch_prepared_optinsn(struct arch_optimized_insn *optinsn)
 	return optinsn->size;
 }
 
-struct prev_kprobe {
+struct prev_kprobe
+{
 	struct kprobe *kp;
 	unsigned long status;
 	unsigned long old_flags;
@@ -101,7 +104,8 @@ struct prev_kprobe {
 };
 
 /* per-cpu kprobe control block */
-struct kprobe_ctlblk {
+struct kprobe_ctlblk
+{
 	unsigned long kprobe_status;
 	unsigned long kprobe_old_flags;
 	unsigned long kprobe_saved_flags;
@@ -113,7 +117,7 @@ struct kprobe_ctlblk {
 
 extern int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
 extern int kprobe_exceptions_notify(struct notifier_block *self,
-				    unsigned long val, void *data);
+									unsigned long val, void *data);
 extern int kprobe_int3_handler(struct pt_regs *regs);
 extern int kprobe_debug_handler(struct pt_regs *regs);
 #endif /* _ASM_X86_KPROBES_H */

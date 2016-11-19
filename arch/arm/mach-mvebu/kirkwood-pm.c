@@ -47,13 +47,16 @@ static void kirkwood_low_power(void)
 
 static int kirkwood_suspend_enter(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-		kirkwood_low_power();
-		break;
-	default:
-		return -EINVAL;
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+			kirkwood_low_power();
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -62,7 +65,8 @@ static int kirkwood_pm_valid_standby(suspend_state_t state)
 	return state == PM_SUSPEND_STANDBY;
 }
 
-static const struct platform_suspend_ops kirkwood_suspend_ops = {
+static const struct platform_suspend_ops kirkwood_suspend_ops =
+{
 	.enter = kirkwood_suspend_enter,
 	.valid = kirkwood_pm_valid_standby,
 };

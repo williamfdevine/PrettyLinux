@@ -63,13 +63,15 @@ void store_screen(void);
  * Mode table structures
  */
 
-struct mode_info {
+struct mode_info
+{
 	u16 mode;		/* Mode number (vga= style) */
 	u16 x, y;		/* Width, height */
 	u16 depth;		/* Bits per pixel, 0 for text mode */
 };
 
-struct card_info {
+struct card_info
+{
 	const char *card_name;
 	int (*set_mode)(struct mode_info *mode);
 	int (*probe)(void);
@@ -99,12 +101,12 @@ extern int graphic_mode;	/* Graphics mode with linear frame buffer */
 static inline u8 in_idx(u16 port, u8 index)
 {
 	outb(index, port);
-	return inb(port+1);
+	return inb(port + 1);
 }
 
 static inline void out_idx(u8 v, u16 port, u8 index)
 {
-	outw(index+(v << 8), port);
+	outw(index + (v << 8), port);
 }
 
 /* Writes a value to an indexed port and then reads the port again */

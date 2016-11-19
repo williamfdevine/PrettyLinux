@@ -34,7 +34,8 @@ srm_disable_irq(struct irq_data *d)
 }
 
 /* Handle interrupts from the SRM, assuming no additional weirdness.  */
-static struct irq_chip srm_irq_type = {
+static struct irq_chip srm_irq_type =
+{
 	.name		= "SRM",
 	.irq_unmask	= srm_enable_irq,
 	.irq_mask	= srm_disable_irq,
@@ -47,16 +48,23 @@ init_srm_irqs(long max, unsigned long ignore_mask)
 	long i;
 
 	if (NR_IRQS <= 16)
+	{
 		return;
-	for (i = 16; i < max; ++i) {
+	}
+
+	for (i = 16; i < max; ++i)
+	{
 		if (i < 64 && ((ignore_mask >> i) & 1))
+		{
 			continue;
+		}
+
 		irq_set_chip_and_handler(i, &srm_irq_type, handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
 }
 
-void 
+void
 srm_device_interrupt(unsigned long vector)
 {
 	int irq = (vector - 0x800) >> 4;

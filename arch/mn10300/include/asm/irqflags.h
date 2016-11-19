@@ -123,16 +123,16 @@ static inline void arch_safe_halt(void)
 }
 
 #define __sleep_cpu()				\
-do {						\
-	asm volatile(				\
-		"	bset	%1,(%0)\n"	\
-		"1:	btst	%1,(%0)\n"	\
-		"	bne	1b\n"		\
-		:				\
-		: "i"(&CPUM), "i"(CPUM_SLEEP)	\
-		: "cc"				\
-		);				\
-} while (0)
+	do {						\
+		asm volatile(				\
+									"	bset	%1,(%0)\n"	\
+									"1:	btst	%1,(%0)\n"	\
+									"	bne	1b\n"		\
+									:				\
+									: "i"(&CPUM), "i"(CPUM_SLEEP)	\
+									: "cc"				\
+					);				\
+	} while (0)
 
 static inline void arch_local_cli(void)
 {
@@ -144,7 +144,7 @@ static inline void arch_local_cli(void)
 		:
 		: "i"(~EPSW_IE)
 		: "memory"
-		);
+	);
 }
 
 static inline unsigned long arch_local_cli_save(void)

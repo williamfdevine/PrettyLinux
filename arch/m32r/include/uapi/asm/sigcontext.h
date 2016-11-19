@@ -1,7 +1,8 @@
 #ifndef _ASM_M32R_SIGCONTEXT_H
 #define _ASM_M32R_SIGCONTEXT_H
 
-struct sigcontext {
+struct sigcontext
+{
 	/* CPU registers */
 	/* Saved main processor registers. */
 	unsigned long sc_r4;

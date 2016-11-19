@@ -14,7 +14,8 @@
 #include "sdrc.h"
 
 /* Hynix H8MBX00U0MER-0EM */
-static struct omap_sdrc_params h8mbx00u0mer0em_sdrc_params[] = {
+static struct omap_sdrc_params h8mbx00u0mer0em_sdrc_params[] =
+{
 	[0] = {
 		.rate        = 200000000,
 		.actim_ctrla = 0xa2e1b4c6,

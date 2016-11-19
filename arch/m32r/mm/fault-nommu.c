@@ -31,15 +31,15 @@
 extern void die(const char *, struct pt_regs *, long);
 
 #ifndef CONFIG_SMP
-asmlinkage unsigned int tlb_entry_i_dat;
-asmlinkage unsigned int tlb_entry_d_dat;
-#define tlb_entry_i tlb_entry_i_dat
-#define tlb_entry_d tlb_entry_d_dat
+	asmlinkage unsigned int tlb_entry_i_dat;
+	asmlinkage unsigned int tlb_entry_d_dat;
+	#define tlb_entry_i tlb_entry_i_dat
+	#define tlb_entry_d tlb_entry_d_dat
 #else
-unsigned int tlb_entry_i_dat[NR_CPUS];
-unsigned int tlb_entry_d_dat[NR_CPUS];
-#define tlb_entry_i tlb_entry_i_dat[smp_processor_id()]
-#define tlb_entry_d tlb_entry_d_dat[smp_processor_id()]
+	unsigned int tlb_entry_i_dat[NR_CPUS];
+	unsigned int tlb_entry_d_dat[NR_CPUS];
+	#define tlb_entry_i tlb_entry_i_dat[smp_processor_id()]
+	#define tlb_entry_d tlb_entry_d_dat[smp_processor_id()]
 #endif
 
 void do_BUG(const char *file, int line)
@@ -67,21 +67,26 @@ void do_BUG(const char *file, int line)
  *  bit 2 == 0 means kernel, 1 means user-mode
  *======================================================================*/
 asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
-  unsigned long address)
+							  unsigned long address)
 {
 
-/*
- * Oops. The kernel tried to access some bad page. We'll have to
- * terminate things with extreme prejudice.
- */
+	/*
+	 * Oops. The kernel tried to access some bad page. We'll have to
+	 * terminate things with extreme prejudice.
+	 */
 
 	bust_spinlocks(1);
 
 	if (address < PAGE_SIZE)
+	{
 		printk(KERN_ALERT "Unable to handle kernel NULL pointer dereference");
+	}
 	else
+	{
 		printk(KERN_ALERT "Unable to handle kernel paging request");
-	printk(" at virtual address %08lx\n",address);
+	}
+
+	printk(" at virtual address %08lx\n", address);
 	printk(" printing bpc:\n");
 	printk(KERN_ALERT "bpc = %08lx\n", regs->bpc);
 
@@ -94,7 +99,7 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
  * update_mmu_cache()
  *======================================================================*/
 void update_mmu_cache(struct vm_area_struct *vma, unsigned long addr,
-	pte_t *ptep)
+					  pte_t *ptep)
 {
 	BUG();
 }
@@ -111,7 +116,7 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
  * flush_tlb_range() : flushes a range of pages
  *======================================================================*/
 void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-	unsigned long end)
+						   unsigned long end)
 {
 	BUG();
 }

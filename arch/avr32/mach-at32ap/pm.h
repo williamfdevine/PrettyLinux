@@ -100,7 +100,7 @@
 	 & ((1 << PM_##name##_SIZE) - 1))
 #define PM_BFINS(name,value,old)\
 	(((old) & ~(((1 << PM_##name##_SIZE) - 1)	\
-		    << PM_##name##_OFFSET))		\
+				<< PM_##name##_OFFSET))		\
 	 | PM_BF(name,value))
 
 /* Register access macros */

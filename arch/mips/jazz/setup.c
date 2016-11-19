@@ -27,7 +27,8 @@ extern asmlinkage void jazz_handle_int(void);
 
 extern void jazz_machine_restart(char *command);
 
-static struct resource jazz_io_resources[] = {
+static struct resource jazz_io_resources[] =
+{
 	{
 		.start	= 0x00,
 		.end	= 0x1f,
@@ -69,17 +70,20 @@ void __init plat_mem_setup(void)
 
 	/* request I/O space for devices used on all i[345]86 PCs */
 	for (i = 0; i < ARRAY_SIZE(jazz_io_resources); i++)
+	{
 		request_resource(&ioport_resource, jazz_io_resources + i);
+	}
 
 	/* The RTC is outside the port address space */
 
 	_machine_restart = jazz_machine_restart;
 
 #ifdef CONFIG_VT
-	screen_info = (struct screen_info) {
+	screen_info = (struct screen_info)
+	{
 		.orig_video_cols	= 160,
-		.orig_video_lines	= 64,
-		.orig_video_points	= 16,
+			.orig_video_lines	= 64,
+			   .orig_video_points	= 16,
 	};
 #endif
 
@@ -87,30 +91,32 @@ void __init plat_mem_setup(void)
 }
 
 #ifdef CONFIG_OLIVETTI_M700
-#define UART_CLK  1843200
+	#define UART_CLK  1843200
 #else
-/* Some Jazz machines seem to have an 8MHz crystal clock but I don't know
-   exactly which ones ... XXX */
-#define UART_CLK (8000000 / 16) /* ( 3072000 / 16) */
+	/* Some Jazz machines seem to have an 8MHz crystal clock but I don't know
+	exactly which ones ... XXX */
+	#define UART_CLK (8000000 / 16) /* ( 3072000 / 16) */
 #endif
 
 #define MEMPORT(_base, _irq)				\
 	{						\
 		.mapbase	= (_base),		\
-		.membase	= (void *)(_base),	\
-		.irq		= (_irq),		\
-		.uartclk	= UART_CLK,		\
-		.iotype		= UPIO_MEM,		\
-		.flags		= UPF_BOOT_AUTOCONF,	\
+					  .membase	= (void *)(_base),	\
+									.irq		= (_irq),		\
+											.uartclk	= UART_CLK,		\
+													.iotype		= UPIO_MEM,		\
+															.flags		= UPF_BOOT_AUTOCONF,	\
 	}
 
-static struct plat_serial8250_port jazz_serial_data[] = {
+static struct plat_serial8250_port jazz_serial_data[] =
+{
 	MEMPORT(JAZZ_SERIAL1_BASE, JAZZ_SERIAL1_IRQ),
 	MEMPORT(JAZZ_SERIAL2_BASE, JAZZ_SERIAL2_IRQ),
 	{ },
 };
 
-static struct platform_device jazz_serial8250_device = {
+static struct platform_device jazz_serial8250_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -118,7 +124,8 @@ static struct platform_device jazz_serial8250_device = {
 	},
 };
 
-static struct resource jazz_esp_rsrc[] = {
+static struct resource jazz_esp_rsrc[] =
+{
 	{
 		.start = JAZZ_SCSI_BASE,
 		.end   = JAZZ_SCSI_BASE + 31,
@@ -136,13 +143,15 @@ static struct resource jazz_esp_rsrc[] = {
 	}
 };
 
-static struct platform_device jazz_esp_pdev = {
+static struct platform_device jazz_esp_pdev =
+{
 	.name		= "jazz_esp",
 	.num_resources	= ARRAY_SIZE(jazz_esp_rsrc),
 	.resource	= jazz_esp_rsrc
 };
 
-static struct resource jazz_sonic_rsrc[] = {
+static struct resource jazz_sonic_rsrc[] =
+{
 	{
 		.start = JAZZ_ETHERNET_BASE,
 		.end   = JAZZ_ETHERNET_BASE + 0xff,
@@ -155,13 +164,15 @@ static struct resource jazz_sonic_rsrc[] = {
 	}
 };
 
-static struct platform_device jazz_sonic_pdev = {
+static struct platform_device jazz_sonic_pdev =
+{
 	.name		= "jazzsonic",
 	.num_resources	= ARRAY_SIZE(jazz_sonic_rsrc),
 	.resource	= jazz_sonic_rsrc
 };
 
-static struct resource jazz_cmos_rsrc[] = {
+static struct resource jazz_cmos_rsrc[] =
+{
 	{
 		.start = 0x70,
 		.end   = 0x71,
@@ -174,13 +185,15 @@ static struct resource jazz_cmos_rsrc[] = {
 	}
 };
 
-static struct platform_device jazz_cmos_pdev = {
+static struct platform_device jazz_cmos_pdev =
+{
 	.name		= "rtc_cmos",
 	.num_resources	= ARRAY_SIZE(jazz_cmos_rsrc),
 	.resource	= jazz_cmos_rsrc
 };
 
-static struct platform_device pcspeaker_pdev = {
+static struct platform_device pcspeaker_pdev =
+{
 	.name		= "pcspkr",
 	.id		= -1,
 };

@@ -108,7 +108,7 @@
 	!defined(CONFIG_ARCH_OMAP850) && \
 	!defined(CONFIG_ARCH_OMAP15XX) && \
 	!defined(CONFIG_ARCH_OMAP16XX)
-#warning "Power management for this processor not implemented yet"
+	#warning "Power management for this processor not implemented yet"
 #endif
 
 #ifndef __ASSEMBLER__
@@ -138,10 +138,10 @@ extern unsigned int omap1510_idle_loop_suspend_sz;
 extern unsigned int omap1610_idle_loop_suspend_sz;
 
 #ifdef CONFIG_OMAP_SERIAL_WAKE
-extern void omap_serial_wake_trigger(int enable);
+	extern void omap_serial_wake_trigger(int enable);
 #else
-#define omap_serial_wakeup_init()	{}
-#define omap_serial_wake_trigger(x)	{}
+	#define omap_serial_wakeup_init()	{}
+	#define omap_serial_wake_trigger(x)	{}
 #endif	/* CONFIG_OMAP_SERIAL_WAKE */
 
 #define ARM_SAVE(x) arm_sleep_save[ARM_SLEEP_SAVE_##x] = omap_readl(x)
@@ -174,7 +174,8 @@ extern void omap_serial_wake_trigger(int enable);
  * with the stack pointer in sleep.S.
  */
 
-enum arm_save_state {
+enum arm_save_state
+{
 	ARM_SLEEP_SAVE_START = 0,
 	/*
 	 * MPU control registers 32 bits
@@ -190,7 +191,8 @@ enum arm_save_state {
 	ARM_SLEEP_SAVE_SIZE
 };
 
-enum dsp_save_state {
+enum dsp_save_state
+{
 	DSP_SLEEP_SAVE_START = 0,
 	/*
 	 * DSP registers 16 bits
@@ -199,7 +201,8 @@ enum dsp_save_state {
 	DSP_SLEEP_SAVE_SIZE
 };
 
-enum ulpd_save_state {
+enum ulpd_save_state
+{
 	ULPD_SLEEP_SAVE_START = 0,
 	/*
 	 * ULPD registers 16 bits
@@ -213,7 +216,8 @@ enum ulpd_save_state {
 	ULPD_SLEEP_SAVE_SIZE
 };
 
-enum mpui1510_save_state {
+enum mpui1510_save_state
+{
 	MPUI1510_SLEEP_SAVE_START = 0,
 	/*
 	 * MPUI registers 32 bits
@@ -233,7 +237,8 @@ enum mpui1510_save_state {
 #endif
 };
 
-enum mpui7xx_save_state {
+enum mpui7xx_save_state
+{
 	MPUI7XX_SLEEP_SAVE_START = 0,
 	/*
 	 * MPUI registers 32 bits
@@ -254,7 +259,8 @@ enum mpui7xx_save_state {
 #endif
 };
 
-enum mpui1610_save_state {
+enum mpui1610_save_state
+{
 	MPUI1610_SLEEP_SAVE_START = 0,
 	/*
 	 * MPUI registers 32 bits

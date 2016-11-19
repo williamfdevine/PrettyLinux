@@ -68,7 +68,8 @@
 #define HIP01_PERI9                    0x50
 #define PERI9_CPU1_RESET               (1 << 1)
 
-enum {
+enum
+{
 	HI3620_CTRL,
 	ERROR_CTRL,
 };
@@ -80,11 +81,13 @@ static void set_cpu_hi3620(int cpu, bool enable)
 {
 	u32 val = 0;
 
-	if (enable) {
+	if (enable)
+	{
 		/* MTCMOS set */
 		if ((cpu == 2) || (cpu == 3))
 			writel_relaxed(CPU2_ISO_CTRL << (cpu - 2),
-				       ctrl_base + SCPERPWREN);
+						   ctrl_base + SCPERPWREN);
+
 		udelay(100);
 
 		/* Enable core */
@@ -92,7 +95,7 @@ static void set_cpu_hi3620(int cpu, bool enable)
 
 		/* unreset */
 		val = CPU0_DBG_SRST_REQ_EN | CPU0_NEON_SRST_REQ_EN
-			| CPU0_SRST_REQ_EN;
+			  | CPU0_SRST_REQ_EN;
 		writel_relaxed(val << cpu, ctrl_base + SCCPURSTDIS);
 		/* reset */
 		val |= CPU0_HPM_SRST_REQ_EN;
@@ -101,7 +104,8 @@ static void set_cpu_hi3620(int cpu, bool enable)
 		/* ISO disable */
 		if ((cpu == 2) || (cpu == 3))
 			writel_relaxed(CPU2_ISO_CTRL << (cpu - 2),
-				       ctrl_base + SCISODIS);
+						   ctrl_base + SCISODIS);
+
 		udelay(1);
 
 		/* WFI Mask */
@@ -111,9 +115,11 @@ static void set_cpu_hi3620(int cpu, bool enable)
 
 		/* Unreset */
 		val = CPU0_DBG_SRST_REQ_EN | CPU0_NEON_SRST_REQ_EN
-			| CPU0_SRST_REQ_EN | CPU0_HPM_SRST_REQ_EN;
+			  | CPU0_SRST_REQ_EN | CPU0_HPM_SRST_REQ_EN;
 		writel_relaxed(val << cpu, ctrl_base + SCCPURSTDIS);
-	} else {
+	}
+	else
+	{
 		/* wfi mask */
 		val = readl_relaxed(ctrl_base + SCPERCTRL0);
 		val |= (CPU0_WFI_MASK_CFG << cpu);
@@ -122,22 +128,24 @@ static void set_cpu_hi3620(int cpu, bool enable)
 		/* disable core*/
 		writel_relaxed(0x01 << cpu, ctrl_base + SCCPUCOREDIS);
 
-		if ((cpu == 2) || (cpu == 3)) {
+		if ((cpu == 2) || (cpu == 3))
+		{
 			/* iso enable */
 			writel_relaxed(CPU2_ISO_CTRL << (cpu - 2),
-				       ctrl_base + SCISOEN);
+						   ctrl_base + SCISOEN);
 			udelay(1);
 		}
 
 		/* reset */
 		val = CPU0_DBG_SRST_REQ_EN | CPU0_NEON_SRST_REQ_EN
-			| CPU0_SRST_REQ_EN | CPU0_HPM_SRST_REQ_EN;
+			  | CPU0_SRST_REQ_EN | CPU0_HPM_SRST_REQ_EN;
 		writel_relaxed(val << cpu, ctrl_base + SCCPURSTEN);
 
-		if ((cpu == 2) || (cpu == 3)) {
+		if ((cpu == 2) || (cpu == 3))
+		{
 			/* MTCMOS unset */
 			writel_relaxed(CPU2_ISO_CTRL << (cpu - 2),
-				       ctrl_base + SCPERPWRDIS);
+						   ctrl_base + SCPERPWRDIS);
 			udelay(100);
 		}
 	}
@@ -148,24 +156,32 @@ static int hi3xxx_hotplug_init(void)
 	struct device_node *node;
 
 	node = of_find_compatible_node(NULL, NULL, "hisilicon,sysctrl");
-	if (node) {
+
+	if (node)
+	{
 		ctrl_base = of_iomap(node, 0);
 		id = HI3620_CTRL;
 		return 0;
 	}
+
 	id = ERROR_CTRL;
 	return -ENOENT;
 }
 
 void hi3xxx_set_cpu(int cpu, bool enable)
 {
-	if (!ctrl_base) {
+	if (!ctrl_base)
+	{
 		if (hi3xxx_hotplug_init() < 0)
+		{
 			return;
+		}
 	}
 
 	if (id == HI3620_CTRL)
+	{
 		set_cpu_hi3620(cpu, enable);
+	}
 }
 
 static bool hix5hd2_hotplug_init(void)
@@ -173,10 +189,13 @@ static bool hix5hd2_hotplug_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "hisilicon,cpuctrl");
-	if (np) {
+
+	if (np)
+	{
 		ctrl_base = of_iomap(np, 0);
 		return true;
 	}
+
 	return false;
 }
 
@@ -186,9 +205,12 @@ void hix5hd2_set_cpu(int cpu, bool enable)
 
 	if (!ctrl_base)
 		if (!hix5hd2_hotplug_init())
+		{
 			BUG();
+		}
 
-	if (enable) {
+	if (enable)
+	{
 		/* power on cpu1 */
 		val = readl_relaxed(ctrl_base + HIX5HD2_PERI_PMC0);
 		val &= ~(PMC0_CPU1_WAIT_MTCOMS_ACK | PMC0_CPU1_POWERDOWN);
@@ -198,7 +220,9 @@ void hix5hd2_set_cpu(int cpu, bool enable)
 		val = readl_relaxed(ctrl_base + HIX5HD2_PERI_CRG20);
 		val &= ~CRG20_CPU1_RESET;
 		writel_relaxed(val, ctrl_base + HIX5HD2_PERI_CRG20);
-	} else {
+	}
+	else
+	{
 		/* power down cpu1 */
 		val = readl_relaxed(ctrl_base + HIX5HD2_PERI_PMC0);
 		val |= PMC0_CPU1_PMC_ENABLE | PMC0_CPU1_POWERDOWN;
@@ -217,15 +241,22 @@ void hip01_set_cpu(int cpu, bool enable)
 	unsigned int temp;
 	struct device_node *np;
 
-	if (!ctrl_base) {
+	if (!ctrl_base)
+	{
 		np = of_find_compatible_node(NULL, NULL, "hisilicon,hip01-sysctrl");
+
 		if (np)
+		{
 			ctrl_base = of_iomap(np, 0);
+		}
 		else
+		{
 			BUG();
+		}
 	}
 
-	if (enable) {
+	if (enable)
+	{
 		/* reset on CPU1  */
 		temp = readl_relaxed(ctrl_base + HIP01_PERI9);
 		temp |= PERI9_CPU1_RESET;
@@ -250,15 +281,15 @@ static inline void cpu_enter_lowpower(void)
 	 * Turn off coherency and L1 D-cache
 	 */
 	asm volatile(
-	"	mrc	p15, 0, %0, c1, c0, 1\n"
-	"	bic	%0, %0, #0x40\n"
-	"	mcr	p15, 0, %0, c1, c0, 1\n"
-	"	mrc	p15, 0, %0, c1, c0, 0\n"
-	"	bic	%0, %0, #0x04\n"
-	"	mcr	p15, 0, %0, c1, c0, 0\n"
-	  : "=&r" (v)
-	  : "r" (0)
-	  : "cc");
+		"	mrc	p15, 0, %0, c1, c0, 1\n"
+		"	bic	%0, %0, #0x40\n"
+		"	mcr	p15, 0, %0, c1, c0, 1\n"
+		"	mrc	p15, 0, %0, c1, c0, 0\n"
+		"	bic	%0, %0, #0x04\n"
+		"	mcr	p15, 0, %0, c1, c0, 0\n"
+		: "=&r" (v)
+		: "r" (0)
+		: "cc");
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -278,7 +309,10 @@ int hi3xxx_cpu_kill(unsigned int cpu)
 
 	while (hi3xxx_get_cpu_jump(cpu))
 		if (time_after(jiffies, timeout))
+		{
 			return 0;
+		}
+
 	hi3xxx_set_cpu(cpu, false);
 	return 1;
 }

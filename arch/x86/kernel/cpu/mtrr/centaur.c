@@ -6,7 +6,8 @@
 
 #include "mtrr.h"
 
-static struct {
+static struct
+{
 	unsigned long high;
 	unsigned long low;
 } centaur_mcr[8];
@@ -30,15 +31,25 @@ centaur_get_free_region(unsigned long base, unsigned long size, int replace_reg)
 	int i, max;
 
 	max = num_var_ranges;
-	if (replace_reg >= 0 && replace_reg < max)
-		return replace_reg;
 
-	for (i = 0; i < max; ++i) {
+	if (replace_reg >= 0 && replace_reg < max)
+	{
+		return replace_reg;
+	}
+
+	for (i = 0; i < max; ++i)
+	{
 		if (centaur_mcr_reserved & (1 << i))
+		{
 			continue;
+		}
+
 		mtrr_if->get(i, &lbase, &lsize, &ltype);
+
 		if (lsize == 0)
+		{
 			return i;
+		}
 	}
 
 	return -ENOSPC;
@@ -55,41 +66,61 @@ void mtrr_centaur_report_mcr(int mcr, u32 lo, u32 hi)
 
 static void
 centaur_get_mcr(unsigned int reg, unsigned long *base,
-		unsigned long *size, mtrr_type * type)
+				unsigned long *size, mtrr_type *type)
 {
 	*base = centaur_mcr[reg].high >> PAGE_SHIFT;
 	*size = -(centaur_mcr[reg].low & 0xfffff000) >> PAGE_SHIFT;
 	*type = MTRR_TYPE_WRCOMB;		/* write-combining  */
 
 	if (centaur_mcr_type == 1 && ((centaur_mcr[reg].low & 31) & 2))
+	{
 		*type = MTRR_TYPE_UNCACHABLE;
+	}
+
 	if (centaur_mcr_type == 1 && (centaur_mcr[reg].low & 31) == 25)
+	{
 		*type = MTRR_TYPE_WRBACK;
+	}
+
 	if (centaur_mcr_type == 0 && (centaur_mcr[reg].low & 31) == 31)
+	{
 		*type = MTRR_TYPE_WRBACK;
+	}
 }
 
 static void
 centaur_set_mcr(unsigned int reg, unsigned long base,
-		unsigned long size, mtrr_type type)
+				unsigned long size, mtrr_type type)
 {
 	unsigned long low, high;
 
-	if (size == 0) {
+	if (size == 0)
+	{
 		/* Disable */
 		high = low = 0;
-	} else {
+	}
+	else
+	{
 		high = base << PAGE_SHIFT;
-		if (centaur_mcr_type == 0) {
+
+		if (centaur_mcr_type == 0)
+		{
 			/* Only support write-combining... */
 			low = -size << PAGE_SHIFT | 0x1f;
-		} else {
+		}
+		else
+		{
 			if (type == MTRR_TYPE_UNCACHABLE)
-				low = -size << PAGE_SHIFT | 0x02; /* NC */
+			{
+				low = -size << PAGE_SHIFT | 0x02;    /* NC */
+			}
 			else
-				low = -size << PAGE_SHIFT | 0x09; /* WWO, WC */
+			{
+				low = -size << PAGE_SHIFT | 0x09;    /* WWO, WC */
+			}
 		}
 	}
+
 	centaur_mcr[reg].high = high;
 	centaur_mcr[reg].low = low;
 	wrmsr(MSR_IDT_MCR0 + reg, low, high);
@@ -102,15 +133,18 @@ centaur_validate_add_page(unsigned long base, unsigned long size, unsigned int t
 	 * FIXME: Winchip2 supports uncached
 	 */
 	if (type != MTRR_TYPE_WRCOMB &&
-	    (centaur_mcr_type == 0 || type != MTRR_TYPE_UNCACHABLE)) {
+		(centaur_mcr_type == 0 || type != MTRR_TYPE_UNCACHABLE))
+	{
 		pr_warn("mtrr: only write-combining%s supported\n",
-			   centaur_mcr_type ? " and uncacheable are" : " is");
+				centaur_mcr_type ? " and uncacheable are" : " is");
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
-static const struct mtrr_ops centaur_mtrr_ops = {
+static const struct mtrr_ops centaur_mtrr_ops =
+{
 	.vendor            = X86_VENDOR_CENTAUR,
 	.set               = centaur_set_mcr,
 	.get               = centaur_get_mcr,

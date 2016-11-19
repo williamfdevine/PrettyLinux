@@ -18,18 +18,25 @@
 
 static void
 ev6_reg_setup(struct op_register_config *reg,
-	      struct op_counter_config *ctr,
-	      struct op_system_config *sys)
+			  struct op_counter_config *ctr,
+			  struct op_system_config *sys)
 {
 	unsigned long ctl, reset, need_reset, i;
 
 	/* Select desired events.  We've mapped the event numbers
 	   such that they fit directly into the event selection fields.  */
 	ctl = 0;
+
 	if (ctr[0].enabled && ctr[0].event)
+	{
 		ctl |= (ctr[0].event & 1) << 4;
+	}
+
 	if (ctr[1].enabled)
+	{
 		ctl |= (ctr[1].event - 2) & 15;
+	}
+
 	reg->mux_select = ctl;
 
 	/* Select logging options.  */
@@ -43,18 +50,30 @@ ev6_reg_setup(struct op_register_config *reg,
 	   the counters and set the value such that it will overflow
 	   at the right time.  */
 	reset = need_reset = 0;
-	for (i = 0; i < 2; ++i) {
+
+	for (i = 0; i < 2; ++i)
+	{
 		unsigned long count = ctr[i].count;
+
 		if (!ctr[i].enabled)
+		{
 			continue;
+		}
 
 		if (count > 0x100000)
+		{
 			count = 0x100000;
+		}
+
 		ctr[i].count = count;
 		reset |= (0x100000 - count) << (i ? 6 : 28);
+
 		if (count != 0x100000)
+		{
 			need_reset |= 1 << i;
+		}
 	}
+
 	reg->reset_values = reset;
 	reg->need_reset = need_reset;
 }
@@ -83,14 +102,15 @@ ev6_reset_ctr(struct op_register_config *reg, unsigned long ctr)
 
 static void
 ev6_handle_interrupt(unsigned long which, struct pt_regs *regs,
-		     struct op_counter_config *ctr)
+					 struct op_counter_config *ctr)
 {
 	/* Record the sample.  */
 	oprofile_add_sample(regs, which);
 }
 
 
-struct op_axp_model op_model_ev6 = {
+struct op_axp_model op_model_ev6 =
+{
 	.reg_setup		= ev6_reg_setup,
 	.cpu_setup		= ev6_cpu_setup,
 	.reset_ctr		= ev6_reset_ctr,

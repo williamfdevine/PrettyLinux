@@ -35,33 +35,33 @@ static unsigned long free_mem_ptr;
 static unsigned long free_mem_end_ptr;
 
 #ifdef CONFIG_HAVE_KERNEL_BZIP2
-#define HEAP_SIZE	0x400000
+	#define HEAP_SIZE	0x400000
 #else
-#define HEAP_SIZE	0x10000
+	#define HEAP_SIZE	0x10000
 #endif
 
 #ifdef CONFIG_KERNEL_GZIP
-#include "../../../../lib/decompress_inflate.c"
+	#include "../../../../lib/decompress_inflate.c"
 #endif
 
 #ifdef CONFIG_KERNEL_BZIP2
-#include "../../../../lib/decompress_bunzip2.c"
+	#include "../../../../lib/decompress_bunzip2.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZ4
-#include "../../../../lib/decompress_unlz4.c"
+	#include "../../../../lib/decompress_unlz4.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZMA
-#include "../../../../lib/decompress_unlzma.c"
+	#include "../../../../lib/decompress_unlzma.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZO
-#include "../../../../lib/decompress_unlzo.c"
+	#include "../../../../lib/decompress_unlzo.c"
 #endif
 
 #ifdef CONFIG_KERNEL_XZ
-#include "../../../../lib/decompress_unxz.c"
+	#include "../../../../lib/decompress_unxz.c"
 #endif
 
 static int puts(const char *s)
@@ -75,8 +75,12 @@ void *memset(void *s, int c, size_t n)
 	char *xs;
 
 	xs = s;
+
 	while (n--)
+	{
 		*xs++ = c;
+	}
+
 	return s;
 }
 
@@ -86,7 +90,10 @@ void *memcpy(void *dest, const void *src, size_t n)
 	char *d = dest;
 
 	while (n--)
+	{
 		*d++ = *s++;
+	}
+
 	return dest;
 }
 
@@ -95,15 +102,24 @@ void *memmove(void *dest, const void *src, size_t n)
 	const char *s = src;
 	char *d = dest;
 
-	if (d <= s) {
+	if (d <= s)
+	{
 		while (n--)
+		{
 			*d++ = *s++;
-	} else {
+		}
+	}
+	else
+	{
 		d += n;
 		s += n;
+
 		while (n--)
+		{
 			*--d = *--s;
+		}
 	}
+
 	return dest;
 }
 
@@ -132,8 +148,12 @@ static void check_ipl_parmblock(void *start, unsigned long size)
 	void *src, *dst;
 
 	src = (void *)(unsigned long) S390_lowcore.ipl_parmblock_ptr;
+
 	if (src + PAGE_SIZE <= start || src >= start + size)
+	{
 		return;
+	}
+
 	dst = (void *) IPL_PARMBLOCK_ORIGIN;
 	memmove(dst, src, PAGE_SIZE);
 	S390_lowcore.ipl_parmblock_ptr = IPL_PARMBLOCK_ORIGIN;
@@ -152,18 +172,21 @@ unsigned long decompress_kernel(void)
 	output = (unsigned char *) output_addr;
 
 #ifdef CONFIG_BLK_DEV_INITRD
+
 	/*
 	 * Move the initrd right behind the end of the decompressed
 	 * kernel image.
 	 */
 	if (INITRD_START && INITRD_SIZE &&
-	    INITRD_START < (unsigned long) output + SZ__bss_start) {
+		INITRD_START < (unsigned long) output + SZ__bss_start)
+	{
 		check_ipl_parmblock(output + SZ__bss_start,
-				    INITRD_START + INITRD_SIZE);
+							INITRD_START + INITRD_SIZE);
 		memmove(output + SZ__bss_start,
-			(void *) INITRD_START, INITRD_SIZE);
+				(void *) INITRD_START, INITRD_SIZE);
 		INITRD_START = (unsigned long) output + SZ__bss_start;
 	}
+
 #endif
 
 	puts("Uncompressing Linux... ");

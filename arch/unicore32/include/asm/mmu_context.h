@@ -47,12 +47,14 @@ enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
  */
 static inline void
 switch_mm(struct mm_struct *prev, struct mm_struct *next,
-	  struct task_struct *tsk)
+		  struct task_struct *tsk)
 {
 	unsigned int cpu = smp_processor_id();
 
 	if (!cpumask_test_and_set_cpu(cpu, mm_cpumask(next)) || prev != next)
+	{
 		cpu_switch_mm(next->pgd, next);
+	}
 }
 
 #define deactivate_mm(tsk, mm)	do { } while (0)
@@ -66,34 +68,34 @@ switch_mm(struct mm_struct *prev, struct mm_struct *next,
  * (the macro is used as remove_vma() is static to mm/mmap.c)
  */
 #define arch_exit_mmap(mm) \
-do { \
-	struct vm_area_struct *high_vma = find_vma(mm, 0xffff0000); \
-	if (high_vma) { \
-		BUG_ON(high_vma->vm_next);  /* it should be last */ \
-		if (high_vma->vm_prev) \
-			high_vma->vm_prev->vm_next = NULL; \
-		else \
-			mm->mmap = NULL; \
-		rb_erase(&high_vma->vm_rb, &mm->mm_rb); \
-		vmacache_invalidate(mm); \
-		mm->map_count--; \
-		remove_vma(high_vma); \
-	} \
-} while (0)
+	do { \
+		struct vm_area_struct *high_vma = find_vma(mm, 0xffff0000); \
+		if (high_vma) { \
+			BUG_ON(high_vma->vm_next);  /* it should be last */ \
+			if (high_vma->vm_prev) \
+				high_vma->vm_prev->vm_next = NULL; \
+			else \
+				mm->mmap = NULL; \
+			rb_erase(&high_vma->vm_rb, &mm->mm_rb); \
+			vmacache_invalidate(mm); \
+			mm->map_count--; \
+			remove_vma(high_vma); \
+		} \
+	} while (0)
 
 static inline void arch_dup_mmap(struct mm_struct *oldmm,
-				 struct mm_struct *mm)
+								 struct mm_struct *mm)
 {
 }
 
 static inline void arch_unmap(struct mm_struct *mm,
-			struct vm_area_struct *vma,
-			unsigned long start, unsigned long end)
+							  struct vm_area_struct *vma,
+							  unsigned long start, unsigned long end)
 {
 }
 
 static inline void arch_bprm_mm_init(struct mm_struct *mm,
-				     struct vm_area_struct *vma)
+									 struct vm_area_struct *vma)
 {
 }
 

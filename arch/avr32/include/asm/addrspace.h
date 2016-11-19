@@ -30,13 +30,13 @@
  * Map an address to a certain privileged segment
  */
 #define P1SEGADDR(a) ((__typeof__(a))(((unsigned long)(a) & 0x1fffffff) \
-				      | P1SEG))
+									  | P1SEG))
 #define P2SEGADDR(a) ((__typeof__(a))(((unsigned long)(a) & 0x1fffffff) \
-				      | P2SEG))
+									  | P2SEG))
 #define P3SEGADDR(a) ((__typeof__(a))(((unsigned long)(a) & 0x1fffffff) \
-				      | P3SEG))
+									  | P3SEG))
 #define P4SEGADDR(a) ((__typeof__(a))(((unsigned long)(a) & 0x1fffffff) \
-				      | P4SEG))
+									  | P4SEG))
 
 #endif /* CONFIG_MMU */
 

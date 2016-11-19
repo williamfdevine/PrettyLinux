@@ -3,7 +3,8 @@
 
 #include <linux/percpu.h>
 
-struct cpuinfo_metag {
+struct cpuinfo_metag
+{
 	struct cpu cpu;
 #ifdef CONFIG_SMP
 	unsigned long loops_per_jiffy;

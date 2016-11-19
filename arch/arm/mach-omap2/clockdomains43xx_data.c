@@ -15,7 +15,8 @@
 #include "prcm44xx.h"
 #include "prcm43xx.h"
 
-static struct clockdomain l4_cefuse_43xx_clkdm = {
+static struct clockdomain l4_cefuse_43xx_clkdm =
+{
 	.name		  = "l4_cefuse_clkdm",
 	.pwrdm		  = { .name = "cefuse_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -24,7 +25,8 @@ static struct clockdomain l4_cefuse_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain mpu_43xx_clkdm = {
+static struct clockdomain mpu_43xx_clkdm =
+{
 	.name		  = "mpu_clkdm",
 	.pwrdm		  = { .name = "mpu_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -33,7 +35,8 @@ static struct clockdomain mpu_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l4ls_43xx_clkdm = {
+static struct clockdomain l4ls_43xx_clkdm =
+{
 	.name		  = "l4ls_clkdm",
 	.pwrdm		  = { .name = "per_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -42,7 +45,8 @@ static struct clockdomain l4ls_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain tamper_43xx_clkdm = {
+static struct clockdomain tamper_43xx_clkdm =
+{
 	.name		  = "tamper_clkdm",
 	.pwrdm		  = { .name = "tamper_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -51,7 +55,8 @@ static struct clockdomain tamper_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain l4_rtc_43xx_clkdm = {
+static struct clockdomain l4_rtc_43xx_clkdm =
+{
 	.name		  = "l4_rtc_clkdm",
 	.pwrdm		  = { .name = "rtc_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -60,7 +65,8 @@ static struct clockdomain l4_rtc_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain pruss_ocp_43xx_clkdm = {
+static struct clockdomain pruss_ocp_43xx_clkdm =
+{
 	.name		  = "pruss_ocp_clkdm",
 	.pwrdm		  = { .name = "per_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -69,7 +75,8 @@ static struct clockdomain pruss_ocp_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain ocpwp_l3_43xx_clkdm = {
+static struct clockdomain ocpwp_l3_43xx_clkdm =
+{
 	.name		  = "ocpwp_l3_clkdm",
 	.pwrdm		  = { .name = "per_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -78,7 +85,8 @@ static struct clockdomain ocpwp_l3_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain l3s_tsc_43xx_clkdm = {
+static struct clockdomain l3s_tsc_43xx_clkdm =
+{
 	.name		  = "l3s_tsc_clkdm",
 	.pwrdm		  = { .name = "wkup_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -87,7 +95,8 @@ static struct clockdomain l3s_tsc_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain dss_43xx_clkdm = {
+static struct clockdomain dss_43xx_clkdm =
+{
 	.name		  = "dss_clkdm",
 	.pwrdm		  = { .name = "per_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -96,7 +105,8 @@ static struct clockdomain dss_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain l3_aon_43xx_clkdm = {
+static struct clockdomain l3_aon_43xx_clkdm =
+{
 	.name		  = "l3_aon_clkdm",
 	.pwrdm		  = { .name = "wkup_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -105,7 +115,8 @@ static struct clockdomain l3_aon_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain emif_43xx_clkdm = {
+static struct clockdomain emif_43xx_clkdm =
+{
 	.name		  = "emif_clkdm",
 	.pwrdm		  = { .name = "per_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -114,7 +125,8 @@ static struct clockdomain emif_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain l4_wkup_aon_43xx_clkdm = {
+static struct clockdomain l4_wkup_aon_43xx_clkdm =
+{
 	.name		  = "l4_wkup_aon_clkdm",
 	.pwrdm		  = { .name = "wkup_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -122,7 +134,8 @@ static struct clockdomain l4_wkup_aon_43xx_clkdm = {
 	.clkdm_offs	  = AM43XX_CM_WKUP_L4_WKUP_AON_CDOFFS,
 };
 
-static struct clockdomain l3_43xx_clkdm = {
+static struct clockdomain l3_43xx_clkdm =
+{
 	.name		  = "l3_clkdm",
 	.pwrdm		  = { .name = "per_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -131,7 +144,8 @@ static struct clockdomain l3_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain l4_wkup_43xx_clkdm = {
+static struct clockdomain l4_wkup_43xx_clkdm =
+{
 	.name		  = "l4_wkup_clkdm",
 	.pwrdm		  = { .name = "wkup_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -140,7 +154,8 @@ static struct clockdomain l4_wkup_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain cpsw_125mhz_43xx_clkdm = {
+static struct clockdomain cpsw_125mhz_43xx_clkdm =
+{
 	.name		  = "cpsw_125mhz_clkdm",
 	.pwrdm		  = { .name = "per_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -149,7 +164,8 @@ static struct clockdomain cpsw_125mhz_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain gfx_l3_43xx_clkdm = {
+static struct clockdomain gfx_l3_43xx_clkdm =
+{
 	.name		  = "gfx_l3_clkdm",
 	.pwrdm		  = { .name = "gfx_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -158,7 +174,8 @@ static struct clockdomain gfx_l3_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain l3s_43xx_clkdm = {
+static struct clockdomain l3s_43xx_clkdm =
+{
 	.name		  = "l3s_clkdm",
 	.pwrdm		  = { .name = "per_pwrdm" },
 	.prcm_partition	  = AM43XX_CM_PARTITION,
@@ -167,7 +184,8 @@ static struct clockdomain l3s_43xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain *clockdomains_am43xx[] __initdata = {
+static struct clockdomain *clockdomains_am43xx[] __initdata =
+{
 	&l4_cefuse_43xx_clkdm,
 	&mpu_43xx_clkdm,
 	&l4ls_43xx_clkdm,

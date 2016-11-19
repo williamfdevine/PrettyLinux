@@ -38,7 +38,10 @@ static inline enum cache_type get_cache_type(int level)
 	u64 clidr;
 
 	if (level > MAX_CACHE_LEVEL)
+	{
 		return CACHE_TYPE_NOCACHE;
+	}
+
 	clidr = read_sysreg(clidr_el1);
 	return CLIDR_CTYPE(clidr, level);
 }
@@ -63,7 +66,7 @@ u64 __attribute_const__ cache_get_ccsidr(u64 csselr)
 }
 
 static void ci_leaf_init(struct cacheinfo *this_leaf,
-			 enum cache_type type, unsigned int level)
+						 enum cache_type type, unsigned int level)
 {
 	bool is_icache = type & CACHE_TYPE_INST;
 	u64 tmp = cache_get_ccsidr((level - 1) << 1 | is_icache);
@@ -74,7 +77,7 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
 	this_leaf->number_of_sets = CACHE_NUMSETS(tmp);
 	this_leaf->ways_of_associativity = CACHE_ASSOCIATIVITY(tmp);
 	this_leaf->size = this_leaf->number_of_sets *
-	    this_leaf->coherency_line_size * this_leaf->ways_of_associativity;
+					  this_leaf->coherency_line_size * this_leaf->ways_of_associativity;
 	this_leaf->attributes =
 		((tmp & CCSIDR_EL1_WRITE_THROUGH) ? CACHE_WRITE_THROUGH : 0) |
 		((tmp & CCSIDR_EL1_WRITE_BACK) ? CACHE_WRITE_BACK : 0) |
@@ -87,12 +90,16 @@ static int __init_cache_level(unsigned int cpu)
 	unsigned int ctype, level, leaves;
 	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
 
-	for (level = 1, leaves = 0; level <= MAX_CACHE_LEVEL; level++) {
+	for (level = 1, leaves = 0; level <= MAX_CACHE_LEVEL; level++)
+	{
 		ctype = get_cache_type(level);
-		if (ctype == CACHE_TYPE_NOCACHE) {
+
+		if (ctype == CACHE_TYPE_NOCACHE)
+		{
 			level--;
 			break;
 		}
+
 		/* Separate instruction and data caches */
 		leaves += (ctype == CACHE_TYPE_SEPARATE) ? 2 : 1;
 	}
@@ -110,15 +117,21 @@ static int __populate_cache_leaves(unsigned int cpu)
 	struct cacheinfo *this_leaf = this_cpu_ci->info_list;
 
 	for (idx = 0, level = 1; level <= this_cpu_ci->num_levels &&
-	     idx < this_cpu_ci->num_leaves; idx++, level++) {
+		 idx < this_cpu_ci->num_leaves; idx++, level++)
+	{
 		type = get_cache_type(level);
-		if (type == CACHE_TYPE_SEPARATE) {
+
+		if (type == CACHE_TYPE_SEPARATE)
+		{
 			ci_leaf_init(this_leaf++, CACHE_TYPE_DATA, level);
 			ci_leaf_init(this_leaf++, CACHE_TYPE_INST, level);
-		} else {
+		}
+		else
+		{
 			ci_leaf_init(this_leaf++, type, level);
 		}
 	}
+
 	return 0;
 }
 

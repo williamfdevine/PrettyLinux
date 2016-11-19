@@ -72,7 +72,8 @@ unsigned long ram_end;
 static unsigned long dma_start __initdata;
 static unsigned long dma_size __initdata;
 
-struct cpuinfo_c6x {
+struct cpuinfo_c6x
+{
 	const char *cpu_name;
 	const char *cpu_voltage;
 	const char *mmu;
@@ -101,10 +102,13 @@ static void __init get_cpuinfo(void)
 	p = &per_cpu(cpu_data, smp_processor_id());
 
 	if (!IS_ERR(coreclk))
+	{
 		c6x_core_freq = clk_get_rate(coreclk);
-	else {
+	}
+	else
+	{
 		printk(KERN_WARNING
-		       "Cannot find core clock frequency. Using 700MHz\n");
+			   "Cannot find core clock frequency. Using 700MHz\n");
 		c6x_core_freq = 700000000;
 	}
 
@@ -122,68 +126,89 @@ static void __init get_cpuinfo(void)
 	p->fpu = "none";
 	p->cpu_voltage = "unknown";
 
-	switch (cpu_id) {
-	case 0:
-		p->cpu_name = "C67x";
-		p->fpu = "yes";
-		break;
-	case 2:
-		p->cpu_name = "C62x";
-		break;
-	case 8:
-		p->cpu_name = "C64x";
-		break;
-	case 12:
-		p->cpu_name = "C64x";
-		break;
-	case 16:
-		p->cpu_name = "C64x+";
-		p->cpu_voltage = "1.2";
-		break;
-	case 21:
-		p->cpu_name = "C66X";
-		p->cpu_voltage = "1.2";
-		break;
-	default:
-		p->cpu_name = "unknown";
-		break;
+	switch (cpu_id)
+	{
+		case 0:
+			p->cpu_name = "C67x";
+			p->fpu = "yes";
+			break;
+
+		case 2:
+			p->cpu_name = "C62x";
+			break;
+
+		case 8:
+			p->cpu_name = "C64x";
+			break;
+
+		case 12:
+			p->cpu_name = "C64x";
+			break;
+
+		case 16:
+			p->cpu_name = "C64x+";
+			p->cpu_voltage = "1.2";
+			break;
+
+		case 21:
+			p->cpu_name = "C66X";
+			p->cpu_voltage = "1.2";
+			break;
+
+		default:
+			p->cpu_name = "unknown";
+			break;
 	}
 
-	if (cpu_id < 16) {
-		switch (rev_id) {
-		case 0x1:
-			if (cpu_id > 8) {
-				p->cpu_rev = "DM640/DM641/DM642/DM643";
-				p->cpu_voltage = "1.2 - 1.4";
-			} else {
-				p->cpu_rev = "C6201";
-				p->cpu_voltage = "2.5";
-			}
-			break;
-		case 0x2:
-			p->cpu_rev = "C6201B/C6202/C6211";
-			p->cpu_voltage = "1.8";
-			break;
-		case 0x3:
-			p->cpu_rev = "C6202B/C6203/C6204/C6205";
-			p->cpu_voltage = "1.5";
-			break;
-		case 0x201:
-			p->cpu_rev = "C6701 revision 0 (early CPU)";
-			p->cpu_voltage = "1.8";
-			break;
-		case 0x202:
-			p->cpu_rev = "C6701/C6711/C6712";
-			p->cpu_voltage = "1.8";
-			break;
-		case 0x801:
-			p->cpu_rev = "C64x";
-			p->cpu_voltage = "1.5";
-			break;
-		default:
-			p->cpu_rev = "unknown";
+	if (cpu_id < 16)
+	{
+		switch (rev_id)
+		{
+			case 0x1:
+				if (cpu_id > 8)
+				{
+					p->cpu_rev = "DM640/DM641/DM642/DM643";
+					p->cpu_voltage = "1.2 - 1.4";
+				}
+				else
+				{
+					p->cpu_rev = "C6201";
+					p->cpu_voltage = "2.5";
+				}
+
+				break;
+
+			case 0x2:
+				p->cpu_rev = "C6201B/C6202/C6211";
+				p->cpu_voltage = "1.8";
+				break;
+
+			case 0x3:
+				p->cpu_rev = "C6202B/C6203/C6204/C6205";
+				p->cpu_voltage = "1.5";
+				break;
+
+			case 0x201:
+				p->cpu_rev = "C6701 revision 0 (early CPU)";
+				p->cpu_voltage = "1.8";
+				break;
+
+			case 0x202:
+				p->cpu_rev = "C6701/C6711/C6712";
+				p->cpu_voltage = "1.8";
+				break;
+
+			case 0x801:
+				p->cpu_rev = "C64x";
+				p->cpu_voltage = "1.5";
+				break;
+
+			default:
+				p->cpu_rev = "unknown";
 		}
-	} else {
+	}
+	else
+	{
 		p->cpu_rev = p->__cpu_rev;
 		snprintf(p->__cpu_rev, sizeof(p->__cpu_rev), "0x%x", cpu_id);
 	}
@@ -191,24 +216,38 @@ static void __init get_cpuinfo(void)
 	p->core_id = get_coreid();
 
 	node = of_find_node_by_name(NULL, "cpus");
-	if (node) {
+
+	if (node)
+	{
 		for_each_child_of_node(node, np)
-			if (!strcmp("cpu", np->name))
-				++c6x_num_cores;
+
+		if (!strcmp("cpu", np->name))
+		{
+			++c6x_num_cores;
+		}
+
 		of_node_put(node);
 	}
 
 	node = of_find_node_by_name(NULL, "soc");
-	if (node) {
+
+	if (node)
+	{
 		if (of_property_read_string(node, "model", &c6x_soc_name))
+		{
 			c6x_soc_name = "unknown";
+		}
+
 		of_node_put(node);
-	} else
+	}
+	else
+	{
 		c6x_soc_name = "unknown";
+	}
 
 	printk(KERN_INFO "CPU%d: %s rev %s, %s volts, %uMHz\n",
-	       p->core_id, p->cpu_name, p->cpu_rev,
-	       p->cpu_voltage, c6x_core_freq / 1000000);
+		   p->core_id, p->cpu_name, p->cpu_rev,
+		   p->cpu_voltage, c6x_core_freq / 1000000);
 }
 
 /*
@@ -220,12 +259,17 @@ static u32 mem_size __initdata;
 static int __init early_mem(char *p)
 {
 	if (!p)
+	{
 		return -EINVAL;
+	}
 
 	mem_size = memparse(p, &p);
+
 	/* don't remove all of memory when handling "mem={invalid}" */
 	if (mem_size == 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -235,11 +279,16 @@ early_param("mem", early_mem);
 static int __init early_memdma(char *p)
 {
 	if (!p)
+	{
 		return -EINVAL;
+	}
 
 	dma_size = memparse(p, &p);
+
 	if (*p == '@')
+	{
 		dma_start = memparse(p, &p);
+	}
 
 	return 0;
 }
@@ -251,10 +300,14 @@ int __init c6x_add_memory(phys_addr_t start, unsigned long size)
 
 	/* We only handle one bank (the one with PAGE_OFFSET) for now */
 	if (ram_found)
+	{
 		return -EINVAL;
+	}
 
 	if (start > PAGE_OFFSET || PAGE_OFFSET >= (start + size))
+	{
 		return 0;
+	}
 
 	ram_start = start;
 	ram_end = start + size;
@@ -286,7 +339,9 @@ notrace void __init machine_init(unsigned long dt_ptr)
 	 * fdt is linked in blob.
 	 */
 	if (dtb && dtb != fdt)
+	{
 		fdt = dtb;
+	}
 
 	/* Do some early initialization based on the flat device tree */
 	early_init_dt_scan(fdt);
@@ -308,44 +363,53 @@ void __init setup_arch(char **cmdline_p)
 	memory_end &= ~(PAGE_SIZE - 1);
 
 	if (mem_size && (PAGE_OFFSET + PAGE_ALIGN(mem_size)) < memory_end)
+	{
 		memory_end = PAGE_OFFSET + PAGE_ALIGN(mem_size);
+	}
 
 	/* add block that this kernel can use */
 	memblock_add(PAGE_OFFSET, memory_end - PAGE_OFFSET);
 
 	/* reserve kernel text/data/bss */
 	memblock_reserve(PAGE_OFFSET,
-			 PAGE_ALIGN((unsigned long)&_end - PAGE_OFFSET));
+					 PAGE_ALIGN((unsigned long)&_end - PAGE_OFFSET));
 
-	if (dma_size) {
+	if (dma_size)
+	{
 		/* align to cacheability granularity */
 		dma_size = CACHE_REGION_END(dma_size);
 
 		if (!dma_start)
+		{
 			dma_start = memory_end - dma_size;
+		}
 
 		/* align to cacheability granularity */
 		dma_start = CACHE_REGION_START(dma_start);
 
 		/* reserve DMA memory taken from kernel memory */
 		if (memblock_is_region_memory(dma_start, dma_size))
+		{
 			memblock_reserve(dma_start, dma_size);
+		}
 	}
 
 	memory_start = PAGE_ALIGN((unsigned int) &_end);
 
 	printk(KERN_INFO "Memory Start=%08lx, Memory End=%08lx\n",
-	       memory_start, memory_end);
+		   memory_start, memory_end);
 
 #ifdef CONFIG_BLK_DEV_INITRD
+
 	/*
 	 * Reserve initrd memory if in kernel memory.
 	 */
 	if (initrd_start < initrd_end)
 		if (memblock_is_region_memory(initrd_start,
-					      initrd_end - initrd_start))
+									  initrd_end - initrd_start))
 			memblock_reserve(initrd_start,
-					 initrd_end - initrd_start);
+							 initrd_end - initrd_start);
+
 #endif
 
 	init_mm.start_code = (unsigned long) &_stext;
@@ -358,9 +422,9 @@ void __init setup_arch(char **cmdline_p)
 	 * boot mem_map at the start of memory
 	 */
 	bootmap_size = init_bootmem_node(NODE_DATA(0),
-					 memory_start >> PAGE_SHIFT,
-					 PAGE_OFFSET >> PAGE_SHIFT,
-					 memory_end >> PAGE_SHIFT);
+									 memory_start >> PAGE_SHIFT,
+									 PAGE_OFFSET >> PAGE_SHIFT,
+									 memory_end >> PAGE_SHIFT);
 	memblock_reserve(memory_start, bootmap_size);
 
 	unflatten_device_tree();
@@ -372,19 +436,22 @@ void __init setup_arch(char **cmdline_p)
 
 	/* Set caching of external RAM used by Linux */
 	for_each_memblock(memory, reg)
-		enable_caching(CACHE_REGION_START(reg->base),
-			       CACHE_REGION_START(reg->base + reg->size - 1));
+	enable_caching(CACHE_REGION_START(reg->base),
+				   CACHE_REGION_START(reg->base + reg->size - 1));
 
 #ifdef CONFIG_BLK_DEV_INITRD
+
 	/*
 	 * Enable caching for initrd which falls outside kernel memory.
 	 */
-	if (initrd_start < initrd_end) {
+	if (initrd_start < initrd_end)
+	{
 		if (!memblock_is_region_memory(initrd_start,
-					       initrd_end - initrd_start))
+									   initrd_end - initrd_start))
 			enable_caching(CACHE_REGION_START(initrd_start),
-				       CACHE_REGION_START(initrd_end - 1));
+						   CACHE_REGION_START(initrd_end - 1));
 	}
+
 #endif
 
 	/*
@@ -392,7 +459,7 @@ void __init setup_arch(char **cmdline_p)
 	 */
 	if (dma_size && memblock_is_region_memory(dma_start, dma_size))
 		disable_caching(dma_start,
-				CACHE_REGION_START(dma_start + dma_size - 1));
+						CACHE_REGION_START(dma_start + dma_size - 1));
 
 	/* Initialize the coherent memory allocator */
 	coherent_mem_init(dma_start, dma_size);
@@ -405,9 +472,10 @@ void __init setup_arch(char **cmdline_p)
 	/*
 	 * Then reserve memory which is already being used.
 	 */
-	for_each_memblock(reserved, reg) {
+	for_each_memblock(reserved, reg)
+	{
 		pr_debug("reserved - 0x%08x-0x%08x\n",
-			 (u32) reg->base, (u32) reg->size);
+				 (u32) reg->base, (u32) reg->size);
 		reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
 	}
 
@@ -444,31 +512,32 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	int n = ptr_to_cpu(v);
 	struct cpuinfo_c6x *p = &per_cpu(cpu_data, n);
 
-	if (n == 0) {
+	if (n == 0)
+	{
 		seq_printf(m,
-			   "soc\t\t: %s\n"
-			   "soc revision\t: 0x%x\n"
-			   "soc cores\t: %d\n",
-			   c6x_soc_name, c6x_silicon_rev, c6x_num_cores);
+				   "soc\t\t: %s\n"
+				   "soc revision\t: 0x%x\n"
+				   "soc cores\t: %d\n",
+				   c6x_soc_name, c6x_silicon_rev, c6x_num_cores);
 	}
 
 	seq_printf(m,
-		   "\n"
-		   "processor\t: %d\n"
-		   "cpu\t\t: %s\n"
-		   "core revision\t: %s\n"
-		   "core voltage\t: %s\n"
-		   "core id\t\t: %d\n"
-		   "mmu\t\t: %s\n"
-		   "fpu\t\t: %s\n"
-		   "cpu MHz\t\t: %u\n"
-		   "bogomips\t: %lu.%02lu\n\n",
-		   n,
-		   p->cpu_name, p->cpu_rev, p->cpu_voltage,
-		   p->core_id, p->mmu, p->fpu,
-		   (c6x_core_freq + 500000) / 1000000,
-		   (loops_per_jiffy/(500000/HZ)),
-		   (loops_per_jiffy/(5000/HZ))%100);
+			   "\n"
+			   "processor\t: %d\n"
+			   "cpu\t\t: %s\n"
+			   "core revision\t: %s\n"
+			   "core voltage\t: %s\n"
+			   "core id\t\t: %d\n"
+			   "mmu\t\t: %s\n"
+			   "fpu\t\t: %s\n"
+			   "cpu MHz\t\t: %u\n"
+			   "bogomips\t: %lu.%02lu\n\n",
+			   n,
+			   p->cpu_name, p->cpu_rev, p->cpu_voltage,
+			   p->core_id, p->mmu, p->fpu,
+			   (c6x_core_freq + 500000) / 1000000,
+			   (loops_per_jiffy / (500000 / HZ)),
+			   (loops_per_jiffy / (5000 / HZ)) % 100);
 
 	return 0;
 }
@@ -486,7 +555,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	c_start,
 	c_stop,
 	c_next,
@@ -500,7 +570,7 @@ static int __init topology_init(void)
 	int i;
 
 	for_each_present_cpu(i)
-		register_cpu(&cpu_devices[i], i);
+	register_cpu(&cpu_devices[i], i);
 
 	return 0;
 }

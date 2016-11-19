@@ -38,8 +38,8 @@
 #define FLOW_CTRL_CSR_ENABLE_EXT_CRAIL	(1 << 13)
 #define FLOW_CTRL_CSR_ENABLE_EXT_NCPU	(1 << 12)
 #define FLOW_CTRL_CSR_ENABLE_EXT_MASK ( \
-		FLOW_CTRL_CSR_ENABLE_EXT_NCPU | \
-		FLOW_CTRL_CSR_ENABLE_EXT_CRAIL)
+										FLOW_CTRL_CSR_ENABLE_EXT_NCPU | \
+										FLOW_CTRL_CSR_ENABLE_EXT_CRAIL)
 #define FLOW_CTRL_CSR_ENABLE		(1 << 0)
 #define FLOW_CTRL_HALT_CPU1_EVENTS	0x14
 #define FLOW_CTRL_CPU1_CSR		0x18
@@ -53,14 +53,14 @@
 #define TEGRA30_FLOW_CTRL_CSR_WFI_BITMAP	(0xF << 8)
 
 #ifndef __ASSEMBLY__
-u32 flowctrl_read_cpu_csr(unsigned int cpuid);
-void flowctrl_write_cpu_csr(unsigned int cpuid, u32 value);
-void flowctrl_write_cpu_halt(unsigned int cpuid, u32 value);
+	u32 flowctrl_read_cpu_csr(unsigned int cpuid);
+	void flowctrl_write_cpu_csr(unsigned int cpuid, u32 value);
+	void flowctrl_write_cpu_halt(unsigned int cpuid, u32 value);
 
-void flowctrl_cpu_suspend_enter(unsigned int cpuid);
-void flowctrl_cpu_suspend_exit(unsigned int cpuid);
+	void flowctrl_cpu_suspend_enter(unsigned int cpuid);
+	void flowctrl_cpu_suspend_exit(unsigned int cpuid);
 
-void tegra_flowctrl_init(void);
+	void tegra_flowctrl_init(void);
 #endif
 
 #endif

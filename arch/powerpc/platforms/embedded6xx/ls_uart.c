@@ -31,25 +31,37 @@ static void wd_stop(struct work_struct *unused)
 	int i = 0, rescue = 8;
 	int len = strlen(string);
 
-	while (rescue--) {
+	while (rescue--)
+	{
 		int j;
 		char lsr = in_8(avr_addr + UART_LSR);
 
-		if (lsr & (UART_LSR_THRE | UART_LSR_TEMT)) {
+		if (lsr & (UART_LSR_THRE | UART_LSR_TEMT))
+		{
 			for (j = 0; j < 16 && i < len; j++, i++)
+			{
 				out_8(avr_addr + UART_TX, string[i]);
-			if (i == len) {
+			}
+
+			if (i == len)
+			{
 				/* Read "OK" back: 4ms for the last "KKKK"
 				   plus a couple bytes back */
 				msleep(7);
 				printk("linkstation: disarming the AVR watchdog: ");
+
 				while (in_8(avr_addr + UART_LSR) & UART_LSR_DR)
+				{
 					printk("%c", in_8(avr_addr + UART_RX));
+				}
+
 				break;
 			}
 		}
+
 		msleep(17);
 	}
+
 	printk("\n");
 }
 
@@ -61,7 +73,9 @@ void avr_uart_configure(void)
 	unsigned int quot = AVR_QUOT(avr_clock);
 
 	if (!avr_addr || !avr_clock)
+	{
 		return;
+	}
 
 	out_8(avr_addr + UART_LCR, cval);			/* initialise UART */
 	out_8(avr_addr + UART_MCR, 0);
@@ -81,7 +95,9 @@ void avr_uart_configure(void)
 void avr_uart_send(const char c)
 {
 	if (!avr_addr || !avr_clock)
+	{
 		return;
+	}
 
 	out_8(avr_addr + UART_TX, c);
 	out_8(avr_addr + UART_TX, c);
@@ -96,7 +112,7 @@ static void __init ls_uart_init(void)
 #ifndef CONFIG_SERIAL_8250
 	out_8(avr_addr + UART_FCR, UART_FCR_ENABLE_FIFO);	/* enable FIFO */
 	out_8(avr_addr + UART_FCR, UART_FCR_ENABLE_FIFO |
-	      UART_FCR_CLEAR_RCVR | UART_FCR_CLEAR_XMIT);	/* clear FIFOs */
+		  UART_FCR_CLEAR_RCVR | UART_FCR_CLEAR_XMIT);	/* clear FIFOs */
 	out_8(avr_addr + UART_FCR, 0);
 	out_8(avr_addr + UART_IER, 0);
 
@@ -118,18 +134,26 @@ static int __init ls_uarts_init(void)
 	int len;
 
 	avr = of_find_node_by_path("/soc10x/serial@80004500");
-	if (!avr)
-		return -EINVAL;
 
-	avr_clock = *(u32*)of_get_property(avr, "clock-frequency", &len);
-	phys_addr = ((u32*)of_get_property(avr, "reg", &len))[0];
+	if (!avr)
+	{
+		return -EINVAL;
+	}
+
+	avr_clock = *(u32 *)of_get_property(avr, "clock-frequency", &len);
+	phys_addr = ((u32 *)of_get_property(avr, "reg", &len))[0];
 
 	if (!avr_clock || !phys_addr)
+	{
 		return -EINVAL;
+	}
 
 	avr_addr = ioremap(phys_addr, 32);
+
 	if (!avr_addr)
+	{
 		return -EFAULT;
+	}
 
 	ls_uart_init();
 

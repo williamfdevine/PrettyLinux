@@ -21,7 +21,7 @@ void __init prom_init(void)
 {
 #ifdef CONFIG_CPU_SUPPORTS_ADDRWINCFG
 	_loongson_addrwincfg_base = (unsigned long)
-		ioremap(LOONGSON_ADDRWINCFG_BASE, LOONGSON_ADDRWINCFG_SIZE);
+								ioremap(LOONGSON_ADDRWINCFG_BASE, LOONGSON_ADDRWINCFG_SIZE);
 #endif
 
 	prom_init_cmdline();
@@ -29,7 +29,7 @@ void __init prom_init(void)
 
 	/* init base address of io space */
 	set_io_port_base((unsigned long)
-		ioremap(LOONGSON_PCIIO_BASE, LOONGSON_PCIIO_SIZE));
+					 ioremap(LOONGSON_PCIIO_BASE, LOONGSON_PCIIO_SIZE));
 
 #ifdef CONFIG_NUMA
 	prom_init_numa_memory();

@@ -23,43 +23,43 @@
 #define atomic_set(v, i)	WRITE_ONCE(((v)->counter), (i))
 
 #define ATOMIC_OP_RETURN(op, asm_op, asm_con)				\
-static inline int __atomic_##op##_return(int i, atomic_t *v)		\
-{									\
-	int result;							\
-									\
-	asm volatile(							\
-		"/* atomic_" #op "_return */\n"				\
-		"1:	ssrf	5\n"					\
-		"	ld.w	%0, %2\n"				\
-		"	" #asm_op "	%0, %3\n"			\
-		"	stcond	%1, %0\n"				\
-		"	brne	1b"					\
-		: "=&r" (result), "=o" (v->counter)			\
-		: "m" (v->counter), #asm_con (i)			\
-		: "cc");						\
-									\
-	return result;							\
-}
+	static inline int __atomic_##op##_return(int i, atomic_t *v)		\
+	{									\
+		int result;							\
+		\
+		asm volatile(							\
+												"/* atomic_" #op "_return */\n"				\
+												"1:	ssrf	5\n"					\
+												"	ld.w	%0, %2\n"				\
+												"	" #asm_op "	%0, %3\n"			\
+												"	stcond	%1, %0\n"				\
+												"	brne	1b"					\
+												: "=&r" (result), "=o" (v->counter)			\
+												: "m" (v->counter), #asm_con (i)			\
+												: "cc");						\
+		\
+		return result;							\
+	}
 
 #define ATOMIC_FETCH_OP(op, asm_op, asm_con)				\
-static inline int __atomic_fetch_##op(int i, atomic_t *v)		\
-{									\
-	int result, val;						\
-									\
-	asm volatile(							\
-		"/* atomic_fetch_" #op " */\n"				\
-		"1:	ssrf	5\n"					\
-		"	ld.w	%0, %3\n"				\
-		"	mov	%1, %0\n"				\
-		"	" #asm_op "	%1, %4\n"			\
-		"	stcond	%2, %1\n"				\
-		"	brne	1b"					\
-		: "=&r" (result), "=&r" (val), "=o" (v->counter)	\
-		: "m" (v->counter), #asm_con (i)			\
-		: "cc");						\
-									\
-	return result;							\
-}
+	static inline int __atomic_fetch_##op(int i, atomic_t *v)		\
+	{									\
+		int result, val;						\
+		\
+		asm volatile(							\
+												"/* atomic_fetch_" #op " */\n"				\
+												"1:	ssrf	5\n"					\
+												"	ld.w	%0, %3\n"				\
+												"	mov	%1, %0\n"				\
+												"	" #asm_op "	%1, %4\n"			\
+												"	stcond	%2, %1\n"				\
+												"	brne	1b"					\
+												: "=&r" (result), "=&r" (val), "=o" (v->counter)	\
+												: "m" (v->counter), #asm_con (i)			\
+												: "cc");						\
+		\
+		return result;							\
+	}
 
 ATOMIC_OP_RETURN(sub, sub, rKs21)
 ATOMIC_OP_RETURN(add, add, r)
@@ -67,19 +67,19 @@ ATOMIC_FETCH_OP (sub, sub, rKs21)
 ATOMIC_FETCH_OP (add, add, r)
 
 #define ATOMIC_OPS(op, asm_op)						\
-ATOMIC_OP_RETURN(op, asm_op, r)						\
-static inline void atomic_##op(int i, atomic_t *v)			\
-{									\
-	(void)__atomic_##op##_return(i, v);				\
-}									\
-ATOMIC_FETCH_OP(op, asm_op, r)						\
-static inline int atomic_fetch_##op(int i, atomic_t *v)		\
-{									\
-	return __atomic_fetch_##op(i, v);				\
-}
+	ATOMIC_OP_RETURN(op, asm_op, r)						\
+	static inline void atomic_##op(int i, atomic_t *v)			\
+	{									\
+		(void)__atomic_##op##_return(i, v);				\
+	}									\
+	ATOMIC_FETCH_OP(op, asm_op, r)						\
+	static inline int atomic_fetch_##op(int i, atomic_t *v)		\
+	{									\
+		return __atomic_fetch_##op(i, v);				\
+	}
 
-ATOMIC_OPS(and, and)
-ATOMIC_OPS(or, or)
+ATOMIC_OPS( and , and )
+ATOMIC_OPS( or , or )
 ATOMIC_OPS(xor, eor)
 
 #undef ATOMIC_OPS
@@ -110,7 +110,9 @@ ATOMIC_OPS(xor, eor)
 static inline int atomic_add_return(int i, atomic_t *v)
 {
 	if (IS_21BIT_CONST(i))
+	{
 		return __atomic_sub_return(-i, v);
+	}
 
 	return __atomic_add_return(i, v);
 }
@@ -118,7 +120,9 @@ static inline int atomic_add_return(int i, atomic_t *v)
 static inline int atomic_fetch_add(int i, atomic_t *v)
 {
 	if (IS_21BIT_CONST(i))
+	{
 		return __atomic_fetch_sub(-i, v);
+	}
 
 	return __atomic_fetch_add(i, v);
 }
@@ -133,7 +137,9 @@ static inline int atomic_fetch_add(int i, atomic_t *v)
 static inline int atomic_sub_return(int i, atomic_t *v)
 {
 	if (IS_21BIT_CONST(i))
+	{
 		return __atomic_sub_return(i, v);
+	}
 
 	return __atomic_add_return(-i, v);
 }
@@ -141,7 +147,9 @@ static inline int atomic_sub_return(int i, atomic_t *v)
 static inline int atomic_fetch_sub(int i, atomic_t *v)
 {
 	if (IS_21BIT_CONST(i))
+	{
 		return __atomic_fetch_sub(i, v);
+	}
 
 	return __atomic_fetch_add(-i, v);
 }
@@ -159,7 +167,8 @@ static inline int __atomic_add_unless(atomic_t *v, int a, int u)
 {
 	int tmp, old = atomic_read(v);
 
-	if (IS_21BIT_CONST(a)) {
+	if (IS_21BIT_CONST(a))
+	{
 		asm volatile(
 			"/* __atomic_sub_unless */\n"
 			"1:	ssrf	5\n"
@@ -173,7 +182,9 @@ static inline int __atomic_add_unless(atomic_t *v, int a, int u)
 			: "=&r"(tmp), "=o"(v->counter)
 			: "m"(v->counter), "rKs21"(-a), "rKs21"(u)
 			: "cc", "memory");
-	} else {
+	}
+	else
+	{
 		asm volatile(
 			"/* __atomic_add_unless */\n"
 			"1:	ssrf	5\n"

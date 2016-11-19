@@ -87,18 +87,25 @@ int use_cop(unsigned long acop, struct mm_struct *mm)
 	int ret;
 
 	if (!cpu_has_feature(CPU_FTR_ICSWX))
+	{
 		return -ENODEV;
+	}
 
 	if (!mm || !acop)
+	{
 		return -EINVAL;
+	}
 
 	/* The page_table_lock ensures mm_users won't change under us */
 	spin_lock(&mm->page_table_lock);
 	spin_lock(mm->context.cop_lockp);
 
 	ret = get_cop_pid(mm);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* update acop */
 	mm->context.acop |= acop;
@@ -111,7 +118,9 @@ int use_cop(unsigned long acop, struct mm_struct *mm)
 	 * change in PID and ACOP.
 	 */
 	if (atomic_read(&mm->mm_users) > 1)
+	{
 		smp_call_function(sync_cop, mm, 1);
+	}
 
 out:
 	spin_unlock(mm->context.cop_lockp);
@@ -131,10 +140,14 @@ void drop_cop(unsigned long acop, struct mm_struct *mm)
 	int free_pid;
 
 	if (!cpu_has_feature(CPU_FTR_ICSWX))
+	{
 		return;
+	}
 
 	if (WARN_ON_ONCE(!mm))
+	{
 		return;
+	}
 
 	/* The page_table_lock ensures mm_users won't change under us */
 	spin_lock(&mm->page_table_lock);
@@ -151,10 +164,14 @@ void drop_cop(unsigned long acop, struct mm_struct *mm)
 	 * change in PID and ACOP.
 	 */
 	if (atomic_read(&mm->mm_users) > 1)
+	{
 		smp_call_function(sync_cop, mm, 1);
+	}
 
 	if (free_pid != COP_PID_NONE)
+	{
 		free_cop_pid(free_pid);
+	}
 
 	spin_unlock(mm->context.cop_lockp);
 	spin_unlock(&mm->page_table_lock);
@@ -176,11 +193,16 @@ static u32 acop_get_inst(struct pt_regs *regs)
 	u32 __user *p;
 
 	p = (u32 __user *)regs->nip;
+
 	if (!access_ok(VERIFY_READ, p, sizeof(*p)))
+	{
 		return 0;
+	}
 
 	if (__get_user(inst, p))
+	{
 		return 0;
+	}
 
 	return inst;
 }
@@ -195,17 +217,19 @@ static u32 acop_get_inst(struct pt_regs *regs)
  * results from a CT miss in the ACOP register.
  */
 int acop_handle_fault(struct pt_regs *regs, unsigned long address,
-		      unsigned long error_code)
+					  unsigned long error_code)
 {
 	int ct;
 	u32 inst = 0;
 
-	if (!cpu_has_feature(CPU_FTR_ICSWX)) {
+	if (!cpu_has_feature(CPU_FTR_ICSWX))
+	{
 		pr_info("No coprocessors available");
 		_exception(SIGILL, regs, ILL_ILLOPN, address);
 	}
 
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		/* this could happen if the HV denies the
 		 * kernel access, for now we just die */
 		die("ICSWX from kernel failed", regs, SIGSEGV);
@@ -213,14 +237,19 @@ int acop_handle_fault(struct pt_regs *regs, unsigned long address,
 
 	/* Some implementations leave us a hint for the CT */
 	ct = ICSWX_GET_CT_HINT(error_code);
-	if (ct < 0) {
+
+	if (ct < 0)
+	{
 		/* we have to peek at the instruction word to figure out CT */
 		u32 ccw;
 		u32 rs;
 
 		inst = acop_get_inst(regs);
+
 		if (inst == 0)
+		{
 			return -1;
+		}
 
 		rs = (inst >> (31 - 10)) & 0x1f;
 		ccw = regs->gpr[rs];
@@ -240,28 +269,36 @@ int acop_handle_fault(struct pt_regs *regs, unsigned long address,
 	 * perhaps this is the best way to sync ACOP rather than whack
 	 * every thread with an IPI.
 	 */
-	if ((acop_copro_type_bit(ct) & current->active_mm->context.acop) != 0) {
+	if ((acop_copro_type_bit(ct) & current->active_mm->context.acop) != 0)
+	{
 		sync_cop(current->active_mm);
 		return 0;
 	}
 
 	/* check for alternate policy */
 	if (!acop_use_cop(ct))
+	{
 		return 0;
+	}
 
 	/* at this point the CT is unknown to the system */
 	pr_warn("%s[%d]: Coprocessor %d is unavailable\n",
-		current->comm, current->pid, ct);
+			current->comm, current->pid, ct);
 
 	/* get inst if we don't already have it */
-	if (inst == 0) {
+	if (inst == 0)
+	{
 		inst = acop_get_inst(regs);
+
 		if (inst == 0)
+		{
 			return -1;
+		}
 	}
 
 	/* Check if the instruction is the "record form" */
-	if (inst & 1) {
+	if (inst & 1)
+	{
 		/*
 		 * the instruction is "record" form so we can reject
 		 * using CR0
@@ -271,7 +308,9 @@ int acop_handle_fault(struct pt_regs *regs, unsigned long address,
 
 		/* Move on to the next instruction */
 		regs->nip += 4;
-	} else {
+	}
+	else
+	{
 		/*
 		 * There is no architected mechanism to report a bad
 		 * CT so we could either SIGILL or report nothing.

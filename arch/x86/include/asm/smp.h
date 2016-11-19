@@ -8,11 +8,11 @@
  * We need the APIC definitions automatically as part of 'smp.h'
  */
 #ifdef CONFIG_X86_LOCAL_APIC
-# include <asm/mpspec.h>
-# include <asm/apic.h>
-# ifdef CONFIG_X86_IO_APIC
-#  include <asm/io_apic.h>
-# endif
+	#include <asm/mpspec.h>
+	#include <asm/apic.h>
+	#ifdef CONFIG_X86_IO_APIC
+		#include <asm/io_apic.h>
+	#endif
 #endif
 #include <asm/thread_info.h>
 #include <asm/cpumask.h>
@@ -36,12 +36,13 @@ DECLARE_EARLY_PER_CPU_READ_MOSTLY(u16, x86_cpu_to_apicid);
 DECLARE_EARLY_PER_CPU_READ_MOSTLY(u32, x86_cpu_to_acpiid);
 DECLARE_EARLY_PER_CPU_READ_MOSTLY(u16, x86_bios_cpu_apicid);
 #if defined(CONFIG_X86_LOCAL_APIC) && defined(CONFIG_X86_32)
-DECLARE_EARLY_PER_CPU_READ_MOSTLY(int, x86_cpu_to_logical_apicid);
+	DECLARE_EARLY_PER_CPU_READ_MOSTLY(int, x86_cpu_to_logical_apicid);
 #endif
 
 struct task_struct;
 
-struct smp_ops {
+struct smp_ops
+{
 	void (*smp_prepare_boot_cpu)(void);
 	void (*smp_prepare_cpus)(unsigned max_cpus);
 	void (*smp_cpus_done)(unsigned max_cpus);
@@ -162,18 +163,18 @@ static inline int wbinvd_on_all_cpus(void)
 extern unsigned disabled_cpus;
 
 #ifdef CONFIG_X86_32_SMP
-/*
- * This function is needed by all SMP systems. It must _always_ be valid
- * from the initial startup. We map APIC_BASE very early in page_setup(),
- * so this is correct in the x86 case.
- */
-#define raw_smp_processor_id() (this_cpu_read(cpu_number))
-extern int safe_smp_processor_id(void);
+	/*
+	* This function is needed by all SMP systems. It must _always_ be valid
+	* from the initial startup. We map APIC_BASE very early in page_setup(),
+	* so this is correct in the x86 case.
+	*/
+	#define raw_smp_processor_id() (this_cpu_read(cpu_number))
+	extern int safe_smp_processor_id(void);
 
 #elif defined(CONFIG_X86_64_SMP)
-#define raw_smp_processor_id() (this_cpu_read(cpu_number))
+	#define raw_smp_processor_id() (this_cpu_read(cpu_number))
 
-#define safe_smp_processor_id()		smp_processor_id()
+	#define safe_smp_processor_id()		smp_processor_id()
 
 #endif
 
@@ -192,16 +193,16 @@ extern int hard_smp_processor_id(void);
 
 #else /* CONFIG_X86_LOCAL_APIC */
 
-# ifndef CONFIG_SMP
-#  define hard_smp_processor_id()	0
-# endif
+#ifndef CONFIG_SMP
+	#define hard_smp_processor_id()	0
+#endif
 
 #endif /* CONFIG_X86_LOCAL_APIC */
 
 #ifdef CONFIG_DEBUG_NMI_SELFTEST
-extern void nmi_selftest(void);
+	extern void nmi_selftest(void);
 #else
-#define nmi_selftest() do { } while (0)
+	#define nmi_selftest() do { } while (0)
 #endif
 
 #endif /* __ASSEMBLY__ */

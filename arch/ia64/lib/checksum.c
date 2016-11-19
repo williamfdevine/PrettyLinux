@@ -35,23 +35,23 @@ from64to16 (unsigned long x)
  */
 __sum16
 csum_tcpudp_magic(__be32 saddr, __be32 daddr, __u32 len,
-		  __u8 proto, __wsum sum)
+				  __u8 proto, __wsum sum)
 {
 	return (__force __sum16)~from64to16(
-		(__force u64)saddr + (__force u64)daddr +
-		(__force u64)sum + ((len + proto) << 8));
+			   (__force u64)saddr + (__force u64)daddr +
+			   (__force u64)sum + ((len + proto) << 8));
 }
 
 EXPORT_SYMBOL(csum_tcpudp_magic);
 
 __wsum
 csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len,
-		   __u8 proto, __wsum sum)
+				   __u8 proto, __wsum sum)
 {
 	unsigned long result;
 
 	result = (__force u64)saddr + (__force u64)daddr +
-		 (__force u64)sum + ((len + proto) << 8);
+			 (__force u64)sum + ((len + proto) << 8);
 
 	/* Fold down to 32-bits so we don't lose in the typedef-less network stack.  */
 	/* 64 to 33 */
@@ -95,7 +95,7 @@ EXPORT_SYMBOL(csum_partial);
  */
 __sum16 ip_compute_csum (const void *buff, int len)
 {
-	return (__force __sum16)~do_csum(buff,len);
+	return (__force __sum16)~do_csum(buff, len);
 }
 
 EXPORT_SYMBOL(ip_compute_csum);

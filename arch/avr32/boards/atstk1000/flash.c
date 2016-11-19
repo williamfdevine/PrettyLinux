@@ -15,7 +15,8 @@
 
 #include <mach/smc.h>
 
-static struct smc_timing flash_timing __initdata = {
+static struct smc_timing flash_timing __initdata =
+{
 	.ncs_read_setup		= 0,
 	.nrd_setup		= 40,
 	.ncs_write_setup	= 0,
@@ -30,14 +31,16 @@ static struct smc_timing flash_timing __initdata = {
 	.write_cycle		= 120,
 };
 
-static struct smc_config flash_config __initdata = {
+static struct smc_config flash_config __initdata =
+{
 	.bus_width		= 2,
 	.nrd_controlled		= 1,
 	.nwe_controlled		= 1,
 	.byte_write		= 1,
 };
 
-static struct mtd_partition flash_parts[] = {
+static struct mtd_partition flash_parts[] =
+{
 	{
 		.name           = "u-boot",
 		.offset         = 0x00000000,
@@ -57,19 +60,22 @@ static struct mtd_partition flash_parts[] = {
 	},
 };
 
-static struct physmap_flash_data flash_data = {
+static struct physmap_flash_data flash_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(flash_parts),
 	.parts		= flash_parts,
 };
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.start		= 0x00000000,
 	.end		= 0x007fffff,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device flash_device = {
+static struct platform_device flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.resource	= &flash_resource,
@@ -86,7 +92,9 @@ static int __init atstk1000_flash_init(void)
 
 	smc_set_timing(&flash_config, &flash_timing);
 	ret = smc_set_configuration(0, &flash_config);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "atstk1000: failed to set NOR flash timing\n");
 		return ret;
 	}

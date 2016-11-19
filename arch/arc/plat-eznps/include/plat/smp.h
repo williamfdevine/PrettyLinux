@@ -19,7 +19,7 @@
 
 #ifdef CONFIG_SMP
 
-extern void res_service(void);
+	extern void res_service(void);
 
 #endif /* CONFIG_SMP */
 

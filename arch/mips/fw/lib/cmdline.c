@@ -21,28 +21,39 @@ void __init fw_init_cmdline(void)
 	int i;
 
 	/* Validate command line parameters. */
-	if ((fw_arg0 >= CKSEG0) || (fw_arg1 < CKSEG0)) {
+	if ((fw_arg0 >= CKSEG0) || (fw_arg1 < CKSEG0))
+	{
 		fw_argc = 0;
 		_fw_argv = NULL;
-	} else {
+	}
+	else
+	{
 		fw_argc = (fw_arg0 & 0x0000ffff);
 		_fw_argv = (int *)fw_arg1;
 	}
 
 	/* Validate environment pointer. */
 	if (fw_arg2 < CKSEG0)
+	{
 		_fw_envp = NULL;
+	}
 	else
+	{
 		_fw_envp = (int *)fw_arg2;
+	}
 
-	for (i = 1; i < fw_argc; i++) {
+	for (i = 1; i < fw_argc; i++)
+	{
 		strlcat(arcs_cmdline, fw_argv(i), COMMAND_LINE_SIZE);
+
 		if (i < (fw_argc - 1))
+		{
 			strlcat(arcs_cmdline, " ", COMMAND_LINE_SIZE);
+		}
 	}
 }
 
-char * __init fw_getcmdline(void)
+char *__init fw_getcmdline(void)
 {
 	return &(arcs_cmdline[0]);
 }
@@ -51,7 +62,8 @@ char *fw_getenv(char *envname)
 {
 	char *result = NULL;
 
-	if (_fw_envp != NULL) {
+	if (_fw_envp != NULL)
+	{
 		/*
 		 * Return a pointer to the given environment variable.
 		 * YAMON uses "name", "value" pairs, while U-Boot uses
@@ -62,12 +74,17 @@ char *fw_getenv(char *envname)
 		yamon = (strchr(fw_envp(index), '=') == NULL);
 		i = strlen(envname);
 
-		while (fw_envp(index)) {
-			if (strncmp(envname, fw_envp(index), i) == 0) {
-				if (yamon) {
+		while (fw_envp(index))
+		{
+			if (strncmp(envname, fw_envp(index), i) == 0)
+			{
+				if (yamon)
+				{
 					result = fw_envp(index + 1);
 					break;
-				} else if (fw_envp(index)[i] == '=') {
+				}
+				else if (fw_envp(index)[i] == '=')
+				{
 					result = fw_envp(index) + i + 1;
 					break;
 				}
@@ -75,9 +92,13 @@ char *fw_getenv(char *envname)
 
 			/* Increment array index. */
 			if (yamon)
+			{
 				index += 2;
+			}
 			else
+			{
 				index += 1;
+			}
 		}
 	}
 
@@ -91,10 +112,15 @@ unsigned long fw_getenvl(char *envname)
 	int tmp;
 
 	str = fw_getenv(envname);
-	if (str) {
+
+	if (str)
+	{
 		tmp = kstrtoul(str, 0, &envl);
+
 		if (tmp)
+		{
 			envl = 0;
+		}
 	}
 
 	return envl;

@@ -35,12 +35,13 @@ struct kvm_vcpu;
 #define	IOAPIC_EXTINT			0x7
 
 #ifdef CONFIG_X86
-#define RTC_GSI 8
+	#define RTC_GSI 8
 #else
-#define RTC_GSI -1U
+	#define RTC_GSI -1U
 #endif
 
-struct dest_map {
+struct dest_map
+{
 	/* vcpu bitmap where IRQ has been sent */
 	DECLARE_BITMAP(map, KVM_MAX_VCPUS);
 
@@ -52,29 +53,33 @@ struct dest_map {
 };
 
 
-struct rtc_status {
+struct rtc_status
+{
 	int pending_eoi;
 	struct dest_map dest_map;
 };
 
-union kvm_ioapic_redirect_entry {
+union kvm_ioapic_redirect_entry
+{
 	u64 bits;
-	struct {
+	struct
+	{
 		u8 vector;
-		u8 delivery_mode:3;
-		u8 dest_mode:1;
-		u8 delivery_status:1;
-		u8 polarity:1;
-		u8 remote_irr:1;
-		u8 trig_mode:1;
-		u8 mask:1;
-		u8 reserve:7;
+		u8 delivery_mode: 3;
+		u8 dest_mode: 1;
+		u8 delivery_status: 1;
+		u8 polarity: 1;
+		u8 remote_irr: 1;
+		u8 trig_mode: 1;
+		u8 mask: 1;
+		u8 reserve: 7;
 		u8 reserved[4];
 		u8 dest_id;
 	} fields;
 };
 
-struct kvm_ioapic {
+struct kvm_ioapic
+{
 	u64 base_address;
 	u32 ioregsel;
 	u32 id;
@@ -94,13 +99,13 @@ struct kvm_ioapic {
 
 #ifdef DEBUG
 #define ASSERT(x)  							\
-do {									\
-	if (!(x)) {							\
-		printk(KERN_EMERG "assertion failed %s: %d: %s\n",	\
-		       __FILE__, __LINE__, #x);				\
-		BUG();							\
-	}								\
-} while (0)
+	do {									\
+		if (!(x)) {							\
+			printk(KERN_EMERG "assertion failed %s: %d: %s\n",	\
+				   __FILE__, __LINE__, #x);				\
+			BUG();							\
+		}								\
+	} while (0)
 #else
 #define ASSERT(x) do { } while (0)
 #endif
@@ -120,22 +125,22 @@ static inline int ioapic_in_kernel(struct kvm *kvm)
 
 void kvm_rtc_eoi_tracking_restore_one(struct kvm_vcpu *vcpu);
 bool kvm_apic_match_dest(struct kvm_vcpu *vcpu, struct kvm_lapic *source,
-		int short_hand, unsigned int dest, int dest_mode);
+						 int short_hand, unsigned int dest, int dest_mode);
 int kvm_apic_compare_prio(struct kvm_vcpu *vcpu1, struct kvm_vcpu *vcpu2);
 void kvm_ioapic_update_eoi(struct kvm_vcpu *vcpu, int vector,
-			int trigger_mode);
+						   int trigger_mode);
 int kvm_ioapic_init(struct kvm *kvm);
 void kvm_ioapic_destroy(struct kvm *kvm);
 int kvm_ioapic_set_irq(struct kvm_ioapic *ioapic, int irq, int irq_source_id,
-		       int level, bool line_status);
+					   int level, bool line_status);
 void kvm_ioapic_clear_all(struct kvm_ioapic *ioapic, int irq_source_id);
 int kvm_irq_delivery_to_apic(struct kvm *kvm, struct kvm_lapic *src,
-			     struct kvm_lapic_irq *irq,
-			     struct dest_map *dest_map);
+							 struct kvm_lapic_irq *irq,
+							 struct dest_map *dest_map);
 int kvm_get_ioapic(struct kvm *kvm, struct kvm_ioapic_state *state);
 int kvm_set_ioapic(struct kvm *kvm, struct kvm_ioapic_state *state);
 void kvm_ioapic_scan_entry(struct kvm_vcpu *vcpu,
-			   ulong *ioapic_handled_vectors);
+						   ulong *ioapic_handled_vectors);
 void kvm_scan_ioapic_routes(struct kvm_vcpu *vcpu,
-			    ulong *ioapic_handled_vectors);
+							ulong *ioapic_handled_vectors);
 #endif

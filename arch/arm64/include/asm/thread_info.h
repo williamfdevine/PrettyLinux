@@ -24,9 +24,9 @@
 #include <linux/compiler.h>
 
 #ifdef CONFIG_ARM64_4K_PAGES
-#define THREAD_SIZE_ORDER	2
+	#define THREAD_SIZE_ORDER	2
 #elif defined(CONFIG_ARM64_16K_PAGES)
-#define THREAD_SIZE_ORDER	0
+	#define THREAD_SIZE_ORDER	0
 #endif
 
 #define THREAD_SIZE		16384
@@ -44,7 +44,8 @@ typedef unsigned long mm_segment_t;
  * low level task data that entry.S needs immediate access to.
  * __switch_to() assumes cpu_context follows immediately after cpu_domain.
  */
-struct thread_info {
+struct thread_info
+{
 	unsigned long		flags;		/* low level flags */
 	mm_segment_t		addr_limit;	/* address limit */
 	struct task_struct	*task;		/* main task structure */
@@ -53,12 +54,12 @@ struct thread_info {
 };
 
 #define INIT_THREAD_INFO(tsk)						\
-{									\
-	.task		= &tsk,						\
-	.flags		= 0,						\
-	.preempt_count	= INIT_PREEMPT_COUNT,				\
-	.addr_limit	= KERNEL_DS,					\
-}
+	{									\
+		.task		= &tsk,						\
+					  .flags		= 0,						\
+									.preempt_count	= INIT_PREEMPT_COUNT,				\
+											.addr_limit	= KERNEL_DS,					\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -135,11 +136,11 @@ static inline struct thread_info *current_thread_info(void)
 #define _TIF_32BIT		(1 << TIF_32BIT)
 
 #define _TIF_WORK_MASK		(_TIF_NEED_RESCHED | _TIF_SIGPENDING | \
-				 _TIF_NOTIFY_RESUME | _TIF_FOREIGN_FPSTATE)
+							 _TIF_NOTIFY_RESUME | _TIF_FOREIGN_FPSTATE)
 
 #define _TIF_SYSCALL_WORK	(_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | \
-				 _TIF_SYSCALL_TRACEPOINT | _TIF_SECCOMP | \
-				 _TIF_NOHZ)
+							 _TIF_SYSCALL_TRACEPOINT | _TIF_SECCOMP | \
+							 _TIF_NOHZ)
 
 #endif /* __KERNEL__ */
 #endif /* __ASM_THREAD_INFO_H */

@@ -76,8 +76,8 @@ static int free_vme_vec_bitmap;
  */
 asmlinkage void falcon_hblhandler(void);
 asm(".text\n"
-__ALIGN_STR "\n\t"
-"falcon_hblhandler:\n\t"
+	__ALIGN_STR "\n\t"
+	"falcon_hblhandler:\n\t"
 	"orw	#0x200,%sp@\n\t"	/* set saved ipl to 2 */
 	"rte");
 
@@ -102,7 +102,9 @@ static void atari_irq_shutdown(struct irq_data *data)
 	m68k_irq_shutdown(data);
 
 	if (irq == IRQ_AUTO_4)
-	    vectors[VEC_INT4] = falcon_hblhandler;
+	{
+		vectors[VEC_INT4] = falcon_hblhandler;
+	}
 }
 
 static void atari_irq_enable(struct irq_data *data)
@@ -115,7 +117,8 @@ static void atari_irq_disable(struct irq_data *data)
 	atari_disable_irq(data->irq);
 }
 
-static struct irq_chip atari_irq_chip = {
+static struct irq_chip atari_irq_chip =
+{
 	.name		= "atari",
 	.irq_startup	= atari_irq_startup,
 	.irq_shutdown	= atari_irq_shutdown,
@@ -128,13 +131,15 @@ static struct irq_chip atari_irq_chip = {
  * interrupt instance.
  */
 
-struct mfptimerbase {
+struct mfptimerbase
+{
 	volatile struct MFP *mfp;
 	unsigned char mfp_mask, mfp_data;
 	unsigned short int_mask;
 	int handler_irq, mfptimer_irq, server_irq;
 	char *name;
-} stmfp_base = {
+} stmfp_base =
+{
 	.mfp		= &st_mfp,
 	.int_mask	= 0x0,
 	.handler_irq	= IRQ_MFP_TIMD,
@@ -150,10 +155,15 @@ static irqreturn_t mfptimer_handler(int irq, void *dev_id)
 
 	mach_irq = base->mfptimer_irq;
 	ints = base->int_mask;
-	for (; ints; mach_irq++, ints >>= 1) {
+
+	for (; ints; mach_irq++, ints >>= 1)
+	{
 		if (ints & 1)
+		{
 			generic_handle_irq(mach_irq);
+		}
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -169,11 +179,15 @@ static void atari_mfptimer_disable(struct irq_data *data)
 {
 	int mfp_num = data->irq - IRQ_MFP_TIMER1;
 	stmfp_base.int_mask &= ~(1 << mfp_num);
+
 	if (!stmfp_base.int_mask)
+	{
 		atari_disable_irq(IRQ_MFP_TIMD);
+	}
 }
 
-static struct irq_chip atari_mfptimer_chip = {
+static struct irq_chip atari_mfptimer_chip =
+{
 	.name		= "timer_d",
 	.irq_enable	= atari_mfptimer_enable,
 	.irq_disable	= atari_mfptimer_disable,
@@ -196,11 +210,15 @@ static unsigned int atari_ethernat_startup(struct irq_data *data)
 	int enat_num = 140 - data->irq + 1;
 
 	m68k_irq_startup(data);
+
 	/*
 	* map CPLD interrupt register
 	*/
 	if (!enat_cpld)
-		enat_cpld = (unsigned char *)ioremap((ATARI_ETHERNAT_PHYS_ADDR+0x23), 0x2);
+	{
+		enat_cpld = (unsigned char *)ioremap((ATARI_ETHERNAT_PHYS_ADDR + 0x23), 0x2);
+	}
+
 	/*
 	 * do _not_ enable the USB chip interrupt here - causes interrupt storm
 	 * and triggers dead interrupt watchdog
@@ -208,7 +226,9 @@ static unsigned int atari_ethernat_startup(struct irq_data *data)
 	 * removing this hack
 	 */
 	if (enat_num == 1)
+	{
 		*enat_cpld |= 1 << enat_num;
+	}
 
 	return 0;
 }
@@ -216,36 +236,47 @@ static unsigned int atari_ethernat_startup(struct irq_data *data)
 static void atari_ethernat_enable(struct irq_data *data)
 {
 	int enat_num = 140 - data->irq + 1;
+
 	/*
 	* map CPLD interrupt register
 	*/
 	if (!enat_cpld)
-		enat_cpld = (unsigned char *)ioremap((ATARI_ETHERNAT_PHYS_ADDR+0x23), 0x2);
+	{
+		enat_cpld = (unsigned char *)ioremap((ATARI_ETHERNAT_PHYS_ADDR + 0x23), 0x2);
+	}
+
 	*enat_cpld |= 1 << enat_num;
 }
 
 static void atari_ethernat_disable(struct irq_data *data)
 {
 	int enat_num = 140 - data->irq + 1;
+
 	/*
 	* map CPLD interrupt register
 	*/
 	if (!enat_cpld)
-		enat_cpld = (unsigned char *)ioremap((ATARI_ETHERNAT_PHYS_ADDR+0x23), 0x2);
+	{
+		enat_cpld = (unsigned char *)ioremap((ATARI_ETHERNAT_PHYS_ADDR + 0x23), 0x2);
+	}
+
 	*enat_cpld &= ~(1 << enat_num);
 }
 
 static void atari_ethernat_shutdown(struct irq_data *data)
 {
 	int enat_num = 140 - data->irq + 1;
-	if (enat_cpld) {
+
+	if (enat_cpld)
+	{
 		*enat_cpld &= ~(1 << enat_num);
 		iounmap(enat_cpld);
 		enat_cpld = NULL;
 	}
 }
 
-static struct irq_chip atari_ethernat_chip = {
+static struct irq_chip atari_ethernat_chip =
+{
 	.name		= "ethernat",
 	.irq_startup	= atari_ethernat_startup,
 	.irq_shutdown	= atari_ethernat_shutdown,
@@ -268,7 +299,7 @@ void __init atari_init_IRQ(void)
 {
 	m68k_setup_user_interrupt(VEC_USER, NUM_ATARI_SOURCES - IRQ_USER);
 	m68k_setup_irq_controller(&atari_irq_chip, handle_simple_irq, 1,
-				  NUM_ATARI_SOURCES - 1);
+							  NUM_ATARI_SOURCES - 1);
 
 	/* Initialize the MFP(s) */
 
@@ -282,7 +313,8 @@ void __init atari_init_IRQ(void)
 	st_mfp.int_mk_a = 0xff;	/* no Masking */
 	st_mfp.int_mk_b = 0xff;
 
-	if (ATARIHW_PRESENT(TT_MFP)) {
+	if (ATARIHW_PRESENT(TT_MFP))
+	{
 #ifdef ATARI_USE_SOFTWARE_EOI
 		tt_mfp.vec_adr  = 0x58;		/* Software EOI-Mode */
 #else
@@ -294,13 +326,15 @@ void __init atari_init_IRQ(void)
 		tt_mfp.int_mk_b = 0xff;
 	}
 
-	if (ATARIHW_PRESENT(SCC) && !atari_SCC_reset_done) {
+	if (ATARIHW_PRESENT(SCC) && !atari_SCC_reset_done)
+	{
 		atari_scc.cha_a_ctrl = 9;
 		MFPDELAY();
 		atari_scc.cha_a_ctrl = (char) 0xc0; /* hardware reset */
 	}
 
-	if (ATARIHW_PRESENT(SCU)) {
+	if (ATARIHW_PRESENT(SCU))
+	{
 		/* init the SCU if present */
 		tt_scu.sys_mask = 0x10;		/* enable VBL (for the cursor) and
 									 * disable HSYNC interrupts (who
@@ -308,7 +342,9 @@ void __init atari_init_IRQ(void)
 									 * enabled in VME mask
 									 */
 		tt_scu.vme_mask = 0x60;		/* enable MFP and SCC ints */
-	} else {
+	}
+	else
+	{
 		/* If no SCU and no Hades, the HSYNC interrupt needs to be
 		 * disabled this way. (Else _inthandler in kernel/sys_call.S
 		 * gets overruns)
@@ -318,7 +354,8 @@ void __init atari_init_IRQ(void)
 		vectors[VEC_INT4] = falcon_hblhandler;
 	}
 
-	if (ATARIHW_PRESENT(PCM_8BIT) && ATARIHW_PRESENT(MICROWIRE)) {
+	if (ATARIHW_PRESENT(PCM_8BIT) && ATARIHW_PRESENT(MICROWIRE))
+	{
 		/* Initialize the LM1992 Sound Controller to enable
 		   the PSG sound.  This is misplaced here, it should
 		   be in an atasound_init(), that doesn't exist yet. */
@@ -332,7 +369,7 @@ void __init atari_init_IRQ(void)
 	sound_ym.wd_data = 0xff;
 
 	m68k_setup_irq_controller(&atari_mfptimer_chip, handle_simple_irq,
-				  IRQ_MFP_TIMER1, 8);
+							  IRQ_MFP_TIMER1, 8);
 
 	irq_set_status_flags(IRQ_MFP_TIMER1, IRQ_IS_POLLED);
 	irq_set_status_flags(IRQ_MFP_TIMER2, IRQ_IS_POLLED);
@@ -345,15 +382,17 @@ void __init atari_init_IRQ(void)
 
 	/* request timer D dispatch handler */
 	if (request_irq(IRQ_MFP_TIMD, mfptimer_handler, IRQF_SHARED,
-			stmfp_base.name, &stmfp_base))
+					stmfp_base.name, &stmfp_base))
+	{
 		pr_err("Couldn't register %s interrupt\n", stmfp_base.name);
+	}
 
 	/*
 	 * EtherNAT ethernet / USB interrupt handlers
 	 */
 
 	m68k_setup_irq_controller(&atari_ethernat_chip, handle_simple_irq,
-				  139, 2);
+							  139, 2);
 }
 
 
@@ -368,10 +407,14 @@ unsigned int atari_register_vme_int(void)
 
 	for (i = 0; i < 32; i++)
 		if ((free_vme_vec_bitmap & (1 << i)) == 0)
+		{
 			break;
+		}
 
 	if (i == 16)
+	{
 		return 0;
+	}
 
 	free_vme_vec_bitmap |= 1 << i;
 	return VME_SOURCE_BASE + i;
@@ -381,7 +424,8 @@ EXPORT_SYMBOL(atari_register_vme_int);
 
 void atari_unregister_vme_int(unsigned int irq)
 {
-	if (irq >= VME_SOURCE_BASE && irq < VME_SOURCE_BASE + VME_MAX_SOURCES) {
+	if (irq >= VME_SOURCE_BASE && irq < VME_SOURCE_BASE + VME_MAX_SOURCES)
+	{
 		irq -= VME_SOURCE_BASE;
 		free_vme_vec_bitmap &= ~(1 << irq);
 	}

@@ -121,7 +121,8 @@ void gdb_regs_to_pt_regs(unsigned long *gdb_regs, struct pt_regs *regs)
 	// regs->fs0	= gdb_regs[GDB_FR_FS0];
 }
 
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 	.gdb_bpt_instr	= { 0xff },
 	.flags		= KGDB_HW_BREAKPOINT,
 };
@@ -161,157 +162,244 @@ static int kgdb_arch_do_singlestep(struct pt_regs *regs)
 	int ret;
 
 	ret = probe_kernel_read(&cur, pc, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	size = mn10300_kgdb_insn_sizes[cur];
-	if (size > 0) {
+
+	if (size > 0)
+	{
 		x = pc + size;
 		goto set_x;
 	}
 
-	switch (cur) {
+	switch (cur)
+	{
 		/* Bxx (d8,PC) */
-	case 0xc0 ... 0xca:
-		ret = probe_kernel_read(&arg, pc + 1, 1);
-		if (ret < 0)
-			return ret;
-		x = pc + 2;
-		if (arg >= 0 && arg <= 2)
-			goto set_x;
-		y = pc + (s8)arg;
-		goto set_x_and_y;
+		case 0xc0 ... 0xca:
+			ret = probe_kernel_read(&arg, pc + 1, 1);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			x = pc + 2;
+
+			if (arg >= 0 && arg <= 2)
+			{
+				goto set_x;
+			}
+
+			y = pc + (s8)arg;
+			goto set_x_and_y;
 
 		/* LXX (d8,PC) */
-	case 0xd0 ... 0xda:
-		x = pc + 1;
-		if (regs->pc == regs->lar)
-			goto set_x;
-		y = (u8 *)regs->lar;
-		goto set_x_and_y;
+		case 0xd0 ... 0xda:
+			x = pc + 1;
+
+			if (regs->pc == regs->lar)
+			{
+				goto set_x;
+			}
+
+			y = (u8 *)regs->lar;
+			goto set_x_and_y;
 
 		/* SETLB - loads the next four bytes into the LIR register
 		 * (which mustn't include a breakpoint instruction) */
-	case 0xdb:
-		x = pc + 5;
-		goto set_x;
+		case 0xdb:
+			x = pc + 5;
+			goto set_x;
 
 		/* JMP (d16,PC) or CALL (d16,PC) */
-	case 0xcc:
-	case 0xcd:
-		ret = probe_kernel_read(&arg, pc + 1, 2);
-		if (ret < 0)
-			return ret;
-		x = pc + (s16)arg;
-		goto set_x;
+		case 0xcc:
+		case 0xcd:
+			ret = probe_kernel_read(&arg, pc + 1, 2);
 
-		/* JMP (d32,PC) or CALL (d32,PC) */
-	case 0xdc:
-	case 0xdd:
-		ret = probe_kernel_read(&arg, pc + 1, 4);
-		if (ret < 0)
-			return ret;
-		x = pc + (s32)arg;
-		goto set_x;
-
-		/* RETF */
-	case 0xde:
-		x = (u8 *)regs->mdr;
-		goto set_x;
-
-		/* RET */
-	case 0xdf:
-		ret = probe_kernel_read(&arg, pc + 2, 1);
-		if (ret < 0)
-			return ret;
-		ret = probe_kernel_read(&x, sp + (s8)arg, 4);
-		if (ret < 0)
-			return ret;
-		goto set_x;
-
-	case 0xf0:
-		ret = probe_kernel_read(&cur, pc + 1, 1);
-		if (ret < 0)
-			return ret;
-
-		if (cur >= 0xf0 && cur <= 0xf7) {
-			/* JMP (An) / CALLS (An) */
-			switch (cur & 3) {
-			case 0: x = (u8 *)regs->a0; break;
-			case 1: x = (u8 *)regs->a1; break;
-			case 2: x = (u8 *)regs->a2; break;
-			case 3: x = (u8 *)regs->a3; break;
+			if (ret < 0)
+			{
+				return ret;
 			}
-			goto set_x;
-		} else if (cur == 0xfc) {
-			/* RETS */
-			ret = probe_kernel_read(&x, sp, 4);
-			if (ret < 0)
-				return ret;
-			goto set_x;
-		} else if (cur == 0xfd) {
-			/* RTI */
-			ret = probe_kernel_read(&x, sp + 4, 4);
-			if (ret < 0)
-				return ret;
-			goto set_x;
-		} else {
-			x = pc + 2;
-			goto set_x;
-		}
-		break;
 
-		/* potential 3-byte conditional branches */
-	case 0xf8:
-		ret = probe_kernel_read(&cur, pc + 1, 1);
-		if (ret < 0)
-			return ret;
-		x = pc + 3;
-
-		if (cur >= 0xe8 && cur <= 0xeb) {
-			ret = probe_kernel_read(&arg, pc + 2, 1);
-			if (ret < 0)
-				return ret;
-			if (arg >= 0 && arg <= 3)
-				goto set_x;
-			y = pc + (s8)arg;
-			goto set_x_and_y;
-		}
-		goto set_x;
-
-	case 0xfa:
-		ret = probe_kernel_read(&cur, pc + 1, 1);
-		if (ret < 0)
-			return ret;
-
-		if (cur == 0xff) {
-			/* CALLS (d16,PC) */
-			ret = probe_kernel_read(&arg, pc + 2, 2);
-			if (ret < 0)
-				return ret;
 			x = pc + (s16)arg;
 			goto set_x;
-		}
 
-		x = pc + 4;
-		goto set_x;
+		/* JMP (d32,PC) or CALL (d32,PC) */
+		case 0xdc:
+		case 0xdd:
+			ret = probe_kernel_read(&arg, pc + 1, 4);
 
-	case 0xfc:
-		ret = probe_kernel_read(&cur, pc + 1, 1);
-		if (ret < 0)
-			return ret;
-
-		if (cur == 0xff) {
-			/* CALLS (d32,PC) */
-			ret = probe_kernel_read(&arg, pc + 2, 4);
 			if (ret < 0)
+			{
 				return ret;
+			}
+
 			x = pc + (s32)arg;
 			goto set_x;
-		}
 
-		x = pc + 6;
-		goto set_x;
+		/* RETF */
+		case 0xde:
+			x = (u8 *)regs->mdr;
+			goto set_x;
+
+		/* RET */
+		case 0xdf:
+			ret = probe_kernel_read(&arg, pc + 2, 1);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			ret = probe_kernel_read(&x, sp + (s8)arg, 4);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			goto set_x;
+
+		case 0xf0:
+			ret = probe_kernel_read(&cur, pc + 1, 1);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			if (cur >= 0xf0 && cur <= 0xf7)
+			{
+				/* JMP (An) / CALLS (An) */
+				switch (cur & 3)
+				{
+					case 0: x = (u8 *)regs->a0; break;
+
+					case 1: x = (u8 *)regs->a1; break;
+
+					case 2: x = (u8 *)regs->a2; break;
+
+					case 3: x = (u8 *)regs->a3; break;
+				}
+
+				goto set_x;
+			}
+			else if (cur == 0xfc)
+			{
+				/* RETS */
+				ret = probe_kernel_read(&x, sp, 4);
+
+				if (ret < 0)
+				{
+					return ret;
+				}
+
+				goto set_x;
+			}
+			else if (cur == 0xfd)
+			{
+				/* RTI */
+				ret = probe_kernel_read(&x, sp + 4, 4);
+
+				if (ret < 0)
+				{
+					return ret;
+				}
+
+				goto set_x;
+			}
+			else
+			{
+				x = pc + 2;
+				goto set_x;
+			}
+
+			break;
+
+		/* potential 3-byte conditional branches */
+		case 0xf8:
+			ret = probe_kernel_read(&cur, pc + 1, 1);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			x = pc + 3;
+
+			if (cur >= 0xe8 && cur <= 0xeb)
+			{
+				ret = probe_kernel_read(&arg, pc + 2, 1);
+
+				if (ret < 0)
+				{
+					return ret;
+				}
+
+				if (arg >= 0 && arg <= 3)
+				{
+					goto set_x;
+				}
+
+				y = pc + (s8)arg;
+				goto set_x_and_y;
+			}
+
+			goto set_x;
+
+		case 0xfa:
+			ret = probe_kernel_read(&cur, pc + 1, 1);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			if (cur == 0xff)
+			{
+				/* CALLS (d16,PC) */
+				ret = probe_kernel_read(&arg, pc + 2, 2);
+
+				if (ret < 0)
+				{
+					return ret;
+				}
+
+				x = pc + (s16)arg;
+				goto set_x;
+			}
+
+			x = pc + 4;
+			goto set_x;
+
+		case 0xfc:
+			ret = probe_kernel_read(&cur, pc + 1, 1);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			if (cur == 0xff)
+			{
+				/* CALLS (d32,PC) */
+				ret = probe_kernel_read(&arg, pc + 2, 4);
+
+				if (ret < 0)
+				{
+					return ret;
+				}
+
+				x = pc + (s32)arg;
+				goto set_x;
+			}
+
+			x = pc + 6;
+			goto set_x;
 	}
 
 	return 0;
@@ -320,11 +408,19 @@ set_x:
 	kgdb_sstep_bp_addr[0] = x;
 	kgdb_sstep_bp_addr[1] = NULL;
 	ret = probe_kernel_read(&kgdb_sstep_bp[0], x, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = probe_kernel_write(x, &arch_kgdb_ops.gdb_bpt_instr, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	kgdb_sstep_thread = current_thread_info();
 	debugger_local_cache_flushinv_one(x);
 	return ret;
@@ -333,21 +429,38 @@ set_x_and_y:
 	kgdb_sstep_bp_addr[0] = x;
 	kgdb_sstep_bp_addr[1] = y;
 	ret = probe_kernel_read(&kgdb_sstep_bp[0], x, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = probe_kernel_read(&kgdb_sstep_bp[1], y, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = probe_kernel_write(x, &arch_kgdb_ops.gdb_bpt_instr, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = probe_kernel_write(y, &arch_kgdb_ops.gdb_bpt_instr, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		probe_kernel_write(kgdb_sstep_bp_addr[0],
-				   &kgdb_sstep_bp[0], 1);
-	} else {
+						   &kgdb_sstep_bp[0], 1);
+	}
+	else
+	{
 		kgdb_sstep_thread = current_thread_info();
 	}
+
 	debugger_local_cache_flushinv_one(x);
 	debugger_local_cache_flushinv_one(y);
 	return ret;
@@ -363,24 +476,40 @@ static bool kgdb_arch_undo_singlestep(struct pt_regs *regs)
 	u8 *x = kgdb_sstep_bp_addr[0], *y = kgdb_sstep_bp_addr[1];
 	u8 opcode;
 
-	if (kgdb_sstep_thread == current_thread_info()) {
-		if (x) {
+	if (kgdb_sstep_thread == current_thread_info())
+	{
+		if (x)
+		{
 			if (x == (u8 *)regs->pc)
+			{
 				hit = true;
+			}
+
 			if (probe_kernel_read(&opcode, x,
-					      1) < 0 ||
-			    opcode != 0xff)
+								  1) < 0 ||
+				opcode != 0xff)
+			{
 				BUG();
+			}
+
 			probe_kernel_write(x, &kgdb_sstep_bp[0], 1);
 			debugger_local_cache_flushinv_one(x);
 		}
-		if (y) {
+
+		if (y)
+		{
 			if (y == (u8 *)regs->pc)
+			{
 				hit = true;
+			}
+
 			if (probe_kernel_read(&opcode, y,
-					      1) < 0 ||
-			    opcode != 0xff)
+								  1) < 0 ||
+				opcode != 0xff)
+			{
 				BUG();
+			}
+
 			probe_kernel_write(y, &kgdb_sstep_bp[1], 1);
 			debugger_local_cache_flushinv_one(y);
 		}
@@ -400,7 +529,9 @@ static bool kgdb_arch_undo_singlestep(struct pt_regs *regs)
 void arch_release_thread_stack(unsigned long *stack)
 {
 	struct thread_info *ti = (void *)stack;
-	if (kgdb_sstep_thread == ti) {
+
+	if (kgdb_sstep_thread == ti)
+	{
 		kgdb_sstep_thread = NULL;
 
 		/* However, we may now be running in degraded mode, with most
@@ -415,31 +546,39 @@ void arch_release_thread_stack(unsigned long *stack)
  * - at this point breakpoints have been installed
  */
 int kgdb_arch_handle_exception(int vector, int signo, int err_code,
-			       char *remcom_in_buffer, char *remcom_out_buffer,
-			       struct pt_regs *regs)
+							   char *remcom_in_buffer, char *remcom_out_buffer,
+							   struct pt_regs *regs)
 {
 	long addr;
 	char *ptr;
 
-	switch (remcom_in_buffer[0]) {
-	case 'c':
-	case 's':
-		/* try to read optional parameter, pc unchanged if no parm */
-		ptr = &remcom_in_buffer[1];
-		if (kgdb_hex2long(&ptr, &addr))
-			regs->pc = addr;
-	case 'D':
-	case 'k':
-		atomic_set(&kgdb_cpu_doing_single_step, -1);
+	switch (remcom_in_buffer[0])
+	{
+		case 'c':
+		case 's':
+			/* try to read optional parameter, pc unchanged if no parm */
+			ptr = &remcom_in_buffer[1];
 
-		if (remcom_in_buffer[0] == 's') {
-			kgdb_arch_do_singlestep(regs);
-			kgdb_single_step = 1;
-			atomic_set(&kgdb_cpu_doing_single_step,
-				   raw_smp_processor_id());
-		}
-		return 0;
+			if (kgdb_hex2long(&ptr, &addr))
+			{
+				regs->pc = addr;
+			}
+
+		case 'D':
+		case 'k':
+			atomic_set(&kgdb_cpu_doing_single_step, -1);
+
+			if (remcom_in_buffer[0] == 's')
+			{
+				kgdb_arch_do_singlestep(regs);
+				kgdb_single_step = 1;
+				atomic_set(&kgdb_cpu_doing_single_step,
+						   raw_smp_processor_id());
+			}
+
+			return 0;
 	}
+
 	return -1; /* this means that we do not want to exit from the handler */
 }
 
@@ -448,11 +587,12 @@ int kgdb_arch_handle_exception(int vector, int signo, int err_code,
  * - returns 0 if the exception should be skipped, -ERROR otherwise.
  */
 int debugger_intercept(enum exception_code excep, int signo, int si_code,
-		       struct pt_regs *regs)
+					   struct pt_regs *regs)
 {
 	int ret;
 
-	if (kgdb_arch_undo_singlestep(regs)) {
+	if (kgdb_arch_undo_singlestep(regs))
+	{
 		excep = EXCEP_TRAP;
 		signo = SIGTRAP;
 		si_code = TRAP_TRACE;

@@ -4,44 +4,44 @@
 
 #if defined(CONFIG_FSL_BOOKE) || defined(CONFIG_44x)
 
-/*
- * On FSL-BookE we setup a 1:1 mapping which covers the first 2GiB of memory
- * and therefore we can only deal with memory within this range
- */
-#define KEXEC_SOURCE_MEMORY_LIMIT	(2 * 1024 * 1024 * 1024UL - 1)
-#define KEXEC_DESTINATION_MEMORY_LIMIT	(2 * 1024 * 1024 * 1024UL - 1)
-#define KEXEC_CONTROL_MEMORY_LIMIT	(2 * 1024 * 1024 * 1024UL - 1)
+	/*
+	* On FSL-BookE we setup a 1:1 mapping which covers the first 2GiB of memory
+	* and therefore we can only deal with memory within this range
+	*/
+	#define KEXEC_SOURCE_MEMORY_LIMIT	(2 * 1024 * 1024 * 1024UL - 1)
+	#define KEXEC_DESTINATION_MEMORY_LIMIT	(2 * 1024 * 1024 * 1024UL - 1)
+	#define KEXEC_CONTROL_MEMORY_LIMIT	(2 * 1024 * 1024 * 1024UL - 1)
 
 #else
 
-/*
- * Maximum page that is mapped directly into kernel memory.
- * XXX: Since we copy virt we can use any page we allocate
- */
-#define KEXEC_SOURCE_MEMORY_LIMIT (-1UL)
+	/*
+	* Maximum page that is mapped directly into kernel memory.
+	* XXX: Since we copy virt we can use any page we allocate
+	*/
+	#define KEXEC_SOURCE_MEMORY_LIMIT (-1UL)
 
-/*
- * Maximum address we can reach in physical address mode.
- * XXX: I want to allow initrd in highmem. Otherwise set to rmo on LPAR.
- */
-#define KEXEC_DESTINATION_MEMORY_LIMIT (-1UL)
+	/*
+	* Maximum address we can reach in physical address mode.
+	* XXX: I want to allow initrd in highmem. Otherwise set to rmo on LPAR.
+	*/
+	#define KEXEC_DESTINATION_MEMORY_LIMIT (-1UL)
 
-/* Maximum address we can use for the control code buffer */
-#ifdef __powerpc64__
-#define KEXEC_CONTROL_MEMORY_LIMIT (-1UL)
-#else
-/* TASK_SIZE, probably left over from use_mm ?? */
-#define KEXEC_CONTROL_MEMORY_LIMIT TASK_SIZE
-#endif
+	/* Maximum address we can use for the control code buffer */
+	#ifdef __powerpc64__
+		#define KEXEC_CONTROL_MEMORY_LIMIT (-1UL)
+	#else
+		/* TASK_SIZE, probably left over from use_mm ?? */
+		#define KEXEC_CONTROL_MEMORY_LIMIT TASK_SIZE
+	#endif
 #endif
 
 #define KEXEC_CONTROL_PAGE_SIZE 4096
 
 /* The native architecture */
 #ifdef __powerpc64__
-#define KEXEC_ARCH KEXEC_ARCH_PPC64
+	#define KEXEC_ARCH KEXEC_ARCH_PPC64
 #else
-#define KEXEC_ARCH KEXEC_ARCH_PPC
+	#define KEXEC_ARCH KEXEC_ARCH_PPC
 #endif
 
 #define KEXEC_STATE_NONE 0
@@ -60,12 +60,16 @@ typedef void (*crash_shutdown_t)(void);
  * via panic or invoking dump using sysrq-trigger.
  */
 static inline void crash_setup_regs(struct pt_regs *newregs,
-					struct pt_regs *oldregs)
+									struct pt_regs *oldregs)
 {
 	if (oldregs)
+	{
 		memcpy(newregs, oldregs, sizeof(*newregs));
+	}
 	else
+	{
 		ppc_save_regs(newregs);
+	}
 }
 
 extern void kexec_smp_wait(void);	/* get and clear naca physid, wait for

@@ -41,7 +41,8 @@
  * the rest are VRFB virtual memory areas for each VRFB context.
  */
 
-static const struct resource omap2_vrfb_resources[] = {
+static const struct resource omap2_vrfb_resources[] =
+{
 	DEFINE_RES_MEM_NAMED(0x68008000u, 0x40, "vrfb-regs"),
 	DEFINE_RES_MEM_NAMED(0x70000000u, 0x4000000, "vrfb-area-0"),
 	DEFINE_RES_MEM_NAMED(0x74000000u, 0x4000000, "vrfb-area-1"),
@@ -49,7 +50,8 @@ static const struct resource omap2_vrfb_resources[] = {
 	DEFINE_RES_MEM_NAMED(0x7c000000u, 0x4000000, "vrfb-area-3"),
 };
 
-static const struct resource omap3_vrfb_resources[] = {
+static const struct resource omap3_vrfb_resources[] =
+{
 	DEFINE_RES_MEM_NAMED(0x6C000180u, 0xc0, "vrfb-regs"),
 	DEFINE_RES_MEM_NAMED(0x70000000u, 0x4000000, "vrfb-area-0"),
 	DEFINE_RES_MEM_NAMED(0x74000000u, 0x4000000, "vrfb-area-1"),
@@ -71,13 +73,18 @@ int __init omap_init_vrfb(void)
 	const struct resource *res;
 	unsigned int num_res;
 
-	if (cpu_is_omap24xx()) {
+	if (cpu_is_omap24xx())
+	{
 		res = omap2_vrfb_resources;
 		num_res = ARRAY_SIZE(omap2_vrfb_resources);
-	} else if (cpu_is_omap34xx()) {
+	}
+	else if (cpu_is_omap34xx())
+	{
 		res = omap3_vrfb_resources;
 		num_res = ARRAY_SIZE(omap3_vrfb_resources);
-	} else {
+	}
+	else
+	{
 		return 0;
 	}
 
@@ -95,7 +102,8 @@ int __init omap_init_vrfb(void) { return 0; }
 static u64 omap_fb_dma_mask = ~(u32)0;
 static struct omapfb_platform_data omapfb_config;
 
-static struct platform_device omap_fb_device = {
+static struct platform_device omap_fb_device =
+{
 	.name		= "omapfb",
 	.id		= -1,
 	.dev = {

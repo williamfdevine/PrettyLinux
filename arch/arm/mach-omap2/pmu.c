@@ -38,14 +38,19 @@ static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
 	int i;
 	struct omap_hwmod *oh[3];
 	char *dev_name = cpu_architecture() == CPU_ARCH_ARMv6 ?
-			 "armv6-pmu" : "armv7-pmu";
+					 "armv6-pmu" : "armv7-pmu";
 
 	if ((!oh_num) || (oh_num > 3))
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < oh_num; i++) {
+	for (i = 0; i < oh_num; i++)
+	{
 		oh[i] = omap_hwmod_lookup(oh_names[i]);
-		if (!oh[i]) {
+
+		if (!oh[i])
+		{
 			pr_err("Could not look up %s hwmod\n", oh_names[i]);
 			return -ENODEV;
 		}
@@ -53,7 +58,7 @@ static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
 
 	omap_pmu_dev = omap_device_build_ss(dev_name, -1, oh, oh_num, NULL, 0);
 	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
-	     dev_name);
+		 dev_name);
 
 	return PTR_ERR_OR_ZERO(omap_pmu_dev);
 }
@@ -64,13 +69,16 @@ static int __init omap_init_pmu(void)
 	char **oh_names;
 
 	/* XXX Remove this check when the CTI driver is available */
-	if (cpu_is_omap443x()) {
+	if (cpu_is_omap443x())
+	{
 		pr_info("ARM PMU: not yet supported on OMAP4430 due to missing CTI driver\n");
 		return 0;
 	}
 
 	if (of_have_populated_dt())
+	{
 		return 0;
+	}
 
 	/*
 	 * To create an ARM-PMU device the following HWMODs
@@ -81,13 +89,18 @@ static int __init omap_init_pmu(void)
 	 * OMAP4430:	l3_main_3, l3_instr, debugss
 	 * OMAP4460/70:	mpu, debugss
 	 */
-	if (cpu_is_omap443x()) {
+	if (cpu_is_omap443x())
+	{
 		oh_num = ARRAY_SIZE(omap4430_pmu_oh_names);
 		oh_names = omap4430_pmu_oh_names;
-	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+	}
+	else if (cpu_is_omap34xx() || cpu_is_omap44xx())
+	{
 		oh_num = ARRAY_SIZE(omap3_pmu_oh_names);
 		oh_names = omap3_pmu_oh_names;
-	} else {
+	}
+	else
+	{
 		oh_num = ARRAY_SIZE(omap2_pmu_oh_names);
 		oh_names = omap2_pmu_oh_names;
 	}

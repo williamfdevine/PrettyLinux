@@ -194,13 +194,15 @@
  */
 
 /* Flags that can be passed to resource allocation functions. */
-enum gxio_mpipe_alloc_flags_e {
+enum gxio_mpipe_alloc_flags_e
+{
 	/* Require an allocation to start at a specified resource index. */
 	GXIO_MPIPE_ALLOC_FIXED = HV_MPIPE_ALLOC_FIXED,
 };
 
 /* Flags that can be passed to memory registration functions. */
-enum gxio_mpipe_mem_flags_e {
+enum gxio_mpipe_mem_flags_e
+{
 	/* Do not fill L3 when writing, and invalidate lines upon egress. */
 	GXIO_MPIPE_MEM_FLAG_NT_HINT = IORPC_MEM_BUFFER_FLAG_NT_HINT,
 
@@ -258,7 +260,7 @@ static inline unsigned char *gxio_mpipe_idesc_get_va(gxio_mpipe_idesc_t *idesc)
  * FIXME: Add more docs about chaining, clipping, etc.
  */
 static inline unsigned int gxio_mpipe_idesc_get_xfer_size(gxio_mpipe_idesc_t
-							  *idesc)
+		*idesc)
 {
 	return idesc->l2_size;
 }
@@ -292,7 +294,7 @@ static inline uint8_t gxio_mpipe_idesc_get_l2_offset(gxio_mpipe_idesc_t *idesc)
  * @param idesc An ingress packet descriptor.
  */
 static inline unsigned char *gxio_mpipe_idesc_get_l2_start(gxio_mpipe_idesc_t
-							   *idesc)
+		*idesc)
 {
 	unsigned char *va = gxio_mpipe_idesc_get_va(idesc);
 	return va + gxio_mpipe_idesc_get_l2_offset(idesc);
@@ -306,14 +308,15 @@ static inline unsigned char *gxio_mpipe_idesc_get_l2_start(gxio_mpipe_idesc_t
  * @param idesc An ingress packet descriptor.
  */
 static inline unsigned int gxio_mpipe_idesc_get_l2_length(gxio_mpipe_idesc_t
-							  *idesc)
+		*idesc)
 {
 	unsigned int xfer_size = idesc->l2_size;
 	return xfer_size - gxio_mpipe_idesc_get_l2_offset(idesc);
 }
 
 /* A context object used to manage mPIPE hardware resources. */
-typedef struct {
+typedef struct
+{
 
 	/* File descriptor for calling up to Linux (and thus the HV). */
 	int fd;
@@ -345,7 +348,7 @@ typedef gxio_mpipe_context_t gxio_mpipe_info_context_t;
  *  context.
  */
 extern int gxio_mpipe_init(gxio_mpipe_context_t *context,
-			   unsigned int mpipe_instance);
+						   unsigned int mpipe_instance);
 
 /* Destroy an mPIPE context.
  *
@@ -376,12 +379,13 @@ extern int gxio_mpipe_destroy(gxio_mpipe_context_t *context);
  * ::GXIO_MPIPE_ERR_NO_BUFFER_STACK if allocation failed.
  */
 extern int gxio_mpipe_alloc_buffer_stacks(gxio_mpipe_context_t *context,
-					  unsigned int count,
-					  unsigned int first,
-					  unsigned int flags);
+		unsigned int count,
+		unsigned int first,
+		unsigned int flags);
 
 /* Enum codes for buffer sizes supported by mPIPE. */
-typedef enum {
+typedef enum
+{
 	/* 128 byte packet data buffer. */
 	GXIO_MPIPE_BUFFER_SIZE_128 = MPIPE_BSM_INIT_DAT_1__SIZE_VAL_BSZ_128,
 	/* 256 byte packet data buffer. */
@@ -408,7 +412,7 @@ gxio_mpipe_buffer_size_to_buffer_size_enum(size_t size);
 /* Convert a buffer size enum into a buffer size in bytes. */
 extern size_t
 gxio_mpipe_buffer_size_enum_to_buffer_size(gxio_mpipe_buffer_size_enum_t
-					   buffer_size_enum);
+		buffer_size_enum);
 
 /* Calculate the number of bytes required to store a given number of
  * buffers in the memory registered with a buffer stack via
@@ -437,11 +441,11 @@ extern size_t gxio_mpipe_calc_buffer_stack_bytes(unsigned long buffers);
  * stack has not been allocated.
  */
 extern int gxio_mpipe_init_buffer_stack(gxio_mpipe_context_t *context,
-					unsigned int stack,
-					gxio_mpipe_buffer_size_enum_t
-					buffer_size_enum, void *mem,
-					size_t mem_size,
-					unsigned int mem_flags);
+										unsigned int stack,
+										gxio_mpipe_buffer_size_enum_t
+										buffer_size_enum, void *mem,
+										size_t mem_size,
+										unsigned int mem_flags);
 
 /* Push a buffer onto a previously initialized buffer stack.
  *
@@ -455,7 +459,7 @@ extern int gxio_mpipe_init_buffer_stack(gxio_mpipe_context_t *context,
  * @param buffer The buffer (the low seven bits are ignored).
  */
 static inline void gxio_mpipe_push_buffer(gxio_mpipe_context_t *context,
-					  unsigned int stack, void *buffer)
+		unsigned int stack, void *buffer)
 {
 	MPIPE_BSM_REGION_ADDR_t offset = { {0} };
 	MPIPE_BSM_REGION_VAL_t val = { {0} };
@@ -485,7 +489,7 @@ static inline void gxio_mpipe_push_buffer(gxio_mpipe_context_t *context,
  * @return The buffer, or NULL if the stack is empty.
  */
 static inline void *gxio_mpipe_pop_buffer(gxio_mpipe_context_t *context,
-					  unsigned int stack)
+		unsigned int stack)
 {
 	MPIPE_BSM_REGION_ADDR_t offset = { {0} };
 
@@ -498,7 +502,8 @@ static inline void *gxio_mpipe_pop_buffer(gxio_mpipe_context_t *context,
 		MPIPE_MMIO_ADDR__REGION_VAL_IDMA;
 	offset.stack = stack;
 
-	while (1) {
+	while (1)
+	{
 		/*
 		 * Case 1: val.c == ..._UNCHAINED, va is non-zero.
 		 * Case 2: val.c == ..._INVALID, va is zero.
@@ -507,7 +512,7 @@ static inline void *gxio_mpipe_pop_buffer(gxio_mpipe_context_t *context,
 		MPIPE_BSM_REGION_VAL_t val;
 		val.word =
 			__gxio_mmio_read(context->mmio_fast_base +
-					 offset.word);
+							 offset.word);
 
 		/*
 		 * Handle case 1 and 2 by returning the buffer (or NULL).
@@ -515,7 +520,7 @@ static inline void *gxio_mpipe_pop_buffer(gxio_mpipe_context_t *context,
 		 */
 		if (val.c != MPIPE_EDMA_DESC_WORD1__C_VAL_NOT_RDY)
 			return (void *)((unsigned long)val.
-					va << MPIPE_BSM_REGION_VAL__VA_SHIFT);
+							va << MPIPE_BSM_REGION_VAL__VA_SHIFT);
 	}
 }
 
@@ -539,8 +544,8 @@ static inline void *gxio_mpipe_pop_buffer(gxio_mpipe_context_t *context,
  * ::GXIO_MPIPE_ERR_NO_NOTIF_RING if allocation failed.
  */
 extern int gxio_mpipe_alloc_notif_rings(gxio_mpipe_context_t *context,
-					unsigned int count, unsigned int first,
-					unsigned int flags);
+										unsigned int count, unsigned int first,
+										unsigned int flags);
 
 /* Initialize a NotifRing, using the given memory and size.
  *
@@ -556,9 +561,9 @@ extern int gxio_mpipe_alloc_notif_rings(gxio_mpipe_context_t *context,
  * ::GXIO_ERR_INVAL_MEMORY_SIZE on failure.
  */
 extern int gxio_mpipe_init_notif_ring(gxio_mpipe_context_t *context,
-				      unsigned int ring,
-				      void *mem, size_t mem_size,
-				      unsigned int mem_flags);
+									  unsigned int ring,
+									  void *mem, size_t mem_size,
+									  unsigned int mem_flags);
 
 /* Configure an interrupt to be sent to a tile on incoming NotifRing
  *  traffic.  Once an interrupt is sent for a particular ring, no more
@@ -574,9 +579,9 @@ extern int gxio_mpipe_init_notif_ring(gxio_mpipe_context_t *context,
  * @return Zero on success, GXIO_ERR_INVAL if params are out of range.
  */
 extern int gxio_mpipe_request_notif_ring_interrupt(gxio_mpipe_context_t
-						   *context, int x, int y,
-						   int i, int e,
-						   unsigned int ring);
+		*context, int x, int y,
+		int i, int e,
+		unsigned int ring);
 
 /* Enable an interrupt on incoming NotifRing traffic.
  *
@@ -585,7 +590,7 @@ extern int gxio_mpipe_request_notif_ring_interrupt(gxio_mpipe_context_t
  * @return Zero on success, GXIO_ERR_INVAL if params are out of range.
  */
 extern int gxio_mpipe_enable_notif_ring_interrupt(gxio_mpipe_context_t
-						  *context, unsigned int ring);
+		*context, unsigned int ring);
 
 /* Map all of a client's memory via the given IOTLB.
  * @param context An initialized mPIPE context.
@@ -595,8 +600,8 @@ extern int gxio_mpipe_enable_notif_ring_interrupt(gxio_mpipe_context_t
  * @return Zero on success, or a negative error code.
  */
 extern int gxio_mpipe_register_client_memory(gxio_mpipe_context_t *context,
-					     unsigned int iotlb, HV_PTE pte,
-					     unsigned int flags);
+		unsigned int iotlb, HV_PTE pte,
+		unsigned int flags);
 
 /*****************************************************************
  *                        Notif Groups                            *
@@ -615,9 +620,9 @@ extern int gxio_mpipe_register_client_memory(gxio_mpipe_context_t *context,
  * ::GXIO_MPIPE_ERR_NO_NOTIF_GROUP if allocation failed.
  */
 extern int gxio_mpipe_alloc_notif_groups(gxio_mpipe_context_t *context,
-					 unsigned int count,
-					 unsigned int first,
-					 unsigned int flags);
+		unsigned int count,
+		unsigned int first,
+		unsigned int flags);
 
 /* Add a NotifRing to a NotifGroup.  This only sets a bit in the
  * application's 'group' object; the hardware NotifGroup can be
@@ -636,8 +641,8 @@ gxio_mpipe_notif_group_add_ring(gxio_mpipe_notif_group_bits_t *bits, int ring)
  * rather than using this function to configure just a NotifGroup.
  */
 extern int gxio_mpipe_init_notif_group(gxio_mpipe_context_t *context,
-				       unsigned int group,
-				       gxio_mpipe_notif_group_bits_t bits);
+									   unsigned int group,
+									   gxio_mpipe_notif_group_bits_t bits);
 
 /*****************************************************************
  *                         Load Balancer                          *
@@ -664,8 +669,8 @@ extern int gxio_mpipe_init_notif_group(gxio_mpipe_context_t *context,
  * ::GXIO_MPIPE_ERR_NO_BUCKET if allocation failed.
  */
 extern int gxio_mpipe_alloc_buckets(gxio_mpipe_context_t *context,
-				    unsigned int count, unsigned int first,
-				    unsigned int flags);
+									unsigned int count, unsigned int first,
+									unsigned int flags);
 
 /* The legal modes for gxio_mpipe_bucket_info_t and
  * gxio_mpipe_init_notif_group_and_buckets().
@@ -678,7 +683,8 @@ extern int gxio_mpipe_alloc_buckets(gxio_mpipe_context_t *context,
  * reference count, and currently active NotifRing, the load balancer
  * chooses the NotifRing to which the packet will be delivered.
  */
-typedef enum {
+typedef enum
+{
 	/* All packets for a bucket go to the same NotifRing unless the
 	 * NotifRing gets full, in which case packets will be dropped.  If
 	 * the bucket reference count ever reaches zero, a new NotifRing may
@@ -729,8 +735,8 @@ typedef enum {
  * @return 0 on success, ::GXIO_MPIPE_ERR_BAD_BUCKET on failure.
  */
 extern int gxio_mpipe_init_bucket(gxio_mpipe_context_t *context,
-				  unsigned int bucket,
-				  gxio_mpipe_bucket_info_t bucket_info);
+								  unsigned int bucket,
+								  gxio_mpipe_bucket_info_t bucket_info);
 
 /* Initializes a group and range of buckets and range of rings such
  * that the load balancer runs a particular load balancing function.
@@ -757,14 +763,14 @@ extern int gxio_mpipe_init_bucket(gxio_mpipe_context_t *context,
  * ::GXIO_MPIPE_ERR_BAD_NOTIF_RING on failure.
  */
 extern int gxio_mpipe_init_notif_group_and_buckets(gxio_mpipe_context_t
-						   *context,
-						   unsigned int group,
-						   unsigned int ring,
-						   unsigned int num_rings,
-						   unsigned int bucket,
-						   unsigned int num_buckets,
-						   gxio_mpipe_bucket_mode_t
-						   mode);
+		*context,
+		unsigned int group,
+		unsigned int ring,
+		unsigned int num_rings,
+		unsigned int bucket,
+		unsigned int num_buckets,
+		gxio_mpipe_bucket_mode_t
+		mode);
 
 /* Return credits to a NotifRing and/or bucket.
  *
@@ -774,7 +780,7 @@ extern int gxio_mpipe_init_notif_group_and_buckets(gxio_mpipe_context_t
  * @param count The number of credits to return.
  */
 static inline void gxio_mpipe_credit(gxio_mpipe_context_t *context,
-				     int ring, int bucket, unsigned int count)
+									 int ring, int bucket, unsigned int count)
 {
 	/* NOTE: Fancy struct initialization would break "C89" header test. */
 
@@ -814,8 +820,8 @@ static inline void gxio_mpipe_credit(gxio_mpipe_context_t *context,
  * ::GXIO_MPIPE_ERR_NO_EDMA_RING if allocation failed.
  */
 extern int gxio_mpipe_alloc_edma_rings(gxio_mpipe_context_t *context,
-				       unsigned int count, unsigned int first,
-				       unsigned int flags);
+									   unsigned int count, unsigned int first,
+									   unsigned int flags);
 
 /* Initialize an eDMA ring, using the given memory and size.
  *
@@ -833,9 +839,9 @@ extern int gxio_mpipe_alloc_edma_rings(gxio_mpipe_context_t *context,
  * ::GXIO_ERR_INVAL_MEMORY_SIZE on failure.
  */
 extern int gxio_mpipe_init_edma_ring(gxio_mpipe_context_t *context,
-				     unsigned int ering, unsigned int channel,
-				     void *mem, size_t mem_size,
-				     unsigned int mem_flags);
+									 unsigned int ering, unsigned int channel,
+									 void *mem, size_t mem_size,
+									 unsigned int mem_flags);
 
 /* Set the "max_blks", "min_snf_blks", and "db" fields of
  * ::MPIPE_EDMA_RG_INIT_DAT_THRESH_t for a given edma ring.
@@ -859,10 +865,10 @@ extern int gxio_mpipe_init_edma_ring(gxio_mpipe_context_t *context,
  * @return 0 on success, negative on error.
  */
 extern int gxio_mpipe_config_edma_ring_blks(gxio_mpipe_context_t *context,
-					    unsigned int ering,
-					    unsigned int max_blks,
-					    unsigned int min_snf_blks,
-					    unsigned int db);
+		unsigned int ering,
+		unsigned int max_blks,
+		unsigned int min_snf_blks,
+		unsigned int db);
 
 /*****************************************************************
  *                      Classifier Program                        *
@@ -935,7 +941,8 @@ extern int gxio_mpipe_config_edma_ring_blks(gxio_mpipe_context_t *context,
  */
 
 /* A set of classifier rules, plus a context. */
-typedef struct {
+typedef struct
+{
 
 	/* The context. */
 	gxio_mpipe_context_t *context;
@@ -954,7 +961,7 @@ typedef struct {
  * @param context An initialized mPIPE context.
  */
 extern void gxio_mpipe_rules_init(gxio_mpipe_rules_t *rules,
-				  gxio_mpipe_context_t *context);
+								  gxio_mpipe_context_t *context);
 
 /* Begin a new rule on the indicated rules list.
  *
@@ -975,9 +982,9 @@ extern void gxio_mpipe_rules_init(gxio_mpipe_rules_t *rules,
  * @return 0 on success, or a negative error code on failure.
  */
 extern int gxio_mpipe_rules_begin(gxio_mpipe_rules_t *rules,
-				  unsigned int bucket,
-				  unsigned int num_buckets,
-				  gxio_mpipe_rules_stacks_t *stacks);
+								  unsigned int bucket,
+								  unsigned int num_buckets,
+								  gxio_mpipe_rules_stacks_t *stacks);
 
 /* Set the headroom of the current rule.
  *
@@ -986,7 +993,7 @@ extern int gxio_mpipe_rules_begin(gxio_mpipe_rules_t *rules,
  * @return 0 on success, or a negative error code on failure.
  */
 extern int gxio_mpipe_rules_set_headroom(gxio_mpipe_rules_t *rules,
-					 uint8_t headroom);
+		uint8_t headroom);
 
 /* Indicate that packets from a particular channel can be delivered
  * to the buckets and buffer stacks associated with the current rule.
@@ -1000,7 +1007,7 @@ extern int gxio_mpipe_rules_set_headroom(gxio_mpipe_rules_t *rules,
  * @return 0 on success, or a negative error code on failure.
  */
 extern int gxio_mpipe_rules_add_channel(gxio_mpipe_rules_t *rules,
-					unsigned int channel);
+										unsigned int channel);
 
 /* Commit rules.
  *
@@ -1113,7 +1120,8 @@ extern int gxio_mpipe_rules_commit(gxio_mpipe_rules_t *rules);
 
 /* A convenient interface to a NotifRing, for use by a single thread.
  */
-typedef struct {
+typedef struct
+{
 
 	/* The context. */
 	gxio_mpipe_context_t *context;
@@ -1148,10 +1156,10 @@ typedef struct {
  * Takes the iqueue plus the same args as gxio_mpipe_init_notif_ring().
  */
 extern int gxio_mpipe_iqueue_init(gxio_mpipe_iqueue_t *iqueue,
-				  gxio_mpipe_context_t *context,
-				  unsigned int ring,
-				  void *mem, size_t mem_size,
-				  unsigned int mem_flags);
+								  gxio_mpipe_context_t *context,
+								  unsigned int ring,
+								  void *mem, size_t mem_size,
+								  unsigned int mem_flags);
 
 /* Advance over some old entries in an iqueue.
  *
@@ -1161,7 +1169,7 @@ extern int gxio_mpipe_iqueue_init(gxio_mpipe_iqueue_t *iqueue,
  * @param count The number of entries to advance over.
  */
 static inline void gxio_mpipe_iqueue_advance(gxio_mpipe_iqueue_t *iqueue,
-					     int count)
+		int count)
 {
 	/* Advance with proper wrap. */
 	int head = iqueue->head + count;
@@ -1196,7 +1204,7 @@ static inline void gxio_mpipe_iqueue_advance(gxio_mpipe_iqueue_t *iqueue,
  * @param idesc The descriptor which was processed.
  */
 static inline void gxio_mpipe_iqueue_release(gxio_mpipe_iqueue_t *iqueue,
-					     gxio_mpipe_idesc_t *idesc)
+		gxio_mpipe_idesc_t *idesc)
 {
 	gxio_mpipe_credit(iqueue->context, iqueue->ring, idesc->bucket_id, 1);
 }
@@ -1225,7 +1233,7 @@ static inline void gxio_mpipe_iqueue_release(gxio_mpipe_iqueue_t *iqueue,
  * @param idesc The descriptor which was processed.
  */
 static inline void gxio_mpipe_iqueue_consume(gxio_mpipe_iqueue_t *iqueue,
-					     gxio_mpipe_idesc_t *idesc)
+		gxio_mpipe_idesc_t *idesc)
 {
 	gxio_mpipe_iqueue_advance(iqueue, 1);
 	gxio_mpipe_iqueue_release(iqueue, idesc);
@@ -1248,7 +1256,7 @@ static inline void gxio_mpipe_iqueue_consume(gxio_mpipe_iqueue_t *iqueue,
  * or ::GXIO_MPIPE_ERR_IQUEUE_EMPTY if no packets are available.
  */
 static inline int gxio_mpipe_iqueue_try_peek(gxio_mpipe_iqueue_t *iqueue,
-					     gxio_mpipe_idesc_t **idesc_ref)
+		gxio_mpipe_idesc_t **idesc_ref)
 {
 	gxio_mpipe_idesc_t *next;
 
@@ -1259,7 +1267,8 @@ static inline int gxio_mpipe_iqueue_try_peek(gxio_mpipe_iqueue_t *iqueue,
 	uint64_t avail =
 		(tail >= head) ? (tail - head) : (iqueue->num_entries - head);
 
-	if (avail == 0) {
+	if (avail == 0)
+	{
 		*idesc_ref = NULL;
 		return GXIO_MPIPE_ERR_IQUEUE_EMPTY;
 	}
@@ -1273,11 +1282,14 @@ static inline int gxio_mpipe_iqueue_try_peek(gxio_mpipe_iqueue_t *iqueue,
 	/* HACK: Swap new entries directly in memory. */
 	{
 		int i, j;
-		for (i = iqueue->swapped; i < avail; i++) {
+
+		for (i = iqueue->swapped; i < avail; i++)
+		{
 			for (j = 0; j < 8; j++)
 				next[i].words[j] =
 					__builtin_bswap64(next[i].words[j]);
 		}
+
 		iqueue->swapped = avail;
 	}
 #endif
@@ -1296,11 +1308,12 @@ static inline int gxio_mpipe_iqueue_try_peek(gxio_mpipe_iqueue_t *iqueue,
  * @param idesc A packet descriptor.
  */
 static inline void gxio_mpipe_iqueue_drop(gxio_mpipe_iqueue_t *iqueue,
-					  gxio_mpipe_idesc_t *idesc)
+		gxio_mpipe_idesc_t *idesc)
 {
 	/* FIXME: Handle "chaining" properly. */
 
-	if (!idesc->be) {
+	if (!idesc->be)
+	{
 		unsigned char *va = gxio_mpipe_idesc_get_va(idesc);
 		gxio_mpipe_push_buffer(iqueue->context, idesc->stack_idx, va);
 	}
@@ -1311,7 +1324,8 @@ static inline void gxio_mpipe_iqueue_drop(gxio_mpipe_iqueue_t *iqueue,
  ******************************************************************/
 
 /* A convenient, thread-safe interface to an eDMA ring. */
-typedef struct {
+typedef struct
+{
 
 	/* State object for tracking head and tail pointers. */
 	__gxio_dma_queue_t dma_queue;
@@ -1356,11 +1370,11 @@ typedef struct {
  * ::GXIO_ERR_INVAL_MEMORY_SIZE on failure.
  */
 extern int gxio_mpipe_equeue_init(gxio_mpipe_equeue_t *equeue,
-				  gxio_mpipe_context_t *context,
-				  unsigned int ering,
-				  unsigned int channel,
-				  void *mem, unsigned int mem_size,
-				  unsigned int mem_flags);
+								  gxio_mpipe_context_t *context,
+								  unsigned int ering,
+								  unsigned int channel,
+								  void *mem, unsigned int mem_size,
+								  unsigned int mem_flags);
 
 /* Reserve completion slots for edescs.
  *
@@ -1375,7 +1389,7 @@ extern int gxio_mpipe_equeue_init(gxio_mpipe_equeue_t *equeue,
  * @return The first reserved completion slot, or a negative error code.
  */
 static inline int64_t gxio_mpipe_equeue_reserve(gxio_mpipe_equeue_t *equeue,
-						unsigned int num)
+		unsigned int num)
 {
 	return __gxio_dma_queue_reserve_aux(&equeue->dma_queue, num, true);
 }
@@ -1393,7 +1407,7 @@ static inline int64_t gxio_mpipe_equeue_reserve(gxio_mpipe_equeue_t *equeue,
  * @return The first reserved completion slot, or a negative error code.
  */
 static inline int64_t gxio_mpipe_equeue_try_reserve(gxio_mpipe_equeue_t
-						    *equeue, unsigned int num)
+		*equeue, unsigned int num)
 {
 	return __gxio_dma_queue_reserve_aux(&equeue->dma_queue, num, false);
 }
@@ -1411,7 +1425,7 @@ static inline int64_t gxio_mpipe_equeue_try_reserve(gxio_mpipe_equeue_t
  * @return The first reserved slot, or a negative error code.
  */
 static inline int64_t gxio_mpipe_equeue_reserve_fast(gxio_mpipe_equeue_t
-						     *equeue, unsigned int num)
+		*equeue, unsigned int num)
 {
 	return __gxio_dma_queue_reserve(&equeue->dma_queue, num, true, false);
 }
@@ -1429,8 +1443,8 @@ static inline int64_t gxio_mpipe_equeue_reserve_fast(gxio_mpipe_equeue_t
  * @return The first reserved slot, or a negative error code.
  */
 static inline int64_t gxio_mpipe_equeue_try_reserve_fast(gxio_mpipe_equeue_t
-							 *equeue,
-							 unsigned int num)
+		*equeue,
+		unsigned int num)
 {
 	return __gxio_dma_queue_reserve(&equeue->dma_queue, num, false, false);
 }
@@ -1441,8 +1455,8 @@ static inline int64_t gxio_mpipe_equeue_try_reserve_fast(gxio_mpipe_equeue_t
  */
 
 static inline void gxio_mpipe_equeue_put_at_aux(gxio_mpipe_equeue_t *equeue,
-						uint_reg_t ew[2],
-						unsigned long slot)
+		uint_reg_t ew[2],
+		unsigned long slot)
 {
 	unsigned long edma_slot = slot & equeue->mask_num_entries;
 	gxio_mpipe_edesc_t *edesc_p = &equeue->edescs[edma_slot];
@@ -1485,8 +1499,8 @@ static inline void gxio_mpipe_equeue_put_at_aux(gxio_mpipe_equeue_t *equeue,
  * @param slot An egress slot (only the low bits are actually used).
  */
 static inline void gxio_mpipe_equeue_put_at(gxio_mpipe_equeue_t *equeue,
-					    gxio_mpipe_edesc_t edesc,
-					    unsigned long slot)
+		gxio_mpipe_edesc_t edesc,
+		unsigned long slot)
 {
 	gxio_mpipe_equeue_put_at_aux(equeue, edesc.words, slot);
 }
@@ -1501,11 +1515,14 @@ static inline void gxio_mpipe_equeue_put_at(gxio_mpipe_equeue_t *equeue,
  * @return 0 on success.
  */
 static inline int gxio_mpipe_equeue_put(gxio_mpipe_equeue_t *equeue,
-					gxio_mpipe_edesc_t edesc)
+										gxio_mpipe_edesc_t edesc)
 {
 	int64_t slot = gxio_mpipe_equeue_reserve_fast(equeue, 1);
+
 	if (slot < 0)
+	{
 		return (int)slot;
+	}
 
 	gxio_mpipe_equeue_put_at(equeue, edesc, slot);
 
@@ -1548,11 +1565,11 @@ static inline void gxio_mpipe_equeue_flush(gxio_mpipe_equeue_t *equeue)
  * @return True iff the given edesc has been completed.
  */
 static inline int gxio_mpipe_equeue_is_complete(gxio_mpipe_equeue_t *equeue,
-						int64_t completion_slot,
-						int update)
+		int64_t completion_slot,
+		int update)
 {
 	return __gxio_dma_queue_is_complete(&equeue->dma_queue,
-					    completion_slot, update);
+										completion_slot, update);
 }
 
 /* Set the snf (store and forward) size for an equeue.
@@ -1579,11 +1596,11 @@ static inline int gxio_mpipe_equeue_is_complete(gxio_mpipe_equeue_t *equeue,
  * @return Zero on success, negative error otherwise.
  */
 static inline int gxio_mpipe_equeue_set_snf_size(gxio_mpipe_equeue_t *equeue,
-						 size_t size)
+		size_t size)
 {
 	int blks = (size + 127) / 128;
 	return gxio_mpipe_config_edma_ring_blks(equeue->context, equeue->ering,
-						blks + 1, blks, 1);
+											blks + 1, blks, 1);
 }
 
 /*****************************************************************
@@ -1715,7 +1732,8 @@ static inline int gxio_mpipe_equeue_set_snf_size(gxio_mpipe_equeue_t *equeue,
  */
 
 /* An object used to manage mPIPE link state and resources. */
-typedef struct {
+typedef struct
+{
 	/* The overall mPIPE context. */
 	gxio_mpipe_context_t *context;
 
@@ -1761,7 +1779,7 @@ extern int gxio_mpipe_link_instance(const char *link_name);
  *  not.
  */
 extern int gxio_mpipe_link_enumerate_mac(int index, char *link_name,
-					 uint8_t *mac_addr);
+		uint8_t *mac_addr);
 
 /* Open an mPIPE link.
  *
@@ -1781,8 +1799,8 @@ extern int gxio_mpipe_link_enumerate_mac(int index, char *link_name,
  *
  */
 extern int gxio_mpipe_link_open(gxio_mpipe_link_t *link,
-				gxio_mpipe_context_t *context,
-				const char *link_name, unsigned int flags);
+								gxio_mpipe_context_t *context,
+								const char *link_name, unsigned int flags);
 
 /* Close an mPIPE link.
  *
@@ -1816,7 +1834,7 @@ static inline int gxio_mpipe_link_channel(gxio_mpipe_link_t *link)
  *  code.
  */
 extern int gxio_mpipe_link_set_attr(gxio_mpipe_link_t *link, uint32_t attr,
-				    int64_t val);
+									int64_t val);
 
 ///////////////////////////////////////////////////////////////////
 //                             Timestamp                         //
@@ -1830,7 +1848,7 @@ extern int gxio_mpipe_link_set_attr(gxio_mpipe_link_t *link, uint32_t attr,
  *  code.
  */
 extern int gxio_mpipe_get_timestamp(gxio_mpipe_context_t *context,
-				    struct timespec64 *ts);
+									struct timespec64 *ts);
 
 /* Set the timestamp of mPIPE.
  *
@@ -1840,7 +1858,7 @@ extern int gxio_mpipe_get_timestamp(gxio_mpipe_context_t *context,
  *  code.
  */
 extern int gxio_mpipe_set_timestamp(gxio_mpipe_context_t *context,
-				    const struct timespec64 *ts);
+									const struct timespec64 *ts);
 
 /* Adjust the timestamp of mPIPE.
  *
@@ -1852,7 +1870,7 @@ extern int gxio_mpipe_set_timestamp(gxio_mpipe_context_t *context,
  *  code.
  */
 extern int gxio_mpipe_adjust_timestamp(gxio_mpipe_context_t *context,
-				       int64_t delta);
+									   int64_t delta);
 
 /** Adjust the mPIPE timestamp clock frequency.
  *
@@ -1865,7 +1883,7 @@ extern int gxio_mpipe_adjust_timestamp(gxio_mpipe_context_t *context,
  * @return If the call was successful, zero; otherwise, a negative error
  *  code.
  */
-extern int gxio_mpipe_adjust_timestamp_freq(gxio_mpipe_context_t* context,
-                                            int32_t ppb);
+extern int gxio_mpipe_adjust_timestamp_freq(gxio_mpipe_context_t *context,
+		int32_t ppb);
 
 #endif /* !_GXIO_MPIPE_H_ */

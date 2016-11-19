@@ -35,12 +35,12 @@ fa_copy_user_page(void *kto, const void *kfrom)
 	bne	1b				@ 1\n\
 	mcr	p15, 0, r2, c7, c10, 4		@ 1   drain WB\n\
 	ldmfd	sp!, {r4, pc}			@ 3"
-	:
-	: "I" (PAGE_SIZE / 32));
+		:
+		: "I" (PAGE_SIZE / 32));
 }
 
 void fa_copy_user_highpage(struct page *to, struct page *from,
-	unsigned long vaddr, struct vm_area_struct *vma)
+						   unsigned long vaddr, struct vm_area_struct *vma)
 {
 	void *kto, *kfrom;
 
@@ -74,13 +74,14 @@ void fa_clear_user_highpage(struct page *page, unsigned long vaddr)
 	subs	r1, r1, #1			@ 1\n\
 	bne	1b				@ 1\n\
 	mcr	p15, 0, r1, c7, c10, 4		@ 1   drain WB"
-	: "=r" (ptr)
-	: "0" (kaddr), "I" (PAGE_SIZE / 32)
-	: "r1", "r2", "r3", "ip", "lr");
+				 : "=r" (ptr)
+				 : "0" (kaddr), "I" (PAGE_SIZE / 32)
+				 : "r1", "r2", "r3", "ip", "lr");
 	kunmap_atomic(kaddr);
 }
 
-struct cpu_user_fns fa_user_fns __initdata = {
+struct cpu_user_fns fa_user_fns __initdata =
+{
 	.cpu_clear_user_highpage = fa_clear_user_highpage,
 	.cpu_copy_user_highpage	= fa_copy_user_highpage,
 };

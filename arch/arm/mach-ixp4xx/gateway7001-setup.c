@@ -27,16 +27,19 @@
 #include <asm/mach/arch.h>
 #include <asm/mach/flash.h>
 
-static struct flash_platform_data gateway7001_flash_data = {
+static struct flash_platform_data gateway7001_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.width		= 2,
 };
 
-static struct resource gateway7001_flash_resource = {
+static struct resource gateway7001_flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device gateway7001_flash = {
+static struct platform_device gateway7001_flash =
+{
 	.name		= "IXP4XX-Flash",
 	.id		= 0,
 	.dev		= {
@@ -46,13 +49,15 @@ static struct platform_device gateway7001_flash = {
 	.resource	= &gateway7001_flash_resource,
 };
 
-static struct resource gateway7001_uart_resource = {
+static struct resource gateway7001_uart_resource =
+{
 	.start	= IXP4XX_UART2_BASE_PHYS,
 	.end	= IXP4XX_UART2_BASE_PHYS + 0x0fff,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct plat_serial8250_port gateway7001_uart_data[] = {
+static struct plat_serial8250_port gateway7001_uart_data[] =
+{
 	{
 		.mapbase	= IXP4XX_UART2_BASE_PHYS,
 		.membase	= (char *)IXP4XX_UART2_BASE_VIRT + REG_OFFSET,
@@ -65,7 +70,8 @@ static struct plat_serial8250_port gateway7001_uart_data[] = {
 	{ },
 };
 
-static struct platform_device gateway7001_uart = {
+static struct platform_device gateway7001_uart =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -75,7 +81,8 @@ static struct platform_device gateway7001_uart = {
 	.resource	= &gateway7001_uart_resource,
 };
 
-static struct platform_device *gateway7001_devices[] __initdata = {
+static struct platform_device *gateway7001_devices[] __initdata =
+{
 	&gateway7001_flash,
 	&gateway7001_uart
 };
@@ -95,16 +102,16 @@ static void __init gateway7001_init(void)
 
 #ifdef CONFIG_MACH_GATEWAY7001
 MACHINE_START(GATEWAY7001, "Gateway 7001 AP")
-	/* Maintainer: Imre Kaloz <kaloz@openwrt.org> */
-	.map_io		= ixp4xx_map_io,
+/* Maintainer: Imre Kaloz <kaloz@openwrt.org> */
+.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
-	.init_irq	= ixp4xx_init_irq,
-	.init_time	= ixp4xx_timer_init,
-	.atag_offset	= 0x100,
-	.init_machine	= gateway7001_init,
+	 .init_irq	= ixp4xx_init_irq,
+		.init_time	= ixp4xx_timer_init,
+		  .atag_offset	= 0x100,
+			  .init_machine	= gateway7001_init,
 #if defined(CONFIG_PCI)
 	.dma_zone_size	= SZ_64M,
 #endif
-	.restart	= ixp4xx_restart,
-MACHINE_END
+				 .restart	= ixp4xx_restart,
+					 MACHINE_END
 #endif

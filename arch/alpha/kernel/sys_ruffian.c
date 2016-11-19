@@ -39,22 +39,22 @@ ruffian_init_irq(void)
 	*(vulp)PYXIS_INT_HILO  = 0x000000c0UL; mb();
 	*(vulp)PYXIS_INT_CNFG  = 0x00002064UL; mb();	 /* all clear */
 
-	outb(0x11,0xA0);
-	outb(0x08,0xA1);
-	outb(0x02,0xA1);
-	outb(0x01,0xA1);
-	outb(0xFF,0xA1);
-	
-	outb(0x11,0x20);
-	outb(0x00,0x21);
-	outb(0x04,0x21);
-	outb(0x01,0x21);
-	outb(0xFF,0x21);
-	
+	outb(0x11, 0xA0);
+	outb(0x08, 0xA1);
+	outb(0x02, 0xA1);
+	outb(0x01, 0xA1);
+	outb(0xFF, 0xA1);
+
+	outb(0x11, 0x20);
+	outb(0x00, 0x21);
+	outb(0x04, 0x21);
+	outb(0x01, 0x21);
+	outb(0xFF, 0x21);
+
 	/* Finish writing the 82C59A PIC Operation Control Words */
-	outb(0x20,0xA0);
-	outb(0x20,0x20);
-	
+	outb(0x20, 0xA0);
+	outb(0x20, 0x20);
+
 	init_i8259a_irqs();
 
 	/* Not interested in the bogus interrupts (0,3,6),
@@ -120,12 +120,13 @@ ruffian_kill_arch (int mode)
 static int __init
 ruffian_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-        static char irq_tab[11][5] __initdata = {
-	      /*INT  INTA INTB INTC INTD */
-		{-1,  -1,  -1,  -1,  -1},  /* IdSel 13,  21052	     */
-		{-1,  -1,  -1,  -1,  -1},  /* IdSel 14,  SIO	     */
+	static char irq_tab[11][5] __initdata =
+	{
+		/*INT  INTA INTB INTC INTD */
+		{ -1,  -1,  -1,  -1,  -1}, /* IdSel 13,  21052	     */
+		{ -1,  -1,  -1,  -1,  -1}, /* IdSel 14,  SIO	     */
 		{44,  44,  44,  44,  44},  /* IdSel 15,  21143	     */
-		{-1,  -1,  -1,  -1,  -1},  /* IdSel 16,  none	     */
+		{ -1,  -1,  -1,  -1,  -1}, /* IdSel 16,  none	     */
 		{43,  43,  42,  41,  40},  /* IdSel 17,  64-bit slot */
 		/* the next 6 are actually on PCI bus 1, across the bridge */
 		{19,  19,  18,  17,  16},  /* IdSel  8,  slot 0	     */
@@ -134,7 +135,7 @@ ruffian_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 		{39,  39,  38,  37,  36},  /* IdSel 11,  slot 3	     */
 		{35,  35,  34,  33,  32},  /* IdSel 12,  slot 4	     */
 		{20,  20,  20,  20,  20},  /* IdSel 13,  53c875	     */
-        };
+	};
 	const long min_idsel = 13, max_idsel = 23, irqs_per_slot = 5;
 	return COMMON_TABLE_LOOKUP;
 }
@@ -144,29 +145,36 @@ ruffian_swizzle(struct pci_dev *dev, u8 *pinp)
 {
 	int slot, pin = *pinp;
 
-	if (dev->bus->number == 0) {
+	if (dev->bus->number == 0)
+	{
 		slot = PCI_SLOT(dev->devfn);
-	}		
+	}
 	/* Check for the built-in bridge.  */
-	else if (PCI_SLOT(dev->bus->self->devfn) == 13) {
+	else if (PCI_SLOT(dev->bus->self->devfn) == 13)
+	{
 		slot = PCI_SLOT(dev->devfn) + 10;
 	}
-	else 
+	else
 	{
 		/* Must be a card-based bridge.  */
-		do {
-			if (PCI_SLOT(dev->bus->self->devfn) == 13) {
+		do
+		{
+			if (PCI_SLOT(dev->bus->self->devfn) == 13)
+			{
 				slot = PCI_SLOT(dev->devfn) + 10;
 				break;
 			}
+
 			pin = pci_swizzle_interrupt_pin(dev, pin);
 
 			/* Move up the chain of bridges.  */
 			dev = dev->bus->self;
 			/* Slot of the next bridge.  */
 			slot = PCI_SLOT(dev->devfn);
-		} while (dev->bus->self);
+		}
+		while (dev->bus->self);
 	}
+
 	*pinp = pin;
 	return slot;
 }
@@ -188,8 +196,10 @@ ruffian_get_bank_size(unsigned long offset)
 	bank = *(vulp)bank_addr;
 
 	/* Check BANK_ENABLE */
-	if (bank & 0x01) {
-		static unsigned long size[] __initdata = {
+	if (bank & 0x01)
+	{
+		static unsigned long size[] __initdata =
+		{
 			0x40000000UL, /* 0x00,   1G */
 			0x20000000UL, /* 0x02, 512M */
 			0x10000000UL, /* 0x04, 256M */
@@ -202,8 +212,11 @@ ruffian_get_bank_size(unsigned long offset)
 		};
 
 		bank = (bank & 0x1e) >> 1;
+
 		if (bank < ARRAY_SIZE(size))
+		{
 			ret = size[bank];
+		}
 	}
 
 	return ret;
@@ -214,7 +227,8 @@ ruffian_get_bank_size(unsigned long offset)
  * The System Vector
  */
 
-struct alpha_machine_vector ruffian_mv __initmv = {
+struct alpha_machine_vector ruffian_mv __initmv =
+{
 	.vector_name		= "Ruffian",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,

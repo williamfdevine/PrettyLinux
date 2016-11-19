@@ -38,11 +38,11 @@ void __writel(u32 val, volatile void __iomem *addr);
  * the byte stearing by selecting the correct byte IO functions here.
  */
 #ifdef ISA_SIXTEEN_BIT_PERIPHERAL
-#define inb(p) 			__inb16(p)
-#define outb(v,p)		__outb16(v,p)
+	#define inb(p) 			__inb16(p)
+	#define outb(v,p)		__outb16(v,p)
 #else
-#define inb(p)			__inb8(p)
-#define outb(v,p)		__outb8(v,p)
+	#define inb(p)			__inb8(p)
+	#define outb(v,p)		__outb8(v,p)
 #endif
 
 #define inw(p)			__inw(p)

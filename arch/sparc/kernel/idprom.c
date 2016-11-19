@@ -26,30 +26,37 @@ static struct idprom idprom_buffer;
  * of the Sparc CPU and have a meaningful IDPROM machtype value that we
  * know about.  See asm-sparc/machines.h for empirical constants.
  */
-static struct Sun_Machine_Models Sun_Machines[] = {
-/* First, Leon */
-{ .name = "Leon3 System-on-a-Chip",  .id_machtype = (M_LEON | M_LEON3_SOC) },
-/* Finally, early Sun4m's */
-{ .name = "Sun4m SparcSystem600",    .id_machtype = (SM_SUN4M | SM_4M_SS60) },
-{ .name = "Sun4m SparcStation10/20", .id_machtype = (SM_SUN4M | SM_4M_SS50) },
-{ .name = "Sun4m SparcStation5",     .id_machtype = (SM_SUN4M | SM_4M_SS40) },
-/* One entry for the OBP arch's which are sun4d, sun4e, and newer sun4m's */
-{ .name = "Sun4M OBP based system",  .id_machtype = (SM_SUN4M_OBP | 0x0) } };
+static struct Sun_Machine_Models Sun_Machines[] =
+{
+	/* First, Leon */
+	{ .name = "Leon3 System-on-a-Chip",  .id_machtype = (M_LEON | M_LEON3_SOC) },
+	/* Finally, early Sun4m's */
+	{ .name = "Sun4m SparcSystem600",    .id_machtype = (SM_SUN4M | SM_4M_SS60) },
+	{ .name = "Sun4m SparcStation10/20", .id_machtype = (SM_SUN4M | SM_4M_SS50) },
+	{ .name = "Sun4m SparcStation5",     .id_machtype = (SM_SUN4M | SM_4M_SS40) },
+	/* One entry for the OBP arch's which are sun4d, sun4e, and newer sun4m's */
+	{ .name = "Sun4M OBP based system",  .id_machtype = (SM_SUN4M_OBP | 0x0) }
+};
 
 static void __init display_system_type(unsigned char machtype)
 {
 	char sysname[128];
 	register int i;
 
-	for (i = 0; i < ARRAY_SIZE(Sun_Machines); i++) {
-		if (Sun_Machines[i].id_machtype == machtype) {
+	for (i = 0; i < ARRAY_SIZE(Sun_Machines); i++)
+	{
+		if (Sun_Machines[i].id_machtype == machtype)
+		{
 			if (machtype != (SM_SUN4M_OBP | 0x00) ||
-			    prom_getproperty(prom_root_node, "banner-name",
-					     sysname, sizeof(sysname)) <= 0)
+				prom_getproperty(prom_root_node, "banner-name",
+								 sysname, sizeof(sysname)) <= 0)
 				printk(KERN_WARNING "TYPE: %s\n",
-				       Sun_Machines[i].name);
+					   Sun_Machines[i].name);
 			else
+			{
 				printk(KERN_WARNING "TYPE: %s\n", sysname);
+			}
+
 			return;
 		}
 	}
@@ -73,7 +80,9 @@ static unsigned char __init calc_idprom_cksum(struct idprom *idprom)
 	unsigned char cksum, i, *ptr = (unsigned char *)idprom;
 
 	for (i = cksum = 0; i <= 0x0E; i++)
+	{
 		cksum ^= *ptr++;
+	}
 
 	return cksum;
 }
@@ -86,11 +95,13 @@ void __init idprom_init(void)
 	idprom = &idprom_buffer;
 
 	if (idprom->id_format != 0x01)
+	{
 		prom_printf("IDPROM: Warning, unknown format type!\n");
+	}
 
 	if (idprom->id_cksum != calc_idprom_cksum(idprom))
 		prom_printf("IDPROM: Warning, checksum failure (nvram=%x, calc=%x)!\n",
-			    idprom->id_cksum, calc_idprom_cksum(idprom));
+					idprom->id_cksum, calc_idprom_cksum(idprom));
 
 	display_system_type(idprom->id_machtype);
 

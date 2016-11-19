@@ -30,7 +30,8 @@
 #include <linux/kernel.h>
 
 /* CPU feature register tracking */
-enum ftr_type {
+enum ftr_type
+{
 	FTR_EXACT,	/* Use a predefined safe value */
 	FTR_LOWER_SAFE,	/* Smaller value is safe */
 	FTR_HIGHER_SAFE,/* Bigger value is safe */
@@ -42,7 +43,8 @@ enum ftr_type {
 #define FTR_SIGNED	true	/* Value should be treated as signed */
 #define FTR_UNSIGNED	false	/* Value should be treated as unsigned */
 
-struct arm64_ftr_bits {
+struct arm64_ftr_bits
+{
 	bool		sign;	/* Value is signed ? */
 	bool		strict;	/* CPU Sanity check: strict matching required ? */
 	enum ftr_type	type;
@@ -56,7 +58,8 @@ struct arm64_ftr_bits {
  * @strict_mask		Bits which should match across all CPUs for sanity.
  * @sys_val		Safe value across the CPUs (system view)
  */
-struct arm64_ftr_reg {
+struct arm64_ftr_reg
+{
 	const char			*name;
 	u64				strict_mask;
 	u64				sys_val;
@@ -66,24 +69,29 @@ struct arm64_ftr_reg {
 extern struct arm64_ftr_reg arm64_ftr_reg_ctrel0;
 
 /* scope of capability check */
-enum {
+enum
+{
 	SCOPE_SYSTEM,
 	SCOPE_LOCAL_CPU,
 };
 
-struct arm64_cpu_capabilities {
+struct arm64_cpu_capabilities
+{
 	const char *desc;
 	u16 capability;
 	int def_scope;			/* default scope */
 	bool (*matches)(const struct arm64_cpu_capabilities *caps, int scope);
 	int (*enable)(void *);		/* Called on all active CPUs */
-	union {
-		struct {	/* To be used for erratum handling only */
+	union
+	{
+		struct  	/* To be used for erratum handling only */
+		{
 			u32 midr_model;
 			u32 midr_range_min, midr_range_max;
 		};
 
-		struct {	/* Feature register checking */
+		struct  	/* Feature register checking */
+		{
 			u32 sys_reg;
 			u8 field_pos;
 			u8 min_field_value;
@@ -107,19 +115,29 @@ static inline bool cpu_have_feature(unsigned int num)
 static inline bool cpus_have_cap(unsigned int num)
 {
 	if (num >= ARM64_NCAPS)
+	{
 		return false;
+	}
+
 	if (__builtin_constant_p(num))
+	{
 		return static_branch_unlikely(&cpu_hwcap_keys[num]);
+	}
 	else
+	{
 		return test_bit(num, cpu_hwcaps);
+	}
 }
 
 static inline void cpus_set_cap(unsigned int num)
 {
-	if (num >= ARM64_NCAPS) {
+	if (num >= ARM64_NCAPS)
+	{
 		pr_warn("Attempt to set an illegal CPU capability (%d >= %d)\n",
-			num, ARM64_NCAPS);
-	} else {
+				num, ARM64_NCAPS);
+	}
+	else
+	{
 		__set_bit(num, cpu_hwcaps);
 		static_branch_enable(&cpu_hwcap_keys[num]);
 	}
@@ -158,8 +176,8 @@ static inline int __attribute_const__
 cpuid_feature_extract_field(u64 features, int field, bool sign)
 {
 	return (sign) ?
-		cpuid_feature_extract_signed_field(features, field) :
-		cpuid_feature_extract_unsigned_field(features, field);
+		   cpuid_feature_extract_signed_field(features, field) :
+		   cpuid_feature_extract_unsigned_field(features, field);
 }
 
 static inline s64 arm64_ftr_value(const struct arm64_ftr_bits *ftrp, u64 val)
@@ -170,7 +188,7 @@ static inline s64 arm64_ftr_value(const struct arm64_ftr_bits *ftrp, u64 val)
 static inline bool id_aa64mmfr0_mixed_endian_el0(u64 mmfr0)
 {
 	return cpuid_feature_extract_unsigned_field(mmfr0, ID_AA64MMFR0_BIGENDEL_SHIFT) == 0x1 ||
-		cpuid_feature_extract_unsigned_field(mmfr0, ID_AA64MMFR0_BIGENDEL0_SHIFT) == 0x1;
+		   cpuid_feature_extract_unsigned_field(mmfr0, ID_AA64MMFR0_BIGENDEL0_SHIFT) == 0x1;
 }
 
 static inline bool id_aa64pfr0_32bit_el0(u64 pfr0)
@@ -183,7 +201,7 @@ static inline bool id_aa64pfr0_32bit_el0(u64 pfr0)
 void __init setup_cpu_features(void);
 
 void update_cpu_capabilities(const struct arm64_cpu_capabilities *caps,
-			    const char *info);
+							 const char *info);
 void enable_cpu_capabilities(const struct arm64_cpu_capabilities *caps);
 void check_local_cpu_capabilities(void);
 

@@ -39,10 +39,10 @@ void sun3x_halt(void)
 	local_irq_save(flags);
 
 	/* Restore prom vbr */
-	asm volatile ("movec %0,%%vbr" : : "r" ((void*)sun3x_prom_vbr));
+	asm volatile ("movec %0,%%vbr" : : "r" ((void *)sun3x_prom_vbr));
 
 	/* Restore prom NMI clock */
-//	sun3x_disable_intreg(5);
+	//	sun3x_disable_intreg(5);
 	sun3_enable_irq(7);
 
 	/* Let 'er rip */
@@ -52,7 +52,7 @@ void sun3x_halt(void)
 	sun3_disable_irq(7);
 	sun3_enable_irq(5);
 
-	asm volatile ("movec %0,%%vbr" : : "r" ((void*)vectors));
+	asm volatile ("movec %0,%%vbr" : : "r" ((void *)vectors));
 	local_irq_restore(flags);
 }
 
@@ -62,7 +62,7 @@ void sun3x_reboot(void)
 	local_irq_disable();
 
 	/* Restore prom vbr */
-	asm volatile ("movec %0,%%vbr" : : "r" ((void*)sun3x_prom_vbr));
+	asm volatile ("movec %0,%%vbr" : : "r" ((void *)sun3x_prom_vbr));
 
 	/* Restore prom NMI clock */
 	sun3_disable_irq(5);
@@ -73,18 +73,23 @@ void sun3x_reboot(void)
 }
 
 static void sun3x_prom_write(struct console *co, const char *s,
-                             unsigned int count)
+							 unsigned int count)
 {
-	while (count--) {
+	while (count--)
+	{
 		if (*s == '\n')
+		{
 			sun3x_putchar('\r');
+		}
+
 		sun3x_putchar(*s++);
 	}
 }
 
 /* debug console - write-only */
 
-static struct console sun3x_debug = {
+static struct console sun3x_debug =
+{
 	.name	= "debug",
 	.write	= sun3x_prom_write,
 	.flags	= CON_PRINTBUFFER,
@@ -95,19 +100,20 @@ void __init sun3x_prom_init(void)
 {
 	/* Read the vector table */
 
-	sun3x_putchar = *(void (**)(int)) (SUN3X_P_PUTCHAR);
-	sun3x_getchar = *(int (**)(void)) (SUN3X_P_GETCHAR);
-	sun3x_mayget = *(int (**)(void))  (SUN3X_P_MAYGET);
-	sun3x_mayput = *(int (**)(int))   (SUN3X_P_MAYPUT);
-	sun3x_prom_reboot = *(void (**)(void)) (SUN3X_P_REBOOT);
+	sun3x_putchar = *(void (* *)(int)) (SUN3X_P_PUTCHAR);
+	sun3x_getchar = *(int (* *)(void)) (SUN3X_P_GETCHAR);
+	sun3x_mayget = *(int (* *)(void))  (SUN3X_P_MAYGET);
+	sun3x_mayput = *(int (* *)(int))   (SUN3X_P_MAYPUT);
+	sun3x_prom_reboot = *(void (* *)(void)) (SUN3X_P_REBOOT);
 	sun3x_prom_abort = *(e_vector *)  (SUN3X_P_ABORT);
 	romvec = (struct linux_romvec *)SUN3X_PROM_BASE;
 
 	idprom_init();
 
-	if (!((idprom->id_machtype & SM_ARCH_MASK) == SM_SUN3X)) {
+	if (!((idprom->id_machtype & SM_ARCH_MASK) == SM_SUN3X))
+	{
 		printk("Warning: machine reports strange type %02x\n",
-			idprom->id_machtype);
+			   idprom->id_machtype);
 		printk("Pretending it's a 3/80, but very afraid...\n");
 		idprom->id_machtype = SM_SUN3X | SM_3_80;
 	}
@@ -122,7 +128,10 @@ static int __init sun3x_debug_setup(char *arg)
 {
 	/* If debug=prom was specified, start the debug console */
 	if (MACH_IS_SUN3X && !strcmp(arg, "prom"))
+	{
 		register_console(&sun3x_debug);
+	}
+
 	return 0;
 }
 
@@ -155,11 +164,13 @@ void prom_halt (void)
 unsigned char
 prom_get_idprom(char *idbuf, int num_bytes)
 {
-        int i;
+	int i;
 
 	/* make a copy of the idprom structure */
 	for (i = 0; i < num_bytes; i++)
+	{
 		idbuf[i] = ((char *)SUN3X_IDPROM)[i];
+	}
 
-        return idbuf[0];
+	return idbuf[0];
 }

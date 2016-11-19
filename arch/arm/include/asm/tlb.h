@@ -41,7 +41,8 @@ static inline void __tlb_remove_table(void *_table)
 	free_page_and_swap_cache((struct page *)_table);
 }
 
-struct mmu_table_batch {
+struct mmu_table_batch
+{
 	struct rcu_head		rcu;
 	unsigned int		nr;
 	void			*tables[0];
@@ -62,7 +63,8 @@ extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
  * TLB handling.  This allows us to remove pages from the page
  * tables, and efficiently handle the TLB issues.
  */
-struct mmu_gather {
+struct mmu_gather
+{
 	struct mm_struct	*mm;
 #ifdef CONFIG_HAVE_RCU_TABLE_FREE
 	struct mmu_table_batch	*batch;
@@ -97,8 +99,11 @@ DECLARE_PER_CPU(struct mmu_gather, mmu_gathers);
 static inline void tlb_flush(struct mmu_gather *tlb)
 {
 	if (tlb->fullmm || !tlb->vma)
+	{
 		flush_tlb_mm(tlb->mm);
-	else if (tlb->range_end > 0) {
+	}
+	else if (tlb->range_end > 0)
+	{
 		flush_tlb_range(tlb->vma, tlb->range_start, tlb->range_end);
 		tlb->range_start = TASK_SIZE;
 		tlb->range_end = 0;
@@ -107,11 +112,17 @@ static inline void tlb_flush(struct mmu_gather *tlb)
 
 static inline void tlb_add_flush(struct mmu_gather *tlb, unsigned long addr)
 {
-	if (!tlb->fullmm) {
+	if (!tlb->fullmm)
+	{
 		if (addr < tlb->range_start)
+		{
 			tlb->range_start = addr;
+		}
+
 		if (addr + PAGE_SIZE > tlb->range_end)
+		{
 			tlb->range_end = addr + PAGE_SIZE;
+		}
 	}
 }
 
@@ -119,7 +130,8 @@ static inline void __tlb_alloc_page(struct mmu_gather *tlb)
 {
 	unsigned long addr = __get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
 
-	if (addr) {
+	if (addr)
+	{
 		tlb->pages = (void *)addr;
 		tlb->max = PAGE_SIZE / sizeof(struct page *);
 	}
@@ -137,8 +149,11 @@ static inline void tlb_flush_mmu_free(struct mmu_gather *tlb)
 {
 	free_pages_and_swap_cache(tlb->pages, tlb->nr);
 	tlb->nr = 0;
+
 	if (tlb->pages == tlb->local)
+	{
 		__tlb_alloc_page(tlb);
+	}
 }
 
 static inline void tlb_flush_mmu(struct mmu_gather *tlb)
@@ -151,7 +166,7 @@ static inline void
 tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start, unsigned long end)
 {
 	tlb->mm = mm;
-	tlb->fullmm = !(start | (end+1));
+	tlb->fullmm = !(start | (end + 1));
 	tlb->start = start;
 	tlb->end = end;
 	tlb->vma = NULL;
@@ -174,7 +189,9 @@ tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
 	check_pgt_cache();
 
 	if (tlb->pages != tlb->local)
+	{
 		free_pages((unsigned long)tlb->pages, 0);
+	}
 }
 
 /*
@@ -194,7 +211,8 @@ tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep, unsigned long addr)
 static inline void
 tlb_start_vma(struct mmu_gather *tlb, struct vm_area_struct *vma)
 {
-	if (!tlb->fullmm) {
+	if (!tlb->fullmm)
+	{
 		flush_cache_range(vma, vma->vm_start, vma->vm_end);
 		tlb->vma = vma;
 		tlb->range_start = TASK_SIZE;
@@ -206,45 +224,51 @@ static inline void
 tlb_end_vma(struct mmu_gather *tlb, struct vm_area_struct *vma)
 {
 	if (!tlb->fullmm)
+	{
 		tlb_flush(tlb);
+	}
 }
 
 static inline bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
 {
 	if (tlb->nr == tlb->max)
+	{
 		return true;
+	}
+
 	tlb->pages[tlb->nr++] = page;
 	return false;
 }
 
 static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
 {
-	if (__tlb_remove_page(tlb, page)) {
+	if (__tlb_remove_page(tlb, page))
+	{
 		tlb_flush_mmu(tlb);
 		__tlb_remove_page(tlb, page);
 	}
 }
 
 static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
-					  struct page *page, int page_size)
+		struct page *page, int page_size)
 {
 	return __tlb_remove_page(tlb, page);
 }
 
 static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
-					 struct page *page)
+		struct page *page)
 {
 	return __tlb_remove_page(tlb, page);
 }
 
 static inline void tlb_remove_page_size(struct mmu_gather *tlb,
-					struct page *page, int page_size)
+										struct page *page, int page_size)
 {
 	return tlb_remove_page(tlb, page);
 }
 
 static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
-	unsigned long addr)
+								  unsigned long addr)
 {
 	pgtable_page_dtor(pte);
 
@@ -264,7 +288,7 @@ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
 }
 
 static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmdp,
-				  unsigned long addr)
+								  unsigned long addr)
 {
 #ifdef CONFIG_ARM_LPAE
 	tlb_add_flush(tlb, addr);

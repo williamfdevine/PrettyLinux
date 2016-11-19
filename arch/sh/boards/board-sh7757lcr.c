@@ -26,7 +26,8 @@
 #include <cpu/sh7757.h>
 #include <asm/heartbeat.h>
 
-static struct resource heartbeat_resource = {
+static struct resource heartbeat_resource =
+{
 	.start	= 0xffec005c,	/* PUDR */
 	.end	= 0xffec005c,
 	.flags	= IORESOURCE_MEM | IORESOURCE_MEM_8BIT,
@@ -34,13 +35,15 @@ static struct resource heartbeat_resource = {
 
 static unsigned char heartbeat_bit_pos[] = { 0, 1, 2, 3 };
 
-static struct heartbeat_data heartbeat_data = {
+static struct heartbeat_data heartbeat_data =
+{
 	.bit_pos	= heartbeat_bit_pos,
 	.nr_bits	= ARRAY_SIZE(heartbeat_bit_pos),
 	.flags		= HEARTBEAT_INVERTED,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.dev	= {
@@ -57,12 +60,17 @@ static struct platform_device heartbeat_device = {
 static void sh7757_eth_set_mdio_gate(void *addr)
 {
 	if (((unsigned long)addr & 0x00000fff) < 0x0800)
+	{
 		writel(readl(GBECONT) | GBECONT_RMII0, GBECONT);
+	}
 	else
+	{
 		writel(readl(GBECONT) | GBECONT_RMII1, GBECONT);
+	}
 }
 
-static struct resource sh_eth0_resources[] = {
+static struct resource sh_eth0_resources[] =
+{
 	{
 		.start  = 0xfef00000,
 		.end    = 0xfef001ff,
@@ -74,13 +82,15 @@ static struct resource sh_eth0_resources[] = {
 	},
 };
 
-static struct sh_eth_plat_data sh7757_eth0_pdata = {
+static struct sh_eth_plat_data sh7757_eth0_pdata =
+{
 	.phy = 1,
 	.edmac_endian = EDMAC_LITTLE_ENDIAN,
 	.set_mdio_gate = sh7757_eth_set_mdio_gate,
 };
 
-static struct platform_device sh7757_eth0_device = {
+static struct platform_device sh7757_eth0_device =
+{
 	.name		= "sh7757-ether",
 	.resource	= sh_eth0_resources,
 	.id		= 0,
@@ -90,7 +100,8 @@ static struct platform_device sh7757_eth0_device = {
 	},
 };
 
-static struct resource sh_eth1_resources[] = {
+static struct resource sh_eth1_resources[] =
+{
 	{
 		.start  = 0xfef00800,
 		.end    = 0xfef009ff,
@@ -102,13 +113,15 @@ static struct resource sh_eth1_resources[] = {
 	},
 };
 
-static struct sh_eth_plat_data sh7757_eth1_pdata = {
+static struct sh_eth_plat_data sh7757_eth1_pdata =
+{
 	.phy = 1,
 	.edmac_endian = EDMAC_LITTLE_ENDIAN,
 	.set_mdio_gate = sh7757_eth_set_mdio_gate,
 };
 
-static struct platform_device sh7757_eth1_device = {
+static struct platform_device sh7757_eth1_device =
+{
 	.name		= "sh7757-ether",
 	.resource	= sh_eth1_resources,
 	.id		= 1,
@@ -120,16 +133,20 @@ static struct platform_device sh7757_eth1_device = {
 
 static void sh7757_eth_giga_set_mdio_gate(void *addr)
 {
-	if (((unsigned long)addr & 0x00000fff) < 0x0800) {
+	if (((unsigned long)addr & 0x00000fff) < 0x0800)
+	{
 		gpio_set_value(GPIO_PTT4, 1);
 		writel(readl(GBECONT) & ~GBECONT_RMII0, GBECONT);
-	} else {
+	}
+	else
+	{
 		gpio_set_value(GPIO_PTT4, 0);
 		writel(readl(GBECONT) & ~GBECONT_RMII1, GBECONT);
 	}
 }
 
-static struct resource sh_eth_giga0_resources[] = {
+static struct resource sh_eth_giga0_resources[] =
+{
 	{
 		.start  = 0xfee00000,
 		.end    = 0xfee007ff,
@@ -146,14 +163,16 @@ static struct resource sh_eth_giga0_resources[] = {
 	},
 };
 
-static struct sh_eth_plat_data sh7757_eth_giga0_pdata = {
+static struct sh_eth_plat_data sh7757_eth_giga0_pdata =
+{
 	.phy = 18,
 	.edmac_endian = EDMAC_LITTLE_ENDIAN,
 	.set_mdio_gate = sh7757_eth_giga_set_mdio_gate,
 	.phy_interface = PHY_INTERFACE_MODE_RGMII_ID,
 };
 
-static struct platform_device sh7757_eth_giga0_device = {
+static struct platform_device sh7757_eth_giga0_device =
+{
 	.name		= "sh7757-gether",
 	.resource	= sh_eth_giga0_resources,
 	.id		= 2,
@@ -163,7 +182,8 @@ static struct platform_device sh7757_eth_giga0_device = {
 	},
 };
 
-static struct resource sh_eth_giga1_resources[] = {
+static struct resource sh_eth_giga1_resources[] =
+{
 	{
 		.start  = 0xfee00800,
 		.end    = 0xfee00fff,
@@ -180,14 +200,16 @@ static struct resource sh_eth_giga1_resources[] = {
 	},
 };
 
-static struct sh_eth_plat_data sh7757_eth_giga1_pdata = {
+static struct sh_eth_plat_data sh7757_eth_giga1_pdata =
+{
 	.phy = 19,
 	.edmac_endian = EDMAC_LITTLE_ENDIAN,
 	.set_mdio_gate = sh7757_eth_giga_set_mdio_gate,
 	.phy_interface = PHY_INTERFACE_MODE_RGMII_ID,
 };
 
-static struct platform_device sh7757_eth_giga1_device = {
+static struct platform_device sh7757_eth_giga1_device =
+{
 	.name		= "sh7757-gether",
 	.resource	= sh_eth_giga1_resources,
 	.id		= 3,
@@ -207,7 +229,8 @@ static struct regulator_consumer_supply fixed3v3_power_consumers[] =
 };
 
 /* SH_MMCIF */
-static struct resource sh_mmcif_resources[] = {
+static struct resource sh_mmcif_resources[] =
+{
 	[0] = {
 		.start	= 0xffcb0000,
 		.end	= 0xffcb00ff,
@@ -223,16 +246,18 @@ static struct resource sh_mmcif_resources[] = {
 	},
 };
 
-static struct sh_mmcif_plat_data sh_mmcif_plat = {
+static struct sh_mmcif_plat_data sh_mmcif_plat =
+{
 	.sup_pclk	= 0x0f,
 	.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA |
-			  MMC_CAP_NONREMOVABLE,
+	MMC_CAP_NONREMOVABLE,
 	.ocr		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.slave_id_tx	= SHDMA_SLAVE_MMCIF_TX,
 	.slave_id_rx	= SHDMA_SLAVE_MMCIF_RX,
 };
 
-static struct platform_device sh_mmcif_device = {
+static struct platform_device sh_mmcif_device =
+{
 	.name		= "sh_mmcif",
 	.id		= 0,
 	.dev		= {
@@ -243,13 +268,15 @@ static struct platform_device sh_mmcif_device = {
 };
 
 /* SDHI0 */
-static struct tmio_mmc_data sdhi_info = {
+static struct tmio_mmc_data sdhi_info =
+{
 	.chan_priv_tx	= (void *)SHDMA_SLAVE_SDHI_TX,
 	.chan_priv_rx	= (void *)SHDMA_SLAVE_SDHI_RX,
 	.capabilities	= MMC_CAP_SD_HIGHSPEED,
 };
 
-static struct resource sdhi_resources[] = {
+static struct resource sdhi_resources[] =
+{
 	[0] = {
 		.start  = 0xffe50000,
 		.end    = 0xffe500ff,
@@ -261,7 +288,8 @@ static struct resource sdhi_resources[] = {
 	},
 };
 
-static struct platform_device sdhi_device = {
+static struct platform_device sdhi_device =
+{
 	.name           = "sh_mobile_sdhi",
 	.num_resources  = ARRAY_SIZE(sdhi_resources),
 	.resource       = sdhi_resources,
@@ -276,7 +304,8 @@ static int usbhs0_get_id(struct platform_device *pdev)
 	return USBHS_GADGET;
 }
 
-static struct renesas_usbhs_platform_info usb0_data = {
+static struct renesas_usbhs_platform_info usb0_data =
+{
 	.platform_callback = {
 		.get_id = usbhs0_get_id,
 	},
@@ -285,7 +314,8 @@ static struct renesas_usbhs_platform_info usb0_data = {
 	}
 };
 
-static struct resource usb0_resources[] = {
+static struct resource usb0_resources[] =
+{
 	[0] = {
 		.start	= 0xfe450000,
 		.end	= 0xfe4501ff,
@@ -298,7 +328,8 @@ static struct resource usb0_resources[] = {
 	},
 };
 
-static struct platform_device usb0_device = {
+static struct platform_device usb0_device =
+{
 	.name		= "renesas_usbhs",
 	.id		= 0,
 	.dev = {
@@ -308,7 +339,8 @@ static struct platform_device usb0_device = {
 	.resource	= usb0_resources,
 };
 
-static struct platform_device *sh7757lcr_devices[] __initdata = {
+static struct platform_device *sh7757lcr_devices[] __initdata =
+{
 	&heartbeat_device,
 	&sh7757_eth0_device,
 	&sh7757_eth1_device,
@@ -319,12 +351,14 @@ static struct platform_device *sh7757lcr_devices[] __initdata = {
 	&usb0_device,
 };
 
-static struct flash_platform_data spi_flash_data = {
+static struct flash_platform_data spi_flash_data =
+{
 	.name = "m25p80",
 	.type = "m25px64",
 };
 
-static struct spi_board_info spi_board_info[] = {
+static struct spi_board_info spi_board_info[] =
+{
 	{
 		.modalias = "m25p80",
 		.max_speed_hz = 25000000,
@@ -337,7 +371,7 @@ static struct spi_board_info spi_board_info[] = {
 static int __init sh7757lcr_devices_setup(void)
 {
 	regulator_register_always_on(0, "fixed-3.3V", fixed3v3_power_consumers,
-				     ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
+								 ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
 
 	/* RGMII (PTA) */
 	gpio_request(GPIO_FN_ET0_MDC, NULL);
@@ -567,11 +601,11 @@ static int __init sh7757lcr_devices_setup(void)
 
 	/* register SPI device information */
 	spi_register_board_info(spi_board_info,
-				ARRAY_SIZE(spi_board_info));
+							ARRAY_SIZE(spi_board_info));
 
 	/* General platform */
 	return platform_add_devices(sh7757lcr_devices,
-				    ARRAY_SIZE(sh7757lcr_devices));
+								ARRAY_SIZE(sh7757lcr_devices));
 }
 arch_initcall(sh7757lcr_devices_setup);
 
@@ -602,7 +636,8 @@ static int sh7757lcr_mode_pins(void)
 }
 
 /* The Machine Vector */
-static struct sh_machine_vector mv_sh7757lcr __initmv = {
+static struct sh_machine_vector mv_sh7757lcr __initmv =
+{
 	.mv_name		= "SH7757LCR",
 	.mv_setup		= sh7757lcr_setup,
 	.mv_init_irq		= init_sh7757lcr_IRQ,

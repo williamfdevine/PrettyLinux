@@ -36,7 +36,9 @@ asmlinkage int sys_tas(int __user *addr)
 	int oldval;
 
 	if (!access_ok(VERIFY_WRITE, addr, sizeof (int)))
+	{
 		return -EFAULT;
+	}
 
 	/* atomic operation:
 	 *   oldval = *addr; *addr = 1;
@@ -69,7 +71,7 @@ asmlinkage int sys_tas(int __user *addr)
 		: "r" (addr), "r" (1), "i"(-EFAULT)
 		: "r14", "memory"
 #ifdef CONFIG_CHIP_M32700_TS1
-		  , "r4"
+		, "r4"
 #endif /* CONFIG_CHIP_M32700_TS1 */
 	);
 

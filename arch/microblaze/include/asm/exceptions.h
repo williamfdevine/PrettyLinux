@@ -16,7 +16,7 @@
 #ifdef __KERNEL__
 
 #ifndef CONFIG_MMU
-#define EX_HANDLER_STACK_SIZ	(4*19)
+	#define EX_HANDLER_STACK_SIZ	(4*19)
 #endif
 
 #ifndef __ASSEMBLY__
@@ -29,16 +29,16 @@
 #define __enable_hw_exceptions()					\
 	__asm__ __volatile__ ("	msrset	r0, %0;				\
 				nop;"					\
-				:					\
-				: "i" (HWEX_MSR_BIT)			\
-				: "memory")
+						  :					\
+						  : "i" (HWEX_MSR_BIT)			\
+						  : "memory")
 
 #define __disable_hw_exceptions()					\
 	__asm__ __volatile__ ("	msrclr r0, %0;				\
 				nop;"					\
-				:					\
-				: "i" (HWEX_MSR_BIT)			\
-				: "memory")
+						  :					\
+						  : "i" (HWEX_MSR_BIT)			\
+						  : "memory")
 #else /* !CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR */
 #define __enable_hw_exceptions()					\
 	__asm__ __volatile__ ("						\
@@ -47,9 +47,9 @@
 				ori	r12, r12, %0;			\
 				mts	rmsr, r12;			\
 				nop;"					\
-				:					\
-				: "i" (HWEX_MSR_BIT)			\
-				: "memory", "r12")
+						  :					\
+						  : "i" (HWEX_MSR_BIT)			\
+						  : "memory", "r12")
 
 #define __disable_hw_exceptions()					\
 	__asm__ __volatile__ ("						\
@@ -58,13 +58,13 @@
 				andi	r12, r12, ~%0;			\
 				mts	rmsr, r12;			\
 				nop;"					\
-				:					\
-				: "i" (HWEX_MSR_BIT)			\
-				: "memory", "r12")
+						  :					\
+						  : "i" (HWEX_MSR_BIT)			\
+						  : "memory", "r12")
 #endif /* CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR */
 
 asmlinkage void full_exception(struct pt_regs *regs, unsigned int type,
-							int fsr, int addr);
+							   int fsr, int addr);
 
 asmlinkage void sw_exception(struct pt_regs *regs);
 void bad_page_fault(struct pt_regs *regs, unsigned long address, int sig);

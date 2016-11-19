@@ -54,14 +54,15 @@ eb64p_disable_irq(struct irq_data *d)
 	eb64p_update_irq_hw(d->irq, cached_irq_mask |= 1 << d->irq);
 }
 
-static struct irq_chip eb64p_irq_type = {
+static struct irq_chip eb64p_irq_type =
+{
 	.name		= "EB64P",
 	.irq_unmask	= eb64p_enable_irq,
 	.irq_mask	= eb64p_disable_irq,
 	.irq_mask_ack	= eb64p_disable_irq,
 };
 
-static void 
+static void
 eb64p_device_interrupt(unsigned long vector)
 {
 	unsigned long pld;
@@ -74,13 +75,17 @@ eb64p_device_interrupt(unsigned long vector)
 	 * Now, for every possible bit set, work through
 	 * them and call the appropriate interrupt handler.
 	 */
-	while (pld) {
+	while (pld)
+	{
 		i = ffz(~pld);
 		pld &= pld - 1;	/* clear least bit set */
 
-		if (i == 5) {
+		if (i == 5)
+		{
 			isa_device_interrupt(vector);
-		} else {
+		}
+		else
+		{
 			handle_irq(16 + i);
 		}
 	}
@@ -92,12 +97,14 @@ eb64p_init_irq(void)
 	long i;
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_CABRIOLET)
+
 	/*
 	 * CABRIO SRM may not set variation correctly, so here we test
 	 * the high word of the interrupt summary register for the RAZ
 	 * bits, and hope that a true EB64+ would read all ones...
 	 */
-	if (inw(0x806) != 0xffff) {
+	if (inw(0x806) != 0xffff)
+	{
 		extern struct alpha_machine_vector cabriolet_mv;
 
 		printk("Detected Cabriolet: correcting HWRPB.\n");
@@ -109,6 +116,7 @@ eb64p_init_irq(void)
 		alpha_mv.init_irq();
 		return;
 	}
+
 #endif /* GENERIC */
 
 	outb(0xff, 0x26);
@@ -116,13 +124,14 @@ eb64p_init_irq(void)
 
 	init_i8259a_irqs();
 
-	for (i = 16; i < 32; ++i) {
+	for (i = 16; i < 32; ++i)
+	{
 		irq_set_chip_and_handler(i, &eb64p_irq_type, handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
 
 	common_init_isa_dma();
-	setup_irq(16+5, &isa_cascade_irqaction);
+	setup_irq(16 + 5, &isa_cascade_irqaction);
 }
 
 /*
@@ -160,9 +169,9 @@ eb64p_init_irq(void)
  *  7       PCI on board slot 1
  *  8       Intel SIO PCI-ISA bridge chip
  *  9       Tulip - DECchip 21040 Ethernet controller
- *   
  *
- * This two layered interrupt approach means that we allocate IRQ 16 and 
+ *
+ * This two layered interrupt approach means that we allocate IRQ 16 and
  * above for PCI interrupts.  The IRQ relates to which bit the interrupt
  * comes in on.  This makes interrupt processing much easier.
  */
@@ -170,13 +179,14 @@ eb64p_init_irq(void)
 static int __init
 eb64p_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[5][5] __initdata = {
+	static char irq_tab[5][5] __initdata =
+	{
 		/*INT  INTA  INTB  INTC   INTD */
-		{16+7, 16+7, 16+7, 16+7,  16+7},  /* IdSel 5,  slot ?, ?? */
-		{16+0, 16+0, 16+2, 16+4,  16+9},  /* IdSel 6,  slot ?, ?? */
-		{16+1, 16+1, 16+3, 16+8, 16+10},  /* IdSel 7,  slot ?, ?? */
+		{16 + 7, 16 + 7, 16 + 7, 16 + 7,  16 + 7}, /* IdSel 5,  slot ?, ?? */
+		{16 + 0, 16 + 0, 16 + 2, 16 + 4,  16 + 9}, /* IdSel 6,  slot ?, ?? */
+		{16 + 1, 16 + 1, 16 + 3, 16 + 8, 16 + 10}, /* IdSel 7,  slot ?, ?? */
 		{  -1,   -1,   -1,   -1,    -1},  /* IdSel 8,  SIO */
-		{16+6, 16+6, 16+6, 16+6,  16+6},  /* IdSel 9,  TULIP */
+		{16 + 6, 16 + 6, 16 + 6, 16 + 6,  16 + 6}, /* IdSel 9,  TULIP */
 	};
 	const long min_idsel = 5, max_idsel = 9, irqs_per_slot = 5;
 	return COMMON_TABLE_LOOKUP;
@@ -188,7 +198,8 @@ eb64p_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
  */
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_EB64P)
-struct alpha_machine_vector eb64p_mv __initmv = {
+struct alpha_machine_vector eb64p_mv __initmv =
+{
 	.vector_name		= "EB64+",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -213,7 +224,8 @@ ALIAS_MV(eb64p)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_EB66)
-struct alpha_machine_vector eb66_mv __initmv = {
+struct alpha_machine_vector eb66_mv __initmv =
+{
 	.vector_name		= "EB66",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,

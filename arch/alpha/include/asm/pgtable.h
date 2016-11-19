@@ -51,9 +51,9 @@ struct vm_area_struct;
 #define PTRS_PER_PAGE	(1UL << (PAGE_SHIFT-3))
 
 #ifdef CONFIG_ALPHA_LARGE_VMALLOC
-#define VMALLOC_START		0xfffffe0000000000
+	#define VMALLOC_START		0xfffffe0000000000
 #else
-#define VMALLOC_START		(-2*PGDIR_SIZE)
+	#define VMALLOC_START		(-2*PGDIR_SIZE)
 #endif
 #define VMALLOC_END		(-PGDIR_SIZE)
 
@@ -115,7 +115,7 @@ struct vm_area_struct;
  * Thus the "-w- -> rw-" and "-wx -> rwx" mapping here (and in
  * arch/alpha/mm/fault.c)
  */
-	/* xwr */
+/* xwr */
 #define __P000	_PAGE_P(_PAGE_FOE | _PAGE_FOW | _PAGE_FOR)
 #define __P001	_PAGE_P(_PAGE_FOE | _PAGE_FOW)
 #define __P010	_PAGE_P(_PAGE_FOE)
@@ -148,7 +148,7 @@ struct vm_area_struct;
  * for zero-mapped memory areas etc..
  */
 extern pte_t __bad_page(void);
-extern pmd_t * __bad_pagetable(void);
+extern pmd_t *__bad_pagetable(void);
 
 extern unsigned long __zero_page(void);
 
@@ -167,7 +167,7 @@ extern unsigned long __zero_page(void);
 
 /* to find an entry in a page-table */
 #define PAGE_PTR(address)		\
-  ((unsigned long)(address)>>(PAGE_SHIFT-SIZEOF_PTR_LOG2)&PTR_MASK&~PAGE_MASK)
+	((unsigned long)(address)>>(PAGE_SHIFT-SIZEOF_PTR_LOG2)&PTR_MASK&~PAGE_MASK)
 
 /*
  * On certain platforms whose physical address space can overlap KSEG,
@@ -178,7 +178,7 @@ extern unsigned long __zero_page(void);
  * just working around a userspace bug.  The X server was intending to
  * provide the physical address but instead provided the KSEG address.
  * Or tried to, except it's not representable.
- * 
+ *
  * On Tsunami there's nothing meaningful at 0x40000000000, so this is
  * a safe thing to do.  Come the first core logic that does put something
  * in this area -- memory or whathaveyou -- then this hack will have
@@ -186,14 +186,14 @@ extern unsigned long __zero_page(void);
  */
 
 #if defined(CONFIG_ALPHA_GENERIC) && defined(USE_48_BIT_KSEG)
-#error "EV6-only feature in a generic kernel"
+	#error "EV6-only feature in a generic kernel"
 #endif
 #if defined(CONFIG_ALPHA_GENERIC) || \
     (defined(CONFIG_ALPHA_EV6) && !defined(USE_48_BIT_KSEG))
 #define KSEG_PFN	(0xc0000000000UL >> PAGE_SHIFT)
 #define PHYS_TWIDDLE(pfn) \
-  ((((pfn) & KSEG_PFN) == (0x40000000000UL >> PAGE_SHIFT)) \
-  ? ((pfn) ^= KSEG_PFN) : (pfn))
+	((((pfn) & KSEG_PFN) == (0x40000000000UL >> PAGE_SHIFT)) \
+	 ? ((pfn) ^= KSEG_PFN) : (pfn))
 #else
 #define PHYS_TWIDDLE(pfn) (pfn)
 #endif
@@ -208,12 +208,12 @@ extern unsigned long __zero_page(void);
 #define pte_pfn(pte)	(pte_val(pte) >> 32)
 #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
 #define mk_pte(page, pgprot)						\
-({									\
-	pte_t pte;							\
-									\
-	pte_val(pte) = (page_to_pfn(page) << 32) | pgprot_val(pgprot);	\
-	pte;								\
-})
+	({									\
+		pte_t pte;							\
+		\
+		pte_val(pte) = (page_to_pfn(page) << 32) | pgprot_val(pgprot);	\
+		pte;								\
+	})
 #endif
 
 extern inline pte_t pfn_pte(unsigned long physpfn, pgprot_t pgprot)
@@ -222,26 +222,26 @@ extern inline pte_t pfn_pte(unsigned long physpfn, pgprot_t pgprot)
 extern inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 { pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); return pte; }
 
-extern inline void pmd_set(pmd_t * pmdp, pte_t * ptep)
-{ pmd_val(*pmdp) = _PAGE_TABLE | ((((unsigned long) ptep) - PAGE_OFFSET) << (32-PAGE_SHIFT)); }
+extern inline void pmd_set(pmd_t *pmdp, pte_t *ptep)
+{ pmd_val(*pmdp) = _PAGE_TABLE | ((((unsigned long) ptep) - PAGE_OFFSET) << (32 - PAGE_SHIFT)); }
 
-extern inline void pgd_set(pgd_t * pgdp, pmd_t * pmdp)
-{ pgd_val(*pgdp) = _PAGE_TABLE | ((((unsigned long) pmdp) - PAGE_OFFSET) << (32-PAGE_SHIFT)); }
+extern inline void pgd_set(pgd_t *pgdp, pmd_t *pmdp)
+{ pgd_val(*pgdp) = _PAGE_TABLE | ((((unsigned long) pmdp) - PAGE_OFFSET) << (32 - PAGE_SHIFT)); }
 
 
 extern inline unsigned long
 pmd_page_vaddr(pmd_t pmd)
 {
-	return ((pmd_val(pmd) & _PFN_MASK) >> (32-PAGE_SHIFT)) + PAGE_OFFSET;
+	return ((pmd_val(pmd) & _PFN_MASK) >> (32 - PAGE_SHIFT)) + PAGE_OFFSET;
 }
 
 #ifndef CONFIG_DISCONTIGMEM
-#define pmd_page(pmd)	(mem_map + ((pmd_val(pmd) & _PFN_MASK) >> 32))
-#define pgd_page(pgd)	(mem_map + ((pgd_val(pgd) & _PFN_MASK) >> 32))
+	#define pmd_page(pmd)	(mem_map + ((pmd_val(pmd) & _PFN_MASK) >> 32))
+	#define pgd_page(pgd)	(mem_map + ((pgd_val(pgd) & _PFN_MASK) >> 32))
 #endif
 
 extern inline unsigned long pgd_page_vaddr(pgd_t pgd)
-{ return PAGE_OFFSET + ((pgd_val(pgd) & _PFN_MASK) >> (32-PAGE_SHIFT)); }
+{ return PAGE_OFFSET + ((pgd_val(pgd) & _PFN_MASK) >> (32 - PAGE_SHIFT)); }
 
 extern inline int pte_none(pte_t pte)		{ return !pte_val(pte); }
 extern inline int pte_present(pte_t pte)	{ return pte_val(pte) & _PAGE_VALID; }
@@ -253,12 +253,12 @@ extern inline void pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *pt
 extern inline int pmd_none(pmd_t pmd)		{ return !pmd_val(pmd); }
 extern inline int pmd_bad(pmd_t pmd)		{ return (pmd_val(pmd) & ~_PFN_MASK) != _PAGE_TABLE; }
 extern inline int pmd_present(pmd_t pmd)	{ return pmd_val(pmd) & _PAGE_VALID; }
-extern inline void pmd_clear(pmd_t * pmdp)	{ pmd_val(*pmdp) = 0; }
+extern inline void pmd_clear(pmd_t *pmdp)	{ pmd_val(*pmdp) = 0; }
 
 extern inline int pgd_none(pgd_t pgd)		{ return !pgd_val(pgd); }
 extern inline int pgd_bad(pgd_t pgd)		{ return (pgd_val(pgd) & ~_PFN_MASK) != _PAGE_TABLE; }
 extern inline int pgd_present(pgd_t pgd)	{ return pgd_val(pgd) & _PAGE_VALID; }
-extern inline void pgd_clear(pgd_t * pgdp)	{ pgd_val(*pgdp) = 0; }
+extern inline void pgd_clear(pgd_t *pgdp)	{ pgd_val(*pgdp) = 0; }
 
 /*
  * The following only work if pte_present() is true.
@@ -300,7 +300,7 @@ extern inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
  */
 
 /* Find an entry in the second-level page table.. */
-extern inline pmd_t * pmd_offset(pgd_t * dir, unsigned long address)
+extern inline pmd_t *pmd_offset(pgd_t *dir, unsigned long address)
 {
 	pmd_t *ret = (pmd_t *) pgd_page_vaddr(*dir) + ((address >> PMD_SHIFT) & (PTRS_PER_PAGE - 1));
 	smp_read_barrier_depends(); /* see above */
@@ -308,10 +308,10 @@ extern inline pmd_t * pmd_offset(pgd_t * dir, unsigned long address)
 }
 
 /* Find an entry in the third-level page table.. */
-extern inline pte_t * pte_offset_kernel(pmd_t * dir, unsigned long address)
+extern inline pte_t *pte_offset_kernel(pmd_t *dir, unsigned long address)
 {
 	pte_t *ret = (pte_t *) pmd_page_vaddr(*dir)
-		+ ((address >> PAGE_SHIFT) & (PTRS_PER_PAGE - 1));
+				 + ((address >> PAGE_SHIFT) & (PTRS_PER_PAGE - 1));
 	smp_read_barrier_depends(); /* see above */
 	return ret;
 }
@@ -325,8 +325,8 @@ extern pgd_t swapper_pg_dir[1024];
  * The Alpha doesn't have any external MMU info:  the kernel page
  * tables contain all the necessary information.
  */
-extern inline void update_mmu_cache(struct vm_area_struct * vma,
-	unsigned long address, pte_t *ptep)
+extern inline void update_mmu_cache(struct vm_area_struct *vma,
+									unsigned long address, pte_t *ptep)
 {
 }
 
@@ -344,7 +344,7 @@ extern inline pte_t mk_swap_pte(unsigned long type, unsigned long offset)
 #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
 
 #ifndef CONFIG_DISCONTIGMEM
-#define kern_addr_valid(addr)	(1)
+	#define kern_addr_valid(addr)	(1)
 #endif
 
 #define pte_ERROR(e) \

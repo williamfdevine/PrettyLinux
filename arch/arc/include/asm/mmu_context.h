@@ -75,10 +75,13 @@ static inline void get_new_mmu_context(struct mm_struct *mm)
 	 * 	 value.
 	 */
 	if (!((asid_mm(mm, cpu) ^ asid_cpu(cpu)) & MM_CTXT_CYCLE_MASK))
+	{
 		goto set_hw;
+	}
 
 	/* move to new ASID and handle rollover */
-	if (unlikely(!(++asid_cpu(cpu) & MM_CTXT_ASID_MASK))) {
+	if (unlikely(!(++asid_cpu(cpu) & MM_CTXT_ASID_MASK)))
+	{
 
 		local_flush_tlb_all();
 
@@ -88,7 +91,9 @@ static inline void get_new_mmu_context(struct mm_struct *mm)
 		 * "generation" to distinguish from no context
 		 */
 		if (!asid_cpu(cpu))
+		{
 			asid_cpu(cpu) = MM_CTXT_FIRST_CYCLE;
+		}
 	}
 
 	/* Assign new ASID to tsk */
@@ -110,7 +115,7 @@ init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 	int i;
 
 	for_each_possible_cpu(i)
-		asid_mm(mm, i) = MM_CTXT_NO_ASID;
+	asid_mm(mm, i) = MM_CTXT_NO_ASID;
 
 	return 0;
 }
@@ -129,7 +134,7 @@ static inline void destroy_context(struct mm_struct *mm)
     If task doesn't have an ASID (never alloc or stolen, get a new ASID)
 */
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
 	const int cpu = smp_processor_id();
 

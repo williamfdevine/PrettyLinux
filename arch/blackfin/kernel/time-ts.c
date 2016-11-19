@@ -35,7 +35,8 @@ static notrace cycle_t bfin_read_cycles(struct clocksource *cs)
 #endif
 }
 
-static struct clocksource bfin_cs_cycles = {
+static struct clocksource bfin_cs_cycles =
+{
 	.name		= "bfin_cs_cycles",
 	.rating		= 400,
 	.read		= bfin_read_cycles,
@@ -46,13 +47,15 @@ static struct clocksource bfin_cs_cycles = {
 static inline unsigned long long bfin_cs_cycles_sched_clock(void)
 {
 	return clocksource_cyc2ns(bfin_read_cycles(&bfin_cs_cycles),
-		bfin_cs_cycles.mult, bfin_cs_cycles.shift);
+							  bfin_cs_cycles.mult, bfin_cs_cycles.shift);
 }
 
 static int __init bfin_cs_cycles_init(void)
 {
 	if (clocksource_register_hz(&bfin_cs_cycles, get_cclk()))
+	{
 		panic("failed to register clocksource");
+	}
 
 	return 0;
 }
@@ -69,10 +72,10 @@ void __init setup_gptimer0(void)
 #ifdef CONFIG_BF60x
 	bfin_write16(TIMER_DATA_IMSK, 0);
 	set_gptimer_config(TIMER0_id,  TIMER_OUT_DIS
-		| TIMER_MODE_PWM_CONT | TIMER_PULSE_HI | TIMER_IRQ_PER);
+					   | TIMER_MODE_PWM_CONT | TIMER_PULSE_HI | TIMER_IRQ_PER);
 #else
 	set_gptimer_config(TIMER0_id, \
-		TIMER_OUT_DIS | TIMER_PERIOD_CNT | TIMER_MODE_PWM);
+					   TIMER_OUT_DIS | TIMER_PERIOD_CNT | TIMER_MODE_PWM);
 #endif
 	set_gptimer_period(TIMER0_id, -1);
 	set_gptimer_pwidth(TIMER0_id, -2);
@@ -85,7 +88,8 @@ static cycle_t bfin_read_gptimer0(struct clocksource *cs)
 	return bfin_read_TIMER0_COUNTER();
 }
 
-static struct clocksource bfin_cs_gptimer0 = {
+static struct clocksource bfin_cs_gptimer0 =
+{
 	.name		= "bfin_cs_gptimer0",
 	.rating		= 350,
 	.read		= bfin_read_gptimer0,
@@ -96,7 +100,7 @@ static struct clocksource bfin_cs_gptimer0 = {
 static inline unsigned long long bfin_cs_gptimer0_sched_clock(void)
 {
 	return clocksource_cyc2ns(bfin_read_TIMER0_COUNTER(),
-		bfin_cs_gptimer0.mult, bfin_cs_gptimer0.shift);
+							  bfin_cs_gptimer0.mult, bfin_cs_gptimer0.shift);
 }
 
 static int __init bfin_cs_gptimer0_init(void)
@@ -104,7 +108,9 @@ static int __init bfin_cs_gptimer0_init(void)
 	setup_gptimer0();
 
 	if (clocksource_register_hz(&bfin_cs_gptimer0, get_sclk()))
+	{
 		panic("failed to register clocksource");
+	}
 
 	return 0;
 }
@@ -126,7 +132,7 @@ notrace unsigned long long sched_clock(void)
 
 #if defined(CONFIG_TICKSOURCE_GPTMR0)
 static int bfin_gptmr0_set_next_event(unsigned long cycles,
-                                     struct clock_event_device *evt)
+									  struct clock_event_device *evt)
 {
 	disable_gptimers(TIMER0bit);
 
@@ -140,12 +146,12 @@ static int bfin_gptmr0_set_periodic(struct clock_event_device *evt)
 {
 #ifndef CONFIG_BF60x
 	set_gptimer_config(TIMER0_id,
-			   TIMER_OUT_DIS | TIMER_IRQ_ENA |
-			   TIMER_PERIOD_CNT | TIMER_MODE_PWM);
+					   TIMER_OUT_DIS | TIMER_IRQ_ENA |
+					   TIMER_PERIOD_CNT | TIMER_MODE_PWM);
 #else
 	set_gptimer_config(TIMER0_id,
-			   TIMER_OUT_DIS | TIMER_MODE_PWM_CONT |
-			   TIMER_PULSE_HI | TIMER_IRQ_PER);
+					   TIMER_OUT_DIS | TIMER_MODE_PWM_CONT |
+					   TIMER_PULSE_HI | TIMER_IRQ_PER);
 #endif
 
 	set_gptimer_period(TIMER0_id, get_sclk() / HZ);
@@ -159,11 +165,11 @@ static int bfin_gptmr0_set_oneshot(struct clock_event_device *evt)
 	disable_gptimers(TIMER0bit);
 #ifndef CONFIG_BF60x
 	set_gptimer_config(TIMER0_id,
-			   TIMER_OUT_DIS | TIMER_IRQ_ENA | TIMER_MODE_PWM);
+					   TIMER_OUT_DIS | TIMER_IRQ_ENA | TIMER_MODE_PWM);
 #else
 	set_gptimer_config(TIMER0_id,
-			   TIMER_OUT_DIS | TIMER_MODE_PWM | TIMER_PULSE_HI |
-			   TIMER_IRQ_WID_DLY);
+					   TIMER_OUT_DIS | TIMER_MODE_PWM | TIMER_PULSE_HI |
+					   TIMER_IRQ_WID_DLY);
 #endif
 
 	set_gptimer_period(TIMER0_id, 0);
@@ -187,7 +193,7 @@ static void __init bfin_gptmr0_init(void)
 }
 
 #ifdef CONFIG_CORE_TIMER_IRQ_L1
-__attribute__((l1_text))
+	__attribute__((l1_text))
 #endif
 irqreturn_t bfin_gptmr0_interrupt(int irq, void *dev_id)
 {
@@ -204,19 +210,21 @@ irqreturn_t bfin_gptmr0_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction gptmr0_irq = {
+static struct irqaction gptmr0_irq =
+{
 	.name		= "Blackfin GPTimer0",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL | IRQF_PERCPU,
 	.handler	= bfin_gptmr0_interrupt,
 };
 
-static struct clock_event_device clockevent_gptmr0 = {
+static struct clock_event_device clockevent_gptmr0 =
+{
 	.name			= "bfin_gptimer0",
 	.rating			= 300,
 	.irq			= IRQ_TIMER0,
 	.shift			= 32,
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_next_event		= bfin_gptmr0_set_next_event,
 	.set_state_shutdown	= bfin_gptmr0_shutdown,
 	.set_state_periodic	= bfin_gptmr0_set_periodic,
@@ -243,7 +251,7 @@ static void __init bfin_gptmr0_clockevent_init(struct clock_event_device *evt)
 DEFINE_PER_CPU(struct clock_event_device, coretmr_events);
 
 static int bfin_coretmr_set_next_event(unsigned long cycles,
-				struct clock_event_device *evt)
+									   struct clock_event_device *evt)
 {
 	bfin_write_TCNTL(TMPWR);
 	CSYNC();
@@ -299,7 +307,7 @@ void bfin_coretmr_init(void)
 }
 
 #ifdef CONFIG_CORE_TIMER_IRQ_L1
-__attribute__((l1_text))
+	__attribute__((l1_text))
 #endif
 
 irqreturn_t bfin_coretmr_interrupt(int irq, void *dev_id)
@@ -315,7 +323,8 @@ irqreturn_t bfin_coretmr_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction coretmr_irq = {
+static struct irqaction coretmr_irq =
+{
 	.name		= "Blackfin CoreTimer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL | IRQF_PERCPU,
 	.handler	= bfin_coretmr_interrupt,
@@ -364,14 +373,17 @@ void __init time_init(void)
 {
 
 #ifdef CONFIG_RTC_DRV_BFIN
+
 	/* [#2663] hack to filter junk RTC values that would cause
 	 * userspace to have to deal with time values greater than
 	 * 2^31 seconds (which uClibc cannot cope with yet)
 	 */
-	if ((bfin_read_RTC_STAT() & 0xC0000000) == 0xC0000000) {
+	if ((bfin_read_RTC_STAT() & 0xC0000000) == 0xC0000000)
+	{
 		printk(KERN_NOTICE "bfin-rtc: invalid date; resetting\n");
 		bfin_write_RTC_STAT(0);
 	}
+
 #endif
 
 	bfin_cs_cycles_init();

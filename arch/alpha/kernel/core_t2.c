@@ -46,11 +46,11 @@
 #define T2_DIRECTMAP_2G 1
 
 #if T2_DIRECTMAP_2G
-# define T2_DIRECTMAP_START	0x80000000UL
-# define T2_DIRECTMAP_LENGTH	0x80000000UL
+	#define T2_DIRECTMAP_START	0x80000000UL
+	#define T2_DIRECTMAP_LENGTH	0x80000000UL
 #else
-# define T2_DIRECTMAP_START	0x40000000UL
-# define T2_DIRECTMAP_LENGTH	0x40000000UL
+	#define T2_DIRECTMAP_START	0x40000000UL
+	#define T2_DIRECTMAP_LENGTH	0x40000000UL
 #endif
 
 /* The ISA scatter/gather window settings. */
@@ -58,7 +58,7 @@
 #define T2_ISA_SG_LENGTH	0x00800000UL
 
 /*
- * NOTE: Herein lie back-to-back mb instructions.  They are magic. 
+ * NOTE: Herein lie back-to-back mb instructions.  They are magic.
  * One plausible explanation is that the i/o controller does not properly
  * handle the system transaction.  Another involves timing.  Ho hum.
  */
@@ -70,9 +70,9 @@
 #define DEBUG_CONFIG 0
 
 #if DEBUG_CONFIG
-# define DBG(args)	printk args
+	#define DBG(args)	printk args
 #else
-# define DBG(args)
+	#define DBG(args)
 #endif
 
 static volatile unsigned int t2_mcheck_any_expected;
@@ -82,13 +82,14 @@ static volatile unsigned int t2_mcheck_last_taken;
    for restoration during shutdown. */
 static struct
 {
-	struct {
+	struct
+	{
 		unsigned long wbase;
 		unsigned long wmask;
 		unsigned long tbase;
 	} window[2];
 	unsigned long hae_1;
-  	unsigned long hae_2;
+	unsigned long hae_2;
 	unsigned long hae_3;
 	unsigned long hae_4;
 	unsigned long hbase;
@@ -103,7 +104,7 @@ static struct
  *
  * Type 0:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | |D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|0|
@@ -115,7 +116,7 @@ static struct
  *
  * Type 1:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | | | | | | | | | |B|B|B|B|B|B|B|B|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|1|
@@ -126,11 +127,11 @@ static struct
  *	15:11	Device number (5 bits)
  *	10:8	function number
  *	 7:2	register number
- *  
+ *
  * Notes:
- *	The function number selects which function of a multi-function device 
+ *	The function number selects which function of a multi-function device
  *	(e.g., SCSI and Ethernet).
- * 
+ *
  *	The register selects a DWORD (32 bit) register offset.  Hence it
  *	doesn't get shifted by 2 bits as we want to "drop" the bottom two
  *	bits.
@@ -138,33 +139,38 @@ static struct
 
 static int
 mk_conf_addr(struct pci_bus *pbus, unsigned int device_fn, int where,
-	     unsigned long *pci_addr, unsigned char *type1)
+			 unsigned long *pci_addr, unsigned char *type1)
 {
 	unsigned long addr;
 	u8 bus = pbus->number;
 
 	DBG(("mk_conf_addr(bus=%d, dfn=0x%x, where=0x%x,"
-	     " addr=0x%lx, type1=0x%x)\n",
-	     bus, device_fn, where, pci_addr, type1));
+		 " addr=0x%lx, type1=0x%x)\n",
+		 bus, device_fn, where, pci_addr, type1));
 
-	if (bus == 0) {
+	if (bus == 0)
+	{
 		int device = device_fn >> 3;
 
 		/* Type 0 configuration cycle.  */
 
-		if (device > 8) {
+		if (device > 8)
+		{
 			DBG(("mk_conf_addr: device (%d)>20, returning -1\n",
-			     device));
+				 device));
 			return -1;
 		}
 
 		*type1 = 0;
 		addr = (0x0800L << device) | ((device_fn & 7) << 8) | (where);
-	} else {
+	}
+	else
+	{
 		/* Type 1 configuration cycle.  */
 		*type1 = 1;
 		addr = (bus << 16) | (device_fn << 8) | (where);
 	}
+
 	*pci_addr = addr;
 	DBG(("mk_conf_addr: returning pci_addr 0x%lx\n", addr));
 	return 0;
@@ -187,11 +193,13 @@ conf_read(unsigned long addr, unsigned char type1)
 	DBG(("conf_read(addr=0x%lx, type1=%d)\n", addr, type1));
 
 	/* If Type1 access, must set T2 CFG.  */
-	if (type1) {
+	if (type1)
+	{
 		t2_cfg = *(vulp)T2_HAE_3 & ~0xc0000000UL;
 		*(vulp)T2_HAE_3 = 0x40000000UL | t2_cfg;
 		mb();
 	}
+
 	mb();
 	draina();
 
@@ -211,18 +219,21 @@ conf_read(unsigned long addr, unsigned char type1)
 	   the "taken" function. */
 	udelay(100);
 
-	if ((taken = mcheck_taken(cpu))) {
+	if ((taken = mcheck_taken(cpu)))
+	{
 		mcheck_taken(cpu) = 0;
 		t2_mcheck_last_taken |= (1 << cpu);
 		value = 0xffffffffU;
 		mb();
 	}
+
 	mcheck_expected(cpu) = 0;
 	t2_mcheck_any_expected = 0;
 	mb();
 
 	/* If Type1 access, must reset T2 CFG so normal IO space ops work.  */
-	if (type1) {
+	if (type1)
+	{
 		*(vulp)T2_HAE_3 = t2_cfg;
 		mb();
 	}
@@ -239,11 +250,13 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 	cpu = smp_processor_id();
 
 	/* If Type1 access, must set T2 CFG.  */
-	if (type1) {
+	if (type1)
+	{
 		t2_cfg = *(vulp)T2_HAE_3 & ~0xc0000000UL;
 		*(vulp)T2_HAE_3 = t2_cfg | 0x40000000UL;
 		mb();
 	}
+
 	mb();
 	draina();
 
@@ -263,17 +276,20 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 	   the "taken" function. */
 	udelay(100);
 
-	if ((taken = mcheck_taken(cpu))) {
+	if ((taken = mcheck_taken(cpu)))
+	{
 		mcheck_taken(cpu) = 0;
 		t2_mcheck_last_taken |= (1 << cpu);
 		mb();
 	}
+
 	mcheck_expected(cpu) = 0;
 	t2_mcheck_any_expected = 0;
 	mb();
 
 	/* If Type1 access, must reset T2 CFG so normal IO space ops work.  */
-	if (type1) {
+	if (type1)
+	{
 		*(vulp)T2_HAE_3 = t2_cfg;
 		mb();
 	}
@@ -281,7 +297,7 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 
 static int
 t2_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-	       int size, u32 *value)
+			   int size, u32 *value)
 {
 	unsigned long addr, pci_addr;
 	unsigned char type1;
@@ -289,7 +305,9 @@ t2_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 	long mask;
 
 	if (mk_conf_addr(bus, devfn, where, &pci_addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	mask = (size - 1) * 8;
 	shift = (where & 3) * 8;
@@ -298,16 +316,18 @@ t2_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static int 
+static int
 t2_write_config(struct pci_bus *bus, unsigned int devfn, int where, int size,
-		u32 value)
+				u32 value)
 {
 	unsigned long addr, pci_addr;
 	unsigned char type1;
 	long mask;
 
 	if (mk_conf_addr(bus, devfn, where, &pci_addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	mask = (size - 1) * 8;
 	addr = (pci_addr << 5) + mask + T2_CONF;
@@ -315,7 +335,7 @@ t2_write_config(struct pci_bus *bus, unsigned int devfn, int where, int size,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops t2_pci_ops = 
+struct pci_ops t2_pci_ops =
 {
 	.read =		t2_read_config,
 	.write =	t2_write_config,
@@ -337,14 +357,14 @@ t2_direct_map_window1(unsigned long base, unsigned long length)
 
 #if DEBUG_PRINT_FINAL_SETTINGS
 	printk("%s: setting WBASE1=0x%lx WMASK1=0x%lx TBASE1=0x%lx\n",
-	       __func__, *(vulp)T2_WBASE1, *(vulp)T2_WMASK1, *(vulp)T2_TBASE1);
+		   __func__, *(vulp)T2_WBASE1, *(vulp)T2_WMASK1, *(vulp)T2_TBASE1);
 #endif
 }
 
 static void __init
 t2_sg_map_window2(struct pci_controller *hose,
-		  unsigned long base,
-		  unsigned long length)
+				  unsigned long base,
+				  unsigned long length)
 {
 	unsigned long temp;
 
@@ -364,7 +384,7 @@ t2_sg_map_window2(struct pci_controller *hose,
 
 #if DEBUG_PRINT_FINAL_SETTINGS
 	printk("%s: setting WBASE2=0x%lx WMASK2=0x%lx TBASE2=0x%lx\n",
-	       __func__, *(vulp)T2_WBASE2, *(vulp)T2_WMASK2, *(vulp)T2_TBASE2);
+		   __func__, *(vulp)T2_WBASE2, *(vulp)T2_WMASK2, *(vulp)T2_TBASE2);
 #endif
 }
 
@@ -379,9 +399,9 @@ t2_save_configuration(void)
 	printk("%s: HBASE was 0x%lx\n", __func__, *(vulp)T2_HBASE);
 
 	printk("%s: WBASE1=0x%lx WMASK1=0x%lx TBASE1=0x%lx\n", __func__,
-	       *(vulp)T2_WBASE1, *(vulp)T2_WMASK1, *(vulp)T2_TBASE1);
+		   *(vulp)T2_WBASE1, *(vulp)T2_WMASK1, *(vulp)T2_TBASE1);
 	printk("%s: WBASE2=0x%lx WMASK2=0x%lx TBASE2=0x%lx\n", __func__,
-	       *(vulp)T2_WBASE2, *(vulp)T2_WMASK2, *(vulp)T2_TBASE2);
+		   *(vulp)T2_WBASE2, *(vulp)T2_WMASK2, *(vulp)T2_TBASE2);
 #endif
 
 	/*
@@ -409,20 +429,24 @@ t2_init_arch(void)
 	unsigned long temp;
 	unsigned int i;
 
-	for (i = 0; i < NR_CPUS; i++) {
+	for (i = 0; i < NR_CPUS; i++)
+	{
 		mcheck_expected(i) = 0;
 		mcheck_taken(i) = 0;
 	}
+
 	t2_mcheck_any_expected = 0;
 	t2_mcheck_last_taken = 0;
 
 	/* Enable scatter/gather TLB use.  */
 	temp = *(vulp)T2_IOCSR;
-	if (!(temp & (0x1UL << 26))) {
+
+	if (!(temp & (0x1UL << 26)))
+	{
 		printk("t2_init_arch: enabling SG TLB, IOCSR was 0x%lx\n",
-		       temp);
+			   temp);
 		*(vulp)T2_IOCSR = temp | (0x1UL << 26);
-		mb();	
+		mb();
 		*(vulp)T2_IOCSR; /* read it back to make sure */
 	}
 
@@ -437,8 +461,12 @@ t2_init_arch(void)
 	hae_mem->start = 0;
 	hae_mem->end = T2_MEM_R1_MASK;
 	hae_mem->name = pci_hae0_name;
+
 	if (request_resource(&iomem_resource, hae_mem) < 0)
+	{
 		printk(KERN_ERR "Failed to request HAE_MEM\n");
+	}
+
 	hose->mem_space = hae_mem;
 	hose->index = 0;
 
@@ -527,7 +555,7 @@ t2_clear_errors(int cpu)
 	struct sable_cpu_csr *cpu_regs;
 
 	cpu_regs = (struct sable_cpu_csr *)T2_CPUn_BASE(cpu);
-		
+
 	cpu_regs->sic &= ~SIC_SEIC;
 
 	/* Clear CPU errors.  */
@@ -572,7 +600,8 @@ t2_machine_check(unsigned long vector, unsigned long la_ptr)
 	mb();
 
 	/* Now, do testing for the anomalous conditions. */
-	if (!mcheck_expected(cpu) && t2_mcheck_any_expected) {
+	if (!mcheck_expected(cpu) && t2_mcheck_any_expected)
+	{
 		/*
 		 * FUNKY: Received mcheck on a CPU and not
 		 * expecting it, but another CPU is expecting one.
@@ -580,43 +609,55 @@ t2_machine_check(unsigned long vector, unsigned long la_ptr)
 		 * Just dismiss it for now on this CPU...
 		 */
 #ifdef CONFIG_VERBOSE_MCHECK
-		if (alpha_verbose_mcheck > 1) {
+		if (alpha_verbose_mcheck > 1)
+		{
 			printk("t2_machine_check(cpu%d): any_expected 0x%x -"
-			       " (assumed) spurious -"
-			       " code 0x%x\n", cpu, t2_mcheck_any_expected,
-			       (unsigned int)mchk_header->code);
+				   " (assumed) spurious -"
+				   " code 0x%x\n", cpu, t2_mcheck_any_expected,
+				   (unsigned int)mchk_header->code);
 		}
+
 #endif
 		return;
 	}
 
-	if (!mcheck_expected(cpu) && !t2_mcheck_any_expected) {
-		if (t2_mcheck_last_taken & (1 << cpu)) {
+	if (!mcheck_expected(cpu) && !t2_mcheck_any_expected)
+	{
+		if (t2_mcheck_last_taken & (1 << cpu))
+		{
 #ifdef CONFIG_VERBOSE_MCHECK
-		    if (alpha_verbose_mcheck > 1) {
-			printk("t2_machine_check(cpu%d): last_taken 0x%x - "
-			       "unexpected mcheck - code 0x%x\n",
-			       cpu, t2_mcheck_last_taken,
-			       (unsigned int)mchk_header->code);
-		    }
+
+			if (alpha_verbose_mcheck > 1)
+			{
+				printk("t2_machine_check(cpu%d): last_taken 0x%x - "
+					   "unexpected mcheck - code 0x%x\n",
+					   cpu, t2_mcheck_last_taken,
+					   (unsigned int)mchk_header->code);
+			}
+
 #endif
-		    t2_mcheck_last_taken = 0;
-		    mb();
-		    return;
-		} else {
+			t2_mcheck_last_taken = 0;
+			mb();
+			return;
+		}
+		else
+		{
 			t2_mcheck_last_taken = 0;
 			mb();
 		}
 	}
 
 #ifdef CONFIG_VERBOSE_MCHECK
-	if (alpha_verbose_mcheck > 1) {
+
+	if (alpha_verbose_mcheck > 1)
+	{
 		printk("%s t2_mcheck(cpu%d): last_taken 0x%x - "
-		       "any_expected 0x%x - code 0x%x\n",
-		       (mcheck_expected(cpu) ? "EX" : "UN"), cpu,
-		       t2_mcheck_last_taken, t2_mcheck_any_expected,
-		       (unsigned int)mchk_header->code);
+			   "any_expected 0x%x - code 0x%x\n",
+			   (mcheck_expected(cpu) ? "EX" : "UN"), cpu,
+			   t2_mcheck_last_taken, t2_mcheck_any_expected,
+			   (unsigned int)mchk_header->code);
 	}
+
 #endif
 
 	process_mcheck_info(vector, la_ptr, "T2", mcheck_expected(cpu));

@@ -24,20 +24,20 @@
  */
 static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
 {
-/* changed the size calculations - should hopefully work better. lbt */
+	/* changed the size calculations - should hopefully work better. lbt */
 	dump->magic = CMAGIC;
 	dump->start_code = 0;
 	dump->start_stack = regs->sp & ~(PAGE_SIZE - 1);
 	dump->u_tsize = ((unsigned long)current->mm->end_code) >> PAGE_SHIFT;
 	dump->u_dsize = ((unsigned long)(current->mm->brk + (PAGE_SIZE - 1)))
-			>> PAGE_SHIFT;
+					>> PAGE_SHIFT;
 	dump->u_dsize -= dump->u_tsize;
 	dump->u_ssize = 0;
 	aout_dump_debugregs(dump);
 
 	if (dump->start_stack < TASK_SIZE)
 		dump->u_ssize = ((unsigned long)(TASK_SIZE - dump->start_stack))
-				>> PAGE_SHIFT;
+						>> PAGE_SHIFT;
 
 	dump->regs.bx = regs->bx;
 	dump->regs.cx = regs->cx;

@@ -4,27 +4,27 @@
 #include <asm/cache.h>
 
 #if defined(CONFIG_PHYSICAL_ALIGN) && (CONFIG_PHYSICAL_START != 0)
-#if (CONFIG_PHYSICAL_START % CONFIG_PHYSICAL_ALIGN) != 0
-#error "CONFIG_PHYSICAL_START must be a multiple of CONFIG_PHYSICAL_ALIGN"
-#endif
+	#if (CONFIG_PHYSICAL_START % CONFIG_PHYSICAL_ALIGN) != 0
+		#error "CONFIG_PHYSICAL_START must be a multiple of CONFIG_PHYSICAL_ALIGN"
+	#endif
 #endif
 
 #define VM_DATA_DEFAULT_FLAGS	VM_DATA_DEFAULT_FLAGS32
 
 #ifdef CONFIG_NOT_COHERENT_CACHE
-#define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
+	#define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
 #endif
 
 #ifdef CONFIG_PTE_64BIT
-#define PTE_FLAGS_OFFSET	4	/* offset of PTE flags, in bytes */
+	#define PTE_FLAGS_OFFSET	4	/* offset of PTE flags, in bytes */
 #else
-#define PTE_FLAGS_OFFSET	0
+	#define PTE_FLAGS_OFFSET	0
 #endif
 
 #ifdef CONFIG_PPC_256K_PAGES
-#define PTE_SHIFT	(PAGE_SHIFT - PTE_T_LOG2 - 2)	/* 1/4 of a page */
+	#define PTE_SHIFT	(PAGE_SHIFT - PTE_T_LOG2 - 2)	/* 1/4 of a page */
 #else
-#define PTE_SHIFT	(PAGE_SHIFT - PTE_T_LOG2)	/* full page */
+	#define PTE_SHIFT	(PAGE_SHIFT - PTE_T_LOG2)	/* full page */
 #endif
 
 #ifndef __ASSEMBLY__
@@ -33,9 +33,9 @@
  * physical addressing.
  */
 #ifdef CONFIG_PTE_64BIT
-typedef unsigned long long pte_basic_t;
+	typedef unsigned long long pte_basic_t;
 #else
-typedef unsigned long pte_basic_t;
+	typedef unsigned long pte_basic_t;
 #endif
 
 /*
@@ -48,7 +48,9 @@ static inline void clear_page(void *addr)
 	unsigned int i;
 
 	for (i = 0; i < PAGE_SIZE / L1_CACHE_BYTES; i++, addr += L1_CACHE_BYTES)
+	{
 		dcbz(addr);
+	}
 }
 extern void copy_page(void *to, void *from);
 

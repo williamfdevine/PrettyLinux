@@ -6,7 +6,8 @@
 /* From the document "H_GetPerformanceCounterInfo Interface" v1.07 */
 
 /* H_GET_PERF_COUNTER_INFO argument */
-struct hv_get_perf_counter_info_params {
+struct hv_get_perf_counter_info_params
+{
 	__be32 counter_request; /* I */
 	__be32 starting_index;  /* IO */
 	__be16 secondary_index; /* IO */
@@ -43,7 +44,8 @@ struct hv_get_perf_counter_info_params {
 #define COUNTER_INFO_VERSION_CURRENT 0x8
 
 /* capability mask masks. */
-enum {
+enum
+{
 	HV_GPCI_CM_GA = (1 << 7),
 	HV_GPCI_CM_EXPANDED = (1 << 6),
 	HV_GPCI_CM_LAB = (1 << 5)

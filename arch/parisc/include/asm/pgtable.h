@@ -42,8 +42,11 @@ static inline void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
 {
 	mtsp(mm->context, 1);
 	pdtlb(addr);
+
 	if (unlikely(split_tlb))
+	{
 		pitlb(addr);
+	}
 }
 
 /* Certain architectures need to do special things when PTEs
@@ -51,9 +54,9 @@ static inline void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
  * hook is made available.
  */
 #define set_pte(pteptr, pteval)                                 \
-        do{                                                     \
-                *(pteptr) = (pteval);                           \
-        } while(0)
+	do{                                                     \
+		*(pteptr) = (pteval);                           \
+	} while(0)
 
 #define pte_inserted(x)						\
 	((pte_val(x) & (_PAGE_PRESENT|_PAGE_ACCESSED))		\
@@ -84,19 +87,19 @@ static inline void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
 
 /* This is the size of the initially mapped kernel memory */
 #if defined(CONFIG_64BIT)
-#define KERNEL_INITIAL_ORDER	26	/* 1<<26 = 64MB */
+	#define KERNEL_INITIAL_ORDER	26	/* 1<<26 = 64MB */
 #else
-#define KERNEL_INITIAL_ORDER	25	/* 1<<25 = 32MB */
+	#define KERNEL_INITIAL_ORDER	25	/* 1<<25 = 32MB */
 #endif
 #define KERNEL_INITIAL_SIZE	(1 << KERNEL_INITIAL_ORDER)
 
 #if CONFIG_PGTABLE_LEVELS == 3
-#define PGD_ORDER	1 /* Number of pages per pgd */
-#define PMD_ORDER	1 /* Number of pages per pmd */
-#define PGD_ALLOC_ORDER	2 /* first pgd contains pmd */
+	#define PGD_ORDER	1 /* Number of pages per pgd */
+	#define PMD_ORDER	1 /* Number of pages per pmd */
+	#define PGD_ALLOC_ORDER	2 /* first pgd contains pmd */
 #else
-#define PGD_ORDER	1 /* Number of pages per pgd */
-#define PGD_ALLOC_ORDER	PGD_ORDER
+	#define PGD_ORDER	1 /* Number of pages per pgd */
+	#define PGD_ALLOC_ORDER	PGD_ORDER
 #endif
 
 /* Definitions for 3rd level (we use PLD here for Page Lower directory
@@ -114,19 +117,19 @@ static inline void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
 #define PMD_SIZE	(1UL << PMD_SHIFT)
 #define PMD_MASK	(~(PMD_SIZE-1))
 #if CONFIG_PGTABLE_LEVELS == 3
-#define BITS_PER_PMD	(PAGE_SHIFT + PMD_ORDER - BITS_PER_PMD_ENTRY)
+	#define BITS_PER_PMD	(PAGE_SHIFT + PMD_ORDER - BITS_PER_PMD_ENTRY)
 #else
-#define __PAGETABLE_PMD_FOLDED
-#define BITS_PER_PMD	0
+	#define __PAGETABLE_PMD_FOLDED
+	#define BITS_PER_PMD	0
 #endif
 #define PTRS_PER_PMD    (1UL << BITS_PER_PMD)
 
 /* Definitions for 1st level */
 #define PGDIR_SHIFT	(PMD_SHIFT + BITS_PER_PMD)
 #if (PGDIR_SHIFT + PAGE_SHIFT + PGD_ORDER - BITS_PER_PGD_ENTRY) > BITS_PER_LONG
-#define BITS_PER_PGD	(BITS_PER_LONG - PGDIR_SHIFT)
+	#define BITS_PER_PGD	(BITS_PER_LONG - PGDIR_SHIFT)
 #else
-#define BITS_PER_PGD	(PAGE_SHIFT + PGD_ORDER - BITS_PER_PGD_ENTRY)
+	#define BITS_PER_PGD	(PAGE_SHIFT + PGD_ORDER - BITS_PER_PGD_ENTRY)
 #endif
 #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
@@ -134,21 +137,21 @@ static inline void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
 #define USER_PTRS_PER_PGD       PTRS_PER_PGD
 
 #ifdef CONFIG_64BIT
-#define MAX_ADDRBITS	(PGDIR_SHIFT + BITS_PER_PGD)
-#define MAX_ADDRESS	(1UL << MAX_ADDRBITS)
-#define SPACEID_SHIFT	(MAX_ADDRBITS - 32)
+	#define MAX_ADDRBITS	(PGDIR_SHIFT + BITS_PER_PGD)
+	#define MAX_ADDRESS	(1UL << MAX_ADDRBITS)
+	#define SPACEID_SHIFT	(MAX_ADDRBITS - 32)
 #else
-#define MAX_ADDRBITS	(BITS_PER_LONG)
-#define MAX_ADDRESS	(1UL << MAX_ADDRBITS)
-#define SPACEID_SHIFT	0
+	#define MAX_ADDRBITS	(BITS_PER_LONG)
+	#define MAX_ADDRESS	(1UL << MAX_ADDRBITS)
+	#define SPACEID_SHIFT	0
 #endif
 
 /* This calculates the number of initial pages we need for the initial
  * page tables */
 #if (KERNEL_INITIAL_ORDER) >= (PMD_SHIFT)
-# define PT_INITIAL	(1 << (KERNEL_INITIAL_ORDER - PMD_SHIFT))
+	#define PT_INITIAL	(1 << (KERNEL_INITIAL_ORDER - PMD_SHIFT))
 #else
-# define PT_INITIAL	(1)  /* all initial PTEs fit into one page */
+	#define PT_INITIAL	(1)  /* all initial PTEs fit into one page */
 #endif
 
 /*
@@ -252,7 +255,7 @@ static inline void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
  * pages.
  */
 
-	 /*xwr*/
+/*xwr*/
 #define __P000  PAGE_NONE
 #define __P001  PAGE_READONLY
 #define __P010  __P000 /* copy on write */
@@ -299,20 +302,24 @@ extern unsigned long *empty_zero_page;
 #define pgd_address(x)	((unsigned long)(pgd_val(x) &~ PxD_FLAG_MASK) << PxD_VALUE_SHIFT)
 
 #if CONFIG_PGTABLE_LEVELS == 3
-/* The first entry of the permanent pmd is not there if it contains
- * the gateway marker */
-#define pmd_none(x)	(!pmd_val(x) || pmd_flag(x) == PxD_FLAG_ATTACHED)
+	/* The first entry of the permanent pmd is not there if it contains
+	* the gateway marker */
+	#define pmd_none(x)	(!pmd_val(x) || pmd_flag(x) == PxD_FLAG_ATTACHED)
 #else
-#define pmd_none(x)	(!pmd_val(x))
+	#define pmd_none(x)	(!pmd_val(x))
 #endif
 #define pmd_bad(x)	(!(pmd_flag(x) & PxD_FLAG_VALID))
 #define pmd_present(x)	(pmd_flag(x) & PxD_FLAG_PRESENT)
-static inline void pmd_clear(pmd_t *pmd) {
+static inline void pmd_clear(pmd_t *pmd)
+{
 #if CONFIG_PGTABLE_LEVELS == 3
+
 	if (pmd_flag(*pmd) & PxD_FLAG_ATTACHED)
 		/* This is the entry pointing to the permanent pmd
 		 * attached to the pgd; cannot clear it */
+	{
 		__pmd_val_set(*pmd, PxD_FLAG_ATTACHED);
+	}
 	else
 #endif
 		__pmd_val_set(*pmd,  0);
@@ -329,12 +336,17 @@ static inline void pmd_clear(pmd_t *pmd) {
 #define pgd_none(x)     (!pgd_val(x))
 #define pgd_bad(x)      (!(pgd_flag(x) & PxD_FLAG_VALID))
 #define pgd_present(x)  (pgd_flag(x) & PxD_FLAG_PRESENT)
-static inline void pgd_clear(pgd_t *pgd) {
+static inline void pgd_clear(pgd_t *pgd)
+{
 #if CONFIG_PGTABLE_LEVELS == 3
-	if(pgd_flag(*pgd) & PxD_FLAG_ATTACHED)
+
+	if (pgd_flag(*pgd) & PxD_FLAG_ATTACHED)
 		/* This is the permanent pmd attached to the pgd; cannot
 		 * free it */
+	{
 		return;
+	}
+
 #endif
 	__pgd_val_set(*pgd, 0);
 }
@@ -347,7 +359,7 @@ static inline void pgd_clear(pgd_t *pgd) {
 static inline int pgd_none(pgd_t pgd)		{ return 0; }
 static inline int pgd_bad(pgd_t pgd)		{ return 0; }
 static inline int pgd_present(pgd_t pgd)	{ return 1; }
-static inline void pgd_clear(pgd_t * pgdp)	{ }
+static inline void pgd_clear(pgd_t *pgdp)	{ }
 #endif
 
 /*
@@ -373,7 +385,7 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
 #ifdef CONFIG_HUGETLB_PAGE
 #define pte_huge(pte)           (pte_val(pte) & _PAGE_HUGE)
 #define pte_mkhuge(pte)         (__pte(pte_val(pte) | \
-				 (parisc_requires_coherency() ? 0 : _PAGE_HUGE)))
+									   (parisc_requires_coherency() ? 0 : _PAGE_HUGE)))
 #else
 #define pte_huge(pte)           (0)
 #define pte_mkhuge(pte)         (pte)
@@ -385,13 +397,13 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
  * and a page entry and page directory to the page they refer to.
  */
 #define __mk_pte(addr,pgprot) \
-({									\
-	pte_t __pte;							\
-									\
-	pte_val(__pte) = ((((addr)>>PAGE_SHIFT)<<PFN_PTE_SHIFT) + pgprot_val(pgprot));	\
-									\
-	__pte;								\
-})
+	({									\
+		pte_t __pte;							\
+		\
+		pte_val(__pte) = ((((addr)>>PAGE_SHIFT)<<PFN_PTE_SHIFT) + pgprot_val(pgprot));	\
+		\
+		__pte;								\
+	})
 
 #define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
 
@@ -420,7 +432,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 
 /* to find an entry in a page-table-directory */
 #define pgd_offset(mm, address) \
-((mm)->pgd + ((address) >> PGDIR_SHIFT))
+	((mm)->pgd + ((address) >> PGDIR_SHIFT))
 
 /* to find an entry in a kernel page-table-directory */
 #define pgd_offset_k(address) pgd_offset(&init_mm, address)
@@ -430,12 +442,12 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 #if CONFIG_PGTABLE_LEVELS == 3
 #define pmd_index(addr)         (((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
 #define pmd_offset(dir,address) \
-((pmd_t *) pgd_page_vaddr(*(dir)) + pmd_index(address))
+	((pmd_t *) pgd_page_vaddr(*(dir)) + pmd_index(address))
 #else
 #define pmd_offset(dir,addr) ((pmd_t *) dir)
 #endif
 
-/* Find an entry in the third-level page table.. */ 
+/* Find an entry in the third-level page table.. */
 #define pte_index(address) (((address) >> PAGE_SHIFT) & (PTRS_PER_PTE-1))
 #define pte_offset_kernel(pmd, address) \
 	((pte_t *) pmd_page_vaddr(*(pmd)) + pte_index(address))
@@ -457,10 +469,10 @@ extern void update_mmu_cache(struct vm_area_struct *, unsigned long, pte_t *);
 
 #define __swp_type(x)                     ((x).val & 0x1f)
 #define __swp_offset(x)                   ( (((x).val >> 6) &  0x7) | \
-					  (((x).val >> 8) & ~0x7) )
+		(((x).val >> 8) & ~0x7) )
 #define __swp_entry(type, offset)         ((swp_entry_t) { (type) | \
-					    ((offset &  0x7) << 6) | \
-					    ((offset & ~0x7) << 8) })
+		((offset &  0x7) << 6) | \
+		((offset & ~0x7) << 8) })
 #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
 #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
 
@@ -470,14 +482,19 @@ static inline int ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned
 	unsigned long flags;
 
 	if (!pte_young(*ptep))
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&pa_tlb_lock, flags);
 	pte = *ptep;
-	if (!pte_young(pte)) {
+
+	if (!pte_young(pte))
+	{
 		spin_unlock_irqrestore(&pa_tlb_lock, flags);
 		return 0;
 	}
+
 	set_pte(ptep, pte_mkold(pte));
 	purge_tlb_entries(vma->vm_mm, addr);
 	spin_unlock_irqrestore(&pa_tlb_lock, flags);
@@ -493,8 +510,12 @@ static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
 	spin_lock_irqsave(&pa_tlb_lock, flags);
 	old_pte = *ptep;
 	set_pte(ptep, __pte(0));
+
 	if (pte_inserted(old_pte))
+	{
 		purge_tlb_entries(mm, addr);
+	}
+
 	spin_unlock_irqrestore(&pa_tlb_lock, flags);
 
 	return old_pte;
@@ -525,11 +546,11 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr, 
 #define _PAGE_SIZE_ENCODING_64M		7
 
 #if defined(CONFIG_PARISC_PAGE_SIZE_4KB)
-# define _PAGE_SIZE_ENCODING_DEFAULT _PAGE_SIZE_ENCODING_4K
+	#define _PAGE_SIZE_ENCODING_DEFAULT _PAGE_SIZE_ENCODING_4K
 #elif defined(CONFIG_PARISC_PAGE_SIZE_16KB)
-# define _PAGE_SIZE_ENCODING_DEFAULT _PAGE_SIZE_ENCODING_16K
+	#define _PAGE_SIZE_ENCODING_DEFAULT _PAGE_SIZE_ENCODING_16K
 #elif defined(CONFIG_PARISC_PAGE_SIZE_64KB)
-# define _PAGE_SIZE_ENCODING_DEFAULT _PAGE_SIZE_ENCODING_64K
+	#define _PAGE_SIZE_ENCODING_DEFAULT _PAGE_SIZE_ENCODING_64K
 #endif
 
 

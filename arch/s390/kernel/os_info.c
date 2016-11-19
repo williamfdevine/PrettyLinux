@@ -78,26 +78,38 @@ static void os_info_old_alloc(int nr, int align)
 	u32 csum;
 
 	addr = os_info_old->entry[nr].addr;
-	if (!addr) {
+
+	if (!addr)
+	{
 		msg = "not available";
 		goto fail;
 	}
+
 	size = os_info_old->entry[nr].size;
 	buf = kmalloc(size + align - 1, GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		msg = "alloc failed";
 		goto fail;
 	}
+
 	buf_align = PTR_ALIGN(buf, align);
-	if (copy_oldmem_kernel(buf_align, (void *) addr, size)) {
+
+	if (copy_oldmem_kernel(buf_align, (void *) addr, size))
+	{
 		msg = "copy failed";
 		goto fail_free;
 	}
+
 	csum = csum_partial(buf_align, size, 0);
-	if (csum != os_info_old->entry[nr].csum) {
+
+	if (csum != os_info_old->entry[nr].csum)
+	{
 		msg = "checksum failed";
 		goto fail_free;
 	}
+
 	os_info_old->entry[nr].addr = (u64)(unsigned long)buf_align;
 	msg = "copied";
 	goto out;
@@ -107,7 +119,7 @@ fail:
 	os_info_old->entry[nr].addr = 0;
 out:
 	pr_info("entry %i: %s (addr=0x%lx size=%lu)\n",
-		nr, msg, addr, size);
+			nr, msg, addr, size);
 }
 
 /*
@@ -119,30 +131,58 @@ static void os_info_old_init(void)
 	unsigned long addr;
 
 	if (os_info_init)
+	{
 		return;
+	}
+
 	if (!OLDMEM_BASE)
+	{
 		goto fail;
+	}
+
 	if (copy_oldmem_kernel(&addr, &S390_lowcore.os_info, sizeof(addr)))
+	{
 		goto fail;
+	}
+
 	if (addr == 0 || addr % PAGE_SIZE)
+	{
 		goto fail;
+	}
+
 	os_info_old = kzalloc(sizeof(*os_info_old), GFP_KERNEL);
+
 	if (!os_info_old)
+	{
 		goto fail;
+	}
+
 	if (copy_oldmem_kernel(os_info_old, (void *) addr,
-			       sizeof(*os_info_old)))
+						   sizeof(*os_info_old)))
+	{
 		goto fail_free;
+	}
+
 	if (os_info_old->magic != OS_INFO_MAGIC)
+	{
 		goto fail_free;
+	}
+
 	if (os_info_old->csum != os_info_csum(os_info_old))
+	{
 		goto fail_free;
+	}
+
 	if (os_info_old->version_major > OS_INFO_VERSION_MAJOR)
+	{
 		goto fail_free;
+	}
+
 	os_info_old_alloc(OS_INFO_VMCOREINFO, 1);
 	os_info_old_alloc(OS_INFO_REIPL_BLOCK, 1);
 	pr_info("crashkernel: addr=0x%lx size=%lu\n",
-		(unsigned long) os_info_old->crashkernel_addr,
-		(unsigned long) os_info_old->crashkernel_size);
+			(unsigned long) os_info_old->crashkernel_addr,
+			(unsigned long) os_info_old->crashkernel_size);
 	os_info_init = 1;
 	return;
 fail_free:
@@ -160,9 +200,15 @@ void *os_info_old_entry(int nr, unsigned long *size)
 	os_info_old_init();
 
 	if (!os_info_old)
+	{
 		return NULL;
+	}
+
 	if (!os_info_old->entry[nr].addr)
+	{
 		return NULL;
+	}
+
 	*size = (unsigned long) os_info_old->entry[nr].size;
 	return (void *)(unsigned long)os_info_old->entry[nr].addr;
 }

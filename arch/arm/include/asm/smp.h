@@ -15,7 +15,7 @@
 #include <linux/thread_info.h>
 
 #ifndef CONFIG_SMP
-# error "<asm/smp.h> included in non-SMP build"
+	# error "<asm/smp.h> included in non-SMP build"
 #endif
 
 #define raw_smp_processor_id() (current_thread_info()->cpu)
@@ -58,8 +58,10 @@ asmlinkage void secondary_start_kernel(void);
 /*
  * Initial data for bringing up a secondary CPU.
  */
-struct secondary_data {
-	union {
+struct secondary_data
+{
+	union
+	{
 		unsigned long mpu_rgn_szr;
 		u64 pgdir;
 	};
@@ -81,7 +83,8 @@ extern void arch_send_wakeup_ipi_mask(const struct cpumask *mask);
 
 extern int register_ipi_completion(struct completion *completion, int cpu);
 
-struct smp_operations {
+struct smp_operations
+{
 #ifdef CONFIG_SMP
 	/*
 	 * Setup the set of possible CPUs (via set_cpu_possible)
@@ -110,14 +113,15 @@ struct smp_operations {
 #endif
 };
 
-struct of_cpu_method {
+struct of_cpu_method
+{
 	const char *method;
 	const struct smp_operations *ops;
 };
 
 #define CPU_METHOD_OF_DECLARE(name, _method, _ops)			\
 	static const struct of_cpu_method __cpu_method_of_table_##name	\
-		__used __section(__cpu_method_of_table)			\
+	__used __section(__cpu_method_of_table)			\
 		= { .method = _method, .ops = _ops }
 /*
  * set platform specific SMP operations

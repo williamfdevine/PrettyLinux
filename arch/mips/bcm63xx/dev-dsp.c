@@ -17,7 +17,8 @@
 #include <bcm63xx_regs.h>
 #include <bcm63xx_io.h>
 
-static struct resource voip_dsp_resources[] = {
+static struct resource voip_dsp_resources[] =
+{
 	{
 		.start		= -1, /* filled at runtime */
 		.end		= -1, /* filled at runtime */
@@ -29,7 +30,8 @@ static struct resource voip_dsp_resources[] = {
 	},
 };
 
-static struct platform_device bcm63xx_voip_dsp_device = {
+static struct platform_device bcm63xx_voip_dsp_device =
+{
 	.name		= "bcm63xx-voip-dsp",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(voip_dsp_resources),

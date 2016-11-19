@@ -66,13 +66,14 @@ void __init paging_init(void)
 	 * can't satisfy the request, so no need to check.
 	 */
 	zero_page = alloc_bootmem_low_pages_node(NODE_DATA(0),
-						 PAGE_SIZE);
+				PAGE_SIZE);
 
 	sysreg_write(PTBR, (unsigned long)swapper_pg_dir);
 	enable_mmu();
 	printk ("CPU: Paging enabled\n");
 
-	for_each_online_node(nid) {
+	for_each_online_node(nid)
+	{
 		pg_data_t *pgdat = NODE_DATA(nid);
 		unsigned long zones_size[MAX_NR_ZONES];
 		unsigned long low, start_pfn;
@@ -84,12 +85,12 @@ void __init paging_init(void)
 		zones_size[ZONE_NORMAL] = low - start_pfn;
 
 		printk("Node %u: start_pfn = 0x%lx, low = 0x%lx\n",
-		       nid, start_pfn, low);
+			   nid, start_pfn, low);
 
 		free_area_init_node(nid, zones_size, start_pfn, NULL);
 
 		printk("Node %u: mem_map starts at %p\n",
-		       pgdat->node_id, pgdat->node_mem_map);
+			   pgdat->node_id, pgdat->node_mem_map);
 	}
 
 	mem_map = NODE_DATA(0)->node_mem_map;
@@ -104,8 +105,8 @@ void __init mem_init(void)
 
 	high_memory = NULL;
 	for_each_online_pgdat(pgdat)
-		high_memory = max_t(void *, high_memory,
-				    __va(pgdat_end_pfn(pgdat) << PAGE_SHIFT));
+	high_memory = max_t(void *, high_memory,
+						__va(pgdat_end_pfn(pgdat) << PAGE_SHIFT));
 
 	set_max_mapnr(MAP_NR(high_memory));
 	free_all_bootmem();

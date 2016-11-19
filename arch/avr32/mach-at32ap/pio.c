@@ -24,7 +24,8 @@
 
 #define MAX_NR_PIO_DEVICES		8
 
-struct pio_device {
+struct pio_device
+{
 	struct gpio_chip chip;
 	void __iomem *regs;
 	const struct platform_device *pdev;
@@ -41,11 +42,18 @@ static struct pio_device *gpio_to_pio(unsigned int gpio)
 	unsigned int index;
 
 	index = gpio >> 5;
+
 	if (index >= MAX_NR_PIO_DEVICES)
+	{
 		return NULL;
+	}
+
 	pio = &pio_dev[index];
+
 	if (!pio->regs)
+	{
 		return NULL;
+	}
 
 	return pio;
 }
@@ -54,22 +62,26 @@ static struct pio_device *gpio_to_pio(unsigned int gpio)
 static DEFINE_SPINLOCK(pio_lock);
 
 void __init at32_select_periph(unsigned int port, u32 pin_mask,
-			       unsigned int periph, unsigned long flags)
+							   unsigned int periph, unsigned long flags)
 {
 	struct pio_device *pio;
 
 	/* assign and verify pio */
 	pio = gpio_to_pio(port);
-	if (unlikely(!pio)) {
+
+	if (unlikely(!pio))
+	{
 		printk(KERN_WARNING "pio: invalid port %u\n", port);
 		goto fail;
 	}
 
 	/* Test if any of the requested pins is already muxed */
 	spin_lock(&pio_lock);
-	if (unlikely(pio->pinmux_mask & pin_mask)) {
+
+	if (unlikely(pio->pinmux_mask & pin_mask))
+	{
 		printk(KERN_WARNING "%s: pin(s) busy (requested 0x%x, busy 0x%x)\n",
-		       pio->name, pin_mask, pio->pinmux_mask & pin_mask);
+			   pio->name, pin_mask, pio->pinmux_mask & pin_mask);
 		spin_unlock(&pio_lock);
 		goto fail;
 	}
@@ -81,16 +93,22 @@ void __init at32_select_periph(unsigned int port, u32 pin_mask,
 
 	/* select either peripheral A or B */
 	if (periph)
+	{
 		pio_writel(pio, BSR, pin_mask);
+	}
 	else
+	{
 		pio_writel(pio, ASR, pin_mask);
+	}
 
 	/* enable peripheral control */
 	pio_writel(pio, PDR, pin_mask);
 
 	/* Disable pull ups if not requested. */
 	if (!(flags & AT32_GPIOF_PULLUP))
+	{
 		pio_writel(pio, PUDR, pin_mask);
+	}
 
 	spin_unlock(&pio_lock);
 
@@ -107,36 +125,62 @@ void __init at32_select_gpio(unsigned int pin, unsigned long flags)
 	u32 mask = 1 << pin_index;
 
 	pio = gpio_to_pio(pin);
-	if (unlikely(!pio)) {
+
+	if (unlikely(!pio))
+	{
 		printk("pio: invalid pin %u\n", pin);
 		goto fail;
 	}
 
-	if (unlikely(test_and_set_bit(pin_index, &pio->pinmux_mask))) {
+	if (unlikely(test_and_set_bit(pin_index, &pio->pinmux_mask)))
+	{
 		printk("%s: pin %u is busy\n", pio->name, pin_index);
 		goto fail;
 	}
 
-	if (flags & AT32_GPIOF_OUTPUT) {
+	if (flags & AT32_GPIOF_OUTPUT)
+	{
 		if (flags & AT32_GPIOF_HIGH)
+		{
 			pio_writel(pio, SODR, mask);
+		}
 		else
+		{
 			pio_writel(pio, CODR, mask);
+		}
+
 		if (flags & AT32_GPIOF_MULTIDRV)
+		{
 			pio_writel(pio, MDER, mask);
+		}
 		else
+		{
 			pio_writel(pio, MDDR, mask);
+		}
+
 		pio_writel(pio, PUDR, mask);
 		pio_writel(pio, OER, mask);
-	} else {
+	}
+	else
+	{
 		if (flags & AT32_GPIOF_PULLUP)
+		{
 			pio_writel(pio, PUER, mask);
+		}
 		else
+		{
 			pio_writel(pio, PUDR, mask);
+		}
+
 		if (flags & AT32_GPIOF_DEGLITCH)
+		{
 			pio_writel(pio, IFER, mask);
+		}
 		else
+		{
 			pio_writel(pio, IFDR, mask);
+		}
+
 		pio_writel(pio, ODR, mask);
 	}
 
@@ -158,7 +202,9 @@ void at32_deselect_pin(unsigned int pin)
 	unsigned int pin_index = pin & 0x1f;
 
 	pio = gpio_to_pio(pin);
-	if (unlikely(!pio)) {
+
+	if (unlikely(!pio))
+	{
 		printk("pio: invalid pin %u\n", pin);
 		dump_stack();
 		return;
@@ -174,16 +220,20 @@ void __init at32_reserve_pin(unsigned int port, u32 pin_mask)
 
 	/* assign and verify pio */
 	pio = gpio_to_pio(port);
-	if (unlikely(!pio)) {
+
+	if (unlikely(!pio))
+	{
 		printk(KERN_WARNING "pio: invalid port %u\n", port);
 		goto fail;
 	}
 
 	/* Test if any of the requested pins is already muxed */
 	spin_lock(&pio_lock);
-	if (unlikely(pio->pinmux_mask & pin_mask)) {
+
+	if (unlikely(pio->pinmux_mask & pin_mask))
+	{
 		printk(KERN_WARNING "%s: pin(s) busy (req. 0x%x, busy 0x%x)\n",
-		       pio->name, pin_mask, pio->pinmux_mask & pin_mask);
+			   pio->name, pin_mask, pio->pinmux_mask & pin_mask);
 		spin_unlock(&pio_lock);
 		goto fail;
 	}
@@ -207,7 +257,9 @@ static int direction_input(struct gpio_chip *chip, unsigned offset)
 	u32 mask = 1 << offset;
 
 	if (!(pio_readl(pio, PSR) & mask))
+	{
 		return -EINVAL;
+	}
 
 	pio_writel(pio, ODR, mask);
 	return 0;
@@ -228,7 +280,9 @@ static int direction_output(struct gpio_chip *chip, unsigned offset, int value)
 	u32 mask = 1 << offset;
 
 	if (!(pio_readl(pio, PSR) & mask))
+	{
 		return -EINVAL;
+	}
 
 	gpio_set(chip, offset, value);
 	pio_writel(pio, OER, mask);
@@ -241,9 +295,13 @@ static void gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	u32 mask = 1 << offset;
 
 	if (value)
+	{
 		pio_writel(pio, SODR, mask);
+	}
 	else
+	{
 		pio_writel(pio, CODR, mask);
+	}
 }
 
 /*--------------------------------------------------------------------------*/
@@ -269,12 +327,15 @@ static void gpio_irq_unmask(struct irq_data *d)
 static int gpio_irq_type(struct irq_data *d, unsigned type)
 {
 	if (type != IRQ_TYPE_EDGE_BOTH && type != IRQ_TYPE_NONE)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
-static struct irq_chip gpio_irqchip = {
+static struct irq_chip gpio_irqchip =
+{
 	.name		= "gpio",
 	.irq_mask	= gpio_irq_mask,
 	.irq_unmask	= gpio_irq_unmask,
@@ -287,14 +348,21 @@ static void gpio_irq_handler(struct irq_desc *desc)
 	unsigned		gpio_irq;
 
 	gpio_irq = (unsigned) irq_desc_get_handler_data(desc);
-	for (;;) {
+
+	for (;;)
+	{
 		u32		isr;
 
 		/* ack pending GPIO interrupts */
 		isr = pio_readl(pio, ISR) & pio_readl(pio, IMR);
+
 		if (!isr)
+		{
 			break;
-		do {
+		}
+
+		do
+		{
 			int i;
 
 			i = ffs(isr) - 1;
@@ -302,7 +370,8 @@ static void gpio_irq_handler(struct irq_desc *desc)
 
 			i += gpio_irq;
 			generic_handle_irq(i);
-		} while (isr);
+		}
+		while (isr);
 	}
 }
 
@@ -313,14 +382,15 @@ gpio_irq_setup(struct pio_device *pio, int irq, int gpio_irq)
 
 	irq_set_chip_data(irq, pio);
 
-	for (i = 0; i < 32; i++, gpio_irq++) {
+	for (i = 0; i < 32; i++, gpio_irq++)
+	{
 		irq_set_chip_data(gpio_irq, pio);
 		irq_set_chip_and_handler(gpio_irq, &gpio_irqchip,
-					 handle_simple_irq);
+								 handle_simple_irq);
 	}
 
 	irq_set_chained_handler_and_data(irq, gpio_irq_handler,
-					 (void *)gpio_irq);
+									 (void *)gpio_irq);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -351,28 +421,43 @@ static void pio_bank_show(struct seq_file *s, struct gpio_chip *chip)
 
 	bank = 'A' + pio->pdev->id;
 
-	for (i = 0, mask = 1; i < 32; i++, mask <<= 1) {
+	for (i = 0, mask = 1; i < 32; i++, mask <<= 1)
+	{
 		const char *label;
 
 		label = gpiochip_is_requested(chip, i);
+
 		if (!label && (imr & mask))
+		{
 			label = "[irq]";
+		}
+
 		if (!label)
+		{
 			continue;
+		}
 
 		seq_printf(s, " gpio-%-3d P%c%-2d (%-12s) %s %s %s",
-			chip->base + i, bank, i,
-			label,
-			(osr & mask) ? "out" : "in ",
-			(mask & pdsr) ? "hi" : "lo",
-			(mask & pusr) ? "  " : "up");
+				   chip->base + i, bank, i,
+				   label,
+				   (osr & mask) ? "out" : "in ",
+				   (mask & pdsr) ? "hi" : "lo",
+				   (mask & pusr) ? "  " : "up");
+
 		if (ifsr & mask)
+		{
 			seq_printf(s, " deglitch");
+		}
+
 		if ((osr & mdsr) & mask)
+		{
 			seq_printf(s, " open-drain");
+		}
+
 		if (imr & mask)
 			seq_printf(s, " irq-%d edge-both",
-				gpio_to_irq(chip->base + i));
+					   gpio_to_irq(chip->base + i));
+
 		seq_printf(s, "\n");
 	}
 }
@@ -413,12 +498,13 @@ static int __init pio_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, pio);
 
 	printk(KERN_DEBUG "%s: base 0x%p, irq %d chains %d..%d\n",
-	       pio->name, pio->regs, irq, gpio_irq_base, gpio_irq_base + 31);
+		   pio->name, pio->regs, irq, gpio_irq_base, gpio_irq_base + 31);
 
 	return 0;
 }
 
-static struct platform_driver pio_driver = {
+static struct platform_driver pio_driver =
+{
 	.driver		= {
 		.name		= "pio",
 	},
@@ -435,9 +521,10 @@ void __init at32_init_pio(struct platform_device *pdev)
 	struct resource *regs;
 	struct pio_device *pio;
 
-	if (pdev->id >= MAX_NR_PIO_DEVICES) {
+	if (pdev->id >= MAX_NR_PIO_DEVICES)
+	{
 		dev_err(&pdev->dev, "only %d PIO devices supported\n",
-			MAX_NR_PIO_DEVICES);
+				MAX_NR_PIO_DEVICES);
 		return;
 	}
 
@@ -445,21 +532,28 @@ void __init at32_init_pio(struct platform_device *pdev)
 	snprintf(pio->name, sizeof(pio->name), "pio%d", pdev->id);
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_err(&pdev->dev, "no mmio resource defined\n");
 		return;
 	}
 
 	pio->clk = clk_get(&pdev->dev, "mck");
+
 	if (IS_ERR(pio->clk))
 		/*
 		 * This is a fatal error, but if we continue we might
 		 * be so lucky that we manage to initialize the
 		 * console and display this message...
 		 */
+	{
 		dev_err(&pdev->dev, "no mck clock defined\n");
+	}
 	else
+	{
 		clk_enable(pio->clk);
+	}
 
 	pio->pdev = pdev;
 	pio->regs = ioremap(regs->start, resource_size(regs));

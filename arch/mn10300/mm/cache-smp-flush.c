@@ -38,7 +38,7 @@ void mn10300_dcache_flush_page(unsigned long start)
 {
 	unsigned long flags;
 
-	start &= ~(PAGE_SIZE-1);
+	start &= ~(PAGE_SIZE - 1);
 
 	flags = smp_lock_cache();
 	mn10300_local_dcache_flush_page(start);
@@ -109,7 +109,7 @@ void mn10300_dcache_flush_inv_page(unsigned long start)
 {
 	unsigned long flags;
 
-	start &= ~(PAGE_SIZE-1);
+	start &= ~(PAGE_SIZE - 1);
 
 	flags = smp_lock_cache();
 	mn10300_local_dcache_flush_inv_page(start);

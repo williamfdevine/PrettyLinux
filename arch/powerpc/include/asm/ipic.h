@@ -53,14 +53,16 @@
 #define IPIC_SCVCR	0x60	/* System Critical Interrupt Vector Register */
 #define IPIC_SMVCR	0x64	/* System Management Interrupt Vector Register */
 
-enum ipic_prio_grp {
+enum ipic_prio_grp
+{
 	IPIC_INT_GRP_A = IPIC_SIPRR_A,
 	IPIC_INT_GRP_D = IPIC_SIPRR_D,
 	IPIC_MIX_GRP_A = IPIC_SMPRR_A,
 	IPIC_MIX_GRP_B = IPIC_SMPRR_B,
 };
 
-enum ipic_mcp_irq {
+enum ipic_mcp_irq
+{
 	IPIC_MCP_IRQ0 = 0,
 	IPIC_MCP_WDT  = 1,
 	IPIC_MCP_SBA  = 2,
@@ -77,7 +79,7 @@ extern void ipic_disable_mcp(enum ipic_mcp_irq mcp_irq);
 extern u32 ipic_get_mcp_status(void);
 extern void ipic_clear_mcp_status(u32 mask);
 
-extern struct ipic * ipic_init(struct device_node *node, unsigned int flags);
+extern struct ipic *ipic_init(struct device_node *node, unsigned int flags);
 extern unsigned int ipic_get_irq(void);
 
 #endif /* __ASM_IPIC_H__ */

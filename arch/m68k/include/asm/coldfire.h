@@ -20,9 +20,9 @@
  *	another different clocking frequency.
  */
 #ifdef CONFIG_CLOCK_FREQ
-#define	MCF_CLK		CONFIG_CLOCK_FREQ
+	#define	MCF_CLK		CONFIG_CLOCK_FREQ
 #else
-#error "Don't know what your ColdFire CPU clock frequency is??"
+	#error "Don't know what your ColdFire CPU clock frequency is??"
 #endif
 
 /*
@@ -39,10 +39,10 @@
  *	this part has a fixed peripheral address map.
  */
 #ifdef CONFIG_MBAR
-#define	MCF_MBAR	CONFIG_MBAR
+	#define	MCF_MBAR	CONFIG_MBAR
 #endif
 #ifdef CONFIG_IPSBAR
-#define	MCF_IPSBAR	CONFIG_IPSBAR
+	#define	MCF_IPSBAR	CONFIG_IPSBAR
 #endif
 
 /****************************************************************************/

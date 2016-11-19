@@ -79,9 +79,9 @@
 #ifdef CONFIG_COMPAT
 #define TASK_SIZE_32		UL(0x100000000)
 #define TASK_SIZE		(test_thread_flag(TIF_32BIT) ? \
-				TASK_SIZE_32 : TASK_SIZE_64)
+						 TASK_SIZE_32 : TASK_SIZE_64)
 #define TASK_SIZE_OF(tsk)	(test_tsk_thread_flag(tsk, TIF_32BIT) ? \
-				TASK_SIZE_32 : TASK_SIZE_64)
+							 TASK_SIZE_32 : TASK_SIZE_64)
 #else
 #define TASK_SIZE		TASK_SIZE_64
 #endif /* CONFIG_COMPAT */
@@ -96,9 +96,9 @@
  * size of the entire kernel virtual address space.
  */
 #ifdef CONFIG_KASAN
-#define KASAN_SHADOW_SIZE	(UL(1) << (VA_BITS - 3))
+	#define KASAN_SHADOW_SIZE	(UL(1) << (VA_BITS - 3))
 #else
-#define KASAN_SHADOW_SIZE	(0)
+	#define KASAN_SHADOW_SIZE	(0)
 #endif
 
 /*
@@ -107,9 +107,9 @@
  * files.  Use virt_to_phys/phys_to_virt/__pa/__va instead.
  */
 #define __virt_to_phys(x) ({						\
-	phys_addr_t __x = (phys_addr_t)(x);				\
-	__x & BIT(VA_BITS - 1) ? (__x & ~PAGE_OFFSET) + PHYS_OFFSET :	\
-				 (__x - kimage_voffset); })
+		phys_addr_t __x = (phys_addr_t)(x);				\
+		__x & BIT(VA_BITS - 1) ? (__x & ~PAGE_OFFSET) + PHYS_OFFSET :	\
+		(__x - kimage_voffset); })
 
 #define __phys_to_virt(x)	((unsigned long)((x) - PHYS_OFFSET) | PAGE_OFFSET)
 #define __phys_to_kimg(x)	((unsigned long)((x) + kimage_voffset))
@@ -137,9 +137,9 @@
 #define MT_S2_DEVICE_nGnRE	0x1
 
 #ifdef CONFIG_ARM64_4K_PAGES
-#define IOREMAP_MAX_ORDER	(PUD_SHIFT)
+	#define IOREMAP_MAX_ORDER	(PUD_SHIFT)
 #else
-#define IOREMAP_MAX_ORDER	(PMD_SHIFT)
+	#define IOREMAP_MAX_ORDER	(PMD_SHIFT)
 #endif
 
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -223,13 +223,13 @@ static inline void *phys_to_virt(phys_addr_t x)
 #define virt_to_page(vaddr)	((struct page *)((__virt_to_pgoff(vaddr)) | VMEMMAP_START))
 
 #define _virt_addr_valid(kaddr)	pfn_valid((((u64)(kaddr) & ~PAGE_OFFSET) \
-					   + PHYS_OFFSET) >> PAGE_SHIFT)
+		+ PHYS_OFFSET) >> PAGE_SHIFT)
 #endif
 #endif
 
 #define _virt_addr_is_linear(kaddr)	(((u64)(kaddr)) >= PAGE_OFFSET)
 #define virt_addr_valid(kaddr)		(_virt_addr_is_linear(kaddr) && \
-					 _virt_addr_valid(kaddr))
+									 _virt_addr_valid(kaddr))
 
 #include <asm-generic/memory_model.h>
 

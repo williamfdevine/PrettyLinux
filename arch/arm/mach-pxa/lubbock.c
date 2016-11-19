@@ -60,7 +60,8 @@
 #include "generic.h"
 #include "devices.h"
 
-static unsigned long lubbock_pin_config[] __initdata = {
+static unsigned long lubbock_pin_config[] __initdata =
+{
 	GPIO15_nCS_1,	/* CS1 - Flash */
 	GPIO78_nCS_2,	/* CS2 - Baseboard FGPA */
 	GPIO79_nCS_3,	/* CS3 - SMC ethernet */
@@ -132,7 +133,8 @@ static int lubbock_udc_is_connected(void)
 	return (LUB_MISC_RD & (1 << 9)) == 0;
 }
 
-static struct pxa2xx_udc_mach_info udc_info __initdata = {
+static struct pxa2xx_udc_mach_info udc_info __initdata =
+{
 	.udc_is_connected	= lubbock_udc_is_connected,
 	// no D+ pullup; lubbock can't connect/disconnect in software
 };
@@ -143,13 +145,16 @@ static void lubbock_init_pcmcia(void)
 
 	/* Add an alias for the SA1111 PCMCIA clock */
 	clk = clk_get_sys("pxa2xx-pcmcia", NULL);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clkdev_create(clk, NULL, "1800");
 		clk_put(clk);
 	}
 }
 
-static struct resource sa1111_resources[] = {
+static struct resource sa1111_resources[] =
+{
 	[0] = {
 		.start	= 0x10000000,
 		.end	= 0x10001fff,
@@ -162,12 +167,14 @@ static struct resource sa1111_resources[] = {
 	},
 };
 
-static struct sa1111_platform_data sa1111_info = {
+static struct sa1111_platform_data sa1111_info =
+{
 	.irq_base	= LUBBOCK_SA1111_IRQ_BASE,
 	.disable_devs	= SA1111_DEVID_SAC,
 };
 
-static struct platform_device sa1111_device = {
+static struct platform_device sa1111_device =
+{
 	.name		= "sa1111",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(sa1111_resources),
@@ -182,7 +189,8 @@ static struct platform_device sa1111_device = {
  * (to J5) and poking board registers (as done below).  Else it's only useful
  * for the temperature sensors.
  */
-static struct pxa2xx_spi_master pxa_ssp_master_info = {
+static struct pxa2xx_spi_master pxa_ssp_master_info =
+{
 	.num_chipselect	= 1,
 };
 
@@ -192,7 +200,8 @@ static int lubbock_ads7846_pendown_state(void)
 	return 0;
 }
 
-static struct ads7846_platform_data ads_info = {
+static struct ads7846_platform_data ads_info =
+{
 	.model			= 7846,
 	.vref_delay_usecs	= 100,		/* internal, no cap */
 	.get_pendown_state	= lubbock_ads7846_pendown_state,
@@ -206,25 +215,27 @@ static void ads7846_cs(u32 command)
 	lubbock_set_misc_wr(TS_nCS, (command == PXA2XX_CS_ASSERT) ? 0 : TS_nCS);
 }
 
-static struct pxa2xx_spi_chip ads_hw = {
+static struct pxa2xx_spi_chip ads_hw =
+{
 	.tx_threshold		= 1,
 	.rx_threshold		= 2,
 	.cs_control		= ads7846_cs,
 };
 
 static struct spi_board_info spi_board_info[] __initdata = { {
-	.modalias	= "ads7846",
-	.platform_data	= &ads_info,
-	.controller_data = &ads_hw,
-	.irq		= LUBBOCK_BB_IRQ,
-	.max_speed_hz	= 120000 /* max sample rate at 3V */
-				* 26 /* command + data + overhead */,
-	.bus_num	= 1,
-	.chip_select	= 0,
-},
+		.modalias	= "ads7846",
+		.platform_data	= &ads_info,
+		.controller_data = &ads_hw,
+		.irq		= LUBBOCK_BB_IRQ,
+		.max_speed_hz	= 120000 /* max sample rate at 3V */
+		* 26 /* command + data + overhead */,
+		.bus_num	= 1,
+		.chip_select	= 0,
+	},
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.name	= "smc91x-regs",
 		.start	= 0x0c000c00,
@@ -244,11 +255,13 @@ static struct resource smc91x_resources[] = {
 	},
 };
 
-static struct smc91x_platdata lubbock_smc91x_info = {
+static struct smc91x_platdata lubbock_smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_IO_SHIFT_2,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
@@ -258,7 +271,8 @@ static struct platform_device smc91x_device = {
 	},
 };
 
-static struct resource flash_resources[] = {
+static struct resource flash_resources[] =
+{
 	[0] = {
 		.start	= 0x00000000,
 		.end	= SZ_64M - 1,
@@ -271,24 +285,26 @@ static struct resource flash_resources[] = {
 	},
 };
 
-static struct mtd_partition lubbock_partitions[] = {
+static struct mtd_partition lubbock_partitions[] =
+{
 	{
 		.name =		"Bootloader",
 		.size =		0x00040000,
 		.offset =	0,
 		.mask_flags =	MTD_WRITEABLE  /* force read-only */
-	},{
+	}, {
 		.name =		"Kernel",
 		.size =		0x00100000,
 		.offset =	0x00040000,
-	},{
+	}, {
 		.name =		"Filesystem",
 		.size =		MTDPART_SIZ_FULL,
 		.offset =	0x00140000
 	}
 };
 
-static struct flash_platform_data lubbock_flash_data[2] = {
+static struct flash_platform_data lubbock_flash_data[2] =
+{
 	{
 		.map_name	= "cfi_probe",
 		.parts		= lubbock_partitions,
@@ -300,7 +316,8 @@ static struct flash_platform_data lubbock_flash_data[2] = {
 	}
 };
 
-static struct platform_device lubbock_flash_device[2] = {
+static struct platform_device lubbock_flash_device[2] =
+{
 	{
 		.name		= "pxa2xx-flash",
 		.id		= 0,
@@ -321,7 +338,8 @@ static struct platform_device lubbock_flash_device[2] = {
 	},
 };
 
-static struct resource lubbock_cplds_resources[] = {
+static struct resource lubbock_cplds_resources[] =
+{
 	[0] = {
 		.start	= LUBBOCK_FPGA_PHYS + 0xc0,
 		.end	= LUBBOCK_FPGA_PHYS + 0xe0 - 1,
@@ -339,7 +357,8 @@ static struct resource lubbock_cplds_resources[] = {
 	},
 };
 
-static struct platform_device lubbock_cplds_device = {
+static struct platform_device lubbock_cplds_device =
+{
 	.name		= "pxa_cplds_irqs",
 	.id		= -1,
 	.resource	= &lubbock_cplds_resources[0],
@@ -347,7 +366,8 @@ static struct platform_device lubbock_cplds_device = {
 };
 
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&sa1111_device,
 	&smc91x_device,
 	&lubbock_flash_device[0],
@@ -355,7 +375,8 @@ static struct platform_device *devices[] __initdata = {
 	&lubbock_cplds_device,
 };
 
-static struct pxafb_mode_info sharp_lm8v31_mode = {
+static struct pxafb_mode_info sharp_lm8v31_mode =
+{
 	.pixclock	= 270000,
 	.xres		= 640,
 	.yres		= 480,
@@ -370,13 +391,14 @@ static struct pxafb_mode_info sharp_lm8v31_mode = {
 	.cmap_greyscale	= 0,
 };
 
-static struct pxafb_mach_info sharp_lm8v31 = {
+static struct pxafb_mach_info sharp_lm8v31 =
+{
 	.modes		= &sharp_lm8v31_mode,
 	.num_modes	= 1,
 	.cmap_inverse	= 0,
 	.cmap_static	= 0,
 	.lcd_conn	= LCD_COLOR_DSTN_16BPP | LCD_PCLK_EDGE_FALL |
-			  LCD_AC_BIAS_FREQ(255),
+	LCD_AC_BIAS_FREQ(255),
 };
 
 #define	MMC_POLL_RATE		msecs_to_jiffies(1000)
@@ -384,7 +406,8 @@ static struct pxafb_mach_info sharp_lm8v31 = {
 static void lubbock_mmc_poll(unsigned long);
 static irq_handler_t mmc_detect_int;
 
-static struct timer_list mmc_timer = {
+static struct timer_list mmc_timer =
+{
 	.function	= lubbock_mmc_poll,
 };
 
@@ -399,8 +422,11 @@ static void lubbock_mmc_poll(unsigned long data)
 
 	/* poll until mmc/sd card is removed */
 	if (LUB_IRQ_SET_CLR & (1 << 0))
+	{
 		mod_timer(&mmc_timer, jiffies + MMC_POLL_RATE);
-	else {
+	}
+	else
+	{
 		(void) mmc_detect_int(LUBBOCK_SD_IRQ, (void *)data);
 		enable_irq(LUBBOCK_SD_IRQ);
 	}
@@ -416,15 +442,15 @@ static irqreturn_t lubbock_detect_int(int irq, void *data)
 }
 
 static int lubbock_mci_init(struct device *dev,
-		irq_handler_t detect_int,
-		void *data)
+							irq_handler_t detect_int,
+							void *data)
 {
 	/* detect card insert/eject */
 	mmc_detect_int = detect_int;
 	init_timer(&mmc_timer);
 	mmc_timer.data = (unsigned long) data;
 	return request_irq(LUBBOCK_SD_IRQ, lubbock_detect_int,
-			   0, "lubbock-sd-detect", data);
+					   0, "lubbock-sd-detect", data);
 }
 
 static int lubbock_mci_get_ro(struct device *dev)
@@ -438,8 +464,9 @@ static void lubbock_mci_exit(struct device *dev, void *data)
 	del_timer_sync(&mmc_timer);
 }
 
-static struct pxamci_platform_data lubbock_mci_platform_data = {
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct pxamci_platform_data lubbock_mci_platform_data =
+{
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.detect_delay_ms	= 10,
 	.init 			= lubbock_mci_init,
 	.get_ro			= lubbock_mci_get_ro,
@@ -454,16 +481,22 @@ static void lubbock_irda_transceiver_mode(struct device *dev, int mode)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	if (mode & IR_SIRMODE) {
+
+	if (mode & IR_SIRMODE)
+	{
 		LUB_MISC_WR &= ~(1 << 4);
-	} else if (mode & IR_FIRMODE) {
+	}
+	else if (mode & IR_FIRMODE)
+	{
 		LUB_MISC_WR |= 1 << 4;
 	}
+
 	pxa2xx_transceiver_mode(dev, mode);
 	local_irq_restore(flags);
 }
 
-static struct pxaficp_platform_data lubbock_ficp_platform_data = {
+static struct pxaficp_platform_data lubbock_ficp_platform_data =
+{
 	.gpio_pwdown		= -1,
 	.transceiver_cap	= IR_SIRMODE | IR_FIRMODE,
 	.transceiver_mode	= lubbock_irda_transceiver_mode,
@@ -489,12 +522,12 @@ static void __init lubbock_init(void)
 	pxa_set_ac97_info(NULL);
 
 	lubbock_flash_data[0].width = lubbock_flash_data[1].width =
-		(__raw_readl(BOOT_DEF) & 1) ? 2 : 4;
+									  (__raw_readl(BOOT_DEF) & 1) ? 2 : 4;
 	/* Compensate for the nROMBT switch which swaps the flash banks */
 	printk(KERN_NOTICE "Lubbock configured to boot from %s (bank %d)\n",
-	       flashboot?"Flash":"ROM", flashboot);
+		   flashboot ? "Flash" : "ROM", flashboot);
 
-	lubbock_flash_data[flashboot^1].name = "application-flash";
+	lubbock_flash_data[flashboot ^ 1].name = "application-flash";
 	lubbock_flash_data[flashboot].name = "boot-rom";
 	(void) platform_add_devices(devices, ARRAY_SIZE(devices));
 
@@ -502,8 +535,9 @@ static void __init lubbock_init(void)
 	spi_register_board_info(spi_board_info, ARRAY_SIZE(spi_board_info));
 }
 
-static struct map_desc lubbock_io_desc[] __initdata = {
-  	{	/* CPLD */
+static struct map_desc lubbock_io_desc[] __initdata =
+{
+	{	/* CPLD */
 		.virtual	=  LUBBOCK_FPGA_VIRT,
 		.pfn		= __phys_to_pfn(LUBBOCK_FPGA_PHYS),
 		.length		= 0x00100000,
@@ -526,7 +560,8 @@ static void __init lubbock_map_io(void)
  */
 
 #if defined(CONFIG_NEW_LEDS) && defined(CONFIG_LEDS_CLASS)
-struct lubbock_led {
+struct lubbock_led
+{
 	struct led_classdev	cdev;
 	u8			mask;
 };
@@ -535,10 +570,12 @@ struct lubbock_led {
  * The triggers lines up below will only be used if the
  * LED triggers are compiled in.
  */
-static const struct {
+static const struct
+{
 	const char *name;
 	const char *trigger;
-} lubbock_leds[] = {
+} lubbock_leds[] =
+{
 	{ "lubbock:D28", "default-on", },
 	{ "lubbock:D27", "cpu0", },
 	{ "lubbock:D26", "heartbeat" },
@@ -550,16 +587,20 @@ static const struct {
 };
 
 static void lubbock_led_set(struct led_classdev *cdev,
-			      enum led_brightness b)
+							enum led_brightness b)
 {
 	struct lubbock_led *led = container_of(cdev,
-					 struct lubbock_led, cdev);
+										   struct lubbock_led, cdev);
 	u32 reg = LUB_DISC_BLNK_LED;
 
 	if (b != LED_OFF)
+	{
 		reg |= led->mask;
+	}
 	else
+	{
 		reg &= ~led->mask;
+	}
 
 	LUB_DISC_BLNK_LED = reg;
 }
@@ -567,7 +608,7 @@ static void lubbock_led_set(struct led_classdev *cdev,
 static enum led_brightness lubbock_led_get(struct led_classdev *cdev)
 {
 	struct lubbock_led *led = container_of(cdev,
-					 struct lubbock_led, cdev);
+										   struct lubbock_led, cdev);
 	u32 reg = LUB_DISC_BLNK_LED;
 
 	return (reg & led->mask) ? LED_FULL : LED_OFF;
@@ -578,16 +619,23 @@ static int __init lubbock_leds_init(void)
 	int i;
 
 	if (!machine_is_lubbock())
+	{
 		return -ENODEV;
+	}
 
 	/* All ON */
 	LUB_DISC_BLNK_LED |= 0xff;
-	for (i = 0; i < ARRAY_SIZE(lubbock_leds); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(lubbock_leds); i++)
+	{
 		struct lubbock_led *led;
 
 		led = kzalloc(sizeof(*led), GFP_KERNEL);
+
 		if (!led)
+		{
 			break;
+		}
 
 		led->cdev.name = lubbock_leds[i].name;
 		led->cdev.brightness_set = lubbock_led_set;
@@ -595,7 +643,8 @@ static int __init lubbock_leds_init(void)
 		led->cdev.default_trigger = lubbock_leds[i].trigger;
 		led->mask = BIT(i);
 
-		if (led_classdev_register(NULL, &led->cdev) < 0) {
+		if (led_classdev_register(NULL, &led->cdev) < 0)
+		{
 			kfree(led);
 			break;
 		}
@@ -612,12 +661,12 @@ fs_initcall(lubbock_leds_init);
 #endif
 
 MACHINE_START(LUBBOCK, "Intel DBPXA250 Development Platform (aka Lubbock)")
-	/* Maintainer: MontaVista Software Inc. */
-	.map_io		= lubbock_map_io,
+/* Maintainer: MontaVista Software Inc. */
+.map_io		= lubbock_map_io,
 	.nr_irqs	= LUBBOCK_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= lubbock_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.init_irq	= pxa25x_init_irq,
+		   .handle_irq	= pxa25x_handle_irq,
+			.init_time	= pxa_timer_init,
+			  .init_machine	= lubbock_init,
+				 .restart	= pxa_restart,
+					 MACHINE_END

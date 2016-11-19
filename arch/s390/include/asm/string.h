@@ -8,7 +8,7 @@
 #define _S390_STRING_H_
 
 #ifndef _LINUX_TYPES_H
-#include <linux/types.h>
+	#include <linux/types.h>
 #endif
 
 #define __HAVE_ARCH_MEMCHR	/* inline & arch function */
@@ -32,7 +32,7 @@
 extern int memcmp(const void *, const void *, size_t);
 extern void *memcpy(void *, const void *, size_t);
 extern void *memset(void *, int, size_t);
-extern int strcmp(const char *,const char *);
+extern int strcmp(const char *, const char *);
 extern size_t strlcat(char *, const char *, size_t);
 extern size_t strlcpy(char *, const char *, size_t);
 extern char *strncat(char *, const char *, size_t);
@@ -50,7 +50,7 @@ extern char *strstr(const char *, const char *);
 
 #if !defined(IN_ARCH_STRING_C)
 
-static inline void *memchr(const void * s, int c, size_t n)
+static inline void *memchr(const void *s, int c, size_t n)
 {
 	register int r0 asm("0") = (char) c;
 	const void *ret = s + n;
@@ -118,7 +118,7 @@ static inline size_t strlen(const char *s)
 	return r0 - (unsigned long) s;
 }
 
-static inline size_t strnlen(const char * s, size_t n)
+static inline size_t strnlen(const char *s, size_t n)
 {
 	register int r0 asm("0") = 0;
 	const char *tmp = s;
@@ -131,12 +131,12 @@ static inline size_t strnlen(const char * s, size_t n)
 	return end - s;
 }
 #else /* IN_ARCH_STRING_C */
-void *memchr(const void * s, int c, size_t n);
+void *memchr(const void *s, int c, size_t n);
 void *memscan(void *s, int c, size_t n);
 char *strcat(char *dst, const char *src);
 char *strcpy(char *dst, const char *src);
 size_t strlen(const char *s);
-size_t strnlen(const char * s, size_t n);
+size_t strnlen(const char *s, size_t n);
 #endif /* !IN_ARCH_STRING_C */
 
 #endif /* __S390_STRING_H_ */

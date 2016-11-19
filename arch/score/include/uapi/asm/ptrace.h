@@ -39,7 +39,8 @@
  * This struct defines the way the registers are stored on the stack during a
  * system call/exception. As usual the registers k0/k1 aren't being saved.
  */
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long pad0[6];	/* stack arguments */
 	unsigned long orig_r4;
 	unsigned long orig_r7;

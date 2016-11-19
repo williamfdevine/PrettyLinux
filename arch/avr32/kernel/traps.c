@@ -34,7 +34,7 @@ void die(const char *str, struct pt_regs *regs, long err)
 	bust_spinlocks(1);
 
 	printk(KERN_ALERT "Oops: %s, sig: %ld [#%d]\n",
-	       str, err, ++die_counter);
+		   str, err, ++die_counter);
 
 	printk(KERN_EMERG);
 
@@ -44,18 +44,22 @@ void die(const char *str, struct pt_regs *regs, long err)
 #ifdef CONFIG_FRAME_POINTER
 	printk(KERN_CONT "FRAME_POINTER ");
 #endif
-	if (current_cpu_data.features & AVR32_FEATURE_OCD) {
+
+	if (current_cpu_data.features & AVR32_FEATURE_OCD)
+	{
 		unsigned long did = ocd_read(DID);
 		printk(KERN_CONT "chip: 0x%03lx:0x%04lx rev %lu\n",
-		       (did >> 1) & 0x7ff,
-		       (did >> 12) & 0x7fff,
-		       (did >> 28) & 0xf);
-	} else {
+			   (did >> 1) & 0x7ff,
+			   (did >> 12) & 0x7fff,
+			   (did >> 28) & 0xf);
+	}
+	else
+	{
 		printk(KERN_CONT "cpu: arch %u r%u / core %u r%u\n",
-		       current_cpu_data.arch_type,
-		       current_cpu_data.arch_revision,
-		       current_cpu_data.cpu_type,
-		       current_cpu_data.cpu_revision);
+			   current_cpu_data.arch_type,
+			   current_cpu_data.arch_revision,
+			   current_cpu_data.cpu_type,
+			   current_cpu_data.cpu_revision);
 	}
 
 	print_modules();
@@ -66,28 +70,36 @@ void die(const char *str, struct pt_regs *regs, long err)
 	spin_unlock_irq(&die_lock);
 
 	if (in_interrupt())
+	{
 		panic("Fatal exception in interrupt");
+	}
 
 	if (panic_on_oops)
+	{
 		panic("Fatal exception");
+	}
 
 	do_exit(err);
 }
 
 void _exception(long signr, struct pt_regs *regs, int code,
-		unsigned long addr)
+				unsigned long addr)
 {
 	siginfo_t info;
 
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		const struct exception_table_entry *fixup;
 
 		/* Are we prepared to handle this kernel fault? */
 		fixup = search_exception_tables(regs->pc);
-		if (fixup) {
+
+		if (fixup)
+		{
 			regs->pc = fixup->fixup;
 			return;
 		}
+
 		die("Unhandled exception in kernel mode", regs, signr);
 	}
 
@@ -105,17 +117,22 @@ asmlinkage void do_nmi(unsigned long ecr, struct pt_regs *regs)
 	nmi_enter();
 
 	ret = notify_die(DIE_NMI, "NMI", regs, 0, ecr, SIGINT);
-	switch (ret) {
-	case NOTIFY_OK:
-	case NOTIFY_STOP:
-		break;
-	case NOTIFY_BAD:
-		die("Fatal Non-Maskable Interrupt", regs, SIGINT);
-	default:
-		printk(KERN_ALERT "Got NMI, but nobody cared. Disabling...\n");
-		nmi_disable();
-		break;
+
+	switch (ret)
+	{
+		case NOTIFY_OK:
+		case NOTIFY_STOP:
+			break;
+
+		case NOTIFY_BAD:
+			die("Fatal Non-Maskable Interrupt", regs, SIGINT);
+
+		default:
+			printk(KERN_ALERT "Got NMI, but nobody cared. Disabling...\n");
+			nmi_disable();
+			break;
 	}
+
 	nmi_exit();
 }
 
@@ -154,9 +171,13 @@ static int do_cop_absent(u32 insn)
 
 	if ((insn & 0xfdf00000) == 0xf1900000)
 		/* LDC0 */
+	{
 		cop_nr = 0;
+	}
 	else
+	{
 		cop_nr = (insn >> 13) & 0x7;
+	}
 
 	/* Try enabling the coprocessor */
 	cpucr = sysreg_read(CPUCR);
@@ -164,8 +185,11 @@ static int do_cop_absent(u32 insn)
 	sysreg_write(CPUCR, cpucr);
 
 	cpucr = sysreg_read(CPUCR);
+
 	if (!(cpucr & (1 << (24 + cop_nr))))
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -176,9 +200,14 @@ int is_valid_bugaddr(unsigned long pc)
 	unsigned short opcode;
 
 	if (pc < PAGE_OFFSET)
+	{
 		return 0;
+	}
+
 	if (probe_kernel_address((u16 *)pc, opcode))
+	{
 		return 0;
+	}
 
 	return opcode == AVR32_BUG_OPCODE;
 }
@@ -192,36 +221,52 @@ asmlinkage void do_illegal_opcode(unsigned long ecr, struct pt_regs *regs)
 	long code;
 
 #ifdef CONFIG_BUG
-	if (!user_mode(regs) && (ecr == ECR_ILLEGAL_OPCODE)) {
+
+	if (!user_mode(regs) && (ecr == ECR_ILLEGAL_OPCODE))
+	{
 		enum bug_trap_type type;
 
 		type = report_bug(regs->pc, regs);
-		switch (type) {
-		case BUG_TRAP_TYPE_NONE:
-			break;
-		case BUG_TRAP_TYPE_WARN:
-			regs->pc += 2;
-			return;
-		case BUG_TRAP_TYPE_BUG:
-			die("Kernel BUG", regs, SIGKILL);
+
+		switch (type)
+		{
+			case BUG_TRAP_TYPE_NONE:
+				break;
+
+			case BUG_TRAP_TYPE_WARN:
+				regs->pc += 2;
+				return;
+
+			case BUG_TRAP_TYPE_BUG:
+				die("Kernel BUG", regs, SIGKILL);
 		}
 	}
+
 #endif
 
 	local_irq_enable();
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		pc = (void __user *)instruction_pointer(regs);
+
 		if (get_user(insn, (u32 __user *)pc))
+		{
 			goto invalid_area;
+		}
 
 		if (ecr == ECR_COPROC_ABSENT && !do_cop_absent(insn))
+		{
 			return;
+		}
 
 		spin_lock_irq(&undef_lock);
-		list_for_each_entry(hook, &undef_hook, node) {
-			if ((insn & hook->insn_mask) == hook->insn_val) {
-				if (hook->fn(regs, insn) == 0) {
+		list_for_each_entry(hook, &undef_hook, node)
+		{
+			if ((insn & hook->insn_mask) == hook->insn_val)
+			{
+				if (hook->fn(regs, insn) == 0)
+				{
 					spin_unlock_irq(&undef_lock);
 					return;
 				}
@@ -230,16 +275,19 @@ asmlinkage void do_illegal_opcode(unsigned long ecr, struct pt_regs *regs)
 		spin_unlock_irq(&undef_lock);
 	}
 
-	switch (ecr) {
-	case ECR_PRIVILEGE_VIOLATION:
-		code = ILL_PRVOPC;
-		break;
-	case ECR_COPROC_ABSENT:
-		code = ILL_COPROC;
-		break;
-	default:
-		code = ILL_ILLOPC;
-		break;
+	switch (ecr)
+	{
+		case ECR_PRIVILEGE_VIOLATION:
+			code = ILL_PRVOPC;
+			break;
+
+		case ECR_COPROC_ABSENT:
+			code = ILL_COPROC;
+			break;
+
+		default:
+			code = ILL_ILLOPC;
+			break;
 	}
 
 	_exception(SIGILL, regs, code, regs->pc);

@@ -36,7 +36,9 @@ static int db1x_pm_enter(suspend_state_t state)
 	j = (hasint) ? BCSR_MASKSET : BCSR_SYSTEM;
 
 	for (i = BCSR_STATUS; i <= j; i++)
+	{
 		bcsrs[i] = bcsr_read(i);
+	}
 
 	/* shut off hexleds */
 	bcsr_write(BCSR_HEXCLEAR, 3);
@@ -52,14 +54,18 @@ static int db1x_pm_enter(suspend_state_t state)
 
 	/* setup 1Hz-timer-based wakeup: wait for reg access */
 	while (alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_M20)
+	{
 		asm volatile ("nop");
+	}
 
 	alchemy_wrsys(alchemy_rdsys(AU1000_SYS_TOYREAD) + db1x_pm_sleep_secs,
-		      AU1000_SYS_TOYMATCH2);
+				  AU1000_SYS_TOYMATCH2);
 
 	/* wait for value to really hit the register */
 	while (alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_M20)
+	{
 		asm volatile ("nop");
+	}
 
 	/* ...and now the sandman can come! */
 	au_sleep();
@@ -67,10 +73,13 @@ static int db1x_pm_enter(suspend_state_t state)
 
 	/* restore CPLD regs */
 	for (i = BCSR_STATUS; i <= BCSR_SYSTEM; i++)
+	{
 		bcsr_write(i, bcsrs[i]);
+	}
 
 	/* restore CPLD int registers */
-	if (hasint) {
+	if (hasint)
+	{
 		bcsr_write(BCSR_INTCLR, 0xffff);
 		bcsr_write(BCSR_MASKCLR, 0xffff);
 		bcsr_write(BCSR_INTSTAT, 0xffff);
@@ -86,7 +95,8 @@ static int db1x_pm_enter(suspend_state_t state)
 
 static int db1x_pm_begin(suspend_state_t state)
 {
-	if (!db1x_pm_wakemsk) {
+	if (!db1x_pm_wakemsk)
+	{
 		printk(KERN_ERR "db1x: no wakeup source activated!\n");
 		return -EINVAL;
 	}
@@ -105,7 +115,8 @@ static void db1x_pm_end(void)
 	alchemy_wrsys(0, AU1000_SYS_WAKESRC);
 }
 
-static const struct platform_suspend_ops db1x_pm_ops = {
+static const struct platform_suspend_ops db1x_pm_ops =
+{
 	.valid		= suspend_valid_only_mem,
 	.begin		= db1x_pm_begin,
 	.enter		= db1x_pm_enter,
@@ -115,29 +126,36 @@ static const struct platform_suspend_ops db1x_pm_ops = {
 #define ATTRCMP(x) (0 == strcmp(attr->attr.name, #x))
 
 static ssize_t db1x_pmattr_show(struct kobject *kobj,
-				struct kobj_attribute *attr,
-				char *buf)
+								struct kobj_attribute *attr,
+								char *buf)
 {
 	int idx;
 
 	if (ATTRCMP(timer_timeout))
+	{
 		return sprintf(buf, "%lu\n", db1x_pm_sleep_secs);
+	}
 
 	else if (ATTRCMP(timer))
 		return sprintf(buf, "%u\n",
-				!!(db1x_pm_wakemsk & SYS_WAKEMSK_M2));
+					   !!(db1x_pm_wakemsk & SYS_WAKEMSK_M2));
 
 	else if (ATTRCMP(wakesrc))
+	{
 		return sprintf(buf, "%lu\n", db1x_pm_last_wakesrc);
+	}
 
 	else if (ATTRCMP(gpio0) || ATTRCMP(gpio1) || ATTRCMP(gpio2) ||
-		 ATTRCMP(gpio3) || ATTRCMP(gpio4) || ATTRCMP(gpio5) ||
-		 ATTRCMP(gpio6) || ATTRCMP(gpio7)) {
+			 ATTRCMP(gpio3) || ATTRCMP(gpio4) || ATTRCMP(gpio5) ||
+			 ATTRCMP(gpio6) || ATTRCMP(gpio7))
+	{
 		idx = (attr->attr.name)[4] - '0';
 		return sprintf(buf, "%d\n",
-			!!(db1x_pm_wakemsk & SYS_WAKEMSK_GPIO(idx)));
+					   !!(db1x_pm_wakemsk & SYS_WAKEMSK_GPIO(idx)));
 
-	} else if (ATTRCMP(wakemsk)) {
+	}
+	else if (ATTRCMP(wakemsk))
+	{
 		return sprintf(buf, "%08lx\n", db1x_pm_wakemsk);
 	}
 
@@ -145,53 +163,77 @@ static ssize_t db1x_pmattr_show(struct kobject *kobj,
 }
 
 static ssize_t db1x_pmattr_store(struct kobject *kobj,
-				 struct kobj_attribute *attr,
-				 const char *instr,
-				 size_t bytes)
+								 struct kobj_attribute *attr,
+								 const char *instr,
+								 size_t bytes)
 {
 	unsigned long l;
 	int tmp;
 
-	if (ATTRCMP(timer_timeout)) {
+	if (ATTRCMP(timer_timeout))
+	{
 		tmp = kstrtoul(instr, 0, &l);
+
 		if (tmp)
+		{
 			return tmp;
+		}
 
 		db1x_pm_sleep_secs = l;
 
-	} else if (ATTRCMP(timer)) {
+	}
+	else if (ATTRCMP(timer))
+	{
 		if (instr[0] != '0')
+		{
 			db1x_pm_wakemsk |= SYS_WAKEMSK_M2;
+		}
 		else
+		{
 			db1x_pm_wakemsk &= ~SYS_WAKEMSK_M2;
+		}
 
-	} else if (ATTRCMP(gpio0) || ATTRCMP(gpio1) || ATTRCMP(gpio2) ||
-		   ATTRCMP(gpio3) || ATTRCMP(gpio4) || ATTRCMP(gpio5) ||
-		   ATTRCMP(gpio6) || ATTRCMP(gpio7)) {
+	}
+	else if (ATTRCMP(gpio0) || ATTRCMP(gpio1) || ATTRCMP(gpio2) ||
+			 ATTRCMP(gpio3) || ATTRCMP(gpio4) || ATTRCMP(gpio5) ||
+			 ATTRCMP(gpio6) || ATTRCMP(gpio7))
+	{
 		tmp = (attr->attr.name)[4] - '0';
-		if (instr[0] != '0') {
+
+		if (instr[0] != '0')
+		{
 			db1x_pm_wakemsk |= SYS_WAKEMSK_GPIO(tmp);
-		} else {
+		}
+		else
+		{
 			db1x_pm_wakemsk &= ~SYS_WAKEMSK_GPIO(tmp);
 		}
 
-	} else if (ATTRCMP(wakemsk)) {
+	}
+	else if (ATTRCMP(wakemsk))
+	{
 		tmp = kstrtoul(instr, 0, &l);
+
 		if (tmp)
+		{
 			return tmp;
+		}
 
 		db1x_pm_wakemsk = l & 0x0000003f;
 
-	} else
+	}
+	else
+	{
 		bytes = -ENOENT;
+	}
 
 	return bytes;
 }
 
 #define ATTR(x)							\
 	static struct kobj_attribute x##_attribute =		\
-		__ATTR(x, 0664, db1x_pmattr_show,		\
-				db1x_pmattr_store);
+			__ATTR(x, 0664, db1x_pmattr_show,		\
+				   db1x_pmattr_store);
 
 ATTR(gpio0)		/* GPIO-based wakeup enable */
 ATTR(gpio1)
@@ -207,7 +249,8 @@ ATTR(wakesrc)		/* contents of SYS_WAKESRC after last wakeup */
 ATTR(wakemsk)		/* direct access to SYS_WAKEMSK */
 
 #define ATTR_LIST(x)	& x ## _attribute.attr
-static struct attribute *db1x_pmattrs[] = {
+static struct attribute *db1x_pmattrs[] =
+{
 	ATTR_LIST(gpio0),
 	ATTR_LIST(gpio1),
 	ATTR_LIST(gpio2),
@@ -223,7 +266,8 @@ static struct attribute *db1x_pmattrs[] = {
 	NULL,		/* terminator */
 };
 
-static struct attribute_group db1x_pmattr_group = {
+static struct attribute_group db1x_pmattr_group =
+{
 	.name	= "db1x",
 	.attrs	= db1x_pmattrs,
 };
@@ -238,7 +282,9 @@ static int __init pm_init(void)
 	 * the next suspend cycle.
 	 */
 	if (alchemy_rdsys(AU1000_SYS_TOYTRIM) != 32767)
+	{
 		alchemy_wrsys(32767, AU1000_SYS_TOYTRIM);
+	}
 
 	db1x_pm_last_wakesrc = alchemy_rdsys(AU1000_SYS_WAKESRC);
 

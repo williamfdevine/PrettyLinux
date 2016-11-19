@@ -25,23 +25,23 @@ void show_regs(struct pt_regs *regs)
 
 	pr_info(" Registers dump: mode=%X\r\n", regs->pt_mode);
 	pr_info(" r1=%08lX, r2=%08lX, r3=%08lX, r4=%08lX\n",
-				regs->r1, regs->r2, regs->r3, regs->r4);
+			regs->r1, regs->r2, regs->r3, regs->r4);
 	pr_info(" r5=%08lX, r6=%08lX, r7=%08lX, r8=%08lX\n",
-				regs->r5, regs->r6, regs->r7, regs->r8);
+			regs->r5, regs->r6, regs->r7, regs->r8);
 	pr_info(" r9=%08lX, r10=%08lX, r11=%08lX, r12=%08lX\n",
-				regs->r9, regs->r10, regs->r11, regs->r12);
+			regs->r9, regs->r10, regs->r11, regs->r12);
 	pr_info(" r13=%08lX, r14=%08lX, r15=%08lX, r16=%08lX\n",
-				regs->r13, regs->r14, regs->r15, regs->r16);
+			regs->r13, regs->r14, regs->r15, regs->r16);
 	pr_info(" r17=%08lX, r18=%08lX, r19=%08lX, r20=%08lX\n",
-				regs->r17, regs->r18, regs->r19, regs->r20);
+			regs->r17, regs->r18, regs->r19, regs->r20);
 	pr_info(" r21=%08lX, r22=%08lX, r23=%08lX, r24=%08lX\n",
-				regs->r21, regs->r22, regs->r23, regs->r24);
+			regs->r21, regs->r22, regs->r23, regs->r24);
 	pr_info(" r25=%08lX, r26=%08lX, r27=%08lX, r28=%08lX\n",
-				regs->r25, regs->r26, regs->r27, regs->r28);
+			regs->r25, regs->r26, regs->r27, regs->r28);
 	pr_info(" r29=%08lX, r30=%08lX, r31=%08lX, rPC=%08lX\n",
-				regs->r29, regs->r30, regs->r31, regs->pc);
+			regs->r29, regs->r30, regs->r31, regs->pc);
 	pr_info(" msr=%08lX, ear=%08lX, esr=%08lX, fsr=%08lX\n",
-				regs->msr, regs->ear, regs->esr, regs->fsr);
+			regs->msr, regs->ear, regs->esr, regs->fsr);
 }
 
 void (*pm_power_off)(void) = NULL;
@@ -52,12 +52,13 @@ void flush_thread(void)
 }
 
 int copy_thread(unsigned long clone_flags, unsigned long usp,
-		unsigned long arg, struct task_struct *p)
+				unsigned long arg, struct task_struct *p)
 {
 	struct pt_regs *childregs = task_pt_regs(p);
 	struct thread_info *ti = task_thread_info(p);
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		/* if we're creating a new kernel thread then just zeroing all
 		 * the registers. That's OK for a brand new thread.*/
 		memset(childregs, 0, sizeof(struct pt_regs));
@@ -73,9 +74,13 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 		ti->cpu_context.r15 = (unsigned long)ret_from_kernel_thread - 8;
 		return 0;
 	}
+
 	*childregs = *current_pt_regs();
+
 	if (usp)
+	{
 		childregs->r1 = usp;
+	}
 
 	memset(&ti->cpu_context, 0, sizeof(struct cpu_context));
 	ti->cpu_context.r1 = (unsigned long)childregs;
@@ -100,7 +105,7 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	childregs->msr |= MSR_VMS;
 	childregs->msr |= MSR_EE; /* exceptions will be enabled*/
 
-	ti->cpu_context.msr = (childregs->msr|MSR_VM);
+	ti->cpu_context.msr = (childregs->msr | MSR_VM);
 	ti->cpu_context.msr &= ~MSR_UMS; /* switch_to to kernel mode */
 	ti->cpu_context.msr &= ~MSR_IE;
 #endif
@@ -111,7 +116,9 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	 *  which contains TLS area
 	 */
 	if (clone_flags & CLONE_SETTLS)
+	{
 		childregs->r21 = childregs->r10;
+	}
 
 	return 0;
 }
@@ -127,15 +134,19 @@ unsigned long thread_saved_pc(struct task_struct *tsk)
 
 	/* Check whether the thread is blocked in resume() */
 	if (in_sched_functions(ctx->r15))
+	{
 		return (unsigned long)ctx->r15;
+	}
 	else
+	{
 		return ctx->r14;
+	}
 }
 #endif
 
 unsigned long get_wchan(struct task_struct *p)
 {
-/* TBD (used by procfs) */
+	/* TBD (used by procfs) */
 	return 0;
 }
 
@@ -164,5 +175,5 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs)
 
 void arch_cpu_idle(void)
 {
-       local_irq_enable();
+	local_irq_enable();
 }

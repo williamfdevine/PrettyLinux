@@ -19,9 +19,12 @@ static void __iomem *wdt_reg_base;
 
 static void ls1x_halt(void)
 {
-	while (1) {
+	while (1)
+	{
 		if (cpu_wait)
+		{
 			cpu_wait();
+		}
 	}
 }
 
@@ -42,8 +45,11 @@ static void ls1x_power_off(void)
 static int __init ls1x_reboot_setup(void)
 {
 	wdt_reg_base = ioremap_nocache(LS1X_WDT_BASE, (SZ_4 + SZ_8));
+
 	if (!wdt_reg_base)
+	{
 		panic("Failed to remap watchdog registers");
+	}
 
 	_machine_restart = ls1x_restart;
 	_machine_halt = ls1x_halt;

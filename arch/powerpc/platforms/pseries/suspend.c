@@ -52,14 +52,19 @@ static int pseries_suspend_begin(suspend_state_t state)
 
 	vasi_state = retbuf[0];
 
-	if (rc) {
-		pr_err("pseries_suspend_begin: vasi_state returned %ld\n",rc);
+	if (rc)
+	{
+		pr_err("pseries_suspend_begin: vasi_state returned %ld\n", rc);
 		return rc;
-	} else if (vasi_state == H_VASI_ENABLED) {
+	}
+	else if (vasi_state == H_VASI_ENABLED)
+	{
 		return -EAGAIN;
-	} else if (vasi_state != H_VASI_SUSPENDING) {
+	}
+	else if (vasi_state != H_VASI_SUSPENDING)
+	{
 		pr_err("pseries_suspend_begin: vasi_state returned state %ld\n",
-		       vasi_state);
+			   vasi_state);
 		return -EIO;
 	}
 
@@ -75,7 +80,10 @@ static int pseries_suspend_begin(suspend_state_t state)
 static int pseries_suspend_cpu(void)
 {
 	if (atomic_read(&suspending))
+	{
 		return rtas_suspend_cpu(&suspend_data);
+	}
+
 	return 0;
 }
 
@@ -142,34 +150,46 @@ static int pseries_prepare_late(void)
  * 	number of bytes printed to buffer / other on failure
  **/
 static ssize_t store_hibernate(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t count)
+							   struct device_attribute *attr,
+							   const char *buf, size_t count)
 {
 	cpumask_var_t offline_mask;
 	int rc;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	if (!alloc_cpumask_var(&offline_mask, GFP_TEMPORARY))
+	{
 		return -ENOMEM;
+	}
 
 	stream_id = simple_strtoul(buf, NULL, 16);
 
-	do {
+	do
+	{
 		rc = pseries_suspend_begin(PM_SUSPEND_MEM);
-		if (rc == -EAGAIN)
-			ssleep(1);
-	} while (rc == -EAGAIN);
 
-	if (!rc) {
+		if (rc == -EAGAIN)
+		{
+			ssleep(1);
+		}
+	}
+	while (rc == -EAGAIN);
+
+	if (!rc)
+	{
 		/* All present CPUs must be online */
 		cpumask_andnot(offline_mask, cpu_present_mask,
-				cpu_online_mask);
+					   cpu_online_mask);
 		rc = rtas_online_cpus_mask(offline_mask);
-		if (rc) {
+
+		if (rc)
+		{
 			pr_err("%s: Could not bring present CPUs online.\n",
-					__func__);
+				   __func__);
 			goto out;
 		}
 
@@ -186,7 +206,10 @@ static ssize_t store_hibernate(struct device *dev,
 	stream_id = 0;
 
 	if (!rc)
+	{
 		rc = count;
+	}
+
 out:
 	free_cpumask_var(offline_mask);
 	return rc;
@@ -208,21 +231,23 @@ out:
  *	0 if drmgr is to initiate update, and 1 otherwise
  **/
 static ssize_t show_hibernate(struct device *dev,
-			      struct device_attribute *attr,
-			      char *buf)
+							  struct device_attribute *attr,
+							  char *buf)
 {
 	return sprintf(buf, "%d\n", KERN_DT_UPDATE);
 }
 
 static DEVICE_ATTR(hibernate, S_IWUSR | S_IRUGO,
-		   show_hibernate, store_hibernate);
+				   show_hibernate, store_hibernate);
 
-static struct bus_type suspend_subsys = {
+static struct bus_type suspend_subsys =
+{
 	.name = "power",
 	.dev_name = "power",
 };
 
-static const struct platform_suspend_ops pseries_suspend_ops = {
+static const struct platform_suspend_ops pseries_suspend_ops =
+{
 	.valid		= suspend_valid_only_mem,
 	.begin		= pseries_suspend_begin,
 	.prepare_late	= pseries_prepare_late,
@@ -240,13 +265,17 @@ static int pseries_suspend_sysfs_register(struct device *dev)
 	int rc;
 
 	if ((rc = subsys_system_register(&suspend_subsys, NULL)))
+	{
 		return rc;
+	}
 
 	dev->id = 0;
 	dev->bus = &suspend_subsys;
 
 	if ((rc = device_create_file(suspend_subsys.dev_root, &dev_attr_hibernate)))
+	{
 		goto subsys_unregister;
+	}
 
 	return 0;
 
@@ -266,14 +295,21 @@ static int __init pseries_suspend_init(void)
 	int rc;
 
 	if (!firmware_has_feature(FW_FEATURE_LPAR))
+	{
 		return 0;
+	}
 
 	suspend_data.token = rtas_token("ibm,suspend-me");
+
 	if (suspend_data.token == RTAS_UNKNOWN_SERVICE)
+	{
 		return 0;
+	}
 
 	if ((rc = pseries_suspend_sysfs_register(&suspend_dev)))
+	{
 		return rc;
+	}
 
 	ppc_md.suspend_disable_cpu = pseries_suspend_cpu;
 	ppc_md.suspend_enable_irqs = pseries_suspend_enable_irqs;

@@ -21,7 +21,7 @@
 
 #define GCR		__REG(0x4050000C)  /* Global Control Register */
 #ifdef CONFIG_PXA3xx
-#define GCR_CLKBPB	(1 << 31)	/* Internal clock enable */
+	#define GCR_CLKBPB	(1 << 31)	/* Internal clock enable */
 #endif
 #define GCR_nDMAEN	(1 << 24)	/* non DMA Enable */
 #define GCR_CDONE_IE	(1 << 19)	/* Command Done Interrupt Enable */

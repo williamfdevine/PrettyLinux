@@ -38,13 +38,18 @@ void __init wg302v2_pci_preinit(void)
 static int __init wg302v2_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	if (slot == 1)
+	{
 		return IRQ_IXP4XX_GPIO8;
+	}
 	else if (slot == 2)
+	{
 		return IRQ_IXP4XX_GPIO9;
-	else return -1;
+	}
+	else { return -1; }
 }
 
-struct hw_pci wg302v2_pci __initdata = {
+struct hw_pci wg302v2_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops = &ixp4xx_ops,
 	.preinit =        wg302v2_pci_preinit,
@@ -55,7 +60,10 @@ struct hw_pci wg302v2_pci __initdata = {
 int __init wg302v2_pci_init(void)
 {
 	if (machine_is_wg302v2())
+	{
 		pci_common_init(&wg302v2_pci);
+	}
+
 	return 0;
 }
 

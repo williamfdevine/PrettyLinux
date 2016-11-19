@@ -12,7 +12,8 @@
 
 #ifdef __KERNEL__
 
-struct proc_info_list {
+struct proc_info_list
+{
 	unsigned int		cpu_val;
 	unsigned int		cpu_mask;
 	const char		*arch_name;

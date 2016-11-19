@@ -113,12 +113,12 @@
 #define TIOCSLCKTRMIOS	0x5457
 #define TIOCSERGSTRUCT	0x5458		     /* For debugging only */
 #define TIOCSERGETLSR   _IOR('T', 89, unsigned int) /* Get line status reg. */
-  /* ioctl (fd, TIOCSERGETLSR, &result) where result may be as below */
+/* ioctl (fd, TIOCSERGETLSR, &result) where result may be as below */
 # define TIOCSER_TEMT    0x01		     /* Transmitter physically empty */
 #define TIOCSERGETMULTI 0x80a8545a /* Get multiport config  */
-			/* _IOR('T', 90, struct serial_multiport_struct) */
+/* _IOR('T', 90, struct serial_multiport_struct) */
 #define TIOCSERSETMULTI 0x40a8545b /* Set multiport config */
-			/* _IOW('T', 91, struct serial_multiport_struct) */
+/* _IOW('T', 91, struct serial_multiport_struct) */
 
 #define TIOCMIWAIT	_IO('T', 92) /* wait for a change on serial input line(s) */
 #define TIOCGICOUNT	0x545D	/* read serial port inline interrupt counts */

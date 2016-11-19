@@ -11,39 +11,39 @@
 
 
 #ifndef __ASSEMBLY__
-#include <linux/smp.h>
-#include <linux/types.h>
+	#include <linux/smp.h>
+	#include <linux/types.h>
 #endif /* !__ASSEMBLY__ */
 
 #include <asm/addrspace.h>
 #include <asm/sn/kldir.h>
 
 #if defined(CONFIG_SGI_IP27)
-#include <asm/sn/sn0/addrs.h>
+	#include <asm/sn/sn0/addrs.h>
 #elif defined(CONFIG_SGI_IP35)
-#include <asm/sn/sn1/addrs.h>
+	#include <asm/sn/sn1/addrs.h>
 #endif
 
 
 #ifndef __ASSEMBLY__
 
-#define PS_UINT_CAST		(unsigned long)
-#define UINT64_CAST		(unsigned long)
+	#define PS_UINT_CAST		(unsigned long)
+	#define UINT64_CAST		(unsigned long)
 
-#define HUBREG_CAST		(volatile hubreg_t *)
+	#define HUBREG_CAST		(volatile hubreg_t *)
 
 #else /* __ASSEMBLY__ */
 
-#define PS_UINT_CAST
-#define UINT64_CAST
-#define HUBREG_CAST
+	#define PS_UINT_CAST
+	#define UINT64_CAST
+	#define HUBREG_CAST
 
 #endif /* __ASSEMBLY__ */
 
 
 #define NASID_GET_META(_n)	((_n) >> NASID_LOCAL_BITS)
 #ifdef CONFIG_SGI_IP27
-#define NASID_GET_LOCAL(_n)	((_n) & 0xf)
+	#define NASID_GET_LOCAL(_n)	((_n) & 0xf)
 #endif
 #define NASID_MAKE(_m, _l)	(((_m) << NASID_LOCAL_BITS) | (_l))
 
@@ -51,8 +51,8 @@
 #define TO_NODE_ADDRSPACE(_pa)	(UINT64_CAST (_pa) & NODE_ADDRSPACE_MASK)
 
 #define CHANGE_ADDR_NASID(_pa, _nasid)	\
-		((UINT64_CAST(_pa) & ~NASID_MASK) | \
-		 (UINT64_CAST(_nasid) <<  NASID_SHFT))
+	((UINT64_CAST(_pa) & ~NASID_MASK) | \
+	 (UINT64_CAST(_nasid) <<  NASID_SHFT))
 
 
 /*
@@ -109,9 +109,9 @@
  *
  */
 #define NODE_SWIN_ADDR(nasid, addr)	\
-		(((addr) >= NODE_SWIN_BASE(nasid, 0))  && \
-		 ((addr) <  (NODE_SWIN_BASE(nasid, HUB_NUM_WIDGET) + SWIN_SIZE)\
-		 ))
+	(((addr) >= NODE_SWIN_BASE(nasid, 0))  && \
+	 ((addr) <  (NODE_SWIN_BASE(nasid, HUB_NUM_WIDGET) + SWIN_SIZE)\
+	 ))
 
 /*
  * The following define the major position-independent aliases used
@@ -141,7 +141,7 @@
 #define UALIAS_FLIP_SIZE	0x20000
 #define UALIAS_FLIP_BIT		0x10000
 #define UALIAS_FLIP_ADDR(_x)	(cputoslice(smp_processor_id()) ? \
-				 (_x) ^ UALIAS_FLIP_BIT : (_x))
+								 (_x) ^ UALIAS_FLIP_BIT : (_x))
 
 #define LBOOT_BASE		(HSPEC_BASE + 0x10000000)
 #define LBOOT_SIZE		0x10000000
@@ -154,16 +154,16 @@
 #define IALIAS_BASE		NODE_SWIN_BASE(0, HUB_REGISTER_WIDGET)
 #define IALIAS_SIZE		0x800000	/* 8 Megabytes */
 #define IS_IALIAS(_a)		(((_a) >= IALIAS_BASE) &&		\
-				 ((_a) < (IALIAS_BASE + IALIAS_SIZE)))
+							 ((_a) < (IALIAS_BASE + IALIAS_SIZE)))
 
 /*
  * Macro for referring to Hub's RBOOT space
  */
 
 #ifdef CONFIG_SGI_IP27
-#define RBOOT_SIZE		0x10000000	/* 256 Megabytes */
-#define NODE_RBOOT_BASE(_n)	(NODE_HSPEC_BASE(_n) + 0x30000000)
-#define NODE_RBOOT_LIMIT(_n)	(NODE_RBOOT_BASE(_n) + RBOOT_SIZE)
+	#define RBOOT_SIZE		0x10000000	/* 256 Megabytes */
+	#define NODE_RBOOT_BASE(_n)	(NODE_HSPEC_BASE(_n) + 0x30000000)
+	#define NODE_RBOOT_LIMIT(_n)	(NODE_RBOOT_BASE(_n) + RBOOT_SIZE)
 
 #endif
 
@@ -191,33 +191,33 @@
 #define NODE_BDDIR_BASE(_n)	(NODE_BDOOR_BASE(_n) + (NODE_ADDRSPACE_SIZE/4))
 #ifdef CONFIG_SGI_IP27
 #define BDDIR_ENTRY_LO(_pa)	((HSPEC_BASE +				      \
-				  NODE_ADDRSPACE_SIZE * 3 / 4 +		      \
-				  0x200)				    | \
-				 UINT64_CAST(_pa)	 & NASID_MASK	    | \
-				 UINT64_CAST(_pa) >> 2 & BDDIR_UPPER_MASK  | \
-				 UINT64_CAST(_pa) >> 3 & 0x1f << 4)
+							  NODE_ADDRSPACE_SIZE * 3 / 4 +		      \
+							  0x200)				    | \
+							 UINT64_CAST(_pa)	 & NASID_MASK	    | \
+							 UINT64_CAST(_pa) >> 2 & BDDIR_UPPER_MASK  | \
+							 UINT64_CAST(_pa) >> 3 & 0x1f << 4)
 
 #define BDDIR_ENTRY_HI(_pa)	((HSPEC_BASE +				      \
-				  NODE_ADDRSPACE_SIZE * 3 / 4 +		      \
-				  0x208)				    | \
-				 UINT64_CAST(_pa)	 & NASID_MASK	    | \
-				 UINT64_CAST(_pa) >> 2 & BDDIR_UPPER_MASK  | \
-				 UINT64_CAST(_pa) >> 3 & 0x1f << 4)
+							  NODE_ADDRSPACE_SIZE * 3 / 4 +		      \
+							  0x208)				    | \
+							 UINT64_CAST(_pa)	 & NASID_MASK	    | \
+							 UINT64_CAST(_pa) >> 2 & BDDIR_UPPER_MASK  | \
+							 UINT64_CAST(_pa) >> 3 & 0x1f << 4)
 
 #define BDPRT_ENTRY(_pa, _rgn)	((HSPEC_BASE +				      \
-				  NODE_ADDRSPACE_SIZE * 3 / 4)		    | \
-				 UINT64_CAST(_pa)	 & NASID_MASK	    | \
-				 UINT64_CAST(_pa) >> 2 & BDDIR_UPPER_MASK  | \
-				 (_rgn) << 3)
+								  NODE_ADDRSPACE_SIZE * 3 / 4)		    | \
+								 UINT64_CAST(_pa)	 & NASID_MASK	    | \
+								 UINT64_CAST(_pa) >> 2 & BDDIR_UPPER_MASK  | \
+								 (_rgn) << 3)
 #define BDPRT_ENTRY_ADDR(_pa, _rgn) (BDPRT_ENTRY((_pa), (_rgn)))
 #define BDPRT_ENTRY_S(_pa, _rgn, _val) (*(__psunsigned_t *)BDPRT_ENTRY((_pa), (_rgn))=(_val))
 #define BDPRT_ENTRY_L(_pa, _rgn)	(*(__psunsigned_t *)BDPRT_ENTRY((_pa), (_rgn)))
 
 #define BDECC_ENTRY(_pa)	((HSPEC_BASE +				      \
-				  NODE_ADDRSPACE_SIZE / 2)		    | \
-				 UINT64_CAST(_pa)	 & NASID_MASK	    | \
-				 UINT64_CAST(_pa) >> 2 & BDECC_UPPER_MASK  | \
-				 UINT64_CAST(_pa) >> 3 & 3)
+							  NODE_ADDRSPACE_SIZE / 2)		    | \
+							 UINT64_CAST(_pa)	 & NASID_MASK	    | \
+							 UINT64_CAST(_pa) >> 2 & BDECC_UPPER_MASK  | \
+							 UINT64_CAST(_pa) >> 3 & 3)
 
 /*
  * Macro to convert a back door directory or protection address into the
@@ -227,15 +227,15 @@
 #define BDADDR_IS_PRT(_ba)	((UINT64_CAST  (_ba) & 0x200) == 0)
 
 #define BDDIR_TO_MEM(_ba)	(UINT64_CAST (_ba) & NASID_MASK		   | \
-				 (UINT64_CAST(_ba) & BDDIR_UPPER_MASK)<<2  | \
-				 (UINT64_CAST(_ba) & 0x1f << 4) << 3)
+							 (UINT64_CAST(_ba) & BDDIR_UPPER_MASK)<<2  | \
+							 (UINT64_CAST(_ba) & 0x1f << 4) << 3)
 
 #define BDPRT_TO_MEM(_ba)	(UINT64_CAST (_ba) & NASID_MASK	    | \
-				 (UINT64_CAST(_ba) & BDDIR_UPPER_MASK)<<2)
+							 (UINT64_CAST(_ba) & BDDIR_UPPER_MASK)<<2)
 
 #define BDECC_TO_MEM(_ba)	(UINT64_CAST (_ba) & NASID_MASK	    | \
-				 (UINT64_CAST(_ba) & BDECC_UPPER_MASK)<<2  | \
-				 (UINT64_CAST(_ba) & 3) << 3)
+							 (UINT64_CAST(_ba) & BDECC_UPPER_MASK)<<2  | \
+							 (UINT64_CAST(_ba) & 3) << 3)
 #endif /* CONFIG_SGI_IP27 */
 
 
@@ -258,23 +258,23 @@
  */
 #define LOCAL_HUB_ADDR(_x)	(HUBREG_CAST (IALIAS_BASE + (_x)))
 #define REMOTE_HUB_ADDR(_n, _x) (HUBREG_CAST (NODE_SWIN_BASE(_n, 1) +	\
-					      0x800000 + (_x)))
+								 0x800000 + (_x)))
 #ifdef CONFIG_SGI_IP27
 #define REMOTE_HUB_PI_ADDR(_n, _sn, _x) (HUBREG_CAST (NODE_SWIN_BASE(_n, 1) +	\
-					      0x800000 + (_x)))
+		0x800000 + (_x)))
 #endif /* CONFIG_SGI_IP27 */
 
 #ifndef __ASSEMBLY__
 
-#define HUB_L(_a)			*(_a)
-#define HUB_S(_a, _d)			*(_a) = (_d)
+	#define HUB_L(_a)			*(_a)
+	#define HUB_S(_a, _d)			*(_a) = (_d)
 
-#define LOCAL_HUB_L(_r)			HUB_L(LOCAL_HUB_ADDR(_r))
-#define LOCAL_HUB_S(_r, _d)		HUB_S(LOCAL_HUB_ADDR(_r), (_d))
-#define REMOTE_HUB_L(_n, _r)		HUB_L(REMOTE_HUB_ADDR((_n), (_r)))
-#define REMOTE_HUB_S(_n, _r, _d)	HUB_S(REMOTE_HUB_ADDR((_n), (_r)), (_d))
-#define REMOTE_HUB_PI_L(_n, _sn, _r)	HUB_L(REMOTE_HUB_PI_ADDR((_n), (_sn), (_r)))
-#define REMOTE_HUB_PI_S(_n, _sn, _r, _d) HUB_S(REMOTE_HUB_PI_ADDR((_n), (_sn), (_r)), (_d))
+	#define LOCAL_HUB_L(_r)			HUB_L(LOCAL_HUB_ADDR(_r))
+	#define LOCAL_HUB_S(_r, _d)		HUB_S(LOCAL_HUB_ADDR(_r), (_d))
+	#define REMOTE_HUB_L(_n, _r)		HUB_L(REMOTE_HUB_ADDR((_n), (_r)))
+	#define REMOTE_HUB_S(_n, _r, _d)	HUB_S(REMOTE_HUB_ADDR((_n), (_r)), (_d))
+	#define REMOTE_HUB_PI_L(_n, _sn, _r)	HUB_L(REMOTE_HUB_PI_ADDR((_n), (_sn), (_r)))
+	#define REMOTE_HUB_PI_S(_n, _sn, _r, _d) HUB_S(REMOTE_HUB_PI_ADDR((_n), (_sn), (_r)), (_d))
 
 #endif /* !__ASSEMBLY__ */
 

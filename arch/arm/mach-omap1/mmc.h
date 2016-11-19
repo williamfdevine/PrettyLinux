@@ -9,10 +9,10 @@
 
 #if IS_ENABLED(CONFIG_MMC_OMAP)
 void omap1_init_mmc(struct omap_mmc_platform_data **mmc_data,
-				int nr_controllers);
+					int nr_controllers);
 #else
 static inline void omap1_init_mmc(struct omap_mmc_platform_data **mmc_data,
-				int nr_controllers)
+								  int nr_controllers)
 {
 }
 #endif

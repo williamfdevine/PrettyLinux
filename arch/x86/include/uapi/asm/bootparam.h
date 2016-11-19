@@ -38,14 +38,16 @@
 #include <video/edid.h>
 
 /* extensible setup data list node */
-struct setup_data {
+struct setup_data
+{
 	__u64 next;
 	__u32 type;
 	__u32 len;
 	__u8 data[0];
 };
 
-struct setup_header {
+struct setup_header
+{
 	__u8	setup_sects;
 	__u16	root_flags;
 	__u32	syssize;
@@ -86,20 +88,23 @@ struct setup_header {
 	__u32	handover_offset;
 } __attribute__((packed));
 
-struct sys_desc_table {
+struct sys_desc_table
+{
 	__u16 length;
 	__u8  table[14];
 };
 
 /* Gleaned from OFW's set-parameters in cpu/x86/pc/linux.fth */
-struct olpc_ofw_header {
+struct olpc_ofw_header
+{
 	__u32 ofw_magic;	/* OFW signature */
 	__u32 ofw_version;
 	__u32 cif_handler;	/* callback into OFW */
 	__u32 irq_desc_table;
 } __attribute__((packed));
 
-struct efi_info {
+struct efi_info
+{
 	__u32 efi_loader_signature;
 	__u32 efi_systab;
 	__u32 efi_memdesc_size;
@@ -111,7 +116,8 @@ struct efi_info {
 };
 
 /* The so-called "zeropage" */
-struct boot_params {
+struct boot_params
+{
 	struct screen_info screen_info;			/* 0x000 */
 	struct apm_bios_info apm_bios_info;		/* 0x040 */
 	__u8  _pad2[4];					/* 0x054 */
@@ -149,7 +155,7 @@ struct boot_params {
 	__u8  sentinel;					/* 0x1ef */
 	__u8  _pad6[1];					/* 0x1f0 */
 	struct setup_header hdr;    /* setup header */	/* 0x1f1 */
-	__u8  _pad7[0x290-0x1f1-sizeof(struct setup_header)];
+	__u8  _pad7[0x290 - 0x1f1 - sizeof(struct setup_header)];
 	__u32 edd_mbr_sig_buffer[EDD_MBR_SIG_MAX];	/* 0x290 */
 	struct e820entry e820_map[E820MAX];		/* 0x2d0 */
 	__u8  _pad8[48];				/* 0xcd0 */
@@ -196,7 +202,8 @@ struct boot_params {
  * 	for settop boxes and media devices, the use of a subarch for CE4100
  * 	is more of a hack...
  */
-enum x86_hardware_subarch {
+enum x86_hardware_subarch
+{
 	X86_SUBARCH_PC = 0,
 	X86_SUBARCH_LGUEST,
 	X86_SUBARCH_XEN,

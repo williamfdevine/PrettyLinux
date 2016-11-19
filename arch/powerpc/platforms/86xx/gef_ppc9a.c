@@ -43,9 +43,9 @@
 #undef DEBUG
 
 #ifdef DEBUG
-#define DBG (fmt...) do { printk(KERN_ERR "PPC9A: " fmt); } while (0)
+	#define DBG (fmt...) do { printk(KERN_ERR "PPC9A: " fmt); } while (0)
 #else
-#define DBG (fmt...) do { } while (0)
+	#define DBG (fmt...) do { } while (0)
 #endif
 
 void __iomem *ppc9a_regs;
@@ -61,7 +61,9 @@ static void __init gef_ppc9a_init_irq(void)
 	 * to be cascaded into the MPIC
 	 */
 	cascade_node = of_find_compatible_node(NULL, NULL, "gef,fpga-pic-1.00");
-	if (!cascade_node) {
+
+	if (!cascade_node)
+	{
 		printk(KERN_WARNING "PPC9A: No FPGA PIC\n");
 		return;
 	}
@@ -84,10 +86,16 @@ static void __init gef_ppc9a_setup_arch(void)
 
 	/* Remap basic board registers */
 	regs = of_find_compatible_node(NULL, NULL, "gef,ppc9a-fpga-regs");
-	if (regs) {
+
+	if (regs)
+	{
 		ppc9a_regs = of_iomap(regs, 0);
+
 		if (ppc9a_regs == NULL)
+		{
 			printk(KERN_WARNING "Unable to map board registers\n");
+		}
+
 		of_node_put(regs);
 	}
 
@@ -148,7 +156,7 @@ static void gef_ppc9a_show_cpuinfo(struct seq_file *m)
 	seq_printf(m, "Vendor\t\t: GE Intelligent Platforms\n");
 
 	seq_printf(m, "Revision\t: %u%c\n", gef_ppc9a_get_pcb_rev(),
-		('A' + gef_ppc9a_get_board_rev()));
+			   ('A' + gef_ppc9a_get_board_rev()));
 	seq_printf(m, "FPGA Revision\t: %u\n", gef_ppc9a_get_fpga_rev());
 
 	seq_printf(m, "SVR\t\t: 0x%x\n", svid);
@@ -156,7 +164,7 @@ static void gef_ppc9a_show_cpuinfo(struct seq_file *m)
 	seq_printf(m, "VME geo. addr\t: %u\n", gef_ppc9a_get_vme_geo_addr());
 
 	seq_printf(m, "VME syscon\t: %s\n",
-		gef_ppc9a_get_vme_is_syscon() ? "yes" : "no");
+			   gef_ppc9a_get_vme_is_syscon() ? "yes" : "no");
 }
 
 static void gef_ppc9a_nec_fixup(struct pci_dev *pdev)
@@ -165,7 +173,9 @@ static void gef_ppc9a_nec_fixup(struct pci_dev *pdev)
 
 	/* Do not do the fixup on other platforms! */
 	if (!machine_is(gef_ppc9a))
+	{
 		return;
+	}
 
 	printk(KERN_INFO "Running NEC uPD720101 Fixup\n");
 
@@ -177,7 +187,7 @@ static void gef_ppc9a_nec_fixup(struct pci_dev *pdev)
 	pci_write_config_dword(pdev, 0xe4, 1 << 5);
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB,
-	gef_ppc9a_nec_fixup);
+						 gef_ppc9a_nec_fixup);
 
 /*
  * Called very early, device-tree isn't unflattened
@@ -190,24 +200,27 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB,
 static int __init gef_ppc9a_probe(void)
 {
 	if (of_machine_is_compatible("gef,ppc9a"))
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 machine_arch_initcall(gef_ppc9a, mpc86xx_common_publish_devices);
 
-define_machine(gef_ppc9a) {
+define_machine(gef_ppc9a)
+{
 	.name			= "GE PPC9A",
-	.probe			= gef_ppc9a_probe,
-	.setup_arch		= gef_ppc9a_setup_arch,
-	.init_IRQ		= gef_ppc9a_init_irq,
-	.show_cpuinfo		= gef_ppc9a_show_cpuinfo,
-	.get_irq		= mpic_get_irq,
-	.time_init		= mpc86xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= gef_ppc9a_probe,
+					 .setup_arch		= gef_ppc9a_setup_arch,
+						 .init_IRQ		= gef_ppc9a_init_irq,
+							   .show_cpuinfo		= gef_ppc9a_show_cpuinfo,
+									 .get_irq		= mpic_get_irq,
+											.time_init		= mpc86xx_time_init,
+												 .calibrate_decr		= generic_calibrate_decr,
+													 .progress		= udbg_progress,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+														   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
 #endif
 };

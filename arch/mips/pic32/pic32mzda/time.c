@@ -22,7 +22,8 @@
 
 #include "pic32mzda.h"
 
-static const struct of_device_id pic32_infra_match[] = {
+static const struct of_device_id pic32_infra_match[] =
+{
 	{ .compatible = "microchip,pic32mzda-infra", },
 	{ },
 };
@@ -37,11 +38,16 @@ static unsigned int pic32_xlate_core_timer_irq(void)
 	node = of_find_matching_node(NULL, pic32_infra_match);
 
 	if (WARN_ON(!node))
+	{
 		goto default_map;
+	}
 
 	irq = irq_of_parse_and_map(node, 0);
+
 	if (!irq)
+	{
 		goto default_map;
+	}
 
 	return irq;
 

@@ -1,7 +1,7 @@
 #ifndef _SPARC_SHMBUF_H
 #define _SPARC_SHMBUF_H
 
-/* 
+/*
  * The shmid64_ds structure for sparc architecture.
  * Note extra padding because this structure is passed back and forth
  * between kernel and user space.
@@ -12,12 +12,13 @@
  */
 
 #if defined(__sparc__) && defined(__arch64__)
-# define PADDING(x)
+	#define PADDING(x)
 #else
-# define PADDING(x) unsigned int x;
+	#define PADDING(x) unsigned int x;
 #endif
 
-struct shmid64_ds {
+struct shmid64_ds
+{
 	struct ipc64_perm	shm_perm;	/* operation perms */
 	PADDING(__pad1)
 	__kernel_time_t		shm_atime;	/* last attach time */
@@ -33,7 +34,8 @@ struct shmid64_ds {
 	unsigned long		__unused2;
 };
 
-struct shminfo64 {
+struct shminfo64
+{
 	unsigned long	shmmax;
 	unsigned long	shmmin;
 	unsigned long	shmmni;

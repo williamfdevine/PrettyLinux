@@ -22,7 +22,8 @@
  *			If a "core" clock is provided by the device tree, it
  *			will override this function.
  */
-struct meta_clock_desc {
+struct meta_clock_desc
+{
 	unsigned long		(*get_core_freq)(void);
 };
 

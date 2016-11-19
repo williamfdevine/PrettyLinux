@@ -10,7 +10,8 @@
 
 #ifndef __ASSEMBLY__
 /* This is for V8 compliant Sparc CPUS */
-struct tt_entry {
+struct tt_entry
+{
 	unsigned long inst_one;
 	unsigned long inst_two;
 	unsigned long inst_three;

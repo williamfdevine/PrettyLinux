@@ -23,7 +23,8 @@
  */
 #define MAX_ATOMIC_CONTEXT_SIZE	(128 / sizeof(kprobe_opcode_t))
 
-enum kprobe_insn {
+enum kprobe_insn
+{
 	INSN_REJECTED,
 	INSN_GOOD_NO_SLOT,
 	INSN_GOOD,

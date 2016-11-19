@@ -53,12 +53,13 @@
  * to be a good tradeoff between hot cachelines & spreading the array
  * across too many cacheline.
  */
-static struct local_tlb_flush_counts {
+static struct local_tlb_flush_counts
+{
 	unsigned int count;
 } __attribute__((__aligned__(32))) local_tlb_flush_counts[NR_CPUS];
 
 static DEFINE_PER_CPU_SHARED_ALIGNED(unsigned short [NR_CPUS],
-				     shadow_flush_counts);
+									 shadow_flush_counts);
 
 #define IPI_CALL_FUNC		0
 #define IPI_CPU_STOP		1
@@ -90,6 +91,7 @@ cpu_die(void)
 	cpu_halt();
 	/* Should never be here */
 	BUG();
+
 	for (;;);
 }
 
@@ -101,37 +103,49 @@ handle_IPI (int irq, void *dev_id)
 	unsigned long ops;
 
 	mb();	/* Order interrupt and bit testing. */
-	while ((ops = xchg(pending_ipis, 0)) != 0) {
+
+	while ((ops = xchg(pending_ipis, 0)) != 0)
+	{
 		mb();	/* Order bit clearing and data access. */
-		do {
+
+		do
+		{
 			unsigned long which;
 
 			which = ffz(~ops);
 			ops &= ~(1 << which);
 
-			switch (which) {
-			case IPI_CPU_STOP:
-				stop_this_cpu();
-				break;
-			case IPI_CALL_FUNC:
-				generic_smp_call_function_interrupt();
-				break;
-			case IPI_CALL_FUNC_SINGLE:
-				generic_smp_call_function_single_interrupt();
-				break;
+			switch (which)
+			{
+				case IPI_CPU_STOP:
+					stop_this_cpu();
+					break;
+
+				case IPI_CALL_FUNC:
+					generic_smp_call_function_interrupt();
+					break;
+
+				case IPI_CALL_FUNC_SINGLE:
+					generic_smp_call_function_single_interrupt();
+					break;
 #ifdef CONFIG_KEXEC
-			case IPI_KDUMP_CPU_STOP:
-				unw_init_running(kdump_cpu_freeze, NULL);
-				break;
+
+				case IPI_KDUMP_CPU_STOP:
+					unw_init_running(kdump_cpu_freeze, NULL);
+					break;
 #endif
-			default:
-				printk(KERN_CRIT "Unknown IPI on CPU %d: %lu\n",
-						this_cpu, which);
-				break;
+
+				default:
+					printk(KERN_CRIT "Unknown IPI on CPU %d: %lu\n",
+						   this_cpu, which);
+					break;
 			}
-		} while (ops);
+		}
+		while (ops);
+
 		mb();	/* Order data access and bit testing. */
 	}
+
 	put_cpu();
 	return IRQ_HANDLED;
 }
@@ -156,9 +170,12 @@ send_IPI_allbutself (int op)
 {
 	unsigned int i;
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		if (i != smp_processor_id())
+		{
 			send_IPI_single(i, op);
+		}
 	}
 }
 
@@ -170,8 +187,9 @@ send_IPI_mask(const struct cpumask *mask, int op)
 {
 	unsigned int cpu;
 
-	for_each_cpu(cpu, mask) {
-			send_IPI_single(cpu, op);
+	for_each_cpu(cpu, mask)
+	{
+		send_IPI_single(cpu, op);
 	}
 }
 
@@ -183,7 +201,8 @@ send_IPI_all (int op)
 {
 	int i;
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		send_IPI_single(i, op);
 	}
 }
@@ -201,7 +220,7 @@ send_IPI_self (int op)
 void
 kdump_smp_send_stop(void)
 {
- 	send_IPI_allbutself(IPI_KDUMP_CPU_STOP);
+	send_IPI_allbutself(IPI_KDUMP_CPU_STOP);
 }
 
 void
@@ -209,10 +228,14 @@ kdump_smp_send_init(void)
 {
 	unsigned int cpu, self_cpu;
 	self_cpu = smp_processor_id();
-	for_each_online_cpu(cpu) {
-		if (cpu != self_cpu) {
-			if(kdump_status[cpu] == 0)
+	for_each_online_cpu(cpu)
+	{
+		if (cpu != self_cpu)
+		{
+			if (kdump_status[cpu] == 0)
+			{
 				platform_send_ipi(cpu, 0, IA64_IPI_DM_INIT, 0);
+			}
 		}
 	}
 }
@@ -263,22 +286,32 @@ smp_flush_tlb_cpumask(cpumask_t xcpumask)
 	mycpu = smp_processor_id();
 
 	for_each_cpu(cpu, &cpumask)
-		counts[cpu] = local_tlb_flush_counts[cpu].count & 0xffff;
+	counts[cpu] = local_tlb_flush_counts[cpu].count & 0xffff;
 
 	mb();
-	for_each_cpu(cpu, &cpumask) {
+	for_each_cpu(cpu, &cpumask)
+	{
 		if (cpu == mycpu)
+		{
 			flush_mycpu = 1;
+		}
 		else
+		{
 			smp_send_local_flush_tlb(cpu);
+		}
 	}
 
 	if (flush_mycpu)
+	{
 		smp_local_flush_tlb();
+	}
 
 	for_each_cpu(cpu, &cpumask)
-		while(counts[cpu] == (local_tlb_flush_counts[cpu].count & 0xffff))
-			udelay(FLUSH_DELAY);
+
+	while (counts[cpu] == (local_tlb_flush_counts[cpu].count & 0xffff))
+	{
+		udelay(FLUSH_DELAY);
+	}
 
 	preempt_enable();
 }
@@ -294,6 +327,7 @@ smp_flush_tlb_mm (struct mm_struct *mm)
 {
 	cpumask_var_t cpus;
 	preempt_disable();
+
 	/* this happens for the common case of a single-threaded fork():  */
 	if (likely(mm == current->active_mm && atomic_read(&mm->mm_users) == 1))
 	{
@@ -301,15 +335,20 @@ smp_flush_tlb_mm (struct mm_struct *mm)
 		preempt_enable();
 		return;
 	}
-	if (!alloc_cpumask_var(&cpus, GFP_ATOMIC)) {
+
+	if (!alloc_cpumask_var(&cpus, GFP_ATOMIC))
+	{
 		smp_call_function((void (*)(void *))local_finish_flush_tlb_mm,
-			mm, 1);
-	} else {
+						  mm, 1);
+	}
+	else
+	{
 		cpumask_copy(cpus, mm_cpumask(mm));
 		smp_call_function_many(cpus,
-			(void (*)(void *))local_finish_flush_tlb_mm, mm, 1);
+							   (void (*)(void *))local_finish_flush_tlb_mm, mm, 1);
 		free_cpumask_var(cpus);
 	}
+
 	local_irq_disable();
 	local_finish_flush_tlb_mm(mm);
 	local_irq_enable();

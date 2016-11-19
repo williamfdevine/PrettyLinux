@@ -35,7 +35,8 @@
 #include "common.h"
 #include "mach-smartq.h"
 
-static struct gpio_led smartq7_leds[] = {
+static struct gpio_led smartq7_leds[] =
+{
 	{
 		.name			= "smartq7:red",
 		.active_low		= 1,
@@ -48,19 +49,22 @@ static struct gpio_led smartq7_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data smartq7_led_data = {
+static struct gpio_led_platform_data smartq7_led_data =
+{
 	.num_leds = ARRAY_SIZE(smartq7_leds),
 	.leds = smartq7_leds,
 };
 
-static struct platform_device smartq7_leds_device = {
+static struct platform_device smartq7_leds_device =
+{
 	.name			= "leds-gpio",
 	.id			= -1,
 	.dev.platform_data	= &smartq7_led_data,
 };
 
 /* Labels according to the SmartQ manual */
-static struct gpio_keys_button smartq7_buttons[] = {
+static struct gpio_keys_button smartq7_buttons[] =
+{
 	{
 		.gpio			= S3C64XX_GPL(14),
 		.code			= KEY_POWER,
@@ -111,12 +115,14 @@ static struct gpio_keys_button smartq7_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data smartq7_buttons_data  = {
+static struct gpio_keys_platform_data smartq7_buttons_data  =
+{
 	.buttons	= smartq7_buttons,
 	.nbuttons	= ARRAY_SIZE(smartq7_buttons),
 };
 
-static struct platform_device smartq7_buttons_device  = {
+static struct platform_device smartq7_buttons_device  =
+{
 	.name		= "gpio-keys",
 	.id		= 0,
 	.num_resources	= 0,
@@ -125,14 +131,16 @@ static struct platform_device smartq7_buttons_device  = {
 	}
 };
 
-static struct s3c_fb_pd_win smartq7_fb_win0 = {
+static struct s3c_fb_pd_win smartq7_fb_win0 =
+{
 	.max_bpp	= 32,
 	.default_bpp	= 16,
 	.xres		= 800,
 	.yres		= 480,
 };
 
-static struct fb_videomode smartq7_lcd_timing = {
+static struct fb_videomode smartq7_lcd_timing =
+{
 	.left_margin	= 3,
 	.right_margin	= 5,
 	.upper_margin	= 1,
@@ -144,16 +152,18 @@ static struct fb_videomode smartq7_lcd_timing = {
 	.refresh	= 80,
 };
 
-static struct s3c_fb_platdata smartq7_lcd_pdata __initdata = {
+static struct s3c_fb_platdata smartq7_lcd_pdata __initdata =
+{
 	.setup_gpio	= s3c64xx_fb_gpio_setup_24bpp,
 	.vtiming	= &smartq7_lcd_timing,
 	.win[0]		= &smartq7_fb_win0,
 	.vidcon0	= VIDCON0_VIDOUT_RGB | VIDCON0_PNRMODE_RGB,
 	.vidcon1	= VIDCON1_INV_HSYNC | VIDCON1_INV_VSYNC |
-			  VIDCON1_INV_VCLK,
+	VIDCON1_INV_VCLK,
 };
 
-static struct platform_device *smartq7_devices[] __initdata = {
+static struct platform_device *smartq7_devices[] __initdata =
+{
 	&smartq7_leds_device,
 	&smartq7_buttons_device,
 };
@@ -168,12 +178,12 @@ static void __init smartq7_machine_init(void)
 }
 
 MACHINE_START(SMARTQ7, "SmartQ 7")
-	/* Maintainer: Maurus Cuelenaere <mcuelenaere AT gmail DOT com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Maurus Cuelenaere <mcuelenaere AT gmail DOT com> */
+.atag_offset	= 0x100,
 	.nr_irqs	= S3C64XX_NR_IRQS,
-	.init_irq	= s3c6410_init_irq,
-	.map_io		= smartq_map_io,
-	.init_machine	= smartq7_machine_init,
-	.init_time	= samsung_timer_init,
-	.restart	= s3c64xx_restart,
-MACHINE_END
+		.init_irq	= s3c6410_init_irq,
+		   .map_io		= smartq_map_io,
+			   .init_machine	= smartq7_machine_init,
+				  .init_time	= samsung_timer_init,
+					.restart	= s3c64xx_restart,
+						MACHINE_END

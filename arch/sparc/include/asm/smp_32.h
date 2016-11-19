@@ -11,7 +11,7 @@
 
 #ifndef __ASSEMBLY__
 
-#include <linux/cpumask.h>
+	#include <linux/cpumask.h>
 
 #endif /* __ASSEMBLY__ */
 
@@ -33,7 +33,7 @@ extern cpumask_t smp_commenced_mask;
 extern struct linux_prom_registers smp_penguin_ctable;
 
 typedef void (*smpfunc_t)(unsigned long, unsigned long, unsigned long,
-		       unsigned long, unsigned long);
+						  unsigned long, unsigned long);
 
 void cpu_panic(void);
 
@@ -55,10 +55,11 @@ struct seq_file;
 void smp_bogo(struct seq_file *);
 void smp_info(struct seq_file *);
 
-struct sparc32_ipi_ops {
+struct sparc32_ipi_ops
+{
 	void (*cross_call)(smpfunc_t func, cpumask_t mask, unsigned long arg1,
-			   unsigned long arg2, unsigned long arg3,
-			   unsigned long arg4);
+					   unsigned long arg2, unsigned long arg3,
+					   unsigned long arg4);
 	void (*resched)(int cpu);
 	void (*single)(int cpu);
 	void (*mask_one)(int cpu);
@@ -80,17 +81,17 @@ static inline void xc2(smpfunc_t func, unsigned long arg1, unsigned long arg2)
 }
 
 static inline void xc3(smpfunc_t func, unsigned long arg1, unsigned long arg2,
-		       unsigned long arg3)
+					   unsigned long arg3)
 {
 	sparc32_ipi_ops->cross_call(func, *cpu_online_mask,
-				    arg1, arg2, arg3, 0);
+								arg1, arg2, arg3, 0);
 }
 
 static inline void xc4(smpfunc_t func, unsigned long arg1, unsigned long arg2,
-		       unsigned long arg3, unsigned long arg4)
+					   unsigned long arg3, unsigned long arg4)
 {
 	sparc32_ipi_ops->cross_call(func, *cpu_online_mask,
-				    arg1, arg2, arg3, arg4);
+								arg1, arg2, arg3, arg4);
 }
 
 void arch_send_call_function_single_ipi(int cpu);

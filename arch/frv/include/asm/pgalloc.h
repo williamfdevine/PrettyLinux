@@ -22,9 +22,9 @@
 
 #define pmd_populate_kernel(mm, pmd, pte) __set_pmd(pmd, __pa(pte) | _PAGE_TABLE)
 #define pmd_populate(MM, PMD, PAGE)						\
-do {										\
-	__set_pmd((PMD), page_to_pfn(PAGE) << PAGE_SHIFT | _PAGE_TABLE);	\
-} while(0)
+	do {										\
+		__set_pmd((PMD), page_to_pfn(PAGE) << PAGE_SHIFT | _PAGE_TABLE);	\
+	} while(0)
 #define pmd_pgtable(pmd) pmd_page(pmd)
 
 /*
@@ -50,10 +50,10 @@ static inline void pte_free(struct mm_struct *mm, pgtable_t pte)
 }
 
 #define __pte_free_tlb(tlb,pte,address)			\
-do {							\
-	pgtable_page_dtor(pte);				\
-	tlb_remove_page((tlb),(pte));			\
-} while (0)
+	do {							\
+		pgtable_page_dtor(pte);				\
+		tlb_remove_page((tlb),(pte));			\
+	} while (0)
 
 /*
  * allocating and freeing a pmd is trivial: the 1-entry pmd is

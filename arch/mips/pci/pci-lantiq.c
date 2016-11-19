@@ -68,12 +68,14 @@ static int reset_gpio;
 static struct clk *clk_pci, *clk_external;
 static struct resource pci_io_resource;
 static struct resource pci_mem_resource;
-static struct pci_ops pci_ops = {
+static struct pci_ops pci_ops =
+{
 	.read	= ltq_pci_read_config_dword,
 	.write	= ltq_pci_write_config_dword
 };
 
-static struct pci_controller pci_controller = {
+static struct pci_controller pci_controller =
+{
 	.pci_ops	= &pci_ops,
 	.mem_resource	= &pci_mem_resource,
 	.mem_offset	= 0x00000000UL,
@@ -100,13 +102,17 @@ static int ltq_pci_startup(struct platform_device *pdev)
 
 	/* get our clocks */
 	clk_pci = clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk_pci)) {
+
+	if (IS_ERR(clk_pci))
+	{
 		dev_err(&pdev->dev, "failed to get pci clock\n");
 		return PTR_ERR(clk_pci);
 	}
 
 	clk_external = clk_get(&pdev->dev, "external");
-	if (IS_ERR(clk_external)) {
+
+	if (IS_ERR(clk_external))
+	{
 		clk_put(clk_pci);
 		dev_err(&pdev->dev, "failed to get external pci clock\n");
 		return PTR_ERR(clk_external);
@@ -114,26 +120,39 @@ static int ltq_pci_startup(struct platform_device *pdev)
 
 	/* read the bus speed that we want */
 	bus_clk = of_get_property(node, "lantiq,bus-clock", NULL);
+
 	if (bus_clk)
+	{
 		clk_set_rate(clk_pci, *bus_clk);
+	}
 
 	/* and enable the clocks */
 	clk_enable(clk_pci);
+
 	if (of_find_property(node, "lantiq,external-clock", NULL))
+	{
 		clk_enable(clk_external);
+	}
 	else
+	{
 		clk_disable(clk_external);
+	}
 
 	/* setup reset gpio used by pci */
 	reset_gpio = of_get_named_gpio(node, "gpio-reset", 0);
-	if (gpio_is_valid(reset_gpio)) {
+
+	if (gpio_is_valid(reset_gpio))
+	{
 		int ret = devm_gpio_request(&pdev->dev,
-						reset_gpio, "pci-reset");
-		if (ret) {
+									reset_gpio, "pci-reset");
+
+		if (ret)
+		{
 			dev_err(&pdev->dev,
-				"failed to request gpio %d\n", reset_gpio);
+					"failed to request gpio %d\n", reset_gpio);
 			return ret;
 		}
+
 		gpio_direction_output(reset_gpio, 1);
 	}
 
@@ -150,10 +169,16 @@ static int ltq_pci_startup(struct platform_device *pdev)
 	temp_buffer = ltq_pci_r32(PCI_CR_PC_ARB);
 	/* setup the request mask */
 	req_mask = of_get_property(node, "req-mask", NULL);
+
 	if (req_mask)
+	{
 		temp_buffer &= ~((*req_mask & 0xf) << 16);
+	}
 	else
+	{
 		temp_buffer &= ~0xf0000;
+	}
+
 	/* enable internal arbiter */
 	temp_buffer |= (1 << INTERNAL_ARB_ENABLE_BIT);
 	/* enable internal PCI master reqest */
@@ -184,9 +209,9 @@ static int ltq_pci_startup(struct platform_device *pdev)
 	ltq_pci_w32(ltq_pci_r32(PCI_CR_PCI_EOI) | 3, PCI_CR_PCI_EOI);
 	wmb();
 	ltq_pci_w32(ltq_pci_r32(PCI_CR_BAR12MASK) | 0x80000000,
-		PCI_CR_BAR12MASK);
+				PCI_CR_BAR12MASK);
 	ltq_pci_w32(ltq_pci_r32(PCI_CR_BAR13MASK) | 0x80000000,
-		PCI_CR_BAR13MASK);
+				PCI_CR_BAR13MASK);
 	/*use 8 dw burst length */
 	ltq_pci_w32(0x303, PCI_CR_FCI_BURST_LENGTH);
 	ltq_pci_w32(ltq_pci_r32(PCI_CR_PCI_MOD) | (1 << 24), PCI_CR_PCI_MOD);
@@ -197,12 +222,14 @@ static int ltq_pci_startup(struct platform_device *pdev)
 	ltq_ebu_w32(ltq_ebu_r32(LTQ_EBU_PCC_IEN) | 0x10, LTQ_EBU_PCC_IEN);
 
 	/* toggle reset pin */
-	if (gpio_is_valid(reset_gpio)) {
+	if (gpio_is_valid(reset_gpio))
+	{
 		__gpio_set_value(reset_gpio, 0);
 		wmb();
 		mdelay(1);
 		__gpio_set_value(reset_gpio, 1);
 	}
+
 	return 0;
 }
 
@@ -214,13 +241,19 @@ static int ltq_pci_probe(struct platform_device *pdev)
 
 	res_bridge = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	ltq_pci_membase = devm_ioremap_resource(&pdev->dev, res_bridge);
+
 	if (IS_ERR(ltq_pci_membase))
+	{
 		return PTR_ERR(ltq_pci_membase);
+	}
 
 	res_cfg = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ltq_pci_mapped_cfg = devm_ioremap_resource(&pdev->dev, res_cfg);
+
 	if (IS_ERR(ltq_pci_mapped_cfg))
+	{
 		return PTR_ERR(ltq_pci_mapped_cfg);
+	}
 
 	ltq_pci_startup(pdev);
 
@@ -229,12 +262,14 @@ static int ltq_pci_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id ltq_pci_match[] = {
+static const struct of_device_id ltq_pci_match[] =
+{
 	{ .compatible = "lantiq,pci-xway" },
 	{},
 };
 
-static struct platform_driver ltq_pci_driver = {
+static struct platform_driver ltq_pci_driver =
+{
 	.probe = ltq_pci_probe,
 	.driver = {
 		.name = "pci-xway",
@@ -245,8 +280,12 @@ static struct platform_driver ltq_pci_driver = {
 int __init pcibios_init(void)
 {
 	int ret = platform_driver_register(&ltq_pci_driver);
+
 	if (ret)
+	{
 		pr_info("pci-xway: Error registering platform driver!");
+	}
+
 	return ret;
 }
 

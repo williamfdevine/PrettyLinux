@@ -43,8 +43,8 @@ static inline void atomic64_set(atomic64_t *v, long i)
 static __always_inline void atomic64_add(long i, atomic64_t *v)
 {
 	asm volatile(LOCK_PREFIX "addq %1,%0"
-		     : "=m" (v->counter)
-		     : "er" (i), "m" (v->counter));
+				 : "=m" (v->counter)
+				 : "er" (i), "m" (v->counter));
 }
 
 /**
@@ -57,8 +57,8 @@ static __always_inline void atomic64_add(long i, atomic64_t *v)
 static inline void atomic64_sub(long i, atomic64_t *v)
 {
 	asm volatile(LOCK_PREFIX "subq %1,%0"
-		     : "=m" (v->counter)
-		     : "er" (i), "m" (v->counter));
+				 : "=m" (v->counter)
+				 : "er" (i), "m" (v->counter));
 }
 
 /**
@@ -84,8 +84,8 @@ static inline bool atomic64_sub_and_test(long i, atomic64_t *v)
 static __always_inline void atomic64_inc(atomic64_t *v)
 {
 	asm volatile(LOCK_PREFIX "incq %0"
-		     : "=m" (v->counter)
-		     : "m" (v->counter));
+				 : "=m" (v->counter)
+				 : "m" (v->counter));
 }
 
 /**
@@ -97,8 +97,8 @@ static __always_inline void atomic64_inc(atomic64_t *v)
 static __always_inline void atomic64_dec(atomic64_t *v)
 {
 	asm volatile(LOCK_PREFIX "decq %0"
-		     : "=m" (v->counter)
-		     : "m" (v->counter));
+				 : "=m" (v->counter)
+				 : "m" (v->counter));
 }
 
 /**
@@ -194,14 +194,24 @@ static inline bool atomic64_add_unless(atomic64_t *v, long a, long u)
 {
 	long c, old;
 	c = atomic64_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		if (unlikely(c == (u)))
+		{
 			break;
+		}
+
 		old = atomic64_cmpxchg((v), c, c + (a));
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return c != (u);
 }
 
@@ -218,46 +228,57 @@ static inline long atomic64_dec_if_positive(atomic64_t *v)
 {
 	long c, old, dec;
 	c = atomic64_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		dec = c - 1;
+
 		if (unlikely(dec < 0))
+		{
 			break;
+		}
+
 		old = atomic64_cmpxchg((v), c, dec);
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return dec;
 }
 
 #define ATOMIC64_OP(op)							\
-static inline void atomic64_##op(long i, atomic64_t *v)			\
-{									\
-	asm volatile(LOCK_PREFIX #op"q %1,%0"				\
-			: "+m" (v->counter)				\
-			: "er" (i)					\
-			: "memory");					\
-}
+	static inline void atomic64_##op(long i, atomic64_t *v)			\
+	{									\
+		asm volatile(LOCK_PREFIX #op"q %1,%0"				\
+					 : "+m" (v->counter)				\
+					 : "er" (i)					\
+					 : "memory");					\
+	}
 
 #define ATOMIC64_FETCH_OP(op, c_op)					\
-static inline long atomic64_fetch_##op(long i, atomic64_t *v)		\
-{									\
-	long old, val = atomic64_read(v);				\
-	for (;;) {							\
-		old = atomic64_cmpxchg(v, val, val c_op i);		\
-		if (old == val)						\
-			break;						\
-		val = old;						\
-	}								\
-	return old;							\
-}
+	static inline long atomic64_fetch_##op(long i, atomic64_t *v)		\
+	{									\
+		long old, val = atomic64_read(v);				\
+		for (;;) {							\
+			old = atomic64_cmpxchg(v, val, val c_op i);		\
+			if (old == val)						\
+				break;						\
+			val = old;						\
+		}								\
+		return old;							\
+	}
 
 #define ATOMIC64_OPS(op, c_op)						\
 	ATOMIC64_OP(op)							\
 	ATOMIC64_FETCH_OP(op, c_op)
 
-ATOMIC64_OPS(and, &)
-ATOMIC64_OPS(or, |)
+ATOMIC64_OPS( and , &)
+ATOMIC64_OPS( or , | )
 ATOMIC64_OPS(xor, ^)
 
 #undef ATOMIC64_OPS

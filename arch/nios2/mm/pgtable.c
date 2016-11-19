@@ -39,7 +39,8 @@ static void pgd_init(pgd_t *pgd)
 	unsigned long *p = (unsigned long *) pgd;
 	int i;
 
-	for (i = 0; i < USER_PTRS_PER_PGD; i += 8) {
+	for (i = 0; i < USER_PTRS_PER_PGD; i += 8)
+	{
 		p[i + 0] = (unsigned long) invalid_pte_table;
 		p[i + 1] = (unsigned long) invalid_pte_table;
 		p[i + 2] = (unsigned long) invalid_pte_table;
@@ -56,11 +57,13 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 	pgd_t *ret, *init;
 
 	ret = (pgd_t *) __get_free_pages(GFP_KERNEL, PGD_ORDER);
-	if (ret) {
+
+	if (ret)
+	{
 		init = pgd_offset(&init_mm, 0UL);
 		pgd_init(ret);
 		memcpy(ret + USER_PTRS_PER_PGD, init + USER_PTRS_PER_PGD,
-		       (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
+			   (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 	}
 
 	return ret;

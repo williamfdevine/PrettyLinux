@@ -48,26 +48,29 @@ struct pci_dev;
 static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 {
 	if (ppc_md.pci_get_legacy_ide_irq)
+	{
 		return ppc_md.pci_get_legacy_ide_irq(dev, channel);
+	}
+
 	return channel ? 15 : 14;
 }
 
 #ifdef CONFIG_PCI
-extern void set_pci_dma_ops(struct dma_map_ops *dma_ops);
-extern struct dma_map_ops *get_pci_dma_ops(void);
+	extern void set_pci_dma_ops(struct dma_map_ops *dma_ops);
+	extern struct dma_map_ops *get_pci_dma_ops(void);
 #else	/* CONFIG_PCI */
-#define set_pci_dma_ops(d)
-#define get_pci_dma_ops()	NULL
+	#define set_pci_dma_ops(d)
+	#define get_pci_dma_ops()	NULL
 #endif
 
 #ifdef CONFIG_PPC64
 
-/*
- * We want to avoid touching the cacheline size or MWI bit.
- * pSeries firmware sets the cacheline size (which is not the cpu cacheline
- * size in all cases) and hardware treats MWI the same as memory write.
- */
-#define PCI_DISABLE_MWI
+	/*
+	* We want to avoid touching the cacheline size or MWI bit.
+	* pSeries firmware sets the cacheline size (which is not the cpu cacheline
+	* size in all cases) and hardware treats MWI the same as memory write.
+	*/
+	#define PCI_DISABLE_MWI
 
 #endif /* CONFIG_PPC64 */
 
@@ -79,36 +82,36 @@ extern int pci_proc_domain(struct pci_bus *bus);
 struct vm_area_struct;
 /* Map a range of PCI memory or I/O space for a device into user space */
 int pci_mmap_page_range(struct pci_dev *pdev, struct vm_area_struct *vma,
-			enum pci_mmap_state mmap_state, int write_combine);
+						enum pci_mmap_state mmap_state, int write_combine);
 
 /* Tell drivers/pci/proc.c that we have pci_mmap_page_range() */
 #define HAVE_PCI_MMAP	1
 
 extern int pci_legacy_read(struct pci_bus *bus, loff_t port, u32 *val,
-			   size_t count);
+						   size_t count);
 extern int pci_legacy_write(struct pci_bus *bus, loff_t port, u32 val,
-			   size_t count);
+							size_t count);
 extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
-				      struct vm_area_struct *vma,
-				      enum pci_mmap_state mmap_state);
+									  struct vm_area_struct *vma,
+									  enum pci_mmap_state mmap_state);
 
 #define HAVE_PCI_LEGACY	1
 
 #ifdef CONFIG_PPC64
 
-/* The PCI address space does not equal the physical memory address
- * space (we have an IOMMU).  The IDE and SCSI device layers use
- * this boolean for bounce buffer decisions.
- */
-#define PCI_DMA_BUS_IS_PHYS	(0)
+	/* The PCI address space does not equal the physical memory address
+	* space (we have an IOMMU).  The IDE and SCSI device layers use
+	* this boolean for bounce buffer decisions.
+	*/
+	#define PCI_DMA_BUS_IS_PHYS	(0)
 
 #else /* 32-bit */
 
-/* The PCI address space does equal the physical memory
- * address space (no IOMMU).  The IDE and SCSI device layers use
- * this boolean for bounce buffer decisions.
- */
-#define PCI_DMA_BUS_IS_PHYS     (1)
+	/* The PCI address space does equal the physical memory
+	* address space (no IOMMU).  The IDE and SCSI device layers use
+	* this boolean for bounce buffer decisions.
+	*/
+	#define PCI_DMA_BUS_IS_PHYS     (1)
 
 #endif /* CONFIG_PPC64 */
 
@@ -122,7 +125,7 @@ extern struct pci_controller *init_phb_dynamic(struct device_node *dn);
 extern int remove_phb_dynamic(struct pci_controller *phb);
 
 extern struct pci_dev *of_create_pci_dev(struct device_node *node,
-					struct pci_bus *bus, int devfn);
+		struct pci_bus *bus, int devfn);
 
 extern void of_scan_pci_bridge(struct pci_dev *dev);
 
@@ -131,9 +134,9 @@ extern void of_rescan_bus(struct device_node *node, struct pci_bus *bus);
 
 struct file;
 extern pgprot_t	pci_phys_mem_access_prot(struct file *file,
-					 unsigned long pfn,
-					 unsigned long size,
-					 pgprot_t prot);
+		unsigned long pfn,
+		unsigned long size,
+		pgprot_t prot);
 
 #define HAVE_ARCH_PCI_RESOURCE_TO_USER
 

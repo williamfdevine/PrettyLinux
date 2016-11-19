@@ -30,7 +30,8 @@
 
 #include "nuc9xx.h"
 
-struct group_irq {
+struct group_irq
+{
 	unsigned long		gpen;
 	unsigned int		enabled;
 	void			(*enable)(struct group_irq *, int enable);
@@ -39,9 +40,9 @@ struct group_irq {
 static DEFINE_SPINLOCK(groupirq_lock);
 
 #define DEFINE_GROUP(_name, _ctrlbit, _num)				\
-struct group_irq group_##_name = {					\
+	struct group_irq group_##_name = {					\
 		.enable		= nuc900_group_enable,			\
-		.gpen		= ((1 << _num) - 1) << _ctrlbit,	\
+					  .gpen		= ((1 << _num) - 1) << _ctrlbit,	\
 	}
 
 static void nuc900_group_enable(struct group_irq *gpirq, int enable);
@@ -60,8 +61,12 @@ static int group_irq_enable(struct group_irq *group_irq)
 	unsigned long flags;
 
 	spin_lock_irqsave(&groupirq_lock, flags);
+
 	if (group_irq->enabled++ == 0)
+	{
 		(group_irq->enable)(group_irq, 1);
+	}
+
 	spin_unlock_irqrestore(&groupirq_lock, flags);
 
 	return 0;
@@ -74,8 +79,12 @@ static void group_irq_disable(struct group_irq *group_irq)
 	WARN_ON(group_irq->enabled == 0);
 
 	spin_lock_irqsave(&groupirq_lock, flags);
+
 	if (--group_irq->enabled == 0)
+	{
 		(group_irq->enable)(group_irq, 0);
+	}
+
 	spin_unlock_irqrestore(&groupirq_lock, flags);
 }
 
@@ -87,9 +96,13 @@ static void nuc900_group_enable(struct group_irq *gpirq, int enable)
 	regval = __raw_readl(REG_AIC_GEN);
 
 	if (enable)
+	{
 		regval |= groupen;
+	}
 	else
+	{
 		regval &= ~groupen;
+	}
 
 	__raw_writel(regval, REG_AIC_GEN);
 }
@@ -102,42 +115,45 @@ static void nuc900_irq_mask(struct irq_data *d)
 
 	__raw_writel(1 << d->irq, REG_AIC_MDCR);
 
-	switch (d->irq) {
-	case IRQ_GROUP0:
-		group_irq = &group_nirq0;
-		break;
+	switch (d->irq)
+	{
+		case IRQ_GROUP0:
+			group_irq = &group_nirq0;
+			break;
 
-	case IRQ_GROUP1:
-		group_irq = &group_nirq1;
-		break;
+		case IRQ_GROUP1:
+			group_irq = &group_nirq1;
+			break;
 
-	case IRQ_USBH:
-		group_irq = &group_usbh;
-		break;
+		case IRQ_USBH:
+			group_irq = &group_usbh;
+			break;
 
-	case IRQ_T_INT_GROUP:
-		group_irq = &group_ottimer;
-		break;
+		case IRQ_T_INT_GROUP:
+			group_irq = &group_ottimer;
+			break;
 
-	case IRQ_GDMAGROUP:
-		group_irq = &group_gdma;
-		break;
+		case IRQ_GDMAGROUP:
+			group_irq = &group_gdma;
+			break;
 
-	case IRQ_SCGROUP:
-		group_irq = &group_sc;
-		break;
+		case IRQ_SCGROUP:
+			group_irq = &group_sc;
+			break;
 
-	case IRQ_I2CGROUP:
-		group_irq = &group_i2c;
-		break;
+		case IRQ_I2CGROUP:
+			group_irq = &group_i2c;
+			break;
 
-	case IRQ_P2SGROUP:
-		group_irq = &group_ps2;
-		break;
+		case IRQ_P2SGROUP:
+			group_irq = &group_ps2;
+			break;
 	}
 
 	if (group_irq)
+	{
 		group_irq_disable(group_irq);
+	}
 }
 
 /*
@@ -158,45 +174,49 @@ static void nuc900_irq_unmask(struct irq_data *d)
 
 	__raw_writel(1 << d->irq, REG_AIC_MECR);
 
-	switch (d->irq) {
-	case IRQ_GROUP0:
-		group_irq = &group_nirq0;
-		break;
+	switch (d->irq)
+	{
+		case IRQ_GROUP0:
+			group_irq = &group_nirq0;
+			break;
 
-	case IRQ_GROUP1:
-		group_irq = &group_nirq1;
-		break;
+		case IRQ_GROUP1:
+			group_irq = &group_nirq1;
+			break;
 
-	case IRQ_USBH:
-		group_irq = &group_usbh;
-		break;
+		case IRQ_USBH:
+			group_irq = &group_usbh;
+			break;
 
-	case IRQ_T_INT_GROUP:
-		group_irq = &group_ottimer;
-		break;
+		case IRQ_T_INT_GROUP:
+			group_irq = &group_ottimer;
+			break;
 
-	case IRQ_GDMAGROUP:
-		group_irq = &group_gdma;
-		break;
+		case IRQ_GDMAGROUP:
+			group_irq = &group_gdma;
+			break;
 
-	case IRQ_SCGROUP:
-		group_irq = &group_sc;
-		break;
+		case IRQ_SCGROUP:
+			group_irq = &group_sc;
+			break;
 
-	case IRQ_I2CGROUP:
-		group_irq = &group_i2c;
-		break;
+		case IRQ_I2CGROUP:
+			group_irq = &group_i2c;
+			break;
 
-	case IRQ_P2SGROUP:
-		group_irq = &group_ps2;
-		break;
+		case IRQ_P2SGROUP:
+			group_irq = &group_ps2;
+			break;
 	}
 
 	if (group_irq)
+	{
 		group_irq_enable(group_irq);
+	}
 }
 
-static struct irq_chip nuc900_irq_chip = {
+static struct irq_chip nuc900_irq_chip =
+{
 	.irq_ack	= nuc900_irq_ack,
 	.irq_mask	= nuc900_irq_mask,
 	.irq_unmask	= nuc900_irq_unmask,
@@ -208,9 +228,10 @@ void __init nuc900_init_irq(void)
 
 	__raw_writel(0xFFFFFFFE, REG_AIC_MDCR);
 
-	for (irqno = IRQ_WDT; irqno <= IRQ_ADC; irqno++) {
+	for (irqno = IRQ_WDT; irqno <= IRQ_ADC; irqno++)
+	{
 		irq_set_chip_and_handler(irqno, &nuc900_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_clear_status_flags(irqno, IRQ_NOREQUEST);
 	}
 }

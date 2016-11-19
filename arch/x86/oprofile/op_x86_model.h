@@ -15,12 +15,14 @@
 #include <asm/types.h>
 #include <asm/perf_event.h>
 
-struct op_msr {
+struct op_msr
+{
 	unsigned long	addr;
 	u64		saved;
 };
 
-struct op_msrs {
+struct op_msrs
+{
 	struct op_msr *counters;
 	struct op_msr *controls;
 	struct op_msr *multiplex;
@@ -33,24 +35,25 @@ struct oprofile_operations;
 /* The model vtable abstracts the differences between
  * various x86 CPU models' perfctr support.
  */
-struct op_x86_model_spec {
+struct op_x86_model_spec
+{
 	unsigned int	num_counters;
 	unsigned int	num_controls;
 	unsigned int	num_virt_counters;
 	u64		reserved;
 	u16		event_mask;
 	int		(*init)(struct oprofile_operations *ops);
-	int		(*fill_in_addresses)(struct op_msrs * const msrs);
+	int		(*fill_in_addresses)(struct op_msrs *const msrs);
 	void		(*setup_ctrs)(struct op_x86_model_spec const *model,
-				      struct op_msrs const * const msrs);
-	int		(*check_ctrs)(struct pt_regs * const regs,
-				      struct op_msrs const * const msrs);
-	void		(*start)(struct op_msrs const * const msrs);
-	void		(*stop)(struct op_msrs const * const msrs);
-	void		(*shutdown)(struct op_msrs const * const msrs);
+							  struct op_msrs const *const msrs);
+	int		(*check_ctrs)(struct pt_regs *const regs,
+						  struct op_msrs const *const msrs);
+	void		(*start)(struct op_msrs const *const msrs);
+	void		(*stop)(struct op_msrs const *const msrs);
+	void		(*shutdown)(struct op_msrs const *const msrs);
 #ifdef CONFIG_OPROFILE_EVENT_MULTIPLEX
 	void		(*switch_ctrl)(struct op_x86_model_spec const *model,
-				       struct op_msrs const * const msrs);
+							   struct op_msrs const *const msrs);
 #endif
 };
 
@@ -68,7 +71,7 @@ static inline void op_x86_warn_in_use(int counter)
 	 * hardware or BIOS vendor.
 	 */
 	pr_warning("oprofile: counter #%d on cpu #%d may already be used\n",
-		   counter, smp_processor_id());
+			   counter, smp_processor_id());
 }
 
 static inline void op_x86_warn_reserved(int counter)
@@ -77,7 +80,7 @@ static inline void op_x86_warn_reserved(int counter)
 }
 
 extern u64 op_x86_get_ctrl(struct op_x86_model_spec const *model,
-			   struct op_counter_config *counter_config);
+						   struct op_counter_config *counter_config);
 extern int op_x86_phys_to_virt(int phys);
 extern int op_x86_virt_to_phys(int virt);
 

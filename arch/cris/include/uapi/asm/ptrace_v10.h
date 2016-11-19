@@ -51,11 +51,12 @@
 #define F_DCCR_BITNR 10
 
 /* pt_regs not only specifices the format in the user-struct during
- * ptrace but is also the frame format used in the kernel prologue/epilogues 
+ * ptrace but is also the frame format used in the kernel prologue/epilogues
  * themselves
  */
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long frametype;  /* type of stackframe */
 	unsigned long orig_r10;
 	/* pushed by movem r13, [sp] in SAVE_ALL, movem pushes backwards */
@@ -92,7 +93,8 @@ struct pt_regs {
  * _resume.
  */
 
-struct switch_stack {
+struct switch_stack
+{
 	unsigned long r9;
 	unsigned long r8;
 	unsigned long r7;
@@ -108,10 +110,10 @@ struct switch_stack {
 
 #ifdef __KERNEL__
 
-/* bit 8 is user-mode flag */
-#define user_mode(regs) (((regs)->dccr & 0x100) != 0)
-#define instruction_pointer(regs) ((regs)->irp)
-#define profile_pc(regs) instruction_pointer(regs)
+	/* bit 8 is user-mode flag */
+	#define user_mode(regs) (((regs)->dccr & 0x100) != 0)
+	#define instruction_pointer(regs) ((regs)->irp)
+	#define profile_pc(regs) instruction_pointer(regs)
 
 #endif  /*  __KERNEL__  */
 

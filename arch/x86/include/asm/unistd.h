@@ -4,32 +4,32 @@
 #include <uapi/asm/unistd.h>
 
 
-# ifdef CONFIG_X86_X32_ABI
-#  define __SYSCALL_MASK (~(__X32_SYSCALL_BIT))
-# else
-#  define __SYSCALL_MASK (~0)
-# endif
+#ifdef CONFIG_X86_X32_ABI
+	#define __SYSCALL_MASK (~(__X32_SYSCALL_BIT))
+#else
+	#define __SYSCALL_MASK (~0)
+#endif
 
-# ifdef CONFIG_X86_32
+#ifdef CONFIG_X86_32
 
-#  include <asm/unistd_32.h>
-#  define __ARCH_WANT_STAT64
-#  define __ARCH_WANT_SYS_IPC
-#  define __ARCH_WANT_SYS_OLD_MMAP
-#  define __ARCH_WANT_SYS_OLD_SELECT
+	#include <asm/unistd_32.h>
+	#define __ARCH_WANT_STAT64
+	#define __ARCH_WANT_SYS_IPC
+	#define __ARCH_WANT_SYS_OLD_MMAP
+	#define __ARCH_WANT_SYS_OLD_SELECT
 
-# else
+#else
 
-#  include <asm/unistd_64.h>
-#  include <asm/unistd_64_x32.h>
-#  define __ARCH_WANT_COMPAT_SYS_TIME
-#  define __ARCH_WANT_COMPAT_SYS_GETDENTS64
-#  define __ARCH_WANT_COMPAT_SYS_PREADV64
-#  define __ARCH_WANT_COMPAT_SYS_PWRITEV64
-#  define __ARCH_WANT_COMPAT_SYS_PREADV64V2
-#  define __ARCH_WANT_COMPAT_SYS_PWRITEV64V2
+	#include <asm/unistd_64.h>
+	#include <asm/unistd_64_x32.h>
+	#define __ARCH_WANT_COMPAT_SYS_TIME
+	#define __ARCH_WANT_COMPAT_SYS_GETDENTS64
+	#define __ARCH_WANT_COMPAT_SYS_PREADV64
+	#define __ARCH_WANT_COMPAT_SYS_PWRITEV64
+	#define __ARCH_WANT_COMPAT_SYS_PREADV64V2
+	#define __ARCH_WANT_COMPAT_SYS_PWRITEV64V2
 
-# endif
+#endif
 
 # define __ARCH_WANT_OLD_READDIR
 # define __ARCH_WANT_OLD_STAT

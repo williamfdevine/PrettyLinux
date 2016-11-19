@@ -35,7 +35,8 @@
 #define MC_ARGS		(MC_BATCH * 16)
 
 
-struct mc_buffer {
+struct mc_buffer
+{
 	unsigned mcidx, argidx, cbidx;
 	struct multicall_entry entries[MC_BATCH];
 #if MC_DEBUG
@@ -43,7 +44,8 @@ struct mc_buffer {
 	void *caller[MC_BATCH];
 #endif
 	unsigned char args[MC_ARGS];
-	struct callback {
+	struct callback
+	{
 		void (*fn)(void *);
 		void *data;
 	} callbacks[MC_BATCH];
@@ -68,60 +70,73 @@ void xen_mc_flush(void)
 
 	trace_xen_mc_flush(b->mcidx, b->argidx, b->cbidx);
 
-	switch (b->mcidx) {
-	case 0:
-		/* no-op */
-		BUG_ON(b->argidx != 0);
-		break;
+	switch (b->mcidx)
+	{
+		case 0:
+			/* no-op */
+			BUG_ON(b->argidx != 0);
+			break;
 
-	case 1:
-		/* Singleton multicall - bypass multicall machinery
-		   and just do the call directly. */
-		mc = &b->entries[0];
+		case 1:
+			/* Singleton multicall - bypass multicall machinery
+			   and just do the call directly. */
+			mc = &b->entries[0];
 
-		mc->result = privcmd_call(mc->op,
-					  mc->args[0], mc->args[1], mc->args[2], 
-					  mc->args[3], mc->args[4]);
-		ret = mc->result < 0;
-		break;
+			mc->result = privcmd_call(mc->op,
+									  mc->args[0], mc->args[1], mc->args[2],
+									  mc->args[3], mc->args[4]);
+			ret = mc->result < 0;
+			break;
 
-	default:
+		default:
 #if MC_DEBUG
-		memcpy(b->debug, b->entries,
-		       b->mcidx * sizeof(struct multicall_entry));
+			memcpy(b->debug, b->entries,
+				   b->mcidx * sizeof(struct multicall_entry));
 #endif
 
-		if (HYPERVISOR_multicall(b->entries, b->mcidx) != 0)
-			BUG();
-		for (i = 0; i < b->mcidx; i++)
-			if (b->entries[i].result < 0)
-				ret++;
+			if (HYPERVISOR_multicall(b->entries, b->mcidx) != 0)
+			{
+				BUG();
+			}
+
+			for (i = 0; i < b->mcidx; i++)
+				if (b->entries[i].result < 0)
+				{
+					ret++;
+				}
 
 #if MC_DEBUG
-		if (ret) {
-			printk(KERN_ERR "%d multicall(s) failed: cpu %d\n",
-			       ret, smp_processor_id());
-			dump_stack();
-			for (i = 0; i < b->mcidx; i++) {
-				printk(KERN_DEBUG "  call %2d/%d: op=%lu arg=[%lx] result=%ld\t%pF\n",
-				       i+1, b->mcidx,
-				       b->debug[i].op,
-				       b->debug[i].args[0],
-				       b->entries[i].result,
-				       b->caller[i]);
+
+			if (ret)
+			{
+				printk(KERN_ERR "%d multicall(s) failed: cpu %d\n",
+					   ret, smp_processor_id());
+				dump_stack();
+
+				for (i = 0; i < b->mcidx; i++)
+				{
+					printk(KERN_DEBUG "  call %2d/%d: op=%lu arg=[%lx] result=%ld\t%pF\n",
+						   i + 1, b->mcidx,
+						   b->debug[i].op,
+						   b->debug[i].args[0],
+						   b->entries[i].result,
+						   b->caller[i]);
+				}
 			}
-		}
+
 #endif
 	}
 
 	b->mcidx = 0;
 	b->argidx = 0;
 
-	for (i = 0; i < b->cbidx; i++) {
+	for (i = 0; i < b->cbidx; i++)
+	{
 		struct callback *cb = &b->callbacks[i];
 
 		(*cb->fn)(cb->data);
 	}
+
 	b->cbidx = 0;
 
 	local_irq_restore(flags);
@@ -141,9 +156,10 @@ struct multicall_space __xen_mc_entry(size_t args)
 	BUG_ON(b->argidx >= MC_ARGS);
 
 	if (unlikely(b->mcidx == MC_BATCH ||
-		     (argidx + args) >= MC_ARGS)) {
+				 (argidx + args) >= MC_ARGS))
+	{
 		trace_xen_mc_flush_reason((b->mcidx == MC_BATCH) ?
-					  XEN_MC_FL_BATCH : XEN_MC_FL_ARGS);
+								  XEN_MC_FL_BATCH : XEN_MC_FL_ARGS);
 		xen_mc_flush();
 		argidx = roundup(b->argidx, sizeof(u64));
 	}
@@ -169,12 +185,14 @@ struct multicall_space xen_mc_extend_args(unsigned long op, size_t size)
 	BUG_ON(b->argidx >= MC_ARGS);
 
 	if (unlikely(b->mcidx == 0 ||
-		     b->entries[b->mcidx - 1].op != op)) {
+				 b->entries[b->mcidx - 1].op != op))
+	{
 		trace_xen_mc_extend_args(op, size, XEN_MC_XE_BAD_OP);
 		goto out;
 	}
 
-	if (unlikely((b->argidx + size) >= MC_ARGS)) {
+	if (unlikely((b->argidx + size) >= MC_ARGS))
+	{
 		trace_xen_mc_extend_args(op, size, XEN_MC_XE_NO_SPACE);
 		goto out;
 	}
@@ -195,7 +213,8 @@ void xen_mc_callback(void (*fn)(void *), void *data)
 	struct mc_buffer *b = this_cpu_ptr(&mc_buffer);
 	struct callback *cb;
 
-	if (b->cbidx == MC_BATCH) {
+	if (b->cbidx == MC_BATCH)
+	{
 		trace_xen_mc_flush_reason(XEN_MC_FL_CALLBACK);
 		xen_mc_flush();
 	}

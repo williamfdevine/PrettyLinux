@@ -24,7 +24,8 @@ EXPORT_SYMBOL(node_data);
 pg_data_t m32r_node_data[MAX_NUMNODES];
 
 /* Memory profile */
-typedef struct {
+typedef struct
+{
 	unsigned long start_pfn;
 	unsigned long pages;
 	unsigned long holes;
@@ -53,10 +54,15 @@ static void __init mem_prof_init(void)
 	mp = &mem_prof[1];
 	start_pfn = free_pfn = PFN_UP(CONFIG_IRAM_START);
 	holes = 0;
-	if (start_pfn & (zone_alignment - 1)) {
+
+	if (start_pfn & (zone_alignment - 1))
+	{
 		ul = zone_alignment;
+
 		while (start_pfn >= ul)
+		{
 			ul += zone_alignment;
+		}
 
 		start_pfn = ul - zone_alignment;
 		holes = free_pfn - start_pfn;
@@ -80,47 +86,58 @@ unsigned long __init setup_memory(void)
 
 	mem_prof_init();
 
-	for_each_online_node(nid) {
+	for_each_online_node(nid)
+	{
 		mp = &mem_prof[nid];
-		NODE_DATA(nid)=(pg_data_t *)&m32r_node_data[nid];
+		NODE_DATA(nid) = (pg_data_t *)&m32r_node_data[nid];
 		NODE_DATA(nid)->bdata = &bootmem_node_data[nid];
 		min_pfn = mp->start_pfn;
 		max_pfn = mp->start_pfn + mp->pages;
 		bootmap_size = init_bootmem_node(NODE_DATA(nid), mp->free_pfn,
-			mp->start_pfn, max_pfn);
+										 mp->start_pfn, max_pfn);
 
 		free_bootmem_node(NODE_DATA(nid), PFN_PHYS(mp->start_pfn),
-			PFN_PHYS(mp->pages));
+						  PFN_PHYS(mp->pages));
 
 		reserve_bootmem_node(NODE_DATA(nid), PFN_PHYS(mp->start_pfn),
-			PFN_PHYS(mp->free_pfn - mp->start_pfn) + bootmap_size,
-			BOOTMEM_DEFAULT);
+							 PFN_PHYS(mp->free_pfn - mp->start_pfn) + bootmap_size,
+							 BOOTMEM_DEFAULT);
 
 		if (max_low_pfn < max_pfn)
+		{
 			max_low_pfn = max_pfn;
+		}
 
 		if (min_low_pfn > min_pfn)
+		{
 			min_low_pfn = min_pfn;
+		}
 	}
 
 #ifdef CONFIG_BLK_DEV_INITRD
-	if (LOADER_TYPE && INITRD_START) {
-		if (INITRD_START + INITRD_SIZE <= PFN_PHYS(max_low_pfn)) {
+
+	if (LOADER_TYPE && INITRD_START)
+	{
+		if (INITRD_START + INITRD_SIZE <= PFN_PHYS(max_low_pfn))
+		{
 			reserve_bootmem_node(NODE_DATA(0), INITRD_START,
-				INITRD_SIZE, BOOTMEM_DEFAULT);
+								 INITRD_SIZE, BOOTMEM_DEFAULT);
 			initrd_start = INITRD_START + PAGE_OFFSET;
 			initrd_end = initrd_start + INITRD_SIZE;
 			printk("initrd:start[%08lx],size[%08lx]\n",
-				initrd_start, INITRD_SIZE);
-		} else {
+				   initrd_start, INITRD_SIZE);
+		}
+		else
+		{
 			printk("initrd extends beyond end of memory "
-				"(0x%08lx > 0x%08llx)\ndisabling initrd\n",
-				INITRD_START + INITRD_SIZE,
-			        (unsigned long long)PFN_PHYS(max_low_pfn));
+				   "(0x%08lx > 0x%08llx)\ndisabling initrd\n",
+				   INITRD_START + INITRD_SIZE,
+				   (unsigned long long)PFN_PHYS(max_low_pfn));
 
 			initrd_start = 0;
 		}
 	}
+
 #endif	/* CONFIG_BLK_DEV_INITRD */
 
 	return max_low_pfn;
@@ -136,12 +153,16 @@ void __init zone_sizes_init(void)
 	int nid, i;
 	mem_prof_t *mp;
 
-	for_each_online_node(nid) {
+	for_each_online_node(nid)
+	{
 		mp = &mem_prof[nid];
-		for (i = 0 ; i < MAX_NR_ZONES ; i++) {
+
+		for (i = 0 ; i < MAX_NR_ZONES ; i++)
+		{
 			zones_size[i] = 0;
 			zholes_size[i] = 0;
 		}
+
 		start_pfn = START_PFN(nid);
 		low = MAX_LOW_PFN(nid);
 		zones_size[ZONE_DMA] = low - start_pfn;

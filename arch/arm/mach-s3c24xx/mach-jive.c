@@ -57,14 +57,16 @@
 #include "common.h"
 #include "s3c2412-power.h"
 
-static struct map_desc jive_iodesc[] __initdata = {
+static struct map_desc jive_iodesc[] __initdata =
+{
 };
 
 #define UCON S3C2410_UCON_DEFAULT
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg jive_uartcfgs[] = {
+static struct s3c2410_uartcfg jive_uartcfgs[] =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -99,7 +101,8 @@ static struct s3c2410_uartcfg jive_uartcfgs[] = {
  * 0x017d0000-0x02bd0000 : cramfs B
  * 0x02bd0000-0x03fd0000 : yaffs
  */
-static struct mtd_partition __initdata jive_imageA_nand_part[] = {
+static struct mtd_partition __initdata jive_imageA_nand_part[] =
+{
 
 #ifdef CONFIG_MACH_JIVE_SHOW_BOOTLOADER
 	/* Don't allow access to the bootloader from linux */
@@ -111,25 +114,25 @@ static struct mtd_partition __initdata jive_imageA_nand_part[] = {
 	},
 
 	/* spare */
-        {
-                .name           = "spare",
-                .offset         = (176 * SZ_1K),
-                .size           = (16 * SZ_1K),
-        },
+	{
+		.name           = "spare",
+		.offset         = (176 * SZ_1K),
+		.size           = (16 * SZ_1K),
+	},
 #endif
 
 	/* booted images */
-        {
+	{
 		.name		= "kernel (ro)",
 		.offset		= (192 * SZ_1K),
 		.size		= (SZ_2M) - (192 * SZ_1K),
 		.mask_flags	= MTD_WRITEABLE, /* force read-only */
-        }, {
-                .name           = "root (ro)",
-                .offset         = (SZ_2M),
-                .size           = (20 * SZ_1M),
+	}, {
+		.name           = "root (ro)",
+		.offset         = (SZ_2M),
+		.size           = (20 * SZ_1M),
 		.mask_flags	= MTD_WRITEABLE, /* force read-only */
-        },
+	},
 
 	/* yaffs */
 	{
@@ -140,24 +143,25 @@ static struct mtd_partition __initdata jive_imageA_nand_part[] = {
 
 	/* bootloader environment */
 	{
-                .name		= "env",
+		.name		= "env",
 		.offset		= (160 * SZ_1K),
 		.size		= (16 * SZ_1K),
 	},
 
 	/* upgrade images */
-        {
+	{
 		.name		= "zimage",
 		.offset		= (22 * SZ_1M),
 		.size		= (2 * SZ_1M) - (192 * SZ_1K),
-        }, {
+	}, {
 		.name		= "cramfs",
-		.offset		= (24 * SZ_1M) - (192*SZ_1K),
+		.offset		= (24 * SZ_1M) - (192 * SZ_1K),
 		.size		= (20 * SZ_1M),
-        },
+	},
 };
 
-static struct mtd_partition __initdata jive_imageB_nand_part[] = {
+static struct mtd_partition __initdata jive_imageB_nand_part[] =
+{
 
 #ifdef CONFIG_MACH_JIVE_SHOW_BOOTLOADER
 	/* Don't allow access to the bootloader from linux */
@@ -169,24 +173,24 @@ static struct mtd_partition __initdata jive_imageB_nand_part[] = {
 	},
 
 	/* spare */
-        {
-                .name           = "spare",
-                .offset         = (176 * SZ_1K),
-                .size           = (16 * SZ_1K),
-        },
+	{
+		.name           = "spare",
+		.offset         = (176 * SZ_1K),
+		.size           = (16 * SZ_1K),
+	},
 #endif
 
 	/* booted images */
-        {
+	{
 		.name           = "kernel (ro)",
 		.offset         = (22 * SZ_1M),
 		.size           = (2 * SZ_1M) - (192 * SZ_1K),
 		.mask_flags	= MTD_WRITEABLE, /* force read-only */
-        },
+	},
 	{
 		.name		= "root (ro)",
 		.offset		= (24 * SZ_1M) - (192 * SZ_1K),
-                .size		= (20 * SZ_1M),
+		.size		= (20 * SZ_1M),
 		.mask_flags	= MTD_WRITEABLE, /* force read-only */
 	},
 
@@ -195,7 +199,7 @@ static struct mtd_partition __initdata jive_imageB_nand_part[] = {
 		.name		= "yaffs",
 		.offset		= (44 * SZ_1M),
 		.size		= (20 * SZ_1M),
-        },
+	},
 
 	/* bootloader environment */
 	{
@@ -209,14 +213,15 @@ static struct mtd_partition __initdata jive_imageB_nand_part[] = {
 		.name		= "zimage",
 		.offset		= (192 * SZ_1K),
 		.size		= (2 * SZ_1M) - (192 * SZ_1K),
-        }, {
+	}, {
 		.name		= "cramfs",
 		.offset		= (2 * SZ_1M),
 		.size		= (20 * SZ_1M),
-        },
+	},
 };
 
-static struct s3c2410_nand_set __initdata jive_nand_sets[] = {
+static struct s3c2410_nand_set __initdata jive_nand_sets[] =
+{
 	[0] = {
 		.name           = "flash",
 		.nr_chips       = 1,
@@ -225,7 +230,8 @@ static struct s3c2410_nand_set __initdata jive_nand_sets[] = {
 	},
 };
 
-static struct s3c2410_platform_nand __initdata jive_nand_info = {
+static struct s3c2410_platform_nand __initdata jive_nand_info =
+{
 	/* set taken from osiris nand timings, possibly still conservative */
 	.tacls		= 30,
 	.twrph0		= 55,
@@ -240,23 +246,29 @@ static int __init jive_mtdset(char *options)
 	unsigned long set;
 
 	if (options == NULL || options[0] == '\0')
+	{
 		return 0;
+	}
 
-	if (kstrtoul(options, 10, &set)) {
+	if (kstrtoul(options, 10, &set))
+	{
 		printk(KERN_ERR "failed to parse mtdset=%s\n", options);
 		return 0;
 	}
 
-	switch (set) {
-	case 1:
-		nand->nr_partitions = ARRAY_SIZE(jive_imageB_nand_part);
-		nand->partitions = jive_imageB_nand_part;
-	case 0:
-		/* this is already setup in the nand info */
-		break;
-	default:
-		printk(KERN_ERR "Unknown mtd set %ld specified,"
-		       "using default.", set);
+	switch (set)
+	{
+		case 1:
+			nand->nr_partitions = ARRAY_SIZE(jive_imageB_nand_part);
+			nand->partitions = jive_imageB_nand_part;
+
+		case 0:
+			/* this is already setup in the nand info */
+			break;
+
+		default:
+			printk(KERN_ERR "Unknown mtd set %ld specified,"
+				   "using default.", set);
 	}
 
 	return 0;
@@ -281,7 +293,8 @@ __setup("mtdset=", jive_mtdset);
 #define LCD_HTOT (LCD_HSYNC + LCD_LEFT_MARGIN + LCD_XRES + LCD_RIGHT_MARGIN)
 #define LCD_VTOT (LCD_VSYNC + LCD_LOWER_MARGIN + LCD_YRES + LCD_UPPER_MARGIN)
 
-static struct s3c2410fb_display jive_vgg2432a4_display[] = {
+static struct s3c2410fb_display jive_vgg2432a4_display[] =
+{
 	[0] = {
 		.width		= LCD_XRES,
 		.height		= LCD_YRES,
@@ -295,17 +308,17 @@ static struct s3c2410fb_display jive_vgg2432a4_display[] = {
 		.vsync_len	= LCD_VSYNC,
 
 		.pixclock	= (1000000000000LL /
-				   (LCD_REFRESH * LCD_HTOT * LCD_VTOT)),
+		(LCD_REFRESH *LCD_HTOT * LCD_VTOT)),
 
 		.bpp		= 16,
 		.type		= (S3C2410_LCDCON1_TFT16BPP |
-				   S3C2410_LCDCON1_TFT),
+		S3C2410_LCDCON1_TFT),
 
 		.lcdcon5	= (S3C2410_LCDCON5_FRM565 |
-				   S3C2410_LCDCON5_INVVLINE |
-				   S3C2410_LCDCON5_INVVFRAME |
-				   S3C2410_LCDCON5_INVVDEN |
-				   S3C2410_LCDCON5_PWREN),
+		S3C2410_LCDCON5_INVVLINE |
+		S3C2410_LCDCON5_INVVFRAME |
+		S3C2410_LCDCON5_INVVDEN |
+		S3C2410_LCDCON5_PWREN),
 	},
 };
 
@@ -314,7 +327,8 @@ static struct s3c2410fb_display jive_vgg2432a4_display[] = {
 #define S3C2410_GPCCON_MASK(x)	(3 << ((x) * 2))
 #define S3C2410_GPDCON_MASK(x)	(3 << ((x) * 2))
 
-static struct s3c2410fb_mach_info jive_lcd_config = {
+static struct s3c2410fb_mach_info jive_lcd_config =
+{
 	.displays	 = jive_vgg2432a4_display,
 	.num_displays	 = ARRAY_SIZE(jive_vgg2432a4_display),
 	.default_display = 0,
@@ -326,32 +340,32 @@ static struct s3c2410fb_mach_info jive_lcd_config = {
 	.gpcup		= (0xf << 1) | (0x3f << 10),
 
 	.gpccon		= (S3C2410_GPC1_VCLK   | S3C2410_GPC2_VLINE |
-			   S3C2410_GPC3_VFRAME | S3C2410_GPC4_VM |
-			   S3C2410_GPC10_VD2   | S3C2410_GPC11_VD3 |
-			   S3C2410_GPC12_VD4   | S3C2410_GPC13_VD5 |
-			   S3C2410_GPC14_VD6   | S3C2410_GPC15_VD7),
+	S3C2410_GPC3_VFRAME | S3C2410_GPC4_VM |
+	S3C2410_GPC10_VD2   | S3C2410_GPC11_VD3 |
+	S3C2410_GPC12_VD4   | S3C2410_GPC13_VD5 |
+	S3C2410_GPC14_VD6   | S3C2410_GPC15_VD7),
 
 	.gpccon_mask	= (S3C2410_GPCCON_MASK(1)  | S3C2410_GPCCON_MASK(2)  |
-			   S3C2410_GPCCON_MASK(3)  | S3C2410_GPCCON_MASK(4)  |
-			   S3C2410_GPCCON_MASK(10) | S3C2410_GPCCON_MASK(11) |
-			   S3C2410_GPCCON_MASK(12) | S3C2410_GPCCON_MASK(13) |
-			   S3C2410_GPCCON_MASK(14) | S3C2410_GPCCON_MASK(15)),
+	S3C2410_GPCCON_MASK(3)  | S3C2410_GPCCON_MASK(4)  |
+	S3C2410_GPCCON_MASK(10) | S3C2410_GPCCON_MASK(11) |
+	S3C2410_GPCCON_MASK(12) | S3C2410_GPCCON_MASK(13) |
+	S3C2410_GPCCON_MASK(14) | S3C2410_GPCCON_MASK(15)),
 
 	.gpdup		= (0x3f << 2) | (0x3f << 10),
 
 	.gpdcon		= (S3C2410_GPD2_VD10  | S3C2410_GPD3_VD11 |
-			   S3C2410_GPD4_VD12  | S3C2410_GPD5_VD13 |
-			   S3C2410_GPD6_VD14  | S3C2410_GPD7_VD15 |
-			   S3C2410_GPD10_VD18 | S3C2410_GPD11_VD19 |
-			   S3C2410_GPD12_VD20 | S3C2410_GPD13_VD21 |
-			   S3C2410_GPD14_VD22 | S3C2410_GPD15_VD23),
+	S3C2410_GPD4_VD12  | S3C2410_GPD5_VD13 |
+	S3C2410_GPD6_VD14  | S3C2410_GPD7_VD15 |
+	S3C2410_GPD10_VD18 | S3C2410_GPD11_VD19 |
+	S3C2410_GPD12_VD20 | S3C2410_GPD13_VD21 |
+	S3C2410_GPD14_VD22 | S3C2410_GPD15_VD23),
 
 	.gpdcon_mask	= (S3C2410_GPDCON_MASK(2)  | S3C2410_GPDCON_MASK(3) |
-			   S3C2410_GPDCON_MASK(4)  | S3C2410_GPDCON_MASK(5) |
-			   S3C2410_GPDCON_MASK(6)  | S3C2410_GPDCON_MASK(7) |
-			   S3C2410_GPDCON_MASK(10) | S3C2410_GPDCON_MASK(11)|
-			   S3C2410_GPDCON_MASK(12) | S3C2410_GPDCON_MASK(13)|
-			   S3C2410_GPDCON_MASK(14) | S3C2410_GPDCON_MASK(15)),
+	S3C2410_GPDCON_MASK(4)  | S3C2410_GPDCON_MASK(5) |
+	S3C2410_GPDCON_MASK(6)  | S3C2410_GPDCON_MASK(7) |
+	S3C2410_GPDCON_MASK(10) | S3C2410_GPDCON_MASK(11) |
+	S3C2410_GPDCON_MASK(12) | S3C2410_GPDCON_MASK(13) |
+	S3C2410_GPDCON_MASK(14) | S3C2410_GPDCON_MASK(15)),
 };
 
 /* ILI9320 support. */
@@ -366,7 +380,8 @@ static void jive_lcm_reset(unsigned int set)
 #undef LCD_UPPER_MARGIN
 #define LCD_UPPER_MARGIN 2
 
-static struct ili9320_platdata jive_lcm_config = {
+static struct ili9320_platdata jive_lcm_config =
+{
 	.hsize		= LCD_XRES,
 	.vsize		= LCD_YRES,
 
@@ -375,29 +390,31 @@ static struct ili9320_platdata jive_lcm_config = {
 
 	.entry_mode	= ILI9320_ENTRYMODE_ID(3) | ILI9320_ENTRYMODE_BGR,
 	.display2	= (ILI9320_DISPLAY2_FP(LCD_UPPER_MARGIN) |
-			   ILI9320_DISPLAY2_BP(LCD_LOWER_MARGIN)),
+	ILI9320_DISPLAY2_BP(LCD_LOWER_MARGIN)),
 	.display3	= 0x0,
 	.display4	= 0x0,
 	.rgb_if1	= (ILI9320_RGBIF1_RIM_RGB18 |
-			   ILI9320_RGBIF1_RM | ILI9320_RGBIF1_CLK_RGBIF),
+	ILI9320_RGBIF1_RM | ILI9320_RGBIF1_CLK_RGBIF),
 	.rgb_if2	= ILI9320_RGBIF2_DPL,
 	.interface2	= 0x0,
 	.interface3	= 0x3,
 	.interface4	= (ILI9320_INTERFACE4_RTNE(16) |
-			   ILI9320_INTERFACE4_DIVE(1)),
+	ILI9320_INTERFACE4_DIVE(1)),
 	.interface5	= 0x0,
 	.interface6	= 0x0,
 };
 
 /* LCD SPI support */
 
-static struct spi_gpio_platform_data jive_lcd_spi = {
+static struct spi_gpio_platform_data jive_lcd_spi =
+{
 	.sck		= S3C2410_GPG(8),
 	.mosi		= S3C2410_GPB(8),
 	.miso		= SPI_GPIO_NO_MISO,
 };
 
-static struct platform_device jive_device_lcdspi = {
+static struct platform_device jive_device_lcdspi =
+{
 	.name		= "spi-gpio",
 	.id		= 1,
 	.dev.platform_data = &jive_lcd_spi,
@@ -406,13 +423,15 @@ static struct platform_device jive_device_lcdspi = {
 
 /* WM8750 audio code SPI definition */
 
-static struct spi_gpio_platform_data jive_wm8750_spi = {
+static struct spi_gpio_platform_data jive_wm8750_spi =
+{
 	.sck		= S3C2410_GPB(4),
 	.mosi		= S3C2410_GPB(9),
 	.miso		= SPI_GPIO_NO_MISO,
 };
 
-static struct platform_device jive_device_wm8750 = {
+static struct platform_device jive_device_wm8750 =
+{
 	.name		= "spi-gpio",
 	.id		= 2,
 	.dev.platform_data = &jive_wm8750_spi,
@@ -420,7 +439,8 @@ static struct platform_device jive_device_wm8750 = {
 
 /* JIVE SPI devices. */
 
-static struct spi_board_info __initdata jive_spi_devs[] = {
+static struct spi_board_info __initdata jive_spi_devs[] =
+{
 	[0] = {
 		.modalias	= "VGG2432A4",
 		.bus_num	= 1,
@@ -441,13 +461,15 @@ static struct spi_board_info __initdata jive_spi_devs[] = {
 
 /* I2C bus and device configuration. */
 
-static struct s3c2410_platform_i2c jive_i2c_cfg __initdata = {
+static struct s3c2410_platform_i2c jive_i2c_cfg __initdata =
+{
 	.frequency	= 80 * 1000,
 	.flags		= S3C_IICFLG_FILTER,
 	.sda_delay	= 2,
 };
 
-static struct i2c_board_info jive_i2c_devs[] __initdata = {
+static struct i2c_board_info jive_i2c_devs[] __initdata =
+{
 	[0] = {
 		I2C_BOARD_INFO("lis302dl", 0x1c),
 		.irq	= IRQ_EINT14,
@@ -456,7 +478,8 @@ static struct i2c_board_info jive_i2c_devs[] __initdata = {
 
 /* The platform devices being used. */
 
-static struct platform_device *jive_devices[] __initdata = {
+static struct platform_device *jive_devices[] __initdata =
+{
 	&s3c_device_ohci,
 	&s3c_device_rtc,
 	&s3c_device_wdt,
@@ -469,7 +492,8 @@ static struct platform_device *jive_devices[] __initdata = {
 	&s3c2412_device_dma,
 };
 
-static struct s3c2410_udc_mach_info jive_udc_cfg __initdata = {
+static struct s3c2410_udc_mach_info jive_udc_cfg __initdata =
+{
 	.vbus_pin	= S3C2410_GPG(1),		/* detect is on GPG1 */
 };
 
@@ -498,7 +522,8 @@ static void jive_pm_resume(void)
 #define jive_pm_resume NULL
 #endif
 
-static struct syscore_ops jive_pm_syscore_ops = {
+static struct syscore_ops jive_pm_syscore_ops =
+{
 	.suspend	= jive_pm_suspend,
 	.resume		= jive_pm_resume,
 };
@@ -537,36 +562,36 @@ static void __init jive_machine_init(void)
 	/* Port B sleep */
 
 	__raw_writel(S3C2412_SLPCON_IN(0)   |
-		     S3C2412_SLPCON_PULL(1) |
-		     S3C2412_SLPCON_HIGH(2) |
-		     S3C2412_SLPCON_PULL(3) |
-		     S3C2412_SLPCON_PULL(4) |
-		     S3C2412_SLPCON_PULL(5) |
-		     S3C2412_SLPCON_PULL(6) |
-		     S3C2412_SLPCON_HIGH(7) |
-		     S3C2412_SLPCON_PULL(8) |
-		     S3C2412_SLPCON_PULL(9) |
-		     S3C2412_SLPCON_PULL(10), S3C2412_GPBSLPCON);
+				 S3C2412_SLPCON_PULL(1) |
+				 S3C2412_SLPCON_HIGH(2) |
+				 S3C2412_SLPCON_PULL(3) |
+				 S3C2412_SLPCON_PULL(4) |
+				 S3C2412_SLPCON_PULL(5) |
+				 S3C2412_SLPCON_PULL(6) |
+				 S3C2412_SLPCON_HIGH(7) |
+				 S3C2412_SLPCON_PULL(8) |
+				 S3C2412_SLPCON_PULL(9) |
+				 S3C2412_SLPCON_PULL(10), S3C2412_GPBSLPCON);
 
 	/* Port C sleep */
 
 	__raw_writel(S3C2412_SLPCON_PULL(0) |
-		     S3C2412_SLPCON_PULL(1) |
-		     S3C2412_SLPCON_PULL(2) |
-		     S3C2412_SLPCON_PULL(3) |
-		     S3C2412_SLPCON_PULL(4) |
-		     S3C2412_SLPCON_PULL(5) |
-		     S3C2412_SLPCON_LOW(6)  |
-		     S3C2412_SLPCON_PULL(6) |
-		     S3C2412_SLPCON_PULL(7) |
-		     S3C2412_SLPCON_PULL(8) |
-		     S3C2412_SLPCON_PULL(9) |
-		     S3C2412_SLPCON_PULL(10) |
-		     S3C2412_SLPCON_PULL(11) |
-		     S3C2412_SLPCON_PULL(12) |
-		     S3C2412_SLPCON_PULL(13) |
-		     S3C2412_SLPCON_PULL(14) |
-		     S3C2412_SLPCON_PULL(15), S3C2412_GPCSLPCON);
+				 S3C2412_SLPCON_PULL(1) |
+				 S3C2412_SLPCON_PULL(2) |
+				 S3C2412_SLPCON_PULL(3) |
+				 S3C2412_SLPCON_PULL(4) |
+				 S3C2412_SLPCON_PULL(5) |
+				 S3C2412_SLPCON_LOW(6)  |
+				 S3C2412_SLPCON_PULL(6) |
+				 S3C2412_SLPCON_PULL(7) |
+				 S3C2412_SLPCON_PULL(8) |
+				 S3C2412_SLPCON_PULL(9) |
+				 S3C2412_SLPCON_PULL(10) |
+				 S3C2412_SLPCON_PULL(11) |
+				 S3C2412_SLPCON_PULL(12) |
+				 S3C2412_SLPCON_PULL(13) |
+				 S3C2412_SLPCON_PULL(14) |
+				 S3C2412_SLPCON_PULL(15), S3C2412_GPCSLPCON);
 
 	/* Port D sleep */
 
@@ -575,46 +600,46 @@ static void __init jive_machine_init(void)
 	/* Port F sleep */
 
 	__raw_writel(S3C2412_SLPCON_LOW(0)  |
-		     S3C2412_SLPCON_LOW(1)  |
-		     S3C2412_SLPCON_LOW(2)  |
-		     S3C2412_SLPCON_EINT(3) |
-		     S3C2412_SLPCON_EINT(4) |
-		     S3C2412_SLPCON_EINT(5) |
-		     S3C2412_SLPCON_EINT(6) |
-		     S3C2412_SLPCON_EINT(7), S3C2412_GPFSLPCON);
+				 S3C2412_SLPCON_LOW(1)  |
+				 S3C2412_SLPCON_LOW(2)  |
+				 S3C2412_SLPCON_EINT(3) |
+				 S3C2412_SLPCON_EINT(4) |
+				 S3C2412_SLPCON_EINT(5) |
+				 S3C2412_SLPCON_EINT(6) |
+				 S3C2412_SLPCON_EINT(7), S3C2412_GPFSLPCON);
 
 	/* Port G sleep */
 
 	__raw_writel(S3C2412_SLPCON_IN(0)    |
-		     S3C2412_SLPCON_IN(1)    |
-		     S3C2412_SLPCON_IN(2)    |
-		     S3C2412_SLPCON_IN(3)    |
-		     S3C2412_SLPCON_IN(4)    |
-		     S3C2412_SLPCON_IN(5)    |
-		     S3C2412_SLPCON_IN(6)    |
-		     S3C2412_SLPCON_IN(7)    |
-		     S3C2412_SLPCON_PULL(8)  |
-		     S3C2412_SLPCON_PULL(9)  |
-		     S3C2412_SLPCON_IN(10)   |
-		     S3C2412_SLPCON_PULL(11) |
-		     S3C2412_SLPCON_PULL(12) |
-		     S3C2412_SLPCON_PULL(13) |
-		     S3C2412_SLPCON_IN(14)   |
-		     S3C2412_SLPCON_PULL(15), S3C2412_GPGSLPCON);
+				 S3C2412_SLPCON_IN(1)    |
+				 S3C2412_SLPCON_IN(2)    |
+				 S3C2412_SLPCON_IN(3)    |
+				 S3C2412_SLPCON_IN(4)    |
+				 S3C2412_SLPCON_IN(5)    |
+				 S3C2412_SLPCON_IN(6)    |
+				 S3C2412_SLPCON_IN(7)    |
+				 S3C2412_SLPCON_PULL(8)  |
+				 S3C2412_SLPCON_PULL(9)  |
+				 S3C2412_SLPCON_IN(10)   |
+				 S3C2412_SLPCON_PULL(11) |
+				 S3C2412_SLPCON_PULL(12) |
+				 S3C2412_SLPCON_PULL(13) |
+				 S3C2412_SLPCON_IN(14)   |
+				 S3C2412_SLPCON_PULL(15), S3C2412_GPGSLPCON);
 
 	/* Port H sleep */
 
 	__raw_writel(S3C2412_SLPCON_PULL(0) |
-		     S3C2412_SLPCON_PULL(1) |
-		     S3C2412_SLPCON_PULL(2) |
-		     S3C2412_SLPCON_PULL(3) |
-		     S3C2412_SLPCON_PULL(4) |
-		     S3C2412_SLPCON_PULL(5) |
-		     S3C2412_SLPCON_PULL(6) |
-		     S3C2412_SLPCON_IN(7)   |
-		     S3C2412_SLPCON_IN(8)   |
-		     S3C2412_SLPCON_PULL(9) |
-		     S3C2412_SLPCON_IN(10), S3C2412_GPHSLPCON);
+				 S3C2412_SLPCON_PULL(1) |
+				 S3C2412_SLPCON_PULL(2) |
+				 S3C2412_SLPCON_PULL(3) |
+				 S3C2412_SLPCON_PULL(4) |
+				 S3C2412_SLPCON_PULL(5) |
+				 S3C2412_SLPCON_PULL(6) |
+				 S3C2412_SLPCON_IN(7)   |
+				 S3C2412_SLPCON_IN(8)   |
+				 S3C2412_SLPCON_PULL(9) |
+				 S3C2412_SLPCON_IN(10), S3C2412_GPHSLPCON);
 
 	/* initialise the power management now we've setup everything. */
 
@@ -646,8 +671,8 @@ static void __init jive_machine_init(void)
 	 * selectable USB port to USB device mode. */
 
 	s3c2410_modify_misccr(S3C2410_MISCCR_USBHOST |
-			      S3C2410_MISCCR_USBSUSPND0 |
-			      S3C2410_MISCCR_USBSUSPND1, 0x0);
+						  S3C2410_MISCCR_USBSUSPND0 |
+						  S3C2410_MISCCR_USBSUSPND1, 0x0);
 
 	s3c24xx_udc_set_platdata(&jive_udc_cfg);
 	s3c24xx_fb_set_platdata(&jive_lcd_config);
@@ -663,11 +688,11 @@ static void __init jive_machine_init(void)
 }
 
 MACHINE_START(JIVE, "JIVE")
-	/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
+.atag_offset	= 0x100,
 
 	.init_irq	= s3c2412_init_irq,
-	.map_io		= jive_map_io,
-	.init_machine	= jive_machine_init,
-	.init_time	= jive_init_time,
-MACHINE_END
+	   .map_io		= jive_map_io,
+		   .init_machine	= jive_machine_init,
+			  .init_time	= jive_init_time,
+				MACHINE_END

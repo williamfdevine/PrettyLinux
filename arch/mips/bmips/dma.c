@@ -30,7 +30,8 @@
  * replaced by a more generic version later.
  */
 
-struct bmips_dma_range {
+struct bmips_dma_range
+{
 	u32			child_addr;
 	u32			parent_addr;
 	u32			size;
@@ -44,11 +45,15 @@ static dma_addr_t bmips_phys_to_dma(struct device *dev, phys_addr_t pa)
 {
 	struct bmips_dma_range *r;
 
-	for (r = bmips_dma_ranges; r && r->size; r++) {
+	for (r = bmips_dma_ranges; r && r->size; r++)
+	{
 		if (pa >= r->child_addr &&
-		    pa < (r->child_addr + r->size))
+			pa < (r->child_addr + r->size))
+		{
 			return pa - r->child_addr + r->parent_addr;
+		}
 	}
+
 	return pa;
 }
 
@@ -66,11 +71,15 @@ unsigned long plat_dma_addr_to_phys(struct device *dev, dma_addr_t dma_addr)
 {
 	struct bmips_dma_range *r;
 
-	for (r = bmips_dma_ranges; r && r->size; r++) {
+	for (r = bmips_dma_ranges; r && r->size; r++)
+	{
 		if (dma_addr >= r->parent_addr &&
-		    dma_addr < (r->parent_addr + r->size))
+			dma_addr < (r->parent_addr + r->size))
+		{
 			return dma_addr - r->parent_addr + r->child_addr;
+		}
 	}
+
 	return dma_addr;
 }
 
@@ -83,23 +92,35 @@ static int __init bmips_init_dma_ranges(void)
 	int len;
 
 	if (!np)
+	{
 		return 0;
+	}
 
 	data = of_get_property(np, "dma-ranges", &len);
+
 	if (!data)
+	{
 		goto out_good;
+	}
 
 	len /= sizeof(*data) * 3;
+
 	if (!len)
+	{
 		goto out_bad;
+	}
 
 	/* add a dummy (zero) entry at the end as a sentinel */
 	bmips_dma_ranges = kzalloc(sizeof(struct bmips_dma_range) * (len + 1),
-				   GFP_KERNEL);
-	if (!bmips_dma_ranges)
-		goto out_bad;
+							   GFP_KERNEL);
 
-	for (r = bmips_dma_ranges; len; len--, r++) {
+	if (!bmips_dma_ranges)
+	{
+		goto out_bad;
+	}
+
+	for (r = bmips_dma_ranges; len; len--, r++)
+	{
 		r->child_addr = be32_to_cpup(data++);
 		r->parent_addr = be32_to_cpup(data++);
 		r->size = be32_to_cpup(data++);

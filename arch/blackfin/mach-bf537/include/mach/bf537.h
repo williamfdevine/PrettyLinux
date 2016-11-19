@@ -61,48 +61,48 @@
 #define AMBCTL1VAL	((CONFIG_BANK_3 << 16) | CONFIG_BANK_2)
 
 #ifdef CONFIG_C_AMBEN_ALL
-#define V_AMBEN AMBEN_ALL
+	#define V_AMBEN AMBEN_ALL
 #endif
 #ifdef CONFIG_C_AMBEN
-#define V_AMBEN 0x0
+	#define V_AMBEN 0x0
 #endif
 #ifdef CONFIG_C_AMBEN_B0
-#define V_AMBEN AMBEN_B0
+	#define V_AMBEN AMBEN_B0
 #endif
 #ifdef CONFIG_C_AMBEN_B0_B1
-#define V_AMBEN AMBEN_B0_B1
+	#define V_AMBEN AMBEN_B0_B1
 #endif
 #ifdef CONFIG_C_AMBEN_B0_B1_B2
-#define V_AMBEN AMBEN_B0_B1_B2
+	#define V_AMBEN AMBEN_B0_B1_B2
 #endif
 #ifdef CONFIG_C_AMCKEN
-#define V_AMCKEN AMCKEN
+	#define V_AMCKEN AMCKEN
 #else
-#define V_AMCKEN 0x0
+	#define V_AMCKEN 0x0
 #endif
 #ifdef CONFIG_C_CDPRIO
-#define V_CDPRIO 0x100
+	#define V_CDPRIO 0x100
 #else
-#define V_CDPRIO 0x0
+	#define V_CDPRIO 0x0
 #endif
 
 #define AMGCTLVAL	(V_AMBEN | V_AMCKEN | V_CDPRIO)
 
 #ifdef CONFIG_BF537
-#define CPU "BF537"
-#define CPUID 0x27c8
+	#define CPU "BF537"
+	#define CPUID 0x27c8
 #endif
 #ifdef CONFIG_BF536
-#define CPU "BF536"
-#define CPUID 0x27c8
+	#define CPU "BF536"
+	#define CPUID 0x27c8
 #endif
 #ifdef CONFIG_BF534
-#define CPU "BF534"
-#define CPUID 0x27c6
+	#define CPU "BF534"
+	#define CPUID 0x27c6
 #endif
 
 #ifndef CPU
-#error "Unknown CPU type - This kernel doesn't seem to be configured properly"
+	#error "Unknown CPU type - This kernel doesn't seem to be configured properly"
 #endif
 
 #endif				/* __MACH_BF537_H__  */

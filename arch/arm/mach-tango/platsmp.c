@@ -21,11 +21,15 @@ static int tango_cpu_kill(unsigned int cpu)
 {
 	int i, err;
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 10; ++i)
+	{
 		msleep(10);
 		err = tango_aux_core_kill(cpu);
+
 		if (!err)
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -34,13 +38,16 @@ static int tango_cpu_kill(unsigned int cpu)
 static void tango_cpu_die(unsigned int cpu)
 {
 	while (tango_aux_core_die(cpu) < 0)
+	{
 		cpu_relax();
+	}
 
 	panic("cpu %d failed to die\n", cpu);
 }
 #endif
 
-static const struct smp_operations tango_smp_ops __initconst = {
+static const struct smp_operations tango_smp_ops __initconst =
+{
 	.smp_boot_secondary	= tango_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU
 	.cpu_kill		= tango_cpu_kill,

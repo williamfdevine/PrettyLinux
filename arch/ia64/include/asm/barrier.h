@@ -53,19 +53,19 @@
  */
 
 #define __smp_store_release(p, v)						\
-do {									\
-	compiletime_assert_atomic_type(*p);				\
-	barrier();							\
-	WRITE_ONCE(*p, v);						\
-} while (0)
+	do {									\
+		compiletime_assert_atomic_type(*p);				\
+		barrier();							\
+		WRITE_ONCE(*p, v);						\
+	} while (0)
 
 #define __smp_load_acquire(p)						\
-({									\
-	typeof(*p) ___p1 = READ_ONCE(*p);				\
-	compiletime_assert_atomic_type(*p);				\
-	barrier();							\
-	___p1;								\
-})
+	({									\
+		typeof(*p) ___p1 = READ_ONCE(*p);				\
+		compiletime_assert_atomic_type(*p);				\
+		barrier();							\
+		___p1;								\
+	})
 
 /*
  * The group barrier in front of the rsm & ssm are necessary to ensure

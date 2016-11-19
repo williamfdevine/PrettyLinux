@@ -20,27 +20,37 @@
  * Save stack-backtrace addresses into a stack_trace buffer.
  */
 static void save_context_stack(struct stack_trace *trace, unsigned long sp,
-			struct task_struct *tsk, int savesched)
+							   struct task_struct *tsk, int savesched)
 {
-	for (;;) {
+	for (;;)
+	{
 		unsigned long *stack = (unsigned long *) sp;
 		unsigned long newsp, ip;
 
 		if (!validate_sp(sp, tsk, STACK_FRAME_OVERHEAD))
+		{
 			return;
+		}
 
 		newsp = stack[0];
 		ip = stack[STACK_FRAME_LR_SAVE];
 
-		if (savesched || !in_sched_functions(ip)) {
+		if (savesched || !in_sched_functions(ip))
+		{
 			if (!trace->skip)
+			{
 				trace->entries[trace->nr_entries++] = ip;
+			}
 			else
+			{
 				trace->skip--;
+			}
 		}
 
 		if (trace->nr_entries >= trace->max_entries)
+		{
 			return;
+		}
 
 		sp = newsp;
 	}

@@ -69,8 +69,8 @@
  * SWIO:	Turn set/way invalidates into set/way clean+invalidate
  */
 #define HCR_GUEST_MASK (HCR_TSC | HCR_TSW | HCR_TWI | HCR_VM | HCR_BSU_IS | \
-			HCR_FB | HCR_TAC | HCR_AMO | HCR_IMO | HCR_FMO | \
-			HCR_TVM | HCR_TWE | HCR_SWIO | HCR_TIDCP)
+						HCR_FB | HCR_TAC | HCR_AMO | HCR_IMO | HCR_FMO | \
+						HCR_TVM | HCR_TWE | HCR_SWIO | HCR_TIDCP)
 
 /* System Control Register (SCTLR) bits */
 #define SCTLR_TE	(1 << 30)
@@ -87,7 +87,7 @@
 #define HSCTLR_A	(1 << 1)
 #define HSCTLR_M	1
 #define HSCTLR_MASK	(HSCTLR_M | HSCTLR_A | HSCTLR_C | HSCTLR_I | \
-			 HSCTLR_WXN | HSCTLR_FI | HSCTLR_EE | HSCTLR_TE)
+					 HSCTLR_WXN | HSCTLR_FI | HSCTLR_EE | HSCTLR_TE)
 
 /* TTBCR and HTCR Registers bits */
 #define TTBCR_EAE	(1 << 31)
@@ -145,7 +145,7 @@
 #define VTCR_S		(1 << 4)
 #define VTCR_T0SZ	(0xf)
 #define VTCR_MASK	(VTCR_SH0 | VTCR_ORGN0 | VTCR_IRGN0 | VTCR_SL0 | \
-			 VTCR_S | VTCR_T0SZ)
+					 VTCR_S | VTCR_T0SZ)
 #define VTCR_HTCR_SH	(VTCR_SH0 | VTCR_ORGN0 | VTCR_IRGN0)
 #define VTCR_SL_L2	(0 << 6)	/* Starting-level: 2 */
 #define VTCR_SL_L1	(1 << 6)	/* Starting-level: 1 */
@@ -157,9 +157,9 @@
 
 /* Virtualization Translation Table Base Register (VTTBR) bits */
 #if KVM_VTCR_SL0 == VTCR_SL_L2	/* see ARM DDI 0406C: B4-1720 */
-#define VTTBR_X		(14 - KVM_T0SZ)
+	#define VTTBR_X		(14 - KVM_T0SZ)
 #else
-#define VTTBR_X		(5 - KVM_T0SZ)
+	#define VTTBR_X		(5 - KVM_T0SZ)
 #endif
 #define VTTBR_BADDR_SHIFT (VTTBR_X - 1)
 #define VTTBR_BADDR_MASK  (((_AC(1, ULL) << (40 - VTTBR_X)) - 1) << VTTBR_BADDR_SHIFT)

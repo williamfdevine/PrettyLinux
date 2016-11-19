@@ -16,7 +16,8 @@
 
 #include "irqs.h" /* PXA_NR_BUILTIN_GPIO */
 
-enum balloon3_features {
+enum balloon3_features
+{
 	BALLOON3_FEATURE_OHCI,
 	BALLOON3_FEATURE_MMC,
 	BALLOON3_FEATURE_CF,

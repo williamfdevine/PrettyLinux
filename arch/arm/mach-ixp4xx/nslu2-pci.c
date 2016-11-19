@@ -40,19 +40,23 @@ void __init nslu2_pci_preinit(void)
 
 static int __init nslu2_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static int pci_irq_table[IRQ_LINES] = {
+	static int pci_irq_table[IRQ_LINES] =
+	{
 		IXP4XX_GPIO_IRQ(INTA),
 		IXP4XX_GPIO_IRQ(INTB),
 		IXP4XX_GPIO_IRQ(INTC),
 	};
 
 	if (slot >= 1 && slot <= MAX_DEV && pin >= 1 && pin <= IRQ_LINES)
+	{
 		return pci_irq_table[(slot + pin - 2) % IRQ_LINES];
+	}
 
 	return -1;
 }
 
-struct hw_pci __initdata nslu2_pci = {
+struct hw_pci __initdata nslu2_pci =
+{
 	.nr_controllers = 1,
 	.ops		= &ixp4xx_ops,
 	.preinit	= nslu2_pci_preinit,
@@ -63,7 +67,9 @@ struct hw_pci __initdata nslu2_pci = {
 int __init nslu2_pci_init(void) /* monkey see, monkey do */
 {
 	if (machine_is_nslu2())
+	{
 		pci_common_init(&nslu2_pci);
+	}
 
 	return 0;
 }

@@ -18,11 +18,11 @@ void mdesc_release(struct mdesc_handle *);
 #define MDESC_NODE_NULL		(~(u64)0)
 
 u64 mdesc_node_by_name(struct mdesc_handle *handle,
-		       u64 from_node, const char *name);
+					   u64 from_node, const char *name);
 #define mdesc_for_each_node_by_name(__hdl, __node, __name) \
 	for (__node = mdesc_node_by_name(__hdl, MDESC_NODE_NULL, __name); \
-	     (__node) != MDESC_NODE_NULL; \
-	     __node = mdesc_node_by_name(__hdl, __node, __name))
+		 (__node) != MDESC_NODE_NULL; \
+		 __node = mdesc_node_by_name(__hdl, __node, __name))
 
 /* Access to property values returned from mdesc_get_property() are
  * only valid inside of a mdesc_grab()/mdesc_release() sequence.
@@ -35,7 +35,7 @@ u64 mdesc_node_by_name(struct mdesc_handle *handle,
  * These same rules apply to mdesc_node_name().
  */
 const void *mdesc_get_property(struct mdesc_handle *handle,
-			       u64 node, const char *name, int *lenp);
+							   u64 node, const char *name, int *lenp);
 const char *mdesc_node_name(struct mdesc_handle *hp, u64 node);
 
 /* MD arc iteration, the standard sequence is:
@@ -51,17 +51,18 @@ const char *mdesc_node_name(struct mdesc_handle *hp, u64 node);
 #define MDESC_ARC_TYPE_BACK	"back"
 
 u64 mdesc_next_arc(struct mdesc_handle *handle, u64 from,
-		   const char *arc_type);
+				   const char *arc_type);
 #define mdesc_for_each_arc(__arc, __hdl, __node, __type) \
 	for (__arc = mdesc_next_arc(__hdl, __node, __type); \
-	     (__arc) != MDESC_NODE_NULL; \
-	     __arc = mdesc_next_arc(__hdl, __arc, __type))
+		 (__arc) != MDESC_NODE_NULL; \
+		 __arc = mdesc_next_arc(__hdl, __arc, __type))
 
 u64 mdesc_arc_target(struct mdesc_handle *hp, u64 arc);
 
 void mdesc_update(void);
 
-struct mdesc_notifier_client {
+struct mdesc_notifier_client
+{
 	void (*add)(struct mdesc_handle *handle, u64 node);
 	void (*remove)(struct mdesc_handle *handle, u64 node);
 

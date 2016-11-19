@@ -13,7 +13,8 @@
 #ifndef _RC32434_GPIO_H_
 #define _RC32434_GPIO_H_
 
-struct rb532_gpio_reg {
+struct rb532_gpio_reg
+{
 	u32   gpiofunc;	  /* GPIO Function Register
 			   * gpiofunc[x]==0 bit = gpio
 			   * func[x]==1	 bit = altfunc

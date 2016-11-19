@@ -30,21 +30,21 @@ static inline void arch_local_irq_disable(void)
 {
 	/* set Z flag, but don't change the C flag */
 	asm volatile("	andcc	gr0,gr0,gr0,icc2	\n"
-		     :
-		     :
-		     : "memory", "icc2"
-		     );
+				 :
+				 :
+				 : "memory", "icc2"
+				);
 }
 
 static inline void arch_local_irq_enable(void)
 {
 	/* clear Z flag and then test the C flag */
 	asm volatile("  oricc	gr0,#1,gr0,icc2		\n"
-		     "	tihi	icc2,gr0,#2		\n"
-		     :
-		     :
-		     : "memory", "icc2"
-		     );
+				 "	tihi	icc2,gr0,#2		\n"
+				 :
+				 :
+				 : "memory", "icc2"
+				);
 }
 
 static inline unsigned long arch_local_save_flags(void)
@@ -52,9 +52,9 @@ static inline unsigned long arch_local_save_flags(void)
 	unsigned long flags;
 
 	asm volatile("movsg ccr,%0"
-		     : "=r"(flags)
-		     :
-		     : "memory");
+				 : "=r"(flags)
+				 :
+				 : "memory");
 
 	/* shift ICC2.Z to bit 0 */
 	flags >>= 26;
@@ -76,12 +76,12 @@ static inline void arch_local_irq_restore(unsigned long flags)
 	/* load the Z flag by turning 1 if disabled into 0 if disabled
 	 * and thus setting the Z flag but not the C flag */
 	asm volatile("  xoricc	%0,#1,gr0,icc2		\n"
-		     /* then trap if Z=0 and C=0 */
-		     "	tihi	icc2,gr0,#2		\n"
-		     :
-		     : "r"(flags)
-		     : "memory", "icc2"
-		     );
+				 /* then trap if Z=0 and C=0 */
+				 "	tihi	icc2,gr0,#2		\n"
+				 :
+				 : "r"(flags)
+				 : "memory", "icc2"
+				);
 
 }
 
@@ -99,58 +99,58 @@ static inline bool arch_irqs_disabled(void)
  * real interrupt flag manipulation
  */
 #define __arch_local_irq_disable()			\
-do {							\
-	unsigned long psr;				\
-	asm volatile("	movsg	psr,%0		\n"	\
-		     "	andi	%0,%2,%0	\n"	\
-		     "	ori	%0,%1,%0	\n"	\
-		     "	movgs	%0,psr		\n"	\
-		     : "=r"(psr)			\
-		     : "i" (PSR_PIL_14), "i" (~PSR_PIL)	\
-		     : "memory");			\
-} while (0)
+	do {							\
+		unsigned long psr;				\
+		asm volatile("	movsg	psr,%0		\n"	\
+					 "	andi	%0,%2,%0	\n"	\
+					 "	ori	%0,%1,%0	\n"	\
+					 "	movgs	%0,psr		\n"	\
+					 : "=r"(psr)			\
+					 : "i" (PSR_PIL_14), "i" (~PSR_PIL)	\
+					 : "memory");			\
+	} while (0)
 
 #define __arch_local_irq_enable()			\
-do {							\
-	unsigned long psr;				\
-	asm volatile("	movsg	psr,%0		\n"	\
-		     "	andi	%0,%1,%0	\n"	\
-		     "	movgs	%0,psr		\n"	\
-		     : "=r"(psr)			\
-		     : "i" (~PSR_PIL)			\
-		     : "memory");			\
-} while (0)
+	do {							\
+		unsigned long psr;				\
+		asm volatile("	movsg	psr,%0		\n"	\
+					 "	andi	%0,%1,%0	\n"	\
+					 "	movgs	%0,psr		\n"	\
+					 : "=r"(psr)			\
+					 : "i" (~PSR_PIL)			\
+					 : "memory");			\
+	} while (0)
 
 #define __arch_local_save_flags(flags)		\
-do {						\
-	typecheck(unsigned long, flags);	\
-	asm("movsg psr,%0"			\
-	    : "=r"(flags)			\
-	    :					\
-	    : "memory");			\
-} while (0)
+	do {						\
+		typecheck(unsigned long, flags);	\
+		asm("movsg psr,%0"			\
+			: "=r"(flags)			\
+			:					\
+			: "memory");			\
+	} while (0)
 
 #define	__arch_local_irq_save(flags)			\
-do {							\
-	unsigned long npsr;				\
-	typecheck(unsigned long, flags);		\
-	asm volatile("	movsg	psr,%0		\n"	\
-		     "	andi	%0,%3,%1	\n"	\
-		     "	ori	%1,%2,%1	\n"	\
-		     "	movgs	%1,psr		\n"	\
-		     : "=r"(flags), "=r"(npsr)		\
-		     : "i" (PSR_PIL_14), "i" (~PSR_PIL)	\
-		     : "memory");			\
-} while (0)
+	do {							\
+		unsigned long npsr;				\
+		typecheck(unsigned long, flags);		\
+		asm volatile("	movsg	psr,%0		\n"	\
+					 "	andi	%0,%3,%1	\n"	\
+					 "	ori	%1,%2,%1	\n"	\
+					 "	movgs	%1,psr		\n"	\
+					 : "=r"(flags), "=r"(npsr)		\
+					 : "i" (PSR_PIL_14), "i" (~PSR_PIL)	\
+					 : "memory");			\
+	} while (0)
 
 #define	__arch_local_irq_restore(flags)			\
-do {							\
-	typecheck(unsigned long, flags);		\
-	asm volatile("	movgs	%0,psr		\n"	\
-		     :					\
-		     : "r" (flags)			\
-		     : "memory");			\
-} while (0)
+	do {							\
+		typecheck(unsigned long, flags);		\
+		asm volatile("	movgs	%0,psr		\n"	\
+					 :					\
+					 : "r" (flags)			\
+					 : "memory");			\
+	} while (0)
 
 #define __arch_irqs_disabled()			\
 	((__get_PSR() & PSR_PIL) >= PSR_PIL_14)

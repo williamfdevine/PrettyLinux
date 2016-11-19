@@ -27,13 +27,14 @@ static void __init dove_init(void)
 	dove_init_pmu();
 }
 
-static const char * const dove_dt_compat[] __initconst = {
+static const char *const dove_dt_compat[] __initconst =
+{
 	"marvell,dove",
 	NULL
 };
 
 DT_MACHINE_START(DOVE_DT, "Marvell Dove")
-	.init_machine	= dove_init,
-	.restart	= mvebu_restart,
-	.dt_compat	= dove_dt_compat,
-MACHINE_END
+.init_machine	= dove_init,
+   .restart	= mvebu_restart,
+	   .dt_compat	= dove_dt_compat,
+		 MACHINE_END

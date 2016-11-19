@@ -38,15 +38,15 @@
 #define f64reg(_f64_) #_f64_
 
 #define cff(_f64_) ({			\
-	u32 __v;			\
-	asm("cff %0, " f64reg(_f64_) "@ fmrx	%0, " #_f64_	\
-	    : "=r" (__v) : : "cc");	\
-	__v;				\
+		u32 __v;			\
+		asm("cff %0, " f64reg(_f64_) "@ fmrx	%0, " #_f64_	\
+			: "=r" (__v) : : "cc");	\
+		__v;				\
 	})
 
 #define ctf(_f64_, _var_)		\
 	asm("ctf %0, " f64reg(_f64_) "@ fmxr	" #_f64_ ", %0"	\
-	   : : "r" (_var_) : "cc")
+		: : "r" (_var_) : "cc")
 
 /*
  * Raise a SIGFPE for the current process.
@@ -81,18 +81,26 @@ void ucf64_exchandler(u32 inst, u32 fpexc, struct pt_regs *regs)
 	u32 exc = F64_EXCEPTION_ERROR & fpexc;
 
 	pr_debug("UniCore-F64: instruction %08x fpscr %08x\n",
-			inst, fpexc);
+			 inst, fpexc);
 
-	if (exc & FPSCR_CMPINSTR_BIT) {
+	if (exc & FPSCR_CMPINSTR_BIT)
+	{
 		if (exc & FPSCR_CON)
+		{
 			tmp |= FPSCR_CON;
+		}
 		else
+		{
 			tmp &= ~(FPSCR_CON);
+		}
+
 		exc &= ~(FPSCR_CMPINSTR_BIT | FPSCR_CON);
-	} else {
+	}
+	else
+	{
 		pr_debug("UniCore-F64 Error: unhandled exceptions\n");
 		pr_debug("UniCore-F64 FPSCR 0x%08x INST 0x%08x\n",
-				cff(FPSCR), inst);
+				 cff(FPSCR), inst);
 
 		ucf64_raise_sigfpe(0, regs);
 		return;
@@ -104,8 +112,8 @@ void ucf64_exchandler(u32 inst, u32 fpexc, struct pt_regs *regs)
 	 * these flags set.
 	 */
 	tmp &= ~(FPSCR_TRAP | FPSCR_IOS | FPSCR_OFS | FPSCR_UFS |
-			FPSCR_IXS | FPSCR_HIS | FPSCR_IOC | FPSCR_OFC |
-			FPSCR_UFC | FPSCR_IXC | FPSCR_HIC);
+			 FPSCR_IXS | FPSCR_HIS | FPSCR_IOC | FPSCR_OFC |
+			 FPSCR_UFC | FPSCR_IXC | FPSCR_HIC);
 
 	tmp |= exc;
 	ctf(FPSCR, tmp);

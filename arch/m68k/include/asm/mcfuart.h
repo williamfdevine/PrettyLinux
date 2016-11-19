@@ -4,7 +4,7 @@
  *	mcfuart.h -- ColdFire internal UART support defines.
  *
  *	(C) Copyright 1999-2003, Greg Ungerer (gerg@snapgear.com)
- * 	(C) Copyright 2000, Lineo Inc. (www.lineo.com) 
+ * 	(C) Copyright 2000, Lineo Inc. (www.lineo.com)
  */
 
 /****************************************************************************/
@@ -15,7 +15,8 @@
 #include <linux/serial_core.h>
 #include <linux/platform_device.h>
 
-struct mcf_platform_uart {
+struct mcf_platform_uart
+{
 	unsigned long	mapbase;	/* Physical address base */
 	void __iomem	*membase;	/* Virtual address if mapped */
 	unsigned int	irq;		/* Interrupt vector */
@@ -38,14 +39,14 @@ struct mcf_platform_uart {
 #define	MCFUART_UBG1		0x18		/* Baud Rate MSB (r/w) */
 #define	MCFUART_UBG2		0x1c		/* Baud Rate LSB (r/w) */
 #ifdef	CONFIG_M5272
-#define	MCFUART_UTF		0x28		/* Transmitter FIFO (r/w) */
-#define	MCFUART_URF		0x2c		/* Receiver FIFO (r/w) */
-#define	MCFUART_UFPD		0x30		/* Frac Prec. Divider (r/w) */
+	#define	MCFUART_UTF		0x28		/* Transmitter FIFO (r/w) */
+	#define	MCFUART_URF		0x2c		/* Receiver FIFO (r/w) */
+	#define	MCFUART_UFPD		0x30		/* Frac Prec. Divider (r/w) */
 #endif
 #if defined(CONFIG_M5206) || defined(CONFIG_M5206e) || \
 	defined(CONFIG_M5249) || defined(CONFIG_M525x) || \
 	defined(CONFIG_M5307) || defined(CONFIG_M5407)
-#define	MCFUART_UIVR		0x30		/* Interrupt Vector (r/w) */
+	#define	MCFUART_UIVR		0x30		/* Interrupt Vector (r/w) */
 #endif
 #define	MCFUART_UIPR		0x34		/* Input Port (r) */
 #define	MCFUART_UOP1		0x38		/* Output Port Bit Set (w) */
@@ -98,7 +99,7 @@ struct mcf_platform_uart {
 #define	MCFUART_USR_RXREADY	0x01		/* Receiver ready */
 
 #define	MCFUART_USR_RXERR	(MCFUART_USR_RXBREAK | MCFUART_USR_RXFRAMING | \
-				MCFUART_USR_RXPARITY | MCFUART_USR_RXOVERRUN)
+							 MCFUART_USR_RXPARITY | MCFUART_USR_RXOVERRUN)
 
 /*
  *	Define bit flags in Clock Select Register (UCSR).
@@ -162,27 +163,27 @@ struct mcf_platform_uart {
 #define	MCFUART_UIR_TXREADY	0x01		/* Transmitter ready */
 
 #ifdef	CONFIG_M5272
-/*
- *	Define bit flags in the Transmitter FIFO Register (UTF).
- */
-#define	MCFUART_UTF_TXB		0x1f		/* Transmitter data level */
-#define	MCFUART_UTF_FULL	0x20		/* Transmitter fifo full */
-#define	MCFUART_UTF_TXS		0xc0		/* Transmitter status */
+	/*
+	*	Define bit flags in the Transmitter FIFO Register (UTF).
+	*/
+	#define	MCFUART_UTF_TXB		0x1f		/* Transmitter data level */
+	#define	MCFUART_UTF_FULL	0x20		/* Transmitter fifo full */
+	#define	MCFUART_UTF_TXS		0xc0		/* Transmitter status */
 
-/*
- *	Define bit flags in the Receiver FIFO Register (URF).
- */
-#define	MCFUART_URF_RXB		0x1f		/* Receiver data level */
-#define	MCFUART_URF_FULL	0x20		/* Receiver fifo full */
-#define	MCFUART_URF_RXS		0xc0		/* Receiver status */
+	/*
+	*	Define bit flags in the Receiver FIFO Register (URF).
+	*/
+	#define	MCFUART_URF_RXB		0x1f		/* Receiver data level */
+	#define	MCFUART_URF_FULL	0x20		/* Receiver fifo full */
+	#define	MCFUART_URF_RXS		0xc0		/* Receiver status */
 #endif
 
 #if defined(CONFIG_M54xx)
-#define MCFUART_TXFIFOSIZE	512
+	#define MCFUART_TXFIFOSIZE	512
 #elif defined(CONFIG_M5272)
-#define MCFUART_TXFIFOSIZE	25
+	#define MCFUART_TXFIFOSIZE	25
 #else
-#define MCFUART_TXFIFOSIZE	1
+	#define MCFUART_TXFIFOSIZE	1
 #endif
 /****************************************************************************/
 #endif	/* mcfuart_h */

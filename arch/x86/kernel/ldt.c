@@ -27,7 +27,9 @@ static void flush_ldt(void *current_mm)
 	mm_context_t *pc;
 
 	if (current->active_mm != current_mm)
+	{
 		return;
+	}
 
 	pc = &current->active_mm->context;
 	set_ldt(pc->ldt->entries, pc->ldt->size);
@@ -40,11 +42,16 @@ static struct ldt_struct *alloc_ldt_struct(int size)
 	int alloc_size;
 
 	if (size > LDT_ENTRIES)
+	{
 		return NULL;
+	}
 
 	new_ldt = kmalloc(sizeof(struct ldt_struct), GFP_KERNEL);
+
 	if (!new_ldt)
+	{
 		return NULL;
+	}
 
 	BUILD_BUG_ON(LDT_ENTRY_SIZE != sizeof(struct desc_struct));
 	alloc_size = size * LDT_ENTRY_SIZE;
@@ -56,11 +63,16 @@ static struct ldt_struct *alloc_ldt_struct(int size)
 	 * than PAGE_SIZE.
 	 */
 	if (alloc_size > PAGE_SIZE)
+	{
 		new_ldt->entries = vzalloc(alloc_size);
+	}
 	else
+	{
 		new_ldt->entries = (void *)get_zeroed_page(GFP_KERNEL);
+	}
 
-	if (!new_ldt->entries) {
+	if (!new_ldt->entries)
+	{
 		kfree(new_ldt);
 		return NULL;
 	}
@@ -77,7 +89,7 @@ static void finalize_ldt_struct(struct ldt_struct *ldt)
 
 /* context.lock is held */
 static void install_ldt(struct mm_struct *current_mm,
-			struct ldt_struct *ldt)
+						struct ldt_struct *ldt)
 {
 	/* Synchronizes with lockless_dereference in load_mm_ldt. */
 	smp_store_release(&current_mm->context.ldt, ldt);
@@ -89,13 +101,21 @@ static void install_ldt(struct mm_struct *current_mm,
 static void free_ldt_struct(struct ldt_struct *ldt)
 {
 	if (likely(!ldt))
+	{
 		return;
+	}
 
 	paravirt_free_ldt(ldt->entries, ldt->size);
+
 	if (ldt->size * LDT_ENTRY_SIZE > PAGE_SIZE)
+	{
 		vfree(ldt->entries);
+	}
 	else
+	{
 		free_page((unsigned long)ldt->entries);
+	}
+
 	kfree(ldt);
 }
 
@@ -111,25 +131,31 @@ int init_new_context_ldt(struct task_struct *tsk, struct mm_struct *mm)
 
 	mutex_init(&mm->context.lock);
 	old_mm = current->mm;
-	if (!old_mm) {
+
+	if (!old_mm)
+	{
 		mm->context.ldt = NULL;
 		return 0;
 	}
 
 	mutex_lock(&old_mm->context.lock);
-	if (!old_mm->context.ldt) {
+
+	if (!old_mm->context.ldt)
+	{
 		mm->context.ldt = NULL;
 		goto out_unlock;
 	}
 
 	new_ldt = alloc_ldt_struct(old_mm->context.ldt->size);
-	if (!new_ldt) {
+
+	if (!new_ldt)
+	{
 		retval = -ENOMEM;
 		goto out_unlock;
 	}
 
 	memcpy(new_ldt->entries, old_mm->context.ldt->entries,
-	       new_ldt->size * LDT_ENTRY_SIZE);
+		   new_ldt->size * LDT_ENTRY_SIZE);
 	finalize_ldt_struct(new_ldt);
 
 	mm->context.ldt = new_ldt;
@@ -158,30 +184,40 @@ static int read_ldt(void __user *ptr, unsigned long bytecount)
 
 	mutex_lock(&mm->context.lock);
 
-	if (!mm->context.ldt) {
+	if (!mm->context.ldt)
+	{
 		retval = 0;
 		goto out_unlock;
 	}
 
 	if (bytecount > LDT_ENTRY_SIZE * LDT_ENTRIES)
+	{
 		bytecount = LDT_ENTRY_SIZE * LDT_ENTRIES;
+	}
 
 	size = mm->context.ldt->size * LDT_ENTRY_SIZE;
-	if (size > bytecount)
-		size = bytecount;
 
-	if (copy_to_user(ptr, mm->context.ldt->entries, size)) {
+	if (size > bytecount)
+	{
+		size = bytecount;
+	}
+
+	if (copy_to_user(ptr, mm->context.ldt->entries, size))
+	{
 		retval = -EFAULT;
 		goto out_unlock;
 	}
 
-	if (size != bytecount) {
+	if (size != bytecount)
+	{
 		/* Zero-fill the rest and pretend we read bytecount bytes. */
-		if (clear_user(ptr + size, bytecount - size)) {
+		if (clear_user(ptr + size, bytecount - size))
+		{
 			retval = -EFAULT;
 			goto out_unlock;
 		}
 	}
+
 	retval = bytecount;
 
 out_unlock:
@@ -197,10 +233,17 @@ static int read_default_ldt(void __user *ptr, unsigned long bytecount)
 #else
 	unsigned long size = 128;
 #endif
+
 	if (bytecount > size)
+	{
 		bytecount = size;
+	}
+
 	if (clear_user(ptr, bytecount))
+	{
 		return -EFAULT;
+	}
+
 	return bytecount;
 }
 
@@ -214,35 +257,59 @@ static int write_ldt(void __user *ptr, unsigned long bytecount, int oldmode)
 	struct ldt_struct *new_ldt, *old_ldt;
 
 	error = -EINVAL;
+
 	if (bytecount != sizeof(ldt_info))
+	{
 		goto out;
+	}
+
 	error = -EFAULT;
+
 	if (copy_from_user(&ldt_info, ptr, sizeof(ldt_info)))
+	{
 		goto out;
+	}
 
 	error = -EINVAL;
+
 	if (ldt_info.entry_number >= LDT_ENTRIES)
+	{
 		goto out;
-	if (ldt_info.contents == 3) {
+	}
+
+	if (ldt_info.contents == 3)
+	{
 		if (oldmode)
+		{
 			goto out;
+		}
+
 		if (ldt_info.seg_not_present == 0)
+		{
 			goto out;
+		}
 	}
 
 	if ((oldmode && !ldt_info.base_addr && !ldt_info.limit) ||
-	    LDT_empty(&ldt_info)) {
+		LDT_empty(&ldt_info))
+	{
 		/* The user wants to clear the entry. */
 		memset(&ldt, 0, sizeof(ldt));
-	} else {
-		if (!IS_ENABLED(CONFIG_X86_16BIT) && !ldt_info.seg_32bit) {
+	}
+	else
+	{
+		if (!IS_ENABLED(CONFIG_X86_16BIT) && !ldt_info.seg_32bit)
+		{
 			error = -EINVAL;
 			goto out;
 		}
 
 		fill_ldt(&ldt, &ldt_info);
+
 		if (oldmode)
+		{
 			ldt.avl = 0;
+		}
 	}
 
 	mutex_lock(&mm->context.lock);
@@ -253,11 +320,17 @@ static int write_ldt(void __user *ptr, unsigned long bytecount, int oldmode)
 
 	error = -ENOMEM;
 	new_ldt = alloc_ldt_struct(newsize);
+
 	if (!new_ldt)
+	{
 		goto out_unlock;
+	}
 
 	if (old_ldt)
+	{
 		memcpy(new_ldt->entries, old_ldt->entries, oldsize * LDT_ENTRY_SIZE);
+	}
+
 	new_ldt->entries[ldt_info.entry_number] = ldt;
 	finalize_ldt_struct(new_ldt);
 
@@ -272,23 +345,28 @@ out:
 }
 
 asmlinkage int sys_modify_ldt(int func, void __user *ptr,
-			      unsigned long bytecount)
+							  unsigned long bytecount)
 {
 	int ret = -ENOSYS;
 
-	switch (func) {
-	case 0:
-		ret = read_ldt(ptr, bytecount);
-		break;
-	case 1:
-		ret = write_ldt(ptr, bytecount, 1);
-		break;
-	case 2:
-		ret = read_default_ldt(ptr, bytecount);
-		break;
-	case 0x11:
-		ret = write_ldt(ptr, bytecount, 0);
-		break;
+	switch (func)
+	{
+		case 0:
+			ret = read_ldt(ptr, bytecount);
+			break;
+
+		case 1:
+			ret = write_ldt(ptr, bytecount, 1);
+			break;
+
+		case 2:
+			ret = read_default_ldt(ptr, bytecount);
+			break;
+
+		case 0x11:
+			ret = write_ldt(ptr, bytecount, 0);
+			break;
 	}
+
 	return ret;
 }

@@ -11,16 +11,18 @@
 #ifndef _ASM_PMON_H
 #define _ASM_PMON_H
 
-struct callvectors {
-	int	(*open) (char*, int, int);
+struct callvectors
+{
+	int	(*open) (char *, int, int);
 	int	(*close) (int);
-	int	(*read) (int, void*, int);
-	int	(*write) (int, void*, int);
+	int	(*read) (int, void *, int);
+	int	(*write) (int, void *, int);
 	off_t	(*lseek) (int, off_t, int);
-	int	(*printf) (const char*, ...);
+	int	(*printf) (const char *, ...);
 	void	(*cacheflush) (void);
-	char*	(*gets) (char*);
-	union {
+	char	*(*gets) (char *);
+	union
+	{
 		int	(*smpfork) (unsigned long cp, char *sp);
 		int	(*cpustart) (long, void (*)(void), void *, long);
 	} _s;

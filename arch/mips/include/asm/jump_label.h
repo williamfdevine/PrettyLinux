@@ -15,25 +15,25 @@
 #define JUMP_LABEL_NOP_SIZE 4
 
 #ifdef CONFIG_64BIT
-#define WORD_INSN ".dword"
+	#define WORD_INSN ".dword"
 #else
-#define WORD_INSN ".word"
+	#define WORD_INSN ".word"
 #endif
 
 #ifdef CONFIG_CPU_MICROMIPS
-#define NOP_INSN "nop32"
+	#define NOP_INSN "nop32"
 #else
-#define NOP_INSN "nop"
+	#define NOP_INSN "nop"
 #endif
 
 static __always_inline bool arch_static_branch(struct static_key *key, bool branch)
 {
 	asm_volatile_goto("1:\t" NOP_INSN "\n\t"
-		"nop\n\t"
-		".pushsection __jump_table,  \"aw\"\n\t"
-		WORD_INSN " 1b, %l[l_yes], %0\n\t"
-		".popsection\n\t"
-		: :  "i" (&((char *)key)[branch]) : : l_yes);
+					  "nop\n\t"
+					  ".pushsection __jump_table,  \"aw\"\n\t"
+					  WORD_INSN " 1b, %l[l_yes], %0\n\t"
+					  ".popsection\n\t"
+					  : :  "i" (&((char *)key)[branch]) : : l_yes);
 
 	return false;
 l_yes:
@@ -43,11 +43,11 @@ l_yes:
 static __always_inline bool arch_static_branch_jump(struct static_key *key, bool branch)
 {
 	asm_volatile_goto("1:\tj %l[l_yes]\n\t"
-		"nop\n\t"
-		".pushsection __jump_table,  \"aw\"\n\t"
-		WORD_INSN " 1b, %l[l_yes], %0\n\t"
-		".popsection\n\t"
-		: :  "i" (&((char *)key)[branch]) : : l_yes);
+					  "nop\n\t"
+					  ".pushsection __jump_table,  \"aw\"\n\t"
+					  WORD_INSN " 1b, %l[l_yes], %0\n\t"
+					  ".popsection\n\t"
+					  : :  "i" (&((char *)key)[branch]) : : l_yes);
 
 	return false;
 l_yes:
@@ -55,12 +55,13 @@ l_yes:
 }
 
 #ifdef CONFIG_64BIT
-typedef u64 jump_label_t;
+	typedef u64 jump_label_t;
 #else
-typedef u32 jump_label_t;
+	typedef u32 jump_label_t;
 #endif
 
-struct jump_entry {
+struct jump_entry
+{
 	jump_label_t code;
 	jump_label_t target;
 	jump_label_t key;

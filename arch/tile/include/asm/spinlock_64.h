@@ -70,8 +70,11 @@ static inline void arch_spin_lock(arch_spinlock_t *lock)
 {
 	u32 val = __insn_fetchadd4(&lock->lock, 1);
 	u32 ticket = val & (__ARCH_SPIN_NEXT_MASK | __ARCH_SPIN_NEXT_OVERFLOW);
+
 	if (unlikely(arch_spin_current(val) != ticket))
+	{
 		arch_spin_lock_slow(lock, ticket);
+	}
 }
 
 /* Try to get the lock, and return whether we succeeded. */
@@ -118,8 +121,11 @@ extern void __read_lock_failed(arch_rwlock_t *rw);
 static inline void arch_read_lock(arch_rwlock_t *rw)
 {
 	u32 val = __insn_fetchaddgez4(&rw->lock, 1);
+
 	if (unlikely(arch_write_val_locked(val)))
+	{
 		__read_lock_failed(rw);
+	}
 }
 
 extern void __write_lock_failed(arch_rwlock_t *rw, u32 val);
@@ -127,8 +133,11 @@ extern void __write_lock_failed(arch_rwlock_t *rw, u32 val);
 static inline void arch_write_lock(arch_rwlock_t *rw)
 {
 	u32 val = __insn_fetchor4(&rw->lock, __WRITE_LOCK_BIT);
+
 	if (unlikely(val != 0))
+	{
 		__write_lock_failed(rw, val);
+	}
 }
 
 static inline void arch_read_unlock(arch_rwlock_t *rw)
@@ -151,10 +160,17 @@ static inline int arch_read_trylock(arch_rwlock_t *rw)
 static inline int arch_write_trylock(arch_rwlock_t *rw)
 {
 	u32 val = __insn_fetchor4(&rw->lock, __WRITE_LOCK_BIT);
+
 	if (likely(val == 0))
+	{
 		return 1;
+	}
+
 	if (!arch_write_val_locked(val))
+	{
 		__insn_fetchand4(&rw->lock, ~__WRITE_LOCK_BIT);
+	}
+
 	return 0;
 }
 

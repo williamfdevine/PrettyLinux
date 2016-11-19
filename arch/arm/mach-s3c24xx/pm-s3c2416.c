@@ -59,7 +59,8 @@ static int s3c2416_pm_add(struct device *dev, struct subsys_interface *sif)
 	return 0;
 }
 
-static struct subsys_interface s3c2416_pm_interface = {
+static struct subsys_interface s3c2416_pm_interface =
+{
 	.name		= "s3c2416_pm",
 	.subsys		= &s3c2416_subsys,
 	.add_dev	= s3c2416_pm_add,
@@ -81,6 +82,7 @@ static void s3c2416_pm_resume(void)
 	__raw_writel(0x0, S3C2412_INFORM1);
 }
 
-struct syscore_ops s3c2416_pm_syscore_ops = {
+struct syscore_ops s3c2416_pm_syscore_ops =
+{
 	.resume		= s3c2416_pm_resume,
 };

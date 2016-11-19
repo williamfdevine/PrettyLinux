@@ -55,7 +55,8 @@
 
 #include "ecard.h"
 
-struct ecard_request {
+struct ecard_request
+{
 	void		(*fn)(struct ecard_request *);
 	ecard_t		*ec;
 	unsigned int	address;
@@ -65,7 +66,8 @@ struct ecard_request {
 	struct completion *complete;
 };
 
-struct expcard_blacklist {
+struct expcard_blacklist
+{
 	unsigned short	 manufacturer;
 	unsigned short	 product;
 	const char	*type;
@@ -78,7 +80,8 @@ static unsigned int ectcr;
 /* List of descriptions of cards which don't have an extended
  * identification, or chunk directories containing a description.
  */
-static struct expcard_blacklist __initdata blacklist[] = {
+static struct expcard_blacklist __initdata blacklist[] =
+{
 	{ MANU_ACORN, PROD_ACORN_ETHER1, "Acorn Ether1" }
 };
 
@@ -120,8 +123,8 @@ static void ecard_task_reset(struct ecard_request *req)
 	struct resource *res;
 
 	res = ec->slot_no == 8
-		? &ec->resource[ECARD_RES_MEMC]
-		: ec->easi
+		  ? &ec->resource[ECARD_RES_MEMC]
+		  : ec->easi
 		  ? &ec->resource[ECARD_RES_EASI]
 		  : &ec->resource[ECARD_RES_IOCSYNC];
 
@@ -135,9 +138,10 @@ static void ecard_task_readbytes(struct ecard_request *req)
 	unsigned int len = req->length;
 	unsigned int off = req->address;
 
-	if (ec->slot_no == 8) {
+	if (ec->slot_no == 8)
+	{
 		void __iomem *base = (void __iomem *)
-				ec->resource[ECARD_RES_MEMC].start;
+							 ec->resource[ECARD_RES_MEMC].start;
 
 		/*
 		 * The card maintains an index which increments the address
@@ -148,8 +152,11 @@ static void ecard_task_readbytes(struct ecard_request *req)
 		unsigned int page;
 
 		page = (off >> 12) * 4;
+
 		if (page > 256 * 4)
+		{
 			return;
+		}
 
 		off &= 4095;
 
@@ -157,7 +164,8 @@ static void ecard_task_readbytes(struct ecard_request *req)
 		 * If we are reading offset 0, or our current index is
 		 * greater than the offset, reset the hardware index counter.
 		 */
-		if (off == 0 || index > off) {
+		if (off == 0 || index > off)
+		{
 			writeb(0, base);
 			index = 0;
 		}
@@ -166,36 +174,46 @@ static void ecard_task_readbytes(struct ecard_request *req)
 		 * Increment the hardware index counter until we get to the
 		 * required offset.  The read bytes are discarded.
 		 */
-		while (index < off) {
+		while (index < off)
+		{
 			readb(base + page);
 			index += 1;
 		}
 
-		while (len--) {
+		while (len--)
+		{
 			*buf++ = readb(base + page);
 			index += 1;
 		}
-	} else {
+	}
+	else
+	{
 		unsigned long base = (ec->easi
-			 ? &ec->resource[ECARD_RES_EASI]
-			 : &ec->resource[ECARD_RES_IOCSYNC])->start;
+							  ? &ec->resource[ECARD_RES_EASI]
+							  : &ec->resource[ECARD_RES_IOCSYNC])->start;
 		void __iomem *pbase = (void __iomem *)base;
 
-		if (!req->use_loader || !ec->loader) {
+		if (!req->use_loader || !ec->loader)
+		{
 			off *= 4;
-			while (len--) {
+
+			while (len--)
+			{
 				*buf++ = readb(pbase + off);
 				off += 4;
 			}
-		} else {
-			while(len--) {
+		}
+		else
+		{
+			while (len--)
+			{
 				/*
 				 * The following is required by some
 				 * expansion card loader programs.
 				 */
 				*(unsigned long *)0x108 = 0;
 				*buf++ = ecard_loader_read(off++, base,
-							   ec->loader);
+										   ec->loader);
 			}
 		}
 	}
@@ -245,11 +263,13 @@ static void ecard_init_pgtables(struct mm_struct *mm)
 
 static int ecard_init_mm(void)
 {
-	struct mm_struct * mm = mm_alloc();
+	struct mm_struct *mm = mm_alloc();
 	struct mm_struct *active_mm = current->active_mm;
 
 	if (!mm)
+	{
 		return -ENOMEM;
+	}
 
 	current->mm = mm;
 	current->active_mm = mm;
@@ -260,7 +280,7 @@ static int ecard_init_mm(void)
 }
 
 static int
-ecard_task(void * unused)
+ecard_task(void *unused)
 {
 	/*
 	 * Allocate a mm.  We're not a lazy-TLB kernel task since we need
@@ -269,15 +289,20 @@ ecard_task(void * unused)
 	 * option here.
 	 */
 	if (ecard_init_mm())
+	{
 		panic("kecardd: unable to alloc mm\n");
+	}
 
-	while (1) {
+	while (1)
+	{
 		struct ecard_request *req;
 
 		wait_event_interruptible(ecard_wait, ecard_req != NULL);
 
 		req = xchg(&ecard_req, NULL);
-		if (req != NULL) {
+
+		if (req != NULL)
+		{
 			req->fn(req);
 			complete(req->complete);
 		}
@@ -331,51 +356,74 @@ int ecard_readchunk(struct in_chunk_dir *cd, ecard_t *ec, int id, int num)
 	int useld = 0;
 
 	if (!ec->cid.cd)
+	{
 		return 0;
+	}
 
-	while(1) {
+	while (1)
+	{
 		ecard_readbytes(&excd, ec, index, 8, useld);
 		index += 8;
-		if (c_id(&excd) == 0) {
-			if (!useld && ec->loader) {
+
+		if (c_id(&excd) == 0)
+		{
+			if (!useld && ec->loader)
+			{
 				useld = 1;
 				index = 0;
 				continue;
 			}
+
 			return 0;
 		}
-		if (c_id(&excd) == 0xf0) { /* link */
+
+		if (c_id(&excd) == 0xf0)   /* link */
+		{
 			index = c_start(&excd);
 			continue;
 		}
-		if (c_id(&excd) == 0x80) { /* loader */
-			if (!ec->loader) {
+
+		if (c_id(&excd) == 0x80)   /* loader */
+		{
+			if (!ec->loader)
+			{
 				ec->loader = kmalloc(c_len(&excd),
-							       GFP_KERNEL);
+									 GFP_KERNEL);
+
 				if (ec->loader)
 					ecard_readbytes(ec->loader, ec,
-							(int)c_start(&excd),
-							c_len(&excd), useld);
+									(int)c_start(&excd),
+									c_len(&excd), useld);
 				else
+				{
 					return 0;
+				}
 			}
+
 			continue;
 		}
-		if (c_id(&excd) == id && num-- == 0)
-			break;
-	}
 
-	if (c_id(&excd) & 0x80) {
-		switch (c_id(&excd) & 0x70) {
-		case 0x70:
-			ecard_readbytes((unsigned char *)excd.d.string, ec,
-					(int)c_start(&excd), c_len(&excd),
-					useld);
-			break;
-		case 0x00:
+		if (c_id(&excd) == id && num-- == 0)
+		{
 			break;
 		}
 	}
+
+	if (c_id(&excd) & 0x80)
+	{
+		switch (c_id(&excd) & 0x70)
+		{
+			case 0x70:
+				ecard_readbytes((unsigned char *)excd.d.string, ec,
+								(int)c_start(&excd), c_len(&excd),
+								useld);
+				break;
+
+			case 0x00:
+				break;
+		}
+	}
+
 	cd->start_offset = c_start(&excd);
 	memcpy(cd->d.string, excd.d.string, 256);
 	return 1;
@@ -411,7 +459,8 @@ static int ecard_def_fiq_pending(ecard_t *ec)
 	return !ec->fiqmask || readb(ec->fiqaddr) & ec->fiqmask;
 }
 
-static expansioncard_ops_t ecard_default_ops = {
+static expansioncard_ops_t ecard_default_ops =
+{
 	ecard_def_irq_enable,
 	ecard_def_irq_disable,
 	ecard_def_irq_pending,
@@ -430,15 +479,20 @@ static void ecard_irq_unmask(struct irq_data *d)
 {
 	ecard_t *ec = irq_data_get_irq_chip_data(d);
 
-	if (ec) {
+	if (ec)
+	{
 		if (!ec->ops)
+		{
 			ec->ops = &ecard_default_ops;
+		}
 
 		if (ec->claimed && ec->ops->irqenable)
+		{
 			ec->ops->irqenable(ec, d->irq);
+		}
 		else
 			printk(KERN_ERR "ecard: rejecting request to "
-				"enable IRQs for %d\n", d->irq);
+				   "enable IRQs for %d\n", d->irq);
 	}
 }
 
@@ -446,16 +500,22 @@ static void ecard_irq_mask(struct irq_data *d)
 {
 	ecard_t *ec = irq_data_get_irq_chip_data(d);
 
-	if (ec) {
+	if (ec)
+	{
 		if (!ec->ops)
+		{
 			ec->ops = &ecard_default_ops;
+		}
 
 		if (ec->ops && ec->ops->irqdisable)
+		{
 			ec->ops->irqdisable(ec, d->irq);
+		}
 	}
 }
 
-static struct irq_chip ecard_chip = {
+static struct irq_chip ecard_chip =
+{
 	.name		= "ECARD",
 	.irq_ack	= ecard_irq_mask,
 	.irq_mask	= ecard_irq_mask,
@@ -466,15 +526,20 @@ void ecard_enablefiq(unsigned int fiqnr)
 {
 	ecard_t *ec = slot_to_ecard(fiqnr);
 
-	if (ec) {
+	if (ec)
+	{
 		if (!ec->ops)
+		{
 			ec->ops = &ecard_default_ops;
+		}
 
 		if (ec->claimed && ec->ops->fiqenable)
+		{
 			ec->ops->fiqenable(ec, fiqnr);
+		}
 		else
 			printk(KERN_ERR "ecard: rejecting request to "
-				"enable FIQs for %d\n", fiqnr);
+				   "enable FIQs for %d\n", fiqnr);
 	}
 }
 
@@ -482,12 +547,17 @@ void ecard_disablefiq(unsigned int fiqnr)
 {
 	ecard_t *ec = slot_to_ecard(fiqnr);
 
-	if (ec) {
+	if (ec)
+	{
 		if (!ec->ops)
+		{
 			ec->ops = &ecard_default_ops;
+		}
 
 		if (ec->ops->fiqdisable)
+		{
 			ec->ops->fiqdisable(ec, fiqnr);
+		}
 	}
 }
 
@@ -497,20 +567,23 @@ static void ecard_dump_irq_state(void)
 
 	printk("Expansion card IRQ state:\n");
 
-	for (ec = cards; ec; ec = ec->next) {
+	for (ec = cards; ec; ec = ec->next)
+	{
 		if (ec->slot_no == 8)
+		{
 			continue;
+		}
 
 		printk("  %d: %sclaimed, ",
-		       ec->slot_no, ec->claimed ? "" : "not ");
+			   ec->slot_no, ec->claimed ? "" : "not ");
 
 		if (ec->ops && ec->ops->irqpending &&
-		    ec->ops != &ecard_default_ops)
+			ec->ops != &ecard_default_ops)
 			printk("irq %spending\n",
-			       ec->ops->irqpending(ec) ? "" : "not ");
+				   ec->ops->irqpending(ec) ? "" : "not ");
 		else
 			printk("irqaddr %p, mask = %02X, status = %02X\n",
-			       ec->irqaddr, ec->irqmask, readb(ec->irqaddr));
+				   ec->irqaddr, ec->irqmask, readb(ec->irqaddr));
 	}
 }
 
@@ -528,23 +601,30 @@ static void ecard_check_lockup(struct irq_desc *desc)
 	 * Maybe we ought to start a timer to re-enable them some time
 	 * later?
 	 */
-	if (last == jiffies) {
+	if (last == jiffies)
+	{
 		lockup += 1;
-		if (lockup > 1000000) {
+
+		if (lockup > 1000000)
+		{
 			printk(KERN_ERR "\nInterrupt lockup detected - "
-			       "disabling all expansion card interrupts\n");
+				   "disabling all expansion card interrupts\n");
 
 			desc->irq_data.chip->irq_mask(&desc->irq_data);
 			ecard_dump_irq_state();
 		}
-	} else
+	}
+	else
+	{
 		lockup = 0;
+	}
 
 	/*
 	 * If we did not recognise the source of this interrupt,
 	 * warn the user, but don't flood the user with these messages.
 	 */
-	if (!last || time_after(jiffies, last + 5*HZ)) {
+	if (!last || time_after(jiffies, last + 5 * HZ))
+	{
 		last = jiffies;
 		printk(KERN_WARNING "Unrecognised interrupt from backplane\n");
 		ecard_dump_irq_state();
@@ -557,26 +637,38 @@ static void ecard_irq_handler(struct irq_desc *desc)
 	int called = 0;
 
 	desc->irq_data.chip->irq_mask(&desc->irq_data);
-	for (ec = cards; ec; ec = ec->next) {
+
+	for (ec = cards; ec; ec = ec->next)
+	{
 		int pending;
 
 		if (!ec->claimed || !ec->irq || ec->slot_no == 8)
+		{
 			continue;
+		}
 
 		if (ec->ops && ec->ops->irqpending)
+		{
 			pending = ec->ops->irqpending(ec);
+		}
 		else
+		{
 			pending = ecard_default_ops.irqpending(ec);
+		}
 
-		if (pending) {
+		if (pending)
+		{
 			generic_handle_irq(ec->irq);
 			called ++;
 		}
 	}
+
 	desc->irq_data.chip->irq_unmask(&desc->irq_data);
 
 	if (called == 0)
+	{
 		ecard_check_lockup(desc);
+	}
 }
 
 static void __iomem *__ecard_address(ecard_t *ec, card_type_t type, card_speed_t speed)
@@ -585,33 +677,51 @@ static void __iomem *__ecard_address(ecard_t *ec, card_type_t type, card_speed_t
 	int slot = ec->slot_no;
 
 	if (ec->slot_no == 8)
+	{
 		return ECARD_MEMC8_BASE;
+	}
 
 	ectcr &= ~(1 << slot);
 
-	switch (type) {
-	case ECARD_MEMC:
-		if (slot < 4)
-			address = ECARD_MEMC_BASE + (slot << 14);
-		break;
+	switch (type)
+	{
+		case ECARD_MEMC:
+			if (slot < 4)
+			{
+				address = ECARD_MEMC_BASE + (slot << 14);
+			}
 
-	case ECARD_IOC:
-		if (slot < 4)
-			address = ECARD_IOC_BASE + (slot << 14);
-		else
-			address = ECARD_IOC4_BASE + ((slot - 4) << 14);
-		if (address)
-			address += speed << 19;
-		break;
+			break;
 
-	case ECARD_EASI:
-		address = ECARD_EASI_BASE + (slot << 24);
-		if (speed == ECARD_FAST)
-			ectcr |= 1 << slot;
-		break;
+		case ECARD_IOC:
+			if (slot < 4)
+			{
+				address = ECARD_IOC_BASE + (slot << 14);
+			}
+			else
+			{
+				address = ECARD_IOC4_BASE + ((slot - 4) << 14);
+			}
 
-	default:
-		break;
+			if (address)
+			{
+				address += speed << 19;
+			}
+
+			break;
+
+		case ECARD_EASI:
+			address = ECARD_EASI_BASE + (slot << 24);
+
+			if (speed == ECARD_FAST)
+			{
+				ectcr |= 1 << slot;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 #ifdef IOMD_ECTCR
@@ -624,23 +734,30 @@ static int ecard_prints(struct seq_file *m, ecard_t *ec)
 {
 	seq_printf(m, "  %d: %s ", ec->slot_no, ec->easi ? "EASI" : "    ");
 
-	if (ec->cid.id == 0) {
+	if (ec->cid.id == 0)
+	{
 		struct in_chunk_dir incd;
 
 		seq_printf(m, "[%04X:%04X] ",
-			ec->cid.manufacturer, ec->cid.product);
+				   ec->cid.manufacturer, ec->cid.product);
 
 		if (!ec->card_desc && ec->cid.cd &&
-		    ecard_readchunk(&incd, ec, 0xf5, 0)) {
-			ec->card_desc = kmalloc(strlen(incd.d.string)+1, GFP_KERNEL);
+			ecard_readchunk(&incd, ec, 0xf5, 0))
+		{
+			ec->card_desc = kmalloc(strlen(incd.d.string) + 1, GFP_KERNEL);
 
 			if (ec->card_desc)
+			{
 				strcpy((char *)ec->card_desc, incd.d.string);
+			}
 		}
 
 		seq_printf(m, "%s\n", ec->card_desc ? ec->card_desc : "*unknown*");
-	} else
+	}
+	else
+	{
 		seq_printf(m, "Simple card %d\n", ec->cid.id);
+	}
 
 	return 0;
 }
@@ -649,10 +766,12 @@ static int ecard_devices_proc_show(struct seq_file *m, void *v)
 {
 	ecard_t *ec = cards;
 
-	while (ec) {
+	while (ec)
+	{
 		ecard_prints(m, ec);
 		ec = ec->next;
 	}
+
 	return 0;
 }
 
@@ -661,7 +780,8 @@ static int ecard_devices_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, ecard_devices_proc_show, NULL);
 }
 
-static const struct file_operations bus_ecard_proc_fops = {
+static const struct file_operations bus_ecard_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= ecard_devices_proc_open,
 	.read		= seq_read,
@@ -691,7 +811,9 @@ static void __init ecard_free_card(struct expansion_card *ec)
 
 	for (i = 0; i < ECARD_NUM_RESOURCES; i++)
 		if (ec->resource[i].flags)
+		{
 			release_resource(&ec->resource[i]);
+		}
 
 	kfree(ec);
 }
@@ -703,7 +825,9 @@ static struct expansion_card *__init ecard_alloc_card(int type, int slot)
 	int i;
 
 	ec = kzalloc(sizeof(ecard_t), GFP_KERNEL);
-	if (!ec) {
+
+	if (!ec)
+	{
 		ec = ERR_PTR(-ENOMEM);
 		goto nomem;
 	}
@@ -722,33 +846,43 @@ static struct expansion_card *__init ecard_alloc_card(int type, int slot)
 	ec->dma_mask = (u64)0xffffffff;
 	ec->dev.coherent_dma_mask = ec->dma_mask;
 
-	if (slot < 4) {
+	if (slot < 4)
+	{
 		ec_set_resource(ec, ECARD_RES_MEMC,
-				PODSLOT_MEMC_BASE + (slot << 14),
-				PODSLOT_MEMC_SIZE);
+						PODSLOT_MEMC_BASE + (slot << 14),
+						PODSLOT_MEMC_SIZE);
 		base = PODSLOT_IOC0_BASE + (slot << 14);
-	} else
+	}
+	else
+	{
 		base = PODSLOT_IOC4_BASE + ((slot - 4) << 14);
-
-#ifdef CONFIG_ARCH_RPC
-	if (slot < 8) {
-		ec_set_resource(ec, ECARD_RES_EASI,
-				PODSLOT_EASI_BASE + (slot << 24),
-				PODSLOT_EASI_SIZE);
 	}
 
-	if (slot == 8) {
+#ifdef CONFIG_ARCH_RPC
+
+	if (slot < 8)
+	{
+		ec_set_resource(ec, ECARD_RES_EASI,
+						PODSLOT_EASI_BASE + (slot << 24),
+						PODSLOT_EASI_SIZE);
+	}
+
+	if (slot == 8)
+	{
 		ec_set_resource(ec, ECARD_RES_MEMC, NETSLOT_BASE, NETSLOT_SIZE);
-	} else
+	}
+	else
 #endif
 
-	for (i = 0; i <= ECARD_RES_IOCSYNC - ECARD_RES_IOCSLOW; i++)
-		ec_set_resource(ec, i + ECARD_RES_IOCSLOW,
-				base + (i << 19), PODSLOT_IOC_SIZE);
+		for (i = 0; i <= ECARD_RES_IOCSYNC - ECARD_RES_IOCSLOW; i++)
+			ec_set_resource(ec, i + ECARD_RES_IOCSLOW,
+							base + (i << 19), PODSLOT_IOC_SIZE);
 
-	for (i = 0; i < ECARD_NUM_RESOURCES; i++) {
+	for (i = 0; i < ECARD_NUM_RESOURCES; i++)
+	{
 		if (ec->resource[i].flags &&
-		    request_resource(&iomem_resource, &ec->resource[i])) {
+			request_resource(&iomem_resource, &ec->resource[i]))
+		{
 			dev_err(&ec->dev, "resource(s) not available\n");
 			ec->resource[i].end -= ec->resource[i].start;
 			ec->resource[i].start = 0;
@@ -756,7 +890,7 @@ static struct expansion_card *__init ecard_alloc_card(int type, int slot)
 		}
 	}
 
- nomem:
+nomem:
 	return ec;
 }
 
@@ -780,9 +914,9 @@ static ssize_t ecard_show_resources(struct device *dev, struct device_attribute 
 
 	for (i = 0; i < ECARD_NUM_RESOURCES; i++)
 		str += sprintf(str, "%08x %08x %08lx\n",
-				ec->resource[i].start,
-				ec->resource[i].end,
-				ec->resource[i].flags);
+					   ec->resource[i].start,
+					   ec->resource[i].end,
+					   ec->resource[i].flags);
 
 	return str - buf;
 }
@@ -805,7 +939,8 @@ static ssize_t ecard_show_type(struct device *dev, struct device_attribute *attr
 	return sprintf(buf, "%s\n", ec->easi ? "EASI" : "IOC");
 }
 
-static struct device_attribute ecard_dev_attrs[] = {
+static struct device_attribute ecard_dev_attrs[] =
+{
 	__ATTR(device,   S_IRUGO, ecard_show_device,    NULL),
 	__ATTR(dma,      S_IRUGO, ecard_show_dma,       NULL),
 	__ATTR(irq,      S_IRUGO, ecard_show_irq,       NULL),
@@ -820,22 +955,26 @@ int ecard_request_resources(struct expansion_card *ec)
 {
 	int i, err = 0;
 
-	for (i = 0; i < ECARD_NUM_RESOURCES; i++) {
+	for (i = 0; i < ECARD_NUM_RESOURCES; i++)
+	{
 		if (ecard_resource_end(ec, i) &&
-		    !request_mem_region(ecard_resource_start(ec, i),
-					ecard_resource_len(ec, i),
-					ec->dev.driver->name)) {
+			!request_mem_region(ecard_resource_start(ec, i),
+								ecard_resource_len(ec, i),
+								ec->dev.driver->name))
+		{
 			err = -EBUSY;
 			break;
 		}
 	}
 
-	if (err) {
+	if (err)
+	{
 		while (i--)
 			if (ecard_resource_end(ec, i))
 				release_mem_region(ecard_resource_start(ec, i),
-						   ecard_resource_len(ec, i));
+								   ecard_resource_len(ec, i));
 	}
+
 	return err;
 }
 EXPORT_SYMBOL(ecard_request_resources);
@@ -847,7 +986,7 @@ void ecard_release_resources(struct expansion_card *ec)
 	for (i = 0; i < ECARD_NUM_RESOURCES; i++)
 		if (ecard_resource_end(ec, i))
 			release_mem_region(ecard_resource_start(ec, i),
-					   ecard_resource_len(ec, i));
+							   ecard_resource_len(ec, i));
 }
 EXPORT_SYMBOL(ecard_release_resources);
 
@@ -860,18 +999,23 @@ void ecard_setirq(struct expansion_card *ec, const struct expansion_card_ops *op
 EXPORT_SYMBOL(ecard_setirq);
 
 void __iomem *ecardm_iomap(struct expansion_card *ec, unsigned int res,
-			   unsigned long offset, unsigned long maxsize)
+						   unsigned long offset, unsigned long maxsize)
 {
 	unsigned long start = ecard_resource_start(ec, res);
 	unsigned long end = ecard_resource_end(ec, res);
 
 	if (offset > (end - start))
+	{
 		return NULL;
+	}
 
 	start += offset;
+
 	if (maxsize && end - start > maxsize)
+	{
 		end = start + maxsize;
-	
+	}
+
 	return devm_ioremap(&ec->dev, start, end - start);
 }
 EXPORT_SYMBOL(ecardm_iomap);
@@ -891,19 +1035,27 @@ static int __init ecard_probe(int slot, unsigned irq, card_type_t type)
 	int i, rc;
 
 	ec = ecard_alloc_card(type, slot);
-	if (IS_ERR(ec)) {
+
+	if (IS_ERR(ec))
+	{
 		rc = PTR_ERR(ec);
 		goto nomem;
 	}
 
 	rc = -ENODEV;
+
 	if ((addr = __ecard_address(ec, type, ECARD_SYNC)) == NULL)
+	{
 		goto nodev;
+	}
 
 	cid.r_zero = 1;
 	ecard_readbytes(&cid, ec, 0, 16, 0);
+
 	if (cid.r_zero)
+	{
 		goto nodev;
+	}
 
 	ec->cid.id	= cid.r_id;
 	ec->cid.cd	= cid.r_cd;
@@ -917,21 +1069,25 @@ static int __init ecard_probe(int slot, unsigned irq, card_type_t type)
 	ec->cid.fiqmask = cid.r_fiqmask;
 	ec->cid.fiqoff  = ecard_gets24(cid.r_fiqoff);
 	ec->fiqaddr	=
-	ec->irqaddr	= addr;
+		ec->irqaddr	= addr;
 
-	if (ec->cid.is) {
+	if (ec->cid.is)
+	{
 		ec->irqmask = ec->cid.irqmask;
 		ec->irqaddr += ec->cid.irqoff;
 		ec->fiqmask = ec->cid.fiqmask;
 		ec->fiqaddr += ec->cid.fiqoff;
-	} else {
+	}
+	else
+	{
 		ec->irqmask = 1;
 		ec->fiqmask = 4;
 	}
 
 	for (i = 0; i < ARRAY_SIZE(blacklist); i++)
 		if (blacklist[i].manufacturer == ec->cid.manufacturer &&
-		    blacklist[i].product == ec->cid.product) {
+			blacklist[i].product == ec->cid.product)
+		{
 			ec->card_desc = blacklist[i].type;
 			break;
 		}
@@ -941,17 +1097,22 @@ static int __init ecard_probe(int slot, unsigned irq, card_type_t type)
 	/*
 	 * hook the interrupt handlers
 	 */
-	if (slot < 8) {
+	if (slot < 8)
+	{
 		irq_set_chip_and_handler(ec->irq, &ecard_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_set_chip_data(ec->irq, ec);
 		irq_clear_status_flags(ec->irq, IRQ_NOREQUEST);
 	}
 
 #ifdef CONFIG_ARCH_RPC
+
 	/* On RiscPC, only first two slots have DMA capability */
 	if (slot < 2)
+	{
 		ec->dma = 2 + slot;
+	}
+
 #endif
 
 	for (ecp = &cards; *ecp; ecp = &(*ecp)->next);
@@ -960,14 +1121,17 @@ static int __init ecard_probe(int slot, unsigned irq, card_type_t type)
 	slot_to_expcard[slot] = ec;
 
 	rc = device_register(&ec->dev);
+
 	if (rc)
+	{
 		goto nodev;
+	}
 
 	return 0;
 
- nodev:
+nodev:
 	ecard_free_card(ec);
- nomem:
+nomem:
 	return rc;
 }
 
@@ -982,22 +1146,30 @@ static int __init ecard_init(void)
 	int slot, irqbase;
 
 	irqbase = irq_alloc_descs(-1, 0, 8, -1);
+
 	if (irqbase < 0)
+	{
 		return irqbase;
+	}
 
 	task = kthread_run(ecard_task, NULL, "kecardd");
-	if (IS_ERR(task)) {
+
+	if (IS_ERR(task))
+	{
 		printk(KERN_ERR "Ecard: unable to create kernel thread: %ld\n",
-		       PTR_ERR(task));
+			   PTR_ERR(task));
 		irq_free_descs(irqbase, 8);
 		return PTR_ERR(task);
 	}
 
 	printk("Probing expansion cards\n");
 
-	for (slot = 0; slot < 8; slot ++) {
+	for (slot = 0; slot < 8; slot ++)
+	{
 		if (ecard_probe(slot, irqbase + slot, ECARD_EASI) == -ENODEV)
+		{
 			ecard_probe(slot, irqbase + slot, ECARD_IOC);
+		}
 	}
 
 	ecard_probe(8, 11, ECARD_IOC);
@@ -1021,8 +1193,10 @@ ecard_match_device(const struct ecard_id *ids, struct expansion_card *ec)
 
 	for (i = 0; ids[i].manufacturer != 65535; i++)
 		if (ec->cid.manufacturer == ids[i].manufacturer &&
-		    ec->cid.product == ids[i].product)
+			ec->cid.product == ids[i].product)
+		{
 			return ids + i;
+		}
 
 	return NULL;
 }
@@ -1038,8 +1212,12 @@ static int ecard_drv_probe(struct device *dev)
 
 	ec->claimed = 1;
 	ret = drv->probe(ec, id);
+
 	if (ret)
+	{
 		ec->claimed = 0;
+	}
+
 	return ret;
 }
 
@@ -1074,16 +1252,21 @@ static void ecard_drv_shutdown(struct device *dev)
 	struct ecard_driver *drv = ECARD_DRV(dev->driver);
 	struct ecard_request req;
 
-	if (dev->driver) {
+	if (dev->driver)
+	{
 		if (drv->shutdown)
+		{
 			drv->shutdown(ec);
+		}
+
 		ec->claimed = 0;
 	}
 
 	/*
 	 * If this card has a loader, call the reset handler.
 	 */
-	if (ec->loader) {
+	if (ec->loader)
+	{
 		req.fn = ecard_task_reset;
 		req.ec = ec;
 		ecard_call(&req);
@@ -1108,16 +1291,20 @@ static int ecard_match(struct device *_dev, struct device_driver *_drv)
 	struct ecard_driver *drv = ECARD_DRV(_drv);
 	int ret;
 
-	if (drv->id_table) {
+	if (drv->id_table)
+	{
 		ret = ecard_match_device(drv->id_table, ec) != NULL;
-	} else {
+	}
+	else
+	{
 		ret = ec->cid.id == drv->id;
 	}
 
 	return ret;
 }
 
-struct bus_type ecard_bus_type = {
+struct bus_type ecard_bus_type =
+{
 	.name		= "ecard",
 	.dev_attrs	= ecard_dev_attrs,
 	.match		= ecard_match,

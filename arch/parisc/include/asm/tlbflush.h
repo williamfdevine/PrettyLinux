@@ -28,7 +28,7 @@ extern void flush_tlb_all_local(void *);
 #define smp_flush_tlb_all()	flush_tlb_all()
 
 int __flush_tlb_range(unsigned long sid,
-	unsigned long start, unsigned long end);
+					  unsigned long start, unsigned long end);
 
 #define flush_tlb_range(vma, start, end) \
 	__flush_tlb_range((vma)->vm_mm->context, start, end)
@@ -60,23 +60,32 @@ static inline void flush_tlb_mm(struct mm_struct *mm)
 	 */
 	flush_tlb_all();
 #else
+
 	/* FIXME: currently broken, causing space id and protection ids
 	 * to go out of sync, resulting in faults on userspace accesses.
 	 * This approach needs further investigation since running many
 	 * small applications (e.g., GCC testsuite) is faster on HP-UX.
 	 */
-	if (mm) {
+	if (mm)
+	{
 		if (mm->context != 0)
+		{
 			free_sid(mm->context);
+		}
+
 		mm->context = alloc_sid();
+
 		if (mm == current->active_mm)
+		{
 			load_context(mm->context);
+		}
 	}
+
 #endif
 }
 
 static inline void flush_tlb_page(struct vm_area_struct *vma,
-	unsigned long addr)
+								  unsigned long addr)
 {
 	unsigned long flags, sid;
 
@@ -84,8 +93,12 @@ static inline void flush_tlb_page(struct vm_area_struct *vma,
 	purge_tlb_start(flags);
 	mtsp(sid, 1);
 	pdtlb(addr);
+
 	if (unlikely(split_tlb))
+	{
 		pitlb(addr);
+	}
+
 	purge_tlb_end(flags);
 }
 #endif

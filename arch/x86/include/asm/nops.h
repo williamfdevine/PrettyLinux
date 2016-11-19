@@ -88,59 +88,59 @@
 #define P6_NOP5_ATOMIC P6_NOP5
 
 #ifdef __ASSEMBLY__
-#define _ASM_MK_NOP(x) .byte x
+	#define _ASM_MK_NOP(x) .byte x
 #else
-#define _ASM_MK_NOP(x) ".byte " __stringify(x) "\n"
+	#define _ASM_MK_NOP(x) ".byte " __stringify(x) "\n"
 #endif
 
 #if defined(CONFIG_MK7)
-#define ASM_NOP1 _ASM_MK_NOP(K7_NOP1)
-#define ASM_NOP2 _ASM_MK_NOP(K7_NOP2)
-#define ASM_NOP3 _ASM_MK_NOP(K7_NOP3)
-#define ASM_NOP4 _ASM_MK_NOP(K7_NOP4)
-#define ASM_NOP5 _ASM_MK_NOP(K7_NOP5)
-#define ASM_NOP6 _ASM_MK_NOP(K7_NOP6)
-#define ASM_NOP7 _ASM_MK_NOP(K7_NOP7)
-#define ASM_NOP8 _ASM_MK_NOP(K7_NOP8)
-#define ASM_NOP5_ATOMIC _ASM_MK_NOP(K7_NOP5_ATOMIC)
+	#define ASM_NOP1 _ASM_MK_NOP(K7_NOP1)
+	#define ASM_NOP2 _ASM_MK_NOP(K7_NOP2)
+	#define ASM_NOP3 _ASM_MK_NOP(K7_NOP3)
+	#define ASM_NOP4 _ASM_MK_NOP(K7_NOP4)
+	#define ASM_NOP5 _ASM_MK_NOP(K7_NOP5)
+	#define ASM_NOP6 _ASM_MK_NOP(K7_NOP6)
+	#define ASM_NOP7 _ASM_MK_NOP(K7_NOP7)
+	#define ASM_NOP8 _ASM_MK_NOP(K7_NOP8)
+	#define ASM_NOP5_ATOMIC _ASM_MK_NOP(K7_NOP5_ATOMIC)
 #elif defined(CONFIG_X86_P6_NOP)
-#define ASM_NOP1 _ASM_MK_NOP(P6_NOP1)
-#define ASM_NOP2 _ASM_MK_NOP(P6_NOP2)
-#define ASM_NOP3 _ASM_MK_NOP(P6_NOP3)
-#define ASM_NOP4 _ASM_MK_NOP(P6_NOP4)
-#define ASM_NOP5 _ASM_MK_NOP(P6_NOP5)
-#define ASM_NOP6 _ASM_MK_NOP(P6_NOP6)
-#define ASM_NOP7 _ASM_MK_NOP(P6_NOP7)
-#define ASM_NOP8 _ASM_MK_NOP(P6_NOP8)
-#define ASM_NOP5_ATOMIC _ASM_MK_NOP(P6_NOP5_ATOMIC)
+	#define ASM_NOP1 _ASM_MK_NOP(P6_NOP1)
+	#define ASM_NOP2 _ASM_MK_NOP(P6_NOP2)
+	#define ASM_NOP3 _ASM_MK_NOP(P6_NOP3)
+	#define ASM_NOP4 _ASM_MK_NOP(P6_NOP4)
+	#define ASM_NOP5 _ASM_MK_NOP(P6_NOP5)
+	#define ASM_NOP6 _ASM_MK_NOP(P6_NOP6)
+	#define ASM_NOP7 _ASM_MK_NOP(P6_NOP7)
+	#define ASM_NOP8 _ASM_MK_NOP(P6_NOP8)
+	#define ASM_NOP5_ATOMIC _ASM_MK_NOP(P6_NOP5_ATOMIC)
 #elif defined(CONFIG_X86_64)
-#define ASM_NOP1 _ASM_MK_NOP(K8_NOP1)
-#define ASM_NOP2 _ASM_MK_NOP(K8_NOP2)
-#define ASM_NOP3 _ASM_MK_NOP(K8_NOP3)
-#define ASM_NOP4 _ASM_MK_NOP(K8_NOP4)
-#define ASM_NOP5 _ASM_MK_NOP(K8_NOP5)
-#define ASM_NOP6 _ASM_MK_NOP(K8_NOP6)
-#define ASM_NOP7 _ASM_MK_NOP(K8_NOP7)
-#define ASM_NOP8 _ASM_MK_NOP(K8_NOP8)
-#define ASM_NOP5_ATOMIC _ASM_MK_NOP(K8_NOP5_ATOMIC)
+	#define ASM_NOP1 _ASM_MK_NOP(K8_NOP1)
+	#define ASM_NOP2 _ASM_MK_NOP(K8_NOP2)
+	#define ASM_NOP3 _ASM_MK_NOP(K8_NOP3)
+	#define ASM_NOP4 _ASM_MK_NOP(K8_NOP4)
+	#define ASM_NOP5 _ASM_MK_NOP(K8_NOP5)
+	#define ASM_NOP6 _ASM_MK_NOP(K8_NOP6)
+	#define ASM_NOP7 _ASM_MK_NOP(K8_NOP7)
+	#define ASM_NOP8 _ASM_MK_NOP(K8_NOP8)
+	#define ASM_NOP5_ATOMIC _ASM_MK_NOP(K8_NOP5_ATOMIC)
 #else
-#define ASM_NOP1 _ASM_MK_NOP(GENERIC_NOP1)
-#define ASM_NOP2 _ASM_MK_NOP(GENERIC_NOP2)
-#define ASM_NOP3 _ASM_MK_NOP(GENERIC_NOP3)
-#define ASM_NOP4 _ASM_MK_NOP(GENERIC_NOP4)
-#define ASM_NOP5 _ASM_MK_NOP(GENERIC_NOP5)
-#define ASM_NOP6 _ASM_MK_NOP(GENERIC_NOP6)
-#define ASM_NOP7 _ASM_MK_NOP(GENERIC_NOP7)
-#define ASM_NOP8 _ASM_MK_NOP(GENERIC_NOP8)
-#define ASM_NOP5_ATOMIC _ASM_MK_NOP(GENERIC_NOP5_ATOMIC)
+	#define ASM_NOP1 _ASM_MK_NOP(GENERIC_NOP1)
+	#define ASM_NOP2 _ASM_MK_NOP(GENERIC_NOP2)
+	#define ASM_NOP3 _ASM_MK_NOP(GENERIC_NOP3)
+	#define ASM_NOP4 _ASM_MK_NOP(GENERIC_NOP4)
+	#define ASM_NOP5 _ASM_MK_NOP(GENERIC_NOP5)
+	#define ASM_NOP6 _ASM_MK_NOP(GENERIC_NOP6)
+	#define ASM_NOP7 _ASM_MK_NOP(GENERIC_NOP7)
+	#define ASM_NOP8 _ASM_MK_NOP(GENERIC_NOP8)
+	#define ASM_NOP5_ATOMIC _ASM_MK_NOP(GENERIC_NOP5_ATOMIC)
 #endif
 
 #define ASM_NOP_MAX 8
 #define NOP_ATOMIC5 (ASM_NOP_MAX+1)	/* Entry for the 5-byte atomic NOP */
 
 #ifndef __ASSEMBLY__
-extern const unsigned char * const *ideal_nops;
-extern void arch_init_ideal_nops(void);
+	extern const unsigned char *const *ideal_nops;
+	extern void arch_init_ideal_nops(void);
 #endif
 
 #endif /* _ASM_X86_NOPS_H */

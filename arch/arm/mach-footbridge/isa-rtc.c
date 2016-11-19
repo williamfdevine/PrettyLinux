@@ -47,11 +47,14 @@ void __init isa_rtc_init(void)
 	CMOS_WRITE(reg_b, RTC_REG_B);
 
 	if ((CMOS_READ(RTC_REG_A) & 0x7f) == RTC_REF_CLCK_32KHZ &&
-	    CMOS_READ(RTC_REG_B) == reg_b) {
+		CMOS_READ(RTC_REG_B) == reg_b)
+	{
 		/*
 		 * We have a RTC.  Check the battery
 		 */
 		if ((reg_d & 0x80) == 0)
+		{
 			printk(KERN_WARNING "RTC: *** warning: CMOS battery bad\n");
+		}
 	}
 }

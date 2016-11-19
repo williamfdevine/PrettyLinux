@@ -40,7 +40,8 @@ static struct omapfb_platform_data omapfb_config;
 
 static u64 omap_fb_dma_mask = ~(u32)0;
 
-static struct platform_device omap_fb_device = {
+static struct platform_device omap_fb_device =
+{
 	.name		= "omapfb",
 	.id		= -1,
 	.dev = {
@@ -64,7 +65,9 @@ static int __init omap_init_fb(void)
 	 * omapfb_set_lcd_config(), don't bother registering the omapfb device
 	 */
 	if (!omapfb_lcd_configured)
+	{
 		return 0;
+	}
 
 	return platform_device_register(&omap_fb_device);
 }

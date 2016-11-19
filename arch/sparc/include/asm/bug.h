@@ -7,9 +7,9 @@
 #ifdef CONFIG_DEBUG_BUGVERBOSE
 void do_BUG(const char *file, int line);
 #define BUG() do {					\
-	do_BUG(__FILE__, __LINE__);			\
-	__builtin_trap();				\
-} while (0)
+		do_BUG(__FILE__, __LINE__);			\
+		__builtin_trap();				\
+	} while (0)
 #else
 #define BUG()		__builtin_trap()
 #endif

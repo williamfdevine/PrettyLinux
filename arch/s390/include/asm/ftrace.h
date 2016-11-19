@@ -4,10 +4,10 @@
 #define ARCH_SUPPORTS_FTRACE_OPS 1
 
 #ifdef CC_USING_HOTPATCH
-#define MCOUNT_INSN_SIZE	6
+	#define MCOUNT_INSN_SIZE	6
 #else
-#define MCOUNT_INSN_SIZE	24
-#define MCOUNT_RETURN_FIXUP	18
+	#define MCOUNT_INSN_SIZE	24
+	#define MCOUNT_RETURN_FIXUP	18
 #endif
 
 #ifndef __ASSEMBLY__
@@ -33,7 +33,8 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 	return addr;
 }
 
-struct ftrace_insn {
+struct ftrace_insn
+{
 	u16 opc;
 	s32 disp;
 } __packed;
@@ -57,18 +58,26 @@ static inline int is_ftrace_nop(struct ftrace_insn *insn)
 {
 #ifdef CONFIG_FUNCTION_TRACER
 #ifdef CC_USING_HOTPATCH
+
 	if (insn->disp == 0)
+	{
 		return 1;
+	}
+
 #else
+
 	if (insn->disp == MCOUNT_INSN_SIZE / 2)
+	{
 		return 1;
+	}
+
 #endif
 #endif
 	return 0;
 }
 
 static inline void ftrace_generate_call_insn(struct ftrace_insn *insn,
-					     unsigned long ip)
+		unsigned long ip)
 {
 #ifdef CONFIG_FUNCTION_TRACER
 	unsigned long target;

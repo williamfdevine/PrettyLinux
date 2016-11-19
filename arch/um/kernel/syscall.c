@@ -15,14 +15,17 @@
 #include <asm/unistd.h>
 
 long old_mmap(unsigned long addr, unsigned long len,
-	      unsigned long prot, unsigned long flags,
-	      unsigned long fd, unsigned long offset)
+			  unsigned long prot, unsigned long flags,
+			  unsigned long fd, unsigned long offset)
 {
 	long err = -EINVAL;
+
 	if (offset & ~PAGE_MASK)
+	{
 		goto out;
+	}
 
 	err = sys_mmap_pgoff(addr, len, prot, flags, fd, offset >> PAGE_SHIFT);
- out:
+out:
 	return err;
 }

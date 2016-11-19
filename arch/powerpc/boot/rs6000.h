@@ -9,7 +9,8 @@
 
 /********************** FILE HEADER **********************/
 
-struct external_filehdr {
+struct external_filehdr
+{
 	char f_magic[2];	/* magic number			*/
 	char f_nscns[2];	/* number of sections		*/
 	char f_timdat[4];	/* time & date stamp		*/
@@ -19,7 +20,7 @@ struct external_filehdr {
 	char f_flags[2];	/* flags			*/
 };
 
-        /* IBM RS/6000 */
+/* IBM RS/6000 */
 #define U802WRMAGIC     0730    /* writeable text segments **chh**      */
 #define U802ROMAGIC     0735    /* readonly sharable text segments      */
 #define U802TOCMAGIC    0737    /* readonly text segments and TOC       */
@@ -37,28 +38,28 @@ struct external_filehdr {
 
 typedef struct
 {
-  unsigned char	magic[2];	/* type of file			*/
-  unsigned char	vstamp[2];	/* version stamp		*/
-  unsigned char	tsize[4];	/* text size in bytes, padded to FW bdry */
-  unsigned char	dsize[4];	/* initialized data "  "	*/
-  unsigned char	bsize[4];	/* uninitialized data "   "	*/
-  unsigned char	entry[4];	/* entry pt.			*/
-  unsigned char	text_start[4];	/* base of text used for this file */
-  unsigned char	data_start[4];	/* base of data used for this file */
-  unsigned char	o_toc[4];	/* address of TOC */
-  unsigned char	o_snentry[2];	/* section number of entry point */
-  unsigned char	o_sntext[2];	/* section number of .text section */
-  unsigned char	o_sndata[2];	/* section number of .data section */
-  unsigned char	o_sntoc[2];	/* section number of TOC */
-  unsigned char	o_snloader[2];	/* section number of .loader section */
-  unsigned char	o_snbss[2];	/* section number of .bss section */
-  unsigned char	o_algntext[2];	/* .text alignment */
-  unsigned char	o_algndata[2];	/* .data alignment */
-  unsigned char	o_modtype[2];	/* module type (??) */
-  unsigned char o_cputype[2];	/* cpu type */
-  unsigned char	o_maxstack[4];	/* max stack size (??) */
-  unsigned char o_maxdata[4];	/* max data size (??) */
-  unsigned char	o_resv2[12];	/* reserved */
+	unsigned char	magic[2];	/* type of file			*/
+	unsigned char	vstamp[2];	/* version stamp		*/
+	unsigned char	tsize[4];	/* text size in bytes, padded to FW bdry */
+	unsigned char	dsize[4];	/* initialized data "  "	*/
+	unsigned char	bsize[4];	/* uninitialized data "   "	*/
+	unsigned char	entry[4];	/* entry pt.			*/
+	unsigned char	text_start[4];	/* base of text used for this file */
+	unsigned char	data_start[4];	/* base of data used for this file */
+	unsigned char	o_toc[4];	/* address of TOC */
+	unsigned char	o_snentry[2];	/* section number of entry point */
+	unsigned char	o_sntext[2];	/* section number of .text section */
+	unsigned char	o_sndata[2];	/* section number of .data section */
+	unsigned char	o_sntoc[2];	/* section number of TOC */
+	unsigned char	o_snloader[2];	/* section number of .loader section */
+	unsigned char	o_snbss[2];	/* section number of .bss section */
+	unsigned char	o_algntext[2];	/* .text alignment */
+	unsigned char	o_algndata[2];	/* .data alignment */
+	unsigned char	o_modtype[2];	/* module type (??) */
+	unsigned char o_cputype[2];	/* cpu type */
+	unsigned char	o_maxstack[4];	/* max stack size (??) */
+	unsigned char o_maxdata[4];	/* max data size (??) */
+	unsigned char	o_resv2[12];	/* reserved */
 }
 AOUTHDR;
 
@@ -74,7 +75,8 @@ AOUTHDR;
 /********************** SECTION HEADER **********************/
 
 
-struct external_scnhdr {
+struct external_scnhdr
+{
 	char		s_name[8];	/* section name			*/
 	char		s_paddr[4];	/* physical address, aliased s_nlib */
 	char		s_vaddr[4];	/* virtual address		*/
@@ -116,8 +118,10 @@ struct external_scnhdr {
  * grouping will have l_lnno = 0 and in place of physical address will be the
  * symbol table index of the function name.
  */
-struct external_lineno {
-	union {
+struct external_lineno
+{
+	union
+	{
 		char l_symndx[4];	/* function name symbol index, iff l_lnno == 0*/
 		char l_paddr[4];	/* (physical) address of line number	*/
 	} l_addr;
@@ -137,18 +141,20 @@ struct external_lineno {
 
 struct external_syment
 {
-  union {
-    char e_name[E_SYMNMLEN];
-    struct {
-      char e_zeroes[4];
-      char e_offset[4];
-    } e;
-  } e;
-  char e_value[4];
-  char e_scnum[2];
-  char e_type[2];
-  char e_sclass[1];
-  char e_numaux[1];
+	union
+	{
+		char e_name[E_SYMNMLEN];
+		struct
+		{
+			char e_zeroes[4];
+			char e_offset[4];
+		} e;
+	} e;
+	char e_value[4];
+	char e_scnum[2];
+	char e_type[2];
+	char e_sclass[1];
+	char e_numaux[1];
 };
 
 
@@ -159,49 +165,61 @@ struct external_syment
 #define N_TSHIFT	(2)
 
 
-union external_auxent {
-	struct {
+union external_auxent
+{
+	struct
+	{
 		char x_tagndx[4];	/* str, un, or enum tag indx */
-		union {
-			struct {
-			    char  x_lnno[2]; /* declaration line number */
-			    char  x_size[2]; /* str/union/array size */
+		union
+		{
+			struct
+			{
+				char  x_lnno[2]; /* declaration line number */
+				char  x_size[2]; /* str/union/array size */
 			} x_lnsz;
 			char x_fsize[4];	/* size of function */
 		} x_misc;
-		union {
-			struct {		/* if ISFCN, tag, or .bb */
-			    char x_lnnoptr[4];	/* ptr to fcn line # */
-			    char x_endndx[4];	/* entry ndx past block end */
+		union
+		{
+			struct  		/* if ISFCN, tag, or .bb */
+			{
+				char x_lnnoptr[4];	/* ptr to fcn line # */
+				char x_endndx[4];	/* entry ndx past block end */
 			} x_fcn;
-			struct {		/* if ISARY, up to 4 dimen. */
-			    char x_dimen[E_DIMNUM][2];
+			struct  		/* if ISARY, up to 4 dimen. */
+			{
+				char x_dimen[E_DIMNUM][2];
 			} x_ary;
 		} x_fcnary;
 		char x_tvndx[2];		/* tv index */
 	} x_sym;
 
-	union {
+	union
+	{
 		char x_fname[E_FILNMLEN];
-		struct {
+		struct
+		{
 			char x_zeroes[4];
 			char x_offset[4];
 		} x_n;
 	} x_file;
 
-	struct {
+	struct
+	{
 		char x_scnlen[4];			/* section length */
 		char x_nreloc[2];	/* # relocation entries */
 		char x_nlinno[2];	/* # line numbers */
 	} x_scn;
 
-        struct {
+	struct
+	{
 		char x_tvfill[4];	/* tv fill value */
 		char x_tvlen[2];	/* length of .tv */
 		char x_tvran[2][2];	/* tv range */
 	} x_tv;		/* info about .tv section (in auxent of symbol .tv)) */
 
-	struct {
+	struct
+	{
 		unsigned char x_scnlen[4];
 		unsigned char x_parmhash[4];
 		unsigned char x_snhash[2];
@@ -225,11 +243,12 @@ union external_auxent {
 /********************** RELOCATION DIRECTIVES **********************/
 
 
-struct external_reloc {
-  char r_vaddr[4];
-  char r_symndx[4];
-  char r_size[1];
-  char r_type[1];
+struct external_reloc
+{
+	char r_vaddr[4];
+	char r_symndx[4];
+	char r_size[1];
+	char r_type[1];
 };
 
 

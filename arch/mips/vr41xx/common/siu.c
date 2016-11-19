@@ -27,12 +27,14 @@
 #include <asm/cpu.h>
 #include <asm/vr41xx/siu.h>
 
-static unsigned int siu_type1_ports[SIU_PORTS_MAX] __initdata = {
+static unsigned int siu_type1_ports[SIU_PORTS_MAX] __initdata =
+{
 	PORT_VR41XX_SIU,
 	PORT_UNKNOWN,
 };
 
-static struct resource siu_type1_resource[] __initdata = {
+static struct resource siu_type1_resource[] __initdata =
+{
 	{
 		.start	= 0x0c000000,
 		.end	= 0x0c00000a,
@@ -45,12 +47,14 @@ static struct resource siu_type1_resource[] __initdata = {
 	},
 };
 
-static unsigned int siu_type2_ports[SIU_PORTS_MAX] __initdata = {
+static unsigned int siu_type2_ports[SIU_PORTS_MAX] __initdata =
+{
 	PORT_VR41XX_SIU,
 	PORT_VR41XX_DSIU,
 };
 
-static struct resource siu_type2_resource[] __initdata = {
+static struct resource siu_type2_resource[] __initdata =
+{
 	{
 		.start	= 0x0f000800,
 		.end	= 0x0f00080a,
@@ -81,35 +85,47 @@ static int __init vr41xx_siu_add(void)
 	int retval;
 
 	pdev = platform_device_alloc("SIU", -1);
-	if (!pdev)
-		return -ENOMEM;
 
-	switch (current_cpu_type()) {
-	case CPU_VR4111:
-	case CPU_VR4121:
-		pdev->dev.platform_data = siu_type1_ports;
-		res = siu_type1_resource;
-		num = ARRAY_SIZE(siu_type1_resource);
-		break;
-	case CPU_VR4122:
-	case CPU_VR4131:
-	case CPU_VR4133:
-		pdev->dev.platform_data = siu_type2_ports;
-		res = siu_type2_resource;
-		num = ARRAY_SIZE(siu_type2_resource);
-		break;
-	default:
-		retval = -ENODEV;
-		goto err_free_device;
+	if (!pdev)
+	{
+		return -ENOMEM;
+	}
+
+	switch (current_cpu_type())
+	{
+		case CPU_VR4111:
+		case CPU_VR4121:
+			pdev->dev.platform_data = siu_type1_ports;
+			res = siu_type1_resource;
+			num = ARRAY_SIZE(siu_type1_resource);
+			break;
+
+		case CPU_VR4122:
+		case CPU_VR4131:
+		case CPU_VR4133:
+			pdev->dev.platform_data = siu_type2_ports;
+			res = siu_type2_resource;
+			num = ARRAY_SIZE(siu_type2_resource);
+			break;
+
+		default:
+			retval = -ENODEV;
+			goto err_free_device;
 	}
 
 	retval = platform_device_add_resources(pdev, res, num);
+
 	if (retval)
+	{
 		goto err_free_device;
+	}
 
 	retval = platform_device_add(pdev);
+
 	if (retval)
+	{
 		goto err_free_device;
+	}
 
 	return 0;
 
@@ -127,27 +143,35 @@ void __init vr41xx_siu_setup(void)
 	unsigned int *type;
 	int i;
 
-	switch (current_cpu_type()) {
-	case CPU_VR4111:
-	case CPU_VR4121:
-		type = siu_type1_ports;
-		res = siu_type1_resource;
-		break;
-	case CPU_VR4122:
-	case CPU_VR4131:
-	case CPU_VR4133:
-		type = siu_type2_ports;
-		res = siu_type2_resource;
-		break;
-	default:
-		return;
+	switch (current_cpu_type())
+	{
+		case CPU_VR4111:
+		case CPU_VR4121:
+			type = siu_type1_ports;
+			res = siu_type1_resource;
+			break;
+
+		case CPU_VR4122:
+		case CPU_VR4131:
+		case CPU_VR4133:
+			type = siu_type2_ports;
+			res = siu_type2_resource;
+			break;
+
+		default:
+			return;
 	}
 
-	for (i = 0; i < SIU_PORTS_MAX; i++) {
+	for (i = 0; i < SIU_PORTS_MAX; i++)
+	{
 		port.line = i;
 		port.type = type[i];
+
 		if (port.type == PORT_UNKNOWN)
+		{
 			break;
+		}
+
 		port.mapbase = res[i].start;
 		port.membase = (unsigned char __iomem *)KSEG1ADDR(res[i].start);
 		vr41xx_siu_early_setup(&port);

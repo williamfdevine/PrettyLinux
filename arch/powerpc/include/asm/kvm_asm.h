@@ -21,13 +21,13 @@
 #define __POWERPC_KVM_ASM_H__
 
 #ifdef __ASSEMBLY__
-#ifdef CONFIG_64BIT
-#define PPC_STD(sreg, offset, areg)  std sreg, (offset)(areg)
-#define PPC_LD(treg, offset, areg)   ld treg, (offset)(areg)
-#else
-#define PPC_STD(sreg, offset, areg)  stw sreg, (offset+4)(areg)
-#define PPC_LD(treg, offset, areg)   lwz treg, (offset+4)(areg)
-#endif
+	#ifdef CONFIG_64BIT
+		#define PPC_STD(sreg, offset, areg)  std sreg, (offset)(areg)
+		#define PPC_LD(treg, offset, areg)   ld treg, (offset)(areg)
+	#else
+		#define PPC_STD(sreg, offset, areg)  stw sreg, (offset+4)(areg)
+		#define PPC_LD(treg, offset, areg)   lwz treg, (offset+4)(areg)
+	#endif
 #endif
 
 /* IVPR must be 64KiB-aligned. */
@@ -54,14 +54,14 @@
 
 /* E500 */
 #ifdef CONFIG_SPE_POSSIBLE
-#define BOOKE_INTERRUPT_SPE_UNAVAIL 32
-#define BOOKE_INTERRUPT_SPE_FP_DATA 33
-#define BOOKE_INTERRUPT_SPE_FP_ROUND 34
+	#define BOOKE_INTERRUPT_SPE_UNAVAIL 32
+	#define BOOKE_INTERRUPT_SPE_FP_DATA 33
+	#define BOOKE_INTERRUPT_SPE_FP_ROUND 34
 #endif
 
 #ifdef CONFIG_PPC_E500MC
-#define BOOKE_INTERRUPT_ALTIVEC_UNAVAIL 32
-#define BOOKE_INTERRUPT_ALTIVEC_ASSIST 33
+	#define BOOKE_INTERRUPT_ALTIVEC_UNAVAIL 32
+	#define BOOKE_INTERRUPT_ALTIVEC_ASSIST 33
 #endif
 
 #define BOOKE_INTERRUPT_PERFORMANCE_MONITOR 35

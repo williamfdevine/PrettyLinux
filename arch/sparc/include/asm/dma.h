@@ -84,9 +84,9 @@
 /* From PCI */
 
 #ifdef CONFIG_PCI
-extern int isa_dma_bridge_buggy;
+	extern int isa_dma_bridge_buggy;
 #else
-#define isa_dma_bridge_buggy 	(0)
+	#define isa_dma_bridge_buggy 	(0)
 #endif
 
 #ifdef CONFIG_SPARC32
@@ -95,11 +95,12 @@ extern int isa_dma_bridge_buggy;
 struct device;
 struct scatterlist;
 
-struct sparc32_dma_ops {
+struct sparc32_dma_ops
+{
 	__u32 (*get_scsi_one)(struct device *, char *, unsigned long);
 	void (*get_scsi_sgl)(struct device *, struct scatterlist *, int);
 	void (*release_scsi_one)(struct device *, __u32, unsigned long);
-	void (*release_scsi_sgl)(struct device *, struct scatterlist *,int);
+	void (*release_scsi_sgl)(struct device *, struct scatterlist *, int);
 #ifdef CONFIG_SBUS
 	int (*map_dma_area)(struct device *, dma_addr_t *, unsigned long, unsigned long, int);
 	void (*unmap_dma_area)(struct device *, unsigned long, int);

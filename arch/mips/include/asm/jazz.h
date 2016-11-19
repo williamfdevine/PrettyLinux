@@ -102,14 +102,16 @@ static __inline__ void pica_set_led(unsigned int bits)
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
+typedef struct
+{
 	unsigned char data;
 	unsigned char command;
 } jazz_keyboard_hardware;
 
 #define jazz_kh ((keyboard_hardware *) JAZZ_KEYBOARD_ADDRESS)
 
-typedef struct {
+typedef struct
+{
 	unsigned char pad0[3];
 	unsigned char data;
 	unsigned char pad1[3];
@@ -156,7 +158,8 @@ typedef struct {
  */
 #ifndef __ASSEMBLY__
 #ifdef __MIPSEL__
-typedef struct {
+typedef struct
+{
 	unsigned int bank2 : 3;
 	unsigned int bank1 : 3;
 	unsigned int mem_bus_width : 1;
@@ -165,7 +168,8 @@ typedef struct {
 	unsigned int reserved1 : 23;
 } dram_configuration;
 #else /* defined (__MIPSEB__) */
-typedef struct {
+typedef struct
+{
 	unsigned int reserved1 : 23;
 	unsigned int page_mode : 1;
 	unsigned int reserved2 : 1;
@@ -246,7 +250,7 @@ typedef struct {
  * 12: reserved, 13: free,     14: 7seg LED, 15: ???
  */
 #define JAZZ_R4030_REM_SPEED	0xE0000070	/* 16 Remote Speed Registers */
-						/* 0xE0000070,78,80... 0xE00000E8 */
+/* 0xE0000070,78,80... 0xE00000E8 */
 #define JAZZ_R4030_IRQ_ENABLE	0xE00000E8	/* Internal Interrupt Enable */
 #define JAZZ_R4030_INVAL_ADDR	0xE0000010	/* Invalid address Register */
 #define JAZZ_R4030_IRQ_SOURCE	0xE0000200	/* Interrupt Source Register */
@@ -264,13 +268,13 @@ typedef struct {
 
 static inline void r4030_delay(void)
 {
-__asm__ __volatile__(
-	".set\tnoreorder\n\t"
-	"nop\n\t"
-	"nop\n\t"
-	"nop\n\t"
-	"nop\n\t"
-	".set\treorder");
+	__asm__ __volatile__(
+		".set\tnoreorder\n\t"
+		"nop\n\t"
+		"nop\n\t"
+		"nop\n\t"
+		"nop\n\t"
+		".set\treorder");
 }
 
 static inline unsigned short r4030_read_reg16(unsigned long addr)

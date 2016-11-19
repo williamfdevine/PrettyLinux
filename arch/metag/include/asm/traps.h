@@ -16,7 +16,8 @@
 typedef TBIRES (*kick_irq_func_t)(TBIRES, int, int, int, PTBI, int *);
 
 extern TBIRES kick_handler(TBIRES, int, int, int, PTBI);
-struct kick_irq_handler {
+struct kick_irq_handler
+{
 	struct list_head list;
 	kick_irq_func_t func;
 };
@@ -38,10 +39,10 @@ extern PTBI pTBI_get(unsigned int);
 extern int ret_from_fork(TBIRES arg);
 
 extern int do_page_fault(struct pt_regs *regs, unsigned long address,
-			 unsigned int write_access, unsigned int trapno);
+						 unsigned int write_access, unsigned int trapno);
 
 extern TBIRES __TBIUnExpXXX(TBIRES State, int SigNum, int Triggers, int Inst,
-			    PTBI pTBI);
+							PTBI pTBI);
 
 #endif
 

@@ -20,8 +20,8 @@
 #include "ksize.h"
 
 extern unsigned long switch_to_osf_pal(unsigned long nr,
-	struct pcb_struct * pcb_va, struct pcb_struct * pcb_pa,
-	unsigned long *vptb);
+									   struct pcb_struct *pcb_va, struct pcb_struct *pcb_pa,
+									   unsigned long *vptb);
 struct hwrpb_struct *hwrpb = INIT_HWRPB;
 static struct pcb_struct pcb_va[1];
 
@@ -42,7 +42,7 @@ find_pa(unsigned long *vptb, void *ptr)
 	result <<= 13;
 	result |= address & 0x1fff;
 	return (void *) result;
-}	
+}
 
 /*
  * This function moves into OSF/1 pal-code, and has a temporary
@@ -62,8 +62,8 @@ void
 pal_init(void)
 {
 	unsigned long i, rev;
-	struct percpu_struct * percpu;
-	struct pcb_struct * pcb_pa;
+	struct percpu_struct *percpu;
+	struct pcb_struct *pcb_pa;
 
 	/* Create the dummy PCB.  */
 	pcb_va->ksp = 0;
@@ -87,13 +87,15 @@ pal_init(void)
 	srm_printk("Switching to OSF PAL-code .. ");
 
 	i = switch_to_osf_pal(2, pcb_va, pcb_pa, VPTB);
-	if (i) {
+
+	if (i)
+	{
 		srm_printk("failed, code %ld\n", i);
 		__halt();
 	}
 
 	percpu = (struct percpu_struct *)
-		(INIT_HWRPB->processor_offset + (unsigned long) INIT_HWRPB);
+			 (INIT_HWRPB->processor_offset + (unsigned long) INIT_HWRPB);
 	rev = percpu->pal_revision = percpu->palcode_avail[2];
 
 	srm_printk("Ok (rev %lx)\n", rev);
@@ -107,8 +109,12 @@ static inline long openboot(void)
 	long result;
 
 	result = callback_getenv(ENV_BOOTED_DEV, bootdev, 255);
+
 	if (result < 0)
+	{
 		return result;
+	}
+
 	return callback_open(bootdev, result & 255);
 }
 
@@ -124,14 +130,21 @@ static inline long load(long dev, unsigned long addr, unsigned long count)
 	long result, boot_size = &_end - (char *) BOOT_ADDR;
 
 	result = callback_getenv(ENV_BOOTED_FILE, bootfile, 255);
+
 	if (result < 0)
+	{
 		return result;
+	}
+
 	result &= 255;
 	bootfile[result] = '\0';
+
 	if (result)
-		srm_printk("Boot file specification (%s) not implemented\n",
-		       bootfile);
-	return callback_read(dev, count, (void *)addr, boot_size/512 + 1);
+	{
+		srm_printk("Boot file specification (%s) not implemented\n", bootfile);
+	}
+
+	return callback_read(dev, count, (void *)addr, boot_size / 512 + 1);
 }
 
 /*
@@ -145,7 +158,7 @@ static void runkernel(void)
 		"ret ($26)"
 		: /* no outputs: it doesn't even return */
 		: "r" (START_ADDR),
-		  "r" (PAGE_SIZE + INIT_STACK));
+		"r" (PAGE_SIZE + INIT_STACK));
 }
 
 void start_kernel(void)
@@ -156,35 +169,48 @@ void start_kernel(void)
 	char envval[256];
 
 	srm_printk("Linux/AXP bootloader for Linux " UTS_RELEASE "\n");
-	if (INIT_HWRPB->pagesize != 8192) {
+
+	if (INIT_HWRPB->pagesize != 8192)
+	{
 		srm_printk("Expected 8kB pages, got %ldkB\n", INIT_HWRPB->pagesize >> 10);
 		return;
 	}
+
 	pal_init();
 	dev = openboot();
-	if (dev < 0) {
+
+	if (dev < 0)
+	{
 		srm_printk("Unable to open boot device: %016lx\n", dev);
 		return;
 	}
+
 	dev &= 0xffffffff;
 	srm_printk("Loading vmlinux ...");
 	i = load(dev, START_ADDR, KERNEL_SIZE);
 	close(dev);
-	if (i != KERNEL_SIZE) {
+
+	if (i != KERNEL_SIZE)
+	{
 		srm_printk("Failed (%lx)\n", i);
 		return;
 	}
 
 	nbytes = callback_getenv(ENV_BOOTED_OSFLAGS, envval, sizeof(envval));
-	if (nbytes < 0) {
+
+	if (nbytes < 0)
+	{
 		nbytes = 0;
 	}
+
 	envval[nbytes] = '\0';
-	strcpy((char*)ZERO_PGE, envval);
+	strcpy((char *)ZERO_PGE, envval);
 
 	srm_printk(" Ok\nNow booting the kernel\n");
 	runkernel();
+
 	for (i = 0 ; i < 0x100000000 ; i++)
 		/* nothing */;
+
 	__halt();
 }

@@ -17,10 +17,13 @@ static void putc(const char c)
 {
 	int i;
 
-	for (i = 0; i < 0x1000; i++) {
+	for (i = 0; i < 0x1000; i++)
+	{
 		/* Transmit fifo not full? */
 		if (*UART_LSR & LSR_THRE)
+		{
 			break;
+		}
 	}
 
 	*UART_THR = c;

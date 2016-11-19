@@ -30,17 +30,19 @@
 
 #undef BE_VERBOSE
 
-static struct resource mv643xx_eth_shared_resources[] = {
+static struct resource mv643xx_eth_shared_resources[] =
+{
 	[0] = {
 		.name	= "ethernet shared base",
 		.start	= 0xf1000000 + MV643XX_ETH_SHARED_REGS,
 		.end	= 0xf1000000 + MV643XX_ETH_SHARED_REGS +
-					MV643XX_ETH_SHARED_REGS_SIZE - 1,
+		MV643XX_ETH_SHARED_REGS_SIZE - 1,
 		.flags	= IORESOURCE_MEM,
 	},
 };
 
-static struct platform_device mv643xx_eth_shared_device = {
+static struct platform_device mv643xx_eth_shared_device =
+{
 	.name		= MV643XX_ETH_SHARED_NAME,
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(mv643xx_eth_shared_resources),
@@ -50,7 +52,8 @@ static struct platform_device mv643xx_eth_shared_device = {
 /*
  * The orion mdio driver only covers shared + 0x4 up to shared + 0x84 - 1
  */
-static struct resource mv643xx_eth_mvmdio_resources[] = {
+static struct resource mv643xx_eth_mvmdio_resources[] =
+{
 	[0] = {
 		.name	= "ethernet mdio base",
 		.start	= 0xf1000000 + MV643XX_ETH_SHARED_REGS + 0x4,
@@ -59,14 +62,16 @@ static struct resource mv643xx_eth_mvmdio_resources[] = {
 	},
 };
 
-static struct platform_device mv643xx_eth_mvmdio_device = {
+static struct platform_device mv643xx_eth_mvmdio_device =
+{
 	.name		= "orion-mdio",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(mv643xx_eth_mvmdio_resources),
 	.resource	= mv643xx_eth_shared_resources,
 };
 
-static struct resource mv643xx_eth_port1_resources[] = {
+static struct resource mv643xx_eth_port1_resources[] =
+{
 	[0] = {
 		.name	= "eth port1 irq",
 		.start	= 9,
@@ -75,21 +80,23 @@ static struct resource mv643xx_eth_port1_resources[] = {
 	},
 };
 
-static struct mv643xx_eth_platform_data eth_port1_pd = {
+static struct mv643xx_eth_platform_data eth_port1_pd =
+{
 	.shared		= &mv643xx_eth_shared_device,
 	.port_number	= 1,
 	.phy_addr	= MV643XX_ETH_PHY_ADDR(7),
 
 	.tx_sram_addr = PEGASOS2_SRAM_BASE_ETH_PORT1,
 	.tx_sram_size = PEGASOS2_SRAM_TXRING_SIZE,
-	.tx_queue_size = PEGASOS2_SRAM_TXRING_SIZE/16,
+	.tx_queue_size = PEGASOS2_SRAM_TXRING_SIZE / 16,
 
 	.rx_sram_addr = PEGASOS2_SRAM_BASE_ETH_PORT1 + PEGASOS2_SRAM_TXRING_SIZE,
 	.rx_sram_size = PEGASOS2_SRAM_RXRING_SIZE,
-	.rx_queue_size = PEGASOS2_SRAM_RXRING_SIZE/16,
+	.rx_queue_size = PEGASOS2_SRAM_RXRING_SIZE / 16,
 };
 
-static struct platform_device eth_port1_device = {
+static struct platform_device eth_port1_device =
+{
 	.name		= MV643XX_ETH_NAME,
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(mv643xx_eth_port1_resources),
@@ -99,7 +106,8 @@ static struct platform_device eth_port1_device = {
 	},
 };
 
-static struct platform_device *mv643xx_eth_pd_devs[] __initdata = {
+static struct platform_device *mv643xx_eth_pd_devs[] __initdata =
+{
 	&mv643xx_eth_shared_device,
 	&mv643xx_eth_mvmdio_device,
 	&eth_port1_device,
@@ -118,14 +126,16 @@ static int Enable_SRAM(void)
 
 	if (mv643xx_reg_base == NULL)
 		mv643xx_reg_base = ioremap(PEGASOS2_MARVELL_REGBASE,
-					PEGASOS2_MARVELL_REGSIZE);
+								   PEGASOS2_MARVELL_REGSIZE);
 
 	if (mv643xx_reg_base == NULL)
+	{
 		return -ENOMEM;
+	}
 
 #ifdef BE_VERBOSE
 	printk("Pegasos II/Marvell MV64361: register remapped from %p to %p\n",
-		(void *)PEGASOS2_MARVELL_REGBASE, (void *)mv643xx_reg_base);
+		   (void *)PEGASOS2_MARVELL_REGBASE, (void *)mv643xx_reg_base);
 #endif
 
 	MV_WRITE(MV64340_SRAM_CONFIG, 0);
@@ -140,7 +150,7 @@ static int Enable_SRAM(void)
 	ALong |= PEGASOS2_SRAM_BASE & 0xffff0000;
 	MV_WRITE(MV643XX_ETH_BAR_4, ALong);
 
-	MV_WRITE(MV643XX_ETH_SIZE_REG_4, (PEGASOS2_SRAM_SIZE-1) & 0xffff0000);
+	MV_WRITE(MV643XX_ETH_SIZE_REG_4, (PEGASOS2_SRAM_SIZE - 1) & 0xffff0000);
 
 	MV_READ(MV643XX_ETH_BASE_ADDR_ENABLE_REG, ALong);
 	ALong &= ~(1 << 4);
@@ -148,7 +158,7 @@ static int Enable_SRAM(void)
 
 #ifdef BE_VERBOSE
 	printk("Pegasos II/Marvell MV64361: register unmapped\n");
-	printk("Pegasos II/Marvell MV64361: SRAM at %p, size=%x\n", (void*) PEGASOS2_SRAM_BASE, PEGASOS2_SRAM_SIZE);
+	printk("Pegasos II/Marvell MV64361: SRAM at %p, size=%x\n", (void *) PEGASOS2_SRAM_BASE, PEGASOS2_SRAM_SIZE);
 #endif
 
 	iounmap(mv643xx_reg_base);
@@ -163,7 +173,8 @@ static int Enable_SRAM(void)
 static int __init mv643xx_eth_add_pds(void)
 {
 	int ret = 0;
-	static struct pci_device_id pci_marvell_mv64360[] = {
+	static struct pci_device_id pci_marvell_mv64360[] =
+	{
 		{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, PCI_DEVICE_ID_MARVELL_MV64360) },
 		{ }
 	};
@@ -172,9 +183,10 @@ static int __init mv643xx_eth_add_pds(void)
 	printk("Pegasos II/Marvell MV64361: init\n");
 #endif
 
-	if (pci_dev_present(pci_marvell_mv64360)) {
+	if (pci_dev_present(pci_marvell_mv64360))
+	{
 		ret = platform_add_devices(mv643xx_eth_pd_devs,
-				ARRAY_SIZE(mv643xx_eth_pd_devs));
+								   ARRAY_SIZE(mv643xx_eth_pd_devs));
 
 		if ( Enable_SRAM() < 0)
 		{
@@ -185,7 +197,7 @@ static int __init mv643xx_eth_add_pds(void)
 
 #ifdef BE_VERBOSE
 			printk("Pegasos II/Marvell MV64361: Can't enable the "
-				"SRAM\n");
+				   "SRAM\n");
 #endif
 		}
 	}

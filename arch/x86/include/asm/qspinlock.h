@@ -44,7 +44,9 @@ static inline void queued_spin_unlock(struct qspinlock *lock)
 static inline bool virt_spin_lock(struct qspinlock *lock)
 {
 	if (!static_cpu_has(X86_FEATURE_HYPERVISOR))
+	{
 		return false;
+	}
 
 	/*
 	 * On hypervisors without PARAVIRT_SPINLOCKS support we fall
@@ -52,10 +54,14 @@ static inline bool virt_spin_lock(struct qspinlock *lock)
 	 * horrible lock 'holder' preemption issues.
 	 */
 
-	do {
+	do
+	{
 		while (atomic_read(&lock->val) != 0)
+		{
 			cpu_relax();
-	} while (atomic_cmpxchg(&lock->val, 0, _Q_LOCKED_VAL) != 0);
+		}
+	}
+	while (atomic_cmpxchg(&lock->val, 0, _Q_LOCKED_VAL) != 0);
 
 	return true;
 }

@@ -29,7 +29,8 @@
  * VC data common to 34xx/36xx chips
  * XXX This stuff presumably belongs in the vc3xxx.c or vc.c file.
  */
-static struct omap_vc_common omap3_vc_common = {
+static struct omap_vc_common omap3_vc_common =
+{
 	.bypass_val_reg	 = OMAP3_PRM_VC_BYPASS_VAL_OFFSET,
 	.data_shift	 = OMAP3430_DATA_SHIFT,
 	.slaveaddr_shift = OMAP3430_SLAVEADDR_SHIFT,
@@ -46,7 +47,8 @@ static struct omap_vc_common omap3_vc_common = {
 	.i2c_mcode_mask	 = OMAP3430_MCODE_MASK,
 };
 
-struct omap_vc_channel omap3_vc_mpu = {
+struct omap_vc_channel omap3_vc_mpu =
+{
 	.flags = OMAP_VC_CHANNEL_DEFAULT,
 	.common = &omap3_vc_common,
 	.smps_sa_reg	 = OMAP3_PRM_VC_SMPS_SA_OFFSET,
@@ -60,7 +62,8 @@ struct omap_vc_channel omap3_vc_mpu = {
 	.cfg_channel_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT,
 };
 
-struct omap_vc_channel omap3_vc_core = {
+struct omap_vc_channel omap3_vc_core =
+{
 	.common = &omap3_vc_common,
 	.smps_sa_reg	 = OMAP3_PRM_VC_SMPS_SA_OFFSET,
 	.smps_volra_reg	 = OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET,
@@ -81,14 +84,16 @@ struct omap_vc_channel omap3_vc_core = {
 #define OMAP3_RET_VOLTAGE_UV		975000
 #define OMAP3_OFF_VOLTAGE_UV		600000
 
-struct omap_vc_param omap3_mpu_vc_data = {
+struct omap_vc_param omap3_mpu_vc_data =
+{
 	.on		= OMAP3_ON_VOLTAGE_UV,
 	.onlp		= OMAP3_ONLP_VOLTAGE_UV,
 	.ret		= OMAP3_RET_VOLTAGE_UV,
 	.off		= OMAP3_OFF_VOLTAGE_UV,
 };
 
-struct omap_vc_param omap3_core_vc_data = {
+struct omap_vc_param omap3_core_vc_data =
+{
 	.on		= OMAP3_ON_VOLTAGE_UV,
 	.onlp		= OMAP3_ONLP_VOLTAGE_UV,
 	.ret		= OMAP3_RET_VOLTAGE_UV,

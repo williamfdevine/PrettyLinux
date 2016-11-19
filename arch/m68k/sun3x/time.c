@@ -39,12 +39,13 @@
 int sun3x_hwclk(int set, struct rtc_time *t)
 {
 	volatile struct mostek_dt *h =
-		(struct mostek_dt *)(SUN3X_EEPROM+M_CONTROL);
+		(struct mostek_dt *)(SUN3X_EEPROM + M_CONTROL);
 	unsigned long flags;
 
 	local_irq_save(flags);
 
-	if(set) {
+	if (set)
+	{
 		h->csr |= C_WRITE;
 		h->sec = bin2bcd(t->tm_sec);
 		h->min = bin2bcd(t->tm_min);
@@ -54,7 +55,9 @@ int sun3x_hwclk(int set, struct rtc_time *t)
 		h->month = bin2bcd(t->tm_mon);
 		h->year = bin2bcd(t->tm_year);
 		h->csr &= ~C_WRITE;
-	} else {
+	}
+	else
+	{
 		h->csr |= C_READ;
 		t->tm_sec = bcd2bin(h->sec);
 		t->tm_min = bcd2bin(h->min);
@@ -73,19 +76,19 @@ int sun3x_hwclk(int set, struct rtc_time *t)
 /* Not much we can do here */
 u32 sun3x_gettimeoffset(void)
 {
-    return 0L;
+	return 0L;
 }
 
 #if 0
 static void sun3x_timer_tick(int irq, void *dev_id, struct pt_regs *regs)
 {
-    void (*vector)(int, void *, struct pt_regs *) = dev_id;
+	void (*vector)(int, void *, struct pt_regs *) = dev_id;
 
-    /* Clear the pending interrupt - pulse the enable line low */
-    disable_irq(5);
-    enable_irq(5);
+	/* Clear the pending interrupt - pulse the enable line low */
+	disable_irq(5);
+	enable_irq(5);
 
-    vector(irq, NULL, regs);
+	vector(irq, NULL, regs);
 }
 #endif
 
@@ -95,7 +98,7 @@ void __init sun3x_sched_init(irq_handler_t vector)
 	sun3_disable_interrupts();
 
 
-    /* Pulse enable low to get the clock started */
+	/* Pulse enable low to get the clock started */
 	sun3_disable_irq(5);
 	sun3_enable_irq(5);
 	sun3_enable_interrupts();

@@ -13,28 +13,42 @@ void *memset(void *s, int c, size_t count)
 	size_t temp;
 
 	if (!count)
+	{
 		return xs;
+	}
+
 	c &= 0xff;
 	c |= c << 8;
 	c |= c << 16;
-	if ((long)s & 1) {
+
+	if ((long)s & 1)
+	{
 		char *cs = s;
 		*cs++ = c;
 		s = cs;
 		count--;
 	}
-	if (count > 2 && (long)s & 2) {
+
+	if (count > 2 && (long)s & 2)
+	{
 		short *ss = s;
 		*ss++ = c;
 		s = ss;
 		count -= 2;
 	}
+
 	temp = count >> 2;
-	if (temp) {
+
+	if (temp)
+	{
 		long *ls = s;
 #if defined(CONFIG_M68000) || defined(CONFIG_COLDFIRE)
+
 		for (; temp; temp--)
+		{
 			*ls++ = c;
+		}
+
 #else
 		size_t temp1;
 		asm volatile (
@@ -60,15 +74,20 @@ void *memset(void *s, int c, size_t count)
 #endif
 		s = ls;
 	}
-	if (count & 2) {
+
+	if (count & 2)
+	{
 		short *ss = s;
 		*ss++ = c;
 		s = ss;
 	}
-	if (count & 1) {
+
+	if (count & 1)
+	{
 		char *cs = s;
 		*cs = c;
 	}
+
 	return xs;
 }
 EXPORT_SYMBOL(memset);

@@ -14,7 +14,7 @@
 #define	flat_get_relocate_addr(rel)		(rel)
 
 static inline int flat_set_persistent(unsigned long relval,
-				      unsigned long *persistent)
+									  unsigned long *persistent)
 {
 	return 0;
 }

@@ -65,7 +65,8 @@ reset_shadow_zero_bits_mask(struct kvm_vcpu *vcpu, struct kvm_mmu *context);
  * RET_MMIO_PF_RETRY: let CPU fault again on the address.
  * RET_MMIO_PF_BUG: a bug was detected (and a WARN was printed).
  */
-enum {
+enum
+{
 	RET_MMIO_PF_EMULATE = 1,
 	RET_MMIO_PF_INVALID = 2,
 	RET_MMIO_PF_RETRY = 0,
@@ -80,7 +81,7 @@ static inline unsigned int kvm_mmu_available_pages(struct kvm *kvm)
 {
 	if (kvm->arch.n_max_mmu_pages > kvm->arch.n_used_mmu_pages)
 		return kvm->arch.n_max_mmu_pages -
-			kvm->arch.n_used_mmu_pages;
+			   kvm->arch.n_used_mmu_pages;
 
 	return 0;
 }
@@ -88,7 +89,9 @@ static inline unsigned int kvm_mmu_available_pages(struct kvm *kvm)
 static inline int kvm_mmu_reload(struct kvm_vcpu *vcpu)
 {
 	if (likely(vcpu->arch.mmu.root_hpa != INVALID_PAGE))
+	{
 		return 0;
+	}
 
 	return kvm_mmu_load(vcpu);
 }
@@ -145,8 +148,8 @@ static inline bool is_write_protection(struct kvm_vcpu *vcpu)
  * if the access faults.
  */
 static inline u8 permission_fault(struct kvm_vcpu *vcpu, struct kvm_mmu *mmu,
-				  unsigned pte_access, unsigned pte_pkey,
-				  unsigned pfec)
+								  unsigned pte_access, unsigned pte_pkey,
+								  unsigned pfec)
 {
 	int cpl = kvm_x86_ops->get_cpl(vcpu);
 	unsigned long rflags = kvm_x86_ops->get_rflags(vcpu);
@@ -166,12 +169,14 @@ static inline u8 permission_fault(struct kvm_vcpu *vcpu, struct kvm_mmu *mmu,
 	 */
 	unsigned long smap = (cpl - 3) & (rflags & X86_EFLAGS_AC);
 	int index = (pfec >> 1) +
-		    (smap >> (X86_EFLAGS_AC_BIT - PFERR_RSVD_BIT + 1));
+				(smap >> (X86_EFLAGS_AC_BIT - PFERR_RSVD_BIT + 1));
 	bool fault = (mmu->permissions[index] >> pte_access) & 1;
 	u32 errcode = PFERR_PRESENT_MASK;
 
 	WARN_ON(pfec & (PFERR_PK_MASK | PFERR_RSVD_MASK));
-	if (unlikely(mmu->pkru_mask)) {
+
+	if (unlikely(mmu->pkru_mask))
+	{
 		u32 pkru_bits, offset;
 
 		/*
@@ -184,7 +189,7 @@ static inline u8 permission_fault(struct kvm_vcpu *vcpu, struct kvm_mmu *mmu,
 
 		/* clear present bit, replace PFEC.RSVD with ACC_USER_MASK. */
 		offset = (pfec & ~1) +
-			((pte_access & PT_USER_MASK) << (PFERR_RSVD_BIT - PT_USER_SHIFT));
+				 ((pte_access & PT_USER_MASK) << (PFERR_RSVD_BIT - PT_USER_SHIFT));
 
 		pkru_bits &= mmu->pkru_mask >> offset;
 		errcode |= -pkru_bits & PFERR_PK_MASK;
@@ -200,5 +205,5 @@ void kvm_zap_gfn_range(struct kvm *kvm, gfn_t gfn_start, gfn_t gfn_end);
 void kvm_mmu_gfn_disallow_lpage(struct kvm_memory_slot *slot, gfn_t gfn);
 void kvm_mmu_gfn_allow_lpage(struct kvm_memory_slot *slot, gfn_t gfn);
 bool kvm_mmu_slot_gfn_write_protect(struct kvm *kvm,
-				    struct kvm_memory_slot *slot, u64 gfn);
+									struct kvm_memory_slot *slot, u64 gfn);
 #endif

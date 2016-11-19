@@ -23,16 +23,19 @@
 #ifdef HAVE_JUMP_LABEL
 
 void arch_jump_label_transform(struct jump_entry *entry,
-			       enum jump_label_type type)
+							   enum jump_label_type type)
 {
 	void *addr = (void *)entry->code;
 	u32 insn;
 
-	if (type == JUMP_LABEL_JMP) {
+	if (type == JUMP_LABEL_JMP)
+	{
 		insn = aarch64_insn_gen_branch_imm(entry->code,
-						   entry->target,
-						   AARCH64_INSN_BRANCH_NOLINK);
-	} else {
+										   entry->target,
+										   AARCH64_INSN_BRANCH_NOLINK);
+	}
+	else
+	{
 		insn = aarch64_insn_gen_nop();
 	}
 
@@ -40,7 +43,7 @@ void arch_jump_label_transform(struct jump_entry *entry,
 }
 
 void arch_jump_label_transform_static(struct jump_entry *entry,
-				      enum jump_label_type type)
+									  enum jump_label_type type)
 {
 	/*
 	 * We use the architected A64 NOP in arch_static_branch, so there's no

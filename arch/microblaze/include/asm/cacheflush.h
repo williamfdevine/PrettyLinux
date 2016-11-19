@@ -32,7 +32,8 @@
 
 /* struct cache, d=dcache, i=icache, fl = flush, iv = invalidate,
  * suffix r = range */
-struct scache {
+struct scache
+{
 	/* icache */
 	void (*ie)(void); /* enable */
 	void (*id)(void); /* disable */
@@ -75,11 +76,11 @@ void microblaze_cache_init(void);
 #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
 /* MS: We have to implement it because of rootfs-jffs2 issue on WB */
 #define flush_dcache_page(page) \
-do { \
-	unsigned long addr = (unsigned long) page_address(page); /* virtual */ \
-	addr = (u32)virt_to_phys((void *)addr); \
-	flush_dcache_range((unsigned) (addr), (unsigned) (addr) + PAGE_SIZE); \
-} while (0);
+	do { \
+		unsigned long addr = (unsigned long) page_address(page); /* virtual */ \
+		addr = (u32)virt_to_phys((void *)addr); \
+		flush_dcache_range((unsigned) (addr), (unsigned) (addr) + PAGE_SIZE); \
+	} while (0);
 
 #define flush_dcache_mmap_lock(mapping)		do { } while (0)
 #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
@@ -95,28 +96,30 @@ do { \
 /* MS: kgdb code use this macro, wrong len with FLASH */
 #if 0
 #define flush_cache_range(vma, start, len)	{	\
-	flush_icache_range((unsigned) (start), (unsigned) (start) + (len)); \
-	flush_dcache_range((unsigned) (start), (unsigned) (start) + (len)); \
-}
+		flush_icache_range((unsigned) (start), (unsigned) (start) + (len)); \
+		flush_dcache_range((unsigned) (start), (unsigned) (start) + (len)); \
+	}
 #endif
 
 #define flush_cache_range(vma, start, len) do { } while (0)
 
 static inline void copy_to_user_page(struct vm_area_struct *vma,
-				     struct page *page, unsigned long vaddr,
-				     void *dst, void *src, int len)
+									 struct page *page, unsigned long vaddr,
+									 void *dst, void *src, int len)
 {
 	u32 addr = virt_to_phys(dst);
 	memcpy(dst, src, len);
-	if (vma->vm_flags & VM_EXEC) {
+
+	if (vma->vm_flags & VM_EXEC)
+	{
 		invalidate_icache_range(addr, addr + PAGE_SIZE);
 		flush_dcache_range(addr, addr + PAGE_SIZE);
 	}
 }
 
 static inline void copy_from_user_page(struct vm_area_struct *vma,
-				       struct page *page, unsigned long vaddr,
-				       void *dst, void *src, int len)
+									   struct page *page, unsigned long vaddr,
+									   void *dst, void *src, int len)
 {
 	memcpy(dst, src, len);
 }

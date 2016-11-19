@@ -51,7 +51,8 @@ cycles_t get_cycles(void)
 	unsigned int low = __insn_mfspr(SPR_CYCLE_LOW);
 	unsigned int high2 = __insn_mfspr(SPR_CYCLE_HIGH);
 
-	while (unlikely(high != high2)) {
+	while (unlikely(high != high2))
+	{
 		low = __insn_mfspr(SPR_CYCLE_LOW);
 		high = high2;
 		high2 = __insn_mfspr(SPR_CYCLE_HIGH);
@@ -75,7 +76,8 @@ static cycles_t clocksource_get_cycles(struct clocksource *cs)
 	return get_cycles();
 }
 
-static struct clocksource cycle_counter_cs = {
+static struct clocksource cycle_counter_cs =
+{
 	.name = "cycle counter",
 	.rating = 300,
 	.read = clocksource_get_cycles,
@@ -98,8 +100,8 @@ void __init calibrate_delay(void)
 {
 	loops_per_jiffy = get_clock_rate() / HZ;
 	pr_info("Clock rate yields %lu.%02lu BogoMIPS (lpj=%lu)\n",
-		loops_per_jiffy / (500000 / HZ),
-		(loops_per_jiffy / (5000 / HZ)) % 100, loops_per_jiffy);
+			loops_per_jiffy / (500000 / HZ),
+			(loops_per_jiffy / (5000 / HZ)) % 100, loops_per_jiffy);
 }
 
 /* Called fairly late in init/main.c, but before we go smp. */
@@ -128,7 +130,7 @@ void __init time_init(void)
 #define TILE_MINSEC 5         /* timer covers no more than 5 seconds */
 
 static int tile_timer_set_next_event(unsigned long ticks,
-				     struct clock_event_device *evt)
+									 struct clock_event_device *evt)
 {
 	BUG_ON(ticks > MAX_TICK);
 	__insn_mtspr(SPR_TILE_TIMER_CONTROL, ticks);
@@ -150,7 +152,8 @@ static int tile_timer_shutdown(struct clock_event_device *evt)
  * Set min_delta_ns to 1 microsecond, since it takes about
  * that long to fire the interrupt.
  */
-static DEFINE_PER_CPU(struct clock_event_device, tile_timer) = {
+static DEFINE_PER_CPU(struct clock_event_device, tile_timer) =
+{
 	.name = "tile timer",
 	.features = CLOCK_EVT_FEAT_ONESHOT,
 	.min_delta_ns = 1000,
@@ -219,7 +222,7 @@ void do_timer_interrupt(struct pt_regs *regs, int fault_num)
 unsigned long long sched_clock(void)
 {
 	return clocksource_cyc2ns(get_cycles(),
-				  sched_clock_mult, SCHED_CLOCK_SHIFT);
+							  sched_clock_mult, SCHED_CLOCK_SHIFT);
 }
 
 int setup_profiling_timer(unsigned int multiplier)
@@ -260,7 +263,9 @@ void update_vsyscall_tz(void)
 void update_vsyscall(struct timekeeper *tk)
 {
 	if (tk->tkr_mono.clock != &cycle_counter_cs)
+	{
 		return;
+	}
 
 	write_seqcount_begin(&vdso_data->tb_seq);
 
@@ -273,27 +278,30 @@ void update_vsyscall(struct timekeeper *tk)
 	vdso_data->wall_time_snsec	= tk->tkr_mono.xtime_nsec;
 
 	vdso_data->monotonic_time_sec	= tk->xtime_sec
-					+ tk->wall_to_monotonic.tv_sec;
+									  + tk->wall_to_monotonic.tv_sec;
 	vdso_data->monotonic_time_snsec	= tk->tkr_mono.xtime_nsec
-					+ ((u64)tk->wall_to_monotonic.tv_nsec
-						<< tk->tkr_mono.shift);
+									  + ((u64)tk->wall_to_monotonic.tv_nsec
+										 << tk->tkr_mono.shift);
+
 	while (vdso_data->monotonic_time_snsec >=
-					(((u64)NSEC_PER_SEC) << tk->tkr_mono.shift)) {
+		   (((u64)NSEC_PER_SEC) << tk->tkr_mono.shift))
+	{
 		vdso_data->monotonic_time_snsec -=
-					((u64)NSEC_PER_SEC) << tk->tkr_mono.shift;
+			((u64)NSEC_PER_SEC) << tk->tkr_mono.shift;
 		vdso_data->monotonic_time_sec++;
 	}
 
 	vdso_data->wall_time_coarse_sec	= tk->xtime_sec;
 	vdso_data->wall_time_coarse_nsec = (long)(tk->tkr_mono.xtime_nsec >>
-						 tk->tkr_mono.shift);
+									   tk->tkr_mono.shift);
 
 	vdso_data->monotonic_time_coarse_sec =
 		vdso_data->wall_time_coarse_sec + tk->wall_to_monotonic.tv_sec;
 	vdso_data->monotonic_time_coarse_nsec =
 		vdso_data->wall_time_coarse_nsec + tk->wall_to_monotonic.tv_nsec;
 
-	while (vdso_data->monotonic_time_coarse_nsec >= NSEC_PER_SEC) {
+	while (vdso_data->monotonic_time_coarse_nsec >= NSEC_PER_SEC)
+	{
 		vdso_data->monotonic_time_coarse_nsec -= NSEC_PER_SEC;
 		vdso_data->monotonic_time_coarse_sec++;
 	}

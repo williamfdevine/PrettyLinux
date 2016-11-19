@@ -113,7 +113,7 @@ static inline int test_and_clear_bit(unsigned nr, volatile unsigned long *addr)
  * It also implies a memory barrier.
  */
 static inline int test_and_change_bit(unsigned nr,
-				      volatile unsigned long *addr)
+									  volatile unsigned long *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
 	addr += BIT_WORD(nr);

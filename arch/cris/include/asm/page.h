@@ -48,7 +48,7 @@ typedef struct page *pgtable_t;
  * use __pa instead. in our system both the physical and virtual address of DRAM
  * is too high to let mem_map start at 0, so we do it this way instead (similar
  * to arm and m68k I think)
- */ 
+ */
 
 #define virt_to_page(kaddr)    (mem_map + (((unsigned long)(kaddr) - PAGE_OFFSET) >> PAGE_SHIFT))
 #define virt_addr_valid(kaddr)	pfn_valid((unsigned)(kaddr) >> PAGE_SHIFT)
@@ -64,7 +64,7 @@ typedef struct page *pgtable_t;
 #endif /* __ASSEMBLY__ */
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/memory_model.h>
 #include <asm-generic/getorder.h>

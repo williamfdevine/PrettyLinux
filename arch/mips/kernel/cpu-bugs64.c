@@ -43,7 +43,7 @@ static inline void align_mod(const int align, const int mod)
 }
 
 static inline void mult_sh_align_mod(long *v1, long *v2, long *w,
-				     const int align, const int mod)
+									 const int align, const int mod)
 {
 	unsigned long flags;
 	int m1, m2;
@@ -143,11 +143,15 @@ static inline void check_mult_sh(void)
 	mult_sh_align_mod(&v1[7], &v2[7], &w[7], 32, 7);
 
 	bug = 0;
+
 	for (i = 0; i < 8; i++)
 		if (v1[i] != w[i])
+		{
 			bug = 1;
+		}
 
-	if (bug == 0) {
+	if (bug == 0)
+	{
 		printk("no.\n");
 		return;
 	}
@@ -155,11 +159,15 @@ static inline void check_mult_sh(void)
 	printk("yes, workaround... ");
 
 	fix = 1;
+
 	for (i = 0; i < 8; i++)
 		if (v2[i] != w[i])
+		{
 			fix = 0;
+		}
 
-	if (fix == 1) {
+	if (fix == 1)
+	{
 		printk("yes.\n");
 		return;
 	}
@@ -217,7 +225,8 @@ static inline void check_daddi(void)
 	set_except_vector(EXCCODE_OV, handler);
 	local_irq_restore(flags);
 
-	if (daddi_ov) {
+	if (daddi_ov)
+	{
 		printk("no.\n");
 		return;
 	}
@@ -235,7 +244,8 @@ static inline void check_daddi(void)
 	set_except_vector(EXCCODE_OV, handler);
 	local_irq_restore(flags);
 
-	if (daddi_ov) {
+	if (daddi_ov)
+	{
 		printk("yes.\n");
 		return;
 	}
@@ -287,7 +297,8 @@ static inline void check_daddiu(void)
 
 	daddiu_bug = v != w;
 
-	if (!daddiu_bug) {
+	if (!daddiu_bug)
+	{
 		printk("no.\n");
 		return;
 	}
@@ -303,7 +314,8 @@ static inline void check_daddiu(void)
 		: "=&r" (v), "=&r" (w), "=&r" (tmp)
 		: "I" (0xffffffffffffdb9aUL), "I" (0x1234));
 
-	if (v == w) {
+	if (v == w)
+	{
 		printk("yes.\n");
 		return;
 	}
@@ -314,7 +326,8 @@ static inline void check_daddiu(void)
 
 void __init check_bugs64_early(void)
 {
-	if (!IS_ENABLED(CONFIG_CPU_MIPSR6)) {
+	if (!IS_ENABLED(CONFIG_CPU_MIPSR6))
+	{
 		check_mult_sh();
 		check_daddiu();
 	}
@@ -323,5 +336,7 @@ void __init check_bugs64_early(void)
 void __init check_bugs64(void)
 {
 	if (!IS_ENABLED(CONFIG_CPU_MIPSR6))
+	{
 		check_daddi();
+	}
 }

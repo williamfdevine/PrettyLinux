@@ -59,7 +59,7 @@ unsigned long wii_hole_size;
 
 static int __init page_aligned(unsigned long x)
 {
-	return !(x & (PAGE_SIZE-1));
+	return !(x & (PAGE_SIZE - 1));
 }
 
 void __init wii_memory_fixups(void)
@@ -81,7 +81,7 @@ void __init wii_memory_fixups(void)
 
 	/* trim unaligned tail */
 	memblock_remove(ALIGN(p[1].base + p[1].size, PAGE_SIZE),
-			(phys_addr_t)ULLONG_MAX);
+					(phys_addr_t)ULLONG_MAX);
 
 	/* determine hole, add & reserve them */
 	wii_hole_start = ALIGN(p[0].base + p[0].size, PAGE_SIZE);
@@ -99,24 +99,32 @@ void __init wii_memory_fixups(void)
 unsigned long __init wii_mmu_mapin_mem2(unsigned long top)
 {
 	unsigned long delta, size, bl;
-	unsigned long max_size = (256<<20);
+	unsigned long max_size = (256 << 20);
 
 	/* MEM2 64MB@0x10000000 */
 	delta = wii_hole_start + wii_hole_size;
 	size = top - delta;
-	for (bl = 128<<10; bl < max_size; bl <<= 1) {
+
+	for (bl = 128 << 10; bl < max_size; bl <<= 1)
+	{
 		if (bl * 2 > size)
+		{
 			break;
+		}
 	}
-	setbat(4, PAGE_OFFSET+delta, delta, bl, PAGE_KERNEL_X);
+
+	setbat(4, PAGE_OFFSET + delta, delta, bl, PAGE_KERNEL_X);
 	return delta + bl;
 }
 
 static void __noreturn wii_spin(void)
 {
 	local_irq_disable();
+
 	for (;;)
+	{
 		cpu_relax();
+	}
 }
 
 static void __iomem *wii_ioremap_hw_regs(char *name, char *compatible)
@@ -127,20 +135,27 @@ static void __iomem *wii_ioremap_hw_regs(char *name, char *compatible)
 	int error = -ENODEV;
 
 	np = of_find_compatible_node(NULL, NULL, compatible);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("no compatible node found for %s\n", compatible);
 		goto out;
 	}
+
 	error = of_address_to_resource(np, 0, &res);
-	if (error) {
+
+	if (error)
+	{
 		pr_err("no valid reg found for %s\n", np->name);
 		goto out_put;
 	}
 
 	hw_regs = ioremap(res.start, resource_size(&res));
-	if (hw_regs) {
+
+	if (hw_regs)
+	{
 		pr_info("%s at 0x%08x mapped to 0x%p\n", name,
-			res.start, hw_regs);
+				res.start, hw_regs);
 	}
 
 out_put:
@@ -153,10 +168,12 @@ static void __init wii_setup_arch(void)
 {
 	hw_ctrl = wii_ioremap_hw_regs("hw_ctrl", HW_CTRL_COMPATIBLE);
 	hw_gpio = wii_ioremap_hw_regs("hw_gpio", HW_GPIO_COMPATIBLE);
-	if (hw_gpio) {
+
+	if (hw_gpio)
+	{
 		/* turn off the front blue led and IR light */
 		clrbits32(hw_gpio + HW_GPIO_OUT(0),
-			  HW_GPIO_SLOT_LED | HW_GPIO_SENSOR_BAR);
+				  HW_GPIO_SLOT_LED | HW_GPIO_SENSOR_BAR);
 	}
 }
 
@@ -164,10 +181,12 @@ static void __noreturn wii_restart(char *cmd)
 {
 	local_irq_disable();
 
-	if (hw_ctrl) {
+	if (hw_ctrl)
+	{
 		/* clear the system reset pin to cause a reset */
 		clrbits32(hw_ctrl + HW_CTRL_RESETS, HW_CTRL_RESETS_SYS);
 	}
+
 	wii_spin();
 }
 
@@ -175,20 +194,25 @@ static void wii_power_off(void)
 {
 	local_irq_disable();
 
-	if (hw_gpio) {
+	if (hw_gpio)
+	{
 		/* make sure that the poweroff GPIO is configured as output */
 		setbits32(hw_gpio + HW_GPIO_DIR(1), HW_GPIO_SHUTDOWN);
 
 		/* drive the poweroff GPIO high */
 		setbits32(hw_gpio + HW_GPIO_OUT(1), HW_GPIO_SHUTDOWN);
 	}
+
 	wii_spin();
 }
 
 static void __noreturn wii_halt(void)
 {
 	if (ppc_md.restart)
+	{
 		ppc_md.restart(NULL);
+	}
+
 	wii_spin();
 }
 
@@ -201,7 +225,9 @@ static void __init wii_pic_probe(void)
 static int __init wii_probe(void)
 {
 	if (!of_machine_is_compatible("nintendo,wii"))
+	{
 		return 0;
+	}
 
 	pm_power_off = wii_power_off;
 
@@ -216,20 +242,22 @@ static void wii_shutdown(void)
 	flipper_quiesce();
 }
 
-define_machine(wii) {
+define_machine(wii)
+{
 	.name			= "wii",
-	.probe			= wii_probe,
-	.setup_arch		= wii_setup_arch,
-	.restart		= wii_restart,
-	.halt			= wii_halt,
-	.init_IRQ		= wii_pic_probe,
-	.get_irq		= flipper_pic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
-	.machine_shutdown	= wii_shutdown,
+			 .probe			= wii_probe,
+					 .setup_arch		= wii_setup_arch,
+						 .restart		= wii_restart,
+								.halt			= wii_halt,
+										 .init_IRQ		= wii_pic_probe,
+											   .get_irq		= flipper_pic_get_irq,
+													  .calibrate_decr		= generic_calibrate_decr,
+														  .progress		= udbg_progress,
+																.machine_shutdown	= wii_shutdown,
 };
 
-static const struct of_device_id wii_of_bus[] = {
+static const struct of_device_id wii_of_bus[] =
+{
 	{ .compatible = "nintendo,hollywood", },
 	{ },
 };
@@ -237,7 +265,9 @@ static const struct of_device_id wii_of_bus[] = {
 static int __init wii_device_probe(void)
 {
 	if (!machine_is(wii))
+	{
 		return 0;
+	}
 
 	of_platform_bus_probe(NULL, wii_of_bus, NULL);
 	return 0;

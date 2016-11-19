@@ -42,7 +42,8 @@
  * module, use this file as base for support code.
  */
 
-static unsigned int lilly_db_board_pins[] __initdata = {
+static unsigned int lilly_db_board_pins[] __initdata =
+{
 	MX31_PIN_SD1_DATA3__SD1_DATA3,
 	MX31_PIN_SD1_DATA2__SD1_DATA2,
 	MX31_PIN_SD1_DATA1__SD1_DATA1,
@@ -84,10 +85,10 @@ static int mxc_mmc1_get_ro(struct device *dev)
 static int gpio_det, gpio_wp;
 
 #define MMC_PAD_CFG (PAD_CTL_DRV_MAX | PAD_CTL_SRE_FAST | PAD_CTL_HYS_CMOS | \
-			PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
+					 PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
 
 static int mxc_mmc1_init(struct device *dev,
-			 irq_handler_t detect_irq, void *data)
+						 irq_handler_t detect_irq, void *data)
 {
 	int ret;
 
@@ -102,21 +103,30 @@ static int mxc_mmc1_init(struct device *dev,
 	mxc_iomux_set_pad(MX31_PIN_SD1_CMD, MMC_PAD_CFG);
 
 	ret = gpio_request(gpio_det, "MMC detect");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gpio_request(gpio_wp, "MMC w/p");
+
 	if (ret)
+	{
 		goto exit_free_det;
+	}
 
 	gpio_direction_input(gpio_det);
 	gpio_direction_input(gpio_wp);
 
 	ret = request_irq(gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_1)),
-			  detect_irq, IRQF_TRIGGER_FALLING,
-			  "MMC detect", data);
+					  detect_irq, IRQF_TRIGGER_FALLING,
+					  "MMC detect", data);
+
 	if (ret)
+	{
 		goto exit_free_wp;
+	}
 
 	return 0;
 
@@ -136,14 +146,16 @@ static void mxc_mmc1_exit(struct device *dev, void *data)
 	free_irq(gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_1)), data);
 }
 
-static const struct imxmmc_platform_data mmc_pdata __initconst = {
+static const struct imxmmc_platform_data mmc_pdata __initconst =
+{
 	.get_ro	= mxc_mmc1_get_ro,
 	.init	= mxc_mmc1_init,
 	.exit	= mxc_mmc1_exit,
 };
 
 /* Framebuffer support */
-static const struct fb_videomode fb_modedb = {
+static const struct fb_videomode fb_modedb =
+{
 	/* 640x480 TFT panel (IPS-056T) */
 	.name		= "CRT-VGA",
 	.refresh	= 64,
@@ -161,7 +173,8 @@ static const struct fb_videomode fb_modedb = {
 	.flag		= 0,
 };
 
-static struct mx3fb_platform_data fb_pdata __initdata = {
+static struct mx3fb_platform_data fb_pdata __initdata =
+{
 	.name		= "CRT-VGA",
 	.mode		= &fb_modedb,
 	.num_modes	= 1,
@@ -171,7 +184,8 @@ static struct mx3fb_platform_data fb_pdata __initdata = {
 
 static void __init mx31lilly_init_fb(void)
 {
-	if (gpio_request(LCD_VCC_EN_GPIO, "LCD enable") != 0) {
+	if (gpio_request(LCD_VCC_EN_GPIO, "LCD enable") != 0)
+	{
 		printk(KERN_WARNING "unable to request LCD_VCC_EN pin.\n");
 		return;
 	}
@@ -184,8 +198,8 @@ static void __init mx31lilly_init_fb(void)
 void __init mx31lilly_db_init(void)
 {
 	mxc_iomux_setup_multiple_pins(lilly_db_board_pins,
-					ARRAY_SIZE(lilly_db_board_pins),
-					"development board pins");
+								  ARRAY_SIZE(lilly_db_board_pins),
+								  "development board pins");
 	imx31_add_mxc_mmc(0, &mmc_pdata);
 	mx31lilly_init_fb();
 }

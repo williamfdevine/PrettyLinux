@@ -19,7 +19,8 @@
  * callback set, by matching the DT compatible name.
  */
 
-static const char *simulation_compat[] __initconst = {
+static const char *simulation_compat[] __initconst =
+{
 	"snps,nsim",
 	"snps,nsim_hs",
 	"snps,nsimosci",
@@ -29,5 +30,5 @@ static const char *simulation_compat[] __initconst = {
 };
 
 MACHINE_START(SIMULATION, "simulation")
-	.dt_compat	= simulation_compat,
-MACHINE_END
+.dt_compat	= simulation_compat,
+  MACHINE_END

@@ -28,7 +28,8 @@
 #include <asm/pci-bridge.h>
 #include <asm/ppc4xx.h>
 
-static const struct of_device_id ebony_of_bus[] __initconst = {
+static const struct of_device_id ebony_of_bus[] __initconst =
+{
 	{ .compatible = "ibm,plb4", },
 	{ .compatible = "ibm,opb", },
 	{ .compatible = "ibm,ebc", },
@@ -50,19 +51,22 @@ machine_device_initcall(ebony, ebony_device_probe);
 static int __init ebony_probe(void)
 {
 	if (!of_machine_is_compatible("ibm,ebony"))
+	{
 		return 0;
+	}
 
 	pci_set_flags(PCI_REASSIGN_ALL_RSRC);
 
 	return 1;
 }
 
-define_machine(ebony) {
+define_machine(ebony)
+{
 	.name			= "Ebony",
-	.probe			= ebony_probe,
-	.progress		= udbg_progress,
-	.init_IRQ		= uic_init_tree,
-	.get_irq		= uic_get_irq,
-	.restart		= ppc4xx_reset_system,
-	.calibrate_decr		= generic_calibrate_decr,
+			 .probe			= ebony_probe,
+					 .progress		= udbg_progress,
+						   .init_IRQ		= uic_init_tree,
+								 .get_irq		= uic_get_irq,
+										.restart		= ppc4xx_reset_system,
+											   .calibrate_decr		= generic_calibrate_decr,
 };

@@ -25,11 +25,16 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
 	struct acpi_hest_ia_error_bank *mc_bank;
 
 	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+	{
 		return 0;
+	}
 
 	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
+
 	if (!cmc->enabled)
+	{
 		return 0;
+	}
 
 	/*
 	 * We expect HEST to provide a list of MC banks that report errors
@@ -37,14 +42,20 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
 	 * indicate that we are done parsing HEST.
 	 */
 	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST) ||
-	    !cmc->num_hardware_banks)
+		!cmc->num_hardware_banks)
+	{
 		return 1;
+	}
 
 	pr_info("HEST: Enabling Firmware First mode for corrected errors.\n");
 
 	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
+
 	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
+	{
 		mce_disable_bank(mc_bank->bank_number);
+	}
+
 #endif
 	return 1;
 }

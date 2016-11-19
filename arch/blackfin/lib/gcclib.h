@@ -14,11 +14,13 @@ typedef int DItype __attribute__ ((mode(DI)));
 typedef int word_type __attribute__ ((mode(__word__)));
 typedef unsigned int UDItype __attribute__ ((mode(DI)));
 
-struct DIstruct {
+struct DIstruct
+{
 	SItype low, high;
 };
 
-typedef union {
+typedef union
+{
 	struct DIstruct s;
 	DItype ll;
 } DIunion;

@@ -114,38 +114,42 @@
 
 static inline int get_mfp_bit( unsigned irq, int type )
 
-{	unsigned char	mask, *reg;
+{
+	unsigned char	mask, *reg;
 
 	mask = 1 << (irq & 7);
-	reg = (unsigned char *)&st_mfp.int_en_a + type*4 +
-		  ((irq & 8) >> 2) + (((irq-8) & 16) << 3);
-	return( *reg & mask );
+	reg = (unsigned char *)&st_mfp.int_en_a + type * 4 +
+		  ((irq & 8) >> 2) + (((irq - 8) & 16) << 3);
+	return ( *reg & mask );
 }
 
 static inline void set_mfp_bit( unsigned irq, int type )
 
-{	unsigned char	mask, *reg;
+{
+	unsigned char	mask, *reg;
 
 	mask = 1 << (irq & 7);
-	reg = (unsigned char *)&st_mfp.int_en_a + type*4 +
-		  ((irq & 8) >> 2) + (((irq-8) & 16) << 3);
+	reg = (unsigned char *)&st_mfp.int_en_a + type * 4 +
+		  ((irq & 8) >> 2) + (((irq - 8) & 16) << 3);
 	__asm__ __volatile__ ( "orb %0,%1"
-			      : : "di" (mask), "m" (*reg) : "memory" );
+						   : : "di" (mask), "m" (*reg) : "memory" );
 }
 
 static inline void clear_mfp_bit( unsigned irq, int type )
 
-{	unsigned char	mask, *reg;
+{
+	unsigned char	mask, *reg;
 
 	mask = ~(1 << (irq & 7));
-	reg = (unsigned char *)&st_mfp.int_en_a + type*4 +
-		  ((irq & 8) >> 2) + (((irq-8) & 16) << 3);
+	reg = (unsigned char *)&st_mfp.int_en_a + type * 4 +
+		  ((irq & 8) >> 2) + (((irq - 8) & 16) << 3);
+
 	if (type == MFP_PENDING || type == MFP_SERVICE)
 		__asm__ __volatile__ ( "moveb %0,%1"
-				      : : "di" (mask), "m" (*reg) : "memory" );
+							   : : "di" (mask), "m" (*reg) : "memory" );
 	else
 		__asm__ __volatile__ ( "andb %0,%1"
-				      : : "di" (mask), "m" (*reg) : "memory" );
+							   : : "di" (mask), "m" (*reg) : "memory" );
 }
 
 /*
@@ -157,14 +161,16 @@ static inline void clear_mfp_bit( unsigned irq, int type )
 static inline void atari_enable_irq( unsigned irq )
 
 {
-	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) return;
+	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) { return; }
+
 	set_mfp_bit( irq, MFP_MASK );
 }
 
 static inline void atari_disable_irq( unsigned irq )
 
 {
-	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) return;
+	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) { return; }
+
 	clear_mfp_bit( irq, MFP_MASK );
 }
 
@@ -176,14 +182,16 @@ static inline void atari_disable_irq( unsigned irq )
 static inline void atari_turnon_irq( unsigned irq )
 
 {
-	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) return;
+	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) { return; }
+
 	set_mfp_bit( irq, MFP_ENABLE );
 }
 
 static inline void atari_turnoff_irq( unsigned irq )
 
 {
-	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) return;
+	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) { return; }
+
 	clear_mfp_bit( irq, MFP_ENABLE );
 	clear_mfp_bit( irq, MFP_PENDING );
 }
@@ -191,15 +199,17 @@ static inline void atari_turnoff_irq( unsigned irq )
 static inline void atari_clear_pending_irq( unsigned irq )
 
 {
-	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) return;
+	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) { return; }
+
 	clear_mfp_bit( irq, MFP_PENDING );
 }
 
 static inline int atari_irq_pending( unsigned irq )
 
 {
-	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) return( 0 );
-	return( get_mfp_bit( irq, MFP_PENDING ) );
+	if (irq < STMFP_SOURCE_BASE || irq >= SCC_SOURCE_BASE) { return ( 0 ); }
+
+	return ( get_mfp_bit( irq, MFP_PENDING ) );
 }
 
 unsigned int atari_register_vme_int(void);

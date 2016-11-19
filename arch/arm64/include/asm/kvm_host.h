@@ -50,7 +50,8 @@ int kvm_reset_vcpu(struct kvm_vcpu *vcpu);
 int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext);
 void __extended_idmap_trampoline(phys_addr_t boot_pgd, phys_addr_t idmap_start);
 
-struct kvm_arch {
+struct kvm_arch
+{
 	/* The VMID generation used for the virt. memory system */
 	u64    vmid_gen;
 	u32    vmid;
@@ -81,12 +82,14 @@ struct kvm_arch {
  * We don't want allocation failures within the mmu code, so we preallocate
  * enough memory for a single page fault in a cache.
  */
-struct kvm_mmu_memory_cache {
+struct kvm_mmu_memory_cache
+{
 	int nobjs;
 	void *objects[KVM_NR_MEM_OBJS];
 };
 
-struct kvm_vcpu_fault_info {
+struct kvm_vcpu_fault_info
+{
 	u32 esr_el2;		/* Hyp Syndrom Register */
 	u64 far_el2;		/* Hyp Fault Address Register */
 	u64 hpfar_el2;		/* Hyp IPA Fault Address Register */
@@ -96,7 +99,8 @@ struct kvm_vcpu_fault_info {
  * 0 is reserved as an invalid value.
  * Order should be kept in sync with the save/restore code.
  */
-enum vcpu_sysreg {
+enum vcpu_sysreg
+{
 	__INVALID_SYSREG__,
 	MPIDR_EL1,	/* MultiProcessor Affinity Register */
 	CSSELR_EL1,	/* Cache Size Selection Register */
@@ -187,9 +191,11 @@ enum vcpu_sysreg {
 
 #define NR_COPRO_REGS	(NR_SYS_REGS * 2)
 
-struct kvm_cpu_context {
+struct kvm_cpu_context
+{
 	struct kvm_regs	gp_regs;
-	union {
+	union
+	{
 		u64 sys_regs[NR_SYS_REGS];
 		u32 copro[NR_COPRO_REGS];
 	};
@@ -197,7 +203,8 @@ struct kvm_cpu_context {
 
 typedef struct kvm_cpu_context kvm_cpu_context_t;
 
-struct kvm_vcpu_arch {
+struct kvm_vcpu_arch
+{
 	struct kvm_cpu_context ctxt;
 
 	/* HYP configuration */
@@ -248,7 +255,8 @@ struct kvm_vcpu_arch {
 	 * trap handler if the guest accesses or updates them while we
 	 * are using guest debug.
 	 */
-	struct {
+	struct
+	{
 		u32	mdscr_el1;
 	} guest_debug_preserved;
 
@@ -285,18 +293,20 @@ struct kvm_vcpu_arch {
 #define vcpu_cp15(v,r)		((v)->arch.ctxt.copro[(r)])
 
 #ifdef CONFIG_CPU_BIG_ENDIAN
-#define vcpu_cp15_64_high(v,r)	vcpu_cp15((v),(r))
-#define vcpu_cp15_64_low(v,r)	vcpu_cp15((v),(r) + 1)
+	#define vcpu_cp15_64_high(v,r)	vcpu_cp15((v),(r))
+	#define vcpu_cp15_64_low(v,r)	vcpu_cp15((v),(r) + 1)
 #else
-#define vcpu_cp15_64_high(v,r)	vcpu_cp15((v),(r) + 1)
-#define vcpu_cp15_64_low(v,r)	vcpu_cp15((v),(r))
+	#define vcpu_cp15_64_high(v,r)	vcpu_cp15((v),(r) + 1)
+	#define vcpu_cp15_64_low(v,r)	vcpu_cp15((v),(r))
 #endif
 
-struct kvm_vm_stat {
+struct kvm_vm_stat
+{
 	ulong remote_tlb_flush;
 };
 
-struct kvm_vcpu_stat {
+struct kvm_vcpu_stat
+{
 	u64 halt_successful_poll;
 	u64 halt_attempted_poll;
 	u64 halt_poll_invalid;
@@ -318,19 +328,19 @@ int kvm_arm_set_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
 #define KVM_ARCH_WANT_MMU_NOTIFIER
 int kvm_unmap_hva(struct kvm *kvm, unsigned long hva);
 int kvm_unmap_hva_range(struct kvm *kvm,
-			unsigned long start, unsigned long end);
+						unsigned long start, unsigned long end);
 void kvm_set_spte_hva(struct kvm *kvm, unsigned long hva, pte_t pte);
 int kvm_age_hva(struct kvm *kvm, unsigned long start, unsigned long end);
 int kvm_test_age_hva(struct kvm *kvm, unsigned long hva);
 
 /* We do not have shadow page tables, hence the empty hooks */
 static inline void kvm_arch_mmu_notifier_invalidate_page(struct kvm *kvm,
-							 unsigned long address)
+		unsigned long address)
 {
 }
 
 struct kvm_vcpu *kvm_arm_get_running_vcpu(void);
-struct kvm_vcpu * __percpu *kvm_get_running_vcpus(void);
+struct kvm_vcpu *__percpu *kvm_get_running_vcpus(void);
 void kvm_arm_halt_guest(struct kvm *kvm);
 void kvm_arm_resume_guest(struct kvm *kvm);
 void kvm_arm_halt_vcpu(struct kvm_vcpu *vcpu);
@@ -343,7 +353,7 @@ void force_vm_exit(const cpumask_t *mask);
 void kvm_mmu_wp_memory_region(struct kvm *kvm, int slot);
 
 int handle_exit(struct kvm_vcpu *vcpu, struct kvm_run *run,
-		int exception_index);
+				int exception_index);
 
 int kvm_perf_init(void);
 int kvm_perf_teardown(void);
@@ -351,8 +361,8 @@ int kvm_perf_teardown(void);
 struct kvm_vcpu *kvm_mpidr_to_vcpu(struct kvm *kvm, unsigned long mpidr);
 
 static inline void __cpu_init_hyp_mode(phys_addr_t pgd_ptr,
-				       unsigned long hyp_stack_ptr,
-				       unsigned long vector_ptr)
+									   unsigned long hyp_stack_ptr,
+									   unsigned long vector_ptr)
 {
 	/*
 	 * Call initialization code, and switch to the full blown
@@ -363,7 +373,7 @@ static inline void __cpu_init_hyp_mode(phys_addr_t pgd_ptr,
 
 void __kvm_hyp_teardown(void);
 static inline void __cpu_reset_hyp_mode(unsigned long vector_ptr,
-					phys_addr_t phys_idmap_start)
+										phys_addr_t phys_idmap_start)
 {
 	kvm_call_hyp(__kvm_hyp_teardown, phys_idmap_start);
 }
@@ -379,18 +389,18 @@ void kvm_arm_setup_debug(struct kvm_vcpu *vcpu);
 void kvm_arm_clear_debug(struct kvm_vcpu *vcpu);
 void kvm_arm_reset_debug_ptr(struct kvm_vcpu *vcpu);
 int kvm_arm_vcpu_arch_set_attr(struct kvm_vcpu *vcpu,
-			       struct kvm_device_attr *attr);
+							   struct kvm_device_attr *attr);
 int kvm_arm_vcpu_arch_get_attr(struct kvm_vcpu *vcpu,
-			       struct kvm_device_attr *attr);
+							   struct kvm_device_attr *attr);
 int kvm_arm_vcpu_arch_has_attr(struct kvm_vcpu *vcpu,
-			       struct kvm_device_attr *attr);
+							   struct kvm_device_attr *attr);
 
 static inline void __cpu_init_stage2(void)
 {
 	u32 parange = kvm_call_hyp(__init_stage2_translation);
 
 	WARN_ONCE(parange < 40,
-		  "PARange is %d bits, unsupported configuration!", parange);
+			  "PARange is %d bits, unsupported configuration!", parange);
 }
 
 #endif /* __ARM64_KVM_HOST_H__ */

@@ -28,11 +28,11 @@ typedef unsigned short	__kernel_gid_t;
 #define __kernel_uid_t __kernel_uid_t
 
 #if __GNUC__ == 4
-typedef unsigned int	__kernel_size_t;
-typedef signed int	__kernel_ssize_t;
+	typedef unsigned int	__kernel_size_t;
+	typedef signed int	__kernel_ssize_t;
 #else
-typedef unsigned long	__kernel_size_t;
-typedef signed long	__kernel_ssize_t;
+	typedef unsigned long	__kernel_size_t;
+	typedef signed long	__kernel_ssize_t;
 #endif
 typedef int		__kernel_ptrdiff_t;
 #define __kernel_size_t __kernel_size_t

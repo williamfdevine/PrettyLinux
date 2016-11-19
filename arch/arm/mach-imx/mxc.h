@@ -23,7 +23,7 @@
 #include <linux/types.h>
 
 #ifndef __ASM_ARCH_MXC_HARDWARE_H__
-#error "Do not include directly."
+	#error "Do not include directly."
 #endif
 
 #define MXC_CPU_MX1		1
@@ -83,7 +83,8 @@ static inline bool cpu_is_imx7d(void)
 	return __mxc_cpu_type == MXC_CPU_IMX7D;
 }
 
-struct cpu_op {
+struct cpu_op
+{
 	u32 cpu_rate;
 };
 

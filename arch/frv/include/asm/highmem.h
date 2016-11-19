@@ -27,40 +27,40 @@
 
 #ifndef __ASSEMBLY__
 
-#include <linux/interrupt.h>
-#include <asm/kmap_types.h>
-#include <asm/pgtable.h>
+	#include <linux/interrupt.h>
+	#include <asm/kmap_types.h>
+	#include <asm/pgtable.h>
 
-#ifdef CONFIG_DEBUG_HIGHMEM
-#define HIGHMEM_DEBUG 1
-#else
-#define HIGHMEM_DEBUG 0
-#endif
+	#ifdef CONFIG_DEBUG_HIGHMEM
+		#define HIGHMEM_DEBUG 1
+	#else
+		#define HIGHMEM_DEBUG 0
+	#endif
 
-/* declarations for highmem.c */
-extern unsigned long highstart_pfn, highend_pfn;
+	/* declarations for highmem.c */
+	extern unsigned long highstart_pfn, highend_pfn;
 
-#define kmap_prot PAGE_KERNEL
-#define kmap_pte ______kmap_pte_in_TLB
-extern pte_t *pkmap_page_table;
+	#define kmap_prot PAGE_KERNEL
+	#define kmap_pte ______kmap_pte_in_TLB
+	extern pte_t *pkmap_page_table;
 
-#define flush_cache_kmaps()  do { } while (0)
+	#define flush_cache_kmaps()  do { } while (0)
 
-/*
- * Right now we initialize only a single pte table. It can be extended
- * easily, subsequent pte tables have to be allocated in one physical
- * chunk of RAM.
- */
-#define LAST_PKMAP	PTRS_PER_PTE
-#define LAST_PKMAP_MASK	(LAST_PKMAP - 1)
-#define PKMAP_NR(virt)	((virt - PKMAP_BASE) >> PAGE_SHIFT)
-#define PKMAP_ADDR(nr)	(PKMAP_BASE + ((nr) << PAGE_SHIFT))
+	/*
+	* Right now we initialize only a single pte table. It can be extended
+	* easily, subsequent pte tables have to be allocated in one physical
+	* chunk of RAM.
+	*/
+	#define LAST_PKMAP	PTRS_PER_PTE
+	#define LAST_PKMAP_MASK	(LAST_PKMAP - 1)
+	#define PKMAP_NR(virt)	((virt - PKMAP_BASE) >> PAGE_SHIFT)
+	#define PKMAP_ADDR(nr)	(PKMAP_BASE + ((nr) << PAGE_SHIFT))
 
-extern void *kmap_high(struct page *page);
-extern void kunmap_high(struct page *page);
+	extern void *kmap_high(struct page *page);
+	extern void kunmap_high(struct page *page);
 
-extern void *kmap(struct page *page);
-extern void kunmap(struct page *page);
+	extern void *kmap(struct page *page);
+	extern void kunmap(struct page *page);
 
 #endif /* !__ASSEMBLY__ */
 
@@ -75,41 +75,41 @@ extern void kunmap(struct page *page);
 #ifndef __ASSEMBLY__
 
 #define __kmap_atomic_primary(cached, paddr, ampr)						\
-({												\
-	unsigned long damlr, dampr;								\
-												\
-	dampr = paddr | xAMPRx_L | xAMPRx_M | xAMPRx_S | xAMPRx_SS_16Kb | xAMPRx_V;		\
-												\
-	if (!cached)										\
-		asm volatile("movgs %0,dampr"#ampr :: "r"(dampr) : "memory");			\
-	else											\
-		/* cache flush page attachment point */						\
-		asm volatile("movgs %0,iampr"#ampr"\n"						\
-			     "movgs %0,dampr"#ampr"\n"						\
-			     :: "r"(dampr) : "memory"						\
-			     );									\
-												\
-	asm("movsg damlr"#ampr",%0" : "=r"(damlr));						\
-												\
-	/*printk("DAMR"#ampr": PRIM sl=%d L=%08lx P=%08lx\n", type, damlr, dampr);*/		\
-												\
-	(void *) damlr;										\
-})
+	({												\
+		unsigned long damlr, dampr;								\
+		\
+		dampr = paddr | xAMPRx_L | xAMPRx_M | xAMPRx_S | xAMPRx_SS_16Kb | xAMPRx_V;		\
+		\
+		if (!cached)										\
+			asm volatile("movgs %0,dampr"#ampr :: "r"(dampr) : "memory");			\
+		else											\
+			/* cache flush page attachment point */						\
+			asm volatile("movgs %0,iampr"#ampr"\n"						\
+						 "movgs %0,dampr"#ampr"\n"						\
+						 :: "r"(dampr) : "memory"						\
+						);									\
+		\
+		asm("movsg damlr"#ampr",%0" : "=r"(damlr));						\
+		\
+		/*printk("DAMR"#ampr": PRIM sl=%d L=%08lx P=%08lx\n", type, damlr, dampr);*/		\
+		\
+		(void *) damlr;										\
+	})
 
 #define __kmap_atomic_secondary(slot, paddr)							  \
-({												  \
-	unsigned long damlr = KMAP_ATOMIC_SECONDARY_FRAME + (slot) * PAGE_SIZE;			  \
-	unsigned long dampr = paddr | xAMPRx_L | xAMPRx_M | xAMPRx_S | xAMPRx_SS_16Kb | xAMPRx_V; \
-												  \
-	asm volatile("movgs %0,tplr \n"								  \
-		     "movgs %1,tppr \n"								  \
-		     "tlbpr %0,gr0,#2,#1"							  \
-		     : : "r"(damlr), "r"(dampr) : "memory");					  \
-												  \
-	/*printk("TLB: SECN sl=%d L=%08lx P=%08lx\n", slot, damlr, dampr);*/			  \
-												  \
-	(void *) damlr;										  \
-})
+	({												  \
+		unsigned long damlr = KMAP_ATOMIC_SECONDARY_FRAME + (slot) * PAGE_SIZE;			  \
+		unsigned long dampr = paddr | xAMPRx_L | xAMPRx_M | xAMPRx_S | xAMPRx_SS_16Kb | xAMPRx_V; \
+		\
+		asm volatile("movgs %0,tplr \n"								  \
+					 "movgs %1,tppr \n"								  \
+					 "tlbpr %0,gr0,#2,#1"							  \
+					 : : "r"(damlr), "r"(dampr) : "memory");					  \
+		\
+		/*printk("TLB: SECN sl=%d L=%08lx P=%08lx\n", slot, damlr, dampr);*/			  \
+		\
+		(void *) damlr;										  \
+	})
 
 static inline void *kmap_atomic_primary(struct page *page)
 {
@@ -118,24 +118,24 @@ static inline void *kmap_atomic_primary(struct page *page)
 	pagefault_disable();
 	paddr = page_to_phys(page);
 
-        return __kmap_atomic_primary(1, paddr, 2);
+	return __kmap_atomic_primary(1, paddr, 2);
 }
 
 #define __kunmap_atomic_primary(cached, ampr)				\
-do {									\
-	asm volatile("movgs gr0,dampr"#ampr"\n" ::: "memory");		\
-	if (cached)							\
-		asm volatile("movgs gr0,iampr"#ampr"\n" ::: "memory");	\
-} while(0)
+	do {									\
+		asm volatile("movgs gr0,dampr"#ampr"\n" ::: "memory");		\
+		if (cached)							\
+			asm volatile("movgs gr0,iampr"#ampr"\n" ::: "memory");	\
+	} while(0)
 
 #define __kunmap_atomic_secondary(slot, vaddr)				\
-do {									\
-	asm volatile("tlbpr %0,gr0,#4,#1" : : "r"(vaddr) : "memory");	\
-} while(0)
+	do {									\
+		asm volatile("tlbpr %0,gr0,#4,#1" : : "r"(vaddr) : "memory");	\
+	} while(0)
 
 static inline void kunmap_atomic_primary(void *kvaddr)
 {
-        __kunmap_atomic_primary(1, 2);
+	__kunmap_atomic_primary(1, 2);
 	pagefault_enable();
 }
 

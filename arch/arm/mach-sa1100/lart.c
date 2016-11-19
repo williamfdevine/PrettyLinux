@@ -24,13 +24,15 @@
 
 #include "generic.h"
 
-static struct mcp_plat_data lart_mcp_data = {
+static struct mcp_plat_data lart_mcp_data =
+{
 	.mccr0		= MCCR0_ADM,
 	.sclk_rate	= 11981000,
 };
 
 #ifdef LART_GREY_LCD
-static struct sa1100fb_mach_info lart_grey_info = {
+static struct sa1100fb_mach_info lart_grey_info =
+{
 	.pixclock	= 150000,	.bpp		= 4,
 	.xres		= 320,		.yres		= 240,
 
@@ -46,7 +48,8 @@ static struct sa1100fb_mach_info lart_grey_info = {
 };
 #endif
 #ifdef LART_COLOR_LCD
-static struct sa1100fb_mach_info lart_color_info = {
+static struct sa1100fb_mach_info lart_color_info =
+{
 	.pixclock	= 150000,	.bpp		= 16,
 	.xres		= 320,		.yres		= 240,
 
@@ -59,7 +62,8 @@ static struct sa1100fb_mach_info lart_color_info = {
 };
 #endif
 #ifdef LART_VIDEO_OUT
-static struct sa1100fb_mach_info lart_video_info = {
+static struct sa1100fb_mach_info lart_video_info =
+{
 	.pixclock	= 39721,	.bpp		= 16,
 	.xres		= 640,		.yres		= 480,
 
@@ -75,7 +79,8 @@ static struct sa1100fb_mach_info lart_video_info = {
 #endif
 
 #ifdef LART_KIT01_LCD
-static struct sa1100fb_mach_info lart_kit01_info = {
+static struct sa1100fb_mach_info lart_kit01_info =
+{
 	.pixclock	= 63291,	.bpp		= 16,
 	.xres		= 640,		.yres		= 480,
 
@@ -106,13 +111,16 @@ static void __init lart_init(void)
 #endif
 
 	if (inf)
+	{
 		sa11x0_register_lcd(inf);
+	}
 
 	sa11x0_ppc_configure_mcp();
 	sa11x0_register_mcp(&lart_mcp_data);
 }
 
-static struct map_desc lart_io_desc[] __initdata = {
+static struct map_desc lart_io_desc[] __initdata =
+{
 	{	/* main flash memory */
 		.virtual	=  0xe8000000,
 		.pfn		= __phys_to_pfn(0x00000000),
@@ -127,7 +135,8 @@ static struct map_desc lart_io_desc[] __initdata = {
 };
 
 /* LEDs */
-struct gpio_led lart_gpio_leds[] = {
+struct gpio_led lart_gpio_leds[] =
+{
 	{
 		.name			= "lart:red",
 		.default_trigger	= "cpu0",
@@ -135,12 +144,14 @@ struct gpio_led lart_gpio_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data lart_gpio_led_info = {
+static struct gpio_led_platform_data lart_gpio_led_info =
+{
 	.leds		= lart_gpio_leds,
 	.num_leds	= ARRAY_SIZE(lart_gpio_leds),
 };
 
-static struct platform_device lart_leds = {
+static struct platform_device lart_leds =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -165,12 +176,12 @@ static void __init lart_map_io(void)
 }
 
 MACHINE_START(LART, "LART")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= lart_map_io,
-	.nr_irqs	= SA1100_NR_IRQS,
-	.init_irq	= sa1100_init_irq,
-	.init_machine	= lart_init,
-	.init_late	= sa11x0_init_late,
-	.init_time	= sa1100_timer_init,
-	.restart	= sa11x0_restart,
-MACHINE_END
+		.nr_irqs	= SA1100_NR_IRQS,
+			.init_irq	= sa1100_init_irq,
+			   .init_machine	= lart_init,
+				  .init_late	= sa11x0_init_late,
+					.init_time	= sa1100_timer_init,
+					  .restart	= sa11x0_restart,
+						  MACHINE_END

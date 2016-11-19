@@ -10,13 +10,13 @@
 static __always_inline bool arch_static_branch(struct static_key *key, bool branch)
 {
 	asm_volatile_goto("1:\n\t"
-		 "nop\n\t"
-		 "nop\n\t"
-		 ".pushsection __jump_table,  \"aw\"\n\t"
-		 ".align 4\n\t"
-		 ".word 1b, %l[l_yes], %c0\n\t"
-		 ".popsection \n\t"
-		 : :  "i" (&((char *)key)[branch]) : : l_yes);
+					  "nop\n\t"
+					  "nop\n\t"
+					  ".pushsection __jump_table,  \"aw\"\n\t"
+					  ".align 4\n\t"
+					  ".word 1b, %l[l_yes], %c0\n\t"
+					  ".popsection \n\t"
+					  : :  "i" (&((char *)key)[branch]) : : l_yes);
 
 	return false;
 l_yes:
@@ -26,13 +26,13 @@ l_yes:
 static __always_inline bool arch_static_branch_jump(struct static_key *key, bool branch)
 {
 	asm_volatile_goto("1:\n\t"
-		 "b %l[l_yes]\n\t"
-		 "nop\n\t"
-		 ".pushsection __jump_table,  \"aw\"\n\t"
-		 ".align 4\n\t"
-		 ".word 1b, %l[l_yes], %c0\n\t"
-		 ".popsection \n\t"
-		 : :  "i" (&((char *)key)[branch]) : : l_yes);
+					  "b %l[l_yes]\n\t"
+					  "nop\n\t"
+					  ".pushsection __jump_table,  \"aw\"\n\t"
+					  ".align 4\n\t"
+					  ".word 1b, %l[l_yes], %c0\n\t"
+					  ".popsection \n\t"
+					  : :  "i" (&((char *)key)[branch]) : : l_yes);
 
 	return false;
 l_yes:
@@ -41,7 +41,8 @@ l_yes:
 
 typedef u32 jump_label_t;
 
-struct jump_entry {
+struct jump_entry
+{
 	jump_label_t code;
 	jump_label_t target;
 	jump_label_t key;

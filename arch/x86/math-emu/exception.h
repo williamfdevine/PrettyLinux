@@ -10,13 +10,13 @@
 #define _EXCEPTION_H_
 
 #ifdef __ASSEMBLY__
-#define	Const_(x)	$##x
+	#define	Const_(x)	$##x
 #else
-#define	Const_(x)	x
+	#define	Const_(x)	x
 #endif
 
 #ifndef SW_C1
-#include "fpu_emu.h"
+	#include "fpu_emu.h"
 #endif /* SW_C1 */
 
 #define FPU_BUSY        Const_(0x8000)	/* FPU busy bit (8087 compatibility) */
@@ -40,7 +40,7 @@
 
 #ifdef DEBUG
 #define	EXCEPTION(x)	{ printk("exception in %s at line %d\n", \
-	__FILE__, __LINE__); FPU_exception(x); }
+									 __FILE__, __LINE__); FPU_exception(x); }
 #else
 #define	EXCEPTION(x)	FPU_exception(x)
 #endif

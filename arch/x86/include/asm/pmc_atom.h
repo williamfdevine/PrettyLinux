@@ -45,10 +45,10 @@
 #define	BIT_SHARED_IRQ_GPSS		BIT(20)
 
 #define	PMC_WAKE_EN_SETTING	~(BIT_LPC_CLOCK_RUN | \
-				BIT_SHARED_IRQ_GPSC | \
-				BIT_ORED_DEDICATED_IRQ_GPSS | \
-				BIT_ORED_DEDICATED_IRQ_GPSC | \
-				BIT_SHARED_IRQ_GPSS)
+							  BIT_SHARED_IRQ_GPSC | \
+							  BIT_ORED_DEDICATED_IRQ_GPSS | \
+							  BIT_ORED_DEDICATED_IRQ_GPSC | \
+							  BIT_SHARED_IRQ_GPSS)
 
 /* The timers acumulate time spent in sleep state */
 #define	PMC_S0IR_TMR		0x80

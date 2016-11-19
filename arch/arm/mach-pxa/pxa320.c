@@ -23,7 +23,8 @@
 #include "generic.h"
 #include "devices.h"
 
-static struct mfp_addr_map pxa320_mfp_addr_map[] __initdata = {
+static struct mfp_addr_map pxa320_mfp_addr_map[] __initdata =
+{
 
 	MFP_ADDR_X(GPIO0,  GPIO4,   0x0124),
 	MFP_ADDR_X(GPIO5,  GPIO9,   0x028C),
@@ -79,7 +80,8 @@ static struct mfp_addr_map pxa320_mfp_addr_map[] __initdata = {
 
 static int __init pxa320_init(void)
 {
-	if (cpu_is_pxa320()) {
+	if (cpu_is_pxa320())
+	{
 		mfp_init_base(io_p2v(MFPR_BASE));
 		mfp_init_addr(pxa320_mfp_addr_map);
 	}

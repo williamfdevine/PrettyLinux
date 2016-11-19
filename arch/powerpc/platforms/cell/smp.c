@@ -46,9 +46,9 @@
 #include <asm/udbg.h>
 
 #ifdef DEBUG
-#define DBG(fmt...) udbg_printf(fmt)
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 /*
@@ -72,13 +72,15 @@ static inline int smp_startup_cpu(unsigned int lcpu)
 {
 	int status;
 	unsigned long start_here =
-			__pa(ppc_function_entry(generic_secondary_smp_init));
+		__pa(ppc_function_entry(generic_secondary_smp_init));
 	unsigned int pcpu;
 	int start_cpu;
 
 	if (cpumask_test_cpu(lcpu, &of_spin_map))
 		/* Already started by OF and sitting in spin loop */
+	{
 		return 1;
+	}
 
 	pcpu = get_hard_smp_processor_id(lcpu);
 
@@ -90,11 +92,16 @@ static inline int smp_startup_cpu(unsigned int lcpu)
 	 * cpu is already spinning.
 	 */
 	start_cpu = rtas_token("start-cpu");
+
 	if (start_cpu == RTAS_UNKNOWN_SERVICE)
+	{
 		return 1;
+	}
 
 	status = rtas_call(start_cpu, 3, 1, NULL, pcpu, start_here, lcpu);
-	if (status != 0) {
+
+	if (status != 0)
+	{
 		printk(KERN_ERR "start-cpu failed: %i\n", status);
 		return 0;
 	}
@@ -105,7 +112,9 @@ static inline int smp_startup_cpu(unsigned int lcpu)
 static void smp_cell_setup_cpu(int cpu)
 {
 	if (cpu != boot_cpuid)
+	{
 		iic_setup_cpu();
+	}
 
 	/*
 	 * change default DABRX to allow user watchpoints
@@ -118,7 +127,9 @@ static int smp_cell_kick_cpu(int nr)
 	BUG_ON(nr < 0 || nr >= NR_CPUS);
 
 	if (!smp_startup_cpu(nr))
+	{
 		return -ENOENT;
+	}
 
 	/*
 	 * The processor is currently spinning, waiting for the
@@ -130,7 +141,8 @@ static int smp_cell_kick_cpu(int nr)
 	return 0;
 }
 
-static struct smp_ops_t bpa_iic_smp_ops = {
+static struct smp_ops_t bpa_iic_smp_ops =
+{
 	.message_pass	= iic_message_pass,
 	.probe		= iic_request_IPIs,
 	.kick_cpu	= smp_cell_kick_cpu,
@@ -148,18 +160,26 @@ void __init smp_init_cell(void)
 	smp_ops = &bpa_iic_smp_ops;
 
 	/* Mark threads which are still spinning in hold loops. */
-	if (cpu_has_feature(CPU_FTR_SMT)) {
-		for_each_present_cpu(i) {
+	if (cpu_has_feature(CPU_FTR_SMT))
+	{
+		for_each_present_cpu(i)
+		{
 			if (cpu_thread_in_core(i) == 0)
+			{
 				cpumask_set_cpu(i, &of_spin_map);
+			}
 		}
-	} else
+	}
+	else
+	{
 		cpumask_copy(&of_spin_map, cpu_present_mask);
+	}
 
 	cpumask_clear_cpu(boot_cpuid, &of_spin_map);
 
 	/* Non-lpar has additional take/give timebase */
-	if (rtas_token("freeze-time-base") != RTAS_UNKNOWN_SERVICE) {
+	if (rtas_token("freeze-time-base") != RTAS_UNKNOWN_SERVICE)
+	{
 		smp_ops->give_timebase = rtas_give_timebase;
 		smp_ops->take_timebase = rtas_take_timebase;
 	}

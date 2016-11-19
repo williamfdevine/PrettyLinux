@@ -22,7 +22,8 @@
 #include <asm/smp.h>
 
 
-struct powernv_rng {
+struct powernv_rng
+{
 	void __iomem *regs;
 	void __iomem *regs_real;
 	unsigned long mask;
@@ -82,17 +83,22 @@ int powernv_get_random_long(unsigned long *v)
 EXPORT_SYMBOL_GPL(powernv_get_random_long);
 
 static __init void rng_init_per_cpu(struct powernv_rng *rng,
-				    struct device_node *dn)
+									struct device_node *dn)
 {
 	int chip_id, cpu;
 
 	chip_id = of_get_ibm_chip_id(dn);
-	if (chip_id == -1)
-		pr_warn("No ibm,chip-id found for %s.\n", dn->full_name);
 
-	for_each_possible_cpu(cpu) {
+	if (chip_id == -1)
+	{
+		pr_warn("No ibm,chip-id found for %s.\n", dn->full_name);
+	}
+
+	for_each_possible_cpu(cpu)
+	{
 		if (per_cpu(powernv_rng, cpu) == NULL ||
-		    cpu_to_chip_id(cpu) == chip_id) {
+			cpu_to_chip_id(cpu) == chip_id)
+		{
 			per_cpu(powernv_rng, cpu) = rng;
 		}
 	}
@@ -105,10 +111,14 @@ static __init int rng_create(struct device_node *dn)
 	unsigned long val;
 
 	rng = kzalloc(sizeof(*rng), GFP_KERNEL);
-	if (!rng)
-		return -ENOMEM;
 
-	if (of_address_to_resource(dn, 0, &res)) {
+	if (!rng)
+	{
+		return -ENOMEM;
+	}
+
+	if (of_address_to_resource(dn, 0, &res))
+	{
 		kfree(rng);
 		return -ENXIO;
 	}
@@ -116,7 +126,9 @@ static __init int rng_create(struct device_node *dn)
 	rng->regs_real = (void __iomem *)res.start;
 
 	rng->regs = of_iomap(dn, 0);
-	if (!rng->regs) {
+
+	if (!rng->regs)
+	{
 		kfree(rng);
 		return -ENXIO;
 	}
@@ -138,11 +150,14 @@ static __init int rng_init(void)
 	struct device_node *dn;
 	int rc;
 
-	for_each_compatible_node(dn, NULL, "ibm,power-rng") {
+	for_each_compatible_node(dn, NULL, "ibm,power-rng")
+	{
 		rc = rng_create(dn);
-		if (rc) {
+
+		if (rc)
+		{
 			pr_err("Failed creating rng for %s (%d).\n",
-				dn->full_name, rc);
+				   dn->full_name, rc);
 			continue;
 		}
 

@@ -37,7 +37,8 @@
 
 #define USR_REG_OFFSET(_num) REG_OFFSET(usr_regs.uregs[_num])
 
-static const unsigned long vcpu_reg_offsets[VCPU_NR_MODES][15] = {
+static const unsigned long vcpu_reg_offsets[VCPU_NR_MODES][15] =
+{
 	/* USR/SYS Registers */
 	[VCPU_REG_OFFSET_USR] = {
 		USR_REG_OFFSET(0), USR_REG_OFFSET(1), USR_REG_OFFSET(2),
@@ -115,25 +116,26 @@ unsigned long *vcpu_reg(struct kvm_vcpu *vcpu, u8 reg_num)
 	unsigned long *reg_array = (unsigned long *)&vcpu->arch.ctxt.gp_regs;
 	unsigned long mode = *vcpu_cpsr(vcpu) & MODE_MASK;
 
-	switch (mode) {
-	case USR_MODE...SVC_MODE:
-		mode &= ~MODE32_BIT; /* 0 ... 3 */
-		break;
+	switch (mode)
+	{
+		case USR_MODE...SVC_MODE:
+			mode &= ~MODE32_BIT; /* 0 ... 3 */
+			break;
 
-	case ABT_MODE:
-		mode = VCPU_REG_OFFSET_ABT;
-		break;
+		case ABT_MODE:
+			mode = VCPU_REG_OFFSET_ABT;
+			break;
 
-	case UND_MODE:
-		mode = VCPU_REG_OFFSET_UND;
-		break;
+		case UND_MODE:
+			mode = VCPU_REG_OFFSET_UND;
+			break;
 
-	case SYSTEM_MODE:
-		mode = VCPU_REG_OFFSET_USR;
-		break;
+		case SYSTEM_MODE:
+			mode = VCPU_REG_OFFSET_USR;
+			break;
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 
 	return reg_array + vcpu_reg_offsets[mode][reg_num];
@@ -145,19 +147,26 @@ unsigned long *vcpu_reg(struct kvm_vcpu *vcpu, u8 reg_num)
 unsigned long *vcpu_spsr(struct kvm_vcpu *vcpu)
 {
 	unsigned long mode = *vcpu_cpsr(vcpu) & MODE_MASK;
-	switch (mode) {
-	case SVC_MODE:
-		return &vcpu->arch.ctxt.gp_regs.KVM_ARM_SVC_spsr;
-	case ABT_MODE:
-		return &vcpu->arch.ctxt.gp_regs.KVM_ARM_ABT_spsr;
-	case UND_MODE:
-		return &vcpu->arch.ctxt.gp_regs.KVM_ARM_UND_spsr;
-	case IRQ_MODE:
-		return &vcpu->arch.ctxt.gp_regs.KVM_ARM_IRQ_spsr;
-	case FIQ_MODE:
-		return &vcpu->arch.ctxt.gp_regs.KVM_ARM_FIQ_spsr;
-	default:
-		BUG();
+
+	switch (mode)
+	{
+		case SVC_MODE:
+			return &vcpu->arch.ctxt.gp_regs.KVM_ARM_SVC_spsr;
+
+		case ABT_MODE:
+			return &vcpu->arch.ctxt.gp_regs.KVM_ARM_ABT_spsr;
+
+		case UND_MODE:
+			return &vcpu->arch.ctxt.gp_regs.KVM_ARM_UND_spsr;
+
+		case IRQ_MODE:
+			return &vcpu->arch.ctxt.gp_regs.KVM_ARM_IRQ_spsr;
+
+		case FIQ_MODE:
+			return &vcpu->arch.ctxt.gp_regs.KVM_ARM_FIQ_spsr;
+
+		default:
+			BUG();
 	}
 }
 
@@ -171,9 +180,13 @@ static u32 exc_vector_base(struct kvm_vcpu *vcpu)
 	u32 vbar = vcpu_cp15(vcpu, c12_VBAR);
 
 	if (sctlr & SCTLR_V)
+	{
 		return 0xffff0000;
+	}
 	else /* always have security exceptions */
+	{
 		return vbar;
+	}
 }
 
 /*
@@ -187,24 +200,32 @@ static void kvm_update_psr(struct kvm_vcpu *vcpu, unsigned long mode)
 
 	*vcpu_cpsr(vcpu) = (cpsr & ~MODE_MASK) | mode;
 
-	switch (mode) {
-	case FIQ_MODE:
-		*vcpu_cpsr(vcpu) |= PSR_F_BIT;
+	switch (mode)
+	{
+		case FIQ_MODE:
+			*vcpu_cpsr(vcpu) |= PSR_F_BIT;
+
 		/* Fall through */
-	case ABT_MODE:
-	case IRQ_MODE:
-		*vcpu_cpsr(vcpu) |= PSR_A_BIT;
+		case ABT_MODE:
+		case IRQ_MODE:
+			*vcpu_cpsr(vcpu) |= PSR_A_BIT;
+
 		/* Fall through */
-	default:
-		*vcpu_cpsr(vcpu) |= PSR_I_BIT;
+		default:
+			*vcpu_cpsr(vcpu) |= PSR_I_BIT;
 	}
 
 	*vcpu_cpsr(vcpu) &= ~(PSR_IT_MASK | PSR_J_BIT | PSR_E_BIT | PSR_T_BIT);
 
 	if (sctlr & SCTLR_TE)
+	{
 		*vcpu_cpsr(vcpu) |= PSR_T_BIT;
+	}
+
 	if (sctlr & SCTLR_EE)
+	{
 		*vcpu_cpsr(vcpu) |= PSR_E_BIT;
+	}
 
 	/* Note: These now point to the mode banked copies */
 	*vcpu_spsr(vcpu) = cpsr;
@@ -249,31 +270,48 @@ static void inject_abt(struct kvm_vcpu *vcpu, bool is_pabt, unsigned long addr)
 	*vcpu_reg(vcpu, 14) = *vcpu_pc(vcpu) + return_offset;
 
 	if (is_pabt)
+	{
 		vect_offset = 12;
+	}
 	else
+	{
 		vect_offset = 16;
+	}
 
 	/* Branch to exception vector */
 	*vcpu_pc(vcpu) = exc_vector_base(vcpu) + vect_offset;
 
-	if (is_pabt) {
+	if (is_pabt)
+	{
 		/* Set IFAR and IFSR */
 		vcpu_cp15(vcpu, c6_IFAR) = addr;
 		is_lpae = (vcpu_cp15(vcpu, c2_TTBCR) >> 31);
+
 		/* Always give debug fault for now - should give guest a clue */
 		if (is_lpae)
+		{
 			vcpu_cp15(vcpu, c5_IFSR) = 1 << 9 | 0x22;
+		}
 		else
+		{
 			vcpu_cp15(vcpu, c5_IFSR) = 2;
-	} else { /* !iabt */
+		}
+	}
+	else     /* !iabt */
+	{
 		/* Set DFAR and DFSR */
 		vcpu_cp15(vcpu, c6_DFAR) = addr;
 		is_lpae = (vcpu_cp15(vcpu, c2_TTBCR) >> 31);
+
 		/* Always give debug fault for now - should give guest a clue */
 		if (is_lpae)
+		{
 			vcpu_cp15(vcpu, c5_DFSR) = 1 << 9 | 0x22;
+		}
 		else
+		{
 			vcpu_cp15(vcpu, c5_DFSR) = 2;
+		}
 	}
 
 }

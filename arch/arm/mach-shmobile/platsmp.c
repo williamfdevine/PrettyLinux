@@ -41,7 +41,9 @@ bool __init shmobile_smp_init_fallback_ops(void)
 {
 	/* fallback on PSCI/smp_ops if no other DT based method is detected */
 	if (!IS_ENABLED(CONFIG_SMP))
+	{
 		return false;
+	}
 
 	return platform_can_secondary_boot() ? true : false;
 }

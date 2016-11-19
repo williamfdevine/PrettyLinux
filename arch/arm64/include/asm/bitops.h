@@ -20,7 +20,7 @@
 #include <asm/barrier.h>
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 /*

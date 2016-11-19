@@ -19,7 +19,7 @@
 
 /* Needed by drivers/pci/quirks.c */
 #ifdef CONFIG_PCI
-extern int isa_dma_bridge_buggy;
+	extern int isa_dma_bridge_buggy;
 #endif
 
 #endif /* _ASM_TILE_DMA_H */

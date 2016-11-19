@@ -35,9 +35,14 @@ static int rng_dev_open (struct inode *inode, struct file *filp)
 {
 	/* enforce read-only access to this chrdev */
 	if ((filp->f_mode & FMODE_READ) == 0)
+	{
 		return -EINVAL;
+	}
+
 	if ((filp->f_mode & FMODE_WRITE) != 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -45,31 +50,41 @@ static int rng_dev_open (struct inode *inode, struct file *filp)
 static atomic_t host_sleep_count = ATOMIC_INIT(0);
 
 static ssize_t rng_dev_read (struct file *filp, char __user *buf, size_t size,
-			     loff_t *offp)
+							 loff_t *offp)
 {
 	u32 data;
 	int n, ret = 0, have_data;
 
-	while (size) {
+	while (size)
+	{
 		n = os_read_file(random_fd, &data, sizeof(data));
-		if (n > 0) {
+
+		if (n > 0)
+		{
 			have_data = n;
-			while (have_data && size) {
-				if (put_user((u8) data, buf++)) {
+
+			while (have_data && size)
+			{
+				if (put_user((u8) data, buf++))
+				{
 					ret = ret ? : -EFAULT;
 					break;
 				}
+
 				size--;
 				ret++;
 				have_data--;
 				data >>= 8;
 			}
 		}
-		else if (n == -EAGAIN) {
+		else if (n == -EAGAIN)
+		{
 			DECLARE_WAITQUEUE(wait, current);
 
 			if (filp->f_flags & O_NONBLOCK)
+			{
 				return ret ? : -EAGAIN;
+			}
 
 			atomic_inc(&host_sleep_count);
 			reactivate_fd(random_fd, RANDOM_IRQ);
@@ -81,21 +96,28 @@ static ssize_t rng_dev_read (struct file *filp, char __user *buf, size_t size,
 			schedule();
 			remove_wait_queue(&host_read_wait, &wait);
 
-			if (atomic_dec_and_test(&host_sleep_count)) {
+			if (atomic_dec_and_test(&host_sleep_count))
+			{
 				ignore_sigio_fd(random_fd);
 				deactivate_fd(random_fd, RANDOM_IRQ);
 			}
 		}
 		else
+		{
 			return n;
+		}
 
 		if (signal_pending (current))
+		{
 			return ret ? : -ERESTARTSYS;
+		}
 	}
+
 	return ret;
 }
 
-static const struct file_operations rng_chrdev_ops = {
+static const struct file_operations rng_chrdev_ops =
+{
 	.owner		= THIS_MODULE,
 	.open		= rng_dev_open,
 	.read		= rng_dev_read,
@@ -103,7 +125,8 @@ static const struct file_operations rng_chrdev_ops = {
 };
 
 /* rng_init shouldn't be called more than once at boot time */
-static struct miscdevice rng_miscdev = {
+static struct miscdevice rng_miscdev =
+{
 	RNG_MISCDEV_MINOR,
 	RNG_MODULE_NAME,
 	&rng_chrdev_ops,
@@ -124,24 +147,33 @@ static int __init rng_init (void)
 	int err;
 
 	err = os_open_file("/dev/random", of_read(OPENFLAGS()), 0);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	random_fd = err;
 
 	err = um_request_irq(RANDOM_IRQ, random_fd, IRQ_READ, random_interrupt,
-			     0, "random", NULL);
+						 0, "random", NULL);
+
 	if (err)
+	{
 		goto err_out_cleanup_hw;
+	}
 
 	sigio_broken(random_fd, 1);
 
 	err = misc_register (&rng_miscdev);
-	if (err) {
+
+	if (err)
+	{
 		printk (KERN_ERR RNG_MODULE_NAME ": misc device register "
-			"failed\n");
+				"failed\n");
 		goto err_out_cleanup_hw;
 	}
+
 out:
 	return err;
 

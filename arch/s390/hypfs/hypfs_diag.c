@@ -46,33 +46,49 @@ static struct dentry *dbfs_d204_file;
 static inline int info_blk_hdr__size(enum diag204_format type)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return sizeof(struct diag204_info_blk_hdr);
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return sizeof(struct diag204_x_info_blk_hdr);
+	}
 }
 
 static inline __u8 info_blk_hdr__npar(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_info_blk_hdr *)hdr)->npar;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_info_blk_hdr *)hdr)->npar;
+	}
 }
 
 static inline __u8 info_blk_hdr__flags(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_info_blk_hdr *)hdr)->flags;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_info_blk_hdr *)hdr)->flags;
+	}
 }
 
 static inline __u16 info_blk_hdr__pcpus(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_info_blk_hdr *)hdr)->phys_cpus;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_info_blk_hdr *)hdr)->phys_cpus;
+	}
 }
 
 /* Partition header */
@@ -80,28 +96,37 @@ static inline __u16 info_blk_hdr__pcpus(enum diag204_format type, void *hdr)
 static inline int part_hdr__size(enum diag204_format type)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return sizeof(struct diag204_part_hdr);
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return sizeof(struct diag204_x_part_hdr);
+	}
 }
 
 static inline __u8 part_hdr__rcpus(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_part_hdr *)hdr)->cpus;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_part_hdr *)hdr)->rcpus;
+	}
 }
 
 static inline void part_hdr__part_name(enum diag204_format type, void *hdr,
-				       char *name)
+									   char *name)
 {
 	if (type == DIAG204_INFO_SIMPLE)
 		memcpy(name, ((struct diag204_part_hdr *)hdr)->part_name,
-		       DIAG204_LPAR_NAME_LEN);
+			   DIAG204_LPAR_NAME_LEN);
 	else /* DIAG204_INFO_EXT */
 		memcpy(name, ((struct diag204_x_part_hdr *)hdr)->part_name,
-		       DIAG204_LPAR_NAME_LEN);
+			   DIAG204_LPAR_NAME_LEN);
+
 	EBCASC(name, DIAG204_LPAR_NAME_LEN);
 	name[DIAG204_LPAR_NAME_LEN] = 0;
 	strim(name);
@@ -112,49 +137,73 @@ static inline void part_hdr__part_name(enum diag204_format type, void *hdr,
 static inline int cpu_info__size(enum diag204_format type)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return sizeof(struct diag204_cpu_info);
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return sizeof(struct diag204_x_cpu_info);
+	}
 }
 
 static inline __u8 cpu_info__ctidx(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_cpu_info *)hdr)->ctidx;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_cpu_info *)hdr)->ctidx;
+	}
 }
 
 static inline __u16 cpu_info__cpu_addr(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_cpu_info *)hdr)->cpu_addr;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_cpu_info *)hdr)->cpu_addr;
+	}
 }
 
 static inline __u64 cpu_info__acc_time(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_cpu_info *)hdr)->acc_time;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_cpu_info *)hdr)->acc_time;
+	}
 }
 
 static inline __u64 cpu_info__lp_time(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_cpu_info *)hdr)->lp_time;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_cpu_info *)hdr)->lp_time;
+	}
 }
 
 static inline __u64 cpu_info__online_time(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
-		return 0;	/* online_time not available in simple info */
+	{
+		return 0;    /* online_time not available in simple info */
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_cpu_info *)hdr)->online_time;
+	}
 }
 
 /* Physical header */
@@ -162,17 +211,25 @@ static inline __u64 cpu_info__online_time(enum diag204_format type, void *hdr)
 static inline int phys_hdr__size(enum diag204_format type)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return sizeof(struct diag204_phys_hdr);
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return sizeof(struct diag204_x_phys_hdr);
+	}
 }
 
 static inline __u8 phys_hdr__cpus(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_phys_hdr *)hdr)->cpus;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_phys_hdr *)hdr)->cpus;
+	}
 }
 
 /* Physical CPU info block */
@@ -180,33 +237,49 @@ static inline __u8 phys_hdr__cpus(enum diag204_format type, void *hdr)
 static inline int phys_cpu__size(enum diag204_format type)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return sizeof(struct diag204_phys_cpu);
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return sizeof(struct diag204_x_phys_cpu);
+	}
 }
 
 static inline __u16 phys_cpu__cpu_addr(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_phys_cpu *)hdr)->cpu_addr;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_phys_cpu *)hdr)->cpu_addr;
+	}
 }
 
 static inline __u64 phys_cpu__mgm_time(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_phys_cpu *)hdr)->mgm_time;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_phys_cpu *)hdr)->mgm_time;
+	}
 }
 
 static inline __u64 phys_cpu__ctidx(enum diag204_format type, void *hdr)
 {
 	if (type == DIAG204_INFO_SIMPLE)
+	{
 		return ((struct diag204_phys_cpu *)hdr)->ctidx;
+	}
 	else /* DIAG204_INFO_EXT */
+	{
 		return ((struct diag204_x_phys_cpu *)hdr)->ctidx;
+	}
 }
 
 /* Diagnose 204 functions */
@@ -220,13 +293,20 @@ static inline __u64 phys_cpu__ctidx(enum diag204_format type, void *hdr)
 static void diag204_free_buffer(void)
 {
 	if (!diag204_buf)
+	{
 		return;
-	if (diag204_buf_vmalloc) {
+	}
+
+	if (diag204_buf_vmalloc)
+	{
 		vfree(diag204_buf_vmalloc);
 		diag204_buf_vmalloc = NULL;
-	} else {
+	}
+	else
+	{
 		free_pages((unsigned long) diag204_buf, 0);
 	}
+
 	diag204_buf = NULL;
 }
 
@@ -239,8 +319,12 @@ static void *diag204_alloc_vbuf(int pages)
 {
 	/* The buffer has to be page aligned! */
 	diag204_buf_vmalloc = vmalloc(PAGE_SIZE * (pages + 1));
+
 	if (!diag204_buf_vmalloc)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	diag204_buf = page_align_ptr(diag204_buf_vmalloc);
 	diag204_buf_pages = pages;
 	return diag204_buf;
@@ -248,29 +332,43 @@ static void *diag204_alloc_vbuf(int pages)
 
 static void *diag204_alloc_rbuf(void)
 {
-	diag204_buf = (void*)__get_free_pages(GFP_KERNEL,0);
+	diag204_buf = (void *)__get_free_pages(GFP_KERNEL, 0);
+
 	if (!diag204_buf)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	diag204_buf_pages = 1;
 	return diag204_buf;
 }
 
 static void *diag204_get_buffer(enum diag204_format fmt, int *pages)
 {
-	if (diag204_buf) {
+	if (diag204_buf)
+	{
 		*pages = diag204_buf_pages;
 		return diag204_buf;
 	}
-	if (fmt == DIAG204_INFO_SIMPLE) {
+
+	if (fmt == DIAG204_INFO_SIMPLE)
+	{
 		*pages = 1;
 		return diag204_alloc_rbuf();
-	} else {/* DIAG204_INFO_EXT */
+	}
+	else    /* DIAG204_INFO_EXT */
+	{
 		*pages = diag204((unsigned long)DIAG204_SUBC_RSI |
-				 (unsigned long)DIAG204_INFO_EXT, 0, NULL);
+						 (unsigned long)DIAG204_INFO_EXT, 0, NULL);
+
 		if (*pages <= 0)
+		{
 			return ERR_PTR(-ENOSYS);
+		}
 		else
+		{
 			return diag204_alloc_vbuf(*pages);
+		}
 	}
 }
 
@@ -294,38 +392,51 @@ static int diag204_probe(void)
 	int pages, rc;
 
 	buf = diag204_get_buffer(DIAG204_INFO_EXT, &pages);
-	if (!IS_ERR(buf)) {
+
+	if (!IS_ERR(buf))
+	{
 		if (diag204((unsigned long)DIAG204_SUBC_STIB7 |
-			    (unsigned long)DIAG204_INFO_EXT, pages, buf) >= 0) {
+					(unsigned long)DIAG204_INFO_EXT, pages, buf) >= 0)
+		{
 			diag204_store_sc = DIAG204_SUBC_STIB7;
 			diag204_info_type = DIAG204_INFO_EXT;
 			goto out;
 		}
+
 		if (diag204((unsigned long)DIAG204_SUBC_STIB6 |
-			    (unsigned long)DIAG204_INFO_EXT, pages, buf) >= 0) {
+					(unsigned long)DIAG204_INFO_EXT, pages, buf) >= 0)
+		{
 			diag204_store_sc = DIAG204_SUBC_STIB6;
 			diag204_info_type = DIAG204_INFO_EXT;
 			goto out;
 		}
+
 		diag204_free_buffer();
 	}
 
 	/* subcodes 6 and 7 failed, now try subcode 4 */
 
 	buf = diag204_get_buffer(DIAG204_INFO_SIMPLE, &pages);
-	if (IS_ERR(buf)) {
+
+	if (IS_ERR(buf))
+	{
 		rc = PTR_ERR(buf);
 		goto fail_alloc;
 	}
+
 	if (diag204((unsigned long)DIAG204_SUBC_STIB4 |
-		    (unsigned long)DIAG204_INFO_SIMPLE, pages, buf) >= 0) {
+				(unsigned long)DIAG204_INFO_SIMPLE, pages, buf) >= 0)
+	{
 		diag204_store_sc = DIAG204_SUBC_STIB4;
 		diag204_info_type = DIAG204_INFO_SIMPLE;
 		goto out;
-	} else {
+	}
+	else
+	{
 		rc = -ENOSYS;
 		goto fail_store;
 	}
+
 out:
 	rc = 0;
 fail_store:
@@ -339,7 +450,7 @@ static int diag204_do_store(void *buf, int pages)
 	int rc;
 
 	rc = diag204((unsigned long) diag204_store_sc |
-		     (unsigned long) diag204_info_type, pages, buf);
+				 (unsigned long) diag204_info_type, pages, buf);
 	return rc < 0 ? -ENOSYS : 0;
 }
 
@@ -349,11 +460,19 @@ static void *diag204_store(void)
 	int pages, rc;
 
 	buf = diag204_get_buffer(diag204_info_type, &pages);
+
 	if (IS_ERR(buf))
+	{
 		goto out;
+	}
+
 	rc = diag204_do_store(buf, pages);
+
 	if (rc)
+	{
 		return ERR_PTR(rc);
+	}
+
 out:
 	return buf;
 }
@@ -364,12 +483,18 @@ static int diag224_get_name_table(void)
 {
 	/* memory must be below 2GB */
 	diag224_cpu_names = (char *) __get_free_page(GFP_KERNEL | GFP_DMA);
+
 	if (!diag224_cpu_names)
+	{
 		return -ENOMEM;
-	if (diag224(diag224_cpu_names)) {
+	}
+
+	if (diag224(diag224_cpu_names))
+	{
 		free_page((unsigned long) diag224_cpu_names);
 		return -EOPNOTSUPP;
 	}
+
 	EBCASC(diag224_cpu_names + 16, (*diag224_cpu_names + 1) * 16);
 	return 0;
 }
@@ -382,20 +507,22 @@ static void diag224_delete_name_table(void)
 static int diag224_idx2name(int index, char *name)
 {
 	memcpy(name, diag224_cpu_names + ((index + 1) * DIAG204_CPU_NAME_LEN),
-	       DIAG204_CPU_NAME_LEN);
+		   DIAG204_CPU_NAME_LEN);
 	name[DIAG204_CPU_NAME_LEN] = 0;
 	strim(name);
 	return 0;
 }
 
-struct dbfs_d204_hdr {
+struct dbfs_d204_hdr
+{
 	u64	len;		/* Length of d204 buffer without header */
 	u16	version;	/* Version of header */
 	u8	sc;		/* Used subcode */
 	char	reserved[53];
 } __attribute__ ((packed));
 
-struct dbfs_d204 {
+struct dbfs_d204
+{
 	struct dbfs_d204_hdr	hdr;	/* 64 byte header */
 	char			buf[];	/* d204 buffer */
 } __attribute__ ((packed));
@@ -408,14 +535,21 @@ static int dbfs_d204_create(void **data, void **data_free_ptr, size_t *size)
 
 	buf_size = PAGE_SIZE * (diag204_buf_pages + 1) + sizeof(d204->hdr);
 	base = vzalloc(buf_size);
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
+
 	d204 = page_align_ptr(base + sizeof(d204->hdr)) - sizeof(d204->hdr);
 	rc = diag204_do_store(d204->buf, diag204_buf_pages);
-	if (rc) {
+
+	if (rc)
+	{
 		vfree(base);
 		return rc;
 	}
+
 	d204->hdr.version = DBFS_D204_HDR_VERSION;
 	d204->hdr.len = PAGE_SIZE * diag204_buf_pages;
 	d204->hdr.sc = diag204_store_sc;
@@ -425,7 +559,8 @@ static int dbfs_d204_create(void **data, void **data_free_ptr, size_t *size)
 	return 0;
 }
 
-static struct hypfs_dbfs_file dbfs_file_d204 = {
+static struct hypfs_dbfs_file dbfs_file_d204 =
+{
 	.name		= "diag_204",
 	.data_create	= dbfs_d204_create,
 	.data_free	= vfree,
@@ -435,24 +570,35 @@ __init int hypfs_diag_init(void)
 {
 	int rc;
 
-	if (diag204_probe()) {
+	if (diag204_probe())
+	{
 		pr_err("The hardware system does not support hypfs\n");
 		return -ENODATA;
 	}
-	if (diag204_info_type == DIAG204_INFO_EXT) {
+
+	if (diag204_info_type == DIAG204_INFO_EXT)
+	{
 		rc = hypfs_dbfs_create_file(&dbfs_file_d204);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
-	if (MACHINE_IS_LPAR) {
+
+	if (MACHINE_IS_LPAR)
+	{
 		rc = diag224_get_name_table();
-		if (rc) {
+
+		if (rc)
+		{
 			pr_err("The hardware system does not provide all "
-			       "functions required by hypfs\n");
+				   "functions required by hypfs\n");
 			debugfs_remove(dbfs_d204_file);
 			return rc;
 		}
 	}
+
 	return 0;
 }
 
@@ -476,24 +622,37 @@ static int hypfs_create_cpu_files(struct dentry *cpus_dir, void *cpu_info)
 	void *rc;
 
 	snprintf(buffer, TMP_SIZE, "%d", cpu_info__cpu_addr(diag204_info_type,
-							    cpu_info));
+			 cpu_info));
 	cpu_dir = hypfs_mkdir(cpus_dir, buffer);
 	rc = hypfs_create_u64(cpu_dir, "mgmtime",
-			      cpu_info__acc_time(diag204_info_type, cpu_info) -
-			      cpu_info__lp_time(diag204_info_type, cpu_info));
+						  cpu_info__acc_time(diag204_info_type, cpu_info) -
+						  cpu_info__lp_time(diag204_info_type, cpu_info));
+
 	if (IS_ERR(rc))
+	{
 		return PTR_ERR(rc);
-	rc = hypfs_create_u64(cpu_dir, "cputime",
-			      cpu_info__lp_time(diag204_info_type, cpu_info));
-	if (IS_ERR(rc))
-		return PTR_ERR(rc);
-	if (diag204_info_type == DIAG204_INFO_EXT) {
-		rc = hypfs_create_u64(cpu_dir, "onlinetime",
-				      cpu_info__online_time(diag204_info_type,
-							    cpu_info));
-		if (IS_ERR(rc))
-			return PTR_ERR(rc);
 	}
+
+	rc = hypfs_create_u64(cpu_dir, "cputime",
+						  cpu_info__lp_time(diag204_info_type, cpu_info));
+
+	if (IS_ERR(rc))
+	{
+		return PTR_ERR(rc);
+	}
+
+	if (diag204_info_type == DIAG204_INFO_EXT)
+	{
+		rc = hypfs_create_u64(cpu_dir, "onlinetime",
+							  cpu_info__online_time(diag204_info_type,
+									  cpu_info));
+
+		if (IS_ERR(rc))
+		{
+			return PTR_ERR(rc);
+		}
+	}
+
 	diag224_idx2name(cpu_info__ctidx(diag204_info_type, cpu_info), buffer);
 	rc = hypfs_create_str(cpu_dir, "type", buffer);
 	return PTR_RET(rc);
@@ -510,19 +669,34 @@ static void *hypfs_create_lpar_files(struct dentry *systems_dir, void *part_hdr)
 	part_hdr__part_name(diag204_info_type, part_hdr, lpar_name);
 	lpar_name[DIAG204_LPAR_NAME_LEN] = 0;
 	lpar_dir = hypfs_mkdir(systems_dir, lpar_name);
+
 	if (IS_ERR(lpar_dir))
+	{
 		return lpar_dir;
+	}
+
 	cpus_dir = hypfs_mkdir(lpar_dir, "cpus");
+
 	if (IS_ERR(cpus_dir))
+	{
 		return cpus_dir;
+	}
+
 	cpu_info = part_hdr + part_hdr__size(diag204_info_type);
-	for (i = 0; i < part_hdr__rcpus(diag204_info_type, part_hdr); i++) {
+
+	for (i = 0; i < part_hdr__rcpus(diag204_info_type, part_hdr); i++)
+	{
 		int rc;
 		rc = hypfs_create_cpu_files(cpus_dir, cpu_info);
+
 		if (rc)
+		{
 			return ERR_PTR(rc);
+		}
+
 		cpu_info += cpu_info__size(diag204_info_type);
 	}
+
 	return cpu_info;
 }
 
@@ -533,14 +707,22 @@ static int hypfs_create_phys_cpu_files(struct dentry *cpus_dir, void *cpu_info)
 	void *rc;
 
 	snprintf(buffer, TMP_SIZE, "%i", phys_cpu__cpu_addr(diag204_info_type,
-							    cpu_info));
+			 cpu_info));
 	cpu_dir = hypfs_mkdir(cpus_dir, buffer);
+
 	if (IS_ERR(cpu_dir))
+	{
 		return PTR_ERR(cpu_dir);
+	}
+
 	rc = hypfs_create_u64(cpu_dir, "mgmtime",
-			      phys_cpu__mgm_time(diag204_info_type, cpu_info));
+						  phys_cpu__mgm_time(diag204_info_type, cpu_info));
+
 	if (IS_ERR(rc))
+	{
 		return PTR_ERR(rc);
+	}
+
 	diag224_idx2name(phys_cpu__ctidx(diag204_info_type, cpu_info), buffer);
 	rc = hypfs_create_str(cpu_dir, "type", buffer);
 	return PTR_RET(rc);
@@ -553,16 +735,27 @@ static void *hypfs_create_phys_files(struct dentry *parent_dir, void *phys_hdr)
 	struct dentry *cpus_dir;
 
 	cpus_dir = hypfs_mkdir(parent_dir, "cpus");
+
 	if (IS_ERR(cpus_dir))
+	{
 		return cpus_dir;
+	}
+
 	cpu_info = phys_hdr + phys_hdr__size(diag204_info_type);
-	for (i = 0; i < phys_hdr__cpus(diag204_info_type, phys_hdr); i++) {
+
+	for (i = 0; i < phys_hdr__cpus(diag204_info_type, phys_hdr); i++)
+	{
 		int rc;
 		rc = hypfs_create_phys_cpu_files(cpus_dir, cpu_info);
+
 		if (rc)
+		{
 			return ERR_PTR(rc);
+		}
+
 		cpu_info += phys_cpu__size(diag204_info_type);
 	}
+
 	return cpu_info;
 }
 
@@ -574,41 +767,62 @@ int hypfs_diag_create_files(struct dentry *root)
 	void *buffer, *ptr;
 
 	buffer = diag204_store();
+
 	if (IS_ERR(buffer))
+	{
 		return PTR_ERR(buffer);
+	}
 
 	systems_dir = hypfs_mkdir(root, "systems");
-	if (IS_ERR(systems_dir)) {
+
+	if (IS_ERR(systems_dir))
+	{
 		rc = PTR_ERR(systems_dir);
 		goto err_out;
 	}
+
 	time_hdr = (struct x_info_blk_hdr *)buffer;
 	part_hdr = time_hdr + info_blk_hdr__size(diag204_info_type);
-	for (i = 0; i < info_blk_hdr__npar(diag204_info_type, time_hdr); i++) {
+
+	for (i = 0; i < info_blk_hdr__npar(diag204_info_type, time_hdr); i++)
+	{
 		part_hdr = hypfs_create_lpar_files(systems_dir, part_hdr);
-		if (IS_ERR(part_hdr)) {
+
+		if (IS_ERR(part_hdr))
+		{
 			rc = PTR_ERR(part_hdr);
 			goto err_out;
 		}
 	}
+
 	if (info_blk_hdr__flags(diag204_info_type, time_hdr) &
-	    DIAG204_LPAR_PHYS_FLG) {
+		DIAG204_LPAR_PHYS_FLG)
+	{
 		ptr = hypfs_create_phys_files(root, part_hdr);
-		if (IS_ERR(ptr)) {
+
+		if (IS_ERR(ptr))
+		{
 			rc = PTR_ERR(ptr);
 			goto err_out;
 		}
 	}
+
 	hyp_dir = hypfs_mkdir(root, "hyp");
-	if (IS_ERR(hyp_dir)) {
+
+	if (IS_ERR(hyp_dir))
+	{
 		rc = PTR_ERR(hyp_dir);
 		goto err_out;
 	}
+
 	ptr = hypfs_create_str(hyp_dir, "type", "LPAR Hypervisor");
-	if (IS_ERR(ptr)) {
+
+	if (IS_ERR(ptr))
+	{
 		rc = PTR_ERR(ptr);
 		goto err_out;
 	}
+
 	rc = 0;
 
 err_out:

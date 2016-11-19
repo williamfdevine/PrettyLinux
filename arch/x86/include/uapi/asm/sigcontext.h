@@ -36,7 +36,8 @@
  * This extended area typically grows with newer CPUs that have larger and
  * larger XSAVE areas.
  */
-struct _fpx_sw_bytes {
+struct _fpx_sw_bytes
+{
 	/*
 	 * If set to FP_XSTATE_MAGIC1 then this is an xstate context.
 	 * 0 if a legacy frame.
@@ -81,20 +82,23 @@ struct _fpx_sw_bytes {
  */
 
 /* 10-byte legacy floating point register: */
-struct _fpreg {
+struct _fpreg
+{
 	__u16				significand[4];
 	__u16				exponent;
 };
 
 /* 16-byte floating point register: */
-struct _fpxreg {
+struct _fpxreg
+{
 	__u16				significand[4];
 	__u16				exponent;
 	__u16				padding[3];
 };
 
 /* 16-byte XMM register: */
-struct _xmmreg {
+struct _xmmreg
+{
 	__u32				element[4];
 };
 
@@ -103,7 +107,8 @@ struct _xmmreg {
 /*
  * The 32-bit FPU frame:
  */
-struct _fpstate_32 {
+struct _fpstate_32
+{
 	/* Legacy FPU environment: */
 	__u32				cw;
 	__u32				sw;
@@ -115,7 +120,7 @@ struct _fpstate_32 {
 	struct _fpreg			_st[8];
 	__u16				status;
 	__u16				magic;		/* 0xffff: regular FPU data only */
-							/* 0x0000: FXSR FPU data */
+	/* 0x0000: FXSR FPU data */
 
 	/* FXSR FPU environment */
 	__u32				_fxsr_env[6];	/* FXSR FPU env is ignored */
@@ -123,12 +128,14 @@ struct _fpstate_32 {
 	__u32				reserved;
 	struct _fpxreg			_fxsr_st[8];	/* FXSR FPU reg data is ignored */
 	struct _xmmreg			_xmm[8];	/* First 8 XMM registers */
-	union {
+	union
+	{
 		__u32			padding1[44];	/* Second 8 XMM registers plus padding */
 		__u32			padding[44];	/* Alias name for old user-space */
 	};
 
-	union {
+	union
+	{
 		__u32			padding2[12];
 		struct _fpx_sw_bytes	sw_reserved;	/* Potential extended state is encoded here */
 	};
@@ -145,7 +152,8 @@ struct _fpstate_32 {
  * Note2: Reserved fields may someday contain valuable data. Always
  *	  save/restore them when you change signal frames.
  */
-struct _fpstate_64 {
+struct _fpstate_64
+{
 	__u16				cwd;
 	__u16				swd;
 	/* Note this is not the same as the 32-bit/x87/FSAVE twd: */
@@ -158,25 +166,28 @@ struct _fpstate_64 {
 	__u32				st_space[32];	/*  8x  FP registers, 16 bytes each */
 	__u32				xmm_space[64];	/* 16x XMM registers, 16 bytes each */
 	__u32				reserved2[12];
-	union {
+	union
+	{
 		__u32			reserved3[12];
 		struct _fpx_sw_bytes	sw_reserved;	/* Potential extended state is encoded here */
 	};
 };
 
 #ifdef __i386__
-# define _fpstate _fpstate_32
+	#define _fpstate _fpstate_32
 #else
-# define _fpstate _fpstate_64
+	#define _fpstate _fpstate_64
 #endif
 
-struct _header {
+struct _header
+{
 	__u64				xfeatures;
 	__u64				reserved1[2];
 	__u64				reserved2[5];
 };
 
-struct _ymmh_state {
+struct _ymmh_state
+{
 	/* 16x YMM registers, 16 bytes each: */
 	__u32				ymmh_space[64];
 };
@@ -188,7 +199,8 @@ struct _ymmh_state {
  * indicates the presence of other extended state information supported
  * by the CPU and kernel:
  */
-struct _xstate {
+struct _xstate
+{
 	struct _fpstate			fpstate;
 	struct _header			xstate_hdr;
 	struct _ymmh_state		ymmh;
@@ -198,7 +210,8 @@ struct _xstate {
 /*
  * The 32-bit signal frame:
  */
-struct sigcontext_32 {
+struct sigcontext_32
+{
 	__u16				gs, __gsh;
 	__u16				fs, __fsh;
 	__u16				es, __esh;
@@ -234,7 +247,8 @@ struct sigcontext_32 {
 /*
  * The 64-bit signal frame:
  */
-struct sigcontext_64 {
+struct sigcontext_64
+{
 	__u64				r8;
 	__u64				r9;
 	__u64				r10;
@@ -277,11 +291,11 @@ struct sigcontext_64 {
  * Create the real 'struct sigcontext' type:
  */
 #ifdef __KERNEL__
-# ifdef __i386__
-#  define sigcontext sigcontext_32
-# else
-#  define sigcontext sigcontext_64
-# endif
+	#ifdef __i386__
+		#define sigcontext sigcontext_32
+	#else
+		#define sigcontext sigcontext_64
+	#endif
 #endif
 
 /*
@@ -296,7 +310,8 @@ struct sigcontext_64 {
 
 
 # ifdef __i386__
-struct sigcontext {
+struct sigcontext
+{
 	__u16				gs, __gsh;
 	__u16				fs, __fsh;
 	__u16				es, __esh;
@@ -321,7 +336,8 @@ struct sigcontext {
 	__u32				cr2;
 };
 # else /* __x86_64__: */
-struct sigcontext {
+struct sigcontext
+{
 	__u64				r8;
 	__u64				r9;
 	__u64				r10;
@@ -368,7 +384,8 @@ struct sigcontext {
 	 */
 	__u16				gs;
 	__u16				fs;
-	union {
+	union
+	{
 		__u16			ss;	/* If UC_SIGCONTEXT_SS */
 		__u16			__pad0;	/* Alias name for old (!UC_SIGCONTEXT_SS) user-space */
 	};

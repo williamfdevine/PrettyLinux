@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
  * Licensed under the GPL
  */
@@ -8,7 +8,8 @@
 
 #include <net_user.h>
 
-struct ethertap_data {
+struct ethertap_data
+{
 	char *dev_name;
 	char *gate_addr;
 	int data_fd;

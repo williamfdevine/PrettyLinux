@@ -10,14 +10,14 @@
 #define PRED_NON_SYSCALL	5 /* complement of PRED_SYSCALL */
 
 #ifdef __ASSEMBLY__
-# define PASTE2(x,y)	x##y
-# define PASTE(x,y)	PASTE2(x,y)
+	#define PASTE2(x,y)	x##y
+	#define PASTE(x,y)	PASTE2(x,y)
 
-# define pLvSys		PASTE(p,PRED_LEAVE_SYSCALL)
-# define pKStk		PASTE(p,PRED_KERNEL_STACK)
-# define pUStk		PASTE(p,PRED_USER_STACK)
-# define pSys		PASTE(p,PRED_SYSCALL)
-# define pNonSys	PASTE(p,PRED_NON_SYSCALL)
+	#define pLvSys		PASTE(p,PRED_LEAVE_SYSCALL)
+	#define pKStk		PASTE(p,PRED_KERNEL_STACK)
+	#define pUStk		PASTE(p,PRED_USER_STACK)
+	#define pSys		PASTE(p,PRED_SYSCALL)
+	#define pNonSys	PASTE(p,PRED_NON_SYSCALL)
 #endif
 
 #define PT(f)		(IA64_PT_REGS_##f##_OFFSET)
@@ -70,7 +70,7 @@
 	mov.ret.sptk b7=r28,1f;			\
 	SWITCH_STACK_SAVES(0);			\
 	br.cond.sptk.many save_switch_stack;	\
-1:
+	1:
 
 #define DO_LOAD_SWITCH_STACK			\
 	movl r28=1f;				\
@@ -78,5 +78,5 @@
 	invala;					\
 	mov.ret.sptk b7=r28,1f;			\
 	br.cond.sptk.many load_switch_stack;	\
-1:	.restore sp;				\
+	1:	.restore sp;				\
 	adds sp=IA64_SWITCH_STACK_SIZE,sp

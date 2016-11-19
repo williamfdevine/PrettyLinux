@@ -1,7 +1,8 @@
 #ifndef _ASM_SCORE_EXTABLE_H
 #define _ASM_SCORE_EXTABLE_H
 
-struct exception_table_entry {
+struct exception_table_entry
+{
 	unsigned long insn;
 	unsigned long fixup;
 };

@@ -22,8 +22,11 @@ static inline int tlb1_next(void)
 	this = tcd->esel_next;
 
 	next = this + 1;
+
 	if (next >= tcd->esel_max)
+	{
 		next = tcd->esel_first;
+	}
 
 	tcd->esel_next = next;
 	return this;
@@ -39,9 +42,13 @@ static inline int tlb1_next(void)
 
 	/* Just round-robin the entries and wrap when we hit the end */
 	if (unlikely(index == ncams - 1))
+	{
 		__this_cpu_write(next_tlbcam_idx, tlbcam_index);
+	}
 	else
+	{
 		__this_cpu_inc(next_tlbcam_idx);
+	}
 
 	return index;
 }
@@ -68,22 +75,24 @@ static inline void book3e_tlb_lock(void)
 	 * doesn't implement either feature.
 	 */
 	if (!cpu_has_feature(CPU_FTR_SMT))
+	{
 		return;
+	}
 
 	asm volatile("1: lbarx %0, 0, %1;"
-		     "cmpwi %0, 0;"
-		     "bne 2f;"
-		     "stbcx. %2, 0, %1;"
-		     "bne 1b;"
-		     "b 3f;"
-		     "2: lbzx %0, 0, %1;"
-		     "cmpwi %0, 0;"
-		     "bne 2b;"
-		     "b 1b;"
-		     "3:"
-		     : "=&r" (tmp)
-		     : "r" (&paca->tcd_ptr->lock), "r" (token)
-		     : "memory");
+				 "cmpwi %0, 0;"
+				 "bne 2f;"
+				 "stbcx. %2, 0, %1;"
+				 "bne 1b;"
+				 "b 3f;"
+				 "2: lbzx %0, 0, %1;"
+				 "cmpwi %0, 0;"
+				 "bne 2b;"
+				 "b 1b;"
+				 "3:"
+				 : "=&r" (tmp)
+				 : "r" (&paca->tcd_ptr->lock), "r" (token)
+				 : "memory");
 }
 
 static inline void book3e_tlb_unlock(void)
@@ -91,7 +100,9 @@ static inline void book3e_tlb_unlock(void)
 	struct paca_struct *paca = get_paca();
 
 	if (!cpu_has_feature(CPU_FTR_SMT))
+	{
 		return;
+	}
 
 	isync();
 	paca->tcd_ptr->lock = 0;
@@ -111,7 +122,9 @@ static inline int book3e_tlb_exists(unsigned long ea, unsigned long pid)
 	int found = 0;
 
 	mtspr(SPRN_MAS6, pid << 16);
-	if (mmu_has_feature(MMU_FTR_USE_TLBRSRV)) {
+
+	if (mmu_has_feature(MMU_FTR_USE_TLBRSRV))
+	{
 		asm volatile(
 			"li	%0,0\n"
 			"tlbsx.	0,%1\n"
@@ -119,7 +132,9 @@ static inline int book3e_tlb_exists(unsigned long ea, unsigned long pid)
 			"li	%0,1\n"
 			"1:\n"
 			: "=&r"(found) : "r"(ea));
-	} else {
+	}
+	else
+	{
 		asm volatile(
 			"tlbsx	0,%1\n"
 			"mfspr	%0,0x271\n"
@@ -131,7 +146,7 @@ static inline int book3e_tlb_exists(unsigned long ea, unsigned long pid)
 }
 
 void book3e_hugetlb_preload(struct vm_area_struct *vma, unsigned long ea,
-			    pte_t pte)
+							pte_t pte)
 {
 	unsigned long mas1, mas2;
 	u64 mas7_3;
@@ -144,7 +159,9 @@ void book3e_hugetlb_preload(struct vm_area_struct *vma, unsigned long ea,
 #endif
 
 	if (unlikely(is_kernel_addr(ea)))
+	{
 		return;
+	}
 
 	mm = vma->vm_mm;
 
@@ -166,7 +183,8 @@ void book3e_hugetlb_preload(struct vm_area_struct *vma, unsigned long ea,
 
 	book3e_tlb_lock();
 
-	if (unlikely(book3e_tlb_exists(ea, mm->context.id))) {
+	if (unlikely(book3e_tlb_exists(ea, mm->context.id)))
+	{
 		book3e_tlb_unlock();
 		local_irq_restore(flags);
 		return;
@@ -183,17 +201,26 @@ void book3e_hugetlb_preload(struct vm_area_struct *vma, unsigned long ea,
 	mas2 |= (pte_val(pte) >> PTE_WIMGE_SHIFT) & MAS2_WIMGE_MASK;
 	mas7_3 = (u64)pte_pfn(pte) << PAGE_SHIFT;
 	mas7_3 |= (pte_val(pte) >> PTE_BAP_SHIFT) & MAS3_BAP_MASK;
+
 	if (!pte_dirty(pte))
-		mas7_3 &= ~(MAS3_SW|MAS3_UW);
+	{
+		mas7_3 &= ~(MAS3_SW | MAS3_UW);
+	}
 
 	mtspr(SPRN_MAS1, mas1);
 	mtspr(SPRN_MAS2, mas2);
 
-	if (mmu_has_feature(MMU_FTR_USE_PAIRED_MAS)) {
+	if (mmu_has_feature(MMU_FTR_USE_PAIRED_MAS))
+	{
 		mtspr(SPRN_MAS7_MAS3, mas7_3);
-	} else {
+	}
+	else
+	{
 		if (mmu_has_feature(MMU_FTR_BIG_PHYS))
+		{
 			mtspr(SPRN_MAS7, upper_32_bits(mas7_3));
+		}
+
 		mtspr(SPRN_MAS3, lower_32_bits(mas7_3));
 	}
 

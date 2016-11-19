@@ -12,7 +12,8 @@
 #ifndef __ASM_MACH_LOONGSON32_CPUFREQ_H
 #define __ASM_MACH_LOONGSON32_CPUFREQ_H
 
-struct plat_ls1x_cpufreq {
+struct plat_ls1x_cpufreq
+{
 	const char	*clk_name;	/* CPU clk */
 	const char	*osc_clk_name;	/* OSC clk */
 	unsigned int	max_freq;	/* in kHz */

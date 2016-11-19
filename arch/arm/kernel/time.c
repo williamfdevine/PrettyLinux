@@ -33,10 +33,10 @@
 #include <asm/thread_info.h>
 
 #if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE) || \
-    defined(CONFIG_NVRAM) || defined(CONFIG_NVRAM_MODULE)
-/* this needs a better home */
-DEFINE_SPINLOCK(rtc_lock);
-EXPORT_SYMBOL(rtc_lock);
+	defined(CONFIG_NVRAM) || defined(CONFIG_NVRAM_MODULE)
+	/* this needs a better home */
+	DEFINE_SPINLOCK(rtc_lock);
+	EXPORT_SYMBOL(rtc_lock);
 #endif	/* pc-style 'CMOS' RTC support */
 
 /* change this if you have some constant time drift */
@@ -48,14 +48,22 @@ unsigned long profile_pc(struct pt_regs *regs)
 	struct stackframe frame;
 
 	if (!in_lock_functions(regs->ARM_pc))
+	{
 		return regs->ARM_pc;
+	}
 
 	arm_get_current_stackframe(regs, &frame);
-	do {
+
+	do
+	{
 		int ret = unwind_frame(&frame);
+
 		if (ret < 0)
+		{
 			return 0;
-	} while (in_lock_functions(frame.pc));
+		}
+	}
+	while (in_lock_functions(frame.pc));
 
 	return frame.pc;
 }
@@ -96,15 +104,21 @@ void read_boot_clock64(struct timespec64 *ts)
 }
 
 int __init register_persistent_clock(clock_access_fn read_boot,
-				     clock_access_fn read_persistent)
+									 clock_access_fn read_persistent)
 {
 	/* Only allow the clockaccess functions to be registered once */
 	if (__read_persistent_clock == dummy_clock_access &&
-	    __read_boot_clock == dummy_clock_access) {
+		__read_boot_clock == dummy_clock_access)
+	{
 		if (read_boot)
+		{
 			__read_boot_clock = read_boot;
+		}
+
 		if (read_persistent)
+		{
 			__read_persistent_clock = read_persistent;
+		}
 
 		return 0;
 	}
@@ -114,9 +128,12 @@ int __init register_persistent_clock(clock_access_fn read_boot,
 
 void __init time_init(void)
 {
-	if (machine_desc->init_time) {
+	if (machine_desc->init_time)
+	{
 		machine_desc->init_time();
-	} else {
+	}
+	else
+	{
 #ifdef CONFIG_COMMON_CLK
 		of_clk_init(NULL);
 #endif

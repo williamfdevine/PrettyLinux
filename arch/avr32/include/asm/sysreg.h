@@ -276,13 +276,13 @@
 	 & ((1 << SYSREG_##name##_SIZE) - 1))
 #define SYSREG_BFINS(name,value,old)			\
 	(((old) & ~(((1 << SYSREG_##name##_SIZE) - 1)	\
-		    << SYSREG_##name##_OFFSET))		\
+				<< SYSREG_##name##_OFFSET))		\
 	 | SYSREG_BF(name,value))
 
 /* Register access macros */
 #ifdef __CHECKER__
-extern unsigned long __builtin_mfsr(unsigned long reg);
-extern void __builtin_mtsr(unsigned long reg, unsigned long value);
+	extern unsigned long __builtin_mfsr(unsigned long reg);
+	extern void __builtin_mtsr(unsigned long reg, unsigned long value);
 #endif
 
 #define sysreg_read(reg)		__builtin_mfsr(SYSREG_##reg)

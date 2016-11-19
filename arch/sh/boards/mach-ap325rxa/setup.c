@@ -37,19 +37,22 @@
 #include <cpu/sh7723.h>
 
 /* Dummy supplies, where voltage doesn't matter */
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vddvario", "smsc911x"),
 	REGULATOR_SUPPLY("vdd33a", "smsc911x"),
 };
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.phy_interface	= PHY_INTERFACE_MODE_MII,
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
 	.flags		= SMSC911X_USE_32BIT,
 };
 
-static struct resource smsc9118_resources[] = {
+static struct resource smsc9118_resources[] =
+{
 	[0] = {
 		.start	= 0xb6080000,
 		.end	= 0xb60fffff,
@@ -62,7 +65,8 @@ static struct resource smsc9118_resources[] = {
 	}
 };
 
-static struct platform_device smsc9118_device = {
+static struct platform_device smsc9118_device =
+{
 	.name		= "smsc911x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smsc9118_resources),
@@ -76,7 +80,8 @@ static struct platform_device smsc9118_device = {
  * AP320 and AP325RXA has CPLD data in NOR Flash(0xA80000-0xABFFFF).
  * If this area erased, this board can not boot.
  */
-static struct mtd_partition ap325rxa_nor_flash_partitions[] = {
+static struct mtd_partition ap325rxa_nor_flash_partitions[] =
+{
 	{
 		.name = "uboot",
 		.offset = 0,
@@ -102,13 +107,15 @@ static struct mtd_partition ap325rxa_nor_flash_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data ap325rxa_nor_flash_data = {
+static struct physmap_flash_data ap325rxa_nor_flash_data =
+{
 	.width		= 2,
 	.parts		= ap325rxa_nor_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(ap325rxa_nor_flash_partitions),
 };
 
-static struct resource ap325rxa_nor_flash_resources[] = {
+static struct resource ap325rxa_nor_flash_resources[] =
+{
 	[0] = {
 		.name	= "NOR Flash",
 		.start	= 0x00000000,
@@ -117,7 +124,8 @@ static struct resource ap325rxa_nor_flash_resources[] = {
 	}
 };
 
-static struct platform_device ap325rxa_nor_flash_device = {
+static struct platform_device ap325rxa_nor_flash_device =
+{
 	.name		= "physmap-flash",
 	.resource	= ap325rxa_nor_flash_resources,
 	.num_resources	= ARRAY_SIZE(ap325rxa_nor_flash_resources),
@@ -126,7 +134,8 @@ static struct platform_device ap325rxa_nor_flash_device = {
 	},
 };
 
-static struct mtd_partition nand_partition_info[] = {
+static struct mtd_partition nand_partition_info[] =
+{
 	{
 		.name	= "nand_data",
 		.offset	= 0,
@@ -134,7 +143,8 @@ static struct mtd_partition nand_partition_info[] = {
 	},
 };
 
-static struct resource nand_flash_resources[] = {
+static struct resource nand_flash_resources[] =
+{
 	[0] = {
 		.start	= 0xa4530000,
 		.end	= 0xa45300ff,
@@ -142,14 +152,16 @@ static struct resource nand_flash_resources[] = {
 	}
 };
 
-static struct sh_flctl_platform_data nand_flash_data = {
+static struct sh_flctl_platform_data nand_flash_data =
+{
 	.parts		= nand_partition_info,
 	.nr_parts	= ARRAY_SIZE(nand_partition_info),
 	.flcmncr_val	= FCKSEL_E | TYPESEL_SET | NANWF_E,
 	.has_hwecc	= 1,
 };
 
-static struct platform_device nand_flash_device = {
+static struct platform_device nand_flash_device =
+{
 	.name		= "sh_flctl",
 	.resource	= nand_flash_resources,
 	.num_resources	= ARRAY_SIZE(nand_flash_resources),
@@ -168,10 +180,13 @@ static struct platform_device nand_flash_device = {
 
 static int ap320_wvga_set_brightness(int brightness)
 {
-	if (brightness) {
+	if (brightness)
+	{
 		gpio_set_value(GPIO_PTS3, 0);
 		__raw_writew(0x100, FPGA_BKLREG);
-	} else {
+	}
+	else
+	{
 		__raw_writew(0, FPGA_BKLREG);
 		gpio_set_value(GPIO_PTS3, 1);
 	}
@@ -193,7 +208,8 @@ static void ap320_wvga_power_off(void)
 	__raw_writew(0, FPGA_LCDREG);
 }
 
-static const struct fb_videomode ap325rxa_lcdc_modes[] = {
+static const struct fb_videomode ap325rxa_lcdc_modes[] =
+{
 	{
 		.name = "LB070WV1",
 		.xres = 800,
@@ -208,7 +224,8 @@ static const struct fb_videomode ap325rxa_lcdc_modes[] = {
 	},
 };
 
-static struct sh_mobile_lcdc_info lcdc_info = {
+static struct sh_mobile_lcdc_info lcdc_info =
+{
 	.clock_source = LCDC_CLK_EXTERNAL,
 	.ch[0] = {
 		.chan = LCDC_CHAN_MAINLCD,
@@ -231,7 +248,8 @@ static struct sh_mobile_lcdc_info lcdc_info = {
 	}
 };
 
-static struct resource lcdc_resources[] = {
+static struct resource lcdc_resources[] =
+{
 	[0] = {
 		.name	= "LCDC",
 		.start	= 0xfe940000, /* P4-only space */
@@ -244,7 +262,8 @@ static struct resource lcdc_resources[] = {
 	},
 };
 
-static struct platform_device lcdc_device = {
+static struct platform_device lcdc_device =
+{
 	.name		= "sh_mobile_lcdc_fb",
 	.num_resources	= ARRAY_SIZE(lcdc_resources),
 	.resource	= lcdc_resources,
@@ -288,7 +307,9 @@ static int camera_probe(void)
 	int ret;
 
 	if (!a)
+	{
 		return -ENODEV;
+	}
 
 	camera_power(1);
 	msg.addr = 0x6e;
@@ -302,7 +323,7 @@ static int camera_probe(void)
 }
 
 static int camera_set_capture(struct soc_camera_platform_info *info,
-			      int enable)
+							  int enable)
 {
 	struct i2c_adapter *a = i2c_get_adapter(0);
 	struct i2c_msg msg;
@@ -310,11 +331,16 @@ static int camera_set_capture(struct soc_camera_platform_info *info,
 	int i;
 
 	camera_power(0);
+
 	if (!enable)
-		return 0; /* no disable for now */
+	{
+		return 0;    /* no disable for now */
+	}
 
 	camera_power(1);
-	for (i = 0; i < ARRAY_SIZE(camera_ncm03j_magic); i += 2) {
+
+	for (i = 0; i < ARRAY_SIZE(camera_ncm03j_magic); i += 2)
+	{
 		u_int8_t buf[8];
 
 		msg.addr = 0x6e;
@@ -334,7 +360,8 @@ static int camera_set_capture(struct soc_camera_platform_info *info,
 static int ap325rxa_camera_add(struct soc_camera_device *icd);
 static void ap325rxa_camera_del(struct soc_camera_device *icd);
 
-static struct soc_camera_platform_info camera_info = {
+static struct soc_camera_platform_info camera_info =
+{
 	.format_name = "UYVY",
 	.format_depth = 16,
 	.format = {
@@ -351,7 +378,8 @@ static struct soc_camera_platform_info camera_info = {
 	.set_capture = camera_set_capture,
 };
 
-static struct soc_camera_link camera_link = {
+static struct soc_camera_link camera_link =
+{
 	.bus_id		= 0,
 	.add_device	= ap325rxa_camera_add,
 	.del_device	= ap325rxa_camera_del,
@@ -369,13 +397,19 @@ static void ap325rxa_camera_release(struct device *dev)
 static int ap325rxa_camera_add(struct soc_camera_device *icd)
 {
 	int ret = soc_camera_platform_add(icd, &camera_device, &camera_link,
-					  ap325rxa_camera_release, 0);
+									  ap325rxa_camera_release, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = camera_probe();
+
 	if (ret < 0)
+	{
 		soc_camera_platform_del(icd, camera_device, &camera_link);
+	}
 
 	return ret;
 }
@@ -389,17 +423,22 @@ static void ap325rxa_camera_del(struct soc_camera_device *icd)
 static int ov7725_power(struct device *dev, int mode)
 {
 	camera_power(0);
+
 	if (mode)
+	{
 		camera_power(1);
+	}
 
 	return 0;
 }
 
-static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+static struct sh_mobile_ceu_info sh_mobile_ceu_info =
+{
 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
 };
 
-static struct resource ceu_resources[] = {
+static struct resource ceu_resources[] =
+{
 	[0] = {
 		.name	= "CEU",
 		.start	= 0xfe910000,
@@ -415,7 +454,8 @@ static struct resource ceu_resources[] = {
 	},
 };
 
-static struct platform_device ceu_device = {
+static struct platform_device ceu_device =
+{
 	.name		= "sh_mobile_ceu",
 	.id             = 0, /* "ceu0" clock */
 	.num_resources	= ARRAY_SIZE(ceu_resources),
@@ -434,7 +474,8 @@ static struct regulator_consumer_supply fixed3v3_power_consumers[] =
 	REGULATOR_SUPPLY("vqmmc", "sh_mobile_sdhi.1"),
 };
 
-static struct resource sdhi0_cn3_resources[] = {
+static struct resource sdhi0_cn3_resources[] =
+{
 	[0] = {
 		.name	= "SDHI0",
 		.start	= 0x04ce0000,
@@ -447,11 +488,13 @@ static struct resource sdhi0_cn3_resources[] = {
 	},
 };
 
-static struct tmio_mmc_data sdhi0_cn3_data = {
+static struct tmio_mmc_data sdhi0_cn3_data =
+{
 	.capabilities	= MMC_CAP_SDIO_IRQ,
 };
 
-static struct platform_device sdhi0_cn3_device = {
+static struct platform_device sdhi0_cn3_device =
+{
 	.name		= "sh_mobile_sdhi",
 	.id             = 0, /* "sdhi0" clock */
 	.num_resources	= ARRAY_SIZE(sdhi0_cn3_resources),
@@ -461,7 +504,8 @@ static struct platform_device sdhi0_cn3_device = {
 	},
 };
 
-static struct resource sdhi1_cn7_resources[] = {
+static struct resource sdhi1_cn7_resources[] =
+{
 	[0] = {
 		.name	= "SDHI1",
 		.start	= 0x04cf0000,
@@ -474,11 +518,13 @@ static struct resource sdhi1_cn7_resources[] = {
 	},
 };
 
-static struct tmio_mmc_data sdhi1_cn7_data = {
+static struct tmio_mmc_data sdhi1_cn7_data =
+{
 	.capabilities	= MMC_CAP_SDIO_IRQ,
 };
 
-static struct platform_device sdhi1_cn7_device = {
+static struct platform_device sdhi1_cn7_device =
+{
 	.name		= "sh_mobile_sdhi",
 	.id             = 1, /* "sdhi1" clock */
 	.num_resources	= ARRAY_SIZE(sdhi1_cn7_resources),
@@ -488,24 +534,28 @@ static struct platform_device sdhi1_cn7_device = {
 	},
 };
 
-static struct i2c_board_info __initdata ap325rxa_i2c_devices[] = {
+static struct i2c_board_info __initdata ap325rxa_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("pcf8563", 0x51),
 	},
 };
 
-static struct i2c_board_info ap325rxa_i2c_camera[] = {
+static struct i2c_board_info ap325rxa_i2c_camera[] =
+{
 	{
 		I2C_BOARD_INFO("ov772x", 0x21),
 	},
 };
 
-static struct ov772x_camera_info ov7725_info = {
+static struct ov772x_camera_info ov7725_info =
+{
 	.flags		= OV772X_FLAG_VFLIP | OV772X_FLAG_HFLIP,
 	.edgectrl	= OV772X_AUTO_EDGECTRL(0xf, 0),
 };
 
-static struct soc_camera_link ov7725_link = {
+static struct soc_camera_link ov7725_link =
+{
 	.bus_id		= 0,
 	.power		= ov7725_power,
 	.board_info	= &ap325rxa_i2c_camera[0],
@@ -513,7 +563,8 @@ static struct soc_camera_link ov7725_link = {
 	.priv		= &ov7725_info,
 };
 
-static struct platform_device ap325rxa_camera[] = {
+static struct platform_device ap325rxa_camera[] =
+{
 	{
 		.name	= "soc-camera-pdrv",
 		.id	= 0,
@@ -529,7 +580,8 @@ static struct platform_device ap325rxa_camera[] = {
 	},
 };
 
-static struct platform_device *ap325rxa_devices[] __initdata = {
+static struct platform_device *ap325rxa_devices[] __initdata =
+{
 	&smsc9118_device,
 	&ap325rxa_nor_flash_device,
 	&lcdc_device,
@@ -550,13 +602,13 @@ static int __init ap325rxa_devices_setup(void)
 {
 	/* register board specific self-refresh code */
 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF,
-					&ap325rxa_sdram_enter_start,
-					&ap325rxa_sdram_enter_end,
-					&ap325rxa_sdram_leave_start,
-					&ap325rxa_sdram_leave_end);
+									&ap325rxa_sdram_enter_start,
+									&ap325rxa_sdram_enter_end,
+									&ap325rxa_sdram_leave_start,
+									&ap325rxa_sdram_leave_end);
 
 	regulator_register_always_on(0, "fixed-3.3V", fixed3v3_power_consumers,
-				     ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
+								 ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
 	regulator_register_fixed(1, dummy_supplies, ARRAY_SIZE(dummy_supplies));
 
 	/* LD3 and LD4 LEDs */
@@ -671,10 +723,10 @@ static int __init ap325rxa_devices_setup(void)
 	gpio_request(GPIO_FN_SDHI1CLK, NULL);
 
 	i2c_register_board_info(0, ap325rxa_i2c_devices,
-				ARRAY_SIZE(ap325rxa_i2c_devices));
+							ARRAY_SIZE(ap325rxa_i2c_devices));
 
 	return platform_add_devices(ap325rxa_devices,
-				ARRAY_SIZE(ap325rxa_devices));
+								ARRAY_SIZE(ap325rxa_devices));
 }
 arch_initcall(ap325rxa_devices_setup);
 
@@ -689,7 +741,8 @@ static int ap325rxa_mode_pins(void)
 	return MODE_PIN5 | MODE_PIN8;
 }
 
-static struct sh_machine_vector mv_ap325rxa __initmv = {
+static struct sh_machine_vector mv_ap325rxa __initmv =
+{
 	.mv_name = "AP-325RXA",
 	.mv_mode_pins = ap325rxa_mode_pins,
 };

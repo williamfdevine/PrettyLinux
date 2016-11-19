@@ -28,7 +28,7 @@
 
 /** Number of buffer stacks (32). */
 #define HV_MPIPE_NUM_BUFFER_STACKS \
-  (MPIPE_MMIO_INIT_DAT_GX36_1__BUFFER_STACK_MASK_WIDTH)
+	(MPIPE_MMIO_INIT_DAT_GX36_1__BUFFER_STACK_MASK_WIDTH)
 
 /** Number of NotifRings (256). */
 #define HV_MPIPE_NUM_NOTIF_RINGS (MPIPE_NUM_NOTIF_RINGS)
@@ -44,11 +44,11 @@
 
 /** Number of "hi" buckets (64). */
 #define HV_MPIPE_NUM_HI_BUCKETS \
-  (HV_MPIPE_NUM_BUCKETS - HV_MPIPE_NUM_LO_BUCKETS)
+	(HV_MPIPE_NUM_BUCKETS - HV_MPIPE_NUM_LO_BUCKETS)
 
 /** Number of edma rings (24). */
 #define HV_MPIPE_NUM_EDMA_RINGS \
-  (MPIPE_MMIO_INIT_DAT_GX36_1__EDMA_POST_MASK_WIDTH)
+	(MPIPE_MMIO_INIT_DAT_GX36_1__EDMA_POST_MASK_WIDTH)
 
 
 
@@ -58,19 +58,19 @@
 
 /** Offset for the config register MMIO region. */
 #define HV_MPIPE_CONFIG_MMIO_OFFSET \
-  (MPIPE_MMIO_ADDR__REGION_VAL_CFG << MPIPE_MMIO_ADDR__REGION_SHIFT)
+	(MPIPE_MMIO_ADDR__REGION_VAL_CFG << MPIPE_MMIO_ADDR__REGION_SHIFT)
 
 /** Size of the config register MMIO region. */
 #define HV_MPIPE_CONFIG_MMIO_SIZE (64 * 1024)
 
 /** Offset for the config register MMIO region. */
 #define HV_MPIPE_FAST_MMIO_OFFSET \
-  (MPIPE_MMIO_ADDR__REGION_VAL_IDMA << MPIPE_MMIO_ADDR__REGION_SHIFT)
+	(MPIPE_MMIO_ADDR__REGION_VAL_IDMA << MPIPE_MMIO_ADDR__REGION_SHIFT)
 
 /** Size of the fast register MMIO region (IDMA, EDMA, buffer stack). */
 #define HV_MPIPE_FAST_MMIO_SIZE \
-  ((MPIPE_MMIO_ADDR__REGION_VAL_BSM + 1 - MPIPE_MMIO_ADDR__REGION_VAL_IDMA) \
-   << MPIPE_MMIO_ADDR__REGION_SHIFT)
+	((MPIPE_MMIO_ADDR__REGION_VAL_BSM + 1 - MPIPE_MMIO_ADDR__REGION_VAL_IDMA) \
+	 << MPIPE_MMIO_ADDR__REGION_SHIFT)
 
 
 /*
@@ -81,51 +81,51 @@
 
 /** Number of buffer stack chunks available (32). */
 #define HV_MPIPE_ALLOC_BUFFER_STACKS_BITS \
-  MPIPE_MMIO_INIT_DAT_GX36_1__BUFFER_STACK_MASK_WIDTH
+	MPIPE_MMIO_INIT_DAT_GX36_1__BUFFER_STACK_MASK_WIDTH
 
 /** Granularity of buffer stack allocation (1). */
 #define HV_MPIPE_ALLOC_BUFFER_STACKS_RES_PER_BIT \
-  (HV_MPIPE_NUM_BUFFER_STACKS / HV_MPIPE_ALLOC_BUFFER_STACKS_BITS)
+	(HV_MPIPE_NUM_BUFFER_STACKS / HV_MPIPE_ALLOC_BUFFER_STACKS_BITS)
 
 /** Number of NotifRing chunks available (32). */
 #define HV_MPIPE_ALLOC_NOTIF_RINGS_BITS \
-  MPIPE_MMIO_INIT_DAT_GX36_0__NOTIF_RING_MASK_WIDTH
+	MPIPE_MMIO_INIT_DAT_GX36_0__NOTIF_RING_MASK_WIDTH
 
 /** Granularity of NotifRing allocation (8). */
 #define HV_MPIPE_ALLOC_NOTIF_RINGS_RES_PER_BIT \
-  (HV_MPIPE_NUM_NOTIF_RINGS / HV_MPIPE_ALLOC_NOTIF_RINGS_BITS)
+	(HV_MPIPE_NUM_NOTIF_RINGS / HV_MPIPE_ALLOC_NOTIF_RINGS_BITS)
 
 /** Number of NotifGroup chunks available (32). */
 #define HV_MPIPE_ALLOC_NOTIF_GROUPS_BITS \
-  HV_MPIPE_NUM_NOTIF_GROUPS
+	HV_MPIPE_NUM_NOTIF_GROUPS
 
 /** Granularity of NotifGroup allocation (1). */
 #define HV_MPIPE_ALLOC_NOTIF_GROUPS_RES_PER_BIT \
-  (HV_MPIPE_NUM_NOTIF_GROUPS / HV_MPIPE_ALLOC_NOTIF_GROUPS_BITS)
+	(HV_MPIPE_NUM_NOTIF_GROUPS / HV_MPIPE_ALLOC_NOTIF_GROUPS_BITS)
 
 /** Number of lo bucket chunks available (16). */
 #define HV_MPIPE_ALLOC_LO_BUCKETS_BITS \
-  MPIPE_MMIO_INIT_DAT_GX36_0__BUCKET_RELEASE_MASK_LO_WIDTH
+	MPIPE_MMIO_INIT_DAT_GX36_0__BUCKET_RELEASE_MASK_LO_WIDTH
 
 /** Granularity of lo bucket allocation (256). */
 #define HV_MPIPE_ALLOC_LO_BUCKETS_RES_PER_BIT \
-  (HV_MPIPE_NUM_LO_BUCKETS / HV_MPIPE_ALLOC_LO_BUCKETS_BITS)
+	(HV_MPIPE_NUM_LO_BUCKETS / HV_MPIPE_ALLOC_LO_BUCKETS_BITS)
 
 /** Number of hi bucket chunks available (16). */
 #define HV_MPIPE_ALLOC_HI_BUCKETS_BITS \
-  MPIPE_MMIO_INIT_DAT_GX36_0__BUCKET_RELEASE_MASK_HI_WIDTH
+	MPIPE_MMIO_INIT_DAT_GX36_0__BUCKET_RELEASE_MASK_HI_WIDTH
 
 /** Granularity of hi bucket allocation (4). */
 #define HV_MPIPE_ALLOC_HI_BUCKETS_RES_PER_BIT \
-  (HV_MPIPE_NUM_HI_BUCKETS / HV_MPIPE_ALLOC_HI_BUCKETS_BITS)
+	(HV_MPIPE_NUM_HI_BUCKETS / HV_MPIPE_ALLOC_HI_BUCKETS_BITS)
 
 /** Number of eDMA ring chunks available (24). */
 #define HV_MPIPE_ALLOC_EDMA_RINGS_BITS \
-  MPIPE_MMIO_INIT_DAT_GX36_1__EDMA_POST_MASK_WIDTH
+	MPIPE_MMIO_INIT_DAT_GX36_1__EDMA_POST_MASK_WIDTH
 
 /** Granularity of eDMA ring allocation (1). */
 #define HV_MPIPE_ALLOC_EDMA_RINGS_RES_PER_BIT \
-  (HV_MPIPE_NUM_EDMA_RINGS / HV_MPIPE_ALLOC_EDMA_RINGS_BITS)
+	(HV_MPIPE_NUM_EDMA_RINGS / HV_MPIPE_ALLOC_EDMA_RINGS_BITS)
 
 
 
@@ -133,8 +133,8 @@
 /** Bit vector encoding which NotifRings are in a NotifGroup. */
 typedef struct
 {
-  /** The actual bits. */
-  uint64_t ring_mask[4];
+	/** The actual bits. */
+	uint64_t ring_mask[4];
 
 } gxio_mpipe_notif_group_bits_t;
 
@@ -147,8 +147,8 @@ typedef MPIPE_LBL_INIT_DAT_BSTS_TBL_t gxio_mpipe_bucket_info_t;
 /** Eight buffer stack ids. */
 typedef struct
 {
-  /** The stacks. */
-  uint8_t stacks[8];
+	/** The stacks. */
+	uint8_t stacks[8];
 
 } gxio_mpipe_rules_stacks_t;
 
@@ -156,8 +156,8 @@ typedef struct
 /** A destination mac address. */
 typedef struct
 {
-  /** The octets. */
-  uint8_t octets[6];
+	/** The octets. */
+	uint8_t octets[6];
 
 } gxio_mpipe_rules_dmac_t;
 
@@ -176,8 +176,8 @@ typedef uint16_t gxio_mpipe_rules_vlan_t;
  *  words coming before the parameter name. */
 typedef struct
 {
-  /** The name itself. */
-  char name[GXIO_MPIPE_LINK_NAME_LEN];
+	/** The name itself. */
+	char name[GXIO_MPIPE_LINK_NAME_LEN];
 }
 _gxio_mpipe_link_name_t;
 
@@ -190,8 +190,8 @@ _gxio_mpipe_link_name_t;
  *  words coming before the parameter name. */
 typedef struct
 {
-  /** The name itself. */
-  char name[GXIO_MPIPE_SYMBOL_NAME_LEN];
+	/** The name itself. */
+	char name[GXIO_MPIPE_SYMBOL_NAME_LEN];
 }
 _gxio_mpipe_symbol_name_t;
 
@@ -199,8 +199,8 @@ _gxio_mpipe_symbol_name_t;
 /** Structure holding a MAC address. */
 typedef struct
 {
-  /** The address. */
-  uint8_t mac[6];
+	/** The address. */
+	uint8_t mac[6];
 }
 _gxio_mpipe_link_mac_t;
 
@@ -521,41 +521,41 @@ _gxio_mpipe_link_mac_t;
 /** An individual rule. */
 typedef struct
 {
-  /** The total size. */
-  uint16_t size;
+	/** The total size. */
+	uint16_t size;
 
-  /** The priority. */
-  int16_t priority;
+	/** The priority. */
+	int16_t priority;
 
-  /** The "headroom" in each buffer. */
-  uint8_t headroom;
+	/** The "headroom" in each buffer. */
+	uint8_t headroom;
 
-  /** The "tailroom" in each buffer. */
-  uint8_t tailroom;
+	/** The "tailroom" in each buffer. */
+	uint8_t tailroom;
 
-  /** The "capacity" of the largest buffer. */
-  uint16_t capacity;
+	/** The "capacity" of the largest buffer. */
+	uint16_t capacity;
 
-  /** The mask for converting a flow hash into a bucket. */
-  uint16_t bucket_mask;
+	/** The mask for converting a flow hash into a bucket. */
+	uint16_t bucket_mask;
 
-  /** The offset for converting a flow hash into a bucket. */
-  uint16_t bucket_first;
+	/** The offset for converting a flow hash into a bucket. */
+	uint16_t bucket_first;
 
-  /** The buffer stack ids. */
-  gxio_mpipe_rules_stacks_t stacks;
+	/** The buffer stack ids. */
+	gxio_mpipe_rules_stacks_t stacks;
 
-  /** The actual channels. */
-  uint32_t channel_bits;
+	/** The actual channels. */
+	uint32_t channel_bits;
 
-  /** The number of dmacs. */
-  uint16_t num_dmacs;
+	/** The number of dmacs. */
+	uint16_t num_dmacs;
 
-  /** The number of vlans. */
-  uint16_t num_vlans;
+	/** The number of vlans. */
+	uint16_t num_vlans;
 
-  /** The actual dmacs and vlans. */
-  uint8_t dmacs_and_vlans[];
+	/** The actual dmacs and vlans. */
+	uint8_t dmacs_and_vlans[];
 
 } gxio_mpipe_rules_rule_t;
 
@@ -563,14 +563,14 @@ typedef struct
 /** A list of classifier rules. */
 typedef struct
 {
-  /** The offset to the end of the current rule. */
-  uint16_t tail;
+	/** The offset to the end of the current rule. */
+	uint16_t tail;
 
-  /** The offset to the start of the current rule. */
-  uint16_t head;
+	/** The offset to the start of the current rule. */
+	uint16_t head;
 
-  /** The actual rules. */
-  uint8_t rules[4096 - 4];
+	/** The actual rules. */
+	uint8_t rules[4096 - 4];
 
 } gxio_mpipe_rules_list_t;
 
@@ -581,23 +581,23 @@ typedef struct
  *  events occurring on all links within the mPIPE shim. */
 typedef struct
 {
-  /** Number of ingress packets dropped for any reason. */
-  uint64_t ingress_drops;
-  /** Number of ingress packets dropped because a buffer stack was empty. */
-  uint64_t ingress_drops_no_buf;
-  /** Number of ingress packets dropped or truncated due to lack of space in
-   *  the iPkt buffer. */
-  uint64_t ingress_drops_ipkt;
-  /** Number of ingress packets dropped by the classifier or load balancer */
-  uint64_t ingress_drops_cls_lb;
-  /** Total number of ingress packets. */
-  uint64_t ingress_packets;
-  /** Total number of egress packets. */
-  uint64_t egress_packets;
-  /** Total number of ingress bytes. */
-  uint64_t ingress_bytes;
-  /** Total number of egress bytes. */
-  uint64_t egress_bytes;
+	/** Number of ingress packets dropped for any reason. */
+	uint64_t ingress_drops;
+	/** Number of ingress packets dropped because a buffer stack was empty. */
+	uint64_t ingress_drops_no_buf;
+	/** Number of ingress packets dropped or truncated due to lack of space in
+	 *  the iPkt buffer. */
+	uint64_t ingress_drops_ipkt;
+	/** Number of ingress packets dropped by the classifier or load balancer */
+	uint64_t ingress_drops_cls_lb;
+	/** Total number of ingress packets. */
+	uint64_t ingress_packets;
+	/** Total number of egress packets. */
+	uint64_t egress_packets;
+	/** Total number of ingress bytes. */
+	uint64_t ingress_bytes;
+	/** Total number of egress bytes. */
+	uint64_t egress_bytes;
 }
 gxio_mpipe_stats_t;
 

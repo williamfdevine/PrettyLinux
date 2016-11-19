@@ -55,7 +55,9 @@ static inline int au1000_gpio2_to_irq(int gpio)
 static inline int au1000_irq_to_gpio(int irq)
 {
 	if ((irq >= AU1000_GPIO0_INT) && (irq <= AU1000_GPIO31_INT))
+	{
 		return ALCHEMY_GPIO1_BASE + (irq - AU1000_GPIO0_INT) + 0;
+	}
 
 	return -ENXIO;
 }
@@ -64,10 +66,11 @@ static inline int au1500_gpio1_to_irq(int gpio)
 {
 	gpio -= ALCHEMY_GPIO1_BASE;
 
-	switch (gpio) {
-	case 0 ... 15:
-	case 20:
-	case 23 ... 28: return MAKE_IRQ(1, gpio);
+	switch (gpio)
+	{
+		case 0 ... 15:
+		case 20:
+		case 23 ... 28: return MAKE_IRQ(1, gpio);
 	}
 
 	return -ENXIO;
@@ -77,10 +80,13 @@ static inline int au1500_gpio2_to_irq(int gpio)
 {
 	gpio -= ALCHEMY_GPIO2_BASE;
 
-	switch (gpio) {
-	case 0 ... 3:	return MAKE_IRQ(1, 16 + gpio - 0);
-	case 4 ... 5:	return MAKE_IRQ(1, 21 + gpio - 4);
-	case 6 ... 7:	return MAKE_IRQ(1, 29 + gpio - 6);
+	switch (gpio)
+	{
+		case 0 ... 3:	return MAKE_IRQ(1, 16 + gpio - 0);
+
+		case 4 ... 5:	return MAKE_IRQ(1, 21 + gpio - 4);
+
+		case 6 ... 7:	return MAKE_IRQ(1, 29 + gpio - 6);
 	}
 
 	return -ENXIO;
@@ -88,19 +94,24 @@ static inline int au1500_gpio2_to_irq(int gpio)
 
 static inline int au1500_irq_to_gpio(int irq)
 {
-	switch (irq) {
-	case AU1500_GPIO0_INT ... AU1500_GPIO15_INT:
-	case AU1500_GPIO20_INT:
-	case AU1500_GPIO23_INT ... AU1500_GPIO28_INT:
-		return ALCHEMY_GPIO1_BASE + (irq - AU1500_GPIO0_INT) + 0;
-	case AU1500_GPIO200_INT ... AU1500_GPIO203_INT:
-		return ALCHEMY_GPIO2_BASE + (irq - AU1500_GPIO200_INT) + 0;
-	case AU1500_GPIO204_INT ... AU1500_GPIO205_INT:
-		return ALCHEMY_GPIO2_BASE + (irq - AU1500_GPIO204_INT) + 4;
-	case AU1500_GPIO206_INT ... AU1500_GPIO207_INT:
-		return ALCHEMY_GPIO2_BASE + (irq - AU1500_GPIO206_INT) + 6;
-	case AU1500_GPIO208_215_INT:
-		return ALCHEMY_GPIO2_BASE + 8;
+	switch (irq)
+	{
+		case AU1500_GPIO0_INT ... AU1500_GPIO15_INT:
+		case AU1500_GPIO20_INT:
+		case AU1500_GPIO23_INT ... AU1500_GPIO28_INT:
+			return ALCHEMY_GPIO1_BASE + (irq - AU1500_GPIO0_INT) + 0;
+
+		case AU1500_GPIO200_INT ... AU1500_GPIO203_INT:
+			return ALCHEMY_GPIO2_BASE + (irq - AU1500_GPIO200_INT) + 0;
+
+		case AU1500_GPIO204_INT ... AU1500_GPIO205_INT:
+			return ALCHEMY_GPIO2_BASE + (irq - AU1500_GPIO204_INT) + 4;
+
+		case AU1500_GPIO206_INT ... AU1500_GPIO207_INT:
+			return ALCHEMY_GPIO2_BASE + (irq - AU1500_GPIO206_INT) + 6;
+
+		case AU1500_GPIO208_215_INT:
+			return ALCHEMY_GPIO2_BASE + 8;
 	}
 
 	return -ENXIO;
@@ -116,18 +127,22 @@ static inline int au1100_gpio2_to_irq(int gpio)
 	gpio -= ALCHEMY_GPIO2_BASE;
 
 	if ((gpio >= 8) && (gpio <= 15))
-		return MAKE_IRQ(0, 29);		/* shared GPIO208_215 */
+	{
+		return MAKE_IRQ(0, 29);    /* shared GPIO208_215 */
+	}
 
 	return -ENXIO;
 }
 
 static inline int au1100_irq_to_gpio(int irq)
 {
-	switch (irq) {
-	case AU1100_GPIO0_INT ... AU1100_GPIO31_INT:
-		return ALCHEMY_GPIO1_BASE + (irq - AU1100_GPIO0_INT) + 0;
-	case AU1100_GPIO208_215_INT:
-		return ALCHEMY_GPIO2_BASE + 8;
+	switch (irq)
+	{
+		case AU1100_GPIO0_INT ... AU1100_GPIO31_INT:
+			return ALCHEMY_GPIO1_BASE + (irq - AU1100_GPIO0_INT) + 0;
+
+		case AU1100_GPIO208_215_INT:
+			return ALCHEMY_GPIO2_BASE + 8;
 	}
 
 	return -ENXIO;
@@ -137,10 +152,12 @@ static inline int au1550_gpio1_to_irq(int gpio)
 {
 	gpio -= ALCHEMY_GPIO1_BASE;
 
-	switch (gpio) {
-	case 0 ... 15:
-	case 20 ... 28: return MAKE_IRQ(1, gpio);
-	case 16 ... 17: return MAKE_IRQ(1, 18 + gpio - 16);
+	switch (gpio)
+	{
+		case 0 ... 15:
+		case 20 ... 28: return MAKE_IRQ(1, gpio);
+
+		case 16 ... 17: return MAKE_IRQ(1, 18 + gpio - 16);
 	}
 
 	return -ENXIO;
@@ -150,11 +167,15 @@ static inline int au1550_gpio2_to_irq(int gpio)
 {
 	gpio -= ALCHEMY_GPIO2_BASE;
 
-	switch (gpio) {
-	case 0:		return MAKE_IRQ(1, 16);
-	case 1 ... 5:	return MAKE_IRQ(1, 17); /* shared GPIO201_205 */
-	case 6 ... 7:	return MAKE_IRQ(1, 29 + gpio - 6);
-	case 8 ... 15:	return MAKE_IRQ(1, 31); /* shared GPIO208_215 */
+	switch (gpio)
+	{
+		case 0:		return MAKE_IRQ(1, 16);
+
+		case 1 ... 5:	return MAKE_IRQ(1, 17); /* shared GPIO201_205 */
+
+		case 6 ... 7:	return MAKE_IRQ(1, 29 + gpio - 6);
+
+		case 8 ... 15:	return MAKE_IRQ(1, 31); /* shared GPIO208_215 */
 	}
 
 	return -ENXIO;
@@ -162,16 +183,20 @@ static inline int au1550_gpio2_to_irq(int gpio)
 
 static inline int au1550_irq_to_gpio(int irq)
 {
-	switch (irq) {
-	case AU1550_GPIO0_INT ... AU1550_GPIO15_INT:
-		return ALCHEMY_GPIO1_BASE + (irq - AU1550_GPIO0_INT) + 0;
-	case AU1550_GPIO200_INT:
-	case AU1550_GPIO201_205_INT:
-		return ALCHEMY_GPIO2_BASE + (irq - AU1550_GPIO200_INT) + 0;
-	case AU1550_GPIO16_INT ... AU1550_GPIO28_INT:
-		return ALCHEMY_GPIO1_BASE + (irq - AU1550_GPIO16_INT) + 16;
-	case AU1550_GPIO206_INT ... AU1550_GPIO208_215_INT:
-		return ALCHEMY_GPIO2_BASE + (irq - AU1550_GPIO206_INT) + 6;
+	switch (irq)
+	{
+		case AU1550_GPIO0_INT ... AU1550_GPIO15_INT:
+			return ALCHEMY_GPIO1_BASE + (irq - AU1550_GPIO0_INT) + 0;
+
+		case AU1550_GPIO200_INT:
+		case AU1550_GPIO201_205_INT:
+			return ALCHEMY_GPIO2_BASE + (irq - AU1550_GPIO200_INT) + 0;
+
+		case AU1550_GPIO16_INT ... AU1550_GPIO28_INT:
+			return ALCHEMY_GPIO1_BASE + (irq - AU1550_GPIO16_INT) + 16;
+
+		case AU1550_GPIO206_INT ... AU1550_GPIO208_215_INT:
+			return ALCHEMY_GPIO2_BASE + (irq - AU1550_GPIO206_INT) + 6;
 	}
 
 	return -ENXIO;
@@ -186,11 +211,15 @@ static inline int au1200_gpio2_to_irq(int gpio)
 {
 	gpio -= ALCHEMY_GPIO2_BASE;
 
-	switch (gpio) {
-	case 0 ... 2:	return MAKE_IRQ(0, 5 + gpio - 0);
-	case 3:		return MAKE_IRQ(0, 22);
-	case 4 ... 7:	return MAKE_IRQ(0, 24 + gpio - 4);
-	case 8 ... 15:	return MAKE_IRQ(0, 28); /* shared GPIO208_215 */
+	switch (gpio)
+	{
+		case 0 ... 2:	return MAKE_IRQ(0, 5 + gpio - 0);
+
+		case 3:		return MAKE_IRQ(0, 22);
+
+		case 4 ... 7:	return MAKE_IRQ(0, 24 + gpio - 4);
+
+		case 8 ... 15:	return MAKE_IRQ(0, 28); /* shared GPIO208_215 */
 	}
 
 	return -ENXIO;
@@ -198,15 +227,19 @@ static inline int au1200_gpio2_to_irq(int gpio)
 
 static inline int au1200_irq_to_gpio(int irq)
 {
-	switch (irq) {
-	case AU1200_GPIO0_INT ... AU1200_GPIO31_INT:
-		return ALCHEMY_GPIO1_BASE + (irq - AU1200_GPIO0_INT) + 0;
-	case AU1200_GPIO200_INT ... AU1200_GPIO202_INT:
-		return ALCHEMY_GPIO2_BASE + (irq - AU1200_GPIO200_INT) + 0;
-	case AU1200_GPIO203_INT:
-		return ALCHEMY_GPIO2_BASE + 3;
-	case AU1200_GPIO204_INT ... AU1200_GPIO208_215_INT:
-		return ALCHEMY_GPIO2_BASE + (irq - AU1200_GPIO204_INT) + 4;
+	switch (irq)
+	{
+		case AU1200_GPIO0_INT ... AU1200_GPIO31_INT:
+			return ALCHEMY_GPIO1_BASE + (irq - AU1200_GPIO0_INT) + 0;
+
+		case AU1200_GPIO200_INT ... AU1200_GPIO202_INT:
+			return ALCHEMY_GPIO2_BASE + (irq - AU1200_GPIO200_INT) + 0;
+
+		case AU1200_GPIO203_INT:
+			return ALCHEMY_GPIO2_BASE + 3;
+
+		case AU1200_GPIO204_INT ... AU1200_GPIO208_215_INT:
+			return ALCHEMY_GPIO2_BASE + (irq - AU1200_GPIO204_INT) + 4;
 	}
 
 	return -ENXIO;
@@ -251,18 +284,24 @@ static inline int alchemy_gpio1_is_valid(int gpio)
 
 static inline int alchemy_gpio1_to_irq(int gpio)
 {
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1000:
-		return au1000_gpio1_to_irq(gpio);
-	case ALCHEMY_CPU_AU1100:
-		return au1100_gpio1_to_irq(gpio);
-	case ALCHEMY_CPU_AU1500:
-		return au1500_gpio1_to_irq(gpio);
-	case ALCHEMY_CPU_AU1550:
-		return au1550_gpio1_to_irq(gpio);
-	case ALCHEMY_CPU_AU1200:
-		return au1200_gpio1_to_irq(gpio);
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1000:
+			return au1000_gpio1_to_irq(gpio);
+
+		case ALCHEMY_CPU_AU1100:
+			return au1100_gpio1_to_irq(gpio);
+
+		case ALCHEMY_CPU_AU1500:
+			return au1500_gpio1_to_irq(gpio);
+
+		case ALCHEMY_CPU_AU1550:
+			return au1550_gpio1_to_irq(gpio);
+
+		case ALCHEMY_CPU_AU1200:
+			return au1200_gpio1_to_irq(gpio);
 	}
+
 	return -ENXIO;
 }
 
@@ -288,9 +327,14 @@ static inline void __alchemy_gpio2_mod_dir(int gpio, int to_out)
 	unsigned long d = __raw_readl(base + AU1000_GPIO2_DIR);
 
 	if (to_out)
+	{
 		d |= mask;
+	}
 	else
+	{
 		d &= ~mask;
+	}
+
 	__raw_writel(d, base + AU1000_GPIO2_DIR);
 	wmb();
 }
@@ -308,7 +352,7 @@ static inline int alchemy_gpio2_get_value(int gpio)
 {
 	void __iomem *base = (void __iomem *)KSEG1ADDR(AU1500_GPIO2_PHYS_ADDR);
 	return __raw_readl(base + AU1000_GPIO2_PINSTATE) &
-				(1 << (gpio - ALCHEMY_GPIO2_BASE));
+		   (1 << (gpio - ALCHEMY_GPIO2_BASE));
 }
 
 static inline int alchemy_gpio2_direction_input(int gpio)
@@ -337,18 +381,24 @@ static inline int alchemy_gpio2_is_valid(int gpio)
 
 static inline int alchemy_gpio2_to_irq(int gpio)
 {
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1000:
-		return au1000_gpio2_to_irq(gpio);
-	case ALCHEMY_CPU_AU1100:
-		return au1100_gpio2_to_irq(gpio);
-	case ALCHEMY_CPU_AU1500:
-		return au1500_gpio2_to_irq(gpio);
-	case ALCHEMY_CPU_AU1550:
-		return au1550_gpio2_to_irq(gpio);
-	case ALCHEMY_CPU_AU1200:
-		return au1200_gpio2_to_irq(gpio);
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1000:
+			return au1000_gpio2_to_irq(gpio);
+
+		case ALCHEMY_CPU_AU1100:
+			return au1100_gpio2_to_irq(gpio);
+
+		case ALCHEMY_CPU_AU1500:
+			return au1500_gpio2_to_irq(gpio);
+
+		case ALCHEMY_CPU_AU1550:
+			return au1550_gpio2_to_irq(gpio);
+
+		case ALCHEMY_CPU_AU1200:
+			return au1200_gpio2_to_irq(gpio);
 	}
+
 	return -ENXIO;
 }
 
@@ -360,10 +410,16 @@ static inline void __alchemy_gpio2_mod_int(int gpio2, int en)
 {
 	void __iomem *base = (void __iomem *)KSEG1ADDR(AU1500_GPIO2_PHYS_ADDR);
 	unsigned long r = __raw_readl(base + AU1000_GPIO2_INTENABLE);
+
 	if (en)
+	{
 		r |= 1 << gpio2;
+	}
 	else
+	{
 		r &= ~(1 << gpio2);
+	}
+
 	__raw_writel(r, base + AU1000_GPIO2_INTENABLE);
 	wmb();
 }
@@ -397,10 +453,11 @@ static inline void alchemy_gpio2_enable_int(int gpio2)
 	gpio2 -= ALCHEMY_GPIO2_BASE;
 
 	/* Au1100/Au1500 have GPIO208-215 enable bits at 0..7 */
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1100:
-	case ALCHEMY_CPU_AU1500:
-		gpio2 -= 8;
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1100:
+		case ALCHEMY_CPU_AU1500:
+			gpio2 -= 8;
 	}
 
 	local_irq_save(flags);
@@ -421,10 +478,11 @@ static inline void alchemy_gpio2_disable_int(int gpio2)
 	gpio2 -= ALCHEMY_GPIO2_BASE;
 
 	/* Au1100/Au1500 have GPIO208-215 enable bits at 0..7 */
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1100:
-	case ALCHEMY_CPU_AU1500:
-		gpio2 -= 8;
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1100:
+		case ALCHEMY_CPU_AU1500:
+			gpio2 -= 8;
 	}
 
 	local_irq_save(flags);
@@ -467,37 +525,41 @@ static inline void alchemy_gpio2_disable(void)
 static inline int alchemy_gpio_direction_input(int gpio)
 {
 	return (gpio >= ALCHEMY_GPIO2_BASE) ?
-		alchemy_gpio2_direction_input(gpio) :
-		alchemy_gpio1_direction_input(gpio);
+		   alchemy_gpio2_direction_input(gpio) :
+		   alchemy_gpio1_direction_input(gpio);
 }
 
 static inline int alchemy_gpio_direction_output(int gpio, int v)
 {
 	return (gpio >= ALCHEMY_GPIO2_BASE) ?
-		alchemy_gpio2_direction_output(gpio, v) :
-		alchemy_gpio1_direction_output(gpio, v);
+		   alchemy_gpio2_direction_output(gpio, v) :
+		   alchemy_gpio1_direction_output(gpio, v);
 }
 
 static inline int alchemy_gpio_get_value(int gpio)
 {
 	return (gpio >= ALCHEMY_GPIO2_BASE) ?
-		alchemy_gpio2_get_value(gpio) :
-		alchemy_gpio1_get_value(gpio);
+		   alchemy_gpio2_get_value(gpio) :
+		   alchemy_gpio1_get_value(gpio);
 }
 
 static inline void alchemy_gpio_set_value(int gpio, int v)
 {
 	if (gpio >= ALCHEMY_GPIO2_BASE)
+	{
 		alchemy_gpio2_set_value(gpio, v);
+	}
 	else
+	{
 		alchemy_gpio1_set_value(gpio, v);
+	}
 }
 
 static inline int alchemy_gpio_is_valid(int gpio)
 {
 	return (gpio >= ALCHEMY_GPIO2_BASE) ?
-		alchemy_gpio2_is_valid(gpio) :
-		alchemy_gpio1_is_valid(gpio);
+		   alchemy_gpio2_is_valid(gpio) :
+		   alchemy_gpio1_is_valid(gpio);
 }
 
 static inline int alchemy_gpio_cansleep(int gpio)
@@ -508,24 +570,30 @@ static inline int alchemy_gpio_cansleep(int gpio)
 static inline int alchemy_gpio_to_irq(int gpio)
 {
 	return (gpio >= ALCHEMY_GPIO2_BASE) ?
-		alchemy_gpio2_to_irq(gpio) :
-		alchemy_gpio1_to_irq(gpio);
+		   alchemy_gpio2_to_irq(gpio) :
+		   alchemy_gpio1_to_irq(gpio);
 }
 
 static inline int alchemy_irq_to_gpio(int irq)
 {
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1000:
-		return au1000_irq_to_gpio(irq);
-	case ALCHEMY_CPU_AU1100:
-		return au1100_irq_to_gpio(irq);
-	case ALCHEMY_CPU_AU1500:
-		return au1500_irq_to_gpio(irq);
-	case ALCHEMY_CPU_AU1550:
-		return au1550_irq_to_gpio(irq);
-	case ALCHEMY_CPU_AU1200:
-		return au1200_irq_to_gpio(irq);
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1000:
+			return au1000_irq_to_gpio(irq);
+
+		case ALCHEMY_CPU_AU1100:
+			return au1100_irq_to_gpio(irq);
+
+		case ALCHEMY_CPU_AU1500:
+			return au1500_irq_to_gpio(irq);
+
+		case ALCHEMY_CPU_AU1550:
+			return au1550_irq_to_gpio(irq);
+
+		case ALCHEMY_CPU_AU1200:
+			return au1200_irq_to_gpio(irq);
 	}
+
 	return -ENXIO;
 }
 

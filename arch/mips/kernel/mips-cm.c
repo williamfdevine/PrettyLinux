@@ -19,13 +19,15 @@ void __iomem *mips_cm_base;
 void __iomem *mips_cm_l2sync_base;
 int mips_cm_is64;
 
-static char *cm2_tr[8] = {
+static char *cm2_tr[8] =
+{
 	"mem",	"gcr",	"gic",	"mmio",
 	"0x04", "cpc", "0x06", "0x07"
 };
 
 /* CM3 Tag ECC transaction type */
-static char *cm3_tr[16] = {
+static char *cm3_tr[16] =
+{
 	[0x0] = "ReqNoData",
 	[0x1] = "0x1",
 	[0x2] = "ReqWData",
@@ -44,7 +46,8 @@ static char *cm3_tr[16] = {
 	[0xf] = "IRespDataOnly"
 };
 
-static char *cm2_cmd[32] = {
+static char *cm2_cmd[32] =
+{
 	[0x00] = "0x00",
 	[0x01] = "Legacy Write",
 	[0x02] = "Legacy Read",
@@ -80,7 +83,8 @@ static char *cm2_cmd[32] = {
 };
 
 /* CM3 Tag ECC command type */
-static char *cm3_cmd[16] = {
+static char *cm3_cmd[16] =
+{
 	[0x0] = "Legacy Read",
 	[0x1] = "Legacy Write",
 	[0x2] = "Coherent Read Own",
@@ -100,7 +104,8 @@ static char *cm3_cmd[16] = {
 };
 
 /* CM3 Tag ECC command group */
-static char *cm3_cmd_group[8] = {
+static char *cm3_cmd_group[8] =
+{
 	[0x0] = "Normal",
 	[0x1] = "Registers",
 	[0x2] = "TLB",
@@ -111,14 +116,16 @@ static char *cm3_cmd_group[8] = {
 	[0x7] = "L2"
 };
 
-static char *cm2_core[8] = {
+static char *cm2_core[8] =
+{
 	"Invalid/OK",	"Invalid/Data",
 	"Shared/OK",	"Shared/Data",
 	"Modified/OK",	"Modified/Data",
 	"Exclusive/OK", "Exclusive/Data"
 };
 
-static char *cm2_causes[32] = {
+static char *cm2_causes[32] =
+{
 	"None", "GC_WR_ERR", "GC_RD_ERR", "COH_WR_ERR",
 	"COH_RD_ERR", "MMIO_WR_ERR", "MMIO_RD_ERR", "0x07",
 	"0x08", "0x09", "0x0a", "0x0b",
@@ -129,7 +136,8 @@ static char *cm2_causes[32] = {
 	"0x1c", "0x1d", "0x1e", "0x1f"
 };
 
-static char *cm3_causes[32] = {
+static char *cm3_causes[32] =
+{
 	"0x0", "MP_CORRECTABLE_ECC_ERR", "MP_REQUEST_DECODE_ERR",
 	"MP_UNCORRECTABLE_ECC_ERR", "MP_PARITY_ERR", "MP_COHERENCE_ERR",
 	"CMBIU_REQUEST_DECODE_ERR", "CMBIU_PARITY_ERR", "CMBIU_AXI_RESP_ERR",
@@ -148,7 +156,9 @@ phys_addr_t __mips_cm_phys_base(void)
 
 	/* Check the CMGCRBase register is implemented */
 	if (!(config3 & MIPS_CONF3_CMGCR))
+	{
 		return 0;
+	}
 
 	/* Read the address from CMGCRBase */
 	cmgcr = read_c0_cmgcrbase();
@@ -156,7 +166,7 @@ phys_addr_t __mips_cm_phys_base(void)
 }
 
 phys_addr_t mips_cm_phys_base(void)
-	__attribute__((weak, alias("__mips_cm_phys_base")));
+__attribute__((weak, alias("__mips_cm_phys_base")));
 
 phys_addr_t __mips_cm_l2sync_phys_base(void)
 {
@@ -167,15 +177,18 @@ phys_addr_t __mips_cm_l2sync_phys_base(void)
 	 * current location.
 	 */
 	base_reg = read_gcr_l2_only_sync_base();
+
 	if (base_reg & CM_GCR_L2_ONLY_SYNC_BASE_SYNCEN_MSK)
+	{
 		return base_reg & CM_GCR_L2_ONLY_SYNC_BASE_SYNCBASE_MSK;
+	}
 
 	/* Default to following the CM */
 	return mips_cm_phys_base() + MIPS_CM_GCR_SIZE;
 }
 
 phys_addr_t mips_cm_l2sync_phys_base(void)
-	__attribute__((weak, alias("__mips_cm_l2sync_phys_base")));
+__attribute__((weak, alias("__mips_cm_l2sync_phys_base")));
 
 static void mips_cm_probe_l2sync(void)
 {
@@ -184,15 +197,21 @@ static void mips_cm_probe_l2sync(void)
 
 	/* L2-only sync was introduced with CM major revision 6 */
 	major_rev = (read_gcr_rev() & CM_GCR_REV_MAJOR_MSK) >>
-		CM_GCR_REV_MAJOR_SHF;
+				CM_GCR_REV_MAJOR_SHF;
+
 	if (major_rev < 6)
+	{
 		return;
+	}
 
 	/* Find a location for the L2 sync region */
 	addr = mips_cm_l2sync_phys_base();
 	BUG_ON((addr & CM_GCR_L2_ONLY_SYNC_BASE_SYNCBASE_MSK) != addr);
+
 	if (!addr)
+	{
 		return;
+	}
 
 	/* Set the region base address & enable it */
 	write_gcr_l2_only_sync_base(addr | CM_GCR_L2_ONLY_SYNC_BASE_SYNCEN_MSK);
@@ -212,22 +231,32 @@ int mips_cm_probe(void)
 	 * here before.
 	 */
 	if (mips_cm_base)
+	{
 		return 0;
+	}
 
 	addr = mips_cm_phys_base();
 	BUG_ON((addr & CM_GCR_BASE_GCRBASE_MSK) != addr);
+
 	if (!addr)
+	{
 		return -ENODEV;
+	}
 
 	mips_cm_base = ioremap_nocache(addr, MIPS_CM_GCR_SIZE);
+
 	if (!mips_cm_base)
+	{
 		return -ENXIO;
+	}
 
 	/* sanity check that we're looking at a CM */
 	base_reg = read_gcr_base();
-	if ((base_reg & CM_GCR_BASE_GCRBASE_MSK) != addr) {
+
+	if ((base_reg & CM_GCR_BASE_GCRBASE_MSK) != addr)
+	{
 		pr_err("GCRs appear to have been moved (expected them at 0x%08lx)!\n",
-		       (unsigned long)addr);
+			   (unsigned long)addr);
 		mips_cm_base = NULL;
 		return -ENODEV;
 	}
@@ -254,7 +283,7 @@ int mips_cm_probe(void)
 	mips_cm_is64 = IS_ENABLED(CONFIG_64BIT) && (mips_cm_revision() >= CM_REV_CM3);
 
 	for_each_possible_cpu(cpu)
-		spin_lock_init(&per_cpu(cm_core_lock, cpu));
+	spin_lock_init(&per_cpu(cm_core_lock, cpu));
 
 	return 0;
 }
@@ -267,12 +296,15 @@ void mips_cm_lock_other(unsigned int core, unsigned int vp)
 	preempt_disable();
 	curr_core = current_cpu_data.core;
 	spin_lock_irqsave(&per_cpu(cm_core_lock, curr_core),
-			  per_cpu(cm_core_lock_flags, curr_core));
+					  per_cpu(cm_core_lock_flags, curr_core));
 
-	if (mips_cm_revision() >= CM_REV_CM3) {
+	if (mips_cm_revision() >= CM_REV_CM3)
+	{
 		val = core << CM3_GCR_Cx_OTHER_CORE_SHF;
 		val |= vp << CM3_GCR_Cx_OTHER_VP_SHF;
-	} else {
+	}
+	else
+	{
 		BUG_ON(vp != 0);
 		val = core << CM_GCR_Cx_OTHER_CORENUM_SHF;
 	}
@@ -291,7 +323,7 @@ void mips_cm_unlock_other(void)
 	unsigned curr_core = current_cpu_data.core;
 
 	spin_unlock_irqrestore(&per_cpu(cm_core_lock, curr_core),
-			       per_cpu(cm_core_lock_flags, curr_core));
+						   per_cpu(cm_core_lock_flags, curr_core));
 	preempt_enable();
 }
 
@@ -303,11 +335,14 @@ void mips_cm_error_report(void)
 	char buf[256];
 
 	if (!mips_cm_present())
+	{
 		return;
+	}
 
 	revision = mips_cm_revision();
 
-	if (revision < CM_REV_CM3) { /* CM2 */
+	if (revision < CM_REV_CM3)   /* CM2 */
+	{
 		cm_error = read_gcr_error_cause();
 		cm_addr = read_gcr_error_addr();
 		cm_other = read_gcr_error_mult();
@@ -315,9 +350,12 @@ void mips_cm_error_report(void)
 		ocause = cm_other >> CM_GCR_ERROR_MULT_ERR2ND_SHF;
 
 		if (!cause)
+		{
 			return;
+		}
 
-		if (cause < 16) {
+		if (cause < 16)
+		{
 			unsigned long cca_bits = (cm_error >> 15) & 7;
 			unsigned long tr_bits = (cm_error >> 12) & 7;
 			unsigned long cmd_bits = (cm_error >> 7) & 0x1f;
@@ -325,10 +363,12 @@ void mips_cm_error_report(void)
 			unsigned long sport_bits = (cm_error >> 0) & 7;
 
 			snprintf(buf, sizeof(buf),
-				 "CCA=%lu TR=%s MCmd=%s STag=%lu "
-				 "SPort=%lu\n", cca_bits, cm2_tr[tr_bits],
-				 cm2_cmd[cmd_bits], stag_bits, sport_bits);
-		} else {
+					 "CCA=%lu TR=%s MCmd=%s STag=%lu "
+					 "SPort=%lu\n", cca_bits, cm2_tr[tr_bits],
+					 cm2_cmd[cmd_bits], stag_bits, sport_bits);
+		}
+		else
+		{
 			/* glob state & sresp together */
 			unsigned long c3_bits = (cm_error >> 18) & 7;
 			unsigned long c2_bits = (cm_error >> 15) & 7;
@@ -339,18 +379,21 @@ void mips_cm_error_report(void)
 			unsigned long sport_bits = (cm_error >> 0) & 7;
 
 			snprintf(buf, sizeof(buf),
-				 "C3=%s C2=%s C1=%s C0=%s SC=%s "
-				 "MCmd=%s SPort=%lu\n",
-				 cm2_core[c3_bits], cm2_core[c2_bits],
-				 cm2_core[c1_bits], cm2_core[c0_bits],
-				 sc_bit ? "True" : "False",
-				 cm2_cmd[cmd_bits], sport_bits);
+					 "C3=%s C2=%s C1=%s C0=%s SC=%s "
+					 "MCmd=%s SPort=%lu\n",
+					 cm2_core[c3_bits], cm2_core[c2_bits],
+					 cm2_core[c1_bits], cm2_core[c0_bits],
+					 sc_bit ? "True" : "False",
+					 cm2_cmd[cmd_bits], sport_bits);
 		}
-			pr_err("CM_ERROR=%08llx %s <%s>\n", cm_error,
-			       cm2_causes[cause], buf);
+
+		pr_err("CM_ERROR=%08llx %s <%s>\n", cm_error,
+			   cm2_causes[cause], buf);
 		pr_err("CM_ADDR =%08llx\n", cm_addr);
 		pr_err("CM_OTHER=%08llx %s\n", cm_other, cm2_causes[ocause]);
-	} else { /* CM3 */
+	}
+	else     /* CM3 */
+	{
 		ulong core_id_bits, vp_id_bits, cmd_bits, cmd_group_bits;
 		ulong cm3_cca_bits, mcp_bits, cm3_tr_bits, sched_bit;
 
@@ -361,7 +404,9 @@ void mips_cm_error_report(void)
 		ocause = cm_other >> CM_GCR_ERROR_MULT_ERR2ND_SHF;
 
 		if (!cause)
+		{
 			return;
+		}
 
 		/* Used by cause == {1,2,3} */
 		core_id_bits = (cm_error >> 22) & 0xf;
@@ -373,7 +418,8 @@ void mips_cm_error_report(void)
 		cm3_tr_bits = (cm_error >> 1) & 0xf;
 		sched_bit = cm_error & 0x1;
 
-		if (cause == 1 || cause == 3) { /* Tag ECC */
+		if (cause == 1 || cause == 3)   /* Tag ECC */
+		{
 			unsigned long tag_ecc = (cm_error >> 57) & 0x1;
 			unsigned long tag_way_bits = (cm_error >> 29) & 0xffff;
 			unsigned long dword_bits = (cm_error >> 49) & 0xff;
@@ -381,44 +427,48 @@ void mips_cm_error_report(void)
 			unsigned long data_sets_bits = (cm_error >> 29) & 0xfff;
 			unsigned long bank_bit = (cm_error >> 28) & 0x1;
 			snprintf(buf, sizeof(buf),
-				 "%s ECC Error: Way=%lu (DWORD=%lu, Sets=%lu)"
-				 "Bank=%lu CoreID=%lu VPID=%lu Command=%s"
-				 "Command Group=%s CCA=%lu MCP=%d"
-				 "Transaction type=%s Scheduler=%lu\n",
-				 tag_ecc ? "TAG" : "DATA",
-				 tag_ecc ? (unsigned long)ffs(tag_way_bits) - 1 :
-				 data_way_bits, bank_bit, dword_bits,
-				 data_sets_bits,
-				 core_id_bits, vp_id_bits,
-				 cm3_cmd[cmd_bits],
-				 cm3_cmd_group[cmd_group_bits],
-				 cm3_cca_bits, 1 << mcp_bits,
-				 cm3_tr[cm3_tr_bits], sched_bit);
-		} else if (cause == 2) {
+					 "%s ECC Error: Way=%lu (DWORD=%lu, Sets=%lu)"
+					 "Bank=%lu CoreID=%lu VPID=%lu Command=%s"
+					 "Command Group=%s CCA=%lu MCP=%d"
+					 "Transaction type=%s Scheduler=%lu\n",
+					 tag_ecc ? "TAG" : "DATA",
+					 tag_ecc ? (unsigned long)ffs(tag_way_bits) - 1 :
+					 data_way_bits, bank_bit, dword_bits,
+					 data_sets_bits,
+					 core_id_bits, vp_id_bits,
+					 cm3_cmd[cmd_bits],
+					 cm3_cmd_group[cmd_group_bits],
+					 cm3_cca_bits, 1 << mcp_bits,
+					 cm3_tr[cm3_tr_bits], sched_bit);
+		}
+		else if (cause == 2)
+		{
 			unsigned long data_error_type = (cm_error >> 41) & 0xfff;
 			unsigned long data_decode_cmd = (cm_error >> 37) & 0xf;
 			unsigned long data_decode_group = (cm_error >> 34) & 0x7;
 			unsigned long data_decode_destination_id = (cm_error >> 28) & 0x3f;
 
 			snprintf(buf, sizeof(buf),
-				 "Decode Request Error: Type=%lu, Command=%lu"
-				 "Command Group=%lu Destination ID=%lu"
-				 "CoreID=%lu VPID=%lu Command=%s"
-				 "Command Group=%s CCA=%lu MCP=%d"
-				 "Transaction type=%s Scheduler=%lu\n",
-				 data_error_type, data_decode_cmd,
-				 data_decode_group, data_decode_destination_id,
-				 core_id_bits, vp_id_bits,
-				 cm3_cmd[cmd_bits],
-				 cm3_cmd_group[cmd_group_bits],
-				 cm3_cca_bits, 1 << mcp_bits,
-				 cm3_tr[cm3_tr_bits], sched_bit);
-		} else {
+					 "Decode Request Error: Type=%lu, Command=%lu"
+					 "Command Group=%lu Destination ID=%lu"
+					 "CoreID=%lu VPID=%lu Command=%s"
+					 "Command Group=%s CCA=%lu MCP=%d"
+					 "Transaction type=%s Scheduler=%lu\n",
+					 data_error_type, data_decode_cmd,
+					 data_decode_group, data_decode_destination_id,
+					 core_id_bits, vp_id_bits,
+					 cm3_cmd[cmd_bits],
+					 cm3_cmd_group[cmd_group_bits],
+					 cm3_cca_bits, 1 << mcp_bits,
+					 cm3_tr[cm3_tr_bits], sched_bit);
+		}
+		else
+		{
 			buf[0] = 0;
 		}
 
 		pr_err("CM_ERROR=%llx %s <%s>\n", cm_error,
-		       cm3_causes[cause], buf);
+			   cm3_causes[cause], buf);
 		pr_err("CM_ADDR =%llx\n", cm_addr);
 		pr_err("CM_OTHER=%llx %s\n", cm_other, cm3_causes[ocause]);
 	}

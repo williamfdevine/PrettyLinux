@@ -28,26 +28,26 @@
 #define _ST(p, inst, v)						\
 	({							\
 		asm("1: " #inst " %0, %1;"			\
-		    ".pushsection .coldtext,\"ax\";"	\
-		    "2: { move r0, %2; jrp lr };"		\
-		    ".section __ex_table,\"a\";"		\
-		    ".align 8;"					\
-		    ".quad 1b, 2b;"				\
-		    ".popsection"				\
-		    : "=m" (*(p)) : "r" (v), "r" (n));		\
+			".pushsection .coldtext,\"ax\";"	\
+			"2: { move r0, %2; jrp lr };"		\
+			".section __ex_table,\"a\";"		\
+			".align 8;"					\
+			".quad 1b, 2b;"				\
+			".popsection"				\
+			: "=m" (*(p)) : "r" (v), "r" (n));		\
 	})
 
 #define _LD(p, inst)						\
 	({							\
 		unsigned long __v;				\
 		asm("1: " #inst " %0, %1;"			\
-		    ".pushsection .coldtext,\"ax\";"	\
-		    "2: { move r0, %2; jrp lr };"		\
-		    ".section __ex_table,\"a\";"		\
-		    ".align 8;"					\
-		    ".quad 1b, 2b;"				\
-		    ".popsection"				\
-		    : "=r" (__v) : "m" (*(p)), "r" (n));	\
+			".pushsection .coldtext,\"ax\";"	\
+			"2: { move r0, %2; jrp lr };"		\
+			".section __ex_table,\"a\";"		\
+			".align 8;"					\
+			".quad 1b, 2b;"				\
+			".popsection"				\
+			: "=r" (__v) : "m" (*(p)), "r" (n));	\
 		__v;						\
 	})
 
@@ -85,10 +85,14 @@
 #include "memcpy_64.c"
 
 unsigned long __copy_from_user_zeroing(void *to, const void __user *from,
-				       unsigned long n)
+									   unsigned long n)
 {
 	unsigned long rc = __copy_from_user_inatomic(to, from, n);
+
 	if (unlikely(rc))
+	{
 		memset(to + n - rc, 0, rc);
+	}
+
 	return rc;
 }

@@ -12,7 +12,8 @@
  * - 2 miscellaneous unsigned long values
  */
 
-struct msqid64_ds {
+struct msqid64_ds
+{
 	struct ipc64_perm msg_perm;
 #if !defined(__mips64) && defined(__MIPSEB__)
 	unsigned long	__unused1;

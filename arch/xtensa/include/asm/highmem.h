@@ -19,7 +19,7 @@
 #include <asm/pgtable.h>
 
 #define PKMAP_BASE		((FIXADDR_START - \
-				  (LAST_PKMAP + 1) * PAGE_SIZE) & PMD_MASK)
+						  (LAST_PKMAP + 1) * PAGE_SIZE) & PMD_MASK)
 #define LAST_PKMAP		(PTRS_PER_PTE * DCACHE_N_COLORS)
 #define LAST_PKMAP_MASK		(LAST_PKMAP - 1)
 #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
@@ -72,18 +72,26 @@ static inline void *kmap(struct page *page)
 	 * page table.
 	 */
 	BUILD_BUG_ON(PKMAP_BASE <
-		     XCHAL_PAGE_TABLE_VADDR + XCHAL_PAGE_TABLE_SIZE);
+				 XCHAL_PAGE_TABLE_VADDR + XCHAL_PAGE_TABLE_SIZE);
 	BUG_ON(in_interrupt());
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
+
 	return kmap_high(page);
 }
 
 static inline void kunmap(struct page *page)
 {
 	BUG_ON(in_interrupt());
+
 	if (!PageHighMem(page))
+	{
 		return;
+	}
+
 	kunmap_high(page);
 }
 

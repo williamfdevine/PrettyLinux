@@ -43,7 +43,9 @@ void apei_mce_report_mem_error(int severity, struct cper_sec_mem_err *mem_err)
 	struct mce m;
 
 	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
+	{
 		return;
+	}
 
 	mce_setup(&m);
 	m.bank = -1;
@@ -51,9 +53,14 @@ void apei_mce_report_mem_error(int severity, struct cper_sec_mem_err *mem_err)
 	m.status = MCI_STATUS_VAL | MCI_STATUS_EN | MCI_STATUS_ADDRV | 0x9f;
 
 	if (severity >= GHES_SEV_RECOVERABLE)
+	{
 		m.status |= MCI_STATUS_UC;
+	}
+
 	if (severity >= GHES_SEV_PANIC)
+	{
 		m.status |= MCI_STATUS_PCC;
+	}
 
 	m.addr = mem_err->physical_addr;
 	mce_log(&m);
@@ -62,16 +69,17 @@ EXPORT_SYMBOL_GPL(apei_mce_report_mem_error);
 
 #define CPER_CREATOR_MCE						\
 	UUID_LE(0x75a574e3, 0x5052, 0x4b29, 0x8a, 0x8e, 0xbe, 0x2c,	\
-		0x64, 0x90, 0xb8, 0x9d)
+			0x64, 0x90, 0xb8, 0x9d)
 #define CPER_SECTION_TYPE_MCE						\
 	UUID_LE(0xfe08ffbe, 0x95e4, 0x4be7, 0xbc, 0x73, 0x40, 0x96,	\
-		0x04, 0x4a, 0x38, 0xfc)
+			0x04, 0x4a, 0x38, 0xfc)
 
 /*
  * CPER specification (in UEFI specification 2.3 appendix N) requires
  * byte-packed.
  */
-struct cper_mce_record {
+struct cper_mce_record
+{
 	struct cper_record_header hdr;
 	struct cper_section_descriptor sec_hdr;
 	struct mce mce;
@@ -115,25 +123,44 @@ ssize_t apei_read_mce(struct mce *m, u64 *record_id)
 	int rc, pos;
 
 	rc = erst_get_record_id_begin(&pos);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 retry:
 	rc = erst_get_record_id_next(&pos, record_id);
+
 	if (rc)
+	{
 		goto out;
+	}
+
 	/* no more record */
 	if (*record_id == APEI_ERST_INVALID_RECORD_ID)
+	{
 		goto out;
+	}
+
 	rc = erst_read(*record_id, &rcd.hdr, sizeof(rcd));
+
 	/* someone else has cleared the record, try next one */
 	if (rc == -ENOENT)
+	{
 		goto retry;
+	}
 	else if (rc < 0)
+	{
 		goto out;
+	}
 	/* try to skip other type records in storage */
 	else if (rc != sizeof(rcd) ||
-		 uuid_le_cmp(rcd.hdr.creator_id, CPER_CREATOR_MCE))
+			 uuid_le_cmp(rcd.hdr.creator_id, CPER_CREATOR_MCE))
+	{
 		goto retry;
+	}
+
 	memcpy(m, &rcd.mce, sizeof(*m));
 	rc = sizeof(*m);
 out:

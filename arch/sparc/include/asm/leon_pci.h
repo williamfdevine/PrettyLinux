@@ -8,7 +8,8 @@
 #define _ASM_LEON_PCI_H_
 
 /* PCI related definitions */
-struct leon_pci_info {
+struct leon_pci_info
+{
 	struct pci_ops *ops;
 	struct resource	io_space;
 	struct resource	mem_space;
@@ -17,6 +18,6 @@ struct leon_pci_info {
 };
 
 void leon_pci_init(struct platform_device *ofdev,
-		   struct leon_pci_info *info);
+				   struct leon_pci_info *info);
 
 #endif /* _ASM_LEON_PCI_H_ */

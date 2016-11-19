@@ -42,18 +42,24 @@ sx164_init_irq(void)
 	outb(0, DMA2_MASK_REG);
 
 	if (alpha_using_srm)
+	{
 		alpha_mv.device_interrupt = srm_device_interrupt;
+	}
 
 	init_i8259a_irqs();
 
 	/* Not interested in the bogus interrupts (0,3,4,5,40-47),
 	   NMI (1), or HALT (2).  */
 	if (alpha_using_srm)
+	{
 		init_srm_irqs(40, 0x3f0000);
+	}
 	else
+	{
 		init_pyxis_irqs(0xff00003f0000UL);
+	}
 
-	setup_irq(16+6, &timer_cascade_irqaction);
+	setup_irq(16 + 6, &timer_cascade_irqaction);
 }
 
 /*
@@ -86,7 +92,7 @@ sx164_init_irq(void)
  *22        Interrupt Line D from slot 1
  *23        Interrupt Line D from slot 0
  *
- * IdSel       
+ * IdSel
  *   5  32 bit PCI option slot 2
  *   6  64 bit PCI option slot 0
  *   7  64 bit PCI option slot 1
@@ -97,13 +103,14 @@ sx164_init_irq(void)
 static int __init
 sx164_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[5][5] __initdata = {
+	static char irq_tab[5][5] __initdata =
+	{
 		/*INT    INTA   INTB   INTC   INTD */
-		{ 16+ 9, 16+ 9, 16+13, 16+17, 16+21}, /* IdSel 5 slot 2 J17 */
-		{ 16+11, 16+11, 16+15, 16+19, 16+23}, /* IdSel 6 slot 0 J19 */
-		{ 16+10, 16+10, 16+14, 16+18, 16+22}, /* IdSel 7 slot 1 J18 */
+		{ 16 + 9, 16 + 9, 16 + 13, 16 + 17, 16 + 21}, /* IdSel 5 slot 2 J17 */
+		{ 16 + 11, 16 + 11, 16 + 15, 16 + 19, 16 + 23}, /* IdSel 6 slot 0 J19 */
+		{ 16 + 10, 16 + 10, 16 + 14, 16 + 18, 16 + 22}, /* IdSel 7 slot 1 J18 */
 		{    -1,    -1,    -1,	  -1,    -1}, /* IdSel 8 SIO        */
-		{ 16+ 8, 16+ 8, 16+12, 16+16, 16+20}  /* IdSel 9 slot 3 J15 */
+		{ 16 + 8, 16 + 8, 16 + 12, 16 + 16, 16 + 20} /* IdSel 9 slot 3 J15 */
 	};
 	const long min_idsel = 5, max_idsel = 9, irqs_per_slot = 5;
 	return COMMON_TABLE_LOOKUP;
@@ -127,22 +134,23 @@ sx164_init_arch(void)
 	 * has been changed completely since v1.16 (found in MILO
 	 * distribution). -ink
 	 */
-	struct percpu_struct *cpu = (struct percpu_struct*)
-		((char*)hwrpb + hwrpb->processor_offset);
+	struct percpu_struct *cpu = (struct percpu_struct *)
+								((char *)hwrpb + hwrpb->processor_offset);
 
 	if (amask(AMASK_MAX) != 0
-	    && alpha_using_srm
-	    && (cpu->pal_revision & 0xffff) <= 0x117) {
+		&& alpha_using_srm
+		&& (cpu->pal_revision & 0xffff) <= 0x117)
+	{
 		__asm__ __volatile__(
-		"lda	$16,8($31)\n"
-		"call_pal 9\n"		/* Allow PALRES insns in kernel mode */
-		".long  0x64000118\n\n"	/* hw_mfpr $0,icsr */
-		"ldah	$16,(1<<(19-16))($31)\n"
-		"or	$0,$16,$0\n"	/* set MVE bit */
-		".long  0x74000118\n"	/* hw_mtpr $0,icsr */
-		"lda	$16,9($31)\n"
-		"call_pal 9"		/* Disable PALRES insns */
-		: : : "$0", "$16");
+			"lda	$16,8($31)\n"
+			"call_pal 9\n"		/* Allow PALRES insns in kernel mode */
+			".long  0x64000118\n\n"	/* hw_mfpr $0,icsr */
+			"ldah	$16,(1<<(19-16))($31)\n"
+			"or	$0,$16,$0\n"	/* set MVE bit */
+			".long  0x74000118\n"	/* hw_mtpr $0,icsr */
+			"lda	$16,9($31)\n"
+			"call_pal 9"		/* Disable PALRES insns */
+			: : : "$0", "$16");
 		printk("PCA56 MVI set enabled\n");
 	}
 
@@ -153,7 +161,8 @@ sx164_init_arch(void)
  * The System Vector
  */
 
-struct alpha_machine_vector sx164_mv __initmv = {
+struct alpha_machine_vector sx164_mv __initmv =
+{
 	.vector_name		= "SX164",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,

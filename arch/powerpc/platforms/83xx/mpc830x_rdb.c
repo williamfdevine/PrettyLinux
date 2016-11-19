@@ -31,7 +31,8 @@ static void __init mpc830x_rdb_setup_arch(void)
 	mpc831x_usb_cfg();
 }
 
-static const char *board[] __initdata = {
+static const char *board[] __initdata =
+{
 	"MPC8308RDB",
 	"fsl,mpc8308rdb",
 	"denx,mpc8308_p1m",
@@ -48,14 +49,15 @@ static int __init mpc830x_rdb_probe(void)
 
 machine_device_initcall(mpc830x_rdb, mpc83xx_declare_of_platform_devices);
 
-define_machine(mpc830x_rdb) {
+define_machine(mpc830x_rdb)
+{
 	.name			= "MPC830x RDB",
-	.probe			= mpc830x_rdb_probe,
-	.setup_arch		= mpc830x_rdb_setup_arch,
-	.init_IRQ		= mpc83xx_ipic_init_IRQ,
-	.get_irq		= ipic_get_irq,
-	.restart		= mpc83xx_restart,
-	.time_init		= mpc83xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mpc830x_rdb_probe,
+					 .setup_arch		= mpc830x_rdb_setup_arch,
+						 .init_IRQ		= mpc83xx_ipic_init_IRQ,
+							   .get_irq		= ipic_get_irq,
+									  .restart		= mpc83xx_restart,
+											 .time_init		= mpc83xx_time_init,
+												  .calibrate_decr		= generic_calibrate_decr,
+													  .progress		= udbg_progress,
 };

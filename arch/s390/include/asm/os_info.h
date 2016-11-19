@@ -14,13 +14,15 @@
 #define OS_INFO_VMCOREINFO	0
 #define OS_INFO_REIPL_BLOCK	1
 
-struct os_info_entry {
+struct os_info_entry
+{
 	u64	addr;
 	u64	size;
 	u32	csum;
 } __packed;
 
-struct os_info {
+struct os_info
+{
 	u64	magic;
 	u32	csum;
 	u16	version_major;

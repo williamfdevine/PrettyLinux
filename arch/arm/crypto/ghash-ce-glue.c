@@ -25,45 +25,50 @@ MODULE_LICENSE("GPL v2");
 #define GHASH_BLOCK_SIZE	16
 #define GHASH_DIGEST_SIZE	16
 
-struct ghash_key {
+struct ghash_key
+{
 	u64	a;
 	u64	b;
 };
 
-struct ghash_desc_ctx {
-	u64 digest[GHASH_DIGEST_SIZE/sizeof(u64)];
+struct ghash_desc_ctx
+{
+	u64 digest[GHASH_DIGEST_SIZE / sizeof(u64)];
 	u8 buf[GHASH_BLOCK_SIZE];
 	u32 count;
 };
 
-struct ghash_async_ctx {
+struct ghash_async_ctx
+{
 	struct cryptd_ahash *cryptd_tfm;
 };
 
 asmlinkage void pmull_ghash_update(int blocks, u64 dg[], const char *src,
-				   struct ghash_key const *k, const char *head);
+								   struct ghash_key const *k, const char *head);
 
 static int ghash_init(struct shash_desc *desc)
 {
 	struct ghash_desc_ctx *ctx = shash_desc_ctx(desc);
 
-	*ctx = (struct ghash_desc_ctx){};
+	*ctx = (struct ghash_desc_ctx) {};
 	return 0;
 }
 
 static int ghash_update(struct shash_desc *desc, const u8 *src,
-			unsigned int len)
+						unsigned int len)
 {
 	struct ghash_desc_ctx *ctx = shash_desc_ctx(desc);
 	unsigned int partial = ctx->count % GHASH_BLOCK_SIZE;
 
 	ctx->count += len;
 
-	if ((partial + len) >= GHASH_BLOCK_SIZE) {
+	if ((partial + len) >= GHASH_BLOCK_SIZE)
+	{
 		struct ghash_key *key = crypto_shash_ctx(desc->tfm);
 		int blocks;
 
-		if (partial) {
+		if (partial)
+		{
 			int p = GHASH_BLOCK_SIZE - partial;
 
 			memcpy(ctx->buf + partial, src, p);
@@ -76,13 +81,17 @@ static int ghash_update(struct shash_desc *desc, const u8 *src,
 
 		kernel_neon_begin();
 		pmull_ghash_update(blocks, ctx->digest, src, key,
-				   partial ? ctx->buf : NULL);
+						   partial ? ctx->buf : NULL);
 		kernel_neon_end();
 		src += blocks * GHASH_BLOCK_SIZE;
 		partial = 0;
 	}
+
 	if (len)
+	{
 		memcpy(ctx->buf + partial, src, len);
+	}
+
 	return 0;
 }
 
@@ -91,7 +100,8 @@ static int ghash_final(struct shash_desc *desc, u8 *dst)
 	struct ghash_desc_ctx *ctx = shash_desc_ctx(desc);
 	unsigned int partial = ctx->count % GHASH_BLOCK_SIZE;
 
-	if (partial) {
+	if (partial)
+	{
 		struct ghash_key *key = crypto_shash_ctx(desc->tfm);
 
 		memset(ctx->buf + partial, 0, GHASH_BLOCK_SIZE - partial);
@@ -99,20 +109,22 @@ static int ghash_final(struct shash_desc *desc, u8 *dst)
 		pmull_ghash_update(1, ctx->digest, ctx->buf, key, NULL);
 		kernel_neon_end();
 	}
+
 	put_unaligned_be64(ctx->digest[1], dst);
 	put_unaligned_be64(ctx->digest[0], dst + 8);
 
-	*ctx = (struct ghash_desc_ctx){};
+	*ctx = (struct ghash_desc_ctx) {};
 	return 0;
 }
 
 static int ghash_setkey(struct crypto_shash *tfm,
-			const u8 *inkey, unsigned int keylen)
+						const u8 *inkey, unsigned int keylen)
 {
 	struct ghash_key *key = crypto_shash_ctx(tfm);
 	u64 a, b;
 
-	if (keylen != GHASH_BLOCK_SIZE) {
+	if (keylen != GHASH_BLOCK_SIZE)
+	{
 		crypto_shash_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
@@ -125,12 +137,15 @@ static int ghash_setkey(struct crypto_shash *tfm,
 	key->b = (b << 1) | (a >> 63);
 
 	if (b >> 63)
+	{
 		key->b ^= 0xc200000000000000UL;
+	}
 
 	return 0;
 }
 
-static struct shash_alg ghash_alg = {
+static struct shash_alg ghash_alg =
+{
 	.digestsize		= GHASH_DIGEST_SIZE,
 	.init			= ghash_init,
 	.update			= ghash_update,
@@ -170,11 +185,14 @@ static int ghash_async_update(struct ahash_request *req)
 	struct cryptd_ahash *cryptd_tfm = ctx->cryptd_tfm;
 
 	if (!may_use_simd() ||
-	    (in_atomic() && cryptd_ahash_queued(cryptd_tfm))) {
+		(in_atomic() && cryptd_ahash_queued(cryptd_tfm)))
+	{
 		memcpy(cryptd_req, req, sizeof(*req));
 		ahash_request_set_tfm(cryptd_req, &cryptd_tfm->base);
 		return crypto_ahash_update(cryptd_req);
-	} else {
+	}
+	else
+	{
 		struct shash_desc *desc = cryptd_shash_desc(cryptd_req);
 		return shash_ahash_update(req, desc);
 	}
@@ -188,11 +206,14 @@ static int ghash_async_final(struct ahash_request *req)
 	struct cryptd_ahash *cryptd_tfm = ctx->cryptd_tfm;
 
 	if (!may_use_simd() ||
-	    (in_atomic() && cryptd_ahash_queued(cryptd_tfm))) {
+		(in_atomic() && cryptd_ahash_queued(cryptd_tfm)))
+	{
 		memcpy(cryptd_req, req, sizeof(*req));
 		ahash_request_set_tfm(cryptd_req, &cryptd_tfm->base);
 		return crypto_ahash_final(cryptd_req);
-	} else {
+	}
+	else
+	{
 		struct shash_desc *desc = cryptd_shash_desc(cryptd_req);
 		return crypto_shash_final(desc, req->result);
 	}
@@ -206,11 +227,14 @@ static int ghash_async_digest(struct ahash_request *req)
 	struct cryptd_ahash *cryptd_tfm = ctx->cryptd_tfm;
 
 	if (!may_use_simd() ||
-	    (in_atomic() && cryptd_ahash_queued(cryptd_tfm))) {
+		(in_atomic() && cryptd_ahash_queued(cryptd_tfm)))
+	{
 		memcpy(cryptd_req, req, sizeof(*req));
 		ahash_request_set_tfm(cryptd_req, &cryptd_tfm->base);
 		return crypto_ahash_digest(cryptd_req);
-	} else {
+	}
+	else
+	{
 		struct shash_desc *desc = cryptd_shash_desc(cryptd_req);
 		struct crypto_shash *child = cryptd_ahash_child(cryptd_tfm);
 
@@ -242,7 +266,7 @@ static int ghash_async_export(struct ahash_request *req, void *out)
 }
 
 static int ghash_async_setkey(struct crypto_ahash *tfm, const u8 *key,
-			      unsigned int keylen)
+							  unsigned int keylen)
 {
 	struct ghash_async_ctx *ctx = crypto_ahash_ctx(tfm);
 	struct crypto_ahash *child = &ctx->cryptd_tfm->base;
@@ -250,10 +274,10 @@ static int ghash_async_setkey(struct crypto_ahash *tfm, const u8 *key,
 
 	crypto_ahash_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_ahash_set_flags(child, crypto_ahash_get_flags(tfm)
-			       & CRYPTO_TFM_REQ_MASK);
+						   & CRYPTO_TFM_REQ_MASK);
 	err = crypto_ahash_setkey(child, key, keylen);
 	crypto_ahash_set_flags(tfm, crypto_ahash_get_flags(child)
-			       & CRYPTO_TFM_RES_MASK);
+						   & CRYPTO_TFM_RES_MASK);
 
 	return err;
 }
@@ -264,14 +288,18 @@ static int ghash_async_init_tfm(struct crypto_tfm *tfm)
 	struct ghash_async_ctx *ctx = crypto_tfm_ctx(tfm);
 
 	cryptd_tfm = cryptd_alloc_ahash("__driver-ghash-ce",
-					CRYPTO_ALG_INTERNAL,
-					CRYPTO_ALG_INTERNAL);
+									CRYPTO_ALG_INTERNAL,
+									CRYPTO_ALG_INTERNAL);
+
 	if (IS_ERR(cryptd_tfm))
+	{
 		return PTR_ERR(cryptd_tfm);
+	}
+
 	ctx->cryptd_tfm = cryptd_tfm;
 	crypto_ahash_set_reqsize(__crypto_ahash_cast(tfm),
-				 sizeof(struct ahash_request) +
-				 crypto_ahash_reqsize(&cryptd_tfm->base));
+							 sizeof(struct ahash_request) +
+							 crypto_ahash_reqsize(&cryptd_tfm->base));
 
 	return 0;
 }
@@ -283,7 +311,8 @@ static void ghash_async_exit_tfm(struct crypto_tfm *tfm)
 	cryptd_free_ahash(ctx->cryptd_tfm);
 }
 
-static struct ahash_alg ghash_async_alg = {
+static struct ahash_alg ghash_async_alg =
+{
 	.init			= ghash_async_init,
 	.update			= ghash_async_update,
 	.final			= ghash_async_final,
@@ -312,14 +341,23 @@ static int __init ghash_ce_mod_init(void)
 	int err;
 
 	if (!(elf_hwcap2 & HWCAP2_PMULL))
+	{
 		return -ENODEV;
+	}
 
 	err = crypto_register_shash(&ghash_alg);
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = crypto_register_ahash(&ghash_async_alg);
+
 	if (err)
+	{
 		goto err_shash;
+	}
 
 	return 0;
 

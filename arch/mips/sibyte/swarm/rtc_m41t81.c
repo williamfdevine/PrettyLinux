@@ -92,18 +92,19 @@ static int m41t81_read(uint8_t addr)
 
 	__raw_writeq(addr & 0xff, SMB_CSR(R_SMB_CMD));
 	__raw_writeq(V_SMB_ADDR(M41T81_CCR_ADDRESS) | V_SMB_TT_WR1BYTE,
-		     SMB_CSR(R_SMB_START));
+				 SMB_CSR(R_SMB_START));
 
 	while (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_BUSY)
 		;
 
 	__raw_writeq(V_SMB_ADDR(M41T81_CCR_ADDRESS) | V_SMB_TT_RD1BYTE,
-		     SMB_CSR(R_SMB_START));
+				 SMB_CSR(R_SMB_START));
 
 	while (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_BUSY)
 		;
 
-	if (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_ERROR) {
+	if (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_ERROR)
+	{
 		/* Clear error bit by writing a 1 */
 		__raw_writeq(M_SMB_ERROR, SMB_CSR(R_SMB_STATUS));
 		return -1;
@@ -120,12 +121,13 @@ static int m41t81_write(uint8_t addr, int b)
 	__raw_writeq(addr & 0xff, SMB_CSR(R_SMB_CMD));
 	__raw_writeq(b & 0xff, SMB_CSR(R_SMB_DATA));
 	__raw_writeq(V_SMB_ADDR(M41T81_CCR_ADDRESS) | V_SMB_TT_WR2BYTE,
-		     SMB_CSR(R_SMB_START));
+				 SMB_CSR(R_SMB_START));
 
 	while (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_BUSY)
 		;
 
-	if (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_ERROR) {
+	if (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_ERROR)
+	{
 		/* Clear error bit by writing a 1 */
 		__raw_writeq(M_SMB_ERROR, SMB_CSR(R_SMB_STATUS));
 		return -1;
@@ -133,7 +135,7 @@ static int m41t81_write(uint8_t addr, int b)
 
 	/* read the same byte again to make sure it is written */
 	__raw_writeq(V_SMB_ADDR(M41T81_CCR_ADDRESS) | V_SMB_TT_RD1BYTE,
-		     SMB_CSR(R_SMB_START));
+				 SMB_CSR(R_SMB_START));
 
 	while (__raw_readq(SMB_CSR(R_SMB_STATUS)) & M_SMB_BUSY)
 		;
@@ -167,7 +169,8 @@ int m41t81_set_time(unsigned long t)
 	m41t81_write(M41T81REG_HR, tm.tm_hour);
 
 	/* tm_wday starts from 0 to 6 */
-	if (tm.tm_wday == 0) tm.tm_wday = 7;
+	if (tm.tm_wday == 0) { tm.tm_wday = 7; }
+
 	tm.tm_wday = bin2bcd(tm.tm_wday);
 	m41t81_write(M41T81REG_DY, tm.tm_wday);
 
@@ -196,13 +199,17 @@ unsigned long m41t81_get_time(void)
 	/*
 	 * min is valid if two reads of sec are the same.
 	 */
-	for (;;) {
+	for (;;)
+	{
 		spin_lock_irqsave(&rtc_lock, flags);
 		sec = m41t81_read(M41T81REG_SC);
 		min = m41t81_read(M41T81REG_MN);
-		if (sec == m41t81_read(M41T81REG_SC)) break;
+
+		if (sec == m41t81_read(M41T81REG_SC)) { break; }
+
 		spin_unlock_irqrestore(&rtc_lock, flags);
 	}
+
 	hour = m41t81_read(M41T81REG_HR) & 0x3f;
 	day = m41t81_read(M41T81REG_DT);
 	mon = m41t81_read(M41T81REG_MO);

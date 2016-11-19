@@ -11,7 +11,8 @@
 
 #ifdef __KERNEL__
 
-struct pci_sysdata {
+struct pci_sysdata
+{
 	int		domain;		/* PCI domain */
 	int		node;		/* NUMA node */
 #ifdef CONFIG_ACPI
@@ -76,11 +77,11 @@ static inline bool is_vmd(struct pci_bus *bus)
 
 extern unsigned int pcibios_assign_all_busses(void);
 extern int pci_legacy_init(void);
-# ifdef CONFIG_ACPI
-#  define x86_default_pci_init pci_acpi_init
-# else
-#  define x86_default_pci_init pci_legacy_init
-# endif
+#ifdef CONFIG_ACPI
+	#define x86_default_pci_init pci_acpi_init
+#else
+	#define x86_default_pci_init pci_legacy_init
+#endif
 #else
 # define pcibios_assign_all_busses()	0
 # define x86_default_pci_init		NULL
@@ -103,8 +104,8 @@ int pcibios_set_irq_routing(struct pci_dev *dev, int pin, int irq);
 
 #define HAVE_PCI_MMAP
 extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
-			       enum pci_mmap_state mmap_state,
-			       int write_combine);
+							   enum pci_mmap_state mmap_state,
+							   int write_combine);
 
 
 #ifdef CONFIG_PCI
@@ -116,14 +117,14 @@ static inline void early_quirks(void) { }
 extern void pci_iommu_alloc(void);
 
 #ifdef CONFIG_PCI_MSI
-/* implemented in arch/x86/kernel/apic/io_apic. */
-struct msi_desc;
-int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
-void native_teardown_msi_irq(unsigned int irq);
-void native_restore_msi_irqs(struct pci_dev *dev);
+	/* implemented in arch/x86/kernel/apic/io_apic. */
+	struct msi_desc;
+	int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
+	void native_teardown_msi_irq(unsigned int irq);
+	void native_restore_msi_irqs(struct pci_dev *dev);
 #else
-#define native_setup_msi_irqs		NULL
-#define native_teardown_msi_irq		NULL
+	#define native_setup_msi_irqs		NULL
+	#define native_teardown_msi_irq		NULL
 #endif
 
 #define PCI_DMA_BUS_IS_PHYS (dma_ops->is_phys)
@@ -131,7 +132,7 @@ void native_restore_msi_irqs(struct pci_dev *dev);
 #endif  /* __KERNEL__ */
 
 #ifdef CONFIG_X86_64
-#include <asm/pci_64.h>
+	#include <asm/pci_64.h>
 #endif
 
 /* generic pci stuff */
@@ -153,11 +154,12 @@ cpumask_of_pcibus(const struct pci_bus *bus)
 
 	node = __pcibus_to_node(bus);
 	return (node == -1) ? cpu_online_mask :
-			      cpumask_of_node(node);
+		   cpumask_of_node(node);
 }
 #endif
 
-struct pci_setup_rom {
+struct pci_setup_rom
+{
 	struct setup_data data;
 	uint16_t vendor;
 	uint16_t devid;

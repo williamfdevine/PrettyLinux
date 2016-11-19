@@ -6,7 +6,7 @@
  */
 
 #define force_o_largefile()	\
-		(personality(current->personality) != PER_LINUX32)
+	(personality(current->personality) != PER_LINUX32)
 
 #include <linux/personality.h>
 #include <asm-generic/fcntl.h>

@@ -26,7 +26,8 @@
 #define PLL_RATE 20
 
 /* Fixed 32 KHz root clock for RTC */
-static struct clk r_clk = {
+static struct clk r_clk =
+{
 	.rate           = 32768,
 };
 
@@ -34,7 +35,8 @@ static struct clk r_clk = {
  * Default rate for the root input clock, reset this with clk_set_rate()
  * from the platform code.
  */
-static struct clk extal_clk = {
+static struct clk extal_clk =
+{
 	.rate		= 13340000,
 };
 
@@ -43,11 +45,13 @@ static unsigned long pll_recalc(struct clk *clk)
 	return clk->parent->rate * PLL_RATE;
 }
 
-static struct sh_clk_ops pll_clk_ops = {
+static struct sh_clk_ops pll_clk_ops =
+{
 	.recalc		= pll_recalc,
 };
 
-static struct clk pll_clk = {
+static struct clk pll_clk =
+{
 	.ops		= &pll_clk_ops,
 	.parent		= &extal_clk,
 	.flags		= CLK_ENABLE_ON_INIT,
@@ -58,11 +62,13 @@ static unsigned long peripheral0_recalc(struct clk *clk)
 	return clk->parent->rate / 8;
 }
 
-static struct sh_clk_ops peripheral0_clk_ops = {
+static struct sh_clk_ops peripheral0_clk_ops =
+{
 	.recalc		= peripheral0_recalc,
 };
 
-static struct clk peripheral0_clk = {
+static struct clk peripheral0_clk =
+{
 	.ops		= &peripheral0_clk_ops,
 	.parent		= &pll_clk,
 	.flags		= CLK_ENABLE_ON_INIT,
@@ -73,17 +79,20 @@ static unsigned long peripheral1_recalc(struct clk *clk)
 	return clk->parent->rate / 4;
 }
 
-static struct sh_clk_ops peripheral1_clk_ops = {
+static struct sh_clk_ops peripheral1_clk_ops =
+{
 	.recalc		= peripheral1_recalc,
 };
 
-static struct clk peripheral1_clk = {
+static struct clk peripheral1_clk =
+{
 	.ops		= &peripheral1_clk_ops,
 	.parent		= &pll_clk,
 	.flags		= CLK_ENABLE_ON_INIT,
 };
 
-struct clk *main_clks[] = {
+struct clk *main_clks[] =
+{
 	&r_clk,
 	&extal_clk,
 	&pll_clk,
@@ -93,36 +102,42 @@ struct clk *main_clks[] = {
 
 static int div2[] = { 1, 2, 0, 4 };
 
-static struct clk_div_mult_table div4_div_mult_table = {
+static struct clk_div_mult_table div4_div_mult_table =
+{
 	.divisors = div2,
 	.nr_divisors = ARRAY_SIZE(div2),
 };
 
-static struct clk_div4_table div4_table = {
+static struct clk_div4_table div4_table =
+{
 	.div_mult_table = &div4_div_mult_table,
 };
 
 enum { DIV4_I, DIV4_B,
-       DIV4_NR };
+	   DIV4_NR
+	 };
 
 #define DIV4(_reg, _bit, _mask, _flags) \
-  SH_CLK_DIV4(&pll_clk, _reg, _bit, _mask, _flags)
+	SH_CLK_DIV4(&pll_clk, _reg, _bit, _mask, _flags)
 
 /* The mask field specifies the div2 entries that are valid */
-struct clk div4_clks[DIV4_NR] = {
+struct clk div4_clks[DIV4_NR] =
+{
 	[DIV4_I]  = DIV4(FRQCR, 8, 0xB, CLK_ENABLE_REG_16BIT
-					| CLK_ENABLE_ON_INIT),
+	| CLK_ENABLE_ON_INIT),
 	[DIV4_B]  = DIV4(FRQCR, 4, 0xA, CLK_ENABLE_REG_16BIT
-					| CLK_ENABLE_ON_INIT),
+	| CLK_ENABLE_ON_INIT),
 };
 
 enum { MSTP72,
-	MSTP60,
-	MSTP47, MSTP46, MSTP45, MSTP44, MSTP43, MSTP42, MSTP41, MSTP40,
-	MSTP35, MSTP32, MSTP30,
-	MSTP_NR };
+	   MSTP60,
+	   MSTP47, MSTP46, MSTP45, MSTP44, MSTP43, MSTP42, MSTP41, MSTP40,
+	   MSTP35, MSTP32, MSTP30,
+	   MSTP_NR
+	 };
 
-static struct clk mstp_clks[MSTP_NR] = {
+static struct clk mstp_clks[MSTP_NR] =
+{
 	[MSTP72] = SH_CLK_MSTP8(&peripheral0_clk, STBCR7, 2, 0), /* CMT */
 	[MSTP60] = SH_CLK_MSTP8(&peripheral1_clk, STBCR6, 0, 0), /* USB */
 	[MSTP47] = SH_CLK_MSTP8(&peripheral1_clk, STBCR4, 7, 0), /* SCIF0 */
@@ -138,7 +153,8 @@ static struct clk mstp_clks[MSTP_NR] = {
 	[MSTP30] = SH_CLK_MSTP8(&r_clk, STBCR3, 0, 0), /* RTC */
 };
 
-static struct clk_lookup lookups[] = {
+static struct clk_lookup lookups[] =
+{
 	/* main clocks */
 	CLKDEV_CON_ID("rclk", &r_clk),
 	CLKDEV_CON_ID("extal", &extal_clk),
@@ -170,15 +186,21 @@ int __init arch_clk_init(void)
 	int k, ret = 0;
 
 	for (k = 0; !ret && (k < ARRAY_SIZE(main_clks)); k++)
+	{
 		ret = clk_register(main_clks[k]);
+	}
 
 	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
 
 	if (!ret)
+	{
 		ret = sh_clk_div4_register(div4_clks, DIV4_NR, &div4_table);
+	}
 
 	if (!ret)
+	{
 		ret = sh_clk_mstp_register(mstp_clks, MSTP_NR);
+	}
 
 	return ret;
 }

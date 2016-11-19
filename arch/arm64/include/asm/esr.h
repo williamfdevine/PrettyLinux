@@ -139,19 +139,19 @@
 #define ESR_ELx_SYS64_ISS_OP0_SHIFT	20
 #define ESR_ELx_SYS64_ISS_OP0_MASK	(UL(0x3) << ESR_ELx_SYS64_ISS_OP0_SHIFT)
 #define ESR_ELx_SYS64_ISS_SYS_MASK	(ESR_ELx_SYS64_ISS_OP0_MASK | \
-					 ESR_ELx_SYS64_ISS_OP1_MASK | \
-					 ESR_ELx_SYS64_ISS_OP2_MASK | \
-					 ESR_ELx_SYS64_ISS_CRN_MASK | \
-					 ESR_ELx_SYS64_ISS_CRM_MASK)
+									 ESR_ELx_SYS64_ISS_OP1_MASK | \
+									 ESR_ELx_SYS64_ISS_OP2_MASK | \
+									 ESR_ELx_SYS64_ISS_CRN_MASK | \
+									 ESR_ELx_SYS64_ISS_CRM_MASK)
 #define ESR_ELx_SYS64_ISS_SYS_VAL(op0, op1, op2, crn, crm) \
-					(((op0) << ESR_ELx_SYS64_ISS_OP0_SHIFT) | \
-					 ((op1) << ESR_ELx_SYS64_ISS_OP1_SHIFT) | \
-					 ((op2) << ESR_ELx_SYS64_ISS_OP2_SHIFT) | \
-					 ((crn) << ESR_ELx_SYS64_ISS_CRN_SHIFT) | \
-					 ((crm) << ESR_ELx_SYS64_ISS_CRM_SHIFT))
+	(((op0) << ESR_ELx_SYS64_ISS_OP0_SHIFT) | \
+	 ((op1) << ESR_ELx_SYS64_ISS_OP1_SHIFT) | \
+	 ((op2) << ESR_ELx_SYS64_ISS_OP2_SHIFT) | \
+	 ((crn) << ESR_ELx_SYS64_ISS_CRN_SHIFT) | \
+	 ((crm) << ESR_ELx_SYS64_ISS_CRM_SHIFT))
 
 #define ESR_ELx_SYS64_ISS_SYS_OP_MASK	(ESR_ELx_SYS64_ISS_SYS_MASK | \
-					 ESR_ELx_SYS64_ISS_DIR_MASK)
+		ESR_ELx_SYS64_ISS_DIR_MASK)
 /*
  * User space cache operations have the following sysreg encoding
  * in System instructions.
@@ -163,22 +163,22 @@
 #define ESR_ELx_SYS64_ISS_CRM_IC_IVAU	5
 
 #define ESR_ELx_SYS64_ISS_EL0_CACHE_OP_MASK	(ESR_ELx_SYS64_ISS_OP0_MASK | \
-						 ESR_ELx_SYS64_ISS_OP1_MASK | \
-						 ESR_ELx_SYS64_ISS_OP2_MASK | \
-						 ESR_ELx_SYS64_ISS_CRN_MASK | \
-						 ESR_ELx_SYS64_ISS_DIR_MASK)
+		ESR_ELx_SYS64_ISS_OP1_MASK | \
+		ESR_ELx_SYS64_ISS_OP2_MASK | \
+		ESR_ELx_SYS64_ISS_CRN_MASK | \
+		ESR_ELx_SYS64_ISS_DIR_MASK)
 #define ESR_ELx_SYS64_ISS_EL0_CACHE_OP_VAL \
-				(ESR_ELx_SYS64_ISS_SYS_VAL(1, 3, 1, 7, 0) | \
-				 ESR_ELx_SYS64_ISS_DIR_WRITE)
+	(ESR_ELx_SYS64_ISS_SYS_VAL(1, 3, 1, 7, 0) | \
+	 ESR_ELx_SYS64_ISS_DIR_WRITE)
 
 #define ESR_ELx_SYS64_ISS_SYS_CTR	ESR_ELx_SYS64_ISS_SYS_VAL(3, 3, 1, 0, 0)
 #define ESR_ELx_SYS64_ISS_SYS_CTR_READ	(ESR_ELx_SYS64_ISS_SYS_CTR | \
-					 ESR_ELx_SYS64_ISS_DIR_READ)
+		ESR_ELx_SYS64_ISS_DIR_READ)
 
 #ifndef __ASSEMBLY__
-#include <asm/types.h>
+	#include <asm/types.h>
 
-const char *esr_get_class_string(u32 esr);
+	const char *esr_get_class_string(u32 esr);
 #endif /* __ASSEMBLY */
 
 #endif /* __ASM_ESR_H */

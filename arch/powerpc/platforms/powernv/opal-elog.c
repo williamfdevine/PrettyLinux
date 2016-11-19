@@ -21,7 +21,8 @@
 #include <asm/uaccess.h>
 #include <asm/opal.h>
 
-struct elog_obj {
+struct elog_obj
+{
 	struct kobject kobj;
 	struct bin_attribute raw_attr;
 	uint64_t id;
@@ -31,50 +32,53 @@ struct elog_obj {
 };
 #define to_elog_obj(x) container_of(x, struct elog_obj, kobj)
 
-struct elog_attribute {
+struct elog_attribute
+{
 	struct attribute attr;
 	ssize_t (*show)(struct elog_obj *elog, struct elog_attribute *attr,
-			char *buf);
+					char *buf);
 	ssize_t (*store)(struct elog_obj *elog, struct elog_attribute *attr,
-			 const char *buf, size_t count);
+					 const char *buf, size_t count);
 };
 #define to_elog_attr(x) container_of(x, struct elog_attribute, attr)
 
 static ssize_t elog_id_show(struct elog_obj *elog_obj,
-			    struct elog_attribute *attr,
-			    char *buf)
+							struct elog_attribute *attr,
+							char *buf)
 {
 	return sprintf(buf, "0x%llx\n", elog_obj->id);
 }
 
 static const char *elog_type_to_string(uint64_t type)
 {
-	switch (type) {
-	case 0: return "PEL";
-	default: return "unknown";
+	switch (type)
+	{
+		case 0: return "PEL";
+
+		default: return "unknown";
 	}
 }
 
 static ssize_t elog_type_show(struct elog_obj *elog_obj,
-			      struct elog_attribute *attr,
-			      char *buf)
+							  struct elog_attribute *attr,
+							  char *buf)
 {
 	return sprintf(buf, "0x%llx %s\n",
-		       elog_obj->type,
-		       elog_type_to_string(elog_obj->type));
+				   elog_obj->type,
+				   elog_type_to_string(elog_obj->type));
 }
 
 static ssize_t elog_ack_show(struct elog_obj *elog_obj,
-			     struct elog_attribute *attr,
-			     char *buf)
+							 struct elog_attribute *attr,
+							 char *buf)
 {
 	return sprintf(buf, "ack - acknowledge log message\n");
 }
 
 static ssize_t elog_ack_store(struct elog_obj *elog_obj,
-			      struct elog_attribute *attr,
-			      const char *buf,
-			      size_t count)
+							  struct elog_attribute *attr,
+							  const char *buf,
+							  size_t count)
 {
 	opal_send_ack_elog(elog_obj->id);
 	sysfs_remove_file_self(&elog_obj->kobj, &attr->attr);
@@ -92,8 +96,8 @@ static struct elog_attribute ack_attribute =
 static struct kset *elog_kset;
 
 static ssize_t elog_attr_show(struct kobject *kobj,
-			      struct attribute *attr,
-			      char *buf)
+							  struct attribute *attr,
+							  char *buf)
 {
 	struct elog_attribute *attribute;
 	struct elog_obj *elog;
@@ -102,14 +106,16 @@ static ssize_t elog_attr_show(struct kobject *kobj,
 	elog = to_elog_obj(kobj);
 
 	if (!attribute->show)
+	{
 		return -EIO;
+	}
 
 	return attribute->show(elog, attribute, buf);
 }
 
 static ssize_t elog_attr_store(struct kobject *kobj,
-			       struct attribute *attr,
-			       const char *buf, size_t len)
+							   struct attribute *attr,
+							   const char *buf, size_t len)
 {
 	struct elog_attribute *attribute;
 	struct elog_obj *elog;
@@ -118,12 +124,15 @@ static ssize_t elog_attr_store(struct kobject *kobj,
 	elog = to_elog_obj(kobj);
 
 	if (!attribute->store)
+	{
 		return -EIO;
+	}
 
 	return attribute->store(elog, attribute, buf, len);
 }
 
-static const struct sysfs_ops elog_sysfs_ops = {
+static const struct sysfs_ops elog_sysfs_ops =
+{
 	.show = elog_attr_show,
 	.store = elog_attr_store,
 };
@@ -137,14 +146,16 @@ static void elog_release(struct kobject *kobj)
 	kfree(elog);
 }
 
-static struct attribute *elog_default_attrs[] = {
+static struct attribute *elog_default_attrs[] =
+{
 	&id_attribute.attr,
 	&type_attribute.attr,
 	&ack_attribute.attr,
 	NULL,
 };
 
-static struct kobj_type elog_ktype = {
+static struct kobj_type elog_ktype =
+{
 	.sysfs_ops = &elog_sysfs_ops,
 	.release = &elog_release,
 	.default_attrs = elog_default_attrs,
@@ -154,24 +165,30 @@ static struct kobj_type elog_ktype = {
 #define OPAL_MAX_ERRLOG_SIZE	16384
 
 static ssize_t raw_attr_read(struct file *filep, struct kobject *kobj,
-			     struct bin_attribute *bin_attr,
-			     char *buffer, loff_t pos, size_t count)
+							 struct bin_attribute *bin_attr,
+							 char *buffer, loff_t pos, size_t count)
 {
 	int opal_rc;
 
 	struct elog_obj *elog = to_elog_obj(kobj);
 
 	/* We may have had an error reading before, so let's retry */
-	if (!elog->buffer) {
+	if (!elog->buffer)
+	{
 		elog->buffer = kzalloc(elog->size, GFP_KERNEL);
+
 		if (!elog->buffer)
+		{
 			return -EIO;
+		}
 
 		opal_rc = opal_read_elog(__pa(elog->buffer),
-					 elog->size, elog->id);
-		if (opal_rc != OPAL_SUCCESS) {
+								 elog->size, elog->id);
+
+		if (opal_rc != OPAL_SUCCESS)
+		{
 			pr_err("ELOG: log read failed for log-id=%llx\n",
-			       elog->id);
+				   elog->id);
 			kfree(elog->buffer);
 			elog->buffer = NULL;
 			return -EIO;
@@ -189,8 +206,11 @@ static struct elog_obj *create_elog_obj(uint64_t id, size_t size, uint64_t type)
 	int rc;
 
 	elog = kzalloc(sizeof(*elog), GFP_KERNEL);
+
 	if (!elog)
+	{
 		return NULL;
+	}
 
 	elog->kobj.kset = elog_kset;
 
@@ -209,25 +229,32 @@ static struct elog_obj *create_elog_obj(uint64_t id, size_t size, uint64_t type)
 
 	elog->buffer = kzalloc(elog->size, GFP_KERNEL);
 
-	if (elog->buffer) {
+	if (elog->buffer)
+	{
 		rc = opal_read_elog(__pa(elog->buffer),
-					 elog->size, elog->id);
-		if (rc != OPAL_SUCCESS) {
+							elog->size, elog->id);
+
+		if (rc != OPAL_SUCCESS)
+		{
 			pr_err("ELOG: log read failed for log-id=%llx\n",
-			       elog->id);
+				   elog->id);
 			kfree(elog->buffer);
 			elog->buffer = NULL;
 		}
 	}
 
 	rc = kobject_add(&elog->kobj, NULL, "0x%llx", id);
-	if (rc) {
+
+	if (rc)
+	{
 		kobject_put(&elog->kobj);
 		return NULL;
 	}
 
 	rc = sysfs_create_bin_file(&elog->kobj, &elog->raw_attr);
-	if (rc) {
+
+	if (rc)
+	{
 		kobject_put(&elog->kobj);
 		return NULL;
 	}
@@ -246,11 +273,13 @@ static irqreturn_t elog_event(int irq, void *data)
 	uint64_t log_id;
 	uint64_t elog_type;
 	int rc;
-	char name[2+16+1];
+	char name[2 + 16 + 1];
 	struct kobject *kobj;
 
 	rc = opal_get_elog_size(&id, &size, &type);
-	if (rc != OPAL_SUCCESS) {
+
+	if (rc != OPAL_SUCCESS)
+	{
 		pr_err("ELOG: OPAL log info read failed\n");
 		return IRQ_HANDLED;
 	}
@@ -262,7 +291,9 @@ static irqreturn_t elog_event(int irq, void *data)
 	WARN_ON(elog_size > OPAL_MAX_ERRLOG_SIZE);
 
 	if (elog_size >= OPAL_MAX_ERRLOG_SIZE)
+	{
 		elog_size  =  OPAL_MAX_ERRLOG_SIZE;
+	}
 
 	sprintf(name, "0x%llx", log_id);
 
@@ -271,7 +302,9 @@ static irqreturn_t elog_event(int irq, void *data)
 	 * entries.
 	 */
 	kobj = kset_find_obj(elog_kset, name);
-	if (kobj) {
+
+	if (kobj)
+	{
 		/* Drop reference added by kset_find_obj() */
 		kobject_put(kobj);
 		return IRQ_HANDLED;
@@ -288,32 +321,42 @@ int __init opal_elog_init(void)
 
 	/* ELOG not supported by firmware */
 	if (!opal_check_token(OPAL_ELOG_READ))
+	{
 		return -1;
+	}
 
 	elog_kset = kset_create_and_add("elog", NULL, opal_kobj);
-	if (!elog_kset) {
+
+	if (!elog_kset)
+	{
 		pr_warn("%s: failed to create elog kset\n", __func__);
 		return -1;
 	}
 
 	irq = opal_event_request(ilog2(OPAL_EVENT_ERROR_LOG_AVAIL));
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_err("%s: Can't register OPAL event irq (%d)\n",
-		       __func__, irq);
+			   __func__, irq);
 		return irq;
 	}
 
 	rc = request_threaded_irq(irq, NULL, elog_event,
-			IRQF_TRIGGER_HIGH | IRQF_ONESHOT, "opal-elog", NULL);
-	if (rc) {
+							  IRQF_TRIGGER_HIGH | IRQF_ONESHOT, "opal-elog", NULL);
+
+	if (rc)
+	{
 		pr_err("%s: Can't request OPAL event irq (%d)\n",
-		       __func__, rc);
+			   __func__, rc);
 		return rc;
 	}
 
 	/* We are now ready to pull error logs from opal. */
 	if (opal_check_token(OPAL_ELOG_RESEND))
+	{
 		opal_resend_pending_logs();
+	}
 
 	return 0;
 }

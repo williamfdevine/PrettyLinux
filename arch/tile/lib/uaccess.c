@@ -19,6 +19,6 @@ int __range_ok(unsigned long addr, unsigned long size)
 {
 	unsigned long limit = current_thread_info()->addr_limit.seg;
 	return !((addr < limit && size <= limit - addr) ||
-		 is_arch_mappable_range(addr, size));
+			 is_arch_mappable_range(addr, size));
 }
 EXPORT_SYMBOL(__range_ok);

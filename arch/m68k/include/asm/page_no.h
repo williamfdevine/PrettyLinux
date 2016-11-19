@@ -2,7 +2,7 @@
 #define _M68K_PAGE_NO_H
 
 #ifndef __ASSEMBLY__
- 
+
 extern unsigned long memory_start;
 extern unsigned long memory_end;
 
@@ -30,7 +30,7 @@ extern unsigned long memory_end;
 #define pfn_valid(pfn)	        ((pfn) < max_mapnr)
 
 #define	virt_addr_valid(kaddr)	(((void *)(kaddr) >= (void *)PAGE_OFFSET) && \
-				((void *)(kaddr) < (void *)memory_end))
+								 ((void *)(kaddr) < (void *)memory_end))
 
 #endif /* __ASSEMBLY__ */
 

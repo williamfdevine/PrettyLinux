@@ -23,7 +23,7 @@ extern __wsum csum_partial(const void *buff, int len, __wsum sum);
  * better 64-bit) boundary
  */
 extern __wsum csum_partial_copy(const void *src, void *dst, int len,
-				__wsum sum);
+								__wsum sum);
 
 /*
  * the same as csum_partial_copy, but copies from user space.
@@ -32,7 +32,7 @@ extern __wsum csum_partial_copy(const void *src, void *dst, int len,
  * better 64-bit) boundary
  */
 extern __wsum csum_partial_copy_from_user(const void __user *src, void *dst,
-					int len, __wsum sum, int *csum_err);
+		int len, __wsum sum, int *csum_err);
 
 #define csum_partial_copy_nocheck(src, dst, len, sum)	\
 	csum_partial_copy((src), (dst), (len), (sum))
@@ -59,26 +59,26 @@ extern __sum16 ip_fast_csum(const void *iph, unsigned int ihl);
  * returns a 16-bit checksum, already complemented
  */
 static inline __wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr,
-					__u32 len, __u8 proto,
-					__wsum sum)
+										__u32 len, __u8 proto,
+										__wsum sum)
 {
 	unsigned long len_proto = (proto + len) << 8;
 	asm ("ADDS   %0, %0, %1\n"
-	     "ADDCS  %0, %0, #1\n"
-	     "ADDS   %0, %0, %2\n"
-	     "ADDCS  %0, %0, #1\n"
-	     "ADDS   %0, %0, %3\n"
-	     "ADDCS  %0, %0, #1\n"
-	     : "=d" (sum)
-	     : "d" (daddr), "d" (saddr), "d" (len_proto),
-	       "0" (sum)
-	     : "cc");
+		 "ADDCS  %0, %0, #1\n"
+		 "ADDS   %0, %0, %2\n"
+		 "ADDCS  %0, %0, #1\n"
+		 "ADDS   %0, %0, %3\n"
+		 "ADDCS  %0, %0, #1\n"
+		 : "=d" (sum)
+		 : "d" (daddr), "d" (saddr), "d" (len_proto),
+		 "0" (sum)
+		 : "cc");
 	return sum;
 }
 
 static inline __sum16
 csum_tcpudp_magic(__be32 saddr, __be32 daddr, __u32 len,
-		  __u8 proto, __wsum sum)
+				  __u8 proto, __wsum sum)
 {
 	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
 }

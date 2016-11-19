@@ -70,8 +70,8 @@ static void pm_enter(void)
 	asm volatile("stc vbr, %0" : "=r" (vbr_old));
 	vbr_new = get_zeroed_page(GFP_ATOMIC);
 	udelay(50);
-	memcpy((void*)(vbr_new + INTR_OFFSET),
-	       &wakeup_start, &wakeup_end - &wakeup_start);
+	memcpy((void *)(vbr_new + INTR_OFFSET),
+		   &wakeup_start, &wakeup_end - &wakeup_start);
 	asm volatile("ldc %0, vbr" : : "r" (vbr_new));
 
 	__raw_writew(0, RTCNT);
@@ -144,7 +144,8 @@ static int hp6x0_pm_enter(suspend_state_t state)
 	return 0;
 }
 
-static const struct platform_suspend_ops hp6x0_pm_ops = {
+static const struct platform_suspend_ops hp6x0_pm_ops =
+{
 	.enter		= hp6x0_pm_enter,
 	.valid		= suspend_valid_only_mem,
 };

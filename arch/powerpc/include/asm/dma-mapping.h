@@ -18,20 +18,20 @@
 #include <asm/swiotlb.h>
 
 #ifdef CONFIG_PPC64
-#define DMA_ERROR_CODE		(~(dma_addr_t)0x0)
+	#define DMA_ERROR_CODE		(~(dma_addr_t)0x0)
 #endif
 
 /* Some dma direct funcs must be visible for use in other dma_ops */
 extern void *__dma_direct_alloc_coherent(struct device *dev, size_t size,
-					 dma_addr_t *dma_handle, gfp_t flag,
-					 unsigned long attrs);
+		dma_addr_t *dma_handle, gfp_t flag,
+		unsigned long attrs);
 extern void __dma_direct_free_coherent(struct device *dev, size_t size,
-				       void *vaddr, dma_addr_t dma_handle,
-				       unsigned long attrs);
+									   void *vaddr, dma_addr_t dma_handle,
+									   unsigned long attrs);
 extern int dma_direct_mmap_coherent(struct device *dev,
-				    struct vm_area_struct *vma,
-				    void *cpu_addr, dma_addr_t handle,
-				    size_t size, unsigned long attrs);
+									struct vm_area_struct *vma,
+									void *cpu_addr, dma_addr_t handle,
+									size_t size, unsigned long attrs);
 
 #ifdef CONFIG_NOT_COHERENT_CACHE
 /*
@@ -43,11 +43,11 @@ extern int dma_direct_mmap_coherent(struct device *dev,
  */
 struct device;
 extern void *__dma_alloc_coherent(struct device *dev, size_t size,
-				  dma_addr_t *handle, gfp_t gfp);
+								  dma_addr_t *handle, gfp_t gfp);
 extern void __dma_free_coherent(size_t size, void *vaddr);
 extern void __dma_sync(void *vaddr, size_t size, int direction);
 extern void __dma_sync_page(struct page *page, unsigned long offset,
-				 size_t size, int direction);
+							size_t size, int direction);
 extern unsigned long __dma_get_coherent_pfn(unsigned long cpu_addr);
 
 #else /* ! CONFIG_NOT_COHERENT_CACHE */
@@ -65,7 +65,10 @@ extern unsigned long __dma_get_coherent_pfn(unsigned long cpu_addr);
 static inline unsigned long device_to_mask(struct device *dev)
 {
 	if (dev->dma_mask && *dev->dma_mask)
+	{
 		return *dev->dma_mask;
+	}
+
 	/* Assume devices without mask can take 32 bit addresses */
 	return 0xfffffffful;
 }
@@ -74,7 +77,7 @@ static inline unsigned long device_to_mask(struct device *dev)
  * Available generic sets of operations
  */
 #ifdef CONFIG_PPC64
-extern struct dma_map_ops dma_iommu_ops;
+	extern struct dma_map_ops dma_iommu_ops;
 #endif
 extern struct dma_map_ops dma_direct_ops;
 
@@ -86,7 +89,9 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 	 * in the floppy driver directly to get a device for us.
 	 */
 	if (unlikely(dev == NULL))
+	{
 		return NULL;
+	}
 
 	return dev->archdata.dma_ops;
 }
@@ -107,7 +112,9 @@ static inline void set_dma_ops(struct device *dev, struct dma_map_ops *ops)
 static inline dma_addr_t get_dma_offset(struct device *dev)
 {
 	if (dev)
+	{
 		return dev->archdata.dma_offset;
+	}
 
 	return PCI_DRAM_OFFSET;
 }
@@ -115,7 +122,9 @@ static inline dma_addr_t get_dma_offset(struct device *dev)
 static inline void set_dma_offset(struct device *dev, dma_addr_t off)
 {
 	if (dev)
+	{
 		dev->archdata.dma_offset = off;
+	}
 }
 
 /* this will be removed soon */
@@ -133,11 +142,16 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
 	struct dev_archdata *sd = &dev->archdata;
 
 	if (sd->max_direct_dma_addr && addr + size > sd->max_direct_dma_addr)
+	{
 		return false;
+	}
+
 #endif
 
 	if (!dev->dma_mask)
+	{
 		return false;
+	}
 
 	return addr + size - 1 <= *dev->dma_mask;
 }
@@ -155,7 +169,7 @@ static inline phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr)
 #define ARCH_HAS_DMA_MMAP_COHERENT
 
 static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-		enum dma_data_direction direction)
+								  enum dma_data_direction direction)
 {
 	BUG_ON(direction == DMA_NONE);
 	__dma_sync(vaddr, size, (int)direction);

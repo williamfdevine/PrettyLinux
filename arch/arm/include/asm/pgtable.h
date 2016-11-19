@@ -28,9 +28,9 @@
 #include <asm/tlbflush.h>
 
 #ifdef CONFIG_ARM_LPAE
-#include <asm/pgtable-3level.h>
+	#include <asm/pgtable-3level.h>
 #else
-#include <asm/pgtable-2level.h>
+	#include <asm/pgtable-2level.h>
 #endif
 
 /*
@@ -69,7 +69,7 @@ extern void __pgd_error(const char *file, int line, pgd_t);
  * page shared between user and kernel).
  */
 #ifdef CONFIG_ARM_LPAE
-#define USER_PGTABLES_CEILING	TASK_SIZE
+	#define USER_PGTABLES_CEILING	TASK_SIZE
 #endif
 
 /*
@@ -130,7 +130,7 @@ extern pgprot_t		pgprot_s2_device;
 #define __HAVE_PHYS_MEM_ACCESS_PROT
 struct file;
 extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-				     unsigned long size, pgprot_t vma_prot);
+									 unsigned long size, pgprot_t vma_prot);
 #else
 #define pgprot_dmacoherent(prot) \
 	__pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_UNCACHED | L_PTE_XN)
@@ -193,11 +193,11 @@ static inline pte_t *pmd_page_vaddr(pmd_t pmd)
 #define pmd_page(pmd)		pfn_to_page(__phys_to_pfn(pmd_val(pmd) & PHYS_MASK))
 
 #ifndef CONFIG_HIGHPTE
-#define __pte_map(pmd)		pmd_page_vaddr(*(pmd))
-#define __pte_unmap(pte)	do { } while (0)
+	#define __pte_map(pmd)		pmd_page_vaddr(*(pmd))
+	#define __pte_unmap(pte)	do { } while (0)
 #else
-#define __pte_map(pmd)		(pte_t *)kmap_atomic(pmd_page(*(pmd)))
-#define __pte_unmap(pte)	kunmap_atomic(pte)
+	#define __pte_map(pmd)		(pte_t *)kmap_atomic(pmd_page(*(pmd)))
+	#define __pte_unmap(pte)	kunmap_atomic(pte)
 #endif
 
 #define pte_index(addr)		(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
@@ -216,7 +216,7 @@ static inline pte_t *pmd_page_vaddr(pmd_t pmd)
 #define pte_clear(mm,addr,ptep)	set_pte_ext(ptep, __pte(0), 0)
 
 #define pte_isset(pte, val)	((u32)(val) == (val) ? pte_val(pte) & (val) \
-						: !!(pte_val(pte) & (val)))
+							 : !!(pte_val(pte) & (val)))
 #define pte_isclear(pte, val)	(!(pte_val(pte) & (val)))
 
 #define pte_none(pte)		(!pte_val(pte))
@@ -240,13 +240,17 @@ extern void __sync_icache_dcache(pte_t pteval);
 #endif
 
 static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-			      pte_t *ptep, pte_t pteval)
+							  pte_t *ptep, pte_t pteval)
 {
 	unsigned long ext = 0;
 
-	if (addr < TASK_SIZE && pte_valid_user(pteval)) {
+	if (addr < TASK_SIZE && pte_valid_user(pteval))
+	{
 		if (!pte_special(pteval))
+		{
 			__sync_icache_dcache(pteval);
+		}
+
 		ext |= PTE_EXT_NG;
 	}
 
@@ -308,7 +312,7 @@ static inline pte_t pte_mknexec(pte_t pte)
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
 	const pteval_t mask = L_PTE_XN | L_PTE_RDONLY | L_PTE_USER |
-		L_PTE_NONE | L_PTE_VALID;
+						  L_PTE_NONE | L_PTE_VALID;
 	pte_val(pte) = (pte_val(pte) & ~mask) | (pgprot_val(newprot) & mask);
 	return pte;
 }

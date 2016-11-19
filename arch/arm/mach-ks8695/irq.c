@@ -71,70 +71,85 @@ static int ks8695_irq_set_type(struct irq_data *d, unsigned int type)
 
 	ctrl = __raw_readl(KS8695_GPIO_VA + KS8695_IOPC);
 
-	switch (type) {
+	switch (type)
+	{
 		case IRQ_TYPE_LEVEL_HIGH:
 			mode = IOPC_TM_HIGH;
 			level_triggered = 1;
 			break;
+
 		case IRQ_TYPE_LEVEL_LOW:
 			mode = IOPC_TM_LOW;
 			level_triggered = 1;
 			break;
+
 		case IRQ_TYPE_EDGE_RISING:
 			mode = IOPC_TM_RISING;
 			break;
+
 		case IRQ_TYPE_EDGE_FALLING:
 			mode = IOPC_TM_FALLING;
 			break;
+
 		case IRQ_TYPE_EDGE_BOTH:
 			mode = IOPC_TM_EDGE;
 			break;
+
 		default:
 			return -EINVAL;
 	}
 
-	switch (d->irq) {
+	switch (d->irq)
+	{
 		case KS8695_IRQ_EXTERN0:
 			ctrl &= ~IOPC_IOEINT0TM;
 			ctrl |= IOPC_IOEINT0_MODE(mode);
 			break;
+
 		case KS8695_IRQ_EXTERN1:
 			ctrl &= ~IOPC_IOEINT1TM;
 			ctrl |= IOPC_IOEINT1_MODE(mode);
 			break;
+
 		case KS8695_IRQ_EXTERN2:
 			ctrl &= ~IOPC_IOEINT2TM;
 			ctrl |= IOPC_IOEINT2_MODE(mode);
 			break;
+
 		case KS8695_IRQ_EXTERN3:
 			ctrl &= ~IOPC_IOEINT3TM;
 			ctrl |= IOPC_IOEINT3_MODE(mode);
 			break;
+
 		default:
 			return -EINVAL;
 	}
 
-	if (level_triggered) {
+	if (level_triggered)
+	{
 		irq_set_chip_and_handler(d->irq, &ks8695_irq_level_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 	}
-	else {
+	else
+	{
 		irq_set_chip_and_handler(d->irq, &ks8695_irq_edge_chip,
-					 handle_edge_irq);
+								 handle_edge_irq);
 	}
 
 	__raw_writel(ctrl, KS8695_GPIO_VA + KS8695_IOPC);
 	return 0;
 }
 
-static struct irq_chip ks8695_irq_level_chip = {
+static struct irq_chip ks8695_irq_level_chip =
+{
 	.irq_ack	= ks8695_irq_mask,
 	.irq_mask	= ks8695_irq_mask,
 	.irq_unmask	= ks8695_irq_unmask,
 	.irq_set_type	= ks8695_irq_set_type,
 };
 
-static struct irq_chip ks8695_irq_edge_chip = {
+static struct irq_chip ks8695_irq_edge_chip =
+{
 	.irq_ack	= ks8695_irq_ack,
 	.irq_mask	= ks8695_irq_mask,
 	.irq_unmask	= ks8695_irq_unmask,
@@ -149,8 +164,10 @@ void __init ks8695_init_irq(void)
 	__raw_writel(0, KS8695_IRQ_VA + KS8695_INTMC);
 	__raw_writel(0, KS8695_IRQ_VA + KS8695_INTEN);
 
-	for (irq = 0; irq < NR_IRQS; irq++) {
-		switch (irq) {
+	for (irq = 0; irq < NR_IRQS; irq++)
+	{
+		switch (irq)
+		{
 			/* Level-triggered interrupts */
 			case KS8695_IRQ_BUS_ERROR:
 			case KS8695_IRQ_UART_MODEM_STATUS:
@@ -159,8 +176,8 @@ void __init ks8695_init_irq(void)
 			case KS8695_IRQ_COMM_TX:
 			case KS8695_IRQ_COMM_RX:
 				irq_set_chip_and_handler(irq,
-							 &ks8695_irq_level_chip,
-							 handle_level_irq);
+										 &ks8695_irq_level_chip,
+										 handle_level_irq);
 				break;
 
 			/* Edge-triggered interrupts */
@@ -168,8 +185,8 @@ void __init ks8695_init_irq(void)
 				/* clear pending bit */
 				ks8695_irq_ack(irq_get_irq_data(irq));
 				irq_set_chip_and_handler(irq,
-							 &ks8695_irq_edge_chip,
-							 handle_edge_irq);
+										 &ks8695_irq_edge_chip,
+										 handle_edge_irq);
 		}
 
 		irq_clear_status_flags(irq, IRQ_NOREQUEST);

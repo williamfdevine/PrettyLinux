@@ -32,7 +32,7 @@ static void __init eznps_configure_msu(void)
 	/* enable IPI and GIM messages on all clusters */
 	for (cpu = 0 ; cpu < eznps_max_cpus; cpu += eznps_cpus_per_cluster)
 		iowrite32be(msu_en_cfg.value,
-			    nps_host_reg(cpu, NPS_MSU_BLKID, NPS_MSU_EN_CFG));
+					nps_host_reg(cpu, NPS_MSU_BLKID, NPS_MSU_EN_CFG));
 }
 
 static void __init eznps_configure_gim(void)
@@ -91,12 +91,13 @@ static void __init eznps_early_init(void)
 	eznps_configure_gim();
 }
 
-static const char *eznps_compat[] __initconst = {
+static const char *eznps_compat[] __initconst =
+{
 	"ezchip,arc-nps",
 	NULL,
 };
 
 MACHINE_START(NPS, "nps")
-	.dt_compat	= eznps_compat,
-	.init_early	= eznps_early_init,
-MACHINE_END
+.dt_compat	= eznps_compat,
+  .init_early	= eznps_early_init,
+   MACHINE_END

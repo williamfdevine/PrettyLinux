@@ -25,7 +25,8 @@
 
 typedef unsigned int (*debugger_funct)(void);
 
-struct kernel_debug {
+struct kernel_debug
+{
 	/* First the entry point into the debugger.  You jump here
 	 * to give control over to the debugger.
 	 */
@@ -49,16 +50,17 @@ extern struct kernel_debug *linux_dbvec;
 static inline void sp_enter_debugger(void)
 {
 	__asm__ __volatile__("jmpl %0, %%o7\n\t"
-			     "nop\n\t" : :
-			     "r" (linux_dbvec) : "o7", "memory");
+						 "nop\n\t" : :
+						 "r" (linux_dbvec) : "o7", "memory");
 }
 
 #define SP_ENTER_DEBUGGER do { \
-	     if((linux_dbvec!=0) && ((*(short *)linux_dbvec)!=-1)) \
-	       sp_enter_debugger(); \
-		       } while(0)
+		if((linux_dbvec!=0) && ((*(short *)linux_dbvec)!=-1)) \
+			sp_enter_debugger(); \
+	} while(0)
 
-enum die_val {
+enum die_val
+{
 	DIE_UNUSED,
 	DIE_OOPS,
 };

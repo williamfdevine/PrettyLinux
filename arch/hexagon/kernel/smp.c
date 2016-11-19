@@ -41,41 +41,46 @@
  * up the...  per_cpu areas.
  */
 
-struct ipi_data {
+struct ipi_data
+{
 	unsigned long bits;
 };
 
 static DEFINE_PER_CPU(struct ipi_data, ipi_data);
 
 static inline void __handle_ipi(unsigned long *ops, struct ipi_data *ipi,
-				int cpu)
+								int cpu)
 {
 	unsigned long msg = 0;
-	do {
-		msg = find_next_bit(ops, BITS_PER_LONG, msg+1);
 
-		switch (msg) {
+	do
+	{
+		msg = find_next_bit(ops, BITS_PER_LONG, msg + 1);
 
-		case IPI_TIMER:
-			ipi_timer();
-			break;
+		switch (msg)
+		{
 
-		case IPI_CALL_FUNC:
-			generic_smp_call_function_interrupt();
-			break;
+			case IPI_TIMER:
+				ipi_timer();
+				break;
 
-		case IPI_CPU_STOP:
-			/*
-			 * call vmstop()
-			 */
-			__vmstop();
-			break;
+			case IPI_CALL_FUNC:
+				generic_smp_call_function_interrupt();
+				break;
 
-		case IPI_RESCHEDULE:
-			scheduler_ipi();
-			break;
+			case IPI_CPU_STOP:
+				/*
+				 * call vmstop()
+				 */
+				__vmstop();
+				break;
+
+			case IPI_RESCHEDULE:
+				scheduler_ipi();
+				break;
 		}
-	} while (msg < BITS_PER_LONG);
+	}
+	while (msg < BITS_PER_LONG);
 }
 
 /*  Used for IPI call from other CPU's to unmask int  */
@@ -98,7 +103,10 @@ irqreturn_t handle_ipi(int irq, void *desc)
 	unsigned long ops;
 
 	while ((ops = xchg(&ipi->bits, 0)) != 0)
+	{
 		__handle_ipi(&ops, ipi, cpu);
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -110,23 +118,26 @@ void send_ipi(const struct cpumask *cpumask, enum ipi_message_type msg)
 
 	local_irq_save(flags);
 
-	for_each_cpu(cpu, cpumask) {
+	for_each_cpu(cpu, cpumask)
+	{
 		struct ipi_data *ipi = &per_cpu(ipi_data, cpu);
 
 		set_bit(msg, &ipi->bits);
 		/*  Possible barrier here  */
-		retval = __vmintop_post(BASE_IPI_IRQ+cpu);
+		retval = __vmintop_post(BASE_IPI_IRQ + cpu);
 
-		if (retval != 0) {
+		if (retval != 0)
+		{
 			printk(KERN_ERR "interrupt %ld not configured?\n",
-				BASE_IPI_IRQ+cpu);
+				   BASE_IPI_IRQ + cpu);
 		}
 	}
 
 	local_irq_restore(flags);
 }
 
-static struct irqaction ipi_intdesc = {
+static struct irqaction ipi_intdesc =
+{
 	.handler = handle_ipi,
 	.flags = IRQF_TRIGGER_RISING,
 	.name = "ipi_handler"
@@ -153,7 +164,7 @@ void start_secondary(void)
 		: "=r" (thread_ptr)
 	);
 
-	thread_ptr = thread_ptr & ~(THREAD_SIZE-1);
+	thread_ptr = thread_ptr & ~(THREAD_SIZE - 1);
 
 	__asm__ __volatile__(
 		QUOTED_THREADINFO_REG " = %0;\n"
@@ -202,7 +213,9 @@ int __cpu_up(unsigned int cpu, struct task_struct *idle)
 	__vmstart(start_secondary, stack_start);
 
 	while (!cpu_online(cpu))
+	{
 		barrier();
+	}
 
 	return 0;
 }
@@ -222,11 +235,15 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 
 	/*  Right now, let's just fake it. */
 	for (i = 0; i < max_cpus; i++)
+	{
 		set_cpu_present(i, true);
+	}
 
 	/*  Also need to register the interrupts for IPI  */
 	if (max_cpus > 1)
+	{
 		setup_irq(BASE_IPI_IRQ, &ipi_intdesc);
+	}
 }
 
 void smp_send_reschedule(int cpu)
@@ -262,5 +279,7 @@ void smp_start_cpus(void)
 	int i;
 
 	for (i = 0; i < NR_CPUS; i++)
+	{
 		set_cpu_possible(i, true);
+	}
 }

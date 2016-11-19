@@ -14,7 +14,8 @@
 #include <linux/io.h>
 #include <mach/highlander.h>
 
-enum {
+enum
+{
 	UNUSED = 0,
 
 	/* board specific interrupt sources */
@@ -31,7 +32,8 @@ enum {
 	EXT1, EXT2, EXT4, EXT5, EXT6,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_IRQ(CF, IRQ_CF),
 	INTC_IRQ(TP, IRQ_TP),
 	INTC_IRQ(SCIF1, IRQ_SCIF1),
@@ -46,13 +48,19 @@ static struct intc_vect vectors[] __initdata = {
 	INTC_IRQ(EXT6, IRQ_EXT6),
 };
 
-static struct intc_mask_reg mask_registers[] __initdata = {
-	{ 0xa4000000, 0, 16, /* IRLMSK */
-	  { SCIF0, SCIF1, RTC, 0, CF, 0, TP, SMBUS,
-	    0, EXT6, EXT5, EXT4, EXT2, EXT1, PSW, AX88796 } },
+static struct intc_mask_reg mask_registers[] __initdata =
+{
+	{
+		0xa4000000, 0, 16, /* IRLMSK */
+		{
+			SCIF0, SCIF1, RTC, 0, CF, 0, TP, SMBUS,
+			0, EXT6, EXT5, EXT4, EXT2, EXT1, PSW, AX88796
+		}
+	},
 };
 
-static unsigned char irl2irq[HL_NR_IRL] __initdata = {
+static unsigned char irl2irq[HL_NR_IRL] __initdata =
+{
 	0, IRQ_CF, IRQ_TP, IRQ_SCIF1,
 	IRQ_SCIF0, IRQ_SMBUS, IRQ_RTC, IRQ_EXT6,
 	IRQ_EXT5, IRQ_EXT4, IRQ_EXT2, IRQ_EXT1,
@@ -60,11 +68,12 @@ static unsigned char irl2irq[HL_NR_IRL] __initdata = {
 };
 
 static DECLARE_INTC_DESC(intc_desc, "r7780mp", vectors,
-			 NULL, mask_registers, NULL, NULL);
+						 NULL, mask_registers, NULL, NULL);
 
-unsigned char * __init highlander_plat_irq_setup(void)
+unsigned char *__init highlander_plat_irq_setup(void)
 {
-	if ((__raw_readw(0xa4000700) & 0xf000) == 0x2000) {
+	if ((__raw_readw(0xa4000700) & 0xf000) == 0x2000)
+	{
 		printk(KERN_INFO "Using r7780mp interrupt controller.\n");
 		register_intc_controller(&intc_desc);
 		return irl2irq;

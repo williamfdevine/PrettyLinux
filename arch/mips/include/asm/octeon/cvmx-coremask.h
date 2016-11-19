@@ -38,7 +38,8 @@
 
 
 /* cvmx_coremask_t */
-struct cvmx_coremask {
+struct cvmx_coremask
+{
 	u64 coremask_bitmap[CVMX_COREMASK_BMPSZ];
 };
 
@@ -46,7 +47,7 @@ struct cvmx_coremask {
  * Is ``core'' set in the coremask?
  */
 static inline bool cvmx_coremask_is_core_set(const struct cvmx_coremask *pcm,
-					    int core)
+		int core)
 {
 	int n, i;
 
@@ -60,7 +61,7 @@ static inline bool cvmx_coremask_is_core_set(const struct cvmx_coremask *pcm,
  * Make a copy of a coremask
  */
 static inline void cvmx_coremask_copy(struct cvmx_coremask *dest,
-				      const struct cvmx_coremask *src)
+									  const struct cvmx_coremask *src)
 {
 	memcpy(dest, src, sizeof(*dest));
 }
@@ -69,7 +70,7 @@ static inline void cvmx_coremask_copy(struct cvmx_coremask *dest,
  * Set the lower 64-bit of the coremask.
  */
 static inline void cvmx_coremask_set64(struct cvmx_coremask *pcm,
-				       uint64_t coremask_64)
+									   uint64_t coremask_64)
 {
 	pcm->coremask_bitmap[0] = coremask_64;
 }

@@ -51,7 +51,7 @@ char __initdata command_line[COMMAND_LINE_SIZE];
 /* machine dependent timer functions */
 void (*mach_sched_init)(irq_handler_t handler) __initdata = NULL;
 int (*mach_set_clock_mmss)(unsigned long);
-int (*mach_hwclk) (int, struct rtc_time*);
+int (*mach_hwclk) (int, struct rtc_time *);
 
 /* machine dependent reboot functions */
 void (*mach_reset)(void);
@@ -59,18 +59,18 @@ void (*mach_halt)(void);
 void (*mach_power_off)(void);
 
 #ifdef CONFIG_M68000
-#if defined(CONFIG_M68328)
-#define CPU_NAME	"MC68328"
-#elif defined(CONFIG_M68EZ328)
-#define CPU_NAME	"MC68EZ328"
-#elif defined(CONFIG_M68VZ328)
-#define CPU_NAME	"MC68VZ328"
-#else
-#define CPU_NAME	"MC68000"
-#endif
+	#if defined(CONFIG_M68328)
+		#define CPU_NAME	"MC68328"
+	#elif defined(CONFIG_M68EZ328)
+		#define CPU_NAME	"MC68EZ328"
+	#elif defined(CONFIG_M68VZ328)
+		#define CPU_NAME	"MC68VZ328"
+	#else
+		#define CPU_NAME	"MC68000"
+	#endif
 #endif /* CONFIG_M68000 */
 #ifndef CPU_NAME
-#define	CPU_NAME	"UNKNOWN"
+	#define	CPU_NAME	"UNKNOWN"
 #endif
 
 /*
@@ -80,7 +80,7 @@ void (*mach_power_off)(void);
  * headers. We default to the standard 68000 value here.
  */
 #ifndef CPU_INSTR_PER_JIFFY
-#define	CPU_INSTR_PER_JIFFY	16
+	#define	CPU_INSTR_PER_JIFFY	16
 #endif
 
 void __init setup_arch(char **cmdline_p)
@@ -137,14 +137,14 @@ void __init setup_arch(char **cmdline_p)
 #endif
 
 	pr_debug("KERNEL -> TEXT=0x%p-0x%p DATA=0x%p-0x%p BSS=0x%p-0x%p\n",
-		 _stext, _etext, _sdata, _edata, __bss_start, __bss_stop);
+			 _stext, _etext, _sdata, _edata, __bss_start, __bss_stop);
 	pr_debug("MEMORY -> ROMFS=0x%p-0x%06lx MEM=0x%06lx-0x%06lx\n ",
-		 __bss_stop, memory_start, memory_start, memory_end);
+			 __bss_stop, memory_start, memory_start, memory_end);
 
 	/* Keep a copy of command line */
 	*cmdline_p = &command_line[0];
 	memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
-	boot_command_line[COMMAND_LINE_SIZE-1] = 0;
+	boot_command_line[COMMAND_LINE_SIZE - 1] = 0;
 
 #if defined(CONFIG_FRAMEBUFFER_CONSOLE) && defined(CONFIG_DUMMY_CONSOLE)
 	conswitchp = &dummy_con;
@@ -158,10 +158,10 @@ void __init setup_arch(char **cmdline_p)
 	max_pfn = max_low_pfn = PFN_DOWN(memory_end);
 
 	bootmap_size = init_bootmem_node(
-			NODE_DATA(0),
-			min_low_pfn,		/* map goes here */
-			PFN_DOWN(PAGE_OFFSET),
-			max_pfn);
+					   NODE_DATA(0),
+					   min_low_pfn,		/* map goes here */
+					   PFN_DOWN(PAGE_OFFSET),
+					   max_pfn);
 	/*
 	 * Free the usable memory, we have to make sure we do not free
 	 * the bootmem bitmap so we then reserve it after freeing it :-)
@@ -170,10 +170,12 @@ void __init setup_arch(char **cmdline_p)
 	reserve_bootmem(memory_start, bootmap_size, BOOTMEM_DEFAULT);
 
 #if defined(CONFIG_UBOOT) && defined(CONFIG_BLK_DEV_INITRD)
+
 	if ((initrd_start > 0) && (initrd_start < initrd_end) &&
-			(initrd_end < memory_end))
+		(initrd_end < memory_end))
 		reserve_bootmem(initrd_start, initrd_end - initrd_start,
-				 BOOTMEM_DEFAULT);
+						BOOTMEM_DEFAULT);
+
 #endif /* if defined(CONFIG_BLK_DEV_INITRD) */
 
 	/*
@@ -196,17 +198,17 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	clockfreq = (loops_per_jiffy * HZ) * CPU_INSTR_PER_JIFFY;
 
 	seq_printf(m, "CPU:\t\t%s\n"
-		      "MMU:\t\t%s\n"
-		      "FPU:\t\t%s\n"
-		      "Clocking:\t%lu.%1luMHz\n"
-		      "BogoMips:\t%lu.%02lu\n"
-		      "Calibration:\t%lu loops\n",
-		      cpu, mmu, fpu,
-		      clockfreq / 1000000,
-		      (clockfreq / 100000) % 10,
-		      (loops_per_jiffy * HZ) / 500000,
-		      ((loops_per_jiffy * HZ) / 5000) % 100,
-		      (loops_per_jiffy * HZ));
+			   "MMU:\t\t%s\n"
+			   "FPU:\t\t%s\n"
+			   "Clocking:\t%lu.%1luMHz\n"
+			   "BogoMips:\t%lu.%02lu\n"
+			   "Calibration:\t%lu loops\n",
+			   cpu, mmu, fpu,
+			   clockfreq / 1000000,
+			   (clockfreq / 100000) % 10,
+			   (loops_per_jiffy * HZ) / 500000,
+			   ((loops_per_jiffy * HZ) / 5000) % 100,
+			   (loops_per_jiffy * HZ));
 
 	return 0;
 }
@@ -226,7 +228,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,

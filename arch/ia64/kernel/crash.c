@@ -29,17 +29,17 @@ static int kdump_on_fatal_mca = 1;
 
 static inline Elf64_Word
 *append_elf_note(Elf64_Word *buf, char *name, unsigned type, void *data,
-		size_t data_len)
+				 size_t data_len)
 {
 	struct elf_note *note = (struct elf_note *)buf;
 	note->n_namesz = strlen(name) + 1;
 	note->n_descsz = data_len;
 	note->n_type   = type;
-	buf += (sizeof(*note) + 3)/4;
+	buf += (sizeof(*note) + 3) / 4;
 	memcpy(buf, name, note->n_namesz);
-	buf += (note->n_namesz + 3)/4;
+	buf += (note->n_namesz + 3) / 4;
 	memcpy(buf, data, data_len);
-	buf += (data_len + 3)/4;
+	buf += (data_len + 3) / 4;
 	return buf;
 }
 
@@ -62,7 +62,7 @@ crash_save_this_cpu(void)
 	int cpu = smp_processor_id();
 	struct elf_prstatus *prstatus = &per_cpu(elf_prstatus, cpu);
 
-	elf_greg_t *dst = (elf_greg_t *)&(prstatus->pr_reg);
+	elf_greg_t *dst = (elf_greg_t *) & (prstatus->pr_reg);
 	memset(prstatus, 0, sizeof(*prstatus));
 	prstatus->pr_pid = current->pid;
 
@@ -71,13 +71,17 @@ crash_save_this_cpu(void)
 	sol = (cfm >> 7) & 0x7f;
 	sof = cfm & 0x7f;
 	dst[46] = (unsigned long)ia64_rse_skip_regs((unsigned long *)dst[46],
-			sof - sol);
+			  sof - sol);
 
 	buf = (u64 *) per_cpu_ptr(crash_notes, cpu);
+
 	if (!buf)
+	{
 		return;
+	}
+
 	buf = append_elf_note(buf, KEXEC_CORE_NOTE_NAME, NT_PRSTATUS, prstatus,
-			sizeof(*prstatus));
+						  sizeof(*prstatus));
 	final_note(buf);
 }
 
@@ -87,11 +91,17 @@ kdump_wait_cpu_freeze(void)
 {
 	int cpu_num = num_online_cpus() - 1;
 	int timeout = 1000;
-	while(timeout-- > 0) {
+
+	while (timeout-- > 0)
+	{
 		if (atomic_read(&kdump_cpu_frozen) == cpu_num)
+		{
 			return 0;
+		}
+
 		udelay(1000);
 	}
+
 	return 1;
 }
 #endif
@@ -115,8 +125,11 @@ machine_crash_shutdown(struct pt_regs *pt)
 	 */
 	local_irq_disable();
 	ia64_set_psr_mc();	/* mask MCA/INIT */
+
 	if (atomic_inc_return(&kdump_in_progress) != 1)
+	{
 		unw_init_running(kdump_cpu_freeze, NULL);
+	}
 
 	/*
 	 * Now this cpu is ready for kdump.
@@ -136,12 +149,15 @@ machine_crash_shutdown(struct pt_regs *pt)
 	 *   by kdump_in_progress.
 	 */
 	kdump_smp_send_stop();
+
 	/* not all cpu response to IPI, send INIT to freeze them */
-	if (kdump_wait_cpu_freeze()) {
+	if (kdump_wait_cpu_freeze())
+	{
 		kdump_smp_send_init();
 		/* wait again, don't go ahead if possible */
 		kdump_wait_cpu_freeze();
 	}
+
 #endif
 }
 
@@ -169,8 +185,11 @@ kdump_cpu_freeze(struct unw_frame_info *info, void *arg)
 	atomic_inc(&kdump_cpu_frozen);
 	kdump_status[cpuid] = 1;
 	mb();
+
 	for (;;)
+	{
 		cpu_relax();
+	}
 }
 
 static int
@@ -179,65 +198,96 @@ kdump_init_notifier(struct notifier_block *self, unsigned long val, void *data)
 	struct ia64_mca_notify_die *nd;
 	struct die_args *args = data;
 
-	if (atomic_read(&kdump_in_progress)) {
-		switch (val) {
-		case DIE_INIT_MONARCH_LEAVE:
-			if (!kdump_freeze_monarch)
-				break;
+	if (atomic_read(&kdump_in_progress))
+	{
+		switch (val)
+		{
+			case DIE_INIT_MONARCH_LEAVE:
+				if (!kdump_freeze_monarch)
+				{
+					break;
+				}
+
 			/* fall through */
-		case DIE_INIT_SLAVE_LEAVE:
-		case DIE_INIT_MONARCH_ENTER:
-		case DIE_MCA_RENDZVOUS_LEAVE:
-			unw_init_running(kdump_cpu_freeze, NULL);
-			break;
+			case DIE_INIT_SLAVE_LEAVE:
+			case DIE_INIT_MONARCH_ENTER:
+			case DIE_MCA_RENDZVOUS_LEAVE:
+				unw_init_running(kdump_cpu_freeze, NULL);
+				break;
 		}
 	}
 
 	if (!kdump_on_init && !kdump_on_fatal_mca)
+	{
 		return NOTIFY_DONE;
+	}
 
-	if (!ia64_kimage) {
+	if (!ia64_kimage)
+	{
 		if (val == DIE_INIT_MONARCH_LEAVE)
 			ia64_mca_printk(KERN_NOTICE
-					"%s: kdump not configured\n",
-					__func__);
+							"%s: kdump not configured\n",
+							__func__);
+
 		return NOTIFY_DONE;
 	}
 
 	if (val != DIE_INIT_MONARCH_LEAVE &&
-	    val != DIE_INIT_MONARCH_PROCESS &&
-	    val != DIE_MCA_MONARCH_LEAVE)
+		val != DIE_INIT_MONARCH_PROCESS &&
+		val != DIE_MCA_MONARCH_LEAVE)
+	{
 		return NOTIFY_DONE;
+	}
 
 	nd = (struct ia64_mca_notify_die *)args->err;
 
-	switch (val) {
-	case DIE_INIT_MONARCH_PROCESS:
-		/* Reason code 1 means machine check rendezvous*/
-		if (kdump_on_init && (nd->sos->rv_rc != 1)) {
-			if (atomic_inc_return(&kdump_in_progress) != 1)
-				kdump_freeze_monarch = 1;
-		}
-		break;
-	case DIE_INIT_MONARCH_LEAVE:
-		/* Reason code 1 means machine check rendezvous*/
-		if (kdump_on_init && (nd->sos->rv_rc != 1))
-			machine_kdump_on_init();
-		break;
-	case DIE_MCA_MONARCH_LEAVE:
-		/* *(nd->data) indicate if MCA is recoverable */
-		if (kdump_on_fatal_mca && !(*(nd->data))) {
-			if (atomic_inc_return(&kdump_in_progress) == 1)
+	switch (val)
+	{
+		case DIE_INIT_MONARCH_PROCESS:
+
+			/* Reason code 1 means machine check rendezvous*/
+			if (kdump_on_init && (nd->sos->rv_rc != 1))
+			{
+				if (atomic_inc_return(&kdump_in_progress) != 1)
+				{
+					kdump_freeze_monarch = 1;
+				}
+			}
+
+			break;
+
+		case DIE_INIT_MONARCH_LEAVE:
+
+			/* Reason code 1 means machine check rendezvous*/
+			if (kdump_on_init && (nd->sos->rv_rc != 1))
+			{
 				machine_kdump_on_init();
-			/* We got fatal MCA while kdump!? No way!! */
-		}
-		break;
+			}
+
+			break;
+
+		case DIE_MCA_MONARCH_LEAVE:
+
+			/* *(nd->data) indicate if MCA is recoverable */
+			if (kdump_on_fatal_mca && !(*(nd->data)))
+			{
+				if (atomic_inc_return(&kdump_in_progress) == 1)
+				{
+					machine_kdump_on_init();
+				}
+
+				/* We got fatal MCA while kdump!? No way!! */
+			}
+
+			break;
 	}
+
 	return NOTIFY_DONE;
 }
 
 #ifdef CONFIG_SYSCTL
-static struct ctl_table kdump_ctl_table[] = {
+static struct ctl_table kdump_ctl_table[] =
+{
 	{
 		.procname = "kdump_on_init",
 		.data = &kdump_on_init,
@@ -255,11 +305,12 @@ static struct ctl_table kdump_ctl_table[] = {
 	{ }
 };
 
-static struct ctl_table sys_table[] = {
+static struct ctl_table sys_table[] =
+{
 	{
-	  .procname = "kernel",
-	  .mode = 0555,
-	  .child = kdump_ctl_table,
+		.procname = "kernel",
+		.mode = 0555,
+		.child = kdump_ctl_table,
 	},
 	{ }
 };
@@ -269,13 +320,18 @@ static int
 machine_crash_setup(void)
 {
 	/* be notified before default_monarch_init_process */
-	static struct notifier_block kdump_init_notifier_nb = {
+	static struct notifier_block kdump_init_notifier_nb =
+	{
 		.notifier_call = kdump_init_notifier,
 		.priority = 1,
 	};
 	int ret;
-	if((ret = register_die_notifier(&kdump_init_notifier_nb)) != 0)
+
+	if ((ret = register_die_notifier(&kdump_init_notifier_nb)) != 0)
+	{
 		return ret;
+	}
+
 #ifdef CONFIG_SYSCTL
 	register_sysctl_table(sys_table);
 #endif

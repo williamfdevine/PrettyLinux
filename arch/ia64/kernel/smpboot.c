@@ -61,33 +61,33 @@
 #define SMP_DEBUG 0
 
 #if SMP_DEBUG
-#define Dprintk(x...)  printk(x)
+	#define Dprintk(x...)  printk(x)
 #else
-#define Dprintk(x...)
+	#define Dprintk(x...)
 #endif
 
 #ifdef CONFIG_HOTPLUG_CPU
-#ifdef CONFIG_PERMIT_BSP_REMOVE
-#define bsp_remove_ok	1
+	#ifdef CONFIG_PERMIT_BSP_REMOVE
+		#define bsp_remove_ok	1
+	#else
+		#define bsp_remove_ok	0
+	#endif
+
+	/*
+	* Global array allocated for NR_CPUS at boot time
+	*/
+	struct sal_to_os_boot sal_boot_rendez_state[NR_CPUS];
+
+	/*
+	* start_ap in head.S uses this to store current booting cpu
+	* info.
+	*/
+	struct sal_to_os_boot *sal_state_for_booting_cpu = &sal_boot_rendez_state[0];
+
+	#define set_brendez_area(x) (sal_state_for_booting_cpu = &sal_boot_rendez_state[(x)]);
+
 #else
-#define bsp_remove_ok	0
-#endif
-
-/*
- * Global array allocated for NR_CPUS at boot time
- */
-struct sal_to_os_boot sal_boot_rendez_state[NR_CPUS];
-
-/*
- * start_ap in head.S uses this to store current booting cpu
- * info.
- */
-struct sal_to_os_boot *sal_state_for_booting_cpu = &sal_boot_rendez_state[0];
-
-#define set_brendez_area(x) (sal_state_for_booting_cpu = &sal_boot_rendez_state[(x)]);
-
-#else
-#define set_brendez_area(x)
+	#define set_brendez_area(x)
 #endif
 
 
@@ -137,9 +137,9 @@ char __initdata no_int_routing;
 unsigned char smp_int_redirect; /* are INT and IPI redirectable by the chipset? */
 
 #ifdef CONFIG_FORCE_CPEI_RETARGET
-#define CPEI_OVERRIDE_DEFAULT	(1)
+	#define CPEI_OVERRIDE_DEFAULT	(1)
 #else
-#define CPEI_OVERRIDE_DEFAULT	(0)
+	#define CPEI_OVERRIDE_DEFAULT	(0)
 #endif
 
 unsigned int force_cpei_retarget = CPEI_OVERRIDE_DEFAULT;
@@ -147,7 +147,7 @@ unsigned int force_cpei_retarget = CPEI_OVERRIDE_DEFAULT;
 static int __init
 cmdl_force_cpei(char *str)
 {
-	int value=0;
+	int value = 0;
 
 	get_option (&str, &value);
 	force_cpei_retarget = value;
@@ -179,7 +179,9 @@ static void fix_b0_for_bsp(void)
 	 * Cache the b0 value on the first AP that comes up
 	 */
 	if (!(fix_bsp_b0 && cpuid))
+	{
 		return;
+	}
 
 	sal_boot_rendez_state[0].br[0] = sal_boot_rendez_state[cpuid].br[0];
 	printk ("Fixed BSP b0 value from CPU %d\n", cpuid);
@@ -197,9 +199,13 @@ sync_master (void *arg)
 
 	local_irq_save(flags);
 	{
-		for (i = 0; i < NUM_ROUNDS*NUM_ITERS; ++i) {
+		for (i = 0; i < NUM_ROUNDS * NUM_ITERS; ++i)
+		{
 			while (!go[MASTER])
+			{
 				cpu_relax();
+			}
+
 			go[MASTER] = 0;
 			go[SLAVE] = ia64_get_itc();
 		}
@@ -219,25 +225,36 @@ get_delta (long *rt, long *master)
 	unsigned long tcenter, t0, t1, tm;
 	long i;
 
-	for (i = 0; i < NUM_ITERS; ++i) {
+	for (i = 0; i < NUM_ITERS; ++i)
+	{
 		t0 = ia64_get_itc();
 		go[MASTER] = 1;
+
 		while (!(tm = go[SLAVE]))
+		{
 			cpu_relax();
+		}
+
 		go[SLAVE] = 0;
 		t1 = ia64_get_itc();
 
 		if (t1 - t0 < best_t1 - best_t0)
+		{
 			best_t0 = t0, best_t1 = t1, best_tm = tm;
+		}
 	}
 
 	*rt = best_t1 - best_t0;
 	*master = best_tm - best_t0;
 
 	/* average best_t0 and best_t1 without overflow: */
-	tcenter = (best_t0/2 + best_t1/2);
+	tcenter = (best_t0 / 2 + best_t1 / 2);
+
 	if (best_t0 % 2 + best_t1 % 2 == 2)
+	{
 		++tcenter;
+	}
+
 	return tcenter - best_tm;
 }
 
@@ -279,7 +296,8 @@ ia64_sync_itc (unsigned int master)
 	long i, delta, adj, adjust_latency = 0, done = 0;
 	unsigned long flags, rt, master_time_stamp, bound;
 #if DEBUG_ITC_SYNC
-	struct {
+	struct
+	{
 		long rt;	/* roundtrip time */
 		long master;	/* master's timestamp */
 		long diff;	/* difference between midpoint and master's timestamp */
@@ -297,50 +315,64 @@ ia64_sync_itc (unsigned int master)
 
 	go[MASTER] = 1;
 
-	if (smp_call_function_single(master, sync_master, NULL, 0) < 0) {
+	if (smp_call_function_single(master, sync_master, NULL, 0) < 0)
+	{
 		printk(KERN_ERR "sync_itc: failed to get attention of CPU %u!\n", master);
 		return;
 	}
 
 	while (go[MASTER])
-		cpu_relax();	/* wait for master to be ready */
+	{
+		cpu_relax();    /* wait for master to be ready */
+	}
 
 	spin_lock_irqsave(&itc_sync_lock, flags);
 	{
-		for (i = 0; i < NUM_ROUNDS; ++i) {
+		for (i = 0; i < NUM_ROUNDS; ++i)
+		{
 			delta = get_delta(&rt, &master_time_stamp);
-			if (delta == 0) {
+
+			if (delta == 0)
+			{
 				done = 1;	/* let's lock on to this... */
 				bound = rt;
 			}
 
-			if (!done) {
-				if (i > 0) {
+			if (!done)
+			{
+				if (i > 0)
+				{
 					adjust_latency += -delta;
-					adj = -delta + adjust_latency/4;
-				} else
+					adj = -delta + adjust_latency / 4;
+				}
+				else
+				{
 					adj = -delta;
+				}
 
 				ia64_set_itc(ia64_get_itc() + adj);
 			}
+
 #if DEBUG_ITC_SYNC
 			t[i].rt = rt;
 			t[i].master = master_time_stamp;
 			t[i].diff = delta;
-			t[i].lat = adjust_latency/4;
+			t[i].lat = adjust_latency / 4;
 #endif
 		}
 	}
 	spin_unlock_irqrestore(&itc_sync_lock, flags);
 
 #if DEBUG_ITC_SYNC
+
 	for (i = 0; i < NUM_ROUNDS; ++i)
 		printk("rt=%5ld master=%5ld diff=%5ld adjlat=%5ld\n",
-		       t[i].rt, t[i].master, t[i].diff, t[i].lat);
+			   t[i].rt, t[i].master, t[i].diff, t[i].lat);
+
 #endif
 
 	printk(KERN_INFO "CPU %d: synchronized ITC with CPU %u (last diff %ld cycles, "
-	       "maxerr %lu cycles)\n", smp_processor_id(), master, delta, rt);
+		   "maxerr %lu cycles)\n", smp_processor_id(), master, delta, rt);
 }
 
 /*
@@ -366,9 +398,10 @@ smp_callin (void)
 	phys_id = hard_smp_processor_id();
 	itc_master = time_keeper_id;
 
-	if (cpu_online(cpuid)) {
+	if (cpu_online(cpuid))
+	{
 		printk(KERN_ERR "huh, phys CPU#0x%x, CPU#0x%x already present??\n",
-		       phys_id, cpuid);
+			   phys_id, cpuid);
 		BUG();
 	}
 
@@ -398,7 +431,8 @@ smp_callin (void)
 
 	local_irq_enable();
 
-	if (!(sal_platform_features & IA64_SAL_PLATFORM_FEATURE_ITC_DRIFT)) {
+	if (!(sal_platform_features & IA64_SAL_PLATFORM_FEATURE_ITC_DRIFT))
+	{
 		/*
 		 * Synchronize the ITC with the BP.  Need to do this after irqs are
 		 * enabled because ia64_sync_itc() calls smp_call_function_single(), which
@@ -420,21 +454,25 @@ smp_callin (void)
 	 */
 	last_cpuinfo = cpu_data(cpuid - 1);
 	this_cpuinfo = local_cpu_data;
+
 	if (last_cpuinfo->itc_freq != this_cpuinfo->itc_freq ||
-	    last_cpuinfo->proc_freq != this_cpuinfo->proc_freq ||
-	    last_cpuinfo->features != this_cpuinfo->features ||
-	    last_cpuinfo->revision != this_cpuinfo->revision ||
-	    last_cpuinfo->family != this_cpuinfo->family ||
-	    last_cpuinfo->archrev != this_cpuinfo->archrev ||
-	    last_cpuinfo->model != this_cpuinfo->model)
+		last_cpuinfo->proc_freq != this_cpuinfo->proc_freq ||
+		last_cpuinfo->features != this_cpuinfo->features ||
+		last_cpuinfo->revision != this_cpuinfo->revision ||
+		last_cpuinfo->family != this_cpuinfo->family ||
+		last_cpuinfo->archrev != this_cpuinfo->archrev ||
+		last_cpuinfo->model != this_cpuinfo->model)
+	{
 		calibrate_delay();
+	}
+
 	local_cpu_data->loops_per_jiffy = loops_per_jiffy;
 
 	/*
 	 * Allow the master to continue.
 	 */
 	cpumask_set_cpu(cpuid, &cpu_callin_map);
-	Dprintk("Stack on CPU %d at about %p\n",cpuid, &cpuid);
+	Dprintk("Stack on CPU %d at about %p\n", cpuid, &cpuid);
 }
 
 
@@ -473,20 +511,28 @@ do_boot_cpu (int sapicid, int cpu, struct task_struct *idle)
 	 * Wait 10s total for the AP to start
 	 */
 	Dprintk("Waiting on callin_map ...");
-	for (timeout = 0; timeout < 100000; timeout++) {
+
+	for (timeout = 0; timeout < 100000; timeout++)
+	{
 		if (cpumask_test_cpu(cpu, &cpu_callin_map))
-			break;  /* It has booted */
+		{
+			break;    /* It has booted */
+		}
+
 		barrier(); /* Make sure we re-read cpu_callin_map */
 		udelay(100);
 	}
+
 	Dprintk("\n");
 
-	if (!cpumask_test_cpu(cpu, &cpu_callin_map)) {
+	if (!cpumask_test_cpu(cpu, &cpu_callin_map))
+	{
 		printk(KERN_ERR "Processor 0x%x/0x%x is stuck.\n", cpu, sapicid);
 		ia64_cpu_to_sapicid[cpu] = -1;
 		set_cpu_online(cpu, false);  /* was set in smp_callin() */
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -509,17 +555,24 @@ smp_build_cpu_map (void)
 	int sapicid, cpu, i;
 	int boot_cpu_id = hard_smp_processor_id();
 
-	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+	for (cpu = 0; cpu < NR_CPUS; cpu++)
+	{
 		ia64_cpu_to_sapicid[cpu] = -1;
 	}
 
 	ia64_cpu_to_sapicid[0] = boot_cpu_id;
 	init_cpu_present(cpumask_of(0));
 	set_cpu_possible(0, true);
-	for (cpu = 1, i = 0; i < smp_boot_data.cpu_count; i++) {
+
+	for (cpu = 1, i = 0; i < smp_boot_data.cpu_count; i++)
+	{
 		sapicid = smp_boot_data.cpu_phys_id[i];
+
 		if (sapicid == boot_cpu_id)
+		{
 			continue;
+		}
+
 		set_cpu_present(cpu, true);
 		set_cpu_possible(cpu, true);
 		ia64_cpu_to_sapicid[cpu] = sapicid;
@@ -553,7 +606,8 @@ smp_prepare_cpus (unsigned int max_cpus)
 	/*
 	 * If SMP should be disabled, then really disable it!
 	 */
-	if (!max_cpus) {
+	if (!max_cpus)
+	{
 		printk(KERN_INFO "SMP mode deactivated.\n");
 		init_cpu_online(cpumask_of(0));
 		init_cpu_present(cpumask_of(0));
@@ -577,9 +631,9 @@ clear_cpu_sibling_map(int cpu)
 	int i;
 
 	for_each_cpu(i, &per_cpu(cpu_sibling_map, cpu))
-		cpumask_clear_cpu(cpu, &per_cpu(cpu_sibling_map, i));
+	cpumask_clear_cpu(cpu, &per_cpu(cpu_sibling_map, i));
 	for_each_cpu(i, &cpu_core_map[cpu])
-		cpumask_clear_cpu(cpu, &cpu_core_map[i]);
+	cpumask_clear_cpu(cpu, &cpu_core_map[i]);
 
 	per_cpu(cpu_sibling_map, cpu) = cpu_core_map[cpu] = CPU_MASK_NONE;
 }
@@ -590,7 +644,8 @@ remove_siblinginfo(int cpu)
 	int last = 0;
 
 	if (cpu_data(cpu)->threads_per_core == 1 &&
-	    cpu_data(cpu)->cores_per_socket == 1) {
+		cpu_data(cpu)->cores_per_socket == 1)
+	{
 		cpumask_clear_cpu(cpu, &cpu_core_map[cpu]);
 		cpumask_clear_cpu(cpu, &per_cpu(cpu_sibling_map, cpu));
 		return;
@@ -614,9 +669,12 @@ int migrate_platform_irqs(unsigned int cpu)
 	/*
 	 * dont permit CPEI target to removed.
 	 */
-	if (cpe_vector > 0 && is_cpu_cpei_target(cpu)) {
+	if (cpe_vector > 0 && is_cpu_cpei_target(cpu))
+	{
 		printk ("CPU (%d) is CPEI Target\n", cpu);
-		if (can_cpei_retarget()) {
+
+		if (can_cpei_retarget())
+		{
 			/*
 			 * Now re-target the CPEI to a different processor
 			 */
@@ -624,23 +682,28 @@ int migrate_platform_irqs(unsigned int cpu)
 			mask = cpumask_of(new_cpei_cpu);
 			set_cpei_target_cpu(new_cpei_cpu);
 			data = irq_get_irq_data(ia64_cpe_irq);
+
 			/*
 			 * Switch for now, immediately, we need to do fake intr
 			 * as other interrupts, but need to study CPEI behaviour with
 			 * polling before making changes.
 			 */
-			if (data && data->chip) {
+			if (data && data->chip)
+			{
 				data->chip->irq_disable(data);
 				data->chip->irq_set_affinity(data, mask, false);
 				data->chip->irq_enable(data);
 				printk ("Re-targeting CPEI to cpu %d\n", new_cpei_cpu);
 			}
 		}
-		if (!data) {
+
+		if (!data)
+		{
 			printk ("Unable to retarget CPEI, offline cpu [%d] failed\n", cpu);
 			retval = -EBUSY;
 		}
 	}
+
 	return retval;
 }
 
@@ -652,19 +715,24 @@ int __cpu_disable(void)
 	/*
 	 * dont permit boot processor for now
 	 */
-	if (cpu == 0 && !bsp_remove_ok) {
+	if (cpu == 0 && !bsp_remove_ok)
+	{
 		printk ("Your platform does not support removal of BSP\n");
 		return (-EBUSY);
 	}
 
-	if (ia64_platform_is("sn2")) {
+	if (ia64_platform_is("sn2"))
+	{
 		if (!sn_cpu_disable_allowed(cpu))
+		{
 			return -EBUSY;
+		}
 	}
 
 	set_cpu_online(cpu, false);
 
-	if (migrate_platform_irqs(cpu)) {
+	if (migrate_platform_irqs(cpu))
+	{
 		set_cpu_online(cpu, true);
 		return -EBUSY;
 	}
@@ -680,16 +748,19 @@ void __cpu_die(unsigned int cpu)
 {
 	unsigned int i;
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		/* They ack this in play_dead by setting CPU_DEAD */
 		if (per_cpu(cpu_state, cpu) == CPU_DEAD)
 		{
 			printk ("CPU %d is now offline\n", cpu);
 			return;
 		}
+
 		msleep(100);
 	}
- 	printk(KERN_ERR "CPU %u didn't die...\n", cpu);
+
+	printk(KERN_ERR "CPU %u didn't die...\n", cpu);
 }
 #endif /* CONFIG_HOTPLUG_CPU */
 
@@ -703,27 +774,32 @@ smp_cpus_done (unsigned int dummy)
 	 * Allow the user to impress friends.
 	 */
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		bogosum += cpu_data(cpu)->loops_per_jiffy;
 	}
 
 	printk(KERN_INFO "Total of %d processors activated (%lu.%02lu BogoMIPS).\n",
-	       (int)num_online_cpus(), bogosum/(500000/HZ), (bogosum/(5000/HZ))%100);
+		   (int)num_online_cpus(), bogosum / (500000 / HZ), (bogosum / (5000 / HZ)) % 100);
 }
 
 static inline void set_cpu_sibling_map(int cpu)
 {
 	int i;
 
-	for_each_online_cpu(i) {
-		if ((cpu_data(cpu)->socket_id == cpu_data(i)->socket_id)) {
+	for_each_online_cpu(i)
+	{
+		if ((cpu_data(cpu)->socket_id == cpu_data(i)->socket_id))
+		{
 			cpumask_set_cpu(i, &cpu_core_map[cpu]);
 			cpumask_set_cpu(cpu, &cpu_core_map[i]);
-			if (cpu_data(cpu)->core_id == cpu_data(i)->core_id) {
+
+			if (cpu_data(cpu)->core_id == cpu_data(i)->core_id)
+			{
 				cpumask_set_cpu(i,
-						&per_cpu(cpu_sibling_map, cpu));
+								&per_cpu(cpu_sibling_map, cpu));
 				cpumask_set_cpu(cpu,
-						&per_cpu(cpu_sibling_map, i));
+								&per_cpu(cpu_sibling_map, i));
 			}
 		}
 	}
@@ -736,24 +812,33 @@ __cpu_up(unsigned int cpu, struct task_struct *tidle)
 	int sapicid;
 
 	sapicid = ia64_cpu_to_sapicid[cpu];
+
 	if (sapicid == -1)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Already booted cpu? not valid anymore since we dont
 	 * do idle loop tightspin anymore.
 	 */
 	if (cpumask_test_cpu(cpu, &cpu_callin_map))
+	{
 		return -EINVAL;
+	}
 
 	per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
 	/* Processor goes to start_secondary(), sets online flag */
 	ret = do_boot_cpu(sapicid, cpu, tidle);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (cpu_data(cpu)->threads_per_core == 1 &&
-	    cpu_data(cpu)->cores_per_socket == 1) {
+		cpu_data(cpu)->cores_per_socket == 1)
+	{
 		cpumask_set_cpu(cpu, &per_cpu(cpu_sibling_map, cpu));
 		cpumask_set_cpu(cpu, &cpu_core_map[cpu]);
 		return 0;
@@ -773,7 +858,8 @@ __cpu_up(unsigned int cpu, struct task_struct *tidle)
 void __init
 init_smp_config(void)
 {
-	struct fptr {
+	struct fptr
+	{
 		unsigned long fp;
 		unsigned long gp;
 	} *ap_startup;
@@ -782,14 +868,15 @@ init_smp_config(void)
 	/* Tell SAL where to drop the APs.  */
 	ap_startup = (struct fptr *) start_ap;
 	sal_ret = ia64_sal_set_vectors(SAL_VECTOR_OS_BOOT_RENDEZ,
-				       ia64_tpa(ap_startup->fp), ia64_tpa(ap_startup->gp), 0, 0, 0, 0);
+								   ia64_tpa(ap_startup->fp), ia64_tpa(ap_startup->gp), 0, 0, 0, 0);
+
 	if (sal_ret < 0)
 		printk(KERN_ERR "SMP: Can't set SAL AP Boot Rendezvous: %s\n",
-		       ia64_sal_strerror(sal_ret));
+			   ia64_sal_strerror(sal_ret));
 }
 
 /*
- * identify_siblings(cpu) gets called from identify_cpu. This populates the 
+ * identify_siblings(cpu) gets called from identify_cpu. This populates the
  * information related to logical execution units in per_cpu_data structure.
  */
 void identify_siblings(struct cpuinfo_ia64 *c)
@@ -799,11 +886,14 @@ void identify_siblings(struct cpuinfo_ia64 *c)
 	pal_logical_to_physical_t info;
 
 	status = ia64_pal_logical_to_phys(-1, &info);
-	if (status != PAL_STATUS_SUCCESS) {
-		if (status != PAL_STATUS_UNIMPLEMENTED) {
+
+	if (status != PAL_STATUS_SUCCESS)
+	{
+		if (status != PAL_STATUS_UNIMPLEMENTED)
+		{
 			printk(KERN_ERR
-				"ia64_pal_logical_to_phys failed with %ld\n",
-				status);
+				   "ia64_pal_logical_to_phys failed with %ld\n",
+				   status);
 			return;
 		}
 
@@ -813,18 +903,23 @@ void identify_siblings(struct cpuinfo_ia64 *c)
 	}
 
 	status = ia64_sal_physical_id_info(&pltid);
-	if (status != PAL_STATUS_SUCCESS) {
+
+	if (status != PAL_STATUS_SUCCESS)
+	{
 		if (status != PAL_STATUS_UNIMPLEMENTED)
 			printk(KERN_ERR
-				"ia64_sal_pltid failed with %ld\n",
-				status);
+				   "ia64_sal_pltid failed with %ld\n",
+				   status);
+
 		return;
 	}
 
 	c->socket_id =  (pltid << 8) | info.overview_ppid;
 
 	if (info.overview_cpp == 1 && info.overview_tpc == 1)
+	{
 		return;
+	}
 
 	c->cores_per_socket = info.overview_cpp;
 	c->threads_per_core = info.overview_tpc;
@@ -844,13 +939,21 @@ int is_multithreading_enabled(void)
 {
 	int i, j;
 
-	for_each_present_cpu(i) {
-		for_each_present_cpu(j) {
+	for_each_present_cpu(i)
+	{
+		for_each_present_cpu(j)
+		{
 			if (j == i)
+			{
 				continue;
-			if ((cpu_data(j)->socket_id == cpu_data(i)->socket_id)) {
+			}
+
+			if ((cpu_data(j)->socket_id == cpu_data(i)->socket_id))
+			{
 				if (cpu_data(j)->core_id == cpu_data(i)->core_id)
+				{
 					return 1;
+				}
 			}
 		}
 	}

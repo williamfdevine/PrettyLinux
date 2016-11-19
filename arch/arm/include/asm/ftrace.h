@@ -10,7 +10,8 @@ extern void mcount(void);
 extern void __gnu_mcount_nc(void);
 
 #ifdef CONFIG_DYNAMIC_FTRACE
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 #ifdef CONFIG_OLD_MCOUNT
 	bool	old_mcount;
 #endif

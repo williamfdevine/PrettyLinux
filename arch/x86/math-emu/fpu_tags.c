@@ -63,18 +63,25 @@ int FPU_Special(FPU_REG const *ptr)
 	int exp = exponent(ptr);
 
 	if (exp == EXP_BIAS + EXP_UNDER)
+	{
 		return TW_Denormal;
+	}
 	else if (exp != EXP_BIAS + EXP_OVER)
+	{
 		return TW_NaN;
+	}
 	else if ((ptr->sigh == 0x80000000) && (ptr->sigl == 0))
+	{
 		return TW_Infinity;
+	}
+
 	return TW_NaN;
 }
 
 int isNaN(FPU_REG const *ptr)
 {
 	return ((exponent(ptr) == EXP_BIAS + EXP_OVER)
-		&& !((ptr->sigh == 0x80000000) && (ptr->sigl == 0)));
+			&& !((ptr->sigh == 0x80000000) && (ptr->sigl == 0)));
 }
 
 int FPU_empty_i(int stnr)
@@ -84,7 +91,7 @@ int FPU_empty_i(int stnr)
 	return ((fpu_tag_word >> (regnr * 2)) & 3) == TAG_Empty;
 }
 
-int FPU_stackoverflow(FPU_REG ** st_new_ptr)
+int FPU_stackoverflow(FPU_REG **st_new_ptr)
 {
 	*st_new_ptr = &st(-1);
 

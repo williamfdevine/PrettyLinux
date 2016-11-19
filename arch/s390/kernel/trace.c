@@ -20,13 +20,19 @@ void trace_s390_diagnose_norecursion(int diag_nr)
 
 	/* Avoid lockdep recursion. */
 	if (IS_ENABLED(CONFIG_LOCKDEP))
+	{
 		return;
+	}
+
 	local_irq_save(flags);
 	depth = this_cpu_ptr(&diagnose_trace_depth);
-	if (*depth == 0) {
+
+	if (*depth == 0)
+	{
 		(*depth)++;
 		trace_s390_diagnose(diag_nr);
 		(*depth)--;
 	}
+
 	local_irq_restore(flags);
 }

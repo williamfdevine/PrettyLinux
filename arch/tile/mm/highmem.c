@@ -19,7 +19,7 @@
 
 #define kmap_get_pte(vaddr) \
 	pte_offset_kernel(pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)),\
-		(vaddr)), (vaddr))
+								 (vaddr)), (vaddr))
 
 
 void *kmap(struct page *page)
@@ -29,8 +29,12 @@ void *kmap(struct page *page)
 	pte_t *ptep;
 
 	might_sleep();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
+
 	kva = kmap_high(page);
 
 	/*
@@ -49,9 +53,15 @@ EXPORT_SYMBOL(kmap);
 void kunmap(struct page *page)
 {
 	if (in_interrupt())
+	{
 		BUG();
+	}
+
 	if (!PageHighMem(page))
+	{
 		return;
+	}
+
 	kunmap_high(page);
 }
 EXPORT_SYMBOL(kunmap);
@@ -60,7 +70,8 @@ EXPORT_SYMBOL(kunmap);
  * Describe a single atomic mapping of a page on a given cpu at a
  * given address, and allow it to be linked into a list.
  */
-struct atomic_mapped_page {
+struct atomic_mapped_page
+{
 	struct list_head list;
 	struct page *page;
 	int cpu;
@@ -74,7 +85,8 @@ static struct list_head amp_list = LIST_HEAD_INIT(amp_list);
  * Combining this structure with a per-cpu declaration lets us give
  * each cpu an atomic_mapped_page structure per type.
  */
-struct kmap_amps {
+struct kmap_amps
+{
 	struct atomic_mapped_page per_type[KM_TYPE_NR];
 };
 static DEFINE_PER_CPU(struct kmap_amps, amps);
@@ -94,7 +106,7 @@ static DEFINE_PER_CPU(struct kmap_amps, amps);
  * writable earlier, but becomes immutable before we write the PTE.
  */
 static void kmap_atomic_register(struct page *page, int type,
-				 unsigned long va, pte_t *ptep, pte_t pteval)
+								 unsigned long va, pte_t *ptep, pte_t pteval)
 {
 	unsigned long flags;
 	struct atomic_mapped_page *amp;
@@ -110,7 +122,9 @@ static void kmap_atomic_register(struct page *page, int type,
 
 	/* For generic kmap_atomic(), choose the PTE writability now. */
 	if (!pte_read(pteval))
+	{
 		pteval = mk_pte(page, page_to_kpgprot(page));
+	}
 
 	list_add(&amp->list, &amp_list);
 	set_pte(ptep, pteval);
@@ -132,9 +146,12 @@ static void kmap_atomic_unregister(struct page *page, unsigned long va)
 	struct atomic_mapped_page *amp;
 	int cpu = smp_processor_id();
 	spin_lock_irqsave(&amp_lock, flags);
-	list_for_each_entry(amp, &amp_list, list) {
+	list_for_each_entry(amp, &amp_list, list)
+	{
 		if (amp->page == page && amp->cpu == cpu && amp->va == va)
+		{
 			break;
+		}
 	}
 	BUG_ON(&amp->list == &amp_list);
 	list_del(&amp->list);
@@ -143,14 +160,18 @@ static void kmap_atomic_unregister(struct page *page, unsigned long va)
 
 /* Helper routine for kmap_atomic_fix_kpte(), below. */
 static void kmap_atomic_fix_one_kpte(struct atomic_mapped_page *amp,
-				     int finished)
+									 int finished)
 {
 	pte_t *ptep = kmap_get_pte(amp->va);
-	if (!finished) {
+
+	if (!finished)
+	{
 		set_pte(ptep, pte_mkmigrate(*ptep));
 		flush_remote(0, 0, NULL, amp->va, PAGE_SIZE, PAGE_SIZE,
-			     cpumask_of(amp->cpu), NULL, 0);
-	} else {
+					 cpumask_of(amp->cpu), NULL, 0);
+	}
+	else
+	{
 		/*
 		 * Rewrite a default kernel PTE for this page.
 		 * We rely on the fact that set_pte() writes the
@@ -176,9 +197,12 @@ void kmap_atomic_fix_kpte(struct page *page, int finished)
 	struct atomic_mapped_page *amp;
 	unsigned long flags;
 	spin_lock_irqsave(&amp_lock, flags);
-	list_for_each_entry(amp, &amp_list, list) {
+	list_for_each_entry(amp, &amp_list, list)
+	{
 		if (amp->page == page)
+		{
 			kmap_atomic_fix_one_kpte(amp, finished);
+		}
 	}
 	spin_unlock_irqrestore(&amp_lock, flags);
 }
@@ -208,10 +232,12 @@ void *kmap_atomic_prot(struct page *page, pgprot_t prot)
 	BUG_ON(pte_exec(prot));
 
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
 
 	type = kmap_atomic_idx_push();
-	idx = type + KM_TYPE_NR*smp_processor_id();
+	idx = type + KM_TYPE_NR * smp_processor_id();
 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
 	pte = kmap_get_pte(vaddr);
 	BUG_ON(!pte_none(*pte));
@@ -235,13 +261,14 @@ void __kunmap_atomic(void *kvaddr)
 	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
 
 	if (vaddr >= __fix_to_virt(FIX_KMAP_END) &&
-	    vaddr <= __fix_to_virt(FIX_KMAP_BEGIN)) {
+		vaddr <= __fix_to_virt(FIX_KMAP_BEGIN))
+	{
 		pte_t *pte = kmap_get_pte(vaddr);
 		pte_t pteval = *pte;
 		int idx, type;
 
 		type = kmap_atomic_idx();
-		idx = type + KM_TYPE_NR*smp_processor_id();
+		idx = type + KM_TYPE_NR * smp_processor_id();
 
 		/*
 		 * Force other mappings to Oops if they try to access this pte
@@ -252,7 +279,9 @@ void __kunmap_atomic(void *kvaddr)
 		kmap_atomic_unregister(pte_page(pteval), vaddr);
 		kpte_clear_flush(pte, vaddr);
 		kmap_atomic_idx_pop();
-	} else {
+	}
+	else
+	{
 		/* Must be a lowmem page */
 		BUG_ON(vaddr < PAGE_OFFSET);
 		BUG_ON(vaddr >= (unsigned long)high_memory);

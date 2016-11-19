@@ -23,7 +23,7 @@
 #include <asm/page.h>
 #include <asm/exception-64e.h>
 #ifdef CONFIG_KVM_BOOK3S_64_HANDLER
-#include <asm/kvm_book3s_asm.h>
+	#include <asm/kvm_book3s_asm.h>
 #endif
 #include <asm/accounting.h>
 #include <asm/hmi.h>
@@ -31,14 +31,14 @@
 register struct paca_struct *local_paca asm("r13");
 
 #if defined(CONFIG_DEBUG_PREEMPT) && defined(CONFIG_SMP)
-extern unsigned int debug_smp_processor_id(void); /* from linux/smp.h */
-/*
- * Add standard checks that preemption cannot occur when using get_paca():
- * otherwise the paca_struct it points to may be the wrong one just after.
- */
-#define get_paca()	((void) debug_smp_processor_id(), local_paca)
+	extern unsigned int debug_smp_processor_id(void); /* from linux/smp.h */
+	/*
+	* Add standard checks that preemption cannot occur when using get_paca():
+	* otherwise the paca_struct it points to may be the wrong one just after.
+	*/
+	#define get_paca()	((void) debug_smp_processor_id(), local_paca)
 #else
-#define get_paca()	local_paca
+	#define get_paca()	local_paca
 #endif
 
 #define get_lppaca()	(get_paca()->lppaca_ptr)
@@ -52,7 +52,8 @@ struct task_struct;
  * This structure is not directly accessed by firmware or the service
  * processor.
  */
-struct paca_struct {
+struct paca_struct
+{
 #ifdef CONFIG_PPC_BOOK3S
 	/*
 	 * Because hw_cpu_id, unlike other paca fields, is accessed
@@ -64,7 +65,7 @@ struct paca_struct {
 	struct lppaca *lppaca_ptr;	/* Pointer to LpPaca for PLIC */
 #endif /* CONFIG_PPC_BOOK3S */
 	/*
-	 * MAGIC: the spinlock functions in arch/powerpc/lib/locks.c 
+	 * MAGIC: the spinlock functions in arch/powerpc/lib/locks.c
 	 * load lock_token and paca_index with a single lwz
 	 * instruction.  They must travel together and be properly
 	 * aligned.
@@ -84,7 +85,7 @@ struct paca_struct {
 	u64 data_offset;		/* per cpu data offset */
 	s16 hw_cpu_id;			/* Physical processor number */
 	u8 cpu_start;			/* At startup, processor spins until */
-					/* this becomes non-zero. */
+	/* this becomes non-zero. */
 	u8 kexec_state;		/* set when kexec down has irqs off */
 #ifdef CONFIG_PPC_STD_MMU_64
 	struct slb_shadow *slb_shadow_ptr;
@@ -214,14 +215,14 @@ static inline void copy_mm_to_paca(mm_context_t *context)
 #ifdef CONFIG_PPC_MM_SLICES
 	get_paca()->mm_ctx_low_slices_psize = context->low_slices_psize;
 	memcpy(&get_paca()->mm_ctx_high_slices_psize,
-	       &context->high_slices_psize, SLICE_ARRAY_SIZE);
+		   &context->high_slices_psize, SLICE_ARRAY_SIZE);
 #else
 	get_paca()->mm_ctx_user_psize = context->user_psize;
 	get_paca()->mm_ctx_sllp = context->sllp;
 #endif
 }
 #else
-static inline void copy_mm_to_paca(mm_context_t *context){}
+static inline void copy_mm_to_paca(mm_context_t *context) {}
 #endif
 
 extern struct paca_struct *paca;

@@ -53,8 +53,12 @@ void __init prom_init(void)
 	prom_init_cmdline();
 
 	memsize_str = prom_getenv("memsize");
+
 	if (!memsize_str || kstrtoul(memsize_str, 0, &memsize))
+	{
 		memsize = 0x04000000;
+	}
+
 	add_memory_region(0, memsize, BOOT_MEM_RAM);
 }
 
@@ -73,9 +77,9 @@ static void mtx1_power_off(void)
 {
 	while (1)
 		asm volatile (
-		"	.set	mips32					\n"
-		"	wait						\n"
-		"	.set	mips0					\n");
+			"	.set	mips32					\n"
+			"	wait						\n"
+			"	.set	mips0					\n");
 }
 
 void __init board_setup(void)
@@ -108,7 +112,8 @@ void __init board_setup(void)
 
 /******************************************************************************/
 
-static struct gpio_keys_button mtx1_gpio_button[] = {
+static struct gpio_keys_button mtx1_gpio_button[] =
+{
 	{
 		.gpio = 207,
 		.code = BTN_0,
@@ -116,12 +121,14 @@ static struct gpio_keys_button mtx1_gpio_button[] = {
 	}
 };
 
-static struct gpio_keys_platform_data mtx1_buttons_data = {
+static struct gpio_keys_platform_data mtx1_buttons_data =
+{
 	.buttons = mtx1_gpio_button,
 	.nbuttons = ARRAY_SIZE(mtx1_gpio_button),
 };
 
-static struct platform_device mtx1_button = {
+static struct platform_device mtx1_button =
+{
 	.name = "gpio-keys",
 	.id = -1,
 	.dev = {
@@ -129,7 +136,8 @@ static struct platform_device mtx1_button = {
 	}
 };
 
-static struct resource mtx1_wdt_res[] = {
+static struct resource mtx1_wdt_res[] =
+{
 	[0] = {
 		.start	= 215,
 		.end	= 215,
@@ -138,14 +146,16 @@ static struct resource mtx1_wdt_res[] = {
 	}
 };
 
-static struct platform_device mtx1_wdt = {
+static struct platform_device mtx1_wdt =
+{
 	.name = "mtx1-wdt",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(mtx1_wdt_res),
 	.resource = mtx1_wdt_res,
 };
 
-static struct gpio_led default_leds[] = {
+static struct gpio_led default_leds[] =
+{
 	{
 		.name	= "mtx1:green",
 		.gpio = 211,
@@ -155,12 +165,14 @@ static struct gpio_led default_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data mtx1_led_data = {
+static struct gpio_led_platform_data mtx1_led_data =
+{
 	.num_leds = ARRAY_SIZE(default_leds),
 	.leds = default_leds,
 };
 
-static struct platform_device mtx1_gpio_leds = {
+static struct platform_device mtx1_gpio_leds =
+{
 	.name = "leds-gpio",
 	.id = -1,
 	.dev = {
@@ -168,7 +180,8 @@ static struct platform_device mtx1_gpio_leds = {
 	}
 };
 
-static struct mtd_partition mtx1_mtd_partitions[] = {
+static struct mtd_partition mtx1_mtd_partitions[] =
+{
 	{
 		.name	= "filesystem",
 		.size	= 0x01C00000,
@@ -192,19 +205,22 @@ static struct mtd_partition mtx1_mtd_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data mtx1_flash_data = {
+static struct physmap_flash_data mtx1_flash_data =
+{
 	.width		= 4,
 	.nr_parts	= 4,
 	.parts		= mtx1_mtd_partitions,
 };
 
-static struct resource mtx1_mtd_resource = {
+static struct resource mtx1_mtd_resource =
+{
 	.start	= 0x1e000000,
 	.end	= 0x1fffffff,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device mtx1_mtd = {
+static struct platform_device mtx1_mtd =
+{
 	.name		= "physmap-flash",
 	.dev		= {
 		.platform_data	= &mtx1_flash_data,
@@ -213,7 +229,8 @@ static struct platform_device mtx1_mtd = {
 	.resource	= &mtx1_mtd_resource,
 };
 
-static struct resource alchemy_pci_host_res[] = {
+static struct resource alchemy_pci_host_res[] =
+{
 	[0] = {
 		.start	= AU1500_PCI_PHYS_ADDR,
 		.end	= AU1500_PCI_PHYS_ADDR + 0xfff,
@@ -231,15 +248,20 @@ static int mtx1_pci_idsel(unsigned int devsel, int assert)
 
 	if (assert && devsel != 0)
 		/* Suppress signal to Cardbus */
-		alchemy_gpio_set_value(1, 0);	/* set EXT_IO3 OFF */
+	{
+		alchemy_gpio_set_value(1, 0);    /* set EXT_IO3 OFF */
+	}
 	else
-		alchemy_gpio_set_value(1, 1);	/* set EXT_IO3 ON */
+	{
+		alchemy_gpio_set_value(1, 1);    /* set EXT_IO3 ON */
+	}
 
 	udelay(1);
 	return 1;
 }
 
-static const char mtx1_irqtab[][5] = {
+static const char mtx1_irqtab[][5] =
+{
 	[0] = { -1, AU1500_PCI_INTA, AU1500_PCI_INTA, 0xff, 0xff }, /* IDSEL 00 - AdapterA-Slot0 (top) */
 	[1] = { -1, AU1500_PCI_INTB, AU1500_PCI_INTA, 0xff, 0xff }, /* IDSEL 01 - AdapterA-Slot1 (bottom) */
 	[2] = { -1, AU1500_PCI_INTC, AU1500_PCI_INTD, 0xff, 0xff }, /* IDSEL 02 - AdapterB-Slot0 (top) */
@@ -255,19 +277,21 @@ static int mtx1_map_pci_irq(const struct pci_dev *d, u8 slot, u8 pin)
 	return mtx1_irqtab[slot][pin];
 }
 
-static struct alchemy_pci_platdata mtx1_pci_pd = {
+static struct alchemy_pci_platdata mtx1_pci_pd =
+{
 	.board_map_irq	 = mtx1_map_pci_irq,
 	.board_pci_idsel = mtx1_pci_idsel,
 	.pci_cfg_set	 = PCI_CONFIG_AEN | PCI_CONFIG_R2H | PCI_CONFIG_R1H |
-			   PCI_CONFIG_CH |
+	PCI_CONFIG_CH |
 #if defined(__MIPSEB__)
-			   PCI_CONFIG_SIC_HWA_DAT | PCI_CONFIG_SM,
+	PCI_CONFIG_SIC_HWA_DAT | PCI_CONFIG_SM,
 #else
-			   0,
+	0,
 #endif
 };
 
-static struct platform_device mtx1_pci_host = {
+static struct platform_device mtx1_pci_host =
+{
 	.dev.platform_data = &mtx1_pci_pd,
 	.name		= "alchemy-pci",
 	.id		= 0,
@@ -275,7 +299,8 @@ static struct platform_device mtx1_pci_host = {
 	.resource	= alchemy_pci_host_res,
 };
 
-static struct platform_device *mtx1_devs[] __initdata = {
+static struct platform_device *mtx1_devs[] __initdata =
+{
 	&mtx1_pci_host,
 	&mtx1_gpio_leds,
 	&mtx1_wdt,
@@ -283,7 +308,8 @@ static struct platform_device *mtx1_devs[] __initdata = {
 	&mtx1_mtd,
 };
 
-static struct au1000_eth_platform_data mtx1_au1000_eth0_pdata = {
+static struct au1000_eth_platform_data mtx1_au1000_eth0_pdata =
+{
 	.phy_search_highest_addr	= 1,
 	.phy1_search_mac0		= 1,
 };
@@ -301,12 +327,15 @@ static int __init mtx1_register_devices(void)
 	au1xxx_override_eth_cfg(0, &mtx1_au1000_eth0_pdata);
 
 	rc = gpio_request(mtx1_gpio_button[0].gpio,
-					mtx1_gpio_button[0].desc);
-	if (rc < 0) {
+					  mtx1_gpio_button[0].desc);
+
+	if (rc < 0)
+	{
 		printk(KERN_INFO "mtx1: failed to request %d\n",
-					mtx1_gpio_button[0].gpio);
+			   mtx1_gpio_button[0].gpio);
 		goto out;
 	}
+
 	gpio_direction_input(mtx1_gpio_button[0].gpio);
 out:
 	return platform_add_devices(mtx1_devs, ARRAY_SIZE(mtx1_devs));

@@ -24,7 +24,7 @@
 #include <asm/sn/bte.h>
 
 #ifndef L1_CACHE_MASK
-#define L1_CACHE_MASK (L1_CACHE_BYTES - 1)
+	#define L1_CACHE_MASK (L1_CACHE_BYTES - 1)
 #endif
 
 /* two interfaces on two btes */
@@ -36,7 +36,9 @@ static struct bteinfo_s *bte_if_on_node(nasid_t nasid, int interface)
 	nodepda_t *tmp_nodepda;
 
 	if (nasid_to_cnodeid(nasid) == -1)
+	{
 		return (struct bteinfo_s *)NULL;
+	}
 
 	tmp_nodepda = NODEPDA(nasid_to_cnodeid(nasid));
 	return &tmp_nodepda->bte_if[interface];
@@ -45,9 +47,12 @@ static struct bteinfo_s *bte_if_on_node(nasid_t nasid, int interface)
 
 static inline void bte_start_transfer(struct bteinfo_s *bte, u64 len, u64 mode)
 {
-	if (is_shub2()) {
+	if (is_shub2())
+	{
 		BTE_CTRL_STORE(bte, (IBLS_BUSY | ((len) | (mode) << 24)));
-	} else {
+	}
+	else
+	{
 		BTE_LNSTAT_STORE(bte, len);
 		BTE_CTRL_STORE(bte, mode);
 	}
@@ -92,9 +97,10 @@ bte_result_t bte_copy(u64 src, u64 dest, u64 len, u64 mode, void *notification)
 	int bte_first, btes_per_node = BTES_PER_NODE;
 
 	BTE_PRINTK(("bte_copy(0x%lx, 0x%lx, 0x%lx, 0x%lx, 0x%p)\n",
-		    src, dest, len, mode, notification));
+				src, dest, len, mode, notification));
 
-	if (len == 0) {
+	if (len == 0)
+	{
 		return BTE_SUCCESS;
 	}
 
@@ -108,53 +114,74 @@ bte_result_t bte_copy(u64 src, u64 dest, u64 len, u64 mode, void *notification)
 	 */
 	bte_first = raw_smp_processor_id() % btes_per_node;
 
-	if (mode & BTE_USE_DEST) {
+	if (mode & BTE_USE_DEST)
+	{
 		/* try remote then local */
 		nasid_to_try[0] = NASID_GET(dest);
-		if (mode & BTE_USE_ANY) {
+
+		if (mode & BTE_USE_ANY)
+		{
 			nasid_to_try[1] = my_nasid;
-		} else {
+		}
+		else
+		{
 			nasid_to_try[1] = 0;
 		}
-	} else {
+	}
+	else
+	{
 		/* try local then remote */
 		nasid_to_try[0] = my_nasid;
-		if (mode & BTE_USE_ANY) {
+
+		if (mode & BTE_USE_ANY)
+		{
 			nasid_to_try[1] = NASID_GET(dest);
-		} else {
+		}
+		else
+		{
 			nasid_to_try[1] = 0;
 		}
 	}
 
 retry_bteop:
-	do {
+
+	do
+	{
 		local_irq_save(irq_flags);
 
 		bte_if_index = bte_first;
 		nasid_index = 0;
 
 		/* Attempt to lock one of the BTE interfaces. */
-		while (nasid_index < MAX_NODES_TO_TRY) {
-			bte = bte_if_on_node(nasid_to_try[nasid_index],bte_if_index);
+		while (nasid_index < MAX_NODES_TO_TRY)
+		{
+			bte = bte_if_on_node(nasid_to_try[nasid_index], bte_if_index);
 
-			if (bte == NULL) {
+			if (bte == NULL)
+			{
 				nasid_index++;
 				continue;
 			}
 
-			if (spin_trylock(&bte->spinlock)) {
+			if (spin_trylock(&bte->spinlock))
+			{
 				if (!(*bte->most_rcnt_na & BTE_WORD_AVAILABLE) ||
-				    (BTE_LNSTAT_LOAD(bte) & BTE_ACTIVE)) {
+					(BTE_LNSTAT_LOAD(bte) & BTE_ACTIVE))
+				{
 					/* Got the lock but BTE still busy */
 					spin_unlock(&bte->spinlock);
-				} else {
+				}
+				else
+				{
 					/* we got the lock and it's not busy */
 					break;
 				}
 			}
 
 			bte_if_index = (bte_if_index + 1) % btes_per_node; /* Next interface */
-			if (bte_if_index == bte_first) {
+
+			if (bte_if_index == bte_first)
+			{
 				/*
 				 * We've tried all interfaces on this node
 				 */
@@ -164,21 +191,27 @@ retry_bteop:
 			bte = NULL;
 		}
 
-		if (bte != NULL) {
+		if (bte != NULL)
+		{
 			break;
 		}
 
 		local_irq_restore(irq_flags);
 
-		if (!(mode & BTE_WACQUIRE)) {
+		if (!(mode & BTE_WACQUIRE))
+		{
 			return BTEFAIL_NOTAVAIL;
 		}
-	} while (1);
+	}
+	while (1);
 
-	if (notification == NULL) {
+	if (notification == NULL)
+	{
 		/* User does not want to be notified. */
 		bte->most_rcnt_na = &bte->notify;
-	} else {
+	}
+	else
+	{
 		bte->most_rcnt_na = notification;
 	}
 
@@ -207,16 +240,20 @@ retry_bteop:
 
 	spin_unlock_irqrestore(&bte->spinlock, irq_flags);
 
-	if (notification != NULL) {
+	if (notification != NULL)
+	{
 		return BTE_SUCCESS;
 	}
 
-	while ((transfer_stat = *bte->most_rcnt_na) == BTE_WORD_BUSY) {
+	while ((transfer_stat = *bte->most_rcnt_na) == BTE_WORD_BUSY)
+	{
 		cpu_relax();
-		if (ia64_get_itc() > itc_end) {
+
+		if (ia64_get_itc() > itc_end)
+		{
 			BTE_PRINTK(("BTE timeout nasid 0x%x bte%d IBLS = 0x%lx na 0x%lx\n",
-				NASID_GET(bte->bte_base_addr), bte->bte_num,
-				BTE_LNSTAT_LOAD(bte), *bte->most_rcnt_na) );
+						NASID_GET(bte->bte_base_addr), bte->bte_num,
+						BTE_LNSTAT_LOAD(bte), *bte->most_rcnt_na) );
 			bte->bte_error_count++;
 			bte->bh_error = IBLS_ERROR;
 			bte_error_handler((unsigned long)NODEPDA(bte->bte_cnode));
@@ -226,17 +263,21 @@ retry_bteop:
 	}
 
 	BTE_PRINTKV((" Delay Done.  IBLS = 0x%lx, most_rcnt_na = 0x%lx\n",
-		     BTE_LNSTAT_LOAD(bte), *bte->most_rcnt_na));
+				 BTE_LNSTAT_LOAD(bte), *bte->most_rcnt_na));
 
-	if (transfer_stat & IBLS_ERROR) {
+	if (transfer_stat & IBLS_ERROR)
+	{
 		bte_status = BTE_GET_ERROR_STATUS(transfer_stat);
-	} else {
+	}
+	else
+	{
 		bte_status = BTE_SUCCESS;
 	}
+
 	*bte->most_rcnt_na = BTE_WORD_AVAILABLE;
 
 	BTE_PRINTK(("Returning status is 0x%lx and most_rcnt_na is 0x%lx\n",
-		    BTE_LNSTAT_LOAD(bte), *bte->most_rcnt_na));
+				BTE_LNSTAT_LOAD(bte), *bte->most_rcnt_na));
 
 	return bte_status;
 }
@@ -274,15 +315,19 @@ bte_result_t bte_unaligned_copy(u64 src, u64 dest, u64 len, u64 mode)
 	bte_result_t rv;
 	char *bteBlock, *bteBlock_unaligned;
 
-	if (len == 0) {
+	if (len == 0)
+	{
 		return BTE_SUCCESS;
 	}
 
 	/* temporary buffer used during unaligned transfers */
 	bteBlock_unaligned = kmalloc(len + 3 * L1_CACHE_BYTES, GFP_KERNEL);
-	if (bteBlock_unaligned == NULL) {
+
+	if (bteBlock_unaligned == NULL)
+	{
 		return BTEFAIL_NOTAVAIL;
 	}
+
 	bteBlock = (char *)L1_CACHE_ALIGN((u64) bteBlock_unaligned);
 
 	headBcopySrcOffset = src & L1_CACHE_MASK;
@@ -308,7 +353,8 @@ bte_result_t bte_unaligned_copy(u64 src, u64 dest, u64 len, u64 mode)
 	 * we make the first section be the entire transfer
 	 * and the bcopy the entire block into place.
 	 */
-	if (headBcopySrcOffset == destFirstCacheOffset) {
+	if (headBcopySrcOffset == destFirstCacheOffset)
+	{
 
 		/*
 		 * Both the source and destination are the same
@@ -318,63 +364,80 @@ bte_result_t bte_unaligned_copy(u64 src, u64 dest, u64 len, u64 mode)
 		 */
 		headBteSource = src & ~L1_CACHE_MASK;
 		headBcopyDest = dest;
-		if (headBcopySrcOffset) {
+
+		if (headBcopySrcOffset)
+		{
 			headBcopyLen =
-			    (len >
-			     (L1_CACHE_BYTES -
-			      headBcopySrcOffset) ? L1_CACHE_BYTES
-			     - headBcopySrcOffset : len);
+				(len >
+				 (L1_CACHE_BYTES -
+				  headBcopySrcOffset) ? L1_CACHE_BYTES
+				 - headBcopySrcOffset : len);
 			headBteLen = L1_CACHE_BYTES;
-		} else {
+		}
+		else
+		{
 			headBcopyLen = 0;
 			headBteLen = 0;
 		}
 
-		if (len > headBcopyLen) {
+		if (len > headBcopyLen)
+		{
 			footBcopyLen = (len - headBcopyLen) & L1_CACHE_MASK;
 			footBteLen = L1_CACHE_BYTES;
 
 			footBteSource = src + len - footBcopyLen;
 			footBcopyDest = dest + len - footBcopyLen;
 
-			if (footBcopyDest == (headBcopyDest + headBcopyLen)) {
+			if (footBcopyDest == (headBcopyDest + headBcopyLen))
+			{
 				/*
 				 * We have two contiguous bcopy
 				 * blocks.  Merge them.
 				 */
 				headBcopyLen += footBcopyLen;
 				headBteLen += footBteLen;
-			} else if (footBcopyLen > 0) {
+			}
+			else if (footBcopyLen > 0)
+			{
 				rv = bte_copy(footBteSource,
-					      ia64_tpa((unsigned long)bteBlock),
-					      footBteLen, mode, NULL);
-				if (rv != BTE_SUCCESS) {
+							  ia64_tpa((unsigned long)bteBlock),
+							  footBteLen, mode, NULL);
+
+				if (rv != BTE_SUCCESS)
+				{
 					kfree(bteBlock_unaligned);
 					return rv;
 				}
 
 				memcpy(__va(footBcopyDest),
-				       (char *)bteBlock, footBcopyLen);
+					   (char *)bteBlock, footBcopyLen);
 			}
-		} else {
+		}
+		else
+		{
 			footBcopyLen = 0;
 			footBteLen = 0;
 		}
 
-		if (len > (headBcopyLen + footBcopyLen)) {
+		if (len > (headBcopyLen + footBcopyLen))
+		{
 			/* now transfer the middle. */
 			rv = bte_copy((src + headBcopyLen),
-				      (dest +
-				       headBcopyLen),
-				      (len - headBcopyLen -
-				       footBcopyLen), mode, NULL);
-			if (rv != BTE_SUCCESS) {
+						  (dest +
+						   headBcopyLen),
+						  (len - headBcopyLen -
+						   footBcopyLen), mode, NULL);
+
+			if (rv != BTE_SUCCESS)
+			{
 				kfree(bteBlock_unaligned);
 				return rv;
 			}
 
 		}
-	} else {
+	}
+	else
+	{
 
 		/*
 		 * The transfer is not symmetric, we will
@@ -392,18 +455,22 @@ bte_result_t bte_unaligned_copy(u64 src, u64 dest, u64 len, u64 mode)
 		headBteLen = L1_CACHE_ALIGN(len + headBcopySrcOffset);
 	}
 
-	if (headBcopyLen > 0) {
+	if (headBcopyLen > 0)
+	{
 		rv = bte_copy(headBteSource,
-			      ia64_tpa((unsigned long)bteBlock), headBteLen,
-			      mode, NULL);
-		if (rv != BTE_SUCCESS) {
+					  ia64_tpa((unsigned long)bteBlock), headBteLen,
+					  mode, NULL);
+
+		if (rv != BTE_SUCCESS)
+		{
 			kfree(bteBlock_unaligned);
 			return rv;
 		}
 
 		memcpy(__va(headBcopyDest), ((char *)bteBlock +
-					     headBcopySrcOffset), headBcopyLen);
+									 headBcopySrcOffset), headBcopyLen);
 	}
+
 	kfree(bteBlock_unaligned);
 	return BTE_SUCCESS;
 }
@@ -421,7 +488,7 @@ EXPORT_SYMBOL(bte_unaligned_copy);
  * Initialize the nodepda structure with BTE base addresses and
  * spinlocks.
  */
-void bte_init_node(nodepda_t * mynodepda, cnodeid_t cnode)
+void bte_init_node(nodepda_t *mynodepda, cnodeid_t cnode)
 {
 	int i;
 
@@ -440,12 +507,13 @@ void bte_init_node(nodepda_t * mynodepda, cnodeid_t cnode)
 	mynodepda->bte_recovery_timer.function = bte_error_handler;
 	mynodepda->bte_recovery_timer.data = (unsigned long)mynodepda;
 
-	for (i = 0; i < BTES_PER_NODE; i++) {
+	for (i = 0; i < BTES_PER_NODE; i++)
+	{
 		u64 *base_addr;
 
 		/* Which link status register should we use? */
 		base_addr = (u64 *)
-		    REMOTE_HUB_ADDR(cnodeid_to_nasid(cnode), BTE_BASE_ADDR(i));
+					REMOTE_HUB_ADDR(cnodeid_to_nasid(cnode), BTE_BASE_ADDR(i));
 		mynodepda->bte_if[i].bte_base_addr = base_addr;
 		mynodepda->bte_if[i].bte_source_addr = BTE_SOURCE_ADDR(base_addr);
 		mynodepda->bte_if[i].bte_destination_addr = BTE_DEST_ADDR(base_addr);
@@ -457,7 +525,7 @@ void bte_init_node(nodepda_t * mynodepda, cnodeid_t cnode)
 		 * so the first transfer can occur.
 		 */
 		mynodepda->bte_if[i].most_rcnt_na =
-		    &(mynodepda->bte_if[i].notify);
+			&(mynodepda->bte_if[i].notify);
 		mynodepda->bte_if[i].notify = BTE_WORD_AVAILABLE;
 		spin_lock_init(&mynodepda->bte_if[i].spinlock);
 

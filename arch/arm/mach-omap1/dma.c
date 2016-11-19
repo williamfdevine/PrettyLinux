@@ -36,7 +36,8 @@
 
 static u32 enable_1510_mode;
 
-static const struct omap_dma_reg reg_map[] = {
+static const struct omap_dma_reg reg_map[] =
+{
 	[GCR]		= { 0x0400, 0x00, OMAP_DMA_REG_16BIT },
 	[GSCR]		= { 0x0404, 0x00, OMAP_DMA_REG_16BIT },
 	[GRST1]		= { 0x0408, 0x00, OMAP_DMA_REG_16BIT },
@@ -80,7 +81,8 @@ static const struct omap_dma_reg reg_map[] = {
 	[LCH_CTRL]	= { 0x002a, 0x40, OMAP_DMA_REG_16BIT },
 };
 
-static struct resource res[] __initdata = {
+static struct resource res[] __initdata =
+{
 	[0] = {
 		.start	= OMAP1_DMA_BASE,
 		.end	= OMAP1_DMA_BASE + SZ_2K - 1,
@@ -184,8 +186,11 @@ static inline void dma_write(u32 val, int reg, int lch)
 	addr += reg_map[reg].stride * lch;
 
 	__raw_writew(val, addr);
+
 	if (reg_map[reg].type == OMAP_DMA_REG_2X16BIT)
+	{
 		__raw_writew(val >> 16, addr + 2);
+	}
 }
 
 static inline u32 dma_read(int reg, int lch)
@@ -197,8 +202,11 @@ static inline u32 dma_read(int reg, int lch)
 	addr += reg_map[reg].stride * lch;
 
 	val = __raw_readw(addr);
+
 	if (reg_map[reg].type == OMAP_DMA_REG_2X16BIT)
+	{
 		val |= __raw_readw(addr + 2) << 16;
+	}
 
 	return val;
 }
@@ -208,7 +216,9 @@ static void omap1_clear_lch_regs(int lch)
 	int i;
 
 	for (i = CPC; i <= COLOR; i += 1)
+	{
 		dma_write(0, i, lch);
+	}
 }
 
 static void omap1_clear_dma(int lch)
@@ -225,22 +235,26 @@ static void omap1_clear_dma(int lch)
 
 static void omap1_show_dma_caps(void)
 {
-	if (enable_1510_mode) {
+	if (enable_1510_mode)
+	{
 		printk(KERN_INFO "DMA support for OMAP15xx initialized\n");
-	} else {
+	}
+	else
+	{
 		u16 w;
 		printk(KERN_INFO "OMAP DMA hardware version %d\n",
-							dma_read(HW_ID, 0));
+			   dma_read(HW_ID, 0));
 		printk(KERN_INFO "DMA capabilities: %08x:%08x:%04x:%04x:%04x\n",
-			dma_read(CAPS_0, 0), dma_read(CAPS_1, 0),
-			dma_read(CAPS_2, 0), dma_read(CAPS_3, 0),
-			dma_read(CAPS_4, 0));
+			   dma_read(CAPS_0, 0), dma_read(CAPS_1, 0),
+			   dma_read(CAPS_2, 0), dma_read(CAPS_3, 0),
+			   dma_read(CAPS_4, 0));
 
 		/* Disable OMAP 3.0/3.1 compatibility mode. */
 		w = dma_read(GSCR, 0);
 		w |= 1 << 3;
 		dma_write(w, GSCR, 0);
 	}
+
 	return;
 }
 
@@ -253,12 +267,15 @@ static unsigned configure_dma_errata(void)
 	 * read before the DMA controller finished disabling the channel.
 	 */
 	if (!cpu_is_omap15xx())
+	{
 		SET_DMA_ERRATA(DMA_ERRATA_3_3);
+	}
 
 	return errata;
 }
 
-static const struct platform_device_info omap_dma_dev_info = {
+static const struct platform_device_info omap_dma_dev_info =
+{
 	.name = "omap-dma-engine",
 	.id = -1,
 	.dma_mask = DMA_BIT_MASK(32),
@@ -267,7 +284,8 @@ static const struct platform_device_info omap_dma_dev_info = {
 };
 
 /* OMAP730, OMAP850 */
-static const struct dma_slave_map omap7xx_sdma_map[] = {
+static const struct dma_slave_map omap7xx_sdma_map[] =
+{
 	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(8) },
 	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(9) },
 	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(10) },
@@ -283,7 +301,8 @@ static const struct dma_slave_map omap7xx_sdma_map[] = {
 };
 
 /* OMAP1510, OMAP1610*/
-static const struct dma_slave_map omap1xxx_sdma_map[] = {
+static const struct dma_slave_map omap1xxx_sdma_map[] =
+{
 	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(8) },
 	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(9) },
 	{ "omap-mcbsp.3", "tx", SDMA_FILTER_PARAM(10) },
@@ -302,7 +321,8 @@ static const struct dma_slave_map omap1xxx_sdma_map[] = {
 	{ "mmci-omap.1", "rx", SDMA_FILTER_PARAM(55) },
 };
 
-static struct omap_system_dma_plat_info dma_plat_info __initdata = {
+static struct omap_system_dma_plat_info dma_plat_info __initdata =
+{
 	.reg_map	= reg_map,
 	.channel_stride	= 0x40,
 	.show_dma_caps	= omap1_show_dma_caps,
@@ -320,30 +340,38 @@ static int __init omap1_system_dma_init(void)
 	int ret;
 
 	pdev = platform_device_alloc("omap_dma_system", 0);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		pr_err("%s: Unable to device alloc for dma\n",
-			__func__);
+			   __func__);
 		return -ENOMEM;
 	}
 
 	dma_base = ioremap(res[0].start, resource_size(&res[0]));
-	if (!dma_base) {
+
+	if (!dma_base)
+	{
 		pr_err("%s: Unable to ioremap\n", __func__);
 		ret = -ENODEV;
 		goto exit_device_put;
 	}
 
 	ret = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
-			__func__, pdev->name, pdev->id);
+				__func__, pdev->name, pdev->id);
 		goto exit_iounmap;
 	}
 
 	d = kzalloc(sizeof(struct omap_dma_dev_attr), GFP_KERNEL);
-	if (!d) {
+
+	if (!d)
+	{
 		dev_err(&pdev->dev, "%s: Unable to allocate 'd' for %s\n",
-			__func__, pdev->name);
+				__func__, pdev->name);
 		ret = -ENOMEM;
 		goto exit_iounmap;
 	}
@@ -352,11 +380,16 @@ static int __init omap1_system_dma_init(void)
 
 	/* Valid attributes for omap1 plus processors */
 	if (cpu_is_omap15xx())
+	{
 		d->dev_caps = ENABLE_1510_MODE;
+	}
+
 	enable_1510_mode = d->dev_caps & ENABLE_1510_MODE;
 
 	if (cpu_is_omap16xx())
+	{
 		d->dev_caps = ENABLE_16XX_MODE;
+	}
 
 	d->dev_caps		|= SRC_PORT;
 	d->dev_caps		|= DST_PORT;
@@ -367,42 +400,58 @@ static int __init omap1_system_dma_init(void)
 	d->dev_caps		|= IS_WORD_16;
 
 	if (cpu_is_omap15xx())
+	{
 		d->chan_count = 9;
-	else if (cpu_is_omap16xx() || cpu_is_omap7xx()) {
+	}
+	else if (cpu_is_omap16xx() || cpu_is_omap7xx())
+	{
 		if (!(d->dev_caps & ENABLE_1510_MODE))
+		{
 			d->chan_count = 16;
+		}
 		else
+		{
 			d->chan_count = 9;
+		}
 	}
 
 	p = dma_plat_info;
 	p.dma_attr = d;
 	p.errata = configure_dma_errata();
 
-	if (cpu_is_omap7xx()) {
+	if (cpu_is_omap7xx())
+	{
 		p.slave_map = omap7xx_sdma_map;
 		p.slavecnt = ARRAY_SIZE(omap7xx_sdma_map);
-	} else {
+	}
+	else
+	{
 		p.slave_map = omap1xxx_sdma_map;
 		p.slavecnt = ARRAY_SIZE(omap1xxx_sdma_map);
 	}
 
 	ret = platform_device_add_data(pdev, &p, sizeof(p));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
-			__func__, pdev->name, pdev->id);
+				__func__, pdev->name, pdev->id);
 		goto exit_release_d;
 	}
 
 	ret = platform_device_add(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
-			__func__, pdev->name, pdev->id);
+				__func__, pdev->name, pdev->id);
 		goto exit_release_d;
 	}
 
 	dma_pdev = platform_device_register_full(&omap_dma_dev_info);
-	if (IS_ERR(dma_pdev)) {
+
+	if (IS_ERR(dma_pdev))
+	{
 		ret = PTR_ERR(dma_pdev);
 		goto exit_release_pdev;
 	}

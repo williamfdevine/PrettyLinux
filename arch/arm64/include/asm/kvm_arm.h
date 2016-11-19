@@ -78,8 +78,8 @@
  * SWIO:	Turn set/way invalidates into set/way clean+invalidate
  */
 #define HCR_GUEST_FLAGS (HCR_TSC | HCR_TSW | HCR_TWE | HCR_TWI | HCR_VM | \
-			 HCR_TVM | HCR_BSU_IS | HCR_FB | HCR_TAC | \
-			 HCR_AMO | HCR_SWIO | HCR_TIDCP | HCR_RW)
+						 HCR_TVM | HCR_BSU_IS | HCR_FB | HCR_TAC | \
+						 HCR_AMO | HCR_SWIO | HCR_TIDCP | HCR_RW)
 #define HCR_VIRT_EXCP_MASK (HCR_VSE | HCR_VI | HCR_VF)
 #define HCR_INT_OVERRIDE   (HCR_FMO | HCR_IMO)
 #define HCR_HOST_VHE_FLAGS (HCR_RW | HCR_TGE | HCR_E2H)
@@ -96,7 +96,7 @@
 #define TCR_EL2_IRGN0_MASK	TCR_IRGN0_MASK
 #define TCR_EL2_T0SZ_MASK	0x3f
 #define TCR_EL2_MASK	(TCR_EL2_TG0_MASK | TCR_EL2_SH0_MASK | \
-			 TCR_EL2_ORGN0_MASK | TCR_EL2_IRGN0_MASK | TCR_EL2_T0SZ_MASK)
+						 TCR_EL2_ORGN0_MASK | TCR_EL2_IRGN0_MASK | TCR_EL2_T0SZ_MASK)
 
 /* VTCR_EL2 Registers bits */
 #define VTCR_EL2_RES1		(1 << 31)
@@ -139,32 +139,32 @@
 
 #define VTCR_EL2_T0SZ_IPA	VTCR_EL2_T0SZ_40B
 #define VTCR_EL2_COMMON_BITS	(VTCR_EL2_SH0_INNER | VTCR_EL2_ORGN0_WBWA | \
-				 VTCR_EL2_IRGN0_WBWA | VTCR_EL2_RES1)
+								 VTCR_EL2_IRGN0_WBWA | VTCR_EL2_RES1)
 
 #ifdef CONFIG_ARM64_64K_PAGES
-/*
- * Stage2 translation configuration:
- * 64kB pages (TG0 = 1)
- * 2 level page tables (SL = 1)
- */
-#define VTCR_EL2_TGRAN_FLAGS		(VTCR_EL2_TG0_64K | VTCR_EL2_SL0_LVL1)
-#define VTTBR_X_TGRAN_MAGIC		38
+	/*
+	* Stage2 translation configuration:
+	* 64kB pages (TG0 = 1)
+	* 2 level page tables (SL = 1)
+	*/
+	#define VTCR_EL2_TGRAN_FLAGS		(VTCR_EL2_TG0_64K | VTCR_EL2_SL0_LVL1)
+	#define VTTBR_X_TGRAN_MAGIC		38
 #elif defined(CONFIG_ARM64_16K_PAGES)
-/*
- * Stage2 translation configuration:
- * 16kB pages (TG0 = 2)
- * 2 level page tables (SL = 1)
- */
-#define VTCR_EL2_TGRAN_FLAGS		(VTCR_EL2_TG0_16K | VTCR_EL2_SL0_LVL1)
-#define VTTBR_X_TGRAN_MAGIC		42
+	/*
+	* Stage2 translation configuration:
+	* 16kB pages (TG0 = 2)
+	* 2 level page tables (SL = 1)
+	*/
+	#define VTCR_EL2_TGRAN_FLAGS		(VTCR_EL2_TG0_16K | VTCR_EL2_SL0_LVL1)
+	#define VTTBR_X_TGRAN_MAGIC		42
 #else	/* 4K */
-/*
- * Stage2 translation configuration:
- * 4kB pages (TG0 = 0)
- * 3 level page tables (SL = 1)
- */
-#define VTCR_EL2_TGRAN_FLAGS		(VTCR_EL2_TG0_4K | VTCR_EL2_SL0_LVL1)
-#define VTTBR_X_TGRAN_MAGIC		37
+	/*
+	* Stage2 translation configuration:
+	* 4kB pages (TG0 = 0)
+	* 3 level page tables (SL = 1)
+	*/
+	#define VTCR_EL2_TGRAN_FLAGS		(VTCR_EL2_TG0_4K | VTCR_EL2_SL0_LVL1)
+	#define VTTBR_X_TGRAN_MAGIC		37
 #endif
 
 #define VTCR_EL2_FLAGS			(VTCR_EL2_COMMON_BITS | VTCR_EL2_TGRAN_FLAGS)

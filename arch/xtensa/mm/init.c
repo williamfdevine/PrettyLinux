@@ -45,14 +45,20 @@ void __init bootmem_init(void)
 	 * successfull allocations should never return NULL.
 	 */
 	if (PHYS_OFFSET)
+	{
 		memblock_reserve(0, PHYS_OFFSET);
+	}
 	else
+	{
 		memblock_reserve(0, 1);
+	}
 
 	early_init_fdt_scan_reserved_mem();
 
 	if (!memblock_phys_mem_size())
+	{
 		panic("No memory found!\n");
+	}
 
 	min_low_pfn = PFN_UP(memblock_start_of_DRAM());
 	min_low_pfn = max(min_low_pfn, PFN_UP(PHYS_OFFSET));
@@ -68,7 +74,8 @@ void __init bootmem_init(void)
 void __init zones_init(void)
 {
 	/* All pages are DMA-able, so we put them all in the DMA zone. */
-	unsigned long zones_size[MAX_NR_ZONES] = {
+	unsigned long zones_size[MAX_NR_ZONES] =
+	{
 		[ZONE_DMA] = max_low_pfn - ARCH_PFN_OFFSET,
 #ifdef CONFIG_HIGHMEM
 		[ZONE_HIGHMEM] = max_pfn - max_low_pfn,
@@ -87,8 +94,12 @@ void __init mem_init(void)
 	unsigned long tmp;
 
 	reset_all_zones_managed_pages();
+
 	for (tmp = max_low_pfn; tmp < max_pfn; tmp++)
+	{
 		free_highmem_page(pfn_to_page(tmp));
+	}
+
 #endif
 
 	max_mapnr = max_pfn - ARCH_PFN_OFFSET;
@@ -99,28 +110,28 @@ void __init mem_init(void)
 	mem_init_print_info(NULL);
 	pr_info("virtual kernel memory layout:\n"
 #ifdef CONFIG_HIGHMEM
-		"    pkmap   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
-		"    fixmap  : 0x%08lx - 0x%08lx  (%5lu kB)\n"
+			"    pkmap   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
+			"    fixmap  : 0x%08lx - 0x%08lx  (%5lu kB)\n"
 #endif
 #ifdef CONFIG_MMU
-		"    vmalloc : 0x%08lx - 0x%08lx  (%5lu MB)\n"
+			"    vmalloc : 0x%08lx - 0x%08lx  (%5lu MB)\n"
 #endif
-		"    lowmem  : 0x%08lx - 0x%08lx  (%5lu MB)\n",
+			"    lowmem  : 0x%08lx - 0x%08lx  (%5lu MB)\n",
 #ifdef CONFIG_HIGHMEM
-		PKMAP_BASE, PKMAP_BASE + LAST_PKMAP * PAGE_SIZE,
-		(LAST_PKMAP*PAGE_SIZE) >> 10,
-		FIXADDR_START, FIXADDR_TOP,
-		(FIXADDR_TOP - FIXADDR_START) >> 10,
+			PKMAP_BASE, PKMAP_BASE + LAST_PKMAP * PAGE_SIZE,
+			(LAST_PKMAP * PAGE_SIZE) >> 10,
+			FIXADDR_START, FIXADDR_TOP,
+			(FIXADDR_TOP - FIXADDR_START) >> 10,
 #endif
 #ifdef CONFIG_MMU
-		VMALLOC_START, VMALLOC_END,
-		(VMALLOC_END - VMALLOC_START) >> 20,
-		PAGE_OFFSET, PAGE_OFFSET +
-		(max_low_pfn - min_low_pfn) * PAGE_SIZE,
+			VMALLOC_START, VMALLOC_END,
+			(VMALLOC_END - VMALLOC_START) >> 20,
+			PAGE_OFFSET, PAGE_OFFSET +
+			(max_low_pfn - min_low_pfn) * PAGE_SIZE,
 #else
-		min_low_pfn * PAGE_SIZE, max_low_pfn * PAGE_SIZE,
+			min_low_pfn * PAGE_SIZE, max_low_pfn * PAGE_SIZE,
 #endif
-		((max_low_pfn - min_low_pfn) * PAGE_SIZE) >> 20);
+			((max_low_pfn - min_low_pfn) * PAGE_SIZE) >> 20);
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -129,7 +140,9 @@ extern int initrd_is_mapped;
 void free_initrd_mem(unsigned long start, unsigned long end)
 {
 	if (initrd_is_mapped)
+	{
 		free_reserved_area((void *)start, (void *)end, -1, "initrd");
+	}
 }
 #endif
 
@@ -144,41 +157,50 @@ static void __init parse_memmap_one(char *p)
 	unsigned long start_at, mem_size;
 
 	if (!p)
+	{
 		return;
+	}
 
 	oldp = p;
 	mem_size = memparse(p, &p);
+
 	if (p == oldp)
+	{
 		return;
+	}
 
-	switch (*p) {
-	case '@':
-		start_at = memparse(p + 1, &p);
-		memblock_add(start_at, mem_size);
-		break;
+	switch (*p)
+	{
+		case '@':
+			start_at = memparse(p + 1, &p);
+			memblock_add(start_at, mem_size);
+			break;
 
-	case '$':
-		start_at = memparse(p + 1, &p);
-		memblock_reserve(start_at, mem_size);
-		break;
+		case '$':
+			start_at = memparse(p + 1, &p);
+			memblock_reserve(start_at, mem_size);
+			break;
 
-	case 0:
-		memblock_reserve(mem_size, -mem_size);
-		break;
+		case 0:
+			memblock_reserve(mem_size, -mem_size);
+			break;
 
-	default:
-		pr_warn("Unrecognized memmap syntax: %s\n", p);
-		break;
+		default:
+			pr_warn("Unrecognized memmap syntax: %s\n", p);
+			break;
 	}
 }
 
 static int __init parse_memmap_opt(char *str)
 {
-	while (str) {
+	while (str)
+	{
 		char *k = strchr(str, ',');
 
 		if (k)
+		{
 			*k++ = 0;
+		}
 
 		parse_memmap_one(str);
 		str = k;

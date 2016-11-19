@@ -12,7 +12,8 @@
 /* FIXME should be linux/ptrace.h */
 #include <asm/ptrace.h>
 
-struct sigcontext {
+struct sigcontext
+{
 	struct pt_regs regs;
 	unsigned long oldmask;
 };

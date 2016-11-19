@@ -19,8 +19,8 @@
 #include "checkers.h"
 
 enum probes_insn checker_stack_use_none(probes_opcode_t insn,
-		struct arch_probes_insn *asi,
-		const struct decode_header *h)
+										struct arch_probes_insn *asi,
+										const struct decode_header *h)
 {
 	asi->stack_space = 0;
 	return INSN_GOOD_NO_SLOT;
@@ -87,7 +87,8 @@ enum probes_insn checker_stack_use_stmdx(probes_opcode_t insn,
 	return INSN_GOOD_NO_SLOT;
 }
 
-const union decode_action stack_check_actions[] = {
+const union decode_action stack_check_actions[] =
+{
 	[STACK_USE_NONE] = {.decoder = checker_stack_use_none},
 	[STACK_USE_UNKNOWN] = {.decoder = checker_stack_use_unknown},
 #ifdef CONFIG_THUMB2_KERNEL

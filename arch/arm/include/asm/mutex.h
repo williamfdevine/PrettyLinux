@@ -14,8 +14,8 @@
  * on the locking slowpaths.
  */
 #if __LINUX_ARM_ARCH__ < 6
-#include <asm-generic/mutex-xchg.h>
+	#include <asm-generic/mutex-xchg.h>
 #else
-#include <asm-generic/mutex-dec.h>
+	#include <asm-generic/mutex-dec.h>
 #endif
 #endif	/* _ASM_MUTEX_H */

@@ -36,33 +36,55 @@ static int mpc837xmds_usb_cfg(void)
 	int ret;
 
 	ret = mpc837x_usb_cfg();
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/* Map BCSR area */
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc837xmds-bcsr");
-	if (np) {
+
+	if (np)
+	{
 		bcsr_regs = of_iomap(np, 0);
 		of_node_put(np);
 	}
+
 	if (!bcsr_regs)
+	{
 		return -1;
+	}
 
 	np = of_find_node_by_name(NULL, "usb");
-	if (!np) {
+
+	if (!np)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
+
 	phy_type = of_get_property(np, "phy_type", NULL);
-	if (phy_type && !strcmp(phy_type, "ulpi")) {
+
+	if (phy_type && !strcmp(phy_type, "ulpi"))
+	{
 		clrbits8(bcsr_regs + 12, BCSR12_USB_SER_PIN);
-	} else if (phy_type && !strcmp(phy_type, "serial")) {
+	}
+	else if (phy_type && !strcmp(phy_type, "serial"))
+	{
 		mode = of_get_property(np, "dr_mode", NULL);
 		bcsr12 = in_8(bcsr_regs + 12) & ~BCSR12_USB_SER_MASK;
 		bcsr12 |= BCSR12_USB_SER_PIN;
+
 		if (mode && !strcmp(mode, "peripheral"))
+		{
 			bcsr12 |= BCSR12_USB_SER_DEVICE;
+		}
+
 		out_8(bcsr_regs + 12, bcsr12);
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "USB DR: unsupported PHY\n");
 	}
 
@@ -93,14 +115,15 @@ static int __init mpc837x_mds_probe(void)
 	return of_machine_is_compatible("fsl,mpc837xmds");
 }
 
-define_machine(mpc837x_mds) {
+define_machine(mpc837x_mds)
+{
 	.name			= "MPC837x MDS",
-	.probe			= mpc837x_mds_probe,
-	.setup_arch		= mpc837x_mds_setup_arch,
-	.init_IRQ		= mpc83xx_ipic_init_IRQ,
-	.get_irq		= ipic_get_irq,
-	.restart		= mpc83xx_restart,
-	.time_init		= mpc83xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mpc837x_mds_probe,
+					 .setup_arch		= mpc837x_mds_setup_arch,
+						 .init_IRQ		= mpc83xx_ipic_init_IRQ,
+							   .get_irq		= ipic_get_irq,
+									  .restart		= mpc83xx_restart,
+											 .time_init		= mpc83xx_time_init,
+												  .calibrate_decr		= generic_calibrate_decr,
+													  .progress		= udbg_progress,
 };

@@ -32,7 +32,7 @@
 #if defined(CONFIG_PPC4xx_OCM)
 
 void *ppc4xx_ocm_alloc(phys_addr_t *phys, int size, int align,
-		  int flags, const char *owner);
+					   int flags, const char *owner);
 void ppc4xx_ocm_free(const void *virt);
 
 #else

@@ -25,7 +25,10 @@ static inline dma_addr_t ath25_dev_offset(struct device *dev)
 	extern struct bus_type pci_bus_type;
 
 	if (dev && dev->bus == &pci_bus_type)
+	{
 		return AR2315_PCI_HOST_SDRAM_BASEADDR;
+	}
+
 #endif
 	return 0;
 }
@@ -50,7 +53,7 @@ plat_dma_addr_to_phys(struct device *dev, dma_addr_t dma_addr)
 
 static inline void
 plat_unmap_dma_mem(struct device *dev, dma_addr_t dma_addr, size_t size,
-		   enum dma_data_direction direction)
+				   enum dma_data_direction direction)
 {
 }
 

@@ -19,7 +19,7 @@
 #include <linux/sizes.h>
 
 #ifdef CONFIG_NEED_MACH_MEMORY_H
-#include <mach/memory.h>
+	#include <mach/memory.h>
 #endif
 
 /*
@@ -33,81 +33,81 @@
 
 #ifdef CONFIG_MMU
 
-/*
- * TASK_SIZE - the maximum size of a user space task.
- * TASK_UNMAPPED_BASE - the lower boundary of the mmap VM area
- */
-#define TASK_SIZE		(UL(CONFIG_PAGE_OFFSET) - UL(SZ_16M))
-#define TASK_UNMAPPED_BASE	ALIGN(TASK_SIZE / 3, SZ_16M)
+	/*
+	* TASK_SIZE - the maximum size of a user space task.
+	* TASK_UNMAPPED_BASE - the lower boundary of the mmap VM area
+	*/
+	#define TASK_SIZE		(UL(CONFIG_PAGE_OFFSET) - UL(SZ_16M))
+	#define TASK_UNMAPPED_BASE	ALIGN(TASK_SIZE / 3, SZ_16M)
 
-/*
- * The maximum size of a 26-bit user space task.
- */
-#define TASK_SIZE_26		(UL(1) << 26)
+	/*
+	* The maximum size of a 26-bit user space task.
+	*/
+	#define TASK_SIZE_26		(UL(1) << 26)
 
-/*
- * The module space lives between the addresses given by TASK_SIZE
- * and PAGE_OFFSET - it must be within 32MB of the kernel text.
- */
-#ifndef CONFIG_THUMB2_KERNEL
-#define MODULES_VADDR		(PAGE_OFFSET - SZ_16M)
-#else
-/* smaller range for Thumb-2 symbols relocation (2^24)*/
-#define MODULES_VADDR		(PAGE_OFFSET - SZ_8M)
-#endif
+	/*
+	* The module space lives between the addresses given by TASK_SIZE
+	* and PAGE_OFFSET - it must be within 32MB of the kernel text.
+	*/
+	#ifndef CONFIG_THUMB2_KERNEL
+		#define MODULES_VADDR		(PAGE_OFFSET - SZ_16M)
+	#else
+		/* smaller range for Thumb-2 symbols relocation (2^24)*/
+		#define MODULES_VADDR		(PAGE_OFFSET - SZ_8M)
+	#endif
 
-#if TASK_SIZE > MODULES_VADDR
-#error Top of user space clashes with start of module space
-#endif
+	#if TASK_SIZE > MODULES_VADDR
+		#error Top of user space clashes with start of module space
+	#endif
 
-/*
- * The highmem pkmap virtual space shares the end of the module area.
- */
-#ifdef CONFIG_HIGHMEM
-#define MODULES_END		(PAGE_OFFSET - PMD_SIZE)
-#else
-#define MODULES_END		(PAGE_OFFSET)
-#endif
+	/*
+	* The highmem pkmap virtual space shares the end of the module area.
+	*/
+	#ifdef CONFIG_HIGHMEM
+		#define MODULES_END		(PAGE_OFFSET - PMD_SIZE)
+	#else
+		#define MODULES_END		(PAGE_OFFSET)
+	#endif
 
-/*
- * The XIP kernel gets mapped at the bottom of the module vm area.
- * Since we use sections to map it, this macro replaces the physical address
- * with its virtual address while keeping offset from the base section.
- */
-#define XIP_VIRT_ADDR(physaddr)  (MODULES_VADDR + ((physaddr) & 0x000fffff))
+	/*
+	* The XIP kernel gets mapped at the bottom of the module vm area.
+	* Since we use sections to map it, this macro replaces the physical address
+	* with its virtual address while keeping offset from the base section.
+	*/
+	#define XIP_VIRT_ADDR(physaddr)  (MODULES_VADDR + ((physaddr) & 0x000fffff))
 
-#if !defined(CONFIG_SMP) && !defined(CONFIG_ARM_LPAE)
-/*
- * Allow 16MB-aligned ioremap pages
- */
-#define IOREMAP_MAX_ORDER	24
-#endif
+	#if !defined(CONFIG_SMP) && !defined(CONFIG_ARM_LPAE)
+		/*
+		* Allow 16MB-aligned ioremap pages
+		*/
+		#define IOREMAP_MAX_ORDER	24
+	#endif
 
 #else /* CONFIG_MMU */
 
-/*
- * The limitation of user task size can grow up to the end of free ram region.
- * It is difficult to define and perhaps will never meet the original meaning
- * of this define that was meant to.
- * Fortunately, there is no reference for this in noMMU mode, for now.
- */
-#define TASK_SIZE		UL(0xffffffff)
+	/*
+	* The limitation of user task size can grow up to the end of free ram region.
+	* It is difficult to define and perhaps will never meet the original meaning
+	* of this define that was meant to.
+	* Fortunately, there is no reference for this in noMMU mode, for now.
+	*/
+	#define TASK_SIZE		UL(0xffffffff)
 
-#ifndef TASK_UNMAPPED_BASE
-#define TASK_UNMAPPED_BASE	UL(0x00000000)
-#endif
+	#ifndef TASK_UNMAPPED_BASE
+		#define TASK_UNMAPPED_BASE	UL(0x00000000)
+	#endif
 
-#ifndef END_MEM
-#define END_MEM     		(UL(CONFIG_DRAM_BASE) + CONFIG_DRAM_SIZE)
-#endif
+	#ifndef END_MEM
+		#define END_MEM     		(UL(CONFIG_DRAM_BASE) + CONFIG_DRAM_SIZE)
+	#endif
 
-/*
- * The module can be at any place in ram in nommu mode.
- */
-#define MODULES_END		(END_MEM)
-#define MODULES_VADDR		PAGE_OFFSET
+	/*
+	* The module can be at any place in ram in nommu mode.
+	*/
+	#define MODULES_END		(END_MEM)
+	#define MODULES_VADDR		PAGE_OFFSET
 
-#define XIP_VIRT_ADDR(physaddr)  (physaddr)
+	#define XIP_VIRT_ADDR(physaddr)  (physaddr)
 
 #endif /* !CONFIG_MMU */
 
@@ -116,8 +116,8 @@
  * locations
  */
 #ifdef CONFIG_HAVE_TCM
-#define ITCM_OFFSET	UL(0xfffe0000)
-#define DTCM_OFFSET	UL(0xfffe8000)
+	#define ITCM_OFFSET	UL(0xfffe0000)
+	#define DTCM_OFFSET	UL(0xfffe8000)
 #endif
 
 /*
@@ -144,7 +144,7 @@
 #define PHYS_RELATIVE(v_data, v_text) \
 	(((v_data) - PAGE_OFFSET + PLAT_PHYS_OFFSET) - \
 	 ((v_text) - XIP_VIRT_ADDR(CONFIG_XIP_PHYS_ADDR) + \
-          CONFIG_XIP_PHYS_ADDR))
+	  CONFIG_XIP_PHYS_ADDR))
 #else
 #define PHYS_RELATIVE(v_data, v_text) ((v_data) - (v_text))
 #endif
@@ -179,43 +179,47 @@ extern const void *__pv_table_begin, *__pv_table_end;
 
 #define __pv_stub(from,to,instr,type)			\
 	__asm__("@ __pv_stub\n"				\
-	"1:	" instr "	%0, %1, %2\n"		\
-	"	.pushsection .pv_table,\"a\"\n"		\
-	"	.long	1b\n"				\
-	"	.popsection\n"				\
-	: "=r" (to)					\
-	: "r" (from), "I" (type))
+			"1:	" instr "	%0, %1, %2\n"		\
+			"	.pushsection .pv_table,\"a\"\n"		\
+			"	.long	1b\n"				\
+			"	.popsection\n"				\
+			: "=r" (to)					\
+			: "r" (from), "I" (type))
 
 #define __pv_stub_mov_hi(t)				\
 	__asm__ volatile("@ __pv_stub_mov\n"		\
-	"1:	mov	%R0, %1\n"			\
-	"	.pushsection .pv_table,\"a\"\n"		\
-	"	.long	1b\n"				\
-	"	.popsection\n"				\
-	: "=r" (t)					\
-	: "I" (__PV_BITS_7_0))
+					 "1:	mov	%R0, %1\n"			\
+					 "	.pushsection .pv_table,\"a\"\n"		\
+					 "	.long	1b\n"				\
+					 "	.popsection\n"				\
+					 : "=r" (t)					\
+					 : "I" (__PV_BITS_7_0))
 
 #define __pv_add_carry_stub(x, y)			\
 	__asm__ volatile("@ __pv_add_carry_stub\n"	\
-	"1:	adds	%Q0, %1, %2\n"			\
-	"	adc	%R0, %R0, #0\n"			\
-	"	.pushsection .pv_table,\"a\"\n"		\
-	"	.long	1b\n"				\
-	"	.popsection\n"				\
-	: "+r" (y)					\
-	: "r" (x), "I" (__PV_BITS_31_24)		\
-	: "cc")
+					 "1:	adds	%Q0, %1, %2\n"			\
+					 "	adc	%R0, %R0, #0\n"			\
+					 "	.pushsection .pv_table,\"a\"\n"		\
+					 "	.long	1b\n"				\
+					 "	.popsection\n"				\
+					 : "+r" (y)					\
+					 : "r" (x), "I" (__PV_BITS_31_24)		\
+					 : "cc")
 
 static inline phys_addr_t __virt_to_phys(unsigned long x)
 {
 	phys_addr_t t;
 
-	if (sizeof(phys_addr_t) == 4) {
+	if (sizeof(phys_addr_t) == 4)
+	{
 		__pv_stub(x, t, "add", __PV_BITS_31_24);
-	} else {
+	}
+	else
+	{
 		__pv_stub_mov_hi(t);
 		__pv_add_carry_stub(x, t);
 	}
+
 	return t;
 }
 
@@ -295,11 +299,16 @@ static inline bool arm_has_idmap_alias(void)
 
 static inline unsigned long phys_to_idmap(phys_addr_t addr)
 {
-	if (IS_ENABLED(CONFIG_MMU) && arch_phys_to_idmap_offset) {
+	if (IS_ENABLED(CONFIG_MMU) && arch_phys_to_idmap_offset)
+	{
 		addr += arch_phys_to_idmap_offset;
+
 		if (addr > (u32)~0)
+		{
 			addr = IDMAP_INVALID_ADDR;
+		}
 	}
+
 	return addr;
 }
 
@@ -308,7 +317,9 @@ static inline phys_addr_t idmap_to_phys(unsigned long idmap)
 	phys_addr_t addr = idmap;
 
 	if (IS_ENABLED(CONFIG_MMU) && arch_phys_to_idmap_offset)
+	{
 		addr -= arch_phys_to_idmap_offset;
+	}
 
 	return addr;
 }
@@ -327,10 +338,10 @@ static inline unsigned long __virt_to_idmap(unsigned long x)
  * use the __ prefixed forms instead.)  See dma-mapping.h.
  */
 #ifndef __virt_to_bus
-#define __virt_to_bus	__virt_to_phys
-#define __bus_to_virt	__phys_to_virt
-#define __pfn_to_bus(x)	__pfn_to_phys(x)
-#define __bus_to_pfn(x)	__phys_to_pfn(x)
+	#define __virt_to_bus	__virt_to_phys
+	#define __bus_to_virt	__phys_to_virt
+	#define __pfn_to_bus(x)	__pfn_to_phys(x)
+	#define __bus_to_pfn(x)	__phys_to_pfn(x)
 #endif
 
 /*
@@ -346,7 +357,7 @@ static inline unsigned long __virt_to_idmap(unsigned long x)
 
 #define virt_to_page(kaddr)	pfn_to_page(virt_to_pfn(kaddr))
 #define virt_addr_valid(kaddr)	(((unsigned long)(kaddr) >= PAGE_OFFSET && (unsigned long)(kaddr) < (unsigned long)high_memory) \
-					&& pfn_valid(virt_to_pfn(kaddr)))
+								 && pfn_valid(virt_to_pfn(kaddr)))
 
 #endif
 

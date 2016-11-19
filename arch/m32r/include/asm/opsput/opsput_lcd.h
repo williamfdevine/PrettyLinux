@@ -14,12 +14,12 @@
  */
 
 #ifndef __ASSEMBLY__
-/*
- * C functions use non-cache address.
- */
-#define OPSPUT_LCD_BASE	(0x10000000 /* + NONCACHE_OFFSET */)
+	/*
+	* C functions use non-cache address.
+	*/
+	#define OPSPUT_LCD_BASE	(0x10000000 /* + NONCACHE_OFFSET */)
 #else
-#define OPSPUT_LCD_BASE	(0x10000000 + NONCACHE_OFFSET)
+	#define OPSPUT_LCD_BASE	(0x10000000 + NONCACHE_OFFSET)
 #endif /* __ASSEMBLY__ */
 
 /*

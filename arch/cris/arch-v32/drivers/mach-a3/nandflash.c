@@ -35,7 +35,8 @@
 #define ALE_BIT 11
 #define CE_BIT 12
 
-struct mtd_info_wrapper {
+struct mtd_info_wrapper
+{
 	struct nand_chip chip;
 };
 
@@ -47,7 +48,7 @@ static struct mtd_info *crisv32_mtd;
  *	hardware specific access to control-lines
  */
 static void crisv32_hwcontrol(struct mtd_info *mtd, int cmd,
-			      unsigned int ctrl)
+							  unsigned int ctrl)
 {
 	unsigned long flags;
 	reg_pio_rw_dout dout;
@@ -56,24 +57,32 @@ static void crisv32_hwcontrol(struct mtd_info *mtd, int cmd,
 	local_irq_save(flags);
 
 	/* control bits change */
-	if (ctrl & NAND_CTRL_CHANGE) {
+	if (ctrl & NAND_CTRL_CHANGE)
+	{
 		dout = REG_RD(pio, regi_pio, rw_dout);
 		dout.regf_NCE = (ctrl & NAND_NCE) ? 0 : 1;
 
 #if !MANUAL_ALE_CLE_CONTROL
-		if (ctrl & NAND_ALE) {
+
+		if (ctrl & NAND_ALE)
+		{
 			/* A0 = ALE high */
 			this->IO_ADDR_W = (void __iomem *)REG_ADDR(pio,
-				regi_pio, rw_io_access1);
-		} else if (ctrl & NAND_CLE) {
+							  regi_pio, rw_io_access1);
+		}
+		else if (ctrl & NAND_CLE)
+		{
 			/* A1 = CLE high */
 			this->IO_ADDR_W = (void __iomem *)REG_ADDR(pio,
-				regi_pio, rw_io_access2);
-		} else {
+							  regi_pio, rw_io_access2);
+		}
+		else
+		{
 			/* A1 = CLE and A0 = ALE low */
 			this->IO_ADDR_W = (void __iomem *)REG_ADDR(pio,
-				regi_pio, rw_io_access0);
+							  regi_pio, rw_io_access0);
 		}
+
 #else
 
 		dout.regf_CLE = (ctrl & NAND_CLE) ? 1 : 0;
@@ -84,7 +93,9 @@ static void crisv32_hwcontrol(struct mtd_info *mtd, int cmd,
 
 	/* command to chip */
 	if (cmd != NAND_CMD_NONE)
+	{
 		writeb(cmd, this->IO_ADDR_W);
+	}
 
 	local_irq_restore(flags);
 }
@@ -110,14 +121,16 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
 	struct nand_chip *this;
 	int err = 0;
 
-	reg_pio_rw_man_ctrl man_ctrl = {
+	reg_pio_rw_man_ctrl man_ctrl =
+	{
 		.regf_NCE = regk_pio_yes,
 #if MANUAL_ALE_CLE_CONTROL
 		.regf_ALE = regk_pio_yes,
 		.regf_CLE = regk_pio_yes
 #endif
 	};
-	reg_pio_rw_oe oe = {
+	reg_pio_rw_oe oe =
+	{
 		.regf_NCE = regk_pio_yes,
 #if MANUAL_ALE_CLE_CONTROL
 		.regf_ALE = regk_pio_yes,
@@ -135,15 +148,17 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
 
 	/* Allocate memory for MTD device structure and private data */
 	wrapper = kzalloc(sizeof(struct mtd_info_wrapper), GFP_KERNEL);
-	if (!wrapper) {
+
+	if (!wrapper)
+	{
 		printk(KERN_ERR "Unable to allocate CRISv32 NAND MTD "
-			"device structure.\n");
+			   "device structure.\n");
 		err = -ENOMEM;
 		return NULL;
 	}
 
 	read_cs = write_cs = (void __iomem *)REG_ADDR(pio, regi_pio,
-		rw_io_access0);
+						 rw_io_access0);
 
 	/* Get pointer to private data */
 	this = &wrapper->chip;
@@ -163,7 +178,8 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
 	/* this->bbt_options = NAND_BBT_USE_FLASH; */
 
 	/* Scan to find existence of the device */
-	if (nand_scan(crisv32_mtd, 1)) {
+	if (nand_scan(crisv32_mtd, 1))
+	{
 		err = -ENXIO;
 		goto out_mtd;
 	}

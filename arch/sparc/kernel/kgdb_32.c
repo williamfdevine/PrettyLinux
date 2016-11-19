@@ -21,17 +21,28 @@ void pt_regs_to_gdb_regs(unsigned long *gdb_regs, struct pt_regs *regs)
 	int i;
 
 	gdb_regs[GDB_G0] = 0;
+
 	for (i = 0; i < 15; i++)
+	{
 		gdb_regs[GDB_G1 + i] = regs->u_regs[UREG_G1 + i];
+	}
 
 	win = (struct reg_window32 *) regs->u_regs[UREG_FP];
+
 	for (i = 0; i < 8; i++)
+	{
 		gdb_regs[GDB_L0 + i] = win->locals[i];
+	}
+
 	for (i = 0; i < 8; i++)
+	{
 		gdb_regs[GDB_I0 + i] = win->ins[i];
+	}
 
 	for (i = GDB_F0; i <= GDB_F31; i++)
+	{
 		gdb_regs[i] = 0;
+	}
 
 	gdb_regs[GDB_Y] = regs->y;
 	gdb_regs[GDB_PSR] = regs->psr;
@@ -50,22 +61,37 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 	int i;
 
 	for (i = GDB_G0; i < GDB_G6; i++)
+	{
 		gdb_regs[i] = 0;
+	}
+
 	gdb_regs[GDB_G6] = (unsigned long) t;
 	gdb_regs[GDB_G7] = 0;
+
 	for (i = GDB_O0; i < GDB_SP; i++)
+	{
 		gdb_regs[i] = 0;
+	}
+
 	gdb_regs[GDB_SP] = t->ksp;
 	gdb_regs[GDB_O7] = 0;
 
 	win = (struct reg_window32 *) t->ksp;
+
 	for (i = 0; i < 8; i++)
+	{
 		gdb_regs[GDB_L0 + i] = win->locals[i];
+	}
+
 	for (i = 0; i < 8; i++)
+	{
 		gdb_regs[GDB_I0 + i] = win->ins[i];
+	}
 
 	for (i = GDB_F0; i <= GDB_F31; i++)
+	{
 		gdb_regs[i] = 0;
+	}
 
 	gdb_regs[GDB_Y] = 0;
 
@@ -84,12 +110,15 @@ void gdb_regs_to_pt_regs(unsigned long *gdb_regs, struct pt_regs *regs)
 	int i;
 
 	for (i = 0; i < 15; i++)
+	{
 		regs->u_regs[UREG_G1 + i] = gdb_regs[GDB_G1 + i];
+	}
 
 	/* If the PSR register is changing, we have to preserve
 	 * the CWP field, otherwise window save/restore explodes.
 	 */
-	if (regs->psr != gdb_regs[GDB_PSR]) {
+	if (regs->psr != gdb_regs[GDB_PSR])
+	{
 		unsigned long cwp = regs->psr & PSR_CWP;
 
 		regs->psr = (gdb_regs[GDB_PSR] & ~PSR_CWP) | cwp;
@@ -100,37 +129,50 @@ void gdb_regs_to_pt_regs(unsigned long *gdb_regs, struct pt_regs *regs)
 	regs->y = gdb_regs[GDB_Y];
 
 	win = (struct reg_window32 *) regs->u_regs[UREG_FP];
+
 	for (i = 0; i < 8; i++)
+	{
 		win->locals[i] = gdb_regs[GDB_L0 + i];
+	}
+
 	for (i = 0; i < 8; i++)
+	{
 		win->ins[i] = gdb_regs[GDB_I0 + i];
+	}
 }
 
 int kgdb_arch_handle_exception(int e_vector, int signo, int err_code,
-			       char *remcomInBuffer, char *remcomOutBuffer,
-			       struct pt_regs *linux_regs)
+							   char *remcomInBuffer, char *remcomOutBuffer,
+							   struct pt_regs *linux_regs)
 {
 	unsigned long addr;
 	char *ptr;
 
-	switch (remcomInBuffer[0]) {
-	case 'c':
-		/* try to read optional parameter, pc unchanged if no parm */
-		ptr = &remcomInBuffer[1];
-		if (kgdb_hex2long(&ptr, &addr)) {
-			linux_regs->pc = addr;
-			linux_regs->npc = addr + 4;
-		}
+	switch (remcomInBuffer[0])
+	{
+		case 'c':
+			/* try to read optional parameter, pc unchanged if no parm */
+			ptr = &remcomInBuffer[1];
+
+			if (kgdb_hex2long(&ptr, &addr))
+			{
+				linux_regs->pc = addr;
+				linux_regs->npc = addr + 4;
+			}
+
 		/* fallthru */
 
-	case 'D':
-	case 'k':
-		if (linux_regs->pc == (unsigned long) arch_kgdb_breakpoint) {
-			linux_regs->pc = linux_regs->npc;
-			linux_regs->npc += 4;
-		}
-		return 0;
+		case 'D':
+		case 'k':
+			if (linux_regs->pc == (unsigned long) arch_kgdb_breakpoint)
+			{
+				linux_regs->pc = linux_regs->npc;
+				linux_regs->npc += 4;
+			}
+
+			return 0;
 	}
+
 	return -1;
 }
 
@@ -138,7 +180,8 @@ asmlinkage void kgdb_trap(unsigned long trap_level, struct pt_regs *regs)
 {
 	unsigned long flags;
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		do_hw_interrupt(regs, trap_level);
 		return;
 	}
@@ -165,7 +208,8 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long ip)
 	regs->npc = regs->pc + 4;
 }
 
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 	/* Breakpoint instruction: ta 0x7d */
 	.gdb_bpt_instr		= { 0x91, 0xd0, 0x20, 0x7d },
 };

@@ -22,7 +22,7 @@
 #include <plat/pm-common.h>
 
 #if CONFIG_SAMSUNG_PM_CHECK_CHUNKSIZE < 1
-#error CONFIG_SAMSUNG_PM_CHECK_CHUNKSIZE must be a positive non-zero value
+	#error CONFIG_SAMSUNG_PM_CHECK_CHUNKSIZE must be a positive non-zero value
 #endif
 
 /* suspend checking code...
@@ -49,15 +49,19 @@ typedef u32 *(run_fn_t)(struct resource *ptr, u32 *arg);
 
 static void s3c_pm_run_res(struct resource *ptr, run_fn_t fn, u32 *arg)
 {
-	while (ptr != NULL) {
+	while (ptr != NULL)
+	{
 		if (ptr->child != NULL)
+		{
 			s3c_pm_run_res(ptr->child, fn, arg);
+		}
 
 		if ((ptr->flags & IORESOURCE_SYSTEM_RAM)
-				== IORESOURCE_SYSTEM_RAM) {
+			== IORESOURCE_SYSTEM_RAM)
+		{
 			S3C_PMDBG("Found system RAM at %08lx..%08lx\n",
-				  (unsigned long)ptr->start,
-				  (unsigned long)ptr->end);
+					  (unsigned long)ptr->start,
+					  (unsigned long)ptr->end);
 			arg = (fn)(ptr, arg);
 		}
 
@@ -74,11 +78,11 @@ static u32 *s3c_pm_countram(struct resource *res, u32 *val)
 {
 	u32 size = (u32)resource_size(res);
 
-	size += CHECK_CHUNKSIZE-1;
+	size += CHECK_CHUNKSIZE - 1;
 	size /= CHECK_CHUNKSIZE;
 
 	S3C_PMDBG("Area %08lx..%08lx, %d blocks\n",
-		  (unsigned long)res->start, (unsigned long)res->end, size);
+			  (unsigned long)res->start, (unsigned long)res->end, size);
 
 	*val += size * sizeof(u32);
 	return val;
@@ -100,9 +104,12 @@ void s3c_pm_check_prepare(void)
 
 	S3C_PMDBG("s3c_pm_prepare_check: %u checks needed\n", crc_size);
 
-	crcs = kmalloc(crc_size+4, GFP_KERNEL);
+	crcs = kmalloc(crc_size + 4, GFP_KERNEL);
+
 	if (crcs == NULL)
+	{
 		printk(KERN_ERR "Cannot allocated CRC save area\n");
+	}
 }
 
 static u32 *s3c_pm_makecheck(struct resource *res, u32 *val)
@@ -110,11 +117,14 @@ static u32 *s3c_pm_makecheck(struct resource *res, u32 *val)
 	unsigned long addr, left;
 
 	for (addr = res->start; addr < res->end;
-	     addr += CHECK_CHUNKSIZE) {
+		 addr += CHECK_CHUNKSIZE)
+	{
 		left = res->end - addr;
 
 		if (left > CHECK_CHUNKSIZE)
+		{
 			left = CHECK_CHUNKSIZE;
+		}
 
 		*val = crc32_le(~0, phys_to_virt(addr), left);
 		val++;
@@ -132,7 +142,9 @@ static u32 *s3c_pm_makecheck(struct resource *res, u32 *val)
 void s3c_pm_check_store(void)
 {
 	if (crcs != NULL)
+	{
 		s3c_pm_run_sysram(s3c_pm_makecheck, crcs);
+	}
 }
 
 /* in_region
@@ -143,11 +155,15 @@ void s3c_pm_check_store(void)
 
 static inline int in_region(void *ptr, int size, void *what, size_t whatsz)
 {
-	if ((what+whatsz) < ptr)
+	if ((what + whatsz) < ptr)
+	{
 		return 0;
+	}
 
-	if (what > (ptr+size))
+	if (what > (ptr + size))
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -173,20 +189,25 @@ static u32 *s3c_pm_runcheck(struct resource *res, u32 *val)
 	stkpage = (void *)((u32)&calc & ~PAGE_MASK);
 
 	for (addr = res->start; addr < res->end;
-	     addr += CHECK_CHUNKSIZE) {
+		 addr += CHECK_CHUNKSIZE)
+	{
 		left = res->end - addr;
 
 		if (left > CHECK_CHUNKSIZE)
+		{
 			left = CHECK_CHUNKSIZE;
+		}
 
 		ptr = phys_to_virt(addr);
 
-		if (in_region(ptr, left, stkpage, 4096)) {
+		if (in_region(ptr, left, stkpage, 4096))
+		{
 			S3C_PMDBG("skipping %08lx, has stack in\n", addr);
 			goto skip_check;
 		}
 
-		if (in_region(ptr, left, crcs, crc_size)) {
+		if (in_region(ptr, left, crcs, crc_size))
+		{
 			S3C_PMDBG("skipping %08lx, has crc block in\n", addr);
 			goto skip_check;
 		}
@@ -194,15 +215,17 @@ static u32 *s3c_pm_runcheck(struct resource *res, u32 *val)
 		/* calculate and check the checksum */
 
 		calc = crc32_le(~0, ptr, left);
-		if (calc != *val) {
+
+		if (calc != *val)
+		{
 			printk(KERN_ERR "Restore CRC error at "
-			       "%08lx (%08x vs %08x)\n", addr, calc, *val);
+				   "%08lx (%08x vs %08x)\n", addr, calc, *val);
 
 			S3C_PMDBG("Restore CRC error at %08lx (%08x vs %08x)\n",
-			    addr, calc, *val);
+					  addr, calc, *val);
 		}
 
-	skip_check:
+skip_check:
 		val++;
 	}
 
@@ -218,7 +241,9 @@ static u32 *s3c_pm_runcheck(struct resource *res, u32 *val)
 void s3c_pm_check_restore(void)
 {
 	if (crcs != NULL)
+	{
 		s3c_pm_run_sysram(s3c_pm_runcheck, crcs);
+	}
 }
 
 /**

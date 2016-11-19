@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2000, 2001 Jeff Dike (jdike@karaya.com)
  * Licensed under the GPL
  */
@@ -30,11 +30,12 @@
 static void stdio_announce(char *dev_name, int dev)
 {
 	printk(KERN_INFO "Virtual console %d assigned device '%s'\n", dev,
-	       dev_name);
+		   dev_name);
 }
 
 /* Almost const, except that xterm_title may be changed in an initcall */
-static struct chan_opts opts = {
+static struct chan_opts opts =
+{
 	.announce 	= stdio_announce,
 	.xterm_title	= "Virtual Console #%d",
 	.raw		= 1,
@@ -46,7 +47,8 @@ static int con_remove(int n, char **con_remove);
 
 
 /* Const, except for .mc.list */
-static struct line_driver driver = {
+static struct line_driver driver =
+{
 	.name 			= "UML console",
 	.device_name 		= "tty",
 	.major 			= TTY_MAJOR,
@@ -97,7 +99,8 @@ static int con_install(struct tty_driver *driver, struct tty_struct *tty)
 	return line_install(driver, tty, &vts[tty->index]);
 }
 
-static const struct tty_operations console_ops = {
+static const struct tty_operations console_ops =
+{
 	.open 	 		= line_open,
 	.install		= con_install,
 	.close 	 		= line_close,
@@ -114,7 +117,7 @@ static const struct tty_operations console_ops = {
 };
 
 static void uml_console_write(struct console *console, const char *string,
-			      unsigned len)
+							  unsigned len)
 {
 	struct line *line = &vts[console->index];
 	unsigned long flags;
@@ -138,12 +141,13 @@ static int uml_console_setup(struct console *co, char *options)
 }
 
 /* No locking for register_console call - relies on single-threaded initcalls */
-static struct console stdiocons = {
+static struct console stdiocons =
+{
 	.name		= "tty",
 	.write		= uml_console_write,
 	.device		= uml_console_device,
 	.setup		= uml_console_setup,
-	.flags		= CON_PRINTBUFFER|CON_ANYTIME,
+	.flags		= CON_PRINTBUFFER | CON_ANYTIME,
 	.index		= -1,
 };
 
@@ -154,26 +158,40 @@ static int stdio_init(void)
 	int i;
 
 	err = register_lines(&driver, &console_ops, vts,
-					ARRAY_SIZE(vts));
+						 ARRAY_SIZE(vts));
+
 	if (err)
+	{
 		return err;
+	}
 
 	printk(KERN_INFO "Initialized stdio console driver\n");
 
 	new_title = add_xterm_umid(opts.xterm_title);
-	if(new_title != NULL)
-		opts.xterm_title = new_title;
 
-	for (i = 0; i < MAX_TTYS; i++) {
+	if (new_title != NULL)
+	{
+		opts.xterm_title = new_title;
+	}
+
+	for (i = 0; i < MAX_TTYS; i++)
+	{
 		char *error;
 		char *s = vt_conf[i];
+
 		if (!s)
+		{
 			s = def_conf;
+		}
+
 		if (!s)
+		{
 			s = i ? CONFIG_CON_CHAN : CONFIG_CON_ZERO_CHAN;
+		}
+
 		if (setup_one_line(vts, i, s, &opts, &error))
 			printk(KERN_ERR "setup_one_line failed for "
-			       "device %d : %s\n", i, error);
+				   "device %d : %s\n", i, error);
 	}
 
 	con_init_done = 1;
@@ -185,7 +203,10 @@ late_initcall(stdio_init);
 static void console_exit(void)
 {
 	if (!con_init_done)
+	{
 		return;
+	}
+
 	close_lines(vts, ARRAY_SIZE(vts));
 }
 __uml_exitcall(console_exit);

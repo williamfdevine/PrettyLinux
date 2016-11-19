@@ -27,9 +27,9 @@ EXPORT_SYMBOL(node_data);
 
 static struct numa_meminfo numa_meminfo
 #ifndef CONFIG_MEMORY_HOTPLUG
-__initdata
+	__initdata
 #endif
-;
+	;
 
 static int numa_distance_cnt;
 static u8 *numa_distance;
@@ -37,16 +37,30 @@ static u8 *numa_distance;
 static __init int numa_setup(char *opt)
 {
 	if (!opt)
+	{
 		return -EINVAL;
+	}
+
 	if (!strncmp(opt, "off", 3))
+	{
 		numa_off = 1;
+	}
+
 #ifdef CONFIG_NUMA_EMU
+
 	if (!strncmp(opt, "fake=", 5))
+	{
 		numa_emu_cmdline(opt + 5);
+	}
+
 #endif
 #ifdef CONFIG_ACPI_NUMA
+
 	if (!strncmp(opt, "noacpi", 6))
+	{
 		acpi_numa = -1;
+	}
+
 #endif
 	return 0;
 }
@@ -55,8 +69,9 @@ early_param("numa", numa_setup);
 /*
  * apicid, cpu, node mappings
  */
-s16 __apicid_to_node[MAX_LOCAL_APIC] = {
-	[0 ... MAX_LOCAL_APIC-1] = NUMA_NO_NODE
+s16 __apicid_to_node[MAX_LOCAL_APIC] =
+{
+	[0 ... MAX_LOCAL_APIC - 1] = NUMA_NO_NODE
 };
 
 int numa_cpu_node(int cpu)
@@ -64,7 +79,10 @@ int numa_cpu_node(int cpu)
 	int apicid = early_per_cpu(x86_cpu_to_apicid, cpu);
 
 	if (apicid != BAD_APICID)
+	{
 		return __apicid_to_node[apicid];
+	}
+
 	return NUMA_NO_NODE;
 }
 
@@ -82,17 +100,21 @@ void numa_set_node(int cpu, int node)
 	int *cpu_to_node_map = early_per_cpu_ptr(x86_cpu_to_node_map);
 
 	/* early setting, no percpu area yet */
-	if (cpu_to_node_map) {
+	if (cpu_to_node_map)
+	{
 		cpu_to_node_map[cpu] = node;
 		return;
 	}
 
 #ifdef CONFIG_DEBUG_PER_CPU_MAPS
-	if (cpu >= nr_cpu_ids || !cpu_possible(cpu)) {
+
+	if (cpu >= nr_cpu_ids || !cpu_possible(cpu))
+	{
 		printk(KERN_ERR "numa_set_node: invalid cpu# (%d)\n", cpu);
 		dump_stack();
 		return;
 	}
+
 #endif
 	per_cpu(x86_cpu_to_node_map, cpu) = node;
 
@@ -117,31 +139,39 @@ void __init setup_node_to_cpumask_map(void)
 
 	/* setup nr_node_ids if not done yet */
 	if (nr_node_ids == MAX_NUMNODES)
+	{
 		setup_nr_node_ids();
+	}
 
 	/* allocate the map */
 	for (node = 0; node < nr_node_ids; node++)
+	{
 		alloc_bootmem_cpumask_var(&node_to_cpumask_map[node]);
+	}
 
 	/* cpumask_of_node() will now work */
 	pr_debug("Node to cpumask map for %d nodes\n", nr_node_ids);
 }
 
 static int __init numa_add_memblk_to(int nid, u64 start, u64 end,
-				     struct numa_meminfo *mi)
+									 struct numa_meminfo *mi)
 {
 	/* ignore zero length blks */
 	if (start == end)
-		return 0;
-
-	/* whine about and ignore invalid blks */
-	if (start > end || nid < 0 || nid >= MAX_NUMNODES) {
-		pr_warning("NUMA: Warning: invalid memblk node %d [mem %#010Lx-%#010Lx]\n",
-			   nid, start, end - 1);
+	{
 		return 0;
 	}
 
-	if (mi->nr_blks >= NR_NODE_MEMBLKS) {
+	/* whine about and ignore invalid blks */
+	if (start > end || nid < 0 || nid >= MAX_NUMNODES)
+	{
+		pr_warning("NUMA: Warning: invalid memblk node %d [mem %#010Lx-%#010Lx]\n",
+				   nid, start, end - 1);
+		return 0;
+	}
+
+	if (mi->nr_blks >= NR_NODE_MEMBLKS)
+	{
 		pr_err("NUMA: too many memblk ranges\n");
 		return -EINVAL;
 	}
@@ -165,7 +195,7 @@ void __init numa_remove_memblk_from(int idx, struct numa_meminfo *mi)
 {
 	mi->nr_blks--;
 	memmove(&mi->blk[idx], &mi->blk[idx + 1],
-		(mi->nr_blks - idx) * sizeof(mi->blk[0]));
+			(mi->nr_blks - idx) * sizeof(mi->blk[0]));
 }
 
 /**
@@ -197,23 +227,31 @@ static void __init alloc_node_data(int nid)
 	 * Never allocate in DMA zone.
 	 */
 	nd_pa = memblock_alloc_nid(nd_size, SMP_CACHE_BYTES, nid);
-	if (!nd_pa) {
+
+	if (!nd_pa)
+	{
 		nd_pa = __memblock_alloc_base(nd_size, SMP_CACHE_BYTES,
-					      MEMBLOCK_ALLOC_ACCESSIBLE);
-		if (!nd_pa) {
+									  MEMBLOCK_ALLOC_ACCESSIBLE);
+
+		if (!nd_pa)
+		{
 			pr_err("Cannot find %zu bytes in node %d\n",
-			       nd_size, nid);
+				   nd_size, nid);
 			return;
 		}
 	}
+
 	nd = __va(nd_pa);
 
 	/* report and initialize */
 	printk(KERN_INFO "NODE_DATA(%d) allocated [mem %#010Lx-%#010Lx]\n", nid,
-	       nd_pa, nd_pa + nd_size - 1);
+		   nd_pa, nd_pa + nd_size - 1);
 	tnid = early_pfn_to_nid(nd_pa >> PAGE_SHIFT);
+
 	if (tnid != nid)
+	{
 		printk(KERN_INFO "    NODE_DATA(%d) on node %d\n", nid, tnid);
+	}
 
 	node_data[nid] = nd;
 	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
@@ -238,7 +276,8 @@ int __init numa_cleanup_meminfo(struct numa_meminfo *mi)
 	int i, j, k;
 
 	/* first, trim all entries */
-	for (i = 0; i < mi->nr_blks; i++) {
+	for (i = 0; i < mi->nr_blks; i++)
+	{
 		struct numa_memblk *bi = &mi->blk[i];
 
 		/* make sure all blocks are inside the limits */
@@ -247,16 +286,20 @@ int __init numa_cleanup_meminfo(struct numa_meminfo *mi)
 
 		/* and there's no empty or non-exist block */
 		if (bi->start >= bi->end ||
-		    !memblock_overlaps_region(&memblock.memory,
-			bi->start, bi->end - bi->start))
+			!memblock_overlaps_region(&memblock.memory,
+									  bi->start, bi->end - bi->start))
+		{
 			numa_remove_memblk_from(i--, mi);
+		}
 	}
 
 	/* merge neighboring / overlapping entries */
-	for (i = 0; i < mi->nr_blks; i++) {
+	for (i = 0; i < mi->nr_blks; i++)
+	{
 		struct numa_memblk *bi = &mi->blk[i];
 
-		for (j = i + 1; j < mi->nr_blks; j++) {
+		for (j = i + 1; j < mi->nr_blks; j++)
+		{
 			struct numa_memblk *bj = &mi->blk[j];
 			u64 start, end;
 
@@ -265,16 +308,19 @@ int __init numa_cleanup_meminfo(struct numa_meminfo *mi)
 			 * about but allow overlaps of the same nid.  They
 			 * will be merged below.
 			 */
-			if (bi->end > bj->start && bi->start < bj->end) {
-				if (bi->nid != bj->nid) {
+			if (bi->end > bj->start && bi->start < bj->end)
+			{
+				if (bi->nid != bj->nid)
+				{
 					pr_err("NUMA: node %d [mem %#010Lx-%#010Lx] overlaps with node %d [mem %#010Lx-%#010Lx]\n",
-					       bi->nid, bi->start, bi->end - 1,
-					       bj->nid, bj->start, bj->end - 1);
+						   bi->nid, bi->start, bi->end - 1,
+						   bj->nid, bj->start, bj->end - 1);
 					return -EINVAL;
 				}
+
 				pr_warning("NUMA: Warning: node %d [mem %#010Lx-%#010Lx] overlaps with itself [mem %#010Lx-%#010Lx]\n",
-					   bi->nid, bi->start, bi->end - 1,
-					   bj->start, bj->end - 1);
+						   bi->nid, bi->start, bi->end - 1,
+						   bj->start, bj->end - 1);
 			}
 
 			/*
@@ -283,22 +329,36 @@ int __init numa_cleanup_meminfo(struct numa_meminfo *mi)
 			 * nodes.
 			 */
 			if (bi->nid != bj->nid)
+			{
 				continue;
+			}
+
 			start = min(bi->start, bj->start);
 			end = max(bi->end, bj->end);
-			for (k = 0; k < mi->nr_blks; k++) {
+
+			for (k = 0; k < mi->nr_blks; k++)
+			{
 				struct numa_memblk *bk = &mi->blk[k];
 
 				if (bi->nid == bk->nid)
+				{
 					continue;
+				}
+
 				if (start < bk->end && end > bk->start)
+				{
 					break;
+				}
 			}
+
 			if (k < mi->nr_blks)
+			{
 				continue;
+			}
+
 			printk(KERN_INFO "NUMA: Node %d [mem %#010Lx-%#010Lx] + [mem %#010Lx-%#010Lx] -> [mem %#010Lx-%#010Lx]\n",
-			       bi->nid, bi->start, bi->end - 1, bj->start,
-			       bj->end - 1, start, end - 1);
+				   bi->nid, bi->start, bi->end - 1, bj->start,
+				   bj->end - 1, start, end - 1);
 			bi->start = start;
 			bi->end = end;
 			numa_remove_memblk_from(j--, mi);
@@ -306,7 +366,8 @@ int __init numa_cleanup_meminfo(struct numa_meminfo *mi)
 	}
 
 	/* clear unused ones */
-	for (i = mi->nr_blks; i < ARRAY_SIZE(mi->blk); i++) {
+	for (i = mi->nr_blks; i < ARRAY_SIZE(mi->blk); i++)
+	{
 		mi->blk[i].start = mi->blk[i].end = 0;
 		mi->blk[i].nid = NUMA_NO_NODE;
 	}
@@ -318,14 +379,16 @@ int __init numa_cleanup_meminfo(struct numa_meminfo *mi)
  * Set nodes, which have memory in @mi, in *@nodemask.
  */
 static void __init numa_nodemask_from_meminfo(nodemask_t *nodemask,
-					      const struct numa_meminfo *mi)
+		const struct numa_meminfo *mi)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(mi->blk); i++)
 		if (mi->blk[i].start != mi->blk[i].end &&
-		    mi->blk[i].nid != NUMA_NO_NODE)
+			mi->blk[i].nid != NUMA_NO_NODE)
+		{
 			node_set(mi->blk[i].nid, *nodemask);
+		}
 }
 
 /**
@@ -340,7 +403,10 @@ void __init numa_reset_distance(void)
 
 	/* numa_distance could be 1LU marking allocation failure, test cnt */
 	if (numa_distance_cnt)
+	{
 		memblock_free(__pa(numa_distance), size);
+	}
+
 	numa_distance_cnt = 0;
 	numa_distance = NULL;	/* enable table creation */
 }
@@ -357,18 +423,21 @@ static int __init numa_alloc_distance(void)
 	numa_nodemask_from_meminfo(&nodes_parsed, &numa_meminfo);
 
 	for_each_node_mask(i, nodes_parsed)
-		cnt = i;
+	cnt = i;
 	cnt++;
 	size = cnt * cnt * sizeof(numa_distance[0]);
 
 	phys = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
-				      size, PAGE_SIZE);
-	if (!phys) {
+								  size, PAGE_SIZE);
+
+	if (!phys)
+	{
 		pr_warning("NUMA: Warning: can't allocate distance table!\n");
 		/* don't retry until explicitly reset */
 		numa_distance = (void *)1LU;
 		return -ENOMEM;
 	}
+
 	memblock_reserve(phys, size);
 
 	numa_distance = __va(phys);
@@ -378,7 +447,8 @@ static int __init numa_alloc_distance(void)
 	for (i = 0; i < cnt; i++)
 		for (j = 0; j < cnt; j++)
 			numa_distance[i * cnt + j] = i == j ?
-				LOCAL_DISTANCE : REMOTE_DISTANCE;
+										 LOCAL_DISTANCE : REMOTE_DISTANCE;
+
 	printk(KERN_DEBUG "NUMA: Initialized distance table, cnt=%d\n", cnt);
 
 	return 0;
@@ -406,19 +476,23 @@ static int __init numa_alloc_distance(void)
 void __init numa_set_distance(int from, int to, int distance)
 {
 	if (!numa_distance && numa_alloc_distance() < 0)
+	{
 		return;
+	}
 
 	if (from >= numa_distance_cnt || to >= numa_distance_cnt ||
-			from < 0 || to < 0) {
+		from < 0 || to < 0)
+	{
 		pr_warn_once("NUMA: Warning: node ids are out of bound, from=%d to=%d distance=%d\n",
-			    from, to, distance);
+					 from, to, distance);
 		return;
 	}
 
 	if ((u8)distance != distance ||
-	    (from == to && distance != LOCAL_DISTANCE)) {
+		(from == to && distance != LOCAL_DISTANCE))
+	{
 		pr_warn_once("NUMA: Warning: invalid distance parameter, from=%d to=%d distance=%d\n",
-			     from, to, distance);
+					 from, to, distance);
 		return;
 	}
 
@@ -428,7 +502,10 @@ void __init numa_set_distance(int from, int to, int distance)
 int __node_distance(int from, int to)
 {
 	if (from >= numa_distance_cnt || to >= numa_distance_cnt)
+	{
 		return from == to ? LOCAL_DISTANCE : REMOTE_DISTANCE;
+	}
+
 	return numa_distance[from * numa_distance_cnt + to];
 }
 EXPORT_SYMBOL(__node_distance);
@@ -443,24 +520,31 @@ static bool __init numa_meminfo_cover_memory(const struct numa_meminfo *mi)
 	int i;
 
 	numaram = 0;
-	for (i = 0; i < mi->nr_blks; i++) {
+
+	for (i = 0; i < mi->nr_blks; i++)
+	{
 		u64 s = mi->blk[i].start >> PAGE_SHIFT;
 		u64 e = mi->blk[i].end >> PAGE_SHIFT;
 		numaram += e - s;
 		numaram -= __absent_pages_in_range(mi->blk[i].nid, s, e);
+
 		if ((s64)numaram < 0)
+		{
 			numaram = 0;
+		}
 	}
 
 	e820ram = max_pfn - absent_pages_in_range(0, max_pfn);
 
 	/* We seem to lose 3 pages somewhere. Allow 1M of slack. */
-	if ((s64)(e820ram - numaram) >= (1 << (20 - PAGE_SHIFT))) {
+	if ((s64)(e820ram - numaram) >= (1 << (20 - PAGE_SHIFT)))
+	{
 		printk(KERN_ERR "NUMA: nodes only cover %LuMB of your %LuMB e820 RAM. Not used.\n",
-		       (numaram << PAGE_SHIFT) >> 20,
-		       (e820ram << PAGE_SHIFT) >> 20);
+			   (numaram << PAGE_SHIFT) >> 20,
+			   (e820ram << PAGE_SHIFT) >> 20);
 		return false;
 	}
+
 	return true;
 }
 
@@ -488,7 +572,8 @@ static void __init numa_clear_kernel_node_hotplug(void)
 	 * This will split up the memblock regions along node
 	 * boundaries and will set the node IDs as well.
 	 */
-	for (i = 0; i < numa_meminfo.nr_blks; i++) {
+	for (i = 0; i < numa_meminfo.nr_blks; i++)
+	{
 		struct numa_memblk *mb = numa_meminfo.blk + i;
 		int ret;
 
@@ -505,9 +590,12 @@ static void __init numa_clear_kernel_node_hotplug(void)
 	 *   memory ranges, because quirks such as trim_snb_memory()
 	 *   reserve specific pages for Sandy Bridge graphics. ]
 	 */
-	for_each_memblock(reserved, mb_region) {
+	for_each_memblock(reserved, mb_region)
+	{
 		if (mb_region->nid != MAX_NUMNODES)
+		{
 			node_set(mb_region->nid, reserved_nodemask);
+		}
 	}
 
 	/*
@@ -518,11 +606,14 @@ static void __init numa_clear_kernel_node_hotplug(void)
 	 * on nodes that contain kernel memory - entire nodes
 	 * become hot-unpluggable:
 	 */
-	for (i = 0; i < numa_meminfo.nr_blks; i++) {
+	for (i = 0; i < numa_meminfo.nr_blks; i++)
+	{
 		struct numa_memblk *mb = numa_meminfo.blk + i;
 
 		if (!node_isset(mb->nid, reserved_nodemask))
+		{
 			continue;
+		}
 
 		memblock_clear_hotplug(mb->start, mb->end - mb->start);
 	}
@@ -536,13 +627,17 @@ static int __init numa_register_memblks(struct numa_meminfo *mi)
 	/* Account for nodes with cpus and no memory */
 	node_possible_map = numa_nodes_parsed;
 	numa_nodemask_from_meminfo(&node_possible_map, mi);
-	if (WARN_ON(nodes_empty(node_possible_map)))
-		return -EINVAL;
 
-	for (i = 0; i < mi->nr_blks; i++) {
+	if (WARN_ON(nodes_empty(node_possible_map)))
+	{
+		return -EINVAL;
+	}
+
+	for (i = 0; i < mi->nr_blks; i++)
+	{
 		struct numa_memblk *mb = &mi->blk[i];
 		memblock_set_node(mb->start, mb->end - mb->start,
-				  &memblock.memory, mb->nid);
+						  &memblock.memory, mb->nid);
 	}
 
 	/*
@@ -560,37 +655,52 @@ static int __init numa_register_memblks(struct numa_meminfo *mi)
 	 */
 #ifdef NODE_NOT_IN_PAGE_FLAGS
 	pfn_align = node_map_pfn_alignment();
-	if (pfn_align && pfn_align < PAGES_PER_SECTION) {
+
+	if (pfn_align && pfn_align < PAGES_PER_SECTION)
+	{
 		printk(KERN_WARNING "Node alignment %LuMB < min %LuMB, rejecting NUMA config\n",
-		       PFN_PHYS(pfn_align) >> 20,
-		       PFN_PHYS(PAGES_PER_SECTION) >> 20);
+			   PFN_PHYS(pfn_align) >> 20,
+			   PFN_PHYS(PAGES_PER_SECTION) >> 20);
 		return -EINVAL;
 	}
+
 #endif
+
 	if (!numa_meminfo_cover_memory(mi))
+	{
 		return -EINVAL;
+	}
 
 	/* Finally register nodes. */
-	for_each_node_mask(nid, node_possible_map) {
+	for_each_node_mask(nid, node_possible_map)
+	{
 		u64 start = PFN_PHYS(max_pfn);
 		u64 end = 0;
 
-		for (i = 0; i < mi->nr_blks; i++) {
+		for (i = 0; i < mi->nr_blks; i++)
+		{
 			if (nid != mi->blk[i].nid)
+			{
 				continue;
+			}
+
 			start = min(mi->blk[i].start, start);
 			end = max(mi->blk[i].end, end);
 		}
 
 		if (start >= end)
+		{
 			continue;
+		}
 
 		/*
 		 * Don't confuse VM with a node that doesn't have the
 		 * minimum amount of memory:
 		 */
 		if (end && (end - start) < NODE_MIN_SIZE)
+		{
 			continue;
+		}
 
 		alloc_node_data(nid);
 	}
@@ -612,9 +722,14 @@ static void __init numa_init_array(void)
 	int rr, i;
 
 	rr = first_node(node_online_map);
-	for (i = 0; i < nr_cpu_ids; i++) {
+
+	for (i = 0; i < nr_cpu_ids; i++)
+	{
 		if (early_cpu_to_node(i) != NUMA_NO_NODE)
+		{
 			continue;
+		}
+
 		numa_set_node(i, rr);
 		rr = next_node_in(rr, node_online_map);
 	}
@@ -626,23 +741,28 @@ static int __init numa_init(int (*init_func)(void))
 	int ret;
 
 	for (i = 0; i < MAX_LOCAL_APIC; i++)
+	{
 		set_apicid_to_node(i, NUMA_NO_NODE);
+	}
 
 	nodes_clear(numa_nodes_parsed);
 	nodes_clear(node_possible_map);
 	nodes_clear(node_online_map);
 	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
 	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.memory,
-				  MAX_NUMNODES));
+							  MAX_NUMNODES));
 	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.reserved,
-				  MAX_NUMNODES));
+							  MAX_NUMNODES));
 	/* In case that parsing SRAT failed. */
 	WARN_ON(memblock_clear_hotplug(0, ULLONG_MAX));
 	numa_reset_distance();
 
 	ret = init_func();
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * We reset memblock back to the top-down direction
@@ -655,23 +775,36 @@ static int __init numa_init(int (*init_func)(void))
 	memblock_set_bottom_up(false);
 
 	ret = numa_cleanup_meminfo(&numa_meminfo);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	numa_emulation(&numa_meminfo, numa_distance_cnt);
 
 	ret = numa_register_memblks(&numa_meminfo);
-	if (ret < 0)
-		return ret;
 
-	for (i = 0; i < nr_cpu_ids; i++) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < nr_cpu_ids; i++)
+	{
 		int nid = early_cpu_to_node(i);
 
 		if (nid == NUMA_NO_NODE)
+		{
 			continue;
+		}
+
 		if (!node_online(nid))
+		{
 			numa_clear_node(i);
+		}
 	}
+
 	numa_init_array();
 
 	return 0;
@@ -689,9 +822,9 @@ static int __init numa_init(int (*init_func)(void))
 static int __init dummy_numa_init(void)
 {
 	printk(KERN_INFO "%s\n",
-	       numa_off ? "NUMA turned off" : "No NUMA configuration found");
+		   numa_off ? "NUMA turned off" : "No NUMA configuration found");
 	printk(KERN_INFO "Faking a node at [mem %#018Lx-%#018Lx]\n",
-	       0LLU, PFN_PHYS(max_pfn) - 1);
+		   0LLU, PFN_PHYS(max_pfn) - 1);
 
 	node_set(0, numa_nodes_parsed);
 	numa_add_memblk(0, 0, PFN_PHYS(max_pfn));
@@ -708,14 +841,23 @@ static int __init dummy_numa_init(void)
  */
 void __init x86_numa_init(void)
 {
-	if (!numa_off) {
+	if (!numa_off)
+	{
 #ifdef CONFIG_ACPI_NUMA
+
 		if (!numa_init(x86_acpi_numa_init))
+		{
 			return;
+		}
+
 #endif
 #ifdef CONFIG_AMD_NUMA
+
 		if (!numa_init(amd_numa_init))
+		{
 			return;
+		}
+
 #endif
 	}
 
@@ -758,14 +900,19 @@ void __init init_cpu_to_node(void)
 
 	BUG_ON(cpu_to_apicid == NULL);
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		int node = numa_cpu_node(cpu);
 
 		if (node == NUMA_NO_NODE)
+		{
 			continue;
+		}
 
 		if (!node_online(node))
+		{
 			init_memory_less_node(node);
+		}
 
 		numa_set_node(cpu, node);
 	}
@@ -789,12 +936,14 @@ void numa_remove_cpu(int cpu)
 
 int __cpu_to_node(int cpu)
 {
-	if (early_per_cpu_ptr(x86_cpu_to_node_map)) {
+	if (early_per_cpu_ptr(x86_cpu_to_node_map))
+	{
 		printk(KERN_WARNING
-			"cpu_to_node(%d): usage too early!\n", cpu);
+			   "cpu_to_node(%d): usage too early!\n", cpu);
 		dump_stack();
 		return early_per_cpu_ptr(x86_cpu_to_node_map)[cpu];
 	}
+
 	return per_cpu(x86_cpu_to_node_map, cpu);
 }
 EXPORT_SYMBOL(__cpu_to_node);
@@ -806,14 +955,18 @@ EXPORT_SYMBOL(__cpu_to_node);
 int early_cpu_to_node(int cpu)
 {
 	if (early_per_cpu_ptr(x86_cpu_to_node_map))
+	{
 		return early_per_cpu_ptr(x86_cpu_to_node_map)[cpu];
+	}
 
-	if (!cpu_possible(cpu)) {
+	if (!cpu_possible(cpu))
+	{
 		printk(KERN_WARNING
-			"early_cpu_to_node(%d): no per_cpu area!\n", cpu);
+			   "early_cpu_to_node(%d): no per_cpu area!\n", cpu);
 		dump_stack();
 		return NUMA_NO_NODE;
 	}
+
 	return per_cpu(x86_cpu_to_node_map, cpu);
 }
 
@@ -821,25 +974,33 @@ void debug_cpumask_set_cpu(int cpu, int node, bool enable)
 {
 	struct cpumask *mask;
 
-	if (node == NUMA_NO_NODE) {
+	if (node == NUMA_NO_NODE)
+	{
 		/* early_cpu_to_node() already emits a warning and trace */
 		return;
 	}
+
 	mask = node_to_cpumask_map[node];
-	if (!mask) {
+
+	if (!mask)
+	{
 		pr_err("node_to_cpumask_map[%i] NULL\n", node);
 		dump_stack();
 		return;
 	}
 
 	if (enable)
+	{
 		cpumask_set_cpu(cpu, mask);
+	}
 	else
+	{
 		cpumask_clear_cpu(cpu, mask);
+	}
 
 	printk(KERN_DEBUG "%s cpu %d node %d: mask now %*pbl\n",
-		enable ? "numa_add_cpu" : "numa_remove_cpu",
-		cpu, node, cpumask_pr_args(mask));
+		   enable ? "numa_add_cpu" : "numa_remove_cpu",
+		   cpu, node, cpumask_pr_args(mask));
 	return;
 }
 
@@ -865,20 +1026,24 @@ void numa_remove_cpu(int cpu)
  */
 const struct cpumask *cpumask_of_node(int node)
 {
-	if (node >= nr_node_ids) {
+	if (node >= nr_node_ids)
+	{
 		printk(KERN_WARNING
-			"cpumask_of_node(%d): node > nr_node_ids(%d)\n",
-			node, nr_node_ids);
+			   "cpumask_of_node(%d): node > nr_node_ids(%d)\n",
+			   node, nr_node_ids);
 		dump_stack();
 		return cpu_none_mask;
 	}
-	if (node_to_cpumask_map[node] == NULL) {
+
+	if (node_to_cpumask_map[node] == NULL)
+	{
 		printk(KERN_WARNING
-			"cpumask_of_node(%d): no node_to_cpumask_map!\n",
-			node);
+			   "cpumask_of_node(%d): no node_to_cpumask_map!\n",
+			   node);
 		dump_stack();
 		return cpu_online_mask;
 	}
+
 	return node_to_cpumask_map[node];
 }
 EXPORT_SYMBOL(cpumask_of_node);
@@ -894,7 +1059,10 @@ int memory_add_physaddr_to_nid(u64 start)
 
 	for (i = 0; i < mi->nr_blks; i++)
 		if (mi->blk[i].start <= start && mi->blk[i].end > start)
+		{
 			nid = mi->blk[i].nid;
+		}
+
 	return nid;
 }
 EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);

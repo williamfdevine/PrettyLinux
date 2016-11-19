@@ -11,7 +11,8 @@
 
 #include <asm/intel-mid.h>
 
-static const struct devs_id bma023_dev_id __initconst = {
+static const struct devs_id bma023_dev_id __initconst =
+{
 	.name = "bma023",
 	.type = SFI_DEV_TYPE_I2C,
 	.delay = 1,

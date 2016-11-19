@@ -28,19 +28,25 @@ static void __init *max7315_platform_data(void *info)
 	char base_pin_name[SFI_NAME_LEN + 1];
 	char intr_pin_name[SFI_NAME_LEN + 1];
 
-	if (nr == MAX7315_NUM) {
+	if (nr == MAX7315_NUM)
+	{
 		pr_err("too many max7315s, we only support %d\n",
-				MAX7315_NUM);
+			   MAX7315_NUM);
 		return NULL;
 	}
+
 	/* we have several max7315 on the board, we only need load several
 	 * instances of the same pca953x driver to cover them
 	 */
 	strcpy(i2c_info->type, "max7315");
-	if (nr++) {
+
+	if (nr++)
+	{
 		sprintf(base_pin_name, "max7315_%d_base", nr);
 		sprintf(intr_pin_name, "max7315_%d_int", nr);
-	} else {
+	}
+	else
+	{
 		strcpy(base_pin_name, "max7315_base");
 		strcpy(intr_pin_name, "max7315_int");
 	}
@@ -49,26 +55,36 @@ static void __init *max7315_platform_data(void *info)
 	intr = get_gpio_by_name(intr_pin_name);
 
 	if (gpio_base < 0)
+	{
 		return NULL;
+	}
+
 	max7315->gpio_base = gpio_base;
-	if (intr != -1) {
+
+	if (intr != -1)
+	{
 		i2c_info->irq = intr + INTEL_MID_IRQ_OFFSET;
 		max7315->irq_base = gpio_base + INTEL_MID_IRQ_OFFSET;
-	} else {
+	}
+	else
+	{
 		i2c_info->irq = -1;
 		max7315->irq_base = -1;
 	}
+
 	return max7315;
 }
 
-static const struct devs_id max7315_dev_id __initconst = {
+static const struct devs_id max7315_dev_id __initconst =
+{
 	.name = "i2c_max7315",
 	.type = SFI_DEV_TYPE_I2C,
 	.delay = 1,
 	.get_platform_data = &max7315_platform_data,
 };
 
-static const struct devs_id max7315_2_dev_id __initconst = {
+static const struct devs_id max7315_2_dev_id __initconst =
+{
 	.name = "i2c_max7315_2",
 	.type = SFI_DEV_TYPE_I2C,
 	.delay = 1,

@@ -26,7 +26,7 @@
 #define writel_relaxed(x, addr)	writel(x, addr)
 
 extern void __iomem *__ioremap(unsigned long physaddr, unsigned long size,
-			unsigned long cacheflag);
+							   unsigned long cacheflag);
 extern void __iounmap(void __iomem *addr);
 
 static inline void __iomem *ioremap(unsigned long physaddr, unsigned long size)
@@ -35,7 +35,7 @@ static inline void __iomem *ioremap(unsigned long physaddr, unsigned long size)
 }
 
 static inline void __iomem *ioremap_nocache(unsigned long physaddr,
-						unsigned long size)
+		unsigned long size)
 {
 	return __ioremap(physaddr, size, 0);
 }

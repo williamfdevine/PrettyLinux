@@ -45,7 +45,10 @@ void *memset(void *s, int c, size_t n)
 	char *ss = s;
 
 	for (i = 0; i < n; i++)
+	{
 		ss[i] = c;
+	}
+
 	return s;
 }
 
@@ -55,10 +58,14 @@ void *memmove(void *dest, const void *src, size_t n)
 	const unsigned char *s = src;
 
 	if (d <= s || d - s >= n)
+	{
 		return __memcpy(dest, src, n);
+	}
 
 	while (n-- > 0)
+	{
 		d[n] = s[n];
+	}
 
 	return dest;
 }
@@ -66,9 +73,11 @@ void *memmove(void *dest, const void *src, size_t n)
 /* Detect and warn about potential overlaps, but handle them with memmove. */
 void *memcpy(void *dest, const void *src, size_t n)
 {
-	if (dest > src && dest - src < n) {
+	if (dest > src && dest - src < n)
+	{
 		warn("Avoiding potentially unsafe overlapping memcpy()!");
 		return memmove(dest, src, n);
 	}
+
 	return __memcpy(dest, src, n);
 }

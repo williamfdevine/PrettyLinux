@@ -94,10 +94,13 @@ sable_update_irq_hw(unsigned long bit, unsigned long mask)
 {
 	int port = 0x537;
 
-	if (bit >= 16) {
+	if (bit >= 16)
+	{
 		port = 0x53d;
 		mask >>= 16;
-	} else if (bit >= 8) {
+	}
+	else if (bit >= 8)
+	{
 		port = 0x53b;
 		mask >>= 8;
 	}
@@ -110,15 +113,20 @@ sable_ack_irq_hw(unsigned long bit)
 {
 	int port, val1, val2;
 
-	if (bit >= 16) {
+	if (bit >= 16)
+	{
 		port = 0x53c;
 		val1 = 0xE0 | (bit - 16);
 		val2 = 0xE0 | 4;
-	} else if (bit >= 8) {
+	}
+	else if (bit >= 8)
+	{
 		port = 0x53a;
 		val1 = 0xE0 | (bit - 8);
 		val2 = 0xE0 | 3;
-	} else {
+	}
+	else
+	{
 		port = 0x536;
 		val1 = 0xE0 | (bit - 0);
 		val2 = 0xE0 | 1;
@@ -128,21 +136,22 @@ sable_ack_irq_hw(unsigned long bit)
 	outb(val2, 0x534);	/* ack the master */
 }
 
-static irq_swizzle_t sable_irq_swizzle = {
+static irq_swizzle_t sable_irq_swizzle =
+{
 	{
 		-1,  6, -1,  8, 15, 12,  7,  9,	/* pseudo PIC  0-7  */
 		-1, 16, 17, 18,  3, -1, 21, 22,	/* pseudo PIC  8-15 */
 		-1, -1, -1, -1, -1, -1, -1, -1,	/* pseudo EISA 0-7  */
 		-1, -1, -1, -1, -1, -1, -1, -1,	/* pseudo EISA 8-15  */
-		 2,  1,  0,  4,  5, -1, -1, -1,	/* pseudo PCI */
+		2,  1,  0,  4,  5, -1, -1, -1,	/* pseudo PCI */
 		-1, -1, -1, -1, -1, -1, -1, -1,	/*  */
 		-1, -1, -1, -1, -1, -1, -1, -1,	/*  */
 		-1, -1, -1, -1, -1, -1, -1, -1 	/*  */
 	},
 	{
 		34, 33, 32, 12, 35, 36,  1,  6,	/* mask 0-7  */
-		 3,  7, -1, -1,  5, -1, -1,  4,	/* mask 8-15  */
-		 9, 10, 11, -1, -1, 14, 15, -1,	/* mask 16-23  */
+		3,  7, -1, -1,  5, -1, -1,  4,	/* mask 8-15  */
+		9, 10, 11, -1, -1, 14, 15, -1,	/* mask 16-23  */
 		-1, -1, -1, -1, -1, -1, -1, -1,	/*  */
 		-1, -1, -1, -1, -1, -1, -1, -1,	/*  */
 		-1, -1, -1, -1, -1, -1, -1, -1,	/*  */
@@ -181,9 +190,9 @@ sable_init_irq(void)
  *  6       PCI on board slot 0
  *  7       PCI on board slot 1
  *  8       PCI on board slot 2
- *   
  *
- * This two layered interrupt approach means that we allocate IRQ 16 and 
+ *
+ * This two layered interrupt approach means that we allocate IRQ 16 and
  * above for PCI interrupts.  The IRQ relates to which bit the interrupt
  * comes in on.  This makes interrupt processing much easier.
  */
@@ -195,17 +204,18 @@ sable_init_irq(void)
 static int __init
 sable_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[9][5] __initdata = {
+	static char irq_tab[9][5] __initdata =
+	{
 		/*INT    INTA   INTB   INTC   INTD */
-		{ 32+0,  32+0,  32+0,  32+0,  32+0},  /* IdSel 0,  TULIP  */
-		{ 32+1,  32+1,  32+1,  32+1,  32+1},  /* IdSel 1,  SCSI   */
+		{ 32 + 0,  32 + 0,  32 + 0,  32 + 0,  32 + 0}, /* IdSel 0,  TULIP  */
+		{ 32 + 1,  32 + 1,  32 + 1,  32 + 1,  32 + 1}, /* IdSel 1,  SCSI   */
 		{   -1,    -1,    -1,    -1,    -1},  /* IdSel 2,  SIO   */
 		{   -1,    -1,    -1,    -1,    -1},  /* IdSel 3,  none   */
 		{   -1,    -1,    -1,    -1,    -1},  /* IdSel 4,  none   */
 		{   -1,    -1,    -1,    -1,    -1},  /* IdSel 5,  none   */
-		{ 32+2,  32+2,  32+2,  32+2,  32+2},  /* IdSel 6,  slot 0 */
-		{ 32+3,  32+3,  32+3,  32+3,  32+3},  /* IdSel 7,  slot 1 */
-		{ 32+4,  32+4,  32+4,  32+4,  32+4}   /* IdSel 8,  slot 2 */
+		{ 32 + 2,  32 + 2,  32 + 2,  32 + 2,  32 + 2}, /* IdSel 6,  slot 0 */
+		{ 32 + 3,  32 + 3,  32 + 3,  32 + 3,  32 + 3}, /* IdSel 7,  slot 1 */
+		{ 32 + 4,  32 + 4,  32 + 4,  32 + 4,  32 + 4} /* IdSel 8,  slot 2 */
 	};
 	long min_idsel = 0, max_idsel = 8, irqs_per_slot = 5;
 	return COMMON_TABLE_LOOKUP;
@@ -222,12 +232,12 @@ sable_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
  *
  * Bit      Meaning               Kernel IRQ
  *------------------------------------------
- * 0        
- * 1        
- * 2        
+ * 0
+ * 1
+ * 2
  * 3        mouse			12
- * 4        
- * 5        
+ * 4
+ * 5
  * 6        keyboard			1
  * 7        floppy			6
  * 8        COM2			3
@@ -242,7 +252,7 @@ sable_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
  *17        EISA irq 10			10
  *18        EISA irq 11			11
  *19        EISA irq 12			-
- *20        
+ *20
  *21        EISA irq 14			14
  *22        EISA irq 15			15
  *23        IIC				-
@@ -299,7 +309,7 @@ lynx_update_irq_hw(unsigned long bit, unsigned long mask)
 	mb();
 	*(vulp)T2_AIR; /* re-read to force write */
 	mb();
-	*(vulp)T2_DIR = mask;    
+	*(vulp)T2_DIR = mask;
 	mb();
 	mb();
 }
@@ -312,7 +322,8 @@ lynx_ack_irq_hw(unsigned long bit)
 	mb();
 }
 
-static irq_swizzle_t lynx_irq_swizzle = {
+static irq_swizzle_t lynx_irq_swizzle =
+{
 	{ /* irq_to_mask */
 		-1,  6, -1,  8, 15, 12,  7,  9,	/* pseudo PIC  0-7  */
 		-1, 16, 17, 18,  3, -1, 21, 22,	/* pseudo PIC  8-15 */
@@ -325,8 +336,8 @@ static irq_swizzle_t lynx_irq_swizzle = {
 	},
 	{ /* mask_to_irq */
 		-1, -1, -1, 12, -1, -1,  1,  6,	/* mask 0-7   */
-		 3,  7, -1, -1,  5, -1, -1,  4,	/* mask 8-15  */
-		 9, 10, 11, -1, -1, 14, 15, -1,	/* mask 16-23 */
+		3,  7, -1, -1,  5, -1, -1,  4,	/* mask 8-15  */
+		9, 10, 11, -1, -1, 14, 15, -1,	/* mask 16-23 */
 		-1, -1, -1, -1, 28, -1, -1, -1,	/* mask 24-31 */
 		32, 33, 34, 35, 36, 37, 38, 39,	/* mask 32-39 */
 		40, 41, 42, 43, 44, 45, 46, 47,	/* mask 40-47 */
@@ -377,7 +388,8 @@ lynx_init_irq(void)
 static int __init
 lynx_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[19][5] __initdata = {
+	static char irq_tab[19][5] __initdata =
+	{
 		/*INT    INTA   INTB   INTC   INTD */
 		{   -1,    -1,    -1,    -1,    -1},  /* IdSel 13,  PCEB   */
 		{   -1,    -1,    -1,    -1,    -1},  /* IdSel 14,  PPB    */
@@ -409,29 +421,36 @@ lynx_swizzle(struct pci_dev *dev, u8 *pinp)
 {
 	int slot, pin = *pinp;
 
-	if (dev->bus->number == 0) {
+	if (dev->bus->number == 0)
+	{
 		slot = PCI_SLOT(dev->devfn);
 	}
 	/* Check for the built-in bridge */
-	else if (PCI_SLOT(dev->bus->self->devfn) == 3) {
+	else if (PCI_SLOT(dev->bus->self->devfn) == 3)
+	{
 		slot = PCI_SLOT(dev->devfn) + 11;
 	}
 	else
 	{
 		/* Must be a card-based bridge.  */
-		do {
-			if (PCI_SLOT(dev->bus->self->devfn) == 3) {
+		do
+		{
+			if (PCI_SLOT(dev->bus->self->devfn) == 3)
+			{
 				slot = PCI_SLOT(dev->devfn) + 11;
 				break;
 			}
+
 			pin = pci_swizzle_interrupt_pin(dev, pin);
 
 			/* Move up the chain of bridges.  */
 			dev = dev->bus->self;
 			/* Slot of the next bridge.  */
 			slot = PCI_SLOT(dev->devfn);
-		} while (dev->bus->self);
+		}
+		while (dev->bus->self);
 	}
+
 	*pinp = pin;
 	return slot;
 }
@@ -453,7 +472,7 @@ sable_lynx_enable_irq(struct irq_data *d)
 	spin_unlock(&sable_lynx_irq_lock);
 #if 0
 	printk("%s: mask 0x%lx bit 0x%lx irq 0x%x\n",
-	       __func__, mask, bit, irq);
+		   __func__, mask, bit, irq);
 #endif
 }
 
@@ -469,7 +488,7 @@ sable_lynx_disable_irq(struct irq_data *d)
 	spin_unlock(&sable_lynx_irq_lock);
 #if 0
 	printk("%s: mask 0x%lx bit 0x%lx irq 0x%x\n",
-	       __func__, mask, bit, irq);
+		   __func__, mask, bit, irq);
 #endif
 }
 
@@ -486,14 +505,15 @@ sable_lynx_mask_and_ack_irq(struct irq_data *d)
 	spin_unlock(&sable_lynx_irq_lock);
 }
 
-static struct irq_chip sable_lynx_irq_type = {
+static struct irq_chip sable_lynx_irq_type =
+{
 	.name		= "SABLE/LYNX",
 	.irq_unmask	= sable_lynx_enable_irq,
 	.irq_mask	= sable_lynx_disable_irq,
 	.irq_mask_ack	= sable_lynx_mask_and_ack_irq,
 };
 
-static void 
+static void
 sable_lynx_srm_device_interrupt(unsigned long vector)
 {
 	/* Note that the vector reported by the SRM PALcode corresponds
@@ -506,7 +526,7 @@ sable_lynx_srm_device_interrupt(unsigned long vector)
 	irq = sable_lynx_irq_swizzle->mask_to_irq[bit];
 #if 0
 	printk("%s: vector 0x%lx bit 0x%x irq 0x%x\n",
-	       __func__, vector, bit, irq);
+		   __func__, vector, bit, irq);
 #endif
 	handle_irq(irq);
 }
@@ -516,9 +536,10 @@ sable_lynx_init_irq(int nr_of_irqs)
 {
 	long i;
 
-	for (i = 0; i < nr_of_irqs; ++i) {
+	for (i = 0; i < nr_of_irqs; ++i)
+	{
 		irq_set_chip_and_handler(i, &sable_lynx_irq_type,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
 
@@ -543,7 +564,8 @@ sable_lynx_init_pci(void)
     (defined(CONFIG_ALPHA_SABLE) && !defined(CONFIG_ALPHA_GAMMA))
 #undef GAMMA_BIAS
 #define GAMMA_BIAS 0
-struct alpha_machine_vector sable_mv __initmv = {
+struct alpha_machine_vector sable_mv __initmv =
+{
 	.vector_name		= "Sable",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -564,9 +586,11 @@ struct alpha_machine_vector sable_mv __initmv = {
 	.pci_map_irq		= sable_map_irq,
 	.pci_swizzle		= common_swizzle,
 
-	.sys = { .t2 = {
-	    .gamma_bias		= 0
-	} }
+	.sys = {
+		.t2 = {
+			.gamma_bias		= 0
+		}
+	}
 };
 ALIAS_MV(sable)
 #endif /* GENERIC || (SABLE && !GAMMA) */
@@ -575,7 +599,8 @@ ALIAS_MV(sable)
     (defined(CONFIG_ALPHA_SABLE) && defined(CONFIG_ALPHA_GAMMA))
 #undef GAMMA_BIAS
 #define GAMMA_BIAS _GAMMA_BIAS
-struct alpha_machine_vector sable_gamma_mv __initmv = {
+struct alpha_machine_vector sable_gamma_mv __initmv =
+{
 	.vector_name		= "Sable-Gamma",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,
@@ -596,9 +621,11 @@ struct alpha_machine_vector sable_gamma_mv __initmv = {
 	.pci_map_irq		= sable_map_irq,
 	.pci_swizzle		= common_swizzle,
 
-	.sys = { .t2 = {
-	    .gamma_bias		= _GAMMA_BIAS
-	} }
+	.sys = {
+		.t2 = {
+			.gamma_bias		= _GAMMA_BIAS
+		}
+	}
 };
 ALIAS_MV(sable_gamma)
 #endif /* GENERIC || (SABLE && GAMMA) */
@@ -606,7 +633,8 @@ ALIAS_MV(sable_gamma)
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_LYNX)
 #undef GAMMA_BIAS
 #define GAMMA_BIAS _GAMMA_BIAS
-struct alpha_machine_vector lynx_mv __initmv = {
+struct alpha_machine_vector lynx_mv __initmv =
+{
 	.vector_name		= "Lynx",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -627,9 +655,11 @@ struct alpha_machine_vector lynx_mv __initmv = {
 	.pci_map_irq		= lynx_map_irq,
 	.pci_swizzle		= lynx_swizzle,
 
-	.sys = { .t2 = {
-	    .gamma_bias		= _GAMMA_BIAS
-	} }
+	.sys = {
+		.t2 = {
+			.gamma_bias		= _GAMMA_BIAS
+		}
+	}
 };
 ALIAS_MV(lynx)
 #endif /* GENERIC || LYNX */

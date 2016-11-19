@@ -81,7 +81,8 @@ static void unmask_gt641xx_irq(struct irq_data *d)
 	raw_spin_unlock_irqrestore(&gt641xx_irq_lock, flags);
 }
 
-static struct irq_chip gt641xx_irq_chip = {
+static struct irq_chip gt641xx_irq_chip =
+{
 	.name		= "GT641xx",
 	.irq_ack	= ack_gt641xx_irq,
 	.irq_mask	= mask_gt641xx_irq,
@@ -103,8 +104,10 @@ void gt641xx_irq_dispatch(void)
 	 * bit30: logical or of bits[29:26,20:1].
 	 * bit31: logical or of bits[25:1].
 	 */
-	for (i = 1; i < 30; i++) {
-		if (cause & (1U << i)) {
+	for (i = 1; i < 30; i++)
+	{
+		if (cause & (1U << i))
+		{
 			do_IRQ(GT641XX_IRQ_BASE + i);
 			return;
 		}
@@ -127,5 +130,5 @@ void __init gt641xx_irq_init(void)
 	 */
 	for (i = 1; i < 30; i++)
 		irq_set_chip_and_handler(GT641XX_IRQ_BASE + i,
-					 &gt641xx_irq_chip, handle_level_irq);
+								 &gt641xx_irq_chip, handle_level_irq);
 }

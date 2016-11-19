@@ -29,8 +29,8 @@
 
 /* These are the bits of MDSCR_EL1 we may manipulate */
 #define MDSCR_EL1_DEBUG_MASK	(DBG_MDSCR_SS | \
-				DBG_MDSCR_KDE | \
-				DBG_MDSCR_MDE)
+								 DBG_MDSCR_KDE | \
+								 DBG_MDSCR_MDE)
 
 static DEFINE_PER_CPU(u32, mdcr_el2);
 
@@ -49,7 +49,7 @@ static void save_guest_debug_regs(struct kvm_vcpu *vcpu)
 	vcpu->arch.guest_debug_preserved.mdscr_el1 = vcpu_sys_reg(vcpu, MDSCR_EL1);
 
 	trace_kvm_arm_set_dreg32("Saved MDSCR_EL1",
-				vcpu->arch.guest_debug_preserved.mdscr_el1);
+							 vcpu->arch.guest_debug_preserved.mdscr_el1);
 }
 
 static void restore_guest_debug_regs(struct kvm_vcpu *vcpu)
@@ -57,7 +57,7 @@ static void restore_guest_debug_regs(struct kvm_vcpu *vcpu)
 	vcpu_sys_reg(vcpu, MDSCR_EL1) = vcpu->arch.guest_debug_preserved.mdscr_el1;
 
 	trace_kvm_arm_set_dreg32("Restored MDSCR_EL1",
-				vcpu_sys_reg(vcpu, MDSCR_EL1));
+							 vcpu_sys_reg(vcpu, MDSCR_EL1));
 }
 
 /**
@@ -112,12 +112,13 @@ void kvm_arm_setup_debug(struct kvm_vcpu *vcpu)
 
 	vcpu->arch.mdcr_el2 = __this_cpu_read(mdcr_el2) & MDCR_EL2_HPMN_MASK;
 	vcpu->arch.mdcr_el2 |= (MDCR_EL2_TPM |
-				MDCR_EL2_TPMCR |
-				MDCR_EL2_TDRA |
-				MDCR_EL2_TDOSA);
+							MDCR_EL2_TPMCR |
+							MDCR_EL2_TDRA |
+							MDCR_EL2_TDOSA);
 
 	/* Is Guest debugging in effect? */
-	if (vcpu->guest_debug) {
+	if (vcpu->guest_debug)
+	{
 		/* Route all software debug exceptions to EL2 */
 		vcpu->arch.mdcr_el2 |= MDCR_EL2_TDE;
 
@@ -144,10 +145,13 @@ void kvm_arm_setup_debug(struct kvm_vcpu *vcpu)
 		 * returns to normal once the host is no longer
 		 * debugging the system.
 		 */
-		if (vcpu->guest_debug & KVM_GUESTDBG_SINGLESTEP) {
+		if (vcpu->guest_debug & KVM_GUESTDBG_SINGLESTEP)
+		{
 			*vcpu_cpsr(vcpu) |=  DBG_SPSR_SS;
 			vcpu_sys_reg(vcpu, MDSCR_EL1) |= DBG_MDSCR_SS;
-		} else {
+		}
+		else
+		{
 			vcpu_sys_reg(vcpu, MDSCR_EL1) &= ~DBG_MDSCR_SS;
 		}
 
@@ -162,7 +166,8 @@ void kvm_arm_setup_debug(struct kvm_vcpu *vcpu)
 		 * mechanism ensures the registers are updated on the
 		 * world switch.
 		 */
-		if (vcpu->guest_debug & KVM_GUESTDBG_USE_HW) {
+		if (vcpu->guest_debug & KVM_GUESTDBG_USE_HW)
+		{
 			/* Enable breakpoints/watchpoints */
 			vcpu_sys_reg(vcpu, MDSCR_EL1) |= DBG_MDSCR_MDE;
 
@@ -171,21 +176,23 @@ void kvm_arm_setup_debug(struct kvm_vcpu *vcpu)
 			trap_debug = true;
 
 			trace_kvm_arm_set_regset("BKPTS", get_num_brps(),
-						&vcpu->arch.debug_ptr->dbg_bcr[0],
-						&vcpu->arch.debug_ptr->dbg_bvr[0]);
+									 &vcpu->arch.debug_ptr->dbg_bcr[0],
+									 &vcpu->arch.debug_ptr->dbg_bvr[0]);
 
 			trace_kvm_arm_set_regset("WAPTS", get_num_wrps(),
-						&vcpu->arch.debug_ptr->dbg_wcr[0],
-						&vcpu->arch.debug_ptr->dbg_wvr[0]);
+									 &vcpu->arch.debug_ptr->dbg_wcr[0],
+									 &vcpu->arch.debug_ptr->dbg_wvr[0]);
 		}
 	}
 
 	BUG_ON(!vcpu->guest_debug &&
-		vcpu->arch.debug_ptr != &vcpu->arch.vcpu_debug_state);
+		   vcpu->arch.debug_ptr != &vcpu->arch.vcpu_debug_state);
 
 	/* Trap debug register access */
 	if (trap_debug)
+	{
 		vcpu->arch.mdcr_el2 |= MDCR_EL2_TDA;
+	}
 
 	trace_kvm_arm_set_dreg32("MDCR_EL2", vcpu->arch.mdcr_el2);
 	trace_kvm_arm_set_dreg32("MDSCR_EL1", vcpu_sys_reg(vcpu, MDSCR_EL1));
@@ -195,23 +202,25 @@ void kvm_arm_clear_debug(struct kvm_vcpu *vcpu)
 {
 	trace_kvm_arm_clear_debug(vcpu->guest_debug);
 
-	if (vcpu->guest_debug) {
+	if (vcpu->guest_debug)
+	{
 		restore_guest_debug_regs(vcpu);
 
 		/*
 		 * If we were using HW debug we need to restore the
 		 * debug_ptr to the guest debug state.
 		 */
-		if (vcpu->guest_debug & KVM_GUESTDBG_USE_HW) {
+		if (vcpu->guest_debug & KVM_GUESTDBG_USE_HW)
+		{
 			kvm_arm_reset_debug_ptr(vcpu);
 
 			trace_kvm_arm_set_regset("BKPTS", get_num_brps(),
-						&vcpu->arch.debug_ptr->dbg_bcr[0],
-						&vcpu->arch.debug_ptr->dbg_bvr[0]);
+									 &vcpu->arch.debug_ptr->dbg_bcr[0],
+									 &vcpu->arch.debug_ptr->dbg_bvr[0]);
 
 			trace_kvm_arm_set_regset("WAPTS", get_num_wrps(),
-						&vcpu->arch.debug_ptr->dbg_wcr[0],
-						&vcpu->arch.debug_ptr->dbg_wvr[0]);
+									 &vcpu->arch.debug_ptr->dbg_wcr[0],
+									 &vcpu->arch.debug_ptr->dbg_wvr[0]);
 		}
 	}
 }

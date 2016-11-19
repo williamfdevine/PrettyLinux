@@ -101,10 +101,10 @@ static inline unsigned int get_ross_icr(void)
 	unsigned int icreg;
 
 	__asm__ __volatile__(".word 0x8347c000\n\t" /* rd %iccr, %g1 */
-			     "mov %%g1, %0\n\t"
-			     : "=r" (icreg)
-			     : /* no inputs */
-			     : "g1", "memory");
+						 "mov %%g1, %0\n\t"
+						 : "=r" (icreg)
+						 : /* no inputs */
+						 : "g1", "memory");
 
 	return icreg;
 }
@@ -112,13 +112,13 @@ static inline unsigned int get_ross_icr(void)
 static inline void put_ross_icr(unsigned int icreg)
 {
 	__asm__ __volatile__("or %%g0, %0, %%g1\n\t"
-			     ".word 0xbf806000\n\t" /* wr %g1, 0x0, %iccr */
-			     "nop\n\t"
-			     "nop\n\t"
-			     "nop\n\t"
-			     : /* no outputs */
-			     : "r" (icreg)
-			     : "g1", "memory");
+						 ".word 0xbf806000\n\t" /* wr %g1, 0x0, %iccr */
+						 "nop\n\t"
+						 "nop\n\t"
+						 "nop\n\t"
+						 : /* no outputs */
+						 : "r" (icreg)
+						 : "g1", "memory");
 
 	return;
 }
@@ -129,9 +129,9 @@ static inline void put_ross_icr(unsigned int icreg)
 static inline void hyper_flush_whole_icache(void)
 {
 	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
-			     : /* no outputs */
-			     : "i" (ASI_M_FLUSH_IWHOLE)
-			     : "memory");
+						 : /* no outputs */
+						 : "i" (ASI_M_FLUSH_IWHOLE)
+						 : "memory");
 	return;
 }
 
@@ -142,11 +142,11 @@ static inline void hyper_clear_all_tags(void)
 {
 	unsigned long addr;
 
-	for(addr = 0; addr < vac_cache_size; addr += vac_line_size)
+	for (addr = 0; addr < vac_cache_size; addr += vac_line_size)
 		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
-				     : /* no outputs */
-				     : "r" (addr), "i" (ASI_M_DATAC_TAG)
-				     : "memory");
+							 : /* no outputs */
+							 : "r" (addr), "i" (ASI_M_DATAC_TAG)
+							 : "memory");
 }
 
 static inline void hyper_flush_unconditional_combined(void)
@@ -155,9 +155,9 @@ static inline void hyper_flush_unconditional_combined(void)
 
 	for (addr = 0; addr < vac_cache_size; addr += vac_line_size)
 		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
-				     : /* no outputs */
-				     : "r" (addr), "i" (ASI_M_FLUSH_CTX)
-				     : "memory");
+							 : /* no outputs */
+							 : "r" (addr), "i" (ASI_M_FLUSH_CTX)
+							 : "memory");
 }
 
 static inline void hyper_flush_cache_user(void)
@@ -166,9 +166,9 @@ static inline void hyper_flush_cache_user(void)
 
 	for (addr = 0; addr < vac_cache_size; addr += vac_line_size)
 		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
-				     : /* no outputs */
-				     : "r" (addr), "i" (ASI_M_FLUSH_USER)
-				     : "memory");
+							 : /* no outputs */
+							 : "r" (addr), "i" (ASI_M_FLUSH_USER)
+							 : "memory");
 }
 
 static inline void hyper_flush_cache_page(unsigned long page)
@@ -177,11 +177,13 @@ static inline void hyper_flush_cache_page(unsigned long page)
 
 	page &= PAGE_MASK;
 	end = page + PAGE_SIZE;
-	while (page < end) {
+
+	while (page < end)
+	{
 		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
-				     : /* no outputs */
-				     : "r" (page), "i" (ASI_M_FLUSH_PAGE)
-				     : "memory");
+							 : /* no outputs */
+							 : "r" (page), "i" (ASI_M_FLUSH_PAGE)
+							 : "memory");
 		page += vac_line_size;
 	}
 }

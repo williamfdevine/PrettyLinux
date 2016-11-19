@@ -103,7 +103,8 @@ static void __iomem *pmsu_mp_base;
 
 static void *mvebu_cpu_resume;
 
-static const struct of_device_id of_pmsu_table[] = {
+static const struct of_device_id of_pmsu_table[] =
+{
 	{ .compatible = "marvell,armada-370-pmsu", },
 	{ .compatible = "marvell,armada-370-xp-pmsu", },
 	{ .compatible = "marvell,armada-380-pmsu", },
@@ -113,7 +114,7 @@ static const struct of_device_id of_pmsu_table[] = {
 void mvebu_pmsu_set_cpu_boot_addr(int hw_cpu, void *boot_addr)
 {
 	writel(virt_to_phys(boot_addr), pmsu_mp_base +
-		PMSU_BOOT_ADDR_REDIRECT_OFFSET(hw_cpu));
+		   PMSU_BOOT_ADDR_REDIRECT_OFFSET(hw_cpu));
 }
 
 extern unsigned char mvebu_boot_wa_start;
@@ -126,18 +127,20 @@ extern unsigned char mvebu_boot_wa_end;
  * custom piece of code is copied to replace the problematic BootROM.
  */
 int mvebu_setup_boot_addr_wa(unsigned int crypto_eng_target,
-			     unsigned int crypto_eng_attribute,
-			     phys_addr_t resume_addr_reg)
+							 unsigned int crypto_eng_attribute,
+							 phys_addr_t resume_addr_reg)
 {
 	void __iomem *sram_virt_base;
 	u32 code_len = &mvebu_boot_wa_end - &mvebu_boot_wa_start;
 
 	mvebu_mbus_del_window(BOOTROM_BASE, BOOTROM_SIZE);
 	mvebu_mbus_add_window_by_id(crypto_eng_target, crypto_eng_attribute,
-				    SRAM_PHYS_BASE, SZ_64K);
+								SRAM_PHYS_BASE, SZ_64K);
 
 	sram_virt_base = ioremap(SRAM_PHYS_BASE, SZ_64K);
-	if (!sram_virt_base) {
+
+	if (!sram_virt_base)
+	{
 		pr_err("Unable to map SRAM to setup the boot address WA\n");
 		return -ENOMEM;
 	}
@@ -151,7 +154,7 @@ int mvebu_setup_boot_addr_wa(unsigned int crypto_eng_target,
 	 * of the system.
 	 */
 	__raw_writel((unsigned long)resume_addr_reg,
-		     sram_virt_base + code_len - 4);
+				 sram_virt_base + code_len - 4);
 
 	iounmap(sram_virt_base);
 
@@ -165,25 +168,31 @@ static int __init mvebu_v7_pmsu_init(void)
 	int ret = 0;
 
 	np = of_find_matching_node(NULL, of_pmsu_table);
+
 	if (!np)
+	{
 		return 0;
+	}
 
 	pr_info("Initializing Power Management Service Unit\n");
 
-	if (of_address_to_resource(np, 0, &res)) {
+	if (of_address_to_resource(np, 0, &res))
+	{
 		pr_err("unable to get resource\n");
 		ret = -ENOENT;
 		goto out;
 	}
 
-	if (of_device_is_compatible(np, "marvell,armada-370-xp-pmsu")) {
+	if (of_device_is_compatible(np, "marvell,armada-370-xp-pmsu"))
+	{
 		pr_warn(FW_WARN "deprecated pmsu binding\n");
 		res.start = res.start - PMSU_BASE_OFFSET;
 		res.end = res.start + PMSU_REG_SIZE - 1;
 	}
 
 	if (!request_mem_region(res.start, resource_size(&res),
-				np->full_name)) {
+							np->full_name))
+	{
 		pr_err("unable to request region\n");
 		ret = -EBUSY;
 		goto out;
@@ -192,14 +201,16 @@ static int __init mvebu_v7_pmsu_init(void)
 	pmsu_mp_phys_base = res.start;
 
 	pmsu_mp_base = ioremap(res.start, resource_size(&res));
-	if (!pmsu_mp_base) {
+
+	if (!pmsu_mp_base)
+	{
 		pr_err("unable to map registers\n");
 		release_mem_region(res.start, resource_size(&res));
 		ret = -ENOMEM;
 		goto out;
 	}
 
- out:
+out:
 	of_node_put(np);
 	return ret;
 }
@@ -209,7 +220,9 @@ static void mvebu_v7_pmsu_enable_l2_powerdown_onidle(void)
 	u32 reg;
 
 	if (pmsu_mp_base == NULL)
+	{
 		return;
+	}
 
 	/* Enable L2 & Fabric powerdown in Deep-Idle mode - Fabric */
 	reg = readl(pmsu_mp_base + L2C_NFABRIC_PM_CTL);
@@ -217,7 +230,8 @@ static void mvebu_v7_pmsu_enable_l2_powerdown_onidle(void)
 	writel(reg, pmsu_mp_base + L2C_NFABRIC_PM_CTL);
 }
 
-enum pmsu_idle_prepare_flags {
+enum pmsu_idle_prepare_flags
+{
 	PMSU_PREPARE_NORMAL = 0,
 	PMSU_PREPARE_DEEP_IDLE = BIT(0),
 	PMSU_PREPARE_SNOOP_DISABLE = BIT(1),
@@ -230,7 +244,9 @@ static int mvebu_v7_pmsu_idle_prepare(unsigned long flags)
 	u32 reg;
 
 	if (pmsu_mp_base == NULL)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Adjust the PMSU configuration to wait for WFI signal, enable
@@ -239,23 +255,27 @@ static int mvebu_v7_pmsu_idle_prepare(unsigned long flags)
 	 */
 	reg = readl(pmsu_mp_base + PMSU_STATUS_AND_MASK(hw_cpu));
 	reg |= PMSU_STATUS_AND_MASK_CPU_IDLE_WAIT    |
-	       PMSU_STATUS_AND_MASK_IRQ_WAKEUP       |
-	       PMSU_STATUS_AND_MASK_FIQ_WAKEUP       |
-	       PMSU_STATUS_AND_MASK_SNP_Q_EMPTY_WAIT |
-	       PMSU_STATUS_AND_MASK_IRQ_MASK         |
-	       PMSU_STATUS_AND_MASK_FIQ_MASK;
+		   PMSU_STATUS_AND_MASK_IRQ_WAKEUP       |
+		   PMSU_STATUS_AND_MASK_FIQ_WAKEUP       |
+		   PMSU_STATUS_AND_MASK_SNP_Q_EMPTY_WAIT |
+		   PMSU_STATUS_AND_MASK_IRQ_MASK         |
+		   PMSU_STATUS_AND_MASK_FIQ_MASK;
 	writel(reg, pmsu_mp_base + PMSU_STATUS_AND_MASK(hw_cpu));
 
 	reg = readl(pmsu_mp_base + PMSU_CONTROL_AND_CONFIG(hw_cpu));
+
 	/* ask HW to power down the L2 Cache if needed */
 	if (flags & PMSU_PREPARE_DEEP_IDLE)
+	{
 		reg |= PMSU_CONTROL_AND_CONFIG_L2_PWDDN;
+	}
 
 	/* request power down */
 	reg |= PMSU_CONTROL_AND_CONFIG_PWDDN_REQ;
 	writel(reg, pmsu_mp_base + PMSU_CONTROL_AND_CONFIG(hw_cpu));
 
-	if (flags & PMSU_PREPARE_SNOOP_DISABLE) {
+	if (flags & PMSU_PREPARE_SNOOP_DISABLE)
+	{
 		/* Disable snoop disable by HW - SW is taking care of it */
 		reg = readl(pmsu_mp_base + PMSU_CPU_POWER_DOWN_CONTROL(hw_cpu));
 		reg |= PMSU_CPU_POWER_DOWN_DIS_SNP_Q_SKIP;
@@ -271,11 +291,16 @@ int armada_370_xp_pmsu_idle_enter(unsigned long deepidle)
 	int ret;
 
 	if (deepidle)
+	{
 		flags |= PMSU_PREPARE_DEEP_IDLE;
+	}
 
 	ret = mvebu_v7_pmsu_idle_prepare(flags);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	v7_exit_coherency_flush(all);
 
@@ -294,12 +319,12 @@ int armada_370_xp_pmsu_idle_enter(unsigned long deepidle)
 
 	/* Test the CR_C bit and set it if it was cleared */
 	asm volatile(
-	"mrc	p15, 0, r0, c1, c0, 0 \n\t"
-	"tst	r0, %0 \n\t"
-	"orreq	r0, r0, #(1 << 2) \n\t"
-	"mcreq	p15, 0, r0, c1, c0, 0 \n\t"
-	"isb	"
-	: : "Ir" (CR_C) : "r0");
+		"mrc	p15, 0, r0, c1, c0, 0 \n\t"
+		"tst	r0, %0 \n\t"
+		"orreq	r0, r0, #(1 << 2) \n\t"
+		"mcreq	p15, 0, r0, c1, c0, 0 \n\t"
+		"isb	"
+		: : "Ir" (CR_C) : "r0");
 
 	pr_debug("Failed to suspend the system\n");
 
@@ -316,7 +341,9 @@ int armada_38x_do_cpu_suspend(unsigned long deepidle)
 	unsigned long flags = 0;
 
 	if (deepidle)
+	{
 		flags |= PMSU_PREPARE_DEEP_IDLE;
+	}
 
 	mvebu_v7_pmsu_idle_prepare(flags);
 	/*
@@ -344,7 +371,10 @@ void mvebu_v7_pmsu_idle_exit(void)
 	u32 reg;
 
 	if (pmsu_mp_base == NULL)
+	{
 		return;
+	}
+
 	/* cancel ask HW to power down the L2 Cache if possible */
 	reg = readl(pmsu_mp_base + PMSU_CONTROL_AND_CONFIG(hw_cpu));
 	reg &= ~PMSU_CONTROL_AND_CONFIG_L2_PWDDN;
@@ -360,19 +390,23 @@ void mvebu_v7_pmsu_idle_exit(void)
 }
 
 static int mvebu_v7_cpu_pm_notify(struct notifier_block *self,
-				    unsigned long action, void *hcpu)
+								  unsigned long action, void *hcpu)
 {
-	if (action == CPU_PM_ENTER) {
+	if (action == CPU_PM_ENTER)
+	{
 		unsigned int hw_cpu = cpu_logical_map(smp_processor_id());
 		mvebu_pmsu_set_cpu_boot_addr(hw_cpu, mvebu_cpu_resume);
-	} else if (action == CPU_PM_EXIT) {
+	}
+	else if (action == CPU_PM_EXIT)
+	{
 		mvebu_v7_pmsu_idle_exit();
 	}
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block mvebu_v7_cpu_pm_notifier = {
+static struct notifier_block mvebu_v7_cpu_pm_notifier =
+{
 	.notifier_call = mvebu_v7_cpu_pm_notify,
 };
 
@@ -380,7 +414,8 @@ static struct platform_device mvebu_v7_cpuidle_device;
 
 static int broken_idle(struct device_node *np)
 {
-	if (of_property_read_bool(np, "broken-idle")) {
+	if (of_property_read_bool(np, "broken-idle"))
+	{
 		pr_warn("CPU idle is currently broken: disabling\n");
 		return 1;
 	}
@@ -394,11 +429,16 @@ static __init int armada_370_cpuidle_init(void)
 	phys_addr_t redirect_reg;
 
 	np = of_find_compatible_node(NULL, NULL, "marvell,coherency-fabric");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	if (broken_idle(np))
+	{
 		goto end;
+	}
 
 	/*
 	 * On Armada 370, there is "a slow exit process from the deep
@@ -410,8 +450,8 @@ static __init int armada_370_cpuidle_init(void)
 	 */
 	redirect_reg = pmsu_mp_phys_base + PMSU_BOOT_ADDR_REDIRECT_OFFSET(0);
 	mvebu_setup_boot_addr_wa(ARMADA_370_CRYPT0_ENG_TARGET,
-				 ARMADA_370_CRYPT0_ENG_ATTR,
-				 redirect_reg);
+							 ARMADA_370_CRYPT0_ENG_ATTR,
+							 redirect_reg);
 
 	mvebu_cpu_resume = armada_370_xp_cpu_resume;
 	mvebu_v7_cpuidle_device.dev.platform_data = armada_370_xp_cpu_suspend;
@@ -432,19 +472,28 @@ static __init int armada_38x_cpuidle_init(void)
 	return 0;
 
 	np = of_find_compatible_node(NULL, NULL,
-				     "marvell,armada-380-coherency-fabric");
+								 "marvell,armada-380-coherency-fabric");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	if (broken_idle(np))
+	{
 		goto end;
+	}
 
 	of_node_put(np);
 
 	np = of_find_compatible_node(NULL, NULL,
-				     "marvell,armada-380-mpcore-soc-ctrl");
+								 "marvell,armada-380-mpcore-soc-ctrl");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
+
 	mpsoc_base = of_iomap(np, 0);
 	BUG_ON(!mpsoc_base);
 
@@ -476,11 +525,16 @@ static __init int armada_xp_cpuidle_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "marvell,coherency-fabric");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	if (broken_idle(np))
+	{
 		goto end;
+	}
 
 	mvebu_cpu_resume = armada_370_xp_cpu_resume;
 	mvebu_v7_cpuidle_device.dev.platform_data = armada_370_xp_cpu_suspend;
@@ -497,8 +551,12 @@ static int __init mvebu_v7_cpu_pm_init(void)
 	int ret;
 
 	np = of_find_matching_node(NULL, of_pmsu_table);
+
 	if (!np)
+	{
 		return 0;
+	}
+
 	of_node_put(np);
 
 	/*
@@ -506,26 +564,41 @@ static int __init mvebu_v7_cpu_pm_init(void)
 	 * the CPU hotplug uses some of the CPU idle functions it is
 	 * broken too, so let's disable it
 	 */
-	if (of_machine_is_compatible("marvell,armada380")) {
+	if (of_machine_is_compatible("marvell,armada380"))
+	{
 		cpu_hotplug_disable();
 		pr_warn("CPU hotplug support is currently broken on Armada 38x: disabling\n");
 	}
 
 	if (of_machine_is_compatible("marvell,armadaxp"))
+	{
 		ret = armada_xp_cpuidle_init();
+	}
 	else if (of_machine_is_compatible("marvell,armada370"))
+	{
 		ret = armada_370_cpuidle_init();
+	}
 	else if (of_machine_is_compatible("marvell,armada380"))
+	{
 		ret = armada_38x_cpuidle_init();
+	}
 	else
+	{
 		return 0;
+	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	mvebu_v7_pmsu_enable_l2_powerdown_onidle();
+
 	if (mvebu_v7_cpuidle_device.name)
+	{
 		platform_device_register(&mvebu_v7_cpuidle_device);
+	}
+
 	cpu_pm_register_notifier(&mvebu_v7_cpu_pm_notifier);
 
 	return 0;
@@ -545,8 +618,8 @@ static void mvebu_pmsu_dfs_request_local(void *data)
 	/* Prepare to enter idle */
 	reg = readl(pmsu_mp_base + PMSU_STATUS_AND_MASK(cpu));
 	reg |= PMSU_STATUS_AND_MASK_CPU_IDLE_WAIT |
-	       PMSU_STATUS_AND_MASK_IRQ_MASK     |
-	       PMSU_STATUS_AND_MASK_FIQ_MASK;
+		   PMSU_STATUS_AND_MASK_IRQ_MASK     |
+		   PMSU_STATUS_AND_MASK_FIQ_MASK;
 	writel(reg, pmsu_mp_base + PMSU_STATUS_AND_MASK(cpu));
 
 	/* Request the DFS transition */
@@ -586,19 +659,27 @@ int mvebu_pmsu_dfs_request(int cpu)
 
 	/* Trigger the DFS on the appropriate CPU */
 	smp_call_function_single(cpu, mvebu_pmsu_dfs_request_local,
-				 NULL, false);
+							 NULL, false);
 
 	/* Poll until the DFS done event is generated */
 	timeout = jiffies + HZ;
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		reg = readl(pmsu_mp_base + PMSU_EVENT_STATUS_AND_MASK(hwcpu));
+
 		if (reg & PMSU_EVENT_STATUS_AND_MASK_DFS_DONE)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
 
 	if (time_after(jiffies, timeout))
+	{
 		return -ETIME;
+	}
 
 	/* Restore the DFS mask to its original state */
 	reg = readl(pmsu_mp_base + PMSU_EVENT_STATUS_AND_MASK(hwcpu));

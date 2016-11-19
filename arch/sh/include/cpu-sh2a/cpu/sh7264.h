@@ -1,7 +1,8 @@
 #ifndef __ASM_SH7264_H__
 #define __ASM_SH7264_H__
 
-enum {
+enum
+{
 	/* Port A */
 	GPIO_PA3, GPIO_PA2, GPIO_PA1, GPIO_PA0,
 

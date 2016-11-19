@@ -31,7 +31,8 @@
  * Key storage is allocated as a linked list of pages.
  * The size of the keys array is (PAGE_SIZE - sizeof(long))
  */
-struct page_key_data {
+struct page_key_data
+{
 	struct page_key_data *next;
 	unsigned char data[];
 };
@@ -62,7 +63,8 @@ void page_key_free(void)
 {
 	struct page_key_data *pkd;
 
-	while (page_key_data) {
+	while (page_key_data)
+	{
 		pkd = page_key_data;
 		page_key_data = pkd->next;
 		free_page((unsigned long) pkd);
@@ -79,15 +81,21 @@ int page_key_alloc(unsigned long pages)
 	unsigned long size;
 
 	size = DIV_ROUND_UP(pages, PAGE_KEY_DATA_SIZE);
-	while (size--) {
+
+	while (size--)
+	{
 		pk = (struct page_key_data *) get_zeroed_page(GFP_KERNEL);
-		if (!pk) {
+
+		if (!pk)
+		{
 			page_key_free();
 			return -ENOMEM;
 		}
+
 		pk->next = page_key_data;
 		page_key_data = pk;
 	}
+
 	page_key_rp = page_key_wp = page_key_data;
 	page_key_rx = page_key_wx = 0;
 	return 0;
@@ -112,8 +120,12 @@ void page_key_memorize(unsigned long *pfn)
 {
 	page_key_wp->data[page_key_wx] = *(unsigned char *) pfn;
 	*(unsigned char *) pfn = 0;
+
 	if (++page_key_wx < PAGE_KEY_DATA_SIZE)
+	{
 		return;
+	}
+
 	page_key_wp = page_key_wp->next;
 	page_key_wx = 0;
 }
@@ -127,9 +139,13 @@ void page_key_memorize(unsigned long *pfn)
 void page_key_write(void *address)
 {
 	page_set_storage_key((unsigned long) address,
-			     page_key_rp->data[page_key_rx], 0);
+						 page_key_rp->data[page_key_rx], 0);
+
 	if (++page_key_rx >= PAGE_KEY_DATA_SIZE)
+	{
 		return;
+	}
+
 	page_key_rp = page_key_rp->next;
 	page_key_rx = 0;
 }
@@ -143,14 +159,26 @@ int pfn_is_nosave(unsigned long pfn)
 
 	/* Always save lowcore pages (LC protection might be enabled). */
 	if (pfn <= LC_PAGES)
+	{
 		return 0;
+	}
+
 	if (pfn >= nosave_begin_pfn && pfn < nosave_end_pfn)
+	{
 		return 1;
+	}
+
 	/* Skip memory holes and read-only pages (NSS, DCSS, ...). */
 	if (pfn >= stext_pfn && pfn <= eshared_pfn)
+	{
 		return ipl_info.type == IPL_TYPE_NSS ? 1 : 0;
+	}
+
 	if (tprot(PFN_PHYS(pfn)))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -158,22 +186,30 @@ int pfn_is_nosave(unsigned long pfn)
  * PM notifier callback for suspend
  */
 static int suspend_pm_cb(struct notifier_block *nb, unsigned long action,
-			 void *ptr)
+						 void *ptr)
 {
-	switch (action) {
-	case PM_SUSPEND_PREPARE:
-	case PM_HIBERNATION_PREPARE:
-		suspend_zero_pages = __get_free_pages(GFP_KERNEL, LC_ORDER);
-		if (!suspend_zero_pages)
-			return NOTIFY_BAD;
-		break;
-	case PM_POST_SUSPEND:
-	case PM_POST_HIBERNATION:
-		free_pages(suspend_zero_pages, LC_ORDER);
-		break;
-	default:
-		return NOTIFY_DONE;
+	switch (action)
+	{
+		case PM_SUSPEND_PREPARE:
+		case PM_HIBERNATION_PREPARE:
+			suspend_zero_pages = __get_free_pages(GFP_KERNEL, LC_ORDER);
+
+			if (!suspend_zero_pages)
+			{
+				return NOTIFY_BAD;
+			}
+
+			break;
+
+		case PM_POST_SUSPEND:
+		case PM_POST_HIBERNATION:
+			free_pages(suspend_zero_pages, LC_ORDER);
+			break;
+
+		default:
+			return NOTIFY_DONE;
 	}
+
 	return NOTIFY_OK;
 }
 
@@ -198,7 +234,7 @@ void save_processor_state(void)
 	 */
 	local_mcck_disable();
 	/* Disable lowcore protection */
-	__ctl_clear_bit(0,28);
+	__ctl_clear_bit(0, 28);
 	S390_lowcore.external_new_psw.mask &= ~PSW_MASK_MCHECK;
 	S390_lowcore.svc_new_psw.mask &= ~PSW_MASK_MCHECK;
 	S390_lowcore.io_new_psw.mask &= ~PSW_MASK_MCHECK;
@@ -212,7 +248,7 @@ void restore_processor_state(void)
 	S390_lowcore.io_new_psw.mask |= PSW_MASK_MCHECK;
 	S390_lowcore.program_new_psw.mask |= PSW_MASK_MCHECK;
 	/* Enable lowcore protection */
-	__ctl_set_bit(0,28);
+	__ctl_set_bit(0, 28);
 	local_mcck_enable();
 }
 

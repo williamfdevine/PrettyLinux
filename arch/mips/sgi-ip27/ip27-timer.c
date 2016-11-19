@@ -45,7 +45,8 @@ static void disable_rt_irq(struct irq_data *d)
 {
 }
 
-static struct irq_chip rt_irq_type = {
+static struct irq_chip rt_irq_type =
+{
 	.name		= "SN HUB RT timer",
 	.irq_mask	= disable_rt_irq,
 	.irq_unmask	= enable_rt_irq,
@@ -84,7 +85,8 @@ static irqreturn_t hub_rt_counter_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-struct irqaction hub_rt_irqaction = {
+struct irqaction hub_rt_irqaction =
+{
 	.handler	= hub_rt_counter_handler,
 	.flags		= IRQF_PERCPU | IRQF_TIMER,
 	.name		= "hub-rt",
@@ -125,16 +127,24 @@ static void __init hub_rt_clock_event_global_init(void)
 {
 	int irq;
 
-	do {
+	do
+	{
 		smp_wmb();
 		irq = rt_timer_irq;
+
 		if (irq)
+		{
 			break;
+		}
 
 		irq = allocate_irqno();
+
 		if (irq < 0)
+		{
 			panic("Allocation of irq number for timer failed");
-	} while (xchg(&rt_timer_irq, irq));
+		}
+	}
+	while (xchg(&rt_timer_irq, irq));
 
 	irq_set_chip_and_handler(irq, &rt_irq_type, handle_percpu_irq);
 	setup_irq(irq, &hub_rt_irqaction);
@@ -145,7 +155,8 @@ static cycle_t hub_rt_read(struct clocksource *cs)
 	return REMOTE_HUB_L(cputonasid(0), PI_RT_COUNT);
 }
 
-struct clocksource hub_rt_clocksource = {
+struct clocksource hub_rt_clocksource =
+{
 	.name	= "HUB-RT",
 	.rating = 200,
 	.read	= hub_rt_read,
@@ -182,13 +193,19 @@ void cpu_time_init(void)
 
 	/* Don't use ARCS.  ARCS is fragile.  Klconfig is simple and sane.  */
 	board = find_lboard(KL_CONFIG_INFO(get_nasid()), KLTYPE_IP27);
+
 	if (!board)
+	{
 		panic("Can't find board info for myself.");
+	}
 
 	cpuid = LOCAL_HUB_L(PI_CPU_NUM) ? IP27_CPU0_INDEX : IP27_CPU1_INDEX;
 	cpu = (klcpu_t *) KLCF_COMP(board, cpuid);
+
 	if (!cpu)
+	{
 		panic("No information about myself?");
+	}
 
 	printk("CPU %d clock is %dMHz.\n", smp_processor_id(), cpu->cpu_speed);
 
@@ -203,7 +220,8 @@ void hub_rtc_init(cnodeid_t cnode)
 	 * If this is not the current node then it is a cpuless
 	 * node and timeouts will not happen there.
 	 */
-	if (get_compact_nodeid() == cnode) {
+	if (get_compact_nodeid() == cnode)
+	{
 		LOCAL_HUB_S(PI_RT_EN_A, 1);
 		LOCAL_HUB_S(PI_RT_EN_B, 1);
 		LOCAL_HUB_S(PI_PROF_EN_A, 0);
@@ -220,12 +238,12 @@ static int __init sgi_ip27_rtc_devinit(void)
 
 	memset(&res, 0, sizeof(res));
 	res.start = XPHYSADDR(KL_CONFIG_CH_CONS_INFO(master_nasid)->memory_base +
-			      IOC3_BYTEBUS_DEV0);
+						  IOC3_BYTEBUS_DEV0);
 	res.end = res.start + 32767;
 	res.flags = IORESOURCE_MEM;
 
 	return IS_ERR(platform_device_register_simple("rtc-m48t35", -1,
-						      &res, 1));
+				  &res, 1));
 }
 
 /*

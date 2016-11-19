@@ -25,24 +25,35 @@ static void xen_pv_pre_suspend(void)
 	BUG_ON(!irqs_disabled());
 
 	HYPERVISOR_shared_info = &xen_dummy_shared_info;
+
 	if (HYPERVISOR_update_va_mapping(fix_to_virt(FIX_PARAVIRT_BOOTMAP),
-					 __pte_ma(0), 0))
+									 __pte_ma(0), 0))
+	{
 		BUG();
+	}
 }
 
 static void xen_hvm_post_suspend(int suspend_cancelled)
 {
 #ifdef CONFIG_XEN_PVHVM
 	int cpu;
+
 	if (!suspend_cancelled)
-	    xen_hvm_init_shared_info();
+	{
+		xen_hvm_init_shared_info();
+	}
+
 	xen_callback_vector();
 	xen_unplug_emulated_devices();
-	if (xen_feature(XENFEAT_hvm_safe_pvclock)) {
-		for_each_online_cpu(cpu) {
+
+	if (xen_feature(XENFEAT_hvm_safe_pvclock))
+	{
+		for_each_online_cpu(cpu)
+		{
 			xen_setup_runstate_info(cpu);
 		}
 	}
+
 #endif
 }
 
@@ -52,12 +63,15 @@ static void xen_pv_post_suspend(int suspend_cancelled)
 
 	xen_setup_shared_info();
 
-	if (suspend_cancelled) {
+	if (suspend_cancelled)
+	{
 		xen_start_info->store_mfn =
 			pfn_to_mfn(xen_start_info->store_mfn);
 		xen_start_info->console.domU.mfn =
 			pfn_to_mfn(xen_start_info->console.domU.mfn);
-	} else {
+	}
+	else
+	{
 #ifdef CONFIG_SMP
 		BUG_ON(xen_cpu_initialized_map == NULL);
 		cpumask_copy(xen_cpu_initialized_map, cpu_online_mask);
@@ -71,22 +85,30 @@ static void xen_pv_post_suspend(int suspend_cancelled)
 void xen_arch_pre_suspend(void)
 {
 	if (xen_pv_domain())
+	{
 		xen_pv_pre_suspend();
+	}
 }
 
 void xen_arch_post_suspend(int cancelled)
 {
 	if (xen_pv_domain())
+	{
 		xen_pv_post_suspend(cancelled);
+	}
 	else
+	{
 		xen_hvm_post_suspend(cancelled);
+	}
 }
 
 static void xen_vcpu_notify_restore(void *data)
 {
 	/* Boot processor notified via generic timekeeping_resume() */
 	if (smp_processor_id() == 0)
+	{
 		return;
+	}
 
 	tick_resume_local();
 }
@@ -103,7 +125,7 @@ void xen_arch_resume(void)
 	on_each_cpu(xen_vcpu_notify_restore, NULL, 1);
 
 	for_each_online_cpu(cpu)
-		xen_pmu_init(cpu);
+	xen_pmu_init(cpu);
 }
 
 void xen_arch_suspend(void)
@@ -111,7 +133,7 @@ void xen_arch_suspend(void)
 	int cpu;
 
 	for_each_online_cpu(cpu)
-		xen_pmu_finish(cpu);
+	xen_pmu_finish(cpu);
 
 	on_each_cpu(xen_vcpu_notify_suspend, NULL, 1);
 }

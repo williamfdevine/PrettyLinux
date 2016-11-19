@@ -38,14 +38,21 @@ static void early_console_write(struct console *con, const char *s, unsigned n)
 {
 	unsigned long status;
 
-	while (n-- && *s) {
+	while (n-- && *s)
+	{
 		while (((status = JUART_GET_CR())
-				& ALTERA_JTAGUART_CONTROL_WSPACE_MSK) == 0) {
+				& ALTERA_JTAGUART_CONTROL_WSPACE_MSK) == 0)
+		{
 #if defined(CONFIG_SERIAL_ALTERA_JTAGUART_CONSOLE_BYPASS)
+
 			if ((status & ALTERA_JTAGUART_CONTROL_AC_MSK) == 0)
-				return;	/* no connection activity */
+			{
+				return;    /* no connection activity */
+			}
+
 #endif
 		}
+
 		JUART_SET_TX(*s);
 		s++;
 	}
@@ -72,10 +79,15 @@ static void early_console_putc(char c)
 
 static void early_console_write(struct console *con, const char *s, unsigned n)
 {
-	while (n-- && *s) {
+	while (n-- && *s)
+	{
 		early_console_putc(*s);
+
 		if (*s == '\n')
+		{
 			early_console_putc('\r');
+		}
+
 		s++;
 	}
 }
@@ -85,7 +97,8 @@ static void early_console_write(struct console *con, const char *s, unsigned n)
 selected
 #endif
 
-static struct console early_console_prom = {
+static struct console early_console_prom =
+{
 	.name	= "early",
 	.write	= early_console_write,
 	.flags	= CON_PRINTBUFFER | CON_BOOT,
@@ -102,7 +115,9 @@ void __init setup_early_printk(void)
 #endif
 
 	if (!base_addr)
+	{
 		return;
+	}
 
 #if defined(CONFIG_SERIAL_ALTERA_JTAGUART_CONSOLE_BYPASS)
 	/* Clear activity bit so BYPASS doesn't stall if we've used JTAG for

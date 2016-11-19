@@ -26,7 +26,8 @@
 
 #define RETCODE_SIZE (9 << 2)	/* 9 instructions = 36 bytes */
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo __user *pinfo;
 	void __user *puc;
 	struct siginfo info;
@@ -35,7 +36,7 @@ struct rt_sigframe {
 };
 
 static int restore_sigcontext(struct pt_regs *regs,
-			      struct sigcontext __user *sc)
+							  struct sigcontext __user *sc)
 {
 	int err = 0;
 
@@ -76,19 +77,28 @@ asmlinkage int do_rt_sigreturn(struct pt_regs *regs)
 	 * not, then the user is trying to mess with us.
 	 */
 	if (regs->sp & 7)
+	{
 		goto badframe;
+	}
 
 	frame = (struct rt_sigframe __user *) ((unsigned long) regs->sp + 8);
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
+
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+	{
 		goto badframe;
+	}
 
 	return regs->a4;
 
@@ -98,7 +108,7 @@ badframe:
 }
 
 static int setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
-			    unsigned long mask)
+							unsigned long mask)
 {
 	int err = 0;
 
@@ -128,8 +138,8 @@ static int setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
 }
 
 static inline void __user *get_sigframe(struct ksignal *ksig,
-					struct pt_regs *regs,
-					unsigned long framesize)
+										struct pt_regs *regs,
+										unsigned long framesize)
 {
 	unsigned long sp = sigsp(regs->sp, ksig);
 
@@ -141,7 +151,7 @@ static inline void __user *get_sigframe(struct ksignal *ksig,
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame;
 	unsigned long __user *retcode;
@@ -150,7 +160,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(ksig, regs, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	err |= __put_user(&frame->info, &frame->pinfo);
 	err |= __put_user(&frame->uc, &frame->puc);
@@ -169,7 +181,7 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 #define COPY(x) (err |= __put_user(x, retcode++))
 
 	COPY(0x0000002AUL | (__NR_rt_sigreturn << 7));
-				/* MVK __NR_rt_sigreturn,B0 */
+	/* MVK __NR_rt_sigreturn,B0 */
 	COPY(0x10000000UL);	/* SWE */
 	COPY(0x00006000UL);	/* NOP 4 */
 	COPY(0x00006000UL);	/* NOP 4 */
@@ -182,10 +194,12 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 #undef COPY
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	flush_icache_range((unsigned long) &frame->retcode,
-			   (unsigned long) &frame->retcode + RETCODE_SIZE);
+					   (unsigned long) &frame->retcode + RETCODE_SIZE);
 
 	retcode = (unsigned long __user *) &frame->retcode;
 
@@ -211,24 +225,30 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 static inline void
 handle_restart(struct pt_regs *regs, struct k_sigaction *ka, int has_handler)
 {
-	switch (regs->a4) {
-	case -ERESTARTNOHAND:
-		if (!has_handler)
-			goto do_restart;
-		regs->a4 = -EINTR;
-		break;
+	switch (regs->a4)
+	{
+		case -ERESTARTNOHAND:
+			if (!has_handler)
+			{
+				goto do_restart;
+			}
 
-	case -ERESTARTSYS:
-		if (has_handler && !(ka->sa.sa_flags & SA_RESTART)) {
 			regs->a4 = -EINTR;
 			break;
-		}
-	/* fallthrough */
-	case -ERESTARTNOINTR:
+
+		case -ERESTARTSYS:
+			if (has_handler && !(ka->sa.sa_flags & SA_RESTART))
+			{
+				regs->a4 = -EINTR;
+				break;
+			}
+
+		/* fallthrough */
+		case -ERESTARTNOINTR:
 do_restart:
-		regs->a4 = regs->orig_a4;
-		regs->pc -= 4;
-		break;
+			regs->a4 = regs->orig_a4;
+			regs->pc -= 4;
+			break;
 	}
 }
 
@@ -236,29 +256,32 @@ do_restart:
  * handle the actual delivery of a signal to userspace
  */
 static void handle_signal(struct ksignal *ksig, struct pt_regs *regs,
-			  int syscall)
+						  int syscall)
 {
 	int ret;
 
 	/* Are we from a system call? */
-	if (syscall) {
+	if (syscall)
+	{
 		/* If so, check system call restarting.. */
-		switch (regs->a4) {
-		case -ERESTART_RESTARTBLOCK:
-		case -ERESTARTNOHAND:
-			regs->a4 = -EINTR;
-			break;
-
-		case -ERESTARTSYS:
-			if (!(ksig->ka.sa.sa_flags & SA_RESTART)) {
+		switch (regs->a4)
+		{
+			case -ERESTART_RESTARTBLOCK:
+			case -ERESTARTNOHAND:
 				regs->a4 = -EINTR;
 				break;
-			}
+
+			case -ERESTARTSYS:
+				if (!(ksig->ka.sa.sa_flags & SA_RESTART))
+				{
+					regs->a4 = -EINTR;
+					break;
+				}
 
 			/* fallthrough */
-		case -ERESTARTNOINTR:
-			regs->a4 = regs->orig_a4;
-			regs->pc -= 4;
+			case -ERESTARTNOINTR:
+				regs->a4 = regs->orig_a4;
+				regs->pc -= 4;
 		}
 	}
 
@@ -277,29 +300,34 @@ static void do_signal(struct pt_regs *regs, int syscall)
 	/* we want the common case to go fast, which is why we may in certain
 	 * cases get here from kernel mode */
 	if (!user_mode(regs))
+	{
 		return;
+	}
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		handle_signal(&ksig, regs, syscall);
 		return;
 	}
 
 	/* did we come from a system call? */
-	if (syscall) {
+	if (syscall)
+	{
 		/* restart the system call - no handlers present */
-		switch (regs->a4) {
-		case -ERESTARTNOHAND:
-		case -ERESTARTSYS:
-		case -ERESTARTNOINTR:
-			regs->a4 = regs->orig_a4;
-			regs->pc -= 4;
-			break;
+		switch (regs->a4)
+		{
+			case -ERESTARTNOHAND:
+			case -ERESTARTSYS:
+			case -ERESTARTNOINTR:
+				regs->a4 = regs->orig_a4;
+				regs->pc -= 4;
+				break;
 
-		case -ERESTART_RESTARTBLOCK:
-			regs->a4 = regs->orig_a4;
-			regs->b0 = __NR_restart_syscall;
-			regs->pc -= 4;
-			break;
+			case -ERESTART_RESTARTBLOCK:
+				regs->a4 = regs->orig_a4;
+				regs->b0 = __NR_restart_syscall;
+				regs->pc -= 4;
+				break;
 		}
 	}
 
@@ -313,13 +341,16 @@ static void do_signal(struct pt_regs *regs, int syscall)
  * - triggered by current->work.notify_resume
  */
 asmlinkage void do_notify_resume(struct pt_regs *regs, u32 thread_info_flags,
-				 int syscall)
+								 int syscall)
 {
 	/* deal with pending signal delivery */
 	if (thread_info_flags & (1 << TIF_SIGPENDING))
+	{
 		do_signal(regs, syscall);
+	}
 
-	if (thread_info_flags & (1 << TIF_NOTIFY_RESUME)) {
+	if (thread_info_flags & (1 << TIF_NOTIFY_RESUME))
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}

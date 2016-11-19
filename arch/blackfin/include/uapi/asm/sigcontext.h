@@ -8,7 +8,8 @@
 #define _UAPI_ASM_BLACKFIN_SIGCONTEXT_H
 
 /* Add new entries at the end of the structure only.  */
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long sc_r0;
 	unsigned long sc_r1;
 	unsigned long sc_r2;

@@ -48,7 +48,8 @@
 
 #define AR71XX_PCI_IRQ_COUNT		5
 
-struct ar71xx_pci_controller {
+struct ar71xx_pci_controller
+{
 	void __iomem *cfg_base;
 	int irq;
 	int irq_base;
@@ -58,14 +59,16 @@ struct ar71xx_pci_controller {
 };
 
 /* Byte lane enable bits */
-static const u8 ar71xx_pci_ble_table[4][4] = {
+static const u8 ar71xx_pci_ble_table[4][4] =
+{
 	{0x0, 0xf, 0xf, 0xf},
 	{0xe, 0xd, 0xb, 0x7},
 	{0xc, 0xf, 0x3, 0xf},
 	{0xf, 0xf, 0xf, 0xf},
 };
 
-static const u32 ar71xx_pci_read_mask[8] = {
+static const u32 ar71xx_pci_read_mask[8] =
+{
 	0, 0xff, 0xffff, 0, 0xffffffff, 0, 0, 0
 };
 
@@ -81,18 +84,21 @@ static inline u32 ar71xx_pci_get_ble(int where, int size, int local)
 }
 
 static inline u32 ar71xx_pci_bus_addr(struct pci_bus *bus, unsigned int devfn,
-				      int where)
+									  int where)
 {
 	u32 ret;
 
-	if (!bus->number) {
+	if (!bus->number)
+	{
 		/* type 0 */
 		ret = (1 << PCI_SLOT(devfn)) | (PCI_FUNC(devfn) << 8) |
-		      (where & ~3);
-	} else {
+			  (where & ~3);
+	}
+	else
+	{
 		/* type 1 */
 		ret = (bus->number << 16) | (PCI_SLOT(devfn) << 11) |
-		      (PCI_FUNC(devfn) << 8) | (where & ~3) | 1;
+			  (PCI_FUNC(devfn) << 8) | (where & ~3) | 1;
 	}
 
 	return ret;
@@ -114,13 +120,16 @@ static int ar71xx_pci_check_error(struct ar71xx_pci_controller *apc, int quiet)
 	u32 ahb_err;
 
 	pci_err = __raw_readl(base + AR71XX_PCI_REG_PCI_ERR) & 3;
-	if (pci_err) {
-		if (!quiet) {
+
+	if (pci_err)
+	{
+		if (!quiet)
+		{
 			u32 addr;
 
 			addr = __raw_readl(base + AR71XX_PCI_REG_PCI_ERR_ADDR);
 			pr_crit("ar71xx: %s bus error %d at addr 0x%x\n",
-				"PCI", pci_err, addr);
+					"PCI", pci_err, addr);
 		}
 
 		/* clear PCI error status */
@@ -128,13 +137,16 @@ static int ar71xx_pci_check_error(struct ar71xx_pci_controller *apc, int quiet)
 	}
 
 	ahb_err = __raw_readl(base + AR71XX_PCI_REG_AHB_ERR) & 1;
-	if (ahb_err) {
-		if (!quiet) {
+
+	if (ahb_err)
+	{
+		if (!quiet)
+		{
 			u32 addr;
 
 			addr = __raw_readl(base + AR71XX_PCI_REG_AHB_ERR_ADDR);
 			pr_crit("ar71xx: %s bus error %d at addr 0x%x\n",
-				"AHB", ahb_err, addr);
+					"AHB", ahb_err, addr);
 		}
 
 		/* clear AHB error status */
@@ -145,7 +157,7 @@ static int ar71xx_pci_check_error(struct ar71xx_pci_controller *apc, int quiet)
 }
 
 static inline void ar71xx_pci_local_write(struct ar71xx_pci_controller *apc,
-					  int where, int size, u32 value)
+		int where, int size, u32 value)
 {
 	void __iomem *base = apc->cfg_base;
 	u32 ad_cbe;
@@ -160,8 +172,8 @@ static inline void ar71xx_pci_local_write(struct ar71xx_pci_controller *apc,
 }
 
 static inline int ar71xx_pci_set_cfgaddr(struct pci_bus *bus,
-					 unsigned int devfn,
-					 int where, int size, u32 cmd)
+		unsigned int devfn,
+		int where, int size, u32 cmd)
 {
 	struct ar71xx_pci_controller *apc = pci_bus_to_ar71xx_controller(bus);
 	void __iomem *base = apc->cfg_base;
@@ -171,13 +183,13 @@ static inline int ar71xx_pci_set_cfgaddr(struct pci_bus *bus,
 
 	__raw_writel(addr, base + AR71XX_PCI_REG_CFG_AD);
 	__raw_writel(cmd | ar71xx_pci_get_ble(where, size, 0),
-		     base + AR71XX_PCI_REG_CFG_CBE);
+				 base + AR71XX_PCI_REG_CFG_CBE);
 
 	return ar71xx_pci_check_error(apc, 1);
 }
 
 static int ar71xx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
-				  int where, int size, u32 *value)
+								  int where, int size, u32 *value)
 {
 	struct ar71xx_pci_controller *apc = pci_bus_to_ar71xx_controller(bus);
 	void __iomem *base = apc->cfg_base;
@@ -189,11 +201,16 @@ static int ar71xx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
 	data = ~0;
 
 	err = ar71xx_pci_set_cfgaddr(bus, devfn, where, size,
-				     AR71XX_PCI_CFG_CMD_READ);
+								 AR71XX_PCI_CFG_CMD_READ);
+
 	if (err)
+	{
 		ret = PCIBIOS_DEVICE_NOT_FOUND;
+	}
 	else
+	{
 		data = __raw_readl(base + AR71XX_PCI_REG_CFG_RDDATA);
+	}
 
 	*value = (data >> (8 * (where & 3))) & ar71xx_pci_read_mask[size & 7];
 
@@ -201,7 +218,7 @@ static int ar71xx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
 }
 
 static int ar71xx_pci_write_config(struct pci_bus *bus, unsigned int devfn,
-				   int where, int size, u32 value)
+								   int where, int size, u32 value)
 {
 	struct ar71xx_pci_controller *apc = pci_bus_to_ar71xx_controller(bus);
 	void __iomem *base = apc->cfg_base;
@@ -212,16 +229,22 @@ static int ar71xx_pci_write_config(struct pci_bus *bus, unsigned int devfn,
 	ret = PCIBIOS_SUCCESSFUL;
 
 	err = ar71xx_pci_set_cfgaddr(bus, devfn, where, size,
-				     AR71XX_PCI_CFG_CMD_WRITE);
+								 AR71XX_PCI_CFG_CMD_WRITE);
+
 	if (err)
+	{
 		ret = PCIBIOS_DEVICE_NOT_FOUND;
+	}
 	else
+	{
 		__raw_writel(value, base + AR71XX_PCI_REG_CFG_WRDATA);
+	}
 
 	return ret;
 }
 
-static struct pci_ops ar71xx_pci_ops = {
+static struct pci_ops ar71xx_pci_ops =
+{
 	.read	= ar71xx_pci_read_config,
 	.write	= ar71xx_pci_write_config,
 };
@@ -235,22 +258,32 @@ static void ar71xx_pci_irq_handler(struct irq_desc *desc)
 	apc = irq_desc_get_handler_data(desc);
 
 	pending = __raw_readl(base + AR71XX_RESET_REG_PCI_INT_STATUS) &
-		  __raw_readl(base + AR71XX_RESET_REG_PCI_INT_ENABLE);
+			  __raw_readl(base + AR71XX_RESET_REG_PCI_INT_ENABLE);
 
 	if (pending & AR71XX_PCI_INT_DEV0)
+	{
 		generic_handle_irq(apc->irq_base + 0);
+	}
 
 	else if (pending & AR71XX_PCI_INT_DEV1)
+	{
 		generic_handle_irq(apc->irq_base + 1);
+	}
 
 	else if (pending & AR71XX_PCI_INT_DEV2)
+	{
 		generic_handle_irq(apc->irq_base + 2);
+	}
 
 	else if (pending & AR71XX_PCI_INT_CORE)
+	{
 		generic_handle_irq(apc->irq_base + 4);
+	}
 
 	else
+	{
 		spurious_interrupt();
+	}
 }
 
 static void ar71xx_pci_irq_unmask(struct irq_data *d)
@@ -287,7 +320,8 @@ static void ar71xx_pci_irq_mask(struct irq_data *d)
 	__raw_readl(base + AR71XX_RESET_REG_PCI_INT_ENABLE);
 }
 
-static struct irq_chip ar71xx_pci_irq_chip = {
+static struct irq_chip ar71xx_pci_irq_chip =
+{
 	.name		= "AR71XX PCI",
 	.irq_mask	= ar71xx_pci_irq_mask,
 	.irq_unmask	= ar71xx_pci_irq_unmask,
@@ -305,15 +339,17 @@ static void ar71xx_pci_irq_init(struct ar71xx_pci_controller *apc)
 	BUILD_BUG_ON(ATH79_PCI_IRQ_COUNT < AR71XX_PCI_IRQ_COUNT);
 
 	apc->irq_base = ATH79_PCI_IRQ_BASE;
+
 	for (i = apc->irq_base;
-	     i < apc->irq_base + AR71XX_PCI_IRQ_COUNT; i++) {
+		 i < apc->irq_base + AR71XX_PCI_IRQ_COUNT; i++)
+	{
 		irq_set_chip_and_handler(i, &ar71xx_pci_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_set_chip_data(i, apc);
 	}
 
 	irq_set_chained_handler_and_data(apc->irq, ar71xx_pci_irq_handler,
-					 apc);
+									 apc);
 }
 
 static void ar71xx_pci_reset(void)
@@ -335,22 +371,34 @@ static int ar71xx_pci_probe(struct platform_device *pdev)
 	u32 t;
 
 	apc = devm_kzalloc(&pdev->dev, sizeof(struct ar71xx_pci_controller),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!apc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "cfg_base");
 	apc->cfg_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(apc->cfg_base))
+	{
 		return PTR_ERR(apc->cfg_base);
+	}
 
 	apc->irq = platform_get_irq(pdev, 0);
+
 	if (apc->irq < 0)
+	{
 		return -EINVAL;
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_IO, "io_base");
+
 	if (!res)
+	{
 		return -EINVAL;
+	}
 
 	apc->io_res.parent = res;
 	apc->io_res.name = "PCI IO space";
@@ -359,8 +407,11 @@ static int ar71xx_pci_probe(struct platform_device *pdev)
 	apc->io_res.flags = IORESOURCE_IO;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mem_base");
+
 	if (!res)
+	{
 		return -EINVAL;
+	}
 
 	apc->mem_res.parent = res;
 	apc->mem_res.name = "PCI memory space";
@@ -372,7 +423,7 @@ static int ar71xx_pci_probe(struct platform_device *pdev)
 
 	/* setup COMMAND register */
 	t = PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER | PCI_COMMAND_INVALIDATE
-	  | PCI_COMMAND_PARITY | PCI_COMMAND_SERR | PCI_COMMAND_FAST_BACK;
+		| PCI_COMMAND_PARITY | PCI_COMMAND_SERR | PCI_COMMAND_FAST_BACK;
 	ar71xx_pci_local_write(apc, PCI_COMMAND, 4, t);
 
 	/* clear bus errors */
@@ -389,7 +440,8 @@ static int ar71xx_pci_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ar71xx_pci_driver = {
+static struct platform_driver ar71xx_pci_driver =
+{
 	.probe = ar71xx_pci_probe,
 	.driver = {
 		.name = "ar71xx-pci",

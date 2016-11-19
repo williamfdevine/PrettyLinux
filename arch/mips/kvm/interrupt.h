@@ -40,11 +40,11 @@ int kvm_mips_pending_timer(struct kvm_vcpu *vcpu);
 void kvm_mips_queue_timer_int_cb(struct kvm_vcpu *vcpu);
 void kvm_mips_dequeue_timer_int_cb(struct kvm_vcpu *vcpu);
 void kvm_mips_queue_io_int_cb(struct kvm_vcpu *vcpu,
-			      struct kvm_mips_interrupt *irq);
+							  struct kvm_mips_interrupt *irq);
 void kvm_mips_dequeue_io_int_cb(struct kvm_vcpu *vcpu,
-				struct kvm_mips_interrupt *irq);
+								struct kvm_mips_interrupt *irq);
 int kvm_mips_irq_deliver_cb(struct kvm_vcpu *vcpu, unsigned int priority,
-			    u32 cause);
+							u32 cause);
 int kvm_mips_irq_clear_cb(struct kvm_vcpu *vcpu, unsigned int priority,
-			  u32 cause);
+						  u32 cause);
 void kvm_mips_deliver_interrupts(struct kvm_vcpu *vcpu, u32 cause);

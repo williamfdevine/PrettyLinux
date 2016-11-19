@@ -19,7 +19,8 @@
 #include "bridge-regs.h"
 #include "common.h"
 
-static int __initdata gpio0_irqs[4] = {
+static int __initdata gpio0_irqs[4] =
+{
 	IRQ_ORION5X_GPIO_0_7,
 	IRQ_ORION5X_GPIO_8_15,
 	IRQ_ORION5X_GPIO_16_23,
@@ -33,7 +34,9 @@ __exception_irq_entry orion5x_legacy_handle_irq(struct pt_regs *regs)
 
 	stat = readl_relaxed(MAIN_IRQ_CAUSE);
 	stat &= readl_relaxed(MAIN_IRQ_MASK);
-	if (stat) {
+
+	if (stat)
+	{
 		unsigned int hwirq = 1 + __fls(stat);
 		handle_IRQ(hwirq, regs);
 		return;
@@ -50,5 +53,5 @@ void __init orion5x_init_irq(void)
 	 * Initialize gpiolib for GPIOs 0-31.
 	 */
 	orion_gpio_init(NULL, 0, 32, GPIO_VIRT_BASE, 0,
-			IRQ_ORION5X_GPIO_START, gpio0_irqs);
+					IRQ_ORION5X_GPIO_START, gpio0_irqs);
 }

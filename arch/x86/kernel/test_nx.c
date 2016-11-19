@@ -53,11 +53,13 @@ static void fudze_exception_table(void *marker, void *new)
 	 * this would be the place to search and re-sort the exception
 	 * table.
 	 */
-	if (mod->num_exentries > 1) {
+	if (mod->num_exentries > 1)
+	{
 		printk(KERN_ERR "test_nx: too many exception table entries!\n");
 		printk(KERN_ERR "test_nx: test results are not reliable.\n");
 		return;
 	}
+
 	extable = (struct exception_table_entry *)mod->extable;
 	extable[0].insn = (unsigned long)new;
 }
@@ -92,7 +94,7 @@ static noinline int test_address(void *address)
 		"2:	mov %[zero], %[rslt]\n"
 		"	ret\n"
 		".previous\n"
-		_ASM_EXTABLE(0b,2b)
+		_ASM_EXTABLE(0b, 2b)
 		: [rslt] "=r" (result)
 		: [fake_code] "r" (address), [zero] "r" (0UL), "0" (result)
 	);
@@ -100,7 +102,10 @@ static noinline int test_address(void *address)
 	fudze_exception_table(address, &foo_label);
 
 	if (result)
+	{
 		return -ENODEV;
+	}
+
 	return 0;
 }
 
@@ -118,7 +123,8 @@ static int test_NX(void)
 	printk(KERN_INFO "Testing NX protection\n");
 
 	/* Test 1: check if the stack is not executable */
-	if (test_address(&stackcode)) {
+	if (test_address(&stackcode))
+	{
 		printk(KERN_ERR "test_nx: stack was executable\n");
 		ret = -ENODEV;
 	}
@@ -126,14 +132,20 @@ static int test_NX(void)
 
 	/* Test 2: Check if the heap is executable */
 	heap = kmalloc(64, GFP_KERNEL);
+
 	if (!heap)
+	{
 		return -ENOMEM;
+	}
+
 	heap[0] = 0xC3; /* opcode for "ret" */
 
-	if (test_address(heap)) {
+	if (test_address(heap))
+	{
 		printk(KERN_ERR "test_nx: heap was executable\n");
 		ret = -ENODEV;
 	}
+
 	kfree(heap);
 
 	/*
@@ -143,17 +155,22 @@ static int test_NX(void)
 	 */
 
 	/* Test 3: Check if the .rodata section is executable */
-	if (rodata_test_data != 0xC3) {
+	if (rodata_test_data != 0xC3)
+	{
 		printk(KERN_ERR "test_nx: .rodata marker has invalid value\n");
 		ret = -ENODEV;
-	} else if (test_address(&rodata_test_data)) {
+	}
+	else if (test_address(&rodata_test_data))
+	{
 		printk(KERN_ERR "test_nx: .rodata section is executable\n");
 		ret = -ENODEV;
 	}
 
 #if 0
+
 	/* Test 4: Check if the .data section of a module is executable */
-	if (test_address(&test_data)) {
+	if (test_address(&test_data))
+	{
 		printk(KERN_ERR "test_nx: .data section is executable\n");
 		ret = -ENODEV;
 	}

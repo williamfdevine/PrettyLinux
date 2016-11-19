@@ -18,7 +18,7 @@ struct task_struct;
 extern void do_syscall_trace(struct pt_regs *regs, int entryexit);
 extern int read_tsk_long(struct task_struct *, unsigned long, unsigned long *);
 extern int read_tsk_short(struct task_struct *, unsigned long,
-			 unsigned short *);
+						  unsigned short *);
 
 #define arch_has_single_step()	(1)
 

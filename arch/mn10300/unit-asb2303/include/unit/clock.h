@@ -14,8 +14,8 @@
 
 #ifndef __ASSEMBLY__
 
-#define MN10300_IOCLK		33333333UL
-/* #define MN10300_IOBCLK	66666666UL */
+	#define MN10300_IOCLK		33333333UL
+	/* #define MN10300_IOBCLK	66666666UL */
 
 #endif /* !__ASSEMBLY__ */
 

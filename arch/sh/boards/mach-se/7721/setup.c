@@ -20,18 +20,21 @@
 
 static unsigned char heartbeat_bit_pos[] = { 8, 9, 10, 11, 12, 13, 14, 15 };
 
-static struct heartbeat_data heartbeat_data = {
+static struct heartbeat_data heartbeat_data =
+{
 	.bit_pos	= heartbeat_bit_pos,
 	.nr_bits	= ARRAY_SIZE(heartbeat_bit_pos),
 };
 
-static struct resource heartbeat_resource = {
+static struct resource heartbeat_resource =
+{
 	.start	= PA_LED,
 	.end	= PA_LED,
 	.flags	= IORESOURCE_MEM | IORESOURCE_MEM_16BIT,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.dev	= {
@@ -41,7 +44,8 @@ static struct platform_device heartbeat_device = {
 	.resource	= &heartbeat_resource,
 };
 
-static struct resource cf_ide_resources[] = {
+static struct resource cf_ide_resources[] =
+{
 	[0] = {
 		.start	= PA_MRSHPC_IO + 0x1f0,
 		.end	= PA_MRSHPC_IO + 0x1f0 + 8 ,
@@ -58,14 +62,16 @@ static struct resource cf_ide_resources[] = {
 	},
 };
 
-static struct platform_device cf_ide_device = {
+static struct platform_device cf_ide_device =
+{
 	.name		= "pata_platform",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(cf_ide_resources),
 	.resource	= cf_ide_resources,
 };
 
-static struct platform_device *se7721_devices[] __initdata = {
+static struct platform_device *se7721_devices[] __initdata =
+{
 	&cf_ide_device,
 	&heartbeat_device
 };
@@ -89,7 +95,8 @@ static void __init se7721_setup(char **cmdline_p)
 /*
  * The Machine Vector
  */
-struct sh_machine_vector mv_se7721 __initmv = {
+struct sh_machine_vector mv_se7721 __initmv =
+{
 	.mv_name		= "Solution Engine 7721",
 	.mv_setup		= se7721_setup,
 	.mv_init_irq		= init_se7721_IRQ,

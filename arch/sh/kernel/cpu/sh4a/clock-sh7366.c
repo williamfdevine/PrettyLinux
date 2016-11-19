@@ -36,7 +36,8 @@
 #define DLLFRQ		0xa4150050
 
 /* Fixed 32 KHz root clock for RTC and Power Management purposes */
-static struct clk r_clk = {
+static struct clk r_clk =
+{
 	.rate           = 32768,
 };
 
@@ -44,7 +45,8 @@ static struct clk r_clk = {
  * Default rate for the root input clock, reset this with clk_set_rate()
  * from the platform code.
  */
-struct clk extal_clk = {
+struct clk extal_clk =
+{
 	.rate		= 33333333,
 };
 
@@ -54,18 +56,24 @@ static unsigned long dll_recalc(struct clk *clk)
 	unsigned long mult;
 
 	if (__raw_readl(PLLCR) & 0x1000)
+	{
 		mult = __raw_readl(DLLFRQ);
+	}
 	else
+	{
 		mult = 0;
+	}
 
 	return clk->parent->rate * mult;
 }
 
-static struct sh_clk_ops dll_clk_ops = {
+static struct sh_clk_ops dll_clk_ops =
+{
 	.recalc		= dll_recalc,
 };
 
-static struct clk dll_clk = {
+static struct clk dll_clk =
+{
 	.ops		= &dll_clk_ops,
 	.parent		= &r_clk,
 	.flags		= CLK_ENABLE_ON_INIT,
@@ -77,23 +85,30 @@ static unsigned long pll_recalc(struct clk *clk)
 	unsigned long div = 1;
 
 	if (__raw_readl(PLLCR) & 0x4000)
+	{
 		mult = (((__raw_readl(FRQCR) >> 24) & 0x1f) + 1);
+	}
 	else
+	{
 		div = 2;
+	}
 
 	return (clk->parent->rate * mult) / div;
 }
 
-static struct sh_clk_ops pll_clk_ops = {
+static struct sh_clk_ops pll_clk_ops =
+{
 	.recalc		= pll_recalc,
 };
 
-static struct clk pll_clk = {
+static struct clk pll_clk =
+{
 	.ops		= &pll_clk_ops,
 	.flags		= CLK_ENABLE_ON_INIT,
 };
 
-struct clk *main_clks[] = {
+struct clk *main_clks[] =
+{
 	&r_clk,
 	&extal_clk,
 	&dll_clk,
@@ -103,24 +118,28 @@ struct clk *main_clks[] = {
 static int multipliers[] = { 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 static int divisors[] = { 1, 3, 2, 5, 3, 4, 5, 6, 8, 10, 12, 16, 20 };
 
-static struct clk_div_mult_table div4_div_mult_table = {
+static struct clk_div_mult_table div4_div_mult_table =
+{
 	.divisors = divisors,
 	.nr_divisors = ARRAY_SIZE(divisors),
 	.multipliers = multipliers,
 	.nr_multipliers = ARRAY_SIZE(multipliers),
 };
 
-static struct clk_div4_table div4_table = {
+static struct clk_div4_table div4_table =
+{
 	.div_mult_table = &div4_div_mult_table,
 };
 
 enum { DIV4_I, DIV4_U, DIV4_SH, DIV4_B, DIV4_B3, DIV4_P,
-       DIV4_SIUA, DIV4_SIUB, DIV4_NR };
+	   DIV4_SIUA, DIV4_SIUB, DIV4_NR
+	 };
 
 #define DIV4(_reg, _bit, _mask, _flags) \
-  SH_CLK_DIV4(&pll_clk, _reg, _bit, _mask, _flags)
+	SH_CLK_DIV4(&pll_clk, _reg, _bit, _mask, _flags)
 
-struct clk div4_clks[DIV4_NR] = {
+struct clk div4_clks[DIV4_NR] =
+{
 	[DIV4_I] = DIV4(FRQCR, 20, 0x1fef, CLK_ENABLE_ON_INIT),
 	[DIV4_U] = DIV4(FRQCR, 16, 0x1fff, CLK_ENABLE_ON_INIT),
 	[DIV4_SH] = DIV4(FRQCR, 12, 0x1fff, CLK_ENABLE_ON_INIT),
@@ -133,23 +152,26 @@ struct clk div4_clks[DIV4_NR] = {
 
 enum { DIV6_V, DIV6_NR };
 
-struct clk div6_clks[DIV6_NR] = {
+struct clk div6_clks[DIV6_NR] =
+{
 	[DIV6_V] = SH_CLK_DIV6(&pll_clk, VCLKCR, 0),
 };
 
 #define MSTP(_parent, _reg, _bit, _flags) \
-  SH_CLK_MSTP32(_parent, _reg, _bit, _flags)
+	SH_CLK_MSTP32(_parent, _reg, _bit, _flags)
 
 enum { MSTP031, MSTP030, MSTP029, MSTP028, MSTP026,
-       MSTP023, MSTP022, MSTP021, MSTP020, MSTP019, MSTP018, MSTP017, MSTP016,
-       MSTP015, MSTP014, MSTP013, MSTP012, MSTP011, MSTP010,
-       MSTP007, MSTP006, MSTP005, MSTP002, MSTP001,
-       MSTP109, MSTP100,
-       MSTP227, MSTP226, MSTP224, MSTP223, MSTP222, MSTP218, MSTP217,
-       MSTP211, MSTP207, MSTP205, MSTP204, MSTP203, MSTP202, MSTP201, MSTP200,
-       MSTP_NR };
+	   MSTP023, MSTP022, MSTP021, MSTP020, MSTP019, MSTP018, MSTP017, MSTP016,
+	   MSTP015, MSTP014, MSTP013, MSTP012, MSTP011, MSTP010,
+	   MSTP007, MSTP006, MSTP005, MSTP002, MSTP001,
+	   MSTP109, MSTP100,
+	   MSTP227, MSTP226, MSTP224, MSTP223, MSTP222, MSTP218, MSTP217,
+	   MSTP211, MSTP207, MSTP205, MSTP204, MSTP203, MSTP202, MSTP201, MSTP200,
+	   MSTP_NR
+	 };
 
-static struct clk mstp_clks[MSTP_NR] = {
+static struct clk mstp_clks[MSTP_NR] =
+{
 	/* See page 52 of Datasheet V0.40: Overview -> Block Diagram */
 	[MSTP031] = MSTP(&div4_clks[DIV4_I], MSTPCR0, 31, CLK_ENABLE_ON_INIT),
 	[MSTP030] = MSTP(&div4_clks[DIV4_I], MSTPCR0, 30, CLK_ENABLE_ON_INIT),
@@ -192,7 +214,8 @@ static struct clk mstp_clks[MSTP_NR] = {
 	[MSTP200] = MSTP(&div4_clks[DIV4_B], MSTPCR2, 0, 0),
 };
 
-static struct clk_lookup lookups[] = {
+static struct clk_lookup lookups[] =
+{
 	/* main clocks */
 	CLKDEV_CON_ID("rclk", &r_clk),
 	CLKDEV_CON_ID("extal", &extal_clk),
@@ -260,23 +283,35 @@ int __init arch_clk_init(void)
 
 	/* autodetect extal or dll configuration */
 	if (__raw_readl(PLLCR) & 0x1000)
+	{
 		pll_clk.parent = &dll_clk;
+	}
 	else
+	{
 		pll_clk.parent = &extal_clk;
+	}
 
 	for (k = 0; !ret && (k < ARRAY_SIZE(main_clks)); k++)
+	{
 		ret = clk_register(main_clks[k]);
+	}
 
 	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
 
 	if (!ret)
+	{
 		ret = sh_clk_div4_register(div4_clks, DIV4_NR, &div4_table);
+	}
 
 	if (!ret)
+	{
 		ret = sh_clk_div6_register(div6_clks, DIV6_NR);
+	}
 
 	if (!ret)
+	{
 		ret = sh_clk_mstp_register(mstp_clks, MSTP_NR);
+	}
 
 	return ret;
 }

@@ -25,7 +25,8 @@
  */
 #include <linux/amba/pl022.h>
 
-struct dummy {
+struct dummy
+{
 	struct device *dev;
 	struct mutex lock;
 };
@@ -34,7 +35,7 @@ struct dummy {
 
 /* When we cat /sys/bus/spi/devices/spi0.0/looptest this will be triggered */
 static ssize_t dummy_looptest(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	struct dummy *p_dummy = dev_get_drvdata(&spi->dev);
@@ -48,20 +49,26 @@ static ssize_t dummy_looptest(struct device *dev,
 	 */
 	int status;
 	u8 txbuf[14] = {0xDE, 0xAD, 0xBE, 0xEF, 0x2B, 0xAD,
-			0xCA, 0xFE, 0xBA, 0xBE, 0xB1, 0x05,
-			0xF0, 0x0D};
+					0xCA, 0xFE, 0xBA, 0xBE, 0xB1, 0x05,
+					0xF0, 0x0D
+				   };
 	u8 rxbuf[14];
 	u8 *bigtxbuf_virtual;
 	u8 *bigrxbuf_virtual;
 
 	if (mutex_lock_interruptible(&p_dummy->lock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	bigtxbuf_virtual = kmalloc(DMA_TEST_SIZE, GFP_KERNEL);
-	if (bigtxbuf_virtual == NULL) {
+
+	if (bigtxbuf_virtual == NULL)
+	{
 		status = -ENOMEM;
 		goto out;
 	}
+
 	bigrxbuf_virtual = kmalloc(DMA_TEST_SIZE, GFP_KERNEL);
 
 	/* Fill TXBUF with some happy pattern */
@@ -77,77 +84,107 @@ static ssize_t dummy_looptest(struct device *dev,
 
 	/* Now run the tests for 8bit mode */
 	pr_info("Simple test 1: write 0xAA byte, read back garbage byte "
-		"in 8bit mode\n");
+			"in 8bit mode\n");
 	status = spi_w8r8(spi, 0xAA);
+
 	if (status < 0)
 		pr_warn("Simple test 1: FAILURE: spi_write_then_read failed with status %d\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 1: SUCCESS!\n");
+	}
 
 	pr_info("Simple test 2: write 8 bytes, read back 8 bytes garbage "
-		"in 8bit mode (full FIFO)\n");
+			"in 8bit mode (full FIFO)\n");
 	status = spi_write_then_read(spi, &txbuf[0], 8, &rxbuf[0], 8);
+
 	if (status < 0)
 		pr_warn("Simple test 2: FAILURE: spi_write_then_read() failed with status %d\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 2: SUCCESS!\n");
+	}
 
 	pr_info("Simple test 3: write 14 bytes, read back 14 bytes garbage "
-		"in 8bit mode (see if we overflow FIFO)\n");
+			"in 8bit mode (see if we overflow FIFO)\n");
 	status = spi_write_then_read(spi, &txbuf[0], 14, &rxbuf[0], 14);
+
 	if (status < 0)
 		pr_warn("Simple test 3: FAILURE: failed with status %d (probably FIFO overrun)\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 3: SUCCESS!\n");
+	}
 
 	pr_info("Simple test 4: write 8 bytes with spi_write(), read 8 "
-		"bytes garbage with spi_read() in 8bit mode\n");
+			"bytes garbage with spi_read() in 8bit mode\n");
 	status = spi_write(spi, &txbuf[0], 8);
+
 	if (status < 0)
 		pr_warn("Simple test 4 step 1: FAILURE: spi_write() failed with status %d\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 4 step 1: SUCCESS!\n");
+	}
+
 	status = spi_read(spi, &rxbuf[0], 8);
+
 	if (status < 0)
 		pr_warn("Simple test 4 step 2: FAILURE: spi_read() failed with status %d\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 4 step 2: SUCCESS!\n");
+	}
 
 	pr_info("Simple test 5: write 14 bytes with spi_write(), read "
-		"14 bytes garbage with spi_read() in 8bit mode\n");
+			"14 bytes garbage with spi_read() in 8bit mode\n");
 	status = spi_write(spi, &txbuf[0], 14);
+
 	if (status < 0)
 		pr_warn("Simple test 5 step 1: FAILURE: spi_write() failed with status %d (probably FIFO overrun)\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 5 step 1: SUCCESS!\n");
+	}
+
 	status = spi_read(spi, &rxbuf[0], 14);
+
 	if (status < 0)
 		pr_warn("Simple test 5 step 2: FAILURE: spi_read() failed with status %d (probably FIFO overrun)\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 5: SUCCESS!\n");
+	}
 
 	pr_info("Simple test 6: write %d bytes with spi_write(), "
-		"read %d bytes garbage with spi_read() in 8bit mode\n",
-		DMA_TEST_SIZE, DMA_TEST_SIZE);
+			"read %d bytes garbage with spi_read() in 8bit mode\n",
+			DMA_TEST_SIZE, DMA_TEST_SIZE);
 	status = spi_write(spi, &bigtxbuf_virtual[0], DMA_TEST_SIZE);
+
 	if (status < 0)
 		pr_warn("Simple test 6 step 1: FAILURE: spi_write() failed with status %d (probably FIFO overrun)\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 6 step 1: SUCCESS!\n");
+	}
+
 	status = spi_read(spi, &bigrxbuf_virtual[0], DMA_TEST_SIZE);
+
 	if (status < 0)
 		pr_warn("Simple test 6 step 2: FAILURE: spi_read() failed with status %d (probably FIFO overrun)\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 6: SUCCESS!\n");
+	}
 
 
 	/*
@@ -159,56 +196,71 @@ static ssize_t dummy_looptest(struct device *dev,
 	spi->master->setup(spi);
 
 	pr_info("Simple test 7: write 0xAA byte, read back garbage byte "
-		"in 16bit bus mode\n");
+			"in 16bit bus mode\n");
 	status = spi_w8r8(spi, 0xAA);
+
 	if (status == -EIO)
 		pr_info("Simple test 7: SUCCESS! (expected failure with "
-			"status EIO)\n");
+				"status EIO)\n");
 	else if (status < 0)
 		pr_warn("Simple test 7: FAILURE: spi_write_then_read failed with status %d\n",
-			status);
+				status);
 	else
+	{
 		pr_warn("Simple test 7: FAILURE: spi_write_then_read succeeded but it was expected to fail!\n");
+	}
 
 	pr_info("Simple test 8: write 8 bytes, read back 8 bytes garbage "
-		"in 16bit mode (full FIFO)\n");
+			"in 16bit mode (full FIFO)\n");
 	status = spi_write_then_read(spi, &txbuf[0], 8, &rxbuf[0], 8);
+
 	if (status < 0)
 		pr_warn("Simple test 8: FAILURE: spi_write_then_read() failed with status %d\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 8: SUCCESS!\n");
+	}
 
 	pr_info("Simple test 9: write 14 bytes, read back 14 bytes garbage "
-		"in 16bit mode (see if we overflow FIFO)\n");
+			"in 16bit mode (see if we overflow FIFO)\n");
 	status = spi_write_then_read(spi, &txbuf[0], 14, &rxbuf[0], 14);
+
 	if (status < 0)
 		pr_warn("Simple test 9: FAILURE: failed with status %d (probably FIFO overrun)\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 9: SUCCESS!\n");
+	}
 
 	pr_info("Simple test 10: write %d bytes with spi_write(), "
-	       "read %d bytes garbage with spi_read() in 16bit mode\n",
-	       DMA_TEST_SIZE, DMA_TEST_SIZE);
+			"read %d bytes garbage with spi_read() in 16bit mode\n",
+			DMA_TEST_SIZE, DMA_TEST_SIZE);
 	status = spi_write(spi, &bigtxbuf_virtual[0], DMA_TEST_SIZE);
+
 	if (status < 0)
 		pr_warn("Simple test 10 step 1: FAILURE: spi_write() failed with status %d (probably FIFO overrun)\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 10 step 1: SUCCESS!\n");
+	}
 
 	status = spi_read(spi, &bigrxbuf_virtual[0], DMA_TEST_SIZE);
+
 	if (status < 0)
 		pr_warn("Simple test 10 step 2: FAILURE: spi_read() failed with status %d (probably FIFO overrun)\n",
-			status);
+				status);
 	else
+	{
 		pr_info("Simple test 10: SUCCESS!\n");
+	}
 
 	status = sprintf(buf, "loop test complete\n");
 	kfree(bigrxbuf_virtual);
 	kfree(bigtxbuf_virtual);
- out:
+out:
 	mutex_unlock(&p_dummy->lock);
 	return status;
 }
@@ -222,16 +274,21 @@ static int pl022_dummy_probe(struct spi_device *spi)
 
 	dev_info(&spi->dev, "probing dummy SPI device\n");
 
-	p_dummy = kzalloc(sizeof *p_dummy, GFP_KERNEL);
+	p_dummy = kzalloc(sizeof * p_dummy, GFP_KERNEL);
+
 	if (!p_dummy)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(&spi->dev, p_dummy);
 	mutex_init(&p_dummy->lock);
 
 	/* sysfs hook */
 	status = device_create_file(&spi->dev, &dev_attr_looptest);
-	if (status) {
+
+	if (status)
+	{
 		dev_dbg(&spi->dev, "device_create_file looptest failure.\n");
 		goto out_dev_create_looptest_failed;
 	}
@@ -256,12 +313,14 @@ static int pl022_dummy_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct of_device_id pl022_dummy_dt_match[] = {
+static const struct of_device_id pl022_dummy_dt_match[] =
+{
 	{ .compatible = "arm,pl022-dummy" },
 	{},
 };
 
-static struct spi_driver pl022_dummy_driver = {
+static struct spi_driver pl022_dummy_driver =
+{
 	.driver = {
 		.name	= "spi-dummy",
 		.of_match_table = pl022_dummy_dt_match,

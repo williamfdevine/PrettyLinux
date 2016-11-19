@@ -23,8 +23,8 @@
 #include <linux/interrupt.h>
 
 #if defined(CONFIG_PROC_FS) && defined(PCI_COUNTERS)
-#include <linux/proc_fs.h>
-#include <linux/seq_file.h>
+	#include <linux/proc_fs.h>
+	#include <linux/seq_file.h>
 #endif /* CONFIG_PROC_FS && PCI_COUNTERS */
 
 #include <linux/kernel.h>
@@ -32,7 +32,7 @@
 
 #include <asm/byteorder.h>
 #if defined(CONFIG_PMC_MSP7120_GW) || defined(CONFIG_PMC_MSP7120_EVAL)
-#include <asm/mipsmtregs.h>
+	#include <asm/mipsmtregs.h>
 #endif
 
 #include <msp_prom.h>
@@ -71,9 +71,12 @@ static int show_msp_pci_counts(struct seq_file *m, void *v)
 	int i;
 	unsigned int intcount, total = 0;
 
-	for (i = 0; i < 32; ++i) {
+	for (i = 0; i < 32; ++i)
+	{
 		intcount = pci_int_count[i];
-		if (intcount != 0) {
+
+		if (intcount != 0)
+		{
 			seq_printf(m, "[%d] = %u\n", i, intcount);
 			total += intcount;
 		}
@@ -88,7 +91,8 @@ static int msp_pci_rd_cnt_open(struct inode *inode, struct file *file)
 	return single_open(file, show_msp_pci_counts, NULL);
 }
 
-static const struct file_operations msp_pci_rd_cnt_fops = {
+static const struct file_operations msp_pci_rd_cnt_fops =
+{
 	.open		= msp_pci_rd_cnt_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -125,7 +129,8 @@ static int gen_pci_cfg_wr_show(struct seq_file *m, void *v)
 
 	seq_puts(m, "PMC MSP PCI: Beginning\n");
 
-	if (proc_init == 0) {
+	if (proc_init == 0)
+	{
 		pci_proc_init();
 		proc_init = ~0;
 	}
@@ -141,9 +146,9 @@ static int gen_pci_cfg_wr_show(struct seq_file *m, void *v)
 
 	/* Setup address that is to appear on PCI bus */
 	preg->config_addr = BPCI_CFGADDR_ENABLE |
-		(bus_num << BPCI_CFGADDR_BUSNUM_SHF) |
-		(dev_fn << BPCI_CFGADDR_FUNCTNUM_SHF) |
-		(where & 0xFC);
+						(bus_num << BPCI_CFGADDR_BUSNUM_SHF) |
+						(dev_fn << BPCI_CFGADDR_FUNCTNUM_SHF) |
+						(where & 0xFC);
 
 	value = cpu_to_le32(wr_data);
 
@@ -165,7 +170,8 @@ static int gen_pci_cfg_wr_open(struct inode *inode, struct file *file)
 	return single_open(file, gen_pci_cfg_wr_show, NULL);
 }
 
-static const struct file_operations gen_pci_cfg_wr_fops = {
+static const struct file_operations gen_pci_cfg_wr_fops =
+{
 	.open		= gen_pci_cfg_wr_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -232,7 +238,8 @@ static void pci_proc_init(void)
  *		   indicate I/O space.
  *
  ****************************************************************************/
-static struct resource pci_io_resource = {
+static struct resource pci_io_resource =
+{
 	.name	= "pci IO space",
 	.start	= 0x04,
 	.end	= 0x0FFF,
@@ -267,7 +274,8 @@ static struct resource pci_io_resource = {
  *		   indicate memory space.
  *
  ****************************************************************************/
-static struct resource pci_mem_resource = {
+static struct resource pci_mem_resource =
+{
 	.name	= "pci memory space",
 	.start	= MSP_PCI_SPACE_BASE,
 	.end	= MSP_PCI_SPACE_END,
@@ -300,10 +308,15 @@ static irqreturn_t bpci_interrupt(int irq, void *dev_id)
 
 #if defined(CONFIG_PROC_FS) && defined(PCI_COUNTERS)
 	int i;
-	for (i = 0; i < 32; ++i) {
+
+	for (i = 0; i < 32; ++i)
+	{
 		if ((1 << i) & stat)
+		{
 			++pci_int_count[i];
+		}
 	}
+
 #endif /* PROC_FS && PCI_COUNTERS */
 
 	/* printk("PCI ISR: Status=%08X\n", stat); */
@@ -358,10 +371,10 @@ static irqreturn_t bpci_interrupt(int irq, void *dev_id)
  *
  ****************************************************************************/
 int msp_pcibios_config_access(unsigned char access_type,
-				struct pci_bus *bus,
-				unsigned int devfn,
-				unsigned char where,
-				u32 *data)
+							  struct pci_bus *bus,
+							  unsigned int devfn,
+							  unsigned char where,
+							  u32 *data)
 {
 	struct msp_pci_regs *preg = (void *)PCI_BASE_REG;
 	unsigned char bus_num = bus->number;
@@ -375,10 +388,13 @@ int msp_pcibios_config_access(unsigned char access_type,
 #endif
 
 #if defined(CONFIG_PROC_FS) && defined(PCI_COUNTERS)
-	if (proc_init == 0) {
+
+	if (proc_init == 0)
+	{
 		pci_proc_init();
 		proc_init = ~0;
 	}
+
 #endif /* CONFIG_PROC_FS && PCI_COUNTERS */
 
 	/*
@@ -386,14 +402,19 @@ int msp_pcibios_config_access(unsigned char access_type,
 	 * an interrupt line for PCI host status interrupts. The
 	 * allocation assigns an interrupt handler to the interrupt.
 	 */
-	if (pciirqflag == 0) {
+	if (pciirqflag == 0)
+	{
 		ret = request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
-				bpci_interrupt,
-				IRQF_SHARED,
-				"PMC MSP PCI Host",
-				preg);
+						  bpci_interrupt,
+						  IRQF_SHARED,
+						  "PMC MSP PCI Host",
+						  preg);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
+
 		pciirqflag = ~0;
 	}
 
@@ -421,15 +442,18 @@ int msp_pcibios_config_access(unsigned char access_type,
 
 	/* Setup address that is to appear on PCI bus */
 	preg->config_addr = BPCI_CFGADDR_ENABLE |
-		(bus_num << BPCI_CFGADDR_BUSNUM_SHF) |
-		(dev_fn << BPCI_CFGADDR_FUNCTNUM_SHF) |
-		(where & 0xFC);
+						(bus_num << BPCI_CFGADDR_BUSNUM_SHF) |
+						(dev_fn << BPCI_CFGADDR_FUNCTNUM_SHF) |
+						(where & 0xFC);
 
 	/* IF access is a PCI configuration write */
-	if (access_type == PCI_ACCESS_WRITE) {
+	if (access_type == PCI_ACCESS_WRITE)
+	{
 		value = cpu_to_le32(*data);
 		*PCI_CONFIG_SPACE_REG = value;
-	} else {
+	}
+	else
+	{
 		/* ELSE access is a PCI configuration read */
 		value = le32_to_cpu(*PCI_CONFIG_SPACE_REG);
 		*data = value;
@@ -445,7 +469,8 @@ int msp_pcibios_config_access(unsigned char access_type,
 	preg->config_addr = 0;
 
 	/* IF error occurred */
-	if (intr & ~(BPCI_IFSTATUS_BC0F | BPCI_IFSTATUS_BC1F)) {
+	if (intr & ~(BPCI_IFSTATUS_BC0F | BPCI_IFSTATUS_BC1F))
+	{
 		/* Clear status bits */
 		preg->if_status = ~(BPCI_IFSTATUS_BC0F | BPCI_IFSTATUS_BC1F);
 
@@ -488,9 +513,9 @@ int msp_pcibios_config_access(unsigned char access_type,
  ****************************************************************************/
 static int
 msp_pcibios_read_config_byte(struct pci_bus *bus,
-				unsigned int devfn,
-				int where,
-				u32 *val)
+							 unsigned int devfn,
+							 int where,
+							 u32 *val)
 {
 	u32 data = 0;
 
@@ -500,7 +525,8 @@ msp_pcibios_read_config_byte(struct pci_bus *bus,
 	 * all ones value.
 	 */
 	if (msp_pcibios_config_access(PCI_ACCESS_READ, bus, devfn,
-					where, &data)) {
+								  where, &data))
+	{
 		*val = 0xFFFFFFFF;
 		return -1;
 	}
@@ -536,9 +562,9 @@ msp_pcibios_read_config_byte(struct pci_bus *bus,
  ****************************************************************************/
 static int
 msp_pcibios_read_config_word(struct pci_bus *bus,
-				unsigned int devfn,
-				int where,
-				u32 *val)
+							 unsigned int devfn,
+							 int where,
+							 u32 *val)
 {
 	u32 data = 0;
 
@@ -548,7 +574,8 @@ msp_pcibios_read_config_word(struct pci_bus *bus,
 				 * the word access would wrap around into
 				 * the next dword.
 				 */
-	if ((where & 3) == 3) {
+	if ((where & 3) == 3)
+	{
 		*val = 0xFFFFFFFF;
 		return PCIBIOS_BAD_REGISTER_NUMBER;
 	}
@@ -559,7 +586,8 @@ msp_pcibios_read_config_word(struct pci_bus *bus,
 	 * all ones value.
 	 */
 	if (msp_pcibios_config_access(PCI_ACCESS_READ, bus, devfn,
-					where, &data)) {
+								  where, &data))
+	{
 		*val = 0xFFFFFFFF;
 		return -1;
 	}
@@ -593,14 +621,15 @@ msp_pcibios_read_config_word(struct pci_bus *bus,
  ****************************************************************************/
 static int
 msp_pcibios_read_config_dword(struct pci_bus *bus,
-				unsigned int devfn,
-				int where,
-				u32 *val)
+							  unsigned int devfn,
+							  int where,
+							  u32 *val)
 {
 	u32 data = 0;
 
 	/* Address must be dword aligned. */
-	if (where & 3) {
+	if (where & 3)
+	{
 		*val = 0xFFFFFFFF;
 		return PCIBIOS_BAD_REGISTER_NUMBER;
 	}
@@ -611,7 +640,8 @@ msp_pcibios_read_config_dword(struct pci_bus *bus,
 	 * all ones value.
 	 */
 	if (msp_pcibios_config_access(PCI_ACCESS_READ, bus, devfn,
-					where, &data)) {
+								  where, &data))
+	{
 		*val = 0xFFFFFFFF;
 		return -1;
 	}
@@ -646,25 +676,29 @@ msp_pcibios_read_config_dword(struct pci_bus *bus,
  ****************************************************************************/
 static int
 msp_pcibios_write_config_byte(struct pci_bus *bus,
-				unsigned int devfn,
-				int where,
-				u8 val)
+							  unsigned int devfn,
+							  int where,
+							  u8 val)
 {
 	u32 data = 0;
 
 	/* read config space */
 	if (msp_pcibios_config_access(PCI_ACCESS_READ, bus, devfn,
-					where, &data))
+								  where, &data))
+	{
 		return -1;
+	}
 
 	/* modify the byte within the dword */
 	data = (data & ~(0xff << ((where & 3) << 3))) |
-			(val << ((where & 3) << 3));
+		   (val << ((where & 3) << 3));
 
 	/* write back the full dword */
 	if (msp_pcibios_config_access(PCI_ACCESS_WRITE, bus, devfn,
-					where, &data))
+								  where, &data))
+	{
 		return -1;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
@@ -695,29 +729,35 @@ msp_pcibios_write_config_byte(struct pci_bus *bus,
  ****************************************************************************/
 static int
 msp_pcibios_write_config_word(struct pci_bus *bus,
-				unsigned int devfn,
-				int where,
-				u16 val)
+							  unsigned int devfn,
+							  int where,
+							  u16 val)
 {
 	u32 data = 0;
 
 	/* Fixed non-compliance: if (where & 1) */
 	if ((where & 3) == 3)
+	{
 		return PCIBIOS_BAD_REGISTER_NUMBER;
+	}
 
 	/* read config space */
 	if (msp_pcibios_config_access(PCI_ACCESS_READ, bus, devfn,
-					where, &data))
+								  where, &data))
+	{
 		return -1;
+	}
 
 	/* modify the word within the dword */
 	data = (data & ~(0xffff << ((where & 3) << 3))) |
-			(val << ((where & 3) << 3));
+		   (val << ((where & 3) << 3));
 
 	/* write back the full dword */
 	if (msp_pcibios_config_access(PCI_ACCESS_WRITE, bus, devfn,
-					where, &data))
+								  where, &data))
+	{
 		return -1;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
@@ -747,18 +787,22 @@ msp_pcibios_write_config_word(struct pci_bus *bus,
  ****************************************************************************/
 static int
 msp_pcibios_write_config_dword(struct pci_bus *bus,
-				unsigned int devfn,
-				int where,
-				u32 val)
+							   unsigned int devfn,
+							   int where,
+							   u32 val)
 {
 	/* check that address is dword aligned */
 	if (where & 3)
+	{
 		return PCIBIOS_BAD_REGISTER_NUMBER;
+	}
 
 	/* perform write */
 	if (msp_pcibios_config_access(PCI_ACCESS_WRITE, bus, devfn,
-					where, &val))
+								  where, &val))
+	{
 		return -1;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
@@ -789,24 +833,34 @@ msp_pcibios_write_config_dword(struct pci_bus *bus,
  ****************************************************************************/
 int
 msp_pcibios_read_config(struct pci_bus *bus,
-			unsigned int	devfn,
-			int where,
-			int size,
-			u32 *val)
+						unsigned int	devfn,
+						int where,
+						int size,
+						u32 *val)
 {
-	if (size == 1) {
-		if (msp_pcibios_read_config_byte(bus, devfn, where, val)) {
+	if (size == 1)
+	{
+		if (msp_pcibios_read_config_byte(bus, devfn, where, val))
+		{
 			return -1;
 		}
-	} else if (size == 2) {
-		if (msp_pcibios_read_config_word(bus, devfn, where, val)) {
+	}
+	else if (size == 2)
+	{
+		if (msp_pcibios_read_config_word(bus, devfn, where, val))
+		{
 			return -1;
 		}
-	} else if (size == 4) {
-		if (msp_pcibios_read_config_dword(bus, devfn, where, val)) {
+	}
+	else if (size == 4)
+	{
+		if (msp_pcibios_read_config_dword(bus, devfn, where, val))
+		{
 			return -1;
 		}
-	} else {
+	}
+	else
+	{
 		*val = 0xFFFFFFFF;
 		return -1;
 	}
@@ -840,26 +894,36 @@ msp_pcibios_read_config(struct pci_bus *bus,
  ****************************************************************************/
 int
 msp_pcibios_write_config(struct pci_bus *bus,
-			unsigned int devfn,
-			int where,
-			int size,
-			u32 val)
+						 unsigned int devfn,
+						 int where,
+						 int size,
+						 u32 val)
 {
-	if (size == 1) {
+	if (size == 1)
+	{
 		if (msp_pcibios_write_config_byte(bus, devfn,
-						where, (u8)(0xFF & val))) {
+										  where, (u8)(0xFF & val)))
+		{
 			return -1;
 		}
-	} else if (size == 2) {
+	}
+	else if (size == 2)
+	{
 		if (msp_pcibios_write_config_word(bus, devfn,
-						where, (u16)(0xFFFF & val))) {
+										  where, (u16)(0xFFFF & val)))
+		{
 			return -1;
 		}
-	} else if (size == 4) {
-		if (msp_pcibios_write_config_dword(bus, devfn, where, val)) {
+	}
+	else if (size == 4)
+	{
+		if (msp_pcibios_write_config_dword(bus, devfn, where, val))
+		{
 			return -1;
 		}
-	} else {
+	}
+	else
+	{
 		return -1;
 	}
 
@@ -879,7 +943,8 @@ msp_pcibios_write_config(struct pci_bus *bus,
  *    write	- function for Linux to generate PCI Configuration writes.
  *
  ****************************************************************************/
-struct pci_ops msp_pci_ops = {
+struct pci_ops msp_pci_ops =
+{
 	.read = msp_pcibios_read_config,
 	.write = msp_pcibios_write_config
 };
@@ -915,7 +980,8 @@ struct pci_ops msp_pci_ops = {
  *		     bottom 4K, no special offset is needed. Just set to zero.
  *
  ****************************************************************************/
-static struct pci_controller msp_pci_controller = {
+static struct pci_controller msp_pci_controller =
+{
 	.pci_ops	= &msp_pci_ops,
 	.mem_resource	= &pci_mem_resource,
 	.mem_offset	= 0,
@@ -942,7 +1008,8 @@ void __init msp_pci_init(void)
 	id = read_reg32(PCI_JTAG_DEVID_REG, 0xFFFF) >> 12;
 
 	/* Check if JTAG ID identifies MSP7120 */
-	if (!MSP_HAS_PCI(id)) {
+	if (!MSP_HAS_PCI(id))
+	{
 		printk(KERN_WARNING "PCI: No PCI; id reads as %x\n", id);
 		goto no_pci;
 	}

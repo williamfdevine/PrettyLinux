@@ -14,12 +14,16 @@
 #include <asm/sgialib.h>
 
 static void prom_console_write(struct console *co, const char *s,
-			       unsigned count)
+							   unsigned count)
 {
 	/* Do each character */
-	while (count--) {
+	while (count--)
+	{
 		if (*s == '\n')
+		{
 			prom_putchar('\r');
+		}
+
 		prom_putchar(*s++);
 	}
 }
@@ -29,7 +33,8 @@ static int prom_console_setup(struct console *co, char *options)
 	return !(prom_flags & PROM_FLAG_USE_AS_CONSOLE);
 }
 
-static struct console arc_cons = {
+static struct console arc_cons =
+{
 	.name		= "arc",
 	.write		= prom_console_write,
 	.setup		= prom_console_setup,

@@ -32,7 +32,8 @@
 struct task_struct;
 struct thread_struct;
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
@@ -44,7 +45,8 @@ void *current_text_addr(void);
 
 #if CHIP_HAS_TILE_DMA()
 /* Capture the state of a suspended DMA. */
-struct tile_dma_state {
+struct tile_dma_state
+{
 	int enabled;
 	unsigned long src;
 	unsigned long dest;
@@ -61,14 +63,15 @@ struct tile_dma_state {
  * and 'done' bits.
  */
 #define DMA_STATUS_MASK \
-  (SPR_DMA_STATUS__RUNNING_MASK | SPR_DMA_STATUS__DONE_MASK)
+	(SPR_DMA_STATUS__RUNNING_MASK | SPR_DMA_STATUS__DONE_MASK)
 #endif
 
 /*
  * Track asynchronous TLB events (faults and access violations)
  * that occur while we are in kernel mode from DMA or the SN processor.
  */
-struct async_tlb {
+struct async_tlb
+{
 	short fault_num;         /* original fault number; 0 if none */
 	char is_fault;           /* was it a fault (vs an access violation) */
 	char is_write;           /* for fault: was it caused by a write? */
@@ -77,20 +80,22 @@ struct async_tlb {
 
 #ifdef CONFIG_HARDWALL
 struct hardwall_info;
-struct hardwall_task {
+struct hardwall_task
+{
 	/* Which hardwall is this task tied to? (or NULL if none) */
 	struct hardwall_info *info;
 	/* Chains this task into the list at info->task_head. */
 	struct list_head list;
 };
 #ifdef __tilepro__
-#define HARDWALL_TYPES 1   /* udn */
+	#define HARDWALL_TYPES 1   /* udn */
 #else
-#define HARDWALL_TYPES 3   /* udn, idn, and ipi */
+	#define HARDWALL_TYPES 3   /* udn, idn, and ipi */
 #endif
 #endif
 
-struct thread_struct {
+struct thread_struct
+{
 	/* kernel stack pointer */
 	unsigned long  ksp;
 	/* kernel PC */
@@ -148,24 +153,24 @@ struct thread_struct {
  * This aligns the pt_regs structure optimally for cache-line access.
  */
 #ifdef __tilegx__
-#define KSTK_PTREGS_GAP  48
+	#define KSTK_PTREGS_GAP  48
 #else
-#define KSTK_PTREGS_GAP  56
+	#define KSTK_PTREGS_GAP  56
 #endif
 
 #ifndef __ASSEMBLY__
 
 #ifdef __tilegx__
-#define TASK_SIZE_MAX		(_AC(1, UL) << (MAX_VA_WIDTH - 1))
+	#define TASK_SIZE_MAX		(_AC(1, UL) << (MAX_VA_WIDTH - 1))
 #else
-#define TASK_SIZE_MAX		PAGE_OFFSET
+	#define TASK_SIZE_MAX		PAGE_OFFSET
 #endif
 
 /* TASK_SIZE and related variables are always checked in "current" context. */
 #ifdef CONFIG_COMPAT
 #define COMPAT_TASK_SIZE	(1UL << 31)
 #define TASK_SIZE		((current_thread_info()->status & TS_COMPAT) ?\
-				 COMPAT_TASK_SIZE : TASK_SIZE_MAX)
+						 COMPAT_TASK_SIZE : TASK_SIZE_MAX)
 #else
 #define TASK_SIZE		TASK_SIZE_MAX
 #endif
@@ -187,9 +192,9 @@ struct thread_struct {
 #define HAVE_ARCH_PICK_MMAP_LAYOUT
 
 #define INIT_THREAD {                                                   \
-	.ksp = (unsigned long)init_stack + THREAD_SIZE - STACK_TOP_DELTA, \
-	.interrupt_mask = -1ULL                                         \
-}
+		.ksp = (unsigned long)init_stack + THREAD_SIZE - STACK_TOP_DELTA, \
+			   .interrupt_mask = -1ULL                                         \
+	}
 
 /* Kernel stack top for the task that first boots on this cpu. */
 DECLARE_PER_CPU(unsigned long, boot_sp);
@@ -199,7 +204,7 @@ DECLARE_PER_CPU(unsigned long, boot_pc);
 
 /* Do necessary setup to start up a newly executed thread. */
 static inline void start_thread(struct pt_regs *regs,
-				unsigned long pc, unsigned long usp)
+								unsigned long pc, unsigned long usp)
 {
 	regs->pc = pc;
 	regs->sp = usp;
@@ -232,7 +237,7 @@ unsigned long get_wchan(struct task_struct *p);
 	((struct pt_regs *)(task_ksp0(task) - KSTK_PTREGS_GAP) - 1)
 #define current_pt_regs()                                   \
 	((struct pt_regs *)((stack_pointer | (THREAD_SIZE - 1)) - \
-			    STACK_TOP_DELTA - (KSTK_PTREGS_GAP - 1)) - 1)
+						STACK_TOP_DELTA - (KSTK_PTREGS_GAP - 1)) - 1)
 #define task_sp(task)	(task_pt_regs(task)->sp)
 #define task_pc(task)	(task_pt_regs(task)->pc)
 /* Aliases for pc and sp (used in fs/proc/array.c) */
@@ -248,9 +253,9 @@ extern int set_unalign_ctl(struct task_struct *tsk, unsigned int val);
 
 /* Standard format for printing registers and other word-size data. */
 #ifdef __tilegx__
-# define REGFMT "0x%016lx"
+	#define REGFMT "0x%016lx"
 #else
-# define REGFMT "0x%08lx"
+	#define REGFMT "0x%08lx"
 #endif
 
 /*
@@ -296,9 +301,9 @@ extern int kdata_huge;
 
 /* Bring a value into the L1D, faulting the TLB if necessary. */
 #ifdef __tilegx__
-#define prefetch_L1(x) __insn_prefetch_l1_fault((void *)(x))
+	#define prefetch_L1(x) __insn_prefetch_l1_fault((void *)(x))
 #else
-#define prefetch_L1(x) __insn_prefetch_L1((void *)(x))
+	#define prefetch_L1(x) __insn_prefetch_L1((void *)(x))
 #endif
 
 #else /* __ASSEMBLY__ */
@@ -310,32 +315,32 @@ extern int kdata_huge;
 
 /* Assembly code assumes that the PL is in the low bits. */
 #if SPR_EX_CONTEXT_1_1__PL_SHIFT != 0
-# error Fix assembly assumptions about PL
+	# error Fix assembly assumptions about PL
 #endif
 
 /* We sometimes use these macros for EX_CONTEXT_0_1 as well. */
 #if SPR_EX_CONTEXT_1_1__PL_SHIFT != SPR_EX_CONTEXT_0_1__PL_SHIFT || \
-    SPR_EX_CONTEXT_1_1__PL_RMASK != SPR_EX_CONTEXT_0_1__PL_RMASK || \
-    SPR_EX_CONTEXT_1_1__ICS_SHIFT != SPR_EX_CONTEXT_0_1__ICS_SHIFT || \
-    SPR_EX_CONTEXT_1_1__ICS_RMASK != SPR_EX_CONTEXT_0_1__ICS_RMASK
-# error Fix assumptions that EX1 macros work for both PL0 and PL1
+	SPR_EX_CONTEXT_1_1__PL_RMASK != SPR_EX_CONTEXT_0_1__PL_RMASK || \
+	SPR_EX_CONTEXT_1_1__ICS_SHIFT != SPR_EX_CONTEXT_0_1__ICS_SHIFT || \
+	SPR_EX_CONTEXT_1_1__ICS_RMASK != SPR_EX_CONTEXT_0_1__ICS_RMASK
+	# error Fix assumptions that EX1 macros work for both PL0 and PL1
 #endif
 
 /* Allow pulling apart and recombining the PL and ICS bits in EX_CONTEXT. */
 #define EX1_PL(ex1) \
-  (((ex1) >> SPR_EX_CONTEXT_1_1__PL_SHIFT) & SPR_EX_CONTEXT_1_1__PL_RMASK)
+	(((ex1) >> SPR_EX_CONTEXT_1_1__PL_SHIFT) & SPR_EX_CONTEXT_1_1__PL_RMASK)
 #define EX1_ICS(ex1) \
-  (((ex1) >> SPR_EX_CONTEXT_1_1__ICS_SHIFT) & SPR_EX_CONTEXT_1_1__ICS_RMASK)
+	(((ex1) >> SPR_EX_CONTEXT_1_1__ICS_SHIFT) & SPR_EX_CONTEXT_1_1__ICS_RMASK)
 #define PL_ICS_EX1(pl, ics) \
-  (((pl) << SPR_EX_CONTEXT_1_1__PL_SHIFT) | \
-   ((ics) << SPR_EX_CONTEXT_1_1__ICS_SHIFT))
+	(((pl) << SPR_EX_CONTEXT_1_1__PL_SHIFT) | \
+	 ((ics) << SPR_EX_CONTEXT_1_1__ICS_SHIFT))
 
 /*
  * Provide symbolic constants for PLs.
  */
 #define USER_PL 0
 #if CONFIG_KERNEL_PL == 2
-#define GUEST_PL 1
+	#define GUEST_PL 1
 #endif
 #define KERNEL_PL CONFIG_KERNEL_PL
 
@@ -343,19 +348,19 @@ extern int kdata_huge;
 #ifdef __tilegx__
 #define CPU_SHIFT 48
 #if CHIP_VA_WIDTH() > CPU_SHIFT
-# error Too many VA bits!
+	# error Too many VA bits!
 #endif
 #define MAX_CPU_ID ((1 << (64 - CPU_SHIFT)) - 1)
 #define raw_smp_processor_id() \
 	((int)(__insn_mfspr(SPR_SYSTEM_SAVE_K_0) >> CPU_SHIFT))
 #define get_current_ksp0() \
 	((unsigned long)(((long)__insn_mfspr(SPR_SYSTEM_SAVE_K_0) << \
-			  (64 - CPU_SHIFT)) >> (64 - CPU_SHIFT)))
+					  (64 - CPU_SHIFT)) >> (64 - CPU_SHIFT)))
 #define next_current_ksp0(task) ({ \
-	unsigned long __ksp0 = task_ksp0(task) & ((1UL << CPU_SHIFT) - 1); \
-	unsigned long __cpu = (long)raw_smp_processor_id() << CPU_SHIFT; \
-	__ksp0 | __cpu; \
-})
+		unsigned long __ksp0 = task_ksp0(task) & ((1UL << CPU_SHIFT) - 1); \
+		unsigned long __cpu = (long)raw_smp_processor_id() << CPU_SHIFT; \
+		__ksp0 | __cpu; \
+	})
 #else
 #define LOG2_NR_CPU_IDS 6
 #define MAX_CPU_ID ((1 << LOG2_NR_CPU_IDS) - 1)
@@ -364,14 +369,14 @@ extern int kdata_huge;
 #define get_current_ksp0() \
 	(__insn_mfspr(SPR_SYSTEM_SAVE_K_0) & ~MAX_CPU_ID)
 #define next_current_ksp0(task) ({ \
-	unsigned long __ksp0 = task_ksp0(task); \
-	int __cpu = raw_smp_processor_id(); \
-	BUG_ON(__ksp0 & MAX_CPU_ID); \
-	__ksp0 | __cpu; \
-})
+		unsigned long __ksp0 = task_ksp0(task); \
+		int __cpu = raw_smp_processor_id(); \
+		BUG_ON(__ksp0 & MAX_CPU_ID); \
+		__ksp0 | __cpu; \
+	})
 #endif
 #if CONFIG_NR_CPUS > (MAX_CPU_ID + 1)
-# error Too many cpus!
+	# error Too many cpus!
 #endif
 
 #endif /* _ASM_TILE_PROCESSOR_H */

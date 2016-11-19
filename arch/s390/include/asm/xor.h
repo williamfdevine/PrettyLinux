@@ -11,9 +11,9 @@ extern struct xor_block_template xor_block_xc;
 
 #undef XOR_TRY_TEMPLATES
 #define XOR_TRY_TEMPLATES				\
-do {							\
-	xor_speed(&xor_block_xc);			\
-} while (0)
+	do {							\
+		xor_speed(&xor_block_xc);			\
+	} while (0)
 
 #define XOR_SELECT_TEMPLATE(FASTEST)	(&xor_block_xc)
 

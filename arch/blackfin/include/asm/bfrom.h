@@ -25,7 +25,8 @@
 #define SYSCTRL_LOCKCNT     0x00000400    /* read/write PLL_LOCKCNT register */
 #define SYSCTRL_PLLSTAT     0x00000800    /* read/write PLL_STAT register */
 
-typedef struct ADI_SYSCTRL_VALUES {
+typedef struct ADI_SYSCTRL_VALUES
+{
 	uint16_t uwVrCtl;
 	uint16_t uwPllCtl;
 	uint16_t uwPllDiv;
@@ -33,7 +34,8 @@ typedef struct ADI_SYSCTRL_VALUES {
 	uint16_t uwPllStat;
 } ADI_SYSCTRL_VALUES;
 
-static uint32_t (* const bfrom_SysControl)(uint32_t action_flags, ADI_SYSCTRL_VALUES *power_settings, void *reserved) = (void *)0xEF000038;
+static uint32_t (* const bfrom_SysControl)(uint32_t action_flags, ADI_SYSCTRL_VALUES *power_settings,
+		void *reserved) = (void *)0xEF000038;
 
 /* We need a dedicated function since we need to screw with the stack pointer
  * when resetting.  The on-chip ROM will save/restore registers on the stack
@@ -52,10 +54,10 @@ static inline void bfrom_SoftReset(void *new_stack)
 			"sp = %[stack];"
 			"jump (%[bfrom_syscontrol]);"
 			: : [bfrom_syscontrol] "p"(bfrom_SysControl),
-				"q0"(SYSCTRL_SOFTRESET),
-				"q1"(0),
-				"q2"(NULL),
-				[stack] "p"(new_stack)
+			"q0"(SYSCTRL_SOFTRESET),
+			"q1"(0),
+			"q2"(NULL),
+			[stack] "p"(new_stack)
 		);
 }
 

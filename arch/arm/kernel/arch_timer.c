@@ -33,10 +33,12 @@ static void __init arch_timer_delay_timer_register(void)
 
 int __init arch_timer_arch_init(void)
 {
-        u32 arch_timer_rate = arch_timer_get_rate();
+	u32 arch_timer_rate = arch_timer_get_rate();
 
 	if (arch_timer_rate == 0)
+	{
 		return -ENXIO;
+	}
 
 	arch_timer_delay_timer_register();
 

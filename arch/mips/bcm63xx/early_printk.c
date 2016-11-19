@@ -14,11 +14,16 @@ static void wait_xfered(void)
 	unsigned int val;
 
 	/* wait for any previous char to be transmitted */
-	do {
+	do
+	{
 		val = bcm_uart0_readl(UART_IR_REG);
+
 		if (val & UART_IR_STAT(UART_IR_TXEMPTY))
+		{
 			break;
-	} while (1);
+		}
+	}
+	while (1);
 }
 
 void prom_putchar(char c)

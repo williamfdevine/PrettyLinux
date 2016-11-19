@@ -27,8 +27,8 @@ int sh64_tlb_init(void)
 	cpu_data->dtlb.next	= cpu_data->dtlb.first;
 
 	cpu_data->dtlb.last	= DTLB_FIXED |
-				  ((cpu_data->dtlb.entries - 1) *
-				   cpu_data->dtlb.step);
+						  ((cpu_data->dtlb.entries - 1) *
+						   cpu_data->dtlb.step);
 
 	/* And again for the ITLB */
 	cpu_data->itlb.entries	= 64;
@@ -37,8 +37,8 @@ int sh64_tlb_init(void)
 	cpu_data->itlb.first	= ITLB_FIXED | cpu_data->itlb.step;
 	cpu_data->itlb.next	= cpu_data->itlb.first;
 	cpu_data->itlb.last	= ITLB_FIXED |
-				  ((cpu_data->itlb.entries - 1) *
-				   cpu_data->itlb.step);
+						  ((cpu_data->itlb.entries - 1) *
+						   cpu_data->itlb.step);
 
 	return 0;
 }
@@ -90,14 +90,18 @@ int sh64_put_wired_dtlb_entry(unsigned long long entry)
 	 * Entry must be valid .. we don't want any ITLB addresses!
 	 */
 	if (entry <= DTLB_FIXED)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Next, check if we're within range to be freed. (ie, must be the
 	 * entry beneath the first 'free' entry!
 	 */
 	if (entry < (cpu_data->dtlb.first - cpu_data->dtlb.step))
+	{
 		return -EINVAL;
+	}
 
 	/* If we are, then bring this entry back into the list */
 	cpu_data->dtlb.first	-= cpu_data->dtlb.step;
@@ -118,7 +122,7 @@ int sh64_put_wired_dtlb_entry(unsigned long long entry)
  * pre-allocated TLB slot @config_addr (see sh64_get_wired_dtlb_entry).
  */
 void sh64_setup_tlb_slot(unsigned long long config_addr, unsigned long eaddr,
-			 unsigned long asid, unsigned long paddr)
+						 unsigned long asid, unsigned long paddr)
 {
 	unsigned long long pteh, ptel;
 
@@ -130,8 +134,8 @@ void sh64_setup_tlb_slot(unsigned long long config_addr, unsigned long eaddr,
 	ptel |= (_PAGE_CACHABLE | _PAGE_READ | _PAGE_WRITE);
 
 	asm volatile("putcfg %0, 1, %1\n\t"
-			"putcfg %0, 0, %2\n"
-			: : "r" (config_addr), "r" (ptel), "r" (pteh));
+				 "putcfg %0, 0, %2\n"
+				 : : "r" (config_addr), "r" (ptel), "r" (pteh));
 }
 
 /**
@@ -142,7 +146,7 @@ void sh64_setup_tlb_slot(unsigned long long config_addr, unsigned long eaddr,
  * Teardown any existing mapping in the TLB slot @config_addr.
  */
 void sh64_teardown_tlb_slot(unsigned long long config_addr)
-	__attribute__ ((alias("__flush_tlb_slot")));
+__attribute__ ((alias("__flush_tlb_slot")));
 
 static int dtlb_entry;
 static unsigned long long dtlb_entries[64];
@@ -186,7 +190,7 @@ void tlb_unwire_entry(void)
 void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
 {
 	unsigned long long ptel;
-	unsigned long long pteh=0;
+	unsigned long long pteh = 0;
 	struct tlb_info *tlbp;
 	unsigned long long next;
 	unsigned int fault_code = get_thread_fault_code();
@@ -207,18 +211,26 @@ void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
 	ptel &= _PAGE_FLAGS_HARDWARE_MASK; /* drop software flags */
 
 	if (fault_code & FAULT_CODE_ITLB)
+	{
 		tlbp = &cpu_data->itlb;
+	}
 	else
+	{
 		tlbp = &cpu_data->dtlb;
+	}
 
 	next = tlbp->next;
 	__flush_tlb_slot(next);
 	asm volatile ("putcfg %0,1,%2\n\n\t"
-		      "putcfg %0,0,%1\n"
-		      :  : "r" (next), "r" (pteh), "r" (ptel) );
+				  "putcfg %0,0,%1\n"
+				  :  : "r" (next), "r" (pteh), "r" (ptel) );
 
 	next += TLB_STEP;
+
 	if (next > tlbp->last)
+	{
 		next = tlbp->first;
+	}
+
 	tlbp->next = next;
 }

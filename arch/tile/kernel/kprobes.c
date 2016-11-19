@@ -42,43 +42,55 @@ tile_bundle_bits breakpoint2_insn = TILEGX_BPT_BUNDLE | DIE_SSTEPBP;
  */
 static int __kprobes insn_has_control(kprobe_opcode_t insn)
 {
-	if (get_Mode(insn) != 0) {   /* Y-format bundle */
+	if (get_Mode(insn) != 0)     /* Y-format bundle */
+	{
 		if (get_Opcode_Y1(insn) != RRR_1_OPCODE_Y1 ||
-		    get_RRROpcodeExtension_Y1(insn) != UNARY_RRR_1_OPCODE_Y1)
+			get_RRROpcodeExtension_Y1(insn) != UNARY_RRR_1_OPCODE_Y1)
+		{
 			return 0;
+		}
 
-		switch (get_UnaryOpcodeExtension_Y1(insn)) {
-		case JALRP_UNARY_OPCODE_Y1:
-		case JALR_UNARY_OPCODE_Y1:
-		case JRP_UNARY_OPCODE_Y1:
-		case JR_UNARY_OPCODE_Y1:
-		case LNK_UNARY_OPCODE_Y1:
-			return 1;
-		default:
-			return 0;
+		switch (get_UnaryOpcodeExtension_Y1(insn))
+		{
+			case JALRP_UNARY_OPCODE_Y1:
+			case JALR_UNARY_OPCODE_Y1:
+			case JRP_UNARY_OPCODE_Y1:
+			case JR_UNARY_OPCODE_Y1:
+			case LNK_UNARY_OPCODE_Y1:
+				return 1;
+
+			default:
+				return 0;
 		}
 	}
 
-	switch (get_Opcode_X1(insn)) {
-	case BRANCH_OPCODE_X1:	/* branch instructions */
-	case JUMP_OPCODE_X1:	/* jump instructions: j and jal */
-		return 1;
-
-	case RRR_0_OPCODE_X1:   /* other jump instructions */
-		if (get_RRROpcodeExtension_X1(insn) != UNARY_RRR_0_OPCODE_X1)
-			return 0;
-		switch (get_UnaryOpcodeExtension_X1(insn)) {
-		case JALRP_UNARY_OPCODE_X1:
-		case JALR_UNARY_OPCODE_X1:
-		case JRP_UNARY_OPCODE_X1:
-		case JR_UNARY_OPCODE_X1:
-		case LNK_UNARY_OPCODE_X1:
+	switch (get_Opcode_X1(insn))
+	{
+		case BRANCH_OPCODE_X1:	/* branch instructions */
+		case JUMP_OPCODE_X1:	/* jump instructions: j and jal */
 			return 1;
+
+		case RRR_0_OPCODE_X1:   /* other jump instructions */
+			if (get_RRROpcodeExtension_X1(insn) != UNARY_RRR_0_OPCODE_X1)
+			{
+				return 0;
+			}
+
+			switch (get_UnaryOpcodeExtension_X1(insn))
+			{
+				case JALRP_UNARY_OPCODE_X1:
+				case JALR_UNARY_OPCODE_X1:
+				case JRP_UNARY_OPCODE_X1:
+				case JR_UNARY_OPCODE_X1:
+				case LNK_UNARY_OPCODE_X1:
+					return 1;
+
+				default:
+					return 0;
+			}
+
 		default:
 			return 0;
-		}
-	default:
-		return 0;
 	}
 }
 
@@ -87,17 +99,23 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
 	unsigned long addr = (unsigned long)p->addr;
 
 	if (addr & (sizeof(kprobe_opcode_t) - 1))
+	{
 		return -EINVAL;
+	}
 
-	if (insn_has_control(*p->addr)) {
+	if (insn_has_control(*p->addr))
+	{
 		pr_notice("Kprobes for control instructions are not supported\n");
 		return -EINVAL;
 	}
 
 	/* insn: must be on special executable page on tile. */
 	p->ainsn.insn = get_insn_slot();
+
 	if (!p->ainsn.insn)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * In the kprobe->ainsn.insn[] array we store the original
@@ -119,8 +137,10 @@ void __kprobes arch_arm_kprobe(struct kprobe *p)
 	addr_wr = ktext_writable_addr(p->addr);
 
 	if (probe_kernel_write((void *)addr_wr, &breakpoint_insn,
-		sizeof(breakpoint_insn)))
+						   sizeof(breakpoint_insn)))
+	{
 		pr_err("%s: failed to enable kprobe\n", __func__);
+	}
 
 	smp_wmb();
 	flush_insn_slot(p);
@@ -134,8 +154,10 @@ void __kprobes arch_disarm_kprobe(struct kprobe *kp)
 	addr_wr = ktext_writable_addr(kp->addr);
 
 	if (probe_kernel_write((void *)addr_wr, &kp->opcode,
-		sizeof(kp->opcode)))
+						   sizeof(kp->opcode)))
+	{
 		pr_err("%s: failed to enable kprobe\n", __func__);
+	}
 
 	smp_wmb();
 	flush_insn_slot(kp);
@@ -143,7 +165,8 @@ void __kprobes arch_disarm_kprobe(struct kprobe *kp)
 
 void __kprobes arch_remove_kprobe(struct kprobe *p)
 {
-	if (p->ainsn.insn) {
+	if (p->ainsn.insn)
+	{
 		free_insn_slot(p->ainsn.insn, 0);
 		p->ainsn.insn = NULL;
 	}
@@ -164,7 +187,7 @@ static void __kprobes restore_previous_kprobe(struct kprobe_ctlblk *kcb)
 }
 
 static void __kprobes set_current_kprobe(struct kprobe *p, struct pt_regs *regs,
-			struct kprobe_ctlblk *kcb)
+		struct kprobe_ctlblk *kcb)
 {
 	__this_cpu_write(current_kprobe, p);
 	kcb->kprobe_saved_pc = regs->pc;
@@ -174,10 +197,14 @@ static void __kprobes prepare_singlestep(struct kprobe *p, struct pt_regs *regs)
 {
 	/* Single step inline if the instruction is a break. */
 	if (p->opcode == breakpoint_insn ||
-	    p->opcode == breakpoint2_insn)
+		p->opcode == breakpoint2_insn)
+	{
 		regs->pc = (unsigned long)p->addr;
+	}
 	else
+	{
 		regs->pc = (unsigned long)&p->ainsn.insn[0];
+	}
 }
 
 static int __kprobes kprobe_handler(struct pt_regs *regs)
@@ -197,13 +224,18 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 	kcb = get_kprobe_ctlblk();
 
 	/* Check we're not actually recursing. */
-	if (kprobe_running()) {
+	if (kprobe_running())
+	{
 		p = get_kprobe(addr);
-		if (p) {
+
+		if (p)
+		{
 			if (kcb->kprobe_status == KPROBE_HIT_SS &&
-			    p->ainsn.insn[0] == breakpoint_insn) {
+				p->ainsn.insn[0] == breakpoint_insn)
+			{
 				goto no_kprobe;
 			}
+
 			/*
 			 * We have reentered the kprobe_handler(), since
 			 * another probe was hit while within the handler.
@@ -217,8 +249,11 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 			prepare_singlestep(p, regs);
 			kcb->kprobe_status = KPROBE_REENTER;
 			return 1;
-		} else {
-			if (*addr != breakpoint_insn) {
+		}
+		else
+		{
+			if (*addr != breakpoint_insn)
+			{
 				/*
 				 * The breakpoint instruction was removed by
 				 * another cpu right after we hit, no further
@@ -227,16 +262,24 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 				ret = 1;
 				goto no_kprobe;
 			}
+
 			p = __this_cpu_read(current_kprobe);
+
 			if (p->break_handler && p->break_handler(p, regs))
+			{
 				goto ss_probe;
+			}
 		}
+
 		goto no_kprobe;
 	}
 
 	p = get_kprobe(addr);
-	if (!p) {
-		if (*addr != breakpoint_insn) {
+
+	if (!p)
+	{
+		if (*addr != breakpoint_insn)
+		{
 			/*
 			 * The breakpoint instruction was removed right
 			 * after we hit it.  Another cpu has removed
@@ -246,6 +289,7 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 			 */
 			ret = 1;
 		}
+
 		/* Not one of ours: let kernel handle it. */
 		goto no_kprobe;
 	}
@@ -253,7 +297,8 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 	set_current_kprobe(p, regs, kcb);
 	kcb->kprobe_status = KPROBE_HIT_ACTIVE;
 
-	if (p->pre_handler && p->pre_handler(p, regs)) {
+	if (p->pre_handler && p->pre_handler(p, regs))
+	{
 		/* Handler has already set things up, so skip ss setup. */
 		return 1;
 	}
@@ -279,8 +324,8 @@ no_kprobe:
  * breakpoint trap.
  */
 static void __kprobes resume_execution(struct kprobe *p,
-				       struct pt_regs *regs,
-				       struct kprobe_ctlblk *kcb)
+									   struct pt_regs *regs,
+									   struct kprobe_ctlblk *kcb)
 {
 	unsigned long orig_pc = kcb->kprobe_saved_pc;
 	regs->pc = orig_pc + 8;
@@ -292,9 +337,12 @@ static inline int post_kprobe_handler(struct pt_regs *regs)
 	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
 
 	if (!cur)
+	{
 		return 0;
+	}
 
-	if ((kcb->kprobe_status != KPROBE_REENTER) && cur->post_handler) {
+	if ((kcb->kprobe_status != KPROBE_REENTER) && cur->post_handler)
+	{
 		kcb->kprobe_status = KPROBE_HIT_SSDONE;
 		cur->post_handler(cur, regs, 0);
 	}
@@ -302,10 +350,12 @@ static inline int post_kprobe_handler(struct pt_regs *regs)
 	resume_execution(cur, regs, kcb);
 
 	/* Restore back the original saved kprobes variables and continue. */
-	if (kcb->kprobe_status == KPROBE_REENTER) {
+	if (kcb->kprobe_status == KPROBE_REENTER)
+	{
 		restore_previous_kprobe(kcb);
 		goto out;
 	}
+
 	reset_current_kprobe();
 out:
 	preempt_enable_no_resched();
@@ -319,9 +369,12 @@ static inline int kprobe_fault_handler(struct pt_regs *regs, int trapnr)
 	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
 
 	if (cur->fault_handler && cur->fault_handler(cur, regs, trapnr))
+	{
 		return 1;
+	}
 
-	if (kcb->kprobe_status & KPROBE_HIT_SS) {
+	if (kcb->kprobe_status & KPROBE_HIT_SS)
+	{
 		/*
 		 * We are here because the instruction being single
 		 * stepped caused a page fault. We reset the current
@@ -333,6 +386,7 @@ static inline int kprobe_fault_handler(struct pt_regs *regs, int trapnr)
 		reset_current_kprobe();
 		preempt_enable_no_resched();
 	}
+
 	return 0;
 }
 
@@ -340,32 +394,46 @@ static inline int kprobe_fault_handler(struct pt_regs *regs, int trapnr)
  * Wrapper routine for handling exceptions.
  */
 int __kprobes kprobe_exceptions_notify(struct notifier_block *self,
-				       unsigned long val, void *data)
+									   unsigned long val, void *data)
 {
 	struct die_args *args = (struct die_args *)data;
 	int ret = NOTIFY_DONE;
 
-	switch (val) {
-	case DIE_BREAK:
-		if (kprobe_handler(args->regs))
-			ret = NOTIFY_STOP;
-		break;
-	case DIE_SSTEPBP:
-		if (post_kprobe_handler(args->regs))
-			ret = NOTIFY_STOP;
-		break;
-	case DIE_PAGE_FAULT:
-		/* kprobe_running() needs smp_processor_id(). */
-		preempt_disable();
+	switch (val)
+	{
+		case DIE_BREAK:
+			if (kprobe_handler(args->regs))
+			{
+				ret = NOTIFY_STOP;
+			}
 
-		if (kprobe_running()
-		    && kprobe_fault_handler(args->regs, args->trapnr))
-			ret = NOTIFY_STOP;
-		preempt_enable();
-		break;
-	default:
-		break;
+			break;
+
+		case DIE_SSTEPBP:
+			if (post_kprobe_handler(args->regs))
+			{
+				ret = NOTIFY_STOP;
+			}
+
+			break;
+
+		case DIE_PAGE_FAULT:
+			/* kprobe_running() needs smp_processor_id(). */
+			preempt_disable();
+
+			if (kprobe_running()
+				&& kprobe_fault_handler(args->regs, args->trapnr))
+			{
+				ret = NOTIFY_STOP;
+			}
+
+			preempt_enable();
+			break;
+
+		default:
+			break;
 	}
+
 	return ret;
 }
 
@@ -378,7 +446,7 @@ int __kprobes setjmp_pre_handler(struct kprobe *p, struct pt_regs *regs)
 	kcb->jprobe_saved_sp = regs->sp;
 
 	memcpy(kcb->jprobes_stack, (void *)kcb->jprobe_saved_sp,
-	       MIN_JPROBES_STACK_SIZE(kcb->jprobe_saved_sp));
+		   MIN_JPROBES_STACK_SIZE(kcb->jprobe_saved_sp));
 
 	regs->pc = (unsigned long)(jp->entry);
 
@@ -401,14 +469,16 @@ int __kprobes longjmp_break_handler(struct kprobe *p, struct pt_regs *regs)
 	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
 
 	if (regs->pc >= (unsigned long)jprobe_return &&
-	    regs->pc <= (unsigned long)jprobe_return_end) {
+		regs->pc <= (unsigned long)jprobe_return_end)
+	{
 		*regs = kcb->jprobe_saved_regs;
 		memcpy((void *)kcb->jprobe_saved_sp, kcb->jprobes_stack,
-		       MIN_JPROBES_STACK_SIZE(kcb->jprobe_saved_sp));
+			   MIN_JPROBES_STACK_SIZE(kcb->jprobe_saved_sp));
 		preempt_enable_no_resched();
 
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -431,7 +501,7 @@ static void __used kretprobe_trampoline_holder(void)
 void kretprobe_trampoline(void);
 
 void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
-				      struct pt_regs *regs)
+									  struct pt_regs *regs)
 {
 	ri->ret_addr = (kprobe_opcode_t *) regs->lr;
 
@@ -443,7 +513,7 @@ void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
  * Called when the probe at kretprobe trampoline is hit.
  */
 static int __kprobes trampoline_probe_handler(struct kprobe *p,
-						struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	struct kretprobe_instance *ri = NULL;
 	struct hlist_head *head, empty_rp;
@@ -467,18 +537,24 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
 	 *       real return address, and all the rest will point to
 	 *       kretprobe_trampoline
 	 */
-	hlist_for_each_entry_safe(ri, tmp, head, hlist) {
+	hlist_for_each_entry_safe(ri, tmp, head, hlist)
+	{
 		if (ri->task != current)
 			/* another task is sharing our hash bucket */
+		{
 			continue;
+		}
 
 		if (ri->rp && ri->rp->handler)
+		{
 			ri->rp->handler(ri, regs);
+		}
 
 		orig_ret_address = (unsigned long)ri->ret_addr;
 		recycle_rp_inst(ri, &empty_rp);
 
-		if (orig_ret_address != trampoline_address) {
+		if (orig_ret_address != trampoline_address)
+		{
 			/*
 			 * This is the real return address. Any other
 			 * instances associated with this task are for
@@ -495,7 +571,8 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
 	kretprobe_hash_unlock(current, &flags);
 	preempt_enable_no_resched();
 
-	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist) {
+	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist)
+	{
 		hlist_del(&ri->hlist);
 		kfree(ri);
 	}
@@ -510,12 +587,15 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
 int __kprobes arch_trampoline_kprobe(struct kprobe *p)
 {
 	if (p->addr == (kprobe_opcode_t *)kretprobe_trampoline)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
-static struct kprobe trampoline_p = {
+static struct kprobe trampoline_p =
+{
 	.addr = (kprobe_opcode_t *)kretprobe_trampoline,
 	.pre_handler = trampoline_probe_handler
 };

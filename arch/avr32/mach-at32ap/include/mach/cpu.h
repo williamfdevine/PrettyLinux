@@ -15,9 +15,9 @@
  * chip at runtime, but I'm not sure if it's really worth it.
  */
 #ifdef CONFIG_CPU_AT32AP700X
-# define cpu_is_at32ap7000()	(1)
+	#define cpu_is_at32ap7000()	(1)
 #else
-# define cpu_is_at32ap7000()	(0)
+	#define cpu_is_at32ap7000()	(0)
 #endif
 
 #endif /* __ASM_ARCH_CPU_H */

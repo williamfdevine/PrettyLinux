@@ -26,7 +26,8 @@
  * For the Hexagon Virtual Machine, it can be a copy
  * of the pointer to the page table base.
  */
-struct mm_context {
+struct mm_context
+{
 	unsigned long long generation;
 	unsigned long ptbase;
 	struct hexagon_vdso *vdso;

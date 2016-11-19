@@ -86,7 +86,8 @@ struct task_struct;
 #define DBG_HOOK_HANDLED	0
 #define DBG_HOOK_ERROR		1
 
-struct step_hook {
+struct step_hook
+{
 	struct list_head node;
 	int (*fn)(struct pt_regs *regs, unsigned int esr);
 };
@@ -94,7 +95,8 @@ struct step_hook {
 void register_step_hook(struct step_hook *hook);
 void unregister_step_hook(struct step_hook *hook);
 
-struct break_hook {
+struct break_hook
+{
 	struct list_head node;
 	u32 esr_val;
 	u32 esr_mask;
@@ -106,7 +108,8 @@ void unregister_break_hook(struct break_hook *hook);
 
 u8 debug_monitors_arch(void);
 
-enum dbg_active_el {
+enum dbg_active_el
+{
 	DBG_ACTIVE_EL0 = 0,
 	DBG_ACTIVE_EL1,
 };

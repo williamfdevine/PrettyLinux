@@ -58,29 +58,29 @@
 #define AMBCTL1VAL	((CONFIG_BANK_3 << 16) | CONFIG_BANK_2)
 
 #ifdef CONFIG_C_AMBEN_ALL
-#define V_AMBEN AMBEN_ALL
+	#define V_AMBEN AMBEN_ALL
 #endif
 #ifdef CONFIG_C_AMBEN
-#define V_AMBEN 0x0
+	#define V_AMBEN 0x0
 #endif
 #ifdef CONFIG_C_AMBEN_B0
-#define V_AMBEN AMBEN_B0
+	#define V_AMBEN AMBEN_B0
 #endif
 #ifdef CONFIG_C_AMBEN_B0_B1
-#define V_AMBEN AMBEN_B0_B1
+	#define V_AMBEN AMBEN_B0_B1
 #endif
 #ifdef CONFIG_C_AMBEN_B0_B1_B2
-#define V_AMBEN AMBEN_B0_B1_B2
+	#define V_AMBEN AMBEN_B0_B1_B2
 #endif
 #ifdef CONFIG_C_AMCKEN
-#define V_AMCKEN AMCKEN
+	#define V_AMCKEN AMCKEN
 #else
-#define V_AMCKEN 0x0
+	#define V_AMCKEN 0x0
 #endif
 #ifdef CONFIG_C_CDPRIO
-#define V_CDPRIO 0x100
+	#define V_CDPRIO 0x100
 #else
-#define V_CDPRIO 0x0
+	#define V_CDPRIO 0x0
 #endif
 
 #define AMGCTLVAL	(V_AMBEN | V_AMCKEN | V_CDPRIO)
@@ -89,101 +89,101 @@
 
 #ifdef CONFIG_BFIN_HYSTERESIS_CONTROL
 #ifdef CONFIG_GPIO_HYST_PORTF_0_7
-#define HYST_PORTF_0_7		(1 << 0)
+	#define HYST_PORTF_0_7		(1 << 0)
 #else
-#define HYST_PORTF_0_7		(0 << 0)
+	#define HYST_PORTF_0_7		(0 << 0)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTF_8_9
-#define HYST_PORTF_8_9		(1 << 2)
+	#define HYST_PORTF_8_9		(1 << 2)
 #else
-#define HYST_PORTF_8_9		(0 << 2)
+	#define HYST_PORTF_8_9		(0 << 2)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTF_10
-#define HYST_PORTF_10		(1 << 4)
+	#define HYST_PORTF_10		(1 << 4)
 #else
-#define HYST_PORTF_10		(0 << 4)
+	#define HYST_PORTF_10		(0 << 4)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTF_11
-#define HYST_PORTF_11		(1 << 6)
+	#define HYST_PORTF_11		(1 << 6)
 #else
-#define HYST_PORTF_11		(0 << 6)
+	#define HYST_PORTF_11		(0 << 6)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTF_12_13
-#define HYST_PORTF_12_13	(1 << 8)
+	#define HYST_PORTF_12_13	(1 << 8)
 #else
-#define HYST_PORTF_12_13	(0 << 8)
+	#define HYST_PORTF_12_13	(0 << 8)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTF_14_15
-#define HYST_PORTF_14_15	(1 << 10)
+	#define HYST_PORTF_14_15	(1 << 10)
 #else
-#define HYST_PORTF_14_15	(0 << 10)
+	#define HYST_PORTF_14_15	(0 << 10)
 #endif
 
 #define HYST_PORTF_0_15	(HYST_PORTF_0_7 | HYST_PORTF_8_9 | HYST_PORTF_10 | \
-		HYST_PORTF_11 | HYST_PORTF_12_13 | HYST_PORTF_14_15)
+						 HYST_PORTF_11 | HYST_PORTF_12_13 | HYST_PORTF_14_15)
 
 #ifdef CONFIG_GPIO_HYST_PORTG_0
-#define HYST_PORTG_0		(1 << 0)
+	#define HYST_PORTG_0		(1 << 0)
 #else
-#define HYST_PORTG_0		(0 << 0)
+	#define HYST_PORTG_0		(0 << 0)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTG_1_4
-#define HYST_PORTG_1_4		(1 << 2)
+	#define HYST_PORTG_1_4		(1 << 2)
 #else
-#define HYST_PORTG_1_4		(0 << 2)
+	#define HYST_PORTG_1_4		(0 << 2)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTG_5_6
-#define HYST_PORTG_5_6		(1 << 4)
+	#define HYST_PORTG_5_6		(1 << 4)
 #else
-#define HYST_PORTG_5_6		(0 << 4)
+	#define HYST_PORTG_5_6		(0 << 4)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTG_7_8
-#define HYST_PORTG_7_8		(1 << 6)
+	#define HYST_PORTG_7_8		(1 << 6)
 #else
-#define HYST_PORTG_7_8		(0 << 6)
+	#define HYST_PORTG_7_8		(0 << 6)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTG_9
-#define HYST_PORTG_9		(1 << 8)
+	#define HYST_PORTG_9		(1 << 8)
 #else
-#define HYST_PORTG_9		(0 << 8)
+	#define HYST_PORTG_9		(0 << 8)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTG_10
-#define HYST_PORTG_10		(1 << 10)
+	#define HYST_PORTG_10		(1 << 10)
 #else
-#define HYST_PORTG_10		(0 << 10)
+	#define HYST_PORTG_10		(0 << 10)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTG_11_13
-#define HYST_PORTG_11_13	(1 << 12)
+	#define HYST_PORTG_11_13	(1 << 12)
 #else
-#define HYST_PORTG_11_13	(0 << 12)
+	#define HYST_PORTG_11_13	(0 << 12)
 #endif
 #ifdef CONFIG_GPIO_HYST_PORTG_14_15
-#define HYST_PORTG_14_15	(1 << 14)
+	#define HYST_PORTG_14_15	(1 << 14)
 #else
-#define HYST_PORTG_14_15	(0 << 14)
+	#define HYST_PORTG_14_15	(0 << 14)
 #endif
 
 #define HYST_PORTG_0_15	(HYST_PORTG_0 | HYST_PORTG_1_4 | HYST_PORTG_5_6 | \
-		HYST_PORTG_7_8 | HYST_PORTG_9 | HYST_PORTG_10 | \
-		HYST_PORTG_11_13 | HYST_PORTG_14_15)
+						 HYST_PORTG_7_8 | HYST_PORTG_9 | HYST_PORTG_10 | \
+						 HYST_PORTG_11_13 | HYST_PORTG_14_15)
 
 #ifdef CONFIG_GPIO_HYST_PORTH_0_7
-#define HYST_PORTH_0_7		(1 << 0)
+	#define HYST_PORTH_0_7		(1 << 0)
 #else
-#define HYST_PORTH_0_7		(0 << 0)
+	#define HYST_PORTH_0_7		(0 << 0)
 #endif
 
 #define HYST_PORTH_0_15	(HYST_PORTH_0_7)
 
 #ifdef CONFIG_NONEGPIO_HYST_NMI_RST_BMODE
-#define HYST_NMI_RST_BMODE		(1 << 2)
+	#define HYST_NMI_RST_BMODE		(1 << 2)
 #else
-#define HYST_NMI_RST_BMODE		(0 << 2)
+	#define HYST_NMI_RST_BMODE		(0 << 2)
 #endif
 #ifdef CONFIG_NONEGPIO_HYST_JTAG
-#define HYST_JTAG			(1 << 4)
+	#define HYST_JTAG			(1 << 4)
 #else
-#define HYST_JTAG			(0 << 4)
+	#define HYST_JTAG			(0 << 4)
 #endif
 
 #define HYST_NONEGPIO	(HYST_NMI_RST_BMODE | HYST_JTAG)
@@ -191,24 +191,24 @@
 #endif /* CONFIG_BFIN_HYSTERESIS_CONTROL */
 
 #ifdef CONFIG_BF518
-#define CPU "BF518"
-#define CPUID 0x27e8
+	#define CPU "BF518"
+	#define CPUID 0x27e8
 #endif
 #ifdef CONFIG_BF516
-#define CPU "BF516"
-#define CPUID 0x27e8
+	#define CPU "BF516"
+	#define CPUID 0x27e8
 #endif
 #ifdef CONFIG_BF514
-#define CPU "BF514"
-#define CPUID 0x27e8
+	#define CPU "BF514"
+	#define CPUID 0x27e8
 #endif
 #ifdef CONFIG_BF512
-#define CPU "BF512"
-#define CPUID 0x27e8
+	#define CPU "BF512"
+	#define CPUID 0x27e8
 #endif
 
 #ifndef CPU
-#error "Unknown CPU type - This kernel doesn't seem to be configured properly"
+	#error "Unknown CPU type - This kernel doesn't seem to be configured properly"
 #endif
 
 #endif				/* __MACH_BF518_H__  */

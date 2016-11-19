@@ -9,16 +9,17 @@
 #include <linux/serial_8250.h>
 
 #define PORT(base, int)							\
-{									\
-	.iobase		= base,						\
-	.irq		= int,						\
-	.uartclk	= 1843200,					\
-	.iotype		= UPIO_PORT,					\
-	.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,		\
-	.regshift	= 0,						\
-}
+	{									\
+		.iobase		= base,						\
+					  .irq		= int,						\
+									.uartclk	= 1843200,					\
+											.iotype		= UPIO_PORT,					\
+													.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,		\
+															.regshift	= 0,						\
+	}
 
-static struct plat_serial8250_port uart8250_data[] = {
+static struct plat_serial8250_port uart8250_data[] =
+{
 	PORT(0x3F8, 4),
 	PORT(0x2F8, 3),
 	PORT(0x3E8, 4),
@@ -26,7 +27,8 @@ static struct plat_serial8250_port uart8250_data[] = {
 	{ },
 };
 
-static struct platform_device uart8250_device = {
+static struct platform_device uart8250_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {

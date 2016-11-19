@@ -14,7 +14,8 @@
 #include <linux/sh_timer.h>
 #include <linux/io.h>
 
-enum {
+enum
+{
 	UNUSED = 0,
 
 	/* interrupt sources */
@@ -43,7 +44,8 @@ enum {
 	PINT,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_IRQ(IRQ0, 64), INTC_IRQ(IRQ1, 65),
 	INTC_IRQ(IRQ2, 66), INTC_IRQ(IRQ3, 67),
 	INTC_IRQ(IRQ4, 68), INTC_IRQ(IRQ5, 69),
@@ -131,12 +133,14 @@ static struct intc_vect vectors[] __initdata = {
 #endif
 };
 
-static struct intc_group groups[] __initdata = {
+static struct intc_group groups[] __initdata =
+{
 	INTC_GROUP(PINT, PINT0, PINT1, PINT2, PINT3,
-		   PINT4, PINT5, PINT6, PINT7),
+	PINT4, PINT5, PINT6, PINT7),
 };
 
-static struct intc_prio_reg prio_registers[] __initdata = {
+static struct intc_prio_reg prio_registers[] __initdata =
+{
 	{ 0xfffe0818, 0, 16, 4, /* IPR01 */ { IRQ0, IRQ1, IRQ2, IRQ3 } },
 	{ 0xfffe081a, 0, 16, 4, /* IPR02 */ { IRQ4, IRQ5, IRQ6, IRQ7 } },
 	{ 0xfffe0820, 0, 16, 4, /* IPR05 */ { PINT, 0, 0, 0 } },
@@ -144,49 +148,73 @@ static struct intc_prio_reg prio_registers[] __initdata = {
 	{ 0xfffe0c02, 0, 16, 4, /* IPR07 */ { DMAC4, DMAC5, DMAC6, DMAC7 } },
 	{ 0xfffe0c04, 0, 16, 4, /* IPR08 */ { USB, LCDC, CMT0, CMT1 } },
 	{ 0xfffe0c06, 0, 16, 4, /* IPR09 */ { BSC, WDT, MTU0_ABCD, MTU0_VEF } },
-	{ 0xfffe0c08, 0, 16, 4, /* IPR10 */ { MTU1_AB, MTU1_VU, MTU2_AB,
-					      MTU2_VU } },
-	{ 0xfffe0c0a, 0, 16, 4, /* IPR11 */ { MTU3_ABCD, MTU2_TCI3V, MTU4_ABCD,
-					      MTU2_TCI4V } },
+	{
+		0xfffe0c08, 0, 16, 4, /* IPR10 */ {
+			MTU1_AB, MTU1_VU, MTU2_AB,
+			MTU2_VU
+		}
+	},
+	{
+		0xfffe0c0a, 0, 16, 4, /* IPR11 */ {
+			MTU3_ABCD, MTU2_TCI3V, MTU4_ABCD,
+			MTU2_TCI4V
+		}
+	},
 	{ 0xfffe0c0c, 0, 16, 4, /* IPR12 */ { ADC_ADI, IIC30, IIC31, IIC32 } },
 	{ 0xfffe0c0e, 0, 16, 4, /* IPR13 */ { IIC33, SCIF0, SCIF1, SCIF2 } },
 	{ 0xfffe0c10, 0, 16, 4, /* IPR14 */ { SCIF3, SSU0, SSU1, SSI0_SSII } },
 #ifdef CONFIG_CPU_SUBTYPE_SH7203
-	{ 0xfffe0c12, 0, 16, 4, /* IPR15 */ { SSI1_SSII, SSI2_SSII,
-					      SSI3_SSII, 0 } },
+	{
+		0xfffe0c12, 0, 16, 4, /* IPR15 */ {
+			SSI1_SSII, SSI2_SSII,
+			SSI3_SSII, 0
+		}
+	},
 	{ 0xfffe0c14, 0, 16, 4, /* IPR16 */ { FLCTL, 0, RTC, RCAN0 } },
 	{ 0xfffe0c16, 0, 16, 4, /* IPR17 */ { RCAN1, 0, 0, 0 } },
 #else
-	{ 0xfffe0c12, 0, 16, 4, /* IPR15 */ { SSI1_SSII, SSI2_SSII,
-					      SSI3_SSII, ROMDEC } },
+	{
+		0xfffe0c12, 0, 16, 4, /* IPR15 */ {
+			SSI1_SSII, SSI2_SSII,
+			SSI3_SSII, ROMDEC
+		}
+	},
 	{ 0xfffe0c14, 0, 16, 4, /* IPR16 */ { FLCTL, SDHI, RTC, RCAN0 } },
 	{ 0xfffe0c16, 0, 16, 4, /* IPR17 */ { RCAN1, SRC, IEBI, 0 } },
 #endif
 };
 
-static struct intc_mask_reg mask_registers[] __initdata = {
-	{ 0xfffe0808, 0, 16, /* PINTER */
-	  { 0, 0, 0, 0, 0, 0, 0, 0,
-	    PINT7, PINT6, PINT5, PINT4, PINT3, PINT2, PINT1, PINT0 } },
+static struct intc_mask_reg mask_registers[] __initdata =
+{
+	{
+		0xfffe0808, 0, 16, /* PINTER */
+		{
+			0, 0, 0, 0, 0, 0, 0, 0,
+			PINT7, PINT6, PINT5, PINT4, PINT3, PINT2, PINT1, PINT0
+		}
+	},
 };
 
 static DECLARE_INTC_DESC(intc_desc, "sh7203", vectors, groups,
-			 mask_registers, prio_registers, NULL);
+						 mask_registers, prio_registers, NULL);
 
-static struct plat_sci_port scif0_platform_data = {
+static struct plat_sci_port scif0_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RIE | SCSCR_TIE | SCSCR_RE | SCSCR_TE |
-			  SCSCR_REIE,
+	SCSCR_REIE,
 	.type		= PORT_SCIF,
 	.regtype	= SCIx_SH2_SCIF_FIFODATA_REGTYPE,
 };
 
-static struct resource scif0_resources[] = {
+static struct resource scif0_resources[] =
+{
 	DEFINE_RES_MEM(0xfffe8000, 0x100),
 	DEFINE_RES_IRQ(192),
 };
 
-static struct platform_device scif0_device = {
+static struct platform_device scif0_device =
+{
 	.name		= "sh-sci",
 	.id		= 0,
 	.resource	= scif0_resources,
@@ -196,20 +224,23 @@ static struct platform_device scif0_device = {
 	},
 };
 
-static struct plat_sci_port scif1_platform_data = {
+static struct plat_sci_port scif1_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RIE | SCSCR_TIE | SCSCR_RE | SCSCR_TE |
-			  SCSCR_REIE,
+	SCSCR_REIE,
 	.type		= PORT_SCIF,
 	.regtype	= SCIx_SH2_SCIF_FIFODATA_REGTYPE,
 };
 
-static struct resource scif1_resources[] = {
+static struct resource scif1_resources[] =
+{
 	DEFINE_RES_MEM(0xfffe8800, 0x100),
 	DEFINE_RES_IRQ(196),
 };
 
-static struct platform_device scif1_device = {
+static struct platform_device scif1_device =
+{
 	.name		= "sh-sci",
 	.id		= 1,
 	.resource	= scif1_resources,
@@ -219,20 +250,23 @@ static struct platform_device scif1_device = {
 	},
 };
 
-static struct plat_sci_port scif2_platform_data = {
+static struct plat_sci_port scif2_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RIE | SCSCR_TIE | SCSCR_RE | SCSCR_TE |
-			  SCSCR_REIE,
+	SCSCR_REIE,
 	.type		= PORT_SCIF,
 	.regtype	= SCIx_SH2_SCIF_FIFODATA_REGTYPE,
 };
 
-static struct resource scif2_resources[] = {
+static struct resource scif2_resources[] =
+{
 	DEFINE_RES_MEM(0xfffe9000, 0x100),
 	DEFINE_RES_IRQ(200),
 };
 
-static struct platform_device scif2_device = {
+static struct platform_device scif2_device =
+{
 	.name		= "sh-sci",
 	.id		= 2,
 	.resource	= scif2_resources,
@@ -242,20 +276,23 @@ static struct platform_device scif2_device = {
 	},
 };
 
-static struct plat_sci_port scif3_platform_data = {
+static struct plat_sci_port scif3_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_RIE | SCSCR_TIE | SCSCR_RE | SCSCR_TE |
-			  SCSCR_REIE,
+	SCSCR_REIE,
 	.type		= PORT_SCIF,
 	.regtype	= SCIx_SH2_SCIF_FIFODATA_REGTYPE,
 };
 
-static struct resource scif3_resources[] = {
+static struct resource scif3_resources[] =
+{
 	DEFINE_RES_MEM(0xfffe9800, 0x100),
 	DEFINE_RES_IRQ(204),
 };
 
-static struct platform_device scif3_device = {
+static struct platform_device scif3_device =
+{
 	.name		= "sh-sci",
 	.id		= 3,
 	.resource	= scif3_resources,
@@ -265,17 +302,20 @@ static struct platform_device scif3_device = {
 	},
 };
 
-static struct sh_timer_config cmt_platform_data = {
+static struct sh_timer_config cmt_platform_data =
+{
 	.channels_mask = 3,
 };
 
-static struct resource cmt_resources[] = {
+static struct resource cmt_resources[] =
+{
 	DEFINE_RES_MEM(0xfffec000, 0x10),
 	DEFINE_RES_IRQ(142),
 	DEFINE_RES_IRQ(143),
 };
 
-static struct platform_device cmt_device = {
+static struct platform_device cmt_device =
+{
 	.name		= "sh-cmt-16",
 	.id		= 0,
 	.dev = {
@@ -285,20 +325,23 @@ static struct platform_device cmt_device = {
 	.num_resources	= ARRAY_SIZE(cmt_resources),
 };
 
-static struct resource mtu2_resources[] = {
+static struct resource mtu2_resources[] =
+{
 	DEFINE_RES_MEM(0xfffe4000, 0x400),
 	DEFINE_RES_IRQ_NAMED(146, "tgi0a"),
 	DEFINE_RES_IRQ_NAMED(153, "tgi1a"),
 };
 
-static struct platform_device mtu2_device = {
+static struct platform_device mtu2_device =
+{
 	.name		= "sh-mtu2",
 	.id		= -1,
 	.resource	= mtu2_resources,
 	.num_resources	= ARRAY_SIZE(mtu2_resources),
 };
 
-static struct resource rtc_resources[] = {
+static struct resource rtc_resources[] =
+{
 	[0] = {
 		.start	= 0xffff2000,
 		.end	= 0xffff2000 + 0x58 - 1,
@@ -311,14 +354,16 @@ static struct resource rtc_resources[] = {
 	},
 };
 
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name		= "sh-rtc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(rtc_resources),
 	.resource	= rtc_resources,
 };
 
-static struct platform_device *sh7203_devices[] __initdata = {
+static struct platform_device *sh7203_devices[] __initdata =
+{
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
@@ -331,7 +376,7 @@ static struct platform_device *sh7203_devices[] __initdata = {
 static int __init sh7203_devices_setup(void)
 {
 	return platform_add_devices(sh7203_devices,
-				    ARRAY_SIZE(sh7203_devices));
+								ARRAY_SIZE(sh7203_devices));
 }
 arch_initcall(sh7203_devices_setup);
 
@@ -340,7 +385,8 @@ void __init plat_irq_setup(void)
 	register_intc_controller(&intc_desc);
 }
 
-static struct platform_device *sh7203_early_devices[] __initdata = {
+static struct platform_device *sh7203_early_devices[] __initdata =
+{
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
@@ -361,5 +407,5 @@ void __init plat_early_device_setup(void)
 	__raw_writeb(__raw_readb(STBCR3) & ~0x20, STBCR3);
 
 	early_platform_add_devices(sh7203_early_devices,
-				   ARRAY_SIZE(sh7203_early_devices));
+							   ARRAY_SIZE(sh7203_early_devices));
 }

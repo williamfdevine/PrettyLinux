@@ -33,7 +33,8 @@
 #define AR724X_BASE_FREQ	40000000
 
 static struct clk *clks[ATH79_CLK_END];
-static struct clk_onecell_data clk_data = {
+static struct clk_onecell_data clk_data =
+{
 	.clks = clks,
 	.clk_num = ARRAY_SIZE(clks),
 };
@@ -45,12 +46,18 @@ static struct clk *__init ath79_add_sys_clkdev(
 	int err;
 
 	clk = clk_register_fixed_rate(NULL, id, NULL, 0, rate);
+
 	if (!clk)
+	{
 		panic("failed to allocate %s clock structure", id);
+	}
 
 	err = clk_register_clkdev(clk, id, NULL);
+
 	if (err)
+	{
 		panic("unable to register %s clock device", id);
+	}
 
 	return clk;
 }
@@ -90,14 +97,17 @@ static void __init ar71xx_clocks_init(void)
 	clk_add_alias("uart", NULL, "ahb", NULL);
 }
 
-static struct clk * __init ath79_reg_ffclk(const char *name,
+static struct clk *__init ath79_reg_ffclk(const char *name,
 		const char *parent_name, unsigned int mult, unsigned int div)
 {
 	struct clk *clk;
 
 	clk = clk_register_fixed_factor(NULL, name, parent_name, 0, mult, div);
+
 	if (IS_ERR(clk))
+	{
 		panic("failed to allocate %s clock structure", name);
+	}
 
 	return clk;
 }
@@ -149,7 +159,9 @@ static void __init ar9330_clk_init(struct clk *ref_clk, void __iomem *pll_base)
 	u32 ahb_div;
 
 	clock_ctrl = __raw_readl(pll_base + AR933X_PLL_CLOCK_CTRL_REG);
-	if (clock_ctrl & AR933X_PLL_CLOCK_CTRL_BYPASS) {
+
+	if (clock_ctrl & AR933X_PLL_CLOCK_CTRL_BYPASS)
+	{
 		ref_div = 1;
 		ninit_mul = 1;
 		out_div = 1;
@@ -157,42 +169,47 @@ static void __init ar9330_clk_init(struct clk *ref_clk, void __iomem *pll_base)
 		cpu_div = 1;
 		ddr_div = 1;
 		ahb_div = 1;
-	} else {
+	}
+	else
+	{
 		u32 cpu_config;
 		u32 t;
 
 		cpu_config = __raw_readl(pll_base + AR933X_PLL_CPU_CONFIG_REG);
 
 		t = (cpu_config >> AR933X_PLL_CPU_CONFIG_REFDIV_SHIFT) &
-		    AR933X_PLL_CPU_CONFIG_REFDIV_MASK;
+			AR933X_PLL_CPU_CONFIG_REFDIV_MASK;
 		ref_div = t;
 
 		ninit_mul = (cpu_config >> AR933X_PLL_CPU_CONFIG_NINT_SHIFT) &
-		    AR933X_PLL_CPU_CONFIG_NINT_MASK;
+					AR933X_PLL_CPU_CONFIG_NINT_MASK;
 
 		t = (cpu_config >> AR933X_PLL_CPU_CONFIG_OUTDIV_SHIFT) &
-		    AR933X_PLL_CPU_CONFIG_OUTDIV_MASK;
+			AR933X_PLL_CPU_CONFIG_OUTDIV_MASK;
+
 		if (t == 0)
+		{
 			t = 1;
+		}
 
 		out_div = (1 << t);
 
 		cpu_div = ((clock_ctrl >> AR933X_PLL_CLOCK_CTRL_CPU_DIV_SHIFT) &
-		     AR933X_PLL_CLOCK_CTRL_CPU_DIV_MASK) + 1;
+				   AR933X_PLL_CLOCK_CTRL_CPU_DIV_MASK) + 1;
 
 		ddr_div = ((clock_ctrl >> AR933X_PLL_CLOCK_CTRL_DDR_DIV_SHIFT) &
-		      AR933X_PLL_CLOCK_CTRL_DDR_DIV_MASK) + 1;
+				   AR933X_PLL_CLOCK_CTRL_DDR_DIV_MASK) + 1;
 
 		ahb_div = ((clock_ctrl >> AR933X_PLL_CLOCK_CTRL_AHB_DIV_SHIFT) &
-		     AR933X_PLL_CLOCK_CTRL_AHB_DIV_MASK) + 1;
+				   AR933X_PLL_CLOCK_CTRL_AHB_DIV_MASK) + 1;
 	}
 
 	clks[ATH79_CLK_CPU] = ath79_reg_ffclk("cpu", "ref",
-					ninit_mul, ref_div * out_div * cpu_div);
+										  ninit_mul, ref_div * out_div * cpu_div);
 	clks[ATH79_CLK_DDR] = ath79_reg_ffclk("ddr", "ref",
-					ninit_mul, ref_div * out_div * ddr_div);
+										  ninit_mul, ref_div * out_div * ddr_div);
 	clks[ATH79_CLK_AHB] = ath79_reg_ffclk("ahb", "ref",
-					ninit_mul, ref_div * out_div * ahb_div);
+										  ninit_mul, ref_div * out_div * ahb_div);
 }
 
 static void __init ar933x_clocks_init(void)
@@ -202,10 +219,15 @@ static void __init ar933x_clocks_init(void)
 	u32 t;
 
 	t = ath79_reset_rr(AR933X_RESET_REG_BOOTSTRAP);
+
 	if (t & AR933X_BOOTSTRAP_REF_CLK_40)
+	{
 		ref_rate = (40 * 1000 * 1000);
+	}
 	else
+	{
 		ref_rate = (25 * 1000 * 1000);
+	}
 
 	ref_clk = ath79_add_sys_clkdev("ref", ref_rate);
 
@@ -221,7 +243,7 @@ static void __init ar933x_clocks_init(void)
 }
 
 static u32 __init ar934x_get_pll_freq(u32 ref, u32 ref_div, u32 nint, u32 nfrac,
-				      u32 frac, u32 out_div)
+									  u32 frac, u32 out_div)
 {
 	u64 t;
 	u32 ret;
@@ -254,96 +276,127 @@ static void __init ar934x_clocks_init(void)
 	dpll_base = ioremap(AR934X_SRIF_BASE, AR934X_SRIF_SIZE);
 
 	bootstrap = ath79_reset_rr(AR934X_RESET_REG_BOOTSTRAP);
+
 	if (bootstrap & AR934X_BOOTSTRAP_REF_CLK_40)
+	{
 		ref_rate = 40 * 1000 * 1000;
+	}
 	else
+	{
 		ref_rate = 25 * 1000 * 1000;
+	}
 
 	pll = __raw_readl(dpll_base + AR934X_SRIF_CPU_DPLL2_REG);
-	if (pll & AR934X_SRIF_DPLL2_LOCAL_PLL) {
+
+	if (pll & AR934X_SRIF_DPLL2_LOCAL_PLL)
+	{
 		out_div = (pll >> AR934X_SRIF_DPLL2_OUTDIV_SHIFT) &
-			  AR934X_SRIF_DPLL2_OUTDIV_MASK;
+				  AR934X_SRIF_DPLL2_OUTDIV_MASK;
 		pll = __raw_readl(dpll_base + AR934X_SRIF_CPU_DPLL1_REG);
 		nint = (pll >> AR934X_SRIF_DPLL1_NINT_SHIFT) &
-		       AR934X_SRIF_DPLL1_NINT_MASK;
+			   AR934X_SRIF_DPLL1_NINT_MASK;
 		nfrac = pll & AR934X_SRIF_DPLL1_NFRAC_MASK;
 		ref_div = (pll >> AR934X_SRIF_DPLL1_REFDIV_SHIFT) &
-			  AR934X_SRIF_DPLL1_REFDIV_MASK;
+				  AR934X_SRIF_DPLL1_REFDIV_MASK;
 		frac = 1 << 18;
-	} else {
+	}
+	else
+	{
 		pll = ath79_pll_rr(AR934X_PLL_CPU_CONFIG_REG);
 		out_div = (pll >> AR934X_PLL_CPU_CONFIG_OUTDIV_SHIFT) &
-			AR934X_PLL_CPU_CONFIG_OUTDIV_MASK;
+				  AR934X_PLL_CPU_CONFIG_OUTDIV_MASK;
 		ref_div = (pll >> AR934X_PLL_CPU_CONFIG_REFDIV_SHIFT) &
-			  AR934X_PLL_CPU_CONFIG_REFDIV_MASK;
+				  AR934X_PLL_CPU_CONFIG_REFDIV_MASK;
 		nint = (pll >> AR934X_PLL_CPU_CONFIG_NINT_SHIFT) &
-		       AR934X_PLL_CPU_CONFIG_NINT_MASK;
+			   AR934X_PLL_CPU_CONFIG_NINT_MASK;
 		nfrac = (pll >> AR934X_PLL_CPU_CONFIG_NFRAC_SHIFT) &
-			AR934X_PLL_CPU_CONFIG_NFRAC_MASK;
+				AR934X_PLL_CPU_CONFIG_NFRAC_MASK;
 		frac = 1 << 6;
 	}
 
 	cpu_pll = ar934x_get_pll_freq(ref_rate, ref_div, nint,
-				      nfrac, frac, out_div);
+								  nfrac, frac, out_div);
 
 	pll = __raw_readl(dpll_base + AR934X_SRIF_DDR_DPLL2_REG);
-	if (pll & AR934X_SRIF_DPLL2_LOCAL_PLL) {
+
+	if (pll & AR934X_SRIF_DPLL2_LOCAL_PLL)
+	{
 		out_div = (pll >> AR934X_SRIF_DPLL2_OUTDIV_SHIFT) &
-			  AR934X_SRIF_DPLL2_OUTDIV_MASK;
+				  AR934X_SRIF_DPLL2_OUTDIV_MASK;
 		pll = __raw_readl(dpll_base + AR934X_SRIF_DDR_DPLL1_REG);
 		nint = (pll >> AR934X_SRIF_DPLL1_NINT_SHIFT) &
-		       AR934X_SRIF_DPLL1_NINT_MASK;
+			   AR934X_SRIF_DPLL1_NINT_MASK;
 		nfrac = pll & AR934X_SRIF_DPLL1_NFRAC_MASK;
 		ref_div = (pll >> AR934X_SRIF_DPLL1_REFDIV_SHIFT) &
-			  AR934X_SRIF_DPLL1_REFDIV_MASK;
+				  AR934X_SRIF_DPLL1_REFDIV_MASK;
 		frac = 1 << 18;
-	} else {
+	}
+	else
+	{
 		pll = ath79_pll_rr(AR934X_PLL_DDR_CONFIG_REG);
 		out_div = (pll >> AR934X_PLL_DDR_CONFIG_OUTDIV_SHIFT) &
-			  AR934X_PLL_DDR_CONFIG_OUTDIV_MASK;
+				  AR934X_PLL_DDR_CONFIG_OUTDIV_MASK;
 		ref_div = (pll >> AR934X_PLL_DDR_CONFIG_REFDIV_SHIFT) &
-			   AR934X_PLL_DDR_CONFIG_REFDIV_MASK;
+				  AR934X_PLL_DDR_CONFIG_REFDIV_MASK;
 		nint = (pll >> AR934X_PLL_DDR_CONFIG_NINT_SHIFT) &
-		       AR934X_PLL_DDR_CONFIG_NINT_MASK;
+			   AR934X_PLL_DDR_CONFIG_NINT_MASK;
 		nfrac = (pll >> AR934X_PLL_DDR_CONFIG_NFRAC_SHIFT) &
-			AR934X_PLL_DDR_CONFIG_NFRAC_MASK;
+				AR934X_PLL_DDR_CONFIG_NFRAC_MASK;
 		frac = 1 << 10;
 	}
 
 	ddr_pll = ar934x_get_pll_freq(ref_rate, ref_div, nint,
-				      nfrac, frac, out_div);
+								  nfrac, frac, out_div);
 
 	clk_ctrl = ath79_pll_rr(AR934X_PLL_CPU_DDR_CLK_CTRL_REG);
 
 	postdiv = (clk_ctrl >> AR934X_PLL_CPU_DDR_CLK_CTRL_CPU_POST_DIV_SHIFT) &
-		  AR934X_PLL_CPU_DDR_CLK_CTRL_CPU_POST_DIV_MASK;
+			  AR934X_PLL_CPU_DDR_CLK_CTRL_CPU_POST_DIV_MASK;
 
 	if (clk_ctrl & AR934X_PLL_CPU_DDR_CLK_CTRL_CPU_PLL_BYPASS)
+	{
 		cpu_rate = ref_rate;
+	}
 	else if (clk_ctrl & AR934X_PLL_CPU_DDR_CLK_CTRL_CPUCLK_FROM_CPUPLL)
+	{
 		cpu_rate = cpu_pll / (postdiv + 1);
+	}
 	else
+	{
 		cpu_rate = ddr_pll / (postdiv + 1);
+	}
 
 	postdiv = (clk_ctrl >> AR934X_PLL_CPU_DDR_CLK_CTRL_DDR_POST_DIV_SHIFT) &
-		  AR934X_PLL_CPU_DDR_CLK_CTRL_DDR_POST_DIV_MASK;
+			  AR934X_PLL_CPU_DDR_CLK_CTRL_DDR_POST_DIV_MASK;
 
 	if (clk_ctrl & AR934X_PLL_CPU_DDR_CLK_CTRL_DDR_PLL_BYPASS)
+	{
 		ddr_rate = ref_rate;
+	}
 	else if (clk_ctrl & AR934X_PLL_CPU_DDR_CLK_CTRL_DDRCLK_FROM_DDRPLL)
+	{
 		ddr_rate = ddr_pll / (postdiv + 1);
+	}
 	else
+	{
 		ddr_rate = cpu_pll / (postdiv + 1);
+	}
 
 	postdiv = (clk_ctrl >> AR934X_PLL_CPU_DDR_CLK_CTRL_AHB_POST_DIV_SHIFT) &
-		  AR934X_PLL_CPU_DDR_CLK_CTRL_AHB_POST_DIV_MASK;
+			  AR934X_PLL_CPU_DDR_CLK_CTRL_AHB_POST_DIV_MASK;
 
 	if (clk_ctrl & AR934X_PLL_CPU_DDR_CLK_CTRL_AHB_PLL_BYPASS)
+	{
 		ahb_rate = ref_rate;
+	}
 	else if (clk_ctrl & AR934X_PLL_CPU_DDR_CLK_CTRL_AHBCLK_FROM_DDRPLL)
+	{
 		ahb_rate = ddr_pll / (postdiv + 1);
+	}
 	else
+	{
 		ahb_rate = cpu_pll / (postdiv + 1);
+	}
 
 	ath79_add_sys_clkdev("ref", ref_rate);
 	clks[ATH79_CLK_CPU] = ath79_add_sys_clkdev("cpu", cpu_rate);
@@ -367,20 +420,25 @@ static void __init qca955x_clocks_init(void)
 	u32 bootstrap;
 
 	bootstrap = ath79_reset_rr(QCA955X_RESET_REG_BOOTSTRAP);
+
 	if (bootstrap &	QCA955X_BOOTSTRAP_REF_CLK_40)
+	{
 		ref_rate = 40 * 1000 * 1000;
+	}
 	else
+	{
 		ref_rate = 25 * 1000 * 1000;
+	}
 
 	pll = ath79_pll_rr(QCA955X_PLL_CPU_CONFIG_REG);
 	out_div = (pll >> QCA955X_PLL_CPU_CONFIG_OUTDIV_SHIFT) &
-		  QCA955X_PLL_CPU_CONFIG_OUTDIV_MASK;
+			  QCA955X_PLL_CPU_CONFIG_OUTDIV_MASK;
 	ref_div = (pll >> QCA955X_PLL_CPU_CONFIG_REFDIV_SHIFT) &
-		  QCA955X_PLL_CPU_CONFIG_REFDIV_MASK;
+			  QCA955X_PLL_CPU_CONFIG_REFDIV_MASK;
 	nint = (pll >> QCA955X_PLL_CPU_CONFIG_NINT_SHIFT) &
-	       QCA955X_PLL_CPU_CONFIG_NINT_MASK;
+		   QCA955X_PLL_CPU_CONFIG_NINT_MASK;
 	frac = (pll >> QCA955X_PLL_CPU_CONFIG_NFRAC_SHIFT) &
-	       QCA955X_PLL_CPU_CONFIG_NFRAC_MASK;
+		   QCA955X_PLL_CPU_CONFIG_NFRAC_MASK;
 
 	cpu_pll = nint * ref_rate / ref_div;
 	cpu_pll += frac * ref_rate / (ref_div * (1 << 6));
@@ -388,13 +446,13 @@ static void __init qca955x_clocks_init(void)
 
 	pll = ath79_pll_rr(QCA955X_PLL_DDR_CONFIG_REG);
 	out_div = (pll >> QCA955X_PLL_DDR_CONFIG_OUTDIV_SHIFT) &
-		  QCA955X_PLL_DDR_CONFIG_OUTDIV_MASK;
+			  QCA955X_PLL_DDR_CONFIG_OUTDIV_MASK;
 	ref_div = (pll >> QCA955X_PLL_DDR_CONFIG_REFDIV_SHIFT) &
-		  QCA955X_PLL_DDR_CONFIG_REFDIV_MASK;
+			  QCA955X_PLL_DDR_CONFIG_REFDIV_MASK;
 	nint = (pll >> QCA955X_PLL_DDR_CONFIG_NINT_SHIFT) &
-	       QCA955X_PLL_DDR_CONFIG_NINT_MASK;
+		   QCA955X_PLL_DDR_CONFIG_NINT_MASK;
 	frac = (pll >> QCA955X_PLL_DDR_CONFIG_NFRAC_SHIFT) &
-	       QCA955X_PLL_DDR_CONFIG_NFRAC_MASK;
+		   QCA955X_PLL_DDR_CONFIG_NFRAC_MASK;
 
 	ddr_pll = nint * ref_rate / ref_div;
 	ddr_pll += frac * ref_rate / (ref_div * (1 << 10));
@@ -403,34 +461,52 @@ static void __init qca955x_clocks_init(void)
 	clk_ctrl = ath79_pll_rr(QCA955X_PLL_CLK_CTRL_REG);
 
 	postdiv = (clk_ctrl >> QCA955X_PLL_CLK_CTRL_CPU_POST_DIV_SHIFT) &
-		  QCA955X_PLL_CLK_CTRL_CPU_POST_DIV_MASK;
+			  QCA955X_PLL_CLK_CTRL_CPU_POST_DIV_MASK;
 
 	if (clk_ctrl & QCA955X_PLL_CLK_CTRL_CPU_PLL_BYPASS)
+	{
 		cpu_rate = ref_rate;
+	}
 	else if (clk_ctrl & QCA955X_PLL_CLK_CTRL_CPUCLK_FROM_CPUPLL)
+	{
 		cpu_rate = ddr_pll / (postdiv + 1);
+	}
 	else
+	{
 		cpu_rate = cpu_pll / (postdiv + 1);
+	}
 
 	postdiv = (clk_ctrl >> QCA955X_PLL_CLK_CTRL_DDR_POST_DIV_SHIFT) &
-		  QCA955X_PLL_CLK_CTRL_DDR_POST_DIV_MASK;
+			  QCA955X_PLL_CLK_CTRL_DDR_POST_DIV_MASK;
 
 	if (clk_ctrl & QCA955X_PLL_CLK_CTRL_DDR_PLL_BYPASS)
+	{
 		ddr_rate = ref_rate;
+	}
 	else if (clk_ctrl & QCA955X_PLL_CLK_CTRL_DDRCLK_FROM_DDRPLL)
+	{
 		ddr_rate = cpu_pll / (postdiv + 1);
+	}
 	else
+	{
 		ddr_rate = ddr_pll / (postdiv + 1);
+	}
 
 	postdiv = (clk_ctrl >> QCA955X_PLL_CLK_CTRL_AHB_POST_DIV_SHIFT) &
-		  QCA955X_PLL_CLK_CTRL_AHB_POST_DIV_MASK;
+			  QCA955X_PLL_CLK_CTRL_AHB_POST_DIV_MASK;
 
 	if (clk_ctrl & QCA955X_PLL_CLK_CTRL_AHB_PLL_BYPASS)
+	{
 		ahb_rate = ref_rate;
+	}
 	else if (clk_ctrl & QCA955X_PLL_CLK_CTRL_AHBCLK_FROM_DDRPLL)
+	{
 		ahb_rate = ddr_pll / (postdiv + 1);
+	}
 	else
+	{
 		ahb_rate = cpu_pll / (postdiv + 1);
+	}
 
 	ath79_add_sys_clkdev("ref", ref_rate);
 	clks[ATH79_CLK_CPU] = ath79_add_sys_clkdev("cpu", cpu_rate);
@@ -444,17 +520,29 @@ static void __init qca955x_clocks_init(void)
 void __init ath79_clocks_init(void)
 {
 	if (soc_is_ar71xx())
+	{
 		ar71xx_clocks_init();
+	}
 	else if (soc_is_ar724x() || soc_is_ar913x())
+	{
 		ar724x_clocks_init();
+	}
 	else if (soc_is_ar933x())
+	{
 		ar933x_clocks_init();
+	}
 	else if (soc_is_ar934x())
+	{
 		ar934x_clocks_init();
+	}
 	else if (soc_is_qca955x())
+	{
 		qca955x_clocks_init();
+	}
 	else
+	{
 		BUG();
+	}
 }
 
 unsigned long __init
@@ -464,8 +552,11 @@ ath79_get_sys_clk_rate(const char *id)
 	unsigned long rate;
 
 	clk = clk_get(NULL, id);
+
 	if (IS_ERR(clk))
+	{
 		panic("unable to get %s clock, err=%d", id, (int) PTR_ERR(clk));
+	}
 
 	rate = clk_get_rate(clk);
 	clk_put(clk);
@@ -491,27 +582,37 @@ static void __init ath79_clocks_init_dt_ng(struct device_node *np)
 	const char *dnfn = of_node_full_name(np);
 
 	ref_clk = of_clk_get(np, 0);
-	if (IS_ERR(ref_clk)) {
+
+	if (IS_ERR(ref_clk))
+	{
 		pr_err("%s: of_clk_get failed\n", dnfn);
 		goto err;
 	}
 
 	pll_base = of_iomap(np, 0);
-	if (!pll_base) {
+
+	if (!pll_base)
+	{
 		pr_err("%s: can't map pll registers\n", dnfn);
 		goto err_clk;
 	}
 
 	if (of_device_is_compatible(np, "qca,ar9130-pll"))
+	{
 		ar724x_clk_init(ref_clk, pll_base);
+	}
 	else if (of_device_is_compatible(np, "qca,ar9330-pll"))
+	{
 		ar9330_clk_init(ref_clk, pll_base);
-	else {
+	}
+	else
+	{
 		pr_err("%s: could not find any appropriate clk_init()\n", dnfn);
 		goto err_clk;
 	}
 
-	if (of_clk_add_provider(np, of_clk_src_onecell_get, &clk_data)) {
+	if (of_clk_add_provider(np, of_clk_src_onecell_get, &clk_data))
+	{
 		pr_err("%s: could not register clk provider\n", dnfn);
 		goto err_clk;
 	}

@@ -7,7 +7,8 @@ extern struct shared_info *HYPERVISOR_shared_info;
 extern struct start_info *xen_start_info;
 
 /* Lazy mode for batching updates / context switch */
-enum paravirt_lazy_mode {
+enum paravirt_lazy_mode
+{
 	PARAVIRT_LAZY_NONE,
 	PARAVIRT_LAZY_MMU,
 	PARAVIRT_LAZY_CPU,

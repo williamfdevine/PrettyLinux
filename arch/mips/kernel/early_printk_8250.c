@@ -26,7 +26,7 @@ static unsigned int serial8250_reg_shift;
 static unsigned int serial8250_tx_timeout;
 
 void setup_8250_early_printk_port(unsigned long base, unsigned int reg_shift,
-				  unsigned int timeout)
+								  unsigned int timeout)
 {
 	serial8250_base = (void __iomem *)base;
 	serial8250_reg_shift = reg_shift;
@@ -49,18 +49,26 @@ void prom_putchar(char c)
 	int status, bits;
 
 	if (!serial8250_base)
+	{
 		return;
+	}
 
 	timeout = serial8250_tx_timeout;
 	bits = UART_LSR_TEMT | UART_LSR_THRE;
 
-	do {
+	do
+	{
 		status = serial_in(UART_LSR);
 
 		if (--timeout == 0)
+		{
 			break;
-	} while ((status & bits) != bits);
+		}
+	}
+	while ((status & bits) != bits);
 
 	if (timeout)
+	{
 		serial_out(UART_TX, c);
+	}
 }

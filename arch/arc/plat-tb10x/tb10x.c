@@ -22,11 +22,12 @@
 #include <linux/init.h>
 #include <asm/mach_desc.h>
 
-static const char *tb10x_compat[] __initdata = {
+static const char *tb10x_compat[] __initdata =
+{
 	"abilis,arc-tb10x",
 	NULL,
 };
 
 MACHINE_START(TB10x, "tb10x")
-	.dt_compat	= tb10x_compat,
-MACHINE_END
+.dt_compat	= tb10x_compat,
+  MACHINE_END

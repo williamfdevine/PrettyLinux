@@ -113,171 +113,217 @@ alpha_fp_emul (unsigned long pc)
 	func   = (insn >>  5) & 0xf;
 	src    = (insn >>  9) & 0x3;
 	mode   = (insn >> 11) & 0x3;
-	
+
 	fpcr = rdfpcr();
 	swcr = swcr_update_status(current_thread_info()->ieee_state, fpcr);
 
-	if (mode == 3) {
+	if (mode == 3)
+	{
 		/* Dynamic -- get rounding mode from fpcr.  */
 		mode = (fpcr >> FPCR_DYN_SHIFT) & 3;
 	}
 
-	switch (src) {
-	case FOP_SRC_S:
-		va = alpha_read_fp_reg_s(fa);
-		vb = alpha_read_fp_reg_s(fb);
-		
-		FP_UNPACK_SP(SA, &va);
-		FP_UNPACK_SP(SB, &vb);
+	switch (src)
+	{
+		case FOP_SRC_S:
+			va = alpha_read_fp_reg_s(fa);
+			vb = alpha_read_fp_reg_s(fb);
 
-		switch (func) {
-		case FOP_FNC_SUBx:
-			FP_SUB_S(SR, SA, SB);
-			goto pack_s;
+			FP_UNPACK_SP(SA, &va);
+			FP_UNPACK_SP(SB, &vb);
 
-		case FOP_FNC_ADDx:
-			FP_ADD_S(SR, SA, SB);
-			goto pack_s;
+			switch (func)
+			{
+				case FOP_FNC_SUBx:
+					FP_SUB_S(SR, SA, SB);
+					goto pack_s;
 
-		case FOP_FNC_MULx:
-			FP_MUL_S(SR, SA, SB);
-			goto pack_s;
+				case FOP_FNC_ADDx:
+					FP_ADD_S(SR, SA, SB);
+					goto pack_s;
 
-		case FOP_FNC_DIVx:
-			FP_DIV_S(SR, SA, SB);
-			goto pack_s;
+				case FOP_FNC_MULx:
+					FP_MUL_S(SR, SA, SB);
+					goto pack_s;
 
-		case FOP_FNC_SQRTx:
-			FP_SQRT_S(SR, SB);
-			goto pack_s;
-		}
-		goto bad_insn;
+				case FOP_FNC_DIVx:
+					FP_DIV_S(SR, SA, SB);
+					goto pack_s;
 
-	case FOP_SRC_T:
-		va = alpha_read_fp_reg(fa);
-		vb = alpha_read_fp_reg(fb);
-
-		if ((func & ~3) == FOP_FNC_CMPxUN) {
-			FP_UNPACK_RAW_DP(DA, &va);
-			FP_UNPACK_RAW_DP(DB, &vb);
-			if (!DA_e && !_FP_FRAC_ZEROP_1(DA)) {
-				FP_SET_EXCEPTION(FP_EX_DENORM);
-				if (FP_DENORM_ZERO)
-					_FP_FRAC_SET_1(DA, _FP_ZEROFRAC_1);
-			}
-			if (!DB_e && !_FP_FRAC_ZEROP_1(DB)) {
-				FP_SET_EXCEPTION(FP_EX_DENORM);
-				if (FP_DENORM_ZERO)
-					_FP_FRAC_SET_1(DB, _FP_ZEROFRAC_1);
-			}
-			FP_CMP_D(res, DA, DB, 3);
-			vc = 0x4000000000000000UL;
-			/* CMPTEQ, CMPTUN don't trap on QNaN,
-			   while CMPTLT and CMPTLE do */
-			if (res == 3
-			    && ((func & 3) >= 2
-				|| FP_ISSIGNAN_D(DA)
-				|| FP_ISSIGNAN_D(DB))) {
-				FP_SET_EXCEPTION(FP_EX_INVALID);
-			}
-			switch (func) {
-			case FOP_FNC_CMPxUN: if (res != 3) vc = 0; break;
-			case FOP_FNC_CMPxEQ: if (res) vc = 0; break;
-			case FOP_FNC_CMPxLT: if (res != -1) vc = 0; break;
-			case FOP_FNC_CMPxLE: if ((long)res > 0) vc = 0; break;
-			}
-			goto done_d;
-		}
-
-		FP_UNPACK_DP(DA, &va);
-		FP_UNPACK_DP(DB, &vb);
-
-		switch (func) {
-		case FOP_FNC_SUBx:
-			FP_SUB_D(DR, DA, DB);
-			goto pack_d;
-
-		case FOP_FNC_ADDx:
-			FP_ADD_D(DR, DA, DB);
-			goto pack_d;
-
-		case FOP_FNC_MULx:
-			FP_MUL_D(DR, DA, DB);
-			goto pack_d;
-
-		case FOP_FNC_DIVx:
-			FP_DIV_D(DR, DA, DB);
-			goto pack_d;
-
-		case FOP_FNC_SQRTx:
-			FP_SQRT_D(DR, DB);
-			goto pack_d;
-
-		case FOP_FNC_CVTxS:
-			/* It is irritating that DEC encoded CVTST with
-			   SRC == T_floating.  It is also interesting that
-			   the bit used to tell the two apart is /U... */
-			if (insn & 0x2000) {
-				FP_CONV(S,D,1,1,SR,DB);
-				goto pack_s;
-			} else {
-				vb = alpha_read_fp_reg_s(fb);
-				FP_UNPACK_SP(SB, &vb);
-				DR_c = DB_c;
-				DR_s = DB_s;
-				DR_e = DB_e + (1024 - 128);
-				DR_f = SB_f << (52 - 23);
-				goto pack_d;
+				case FOP_FNC_SQRTx:
+					FP_SQRT_S(SR, SB);
+					goto pack_s;
 			}
 
-		case FOP_FNC_CVTxQ:
-			if (DB_c == FP_CLS_NAN
-			    && (_FP_FRAC_HIGH_RAW_D(DB) & _FP_QNANBIT_D)) {
-			  /* AAHB Table B-2 says QNaN should not trigger INV */
-				vc = 0;
-			} else
-				FP_TO_INT_ROUND_D(vc, DB, 64, 2);
-			goto done_d;
-		}
-		goto bad_insn;
+			goto bad_insn;
 
-	case FOP_SRC_Q:
-		vb = alpha_read_fp_reg(fb);
+		case FOP_SRC_T:
+			va = alpha_read_fp_reg(fa);
+			vb = alpha_read_fp_reg(fb);
 
-		switch (func) {
-		case FOP_FNC_CVTQL:
-			/* Notice: We can get here only due to an integer
-			   overflow.  Such overflows are reported as invalid
-			   ops.  We return the result the hw would have
-			   computed.  */
-			vc = ((vb & 0xc0000000) << 32 |	/* sign and msb */
-			      (vb & 0x3fffffff) << 29);	/* rest of the int */
-			FP_SET_EXCEPTION (FP_EX_INVALID);
-			goto done_d;
+			if ((func & ~3) == FOP_FNC_CMPxUN)
+			{
+				FP_UNPACK_RAW_DP(DA, &va);
+				FP_UNPACK_RAW_DP(DB, &vb);
 
-		case FOP_FNC_CVTxS:
-			FP_FROM_INT_S(SR, ((long)vb), 64, long);
-			goto pack_s;
+				if (!DA_e && !_FP_FRAC_ZEROP_1(DA))
+				{
+					FP_SET_EXCEPTION(FP_EX_DENORM);
 
-		case FOP_FNC_CVTxT:
-			FP_FROM_INT_D(DR, ((long)vb), 64, long);
-			goto pack_d;
-		}
-		goto bad_insn;
+					if (FP_DENORM_ZERO)
+					{
+						_FP_FRAC_SET_1(DA, _FP_ZEROFRAC_1);
+					}
+				}
+
+				if (!DB_e && !_FP_FRAC_ZEROP_1(DB))
+				{
+					FP_SET_EXCEPTION(FP_EX_DENORM);
+
+					if (FP_DENORM_ZERO)
+					{
+						_FP_FRAC_SET_1(DB, _FP_ZEROFRAC_1);
+					}
+				}
+
+				FP_CMP_D(res, DA, DB, 3);
+				vc = 0x4000000000000000UL;
+
+				/* CMPTEQ, CMPTUN don't trap on QNaN,
+				   while CMPTLT and CMPTLE do */
+				if (res == 3
+					&& ((func & 3) >= 2
+						|| FP_ISSIGNAN_D(DA)
+						|| FP_ISSIGNAN_D(DB)))
+				{
+					FP_SET_EXCEPTION(FP_EX_INVALID);
+				}
+
+				switch (func)
+				{
+					case FOP_FNC_CMPxUN: if (res != 3) { vc = 0; } break;
+
+					case FOP_FNC_CMPxEQ: if (res) { vc = 0; } break;
+
+					case FOP_FNC_CMPxLT: if (res != -1) { vc = 0; } break;
+
+					case FOP_FNC_CMPxLE: if ((long)res > 0) { vc = 0; } break;
+				}
+
+				goto done_d;
+			}
+
+			FP_UNPACK_DP(DA, &va);
+			FP_UNPACK_DP(DB, &vb);
+
+			switch (func)
+			{
+				case FOP_FNC_SUBx:
+					FP_SUB_D(DR, DA, DB);
+					goto pack_d;
+
+				case FOP_FNC_ADDx:
+					FP_ADD_D(DR, DA, DB);
+					goto pack_d;
+
+				case FOP_FNC_MULx:
+					FP_MUL_D(DR, DA, DB);
+					goto pack_d;
+
+				case FOP_FNC_DIVx:
+					FP_DIV_D(DR, DA, DB);
+					goto pack_d;
+
+				case FOP_FNC_SQRTx:
+					FP_SQRT_D(DR, DB);
+					goto pack_d;
+
+				case FOP_FNC_CVTxS:
+
+					/* It is irritating that DEC encoded CVTST with
+					   SRC == T_floating.  It is also interesting that
+					   the bit used to tell the two apart is /U... */
+					if (insn & 0x2000)
+					{
+						FP_CONV(S, D, 1, 1, SR, DB);
+						goto pack_s;
+					}
+					else
+					{
+						vb = alpha_read_fp_reg_s(fb);
+						FP_UNPACK_SP(SB, &vb);
+						DR_c = DB_c;
+						DR_s = DB_s;
+						DR_e = DB_e + (1024 - 128);
+						DR_f = SB_f << (52 - 23);
+						goto pack_d;
+					}
+
+				case FOP_FNC_CVTxQ:
+					if (DB_c == FP_CLS_NAN
+						&& (_FP_FRAC_HIGH_RAW_D(DB) & _FP_QNANBIT_D))
+					{
+						/* AAHB Table B-2 says QNaN should not trigger INV */
+						vc = 0;
+					}
+					else
+					{
+						FP_TO_INT_ROUND_D(vc, DB, 64, 2);
+					}
+
+					goto done_d;
+			}
+
+			goto bad_insn;
+
+		case FOP_SRC_Q:
+			vb = alpha_read_fp_reg(fb);
+
+			switch (func)
+			{
+				case FOP_FNC_CVTQL:
+					/* Notice: We can get here only due to an integer
+					   overflow.  Such overflows are reported as invalid
+					   ops.  We return the result the hw would have
+					   computed.  */
+					vc = ((vb & 0xc0000000) << 32 |	/* sign and msb */
+						  (vb & 0x3fffffff) << 29);	/* rest of the int */
+					FP_SET_EXCEPTION (FP_EX_INVALID);
+					goto done_d;
+
+				case FOP_FNC_CVTxS:
+					FP_FROM_INT_S(SR, ((long)vb), 64, long);
+					goto pack_s;
+
+				case FOP_FNC_CVTxT:
+					FP_FROM_INT_D(DR, ((long)vb), 64, long);
+					goto pack_d;
+			}
+
+			goto bad_insn;
 	}
+
 	goto bad_insn;
 
 pack_s:
 	FP_PACK_SP(&vc, SR);
+
 	if ((_fex & FP_EX_UNDERFLOW) && (swcr & IEEE_MAP_UMZ))
+	{
 		vc = 0;
+	}
+
 	alpha_write_fp_reg_s(fc, vc);
 	goto done;
 
 pack_d:
 	FP_PACK_DP(&vc, DR);
+
 	if ((_fex & FP_EX_UNDERFLOW) && (swcr & IEEE_MAP_UMZ))
+	{
 		vc = 0;
+	}
+
 done_d:
 	alpha_write_fp_reg(fc, vc);
 	goto done;
@@ -295,11 +341,13 @@ done_d:
 	 * as described in the Alpha Architecture Handbook section 4.7.7.3.
 	 */
 done:
-	if (_fex) {
+
+	if (_fex)
+	{
 		/* Record exceptions in software control word.  */
 		swcr |= (_fex << IEEE_STATUS_TO_EXCSUM_SHIFT);
 		current_thread_info()->ieee_state
-		  |= (_fex << IEEE_STATUS_TO_EXCSUM_SHIFT);
+		|= (_fex << IEEE_STATUS_TO_EXCSUM_SHIFT);
 
 		/* Update hardware control register.  */
 		fpcr &= (~FPCR_MASK | FPCR_DYN_MASK);
@@ -309,13 +357,20 @@ done:
 		/* Do we generate a signal?  */
 		_fex = _fex & swcr & IEEE_TRAP_ENABLE_MASK;
 		si_code = 0;
-		if (_fex) {
-			if (_fex & IEEE_TRAP_ENABLE_DNO) si_code = FPE_FLTUND;
-			if (_fex & IEEE_TRAP_ENABLE_INE) si_code = FPE_FLTRES;
-			if (_fex & IEEE_TRAP_ENABLE_UNF) si_code = FPE_FLTUND;
-			if (_fex & IEEE_TRAP_ENABLE_OVF) si_code = FPE_FLTOVF;
-			if (_fex & IEEE_TRAP_ENABLE_DZE) si_code = FPE_FLTDIV;
-			if (_fex & IEEE_TRAP_ENABLE_INV) si_code = FPE_FLTINV;
+
+		if (_fex)
+		{
+			if (_fex & IEEE_TRAP_ENABLE_DNO) { si_code = FPE_FLTUND; }
+
+			if (_fex & IEEE_TRAP_ENABLE_INE) { si_code = FPE_FLTRES; }
+
+			if (_fex & IEEE_TRAP_ENABLE_UNF) { si_code = FPE_FLTUND; }
+
+			if (_fex & IEEE_TRAP_ENABLE_OVF) { si_code = FPE_FLTOVF; }
+
+			if (_fex & IEEE_TRAP_ENABLE_DZE) { si_code = FPE_FLTDIV; }
+
+			if (_fex & IEEE_TRAP_ENABLE_INV) { si_code = FPE_FLTINV; }
 		}
 
 		return si_code;
@@ -329,7 +384,7 @@ done:
 
 bad_insn:
 	printk(KERN_ERR "alpha_fp_emul: Invalid FP insn %#x at %#lx\n",
-	       insn, pc);
+		   insn, pc);
 	return -1;
 }
 
@@ -350,48 +405,55 @@ alpha_fp_emul_imprecise (struct pt_regs *regs, unsigned long write_mask)
 	 * bound the trap shadow, so we need not look any further than
 	 * up to the first occurrence of such an instruction.
 	 */
-	while (write_mask) {
+	while (write_mask)
+	{
 		get_user(insn, (__u32 __user *)(trigger_pc));
 		opcode = insn >> 26;
 		rc = insn & 0x1f;
 
-		switch (opcode) {
-		      case OPC_PAL:
-		      case OPC_JSR:
-		      case 0x30 ... 0x3f:	/* branches */
-			goto egress;
-
-		      case OPC_MISC:
-			switch (insn & 0xffff) {
-			      case MISC_TRAPB:
-			      case MISC_EXCB:
+		switch (opcode)
+		{
+			case OPC_PAL:
+			case OPC_JSR:
+			case 0x30 ... 0x3f:	/* branches */
 				goto egress;
 
-			      default:
+			case OPC_MISC:
+				switch (insn & 0xffff)
+				{
+					case MISC_TRAPB:
+					case MISC_EXCB:
+						goto egress;
+
+					default:
+						break;
+				}
+
 				break;
-			}
-			break;
 
-		      case OPC_INTA:
-		      case OPC_INTL:
-		      case OPC_INTS:
-		      case OPC_INTM:
-			write_mask &= ~(1UL << rc);
-			break;
+			case OPC_INTA:
+			case OPC_INTL:
+			case OPC_INTS:
+			case OPC_INTM:
+				write_mask &= ~(1UL << rc);
+				break;
 
-		      case OPC_FLTC:
-		      case OPC_FLTV:
-		      case OPC_FLTI:
-		      case OPC_FLTL:
-			write_mask &= ~(1UL << (rc + 32));
-			break;
+			case OPC_FLTC:
+			case OPC_FLTV:
+			case OPC_FLTI:
+			case OPC_FLTL:
+				write_mask &= ~(1UL << (rc + 32));
+				break;
 		}
-		if (!write_mask) {
+
+		if (!write_mask)
+		{
 			/* Re-execute insns in the trap-shadow.  */
 			regs->pc = trigger_pc + 4;
 			si_code = alpha_fp_emul(trigger_pc);
 			goto egress;
 		}
+
 		trigger_pc -= 4;
 	}
 

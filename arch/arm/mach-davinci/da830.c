@@ -37,323 +37,371 @@
 
 #define DA830_REF_FREQ		24000000
 
-static struct pll_data pll0_data = {
+static struct pll_data pll0_data =
+{
 	.num		= 1,
 	.phys_base	= DA8XX_PLL0_BASE,
 	.flags		= PLL_HAS_PREDIV | PLL_HAS_POSTDIV,
 };
 
-static struct clk ref_clk = {
+static struct clk ref_clk =
+{
 	.name		= "ref_clk",
 	.rate		= DA830_REF_FREQ,
 };
 
-static struct clk pll0_clk = {
+static struct clk pll0_clk =
+{
 	.name		= "pll0",
 	.parent		= &ref_clk,
 	.pll_data	= &pll0_data,
 	.flags		= CLK_PLL,
 };
 
-static struct clk pll0_aux_clk = {
+static struct clk pll0_aux_clk =
+{
 	.name		= "pll0_aux_clk",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL | PRE_PLL,
 };
 
-static struct clk pll0_sysclk2 = {
+static struct clk pll0_sysclk2 =
+{
 	.name		= "pll0_sysclk2",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV2,
 };
 
-static struct clk pll0_sysclk3 = {
+static struct clk pll0_sysclk3 =
+{
 	.name		= "pll0_sysclk3",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV3,
 };
 
-static struct clk pll0_sysclk4 = {
+static struct clk pll0_sysclk4 =
+{
 	.name		= "pll0_sysclk4",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV4,
 };
 
-static struct clk pll0_sysclk5 = {
+static struct clk pll0_sysclk5 =
+{
 	.name		= "pll0_sysclk5",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV5,
 };
 
-static struct clk pll0_sysclk6 = {
+static struct clk pll0_sysclk6 =
+{
 	.name		= "pll0_sysclk6",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV6,
 };
 
-static struct clk pll0_sysclk7 = {
+static struct clk pll0_sysclk7 =
+{
 	.name		= "pll0_sysclk7",
 	.parent		= &pll0_clk,
 	.flags		= CLK_PLL,
 	.div_reg	= PLLDIV7,
 };
 
-static struct clk i2c0_clk = {
+static struct clk i2c0_clk =
+{
 	.name		= "i2c0",
 	.parent		= &pll0_aux_clk,
 };
 
-static struct clk timerp64_0_clk = {
+static struct clk timerp64_0_clk =
+{
 	.name		= "timer0",
 	.parent		= &pll0_aux_clk,
 };
 
-static struct clk timerp64_1_clk = {
+static struct clk timerp64_1_clk =
+{
 	.name		= "timer1",
 	.parent		= &pll0_aux_clk,
 };
 
-static struct clk arm_rom_clk = {
+static struct clk arm_rom_clk =
+{
 	.name		= "arm_rom",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_ARM_RAM_ROM,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk scr0_ss_clk = {
+static struct clk scr0_ss_clk =
+{
 	.name		= "scr0_ss",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_SCR0_SS,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk scr1_ss_clk = {
+static struct clk scr1_ss_clk =
+{
 	.name		= "scr1_ss",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_SCR1_SS,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk scr2_ss_clk = {
+static struct clk scr2_ss_clk =
+{
 	.name		= "scr2_ss",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_SCR2_SS,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk dmax_clk = {
+static struct clk dmax_clk =
+{
 	.name		= "dmax",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_PRUSS,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk tpcc_clk = {
+static struct clk tpcc_clk =
+{
 	.name		= "tpcc",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_TPCC,
 	.flags		= ALWAYS_ENABLED | CLK_PSC,
 };
 
-static struct clk tptc0_clk = {
+static struct clk tptc0_clk =
+{
 	.name		= "tptc0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_TPTC0,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk tptc1_clk = {
+static struct clk tptc1_clk =
+{
 	.name		= "tptc1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_TPTC1,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk mmcsd_clk = {
+static struct clk mmcsd_clk =
+{
 	.name		= "mmcsd",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_MMC_SD,
 };
 
-static struct clk uart0_clk = {
+static struct clk uart0_clk =
+{
 	.name		= "uart0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_UART0,
 };
 
-static struct clk uart1_clk = {
+static struct clk uart1_clk =
+{
 	.name		= "uart1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_UART1,
 	.gpsc		= 1,
 };
 
-static struct clk uart2_clk = {
+static struct clk uart2_clk =
+{
 	.name		= "uart2",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_UART2,
 	.gpsc		= 1,
 };
 
-static struct clk spi0_clk = {
+static struct clk spi0_clk =
+{
 	.name		= "spi0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC0_SPI0,
 };
 
-static struct clk spi1_clk = {
+static struct clk spi1_clk =
+{
 	.name		= "spi1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_SPI1,
 	.gpsc		= 1,
 };
 
-static struct clk ecap0_clk = {
+static struct clk ecap0_clk =
+{
 	.name		= "ecap0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_ECAP,
 	.gpsc		= 1,
 };
 
-static struct clk ecap1_clk = {
+static struct clk ecap1_clk =
+{
 	.name		= "ecap1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_ECAP,
 	.gpsc		= 1,
 };
 
-static struct clk ecap2_clk = {
+static struct clk ecap2_clk =
+{
 	.name		= "ecap2",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_ECAP,
 	.gpsc		= 1,
 };
 
-static struct clk pwm0_clk = {
+static struct clk pwm0_clk =
+{
 	.name		= "pwm0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_PWM,
 	.gpsc		= 1,
 };
 
-static struct clk pwm1_clk = {
+static struct clk pwm1_clk =
+{
 	.name		= "pwm1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_PWM,
 	.gpsc		= 1,
 };
 
-static struct clk pwm2_clk = {
+static struct clk pwm2_clk =
+{
 	.name		= "pwm2",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_PWM,
 	.gpsc		= 1,
 };
 
-static struct clk eqep0_clk = {
+static struct clk eqep0_clk =
+{
 	.name		= "eqep0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA830_LPSC1_EQEP,
 	.gpsc		= 1,
 };
 
-static struct clk eqep1_clk = {
+static struct clk eqep1_clk =
+{
 	.name		= "eqep1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA830_LPSC1_EQEP,
 	.gpsc		= 1,
 };
 
-static struct clk lcdc_clk = {
+static struct clk lcdc_clk =
+{
 	.name		= "lcdc",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_LCDC,
 	.gpsc		= 1,
 };
 
-static struct clk mcasp0_clk = {
+static struct clk mcasp0_clk =
+{
 	.name		= "mcasp0",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_McASP0,
 	.gpsc		= 1,
 };
 
-static struct clk mcasp1_clk = {
+static struct clk mcasp1_clk =
+{
 	.name		= "mcasp1",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA830_LPSC1_McASP1,
 	.gpsc		= 1,
 };
 
-static struct clk mcasp2_clk = {
+static struct clk mcasp2_clk =
+{
 	.name		= "mcasp2",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA830_LPSC1_McASP2,
 	.gpsc		= 1,
 };
 
-static struct clk usb20_clk = {
+static struct clk usb20_clk =
+{
 	.name		= "usb20",
 	.parent		= &pll0_sysclk2,
 	.lpsc		= DA8XX_LPSC1_USB20,
 	.gpsc		= 1,
 };
 
-static struct clk aemif_clk = {
+static struct clk aemif_clk =
+{
 	.name		= "aemif",
 	.parent		= &pll0_sysclk3,
 	.lpsc		= DA8XX_LPSC0_EMIF25,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk aintc_clk = {
+static struct clk aintc_clk =
+{
 	.name		= "aintc",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC0_AINTC,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk secu_mgr_clk = {
+static struct clk secu_mgr_clk =
+{
 	.name		= "secu_mgr",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC0_SECU_MGR,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk emac_clk = {
+static struct clk emac_clk =
+{
 	.name		= "emac",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC1_CPGMAC,
 	.gpsc		= 1,
 };
 
-static struct clk gpio_clk = {
+static struct clk gpio_clk =
+{
 	.name		= "gpio",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC1_GPIO,
 	.gpsc		= 1,
 };
 
-static struct clk i2c1_clk = {
+static struct clk i2c1_clk =
+{
 	.name		= "i2c1",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC1_I2C,
 	.gpsc		= 1,
 };
 
-static struct clk usb11_clk = {
+static struct clk usb11_clk =
+{
 	.name		= "usb11",
 	.parent		= &pll0_sysclk4,
 	.lpsc		= DA8XX_LPSC1_USB11,
 	.gpsc		= 1,
 };
 
-static struct clk emif3_clk = {
+static struct clk emif3_clk =
+{
 	.name		= "emif3",
 	.parent		= &pll0_sysclk5,
 	.lpsc		= DA8XX_LPSC1_EMIF3C,
@@ -361,19 +409,22 @@ static struct clk emif3_clk = {
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk arm_clk = {
+static struct clk arm_clk =
+{
 	.name		= "arm",
 	.parent		= &pll0_sysclk6,
 	.lpsc		= DA8XX_LPSC0_ARM,
 	.flags		= ALWAYS_ENABLED,
 };
 
-static struct clk rmii_clk = {
+static struct clk rmii_clk =
+{
 	.name		= "rmii",
 	.parent		= &pll0_sysclk7,
 };
 
-static struct clk_lookup da830_clks[] = {
+static struct clk_lookup da830_clks[] =
+{
 	CLK(NULL,		"ref",		&ref_clk),
 	CLK(NULL,		"pll0",		&pll0_clk),
 	CLK(NULL,		"pll0_aux",	&pll0_aux_clk),
@@ -433,7 +484,8 @@ static struct clk_lookup da830_clks[] = {
  *	     soc      description	mux    mode    mode   mux	dbg
  *					reg   offset   mask   mode
  */
-static const struct mux_config da830_pins[] = {
+static const struct mux_config da830_pins[] =
+{
 #ifdef CONFIG_DAVINCI_MUX
 	MUX_CFG(DA830, GPIO7_14,	0,	0,	0xf,	1,	false)
 	MUX_CFG(DA830, RTCK,		0,	0,	0xf,	8,	false)
@@ -839,7 +891,8 @@ static const struct mux_config da830_pins[] = {
 #endif
 };
 
-const short da830_emif25_pins[] __initconst = {
+const short da830_emif25_pins[] __initconst =
+{
 	DA830_EMA_D_0, DA830_EMA_D_1, DA830_EMA_D_2, DA830_EMA_D_3,
 	DA830_EMA_D_4, DA830_EMA_D_5, DA830_EMA_D_6, DA830_EMA_D_7,
 	DA830_EMA_D_8, DA830_EMA_D_9, DA830_EMA_D_10, DA830_EMA_D_11,
@@ -854,19 +907,22 @@ const short da830_emif25_pins[] __initconst = {
 	-1
 };
 
-const short da830_spi0_pins[] __initconst = {
+const short da830_spi0_pins[] __initconst =
+{
 	DA830_SPI0_SOMI_0, DA830_SPI0_SIMO_0, DA830_SPI0_CLK, DA830_NSPI0_ENA,
 	DA830_NSPI0_SCS_0,
 	-1
 };
 
-const short da830_spi1_pins[] __initconst = {
+const short da830_spi1_pins[] __initconst =
+{
 	DA830_SPI1_SOMI_0, DA830_SPI1_SIMO_0, DA830_SPI1_CLK, DA830_NSPI1_ENA,
 	DA830_NSPI1_SCS_0,
 	-1
 };
 
-const short da830_mmc_sd_pins[] __initconst = {
+const short da830_mmc_sd_pins[] __initconst =
+{
 	DA830_MMCSD_DAT_0, DA830_MMCSD_DAT_1, DA830_MMCSD_DAT_2,
 	DA830_MMCSD_DAT_3, DA830_MMCSD_DAT_4, DA830_MMCSD_DAT_5,
 	DA830_MMCSD_DAT_6, DA830_MMCSD_DAT_7, DA830_MMCSD_CLK,
@@ -874,32 +930,38 @@ const short da830_mmc_sd_pins[] __initconst = {
 	-1
 };
 
-const short da830_uart0_pins[] __initconst = {
+const short da830_uart0_pins[] __initconst =
+{
 	DA830_NUART0_CTS, DA830_NUART0_RTS, DA830_UART0_RXD, DA830_UART0_TXD,
 	-1
 };
 
-const short da830_uart1_pins[] __initconst = {
+const short da830_uart1_pins[] __initconst =
+{
 	DA830_UART1_RXD, DA830_UART1_TXD,
 	-1
 };
 
-const short da830_uart2_pins[] __initconst = {
+const short da830_uart2_pins[] __initconst =
+{
 	DA830_UART2_RXD, DA830_UART2_TXD,
 	-1
 };
 
-const short da830_usb20_pins[] __initconst = {
+const short da830_usb20_pins[] __initconst =
+{
 	DA830_USB0_DRVVBUS, DA830_USB_REFCLKIN,
 	-1
 };
 
-const short da830_usb11_pins[] __initconst = {
+const short da830_usb11_pins[] __initconst =
+{
 	DA830_USB_REFCLKIN,
 	-1
 };
 
-const short da830_uhpi_pins[] __initconst = {
+const short da830_uhpi_pins[] __initconst =
+{
 	DA830_UHPI_HD_0, DA830_UHPI_HD_1, DA830_UHPI_HD_2, DA830_UHPI_HD_3,
 	DA830_UHPI_HD_4, DA830_UHPI_HD_5, DA830_UHPI_HD_6, DA830_UHPI_HD_7,
 	DA830_UHPI_HD_8, DA830_UHPI_HD_9, DA830_UHPI_HD_10, DA830_UHPI_HD_11,
@@ -910,14 +972,16 @@ const short da830_uhpi_pins[] __initconst = {
 	-1
 };
 
-const short da830_cpgmac_pins[] __initconst = {
+const short da830_cpgmac_pins[] __initconst =
+{
 	DA830_RMII_TXD_0, DA830_RMII_TXD_1, DA830_RMII_TXEN, DA830_RMII_CRS_DV,
 	DA830_RMII_RXD_0, DA830_RMII_RXD_1, DA830_RMII_RXER, DA830_MDIO_CLK,
 	DA830_MDIO_D,
 	-1
 };
 
-const short da830_emif3c_pins[] __initconst = {
+const short da830_emif3c_pins[] __initconst =
+{
 	DA830_EMB_SDCKE, DA830_EMB_CLK_GLUE, DA830_EMB_CLK, DA830_NEMB_CS_0,
 	DA830_NEMB_CAS, DA830_NEMB_RAS, DA830_NEMB_WE, DA830_EMB_BA_1,
 	DA830_EMB_BA_0, DA830_EMB_A_0, DA830_EMB_A_1, DA830_EMB_A_2,
@@ -936,7 +1000,8 @@ const short da830_emif3c_pins[] __initconst = {
 	-1
 };
 
-const short da830_mcasp0_pins[] __initconst = {
+const short da830_mcasp0_pins[] __initconst =
+{
 	DA830_AHCLKX0, DA830_ACLKX0, DA830_AFSX0,
 	DA830_AHCLKR0, DA830_ACLKR0, DA830_AFSR0, DA830_AMUTE0,
 	DA830_AXR0_0, DA830_AXR0_1, DA830_AXR0_2, DA830_AXR0_3,
@@ -946,7 +1011,8 @@ const short da830_mcasp0_pins[] __initconst = {
 	-1
 };
 
-const short da830_mcasp1_pins[] __initconst = {
+const short da830_mcasp1_pins[] __initconst =
+{
 	DA830_AHCLKX1, DA830_ACLKX1, DA830_AFSX1,
 	DA830_AHCLKR1, DA830_ACLKR1, DA830_AFSR1, DA830_AMUTE1,
 	DA830_AXR1_0, DA830_AXR1_1, DA830_AXR1_2, DA830_AXR1_3,
@@ -955,24 +1021,28 @@ const short da830_mcasp1_pins[] __initconst = {
 	-1
 };
 
-const short da830_mcasp2_pins[] __initconst = {
+const short da830_mcasp2_pins[] __initconst =
+{
 	DA830_AHCLKX2, DA830_ACLKX2, DA830_AFSX2,
 	DA830_AHCLKR2, DA830_ACLKR2, DA830_AFSR2, DA830_AMUTE2,
 	DA830_AXR2_0, DA830_AXR2_1, DA830_AXR2_2, DA830_AXR2_3,
 	-1
 };
 
-const short da830_i2c0_pins[] __initconst = {
+const short da830_i2c0_pins[] __initconst =
+{
 	DA830_I2C0_SDA, DA830_I2C0_SCL,
 	-1
 };
 
-const short da830_i2c1_pins[] __initconst = {
+const short da830_i2c1_pins[] __initconst =
+{
 	DA830_I2C1_SCL, DA830_I2C1_SDA,
 	-1
 };
 
-const short da830_lcdcntl_pins[] __initconst = {
+const short da830_lcdcntl_pins[] __initconst =
+{
 	DA830_LCD_D_0, DA830_LCD_D_1, DA830_LCD_D_2, DA830_LCD_D_3,
 	DA830_LCD_D_4, DA830_LCD_D_5, DA830_LCD_D_6, DA830_LCD_D_7,
 	DA830_LCD_D_8, DA830_LCD_D_9, DA830_LCD_D_10, DA830_LCD_D_11,
@@ -982,40 +1052,47 @@ const short da830_lcdcntl_pins[] __initconst = {
 	-1
 };
 
-const short da830_pwm_pins[] __initconst = {
+const short da830_pwm_pins[] __initconst =
+{
 	DA830_ECAP0_APWM0, DA830_ECAP1_APWM1, DA830_EPWM0B, DA830_EPWM0A,
 	DA830_EPWMSYNCI, DA830_EPWMSYNC0, DA830_ECAP2_APWM2, DA830_EHRPWMGLUETZ,
 	DA830_EPWM2B, DA830_EPWM2A, DA830_EPWM1B, DA830_EPWM1A,
 	-1
 };
 
-const short da830_ecap0_pins[] __initconst = {
+const short da830_ecap0_pins[] __initconst =
+{
 	DA830_ECAP0_APWM0,
 	-1
 };
 
-const short da830_ecap1_pins[] __initconst = {
+const short da830_ecap1_pins[] __initconst =
+{
 	DA830_ECAP1_APWM1,
 	-1
 };
 
-const short da830_ecap2_pins[] __initconst = {
+const short da830_ecap2_pins[] __initconst =
+{
 	DA830_ECAP2_APWM2,
 	-1
 };
 
-const short da830_eqep0_pins[] __initconst = {
+const short da830_eqep0_pins[] __initconst =
+{
 	DA830_EQEP0I, DA830_EQEP0S, DA830_EQEP0A, DA830_EQEP0B,
 	-1
 };
 
-const short da830_eqep1_pins[] __initconst = {
+const short da830_eqep1_pins[] __initconst =
+{
 	DA830_EQEP1I, DA830_EQEP1S, DA830_EQEP1A, DA830_EQEP1B,
 	-1
 };
 
 /* FIQ are pri 0-1; otherwise 2-7, with 7 lowest priority */
-static u8 da830_default_priorities[DA830_N_CP_INTC_IRQ] = {
+static u8 da830_default_priorities[DA830_N_CP_INTC_IRQ] =
+{
 	[IRQ_DA8XX_COMMTX]		= 7,
 	[IRQ_DA8XX_COMMRX]		= 7,
 	[IRQ_DA8XX_NINT]		= 7,
@@ -1109,7 +1186,8 @@ static u8 da830_default_priorities[DA830_N_CP_INTC_IRQ] = {
 	[IRQ_DA8XX_ARMCLKSTOPREQ]	= 7,
 };
 
-static struct map_desc da830_io_desc[] = {
+static struct map_desc da830_io_desc[] =
+{
 	{
 		.virtual	= IO_VIRT,
 		.pfn		= __phys_to_pfn(IO_PHYS),
@@ -1127,7 +1205,8 @@ static struct map_desc da830_io_desc[] = {
 static u32 da830_psc_bases[] = { DA8XX_PSC0_BASE, DA8XX_PSC1_BASE };
 
 /* Contents of JTAG ID register used to identify exact cpu type */
-static struct davinci_id da830_ids[] = {
+static struct davinci_id da830_ids[] =
+{
 	{
 		.variant	= 0x0,
 		.part_no	= 0xb7df,
@@ -1151,7 +1230,8 @@ static struct davinci_id da830_ids[] = {
 	},
 };
 
-static struct davinci_gpio_platform_data da830_gpio_platform_data = {
+static struct davinci_gpio_platform_data da830_gpio_platform_data =
+{
 	.ngpio = 128,
 };
 
@@ -1160,7 +1240,8 @@ int __init da830_register_gpio(void)
 	return da8xx_register_gpio(&da830_gpio_platform_data);
 }
 
-static struct davinci_timer_instance da830_timer_instance[2] = {
+static struct davinci_timer_instance da830_timer_instance[2] =
+{
 	{
 		.base		= DA8XX_TIMER64P0_BASE,
 		.bottom_irq	= IRQ_DA8XX_TINT12_0,
@@ -1182,13 +1263,15 @@ static struct davinci_timer_instance da830_timer_instance[2] = {
  * T0_TOP: Timer 0, top			: Used by DSP
  * T1_BOT, T1_TOP: Timer 1, bottom & top: Used for watchdog timer
  */
-static struct davinci_timer_info da830_timer_info = {
+static struct davinci_timer_info da830_timer_info =
+{
 	.timers		= da830_timer_instance,
 	.clockevent_id	= T0_BOT,
 	.clocksource_id	= T0_BOT,
 };
 
-static struct davinci_soc_info davinci_soc_info_da830 = {
+static struct davinci_soc_info davinci_soc_info_da830 =
+{
 	.io_desc		= da830_io_desc,
 	.io_desc_num		= ARRAY_SIZE(da830_io_desc),
 	.jtag_id_reg		= DA8XX_SYSCFG0_BASE + DA8XX_JTAG_ID_REG,

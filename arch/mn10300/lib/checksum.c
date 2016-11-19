@@ -19,11 +19,11 @@
 static inline unsigned short from32to16(__wsum sum)
 {
 	asm("	add	%1,%0		\n"
-	    "	addc	0xffff,%0	\n"
-	    : "=r" (sum)
-	    : "r" (sum << 16), "0" (sum & 0xffff0000)
-	    : "cc"
-	    );
+		"	addc	0xffff,%0	\n"
+		: "=r" (sum)
+		: "r" (sum << 16), "0" (sum & 0xffff0000)
+		: "cc"
+	   );
 	return sum >> 16;
 }
 
@@ -39,8 +39,12 @@ __wsum csum_partial(const void *buff, int len, __wsum sum)
 
 	result = do_csum(buff, len);
 	result += sum;
+
 	if (sum > result)
+	{
 		result++;
+	}
+
 	return result;
 }
 EXPORT_SYMBOL(csum_partial);
@@ -59,7 +63,7 @@ __wsum csum_partial_copy(const void *src, void *dst, int len, __wsum sum)
 EXPORT_SYMBOL(csum_partial_copy);
 
 __wsum csum_partial_copy_nocheck(const void *src, void *dst,
-				 int len, __wsum sum)
+								 int len, __wsum sum)
 {
 	sum = csum_partial(src, len, sum);
 	memcpy(dst, src, len);
@@ -68,13 +72,15 @@ __wsum csum_partial_copy_nocheck(const void *src, void *dst,
 EXPORT_SYMBOL(csum_partial_copy_nocheck);
 
 __wsum csum_partial_copy_from_user(const void *src, void *dst,
-				   int len, __wsum sum,
-				   int *err_ptr)
+								   int len, __wsum sum,
+								   int *err_ptr)
 {
 	int missing;
 
 	missing = copy_from_user(dst, src, len);
-	if (missing) {
+
+	if (missing)
+	{
 		memset(dst + len - missing, 0, missing);
 		*err_ptr = -EFAULT;
 	}
@@ -84,13 +90,15 @@ __wsum csum_partial_copy_from_user(const void *src, void *dst,
 EXPORT_SYMBOL(csum_partial_copy_from_user);
 
 __wsum csum_and_copy_to_user(const void *src, void *dst,
-			     int len, __wsum sum,
-			     int *err_ptr)
+							 int len, __wsum sum,
+							 int *err_ptr)
 {
 	int missing;
 
 	missing = copy_to_user(dst, src, len);
-	if (missing) {
+
+	if (missing)
+	{
 		memset(dst + len - missing, 0, missing);
 		*err_ptr = -EFAULT;
 	}

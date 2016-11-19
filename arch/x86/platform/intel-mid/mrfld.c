@@ -31,7 +31,9 @@ static unsigned long __init tangier_calibrate_tsc(void)
 
 	ratio = (lo >> 8) & 0xFF;
 	pr_debug("ratio is %d\n", ratio);
-	if (!ratio) {
+
+	if (!ratio)
+	{
 		pr_err("Read a zero ratio, force tsc ratio to 4 ...\n");
 		ratio = 4;
 	}
@@ -39,28 +41,45 @@ static unsigned long __init tangier_calibrate_tsc(void)
 	/* Compute FSB */
 	rdmsr(MSR_FSB_FREQ, lo, hi);
 	pr_debug("Actual FSB frequency detected by SOC 0x%x : %x\n",
-			hi, lo);
+			 hi, lo);
 
 	bus_freq = lo & 0x7;
 	pr_debug("bus_freq = 0x%x\n", bus_freq);
 
 	if (bus_freq == 0)
+	{
 		fsb = FSB_FREQ_100SKU;
+	}
 	else if (bus_freq == 1)
+	{
 		fsb = FSB_FREQ_100SKU;
+	}
 	else if (bus_freq == 2)
+	{
 		fsb = FSB_FREQ_133SKU;
+	}
 	else if (bus_freq == 3)
+	{
 		fsb = FSB_FREQ_167SKU;
+	}
 	else if (bus_freq == 4)
+	{
 		fsb = FSB_FREQ_83SKU;
+	}
 	else if (bus_freq == 5)
+	{
 		fsb = FSB_FREQ_400SKU;
+	}
 	else if (bus_freq == 6)
+	{
 		fsb = FSB_FREQ_267SKU;
+	}
 	else if (bus_freq == 7)
+	{
 		fsb = FSB_FREQ_333SKU;
-	else {
+	}
+	else
+	{
 		BUG();
 		pr_err("Invalid bus_freq! Setting to minimal value!\n");
 		fsb = FSB_FREQ_100SKU;
@@ -76,7 +95,7 @@ static unsigned long __init tangier_calibrate_tsc(void)
 	lapic_timer_frequency = (fsb * 1000) / HZ;
 
 	pr_debug("Setting lapic_timer_frequency = %d\n",
-			lapic_timer_frequency);
+			 lapic_timer_frequency);
 
 	/* mark tsc clocksource as reliable */
 	set_cpu_cap(&boot_cpu_data, X86_FEATURE_TSC_RELIABLE);
@@ -90,7 +109,8 @@ static void __init tangier_arch_setup(void)
 }
 
 /* tangier arch ops */
-static struct intel_mid_ops tangier_ops = {
+static struct intel_mid_ops tangier_ops =
+{
 	.arch_setup = tangier_arch_setup,
 };
 

@@ -38,20 +38,26 @@
 #include "powernv.h"
 
 #ifdef DEBUG
-#include <asm/udbg.h>
-#define DBG(fmt...) udbg_printf(fmt)
+	#include <asm/udbg.h>
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 static void pnv_smp_setup_cpu(int cpu)
 {
 	if (cpu != boot_cpuid)
+	{
 		xics_setup_cpu();
+	}
 
 #ifdef CONFIG_PPC_DOORBELL
+
 	if (cpu_has_feature(CPU_FTR_DBELL))
+	{
 		doorbell_setup_this_cpu();
+	}
+
 #endif
 }
 
@@ -59,7 +65,7 @@ static int pnv_smp_kick_cpu(int nr)
 {
 	unsigned int pcpu = get_hard_smp_processor_id(nr);
 	unsigned long start_here =
-			__pa(ppc_function_entry(generic_secondary_smp_init));
+		__pa(ppc_function_entry(generic_secondary_smp_init));
 	long rc;
 	uint8_t status;
 
@@ -70,7 +76,9 @@ static int pnv_smp_kick_cpu(int nr)
 	 * kick the CPU via the PACA
 	 */
 	if (paca[nr].cpu_start || !firmware_has_feature(FW_FEATURE_OPAL))
+	{
 		goto kick;
+	}
 
 	/*
 	 * At this point, the CPU can either be spinning on the way in
@@ -79,7 +87,9 @@ static int pnv_smp_kick_cpu(int nr)
 	 * has the CPUs, so we do that
 	 */
 	rc = opal_query_cpu_status(pcpu, &status);
-	if (rc != OPAL_SUCCESS) {
+
+	if (rc != OPAL_SUCCESS)
+	{
 		pr_warn("OPAL Error %ld querying CPU %d state\n", rc, nr);
 		return -ENODEV;
 	}
@@ -89,19 +99,26 @@ static int pnv_smp_kick_cpu(int nr)
 	 * kexec and spinning
 	 */
 	if (status == OPAL_THREAD_STARTED)
+	{
 		goto kick;
+	}
 
 	/*
 	 * Available/inactive, let's kick it
 	 */
-	if (status == OPAL_THREAD_INACTIVE) {
+	if (status == OPAL_THREAD_INACTIVE)
+	{
 		pr_devel("OPAL: Starting CPU %d (HW 0x%x)...\n", nr, pcpu);
 		rc = opal_start_cpu(pcpu, start_here);
-		if (rc != OPAL_SUCCESS) {
+
+		if (rc != OPAL_SUCCESS)
+		{
 			pr_warn("OPAL Error %ld starting CPU %d\n", rc, nr);
 			return -ENODEV;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * An unavailable CPU (or any other unknown status)
 		 * shouldn't be started. It should also
@@ -109,7 +126,7 @@ static int pnv_smp_kick_cpu(int nr)
 		 * happen
 		 */
 		pr_devel("OPAL: CPU %d (HW 0x%x) is unavailable"
-			 " (status %d)...\n", nr, pcpu, status);
+				 " (status %d)...\n", nr, pcpu, status);
 		return -ENODEV;
 	}
 
@@ -129,8 +146,12 @@ static int pnv_smp_cpu_disable(void)
 	 */
 	set_cpu_online(cpu, false);
 	vdso_data->processorCount--;
+
 	if (cpu == boot_cpuid)
+	{
 		boot_cpuid = cpumask_any(cpu_online_mask);
+	}
+
 	xics_migrate_irqs_away();
 	return 0;
 }
@@ -151,8 +172,11 @@ static void pnv_smp_cpu_kill_self(void)
 	smp_wmb();
 
 	wmask = SRR1_WAKEMASK;
+
 	if (cpu_has_feature(CPU_FTR_ARCH_207S))
+	{
 		wmask = SRR1_WAKEMASK_P8;
+	}
 
 	idle_states = pnv_get_supported_cpuidle_states();
 	/* We don't want to take decrementer interrupts while we are offline,
@@ -170,7 +194,8 @@ static void pnv_smp_cpu_kill_self(void)
 	hard_irq_disable();
 	local_paca->irq_happened &= ~(PACA_IRQ_DEC | PACA_IRQ_HMI);
 
-	while (!generic_check_cpu_restart(cpu)) {
+	while (!generic_check_cpu_restart(cpu))
+	{
 		/*
 		 * Clear IPI flag, since we don't handle IPIs while
 		 * offline, except for those when changing micro-threading
@@ -183,14 +208,22 @@ static void pnv_smp_cpu_kill_self(void)
 		ppc64_runlatch_off();
 
 		if (cpu_has_feature(CPU_FTR_ARCH_300))
+		{
 			srr1 = power9_idle_stop(pnv_deepest_stop_state);
+		}
 		else if (idle_states & OPAL_PM_WINKLE_ENABLED)
+		{
 			srr1 = power7_winkle();
+		}
 		else if ((idle_states & OPAL_PM_SLEEP_ENABLED) ||
-				(idle_states & OPAL_PM_SLEEP_ENABLED_ER1))
+				 (idle_states & OPAL_PM_SLEEP_ENABLED_ER1))
+		{
 			srr1 = power7_sleep();
+		}
 		else
+		{
 			srr1 = power7_nap(1);
+		}
 
 		ppc64_runlatch_on();
 
@@ -206,21 +239,30 @@ static void pnv_smp_cpu_kill_self(void)
 		 * contains 0.
 		 */
 		if (((srr1 & wmask) == SRR1_WAKEEE) ||
-		    (local_paca->irq_happened & PACA_IRQ_EE)) {
+			(local_paca->irq_happened & PACA_IRQ_EE))
+		{
 			icp_native_flush_interrupt();
-		} else if ((srr1 & wmask) == SRR1_WAKEHDBELL) {
+		}
+		else if ((srr1 & wmask) == SRR1_WAKEHDBELL)
+		{
 			unsigned long msg = PPC_DBELL_TYPE(PPC_DBELL_SERVER);
 			asm volatile(PPC_MSGCLR(%0) : : "r" (msg));
 		}
+
 		local_paca->irq_happened &= ~(PACA_IRQ_EE | PACA_IRQ_DBELL);
 		smp_mb();
 
 		if (cpu_core_split_required())
+		{
 			continue;
+		}
 
 		if (srr1 && !generic_check_cpu_restart(cpu))
+		{
 			DBG("CPU%d Unexpected exit while offline !\n", cpu);
+		}
 	}
+
 	mtspr(SPRN_LPCR, mfspr(SPRN_LPCR) | LPCR_PECE1);
 	DBG("CPU%d coming online...\n", cpu);
 }
@@ -236,12 +278,15 @@ static int pnv_cpu_bootable(unsigned int nr)
 	 * setting (smt-enabled on the kernel command line).
 	 */
 	if (cpu_has_feature(CPU_FTR_ARCH_207S))
+	{
 		return 1;
+	}
 
 	return smp_generic_cpu_bootable(nr);
 }
 
-static struct smp_ops_t pnv_smp_ops = {
+static struct smp_ops_t pnv_smp_ops =
+{
 	.message_pass	= smp_muxed_ipi_message_pass,
 	.cause_ipi	= NULL,	/* Filled at runtime by xics_smp_probe() */
 	.probe		= xics_smp_probe,

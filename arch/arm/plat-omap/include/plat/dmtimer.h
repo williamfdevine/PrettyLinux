@@ -75,11 +75,13 @@
  */
 #define OMAP_TIMER_ERRATA_I103_I767			0x80000000
 
-struct omap_timer_capability_dev_attr {
+struct omap_timer_capability_dev_attr
+{
 	u32 timer_capability;
 };
 
-struct timer_regs {
+struct timer_regs
+{
 	u32 tidr;
 	u32 tier;
 	u32 twer;
@@ -99,7 +101,8 @@ struct timer_regs {
 	u32 towr;
 };
 
-struct omap_dm_timer {
+struct omap_dm_timer
+{
 	int id;
 	int irq;
 	struct clk *fclk;
@@ -112,8 +115,8 @@ struct omap_dm_timer {
 	void __iomem	*func_base;	/* function register base */
 
 	unsigned long rate;
-	unsigned reserved:1;
-	unsigned posted:1;
+	unsigned reserved: 1;
+	unsigned posted: 1;
 	struct timer_regs context;
 	int (*get_context_loss_count)(struct device *);
 	int ctx_loss_count;
@@ -232,66 +235,70 @@ int omap_dm_timers_active(void);
 #define	WPSHIFT					16
 
 #define OMAP_TIMER_WAKEUP_EN_REG		(_OMAP_TIMER_WAKEUP_EN_OFFSET \
-							| (WP_NONE << WPSHIFT))
+		| (WP_NONE << WPSHIFT))
 
 #define OMAP_TIMER_CTRL_REG			(_OMAP_TIMER_CTRL_OFFSET \
-							| (WP_TCLR << WPSHIFT))
+									 | (WP_TCLR << WPSHIFT))
 
 #define OMAP_TIMER_COUNTER_REG			(_OMAP_TIMER_COUNTER_OFFSET \
-							| (WP_TCRR << WPSHIFT))
+		| (WP_TCRR << WPSHIFT))
 
 #define OMAP_TIMER_LOAD_REG			(_OMAP_TIMER_LOAD_OFFSET \
-							| (WP_TLDR << WPSHIFT))
+									 | (WP_TLDR << WPSHIFT))
 
 #define OMAP_TIMER_TRIGGER_REG			(_OMAP_TIMER_TRIGGER_OFFSET \
-							| (WP_TTGR << WPSHIFT))
+		| (WP_TTGR << WPSHIFT))
 
 #define OMAP_TIMER_WRITE_PEND_REG		(_OMAP_TIMER_WRITE_PEND_OFFSET \
-							| (WP_NONE << WPSHIFT))
+		| (WP_NONE << WPSHIFT))
 
 #define OMAP_TIMER_MATCH_REG			(_OMAP_TIMER_MATCH_OFFSET \
-							| (WP_TMAR << WPSHIFT))
+		| (WP_TMAR << WPSHIFT))
 
 #define OMAP_TIMER_CAPTURE_REG			(_OMAP_TIMER_CAPTURE_OFFSET \
-							| (WP_NONE << WPSHIFT))
+		| (WP_NONE << WPSHIFT))
 
 #define OMAP_TIMER_IF_CTRL_REG			(_OMAP_TIMER_IF_CTRL_OFFSET \
-							| (WP_NONE << WPSHIFT))
+		| (WP_NONE << WPSHIFT))
 
 #define OMAP_TIMER_CAPTURE2_REG			(_OMAP_TIMER_CAPTURE2_OFFSET \
-							| (WP_NONE << WPSHIFT))
+		| (WP_NONE << WPSHIFT))
 
 #define OMAP_TIMER_TICK_POS_REG			(_OMAP_TIMER_TICK_POS_OFFSET \
-							| (WP_TPIR << WPSHIFT))
+		| (WP_TPIR << WPSHIFT))
 
 #define OMAP_TIMER_TICK_NEG_REG			(_OMAP_TIMER_TICK_NEG_OFFSET \
-							| (WP_TNIR << WPSHIFT))
+		| (WP_TNIR << WPSHIFT))
 
 #define OMAP_TIMER_TICK_COUNT_REG		(_OMAP_TIMER_TICK_COUNT_OFFSET \
-							| (WP_TCVR << WPSHIFT))
+		| (WP_TCVR << WPSHIFT))
 
 #define OMAP_TIMER_TICK_INT_MASK_SET_REG				\
-		(_OMAP_TIMER_TICK_INT_MASK_SET_OFFSET | (WP_TOCR << WPSHIFT))
+	(_OMAP_TIMER_TICK_INT_MASK_SET_OFFSET | (WP_TOCR << WPSHIFT))
 
 #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
-		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+	(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
 
 static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
-						int posted)
+									   int posted)
 {
 	if (posted)
 		while (readl_relaxed(timer->pend) & (reg >> WPSHIFT))
+		{
 			cpu_relax();
+		}
 
 	return readl_relaxed(timer->func_base + (reg & 0xff));
 }
 
 static inline void __omap_dm_timer_write(struct omap_dm_timer *timer,
-					u32 reg, u32 val, int posted)
+		u32 reg, u32 val, int posted)
 {
 	if (posted)
 		while (readl_relaxed(timer->pend) & (reg >> WPSHIFT))
+		{
 			cpu_relax();
+		}
 
 	writel_relaxed(val, timer->func_base + (reg & 0xff));
 }
@@ -302,21 +309,25 @@ static inline void __omap_dm_timer_init_regs(struct omap_dm_timer *timer)
 
 	/* Assume v1 ip if bits [31:16] are zero */
 	tidr = readl_relaxed(timer->io_base);
-	if (!(tidr >> 16)) {
+
+	if (!(tidr >> 16))
+	{
 		timer->revision = 1;
 		timer->irq_stat = timer->io_base + OMAP_TIMER_V1_STAT_OFFSET;
 		timer->irq_ena = timer->io_base + OMAP_TIMER_V1_INT_EN_OFFSET;
 		timer->irq_dis = timer->io_base + OMAP_TIMER_V1_INT_EN_OFFSET;
 		timer->pend = timer->io_base + _OMAP_TIMER_WRITE_PEND_OFFSET;
 		timer->func_base = timer->io_base;
-	} else {
+	}
+	else
+	{
 		timer->revision = 2;
 		timer->irq_stat = timer->io_base + OMAP_TIMER_V2_IRQSTATUS;
 		timer->irq_ena = timer->io_base + OMAP_TIMER_V2_IRQENABLE_SET;
 		timer->irq_dis = timer->io_base + OMAP_TIMER_V2_IRQENABLE_CLR;
 		timer->pend = timer->io_base +
-			_OMAP_TIMER_WRITE_PEND_OFFSET +
-				OMAP_TIMER_V2_FUNC_OFFSET;
+					  _OMAP_TIMER_WRITE_PEND_OFFSET +
+					  OMAP_TIMER_V2_FUNC_OFFSET;
 		timer->func_base = timer->io_base + OMAP_TIMER_V2_FUNC_OFFSET;
 	}
 }
@@ -334,16 +345,19 @@ static inline void __omap_dm_timer_init_regs(struct omap_dm_timer *timer)
 static inline void __omap_dm_timer_enable_posted(struct omap_dm_timer *timer)
 {
 	if (timer->posted)
+	{
 		return;
+	}
 
-	if (timer->errata & OMAP_TIMER_ERRATA_I103_I767) {
+	if (timer->errata & OMAP_TIMER_ERRATA_I103_I767)
+	{
 		timer->posted = OMAP_TIMER_NONPOSTED;
 		__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG, 0, 0);
 		return;
 	}
 
 	__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG,
-			      OMAP_TIMER_CTRL_POSTED, 0);
+						  OMAP_TIMER_CTRL_POSTED, 0);
 	timer->context.tsicr = OMAP_TIMER_CTRL_POSTED;
 	timer->posted = OMAP_TIMER_POSTED;
 }
@@ -359,18 +373,20 @@ static inline void __omap_dm_timer_enable_posted(struct omap_dm_timer *timer)
  * has no impact.
  */
 static inline void __omap_dm_timer_override_errata(struct omap_dm_timer *timer,
-						   u32 errata)
+		u32 errata)
 {
 	timer->errata &= ~errata;
 }
 
 static inline void __omap_dm_timer_stop(struct omap_dm_timer *timer,
-					int posted, unsigned long rate)
+										int posted, unsigned long rate)
 {
 	u32 l;
 
 	l = __omap_dm_timer_read(timer, OMAP_TIMER_CTRL_REG, posted);
-	if (l & OMAP_TIMER_CTRL_ST) {
+
+	if (l & OMAP_TIMER_CTRL_ST)
+	{
 		l &= ~0x1;
 		__omap_dm_timer_write(timer, OMAP_TIMER_CTRL_REG, l, posted);
 #ifdef CONFIG_ARCH_OMAP2PLUS
@@ -389,15 +405,15 @@ static inline void __omap_dm_timer_stop(struct omap_dm_timer *timer,
 }
 
 static inline void __omap_dm_timer_load_start(struct omap_dm_timer *timer,
-						u32 ctrl, unsigned int load,
-						int posted)
+		u32 ctrl, unsigned int load,
+		int posted)
 {
 	__omap_dm_timer_write(timer, OMAP_TIMER_COUNTER_REG, load, posted);
 	__omap_dm_timer_write(timer, OMAP_TIMER_CTRL_REG, ctrl, posted);
 }
 
 static inline void __omap_dm_timer_int_enable(struct omap_dm_timer *timer,
-						unsigned int value)
+		unsigned int value)
 {
 	writel_relaxed(value, timer->irq_ena);
 	__omap_dm_timer_write(timer, OMAP_TIMER_WAKEUP_EN_REG, value, 0);
@@ -410,7 +426,7 @@ __omap_dm_timer_read_counter(struct omap_dm_timer *timer, int posted)
 }
 
 static inline void __omap_dm_timer_write_status(struct omap_dm_timer *timer,
-						unsigned int value)
+		unsigned int value)
 {
 	writel_relaxed(value, timer->irq_stat);
 }

@@ -33,7 +33,7 @@
 #include <asm/realmode.h>
 
 #ifdef CONFIG_ACPI_APEI
-# include <asm/pgtable_types.h>
+	#include <asm/pgtable_types.h>
 #endif
 
 #ifdef CONFIG_ACPI
@@ -53,7 +53,7 @@ extern int acpi_sci_override_gsi;
 void acpi_pic_sci_set_trigger(unsigned int, u16);
 
 extern int (*__acpi_register_gsi)(struct device *dev, u32 gsi,
-				  int trigger, int polarity);
+								  int trigger, int polarity);
 extern void (*__acpi_unregister_gsi)(u32 gsi);
 
 static inline void disable_acpi(void)
@@ -90,21 +90,27 @@ static inline unsigned int acpi_processor_cstate_check(unsigned int max_cstate)
 	 * Steppings 0x0A and later are good
 	 */
 	if (boot_cpu_data.x86 == 0x0F &&
-	    boot_cpu_data.x86_vendor == X86_VENDOR_AMD &&
-	    boot_cpu_data.x86_model <= 0x05 &&
-	    boot_cpu_data.x86_mask < 0x0A)
+		boot_cpu_data.x86_vendor == X86_VENDOR_AMD &&
+		boot_cpu_data.x86_model <= 0x05 &&
+		boot_cpu_data.x86_mask < 0x0A)
+	{
 		return 1;
+	}
 	else if (amd_e400_c1e_detected)
+	{
 		return 1;
+	}
 	else
+	{
 		return max_cstate;
+	}
 }
 
 static inline bool arch_has_acpi_pdc(void)
 {
 	struct cpuinfo_x86 *c = &cpu_data(0);
 	return (c->x86_vendor == X86_VENDOR_INTEL ||
-		c->x86_vendor == X86_VENDOR_CENTAUR);
+			c->x86_vendor == X86_VENDOR_CENTAUR);
 }
 
 static inline void arch_acpi_set_pdc_bits(u32 *buf)
@@ -114,16 +120,22 @@ static inline void arch_acpi_set_pdc_bits(u32 *buf)
 	buf[2] |= ACPI_PDC_C_CAPABILITY_SMP;
 
 	if (cpu_has(c, X86_FEATURE_EST))
+	{
 		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
+	}
 
 	if (cpu_has(c, X86_FEATURE_ACPI))
+	{
 		buf[2] |= ACPI_PDC_T_FFH;
+	}
 
 	/*
 	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
 	 */
 	if (!cpu_has(c, X86_FEATURE_MWAIT))
+	{
 		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
+	}
 }
 
 static inline bool acpi_has_cpu_in_madt(void)
@@ -145,7 +157,7 @@ static inline void disable_acpi(void) { }
 #define ARCH_HAS_POWER_INIT	1
 
 #ifdef CONFIG_ACPI_NUMA
-extern int x86_acpi_numa_init(void);
+	extern int x86_acpi_numa_init(void);
 #endif /* CONFIG_ACPI_NUMA */
 
 #define acpi_unlazy_tlb(x)	leave_mm(x)
@@ -165,7 +177,7 @@ static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
 	 * require the equivalent of PAGE_KERNEL_NOCACHE), return that
 	 * until we know differently.
 	 */
-	 return PAGE_KERNEL;
+	return PAGE_KERNEL;
 }
 #endif
 

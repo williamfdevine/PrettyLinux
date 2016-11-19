@@ -21,8 +21,8 @@ static inline unsigned long cris_swapnwbrlz(unsigned long w)
 
 	unsigned long res;
 	__asm__ ("swapnwbr %0 \n\t"
-		 "lz %0,%0"
-		 : "=r" (res) : "0" (w));
+			 "lz %0,%0"
+			 : "=r" (res) : "0" (w));
 	return res;
 }
 
@@ -30,9 +30,9 @@ static inline unsigned long cris_swapwbrlz(unsigned long w)
 {
 	unsigned res;
 	__asm__ ("swapwbr %0 \n\t"
-		 "lz %0,%0"
-		 : "=r" (res)
-		 : "0" (w));
+			 "lz %0,%0"
+			 : "=r" (res)
+			 : "0" (w));
 	return res;
 }
 

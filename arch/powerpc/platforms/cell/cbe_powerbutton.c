@@ -39,7 +39,8 @@ static void cbe_powerbutton_handle_pmi(pmi_message_t pmi_msg)
 	input_sync(button_dev);
 }
 
-static struct pmi_handler cbe_pmi_handler = {
+static struct pmi_handler cbe_pmi_handler =
+{
 	.type			= PMI_TYPE_POWER_BUTTON,
 	.handle_pmi_message	= cbe_powerbutton_handle_pmi,
 };
@@ -49,14 +50,17 @@ static int __init cbe_powerbutton_init(void)
 	int ret = 0;
 	struct input_dev *dev;
 
-	if (!of_machine_is_compatible("IBM,CBPLUS-1.0")) {
+	if (!of_machine_is_compatible("IBM,CBPLUS-1.0"))
+	{
 		printk(KERN_ERR "%s: Not a cell blade.\n", __func__);
 		ret = -ENODEV;
 		goto out;
 	}
 
 	dev = input_allocate_device();
-	if (!dev) {
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		printk(KERN_ERR "%s: Not enough memory.\n", __func__);
 		goto out;
@@ -74,14 +78,18 @@ static int __init cbe_powerbutton_init(void)
 	dev->phys = "LNXPWRBN/button/input0";
 
 	button_pdev = platform_device_register_simple("power_button", 0, NULL, 0);
-	if (IS_ERR(button_pdev)) {
+
+	if (IS_ERR(button_pdev))
+	{
 		ret = PTR_ERR(button_pdev);
 		goto out_free_input;
 	}
 
 	dev->dev.parent = &button_pdev->dev;
 	ret = input_register_device(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: Failed to register device\n", __func__);
 		goto out_free_pdev;
 	}
@@ -89,7 +97,9 @@ static int __init cbe_powerbutton_init(void)
 	button_dev = dev;
 
 	ret = pmi_register_handler(&cbe_pmi_handler);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: Failed to register with pmi.\n", __func__);
 		goto out_free_pdev;
 	}

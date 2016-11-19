@@ -18,7 +18,8 @@
 
 struct task_struct;
 
-struct stackframe {
+struct stackframe
+{
 	unsigned long fp;
 	unsigned long sp;
 	unsigned long pc;
@@ -29,6 +30,6 @@ struct stackframe {
 
 extern int unwind_frame(struct task_struct *tsk, struct stackframe *frame);
 extern void walk_stackframe(struct task_struct *tsk, struct stackframe *frame,
-			    int (*fn)(struct stackframe *, void *), void *data);
+							int (*fn)(struct stackframe *, void *), void *data);
 
 #endif	/* __ASM_STACKTRACE_H */

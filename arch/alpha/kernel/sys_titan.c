@@ -75,19 +75,23 @@ titan_update_irq_hw(unsigned long mask)
 	mask2 = mask & titan_cpu_irq_affinity[2];
 	mask3 = mask & titan_cpu_irq_affinity[3];
 
-	if (bcpu == 0) mask0 |= isa_enable;
-	else if (bcpu == 1) mask1 |= isa_enable;
-	else if (bcpu == 2) mask2 |= isa_enable;
-	else mask3 |= isa_enable;
+	if (bcpu == 0) { mask0 |= isa_enable; }
+	else if (bcpu == 1) { mask1 |= isa_enable; }
+	else if (bcpu == 2) { mask2 |= isa_enable; }
+	else { mask3 |= isa_enable; }
 
 	dim0 = &cchip->dim0.csr;
 	dim1 = &cchip->dim1.csr;
 	dim2 = &cchip->dim2.csr;
 	dim3 = &cchip->dim3.csr;
-	if (!cpumask_test_cpu(0, &cpm)) dim0 = &dummy;
-	if (!cpumask_test_cpu(1, &cpm)) dim1 = &dummy;
-	if (!cpumask_test_cpu(2, &cpm)) dim2 = &dummy;
-	if (!cpumask_test_cpu(3, &cpm)) dim3 = &dummy;
+
+	if (!cpumask_test_cpu(0, &cpm)) { dim0 = &dummy; }
+
+	if (!cpumask_test_cpu(1, &cpm)) { dim1 = &dummy; }
+
+	if (!cpumask_test_cpu(2, &cpm)) { dim2 = &dummy; }
+
+	if (!cpumask_test_cpu(3, &cpm)) { dim3 = &dummy; }
 
 	*dim0 = mask0;
 	*dim1 = mask1;
@@ -101,9 +105,10 @@ titan_update_irq_hw(unsigned long mask)
 #else
 	volatile unsigned long *dimB;
 	dimB = &cchip->dim0.csr;
-	if (bcpu == 1) dimB = &cchip->dim1.csr;
-	else if (bcpu == 2) dimB = &cchip->dim2.csr;
-	else if (bcpu == 3) dimB = &cchip->dim3.csr;
+
+	if (bcpu == 1) { dimB = &cchip->dim1.csr; }
+	else if (bcpu == 2) { dimB = &cchip->dim2.csr; }
+	else if (bcpu == 3) { dimB = &cchip->dim3.csr; }
 
 	*dimB = mask | isa_enable;
 	mb();
@@ -136,19 +141,24 @@ titan_cpu_set_irq_affinity(unsigned int irq, cpumask_t affinity)
 {
 	int cpu;
 
-	for (cpu = 0; cpu < 4; cpu++) {
+	for (cpu = 0; cpu < 4; cpu++)
+	{
 		if (cpumask_test_cpu(cpu, &affinity))
+		{
 			titan_cpu_irq_affinity[cpu] |= 1UL << irq;
+		}
 		else
+		{
 			titan_cpu_irq_affinity[cpu] &= ~(1UL << irq);
+		}
 	}
 
 }
 
 static int
 titan_set_irq_affinity(struct irq_data *d, const struct cpumask *affinity,
-		       bool force)
-{ 
+					   bool force)
+{
 	unsigned int irq = d->irq;
 	spin_lock(&titan_irq_lock);
 	titan_cpu_set_irq_affinity(irq - 16, *affinity);
@@ -164,7 +174,7 @@ titan_device_interrupt(unsigned long vector)
 	printk("titan_device_interrupt: NOT IMPLEMENTED YET!!\n");
 }
 
-static void 
+static void
 titan_srm_device_interrupt(unsigned long vector)
 {
 	int irq;
@@ -175,46 +185,54 @@ titan_srm_device_interrupt(unsigned long vector)
 
 
 static void __init
-init_titan_irqs(struct irq_chip * ops, int imin, int imax)
+init_titan_irqs(struct irq_chip *ops, int imin, int imax)
 {
 	long i;
-	for (i = imin; i <= imax; ++i) {
+
+	for (i = imin; i <= imax; ++i)
+	{
 		irq_set_chip_and_handler(i, ops, handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
 }
 
-static struct irq_chip titan_irq_type = {
-       .name			= "TITAN",
-       .irq_unmask		= titan_enable_irq,
-       .irq_mask		= titan_disable_irq,
-       .irq_mask_ack		= titan_disable_irq,
-       .irq_set_affinity	= titan_set_irq_affinity,
+static struct irq_chip titan_irq_type =
+{
+	.name			= "TITAN",
+	.irq_unmask		= titan_enable_irq,
+	.irq_mask		= titan_disable_irq,
+	.irq_mask_ack		= titan_disable_irq,
+	.irq_set_affinity	= titan_set_irq_affinity,
 };
 
 static irqreturn_t
 titan_intr_nop(int irq, void *dev_id)
 {
-      /*
-       * This is a NOP interrupt handler for the purposes of
-       * event counting -- just return.
-       */                                                                     
-       return IRQ_HANDLED;
+	/*
+	 * This is a NOP interrupt handler for the purposes of
+	 * event counting -- just return.
+	 */
+	return IRQ_HANDLED;
 }
 
 static void __init
 titan_init_irq(void)
 {
 	if (alpha_using_srm && !alpha_mv.device_interrupt)
+	{
 		alpha_mv.device_interrupt = titan_srm_device_interrupt;
+	}
+
 	if (!alpha_mv.device_interrupt)
+	{
 		alpha_mv.device_interrupt = titan_device_interrupt;
+	}
 
 	titan_update_irq_hw(0);
 
 	init_titan_irqs(&titan_irq_type, 16, 63 + 16);
 }
-  
+
 static void __init
 titan_legacy_init_irq(void)
 {
@@ -242,33 +260,36 @@ titan_dispatch_irqs(u64 mask)
 	mask &= titan_cpu_irq_affinity[smp_processor_id()];
 
 	/*
-	 * Dispatch all requested interrupts 
+	 * Dispatch all requested interrupts
 	 */
-	while (mask) {
+	while (mask)
+	{
 		/* convert to SRM vector... priority is <63> -> <0> */
 		vector = 63 - __kernel_ctlz(mask);
 		mask &= ~(1UL << vector);	/* clear it out 	 */
 		vector = 0x900 + (vector << 4);	/* convert to SRM vector */
-		
+
 		/* dispatch it */
 		alpha_mv.device_interrupt(vector);
 	}
 }
-  
+
 
 /*
  * Titan Family
  */
 static void __init
 titan_request_irq(unsigned int irq, irq_handler_t handler,
-		  unsigned long irqflags, const char *devname,
-		  void *dev_id)
+				  unsigned long irqflags, const char *devname,
+				  void *dev_id)
 {
 	int err;
 	err = request_irq(irq, handler, irqflags, devname, dev_id);
-	if (err) {
+
+	if (err)
+	{
 		printk("titan_request_irq for IRQ %d returned %d; ignoring\n",
-		       irq, err);
+			   irq, err);
 	}
 }
 
@@ -276,22 +297,22 @@ static void __init
 titan_late_init(void)
 {
 	/*
-	 * Enable the system error interrupts. These interrupts are 
+	 * Enable the system error interrupts. These interrupts are
 	 * all reported to the kernel as machine checks, so the handler
 	 * is a nop so it can be called to count the individual events.
 	 */
-	titan_request_irq(63+16, titan_intr_nop, 0,
-		    "CChip Error", NULL);
-	titan_request_irq(62+16, titan_intr_nop, 0,
-		    "PChip 0 H_Error", NULL);
-	titan_request_irq(61+16, titan_intr_nop, 0,
-		    "PChip 1 H_Error", NULL);
-	titan_request_irq(60+16, titan_intr_nop, 0,
-		    "PChip 0 C_Error", NULL);
-	titan_request_irq(59+16, titan_intr_nop, 0,
-		    "PChip 1 C_Error", NULL);
+	titan_request_irq(63 + 16, titan_intr_nop, 0,
+					  "CChip Error", NULL);
+	titan_request_irq(62 + 16, titan_intr_nop, 0,
+					  "PChip 0 H_Error", NULL);
+	titan_request_irq(61 + 16, titan_intr_nop, 0,
+					  "PChip 1 H_Error", NULL);
+	titan_request_irq(60 + 16, titan_intr_nop, 0,
+					  "PChip 0 C_Error", NULL);
+	titan_request_irq(59 + 16, titan_intr_nop, 0,
+					  "PChip 1 C_Error", NULL);
 
-	/* 
+	/*
 	 * Register our error handlers.
 	 */
 	titan_register_error_handlers();
@@ -309,27 +330,29 @@ titan_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	u8 intline;
 	int irq;
 
- 	/* Get the current intline.  */
+	/* Get the current intline.  */
 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &intline);
 	irq = intline;
 
- 	/* Is it explicitly routed through ISA?  */
- 	if ((irq & 0xF0) == 0xE0)
- 		return irq;
- 
- 	/* Offset by 16 to make room for ISA interrupts 0 - 15.  */
- 	return irq + 16;
+	/* Is it explicitly routed through ISA?  */
+	if ((irq & 0xF0) == 0xE0)
+	{
+		return irq;
+	}
+
+	/* Offset by 16 to make room for ISA interrupts 0 - 15.  */
+	return irq + 16;
 }
 
 static void __init
 titan_init_pci(void)
 {
- 	/*
- 	 * This isn't really the right place, but there's some init
- 	 * that needs to be done after everything is basically up.
- 	 */
- 	titan_late_init();
- 
+	/*
+	 * This isn't really the right place, but there's some init
+	 * that needs to be done after everything is basically up.
+	 */
+	titan_late_init();
+
 	/* Indicate that we trust the console to configure things properly */
 	pci_set_flags(PCI_PROBE_ONLY);
 	common_init_pci();
@@ -348,10 +371,10 @@ privateer_init_pci(void)
 	 * Hook a couple of extra err interrupts that the
 	 * common titan code won't.
 	 */
-	titan_request_irq(53+16, titan_intr_nop, 0,
-		    "NMI", NULL);
-	titan_request_irq(50+16, titan_intr_nop, 0,
-		    "Temperature Warning", NULL);
+	titan_request_irq(53 + 16, titan_intr_nop, 0,
+					  "NMI", NULL);
+	titan_request_irq(50 + 16, titan_intr_nop, 0,
+					  "Temperature Warning", NULL);
 
 	/*
 	 * Finish with the common version.
@@ -363,7 +386,8 @@ privateer_init_pci(void)
 /*
  * The System Vectors.
  */
-struct alpha_machine_vector titan_mv __initmv = {
+struct alpha_machine_vector titan_mv __initmv =
+{
 	.vector_name		= "TITAN",
 	DO_EV6_MMU,
 	DO_DEFAULT_RTC,
@@ -390,7 +414,8 @@ struct alpha_machine_vector titan_mv __initmv = {
 };
 ALIAS_MV(titan)
 
-struct alpha_machine_vector privateer_mv __initmv = {
+struct alpha_machine_vector privateer_mv __initmv =
+{
 	.vector_name		= "PRIVATEER",
 	DO_EV6_MMU,
 	DO_DEFAULT_RTC,
@@ -415,5 +440,5 @@ struct alpha_machine_vector privateer_mv __initmv = {
 	.pci_map_irq		= titan_map_irq,
 	.pci_swizzle		= common_swizzle,
 };
-/* No alpha_mv alias for privateer since we compile it 
+/* No alpha_mv alias for privateer since we compile it
    in unconditionally with titan; setup_arch knows how to cope. */

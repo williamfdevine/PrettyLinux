@@ -35,7 +35,9 @@ next_irq:
 	generic_handle_irq(irq);
 
 	irq = get_irq();
-	if (irq != -1U) {
+
+	if (irq != -1U)
+	{
 		pr_debug("next irq: %d\n", irq);
 		++concurrent_irq;
 		goto next_irq;

@@ -102,25 +102,32 @@ void mcf_maskimr(unsigned int mask)
 void mcf_autovector(int irq)
 {
 #ifdef MCFSIM_AVR
-	if ((irq >= EIRQ1) && (irq <= EIRQ7)) {
+
+	if ((irq >= EIRQ1) && (irq <= EIRQ7))
+	{
 		u8 avec;
 		avec = __raw_readb(MCFSIM_AVR);
 		avec |= (0x1 << (irq - EIRQ1 + 1));
 		__raw_writeb(avec, MCFSIM_AVR);
 	}
+
 #endif
 }
 
 static void intc_irq_mask(struct irq_data *d)
 {
 	if (mcf_irq2imr[d->irq])
+	{
 		mcf_setimr(mcf_irq2imr[d->irq]);
+	}
 }
 
 static void intc_irq_unmask(struct irq_data *d)
 {
 	if (mcf_irq2imr[d->irq])
+	{
 		mcf_clrimr(mcf_irq2imr[d->irq]);
+	}
 }
 
 static int intc_irq_set_type(struct irq_data *d, unsigned int type)
@@ -128,7 +135,8 @@ static int intc_irq_set_type(struct irq_data *d, unsigned int type)
 	return 0;
 }
 
-static struct irq_chip intc_irq_chip = {
+static struct irq_chip intc_irq_chip =
+{
 	.name		= "CF-INTC",
 	.irq_mask	= intc_irq_mask,
 	.irq_unmask	= intc_irq_unmask,
@@ -141,7 +149,8 @@ void __init init_IRQ(void)
 
 	mcf_maskimr(0xffffffff);
 
-	for (irq = 0; (irq < NR_IRQS); irq++) {
+	for (irq = 0; (irq < NR_IRQS); irq++)
+	{
 		irq_set_chip(irq, &intc_irq_chip);
 		irq_set_irq_type(irq, IRQ_TYPE_LEVEL_HIGH);
 		irq_set_handler(irq, handle_level_irq);

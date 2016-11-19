@@ -39,11 +39,11 @@
 #define SERIAL_PORT_DFNS						\
 	{								\
 		.baud_base	= BASE_BAUD,				\
-		.irq		= SERIAL_IRQ,				\
-		.flags		= STD_COM_FLAGS,			\
-		.iomem_base	= (u8 *) SERIAL_PORT0_BASE_ADDRESS,	\
-		.iomem_reg_shift = 1,					\
-		.io_type	= SERIAL_IO_MEM,			\
+					  .irq		= SERIAL_IRQ,				\
+									.flags		= STD_COM_FLAGS,			\
+											.iomem_base	= (u8 *) SERIAL_PORT0_BASE_ADDRESS,	\
+													.iomem_reg_shift = 1,					\
+															.io_type	= SERIAL_IO_MEM,			\
 	},
 
 #ifndef __ASSEMBLY__
@@ -59,22 +59,22 @@ static inline void __debug_to_serial(const char *p, int n)
 #define SERIAL_PORT_DFNS /* stolen by gdb-stub */
 
 #if defined(CONFIG_GDBSTUB_ON_TTYS0)
-#define GDBPORT_SERIAL_RX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_RX  * 2, u8)
-#define GDBPORT_SERIAL_TX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_TX  * 2, u8)
-#define GDBPORT_SERIAL_DLL	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_DLL * 2, u8)
-#define GDBPORT_SERIAL_DLM	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_DLM * 2, u8)
-#define GDBPORT_SERIAL_IER	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_IER * 2, u8)
-#define GDBPORT_SERIAL_IIR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_IIR * 2, u8)
-#define GDBPORT_SERIAL_FCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_FCR * 2, u8)
-#define GDBPORT_SERIAL_LCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_LCR * 2, u8)
-#define GDBPORT_SERIAL_MCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MCR * 2, u8)
-#define GDBPORT_SERIAL_LSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_LSR * 2, u8)
-#define GDBPORT_SERIAL_MSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MSR * 2, u8)
-#define GDBPORT_SERIAL_SCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_SCR * 2, u8)
-#define GDBPORT_SERIAL_IRQ	SERIAL_IRQ
+	#define GDBPORT_SERIAL_RX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_RX  * 2, u8)
+	#define GDBPORT_SERIAL_TX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_TX  * 2, u8)
+	#define GDBPORT_SERIAL_DLL	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_DLL * 2, u8)
+	#define GDBPORT_SERIAL_DLM	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_DLM * 2, u8)
+	#define GDBPORT_SERIAL_IER	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_IER * 2, u8)
+	#define GDBPORT_SERIAL_IIR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_IIR * 2, u8)
+	#define GDBPORT_SERIAL_FCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_FCR * 2, u8)
+	#define GDBPORT_SERIAL_LCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_LCR * 2, u8)
+	#define GDBPORT_SERIAL_MCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MCR * 2, u8)
+	#define GDBPORT_SERIAL_LSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_LSR * 2, u8)
+	#define GDBPORT_SERIAL_MSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MSR * 2, u8)
+	#define GDBPORT_SERIAL_SCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_SCR * 2, u8)
+	#define GDBPORT_SERIAL_IRQ	SERIAL_IRQ
 
 #elif defined(CONFIG_GDBSTUB_ON_TTYS1)
-#error The ASB2364 does not have a /dev/ttyS1
+	#error The ASB2364 does not have a /dev/ttyS1
 #endif
 
 #ifndef __ASSEMBLY__
@@ -96,16 +96,20 @@ static inline void __debug_to_serial(const char *p, int n)
 
 	FLOWCTL_SET(DTR);
 
-	for (; n > 0; n--) {
+	for (; n > 0; n--)
+	{
 		LSR_WAIT_FOR(THRE);
 		FLOWCTL_WAIT_FOR(CTS);
 
 		ch = *p++;
-		if (ch == 0x0a) {
+
+		if (ch == 0x0a)
+		{
 			GDBPORT_SERIAL_TX = 0x0d;
 			LSR_WAIT_FOR(THRE);
 			FLOWCTL_WAIT_FOR(CTS);
 		}
+
 		GDBPORT_SERIAL_TX = ch;
 	}
 
@@ -117,35 +121,35 @@ static inline void __debug_to_serial(const char *p, int n)
 #endif /* CONFIG_GDBSTUB_ON_TTYSx */
 
 #define SERIAL_INITIALIZE					\
-do {								\
-	/* release reset */					\
-	ASB2364_FPGA_REG_RESET_UART = 0x0001;			\
-	SyncExBus();						\
-} while (0)
+	do {								\
+		/* release reset */					\
+		ASB2364_FPGA_REG_RESET_UART = 0x0001;			\
+		SyncExBus();						\
+	} while (0)
 
 #define SERIAL_CHECK_INTERRUPT					\
-do {								\
-	if ((ASB2364_FPGA_REG_IRQ_UART & 0x0001) == 0x0001) {	\
-		return IRQ_NONE;				\
-	}							\
-} while (0)
+	do {								\
+		if ((ASB2364_FPGA_REG_IRQ_UART & 0x0001) == 0x0001) {	\
+			return IRQ_NONE;				\
+		}							\
+	} while (0)
 
 #define SERIAL_CLEAR_INTERRUPT					\
-do {								\
-	ASB2364_FPGA_REG_IRQ_UART = 0x0001;			\
-	SyncExBus();						\
-} while (0)
+	do {								\
+		ASB2364_FPGA_REG_IRQ_UART = 0x0001;			\
+		SyncExBus();						\
+	} while (0)
 
 #define SERIAL_SET_INT_MASK					\
-do {								\
-	ASB2364_FPGA_REG_MASK_UART = 0x0001;			\
-	SyncExBus();						\
-} while (0)
+	do {								\
+		ASB2364_FPGA_REG_MASK_UART = 0x0001;			\
+		SyncExBus();						\
+	} while (0)
 
 #define SERIAL_CLEAR_INT_MASK					\
-do {								\
-	ASB2364_FPGA_REG_MASK_UART = 0x0000;			\
-	SyncExBus();						\
-} while (0)
+	do {								\
+		ASB2364_FPGA_REG_MASK_UART = 0x0000;			\
+		SyncExBus();						\
+	} while (0)
 
 #endif /* _ASM_UNIT_SERIAL_H */

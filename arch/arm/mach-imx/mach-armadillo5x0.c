@@ -55,7 +55,8 @@
 #include "iomux-mx3.h"
 #include "ulpi.h"
 
-static int armadillo5x0_pins[] = {
+static int armadillo5x0_pins[] =
+{
 	/* UART1 */
 	MX31_PIN_CTS1__CTS1,
 	MX31_PIN_RTS1__RTS1,
@@ -137,7 +138,7 @@ static int armadillo5x0_pins[] = {
 #define USBH2_CS IOMUX_TO_GPIO(MX31_PIN_GPIO1_3)
 
 #define USB_PAD_CFG (PAD_CTL_DRV_MAX | PAD_CTL_SRE_FAST | PAD_CTL_HYS_CMOS | \
-			PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
+					 PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
 
 static int usbotg_init(struct platform_device *pdev)
 {
@@ -159,13 +160,17 @@ static int usbotg_init(struct platform_device *pdev)
 	/* Chip already enabled by hardware */
 	/* OTG phy reset*/
 	err = gpio_request(OTG_RESET, "USB-OTG-RESET");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to request the usb otg reset gpio\n");
 		return err;
 	}
 
 	err = gpio_direction_output(OTG_RESET, 1/*HIGH*/);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to reset the usb otg phy\n");
 		goto otg_free_reset;
 	}
@@ -176,7 +181,7 @@ static int usbotg_init(struct platform_device *pdev)
 	mdelay(10);
 
 	return mx31_initialize_usb_hw(pdev->id, MXC_EHCI_POWER_PINS_ENABLED |
-			MXC_EHCI_INTERFACE_DIFF_UNI);
+								  MXC_EHCI_INTERFACE_DIFF_UNI);
 
 otg_free_reset:
 	gpio_free(OTG_RESET);
@@ -205,26 +210,34 @@ static int usbh2_init(struct platform_device *pdev)
 
 	/* Enable the chip */
 	err = gpio_request(USBH2_CS, "USB-H2-CS");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to request the usb host 2 CS gpio\n");
 		return err;
 	}
 
 	err = gpio_direction_output(USBH2_CS, 0/*Enabled*/);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to drive the usb host 2 CS gpio\n");
 		goto h2_free_cs;
 	}
 
 	/* H2 phy reset*/
 	err = gpio_request(USBH2_RESET, "USB-H2-RESET");
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to request the usb host 2 reset gpio\n");
 		goto h2_free_cs;
 	}
 
 	err = gpio_direction_output(USBH2_RESET, 1/*HIGH*/);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to reset the usb host 2 phy\n");
 		goto h2_free_reset;
 	}
@@ -235,7 +248,7 @@ static int usbh2_init(struct platform_device *pdev)
 	mdelay(10);
 
 	return mx31_initialize_usb_hw(pdev->id, MXC_EHCI_POWER_PINS_ENABLED |
-			MXC_EHCI_INTERFACE_DIFF_UNI);
+								  MXC_EHCI_INTERFACE_DIFF_UNI);
 
 h2_free_reset:
 	gpio_free(USBH2_RESET);
@@ -244,12 +257,14 @@ h2_free_cs:
 	return err;
 }
 
-static struct mxc_usbh_platform_data usbotg_pdata __initdata = {
+static struct mxc_usbh_platform_data usbotg_pdata __initdata =
+{
 	.init	= usbotg_init,
 	.portsc	= MXC_EHCI_MODE_ULPI | MXC_EHCI_UTMI_8BIT,
 };
 
-static struct mxc_usbh_platform_data usbh2_pdata __initdata = {
+static struct mxc_usbh_platform_data usbh2_pdata __initdata =
+{
 	.init	= usbh2_init,
 	.portsc	= MXC_EHCI_MODE_ULPI | MXC_EHCI_UTMI_8BIT,
 };
@@ -257,12 +272,14 @@ static struct mxc_usbh_platform_data usbh2_pdata __initdata = {
 /* RTC over I2C*/
 #define ARMADILLO5X0_RTC_GPIO	IOMUX_TO_GPIO(MX31_PIN_SRXD4)
 
-static struct i2c_board_info armadillo5x0_i2c_rtc = {
+static struct i2c_board_info armadillo5x0_i2c_rtc =
+{
 	I2C_BOARD_INFO("s35390a", 0x30),
 };
 
 /* GPIO BUTTONS */
-static struct gpio_keys_button armadillo5x0_buttons[] = {
+static struct gpio_keys_button armadillo5x0_buttons[] =
+{
 	{
 		.code		= KEY_ENTER, /*28*/
 		.gpio		= IOMUX_TO_GPIO(MX31_PIN_SCLK0),
@@ -279,7 +296,8 @@ static struct gpio_keys_button armadillo5x0_buttons[] = {
 };
 
 static const struct gpio_keys_platform_data
-		armadillo5x0_button_data __initconst = {
+	armadillo5x0_button_data __initconst =
+{
 	.buttons	= armadillo5x0_buttons,
 	.nbuttons	= ARRAY_SIZE(armadillo5x0_buttons),
 };
@@ -288,7 +306,8 @@ static const struct gpio_keys_platform_data
  * NAND Flash
  */
 static const struct mxc_nand_platform_data
-armadillo5x0_nand_board_info __initconst = {
+	armadillo5x0_nand_board_info __initconst =
+{
 	.width		= 1,
 	.hw_ecc		= 1,
 };
@@ -296,34 +315,37 @@ armadillo5x0_nand_board_info __initconst = {
 /*
  * MTD NOR Flash
  */
-static struct mtd_partition armadillo5x0_nor_flash_partitions[] = {
+static struct mtd_partition armadillo5x0_nor_flash_partitions[] =
+{
 	{
 		.name		= "nor.bootloader",
 		.offset		= 0x00000000,
-		.size		= 4*32*1024,
+		.size		= 4 * 32 * 1024,
 	}, {
 		.name		= "nor.kernel",
 		.offset		= MTDPART_OFS_APPEND,
-		.size		= 16*128*1024,
+		.size		= 16 * 128 * 1024,
 	}, {
 		.name		= "nor.userland",
 		.offset		= MTDPART_OFS_APPEND,
-		.size		= 110*128*1024,
+		.size		= 110 * 128 * 1024,
 	}, {
 		.name		= "nor.config",
 		.offset		= MTDPART_OFS_APPEND,
-		.size		= 1*128*1024,
+		.size		= 1 * 128 * 1024,
 	},
 };
 
 static const struct physmap_flash_data
-		armadillo5x0_nor_flash_pdata __initconst = {
+	armadillo5x0_nor_flash_pdata __initconst =
+{
 	.width		= 2,
 	.parts		= armadillo5x0_nor_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(armadillo5x0_nor_flash_partitions),
 };
 
-static const struct resource armadillo5x0_nor_flash_resource __initconst = {
+static const struct resource armadillo5x0_nor_flash_resource __initconst =
+{
 	.flags		= IORESOURCE_MEM,
 	.start		= MX31_CS0_BASE_ADDR,
 	.end		= MX31_CS0_BASE_ADDR + SZ_64M - 1,
@@ -332,7 +354,8 @@ static const struct resource armadillo5x0_nor_flash_resource __initconst = {
 /*
  * FB support
  */
-static const struct fb_videomode fb_modedb[] = {
+static const struct fb_videomode fb_modedb[] =
+{
 	{	/* 640x480 @ 60 Hz */
 		.name		= "CRT-VGA",
 		.refresh	= 60,
@@ -361,13 +384,14 @@ static const struct fb_videomode fb_modedb[] = {
 		.hsync_len	= 10,
 		.vsync_len	= 1,
 		.sync		= FB_SYNC_OE_ACT_HIGH | FB_SYNC_HOR_HIGH_ACT |
-				  FB_SYNC_VERT_HIGH_ACT,
+		FB_SYNC_VERT_HIGH_ACT,
 		.vmode		= FB_VMODE_NONINTERLACED,
 		.flag		= 0,
 	},
 };
 
-static struct mx3fb_platform_data mx3fb_pdata __initdata = {
+static struct mx3fb_platform_data mx3fb_pdata __initdata =
+{
 	.name		= "CRT-VGA",
 	.mode		= fb_modedb,
 	.num_modes	= ARRAY_SIZE(fb_modedb),
@@ -383,7 +407,7 @@ static int armadillo5x0_sdhc1_get_ro(struct device *dev)
 }
 
 static int armadillo5x0_sdhc1_init(struct device *dev,
-				   irq_handler_t detect_irq, void *data)
+								   irq_handler_t detect_irq, void *data)
 {
 	int ret;
 	int gpio_det, gpio_wp;
@@ -392,24 +416,32 @@ static int armadillo5x0_sdhc1_init(struct device *dev,
 	gpio_wp = IOMUX_TO_GPIO(MX31_PIN_ATA_RESET_B);
 
 	ret = gpio_request(gpio_det, "sdhc-card-detect");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	gpio_direction_input(gpio_det);
 
 	ret = gpio_request(gpio_wp, "sdhc-write-protect");
+
 	if (ret)
+	{
 		goto err_gpio_free;
+	}
 
 	gpio_direction_input(gpio_wp);
 
 	/* When supported the trigger type have to be BOTH */
 	ret = request_irq(gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_ATA_DMACK)),
-			  detect_irq, IRQF_TRIGGER_FALLING,
-			  "sdhc-detect", data);
+					  detect_irq, IRQF_TRIGGER_FALLING,
+					  "sdhc-detect", data);
 
 	if (ret)
+	{
 		goto err_gpio_free_2;
+	}
 
 	return 0;
 
@@ -430,7 +462,8 @@ static void armadillo5x0_sdhc1_exit(struct device *dev, void *data)
 	gpio_free(IOMUX_TO_GPIO(MX31_PIN_ATA_RESET_B));
 }
 
-static const struct imxmmc_platform_data sdhc_pdata __initconst = {
+static const struct imxmmc_platform_data sdhc_pdata __initconst =
+{
 	.get_ro = armadillo5x0_sdhc1_get_ro,
 	.init = armadillo5x0_sdhc1_init,
 	.exit = armadillo5x0_sdhc1_exit,
@@ -440,7 +473,8 @@ static const struct imxmmc_platform_data sdhc_pdata __initconst = {
  * SMSC 9118
  * Network support
  */
-static struct resource armadillo5x0_smc911x_resources[] = {
+static struct resource armadillo5x0_smc911x_resources[] =
+{
 	{
 		.start	= MX31_CS3_BASE_ADDR,
 		.end	= MX31_CS3_BASE_ADDR + SZ_32M - 1,
@@ -451,13 +485,15 @@ static struct resource armadillo5x0_smc911x_resources[] = {
 	},
 };
 
-static struct smsc911x_platform_config smsc911x_info = {
+static struct smsc911x_platform_config smsc911x_info =
+{
 	.flags		= SMSC911X_USE_16BIT,
 	.irq_polarity   = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type       = SMSC911X_IRQ_TYPE_PUSH_PULL,
 };
 
-static struct platform_device armadillo5x0_smc911x_device = {
+static struct platform_device armadillo5x0_smc911x_device =
+{
 	.name           = "smsc911x",
 	.id             = -1,
 	.num_resources  = ARRAY_SIZE(armadillo5x0_smc911x_resources),
@@ -468,15 +504,18 @@ static struct platform_device armadillo5x0_smc911x_device = {
 };
 
 /* UART device data */
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&armadillo5x0_smc911x_device,
 };
 
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vdd33a", "smsc911x"),
 	REGULATOR_SUPPLY("vddvario", "smsc911x"),
 };
@@ -489,7 +528,7 @@ static void __init armadillo5x0_init(void)
 	imx31_soc_init();
 
 	mxc_iomux_setup_multiple_pins(armadillo5x0_pins,
-			ARRAY_SIZE(armadillo5x0_pins), "armadillo5x0");
+								  ARRAY_SIZE(armadillo5x0_pins), "armadillo5x0");
 
 	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
 
@@ -505,16 +544,16 @@ static void __init armadillo5x0_init(void)
 
 	/* Register NOR Flash */
 	platform_device_register_resndata(NULL, "physmap-flash", -1,
-			&armadillo5x0_nor_flash_resource, 1,
-			&armadillo5x0_nor_flash_pdata,
-			sizeof(armadillo5x0_nor_flash_pdata));
+									  &armadillo5x0_nor_flash_resource, 1,
+									  &armadillo5x0_nor_flash_pdata,
+									  sizeof(armadillo5x0_nor_flash_pdata));
 
 	/* Register NAND Flash */
 	imx31_add_mxc_nand(&armadillo5x0_nand_board_info);
 
 	/* set NAND page size to 2k if not configured via boot mode pins */
 	imx_writel(imx_readl(mx3_ccm_base + MXC_CCM_RCSR) | (1 << 30),
-		   mx3_ccm_base + MXC_CCM_RCSR);
+			   mx3_ccm_base + MXC_CCM_RCSR);
 }
 
 static void __init armadillo5x0_late(void)
@@ -535,27 +574,40 @@ static void __init armadillo5x0_late(void)
 
 	/* RTC */
 	/* Get RTC IRQ and register the chip */
-	if (!gpio_request(ARMADILLO5X0_RTC_GPIO, "rtc")) {
+	if (!gpio_request(ARMADILLO5X0_RTC_GPIO, "rtc"))
+	{
 		if (!gpio_direction_input(ARMADILLO5X0_RTC_GPIO))
 			armadillo5x0_i2c_rtc.irq =
 				gpio_to_irq(ARMADILLO5X0_RTC_GPIO);
 		else
+		{
 			gpio_free(ARMADILLO5X0_RTC_GPIO);
+		}
 	}
 
 	if (armadillo5x0_i2c_rtc.irq == 0)
+	{
 		pr_warn("armadillo5x0_init: failed to get RTC IRQ\n");
+	}
+
 	i2c_register_board_info(1, &armadillo5x0_i2c_rtc, 1);
 
 	/* USB */
 	usbotg_pdata.otg = imx_otg_ulpi_create(ULPI_OTG_DRVVBUS |
-			ULPI_OTG_DRVVBUS_EXT);
+										   ULPI_OTG_DRVVBUS_EXT);
+
 	if (usbotg_pdata.otg)
+	{
 		imx31_add_mxc_ehci_otg(&usbotg_pdata);
+	}
+
 	usbh2_pdata.otg = imx_otg_ulpi_create(ULPI_OTG_DRVVBUS |
-			ULPI_OTG_DRVVBUS_EXT);
+										  ULPI_OTG_DRVVBUS_EXT);
+
 	if (usbh2_pdata.otg)
+	{
 		imx31_add_mxc_ehci_hs(2, &usbh2_pdata);
+	}
 }
 
 static void __init armadillo5x0_timer_init(void)
@@ -564,13 +616,13 @@ static void __init armadillo5x0_timer_init(void)
 }
 
 MACHINE_START(ARMADILLO5X0, "Armadillo-500")
-	/* Maintainer: Alberto Panizzo  */
-	.atag_offset = 0x100,
-	.map_io = mx31_map_io,
-	.init_early = imx31_init_early,
-	.init_irq = mx31_init_irq,
+/* Maintainer: Alberto Panizzo  */
+.atag_offset = 0x100,
+ .map_io = mx31_map_io,
+  .init_early = imx31_init_early,
+   .init_irq = mx31_init_irq,
 	.init_time	= armadillo5x0_timer_init,
-	.init_machine = armadillo5x0_init,
-	.init_late	= armadillo5x0_late,
-	.restart	= mxc_restart,
-MACHINE_END
+	  .init_machine = armadillo5x0_init,
+	   .init_late	= armadillo5x0_late,
+		 .restart	= mxc_restart,
+			 MACHINE_END

@@ -29,11 +29,11 @@
 /* Default assignment of LX60 devices to external interrupts. */
 
 #ifdef CONFIG_XTENSA_MX
-#define DUART16552_INTNUM	XCHAL_EXTINT3_NUM
-#define OETH_IRQ		XCHAL_EXTINT4_NUM
+	#define DUART16552_INTNUM	XCHAL_EXTINT3_NUM
+	#define OETH_IRQ		XCHAL_EXTINT4_NUM
 #else
-#define DUART16552_INTNUM	XCHAL_EXTINT0_NUM
-#define OETH_IRQ		XCHAL_EXTINT1_NUM
+	#define DUART16552_INTNUM	XCHAL_EXTINT0_NUM
+	#define OETH_IRQ		XCHAL_EXTINT1_NUM
 #endif
 
 /*
@@ -53,12 +53,12 @@
 #define XTFPGA_SWRST_VADDR	(XTFPGA_FPGAREGS_VADDR + 0x10)
 
 /*  OpenCores Ethernet controller:  */
-				/* regs + RX/TX descriptors */
+/* regs + RX/TX descriptors */
 #define OETH_REGS_PADDR		(XCHAL_KIO_PADDR + 0x0D030000)
 #define OETH_REGS_SIZE		0x1000
 #define OETH_SRAMBUFF_PADDR	(XCHAL_KIO_PADDR + 0x0D800000)
 
-				/* 5*rx buffs + 5*tx buffs */
+/* 5*rx buffs + 5*tx buffs */
 #define OETH_SRAMBUFF_SIZE	(5 * 0x600 + 5 * 0x600)
 
 #define C67X00_PADDR		(XCHAL_KIO_PADDR + 0x0D0D0000)

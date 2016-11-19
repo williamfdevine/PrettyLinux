@@ -5,7 +5,8 @@
 #include <asm/io.h>
 
 /* This must match data at realmode.S */
-struct real_mode_header {
+struct real_mode_header
+{
 	u32	text_start;
 	u32	ro_end;
 	/* SMP trampoline */
@@ -28,7 +29,8 @@ struct real_mode_header {
 };
 
 /* This must match data at trampoline_32/64.S */
-struct trampoline_header {
+struct trampoline_header
+{
 #ifdef CONFIG_X86_32
 	u32 start;
 	u16 gdt_pad;
@@ -52,16 +54,18 @@ extern unsigned char real_mode_blob[];
 extern unsigned char real_mode_relocs[];
 
 #ifdef CONFIG_X86_32
-extern unsigned char startup_32_smp[];
-extern unsigned char boot_gdt[];
+	extern unsigned char startup_32_smp[];
+	extern unsigned char boot_gdt[];
 #else
-extern unsigned char secondary_startup_64[];
+	extern unsigned char secondary_startup_64[];
 #endif
 
 static inline size_t real_mode_size_needed(void)
 {
 	if (real_mode_header)
-		return 0;	/* already allocated. */
+	{
+		return 0;    /* already allocated. */
+	}
 
 	return ALIGN(real_mode_blob_end - real_mode_blob, PAGE_SIZE);
 }

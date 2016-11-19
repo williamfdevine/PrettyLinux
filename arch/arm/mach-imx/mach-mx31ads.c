@@ -30,9 +30,9 @@
 #include <asm/mach/map.h>
 
 #ifdef CONFIG_MACH_MX31ADS_WM1133_EV1
-#include <linux/mfd/wm8350/audio.h>
-#include <linux/mfd/wm8350/core.h>
-#include <linux/mfd/wm8350/pmic.h>
+	#include <linux/mfd/wm8350/audio.h>
+	#include <linux/mfd/wm8350/core.h>
+	#include <linux/mfd/wm8350/pmic.h>
 #endif
 
 #include "common.h"
@@ -79,7 +79,8 @@ static struct irq_domain *domain;
 /*
  * The serial port definition structure.
  */
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 	{
 		.membase  = (void *)(PBC_BASE_ADDRESS + PBC_SC16C652_UARTA),
 		.mapbase  = (unsigned long)(MX31_CS4_BASE_ADDR + PBC_SC16C652_UARTA),
@@ -98,7 +99,8 @@ static struct plat_serial8250_port serial_platform_data[] = {
 	{},
 };
 
-static struct platform_device serial_device = {
+static struct platform_device serial_device =
+{
 	.name	= "serial8250",
 	.id	= 0,
 	.dev	= {
@@ -106,12 +108,14 @@ static struct platform_device serial_device = {
 	},
 };
 
-static struct resource mx31ads_cs8900_resources[] __initdata = {
+static struct resource mx31ads_cs8900_resources[] __initdata =
+{
 	DEFINE_RES_MEM(MX31_CS4_BASE_ADDR + CS4_CS8900_MMIO_START, SZ_64K),
 	DEFINE_RES_IRQ(-1),
 };
 
-static const struct platform_device_info mx31ads_cs8900_devinfo __initconst = {
+static const struct platform_device_info mx31ads_cs8900_devinfo __initconst =
+{
 	.name = "cs89x0",
 	.id = 0,
 	.res = mx31ads_cs8900_resources,
@@ -121,27 +125,29 @@ static const struct platform_device_info mx31ads_cs8900_devinfo __initconst = {
 static int __init mxc_init_extuart(void)
 {
 	serial_platform_data[0].irq = irq_find_mapping(domain,
-						       EXPIO_INT_XUART_INTA);
+								  EXPIO_INT_XUART_INTA);
 	serial_platform_data[1].irq = irq_find_mapping(domain,
-						       EXPIO_INT_XUART_INTB);
+								  EXPIO_INT_XUART_INTB);
 	return platform_device_register(&serial_device);
 }
 
 static void __init mxc_init_ext_ethernet(void)
 {
 	mx31ads_cs8900_resources[1].start =
-			irq_find_mapping(domain, EXPIO_INT_ENET_INT);
+		irq_find_mapping(domain, EXPIO_INT_ENET_INT);
 	mx31ads_cs8900_resources[1].end =
-			irq_find_mapping(domain, EXPIO_INT_ENET_INT);
+		irq_find_mapping(domain, EXPIO_INT_ENET_INT);
 	platform_device_register_full(
 		(struct platform_device_info *)&mx31ads_cs8900_devinfo);
 }
 
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
-static unsigned int uart_pins[] = {
+static unsigned int uart_pins[] =
+{
 	MX31_PIN_CTS1__CTS1,
 	MX31_PIN_RTS1__RTS1,
 	MX31_PIN_TXD1__TXD1,
@@ -164,9 +170,13 @@ static void mx31ads_expio_irq_handler(struct irq_desc *desc)
 	int_valid = imx_readw(PBC_INTSTATUS_REG) & imr_val;
 
 	expio_irq = 0;
-	for (; int_valid != 0; int_valid >>= 1, expio_irq++) {
+
+	for (; int_valid != 0; int_valid >>= 1, expio_irq++)
+	{
 		if ((int_valid & 1) == 0)
+		{
 			continue;
+		}
 
 		generic_handle_irq(irq_find_mapping(domain, expio_irq));
 	}
@@ -206,7 +216,8 @@ static void expio_unmask_irq(struct irq_data *d)
 	imx_writew(1 << expio, PBC_INTMASK_SET_REG);
 }
 
-static struct irq_chip expio_irq_chip = {
+static struct irq_chip expio_irq_chip =
+{
 	.name = "EXPIO(CPLD)",
 	.irq_ack = expio_ack_irq,
 	.irq_mask = expio_mask_irq,
@@ -233,13 +244,15 @@ static void __init mx31ads_init_expio(void)
 	WARN_ON(irq_base < 0);
 
 	domain = irq_domain_add_legacy(NULL, MXC_MAX_EXP_IO_LINES, irq_base, 0,
-				       &irq_domain_simple_ops, NULL);
+								   &irq_domain_simple_ops, NULL);
 	WARN_ON(!domain);
 
-	for (i = irq_base; i < irq_base + MXC_MAX_EXP_IO_LINES; i++) {
+	for (i = irq_base; i < irq_base + MXC_MAX_EXP_IO_LINES; i++)
+	{
 		irq_set_chip_and_handler(i, &expio_irq_chip, handle_level_irq);
 		irq_clear_status_flags(i, IRQ_NOREQUEST);
 	}
+
 	irq = gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_4));
 	irq_set_irq_type(irq, IRQ_TYPE_LEVEL_HIGH);
 	irq_set_chained_handler(irq, mx31ads_expio_irq_handler);
@@ -255,26 +268,28 @@ static void __init mx31ads_init_expio(void)
  */
 
 /* CPU */
-static struct regulator_consumer_supply sw1a_consumers[] = {
+static struct regulator_consumer_supply sw1a_consumers[] =
+{
 	{
 		.supply = "cpu_vcc",
 	}
 };
 
-static struct regulator_init_data sw1a_data = {
+static struct regulator_init_data sw1a_data =
+{
 	.constraints = {
 		.name = "SW1A",
 		.min_uV = 1275000,
 		.max_uV = 1600000,
 		.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |
-				  REGULATOR_CHANGE_MODE,
+		REGULATOR_CHANGE_MODE,
 		.valid_modes_mask = REGULATOR_MODE_NORMAL |
-				    REGULATOR_MODE_FAST,
+		REGULATOR_MODE_FAST,
 		.state_mem = {
-			 .uV = 1400000,
-			 .mode = REGULATOR_MODE_NORMAL,
-			 .enabled = 1,
-		 },
+			.uV = 1400000,
+			.mode = REGULATOR_MODE_NORMAL,
+			.enabled = 1,
+		},
 		.initial_state = PM_SUSPEND_MEM,
 		.always_on = 1,
 		.boot_on = 1,
@@ -284,16 +299,17 @@ static struct regulator_init_data sw1a_data = {
 };
 
 /* System IO - High */
-static struct regulator_init_data viohi_data = {
+static struct regulator_init_data viohi_data =
+{
 	.constraints = {
 		.name = "VIOHO",
 		.min_uV = 2800000,
 		.max_uV = 2800000,
 		.state_mem = {
-			 .uV = 2800000,
-			 .mode = REGULATOR_MODE_NORMAL,
-			 .enabled = 1,
-		 },
+			.uV = 2800000,
+			.mode = REGULATOR_MODE_NORMAL,
+			.enabled = 1,
+		},
 		.initial_state = PM_SUSPEND_MEM,
 		.always_on = 1,
 		.boot_on = 1,
@@ -301,16 +317,17 @@ static struct regulator_init_data viohi_data = {
 };
 
 /* System IO - Low */
-static struct regulator_init_data violo_data = {
+static struct regulator_init_data violo_data =
+{
 	.constraints = {
 		.name = "VIOLO",
 		.min_uV = 1800000,
 		.max_uV = 1800000,
 		.state_mem = {
-			 .uV = 1800000,
-			 .mode = REGULATOR_MODE_NORMAL,
-			 .enabled = 1,
-		 },
+			.uV = 1800000,
+			.mode = REGULATOR_MODE_NORMAL,
+			.enabled = 1,
+		},
 		.initial_state = PM_SUSPEND_MEM,
 		.always_on = 1,
 		.boot_on = 1,
@@ -318,28 +335,30 @@ static struct regulator_init_data violo_data = {
 };
 
 /* DDR RAM */
-static struct regulator_init_data sw2a_data = {
+static struct regulator_init_data sw2a_data =
+{
 	.constraints = {
 		.name = "SW2A",
 		.min_uV = 1800000,
 		.max_uV = 1800000,
 		.valid_modes_mask = REGULATOR_MODE_NORMAL,
 		.state_mem = {
-			 .uV = 1800000,
-			 .mode = REGULATOR_MODE_NORMAL,
-			 .enabled = 1,
-		 },
+			.uV = 1800000,
+			.mode = REGULATOR_MODE_NORMAL,
+			.enabled = 1,
+		},
 		.state_disk = {
-			 .mode = REGULATOR_MODE_NORMAL,
-			 .enabled = 0,
-		 },
+			.mode = REGULATOR_MODE_NORMAL,
+			.enabled = 0,
+		},
 		.always_on = 1,
 		.boot_on = 1,
 		.initial_state = PM_SUSPEND_MEM,
 	},
 };
 
-static struct regulator_init_data ldo1_data = {
+static struct regulator_init_data ldo1_data =
+{
 	.constraints = {
 		.name = "VCAM/VMMC1/VMMC2",
 		.min_uV = 2800000,
@@ -350,13 +369,15 @@ static struct regulator_init_data ldo1_data = {
 	},
 };
 
-static struct regulator_consumer_supply ldo2_consumers[] = {
+static struct regulator_consumer_supply ldo2_consumers[] =
+{
 	{ .supply = "AVDD", .dev_name = "1-001a" },
 	{ .supply = "HPVDD", .dev_name = "1-001a" },
 };
 
 /* CODEC and SIM */
-static struct regulator_init_data ldo2_data = {
+static struct regulator_init_data ldo2_data =
+{
 	.constraints = {
 		.name = "VESIM/VSIM/AVDD",
 		.min_uV = 3300000,
@@ -370,7 +391,8 @@ static struct regulator_init_data ldo2_data = {
 };
 
 /* General */
-static struct regulator_init_data vdig_data = {
+static struct regulator_init_data vdig_data =
+{
 	.constraints = {
 		.name = "VDIG",
 		.min_uV = 1500000,
@@ -383,7 +405,8 @@ static struct regulator_init_data vdig_data = {
 };
 
 /* Tranceivers */
-static struct regulator_init_data ldo4_data = {
+static struct regulator_init_data ldo4_data =
+{
 	.constraints = {
 		.name = "VRF1/CVDD_2.775",
 		.min_uV = 2500000,
@@ -395,13 +418,15 @@ static struct regulator_init_data ldo4_data = {
 	},
 };
 
-static struct wm8350_led_platform_data wm8350_led_data = {
+static struct wm8350_led_platform_data wm8350_led_data =
+{
 	.name            = "wm8350:white",
 	.default_trigger = "heartbeat",
 	.max_uA          = 27899,
 };
 
-static struct wm8350_audio_platform_data imx32ads_wm8350_setup = {
+static struct wm8350_audio_platform_data imx32ads_wm8350_setup =
+{
 	.vmid_discharge_msecs = 1000,
 	.drain_msecs = 30,
 	.cap_discharge_msecs = 700,
@@ -424,39 +449,39 @@ static struct wm8350_audio_platform_data imx32ads_wm8350_setup = {
 static int mx31_wm8350_init(struct wm8350 *wm8350)
 {
 	wm8350_gpio_config(wm8350, 0, WM8350_GPIO_DIR_IN,
-			   WM8350_GPIO0_PWR_ON_IN, WM8350_GPIO_ACTIVE_LOW,
-			   WM8350_GPIO_PULL_UP, WM8350_GPIO_INVERT_OFF,
-			   WM8350_GPIO_DEBOUNCE_ON);
+					   WM8350_GPIO0_PWR_ON_IN, WM8350_GPIO_ACTIVE_LOW,
+					   WM8350_GPIO_PULL_UP, WM8350_GPIO_INVERT_OFF,
+					   WM8350_GPIO_DEBOUNCE_ON);
 
 	wm8350_gpio_config(wm8350, 3, WM8350_GPIO_DIR_IN,
-			   WM8350_GPIO3_PWR_OFF_IN, WM8350_GPIO_ACTIVE_HIGH,
-			   WM8350_GPIO_PULL_DOWN, WM8350_GPIO_INVERT_OFF,
-			   WM8350_GPIO_DEBOUNCE_ON);
+					   WM8350_GPIO3_PWR_OFF_IN, WM8350_GPIO_ACTIVE_HIGH,
+					   WM8350_GPIO_PULL_DOWN, WM8350_GPIO_INVERT_OFF,
+					   WM8350_GPIO_DEBOUNCE_ON);
 
 	wm8350_gpio_config(wm8350, 4, WM8350_GPIO_DIR_IN,
-			   WM8350_GPIO4_MR_IN, WM8350_GPIO_ACTIVE_HIGH,
-			   WM8350_GPIO_PULL_DOWN, WM8350_GPIO_INVERT_OFF,
-			   WM8350_GPIO_DEBOUNCE_OFF);
+					   WM8350_GPIO4_MR_IN, WM8350_GPIO_ACTIVE_HIGH,
+					   WM8350_GPIO_PULL_DOWN, WM8350_GPIO_INVERT_OFF,
+					   WM8350_GPIO_DEBOUNCE_OFF);
 
 	wm8350_gpio_config(wm8350, 7, WM8350_GPIO_DIR_IN,
-			   WM8350_GPIO7_HIBERNATE_IN, WM8350_GPIO_ACTIVE_HIGH,
-			   WM8350_GPIO_PULL_DOWN, WM8350_GPIO_INVERT_OFF,
-			   WM8350_GPIO_DEBOUNCE_OFF);
+					   WM8350_GPIO7_HIBERNATE_IN, WM8350_GPIO_ACTIVE_HIGH,
+					   WM8350_GPIO_PULL_DOWN, WM8350_GPIO_INVERT_OFF,
+					   WM8350_GPIO_DEBOUNCE_OFF);
 
 	wm8350_gpio_config(wm8350, 6, WM8350_GPIO_DIR_OUT,
-			   WM8350_GPIO6_SDOUT_OUT, WM8350_GPIO_ACTIVE_HIGH,
-			   WM8350_GPIO_PULL_NONE, WM8350_GPIO_INVERT_OFF,
-			   WM8350_GPIO_DEBOUNCE_OFF);
+					   WM8350_GPIO6_SDOUT_OUT, WM8350_GPIO_ACTIVE_HIGH,
+					   WM8350_GPIO_PULL_NONE, WM8350_GPIO_INVERT_OFF,
+					   WM8350_GPIO_DEBOUNCE_OFF);
 
 	wm8350_gpio_config(wm8350, 8, WM8350_GPIO_DIR_OUT,
-			   WM8350_GPIO8_VCC_FAULT_OUT, WM8350_GPIO_ACTIVE_LOW,
-			   WM8350_GPIO_PULL_NONE, WM8350_GPIO_INVERT_OFF,
-			   WM8350_GPIO_DEBOUNCE_OFF);
+					   WM8350_GPIO8_VCC_FAULT_OUT, WM8350_GPIO_ACTIVE_LOW,
+					   WM8350_GPIO_PULL_NONE, WM8350_GPIO_INVERT_OFF,
+					   WM8350_GPIO_DEBOUNCE_OFF);
 
 	wm8350_gpio_config(wm8350, 9, WM8350_GPIO_DIR_OUT,
-			   WM8350_GPIO9_BATT_FAULT_OUT, WM8350_GPIO_ACTIVE_LOW,
-			   WM8350_GPIO_PULL_NONE, WM8350_GPIO_INVERT_OFF,
-			   WM8350_GPIO_DEBOUNCE_OFF);
+					   WM8350_GPIO9_BATT_FAULT_OUT, WM8350_GPIO_ACTIVE_LOW,
+					   WM8350_GPIO_PULL_NONE, WM8350_GPIO_INVERT_OFF,
+					   WM8350_GPIO_DEBOUNCE_OFF);
 
 	wm8350_register_regulator(wm8350, WM8350_DCDC_1, &sw1a_data);
 	wm8350_register_regulator(wm8350, WM8350_DCDC_3, &viohi_data);
@@ -469,21 +494,21 @@ static int mx31_wm8350_init(struct wm8350 *wm8350)
 
 	/* LEDs */
 	wm8350_dcdc_set_slot(wm8350, WM8350_DCDC_5, 1, 1,
-			     WM8350_DC5_ERRACT_SHUTDOWN_CONV);
+						 WM8350_DC5_ERRACT_SHUTDOWN_CONV);
 	wm8350_isink_set_flash(wm8350, WM8350_ISINK_A,
-			       WM8350_ISINK_FLASH_DISABLE,
-			       WM8350_ISINK_FLASH_TRIG_BIT,
-			       WM8350_ISINK_FLASH_DUR_32MS,
-			       WM8350_ISINK_FLASH_ON_INSTANT,
-			       WM8350_ISINK_FLASH_OFF_INSTANT,
-			       WM8350_ISINK_FLASH_MODE_EN);
+						   WM8350_ISINK_FLASH_DISABLE,
+						   WM8350_ISINK_FLASH_TRIG_BIT,
+						   WM8350_ISINK_FLASH_DUR_32MS,
+						   WM8350_ISINK_FLASH_ON_INSTANT,
+						   WM8350_ISINK_FLASH_OFF_INSTANT,
+						   WM8350_ISINK_FLASH_MODE_EN);
 	wm8350_dcdc25_set_mode(wm8350, WM8350_DCDC_5,
-			       WM8350_ISINK_MODE_BOOST,
-			       WM8350_ISINK_ILIM_NORMAL,
-			       WM8350_DC5_RMP_20V,
-			       WM8350_DC5_FBSRC_ISINKA);
+						   WM8350_ISINK_MODE_BOOST,
+						   WM8350_ISINK_ILIM_NORMAL,
+						   WM8350_DC5_RMP_20V,
+						   WM8350_DC5_FBSRC_ISINKA);
 	wm8350_register_led(wm8350, 0, WM8350_DCDC_5, WM8350_ISINK_A,
-			    &wm8350_led_data);
+						&wm8350_led_data);
 
 	wm8350->codec.platform_data = &imx32ads_wm8350_setup;
 
@@ -492,12 +517,14 @@ static int mx31_wm8350_init(struct wm8350 *wm8350)
 	return 0;
 }
 
-static struct wm8350_platform_data __initdata mx31_wm8350_pdata = {
+static struct wm8350_platform_data __initdata mx31_wm8350_pdata =
+{
 	.init = mx31_wm8350_init,
 };
 #endif
 
-static struct i2c_board_info __initdata mx31ads_i2c1_devices[] = {
+static struct i2c_board_info __initdata mx31ads_i2c1_devices[] =
+{
 #ifdef CONFIG_MACH_MX31ADS_WM1133_EV1
 	{
 		I2C_BOARD_INFO("wm8350", 0x1a),
@@ -511,10 +538,10 @@ static void __init mxc_init_i2c(void)
 {
 #ifdef CONFIG_MACH_MX31ADS_WM1133_EV1
 	mx31ads_i2c1_devices[0].irq =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_3));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_3));
 #endif
 	i2c_register_board_info(1, mx31ads_i2c1_devices,
-				ARRAY_SIZE(mx31ads_i2c1_devices));
+							ARRAY_SIZE(mx31ads_i2c1_devices));
 
 	mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSPI2_MOSI, IOMUX_CONFIG_ALT1));
 	mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSPI2_MISO, IOMUX_CONFIG_ALT1));
@@ -522,7 +549,8 @@ static void __init mxc_init_i2c(void)
 	imx31_add_imx_i2c1(NULL);
 }
 
-static unsigned int ssi_pins[] = {
+static unsigned int ssi_pins[] =
+{
 	MX31_PIN_SFS5__SFS5,
 	MX31_PIN_SCK5__SCK5,
 	MX31_PIN_SRXD5__SRXD5,
@@ -539,7 +567,8 @@ static void __init mxc_init_audio(void)
  * Static mappings, starting from the CS4 start address up to the start address
  * of the CS8900.
  */
-static struct map_desc mx31ads_io_desc[] __initdata = {
+static struct map_desc mx31ads_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)MX31_CS4_BASE_ADDR_VIRT,
 		.pfn		= __phys_to_pfn(MX31_CS4_BASE_ADDR),
@@ -576,13 +605,13 @@ static void __init mx31ads_timer_init(void)
 }
 
 MACHINE_START(MX31ADS, "Freescale MX31ADS")
-	/* Maintainer: Freescale Semiconductor, Inc. */
-	.atag_offset = 0x100,
-	.map_io = mx31ads_map_io,
-	.init_early = imx31_init_early,
-	.init_irq	= mx31_init_irq,
-	.init_time	= mx31ads_timer_init,
-	.init_machine = mx31ads_init,
-	.init_late	= mx31ads_late,
-	.restart	= mxc_restart,
-MACHINE_END
+/* Maintainer: Freescale Semiconductor, Inc. */
+.atag_offset = 0x100,
+ .map_io = mx31ads_map_io,
+  .init_early = imx31_init_early,
+   .init_irq	= mx31_init_irq,
+	  .init_time	= mx31ads_timer_init,
+		.init_machine = mx31ads_init,
+		 .init_late	= mx31ads_late,
+		   .restart	= mxc_restart,
+			   MACHINE_END

@@ -46,15 +46,21 @@ static __always_inline void __ticket_spin_lock(arch_spinlock_t *lock)
 	ticket = ia64_fetchadd(1, p, acq);
 
 	if (!(((ticket >> TICKET_SHIFT) ^ ticket) & TICKET_MASK))
+	{
 		return;
+	}
 
 	ia64_invala();
 
-	for (;;) {
+	for (;;)
+	{
 		asm volatile ("ld4.c.nc %0=[%1]" : "=r"(serve) : "r"(p) : "memory");
 
 		if (!(((serve >> TICKET_SHIFT) ^ ticket) & TICKET_MASK))
+		{
 			return;
+		}
+
 		cpu_relax();
 	}
 }
@@ -64,7 +70,10 @@ static __always_inline int __ticket_spin_trylock(arch_spinlock_t *lock)
 	int tmp = ACCESS_ONCE(lock->lock);
 
 	if (!(((tmp >> TICKET_SHIFT) ^ tmp) & TICKET_MASK))
+	{
 		return ia64_cmpxchg(acq, &lock->lock, tmp, tmp + 1, sizeof (tmp)) == tmp;
+	}
+
 	return 0;
 }
 
@@ -82,10 +91,15 @@ static __always_inline void __ticket_spin_unlock_wait(arch_spinlock_t *lock)
 
 	ia64_invala();
 
-	for (;;) {
+	for (;;)
+	{
 		asm volatile ("ld4.c.nc %0=[%1]" : "=r"(ticket) : "r"(p) : "memory");
+
 		if (!(((ticket >> TICKET_SHIFT) ^ ticket) & TICKET_MASK))
+		{
 			return;
+		}
+
 		cpu_relax();
 	}
 
@@ -138,7 +152,7 @@ static __always_inline void arch_spin_unlock(arch_spinlock_t *lock)
 }
 
 static __always_inline void arch_spin_lock_flags(arch_spinlock_t *lock,
-						  unsigned long flags)
+		unsigned long flags)
 {
 	arch_spin_lock(lock);
 }
@@ -184,23 +198,23 @@ arch_read_lock_flags(arch_rwlock_t *lock, unsigned long flags)
 #define arch_read_lock_flags(rw, flags) arch_read_lock(rw)
 
 #define arch_read_lock(rw)								\
-do {											\
-	arch_rwlock_t *__read_lock_ptr = (rw);						\
-											\
-	while (unlikely(ia64_fetchadd(1, (int *) __read_lock_ptr, acq) < 0)) {		\
-		ia64_fetchadd(-1, (int *) __read_lock_ptr, rel);			\
-		while (*(volatile int *)__read_lock_ptr < 0)				\
-			cpu_relax();							\
-	}										\
-} while (0)
+	do {											\
+		arch_rwlock_t *__read_lock_ptr = (rw);						\
+		\
+		while (unlikely(ia64_fetchadd(1, (int *) __read_lock_ptr, acq) < 0)) {		\
+			ia64_fetchadd(-1, (int *) __read_lock_ptr, rel);			\
+			while (*(volatile int *)__read_lock_ptr < 0)				\
+				cpu_relax();							\
+		}										\
+	} while (0)
 
 #endif /* !ASM_SUPPORTED */
 
 #define arch_read_unlock(rw)					\
-do {								\
-	arch_rwlock_t *__read_lock_ptr = (rw);			\
-	ia64_fetchadd(-1, (int *) __read_lock_ptr, rel);	\
-} while (0)
+	do {								\
+		arch_rwlock_t *__read_lock_ptr = (rw);			\
+		ia64_fetchadd(-1, (int *) __read_lock_ptr, rel);	\
+	} while (0)
 
 #ifdef ASM_SUPPORTED
 
@@ -232,16 +246,16 @@ arch_write_lock_flags(arch_rwlock_t *lock, unsigned long flags)
 #define arch_write_lock(rw) arch_write_lock_flags(rw, 0)
 
 #define arch_write_trylock(rw)							\
-({										\
-	register long result;							\
-										\
-	__asm__ __volatile__ (							\
-		"mov ar.ccv = r0\n"						\
-		"dep r29 = -1, r0, 31, 1;;\n"					\
-		"cmpxchg4.acq %0 = [%1], r29, ar.ccv\n"				\
-		: "=r"(result) : "r"(rw) : "ar.ccv", "r29", "memory");		\
-	(result == 0);								\
-})
+	({										\
+		register long result;							\
+		\
+		__asm__ __volatile__ (							\
+				"mov ar.ccv = r0\n"						\
+				"dep r29 = -1, r0, 31, 1;;\n"					\
+				"cmpxchg4.acq %0 = [%1], r29, ar.ccv\n"				\
+				: "=r"(result) : "r"(rw) : "ar.ccv", "r29", "memory");		\
+		(result == 0);								\
+	})
 
 static inline void arch_write_unlock(arch_rwlock_t *x)
 {
@@ -255,23 +269,23 @@ static inline void arch_write_unlock(arch_rwlock_t *x)
 #define arch_write_lock_flags(l, flags) arch_write_lock(l)
 
 #define arch_write_lock(l)								\
-({											\
-	__u64 ia64_val, ia64_set_val = ia64_dep_mi(-1, 0, 31, 1);			\
-	__u32 *ia64_write_lock_ptr = (__u32 *) (l);					\
-	do {										\
-		while (*ia64_write_lock_ptr)						\
-			ia64_barrier();							\
-		ia64_val = ia64_cmpxchg4_acq(ia64_write_lock_ptr, ia64_set_val, 0);	\
-	} while (ia64_val);								\
-})
+	({											\
+		__u64 ia64_val, ia64_set_val = ia64_dep_mi(-1, 0, 31, 1);			\
+		__u32 *ia64_write_lock_ptr = (__u32 *) (l);					\
+		do {										\
+			while (*ia64_write_lock_ptr)						\
+				ia64_barrier();							\
+			ia64_val = ia64_cmpxchg4_acq(ia64_write_lock_ptr, ia64_set_val, 0);	\
+		} while (ia64_val);								\
+	})
 
 #define arch_write_trylock(rw)						\
-({									\
-	__u64 ia64_val;							\
-	__u64 ia64_set_val = ia64_dep_mi(-1, 0, 31,1);			\
-	ia64_val = ia64_cmpxchg4_acq((__u32 *)(rw), ia64_set_val, 0);	\
-	(ia64_val == 0);						\
-})
+	({									\
+		__u64 ia64_val;							\
+		__u64 ia64_set_val = ia64_dep_mi(-1, 0, 31,1);			\
+		ia64_val = ia64_cmpxchg4_acq((__u32 *)(rw), ia64_set_val, 0);	\
+		(ia64_val == 0);						\
+	})
 
 static inline void arch_write_unlock(arch_rwlock_t *x)
 {
@@ -283,7 +297,8 @@ static inline void arch_write_unlock(arch_rwlock_t *x)
 
 static inline int arch_read_trylock(arch_rwlock_t *x)
 {
-	union {
+	union
+	{
 		arch_rwlock_t lock;
 		__u32 word;
 	} old, new;

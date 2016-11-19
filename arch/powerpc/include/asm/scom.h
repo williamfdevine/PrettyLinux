@@ -50,7 +50,8 @@ typedef void *scom_map_t;
  * to the core code in scom_init, it provides the actual implementation
  * of all the SCOM functions
  */
-struct scom_controller {
+struct scom_controller
+{
 	scom_map_t (*map)(struct device_node *ctrl_dev, u64 reg, u64 count);
 	void (*unmap)(scom_map_t map);
 
@@ -87,7 +88,7 @@ static inline int scom_map_ok(scom_map_t map)
  */
 
 static inline scom_map_t scom_map(struct device_node *ctrl_dev,
-				  u64 reg, u64 count)
+								  u64 reg, u64 count)
 {
 	return scom_controller->map(ctrl_dev, reg, count);
 }
@@ -126,7 +127,9 @@ extern scom_map_t scom_map_device(struct device_node *dev, int index);
 static inline void scom_unmap(scom_map_t map)
 {
 	if (scom_map_ok(map))
+	{
 		scom_controller->unmap(map);
+	}
 }
 
 /**
@@ -142,8 +145,12 @@ static inline int scom_read(scom_map_t map, u64 reg, u64 *value)
 	int rc;
 
 	rc = scom_controller->read(map, reg, value);
+
 	if (rc)
+	{
 		*value = 0xfffffffffffffffful;
+	}
+
 	return rc;
 }
 

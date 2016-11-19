@@ -26,35 +26,35 @@ void s3c64xx_restart(enum reboot_mode mode, const char *cmd);
 
 struct device_node;
 void s3c64xx_clk_init(struct device_node *np, unsigned long xtal_f,
-	unsigned long xusbxti_f, bool is_s3c6400, void __iomem *reg_base);
+					  unsigned long xusbxti_f, bool is_s3c6400, void __iomem *reg_base);
 void s3c64xx_set_xtal_freq(unsigned long freq);
 void s3c64xx_set_xusbxti_freq(unsigned long freq);
 
 #ifdef CONFIG_CPU_S3C6400
 
-extern  int s3c6400_init(void);
-extern void s3c6400_init_irq(void);
-extern void s3c6400_map_io(void);
+	extern  int s3c6400_init(void);
+	extern void s3c6400_init_irq(void);
+	extern void s3c6400_map_io(void);
 
 #else
-#define s3c6400_map_io NULL
-#define s3c6400_init NULL
+	#define s3c6400_map_io NULL
+	#define s3c6400_init NULL
 #endif
 
 #ifdef CONFIG_CPU_S3C6410
 
-extern  int s3c6410_init(void);
-extern void s3c6410_init_irq(void);
-extern void s3c6410_map_io(void);
+	extern  int s3c6410_init(void);
+	extern void s3c6410_init_irq(void);
+	extern void s3c6410_map_io(void);
 
 #else
-#define s3c6410_map_io NULL
-#define s3c6410_init NULL
+	#define s3c6410_map_io NULL
+	#define s3c6410_init NULL
 #endif
 
 #ifdef CONFIG_S3C64XX_PL080
-extern struct pl08x_platform_data s3c64xx_dma0_plat_data;
-extern struct pl08x_platform_data s3c64xx_dma1_plat_data;
+	extern struct pl08x_platform_data s3c64xx_dma0_plat_data;
+	extern struct pl08x_platform_data s3c64xx_dma1_plat_data;
 #endif
 
 #endif /* __ARCH_ARM_MACH_S3C64XX_COMMON_H */

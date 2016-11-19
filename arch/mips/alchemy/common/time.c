@@ -49,7 +49,8 @@ static cycle_t au1x_counter1_read(struct clocksource *cs)
 	return alchemy_rdsys(AU1000_SYS_RTCREAD);
 }
 
-static struct clocksource au1x_counter1_clocksource = {
+static struct clocksource au1x_counter1_clocksource =
+{
 	.name		= "alchemy-counter1",
 	.read		= au1x_counter1_read,
 	.mask		= CLOCKSOURCE_MASK(32),
@@ -58,12 +59,14 @@ static struct clocksource au1x_counter1_clocksource = {
 };
 
 static int au1x_rtcmatch2_set_next_event(unsigned long delta,
-					 struct clock_event_device *cd)
+		struct clock_event_device *cd)
 {
 	delta += alchemy_rdsys(AU1000_SYS_RTCREAD);
+
 	/* wait for register access */
 	while (alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_M21)
 		;
+
 	alchemy_wrsys(delta, AU1000_SYS_RTCMATCH2);
 
 	return 0;
@@ -76,7 +79,8 @@ static irqreturn_t au1x_rtcmatch2_irq(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct clock_event_device au1x_rtcmatch2_clockdev = {
+static struct clock_event_device au1x_rtcmatch2_clockdev =
+{
 	.name		= "rtcmatch2",
 	.features	= CLOCK_EVT_FEAT_ONESHOT,
 	.rating		= 1500,
@@ -84,7 +88,8 @@ static struct clock_event_device au1x_rtcmatch2_clockdev = {
 	.cpumask	= cpu_all_mask,
 };
 
-static struct irqaction au1x_rtcmatch2_irqaction = {
+static struct irqaction au1x_rtcmatch2_irqaction =
+{
 	.handler	= au1x_rtcmatch2_irq,
 	.flags		= IRQF_TIMER,
 	.name		= "timer",
@@ -106,31 +111,52 @@ static int __init alchemy_time_init(unsigned int m2int)
 	 * edge is detected, hence the timeouts).
 	 */
 	if (CNTR_OK != (alchemy_rdsys(AU1000_SYS_CNTRCTRL) & CNTR_OK))
+	{
 		goto cntr_err;
+	}
 
 	/*
 	 * setup counter 1 (RTC) to tick at full speed
 	 */
 	t = 0xffffff;
+
 	while ((alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_T1S) && --t)
+	{
 		asm volatile ("nop");
+	}
+
 	if (!t)
+	{
 		goto cntr_err;
+	}
 
 	alchemy_wrsys(0, AU1000_SYS_RTCTRIM);	/* 32.768 kHz */
 
 	t = 0xffffff;
+
 	while ((alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_C1S) && --t)
+	{
 		asm volatile ("nop");
+	}
+
 	if (!t)
+	{
 		goto cntr_err;
+	}
+
 	alchemy_wrsys(0, AU1000_SYS_RTCWRITE);
 
 	t = 0xffffff;
+
 	while ((alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_C1S) && --t)
+	{
 		asm volatile ("nop");
+	}
+
 	if (!t)
+	{
 		goto cntr_err;
+	}
 
 	/* register counter1 clocksource and event device */
 	clocksource_register_hz(&au1x_counter1_clocksource, 32768);
@@ -150,7 +176,8 @@ cntr_err:
 	return -1;
 }
 
-static int alchemy_m2inttab[] __initdata = {
+static int alchemy_m2inttab[] __initdata =
+{
 	AU1000_RTC_MATCH2_INT,
 	AU1500_RTC_MATCH2_INT,
 	AU1100_RTC_MATCH2_INT,
@@ -164,7 +191,10 @@ void __init plat_time_init(void)
 	int t;
 
 	t = alchemy_get_cputype();
+
 	if (t == ALCHEMY_CPU_UNKNOWN ||
-	    alchemy_time_init(alchemy_m2inttab[t]))
-		cpu_wait = NULL;	/* wait doesn't work with r4k timer */
+		alchemy_time_init(alchemy_m2inttab[t]))
+	{
+		cpu_wait = NULL;    /* wait doesn't work with r4k timer */
+	}
 }

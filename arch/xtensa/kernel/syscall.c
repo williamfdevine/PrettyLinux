@@ -29,8 +29,9 @@
 
 typedef void (*syscall_t)(void);
 
-syscall_t sys_call_table[__NR_syscall_count] /* FIXME __cacheline_aligned */= {
-	[0 ... __NR_syscall_count - 1] = (syscall_t)&sys_ni_syscall,
+syscall_t sys_call_table[__NR_syscall_count] /* FIXME __cacheline_aligned */ =
+{
+	[0 ... __NR_syscall_count - 1] = (syscall_t) &sys_ni_syscall,
 
 #define __SYSCALL(nr,symbol,nargs) [ nr ] = (syscall_t)symbol,
 #include <uapi/asm/unistd.h>
@@ -46,52 +47,79 @@ asmlinkage long xtensa_shmat(int shmid, char __user *shmaddr, int shmflg)
 	long err;
 
 	err = do_shmat(shmid, shmaddr, shmflg, &ret, SHMLBA);
+
 	if (err)
+	{
 		return err;
+	}
+
 	return (long)ret;
 }
 
 asmlinkage long xtensa_fadvise64_64(int fd, int advice,
-		unsigned long long offset, unsigned long long len)
+									unsigned long long offset, unsigned long long len)
 {
 	return sys_fadvise64_64(fd, offset, len, advice);
 }
 
 #ifdef CONFIG_MMU
 unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
-		unsigned long len, unsigned long pgoff, unsigned long flags)
+									 unsigned long len, unsigned long pgoff, unsigned long flags)
 {
 	struct vm_area_struct *vmm;
 
-	if (flags & MAP_FIXED) {
+	if (flags & MAP_FIXED)
+	{
 		/* We do not accept a shared mapping if it would violate
 		 * cache aliasing constraints.
 		 */
 		if ((flags & MAP_SHARED) &&
-				((addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1)))
+			((addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1)))
+		{
 			return -EINVAL;
+		}
+
 		return addr;
 	}
 
 	if (len > TASK_SIZE)
+	{
 		return -ENOMEM;
+	}
+
 	if (!addr)
+	{
 		addr = TASK_UNMAPPED_BASE;
+	}
 
 	if (flags & MAP_SHARED)
+	{
 		addr = COLOUR_ALIGN(addr, pgoff);
+	}
 	else
+	{
 		addr = PAGE_ALIGN(addr);
+	}
 
-	for (vmm = find_vma(current->mm, addr); ; vmm = vmm->vm_next) {
+	for (vmm = find_vma(current->mm, addr); ; vmm = vmm->vm_next)
+	{
 		/* At this point:  (!vmm || addr < vmm->vm_end). */
 		if (TASK_SIZE - len < addr)
+		{
 			return -ENOMEM;
+		}
+
 		if (!vmm || addr + len <= vmm->vm_start)
+		{
 			return addr;
+		}
+
 		addr = vmm->vm_end;
+
 		if (flags & MAP_SHARED)
+		{
 			addr = COLOUR_ALIGN(addr, pgoff);
+		}
 	}
 }
 #endif

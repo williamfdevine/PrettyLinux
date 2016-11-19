@@ -27,9 +27,9 @@
 #define STACK_TOP_MAX	STACK_TOP
 /* Kernel and user SR register setting */
 #define KERNEL_SR (SPR_SR_DME | SPR_SR_IME | SPR_SR_ICE \
-		   | SPR_SR_DCE | SPR_SR_SM)
+				   | SPR_SR_DCE | SPR_SR_SM)
 #define USER_SR   (SPR_SR_DME | SPR_SR_IME | SPR_SR_ICE \
-		   | SPR_SR_DCE | SPR_SR_IEE | SPR_SR_TEE)
+				   | SPR_SR_DCE | SPR_SR_IEE | SPR_SR_TEE)
 /*
  * Default implementation of macro that returns current
  * instruction pointer ("program counter").
@@ -52,7 +52,8 @@
 
 struct task_struct;
 
-struct thread_struct {
+struct thread_struct
+{
 };
 
 /*

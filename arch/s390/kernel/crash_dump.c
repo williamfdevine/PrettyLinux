@@ -26,14 +26,16 @@
 
 static struct memblock_region oldmem_region;
 
-static struct memblock_type oldmem_type = {
+static struct memblock_type oldmem_type =
+{
 	.cnt = 1,
 	.max = 1,
 	.total_size = 0,
 	.regions = &oldmem_region,
 };
 
-struct save_area {
+struct save_area
+{
 	struct list_head list;
 	u64 psw[2];
 	u64 ctrs[16];
@@ -54,22 +56,28 @@ static LIST_HEAD(dump_save_areas);
 /*
  * Allocate a save area
  */
-struct save_area * __init save_area_alloc(bool is_boot_cpu)
+struct save_area *__init save_area_alloc(bool is_boot_cpu)
 {
 	struct save_area *sa;
 
 	sa = (void *) memblock_alloc(sizeof(*sa), 8);
+
 	if (is_boot_cpu)
+	{
 		list_add(&sa->list, &dump_save_areas);
+	}
 	else
+	{
 		list_add_tail(&sa->list, &dump_save_areas);
+	}
+
 	return sa;
 }
 
 /*
  * Return the address of the save area for the boot CPU
  */
-struct save_area * __init save_area_boot_cpu(void)
+struct save_area *__init save_area_boot_cpu(void)
 {
 	return list_first_entry_or_null(&dump_save_areas, struct save_area, list);
 }
@@ -103,7 +111,10 @@ void __init save_area_add_vxrs(struct save_area *sa, __vector128 *vxrs)
 
 	/* Copy lower halves of vector registers 0-15 */
 	for (i = 0; i < 16; i++)
+	{
 		memcpy(&sa->vxrs_low[i], &vxrs[i].u[2], 8);
+	}
+
 	/* Copy vector registers 16-31 */
 	memcpy(sa->vxrs_high, vxrs + 16, 16 * sizeof(__vector128));
 }
@@ -116,11 +127,11 @@ static inline void *load_real_addr(void *addr)
 	unsigned long real_addr;
 
 	asm volatile(
-		   "	lra     %0,0(%1)\n"
-		   "	jz	0f\n"
-		   "	la	%0,0\n"
-		   "0:"
-		   : "=a" (real_addr) : "a" (addr) : "cc");
+		"	lra     %0,0(%1)\n"
+		"	jz	0f\n"
+		"	la	%0,0\n"
+		"0:"
+		: "=a" (real_addr) : "a" (addr) : "cc");
 	return (void *)real_addr;
 }
 
@@ -133,38 +144,60 @@ int copy_oldmem_kernel(void *dst, void *src, size_t count)
 	void *ra;
 	int rc;
 
-	while (count) {
+	while (count)
+	{
 		from = __pa(src);
-		if (!OLDMEM_BASE && from < sclp.hsa_size) {
+
+		if (!OLDMEM_BASE && from < sclp.hsa_size)
+		{
 			/* Copy from zfcpdump HSA area */
 			len = min(count, sclp.hsa_size - from);
 			rc = memcpy_hsa_kernel(dst, from, len);
+
 			if (rc)
+			{
 				return rc;
-		} else {
+			}
+		}
+		else
+		{
 			/* Check for swapped kdump oldmem areas */
-			if (OLDMEM_BASE && from - OLDMEM_BASE < OLDMEM_SIZE) {
+			if (OLDMEM_BASE && from - OLDMEM_BASE < OLDMEM_SIZE)
+			{
 				from -= OLDMEM_BASE;
 				len = min(count, OLDMEM_SIZE - from);
-			} else if (OLDMEM_BASE && from < OLDMEM_SIZE) {
+			}
+			else if (OLDMEM_BASE && from < OLDMEM_SIZE)
+			{
 				len = min(count, OLDMEM_SIZE - from);
 				from += OLDMEM_BASE;
-			} else {
+			}
+			else
+			{
 				len = count;
 			}
-			if (is_vmalloc_or_module_addr(dst)) {
+
+			if (is_vmalloc_or_module_addr(dst))
+			{
 				ra = load_real_addr(dst);
 				len = min(PAGE_SIZE - offset_in_page(ra), len);
-			} else {
+			}
+			else
+			{
 				ra = dst;
 			}
+
 			if (memcpy_real(ra, (void *) from, len))
+			{
 				return -EFAULT;
+			}
 		}
+
 		dst += len;
 		src += len;
 		count -= len;
 	}
+
 	return 0;
 }
 
@@ -176,33 +209,52 @@ static int copy_oldmem_user(void __user *dst, void *src, size_t count)
 	unsigned long from, len;
 	int rc;
 
-	while (count) {
+	while (count)
+	{
 		from = __pa(src);
-		if (!OLDMEM_BASE && from < sclp.hsa_size) {
+
+		if (!OLDMEM_BASE && from < sclp.hsa_size)
+		{
 			/* Copy from zfcpdump HSA area */
 			len = min(count, sclp.hsa_size - from);
 			rc = memcpy_hsa_user(dst, from, len);
+
 			if (rc)
+			{
 				return rc;
-		} else {
+			}
+		}
+		else
+		{
 			/* Check for swapped kdump oldmem areas */
-			if (OLDMEM_BASE && from - OLDMEM_BASE < OLDMEM_SIZE) {
+			if (OLDMEM_BASE && from - OLDMEM_BASE < OLDMEM_SIZE)
+			{
 				from -= OLDMEM_BASE;
 				len = min(count, OLDMEM_SIZE - from);
-			} else if (OLDMEM_BASE && from < OLDMEM_SIZE) {
+			}
+			else if (OLDMEM_BASE && from < OLDMEM_SIZE)
+			{
 				len = min(count, OLDMEM_SIZE - from);
 				from += OLDMEM_BASE;
-			} else {
+			}
+			else
+			{
 				len = count;
 			}
+
 			rc = copy_to_user_real(dst, (void *) from, count);
+
 			if (rc)
+			{
 				return rc;
+			}
 		}
+
 		dst += len;
 		src += len;
 		count -= len;
 	}
+
 	return 0;
 }
 
@@ -210,18 +262,27 @@ static int copy_oldmem_user(void __user *dst, void *src, size_t count)
  * Copy one page from "oldmem"
  */
 ssize_t copy_oldmem_page(unsigned long pfn, char *buf, size_t csize,
-			 unsigned long offset, int userbuf)
+						 unsigned long offset, int userbuf)
 {
 	void *src;
 	int rc;
 
 	if (!csize)
+	{
 		return 0;
+	}
+
 	src = (void *) (pfn << PAGE_SHIFT) + offset;
+
 	if (userbuf)
+	{
 		rc = copy_oldmem_user((void __force __user *) buf, src, csize);
+	}
 	else
+	{
 		rc = copy_oldmem_kernel((void *) buf, src, csize);
+	}
+
 	return rc;
 }
 
@@ -232,23 +293,29 @@ ssize_t copy_oldmem_page(unsigned long pfn, char *buf, size_t csize,
  * [0 - OLDMEM_SIZE] is mapped to [OLDMEM_BASE - OLDMEM_BASE + OLDMEM_SIZE]
  */
 static int remap_oldmem_pfn_range_kdump(struct vm_area_struct *vma,
-					unsigned long from, unsigned long pfn,
-					unsigned long size, pgprot_t prot)
+										unsigned long from, unsigned long pfn,
+										unsigned long size, pgprot_t prot)
 {
 	unsigned long size_old;
 	int rc;
 
-	if (pfn < OLDMEM_SIZE >> PAGE_SHIFT) {
+	if (pfn < OLDMEM_SIZE >> PAGE_SHIFT)
+	{
 		size_old = min(size, OLDMEM_SIZE - (pfn << PAGE_SHIFT));
 		rc = remap_pfn_range(vma, from,
-				     pfn + (OLDMEM_BASE >> PAGE_SHIFT),
-				     size_old, prot);
+							 pfn + (OLDMEM_BASE >> PAGE_SHIFT),
+							 size_old, prot);
+
 		if (rc || size == size_old)
+		{
 			return rc;
+		}
+
 		size -= size_old;
 		from += size_old;
 		pfn += size_old >> PAGE_SHIFT;
 	}
+
 	return remap_pfn_range(vma, from, pfn, size, prot);
 }
 
@@ -259,21 +326,27 @@ static int remap_oldmem_pfn_range_kdump(struct vm_area_struct *vma,
  * is read on demand using the copy_oldmem_page() function.
  */
 static int remap_oldmem_pfn_range_zfcpdump(struct vm_area_struct *vma,
-					   unsigned long from,
-					   unsigned long pfn,
-					   unsigned long size, pgprot_t prot)
+		unsigned long from,
+		unsigned long pfn,
+		unsigned long size, pgprot_t prot)
 {
 	unsigned long hsa_end = sclp.hsa_size;
 	unsigned long size_hsa;
 
-	if (pfn < hsa_end >> PAGE_SHIFT) {
+	if (pfn < hsa_end >> PAGE_SHIFT)
+	{
 		size_hsa = min(size, hsa_end - (pfn << PAGE_SHIFT));
+
 		if (size == size_hsa)
+		{
 			return 0;
+		}
+
 		size -= size_hsa;
 		from += size_hsa;
 		pfn += size_hsa >> PAGE_SHIFT;
 	}
+
 	return remap_pfn_range(vma, from, pfn, size, prot);
 }
 
@@ -281,13 +354,15 @@ static int remap_oldmem_pfn_range_zfcpdump(struct vm_area_struct *vma,
  * Remap "oldmem" for kdump or zfcpdump
  */
 int remap_oldmem_pfn_range(struct vm_area_struct *vma, unsigned long from,
-			   unsigned long pfn, unsigned long size, pgprot_t prot)
+						   unsigned long pfn, unsigned long size, pgprot_t prot)
 {
 	if (OLDMEM_BASE)
+	{
 		return remap_oldmem_pfn_range_kdump(vma, from, pfn, size, prot);
+	}
 	else
 		return remap_oldmem_pfn_range_zfcpdump(vma, from, pfn, size,
-						       prot);
+											   prot);
 }
 
 /*
@@ -298,8 +373,12 @@ static void *kzalloc_panic(int len)
 	void *rc;
 
 	rc = kzalloc(len, GFP_KERNEL);
+
 	if (!rc)
+	{
 		panic("s390 kdump kzalloc (%d) failed", len);
+	}
+
 	return rc;
 }
 
@@ -307,7 +386,7 @@ static void *kzalloc_panic(int len)
  * Initialize ELF note
  */
 static void *nt_init_name(void *buf, Elf64_Word type, void *desc, int d_len,
-			  const char *name)
+						  const char *name)
 {
 	Elf64_Nhdr *note;
 	u64 len;
@@ -358,12 +437,15 @@ static void *fill_cpu_elf_notes(void *ptr, int cpu, struct save_area *sa)
 	ptr = nt_init(ptr, NT_S390_TODPREG, &sa->todpreg, sizeof(sa->todpreg));
 	ptr = nt_init(ptr, NT_S390_CTRS, &sa->ctrs, sizeof(sa->ctrs));
 	ptr = nt_init(ptr, NT_S390_PREFIX, &sa->prefix, sizeof(sa->prefix));
-	if (MACHINE_HAS_VX) {
+
+	if (MACHINE_HAS_VX)
+	{
 		ptr = nt_init(ptr, NT_S390_VXRS_HIGH,
-			      &sa->vxrs_high, sizeof(sa->vxrs_high));
+					  &sa->vxrs_high, sizeof(sa->vxrs_high));
 		ptr = nt_init(ptr, NT_S390_VXRS_LOW,
-			      &sa->vxrs_low, sizeof(sa->vxrs_low));
+					  &sa->vxrs_low, sizeof(sa->vxrs_low));
 	}
+
 	return ptr;
 }
 
@@ -390,18 +472,35 @@ static void *get_vmcoreinfo_old(unsigned long *size)
 	void *addr;
 
 	if (copy_oldmem_kernel(&addr, &S390_lowcore.vmcore_info, sizeof(addr)))
+	{
 		return NULL;
+	}
+
 	memset(nt_name, 0, sizeof(nt_name));
+
 	if (copy_oldmem_kernel(&note, addr, sizeof(note)))
+	{
 		return NULL;
+	}
+
 	if (copy_oldmem_kernel(nt_name, addr + sizeof(note),
-			       sizeof(nt_name) - 1))
+						   sizeof(nt_name) - 1))
+	{
 		return NULL;
+	}
+
 	if (strcmp(nt_name, "VMCOREINFO") != 0)
+	{
 		return NULL;
+	}
+
 	vmcoreinfo = kzalloc_panic(note.n_descsz);
+
 	if (copy_oldmem_kernel(vmcoreinfo, addr + 24, note.n_descsz))
+	{
 		return NULL;
+	}
+
 	*size = note.n_descsz;
 	return vmcoreinfo;
 }
@@ -415,10 +514,17 @@ static void *nt_vmcoreinfo(void *ptr)
 	void *vmcoreinfo;
 
 	vmcoreinfo = os_info_old_entry(OS_INFO_VMCOREINFO, &size);
+
 	if (!vmcoreinfo)
+	{
 		vmcoreinfo = get_vmcoreinfo_old(&size);
+	}
+
 	if (!vmcoreinfo)
+	{
 		return ptr;
+	}
+
 	return nt_init_name(ptr, 0, vmcoreinfo, size, "VMCOREINFO");
 }
 
@@ -452,8 +558,12 @@ static int get_cpu_cnt(void)
 	int cpus = 0;
 
 	list_for_each_entry(sa, &dump_save_areas, list)
-		if (sa->prefix != 0)
-			cpus++;
+
+	if (sa->prefix != 0)
+	{
+		cpus++;
+	}
+
 	return cpus;
 }
 
@@ -466,8 +576,8 @@ static int get_mem_chunk_cnt(void)
 	u64 idx;
 
 	for_each_mem_range(idx, &memblock.physmem, &oldmem_type, NUMA_NO_NODE,
-			   MEMBLOCK_NONE, NULL, NULL, NULL)
-		cnt++;
+					   MEMBLOCK_NONE, NULL, NULL, NULL)
+	cnt++;
 	return cnt;
 }
 
@@ -480,7 +590,8 @@ static void loads_init(Elf64_Phdr *phdr, u64 loads_offset)
 	u64 idx;
 
 	for_each_mem_range(idx, &memblock.physmem, &oldmem_type, NUMA_NO_NODE,
-			   MEMBLOCK_NONE, &start, &end, NULL) {
+					   MEMBLOCK_NONE, &start, &end, NULL)
+	{
 		phdr->p_filesz = end - start;
 		phdr->p_type = PT_LOAD;
 		phdr->p_offset = start;
@@ -506,8 +617,12 @@ static void *notes_init(Elf64_Phdr *phdr, void *ptr, u64 notes_offset)
 
 	cpu = 1;
 	list_for_each_entry(sa, &dump_save_areas, list)
-		if (sa->prefix != 0)
-			ptr = fill_cpu_elf_notes(ptr, cpu++, sa);
+
+	if (sa->prefix != 0)
+	{
+		ptr = fill_cpu_elf_notes(ptr, cpu++, sa);
+	}
+
 	ptr = nt_vmcoreinfo(ptr);
 	memset(phdr, 0, sizeof(*phdr));
 	phdr->p_type = PT_NOTE;
@@ -530,13 +645,19 @@ int elfcorehdr_alloc(unsigned long long *addr, unsigned long long *size)
 
 	/* If we are not in kdump or zfcpdump mode return */
 	if (!OLDMEM_BASE && ipl_info.type != IPL_TYPE_FCP_DUMP)
+	{
 		return 0;
+	}
+
 	/* If we cannot get HSA size for zfcpdump return error */
 	if (ipl_info.type == IPL_TYPE_FCP_DUMP && !sclp.hsa_size)
+	{
 		return -ENODEV;
+	}
 
 	/* For kdump, exclude previous crashkernel memory */
-	if (OLDMEM_BASE) {
+	if (OLDMEM_BASE)
+	{
 		oldmem_region.base = OLDMEM_BASE;
 		oldmem_region.size = OLDMEM_SIZE;
 		oldmem_type.total_size = OLDMEM_SIZE;
@@ -545,7 +666,7 @@ int elfcorehdr_alloc(unsigned long long *addr, unsigned long long *size)
 	mem_chunk_cnt = get_mem_chunk_cnt();
 
 	alloc_size = 0x1000 + get_cpu_cnt() * 0x4a0 +
-		mem_chunk_cnt * sizeof(Elf64_Phdr);
+				 mem_chunk_cnt * sizeof(Elf64_Phdr);
 	hdr = kzalloc_panic(alloc_size);
 	/* Init elf header */
 	ptr = ehdr_init(hdr, mem_chunk_cnt);
@@ -579,7 +700,7 @@ void elfcorehdr_free(unsigned long long addr)
  */
 ssize_t elfcorehdr_read(char *buf, size_t count, u64 *ppos)
 {
-	void *src = (void *)(unsigned long)*ppos;
+	void *src = (void *)(unsigned long) * ppos;
 
 	memcpy(buf, src, count);
 	*ppos += count;
@@ -591,7 +712,7 @@ ssize_t elfcorehdr_read(char *buf, size_t count, u64 *ppos)
  */
 ssize_t elfcorehdr_read_notes(char *buf, size_t count, u64 *ppos)
 {
-	void *src = (void *)(unsigned long)*ppos;
+	void *src = (void *)(unsigned long) * ppos;
 
 	memcpy(buf, src, count);
 	*ppos += count;

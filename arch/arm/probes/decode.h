@@ -25,19 +25,19 @@
 
 void __init arm_probes_decode_init(void);
 
-extern probes_check_cc * const probes_condition_checks[16];
+extern probes_check_cc *const probes_condition_checks[16];
 
 #if __LINUX_ARM_ARCH__ >= 7
 
-/* str_pc_offset is architecturally defined from ARMv7 onwards */
-#define str_pc_offset 8
-#define find_str_pc_offset()
+	/* str_pc_offset is architecturally defined from ARMv7 onwards */
+	#define str_pc_offset 8
+	#define find_str_pc_offset()
 
 #else /* __LINUX_ARM_ARCH__ < 7 */
 
-/* We need a run-time check to determine str_pc_offset */
-extern int str_pc_offset;
-void __init find_str_pc_offset(void);
+	/* We need a run-time check to determine str_pc_offset */
+	extern int str_pc_offset;
+	void __init find_str_pc_offset(void);
 
 #endif
 
@@ -50,11 +50,14 @@ void __init find_str_pc_offset(void);
  *	ITSTATE<7:2> are in CPSR<15:10>
  */
 static inline unsigned long it_advance(unsigned long cpsr)
+{
+	if ((cpsr & 0x06000400) == 0)
 	{
-	if ((cpsr & 0x06000400) == 0) {
 		/* ITSTATE<2:0> == 0 means end of IT block, so clear IT state */
 		cpsr &= ~PSR_IT_MASK;
-	} else {
+	}
+	else
+	{
 		/* We need to shift left ITSTATE<4:0> */
 		const unsigned long mask = 0x06001c00;  /* Mask ITSTATE<4:0> */
 		unsigned long it = cpsr & mask;
@@ -64,19 +67,25 @@ static inline unsigned long it_advance(unsigned long cpsr)
 		cpsr &= ~mask;
 		cpsr |= it;
 	}
+
 	return cpsr;
 }
 
 static inline void __kprobes bx_write_pc(long pcv, struct pt_regs *regs)
 {
 	long cpsr = regs->ARM_cpsr;
-	if (pcv & 0x1) {
+
+	if (pcv & 0x1)
+	{
 		cpsr |= PSR_T_BIT;
 		pcv &= ~0x1;
-	} else {
+	}
+	else
+	{
 		cpsr &= ~PSR_T_BIT;
 		pcv &= ~0x2;	/* Avoid UNPREDICTABLE address allignment */
 	}
+
 	regs->ARM_cpsr = cpsr;
 	regs->ARM_pc = pcv;
 }
@@ -84,52 +93,60 @@ static inline void __kprobes bx_write_pc(long pcv, struct pt_regs *regs)
 
 #if __LINUX_ARM_ARCH__ >= 6
 
-/* Kernels built for >= ARMv6 should never run on <= ARMv5 hardware, so... */
-#define load_write_pc_interworks true
-#define test_load_write_pc_interworking()
+	/* Kernels built for >= ARMv6 should never run on <= ARMv5 hardware, so... */
+	#define load_write_pc_interworks true
+	#define test_load_write_pc_interworking()
 
 #else /* __LINUX_ARM_ARCH__ < 6 */
 
-/* We need run-time testing to determine if load_write_pc() should interwork. */
-extern bool load_write_pc_interworks;
-void __init test_load_write_pc_interworking(void);
+	/* We need run-time testing to determine if load_write_pc() should interwork. */
+	extern bool load_write_pc_interworks;
+	void __init test_load_write_pc_interworking(void);
 
 #endif
 
 static inline void __kprobes load_write_pc(long pcv, struct pt_regs *regs)
 {
 	if (load_write_pc_interworks)
+	{
 		bx_write_pc(pcv, regs);
+	}
 	else
+	{
 		regs->ARM_pc = pcv;
+	}
 }
 
 
 #if __LINUX_ARM_ARCH__ >= 7
 
-#define alu_write_pc_interworks true
-#define test_alu_write_pc_interworking()
+	#define alu_write_pc_interworks true
+	#define test_alu_write_pc_interworking()
 
 #elif __LINUX_ARM_ARCH__ <= 5
 
-/* Kernels built for <= ARMv5 should never run on >= ARMv6 hardware, so... */
-#define alu_write_pc_interworks false
-#define test_alu_write_pc_interworking()
+	/* Kernels built for <= ARMv5 should never run on >= ARMv6 hardware, so... */
+	#define alu_write_pc_interworks false
+	#define test_alu_write_pc_interworking()
 
 #else /* __LINUX_ARM_ARCH__ == 6 */
 
-/* We could be an ARMv6 binary on ARMv7 hardware so we need a run-time check. */
-extern bool alu_write_pc_interworks;
-void __init test_alu_write_pc_interworking(void);
+	/* We could be an ARMv6 binary on ARMv7 hardware so we need a run-time check. */
+	extern bool alu_write_pc_interworks;
+	void __init test_alu_write_pc_interworking(void);
 
 #endif /* __LINUX_ARM_ARCH__ == 6 */
 
 static inline void __kprobes alu_write_pc(long pcv, struct pt_regs *regs)
 {
 	if (alu_write_pc_interworks)
+	{
 		bx_write_pc(pcv, regs);
+	}
 	else
+	{
 		regs->ARM_pc = pcv;
+	}
 }
 
 
@@ -255,7 +272,8 @@ static inline void __kprobes alu_write_pc(long pcv, struct pt_regs *regs)
  * the indicated slot in the action array), in order to simulate the instruction.
  */
 
-enum decode_type {
+enum decode_type
+{
 	DECODE_TYPE_END,
 	DECODE_TYPE_TABLE,
 	DECODE_TYPE_CUSTOM,
@@ -269,7 +287,8 @@ enum decode_type {
 #define DECODE_TYPE_BITS	4
 #define DECODE_TYPE_MASK	((1 << DECODE_TYPE_BITS) - 1)
 
-enum decode_reg_type {
+enum decode_reg_type
+{
 	REG_TYPE_NONE = 0, /* Not a register, ignore */
 	REG_TYPE_ANY,	   /* Any register allowed */
 	REG_TYPE_SAMEAS16, /* Register should be same as that at bits 19..16 */
@@ -293,12 +312,13 @@ enum decode_reg_type {
 
 #define REGS(r16, r12, r8, r4, r0)	\
 	(((REG_TYPE_##r16) << 16) +	\
-	((REG_TYPE_##r12) << 12) +	\
-	((REG_TYPE_##r8) << 8) +	\
-	((REG_TYPE_##r4) << 4) +	\
-	(REG_TYPE_##r0))
+	 ((REG_TYPE_##r12) << 12) +	\
+	 ((REG_TYPE_##r8) << 8) +	\
+	 ((REG_TYPE_##r4) << 4) +	\
+	 (REG_TYPE_##r0))
 
-union decode_item {
+union decode_item
+{
 	u32			bits;
 	const union decode_item	*table;
 	int			action;
@@ -306,19 +326,21 @@ union decode_item {
 
 struct decode_header;
 typedef enum probes_insn (probes_custom_decode_t)(probes_opcode_t,
-						  struct arch_probes_insn *,
-						  const struct decode_header *);
+		struct arch_probes_insn *,
+		const struct decode_header *);
 
-union decode_action {
+union decode_action
+{
 	probes_insn_handler_t	*handler;
 	probes_custom_decode_t	*decoder;
 };
 
 typedef enum probes_insn (probes_check_t)(probes_opcode_t,
-					   struct arch_probes_insn *,
-					   const struct decode_header *);
+		struct arch_probes_insn *,
+		const struct decode_header *);
 
-struct decode_checker {
+struct decode_checker
+{
 	probes_check_t	*checker;
 };
 
@@ -326,7 +348,8 @@ struct decode_checker {
 	{.bits = DECODE_TYPE_END}
 
 
-struct decode_header {
+struct decode_header
+{
 	union decode_item	type_regs;
 	union decode_item	mask;
 	union decode_item	value;
@@ -338,7 +361,8 @@ struct decode_header {
 	{.bits = (_value)}
 
 
-struct decode_table {
+struct decode_table
+{
 	struct decode_header	header;
 	union decode_item	table;
 };
@@ -348,7 +372,8 @@ struct decode_table {
 	{.table = (_table)}
 
 
-struct decode_custom {
+struct decode_custom
+{
 	struct decode_header	header;
 	union decode_item	decoder;
 };
@@ -358,7 +383,8 @@ struct decode_custom {
 	{.action = (_decoder)}
 
 
-struct decode_simulate {
+struct decode_simulate
+{
 	struct decode_header	header;
 	union decode_item	handler;
 };
@@ -371,7 +397,8 @@ struct decode_simulate {
 	DECODE_SIMULATEX(_mask, _value, _handler, 0)
 
 
-struct decode_emulate {
+struct decode_emulate
+{
 	struct decode_header	header;
 	union decode_item	handler;
 };
@@ -384,20 +411,23 @@ struct decode_emulate {
 	DECODE_EMULATEX(_mask, _value, _handler, 0)
 
 
-struct decode_or {
+struct decode_or
+{
 	struct decode_header	header;
 };
 
 #define DECODE_OR(_mask, _value)				\
 	DECODE_HEADER(DECODE_TYPE_OR, _mask, _value, 0)
 
-enum probes_insn {
+enum probes_insn
+{
 	INSN_REJECTED,
 	INSN_GOOD,
 	INSN_GOOD_NO_SLOT
 };
 
-struct decode_reject {
+struct decode_reject
+{
 	struct decode_header	header;
 };
 
@@ -409,8 +439,8 @@ probes_insn_handler_t probes_emulate_none;
 
 int __kprobes
 probes_decode_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
-		const union decode_item *table, bool thumb, bool emulate,
-		const union decode_action *actions,
-		const struct decode_checker **checkers);
+				   const union decode_item *table, bool thumb, bool emulate,
+				   const union decode_action *actions,
+				   const struct decode_checker **checkers);
 
 #endif

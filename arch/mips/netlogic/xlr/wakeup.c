@@ -61,24 +61,40 @@ int xlr_wakeup_secondary_cpus(void)
 	nodep = nlm_get_node(0);
 	boot_cpu = hard_smp_processor_id();
 	nlm_set_nmi_handler(nlm_rmiboot_preboot);
-	for (i = 0; i < NR_CPUS; i++) {
+
+	for (i = 0; i < NR_CPUS; i++)
+	{
 		if (i == boot_cpu || !cpumask_test_cpu(i, &nlm_cpumask))
+		{
 			continue;
+		}
+
 		nlm_pic_send_ipi(nodep->picbase, i, 1, 1); /* send NMI */
 	}
 
 	/* Fill up the coremask early */
 	nodep->coremask = 1;
-	for (i = 1; i < nlm_cores_per_node(); i++) {
-		for (j = 1000000; j > 0; j--) {
+
+	for (i = 1; i < nlm_cores_per_node(); i++)
+	{
+		for (j = 1000000; j > 0; j--)
+		{
 			if (cpu_ready[i * NLM_THREADS_PER_CORE])
+			{
 				break;
+			}
+
 			udelay(10);
 		}
+
 		if (j != 0)
+		{
 			nodep->coremask |= (1u << i);
+		}
 		else
+		{
 			pr_err("Failed to wakeup core %d\n", i);
+		}
 	}
 
 	return 0;

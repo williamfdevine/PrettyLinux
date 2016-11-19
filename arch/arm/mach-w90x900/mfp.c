@@ -62,9 +62,13 @@ void mfp_set_groupf(struct device *dev)
 	mfpen = __raw_readl(REG_MFSEL);
 
 	if (strcmp(dev_id, "nuc900-emc") == 0)
-		mfpen |= GPSELF;/*enable mac*/
+	{
+		mfpen |= GPSELF;    /*enable mac*/
+	}
 	else
-		mfpen &= ~GPSELF;/*GPIOF[9:0]*/
+	{
+		mfpen &= ~GPSELF;    /*GPIOF[9:0]*/
+	}
 
 	__raw_writel(mfpen, REG_MFSEL);
 
@@ -86,15 +90,23 @@ void mfp_set_groupc(struct device *dev)
 	mfpen = __raw_readl(REG_MFSEL);
 
 	if (strcmp(dev_id, "nuc900-lcd") == 0)
-		mfpen |= GPSELC;/*enable lcd*/
-	else if (strcmp(dev_id, "nuc900-kpi") == 0) {
+	{
+		mfpen |= GPSELC;    /*enable lcd*/
+	}
+	else if (strcmp(dev_id, "nuc900-kpi") == 0)
+	{
 		mfpen &= (~GPSELC);/*enable kpi*/
 		mfpen |= ENKPI;
-	} else if (strcmp(dev_id, "nuc900-nand") == 0) {
+	}
+	else if (strcmp(dev_id, "nuc900-nand") == 0)
+	{
 		mfpen &= (~GPSELC);/*enable nand*/
 		mfpen |= ENNAND;
-	} else
-		mfpen &= (~GPSELC);/*GPIOC[14:0]*/
+	}
+	else
+	{
+		mfpen &= (~GPSELC);    /*GPIOC[14:0]*/
+	}
 
 	__raw_writel(mfpen, REG_MFSEL);
 
@@ -118,11 +130,17 @@ void mfp_set_groupi(struct device *dev)
 	mfpen &= ~GPSELEI1;/*default gpio16*/
 
 	if (strcmp(dev_id, "nuc900-wdog") == 0)
-		mfpen |= GPSELEI1;/*enable wdog*/
+	{
+		mfpen |= GPSELEI1;    /*enable wdog*/
+	}
 	else if (strcmp(dev_id, "nuc900-atapi") == 0)
-		mfpen |= GPSELEI0;/*enable atapi*/
+	{
+		mfpen |= GPSELEI0;    /*enable atapi*/
+	}
 	else if (strcmp(dev_id, "nuc900-keypad") == 0)
-		mfpen &= ~GPSELEI0;/*enable keypad*/
+	{
+		mfpen &= ~GPSELEI0;    /*enable keypad*/
+	}
 
 	__raw_writel(mfpen, REG_MFSEL);
 
@@ -140,28 +158,43 @@ void mfp_set_groupg(struct device *dev, const char *subname)
 	mutex_lock(&mfp_mutex);
 
 	if (subname != NULL)
+	{
 		dev_id = subname;
+	}
 	else
+	{
 		dev_id = dev_name(dev);
+	}
 
 	mfpen = __raw_readl(REG_MFSEL);
 
-	if (strcmp(dev_id, "nuc900-spi") == 0) {
+	if (strcmp(dev_id, "nuc900-spi") == 0)
+	{
 		mfpen &= ~(GPIOG0TO1 | GPIOG2TO3);
 		mfpen |= ENSPI;/*enable spi*/
-	} else if (strcmp(dev_id, "nuc900-i2c0") == 0) {
+	}
+	else if (strcmp(dev_id, "nuc900-i2c0") == 0)
+	{
 		mfpen &= ~(GPIOG0TO1);
 		mfpen |= ENI2C0;/*enable i2c0*/
-	} else if (strcmp(dev_id, "nuc900-i2c1") == 0) {
+	}
+	else if (strcmp(dev_id, "nuc900-i2c1") == 0)
+	{
 		mfpen &= ~(GPIOG2TO3);
 		mfpen |= ENI2C1;/*enable i2c1*/
-	} else if (strcmp(dev_id, "nuc900-ac97") == 0) {
+	}
+	else if (strcmp(dev_id, "nuc900-ac97") == 0)
+	{
 		mfpen &= ~(GPIOG22TO23);
 		mfpen |= ENAC97;/*enable AC97*/
-	} else if (strcmp(dev_id, "nuc900-mmc-port1") == 0) {
+	}
+	else if (strcmp(dev_id, "nuc900-mmc-port1") == 0)
+	{
 		mfpen &= ~(GPIOG18TO20);
 		mfpen |= (ENSD1 | 0x01);/*enable sd1*/
-	} else {
+	}
+	else
+	{
 		mfpen &= ~(GPIOG0TO1 | GPIOG2TO3);/*GPIOG[3:0]*/
 	}
 
@@ -181,17 +214,25 @@ void mfp_set_groupd(struct device *dev, const char *subname)
 	mutex_lock(&mfp_mutex);
 
 	if (subname != NULL)
+	{
 		dev_id = subname;
+	}
 	else
+	{
 		dev_id = dev_name(dev);
+	}
 
 	mfpen = __raw_readl(REG_MFSEL);
 
-	if (strcmp(dev_id, "nuc900-mmc-port0") == 0) {
+	if (strcmp(dev_id, "nuc900-mmc-port0") == 0)
+	{
 		mfpen &= ~GPSELD;/*enable sd0*/
 		mfpen |= ENSD0;
-	} else
+	}
+	else
+	{
 		mfpen &= (~GPSELD);
+	}
 
 	__raw_writel(mfpen, REG_MFSEL);
 

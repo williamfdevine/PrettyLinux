@@ -25,7 +25,8 @@
 /*
  * enumeration of exception codes (as extracted from TBR MSW)
  */
-enum exception_code {
+enum exception_code
+{
 	EXCEP_RESET		= 0x000000,	/* reset */
 
 	/* MMU exceptions */
@@ -103,14 +104,14 @@ extern asmlinkage void double_fault(void);
 extern asmlinkage int  system_call(struct pt_regs *);
 extern asmlinkage void nmi(struct pt_regs *, enum exception_code);
 extern asmlinkage void uninitialised_exception(struct pt_regs *,
-					       enum exception_code);
+		enum exception_code);
 extern asmlinkage void irq_handler(void);
 extern asmlinkage void profile_handler(void);
 extern asmlinkage void nmi_handler(void);
 extern asmlinkage void misalignment(struct pt_regs *, enum exception_code);
 
 extern void die(const char *, struct pt_regs *, enum exception_code)
-	__noreturn;
+__noreturn;
 
 extern int die_if_no_fixup(const char *, struct pt_regs *, enum exception_code);
 

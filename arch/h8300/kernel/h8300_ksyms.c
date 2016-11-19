@@ -20,7 +20,7 @@ asmlinkage void *memcpy(void *, const void *, size_t);
 asmlinkage void *memset(void *, int, size_t);
 asmlinkage long strncpy_from_user(void *to, void *from, size_t n);
 
-	/* gcc lib functions */
+/* gcc lib functions */
 EXPORT_SYMBOL(__ucmpdi2);
 EXPORT_SYMBOL(__ashldi3);
 EXPORT_SYMBOL(__ashrdi3);

@@ -20,7 +20,8 @@
  */
 
 /* Input PPS Functions */
-enum {
+enum
+{
 	IN_FUNC_INT3,
 	IN_FUNC_T2CK,
 	IN_FUNC_T6CK,
@@ -130,7 +131,8 @@ enum {
 #define IN_RPE8 0x0D
 
 /* Output PPS Pins */
-enum {
+enum
+{
 	OUT_RPD2,
 	OUT_RPG8,
 	OUT_RPF4,

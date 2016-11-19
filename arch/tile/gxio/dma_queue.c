@@ -19,7 +19,7 @@
 
 /* Wait for a memory read to complete. */
 #define wait_for_value(val)                             \
-  __asm__ __volatile__("move %0, %0" :: "r"(val))
+	__asm__ __volatile__("move %0, %0" :: "r"(val))
 
 /* The index is in the low 16. */
 #define DMA_QUEUE_INDEX_MASK ((1 << 16) - 1)
@@ -30,25 +30,27 @@
  * and trio (TRIO_PUSH_DMA_REGION_VAL_t or TRIO_PULL_DMA_REGION_VAL_t).
  * See those types for more documentation on the individual fields.
  */
-typedef union {
-	struct {
+typedef union
+{
+	struct
+	{
 #ifndef __BIG_ENDIAN__
-		uint64_t ring_idx:16;
-		uint64_t count:16;
-		uint64_t gen:1;
-		uint64_t __reserved:31;
+		uint64_t ring_idx: 16;
+		uint64_t count: 16;
+		uint64_t gen: 1;
+		uint64_t __reserved: 31;
 #else
-		uint64_t __reserved:31;
-		uint64_t gen:1;
-		uint64_t count:16;
-		uint64_t ring_idx:16;
+		uint64_t __reserved: 31;
+		uint64_t gen: 1;
+		uint64_t count: 16;
+		uint64_t ring_idx: 16;
 #endif
 	};
 	uint64_t word;
 } __gxio_ring_t;
 
 void __gxio_dma_queue_init(__gxio_dma_queue_t *dma_queue,
-			   void *post_region_addr, unsigned int num_entries)
+						   void *post_region_addr, unsigned int num_entries)
 {
 	/*
 	 * Limit 65536 entry rings to 65535 credits because we only have a
@@ -79,7 +81,7 @@ void __gxio_dma_queue_update_credits(__gxio_dma_queue_t *dma_queue)
 	 */
 	uint64_t orig_hw_complete_count =
 		cmpxchg(&dma_queue->hw_complete_count,
-			-1, -1);
+				-1, -1);
 
 	/* Make sure the load completes before we access the hardware. */
 	wait_for_value(orig_hw_complete_count);
@@ -94,8 +96,11 @@ void __gxio_dma_queue_update_credits(__gxio_dma_queue_t *dma_queue)
 	 * maximum credit value is 65535.
 	 */
 	delta = (count - orig_hw_complete_count) & 0xffff;
+
 	if (delta == 0)
+	{
 		return;
+	}
 
 	/*
 	 * Try to write back the count, advanced by delta.  If we race with
@@ -104,17 +109,20 @@ void __gxio_dma_queue_update_credits(__gxio_dma_queue_t *dma_queue)
 	 * were) available.
 	 */
 	new_count = orig_hw_complete_count + delta;
+
 	if (cmpxchg(&dma_queue->hw_complete_count,
-		    orig_hw_complete_count,
-		    new_count) != orig_hw_complete_count)
+				orig_hw_complete_count,
+				new_count) != orig_hw_complete_count)
+	{
 		return;
+	}
 
 	/*
 	 * We succeeded in advancing the completion count; add back the
 	 * corresponding number of egress credits.
 	 */
 	__insn_fetchadd(&dma_queue->credits_and_next_index,
-			(delta << DMA_QUEUE_CREDIT_SHIFT));
+					(delta << DMA_QUEUE_CREDIT_SHIFT));
 }
 
 EXPORT_SYMBOL_GPL(__gxio_dma_queue_update_credits);
@@ -125,26 +133,33 @@ EXPORT_SYMBOL_GPL(__gxio_dma_queue_update_credits);
  * egress availability rather than actually posting commands.
  */
 int64_t __gxio_dma_queue_wait_for_credits(__gxio_dma_queue_t *dma_queue,
-					  int64_t modifier)
+		int64_t modifier)
 {
 	int backoff = 16;
 	int64_t old;
 
-	do {
+	do
+	{
 		int i;
+
 		/* Back off to avoid spamming memory networks. */
 		for (i = backoff; i > 0; i--)
+		{
 			__insn_mfspr(SPR_PASS);
+		}
 
 		/* Check credits again. */
 		__gxio_dma_queue_update_credits(dma_queue);
 		old = __insn_fetchaddgez(&dma_queue->credits_and_next_index,
-					 modifier);
+								 modifier);
 
 		/* Calculate bounded exponential backoff for next iteration. */
 		if (backoff < 256)
+		{
 			backoff *= 2;
-	} while (old + modifier < 0);
+		}
+	}
+	while (old + modifier < 0);
 
 	return old;
 }
@@ -152,7 +167,7 @@ int64_t __gxio_dma_queue_wait_for_credits(__gxio_dma_queue_t *dma_queue,
 EXPORT_SYMBOL_GPL(__gxio_dma_queue_wait_for_credits);
 
 int64_t __gxio_dma_queue_reserve_aux(__gxio_dma_queue_t *dma_queue,
-				     unsigned int num, int wait)
+									 unsigned int num, int wait)
 {
 	return __gxio_dma_queue_reserve(dma_queue, num, wait != 0, true);
 }
@@ -160,12 +175,15 @@ int64_t __gxio_dma_queue_reserve_aux(__gxio_dma_queue_t *dma_queue,
 EXPORT_SYMBOL_GPL(__gxio_dma_queue_reserve_aux);
 
 int __gxio_dma_queue_is_complete(__gxio_dma_queue_t *dma_queue,
-				 int64_t completion_slot, int update)
+								 int64_t completion_slot, int update)
 {
-	if (update) {
+	if (update)
+	{
 		if (ACCESS_ONCE(dma_queue->hw_complete_count) >
-		    completion_slot)
+			completion_slot)
+		{
 			return 1;
+		}
 
 		__gxio_dma_queue_update_credits(dma_queue);
 	}

@@ -56,20 +56,26 @@ __x2apic_send_IPI_mask(const struct cpumask *mask, int vector, int apic_dest)
 	/*
 	 * The idea is to send one IPI per cluster.
 	 */
-	for_each_cpu(cpu, ipi_mask_ptr) {
+	for_each_cpu(cpu, ipi_mask_ptr)
+	{
 		unsigned long i;
 
 		cpus_in_cluster_ptr = per_cpu(cpus_in_cluster, cpu);
 		dest = 0;
 
 		/* Collect cpus in cluster. */
-		for_each_cpu_and(i, ipi_mask_ptr, cpus_in_cluster_ptr) {
+		for_each_cpu_and(i, ipi_mask_ptr, cpus_in_cluster_ptr)
+		{
 			if (apic_dest == APIC_DEST_ALLINC || i != this_cpu)
+			{
 				dest |= per_cpu(x86_cpu_to_logical_apicid, i);
+			}
 		}
 
 		if (!dest)
+		{
 			continue;
+		}
 
 		__x2apic_send_IPI_dest(dest, vector, apic->dest_logical);
 		/*
@@ -105,29 +111,42 @@ static void x2apic_send_IPI_all(int vector)
 
 static int
 x2apic_cpu_mask_to_apicid_and(const struct cpumask *cpumask,
-			      const struct cpumask *andmask,
-			      unsigned int *apicid)
+							  const struct cpumask *andmask,
+							  unsigned int *apicid)
 {
 	u32 dest = 0;
 	u16 cluster;
 	int i;
 
-	for_each_cpu_and(i, cpumask, andmask) {
+	for_each_cpu_and(i, cpumask, andmask)
+	{
 		if (!cpumask_test_cpu(i, cpu_online_mask))
+		{
 			continue;
+		}
+
 		dest = per_cpu(x86_cpu_to_logical_apicid, i);
 		cluster = x2apic_cluster(i);
 		break;
 	}
 
 	if (!dest)
+	{
 		return -EINVAL;
+	}
 
-	for_each_cpu_and(i, cpumask, andmask) {
+	for_each_cpu_and(i, cpumask, andmask)
+	{
 		if (!cpumask_test_cpu(i, cpu_online_mask))
+		{
 			continue;
+		}
+
 		if (cluster != x2apic_cluster(i))
+		{
 			continue;
+		}
+
 		dest |= per_cpu(x86_cpu_to_logical_apicid, i);
 	}
 
@@ -144,9 +163,13 @@ static void init_x2apic_ldr(void)
 	per_cpu(x86_cpu_to_logical_apicid, this_cpu) = apic_read(APIC_LDR);
 
 	cpumask_set_cpu(this_cpu, per_cpu(cpus_in_cluster, this_cpu));
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (x2apic_cluster(this_cpu) != x2apic_cluster(cpu))
+		{
 			continue;
+		}
+
 		cpumask_set_cpu(this_cpu, per_cpu(cpus_in_cluster, cpu));
 		cpumask_set_cpu(cpu, per_cpu(cpus_in_cluster, this_cpu));
 	}
@@ -158,9 +181,12 @@ static void init_x2apic_ldr(void)
 static int x2apic_prepare_cpu(unsigned int cpu)
 {
 	if (!zalloc_cpumask_var(&per_cpu(cpus_in_cluster, cpu), GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
-	if (!zalloc_cpumask_var(&per_cpu(ipi_mask, cpu), GFP_KERNEL)) {
+	if (!zalloc_cpumask_var(&per_cpu(ipi_mask, cpu), GFP_KERNEL))
+	{
 		free_cpumask_var(per_cpu(cpus_in_cluster, cpu));
 		return -ENOMEM;
 	}
@@ -172,9 +198,13 @@ static int x2apic_dead_cpu(unsigned int this_cpu)
 {
 	int cpu;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (x2apic_cluster(this_cpu) != x2apic_cluster(cpu))
+		{
 			continue;
+		}
+
 		cpumask_clear_cpu(this_cpu, per_cpu(cpus_in_cluster, cpu));
 		cpumask_clear_cpu(cpu, per_cpu(cpus_in_cluster, this_cpu));
 	}
@@ -189,14 +219,19 @@ static int x2apic_cluster_probe(void)
 	int ret;
 
 	if (!x2apic_mode)
+	{
 		return 0;
+	}
 
 	ret = cpuhp_setup_state(CPUHP_X2APIC_PREPARE, "X2APIC_PREPARE",
-				x2apic_prepare_cpu, x2apic_dead_cpu);
-	if (ret < 0) {
+							x2apic_prepare_cpu, x2apic_dead_cpu);
+
+	if (ret < 0)
+	{
 		pr_err("Failed to register X2APIC_PREPARE\n");
 		return 0;
 	}
+
 	cpumask_set_cpu(cpu, per_cpu(cpus_in_cluster, cpu));
 	return 1;
 }
@@ -210,7 +245,7 @@ static const struct cpumask *x2apic_cluster_target_cpus(void)
  * Each x2apic cluster is an allocation domain.
  */
 static void cluster_vector_allocation_domain(int cpu, struct cpumask *retmask,
-					     const struct cpumask *mask)
+		const struct cpumask *mask)
 {
 	/*
 	 * To minimize vector pressure, default case of boot, device bringup
@@ -222,12 +257,17 @@ static void cluster_vector_allocation_domain(int cpu, struct cpumask *retmask,
 	 * in the mask.
 	 */
 	if (mask == x2apic_cluster_target_cpus())
+	{
 		cpumask_copy(retmask, cpumask_of(cpu));
+	}
 	else
+	{
 		cpumask_and(retmask, mask, per_cpu(cpus_in_cluster, cpu));
+	}
 }
 
-static struct apic apic_x2apic_cluster __ro_after_init = {
+static struct apic apic_x2apic_cluster __ro_after_init =
+{
 
 	.name				= "cluster x2apic",
 	.probe				= x2apic_cluster_probe,

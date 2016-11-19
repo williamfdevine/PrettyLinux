@@ -39,14 +39,15 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction timer_irq = {
+static struct irqaction timer_irq =
+{
 	.handler = timer_interrupt,
 	.flags = IRQF_TIMER,
 	.name = "timer",
 };
 
 static int score_timer_set_next_event(unsigned long delta,
-		struct clock_event_device *evdev)
+									  struct clock_event_device *evdev)
 {
 	outl((TMR_M_PERIODIC | TMR_IE_ENABLE), P_TIMER0_CTRL);
 	outl(delta, P_TIMER0_PRELOAD);
@@ -63,7 +64,8 @@ static int score_timer_set_periodic(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device score_clockevent = {
+static struct clock_event_device score_clockevent =
+{
 	.name			= "score_clockevent",
 	.features		= CLOCK_EVT_FEAT_PERIODIC,
 	.shift			= 16,
@@ -78,11 +80,11 @@ void __init time_init(void)
 
 	/* setup COMPARE clockevent */
 	score_clockevent.mult = div_sc(SYSTEM_CLOCK, NSEC_PER_SEC,
-					score_clockevent.shift);
+								   score_clockevent.shift);
 	score_clockevent.max_delta_ns = clockevent_delta2ns((u32)~0,
-					&score_clockevent);
+									&score_clockevent);
 	score_clockevent.min_delta_ns = clockevent_delta2ns(50,
-						&score_clockevent) + 1;
+									&score_clockevent) + 1;
 	score_clockevent.cpumask = cpumask_of(0);
 	clockevents_register_device(&score_clockevent);
 }

@@ -38,8 +38,8 @@ void mcf_cache_push(void)
 		"bne	1b\n\t"
 		: /* No output */
 		: "i" (CACHE_LINE_SIZE),
-		  "i" (DCACHE_SIZE / CACHE_WAYS),
-		  "i" (CACHE_WAYS)
+		"i" (DCACHE_SIZE / CACHE_WAYS),
+		"i" (CACHE_WAYS)
 		: "d0", "a0" );
 }
 

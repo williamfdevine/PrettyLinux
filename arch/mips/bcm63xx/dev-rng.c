@@ -11,7 +11,8 @@
 #include <linux/platform_device.h>
 #include <bcm63xx_cpu.h>
 
-static struct resource rng_resources[] = {
+static struct resource rng_resources[] =
+{
 	{
 		.start		= -1, /* filled at runtime */
 		.end		= -1, /* filled at runtime */
@@ -19,7 +20,8 @@ static struct resource rng_resources[] = {
 	},
 };
 
-static struct platform_device bcm63xx_rng_device = {
+static struct platform_device bcm63xx_rng_device =
+{
 	.name		= "bcm63xx-rng",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(rng_resources),
@@ -29,7 +31,9 @@ static struct platform_device bcm63xx_rng_device = {
 int __init bcm63xx_rng_register(void)
 {
 	if (!BCMCPU_IS_6368())
+	{
 		return -ENODEV;
+	}
 
 	rng_resources[0].start = bcm63xx_regset_address(RSET_RNG);
 	rng_resources[0].end = rng_resources[0].start;

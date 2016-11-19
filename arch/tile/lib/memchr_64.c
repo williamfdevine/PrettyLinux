@@ -26,7 +26,8 @@ void *memchr(const void *s, int c, size_t n)
 	uint64_t goal, before_mask, v, bits;
 	char *ret;
 
-	if (__builtin_expect(n == 0, 0)) {
+	if (__builtin_expect(n == 0, 0))
+	{
 		/* Don't dereference any memory if the array is empty. */
 		return NULL;
 	}
@@ -50,13 +51,16 @@ void *memchr(const void *s, int c, size_t n)
 	/* Compute the address of the word containing the last byte. */
 	last_word_ptr = (const uint64_t *)((uintptr_t) last_byte_ptr & -8);
 
-	while ((bits = __insn_v1cmpeq(v, goal)) == 0) {
-		if (__builtin_expect(p == last_word_ptr, 0)) {
+	while ((bits = __insn_v1cmpeq(v, goal)) == 0)
+	{
+		if (__builtin_expect(p == last_word_ptr, 0))
+		{
 			/* We already read the last word in the array,
 			 * so give up.
 			 */
 			return NULL;
 		}
+
 		v = *++p;
 	}
 

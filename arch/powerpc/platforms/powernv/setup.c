@@ -50,7 +50,9 @@ static void __init pnv_setup_arch(void)
 
 	/* Setup RTC and NVRAM callbacks */
 	if (firmware_has_feature(FW_FEATURE_OPAL))
+	{
 		opal_nvram_init();
+	}
 
 	/* Enable NAP mode */
 	powersave_nap = 1;
@@ -67,8 +69,11 @@ static void __init pnv_init(void)
 	opal_lpc_init();
 
 #ifdef CONFIG_HVC_OPAL
+
 	if (firmware_has_feature(FW_FEATURE_OPAL))
+	{
 		hvc_opal_init_early();
+	}
 	else
 #endif
 		add_preferred_console("hvc", 0, NULL);
@@ -87,13 +92,23 @@ static void pnv_show_cpuinfo(struct seq_file *m)
 	const char *model = "";
 
 	root = of_find_node_by_path("/");
+
 	if (root)
+	{
 		model = of_get_property(root, "model", NULL);
+	}
+
 	seq_printf(m, "machine\t\t: PowerNV %s\n", model);
+
 	if (firmware_has_feature(FW_FEATURE_OPAL))
+	{
 		seq_printf(m, "firmware\t: OPAL\n");
+	}
 	else
+	{
 		seq_printf(m, "firmware\t: BML\n");
+	}
+
 	of_node_put(root);
 }
 
@@ -124,15 +139,24 @@ static void  __noreturn pnv_restart(char *cmd)
 
 	pnv_prepare_going_down();
 
-	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT) {
+	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT)
+	{
 		rc = opal_cec_reboot();
+
 		if (rc == OPAL_BUSY_EVENT)
+		{
 			opal_poll_events(NULL);
+		}
 		else
+		{
 			mdelay(10);
+		}
 	}
+
 	for (;;)
+	{
 		opal_poll_events(NULL);
+	}
 }
 
 static void __noreturn pnv_power_off(void)
@@ -141,15 +165,24 @@ static void __noreturn pnv_power_off(void)
 
 	pnv_prepare_going_down();
 
-	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT) {
+	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT)
+	{
 		rc = opal_cec_power_down(0);
+
 		if (rc == OPAL_BUSY_EVENT)
+		{
 			opal_poll_events(NULL);
+		}
 		else
+		{
 			mdelay(10);
+		}
 	}
+
 	for (;;)
+	{
 		opal_poll_events(NULL);
+	}
 }
 
 static void __noreturn pnv_halt(void)
@@ -181,23 +214,33 @@ static void pnv_kexec_wait_secondaries_down(void)
 
 	my_cpu = get_cpu();
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		uint8_t status;
 		int64_t rc, timeout = 1000;
 
 		if (i == my_cpu)
+		{
 			continue;
+		}
 
-		for (;;) {
+		for (;;)
+		{
 			rc = opal_query_cpu_status(get_hard_smp_processor_id(i),
-						   &status);
+									   &status);
+
 			if (rc != OPAL_SUCCESS || status != OPAL_THREAD_STARTED)
+			{
 				break;
+			}
+
 			barrier();
-			if (i != notified) {
+
+			if (i != notified)
+			{
 				printk(KERN_INFO "kexec: waiting for cpu %d "
-				       "(physical %d) to enter OPAL\n",
-				       i, paca[i].hw_cpu_id);
+					   "(physical %d) to enter OPAL\n",
+					   i, paca[i].hw_cpu_id);
 				notified = i;
 			}
 
@@ -206,10 +249,12 @@ static void pnv_kexec_wait_secondaries_down(void)
 			 * so timeout if we've waited too long
 			 * */
 			mdelay(1);
-			if (timeout-- == 0) {
+
+			if (timeout-- == 0)
+			{
 				printk(KERN_ERR "kexec: timed out waiting for "
-				       "cpu %d (physical %d) to enter OPAL\n",
-				       i, paca[i].hw_cpu_id);
+					   "cpu %d (physical %d) to enter OPAL\n",
+					   i, paca[i].hw_cpu_id);
 				break;
 			}
 		}
@@ -223,9 +268,12 @@ static void pnv_kexec_cpu_down(int crash_shutdown, int secondary)
 	/* On OPAL, we return all CPUs to firmware */
 
 	if (!firmware_has_feature(FW_FEATURE_OPAL))
+	{
 		return;
+	}
 
-	if (secondary) {
+	if (secondary)
+	{
 		/* Return secondary CPUs to firmware on OPAL v3 */
 		mb();
 		get_paca()->kexec_state = KEXEC_STATE_REAL_MODE;
@@ -233,7 +281,9 @@ static void pnv_kexec_cpu_down(int crash_shutdown, int secondary)
 
 		/* Return the CPU to OPAL */
 		opal_return_cpu();
-	} else {
+	}
+	else
+	{
 		/* Primary waits for the secondaries to have reached OPAL */
 		pnv_kexec_wait_secondaries_down();
 
@@ -269,10 +319,14 @@ static void __init pnv_setup_machdep_opal(void)
 static int __init pnv_probe(void)
 {
 	if (!of_machine_is_compatible("ibm,powernv"))
+	{
 		return 0;
+	}
 
 	if (firmware_has_feature(FW_FEATURE_OPAL))
+	{
 		pnv_setup_machdep_opal();
+	}
 
 	pr_debug("PowerNV detected !\n");
 
@@ -293,28 +347,32 @@ static unsigned long pnv_get_proc_freq(unsigned int cpu)
 
 	/*
 	 * If the backend cpufreq driver does not exist,
-         * then fallback to old way of reporting the clockrate.
+	     * then fallback to old way of reporting the clockrate.
 	 */
 	if (!ret_freq)
+	{
 		ret_freq = ppc_proc_freq;
+	}
+
 	return ret_freq;
 }
 
-define_machine(powernv) {
+define_machine(powernv)
+{
 	.name			= "PowerNV",
-	.probe			= pnv_probe,
-	.setup_arch		= pnv_setup_arch,
-	.init_IRQ		= pnv_init_IRQ,
-	.show_cpuinfo		= pnv_show_cpuinfo,
-	.get_proc_freq          = pnv_get_proc_freq,
-	.progress		= pnv_progress,
-	.machine_shutdown	= pnv_shutdown,
-	.power_save             = NULL,
-	.calibrate_decr		= generic_calibrate_decr,
+			 .probe			= pnv_probe,
+					 .setup_arch		= pnv_setup_arch,
+						 .init_IRQ		= pnv_init_IRQ,
+							   .show_cpuinfo		= pnv_show_cpuinfo,
+									 .get_proc_freq          = pnv_get_proc_freq,
+									  .progress		= pnv_progress,
+											.machine_shutdown	= pnv_shutdown,
+											   .power_save             = NULL,
+												.calibrate_decr		= generic_calibrate_decr,
 #ifdef CONFIG_KEXEC
-	.kexec_cpu_down		= pnv_kexec_cpu_down,
+													.kexec_cpu_down		= pnv_kexec_cpu_down,
 #endif
 #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
-	.memory_block_size	= pnv_memory_block_size,
+														.memory_block_size	= pnv_memory_block_size,
 #endif
 };

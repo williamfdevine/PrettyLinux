@@ -22,8 +22,8 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
 	u8 ret;
 
 	__asm__ __volatile__("lduba\t[%1] %2, %0\t/* pci_raw_readb */"
-			     : "=r" (ret)
-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+						 : "=r" (ret)
+						 : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
 
 	return ret;
 }
@@ -34,8 +34,8 @@ static inline u16 __raw_readw(const volatile void __iomem *addr)
 	u16 ret;
 
 	__asm__ __volatile__("lduha\t[%1] %2, %0\t/* pci_raw_readw */"
-			     : "=r" (ret)
-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+						 : "=r" (ret)
+						 : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
 
 	return ret;
 }
@@ -46,8 +46,8 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 	u32 ret;
 
 	__asm__ __volatile__("lduwa\t[%1] %2, %0\t/* pci_raw_readl */"
-			     : "=r" (ret)
-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+						 : "=r" (ret)
+						 : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
 
 	return ret;
 }
@@ -58,8 +58,8 @@ static inline u64 __raw_readq(const volatile void __iomem *addr)
 	u64 ret;
 
 	__asm__ __volatile__("ldxa\t[%1] %2, %0\t/* pci_raw_readq */"
-			     : "=r" (ret)
-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+						 : "=r" (ret)
+						 : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
 
 	return ret;
 }
@@ -68,32 +68,32 @@ static inline u64 __raw_readq(const volatile void __iomem *addr)
 static inline void __raw_writeb(u8 b, const volatile void __iomem *addr)
 {
 	__asm__ __volatile__("stba\t%r0, [%1] %2\t/* pci_raw_writeb */"
-			     : /* no outputs */
-			     : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+						 : /* no outputs */
+						 : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
 }
 
 #define __raw_writew __raw_writew
 static inline void __raw_writew(u16 w, const volatile void __iomem *addr)
 {
 	__asm__ __volatile__("stha\t%r0, [%1] %2\t/* pci_raw_writew */"
-			     : /* no outputs */
-			     : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+						 : /* no outputs */
+						 : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
 }
 
 #define __raw_writel __raw_writel
 static inline void __raw_writel(u32 l, const volatile void __iomem *addr)
 {
 	__asm__ __volatile__("stwa\t%r0, [%1] %2\t/* pci_raw_writel */"
-			     : /* no outputs */
-			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+						 : /* no outputs */
+						 : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
 }
 
 #define __raw_writeq __raw_writeq
 static inline void __raw_writeq(u64 q, const volatile void __iomem *addr)
 {
 	__asm__ __volatile__("stxa\t%r0, [%1] %2\t/* pci_raw_writeq */"
-			     : /* no outputs */
-			     : "Jr" (q), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+						 : /* no outputs */
+						 : "Jr" (q), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
 }
 
 /* Memory functions, same as I/O accesses on Ultra.
@@ -103,24 +103,26 @@ static inline void __raw_writeq(u64 q, const volatile void __iomem *addr)
 #define readb readb
 #define readb_relaxed readb
 static inline u8 readb(const volatile void __iomem *addr)
-{	u8 ret;
+{
+	u8 ret;
 
 	__asm__ __volatile__("lduba\t[%1] %2, %0\t/* pci_readb */"
-			     : "=r" (ret)
-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 : "=r" (ret)
+						 : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 	return ret;
 }
 
 #define readw readw
 #define readw_relaxed readw
 static inline u16 readw(const volatile void __iomem *addr)
-{	u16 ret;
+{
+	u16 ret;
 
 	__asm__ __volatile__("lduha\t[%1] %2, %0\t/* pci_readw */"
-			     : "=r" (ret)
-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 : "=r" (ret)
+						 : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 
 	return ret;
 }
@@ -128,12 +130,13 @@ static inline u16 readw(const volatile void __iomem *addr)
 #define readl readl
 #define readl_relaxed readl
 static inline u32 readl(const volatile void __iomem *addr)
-{	u32 ret;
+{
+	u32 ret;
 
 	__asm__ __volatile__("lduwa\t[%1] %2, %0\t/* pci_readl */"
-			     : "=r" (ret)
-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 : "=r" (ret)
+						 : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 
 	return ret;
 }
@@ -141,12 +144,13 @@ static inline u32 readl(const volatile void __iomem *addr)
 #define readq readq
 #define readq_relaxed readq
 static inline u64 readq(const volatile void __iomem *addr)
-{	u64 ret;
+{
+	u64 ret;
 
 	__asm__ __volatile__("ldxa\t[%1] %2, %0\t/* pci_readq */"
-			     : "=r" (ret)
-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 : "=r" (ret)
+						 : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 
 	return ret;
 }
@@ -156,9 +160,9 @@ static inline u64 readq(const volatile void __iomem *addr)
 static inline void writeb(u8 b, volatile void __iomem *addr)
 {
 	__asm__ __volatile__("stba\t%r0, [%1] %2\t/* pci_writeb */"
-			     : /* no outputs */
-			     : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 : /* no outputs */
+						 : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 }
 
 #define writew writew
@@ -166,9 +170,9 @@ static inline void writeb(u8 b, volatile void __iomem *addr)
 static inline void writew(u16 w, volatile void __iomem *addr)
 {
 	__asm__ __volatile__("stha\t%r0, [%1] %2\t/* pci_writew */"
-			     : /* no outputs */
-			     : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 : /* no outputs */
+						 : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 }
 
 #define writel writel
@@ -176,9 +180,9 @@ static inline void writew(u16 w, volatile void __iomem *addr)
 static inline void writel(u32 l, volatile void __iomem *addr)
 {
 	__asm__ __volatile__("stwa\t%r0, [%1] %2\t/* pci_writel */"
-			     : /* no outputs */
-			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 : /* no outputs */
+						 : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 }
 
 #define writeq writeq
@@ -186,9 +190,9 @@ static inline void writel(u32 l, volatile void __iomem *addr)
 static inline void writeq(u64 q, volatile void __iomem *addr)
 {
 	__asm__ __volatile__("stxa\t%r0, [%1] %2\t/* pci_writeq */"
-			     : /* no outputs */
-			     : "Jr" (q), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
-			     : "memory");
+						 : /* no outputs */
+						 : "Jr" (q), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+						 : "memory");
 }
 
 #define inb inb
@@ -321,7 +325,8 @@ static inline void sbus_writeq(u64 q, volatile void __iomem *addr)
 
 static inline void sbus_memset_io(volatile void __iomem *dst, int c, __kernel_size_t n)
 {
-	while(n--) {
+	while (n--)
+	{
 		sbus_writeb(c, dst);
 		dst++;
 	}
@@ -331,18 +336,20 @@ static inline void memset_io(volatile void __iomem *dst, int c, __kernel_size_t 
 {
 	volatile void __iomem *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		writeb(c, d);
 		d++;
 	}
 }
 
 static inline void sbus_memcpy_fromio(void *dst, const volatile void __iomem *src,
-				      __kernel_size_t n)
+									  __kernel_size_t n)
 {
 	char *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		char tmp = sbus_readb(src);
 		*d++ = tmp;
 		src++;
@@ -351,11 +358,12 @@ static inline void sbus_memcpy_fromio(void *dst, const volatile void __iomem *sr
 
 
 static inline void memcpy_fromio(void *dst, const volatile void __iomem *src,
-				 __kernel_size_t n)
+								 __kernel_size_t n)
 {
 	char *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		char tmp = readb(src);
 		*d++ = tmp;
 		src++;
@@ -363,12 +371,13 @@ static inline void memcpy_fromio(void *dst, const volatile void __iomem *src,
 }
 
 static inline void sbus_memcpy_toio(volatile void __iomem *dst, const void *src,
-				    __kernel_size_t n)
+									__kernel_size_t n)
 {
 	const char *s = src;
 	volatile void __iomem *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		char tmp = *s++;
 		sbus_writeb(tmp, d);
 		d++;
@@ -376,12 +385,13 @@ static inline void sbus_memcpy_toio(volatile void __iomem *dst, const void *src,
 }
 
 static inline void memcpy_toio(volatile void __iomem *dst, const void *src,
-			       __kernel_size_t n)
+							   __kernel_size_t n)
 {
 	const char *s = src;
 	volatile void __iomem *d = dst;
 
-	while (n--) {
+	while (n--)
+	{
 		char tmp = *s++;
 		writeb(tmp, d);
 		d++;

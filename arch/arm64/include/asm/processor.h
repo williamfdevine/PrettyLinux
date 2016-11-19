@@ -41,7 +41,7 @@
 #ifdef CONFIG_COMPAT
 #define AARCH32_VECTORS_BASE	0xffff0000
 #define STACK_TOP		(test_thread_flag(TIF_32BIT) ? \
-				AARCH32_VECTORS_BASE : STACK_TOP_MAX)
+						 AARCH32_VECTORS_BASE : STACK_TOP_MAX)
 #else
 #define STACK_TOP		STACK_TOP_MAX
 #endif /* CONFIG_COMPAT */
@@ -49,7 +49,8 @@
 extern phys_addr_t arm64_dma_phys_limit;
 #define ARCH_LOW_ADDRESS_LIMIT	(arm64_dma_phys_limit - 1)
 
-struct debug_info {
+struct debug_info
+{
 	/* Have we suspended stepping by a debugger? */
 	int			suspended_step;
 	/* Allow breakpoints and watchpoints to be disabled for this thread. */
@@ -60,7 +61,8 @@ struct debug_info {
 	struct perf_event	*hbp_watch[ARM_MAX_WRP];
 };
 
-struct cpu_context {
+struct cpu_context
+{
 	unsigned long x19;
 	unsigned long x20;
 	unsigned long x21;
@@ -76,7 +78,8 @@ struct cpu_context {
 	unsigned long pc;
 };
 
-struct thread_struct {
+struct thread_struct
+{
 	struct cpu_context	cpu_context;	/* cpu context */
 	unsigned long		tp_value;	/* TLS register */
 #ifdef CONFIG_COMPAT
@@ -90,14 +93,14 @@ struct thread_struct {
 
 #ifdef CONFIG_COMPAT
 #define task_user_tls(t)						\
-({									\
-	unsigned long *__tls;						\
-	if (is_compat_thread(task_thread_info(t)))			\
-		__tls = &(t)->thread.tp2_value;				\
-	else								\
-		__tls = &(t)->thread.tp_value;				\
-	__tls;								\
- })
+	({									\
+		unsigned long *__tls;						\
+		if (is_compat_thread(task_thread_info(t)))			\
+			__tls = &(t)->thread.tp2_value;				\
+		else								\
+			__tls = &(t)->thread.tp_value;				\
+		__tls;								\
+	})
 #else
 #define task_user_tls(t)	(&(t)->thread.tp_value)
 #endif
@@ -112,7 +115,7 @@ static inline void start_thread_common(struct pt_regs *regs, unsigned long pc)
 }
 
 static inline void start_thread(struct pt_regs *regs, unsigned long pc,
-				unsigned long sp)
+								unsigned long sp)
 {
 	start_thread_common(regs, pc);
 	regs->pstate = PSR_MODE_EL0t;
@@ -121,12 +124,15 @@ static inline void start_thread(struct pt_regs *regs, unsigned long pc,
 
 #ifdef CONFIG_COMPAT
 static inline void compat_start_thread(struct pt_regs *regs, unsigned long pc,
-				       unsigned long sp)
+									   unsigned long sp)
 {
 	start_thread_common(regs, pc);
 	regs->pstate = COMPAT_PSR_MODE_USR;
+
 	if (pc & 1)
+	{
 		regs->pstate |= COMPAT_PSR_T_BIT;
+	}
 
 #ifdef __AARCH64EB__
 	regs->pstate |= COMPAT_PSR_E_BIT;
@@ -153,7 +159,7 @@ static inline void cpu_relax(void)
 
 /* Thread switching */
 extern struct task_struct *cpu_switch_to(struct task_struct *prev,
-					 struct task_struct *next);
+		struct task_struct *next);
 
 #define task_pt_regs(p) \
 	((struct pt_regs *)(THREAD_START_SP + task_stack_page(p)) - 1)
@@ -180,8 +186,8 @@ static inline void prefetchw(const void *ptr)
 static inline void spin_lock_prefetch(const void *ptr)
 {
 	asm volatile(ARM64_LSE_ATOMIC_INSN(
-		     "prfm pstl1strm, %a0",
-		     "nop") : : "p" (ptr));
+					 "prfm pstl1strm, %a0",
+					 "nop") : : "p" (ptr));
 }
 
 #define HAVE_ARCH_PICK_MMAP_LAYOUT

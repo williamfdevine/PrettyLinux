@@ -24,8 +24,8 @@
 
 /* Common code defines PORT_MUX on us, so redirect the MMR back locally */
 #ifdef BFIN_PORT_MUX
-#undef PORT_MUX
-#define PORT_MUX BFIN_PORT_MUX
+	#undef PORT_MUX
+	#define PORT_MUX BFIN_PORT_MUX
 #endif
 
 #define _d(name, bits, addr, perms) debugfs_create_x##bits(name, perms, parent, (u##bits *)(addr))
@@ -52,14 +52,14 @@
 #define REGS_STR_PFX(buf, pfx, num) \
 	({ \
 		buf + (num >= 0 ? \
-			sprintf(buf, #pfx "%i_", num) : \
-			sprintf(buf, #pfx "_")); \
+			   sprintf(buf, #pfx "%i_", num) : \
+			   sprintf(buf, #pfx "_")); \
 	})
 #define REGS_STR_PFX_C(buf, pfx, num) \
 	({ \
 		buf + (num >= 0 ? \
-			sprintf(buf, #pfx "%c_", 'A' + num) : \
-			sprintf(buf, #pfx "_")); \
+			   sprintf(buf, #pfx "%c_", 'A' + num) : \
+			   sprintf(buf, #pfx "_")); \
 	})
 
 /*
@@ -82,22 +82,22 @@ static int debug_sclk_get(void *data, u64 *val)
 DEFINE_SIMPLE_ATTRIBUTE(fops_debug_sclk, debug_sclk_get, NULL, "0x%08llx\n");
 
 #define DEFINE_SYSREG(sr, pre, post) \
-static int sysreg_##sr##_get(void *data, u64 *val) \
-{ \
-	unsigned long tmp; \
-	pre; \
-	__asm__ __volatile__("%0 = " #sr ";" : "=d"(tmp)); \
-	*val = tmp; \
-	return 0; \
-} \
-static int sysreg_##sr##_set(void *data, u64 val) \
-{ \
-	unsigned long tmp = val; \
-	__asm__ __volatile__(#sr " = %0;" : : "d"(tmp)); \
-	post; \
-	return 0; \
-} \
-DEFINE_SIMPLE_ATTRIBUTE(fops_sysreg_##sr, sysreg_##sr##_get, sysreg_##sr##_set, "0x%08llx\n")
+	static int sysreg_##sr##_get(void *data, u64 *val) \
+	{ \
+		unsigned long tmp; \
+		pre; \
+		__asm__ __volatile__("%0 = " #sr ";" : "=d"(tmp)); \
+		*val = tmp; \
+		return 0; \
+	} \
+	static int sysreg_##sr##_set(void *data, u64 val) \
+	{ \
+		unsigned long tmp = val; \
+		__asm__ __volatile__(#sr " = %0;" : : "d"(tmp)); \
+		post; \
+		return 0; \
+	} \
+	DEFINE_SIMPLE_ATTRIBUTE(fops_sysreg_##sr, sysreg_##sr##_get, sysreg_##sr##_set, "0x%08llx\n")
 
 DEFINE_SYSREG(cycles, , );
 DEFINE_SYSREG(cycles2, __asm__ __volatile__("%0 = cycles;" : "=d"(tmp)), );
@@ -119,7 +119,8 @@ bfin_debug_mmrs_can(struct dentry *parent, unsigned long base, int num)
 	int i, j;
 	char buf[32], *_buf = REGS_STR_PFX(buf, CAN, num);
 
-	if (!am) {
+	if (!am)
+	{
 		am = debugfs_create_dir("am", parent);
 		mb = debugfs_create_dir("mb", parent);
 	}
@@ -172,31 +173,34 @@ bfin_debug_mmrs_can(struct dentry *parent, unsigned long base, int num)
 	__CAN(UCCNF, uccnf);
 	__CAN(VERSION2, version2);
 
-	for (i = 0; i < 32; ++i) {
+	for (i = 0; i < 32; ++i)
+	{
 		sprintf(_buf, "AM%02iL", i);
-		debugfs_create_x16(buf, S_IRUSR|S_IWUSR, am,
-			(u16 *)(base + CAN_OFF(msk[i].aml)));
+		debugfs_create_x16(buf, S_IRUSR | S_IWUSR, am,
+						   (u16 *)(base + CAN_OFF(msk[i].aml)));
 		sprintf(_buf, "AM%02iH", i);
-		debugfs_create_x16(buf, S_IRUSR|S_IWUSR, am,
-			(u16 *)(base + CAN_OFF(msk[i].amh)));
+		debugfs_create_x16(buf, S_IRUSR | S_IWUSR, am,
+						   (u16 *)(base + CAN_OFF(msk[i].amh)));
 
-		for (j = 0; j < 3; ++j) {
+		for (j = 0; j < 3; ++j)
+		{
 			sprintf(_buf, "MB%02i_DATA%i", i, j);
-			debugfs_create_x16(buf, S_IRUSR|S_IWUSR, mb,
-				(u16 *)(base + CAN_OFF(chl[i].data[j*2])));
+			debugfs_create_x16(buf, S_IRUSR | S_IWUSR, mb,
+							   (u16 *)(base + CAN_OFF(chl[i].data[j * 2])));
 		}
+
 		sprintf(_buf, "MB%02i_LENGTH", i);
-		debugfs_create_x16(buf, S_IRUSR|S_IWUSR, mb,
-			(u16 *)(base + CAN_OFF(chl[i].dlc)));
+		debugfs_create_x16(buf, S_IRUSR | S_IWUSR, mb,
+						   (u16 *)(base + CAN_OFF(chl[i].dlc)));
 		sprintf(_buf, "MB%02i_TIMESTAMP", i);
-		debugfs_create_x16(buf, S_IRUSR|S_IWUSR, mb,
-			(u16 *)(base + CAN_OFF(chl[i].tsv)));
+		debugfs_create_x16(buf, S_IRUSR | S_IWUSR, mb,
+						   (u16 *)(base + CAN_OFF(chl[i].tsv)));
 		sprintf(_buf, "MB%02i_ID0", i);
-		debugfs_create_x16(buf, S_IRUSR|S_IWUSR, mb,
-			(u16 *)(base + CAN_OFF(chl[i].id0)));
+		debugfs_create_x16(buf, S_IRUSR | S_IWUSR, mb,
+						   (u16 *)(base + CAN_OFF(chl[i].id0)));
 		sprintf(_buf, "MB%02i_ID1", i);
-		debugfs_create_x16(buf, S_IRUSR|S_IWUSR, mb,
-			(u16 *)(base + CAN_OFF(chl[i].id1)));
+		debugfs_create_x16(buf, S_IRUSR | S_IWUSR, mb,
+						   (u16 *)(base + CAN_OFF(chl[i].id1)));
 	}
 }
 #define CAN(num) bfin_debug_mmrs_can(parent, CAN##num##_MC1, num)
@@ -211,9 +215,13 @@ bfin_debug_mmrs_dma(struct dentry *parent, unsigned long base, int num, char mdm
 	char buf[32], *_buf;
 
 	if (mdma)
+	{
 		_buf = buf + sprintf(buf, "%s_%c%i_", pfx, mdma, num);
+	}
 	else
+	{
 		_buf = buf + sprintf(buf, "%s%i_", pfx, num);
+	}
 
 	__DMA(NEXT_DESC_PTR, next_desc_ptr);
 	__DMA(START_ADDR, start_addr);
@@ -226,8 +234,12 @@ bfin_debug_mmrs_dma(struct dentry *parent, unsigned long base, int num, char mdm
 	__DMA(CURR_ADDR, curr_addr);
 	__DMA(IRQ_STATUS, irq_status);
 #ifndef CONFIG_BF60x
+
 	if (strcmp(pfx, "IMDMA") != 0)
+	{
 		__DMA(PERIPHERAL_MAP, peripheral_map);
+	}
+
 #endif
 	__DMA(CURR_X_COUNT, curr_x_count);
 	__DMA(CURR_Y_COUNT, curr_y_count);
@@ -289,12 +301,15 @@ bfin_debug_mmrs_gptimer_group(struct dentry *parent, unsigned long base, int num
 {
 	char buf[32], *_buf;
 
-	if (num == -1) {
+	if (num == -1)
+	{
 		_buf = buf + sprintf(buf, "TIMER_");
 		__GPTIMER_GROUP(ENABLE, enable);
 		__GPTIMER_GROUP(DISABLE, disable);
 		__GPTIMER_GROUP(STATUS, status);
-	} else {
+	}
+	else
+	{
 		/* These MMRs are a bit odd as the group # is a suffix */
 		_buf = buf + sprintf(buf, "TIMER_ENABLE%i", num);
 		d(buf, 16, base + GPTIMER_GROUP_OFF(enable));
@@ -431,12 +446,18 @@ bfin_debug_mmrs_spi(struct dentry *parent, unsigned long base, int num)
 static inline int sport_width(void *mmr)
 {
 	unsigned long lmmr = (unsigned long)mmr;
+
 	if ((lmmr & 0xff) == 0x10)
 		/* SPORT#_TX has 0x10 offset -> SPORT#_TCR2 has 0x04 offset */
+	{
 		lmmr -= 0xc;
+	}
 	else
 		/* SPORT#_RX has 0x18 offset -> SPORT#_RCR2 has 0x24 offset */
+	{
 		lmmr += 0xc;
+	}
+
 	/* extract SLEN field from control register 2 and add 1 */
 	return (bfin_read16(lmmr) & 0x1f) + 1;
 }
@@ -444,10 +465,16 @@ static int sport_set(void *mmr, u64 val)
 {
 	unsigned long flags;
 	local_irq_save(flags);
+
 	if (sport_width(mmr) <= 16)
+	{
 		bfin_write16(mmr, val);
+	}
 	else
+	{
 		bfin_write32(mmr, val);
+	}
+
 	local_irq_restore(flags);
 	return 0;
 }
@@ -455,10 +482,16 @@ static int sport_get(void *mmr, u64 *val)
 {
 	unsigned long flags;
 	local_irq_save(flags);
+
 	if (sport_width(mmr) <= 16)
+	{
 		*val = bfin_read16(mmr);
+	}
 	else
+	{
 		*val = bfin_read32(mmr);
+	}
+
 	local_irq_restore(flags);
 	return 0;
 }
@@ -585,8 +618,11 @@ static int __init bfin_debug_mmrs_init(void)
 	pr_info("debug-mmrs: setting up Blackfin MMR debugfs\n");
 
 	top = debugfs_create_dir("blackfin", NULL);
+
 	if (top == NULL)
+	{
 		return -1;
+	}
 
 	parent = debugfs_create_dir("core_regs", top);
 	debugfs_create_file("cclk", S_IRUSR, parent, NULL, &fops_debug_cclk);
@@ -708,7 +744,9 @@ static int __init bfin_debug_mmrs_init(void)
 	D32(ICPLB_FAULT_ADDR);
 	D32(ICPLB_STATUS);
 	D32(IMEM_CONTROL);
-	if (!ANOMALY_05000481) {
+
+	if (!ANOMALY_05000481)
+	{
 		D32(ITEST_COMMAND);
 		D32(ITEST_DATA0);
 		D32(ITEST_DATA1);
@@ -1869,7 +1907,9 @@ static int __init bfin_debug_mmrs_init(void)
 		unsigned long base;
 
 		base = PORTA_FER;
-		for (num = 0; num < 10; ++num) {
+
+		for (num = 0; num < 10; ++num)
+		{
 			PORT(base, num);
 			base += sizeof(struct bfin_gpio_regs);
 		}

@@ -55,7 +55,7 @@ static void ispram_store_tag(unsigned int offset, unsigned int data)
 	write_c0_taglo(data);
 	ehb();
 
-	cache_op(Index_Store_Tag_I, CKSEG0|offset);
+	cache_op(Index_Store_Tag_I, CKSEG0 | offset);
 	ehb();
 
 	write_c0_errctl(errctl);
@@ -115,9 +115,9 @@ static unsigned int dspram_load_tag(unsigned int offset)
 }
 
 static void probe_spram(char *type,
-	    unsigned int base,
-	    unsigned int (*read)(unsigned int),
-	    void (*write)(unsigned int, unsigned int))
+						unsigned int base,
+						unsigned int (*read)(unsigned int),
+						void (*write)(unsigned int, unsigned int))
 {
 	unsigned int firstsize = 0, lastsize = 0;
 	unsigned int firstpa = 0, lastpa = 0, pa = 0;
@@ -131,26 +131,32 @@ static void probe_spram(char *type,
 	 * the SPRAM tags are implemented differently
 	 */
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		tag0 = read(offset);
-		tag1 = read(offset+SPRAM_TAG_STRIDE);
+		tag1 = read(offset + SPRAM_TAG_STRIDE);
 		pr_debug("DBG %s%d: tag0=%08x tag1=%08x\n",
-			 type, i, tag0, tag1);
+				 type, i, tag0, tag1);
 
 		size = tag1 & SPRAM_TAG1_SIZE_MASK;
 
 		if (size == 0)
+		{
 			break;
+		}
 
-		if (i != 0) {
+		if (i != 0)
+		{
 			/* tags may repeat... */
 			if ((pa == firstpa && size == firstsize) ||
-			    (pa == lastpa && size == lastsize))
+				(pa == lastpa && size == lastsize))
+			{
 				break;
+			}
 		}
 
 		/* Align base with size */
-		base = (base + size - 1) & ~(size-1);
+		base = (base + size - 1) & ~(size - 1);
 
 		/* reprogram the base address base address and enable */
 		tag0 = (base & SPRAM_TAG0_PA_MASK) | SPRAM_TAG0_ENABLE;
@@ -163,7 +169,8 @@ static void probe_spram(char *type,
 		pa = tag0 & SPRAM_TAG0_PA_MASK;
 		enabled = tag0 & SPRAM_TAG0_ENABLE;
 
-		if (i == 0) {
+		if (i == 0)
+		{
 			firstpa = pa;
 			firstsize = size;
 		}
@@ -171,7 +178,8 @@ static void probe_spram(char *type,
 		lastpa = pa;
 		lastsize = size;
 
-		if (strcmp(type, "DSPRAM") == 0) {
+		if (strcmp(type, "DSPRAM") == 0)
+		{
 			unsigned int *vp = (unsigned int *)(CKSEG1 | pa);
 			unsigned int v;
 #define TDAT	0x5a5aa5a5
@@ -181,17 +189,20 @@ static void probe_spram(char *type,
 			mb();
 
 			v = vp[0];
+
 			if (v != TDAT)
 				printk(KERN_ERR "vp=%p wrote=%08x got=%08x\n",
-				       vp, TDAT, v);
+					   vp, TDAT, v);
+
 			v = vp[1];
+
 			if (v != ~TDAT)
 				printk(KERN_ERR "vp=%p wrote=%08x got=%08x\n",
-				       vp+1, ~TDAT, v);
+					   vp + 1, ~TDAT, v);
 		}
 
 		pr_info("%s%d: PA=%08x,Size=%08x%s\n",
-			type, i, pa, size, enabled ? ",enabled" : "");
+				type, i, pa, size, enabled ? ",enabled" : "");
 		offset += 2 * SPRAM_TAG_STRIDE;
 	}
 }
@@ -199,26 +210,30 @@ void spram_config(void)
 {
 	unsigned int config0;
 
-	switch (current_cpu_type()) {
-	case CPU_24K:
-	case CPU_34K:
-	case CPU_74K:
-	case CPU_1004K:
-	case CPU_1074K:
-	case CPU_INTERAPTIV:
-	case CPU_PROAPTIV:
-	case CPU_P5600:
-	case CPU_QEMU_GENERIC:
-	case CPU_I6400:
-	case CPU_P6600:
-		config0 = read_c0_config();
-		/* FIXME: addresses are Malta specific */
-		if (config0 & (1<<24)) {
-			probe_spram("ISPRAM", 0x1c000000,
-				    &ispram_load_tag, &ispram_store_tag);
-		}
-		if (config0 & (1<<23))
-			probe_spram("DSPRAM", 0x1c100000,
-				    &dspram_load_tag, &dspram_store_tag);
+	switch (current_cpu_type())
+	{
+		case CPU_24K:
+		case CPU_34K:
+		case CPU_74K:
+		case CPU_1004K:
+		case CPU_1074K:
+		case CPU_INTERAPTIV:
+		case CPU_PROAPTIV:
+		case CPU_P5600:
+		case CPU_QEMU_GENERIC:
+		case CPU_I6400:
+		case CPU_P6600:
+			config0 = read_c0_config();
+
+			/* FIXME: addresses are Malta specific */
+			if (config0 & (1 << 24))
+			{
+				probe_spram("ISPRAM", 0x1c000000,
+							&ispram_load_tag, &ispram_store_tag);
+			}
+
+			if (config0 & (1 << 23))
+				probe_spram("DSPRAM", 0x1c100000,
+							&dspram_load_tag, &dspram_store_tag);
 	}
 }

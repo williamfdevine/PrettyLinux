@@ -37,35 +37,49 @@ void set_cpuinfo_pvr_full(struct cpuinfo *ci, struct device_node *cpu)
 	get_pvr(&pvr);
 
 	CI(ver_code, VERSION);
-	if (!ci->ver_code) {
+
+	if (!ci->ver_code)
+	{
 		pr_err("ERROR: MB has broken PVR regs -> use DTS setting\n");
 		return;
 	}
 
 	temp = PVR_USE_BARREL(pvr) | PVR_USE_MSR_INSTR(pvr) |
-		PVR_USE_PCMP_INSTR(pvr) | PVR_USE_DIV(pvr);
+		   PVR_USE_PCMP_INSTR(pvr) | PVR_USE_DIV(pvr);
+
 	if (ci->use_instr != temp)
+	{
 		err_printk("BARREL, MSR, PCMP or DIV");
+	}
+
 	ci->use_instr = temp;
 
 	temp = PVR_USE_HW_MUL(pvr) | PVR_USE_MUL64(pvr);
+
 	if (ci->use_mult != temp)
+	{
 		err_printk("HW_MUL");
+	}
+
 	ci->use_mult = temp;
 
 	temp = PVR_USE_FPU(pvr) | PVR_USE_FPU2(pvr);
+
 	if (ci->use_fpu != temp)
+	{
 		err_printk("HW_FPU");
+	}
+
 	ci->use_fpu = temp;
 
 	ci->use_exc = PVR_OPCODE_0x0_ILLEGAL(pvr) |
-			PVR_UNALIGNED_EXCEPTION(pvr) |
-			PVR_ILL_OPCODE_EXCEPTION(pvr) |
-			PVR_IOPB_BUS_EXCEPTION(pvr) |
-			PVR_DOPB_BUS_EXCEPTION(pvr) |
-			PVR_DIV_ZERO_EXCEPTION(pvr) |
-			PVR_FPU_EXCEPTION(pvr) |
-			PVR_FSL_EXCEPTION(pvr);
+				  PVR_UNALIGNED_EXCEPTION(pvr) |
+				  PVR_ILL_OPCODE_EXCEPTION(pvr) |
+				  PVR_IOPB_BUS_EXCEPTION(pvr) |
+				  PVR_DOPB_BUS_EXCEPTION(pvr) |
+				  PVR_DIV_ZERO_EXCEPTION(pvr) |
+				  PVR_FPU_EXCEPTION(pvr) |
+				  PVR_FSL_EXCEPTION(pvr);
 
 	CI(pvr_user1, USER1);
 	CI(pvr_user2, USER2);
@@ -91,8 +105,12 @@ void set_cpuinfo_pvr_full(struct cpuinfo *ci, struct device_node *cpu)
 	CI(dcache_high, DCACHE_HIGHADDR);
 
 	temp = PVR_DCACHE_USE_WRITEBACK(pvr);
+
 	if (ci->dcache_wb != temp)
+	{
 		err_printk("DCACHE WB");
+	}
+
 	ci->dcache_wb = temp;
 
 	CI(use_dopb, D_OPB);

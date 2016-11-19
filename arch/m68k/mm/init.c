@@ -27,7 +27,7 @@
 #include <asm/machdep.h>
 #include <asm/io.h>
 #ifdef CONFIG_ATARI
-#include <asm/atari_stram.h>
+	#include <asm/atari_stram.h>
 #endif
 #include <asm/sections.h>
 #include <asm/tlb.h>
@@ -40,8 +40,8 @@ void *empty_zero_page;
 EXPORT_SYMBOL(empty_zero_page);
 
 #if !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
-extern void init_pointer_table(unsigned long ptable);
-extern pmd_t *zero_pgtable;
+	extern void init_pointer_table(unsigned long ptable);
+	extern pmd_t *zero_pgtable;
 #endif
 
 #ifdef CONFIG_MMU
@@ -52,8 +52,8 @@ EXPORT_SYMBOL(pg_data_map);
 int m68k_virt_to_node_shift;
 
 #ifndef CONFIG_SINGLE_MEMORY_CHUNK
-pg_data_t *pg_data_table[65];
-EXPORT_SYMBOL(pg_data_table);
+	pg_data_t *pg_data_table[65];
+	EXPORT_SYMBOL(pg_data_table);
 #endif
 
 void __init m68k_setup_node(int node)
@@ -64,11 +64,17 @@ void __init m68k_setup_node(int node)
 
 	i = (unsigned long)phys_to_virt(info->addr) >> __virt_to_node_shift();
 	end = (unsigned long)phys_to_virt(info->addr + info->size - 1) >> __virt_to_node_shift();
-	for (; i <= end; i++) {
+
+	for (; i <= end; i++)
+	{
 		if (pg_data_table[i])
+		{
 			printk("overlap at %u for chunk %u\n", i, node);
+		}
+
 		pg_data_table[i] = pg_data_map + node;
 	}
+
 #endif
 	pg_data_map[node].bdata = bootmem_node_data + node;
 	node_set_online(node);
@@ -114,9 +120,9 @@ void free_initmem(void)
 }
 
 #if defined(CONFIG_MMU) && !defined(CONFIG_COLDFIRE)
-#define VECTORS	&vectors[0]
+	#define VECTORS	&vectors[0]
 #else
-#define VECTORS	_ramvec
+	#define VECTORS	_ramvec
 #endif
 
 void __init print_memmap(void)
@@ -127,22 +133,22 @@ void __init print_memmap(void)
 #define MLK_ROUNDUP(b, t) b, t, DIV_ROUND_UP(((t) - (b)), 1024)
 
 	pr_notice("Virtual kernel memory layout:\n"
-		"    vector  : 0x%08lx - 0x%08lx   (%4ld KiB)\n"
-		"    kmap    : 0x%08lx - 0x%08lx   (%4ld MiB)\n"
-		"    vmalloc : 0x%08lx - 0x%08lx   (%4ld MiB)\n"
-		"    lowmem  : 0x%08lx - 0x%08lx   (%4ld MiB)\n"
-		"      .init : 0x%p" " - 0x%p" "   (%4d KiB)\n"
-		"      .text : 0x%p" " - 0x%p" "   (%4d KiB)\n"
-		"      .data : 0x%p" " - 0x%p" "   (%4d KiB)\n"
-		"      .bss  : 0x%p" " - 0x%p" "   (%4d KiB)\n",
-		MLK(VECTORS, VECTORS + 256),
-		MLM(KMAP_START, KMAP_END),
-		MLM(VMALLOC_START, VMALLOC_END),
-		MLM(PAGE_OFFSET, (unsigned long)high_memory),
-		MLK_ROUNDUP(__init_begin, __init_end),
-		MLK_ROUNDUP(_stext, _etext),
-		MLK_ROUNDUP(_sdata, _edata),
-		MLK_ROUNDUP(__bss_start, __bss_stop));
+			  "    vector  : 0x%08lx - 0x%08lx   (%4ld KiB)\n"
+			  "    kmap    : 0x%08lx - 0x%08lx   (%4ld MiB)\n"
+			  "    vmalloc : 0x%08lx - 0x%08lx   (%4ld MiB)\n"
+			  "    lowmem  : 0x%08lx - 0x%08lx   (%4ld MiB)\n"
+			  "      .init : 0x%p" " - 0x%p" "   (%4d KiB)\n"
+			  "      .text : 0x%p" " - 0x%p" "   (%4d KiB)\n"
+			  "      .data : 0x%p" " - 0x%p" "   (%4d KiB)\n"
+			  "      .bss  : 0x%p" " - 0x%p" "   (%4d KiB)\n",
+			  MLK(VECTORS, VECTORS + 256),
+			  MLM(KMAP_START, KMAP_END),
+			  MLM(VMALLOC_START, VMALLOC_END),
+			  MLM(PAGE_OFFSET, (unsigned long)high_memory),
+			  MLK_ROUNDUP(__init_begin, __init_end),
+			  MLK_ROUNDUP(_stext, _etext),
+			  MLK_ROUNDUP(_sdata, _edata),
+			  MLK_ROUNDUP(__bss_start, __bss_stop));
 }
 
 static inline void init_pointer_tables(void)
@@ -152,14 +158,21 @@ static inline void init_pointer_tables(void)
 
 	/* insert pointer tables allocated so far into the tablelist */
 	init_pointer_table((unsigned long)kernel_pg_dir);
-	for (i = 0; i < PTRS_PER_PGD; i++) {
+
+	for (i = 0; i < PTRS_PER_PGD; i++)
+	{
 		if (pgd_present(kernel_pg_dir[i]))
+		{
 			init_pointer_table(__pgd_page(kernel_pg_dir[i]));
+		}
 	}
 
 	/* insert also pointer table that we used to unmap the zero page */
 	if (zero_pgtable)
+	{
 		init_pointer_table((unsigned long)zero_pgtable);
+	}
+
 #endif
 }
 

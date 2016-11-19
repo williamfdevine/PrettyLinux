@@ -85,9 +85,9 @@
 #define nlm_write_usb_reg(b, r, v)	nlm_write_reg(b, r, v)
 
 #define nlm_xlpii_get_usb_pcibase(node, inst)			\
-			nlm_pcicfg_base(cpu_is_xlp9xx() ?	\
-			XLP9XX_IO_USB_OFFSET(node, inst) :	\
-			XLP2XX_IO_USB_OFFSET(node, inst))
+	nlm_pcicfg_base(cpu_is_xlp9xx() ?	\
+					XLP9XX_IO_USB_OFFSET(node, inst) :	\
+					XLP2XX_IO_USB_OFFSET(node, inst))
 #define nlm_xlpii_get_usb_regbase(node, inst)		\
 	(nlm_xlpii_get_usb_pcibase(node, inst) + XLP_IO_PCI_HDRSZ)
 
@@ -95,20 +95,25 @@ static void xlp2xx_usb_ack(struct irq_data *data)
 {
 	u64 port_addr;
 
-	switch (data->irq) {
-	case PIC_2XX_XHCI_0_IRQ:
-		port_addr = nlm_xlpii_get_usb_regbase(0, 1);
-		break;
-	case PIC_2XX_XHCI_1_IRQ:
-		port_addr = nlm_xlpii_get_usb_regbase(0, 2);
-		break;
-	case PIC_2XX_XHCI_2_IRQ:
-		port_addr = nlm_xlpii_get_usb_regbase(0, 3);
-		break;
-	default:
-		pr_err("No matching USB irq!\n");
-		return;
+	switch (data->irq)
+	{
+		case PIC_2XX_XHCI_0_IRQ:
+			port_addr = nlm_xlpii_get_usb_regbase(0, 1);
+			break;
+
+		case PIC_2XX_XHCI_1_IRQ:
+			port_addr = nlm_xlpii_get_usb_regbase(0, 2);
+			break;
+
+		case PIC_2XX_XHCI_2_IRQ:
+			port_addr = nlm_xlpii_get_usb_regbase(0, 3);
+			break;
+
+		default:
+			pr_err("No matching USB irq!\n");
+			return;
 	}
+
 	nlm_write_usb_reg(port_addr, XLPII_USB3_INT_REG, 0xffffffff);
 }
 
@@ -121,20 +126,25 @@ static void xlp9xx_usb_ack(struct irq_data *data)
 	irq = data->irq % NLM_IRQS_PER_NODE;
 	node = data->irq / NLM_IRQS_PER_NODE;
 
-	switch (irq) {
-	case PIC_9XX_XHCI_0_IRQ:
-		port_addr = nlm_xlpii_get_usb_regbase(node, 1);
-		break;
-	case PIC_9XX_XHCI_1_IRQ:
-		port_addr = nlm_xlpii_get_usb_regbase(node, 2);
-		break;
-	case PIC_9XX_XHCI_2_IRQ:
-		port_addr = nlm_xlpii_get_usb_regbase(node, 3);
-		break;
-	default:
-		pr_err("No matching USB irq %d node  %d!\n", irq, node);
-		return;
+	switch (irq)
+	{
+		case PIC_9XX_XHCI_0_IRQ:
+			port_addr = nlm_xlpii_get_usb_regbase(node, 1);
+			break;
+
+		case PIC_9XX_XHCI_1_IRQ:
+			port_addr = nlm_xlpii_get_usb_regbase(node, 2);
+			break;
+
+		case PIC_9XX_XHCI_2_IRQ:
+			port_addr = nlm_xlpii_get_usb_regbase(node, 3);
+			break;
+
+		default:
+			pr_err("No matching USB irq %d node  %d!\n", irq, node);
+			return;
 	}
+
 	nlm_write_usb_reg(port_addr, XLPII_USB3_INT_REG, 0xffffffff);
 }
 
@@ -159,13 +169,13 @@ static void nlm_xlpii_usb_hw_reset(int node, int port)
 	/* PHY reset */
 	val = nlm_read_usb_reg(port_addr, XLPII_USB_PHY_TEST);
 	val &= (XLPII_ATERESET | XLPII_LOOPEN | XLPII_TESTPDHSP
-		| XLPII_TESTPDSSP | XLPII_TESTBURNIN);
+			| XLPII_TESTPDSSP | XLPII_TESTBURNIN);
 	nlm_write_usb_reg(port_addr, XLPII_USB_PHY_TEST, val);
 
 	/* Setup control register */
 	val =  XLPII_VAUXRST | XLPII_VCCRST | (1 << XLPII_NUM2PORT)
-		| (1 << XLPII_NUM3PORT) | XLPII_MS_CSYSREQ | XLPII_XS_CSYSREQ
-		| XLPII_RETENABLEN | XLPII_XHCIREV;
+		   | (1 << XLPII_NUM3PORT) | XLPII_MS_CSYSREQ | XLPII_XS_CSYSREQ
+		   | XLPII_RETENABLEN | XLPII_XHCIREV;
 	nlm_write_usb_reg(port_addr, XLPII_USB3_CTL_0, val);
 
 	/* Enable interrupts */
@@ -180,8 +190,11 @@ static void nlm_xlpii_usb_hw_reset(int node, int port)
 	pci_base = nlm_xlpii_get_usb_pcibase(node, port);
 	xhci_base = nlm_read_usb_reg(pci_base, 0x4) & ~0xf;
 	corebase = ioremap(xhci_base, 0x10000);
+
 	if (!corebase)
+	{
 		return;
+	}
 
 	writel(0x240002, corebase + 0xc2c0);
 	/* GCTL 0xc110 */
@@ -210,9 +223,12 @@ static int __init nlm_platform_xlpii_usb_init(void)
 	int node;
 
 	if (!cpu_is_xlpii())
+	{
 		return 0;
+	}
 
-	if (!cpu_is_xlp9xx()) {
+	if (!cpu_is_xlp9xx())
+	{
 		/* XLP 2XX single node */
 		pr_info("Initializing 2XX USB Interface\n");
 		nlm_xlpii_usb_hw_reset(0, 1);
@@ -226,9 +242,14 @@ static int __init nlm_platform_xlpii_usb_init(void)
 
 	/* XLP 9XX, multi-node */
 	pr_info("Initializing 9XX/5XX USB Interface\n");
-	for (node = 0; node < NLM_NR_NODES; node++) {
+
+	for (node = 0; node < NLM_NR_NODES; node++)
+	{
 		if (!nlm_node_present(node))
+		{
 			continue;
+		}
+
 		nlm_xlpii_usb_hw_reset(node, 1);
 		nlm_xlpii_usb_hw_reset(node, 2);
 		nlm_xlpii_usb_hw_reset(node, 3);
@@ -236,6 +257,7 @@ static int __init nlm_platform_xlpii_usb_init(void)
 		nlm_set_pic_extra_ack(node, PIC_9XX_XHCI_1_IRQ, xlp9xx_usb_ack);
 		nlm_set_pic_extra_ack(node, PIC_9XX_XHCI_2_IRQ, xlp9xx_usb_ack);
 	}
+
 	return 0;
 }
 
@@ -251,16 +273,20 @@ static void nlm_xlp9xx_usb_fixup_final(struct pci_dev *dev)
 	node = xlp_socdev_to_node(dev);
 	dev->dev.dma_mask		= &xlp_usb_dmamask;
 	dev->dev.coherent_dma_mask	= DMA_BIT_MASK(32);
-	switch (dev->devfn) {
-	case 0x21:
-		dev->irq = nlm_irq_to_xirq(node, PIC_9XX_XHCI_0_IRQ);
-		break;
-	case 0x22:
-		dev->irq = nlm_irq_to_xirq(node, PIC_9XX_XHCI_1_IRQ);
-		break;
-	case 0x23:
-		dev->irq = nlm_irq_to_xirq(node, PIC_9XX_XHCI_2_IRQ);
-		break;
+
+	switch (dev->devfn)
+	{
+		case 0x21:
+			dev->irq = nlm_irq_to_xirq(node, PIC_9XX_XHCI_0_IRQ);
+			break;
+
+		case 0x22:
+			dev->irq = nlm_irq_to_xirq(node, PIC_9XX_XHCI_1_IRQ);
+			break;
+
+		case 0x23:
+			dev->irq = nlm_irq_to_xirq(node, PIC_9XX_XHCI_2_IRQ);
+			break;
 	}
 }
 
@@ -269,20 +295,24 @@ static void nlm_xlp2xx_usb_fixup_final(struct pci_dev *dev)
 {
 	dev->dev.dma_mask		= &xlp_usb_dmamask;
 	dev->dev.coherent_dma_mask	= DMA_BIT_MASK(32);
-	switch (dev->devfn) {
-	case 0x21:
-		dev->irq = PIC_2XX_XHCI_0_IRQ;
-		break;
-	case 0x22:
-		dev->irq = PIC_2XX_XHCI_1_IRQ;
-		break;
-	case 0x23:
-		dev->irq = PIC_2XX_XHCI_2_IRQ;
-		break;
+
+	switch (dev->devfn)
+	{
+		case 0x21:
+			dev->irq = PIC_2XX_XHCI_0_IRQ;
+			break;
+
+		case 0x22:
+			dev->irq = PIC_2XX_XHCI_1_IRQ;
+			break;
+
+		case 0x23:
+			dev->irq = PIC_2XX_XHCI_2_IRQ;
+			break;
 	}
 }
 
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM, PCI_DEVICE_ID_XLP9XX_XHCI,
-		nlm_xlp9xx_usb_fixup_final);
+						nlm_xlp9xx_usb_fixup_final);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_NETLOGIC, PCI_DEVICE_ID_NLM_XHCI,
-		nlm_xlp2xx_usb_fixup_final);
+						nlm_xlp2xx_usb_fixup_final);

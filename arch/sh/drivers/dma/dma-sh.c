@@ -32,8 +32,12 @@ static unsigned long dma_find_base(unsigned int chan)
 	unsigned long base = SH_DMAC_BASE0;
 
 #ifdef SH_DMAC_BASE1
+
 	if (chan >= 6)
+	{
 		base = SH_DMAC_BASE1;
+	}
+
 #endif
 
 	return base;
@@ -45,9 +49,14 @@ static unsigned long dma_base_addr(unsigned int chan)
 
 	/* Normalize offset calculation */
 	if (chan >= 9)
+	{
 		chan -= 6;
+	}
+
 	if (chan >= 4)
+	{
 		base += 0x10;
+	}
 
 	return base + (chan * 0x10);
 }
@@ -59,7 +68,8 @@ static inline unsigned int get_dmte_irq(unsigned int chan)
 }
 #else
 
-static unsigned int dmte_irq_map[] = {
+static unsigned int dmte_irq_map[] =
+{
 	DMTE0_IRQ, DMTE0_IRQ + 1, DMTE0_IRQ + 2, DMTE0_IRQ + 3,
 
 #ifdef DMTE4_IRQ
@@ -95,7 +105,7 @@ static inline unsigned int calc_xmit_shift(struct dma_channel *chan)
 {
 	u32 chcr = __raw_readl(dma_base_addr(chan->chan) + CHCR);
 	int cnt = ((chcr & CHCR_TS_LOW_MASK) >> CHCR_TS_LOW_SHIFT) |
-		((chcr & CHCR_TS_HIGH_MASK) >> CHCR_TS_HIGH_SHIFT);
+			  ((chcr & CHCR_TS_HIGH_MASK) >> CHCR_TS_HIGH_SHIFT);
 
 	return ts_shift[cnt];
 }
@@ -114,7 +124,9 @@ static irqreturn_t dma_tei(int irq, void *dev_id)
 	chcr = __raw_readl(dma_base_addr(chan->chan) + CHCR);
 
 	if (!(chcr & CHCR_TE))
+	{
 		return IRQ_NONE;
+	}
 
 	chcr &= ~(CHCR_IE | CHCR_DE);
 	__raw_writel(chcr, (dma_base_addr(chan->chan) + CHCR));
@@ -127,10 +139,12 @@ static irqreturn_t dma_tei(int irq, void *dev_id)
 static int sh_dmac_request_dma(struct dma_channel *chan)
 {
 	if (unlikely(!(chan->flags & DMA_TEI_CAPABLE)))
+	{
 		return 0;
+	}
 
 	return request_irq(get_dmte_irq(chan->chan), dma_tei, IRQF_SHARED,
-			   chan->dev_id, chan);
+					   chan->dev_id, chan);
 }
 
 static void sh_dmac_free_dma(struct dma_channel *chan)
@@ -142,12 +156,17 @@ static int
 sh_dmac_configure_channel(struct dma_channel *chan, unsigned long chcr)
 {
 	if (!chcr)
+	{
 		chcr = RS_DUAL | CHCR_IE;
+	}
 
-	if (chcr & CHCR_IE) {
+	if (chcr & CHCR_IE)
+	{
 		chcr &= ~CHCR_IE;
 		chan->flags |= DMA_TEI_CAPABLE;
-	} else {
+	}
+	else
+	{
 		chan->flags &= ~DMA_TEI_CAPABLE;
 	}
 
@@ -166,11 +185,14 @@ static void sh_dmac_enable_dma(struct dma_channel *chan)
 	chcr |= CHCR_DE;
 
 	if (chan->flags & DMA_TEI_CAPABLE)
+	{
 		chcr |= CHCR_IE;
+	}
 
 	__raw_writel(chcr, (dma_base_addr(chan->chan) + CHCR));
 
-	if (chan->flags & DMA_TEI_CAPABLE) {
+	if (chan->flags & DMA_TEI_CAPABLE)
+	{
 		irq = get_dmte_irq(chan->chan);
 		enable_irq(irq);
 	}
@@ -181,7 +203,8 @@ static void sh_dmac_disable_dma(struct dma_channel *chan)
 	int irq;
 	u32 chcr;
 
-	if (chan->flags & DMA_TEI_CAPABLE) {
+	if (chan->flags & DMA_TEI_CAPABLE)
+	{
 		irq = get_dmte_irq(chan->chan);
 		disable_irq(irq);
 	}
@@ -198,7 +221,9 @@ static int sh_dmac_xfer_dma(struct dma_channel *chan)
 	 * the defaults.
 	 */
 	if (unlikely(!(chan->flags & DMA_CONFIGURED)))
+	{
 		sh_dmac_configure_channel(chan, 0);
+	}
 
 	sh_dmac_disable_dma(chan);
 
@@ -218,14 +243,19 @@ static int sh_dmac_xfer_dma(struct dma_channel *chan)
 	 * SAR and DAR, regardless of value, in order for cascading to work.
 	 */
 	if (chan->sar || (mach_is_dreamcast() &&
-			  chan->chan == PVR2_CASCADE_CHAN))
+					  chan->chan == PVR2_CASCADE_CHAN))
+	{
 		__raw_writel(chan->sar, (dma_base_addr(chan->chan) + SAR));
+	}
+
 	if (chan->dar || (mach_is_dreamcast() &&
-			  chan->chan == PVR2_CASCADE_CHAN))
+					  chan->chan == PVR2_CASCADE_CHAN))
+	{
 		__raw_writel(chan->dar, (dma_base_addr(chan->chan) + DAR));
+	}
 
 	__raw_writel(chan->count >> calc_xmit_shift(chan),
-		(dma_base_addr(chan->chan) + TCR));
+				 (dma_base_addr(chan->chan) + TCR));
 
 	sh_dmac_enable_dma(chan);
 
@@ -235,22 +265,24 @@ static int sh_dmac_xfer_dma(struct dma_channel *chan)
 static int sh_dmac_get_dma_residue(struct dma_channel *chan)
 {
 	if (!(__raw_readl(dma_base_addr(chan->chan) + CHCR) & CHCR_DE))
+	{
 		return 0;
+	}
 
 	return __raw_readl(dma_base_addr(chan->chan) + TCR)
-		 << calc_xmit_shift(chan);
+		   << calc_xmit_shift(chan);
 }
 
 /*
  * DMAOR handling
  */
 #if defined(CONFIG_CPU_SUBTYPE_SH7723)	|| \
-    defined(CONFIG_CPU_SUBTYPE_SH7724)	|| \
-    defined(CONFIG_CPU_SUBTYPE_SH7780)	|| \
-    defined(CONFIG_CPU_SUBTYPE_SH7785)
-#define NR_DMAOR	2
+	defined(CONFIG_CPU_SUBTYPE_SH7724)	|| \
+	defined(CONFIG_CPU_SUBTYPE_SH7780)	|| \
+	defined(CONFIG_CPU_SUBTYPE_SH7785)
+	#define NR_DMAOR	2
 #else
-#define NR_DMAOR	1
+	#define NR_DMAOR	1
 #endif
 
 /*
@@ -272,7 +304,8 @@ static inline int dmaor_reset(int no)
 	dmaor_write_reg(no, dmaor);
 
 	/* See if we got an error again */
-	if ((dmaor_read_reg(no) & (DMAOR_AE | DMAOR_NMIF))) {
+	if ((dmaor_read_reg(no) & (DMAOR_AE | DMAOR_NMIF)))
+	{
 		printk(KERN_ERR "dma-sh: Can't initialize DMAOR.\n");
 		return -EINVAL;
 	}
@@ -286,12 +319,13 @@ static inline int dmaor_reset(int no)
 #ifdef CONFIG_CPU_SH4
 
 #if defined(DMAE1_IRQ)
-#define NR_DMAE		2
+	#define NR_DMAE		2
 #else
-#define NR_DMAE		1
+	#define NR_DMAE		1
 #endif
 
-static const char *dmae_name[] = {
+static const char *dmae_name[] =
+{
 	"DMAC Address Error0",
 	"DMAC Address Error1"
 };
@@ -303,7 +337,8 @@ static inline unsigned int get_dma_error_irq(int n)
 }
 #else
 
-static unsigned int dmae_irq_map[] = {
+static unsigned int dmae_irq_map[] =
+{
 	DMAE0_IRQ,
 
 #ifdef DMAE1_IRQ
@@ -322,7 +357,9 @@ static irqreturn_t dma_err(int irq, void *dummy)
 	int i;
 
 	for (i = 0; i < NR_DMAOR; i++)
+	{
 		dmaor_reset(i);
+	}
 
 	disable_irq(irq);
 
@@ -333,10 +370,13 @@ static int dmae_irq_init(void)
 {
 	int n;
 
-	for (n = 0; n < NR_DMAE; n++) {
+	for (n = 0; n < NR_DMAE; n++)
+	{
 		int i = request_irq(get_dma_error_irq(n), dma_err,
-				    IRQF_SHARED, dmae_name[n], (void *)dmae_name[n]);
-		if (unlikely(i < 0)) {
+							IRQF_SHARED, dmae_name[n], (void *)dmae_name[n]);
+
+		if (unlikely(i < 0))
+		{
 			printk(KERN_ERR "%s request_irq fail\n", dmae_name[n]);
 			return i;
 		}
@@ -350,7 +390,9 @@ static void dmae_irq_free(void)
 	int n;
 
 	for (n = 0; n < NR_DMAE; n++)
+	{
 		free_irq(get_dma_error_irq(n), NULL);
+	}
 }
 #else
 static inline int dmae_irq_init(void)
@@ -363,7 +405,8 @@ static void dmae_irq_free(void)
 }
 #endif
 
-static struct dma_ops sh_dmac_ops = {
+static struct dma_ops sh_dmac_ops =
+{
 	.request	= sh_dmac_request_dma,
 	.free		= sh_dmac_free_dma,
 	.get_residue	= sh_dmac_get_dma_residue,
@@ -371,7 +414,8 @@ static struct dma_ops sh_dmac_ops = {
 	.configure	= sh_dmac_configure_channel,
 };
 
-static struct dma_info sh_dmac_info = {
+static struct dma_info sh_dmac_info =
+{
 	.name		= "sh_dmac",
 	.nr_channels	= CONFIG_NR_ONCHIP_DMA_CHANNELS,
 	.ops		= &sh_dmac_ops,
@@ -387,17 +431,24 @@ static int __init sh_dmac_init(void)
 	 * Initialize DMAE, for parts that support it.
 	 */
 	rc = dmae_irq_init();
+
 	if (unlikely(rc != 0))
+	{
 		return rc;
+	}
 
 	/*
 	 * Initialize DMAOR, and clean up any error flags that may have
 	 * been set.
 	 */
-	for (i = 0; i < NR_DMAOR; i++) {
+	for (i = 0; i < NR_DMAOR; i++)
+	{
 		rc = dmaor_reset(i);
+
 		if (unlikely(rc != 0))
+		{
 			return rc;
+		}
 	}
 
 	return register_dmac(info);

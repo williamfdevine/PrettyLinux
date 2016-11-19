@@ -25,7 +25,9 @@ asmlinkage void __init processor_init(void)
 
 	/* set up the exception table first */
 	for (loop = 0x000; loop < 0x400; loop += 8)
+	{
 		__set_intr_stub(loop, __common_exception);
+	}
 
 	__set_intr_stub(EXCEP_ITLBMISS,		itlb_miss);
 	__set_intr_stub(EXCEP_DTLBMISS,		dtlb_miss);
@@ -59,7 +61,9 @@ asmlinkage void __init processor_init(void)
 
 	/* disable all interrupts and set to priority 6 (lowest) */
 	for (loop = 0; loop < NR_IRQS; loop++)
+	{
 		GxICR(loop) = GxICR_LEVEL_6 | GxICR_DETECT;
+	}
 
 	/* clear the timers */
 	TM0MD	= 0;
@@ -91,7 +95,9 @@ void __init get_mem_info(unsigned long *mem_base, unsigned long *mem_size)
 	*mem_size = 0;
 
 	base = SDBASE(0);
-	if (base & SDBASE_CE) {
+
+	if (base & SDBASE_CE)
+	{
 		size = (base & SDBASE_CBAM) << SDBASE_CBAM_SHIFT;
 		size = ~size + 1;
 		base &= SDBASE_CBA;
@@ -102,14 +108,19 @@ void __init get_mem_info(unsigned long *mem_base, unsigned long *mem_size)
 	}
 
 	base = SDBASE(1);
-	if (base & SDBASE_CE) {
+
+	if (base & SDBASE_CE)
+	{
 		size = (base & SDBASE_CBAM) << SDBASE_CBAM_SHIFT;
 		size = ~size + 1;
 		base &= SDBASE_CBA;
 
 		printk(KERN_INFO "SDRAM[1]: %luMb @%08lx\n", size >> 20, base);
 		*mem_size += size;
+
 		if (*mem_base == 0)
+		{
 			*mem_base = base;
+		}
 	}
 }

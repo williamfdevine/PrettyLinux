@@ -26,14 +26,17 @@ void flush_thread(void)
 
 	ret = unmap(&current->mm->context.id, 0, STUB_START, 0, &data);
 	ret = ret || unmap(&current->mm->context.id, STUB_END,
-			   host_task_size - STUB_END, 1, &data);
-	if (ret) {
+					   host_task_size - STUB_END, 1, &data);
+
+	if (ret)
+	{
 		printk(KERN_ERR "flush_thread - clearing address space failed, "
-		       "err = %d\n", ret);
+			   "err = %d\n", ret);
 		force_sig(SIGKILL, current);
 	}
+
 	get_safe_registers(current_pt_regs()->regs.gp,
-			   current_pt_regs()->regs.fp);
+					   current_pt_regs()->regs.fp);
 
 	__switch_mm(&current->mm->context.id);
 }

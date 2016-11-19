@@ -22,8 +22,8 @@
 #include <linux/uaccess.h>
 
 #ifdef CONFIG_FUNCTION_TRACER
-extern void _mcount(void);
-EXPORT_SYMBOL(_mcount);
+	extern void _mcount(void);
+	EXPORT_SYMBOL(_mcount);
 #endif
 
 /*
@@ -33,12 +33,12 @@ EXPORT_SYMBOL(__copy_tofrom_user);
 EXPORT_SYMBOL(__strncpy_user);
 
 #ifdef CONFIG_OPT_LIB_ASM
-EXPORT_SYMBOL(memcpy);
-EXPORT_SYMBOL(memmove);
+	EXPORT_SYMBOL(memcpy);
+	EXPORT_SYMBOL(memmove);
 #endif
 
 #ifdef CONFIG_MMU
-EXPORT_SYMBOL(empty_zero_page);
+	EXPORT_SYMBOL(empty_zero_page);
 #endif
 
 EXPORT_SYMBOL(mbc);

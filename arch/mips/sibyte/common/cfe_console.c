@@ -10,32 +10,48 @@
 extern int cfe_cons_handle;
 
 static void cfe_console_write(struct console *cons, const char *str,
-		       unsigned int count)
+							  unsigned int count)
 {
 	int i, last, written;
 
-	for (i=0, last=0; i<count; i++) {
+	for (i = 0, last = 0; i < count; i++)
+	{
 		if (!str[i])
 			/* XXXKW can/should this ever happen? */
+		{
 			return;
-		if (str[i] == '\n') {
-			do {
-				written = cfe_write(cfe_cons_handle, &str[last], i-last);
+		}
+
+		if (str[i] == '\n')
+		{
+			do
+			{
+				written = cfe_write(cfe_cons_handle, &str[last], i - last);
+
 				if (written < 0)
 					;
+
 				last += written;
-			} while (last < i);
+			}
+			while (last < i);
+
 			while (cfe_write(cfe_cons_handle, "\r", 1) <= 0)
 				;
 		}
 	}
-	if (last != count) {
-		do {
-			written = cfe_write(cfe_cons_handle, &str[last], count-last);
+
+	if (last != count)
+	{
+		do
+		{
+			written = cfe_write(cfe_cons_handle, &str[last], count - last);
+
 			if (written < 0)
 				;
+
 			last += written;
-		} while (last < count);
+		}
+		while (last < count);
 	}
 
 }
@@ -43,27 +59,38 @@ static void cfe_console_write(struct console *cons, const char *str,
 static int cfe_console_setup(struct console *cons, char *str)
 {
 	char consdev[32];
+
 	/* XXXKW think about interaction with 'console=' cmdline arg */
 	/* If none of the console options are configured, the build will break. */
-	if (cfe_getenv("BOOT_CONSOLE", consdev, 32) >= 0) {
+	if (cfe_getenv("BOOT_CONSOLE", consdev, 32) >= 0)
+	{
 #ifdef CONFIG_SERIAL_SB1250_DUART
-		if (!strcmp(consdev, "uart0")) {
+
+		if (!strcmp(consdev, "uart0"))
+		{
 			setleds("u0cn");
-		} else if (!strcmp(consdev, "uart1")) {
+		}
+		else if (!strcmp(consdev, "uart1"))
+		{
 			setleds("u1cn");
-		} else
+		}
+		else
 #endif
 #ifdef CONFIG_VGA_CONSOLE
-		       if (!strcmp(consdev, "pcconsole0")) {
+			if (!strcmp(consdev, "pcconsole0"))
+			{
 				setleds("pccn");
-		} else
+			}
+			else
 #endif
-			return -ENODEV;
+				return -ENODEV;
 	}
+
 	return 0;
 }
 
-static struct console sb1250_cfe_cons = {
+static struct console sb1250_cfe_cons =
+{
 	.name		= "cfe",
 	.write		= cfe_console_write,
 	.setup		= cfe_console_setup,

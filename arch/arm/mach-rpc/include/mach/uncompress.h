@@ -8,7 +8,7 @@
  * published by the Free Software Foundation.
  */
 #define VIDMEM ((char *)SCREEN_START)
- 
+
 #include <linux/io.h>
 #include <mach/hardware.h>
 #include <asm/setup.h>
@@ -18,7 +18,8 @@ int video_size_row;
 unsigned char bytes_per_char_h;
 extern unsigned long con_charconvtable[256];
 
-struct param_struct {
+struct param_struct
+{
 	unsigned long page_size;
 	unsigned long nr_pages;
 	unsigned long ramdisk_size;
@@ -33,10 +34,11 @@ struct param_struct {
 	unsigned char adfsdrives;
 	unsigned char bytes_per_char_h;
 	unsigned char bytes_per_char_v;
-	unsigned long unused[256/4-11];
+	unsigned long unused[256 / 4 - 11];
 };
 
-static const unsigned long palette_4[16] = {
+static const unsigned long palette_4[16] =
+{
 	0x00000000,
 	0x000000cc,
 	0x0000cc00,             /* Green   */
@@ -65,7 +67,7 @@ static const unsigned long palette_4[16] = {
 extern __attribute__((pure)) struct param_struct *params(void);
 #define params (params())
 
-#ifndef STANDALONE_DEBUG 
+#ifndef STANDALONE_DEBUG
 unsigned long video_num_cols;
 unsigned long video_num_rows;
 unsigned long video_x;
@@ -79,23 +81,34 @@ int white;
 static inline void putc(int c)
 {
 	extern void ll_write_char(char *, char c, char white);
-	int x,y;
+	int x, y;
 	char *ptr;
 
 	x = video_x;
 	y = video_y;
 
-	if (c == '\n') {
+	if (c == '\n')
+	{
 		if (++y >= video_num_rows)
+		{
 			y--;
-	} else if (c == '\r') {
+		}
+	}
+	else if (c == '\r')
+	{
 		x = 0;
-	} else {
-		ptr = VIDMEM + ((y*video_num_cols*bytes_per_char_v+x)*bytes_per_char_h);
+	}
+	else
+	{
+		ptr = VIDMEM + ((y * video_num_cols * bytes_per_char_v + x) * bytes_per_char_h);
 		ll_write_char(ptr, c, white);
-		if (++x >= video_num_cols) {
+
+		if (++x >= video_num_cols)
+		{
 			x = 0;
-			if ( ++y >= video_num_rows ) {
+
+			if ( ++y >= video_num_rows )
+			{
 				y--;
 			}
 		}
@@ -152,7 +165,7 @@ static void arch_decomp_setup(void)
 	}
 
 	video_size_row = video_num_cols * bytes_per_char_h;
-	
+
 	if (bytes_per_char_h == 4)
 		for (i = 0; i < 256; i++)
 			con_charconvtable[i] =
@@ -174,18 +187,29 @@ static void arch_decomp_setup(void)
 
 
 	palette_setpixel(0);
-	if (bytes_per_char_h == 1) {
+
+	if (bytes_per_char_h == 1)
+	{
 		palette_write (0);
 		palette_write (0x00ffffff);
+
 		for (i = 2; i < 256; i++)
+		{
 			palette_write (0);
+		}
+
 		white = 1;
-	} else {
+	}
+	else
+	{
 		for (i = 0; i < 256; i++)
+		{
 			palette_write (i < 16 ? palette_4[i] : 0);
+		}
+
 		white = 7;
 	}
 
-	if (nr_pages * page_size < 4096*1024) error("<4M of mem\n");
+	if (nr_pages * page_size < 4096 * 1024) { error("<4M of mem\n"); }
 }
 #endif

@@ -21,7 +21,8 @@
 #include <linux/perf/arm_pmu.h>
 #include <linux/platform_device.h>
 
-enum xscale_perf_types {
+enum xscale_perf_types
+{
 	XSCALE_PERFCTR_ICACHE_MISS		= 0x00,
 	XSCALE_PERFCTR_ICACHE_NO_DELIVER	= 0x01,
 	XSCALE_PERFCTR_DATA_STALL		= 0x02,
@@ -47,7 +48,8 @@ enum xscale_perf_types {
 	XSCALE_PERFCTR_UNUSED			= 0xFF,
 };
 
-enum xscale_counters {
+enum xscale_counters
+{
 	XSCALE_CYCLE_COUNTER	= 0,
 	XSCALE_COUNTER0,
 	XSCALE_COUNTER1,
@@ -55,7 +57,8 @@ enum xscale_counters {
 	XSCALE_COUNTER3,
 };
 
-static const unsigned xscale_perf_map[PERF_COUNT_HW_MAX] = {
+static const unsigned xscale_perf_map[PERF_COUNT_HW_MAX] =
+{
 	PERF_MAP_ALL_UNSUPPORTED,
 	[PERF_COUNT_HW_CPU_CYCLES]		= XSCALE_PERFCTR_CCNT,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= XSCALE_PERFCTR_INSTRUCTION,
@@ -65,8 +68,9 @@ static const unsigned xscale_perf_map[PERF_COUNT_HW_MAX] = {
 };
 
 static const unsigned xscale_perf_cache_map[PERF_COUNT_HW_CACHE_MAX]
-					   [PERF_COUNT_HW_CACHE_OP_MAX]
-					   [PERF_COUNT_HW_CACHE_RESULT_MAX] = {
+[PERF_COUNT_HW_CACHE_OP_MAX]
+[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+{
 	PERF_CACHE_MAP_ALL_UNSUPPORTED,
 
 	[C(L1D)][C(OP_READ)][C(RESULT_ACCESS)]	= XSCALE_PERFCTR_DCACHE_ACCESS,
@@ -119,22 +123,26 @@ xscale1pmu_write_pmnc(u32 val)
 
 static inline int
 xscale1_pmnc_counter_has_overflowed(unsigned long pmnc,
-					enum xscale_counters counter)
+									enum xscale_counters counter)
 {
 	int ret = 0;
 
-	switch (counter) {
-	case XSCALE_CYCLE_COUNTER:
-		ret = pmnc & XSCALE1_CCOUNT_OVERFLOW;
-		break;
-	case XSCALE_COUNTER0:
-		ret = pmnc & XSCALE1_COUNT0_OVERFLOW;
-		break;
-	case XSCALE_COUNTER1:
-		ret = pmnc & XSCALE1_COUNT1_OVERFLOW;
-		break;
-	default:
-		WARN_ONCE(1, "invalid counter number (%d)\n", counter);
+	switch (counter)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			ret = pmnc & XSCALE1_CCOUNT_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER0:
+			ret = pmnc & XSCALE1_COUNT0_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER1:
+			ret = pmnc & XSCALE1_COUNT1_OVERFLOW;
+			break;
+
+		default:
+			WARN_ONCE(1, "invalid counter number (%d)\n", counter);
 	}
 
 	return ret;
@@ -166,28 +174,40 @@ xscale1pmu_handle_irq(int irq_num, void *dev)
 	xscale1pmu_write_pmnc(pmnc & ~XSCALE_PMU_ENABLE);
 
 	if (!(pmnc & XSCALE1_OVERFLOWED_MASK))
+	{
 		return IRQ_NONE;
+	}
 
 	regs = get_irq_regs();
 
-	for (idx = 0; idx < cpu_pmu->num_events; ++idx) {
+	for (idx = 0; idx < cpu_pmu->num_events; ++idx)
+	{
 		struct perf_event *event = cpuc->events[idx];
 		struct hw_perf_event *hwc;
 
 		if (!event)
+		{
 			continue;
+		}
 
 		if (!xscale1_pmnc_counter_has_overflowed(pmnc, idx))
+		{
 			continue;
+		}
 
 		hwc = &event->hw;
 		armpmu_event_update(event);
 		perf_sample_data_init(&data, 0, hwc->last_period);
+
 		if (!armpmu_event_set_period(event))
+		{
 			continue;
+		}
 
 		if (perf_event_overflow(event, &data, regs))
+		{
 			cpu_pmu->disable(event);
+		}
 	}
 
 	irq_work_run();
@@ -209,24 +229,28 @@ static void xscale1pmu_enable_event(struct perf_event *event)
 	struct pmu_hw_events *events = this_cpu_ptr(cpu_pmu->hw_events);
 	int idx = hwc->idx;
 
-	switch (idx) {
-	case XSCALE_CYCLE_COUNTER:
-		mask = 0;
-		evt = XSCALE1_CCOUNT_INT_EN;
-		break;
-	case XSCALE_COUNTER0:
-		mask = XSCALE1_COUNT0_EVT_MASK;
-		evt = (hwc->config_base << XSCALE1_COUNT0_EVT_SHFT) |
-			XSCALE1_COUNT0_INT_EN;
-		break;
-	case XSCALE_COUNTER1:
-		mask = XSCALE1_COUNT1_EVT_MASK;
-		evt = (hwc->config_base << XSCALE1_COUNT1_EVT_SHFT) |
-			XSCALE1_COUNT1_INT_EN;
-		break;
-	default:
-		WARN_ONCE(1, "invalid counter number (%d)\n", idx);
-		return;
+	switch (idx)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			mask = 0;
+			evt = XSCALE1_CCOUNT_INT_EN;
+			break;
+
+		case XSCALE_COUNTER0:
+			mask = XSCALE1_COUNT0_EVT_MASK;
+			evt = (hwc->config_base << XSCALE1_COUNT0_EVT_SHFT) |
+				  XSCALE1_COUNT0_INT_EN;
+			break;
+
+		case XSCALE_COUNTER1:
+			mask = XSCALE1_COUNT1_EVT_MASK;
+			evt = (hwc->config_base << XSCALE1_COUNT1_EVT_SHFT) |
+				  XSCALE1_COUNT1_INT_EN;
+			break;
+
+		default:
+			WARN_ONCE(1, "invalid counter number (%d)\n", idx);
+			return;
 	}
 
 	raw_spin_lock_irqsave(&events->pmu_lock, flags);
@@ -245,22 +269,26 @@ static void xscale1pmu_disable_event(struct perf_event *event)
 	struct pmu_hw_events *events = this_cpu_ptr(cpu_pmu->hw_events);
 	int idx = hwc->idx;
 
-	switch (idx) {
-	case XSCALE_CYCLE_COUNTER:
-		mask = XSCALE1_CCOUNT_INT_EN;
-		evt = 0;
-		break;
-	case XSCALE_COUNTER0:
-		mask = XSCALE1_COUNT0_INT_EN | XSCALE1_COUNT0_EVT_MASK;
-		evt = XSCALE_PERFCTR_UNUSED << XSCALE1_COUNT0_EVT_SHFT;
-		break;
-	case XSCALE_COUNTER1:
-		mask = XSCALE1_COUNT1_INT_EN | XSCALE1_COUNT1_EVT_MASK;
-		evt = XSCALE_PERFCTR_UNUSED << XSCALE1_COUNT1_EVT_SHFT;
-		break;
-	default:
-		WARN_ONCE(1, "invalid counter number (%d)\n", idx);
-		return;
+	switch (idx)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			mask = XSCALE1_CCOUNT_INT_EN;
+			evt = 0;
+			break;
+
+		case XSCALE_COUNTER0:
+			mask = XSCALE1_COUNT0_INT_EN | XSCALE1_COUNT0_EVT_MASK;
+			evt = XSCALE_PERFCTR_UNUSED << XSCALE1_COUNT0_EVT_SHFT;
+			break;
+
+		case XSCALE_COUNTER1:
+			mask = XSCALE1_COUNT1_INT_EN | XSCALE1_COUNT1_EVT_MASK;
+			evt = XSCALE_PERFCTR_UNUSED << XSCALE1_COUNT1_EVT_SHFT;
+			break;
+
+		default:
+			WARN_ONCE(1, "invalid counter number (%d)\n", idx);
+			return;
 	}
 
 	raw_spin_lock_irqsave(&events->pmu_lock, flags);
@@ -273,20 +301,30 @@ static void xscale1pmu_disable_event(struct perf_event *event)
 
 static int
 xscale1pmu_get_event_idx(struct pmu_hw_events *cpuc,
-				struct perf_event *event)
+						 struct perf_event *event)
 {
 	struct hw_perf_event *hwc = &event->hw;
-	if (XSCALE_PERFCTR_CCNT == hwc->config_base) {
+
+	if (XSCALE_PERFCTR_CCNT == hwc->config_base)
+	{
 		if (test_and_set_bit(XSCALE_CYCLE_COUNTER, cpuc->used_mask))
+		{
 			return -EAGAIN;
+		}
 
 		return XSCALE_CYCLE_COUNTER;
-	} else {
+	}
+	else
+	{
 		if (!test_and_set_bit(XSCALE_COUNTER1, cpuc->used_mask))
+		{
 			return XSCALE_COUNTER1;
+		}
 
 		if (!test_and_set_bit(XSCALE_COUNTER0, cpuc->used_mask))
+		{
 			return XSCALE_COUNTER0;
+		}
 
 		return -EAGAIN;
 	}
@@ -322,16 +360,19 @@ static inline u32 xscale1pmu_read_counter(struct perf_event *event)
 	int counter = hwc->idx;
 	u32 val = 0;
 
-	switch (counter) {
-	case XSCALE_CYCLE_COUNTER:
-		asm volatile("mrc p14, 0, %0, c1, c0, 0" : "=r" (val));
-		break;
-	case XSCALE_COUNTER0:
-		asm volatile("mrc p14, 0, %0, c2, c0, 0" : "=r" (val));
-		break;
-	case XSCALE_COUNTER1:
-		asm volatile("mrc p14, 0, %0, c3, c0, 0" : "=r" (val));
-		break;
+	switch (counter)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			asm volatile("mrc p14, 0, %0, c1, c0, 0" : "=r" (val));
+			break;
+
+		case XSCALE_COUNTER0:
+			asm volatile("mrc p14, 0, %0, c2, c0, 0" : "=r" (val));
+			break;
+
+		case XSCALE_COUNTER1:
+			asm volatile("mrc p14, 0, %0, c3, c0, 0" : "=r" (val));
+			break;
 	}
 
 	return val;
@@ -342,23 +383,26 @@ static inline void xscale1pmu_write_counter(struct perf_event *event, u32 val)
 	struct hw_perf_event *hwc = &event->hw;
 	int counter = hwc->idx;
 
-	switch (counter) {
-	case XSCALE_CYCLE_COUNTER:
-		asm volatile("mcr p14, 0, %0, c1, c0, 0" : : "r" (val));
-		break;
-	case XSCALE_COUNTER0:
-		asm volatile("mcr p14, 0, %0, c2, c0, 0" : : "r" (val));
-		break;
-	case XSCALE_COUNTER1:
-		asm volatile("mcr p14, 0, %0, c3, c0, 0" : : "r" (val));
-		break;
+	switch (counter)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			asm volatile("mcr p14, 0, %0, c1, c0, 0" : : "r" (val));
+			break;
+
+		case XSCALE_COUNTER0:
+			asm volatile("mcr p14, 0, %0, c2, c0, 0" : : "r" (val));
+			break;
+
+		case XSCALE_COUNTER1:
+			asm volatile("mcr p14, 0, %0, c3, c0, 0" : : "r" (val));
+			break;
 	}
 }
 
 static int xscale_map_event(struct perf_event *event)
 {
 	return armpmu_map_event(event, &xscale_perf_map,
-				&xscale_perf_cache_map, 0xFF);
+							&xscale_perf_cache_map, 0xFF);
 }
 
 static int xscale1pmu_init(struct arm_pmu *cpu_pmu)
@@ -460,28 +504,34 @@ xscale2pmu_write_int_enable(u32 val)
 
 static inline int
 xscale2_pmnc_counter_has_overflowed(unsigned long of_flags,
-					enum xscale_counters counter)
+									enum xscale_counters counter)
 {
 	int ret = 0;
 
-	switch (counter) {
-	case XSCALE_CYCLE_COUNTER:
-		ret = of_flags & XSCALE2_CCOUNT_OVERFLOW;
-		break;
-	case XSCALE_COUNTER0:
-		ret = of_flags & XSCALE2_COUNT0_OVERFLOW;
-		break;
-	case XSCALE_COUNTER1:
-		ret = of_flags & XSCALE2_COUNT1_OVERFLOW;
-		break;
-	case XSCALE_COUNTER2:
-		ret = of_flags & XSCALE2_COUNT2_OVERFLOW;
-		break;
-	case XSCALE_COUNTER3:
-		ret = of_flags & XSCALE2_COUNT3_OVERFLOW;
-		break;
-	default:
-		WARN_ONCE(1, "invalid counter number (%d)\n", counter);
+	switch (counter)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			ret = of_flags & XSCALE2_CCOUNT_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER0:
+			ret = of_flags & XSCALE2_COUNT0_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER1:
+			ret = of_flags & XSCALE2_COUNT1_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER2:
+			ret = of_flags & XSCALE2_COUNT2_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER3:
+			ret = of_flags & XSCALE2_COUNT3_OVERFLOW;
+			break;
+
+		default:
+			WARN_ONCE(1, "invalid counter number (%d)\n", counter);
 	}
 
 	return ret;
@@ -503,32 +553,45 @@ xscale2pmu_handle_irq(int irq_num, void *dev)
 
 	/* Check the overflow flag register. */
 	of_flags = xscale2pmu_read_overflow_flags();
+
 	if (!(of_flags & XSCALE2_OVERFLOWED_MASK))
+	{
 		return IRQ_NONE;
+	}
 
 	/* Clear the overflow bits. */
 	xscale2pmu_write_overflow_flags(of_flags);
 
 	regs = get_irq_regs();
 
-	for (idx = 0; idx < cpu_pmu->num_events; ++idx) {
+	for (idx = 0; idx < cpu_pmu->num_events; ++idx)
+	{
 		struct perf_event *event = cpuc->events[idx];
 		struct hw_perf_event *hwc;
 
 		if (!event)
+		{
 			continue;
+		}
 
 		if (!xscale2_pmnc_counter_has_overflowed(of_flags, idx))
+		{
 			continue;
+		}
 
 		hwc = &event->hw;
 		armpmu_event_update(event);
 		perf_sample_data_init(&data, 0, hwc->last_period);
+
 		if (!armpmu_event_set_period(event))
+		{
 			continue;
+		}
 
 		if (perf_event_overflow(event, &data, regs))
+		{
 			cpu_pmu->disable(event);
+		}
 	}
 
 	irq_work_run();
@@ -553,33 +616,39 @@ static void xscale2pmu_enable_event(struct perf_event *event)
 	ien = xscale2pmu_read_int_enable();
 	evtsel = xscale2pmu_read_event_select();
 
-	switch (idx) {
-	case XSCALE_CYCLE_COUNTER:
-		ien |= XSCALE2_CCOUNT_INT_EN;
-		break;
-	case XSCALE_COUNTER0:
-		ien |= XSCALE2_COUNT0_INT_EN;
-		evtsel &= ~XSCALE2_COUNT0_EVT_MASK;
-		evtsel |= hwc->config_base << XSCALE2_COUNT0_EVT_SHFT;
-		break;
-	case XSCALE_COUNTER1:
-		ien |= XSCALE2_COUNT1_INT_EN;
-		evtsel &= ~XSCALE2_COUNT1_EVT_MASK;
-		evtsel |= hwc->config_base << XSCALE2_COUNT1_EVT_SHFT;
-		break;
-	case XSCALE_COUNTER2:
-		ien |= XSCALE2_COUNT2_INT_EN;
-		evtsel &= ~XSCALE2_COUNT2_EVT_MASK;
-		evtsel |= hwc->config_base << XSCALE2_COUNT2_EVT_SHFT;
-		break;
-	case XSCALE_COUNTER3:
-		ien |= XSCALE2_COUNT3_INT_EN;
-		evtsel &= ~XSCALE2_COUNT3_EVT_MASK;
-		evtsel |= hwc->config_base << XSCALE2_COUNT3_EVT_SHFT;
-		break;
-	default:
-		WARN_ONCE(1, "invalid counter number (%d)\n", idx);
-		return;
+	switch (idx)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			ien |= XSCALE2_CCOUNT_INT_EN;
+			break;
+
+		case XSCALE_COUNTER0:
+			ien |= XSCALE2_COUNT0_INT_EN;
+			evtsel &= ~XSCALE2_COUNT0_EVT_MASK;
+			evtsel |= hwc->config_base << XSCALE2_COUNT0_EVT_SHFT;
+			break;
+
+		case XSCALE_COUNTER1:
+			ien |= XSCALE2_COUNT1_INT_EN;
+			evtsel &= ~XSCALE2_COUNT1_EVT_MASK;
+			evtsel |= hwc->config_base << XSCALE2_COUNT1_EVT_SHFT;
+			break;
+
+		case XSCALE_COUNTER2:
+			ien |= XSCALE2_COUNT2_INT_EN;
+			evtsel &= ~XSCALE2_COUNT2_EVT_MASK;
+			evtsel |= hwc->config_base << XSCALE2_COUNT2_EVT_SHFT;
+			break;
+
+		case XSCALE_COUNTER3:
+			ien |= XSCALE2_COUNT3_INT_EN;
+			evtsel &= ~XSCALE2_COUNT3_EVT_MASK;
+			evtsel |= hwc->config_base << XSCALE2_COUNT3_EVT_SHFT;
+			break;
+
+		default:
+			WARN_ONCE(1, "invalid counter number (%d)\n", idx);
+			return;
 	}
 
 	raw_spin_lock_irqsave(&events->pmu_lock, flags);
@@ -599,38 +668,44 @@ static void xscale2pmu_disable_event(struct perf_event *event)
 	ien = xscale2pmu_read_int_enable();
 	evtsel = xscale2pmu_read_event_select();
 
-	switch (idx) {
-	case XSCALE_CYCLE_COUNTER:
-		ien &= ~XSCALE2_CCOUNT_INT_EN;
-		of_flags = XSCALE2_CCOUNT_OVERFLOW;
-		break;
-	case XSCALE_COUNTER0:
-		ien &= ~XSCALE2_COUNT0_INT_EN;
-		evtsel &= ~XSCALE2_COUNT0_EVT_MASK;
-		evtsel |= XSCALE_PERFCTR_UNUSED << XSCALE2_COUNT0_EVT_SHFT;
-		of_flags = XSCALE2_COUNT0_OVERFLOW;
-		break;
-	case XSCALE_COUNTER1:
-		ien &= ~XSCALE2_COUNT1_INT_EN;
-		evtsel &= ~XSCALE2_COUNT1_EVT_MASK;
-		evtsel |= XSCALE_PERFCTR_UNUSED << XSCALE2_COUNT1_EVT_SHFT;
-		of_flags = XSCALE2_COUNT1_OVERFLOW;
-		break;
-	case XSCALE_COUNTER2:
-		ien &= ~XSCALE2_COUNT2_INT_EN;
-		evtsel &= ~XSCALE2_COUNT2_EVT_MASK;
-		evtsel |= XSCALE_PERFCTR_UNUSED << XSCALE2_COUNT2_EVT_SHFT;
-		of_flags = XSCALE2_COUNT2_OVERFLOW;
-		break;
-	case XSCALE_COUNTER3:
-		ien &= ~XSCALE2_COUNT3_INT_EN;
-		evtsel &= ~XSCALE2_COUNT3_EVT_MASK;
-		evtsel |= XSCALE_PERFCTR_UNUSED << XSCALE2_COUNT3_EVT_SHFT;
-		of_flags = XSCALE2_COUNT3_OVERFLOW;
-		break;
-	default:
-		WARN_ONCE(1, "invalid counter number (%d)\n", idx);
-		return;
+	switch (idx)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			ien &= ~XSCALE2_CCOUNT_INT_EN;
+			of_flags = XSCALE2_CCOUNT_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER0:
+			ien &= ~XSCALE2_COUNT0_INT_EN;
+			evtsel &= ~XSCALE2_COUNT0_EVT_MASK;
+			evtsel |= XSCALE_PERFCTR_UNUSED << XSCALE2_COUNT0_EVT_SHFT;
+			of_flags = XSCALE2_COUNT0_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER1:
+			ien &= ~XSCALE2_COUNT1_INT_EN;
+			evtsel &= ~XSCALE2_COUNT1_EVT_MASK;
+			evtsel |= XSCALE_PERFCTR_UNUSED << XSCALE2_COUNT1_EVT_SHFT;
+			of_flags = XSCALE2_COUNT1_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER2:
+			ien &= ~XSCALE2_COUNT2_INT_EN;
+			evtsel &= ~XSCALE2_COUNT2_EVT_MASK;
+			evtsel |= XSCALE_PERFCTR_UNUSED << XSCALE2_COUNT2_EVT_SHFT;
+			of_flags = XSCALE2_COUNT2_OVERFLOW;
+			break;
+
+		case XSCALE_COUNTER3:
+			ien &= ~XSCALE2_COUNT3_INT_EN;
+			evtsel &= ~XSCALE2_COUNT3_EVT_MASK;
+			evtsel |= XSCALE_PERFCTR_UNUSED << XSCALE2_COUNT3_EVT_SHFT;
+			of_flags = XSCALE2_COUNT3_OVERFLOW;
+			break;
+
+		default:
+			WARN_ONCE(1, "invalid counter number (%d)\n", idx);
+			return;
 	}
 
 	raw_spin_lock_irqsave(&events->pmu_lock, flags);
@@ -642,16 +717,24 @@ static void xscale2pmu_disable_event(struct perf_event *event)
 
 static int
 xscale2pmu_get_event_idx(struct pmu_hw_events *cpuc,
-				struct perf_event *event)
+						 struct perf_event *event)
 {
 	int idx = xscale1pmu_get_event_idx(cpuc, event);
+
 	if (idx >= 0)
+	{
 		goto out;
+	}
 
 	if (!test_and_set_bit(XSCALE_COUNTER3, cpuc->used_mask))
+	{
 		idx = XSCALE_COUNTER3;
+	}
 	else if (!test_and_set_bit(XSCALE_COUNTER2, cpuc->used_mask))
+	{
 		idx = XSCALE_COUNTER2;
+	}
+
 out:
 	return idx;
 }
@@ -686,22 +769,27 @@ static inline u32 xscale2pmu_read_counter(struct perf_event *event)
 	int counter = hwc->idx;
 	u32 val = 0;
 
-	switch (counter) {
-	case XSCALE_CYCLE_COUNTER:
-		asm volatile("mrc p14, 0, %0, c1, c1, 0" : "=r" (val));
-		break;
-	case XSCALE_COUNTER0:
-		asm volatile("mrc p14, 0, %0, c0, c2, 0" : "=r" (val));
-		break;
-	case XSCALE_COUNTER1:
-		asm volatile("mrc p14, 0, %0, c1, c2, 0" : "=r" (val));
-		break;
-	case XSCALE_COUNTER2:
-		asm volatile("mrc p14, 0, %0, c2, c2, 0" : "=r" (val));
-		break;
-	case XSCALE_COUNTER3:
-		asm volatile("mrc p14, 0, %0, c3, c2, 0" : "=r" (val));
-		break;
+	switch (counter)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			asm volatile("mrc p14, 0, %0, c1, c1, 0" : "=r" (val));
+			break;
+
+		case XSCALE_COUNTER0:
+			asm volatile("mrc p14, 0, %0, c0, c2, 0" : "=r" (val));
+			break;
+
+		case XSCALE_COUNTER1:
+			asm volatile("mrc p14, 0, %0, c1, c2, 0" : "=r" (val));
+			break;
+
+		case XSCALE_COUNTER2:
+			asm volatile("mrc p14, 0, %0, c2, c2, 0" : "=r" (val));
+			break;
+
+		case XSCALE_COUNTER3:
+			asm volatile("mrc p14, 0, %0, c3, c2, 0" : "=r" (val));
+			break;
 	}
 
 	return val;
@@ -712,22 +800,27 @@ static inline void xscale2pmu_write_counter(struct perf_event *event, u32 val)
 	struct hw_perf_event *hwc = &event->hw;
 	int counter = hwc->idx;
 
-	switch (counter) {
-	case XSCALE_CYCLE_COUNTER:
-		asm volatile("mcr p14, 0, %0, c1, c1, 0" : : "r" (val));
-		break;
-	case XSCALE_COUNTER0:
-		asm volatile("mcr p14, 0, %0, c0, c2, 0" : : "r" (val));
-		break;
-	case XSCALE_COUNTER1:
-		asm volatile("mcr p14, 0, %0, c1, c2, 0" : : "r" (val));
-		break;
-	case XSCALE_COUNTER2:
-		asm volatile("mcr p14, 0, %0, c2, c2, 0" : : "r" (val));
-		break;
-	case XSCALE_COUNTER3:
-		asm volatile("mcr p14, 0, %0, c3, c2, 0" : : "r" (val));
-		break;
+	switch (counter)
+	{
+		case XSCALE_CYCLE_COUNTER:
+			asm volatile("mcr p14, 0, %0, c1, c1, 0" : : "r" (val));
+			break;
+
+		case XSCALE_COUNTER0:
+			asm volatile("mcr p14, 0, %0, c0, c2, 0" : : "r" (val));
+			break;
+
+		case XSCALE_COUNTER1:
+			asm volatile("mcr p14, 0, %0, c1, c2, 0" : : "r" (val));
+			break;
+
+		case XSCALE_COUNTER2:
+			asm volatile("mcr p14, 0, %0, c2, c2, 0" : : "r" (val));
+			break;
+
+		case XSCALE_COUNTER3:
+			asm volatile("mcr p14, 0, %0, c3, c2, 0" : : "r" (val));
+			break;
 	}
 }
 
@@ -749,7 +842,8 @@ static int xscale2pmu_init(struct arm_pmu *cpu_pmu)
 	return 0;
 }
 
-static const struct pmu_probe_info xscale_pmu_probe_table[] = {
+static const struct pmu_probe_info xscale_pmu_probe_table[] =
+{
 	XSCALE_PMU_PROBE(ARM_CPU_XSCALE_ARCH_V1, xscale1pmu_init),
 	XSCALE_PMU_PROBE(ARM_CPU_XSCALE_ARCH_V2, xscale2pmu_init),
 	{ /* sentinel value */ }
@@ -760,7 +854,8 @@ static int xscale_pmu_device_probe(struct platform_device *pdev)
 	return arm_pmu_device_probe(pdev, NULL, xscale_pmu_probe_table);
 }
 
-static struct platform_driver xscale_pmu_driver = {
+static struct platform_driver xscale_pmu_driver =
+{
 	.driver		= {
 		.name	= "xscale-pmu",
 	},

@@ -1,7 +1,8 @@
 #ifndef _UAPI_ASM_POWERPC_PERF_REGS_H
 #define _UAPI_ASM_POWERPC_PERF_REGS_H
 
-enum perf_event_powerpc_regs {
+enum perf_event_powerpc_regs
+{
 	PERF_REG_POWERPC_R0,
 	PERF_REG_POWERPC_R1,
 	PERF_REG_POWERPC_R2,

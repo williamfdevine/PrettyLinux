@@ -44,15 +44,15 @@ extern pte_t *pkmap_page_table;
  * in case of 16K/64K/256K page sizes.
  */
 #ifdef CONFIG_PPC_4K_PAGES
-#define PKMAP_ORDER	PTE_SHIFT
+	#define PKMAP_ORDER	PTE_SHIFT
 #else
-#define PKMAP_ORDER	9
+	#define PKMAP_ORDER	9
 #endif
 #define LAST_PKMAP	(1 << PKMAP_ORDER)
 #ifndef CONFIG_PPC_4K_PAGES
-#define PKMAP_BASE	(FIXADDR_START - PAGE_SIZE*(LAST_PKMAP + 1))
+	#define PKMAP_BASE	(FIXADDR_START - PAGE_SIZE*(LAST_PKMAP + 1))
 #else
-#define PKMAP_BASE	((FIXADDR_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK)
+	#define PKMAP_BASE	((FIXADDR_START - PAGE_SIZE*(LAST_PKMAP + 1)) & PMD_MASK)
 #endif
 #define LAST_PKMAP_MASK	(LAST_PKMAP-1)
 #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
@@ -66,16 +66,24 @@ extern void __kunmap_atomic(void *kvaddr);
 static inline void *kmap(struct page *page)
 {
 	might_sleep();
+
 	if (!PageHighMem(page))
+	{
 		return page_address(page);
+	}
+
 	return kmap_high(page);
 }
 
 static inline void kunmap(struct page *page)
 {
 	BUG_ON(in_interrupt());
+
 	if (!PageHighMem(page))
+	{
 		return;
+	}
+
 	kunmap_high(page);
 }
 

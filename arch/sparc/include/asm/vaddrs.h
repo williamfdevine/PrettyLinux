@@ -14,7 +14,7 @@
 #define SRMMU_MAXMEM		0x0c000000
 
 #define SRMMU_NOCACHE_VADDR	(KERNBASE + SRMMU_MAXMEM)
-				/* = 0x0fc000000 */
+/* = 0x0fc000000 */
 /* XXX Empiricals - this needs to go away - KMW */
 #define SRMMU_MIN_NOCACHE_PAGES (550)
 #define SRMMU_MAX_NOCACHE_PAGES	(1280)
@@ -33,7 +33,8 @@
 #ifndef __ASSEMBLY__
 #include <asm/kmap_types.h>
 
-enum fixed_addresses {
+enum fixed_addresses
+{
 	FIX_HOLE,
 #ifdef CONFIG_HIGHMEM
 	FIX_KMAP_BEGIN,

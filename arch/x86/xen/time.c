@@ -34,14 +34,14 @@
 static unsigned long xen_tsc_khz(void)
 {
 	struct pvclock_vcpu_time_info *info =
-		&HYPERVISOR_shared_info->vcpu_info[0].time;
+			&HYPERVISOR_shared_info->vcpu_info[0].time;
 
 	return pvclock_tsc_khz(info);
 }
 
 cycle_t xen_clocksource_read(void)
 {
-        struct pvclock_vcpu_time_info *src;
+	struct pvclock_vcpu_time_info *src;
 	cycle_t ret;
 
 	preempt_disable_notrace();
@@ -60,7 +60,7 @@ static void xen_read_wallclock(struct timespec *ts)
 {
 	struct shared_info *s = HYPERVISOR_shared_info;
 	struct pvclock_wall_clock *wall_clock = &(s->wc);
-        struct pvclock_vcpu_time_info *vcpu_time;
+	struct pvclock_vcpu_time_info *vcpu_time;
 
 	vcpu_time = &get_cpu_var(xen_vcpu)->time;
 	pvclock_read_wallclock(wall_clock, vcpu_time, ts);
@@ -78,7 +78,7 @@ static int xen_set_wallclock(const struct timespec *now)
 }
 
 static int xen_pvclock_gtod_notify(struct notifier_block *nb,
-				   unsigned long was_set, void *priv)
+								   unsigned long was_set, void *priv)
 {
 	/* Protected by the calling core code serialization */
 	static struct timespec64 next_sync;
@@ -97,16 +97,22 @@ static int xen_pvclock_gtod_notify(struct notifier_block *nb,
 	 * or when the 11 minutes RTC synchronization time elapsed.
 	 */
 	if (!was_set && timespec64_compare(&now, &next_sync) < 0)
+	{
 		return NOTIFY_OK;
+	}
 
 again:
-	if (settime64_supported) {
+
+	if (settime64_supported)
+	{
 		op.cmd = XENPF_settime64;
 		op.u.settime64.mbz = 0;
 		op.u.settime64.secs = now.tv_sec;
 		op.u.settime64.nsecs = now.tv_nsec;
 		op.u.settime64.system_time = xen_clocksource_read();
-	} else {
+	}
+	else
+	{
 		op.cmd = XENPF_settime32;
 		op.u.settime32.secs = now.tv_sec;
 		op.u.settime32.nsecs = now.tv_nsec;
@@ -115,12 +121,16 @@ again:
 
 	ret = HYPERVISOR_platform_op(&op);
 
-	if (ret == -ENOSYS && settime64_supported) {
+	if (ret == -ENOSYS && settime64_supported)
+	{
 		settime64_supported = false;
 		goto again;
 	}
+
 	if (ret < 0)
+	{
 		return NOTIFY_BAD;
+	}
 
 	/*
 	 * Move the next drift compensation time 11 minutes
@@ -133,11 +143,13 @@ again:
 	return NOTIFY_OK;
 }
 
-static struct notifier_block xen_pvclock_gtod_notifier = {
+static struct notifier_block xen_pvclock_gtod_notifier =
+{
 	.notifier_call = xen_pvclock_gtod_notify,
 };
 
-static struct clocksource xen_clocksource __read_mostly = {
+static struct clocksource xen_clocksource __read_mostly =
+{
 	.name = "xen",
 	.rating = 400,
 	.read = xen_clocksource_get_cycles,
@@ -190,12 +202,14 @@ static int xen_timerop_shutdown(struct clock_event_device *evt)
 }
 
 static int xen_timerop_set_next_event(unsigned long delta,
-				      struct clock_event_device *evt)
+									  struct clock_event_device *evt)
 {
 	WARN_ON(!clockevent_state_oneshot(evt));
 
 	if (HYPERVISOR_set_timer_op(get_abs_timeout(delta)) < 0)
+	{
 		BUG();
+	}
 
 	/* We may have missed the deadline, but there's no real way of
 	   knowing for sure.  If the event was in the past, then we'll
@@ -204,7 +218,8 @@ static int xen_timerop_set_next_event(unsigned long delta,
 	return 0;
 }
 
-static const struct clock_event_device xen_timerop_clockevent = {
+static const struct clock_event_device xen_timerop_clockevent =
+{
 	.name			= "xen",
 	.features		= CLOCK_EVT_FEAT_ONESHOT,
 
@@ -224,10 +239,12 @@ static int xen_vcpuop_shutdown(struct clock_event_device *evt)
 	int cpu = smp_processor_id();
 
 	if (HYPERVISOR_vcpu_op(VCPUOP_stop_singleshot_timer, xen_vcpu_nr(cpu),
-			       NULL) ||
-	    HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, xen_vcpu_nr(cpu),
-			       NULL))
+						   NULL) ||
+		HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, xen_vcpu_nr(cpu),
+						   NULL))
+	{
 		BUG();
+	}
 
 	return 0;
 }
@@ -237,14 +254,16 @@ static int xen_vcpuop_set_oneshot(struct clock_event_device *evt)
 	int cpu = smp_processor_id();
 
 	if (HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, xen_vcpu_nr(cpu),
-			       NULL))
+						   NULL))
+	{
 		BUG();
+	}
 
 	return 0;
 }
 
 static int xen_vcpuop_set_next_event(unsigned long delta,
-				     struct clock_event_device *evt)
+									 struct clock_event_device *evt)
 {
 	int cpu = smp_processor_id();
 	struct vcpu_set_singleshot_timer single;
@@ -257,13 +276,14 @@ static int xen_vcpuop_set_next_event(unsigned long delta,
 	single.flags = 0;
 
 	ret = HYPERVISOR_vcpu_op(VCPUOP_set_singleshot_timer, xen_vcpu_nr(cpu),
-				 &single);
+							 &single);
 	BUG_ON(ret != 0);
 
 	return ret;
 }
 
-static const struct clock_event_device xen_vcpuop_clockevent = {
+static const struct clock_event_device xen_vcpuop_clockevent =
+{
 	.name = "xen",
 	.features = CLOCK_EVT_FEAT_ONESHOT,
 
@@ -280,9 +300,10 @@ static const struct clock_event_device xen_vcpuop_clockevent = {
 };
 
 static const struct clock_event_device *xen_clockevent =
-	&xen_timerop_clockevent;
+		&xen_timerop_clockevent;
 
-struct xen_clock_event_device {
+struct xen_clock_event_device
+{
 	struct clock_event_device evt;
 	char name[16];
 };
@@ -294,7 +315,9 @@ static irqreturn_t xen_timer_interrupt(int irq, void *dev_id)
 	irqreturn_t ret;
 
 	ret = IRQ_NONE;
-	if (evt->event_handler) {
+
+	if (evt->event_handler)
+	{
 		evt->event_handler(evt);
 		ret = IRQ_HANDLED;
 	}
@@ -308,7 +331,8 @@ void xen_teardown_timer(int cpu)
 	BUG_ON(cpu == 0);
 	evt = &per_cpu(xen_clock_events, cpu).evt;
 
-	if (evt->irq >= 0) {
+	if (evt->irq >= 0)
+	{
 		unbind_from_irqhandler(evt->irq, NULL);
 		evt->irq = -1;
 	}
@@ -321,17 +345,20 @@ void xen_setup_timer(int cpu)
 	int irq;
 
 	WARN(evt->irq >= 0, "IRQ%d for CPU%d is already allocated\n", evt->irq, cpu);
+
 	if (evt->irq >= 0)
+	{
 		xen_teardown_timer(cpu);
+	}
 
 	printk(KERN_INFO "installing Xen timer for CPU %d\n", cpu);
 
 	snprintf(xevt->name, sizeof(xevt->name), "timer%d", cpu);
 
 	irq = bind_virq_to_irqhandler(VIRQ_TIMER, cpu, xen_timer_interrupt,
-				      IRQF_PERCPU|IRQF_NOBALANCING|IRQF_TIMER|
-				      IRQF_FORCE_RESUME|IRQF_EARLY_RESUME,
-				      xevt->name, NULL);
+								  IRQF_PERCPU | IRQF_NOBALANCING | IRQF_TIMER |
+								  IRQF_FORCE_RESUME | IRQF_EARLY_RESUME,
+								  xevt->name, NULL);
 	(void)xen_set_irq_priority(irq, XEN_IRQ_PRIORITY_MAX);
 
 	memcpy(evt, xen_clockevent, sizeof(*evt));
@@ -353,16 +380,22 @@ void xen_timer_resume(void)
 	pvclock_resume();
 
 	if (xen_clockevent != &xen_vcpuop_clockevent)
+	{
 		return;
+	}
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer,
-				       xen_vcpu_nr(cpu), NULL))
+							   xen_vcpu_nr(cpu), NULL))
+		{
 			BUG();
+		}
 	}
 }
 
-static const struct pv_time_ops xen_time_ops __initconst = {
+static const struct pv_time_ops xen_time_ops __initconst =
+{
 	.sched_clock = xen_clocksource_read,
 	.steal_clock = xen_steal_clock,
 };
@@ -374,12 +407,15 @@ static void __init xen_time_init(void)
 
 	/* As Dom0 is never moved, no penalty on using TSC there */
 	if (xen_initial_domain())
+	{
 		xen_clocksource.rating = 275;
+	}
 
 	clocksource_register_hz(&xen_clocksource, NSEC_PER_SEC);
 
 	if (HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, xen_vcpu_nr(cpu),
-			       NULL) == 0) {
+						   NULL) == 0)
+	{
 		/* Successfully turned off 100Hz tick, so we have the
 		   vcpuop-based timer interface */
 		printk(KERN_DEBUG "Xen: using vcpuop timer interface\n");
@@ -399,7 +435,9 @@ static void __init xen_time_init(void)
 	xen_time_setup_guest();
 
 	if (xen_initial_domain())
+	{
 		pvclock_gtod_register_notifier(&xen_pvclock_gtod_notifier);
+	}
 }
 
 void __init xen_init_time_ops(void)
@@ -412,9 +450,12 @@ void __init xen_init_time_ops(void)
 
 	x86_platform.calibrate_tsc = xen_tsc_khz;
 	x86_platform.get_wallclock = xen_get_wallclock;
+
 	/* Dom0 uses the native method to set the hardware RTC. */
 	if (!xen_initial_domain())
+	{
 		x86_platform.set_wallclock = xen_set_wallclock;
+	}
 }
 
 #ifdef CONFIG_XEN_PVHVM
@@ -432,9 +473,10 @@ static void xen_hvm_setup_cpu_clockevents(void)
 
 void __init xen_hvm_init_time_ops(void)
 {
-	if (!xen_feature(XENFEAT_hvm_safe_pvclock)) {
+	if (!xen_feature(XENFEAT_hvm_safe_pvclock))
+	{
 		printk(KERN_INFO "Xen doesn't support pvclock on HVM,"
-				"disable pv timer\n");
+			   "disable pv timer\n");
 		return;
 	}
 

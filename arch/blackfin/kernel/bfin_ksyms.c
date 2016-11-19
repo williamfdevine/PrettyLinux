@@ -83,44 +83,44 @@ EXPORT_SYMBOL(insl);
 EXPORT_SYMBOL(insl_16);
 
 #ifdef CONFIG_SMP
-EXPORT_SYMBOL(__raw_atomic_add_asm);
-EXPORT_SYMBOL(__raw_atomic_xadd_asm);
-EXPORT_SYMBOL(__raw_atomic_and_asm);
-EXPORT_SYMBOL(__raw_atomic_or_asm);
-EXPORT_SYMBOL(__raw_atomic_xor_asm);
-EXPORT_SYMBOL(__raw_atomic_test_asm);
+	EXPORT_SYMBOL(__raw_atomic_add_asm);
+	EXPORT_SYMBOL(__raw_atomic_xadd_asm);
+	EXPORT_SYMBOL(__raw_atomic_and_asm);
+	EXPORT_SYMBOL(__raw_atomic_or_asm);
+	EXPORT_SYMBOL(__raw_atomic_xor_asm);
+	EXPORT_SYMBOL(__raw_atomic_test_asm);
 
-EXPORT_SYMBOL(__raw_xchg_1_asm);
-EXPORT_SYMBOL(__raw_xchg_2_asm);
-EXPORT_SYMBOL(__raw_xchg_4_asm);
-EXPORT_SYMBOL(__raw_cmpxchg_1_asm);
-EXPORT_SYMBOL(__raw_cmpxchg_2_asm);
-EXPORT_SYMBOL(__raw_cmpxchg_4_asm);
-EXPORT_SYMBOL(__raw_spin_is_locked_asm);
-EXPORT_SYMBOL(__raw_spin_lock_asm);
-EXPORT_SYMBOL(__raw_spin_trylock_asm);
-EXPORT_SYMBOL(__raw_spin_unlock_asm);
-EXPORT_SYMBOL(__raw_read_lock_asm);
-EXPORT_SYMBOL(__raw_read_trylock_asm);
-EXPORT_SYMBOL(__raw_read_unlock_asm);
-EXPORT_SYMBOL(__raw_write_lock_asm);
-EXPORT_SYMBOL(__raw_write_trylock_asm);
-EXPORT_SYMBOL(__raw_write_unlock_asm);
-EXPORT_SYMBOL(__raw_bit_set_asm);
-EXPORT_SYMBOL(__raw_bit_clear_asm);
-EXPORT_SYMBOL(__raw_bit_toggle_asm);
-EXPORT_SYMBOL(__raw_bit_test_asm);
-EXPORT_SYMBOL(__raw_bit_test_set_asm);
-EXPORT_SYMBOL(__raw_bit_test_clear_asm);
-EXPORT_SYMBOL(__raw_bit_test_toggle_asm);
-EXPORT_SYMBOL(__raw_uncached_fetch_asm);
-#ifdef __ARCH_SYNC_CORE_DCACHE
-EXPORT_SYMBOL(__raw_smp_mark_barrier_asm);
-EXPORT_SYMBOL(__raw_smp_check_barrier_asm);
-#endif
+	EXPORT_SYMBOL(__raw_xchg_1_asm);
+	EXPORT_SYMBOL(__raw_xchg_2_asm);
+	EXPORT_SYMBOL(__raw_xchg_4_asm);
+	EXPORT_SYMBOL(__raw_cmpxchg_1_asm);
+	EXPORT_SYMBOL(__raw_cmpxchg_2_asm);
+	EXPORT_SYMBOL(__raw_cmpxchg_4_asm);
+	EXPORT_SYMBOL(__raw_spin_is_locked_asm);
+	EXPORT_SYMBOL(__raw_spin_lock_asm);
+	EXPORT_SYMBOL(__raw_spin_trylock_asm);
+	EXPORT_SYMBOL(__raw_spin_unlock_asm);
+	EXPORT_SYMBOL(__raw_read_lock_asm);
+	EXPORT_SYMBOL(__raw_read_trylock_asm);
+	EXPORT_SYMBOL(__raw_read_unlock_asm);
+	EXPORT_SYMBOL(__raw_write_lock_asm);
+	EXPORT_SYMBOL(__raw_write_trylock_asm);
+	EXPORT_SYMBOL(__raw_write_unlock_asm);
+	EXPORT_SYMBOL(__raw_bit_set_asm);
+	EXPORT_SYMBOL(__raw_bit_clear_asm);
+	EXPORT_SYMBOL(__raw_bit_toggle_asm);
+	EXPORT_SYMBOL(__raw_bit_test_asm);
+	EXPORT_SYMBOL(__raw_bit_test_set_asm);
+	EXPORT_SYMBOL(__raw_bit_test_clear_asm);
+	EXPORT_SYMBOL(__raw_bit_test_toggle_asm);
+	EXPORT_SYMBOL(__raw_uncached_fetch_asm);
+	#ifdef __ARCH_SYNC_CORE_DCACHE
+		EXPORT_SYMBOL(__raw_smp_mark_barrier_asm);
+		EXPORT_SYMBOL(__raw_smp_check_barrier_asm);
+	#endif
 #endif
 
 #ifdef CONFIG_FUNCTION_TRACER
-extern void _mcount(void);
-EXPORT_SYMBOL(_mcount);
+	extern void _mcount(void);
+	EXPORT_SYMBOL(_mcount);
 #endif

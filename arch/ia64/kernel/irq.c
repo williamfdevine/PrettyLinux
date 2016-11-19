@@ -66,20 +66,25 @@ static char irq_redir [NR_IRQS]; // = { [0 ... NR_IRQS-1] = 1 };
 
 void set_irq_affinity_info (unsigned int irq, int hwid, int redir)
 {
-	if (irq < NR_IRQS) {
+	if (irq < NR_IRQS)
+	{
 		cpumask_copy(irq_get_affinity_mask(irq),
-			     cpumask_of(cpu_logical_id(hwid)));
+					 cpumask_of(cpu_logical_id(hwid)));
 		irq_redir[irq] = (char) (redir & 0xff);
 	}
 }
 
 bool is_affinity_mask_valid(const struct cpumask *cpumask)
 {
-	if (ia64_platform_is("sn2")) {
+	if (ia64_platform_is("sn2"))
+	{
 		/* Only allow one CPU to be specified in the smp_affinity mask */
 		if (cpumask_weight(cpumask) != 1)
+		{
 			return false;
+		}
 	}
+
 	return true;
 }
 
@@ -102,13 +107,16 @@ static void migrate_irqs(void)
 {
 	int 		irq, new_cpu;
 
-	for (irq=0; irq < NR_IRQS; irq++) {
+	for (irq = 0; irq < NR_IRQS; irq++)
+	{
 		struct irq_desc *desc = irq_to_desc(irq);
 		struct irq_data *data = irq_desc_get_irq_data(desc);
 		struct irq_chip *chip = irq_data_get_irq_chip(data);
 
 		if (irqd_irq_disabled(data))
+		{
 			continue;
+		}
 
 		/*
 		 * No handling for now.
@@ -117,10 +125,13 @@ static void migrate_irqs(void)
 		 * such as ITV,CPEI,MCA etc.
 		 */
 		if (irqd_is_per_cpu(data))
+		{
 			continue;
+		}
 
 		if (cpumask_any_and(irq_data_get_affinity_mask(data),
-				    cpu_online_mask) >= nr_cpu_ids) {
+							cpu_online_mask) >= nr_cpu_ids)
+		{
 			/*
 			 * Save it for phase 2 processing
 			 */
@@ -132,15 +143,18 @@ static void migrate_irqs(void)
 			 * Al three are essential, currently WARN_ON.. maybe panic?
 			 */
 			if (chip && chip->irq_disable &&
-				chip->irq_enable && chip->irq_set_affinity) {
+				chip->irq_enable && chip->irq_set_affinity)
+			{
 				chip->irq_disable(data);
 				chip->irq_set_affinity(data,
-						       cpumask_of(new_cpu), false);
+									   cpumask_of(new_cpu), false);
 				chip->irq_enable(data);
-			} else {
+			}
+			else
+			{
 				WARN_ON((!chip || !chip->irq_disable ||
-					 !chip->irq_enable ||
-					 !chip->irq_set_affinity));
+						 !chip->irq_enable ||
+						 !chip->irq_set_affinity));
 			}
 		}
 	}
@@ -158,7 +172,8 @@ void fixup_irqs(void)
 	/*
 	 * Find a new timesync master
 	 */
-	if (smp_processor_id() == time_keeper_id) {
+	if (smp_processor_id() == time_keeper_id)
+	{
 		time_keeper_id = cpumask_first(cpu_online_mask);
 		printk ("CPU %d is now promoted to time-keeper master\n", time_keeper_id);
 	}
@@ -180,11 +195,13 @@ void fixup_irqs(void)
 	 * This is to account for cases that device interrupted during the time the
 	 * rte was being disabled and re-programmed.
 	 */
-	for (irq=0; irq < NR_IRQS; irq++) {
-		if (vectors_in_migration[irq]) {
+	for (irq = 0; irq < NR_IRQS; irq++)
+	{
+		if (vectors_in_migration[irq])
+		{
 			struct pt_regs *old_regs = set_irq_regs(NULL);
 
-			vectors_in_migration[irq]=0;
+			vectors_in_migration[irq] = 0;
 			generic_handle_irq(irq);
 			set_irq_regs(old_regs);
 		}

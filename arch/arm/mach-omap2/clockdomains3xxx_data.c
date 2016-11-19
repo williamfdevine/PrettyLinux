@@ -53,21 +53,24 @@
  * 3430ES1 PM_WKDEP_GFX: adds IVA2, removes CORE
  * 3430ES2 PM_WKDEP_SGX: adds IVA2, removes CORE
  */
-static struct clkdm_dep gfx_sgx_3xxx_wkdeps[] = {
+static struct clkdm_dep gfx_sgx_3xxx_wkdeps[] =
+{
 	{ .clkdm_name = "iva2_clkdm" },
 	{ .clkdm_name = "mpu_clkdm" },
 	{ .clkdm_name = "wkup_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep gfx_sgx_am35x_wkdeps[] = {
+static struct clkdm_dep gfx_sgx_am35x_wkdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ .clkdm_name = "wkup_clkdm" },
 	{ NULL },
 };
 
 /* 3430: PM_WKDEP_PER: CORE, IVA2, MPU, WKUP */
-static struct clkdm_dep per_wkdeps[] = {
+static struct clkdm_dep per_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "iva2_clkdm" },
@@ -76,7 +79,8 @@ static struct clkdm_dep per_wkdeps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep per_am35x_wkdeps[] = {
+static struct clkdm_dep per_am35x_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "mpu_clkdm" },
@@ -85,7 +89,8 @@ static struct clkdm_dep per_am35x_wkdeps[] = {
 };
 
 /* 3430ES2: PM_WKDEP_USBHOST: CORE, IVA2, MPU, WKUP */
-static struct clkdm_dep usbhost_wkdeps[] = {
+static struct clkdm_dep usbhost_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "iva2_clkdm" },
@@ -94,7 +99,8 @@ static struct clkdm_dep usbhost_wkdeps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep usbhost_am35x_wkdeps[] = {
+static struct clkdm_dep usbhost_am35x_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "mpu_clkdm" },
@@ -103,7 +109,8 @@ static struct clkdm_dep usbhost_am35x_wkdeps[] = {
 };
 
 /* 3430 PM_WKDEP_MPU: CORE, IVA2, DSS, PER */
-static struct clkdm_dep mpu_3xxx_wkdeps[] = {
+static struct clkdm_dep mpu_3xxx_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "iva2_clkdm" },
@@ -112,7 +119,8 @@ static struct clkdm_dep mpu_3xxx_wkdeps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep mpu_am35x_wkdeps[] = {
+static struct clkdm_dep mpu_am35x_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "dss_clkdm" },
@@ -121,7 +129,8 @@ static struct clkdm_dep mpu_am35x_wkdeps[] = {
 };
 
 /* 3430 PM_WKDEP_IVA2: CORE, MPU, WKUP, DSS, PER */
-static struct clkdm_dep iva2_wkdeps[] = {
+static struct clkdm_dep iva2_wkdeps[] =
+{
 	{ .clkdm_name = "core_l3_clkdm" },
 	{ .clkdm_name = "core_l4_clkdm" },
 	{ .clkdm_name = "mpu_clkdm" },
@@ -132,7 +141,8 @@ static struct clkdm_dep iva2_wkdeps[] = {
 };
 
 /* 3430 PM_WKDEP_CAM: IVA2, MPU, WKUP */
-static struct clkdm_dep cam_wkdeps[] = {
+static struct clkdm_dep cam_wkdeps[] =
+{
 	{ .clkdm_name = "iva2_clkdm" },
 	{ .clkdm_name = "mpu_clkdm" },
 	{ .clkdm_name = "wkup_clkdm" },
@@ -140,21 +150,24 @@ static struct clkdm_dep cam_wkdeps[] = {
 };
 
 /* 3430 PM_WKDEP_DSS: IVA2, MPU, WKUP */
-static struct clkdm_dep dss_wkdeps[] = {
+static struct clkdm_dep dss_wkdeps[] =
+{
 	{ .clkdm_name = "iva2_clkdm" },
 	{ .clkdm_name = "mpu_clkdm" },
 	{ .clkdm_name = "wkup_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep dss_am35x_wkdeps[] = {
+static struct clkdm_dep dss_am35x_wkdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ .clkdm_name = "wkup_clkdm" },
 	{ NULL },
 };
 
 /* 3430: PM_WKDEP_NEON: MPU */
-static struct clkdm_dep neon_wkdeps[] = {
+static struct clkdm_dep neon_wkdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ NULL },
 };
@@ -162,43 +175,50 @@ static struct clkdm_dep neon_wkdeps[] = {
 /* Sleep dependency source arrays for OMAP3-specific clkdms */
 
 /* 3430: CM_SLEEPDEP_DSS: MPU, IVA */
-static struct clkdm_dep dss_sleepdeps[] = {
+static struct clkdm_dep dss_sleepdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ .clkdm_name = "iva2_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep dss_am35x_sleepdeps[] = {
+static struct clkdm_dep dss_am35x_sleepdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ NULL },
 };
 
 /* 3430: CM_SLEEPDEP_PER: MPU, IVA */
-static struct clkdm_dep per_sleepdeps[] = {
+static struct clkdm_dep per_sleepdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ .clkdm_name = "iva2_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep per_am35x_sleepdeps[] = {
+static struct clkdm_dep per_am35x_sleepdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ NULL },
 };
 
 /* 3430ES2: CM_SLEEPDEP_USBHOST: MPU, IVA */
-static struct clkdm_dep usbhost_sleepdeps[] = {
+static struct clkdm_dep usbhost_sleepdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ .clkdm_name = "iva2_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep usbhost_am35x_sleepdeps[] = {
+static struct clkdm_dep usbhost_am35x_sleepdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ NULL },
 };
 
 /* 3430: CM_SLEEPDEP_CAM: MPU */
-static struct clkdm_dep cam_sleepdeps[] = {
+static struct clkdm_dep cam_sleepdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ NULL },
 };
@@ -209,7 +229,8 @@ static struct clkdm_dep cam_sleepdeps[] = {
  * These can share data since they will never be present simultaneously
  * on the same device.
  */
-static struct clkdm_dep gfx_sgx_sleepdeps[] = {
+static struct clkdm_dep gfx_sgx_sleepdeps[] =
+{
 	{ .clkdm_name = "mpu_clkdm" },
 	{ NULL },
 };
@@ -218,7 +239,8 @@ static struct clkdm_dep gfx_sgx_sleepdeps[] = {
  * OMAP3 clockdomains
  */
 
-static struct clockdomain mpu_3xxx_clkdm = {
+static struct clockdomain mpu_3xxx_clkdm =
+{
 	.name		= "mpu_clkdm",
 	.pwrdm		= { .name = "mpu_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
@@ -227,7 +249,8 @@ static struct clockdomain mpu_3xxx_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
 };
 
-static struct clockdomain mpu_am35x_clkdm = {
+static struct clockdomain mpu_am35x_clkdm =
+{
 	.name		= "mpu_clkdm",
 	.pwrdm		= { .name = "mpu_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP | CLKDM_CAN_FORCE_WAKEUP,
@@ -236,7 +259,8 @@ static struct clockdomain mpu_am35x_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_MPU_MASK,
 };
 
-static struct clockdomain neon_clkdm = {
+static struct clockdomain neon_clkdm =
+{
 	.name		= "neon_clkdm",
 	.pwrdm		= { .name = "neon_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -244,7 +268,8 @@ static struct clockdomain neon_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_NEON_MASK,
 };
 
-static struct clockdomain iva2_clkdm = {
+static struct clockdomain iva2_clkdm =
+{
 	.name		= "iva2_clkdm",
 	.pwrdm		= { .name = "iva2_pwrdm" },
 	.flags		= CLKDM_CAN_SWSUP,
@@ -253,7 +278,8 @@ static struct clockdomain iva2_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_IVA2_MASK,
 };
 
-static struct clockdomain gfx_3430es1_clkdm = {
+static struct clockdomain gfx_3430es1_clkdm =
+{
 	.name		= "gfx_clkdm",
 	.pwrdm		= { .name = "gfx_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -262,7 +288,8 @@ static struct clockdomain gfx_3430es1_clkdm = {
 	.clktrctrl_mask = OMAP3430ES1_CLKTRCTRL_GFX_MASK,
 };
 
-static struct clockdomain sgx_clkdm = {
+static struct clockdomain sgx_clkdm =
+{
 	.name		= "sgx_clkdm",
 	.pwrdm		= { .name = "sgx_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -271,7 +298,8 @@ static struct clockdomain sgx_clkdm = {
 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
 };
 
-static struct clockdomain sgx_am35x_clkdm = {
+static struct clockdomain sgx_am35x_clkdm =
+{
 	.name		= "sgx_clkdm",
 	.pwrdm		= { .name = "sgx_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -287,7 +315,8 @@ static struct clockdomain sgx_am35x_clkdm = {
  * is there, and must be programmed to an appropriate state if the
  * CORE clockdomain is to become inactive.
  */
-static struct clockdomain d2d_clkdm = {
+static struct clockdomain d2d_clkdm =
+{
 	.name		= "d2d_clkdm",
 	.pwrdm		= { .name = "core_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -299,7 +328,8 @@ static struct clockdomain d2d_clkdm = {
  * of a single dep bit for core_l3_3xxx_clkdm and core_l4_3xxx_clkdm
  * could cause trouble
  */
-static struct clockdomain core_l3_3xxx_clkdm = {
+static struct clockdomain core_l3_3xxx_clkdm =
+{
 	.name		= "core_l3_clkdm",
 	.pwrdm		= { .name = "core_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP,
@@ -312,7 +342,8 @@ static struct clockdomain core_l3_3xxx_clkdm = {
  * of a single dep bit for core_l3_3xxx_clkdm and core_l4_3xxx_clkdm
  * could cause trouble
  */
-static struct clockdomain core_l4_3xxx_clkdm = {
+static struct clockdomain core_l4_3xxx_clkdm =
+{
 	.name		= "core_l4_clkdm",
 	.pwrdm		= { .name = "core_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP,
@@ -321,7 +352,8 @@ static struct clockdomain core_l4_3xxx_clkdm = {
 };
 
 /* Another case of bit name collisions between several registers: EN_DSS */
-static struct clockdomain dss_3xxx_clkdm = {
+static struct clockdomain dss_3xxx_clkdm =
+{
 	.name		= "dss_clkdm",
 	.pwrdm		= { .name = "dss_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -331,7 +363,8 @@ static struct clockdomain dss_3xxx_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
 };
 
-static struct clockdomain dss_am35x_clkdm = {
+static struct clockdomain dss_am35x_clkdm =
+{
 	.name		= "dss_clkdm",
 	.pwrdm		= { .name = "dss_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -341,7 +374,8 @@ static struct clockdomain dss_am35x_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_DSS_MASK,
 };
 
-static struct clockdomain cam_clkdm = {
+static struct clockdomain cam_clkdm =
+{
 	.name		= "cam_clkdm",
 	.pwrdm		= { .name = "cam_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -350,7 +384,8 @@ static struct clockdomain cam_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_CAM_MASK,
 };
 
-static struct clockdomain usbhost_clkdm = {
+static struct clockdomain usbhost_clkdm =
+{
 	.name		= "usbhost_clkdm",
 	.pwrdm		= { .name = "usbhost_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -359,7 +394,8 @@ static struct clockdomain usbhost_clkdm = {
 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
 };
 
-static struct clockdomain usbhost_am35x_clkdm = {
+static struct clockdomain usbhost_am35x_clkdm =
+{
 	.name		= "usbhost_clkdm",
 	.pwrdm		= { .name = "core_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -368,7 +404,8 @@ static struct clockdomain usbhost_am35x_clkdm = {
 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
 };
 
-static struct clockdomain per_clkdm = {
+static struct clockdomain per_clkdm =
+{
 	.name		= "per_clkdm",
 	.pwrdm		= { .name = "per_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -378,7 +415,8 @@ static struct clockdomain per_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
 };
 
-static struct clockdomain per_am35x_clkdm = {
+static struct clockdomain per_am35x_clkdm =
+{
 	.name		= "per_clkdm",
 	.pwrdm		= { .name = "per_pwrdm" },
 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
@@ -388,35 +426,41 @@ static struct clockdomain per_am35x_clkdm = {
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_PER_MASK,
 };
 
-static struct clockdomain emu_clkdm = {
+static struct clockdomain emu_clkdm =
+{
 	.name		= "emu_clkdm",
 	.pwrdm		= { .name = "emu_pwrdm" },
 	.flags		= (CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_SWSUP |
-			   CLKDM_MISSING_IDLE_REPORTING),
+	CLKDM_MISSING_IDLE_REPORTING),
 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_EMU_MASK,
 };
 
-static struct clockdomain dpll1_clkdm = {
+static struct clockdomain dpll1_clkdm =
+{
 	.name		= "dpll1_clkdm",
 	.pwrdm		= { .name = "dpll1_pwrdm" },
 };
 
-static struct clockdomain dpll2_clkdm = {
+static struct clockdomain dpll2_clkdm =
+{
 	.name		= "dpll2_clkdm",
 	.pwrdm		= { .name = "dpll2_pwrdm" },
 };
 
-static struct clockdomain dpll3_clkdm = {
+static struct clockdomain dpll3_clkdm =
+{
 	.name		= "dpll3_clkdm",
 	.pwrdm		= { .name = "dpll3_pwrdm" },
 };
 
-static struct clockdomain dpll4_clkdm = {
+static struct clockdomain dpll4_clkdm =
+{
 	.name		= "dpll4_clkdm",
 	.pwrdm		= { .name = "dpll4_pwrdm" },
 };
 
-static struct clockdomain dpll5_clkdm = {
+static struct clockdomain dpll5_clkdm =
+{
 	.name		= "dpll5_clkdm",
 	.pwrdm		= { .name = "dpll5_pwrdm" },
 };
@@ -425,7 +469,8 @@ static struct clockdomain dpll5_clkdm = {
  * Clockdomain hwsup dependencies
  */
 
-static struct clkdm_autodep clkdm_autodeps[] = {
+static struct clkdm_autodep clkdm_autodeps[] =
+{
 	{
 		.clkdm = { .name = "mpu_clkdm" },
 	},
@@ -437,7 +482,8 @@ static struct clkdm_autodep clkdm_autodeps[] = {
 	}
 };
 
-static struct clkdm_autodep clkdm_am35x_autodeps[] = {
+static struct clkdm_autodep clkdm_am35x_autodeps[] =
+{
 	{
 		.clkdm = { .name = "mpu_clkdm" },
 	},
@@ -450,7 +496,8 @@ static struct clkdm_autodep clkdm_am35x_autodeps[] = {
  *
  */
 
-static struct clockdomain *clockdomains_common[] __initdata = {
+static struct clockdomain *clockdomains_common[] __initdata =
+{
 	&wkup_common_clkdm,
 	&neon_clkdm,
 	&core_l3_3xxx_clkdm,
@@ -462,7 +509,8 @@ static struct clockdomain *clockdomains_common[] __initdata = {
 	NULL
 };
 
-static struct clockdomain *clockdomains_omap3430[] __initdata = {
+static struct clockdomain *clockdomains_omap3430[] __initdata =
+{
 	&mpu_3xxx_clkdm,
 	&iva2_clkdm,
 	&d2d_clkdm,
@@ -473,19 +521,22 @@ static struct clockdomain *clockdomains_omap3430[] __initdata = {
 	NULL
 };
 
-static struct clockdomain *clockdomains_omap3430es1[] __initdata = {
+static struct clockdomain *clockdomains_omap3430es1[] __initdata =
+{
 	&gfx_3430es1_clkdm,
 	NULL,
 };
 
-static struct clockdomain *clockdomains_omap3430es2plus[] __initdata = {
+static struct clockdomain *clockdomains_omap3430es2plus[] __initdata =
+{
 	&sgx_clkdm,
 	&dpll5_clkdm,
 	&usbhost_clkdm,
 	NULL,
 };
 
-static struct clockdomain *clockdomains_am35x[] __initdata = {
+static struct clockdomain *clockdomains_am35x[] __initdata =
+{
 	&mpu_am35x_clkdm,
 	&sgx_am35x_clkdm,
 	&dss_am35x_clkdm,
@@ -501,21 +552,26 @@ void __init omap3xxx_clockdomains_init(void)
 	unsigned int rev;
 
 	if (!cpu_is_omap34xx())
+	{
 		return;
+	}
 
 	clkdm_register_platform_funcs(&omap3_clkdm_operations);
 	clkdm_register_clkdms(clockdomains_common);
 
 	rev = omap_rev();
 
-	if (rev == AM35XX_REV_ES1_0 || rev == AM35XX_REV_ES1_1) {
+	if (rev == AM35XX_REV_ES1_0 || rev == AM35XX_REV_ES1_1)
+	{
 		clkdm_register_clkdms(clockdomains_am35x);
 		clkdm_register_autodeps(clkdm_am35x_autodeps);
-	} else {
+	}
+	else
+	{
 		clkdm_register_clkdms(clockdomains_omap3430);
 
 		sc = (rev == OMAP3430_REV_ES1_0) ?
-			clockdomains_omap3430es1 : clockdomains_omap3430es2plus;
+			 clockdomains_omap3430es1 : clockdomains_omap3430es2plus;
 
 		clkdm_register_clkdms(sc);
 		clkdm_register_autodeps(clkdm_autodeps);

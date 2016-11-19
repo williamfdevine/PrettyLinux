@@ -27,9 +27,9 @@
 // #define DEBUG
 
 #ifdef DEBUG
-#define  DBG(x...) printk(x)
+	#define  DBG(x...) printk(x)
 #else
-#define  DBG(x...) do { } while (0)
+	#define  DBG(x...) do { } while (0)
 #endif
 
 /*
@@ -42,9 +42,13 @@ static u32 iop3xx_cfg_address(struct pci_bus *bus, int devfn, int where)
 	u32 addr;
 
 	if (sys->busnr == bus->number)
+	{
 		addr = 1 << (PCI_SLOT(devfn) + 16) | (PCI_SLOT(devfn) << 11);
+	}
 	else
+	{
 		addr = bus->number << 16 | PCI_SLOT(devfn) << 11 | 1;
+	}
 
 	addr |=	PCI_FUNC(devfn) << 8 | (where & ~3);
 
@@ -67,14 +71,18 @@ static int iop3xx_pci_status(void)
 	 * Check the status registers.
 	 */
 	status = *IOP3XX_ATUSR;
-	if (status & 0xf900) {
+
+	if (status & 0xf900)
+	{
 		DBG("\t\t\tPCI: P0 - status = 0x%08x\n", status);
 		*IOP3XX_ATUSR = status & 0xf900;
 		ret = 1;
 	}
 
 	status = *IOP3XX_ATUISR;
-	if (status & 0x679f) {
+
+	if (status & 0x679f)
+	{
 		DBG("\t\t\tPCI: P1 - status = 0x%08x\n", status);
 		*IOP3XX_ATUISR = status & 0x679f;
 		ret = 1;
@@ -111,13 +119,15 @@ static u32 iop3xx_read(unsigned long addr)
  */
 static int
 iop3xx_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		int size, u32 *value)
+				   int size, u32 *value)
 {
 	unsigned long addr = iop3xx_cfg_address(bus, devfn, where);
 	u32 val = iop3xx_read(addr) >> ((where & 3) * 8);
 
 	if (iop3xx_pci_status())
+	{
 		val = 0xffffffff;
+	}
 
 	*value = val;
 
@@ -126,25 +136,35 @@ iop3xx_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 
 static int
 iop3xx_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		int size, u32 value)
+					int size, u32 value)
 {
 	unsigned long addr = iop3xx_cfg_address(bus, devfn, where);
 	u32 val;
 
-	if (size != 4) {
+	if (size != 4)
+	{
 		val = iop3xx_read(addr);
+
 		if (iop3xx_pci_status())
+		{
 			return PCIBIOS_SUCCESSFUL;
+		}
 
 		where = (where & 3) * 8;
 
 		if (size == 1)
+		{
 			val &= ~(0xff << where);
+		}
 		else
+		{
 			val &= ~(0xffff << where);
+		}
 
 		*IOP3XX_OCCDR = val | value << where;
-	} else {
+	}
+	else
+	{
 		asm volatile(
 			"str	%1, [%2]\n\t"
 			"str	%0, [%3]\n\t"
@@ -154,13 +174,14 @@ iop3xx_write_config(struct pci_bus *bus, unsigned int devfn, int where,
 			"nop\n\t"
 			:
 			: "r" (value), "r" (addr),
-			  "r" (IOP3XX_OCCAR), "r" (IOP3XX_OCCDR));
+			"r" (IOP3XX_OCCAR), "r" (IOP3XX_OCCDR));
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops iop3xx_ops = {
+struct pci_ops iop3xx_ops =
+{
 	.read	= iop3xx_read_config,
 	.write	= iop3xx_write_config,
 };
@@ -180,7 +201,9 @@ iop3xx_pci_abort(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	 * return address to be _after_ the instruction.
 	 */
 	if (fsr & (1 << 10))
+	{
 		regs->ARM_pc += 4;
+	}
 
 	return 0;
 }
@@ -190,11 +213,16 @@ int iop3xx_pci_setup(int nr, struct pci_sys_data *sys)
 	struct resource *res;
 
 	if (nr != 0)
+	{
 		return 0;
+	}
 
 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+
 	if (!res)
+	{
 		panic("PCI: unable to alloc resources");
+	}
 
 	res->start = IOP3XX_PCI_LOWER_MEM_PA;
 	res->end   = IOP3XX_PCI_LOWER_MEM_PA + IOP3XX_PCI_MEM_WINDOW_SIZE - 1;
@@ -234,8 +262,8 @@ void __init iop3xx_atu_setup(void)
 
 	/* Align the inbound bar with the base of memory */
 	*IOP3XX_IABAR2 = PHYS_OFFSET |
-			       PCI_BASE_ADDRESS_MEM_TYPE_64 |
-			       PCI_BASE_ADDRESS_MEM_PREFETCH;
+					 PCI_BASE_ADDRESS_MEM_TYPE_64 |
+					 PCI_BASE_ADDRESS_MEM_PREFETCH;
 
 	*IOP3XX_IATVR2 = PHYS_OFFSET;
 
@@ -245,7 +273,7 @@ void __init iop3xx_atu_setup(void)
 
 	/* Outbound window 1 */
 	*IOP3XX_OMWTVR1 = IOP3XX_PCI_LOWER_MEM_BA +
-			  IOP3XX_PCI_MEM_WINDOW_SIZE / 2;
+					  IOP3XX_PCI_MEM_WINDOW_SIZE / 2;
 	*IOP3XX_OUMWTVR1 = 0;
 
 	/* BAR 3 ( Disabled ) */
@@ -261,7 +289,7 @@ void __init iop3xx_atu_setup(void)
 	/* Enable inbound and outbound cycles
 	 */
 	*IOP3XX_ATUCMD |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER |
-			       PCI_COMMAND_PARITY | PCI_COMMAND_SERR;
+					  PCI_COMMAND_PARITY | PCI_COMMAND_SERR;
 	*IOP3XX_ATUCR |= IOP3XX_ATUCR_OUT_EN;
 }
 
@@ -272,8 +300,10 @@ void __init iop3xx_atu_disable(void)
 
 	/* wait for cycles to quiesce */
 	while (*IOP3XX_PCSR & (IOP3XX_PCSR_OUT_Q_BUSY |
-				     IOP3XX_PCSR_IN_Q_BUSY))
+						   IOP3XX_PCSR_IN_Q_BUSY))
+	{
 		cpu_relax();
+	}
 
 	/* BAR 0 ( Disabled ) */
 	*IOP3XX_IAUBAR0 = 0x0;
@@ -313,12 +343,17 @@ void __init iop3xx_atu_disable(void)
 /* Flag to determine whether the ATU is initialized and the PCI bus scanned */
 int init_atu;
 
-int iop3xx_get_init_atu(void) {
+int iop3xx_get_init_atu(void)
+{
 	/* check if default has been overridden */
 	if (init_atu != IOP3XX_INIT_ATU_DEFAULT)
+	{
 		return init_atu;
+	}
 	else
+	{
 		return IOP3XX_INIT_ATU_DISABLE;
+	}
 }
 
 static void __init iop3xx_atu_debug(void)
@@ -346,13 +381,14 @@ static void __init iop3xx_atu_debug(void)
 	DBG("ATU: IOP3XX_ATUCMD=0x%04x\n", *IOP3XX_ATUCMD);
 	DBG("ATU: IOP3XX_ATUCR=0x%08x\n", *IOP3XX_ATUCR);
 
-	hook_fault_code(16+6, iop3xx_pci_abort, SIGBUS, 0, "imprecise external abort");
+	hook_fault_code(16 + 6, iop3xx_pci_abort, SIGBUS, 0, "imprecise external abort");
 }
 
 /* for platforms that might be host-bus-adapters */
 void __init iop3xx_pci_preinit_cond(void)
 {
-	if (iop3xx_get_init_atu() == IOP3XX_INIT_ATU_ENABLE) {
+	if (iop3xx_get_init_atu() == IOP3XX_INIT_ATU_ENABLE)
+	{
 		iop3xx_atu_disable();
 		iop3xx_atu_setup();
 		iop3xx_atu_debug();
@@ -372,27 +408,35 @@ void __init iop3xx_pci_preinit(void)
 static int __init iop3xx_init_atu_setup(char *str)
 {
 	init_atu = IOP3XX_INIT_ATU_DEFAULT;
-	if (str) {
-		while (*str != '\0') {
-			switch (*str) {
-			case 'y':
-			case 'Y':
-				init_atu = IOP3XX_INIT_ATU_ENABLE;
-				break;
-			case 'n':
-			case 'N':
-				init_atu = IOP3XX_INIT_ATU_DISABLE;
-				break;
-			case ',':
-			case '=':
-				break;
-			default:
-				printk(KERN_DEBUG "\"%s\" malformed at "
-					    "character: \'%c\'",
-					    __func__,
-					    *str);
-				*(str + 1) = '\0';
+
+	if (str)
+	{
+		while (*str != '\0')
+		{
+			switch (*str)
+			{
+				case 'y':
+				case 'Y':
+					init_atu = IOP3XX_INIT_ATU_ENABLE;
+					break;
+
+				case 'n':
+				case 'N':
+					init_atu = IOP3XX_INIT_ATU_DISABLE;
+					break;
+
+				case ',':
+				case '=':
+					break;
+
+				default:
+					printk(KERN_DEBUG "\"%s\" malformed at "
+						   "character: \'%c\'",
+						   __func__,
+						   *str);
+					*(str + 1) = '\0';
 			}
+
 			str++;
 		}
 	}

@@ -23,35 +23,40 @@
 /*
  * NEC VR4100 series GIU platform device IDs.
  */
-enum {
+enum
+{
 	GPIO_50PINS_PULLUPDOWN,
 	GPIO_36PINS,
 	GPIO_48PINS_EDGE_SELECT,
 };
 
-typedef enum {
+typedef enum
+{
 	IRQ_TRIGGER_LEVEL,
 	IRQ_TRIGGER_EDGE,
 	IRQ_TRIGGER_EDGE_FALLING,
 	IRQ_TRIGGER_EDGE_RISING,
 } irq_trigger_t;
 
-typedef enum {
+typedef enum
+{
 	IRQ_SIGNAL_THROUGH,
 	IRQ_SIGNAL_HOLD,
 } irq_signal_t;
 
 extern void vr41xx_set_irq_trigger(unsigned int pin, irq_trigger_t trigger,
-				   irq_signal_t signal);
+								   irq_signal_t signal);
 
-typedef enum {
+typedef enum
+{
 	IRQ_LEVEL_LOW,
 	IRQ_LEVEL_HIGH,
 } irq_level_t;
 
 extern void vr41xx_set_irq_level(unsigned int pin, irq_level_t level);
 
-typedef enum {
+typedef enum
+{
 	GPIO_PULL_DOWN,
 	GPIO_PULL_UP,
 	GPIO_PULL_DISABLE,

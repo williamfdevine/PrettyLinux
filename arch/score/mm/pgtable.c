@@ -33,7 +33,8 @@ void pgd_init(unsigned long page)
 	unsigned long *p = (unsigned long *) page;
 	int i;
 
-	for (i = 0; i < USER_PTRS_PER_PGD; i += 8) {
+	for (i = 0; i < USER_PTRS_PER_PGD; i += 8)
+	{
 		p[i + 0] = (unsigned long) invalid_pte_table;
 		p[i + 1] = (unsigned long) invalid_pte_table;
 		p[i + 2] = (unsigned long) invalid_pte_table;

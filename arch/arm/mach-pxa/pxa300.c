@@ -23,7 +23,8 @@
 #include "generic.h"
 #include "devices.h"
 
-static struct mfp_addr_map pxa300_mfp_addr_map[] __initdata = {
+static struct mfp_addr_map pxa300_mfp_addr_map[] __initdata =
+{
 
 	MFP_ADDR_X(GPIO0,   GPIO2,   0x00b4),
 	MFP_ADDR_X(GPIO3,   GPIO26,  0x027c),
@@ -72,7 +73,8 @@ static struct mfp_addr_map pxa300_mfp_addr_map[] __initdata = {
 };
 
 /* override pxa300 MFP register addresses */
-static struct mfp_addr_map pxa310_mfp_addr_map[] __initdata = {
+static struct mfp_addr_map pxa310_mfp_addr_map[] __initdata =
+{
 	MFP_ADDR_X(GPIO30,  GPIO98,   0x0418),
 	MFP_ADDR_X(GPIO7_2, GPIO12_2, 0x052C),
 
@@ -85,13 +87,16 @@ static struct mfp_addr_map pxa310_mfp_addr_map[] __initdata = {
 
 static int __init pxa300_init(void)
 {
-	if (cpu_is_pxa300() || cpu_is_pxa310()) {
+	if (cpu_is_pxa300() || cpu_is_pxa310())
+	{
 		mfp_init_base(io_p2v(MFPR_BASE));
 		mfp_init_addr(pxa300_mfp_addr_map);
 	}
 
 	if (cpu_is_pxa310())
+	{
 		mfp_init_addr(pxa310_mfp_addr_map);
+	}
 
 	return 0;
 }

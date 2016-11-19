@@ -68,6 +68,7 @@ void machine_halt(void)
 {
 	local_irq_disable();
 	__asm__("sleep");
+
 	for (;;)
 		;
 }
@@ -76,6 +77,7 @@ void machine_power_off(void)
 {
 	local_irq_disable();
 	__asm__("sleep");
+
 	for (;;)
 		;
 }
@@ -86,16 +88,21 @@ void show_regs(struct pt_regs *regs)
 
 	pr_notice("\n");
 	pr_notice("PC: %08lx  Status: %02x\n",
-	       regs->pc, regs->ccr);
+			  regs->pc, regs->ccr);
 	pr_notice("ORIG_ER0: %08lx ER0: %08lx ER1: %08lx\n",
-	       regs->orig_er0, regs->er0, regs->er1);
+			  regs->orig_er0, regs->er0, regs->er1);
 	pr_notice("ER2: %08lx ER3: %08lx ER4: %08lx ER5: %08lx\n",
-	       regs->er2, regs->er3, regs->er4, regs->er5);
+			  regs->er2, regs->er3, regs->er4, regs->er5);
 	pr_notice("ER6' %08lx ", regs->er6);
+
 	if (user_mode(regs))
+	{
 		printk("USP: %08lx\n", rdusp());
+	}
 	else
+	{
 		printk("\n");
+	}
 }
 
 void flush_thread(void)
@@ -103,24 +110,28 @@ void flush_thread(void)
 }
 
 int copy_thread(unsigned long clone_flags,
-		unsigned long usp, unsigned long topstk,
-		struct task_struct *p)
+				unsigned long usp, unsigned long topstk,
+				struct task_struct *p)
 {
 	struct pt_regs *childregs;
 
 	childregs = (struct pt_regs *) (THREAD_SIZE + task_stack_page(p)) - 1;
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		memset(childregs, 0, sizeof(struct pt_regs));
 		childregs->retpc = (unsigned long) ret_from_kernel_thread;
 		childregs->er4 = topstk; /* arg */
 		childregs->er5 = usp; /* fn */
-	}  else {
+	}
+	else
+	{
 		*childregs = *current_pt_regs();
 		childregs->er0 = 0;
 		childregs->retpc = (unsigned long) ret_from_fork;
-		p->thread.usp = usp ?: rdusp();
+		p->thread.usp = usp ? : rdusp();
 	}
+
 	p->thread.ksp = (unsigned long)childregs;
 
 	return 0;
@@ -138,19 +149,32 @@ unsigned long get_wchan(struct task_struct *p)
 	int count = 0;
 
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	stack_page = (unsigned long)p;
 	fp = ((struct pt_regs *)p->thread.ksp)->er6;
-	do {
-		if (fp < stack_page+sizeof(struct thread_info) ||
-		    fp >= 8184+stack_page)
+
+	do
+	{
+		if (fp < stack_page + sizeof(struct thread_info) ||
+			fp >= 8184 + stack_page)
+		{
 			return 0;
+		}
+
 		pc = ((unsigned long *)fp)[1];
+
 		if (!in_sched_functions(pc))
+		{
 			return pc;
+		}
+
 		fp = *(unsigned long *) fp;
-	} while (count++ < 16);
+	}
+	while (count++ < 16);
+
 	return 0;
 }
 
@@ -167,5 +191,5 @@ asmlinkage int sys_clone(unsigned long __user *args)
 	get_user(parent_tidptr, &args[2]);
 	get_user(child_tidptr, &args[3]);
 	return do_fork(clone_flags, newsp, 0,
-		       (int __user *)parent_tidptr, (int __user *)child_tidptr);
+				   (int __user *)parent_tidptr, (int __user *)child_tidptr);
 }

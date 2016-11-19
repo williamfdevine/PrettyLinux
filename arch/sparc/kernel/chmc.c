@@ -45,14 +45,16 @@ static dimm_printer_t us3mc_dimm_printer;
 #define CHMC_DIMMS_PER_MC	(CHMCTRL_NDGRPS * CHMCTRL_NDIMMS)
 
 /* OBP memory-layout property format. */
-struct chmc_obp_map {
+struct chmc_obp_map
+{
 	unsigned char	dimm_map[144];
 	unsigned char	pin_map[576];
 };
 
 #define DIMM_LABEL_SZ	8
 
-struct chmc_obp_mem_layout {
+struct chmc_obp_mem_layout
+{
 	/* One max 8-byte string label per DIMM.  Usually
 	 * this matches the label on the motherboard where
 	 * that DIMM resides.
@@ -69,7 +71,8 @@ struct chmc_obp_mem_layout {
 
 #define CHMCTRL_NBANKS	4
 
-struct chmc_bank_info {
+struct chmc_bank_info
+{
 	struct chmc		*p;
 	int			bank_id;
 
@@ -84,7 +87,8 @@ struct chmc_bank_info {
 	unsigned long		size;
 };
 
-struct chmc {
+struct chmc
+{
 	struct list_head		list;
 	int				portid;
 
@@ -137,12 +141,14 @@ struct chmc {
 #define JB_NUM_DIMMS_PER_GROUP	2
 #define JB_NUM_DIMMS		(JB_NUM_DIMM_GROUPS * JB_NUM_DIMMS_PER_GROUP)
 
-struct jbusmc_obp_map {
+struct jbusmc_obp_map
+{
 	unsigned char	dimm_map[18];
 	unsigned char	pin_map[144];
 };
 
-struct jbusmc_obp_mem_layout {
+struct jbusmc_obp_mem_layout
+{
 	/* One max 8-byte string label per DIMM.  Usually
 	 * this matches the label on the motherboard where
 	 * that DIMM resides.
@@ -159,14 +165,16 @@ struct jbusmc_obp_mem_layout {
 	char			_pad;
 };
 
-struct jbusmc_dimm_group {
+struct jbusmc_dimm_group
+{
 	struct jbusmc			*controller;
 	int				index;
 	u64				base_addr;
 	u64				size;
 };
 
-struct jbusmc {
+struct jbusmc
+{
 	void __iomem			*regs;
 	u64				mc_reg_1;
 	u32				portid;
@@ -203,13 +211,22 @@ static void mc_list_del(struct list_head *list)
 static int syndrome_to_qword_code(int syndrome_code)
 {
 	if (syndrome_code < 128)
+	{
 		syndrome_code += 16;
+	}
 	else if (syndrome_code < 128 + 9)
+	{
 		syndrome_code -= (128 - 7);
+	}
 	else if (syndrome_code < (128 + 9 + 3))
+	{
 		syndrome_code -= (128 + 9 - 4);
+	}
 	else
+	{
 		syndrome_code -= (128 + 9 + 3);
+	}
+
 	return syndrome_code;
 }
 
@@ -227,8 +244,8 @@ static int syndrome_to_qword_code(int syndrome_code)
 #define JBUS_LAST_BIT		(144 - 1)
 
 static void get_pin_and_dimm_str(int syndrome_code, unsigned long paddr,
-				 int *pin_p, char **dimm_str_p, void *_prop,
-				 int base_dimm_offset)
+								 int *pin_p, char **dimm_str_p, void *_prop,
+								 int base_dimm_offset)
 {
 	int qword_code = syndrome_to_qword_code(syndrome_code);
 	int cache_line_offset;
@@ -236,7 +253,8 @@ static void get_pin_and_dimm_str(int syndrome_code, unsigned long paddr,
 	int dimm_map_index;
 	int map_val;
 
-	if (mc_type == MC_TYPE_JBUS) {
+	if (mc_type == MC_TYPE_JBUS)
+	{
 		struct jbusmc_obp_mem_layout *p = _prop;
 
 		/* JBUS */
@@ -247,16 +265,22 @@ static void get_pin_and_dimm_str(int syndrome_code, unsigned long paddr,
 		map_val = ((map_val >> ((7 - (offset_inverse & 7)))) & 1);
 		*dimm_str_p = p->dimm_labels[base_dimm_offset + map_val];
 		*pin_p = p->map.pin_map[cache_line_offset];
-	} else {
+	}
+	else
+	{
 		struct chmc_obp_mem_layout *p = _prop;
 		struct chmc_obp_map *mp;
 		int qword;
 
 		/* Safari */
 		if (p->symmetric)
+		{
 			mp = &p->map[0];
+		}
 		else
+		{
 			mp = &p->map[1];
+		}
 
 		qword = (paddr & L2_LINE_ADDR_MSK) / QW_BYTES;
 		cache_line_offset = ((3 - qword) * QW_BITS) + qword_code;
@@ -273,15 +297,19 @@ static struct jbusmc_dimm_group *jbusmc_find_dimm_group(unsigned long phys_addr)
 {
 	struct jbusmc *p;
 
-	list_for_each_entry(p, &mctrl_list, list) {
+	list_for_each_entry(p, &mctrl_list, list)
+	{
 		int i;
 
-		for (i = 0; i < p->num_dimm_groups; i++) {
+		for (i = 0; i < p->num_dimm_groups; i++)
+		{
 			struct jbusmc_dimm_group *dp = &p->dimm_groups[i];
 
 			if (phys_addr < dp->base_addr ||
-			    (dp->base_addr + dp->size) <= phys_addr)
+				(dp->base_addr + dp->size) <= phys_addr)
+			{
 				continue;
+			}
 
 			return dp;
 		}
@@ -290,8 +318,8 @@ static struct jbusmc_dimm_group *jbusmc_find_dimm_group(unsigned long phys_addr)
 }
 
 static int jbusmc_print_dimm(int syndrome_code,
-			     unsigned long phys_addr,
-			     char *buf, int buflen)
+							 unsigned long phys_addr,
+							 char *buf, int buflen)
 {
 	struct jbusmc_obp_mem_layout *prop;
 	struct jbusmc_dimm_group *dp;
@@ -299,36 +327,43 @@ static int jbusmc_print_dimm(int syndrome_code,
 	int first_dimm;
 
 	dp = jbusmc_find_dimm_group(phys_addr);
+
 	if (dp == NULL ||
-	    syndrome_code < SYNDROME_MIN ||
-	    syndrome_code > SYNDROME_MAX) {
+		syndrome_code < SYNDROME_MIN ||
+		syndrome_code > SYNDROME_MAX)
+	{
 		buf[0] = '?';
 		buf[1] = '?';
 		buf[2] = '?';
 		buf[3] = '\0';
 		return 0;
 	}
+
 	p = dp->controller;
 	prop = &p->layout;
 
 	first_dimm = dp->index * JB_NUM_DIMMS_PER_GROUP;
 
-	if (syndrome_code != SYNDROME_MIN) {
+	if (syndrome_code != SYNDROME_MIN)
+	{
 		char *dimm_str;
 		int pin;
 
 		get_pin_and_dimm_str(syndrome_code, phys_addr, &pin,
-				     &dimm_str, prop, first_dimm);
+							 &dimm_str, prop, first_dimm);
 		sprintf(buf, "%s, pin %3d", dimm_str, pin);
-	} else {
+	}
+	else
+	{
 		int dimm;
 
 		/* Multi-bit error, we just dump out all the
 		 * dimm labels associated with this dimm group.
 		 */
-		for (dimm = 0; dimm < JB_NUM_DIMMS_PER_GROUP; dimm++) {
+		for (dimm = 0; dimm < JB_NUM_DIMMS_PER_GROUP; dimm++)
+		{
 			sprintf(buf, "%s ",
-				prop->dimm_labels[first_dimm + dimm]);
+					prop->dimm_labels[first_dimm + dimm]);
 			buf += strlen(buf);
 		}
 	}
@@ -337,14 +372,15 @@ static int jbusmc_print_dimm(int syndrome_code,
 }
 
 static u64 jbusmc_dimm_group_size(u64 base,
-				  const struct linux_prom64_registers *mem_regs,
-				  int num_mem_regs)
+								  const struct linux_prom64_registers *mem_regs,
+								  int num_mem_regs)
 {
 	u64 max = base + (8UL * 1024 * 1024 * 1024);
 	u64 max_seen = base;
 	int i;
 
-	for (i = 0; i < num_mem_regs; i++) {
+	for (i = 0; i < num_mem_regs; i++)
+	{
 		const struct linux_prom64_registers *ent;
 		u64 this_base;
 		u64 this_end;
@@ -352,21 +388,30 @@ static u64 jbusmc_dimm_group_size(u64 base,
 		ent = &mem_regs[i];
 		this_base = ent->phys_addr;
 		this_end = this_base + ent->reg_size;
+
 		if (base < this_base || base >= this_end)
+		{
 			continue;
+		}
+
 		if (this_end > max)
+		{
 			this_end = max;
+		}
+
 		if (this_end > max_seen)
+		{
 			max_seen = this_end;
+		}
 	}
 
 	return max_seen - base;
 }
 
 static void jbusmc_construct_one_dimm_group(struct jbusmc *p,
-					    unsigned long index,
-					    const struct linux_prom64_registers *mem_regs,
-					    int num_mem_regs)
+		unsigned long index,
+		const struct linux_prom64_registers *mem_regs,
+		int num_mem_regs)
 {
 	struct jbusmc_dimm_group *dp = &p->dimm_groups[index];
 
@@ -379,14 +424,17 @@ static void jbusmc_construct_one_dimm_group(struct jbusmc *p,
 }
 
 static void jbusmc_construct_dimm_groups(struct jbusmc *p,
-					 const struct linux_prom64_registers *mem_regs,
-					 int num_mem_regs)
+		const struct linux_prom64_registers *mem_regs,
+		int num_mem_regs)
 {
-	if (p->mc_reg_1 & JB_MC_REG1_DIMM1_BANK0) {
+	if (p->mc_reg_1 & JB_MC_REG1_DIMM1_BANK0)
+	{
 		jbusmc_construct_one_dimm_group(p, 0, mem_regs, num_mem_regs);
 		p->num_dimm_groups++;
 	}
-	if (p->mc_reg_1 & JB_MC_REG1_DIMM2_BANK2) {
+
+	if (p->mc_reg_1 & JB_MC_REG1_DIMM2_BANK2)
+	{
 		jbusmc_construct_one_dimm_group(p, 1, mem_regs, num_mem_regs);
 		p->num_dimm_groups++;
 	}
@@ -403,20 +451,28 @@ static int jbusmc_probe(struct platform_device *op)
 
 	err = -ENODEV;
 	mem_node = of_find_node_by_path("/memory");
-	if (!mem_node) {
+
+	if (!mem_node)
+	{
 		printk(KERN_ERR PFX "Cannot find /memory node.\n");
 		goto out;
 	}
+
 	mem_regs = of_get_property(mem_node, "reg", &len);
-	if (!mem_regs) {
+
+	if (!mem_regs)
+	{
 		printk(KERN_ERR PFX "Cannot get reg property of /memory node.\n");
 		goto out;
 	}
+
 	num_mem_regs = len / sizeof(*mem_regs);
 
 	err = -ENOMEM;
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
-	if (!p) {
+
+	if (!p)
+	{
 		printk(KERN_ERR PFX "Cannot allocate struct jbusmc.\n");
 		goto out;
 	}
@@ -425,7 +481,9 @@ static int jbusmc_probe(struct platform_device *op)
 
 	err = -ENODEV;
 	prop = of_get_property(op->dev.of_node, "portid", &len);
-	if (!prop || len != 4) {
+
+	if (!prop || len != 4)
+	{
 		printk(KERN_ERR PFX "Cannot find portid.\n");
 		goto out_free;
 	}
@@ -433,7 +491,9 @@ static int jbusmc_probe(struct platform_device *op)
 	p->portid = *prop;
 
 	prop = of_get_property(op->dev.of_node, "memory-control-register-1", &len);
-	if (!prop || len != 8) {
+
+	if (!prop || len != 8)
+	{
 		printk(KERN_ERR PFX "Cannot get memory control register 1.\n");
 		goto out_free;
 	}
@@ -442,22 +502,29 @@ static int jbusmc_probe(struct platform_device *op)
 
 	err = -ENOMEM;
 	p->regs = of_ioremap(&op->resource[0], 0, JBUSMC_REGS_SIZE, "jbusmc");
-	if (!p->regs) {
+
+	if (!p->regs)
+	{
 		printk(KERN_ERR PFX "Cannot map jbusmc regs.\n");
 		goto out_free;
 	}
 
 	err = -ENODEV;
 	ml = of_get_property(op->dev.of_node, "memory-layout", &p->layout_len);
-	if (!ml) {
+
+	if (!ml)
+	{
 		printk(KERN_ERR PFX "Cannot get memory layout property.\n");
 		goto out_iounmap;
 	}
-	if (p->layout_len > sizeof(p->layout)) {
+
+	if (p->layout_len > sizeof(p->layout))
+	{
 		printk(KERN_ERR PFX "Unexpected memory-layout size %d\n",
-		       p->layout_len);
+			   p->layout_len);
 		goto out_iounmap;
 	}
+
 	memcpy(&p->layout, ml, p->layout_len);
 
 	jbusmc_construct_dimm_groups(p, mem_regs, num_mem_regs);
@@ -465,7 +532,7 @@ static int jbusmc_probe(struct platform_device *op)
 	mc_list_add(&p->list);
 
 	printk(KERN_INFO PFX "UltraSPARC-IIIi memory controller at %s\n",
-	       op->dev.of_node->full_name);
+		   op->dev.of_node->full_name);
 
 	dev_set_drvdata(&op->dev, p);
 
@@ -490,7 +557,9 @@ static int chmc_bank_match(struct chmc_bank_info *bp, unsigned long phys_addr)
 
 	/* Bank must be enabled to match. */
 	if (bp->valid == 0)
+	{
 		return 0;
+	}
 
 	/* Would BANK match upper bits? */
 	upper_bits ^= bp->um;		/* What bits are different? */
@@ -499,7 +568,9 @@ static int chmc_bank_match(struct chmc_bank_info *bp, unsigned long phys_addr)
 	upper_bits  = ~upper_bits;	/* Invert. */
 
 	if (upper_bits)
+	{
 		return 0;
+	}
 
 	/* Would BANK match lower bits? */
 	lower_bits ^= bp->lm;		/* What bits are different? */
@@ -508,7 +579,9 @@ static int chmc_bank_match(struct chmc_bank_info *bp, unsigned long phys_addr)
 	lower_bits  = ~lower_bits;	/* Invert. */
 
 	if (lower_bits)
+	{
 		return 0;
+	}
 
 	/* I always knew you'd be the one. */
 	return 1;
@@ -519,15 +592,20 @@ static struct chmc_bank_info *chmc_find_bank(unsigned long phys_addr)
 {
 	struct chmc *p;
 
-	list_for_each_entry(p, &mctrl_list, list) {
+	list_for_each_entry(p, &mctrl_list, list)
+	{
 		int bank_no;
 
-		for (bank_no = 0; bank_no < CHMCTRL_NBANKS; bank_no++) {
+		for (bank_no = 0; bank_no < CHMCTRL_NBANKS; bank_no++)
+		{
 			struct chmc_bank_info *bp;
 
 			bp = &p->logical_banks[bank_no];
+
 			if (chmc_bank_match(bp, phys_addr))
+			{
 				return bp;
+			}
 		}
 	}
 
@@ -536,17 +614,19 @@ static struct chmc_bank_info *chmc_find_bank(unsigned long phys_addr)
 
 /* This is the main purpose of this driver. */
 static int chmc_print_dimm(int syndrome_code,
-			   unsigned long phys_addr,
-			   char *buf, int buflen)
+						   unsigned long phys_addr,
+						   char *buf, int buflen)
 {
 	struct chmc_bank_info *bp;
 	struct chmc_obp_mem_layout *prop;
 	int bank_in_controller, first_dimm;
 
 	bp = chmc_find_bank(phys_addr);
+
 	if (bp == NULL ||
-	    syndrome_code < SYNDROME_MIN ||
-	    syndrome_code > SYNDROME_MAX) {
+		syndrome_code < SYNDROME_MIN ||
+		syndrome_code > SYNDROME_MAX)
+	{
 		buf[0] = '?';
 		buf[1] = '?';
 		buf[2] = '?';
@@ -559,25 +639,30 @@ static int chmc_print_dimm(int syndrome_code,
 	first_dimm  = (bank_in_controller & (CHMCTRL_NDGRPS - 1));
 	first_dimm *= CHMCTRL_NDIMMS;
 
-	if (syndrome_code != SYNDROME_MIN) {
+	if (syndrome_code != SYNDROME_MIN)
+	{
 		char *dimm_str;
 		int pin;
 
 		get_pin_and_dimm_str(syndrome_code, phys_addr, &pin,
-				     &dimm_str, prop, first_dimm);
+							 &dimm_str, prop, first_dimm);
 		sprintf(buf, "%s, pin %3d", dimm_str, pin);
-	} else {
+	}
+	else
+	{
 		int dimm;
 
 		/* Multi-bit error, we just dump out all the
 		 * dimm labels associated with this bank.
 		 */
-		for (dimm = 0; dimm < CHMCTRL_NDIMMS; dimm++) {
+		for (dimm = 0; dimm < CHMCTRL_NDIMMS; dimm++)
+		{
 			sprintf(buf, "%s ",
-				prop->dimm_labels[first_dimm + dimm]);
+					prop->dimm_labels[first_dimm + dimm]);
 			buf += strlen(buf);
 		}
 	}
+
 	return 0;
 }
 
@@ -594,15 +679,18 @@ static u64 chmc_read_mcreg(struct chmc *p, unsigned long offset)
 
 	this_cpu = real_hard_smp_processor_id();
 
-	if (p->portid == this_cpu) {
+	if (p->portid == this_cpu)
+	{
 		__asm__ __volatile__("ldxa	[%1] %2, %0"
-				     : "=r" (ret)
-				     : "r" (offset), "i" (ASI_MCU_CTRL_REG));
-	} else {
+							 : "=r" (ret)
+							 : "r" (offset), "i" (ASI_MCU_CTRL_REG));
+	}
+	else
+	{
 		__asm__ __volatile__("ldxa	[%1] %2, %0"
-				     : "=r" (ret)
-				     : "r" (p->regs + offset),
-				       "i" (ASI_PHYS_BYPASS_EC_E));
+							 : "=r" (ret)
+							 : "r" (p->regs + offset),
+							 "i" (ASI_PHYS_BYPASS_EC_E));
 	}
 
 	preempt_enable();
@@ -613,15 +701,18 @@ static u64 chmc_read_mcreg(struct chmc *p, unsigned long offset)
 #if 0 /* currently unused */
 static void chmc_write_mcreg(struct chmc *p, unsigned long offset, u64 val)
 {
-	if (p->portid == smp_processor_id()) {
+	if (p->portid == smp_processor_id())
+	{
 		__asm__ __volatile__("stxa	%0, [%1] %2"
-				     : : "r" (val),
-				         "r" (offset), "i" (ASI_MCU_CTRL_REG));
-	} else {
+							 : : "r" (val),
+							 "r" (offset), "i" (ASI_MCU_CTRL_REG));
+	}
+	else
+	{
 		__asm__ __volatile__("ldxa	%0, [%1] %2"
-				     : : "r" (val),
-				         "r" (p->regs + offset),
-				         "i" (ASI_PHYS_BYPASS_EC_E));
+							 : : "r" (val),
+							 "r" (p->regs + offset),
+							 "i" (ASI_PHYS_BYPASS_EC_E));
 	}
 }
 #endif
@@ -643,50 +734,53 @@ static void chmc_interpret_one_decode_reg(struct chmc *p, int which_bank, u64 va
 	bp->base &= ~(bp->uk);
 	bp->base <<= PA_UPPER_BITS_SHIFT;
 
-	switch(bp->lk) {
-	case 0xf:
-	default:
-		bp->interleave = 1;
-		break;
+	switch (bp->lk)
+	{
+		case 0xf:
+		default:
+			bp->interleave = 1;
+			break;
 
-	case 0xe:
-		bp->interleave = 2;
-		break;
+		case 0xe:
+			bp->interleave = 2;
+			break;
 
-	case 0xc:
-		bp->interleave = 4;
-		break;
+		case 0xc:
+			bp->interleave = 4;
+			break;
 
-	case 0x8:
-		bp->interleave = 8;
-		break;
+		case 0x8:
+			bp->interleave = 8;
+			break;
 
-	case 0x0:
-		bp->interleave = 16;
-		break;
+		case 0x0:
+			bp->interleave = 16;
+			break;
 	}
 
 	/* UK[10] is reserved, and UK[11] is not set for the SDRAM
 	 * bank size definition.
 	 */
 	bp->size = (((unsigned long)bp->uk &
-		     ((1UL << 10UL) - 1UL)) + 1UL) << PA_UPPER_BITS_SHIFT;
+				 ((1UL << 10UL) - 1UL)) + 1UL) << PA_UPPER_BITS_SHIFT;
 	bp->size /= bp->interleave;
 }
 
 static void chmc_fetch_decode_regs(struct chmc *p)
 {
 	if (p->layout_size == 0)
+	{
 		return;
+	}
 
 	chmc_interpret_one_decode_reg(p, 0,
-				      chmc_read_mcreg(p, CHMCTRL_DECODE1));
+								  chmc_read_mcreg(p, CHMCTRL_DECODE1));
 	chmc_interpret_one_decode_reg(p, 1,
-				      chmc_read_mcreg(p, CHMCTRL_DECODE2));
+								  chmc_read_mcreg(p, CHMCTRL_DECODE2));
 	chmc_interpret_one_decode_reg(p, 2,
-				      chmc_read_mcreg(p, CHMCTRL_DECODE3));
+								  chmc_read_mcreg(p, CHMCTRL_DECODE3));
 	chmc_interpret_one_decode_reg(p, 3,
-				      chmc_read_mcreg(p, CHMCTRL_DECODE4));
+								  chmc_read_mcreg(p, CHMCTRL_DECODE4));
 }
 
 static int chmc_probe(struct platform_device *op)
@@ -700,42 +794,60 @@ static int chmc_probe(struct platform_device *op)
 
 	err = -ENODEV;
 	__asm__ ("rdpr %%ver, %0" : "=r" (ver));
+
 	if ((ver >> 32UL) == __JALAPENO_ID ||
-	    (ver >> 32UL) == __SERRANO_ID)
+		(ver >> 32UL) == __SERRANO_ID)
+	{
 		goto out;
+	}
 
 	portid = of_getintprop_default(dp, "portid", -1);
+
 	if (portid == -1)
+	{
 		goto out;
+	}
 
 	pval = of_get_property(dp, "memory-layout", &len);
-	if (pval && len > sizeof(p->layout_prop)) {
+
+	if (pval && len > sizeof(p->layout_prop))
+	{
 		printk(KERN_ERR PFX "Unexpected memory-layout property "
-		       "size %d.\n", len);
+			   "size %d.\n", len);
 		goto out;
 	}
 
 	err = -ENOMEM;
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
-	if (!p) {
+
+	if (!p)
+	{
 		printk(KERN_ERR PFX "Could not allocate struct chmc.\n");
 		goto out;
 	}
 
 	p->portid = portid;
 	p->layout_size = len;
+
 	if (!pval)
+	{
 		p->layout_size = 0;
+	}
 	else
+	{
 		memcpy(&p->layout_prop, pval, len);
+	}
 
 	p->regs = of_ioremap(&op->resource[0], 0, 0x48, "chmc");
-	if (!p->regs) {
+
+	if (!p->regs)
+	{
 		printk(KERN_ERR PFX "Could not map registers.\n");
 		goto out_free;
 	}
 
-	if (p->layout_size != 0UL) {
+	if (p->layout_size != 0UL)
+	{
 		p->timing_control1 = chmc_read_mcreg(p, CHMCTRL_TCTRL1);
 		p->timing_control2 = chmc_read_mcreg(p, CHMCTRL_TCTRL2);
 		p->timing_control3 = chmc_read_mcreg(p, CHMCTRL_TCTRL3);
@@ -748,8 +860,8 @@ static int chmc_probe(struct platform_device *op)
 	mc_list_add(&p->list);
 
 	printk(KERN_INFO PFX "UltraSPARC-III memory controller at %s [%s]\n",
-	       dp->full_name,
-	       (p->layout_size ? "ACTIVE" : "INACTIVE"));
+		   dp->full_name,
+		   (p->layout_size ? "ACTIVE" : "INACTIVE"));
 
 	dev_set_drvdata(&op->dev, p);
 
@@ -766,9 +878,14 @@ out_free:
 static int us3mc_probe(struct platform_device *op)
 {
 	if (mc_type == MC_TYPE_SAFARI)
+	{
 		return chmc_probe(op);
+	}
 	else if (mc_type == MC_TYPE_JBUS)
+	{
 		return jbusmc_probe(op);
+	}
+
 	return -ENODEV;
 }
 
@@ -790,16 +907,23 @@ static int us3mc_remove(struct platform_device *op)
 {
 	void *p = dev_get_drvdata(&op->dev);
 
-	if (p) {
+	if (p)
+	{
 		if (mc_type == MC_TYPE_SAFARI)
+		{
 			chmc_destroy(op, p);
+		}
 		else if (mc_type == MC_TYPE_JBUS)
+		{
 			jbusmc_destroy(op, p);
+		}
 	}
+
 	return 0;
 }
 
-static const struct of_device_id us3mc_match[] = {
+static const struct of_device_id us3mc_match[] =
+{
 	{
 		.name = "memory-controller",
 	},
@@ -807,7 +931,8 @@ static const struct of_device_id us3mc_match[] = {
 };
 MODULE_DEVICE_TABLE(of, us3mc_match);
 
-static struct platform_driver us3mc_driver = {
+static struct platform_driver us3mc_driver =
+{
 	.driver = {
 		.name = "us3mc",
 		.of_match_table = us3mc_match,
@@ -819,7 +944,10 @@ static struct platform_driver us3mc_driver = {
 static inline bool us3mc_platform(void)
 {
 	if (tlb_type == cheetah || tlb_type == cheetah_plus)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -829,31 +957,43 @@ static int __init us3mc_init(void)
 	int ret;
 
 	if (!us3mc_platform())
+	{
 		return -ENODEV;
+	}
 
 	__asm__ __volatile__("rdpr %%ver, %0" : "=r" (ver));
+
 	if ((ver >> 32UL) == __JALAPENO_ID ||
-	    (ver >> 32UL) == __SERRANO_ID) {
+		(ver >> 32UL) == __SERRANO_ID)
+	{
 		mc_type = MC_TYPE_JBUS;
 		us3mc_dimm_printer = jbusmc_print_dimm;
-	} else {
+	}
+	else
+	{
 		mc_type = MC_TYPE_SAFARI;
 		us3mc_dimm_printer = chmc_print_dimm;
 	}
 
 	ret = register_dimm_printer(us3mc_dimm_printer);
 
-	if (!ret) {
+	if (!ret)
+	{
 		ret = platform_driver_register(&us3mc_driver);
+
 		if (ret)
+		{
 			unregister_dimm_printer(us3mc_dimm_printer);
+		}
 	}
+
 	return ret;
 }
 
 static void __exit us3mc_cleanup(void)
 {
-	if (us3mc_platform()) {
+	if (us3mc_platform())
+	{
 		unregister_dimm_printer(us3mc_dimm_printer);
 		platform_driver_unregister(&us3mc_driver);
 	}

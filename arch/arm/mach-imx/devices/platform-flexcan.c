@@ -11,16 +11,17 @@
 #define imx_flexcan_data_entry_single(soc, _id, _hwid, _size)		\
 	{								\
 		.id = _id,						\
-		.iobase = soc ## _CAN ## _hwid ## _BASE_ADDR,		\
-		.iosize = _size,					\
-		.irq = soc ## _INT_CAN ## _hwid,			\
+			  .iobase = soc ## _CAN ## _hwid ## _BASE_ADDR,		\
+						.iosize = _size,					\
+								  .irq = soc ## _INT_CAN ## _hwid,			\
 	}
 
 #define imx_flexcan_data_entry(soc, _id, _hwid, _size)			\
 	[_id] = imx_flexcan_data_entry_single(soc, _id, _hwid, _size)
 
 #ifdef CONFIG_SOC_IMX25
-const struct imx_flexcan_data imx25_flexcan_data[] __initconst = {
+const struct imx_flexcan_data imx25_flexcan_data[] __initconst =
+{
 #define imx25_flexcan_data_entry(_id, _hwid)				\
 	imx_flexcan_data_entry(MX25, _id, _hwid, SZ_16K)
 	imx25_flexcan_data_entry(0, 1),
@@ -29,7 +30,8 @@ const struct imx_flexcan_data imx25_flexcan_data[] __initconst = {
 #endif /* ifdef CONFIG_SOC_IMX25 */
 
 #ifdef CONFIG_SOC_IMX35
-const struct imx_flexcan_data imx35_flexcan_data[] __initconst = {
+const struct imx_flexcan_data imx35_flexcan_data[] __initconst =
+{
 #define imx35_flexcan_data_entry(_id, _hwid)				\
 	imx_flexcan_data_entry(MX35, _id, _hwid, SZ_16K)
 	imx35_flexcan_data_entry(0, 1),
@@ -38,9 +40,10 @@ const struct imx_flexcan_data imx35_flexcan_data[] __initconst = {
 #endif /* ifdef CONFIG_SOC_IMX35 */
 
 struct platform_device *__init imx_add_flexcan(
-		const struct imx_flexcan_data *data)
+	const struct imx_flexcan_data *data)
 {
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start = data->iobase,
 			.end = data->iobase + data->iosize - 1,
@@ -53,5 +56,5 @@ struct platform_device *__init imx_add_flexcan(
 	};
 
 	return imx_add_platform_device("flexcan", data->id,
-			res, ARRAY_SIZE(res), NULL, 0);
+								   res, ARRAY_SIZE(res), NULL, 0);
 }

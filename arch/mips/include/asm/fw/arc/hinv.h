@@ -8,7 +8,8 @@
 #include <asm/fw/arc/types.h>
 
 /* configuration query defines */
-typedef enum configclass {
+typedef enum configclass
+{
 	SystemClass,
 	ProcessorClass,
 	CacheClass,
@@ -25,7 +26,8 @@ typedef enum configclass {
 #endif	/* _NT_PROM */
 } CONFIGCLASS;
 
-typedef enum configtype {
+typedef enum configtype
+{
 	ARC,
 	CPU,
 	FPU,
@@ -82,7 +84,8 @@ typedef enum configtype {
 	Anonymous
 } CONFIGTYPE;
 
-typedef enum {
+typedef enum
+{
 	Failed = 1,
 	ReadOnly = 2,
 	Removable = 4,
@@ -93,11 +96,13 @@ typedef enum {
 } IDENTIFIERFLAG;
 
 #ifndef NULL			/* for GetChild(NULL); */
-#define NULL	0
+	#define NULL	0
 #endif
 
-union key_u {
-	struct {
+union key_u
+{
+	struct
+	{
 #ifdef	_MIPSEB
 		unsigned char  c_bsize;		/* block size in lines */
 		unsigned char  c_lsize;		/* line size in bytes/tag */
@@ -112,14 +117,15 @@ union key_u {
 };
 
 #if _MIPS_SIM == _MIPS_SIM_ABI64
-#define SGI_ARCS_VERS	64			/* sgi 64-bit version */
-#define SGI_ARCS_REV	0			/* rev .00 */
+	#define SGI_ARCS_VERS	64			/* sgi 64-bit version */
+	#define SGI_ARCS_REV	0			/* rev .00 */
 #else
-#define SGI_ARCS_VERS	1			/* first version */
-#define SGI_ARCS_REV	10			/* rev .10, 3/04/92 */
+	#define SGI_ARCS_VERS	1			/* first version */
+	#define SGI_ARCS_REV	10			/* rev .10, 3/04/92 */
 #endif
 
-typedef struct {
+typedef struct
+{
 	CONFIGCLASS	Class;
 	CONFIGTYPE	Type;
 	IDENTIFIERFLAG	Flags;
@@ -133,20 +139,23 @@ typedef struct {
 } COMPONENT;
 
 /* internal structure that holds pathname parsing data */
-struct cfgdata {
+struct cfgdata
+{
 	char *name;			/* full name */
 	int minlen;			/* minimum length to match */
 	CONFIGTYPE type;		/* type of token */
 };
 
 /* System ID */
-typedef struct {
+typedef struct
+{
 	CHAR VendorId[8];
 	CHAR ProductId[8];
 } SYSTEMID;
 
 /* memory query functions */
-typedef enum memorytype {
+typedef enum memorytype
+{
 	ExceptionBlock,
 	SPBPage,			/* ARCS == SystemParameterBlock */
 #ifndef _NT_PROM
@@ -166,7 +175,8 @@ typedef enum memorytype {
 #endif	/* _NT_PROM */
 } MEMORYTYPE;
 
-typedef struct {
+typedef struct
+{
 	MEMORYTYPE	Type;
 	LONG		BasePage;
 	LONG		PageCount;

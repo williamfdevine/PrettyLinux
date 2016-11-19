@@ -33,11 +33,11 @@ extern char output[];
 #define HEAP_SIZE             0x10000
 
 #ifdef CONFIG_KERNEL_GZIP
-#include "../../../../lib/decompress_inflate.c"
+	#include "../../../../lib/decompress_inflate.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZO
-#include "../../../../lib/decompress_unlzo.c"
+	#include "../../../../lib/decompress_unlzo.c"
 #endif
 
 void *memset(void *s, int c, size_t n)
@@ -46,7 +46,10 @@ void *memset(void *s, int c, size_t n)
 	char *ss = (char *)s;
 
 	for (i = 0; i < n; i++)
+	{
 		ss[i] = c;
+	}
+
 	return s;
 }
 
@@ -56,7 +59,10 @@ void *memcpy(void *dest, const void *src, size_t n)
 	char *d = (char *)dest, *s = (char *)src;
 
 	for (i = 0; i < n; i++)
+	{
 		d[i] = s[i];
+	}
+
 	return dest;
 }
 

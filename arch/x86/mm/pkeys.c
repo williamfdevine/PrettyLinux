@@ -27,11 +27,16 @@ int __execute_only_pkey(struct mm_struct *mm)
 	int ret;
 
 	/* Do we need to assign a pkey for mm's execute-only maps? */
-	if (execute_only_pkey == -1) {
+	if (execute_only_pkey == -1)
+	{
 		/* Go allocate one to use, which might fail */
 		execute_only_pkey = mm_pkey_alloc(mm);
+
 		if (execute_only_pkey < 0)
+		{
 			return -1;
+		}
+
 		need_to_set_mm_pkey = true;
 	}
 
@@ -44,12 +49,15 @@ int __execute_only_pkey(struct mm_struct *mm)
 	 * can make fpregs inactive.
 	 */
 	preempt_disable();
+
 	if (!need_to_set_mm_pkey &&
-	    fpregs_active() &&
-	    !__pkru_allows_read(read_pkru(), execute_only_pkey)) {
+		fpregs_active() &&
+		!__pkru_allows_read(read_pkru(), execute_only_pkey))
+	{
 		preempt_enable();
 		return execute_only_pkey;
 	}
+
 	preempt_enable();
 
 	/*
@@ -57,19 +65,24 @@ int __execute_only_pkey(struct mm_struct *mm)
 	 * other than execution.
 	 */
 	ret = arch_set_user_pkey_access(current, execute_only_pkey,
-			PKEY_DISABLE_ACCESS);
+									PKEY_DISABLE_ACCESS);
+
 	/*
 	 * If the PKRU-set operation failed somehow, just return
 	 * 0 and effectively disable execute-only support.
 	 */
-	if (ret) {
+	if (ret)
+	{
 		mm_set_pkey_free(mm, execute_only_pkey);
 		return -1;
 	}
 
 	/* We got one, store it and use it from here on out */
 	if (need_to_set_mm_pkey)
+	{
 		mm->context.execute_only_pkey = execute_only_pkey;
+	}
+
 	return execute_only_pkey;
 }
 
@@ -77,9 +90,14 @@ static inline bool vma_is_pkey_exec_only(struct vm_area_struct *vma)
 {
 	/* Do this check first since the vm_flags should be hot */
 	if ((vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)) != VM_EXEC)
+	{
 		return false;
+	}
+
 	if (vma_pkey(vma) != vma->vm_mm->context.execute_only_pkey)
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -94,27 +112,37 @@ int __arch_override_mprotect_pkey(struct vm_area_struct *vma, int prot, int pkey
 	 * override the value that came from the user.
 	 */
 	if (pkey != -1)
+	{
 		return pkey;
+	}
+
 	/*
 	 * Look for a protection-key-drive execute-only mapping
 	 * which is now being given permissions that are not
 	 * execute-only.  Move it back to the default pkey.
 	 */
 	if (vma_is_pkey_exec_only(vma) &&
-	    (prot & (PROT_READ|PROT_WRITE))) {
+		(prot & (PROT_READ | PROT_WRITE)))
+	{
 		return 0;
 	}
+
 	/*
 	 * The mapping is execute-only.  Go try to get the
 	 * execute-only protection key.  If we fail to do that,
 	 * fall through as if we do not have execute-only
 	 * support.
 	 */
-	if (prot == PROT_EXEC) {
+	if (prot == PROT_EXEC)
+	{
 		pkey = execute_only_pkey(vma->vm_mm);
+
 		if (pkey > 0)
+		{
 			return pkey;
+		}
 	}
+
 	/*
 	 * This is a vanilla, non-pkey mprotect (or we failed to
 	 * setup execute-only), inherit the pkey from the VMA we
@@ -132,10 +160,10 @@ int __arch_override_mprotect_pkey(struct vm_area_struct *vma, int prot, int pkey
  * to data which is pkey-protected later on.
  */
 u32 init_pkru_value = PKRU_AD_KEY( 1) | PKRU_AD_KEY( 2) | PKRU_AD_KEY( 3) |
-		      PKRU_AD_KEY( 4) | PKRU_AD_KEY( 5) | PKRU_AD_KEY( 6) |
-		      PKRU_AD_KEY( 7) | PKRU_AD_KEY( 8) | PKRU_AD_KEY( 9) |
-		      PKRU_AD_KEY(10) | PKRU_AD_KEY(11) | PKRU_AD_KEY(12) |
-		      PKRU_AD_KEY(13) | PKRU_AD_KEY(14) | PKRU_AD_KEY(15);
+					  PKRU_AD_KEY( 4) | PKRU_AD_KEY( 5) | PKRU_AD_KEY( 6) |
+					  PKRU_AD_KEY( 7) | PKRU_AD_KEY( 8) | PKRU_AD_KEY( 9) |
+					  PKRU_AD_KEY(10) | PKRU_AD_KEY(11) | PKRU_AD_KEY(12) |
+					  PKRU_AD_KEY(13) | PKRU_AD_KEY(14) | PKRU_AD_KEY(15);
 
 /*
  * Called from the FPU code when creating a fresh set of FPU
@@ -147,13 +175,17 @@ u32 init_pkru_value = PKRU_AD_KEY( 1) | PKRU_AD_KEY( 2) | PKRU_AD_KEY( 3) |
 void copy_init_pkru_to_fpregs(void)
 {
 	u32 init_pkru_value_snapshot = READ_ONCE(init_pkru_value);
+
 	/*
 	 * Any write to PKRU takes it out of the XSAVE 'init
 	 * state' which increases context switch cost.  Avoid
 	 * writing 0 when PKRU was already 0.
 	 */
 	if (!init_pkru_value_snapshot && !read_pkru())
+	{
 		return;
+	}
+
 	/*
 	 * Override the PKRU state that came from 'init_fpstate'
 	 * with the baseline from the process.
@@ -162,7 +194,7 @@ void copy_init_pkru_to_fpregs(void)
 }
 
 static ssize_t init_pkru_read_file(struct file *file, char __user *user_buf,
-			     size_t count, loff_t *ppos)
+								   size_t count, loff_t *ppos)
 {
 	char buf[32];
 	unsigned int len;
@@ -172,34 +204,43 @@ static ssize_t init_pkru_read_file(struct file *file, char __user *user_buf,
 }
 
 static ssize_t init_pkru_write_file(struct file *file,
-		 const char __user *user_buf, size_t count, loff_t *ppos)
+									const char __user *user_buf, size_t count, loff_t *ppos)
 {
 	char buf[32];
 	ssize_t len;
 	u32 new_init_pkru;
 
 	len = min(count, sizeof(buf) - 1);
+
 	if (copy_from_user(buf, user_buf, len))
+	{
 		return -EFAULT;
+	}
 
 	/* Make the buffer a valid string that we can not overrun */
 	buf[len] = '\0';
+
 	if (kstrtouint(buf, 0, &new_init_pkru))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Don't allow insane settings that will blow the system
 	 * up immediately if someone attempts to disable access
 	 * or writes to pkey 0.
 	 */
-	if (new_init_pkru & (PKRU_AD_BIT|PKRU_WD_BIT))
+	if (new_init_pkru & (PKRU_AD_BIT | PKRU_WD_BIT))
+	{
 		return -EINVAL;
+	}
 
 	WRITE_ONCE(init_pkru_value, new_init_pkru);
 	return count;
 }
 
-static const struct file_operations fops_init_pkru = {
+static const struct file_operations fops_init_pkru =
+{
 	.read = init_pkru_read_file,
 	.write = init_pkru_write_file,
 	.llseek = default_llseek,
@@ -208,7 +249,7 @@ static const struct file_operations fops_init_pkru = {
 static int __init create_init_pkru_value(void)
 {
 	debugfs_create_file("init_pkru", S_IRUSR | S_IWUSR,
-			arch_debugfs_dir, NULL, &fops_init_pkru);
+						arch_debugfs_dir, NULL, &fops_init_pkru);
 	return 0;
 }
 late_initcall(create_init_pkru_value);
@@ -218,7 +259,9 @@ static __init int setup_init_pkru(char *opt)
 	u32 new_init_pkru;
 
 	if (kstrtouint(opt, 0, &new_init_pkru))
+	{
 		return 1;
+	}
 
 	WRITE_ONCE(init_pkru_value, new_init_pkru);
 

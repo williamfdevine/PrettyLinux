@@ -16,14 +16,14 @@
 
 #ifndef __ASSEMBLY__
 
-/*
- * We use __raw_base variants here so that we give the compiler the
- * chance to keep IOC_BASE in a register.
- */
-#define iomd_readb(off)		__raw_readb(IOMD_BASE + (off))
-#define iomd_readl(off)		__raw_readl(IOMD_BASE + (off))
-#define iomd_writeb(val,off)	__raw_writeb(val, IOMD_BASE + (off))
-#define iomd_writel(val,off)	__raw_writel(val, IOMD_BASE + (off))
+	/*
+	* We use __raw_base variants here so that we give the compiler the
+	* chance to keep IOC_BASE in a register.
+	*/
+	#define iomd_readb(off)		__raw_readb(IOMD_BASE + (off))
+	#define iomd_readl(off)		__raw_readl(IOMD_BASE + (off))
+	#define iomd_writeb(val,off)	__raw_writeb(val, IOMD_BASE + (off))
+	#define iomd_writel(val,off)	__raw_writel(val, IOMD_BASE + (off))
 
 #endif
 
@@ -62,7 +62,7 @@
 #define IOMD_ROMCR0	(0x080)
 #define IOMD_ROMCR1	(0x084)
 #ifdef CONFIG_ARCH_RPC
-#define IOMD_DRAMCR	(0x088)
+	#define IOMD_DRAMCR	(0x088)
 #endif
 #define IOMD_REFCR	(0x08C)
 
@@ -72,52 +72,52 @@
 #define IOMD_VERSION	(0x09C)
 
 #ifdef CONFIG_ARCH_RPC
-#define IOMD_MOUSEX	(0x0A0)
-#define IOMD_MOUSEY	(0x0A4)
+	#define IOMD_MOUSEX	(0x0A0)
+	#define IOMD_MOUSEY	(0x0A4)
 #endif
 
 #ifdef CONFIG_ARCH_RPC
-#define IOMD_DMATCR	(0x0C0)
+	#define IOMD_DMATCR	(0x0C0)
 #endif
 #define IOMD_IOTCR	(0x0C4)
 #define IOMD_ECTCR	(0x0C8)
 #ifdef CONFIG_ARCH_RPC
-#define IOMD_DMAEXT	(0x0CC)
+	#define IOMD_DMAEXT	(0x0CC)
 #endif
 
 #ifdef CONFIG_ARCH_RPC
-#define DMA_EXT_IO0	1
-#define DMA_EXT_IO1	2
-#define DMA_EXT_IO2	4
-#define DMA_EXT_IO3	8
+	#define DMA_EXT_IO0	1
+	#define DMA_EXT_IO1	2
+	#define DMA_EXT_IO2	4
+	#define DMA_EXT_IO3	8
 
-#define IOMD_IO0CURA	(0x100)
-#define IOMD_IO0ENDA	(0x104)
-#define IOMD_IO0CURB	(0x108)
-#define IOMD_IO0ENDB	(0x10C)
-#define IOMD_IO0CR	(0x110)
-#define IOMD_IO0ST	(0x114)
+	#define IOMD_IO0CURA	(0x100)
+	#define IOMD_IO0ENDA	(0x104)
+	#define IOMD_IO0CURB	(0x108)
+	#define IOMD_IO0ENDB	(0x10C)
+	#define IOMD_IO0CR	(0x110)
+	#define IOMD_IO0ST	(0x114)
 
-#define IOMD_IO1CURA	(0x120)
-#define IOMD_IO1ENDA	(0x124)
-#define IOMD_IO1CURB	(0x128)
-#define IOMD_IO1ENDB	(0x12C)
-#define IOMD_IO1CR	(0x130)
-#define IOMD_IO1ST	(0x134)
+	#define IOMD_IO1CURA	(0x120)
+	#define IOMD_IO1ENDA	(0x124)
+	#define IOMD_IO1CURB	(0x128)
+	#define IOMD_IO1ENDB	(0x12C)
+	#define IOMD_IO1CR	(0x130)
+	#define IOMD_IO1ST	(0x134)
 
-#define IOMD_IO2CURA	(0x140)
-#define IOMD_IO2ENDA	(0x144)
-#define IOMD_IO2CURB	(0x148)
-#define IOMD_IO2ENDB	(0x14C)
-#define IOMD_IO2CR	(0x150)
-#define IOMD_IO2ST	(0x154)
+	#define IOMD_IO2CURA	(0x140)
+	#define IOMD_IO2ENDA	(0x144)
+	#define IOMD_IO2CURB	(0x148)
+	#define IOMD_IO2ENDB	(0x14C)
+	#define IOMD_IO2CR	(0x150)
+	#define IOMD_IO2ST	(0x154)
 
-#define IOMD_IO3CURA	(0x160)
-#define IOMD_IO3ENDA	(0x164)
-#define IOMD_IO3CURB	(0x168)
-#define IOMD_IO3ENDB	(0x16C)
-#define IOMD_IO3CR	(0x170)
-#define IOMD_IO3ST	(0x174)
+	#define IOMD_IO3CURA	(0x160)
+	#define IOMD_IO3ENDA	(0x164)
+	#define IOMD_IO3CURB	(0x168)
+	#define IOMD_IO3ENDB	(0x16C)
+	#define IOMD_IO3CR	(0x170)
+	#define IOMD_IO3ST	(0x174)
 #endif
 
 #define IOMD_SD0CURA	(0x180)
@@ -128,12 +128,12 @@
 #define IOMD_SD0ST	(0x194)
 
 #ifdef CONFIG_ARCH_RPC
-#define IOMD_SD1CURA	(0x1A0)
-#define IOMD_SD1ENDA	(0x1A4)
-#define IOMD_SD1CURB	(0x1A8)
-#define IOMD_SD1ENDB	(0x1AC)
-#define IOMD_SD1CR	(0x1B0)
-#define IOMD_SD1ST	(0x1B4)
+	#define IOMD_SD1CURA	(0x1A0)
+	#define IOMD_SD1ENDA	(0x1A4)
+	#define IOMD_SD1CURB	(0x1A8)
+	#define IOMD_SD1ENDB	(0x1AC)
+	#define IOMD_SD1CR	(0x1B0)
+	#define IOMD_SD1ST	(0x1B4)
 #endif
 
 #define IOMD_CURSCUR	(0x1C0)
@@ -173,13 +173,13 @@
 #ifndef __ASSEMBLY__
 extern unsigned int vram_half_sam;
 #define video_set_dma(start,end,offset)				\
-do {								\
-	outl (SCREEN_START + start, VDMA_START);		\
-	outl (SCREEN_START + end - VDMA_XFERSIZE, VDMA_END);	\
-	if (offset >= end - VDMA_XFERSIZE)			\
-		offset |= 0x40000000;				\
-	outl (SCREEN_START + offset, VDMA_INIT);		\
-} while (0)
+	do {								\
+		outl (SCREEN_START + start, VDMA_START);		\
+		outl (SCREEN_START + end - VDMA_XFERSIZE, VDMA_END);	\
+		if (offset >= end - VDMA_XFERSIZE)			\
+			offset |= 0x40000000;				\
+		outl (SCREEN_START + offset, VDMA_INIT);		\
+	} while (0)
 #endif
 
 #endif

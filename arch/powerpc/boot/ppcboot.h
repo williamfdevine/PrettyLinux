@@ -34,7 +34,8 @@
 
 #include "types.h"
 
-typedef struct bd_info {
+typedef struct bd_info
+{
 	unsigned long	bi_memstart;	/* start of DRAM memory */
 	unsigned long	bi_memsize;	/* size	 of DRAM memory in bytes */
 	unsigned long	bi_flashstart;	/* start of FLASH memory */

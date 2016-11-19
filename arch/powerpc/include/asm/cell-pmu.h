@@ -64,7 +64,8 @@
 /* Macros for the pm_status register. */
 #define CBE_PM_CTR_OVERFLOW_INTR(ctr)      (1 << (31 - ((ctr) & 7)))
 
-enum pm_reg_name {
+enum pm_reg_name
+{
 	group_control,
 	debug_bus_control,
 	trace_address,

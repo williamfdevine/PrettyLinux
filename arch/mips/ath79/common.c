@@ -45,11 +45,15 @@ static void __iomem *ath79_ddr_pci_win_base;
 void ath79_ddr_ctrl_init(void)
 {
 	ath79_ddr_base = ioremap_nocache(AR71XX_DDR_CTRL_BASE,
-					 AR71XX_DDR_CTRL_SIZE);
-	if (soc_is_ar913x() || soc_is_ar724x() || soc_is_ar933x()) {
+									 AR71XX_DDR_CTRL_SIZE);
+
+	if (soc_is_ar913x() || soc_is_ar724x() || soc_is_ar933x())
+	{
 		ath79_ddr_wb_flush_base = ath79_ddr_base + 0x7c;
 		ath79_ddr_pci_win_base = 0;
-	} else {
+	}
+	else
+	{
 		ath79_ddr_wb_flush_base = ath79_ddr_base + 0x9c;
 		ath79_ddr_pci_win_base = ath79_ddr_base + 0x7c;
 	}
@@ -62,11 +66,13 @@ void ath79_ddr_wb_flush(u32 reg)
 
 	/* Flush the DDR write buffer. */
 	__raw_writel(0x1, flush_reg);
+
 	while (__raw_readl(flush_reg) & 0x1)
 		;
 
 	/* It must be run twice. */
 	__raw_writel(0x1, flush_reg);
+
 	while (__raw_readl(flush_reg) & 0x1)
 		;
 }
@@ -94,19 +100,33 @@ void ath79_device_reset_set(u32 mask)
 	u32 t;
 
 	if (soc_is_ar71xx())
+	{
 		reg = AR71XX_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_ar724x())
+	{
 		reg = AR724X_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_ar913x())
+	{
 		reg = AR913X_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_ar933x())
+	{
 		reg = AR933X_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_ar934x())
+	{
 		reg = AR934X_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_qca955x())
+	{
 		reg = QCA955X_RESET_REG_RESET_MODULE;
+	}
 	else
+	{
 		BUG();
+	}
 
 	spin_lock_irqsave(&ath79_device_reset_lock, flags);
 	t = ath79_reset_rr(reg);
@@ -122,19 +142,33 @@ void ath79_device_reset_clear(u32 mask)
 	u32 t;
 
 	if (soc_is_ar71xx())
+	{
 		reg = AR71XX_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_ar724x())
+	{
 		reg = AR724X_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_ar913x())
+	{
 		reg = AR913X_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_ar933x())
+	{
 		reg = AR933X_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_ar934x())
+	{
 		reg = AR934X_RESET_REG_RESET_MODULE;
+	}
 	else if (soc_is_qca955x())
+	{
 		reg = QCA955X_RESET_REG_RESET_MODULE;
+	}
 	else
+	{
 		BUG();
+	}
 
 	spin_lock_irqsave(&ath79_device_reset_lock, flags);
 	t = ath79_reset_rr(reg);

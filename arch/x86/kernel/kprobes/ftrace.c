@@ -27,36 +27,47 @@
 
 static nokprobe_inline
 int __skip_singlestep(struct kprobe *p, struct pt_regs *regs,
-		      struct kprobe_ctlblk *kcb, unsigned long orig_ip)
+					  struct kprobe_ctlblk *kcb, unsigned long orig_ip)
 {
 	/*
 	 * Emulate singlestep (and also recover regs->ip)
 	 * as if there is a 5byte nop
 	 */
 	regs->ip = (unsigned long)p->addr + MCOUNT_INSN_SIZE;
-	if (unlikely(p->post_handler)) {
+
+	if (unlikely(p->post_handler))
+	{
 		kcb->kprobe_status = KPROBE_HIT_SSDONE;
 		p->post_handler(p, regs, 0);
 	}
+
 	__this_cpu_write(current_kprobe, NULL);
+
 	if (orig_ip)
+	{
 		regs->ip = orig_ip;
+	}
+
 	return 1;
 }
 
 int skip_singlestep(struct kprobe *p, struct pt_regs *regs,
-		    struct kprobe_ctlblk *kcb)
+					struct kprobe_ctlblk *kcb)
 {
 	if (kprobe_ftrace(p))
+	{
 		return __skip_singlestep(p, regs, kcb, 0);
+	}
 	else
+	{
 		return 0;
+	}
 }
 NOKPROBE_SYMBOL(skip_singlestep);
 
 /* Ftrace callback handler for kprobes */
 void kprobe_ftrace_handler(unsigned long ip, unsigned long parent_ip,
-			   struct ftrace_ops *ops, struct pt_regs *regs)
+						   struct ftrace_ops *ops, struct pt_regs *regs)
 {
 	struct kprobe *p;
 	struct kprobe_ctlblk *kcb;
@@ -66,26 +77,38 @@ void kprobe_ftrace_handler(unsigned long ip, unsigned long parent_ip,
 	local_irq_save(flags);
 
 	p = get_kprobe((kprobe_opcode_t *)ip);
+
 	if (unlikely(!p) || kprobe_disabled(p))
+	{
 		goto end;
+	}
 
 	kcb = get_kprobe_ctlblk();
-	if (kprobe_running()) {
+
+	if (kprobe_running())
+	{
 		kprobes_inc_nmissed_count(p);
-	} else {
+	}
+	else
+	{
 		unsigned long orig_ip = regs->ip;
 		/* Kprobe handler expects regs->ip = ip + 1 as breakpoint hit */
 		regs->ip = ip + sizeof(kprobe_opcode_t);
 
 		__this_cpu_write(current_kprobe, p);
 		kcb->kprobe_status = KPROBE_HIT_ACTIVE;
+
 		if (!p->pre_handler || !p->pre_handler(p, regs))
+		{
 			__skip_singlestep(p, regs, kcb, orig_ip);
+		}
+
 		/*
 		 * If pre_handler returns !0, it sets regs->ip and
 		 * resets current kprobe.
 		 */
 	}
+
 end:
 	local_irq_restore(flags);
 }

@@ -168,7 +168,8 @@ extern struct bus_type locomo_bus_type;
 #define LOCOMO_DEVID_UART	5
 #define LOCOMO_DEVID_SPI	6
 
-struct locomo_dev {
+struct locomo_dev
+{
 	struct device	dev;
 	unsigned int	devid;
 	unsigned int	irq[1];
@@ -184,7 +185,8 @@ struct locomo_dev {
 #define locomo_get_drvdata(d)	dev_get_drvdata(&(d)->dev)
 #define locomo_set_drvdata(d,p)	dev_set_drvdata(&(d)->dev, p)
 
-struct locomo_driver {
+struct locomo_driver
+{
 	struct device_driver	drv;
 	unsigned int		devid;
 	int (*probe)(struct locomo_dev *);
@@ -214,7 +216,8 @@ void locomo_m62332_senddata(struct locomo_dev *ldev, unsigned int dac_data, int 
 /* Frontlight control */
 void locomo_frontlight_set(struct locomo_dev *dev, int duty, int vr, int bpwf);
 
-struct locomo_platform_data {
+struct locomo_platform_data
+{
 	int	irq_base;	/* IRQ base for cascaded on-chip IRQs */
 };
 

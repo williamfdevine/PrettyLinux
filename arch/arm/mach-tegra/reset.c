@@ -31,7 +31,7 @@
 #include "sleep.h"
 
 #define TEGRA_IRAM_RESET_BASE (TEGRA_IRAM_BASE + \
-				TEGRA_IRAM_RESET_HANDLER_OFFSET)
+							   TEGRA_IRAM_RESET_HANDLER_OFFSET)
 
 static bool is_enabled;
 
@@ -64,26 +64,30 @@ static void __init tegra_cpu_reset_handler_enable(void)
 {
 	void __iomem *iram_base = IO_ADDRESS(TEGRA_IRAM_RESET_BASE);
 	const u32 reset_address = TEGRA_IRAM_RESET_BASE +
-						tegra_cpu_reset_handler_offset;
+							  tegra_cpu_reset_handler_offset;
 	int err;
 
 	BUG_ON(is_enabled);
 	BUG_ON(tegra_cpu_reset_handler_size > TEGRA_IRAM_RESET_HANDLER_SIZE);
 
 	memcpy(iram_base, (void *)__tegra_cpu_reset_handler_start,
-			tegra_cpu_reset_handler_size);
+		   tegra_cpu_reset_handler_size);
 
 	err = call_firmware_op(set_cpu_boot_addr, 0, reset_address);
-	switch (err) {
-	case -ENOSYS:
-		tegra_cpu_reset_handler_set(reset_address);
+
+	switch (err)
+	{
+		case -ENOSYS:
+			tegra_cpu_reset_handler_set(reset_address);
+
 		/* pass-through */
-	case 0:
-		is_enabled = true;
-		break;
-	default:
-		pr_crit("Cannot set CPU reset handler: %d\n", err);
-		BUG();
+		case 0:
+			is_enabled = true;
+			break;
+
+		default:
+			pr_crit("Cannot set CPU reset handler: %d\n", err);
+			BUG();
 	}
 }
 

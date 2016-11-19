@@ -58,7 +58,10 @@ static int crash_shutdown_cpu = -1;
 static int handle_fault(struct pt_regs *regs)
 {
 	if (crash_shutdown_cpu == smp_processor_id())
+	{
 		longjmp(crash_shutdown_buf, 1);
+	}
+
 	return 0;
 }
 
@@ -72,10 +75,14 @@ static void crash_ipi_callback(struct pt_regs *regs)
 	int cpu = smp_processor_id();
 
 	if (!cpu_online(cpu))
+	{
 		return;
+	}
 
 	hard_irq_disable();
-	if (!cpumask_test_cpu(cpu, &cpus_state_saved)) {
+
+	if (!cpumask_test_cpu(cpu, &cpus_state_saved))
+	{
 		crash_save_cpu(regs, cpu);
 		cpumask_set_cpu(cpu, &cpus_state_saved);
 	}
@@ -88,15 +95,21 @@ static void crash_ipi_callback(struct pt_regs *regs)
 	 * This barrier is needed to make sure that all CPUs are stopped.
 	 */
 	while (!time_to_dump)
+	{
 		cpu_relax();
+	}
 
 	if (ppc_md.kexec_cpu_down)
+	{
 		ppc_md.kexec_cpu_down(1, 1);
+	}
 
 #ifdef CONFIG_PPC64
 	kexec_smp_wait();
 #else
+
 	for (;;);	/* FIXME */
+
 #endif
 
 	/* NOTREACHED */
@@ -107,7 +120,7 @@ static void crash_kexec_prepare_cpus(int cpu)
 	unsigned int msecs;
 	unsigned int ncpus = num_online_cpus() - 1;/* Excluding the panic cpu */
 	int tries = 0;
-	int (*old_handler)(struct pt_regs *regs);
+	int (*old_handler)(struct pt_regs * regs);
 
 	printk(KERN_EMERG "Sending IPI to other CPUs\n");
 
@@ -121,18 +134,22 @@ again:
 	 * respond.
 	 */
 	msecs = IPI_TIMEOUT;
+
 	while ((atomic_read(&cpus_in_crash) < ncpus) && (--msecs > 0))
+	{
 		mdelay(1);
+	}
 
 	/* Would it be better to replace the trap vector here? */
 
-	if (atomic_read(&cpus_in_crash) >= ncpus) {
+	if (atomic_read(&cpus_in_crash) >= ncpus)
+	{
 		printk(KERN_EMERG "IPI complete\n");
 		return;
 	}
 
 	printk(KERN_EMERG "ERROR: %d cpu(s) not responding\n",
-		ncpus - atomic_read(&cpus_in_crash));
+		   ncpus - atomic_read(&cpus_in_crash));
 
 	/*
 	 * If we have a panic timeout set then we can't wait indefinitely
@@ -140,7 +157,9 @@ again:
 	 * second time through if system reset fail to work.
 	 */
 	if ((panic_timeout > 0) || (tries > 0))
+	{
 		return;
+	}
 
 	/*
 	 * A system reset will cause all CPUs to take an 0x100 exception.
@@ -151,9 +170,10 @@ again:
 	__debugger = handle_fault;
 	crash_shutdown_cpu = smp_processor_id();
 
-	if (setjmp(crash_shutdown_buf) == 0) {
+	if (setjmp(crash_shutdown_buf) == 0)
+	{
 		printk(KERN_EMERG "Activate system reset (dumprestart) "
-				  "to stop other cpu(s)\n");
+			   "to stop other cpu(s)\n");
 
 		/*
 		 * A system reset will force all CPUs to execute the
@@ -164,7 +184,9 @@ again:
 		smp_mb();
 
 		while (atomic_read(&cpus_in_crash) < ncpus)
+		{
 			cpu_relax();
+		}
 	}
 
 	crash_shutdown_cpu = -1;
@@ -185,8 +207,10 @@ void crash_kexec_secondary(struct pt_regs *regs)
 	local_irq_save(flags);
 
 	/* Wait for the primary crash CPU to signal its progress */
-	while (crashing_cpu < 0) {
-		if (--msecs < 0) {
+	while (crashing_cpu < 0)
+	{
+		if (--msecs < 0)
+		{
 			/* No response, kdump image may not have been loaded */
 			local_irq_restore(flags);
 			return;
@@ -228,18 +252,28 @@ static void __maybe_unused crash_kexec_wait_realmode(int cpu)
 	int i;
 
 	msecs = REAL_MODE_TIMEOUT;
-	for (i=0; i < nr_cpu_ids && msecs > 0; i++) {
-		if (i == cpu)
-			continue;
 
-		while (paca[i].kexec_state < KEXEC_STATE_REAL_MODE) {
+	for (i = 0; i < nr_cpu_ids && msecs > 0; i++)
+	{
+		if (i == cpu)
+		{
+			continue;
+		}
+
+		while (paca[i].kexec_state < KEXEC_STATE_REAL_MODE)
+		{
 			barrier();
+
 			if (!cpu_possible(i) || !cpu_online(i) || (msecs <= 0))
+			{
 				break;
+			}
+
 			msecs--;
 			mdelay(1);
 		}
 	}
+
 	mb();
 }
 #else
@@ -255,17 +289,20 @@ int crash_shutdown_register(crash_shutdown_t handler)
 	unsigned int i, rc;
 
 	spin_lock(&crash_handlers_lock);
+
 	for (i = 0 ; i < CRASH_HANDLER_MAX; i++)
-		if (!crash_shutdown_handles[i]) {
+		if (!crash_shutdown_handles[i])
+		{
 			/* Insert handle at first empty entry */
 			crash_shutdown_handles[i] = handler;
 			rc = 0;
 			break;
 		}
 
-	if (i == CRASH_HANDLER_MAX) {
+	if (i == CRASH_HANDLER_MAX)
+	{
 		printk(KERN_ERR "Crash shutdown handles full, "
-		       "not registered.\n");
+			   "not registered.\n");
 		rc = 1;
 	}
 
@@ -279,18 +316,25 @@ int crash_shutdown_unregister(crash_shutdown_t handler)
 	unsigned int i, rc;
 
 	spin_lock(&crash_handlers_lock);
+
 	for (i = 0 ; i < CRASH_HANDLER_MAX; i++)
 		if (crash_shutdown_handles[i] == handler)
+		{
 			break;
+		}
 
-	if (i == CRASH_HANDLER_MAX) {
+	if (i == CRASH_HANDLER_MAX)
+	{
 		printk(KERN_ERR "Crash shutdown handle not found\n");
 		rc = 1;
-	} else {
+	}
+	else
+	{
 		/* Shift handles down */
 		for (; i < (CRASH_HANDLER_MAX - 1); i++)
 			crash_shutdown_handles[i] =
-				crash_shutdown_handles[i+1];
+				crash_shutdown_handles[i + 1];
+
 		/*
 		 * Reset last entry to NULL now that it has been shifted down,
 		 * this will allow new handles to be added here.
@@ -307,7 +351,7 @@ EXPORT_SYMBOL(crash_shutdown_unregister);
 void default_machine_crash_shutdown(struct pt_regs *regs)
 {
 	unsigned int i;
-	int (*old_handler)(struct pt_regs *regs);
+	int (*old_handler)(struct pt_regs * regs);
 
 	/*
 	 * This function is only called after the system
@@ -332,7 +376,9 @@ void default_machine_crash_shutdown(struct pt_regs *regs)
 	 * CPUs to enter.
 	 */
 	if (TRAP(regs) == 0x100)
+	{
 		mdelay(PRIMARY_TIMEOUT);
+	}
 
 	crash_kexec_prepare_cpus(crashing_cpu);
 
@@ -351,8 +397,11 @@ void default_machine_crash_shutdown(struct pt_regs *regs)
 	old_handler = __debugger_fault_handler;
 	__debugger_fault_handler = handle_fault;
 	crash_shutdown_cpu = smp_processor_id();
-	for (i = 0; i < CRASH_HANDLER_MAX && crash_shutdown_handles[i]; i++) {
-		if (setjmp(crash_shutdown_buf) == 0) {
+
+	for (i = 0; i < CRASH_HANDLER_MAX && crash_shutdown_handles[i]; i++)
+	{
+		if (setjmp(crash_shutdown_buf) == 0)
+		{
 			/*
 			 * Insert syncs and delay to ensure
 			 * instructions in the dangerous region don't
@@ -364,9 +413,12 @@ void default_machine_crash_shutdown(struct pt_regs *regs)
 			asm volatile("sync; isync");
 		}
 	}
+
 	crash_shutdown_cpu = -1;
 	__debugger_fault_handler = old_handler;
 
 	if (ppc_md.kexec_cpu_down)
+	{
 		ppc_md.kexec_cpu_down(1, 0);
+	}
 }

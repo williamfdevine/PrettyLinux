@@ -21,7 +21,9 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
 	int ret;
 
 	if (!idmap_pgd)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Provide a temporary page table with an identity mapping for
@@ -30,7 +32,9 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
 	 * back to the correct page tables.
 	 */
 	ret = __cpu_suspend(arg, fn, __mpidr);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		cpu_switch_mm(mm->pgd, mm);
 		local_flush_bp_all();
 		local_flush_tlb_all();
@@ -81,7 +85,7 @@ void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
 
 	outer_clean_range(*save_ptr, *save_ptr + ptrsz);
 	outer_clean_range(virt_to_phys(save_ptr),
-			  virt_to_phys(save_ptr) + sizeof(*save_ptr));
+					  virt_to_phys(save_ptr) + sizeof(*save_ptr));
 }
 
 extern struct sleep_save_sp sleep_save_sp;
@@ -93,7 +97,10 @@ static int cpu_suspend_alloc_sp(void)
 	ctx_ptr = kcalloc(mpidr_hash_size(), sizeof(u32), GFP_KERNEL);
 
 	if (WARN_ON(!ctx_ptr))
+	{
 		return -ENOMEM;
+	}
+
 	sleep_save_sp.save_ptr_stash = ctx_ptr;
 	sleep_save_sp.save_ptr_stash_phys = virt_to_phys(ctx_ptr);
 	sync_cache_w(&sleep_save_sp);

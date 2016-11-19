@@ -33,7 +33,8 @@
  * book:
  * http://oss.software.ibm.com/developerworks/opensource/linux390/index.shtml
  */
-struct appldata_mem_data {
+struct appldata_mem_data
+{
 	u64 timestamp;
 	u32 sync_count_1;       /* after VM collected the record data, */
 	u32 sync_count_2;	/* sync_count_1 and sync_count_2 should be the
@@ -58,11 +59,11 @@ struct appldata_mem_data {
 	u64 totalswap;		/* total swap space size */
 	u64 freeswap;		/* free swap space */
 
-// New in 2.6 -->
+	// New in 2.6 -->
 	u64 pgalloc;		/* page allocations */
 	u64 pgfault;		/* page faults (major+minor) */
 	u64 pgmajfault;		/* page faults (major only) */
-// <-- New in 2.6
+	// <-- New in 2.6
 
 } __packed;
 
@@ -103,7 +104,7 @@ static void appldata_get_mem_data(void *data)
 	mem_data->freehigh  = P2K(val.freehigh);
 	mem_data->bufferram = P2K(val.bufferram);
 	mem_data->cached    = P2K(global_node_page_state(NR_FILE_PAGES)
-				- val.bufferram);
+							  - val.bufferram);
 
 	si_swapinfo(&val);
 	mem_data->totalswap = P2K(val.totalswap);
@@ -114,7 +115,8 @@ static void appldata_get_mem_data(void *data)
 }
 
 
-static struct appldata_ops ops = {
+static struct appldata_ops ops =
+{
 	.name      = "mem",
 	.record_nr = APPLDATA_RECORD_MEM_ID,
 	.size	   = sizeof(struct appldata_mem_data),
@@ -134,12 +136,18 @@ static int __init appldata_mem_init(void)
 	int ret;
 
 	ops.data = kzalloc(sizeof(struct appldata_mem_data), GFP_KERNEL);
+
 	if (!ops.data)
+	{
 		return -ENOMEM;
+	}
 
 	ret = appldata_register_ops(&ops);
+
 	if (ret)
+	{
 		kfree(ops.data);
+	}
 
 	return ret;
 }

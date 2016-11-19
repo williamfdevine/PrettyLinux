@@ -47,7 +47,8 @@
 #define CPM_IDLE_WAIT	0
 #define CPM_IDLE_DOZE	1
 
-struct cpm {
+struct cpm
+{
 	dcr_host_t	dcr_host;
 	unsigned int	dcr_offset[3];
 	unsigned int	powersave_off;
@@ -59,12 +60,14 @@ struct cpm {
 
 static struct cpm cpm;
 
-struct cpm_idle_mode {
+struct cpm_idle_mode
+{
 	unsigned int enabled;
 	const char  *name;
 };
 
-static struct cpm_idle_mode idle_mode[] = {
+static struct cpm_idle_mode idle_mode[] =
+{
 	[CPM_IDLE_WAIT] = { 1, "wait" }, /* default */
 	[CPM_IDLE_DOZE] = { 0, "doze" },
 };
@@ -96,7 +99,7 @@ static void cpm_idle_wait(void)
 	/* sync required when CPM0_ER[CPU] is set */
 	mb();
 	/* set wait state MSR */
-	mtmsr(msr_save|MSR_WE|MSR_EE|MSR_CE|MSR_DE);
+	mtmsr(msr_save | MSR_WE | MSR_EE | MSR_CE | MSR_DE);
 	isync();
 	/* return to initial state */
 	mtmsr(msr_save);
@@ -127,35 +130,44 @@ static void cpm_idle_config(int mode)
 	int i;
 
 	if (idle_mode[mode].enabled)
+	{
 		return;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(idle_mode); i++)
+	{
 		idle_mode[i].enabled = 0;
+	}
 
 	idle_mode[mode].enabled = 1;
 }
 
 static ssize_t cpm_idle_show(struct kobject *kobj,
-			     struct kobj_attribute *attr, char *buf)
+							 struct kobj_attribute *attr, char *buf)
 {
 	char *s = buf;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(idle_mode); i++) {
+	for (i = 0; i < ARRAY_SIZE(idle_mode); i++)
+	{
 		if (idle_mode[i].enabled)
+		{
 			s += sprintf(s, "[%s] ", idle_mode[i].name);
+		}
 		else
+		{
 			s += sprintf(s, "%s ", idle_mode[i].name);
+		}
 	}
 
-	*(s-1) = '\n'; /* convert the last space to a newline */
+	*(s - 1) = '\n'; /* convert the last space to a newline */
 
 	return s - buf;
 }
 
 static ssize_t cpm_idle_store(struct kobject *kobj,
-			      struct kobj_attribute *attr,
-			      const char *buf, size_t n)
+							  struct kobj_attribute *attr,
+							  const char *buf, size_t n)
 {
 	int i;
 	char *p;
@@ -164,8 +176,10 @@ static ssize_t cpm_idle_store(struct kobject *kobj,
 	p = memchr(buf, '\n', n);
 	len = p ? p - buf : n;
 
-	for (i = 0; i < ARRAY_SIZE(idle_mode); i++) {
-		if (strncmp(buf, idle_mode[i].name, len) == 0) {
+	for (i = 0; i < ARRAY_SIZE(idle_mode); i++)
+	{
+		if (strncmp(buf, idle_mode[i].name, len) == 0)
+		{
 			cpm_idle_config(i);
 			return n;
 		}
@@ -185,29 +199,37 @@ static void cpm_idle_config_sysfs(void)
 	dev = get_cpu_device(0);
 
 	ret = sysfs_create_file(&dev->kobj,
-				&cpm_idle_attr.attr);
+							&cpm_idle_attr.attr);
+
 	if (ret)
 		printk(KERN_WARNING
-		       "cpm: failed to create idle sysfs entry\n");
+			   "cpm: failed to create idle sysfs entry\n");
 }
 
 static void cpm_idle(void)
 {
 	if (idle_mode[CPM_IDLE_DOZE].enabled)
+	{
 		cpm_idle_doze();
+	}
 	else
+	{
 		cpm_idle_wait();
+	}
 }
 
 static int cpm_suspend_valid(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-		return !!cpm.standby;
-	case PM_SUSPEND_MEM:
-		return !!cpm.suspend;
-	default:
-		return 0;
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+			return !!cpm.standby;
+
+		case PM_SUSPEND_MEM:
+			return !!cpm.suspend;
+
+		default:
+			return 0;
 	}
 }
 
@@ -228,31 +250,36 @@ static void cpm_suspend_standby(unsigned int mask)
 
 static int cpm_suspend_enter(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-		cpm_suspend_standby(cpm.standby);
-		break;
-	case PM_SUSPEND_MEM:
-		cpm_suspend_standby(cpm.suspend);
-		break;
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+			cpm_suspend_standby(cpm.standby);
+			break;
+
+		case PM_SUSPEND_MEM:
+			cpm_suspend_standby(cpm.suspend);
+			break;
 	}
 
 	return 0;
 }
 
-static struct platform_suspend_ops cpm_suspend_ops = {
+static struct platform_suspend_ops cpm_suspend_ops =
+{
 	.valid		= cpm_suspend_valid,
 	.enter		= cpm_suspend_enter,
 };
 
 static int cpm_get_uint_property(struct device_node *np,
-				 const char *name)
+								 const char *name)
 {
 	int len;
 	const unsigned int *prop = of_get_property(np, name, &len);
 
 	if (prop == NULL || len < sizeof(u32))
+	{
 		return 0;
+	}
 
 	return *prop;
 }
@@ -263,13 +290,16 @@ static int __init cpm_init(void)
 	int dcr_base, dcr_len;
 	int ret = 0;
 
-	if (!cpm.powersave_off) {
+	if (!cpm.powersave_off)
+	{
 		cpm_idle_config(CPM_IDLE_WAIT);
 		ppc_md.power_save = &cpm_idle;
 	}
 
 	np = of_find_compatible_node(NULL, NULL, "ibm,cpm");
-	if (!np) {
+
+	if (!np)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -277,18 +307,20 @@ static int __init cpm_init(void)
 	dcr_base = dcr_resource_start(np, 0);
 	dcr_len = dcr_resource_len(np, 0);
 
-	if (dcr_base == 0 || dcr_len == 0) {
+	if (dcr_base == 0 || dcr_len == 0)
+	{
 		printk(KERN_ERR "cpm: could not parse dcr property for %s\n",
-		       np->full_name);
+			   np->full_name);
 		ret = -EINVAL;
 		goto node_put;
 	}
 
 	cpm.dcr_host = dcr_map(np, dcr_base, dcr_len);
 
-	if (!DCR_MAP_OK(cpm.dcr_host)) {
+	if (!DCR_MAP_OK(cpm.dcr_host))
+	{
 		printk(KERN_ERR "cpm: failed to map dcr property for %s\n",
-		       np->full_name);
+			   np->full_name);
 		ret = -EINVAL;
 		goto node_put;
 	}
@@ -299,11 +331,14 @@ static int __init cpm_init(void)
 	 * others have them in the following order (SR,ER,FR).
 	 */
 
-	if (cpm_get_uint_property(np, "er-offset") == 0) {
+	if (cpm_get_uint_property(np, "er-offset") == 0)
+	{
 		cpm.dcr_offset[CPM_ER] = 0;
 		cpm.dcr_offset[CPM_FR] = 1;
 		cpm.dcr_offset[CPM_SR] = 2;
-	} else {
+	}
+	else
+	{
 		cpm.dcr_offset[CPM_ER] = 1;
 		cpm.dcr_offset[CPM_FR] = 2;
 		cpm.dcr_offset[CPM_SR] = 0;
@@ -318,7 +353,8 @@ static int __init cpm_init(void)
 
 	/* If some IPs are unused let's turn them off now */
 
-	if (cpm.unused) {
+	if (cpm.unused)
+	{
 		cpm_set(CPM_ER, cpm.unused);
 		cpm_set(CPM_FR, cpm.unused);
 	}
@@ -326,10 +362,15 @@ static int __init cpm_init(void)
 	/* Now let's export interfaces */
 
 	if (!cpm.powersave_off && cpm.idle_doze)
+	{
 		cpm_idle_config_sysfs();
+	}
 
 	if (cpm.standby || cpm.suspend)
+	{
 		suspend_set_ops(&cpm_suspend_ops);
+	}
+
 node_put:
 	of_node_put(np);
 out:

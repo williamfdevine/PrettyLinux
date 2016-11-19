@@ -11,7 +11,8 @@
 
 #include <linux/types.h>
 
-struct txx9_pio_reg {
+struct txx9_pio_reg
+{
 	__u32 dout;
 	__u32 din;
 	__u32 dir;
@@ -24,6 +25,6 @@ struct txx9_pio_reg {
 };
 
 int txx9_gpio_init(unsigned long baseaddr,
-		   unsigned int base, unsigned int num);
+				   unsigned int base, unsigned int num);
 
 #endif /* __ASM_TXX9PIO_H */

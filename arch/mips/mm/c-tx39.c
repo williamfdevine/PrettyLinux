@@ -30,14 +30,14 @@ static unsigned long icache_size, dcache_size;		/* Size in bytes */
 
 /* This sequence is required to ensure icache is disabled immediately */
 #define TX39_STOP_STREAMING() \
-__asm__ __volatile__( \
-	".set	 push\n\t" \
-	".set	 noreorder\n\t" \
-	"b	 1f\n\t" \
-	"nop\n\t" \
-	"1:\n\t" \
-	".set pop" \
-	)
+	__asm__ __volatile__( \
+						  ".set	 push\n\t" \
+						  ".set	 noreorder\n\t" \
+						  "b	 1f\n\t" \
+						  "nop\n\t" \
+						  "1:\n\t" \
+						  ".set pop" \
+						)
 
 /* TX39H-style cache flush routines. */
 static void tx39h_flush_icache_all(void)
@@ -68,7 +68,9 @@ static void tx39h_dma_cache_wback_inv(unsigned long addr, unsigned long size)
 static inline void tx39_blast_dcache_page(unsigned long addr)
 {
 	if (current_cpu_type() != CPU_TX3912)
+	{
 		blast_dcache16_page(addr);
+	}
 }
 
 static inline void tx39_blast_dcache_page_indexed(unsigned long addr)
@@ -133,7 +135,9 @@ static void tx39__flush_cache_vunmap(void)
 static inline void tx39_flush_cache_all(void)
 {
 	if (!cpu_has_dc_aliases)
+	{
 		return;
+	}
 
 	tx39_blast_dcache();
 }
@@ -147,19 +151,28 @@ static inline void tx39___flush_cache_all(void)
 static void tx39_flush_cache_mm(struct mm_struct *mm)
 {
 	if (!cpu_has_dc_aliases)
+	{
 		return;
+	}
 
 	if (cpu_context(smp_processor_id(), mm) != 0)
+	{
 		tx39_blast_dcache();
+	}
 }
 
 static void tx39_flush_cache_range(struct vm_area_struct *vma,
-	unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	if (!cpu_has_dc_aliases)
+	{
 		return;
+	}
+
 	if (!(cpu_context(smp_processor_id(), vma->vm_mm)))
+	{
 		return;
+	}
 
 	tx39_blast_dcache();
 }
@@ -178,7 +191,9 @@ static void tx39_flush_cache_page(struct vm_area_struct *vma, unsigned long page
 	 * this page into the cache.
 	 */
 	if (cpu_context(smp_processor_id(), mm) == 0)
+	{
 		return;
+	}
 
 	page &= PAGE_MASK;
 	pgdp = pgd_offset(mm, page);
@@ -191,7 +206,9 @@ static void tx39_flush_cache_page(struct vm_area_struct *vma, unsigned long page
 	 * in the cache.
 	 */
 	if (!(pte_val(*ptep) & _PAGE_PRESENT))
+	{
 		return;
+	}
 
 	/*
 	 * Doing flushes for another ASID than the current one is
@@ -199,11 +216,17 @@ static void tx39_flush_cache_page(struct vm_area_struct *vma, unsigned long page
 	 * for every cache flush operation.  So we do indexed flushes
 	 * in that case, which doesn't overly flush the cache too much.
 	 */
-	if ((mm == current->active_mm) && (pte_val(*ptep) & _PAGE_VALID)) {
+	if ((mm == current->active_mm) && (pte_val(*ptep) & _PAGE_VALID))
+	{
 		if (cpu_has_dc_aliases || exec)
+		{
 			tx39_blast_dcache_page(page);
+		}
+
 		if (exec)
+		{
 			tx39_blast_icache_page(page);
+		}
 
 		return;
 	}
@@ -213,12 +236,17 @@ static void tx39_flush_cache_page(struct vm_area_struct *vma, unsigned long page
 	 * to work correctly.
 	 */
 	if (cpu_has_dc_aliases || exec)
+	{
 		tx39_blast_dcache_page_indexed(page);
+	}
+
 	if (exec)
+	{
 		tx39_blast_icache_page_indexed(page);
+	}
 }
 
-static void local_tx39_flush_data_cache_page(void * addr)
+static void local_tx39_flush_data_cache_page(void *addr)
 {
 	tx39_blast_dcache_page((unsigned long)addr);
 }
@@ -231,13 +259,20 @@ static void tx39_flush_data_cache_page(unsigned long addr)
 static void tx39_flush_icache_range(unsigned long start, unsigned long end)
 {
 	if (end - start > dcache_size)
+	{
 		tx39_blast_dcache();
+	}
 	else
+	{
 		protected_blast_dcache_range(start, end);
+	}
 
 	if (end - start > icache_size)
+	{
 		tx39_blast_icache();
-	else {
+	}
+	else
+	{
 		unsigned long flags, config;
 		/* disable icache (set ICE#) */
 		local_irq_save(flags);
@@ -259,15 +294,23 @@ static void tx39_dma_cache_wback_inv(unsigned long addr, unsigned long size)
 {
 	unsigned long end;
 
-	if (((size | addr) & (PAGE_SIZE - 1)) == 0) {
+	if (((size | addr) & (PAGE_SIZE - 1)) == 0)
+	{
 		end = addr + size;
-		do {
+
+		do
+		{
 			tx39_blast_dcache_page(addr);
 			addr += PAGE_SIZE;
-		} while(addr != end);
-	} else if (size > dcache_size) {
+		}
+		while (addr != end);
+	}
+	else if (size > dcache_size)
+	{
 		tx39_blast_dcache();
-	} else {
+	}
+	else
+	{
 		blast_dcache_range(addr, addr + size);
 	}
 }
@@ -276,15 +319,23 @@ static void tx39_dma_cache_inv(unsigned long addr, unsigned long size)
 {
 	unsigned long end;
 
-	if (((size | addr) & (PAGE_SIZE - 1)) == 0) {
+	if (((size | addr) & (PAGE_SIZE - 1)) == 0)
+	{
 		end = addr + size;
-		do {
+
+		do
+		{
 			tx39_blast_dcache_page(addr);
 			addr += PAGE_SIZE;
-		} while(addr != end);
-	} else if (size > dcache_size) {
+		}
+		while (addr != end);
+	}
+	else if (size > dcache_size)
+	{
 		tx39_blast_dcache();
-	} else {
+	}
+	else
+	{
 		blast_inv_dcache_range(addr, addr + size);
 	}
 }
@@ -315,30 +366,32 @@ static __init void tx39_probe_cache(void)
 	config = read_c0_conf();
 
 	icache_size = 1 << (10 + ((config & TX39_CONF_ICS_MASK) >>
-				  TX39_CONF_ICS_SHIFT));
+							  TX39_CONF_ICS_SHIFT));
 	dcache_size = 1 << (10 + ((config & TX39_CONF_DCS_MASK) >>
-				  TX39_CONF_DCS_SHIFT));
+							  TX39_CONF_DCS_SHIFT));
 
 	current_cpu_data.icache.linesz = 16;
-	switch (current_cpu_type()) {
-	case CPU_TX3912:
-		current_cpu_data.icache.ways = 1;
-		current_cpu_data.dcache.ways = 1;
-		current_cpu_data.dcache.linesz = 4;
-		break;
 
-	case CPU_TX3927:
-		current_cpu_data.icache.ways = 2;
-		current_cpu_data.dcache.ways = 2;
-		current_cpu_data.dcache.linesz = 16;
-		break;
+	switch (current_cpu_type())
+	{
+		case CPU_TX3912:
+			current_cpu_data.icache.ways = 1;
+			current_cpu_data.dcache.ways = 1;
+			current_cpu_data.dcache.linesz = 4;
+			break;
 
-	case CPU_TX3922:
-	default:
-		current_cpu_data.icache.ways = 1;
-		current_cpu_data.dcache.ways = 1;
-		current_cpu_data.dcache.linesz = 16;
-		break;
+		case CPU_TX3927:
+			current_cpu_data.icache.ways = 2;
+			current_cpu_data.dcache.ways = 2;
+			current_cpu_data.dcache.linesz = 16;
+			break;
+
+		case CPU_TX3922:
+		default:
+			current_cpu_data.icache.ways = 1;
+			current_cpu_data.dcache.ways = 1;
+			current_cpu_data.dcache.linesz = 16;
+			break;
 	}
 }
 
@@ -354,61 +407,62 @@ void tx39_cache_init(void)
 
 	tx39_probe_cache();
 
-	switch (current_cpu_type()) {
-	case CPU_TX3912:
-		/* TX39/H core (writethru direct-map cache) */
-		__flush_cache_vmap	= tx39__flush_cache_vmap;
-		__flush_cache_vunmap	= tx39__flush_cache_vunmap;
-		flush_cache_all = tx39h_flush_icache_all;
-		__flush_cache_all	= tx39h_flush_icache_all;
-		flush_cache_mm		= (void *) tx39h_flush_icache_all;
-		flush_cache_range	= (void *) tx39h_flush_icache_all;
-		flush_cache_page	= (void *) tx39h_flush_icache_all;
-		flush_icache_range	= (void *) tx39h_flush_icache_all;
-		local_flush_icache_range = (void *) tx39h_flush_icache_all;
+	switch (current_cpu_type())
+	{
+		case CPU_TX3912:
+			/* TX39/H core (writethru direct-map cache) */
+			__flush_cache_vmap	= tx39__flush_cache_vmap;
+			__flush_cache_vunmap	= tx39__flush_cache_vunmap;
+			flush_cache_all = tx39h_flush_icache_all;
+			__flush_cache_all	= tx39h_flush_icache_all;
+			flush_cache_mm		= (void *) tx39h_flush_icache_all;
+			flush_cache_range	= (void *) tx39h_flush_icache_all;
+			flush_cache_page	= (void *) tx39h_flush_icache_all;
+			flush_icache_range	= (void *) tx39h_flush_icache_all;
+			local_flush_icache_range = (void *) tx39h_flush_icache_all;
 
-		flush_cache_sigtramp	= (void *) tx39h_flush_icache_all;
-		local_flush_data_cache_page	= (void *) tx39h_flush_icache_all;
-		flush_data_cache_page	= (void *) tx39h_flush_icache_all;
+			flush_cache_sigtramp	= (void *) tx39h_flush_icache_all;
+			local_flush_data_cache_page	= (void *) tx39h_flush_icache_all;
+			flush_data_cache_page	= (void *) tx39h_flush_icache_all;
 
-		_dma_cache_wback_inv	= tx39h_dma_cache_wback_inv;
+			_dma_cache_wback_inv	= tx39h_dma_cache_wback_inv;
 
-		shm_align_mask		= PAGE_SIZE - 1;
+			shm_align_mask		= PAGE_SIZE - 1;
 
-		break;
+			break;
 
-	case CPU_TX3922:
-	case CPU_TX3927:
-	default:
-		/* TX39/H2,H3 core (writeback 2way-set-associative cache) */
-		/* board-dependent init code may set WBON */
+		case CPU_TX3922:
+		case CPU_TX3927:
+		default:
+			/* TX39/H2,H3 core (writeback 2way-set-associative cache) */
+			/* board-dependent init code may set WBON */
 
-		__flush_cache_vmap	= tx39__flush_cache_vmap;
-		__flush_cache_vunmap	= tx39__flush_cache_vunmap;
+			__flush_cache_vmap	= tx39__flush_cache_vmap;
+			__flush_cache_vunmap	= tx39__flush_cache_vunmap;
 
-		flush_cache_all = tx39_flush_cache_all;
-		__flush_cache_all = tx39___flush_cache_all;
-		flush_cache_mm = tx39_flush_cache_mm;
-		flush_cache_range = tx39_flush_cache_range;
-		flush_cache_page = tx39_flush_cache_page;
-		flush_icache_range = tx39_flush_icache_range;
-		local_flush_icache_range = tx39_flush_icache_range;
+			flush_cache_all = tx39_flush_cache_all;
+			__flush_cache_all = tx39___flush_cache_all;
+			flush_cache_mm = tx39_flush_cache_mm;
+			flush_cache_range = tx39_flush_cache_range;
+			flush_cache_page = tx39_flush_cache_page;
+			flush_icache_range = tx39_flush_icache_range;
+			local_flush_icache_range = tx39_flush_icache_range;
 
-		__flush_kernel_vmap_range = tx39_flush_kernel_vmap_range;
+			__flush_kernel_vmap_range = tx39_flush_kernel_vmap_range;
 
-		flush_cache_sigtramp = tx39_flush_cache_sigtramp;
-		local_flush_data_cache_page = local_tx39_flush_data_cache_page;
-		flush_data_cache_page = tx39_flush_data_cache_page;
+			flush_cache_sigtramp = tx39_flush_cache_sigtramp;
+			local_flush_data_cache_page = local_tx39_flush_data_cache_page;
+			flush_data_cache_page = tx39_flush_data_cache_page;
 
-		_dma_cache_wback_inv = tx39_dma_cache_wback_inv;
-		_dma_cache_wback = tx39_dma_cache_wback_inv;
-		_dma_cache_inv = tx39_dma_cache_inv;
+			_dma_cache_wback_inv = tx39_dma_cache_wback_inv;
+			_dma_cache_wback = tx39_dma_cache_wback_inv;
+			_dma_cache_inv = tx39_dma_cache_inv;
 
-		shm_align_mask = max_t(unsigned long,
-				       (dcache_size / current_cpu_data.dcache.ways) - 1,
-				       PAGE_SIZE - 1);
+			shm_align_mask = max_t(unsigned long,
+								   (dcache_size / current_cpu_data.dcache.ways) - 1,
+								   PAGE_SIZE - 1);
 
-		break;
+			break;
 	}
 
 	__flush_icache_user_range = flush_icache_range;
@@ -423,15 +477,17 @@ void tx39_cache_init(void)
 		current_cpu_data.dcache.waysize / current_cpu_data.dcache.linesz;
 
 	if (current_cpu_data.dcache.waysize > PAGE_SIZE)
+	{
 		current_cpu_data.dcache.flags |= MIPS_CACHE_ALIASES;
+	}
 
 	current_cpu_data.icache.waybit = 0;
 	current_cpu_data.dcache.waybit = 0;
 
 	printk("Primary instruction cache %ldkB, linesize %d bytes\n",
-		icache_size >> 10, current_cpu_data.icache.linesz);
+		   icache_size >> 10, current_cpu_data.icache.linesz);
 	printk("Primary data cache %ldkB, linesize %d bytes\n",
-		dcache_size >> 10, current_cpu_data.dcache.linesz);
+		   dcache_size >> 10, current_cpu_data.dcache.linesz);
 
 	build_clear_page();
 	build_copy_page();

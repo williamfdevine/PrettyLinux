@@ -68,7 +68,7 @@ void ehv_pic_direct_end_irq(struct irq_data *d)
 }
 
 int ehv_pic_set_affinity(struct irq_data *d, const struct cpumask *dest,
-			 bool force)
+						 bool force)
 {
 	unsigned int src = virq_to_hw(d->irq);
 	unsigned int config, prio, cpu_dest;
@@ -87,24 +87,25 @@ static unsigned int ehv_pic_type_to_vecpri(unsigned int type)
 {
 	/* Now convert sense value */
 
-	switch (type & IRQ_TYPE_SENSE_MASK) {
-	case IRQ_TYPE_EDGE_RISING:
-		return EHV_PIC_INFO(VECPRI_SENSE_EDGE) |
-		       EHV_PIC_INFO(VECPRI_POLARITY_POSITIVE);
+	switch (type & IRQ_TYPE_SENSE_MASK)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			return EHV_PIC_INFO(VECPRI_SENSE_EDGE) |
+				   EHV_PIC_INFO(VECPRI_POLARITY_POSITIVE);
 
-	case IRQ_TYPE_EDGE_FALLING:
-	case IRQ_TYPE_EDGE_BOTH:
-		return EHV_PIC_INFO(VECPRI_SENSE_EDGE) |
-		       EHV_PIC_INFO(VECPRI_POLARITY_NEGATIVE);
+		case IRQ_TYPE_EDGE_FALLING:
+		case IRQ_TYPE_EDGE_BOTH:
+			return EHV_PIC_INFO(VECPRI_SENSE_EDGE) |
+				   EHV_PIC_INFO(VECPRI_POLARITY_NEGATIVE);
 
-	case IRQ_TYPE_LEVEL_HIGH:
-		return EHV_PIC_INFO(VECPRI_SENSE_LEVEL) |
-		       EHV_PIC_INFO(VECPRI_POLARITY_POSITIVE);
+		case IRQ_TYPE_LEVEL_HIGH:
+			return EHV_PIC_INFO(VECPRI_SENSE_LEVEL) |
+				   EHV_PIC_INFO(VECPRI_POLARITY_POSITIVE);
 
-	case IRQ_TYPE_LEVEL_LOW:
-	default:
-		return EHV_PIC_INFO(VECPRI_SENSE_LEVEL) |
-		       EHV_PIC_INFO(VECPRI_POLARITY_NEGATIVE);
+		case IRQ_TYPE_LEVEL_LOW:
+		default:
+			return EHV_PIC_INFO(VECPRI_SENSE_LEVEL) |
+				   EHV_PIC_INFO(VECPRI_POLARITY_NEGATIVE);
 	}
 }
 
@@ -115,7 +116,9 @@ int ehv_pic_set_irq_type(struct irq_data *d, unsigned int flow_type)
 	unsigned long flags;
 
 	if (flow_type == IRQ_TYPE_NONE)
+	{
 		flow_type = IRQ_TYPE_LEVEL_LOW;
+	}
 
 	irqd_set_trigger_type(d, flow_type);
 
@@ -124,7 +127,7 @@ int ehv_pic_set_irq_type(struct irq_data *d, unsigned int flow_type)
 	spin_lock_irqsave(&ehv_pic_lock, flags);
 	ev_int_get_config(src, &vold, &prio, &cpu_dest);
 	vnew = vold & ~(EHV_PIC_INFO(VECPRI_POLARITY_MASK) |
-			EHV_PIC_INFO(VECPRI_SENSE_MASK));
+					EHV_PIC_INFO(VECPRI_SENSE_MASK));
 	vnew |= vecpri;
 
 	/*
@@ -141,14 +144,16 @@ int ehv_pic_set_irq_type(struct irq_data *d, unsigned int flow_type)
 	return IRQ_SET_MASK_OK_NOCOPY;
 }
 
-static struct irq_chip ehv_pic_irq_chip = {
+static struct irq_chip ehv_pic_irq_chip =
+{
 	.irq_mask	= ehv_pic_mask_irq,
 	.irq_unmask	= ehv_pic_unmask_irq,
 	.irq_eoi	= ehv_pic_end_irq,
 	.irq_set_type	= ehv_pic_set_irq_type,
 };
 
-static struct irq_chip ehv_pic_direct_eoi_irq_chip = {
+static struct irq_chip ehv_pic_direct_eoi_irq_chip =
+{
 	.irq_mask	= ehv_pic_mask_irq,
 	.irq_unmask	= ehv_pic_unmask_irq,
 	.irq_eoi	= ehv_pic_direct_end_irq,
@@ -163,12 +168,18 @@ unsigned int ehv_pic_get_irq(void)
 	BUG_ON(global_ehv_pic == NULL);
 
 	if (global_ehv_pic->coreint_flag)
-		irq = mfspr(SPRN_EPR); /* if core int mode */
+	{
+		irq = mfspr(SPRN_EPR);    /* if core int mode */
+	}
 	else
-		ev_int_iack(0, &irq); /* legacy mode */
+	{
+		ev_int_iack(0, &irq);    /* legacy mode */
+	}
 
 	if (irq == 0xFFFF)    /* 0xFFFF --> no irq is pending */
+	{
 		return 0;
+	}
 
 	/*
 	 * this will also setup revmap[] in the slow path for the first
@@ -178,7 +189,7 @@ unsigned int ehv_pic_get_irq(void)
 }
 
 static int ehv_pic_host_match(struct irq_domain *h, struct device_node *node,
-			      enum irq_domain_bus_token bus_token)
+							  enum irq_domain_bus_token bus_token)
 {
 	/* Exact match, unless ehv_pic node is NULL */
 	struct device_node *of_node = irq_domain_get_of_node(h);
@@ -186,7 +197,7 @@ static int ehv_pic_host_match(struct irq_domain *h, struct device_node *node,
 }
 
 static int ehv_pic_host_map(struct irq_domain *h, unsigned int virq,
-			 irq_hw_number_t hw)
+							irq_hw_number_t hw)
 {
 	struct ehv_pic *ehv_pic = h->host_data;
 	struct irq_chip *chip;
@@ -196,7 +207,9 @@ static int ehv_pic_host_map(struct irq_domain *h, unsigned int virq,
 
 	if (mpic_percpu_base_vaddr)
 		if (hwirq_intspec[hw] & IRQ_TYPE_MPIC_DIRECT)
+		{
 			chip = &ehv_pic_direct_eoi_irq_chip;
+		}
 
 	irq_set_chip_data(virq, chip);
 	/*
@@ -215,8 +228,8 @@ static int ehv_pic_host_map(struct irq_domain *h, unsigned int virq,
 }
 
 static int ehv_pic_host_xlate(struct irq_domain *h, struct device_node *ct,
-			   const u32 *intspec, unsigned int intsize,
-			   irq_hw_number_t *out_hwirq, unsigned int *out_flags)
+							  const u32 *intspec, unsigned int intsize,
+							  irq_hw_number_t *out_hwirq, unsigned int *out_flags)
 
 {
 	/*
@@ -226,7 +239,8 @@ static int ehv_pic_host_xlate(struct irq_domain *h, struct device_node *ct,
 	 * be translated between firmware type & linux type.
 	 */
 
-	static unsigned char map_of_senses_to_linux_irqtype[4] = {
+	static unsigned char map_of_senses_to_linux_irqtype[4] =
+	{
 		IRQ_TYPE_EDGE_FALLING,
 		IRQ_TYPE_EDGE_RISING,
 		IRQ_TYPE_LEVEL_LOW,
@@ -234,18 +248,23 @@ static int ehv_pic_host_xlate(struct irq_domain *h, struct device_node *ct,
 	};
 
 	*out_hwirq = intspec[0];
-	if (intsize > 1) {
+
+	if (intsize > 1)
+	{
 		hwirq_intspec[intspec[0]] = intspec[1];
 		*out_flags = map_of_senses_to_linux_irqtype[intspec[1] &
-							~IRQ_TYPE_MPIC_DIRECT];
-	} else {
+					 ~IRQ_TYPE_MPIC_DIRECT];
+	}
+	else
+	{
 		*out_flags = IRQ_TYPE_NONE;
 	}
 
 	return 0;
 }
 
-static const struct irq_domain_ops ehv_pic_host_ops = {
+static const struct irq_domain_ops ehv_pic_host_ops =
+{
 	.match = ehv_pic_host_match,
 	.map = ehv_pic_host_map,
 	.xlate = ehv_pic_host_xlate,
@@ -258,33 +277,46 @@ void __init ehv_pic_init(void)
 	int coreint_flag = 1;
 
 	np = of_find_compatible_node(NULL, NULL, "epapr,hv-pic");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("ehv_pic_init: could not find epapr,hv-pic node\n");
 		return;
 	}
 
 	if (!of_find_property(np, "has-external-proxy", NULL))
+	{
 		coreint_flag = 0;
+	}
 
 	ehv_pic = kzalloc(sizeof(struct ehv_pic), GFP_KERNEL);
-	if (!ehv_pic) {
+
+	if (!ehv_pic)
+	{
 		of_node_put(np);
 		return;
 	}
 
 	ehv_pic->irqhost = irq_domain_add_linear(np, NR_EHV_PIC_INTS,
-						 &ehv_pic_host_ops, ehv_pic);
-	if (!ehv_pic->irqhost) {
+					   &ehv_pic_host_ops, ehv_pic);
+
+	if (!ehv_pic->irqhost)
+	{
 		of_node_put(np);
 		kfree(ehv_pic);
 		return;
 	}
 
 	np2 = of_find_compatible_node(NULL, NULL, "fsl,hv-mpic-per-cpu");
-	if (np2) {
+
+	if (np2)
+	{
 		mpic_percpu_base_vaddr = of_iomap(np2, 0);
+
 		if (!mpic_percpu_base_vaddr)
+		{
 			pr_err("ehv_pic_init: of_iomap failed\n");
+		}
 
 		of_node_put(np2);
 	}

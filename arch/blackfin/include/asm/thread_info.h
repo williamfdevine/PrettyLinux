@@ -35,7 +35,8 @@ typedef unsigned long mm_segment_t;
  * If you change this, change the TI_* offsets below to match.
  */
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct *task;	/* main task structure */
 	unsigned long flags;	/* low level flags */
 	int cpu;		/* cpu we're on */
@@ -50,12 +51,12 @@ struct thread_info {
  * macros/functions for gaining access to the thread information structure
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+	}
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
 
@@ -68,7 +69,7 @@ static inline struct thread_info *current_thread_info(void)
 {
 	struct thread_info *ti;
 	__asm__("%0 = sp;" : "=da"(ti));
-	return (struct thread_info *)((long)ti & ~((long)THREAD_SIZE-1));
+	return (struct thread_info *)((long)ti & ~((long)THREAD_SIZE - 1));
 }
 
 #endif				/* __ASSEMBLY__ */

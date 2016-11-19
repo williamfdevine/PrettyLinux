@@ -21,7 +21,8 @@
 #include <plat/cpu-freq-core.h>
 
 /* This array should be sorted in ascending order of the frequencies */
-static struct cpufreq_frequency_table s3c2440_plls_169344[] = {
+static struct cpufreq_frequency_table s3c2440_plls_169344[] =
+{
 	{ .frequency = 78019200,	.driver_data = PLLVAL(121, 5, 3), 	}, 	/* FVco 624.153600 */
 	{ .frequency = 84067200,	.driver_data = PLLVAL(131, 5, 3), 	}, 	/* FVco 672.537600 */
 	{ .frequency = 90115200,	.driver_data = PLLVAL(141, 5, 3), 	}, 	/* FVco 720.921600 */
@@ -80,28 +81,33 @@ static struct cpufreq_frequency_table s3c2440_plls_169344[] = {
 };
 
 static int s3c2440_plls169344_add(struct device *dev,
-				  struct subsys_interface *sif)
+								  struct subsys_interface *sif)
 {
 	struct clk *xtal_clk;
 	unsigned long xtal;
 
 	xtal_clk = clk_get(NULL, "xtal");
+
 	if (IS_ERR(xtal_clk))
+	{
 		return PTR_ERR(xtal_clk);
+	}
 
 	xtal = clk_get_rate(xtal_clk);
 	clk_put(xtal_clk);
 
-	if (xtal == 169344000) {
+	if (xtal == 169344000)
+	{
 		printk(KERN_INFO "Using PLL table for 16.9344MHz crystal\n");
 		return s3c_plltab_register(s3c2440_plls_169344,
-					   ARRAY_SIZE(s3c2440_plls_169344));
+								   ARRAY_SIZE(s3c2440_plls_169344));
 	}
 
 	return 0;
 }
 
-static struct subsys_interface s3c2440_plls169344_interface = {
+static struct subsys_interface s3c2440_plls169344_interface =
+{
 	.name		= "s3c2440_plls169344",
 	.subsys		= &s3c2440_subsys,
 	.add_dev	= s3c2440_plls169344_add,
@@ -113,7 +119,8 @@ static int __init s3c2440_pll_16934400(void)
 }
 arch_initcall(s3c2440_pll_16934400);
 
-static struct subsys_interface s3c2442_plls169344_interface = {
+static struct subsys_interface s3c2442_plls169344_interface =
+{
 	.name		= "s3c2442_plls169344",
 	.subsys		= &s3c2442_subsys,
 	.add_dev	= s3c2440_plls169344_add,

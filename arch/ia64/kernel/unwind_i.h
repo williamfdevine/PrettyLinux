@@ -12,7 +12,8 @@
 #define UNW_FLAG_UHANDLER(x)	((x) & 0x0000000200000000L)
 #define UNW_LENGTH(x)		((x) & 0x00000000ffffffffL)
 
-enum unw_register_index {
+enum unw_register_index
+{
 	/* primary unat: */
 	UNW_REG_PRI_UNAT_GR,
 	UNW_REG_PRI_UNAT_MEM,
@@ -39,13 +40,15 @@ enum unw_register_index {
 	UNW_NUM_REGS
 };
 
-struct unw_info_block {
+struct unw_info_block
+{
 	u64 header;
 	u64 desc[0];		/* unwind descriptors */
 	/* personality routine and language-specific data follow behind descriptors */
 };
 
-struct unw_table {
+struct unw_table
+{
 	struct unw_table *next;		/* must be first member! */
 	const char *name;
 	unsigned long gp;		/* global pointer for this load-module */
@@ -56,7 +59,8 @@ struct unw_table {
 	unsigned long length;
 };
 
-enum unw_where {
+enum unw_where
+{
 	UNW_WHERE_NONE,			/* register isn't saved at all */
 	UNW_WHERE_GR,			/* register is saved in a general register */
 	UNW_WHERE_FR,			/* register is saved in a floating-point register */
@@ -73,24 +77,28 @@ enum unw_where {
 
 #define UNW_WHEN_NEVER	0x7fffffff
 
-struct unw_reg_info {
+struct unw_reg_info
+{
 	unsigned long val;		/* save location: register number or offset */
 	enum unw_where where;		/* where the register gets saved */
 	int when;			/* when the register gets saved */
 };
 
-struct unw_reg_state {
+struct unw_reg_state
+{
 	struct unw_reg_state *next;		/* next (outer) element on state stack */
 	struct unw_reg_info reg[UNW_NUM_REGS];	/* register save locations */
 };
 
-struct unw_labeled_state {
+struct unw_labeled_state
+{
 	struct unw_labeled_state *next;		/* next labeled state (or NULL) */
 	unsigned long label;			/* label for this state */
 	struct unw_reg_state saved_state;
 };
 
-struct unw_state_record {
+struct unw_state_record
+{
 	unsigned int first_region : 1;	/* is this the first region? */
 	unsigned int done : 1;		/* are we done scanning descriptors? */
 	unsigned int any_spills : 1;	/* got any register spills? */
@@ -114,14 +122,16 @@ struct unw_state_record {
 	struct unw_reg_state curr;	/* current state */
 };
 
-enum unw_nat_type {
+enum unw_nat_type
+{
 	UNW_NAT_NONE,		/* NaT not represented */
 	UNW_NAT_VAL,		/* NaT represented by NaT value (fp reg) */
 	UNW_NAT_MEMSTK,		/* NaT value is in unat word at offset OFF  */
 	UNW_NAT_REGSTK		/* NaT is in rnat */
 };
 
-enum unw_insn_opcode {
+enum unw_insn_opcode
+{
 	UNW_INSN_ADD,			/* s[dst] += val */
 	UNW_INSN_ADD_PSP,		/* s[dst] = (s.psp + val) */
 	UNW_INSN_ADD_SP,		/* s[dst] = (s.sp + val) */
@@ -136,7 +146,8 @@ enum unw_insn_opcode {
 	UNW_INSN_MOVE_CONST,            /* s[dst] = constant reg "val" */
 };
 
-struct unw_insn {
+struct unw_insn
+{
 	unsigned int opc	:  4;
 	unsigned int dst	:  9;
 	signed int val		: 19;
@@ -150,7 +161,8 @@ struct unw_insn {
  */
 #define UNW_MAX_SCRIPT_LEN	(UNW_NUM_REGS + 5)
 
-struct unw_script {
+struct unw_script
+{
 	unsigned long ip;		/* ip this script is for */
 	unsigned long pr_mask;		/* mask of predicates script depends on */
 	unsigned long pr_val;		/* predicate values this script is for */

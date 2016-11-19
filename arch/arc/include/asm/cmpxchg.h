@@ -28,16 +28,16 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
 	smp_mb();
 
 	__asm__ __volatile__(
-	"1:	llock   %0, [%1]	\n"
-	"	brne    %0, %2, 2f	\n"
-	"	scond   %3, [%1]	\n"
-	"	bnz     1b		\n"
-	"2:				\n"
-	: "=&r"(prev)	/* Early clobber, to prevent reg reuse */
-	: "r"(ptr),	/* Not "m": llock only supports reg direct addr mode */
-	  "ir"(expected),
-	  "r"(new)	/* can't be "ir". scond can't take LIMM for "b" */
-	: "cc", "memory"); /* so that gcc knows memory is being written here */
+		"1:	llock   %0, [%1]	\n"
+		"	brne    %0, %2, 2f	\n"
+		"	scond   %3, [%1]	\n"
+		"	bnz     1b		\n"
+		"2:				\n"
+		: "=&r"(prev)	/* Early clobber, to prevent reg reuse */
+		: "r"(ptr),	/* Not "m": llock only supports reg direct addr mode */
+		"ir"(expected),
+		"r"(new)	/* can't be "ir". scond can't take LIMM for "b" */
+		: "cc", "memory"); /* so that gcc knows memory is being written here */
 
 	smp_mb();
 
@@ -58,8 +58,12 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
 	 */
 	atomic_ops_lock(flags);
 	prev = *p;
+
 	if (prev == expected)
+	{
 		*p = new;
+	}
+
 	atomic_ops_unlock(flags);
 	return prev;
 }
@@ -77,13 +81,13 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
 	write_aux_reg(CTOP_AUX_GPA1, expected);
 
 	__asm__ __volatile__(
-	"	mov r2, %0\n"
-	"	mov r3, %1\n"
-	"	.word %2\n"
-	"	mov %0, r2"
-	: "+r"(new)
-	: "r"(ptr), "i"(CTOP_INST_EXC_DI_R2_R2_R3)
-	: "r2", "r3", "memory");
+		"	mov r2, %0\n"
+		"	mov r3, %1\n"
+		"	.word %2\n"
+		"	mov %0, r2"
+		: "+r"(new)
+		: "r"(ptr), "i"(CTOP_INST_EXC_DI_R2_R2_R3)
+		: "r2", "r3", "memory");
 
 	smp_mb();
 
@@ -93,7 +97,7 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
 #endif /* CONFIG_ARC_HAS_LLSC */
 
 #define cmpxchg(ptr, o, n) ((typeof(*(ptr)))__cmpxchg((ptr), \
-				(unsigned long)(o), (unsigned long)(n)))
+							(unsigned long)(o), (unsigned long)(n)))
 
 /*
  * atomic_cmpxchg is same as cmpxchg
@@ -110,29 +114,31 @@ __cmpxchg(volatile void *ptr, unsigned long expected, unsigned long new)
  * xchg (reg with memory) based on "Native atomic" EX insn
  */
 static inline unsigned long __xchg(unsigned long val, volatile void *ptr,
-				   int size)
+								   int size)
 {
 	extern unsigned long __xchg_bad_pointer(void);
 
-	switch (size) {
-	case 4:
-		smp_mb();
+	switch (size)
+	{
+		case 4:
+			smp_mb();
 
-		__asm__ __volatile__(
-		"	ex  %0, [%1]	\n"
-		: "+r"(val)
-		: "r"(ptr)
-		: "memory");
+			__asm__ __volatile__(
+				"	ex  %0, [%1]	\n"
+				: "+r"(val)
+				: "r"(ptr)
+				: "memory");
 
-		smp_mb();
+			smp_mb();
 
-		return val;
+			return val;
 	}
+
 	return __xchg_bad_pointer();
 }
 
 #define _xchg(ptr, with) ((typeof(*(ptr)))__xchg((unsigned long)(with), (ptr), \
-						 sizeof(*(ptr))))
+						  sizeof(*(ptr))))
 
 /*
  * xchg() maps directly to ARC EX instruction which guarantees atomicity.
@@ -152,15 +158,15 @@ static inline unsigned long __xchg(unsigned long val, volatile void *ptr,
 #if !defined(CONFIG_ARC_HAS_LLSC) && defined(CONFIG_SMP)
 
 #define xchg(ptr, with)			\
-({					\
-	unsigned long flags;		\
-	typeof(*(ptr)) old_val;		\
-					\
-	atomic_ops_lock(flags);		\
-	old_val = _xchg(ptr, with);	\
-	atomic_ops_unlock(flags);	\
-	old_val;			\
-})
+	({					\
+		unsigned long flags;		\
+		typeof(*(ptr)) old_val;		\
+		\
+		atomic_ops_lock(flags);		\
+		old_val = _xchg(ptr, with);	\
+		atomic_ops_unlock(flags);	\
+		old_val;			\
+	})
 
 #else
 
@@ -171,30 +177,32 @@ static inline unsigned long __xchg(unsigned long val, volatile void *ptr,
 #else /* CONFIG_ARC_PLAT_EZNPS */
 
 static inline unsigned long __xchg(unsigned long val, volatile void *ptr,
-				   int size)
+								   int size)
 {
 	extern unsigned long __xchg_bad_pointer(void);
 
-	switch (size) {
-	case 4:
-		/*
-		 * Explicit full memory barrier needed before/after
-		 */
-		smp_mb();
+	switch (size)
+	{
+		case 4:
+			/*
+			 * Explicit full memory barrier needed before/after
+			 */
+			smp_mb();
 
-		__asm__ __volatile__(
-		"	mov r2, %0\n"
-		"	mov r3, %1\n"
-		"	.word %2\n"
-		"	mov %0, r2\n"
-		: "+r"(val)
-		: "r"(ptr), "i"(CTOP_INST_XEX_DI_R2_R2_R3)
-		: "r2", "r3", "memory");
+			__asm__ __volatile__(
+				"	mov r2, %0\n"
+				"	mov r3, %1\n"
+				"	.word %2\n"
+				"	mov %0, r2\n"
+				: "+r"(val)
+				: "r"(ptr), "i"(CTOP_INST_XEX_DI_R2_R2_R3)
+				: "r2", "r3", "memory");
 
-		smp_mb();
+			smp_mb();
 
-		return val;
+			return val;
 	}
+
 	return __xchg_bad_pointer();
 }
 

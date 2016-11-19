@@ -15,7 +15,7 @@
 #define __va(x) ((void *)((unsigned long)(x) | 0x80000000))
 
 #define VM_STACK_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
-				 VM_MAYREAD | VM_MAYWRITE)
+								 VM_MAYREAD | VM_MAYWRITE)
 
 #endif /* __KERNEL__ */
 

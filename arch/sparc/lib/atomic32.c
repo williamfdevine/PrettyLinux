@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2004 Keith M Wesolowski
  * Copyright (C) 2007 Kyle McMartin
- * 
+ *
  * Based on asm-parisc/atomic.h Copyright (C) 2000 Philipp Rumpf
  */
 
@@ -15,8 +15,9 @@
 #define ATOMIC_HASH_SIZE	4
 #define ATOMIC_HASH(a)	(&__atomic_hash[(((unsigned long)a)>>8) & (ATOMIC_HASH_SIZE-1)])
 
-spinlock_t __atomic_hash[ATOMIC_HASH_SIZE] = {
-	[0 ... (ATOMIC_HASH_SIZE-1)] = __SPIN_LOCK_UNLOCKED(__atomic_hash)
+spinlock_t __atomic_hash[ATOMIC_HASH_SIZE] =
+{
+	[0 ... (ATOMIC_HASH_SIZE - 1)] = __SPIN_LOCK_UNLOCKED(__atomic_hash)
 };
 
 #else /* SMP */
@@ -28,40 +29,40 @@ static DEFINE_SPINLOCK(dummy);
 #endif /* SMP */
 
 #define ATOMIC_FETCH_OP(op, c_op)					\
-int atomic_fetch_##op(int i, atomic_t *v)				\
-{									\
-	int ret;							\
-	unsigned long flags;						\
-	spin_lock_irqsave(ATOMIC_HASH(v), flags);			\
-									\
-	ret = v->counter;						\
-	v->counter c_op i;						\
-									\
-	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);			\
-	return ret;							\
-}									\
-EXPORT_SYMBOL(atomic_fetch_##op);
+	int atomic_fetch_##op(int i, atomic_t *v)				\
+	{									\
+		int ret;							\
+		unsigned long flags;						\
+		spin_lock_irqsave(ATOMIC_HASH(v), flags);			\
+		\
+		ret = v->counter;						\
+		v->counter c_op i;						\
+		\
+		spin_unlock_irqrestore(ATOMIC_HASH(v), flags);			\
+		return ret;							\
+	}									\
+	EXPORT_SYMBOL(atomic_fetch_##op);
 
 #define ATOMIC_OP_RETURN(op, c_op)					\
-int atomic_##op##_return(int i, atomic_t *v)				\
-{									\
-	int ret;							\
-	unsigned long flags;						\
-	spin_lock_irqsave(ATOMIC_HASH(v), flags);			\
-									\
-	ret = (v->counter c_op i);					\
-									\
-	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);			\
-	return ret;							\
-}									\
-EXPORT_SYMBOL(atomic_##op##_return);
+	int atomic_##op##_return(int i, atomic_t *v)				\
+	{									\
+		int ret;							\
+		unsigned long flags;						\
+		spin_lock_irqsave(ATOMIC_HASH(v), flags);			\
+		\
+		ret = (v->counter c_op i);					\
+		\
+		spin_unlock_irqrestore(ATOMIC_HASH(v), flags);			\
+		return ret;							\
+	}									\
+	EXPORT_SYMBOL(atomic_##op##_return);
 
-ATOMIC_OP_RETURN(add, +=)
+ATOMIC_OP_RETURN(add, += )
 
-ATOMIC_FETCH_OP(add, +=)
-ATOMIC_FETCH_OP(and, &=)
-ATOMIC_FETCH_OP(or, |=)
-ATOMIC_FETCH_OP(xor, ^=)
+ATOMIC_FETCH_OP(add, += )
+ATOMIC_FETCH_OP( and , &= )
+ATOMIC_FETCH_OP( or , |= )
+ATOMIC_FETCH_OP(xor, ^= )
 
 #undef ATOMIC_FETCH_OP
 #undef ATOMIC_OP_RETURN
@@ -86,8 +87,11 @@ int atomic_cmpxchg(atomic_t *v, int old, int new)
 
 	spin_lock_irqsave(ATOMIC_HASH(v), flags);
 	ret = v->counter;
+
 	if (likely(ret == old))
+	{
 		v->counter = new;
+	}
 
 	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
 	return ret;
@@ -101,8 +105,12 @@ int __atomic_add_unless(atomic_t *v, int a, int u)
 
 	spin_lock_irqsave(ATOMIC_HASH(v), flags);
 	ret = v->counter;
+
 	if (ret != u)
+	{
 		v->counter += a;
+	}
+
 	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
 	return ret;
 }
@@ -164,8 +172,12 @@ unsigned long __cmpxchg_u32(volatile u32 *ptr, u32 old, u32 new)
 	u32 prev;
 
 	spin_lock_irqsave(ATOMIC_HASH(ptr), flags);
+
 	if ((prev = *ptr) == old)
+	{
 		*ptr = new;
+	}
+
 	spin_unlock_irqrestore(ATOMIC_HASH(ptr), flags);
 
 	return (unsigned long)prev;

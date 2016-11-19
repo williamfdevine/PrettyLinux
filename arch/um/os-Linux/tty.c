@@ -10,7 +10,8 @@
 #include <kern_util.h>
 #include <os.h>
 
-struct grantpt_info {
+struct grantpt_info
+{
 	int fd;
 	int res;
 	int err;
@@ -30,29 +31,34 @@ int get_pty(void)
 	int fd, err;
 
 	fd = open("/dev/ptmx", O_RDWR);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		err = -errno;
 		printk(UM_KERN_ERR "get_pty : Couldn't open /dev/ptmx - "
-		       "err = %d\n", errno);
+			   "err = %d\n", errno);
 		return err;
 	}
 
 	info.fd = fd;
 	initial_thread_cb(grantpt_cb, &info);
 
-	if (info.res < 0) {
+	if (info.res < 0)
+	{
 		err = -info.err;
 		printk(UM_KERN_ERR "get_pty : Couldn't grant pty - "
-		       "errno = %d\n", -info.err);
+			   "errno = %d\n", -info.err);
 		goto out;
 	}
 
-	if (unlockpt(fd) < 0) {
+	if (unlockpt(fd) < 0)
+	{
 		err = -errno;
 		printk(UM_KERN_ERR "get_pty : Couldn't unlock pty - "
-		       "errno = %d\n", errno);
+			   "errno = %d\n", errno);
 		goto out;
 	}
+
 	return fd;
 out:
 	close(fd);

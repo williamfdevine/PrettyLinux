@@ -78,6 +78,7 @@
 void machine_restart(char *cmd)
 {
 #ifdef FASTBOOT_SELFTEST_SUPPORT
+
 	/*
 	 ** If user has modified the Firmware Selftest Bitmap,
 	 ** run the tests specified in the bitmap after the
@@ -89,13 +90,15 @@ void machine_restart(char *cmd)
 	 ** vector cleared will also avoid running destructive
 	 ** memory self tests. (Not implemented yet)
 	 */
-	if (ftc_bitmap) {
+	if (ftc_bitmap)
+	{
 		pdc_do_firm_test_reset(ftc_bitmap);
 	}
+
 #endif
 	/* set up a new led state on systems shipped with a LED State panel */
 	pdc_chassis_send_status(PDC_CHASSIS_DIRECT_SHUTDOWN);
-	
+
 	/* "Normal" system reset */
 	pdc_do_reset();
 
@@ -119,26 +122,28 @@ void (*chassis_power_off)(void);
 
 /*
  * This routine is called from sys_reboot to actually turn off the
- * machine 
+ * machine
  */
 void machine_power_off(void)
 {
 	/* If there is a registered power off handler, call it. */
 	if (chassis_power_off)
+	{
 		chassis_power_off();
+	}
 
 	/* Put the soft power button back under hardware control.
 	 * If the user had already pressed the power button, the
 	 * following call will immediately power off. */
 	pdc_soft_power_button(0);
-	
+
 	pdc_chassis_send_status(PDC_CHASSIS_DIRECT_SHUTDOWN);
-		
+
 	/* It seems we have no way to power the system off via
 	 * software. The user has to press the button himself. */
 
 	printk(KERN_EMERG "System shut down completed.\n"
-	       "Please power this system off now.");
+		   "Please power this system off now.");
 }
 
 void (*pm_power_off)(void) = machine_power_off;
@@ -159,12 +164,14 @@ void release_thread(struct task_struct *dead_task)
  * Fill in the FPU structure for a core dump.
  */
 
-int dump_fpu (struct pt_regs * regs, elf_fpregset_t *r)
+int dump_fpu (struct pt_regs *regs, elf_fpregset_t *r)
 {
 	if (regs == NULL)
+	{
 		return 0;
+	}
 
-	memcpy(r, regs->fr, sizeof *r);
+	memcpy(r, regs->fr, sizeof * r);
 	return 1;
 }
 
@@ -179,22 +186,27 @@ int dump_task_fpu (struct task_struct *tsk, elf_fpregset_t *r)
  */
 int
 copy_thread(unsigned long clone_flags, unsigned long usp,
-	    unsigned long kthread_arg, struct task_struct *p)
+			unsigned long kthread_arg, struct task_struct *p)
 {
 	struct pt_regs *cregs = &(p->thread.regs);
 	void *stack = task_stack_page(p);
-	
+
 	/* We have to use void * instead of a function pointer, because
 	 * function pointers aren't a pointer to the function on 64-bit.
 	 * Make them const so the compiler knows they live in .text */
-	extern void * const ret_from_kernel_thread;
-	extern void * const child_return;
+	extern void *const ret_from_kernel_thread;
+	extern void *const child_return;
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		/* kernel thread */
 		memset(cregs, 0, sizeof(struct pt_regs));
+
 		if (!usp) /* idle thread */
+		{
 			return 0;
+		}
+
 		/* Must exit via ret_from_kernel_thread in order
 		 * to call schedule_tail()
 		 */
@@ -211,22 +223,31 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 		cregs->gr[26] = usp;
 #endif
 		cregs->gr[25] = kthread_arg;
-	} else {
+	}
+	else
+	{
 		/* user thread */
 		/* usp must be word aligned.  This also prevents users from
 		 * passing in the value 1 (which is the signal for a special
 		 * return for a kernel thread) */
-		if (usp) {
+		if (usp)
+		{
 			usp = ALIGN(usp, 4);
+
 			if (likely(usp))
+			{
 				cregs->gr[30] = usp;
+			}
 		}
+
 		cregs->ksp = (unsigned long)stack + THREAD_SZ_ALGN + FRAME_SIZE;
 		cregs->kpc = (unsigned long) &child_return;
 
 		/* Setup thread TLS area from the 4th parameter in clone */
 		if (clone_flags & CLONE_SETTLS)
+		{
 			cregs->cr27 = cregs->gr[23];
+		}
 	}
 
 	return 0;
@@ -245,20 +266,32 @@ get_wchan(struct task_struct *p)
 	int count = 0;
 
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	/*
 	 * These bracket the sleeping functions..
 	 */
 
 	unwind_frame_init_from_blocked_task(&info, p);
-	do {
+
+	do
+	{
 		if (unwind_once(&info) < 0)
+		{
 			return 0;
+		}
+
 		ip = info.ip;
+
 		if (!in_sched_functions(ip))
+		{
 			return ip;
-	} while (count++ < 16);
+		}
+	}
+	while (count++ < 16);
+
 	return 0;
 }
 
@@ -269,7 +302,10 @@ void *dereference_function_descriptor(void *ptr)
 	void *p;
 
 	if (!probe_kernel_address(&desc->addr, p))
+	{
 		ptr = p;
+	}
+
 	return ptr;
 }
 #endif
@@ -278,9 +314,13 @@ static inline unsigned long brk_rnd(void)
 {
 	/* 8MB for 32bit, 1GB for 64bit */
 	if (is_32bit_task())
+	{
 		return (get_random_int() & 0x7ffUL) << PAGE_SHIFT;
+	}
 	else
+	{
 		return (get_random_int() & 0x3ffffUL) << PAGE_SHIFT;
+	}
 }
 
 unsigned long arch_randomize_brk(struct mm_struct *mm)
@@ -288,6 +328,9 @@ unsigned long arch_randomize_brk(struct mm_struct *mm)
 	unsigned long ret = PAGE_ALIGN(mm->brk + brk_rnd());
 
 	if (ret < mm->brk)
+	{
 		return mm->brk;
+	}
+
 	return ret;
 }

@@ -33,7 +33,9 @@ static void __noreturn gamecube_spin(void)
 {
 	/* spin until power button pressed */
 	for (;;)
+	{
 		cpu_relax();
+	}
 }
 
 static void __noreturn gamecube_restart(char *cmd)
@@ -57,7 +59,9 @@ static void __noreturn gamecube_halt(void)
 static int __init gamecube_probe(void)
 {
 	if (!of_machine_is_compatible("nintendo,gamecube"))
+	{
 		return 0;
+	}
 
 	pm_power_off = gamecube_power_off;
 
@@ -71,20 +75,22 @@ static void gamecube_shutdown(void)
 	flipper_quiesce();
 }
 
-define_machine(gamecube) {
+define_machine(gamecube)
+{
 	.name			= "gamecube",
-	.probe			= gamecube_probe,
-	.restart		= gamecube_restart,
-	.halt			= gamecube_halt,
-	.init_IRQ		= flipper_pic_probe,
-	.get_irq		= flipper_pic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
-	.machine_shutdown	= gamecube_shutdown,
+			 .probe			= gamecube_probe,
+					 .restart		= gamecube_restart,
+							.halt			= gamecube_halt,
+									 .init_IRQ		= flipper_pic_probe,
+										   .get_irq		= flipper_pic_get_irq,
+												  .calibrate_decr		= generic_calibrate_decr,
+													  .progress		= udbg_progress,
+															.machine_shutdown	= gamecube_shutdown,
 };
 
 
-static const struct of_device_id gamecube_of_bus[] = {
+static const struct of_device_id gamecube_of_bus[] =
+{
 	{ .compatible = "nintendo,flipper", },
 	{ },
 };
@@ -92,7 +98,9 @@ static const struct of_device_id gamecube_of_bus[] = {
 static int __init gamecube_device_probe(void)
 {
 	if (!machine_is(gamecube))
+	{
 		return 0;
+	}
 
 	of_platform_bus_probe(NULL, gamecube_of_bus, NULL);
 	return 0;

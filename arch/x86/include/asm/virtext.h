@@ -56,7 +56,9 @@ static inline int cpu_vmx_enabled(void)
 static inline void __cpu_emergency_vmxoff(void)
 {
 	if (cpu_vmx_enabled())
+	{
 		cpu_vmxoff();
+	}
 }
 
 /** Disable VMX if it is supported and enabled on the current CPU
@@ -64,7 +66,9 @@ static inline void __cpu_emergency_vmxoff(void)
 static inline void cpu_emergency_vmxoff(void)
 {
 	if (cpu_has_vmx())
+	{
 		__cpu_emergency_vmxoff();
+	}
 }
 
 
@@ -83,23 +87,36 @@ static inline void cpu_emergency_vmxoff(void)
  */
 static inline int cpu_has_svm(const char **msg)
 {
-	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD) {
+	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
+	{
 		if (msg)
+		{
 			*msg = "not amd";
+		}
+
 		return 0;
 	}
 
-	if (boot_cpu_data.extended_cpuid_level < SVM_CPUID_FUNC) {
+	if (boot_cpu_data.extended_cpuid_level < SVM_CPUID_FUNC)
+	{
 		if (msg)
+		{
 			*msg = "can't execute cpuid_8000000a";
+		}
+
 		return 0;
 	}
 
-	if (!boot_cpu_has(X86_FEATURE_SVM)) {
+	if (!boot_cpu_has(X86_FEATURE_SVM))
+	{
 		if (msg)
+		{
 			*msg = "svm not available";
+		}
+
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -122,7 +139,9 @@ static inline void cpu_svm_disable(void)
 static inline void cpu_emergency_svm_disable(void)
 {
 	if (cpu_has_svm(NULL))
+	{
 		cpu_svm_disable();
+	}
 }
 
 #endif /* _ASM_X86_VIRTEX_H */

@@ -39,16 +39,19 @@
 #define IXDP425_NAND_CMD_BYTE	0x01
 #define IXDP425_NAND_ADDR_BYTE	0x02
 
-static struct flash_platform_data ixdp425_flash_data = {
+static struct flash_platform_data ixdp425_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.width		= 2,
 };
 
-static struct resource ixdp425_flash_resource = {
+static struct resource ixdp425_flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device ixdp425_flash = {
+static struct platform_device ixdp425_flash =
+{
 	.name		= "IXP4XX-Flash",
 	.id		= 0,
 	.dev		= {
@@ -61,7 +64,8 @@ static struct platform_device ixdp425_flash = {
 #if defined(CONFIG_MTD_NAND_PLATFORM) || \
     defined(CONFIG_MTD_NAND_PLATFORM_MODULE)
 
-static struct mtd_partition ixdp425_partitions[] = {
+static struct mtd_partition ixdp425_partitions[] =
+{
 	{
 		.name	= "ixp400 NAND FS 0",
 		.offset	= 0,
@@ -79,12 +83,17 @@ ixdp425_flash_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 	struct nand_chip *this = mtd_to_nand(mtd);
 	int offset = (int)nand_get_controller_data(this);
 
-	if (ctrl & NAND_CTRL_CHANGE) {
-		if (ctrl & NAND_NCE) {
+	if (ctrl & NAND_CTRL_CHANGE)
+	{
+		if (ctrl & NAND_NCE)
+		{
 			gpio_set_value(IXDP425_NAND_NCE_PIN, 0);
 			udelay(5);
-		} else
+		}
+		else
+		{
 			gpio_set_value(IXDP425_NAND_NCE_PIN, 1);
+		}
 
 		offset = (ctrl & NAND_CLE) ? IXDP425_NAND_CMD_BYTE : 0;
 		offset |= (ctrl & NAND_ALE) ? IXDP425_NAND_ADDR_BYTE : 0;
@@ -92,10 +101,13 @@ ixdp425_flash_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 	}
 
 	if (cmd != NAND_CMD_NONE)
+	{
 		writeb(cmd, this->IO_ADDR_W + offset);
+	}
 }
 
-static struct platform_nand_data ixdp425_flash_nand_data = {
+static struct platform_nand_data ixdp425_flash_nand_data =
+{
 	.chip = {
 		.nr_chips		= 1,
 		.chip_delay		= 30,
@@ -107,11 +119,13 @@ static struct platform_nand_data ixdp425_flash_nand_data = {
 	}
 };
 
-static struct resource ixdp425_flash_nand_resource = {
+static struct resource ixdp425_flash_nand_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device ixdp425_flash_nand = {
+static struct platform_device ixdp425_flash_nand =
+{
 	.name		= "gen_nand",
 	.id		= -1,
 	.dev		= {
@@ -122,12 +136,14 @@ static struct platform_device ixdp425_flash_nand = {
 };
 #endif	/* CONFIG_MTD_NAND_PLATFORM */
 
-static struct i2c_gpio_platform_data ixdp425_i2c_gpio_data = {
+static struct i2c_gpio_platform_data ixdp425_i2c_gpio_data =
+{
 	.sda_pin	= IXDP425_SDA_PIN,
 	.scl_pin	= IXDP425_SCL_PIN,
 };
 
-static struct platform_device ixdp425_i2c_gpio = {
+static struct platform_device ixdp425_i2c_gpio =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev	 = {
@@ -135,7 +151,8 @@ static struct platform_device ixdp425_i2c_gpio = {
 	},
 };
 
-static struct resource ixdp425_uart_resources[] = {
+static struct resource ixdp425_uart_resources[] =
+{
 	{
 		.start		= IXP4XX_UART1_BASE_PHYS,
 		.end		= IXP4XX_UART1_BASE_PHYS + 0x0fff,
@@ -148,7 +165,8 @@ static struct resource ixdp425_uart_resources[] = {
 	}
 };
 
-static struct plat_serial8250_port ixdp425_uart_data[] = {
+static struct plat_serial8250_port ixdp425_uart_data[] =
+{
 	{
 		.mapbase	= IXP4XX_UART1_BASE_PHYS,
 		.membase	= (char *)IXP4XX_UART1_BASE_VIRT + REG_OFFSET,
@@ -170,7 +188,8 @@ static struct plat_serial8250_port ixdp425_uart_data[] = {
 	{ },
 };
 
-static struct platform_device ixdp425_uart = {
+static struct platform_device ixdp425_uart =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev.platform_data	= ixdp425_uart_data,
@@ -179,7 +198,8 @@ static struct platform_device ixdp425_uart = {
 };
 
 /* Built-in 10/100 Ethernet MAC interfaces */
-static struct eth_plat_info ixdp425_plat_eth[] = {
+static struct eth_plat_info ixdp425_plat_eth[] =
+{
 	{
 		.phy		= 0,
 		.rxq		= 3,
@@ -191,7 +211,8 @@ static struct eth_plat_info ixdp425_plat_eth[] = {
 	}
 };
 
-static struct platform_device ixdp425_eth[] = {
+static struct platform_device ixdp425_eth[] =
+{
 	{
 		.name			= "ixp4xx_eth",
 		.id			= IXP4XX_ETH_NPEB,
@@ -203,7 +224,8 @@ static struct platform_device ixdp425_eth[] = {
 	}
 };
 
-static struct platform_device *ixdp425_devices[] __initdata = {
+static struct platform_device *ixdp425_devices[] __initdata =
+{
 	&ixdp425_i2c_gpio,
 	&ixdp425_flash,
 #if defined(CONFIG_MTD_NAND_PLATFORM) || \
@@ -226,21 +248,22 @@ static void __init ixdp425_init(void)
 #if defined(CONFIG_MTD_NAND_PLATFORM) || \
     defined(CONFIG_MTD_NAND_PLATFORM_MODULE)
 	ixdp425_flash_nand_resource.start = IXP4XX_EXP_BUS_BASE(3),
-	ixdp425_flash_nand_resource.end   = IXP4XX_EXP_BUS_BASE(3) + 0x10 - 1;
+								ixdp425_flash_nand_resource.end   = IXP4XX_EXP_BUS_BASE(3) + 0x10 - 1;
 
 	gpio_request(IXDP425_NAND_NCE_PIN, "NAND NCE pin");
 	gpio_direction_output(IXDP425_NAND_NCE_PIN, 0);
 
 	/* Configure expansion bus for NAND Flash */
 	*IXP4XX_EXP_CS3 = IXP4XX_EXP_BUS_CS_EN |
-			  IXP4XX_EXP_BUS_STROBE_T(1) |	/* extend by 1 clock */
-			  IXP4XX_EXP_BUS_CYCLES(0) |	/* Intel cycles */
-			  IXP4XX_EXP_BUS_SIZE(0) |	/* 512bytes addr space*/
-			  IXP4XX_EXP_BUS_WR_EN |
-			  IXP4XX_EXP_BUS_BYTE_EN;	/* 8 bit data bus */
+					  IXP4XX_EXP_BUS_STROBE_T(1) |	/* extend by 1 clock */
+					  IXP4XX_EXP_BUS_CYCLES(0) |	/* Intel cycles */
+					  IXP4XX_EXP_BUS_SIZE(0) |	/* 512bytes addr space*/
+					  IXP4XX_EXP_BUS_WR_EN |
+					  IXP4XX_EXP_BUS_BYTE_EN;	/* 8 bit data bus */
 #endif
 
-	if (cpu_is_ixp43x()) {
+	if (cpu_is_ixp43x())
+	{
 		ixdp425_uart.num_resources = 1;
 		ixdp425_uart_data[1].flags = 0;
 	}
@@ -249,7 +272,7 @@ static void __init ixdp425_init(void)
 }
 
 #ifdef CONFIG_ARCH_IXDP425
-MACHINE_START(IXDP425, "Intel IXDP425 Development Platform")
+	MACHINE_START(IXDP425, "Intel IXDP425 Development Platform")
 	/* Maintainer: MontaVista Software, Inc. */
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -257,15 +280,15 @@ MACHINE_START(IXDP425, "Intel IXDP425 Development Platform")
 	.init_time	= ixp4xx_timer_init,
 	.atag_offset	= 0x100,
 	.init_machine	= ixdp425_init,
-#if defined(CONFIG_PCI)
-	.dma_zone_size	= SZ_64M,
-#endif
+	#if defined(CONFIG_PCI)
+		.dma_zone_size	= SZ_64M,
+	#endif
 	.restart	= ixp4xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_IXDP465
-MACHINE_START(IXDP465, "Intel IXDP465 Development Platform")
+	MACHINE_START(IXDP465, "Intel IXDP465 Development Platform")
 	/* Maintainer: MontaVista Software, Inc. */
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -273,14 +296,14 @@ MACHINE_START(IXDP465, "Intel IXDP465 Development Platform")
 	.init_time	= ixp4xx_timer_init,
 	.atag_offset	= 0x100,
 	.init_machine	= ixdp425_init,
-#if defined(CONFIG_PCI)
-	.dma_zone_size	= SZ_64M,
-#endif
-MACHINE_END
+	#if defined(CONFIG_PCI)
+		.dma_zone_size	= SZ_64M,
+	#endif
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_ARCH_PRPMC1100
-MACHINE_START(IXCDP1100, "Intel IXCDP1100 Development Platform")
+	MACHINE_START(IXCDP1100, "Intel IXCDP1100 Development Platform")
 	/* Maintainer: MontaVista Software, Inc. */
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -288,14 +311,14 @@ MACHINE_START(IXCDP1100, "Intel IXCDP1100 Development Platform")
 	.init_time	= ixp4xx_timer_init,
 	.atag_offset	= 0x100,
 	.init_machine	= ixdp425_init,
-#if defined(CONFIG_PCI)
-	.dma_zone_size	= SZ_64M,
-#endif
-MACHINE_END
+	#if defined(CONFIG_PCI)
+		.dma_zone_size	= SZ_64M,
+	#endif
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_KIXRP435
-MACHINE_START(KIXRP435, "Intel KIXRP435 Reference Platform")
+	MACHINE_START(KIXRP435, "Intel KIXRP435 Reference Platform")
 	/* Maintainer: MontaVista Software, Inc. */
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -303,8 +326,8 @@ MACHINE_START(KIXRP435, "Intel KIXRP435 Reference Platform")
 	.init_time	= ixp4xx_timer_init,
 	.atag_offset	= 0x100,
 	.init_machine	= ixdp425_init,
-#if defined(CONFIG_PCI)
-	.dma_zone_size	= SZ_64M,
-#endif
-MACHINE_END
+	#if defined(CONFIG_PCI)
+		.dma_zone_size	= SZ_64M,
+	#endif
+	MACHINE_END
 #endif

@@ -28,8 +28,8 @@
 #include <asm/mach_desc.h>
 
 #ifndef CONFIG_ARC_HAS_LLSC
-arch_spinlock_t smp_atomic_ops_lock = __ARCH_SPIN_LOCK_UNLOCKED;
-arch_spinlock_t smp_bitops_lock = __ARCH_SPIN_LOCK_UNLOCKED;
+	arch_spinlock_t smp_atomic_ops_lock = __ARCH_SPIN_LOCK_UNLOCKED;
+	arch_spinlock_t smp_bitops_lock = __ARCH_SPIN_LOCK_UNLOCKED;
 #endif
 
 struct plat_smp_ops  __weak plat_smp_ops;
@@ -56,10 +56,14 @@ void __init smp_init_cpus(void)
 	unsigned int i;
 
 	for (i = 0; i < NR_CPUS; i++)
+	{
 		set_cpu_possible(i, true);
+	}
 
 	if (plat_smp_ops.init_early_smp)
+	{
 		plat_smp_ops.init_early_smp();
+	}
 }
 
 /* called from init ( ) =>  process 1 */
@@ -71,9 +75,12 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 	 * if platform didn't set the present map already, do it now
 	 * boot cpu is set to present already by init/main.c
 	 */
-	if (num_present_cpus() <= 1) {
+	if (num_present_cpus() <= 1)
+	{
 		for (i = 0; i < max_cpus; i++)
+		{
 			set_cpu_present(i, true);
+		}
 	}
 }
 
@@ -131,10 +138,14 @@ void start_kernel_secondary(void)
 
 	/* Some SMP H/w setup - for each cpu */
 	if (plat_smp_ops.init_per_cpu)
+	{
 		plat_smp_ops.init_per_cpu(cpu);
+	}
 
 	if (machine_desc->init_per_cpu)
+	{
 		machine_desc->init_per_cpu(cpu);
+	}
 
 	notify_cpu_starting(cpu);
 	set_cpu_online(cpu, true);
@@ -167,18 +178,25 @@ int __cpu_up(unsigned int cpu, struct task_struct *idle)
 
 	if (plat_smp_ops.cpu_kick)
 		plat_smp_ops.cpu_kick(cpu,
-				(unsigned long)first_lines_of_secondary);
+							  (unsigned long)first_lines_of_secondary);
 	else
+	{
 		arc_default_smp_cpu_kick(cpu, (unsigned long)NULL);
+	}
 
 	/* wait for 1 sec after kicking the secondary */
 	wait_till = jiffies + HZ;
-	while (time_before(jiffies, wait_till)) {
+
+	while (time_before(jiffies, wait_till))
+	{
 		if (cpu_online(cpu))
+		{
 			break;
+		}
 	}
 
-	if (!cpu_online(cpu)) {
+	if (!cpu_online(cpu))
+	{
 		pr_info("Timeout: CPU%u FAILED to comeup !!!\n", cpu);
 		return -1;
 	}
@@ -200,7 +218,8 @@ int setup_profiling_timer(unsigned int multiplier)
 /*              Inter Processor Interrupt Handling                           */
 /*****************************************************************************/
 
-enum ipi_msg_type {
+enum ipi_msg_type
+{
 	IPI_EMPTY = 0,
 	IPI_RESCHEDULE = 1,
 	IPI_CALL_FUNC,
@@ -229,10 +248,12 @@ static void ipi_send_msg_one(int cpu, enum ipi_msg_type msg)
 	 * Atomically write new msg bit (in case others are writing too),
 	 * and read back old value
 	 */
-	do {
+	do
+	{
 		new = old = ACCESS_ONCE(*ipi_data_ptr);
 		new |= 1U << msg;
-	} while (cmpxchg(ipi_data_ptr, old, new) != old);
+	}
+	while (cmpxchg(ipi_data_ptr, old, new) != old);
 
 	/*
 	 * Call the platform specific IPI kick function, but avoid if possible:
@@ -243,7 +264,9 @@ static void ipi_send_msg_one(int cpu, enum ipi_msg_type msg)
 	 * so @new msg can be a free-loader
 	 */
 	if (plat_smp_ops.ipi_send && !old)
+	{
 		plat_smp_ops.ipi_send(cpu);
+	}
 
 	local_irq_restore(flags);
 }
@@ -253,7 +276,7 @@ static void ipi_send_msg(const struct cpumask *callmap, enum ipi_msg_type msg)
 	unsigned int cpu;
 
 	for_each_cpu(cpu, callmap)
-		ipi_send_msg_one(cpu, msg);
+	ipi_send_msg_one(cpu, msg);
 }
 
 void smp_send_reschedule(int cpu)
@@ -291,21 +314,22 @@ static inline int __do_IPI(unsigned long msg)
 {
 	int rc = 0;
 
-	switch (msg) {
-	case IPI_RESCHEDULE:
-		scheduler_ipi();
-		break;
+	switch (msg)
+	{
+		case IPI_RESCHEDULE:
+			scheduler_ipi();
+			break;
 
-	case IPI_CALL_FUNC:
-		generic_smp_call_function_interrupt();
-		break;
+		case IPI_CALL_FUNC:
+			generic_smp_call_function_interrupt();
+			break;
 
-	case IPI_CPU_STOP:
-		ipi_cpu_stop();
-		break;
+		case IPI_CPU_STOP:
+			ipi_cpu_stop();
+			break;
 
-	default:
-		rc = 1;
+		default:
+			rc = 1;
 	}
 
 	return rc;
@@ -321,10 +345,12 @@ irqreturn_t do_IPI(int irq, void *dev_id)
 	unsigned long __maybe_unused copy;
 
 	pr_debug("IPI [%ld] received on cpu %d\n",
-		 *this_cpu_ptr(&ipi_data), smp_processor_id());
+			 *this_cpu_ptr(&ipi_data), smp_processor_id());
 
 	if (plat_smp_ops.ipi_clear)
+	{
 		plat_smp_ops.ipi_clear(irq);
+	}
 
 	/*
 	 * "dequeue" the msg corresponding to this IPI (and possibly other
@@ -332,15 +358,21 @@ irqreturn_t do_IPI(int irq, void *dev_id)
 	 */
 	copy = pending = xchg(this_cpu_ptr(&ipi_data), 0);
 
-	do {
+	do
+	{
 		unsigned long msg = __ffs(pending);
 		int rc;
 
 		rc = __do_IPI(msg);
+
 		if (rc)
+		{
 			pr_info("IPI with bogus msg %ld in %ld\n", msg, copy);
+		}
+
 		pending &= ~(1U << msg);
-	} while (pending);
+	}
+	while (pending);
 
 	return IRQ_HANDLED;
 }
@@ -360,15 +392,21 @@ int smp_ipi_irq_setup(int cpu, irq_hw_number_t hwirq)
 	unsigned int virq = irq_find_mapping(NULL, hwirq);
 
 	if (!virq)
+	{
 		panic("Cannot find virq for root domain and hwirq=%lu", hwirq);
+	}
 
 	/* Boot cpu calls request, all call enable */
-	if (!cpu) {
+	if (!cpu)
+	{
 		int rc;
 
 		rc = request_percpu_irq(virq, do_IPI, "IPI Interrupt", dev);
+
 		if (rc)
+		{
 			panic("Percpu IRQ request failed for %u\n", virq);
+		}
 	}
 
 	enable_percpu_irq(virq, 0);

@@ -24,14 +24,16 @@
 
 #define DRV_NAME "mpc512x_lpbfifo"
 
-struct cs_range {
+struct cs_range
+{
 	u32 csnum;
 	u32 base; /* must be zero */
 	u32 addr;
 	u32 size;
 };
 
-static struct lpbfifo_data {
+static struct lpbfifo_data
+{
 	spinlock_t lock; /* for protecting lpbfifo_data */
 	phys_addr_t regs_phys;
 	resource_size_t regs_size;
@@ -71,28 +73,37 @@ static irqreturn_t mpc512x_lpbfifo_irq(int irq, void *param)
 	spin_lock_irqsave(&lpbfifo.lock, flags);
 
 	if (!lpbfifo.regs)
+	{
 		goto end;
+	}
 
 	req = lpbfifo.req;
-	if (!req || req->dir == MPC512X_LPBFIFO_REQ_DIR_READ) {
+
+	if (!req || req->dir == MPC512X_LPBFIFO_REQ_DIR_READ)
+	{
 		dev_err(dev, "bogus LPBFIFO IRQ\n");
 		goto end;
 	}
 
 	status = in_be32(&lpbfifo.regs->status);
-	if (status != MPC512X_SCLPC_SUCCESS) {
+
+	if (status != MPC512X_SCLPC_SUCCESS)
+	{
 		dev_err(dev, "DMA transfer from RAM to peripheral failed\n");
 		out_be32(&lpbfifo.regs->enable,
-				MPC512X_SCLPC_RESET | MPC512X_SCLPC_FIFO_RESET);
+				 MPC512X_SCLPC_RESET | MPC512X_SCLPC_FIFO_RESET);
 		goto end;
 	}
+
 	/* Clear the interrupt flag */
 	out_be32(&lpbfifo.regs->status, MPC512X_SCLPC_SUCCESS);
 
 	lpbfifo.wait_lpbfifo_irq = false;
 
 	if (lpbfifo.wait_lpbfifo_callback)
+	{
 		goto end;
+	}
 
 	/* Transfer is finished, set the FIFO as idle */
 	lpbfifo.req = NULL;
@@ -100,11 +111,13 @@ static irqreturn_t mpc512x_lpbfifo_irq(int irq, void *param)
 	spin_unlock_irqrestore(&lpbfifo.lock, flags);
 
 	if (req->callback)
+	{
 		req->callback(req);
+	}
 
 	return IRQ_HANDLED;
 
- end:
+end:
 	spin_unlock_irqrestore(&lpbfifo.lock, flags);
 	return IRQ_HANDLED;
 }
@@ -121,13 +134,16 @@ static void mpc512x_lpbfifo_callback(void *param)
 
 	spin_lock_irqsave(&lpbfifo.lock, flags);
 
-	if (!lpbfifo.regs) {
+	if (!lpbfifo.regs)
+	{
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 		return;
 	}
 
 	req = lpbfifo.req;
-	if (!req) {
+
+	if (!req)
+	{
 		pr_err("bogus LPBFIFO callback\n");
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 		return;
@@ -135,23 +151,33 @@ static void mpc512x_lpbfifo_callback(void *param)
 
 	/* Release the mapping */
 	if (req->dir == MPC512X_LPBFIFO_REQ_DIR_WRITE)
+	{
 		dir = DMA_TO_DEVICE;
+	}
 	else
+	{
 		dir = DMA_FROM_DEVICE;
+	}
+
 	dma_unmap_single(lpbfifo.chan->device->dev,
-			lpbfifo.ram_bus_addr, req->size, dir);
+					 lpbfifo.ram_bus_addr, req->size, dir);
 
 	lpbfifo.wait_lpbfifo_callback = false;
 
-	if (!lpbfifo.wait_lpbfifo_irq) {
+	if (!lpbfifo.wait_lpbfifo_irq)
+	{
 		/* Transfer is finished, set the FIFO as idle */
 		lpbfifo.req = NULL;
 
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 
 		if (req->callback)
+		{
 			req->callback(req);
-	} else {
+		}
+	}
+	else
+	{
 		spin_unlock_irqrestore(&lpbfifo.lock, flags);
 	}
 }
@@ -188,60 +214,78 @@ static int mpc512x_lpbfifo_kick(void)
 	 *    disabled auto-incrementing according Reference Manual.
 	 */
 	if (lpbfifo.req->size == 0 || !IS_ALIGNED(lpbfifo.req->size, 4))
+	{
 		return -EINVAL;
+	}
 
-	if (lpbfifo.req->portsize != LPB_DEV_PORTSIZE_UNDEFINED) {
+	if (lpbfifo.req->portsize != LPB_DEV_PORTSIZE_UNDEFINED)
+	{
 		bpt = lpbfifo.req->portsize;
 		no_incr = true;
 	}
 
-	while (bpt > 1) {
+	while (bpt > 1)
+	{
 		if (IS_ALIGNED(lpbfifo.req->dev_phys_addr, min(bpt, 0x8u)) &&
-					IS_ALIGNED(lpbfifo.req->size, bpt)) {
+			IS_ALIGNED(lpbfifo.req->size, bpt))
+		{
 			break;
 		}
 
 		if (no_incr)
+		{
 			return -EINVAL;
+		}
 
 		bpt >>= 1;
 	}
+
 	dma_conf.dst_maxburst = max(bpt, 0x4u) / 4;
 	dma_conf.src_maxburst = max(bpt, 0x4u) / 4;
 
-	for (i = 0; i < lpbfifo.cs_n; i++) {
+	for (i = 0; i < lpbfifo.cs_n; i++)
+	{
 		phys_addr_t cs_start = lpbfifo.cs_ranges[i].addr;
 		phys_addr_t cs_end = cs_start + lpbfifo.cs_ranges[i].size;
 		phys_addr_t access_start = lpbfifo.req->dev_phys_addr;
 		phys_addr_t access_end = access_start + lpbfifo.req->size;
 
-		if (access_start >= cs_start && access_end <= cs_end) {
+		if (access_start >= cs_start && access_end <= cs_end)
+		{
 			cs = lpbfifo.cs_ranges[i].csnum;
 			break;
 		}
 	}
+
 	if (i == lpbfifo.cs_n)
+	{
 		return -EFAULT;
+	}
 
 	/* 2. Prepare DMA */
 	dma_dev = lpbfifo.chan->device;
 
-	if (lpbfifo.req->dir == MPC512X_LPBFIFO_REQ_DIR_WRITE) {
+	if (lpbfifo.req->dir == MPC512X_LPBFIFO_REQ_DIR_WRITE)
+	{
 		dir = DMA_TO_DEVICE;
 		dma_conf.direction = DMA_MEM_TO_DEV;
 		dma_conf.dst_addr = lpbfifo.regs_phys +
-				offsetof(struct mpc512x_lpbfifo, data_word);
-	} else {
+							offsetof(struct mpc512x_lpbfifo, data_word);
+	}
+	else
+	{
 		dir = DMA_FROM_DEVICE;
 		dma_conf.direction = DMA_DEV_TO_MEM;
 		dma_conf.src_addr = lpbfifo.regs_phys +
-				offsetof(struct mpc512x_lpbfifo, data_word);
+							offsetof(struct mpc512x_lpbfifo, data_word);
 	}
+
 	dma_conf.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
 	dma_conf.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
 
 	/* Make DMA channel work with LPB FIFO data register */
-	if (dma_dev->device_config(lpbfifo.chan, &dma_conf)) {
+	if (dma_dev->device_config(lpbfifo.chan, &dma_conf))
+	{
 		ret = -EINVAL;
 		goto err_dma_prep;
 	}
@@ -249,26 +293,32 @@ static int mpc512x_lpbfifo_kick(void)
 	sg_init_table(&sg, 1);
 
 	sg_dma_address(&sg) = dma_map_single(dma_dev->dev,
-			lpbfifo.req->ram_virt_addr, lpbfifo.req->size, dir);
+										 lpbfifo.req->ram_virt_addr, lpbfifo.req->size, dir);
+
 	if (dma_mapping_error(dma_dev->dev, sg_dma_address(&sg)))
+	{
 		return -EFAULT;
+	}
 
 	lpbfifo.ram_bus_addr = sg_dma_address(&sg); /* For freeing later */
 
 	sg_dma_len(&sg) = lpbfifo.req->size;
 
 	dma_tx = dmaengine_prep_slave_sg(lpbfifo.chan, &sg,
-						1, dma_conf.direction, 0);
-	if (!dma_tx) {
+									 1, dma_conf.direction, 0);
+
+	if (!dma_tx)
+	{
 		ret = -ENOSPC;
 		goto err_dma_prep;
 	}
+
 	dma_tx->callback = mpc512x_lpbfifo_callback;
 	dma_tx->callback_param = NULL;
 
 	/* 3. Prepare FIFO */
 	out_be32(&lpbfifo.regs->enable,
-				MPC512X_SCLPC_RESET | MPC512X_SCLPC_FIFO_RESET);
+			 MPC512X_SCLPC_RESET | MPC512X_SCLPC_FIFO_RESET);
 	out_be32(&lpbfifo.regs->enable, 0x0);
 
 	/*
@@ -292,19 +342,31 @@ static int mpc512x_lpbfifo_kick(void)
 	 * and bytes per transaction option
 	 */
 	bits = MPC512X_SCLPC_CS(cs);
+
 	if (lpbfifo.req->dir == MPC512X_LPBFIFO_REQ_DIR_READ)
+	{
 		bits |= MPC512X_SCLPC_READ | MPC512X_SCLPC_FLUSH;
+	}
+
 	if (no_incr)
+	{
 		bits |= MPC512X_SCLPC_DAI;
+	}
+
 	bits |= MPC512X_SCLPC_BPT(bpt);
 	out_be32(&lpbfifo.regs->ctrl, bits);
 
 	/* Unmask irqs */
 	bits = MPC512X_SCLPC_ENABLE | MPC512X_SCLPC_ABORT_INT_ENABLE;
+
 	if (lpbfifo.req->dir == MPC512X_LPBFIFO_REQ_DIR_WRITE)
+	{
 		bits |= MPC512X_SCLPC_NORM_INT_ENABLE;
+	}
 	else
+	{
 		lpbfifo.wait_lpbfifo_irq = false;
+	}
 
 	out_be32(&lpbfifo.regs->enable, bits);
 
@@ -314,19 +376,21 @@ static int mpc512x_lpbfifo_kick(void)
 
 	/* 5. Finally kick DMA off */
 	cookie = dma_tx->tx_submit(dma_tx);
-	if (dma_submit_error(cookie)) {
+
+	if (dma_submit_error(cookie))
+	{
 		ret = -ENOSPC;
 		goto err_dma_submit;
 	}
 
 	return 0;
 
- err_dma_submit:
+err_dma_submit:
 	out_be32(&lpbfifo.regs->enable,
-				MPC512X_SCLPC_RESET | MPC512X_SCLPC_FIFO_RESET);
- err_dma_prep:
+			 MPC512X_SCLPC_RESET | MPC512X_SCLPC_FIFO_RESET);
+err_dma_prep:
 	dma_unmap_single(dma_dev->dev, sg_dma_address(&sg),
-						lpbfifo.req->size, dir);
+					 lpbfifo.req->size, dir);
 	return ret;
 }
 
@@ -335,19 +399,26 @@ static int mpc512x_lpbfifo_submit_locked(struct mpc512x_lpbfifo_request *req)
 	int ret = 0;
 
 	if (!lpbfifo.regs)
+	{
 		return -ENODEV;
+	}
 
 	/* Check whether a transfer is in progress */
 	if (lpbfifo.req)
+	{
 		return -EBUSY;
+	}
 
 	lpbfifo.wait_lpbfifo_irq = true;
 	lpbfifo.wait_lpbfifo_callback = true;
 	lpbfifo.req = req;
 
 	ret = mpc512x_lpbfifo_kick();
+
 	if (ret != 0)
-		lpbfifo.req = NULL; /* Set the FIFO as idle */
+	{
+		lpbfifo.req = NULL;    /* Set the FIFO as idle */
+	}
 
 	return ret;
 }
@@ -380,8 +451,11 @@ static int get_cs_ranges(struct device *dev)
 	size_t i;
 
 	lb_node = of_find_compatible_node(NULL, NULL, "fsl,mpc5121-localbus");
+
 	if (!lb_node)
+	{
 		return ret;
+	}
 
 	/*
 	 * The node defined as compatible with 'fsl,mpc5121-localbus'
@@ -395,34 +469,46 @@ static int get_cs_ranges(struct device *dev)
 	 */
 	addr_cells_p = of_get_property(lb_node, "#address-cells", NULL);
 	size_cells_p = of_get_property(lb_node, "#size-cells", NULL);
+
 	if (addr_cells_p == NULL || *addr_cells_p != 2 ||
-				size_cells_p == NULL ||	*size_cells_p != 1) {
+		size_cells_p == NULL ||	*size_cells_p != 1)
+	{
 		goto end;
 	}
 
 	proplen = of_property_count_u32_elems(lb_node, "ranges");
+
 	if (proplen <= 0 || proplen % 4 != 0)
-		goto end;
-
-	lpbfifo.cs_n = proplen / 4;
-	lpbfifo.cs_ranges = devm_kcalloc(dev, lpbfifo.cs_n,
-					sizeof(struct cs_range), GFP_KERNEL);
-	if (!lpbfifo.cs_ranges)
-		goto end;
-
-	if (of_property_read_u32_array(lb_node, "ranges",
-				(u32 *)lpbfifo.cs_ranges, proplen) != 0) {
+	{
 		goto end;
 	}
 
-	for (i = 0; i < lpbfifo.cs_n; i++) {
+	lpbfifo.cs_n = proplen / 4;
+	lpbfifo.cs_ranges = devm_kcalloc(dev, lpbfifo.cs_n,
+									 sizeof(struct cs_range), GFP_KERNEL);
+
+	if (!lpbfifo.cs_ranges)
+	{
+		goto end;
+	}
+
+	if (of_property_read_u32_array(lb_node, "ranges",
+								   (u32 *)lpbfifo.cs_ranges, proplen) != 0)
+	{
+		goto end;
+	}
+
+	for (i = 0; i < lpbfifo.cs_n; i++)
+	{
 		if (lpbfifo.cs_ranges[i].base != 0)
+		{
 			goto end;
+		}
 	}
 
 	ret = 0;
 
- end:
+end:
 	of_node_put(lb_node);
 	return ret;
 }
@@ -436,10 +522,14 @@ static int mpc512x_lpbfifo_probe(struct platform_device *pdev)
 	spin_lock_init(&lpbfifo.lock);
 
 	lpbfifo.chan = dma_request_slave_channel(&pdev->dev, "rx-tx");
-	if (lpbfifo.chan == NULL)
-		return -EPROBE_DEFER;
 
-	if (of_address_to_resource(pdev->dev.of_node, 0, &r) != 0) {
+	if (lpbfifo.chan == NULL)
+	{
+		return -EPROBE_DEFER;
+	}
+
+	if (of_address_to_resource(pdev->dev.of_node, 0, &r) != 0)
+	{
 		dev_err(&pdev->dev, "bad 'reg' in 'sclpc' device tree node\n");
 		ret = -ENODEV;
 		goto err0;
@@ -449,38 +539,45 @@ static int mpc512x_lpbfifo_probe(struct platform_device *pdev)
 	lpbfifo.regs_size = resource_size(&r);
 
 	if (!devm_request_mem_region(&pdev->dev, lpbfifo.regs_phys,
-					lpbfifo.regs_size, DRV_NAME)) {
+								 lpbfifo.regs_size, DRV_NAME))
+	{
 		dev_err(&pdev->dev, "unable to request region\n");
 		ret = -EBUSY;
 		goto err0;
 	}
 
 	lpbfifo.regs = devm_ioremap(&pdev->dev,
-					lpbfifo.regs_phys, lpbfifo.regs_size);
-	if (!lpbfifo.regs) {
+								lpbfifo.regs_phys, lpbfifo.regs_size);
+
+	if (!lpbfifo.regs)
+	{
 		dev_err(&pdev->dev, "mapping registers failed\n");
 		ret = -ENOMEM;
 		goto err0;
 	}
 
 	out_be32(&lpbfifo.regs->enable,
-				MPC512X_SCLPC_RESET | MPC512X_SCLPC_FIFO_RESET);
+			 MPC512X_SCLPC_RESET | MPC512X_SCLPC_FIFO_RESET);
 
-	if (get_cs_ranges(&pdev->dev) != 0) {
+	if (get_cs_ranges(&pdev->dev) != 0)
+	{
 		dev_err(&pdev->dev, "bad '/localbus' device tree node\n");
 		ret = -ENODEV;
 		goto err0;
 	}
 
 	lpbfifo.irq = irq_of_parse_and_map(pdev->dev.of_node, 0);
-	if (!lpbfifo.irq) {
+
+	if (!lpbfifo.irq)
+	{
 		dev_err(&pdev->dev, "mapping irq failed\n");
 		ret = -ENODEV;
 		goto err0;
 	}
 
 	if (request_irq(lpbfifo.irq, mpc512x_lpbfifo_irq, 0,
-						DRV_NAME, &pdev->dev) != 0) {
+					DRV_NAME, &pdev->dev) != 0)
+	{
 		dev_err(&pdev->dev, "requesting irq failed\n");
 		ret = -ENODEV;
 		goto err1;
@@ -489,9 +586,9 @@ static int mpc512x_lpbfifo_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "probe succeeded\n");
 	return 0;
 
- err1:
+err1:
 	irq_dispose_mapping(lpbfifo.irq);
- err0:
+err0:
 	dma_release_channel(lpbfifo.chan);
 	return ret;
 }
@@ -517,13 +614,15 @@ static int mpc512x_lpbfifo_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id mpc512x_lpbfifo_match[] = {
+static const struct of_device_id mpc512x_lpbfifo_match[] =
+{
 	{ .compatible = "fsl,mpc512x-lpbfifo", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, mpc512x_lpbfifo_match);
 
-static struct platform_driver mpc512x_lpbfifo_driver = {
+static struct platform_driver mpc512x_lpbfifo_driver =
+{
 	.probe = mpc512x_lpbfifo_probe,
 	.remove = mpc512x_lpbfifo_remove,
 	.driver = {

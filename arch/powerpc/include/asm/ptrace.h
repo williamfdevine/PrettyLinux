@@ -44,13 +44,13 @@
 #define STACK_FRAME_LR_SAVE	2	/* Location of LR in stack frame */
 #define STACK_FRAME_REGS_MARKER	ASM_CONST(0x7265677368657265)
 #define STACK_INT_FRAME_SIZE	(sizeof(struct pt_regs) + \
-				 STACK_FRAME_OVERHEAD + KERNEL_REDZONE_SIZE)
+								 STACK_FRAME_OVERHEAD + KERNEL_REDZONE_SIZE)
 #define STACK_FRAME_MARKER	12
 
 #ifdef PPC64_ELF_ABI_v2
-#define STACK_FRAME_MIN_SIZE	32
+	#define STACK_FRAME_MIN_SIZE	32
 #else
-#define STACK_FRAME_MIN_SIZE	STACK_FRAME_OVERHEAD
+	#define STACK_FRAME_MIN_SIZE	STACK_FRAME_OVERHEAD
 #endif
 
 /* Size of dummy stack frame allocated when calling signal handler. */
@@ -81,8 +81,8 @@
 #define SET_FP(regs, val)
 
 #ifdef CONFIG_SMP
-extern unsigned long profile_pc(struct pt_regs *regs);
-#define profile_pc profile_pc
+	extern unsigned long profile_pc(struct pt_regs *regs);
+	#define profile_pc profile_pc
 #endif
 
 #include <asm-generic/ptrace.h>
@@ -96,15 +96,19 @@ static inline int is_syscall_success(struct pt_regs *regs)
 static inline long regs_return_value(struct pt_regs *regs)
 {
 	if (is_syscall_success(regs))
+	{
 		return regs->gpr[3];
+	}
 	else
+	{
 		return -regs->gpr[3];
+	}
 }
 
 #ifdef __powerpc64__
-#define user_mode(regs) ((((regs)->msr) >> MSR_PR_LG) & 0x1)
+	#define user_mode(regs) ((((regs)->msr) >> MSR_PR_LG) & 0x1)
 #else
-#define user_mode(regs) (((regs)->msr & MSR_PR) != 0)
+	#define user_mode(regs) (((regs)->msr & MSR_PR) != 0)
 #endif
 
 #define force_successful_syscall_return()   \
@@ -114,9 +118,9 @@ static inline long regs_return_value(struct pt_regs *regs)
 
 struct task_struct;
 extern int ptrace_get_reg(struct task_struct *task, int regno,
-			  unsigned long *data);
+						  unsigned long *data);
 extern int ptrace_put_reg(struct task_struct *task, int regno,
-			  unsigned long data);
+						  unsigned long data);
 
 #define current_pt_regs() \
 	((struct pt_regs *)((unsigned long)current_thread_info() + THREAD_SIZE) - 1)
@@ -129,9 +133,9 @@ extern int ptrace_put_reg(struct task_struct *task, int regno,
  */
 #define FULL_REGS(regs)		(((regs)->trap & 1) == 0)
 #ifndef __powerpc64__
-#define IS_CRITICAL_EXC(regs)	(((regs)->trap & 2) != 0)
-#define IS_MCHECK_EXC(regs)	(((regs)->trap & 4) != 0)
-#define IS_DEBUG_EXC(regs)	(((regs)->trap & 8) != 0)
+	#define IS_CRITICAL_EXC(regs)	(((regs)->trap & 2) != 0)
+	#define IS_MCHECK_EXC(regs)	(((regs)->trap & 4) != 0)
+	#define IS_DEBUG_EXC(regs)	(((regs)->trap & 8) != 0)
 #endif /* ! __powerpc64__ */
 #define TRAP(regs)		((regs)->trap & ~0xF)
 #ifdef __powerpc64__
@@ -140,10 +144,10 @@ extern int ptrace_put_reg(struct task_struct *task, int regno,
 #else
 #define NV_REG_POISON		0xdeadbeef
 #define CHECK_FULL_REGS(regs)						      \
-do {									      \
-	if ((regs)->trap & 1)						      \
-		printk(KERN_CRIT "%s: partial register set\n", __func__); \
-} while (0)
+	do {									      \
+		if ((regs)->trap & 1)						      \
+			printk(KERN_CRIT "%s: partial register set\n", __func__); \
+	} while (0)
 #endif /* __powerpc64__ */
 
 #define arch_has_single_step()	(1)
@@ -170,10 +174,13 @@ extern const char *regs_query_register_name(unsigned int offset);
  * If @offset is bigger than MAX_REG_OFFSET, this returns 0.
  */
 static inline unsigned long regs_get_register(struct pt_regs *regs,
-						unsigned int offset)
+		unsigned int offset)
 {
 	if (unlikely(offset > MAX_REG_OFFSET))
+	{
 		return 0;
+	}
+
 	return *(unsigned long *)((unsigned long)regs + offset);
 }
 
@@ -187,10 +194,10 @@ static inline unsigned long regs_get_register(struct pt_regs *regs,
  */
 
 static inline bool regs_within_kernel_stack(struct pt_regs *regs,
-						unsigned long addr)
+		unsigned long addr)
 {
 	return ((addr & ~(THREAD_SIZE - 1))  ==
-		(kernel_stack_pointer(regs) & ~(THREAD_SIZE - 1)));
+			(kernel_stack_pointer(regs) & ~(THREAD_SIZE - 1)));
 }
 
 /**
@@ -203,24 +210,29 @@ static inline bool regs_within_kernel_stack(struct pt_regs *regs,
  * this returns 0.
  */
 static inline unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs,
-						      unsigned int n)
+		unsigned int n)
 {
 	unsigned long *addr = (unsigned long *)kernel_stack_pointer(regs);
 	addr += n;
+
 	if (regs_within_kernel_stack(regs, (unsigned long)addr))
+	{
 		return *addr;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 #endif /* __ASSEMBLY__ */
 
 #ifndef __powerpc64__
 #else /* __powerpc64__ */
-#define PT_FPSCR32 (PT_FPR0 + 2*32 + 1)	/* each FP reg occupies 2 32-bit userspace slots */
-#define PT_VR0_32 164	/* each Vector reg occupies 4 slots in 32-bit */
-#define PT_VSCR_32 (PT_VR0 + 32*4 + 3)
-#define PT_VRSAVE_32 (PT_VR0 + 33*4)
-#define PT_VSR0_32 300 	/* each VSR reg occupies 4 slots in 32-bit */
+	#define PT_FPSCR32 (PT_FPR0 + 2*32 + 1)	/* each FP reg occupies 2 32-bit userspace slots */
+	#define PT_VR0_32 164	/* each Vector reg occupies 4 slots in 32-bit */
+	#define PT_VSCR_32 (PT_VR0 + 32*4 + 3)
+	#define PT_VRSAVE_32 (PT_VR0 + 33*4)
+	#define PT_VSR0_32 300 	/* each VSR reg occupies 4 slots in 32-bit */
 #endif /* __powerpc64__ */
 #endif /* _ASM_POWERPC_PTRACE_H */

@@ -23,18 +23,18 @@
  * except for the last fragment.
  */
 extern __wsum csum_partial_copy_generic(const void *src, void *dst,
-					      int len, __wsum sum,
-					      int *src_err, int *dst_err);
+										int len, __wsum sum,
+										int *src_err, int *dst_err);
 
 #define _HAVE_ARCH_COPY_AND_CSUM_FROM_USER
 extern __wsum csum_and_copy_from_user(const void __user *src, void *dst,
-				      int len, __wsum sum, int *err_ptr);
+									  int len, __wsum sum, int *err_ptr);
 #define HAVE_CSUM_COPY_USER
 extern __wsum csum_and_copy_to_user(const void *src, void __user *dst,
-				    int len, __wsum sum, int *err_ptr);
+									int len, __wsum sum, int *err_ptr);
 
 #define csum_partial_copy_nocheck(src, dst, len, sum)   \
-        csum_partial_copy_generic((src), (dst), (len), (sum), NULL, NULL)
+	csum_partial_copy_generic((src), (dst), (len), (sum), NULL, NULL)
 
 
 /*
@@ -54,7 +54,7 @@ static inline __sum16 csum_fold(__wsum sum)
 }
 
 static inline __wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len,
-					__u8 proto, __wsum sum)
+										__u8 proto, __wsum sum)
 {
 #ifdef __powerpc64__
 	unsigned long s = (__force u32)sum;
@@ -65,14 +65,14 @@ static inline __wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len,
 	s += (s >> 32);
 	return (__force __wsum) s;
 #else
-    __asm__("\n\
+	__asm__("\n\
 	addc %0,%0,%1 \n\
 	adde %0,%0,%2 \n\
 	adde %0,%0,%3 \n\
 	addze %0,%0 \n\
 	"
-	: "=r" (sum)
-	: "r" (daddr), "r"(saddr), "r"(proto + len), "0"(sum));
+			: "=r" (sum)
+			: "r" (daddr), "r"(saddr), "r"(proto + len), "0"(sum));
 	return sum;
 #endif
 }
@@ -82,7 +82,7 @@ static inline __wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len,
  * returns a 16-bit checksum, already complemented
  */
 static inline __sum16 csum_tcpudp_magic(__be32 saddr, __be32 daddr, __u32 len,
-					__u8 proto, __wsum sum)
+										__u8 proto, __wsum sum)
 {
 	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
 }
@@ -93,18 +93,24 @@ static inline __wsum csum_add(__wsum csum, __wsum addend)
 #ifdef __powerpc64__
 	u64 res = (__force u64)csum;
 #endif
+
 	if (__builtin_constant_p(csum) && csum == 0)
+	{
 		return addend;
+	}
+
 	if (__builtin_constant_p(addend) && addend == 0)
+	{
 		return csum;
+	}
 
 #ifdef __powerpc64__
 	res += (__force u64)addend;
 	return (__force __wsum)((u32)res + (res >> 32));
 #else
 	asm("addc %0,%0,%1;"
-	    "addze %0,%0;"
-	    : "+r" (csum) : "r" (addend) : "xer");
+		"addze %0,%0;"
+		: "+r" (csum) : "r" (addend) : "xer");
 	return csum;
 #endif
 }
@@ -122,21 +128,24 @@ static inline __wsum ip_fast_csum_nofold(const void *iph, unsigned int ihl)
 	u64 s = *(const u32 *)iph;
 
 	for (i = 0; i < ihl - 1; i++, ptr++)
+	{
 		s += *ptr;
+	}
+
 	s += (s >> 32);
 	return (__force __wsum)s;
 #else
 	__wsum sum, tmp;
 
 	asm("mtctr %3;"
-	    "addc %0,%4,%5;"
-	    "1: lwzu %1, 4(%2);"
-	    "adde %0,%0,%1;"
-	    "bdnz 1b;"
-	    "addze %0,%0;"
-	    : "=r" (sum), "=r" (tmp), "+b" (ptr)
-	    : "r" (ihl - 2), "r" (*(const u32 *)iph), "r" (*ptr)
-	    : "ctr", "xer", "memory");
+		"addc %0,%4,%5;"
+		"1: lwzu %1, 4(%2);"
+		"adde %0,%0,%1;"
+		"bdnz 1b;"
+		"addze %0,%0;"
+		: "=r" (sum), "=r" (tmp), "+b" (ptr)
+		: "r" (ihl - 2), "r" (*(const u32 *)iph), "r" (*ptr)
+		: "ctr", "xer", "memory");
 
 	return sum;
 #endif
@@ -163,34 +172,51 @@ __wsum __csum_partial(const void *buff, int len, __wsum sum);
 
 static inline __wsum csum_partial(const void *buff, int len, __wsum sum)
 {
-	if (__builtin_constant_p(len) && len <= 16 && (len & 1) == 0) {
+	if (__builtin_constant_p(len) && len <= 16 && (len & 1) == 0)
+	{
 		if (len == 2)
-			sum = csum_add(sum, (__force __wsum)*(const u16 *)buff);
+		{
+			sum = csum_add(sum, (__force __wsum) * (const u16 *)buff);
+		}
+
 		if (len >= 4)
-			sum = csum_add(sum, (__force __wsum)*(const u32 *)buff);
+		{
+			sum = csum_add(sum, (__force __wsum) * (const u32 *)buff);
+		}
+
 		if (len == 6)
 			sum = csum_add(sum, (__force __wsum)
-					    *(const u16 *)(buff + 4));
+						   * (const u16 *)(buff + 4));
+
 		if (len >= 8)
 			sum = csum_add(sum, (__force __wsum)
-					    *(const u32 *)(buff + 4));
+						   * (const u32 *)(buff + 4));
+
 		if (len == 10)
 			sum = csum_add(sum, (__force __wsum)
-					    *(const u16 *)(buff + 8));
+						   * (const u16 *)(buff + 8));
+
 		if (len >= 12)
 			sum = csum_add(sum, (__force __wsum)
-					    *(const u32 *)(buff + 8));
+						   * (const u32 *)(buff + 8));
+
 		if (len == 14)
 			sum = csum_add(sum, (__force __wsum)
-					    *(const u16 *)(buff + 12));
+						   * (const u16 *)(buff + 12));
+
 		if (len >= 16)
 			sum = csum_add(sum, (__force __wsum)
-					    *(const u32 *)(buff + 12));
-	} else if (__builtin_constant_p(len) && (len & 3) == 0) {
+						   * (const u32 *)(buff + 12));
+	}
+	else if (__builtin_constant_p(len) && (len & 3) == 0)
+	{
 		sum = csum_add(sum, ip_fast_csum_nofold(buff, len >> 2));
-	} else {
+	}
+	else
+	{
 		sum = __csum_partial(buff, len, sum);
 	}
+
 	return sum;
 }
 

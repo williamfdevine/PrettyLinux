@@ -13,7 +13,7 @@ LONG __init ArcLoad(CHAR *Path, ULONG TopAddr, ULONG *ExecAddr, ULONG *LowAddr)
 }
 
 LONG __init ArcInvoke(ULONG ExecAddr, ULONG StackAddr, ULONG Argc, CHAR *Argv[],
-	CHAR *Envp[])
+					  CHAR *Envp[])
 {
 	return ARC_CALL5(invoke, ExecAddr, StackAddr, Argc, Argv, Envp);
 }

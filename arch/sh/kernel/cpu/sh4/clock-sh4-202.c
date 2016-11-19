@@ -35,17 +35,21 @@ static inline int frqcr3_lookup(struct clk *clk, unsigned long rate)
 
 	for (i = 0; i < ARRAY_SIZE(frqcr3_divisors); i++)
 		if (frqcr3_divisors[i] == divisor)
+		{
 			return frqcr3_values[i];
+		}
 
 	/* Safe fallback */
 	return 5;
 }
 
-static struct sh_clk_ops sh4202_emi_clk_ops = {
+static struct sh_clk_ops sh4202_emi_clk_ops =
+{
 	.recalc		= emi_clk_recalc,
 };
 
-static struct clk sh4202_emi_clk = {
+static struct clk sh4202_emi_clk =
+{
 	.flags		= CLK_ENABLE_ON_INIT,
 	.ops		= &sh4202_emi_clk_ops,
 };
@@ -56,11 +60,13 @@ static unsigned long femi_clk_recalc(struct clk *clk)
 	return clk->parent->rate / frqcr3_divisors[idx];
 }
 
-static struct sh_clk_ops sh4202_femi_clk_ops = {
+static struct sh_clk_ops sh4202_femi_clk_ops =
+{
 	.recalc		= femi_clk_recalc,
 };
 
-static struct clk sh4202_femi_clk = {
+static struct clk sh4202_femi_clk =
+{
 	.flags		= CLK_ENABLE_ON_INIT,
 	.ops		= &sh4202_femi_clk_ops,
 };
@@ -78,11 +84,14 @@ static void shoc_clk_init(struct clk *clk)
 	 * Start scaling from the high end down until we find something
 	 * that passes rate verification..
 	 */
-	for (i = 0; i < ARRAY_SIZE(frqcr3_divisors); i++) {
+	for (i = 0; i < ARRAY_SIZE(frqcr3_divisors); i++)
+	{
 		int divisor = frqcr3_divisors[i];
 
 		if (clk->ops->set_rate(clk, clk->parent->rate / divisor) == 0)
+		{
 			break;
+		}
 	}
 
 	WARN_ON(i == ARRAY_SIZE(frqcr3_divisors));	/* Undefined clock */
@@ -102,9 +111,14 @@ static int shoc_clk_verify_rate(struct clk *clk, unsigned long rate)
 	clk_put(bclk);
 
 	if (rate > bclk_rate)
+	{
 		return 1;
+	}
+
 	if (rate > 66000000)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -116,7 +130,9 @@ static int shoc_clk_set_rate(struct clk *clk, unsigned long rate)
 
 	/* Make sure we have something sensible to switch to */
 	if (shoc_clk_verify_rate(clk, rate) != 0)
+	{
 		return -EINVAL;
+	}
 
 	tmp = frqcr3_lookup(clk, rate);
 
@@ -130,24 +146,28 @@ static int shoc_clk_set_rate(struct clk *clk, unsigned long rate)
 	return 0;
 }
 
-static struct sh_clk_ops sh4202_shoc_clk_ops = {
+static struct sh_clk_ops sh4202_shoc_clk_ops =
+{
 	.init		= shoc_clk_init,
 	.recalc		= shoc_clk_recalc,
 	.set_rate	= shoc_clk_set_rate,
 };
 
-static struct clk sh4202_shoc_clk = {
+static struct clk sh4202_shoc_clk =
+{
 	.flags		= CLK_ENABLE_ON_INIT,
 	.ops		= &sh4202_shoc_clk_ops,
 };
 
-static struct clk *sh4202_onchip_clocks[] = {
+static struct clk *sh4202_onchip_clocks[] =
+{
 	&sh4202_emi_clk,
 	&sh4202_femi_clk,
 	&sh4202_shoc_clk,
 };
 
-static struct clk_lookup lookups[] = {
+static struct clk_lookup lookups[] =
+{
 	/* main clocks */
 	CLKDEV_CON_ID("emi_clk", &sh4202_emi_clk),
 	CLKDEV_CON_ID("femi_clk", &sh4202_femi_clk),
@@ -162,7 +182,9 @@ int __init arch_clk_init(void)
 	cpg_clk_init();
 
 	clk = clk_get(NULL, "master_clk");
-	for (i = 0; i < ARRAY_SIZE(sh4202_onchip_clocks); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(sh4202_onchip_clocks); i++)
+	{
 		struct clk *clkp = sh4202_onchip_clocks[i];
 
 		clkp->parent = clk;

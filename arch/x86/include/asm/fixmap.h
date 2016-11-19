@@ -20,10 +20,10 @@
 #include <asm/apicdef.h>
 #include <asm/page.h>
 #ifdef CONFIG_X86_32
-#include <linux/threads.h>
-#include <asm/kmap_types.h>
+	#include <linux/threads.h>
+	#include <asm/kmap_types.h>
 #else
-#include <uapi/asm/vsyscall.h>
+	#include <uapi/asm/vsyscall.h>
 #endif
 
 /*
@@ -41,7 +41,7 @@ extern unsigned long __FIXADDR_TOP;
 #define FIXADDR_TOP	((unsigned long)__FIXADDR_TOP)
 #else
 #define FIXADDR_TOP	(round_up(VSYSCALL_ADDR + PAGE_SIZE, 1<<PMD_SHIFT) - \
-			 PAGE_SIZE)
+					 PAGE_SIZE)
 #endif
 
 
@@ -64,7 +64,8 @@ extern unsigned long __FIXADDR_TOP;
  * TLB entries of such buffers will not be flushed across
  * task switches.
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 #ifdef CONFIG_X86_32
 	FIX_HOLE,
 #else
@@ -87,7 +88,7 @@ enum fixed_addresses {
 	FIX_RO_IDT,	/* Virtual mapping for read-only IDT */
 #ifdef CONFIG_X86_32
 	FIX_KMAP_BEGIN,	/* reserved pte's for temporary kernel mappings */
-	FIX_KMAP_END = FIX_KMAP_BEGIN+(KM_TYPE_NR*NR_CPUS)-1,
+	FIX_KMAP_END = FIX_KMAP_BEGIN + (KM_TYPE_NR * NR_CPUS) - 1,
 #ifdef CONFIG_PCI_MMCONFIG
 	FIX_PCIE_MCFG,
 #endif
@@ -113,12 +114,12 @@ enum fixed_addresses {
 #define FIX_BTMAPS_SLOTS	8
 #define TOTAL_FIX_BTMAPS	(NR_FIX_BTMAPS * FIX_BTMAPS_SLOTS)
 	FIX_BTMAP_END =
-	 (__end_of_permanent_fixed_addresses ^
-	  (__end_of_permanent_fixed_addresses + TOTAL_FIX_BTMAPS - 1)) &
-	 -PTRS_PER_PTE
-	 ? __end_of_permanent_fixed_addresses + TOTAL_FIX_BTMAPS -
-	   (__end_of_permanent_fixed_addresses & (TOTAL_FIX_BTMAPS - 1))
-	 : __end_of_permanent_fixed_addresses,
+		(__end_of_permanent_fixed_addresses ^
+		 (__end_of_permanent_fixed_addresses + TOTAL_FIX_BTMAPS - 1)) &
+		-PTRS_PER_PTE
+		? __end_of_permanent_fixed_addresses + TOTAL_FIX_BTMAPS -
+		(__end_of_permanent_fixed_addresses & (TOTAL_FIX_BTMAPS - 1))
+		: __end_of_permanent_fixed_addresses,
 	FIX_BTMAP_BEGIN = FIX_BTMAP_END + TOTAL_FIX_BTMAPS - 1,
 #ifdef CONFIG_X86_32
 	FIX_WP_TEST,
@@ -143,11 +144,11 @@ extern pte_t *pkmap_page_table;
 
 void __native_set_fixmap(enum fixed_addresses idx, pte_t pte);
 void native_set_fixmap(enum fixed_addresses idx,
-		       phys_addr_t phys, pgprot_t flags);
+					   phys_addr_t phys, pgprot_t flags);
 
 #ifndef CONFIG_PARAVIRT
 static inline void __set_fixmap(enum fixed_addresses idx,
-				phys_addr_t phys, pgprot_t flags)
+								phys_addr_t phys, pgprot_t flags)
 {
 	native_set_fixmap(idx, phys, flags);
 }
@@ -159,7 +160,7 @@ static inline void __set_fixmap(enum fixed_addresses idx,
 #define __late_clear_fixmap(idx) __set_fixmap(idx, 0, __pgprot(0))
 
 void __early_set_fixmap(enum fixed_addresses idx,
-			phys_addr_t phys, pgprot_t flags);
+						phys_addr_t phys, pgprot_t flags);
 
 #endif /* !__ASSEMBLY__ */
 #endif /* _ASM_X86_FIXMAP_H */

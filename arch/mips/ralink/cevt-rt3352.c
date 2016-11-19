@@ -29,7 +29,8 @@
 /* enable the counter */
 #define CFG_CNT_EN		0x1
 
-struct systick_device {
+struct systick_device
+{
 	void __iomem *membase;
 	struct clock_event_device dev;
 	int irq_requested;
@@ -40,7 +41,7 @@ static int systick_set_oneshot(struct clock_event_device *evt);
 static int systick_shutdown(struct clock_event_device *evt);
 
 static int systick_next_event(unsigned long delta,
-				struct clock_event_device *evt)
+							  struct clock_event_device *evt)
 {
 	struct systick_device *sdev;
 	u32 count;
@@ -67,7 +68,8 @@ static irqreturn_t systick_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct systick_device systick = {
+static struct systick_device systick =
+{
 	.dev = {
 		/*
 		 * cevt-r4k uses 300, make sure systick
@@ -82,7 +84,8 @@ static struct systick_device systick = {
 	},
 };
 
-static struct irqaction systick_irqaction = {
+static struct irqaction systick_irqaction =
+{
 	.handler = systick_interrupt,
 	.flags = IRQF_PERCPU | IRQF_TIMER,
 	.dev_id = &systick.dev,
@@ -95,7 +98,10 @@ static int systick_shutdown(struct clock_event_device *evt)
 	sdev = container_of(evt, struct systick_device, dev);
 
 	if (sdev->irq_requested)
+	{
 		free_irq(systick.dev.irq, &systick_irqaction);
+	}
+
 	sdev->irq_requested = 0;
 	iowrite32(0, systick.membase + SYSTICK_CONFIG);
 
@@ -109,10 +115,13 @@ static int systick_set_oneshot(struct clock_event_device *evt)
 	sdev = container_of(evt, struct systick_device, dev);
 
 	if (!sdev->irq_requested)
+	{
 		setup_irq(systick.dev.irq, &systick_irqaction);
+	}
+
 	sdev->irq_requested = 1;
 	iowrite32(CFG_EXT_STK_EN | CFG_CNT_EN,
-		  systick.membase + SYSTICK_CONFIG);
+			  systick.membase + SYSTICK_CONFIG);
 
 	return 0;
 }
@@ -122,8 +131,11 @@ static int __init ralink_systick_init(struct device_node *np)
 	int ret;
 
 	systick.membase = of_iomap(np, 0);
+
 	if (!systick.membase)
+	{
 		return -ENXIO;
+	}
 
 	systick_irqaction.name = np->name;
 	systick.dev.name = np->name;
@@ -131,16 +143,21 @@ static int __init ralink_systick_init(struct device_node *np)
 	systick.dev.max_delta_ns = clockevent_delta2ns(0x7fff, &systick.dev);
 	systick.dev.min_delta_ns = clockevent_delta2ns(0x3, &systick.dev);
 	systick.dev.irq = irq_of_parse_and_map(np, 0);
-	if (!systick.dev.irq) {
+
+	if (!systick.dev.irq)
+	{
 		pr_err("%s: request_irq failed", np->name);
 		return -EINVAL;
 	}
 
 	ret = clocksource_mmio_init(systick.membase + SYSTICK_COUNT, np->name,
-				    SYSTICK_FREQ, 301, 16,
-				    clocksource_mmio_readl_up);
+								SYSTICK_FREQ, 301, 16,
+								clocksource_mmio_readl_up);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	clockevents_register_device(&systick.dev);
 

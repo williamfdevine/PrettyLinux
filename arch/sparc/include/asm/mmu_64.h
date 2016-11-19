@@ -28,7 +28,7 @@
 #define CTX_PGSZ0_SHIFT		16
 #define CTX_PGSZ1_SHIFT		19
 #define CTX_PGSZ_MASK		((CTX_PGSZ_BITS << CTX_PGSZ0_SHIFT) | \
-				 (CTX_PGSZ_BITS << CTX_PGSZ1_SHIFT))
+							 (CTX_PGSZ_BITS << CTX_PGSZ1_SHIFT))
 
 #define CTX_PGSZ_BASE	CTX_PGSZ_8KB
 #define CTX_PGSZ_HUGE	CTX_PGSZ_4MB
@@ -54,7 +54,7 @@
 
 #define CTX_FIRST_VERSION	((_AC(1,UL) << CTX_VERSION_SHIFT) + _AC(1,UL))
 #define CTX_VALID(__ctx)	\
-	 (!(((__ctx.sparc64_ctx_val) ^ tlb_context_cache) & CTX_VERSION_MASK))
+	(!(((__ctx.sparc64_ctx_val) ^ tlb_context_cache) & CTX_VERSION_MASK))
 #define CTX_HWBITS(__ctx)	((__ctx.sparc64_ctx_val) & CTX_HW_MASK)
 #define CTX_NRBITS(__ctx)	((__ctx.sparc64_ctx_val) & CTX_NR_MASK)
 
@@ -62,7 +62,8 @@
 
 #define TSB_ENTRY_ALIGNMENT	16
 
-struct tsb {
+struct tsb
+{
 	unsigned long tag;
 	unsigned long pte;
 } __attribute__((aligned(TSB_ENTRY_ALIGNMENT)));
@@ -71,7 +72,8 @@ void __tsb_insert(unsigned long ent, unsigned long tag, unsigned long pte);
 void tsb_flush(unsigned long ent, unsigned long tag);
 void tsb_init(struct tsb *tsb, unsigned long size);
 
-struct tsb_config {
+struct tsb_config
+{
 	struct tsb		*tsb;
 	unsigned long		tsb_rss_limit;
 	unsigned long		tsb_nentries;
@@ -83,13 +85,14 @@ struct tsb_config {
 #define MM_TSB_BASE	0
 
 #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
-#define MM_TSB_HUGE	1
-#define MM_NUM_TSBS	2
+	#define MM_TSB_HUGE	1
+	#define MM_NUM_TSBS	2
 #else
-#define MM_NUM_TSBS	1
+	#define MM_NUM_TSBS	1
 #endif
 
-typedef struct {
+typedef struct
+{
 	spinlock_t		lock;
 	unsigned long		sparc64_ctx_val;
 	unsigned long		hugetlb_pte_count;

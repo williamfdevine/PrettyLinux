@@ -36,21 +36,34 @@ int s3c_camif_gpio_get(void)
 
 	camif_get_gpios(&gpio_start, &gpio_reset);
 
-	for (i = 0; i < S3C_CAMIF_NUM_GPIOS; i++) {
+	for (i = 0; i < S3C_CAMIF_NUM_GPIOS; i++)
+	{
 		int gpio = gpio_start + i;
 
 		if (gpio == gpio_reset)
+		{
 			continue;
+		}
 
 		ret = gpio_request(gpio, "camif");
+
 		if (!ret)
+		{
 			ret = s3c_gpio_cfgpin(gpio, S3C_GPIO_SFN(2));
-		if (ret) {
+		}
+
+		if (ret)
+		{
 			pr_err("failed to configure GPIO %d\n", gpio);
+
 			for (--i; i >= 0; i--)
+			{
 				gpio_free(gpio--);
+			}
+
 			return ret;
 		}
+
 		s3c_gpio_setpull(gpio, S3C_GPIO_PULL_NONE);
 	}
 
@@ -63,9 +76,13 @@ void s3c_camif_gpio_put(void)
 
 	camif_get_gpios(&gpio_start, &gpio_reset);
 
-	for (i = 0; i < S3C_CAMIF_NUM_GPIOS; i++) {
+	for (i = 0; i < S3C_CAMIF_NUM_GPIOS; i++)
+	{
 		int gpio = gpio_start + i;
+
 		if (gpio != gpio_reset)
+		{
 			gpio_free(gpio);
+		}
 	}
 }

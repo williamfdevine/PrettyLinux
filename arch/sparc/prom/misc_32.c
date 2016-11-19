@@ -35,13 +35,23 @@ void
 prom_feval(char *fstring)
 {
 	unsigned long flags;
-	if(!fstring || fstring[0] == 0)
+
+	if (!fstring || fstring[0] == 0)
+	{
 		return;
+	}
+
 	spin_lock_irqsave(&prom_lock, flags);
-	if(prom_vers == PROM_V0)
+
+	if (prom_vers == PROM_V0)
+	{
 		(*(romvec->pv_fortheval.v0_eval))(strlen(fstring), fstring);
+	}
 	else
+	{
 		(*(romvec->pv_fortheval.v2_eval))(fstring);
+	}
+
 	restore_current();
 	spin_unlock_irqrestore(&prom_lock, flags);
 }
@@ -84,7 +94,8 @@ typedef void (*sfunc_t)(void);
 void
 prom_setsync(sfunc_t funcp)
 {
-	if(!funcp) return;
+	if (!funcp) { return; }
+
 	*romvec->pv_synchook = funcp;
 }
 
@@ -98,9 +109,13 @@ prom_get_idprom(char *idbuf, int num_bytes)
 	int len;
 
 	len = prom_getproplen(prom_root_node, "idprom");
-	if((len>num_bytes) || (len==-1)) return 0xff;
-	if(!prom_getproperty(prom_root_node, "idprom", idbuf, num_bytes))
+
+	if ((len > num_bytes) || (len == -1)) { return 0xff; }
+
+	if (!prom_getproperty(prom_root_node, "idprom", idbuf, num_bytes))
+	{
 		return idbuf[0];
+	}
 
 	return 0xff;
 }

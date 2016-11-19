@@ -70,13 +70,16 @@ static unsigned int timer_read32_be(void __iomem *addr)
 static inline void xilinx_timer0_stop(void)
 {
 	write_fn(read_fn(timer_baseaddr + TCSR0) & ~TCSR_ENT,
-		 timer_baseaddr + TCSR0);
+			 timer_baseaddr + TCSR0);
 }
 
 static inline void xilinx_timer0_start_periodic(unsigned long load_val)
 {
 	if (!load_val)
+	{
 		load_val = 1;
+	}
+
 	/* loading value to timer reg */
 	write_fn(load_val, timer_baseaddr + TLR0);
 
@@ -96,26 +99,29 @@ static inline void xilinx_timer0_start_periodic(unsigned long load_val)
 	 * UDT - set the timer as down counter
 	 * !MDT0 - generate mode
 	 */
-	write_fn(TCSR_TINT|TCSR_ENIT|TCSR_ENT|TCSR_ARHT|TCSR_UDT,
-		 timer_baseaddr + TCSR0);
+	write_fn(TCSR_TINT | TCSR_ENIT | TCSR_ENT | TCSR_ARHT | TCSR_UDT,
+			 timer_baseaddr + TCSR0);
 }
 
 static inline void xilinx_timer0_start_oneshot(unsigned long load_val)
 {
 	if (!load_val)
+	{
 		load_val = 1;
+	}
+
 	/* loading value to timer reg */
 	write_fn(load_val, timer_baseaddr + TLR0);
 
 	/* load the initial value */
 	write_fn(TCSR_LOAD, timer_baseaddr + TCSR0);
 
-	write_fn(TCSR_TINT|TCSR_ENIT|TCSR_ENT|TCSR_ARHT|TCSR_UDT,
-		 timer_baseaddr + TCSR0);
+	write_fn(TCSR_TINT | TCSR_ENIT | TCSR_ENT | TCSR_ARHT | TCSR_UDT,
+			 timer_baseaddr + TCSR0);
 }
 
 static int xilinx_timer_set_next_event(unsigned long delta,
-					struct clock_event_device *dev)
+									   struct clock_event_device *dev)
 {
 	pr_debug("%s: next event, delta %x\n", __func__, (u32)delta);
 	xilinx_timer0_start_oneshot(delta);
@@ -136,10 +142,11 @@ static int xilinx_timer_set_periodic(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device clockevent_xilinx_timer = {
+static struct clock_event_device clockevent_xilinx_timer =
+{
 	.name			= "xilinx_clockevent",
 	.features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_PERIODIC,
+	CLOCK_EVT_FEAT_PERIODIC,
 	.shift			= 8,
 	.rating			= 300,
 	.set_next_event		= xilinx_timer_set_next_event,
@@ -163,7 +170,8 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction timer_irqaction = {
+static struct irqaction timer_irqaction =
+{
 	.handler = timer_interrupt,
 	.flags = IRQF_TIMER,
 	.name = "timer",
@@ -174,7 +182,7 @@ static __init int xilinx_clockevent_init(void)
 {
 	clockevent_xilinx_timer.mult =
 		div_sc(timer_clock_freq, NSEC_PER_SEC,
-				clockevent_xilinx_timer.shift);
+			   clockevent_xilinx_timer.shift);
 	clockevent_xilinx_timer.max_delta_ns =
 		clockevent_delta2ns((u32)~0, &clockevent_xilinx_timer);
 	clockevent_xilinx_timer.min_delta_ns =
@@ -196,7 +204,8 @@ static cycle_t xilinx_read(struct clocksource *cs)
 	return (cycle_t)xilinx_clock_read();
 }
 
-static struct timecounter xilinx_tc = {
+static struct timecounter xilinx_tc =
+{
 	.cc = NULL,
 };
 
@@ -205,7 +214,8 @@ static cycle_t xilinx_cc_read(const struct cyclecounter *cc)
 	return xilinx_read(NULL);
 }
 
-static struct cyclecounter xilinx_cc = {
+static struct cyclecounter xilinx_cc =
+{
 	.read = xilinx_cc_read,
 	.mask = CLOCKSOURCE_MASK(32),
 	.shift = 8,
@@ -214,14 +224,15 @@ static struct cyclecounter xilinx_cc = {
 static int __init init_xilinx_timecounter(void)
 {
 	xilinx_cc.mult = div_sc(timer_clock_freq, NSEC_PER_SEC,
-				xilinx_cc.shift);
+							xilinx_cc.shift);
 
 	timecounter_init(&xilinx_tc, &xilinx_cc, sched_clock());
 
 	return 0;
 }
 
-static struct clocksource clocksource_microblaze = {
+static struct clocksource clocksource_microblaze =
+{
 	.name		= "xilinx_clocksource",
 	.rating		= 300,
 	.read		= xilinx_read,
@@ -234,17 +245,19 @@ static int __init xilinx_clocksource_init(void)
 	int ret;
 
 	ret = clocksource_register_hz(&clocksource_microblaze,
-				      timer_clock_freq);
-	if (ret) {
+								  timer_clock_freq);
+
+	if (ret)
+	{
 		pr_err("failed to register clocksource");
 		return ret;
 	}
 
 	/* stop timer1 */
 	write_fn(read_fn(timer_baseaddr + TCSR1) & ~TCSR_ENT,
-		 timer_baseaddr + TCSR1);
+			 timer_baseaddr + TCSR1);
 	/* start timer1 - up counting without interrupt */
-	write_fn(TCSR_TINT|TCSR_ENT|TCSR_ARHT, timer_baseaddr + TCSR1);
+	write_fn(TCSR_TINT | TCSR_ENT | TCSR_ARHT, timer_baseaddr + TCSR1);
 
 	/* register timecounter - for ftrace support */
 	return init_xilinx_timecounter();
@@ -259,12 +272,16 @@ static int __init xilinx_timer_init(struct device_node *timer)
 	int ret;
 
 	if (initialized)
+	{
 		return;
+	}
 
 	initialized = 1;
 
 	timer_baseaddr = of_iomap(timer, 0);
-	if (!timer_baseaddr) {
+
+	if (!timer_baseaddr)
+	{
 		pr_err("ERROR: invalid timer base address\n");
 		return -ENXIO;
 	}
@@ -273,19 +290,25 @@ static int __init xilinx_timer_init(struct device_node *timer)
 	read_fn = timer_read32;
 
 	write_fn(TCSR_MDT, timer_baseaddr + TCSR0);
-	if (!(read_fn(timer_baseaddr + TCSR0) & TCSR_MDT)) {
+
+	if (!(read_fn(timer_baseaddr + TCSR0) & TCSR_MDT))
+	{
 		write_fn = timer_write32_be;
 		read_fn = timer_read32_be;
 	}
 
 	irq = irq_of_parse_and_map(timer, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("Failed to parse and map irq");
 		return -EINVAL;
 	}
 
 	of_property_read_u32(timer, "xlnx,one-timer-only", &timer_num);
-	if (timer_num) {
+
+	if (timer_num)
+	{
 		pr_err("Please enable two timers in HW\n");
 		return -EINVAL;
 	}
@@ -293,16 +316,21 @@ static int __init xilinx_timer_init(struct device_node *timer)
 	pr_info("%s: irq=%d\n", timer->full_name, irq);
 
 	clk = of_clk_get(timer, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("ERROR: timer CCF input clock not found\n");
 		/* If there is clock-frequency property than use it */
 		of_property_read_u32(timer, "clock-frequency",
-				    &timer_clock_freq);
-	} else {
+							 &timer_clock_freq);
+	}
+	else
+	{
 		timer_clock_freq = clk_get_rate(clk);
 	}
 
-	if (!timer_clock_freq) {
+	if (!timer_clock_freq)
+	{
 		pr_err("ERROR: Using CPU clock frequency\n");
 		timer_clock_freq = cpuinfo.cpu_clock_freq;
 	}
@@ -310,7 +338,9 @@ static int __init xilinx_timer_init(struct device_node *timer)
 	freq_div_hz = timer_clock_freq / HZ;
 
 	ret = setup_irq(irq, &timer_irqaction);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to setup IRQ");
 		return ret;
 	}
@@ -320,12 +350,18 @@ static int __init xilinx_timer_init(struct device_node *timer)
 #endif
 
 	ret = xilinx_clocksource_init();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = xilinx_clockevent_init();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sched_clock_register(xilinx_clock_read, 32, timer_clock_freq);
 
@@ -333,4 +369,4 @@ static int __init xilinx_timer_init(struct device_node *timer)
 }
 
 CLOCKSOURCE_OF_DECLARE(xilinx_timer, "xlnx,xps-timer-1.00.a",
-		       xilinx_timer_init);
+					   xilinx_timer_init);

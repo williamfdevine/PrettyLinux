@@ -39,12 +39,14 @@ void __init corenet_gen_pic_init(void)
 {
 	struct mpic *mpic;
 	unsigned int flags = MPIC_BIG_ENDIAN | MPIC_SINGLE_DEST_CPU |
-		MPIC_NO_RESET;
+						 MPIC_NO_RESET;
 
 	struct device_node *np;
 
 	if (ppc_md.get_irq == mpic_get_coreint_irq)
+	{
 		flags |= MPIC_ENABLE_COREINT;
+	}
 
 	mpic = mpic_alloc(NULL, 0, flags, 0, 512, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
@@ -52,9 +54,11 @@ void __init corenet_gen_pic_init(void)
 	mpic_init(mpic);
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,qe-ic");
-	if (np) {
+
+	if (np)
+	{
 		qe_ic_init(np, 0, qe_ic_cascade_low_mpic,
-				qe_ic_cascade_high_mpic);
+				   qe_ic_cascade_high_mpic);
 		of_node_put(np);
 	}
 }
@@ -83,7 +87,8 @@ void __init corenet_gen_setup_arch(void)
 	mpc85xx_qe_init();
 }
 
-static const struct of_device_id of_device_ids[] = {
+static const struct of_device_id of_device_ids[] =
+{
 	{
 		.compatible	= "simple-bus"
 	},
@@ -135,7 +140,8 @@ int __init corenet_gen_publish_devices(void)
 	return of_platform_bus_probe(NULL, of_device_ids, NULL);
 }
 
-static const char * const boards[] __initconst = {
+static const char *const boards[] __initconst =
+{
 	"fsl,P2041RDB",
 	"fsl,P3041DS",
 	"fsl,OCA4080",
@@ -177,12 +183,17 @@ static int __init corenet_generic_probe(void)
 #endif
 
 	if (of_device_compatible_match(of_root, boards))
+	{
 		return 1;
+	}
 
 	/* Check if we're running under the Freescale hypervisor */
-	for (i = 0; boards[i]; i++) {
+	for (i = 0; boards[i]; i++)
+	{
 		snprintf(hv_compat, sizeof(hv_compat), "%s-hv", boards[i]);
-		if (of_machine_is_compatible(hv_compat)) {
+
+		if (of_machine_is_compatible(hv_compat))
+		{
 			ppc_md.init_IRQ = ehv_pic_init;
 
 			ppc_md.get_irq = ehv_pic_get_irq;
@@ -205,32 +216,33 @@ static int __init corenet_generic_probe(void)
 	return 0;
 }
 
-define_machine(corenet_generic) {
+define_machine(corenet_generic)
+{
 	.name			= "CoreNet Generic",
-	.probe			= corenet_generic_probe,
-	.setup_arch		= corenet_gen_setup_arch,
-	.init_IRQ		= corenet_gen_pic_init,
+			 .probe			= corenet_generic_probe,
+					 .setup_arch		= corenet_gen_setup_arch,
+						 .init_IRQ		= corenet_gen_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+								 .pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-/*
- * Core reset may cause issues if using the proxy mode of MPIC.
- * So, use the mixed mode of MPIC if enabling CPU hotplug.
- *
- * Likewise, problems have been seen with kexec when coreint is enabled.
- */
+								  /*
+								   * Core reset may cause issues if using the proxy mode of MPIC.
+								   * So, use the mixed mode of MPIC if enabling CPU hotplug.
+								   *
+								   * Likewise, problems have been seen with kexec when coreint is enabled.
+								   */
 #if defined(CONFIG_HOTPLUG_CPU) || defined(CONFIG_KEXEC)
-	.get_irq		= mpic_get_irq,
+								  .get_irq		= mpic_get_irq,
 #else
-	.get_irq		= mpic_get_coreint_irq,
+								  .get_irq		= mpic_get_coreint_irq,
 #endif
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+										 .calibrate_decr		= generic_calibrate_decr,
+											 .progress		= udbg_progress,
 #ifdef CONFIG_PPC64
-	.power_save		= book3e_idle,
+												   .power_save		= book3e_idle,
 #else
-	.power_save		= e500_idle,
+												   .power_save		= e500_idle,
 #endif
 };
 

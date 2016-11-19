@@ -24,32 +24,38 @@ void __init prom_init_memory(void)
 	add_memory_region(0x0, (memsize << 20), BOOT_MEM_RAM);
 
 	add_memory_region(memsize << 20, LOONGSON_PCI_MEM_START - (memsize <<
-				20), BOOT_MEM_RESERVED);
+					  20), BOOT_MEM_RESERVED);
 
 #ifdef CONFIG_CPU_SUPPORTS_ADDRWINCFG
 	{
 		int bit;
 
 		bit = fls(memsize + highmemsize);
+
 		if (bit != ffs(memsize + highmemsize))
+		{
 			bit += 20;
+		}
 		else
+		{
 			bit = bit + 20 - 1;
+		}
 
 		/* set cpu window3 to map CPU to DDR: 2G -> 2G */
 		LOONGSON_ADDRWIN_CPUTODDR(ADDRWIN_WIN3, 0x80000000ul,
-					  0x80000000ul, (1 << bit));
+								  0x80000000ul, (1 << bit));
 		mmiowb();
 	}
 #endif /* !CONFIG_CPU_SUPPORTS_ADDRWINCFG */
 
 #ifdef CONFIG_64BIT
+
 	if (highmemsize > 0)
 		add_memory_region(LOONGSON_HIGHMEM_START,
-				  highmemsize << 20, BOOT_MEM_RAM);
+						  highmemsize << 20, BOOT_MEM_RAM);
 
 	add_memory_region(LOONGSON_PCI_MEM_END + 1, LOONGSON_HIGHMEM_START -
-			  LOONGSON_PCI_MEM_END - 1, BOOT_MEM_RESERVED);
+					  LOONGSON_PCI_MEM_END - 1, BOOT_MEM_RESERVED);
 
 #endif /* !CONFIG_64BIT */
 }
@@ -63,27 +69,32 @@ void __init prom_init_memory(void)
 	u32 mem_type;
 
 	/* parse memory information */
-	for (i = 0; i < loongson_memmap->nr_map; i++) {
+	for (i = 0; i < loongson_memmap->nr_map; i++)
+	{
 		node_id = loongson_memmap->map[i].node_id;
 		mem_type = loongson_memmap->map[i].mem_type;
 
-		if (node_id == 0) {
-			switch (mem_type) {
-			case SYSTEM_RAM_LOW:
-				add_memory_region(loongson_memmap->map[i].mem_start,
-					(u64)loongson_memmap->map[i].mem_size << 20,
-					BOOT_MEM_RAM);
-				break;
-			case SYSTEM_RAM_HIGH:
-				add_memory_region(loongson_memmap->map[i].mem_start,
-					(u64)loongson_memmap->map[i].mem_size << 20,
-					BOOT_MEM_RAM);
-				break;
-			case MEM_RESERVED:
-				add_memory_region(loongson_memmap->map[i].mem_start,
-					(u64)loongson_memmap->map[i].mem_size << 20,
-					BOOT_MEM_RESERVED);
-				break;
+		if (node_id == 0)
+		{
+			switch (mem_type)
+			{
+				case SYSTEM_RAM_LOW:
+					add_memory_region(loongson_memmap->map[i].mem_start,
+									  (u64)loongson_memmap->map[i].mem_size << 20,
+									  BOOT_MEM_RAM);
+					break;
+
+				case SYSTEM_RAM_HIGH:
+					add_memory_region(loongson_memmap->map[i].mem_start,
+									  (u64)loongson_memmap->map[i].mem_size << 20,
+									  BOOT_MEM_RAM);
+					break;
+
+				case MEM_RESERVED:
+					add_memory_region(loongson_memmap->map[i].mem_start,
+									  (u64)loongson_memmap->map[i].mem_size << 20,
+									  BOOT_MEM_RESERVED);
+					break;
 			}
 		}
 	}
@@ -95,11 +106,13 @@ void __init prom_init_memory(void)
 int __uncached_access(struct file *file, unsigned long addr)
 {
 	if (file->f_flags & O_DSYNC)
+	{
 		return 1;
+	}
 
 	return addr >= __pa(high_memory) ||
-		((addr >= LOONGSON_MMIO_MEM_START) &&
-		 (addr < LOONGSON_MMIO_MEM_END));
+		   ((addr >= LOONGSON_MMIO_MEM_START) &&
+			(addr < LOONGSON_MMIO_MEM_END));
 }
 
 #ifdef CONFIG_CPU_SUPPORTS_UNCACHED_ACCELERATED
@@ -111,20 +124,24 @@ int __uncached_access(struct file *file, unsigned long addr)
 static unsigned long uca_start, uca_end;
 
 pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-			      unsigned long size, pgprot_t vma_prot)
+							  unsigned long size, pgprot_t vma_prot)
 {
 	unsigned long offset = pfn << PAGE_SHIFT;
 	unsigned long end = offset + size;
 
-	if (__uncached_access(file, offset)) {
+	if (__uncached_access(file, offset))
+	{
 		if (uca_start && (offset >= uca_start) &&
-		    (end <= uca_end))
+			(end <= uca_end))
 			return __pgprot((pgprot_val(vma_prot) &
-					 ~_CACHE_MASK) |
-					_CACHE_UNCACHED_ACCELERATED);
+							 ~_CACHE_MASK) |
+							_CACHE_UNCACHED_ACCELERATED);
 		else
+		{
 			return pgprot_noncached(vma_prot);
+		}
 	}
+
 	return vma_prot;
 }
 
@@ -135,17 +152,30 @@ static int __init find_vga_mem_init(void)
 	int idx;
 
 	if (uca_start)
+	{
 		return 0;
+	}
 
-	for_each_pci_dev(dev) {
-		if ((dev->class >> 16) == PCI_BASE_CLASS_DISPLAY) {
-			for (idx = 0; idx < PCI_NUM_RESOURCES; idx++) {
+	for_each_pci_dev(dev)
+	{
+		if ((dev->class >> 16) == PCI_BASE_CLASS_DISPLAY)
+		{
+			for (idx = 0; idx < PCI_NUM_RESOURCES; idx++)
+			{
 				r = &dev->resource[idx];
+
 				if (!r->start && r->end)
+				{
 					continue;
+				}
+
 				if (r->flags & IORESOURCE_IO)
+				{
 					continue;
-				if (r->flags & IORESOURCE_MEM) {
+				}
+
+				if (r->flags & IORESOURCE_MEM)
+				{
 					uca_start = r->start;
 					uca_end = r->end;
 					return 0;

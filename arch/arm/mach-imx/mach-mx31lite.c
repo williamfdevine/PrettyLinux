@@ -51,7 +51,8 @@
  * This file contains the module-specific initialization routines.
  */
 
-static unsigned int mx31lite_pins[] = {
+static unsigned int mx31lite_pins[] =
+{
 	/* UART1 */
 	MX31_PIN_CTS1__CTS1,
 	MX31_PIN_RTS1__RTS1,
@@ -78,35 +79,41 @@ static unsigned int mx31lite_pins[] = {
 };
 
 /* UART */
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
 /* SPI */
-static int spi0_internal_chipselect[] = {
+static int spi0_internal_chipselect[] =
+{
 	MXC_SPI_CS(0),
 	MXC_SPI_CS(1),
 	MXC_SPI_CS(2),
 };
 
-static const struct spi_imx_master spi0_pdata __initconst = {
+static const struct spi_imx_master spi0_pdata __initconst =
+{
 	.chipselect	= spi0_internal_chipselect,
 	.num_chipselect	= ARRAY_SIZE(spi0_internal_chipselect),
 };
 
 static const struct mxc_nand_platform_data
-mx31lite_nand_board_info __initconst  = {
+	mx31lite_nand_board_info __initconst  =
+{
 	.width = 1,
 	.hw_ecc = 1,
 };
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_PUSH_PULL,
 	.flags		= SMSC911X_USE_16BIT,
 };
 
-static struct resource smsc911x_resources[] = {
+static struct resource smsc911x_resources[] =
+{
 	{
 		.start		= MX31_CS4_BASE_ADDR,
 		.end		= MX31_CS4_BASE_ADDR + 0x100,
@@ -117,7 +124,8 @@ static struct resource smsc911x_resources[] = {
 	},
 };
 
-static struct platform_device smsc911x_device = {
+static struct platform_device smsc911x_device =
+{
 	.name		= "smsc911x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smsc911x_resources),
@@ -133,20 +141,24 @@ static struct platform_device smsc911x_device = {
  * The MC13783 is the only hard-wired SPI device on the module.
  */
 
-static int spi1_internal_chipselect[] = {
+static int spi1_internal_chipselect[] =
+{
 	MXC_SPI_CS(0),
 };
 
-static const struct spi_imx_master spi1_pdata __initconst = {
+static const struct spi_imx_master spi1_pdata __initconst =
+{
 	.chipselect	= spi1_internal_chipselect,
 	.num_chipselect	= ARRAY_SIZE(spi1_internal_chipselect),
 };
 
-static struct mc13xxx_platform_data mc13783_pdata __initdata = {
+static struct mc13xxx_platform_data mc13783_pdata __initdata =
+{
 	.flags = MC13XXX_USE_RTC,
 };
 
-static struct spi_board_info mc13783_spi_dev __initdata = {
+static struct spi_board_info mc13783_spi_dev __initdata =
+{
 	.modalias       = "mc13783",
 	.max_speed_hz   = 1000000,
 	.bus_num	= 1,
@@ -160,11 +172,12 @@ static struct spi_board_info mc13783_spi_dev __initdata = {
  */
 
 #define USB_PAD_CFG (PAD_CTL_DRV_MAX | PAD_CTL_SRE_FAST | PAD_CTL_HYS_CMOS | \
-			PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
+					 PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
 
 static int usbh2_init(struct platform_device *pdev)
 {
-	int pins[] = {
+	int pins[] =
+	{
 		MX31_PIN_USBH2_DATA0__USBH2_DATA0,
 		MX31_PIN_USBH2_DATA1__USBH2_DATA1,
 		MX31_PIN_USBH2_CLK__USBH2_CLK,
@@ -192,7 +205,7 @@ static int usbh2_init(struct platform_device *pdev)
 
 	/* chip select */
 	mxc_iomux_alloc_pin(IOMUX_MODE(MX31_PIN_DTR_DCE1, IOMUX_CONFIG_GPIO),
-				"USBH2_CS");
+						"USBH2_CS");
 	gpio_request(IOMUX_TO_GPIO(MX31_PIN_DTR_DCE1), "USBH2 CS");
 	gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_DTR_DCE1), 0);
 
@@ -201,7 +214,8 @@ static int usbh2_init(struct platform_device *pdev)
 	return mx31_initialize_usb_hw(pdev->id, MXC_EHCI_POWER_PINS_ENABLED);
 }
 
-static struct mxc_usbh_platform_data usbh2_pdata __initdata = {
+static struct mxc_usbh_platform_data usbh2_pdata __initdata =
+{
 	.init   = usbh2_init,
 	.portsc = MXC_EHCI_MODE_ULPI | MXC_EHCI_UTMI_8BIT,
 };
@@ -210,17 +224,20 @@ static struct mxc_usbh_platform_data usbh2_pdata __initdata = {
  * NOR flash
  */
 
-static struct physmap_flash_data nor_flash_data = {
+static struct physmap_flash_data nor_flash_data =
+{
 	.width  = 2,
 };
 
-static struct resource nor_flash_resource = {
+static struct resource nor_flash_resource =
+{
 	.start  = 0xa0000000,
 	.end    = 0xa1ffffff,
 	.flags  = IORESOURCE_MEM,
 };
 
-static struct platform_device physmap_flash_device = {
+static struct platform_device physmap_flash_device =
+{
 	.name   = "physmap-flash",
 	.id     = 0,
 	.dev    = {
@@ -233,7 +250,8 @@ static struct platform_device physmap_flash_device = {
 /*
  * This structure defines the MX31 memory map.
  */
-static struct map_desc mx31lite_io_desc[] __initdata = {
+static struct map_desc mx31lite_io_desc[] __initdata =
+{
 	{
 		.virtual = (unsigned long)MX31_CS4_BASE_ADDR_VIRT,
 		.pfn = __phys_to_pfn(MX31_CS4_BASE_ADDR),
@@ -254,7 +272,8 @@ void __init mx31lite_map_io(void)
 static int mx31lite_baseboard;
 core_param(mx31lite_baseboard, mx31lite_baseboard, int, 0444);
 
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vdd33a", "smsc911x"),
 	REGULATOR_SUPPLY("vddvario", "smsc911x"),
 };
@@ -264,7 +283,7 @@ static void __init mx31lite_init(void)
 	imx31_soc_init();
 
 	mxc_iomux_setup_multiple_pins(mx31lite_pins, ARRAY_SIZE(mx31lite_pins),
-				      "mx31lite");
+								  "mx31lite");
 
 	imx31_add_imx_uart0(&uart_pdata);
 	imx31_add_spi_imx0(&spi0_pdata);
@@ -283,22 +302,31 @@ static void __init mx31lite_late(void)
 	int ret;
 
 	if (mx31lite_baseboard == MX31LITE_DB)
+	{
 		mx31lite_db_init();
+	}
 
 	mc13783_spi_dev.irq = gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_3));
 	spi_register_board_info(&mc13783_spi_dev, 1);
 
 	/* USB */
 	usbh2_pdata.otg = imx_otg_ulpi_create(ULPI_OTG_DRVVBUS |
-			ULPI_OTG_DRVVBUS_EXT);
+										  ULPI_OTG_DRVVBUS_EXT);
+
 	if (usbh2_pdata.otg)
+	{
 		imx31_add_mxc_ehci_hs(2, &usbh2_pdata);
+	}
 
 	/* SMSC9117 IRQ pin */
 	ret = gpio_request(IOMUX_TO_GPIO(MX31_PIN_SFS6), "sms9117-irq");
+
 	if (ret)
+	{
 		pr_warn("could not get LAN irq gpio\n");
-	else {
+	}
+	else
+	{
 		gpio_direction_input(IOMUX_TO_GPIO(MX31_PIN_SFS6));
 		smsc911x_resources[1].start =
 			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_SFS6));
@@ -314,13 +342,13 @@ static void __init mx31lite_timer_init(void)
 }
 
 MACHINE_START(MX31LITE, "LogicPD i.MX31 SOM")
-	/* Maintainer: Freescale Semiconductor, Inc. */
-	.atag_offset = 0x100,
-	.map_io = mx31lite_map_io,
-	.init_early = imx31_init_early,
-	.init_irq = mx31_init_irq,
+/* Maintainer: Freescale Semiconductor, Inc. */
+.atag_offset = 0x100,
+ .map_io = mx31lite_map_io,
+  .init_early = imx31_init_early,
+   .init_irq = mx31_init_irq,
 	.init_time	= mx31lite_timer_init,
-	.init_machine = mx31lite_init,
-	.init_late	= mx31lite_late,
-	.restart	= mxc_restart,
-MACHINE_END
+	  .init_machine = mx31lite_init,
+	   .init_late	= mx31lite_late,
+		 .restart	= mxc_restart,
+			 MACHINE_END

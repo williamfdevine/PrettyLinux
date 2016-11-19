@@ -33,7 +33,8 @@
 #include <linux/mm.h>
 #include <linux/types.h>
 
-struct imr_device {
+struct imr_device
+{
 	struct dentry	*file;
 	bool		init;
 	struct mutex	lock;
@@ -61,7 +62,8 @@ static struct imr_device imr_dev;
  */
 #define IMR_LOCK	BIT(31)
 
-struct imr_regs {
+struct imr_regs
+{
 	u32 addr_lo;
 	u32 addr_hi;
 	u32 rmask;
@@ -90,9 +92,9 @@ struct imr_regs {
 static inline int imr_is_enabled(struct imr_regs *imr)
 {
 	return !(imr->rmask == IMR_READ_ACCESS_ALL &&
-		 imr->wmask == IMR_WRITE_ACCESS_ALL &&
-		 imr_to_phys(imr->addr_lo) == 0 &&
-		 imr_to_phys(imr->addr_hi) == 0);
+			 imr->wmask == IMR_WRITE_ACCESS_ALL &&
+			 imr_to_phys(imr->addr_lo) == 0 &&
+			 imr_to_phys(imr->addr_hi) == 0);
 }
 
 /**
@@ -111,16 +113,25 @@ static int imr_read(struct imr_device *idev, u32 imr_id, struct imr_regs *imr)
 	int ret;
 
 	ret = iosf_mbi_read(QRK_MBI_UNIT_MM, MBI_REG_READ, reg++, &imr->addr_lo);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = iosf_mbi_read(QRK_MBI_UNIT_MM, MBI_REG_READ, reg++, &imr->addr_hi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = iosf_mbi_read(QRK_MBI_UNIT_MM, MBI_REG_READ, reg++, &imr->rmask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return iosf_mbi_read(QRK_MBI_UNIT_MM, MBI_REG_READ, reg++, &imr->wmask);
 }
@@ -145,20 +156,32 @@ static int imr_write(struct imr_device *idev, u32 imr_id, struct imr_regs *imr)
 	local_irq_save(flags);
 
 	ret = iosf_mbi_write(QRK_MBI_UNIT_MM, MBI_REG_WRITE, reg++, imr->addr_lo);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = iosf_mbi_write(QRK_MBI_UNIT_MM, MBI_REG_WRITE, reg++, imr->addr_hi);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = iosf_mbi_write(QRK_MBI_UNIT_MM, MBI_REG_WRITE, reg++, imr->rmask);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = iosf_mbi_write(QRK_MBI_UNIT_MM, MBI_REG_WRITE, reg++, imr->wmask);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	local_irq_restore(flags);
 	return 0;
@@ -170,7 +193,7 @@ failed:
 	 */
 	local_irq_restore(flags);
 	WARN(ret, "IOSF-MBI write fail range 0x%08x-0x%08x unreliable\n",
-	     imr_to_phys(imr->addr_lo), imr_to_phys(imr->addr_hi) + IMR_MASK);
+		 imr_to_phys(imr->addr_lo), imr_to_phys(imr->addr_hi) + IMR_MASK);
 
 	return ret;
 }
@@ -194,31 +217,39 @@ static int imr_dbgfs_state_show(struct seq_file *s, void *unused)
 
 	mutex_lock(&idev->lock);
 
-	for (i = 0; i < idev->max_imr; i++) {
+	for (i = 0; i < idev->max_imr; i++)
+	{
 
 		ret = imr_read(idev, i, &imr);
+
 		if (ret)
+		{
 			break;
+		}
 
 		/*
 		 * Remember to add IMR_ALIGN bytes to size to indicate the
 		 * inherent IMR_ALIGN size bytes contained in the masked away
 		 * lower ten bits.
 		 */
-		if (imr_is_enabled(&imr)) {
+		if (imr_is_enabled(&imr))
+		{
 			base = imr_to_phys(imr.addr_lo);
 			end = imr_to_phys(imr.addr_hi) + IMR_MASK;
 			size = end - base + 1;
-		} else {
+		}
+		else
+		{
 			base = 0;
 			end = 0;
 			size = 0;
 		}
+
 		seq_printf(s, "imr%02i: base=%pa, end=%pa, size=0x%08zx "
-			   "rmask=0x%08x, wmask=0x%08x, %s, %s\n", i,
-			   &base, &end, size, imr.rmask, imr.wmask,
-			   imr_is_enabled(&imr) ? "enabled " : "disabled",
-			   imr.addr_lo & IMR_LOCK ? "locked" : "unlocked");
+				   "rmask=0x%08x, wmask=0x%08x, %s, %s\n", i,
+				   &base, &end, size, imr.rmask, imr.wmask,
+				   imr_is_enabled(&imr) ? "enabled " : "disabled",
+				   imr.addr_lo & IMR_LOCK ? "locked" : "unlocked");
 	}
 
 	mutex_unlock(&idev->lock);
@@ -237,7 +268,8 @@ static int imr_state_open(struct inode *inode, struct file *file)
 	return single_open(file, imr_dbgfs_state_show, inode->i_private);
 }
 
-static const struct file_operations imr_state_ops = {
+static const struct file_operations imr_state_ops =
+{
 	.open		= imr_state_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -253,7 +285,7 @@ static const struct file_operations imr_state_ops = {
 static int imr_debugfs_register(struct imr_device *idev)
 {
 	idev->file = debugfs_create_file("imr_state", S_IFREG | S_IRUGO, NULL,
-					 idev, &imr_state_ops);
+									 idev, &imr_state_ops);
 	return PTR_ERR_OR_ZERO(idev->file);
 }
 
@@ -266,13 +298,17 @@ static int imr_debugfs_register(struct imr_device *idev)
  */
 static int imr_check_params(phys_addr_t base, size_t size)
 {
-	if ((base & IMR_MASK) || (size & IMR_MASK)) {
+	if ((base & IMR_MASK) || (size & IMR_MASK))
+	{
 		pr_err("base %pa size 0x%08zx must align to 1KiB\n",
-			&base, size);
+			   &base, size);
 		return -EINVAL;
 	}
+
 	if (size == 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -314,7 +350,7 @@ static inline int imr_address_overlap(phys_addr_t addr, struct imr_regs *imr)
  * @return:	zero on success or negative value indicating error.
  */
 int imr_add_range(phys_addr_t base, size_t size,
-		  unsigned int rmask, unsigned int wmask)
+				  unsigned int rmask, unsigned int wmask)
 {
 	phys_addr_t end;
 	unsigned int i;
@@ -325,11 +361,16 @@ int imr_add_range(phys_addr_t base, size_t size,
 	int ret;
 
 	if (WARN_ONCE(idev->init == false, "driver not initialized"))
+	{
 		return -ENODEV;
+	}
 
 	ret = imr_check_params(base, size);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Tweak the size value. */
 	raw_size = imr_raw_size(size);
@@ -343,8 +384,11 @@ int imr_add_range(phys_addr_t base, size_t size,
 	imr.addr_hi = phys_to_imr(end);
 	imr.rmask = rmask;
 	imr.wmask = wmask;
+
 	if (!imr_is_enabled(&imr))
+	{
 		return -ENOTSUPP;
+	}
 
 	mutex_lock(&idev->lock);
 
@@ -355,31 +399,46 @@ int imr_add_range(phys_addr_t base, size_t size,
 	 * memory map we exclude IMR overlaps.
 	 */
 	reg = -1;
-	for (i = 0; i < idev->max_imr; i++) {
+
+	for (i = 0; i < idev->max_imr; i++)
+	{
 		ret = imr_read(idev, i, &imr);
+
 		if (ret)
+		{
 			goto failed;
+		}
 
 		/* Find overlap @ base or end of requested range. */
 		ret = -EINVAL;
-		if (imr_is_enabled(&imr)) {
+
+		if (imr_is_enabled(&imr))
+		{
 			if (imr_address_overlap(base, &imr))
+			{
 				goto failed;
+			}
+
 			if (imr_address_overlap(end, &imr))
+			{
 				goto failed;
-		} else {
+			}
+		}
+		else
+		{
 			reg = i;
 		}
 	}
 
 	/* Error out if we have no free IMR entries. */
-	if (reg == -1) {
+	if (reg == -1)
+	{
 		ret = -ENOMEM;
 		goto failed;
 	}
 
 	pr_debug("add %d phys %pa-%pa size %zx mask 0x%08x wmask 0x%08x\n",
-		 reg, &base, &end, raw_size, rmask, wmask);
+			 reg, &base, &end, raw_size, rmask, wmask);
 
 	/* Enable IMR at specified range and access mask. */
 	imr.addr_lo = phys_to_imr(base);
@@ -388,7 +447,9 @@ int imr_add_range(phys_addr_t base, size_t size,
 	imr.wmask = wmask;
 
 	ret = imr_write(idev, reg, &imr);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		/*
 		 * In the highly unlikely event iosf_mbi_write failed
 		 * attempt to rollback the IMR setup skipping the trapping
@@ -400,6 +461,7 @@ int imr_add_range(phys_addr_t base, size_t size,
 		imr.wmask = IMR_WRITE_ACCESS_ALL;
 		imr_write(idev, reg, &imr);
 	}
+
 failed:
 	mutex_unlock(&idev->lock);
 	return ret;
@@ -433,16 +495,22 @@ static int __imr_remove_range(int reg, phys_addr_t base, size_t size)
 	int ret = 0;
 
 	if (WARN_ONCE(idev->init == false, "driver not initialized"))
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Validate address range if deleting by address, else we are
 	 * deleting by index where base and size will be ignored.
 	 */
-	if (reg == -1) {
+	if (reg == -1)
+	{
 		ret = imr_check_params(base, size);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* Tweak the size value. */
@@ -451,29 +519,44 @@ static int __imr_remove_range(int reg, phys_addr_t base, size_t size)
 
 	mutex_lock(&idev->lock);
 
-	if (reg >= 0) {
+	if (reg >= 0)
+	{
 		/* If a specific IMR is given try to use it. */
 		ret = imr_read(idev, reg, &imr);
-		if (ret)
-			goto failed;
 
-		if (!imr_is_enabled(&imr) || imr.addr_lo & IMR_LOCK) {
+		if (ret)
+		{
+			goto failed;
+		}
+
+		if (!imr_is_enabled(&imr) || imr.addr_lo & IMR_LOCK)
+		{
 			ret = -ENODEV;
 			goto failed;
 		}
+
 		found = true;
-	} else {
+	}
+	else
+	{
 		/* Search for match based on address range. */
-		for (i = 0; i < idev->max_imr; i++) {
+		for (i = 0; i < idev->max_imr; i++)
+		{
 			ret = imr_read(idev, i, &imr);
+
 			if (ret)
+			{
 				goto failed;
+			}
 
 			if (!imr_is_enabled(&imr) || imr.addr_lo & IMR_LOCK)
+			{
 				continue;
+			}
 
 			if ((imr_to_phys(imr.addr_lo) == base) &&
-			    (imr_to_phys(imr.addr_hi) == end)) {
+				(imr_to_phys(imr.addr_hi) == end))
+			{
 				found = true;
 				reg = i;
 				break;
@@ -481,7 +564,8 @@ static int __imr_remove_range(int reg, phys_addr_t base, size_t size)
 		}
 	}
 
-	if (!found) {
+	if (!found)
+	{
 		ret = -ENODEV;
 		goto failed;
 	}
@@ -562,7 +646,9 @@ static void __init imr_fixup_memmap(struct imr_device *idev)
 
 	/* Tear down all existing unlocked IMRs. */
 	for (i = 0; i < idev->max_imr; i++)
+	{
 		imr_clear(i);
+	}
 
 	start = (unsigned long)_text;
 	end = (unsigned long)__end_rodata - 1;
@@ -576,17 +662,22 @@ static void __init imr_fixup_memmap(struct imr_device *idev)
 	 * See vmlinux.lds.S for details.
 	 */
 	ret = imr_add_range(base, size, IMR_CPU, IMR_CPU);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("unable to setup IMR for kernel: %zu KiB (%lx - %lx)\n",
-			size / 1024, start, end);
-	} else {
+			   size / 1024, start, end);
+	}
+	else
+	{
 		pr_info("protecting kernel .text - .rodata: %zu KiB (%lx - %lx)\n",
-			size / 1024, start, end);
+				size / 1024, start, end);
 	}
 
 }
 
-static const struct x86_cpu_id imr_ids[] __initconst = {
+static const struct x86_cpu_id imr_ids[] __initconst =
+{
 	{ X86_VENDOR_INTEL, 5, 9 },	/* Intel Quark SoC X1000. */
 	{}
 };
@@ -602,7 +693,9 @@ static int __init imr_init(void)
 	int ret;
 
 	if (!x86_match_cpu(imr_ids) || !iosf_mbi_available())
+	{
 		return -ENODEV;
+	}
 
 	idev->max_imr = QUARK_X1000_IMR_MAX;
 	idev->reg_base = QUARK_X1000_IMR_REGBASE;
@@ -610,8 +703,12 @@ static int __init imr_init(void)
 
 	mutex_init(&idev->lock);
 	ret = imr_debugfs_register(idev);
+
 	if (ret != 0)
+	{
 		pr_warn("debugfs register failed!\n");
+	}
+
 	imr_fixup_memmap(idev);
 	return 0;
 }

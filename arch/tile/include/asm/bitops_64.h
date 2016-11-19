@@ -38,10 +38,13 @@ static inline void change_bit(unsigned nr, volatile unsigned long *addr)
 	unsigned long guess, oldval;
 	addr += nr / BITS_PER_LONG;
 	oldval = *addr;
-	do {
+
+	do
+	{
 		guess = oldval;
 		oldval = cmpxchg(addr, guess, guess ^ mask);
-	} while (guess != oldval);
+	}
+	while (guess != oldval);
 }
 
 
@@ -58,7 +61,7 @@ static inline int test_and_set_bit(unsigned nr, volatile unsigned long *addr)
 	unsigned long mask = (1UL << (nr % BITS_PER_LONG));
 	smp_mb();  /* barrier for proper semantics */
 	val = (__insn_fetchor((void *)(addr + nr / BITS_PER_LONG), mask)
-	       & mask) != 0;
+		   & mask) != 0;
 	barrier();
 	return val;
 }
@@ -70,23 +73,27 @@ static inline int test_and_clear_bit(unsigned nr, volatile unsigned long *addr)
 	unsigned long mask = (1UL << (nr % BITS_PER_LONG));
 	smp_mb();  /* barrier for proper semantics */
 	val = (__insn_fetchand((void *)(addr + nr / BITS_PER_LONG), ~mask)
-	       & mask) != 0;
+		   & mask) != 0;
 	barrier();
 	return val;
 }
 
 
 static inline int test_and_change_bit(unsigned nr,
-				      volatile unsigned long *addr)
+									  volatile unsigned long *addr)
 {
 	unsigned long mask = (1UL << (nr % BITS_PER_LONG));
 	unsigned long guess, oldval;
 	addr += nr / BITS_PER_LONG;
 	oldval = *addr;
-	do {
+
+	do
+	{
 		guess = oldval;
 		oldval = cmpxchg(addr, guess, guess ^ mask);
-	} while (guess != oldval);
+	}
+	while (guess != oldval);
+
 	return (oldval & mask) != 0;
 }
 

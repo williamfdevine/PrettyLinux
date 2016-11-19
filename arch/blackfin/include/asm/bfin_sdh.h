@@ -10,7 +10,8 @@
 #define __BFIN_SDH_H__
 
 /* Platform resources */
-struct bfin_sd_host {
+struct bfin_sd_host
+{
 	int dma_chan;
 	int irq_int0;
 	int irq_int1;
@@ -25,15 +26,15 @@ struct bfin_sd_host {
 #define CMD_PEND_E         (1 << 9)    /* Command Pending */
 #define CMD_E              (1 << 10)   /* Command Enable */
 #ifdef RSI_BLKSZ
-#define CMD_CRC_CHECK_D    (1 << 11)   /* CRC Check is disabled */
-#define CMD_DATA0_BUSY     (1 << 12)   /* Check for Busy State on the DATA0 pin */
+	#define CMD_CRC_CHECK_D    (1 << 11)   /* CRC Check is disabled */
+	#define CMD_DATA0_BUSY     (1 << 12)   /* Check for Busy State on the DATA0 pin */
 #endif
 
 /* SDH_PWR_CTL bitmasks */
 #ifndef RSI_BLKSZ
-#define PWR_ON             0x3         /* Power On */
-#define SD_CMD_OD          (1 << 6)    /* Open Drain Output */
-#define ROD_CTL            (1 << 7)    /* Rod Control */
+	#define PWR_ON             0x3         /* Power On */
+	#define SD_CMD_OD          (1 << 6)    /* Open Drain Output */
+	#define ROD_CTL            (1 << 7)    /* Rod Control */
 #endif
 
 /* SDH_CLK_CTL bitmasks */
@@ -55,11 +56,11 @@ struct bfin_sd_host {
 #define DTX_MODE           (1 << 2)    /* Data Transfer Mode */
 #define DTX_DMA_E          (1 << 3)    /* Data Transfer DMA Enable */
 #ifndef RSI_BLKSZ
-#define DTX_BLK_LGTH       (0xf << 4)  /* Data Transfer Block Length */
+	#define DTX_BLK_LGTH       (0xf << 4)  /* Data Transfer Block Length */
 #else
 
-/* Bit masks for SDH_BLK_SIZE */
-#define DTX_BLK_LGTH       0x1fff      /* Data Transfer Block Length */
+	/* Bit masks for SDH_BLK_SIZE */
+	#define DTX_BLK_LGTH       0x1fff      /* Data Transfer Block Length */
 #endif
 
 /* SDH_STATUS bitmasks */
@@ -146,13 +147,13 @@ struct bfin_sd_host {
 #define PUP_SDDAT          (1 << 5)    /* Pull-up SD_DAT */
 #define PUP_SDDAT3         (1 << 6)    /* Pull-up SD_DAT3 */
 #ifndef RSI_BLKSZ
-#define PD_SDDAT3          (1 << 7)    /* Pull-down SD_DAT3 */
+	#define PD_SDDAT3          (1 << 7)    /* Pull-down SD_DAT3 */
 #else
-#define PWR_ON             0x600       /* Power On */
-#define SD_CMD_OD          (1 << 11)   /* Open Drain Output */
-#define BOOT_EN            (1 << 12)   /* Boot Enable */
-#define BOOT_MODE          (1 << 13)   /* Alternate Boot Mode */
-#define BOOT_ACK_EN        (1 << 14)   /* Boot ACK is expected */
+	#define PWR_ON             0x600       /* Power On */
+	#define SD_CMD_OD          (1 << 11)   /* Open Drain Output */
+	#define BOOT_EN            (1 << 12)   /* Boot Enable */
+	#define BOOT_MODE          (1 << 13)   /* Alternate Boot Mode */
+	#define BOOT_ACK_EN        (1 << 14)   /* Boot ACK is expected */
 #endif
 
 /* SDH_RD_WAIT_EN bitmasks */

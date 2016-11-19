@@ -61,15 +61,16 @@ static void __init r8a7778_init_irq_dt(void)
 	iounmap(base);
 }
 
-static const char *const r8a7778_compat_dt[] __initconst = {
+static const char *const r8a7778_compat_dt[] __initconst =
+{
 	"renesas,r8a7778",
 	NULL,
 };
 
 DT_MACHINE_START(R8A7778_DT, "Generic R8A7778 (Flattened Device Tree)")
-	.init_early	= shmobile_init_delay,
-	.init_irq	= r8a7778_init_irq_dt,
+.init_early	= shmobile_init_delay,
+ .init_irq	= r8a7778_init_irq_dt,
 	.init_late	= shmobile_init_late,
-	.init_time	= r8a7778_timer_init,
-	.dt_compat	= r8a7778_compat_dt,
-MACHINE_END
+	  .init_time	= r8a7778_timer_init,
+		.dt_compat	= r8a7778_compat_dt,
+		  MACHINE_END

@@ -37,12 +37,14 @@
 #include <asm/mach-rc32434/rb.h>
 #include <asm/mach-rc32434/gpio.h>
 
-struct rb532_gpio_chip {
+struct rb532_gpio_chip
+{
 	struct gpio_chip chip;
 	void __iomem	 *regbase;
 };
 
-static struct resource rb532_gpio_reg0_res[] = {
+static struct resource rb532_gpio_reg0_res[] =
+{
 	{
 		.name	= "gpio_reg0",
 		.start	= REGBASE + GPIOBASE,
@@ -58,7 +60,7 @@ static struct resource rb532_gpio_reg0_res[] = {
  * ioaddr: 4 byte aligned address being altered
  */
 static inline void rb532_set_bit(unsigned bitval,
-		unsigned offset, void __iomem *ioaddr)
+								 unsigned offset, void __iomem *ioaddr)
 {
 	unsigned long flags;
 	u32 val;
@@ -96,7 +98,7 @@ static int rb532_gpio_get(struct gpio_chip *chip, unsigned offset)
  * Set output GPIO level
  */
 static void rb532_gpio_set(struct gpio_chip *chip,
-				unsigned offset, int value)
+						   unsigned offset, int value)
 {
 	struct rb532_gpio_chip	*gpch;
 
@@ -124,7 +126,7 @@ static int rb532_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
  * Set GPIO direction to output
  */
 static int rb532_gpio_direction_output(struct gpio_chip *chip,
-					unsigned offset, int value)
+									   unsigned offset, int value)
 {
 	struct rb532_gpio_chip	*gpch;
 
@@ -145,7 +147,8 @@ static int rb532_gpio_to_irq(struct gpio_chip *chip, unsigned gpio)
 	return 8 + 4 * 32 + gpio;
 }
 
-static struct rb532_gpio_chip rb532_gpio_chip[] = {
+static struct rb532_gpio_chip rb532_gpio_chip[] =
+{
 	[0] = {
 		.chip = {
 			.label			= "gpio0",
@@ -183,7 +186,7 @@ EXPORT_SYMBOL(rb532_gpio_set_istat);
  */
 void rb532_gpio_set_func(unsigned gpio)
 {
-       rb532_set_bit(1, gpio, rb532_gpio_chip->regbase + GPIOFUNC);
+	rb532_set_bit(1, gpio, rb532_gpio_chip->regbase + GPIOFUNC);
 }
 EXPORT_SYMBOL(rb532_gpio_set_func);
 
@@ -194,7 +197,8 @@ int __init rb532_gpio_init(void)
 	r = rb532_gpio_reg0_res;
 	rb532_gpio_chip->regbase = ioremap_nocache(r->start, resource_size(r));
 
-	if (!rb532_gpio_chip->regbase) {
+	if (!rb532_gpio_chip->regbase)
+	{
 		printk(KERN_ERR "rb532: cannot remap GPIO register 0\n");
 		return -ENXIO;
 	}

@@ -35,28 +35,32 @@
    will break. */
 
 #ifdef __i386__
-struct mtrr_sentry {
-    unsigned long base;    /*  Base address     */
-    unsigned int size;    /*  Size of region   */
-    unsigned int type;     /*  Type of region   */
+struct mtrr_sentry
+{
+	unsigned long base;    /*  Base address     */
+	unsigned int size;    /*  Size of region   */
+	unsigned int type;     /*  Type of region   */
 };
 
-struct mtrr_gentry {
-    unsigned int regnum;   /*  Register number  */
-    unsigned long base;    /*  Base address     */
-    unsigned int size;    /*  Size of region   */
-    unsigned int type;     /*  Type of region   */
+struct mtrr_gentry
+{
+	unsigned int regnum;   /*  Register number  */
+	unsigned long base;    /*  Base address     */
+	unsigned int size;    /*  Size of region   */
+	unsigned int type;     /*  Type of region   */
 };
 
 #else /* __i386__ */
 
-struct mtrr_sentry {
+struct mtrr_sentry
+{
 	__u64 base;		/*  Base address     */
 	__u32 size;		/*  Size of region   */
 	__u32 type;		/*  Type of region   */
 };
 
-struct mtrr_gentry {
+struct mtrr_gentry
+{
 	__u64 base;		/*  Base address     */
 	__u32 size;		/*  Size of region   */
 	__u32 regnum;		/*  Register number  */
@@ -66,7 +70,8 @@ struct mtrr_gentry {
 
 #endif /* !__i386__ */
 
-struct mtrr_var_range {
+struct mtrr_var_range
+{
 	__u32 base_lo;
 	__u32 base_hi;
 	__u32 mask_lo;
@@ -80,7 +85,8 @@ typedef __u8 mtrr_type;
 #define MTRR_NUM_FIXED_RANGES 88
 #define MTRR_MAX_VAR_RANGES 256
 
-struct mtrr_state_type {
+struct mtrr_state_type
+{
 	struct mtrr_var_range var_ranges[MTRR_MAX_VAR_RANGES];
 	mtrr_type fixed_ranges[MTRR_NUM_FIXED_RANGES];
 	unsigned char enabled;

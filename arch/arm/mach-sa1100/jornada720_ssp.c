@@ -61,11 +61,14 @@ int jornada_ssp_byte(u8 byte)
 	int timeout = 400000;
 	u16 ret;
 
-	while ((GPLR & GPIO_GPIO10)) {
-		if (!--timeout) {
+	while ((GPLR & GPIO_GPIO10))
+	{
+		if (!--timeout)
+		{
 			printk(KERN_WARNING "SSP: timeout while waiting for transmit\n");
 			return -ETIMEDOUT;
 		}
+
 		cpu_relax();
 	}
 
@@ -89,17 +92,26 @@ int jornada_ssp_inout(u8 byte)
 	int ret, i;
 
 	/* true means command byte */
-	if (byte != TXDUMMY) {
+	if (byte != TXDUMMY)
+	{
 		ret = jornada_ssp_byte(byte);
+
 		/* Proper return to commands is TxDummy */
-		if (ret != TXDUMMY) {
+		if (ret != TXDUMMY)
+		{
 			for (i = 0; i < 256; i++)/* flushing bus */
 				if (jornada_ssp_byte(TXDUMMY) == -1)
+				{
 					break;
+				}
+
 			return -ETIMEDOUT;
 		}
-	} else /* Exchange TxDummy for data */
+	}
+	else   /* Exchange TxDummy for data */
+	{
 		ret = jornada_ssp_byte(TXDUMMY);
+	}
 
 	return ret;
 };
@@ -139,7 +151,8 @@ static int jornada_ssp_probe(struct platform_device *dev)
 	ret = ssp_init();
 
 	/* worked fine, lets not bother with anything else */
-	if (!ret) {
+	if (!ret)
+	{
 		printk(KERN_INFO "SSP: device initialized with irq\n");
 		return ret;
 	}
@@ -162,12 +175,15 @@ static int jornada_ssp_probe(struct platform_device *dev)
 
 	/* seems like it worked, just feed it with TxDummy to get rid of data */
 	if (ret == TXDUMMY)
+	{
 		jornada_ssp_inout(TXDUMMY);
+	}
 
 	jornada_ssp_end();
 
 	/* failed, lets just kill everything */
-	if (ret == -ETIMEDOUT) {
+	if (ret == -ETIMEDOUT)
+	{
 		printk(KERN_WARNING "SSP: attempts failed, bailing\n");
 		ssp_exit();
 		return -ENODEV;
@@ -187,7 +203,8 @@ static int jornada_ssp_remove(struct platform_device *dev)
 	return 0;
 };
 
-struct platform_driver jornadassp_driver = {
+struct platform_driver jornadassp_driver =
+{
 	.probe	= jornada_ssp_probe,
 	.remove	= jornada_ssp_remove,
 	.driver	= {

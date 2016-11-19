@@ -48,10 +48,14 @@
 static inline int mmap_is_legacy(void)
 {
 	if (current->personality & ADDR_COMPAT_LAYOUT)
+	{
 		return 1;
+	}
 
 	if (rlimit(RLIMIT_STACK) == RLIM_INFINITY)
+	{
 		return 1;
+	}
 
 	return sysctl_legacy_va_layout;
 }
@@ -62,9 +66,13 @@ unsigned long arch_mmap_rnd(void)
 
 	/* 8MB for 32bit, 1GB for 64bit */
 	if (is_32bit_task())
-		rnd = get_random_long() % (1<<(23-PAGE_SHIFT));
+	{
+		rnd = get_random_long() % (1 << (23 - PAGE_SHIFT));
+	}
 	else
-		rnd = get_random_long() % (1UL<<(30-PAGE_SHIFT));
+	{
+		rnd = get_random_long() % (1UL << (30 - PAGE_SHIFT));
+	}
 
 	return rnd << PAGE_SHIFT;
 }
@@ -74,9 +82,13 @@ static inline unsigned long mmap_base(unsigned long rnd)
 	unsigned long gap = rlimit(RLIMIT_STACK);
 
 	if (gap < MIN_GAP)
+	{
 		gap = MIN_GAP;
+	}
 	else if (gap > MAX_GAP)
+	{
 		gap = MAX_GAP;
+	}
 
 	return PAGE_ALIGN(TASK_SIZE - gap - rnd);
 }
@@ -89,25 +101,33 @@ static inline unsigned long mmap_base(unsigned long rnd)
  */
 static unsigned long
 radix__arch_get_unmapped_area(struct file *filp, unsigned long addr,
-			     unsigned long len, unsigned long pgoff,
-			     unsigned long flags)
+							  unsigned long len, unsigned long pgoff,
+							  unsigned long flags)
 {
 	struct mm_struct *mm = current->mm;
 	struct vm_area_struct *vma;
 	struct vm_unmapped_area_info info;
 
 	if (len > TASK_SIZE - mmap_min_addr)
+	{
 		return -ENOMEM;
+	}
 
 	if (flags & MAP_FIXED)
+	{
 		return addr;
+	}
 
-	if (addr) {
+	if (addr)
+	{
 		addr = PAGE_ALIGN(addr);
 		vma = find_vma(mm, addr);
+
 		if (TASK_SIZE - len >= addr && addr >= mmap_min_addr &&
-		    (!vma || addr + len <= vma->vm_start))
+			(!vma || addr + len <= vma->vm_start))
+		{
 			return addr;
+		}
 	}
 
 	info.flags = 0;
@@ -120,10 +140,10 @@ radix__arch_get_unmapped_area(struct file *filp, unsigned long addr,
 
 static unsigned long
 radix__arch_get_unmapped_area_topdown(struct file *filp,
-				     const unsigned long addr0,
-				     const unsigned long len,
-				     const unsigned long pgoff,
-				     const unsigned long flags)
+									  const unsigned long addr0,
+									  const unsigned long len,
+									  const unsigned long pgoff,
+									  const unsigned long flags)
 {
 	struct vm_area_struct *vma;
 	struct mm_struct *mm = current->mm;
@@ -132,18 +152,26 @@ radix__arch_get_unmapped_area_topdown(struct file *filp,
 
 	/* requested length too big for entire address space */
 	if (len > TASK_SIZE - mmap_min_addr)
+	{
 		return -ENOMEM;
+	}
 
 	if (flags & MAP_FIXED)
+	{
 		return addr;
+	}
 
 	/* requesting a specific address */
-	if (addr) {
+	if (addr)
+	{
 		addr = PAGE_ALIGN(addr);
 		vma = find_vma(mm, addr);
+
 		if (TASK_SIZE - len >= addr && addr >= mmap_min_addr &&
-				(!vma || addr + len <= vma->vm_start))
+			(!vma || addr + len <= vma->vm_start))
+		{
 			return addr;
+		}
 	}
 
 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
@@ -159,7 +187,8 @@ radix__arch_get_unmapped_area_topdown(struct file *filp,
 	 * can happen with large stack limits and large mmap()
 	 * allocations.
 	 */
-	if (addr & ~PAGE_MASK) {
+	if (addr & ~PAGE_MASK)
+	{
 		VM_BUG_ON(addr != -ENOMEM);
 		info.flags = 0;
 		info.low_limit = TASK_UNMAPPED_BASE;
@@ -171,12 +200,15 @@ radix__arch_get_unmapped_area_topdown(struct file *filp,
 }
 
 static void radix__arch_pick_mmap_layout(struct mm_struct *mm,
-					unsigned long random_factor)
+		unsigned long random_factor)
 {
-	if (mmap_is_legacy()) {
+	if (mmap_is_legacy())
+	{
 		mm->mmap_base = TASK_UNMAPPED_BASE;
 		mm->get_unmapped_area = radix__arch_get_unmapped_area;
-	} else {
+	}
+	else
+	{
 		mm->mmap_base = mmap_base(random_factor);
 		mm->get_unmapped_area = radix__arch_get_unmapped_area_topdown;
 	}
@@ -184,7 +216,7 @@ static void radix__arch_pick_mmap_layout(struct mm_struct *mm,
 #else
 /* dummy */
 extern void radix__arch_pick_mmap_layout(struct mm_struct *mm,
-					unsigned long random_factor);
+		unsigned long random_factor);
 #endif
 /*
  * This function, called very early during the creation of a new
@@ -195,18 +227,26 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
 	unsigned long random_factor = 0UL;
 
 	if (current->flags & PF_RANDOMIZE)
+	{
 		random_factor = arch_mmap_rnd();
+	}
 
 	if (radix_enabled())
+	{
 		return radix__arch_pick_mmap_layout(mm, random_factor);
+	}
+
 	/*
 	 * Fall back to the standard layout if the personality
 	 * bit is set, or if the expected stack growth is unlimited:
 	 */
-	if (mmap_is_legacy()) {
+	if (mmap_is_legacy())
+	{
 		mm->mmap_base = TASK_UNMAPPED_BASE;
 		mm->get_unmapped_area = arch_get_unmapped_area;
-	} else {
+	}
+	else
+	{
 		mm->mmap_base = mmap_base(random_factor);
 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
 	}

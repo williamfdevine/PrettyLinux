@@ -35,30 +35,30 @@ PV_CALLEE_SAVE_REGS_THUNK(__pv_queued_spin_unlock_slowpath);
  *   rdx = internal variable (set to 0)
  */
 asm    (".pushsection .text;"
-	".globl " PV_UNLOCK ";"
-	".type " PV_UNLOCK ", @function;"
-	".align 4,0x90;"
-	PV_UNLOCK ": "
-	FRAME_BEGIN
-	"push  %rdx;"
-	"mov   $0x1,%eax;"
-	"xor   %edx,%edx;"
-	"lock cmpxchg %dl,(%rdi);"
-	"cmp   $0x1,%al;"
-	"jne   .slowpath;"
-	"pop   %rdx;"
-	FRAME_END
-	"ret;"
-	".slowpath: "
-	"push   %rsi;"
-	"movzbl %al,%esi;"
-	"call " PV_UNLOCK_SLOWPATH ";"
-	"pop    %rsi;"
-	"pop    %rdx;"
-	FRAME_END
-	"ret;"
-	".size " PV_UNLOCK ", .-" PV_UNLOCK ";"
-	".popsection");
+		".globl " PV_UNLOCK ";"
+		".type " PV_UNLOCK ", @function;"
+		".align 4,0x90;"
+		PV_UNLOCK ": "
+		FRAME_BEGIN
+		"push  %rdx;"
+		"mov   $0x1,%eax;"
+		"xor   %edx,%edx;"
+		"lock cmpxchg %dl,(%rdi);"
+		"cmp   $0x1,%al;"
+		"jne   .slowpath;"
+		"pop   %rdx;"
+		FRAME_END
+		"ret;"
+		".slowpath: "
+		"push   %rsi;"
+		"movzbl %al,%esi;"
+		"call " PV_UNLOCK_SLOWPATH ";"
+		"pop    %rsi;"
+		"pop    %rdx;"
+		FRAME_END
+		"ret;"
+		".size " PV_UNLOCK ", .-" PV_UNLOCK ";"
+		".popsection");
 
 #else /* CONFIG_64BIT */
 

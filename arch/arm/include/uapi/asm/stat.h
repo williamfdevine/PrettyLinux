@@ -1,7 +1,8 @@
 #ifndef _ASMARM_STAT_H
 #define _ASMARM_STAT_H
 
-struct __old_kernel_stat {
+struct __old_kernel_stat
+{
 	unsigned short st_dev;
 	unsigned short st_ino;
 	unsigned short st_mode;
@@ -15,9 +16,10 @@ struct __old_kernel_stat {
 	unsigned long  st_ctime;
 };
 
-#define STAT_HAVE_NSEC 
+#define STAT_HAVE_NSEC
 
-struct stat {
+struct stat
+{
 #if defined(__ARMEB__)
 	unsigned short st_dev;
 	unsigned short __pad1;
@@ -53,7 +55,8 @@ struct stat {
  * Note: The kernel zero's the padded region because glibc might read them
  * in the hope that the kernel has stretched to using larger sizes.
  */
-struct stat64 {
+struct stat64
+{
 	unsigned long long	st_dev;
 	unsigned char   __pad0[4];
 

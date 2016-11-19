@@ -47,27 +47,38 @@ int machine_kexec_prepare(struct kimage *image)
 	 * able to kexec reliably, so fail the prepare operation.
 	 */
 	if (num_possible_cpus() > 1 && platform_can_secondary_boot() &&
-	    !platform_can_cpu_hotplug())
+		!platform_can_cpu_hotplug())
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * No segment at default ATAGs address. try to locate
 	 * a dtb using magic.
 	 */
-	for (i = 0; i < image->nr_segments; i++) {
+	for (i = 0; i < image->nr_segments; i++)
+	{
 		current_segment = &image->segment[i];
 
 		if (!memblock_is_region_memory(idmap_to_phys(current_segment->mem),
-					       current_segment->memsz))
+									   current_segment->memsz))
+		{
 			return -EINVAL;
+		}
 
-		err = get_user(header, (__be32*)current_segment->buf);
+		err = get_user(header, (__be32 *)current_segment->buf);
+
 		if (err)
+		{
 			return err;
+		}
 
 		if (be32_to_cpu(header) == OF_DT_HEADER)
+		{
 			dt_mem = current_segment->mem;
+		}
 	}
+
 	return 0;
 }
 
@@ -81,14 +92,17 @@ void machine_crash_nonpanic_core(void *unused)
 
 	crash_setup_regs(&regs, NULL);
 	printk(KERN_DEBUG "CPU %u will stop doing anything useful since another CPU has crashed\n",
-	       smp_processor_id());
+		   smp_processor_id());
 	crash_save_cpu(&regs, smp_processor_id());
 	flush_cache_all();
 
 	set_cpu_online(smp_processor_id(), false);
 	atomic_dec(&waiting_for_crash_ipi);
+
 	while (1)
+	{
 		cpu_relax();
+	}
 }
 
 static void machine_kexec_mask_interrupts(void)
@@ -96,21 +110,31 @@ static void machine_kexec_mask_interrupts(void)
 	unsigned int i;
 	struct irq_desc *desc;
 
-	for_each_irq_desc(i, desc) {
+	for_each_irq_desc(i, desc)
+	{
 		struct irq_chip *chip;
 
 		chip = irq_desc_get_chip(desc);
+
 		if (!chip)
+		{
 			continue;
+		}
 
 		if (chip->irq_eoi && irqd_irq_inprogress(&desc->irq_data))
+		{
 			chip->irq_eoi(&desc->irq_data);
+		}
 
 		if (chip->irq_mask)
+		{
 			chip->irq_mask(&desc->irq_data);
+		}
 
 		if (chip->irq_disable && !irqd_irq_disabled(&desc->irq_data))
+		{
 			chip->irq_disable(&desc->irq_data);
+		}
 	}
 }
 
@@ -123,12 +147,17 @@ void machine_crash_shutdown(struct pt_regs *regs)
 	atomic_set(&waiting_for_crash_ipi, num_online_cpus() - 1);
 	smp_call_function(machine_crash_nonpanic_core, NULL, false);
 	msecs = 1000; /* Wait at most a second for the other cpus to stop */
-	while ((atomic_read(&waiting_for_crash_ipi) > 0) && msecs) {
+
+	while ((atomic_read(&waiting_for_crash_ipi) > 0) && msecs)
+	{
 		mdelay(1);
 		msecs--;
 	}
+
 	if (atomic_read(&waiting_for_crash_ipi) > 0)
+	{
 		pr_warn("Non-crashing CPUs did not react to IPI\n");
+	}
 
 	crash_save_cpu(regs, smp_processor_id());
 	machine_kexec_mask_interrupts();
@@ -164,13 +193,13 @@ void machine_kexec(struct kimage *image)
 	kexec_start_address = image->start;
 	kexec_indirection_page = page_list;
 	kexec_mach_type = machine_arch_type;
-	kexec_boot_atags = dt_mem ?: image->start - KEXEC_ARM_ZIMAGE_OFFSET
-				     + KEXEC_ARM_ATAGS_OFFSET;
+	kexec_boot_atags = dt_mem ? : image->start - KEXEC_ARM_ZIMAGE_OFFSET
+					   + KEXEC_ARM_ATAGS_OFFSET;
 
 	/* copy our kernel relocation code to the control code page */
 	reboot_entry = fncpy(reboot_code_buffer,
-			     &relocate_new_kernel,
-			     relocate_new_kernel_size);
+						 &relocate_new_kernel,
+						 relocate_new_kernel_size);
 
 	/* get the identity mapping physical address for the reboot code */
 	reboot_entry_phys = virt_to_idmap(reboot_entry);
@@ -178,7 +207,9 @@ void machine_kexec(struct kimage *image)
 	pr_info("Bye!\n");
 
 	if (kexec_reinit)
+	{
 		kexec_reinit();
+	}
 
 	soft_restart(reboot_entry_phys);
 }

@@ -29,7 +29,7 @@ struct l1_scratch_task_info
 
 /* A pointer to the structure in memory.  */
 #define L1_SCRATCH_TASK_INFO ((struct l1_scratch_task_info *)\
-						get_l1_scratch_start())
+							  get_l1_scratch_start())
 
 #endif
 #endif

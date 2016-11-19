@@ -36,14 +36,15 @@
 #define REG_PC		ctx.CurrPC
 #define REG_RTP		ctx.DX[4].U1
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo info;
 	struct ucontext uc;
 	unsigned long retcode[2];
 };
 
 static int restore_sigcontext(struct pt_regs *regs,
-			      struct sigcontext __user *sc)
+							  struct sigcontext __user *sc)
 {
 	int err;
 
@@ -51,15 +52,17 @@ static int restore_sigcontext(struct pt_regs *regs,
 	current->restart_block.fn = do_no_restart_syscall;
 
 	err = metag_gp_regs_copyin(regs, 0, sizeof(struct user_gp_regs), NULL,
-				   &sc->regs);
+							   &sc->regs);
+
 	if (!err)
 		err = metag_cb_regs_copyin(regs, 0,
-					   sizeof(struct user_cb_regs), NULL,
-					   &sc->cb);
+								   sizeof(struct user_cb_regs), NULL,
+								   &sc->cb);
+
 	if (!err)
 		err = metag_rp_state_copyin(regs, 0,
-					    sizeof(struct user_rp_state), NULL,
-					    &sc->rp);
+									sizeof(struct user_rp_state), NULL,
+									&sc->rp);
 
 	/* This is a user-mode context. */
 	regs->REG_FLAGS |= TBICTX_PRIV_BIT;
@@ -75,21 +78,29 @@ long sys_rt_sigreturn(void)
 	sigset_t set;
 
 	frame = (__force struct rt_sigframe __user *)(regs->REG_SP -
-						      sizeof(*frame));
+			sizeof(*frame));
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return regs->REG_RETVAL;
 
@@ -100,21 +111,22 @@ badframe:
 }
 
 static int setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
-			    unsigned long mask)
+							unsigned long mask)
 {
 	int err;
 
 	err = metag_gp_regs_copyout(regs, 0, sizeof(struct user_gp_regs), NULL,
-				    &sc->regs);
+								&sc->regs);
 
 	if (!err)
 		err = metag_cb_regs_copyout(regs, 0,
-					    sizeof(struct user_cb_regs), NULL,
-					    &sc->cb);
+									sizeof(struct user_cb_regs), NULL,
+									&sc->cb);
+
 	if (!err)
 		err = metag_rp_state_copyout(regs, 0,
-					     sizeof(struct user_rp_state), NULL,
-					     &sc->rp);
+									 sizeof(struct user_rp_state), NULL,
+									 &sc->rp);
 
 	/* OK, clear that cbuf flag in the old context, or our stored
 	 * catch buffer will be restored when we go to call the signal
@@ -125,7 +137,7 @@ static int setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
 	 * state.
 	 */
 	regs->REG_FLAGS &= ~(TBICTX_XCBF_BIT | TBICTX_CBUF_BIT |
-			     TBICTX_CBRP_BIT);
+						 TBICTX_CBRP_BIT);
 
 	/* Clear out the LSM_STEP bits in case we are in the middle of
 	 * and MSET/MGET.
@@ -149,15 +161,18 @@ static void __user *get_sigframe(struct ksignal *ksig, unsigned long sp)
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame;
 	int err;
 	unsigned long code;
 
 	frame = get_sigframe(ksig, regs->REG_SP);
+
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	err = copy_siginfo_to_user(&frame->info, &ksig->info);
 
@@ -166,11 +181,13 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __put_user(0, (unsigned long __user *)&frame->uc.uc_link);
 	err |= __save_altstack(&frame->uc.uc_stack, regs->REG_SP);
 	err |= setup_sigcontext(&frame->uc.uc_mcontext,
-				regs, set->sig[0]);
+							regs, set->sig[0]);
 	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up to return from userspace.  */
 
@@ -183,7 +200,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __put_user(code, (unsigned long __user *)(&frame->retcode[1]));
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up registers for signal handler */
 	regs->REG_RTP = (unsigned long) frame->retcode;
@@ -194,8 +213,8 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	regs->REG_PC = (unsigned long) ksig->ka.sa.sa_handler;
 
 	pr_debug("SIG deliver (%s:%d): sp=%p pc=%08x pr=%08x\n",
-		 current->comm, current->pid, frame, regs->REG_PC,
-		 regs->REG_RTP);
+			 current->comm, current->pid, frame, regs->REG_PC,
+			 regs->REG_RTP);
 
 	/* Now pass size of 'new code' into sigtramp so we can do a more
 	 * effective cache flush - directed rather than 'full flush'.
@@ -216,13 +235,13 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	signal_setup_done(ret, ksig, test_thread_flag(TIF_SINGLESTEP));
 }
 
- /*
-  * Notes for Meta.
-  * We have moved from the old 2.4.9 SH way of using syscall_nr (in the stored
-  * context) to passing in the syscall flag on the stack.
-  * This is because having syscall_nr in our context does not fit with TBX, and
-  * corrupted the stack.
-  */
+/*
+ * Notes for Meta.
+ * We have moved from the old 2.4.9 SH way of using syscall_nr (in the stored
+ * context) to passing in the syscall flag on the stack.
+ * This is because having syscall_nr in our context does not fit with TBX, and
+ * corrupted the stack.
+ */
 static int do_signal(struct pt_regs *regs, int syscall)
 {
 	unsigned int retval = 0, continue_addr = 0, restart_addr = 0;
@@ -236,10 +255,13 @@ static int do_signal(struct pt_regs *regs, int syscall)
 	 * system call in need of restarting.
 	 */
 	if (syscall == __NR_rt_sigreturn)
+	{
 		syscall = -1;
+	}
 
 	/* Did we come from a system call? */
-	if (syscall >= 0) {
+	if (syscall >= 0)
+	{
 		continue_addr = regs->REG_PC;
 		restart_addr = continue_addr - 4;
 		retval = regs->REG_RETVAL;
@@ -248,15 +270,17 @@ static int do_signal(struct pt_regs *regs, int syscall)
 		 * Prepare for system call restart. We do this here so that a
 		 * debugger will see the already changed PC.
 		 */
-		switch (retval) {
-		case -ERESTART_RESTARTBLOCK:
-			restart = -2;
-		case -ERESTARTNOHAND:
-		case -ERESTARTSYS:
-		case -ERESTARTNOINTR:
-			++restart;
-			regs->REG_PC = restart_addr;
-			break;
+		switch (retval)
+		{
+			case -ERESTART_RESTARTBLOCK:
+				restart = -2;
+
+			case -ERESTARTNOHAND:
+			case -ERESTARTSYS:
+			case -ERESTARTNOINTR:
+				++restart;
+				regs->REG_PC = restart_addr;
+				break;
 		}
 	}
 
@@ -272,13 +296,19 @@ static int do_signal(struct pt_regs *regs, int syscall)
 	 * restart at a different PC.
 	 */
 	if (regs->REG_PC != restart_addr)
+	{
 		restart = 0;
-	if (ksig.sig > 0) {
-		if (unlikely(restart)) {
+	}
+
+	if (ksig.sig > 0)
+	{
+		if (unlikely(restart))
+		{
 			if (retval == -ERESTARTNOHAND
-			    || retval == -ERESTART_RESTARTBLOCK
-			    || (retval == -ERESTARTSYS
-				&& !(ksig.ka.sa.sa_flags & SA_RESTART))) {
+				|| retval == -ERESTART_RESTARTBLOCK
+				|| (retval == -ERESTARTSYS
+					&& !(ksig.ka.sa.sa_flags & SA_RESTART)))
+			{
 				regs->REG_RETVAL = -EINTR;
 				regs->REG_PC = continue_addr;
 			}
@@ -291,7 +321,9 @@ static int do_signal(struct pt_regs *regs, int syscall)
 
 	/* Handlerless -ERESTART_RESTARTBLOCK re-enters via restart_syscall */
 	if (unlikely(restart < 0))
+	{
 		regs->REG_SYSCALL = __NR_restart_syscall;
+	}
 
 	/*
 	 * If there's no signal to deliver, we just put the saved sigmask back.
@@ -302,18 +334,29 @@ static int do_signal(struct pt_regs *regs, int syscall)
 }
 
 int do_work_pending(struct pt_regs *regs, unsigned int thread_flags,
-		    int syscall)
+					int syscall)
 {
-	do {
-		if (likely(thread_flags & _TIF_NEED_RESCHED)) {
+	do
+	{
+		if (likely(thread_flags & _TIF_NEED_RESCHED))
+		{
 			schedule();
-		} else {
+		}
+		else
+		{
 			if (unlikely(!user_mode(regs)))
+			{
 				return 0;
+			}
+
 			local_irq_enable();
-			if (thread_flags & _TIF_SIGPENDING) {
+
+			if (thread_flags & _TIF_SIGPENDING)
+			{
 				int restart = do_signal(regs, syscall);
-				if (unlikely(restart)) {
+
+				if (unlikely(restart))
+				{
 					/*
 					 * Restart without handlers.
 					 * Deal with it without leaving
@@ -321,14 +364,20 @@ int do_work_pending(struct pt_regs *regs, unsigned int thread_flags,
 					 */
 					return restart;
 				}
+
 				syscall = -1;
-			} else {
+			}
+			else
+			{
 				clear_thread_flag(TIF_NOTIFY_RESUME);
 				tracehook_notify_resume(regs);
 			}
 		}
+
 		local_irq_disable();
 		thread_flags = current_thread_info()->flags;
-	} while (thread_flags & _TIF_WORK_MASK);
+	}
+	while (thread_flags & _TIF_WORK_MASK);
+
 	return 0;
 }

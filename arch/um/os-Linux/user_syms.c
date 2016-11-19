@@ -20,12 +20,12 @@ extern int printf(const char *, ...);
 
 /* If it's not defined, the export is included in lib/string.c.*/
 #ifdef __HAVE_ARCH_STRSTR
-EXPORT_SYMBOL(strstr);
+	EXPORT_SYMBOL(strstr);
 #endif
 
 #ifndef __x86_64__
-extern void *memcpy(void *, const void *, size_t);
-EXPORT_SYMBOL(memcpy);
+	extern void *memcpy(void *, const void *, size_t);
+	EXPORT_SYMBOL(memcpy);
 #endif
 
 EXPORT_SYMBOL(memmove);
@@ -46,8 +46,8 @@ extern void truncate64(void) __attribute__((weak));
 EXPORT_SYMBOL(truncate64);
 
 #ifdef CONFIG_ARCH_REUSE_HOST_VSYSCALL_AREA
-EXPORT_SYMBOL(vsyscall_ehdr);
-EXPORT_SYMBOL(vsyscall_end);
+	EXPORT_SYMBOL(vsyscall_ehdr);
+	EXPORT_SYMBOL(vsyscall_end);
 #endif
 
 EXPORT_SYMBOL_PROTO(__errno_location);
@@ -115,6 +115,6 @@ extern long __guard __attribute__((weak));
 EXPORT_SYMBOL(__guard);
 
 #ifdef _FORTIFY_SOURCE
-extern int __sprintf_chk(char *str, int flag, size_t strlen, const char *format);
-EXPORT_SYMBOL(__sprintf_chk);
+	extern int __sprintf_chk(char *str, int flag, size_t strlen, const char *format);
+	EXPORT_SYMBOL(__sprintf_chk);
 #endif

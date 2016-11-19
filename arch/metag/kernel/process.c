@@ -42,22 +42,22 @@ void arch_cpu_idle(void)
 	 * block until an interrupt is triggered.
 	 */
 	asm volatile (/* Switch into ISTAT mode */
-		      "RTH\n\t"
-		      /* Enable local interrupts */
-		      "MOV	TXMASKI, %1\n\t"
-		      /*
-		       * We can't directly "SWAP PC, PCX", so we swap via a
-		       * temporary. Essentially we do:
-		       *  PCX_new = 1f (the place to continue execution)
-		       *  PC = PCX_old
-		       */
-		      "ADD	%0, CPC0, #(1f-.)\n\t"
-		      "SWAP	PCX, %0\n\t"
-		      "MOV	PC, %0\n"
-		      /* Continue execution here with interrupts enabled */
-		      "1:"
-		      : "=a" (tmp)
-		      : "r" (get_trigger_mask()));
+		"RTH\n\t"
+		/* Enable local interrupts */
+		"MOV	TXMASKI, %1\n\t"
+		/*
+		 * We can't directly "SWAP PC, PCX", so we swap via a
+		 * temporary. Essentially we do:
+		 *  PCX_new = 1f (the place to continue execution)
+		 *  PC = PCX_old
+		 */
+		"ADD	%0, CPC0, #(1f-.)\n\t"
+		"SWAP	PCX, %0\n\t"
+		"MOV	PC, %0\n"
+		/* Continue execution here with interrupts enabled */
+		"1:"
+		: "=a" (tmp)
+		: "r" (get_trigger_mask()));
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -76,14 +76,20 @@ void (*soc_halt)(void);
 void machine_restart(char *cmd)
 {
 	if (soc_restart)
+	{
 		soc_restart(cmd);
+	}
+
 	hard_processor_halt(HALT_OK);
 }
 
 void machine_halt(void)
 {
 	if (soc_halt)
+	{
 		soc_halt();
+	}
+
 	smp_send_stop();
 	hard_processor_halt(HALT_OK);
 }
@@ -91,7 +97,10 @@ void machine_halt(void)
 void machine_power_off(void)
 {
 	if (pm_power_off)
+	{
 		pm_power_off();
+	}
+
 	smp_send_stop();
 	hard_processor_halt(HALT_OK);
 }
@@ -107,7 +116,8 @@ void show_regs(struct pt_regs *regs)
 	const char *AX0_names[] = {"A0StP", "A0FrP"};
 	const char *AX1_names[] = {"A1GbP", "A1LbP"};
 
-	const char *DX0_names[] = {
+	const char *DX0_names[] =
+	{
 		"D0Re0",
 		"D0Ar6",
 		"D0Ar4",
@@ -118,7 +128,8 @@ void show_regs(struct pt_regs *regs)
 		"D0.7 "
 	};
 
-	const char *DX1_names[] = {
+	const char *DX1_names[] =
+	{
 		"D1Re0",
 		"D1Ar5",
 		"D1Ar3",
@@ -134,39 +145,44 @@ void show_regs(struct pt_regs *regs)
 	pr_info(" pt_regs @ %p\n", regs);
 	pr_info(" SaveMask = 0x%04hx\n", regs->ctx.SaveMask);
 	pr_info(" Flags = 0x%04hx (%c%c%c%c)\n", regs->ctx.Flags,
-		regs->ctx.Flags & FLAG_Z ? 'Z' : 'z',
-		regs->ctx.Flags & FLAG_N ? 'N' : 'n',
-		regs->ctx.Flags & FLAG_O ? 'O' : 'o',
-		regs->ctx.Flags & FLAG_C ? 'C' : 'c');
+			regs->ctx.Flags & FLAG_Z ? 'Z' : 'z',
+			regs->ctx.Flags & FLAG_N ? 'N' : 'n',
+			regs->ctx.Flags & FLAG_O ? 'O' : 'o',
+			regs->ctx.Flags & FLAG_C ? 'C' : 'c');
 	pr_info(" TXRPT = 0x%08x\n", regs->ctx.CurrRPT);
 	pr_info(" PC = 0x%08x\n", regs->ctx.CurrPC);
 
 	/* AX regs */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		pr_info(" %s = 0x%08x    ",
-			AX0_names[i],
-			regs->ctx.AX[i].U0);
+				AX0_names[i],
+				regs->ctx.AX[i].U0);
 		printk(" %s = 0x%08x\n",
-			AX1_names[i],
-			regs->ctx.AX[i].U1);
+			   AX1_names[i],
+			   regs->ctx.AX[i].U1);
 	}
 
 	if (regs->ctx.SaveMask & TBICTX_XEXT_BIT)
+	{
 		pr_warn(" Extended state present - AX2.[01] will be WRONG\n");
+	}
 
 	/* Special place with AXx.2 */
 	pr_info(" A0.2  = 0x%08x    ",
-		regs->ctx.Ext.AX2.U0);
+			regs->ctx.Ext.AX2.U0);
 	printk(" A1.2  = 0x%08x\n",
-		regs->ctx.Ext.AX2.U1);
+		   regs->ctx.Ext.AX2.U1);
 
 	/* 'extended' AX regs (nominally, just AXx.3) */
-	for (i = 0; i < (TBICTX_AX_REGS - 3); i++) {
+	for (i = 0; i < (TBICTX_AX_REGS - 3); i++)
+	{
 		pr_info(" A0.%d  = 0x%08x    ", i + 3, regs->ctx.AX3[i].U0);
 		printk(" A1.%d  = 0x%08x\n", i + 3, regs->ctx.AX3[i].U1);
 	}
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		pr_info(" %s = 0x%08x    ", DX0_names[i], regs->ctx.DX[i].U0);
 		printk(" %s = 0x%08x\n", DX1_names[i], regs->ctx.DX[i].U1);
 	}
@@ -178,24 +194,25 @@ void show_regs(struct pt_regs *regs)
  * Copy architecture-specific thread state
  */
 int copy_thread(unsigned long clone_flags, unsigned long usp,
-		unsigned long kthread_arg, struct task_struct *tsk)
+				unsigned long kthread_arg, struct task_struct *tsk)
 {
 	struct pt_regs *childregs = task_pt_regs(tsk);
 	void *kernel_context = ((void *) childregs +
-				sizeof(struct pt_regs));
+							sizeof(struct pt_regs));
 	unsigned long global_base;
 
 	BUG_ON(((unsigned long)childregs) & 0x7);
 	BUG_ON(((unsigned long)kernel_context) & 0x7);
 
 	memset(&tsk->thread.kernel_context, 0,
-			sizeof(tsk->thread.kernel_context));
+		   sizeof(tsk->thread.kernel_context));
 
 	tsk->thread.kernel_context = __TBISwitchInit(kernel_context,
-						     ret_from_fork,
-						     0, 0);
+								 ret_from_fork,
+								 0, 0);
 
-	if (unlikely(tsk->flags & PF_KTHREAD)) {
+	if (unlikely(tsk->flags & PF_KTHREAD))
+	{
 		/*
 		 * Make sure we don't leak any kernel data to child's regs
 		 * if kernel thread becomes a userspace thread in the future
@@ -219,9 +236,13 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	 * thing to be pushed by TBX (phew)
 	 */
 	*childregs = *current_pt_regs();
+
 	/* Set the correct stack for the clone mode */
 	if (usp)
+	{
 		childregs->ctx.AX[0].U0 = ALIGN(usp, 8);
+	}
+
 	tsk->thread.int_depth = 1;
 
 	/* set return value for child process */
@@ -230,30 +251,38 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 	/* The TLS pointer is passed as an argument to sys_clone. */
 	if (clone_flags & CLONE_SETTLS)
 		tsk->thread.tls_ptr =
-				(__force void __user *)childregs->ctx.DX[1].U1;
+			(__force void __user *)childregs->ctx.DX[1].U1;
 
 #ifdef CONFIG_METAG_FPU
-	if (tsk->thread.fpu_context) {
+
+	if (tsk->thread.fpu_context)
+	{
 		struct meta_fpu_context *ctx;
 
 		ctx = kmemdup(tsk->thread.fpu_context,
-			      sizeof(struct meta_fpu_context), GFP_ATOMIC);
+					  sizeof(struct meta_fpu_context), GFP_ATOMIC);
 		tsk->thread.fpu_context = ctx;
 	}
+
 #endif
 
 #ifdef CONFIG_METAG_DSP
-	if (tsk->thread.dsp_context) {
+
+	if (tsk->thread.dsp_context)
+	{
 		struct meta_ext_context *ctx;
 		int i;
 
 		ctx = kmemdup(tsk->thread.dsp_context,
-			      sizeof(struct meta_ext_context), GFP_ATOMIC);
+					  sizeof(struct meta_ext_context), GFP_ATOMIC);
+
 		for (i = 0; i < 2; i++)
 			ctx->ram[i] = kmemdup(ctx->ram[i], ctx->ram_sz[i],
-					      GFP_ATOMIC);
+								  GFP_ATOMIC);
+
 		tsk->thread.dsp_context = ctx;
 	}
+
 #endif
 
 	return 0;
@@ -263,7 +292,7 @@ int copy_thread(unsigned long clone_flags, unsigned long usp,
 static void alloc_fpu_context(struct thread_struct *thread)
 {
 	thread->fpu_context = kzalloc(sizeof(struct meta_fpu_context),
-				      GFP_ATOMIC);
+								  GFP_ATOMIC);
 }
 
 static void clear_fpu(struct thread_struct *thread)
@@ -281,7 +310,8 @@ static void clear_fpu(struct thread_struct *thread)
 #ifdef CONFIG_METAG_DSP
 static void clear_dsp(struct thread_struct *thread)
 {
-	if (thread->dsp_context) {
+	if (thread->dsp_context)
+	{
 		kfree(thread->dsp_context->ram[0]);
 		kfree(thread->dsp_context->ram[1]);
 
@@ -299,7 +329,7 @@ static void clear_dsp(struct thread_struct *thread)
 #endif
 
 struct task_struct *__sched __switch_to(struct task_struct *prev,
-					struct task_struct *next)
+										struct task_struct *next)
 {
 	TBIRES to, from;
 
@@ -307,7 +337,9 @@ struct task_struct *__sched __switch_to(struct task_struct *prev,
 	to.Switch.pPara = prev;
 
 #ifdef CONFIG_METAG_FPU
-	if (prev->thread.user_flags & TBICTX_FPAC_BIT) {
+
+	if (prev->thread.user_flags & TBICTX_FPAC_BIT)
+	{
 		struct pt_regs *regs = task_pt_regs(prev);
 		TBIRES state;
 
@@ -315,16 +347,25 @@ struct task_struct *__sched __switch_to(struct task_struct *prev,
 		state.Sig.pCtx = &regs->ctx;
 
 		if (!prev->thread.fpu_context)
+		{
 			alloc_fpu_context(&prev->thread);
+		}
+
 		if (prev->thread.fpu_context)
+		{
 			__TBICtxFPUSave(state, prev->thread.fpu_context);
+		}
 	}
+
 	/*
 	 * Force a restore of the FPU context next time this process is
 	 * scheduled.
 	 */
 	if (prev->thread.fpu_context)
+	{
 		prev->thread.fpu_context->needs_restore = true;
+	}
+
 #endif
 
 
@@ -376,8 +417,8 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu)
 #define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
 
 unsigned long __metag_elf_map(struct file *filep, unsigned long addr,
-			      struct elf_phdr *eppnt, int prot, int type,
-			      unsigned long total_size)
+							  struct elf_phdr *eppnt, int prot, int type,
+							  unsigned long total_size)
 {
 	unsigned long map_addr, size;
 	unsigned long page_off = ELF_PAGEOFFSET(eppnt->p_vaddr);
@@ -390,12 +431,16 @@ unsigned long __metag_elf_map(struct file *filep, unsigned long addr,
 	/* mmap() will return -EINVAL if given a zero size, but a
 	 * segment with zero filesize is perfectly valid */
 	if (!size)
+	{
 		return addr;
+	}
 
 	tcm_tag = tcm_lookup_tag(addr);
 
 	if (tcm_tag != TCM_INVALID_TAG)
+	{
 		type &= ~MAP_FIXED;
+	}
 
 	/*
 	* total_size is the size of the ELF (interpreter) image.
@@ -405,24 +450,37 @@ unsigned long __metag_elf_map(struct file *filep, unsigned long addr,
 	* So we first map the 'big' image - and unmap the remainder at
 	* the end. (which unmap is needed for ELF images with holes.)
 	*/
-	if (total_size) {
+	if (total_size)
+	{
 		total_size = ELF_PAGEALIGN(total_size);
 		map_addr = vm_mmap(filep, addr, total_size, prot, type, off);
-		if (!BAD_ADDR(map_addr))
-			vm_munmap(map_addr+size, total_size-size);
-	} else
-		map_addr = vm_mmap(filep, addr, size, prot, type, off);
 
-	if (!BAD_ADDR(map_addr) && tcm_tag != TCM_INVALID_TAG) {
+		if (!BAD_ADDR(map_addr))
+		{
+			vm_munmap(map_addr + size, total_size - size);
+		}
+	}
+	else
+	{
+		map_addr = vm_mmap(filep, addr, size, prot, type, off);
+	}
+
+	if (!BAD_ADDR(map_addr) && tcm_tag != TCM_INVALID_TAG)
+	{
 		struct tcm_allocation *tcm;
 		unsigned long tcm_addr;
 
 		tcm = kmalloc(sizeof(*tcm), GFP_KERNEL);
+
 		if (!tcm)
+		{
 			return -ENOMEM;
+		}
 
 		tcm_addr = tcm_alloc(tcm_tag, raw_size);
-		if (tcm_addr != addr) {
+
+		if (tcm_addr != addr)
+		{
 			kfree(tcm);
 			return -ENOMEM;
 		}
@@ -434,9 +492,12 @@ unsigned long __metag_elf_map(struct file *filep, unsigned long addr,
 		list_add(&tcm->list, &current->mm->context.tcm);
 
 		eppnt->p_vaddr = map_addr;
+
 		if (copy_from_user((void *) addr, (void __user *) map_addr,
-				   raw_size))
+						   raw_size))
+		{
 			return -EFAULT;
+		}
 	}
 
 	return map_addr;

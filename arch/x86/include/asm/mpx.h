@@ -70,7 +70,7 @@ static inline void mpx_mm_init(struct mm_struct *mm)
 	mm->bd_addr = MPX_INVALID_BOUNDS_DIR;
 }
 void mpx_notify_unmap(struct mm_struct *mm, struct vm_area_struct *vma,
-		      unsigned long start, unsigned long end);
+					  unsigned long start, unsigned long end);
 #else
 static inline siginfo_t *mpx_generate_siginfo(struct pt_regs *regs)
 {
@@ -88,8 +88,8 @@ static inline void mpx_mm_init(struct mm_struct *mm)
 {
 }
 static inline void mpx_notify_unmap(struct mm_struct *mm,
-				    struct vm_area_struct *vma,
-				    unsigned long start, unsigned long end)
+									struct vm_area_struct *vma,
+									unsigned long start, unsigned long end)
 {
 }
 #endif /* CONFIG_X86_INTEL_MPX */

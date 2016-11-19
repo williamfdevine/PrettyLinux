@@ -19,9 +19,9 @@ extern void show_registers(struct pt_regs *regs);
 #undef DEBUG
 
 #ifdef DEBUG
-#define D(x) x
+	#define D(x) x
 #else
-#define D(x)
+	#define D(x)
 #endif
 
 /* debug of higher-level faults */
@@ -51,19 +51,19 @@ unsigned long cris_signal_return_page;
 
 asmlinkage void
 do_page_fault(unsigned long address, struct pt_regs *regs,
-	      int protection, int writeaccess)
+			  int protection, int writeaccess)
 {
 	struct task_struct *tsk;
 	struct mm_struct *mm;
-	struct vm_area_struct * vma;
+	struct vm_area_struct *vma;
 	siginfo_t info;
 	int fault;
 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
 
 	D(printk(KERN_DEBUG
-		 "Page fault for %lX on %X at %lX, prot %d write %d\n",
-		 address, smp_processor_id(), instruction_pointer(regs),
-		 protection, writeaccess));
+			 "Page fault for %lX on %X at %lX, prot %d write %d\n",
+			 address, smp_processor_id(), instruction_pointer(regs),
+			 protection, writeaccess));
 
 	tsk = current;
 
@@ -87,9 +87,11 @@ do_page_fault(unsigned long address, struct pt_regs *regs,
 	 */
 
 	if (address >= VMALLOC_START &&
-	    !protection &&
-	    !user_mode(regs))
+		!protection &&
+		!user_mode(regs))
+	{
 		goto vmalloc_fault;
+	}
 
 	/* When stack execution is not allowed we store the signal
 	 * trampolines in the reserved cris_signal_return_page.
@@ -98,9 +100,11 @@ do_page_fault(unsigned long address, struct pt_regs *regs,
 	 * call handle_mm_fault).
 	 */
 	if (cris_signal_return_page &&
-	    address == cris_signal_return_page &&
-	    !protection && user_mode(regs))
+		address == cris_signal_return_page &&
+		!protection && user_mode(regs))
+	{
 		goto vmalloc_fault;
+	}
 
 	/* we can and should enable interrupts at this point */
 	local_irq_enable();
@@ -114,20 +118,36 @@ do_page_fault(unsigned long address, struct pt_regs *regs,
 	 */
 
 	if (faulthandler_disabled() || !mm)
+	{
 		goto no_context;
+	}
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 retry:
 	down_read(&mm->mmap_sem);
 	vma = find_vma(mm, address);
+
 	if (!vma)
+	{
 		goto bad_area;
+	}
+
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
+
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
-	if (user_mode(regs)) {
+	}
+
+	if (user_mode(regs))
+	{
 		/*
 		 * accessing the stack below usp is always a bug.
 		 * we get page-aligned addresses so we can only check
@@ -135,31 +155,48 @@ retry:
 		 * enough to catch brutal errors at least.
 		 */
 		if (address + PAGE_SIZE < rdusp())
+		{
 			goto bad_area;
+		}
 	}
+
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
 
 	/*
 	 * Ok, we have a good vm_area for this memory access, so
 	 * we can handle it..
 	 */
 
- good_area:
+good_area:
 	info.si_code = SEGV_ACCERR;
 
 	/* first do some preliminary protection checks */
 
-	if (writeaccess == 2){
+	if (writeaccess == 2)
+	{
 		if (!(vma->vm_flags & VM_EXEC))
+		{
 			goto bad_area;
-	} else if (writeaccess == 1) {
+		}
+	}
+	else if (writeaccess == 1)
+	{
 		if (!(vma->vm_flags & VM_WRITE))
+		{
 			goto bad_area;
+		}
+
 		flags |= FAULT_FLAG_WRITE;
-	} else {
+	}
+	else
+	{
 		if (!(vma->vm_flags & (VM_READ | VM_EXEC)))
+		{
 			goto bad_area;
+		}
 	}
 
 	/*
@@ -171,24 +208,41 @@ retry:
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return;
+	}
 
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
 
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
 		if (fault & VM_FAULT_MAJOR)
+		{
 			tsk->maj_flt++;
+		}
 		else
+		{
 			tsk->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 			flags |= FAULT_FLAG_TRIED;
 
@@ -210,26 +264,30 @@ retry:
 	 * Fix it, but check if it's kernel or user first..
 	 */
 
- bad_area:
+bad_area:
 	up_read(&mm->mmap_sem);
 
- bad_area_nosemaphore:
+bad_area_nosemaphore:
 	DPG(show_registers(regs));
 
 	/* User mode accesses just cause a SIGSEGV */
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 #ifdef CONFIG_NO_SEGFAULT_TERMINATION
 		DECLARE_WAIT_QUEUE_HEAD(wq);
 #endif
 		printk(KERN_NOTICE "%s (pid %d) segfaults for page "
-			"address %08lx at pc %08lx\n",
-			tsk->comm, tsk->pid,
-			address, instruction_pointer(regs));
+			   "address %08lx at pc %08lx\n",
+			   tsk->comm, tsk->pid,
+			   address, instruction_pointer(regs));
 
 		/* With DPG on, we've already dumped registers above.  */
+
 		DPG(if (0))
+		{
 			show_registers(regs);
+		}
 
 #ifdef CONFIG_NO_SEGFAULT_TERMINATION
 		wait_event_interruptible(wq, 0 == 1);
@@ -243,7 +301,7 @@ retry:
 		return;
 	}
 
- no_context:
+no_context:
 
 	/* Are we prepared to handle this kernel fault?
 	 *
@@ -255,21 +313,25 @@ retry:
 	 */
 
 	if (find_fixup_code(regs))
+	{
 		return;
+	}
 
 	/*
 	 * Oops. The kernel tried to access some bad page. We'll have to
 	 * terminate things with extreme prejudice.
 	 */
 
-	if (!oops_in_progress) {
+	if (!oops_in_progress)
+	{
 		oops_in_progress = 1;
+
 		if ((unsigned long) (address) < PAGE_SIZE)
 			printk(KERN_ALERT "Unable to handle kernel NULL "
-				"pointer dereference");
+				   "pointer dereference");
 		else
 			printk(KERN_ALERT "Unable to handle kernel access"
-				" at virtual address %08lx\n", address);
+				   " at virtual address %08lx\n", address);
 
 		die_if_kernel("Oops", regs, (writeaccess << 1) | protection);
 		oops_in_progress = 0;
@@ -282,14 +344,18 @@ retry:
 	 * us unable to handle the page fault gracefully.
 	 */
 
- out_of_memory:
+out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return;
 
- do_sigbus:
+do_sigbus:
 	up_read(&mm->mmap_sem);
 
 	/*
@@ -304,7 +370,10 @@ retry:
 
 	/* Kernel mode? Handle exceptions or die */
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
+
 	return;
 
 vmalloc_fault:
@@ -343,14 +412,19 @@ vmalloc_fault:
 
 		pud = pud_offset(pgd, address);
 		pud_k = pud_offset(pgd_k, address);
+
 		if (!pud_present(*pud_k))
+		{
 			goto no_context;
+		}
 
 		pmd = pmd_offset(pud, address);
 		pmd_k = pmd_offset(pud_k, address);
 
 		if (!pmd_present(*pmd_k))
+		{
 			goto bad_area_nosemaphore;
+		}
 
 		set_pmd(pmd, *pmd_k);
 
@@ -361,8 +435,11 @@ vmalloc_fault:
 		 */
 
 		pte_k = pte_offset_kernel(pmd_k, address);
+
 		if (!pte_present(*pte_k))
+		{
 			goto no_context;
+		}
 
 		return;
 	}
@@ -377,7 +454,9 @@ find_fixup_code(struct pt_regs *regs)
 	unsigned long ip = (instruction_pointer(regs) & ~0x1);
 
 	fixup = search_exception_tables(ip);
-	if (fixup != 0) {
+
+	if (fixup != 0)
+	{
 		/* Adjust the instruction pointer in the stackframe. */
 		instruction_pointer(regs) = fixup->fixup;
 		arch_fixup(regs);

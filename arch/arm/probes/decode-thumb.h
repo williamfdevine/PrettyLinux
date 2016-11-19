@@ -29,7 +29,8 @@
  */
 #define current_cond(cpsr)	((cpsr >> 12) & 0xf)
 
-enum probes_t32_action {
+enum probes_t32_action
+{
 	PROBES_T32_EMULATE_NONE,
 	PROBES_T32_SIMULATE_NOP,
 	PROBES_T32_LDMSTM,
@@ -62,7 +63,8 @@ enum probes_t32_action {
 	NUM_PROBES_T32_ACTIONS
 };
 
-enum probes_t16_action {
+enum probes_t16_action
+{
 	PROBES_T16_ADD_SP,
 	PROBES_T16_CBZ,
 	PROBES_T16_SIGN_EXTEND,
@@ -91,11 +93,11 @@ extern const union decode_item probes_decode_thumb16_table[];
 
 enum probes_insn __kprobes
 thumb16_probes_decode_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
-		bool emulate, const union decode_action *actions,
-		const struct decode_checker *checkers[]);
+						   bool emulate, const union decode_action *actions,
+						   const struct decode_checker *checkers[]);
 enum probes_insn __kprobes
 thumb32_probes_decode_insn(probes_opcode_t insn, struct arch_probes_insn *asi,
-		bool emulate, const union decode_action *actions,
-		const struct decode_checker *checkers[]);
+						   bool emulate, const union decode_action *actions,
+						   const struct decode_checker *checkers[]);
 
 #endif

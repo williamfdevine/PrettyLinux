@@ -31,7 +31,8 @@ static int a20r_set_periodic(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device a20r_clockevent_device = {
+static struct clock_event_device a20r_clockevent_device =
+{
 	.name			= "a20r-timer",
 	.features		= CLOCK_EVT_FEAT_PERIODIC,
 
@@ -54,7 +55,8 @@ static irqreturn_t a20r_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction a20r_irqaction = {
+static struct irqaction a20r_irqaction =
+{
 	.handler	= a20r_interrupt,
 	.flags		= IRQF_PERCPU | IRQF_TIMER,
 	.name		= "a20r-timer",
@@ -94,12 +96,14 @@ static __init unsigned long dosample(void)
 	ct0 = read_c0_count();
 
 	/* Latch and spin until top byte of counter0 is zero */
-	do {
+	do
+	{
 		outb(0x00, 0x43);
 		(void) inb(0x40);
 		msb = inb(0x40);
 		ct1 = read_c0_count();
-	} while (msb);
+	}
+	while (msb);
 
 	/* Stop the counter. */
 	outb(0x38, 0x43);
@@ -109,7 +113,7 @@ static __init unsigned long dosample(void)
 	 * clock (= 1000000 / HZ / 2).
 	 */
 	/*return (ct1 - ct0 + (500000/HZ/2)) / (500000/HZ) * (500000/HZ);*/
-	return (ct1 - ct0) / (500000/HZ) * (500000/HZ);
+	return (ct1 - ct0) / (500000 / HZ) * (500000 / HZ);
 }
 
 /*
@@ -132,42 +136,58 @@ void __init plat_time_init(void)
 	printk(KERN_INFO "Calibrating system timer... ");
 	dosample();	/* Prime cache. */
 	dosample();	/* Prime cache. */
-	/* Zero is NOT an option. */
-	do {
-		r4k_ticks[0] = dosample();
-	} while (!r4k_ticks[0]);
-	do {
-		r4k_ticks[1] = dosample();
-	} while (!r4k_ticks[1]);
 
-	if (r4k_ticks[0] != r4k_ticks[1]) {
+	/* Zero is NOT an option. */
+	do
+	{
+		r4k_ticks[0] = dosample();
+	}
+	while (!r4k_ticks[0]);
+
+	do
+	{
+		r4k_ticks[1] = dosample();
+	}
+	while (!r4k_ticks[1]);
+
+	if (r4k_ticks[0] != r4k_ticks[1])
+	{
 		printk("warning: timer counts differ, retrying... ");
 		r4k_ticks[2] = dosample();
+
 		if (r4k_ticks[2] == r4k_ticks[0]
-		    || r4k_ticks[2] == r4k_ticks[1])
+			|| r4k_ticks[2] == r4k_ticks[1])
+		{
 			r4k_tick = r4k_ticks[2];
-		else {
+		}
+		else
+		{
 			printk("disagreement, using average... ");
 			r4k_tick = (r4k_ticks[0] + r4k_ticks[1]
-				   + r4k_ticks[2]) / 3;
+						+ r4k_ticks[2]) / 3;
 		}
-	} else
+	}
+	else
+	{
 		r4k_tick = r4k_ticks[0];
+	}
 
 	printk("%d [%d.%04d MHz CPU]\n", (int) r4k_tick,
-		(int) (r4k_tick / (500000 / HZ)),
-		(int) (r4k_tick % (500000 / HZ)));
+		   (int) (r4k_tick / (500000 / HZ)),
+		   (int) (r4k_tick % (500000 / HZ)));
 
 	mips_hpt_frequency = r4k_tick * HZ;
 
-	switch (sni_brd_type) {
-	case SNI_BRD_10:
-	case SNI_BRD_10NEW:
-	case SNI_BRD_TOWER_OASIC:
-	case SNI_BRD_MINITOWER:
-		sni_a20r_timer_setup();
-		break;
+	switch (sni_brd_type)
+	{
+		case SNI_BRD_10:
+		case SNI_BRD_10NEW:
+		case SNI_BRD_TOWER_OASIC:
+		case SNI_BRD_MINITOWER:
+			sni_a20r_timer_setup();
+			break;
 	}
+
 	setup_pit_timer();
 }
 

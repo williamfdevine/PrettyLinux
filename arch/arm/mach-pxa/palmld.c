@@ -48,7 +48,8 @@
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static unsigned long palmld_pin_config[] __initdata = {
+static unsigned long palmld_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
@@ -128,7 +129,8 @@ static unsigned long palmld_pin_config[] __initdata = {
  * NOR Flash
  ******************************************************************************/
 #if defined(CONFIG_MTD_PHYSMAP) || defined(CONFIG_MTD_PHYSMAP_MODULE)
-static struct mtd_partition palmld_partitions[] = {
+static struct mtd_partition palmld_partitions[] =
+{
 	{
 		.name		= "Flash",
 		.offset		= 0x00000000,
@@ -137,7 +139,8 @@ static struct mtd_partition palmld_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data palmld_flash_data[] = {
+static struct physmap_flash_data palmld_flash_data[] =
+{
 	{
 		.width		= 2,			/* bankwidth in bytes */
 		.parts		= palmld_partitions,
@@ -145,13 +148,15 @@ static struct physmap_flash_data palmld_flash_data[] = {
 	}
 };
 
-static struct resource palmld_flash_resource = {
+static struct resource palmld_flash_resource =
+{
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_4M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device palmld_flash = {
+static struct platform_device palmld_flash =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.resource	= &palmld_flash_resource,
@@ -173,7 +178,8 @@ static inline void palmld_nor_init(void) {}
  * GPIO keyboard
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_PXA27x) || defined(CONFIG_KEYBOARD_PXA27x_MODULE)
-static const unsigned int palmld_matrix_keys[] = {
+static const unsigned int palmld_matrix_keys[] =
+{
 	KEY(0, 1, KEY_F2),
 	KEY(0, 2, KEY_UP),
 
@@ -190,12 +196,14 @@ static const unsigned int palmld_matrix_keys[] = {
 	KEY(3, 2, KEY_LEFT),
 };
 
-static struct matrix_keymap_data palmld_matrix_keymap_data = {
+static struct matrix_keymap_data palmld_matrix_keymap_data =
+{
 	.keymap			= palmld_matrix_keys,
 	.keymap_size		= ARRAY_SIZE(palmld_matrix_keys),
 };
 
-static struct pxa27x_keypad_platform_data palmld_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data palmld_keypad_platform_data =
+{
 	.matrix_key_rows	= 4,
 	.matrix_key_cols	= 3,
 	.matrix_keymap_data	= &palmld_matrix_keymap_data,
@@ -215,18 +223,21 @@ static inline void palmld_kpc_init(void) {}
  * GPIO keys
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-static struct gpio_keys_button palmld_pxa_buttons[] = {
+static struct gpio_keys_button palmld_pxa_buttons[] =
+{
 	{KEY_F8, GPIO_NR_PALMLD_HOTSYNC_BUTTON_N, 1, "HotSync Button" },
 	{KEY_F9, GPIO_NR_PALMLD_LOCK_SWITCH, 0, "Lock Switch" },
 	{KEY_POWER, GPIO_NR_PALMLD_POWER_SWITCH, 0, "Power Switch" },
 };
 
-static struct gpio_keys_platform_data palmld_pxa_keys_data = {
+static struct gpio_keys_platform_data palmld_pxa_keys_data =
+{
 	.buttons	= palmld_pxa_buttons,
 	.nbuttons	= ARRAY_SIZE(palmld_pxa_buttons),
 };
 
-static struct platform_device palmld_pxa_keys = {
+static struct platform_device palmld_pxa_keys =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -246,24 +257,27 @@ static inline void palmld_keys_init(void) {}
  * LEDs
  ******************************************************************************/
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-struct gpio_led gpio_leds[] = {
+struct gpio_led gpio_leds[] =
 {
-	.name			= "palmld:green:led",
-	.default_trigger	= "none",
-	.gpio			= GPIO_NR_PALMLD_LED_GREEN,
-}, {
-	.name			= "palmld:amber:led",
-	.default_trigger	= "none",
-	.gpio			= GPIO_NR_PALMLD_LED_AMBER,
-},
+	{
+		.name			= "palmld:green:led",
+		.default_trigger	= "none",
+		.gpio			= GPIO_NR_PALMLD_LED_GREEN,
+	}, {
+		.name			= "palmld:amber:led",
+		.default_trigger	= "none",
+		.gpio			= GPIO_NR_PALMLD_LED_AMBER,
+	},
 };
 
-static struct gpio_led_platform_data gpio_led_info = {
+static struct gpio_led_platform_data gpio_led_info =
+{
 	.leds		= gpio_leds,
 	.num_leds	= ARRAY_SIZE(gpio_leds),
 };
 
-static struct platform_device palmld_leds = {
+static struct platform_device palmld_leds =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -283,7 +297,8 @@ static inline void palmld_leds_init(void) {}
  * HDD
  ******************************************************************************/
 #if defined(CONFIG_PATA_PALMLD) || defined(CONFIG_PATA_PALMLD_MODULE)
-static struct platform_device palmld_ide_device = {
+static struct platform_device palmld_ide_device =
+{
 	.name	= "pata_palmld",
 	.id	= -1,
 };
@@ -299,19 +314,20 @@ static inline void palmld_ide_init(void) {}
 /******************************************************************************
  * Machine init
  ******************************************************************************/
-static struct map_desc palmld_io_desc[] __initdata = {
+static struct map_desc palmld_io_desc[] __initdata =
 {
-	.virtual	= PALMLD_IDE_VIRT,
-	.pfn		= __phys_to_pfn(PALMLD_IDE_PHYS),
-	.length		= PALMLD_IDE_SIZE,
-	.type		= MT_DEVICE
-},
-{
-	.virtual	= PALMLD_USB_VIRT,
-	.pfn		= __phys_to_pfn(PALMLD_USB_PHYS),
-	.length		= PALMLD_USB_SIZE,
-	.type		= MT_DEVICE
-},
+	{
+		.virtual	= PALMLD_IDE_VIRT,
+		.pfn		= __phys_to_pfn(PALMLD_IDE_PHYS),
+		.length		= PALMLD_IDE_SIZE,
+		.type		= MT_DEVICE
+	},
+	{
+		.virtual	= PALMLD_USB_VIRT,
+		.pfn		= __phys_to_pfn(PALMLD_USB_PHYS),
+		.length		= PALMLD_USB_SIZE,
+		.type		= MT_DEVICE
+	},
 };
 
 static void __init palmld_map_io(void)
@@ -328,15 +344,15 @@ static void __init palmld_init(void)
 	pxa_set_stuart_info(NULL);
 
 	palm27x_mmc_init(GPIO_NR_PALMLD_SD_DETECT_N, GPIO_NR_PALMLD_SD_READONLY,
-			GPIO_NR_PALMLD_SD_POWER, 0);
+					 GPIO_NR_PALMLD_SD_POWER, 0);
 	palm27x_pm_init(PALMLD_STR_BASE);
 	palm27x_lcd_init(-1, &palm_320x480_lcd_mode);
 	palm27x_irda_init(GPIO_NR_PALMLD_IR_DISABLE);
 	palm27x_ac97_init(PALMLD_BAT_MIN_VOLTAGE, PALMLD_BAT_MAX_VOLTAGE,
-			GPIO_NR_PALMLD_EARPHONE_DETECT, 95);
+					  GPIO_NR_PALMLD_EARPHONE_DETECT, 95);
 	palm27x_pwm_init(GPIO_NR_PALMLD_BL_POWER, GPIO_NR_PALMLD_LCD_POWER);
 	palm27x_power_init(GPIO_NR_PALMLD_POWER_DETECT,
-			GPIO_NR_PALMLD_USB_DETECT_N);
+					   GPIO_NR_PALMLD_USB_DETECT_N);
 	palm27x_pmic_init();
 	palmld_kpc_init();
 	palmld_keys_init();
@@ -346,12 +362,12 @@ static void __init palmld_init(void)
 }
 
 MACHINE_START(PALMLD, "Palm LifeDrive")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= palmld_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= palmld_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa27x_init_irq,
+			   .handle_irq	= pxa27x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= palmld_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

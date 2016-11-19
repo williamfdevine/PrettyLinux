@@ -79,22 +79,28 @@ unsigned int mmc_status(struct device *dev)
 	u32 mask;
 
 	if (adev->res.start == VERSATILE_MMCI0_BASE)
+	{
 		mask = 1;
+	}
 	else
+	{
 		mask = 2;
+	}
 
 	return readl(versatile_sys_base + VERSATILE_SYS_MCI_OFFSET) & mask;
 }
 
-static struct mmci_platform_data mmc0_plat_data = {
-	.ocr_mask	= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct mmci_platform_data mmc0_plat_data =
+{
+	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.status		= mmc_status,
 	.gpio_wp	= -1,
 	.gpio_cd	= -1,
 };
 
-static struct mmci_platform_data mmc1_plat_data = {
-	.ocr_mask	= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct mmci_platform_data mmc1_plat_data =
+{
+	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.status		= mmc_status,
 	.gpio_wp	= -1,
 	.gpio_cd	= -1,
@@ -135,7 +141,8 @@ static void versatile_clcd_disable(struct clcd_fb *fb)
 	/*
 	 * If the LCD is Sanyo 2x5 in on the IB2 board, turn the back-light off
 	 */
-	if (of_machine_is_compatible("arm,versatile-ab") && is_sanyo_2_5_lcd) {
+	if (of_machine_is_compatible("arm,versatile-ab") && is_sanyo_2_5_lcd)
+	{
 		unsigned long ctrl;
 
 		ctrl = readl(versatile_ib2_ctrl);
@@ -156,19 +163,27 @@ static void versatile_clcd_enable(struct clcd_fb *fb)
 	val = readl(sys_clcd);
 	val &= ~SYS_CLCD_MODE_MASK;
 
-	switch (var->green.length) {
-	case 5:
-		val |= SYS_CLCD_MODE_5551;
-		break;
-	case 6:
-		if (var->red.offset == 0)
-			val |= SYS_CLCD_MODE_565_RLSB;
-		else
-			val |= SYS_CLCD_MODE_565_BLSB;
-		break;
-	case 8:
-		val |= SYS_CLCD_MODE_888;
-		break;
+	switch (var->green.length)
+	{
+		case 5:
+			val |= SYS_CLCD_MODE_5551;
+			break;
+
+		case 6:
+			if (var->red.offset == 0)
+			{
+				val |= SYS_CLCD_MODE_565_RLSB;
+			}
+			else
+			{
+				val |= SYS_CLCD_MODE_565_BLSB;
+			}
+
+			break;
+
+		case 8:
+			val |= SYS_CLCD_MODE_888;
+			break;
 	}
 
 	/*
@@ -185,7 +200,8 @@ static void versatile_clcd_enable(struct clcd_fb *fb)
 	/*
 	 * If the LCD is Sanyo 2x5 in on the IB2 board, turn the back-light on
 	 */
-	if (of_machine_is_compatible("arm,versatile-ab") && is_sanyo_2_5_lcd) {
+	if (of_machine_is_compatible("arm,versatile-ab") && is_sanyo_2_5_lcd)
+	{
 		unsigned long ctrl;
 
 		ctrl = readl(versatile_ib2_ctrl);
@@ -209,24 +225,37 @@ static int versatile_clcd_setup(struct clcd_fb *fb)
 	is_sanyo_2_5_lcd = false;
 
 	val = readl(sys_clcd) & SYS_CLCD_ID_MASK;
+
 	if (val == SYS_CLCD_ID_SANYO_3_8)
+	{
 		panel_name = "Sanyo TM38QV67A02A";
-	else if (val == SYS_CLCD_ID_SANYO_2_5) {
+	}
+	else if (val == SYS_CLCD_ID_SANYO_2_5)
+	{
 		panel_name = "Sanyo QVGA Portrait";
 		is_sanyo_2_5_lcd = true;
-	} else if (val == SYS_CLCD_ID_EPSON_2_2)
+	}
+	else if (val == SYS_CLCD_ID_EPSON_2_2)
+	{
 		panel_name = "Epson L2F50113T00";
+	}
 	else if (val == SYS_CLCD_ID_VGA)
+	{
 		panel_name = "VGA";
-	else {
+	}
+	else
+	{
 		printk(KERN_ERR "CLCD: unknown LCD panel ID 0x%08x, using VGA\n",
-			val);
+			   val);
 		panel_name = "VGA";
 	}
 
 	fb->panel = versatile_clcd_get_panel(panel_name);
+
 	if (!fb->panel)
+	{
 		return -EINVAL;
+	}
 
 	return versatile_clcd_setup_dma(fb, SZ_1M);
 }
@@ -237,10 +266,13 @@ static void versatile_clcd_decode(struct clcd_fb *fb, struct clcd_regs *regs)
 
 	/* Always clear BGR for RGB565: we do the routing externally */
 	if (fb->fb.var.green.length == 6)
+	{
 		regs->cntl &= ~CNTL_BGR;
+	}
 }
 
-static struct clcd_board clcd_plat_data = {
+static struct clcd_board clcd_plat_data =
+{
 	.name		= "Versatile",
 	.caps		= CLCD_CAP_5551 | CLCD_CAP_565 | CLCD_CAP_888,
 	.check		= clcdfb_check,
@@ -258,14 +290,16 @@ static struct clcd_board clcd_plat_data = {
  * would not exist, but the current clock implementation depends on some devices
  * having a specific name.
  */
-struct of_dev_auxdata versatile_auxdata_lookup[] __initdata = {
+struct of_dev_auxdata versatile_auxdata_lookup[] __initdata =
+{
 	OF_DEV_AUXDATA("arm,primecell", VERSATILE_MMCI0_BASE, "fpga:05", &mmc0_plat_data),
 	OF_DEV_AUXDATA("arm,primecell", VERSATILE_MMCI1_BASE, "fpga:0b", &mmc1_plat_data),
 	OF_DEV_AUXDATA("arm,primecell", VERSATILE_CLCD_BASE, "dev:20", &clcd_plat_data),
 	{}
 };
 
-static struct map_desc versatile_io_desc[] __initdata __maybe_unused = {
+static struct map_desc versatile_io_desc[] __initdata __maybe_unused =
+{
 	{
 		.virtual	=  IO_ADDRESS(VERSATILE_SCTL_BASE),
 		.pfn		= __phys_to_pfn(VERSATILE_SCTL_BASE),
@@ -291,10 +325,10 @@ static void __init versatile_init_early(void)
 	 */
 	val = readl(__io_address(VERSATILE_SCTL_BASE));
 	writel((VERSATILE_TIMCLK << VERSATILE_TIMER1_EnSel) |
-	       (VERSATILE_TIMCLK << VERSATILE_TIMER2_EnSel) |
-	       (VERSATILE_TIMCLK << VERSATILE_TIMER3_EnSel) |
-	       (VERSATILE_TIMCLK << VERSATILE_TIMER4_EnSel) | val,
-	       __io_address(VERSATILE_SCTL_BASE));
+		   (VERSATILE_TIMCLK << VERSATILE_TIMER2_EnSel) |
+		   (VERSATILE_TIMCLK << VERSATILE_TIMER3_EnSel) |
+		   (VERSATILE_TIMCLK << VERSATILE_TIMER4_EnSel) | val,
+		   __io_address(VERSATILE_SCTL_BASE));
 }
 
 static void __init versatile_dt_pci_init(void)
@@ -304,12 +338,17 @@ static void __init versatile_dt_pci_init(void)
 	struct property *newprop;
 
 	np = of_find_compatible_node(NULL, NULL, "arm,versatile-pci");
+
 	if (!np)
+	{
 		return;
+	}
 
 	/* Check if PCI backplane is detected */
 	val = readl(versatile_sys_base + VERSATILE_SYS_PCICTL_OFFSET);
-	if (val & 1) {
+
+	if (val & 1)
+	{
 		/*
 		 * Enable PCI accesses. Note that the documentaton is
 		 * inconsistent whether or not this is needed, but the old
@@ -320,8 +359,11 @@ static void __init versatile_dt_pci_init(void)
 	}
 
 	newprop = kzalloc(sizeof(*newprop), GFP_KERNEL);
+
 	if (!newprop)
+	{
 		return;
+	}
 
 	newprop->name = kstrdup("status", GFP_KERNEL);
 	newprop->value = kstrdup("disabled", GFP_KERNEL);
@@ -336,8 +378,12 @@ static void __init versatile_dt_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "arm,core-module-versatile");
+
 	if (np)
+	{
 		versatile_sys_base = of_iomap(np, 0);
+	}
+
 	WARN_ON(!versatile_sys_base);
 
 	versatile_ib2_ctrl = ioremap(VERSATILE_IB2_CTL_BASE, SZ_4K);
@@ -347,15 +393,16 @@ static void __init versatile_dt_init(void)
 	of_platform_default_populate(NULL, versatile_auxdata_lookup, NULL);
 }
 
-static const char *const versatile_dt_match[] __initconst = {
+static const char *const versatile_dt_match[] __initconst =
+{
 	"arm,versatile-ab",
 	"arm,versatile-pb",
 	NULL,
 };
 
 DT_MACHINE_START(VERSATILE_PB, "ARM-Versatile (Device Tree Support)")
-	.map_io		= versatile_map_io,
+.map_io		= versatile_map_io,
 	.init_early	= versatile_init_early,
-	.init_machine	= versatile_dt_init,
-	.dt_compat	= versatile_dt_match,
-MACHINE_END
+	 .init_machine	= versatile_dt_init,
+		.dt_compat	= versatile_dt_match,
+		  MACHINE_END

@@ -31,7 +31,8 @@ static union mips_vdso_data vdso_data __page_aligned_data;
  * runtime.
  */
 static struct page *no_pages[] = { NULL };
-static struct vm_special_mapping vdso_vvar_mapping = {
+static struct vm_special_mapping vdso_vvar_mapping =
+{
 	.name = "[vvar]",
 	.pages = no_pages,
 };
@@ -47,8 +48,11 @@ static void __init init_vdso_image(struct mips_vdso_image *image)
 	num_pages = image->size / PAGE_SIZE;
 
 	data_pfn = __phys_to_pfn(__pa_symbol(image->data));
+
 	for (i = 0; i < num_pages; i++)
+	{
 		image->mapping.pages[i] = pfn_to_page(data_pfn + i);
+	}
 }
 
 static int __init init_vdso(void)
@@ -78,7 +82,9 @@ void update_vsyscall(struct timekeeper *tk)
 	vdso_data.cs_shift = tk->tkr_mono.shift;
 
 	vdso_data.clock_mode = tk->tkr_mono.clock->archdata.vdso_clock_mode;
-	if (vdso_data.clock_mode != VDSO_CLOCK_NONE) {
+
+	if (vdso_data.clock_mode != VDSO_CLOCK_NONE)
+	{
 		vdso_data.cs_mult = tk->tkr_mono.mult;
 		vdso_data.cs_cycle_last = tk->tkr_mono.cycle_last;
 		vdso_data.cs_mask = tk->tkr_mono.mask;
@@ -89,7 +95,8 @@ void update_vsyscall(struct timekeeper *tk)
 
 void update_vsyscall_tz(void)
 {
-	if (vdso_data.clock_mode != VDSO_CLOCK_NONE) {
+	if (vdso_data.clock_mode != VDSO_CLOCK_NONE)
+	{
 		vdso_data.tz_minuteswest = sys_tz.tz_minuteswest;
 		vdso_data.tz_dsttime = sys_tz.tz_dsttime;
 	}
@@ -105,14 +112,18 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 	int ret;
 
 	if (down_write_killable(&mm->mmap_sem))
+	{
 		return -EINTR;
+	}
 
 	/* Map delay slot emulation page */
 	base = mmap_region(NULL, STACK_TOP, PAGE_SIZE,
-			   VM_READ|VM_WRITE|VM_EXEC|
-			   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
-			   0);
-	if (IS_ERR_VALUE(base)) {
+					   VM_READ | VM_WRITE | VM_EXEC |
+					   VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+					   0);
+
+	if (IS_ERR_VALUE(base))
+	{
 		ret = base;
 		goto out;
 	}
@@ -130,7 +141,9 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 	size = vvar_size + image->size;
 
 	base = get_unmapped_area(NULL, 0, size, 0, 0);
-	if (IS_ERR_VALUE(base)) {
+
+	if (IS_ERR_VALUE(base))
+	{
 		ret = base;
 		goto out;
 	}
@@ -139,40 +152,54 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 	vdso_addr = data_addr + PAGE_SIZE;
 
 	vma = _install_special_mapping(mm, base, vvar_size,
-				       VM_READ | VM_MAYREAD,
-				       &vdso_vvar_mapping);
-	if (IS_ERR(vma)) {
+								   VM_READ | VM_MAYREAD,
+								   &vdso_vvar_mapping);
+
+	if (IS_ERR(vma))
+	{
 		ret = PTR_ERR(vma);
 		goto out;
 	}
 
 	/* Map GIC user page. */
-	if (gic_size) {
+	if (gic_size)
+	{
 		ret = gic_get_usm_range(&gic_res);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		ret = io_remap_pfn_range(vma, base,
-					 gic_res.start >> PAGE_SHIFT,
-					 gic_size,
-					 pgprot_noncached(PAGE_READONLY));
+								 gic_res.start >> PAGE_SHIFT,
+								 gic_size,
+								 pgprot_noncached(PAGE_READONLY));
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	/* Map data page. */
 	ret = remap_pfn_range(vma, data_addr,
-			      virt_to_phys(&vdso_data) >> PAGE_SHIFT,
-			      PAGE_SIZE, PAGE_READONLY);
+						  virt_to_phys(&vdso_data) >> PAGE_SHIFT,
+						  PAGE_SIZE, PAGE_READONLY);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* Map VDSO image. */
 	vma = _install_special_mapping(mm, vdso_addr, image->size,
-				       VM_READ | VM_EXEC |
-				       VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
-				       &image->mapping);
-	if (IS_ERR(vma)) {
+								   VM_READ | VM_EXEC |
+								   VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+								   &image->mapping);
+
+	if (IS_ERR(vma))
+	{
 		ret = PTR_ERR(vma);
 		goto out;
 	}

@@ -17,37 +17,37 @@ typedef struct
 #define local_add(i,l)	atomic_long_add((i),(&(l)->a))
 #define local_sub(i,l)	atomic_long_sub((i),(&(l)->a))
 
-static __inline__ long local_add_return(long i, local_t * l)
+static __inline__ long local_add_return(long i, local_t *l)
 {
 	long temp, result;
 	__asm__ __volatile__(
-	"1:	ldq_l %0,%1\n"
-	"	addq %0,%3,%2\n"
-	"	addq %0,%3,%0\n"
-	"	stq_c %0,%1\n"
-	"	beq %0,2f\n"
-	".subsection 2\n"
-	"2:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (l->a.counter), "=&r" (result)
-	:"Ir" (i), "m" (l->a.counter) : "memory");
+		"1:	ldq_l %0,%1\n"
+		"	addq %0,%3,%2\n"
+		"	addq %0,%3,%0\n"
+		"	stq_c %0,%1\n"
+		"	beq %0,2f\n"
+		".subsection 2\n"
+		"2:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (l->a.counter), "=&r" (result)
+		:"Ir" (i), "m" (l->a.counter) : "memory");
 	return result;
 }
 
-static __inline__ long local_sub_return(long i, local_t * l)
+static __inline__ long local_sub_return(long i, local_t *l)
 {
 	long temp, result;
 	__asm__ __volatile__(
-	"1:	ldq_l %0,%1\n"
-	"	subq %0,%3,%2\n"
-	"	subq %0,%3,%0\n"
-	"	stq_c %0,%1\n"
-	"	beq %0,2f\n"
-	".subsection 2\n"
-	"2:	br 1b\n"
-	".previous"
-	:"=&r" (temp), "=m" (l->a.counter), "=&r" (result)
-	:"Ir" (i), "m" (l->a.counter) : "memory");
+		"1:	ldq_l %0,%1\n"
+		"	subq %0,%3,%2\n"
+		"	subq %0,%3,%0\n"
+		"	stq_c %0,%1\n"
+		"	beq %0,2f\n"
+		".subsection 2\n"
+		"2:	br 1b\n"
+		".previous"
+		:"=&r" (temp), "=m" (l->a.counter), "=&r" (result)
+		:"Ir" (i), "m" (l->a.counter) : "memory");
 	return result;
 }
 
@@ -65,19 +65,19 @@ static __inline__ long local_sub_return(long i, local_t * l)
  * Returns non-zero if @l was not @u, and zero otherwise.
  */
 #define local_add_unless(l, a, u)				\
-({								\
-	long c, old;						\
-	c = local_read(l);					\
-	for (;;) {						\
-		if (unlikely(c == (u)))				\
-			break;					\
-		old = local_cmpxchg((l), c, c + (a));	\
-		if (likely(old == c))				\
-			break;					\
-		c = old;					\
-	}							\
-	c != (u);						\
-})
+	({								\
+		long c, old;						\
+		c = local_read(l);					\
+		for (;;) {						\
+			if (unlikely(c == (u)))				\
+				break;					\
+			old = local_cmpxchg((l), c, c + (a));	\
+			if (likely(old == c))				\
+				break;					\
+			c = old;					\
+		}							\
+		c != (u);						\
+	})
 #define local_inc_not_zero(l) local_add_unless((l), 1, 0)
 
 #define local_add_negative(a, l) (local_add_return((a), (l)) < 0)

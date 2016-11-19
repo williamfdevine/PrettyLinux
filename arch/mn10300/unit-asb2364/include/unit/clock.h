@@ -18,9 +18,9 @@
 
 #ifndef __ASSEMBLY__
 
-#define MN10300_IOCLK		100000000UL		/* for DDR800 */
-/*#define MN10300_IOCLK		83333333UL */		/* for DDR667 */
-#define MN10300_IOBCLK		MN10300_IOCLK		/* IOBCLK is equal to IOCLK */
+	#define MN10300_IOCLK		100000000UL		/* for DDR800 */
+	/*#define MN10300_IOCLK		83333333UL */		/* for DDR667 */
+	#define MN10300_IOBCLK		MN10300_IOCLK		/* IOBCLK is equal to IOCLK */
 
 #endif /* !__ASSEMBLY__ */
 

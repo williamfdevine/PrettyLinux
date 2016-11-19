@@ -67,7 +67,7 @@
  * Sanity check
  */
 #if ((SPURIOUS_APIC_VECTOR & 0x0F) != 0x0F)
-# error SPURIOUS_APIC_VECTOR definition error
+	# error SPURIOUS_APIC_VECTOR definition error
 #endif
 
 #define ERROR_APIC_VECTOR		0xfe
@@ -97,7 +97,7 @@
 
 /* Vector for KVM to deliver posted interrupt IPI */
 #ifdef CONFIG_HAVE_KVM
-#define POSTED_INTR_VECTOR		0xf2
+	#define POSTED_INTR_VECTOR		0xf2
 #endif
 
 /*
@@ -110,9 +110,9 @@
 #define NR_VECTORS			 256
 
 #ifdef CONFIG_X86_LOCAL_APIC
-#define FIRST_SYSTEM_VECTOR		LOCAL_TIMER_VECTOR
+	#define FIRST_SYSTEM_VECTOR		LOCAL_TIMER_VECTOR
 #else
-#define FIRST_SYSTEM_VECTOR		NR_VECTORS
+	#define FIRST_SYSTEM_VECTOR		NR_VECTORS
 #endif
 
 #define FPU_IRQ				  13
@@ -136,8 +136,8 @@
 #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_PCI_MSI)
 #define NR_IRQS						\
 	(CPU_VECTOR_LIMIT > IO_APIC_VECTOR_LIMIT ?	\
-		(NR_VECTORS + CPU_VECTOR_LIMIT)  :	\
-		(NR_VECTORS + IO_APIC_VECTOR_LIMIT))
+	 (NR_VECTORS + CPU_VECTOR_LIMIT)  :	\
+	 (NR_VECTORS + IO_APIC_VECTOR_LIMIT))
 #elif defined(CONFIG_X86_IO_APIC)
 #define	NR_IRQS				(NR_VECTORS + IO_APIC_VECTOR_LIMIT)
 #elif defined(CONFIG_PCI_MSI)

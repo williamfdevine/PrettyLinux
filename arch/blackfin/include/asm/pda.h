@@ -12,7 +12,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct blackfin_pda {			/* Per-processor Data Area */
+struct blackfin_pda  			/* Per-processor Data Area */
+{
 #ifdef CONFIG_SMP
 	struct blackfin_pda *next;
 #endif
@@ -56,7 +57,8 @@ struct blackfin_pda {			/* Per-processor Data Area */
 #endif
 };
 
-struct blackfin_initial_pda {
+struct blackfin_initial_pda
+{
 	void *retx;
 #ifdef CONFIG_DEBUG_DOUBLEFAULT
 	void *dcplb_doublefault_addr;

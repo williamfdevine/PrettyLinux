@@ -34,7 +34,7 @@ void prom_putchar(char c)
 	timeout = 1024;
 
 	while (((serial_in(uart_base, UART_LSR) & UART_LSR_THRE) == 0) &&
-			(timeout-- > 0))
+		   (timeout-- > 0))
 		;
 
 	serial_out(uart_base, UART_TX, c);

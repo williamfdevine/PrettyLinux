@@ -78,7 +78,7 @@ static inline int init_mips_clocksource(void)
 }
 
 static inline void clockevent_set_clock(struct clock_event_device *cd,
-					unsigned int clock)
+										unsigned int clock)
 {
 	clockevents_calc_mult_shift(cd, clock, 4);
 }

@@ -21,20 +21,20 @@
 #include <asm/processor.h>
 
 #ifndef __ASSEMBLY__
-#include <linux/threads.h>
-#include <linux/slab.h>
-#include <linux/list.h>
-#include <linux/spinlock.h>
-#include <linux/sched.h>
-struct vm_area_struct;
+	#include <linux/threads.h>
+	#include <linux/slab.h>
+	#include <linux/list.h>
+	#include <linux/spinlock.h>
+	#include <linux/sched.h>
+	struct vm_area_struct;
 #endif
 
 #ifndef __ASSEMBLY__
-#if defined(CONFIG_HIGHPTE)
-typedef unsigned long pte_addr_t;
-#else
-typedef pte_t *pte_addr_t;
-#endif
+	#if defined(CONFIG_HIGHPTE)
+		typedef unsigned long pte_addr_t;
+	#else
+		typedef pte_t *pte_addr_t;
+	#endif
 #endif
 
 /*****************************************************************************/
@@ -81,8 +81,8 @@ typedef pte_t *pte_addr_t;
  * for zero-mapped memory areas etc..
  */
 #ifndef __ASSEMBLY__
-extern unsigned long empty_zero_page;
-#define ZERO_PAGE(vaddr)	virt_to_page(empty_zero_page)
+	extern unsigned long empty_zero_page;
+	#define ZERO_PAGE(vaddr)	virt_to_page(empty_zero_page)
 #endif
 
 /*
@@ -170,10 +170,10 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
  * hook is made available.
  */
 #define set_pte(pteptr, pteval)				\
-do {							\
-	*(pteptr) = (pteval);				\
-	asm volatile("dcf %M0" :: "U"(*pteptr));	\
-} while(0)
+	do {							\
+		*(pteptr) = (pteval);				\
+		asm volatile("dcf %M0" :: "U"(*pteptr));	\
+	} while(0)
 #define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
 
 /*
@@ -204,10 +204,10 @@ static inline void pgd_clear(pgd_t *pgd)	{ }
  * but the define is needed for a generic inline function.)
  */
 #define set_pgd(pgdptr, pgdval)				\
-do {							\
-	memcpy((pgdptr), &(pgdval), sizeof(pgd_t));	\
-	asm volatile("dcf %M0" :: "U"(*(pgdptr)));	\
-} while(0)
+	do {							\
+		memcpy((pgdptr), &(pgdval), sizeof(pgd_t));	\
+		asm volatile("dcf %M0" :: "U"(*(pgdptr)));	\
+	} while(0)
 
 static inline pud_t *pud_offset(pgd_t *pgd, unsigned long address)
 {
@@ -253,9 +253,9 @@ static inline void pud_clear(pud_t *pud)	{ }
 extern void __set_pmd(pmd_t *pmdptr, unsigned long __pmd);
 
 #define set_pmd(pmdptr, pmdval)			\
-do {						\
-	__set_pmd((pmdptr), (pmdval).ste[0]);	\
-} while(0)
+	do {						\
+		__set_pmd((pmdptr), (pmdval).ste[0]);	\
+	} while(0)
 
 #define __pmd_index(address)			0
 
@@ -363,7 +363,7 @@ static inline pmd_t *pmd_offset(pud_t *dir, unsigned long address)
 	((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
 
 #ifndef CONFIG_DISCONTIGMEM
-#define pmd_page(pmd)	(pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT))
+	#define pmd_page(pmd)	(pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT))
 #endif
 
 #define pages_to_mb(x) ((x) >> (20-PAGE_SHIFT))
@@ -442,7 +442,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
  * control the given virtual address
  */
 #define pte_index(address) \
-		(((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
+	(((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
 #define pte_offset_kernel(dir, address) \
 	((pte_t *) pmd_page_vaddr(*(dir)) +  pte_index(address))
 
@@ -488,30 +488,34 @@ static inline void update_mmu_cache(struct vm_area_struct *vma, unsigned long ad
 	unsigned long ampr;
 
 	mm = current->mm;
-	if (mm) {
+
+	if (mm)
+	{
 		pgd_t *pge = pgd_offset(mm, address);
 		pud_t *pue = pud_offset(pge, address);
 		pmd_t *pme = pmd_offset(pue, address);
 
 		ampr = pme->ste[0] & 0xffffff00;
 		ampr |= xAMPRx_L | xAMPRx_SS_16Kb | xAMPRx_S | xAMPRx_C |
-			xAMPRx_V;
-	} else {
+				xAMPRx_V;
+	}
+	else
+	{
 		address = ULONG_MAX;
 		ampr = 0;
 	}
 
 	asm volatile("movgs %0,scr0\n"
-		     "movgs %0,scr1\n"
-		     "movgs %1,dampr4\n"
-		     "movgs %1,dampr5\n"
-		     :
-		     : "r"(address), "r"(ampr)
-		     );
+				 "movgs %0,scr1\n"
+				 "movgs %1,dampr4\n"
+				 "movgs %1,dampr5\n"
+				 :
+				 : "r"(address), "r"(ampr)
+				);
 }
 
 #ifdef CONFIG_PROC_FS
-extern char *proc_pid_status_frv_cxnr(struct mm_struct *mm, char *buffer);
+	extern char *proc_pid_status_frv_cxnr(struct mm_struct *mm, char *buffer);
 #endif
 
 extern void __init pgtable_cache_init(void);
@@ -520,7 +524,7 @@ extern void __init pgtable_cache_init(void);
 #endif /* !CONFIG_MMU */
 
 #ifndef __ASSEMBLY__
-extern void __init paging_init(void);
+	extern void __init paging_init(void);
 #endif /* !__ASSEMBLY__ */
 #define HAVE_ARCH_UNMAPPED_AREA
 

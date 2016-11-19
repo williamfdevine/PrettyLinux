@@ -21,9 +21,9 @@
 	({								\
 		unsigned int __val;					\
 		asm("movc	%0, p0.c0, #" __stringify(reg)		\
-		    : "=r" (__val)					\
-		    :							\
-		    : "cc");						\
+			: "=r" (__val)					\
+			:							\
+			: "cc");						\
 		__val;							\
 	})
 

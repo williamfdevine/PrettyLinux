@@ -9,7 +9,7 @@
 	set_pmd(pmd, __pmd(_PAGE_TABLE + __pa(pte)))
 
 static __inline__ void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
-	pgtable_t pte)
+									pgtable_t pte)
 {
 	set_pmd(pmd, __pmd(_PAGE_TABLE + page_to_phys(pte)));
 }
@@ -20,7 +20,7 @@ static __inline__ void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
  */
 static __inline__ pgd_t *pgd_alloc(struct mm_struct *mm)
 {
-	pgd_t *pgd = (pgd_t *)__get_free_page(GFP_KERNEL|__GFP_ZERO);
+	pgd_t *pgd = (pgd_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
 
 	return pgd;
 }
@@ -31,24 +31,29 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 }
 
 static __inline__ pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-	unsigned long address)
+		unsigned long address)
 {
-	pte_t *pte = (pte_t *)__get_free_page(GFP_KERNEL|__GFP_ZERO);
+	pte_t *pte = (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
 
 	return pte;
 }
 
 static __inline__ pgtable_t pte_alloc_one(struct mm_struct *mm,
-	unsigned long address)
+		unsigned long address)
 {
-	struct page *pte = alloc_page(GFP_KERNEL|__GFP_ZERO);
+	struct page *pte = alloc_page(GFP_KERNEL | __GFP_ZERO);
 
 	if (!pte)
+	{
 		return NULL;
-	if (!pgtable_page_ctor(pte)) {
+	}
+
+	if (!pgtable_page_ctor(pte))
+	{
 		__free_page(pte);
 		return NULL;
 	}
+
 	return pte;
 }
 

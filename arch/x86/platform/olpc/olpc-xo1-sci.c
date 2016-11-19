@@ -43,13 +43,15 @@ static bool lid_open;
 static bool lid_inverted;
 static int lid_wake_mode;
 
-enum lid_wake_modes {
+enum lid_wake_modes
+{
 	LID_WAKE_ALWAYS,
 	LID_WAKE_OPEN,
 	LID_WAKE_CLOSE,
 };
 
-static const char * const lid_wake_mode_names[] = {
+static const char *const lid_wake_mode_names[] =
+{
 	[LID_WAKE_ALWAYS] = "always",
 	[LID_WAKE_OPEN] = "open",
 	[LID_WAKE_CLOSE] = "close",
@@ -59,7 +61,8 @@ static void battery_status_changed(void)
 {
 	struct power_supply *psy = power_supply_get_by_name("olpc-battery");
 
-	if (psy) {
+	if (psy)
+	{
 		power_supply_changed(psy);
 		power_supply_put(psy);
 	}
@@ -69,7 +72,8 @@ static void ac_status_changed(void)
 {
 	struct power_supply *psy = power_supply_get_by_name("olpc-ac");
 
-	if (psy) {
+	if (psy)
+	{
 		power_supply_changed(psy);
 		power_supply_put(psy);
 	}
@@ -80,13 +84,16 @@ static void send_ebook_state(void)
 {
 	unsigned char state;
 
-	if (olpc_ec_cmd(EC_READ_EB_MODE, NULL, 0, &state, 1)) {
+	if (olpc_ec_cmd(EC_READ_EB_MODE, NULL, 0, &state, 1))
+	{
 		pr_err(PFX "failed to get ebook state\n");
 		return;
 	}
 
 	if (!!test_bit(SW_TABLET_MODE, ebook_switch_idev->sw) == state)
-		return; /* Nothing new to report. */
+	{
+		return;    /* Nothing new to report. */
+	}
 
 	input_report_switch(ebook_switch_idev, SW_TABLET_MODE, state);
 	input_sync(ebook_switch_idev);
@@ -97,9 +104,14 @@ static void flip_lid_inverter(void)
 {
 	/* gpio is high; invert so we'll get l->h event interrupt */
 	if (lid_inverted)
+	{
 		cs5535_gpio_clear(OLPC_GPIO_LID, GPIO_INPUT_INVERT);
+	}
 	else
+	{
 		cs5535_gpio_set(OLPC_GPIO_LID, GPIO_INPUT_INVERT);
+	}
+
 	lid_inverted = !lid_inverted;
 }
 
@@ -120,8 +132,11 @@ static void detect_lid_state(void)
 
 	state = cs5535_gpio_isset(OLPC_GPIO_LID, GPIO_READ_BACK);
 	lid_open = !state ^ !lid_inverted; /* x ^^ y */
+
 	if (!state)
+	{
 		return;
+	}
 
 	flip_lid_inverter();
 }
@@ -130,7 +145,9 @@ static void detect_lid_state(void)
 static void send_lid_state(void)
 {
 	if (!!test_bit(SW_LID, lid_switch_idev->sw) == !lid_open)
-		return; /* Nothing new to report. */
+	{
+		return;    /* Nothing new to report. */
+	}
 
 	input_report_switch(lid_switch_idev, SW_LID, !lid_open);
 	input_sync(lid_switch_idev);
@@ -138,28 +155,34 @@ static void send_lid_state(void)
 }
 
 static ssize_t lid_wake_mode_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	const char *mode = lid_wake_mode_names[lid_wake_mode];
 	return sprintf(buf, "%s\n", mode);
 }
 static ssize_t lid_wake_mode_set(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	int i;
-	for (i = 0; i < ARRAY_SIZE(lid_wake_mode_names); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(lid_wake_mode_names); i++)
+	{
 		const char *mode = lid_wake_mode_names[i];
+
 		if (strlen(mode) != count || strncasecmp(mode, buf, count))
+		{
 			continue;
+		}
 
 		lid_wake_mode = i;
 		return count;
 	}
+
 	return -EINVAL;
 }
 static DEVICE_ATTR(lid_wake_mode, S_IWUSR | S_IRUGO, lid_wake_mode_show,
-		   lid_wake_mode_set);
+				   lid_wake_mode_set);
 
 /*
  * Process all items in the EC's SCI queue.
@@ -175,31 +198,42 @@ static void process_sci_queue(bool propagate_events)
 	int r;
 	u16 data;
 
-	do {
+	do
+	{
 		r = olpc_ec_sci_query(&data);
+
 		if (r || !data)
-			break;
-
-		pr_debug(PFX "SCI 0x%x received\n", data);
-
-		switch (data) {
-		case EC_SCI_SRC_BATERR:
-		case EC_SCI_SRC_BATSOC:
-		case EC_SCI_SRC_BATTERY:
-		case EC_SCI_SRC_BATCRIT:
-			battery_status_changed();
-			break;
-		case EC_SCI_SRC_ACPWR:
-			ac_status_changed();
+		{
 			break;
 		}
 
+		pr_debug(PFX "SCI 0x%x received\n", data);
+
+		switch (data)
+		{
+			case EC_SCI_SRC_BATERR:
+			case EC_SCI_SRC_BATSOC:
+			case EC_SCI_SRC_BATTERY:
+			case EC_SCI_SRC_BATCRIT:
+				battery_status_changed();
+				break;
+
+			case EC_SCI_SRC_ACPWR:
+				ac_status_changed();
+				break;
+		}
+
 		if (data == EC_SCI_SRC_EBOOK && propagate_events)
+		{
 			send_ebook_state();
-	} while (data);
+		}
+	}
+	while (data);
 
 	if (r)
+	{
 		pr_err(PFX "Failed to clear SCI queue");
+	}
 }
 
 static void process_sci_queue_work(struct work_struct *work)
@@ -223,8 +257,10 @@ static irqreturn_t xo1_sci_intr(int irq, void *dev_id)
 
 	dev_dbg(&pdev->dev, "sts %x gpe %x\n", sts, gpe);
 
-	if (sts & CS5536_PWRBTN_FLAG) {
-		if (!(sts & CS5536_WAK_FLAG)) {
+	if (sts & CS5536_PWRBTN_FLAG)
+	{
+		if (!(sts & CS5536_WAK_FLAG))
+		{
 			/* Only report power button input when it was pressed
 			 * during regular operation (as opposed to when it
 			 * was used to wake the system). */
@@ -233,23 +269,28 @@ static irqreturn_t xo1_sci_intr(int irq, void *dev_id)
 			input_report_key(power_button_idev, KEY_POWER, 0);
 			input_sync(power_button_idev);
 		}
+
 		/* Report the wakeup event in all cases. */
 		pm_wakeup_event(&power_button_idev->dev, 0);
 	}
 
 	if ((sts & (CS5536_RTC_FLAG | CS5536_WAK_FLAG)) ==
-			(CS5536_RTC_FLAG | CS5536_WAK_FLAG)) {
+		(CS5536_RTC_FLAG | CS5536_WAK_FLAG))
+	{
 		/* When the system is woken by the RTC alarm, report the
 		 * event on the rtc device. */
 		struct device *rtc = bus_find_device_by_name(
-			&platform_bus_type, NULL, "rtc_cmos");
-		if (rtc) {
+								 &platform_bus_type, NULL, "rtc_cmos");
+
+		if (rtc)
+		{
 			pm_wakeup_event(rtc, 0);
 			put_device(rtc);
 		}
 	}
 
-	if (gpe & CS5536_GPIOM7_PME_FLAG) { /* EC GPIO */
+	if (gpe & CS5536_GPIOM7_PME_FLAG)   /* EC GPIO */
+	{
 		cs5535_gpio_set(OLPC_GPIO_ECSCI, GPIO_NEGATIVE_EDGE_STS);
 		schedule_work(&sci_work);
 	}
@@ -265,19 +306,30 @@ static irqreturn_t xo1_sci_intr(int irq, void *dev_id)
 static int xo1_sci_suspend(struct platform_device *pdev, pm_message_t state)
 {
 	if (device_may_wakeup(&power_button_idev->dev))
+	{
 		olpc_xo1_pm_wakeup_set(CS5536_PM_PWRBTN);
+	}
 	else
+	{
 		olpc_xo1_pm_wakeup_clear(CS5536_PM_PWRBTN);
+	}
 
 	if (device_may_wakeup(&ebook_switch_idev->dev))
+	{
 		olpc_ec_wakeup_set(EC_SCI_SRC_EBOOK);
+	}
 	else
+	{
 		olpc_ec_wakeup_clear(EC_SCI_SRC_EBOOK);
+	}
 
-	if (!device_may_wakeup(&lid_switch_idev->dev)) {
+	if (!device_may_wakeup(&lid_switch_idev->dev))
+	{
 		cs5535_gpio_clear(OLPC_GPIO_LID, GPIO_EVENTS_ENABLE);
-	} else if ((lid_open && lid_wake_mode == LID_WAKE_OPEN) ||
-		   (!lid_open && lid_wake_mode == LID_WAKE_CLOSE)) {
+	}
+	else if ((lid_open && lid_wake_mode == LID_WAKE_OPEN) ||
+			 (!lid_open && lid_wake_mode == LID_WAKE_CLOSE))
+	{
 		flip_lid_inverter();
 
 		/* we may have just caused an event */
@@ -318,9 +370,12 @@ static int setup_sci_interrupt(struct platform_device *pdev)
 	rdmsr(0x51400020, lo, hi);
 	sci_irq = (lo >> 20) & 15;
 
-	if (sci_irq) {
+	if (sci_irq)
+	{
 		dev_info(&pdev->dev, "SCI is mapped to IRQ %d\n", sci_irq);
-	} else {
+	}
+	else
+	{
 		/* Zero means masked */
 		dev_info(&pdev->dev, "SCI unmapped. Mapping to IRQ 3\n");
 		sci_irq = 3;
@@ -329,11 +384,14 @@ static int setup_sci_interrupt(struct platform_device *pdev)
 	}
 
 	/* Select level triggered in PIC */
-	if (sci_irq < 8) {
+	if (sci_irq < 8)
+	{
 		lo = inb(CS5536_PIC_INT_SEL1);
 		lo |= 1 << sci_irq;
 		outb(lo, CS5536_PIC_INT_SEL1);
-	} else {
+	}
+	else
+	{
 		lo = inb(CS5536_PIC_INT_SEL2);
 		lo |= 1 << (sci_irq - 8);
 		outb(lo, CS5536_PIC_INT_SEL2);
@@ -342,11 +400,14 @@ static int setup_sci_interrupt(struct platform_device *pdev)
 	/* Enable interesting SCI events, and clear pending interrupts */
 	sts = inl(acpi_base + CS5536_PM1_STS);
 	outl(((CS5536_PM_PWRBTN | CS5536_PM_RTC) << 16) | 0xffff,
-	     acpi_base + CS5536_PM1_STS);
+		 acpi_base + CS5536_PM1_STS);
 
 	r = request_irq(sci_irq, xo1_sci_intr, 0, DRV_NAME, pdev);
+
 	if (r)
+	{
 		dev_err(&pdev->dev, "can't request interrupt\n");
+	}
 
 	return r;
 }
@@ -356,8 +417,11 @@ static int setup_ec_sci(void)
 	int r;
 
 	r = gpio_request(OLPC_GPIO_ECSCI, "OLPC-ECSCI");
+
 	if (r)
+	{
 		return r;
+	}
 
 	gpio_direction_input(OLPC_GPIO_ECSCI);
 
@@ -400,8 +464,11 @@ static int setup_lid_events(void)
 	int r;
 
 	r = gpio_request(OLPC_GPIO_LID, "OLPC-LID");
+
 	if (r)
+	{
 		return r;
+	}
 
 	gpio_direction_input(OLPC_GPIO_LID);
 
@@ -437,8 +504,11 @@ static int setup_power_button(struct platform_device *pdev)
 	int r;
 
 	power_button_idev = input_allocate_device();
+
 	if (!power_button_idev)
+	{
 		return -ENOMEM;
+	}
 
 	power_button_idev->name = "Power Button";
 	power_button_idev->phys = DRV_NAME "/input0";
@@ -449,7 +519,9 @@ static int setup_power_button(struct platform_device *pdev)
 	device_init_wakeup(&power_button_idev->dev, 1);
 
 	r = input_register_device(power_button_idev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "failed to register power button: %d\n", r);
 		input_free_device(power_button_idev);
 	}
@@ -467,8 +539,11 @@ static int setup_ebook_switch(struct platform_device *pdev)
 	int r;
 
 	ebook_switch_idev = input_allocate_device();
+
 	if (!ebook_switch_idev)
+	{
 		return -ENOMEM;
+	}
 
 	ebook_switch_idev->name = "EBook Switch";
 	ebook_switch_idev->phys = DRV_NAME "/input1";
@@ -479,7 +554,9 @@ static int setup_ebook_switch(struct platform_device *pdev)
 	device_set_wakeup_capable(&ebook_switch_idev->dev, true);
 
 	r = input_register_device(ebook_switch_idev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "failed to register ebook switch: %d\n", r);
 		input_free_device(ebook_switch_idev);
 	}
@@ -497,8 +574,11 @@ static int setup_lid_switch(struct platform_device *pdev)
 	int r;
 
 	lid_switch_idev = input_allocate_device();
+
 	if (!lid_switch_idev)
+	{
 		return -ENOMEM;
+	}
 
 	lid_switch_idev->name = "Lid Switch";
 	lid_switch_idev->phys = DRV_NAME "/input2";
@@ -509,13 +589,17 @@ static int setup_lid_switch(struct platform_device *pdev)
 	device_set_wakeup_capable(&lid_switch_idev->dev, true);
 
 	r = input_register_device(lid_switch_idev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "failed to register lid switch: %d\n", r);
 		goto err_register;
 	}
 
 	r = device_create_file(&lid_switch_idev->dev, &dev_attr_lid_wake_mode);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "failed to create wake mode attr: %d\n", r);
 		goto err_create_attr;
 	}
@@ -543,42 +627,65 @@ static int xo1_sci_probe(struct platform_device *pdev)
 
 	/* don't run on non-XOs */
 	if (!machine_is_olpc())
+	{
 		return -ENODEV;
+	}
 
 	r = mfd_cell_enable(pdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "can't fetch device resource info\n");
 		return -EIO;
 	}
+
 	acpi_base = res->start;
 
 	r = setup_power_button(pdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = setup_ebook_switch(pdev);
+
 	if (r)
+	{
 		goto err_ebook;
+	}
 
 	r = setup_lid_switch(pdev);
+
 	if (r)
+	{
 		goto err_lid;
+	}
 
 	r = setup_lid_events();
+
 	if (r)
+	{
 		goto err_lidevt;
+	}
 
 	r = setup_ec_sci();
+
 	if (r)
+	{
 		goto err_ecsci;
+	}
 
 	/* Enable PME generation for EC-generated events */
 	outl(CS5536_GPIOM6_PME_EN | CS5536_GPIOM7_PME_EN,
-		acpi_base + CS5536_PM_GPE0_EN);
+		 acpi_base + CS5536_PM_GPE0_EN);
 
 	/* Clear pending events */
 	outl(0xffffffff, acpi_base + CS5536_PM_GPE0_STS);
@@ -590,8 +697,11 @@ static int xo1_sci_probe(struct platform_device *pdev)
 	send_lid_state();
 
 	r = setup_sci_interrupt(pdev);
+
 	if (r)
+	{
 		goto err_sci;
+	}
 
 	/* Enable all EC events */
 	olpc_ec_mask_write(EC_SCI_SRC_ALL);
@@ -625,7 +735,8 @@ static int xo1_sci_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver xo1_sci_driver = {
+static struct platform_driver xo1_sci_driver =
+{
 	.driver = {
 		.name = "olpc-xo1-sci-acpi",
 	},

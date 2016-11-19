@@ -24,21 +24,25 @@
 #include "keystone.h"
 
 static int keystone_smp_boot_secondary(unsigned int cpu,
-						struct task_struct *idle)
+									   struct task_struct *idle)
 {
 	unsigned long start = virt_to_idmap(&secondary_startup);
 	int error;
 
 	pr_debug("keystone-smp: booting cpu %d, vector %08lx\n",
-		 cpu, start);
+			 cpu, start);
 
 	error = keystone_cpu_smc(KEYSTONE_MON_CPU_UP_IDX, cpu, start);
+
 	if (error)
+	{
 		pr_err("CPU %d bringup failed with %d\n", cpu, error);
+	}
 
 	return error;
 }
 
-const struct smp_operations keystone_smp_ops __initconst = {
+const struct smp_operations keystone_smp_ops __initconst =
+{
 	.smp_boot_secondary	= keystone_smp_boot_secondary,
 };

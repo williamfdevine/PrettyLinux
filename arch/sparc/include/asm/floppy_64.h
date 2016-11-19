@@ -27,7 +27,8 @@
  * 2) NCR 82077 controller manual
  * 3) Intel 82077 controller manual
  */
-struct sun_flpy_controller {
+struct sun_flpy_controller
+{
 	volatile unsigned char status1_82077; /* Auxiliary Status reg. 1 */
 	volatile unsigned char status2_82077; /* Auxiliary Status reg. 2 */
 	volatile unsigned char dor_82077;     /* Digital Output reg. */
@@ -41,11 +42,12 @@ struct sun_flpy_controller {
 };
 
 /* You'll only ever find one controller on an Ultra anyways. */
-static struct sun_flpy_controller *sun_fdc = (struct sun_flpy_controller *)-1;
+static struct sun_flpy_controller *sun_fdc = (struct sun_flpy_controller *) - 1;
 unsigned long fdc_status;
 static struct platform_device *floppy_op = NULL;
 
-struct sun_floppy_ops {
+struct sun_floppy_ops
+{
 	unsigned char	(*fd_inb) (unsigned long port);
 	void		(*fd_outb) (unsigned char value, unsigned long port);
 	void		(*fd_enable_dma) (void);
@@ -100,42 +102,55 @@ static int sun_floppy_types[2] = { 0, 0 };
 static unsigned char sun_82077_fd_inb(unsigned long port)
 {
 	udelay(5);
-	switch(port & 7) {
-	default:
-		printk("floppy: Asked to read unknown port %lx\n", port);
-		panic("floppy: Port bolixed.");
-	case 4: /* FD_STATUS */
-		return sbus_readb(&sun_fdc->status_82077) & ~STATUS_DMA;
-	case 5: /* FD_DATA */
-		return sbus_readb(&sun_fdc->data_82077);
-	case 7: /* FD_DIR */
-		/* XXX: Is DCL on 0x80 in sun4m? */
-		return sbus_readb(&sun_fdc->dir_82077);
+
+	switch (port & 7)
+	{
+		default:
+			printk("floppy: Asked to read unknown port %lx\n", port);
+			panic("floppy: Port bolixed.");
+
+		case 4: /* FD_STATUS */
+			return sbus_readb(&sun_fdc->status_82077) & ~STATUS_DMA;
+
+		case 5: /* FD_DATA */
+			return sbus_readb(&sun_fdc->data_82077);
+
+		case 7: /* FD_DIR */
+			/* XXX: Is DCL on 0x80 in sun4m? */
+			return sbus_readb(&sun_fdc->dir_82077);
 	}
+
 	panic("sun_82072_fd_inb: How did I get here?");
 }
 
 static void sun_82077_fd_outb(unsigned char value, unsigned long port)
 {
 	udelay(5);
-	switch(port & 7) {
-	default:
-		printk("floppy: Asked to write to unknown port %lx\n", port);
-		panic("floppy: Port bolixed.");
-	case 2: /* FD_DOR */
-		/* Happily, the 82077 has a real DOR register. */
-		sbus_writeb(value, &sun_fdc->dor_82077);
-		break;
-	case 5: /* FD_DATA */
-		sbus_writeb(value, &sun_fdc->data_82077);
-		break;
-	case 7: /* FD_DCR */
-		sbus_writeb(value, &sun_fdc->dcr_82077);
-		break;
-	case 4: /* FD_STATUS */
-		sbus_writeb(value, &sun_fdc->status_82077);
-		break;
+
+	switch (port & 7)
+	{
+		default:
+			printk("floppy: Asked to write to unknown port %lx\n", port);
+			panic("floppy: Port bolixed.");
+
+		case 2: /* FD_DOR */
+			/* Happily, the 82077 has a real DOR register. */
+			sbus_writeb(value, &sun_fdc->dor_82077);
+			break;
+
+		case 5: /* FD_DATA */
+			sbus_writeb(value, &sun_fdc->data_82077);
+			break;
+
+		case 7: /* FD_DCR */
+			sbus_writeb(value, &sun_fdc->dcr_82077);
+			break;
+
+		case 4: /* FD_STATUS */
+			sbus_writeb(value, &sun_fdc->status_82077);
+			break;
 	}
+
 	return;
 }
 
@@ -166,16 +181,19 @@ static void sun_fd_disable_dma(void)
 
 static void sun_fd_set_dma_mode(int mode)
 {
-	switch(mode) {
-	case DMA_MODE_READ:
-		doing_pdma = 1;
-		break;
-	case DMA_MODE_WRITE:
-		doing_pdma = 2;
-		break;
-	default:
-		printk("Unknown dma mode %d\n", mode);
-		panic("floppy: Giving up...");
+	switch (mode)
+	{
+		case DMA_MODE_READ:
+			doing_pdma = 1;
+			break;
+
+		case DMA_MODE_WRITE:
+			doing_pdma = 2;
+			break;
+
+		default:
+			printk("Unknown dma mode %d\n", mode);
+			panic("floppy: Giving up...");
 	}
 }
 
@@ -197,34 +215,45 @@ static void sun_fd_enable_dma(void)
 
 irqreturn_t sparc_floppy_irq(int irq, void *dev_cookie)
 {
-	if (likely(doing_pdma)) {
+	if (likely(doing_pdma))
+	{
 		void __iomem *stat = (void __iomem *) fdc_status;
 		unsigned char *vaddr = pdma_vaddr;
 		unsigned long size = pdma_size;
 		u8 val;
 
-		while (size) {
+		while (size)
+		{
 			val = readb(stat);
-			if (unlikely(!(val & 0x80))) {
+
+			if (unlikely(!(val & 0x80)))
+			{
 				pdma_vaddr = vaddr;
 				pdma_size = size;
 				return IRQ_HANDLED;
 			}
-			if (unlikely(!(val & 0x20))) {
+
+			if (unlikely(!(val & 0x20)))
+			{
 				pdma_vaddr = vaddr;
 				pdma_size = size;
 				doing_pdma = 0;
 				goto main_interrupt;
 			}
-			if (val & 0x40) {
+
+			if (val & 0x40)
+			{
 				/* read */
 				*vaddr++ = readb(stat + 1);
-			} else {
+			}
+			else
+			{
 				unsigned char data = *vaddr++;
 
 				/* write */
 				writeb(data, stat + 1);
 			}
+
 			size--;
 		}
 
@@ -250,14 +279,16 @@ static int sun_fd_request_irq(void)
 	static int once = 0;
 	int error;
 
-	if(!once) {
+	if (!once)
+	{
 		once = 1;
 
 		error = request_irq(FLOPPY_IRQ, sparc_floppy_irq,
-				    0, "floppy", NULL);
+							0, "floppy", NULL);
 
 		return ((error == 0) ? 0 : -1);
 	}
+
 	return 0;
 }
 
@@ -287,7 +318,8 @@ static struct ebus_dma_info sun_pci_fd_ebus_dma;
 static struct device *sun_floppy_dev;
 static int sun_pci_broken_drive = -1;
 
-struct sun_pci_dma_op {
+struct sun_pci_dma_op
+{
 	unsigned int 	addr;
 	int		len;
 	int		direction;
@@ -313,6 +345,7 @@ static void sun_pci_fd_outb(unsigned char val, unsigned long port)
 static void sun_pci_fd_broken_outb(unsigned char val, unsigned long port)
 {
 	udelay(5);
+
 	/*
 	 * XXX: Due to SUN's broken floppy connector on AX and AXi
 	 *      we need to turn on MOTOR_0 also, if the floppy is
@@ -320,11 +353,14 @@ static void sun_pci_fd_broken_outb(unsigned char val, unsigned long port)
 	 *      this does not hurt correct hardware like the AXmp.
 	 *      (Eddie, Sep 12 1998).
 	 */
-	if (port == ((unsigned long)sun_fdc) + 2) {
-		if (((val & 0x03) == sun_pci_broken_drive) && (val & 0x20)) {
+	if (port == ((unsigned long)sun_fdc) + 2)
+	{
+		if (((val & 0x03) == sun_pci_broken_drive) && (val & 0x20))
+		{
 			val |= 0x10;
 		}
 	}
+
 	outb(val, port);
 }
 
@@ -332,6 +368,7 @@ static void sun_pci_fd_broken_outb(unsigned char val, unsigned long port)
 static void sun_pci_fd_lde_broken_outb(unsigned char val, unsigned long port)
 {
 	udelay(5);
+
 	/*
 	 * XXX: Due to SUN's broken floppy connector on AX and AXi
 	 *      we need to turn on MOTOR_0 also, if the floppy is
@@ -339,12 +376,15 @@ static void sun_pci_fd_lde_broken_outb(unsigned char val, unsigned long port)
 	 *      this does not hurt correct hardware like the AXmp.
 	 *      (Eddie, Sep 12 1998).
 	 */
-	if (port == ((unsigned long)sun_fdc) + 2) {
-		if (((val & 0x03) == sun_pci_broken_drive) && (val & 0x10)) {
+	if (port == ((unsigned long)sun_fdc) + 2)
+	{
+		if (((val & 0x03) == sun_pci_broken_drive) && (val & 0x10))
+		{
 			val &= ~(0x03);
 			val |= 0x21;
 		}
 	}
+
 	outb(val, port);
 }
 #endif /* PCI_FDC_SWAP_DRIVES */
@@ -352,8 +392,8 @@ static void sun_pci_fd_lde_broken_outb(unsigned char val, unsigned long port)
 static void sun_pci_fd_enable_dma(void)
 {
 	BUG_ON((NULL == sun_pci_dma_pending.buf) 	||
-	    (0	  == sun_pci_dma_pending.len) 	||
-	    (0	  == sun_pci_dma_pending.direction));
+		   (0	  == sun_pci_dma_pending.len) 	||
+		   (0	  == sun_pci_dma_pending.direction));
 
 	sun_pci_dma_current.buf = sun_pci_dma_pending.buf;
 	sun_pci_dma_current.len = sun_pci_dma_pending.len;
@@ -366,35 +406,43 @@ static void sun_pci_fd_enable_dma(void)
 
 	sun_pci_dma_current.addr =
 		dma_map_single(sun_floppy_dev,
-			       sun_pci_dma_current.buf,
-			       sun_pci_dma_current.len,
-			       sun_pci_dma_current.direction);
+					   sun_pci_dma_current.buf,
+					   sun_pci_dma_current.len,
+					   sun_pci_dma_current.direction);
 
 	ebus_dma_enable(&sun_pci_fd_ebus_dma, 1);
 
 	if (ebus_dma_request(&sun_pci_fd_ebus_dma,
-			     sun_pci_dma_current.addr,
-			     sun_pci_dma_current.len))
+						 sun_pci_dma_current.addr,
+						 sun_pci_dma_current.len))
+	{
 		BUG();
+	}
 }
 
 static void sun_pci_fd_disable_dma(void)
 {
 	ebus_dma_enable(&sun_pci_fd_ebus_dma, 0);
+
 	if (sun_pci_dma_current.addr != -1U)
 		dma_unmap_single(sun_floppy_dev,
-				 sun_pci_dma_current.addr,
-				 sun_pci_dma_current.len,
-				 sun_pci_dma_current.direction);
+						 sun_pci_dma_current.addr,
+						 sun_pci_dma_current.len,
+						 sun_pci_dma_current.direction);
+
 	sun_pci_dma_current.addr = -1U;
 }
 
 static void sun_pci_fd_set_dma_mode(int mode)
 {
 	if (mode == DMA_MODE_WRITE)
+	{
 		sun_pci_dma_pending.direction = DMA_TO_DEVICE;
+	}
 	else
+	{
 		sun_pci_dma_pending.direction = DMA_FROM_DEVICE;
+	}
 
 	ebus_dma_prepare(&sun_pci_fd_ebus_dma, mode != DMA_MODE_WRITE);
 }
@@ -444,13 +492,16 @@ void sun_pci_fd_dma_callback(struct ebus_dma_info *p, int event, void *cookie)
 #define FIFO	(port + 5)
 
 static void sun_pci_fd_out_byte(unsigned long port, unsigned char val,
-			        unsigned long reg)
+								unsigned long reg)
 {
 	unsigned char status;
 	int timeout = 1000;
 
 	while (!((status = inb(MSR)) & 0x80) && --timeout)
+	{
 		udelay(100);
+	}
+
 	outb(val, reg);
 }
 
@@ -461,20 +512,31 @@ static unsigned char sun_pci_fd_sensei(unsigned long port)
 	int i = 0;
 
 	sun_pci_fd_out_byte(port, 0x08, FIFO);
-	do {
+
+	do
+	{
 		int timeout = 1000;
 
 		while (!((status = inb(MSR)) & 0x80) && --timeout)
+		{
 			udelay(100);
+		}
 
 		if (!timeout)
+		{
 			break;
+		}
 
 		if ((status & 0xf0) == 0xd0)
+		{
 			result[i++] = inb(FIFO);
+		}
 		else
+		{
 			break;
-	} while (i < 2);
+		}
+	}
+	while (i < 2);
 
 	return result[0];
 }
@@ -486,13 +548,21 @@ static void sun_pci_fd_reset(unsigned long port)
 	int timeout = 10000;
 
 	outb(0x80, MSR);
-	do {
+
+	do
+	{
 		status = sun_pci_fd_sensei(port);
+
 		if ((status & 0xc0) == 0xc0)
+		{
 			mask |= 1 << (status & 0x03);
+		}
 		else
+		{
 			udelay(100);
-	} while ((mask != 0x0f) && --timeout);
+		}
+	}
+	while ((mask != 0x0f) && --timeout);
 }
 
 static int sun_pci_fd_test_drive(unsigned long port, int drive)
@@ -509,15 +579,21 @@ static int sun_pci_fd_test_drive(unsigned long port, int drive)
 	sun_pci_fd_out_byte(port, 0x07, FIFO);
 	sun_pci_fd_out_byte(port, drive & 0x03, FIFO);
 
-	do {
+	do
+	{
 		udelay(100);
 		status = sun_pci_fd_sensei(port);
-	} while (((status & 0xc0) == 0x80) && --timeout);
+	}
+	while (((status & 0xc0) == 0x80) && --timeout);
 
 	if (!timeout)
+	{
 		ready = 0;
+	}
 	else
+	{
 		ready = (status & 0x10) ? 0 : 1;
+	}
 
 	sun_pci_fd_reset(port);
 	return ready;
@@ -529,14 +605,22 @@ static int sun_pci_fd_test_drive(unsigned long port, int drive)
 static int __init ebus_fdthree_p(struct device_node *dp)
 {
 	if (!strcmp(dp->name, "fdthree"))
+	{
 		return 1;
-	if (!strcmp(dp->name, "floppy")) {
+	}
+
+	if (!strcmp(dp->name, "floppy"))
+	{
 		const char *compat;
 
 		compat = of_get_property(dp, "compatible", NULL);
+
 		if (compat && !strcmp(compat, "fdthree"))
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -549,45 +633,72 @@ static unsigned long __init sun_floppy_init(void)
 	char state[128];
 
 	if (initialized)
+	{
 		return sun_floppy_types[0];
+	}
+
 	initialized = 1;
 
 	op = NULL;
 
-	for_each_node_by_name(dp, "SUNW,fdtwo") {
+	for_each_node_by_name(dp, "SUNW,fdtwo")
+	{
 		if (strcmp(dp->parent->name, "sbus"))
+		{
 			continue;
+		}
+
 		op = of_find_device_by_node(dp);
+
 		if (op)
+		{
 			break;
+		}
 	}
-	if (op) {
+
+	if (op)
+	{
 		floppy_op = op;
 		FLOPPY_IRQ = op->archdata.irqs[0];
-	} else {
+	}
+	else
+	{
 		struct device_node *ebus_dp;
 		void __iomem *auxio_reg;
 		const char *state_prop;
 		unsigned long config;
 
 		dp = NULL;
-		for_each_node_by_name(ebus_dp, "ebus") {
-			for (dp = ebus_dp->child; dp; dp = dp->sibling) {
+		for_each_node_by_name(ebus_dp, "ebus")
+		{
+			for (dp = ebus_dp->child; dp; dp = dp->sibling)
+			{
 				if (ebus_fdthree_p(dp))
+				{
 					goto found_fdthree;
+				}
 			}
 		}
-	found_fdthree:
+found_fdthree:
+
 		if (!dp)
+		{
 			return 0;
+		}
 
 		op = of_find_device_by_node(dp);
+
 		if (!op)
+		{
 			return 0;
+		}
 
 		state_prop = of_get_property(op->dev.of_node, "status", NULL);
+
 		if (state_prop && !strncmp(state_prop, "disabled", 8))
+		{
 			return 0;
+		}
 
 		FLOPPY_IRQ = op->archdata.irqs[0];
 
@@ -595,7 +706,7 @@ static unsigned long __init sun_floppy_init(void)
 		 * (most notably Ultra5/Ultra10) come up with it clear.
 		 */
 		auxio_reg = (void __iomem *) op->resource[2].start;
-		writel(readl(auxio_reg)|0x2, auxio_reg);
+		writel(readl(auxio_reg) | 0x2, auxio_reg);
 
 		sun_floppy_dev = &op->dev;
 
@@ -603,18 +714,24 @@ static unsigned long __init sun_floppy_init(void)
 
 		/* XXX ioremap */
 		sun_pci_fd_ebus_dma.regs = (void __iomem *)
-			op->resource[1].start;
+								   op->resource[1].start;
+
 		if (!sun_pci_fd_ebus_dma.regs)
+		{
 			return 0;
+		}
 
 		sun_pci_fd_ebus_dma.flags = (EBUS_DMA_FLAG_USE_EBDMA_HANDLER |
-					     EBUS_DMA_FLAG_TCI_DISABLE);
+									 EBUS_DMA_FLAG_TCI_DISABLE);
 		sun_pci_fd_ebus_dma.callback = sun_pci_fd_dma_callback;
 		sun_pci_fd_ebus_dma.client_cookie = NULL;
 		sun_pci_fd_ebus_dma.irq = FLOPPY_IRQ;
 		strcpy(sun_pci_fd_ebus_dma.name, "floppy");
+
 		if (ebus_dma_register(&sun_pci_fd_ebus_dma))
+		{
 			return 0;
+		}
 
 		/* XXX ioremap */
 		sun_fdc = (struct sun_flpy_controller *) op->resource[0].start;
@@ -640,57 +757,78 @@ static unsigned long __init sun_floppy_init(void)
 		/*
 		 * XXX: Find out on which machines this is really needed.
 		 */
-		if (1) {
+		if (1)
+		{
 			sun_pci_broken_drive = 1;
 			sun_fdops.fd_outb = sun_pci_fd_broken_outb;
 		}
 
 		allowed_drive_mask = 0;
+
 		if (sun_pci_fd_test_drive((unsigned long)sun_fdc, 0))
+		{
 			sun_floppy_types[0] = 4;
+		}
+
 		if (sun_pci_fd_test_drive((unsigned long)sun_fdc, 1))
+		{
 			sun_floppy_types[1] = 4;
+		}
 
 		/*
 		 * Find NS87303 SuperIO config registers (through ecpp).
 		 */
 		config = 0;
-		for (dp = ebus_dp->child; dp; dp = dp->sibling) {
-			if (!strcmp(dp->name, "ecpp")) {
+
+		for (dp = ebus_dp->child; dp; dp = dp->sibling)
+		{
+			if (!strcmp(dp->name, "ecpp"))
+			{
 				struct platform_device *ecpp_op;
 
 				ecpp_op = of_find_device_by_node(dp);
+
 				if (ecpp_op)
+				{
 					config = ecpp_op->resource[1].start;
+				}
+
 				goto config_done;
 			}
 		}
-	config_done:
+
+config_done:
 
 		/*
 		 * Sanity check, is this really the NS87303?
 		 */
-		switch (config & 0x3ff) {
-		case 0x02e:
-		case 0x15c:
-		case 0x26e:
-		case 0x398:
-			break;
-		default:
-			config = 0;
+		switch (config & 0x3ff)
+		{
+			case 0x02e:
+			case 0x15c:
+			case 0x26e:
+			case 0x398:
+				break;
+
+			default:
+				config = 0;
 		}
 
 		if (!config)
+		{
 			return sun_floppy_types[0];
+		}
 
 		/* Enable PC-AT mode. */
 		ns87303_modify(config, ASC, 0, 0xc0);
 
 #ifdef PCI_FDC_SWAP_DRIVES
+
 		/*
 		 * If only Floppy 1 is present, swap drives.
 		 */
-		if (!sun_floppy_types[0] && sun_floppy_types[1]) {
+		if (!sun_floppy_types[0] && sun_floppy_types[1])
+		{
 			/*
 			 * Set the drive exchange bit in FCR on NS87303,
 			 * make sure other bits are sane before doing so.
@@ -703,18 +841,24 @@ static unsigned long __init sun_floppy_init(void)
 			sun_floppy_types[0] = sun_floppy_types[1];
 			sun_floppy_types[1] = config;
 
-			if (sun_pci_broken_drive != -1) {
+			if (sun_pci_broken_drive != -1)
+			{
 				sun_pci_broken_drive = 1 - sun_pci_broken_drive;
 				sun_fdops.fd_outb = sun_pci_fd_lde_broken_outb;
 			}
 		}
+
 #endif /* PCI_FDC_SWAP_DRIVES */
 
 		return sun_floppy_types[0];
 	}
+
 	prop = of_get_property(op->dev.of_node, "status", NULL);
+
 	if (prop && !strncmp(state, "disabled", 8))
+	{
 		return 0;
+	}
 
 	/*
 	 * We cannot do of_ioremap here: it does request_region,
@@ -723,17 +867,18 @@ static unsigned long __init sun_floppy_init(void)
 	 * had parent ranges applied.
 	 */
 	sun_fdc = (struct sun_flpy_controller *)
-		(op->resource[0].start +
-		 ((op->resource[0].flags & 0x1ffUL) << 32UL));
+			  (op->resource[0].start +
+			   ((op->resource[0].flags & 0x1ffUL) << 32UL));
 
 	/* Last minute sanity check... */
-	if (sbus_readb(&sun_fdc->status1_82077) == 0xff) {
-		sun_fdc = (struct sun_flpy_controller *)-1;
+	if (sbus_readb(&sun_fdc->status1_82077) == 0xff)
+	{
+		sun_fdc = (struct sun_flpy_controller *) - 1;
 		return 0;
 	}
 
-        sun_fdops.fd_inb = sun_82077_fd_inb;
-        sun_fdops.fd_outb = sun_82077_fd_outb;
+	sun_fdops.fd_inb = sun_82077_fd_inb;
+	sun_fdops.fd_outb = sun_82077_fd_outb;
 
 	can_use_virtual_dma = use_virtual_dma = 1;
 	sun_fdops.fd_enable_dma = sun_fd_enable_dma;
@@ -748,7 +893,7 @@ static unsigned long __init sun_floppy_init(void)
 
 	sun_fdops.fd_eject = sun_fd_eject;
 
-        fdc_status = (unsigned long) &sun_fdc->status_82077;
+	fdc_status = (unsigned long) &sun_fdc->status_82077;
 
 	/* Success... */
 	allowed_drive_mask = 0x01;
@@ -763,10 +908,10 @@ static unsigned long __init sun_floppy_init(void)
 static DEFINE_SPINLOCK(dma_spin_lock);
 
 #define claim_dma_lock() \
-({	unsigned long flags; \
-	spin_lock_irqsave(&dma_spin_lock, flags); \
-	flags; \
-})
+	({	unsigned long flags; \
+		spin_lock_irqsave(&dma_spin_lock, flags); \
+		flags; \
+	})
 
 #define release_dma_lock(__flags) \
 	spin_unlock_irqrestore(&dma_spin_lock, __flags);

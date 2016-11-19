@@ -26,28 +26,28 @@
 /*  This is probably not the most graceful way to handle this.  */
 
 #ifdef CONFIG_PAGE_SIZE_4KB
-#define PAGE_SHIFT 12
-#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_4KB
+	#define PAGE_SHIFT 12
+	#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_4KB
 #endif
 
 #ifdef CONFIG_PAGE_SIZE_16KB
-#define PAGE_SHIFT 14
-#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_16KB
+	#define PAGE_SHIFT 14
+	#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_16KB
 #endif
 
 #ifdef CONFIG_PAGE_SIZE_64KB
-#define PAGE_SHIFT 16
-#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_64KB
+	#define PAGE_SHIFT 16
+	#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_64KB
 #endif
 
 #ifdef CONFIG_PAGE_SIZE_256KB
-#define PAGE_SHIFT 18
-#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_256KB
+	#define PAGE_SHIFT 18
+	#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_256KB
 #endif
 
 #ifdef CONFIG_PAGE_SIZE_1MB
-#define PAGE_SHIFT 20
-#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_1MB
+	#define PAGE_SHIFT 20
+	#define HEXAGON_L1_PTE_SIZE __HVM_PDE_S_1MB
 #endif
 
 /*
@@ -56,11 +56,11 @@
  *  in L1 PTE's.  Right now, it's set up for 4MB.
  */
 #ifdef CONFIG_HUGETLB_PAGE
-#define HPAGE_SHIFT 22
-#define HPAGE_SIZE (1UL << HPAGE_SHIFT)
-#define HPAGE_MASK (~(HPAGE_SIZE-1))
-#define HUGETLB_PAGE_ORDER (HPAGE_SHIFT-PAGE_SHIFT)
-#define HVM_HUGEPAGE_SIZE 0x5
+	#define HPAGE_SHIFT 22
+	#define HPAGE_SIZE (1UL << HPAGE_SHIFT)
+	#define HPAGE_MASK (~(HPAGE_SIZE-1))
+	#define HUGETLB_PAGE_ORDER (HPAGE_SHIFT-PAGE_SHIFT)
+	#define HVM_HUGEPAGE_SIZE 0x5
 #endif
 
 #define PAGE_SIZE  (1UL << PAGE_SHIFT)
@@ -107,7 +107,7 @@ struct page;
 
 /* Default vm area behavior is non-executable.  */
 #define VM_DATA_DEFAULT_FLAGS (VM_READ | VM_WRITE | \
-				VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+							   VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #define pfn_valid(pfn) ((pfn) < max_mapnr)
 #define virt_addr_valid(kaddr) pfn_valid(__pa(kaddr) >> PAGE_SHIFT)

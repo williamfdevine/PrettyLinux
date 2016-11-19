@@ -33,15 +33,17 @@ ht_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
 	int ret;
 
 	ret = parent->chip->irq_set_affinity(parent, mask, force);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		struct ht_irq_msg msg;
 		struct irq_cfg *cfg = irqd_cfg(data);
 
 		fetch_ht_irq_msg(data->irq, &msg);
 		msg.address_lo &= ~(HT_IRQ_LOW_VECTOR_MASK |
-				    HT_IRQ_LOW_DEST_ID_MASK);
+							HT_IRQ_LOW_DEST_ID_MASK);
 		msg.address_lo |= HT_IRQ_LOW_VECTOR(cfg->vector) |
-				  HT_IRQ_LOW_DEST_ID(cfg->dest_apicid);
+						  HT_IRQ_LOW_DEST_ID(cfg->dest_apicid);
 		msg.address_hi &= ~(HT_IRQ_HIGH_DEST_ID_MASK);
 		msg.address_hi |= HT_IRQ_HIGH_DEST_ID(cfg->dest_apicid);
 		write_ht_irq_msg(data->irq, &msg);
@@ -50,7 +52,8 @@ ht_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
 	return ret;
 }
 
-static struct irq_chip ht_irq_chip = {
+static struct irq_chip ht_irq_chip =
+{
 	.name			= "PCI-HT",
 	.irq_mask		= mask_ht_irq,
 	.irq_unmask		= unmask_ht_irq,
@@ -61,7 +64,7 @@ static struct irq_chip ht_irq_chip = {
 };
 
 static int htirq_domain_alloc(struct irq_domain *domain, unsigned int virq,
-			      unsigned int nr_irqs, void *arg)
+							  unsigned int nr_irqs, void *arg)
 {
 	struct ht_irq_cfg *ht_cfg;
 	struct irq_alloc_info *info = arg;
@@ -70,21 +73,31 @@ static int htirq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	int ret;
 
 	if (nr_irqs > 1 || !info)
+	{
 		return -EINVAL;
+	}
 
 	dev = info->ht_dev;
 	hwirq = (info->ht_idx & 0xFF) |
-		PCI_DEVID(dev->bus->number, dev->devfn) << 8 |
-		(pci_domain_nr(dev->bus) & 0xFFFFFFFF) << 24;
+			PCI_DEVID(dev->bus->number, dev->devfn) << 8 |
+			(pci_domain_nr(dev->bus) & 0xFFFFFFFF) << 24;
+
 	if (irq_find_mapping(domain, hwirq) > 0)
+	{
 		return -EEXIST;
+	}
 
 	ht_cfg = kmalloc(sizeof(*ht_cfg), GFP_KERNEL);
+
 	if (!ht_cfg)
+	{
 		return -ENOMEM;
+	}
 
 	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, info);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(ht_cfg);
 		return ret;
 	}
@@ -97,13 +110,13 @@ static int htirq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	ht_cfg->pos = info->ht_pos;
 	ht_cfg->idx = 0x10 + (info->ht_idx * 2);
 	irq_domain_set_info(domain, virq, hwirq, &ht_irq_chip, ht_cfg,
-			    handle_edge_irq, ht_cfg, "edge");
+						handle_edge_irq, ht_cfg, "edge");
 
 	return 0;
 }
 
 static void htirq_domain_free(struct irq_domain *domain, unsigned int virq,
-			      unsigned int nr_irqs)
+							  unsigned int nr_irqs)
 {
 	struct irq_data *irq_data = irq_domain_get_irq_data(domain, virq);
 
@@ -113,7 +126,7 @@ static void htirq_domain_free(struct irq_domain *domain, unsigned int virq,
 }
 
 static void htirq_domain_activate(struct irq_domain *domain,
-				  struct irq_data *irq_data)
+								  struct irq_data *irq_data)
 {
 	struct ht_irq_msg msg;
 	struct irq_cfg *cfg = irqd_cfg(irq_data);
@@ -124,18 +137,18 @@ static void htirq_domain_activate(struct irq_domain *domain,
 		HT_IRQ_LOW_DEST_ID(cfg->dest_apicid) |
 		HT_IRQ_LOW_VECTOR(cfg->vector) |
 		((apic->irq_dest_mode == 0) ?
-			HT_IRQ_LOW_DM_PHYSICAL :
-			HT_IRQ_LOW_DM_LOGICAL) |
+		 HT_IRQ_LOW_DM_PHYSICAL :
+		 HT_IRQ_LOW_DM_LOGICAL) |
 		HT_IRQ_LOW_RQEOI_EDGE |
 		((apic->irq_delivery_mode != dest_LowestPrio) ?
-			HT_IRQ_LOW_MT_FIXED :
-			HT_IRQ_LOW_MT_ARBITRATED) |
+		 HT_IRQ_LOW_MT_FIXED :
+		 HT_IRQ_LOW_MT_ARBITRATED) |
 		HT_IRQ_LOW_IRQ_MASKED;
 	write_ht_irq_msg(irq_data->irq, &msg);
 }
 
 static void htirq_domain_deactivate(struct irq_domain *domain,
-				    struct irq_data *irq_data)
+									struct irq_data *irq_data)
 {
 	struct ht_irq_msg msg;
 
@@ -143,7 +156,8 @@ static void htirq_domain_deactivate(struct irq_domain *domain,
 	write_ht_irq_msg(irq_data->irq, &msg);
 }
 
-static const struct irq_domain_ops htirq_domain_ops = {
+static const struct irq_domain_ops htirq_domain_ops =
+{
 	.alloc		= htirq_domain_alloc,
 	.free		= htirq_domain_free,
 	.activate	= htirq_domain_activate,
@@ -153,22 +167,31 @@ static const struct irq_domain_ops htirq_domain_ops = {
 void arch_init_htirq_domain(struct irq_domain *parent)
 {
 	if (disable_apic)
+	{
 		return;
+	}
 
 	htirq_domain = irq_domain_add_tree(NULL, &htirq_domain_ops, NULL);
+
 	if (!htirq_domain)
+	{
 		pr_warn("failed to initialize irqdomain for HTIRQ.\n");
+	}
 	else
+	{
 		htirq_domain->parent = parent;
+	}
 }
 
 int arch_setup_ht_irq(int idx, int pos, struct pci_dev *dev,
-		      ht_irq_update_t *update)
+					  ht_irq_update_t *update)
 {
 	struct irq_alloc_info info;
 
 	if (!htirq_domain)
+	{
 		return -ENOSYS;
+	}
 
 	init_irq_alloc_info(&info, NULL);
 	info.ht_idx = idx;
@@ -177,7 +200,7 @@ int arch_setup_ht_irq(int idx, int pos, struct pci_dev *dev,
 	info.ht_update = update;
 
 	return irq_domain_alloc_irqs(htirq_domain, 1, dev_to_node(&dev->dev),
-				     &info);
+								 &info);
 }
 
 void arch_teardown_ht_irq(unsigned int irq)

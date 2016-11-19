@@ -46,7 +46,7 @@ ia64_rse_num_regs (unsigned long *bspstore, unsigned long *bsp)
 {
 	unsigned long slots = (bsp - bspstore);
 
-	return slots - (ia64_rse_slot_num(bspstore) + slots)/0x40;
+	return slots - (ia64_rse_slot_num(bspstore) + slots) / 0x40;
 }
 
 /*
@@ -59,8 +59,11 @@ ia64_rse_skip_regs (unsigned long *addr, long num_regs)
 	long delta = ia64_rse_slot_num(addr) + num_regs;
 
 	if (num_regs < 0)
+	{
 		delta -= 0x3e;
-	return addr + num_regs + delta/0x3f;
+	}
+
+	return addr + num_regs + delta / 0x3f;
 }
 
 #endif /* _ASM_IA64_RSE_H */

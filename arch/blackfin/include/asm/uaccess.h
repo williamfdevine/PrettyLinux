@@ -59,7 +59,8 @@ extern int _access_ok(unsigned long addr, unsigned long size);
  * on our cache or tlb entries.
  */
 
-struct exception_table_entry {
+struct exception_table_entry
+{
 	unsigned long insn, fixup;
 };
 
@@ -77,27 +78,27 @@ struct exception_table_entry {
 			_err = -EFAULT;				\
 		}						\
 		else {						\
-		switch (sizeof (*(_p))) {			\
-		case 1:						\
-			__put_user_asm(_x, _p, B);		\
-			break;					\
-		case 2:						\
-			__put_user_asm(_x, _p, W);		\
-			break;					\
-		case 4:						\
-			__put_user_asm(_x, _p,  );		\
-			break;					\
-		case 8: {					\
-			long _xl, _xh;				\
-			_xl = ((__force long *)&_x)[0];		\
-			_xh = ((__force long *)&_x)[1];		\
-			__put_user_asm(_xl, ((__force long __user *)_p)+0, );\
-			__put_user_asm(_xh, ((__force long __user *)_p)+1, );\
-		} break;					\
-		default:					\
-			_err = __put_user_bad();		\
-			break;					\
-		}						\
+			switch (sizeof (*(_p))) {			\
+				case 1:						\
+					__put_user_asm(_x, _p, B);		\
+					break;					\
+				case 2:						\
+					__put_user_asm(_x, _p, W);		\
+					break;					\
+				case 4:						\
+					__put_user_asm(_x, _p,  );		\
+					break;					\
+				case 8: {					\
+						long _xl, _xh;				\
+						_xl = ((__force long *)&_x)[0];		\
+						_xh = ((__force long *)&_x)[1];		\
+						__put_user_asm(_xl, ((__force long __user *)_p)+0, );\
+						__put_user_asm(_xh, ((__force long __user *)_p)+1, );\
+					} break;					\
+				default:					\
+					_err = __put_user_bad();		\
+					break;					\
+			}						\
 		}						\
 		_err;						\
 	})
@@ -110,8 +111,8 @@ static inline int bad_user_access_length(void)
 }
 
 #define __put_user_bad() (printk(KERN_INFO "put_user_bad %s:%d %s\n",\
-                           __FILE__, __LINE__, __func__),\
-                           bad_user_access_length(), (-EFAULT))
+								 __FILE__, __LINE__, __func__),\
+						  bad_user_access_length(), (-EFAULT))
 
 /*
  * Tell gcc we read from memory instead of writing: this is because
@@ -123,45 +124,45 @@ static inline int bad_user_access_length(void)
 
 #define __put_user_asm(x, p, bhw)			\
 	__asm__ (#bhw"[%1] = %0;\n\t"			\
-		 : /* no outputs */			\
-		 :"d" (x), "a" (__ptr(p)) : "memory")
+			 : /* no outputs */			\
+			 :"d" (x), "a" (__ptr(p)) : "memory")
 
 #define get_user(x, ptr)					\
-({								\
-	int _err = 0;						\
-	unsigned long _val = 0;					\
-	const typeof(*(ptr)) __user *_p = (ptr);		\
-	const size_t ptr_size = sizeof(*(_p));			\
-	if (likely(access_ok(VERIFY_READ, _p, ptr_size))) {	\
-		BUILD_BUG_ON(ptr_size >= 8);			\
-		switch (ptr_size) {				\
-		case 1:						\
-			__get_user_asm(_val, _p, B, (Z));	\
-			break;					\
-		case 2:						\
-			__get_user_asm(_val, _p, W, (Z));	\
-			break;					\
-		case 4:						\
-			__get_user_asm(_val, _p,  , );		\
-			break;					\
-		}						\
-	} else							\
-		_err = -EFAULT;					\
-	x = (__force typeof(*(ptr)))_val;			\
-	_err;							\
-})
+	({								\
+		int _err = 0;						\
+		unsigned long _val = 0;					\
+		const typeof(*(ptr)) __user *_p = (ptr);		\
+		const size_t ptr_size = sizeof(*(_p));			\
+		if (likely(access_ok(VERIFY_READ, _p, ptr_size))) {	\
+			BUILD_BUG_ON(ptr_size >= 8);			\
+			switch (ptr_size) {				\
+				case 1:						\
+					__get_user_asm(_val, _p, B, (Z));	\
+					break;					\
+				case 2:						\
+					__get_user_asm(_val, _p, W, (Z));	\
+					break;					\
+				case 4:						\
+					__get_user_asm(_val, _p,  , );		\
+					break;					\
+			}						\
+		} else							\
+			_err = -EFAULT;					\
+		x = (__force typeof(*(ptr)))_val;			\
+		_err;							\
+	})
 
 #define __get_user(x, p) get_user(x, p)
 
 #define __get_user_bad() (bad_user_access_length(), (-EFAULT))
 
 #define __get_user_asm(x, ptr, bhw, option)	\
-({						\
-	__asm__ __volatile__ (			\
-		"%0 =" #bhw "[%1]" #option ";"	\
-		: "=d" (x)			\
-		: "a" (__ptr(ptr)));		\
-})
+	({						\
+		__asm__ __volatile__ (			\
+										"%0 =" #bhw "[%1]" #option ";"	\
+										: "=d" (x)			\
+										: "a" (__ptr(ptr)));		\
+	})
 
 #define __copy_to_user_inatomic __copy_to_user
 #define __copy_from_user_inatomic __copy_from_user
@@ -185,7 +186,10 @@ static inline unsigned long __must_check
 copy_from_user(void *to, const void __user *from, unsigned long n)
 {
 	if (likely(access_ok(VERIFY_READ, from, n)))
+	{
 		return __copy_from_user(to, from, n);
+	}
+
 	memset(to, 0, n);
 	return n;
 }
@@ -194,7 +198,10 @@ static inline unsigned long __must_check
 copy_to_user(void __user *to, const void *from, unsigned long n)
 {
 	if (likely(access_ok(VERIFY_WRITE, to, n)))
+	{
 		return __copy_to_user(to, from, n);
+	}
+
 	return n;
 }
 
@@ -206,10 +213,16 @@ static inline long __must_check
 strncpy_from_user(char *dst, const char __user *src, long count)
 {
 	char *tmp;
+
 	if (!access_ok(VERIFY_READ, src, 1))
+	{
 		return -EFAULT;
+	}
+
 	strncpy(dst, (const char __force *)src, count);
+
 	for (tmp = dst; *tmp && count > 0; tmp++, count--) ;
+
 	return (tmp - dst);
 }
 
@@ -227,14 +240,20 @@ strncpy_from_user(char *dst, const char __user *src, long count)
 static inline long __must_check strnlen_user(const char __user *src, long n)
 {
 	if (!access_ok(VERIFY_READ, src, 1))
+	{
 		return 0;
+	}
+
 	return strnlen((const char __force *)src, n) + 1;
 }
 
 static inline long __must_check strlen_user(const char __user *src)
 {
 	if (!access_ok(VERIFY_READ, src, 1))
+	{
 		return 0;
+	}
+
 	return strlen((const char __force *)src) + 1;
 }
 
@@ -246,7 +265,10 @@ static inline unsigned long __must_check
 __clear_user(void __user *to, unsigned long n)
 {
 	if (!access_ok(VERIFY_WRITE, to, n))
+	{
 		return n;
+	}
+
 	memset((void __force *)to, 0, n);
 	return 0;
 }
@@ -260,7 +282,8 @@ __clear_user(void __user *to, unsigned long n)
  *	IDMA:      can only be accessed by interprocessor dma memcpy (BF561)
  *	ITEST:     can be accessed by isram memcpy or dma memcpy
  */
-enum {
+enum
+{
 	BFIN_MEM_ACCESS_CORE = 0,
 	BFIN_MEM_ACCESS_CORE_ONLY,
 	BFIN_MEM_ACCESS_DMA,

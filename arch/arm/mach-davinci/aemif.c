@@ -37,12 +37,12 @@
 #define WSETUP_MAX	0xf
 
 #define TIMING_MASK	(TA(TA_MAX) | \
-				RHOLD(RHOLD_MAX) | \
-				RSTROBE(RSTROBE_MAX) |	\
-				RSETUP(RSETUP_MAX) | \
-				WHOLD(WHOLD_MAX) | \
-				WSTROBE(WSTROBE_MAX) | \
-				WSETUP(WSETUP_MAX))
+					 RHOLD(RHOLD_MAX) | \
+					 RSTROBE(RSTROBE_MAX) |	\
+					 RSETUP(RSETUP_MAX) | \
+					 WHOLD(WHOLD_MAX) | \
+					 WSTROBE(WSTROBE_MAX) | \
+					 WSETUP(WSETUP_MAX))
 
 static inline unsigned int davinci_aemif_readl(void __iomem *base, int offset)
 {
@@ -50,7 +50,7 @@ static inline unsigned int davinci_aemif_readl(void __iomem *base, int offset)
 }
 
 static inline void davinci_aemif_writel(void __iomem *base,
-					int offset, unsigned long value)
+										int offset, unsigned long value)
 {
 	writel_relaxed(value, base + offset);
 }
@@ -74,11 +74,15 @@ static int aemif_calc_rate(int wanted, unsigned long clk, int max)
 
 	/* It is generally OK to have a more relaxed timing than requested... */
 	if (result < 0)
+	{
 		result = 0;
+	}
 
 	/* ... But configuring tighter timings is not an option. */
 	else if (result > max)
+	{
 		result = -EINVAL;
+	}
 
 	return result;
 }
@@ -100,15 +104,17 @@ static int aemif_calc_rate(int wanted, unsigned long clk, int max)
  * Returns 0 on success, else negative errno.
  */
 static int davinci_aemif_setup_timing(struct davinci_aemif_timing *t,
-					void __iomem *base, unsigned cs,
-					unsigned long clkrate)
+									  void __iomem *base, unsigned cs,
+									  unsigned long clkrate)
 {
 	unsigned set, val;
 	int ta, rhold, rstrobe, rsetup, whold, wstrobe, wsetup;
 	unsigned offset = A1CR_OFFSET + cs * 4;
 
 	if (!t)
-		return 0;	/* Nothing to do */
+	{
+		return 0;    /* Nothing to do */
+	}
 
 	clkrate /= 1000;	/* turn clock into kHz for ease of use */
 
@@ -121,13 +127,14 @@ static int davinci_aemif_setup_timing(struct davinci_aemif_timing *t,
 	wsetup	= aemif_calc_rate(t->wsetup, clkrate, WSETUP_MAX);
 
 	if (ta < 0 || rhold < 0 || rstrobe < 0 || rsetup < 0 ||
-			whold < 0 || wstrobe < 0 || wsetup < 0) {
+		whold < 0 || wstrobe < 0 || wsetup < 0)
+	{
 		pr_err("%s: cannot get suitable timings\n", __func__);
 		return -EINVAL;
 	}
 
 	set = TA(ta) | RHOLD(rhold) | RSTROBE(rstrobe) | RSETUP(rsetup) |
-		WHOLD(whold) | WSTROBE(wstrobe) | WSETUP(wsetup);
+		  WHOLD(whold) | WSTROBE(wstrobe) | WSETUP(wsetup);
 
 	val = __raw_readl(base + offset);
 	val &= ~TIMING_MASK;
@@ -158,28 +165,36 @@ int davinci_aemif_setup(struct platform_device *pdev)
 	int ret = 0;
 
 	clk = clk_get(&pdev->dev, "aemif");
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		ret = PTR_ERR(clk);
 		dev_dbg(&pdev->dev, "unable to get AEMIF clock, err %d\n", ret);
 		return ret;
 	}
 
 	ret = clk_prepare_enable(clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_dbg(&pdev->dev, "unable to enable AEMIF clock, err %d\n",
-			ret);
+				ret);
 		goto err_put;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "cannot get IORESOURCE_MEM\n");
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	base = ioremap(res->start, resource_size(res));
-	if (!base) {
+
+	if (!base)
+	{
 		dev_err(&pdev->dev, "ioremap failed for resource %pR\n", res);
 		ret = -ENOMEM;
 		goto err;
@@ -195,8 +210,11 @@ int davinci_aemif_setup(struct platform_device *pdev)
 	 * used
 	 */
 	val &= ~(ACR_ASIZE_MASK | ACR_EW_MASK | ACR_SS_MASK);
+
 	if (pdata->options & NAND_BUSWIDTH_16)
+	{
 		val |= 0x1;
+	}
 
 	davinci_aemif_writel(base, A1CR_OFFSET + pdev->id * 4, val);
 
@@ -204,10 +222,12 @@ int davinci_aemif_setup(struct platform_device *pdev)
 
 	if (pdata->timing)
 		ret = davinci_aemif_setup_timing(pdata->timing, base, pdev->id,
-						 clkrate);
+										 clkrate);
 
 	if (ret < 0)
+	{
 		dev_dbg(&pdev->dev, "NAND timing values setup fail\n");
+	}
 
 	iounmap(base);
 err:

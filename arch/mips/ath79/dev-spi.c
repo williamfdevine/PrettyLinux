@@ -13,7 +13,8 @@
 #include <asm/mach-ath79/ar71xx_regs.h>
 #include "dev-spi.h"
 
-static struct resource ath79_spi_resources[] = {
+static struct resource ath79_spi_resources[] =
+{
 	{
 		.start	= AR71XX_SPI_BASE,
 		.end	= AR71XX_SPI_BASE + AR71XX_SPI_SIZE - 1,
@@ -21,7 +22,8 @@ static struct resource ath79_spi_resources[] = {
 	},
 };
 
-static struct platform_device ath79_spi_device = {
+static struct platform_device ath79_spi_device =
+{
 	.name		= "ath79-spi",
 	.id		= -1,
 	.resource	= ath79_spi_resources,
@@ -29,8 +31,8 @@ static struct platform_device ath79_spi_device = {
 };
 
 void __init ath79_register_spi(struct ath79_spi_platform_data *pdata,
-			       struct spi_board_info const *info,
-			       unsigned n)
+							   struct spi_board_info const *info,
+							   unsigned n)
 {
 	spi_register_board_info(info, n);
 	ath79_spi_device.dev.platform_data = pdata;

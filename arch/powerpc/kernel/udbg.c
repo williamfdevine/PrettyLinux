@@ -83,21 +83,30 @@ void __init udbg_early_init(void)
 /* udbg library, used by xmon et al */
 void udbg_puts(const char *s)
 {
-	if (udbg_putc) {
+	if (udbg_putc)
+	{
 		char c;
 
-		if (s && *s != '\0') {
+		if (s && *s != '\0')
+		{
 			while ((c = *s++) != '\0')
+			{
 				udbg_putc(c);
+			}
 		}
 
 		if (udbg_flush)
+		{
 			udbg_flush();
+		}
 	}
+
 #if 0
-	else {
+	else
+	{
 		printk("%s", s);
 	}
+
 #endif
 }
 
@@ -107,16 +116,22 @@ int udbg_write(const char *s, int n)
 	char c;
 
 	if (!udbg_putc)
+	{
 		return 0;
+	}
 
-	if (s && *s != '\0') {
-		while (((c = *s++) != '\0') && (remain-- > 0)) {
+	if (s && *s != '\0')
+	{
+		while (((c = *s++) != '\0') && (remain-- > 0))
+		{
 			udbg_putc(c);
 		}
 	}
 
 	if (udbg_flush)
+	{
 		udbg_flush();
+	}
 
 	return n - remain;
 }
@@ -143,12 +158,13 @@ void __init udbg_progress(char *s, unsigned short hex)
  * Early boot console based on udbg
  */
 static void udbg_console_write(struct console *con, const char *s,
-		unsigned int n)
+							   unsigned int n)
 {
 	udbg_write(s, n);
 }
 
-static struct console udbg_console = {
+static struct console udbg_console =
+{
 	.name	= "udbg",
 	.write	= udbg_console_write,
 	.flags	= CON_PRINTBUFFER | CON_ENABLED | CON_BOOT | CON_ANYTIME,
@@ -162,15 +178,21 @@ static struct console udbg_console = {
 void __init register_early_udbg_console(void)
 {
 	if (early_console)
+	{
 		return;
+	}
 
 	if (!udbg_putc)
+	{
 		return;
+	}
 
-	if (strstr(boot_command_line, "udbg-immortal")) {
+	if (strstr(boot_command_line, "udbg-immortal"))
+	{
 		printk(KERN_INFO "early console immortal !\n");
 		udbg_console.flags &= ~CON_BOOT;
 	}
+
 	early_console = &udbg_console;
 	register_console(&udbg_console);
 }

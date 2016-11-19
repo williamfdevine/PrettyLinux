@@ -79,11 +79,12 @@
 #include <asm/unwind.h>
 #include <linux/atomic.h>
 #ifdef CONFIG_NUMA
-#include <asm/nodedata.h>
+	#include <asm/nodedata.h>
 #endif
 
 /* like above but expressed as bitfields for more efficient access: */
-struct ia64_psr {
+struct ia64_psr
+{
 	__u64 reserved0 : 1;
 	__u64 be : 1;
 	__u64 up : 1;
@@ -121,9 +122,11 @@ struct ia64_psr {
 	__u64 reserved4 : 19;
 };
 
-union ia64_isr {
+union ia64_isr
+{
 	__u64  val;
-	struct {
+	struct
+	{
 		__u64 code : 16;
 		__u64 vector : 8;
 		__u64 reserved1 : 8;
@@ -142,9 +145,11 @@ union ia64_isr {
 	};
 };
 
-union ia64_lid {
+union ia64_lid
+{
 	__u64 val;
-	struct {
+	struct
+	{
 		__u64  rv  : 16;
 		__u64  eid : 8;
 		__u64  id  : 8;
@@ -152,9 +157,11 @@ union ia64_lid {
 	};
 };
 
-union ia64_tpr {
+union ia64_tpr
+{
 	__u64 val;
-	struct {
+	struct
+	{
 		__u64 ig0 : 4;
 		__u64 mic : 4;
 		__u64 rsv : 8;
@@ -163,9 +170,11 @@ union ia64_tpr {
 	};
 };
 
-union ia64_itir {
+union ia64_itir
+{
 	__u64 val;
-	struct {
+	struct
+	{
 		__u64 rv3  :  2; /* 0-1 */
 		__u64 ps   :  6; /* 2-7 */
 		__u64 key  : 24; /* 8-31 */
@@ -173,9 +182,11 @@ union ia64_itir {
 	};
 };
 
-union  ia64_rr {
+union  ia64_rr
+{
 	__u64 val;
-	struct {
+	struct
+	{
 		__u64  ve	:  1;  /* enable hw walker */
 		__u64  reserved0:  1;  /* reserved */
 		__u64  ps	:  6;  /* log page size */
@@ -188,7 +199,8 @@ union  ia64_rr {
  * CPU type, hardware bug flags, and per-CPU state.  Frequently used
  * state comes earlier:
  */
-struct cpuinfo_ia64 {
+struct cpuinfo_ia64
+{
 	unsigned int softirq_pending;
 	unsigned long itm_delta;	/* # of clock cycles between clock ticks */
 	unsigned long itm_next;		/* interval timer mask value to use for next clock tick */
@@ -244,35 +256,37 @@ DECLARE_PER_CPU(struct cpuinfo_ia64, ia64_cpu_info);
 
 extern void print_cpu_info (struct cpuinfo_ia64 *);
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
 #define SET_UNALIGN_CTL(task,value)								\
-({												\
-	(task)->thread.flags = (((task)->thread.flags & ~IA64_THREAD_UAC_MASK)			\
-				| (((value) << IA64_THREAD_UAC_SHIFT) & IA64_THREAD_UAC_MASK));	\
-	0;											\
-})
+	({												\
+		(task)->thread.flags = (((task)->thread.flags & ~IA64_THREAD_UAC_MASK)			\
+								| (((value) << IA64_THREAD_UAC_SHIFT) & IA64_THREAD_UAC_MASK));	\
+		0;											\
+	})
 #define GET_UNALIGN_CTL(task,addr)								\
-({												\
-	put_user(((task)->thread.flags & IA64_THREAD_UAC_MASK) >> IA64_THREAD_UAC_SHIFT,	\
-		 (int __user *) (addr));							\
-})
+	({												\
+		put_user(((task)->thread.flags & IA64_THREAD_UAC_MASK) >> IA64_THREAD_UAC_SHIFT,	\
+				 (int __user *) (addr));							\
+	})
 
 #define SET_FPEMU_CTL(task,value)								\
-({												\
-	(task)->thread.flags = (((task)->thread.flags & ~IA64_THREAD_FPEMU_MASK)		\
-			  | (((value) << IA64_THREAD_FPEMU_SHIFT) & IA64_THREAD_FPEMU_MASK));	\
-	0;											\
-})
+	({												\
+		(task)->thread.flags = (((task)->thread.flags & ~IA64_THREAD_FPEMU_MASK)		\
+								| (((value) << IA64_THREAD_FPEMU_SHIFT) & IA64_THREAD_FPEMU_MASK));	\
+		0;											\
+	})
 #define GET_FPEMU_CTL(task,addr)								\
-({												\
-	put_user(((task)->thread.flags & IA64_THREAD_FPEMU_MASK) >> IA64_THREAD_FPEMU_SHIFT,	\
-		 (int __user *) (addr));							\
-})
+	({												\
+		put_user(((task)->thread.flags & IA64_THREAD_FPEMU_MASK) >> IA64_THREAD_FPEMU_SHIFT,	\
+				 (int __user *) (addr));							\
+	})
 
-struct thread_struct {
+struct thread_struct
+{
 	__u32 flags;			/* various thread flags (see IA64_THREAD_*) */
 	/* writing on_ustack is performance-critical, so it's worth spending 8 bits on it... */
 	__u8 on_ustack;			/* executing on user-stacks? */
@@ -286,7 +300,7 @@ struct thread_struct {
 	void *pfm_context;		     /* pointer to detailed PMU context */
 	unsigned long pfm_needs_checking;    /* when >0, pending perfmon work on kernel exit */
 # define INIT_THREAD_PM		.pfm_context =		NULL,     \
-				.pfm_needs_checking =	0UL,
+		.pfm_needs_checking =	0UL,
 #else
 # define INIT_THREAD_PM
 #endif
@@ -296,38 +310,38 @@ struct thread_struct {
 };
 
 #define INIT_THREAD {						\
-	.flags =	0,					\
-	.on_ustack =	0,					\
-	.ksp =		0,					\
-	.map_base =	DEFAULT_MAP_BASE,			\
-	.rbs_bot =	STACK_TOP - DEFAULT_USER_STACK_SIZE,	\
-	.last_fph_cpu =  -1,					\
-	INIT_THREAD_PM						\
-	.dbr =		{0, },					\
-	.ibr =		{0, },					\
-	.fph =		{{{{0}}}, }				\
-}
+		.flags =	0,					\
+					.on_ustack =	0,					\
+									.ksp =		0,					\
+												.map_base =	DEFAULT_MAP_BASE,			\
+														.rbs_bot =	STACK_TOP - DEFAULT_USER_STACK_SIZE,	\
+																.last_fph_cpu =  -1,					\
+																		INIT_THREAD_PM						\
+																		.dbr =		{0, },					\
+																				.ibr =		{0, },					\
+		.fph =		{{{{0}}}, }				\
+	}
 
 #define start_thread(regs,new_ip,new_sp) do {							\
-	regs->cr_ipsr = ((regs->cr_ipsr | (IA64_PSR_BITS_TO_SET | IA64_PSR_CPL))		\
-			 & ~(IA64_PSR_BITS_TO_CLEAR | IA64_PSR_RI | IA64_PSR_IS));		\
-	regs->cr_iip = new_ip;									\
-	regs->ar_rsc = 0xf;		/* eager mode, privilege level 3 */			\
-	regs->ar_rnat = 0;									\
-	regs->ar_bspstore = current->thread.rbs_bot;						\
-	regs->ar_fpsr = FPSR_DEFAULT;								\
-	regs->loadrs = 0;									\
-	regs->r8 = get_dumpable(current->mm);	/* set "don't zap registers" flag */		\
-	regs->r12 = new_sp - 16;	/* allocate 16 byte scratch area */			\
-	if (unlikely(get_dumpable(current->mm) != SUID_DUMP_USER)) {	\
-		/*										\
-		 * Zap scratch regs to avoid leaking bits between processes with different	\
-		 * uid/privileges.								\
-		 */										\
-		regs->ar_pfs = 0; regs->b0 = 0; regs->pr = 0;					\
-		regs->r1 = 0; regs->r9  = 0; regs->r11 = 0; regs->r13 = 0; regs->r15 = 0;	\
-	}											\
-} while (0)
+		regs->cr_ipsr = ((regs->cr_ipsr | (IA64_PSR_BITS_TO_SET | IA64_PSR_CPL))		\
+						 & ~(IA64_PSR_BITS_TO_CLEAR | IA64_PSR_RI | IA64_PSR_IS));		\
+		regs->cr_iip = new_ip;									\
+		regs->ar_rsc = 0xf;		/* eager mode, privilege level 3 */			\
+		regs->ar_rnat = 0;									\
+		regs->ar_bspstore = current->thread.rbs_bot;						\
+		regs->ar_fpsr = FPSR_DEFAULT;								\
+		regs->loadrs = 0;									\
+		regs->r8 = get_dumpable(current->mm);	/* set "don't zap registers" flag */		\
+		regs->r12 = new_sp - 16;	/* allocate 16 byte scratch area */			\
+		if (unlikely(get_dumpable(current->mm) != SUID_DUMP_USER)) {	\
+			/*										\
+				 * Zap scratch regs to avoid leaking bits between processes with different	\
+				 * uid/privileges.								\
+				 */										\
+			regs->ar_pfs = 0; regs->b0 = 0; regs->pr = 0;					\
+			regs->r1 = 0; regs->r9  = 0; regs->r11 = 0; regs->r13 = 0; regs->r15 = 0;	\
+		}											\
+	} while (0)
 
 /* Forward declarations, a strange C thing... */
 struct mm_struct;
@@ -345,10 +359,10 @@ extern unsigned long get_wchan (struct task_struct *p);
 
 /* Return instruction pointer of blocked task TSK.  */
 #define KSTK_EIP(tsk)					\
-  ({							\
-	struct pt_regs *_regs = task_pt_regs(tsk);	\
-	_regs->cr_iip + ia64_psr(_regs)->ri;		\
-  })
+	({							\
+		struct pt_regs *_regs = task_pt_regs(tsk);	\
+		_regs->cr_iip + ia64_psr(_regs)->ri;		\
+	})
 
 /* Return stack pointer of blocked task TSK.  */
 #define KSTK_ESP(tsk)  ((tsk)->thread.ksp)
@@ -357,37 +371,37 @@ extern void ia64_getreg_unknown_kr (void);
 extern void ia64_setreg_unknown_kr (void);
 
 #define ia64_get_kr(regnum)					\
-({								\
-	unsigned long r = 0;					\
-								\
-	switch (regnum) {					\
-	    case 0: r = ia64_getreg(_IA64_REG_AR_KR0); break;	\
-	    case 1: r = ia64_getreg(_IA64_REG_AR_KR1); break;	\
-	    case 2: r = ia64_getreg(_IA64_REG_AR_KR2); break;	\
-	    case 3: r = ia64_getreg(_IA64_REG_AR_KR3); break;	\
-	    case 4: r = ia64_getreg(_IA64_REG_AR_KR4); break;	\
-	    case 5: r = ia64_getreg(_IA64_REG_AR_KR5); break;	\
-	    case 6: r = ia64_getreg(_IA64_REG_AR_KR6); break;	\
-	    case 7: r = ia64_getreg(_IA64_REG_AR_KR7); break;	\
-	    default: ia64_getreg_unknown_kr(); break;		\
-	}							\
-	r;							\
-})
+	({								\
+		unsigned long r = 0;					\
+		\
+		switch (regnum) {					\
+			case 0: r = ia64_getreg(_IA64_REG_AR_KR0); break;	\
+			case 1: r = ia64_getreg(_IA64_REG_AR_KR1); break;	\
+			case 2: r = ia64_getreg(_IA64_REG_AR_KR2); break;	\
+			case 3: r = ia64_getreg(_IA64_REG_AR_KR3); break;	\
+			case 4: r = ia64_getreg(_IA64_REG_AR_KR4); break;	\
+			case 5: r = ia64_getreg(_IA64_REG_AR_KR5); break;	\
+			case 6: r = ia64_getreg(_IA64_REG_AR_KR6); break;	\
+			case 7: r = ia64_getreg(_IA64_REG_AR_KR7); break;	\
+			default: ia64_getreg_unknown_kr(); break;		\
+		}							\
+		r;							\
+	})
 
 #define ia64_set_kr(regnum, r) 					\
-({								\
-	switch (regnum) {					\
-	    case 0: ia64_setreg(_IA64_REG_AR_KR0, r); break;	\
-	    case 1: ia64_setreg(_IA64_REG_AR_KR1, r); break;	\
-	    case 2: ia64_setreg(_IA64_REG_AR_KR2, r); break;	\
-	    case 3: ia64_setreg(_IA64_REG_AR_KR3, r); break;	\
-	    case 4: ia64_setreg(_IA64_REG_AR_KR4, r); break;	\
-	    case 5: ia64_setreg(_IA64_REG_AR_KR5, r); break;	\
-	    case 6: ia64_setreg(_IA64_REG_AR_KR6, r); break;	\
-	    case 7: ia64_setreg(_IA64_REG_AR_KR7, r); break;	\
-	    default: ia64_setreg_unknown_kr(); break;		\
-	}							\
-})
+	({								\
+		switch (regnum) {					\
+			case 0: ia64_setreg(_IA64_REG_AR_KR0, r); break;	\
+			case 1: ia64_setreg(_IA64_REG_AR_KR1, r); break;	\
+			case 2: ia64_setreg(_IA64_REG_AR_KR2, r); break;	\
+			case 3: ia64_setreg(_IA64_REG_AR_KR3, r); break;	\
+			case 4: ia64_setreg(_IA64_REG_AR_KR4, r); break;	\
+			case 5: ia64_setreg(_IA64_REG_AR_KR5, r); break;	\
+			case 6: ia64_setreg(_IA64_REG_AR_KR6, r); break;	\
+			case 7: ia64_setreg(_IA64_REG_AR_KR7, r); break;	\
+			default: ia64_setreg_unknown_kr(); break;		\
+		}							\
+	})
 
 /*
  * The following three macros can't be inline functions because we don't have struct
@@ -399,21 +413,21 @@ extern void ia64_setreg_unknown_kr (void);
  * Must be called from code that has preemption disabled.
  */
 #define ia64_is_local_fpu_owner(t)								\
-({												\
-	struct task_struct *__ia64_islfo_task = (t);						\
-	(__ia64_islfo_task->thread.last_fph_cpu == smp_processor_id()				\
-	 && __ia64_islfo_task == (struct task_struct *) ia64_get_kr(IA64_KR_FPU_OWNER));	\
-})
+	({												\
+		struct task_struct *__ia64_islfo_task = (t);						\
+		(__ia64_islfo_task->thread.last_fph_cpu == smp_processor_id()				\
+		 && __ia64_islfo_task == (struct task_struct *) ia64_get_kr(IA64_KR_FPU_OWNER));	\
+	})
 
 /*
  * Mark task T as owning the fph partition of the CPU we're running on.
  * Must be called from code that has preemption disabled.
  */
 #define ia64_set_local_fpu_owner(t) do {						\
-	struct task_struct *__ia64_slfo_task = (t);					\
-	__ia64_slfo_task->thread.last_fph_cpu = smp_processor_id();			\
-	ia64_set_kr(IA64_KR_FPU_OWNER, (unsigned long) __ia64_slfo_task);		\
-} while (0)
+		struct task_struct *__ia64_slfo_task = (t);					\
+		__ia64_slfo_task->thread.last_fph_cpu = smp_processor_id();			\
+		ia64_set_kr(IA64_KR_FPU_OWNER, (unsigned long) __ia64_slfo_task);		\
+	} while (0)
 
 /* Mark the fph partition of task T as being invalid on all CPUs.  */
 #define ia64_drop_fpu(t)	((t)->thread.last_fph_cpu = -1)
@@ -429,7 +443,8 @@ extern void ia64_load_debug_regs (unsigned long *save_area);
 
 /* load fp 0.0 into fph */
 static inline void
-ia64_init_fpu (void) {
+ia64_init_fpu (void)
+{
 	ia64_fph_enable();
 	__ia64_init_fpu();
 	ia64_fph_disable();
@@ -437,7 +452,8 @@ ia64_init_fpu (void) {
 
 /* save f32-f127 at FPH */
 static inline void
-ia64_save_fpu (struct ia64_fpreg *fph) {
+ia64_save_fpu (struct ia64_fpreg *fph)
+{
 	ia64_fph_enable();
 	__ia64_save_fpu(fph);
 	ia64_fph_disable();
@@ -445,7 +461,8 @@ ia64_save_fpu (struct ia64_fpreg *fph) {
 
 /* load f32-f127 from FPH */
 static inline void
-ia64_load_fpu (struct ia64_fpreg *fph) {
+ia64_load_fpu (struct ia64_fpreg *fph)
+{
 	ia64_fph_enable();
 	__ia64_load_fpu(fph);
 	ia64_fph_disable();
@@ -479,16 +496,22 @@ ia64_set_psr (__u64 psr)
  */
 static inline void
 ia64_itr (__u64 target_mask, __u64 tr_num,
-	  __u64 vmaddr, __u64 pte,
-	  __u64 log_page_size)
+		  __u64 vmaddr, __u64 pte,
+		  __u64 log_page_size)
 {
 	ia64_setreg(_IA64_REG_CR_ITIR, (log_page_size << 2));
 	ia64_setreg(_IA64_REG_CR_IFA, vmaddr);
 	ia64_stop();
+
 	if (target_mask & 0x1)
+	{
 		ia64_itri(tr_num, pte);
+	}
+
 	if (target_mask & 0x2)
+	{
 		ia64_itrd(tr_num, pte);
+	}
 }
 
 /*
@@ -497,16 +520,22 @@ ia64_itr (__u64 target_mask, __u64 tr_num,
  */
 static inline void
 ia64_itc (__u64 target_mask, __u64 vmaddr, __u64 pte,
-	  __u64 log_page_size)
+		  __u64 log_page_size)
 {
 	ia64_setreg(_IA64_REG_CR_ITIR, (log_page_size << 2));
 	ia64_setreg(_IA64_REG_CR_IFA, vmaddr);
 	ia64_stop();
+
 	/* as per EAS2.6, itc must be the last instruction in an instruction group */
 	if (target_mask & 0x1)
+	{
 		ia64_itci(pte);
+	}
+
 	if (target_mask & 0x2)
+	{
 		ia64_itcd(pte);
+	}
 }
 
 /*
@@ -517,9 +546,14 @@ static inline void
 ia64_ptr (__u64 target_mask, __u64 vmaddr, __u64 log_size)
 {
 	if (target_mask & 0x1)
+	{
 		ia64_ptri(vmaddr, (log_size << 2));
+	}
+
 	if (target_mask & 0x2)
+	{
 		ia64_ptrd(vmaddr, (log_size << 2));
+	}
 }
 
 /* Set the interrupt vector address.  The address must be suitably aligned (32KB).  */
@@ -556,11 +590,15 @@ ia64_get_irr(unsigned int vector)
 	unsigned int bit = vector % 64;
 	u64 irr;
 
-	switch (reg) {
-	case 0: irr = ia64_getreg(_IA64_REG_CR_IRR0); break;
-	case 1: irr = ia64_getreg(_IA64_REG_CR_IRR1); break;
-	case 2: irr = ia64_getreg(_IA64_REG_CR_IRR2); break;
-	case 3: irr = ia64_getreg(_IA64_REG_CR_IRR3); break;
+	switch (reg)
+	{
+		case 0: irr = ia64_getreg(_IA64_REG_CR_IRR0); break;
+
+		case 1: irr = ia64_getreg(_IA64_REG_CR_IRR1); break;
+
+		case 2: irr = ia64_getreg(_IA64_REG_CR_IRR2); break;
+
+		case 3: irr = ia64_getreg(_IA64_REG_CR_IRR3); break;
 	}
 
 	return test_bit(bit, &irr);
@@ -615,8 +653,12 @@ thread_saved_pc (struct task_struct *t)
 	unsigned long ip;
 
 	unw_init_from_blocked_task(&info, t);
+
 	if (unw_unwind(&info) < 0)
+	{
 		return 0;
+	}
+
 	unw_get_ip(&info, &ip);
 	return ip;
 }
@@ -686,7 +728,7 @@ ia64_imva (void *addr)
 static inline void
 prefetch (const void *x)
 {
-	 ia64_lfetch(ia64_lfhint_none, x);
+	ia64_lfetch(ia64_lfhint_none, x);
 }
 
 static inline void
@@ -699,8 +741,9 @@ prefetchw (const void *x)
 
 extern unsigned long boot_option_idle_override;
 
-enum idle_boot_override {IDLE_NO_OVERRIDE=0, IDLE_HALT, IDLE_FORCE_MWAIT,
-			 IDLE_NOMWAIT, IDLE_POLL};
+enum idle_boot_override {IDLE_NO_OVERRIDE = 0, IDLE_HALT, IDLE_FORCE_MWAIT,
+						 IDLE_NOMWAIT, IDLE_POLL
+						};
 
 void default_idle(void);
 

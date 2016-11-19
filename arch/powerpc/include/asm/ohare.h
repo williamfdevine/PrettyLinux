@@ -41,7 +41,7 @@
  * Bits to set in the feature control register on PowerBooks.
  */
 #define PBOOK_FEATURES		(OH_IDE_ENABLE | OH_SCC_ENABLE | \
-				 OH_MESH_ENABLE | OH_SCCA_IO | OH_SCCB_IO)
+							 OH_MESH_ENABLE | OH_SCCA_IO | OH_SCCB_IO)
 
 /*
  * A magic value to put into the feature control register of the

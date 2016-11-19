@@ -76,16 +76,22 @@ static void __init parse_uboot_commandline(char *commandp, int size)
 	uboot_cmd_end = sp[5];
 
 	if (uboot_cmd_start && uboot_cmd_end)
+	{
 		strncpy(commandp, (const char *)uboot_cmd_start, size);
+	}
+
 #if defined(CONFIG_BLK_DEV_INITRD)
+
 	if (uboot_initrd_start && uboot_initrd_end &&
-	    (uboot_initrd_end > uboot_initrd_start)) {
+		(uboot_initrd_end > uboot_initrd_start))
+	{
 		initrd_start = uboot_initrd_start;
 		initrd_end = uboot_initrd_end;
 		ROOT_DEV = Root_RAM0;
 		printk(KERN_INFO "initrd at 0x%lx:0x%lx\n",
-			initrd_start, initrd_end);
+			   initrd_start, initrd_end);
 	}
+
 #endif /* if defined(CONFIG_BLK_DEV_INITRD) */
 }
 
@@ -96,7 +102,9 @@ __init void process_uboot_commandline(char *commandp, int size)
 	n = strnlen(commandp, size);
 	commandp += n;
 	len = size - n;
-	if (len) {
+
+	if (len)
+	{
 		/* Add the whitespace separator */
 		*commandp++ = ' ';
 		len--;

@@ -9,10 +9,14 @@ static inline int isdigit(int ch)
 static inline int isxdigit(int ch)
 {
 	if (isdigit(ch))
+	{
 		return true;
+	}
 
 	if ((ch >= 'a') && (ch <= 'f'))
+	{
 		return true;
+	}
 
 	return (ch >= 'A') && (ch <= 'F');
 }

@@ -27,34 +27,37 @@
 
 void flush_dcache_range(unsigned long start, unsigned long end)
 {
-	unsigned long lines = spanlines(start, end-1);
+	unsigned long lines = spanlines(start, end - 1);
 	unsigned long i, flags;
 
 	start &= ~(LINESIZE - 1);
 
 	local_irq_save(flags);
 
-	for (i = 0; i < lines; i++) {
+	for (i = 0; i < lines; i++)
+	{
 		__asm__ __volatile__ (
-		"	dccleaninva(%0);	"
-		:
-		: "r" (start)
+			"	dccleaninva(%0);	"
+			:
+			: "r" (start)
 		);
 		start += LINESIZE;
 	}
+
 	local_irq_restore(flags);
 }
 
 void flush_icache_range(unsigned long start, unsigned long end)
 {
-	unsigned long lines = spanlines(start, end-1);
+	unsigned long lines = spanlines(start, end - 1);
 	unsigned long i, flags;
 
 	start &= ~(LINESIZE - 1);
 
 	local_irq_save(flags);
 
-	for (i = 0; i < lines; i++) {
+	for (i = 0; i < lines; i++)
+	{
 		__asm__ __volatile__ (
 			"	dccleana(%0); "
 			"	icinva(%0);	"
@@ -63,6 +66,7 @@ void flush_icache_range(unsigned long start, unsigned long end)
 		);
 		start += LINESIZE;
 	}
+
 	__asm__ __volatile__ (
 		"isync"
 	);
@@ -72,41 +76,45 @@ EXPORT_SYMBOL(flush_icache_range);
 
 void hexagon_clean_dcache_range(unsigned long start, unsigned long end)
 {
-	unsigned long lines = spanlines(start, end-1);
+	unsigned long lines = spanlines(start, end - 1);
 	unsigned long i, flags;
 
 	start &= ~(LINESIZE - 1);
 
 	local_irq_save(flags);
 
-	for (i = 0; i < lines; i++) {
+	for (i = 0; i < lines; i++)
+	{
 		__asm__ __volatile__ (
-		"	dccleana(%0);	"
-		:
-		: "r" (start)
+			"	dccleana(%0);	"
+			:
+			: "r" (start)
 		);
 		start += LINESIZE;
 	}
+
 	local_irq_restore(flags);
 }
 
 void hexagon_inv_dcache_range(unsigned long start, unsigned long end)
 {
-	unsigned long lines = spanlines(start, end-1);
+	unsigned long lines = spanlines(start, end - 1);
 	unsigned long i, flags;
 
 	start &= ~(LINESIZE - 1);
 
 	local_irq_save(flags);
 
-	for (i = 0; i < lines; i++) {
+	for (i = 0; i < lines; i++)
+	{
 		__asm__ __volatile__ (
-		"	dcinva(%0);	"
-		:
-		: "r" (start)
+			"	dcinva(%0);	"
+			:
+			: "r" (start)
 		);
 		start += LINESIZE;
 	}
+
 	local_irq_restore(flags);
 }
 
@@ -129,11 +137,13 @@ void flush_cache_all_hexagon(void)
 }
 
 void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
-		       unsigned long vaddr, void *dst, void *src, int len)
+					   unsigned long vaddr, void *dst, void *src, int len)
 {
 	memcpy(dst, src, len);
-	if (vma->vm_flags & VM_EXEC) {
+
+	if (vma->vm_flags & VM_EXEC)
+	{
 		flush_icache_range((unsigned long) dst,
-		(unsigned long) dst + len);
+						   (unsigned long) dst + len);
 	}
 }

@@ -34,9 +34,9 @@
  * virtual space that goes below PKMAP and FIXMAP
  */
 #ifdef CONFIG_HIGHMEM
-#define KVIRT_TOP	PKMAP_BASE
+	#define KVIRT_TOP	PKMAP_BASE
 #else
-#define KVIRT_TOP	(0xfe000000UL)	/* for now, could be FIXMAP_BASE ? */
+	#define KVIRT_TOP	(0xfe000000UL)	/* for now, could be FIXMAP_BASE ? */
 #endif
 
 /*
@@ -45,9 +45,9 @@
  * and ioremap space
  */
 #ifdef CONFIG_NOT_COHERENT_CACHE
-#define IOREMAP_TOP	((KVIRT_TOP - CONFIG_CONSISTENT_SIZE) & PAGE_MASK)
+	#define IOREMAP_TOP	((KVIRT_TOP - CONFIG_CONSISTENT_SIZE) & PAGE_MASK)
 #else
-#define IOREMAP_TOP	KVIRT_TOP
+	#define IOREMAP_TOP	KVIRT_TOP
 #endif
 
 /*
@@ -69,9 +69,9 @@
  */
 #define VMALLOC_OFFSET (0x1000000) /* 16M */
 #ifdef PPC_PIN_SIZE
-#define VMALLOC_START (((_ALIGN((long)high_memory, PPC_PIN_SIZE) + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
+	#define VMALLOC_START (((_ALIGN((long)high_memory, PPC_PIN_SIZE) + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
 #else
-#define VMALLOC_START ((((long)high_memory + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
+	#define VMALLOC_START ((((long)high_memory + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
 #endif
 #define VMALLOC_END	ioremap_bot
 
@@ -91,7 +91,7 @@ extern unsigned long ioremap_bot;
 
 #define pte_ERROR(e) \
 	pr_err("%s:%d: bad pte %llx.\n", __FILE__, __LINE__, \
-		(unsigned long long)pte_val(e))
+		   (unsigned long long)pte_val(e))
 #define pgd_ERROR(e) \
 	pr_err("%s:%d: bad pgd %08lx.\n", __FILE__, __LINE__, pgd_val(e))
 /*
@@ -116,15 +116,15 @@ static inline void pmd_clear(pmd_t *pmdp)
  * table entry.  flush_hash_pages is assembler (for speed) in hashtable.S.
  */
 extern int flush_hash_pages(unsigned context, unsigned long va,
-			    unsigned long pmdval, int count);
+							unsigned long pmdval, int count);
 
 /* Add an HPTE to the hash table */
 extern void add_hash_page(unsigned context, unsigned long va,
-			  unsigned long pmdval);
+						  unsigned long pmdval);
 
 /* Flush an entry from the TLB/hash table */
 extern void flush_hash_entry(struct mm_struct *mm, pte_t *ptep,
-			     unsigned long address);
+							 unsigned long address);
 
 /*
  * PTE updates. This function is called whenever an existing
@@ -143,8 +143,8 @@ extern void flush_hash_entry(struct mm_struct *mm, pte_t *ptep,
  */
 #ifndef CONFIG_PTE_64BIT
 static inline unsigned long pte_update(pte_t *p,
-				       unsigned long clr,
-				       unsigned long set)
+									   unsigned long clr,
+									   unsigned long set)
 {
 	unsigned long old, tmp;
 
@@ -152,19 +152,19 @@ static inline unsigned long pte_update(pte_t *p,
 1:	lwarx	%0,0,%3\n\
 	andc	%1,%0,%4\n\
 	or	%1,%1,%5\n"
-	PPC405_ERR77(0,%3)
-"	stwcx.	%1,0,%3\n\
+						 PPC405_ERR77(0, %3)
+						 "	stwcx.	%1,0,%3\n\
 	bne-	1b"
-	: "=&r" (old), "=&r" (tmp), "=m" (*p)
-	: "r" (p), "r" (clr), "r" (set), "m" (*p)
-	: "cc" );
+						 : "=&r" (old), "=&r" (tmp), "=m" (*p)
+						 : "r" (p), "r" (clr), "r" (set), "m" (*p)
+						 : "cc" );
 
 	return old;
 }
 #else /* CONFIG_PTE_64BIT */
 static inline unsigned long long pte_update(pte_t *p,
-					    unsigned long clr,
-					    unsigned long set)
+		unsigned long clr,
+		unsigned long set)
 {
 	unsigned long long old;
 	unsigned long tmp;
@@ -174,12 +174,12 @@ static inline unsigned long long pte_update(pte_t *p,
 	lwzx	%0,0,%3\n\
 	andc	%1,%L0,%5\n\
 	or	%1,%1,%6\n"
-	PPC405_ERR77(0,%3)
-"	stwcx.	%1,0,%4\n\
+						 PPC405_ERR77(0, %3)
+						 "	stwcx.	%1,0,%4\n\
 	bne-	1b"
-	: "=&r" (old), "=&r" (tmp), "=m" (*p)
-	: "r" (p), "r" ((unsigned long)(p) + 4), "r" (clr), "r" (set), "m" (*p)
-	: "cc" );
+						 : "=&r" (old), "=&r" (tmp), "=m" (*p)
+						 : "r" (p), "r" ((unsigned long)(p) + 4), "r" (clr), "r" (set), "m" (*p)
+						 : "cc" );
 
 	return old;
 }
@@ -194,10 +194,13 @@ static inline int __ptep_test_and_clear_young(unsigned int context, unsigned lon
 {
 	unsigned long old;
 	old = pte_update(ptep, _PAGE_ACCESSED, 0);
-	if (old & _PAGE_HASHPTE) {
+
+	if (old & _PAGE_HASHPTE)
+	{
 		unsigned long ptephys = __pa(ptep) & PAGE_MASK;
 		flush_hash_pages(context, addr, ptephys, 1);
 	}
+
 	return (old & _PAGE_ACCESSED) != 0;
 }
 #define ptep_test_and_clear_young(__vma, __addr, __ptep) \
@@ -205,29 +208,29 @@ static inline int __ptep_test_and_clear_young(unsigned int context, unsigned lon
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
-				       pte_t *ptep)
+									   pte_t *ptep)
 {
 	return __pte(pte_update(ptep, ~_PAGE_HASHPTE, 0));
 }
 
 #define __HAVE_ARCH_PTEP_SET_WRPROTECT
 static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
-				      pte_t *ptep)
+									  pte_t *ptep)
 {
 	pte_update(ptep, (_PAGE_RW | _PAGE_HWWRITE), _PAGE_RO);
 }
 static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
-					   unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 	ptep_set_wrprotect(mm, addr, ptep);
 }
 
 
 static inline void __ptep_set_access_flags(struct mm_struct *mm,
-					   pte_t *ptep, pte_t entry)
+		pte_t *ptep, pte_t entry)
 {
 	unsigned long set = pte_val(entry) &
-		(_PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_RW | _PAGE_EXEC);
+						(_PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_RW | _PAGE_EXEC);
 	unsigned long clr = ~pte_val(entry) & _PAGE_RO;
 
 	pte_update(ptep, clr, set);
@@ -284,16 +287,16 @@ static inline void __ptep_set_access_flags(struct mm_struct *mm,
 #define __swp_entry_to_pte(x)		((pte_t) { (x).val << 3 })
 
 #ifndef CONFIG_PPC_4K_PAGES
-void pgtable_cache_init(void);
+	void pgtable_cache_init(void);
 #else
-/*
- * No page table caches to initialise
- */
-#define pgtable_cache_init()	do { } while (0)
+	/*
+	* No page table caches to initialise
+	*/
+	#define pgtable_cache_init()	do { } while (0)
 #endif
 
 extern int get_pteptr(struct mm_struct *mm, unsigned long addr, pte_t **ptep,
-		      pmd_t **pmdp);
+					  pmd_t **pmdp);
 
 /* Generic accessors to PTE bits */
 static inline int pte_write(pte_t pte)		{ return !!(pte_val(pte) & _PAGE_RW);}
@@ -317,7 +320,7 @@ static inline int pte_present(pte_t pte)
 static inline pte_t pfn_pte(unsigned long pfn, pgprot_t pgprot)
 {
 	return __pte(((pte_basic_t)(pfn) << PTE_RPN_SHIFT) |
-		     pgprot_val(pgprot));
+				 pgprot_val(pgprot));
 }
 
 static inline unsigned long pte_pfn(pte_t pte)
@@ -379,9 +382,10 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
  * I'm keeping it in one place rather than spread around
  */
 static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
-				pte_t *ptep, pte_t pte, int percpu)
+								pte_t *ptep, pte_t pte, int percpu)
 {
 #if defined(CONFIG_PPC_STD_MMU_32) && defined(CONFIG_SMP) && !defined(CONFIG_PTE_64BIT)
+
 	/* First case is 32-bit Hash MMU in SMP mode with 32-bit PTEs. We use the
 	 * helper pte_update() which does an atomic update. We need to do that
 	 * because a concurrent invalidation can clear _PAGE_HASHPTE. If it's a
@@ -390,11 +394,14 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 	 */
 	if (percpu)
 		*ptep = __pte((pte_val(*ptep) & _PAGE_HASHPTE)
-			      | (pte_val(pte) & ~_PAGE_HASHPTE));
+					  | (pte_val(pte) & ~_PAGE_HASHPTE));
 	else
+	{
 		pte_update(ptep, ~_PAGE_HASHPTE, pte_val(pte));
+	}
 
 #elif defined(CONFIG_PPC32) && defined(CONFIG_PTE_64BIT)
+
 	/* Second case is 32-bit with 64-bit PTE.  In this case, we
 	 * can just store as long as we do the two halves in the right order
 	 * with a barrier in between. This is possible because we take care,
@@ -403,19 +410,24 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 	 * In the percpu case, we also fallback to the simple update preserving
 	 * the hash bits
 	 */
-	if (percpu) {
+	if (percpu)
+	{
 		*ptep = __pte((pte_val(*ptep) & _PAGE_HASHPTE)
-			      | (pte_val(pte) & ~_PAGE_HASHPTE));
+					  | (pte_val(pte) & ~_PAGE_HASHPTE));
 		return;
 	}
+
 	if (pte_val(*ptep) & _PAGE_HASHPTE)
+	{
 		flush_hash_entry(mm, ptep, addr);
+	}
+
 	__asm__ __volatile__("\
 		stw%U0%X0 %2,%0\n\
 		eieio\n\
 		stw%U0%X0 %L2,%1"
-	: "=m" (*ptep), "=m" (*((unsigned char *)ptep+4))
-	: "r" (pte) : "memory");
+						 : "=m" (*ptep), "=m" (*((unsigned char *)ptep+4))
+						 : "r" (pte) : "memory");
 
 #elif defined(CONFIG_PPC_STD_MMU_32)
 	/* Third case is 32-bit hash table in UP mode, we need to preserve
@@ -424,7 +436,7 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 	 * and see we need to keep track that this PTE needs invalidating
 	 */
 	*ptep = __pte((pte_val(*ptep) & _PAGE_HASHPTE)
-		      | (pte_val(pte) & ~_PAGE_HASHPTE));
+				  | (pte_val(pte) & ~_PAGE_HASHPTE));
 
 #else
 #error "Not supported "
@@ -436,34 +448,34 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
  */
 
 #define _PAGE_CACHE_CTL	(_PAGE_COHERENT | _PAGE_GUARDED | _PAGE_NO_CACHE | \
-			 _PAGE_WRITETHRU)
+						 _PAGE_WRITETHRU)
 
 #define pgprot_noncached pgprot_noncached
 static inline pgprot_t pgprot_noncached(pgprot_t prot)
 {
 	return __pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) |
-			_PAGE_NO_CACHE | _PAGE_GUARDED);
+					_PAGE_NO_CACHE | _PAGE_GUARDED);
 }
 
 #define pgprot_noncached_wc pgprot_noncached_wc
 static inline pgprot_t pgprot_noncached_wc(pgprot_t prot)
 {
 	return __pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) |
-			_PAGE_NO_CACHE);
+					_PAGE_NO_CACHE);
 }
 
 #define pgprot_cached pgprot_cached
 static inline pgprot_t pgprot_cached(pgprot_t prot)
 {
 	return __pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) |
-			_PAGE_COHERENT);
+					_PAGE_COHERENT);
 }
 
 #define pgprot_cached_wthru pgprot_cached_wthru
 static inline pgprot_t pgprot_cached_wthru(pgprot_t prot)
 {
 	return __pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) |
-			_PAGE_COHERENT | _PAGE_WRITETHRU);
+					_PAGE_COHERENT | _PAGE_WRITETHRU);
 }
 
 #define pgprot_cached_noncoherent pgprot_cached_noncoherent

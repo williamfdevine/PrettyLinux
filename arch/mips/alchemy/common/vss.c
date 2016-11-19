@@ -71,14 +71,22 @@ void au1300_vss_block_control(int block, int enable)
 	unsigned long flags;
 
 	if (alchemy_get_cputype() != ALCHEMY_CPU_AU1300)
+	{
 		return;
+	}
 
 	/* only one block at a time */
 	spin_lock_irqsave(&au1300_vss_lock, flags);
+
 	if (enable)
+	{
 		__enable_block(block);
+	}
 	else
+	{
 		__disable_block(block);
+	}
+
 	spin_unlock_irqrestore(&au1300_vss_lock, flags);
 }
 EXPORT_SYMBOL_GPL(au1300_vss_block_control);

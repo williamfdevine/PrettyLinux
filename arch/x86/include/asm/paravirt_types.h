@@ -29,7 +29,7 @@
 #define CLBR_ANY  ((1 << 9) - 1)
 
 #define CLBR_ARG_REGS	(CLBR_RDI | CLBR_RSI | CLBR_RDX | \
-			 CLBR_RCX | CLBR_R8 | CLBR_R9)
+						 CLBR_RCX | CLBR_R8 | CLBR_R9)
 #define CLBR_RET_REG	(CLBR_RAX)
 #define CLBR_SCRATCH	(CLBR_R10 | CLBR_R11)
 
@@ -56,12 +56,14 @@ struct cpumask;
  * Wrapper type for pointers to code which uses the non-standard
  * calling convention.  See PV_CALL_SAVE_REGS_THUNK below.
  */
-struct paravirt_callee_save {
+struct paravirt_callee_save
+{
 	void *func;
 };
 
 /* general info */
-struct pv_info {
+struct pv_info
+{
 	unsigned int kernel_rpl;
 	int shared_kernel_pmd;
 
@@ -72,7 +74,8 @@ struct pv_info {
 	const char *name;
 };
 
-struct pv_init_ops {
+struct pv_init_ops
+{
 	/*
 	 * Patch may replace one of the defined code sequences with
 	 * arbitrary code, subject to the same register constraints.
@@ -82,23 +85,26 @@ struct pv_init_ops {
 	 * rest in generic code.
 	 */
 	unsigned (*patch)(u8 type, u16 clobber, void *insnbuf,
-			  unsigned long addr, unsigned len);
+					  unsigned long addr, unsigned len);
 };
 
 
-struct pv_lazy_ops {
+struct pv_lazy_ops
+{
 	/* Set deferred update mode, used for batching operations. */
 	void (*enter)(void);
 	void (*leave)(void);
 	void (*flush)(void);
 };
 
-struct pv_time_ops {
+struct pv_time_ops
+{
 	unsigned long long (*sched_clock)(void);
 	unsigned long long (*steal_clock)(int cpu);
 };
 
-struct pv_cpu_ops {
+struct pv_cpu_ops
+{
 	/* hooks for various privileged instructions */
 	unsigned long (*get_debugreg)(int regno);
 	void (*set_debugreg)(int regno, unsigned long value);
@@ -129,11 +135,11 @@ struct pv_cpu_ops {
 	void (*load_gs_index)(unsigned int idx);
 #endif
 	void (*write_ldt_entry)(struct desc_struct *ldt, int entrynum,
-				const void *desc);
+							const void *desc);
 	void (*write_gdt_entry)(struct desc_struct *,
-				int entrynum, const void *desc, int size);
+							int entrynum, const void *desc, int size);
 	void (*write_idt_entry)(gate_desc *,
-				int entrynum, const gate_desc *gate);
+							int entrynum, const gate_desc *gate);
 	void (*alloc_ldt)(struct desc_struct *ldt, unsigned entries);
 	void (*free_ldt)(struct desc_struct *ldt, unsigned entries);
 
@@ -146,7 +152,7 @@ struct pv_cpu_ops {
 
 	/* cpuid emulation, mostly so that caps bits can be disabled */
 	void (*cpuid)(unsigned int *eax, unsigned int *ebx,
-		      unsigned int *ecx, unsigned int *edx);
+				  unsigned int *ecx, unsigned int *edx);
 
 	/* Unsafe MSR operations.  These will warn or panic on failure. */
 	u64 (*read_msr)(unsigned int msr);
@@ -179,7 +185,8 @@ struct pv_cpu_ops {
 	void (*end_context_switch)(struct task_struct *next);
 };
 
-struct pv_irq_ops {
+struct pv_irq_ops
+{
 	/*
 	 * Get/set interrupt state.  save_fl and restore_fl are only
 	 * expected to use X86_EFLAGS_IF; all other bits
@@ -202,7 +209,8 @@ struct pv_irq_ops {
 #endif
 };
 
-struct pv_mmu_ops {
+struct pv_mmu_ops
+{
 	unsigned long (*read_cr2)(void);
 	void (*write_cr2)(unsigned long);
 
@@ -214,9 +222,9 @@ struct pv_mmu_ops {
 	 * mm_struct.
 	 */
 	void (*activate_mm)(struct mm_struct *prev,
-			    struct mm_struct *next);
+						struct mm_struct *next);
 	void (*dup_mmap)(struct mm_struct *oldmm,
-			 struct mm_struct *mm);
+					 struct mm_struct *mm);
 	void (*exit_mmap)(struct mm_struct *mm);
 
 
@@ -225,9 +233,9 @@ struct pv_mmu_ops {
 	void (*flush_tlb_kernel)(void);
 	void (*flush_tlb_single)(unsigned long addr);
 	void (*flush_tlb_others)(const struct cpumask *cpus,
-				 struct mm_struct *mm,
-				 unsigned long start,
-				 unsigned long end);
+							 struct mm_struct *mm,
+							 unsigned long start,
+							 unsigned long end);
 
 	/* Hooks for allocating and freeing a pagetable top-level */
 	int  (*pgd_alloc)(struct mm_struct *mm);
@@ -247,17 +255,17 @@ struct pv_mmu_ops {
 	/* Pagetable manipulation functions */
 	void (*set_pte)(pte_t *ptep, pte_t pteval);
 	void (*set_pte_at)(struct mm_struct *mm, unsigned long addr,
-			   pte_t *ptep, pte_t pteval);
+					   pte_t *ptep, pte_t pteval);
 	void (*set_pmd)(pmd_t *pmdp, pmd_t pmdval);
 	void (*set_pmd_at)(struct mm_struct *mm, unsigned long addr,
-			   pmd_t *pmdp, pmd_t pmdval);
+					   pmd_t *pmdp, pmd_t pmdval);
 	void (*pte_update)(struct mm_struct *mm, unsigned long addr,
-			   pte_t *ptep);
+					   pte_t *ptep);
 
 	pte_t (*ptep_modify_prot_start)(struct mm_struct *mm, unsigned long addr,
-					pte_t *ptep);
+									pte_t *ptep);
 	void (*ptep_modify_prot_commit)(struct mm_struct *mm, unsigned long addr,
-					pte_t *ptep, pte_t pte);
+									pte_t *ptep, pte_t pte);
 
 	struct paravirt_callee_save pte_val;
 	struct paravirt_callee_save make_pte;
@@ -269,7 +277,7 @@ struct pv_mmu_ops {
 #ifdef CONFIG_X86_PAE
 	void (*set_pte_atomic)(pte_t *ptep, pte_t pteval);
 	void (*pte_clear)(struct mm_struct *mm, unsigned long addr,
-			  pte_t *ptep);
+					  pte_t *ptep);
 	void (*pmd_clear)(pmd_t *pmdp);
 
 #endif	/* CONFIG_X86_PAE */
@@ -294,17 +302,18 @@ struct pv_mmu_ops {
 	/* Sometimes the physical address is a pfn, and sometimes its
 	   an mfn.  We can tell which is which from the index. */
 	void (*set_fixmap)(unsigned /* enum fixed_addresses */ idx,
-			   phys_addr_t phys, pgprot_t flags);
+					   phys_addr_t phys, pgprot_t flags);
 };
 
 struct arch_spinlock;
 #ifdef CONFIG_SMP
-#include <asm/spinlock_types.h>
+	#include <asm/spinlock_types.h>
 #endif
 
 struct qspinlock;
 
-struct pv_lock_ops {
+struct pv_lock_ops
+{
 	void (*queued_spin_lock_slowpath)(struct qspinlock *lock, u32 val);
 	struct paravirt_callee_save queued_spin_unlock;
 
@@ -315,7 +324,8 @@ struct pv_lock_ops {
 /* This contains all the paravirt structures: we get a convenient
  * number for each function using the offset which we use to indicate
  * what to patch. */
-struct paravirt_patch_template {
+struct paravirt_patch_template
+{
 	struct pv_init_ops pv_init_ops;
 	struct pv_time_ops pv_time_ops;
 	struct pv_cpu_ops pv_cpu_ops;
@@ -369,19 +379,19 @@ extern struct pv_lock_ops pv_lock_ops;
 unsigned paravirt_patch_ident_32(void *insnbuf, unsigned len);
 unsigned paravirt_patch_ident_64(void *insnbuf, unsigned len);
 unsigned paravirt_patch_call(void *insnbuf,
-			     const void *target, u16 tgt_clobbers,
-			     unsigned long addr, u16 site_clobbers,
-			     unsigned len);
+							 const void *target, u16 tgt_clobbers,
+							 unsigned long addr, u16 site_clobbers,
+							 unsigned len);
 unsigned paravirt_patch_jmp(void *insnbuf, const void *target,
-			    unsigned long addr, unsigned len);
+							unsigned long addr, unsigned len);
 unsigned paravirt_patch_default(u8 type, u16 clobbers, void *insnbuf,
-				unsigned long addr, unsigned len);
+								unsigned long addr, unsigned len);
 
 unsigned paravirt_patch_insns(void *insnbuf, unsigned len,
-			      const char *start, const char *end);
+							  const char *start, const char *end);
 
 unsigned native_patch(u8 type, u16 clobbers, void *ibuf,
-		      unsigned long addr, unsigned len);
+					  unsigned long addr, unsigned len);
 
 int paravirt_disable_iospace(void);
 
@@ -468,7 +478,7 @@ int paravirt_disable_iospace(void);
 #define PVOP_CALL_ARG3(x)		"c" ((unsigned long)(x))
 
 #define PVOP_VCALL_CLOBBERS		"=a" (__eax), "=d" (__edx),	\
-					"=c" (__ecx)
+	"=c" (__ecx)
 #define PVOP_CALL_CLOBBERS		PVOP_VCALL_CLOBBERS
 
 #define PVOP_VCALLEE_CLOBBERS		"=a" (__eax), "=d" (__edx)
@@ -480,7 +490,7 @@ int paravirt_disable_iospace(void);
 /* [re]ax isn't an arg, but the return val */
 #define PVOP_VCALL_ARGS						\
 	unsigned long __edi = __edi, __esi = __esi,		\
-		__edx = __edx, __ecx = __ecx, __eax = __eax;	\
+										 __edx = __edx, __ecx = __ecx, __eax = __eax;	\
 	register void *__sp asm("rsp")
 #define PVOP_CALL_ARGS		PVOP_VCALL_ARGS
 
@@ -490,8 +500,8 @@ int paravirt_disable_iospace(void);
 #define PVOP_CALL_ARG4(x)		"c" ((unsigned long)(x))
 
 #define PVOP_VCALL_CLOBBERS	"=D" (__edi),				\
-				"=S" (__esi), "=d" (__edx),		\
-				"=c" (__ecx)
+	"=S" (__esi), "=d" (__edx),		\
+	"=c" (__ecx)
 #define PVOP_CALL_CLOBBERS	PVOP_VCALL_CLOBBERS, "=a" (__eax)
 
 /* void functions are still allowed [re]ax for scratch */
@@ -503,51 +513,51 @@ int paravirt_disable_iospace(void);
 #endif	/* CONFIG_X86_32 */
 
 #ifdef CONFIG_PARAVIRT_DEBUG
-#define PVOP_TEST_NULL(op)	BUG_ON(op == NULL)
+	#define PVOP_TEST_NULL(op)	BUG_ON(op == NULL)
 #else
-#define PVOP_TEST_NULL(op)	((void)op)
+	#define PVOP_TEST_NULL(op)	((void)op)
 #endif
 
 #define ____PVOP_CALL(rettype, op, clbr, call_clbr, extra_clbr,		\
-		      pre, post, ...)					\
-	({								\
-		rettype __ret;						\
-		PVOP_CALL_ARGS;						\
-		PVOP_TEST_NULL(op);					\
-		/* This is 32-bit specific, but is okay in 64-bit */	\
-		/* since this condition will never hold */		\
-		if (sizeof(rettype) > sizeof(unsigned long)) {		\
-			asm volatile(pre				\
-				     paravirt_alt(PARAVIRT_CALL)	\
-				     post				\
-				     : call_clbr, "+r" (__sp)		\
-				     : paravirt_type(op),		\
-				       paravirt_clobber(clbr),		\
-				       ##__VA_ARGS__			\
-				     : "memory", "cc" extra_clbr);	\
-			__ret = (rettype)((((u64)__edx) << 32) | __eax); \
-		} else {						\
-			asm volatile(pre				\
-				     paravirt_alt(PARAVIRT_CALL)	\
-				     post				\
-				     : call_clbr, "+r" (__sp)		\
-				     : paravirt_type(op),		\
-				       paravirt_clobber(clbr),		\
-				       ##__VA_ARGS__			\
-				     : "memory", "cc" extra_clbr);	\
-			__ret = (rettype)__eax;				\
-		}							\
-		__ret;							\
-	})
+					  pre, post, ...)					\
+({								\
+	rettype __ret;						\
+	PVOP_CALL_ARGS;						\
+	PVOP_TEST_NULL(op);					\
+	/* This is 32-bit specific, but is okay in 64-bit */	\
+	/* since this condition will never hold */		\
+	if (sizeof(rettype) > sizeof(unsigned long)) {		\
+		asm volatile(pre				\
+					 paravirt_alt(PARAVIRT_CALL)	\
+					 post				\
+					 : call_clbr, "+r" (__sp)		\
+					 : paravirt_type(op),		\
+					 paravirt_clobber(clbr),		\
+					 ##__VA_ARGS__			\
+					 : "memory", "cc" extra_clbr);	\
+		__ret = (rettype)((((u64)__edx) << 32) | __eax); \
+	} else {						\
+		asm volatile(pre				\
+					 paravirt_alt(PARAVIRT_CALL)	\
+					 post				\
+					 : call_clbr, "+r" (__sp)		\
+					 : paravirt_type(op),		\
+					 paravirt_clobber(clbr),		\
+					 ##__VA_ARGS__			\
+					 : "memory", "cc" extra_clbr);	\
+		__ret = (rettype)__eax;				\
+	}							\
+	__ret;							\
+})
 
 #define __PVOP_CALL(rettype, op, pre, post, ...)			\
 	____PVOP_CALL(rettype, op, CLBR_ANY, PVOP_CALL_CLOBBERS,	\
-		      EXTRA_CLOBBERS, pre, post, ##__VA_ARGS__)
+				  EXTRA_CLOBBERS, pre, post, ##__VA_ARGS__)
 
 #define __PVOP_CALLEESAVE(rettype, op, pre, post, ...)			\
 	____PVOP_CALL(rettype, op.func, CLBR_RET_REG,			\
-		      PVOP_CALLEE_CLOBBERS, ,				\
-		      pre, post, ##__VA_ARGS__)
+				  PVOP_CALLEE_CLOBBERS, ,				\
+				  pre, post, ##__VA_ARGS__)
 
 
 #define ____PVOP_VCALL(op, clbr, call_clbr, extra_clbr, pre, post, ...)	\
@@ -555,24 +565,24 @@ int paravirt_disable_iospace(void);
 		PVOP_VCALL_ARGS;					\
 		PVOP_TEST_NULL(op);					\
 		asm volatile(pre					\
-			     paravirt_alt(PARAVIRT_CALL)		\
-			     post					\
-			     : call_clbr, "+r" (__sp)			\
-			     : paravirt_type(op),			\
-			       paravirt_clobber(clbr),			\
-			       ##__VA_ARGS__				\
-			     : "memory", "cc" extra_clbr);		\
+					 paravirt_alt(PARAVIRT_CALL)		\
+					 post					\
+					 : call_clbr, "+r" (__sp)			\
+					 : paravirt_type(op),			\
+					 paravirt_clobber(clbr),			\
+					 ##__VA_ARGS__				\
+					 : "memory", "cc" extra_clbr);		\
 	})
 
 #define __PVOP_VCALL(op, pre, post, ...)				\
 	____PVOP_VCALL(op, CLBR_ANY, PVOP_VCALL_CLOBBERS,		\
-		       VEXTRA_CLOBBERS,					\
-		       pre, post, ##__VA_ARGS__)
+				   VEXTRA_CLOBBERS,					\
+				   pre, post, ##__VA_ARGS__)
 
 #define __PVOP_VCALLEESAVE(op, pre, post, ...)				\
 	____PVOP_VCALL(op.func, CLBR_RET_REG,				\
-		      PVOP_VCALLEE_CLOBBERS, ,				\
-		      pre, post, ##__VA_ARGS__)
+				   PVOP_VCALLEE_CLOBBERS, ,				\
+				   pre, post, ##__VA_ARGS__)
 
 
 
@@ -600,51 +610,52 @@ int paravirt_disable_iospace(void);
 
 #define PVOP_CALL2(rettype, op, arg1, arg2)				\
 	__PVOP_CALL(rettype, op, "", "", PVOP_CALL_ARG1(arg1),		\
-		    PVOP_CALL_ARG2(arg2))
+				PVOP_CALL_ARG2(arg2))
 #define PVOP_VCALL2(op, arg1, arg2)					\
 	__PVOP_VCALL(op, "", "", PVOP_CALL_ARG1(arg1),			\
-		     PVOP_CALL_ARG2(arg2))
+				 PVOP_CALL_ARG2(arg2))
 
 #define PVOP_CALLEE2(rettype, op, arg1, arg2)				\
 	__PVOP_CALLEESAVE(rettype, op, "", "", PVOP_CALL_ARG1(arg1),	\
-			  PVOP_CALL_ARG2(arg2))
+					  PVOP_CALL_ARG2(arg2))
 #define PVOP_VCALLEE2(op, arg1, arg2)					\
 	__PVOP_VCALLEESAVE(op, "", "", PVOP_CALL_ARG1(arg1),		\
-			   PVOP_CALL_ARG2(arg2))
+					   PVOP_CALL_ARG2(arg2))
 
 
 #define PVOP_CALL3(rettype, op, arg1, arg2, arg3)			\
 	__PVOP_CALL(rettype, op, "", "", PVOP_CALL_ARG1(arg1),		\
-		    PVOP_CALL_ARG2(arg2), PVOP_CALL_ARG3(arg3))
+				PVOP_CALL_ARG2(arg2), PVOP_CALL_ARG3(arg3))
 #define PVOP_VCALL3(op, arg1, arg2, arg3)				\
 	__PVOP_VCALL(op, "", "", PVOP_CALL_ARG1(arg1),			\
-		     PVOP_CALL_ARG2(arg2), PVOP_CALL_ARG3(arg3))
+				 PVOP_CALL_ARG2(arg2), PVOP_CALL_ARG3(arg3))
 
 /* This is the only difference in x86_64. We can make it much simpler */
 #ifdef CONFIG_X86_32
 #define PVOP_CALL4(rettype, op, arg1, arg2, arg3, arg4)			\
 	__PVOP_CALL(rettype, op,					\
-		    "push %[_arg4];", "lea 4(%%esp),%%esp;",		\
-		    PVOP_CALL_ARG1(arg1), PVOP_CALL_ARG2(arg2),		\
-		    PVOP_CALL_ARG3(arg3), [_arg4] "mr" ((u32)(arg4)))
+				"push %[_arg4];", "lea 4(%%esp),%%esp;",		\
+				PVOP_CALL_ARG1(arg1), PVOP_CALL_ARG2(arg2),		\
+				PVOP_CALL_ARG3(arg3), [_arg4] "mr" ((u32)(arg4)))
 #define PVOP_VCALL4(op, arg1, arg2, arg3, arg4)				\
 	__PVOP_VCALL(op,						\
-		    "push %[_arg4];", "lea 4(%%esp),%%esp;",		\
-		    "0" ((u32)(arg1)), "1" ((u32)(arg2)),		\
-		    "2" ((u32)(arg3)), [_arg4] "mr" ((u32)(arg4)))
+				 "push %[_arg4];", "lea 4(%%esp),%%esp;",		\
+				 "0" ((u32)(arg1)), "1" ((u32)(arg2)),		\
+				 "2" ((u32)(arg3)), [_arg4] "mr" ((u32)(arg4)))
 #else
 #define PVOP_CALL4(rettype, op, arg1, arg2, arg3, arg4)			\
 	__PVOP_CALL(rettype, op, "", "",				\
-		    PVOP_CALL_ARG1(arg1), PVOP_CALL_ARG2(arg2),		\
-		    PVOP_CALL_ARG3(arg3), PVOP_CALL_ARG4(arg4))
+				PVOP_CALL_ARG1(arg1), PVOP_CALL_ARG2(arg2),		\
+				PVOP_CALL_ARG3(arg3), PVOP_CALL_ARG4(arg4))
 #define PVOP_VCALL4(op, arg1, arg2, arg3, arg4)				\
 	__PVOP_VCALL(op, "", "",					\
-		     PVOP_CALL_ARG1(arg1), PVOP_CALL_ARG2(arg2),	\
-		     PVOP_CALL_ARG3(arg3), PVOP_CALL_ARG4(arg4))
+				 PVOP_CALL_ARG1(arg1), PVOP_CALL_ARG2(arg2),	\
+				 PVOP_CALL_ARG3(arg3), PVOP_CALL_ARG4(arg4))
 #endif
 
 /* Lazy mode for batching updates / context switch */
-enum paravirt_lazy_mode {
+enum paravirt_lazy_mode
+{
 	PARAVIRT_LAZY_NONE,
 	PARAVIRT_LAZY_MMU,
 	PARAVIRT_LAZY_CPU,
@@ -665,7 +676,8 @@ u64 _paravirt_ident_64(u64);
 #define paravirt_nop	((void *)_paravirt_nop)
 
 /* These all sit in the .parainstructions section to tell us what to patch. */
-struct paravirt_patch_site {
+struct paravirt_patch_site
+{
 	u8 *instr; 		/* original instructions */
 	u8 instrtype;		/* type of this instruction */
 	u8 len;			/* length of original instruction */
@@ -673,7 +685,7 @@ struct paravirt_patch_site {
 };
 
 extern struct paravirt_patch_site __parainstructions[],
-	__parainstructions_end[];
+		   __parainstructions_end[];
 
 #endif	/* __ASSEMBLY__ */
 

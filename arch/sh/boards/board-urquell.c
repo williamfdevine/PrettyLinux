@@ -53,13 +53,15 @@
  */
 
 /* HeartBeat */
-static struct resource heartbeat_resource = {
+static struct resource heartbeat_resource =
+{
 	.start	= BOARDREG(SLEDR),
 	.end	= BOARDREG(SLEDR),
 	.flags	= IORESOURCE_MEM | IORESOURCE_MEM_16BIT,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.num_resources	= 1,
@@ -67,11 +69,13 @@ static struct platform_device heartbeat_device = {
 };
 
 /* LAN91C111 */
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
 };
 
-static struct resource smc91x_eth_resources[] = {
+static struct resource smc91x_eth_resources[] =
+{
 	[0] = {
 		.name   = "SMC91C111" ,
 		.start  = 0x05800300,
@@ -84,7 +88,8 @@ static struct resource smc91x_eth_resources[] = {
 	},
 };
 
-static struct platform_device smc91x_eth_device = {
+static struct platform_device smc91x_eth_device =
+{
 	.name           = "smc91x",
 	.num_resources  = ARRAY_SIZE(smc91x_eth_resources),
 	.resource       = smc91x_eth_resources,
@@ -94,7 +99,8 @@ static struct platform_device smc91x_eth_device = {
 };
 
 /* Nor Flash */
-static struct mtd_partition nor_flash_partitions[] = {
+static struct mtd_partition nor_flash_partitions[] =
+{
 	{
 		.name		= "loader",
 		.offset		= 0x00000000,
@@ -119,13 +125,15 @@ static struct mtd_partition nor_flash_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data nor_flash_data = {
+static struct physmap_flash_data nor_flash_data =
+{
 	.width		= 2,
 	.parts		= nor_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(nor_flash_partitions),
 };
 
-static struct resource nor_flash_resources[] = {
+static struct resource nor_flash_resources[] =
+{
 	[0] = {
 		.start	= NOR_FLASH_ADDR,
 		.end	= NOR_FLASH_ADDR + NOR_FLASH_SIZE - 1,
@@ -133,7 +141,8 @@ static struct resource nor_flash_resources[] = {
 	}
 };
 
-static struct platform_device nor_flash_device = {
+static struct platform_device nor_flash_device =
+{
 	.name		= "physmap-flash",
 	.dev		= {
 		.platform_data	= &nor_flash_data,
@@ -142,7 +151,8 @@ static struct platform_device nor_flash_device = {
 	.resource	= nor_flash_resources,
 };
 
-static struct platform_device *urquell_devices[] __initdata = {
+static struct platform_device *urquell_devices[] __initdata =
+{
 	&heartbeat_device,
 	&smc91x_eth_device,
 	&nor_flash_device,
@@ -156,10 +166,10 @@ static int __init urquell_devices_setup(void)
 
 	/* enable LAN */
 	__raw_writew(__raw_readw(UBOARDREG(IRL2MSKR)) & ~0x00000001,
-		  UBOARDREG(IRL2MSKR));
+				 UBOARDREG(IRL2MSKR));
 
 	return platform_add_devices(urquell_devices,
-				    ARRAY_SIZE(urquell_devices));
+								ARRAY_SIZE(urquell_devices));
 }
 device_initcall(urquell_devices_setup);
 
@@ -188,11 +198,17 @@ static int urquell_clk_init(void)
 	 * resonator will need to provide their own input clock.
 	 */
 	if (test_mode_pin(MODE_PIN9))
+	{
 		return -EINVAL;
+	}
 
 	clk = clk_get(NULL, "extal");
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
+
 	ret = clk_set_rate(clk, 33333333);
 	clk_put(clk);
 
@@ -212,7 +228,8 @@ static void __init urquell_setup(char **cmdline_p)
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_urquell __initmv = {
+static struct sh_machine_vector mv_urquell __initmv =
+{
 	.mv_name	= "Urquell",
 	.mv_setup	= urquell_setup,
 	.mv_init_irq	= urquell_init_irq,

@@ -28,8 +28,8 @@ static inline void debugger_local_cache_flushinv_one(u8 *addr) {}
 #else /* CONFIG_KERNEL_DEBUGGER */
 
 static inline int debugger_intercept(enum exception_code excep,
-				     int signo, int si_code,
-				     struct pt_regs *regs)
+									 int signo, int si_code,
+									 struct pt_regs *regs)
 {
 	return 0;
 }

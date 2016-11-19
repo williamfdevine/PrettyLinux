@@ -27,7 +27,7 @@
 #include <asm-generic/percpu.h>
 
 #if (XCHAL_HAVE_TLBS != 1)
-# error "Linux must have an MMU!"
+	# error "Linux must have an MMU!"
 #endif
 
 DECLARE_PER_CPU(unsigned long, asid_cache);
@@ -55,7 +55,7 @@ void init_mmu(void);
 static inline void set_rasid_register (unsigned long val)
 {
 	__asm__ __volatile__ (" wsr %0, rasid\n\t"
-			      " isync\n" : : "a" (val));
+						  " isync\n" : : "a" (val));
 }
 
 static inline unsigned long get_rasid_register (void)
@@ -68,7 +68,9 @@ static inline unsigned long get_rasid_register (void)
 static inline void get_new_mmu_context(struct mm_struct *mm, unsigned int cpu)
 {
 	unsigned long asid = cpu_asid_cache(cpu);
-	if ((++asid & ASID_MASK) == 0) {
+
+	if ((++asid & ASID_MASK) == 0)
+	{
 		/*
 		 * Start new asid cycle; continue counting with next
 		 * incarnation bits; skipping over 0, 1, 2, 3.
@@ -76,6 +78,7 @@ static inline void get_new_mmu_context(struct mm_struct *mm, unsigned int cpu)
 		local_flush_tlb_all();
 		asid += ASID_USER_FIRST;
 	}
+
 	cpu_asid_cache(cpu) = asid;
 	mm->context.asid[cpu] = asid;
 	mm->context.cpu = cpu;
@@ -87,12 +90,15 @@ static inline void get_mmu_context(struct mm_struct *mm, unsigned int cpu)
 	 * Check if our ASID is of an older version and thus invalid.
 	 */
 
-	if (mm) {
+	if (mm)
+	{
 		unsigned long asid = mm->context.asid[cpu];
 
 		if (asid == NO_CONTEXT ||
-				((asid ^ cpu_asid_cache(cpu)) & ~ASID_MASK))
+			((asid ^ cpu_asid_cache(cpu)) & ~ASID_MASK))
+		{
 			get_new_mmu_context(mm, cpu);
+		}
 	}
 }
 
@@ -110,10 +116,11 @@ static inline void activate_context(struct mm_struct *mm, unsigned int cpu)
  */
 
 static inline int init_new_context(struct task_struct *tsk,
-		struct mm_struct *mm)
+								   struct mm_struct *mm)
 {
 	int cpu;
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		mm->context.asid[cpu] = NO_CONTEXT;
 	}
 	mm->context.cpu = -1;
@@ -121,17 +128,22 @@ static inline int init_new_context(struct task_struct *tsk,
 }
 
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
 	unsigned int cpu = smp_processor_id();
 	int migrated = next->context.cpu != cpu;
+
 	/* Flush the icache if we migrated to a new core. */
-	if (migrated) {
+	if (migrated)
+	{
 		__invalidate_icache_all();
 		next->context.cpu = cpu;
 	}
+
 	if (migrated || prev != next)
+	{
 		activate_context(next, cpu);
+	}
 }
 
 #define activate_mm(prev, next)	switch_mm((prev), (next), NULL)

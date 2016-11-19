@@ -306,9 +306,13 @@ static inline void arch_write_unlock(arch_rwlock_t *rw)
 
 static inline int arch_read_trylock(arch_rwlock_t *lock)
 {
-	atomic_t *count = (atomic_t*)lock;
+	atomic_t *count = (atomic_t *)lock;
+
 	if (atomic_dec_return(count) >= 0)
+	{
 		return 1;
+	}
+
 	atomic_inc(count);
 	return 0;
 }
@@ -316,8 +320,12 @@ static inline int arch_read_trylock(arch_rwlock_t *lock)
 static inline int arch_write_trylock(arch_rwlock_t *lock)
 {
 	atomic_t *count = (atomic_t *)lock;
+
 	if (atomic_sub_and_test(RW_LOCK_BIAS, count))
+	{
 		return 1;
+	}
+
 	atomic_add(RW_LOCK_BIAS, count);
 	return 0;
 }

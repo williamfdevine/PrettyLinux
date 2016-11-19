@@ -10,16 +10,17 @@
 #define _NSIG		64
 
 #ifdef __i386__
-# define _NSIG_BPW	32
+	#define _NSIG_BPW	32
 #else
-# define _NSIG_BPW	64
+	#define _NSIG_BPW	64
 #endif
 
 #define _NSIG_WORDS	(_NSIG / _NSIG_BPW)
 
 typedef unsigned long old_sigset_t;		/* at least 32 bits */
 
-typedef struct {
+typedef struct
+{
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
 
@@ -28,7 +29,7 @@ typedef struct {
 #define SA_X32_ABI	0x01000000u
 
 #ifndef CONFIG_COMPAT
-typedef sigset_t compat_sigset_t;
+	typedef sigset_t compat_sigset_t;
 #endif
 
 #endif /* __ASSEMBLY__ */
@@ -87,7 +88,7 @@ static inline int __gen_sigismember(sigset_t *set, int _sig)
 {
 	unsigned char ret;
 	asm("btl %2,%1\n\tsetc %0"
-	    : "=qm"(ret) : "m"(*set), "Ir"(_sig-1) : "cc");
+		: "=qm"(ret) : "m"(*set), "Ir"(_sig-1) : "cc");
 	return ret;
 }
 

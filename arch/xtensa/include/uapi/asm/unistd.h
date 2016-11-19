@@ -2,7 +2,7 @@
 #define _UAPI_XTENSA_UNISTD_H
 
 #ifndef __SYSCALL
-# define __SYSCALL(nr,func,nargs)
+	#define __SYSCALL(nr,func,nargs)
 #endif
 
 #define __NR_spill				  0

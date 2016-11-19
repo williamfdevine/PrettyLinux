@@ -26,7 +26,9 @@ int handle_perf_interrupt(struct pt_regs *regs, int fault)
 	int retval;
 
 	if (!perf_irq)
+	{
 		panic("Unexpected PERF_COUNT interrupt %d\n", fault);
+	}
 
 	retval = perf_irq(regs, fault);
 	return retval;
@@ -95,9 +97,9 @@ pmc_ack_overflow(unsigned long status)
  */
 
 #if CHIP_HAS_SPLIT_INTR_MASK()
-# if INT_PERF_COUNT < 32 || INT_AUX_PERF_COUNT < 32
-#  error Fix assumptions about which word PERF_COUNT interrupts are in
-# endif
+	#if INT_PERF_COUNT < 32 || INT_AUX_PERF_COUNT < 32
+		#  error Fix assumptions about which word PERF_COUNT interrupts are in
+	#endif
 #endif
 
 static inline unsigned long long pmc_mask(void)

@@ -24,7 +24,8 @@
 #include "mpc10x.h"
 
 
-static const struct of_device_id storcenter_of_bus[] __initconst = {
+static const struct of_device_id storcenter_of_bus[] __initconst =
+{
 	{ .name = "soc", },
 	{},
 };
@@ -47,8 +48,11 @@ static int __init storcenter_add_bridge(struct device_node *dev)
 	printk("Adding PCI host bridge %s\n", dev->full_name);
 
 	hose = pcibios_alloc_controller(dev);
+
 	if (hose == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	bus_range = of_get_property(dev, "bus-range", &len);
 	hose->first_busno = bus_range ? bus_range[0] : 0;
@@ -70,7 +74,7 @@ static void __init storcenter_setup_arch(void)
 
 	/* Lookup PCI host bridges */
 	for_each_compatible_node(np, "pci", "mpc10x-pci")
-		storcenter_add_bridge(np);
+	storcenter_add_bridge(np);
 
 	printk(KERN_INFO "IOMEGA StorCenter\n");
 }
@@ -112,12 +116,13 @@ static int __init storcenter_probe(void)
 	return of_machine_is_compatible("iomega,storcenter");
 }
 
-define_machine(storcenter){
+define_machine(storcenter)
+{
 	.name 			= "IOMEGA StorCenter",
-	.probe 			= storcenter_probe,
-	.setup_arch 		= storcenter_setup_arch,
-	.init_IRQ 		= storcenter_init_IRQ,
-	.get_irq 		= mpic_get_irq,
-	.restart 		= storcenter_restart,
-	.calibrate_decr 	= generic_calibrate_decr,
+			.probe 			= storcenter_probe,
+				   .setup_arch 		= storcenter_setup_arch,
+						  .init_IRQ 		= storcenter_init_IRQ,
+							   .get_irq 		= mpic_get_irq,
+									 .restart 		= storcenter_restart,
+										   .calibrate_decr 	= generic_calibrate_decr,
 };

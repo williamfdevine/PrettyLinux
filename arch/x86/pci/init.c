@@ -14,10 +14,14 @@ static __init int pci_arch_init(void)
 #endif
 
 	if (!(pci_probe & PCI_PROBE_NOEARLY))
+	{
 		pci_mmcfg_early_init();
+	}
 
 	if (x86_init.pci.arch_init && !x86_init.pci.arch_init())
+	{
 		return 0;
+	}
 
 #ifdef CONFIG_PCI_BIOS
 	pci_pcbios_init();
@@ -31,9 +35,10 @@ static __init int pci_arch_init(void)
 #ifdef CONFIG_PCI_DIRECT
 	pci_direct_init(type);
 #endif
+
 	if (!raw_pci_ops && !raw_pci_ext_ops)
 		printk(KERN_ERR
-		"PCI: Fatal: No config space access function found\n");
+			   "PCI: Fatal: No config space access function found\n");
 
 	dmi_check_pciprobe();
 

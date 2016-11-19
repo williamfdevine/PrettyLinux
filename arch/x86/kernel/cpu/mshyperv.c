@@ -46,8 +46,11 @@ void hyperv_vector_handler(struct pt_regs *regs)
 
 	entering_irq();
 	inc_irq_stat(irq_hv_callback_count);
+
 	if (vmbus_handler)
+	{
 		vmbus_handler();
+	}
 
 	exiting_irq();
 	set_irq_regs(old_regs);
@@ -56,13 +59,14 @@ void hyperv_vector_handler(struct pt_regs *regs)
 void hv_setup_vmbus_irq(void (*handler)(void))
 {
 	vmbus_handler = handler;
+
 	/*
 	 * Setup the IDT for hypervisor callback. Prevent reallocation
 	 * at module reload.
 	 */
 	if (!test_bit(HYPERVISOR_CALLBACK_VECTOR, used_vectors))
 		alloc_intr_gate(HYPERVISOR_CALLBACK_VECTOR,
-				hyperv_callback_vector);
+						hyperv_callback_vector);
 }
 
 void hv_remove_vmbus_irq(void)
@@ -101,14 +105,20 @@ EXPORT_SYMBOL_GPL(hv_remove_crash_handler);
 static void hv_machine_shutdown(void)
 {
 	if (kexec_in_progress && hv_kexec_handler)
+	{
 		hv_kexec_handler();
+	}
+
 	native_machine_shutdown();
 }
 
 static void hv_machine_crash_shutdown(struct pt_regs *regs)
 {
 	if (hv_crash_handler)
+	{
 		hv_crash_handler(regs);
+	}
+
 	native_machine_crash_shutdown(regs);
 }
 #endif /* CONFIG_KEXEC_CORE */
@@ -120,15 +130,19 @@ static uint32_t  __init ms_hyperv_platform(void)
 	u32 hyp_signature[3];
 
 	if (!boot_cpu_has(X86_FEATURE_HYPERVISOR))
+	{
 		return 0;
+	}
 
 	cpuid(HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS,
-	      &eax, &hyp_signature[0], &hyp_signature[1], &hyp_signature[2]);
+		  &eax, &hyp_signature[0], &hyp_signature[1], &hyp_signature[2]);
 
 	if (eax >= HYPERV_CPUID_MIN &&
-	    eax <= HYPERV_CPUID_MAX &&
-	    !memcmp("Microsoft Hv", hyp_signature, 12))
+		eax <= HYPERV_CPUID_MAX &&
+		!memcmp("Microsoft Hv", hyp_signature, 12))
+	{
 		return HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS;
+	}
 
 	return 0;
 }
@@ -145,7 +159,8 @@ static cycle_t read_hv_clock(struct clocksource *arg)
 	return current_tick;
 }
 
-static struct clocksource hyperv_cs = {
+static struct clocksource hyperv_cs =
+{
 	.name		= "hyperv_clocksource",
 	.rating		= 400, /* use this when running on Hyperv*/
 	.read		= read_hv_clock,
@@ -168,10 +183,12 @@ static void __init ms_hyperv_init_platform(void)
 	ms_hyperv.hints    = cpuid_eax(HYPERV_CPUID_ENLIGHTMENT_INFO);
 
 	pr_info("HyperV: features 0x%x, hints 0x%x\n",
-		ms_hyperv.features, ms_hyperv.hints);
+			ms_hyperv.features, ms_hyperv.hints);
 
 #ifdef CONFIG_X86_LOCAL_APIC
-	if (ms_hyperv.features & HV_X64_MSR_APIC_FREQUENCY_AVAILABLE) {
+
+	if (ms_hyperv.features & HV_X64_MSR_APIC_FREQUENCY_AVAILABLE)
+	{
 		/*
 		 * Get the APIC frequency.
 		 */
@@ -181,12 +198,15 @@ static void __init ms_hyperv_init_platform(void)
 		hv_lapic_frequency = div_u64(hv_lapic_frequency, HZ);
 		lapic_timer_frequency = hv_lapic_frequency;
 		pr_info("HyperV: LAPIC Timer Frequency: %#x\n",
-			lapic_timer_frequency);
+				lapic_timer_frequency);
 	}
+
 #endif
 
 	if (ms_hyperv.features & HV_X64_MSR_TIME_REF_COUNT_AVAILABLE)
-		clocksource_register_hz(&hyperv_cs, NSEC_PER_SEC/100);
+	{
+		clocksource_register_hz(&hyperv_cs, NSEC_PER_SEC / 100);
+	}
 
 #ifdef CONFIG_X86_IO_APIC
 	no_timer_check = 1;
@@ -203,10 +223,13 @@ static void __init ms_hyperv_init_platform(void)
 	 * 0x61 port.
 	 */
 	if (efi_enabled(EFI_BOOT))
+	{
 		x86_platform.get_nmi_reason = hv_get_nmi_reason;
+	}
 }
 
-const __refconst struct hypervisor_x86 x86_hyper_ms_hyperv = {
+const __refconst struct hypervisor_x86 x86_hyper_ms_hyperv =
+{
 	.name			= "Microsoft HyperV",
 	.detect			= ms_hyperv_platform,
 	.init_platform		= ms_hyperv_init_platform,

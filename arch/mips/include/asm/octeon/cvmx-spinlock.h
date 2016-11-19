@@ -45,7 +45,8 @@
 /**
  * Spinlocks for Octeon CVMX
  */
-typedef struct {
+typedef struct
+{
 	volatile uint32_t value;
 } cvmx_spinlock_t;
 
@@ -105,17 +106,17 @@ static inline unsigned int cvmx_spinlock_trylock(cvmx_spinlock_t *lock)
 	unsigned int tmp;
 
 	__asm__ __volatile__(".set noreorder	     \n"
-			     "1: ll   %[tmp], %[val] \n"
-			/* if lock held, fail immediately */
-			     "	 bnez %[tmp], 2f     \n"
-			     "	 li   %[tmp], 1	     \n"
-			     "	 sc   %[tmp], %[val] \n"
-			     "	 beqz %[tmp], 1b     \n"
-			     "	 li   %[tmp], 0	     \n"
-			     "2:		     \n"
-			     ".set reorder	     \n" :
-			[val] "+m"(lock->value), [tmp] "=&r"(tmp)
-			     : : "memory");
+						 "1: ll   %[tmp], %[val] \n"
+						 /* if lock held, fail immediately */
+						 "	 bnez %[tmp], 2f     \n"
+						 "	 li   %[tmp], 1	     \n"
+						 "	 sc   %[tmp], %[val] \n"
+						 "	 beqz %[tmp], 1b     \n"
+						 "	 li   %[tmp], 0	     \n"
+						 "2:		     \n"
+						 ".set reorder	     \n" :
+						 [val] "+m"(lock->value), [tmp] "=&r"(tmp)
+						 : : "memory");
 
 	return tmp != 0;		/* normalize to 0 or 1 */
 }
@@ -130,15 +131,15 @@ static inline void cvmx_spinlock_lock(cvmx_spinlock_t *lock)
 	unsigned int tmp;
 
 	__asm__ __volatile__(".set noreorder	     \n"
-			     "1: ll   %[tmp], %[val]  \n"
-			     "	 bnez %[tmp], 1b     \n"
-			     "	 li   %[tmp], 1	     \n"
-			     "	 sc   %[tmp], %[val] \n"
-			     "	 beqz %[tmp], 1b     \n"
-			     "	 nop		    \n"
-			     ".set reorder	     \n" :
-			[val] "+m"(lock->value), [tmp] "=&r"(tmp)
-			: : "memory");
+						 "1: ll   %[tmp], %[val]  \n"
+						 "	 bnez %[tmp], 1b     \n"
+						 "	 li   %[tmp], 1	     \n"
+						 "	 sc   %[tmp], %[val] \n"
+						 "	 beqz %[tmp], 1b     \n"
+						 "	 nop		    \n"
+						 ".set reorder	     \n" :
+						 [val] "+m"(lock->value), [tmp] "=&r"(tmp)
+						 : : "memory");
 
 }
 
@@ -164,18 +165,18 @@ static inline void cvmx_spinlock_bit_lock(uint32_t *word)
 	unsigned int sav;
 
 	__asm__ __volatile__(".set noreorder	     \n"
-			     ".set noat		     \n"
-			     "1: ll    %[tmp], %[val]  \n"
-			     "	 bbit1 %[tmp], 31, 1b	 \n"
-			     "	 li    $at, 1	   \n"
-			     "	 ins   %[tmp], $at, 31, 1  \n"
-			     "	 sc    %[tmp], %[val] \n"
-			     "	 beqz  %[tmp], 1b     \n"
-			     "	 nop		    \n"
-			     ".set at		   \n"
-			     ".set reorder	     \n" :
-			[val] "+m"(*word), [tmp] "=&r"(tmp), [sav] "=&r"(sav)
-			     : : "memory");
+						 ".set noat		     \n"
+						 "1: ll    %[tmp], %[val]  \n"
+						 "	 bbit1 %[tmp], 31, 1b	 \n"
+						 "	 li    $at, 1	   \n"
+						 "	 ins   %[tmp], $at, 31, 1  \n"
+						 "	 sc    %[tmp], %[val] \n"
+						 "	 beqz  %[tmp], 1b     \n"
+						 "	 nop		    \n"
+						 ".set at		   \n"
+						 ".set reorder	     \n" :
+						 [val] "+m"(*word), [tmp] "=&r"(tmp), [sav] "=&r"(sav)
+						 : : "memory");
 
 }
 
@@ -195,20 +196,20 @@ static inline unsigned int cvmx_spinlock_bit_trylock(uint32_t *word)
 	unsigned int tmp;
 
 	__asm__ __volatile__(".set noreorder\n\t"
-			     ".set noat\n"
-			     "1: ll    %[tmp], %[val] \n"
-			/* if lock held, fail immediately */
-			     "	 bbit1 %[tmp], 31, 2f	  \n"
-			     "	 li    $at, 1	   \n"
-			     "	 ins   %[tmp], $at, 31, 1  \n"
-			     "	 sc    %[tmp], %[val] \n"
-			     "	 beqz  %[tmp], 1b     \n"
-			     "	 li    %[tmp], 0      \n"
-			     "2:		     \n"
-			     ".set at		   \n"
-			     ".set reorder	     \n" :
-			[val] "+m"(*word), [tmp] "=&r"(tmp)
-			: : "memory");
+						 ".set noat\n"
+						 "1: ll    %[tmp], %[val] \n"
+						 /* if lock held, fail immediately */
+						 "	 bbit1 %[tmp], 31, 2f	  \n"
+						 "	 li    $at, 1	   \n"
+						 "	 ins   %[tmp], $at, 31, 1  \n"
+						 "	 sc    %[tmp], %[val] \n"
+						 "	 beqz  %[tmp], 1b     \n"
+						 "	 li    %[tmp], 0      \n"
+						 "2:		     \n"
+						 ".set at		   \n"
+						 ".set reorder	     \n" :
+						 [val] "+m"(*word), [tmp] "=&r"(tmp)
+						 : : "memory");
 
 	return tmp != 0;		/* normalize to 0 or 1 */
 }

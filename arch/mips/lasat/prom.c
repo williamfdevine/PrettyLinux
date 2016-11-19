@@ -44,7 +44,7 @@ void prom_putchar(char c)
 }
 
 void (*prom_display)(const char *string, int pos, int clear) =
-		null_prom_display;
+	null_prom_display;
 void (*prom_monitor)(void) = null_prom_monitor;
 
 unsigned int lasat_ndelay_divider;
@@ -53,15 +53,18 @@ static void setup_prom_vectors(void)
 {
 	u32 version = *(u32 *)(RESET_VECTOR + 0x90);
 
-	if (version >= 307) {
+	if (version >= 307)
+	{
 		prom_display = (void *)PROM_DISPLAY_ADDR;
 		__prom_putc = (void *)PROM_PUTC_ADDR;
 		prom_monitor = (void *)PROM_MONITOR_ADDR;
 	}
+
 	printk(KERN_DEBUG "prom vectors set up\n");
 }
 
-static struct at93c_defs at93c_defs[N_MACHTYPES] = {
+static struct at93c_defs at93c_defs[N_MACHTYPES] =
+{
 	{
 		.reg		= (void *)AT93C_REG_100,
 		.rdata_reg	= (void *)AT93C_RDATA_REG_100,
@@ -86,11 +89,14 @@ void __init prom_init(void)
 
 	setup_prom_vectors();
 
-	if (IS_LASAT_200()) {
+	if (IS_LASAT_200())
+	{
 		printk(KERN_INFO "LASAT 200 board\n");
 		lasat_ndelay_divider = LASAT_200_DIVIDER;
 		at93c = &at93c_defs[1];
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "LASAT 100 board\n");
 		lasat_ndelay_divider = LASAT_100_DIVIDER;
 		at93c = &at93c_defs[0];
@@ -99,9 +105,10 @@ void __init prom_init(void)
 	lasat_init_board_info();		/* Read info from EEPROM */
 
 	/* Get the command line */
-	if (argc > 0) {
-		strncpy(arcs_cmdline, argv[0], COMMAND_LINE_SIZE-1);
-		arcs_cmdline[COMMAND_LINE_SIZE-1] = '\0';
+	if (argc > 0)
+	{
+		strncpy(arcs_cmdline, argv[0], COMMAND_LINE_SIZE - 1);
+		arcs_cmdline[COMMAND_LINE_SIZE - 1] = '\0';
 	}
 
 	/* Set the I/O base address */

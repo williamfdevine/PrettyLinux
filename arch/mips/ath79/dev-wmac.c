@@ -24,7 +24,8 @@
 
 static struct ath9k_platform_data ath79_wmac_data;
 
-static struct resource ath79_wmac_resources[] = {
+static struct resource ath79_wmac_resources[] =
+{
 	{
 		/* .start and .end fields are filled dynamically */
 		.flags	= IORESOURCE_MEM,
@@ -34,7 +35,8 @@ static struct resource ath79_wmac_resources[] = {
 	},
 };
 
-static struct platform_device ath79_wmac_device = {
+static struct platform_device ath79_wmac_device =
+{
 	.name		= "ath9k",
 	.id		= -1,
 	.resource	= ath79_wmac_resources,
@@ -87,13 +89,20 @@ static void __init ar933x_wmac_setup(void)
 	ath79_wmac_resources[1].end = ATH79_CPU_IRQ(2);
 
 	t = ath79_reset_rr(AR933X_RESET_REG_BOOTSTRAP);
+
 	if (t & AR933X_BOOTSTRAP_REF_CLK_40)
+	{
 		ath79_wmac_data.is_clk_25mhz = false;
+	}
 	else
+	{
 		ath79_wmac_data.is_clk_25mhz = true;
+	}
 
 	if (ath79_soc_rev == 1)
+	{
 		ath79_wmac_data.get_mac_revision = ar933x_r1_get_wmac_revision;
+	}
 
 	ath79_wmac_data.external_reset = ar933x_wmac_reset;
 }
@@ -110,10 +119,15 @@ static void ar934x_wmac_setup(void)
 	ath79_wmac_resources[1].end = ATH79_IP2_IRQ(1);
 
 	t = ath79_reset_rr(AR934X_RESET_REG_BOOTSTRAP);
+
 	if (t & AR934X_BOOTSTRAP_REF_CLK_40)
+	{
 		ath79_wmac_data.is_clk_25mhz = false;
+	}
 	else
+	{
 		ath79_wmac_data.is_clk_25mhz = true;
+	}
 }
 
 static void qca955x_wmac_setup(void)
@@ -128,28 +142,43 @@ static void qca955x_wmac_setup(void)
 	ath79_wmac_resources[1].end = ATH79_IP2_IRQ(1);
 
 	t = ath79_reset_rr(QCA955X_RESET_REG_BOOTSTRAP);
+
 	if (t & QCA955X_BOOTSTRAP_REF_CLK_40)
+	{
 		ath79_wmac_data.is_clk_25mhz = false;
+	}
 	else
+	{
 		ath79_wmac_data.is_clk_25mhz = true;
+	}
 }
 
 void __init ath79_register_wmac(u8 *cal_data)
 {
 	if (soc_is_ar913x())
+	{
 		ar913x_wmac_setup();
+	}
 	else if (soc_is_ar933x())
+	{
 		ar933x_wmac_setup();
+	}
 	else if (soc_is_ar934x())
+	{
 		ar934x_wmac_setup();
+	}
 	else if (soc_is_qca955x())
+	{
 		qca955x_wmac_setup();
+	}
 	else
+	{
 		BUG();
+	}
 
 	if (cal_data)
 		memcpy(ath79_wmac_data.eeprom_data, cal_data,
-		       sizeof(ath79_wmac_data.eeprom_data));
+			   sizeof(ath79_wmac_data.eeprom_data));
 
 	platform_device_register(&ath79_wmac_device);
 }

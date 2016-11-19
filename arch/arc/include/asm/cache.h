@@ -11,9 +11,9 @@
 
 /* In case $$ not config, setup a dummy number for rest of kernel */
 #ifndef CONFIG_ARC_CACHE_LINE_SHIFT
-#define L1_CACHE_SHIFT		6
+	#define L1_CACHE_SHIFT		6
 #else
-#define L1_CACHE_SHIFT		CONFIG_ARC_CACHE_LINE_SHIFT
+	#define L1_CACHE_SHIFT		CONFIG_ARC_CACHE_LINE_SHIFT
 #endif
 
 #define L1_CACHE_BYTES		(1 << L1_CACHE_SHIFT)
@@ -30,22 +30,22 @@
 
 /* Uncached access macros */
 #define arc_read_uncached_32(ptr)	\
-({					\
-	unsigned int __ret;		\
-	__asm__ __volatile__(		\
-	"	ld.di %0, [%1]	\n"	\
-	: "=r"(__ret)			\
-	: "r"(ptr));			\
-	__ret;				\
-})
+	({					\
+		unsigned int __ret;		\
+		__asm__ __volatile__(		\
+									"	ld.di %0, [%1]	\n"	\
+									: "=r"(__ret)			\
+									: "r"(ptr));			\
+		__ret;				\
+	})
 
 #define arc_write_uncached_32(ptr, data)\
-({					\
-	__asm__ __volatile__(		\
-	"	st.di %0, [%1]	\n"	\
-	:				\
-	: "r"(data), "r"(ptr));		\
-})
+	({					\
+		__asm__ __volatile__(		\
+									"	st.di %0, [%1]	\n"	\
+									:				\
+									: "r"(data), "r"(ptr));		\
+	})
 
 #define ARCH_DMA_MINALIGN      L1_CACHE_BYTES
 

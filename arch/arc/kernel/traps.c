@@ -44,17 +44,22 @@ void die(const char *str, struct pt_regs *regs, unsigned long address)
 static noinline int
 unhandled_exception(const char *str, struct pt_regs *regs, siginfo_t *info)
 {
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		struct task_struct *tsk = current;
 
 		tsk->thread.fault_address = (__force unsigned int)info->si_addr;
 
 		force_sig_info(info->si_signo, info, tsk);
 
-	} else {
+	}
+	else
+	{
 		/* If not due to copy_(to|from)_user, we are doomed */
 		if (fixup_exception(regs))
+		{
 			return 0;
+		}
 
 		die(str, regs, (unsigned long)info->si_addr);
 	}
@@ -63,16 +68,16 @@ unhandled_exception(const char *str, struct pt_regs *regs, siginfo_t *info)
 }
 
 #define DO_ERROR_INFO(signr, str, name, sicode) \
-int name(unsigned long address, struct pt_regs *regs) \
-{						\
-	siginfo_t info = {			\
-		.si_signo = signr,		\
-		.si_errno = 0,			\
-		.si_code  = sicode,		\
-		.si_addr = (void __user *)address,	\
-	};					\
-	return unhandled_exception(str, regs, &info);\
-}
+	int name(unsigned long address, struct pt_regs *regs) \
+	{						\
+		siginfo_t info = {			\
+									.si_signo = signr,		\
+									.si_errno = 0,			\
+									.si_code  = sicode,		\
+									.si_addr = (void __user *)address,	\
+						 };					\
+		return unhandled_exception(str, regs, &info);\
+	}
 
 /*
  * Entry points for exceptions NOT needing specific handling
@@ -88,11 +93,13 @@ DO_ERROR_INFO(SIGBUS, "Misaligned Access", do_misaligned_error, BUS_ADRALN)
  * Entry Point for Misaligned Data access Exception, for emulating in software
  */
 int do_misaligned_access(unsigned long address, struct pt_regs *regs,
-			 struct callee_regs *cregs)
+						 struct callee_regs *cregs)
 {
 	/* If emulation not enabled, or failed, kill the task */
 	if (misaligned_fixup(address, regs, cregs) != 0)
+	{
 		return do_misaligned_error(address, regs);
+	}
 
 	return 0;
 }
@@ -120,22 +127,23 @@ void do_non_swi_trap(unsigned long address, struct pt_regs *regs)
 {
 	unsigned int param = regs->ecr_param;
 
-	switch (param) {
-	case 1:
-		trap_is_brkpt(address, regs);
-		break;
+	switch (param)
+	{
+		case 1:
+			trap_is_brkpt(address, regs);
+			break;
 
-	case 2:
-		trap_is_kprobe(address, regs);
-		break;
+		case 2:
+			trap_is_kprobe(address, regs);
+			break;
 
-	case 3:
-	case 4:
-		kgdb_trap(regs);
-		break;
+		case 3:
+		case 4:
+			kgdb_trap(regs);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
@@ -150,8 +158,11 @@ void do_insterror_or_kprobe(unsigned long address, struct pt_regs *regs)
 
 	/* Check if this exception is caused by kprobes */
 	rc = notify_die(DIE_IERR, "kprobe_ierr", regs, address, 0, SIGILL);
+
 	if (rc == NOTIFY_STOP)
+	{
 		return;
+	}
 
 	insterror_is_error(address, regs);
 }

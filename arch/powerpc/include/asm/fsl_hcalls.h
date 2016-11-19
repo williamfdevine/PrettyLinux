@@ -97,9 +97,9 @@ static inline unsigned int fh_send_nmi(unsigned int vcpu_mask)
 	r3 = vcpu_mask;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -119,10 +119,10 @@ static inline unsigned int fh_send_nmi(unsigned int vcpu_mask)
  * Returns zero on success, non-zero on error.
  */
 static inline unsigned int fh_partition_get_dtprop(int handle,
-						   uint64_t dtpath_addr,
-						   uint64_t propname_addr,
-						   uint64_t propvalue_addr,
-						   uint32_t *propvalue_len)
+		uint64_t dtpath_addr,
+		uint64_t propname_addr,
+		uint64_t propvalue_addr,
+		uint32_t *propvalue_len)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -152,11 +152,11 @@ static inline unsigned int fh_partition_get_dtprop(int handle,
 	r10 = *propvalue_len;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11),
-		  "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6), "+r" (r7),
-		  "+r" (r8), "+r" (r9), "+r" (r10)
-		: : EV_HCALL_CLOBBERS8
-	);
+				 : "+r" (r11),
+				 "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6), "+r" (r7),
+				 "+r" (r8), "+r" (r9), "+r" (r10)
+				 : : EV_HCALL_CLOBBERS8
+				);
 
 	*propvalue_len = r4;
 	return r3;
@@ -173,10 +173,10 @@ static inline unsigned int fh_partition_get_dtprop(int handle,
  * Returns zero on success, non-zero on error.
  */
 static inline unsigned int fh_partition_set_dtprop(int handle,
-						   uint64_t dtpath_addr,
-						   uint64_t propname_addr,
-						   uint64_t propvalue_addr,
-						   uint32_t propvalue_len)
+		uint64_t dtpath_addr,
+		uint64_t propname_addr,
+		uint64_t propvalue_addr,
+		uint32_t propvalue_len)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -206,11 +206,11 @@ static inline unsigned int fh_partition_set_dtprop(int handle,
 	r10 = propvalue_len;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11),
-		  "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6), "+r" (r7),
-		  "+r" (r8), "+r" (r9), "+r" (r10)
-		: : EV_HCALL_CLOBBERS8
-	);
+				 : "+r" (r11),
+				 "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6), "+r" (r7),
+				 "+r" (r8), "+r" (r9), "+r" (r10)
+				 : : EV_HCALL_CLOBBERS8
+				);
 
 	return r3;
 }
@@ -230,9 +230,9 @@ static inline unsigned int fh_partition_restart(unsigned int partition)
 	r3 = partition;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -253,7 +253,7 @@ static inline unsigned int fh_partition_restart(unsigned int partition)
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int fh_partition_get_status(unsigned int partition,
-	unsigned int *status)
+		unsigned int *status)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -263,9 +263,9 @@ static inline unsigned int fh_partition_get_status(unsigned int partition,
 	r3 = partition;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "=r" (r4)
-		: : EV_HCALL_CLOBBERS2
-	);
+				 : "+r" (r11), "+r" (r3), "=r" (r4)
+				 : : EV_HCALL_CLOBBERS2
+				);
 
 	*status = r4;
 
@@ -283,7 +283,7 @@ static inline unsigned int fh_partition_get_status(unsigned int partition,
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int fh_partition_start(unsigned int partition,
-	uint32_t entry_point, int load)
+		uint32_t entry_point, int load)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -296,9 +296,9 @@ static inline unsigned int fh_partition_start(unsigned int partition,
 	r5 = load;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "+r" (r4), "+r" (r5)
-		: : EV_HCALL_CLOBBERS3
-	);
+				 : "+r" (r11), "+r" (r3), "+r" (r4), "+r" (r5)
+				 : : EV_HCALL_CLOBBERS3
+				);
 
 	return r3;
 }
@@ -318,9 +318,9 @@ static inline unsigned int fh_partition_stop(unsigned int partition)
 	r3 = partition;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -338,7 +338,8 @@ static inline unsigned int fh_partition_stop(unsigned int partition)
  * This structure must be aligned on 32-byte boundary, so that no single
  * strucuture can span two pages.
  */
-struct fh_sg_list {
+struct fh_sg_list
+{
 	uint64_t source;   /**< guest physical address to copy from */
 	uint64_t target;   /**< guest physical address to copy to */
 	uint64_t size;     /**< number of bytes to copy */
@@ -355,7 +356,7 @@ struct fh_sg_list {
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int fh_partition_memcpy(unsigned int source,
-	unsigned int target, phys_addr_t sg_list, unsigned int count)
+		unsigned int target, phys_addr_t sg_list, unsigned int count)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -377,10 +378,10 @@ static inline unsigned int fh_partition_memcpy(unsigned int source,
 	r7 = count;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11),
-		  "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6), "+r" (r7)
-		: : EV_HCALL_CLOBBERS5
-	);
+				 : "+r" (r11),
+				 "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6), "+r" (r7)
+				 : : EV_HCALL_CLOBBERS5
+				);
 
 	return r3;
 }
@@ -400,9 +401,9 @@ static inline unsigned int fh_dma_enable(unsigned int liodn)
 	r3 = liodn;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -422,9 +423,9 @@ static inline unsigned int fh_dma_disable(unsigned int liodn)
 	r3 = liodn;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -438,7 +439,7 @@ static inline unsigned int fh_dma_disable(unsigned int liodn)
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int fh_vmpic_get_msir(unsigned int interrupt,
-	unsigned int *msir_val)
+		unsigned int *msir_val)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -448,9 +449,9 @@ static inline unsigned int fh_vmpic_get_msir(unsigned int interrupt,
 	r3 = interrupt;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "=r" (r4)
-		: : EV_HCALL_CLOBBERS2
-	);
+				 : "+r" (r11), "+r" (r3), "=r" (r4)
+				 : : EV_HCALL_CLOBBERS2
+				);
 
 	*msir_val = r4;
 
@@ -470,9 +471,9 @@ static inline unsigned int fh_system_reset(void)
 	r11 = FH_HCALL_TOKEN(FH_SYSTEM_RESET);
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "=r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "=r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -490,7 +491,7 @@ static inline unsigned int fh_system_reset(void)
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int fh_err_get_info(int queue, uint32_t *bufsize,
-	uint32_t addr_hi, uint32_t addr_lo, int peek)
+		uint32_t addr_hi, uint32_t addr_lo, int peek)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -507,10 +508,10 @@ static inline unsigned int fh_err_get_info(int queue, uint32_t *bufsize,
 	r7 = peek;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6),
-		  "+r" (r7)
-		: : EV_HCALL_CLOBBERS5
-	);
+				 : "+r" (r11), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6),
+				 "+r" (r7)
+				 : : EV_HCALL_CLOBBERS5
+				);
 
 	*bufsize = r4;
 
@@ -532,7 +533,7 @@ static inline unsigned int fh_err_get_info(int queue, uint32_t *bufsize,
  * Returns 0 for success, or an error code.
  */
 static inline unsigned int fh_get_core_state(unsigned int handle,
-	unsigned int vcpu, unsigned int *state)
+		unsigned int vcpu, unsigned int *state)
 {
 	register uintptr_t r11 __asm__("r11");
 	register uintptr_t r3 __asm__("r3");
@@ -543,9 +544,9 @@ static inline unsigned int fh_get_core_state(unsigned int handle,
 	r4 = vcpu;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "+r" (r4)
-		: : EV_HCALL_CLOBBERS2
-	);
+				 : "+r" (r11), "+r" (r3), "+r" (r4)
+				 : : EV_HCALL_CLOBBERS2
+				);
 
 	*state = r4;
 	return r3;
@@ -573,9 +574,9 @@ static inline unsigned int fh_enter_nap(unsigned int handle, unsigned int vcpu)
 	r4 = vcpu;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "+r" (r4)
-		: : EV_HCALL_CLOBBERS2
-	);
+				 : "+r" (r11), "+r" (r3), "+r" (r4)
+				 : : EV_HCALL_CLOBBERS2
+				);
 
 	return r3;
 }
@@ -598,9 +599,9 @@ static inline unsigned int fh_exit_nap(unsigned int handle, unsigned int vcpu)
 	r4 = vcpu;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3), "+r" (r4)
-		: : EV_HCALL_CLOBBERS2
-	);
+				 : "+r" (r11), "+r" (r3), "+r" (r4)
+				 : : EV_HCALL_CLOBBERS2
+				);
 
 	return r3;
 }
@@ -619,9 +620,9 @@ static inline unsigned int fh_claim_device(unsigned int handle)
 	r3 = handle;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }
@@ -646,9 +647,9 @@ static inline unsigned int fh_partition_stop_dma(unsigned int handle)
 	r3 = handle;
 
 	asm volatile("bl	epapr_hypercall_start"
-		: "+r" (r11), "+r" (r3)
-		: : EV_HCALL_CLOBBERS1
-	);
+				 : "+r" (r11), "+r" (r3)
+				 : : EV_HCALL_CLOBBERS1
+				);
 
 	return r3;
 }

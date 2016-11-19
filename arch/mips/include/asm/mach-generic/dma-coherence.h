@@ -12,25 +12,25 @@
 struct device;
 
 static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr,
-	size_t size)
+		size_t size)
 {
 	return virt_to_phys(addr);
 }
 
 static inline dma_addr_t plat_map_dma_mem_page(struct device *dev,
-	struct page *page)
+		struct page *page)
 {
 	return page_to_phys(page);
 }
 
 static inline unsigned long plat_dma_addr_to_phys(struct device *dev,
-	dma_addr_t dma_addr)
+		dma_addr_t dma_addr)
 {
 	return dma_addr;
 }
 
 static inline void plat_unmap_dma_mem(struct device *dev, dma_addr_t dma_addr,
-	size_t size, enum dma_data_direction direction)
+									  size_t size, enum dma_data_direction direction)
 {
 }
 
@@ -42,7 +42,9 @@ static inline int plat_dma_supported(struct device *dev, u64 mask)
 	 * within a tighter range than GFP_DMA..
 	 */
 	if (mask < DMA_BIT_MASK(24))
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -52,15 +54,20 @@ static inline int plat_device_is_coherent(struct device *dev)
 #ifdef CONFIG_DMA_PERDEV_COHERENT
 	return dev->archdata.dma_coherent;
 #else
-	switch (coherentio) {
-	default:
-	case IO_COHERENCE_DEFAULT:
-		return hw_coherentio;
-	case IO_COHERENCE_ENABLED:
-		return 1;
-	case IO_COHERENCE_DISABLED:
-		return 0;
+
+	switch (coherentio)
+	{
+		default:
+		case IO_COHERENCE_DEFAULT:
+			return hw_coherentio;
+
+		case IO_COHERENCE_ENABLED:
+			return 1;
+
+		case IO_COHERENCE_DISABLED:
+			return 0;
 	}
+
 #endif
 }
 

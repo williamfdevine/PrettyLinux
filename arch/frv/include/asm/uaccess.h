@@ -42,17 +42,19 @@ static inline int ___range_ok(unsigned long addr, unsigned long size)
 		"0:				\n"
 		: "=r"(flag), "=&r"(tmp)
 		: "r"(addr), "r"(size), "r"(get_addr_limit()), "0"(flag)
-		);
+	);
 
 	return flag;
 
 #else
 
 	if (addr < memory_start ||
-	    addr > memory_end ||
-	    size > memory_end - memory_start ||
-	    addr + size > memory_end)
+		addr > memory_end ||
+		size > memory_end - memory_start ||
+		addr + size > memory_end)
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 #endif
@@ -89,42 +91,42 @@ extern unsigned long search_exception_table(unsigned long);
  * use the right size if we just have the right pointer type.
  */
 #define __put_user(x, ptr)						\
-({									\
-	int __pu_err = 0;						\
-									\
-	typeof(*(ptr)) __pu_val = (x);					\
-	__chk_user_ptr(ptr);						\
-									\
-	switch (sizeof (*(ptr))) {					\
-	case 1:								\
-		__put_user_asm(__pu_err, __pu_val, ptr, "b", "r");	\
-		break;							\
-	case 2:								\
-		__put_user_asm(__pu_err, __pu_val, ptr, "h", "r");	\
-		break;							\
-	case 4:								\
-		__put_user_asm(__pu_err, __pu_val, ptr, "",  "r");	\
-		break;							\
-	case 8:								\
-		__put_user_asm(__pu_err, __pu_val, ptr, "d", "e");	\
-		break;							\
-	default:							\
-		__pu_err = __put_user_bad();				\
-		break;							\
-	}								\
-	__pu_err;							\
-})
+	({									\
+		int __pu_err = 0;						\
+		\
+		typeof(*(ptr)) __pu_val = (x);					\
+		__chk_user_ptr(ptr);						\
+		\
+		switch (sizeof (*(ptr))) {					\
+			case 1:								\
+				__put_user_asm(__pu_err, __pu_val, ptr, "b", "r");	\
+				break;							\
+			case 2:								\
+				__put_user_asm(__pu_err, __pu_val, ptr, "h", "r");	\
+				break;							\
+			case 4:								\
+				__put_user_asm(__pu_err, __pu_val, ptr, "",  "r");	\
+				break;							\
+			case 8:								\
+				__put_user_asm(__pu_err, __pu_val, ptr, "d", "e");	\
+				break;							\
+			default:							\
+				__pu_err = __put_user_bad();				\
+				break;							\
+		}								\
+		__pu_err;							\
+	})
 
 #define put_user(x, ptr)			\
-({						\
-	typeof(*(ptr)) __user *_p = (ptr);	\
-	int _e;					\
-						\
-	_e = __range_ok(_p, sizeof(*_p));	\
-	if (_e == 0)				\
-		_e = __put_user((x), _p);	\
-	_e;					\
-})
+	({						\
+		typeof(*(ptr)) __user *_p = (ptr);	\
+		int _e;					\
+		\
+		_e = __range_ok(_p, sizeof(*_p));	\
+		if (_e == 0)				\
+			_e = __put_user((x), _p);	\
+		_e;					\
+	})
 
 extern int __put_user_bad(void);
 
@@ -137,32 +139,32 @@ extern int __put_user_bad(void);
 #ifdef CONFIG_MMU
 
 #define __put_user_asm(err,x,ptr,dsize,constraint)					\
-do {											\
-	asm volatile("1:	st"dsize"%I1	%2,%M1	\n"				\
-		     "2:				\n"				\
-		     ".subsection 2			\n"				\
-		     "3:	setlos		%3,%0	\n"				\
-		     "		bra		2b	\n"				\
-		     ".previous				\n"				\
-		     ".section __ex_table,\"a\"		\n"				\
-		     "		.balign		8	\n"				\
-		     "		.long		1b,3b	\n"				\
-		     ".previous"							\
-		     : "=r" (err)							\
-		     : "m" (*__ptr(ptr)), constraint (x), "i"(-EFAULT), "0"(err)	\
-		     : "memory");							\
-} while (0)
+	do {											\
+		asm volatile("1:	st"dsize"%I1	%2,%M1	\n"				\
+					 "2:				\n"				\
+					 ".subsection 2			\n"				\
+					 "3:	setlos		%3,%0	\n"				\
+					 "		bra		2b	\n"				\
+					 ".previous				\n"				\
+					 ".section __ex_table,\"a\"		\n"				\
+					 "		.balign		8	\n"				\
+					 "		.long		1b,3b	\n"				\
+					 ".previous"							\
+					 : "=r" (err)							\
+					 : "m" (*__ptr(ptr)), constraint (x), "i"(-EFAULT), "0"(err)	\
+					 : "memory");							\
+	} while (0)
 
 #else
 
 #define __put_user_asm(err,x,ptr,bwl,con)	\
-do {						\
-	asm("	st"bwl"%I0	%1,%M0	\n"	\
-	    "	membar			\n"	\
-	    :					\
-	    : "m" (*__ptr(ptr)), con (x)	\
-	    : "memory");			\
-} while (0)
+	do {						\
+		asm("	st"bwl"%I0	%1,%M0	\n"	\
+			"	membar			\n"	\
+			:					\
+			: "m" (*__ptr(ptr)), con (x)	\
+			: "memory");			\
+	} while (0)
 
 #endif
 
@@ -171,84 +173,84 @@ do {						\
  *
  */
 #define __get_user(x, ptr)						\
-({									\
-	int __gu_err = 0;						\
-	__chk_user_ptr(ptr);						\
-									\
-	switch (sizeof(*(ptr))) {					\
-	case 1: {							\
-		unsigned char __gu_val;					\
-		__get_user_asm(__gu_err, __gu_val, ptr, "ub", "=r");	\
-		(x) = *(__force __typeof__(*(ptr)) *) &__gu_val;	\
-		break;							\
-	}								\
-	case 2: {							\
-		unsigned short __gu_val;				\
-		__get_user_asm(__gu_err, __gu_val, ptr, "uh", "=r");	\
-		(x) = *(__force __typeof__(*(ptr)) *) &__gu_val;	\
-		break;							\
-	}								\
-	case 4: {							\
-		unsigned int __gu_val;					\
-		__get_user_asm(__gu_err, __gu_val, ptr, "", "=r");	\
-		(x) = *(__force __typeof__(*(ptr)) *) &__gu_val;	\
-		break;							\
-	}								\
-	case 8: {							\
-		unsigned long long __gu_val;				\
-		__get_user_asm(__gu_err, __gu_val, ptr, "d", "=e");	\
-		(x) = *(__force __typeof__(*(ptr)) *) &__gu_val;	\
-		break;							\
-	}								\
-	default:							\
-		__gu_err = __get_user_bad();				\
-		break;							\
-	}								\
-	__gu_err;							\
-})
+	({									\
+		int __gu_err = 0;						\
+		__chk_user_ptr(ptr);						\
+		\
+		switch (sizeof(*(ptr))) {					\
+			case 1: {							\
+					unsigned char __gu_val;					\
+					__get_user_asm(__gu_err, __gu_val, ptr, "ub", "=r");	\
+					(x) = *(__force __typeof__(*(ptr)) *) &__gu_val;	\
+					break;							\
+				}								\
+			case 2: {							\
+					unsigned short __gu_val;				\
+					__get_user_asm(__gu_err, __gu_val, ptr, "uh", "=r");	\
+					(x) = *(__force __typeof__(*(ptr)) *) &__gu_val;	\
+					break;							\
+				}								\
+			case 4: {							\
+					unsigned int __gu_val;					\
+					__get_user_asm(__gu_err, __gu_val, ptr, "", "=r");	\
+					(x) = *(__force __typeof__(*(ptr)) *) &__gu_val;	\
+					break;							\
+				}								\
+			case 8: {							\
+					unsigned long long __gu_val;				\
+					__get_user_asm(__gu_err, __gu_val, ptr, "d", "=e");	\
+					(x) = *(__force __typeof__(*(ptr)) *) &__gu_val;	\
+					break;							\
+				}								\
+			default:							\
+				__gu_err = __get_user_bad();				\
+				break;							\
+		}								\
+		__gu_err;							\
+	})
 
 #define get_user(x, ptr)			\
-({						\
-	const typeof(*(ptr)) __user *_p = (ptr);\
-	int _e;					\
-						\
-	_e = __range_ok(_p, sizeof(*_p));	\
-	if (likely(_e == 0))			\
-		_e = __get_user((x), _p);	\
-	else					\
-		(x) = (typeof(x)) 0;		\
-	_e;					\
-})
+	({						\
+		const typeof(*(ptr)) __user *_p = (ptr);\
+		int _e;					\
+		\
+		_e = __range_ok(_p, sizeof(*_p));	\
+		if (likely(_e == 0))			\
+			_e = __get_user((x), _p);	\
+		else					\
+			(x) = (typeof(x)) 0;		\
+		_e;					\
+	})
 
 extern int __get_user_bad(void);
 
 #ifdef CONFIG_MMU
 
 #define __get_user_asm(err,x,ptr,dtype,constraint)	\
-do {							\
-	asm("1:		ld"dtype"%I2	%M2,%1	\n"	\
-	    "2:					\n"	\
-	    ".subsection 2			\n"	\
-	    "3:		setlos		%3,%0	\n"	\
-	    "		setlos		#0,%1	\n"	\
-	    "		bra		2b	\n"	\
-	    ".previous				\n"	\
-	    ".section __ex_table,\"a\"		\n"	\
-	    "		.balign		8	\n"	\
-	    "		.long		1b,3b	\n"	\
-	    ".previous"					\
-	    : "=r" (err), constraint (x)		\
-	    : "m" (*__ptr(ptr)), "i"(-EFAULT), "0"(err)	\
-	    );						\
-} while(0)
+	do {							\
+		asm("1:		ld"dtype"%I2	%M2,%1	\n"	\
+			"2:					\n"	\
+			".subsection 2			\n"	\
+			"3:		setlos		%3,%0	\n"	\
+			"		setlos		#0,%1	\n"	\
+			"		bra		2b	\n"	\
+			".previous				\n"	\
+			".section __ex_table,\"a\"		\n"	\
+			"		.balign		8	\n"	\
+			"		.long		1b,3b	\n"	\
+			".previous"					\
+			: "=r" (err), constraint (x)		\
+			: "m" (*__ptr(ptr)), "i"(-EFAULT), "0"(err)	\
+		   );						\
+	} while(0)
 
 #else
 
 #define __get_user_asm(err,x,ptr,bwl,con)	\
 	asm("	ld"bwl"%I1	%M1,%0	\n"	\
-	    "	membar			\n"	\
-	    : con(x)				\
-	    : "m" (*__ptr(ptr)))
+		"	membar			\n"	\
+		: con(x)				\
+		: "m" (*__ptr(ptr)))
 
 #endif
 
@@ -258,18 +260,18 @@ do {							\
  */
 #define ____force(x) (__force void *)(void __user *)(x)
 #ifdef CONFIG_MMU
-extern long __memset_user(void *dst, unsigned long count);
-extern long __memcpy_user(void *dst, const void *src, unsigned long count);
+	extern long __memset_user(void *dst, unsigned long count);
+	extern long __memcpy_user(void *dst, const void *src, unsigned long count);
 
-#define __clear_user(dst,count)			__memset_user(____force(dst), (count))
-#define __copy_from_user_inatomic(to, from, n)	__memcpy_user((to), ____force(from), (n))
-#define __copy_to_user_inatomic(to, from, n)	__memcpy_user(____force(to), (from), (n))
+	#define __clear_user(dst,count)			__memset_user(____force(dst), (count))
+	#define __copy_from_user_inatomic(to, from, n)	__memcpy_user((to), ____force(from), (n))
+	#define __copy_to_user_inatomic(to, from, n)	__memcpy_user(____force(to), (from), (n))
 
 #else
 
-#define __clear_user(dst,count)			(memset(____force(dst), 0, (count)), 0)
-#define __copy_from_user_inatomic(to, from, n)	(memcpy((to), ____force(from), (n)), 0)
-#define __copy_to_user_inatomic(to, from, n)	(memcpy(____force(to), (from), (n)), 0)
+	#define __clear_user(dst,count)			(memset(____force(dst), 0, (count)), 0)
+	#define __copy_from_user_inatomic(to, from, n)	(memcpy((to), ____force(from), (n)), 0)
+	#define __copy_to_user_inatomic(to, from, n)	(memcpy(____force(to), (from), (n)), 0)
 
 #endif
 
@@ -277,22 +279,25 @@ static inline unsigned long __must_check
 clear_user(void __user *to, unsigned long n)
 {
 	if (likely(__access_ok(to, n)))
+	{
 		n = __clear_user(to, n);
+	}
+
 	return n;
 }
 
 static inline unsigned long __must_check
 __copy_to_user(void __user *to, const void *from, unsigned long n)
 {
-       might_fault();
-       return __copy_to_user_inatomic(to, from, n);
+	might_fault();
+	return __copy_to_user_inatomic(to, from, n);
 }
 
 static inline unsigned long
 __copy_from_user(void *to, const void __user *from, unsigned long n)
 {
-       might_fault();
-       return __copy_from_user_inatomic(to, from, n);
+	might_fault();
+	return __copy_from_user_inatomic(to, from, n);
 }
 
 static inline long copy_from_user(void *to, const void __user *from, unsigned long n)
@@ -300,10 +305,14 @@ static inline long copy_from_user(void *to, const void __user *from, unsigned lo
 	unsigned long ret = n;
 
 	if (likely(__access_ok(from, n)))
+	{
 		ret = __copy_from_user(to, from, n);
+	}
 
 	if (unlikely(ret != 0))
+	{
 		memset(to + (n - ret), 0, ret);
+	}
 
 	return ret;
 }

@@ -65,7 +65,9 @@ static void intc_enable_or_unmask(struct irq_data *d)
 	 * acks the irq before calling the interrupt handler
 	 */
 	if (irqd_is_level_type(d))
+	{
 		write_fn(mask, intc_baseaddr + IAR);
+	}
 
 	write_fn(mask, intc_baseaddr + SIE);
 }
@@ -91,7 +93,8 @@ static void intc_mask_ack(struct irq_data *d)
 	write_fn(mask, intc_baseaddr + IAR);
 }
 
-static struct irq_chip intc_dev = {
+static struct irq_chip intc_dev =
+{
 	.name = "Xilinx INTC",
 	.irq_unmask = intc_enable_or_unmask,
 	.irq_mask = intc_disable_or_mask,
@@ -106,8 +109,11 @@ unsigned int get_irq(void)
 	unsigned int hwirq, irq = -1;
 
 	hwirq = read_fn(intc_baseaddr + IVR);
+
 	if (hwirq != -1U)
+	{
 		irq = irq_find_mapping(root_domain, hwirq);
+	}
 
 	pr_debug("get_irq: hwirq=%d, irq=%d\n", hwirq, irq);
 
@@ -118,25 +124,30 @@ static int xintc_map(struct irq_domain *d, unsigned int irq, irq_hw_number_t hw)
 {
 	u32 intr_mask = (u32)d->host_data;
 
-	if (intr_mask & (1 << hw)) {
+	if (intr_mask & (1 << hw))
+	{
 		irq_set_chip_and_handler_name(irq, &intc_dev,
-						handle_edge_irq, "edge");
+									  handle_edge_irq, "edge");
 		irq_clear_status_flags(irq, IRQ_LEVEL);
-	} else {
+	}
+	else
+	{
 		irq_set_chip_and_handler_name(irq, &intc_dev,
-						handle_level_irq, "level");
+									  handle_level_irq, "level");
 		irq_set_status_flags(irq, IRQ_LEVEL);
 	}
+
 	return 0;
 }
 
-static const struct irq_domain_ops xintc_irq_domain_ops = {
+static const struct irq_domain_ops xintc_irq_domain_ops =
+{
 	.xlate = irq_domain_xlate_onetwocell,
 	.map = xintc_map,
 };
 
 static int __init xilinx_intc_of_init(struct device_node *intc,
-					     struct device_node *parent)
+									  struct device_node *parent)
 {
 	u32 nr_irq, intr_mask;
 	int ret;
@@ -145,22 +156,28 @@ static int __init xilinx_intc_of_init(struct device_node *intc,
 	BUG_ON(!intc_baseaddr);
 
 	ret = of_property_read_u32(intc, "xlnx,num-intr-inputs", &nr_irq);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: unable to read xlnx,num-intr-inputs\n", __func__);
 		return ret;
 	}
 
 	ret = of_property_read_u32(intc, "xlnx,kind-of-intr", &intr_mask);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: unable to read xlnx,kind-of-intr\n", __func__);
 		return ret;
 	}
 
 	if (intr_mask >> nr_irq)
+	{
 		pr_warn("%s: mismatch in kind-of-intr param\n", __func__);
+	}
 
 	pr_info("%s: num_irq=%d, edge=0x%x\n",
-		intc->full_name, nr_irq, intr_mask);
+			intc->full_name, nr_irq, intr_mask);
 
 	write_fn = intc_write32;
 	read_fn = intc_read32;
@@ -176,7 +193,9 @@ static int __init xilinx_intc_of_init(struct device_node *intc,
 
 	/* Turn on the Master Enable. */
 	write_fn(MER_HIE | MER_ME, intc_baseaddr + MER);
-	if (!(read_fn(intc_baseaddr + MER) & (MER_HIE | MER_ME))) {
+
+	if (!(read_fn(intc_baseaddr + MER) & (MER_HIE | MER_ME)))
+	{
 		write_fn = intc_write32_be;
 		read_fn = intc_read32_be;
 		write_fn(MER_HIE | MER_ME, intc_baseaddr + MER);
@@ -186,7 +205,7 @@ static int __init xilinx_intc_of_init(struct device_node *intc,
 	 * lazy and Michal can clean it up to something nicer when he tests
 	 * and commits this patch.  ~~gcl */
 	root_domain = irq_domain_add_linear(intc, nr_irq, &xintc_irq_domain_ops,
-							(void *)intr_mask);
+										(void *)intr_mask);
 
 	irq_set_default_host(root_domain);
 

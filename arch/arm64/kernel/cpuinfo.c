@@ -42,7 +42,8 @@
 DEFINE_PER_CPU(struct cpuinfo_arm64, cpu_data);
 static struct cpuinfo_arm64 boot_cpu_data;
 
-static char *icache_policy_str[] = {
+static char *icache_policy_str[] =
+{
 	[ICACHE_POLICY_RESERVED] = "RESERVED/UNKNOWN",
 	[ICACHE_POLICY_AIVIVT] = "AIVIVT",
 	[ICACHE_POLICY_VIPT] = "VIPT",
@@ -51,7 +52,8 @@ static char *icache_policy_str[] = {
 
 unsigned long __icache_flags;
 
-static const char *const hwcap_str[] = {
+static const char *const hwcap_str[] =
+{
 	"fp",
 	"asimd",
 	"evtstrm",
@@ -67,7 +69,8 @@ static const char *const hwcap_str[] = {
 };
 
 #ifdef CONFIG_COMPAT
-static const char *const compat_hwcap_str[] = {
+static const char *const compat_hwcap_str[] =
+{
 	"swp",
 	"half",
 	"thumb",
@@ -93,7 +96,8 @@ static const char *const compat_hwcap_str[] = {
 	NULL
 };
 
-static const char *const compat_hwcap2_str[] = {
+static const char *const compat_hwcap2_str[] =
+{
 	"aes",
 	"pmull",
 	"sha1",
@@ -108,7 +112,8 @@ static int c_show(struct seq_file *m, void *v)
 	int i, j;
 	bool compat = personality(current->personality) == PER_LINUX32;
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		struct cpuinfo_arm64 *cpuinfo = &per_cpu(cpu_data, i);
 		u32 midr = cpuinfo->reg_midr;
 
@@ -118,13 +123,14 @@ static int c_show(struct seq_file *m, void *v)
 		 * "processor".  Give glibc what it expects.
 		 */
 		seq_printf(m, "processor\t: %d\n", i);
+
 		if (compat)
 			seq_printf(m, "model name\t: ARMv8 Processor rev %d (%s)\n",
-				   MIDR_REVISION(midr), COMPAT_ELF_PLATFORM);
+					   MIDR_REVISION(midr), COMPAT_ELF_PLATFORM);
 
 		seq_printf(m, "BogoMIPS\t: %lu.%02lu\n",
-			   loops_per_jiffy / (500000UL/HZ),
-			   loops_per_jiffy / (5000UL/HZ) % 100);
+				   loops_per_jiffy / (500000UL / HZ),
+				   loops_per_jiffy / (5000UL / HZ) % 100);
 
 		/*
 		 * Dump out the common processor features in a single line.
@@ -133,25 +139,38 @@ static int c_show(struct seq_file *m, void *v)
 		 * software which does already (at least for 32-bit).
 		 */
 		seq_puts(m, "Features\t:");
-		if (compat) {
+
+		if (compat)
+		{
 #ifdef CONFIG_COMPAT
+
 			for (j = 0; compat_hwcap_str[j]; j++)
 				if (compat_elf_hwcap & (1 << j))
+				{
 					seq_printf(m, " %s", compat_hwcap_str[j]);
+				}
 
 			for (j = 0; compat_hwcap2_str[j]; j++)
 				if (compat_elf_hwcap2 & (1 << j))
+				{
 					seq_printf(m, " %s", compat_hwcap2_str[j]);
+				}
+
 #endif /* CONFIG_COMPAT */
-		} else {
+		}
+		else
+		{
 			for (j = 0; hwcap_str[j]; j++)
 				if (elf_hwcap & (1 << j))
+				{
 					seq_printf(m, " %s", hwcap_str[j]);
+				}
 		}
+
 		seq_puts(m, "\n");
 
 		seq_printf(m, "CPU implementer\t: 0x%02x\n",
-			   MIDR_IMPLEMENTOR(midr));
+				   MIDR_IMPLEMENTOR(midr));
 		seq_printf(m, "CPU architecture: 8\n");
 		seq_printf(m, "CPU variant\t: 0x%x\n", MIDR_VARIANT(midr));
 		seq_printf(m, "CPU part\t: 0x%03x\n", MIDR_PARTNUM(midr));
@@ -176,7 +195,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,
@@ -184,7 +204,8 @@ const struct seq_operations cpuinfo_op = {
 };
 
 
-static struct kobj_type cpuregs_kobj_type = {
+static struct kobj_type cpuregs_kobj_type =
+{
 	.sysfs_ops = &kobj_sysfs_ops,
 };
 
@@ -202,10 +223,10 @@ static struct kobj_type cpuregs_kobj_type = {
 #define kobj_to_cpuinfo(kobj)	container_of(kobj, struct cpuinfo_arm64, kobj)
 #define CPUREGS_ATTR_RO(_name, _field)						\
 	static ssize_t _name##_show(struct kobject *kobj,			\
-			struct kobj_attribute *attr, char *buf)			\
+								struct kobj_attribute *attr, char *buf)			\
 	{									\
 		struct cpuinfo_arm64 *info = kobj_to_cpuinfo(kobj);		\
-										\
+		\
 		if (info->reg_midr)						\
 			return sprintf(buf, "0x%016x\n", info->reg_##_field);	\
 		else								\
@@ -216,13 +237,15 @@ static struct kobj_type cpuregs_kobj_type = {
 CPUREGS_ATTR_RO(midr_el1, midr);
 CPUREGS_ATTR_RO(revidr_el1, revidr);
 
-static struct attribute *cpuregs_id_attrs[] = {
+static struct attribute *cpuregs_id_attrs[] =
+{
 	&cpuregs_attr_midr_el1.attr,
 	&cpuregs_attr_revidr_el1.attr,
 	NULL
 };
 
-static struct attribute_group cpuregs_attr_group = {
+static struct attribute_group cpuregs_attr_group =
+{
 	.attrs = cpuregs_id_attrs,
 	.name = "identification"
 };
@@ -234,16 +257,27 @@ static int cpuid_add_regs(int cpu)
 	struct cpuinfo_arm64 *info = &per_cpu(cpu_data, cpu);
 
 	dev = get_cpu_device(cpu);
-	if (!dev) {
+
+	if (!dev)
+	{
 		rc = -ENODEV;
 		goto out;
 	}
+
 	rc = kobject_add(&info->kobj, &dev->kobj, "regs");
+
 	if (rc)
+	{
 		goto out;
+	}
+
 	rc = sysfs_create_group(&info->kobj, &cpuregs_attr_group);
+
 	if (rc)
+	{
 		kobject_del(&info->kobj);
+	}
+
 out:
 	return rc;
 }
@@ -254,9 +288,14 @@ static int cpuid_remove_regs(int cpu)
 	struct cpuinfo_arm64 *info = &per_cpu(cpu_data, cpu);
 
 	dev = get_cpu_device(cpu);
+
 	if (!dev)
+	{
 		return -ENODEV;
-	if (info->kobj.parent) {
+	}
+
+	if (info->kobj.parent)
+	{
 		sysfs_remove_group(&info->kobj, &cpuregs_attr_group);
 		kobject_del(&info->kobj);
 	}
@@ -265,18 +304,20 @@ static int cpuid_remove_regs(int cpu)
 }
 
 static int cpuid_callback(struct notifier_block *nb,
-			 unsigned long action, void *hcpu)
+						  unsigned long action, void *hcpu)
 {
 	int rc = 0;
 	unsigned long cpu = (unsigned long)hcpu;
 
-	switch (action & ~CPU_TASKS_FROZEN) {
-	case CPU_ONLINE:
-		rc = cpuid_add_regs(cpu);
-		break;
-	case CPU_DEAD:
-		rc = cpuid_remove_regs(cpu);
-		break;
+	switch (action & ~CPU_TASKS_FROZEN)
+	{
+		case CPU_ONLINE:
+			rc = cpuid_add_regs(cpu);
+			break;
+
+		case CPU_DEAD:
+			rc = cpuid_remove_regs(cpu);
+			break;
 	}
 
 	return notifier_from_errno(rc);
@@ -288,12 +329,16 @@ static int __init cpuinfo_regs_init(void)
 
 	cpu_notifier_register_begin();
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct cpuinfo_arm64 *info = &per_cpu(cpu_data, cpu);
 
 		kobject_init(&info->kobj, &cpuregs_kobj_type);
+
 		if (cpu_online(cpu))
+		{
 			cpuid_add_regs(cpu);
+		}
 	}
 	__hotcpu_notifier(cpuid_callback, 0);
 
@@ -305,7 +350,8 @@ static void cpuinfo_detect_icache_policy(struct cpuinfo_arm64 *info)
 	unsigned int cpu = smp_processor_id();
 	u32 l1ip = CTR_L1IP(info->reg_ctr);
 
-	if (l1ip != ICACHE_POLICY_PIPT) {
+	if (l1ip != ICACHE_POLICY_PIPT)
+	{
 		/*
 		 * VIPT caches are non-aliasing if the VA always equals the PA
 		 * in all bit positions that are covered by the index. This is
@@ -315,10 +361,15 @@ static void cpuinfo_detect_icache_policy(struct cpuinfo_arm64 *info)
 		u32 waysize = icache_get_numsets() * icache_get_linesize();
 
 		if (l1ip != ICACHE_POLICY_VIPT || waysize > PAGE_SIZE)
+		{
 			set_bit(ICACHEF_ALIASING, &__icache_flags);
+		}
 	}
+
 	if (l1ip == ICACHE_POLICY_AIVIVT)
+	{
 		set_bit(ICACHEF_AIVIVT, &__icache_flags);
+	}
 
 	pr_info("Detected %s I-cache on CPU%d\n", icache_policy_str[l1ip], cpu);
 }
@@ -342,7 +393,8 @@ static void __cpuinfo_store_cpu(struct cpuinfo_arm64 *info)
 	info->reg_id_aa64pfr1 = read_cpuid(ID_AA64PFR1_EL1);
 
 	/* Update the 32bit ID registers only if AArch32 is implemented */
-	if (id_aa64pfr0_32bit_el0(info->reg_id_aa64pfr0)) {
+	if (id_aa64pfr0_32bit_el0(info->reg_id_aa64pfr0))
+	{
 		info->reg_id_dfr0 = read_cpuid(ID_DFR0_EL1);
 		info->reg_id_isar0 = read_cpuid(ID_ISAR0_EL1);
 		info->reg_id_isar1 = read_cpuid(ID_ISAR1_EL1);

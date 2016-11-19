@@ -15,12 +15,13 @@
 /* This file is machine-generated; DO NOT EDIT! */
 #include "gxio/iorpc_usb_host.h"
 
-struct cfg_interrupt_param {
+struct cfg_interrupt_param
+{
 	union iorpc_interrupt interrupt;
 };
 
 int gxio_usb_host_cfg_interrupt(gxio_usb_host_context_t *context, int inter_x,
-				int inter_y, int inter_ipi, int inter_event)
+								int inter_y, int inter_ipi, int inter_event)
 {
 	struct cfg_interrupt_param temp;
 	struct cfg_interrupt_param *params = &temp;
@@ -31,18 +32,19 @@ int gxio_usb_host_cfg_interrupt(gxio_usb_host_context_t *context, int inter_x,
 	params->interrupt.kernel.event = inter_event;
 
 	return hv_dev_pwrite(context->fd, 0, (HV_VirtAddr) params,
-			     sizeof(*params), GXIO_USB_HOST_OP_CFG_INTERRUPT);
+						 sizeof(*params), GXIO_USB_HOST_OP_CFG_INTERRUPT);
 }
 
 EXPORT_SYMBOL(gxio_usb_host_cfg_interrupt);
 
-struct register_client_memory_param {
+struct register_client_memory_param
+{
 	HV_PTE pte;
 	unsigned int flags;
 };
 
 int gxio_usb_host_register_client_memory(gxio_usb_host_context_t *context,
-					 HV_PTE pte, unsigned int flags)
+		HV_PTE pte, unsigned int flags)
 {
 	struct register_client_memory_param temp;
 	struct register_client_memory_param *params = &temp;
@@ -51,13 +53,14 @@ int gxio_usb_host_register_client_memory(gxio_usb_host_context_t *context,
 	params->flags = flags;
 
 	return hv_dev_pwrite(context->fd, 0, (HV_VirtAddr) params,
-			     sizeof(*params),
-			     GXIO_USB_HOST_OP_REGISTER_CLIENT_MEMORY);
+						 sizeof(*params),
+						 GXIO_USB_HOST_OP_REGISTER_CLIENT_MEMORY);
 }
 
 EXPORT_SYMBOL(gxio_usb_host_register_client_memory);
 
-struct get_mmio_base_param {
+struct get_mmio_base_param
+{
 	HV_PTE base;
 };
 
@@ -68,8 +71,8 @@ int gxio_usb_host_get_mmio_base(gxio_usb_host_context_t *context, HV_PTE *base)
 	struct get_mmio_base_param *params = &temp;
 
 	__result =
-	    hv_dev_pread(context->fd, 0, (HV_VirtAddr) params, sizeof(*params),
-			 GXIO_USB_HOST_OP_GET_MMIO_BASE);
+		hv_dev_pread(context->fd, 0, (HV_VirtAddr) params, sizeof(*params),
+					 GXIO_USB_HOST_OP_GET_MMIO_BASE);
 	*base = params->base;
 
 	return __result;
@@ -77,13 +80,14 @@ int gxio_usb_host_get_mmio_base(gxio_usb_host_context_t *context, HV_PTE *base)
 
 EXPORT_SYMBOL(gxio_usb_host_get_mmio_base);
 
-struct check_mmio_offset_param {
+struct check_mmio_offset_param
+{
 	unsigned long offset;
 	unsigned long size;
 };
 
 int gxio_usb_host_check_mmio_offset(gxio_usb_host_context_t *context,
-				    unsigned long offset, unsigned long size)
+									unsigned long offset, unsigned long size)
 {
 	struct check_mmio_offset_param temp;
 	struct check_mmio_offset_param *params = &temp;
@@ -92,8 +96,8 @@ int gxio_usb_host_check_mmio_offset(gxio_usb_host_context_t *context,
 	params->size = size;
 
 	return hv_dev_pwrite(context->fd, 0, (HV_VirtAddr) params,
-			     sizeof(*params),
-			     GXIO_USB_HOST_OP_CHECK_MMIO_OFFSET);
+						 sizeof(*params),
+						 GXIO_USB_HOST_OP_CHECK_MMIO_OFFSET);
 }
 
 EXPORT_SYMBOL(gxio_usb_host_check_mmio_offset);

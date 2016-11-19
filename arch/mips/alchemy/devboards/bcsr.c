@@ -16,7 +16,8 @@
 #include <asm/io.h>
 #include <asm/mach-db1x00/bcsr.h>
 
-static struct bcsr_reg {
+static struct bcsr_reg
+{
 	void __iomem *raddr;
 	spinlock_t lock;
 } bcsr_regs[BCSR_CNT];
@@ -33,13 +34,14 @@ void __init bcsr_init(unsigned long bcsr1_phys, unsigned long bcsr2_phys)
 
 	bcsr_virt = (void __iomem *)bcsr1_phys;
 
-	for (i = 0; i < BCSR_CNT; i++) {
+	for (i = 0; i < BCSR_CNT; i++)
+	{
 		if (i >= BCSR_HEXLEDS)
 			bcsr_regs[i].raddr = (void __iomem *)bcsr2_phys +
-					(0x04 * (i - BCSR_HEXLEDS));
+								 (0x04 * (i - BCSR_HEXLEDS));
 		else
 			bcsr_regs[i].raddr = (void __iomem *)bcsr1_phys +
-					(0x04 * i);
+								 (0x04 * i);
 
 		spin_lock_init(&bcsr_regs[i].lock);
 	}
@@ -118,7 +120,8 @@ static void bcsr_irq_unmask(struct irq_data *d)
 	wmb();
 }
 
-static struct irq_chip bcsr_irq_type = {
+static struct irq_chip bcsr_irq_type =
+{
 	.name		= "CPLD",
 	.irq_mask	= bcsr_irq_mask,
 	.irq_mask_ack	= bcsr_irq_maskack,
@@ -139,7 +142,7 @@ void __init bcsr_init_irq(int csc_start, int csc_end, int hook_irq)
 
 	for (irq = csc_start; irq <= csc_end; irq++)
 		irq_set_chip_and_handler_name(irq, &bcsr_irq_type,
-					      handle_level_irq, "level");
+									  handle_level_irq, "level");
 
 	irq_set_chained_handler(hook_irq, bcsr_csc_handler);
 }

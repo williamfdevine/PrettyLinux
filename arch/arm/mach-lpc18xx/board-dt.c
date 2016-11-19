@@ -10,7 +10,8 @@
 
 #include <asm/mach/arch.h>
 
-static const char *const lpc18xx_43xx_compat[] __initconst = {
+static const char *const lpc18xx_43xx_compat[] __initconst =
+{
 	"nxp,lpc1850",
 	"nxp,lpc4350",
 	"nxp,lpc4370",
@@ -18,5 +19,5 @@ static const char *const lpc18xx_43xx_compat[] __initconst = {
 };
 
 DT_MACHINE_START(LPC18XXDT, "NXP LPC18xx/43xx (Device Tree)")
-	.dt_compat = lpc18xx_43xx_compat,
-MACHINE_END
+.dt_compat = lpc18xx_43xx_compat,
+ MACHINE_END

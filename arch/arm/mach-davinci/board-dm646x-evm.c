@@ -55,7 +55,8 @@
  * and U-Boot environment this avoids dependency on any particular combination
  * of UBL, U-Boot or flashing tools etc.
  */
-static struct mtd_partition davinci_nand_partitions[] = {
+static struct mtd_partition davinci_nand_partitions[] =
+{
 	{
 		/* UBL, U-Boot with environment */
 		.name		= "bootloader",
@@ -75,7 +76,8 @@ static struct mtd_partition davinci_nand_partitions[] = {
 	}
 };
 
-static struct davinci_aemif_timing dm6467tevm_nandflash_timing = {
+static struct davinci_aemif_timing dm6467tevm_nandflash_timing =
+{
 	.wsetup		= 29,
 	.wstrobe	= 24,
 	.whold		= 14,
@@ -85,7 +87,8 @@ static struct davinci_aemif_timing dm6467tevm_nandflash_timing = {
 	.ta		= 29,
 };
 
-static struct davinci_nand_pdata davinci_nand_data = {
+static struct davinci_nand_pdata davinci_nand_data =
+{
 	.mask_cle 		= 0x80000,
 	.mask_ale 		= 0x40000,
 	.parts			= davinci_nand_partitions,
@@ -95,7 +98,8 @@ static struct davinci_nand_pdata davinci_nand_data = {
 	.options		= 0,
 };
 
-static struct resource davinci_nand_resources[] = {
+static struct resource davinci_nand_resources[] =
+{
 	{
 		.start		= DM646X_ASYNC_EMIF_CS2_SPACE_BASE,
 		.end		= DM646X_ASYNC_EMIF_CS2_SPACE_BASE + SZ_32M - 1,
@@ -107,7 +111,8 @@ static struct resource davinci_nand_resources[] = {
 	},
 };
 
-static struct platform_device davinci_nand_device = {
+static struct platform_device davinci_nand_device =
+{
 	.name			= "davinci_nand",
 	.id			= 0,
 
@@ -128,11 +133,13 @@ static struct platform_device davinci_nand_device = {
 
 /* CPLD Register 0 Client: used for I/O Control */
 static int cpld_reg0_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
-	if (HAS_ATA) {
+	if (HAS_ATA)
+	{
 		u8 data;
-		struct i2c_msg msg[2] = {
+		struct i2c_msg msg[2] =
+		{
 			{
 				.addr = client->addr,
 				.flags = I2C_M_RD,
@@ -156,12 +163,14 @@ static int cpld_reg0_probe(struct i2c_client *client,
 	return 0;
 }
 
-static const struct i2c_device_id cpld_reg_ids[] = {
+static const struct i2c_device_id cpld_reg_ids[] =
+{
 	{ "cpld_reg0", 0, },
 	{ },
 };
 
-static struct i2c_driver dm6467evm_cpld_driver = {
+static struct i2c_driver dm6467evm_cpld_driver =
+{
 	.driver.name	= "cpld_reg0",
 	.id_table	= cpld_reg_ids,
 	.probe		= cpld_reg0_probe,
@@ -169,14 +178,16 @@ static struct i2c_driver dm6467evm_cpld_driver = {
 
 /* LEDS */
 
-static struct gpio_led evm_leds[] = {
+static struct gpio_led evm_leds[] =
+{
 	{ .name = "DS1", .active_low = 1, },
 	{ .name = "DS2", .active_low = 1, },
 	{ .name = "DS3", .active_low = 1, },
 	{ .name = "DS4", .active_low = 1, },
 };
 
-static const struct gpio_led_platform_data evm_led_data = {
+static const struct gpio_led_platform_data evm_led_data =
+{
 	.num_leds = ARRAY_SIZE(evm_leds),
 	.leds     = evm_leds,
 };
@@ -184,123 +195,152 @@ static const struct gpio_led_platform_data evm_led_data = {
 static struct platform_device *evm_led_dev;
 
 static int evm_led_setup(struct i2c_client *client, int gpio,
-			unsigned int ngpio, void *c)
+						 unsigned int ngpio, void *c)
 {
 	struct gpio_led *leds = evm_leds;
 	int status;
 
-	while (ngpio--) {
+	while (ngpio--)
+	{
 		leds->gpio = gpio++;
 		leds++;
 	}
 
 	evm_led_dev = platform_device_alloc("leds-gpio", 0);
 	platform_device_add_data(evm_led_dev, &evm_led_data,
-				sizeof(evm_led_data));
+							 sizeof(evm_led_data));
 
 	evm_led_dev->dev.parent = &client->dev;
 	status = platform_device_add(evm_led_dev);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		platform_device_put(evm_led_dev);
 		evm_led_dev = NULL;
 	}
+
 	return status;
 }
 
 static int evm_led_teardown(struct i2c_client *client, int gpio,
-				unsigned ngpio, void *c)
+							unsigned ngpio, void *c)
 {
-	if (evm_led_dev) {
+	if (evm_led_dev)
+	{
 		platform_device_unregister(evm_led_dev);
 		evm_led_dev = NULL;
 	}
+
 	return 0;
 }
 
 static int evm_sw_gpio[4] = { -EINVAL, -EINVAL, -EINVAL, -EINVAL };
 
 static int evm_sw_setup(struct i2c_client *client, int gpio,
-			unsigned ngpio, void *c)
+						unsigned ngpio, void *c)
 {
 	int status;
 	int i;
 	char label[10];
 
-	for (i = 0; i < 4; ++i) {
+	for (i = 0; i < 4; ++i)
+	{
 		snprintf(label, 10, "user_sw%d", i);
 		status = gpio_request(gpio, label);
+
 		if (status)
+		{
 			goto out_free;
+		}
+
 		evm_sw_gpio[i] = gpio++;
 
 		status = gpio_direction_input(evm_sw_gpio[i]);
-		if (status) {
+
+		if (status)
+		{
 			gpio_free(evm_sw_gpio[i]);
 			evm_sw_gpio[i] = -EINVAL;
 			goto out_free;
 		}
 
 		status = gpio_export(evm_sw_gpio[i], 0);
-		if (status) {
+
+		if (status)
+		{
 			gpio_free(evm_sw_gpio[i]);
 			evm_sw_gpio[i] = -EINVAL;
 			goto out_free;
 		}
 	}
+
 	return status;
 out_free:
-	for (i = 0; i < 4; ++i) {
-		if (evm_sw_gpio[i] != -EINVAL) {
+
+	for (i = 0; i < 4; ++i)
+	{
+		if (evm_sw_gpio[i] != -EINVAL)
+		{
 			gpio_free(evm_sw_gpio[i]);
 			evm_sw_gpio[i] = -EINVAL;
 		}
 	}
+
 	return status;
 }
 
 static int evm_sw_teardown(struct i2c_client *client, int gpio,
-			unsigned ngpio, void *c)
+						   unsigned ngpio, void *c)
 {
 	int i;
 
-	for (i = 0; i < 4; ++i) {
-		if (evm_sw_gpio[i] != -EINVAL) {
+	for (i = 0; i < 4; ++i)
+	{
+		if (evm_sw_gpio[i] != -EINVAL)
+		{
 			gpio_unexport(evm_sw_gpio[i]);
 			gpio_free(evm_sw_gpio[i]);
 			evm_sw_gpio[i] = -EINVAL;
 		}
 	}
+
 	return 0;
 }
 
 static int evm_pcf_setup(struct i2c_client *client, int gpio,
-			unsigned int ngpio, void *c)
+						 unsigned int ngpio, void *c)
 {
 	int status;
 
 	if (ngpio < 8)
+	{
 		return -EINVAL;
+	}
 
 	status = evm_sw_setup(client, gpio, 4, c);
-	if (status)
-		return status;
 
-	return evm_led_setup(client, gpio+4, 4, c);
+	if (status)
+	{
+		return status;
+	}
+
+	return evm_led_setup(client, gpio + 4, 4, c);
 }
 
 static int evm_pcf_teardown(struct i2c_client *client, int gpio,
-			unsigned int ngpio, void *c)
+							unsigned int ngpio, void *c)
 {
 	BUG_ON(ngpio < 8);
 
 	evm_sw_teardown(client, gpio, 4, c);
-	evm_led_teardown(client, gpio+4, 4, c);
+	evm_led_teardown(client, gpio + 4, 4, c);
 
 	return 0;
 }
 
-static struct pcf857x_platform_data pcf_data = {
-	.gpio_base	= DAVINCI_N_GPIO+1,
+static struct pcf857x_platform_data pcf_data =
+{
+	.gpio_base	= DAVINCI_N_GPIO + 1,
 	.setup		= evm_pcf_setup,
 	.teardown	= evm_pcf_teardown,
 };
@@ -310,8 +350,9 @@ static struct pcf857x_platform_data pcf_data = {
  *  - ... newer boards may have more
  */
 
-static struct at24_platform_data eeprom_info = {
-	.byte_len       = (256*1024) / 8,
+static struct at24_platform_data eeprom_info =
+{
+	.byte_len       = (256 * 1024) / 8,
 	.page_size      = 64,
 	.flags          = AT24_FLAG_ADDR16,
 	.setup          = davinci_get_mac_addr,
@@ -319,15 +360,18 @@ static struct at24_platform_data eeprom_info = {
 };
 #endif
 
-static u8 dm646x_iis_serializer_direction[] = {
-       TX_MODE, RX_MODE, INACTIVE_MODE, INACTIVE_MODE,
+static u8 dm646x_iis_serializer_direction[] =
+{
+	TX_MODE, RX_MODE, INACTIVE_MODE, INACTIVE_MODE,
 };
 
-static u8 dm646x_dit_serializer_direction[] = {
-       TX_MODE,
+static u8 dm646x_dit_serializer_direction[] =
+{
+	TX_MODE,
 };
 
-static struct snd_platform_data dm646x_evm_snd_data[] = {
+static struct snd_platform_data dm646x_evm_snd_data[] =
+{
 	{
 		.tx_dma_offset  = 0x400,
 		.rx_dma_offset  = 0x400,
@@ -352,7 +396,7 @@ static struct snd_platform_data dm646x_evm_snd_data[] = {
 static struct i2c_client *cpld_client;
 
 static int cpld_video_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	cpld_client = client;
 	return 0;
@@ -364,12 +408,14 @@ static int cpld_video_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id cpld_video_id[] = {
+static const struct i2c_device_id cpld_video_id[] =
+{
 	{ "cpld_video", 0 },
 	{ }
 };
 
-static struct i2c_driver cpld_video_driver = {
+static struct i2c_driver cpld_video_driver =
+{
 	.driver = {
 		.name	= "cpld_video",
 	},
@@ -383,7 +429,8 @@ static void evm_init_cpld(void)
 	i2c_add_driver(&cpld_video_driver);
 }
 
-static struct i2c_board_info __initdata i2c_info[] =  {
+static struct i2c_board_info __initdata i2c_info[] =
+{
 	{
 		I2C_BOARD_INFO("24c256", 0x50),
 		.platform_data  = &eeprom_info,
@@ -403,7 +450,8 @@ static struct i2c_board_info __initdata i2c_info[] =  {
 	},
 };
 
-static struct davinci_i2c_platform_data i2c_pdata = {
+static struct davinci_i2c_platform_data i2c_pdata =
+{
 	.bus_freq       = 100 /* kHz */,
 	.bus_delay      = 0 /* usec */,
 };
@@ -436,7 +484,9 @@ static int set_vpif_clock(int mux_mode, int hd)
 	int err = 0;
 
 	if (!cpld_client)
+	{
 		return -ENXIO;
+	}
 
 	/* disable the clock */
 	spin_lock_irqsave(&vpif_reg_lock, flags);
@@ -446,26 +496,40 @@ static int set_vpif_clock(int mux_mode, int hd)
 	spin_unlock_irqrestore(&vpif_reg_lock, flags);
 
 	val = i2c_smbus_read_byte(cpld_client);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	if (mux_mode == 1)
+	{
 		val &= ~0x40;
+	}
 	else
+	{
 		val |= 0x40;
+	}
 
 	err = i2c_smbus_write_byte(cpld_client, val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	value = __raw_readl(DAVINCI_SYSMOD_VIRT(SYSMOD_VIDCLKCTL));
 	value &= ~(VCH2CLK_MASK);
 	value &= ~(VCH3CLK_MASK);
 
 	if (hd >= 1)
+	{
 		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
+	}
 	else
+	{
 		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
+	}
 
 	__raw_writel(value, DAVINCI_SYSMOD_VIRT(SYSMOD_VIDCLKCTL));
 
@@ -479,7 +543,8 @@ static int set_vpif_clock(int mux_mode, int hd)
 	return 0;
 }
 
-static struct vpif_subdev_info dm646x_vpif_subdev[] = {
+static struct vpif_subdev_info dm646x_vpif_subdev[] =
+{
 	{
 		.name	= "adv7343",
 		.board_info = {
@@ -494,7 +559,8 @@ static struct vpif_subdev_info dm646x_vpif_subdev[] = {
 	},
 };
 
-static const struct vpif_output dm6467_ch0_outputs[] = {
+static const struct vpif_output dm6467_ch0_outputs[] =
+{
 	{
 		.output = {
 			.index = 0,
@@ -529,7 +595,8 @@ static const struct vpif_output dm6467_ch0_outputs[] = {
 	},
 };
 
-static struct vpif_display_config dm646x_vpif_display_config = {
+static struct vpif_display_config dm646x_vpif_display_config =
+{
 	.set_clock	= set_vpif_clock,
 	.subdevinfo	= dm646x_vpif_subdev,
 	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
@@ -555,24 +622,39 @@ static int setup_vpif_input_path(int channel, const char *sub_dev_name)
 
 	/* for channel 1, we don't do anything */
 	if (channel != 0)
+	{
 		return 0;
+	}
 
 	if (!cpld_client)
+	{
 		return -ENXIO;
+	}
 
 	val = i2c_smbus_read_byte(cpld_client);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	if (!strcmp(sub_dev_name, TVP5147_CH0) ||
-	    !strcmp(sub_dev_name, TVP5147_CH1))
+		!strcmp(sub_dev_name, TVP5147_CH1))
+	{
 		val &= TVP5147_INPUT;
+	}
 	else
+	{
 		val |= TVP7002_INPUT;
+	}
 
 	err = i2c_smbus_write_byte(cpld_client, val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	return 0;
 }
 
@@ -590,32 +672,46 @@ static int setup_vpif_input_channel_mode(int mux_mode)
 	u32 value;
 
 	if (!cpld_client)
+	{
 		return -ENXIO;
+	}
 
 	val = i2c_smbus_read_byte(cpld_client);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	spin_lock_irqsave(&vpif_reg_lock, flags);
 	value = __raw_readl(DAVINCI_SYSMOD_VIRT(SYSMOD_VIDCLKCTL));
-	if (mux_mode) {
+
+	if (mux_mode)
+	{
 		val &= VPIF_INPUT_TWO_CHANNEL;
 		value |= VIDCH1CLK;
-	} else {
+	}
+	else
+	{
 		val |= VPIF_INPUT_ONE_CHANNEL;
 		value &= ~VIDCH1CLK;
 	}
+
 	__raw_writel(value, DAVINCI_SYSMOD_VIRT(SYSMOD_VIDCLKCTL));
 	spin_unlock_irqrestore(&vpif_reg_lock, flags);
 
 	err = i2c_smbus_write_byte(cpld_client, val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
-static struct tvp514x_platform_data tvp5146_pdata = {
+static struct tvp514x_platform_data tvp5146_pdata =
+{
 	.clk_polarity = 0,
 	.hs_polarity = 1,
 	.vs_polarity = 1
@@ -623,7 +719,8 @@ static struct tvp514x_platform_data tvp5146_pdata = {
 
 #define TVP514X_STD_ALL (V4L2_STD_NTSC | V4L2_STD_PAL)
 
-static struct vpif_subdev_info vpif_capture_sdev_info[] = {
+static struct vpif_subdev_info vpif_capture_sdev_info[] =
+{
 	{
 		.name	= TVP5147_CH0,
 		.board_info = {
@@ -640,7 +737,8 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
 	},
 };
 
-static const struct vpif_input dm6467_ch0_inputs[] = {
+static const struct vpif_input dm6467_ch0_inputs[] =
+{
 	{
 		.input = {
 			.index = 0,
@@ -655,8 +753,9 @@ static const struct vpif_input dm6467_ch0_inputs[] = {
 	},
 };
 
-static const struct vpif_input dm6467_ch1_inputs[] = {
-       {
+static const struct vpif_input dm6467_ch1_inputs[] =
+{
+	{
 		.input = {
 			.index = 0,
 			.name = "S-Video",
@@ -670,7 +769,8 @@ static const struct vpif_input dm6467_ch1_inputs[] = {
 	},
 };
 
-static struct vpif_capture_config dm646x_vpif_capture_cfg = {
+static struct vpif_capture_config dm646x_vpif_capture_cfg =
+{
 	.setup_input_path = setup_vpif_input_path,
 	.setup_input_channel_mode = setup_vpif_input_channel_mode,
 	.subdev_info = vpif_capture_sdev_info,
@@ -702,7 +802,7 @@ static void __init evm_init_video(void)
 	spin_lock_init(&vpif_reg_lock);
 
 	dm646x_setup_vpif(&dm646x_vpif_display_config,
-			  &dm646x_vpif_capture_cfg);
+					  &dm646x_vpif_capture_cfg);
 }
 
 static void __init evm_init_i2c(void)
@@ -722,7 +822,9 @@ static void __init davinci_map_io(void)
 	dm646x_init();
 
 	if (machine_is_davinci_dm6467tevm())
+	{
 		davinci_set_refclk_rate(DM6467T_EVM_REF_FREQ);
+	}
 }
 
 #define DM646X_EVM_PHY_ID		"davinci_mdio-0:01"
@@ -731,17 +833,19 @@ static void __init davinci_map_io(void)
  * example: Timer, GPIO, UART events etc) on dm646x, hence they are being
  * reserved for codecs on the DSP side.
  */
-static const s16 dm646x_dma_rsv_chans[][2] = {
+static const s16 dm646x_dma_rsv_chans[][2] =
+{
 	/* (offset, number) */
 	{ 0,  4},
 	{13,  3},
 	{24,  4},
 	{30,  2},
 	{54,  3},
-	{-1, -1}
+	{ -1, -1}
 };
 
-static const s16 dm646x_dma_rsv_slots[][2] = {
+static const s16 dm646x_dma_rsv_slots[][2] =
+{
 	/* (offset, number) */
 	{ 0,  4},
 	{13,  3},
@@ -749,10 +853,11 @@ static const s16 dm646x_dma_rsv_slots[][2] = {
 	{30,  2},
 	{54,  3},
 	{128, 384},
-	{-1, -1}
+	{ -1, -1}
 };
 
-static struct edma_rsv_info dm646x_edma_rsv[] = {
+static struct edma_rsv_info dm646x_edma_rsv[] =
+{
 	{
 		.rsv_chans	= dm646x_dma_rsv_chans,
 		.rsv_slots	= dm646x_dma_rsv_slots,
@@ -765,8 +870,11 @@ static __init void evm_init(void)
 	struct davinci_soc_info *soc_info = &davinci_soc_info;
 
 	ret = dm646x_gpio_register();
+
 	if (ret)
+	{
 		pr_warn("%s: GPIO init failed: %d\n", __func__, ret);
+	}
 
 #ifdef CONFIG_I2C
 	evm_init_i2c();
@@ -777,40 +885,46 @@ static __init void evm_init(void)
 	dm646x_init_mcasp1(&dm646x_evm_snd_data[1]);
 
 	if (machine_is_davinci_dm6467tevm())
+	{
 		davinci_nand_data.timing = &dm6467tevm_nandflash_timing;
+	}
 
 	platform_device_register(&davinci_nand_device);
 
 	if (davinci_aemif_setup(&davinci_nand_device))
+	{
 		pr_warn("%s: Cannot configure AEMIF.\n", __func__);
+	}
 
 	dm646x_init_edma(dm646x_edma_rsv);
 
 	if (HAS_ATA)
+	{
 		davinci_init_ide();
+	}
 
 	soc_info->emac_pdata->phy_id = DM646X_EVM_PHY_ID;
 }
 
 MACHINE_START(DAVINCI_DM6467_EVM, "DaVinci DM646x EVM")
-	.atag_offset  = 0x100,
-	.map_io       = davinci_map_io,
-	.init_irq     = davinci_irq_init,
-	.init_time	= davinci_timer_init,
-	.init_machine = evm_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= davinci_restart,
-MACHINE_END
+.atag_offset  = 0x100,
+ .map_io       = davinci_map_io,
+  .init_irq     = davinci_irq_init,
+   .init_time	= davinci_timer_init,
+	 .init_machine = evm_init,
+	  .init_late	= davinci_init_late,
+		.dma_zone_size	= SZ_128M,
+		  .restart	= davinci_restart,
+			  MACHINE_END
 
-MACHINE_START(DAVINCI_DM6467TEVM, "DaVinci DM6467T EVM")
-	.atag_offset  = 0x100,
-	.map_io       = davinci_map_io,
-	.init_irq     = davinci_irq_init,
-	.init_time	= davinci_timer_init,
-	.init_machine = evm_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= davinci_restart,
-MACHINE_END
+			  MACHINE_START(DAVINCI_DM6467TEVM, "DaVinci DM6467T EVM")
+			  .atag_offset  = 0x100,
+			   .map_io       = davinci_map_io,
+				.init_irq     = davinci_irq_init,
+				 .init_time	= davinci_timer_init,
+				   .init_machine = evm_init,
+					.init_late	= davinci_init_late,
+					  .dma_zone_size	= SZ_128M,
+						.restart	= davinci_restart,
+							MACHINE_END
 

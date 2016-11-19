@@ -17,7 +17,8 @@
  * __save/__restore_processor_state(), defined in arch/x86/kernel/suspend_64.c,
  * still work as required.
  */
-struct saved_context {
+struct saved_context
+{
 	struct pt_regs regs;
 	u16 ds, es, fs, gs, ss;
 	unsigned long gs_base, gs_kernel_base, fs_base;

@@ -6,9 +6,10 @@
 #include <linux/workqueue.h>
 #include <linux/platform_device.h>
 
-struct push_switch {
+struct push_switch
+{
 	/* switch state */
-	unsigned int		state:1;
+	unsigned int		state: 1;
 	/* debounce timer */
 	struct timer_list	debounce;
 	/* workqueue */
@@ -17,7 +18,8 @@ struct push_switch {
 	struct platform_device	*pdev;
 };
 
-struct push_switch_platform_info {
+struct push_switch_platform_info
+{
 	/* IRQ handler */
 	irqreturn_t		(*irq_handler)(int irq, void *data);
 	/* Special IRQ flags */

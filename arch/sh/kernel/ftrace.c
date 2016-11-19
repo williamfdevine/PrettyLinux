@@ -104,8 +104,8 @@ int ftrace_arch_read_dyn_info(char *buf, int size)
 	int r;
 
 	r = snprintf(buf, size, "%u %u",
-		     nmi_wait_count,
-		     atomic_read(&nmi_update_count));
+				 nmi_wait_count,
+				 atomic_read(&nmi_update_count));
 	return r;
 }
 
@@ -113,11 +113,14 @@ static void clear_mod_flag(void)
 {
 	int old = atomic_read(&nmi_running);
 
-	for (;;) {
+	for (;;)
+	{
 		int new = old & ~MOD_CODE_WRITE_FLAG;
 
 		if (old == new)
+		{
 			break;
+		}
 
 		old = atomic_cmpxchg(&nmi_running, old, new);
 	}
@@ -132,20 +135,24 @@ static void ftrace_mod_code(void)
 	 * to succeed, then they all should.
 	 */
 	mod_code_status = probe_kernel_write(mod_code_ip, mod_code_newcode,
-					     MCOUNT_INSN_SIZE);
+										 MCOUNT_INSN_SIZE);
 
 	/* if we fail, then kill any new writers */
 	if (mod_code_status)
+	{
 		clear_mod_flag();
+	}
 }
 
 void arch_ftrace_nmi_enter(void)
 {
-	if (atomic_inc_return(&nmi_running) & MOD_CODE_WRITE_FLAG) {
+	if (atomic_inc_return(&nmi_running) & MOD_CODE_WRITE_FLAG)
+	{
 		smp_rmb();
 		ftrace_mod_code();
 		atomic_inc(&nmi_update_count);
 	}
+
 	/* Must have previous changes seen before executions */
 	smp_mb();
 }
@@ -160,11 +167,15 @@ void arch_ftrace_nmi_exit(void)
 static void wait_for_nmi_and_set_mod_flag(void)
 {
 	if (!atomic_cmpxchg(&nmi_running, 0, MOD_CODE_WRITE_FLAG))
+	{
 		return;
+	}
 
-	do {
+	do
+	{
 		cpu_relax();
-	} while (atomic_cmpxchg(&nmi_running, 0, MOD_CODE_WRITE_FLAG));
+	}
+	while (atomic_cmpxchg(&nmi_running, 0, MOD_CODE_WRITE_FLAG));
 
 	nmi_wait_count++;
 }
@@ -172,11 +183,15 @@ static void wait_for_nmi_and_set_mod_flag(void)
 static void wait_for_nmi(void)
 {
 	if (!atomic_read(&nmi_running))
+	{
 		return;
+	}
 
-	do {
+	do
+	{
 		cpu_relax();
-	} while (atomic_read(&nmi_running));
+	}
+	while (atomic_read(&nmi_running));
 
 	nmi_wait_count++;
 }
@@ -207,7 +222,7 @@ do_ftrace_mod_code(unsigned long ip, void *new_code)
 }
 
 static int ftrace_modify_code(unsigned long ip, unsigned char *old_code,
-		       unsigned char *new_code)
+							  unsigned char *new_code)
 {
 	unsigned char replaced[MCOUNT_INSN_SIZE];
 
@@ -221,15 +236,21 @@ static int ftrace_modify_code(unsigned long ip, unsigned char *old_code,
 
 	/* read the text we want to modify */
 	if (probe_kernel_read(replaced, (void *)ip, MCOUNT_INSN_SIZE))
+	{
 		return -EFAULT;
+	}
 
 	/* Make sure it is what we expect it to be */
 	if (memcmp(replaced, old_code, MCOUNT_INSN_SIZE) != 0)
+	{
 		return -EINVAL;
+	}
 
 	/* replace the text with the new text */
 	if (do_ftrace_mod_code(ip, new_code))
+	{
 		return -EPERM;
+	}
 
 	flush_icache_range(ip, ip + MCOUNT_INSN_SIZE);
 
@@ -248,7 +269,7 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
 }
 
 int ftrace_make_nop(struct module *mod,
-		    struct dyn_ftrace *rec, unsigned long addr)
+					struct dyn_ftrace *rec, unsigned long addr)
 {
 	unsigned char *new, *old;
 	unsigned long ip = rec->ip;
@@ -281,15 +302,19 @@ int __init ftrace_dyn_arch_init(void)
 extern void ftrace_graph_call(void);
 
 static int ftrace_mod(unsigned long ip, unsigned long old_addr,
-		      unsigned long new_addr)
+					  unsigned long new_addr)
 {
 	unsigned char code[MCOUNT_INSN_SIZE];
 
 	if (probe_kernel_read(code, (void *)ip, MCOUNT_INSN_SIZE))
+	{
 		return -EFAULT;
+	}
 
 	if (old_addr != __raw_readl((unsigned long *)code))
+	{
 		return -EINVAL;
+	}
 
 	__raw_writel(new_addr, ip);
 	return 0;
@@ -343,10 +368,14 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr)
 	unsigned long return_hooker = (unsigned long)&return_to_handler;
 
 	if (unlikely(ftrace_graph_is_dead()))
+	{
 		return;
+	}
 
 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+	{
 		return;
+	}
 
 	/*
 	 * Protect against fault, even if it shouldn't
@@ -376,14 +405,17 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr)
 		: "r" (parent), "r" (return_hooker)
 	);
 
-	if (unlikely(faulted)) {
+	if (unlikely(faulted))
+	{
 		ftrace_graph_stop();
 		WARN_ON(1);
 		return;
 	}
 
 	err = ftrace_push_return_trace(old, self_addr, &trace.depth, 0, NULL);
-	if (err == -EBUSY) {
+
+	if (err == -EBUSY)
+	{
 		__raw_writel(old, parent);
 		return;
 	}
@@ -391,7 +423,8 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr)
 	trace.func = self_addr;
 
 	/* Only trace if the calling function expects to */
-	if (!ftrace_graph_entry(&trace)) {
+	if (!ftrace_graph_entry(&trace))
+	{
 		current->curr_ret_stack--;
 		__raw_writel(old, parent);
 	}

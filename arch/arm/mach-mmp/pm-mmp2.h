@@ -46,7 +46,8 @@
 #define MPMU_WUCRM_PJ_WAKEUP(x)			(1 << (x))
 #define MPMU_WUCRM_PJ_RTC_ALARM			(1 << 17)
 
-enum {
+enum
+{
 	POWER_MODE_ACTIVE = 0,
 	POWER_MODE_CORE_INTIDLE,
 	POWER_MODE_CORE_EXTIDLE,

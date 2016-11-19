@@ -39,7 +39,7 @@
 #define PMU_TYPE2_SIZE	0x10UL
 
 #define PMUCNT2REG	0x06
- #define SOFTRST	0x0010
+#define SOFTRST	0x0010
 
 static void __iomem *pmu_base;
 
@@ -49,34 +49,41 @@ static void __iomem *pmu_base;
 static void vr41xx_cpu_wait(void)
 {
 	local_irq_disable();
+
 	if (!need_resched())
 		/*
 		 * "standby" sets IE bit of the CP0_STATUS to 1.
 		 */
+	{
 		__asm__("standby;\n");
+	}
 	else
+	{
 		local_irq_enable();
+	}
 }
 
 static inline void software_reset(void)
 {
 	uint16_t pmucnt2;
 
-	switch (current_cpu_type()) {
-	case CPU_VR4122:
-	case CPU_VR4131:
-	case CPU_VR4133:
-		pmucnt2 = pmu_read(PMUCNT2REG);
-		pmucnt2 |= SOFTRST;
-		pmu_write(PMUCNT2REG, pmucnt2);
-		break;
-	default:
-		set_c0_status(ST0_BEV | ST0_ERL);
-		change_c0_config(CONF_CM_CMASK, CONF_CM_UNCACHED);
-		__flush_cache_all();
-		write_c0_wired(0);
-		__asm__("jr	%0"::"r"(0xbfc00000));
-		break;
+	switch (current_cpu_type())
+	{
+		case CPU_VR4122:
+		case CPU_VR4131:
+		case CPU_VR4133:
+			pmucnt2 = pmu_read(PMUCNT2REG);
+			pmucnt2 |= SOFTRST;
+			pmu_write(PMUCNT2REG, pmucnt2);
+			break;
+
+		default:
+			set_c0_status(ST0_BEV | ST0_ERL);
+			change_c0_config(CONF_CM_CMASK, CONF_CM_UNCACHED);
+			__flush_cache_all();
+			write_c0_wired(0);
+			__asm__("jr	%0"::"r"(0xbfc00000));
+			break;
 	}
 }
 
@@ -84,6 +91,7 @@ static void vr41xx_restart(char *command)
 {
 	local_irq_disable();
 	software_reset();
+
 	while (1) ;
 }
 
@@ -98,28 +106,35 @@ static int __init vr41xx_pmu_init(void)
 {
 	unsigned long start, size;
 
-	switch (current_cpu_type()) {
-	case CPU_VR4111:
-	case CPU_VR4121:
-		start = PMU_TYPE1_BASE;
-		size = PMU_TYPE1_SIZE;
-		break;
-	case CPU_VR4122:
-	case CPU_VR4131:
-	case CPU_VR4133:
-		start = PMU_TYPE2_BASE;
-		size = PMU_TYPE2_SIZE;
-		break;
-	default:
-		printk("Unexpected CPU of NEC VR4100 series\n");
-		return -ENODEV;
+	switch (current_cpu_type())
+	{
+		case CPU_VR4111:
+		case CPU_VR4121:
+			start = PMU_TYPE1_BASE;
+			size = PMU_TYPE1_SIZE;
+			break;
+
+		case CPU_VR4122:
+		case CPU_VR4131:
+		case CPU_VR4133:
+			start = PMU_TYPE2_BASE;
+			size = PMU_TYPE2_SIZE;
+			break;
+
+		default:
+			printk("Unexpected CPU of NEC VR4100 series\n");
+			return -ENODEV;
 	}
 
 	if (request_mem_region(start, size, "PMU") == NULL)
+	{
 		return -EBUSY;
+	}
 
 	pmu_base = ioremap(start, size);
-	if (pmu_base == NULL) {
+
+	if (pmu_base == NULL)
+	{
 		release_mem_region(start, size);
 		return -EBUSY;
 	}

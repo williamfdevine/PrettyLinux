@@ -1,9 +1,9 @@
 /*
  * arch/arm/mach-ixp4xx/include/mach/ixp4xx-regs.h
  *
- * Register definitions for IXP4xx chipset. This file contains 
- * register location and bit definitions only. Platform specific 
- * definitions and helper function declarations are in platform.h 
+ * Register definitions for IXP4xx chipset. This file contains
+ * register location and bit definitions only. Platform specific
+ * definitions and helper function declarations are in platform.h
  * and machine-name.h.
  *
  * Copyright (C) 2002 Intel Corporation.
@@ -88,16 +88,16 @@
 
 #define IXP4XX_EXP_CS0      IXP4XX_EXP_REG(IXP4XX_EXP_CS0_OFFSET)
 #define IXP4XX_EXP_CS1      IXP4XX_EXP_REG(IXP4XX_EXP_CS1_OFFSET)
-#define IXP4XX_EXP_CS2      IXP4XX_EXP_REG(IXP4XX_EXP_CS2_OFFSET) 
+#define IXP4XX_EXP_CS2      IXP4XX_EXP_REG(IXP4XX_EXP_CS2_OFFSET)
 #define IXP4XX_EXP_CS3      IXP4XX_EXP_REG(IXP4XX_EXP_CS3_OFFSET)
 #define IXP4XX_EXP_CS4      IXP4XX_EXP_REG(IXP4XX_EXP_CS4_OFFSET)
 #define IXP4XX_EXP_CS5      IXP4XX_EXP_REG(IXP4XX_EXP_CS5_OFFSET)
-#define IXP4XX_EXP_CS6      IXP4XX_EXP_REG(IXP4XX_EXP_CS6_OFFSET)     
+#define IXP4XX_EXP_CS6      IXP4XX_EXP_REG(IXP4XX_EXP_CS6_OFFSET)
 #define IXP4XX_EXP_CS7      IXP4XX_EXP_REG(IXP4XX_EXP_CS7_OFFSET)
 
-#define IXP4XX_EXP_CFG0     IXP4XX_EXP_REG(IXP4XX_EXP_CFG0_OFFSET) 
-#define IXP4XX_EXP_CFG1     IXP4XX_EXP_REG(IXP4XX_EXP_CFG1_OFFSET) 
-#define IXP4XX_EXP_CFG2     IXP4XX_EXP_REG(IXP4XX_EXP_CFG2_OFFSET) 
+#define IXP4XX_EXP_CFG0     IXP4XX_EXP_REG(IXP4XX_EXP_CFG0_OFFSET)
+#define IXP4XX_EXP_CFG1     IXP4XX_EXP_REG(IXP4XX_EXP_CFG1_OFFSET)
+#define IXP4XX_EXP_CFG2     IXP4XX_EXP_REG(IXP4XX_EXP_CFG2_OFFSET)
 #define IXP4XX_EXP_CFG3     IXP4XX_EXP_REG(IXP4XX_EXP_CFG3_OFFSET)
 
 
@@ -182,7 +182,7 @@
 #define IXP4XX_ICIP     IXP4XX_INTC_REG(IXP4XX_ICIP_OFFSET)
 #define IXP4XX_ICFP     IXP4XX_INTC_REG(IXP4XX_ICFP_OFFSET)
 #define IXP4XX_ICHR     IXP4XX_INTC_REG(IXP4XX_ICHR_OFFSET)
-#define IXP4XX_ICIH     IXP4XX_INTC_REG(IXP4XX_ICIH_OFFSET) 
+#define IXP4XX_ICIH     IXP4XX_INTC_REG(IXP4XX_ICIH_OFFSET)
 #define IXP4XX_ICFH     IXP4XX_INTC_REG(IXP4XX_ICFH_OFFSET)
 #define IXP4XX_ICPR2	IXP4XX_INTC_REG(IXP4XX_ICPR2_OFFSET)
 #define IXP4XX_ICMR2    IXP4XX_INTC_REG(IXP4XX_ICMR2_OFFSET)
@@ -190,7 +190,7 @@
 #define IXP4XX_ICIP2    IXP4XX_INTC_REG(IXP4XX_ICIP2_OFFSET)
 #define IXP4XX_ICFP2    IXP4XX_INTC_REG(IXP4XX_ICFP2_OFFSET)
 #define IXP4XX_ICEEN    IXP4XX_INTC_REG(IXP4XX_ICEEN_OFFSET)
-                                                                                
+
 /*
  * Constants to make it easy to access GPIO registers
  */
@@ -203,7 +203,7 @@
 #define IXP4XX_GPIO_GPCLKR_OFFSET	0x18
 #define IXP4XX_GPIO_GPDBSELR_OFFSET	0x1C
 
-/* 
+/*
  * GPIO Register Definitions.
  * [Only perform 32bit reads/writes]
  */
@@ -230,8 +230,8 @@
 #define IXP4XX_GPIO_STYLE_FALLING_EDGE	0x3
 #define IXP4XX_GPIO_STYLE_TRANSITIONAL	0x4
 
-/* 
- * Mask used to clear interrupt styles 
+/*
+ * Mask used to clear interrupt styles
  */
 #define IXP4XX_GPIO_STYLE_CLEAR		0x7
 #define IXP4XX_GPIO_STYLE_SIZE		3
@@ -266,7 +266,7 @@
 #define IXP4XX_OSST	IXP4XX_TIMER_REG(IXP4XX_OSST_OFFSET)
 
 /*
- * Timer register values and bit definitions 
+ * Timer register values and bit definitions
  */
 #define IXP4XX_OST_ENABLE		0x00000001
 #define IXP4XX_OST_ONE_SHOT		0x00000002
@@ -324,7 +324,7 @@
 #define PCI_CRP_AD_CBE          IXP4XX_PCI_CSR(PCI_CRP_AD_CBE_OFFSET)
 #define PCI_CRP_WDATA           IXP4XX_PCI_CSR(PCI_CRP_WDATA_OFFSET)
 #define PCI_CRP_RDATA           IXP4XX_PCI_CSR(PCI_CRP_RDATA_OFFSET)
-#define PCI_CSR                 IXP4XX_PCI_CSR(PCI_CSR_OFFSET) 
+#define PCI_CSR                 IXP4XX_PCI_CSR(PCI_CSR_OFFSET)
 #define PCI_ISR                 IXP4XX_PCI_CSR(PCI_ISR_OFFSET)
 #define PCI_INTEN               IXP4XX_PCI_CSR(PCI_INTEN_OFFSET)
 #define PCI_DMACTRL             IXP4XX_PCI_CSR(PCI_DMACTRL_OFFSET)
@@ -341,7 +341,7 @@
 #define PCI_ATPDMA1_LENADDR     IXP4XX_PCI_CSR(PCI_ATPDMA1_LENADDR_OFFSET)
 
 /*
- * PCI register values and bit definitions 
+ * PCI register values and bit definitions
  */
 
 /* CSR bit definitions */
@@ -417,22 +417,22 @@
 #define IXP4XX_FEATURE_UTOPIA_PHY_LIMIT	(3 << 16)
 #define IXP4XX_FEATURE_XSCALE_MAX_FREQ	(3 << 22)
 #define IXP42X_FEATURE_MASK		(IXP4XX_FEATURE_RCOMP            | \
-					 IXP4XX_FEATURE_USB_DEVICE       | \
-					 IXP4XX_FEATURE_HASH             | \
-					 IXP4XX_FEATURE_AES              | \
-					 IXP4XX_FEATURE_DES              | \
-					 IXP4XX_FEATURE_HDLC             | \
-					 IXP4XX_FEATURE_AAL              | \
-					 IXP4XX_FEATURE_HSS              | \
-					 IXP4XX_FEATURE_UTOPIA           | \
-					 IXP4XX_FEATURE_NPEB_ETH0        | \
-					 IXP4XX_FEATURE_NPEC_ETH         | \
-					 IXP4XX_FEATURE_RESET_NPEA       | \
-					 IXP4XX_FEATURE_RESET_NPEB       | \
-					 IXP4XX_FEATURE_RESET_NPEC       | \
-					 IXP4XX_FEATURE_PCI              | \
-					 IXP4XX_FEATURE_UTOPIA_PHY_LIMIT | \
-					 IXP4XX_FEATURE_XSCALE_MAX_FREQ)
+								 IXP4XX_FEATURE_USB_DEVICE       | \
+								 IXP4XX_FEATURE_HASH             | \
+								 IXP4XX_FEATURE_AES              | \
+								 IXP4XX_FEATURE_DES              | \
+								 IXP4XX_FEATURE_HDLC             | \
+								 IXP4XX_FEATURE_AAL              | \
+								 IXP4XX_FEATURE_HSS              | \
+								 IXP4XX_FEATURE_UTOPIA           | \
+								 IXP4XX_FEATURE_NPEB_ETH0        | \
+								 IXP4XX_FEATURE_NPEC_ETH         | \
+								 IXP4XX_FEATURE_RESET_NPEA       | \
+								 IXP4XX_FEATURE_RESET_NPEB       | \
+								 IXP4XX_FEATURE_RESET_NPEC       | \
+								 IXP4XX_FEATURE_PCI              | \
+								 IXP4XX_FEATURE_UTOPIA_PHY_LIMIT | \
+								 IXP4XX_FEATURE_XSCALE_MAX_FREQ)
 
 
 /* IXP43x/46x CPUs */
@@ -440,15 +440,15 @@
 #define IXP4XX_FEATURE_USB_HOST		(1 << 18)
 #define IXP4XX_FEATURE_NPEA_ETH		(1 << 19)
 #define IXP43X_FEATURE_MASK		(IXP42X_FEATURE_MASK             | \
-					 IXP4XX_FEATURE_ECC_TIMESYNC     | \
-					 IXP4XX_FEATURE_USB_HOST         | \
-					 IXP4XX_FEATURE_NPEA_ETH)
+								 IXP4XX_FEATURE_ECC_TIMESYNC     | \
+								 IXP4XX_FEATURE_USB_HOST         | \
+								 IXP4XX_FEATURE_NPEA_ETH)
 
 /* IXP46x CPU (including IXP455) only */
 #define IXP4XX_FEATURE_NPEB_ETH_1_TO_3	(1 << 20)
 #define IXP4XX_FEATURE_RSA		(1 << 21)
 #define IXP46X_FEATURE_MASK		(IXP43X_FEATURE_MASK             | \
-					 IXP4XX_FEATURE_NPEB_ETH_1_TO_3  | \
-					 IXP4XX_FEATURE_RSA)
+								 IXP4XX_FEATURE_NPEB_ETH_1_TO_3  | \
+								 IXP4XX_FEATURE_RSA)
 
 #endif

@@ -39,7 +39,8 @@
 
 static u64 uart_dmamask	    = DMA_BIT_MASK(32);
 
-static struct resource pnx833x_uart_resources[] = {
+static struct resource pnx833x_uart_resources[] =
+{
 	[0] = {
 		.start		= PNX833X_UART0_PORTS_START,
 		.end		= PNX833X_UART0_PORTS_END,
@@ -62,7 +63,8 @@ static struct resource pnx833x_uart_resources[] = {
 	},
 };
 
-struct pnx8xxx_port pnx8xxx_ports[] = {
+struct pnx8xxx_port pnx8xxx_ports[] =
+{
 	[0] = {
 		.port	= {
 			.type		= PORT_PNX8XXX,
@@ -91,7 +93,8 @@ struct pnx8xxx_port pnx8xxx_ports[] = {
 	},
 };
 
-static struct platform_device pnx833x_uart_device = {
+static struct platform_device pnx833x_uart_device =
+{
 	.name		= "pnx8xxx-uart",
 	.id		= -1,
 	.dev = {
@@ -105,7 +108,8 @@ static struct platform_device pnx833x_uart_device = {
 
 static u64 ehci_dmamask	    = DMA_BIT_MASK(32);
 
-static struct resource pnx833x_usb_ehci_resources[] = {
+static struct resource pnx833x_usb_ehci_resources[] =
+{
 	[0] = {
 		.start		= PNX833X_USB_PORTS_START,
 		.end		= PNX833X_USB_PORTS_END,
@@ -118,7 +122,8 @@ static struct resource pnx833x_usb_ehci_resources[] = {
 	},
 };
 
-static struct platform_device pnx833x_usb_ehci_device = {
+static struct platform_device pnx833x_usb_ehci_device =
+{
 	.name		= "pnx833x-ehci",
 	.id		= -1,
 	.dev = {
@@ -131,7 +136,8 @@ static struct platform_device pnx833x_usb_ehci_device = {
 
 static u64 ethernet_dmamask = DMA_BIT_MASK(32);
 
-static struct resource pnx833x_ethernet_resources[] = {
+static struct resource pnx833x_ethernet_resources[] =
+{
 	[0] = {
 		.start = PNX8335_IP3902_PORTS_START,
 		.end   = PNX8335_IP3902_PORTS_END,
@@ -146,7 +152,8 @@ static struct resource pnx833x_ethernet_resources[] = {
 #endif
 };
 
-static struct platform_device pnx833x_ethernet_device = {
+static struct platform_device pnx833x_ethernet_device =
+{
 	.name = "ip3902-eth",
 	.id   = -1,
 	.dev  = {
@@ -157,7 +164,8 @@ static struct platform_device pnx833x_ethernet_device = {
 	.resource      = pnx833x_ethernet_resources,
 };
 
-static struct resource pnx833x_sata_resources[] = {
+static struct resource pnx833x_sata_resources[] =
+{
 	[0] = {
 		.start = PNX8335_SATA_PORTS_START,
 		.end   = PNX8335_SATA_PORTS_END,
@@ -170,7 +178,8 @@ static struct resource pnx833x_sata_resources[] = {
 	},
 };
 
-static struct platform_device pnx833x_sata_device = {
+static struct platform_device pnx833x_sata_device =
+{
 	.name	       = "pnx833x-sata",
 	.id	       = -1,
 	.num_resources = ARRAY_SIZE(pnx833x_sata_resources),
@@ -184,15 +193,22 @@ pnx833x_flash_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 	unsigned long nandaddr = (unsigned long)this->IO_ADDR_W;
 
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		writeb(cmd, (void __iomem *)(nandaddr + PNX8335_NAND_CLE_MASK));
+	}
 	else
+	{
 		writeb(cmd, (void __iomem *)(nandaddr + PNX8335_NAND_ALE_MASK));
+	}
 }
 
-static struct platform_nand_data pnx833x_flash_nand_data = {
+static struct platform_nand_data pnx833x_flash_nand_data =
+{
 	.chip = {
 		.nr_chips		= 1,
 		.chip_delay		= 25,
@@ -206,13 +222,15 @@ static struct platform_nand_data pnx833x_flash_nand_data = {
  * Set start to be the correct address (PNX8335_NAND_BASE with no 0xb!!),
  * 12 bytes more seems to be the standard that allows for NAND access.
  */
-static struct resource pnx833x_flash_nand_resource = {
+static struct resource pnx833x_flash_nand_resource =
+{
 	.start	= PNX8335_NAND_BASE,
 	.end	= PNX8335_NAND_BASE + 12,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device pnx833x_flash_nand = {
+static struct platform_device pnx833x_flash_nand =
+{
 	.name		= "gen_nand",
 	.id			= -1,
 	.num_resources	= 1,
@@ -222,7 +240,8 @@ static struct platform_device pnx833x_flash_nand = {
 	},
 };
 
-static struct platform_device *pnx833x_platform_devices[] __initdata = {
+static struct platform_device *pnx833x_platform_devices[] __initdata =
+{
 	&pnx833x_uart_device,
 	&pnx833x_usb_ehci_device,
 	&pnx833x_ethernet_device,
@@ -233,7 +252,7 @@ static struct platform_device *pnx833x_platform_devices[] __initdata = {
 static int __init pnx833x_platform_init(void)
 {
 	return platform_add_devices(pnx833x_platform_devices,
-				    ARRAY_SIZE(pnx833x_platform_devices));
+								ARRAY_SIZE(pnx833x_platform_devices));
 }
 
 arch_initcall(pnx833x_platform_init);

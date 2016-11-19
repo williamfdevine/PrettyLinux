@@ -11,7 +11,10 @@ static inline int pmd_huge(pmd_t pmd)
 	 * leaf pte for huge page
 	 */
 	if (radix_enabled())
+	{
 		return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
+	}
+
 	return 0;
 }
 
@@ -21,7 +24,10 @@ static inline int pud_huge(pud_t pud)
 	 * leaf pte for huge page
 	 */
 	if (radix_enabled())
+	{
 		return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
+	}
+
 	return 0;
 }
 
@@ -31,7 +37,10 @@ static inline int pgd_huge(pgd_t pgd)
 	 * leaf pte for huge page
 	 */
 	if (radix_enabled())
+	{
 		return !!(pgd_raw(pgd) & cpu_to_be64(_PAGE_PTE));
+	}
+
 	return 0;
 }
 #define pgd_huge pgd_huge
@@ -43,7 +52,10 @@ static inline int pgd_huge(pgd_t pgd)
 static inline int hugepd_ok(hugepd_t hpd)
 {
 	if (radix_enabled())
+	{
 		return 0;
+	}
+
 	return hash__hugepd_ok(hpd);
 }
 #define is_hugepd(hpd)		(hugepd_ok(hpd))

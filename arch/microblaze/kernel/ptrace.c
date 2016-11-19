@@ -44,7 +44,7 @@
 
 /* Returns the address where the register at REG_OFFS in P is stashed away. */
 static microblaze_reg_t *reg_save_addr(unsigned reg_offs,
-					struct task_struct *t)
+									   struct task_struct *t)
 {
 	struct pt_regs *regs;
 
@@ -75,60 +75,84 @@ static microblaze_reg_t *reg_save_addr(unsigned reg_offs,
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	int rval;
 	unsigned long val = 0;
 
-	switch (request) {
-	/* Read/write the word at location ADDR in the registers. */
-	case PTRACE_PEEKUSR:
-	case PTRACE_POKEUSR:
-		pr_debug("PEEKUSR/POKEUSR : 0x%08lx\n", addr);
-		rval = 0;
-		if (addr >= PT_SIZE && request == PTRACE_PEEKUSR) {
-			/*
-			 * Special requests that don't actually correspond
-			 * to offsets in struct pt_regs.
-			 */
-			if (addr == PT_TEXT_ADDR) {
-				val = child->mm->start_code;
-			} else if (addr == PT_DATA_ADDR) {
-				val = child->mm->start_data;
-			} else if (addr == PT_TEXT_LEN) {
-				val = child->mm->end_code
-					- child->mm->start_code;
-			} else {
+	switch (request)
+	{
+		/* Read/write the word at location ADDR in the registers. */
+		case PTRACE_PEEKUSR:
+		case PTRACE_POKEUSR:
+			pr_debug("PEEKUSR/POKEUSR : 0x%08lx\n", addr);
+			rval = 0;
+
+			if (addr >= PT_SIZE && request == PTRACE_PEEKUSR)
+			{
+				/*
+				 * Special requests that don't actually correspond
+				 * to offsets in struct pt_regs.
+				 */
+				if (addr == PT_TEXT_ADDR)
+				{
+					val = child->mm->start_code;
+				}
+				else if (addr == PT_DATA_ADDR)
+				{
+					val = child->mm->start_data;
+				}
+				else if (addr == PT_TEXT_LEN)
+				{
+					val = child->mm->end_code
+						  - child->mm->start_code;
+				}
+				else
+				{
+					rval = -EIO;
+				}
+			}
+			else if (addr < PT_SIZE && (addr & 0x3) == 0)
+			{
+				microblaze_reg_t *reg_addr = reg_save_addr(addr, child);
+
+				if (request == PTRACE_PEEKUSR)
+				{
+					val = *reg_addr;
+				}
+				else
+				{
+#if 1
+					*reg_addr = data;
+#else
+					/* MS potential problem on WB system
+					 * Be aware that reg_addr is virtual address
+					 * virt_to_phys conversion is necessary.
+					 * This could be sensible solution.
+					 */
+					u32 paddr = virt_to_phys((u32)reg_addr);
+					invalidate_icache_range(paddr, paddr + 4);
+					*reg_addr = data;
+					flush_dcache_range(paddr, paddr + 4);
+#endif
+				}
+			}
+			else
+			{
 				rval = -EIO;
 			}
-		} else if (addr < PT_SIZE && (addr & 0x3) == 0) {
-			microblaze_reg_t *reg_addr = reg_save_addr(addr, child);
-			if (request == PTRACE_PEEKUSR)
-				val = *reg_addr;
-			else {
-#if 1
-				*reg_addr = data;
-#else
-				/* MS potential problem on WB system
-				 * Be aware that reg_addr is virtual address
-				 * virt_to_phys conversion is necessary.
-				 * This could be sensible solution.
-				 */
-				u32 paddr = virt_to_phys((u32)reg_addr);
-				invalidate_icache_range(paddr, paddr + 4);
-				*reg_addr = data;
-				flush_dcache_range(paddr, paddr + 4);
-#endif
-			}
-		} else
-			rval = -EIO;
 
-		if (rval == 0 && request == PTRACE_PEEKUSR)
-			rval = put_user(val, (unsigned long __user *)data);
-		break;
-	default:
-		rval = ptrace_request(child, request, addr, data);
+			if (rval == 0 && request == PTRACE_PEEKUSR)
+			{
+				rval = put_user(val, (unsigned long __user *)data);
+			}
+
+			break;
+
+		default:
+			rval = ptrace_request(child, request, addr, data);
 	}
+
 	return rval;
 }
 
@@ -139,17 +163,19 @@ asmlinkage unsigned long do_syscall_trace_enter(struct pt_regs *regs)
 	secure_computing_strict(regs->r12);
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE) &&
-	    tracehook_report_syscall_entry(regs))
+		tracehook_report_syscall_entry(regs))
 		/*
 		 * Tracing decided this syscall should not happen.
 		 * We'll return a bogus call number to get an ENOSYS
 		 * error, but leave the original number in regs->regs[0].
 		 */
+	{
 		ret = -1L;
+	}
 
 	audit_syscall_entry(regs->r12, regs->r5, regs->r6, regs->r7, regs->r8);
 
-	return ret ?: regs->r12;
+	return ret ? : regs->r12;
 }
 
 asmlinkage void do_syscall_trace_leave(struct pt_regs *regs)
@@ -159,8 +185,11 @@ asmlinkage void do_syscall_trace_leave(struct pt_regs *regs)
 	audit_syscall_exit(regs);
 
 	step = test_thread_flag(TIF_SINGLESTEP);
+
 	if (step || test_thread_flag(TIF_SYSCALL_TRACE))
+	{
 		tracehook_report_syscall_exit(regs, step);
+	}
 }
 
 void ptrace_disable(struct task_struct *child)

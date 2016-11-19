@@ -24,7 +24,8 @@
 #include <asm/mmu.h>
 #include <asm/mmu_context.h>
 
-struct ioremap_map {
+struct ioremap_map
+{
 	void __iomem *addr;
 	unsigned long size;
 	unsigned long fixmap_addr;
@@ -37,7 +38,8 @@ void __init ioremap_fixed_init(void)
 	struct ioremap_map *map;
 	int i;
 
-	for (i = 0; i < FIX_N_IOREMAPS; i++) {
+	for (i = 0; i < FIX_N_IOREMAPS; i++)
+	{
 		map = &ioremap_maps[i];
 		map->fixmap_addr = __fix_to_virt(FIX_IOREMAP_BEGIN + i);
 	}
@@ -60,9 +62,13 @@ ioremap_fixed(phys_addr_t phys_addr, unsigned long size, pgprot_t prot)
 	size = PAGE_ALIGN(phys_addr + size) - phys_addr;
 
 	slot = -1;
-	for (i = 0; i < FIX_N_IOREMAPS; i++) {
+
+	for (i = 0; i < FIX_N_IOREMAPS; i++)
+	{
 		map = &ioremap_maps[i];
-		if (!map->addr) {
+
+		if (!map->addr)
+		{
 			map->size = size;
 			slot = i;
 			break;
@@ -70,21 +76,28 @@ ioremap_fixed(phys_addr_t phys_addr, unsigned long size, pgprot_t prot)
 	}
 
 	if (slot < 0)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Mappings have to fit in the FIX_IOREMAP area.
 	 */
 	nrpages = size >> PAGE_SHIFT;
+
 	if (nrpages > FIX_N_IOREMAPS)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Ok, go for it..
 	 */
 	idx0 = FIX_IOREMAP_BEGIN + slot;
 	idx = idx0;
-	while (nrpages > 0) {
+
+	while (nrpages > 0)
+	{
 		pgprot_val(prot) |= _PAGE_WIRED;
 		__set_fixmap(idx, phys_addr, prot);
 		phys_addr += PAGE_SIZE;
@@ -104,9 +117,13 @@ int iounmap_fixed(void __iomem *addr)
 	int i, slot;
 
 	slot = -1;
-	for (i = 0; i < FIX_N_IOREMAPS; i++) {
+
+	for (i = 0; i < FIX_N_IOREMAPS; i++)
+	{
 		map = &ioremap_maps[i];
-		if (map->addr == addr) {
+
+		if (map->addr == addr)
+		{
 			slot = i;
 			break;
 		}
@@ -116,12 +133,16 @@ int iounmap_fixed(void __iomem *addr)
 	 * If we don't match, it's not for us.
 	 */
 	if (slot < 0)
+	{
 		return -EINVAL;
+	}
 
 	nrpages = map->size >> PAGE_SHIFT;
 
 	idx = FIX_IOREMAP_BEGIN + slot + nrpages - 1;
-	while (nrpages > 0) {
+
+	while (nrpages > 0)
+	{
 		__clear_fixmap(idx, __pgprot(_PAGE_WIRED));
 		--idx;
 		--nrpages;

@@ -34,15 +34,15 @@
 extern void die(const char *, struct pt_regs *, long);
 
 #ifndef CONFIG_SMP
-asmlinkage unsigned int tlb_entry_i_dat;
-asmlinkage unsigned int tlb_entry_d_dat;
-#define tlb_entry_i tlb_entry_i_dat
-#define tlb_entry_d tlb_entry_d_dat
+	asmlinkage unsigned int tlb_entry_i_dat;
+	asmlinkage unsigned int tlb_entry_d_dat;
+	#define tlb_entry_i tlb_entry_i_dat
+	#define tlb_entry_d tlb_entry_d_dat
 #else
-unsigned int tlb_entry_i_dat[NR_CPUS];
-unsigned int tlb_entry_d_dat[NR_CPUS];
-#define tlb_entry_i tlb_entry_i_dat[smp_processor_id()]
-#define tlb_entry_d tlb_entry_d_dat[smp_processor_id()]
+	unsigned int tlb_entry_i_dat[NR_CPUS];
+	unsigned int tlb_entry_d_dat[NR_CPUS];
+	#define tlb_entry_i tlb_entry_i_dat[smp_processor_id()]
+	#define tlb_entry_d tlb_entry_d_dat[smp_processor_id()]
 #endif
 
 extern void init_tlb(void);
@@ -72,11 +72,11 @@ extern void init_tlb(void);
 #define ACE_INSTRUCTION		8
 
 asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
-  unsigned long address)
+							  unsigned long address)
 {
 	struct task_struct *tsk;
 	struct mm_struct *mm;
-	struct vm_area_struct * vma;
+	struct vm_area_struct *vma;
 	unsigned long page, addr;
 	unsigned long flags = 0;
 	int fault;
@@ -86,7 +86,9 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
 	 * If BPSW IE bit enable --> set PSW IE bit
 	 */
 	if (regs->psw & M32R_PSW_BIE)
+	{
 		local_irq_enable();
+	}
 
 	tsk = current;
 
@@ -106,7 +108,9 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
 	 * protection error (error_code & ACE_PROTECTION) == 0.
 	 */
 	if (address >= TASK_SIZE && !(error_code & ACE_USERMODE))
+	{
 		goto vmalloc_fault;
+	}
 
 	mm = tsk->mm;
 
@@ -115,10 +119,14 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
 	 * disabled then we must not take the fault.
 	 */
 	if (faulthandler_disabled() || !mm)
+	{
 		goto bad_area_nosemaphore;
+	}
 
 	if (error_code & ACE_USERMODE)
+	{
 		flags |= FAULT_FLAG_USER;
+	}
 
 	/* When running in the kernel we expect faults to occur only to
 	 * addresses in user space.  All other faults represent errors in the
@@ -135,22 +143,36 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
 	 * source.  If this is invalid we can skip the address space check,
 	 * thus avoiding the deadlock.
 	 */
-	if (!down_read_trylock(&mm->mmap_sem)) {
+	if (!down_read_trylock(&mm->mmap_sem))
+	{
 		if ((error_code & ACE_USERMODE) == 0 &&
-		    !search_exception_tables(regs->psw))
+			!search_exception_tables(regs->psw))
+		{
 			goto bad_area_nosemaphore;
+		}
+
 		down_read(&mm->mmap_sem);
 	}
 
 	vma = find_vma(mm, address);
-	if (!vma)
-		goto bad_area;
-	if (vma->vm_start <= address)
-		goto good_area;
-	if (!(vma->vm_flags & VM_GROWSDOWN))
-		goto bad_area;
 
-	if (error_code & ACE_USERMODE) {
+	if (!vma)
+	{
+		goto bad_area;
+	}
+
+	if (vma->vm_start <= address)
+	{
+		goto good_area;
+	}
+
+	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
+		goto bad_area;
+	}
+
+	if (error_code & ACE_USERMODE)
+	{
 		/*
 		 * accessing the stack below "spu" is always a bug.
 		 * The "+ 4" is there due to the push instruction
@@ -158,36 +180,52 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code,
 		 * doesn't show up until later..
 		 */
 		if (address + 4 < regs->spu)
+		{
 			goto bad_area;
+		}
 	}
 
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
-/*
- * Ok, we have a good vm_area for this memory access, so
- * we can handle it..
- */
+	}
+
+	/*
+	 * Ok, we have a good vm_area for this memory access, so
+	 * we can handle it..
+	 */
 good_area:
 	info.si_code = SEGV_ACCERR;
-	switch (error_code & (ACE_WRITE|ACE_PROTECTION)) {
+
+	switch (error_code & (ACE_WRITE | ACE_PROTECTION))
+	{
 		default:	/* 3: write, present */
-			/* fall through */
+
+		/* fall through */
 		case ACE_WRITE:	/* write, not present */
 			if (!(vma->vm_flags & VM_WRITE))
+			{
 				goto bad_area;
+			}
+
 			flags |= FAULT_FLAG_WRITE;
 			break;
+
 		case ACE_PROTECTION:	/* read, present */
 		case 0:		/* read, not present */
 			if (!(vma->vm_flags & (VM_READ | VM_EXEC)))
+			{
 				goto bad_area;
+			}
 	}
 
 	/*
 	 * For instruction access exception, check if the area is executable
 	 */
 	if ((error_code & ACE_INSTRUCTION) && !(vma->vm_flags & VM_EXEC))
-	  goto bad_area;
+	{
+		goto bad_area;
+	}
 
 	/*
 	 * If for any reason at all we couldn't handle the fault,
@@ -197,33 +235,50 @@ good_area:
 	addr = (address & PAGE_MASK);
 	set_thread_fault_code(error_code);
 	fault = handle_mm_fault(vma, addr, flags);
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
+
 	if (fault & VM_FAULT_MAJOR)
+	{
 		tsk->maj_flt++;
+	}
 	else
+	{
 		tsk->min_flt++;
+	}
+
 	set_thread_fault_code(0);
 	up_read(&mm->mmap_sem);
 	return;
 
-/*
- * Something tried to access memory that isn't in our memory map..
- * Fix it, but check if it's kernel or user first..
- */
+	/*
+	 * Something tried to access memory that isn't in our memory map..
+	 * Fix it, but check if it's kernel or user first..
+	 */
 bad_area:
 	up_read(&mm->mmap_sem);
 
 bad_area_nosemaphore:
+
 	/* User mode accesses just cause a SIGSEGV */
-	if (error_code & ACE_USERMODE) {
+	if (error_code & ACE_USERMODE)
+	{
 		tsk->thread.address = address;
 		tsk->thread.error_code = error_code | (address >= TASK_SIZE);
 		tsk->thread.trap_no = 14;
@@ -236,45 +291,60 @@ bad_area_nosemaphore:
 	}
 
 no_context:
+
 	/* Are we prepared to handle this kernel fault?  */
 	if (fixup_exception(regs))
+	{
 		return;
+	}
 
-/*
- * Oops. The kernel tried to access some bad page. We'll have to
- * terminate things with extreme prejudice.
- */
+	/*
+	 * Oops. The kernel tried to access some bad page. We'll have to
+	 * terminate things with extreme prejudice.
+	 */
 
 	bust_spinlocks(1);
 
 	if (address < PAGE_SIZE)
+	{
 		printk(KERN_ALERT "Unable to handle kernel NULL pointer dereference");
+	}
 	else
+	{
 		printk(KERN_ALERT "Unable to handle kernel paging request");
-	printk(" at virtual address %08lx\n",address);
+	}
+
+	printk(" at virtual address %08lx\n", address);
 	printk(KERN_ALERT " printing bpc:\n");
 	printk("%08lx\n", regs->bpc);
 	page = *(unsigned long *)MPTB;
 	page = ((unsigned long *) page)[address >> PGDIR_SHIFT];
 	printk(KERN_ALERT "*pde = %08lx\n", page);
-	if (page & _PAGE_PRESENT) {
+
+	if (page & _PAGE_PRESENT)
+	{
 		page &= PAGE_MASK;
 		address &= 0x003ff000;
 		page = ((unsigned long *) __va(page))[address >> PAGE_SHIFT];
 		printk(KERN_ALERT "*pte = %08lx\n", page);
 	}
+
 	die("Oops", regs, error_code);
 	bust_spinlocks(0);
 	do_exit(SIGKILL);
 
-/*
- * We ran out of memory, or some other thing happened to us that made
- * us unable to handle the page fault gracefully.
- */
+	/*
+	 * We ran out of memory, or some other thing happened to us that made
+	 * us unable to handle the page fault gracefully.
+	 */
 out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (!(error_code & ACE_USERMODE))
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return;
 
@@ -283,7 +353,9 @@ do_sigbus:
 
 	/* Kernel mode? Handle exception or die */
 	if (!(error_code & ACE_USERMODE))
+	{
 		goto no_context;
+	}
 
 	tsk->thread.address = address;
 	tsk->thread.error_code = error_code;
@@ -309,12 +381,14 @@ vmalloc_fault:
 		pmd_t *pmd, *pmd_k;
 		pte_t *pte_k;
 
-		pgd = (pgd_t *)*(unsigned long *)MPTB;
+		pgd = (pgd_t *) * (unsigned long *)MPTB;
 		pgd = offset + (pgd_t *)pgd;
 		pgd_k = init_mm.pgd + offset;
 
 		if (!pgd_present(*pgd_k))
+		{
 			goto no_context;
+		}
 
 		/*
 		 * set_pgd(pgd, *pgd_k); here would be useless on PAE
@@ -323,13 +397,20 @@ vmalloc_fault:
 
 		pmd = pmd_offset(pgd, address);
 		pmd_k = pmd_offset(pgd_k, address);
+
 		if (!pmd_present(*pmd_k))
+		{
 			goto no_context;
+		}
+
 		set_pmd(pmd, *pmd_k);
 
 		pte_k = pte_offset_kernel(pmd_k, address);
+
 		if (!pte_present(*pte_k))
+		{
 			goto no_context;
+		}
 
 		addr = (address & PAGE_MASK);
 		set_thread_fault_code(error_code);
@@ -346,7 +427,7 @@ vmalloc_fault:
 #define ITLB_END	(unsigned long *)(ITLB_BASE + (NR_TLB_ENTRIES * 8))
 #define DTLB_END	(unsigned long *)(DTLB_BASE + (NR_TLB_ENTRIES * 8))
 void update_mmu_cache(struct vm_area_struct *vma, unsigned long vaddr,
-	pte_t *ptep)
+					  pte_t *ptep)
 {
 	volatile unsigned long *entry1, *entry2;
 	unsigned long pte_data, flags;
@@ -356,7 +437,9 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long vaddr,
 
 	/* Ptrace may call this routine. */
 	if (vma && current->active_mm != vma->vm_mm)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
@@ -366,21 +449,31 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long vaddr,
 
 #ifdef CONFIG_CHIP_OPSP
 	entry1 = (unsigned long *)ITLB_BASE;
-	for (i = 0; i < NR_TLB_ENTRIES; i++) {
-		if (*entry1++ == vaddr) {
+
+	for (i = 0; i < NR_TLB_ENTRIES; i++)
+	{
+		if (*entry1++ == vaddr)
+		{
 			set_tlb_data(entry1, pte_data);
 			break;
 		}
+
 		entry1++;
 	}
+
 	entry2 = (unsigned long *)DTLB_BASE;
-	for (i = 0; i < NR_TLB_ENTRIES; i++) {
-		if (*entry2++ == vaddr) {
+
+	for (i = 0; i < NR_TLB_ENTRIES; i++)
+	{
+		if (*entry2++ == vaddr)
+		{
 			set_tlb_data(entry2, pte_data);
 			break;
 		}
+
 		entry2++;
 	}
+
 #else
 	/*
 	 * Update TLB entries
@@ -409,7 +502,9 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long vaddr,
 #endif
 
 	if ((!inst && entry2 >= DTLB_END) || (inst && entry1 >= ITLB_END))
+	{
 		goto notfound;
+	}
 
 found:
 	local_irq_restore(flags);
@@ -418,34 +513,48 @@ found:
 
 	/* Valid entry not found */
 notfound:
+
 	/*
 	 * Update ITLB or DTLB entry
 	 *  entry1: TLB entry address
 	 *  entry2: TLB base address
 	 */
-	if (!inst) {
+	if (!inst)
+	{
 		entry2 = (unsigned long *)DTLB_BASE;
 		entry_dat = &tlb_entry_d;
-	} else {
+	}
+	else
+	{
 		entry2 = (unsigned long *)ITLB_BASE;
 		entry_dat = &tlb_entry_i;
 	}
+
 	entry1 = entry2 + (((*entry_dat - 1) & TLB_MASK) << 1);
 
-	for (i = 0 ; i < NR_TLB_ENTRIES ; i++) {
+	for (i = 0 ; i < NR_TLB_ENTRIES ; i++)
+	{
 		if (!(entry1[1] & 2))	/* Valid bit check */
+		{
 			break;
+		}
 
 		if (entry1 != entry2)
+		{
 			entry1 -= 2;
+		}
 		else
+		{
 			entry1 += TLB_MASK << 1;
+		}
 	}
 
-	if (i >= NR_TLB_ENTRIES) {	/* Empty entry not found */
+	if (i >= NR_TLB_ENTRIES)  	/* Empty entry not found */
+	{
 		entry1 = entry2 + (*entry_dat << 1);
 		*entry_dat = (*entry_dat + 1) & TLB_MASK;
 	}
+
 	*entry1++ = vaddr;	/* Set TLB tag */
 	set_tlb_data(entry1, pte_data);
 
@@ -457,7 +566,8 @@ notfound:
  *======================================================================*/
 void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 {
-	if (vma->vm_mm && mm_context(vma->vm_mm) != NO_CONTEXT) {
+	if (vma->vm_mm && mm_context(vma->vm_mm) != NO_CONTEXT)
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
@@ -472,22 +582,31 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
  * flush_tlb_range() : flushes a range of pages
  *======================================================================*/
 void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-	unsigned long end)
+						   unsigned long end)
 {
 	struct mm_struct *mm;
 
 	mm = vma->vm_mm;
-	if (mm_context(mm) != NO_CONTEXT) {
+
+	if (mm_context(mm) != NO_CONTEXT)
+	{
 		unsigned long flags;
 		int size;
 
 		local_irq_save(flags);
 		size = (end - start + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
-		if (size > (NR_TLB_ENTRIES / 4)) { /* Too many TLB to flush */
+
+		if (size > (NR_TLB_ENTRIES / 4))   /* Too many TLB to flush */
+		{
 			mm_context(mm) = NO_CONTEXT;
+
 			if (mm == current->mm)
+			{
 				activate_context(mm);
-		} else {
+			}
+		}
+		else
+		{
 			unsigned long asid;
 
 			asid = mm_context(mm) & MMU_CONTEXT_ASID_MASK;
@@ -497,11 +616,14 @@ void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 
 			start |= asid;
 			end   |= asid;
-			while (start < end) {
+
+			while (start < end)
+			{
 				__flush_tlb_page(start);
 				start += PAGE_SIZE;
 			}
 		}
+
 		local_irq_restore(flags);
 	}
 }
@@ -513,13 +635,18 @@ void local_flush_tlb_mm(struct mm_struct *mm)
 {
 	/* Invalidate all TLB of this process. */
 	/* Instead of invalidating each TLB, we get new MMU context. */
-	if (mm_context(mm) != NO_CONTEXT) {
+	if (mm_context(mm) != NO_CONTEXT)
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
 		mm_context(mm) = NO_CONTEXT;
+
 		if (mm == current->mm)
+		{
 			activate_context(mm);
+		}
+
 		local_irq_restore(flags);
 	}
 }

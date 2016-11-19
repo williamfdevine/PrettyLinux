@@ -39,8 +39,10 @@ void __init socfpga_sysmgr_init(void)
 	np = of_find_compatible_node(NULL, NULL, "altr,sys-mgr");
 
 	if (of_property_read_u32(np, "cpu1-start-addr",
-			(u32 *) &socfpga_cpu1start_addr))
+							 (u32 *) &socfpga_cpu1start_addr))
+	{
 		pr_err("SMP: Need cpu1-start-addr in device tree.\n");
+	}
 
 	/* Ensure that socfpga_cpu1start_addr is visible to other CPUs */
 	smp_wmb();
@@ -59,21 +61,32 @@ static void __init socfpga_init_irq(void)
 {
 	irqchip_init();
 	socfpga_sysmgr_init();
+
 	if (IS_ENABLED(CONFIG_EDAC_ALTERA_L2C))
+	{
 		socfpga_init_l2_ecc();
+	}
 
 	if (IS_ENABLED(CONFIG_EDAC_ALTERA_OCRAM))
+	{
 		socfpga_init_ocram_ecc();
+	}
 }
 
 static void __init socfpga_arria10_init_irq(void)
 {
 	irqchip_init();
 	socfpga_sysmgr_init();
+
 	if (IS_ENABLED(CONFIG_EDAC_ALTERA_L2C))
+	{
 		socfpga_init_arria10_l2_ecc();
+	}
+
 	if (IS_ENABLED(CONFIG_EDAC_ALTERA_OCRAM))
+	{
 		socfpga_init_arria10_ocram_ecc();
+	}
 }
 
 static void socfpga_cyclone5_restart(enum reboot_mode mode, const char *cmd)
@@ -83,9 +96,14 @@ static void socfpga_cyclone5_restart(enum reboot_mode mode, const char *cmd)
 	temp = readl(rst_manager_base_addr + SOCFPGA_RSTMGR_CTRL);
 
 	if (mode == REBOOT_HARD)
+	{
 		temp |= RSTMGR_CTRL_SWCOLDRSTREQ;
+	}
 	else
+	{
 		temp |= RSTMGR_CTRL_SWWARMRSTREQ;
+	}
+
 	writel(temp, rst_manager_base_addr + SOCFPGA_RSTMGR_CTRL);
 }
 
@@ -96,34 +114,41 @@ static void socfpga_arria10_restart(enum reboot_mode mode, const char *cmd)
 	temp = readl(rst_manager_base_addr + SOCFPGA_A10_RSTMGR_CTRL);
 
 	if (mode == REBOOT_HARD)
+	{
 		temp |= RSTMGR_CTRL_SWCOLDRSTREQ;
+	}
 	else
+	{
 		temp |= RSTMGR_CTRL_SWWARMRSTREQ;
+	}
+
 	writel(temp, rst_manager_base_addr + SOCFPGA_A10_RSTMGR_CTRL);
 }
 
-static const char *altera_dt_match[] = {
+static const char *altera_dt_match[] =
+{
 	"altr,socfpga",
 	NULL
 };
 
 DT_MACHINE_START(SOCFPGA, "Altera SOCFPGA")
-	.l2c_aux_val	= 0,
+.l2c_aux_val	= 0,
 	.l2c_aux_mask	= ~0,
-	.init_irq	= socfpga_init_irq,
-	.restart	= socfpga_cyclone5_restart,
-	.dt_compat	= altera_dt_match,
-MACHINE_END
+	   .init_irq	= socfpga_init_irq,
+		  .restart	= socfpga_cyclone5_restart,
+			  .dt_compat	= altera_dt_match,
+				MACHINE_END
 
-static const char *altera_a10_dt_match[] = {
+				static const char *altera_a10_dt_match[] =
+{
 	"altr,socfpga-arria10",
 	NULL
 };
 
 DT_MACHINE_START(SOCFPGA_A10, "Altera SOCFPGA Arria10")
-	.l2c_aux_val	= 0,
+.l2c_aux_val	= 0,
 	.l2c_aux_mask	= ~0,
-	.init_irq	= socfpga_arria10_init_irq,
-	.restart	= socfpga_arria10_restart,
-	.dt_compat	= altera_a10_dt_match,
-MACHINE_END
+	   .init_irq	= socfpga_arria10_init_irq,
+		  .restart	= socfpga_arria10_restart,
+			  .dt_compat	= altera_a10_dt_match,
+				MACHINE_END

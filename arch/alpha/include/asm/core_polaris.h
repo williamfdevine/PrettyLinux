@@ -39,25 +39,26 @@
 /*
  * Data structure for handling POLARIS machine checks:
  */
-struct el_POLARIS_sysdata_mcheck {
-    u_long      psc_status;
-    u_long	psc_pcictl0;
-    u_long	psc_pcictl1;
-    u_long	psc_pcictl2;
+struct el_POLARIS_sysdata_mcheck
+{
+	u_long      psc_status;
+	u_long	psc_pcictl0;
+	u_long	psc_pcictl1;
+	u_long	psc_pcictl2;
 };
 
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
  * I/O functions:
  *
  * POLARIS, the PCI/memory support chipset for the PCA56 (21164PC)
- * processors, can use either a sparse address  mapping scheme, or the 
+ * processors, can use either a sparse address  mapping scheme, or the
  * so-called byte-word PCI address space, to get at PCI memory and I/O.
  *
  * However, we will support only the BWX form.
@@ -76,7 +77,7 @@ __EXTERN_INLINE void __iomem *polaris_ioportmap(unsigned long addr)
 }
 
 __EXTERN_INLINE void __iomem *polaris_ioremap(unsigned long addr,
-					      unsigned long size)
+		unsigned long size)
 {
 	return (void __iomem *)(addr + POLARIS_DENSE_MEM_BASE);
 }
@@ -101,8 +102,8 @@ __EXTERN_INLINE int polaris_is_mmio(const volatile void __iomem *addr)
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

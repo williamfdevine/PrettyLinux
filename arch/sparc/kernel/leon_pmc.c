@@ -12,7 +12,8 @@
 #include <asm/processor.h>
 
 /* List of Systems that need fixup instructions around power-down instruction */
-static unsigned int pmc_leon_fixup_ids[] = {
+static unsigned int pmc_leon_fixup_ids[] =
+{
 	AEROFLEX_UT699,
 	GAISLER_GR712RC,
 	LEON4_NEXTREME1,
@@ -25,9 +26,14 @@ static int pmc_leon_need_fixup(void)
 	unsigned int *id;
 
 	id = &pmc_leon_fixup_ids[0];
-	while (*id != 0) {
+
+	while (*id != 0)
+	{
 		if (*id == systemid)
+		{
 			return 1;
+		}
+
 		id++;
 	}
 
@@ -74,12 +80,17 @@ static void pmc_leon_idle(void)
 /* Install LEON Power Down function */
 static int __init leon_pmc_install(void)
 {
-	if (sparc_cpu_model == sparc_leon) {
+	if (sparc_cpu_model == sparc_leon)
+	{
 		/* Assign power management IDLE handler */
 		if (pmc_leon_need_fixup())
+		{
 			sparc_idle = pmc_leon_idle_fixup;
+		}
 		else
+		{
 			sparc_idle = pmc_leon_idle;
+		}
 
 		printk(KERN_INFO "leon: power management initialized\n");
 	}

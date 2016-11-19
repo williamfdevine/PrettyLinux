@@ -64,12 +64,14 @@ static void raise_exception(struct mce *m, struct pt_regs *pregs)
 	struct pt_regs regs;
 	unsigned long flags;
 
-	if (!pregs) {
+	if (!pregs)
+	{
 		memset(&regs, 0, sizeof(struct pt_regs));
 		regs.ip = m->ip;
 		regs.cs = m->cs;
 		pregs = &regs;
 	}
+
 	/* in mcheck exeception handler, irq will be disabled */
 	local_irq_save(flags);
 	do_machine_check(pregs, 0);
@@ -84,13 +86,23 @@ static int mce_raise_notify(unsigned int cmd, struct pt_regs *regs)
 {
 	int cpu = smp_processor_id();
 	struct mce *m = this_cpu_ptr(&injectm);
+
 	if (!cpumask_test_cpu(cpu, mce_inject_cpumask))
+	{
 		return NMI_DONE;
+	}
+
 	cpumask_clear_cpu(cpu, mce_inject_cpumask);
+
 	if (m->inject_flags & MCJ_EXCEPTION)
+	{
 		raise_exception(m, regs);
+	}
 	else if (m->status)
+	{
 		raise_poll(m);
+	}
+
 	return NMI_HANDLED;
 }
 
@@ -100,7 +112,8 @@ static void mce_irq_ipi(void *info)
 	struct mce *m = this_cpu_ptr(&injectm);
 
 	if (cpumask_test_cpu(cpu, mce_inject_cpumask) &&
-			m->inject_flags & MCJ_EXCEPTION) {
+		m->inject_flags & MCJ_EXCEPTION)
+	{
 		cpumask_clear_cpu(cpu, mce_inject_cpumask);
 		raise_exception(m, NULL);
 	}
@@ -114,31 +127,42 @@ static int raise_local(void)
 	int ret = 0;
 	int cpu = m->extcpu;
 
-	if (m->inject_flags & MCJ_EXCEPTION) {
+	if (m->inject_flags & MCJ_EXCEPTION)
+	{
 		pr_info("Triggering MCE exception on CPU %d\n", cpu);
-		switch (context) {
-		case MCJ_CTX_IRQ:
+
+		switch (context)
+		{
+			case MCJ_CTX_IRQ:
+
 			/*
 			 * Could do more to fake interrupts like
 			 * calling irq_enter, but the necessary
 			 * machinery isn't exported currently.
 			 */
 			/*FALL THROUGH*/
-		case MCJ_CTX_PROCESS:
-			raise_exception(m, NULL);
-			break;
-		default:
-			pr_info("Invalid MCE context\n");
-			ret = -EINVAL;
+			case MCJ_CTX_PROCESS:
+				raise_exception(m, NULL);
+				break;
+
+			default:
+				pr_info("Invalid MCE context\n");
+				ret = -EINVAL;
 		}
+
 		pr_info("MCE exception done on CPU %d\n", cpu);
-	} else if (m->status) {
+	}
+	else if (m->status)
+	{
 		pr_info("Starting machine check poll CPU %d\n", cpu);
 		raise_poll(m);
 		mce_notify_irq();
 		pr_info("Machine check poll done on CPU %d\n", cpu);
-	} else
+	}
+	else
+	{
 		m->finished = 0;
+	}
 
 	return ret;
 }
@@ -150,49 +174,68 @@ static void raise_mce(struct mce *m)
 	inject_mce(m);
 
 	if (context == MCJ_CTX_RANDOM)
+	{
 		return;
+	}
 
 #ifdef CONFIG_X86_LOCAL_APIC
-	if (m->inject_flags & (MCJ_IRQ_BROADCAST | MCJ_NMI_BROADCAST)) {
+
+	if (m->inject_flags & (MCJ_IRQ_BROADCAST | MCJ_NMI_BROADCAST))
+	{
 		unsigned long start;
 		int cpu;
 
 		get_online_cpus();
 		cpumask_copy(mce_inject_cpumask, cpu_online_mask);
 		cpumask_clear_cpu(get_cpu(), mce_inject_cpumask);
-		for_each_online_cpu(cpu) {
+		for_each_online_cpu(cpu)
+		{
 			struct mce *mcpu = &per_cpu(injectm, cpu);
+
 			if (!mcpu->finished ||
-			    MCJ_CTX(mcpu->inject_flags) != MCJ_CTX_RANDOM)
+				MCJ_CTX(mcpu->inject_flags) != MCJ_CTX_RANDOM)
+			{
 				cpumask_clear_cpu(cpu, mce_inject_cpumask);
+			}
 		}
-		if (!cpumask_empty(mce_inject_cpumask)) {
-			if (m->inject_flags & MCJ_IRQ_BROADCAST) {
+
+		if (!cpumask_empty(mce_inject_cpumask))
+		{
+			if (m->inject_flags & MCJ_IRQ_BROADCAST)
+			{
 				/*
 				 * don't wait because mce_irq_ipi is necessary
 				 * to be sync with following raise_local
 				 */
 				preempt_disable();
 				smp_call_function_many(mce_inject_cpumask,
-					mce_irq_ipi, NULL, 0);
+									   mce_irq_ipi, NULL, 0);
 				preempt_enable();
-			} else if (m->inject_flags & MCJ_NMI_BROADCAST)
+			}
+			else if (m->inject_flags & MCJ_NMI_BROADCAST)
 				apic->send_IPI_mask(mce_inject_cpumask,
-						NMI_VECTOR);
+									NMI_VECTOR);
 		}
+
 		start = jiffies;
-		while (!cpumask_empty(mce_inject_cpumask)) {
-			if (!time_before(jiffies, start + 2*HZ)) {
+
+		while (!cpumask_empty(mce_inject_cpumask))
+		{
+			if (!time_before(jiffies, start + 2 * HZ))
+			{
 				pr_err("Timeout waiting for mce inject %lx\n",
-					*cpumask_bits(mce_inject_cpumask));
+					   *cpumask_bits(mce_inject_cpumask));
 				break;
 			}
+
 			cpu_relax();
 		}
+
 		raise_local();
 		put_cpu();
 		put_online_cpus();
-	} else
+	}
+	else
 #endif
 	{
 		preempt_disable();
@@ -203,26 +246,38 @@ static void raise_mce(struct mce *m)
 
 /* Error injection interface */
 static ssize_t mce_write(struct file *filp, const char __user *ubuf,
-			 size_t usize, loff_t *off)
+						 size_t usize, loff_t *off)
 {
 	struct mce m;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	/*
 	 * There are some cases where real MSR reads could slip
 	 * through.
 	 */
 	if (!boot_cpu_has(X86_FEATURE_MCE) || !boot_cpu_has(X86_FEATURE_MCA))
+	{
 		return -EIO;
+	}
 
 	if ((unsigned long)usize > sizeof(struct mce))
+	{
 		usize = sizeof(struct mce);
+	}
+
 	if (copy_from_user(&m, ubuf, usize))
+	{
 		return -EFAULT;
+	}
 
 	if (m.extcpu >= num_possible_cpus() || !cpu_online(m.extcpu))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Need to give user space some time to set everything up,
@@ -239,11 +294,14 @@ static ssize_t mce_write(struct file *filp, const char __user *ubuf,
 static int inject_init(void)
 {
 	if (!alloc_cpumask_var(&mce_inject_cpumask, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
+
 	pr_info("Machine check injector initialized\n");
 	register_mce_write_callback(mce_write);
 	register_nmi_handler(NMI_LOCAL, mce_raise_notify, 0,
-				"mce_notify");
+						 "mce_notify");
 	return 0;
 }
 

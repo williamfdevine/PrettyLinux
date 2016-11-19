@@ -37,11 +37,14 @@ static bool is_duplicate_mce_record(struct mce_evt_llist *t, struct mce_evt_llis
 
 	m1 = &t->mce;
 
-	llist_for_each_entry(node, &l->llnode, llnode) {
+	llist_for_each_entry(node, &l->llnode, llnode)
+	{
 		m2 = &node->mce;
 
 		if (!mce_cmp(m1, m2))
+		{
 			return true;
+		}
 	}
 	return false;
 }
@@ -60,13 +63,19 @@ struct llist_node *mce_gen_pool_prepare_records(void)
 	struct mce_evt_llist *node, *t;
 
 	head = llist_del_all(&mce_event_llist);
+
 	if (!head)
+	{
 		return NULL;
+	}
 
 	/* squeeze out duplicates while reversing order */
-	llist_for_each_entry_safe(node, t, head, llnode) {
+	llist_for_each_entry_safe(node, t, head, llnode)
+	{
 		if (!is_duplicate_mce_record(node, t))
+		{
 			llist_add(&node->llnode, &new_head);
+		}
 	}
 
 	return new_head.first;
@@ -79,11 +88,15 @@ void mce_gen_pool_process(void)
 	struct mce *mce;
 
 	head = llist_del_all(&mce_event_llist);
+
 	if (!head)
+	{
 		return;
+	}
 
 	head = llist_reverse_order(head);
-	llist_for_each_entry_safe(node, tmp, head, llnode) {
+	llist_for_each_entry_safe(node, tmp, head, llnode)
+	{
 		mce = &node->mce;
 		atomic_notifier_call_chain(&x86_mce_decoder_chain, 0, mce);
 		gen_pool_free(mce_evt_pool, (unsigned long)node, sizeof(*node));
@@ -100,10 +113,14 @@ int mce_gen_pool_add(struct mce *mce)
 	struct mce_evt_llist *node;
 
 	if (!mce_evt_pool)
+	{
 		return -EINVAL;
+	}
 
 	node = (void *)gen_pool_alloc(mce_evt_pool, sizeof(*node));
-	if (!node) {
+
+	if (!node)
+	{
 		pr_warn_ratelimited("MCE records pool full!\n");
 		return -ENOMEM;
 	}
@@ -120,11 +137,16 @@ static int mce_gen_pool_create(void)
 	int ret = -ENOMEM;
 
 	tmpp = gen_pool_create(ilog2(sizeof(struct mce_evt_llist)), -1);
+
 	if (!tmpp)
+	{
 		goto out;
+	}
 
 	ret = gen_pool_add(tmpp, (unsigned long)gen_pool_buf, MCE_POOLSZ, -1);
-	if (ret) {
+
+	if (ret)
+	{
 		gen_pool_destroy(tmpp);
 		goto out;
 	}
@@ -139,7 +161,9 @@ int mce_gen_pool_init(void)
 {
 	/* Just init mce_gen_pool once. */
 	if (mce_evt_pool)
+	{
 		return 0;
+	}
 
 	return mce_gen_pool_create();
 }

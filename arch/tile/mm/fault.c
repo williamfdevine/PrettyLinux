@@ -44,17 +44,18 @@
 #include <arch/interrupts.h>
 
 static noinline void force_sig_info_fault(const char *type, int si_signo,
-					  int si_code, unsigned long address,
-					  int fault_num,
-					  struct task_struct *tsk,
-					  struct pt_regs *regs)
+		int si_code, unsigned long address,
+		int fault_num,
+		struct task_struct *tsk,
+		struct pt_regs *regs)
 {
 	siginfo_t info;
 
-	if (unlikely(tsk->pid < 2)) {
+	if (unlikely(tsk->pid < 2))
+	{
 		panic("Signal %d (code %d) at %#lx sent to %s!",
-		      si_signo, si_code & 0xffff, address,
-		      is_idle_task(tsk) ? "the idle task" : "init");
+			  si_signo, si_code & 0xffff, address,
+			  is_idle_task(tsk) ? "the idle task" : "init");
 	}
 
 	info.si_signo = si_signo;
@@ -77,11 +78,11 @@ SYSCALL_DEFINE1(cmpxchg_badaddr, unsigned long, address)
 
 	if (address >= PAGE_OFFSET)
 		force_sig_info_fault("atomic segfault", SIGSEGV, SEGV_MAPERR,
-				     address, INT_DTLB_MISS, current, regs);
+							 address, INT_DTLB_MISS, current, regs);
 	else
 		force_sig_info_fault("atomic alignment fault", SIGBUS,
-				     BUS_ADRALN, address,
-				     INT_UNALIGN_DATA, current, regs);
+							 BUS_ADRALN, address,
+							 INT_UNALIGN_DATA, current, regs);
 
 	/*
 	 * Adjust pc to point at the actual instruction, which is unusual
@@ -112,21 +113,35 @@ static inline pmd_t *vmalloc_sync_one(pgd_t *pgd, unsigned long address)
 	pgd_k = init_mm.pgd + index;
 
 	if (!pgd_present(*pgd_k))
+	{
 		return NULL;
+	}
 
 	pud = pud_offset(pgd, address);
 	pud_k = pud_offset(pgd_k, address);
+
 	if (!pud_present(*pud_k))
+	{
 		return NULL;
+	}
 
 	pmd = pmd_offset(pud, address);
 	pmd_k = pmd_offset(pud_k, address);
+
 	if (!pmd_present(*pmd_k))
+	{
 		return NULL;
+	}
+
 	if (!pmd_present(*pmd))
+	{
 		set_pmd(pmd, *pmd_k);
+	}
 	else
+	{
 		BUG_ON(pmd_ptfn(*pmd) != pmd_ptfn(*pmd_k));
+	}
+
 	return pmd_k;
 }
 
@@ -140,25 +155,36 @@ static inline int vmalloc_fault(pgd_t *pgd, unsigned long address)
 
 	/* Make sure we are in vmalloc area */
 	if (!(address >= VMALLOC_START && address < VMALLOC_END))
+	{
 		return -1;
+	}
 
 	/*
 	 * Synchronize this task's top level page-table
 	 * with the 'reference' page table.
 	 */
 	pmd_k = vmalloc_sync_one(pgd, address);
+
 	if (!pmd_k)
+	{
 		return -1;
+	}
+
 	pte_k = pte_offset_kernel(pmd_k, address);
+
 	if (!pte_present(*pte_k))
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
 /* Wait until this PTE has completed migration. */
 static void wait_for_migration(pte_t *pte)
 {
-	if (pte_migrating(*pte)) {
+	if (pte_migrating(*pte))
+	{
 		/*
 		 * Wait until the migrater fixes up this pte.
 		 * We scale the loop count by the clock rate so we'll wait for
@@ -166,11 +192,14 @@ static void wait_for_migration(pte_t *pte)
 		 */
 		int retries = 0;
 		int bound = get_clock_rate();
-		while (pte_migrating(*pte)) {
+
+		while (pte_migrating(*pte))
+		{
 			barrier();
+
 			if (++retries > bound)
 				panic("Hit migrating PTE (%#llx) and page PFN %#lx still migrating",
-				      pte->val, pte_pfn(*pte));
+					  pte->val, pte_pfn(*pte));
 		}
 	}
 }
@@ -208,8 +237,8 @@ static pgd_t *get_current_pgd(void)
  * its own stack, which would then cause us to self-deadlock.
  */
 static int handle_migrating_pte(pgd_t *pgd, int fault_num,
-				unsigned long address, unsigned long pc,
-				int is_kernel_mode, int write)
+								unsigned long address, unsigned long pc,
+								int is_kernel_mode, int write)
 {
 	pud_t *pud;
 	pmd_t *pmd;
@@ -217,36 +246,65 @@ static int handle_migrating_pte(pgd_t *pgd, int fault_num,
 	pte_t pteval;
 
 	if (pgd_addr_invalid(address))
+	{
 		return 0;
+	}
 
 	pgd += pgd_index(address);
 	pud = pud_offset(pgd, address);
+
 	if (!pud || !pud_present(*pud))
+	{
 		return 0;
+	}
+
 	pmd = pmd_offset(pud, address);
+
 	if (!pmd || !pmd_present(*pmd))
+	{
 		return 0;
+	}
+
 	pte = pmd_huge_page(*pmd) ? ((pte_t *)pmd) :
-		pte_offset_kernel(pmd, address);
+		  pte_offset_kernel(pmd, address);
 	pteval = *pte;
-	if (pte_migrating(pteval)) {
+
+	if (pte_migrating(pteval))
+	{
 		if (in_nmi() && search_exception_tables(pc))
+		{
 			return 0;
+		}
+
 		wait_for_migration(pte);
 		return 1;
 	}
 
 	if (!is_kernel_mode || !pte_present(pteval))
+	{
 		return 0;
-	if (fault_num == INT_ITLB_MISS) {
+	}
+
+	if (fault_num == INT_ITLB_MISS)
+	{
 		if (pte_exec(pteval))
+		{
 			return 1;
-	} else if (write) {
+		}
+	}
+	else if (write)
+	{
 		if (pte_write(pteval))
+		{
 			return 1;
-	} else {
+		}
+	}
+	else
+	{
 		if (pte_read(pteval))
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -258,10 +316,10 @@ static int handle_migrating_pte(pgd_t *pgd, int fault_num,
  * It returns true if the fault was successfully handled.
  */
 static int handle_page_fault(struct pt_regs *regs,
-			     int fault_num,
-			     int is_page_fault,
-			     unsigned long address,
-			     int write)
+							 int fault_num,
+							 int is_page_fault,
+							 unsigned long address,
+							 int write)
 {
 	struct task_struct *tsk;
 	struct mm_struct *mm;
@@ -275,7 +333,9 @@ static int handle_page_fault(struct pt_regs *regs,
 
 	/* on TILE, protection faults are always writes */
 	if (!is_page_fault)
+	{
 		write = 1;
+	}
 
 	flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
 
@@ -289,12 +349,14 @@ static int handle_page_fault(struct pt_regs *regs,
 	 * place to get trapped in an infinite regress, and once we
 	 * overwrite the whole stack, it becomes very hard to recover.
 	 */
-	stack_offset = stack_pointer & (THREAD_SIZE-1);
-	if (stack_offset < THREAD_SIZE / 8) {
+	stack_offset = stack_pointer & (THREAD_SIZE - 1);
+
+	if (stack_offset < THREAD_SIZE / 8)
+	{
 		pr_alert("Potential stack overrun: sp %#lx\n", stack_pointer);
 		show_regs(regs);
 		pr_alert("Killing current process %d/%s\n",
-			 tsk->pid, tsk->comm);
+				 tsk->pid, tsk->comm);
 		do_group_exit(SIGKILL);
 	}
 
@@ -307,9 +369,12 @@ static int handle_page_fault(struct pt_regs *regs,
 	 * rather than trying to patch up the existing PTE.
 	 */
 	pgd = get_current_pgd();
+
 	if (handle_migrating_pte(pgd, fault_num, address, regs->pc,
-				 is_kernel_mode, write))
+							 is_kernel_mode, write))
+	{
 		return 1;
+	}
 
 	si_code = SEGV_MAPERR;
 
@@ -326,10 +391,14 @@ static int handle_page_fault(struct pt_regs *regs,
 	 * and that the fault was not a protection fault.
 	 */
 	if (unlikely(address >= TASK_SIZE &&
-		     !is_arch_mappable_range(address, 0))) {
+				 !is_arch_mappable_range(address, 0)))
+	{
 		if (is_kernel_mode && is_page_fault &&
-		    vmalloc_fault(pgd, address) >= 0)
+			vmalloc_fault(pgd, address) >= 0)
+		{
 			return 1;
+		}
+
 		/*
 		 * Don't take the mm semaphore here. If we fixup a prefetch
 		 * fault we could otherwise deadlock.
@@ -347,7 +416,9 @@ static int handle_page_fault(struct pt_regs *regs,
 	 * interrupts disabled.
 	 */
 	if (!(regs->flags & PT_FLAGS_DISABLE_IRQ))
+	{
 		local_irq_enable();
+	}
 
 	mm = tsk->mm;
 
@@ -355,13 +426,16 @@ static int handle_page_fault(struct pt_regs *regs,
 	 * If we're in an interrupt, have no user context or are running in an
 	 * region with pagefaults disabled then we must not take the fault.
 	 */
-	if (pagefault_disabled() || !mm) {
+	if (pagefault_disabled() || !mm)
+	{
 		vma = NULL;  /* happy compiler */
 		goto bad_area_nosemaphore;
 	}
 
 	if (!is_kernel_mode)
+	{
 		flags |= FAULT_FLAG_USER;
+	}
 
 	/*
 	 * When running in the kernel we expect faults to occur only to
@@ -379,9 +453,11 @@ static int handle_page_fault(struct pt_regs *regs,
 	 * source.  If this is invalid we can skip the address space check,
 	 * thus avoiding the deadlock.
 	 */
-	if (!down_read_trylock(&mm->mmap_sem)) {
+	if (!down_read_trylock(&mm->mmap_sem))
+	{
 		if (is_kernel_mode &&
-		    !search_exception_tables(regs->pc)) {
+			!search_exception_tables(regs->pc))
+		{
 			vma = NULL;  /* happy compiler */
 			goto bad_area_nosemaphore;
 		}
@@ -391,42 +467,76 @@ retry:
 	}
 
 	vma = find_vma(mm, address);
+
 	if (!vma)
+	{
 		goto bad_area;
+	}
+
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
+
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
-	if (regs->sp < PAGE_OFFSET) {
+	}
+
+	if (regs->sp < PAGE_OFFSET)
+	{
 		/*
 		 * accessing the stack below sp is always a bug.
 		 */
 		if (address < regs->sp)
+		{
 			goto bad_area;
+		}
 	}
-	if (expand_stack(vma, address))
-		goto bad_area;
 
-/*
- * Ok, we have a good vm_area for this memory access, so
- * we can handle it..
- */
+	if (expand_stack(vma, address))
+	{
+		goto bad_area;
+	}
+
+	/*
+	 * Ok, we have a good vm_area for this memory access, so
+	 * we can handle it..
+	 */
 good_area:
 	si_code = SEGV_ACCERR;
-	if (fault_num == INT_ITLB_MISS) {
+
+	if (fault_num == INT_ITLB_MISS)
+	{
 		if (!(vma->vm_flags & VM_EXEC))
+		{
 			goto bad_area;
-	} else if (write) {
+		}
+	}
+	else if (write)
+	{
 #ifdef TEST_VERIFY_AREA
+
 		if (!is_page_fault && regs->cs == KERNEL_CS)
+		{
 			pr_err("WP fault at " REGFMT "\n", regs->eip);
+		}
+
 #endif
+
 		if (!(vma->vm_flags & VM_WRITE))
+		{
 			goto bad_area;
+		}
+
 		flags |= FAULT_FLAG_WRITE;
-	} else {
+	}
+	else
+	{
 		if (!is_page_fault || !(vma->vm_flags & VM_READ))
+		{
 			goto bad_area;
+		}
 	}
 
 	/*
@@ -437,104 +547,140 @@ good_area:
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return 0;
+	}
 
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
 		if (fault & VM_FAULT_MAJOR)
+		{
 			tsk->maj_flt++;
+		}
 		else
+		{
 			tsk->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 			flags |= FAULT_FLAG_TRIED;
 
-			 /*
-			  * No need to up_read(&mm->mmap_sem) as we would
-			  * have already released it in __lock_page_or_retry
-			  * in mm/filemap.c.
-			  */
+			/*
+			 * No need to up_read(&mm->mmap_sem) as we would
+			 * have already released it in __lock_page_or_retry
+			 * in mm/filemap.c.
+			 */
 			goto retry;
 		}
 	}
 
 #if CHIP_HAS_TILE_DMA()
+
 	/* If this was a DMA TLB fault, restart the DMA engine. */
-	switch (fault_num) {
-	case INT_DMATLB_MISS:
-	case INT_DMATLB_MISS_DWNCL:
-	case INT_DMATLB_ACCESS:
-	case INT_DMATLB_ACCESS_DWNCL:
-		__insn_mtspr(SPR_DMA_CTR, SPR_DMA_CTR__REQUEST_MASK);
-		break;
+	switch (fault_num)
+	{
+		case INT_DMATLB_MISS:
+		case INT_DMATLB_MISS_DWNCL:
+		case INT_DMATLB_ACCESS:
+		case INT_DMATLB_ACCESS_DWNCL:
+			__insn_mtspr(SPR_DMA_CTR, SPR_DMA_CTR__REQUEST_MASK);
+			break;
 	}
+
 #endif
 
 	up_read(&mm->mmap_sem);
 	return 1;
 
-/*
- * Something tried to access memory that isn't in our memory map..
- * Fix it, but check if it's kernel or user first..
- */
+	/*
+	 * Something tried to access memory that isn't in our memory map..
+	 * Fix it, but check if it's kernel or user first..
+	 */
 bad_area:
 	up_read(&mm->mmap_sem);
 
 bad_area_nosemaphore:
+
 	/* User mode accesses just cause a SIGSEGV */
-	if (!is_kernel_mode) {
+	if (!is_kernel_mode)
+	{
 		/*
 		 * It's possible to have interrupts off here.
 		 */
 		local_irq_enable();
 
 		force_sig_info_fault("segfault", SIGSEGV, si_code, address,
-				     fault_num, tsk, regs);
+							 fault_num, tsk, regs);
 		return 0;
 	}
 
 no_context:
+
 	/* Are we prepared to handle this kernel fault?  */
 	if (fixup_exception(regs))
+	{
 		return 0;
+	}
 
-/*
- * Oops. The kernel tried to access some bad page. We'll have to
- * terminate things with extreme prejudice.
- */
+	/*
+	 * Oops. The kernel tried to access some bad page. We'll have to
+	 * terminate things with extreme prejudice.
+	 */
 
 	bust_spinlocks(1);
 
 	/* FIXME: no lookup_address() yet */
 #ifdef SUPPORT_LOOKUP_ADDRESS
-	if (fault_num == INT_ITLB_MISS) {
+
+	if (fault_num == INT_ITLB_MISS)
+	{
 		pte_t *pte = lookup_address(address);
 
 		if (pte && pte_present(*pte) && !pte_exec_kernel(*pte))
 			pr_crit("kernel tried to execute non-executable page - exploit attempt? (uid: %d)\n",
-				current->uid);
+					current->uid);
 	}
+
 #endif
+
 	if (address < PAGE_SIZE)
+	{
 		pr_alert("Unable to handle kernel NULL pointer dereference\n");
+	}
 	else
+	{
 		pr_alert("Unable to handle kernel paging request\n");
+	}
+
 	pr_alert(" at virtual address " REGFMT ", pc " REGFMT "\n",
-		 address, regs->pc);
+			 address, regs->pc);
 
 	show_regs(regs);
 
-	if (unlikely(tsk->pid < 2)) {
+	if (unlikely(tsk->pid < 2))
+	{
 		panic("Kernel page fault running %s!",
-		      is_idle_task(tsk) ? "the idle task" : "init");
+			  is_idle_task(tsk) ? "the idle task" : "init");
 	}
 
 	/*
@@ -548,14 +694,18 @@ no_context:
 
 	do_group_exit(SIGKILL);
 
-/*
- * We ran out of memory, or some other thing happened to us that made
- * us unable to handle the page fault gracefully.
- */
+	/*
+	 * We ran out of memory, or some other thing happened to us that made
+	 * us unable to handle the page fault gracefully.
+	 */
 out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (is_kernel_mode)
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return 0;
 
@@ -564,10 +714,12 @@ do_sigbus:
 
 	/* Kernel mode? Handle exceptions or die */
 	if (is_kernel_mode)
+	{
 		goto no_context;
+	}
 
 	force_sig_info_fault("bus error", SIGBUS, BUS_ADRERR, address,
-			     fault_num, tsk, regs);
+						 fault_num, tsk, regs);
 	return 0;
 }
 
@@ -575,10 +727,10 @@ do_sigbus:
 
 /* We must release ICS before panicking or we won't get anywhere. */
 #define ics_panic(fmt, ...)					\
-do {								\
-	__insn_mtspr(SPR_INTERRUPT_CRITICAL_SECTION, 0);	\
-	panic(fmt, ##__VA_ARGS__);				\
-} while (0)
+	do {								\
+		__insn_mtspr(SPR_INTERRUPT_CRITICAL_SECTION, 0);	\
+		panic(fmt, ##__VA_ARGS__);				\
+	} while (0)
 
 /*
  * When we take an ITLB or DTLB fault or access violation in the
@@ -597,31 +749,35 @@ do {								\
  * example, that we can't migrate init_mm or its pgd.
  */
 struct intvec_state do_page_fault_ics(struct pt_regs *regs, int fault_num,
-				      unsigned long address,
-				      unsigned long info)
+									  unsigned long address,
+									  unsigned long info)
 {
 	unsigned long pc = info & ~1;
 	int write = info & 1;
 	pgd_t *pgd = get_current_pgd();
 
 	/* Retval is 1 at first since we will handle the fault fully. */
-	struct intvec_state state = {
+	struct intvec_state state =
+	{
 		do_page_fault, fault_num, address, write, 1
 	};
 
 	/* Validate that we are plausibly in the right routine. */
 	if ((pc & 0x7) != 0 || pc < PAGE_OFFSET ||
-	    (fault_num != INT_DTLB_MISS &&
-	     fault_num != INT_DTLB_ACCESS)) {
+		(fault_num != INT_DTLB_MISS &&
+		 fault_num != INT_DTLB_ACCESS))
+	{
 		unsigned long old_pc = regs->pc;
 		regs->pc = pc;
 		ics_panic("Bad ICS page fault args: old PC %#lx, fault %d/%d at %#lx",
-			  old_pc, fault_num, write, address);
+				  old_pc, fault_num, write, address);
 	}
 
 	/* We might be faulting on a vmalloc page, so check that first. */
 	if (fault_num != INT_DTLB_ACCESS && vmalloc_fault(pgd, address) >= 0)
+	{
 		return state;
+	}
 
 	/*
 	 * If we faulted with ICS set in sys_cmpxchg, we are providing
@@ -640,13 +796,17 @@ struct intvec_state do_page_fault_ics(struct pt_regs *regs, int fault_num,
 	 * Must match register use in sys_cmpxchg().
 	 */
 	if (pc >= (unsigned long) sys_cmpxchg &&
-	    pc < (unsigned long) __sys_cmpxchg_end) {
+		pc < (unsigned long) __sys_cmpxchg_end)
+	{
 #ifdef CONFIG_SMP
+
 		/* Don't unlock before we could have locked. */
-		if (pc >= (unsigned long)__sys_cmpxchg_grab_lock) {
+		if (pc >= (unsigned long)__sys_cmpxchg_grab_lock)
+		{
 			int *lock_ptr = (int *)(regs->regs[ATOMIC_LOCK_REG]);
 			__atomic_fault_unlock(lock_ptr);
 		}
+
 #endif
 		regs->sp = regs->regs[27];
 	}
@@ -659,7 +819,8 @@ struct intvec_state do_page_fault_ics(struct pt_regs *regs, int fault_num,
 	 * for example, migrating.
 	 */
 	else if (pc >= (unsigned long) __start_atomic_asm_code &&
-		   pc < (unsigned long) __end_atomic_asm_code) {
+			 pc < (unsigned long) __end_atomic_asm_code)
+	{
 		const struct exception_table_entry *fixup;
 #ifdef CONFIG_SMP
 		/* Unlock the atomic lock. */
@@ -667,9 +828,11 @@ struct intvec_state do_page_fault_ics(struct pt_regs *regs, int fault_num,
 		__atomic_fault_unlock(lock_ptr);
 #endif
 		fixup = search_exception_tables(pc);
+
 		if (!fixup)
 			ics_panic("ICS atomic fault not in table: PC %#lx, fault %d",
-				  pc, fault_num);
+					  pc, fault_num);
+
 		regs->pc = fixup->fixup;
 		regs->ex1 = PL_ICS_EX1(KERNEL_PL, 0);
 	}
@@ -679,9 +842,14 @@ struct intvec_state do_page_fault_ics(struct pt_regs *regs, int fault_num,
 	 * it's safe to spin if the PTE that caused the fault was migrating.
 	 */
 	if (fault_num == INT_DTLB_ACCESS)
+	{
 		write = 1;
+	}
+
 	if (handle_migrating_pte(pgd, fault_num, address, pc, 1, write))
+	{
 		return state;
+	}
 
 	/* Return zero so that we continue on with normal fault handling. */
 	state.retval = 0;
@@ -699,22 +867,27 @@ struct intvec_state do_page_fault_ics(struct pt_regs *regs, int fault_num,
  * page faults for user code while in kernel mode.
  */
 static inline void __do_page_fault(struct pt_regs *regs, int fault_num,
-				   unsigned long address, unsigned long write)
+								   unsigned long address, unsigned long write)
 {
 	int is_page_fault;
 
 #ifdef CONFIG_KPROBES
+
 	/*
 	 * This is to notify the fault handler of the kprobes.  The
 	 * exception code is redundant as it is also carried in REGS,
 	 * but we pass it anyhow.
 	 */
 	if (notify_die(DIE_PAGE_FAULT, "page fault", regs, -1,
-		       regs->faultnum, SIGSEGV) == NOTIFY_STOP)
+				   regs->faultnum, SIGSEGV) == NOTIFY_STOP)
+	{
 		return;
+	}
+
 #endif
 
 #ifdef __tilegx__
+
 	/*
 	 * We don't need early do_page_fault_ics() support, since unlike
 	 * Pro we don't need to worry about unlocking the atomic locks.
@@ -723,10 +896,13 @@ static inline void __do_page_fault(struct pt_regs *regs, int fault_num,
 	 * here.  (If we crash due to trying to touch our own stack,
 	 * we're in too much trouble for C code to help out anyway.)
 	 */
-	if (write & ~1) {
+	if (write & ~1)
+	{
 		unsigned long pc = write & ~1;
+
 		if (pc >= (unsigned long) __start_unalign_asm_code &&
-		    pc < (unsigned long) __end_unalign_asm_code) {
+			pc < (unsigned long) __end_unalign_asm_code)
+		{
 			struct thread_info *ti = current_thread_info();
 			/*
 			 * Our EX_CONTEXT is still what it was from the
@@ -745,19 +921,23 @@ static inline void __do_page_fault(struct pt_regs *regs, int fault_num,
 			regs->regs[2] = ti->unalign_jit_tmp[2];
 			regs->regs[3] = ti->unalign_jit_tmp[3];
 			write &= 1;
-		} else {
+		}
+		else
+		{
 			pr_alert("%s/%d: ICS set at page fault at %#lx: %#lx\n",
-				 current->comm, current->pid, pc, address);
+					 current->comm, current->pid, pc, address);
 			show_regs(regs);
 			do_group_exit(SIGKILL);
 		}
 	}
+
 #else
 	/* This case should have been handled by do_page_fault_ics(). */
 	BUG_ON(write & ~1);
 #endif
 
 #if CHIP_HAS_TILE_DMA()
+
 	/*
 	 * If it's a DMA fault, suspend the transfer while we're
 	 * handling the miss; we'll restart after it's handled.  If we
@@ -766,55 +946,67 @@ static inline void __do_page_fault(struct pt_regs *regs, int fault_num,
 	 * still 'running'.
 	 */
 	if (fault_num == INT_DMATLB_MISS ||
-	    fault_num == INT_DMATLB_ACCESS ||
-	    fault_num == INT_DMATLB_MISS_DWNCL ||
-	    fault_num == INT_DMATLB_ACCESS_DWNCL) {
+		fault_num == INT_DMATLB_ACCESS ||
+		fault_num == INT_DMATLB_MISS_DWNCL ||
+		fault_num == INT_DMATLB_ACCESS_DWNCL)
+	{
 		__insn_mtspr(SPR_DMA_CTR, SPR_DMA_CTR__SUSPEND_MASK);
+
 		while (__insn_mfspr(SPR_DMA_USER_STATUS) &
-		       SPR_DMA_STATUS__BUSY_MASK)
+			   SPR_DMA_STATUS__BUSY_MASK)
 			;
 	}
+
 #endif
 
 	/* Validate fault num and decide if this is a first-time page fault. */
-	switch (fault_num) {
-	case INT_ITLB_MISS:
-	case INT_DTLB_MISS:
+	switch (fault_num)
+	{
+		case INT_ITLB_MISS:
+		case INT_DTLB_MISS:
 #if CHIP_HAS_TILE_DMA()
-	case INT_DMATLB_MISS:
-	case INT_DMATLB_MISS_DWNCL:
+		case INT_DMATLB_MISS:
+		case INT_DMATLB_MISS_DWNCL:
 #endif
-		is_page_fault = 1;
-		break;
+			is_page_fault = 1;
+			break;
 
-	case INT_DTLB_ACCESS:
+		case INT_DTLB_ACCESS:
 #if CHIP_HAS_TILE_DMA()
-	case INT_DMATLB_ACCESS:
-	case INT_DMATLB_ACCESS_DWNCL:
+		case INT_DMATLB_ACCESS:
+		case INT_DMATLB_ACCESS_DWNCL:
 #endif
-		is_page_fault = 0;
-		break;
+			is_page_fault = 0;
+			break;
 
-	default:
-		panic("Bad fault number %d in do_page_fault", fault_num);
+		default:
+			panic("Bad fault number %d in do_page_fault", fault_num);
 	}
 
 #if CHIP_HAS_TILE_DMA()
-	if (!user_mode(regs)) {
+
+	if (!user_mode(regs))
+	{
 		struct async_tlb *async;
-		switch (fault_num) {
+
+		switch (fault_num)
+		{
 #if CHIP_HAS_TILE_DMA()
-		case INT_DMATLB_MISS:
-		case INT_DMATLB_ACCESS:
-		case INT_DMATLB_MISS_DWNCL:
-		case INT_DMATLB_ACCESS_DWNCL:
-			async = &current->thread.dma_async_tlb;
-			break;
+
+			case INT_DMATLB_MISS:
+			case INT_DMATLB_ACCESS:
+			case INT_DMATLB_MISS_DWNCL:
+			case INT_DMATLB_ACCESS_DWNCL:
+				async = &current->thread.dma_async_tlb;
+				break;
 #endif
-		default:
-			async = NULL;
+
+			default:
+				async = NULL;
 		}
-		if (async) {
+
+		if (async)
+		{
 
 			/*
 			 * No vmalloc check required, so we can allow
@@ -823,11 +1015,14 @@ static inline void __do_page_fault(struct pt_regs *regs, int fault_num,
 			local_irq_enable();
 
 			set_thread_flag(TIF_ASYNC_TLB);
-			if (async->fault_num != 0) {
+
+			if (async->fault_num != 0)
+			{
 				panic("Second async fault %d; old fault was %d (%#lx/%ld)",
-				      fault_num, async->fault_num,
-				      address, write);
+					  fault_num, async->fault_num,
+					  address, write);
 			}
+
 			BUG_ON(fault_num == 0);
 			async->fault_num = fault_num;
 			async->is_fault = is_page_fault;
@@ -836,13 +1031,14 @@ static inline void __do_page_fault(struct pt_regs *regs, int fault_num,
 			return;
 		}
 	}
+
 #endif
 
 	handle_page_fault(regs, fault_num, is_page_fault, address, write);
 }
 
 void do_page_fault(struct pt_regs *regs, int fault_num,
-		   unsigned long address, unsigned long write)
+				   unsigned long address, unsigned long write)
 {
 	__do_page_fault(regs, fault_num, address, write);
 }
@@ -863,7 +1059,8 @@ void do_async_page_fault(struct pt_regs *regs)
 	 */
 	clear_thread_flag(TIF_ASYNC_TLB);
 
-	if (async->fault_num) {
+	if (async->fault_num)
+	{
 		/*
 		 * Clear async->fault_num before calling the page-fault
 		 * handler so that if we re-interrupt before returning
@@ -873,7 +1070,7 @@ void do_async_page_fault(struct pt_regs *regs)
 		int fault_num = async->fault_num;
 		async->fault_num = 0;
 		handle_page_fault(regs, fault_num, async->is_fault,
-				  async->address, async->is_write);
+						  async->address, async->is_write);
 	}
 }
 #endif /* CHIP_HAS_TILE_DMA() */
@@ -884,7 +1081,7 @@ void vmalloc_sync_all(void)
 #ifdef __tilegx__
 	/* Currently all L1 kernel pmd's are static and shared. */
 	BUILD_BUG_ON(pgd_index(VMALLOC_END - PAGE_SIZE) !=
-		     pgd_index(VMALLOC_START));
+				 pgd_index(VMALLOC_START));
 #else
 	/*
 	 * Note that races in the updates of insync and start aren't
@@ -897,25 +1094,38 @@ void vmalloc_sync_all(void)
 	unsigned long address;
 
 	BUILD_BUG_ON(PAGE_OFFSET & ~PGDIR_MASK);
-	for (address = start; address >= PAGE_OFFSET; address += PGDIR_SIZE) {
-		if (!test_bit(pgd_index(address), insync)) {
+
+	for (address = start; address >= PAGE_OFFSET; address += PGDIR_SIZE)
+	{
+		if (!test_bit(pgd_index(address), insync))
+		{
 			unsigned long flags;
 			struct list_head *pos;
 
 			spin_lock_irqsave(&pgd_lock, flags);
 			list_for_each(pos, &pgd_list)
-				if (!vmalloc_sync_one(list_to_pgd(pos),
-								address)) {
-					/* Must be at first entry in list. */
-					BUG_ON(pos != pgd_list.next);
-					break;
-				}
+
+			if (!vmalloc_sync_one(list_to_pgd(pos),
+								  address))
+			{
+				/* Must be at first entry in list. */
+				BUG_ON(pos != pgd_list.next);
+				break;
+			}
+
 			spin_unlock_irqrestore(&pgd_lock, flags);
+
 			if (pos != pgd_list.next)
+			{
 				set_bit(pgd_index(address), insync);
+			}
 		}
+
 		if (address == start && test_bit(pgd_index(address), insync))
+		{
 			start = address + PGDIR_SIZE;
+		}
 	}
+
 #endif
 }

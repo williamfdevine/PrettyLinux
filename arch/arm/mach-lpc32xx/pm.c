@@ -88,16 +88,18 @@ static int lpc32xx_pm_enter(suspend_state_t state)
 
 	/* Allocate some space for temporary IRAM storage */
 	iram_swap_area = kmalloc(lpc32xx_sys_suspend_sz, GFP_KERNEL);
-	if (!iram_swap_area) {
+
+	if (!iram_swap_area)
+	{
 		printk(KERN_ERR
-		       "PM Suspend: cannot allocate memory to save portion "
-			"of SRAM\n");
+			   "PM Suspend: cannot allocate memory to save portion "
+			   "of SRAM\n");
 		return -ENOMEM;
 	}
 
 	/* Backup a small area of IRAM used for the suspend code */
 	memcpy(iram_swap_area, (void *) TEMP_IRAM_AREA,
-		lpc32xx_sys_suspend_sz);
+		   lpc32xx_sys_suspend_sz);
 
 	/*
 	 * Copy code to suspend system into IRAM. The suspend code
@@ -105,9 +107,9 @@ static int lpc32xx_pm_enter(suspend_state_t state)
 	 * when the PLL is stopped.
 	 */
 	memcpy((void *) TEMP_IRAM_AREA, &lpc32xx_sys_suspend,
-		lpc32xx_sys_suspend_sz);
+		   lpc32xx_sys_suspend_sz);
 	flush_icache_range((unsigned long)TEMP_IRAM_AREA,
-		(unsigned long)(TEMP_IRAM_AREA) + lpc32xx_sys_suspend_sz);
+					   (unsigned long)(TEMP_IRAM_AREA) + lpc32xx_sys_suspend_sz);
 
 	/* Transfer to suspend code in IRAM */
 	lpc32xx_suspend_ptr = (void *) TEMP_IRAM_AREA;
@@ -116,14 +118,15 @@ static int lpc32xx_pm_enter(suspend_state_t state)
 
 	/* Restore original IRAM contents */
 	memcpy((void *) TEMP_IRAM_AREA, iram_swap_area,
-		lpc32xx_sys_suspend_sz);
+		   lpc32xx_sys_suspend_sz);
 
 	kfree(iram_swap_area);
 
 	return 0;
 }
 
-static const struct platform_suspend_ops lpc32xx_pm_ops = {
+static const struct platform_suspend_ops lpc32xx_pm_ops =
+{
 	.valid	= suspend_valid_only_mem,
 	.enter	= lpc32xx_pm_enter,
 };

@@ -54,13 +54,16 @@ static void __init smvp_copy_vpe_config(void)
 }
 
 static unsigned int __init smvp_vpe_init(unsigned int tc, unsigned int mvpconf0,
-	unsigned int ncpu)
+		unsigned int ncpu)
 {
 	if (tc > ((mvpconf0 & MVPCONF0_PVPE) >> MVPCONF0_PVPE_SHIFT))
+	{
 		return ncpu;
+	}
 
 	/* Deactivate all but VPE 0 */
-	if (tc != 0) {
+	if (tc != 0)
+	{
 		unsigned long tmp = read_vpe_c0_vpeconf0();
 
 		tmp &= ~VPECONF0_VPA;
@@ -80,7 +83,9 @@ static unsigned int __init smvp_vpe_init(unsigned int tc, unsigned int mvpconf0,
 	write_vpe_c0_vpecontrol(read_vpe_c0_vpecontrol() & ~VPECONTROL_TE);
 
 	if (tc != 0)
+	{
 		smvp_copy_vpe_config();
+	}
 
 	return ncpu;
 }
@@ -90,13 +95,18 @@ static void __init smvp_tc_init(unsigned int tc, unsigned int mvpconf0)
 	unsigned long tmp;
 
 	if (!tc)
+	{
 		return;
+	}
 
 	/* bind a TC to each VPE, May as well put all excess TC's
 	   on the last VPE */
-	if (tc >= (((mvpconf0 & MVPCONF0_PVPE) >> MVPCONF0_PVPE_SHIFT)+1))
+	if (tc >= (((mvpconf0 & MVPCONF0_PVPE) >> MVPCONF0_PVPE_SHIFT) + 1))
+	{
 		write_tc_c0_tcbind(read_tc_c0_tcbind() | ((mvpconf0 & MVPCONF0_PVPE) >> MVPCONF0_PVPE_SHIFT));
-	else {
+	}
+	else
+	{
 		write_tc_c0_tcbind(read_tc_c0_tcbind() | tc);
 
 		/* and set XTC */
@@ -120,24 +130,28 @@ static void vsmp_send_ipi_single(int cpu, unsigned int action)
 	int vpflags;
 
 #ifdef CONFIG_MIPS_GIC
-	if (gic_present) {
+
+	if (gic_present)
+	{
 		mips_smp_send_ipi_single(cpu, action);
 		return;
 	}
+
 #endif
 	local_irq_save(flags);
 
 	vpflags = dvpe();	/* can't access the other CPU's registers whilst MVPE enabled */
 
-	switch (action) {
-	case SMP_CALL_FUNCTION:
-		i = C_SW1;
-		break;
+	switch (action)
+	{
+		case SMP_CALL_FUNCTION:
+			i = C_SW1;
+			break;
 
-	case SMP_RESCHEDULE_YOURSELF:
-	default:
-		i = C_SW0;
-		break;
+		case SMP_RESCHEDULE_YOURSELF:
+		default:
+			i = C_SW0;
+			break;
 	}
 
 	/* 1:1 mapping of vpe and tc... */
@@ -153,32 +167,37 @@ static void vsmp_send_ipi_mask(const struct cpumask *mask, unsigned int action)
 	unsigned int i;
 
 	for_each_cpu(i, mask)
-		vsmp_send_ipi_single(i, action);
+	vsmp_send_ipi_single(i, action);
 }
 
 static void vsmp_init_secondary(void)
 {
 #ifdef CONFIG_MIPS_GIC
+
 	/* This is Malta specific: IPI,performance and timer interrupts */
 	if (gic_present)
 		change_c0_status(ST0_IM, STATUSF_IP2 | STATUSF_IP3 |
-					 STATUSF_IP4 | STATUSF_IP5 |
-					 STATUSF_IP6 | STATUSF_IP7);
+						 STATUSF_IP4 | STATUSF_IP5 |
+						 STATUSF_IP6 | STATUSF_IP7);
 	else
 #endif
 		change_c0_status(ST0_IM, STATUSF_IP0 | STATUSF_IP1 |
-					 STATUSF_IP6 | STATUSF_IP7);
+						 STATUSF_IP6 | STATUSF_IP7);
 }
 
 static void vsmp_smp_finish(void)
 {
 	/* CDFIXME: remove this? */
-	write_c0_compare(read_c0_count() + (8* mips_hpt_frequency/HZ));
+	write_c0_compare(read_c0_count() + (8 * mips_hpt_frequency / HZ));
 
 #ifdef CONFIG_MIPS_MT_FPAFF
+
 	/* If we have an FPU, enroll ourselves in the FPU-full mask */
 	if (cpu_has_fpu)
+	{
 		cpumask_set_cpu(smp_processor_id(), &mt_fpu_cpumask);
+	}
+
 #endif /* CONFIG_MIPS_MT_FPAFF */
 
 	local_irq_enable();
@@ -218,7 +237,7 @@ static void vsmp_boot_secondary(int cpu, struct task_struct *idle)
 	write_tc_gpr_gp((unsigned long)gp);
 
 	flush_icache_range((unsigned long)gp,
-			   (unsigned long)(gp + sizeof(struct thread_info)));
+					   (unsigned long)(gp + sizeof(struct thread_info)));
 
 	/* finally out of configuration and into chaos */
 	clear_c0_mvpcontrol(MVPCONTROL_VPC);
@@ -237,12 +256,19 @@ static void __init vsmp_smp_setup(void)
 	unsigned int nvpe;
 
 #ifdef CONFIG_MIPS_MT_FPAFF
+
 	/* If we have an FPU, enroll ourselves in the FPU-full mask */
 	if (cpu_has_fpu)
+	{
 		cpumask_set_cpu(0, &mt_fpu_cpumask);
+	}
+
 #endif /* CONFIG_MIPS_MT_FPAFF */
+
 	if (!cpu_has_mipsmt)
+	{
 		return;
+	}
 
 	/* disable MT so we can configure */
 	dvpe();
@@ -259,7 +285,8 @@ static void __init vsmp_smp_setup(void)
 
 	/* we'll always have more TC's than VPE's, so loop setting everything
 	   to a sensible state */
-	for (tc = 0; tc <= ntc; tc++) {
+	for (tc = 0; tc <= ntc; tc++)
+	{
 		settc(tc);
 
 		smvp_tc_init(tc, mvpconf0);
@@ -279,7 +306,8 @@ static void __init vsmp_prepare_cpus(unsigned int max_cpus)
 	mips_mt_set_cpuoptions();
 }
 
-struct plat_smp_ops vsmp_smp_ops = {
+struct plat_smp_ops vsmp_smp_ops =
+{
 	.send_ipi_single	= vsmp_send_ipi_single,
 	.send_ipi_mask		= vsmp_send_ipi_mask,
 	.init_secondary		= vsmp_init_secondary,

@@ -34,12 +34,14 @@
 
 /* Static Dependencies for DRA7xx Clock Domains */
 
-static struct clkdm_dep cam_wkup_sleep_deps[] = {
+static struct clkdm_dep cam_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep dma_wkup_sleep_deps[] = {
+static struct clkdm_dep dma_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "dss_clkdm" },
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "ipu_clkdm" },
@@ -57,7 +59,8 @@ static struct clkdm_dep dma_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep dsp1_wkup_sleep_deps[] = {
+static struct clkdm_dep dsp1_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "atl_clkdm" },
 	{ .clkdm_name = "cam_clkdm" },
 	{ .clkdm_name = "dsp2_clkdm" },
@@ -84,7 +87,8 @@ static struct clkdm_dep dsp1_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep dsp2_wkup_sleep_deps[] = {
+static struct clkdm_dep dsp2_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "atl_clkdm" },
 	{ .clkdm_name = "cam_clkdm" },
 	{ .clkdm_name = "dsp1_clkdm" },
@@ -111,13 +115,15 @@ static struct clkdm_dep dsp2_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep dss_wkup_sleep_deps[] = {
+static struct clkdm_dep dss_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "iva_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep eve1_wkup_sleep_deps[] = {
+static struct clkdm_dep eve1_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "eve2_clkdm" },
 	{ .clkdm_name = "eve3_clkdm" },
@@ -126,7 +132,8 @@ static struct clkdm_dep eve1_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep eve2_wkup_sleep_deps[] = {
+static struct clkdm_dep eve2_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "eve1_clkdm" },
 	{ .clkdm_name = "eve3_clkdm" },
@@ -135,7 +142,8 @@ static struct clkdm_dep eve2_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep eve3_wkup_sleep_deps[] = {
+static struct clkdm_dep eve3_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "eve1_clkdm" },
 	{ .clkdm_name = "eve2_clkdm" },
@@ -144,7 +152,8 @@ static struct clkdm_dep eve3_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep eve4_wkup_sleep_deps[] = {
+static struct clkdm_dep eve4_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "eve1_clkdm" },
 	{ .clkdm_name = "eve2_clkdm" },
@@ -153,19 +162,22 @@ static struct clkdm_dep eve4_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep gmac_wkup_sleep_deps[] = {
+static struct clkdm_dep gmac_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "l4per2_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep gpu_wkup_sleep_deps[] = {
+static struct clkdm_dep gpu_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "iva_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep ipu1_wkup_sleep_deps[] = {
+static struct clkdm_dep ipu1_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "atl_clkdm" },
 	{ .clkdm_name = "dsp1_clkdm" },
 	{ .clkdm_name = "dsp2_clkdm" },
@@ -193,7 +205,8 @@ static struct clkdm_dep ipu1_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep ipu2_wkup_sleep_deps[] = {
+static struct clkdm_dep ipu2_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "atl_clkdm" },
 	{ .clkdm_name = "dsp1_clkdm" },
 	{ .clkdm_name = "dsp2_clkdm" },
@@ -221,12 +234,14 @@ static struct clkdm_dep ipu2_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep iva_wkup_sleep_deps[] = {
+static struct clkdm_dep iva_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep l3init_wkup_sleep_deps[] = {
+static struct clkdm_dep l3init_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "iva_clkdm" },
 	{ .clkdm_name = "l4cfg_clkdm" },
@@ -237,7 +252,8 @@ static struct clkdm_dep l3init_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep l4per2_wkup_sleep_deps[] = {
+static struct clkdm_dep l4per2_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "dsp1_clkdm" },
 	{ .clkdm_name = "dsp2_clkdm" },
 	{ .clkdm_name = "ipu1_clkdm" },
@@ -245,13 +261,15 @@ static struct clkdm_dep l4per2_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep l4sec_wkup_sleep_deps[] = {
+static struct clkdm_dep l4sec_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "l4per_clkdm" },
 	{ NULL },
 };
 
-static struct clkdm_dep mpu_wkup_sleep_deps[] = {
+static struct clkdm_dep mpu_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "cam_clkdm" },
 	{ .clkdm_name = "dsp1_clkdm" },
 	{ .clkdm_name = "dsp2_clkdm" },
@@ -280,7 +298,8 @@ static struct clkdm_dep mpu_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep pcie_wkup_sleep_deps[] = {
+static struct clkdm_dep pcie_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "atl_clkdm" },
 	{ .clkdm_name = "cam_clkdm" },
 	{ .clkdm_name = "dsp1_clkdm" },
@@ -306,13 +325,15 @@ static struct clkdm_dep pcie_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep vpe_wkup_sleep_deps[] = {
+static struct clkdm_dep vpe_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "emif_clkdm" },
 	{ .clkdm_name = "l4per3_clkdm" },
 	{ NULL },
 };
 
-static struct clockdomain l4per3_7xx_clkdm = {
+static struct clockdomain l4per3_7xx_clkdm =
+{
 	.name		  = "l4per3_clkdm",
 	.pwrdm		  = { .name = "l4per_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -322,7 +343,8 @@ static struct clockdomain l4per3_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l4per2_7xx_clkdm = {
+static struct clockdomain l4per2_7xx_clkdm =
+{
 	.name		  = "l4per2_clkdm",
 	.pwrdm		  = { .name = "l4per_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -334,7 +356,8 @@ static struct clockdomain l4per2_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain mpu0_7xx_clkdm = {
+static struct clockdomain mpu0_7xx_clkdm =
+{
 	.name		  = "mpu0_clkdm",
 	.pwrdm		  = { .name = "cpu0_pwrdm" },
 	.prcm_partition	  = DRA7XX_MPU_PRCM_PARTITION,
@@ -343,7 +366,8 @@ static struct clockdomain mpu0_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain iva_7xx_clkdm = {
+static struct clockdomain iva_7xx_clkdm =
+{
 	.name		  = "iva_clkdm",
 	.pwrdm		  = { .name = "iva_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -355,7 +379,8 @@ static struct clockdomain iva_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain coreaon_7xx_clkdm = {
+static struct clockdomain coreaon_7xx_clkdm =
+{
 	.name		  = "coreaon_clkdm",
 	.pwrdm		  = { .name = "coreaon_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -364,7 +389,8 @@ static struct clockdomain coreaon_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain ipu1_7xx_clkdm = {
+static struct clockdomain ipu1_7xx_clkdm =
+{
 	.name		  = "ipu1_clkdm",
 	.pwrdm		  = { .name = "ipu_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -376,7 +402,8 @@ static struct clockdomain ipu1_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain ipu2_7xx_clkdm = {
+static struct clockdomain ipu2_7xx_clkdm =
+{
 	.name		  = "ipu2_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -388,7 +415,8 @@ static struct clockdomain ipu2_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l3init_7xx_clkdm = {
+static struct clockdomain l3init_7xx_clkdm =
+{
 	.name		  = "l3init_clkdm",
 	.pwrdm		  = { .name = "l3init_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -400,7 +428,8 @@ static struct clockdomain l3init_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l4sec_7xx_clkdm = {
+static struct clockdomain l4sec_7xx_clkdm =
+{
 	.name		  = "l4sec_clkdm",
 	.pwrdm		  = { .name = "l4per_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -412,7 +441,8 @@ static struct clockdomain l4sec_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l3main1_7xx_clkdm = {
+static struct clockdomain l3main1_7xx_clkdm =
+{
 	.name		  = "l3main1_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -422,7 +452,8 @@ static struct clockdomain l3main1_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain vpe_7xx_clkdm = {
+static struct clockdomain vpe_7xx_clkdm =
+{
 	.name		  = "vpe_clkdm",
 	.pwrdm		  = { .name = "vpe_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -434,7 +465,8 @@ static struct clockdomain vpe_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain mpu_7xx_clkdm = {
+static struct clockdomain mpu_7xx_clkdm =
+{
 	.name		  = "mpu_clkdm",
 	.pwrdm		  = { .name = "mpu_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -445,7 +477,8 @@ static struct clockdomain mpu_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain custefuse_7xx_clkdm = {
+static struct clockdomain custefuse_7xx_clkdm =
+{
 	.name		  = "custefuse_clkdm",
 	.pwrdm		  = { .name = "custefuse_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -454,7 +487,8 @@ static struct clockdomain custefuse_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain ipu_7xx_clkdm = {
+static struct clockdomain ipu_7xx_clkdm =
+{
 	.name		  = "ipu_clkdm",
 	.pwrdm		  = { .name = "ipu_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -464,7 +498,8 @@ static struct clockdomain ipu_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain mpu1_7xx_clkdm = {
+static struct clockdomain mpu1_7xx_clkdm =
+{
 	.name		  = "mpu1_clkdm",
 	.pwrdm		  = { .name = "cpu1_pwrdm" },
 	.prcm_partition	  = DRA7XX_MPU_PRCM_PARTITION,
@@ -473,7 +508,8 @@ static struct clockdomain mpu1_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain gmac_7xx_clkdm = {
+static struct clockdomain gmac_7xx_clkdm =
+{
 	.name		  = "gmac_clkdm",
 	.pwrdm		  = { .name = "l3init_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -485,7 +521,8 @@ static struct clockdomain gmac_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l4cfg_7xx_clkdm = {
+static struct clockdomain l4cfg_7xx_clkdm =
+{
 	.name		  = "l4cfg_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -495,7 +532,8 @@ static struct clockdomain l4cfg_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain dma_7xx_clkdm = {
+static struct clockdomain dma_7xx_clkdm =
+{
 	.name		  = "dma_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -506,7 +544,8 @@ static struct clockdomain dma_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain rtc_7xx_clkdm = {
+static struct clockdomain rtc_7xx_clkdm =
+{
 	.name		  = "rtc_clkdm",
 	.pwrdm		  = { .name = "rtc_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -515,7 +554,8 @@ static struct clockdomain rtc_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain pcie_7xx_clkdm = {
+static struct clockdomain pcie_7xx_clkdm =
+{
 	.name		  = "pcie_clkdm",
 	.pwrdm		  = { .name = "l3init_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -527,7 +567,8 @@ static struct clockdomain pcie_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain atl_7xx_clkdm = {
+static struct clockdomain atl_7xx_clkdm =
+{
 	.name		  = "atl_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -537,7 +578,8 @@ static struct clockdomain atl_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain l3instr_7xx_clkdm = {
+static struct clockdomain l3instr_7xx_clkdm =
+{
 	.name		  = "l3instr_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -545,7 +587,8 @@ static struct clockdomain l3instr_7xx_clkdm = {
 	.clkdm_offs	  = DRA7XX_CM_CORE_CORE_L3INSTR_CDOFFS,
 };
 
-static struct clockdomain dss_7xx_clkdm = {
+static struct clockdomain dss_7xx_clkdm =
+{
 	.name		  = "dss_clkdm",
 	.pwrdm		  = { .name = "dss_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -557,7 +600,8 @@ static struct clockdomain dss_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain emif_7xx_clkdm = {
+static struct clockdomain emif_7xx_clkdm =
+{
 	.name		  = "emif_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -567,7 +611,8 @@ static struct clockdomain emif_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain emu_7xx_clkdm = {
+static struct clockdomain emu_7xx_clkdm =
+{
 	.name		  = "emu_clkdm",
 	.pwrdm		  = { .name = "emu_pwrdm" },
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -576,7 +621,8 @@ static struct clockdomain emu_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain dsp2_7xx_clkdm = {
+static struct clockdomain dsp2_7xx_clkdm =
+{
 	.name		  = "dsp2_clkdm",
 	.pwrdm		  = { .name = "dsp2_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -588,7 +634,8 @@ static struct clockdomain dsp2_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain dsp1_7xx_clkdm = {
+static struct clockdomain dsp1_7xx_clkdm =
+{
 	.name		  = "dsp1_clkdm",
 	.pwrdm		  = { .name = "dsp1_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -600,7 +647,8 @@ static struct clockdomain dsp1_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain cam_7xx_clkdm = {
+static struct clockdomain cam_7xx_clkdm =
+{
 	.name		  = "cam_clkdm",
 	.pwrdm		  = { .name = "cam_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -612,7 +660,8 @@ static struct clockdomain cam_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l4per_7xx_clkdm = {
+static struct clockdomain l4per_7xx_clkdm =
+{
 	.name		  = "l4per_clkdm",
 	.pwrdm		  = { .name = "l4per_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -622,7 +671,8 @@ static struct clockdomain l4per_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain gpu_7xx_clkdm = {
+static struct clockdomain gpu_7xx_clkdm =
+{
 	.name		  = "gpu_clkdm",
 	.pwrdm		  = { .name = "gpu_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_PARTITION,
@@ -634,7 +684,8 @@ static struct clockdomain gpu_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain eve4_7xx_clkdm = {
+static struct clockdomain eve4_7xx_clkdm =
+{
 	.name		  = "eve4_clkdm",
 	.pwrdm		  = { .name = "eve4_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -646,7 +697,8 @@ static struct clockdomain eve4_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain eve2_7xx_clkdm = {
+static struct clockdomain eve2_7xx_clkdm =
+{
 	.name		  = "eve2_clkdm",
 	.pwrdm		  = { .name = "eve2_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -658,7 +710,8 @@ static struct clockdomain eve2_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain eve3_7xx_clkdm = {
+static struct clockdomain eve3_7xx_clkdm =
+{
 	.name		  = "eve3_clkdm",
 	.pwrdm		  = { .name = "eve3_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -670,7 +723,8 @@ static struct clockdomain eve3_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain wkupaon_7xx_clkdm = {
+static struct clockdomain wkupaon_7xx_clkdm =
+{
 	.name		  = "wkupaon_clkdm",
 	.pwrdm		  = { .name = "wkupaon_pwrdm" },
 	.prcm_partition	  = DRA7XX_PRM_PARTITION,
@@ -680,7 +734,8 @@ static struct clockdomain wkupaon_7xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain eve1_7xx_clkdm = {
+static struct clockdomain eve1_7xx_clkdm =
+{
 	.name		  = "eve1_clkdm",
 	.pwrdm		  = { .name = "eve1_pwrdm" },
 	.prcm_partition	  = DRA7XX_CM_CORE_AON_PARTITION,
@@ -693,7 +748,8 @@ static struct clockdomain eve1_7xx_clkdm = {
 };
 
 /* As clockdomains are added or removed above, this list must also be changed */
-static struct clockdomain *clockdomains_dra7xx[] __initdata = {
+static struct clockdomain *clockdomains_dra7xx[] __initdata =
+{
 	&l4per3_7xx_clkdm,
 	&l4per2_7xx_clkdm,
 	&mpu0_7xx_clkdm,

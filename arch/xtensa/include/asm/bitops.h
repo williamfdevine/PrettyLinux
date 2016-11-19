@@ -16,7 +16,7 @@
 #ifdef __KERNEL__
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <asm/processor.h>
@@ -108,14 +108,14 @@ static inline void set_bit(unsigned int bit, volatile unsigned long *p)
 	p += bit >> 5;
 
 	__asm__ __volatile__(
-			"1:     l32i    %1, %3, 0\n"
-			"       wsr     %1, scompare1\n"
-			"       or      %0, %1, %2\n"
-			"       s32c1i  %0, %3, 0\n"
-			"       bne     %0, %1, 1b\n"
-			: "=&a" (tmp), "=&a" (value)
-			: "a" (mask), "a" (p)
-			: "memory");
+		"1:     l32i    %1, %3, 0\n"
+		"       wsr     %1, scompare1\n"
+		"       or      %0, %1, %2\n"
+		"       s32c1i  %0, %3, 0\n"
+		"       bne     %0, %1, 1b\n"
+		: "=&a" (tmp), "=&a" (value)
+		: "a" (mask), "a" (p)
+		: "memory");
 }
 
 static inline void clear_bit(unsigned int bit, volatile unsigned long *p)
@@ -126,14 +126,14 @@ static inline void clear_bit(unsigned int bit, volatile unsigned long *p)
 	p += bit >> 5;
 
 	__asm__ __volatile__(
-			"1:     l32i    %1, %3, 0\n"
-			"       wsr     %1, scompare1\n"
-			"       and     %0, %1, %2\n"
-			"       s32c1i  %0, %3, 0\n"
-			"       bne     %0, %1, 1b\n"
-			: "=&a" (tmp), "=&a" (value)
-			: "a" (~mask), "a" (p)
-			: "memory");
+		"1:     l32i    %1, %3, 0\n"
+		"       wsr     %1, scompare1\n"
+		"       and     %0, %1, %2\n"
+		"       s32c1i  %0, %3, 0\n"
+		"       bne     %0, %1, 1b\n"
+		: "=&a" (tmp), "=&a" (value)
+		: "a" (~mask), "a" (p)
+		: "memory");
 }
 
 static inline void change_bit(unsigned int bit, volatile unsigned long *p)
@@ -144,14 +144,14 @@ static inline void change_bit(unsigned int bit, volatile unsigned long *p)
 	p += bit >> 5;
 
 	__asm__ __volatile__(
-			"1:     l32i    %1, %3, 0\n"
-			"       wsr     %1, scompare1\n"
-			"       xor     %0, %1, %2\n"
-			"       s32c1i  %0, %3, 0\n"
-			"       bne     %0, %1, 1b\n"
-			: "=&a" (tmp), "=&a" (value)
-			: "a" (mask), "a" (p)
-			: "memory");
+		"1:     l32i    %1, %3, 0\n"
+		"       wsr     %1, scompare1\n"
+		"       xor     %0, %1, %2\n"
+		"       s32c1i  %0, %3, 0\n"
+		"       bne     %0, %1, 1b\n"
+		: "=&a" (tmp), "=&a" (value)
+		: "a" (mask), "a" (p)
+		: "memory");
 }
 
 static inline int
@@ -163,14 +163,14 @@ test_and_set_bit(unsigned int bit, volatile unsigned long *p)
 	p += bit >> 5;
 
 	__asm__ __volatile__(
-			"1:     l32i    %1, %3, 0\n"
-			"       wsr     %1, scompare1\n"
-			"       or      %0, %1, %2\n"
-			"       s32c1i  %0, %3, 0\n"
-			"       bne     %0, %1, 1b\n"
-			: "=&a" (tmp), "=&a" (value)
-			: "a" (mask), "a" (p)
-			: "memory");
+		"1:     l32i    %1, %3, 0\n"
+		"       wsr     %1, scompare1\n"
+		"       or      %0, %1, %2\n"
+		"       s32c1i  %0, %3, 0\n"
+		"       bne     %0, %1, 1b\n"
+		: "=&a" (tmp), "=&a" (value)
+		: "a" (mask), "a" (p)
+		: "memory");
 
 	return tmp & mask;
 }
@@ -184,14 +184,14 @@ test_and_clear_bit(unsigned int bit, volatile unsigned long *p)
 	p += bit >> 5;
 
 	__asm__ __volatile__(
-			"1:     l32i    %1, %3, 0\n"
-			"       wsr     %1, scompare1\n"
-			"       and     %0, %1, %2\n"
-			"       s32c1i  %0, %3, 0\n"
-			"       bne     %0, %1, 1b\n"
-			: "=&a" (tmp), "=&a" (value)
-			: "a" (~mask), "a" (p)
-			: "memory");
+		"1:     l32i    %1, %3, 0\n"
+		"       wsr     %1, scompare1\n"
+		"       and     %0, %1, %2\n"
+		"       s32c1i  %0, %3, 0\n"
+		"       bne     %0, %1, 1b\n"
+		: "=&a" (tmp), "=&a" (value)
+		: "a" (~mask), "a" (p)
+		: "memory");
 
 	return tmp & mask;
 }
@@ -205,14 +205,14 @@ test_and_change_bit(unsigned int bit, volatile unsigned long *p)
 	p += bit >> 5;
 
 	__asm__ __volatile__(
-			"1:     l32i    %1, %3, 0\n"
-			"       wsr     %1, scompare1\n"
-			"       xor     %0, %1, %2\n"
-			"       s32c1i  %0, %3, 0\n"
-			"       bne     %0, %1, 1b\n"
-			: "=&a" (tmp), "=&a" (value)
-			: "a" (mask), "a" (p)
-			: "memory");
+		"1:     l32i    %1, %3, 0\n"
+		"       wsr     %1, scompare1\n"
+		"       xor     %0, %1, %2\n"
+		"       s32c1i  %0, %3, 0\n"
+		"       bne     %0, %1, 1b\n"
+		: "=&a" (tmp), "=&a" (value)
+		: "a" (mask), "a" (p)
+		: "memory");
 
 	return tmp & mask;
 }

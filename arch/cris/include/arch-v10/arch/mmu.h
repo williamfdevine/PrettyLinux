@@ -9,7 +9,7 @@
 
 typedef struct
 {
-  unsigned int page_id;
+	unsigned int page_id;
 } mm_context_t;
 
 /* kernel memory segments */
@@ -73,11 +73,11 @@ typedef struct
 
 #define PAGE_NONE       __pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
 #define PAGE_SHARED     __pgprot(_PAGE_PRESENT | __READABLE | _PAGE_WRITE | \
-				 _PAGE_ACCESSED)
+								 _PAGE_ACCESSED)
 #define PAGE_COPY       __pgprot(_PAGE_PRESENT | __READABLE)  // | _PAGE_COW
 #define PAGE_READONLY   __pgprot(_PAGE_PRESENT | __READABLE)
 #define PAGE_KERNEL     __pgprot(_PAGE_GLOBAL | _PAGE_KERNEL | \
-				 _PAGE_PRESENT | __READABLE | __WRITEABLE)
+								 _PAGE_PRESENT | __READABLE | __WRITEABLE)
 #define _KERNPG_TABLE   (_PAGE_TABLE | _PAGE_KERNEL)
 
 /*

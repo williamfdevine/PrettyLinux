@@ -43,7 +43,8 @@ static char s_hp425s[] __initdata = "425s";
 static char s_hp425e[] __initdata = "425e";
 static char s_hp433t[] __initdata = "433t";
 static char s_hp433s[] __initdata = "433s";
-static char *hp300_models[] __initdata = {
+static char *hp300_models[] __initdata =
+{
 	[HP_320]	= NULL,
 	[HP_330]	= s_hp330,
 	[HP_340]	= s_hp340,
@@ -66,7 +67,7 @@ static char hp300_model_name[13] = "HP9000/";
 
 extern void hp300_reset(void);
 #ifdef CONFIG_SERIAL_8250_CONSOLE
-extern int hp300_setup_serial_console(void) __init;
+	extern int hp300_setup_serial_console(void) __init;
 #endif
 
 int __init hp300_parse_bootinfo(const struct bi_record *record)
@@ -74,21 +75,22 @@ int __init hp300_parse_bootinfo(const struct bi_record *record)
 	int unknown = 0;
 	const void *data = record->data;
 
-	switch (be16_to_cpu(record->tag)) {
-	case BI_HP300_MODEL:
-		hp300_model = be32_to_cpup(data);
-		break;
+	switch (be16_to_cpu(record->tag))
+	{
+		case BI_HP300_MODEL:
+			hp300_model = be32_to_cpup(data);
+			break;
 
-	case BI_HP300_UART_SCODE:
-		hp300_uart_scode = be32_to_cpup(data);
-		break;
+		case BI_HP300_UART_SCODE:
+			hp300_uart_scode = be32_to_cpup(data);
+			break;
 
-	case BI_HP300_UART_ADDR:
-		/* serial port address: ignored here */
-		break;
+		case BI_HP300_UART_ADDR:
+			/* serial port address: ignored here */
+			break;
 
-	default:
-		unknown = 1;
+		default:
+			unknown = 1;
 	}
 
 	return unknown;
@@ -98,9 +100,13 @@ int __init hp300_parse_bootinfo(const struct bi_record *record)
 static void hp300_pulse(int x)
 {
 	if (x)
+	{
 		blinken_leds(0x10, 0);
+	}
 	else
+	{
 		blinken_leds(0, 0x10);
+	}
 }
 #endif
 
@@ -154,17 +160,25 @@ static inline unsigned char hp300_rtc_read(unsigned char reg)
 	local_irq_save(flags);
 
 	while (rtc_busy());
+
 	rtc_command(RTC_SETREG);
+
 	while (rtc_busy());
+
 	rtc_write_data(reg);
+
 	while (rtc_busy());
+
 	rtc_command(RTC_READREG);
 
-	do {
+	do
+	{
 		while (!rtc_data_available());
+
 		s = rtc_status();
 		ret = rtc_read_data();
-	} while ((s & RTC_STAT_MASK) != RTC_STAT_RDY);
+	}
+	while ((s & RTC_STAT_MASK) != RTC_STAT_RDY);
 
 	local_irq_restore(flags);
 
@@ -172,7 +186,7 @@ static inline unsigned char hp300_rtc_read(unsigned char reg)
 }
 
 static inline unsigned char hp300_rtc_write(unsigned char reg,
-					    unsigned char val)
+		unsigned char val)
 {
 	unsigned char s, ret;
 	unsigned long flags;
@@ -180,19 +194,29 @@ static inline unsigned char hp300_rtc_write(unsigned char reg,
 	local_irq_save(flags);
 
 	while (rtc_busy());
+
 	rtc_command(RTC_SETREG);
+
 	while (rtc_busy());
+
 	rtc_write_data((val << 4) | reg);
+
 	while (rtc_busy());
+
 	rtc_command(RTC_WRITEREG);
+
 	while (rtc_busy());
+
 	rtc_command(RTC_READREG);
 
-	do {
+	do
+	{
 		while (!rtc_data_available());
+
 		s = rtc_status();
 		ret = rtc_read_data();
-	} while ((s & RTC_STAT_MASK) != RTC_STAT_RDY);
+	}
+	while ((s & RTC_STAT_MASK) != RTC_STAT_RDY);
 
 	local_irq_restore(flags);
 
@@ -201,36 +225,46 @@ static inline unsigned char hp300_rtc_write(unsigned char reg,
 
 static int hp300_hwclk(int op, struct rtc_time *t)
 {
-	if (!op) { /* read */
+	if (!op)   /* read */
+	{
 		t->tm_sec  = hp300_rtc_read(RTC_REG_SEC1) * 10 +
-			hp300_rtc_read(RTC_REG_SEC2);
+					 hp300_rtc_read(RTC_REG_SEC2);
 		t->tm_min  = hp300_rtc_read(RTC_REG_MIN1) * 10 +
-			hp300_rtc_read(RTC_REG_MIN2);
+					 hp300_rtc_read(RTC_REG_MIN2);
 		t->tm_hour = (hp300_rtc_read(RTC_REG_HOUR1) & 3) * 10 +
-			hp300_rtc_read(RTC_REG_HOUR2);
+					 hp300_rtc_read(RTC_REG_HOUR2);
 		t->tm_wday = -1;
 		t->tm_mday = hp300_rtc_read(RTC_REG_DAY1) * 10 +
-			hp300_rtc_read(RTC_REG_DAY2);
+					 hp300_rtc_read(RTC_REG_DAY2);
 		t->tm_mon  = hp300_rtc_read(RTC_REG_MON1) * 10 +
-			hp300_rtc_read(RTC_REG_MON2) - 1;
+					 hp300_rtc_read(RTC_REG_MON2) - 1;
 		t->tm_year = hp300_rtc_read(RTC_REG_YEAR1) * 10 +
-			hp300_rtc_read(RTC_REG_YEAR2);
+					 hp300_rtc_read(RTC_REG_YEAR2);
+
 		if (t->tm_year <= 69)
+		{
 			t->tm_year += 100;
-	} else {
+		}
+	}
+	else
+	{
 		hp300_rtc_write(RTC_REG_SEC1, t->tm_sec / 10);
 		hp300_rtc_write(RTC_REG_SEC2, t->tm_sec % 10);
 		hp300_rtc_write(RTC_REG_MIN1, t->tm_min / 10);
 		hp300_rtc_write(RTC_REG_MIN2, t->tm_min % 10);
 		hp300_rtc_write(RTC_REG_HOUR1,
-				((t->tm_hour / 10) & 3) | RTC_HOUR1_24HMODE);
+						((t->tm_hour / 10) & 3) | RTC_HOUR1_24HMODE);
 		hp300_rtc_write(RTC_REG_HOUR2, t->tm_hour % 10);
 		hp300_rtc_write(RTC_REG_DAY1, t->tm_mday / 10);
 		hp300_rtc_write(RTC_REG_DAY2, t->tm_mday % 10);
 		hp300_rtc_write(RTC_REG_MON1, (t->tm_mon + 1) / 10);
 		hp300_rtc_write(RTC_REG_MON2, (t->tm_mon + 1) % 10);
+
 		if (t->tm_year >= 100)
+		{
 			t->tm_year -= 100;
+		}
+
 		hp300_rtc_write(RTC_REG_YEAR1, t->tm_year / 10);
 		hp300_rtc_write(RTC_REG_YEAR2, t->tm_year % 10);
 	}
@@ -241,7 +275,7 @@ static int hp300_hwclk(int op, struct rtc_time *t)
 static unsigned int hp300_get_ss(void)
 {
 	return hp300_rtc_read(RTC_REG_SEC1) * 10 +
-		hp300_rtc_read(RTC_REG_SEC2);
+		   hp300_rtc_read(RTC_REG_SEC2);
 }
 
 static void __init hp300_init_IRQ(void)
@@ -263,13 +297,17 @@ void __init config_hp300(void)
 	mach_max_dma_address = 0xffffffff;
 
 	if (hp300_model >= HP_330 && hp300_model <= HP_433S &&
-	    hp300_model != HP_350) {
+		hp300_model != HP_350)
+	{
 		pr_info("Detected HP9000 model %s\n",
-			hp300_models[hp300_model-HP_320]);
-		strcat(hp300_model_name, hp300_models[hp300_model-HP_320]);
-	} else {
+				hp300_models[hp300_model - HP_320]);
+		strcat(hp300_model_name, hp300_models[hp300_model - HP_320]);
+	}
+	else
+	{
 		panic("Unknown HP9000 Model");
 	}
+
 #ifdef CONFIG_SERIAL_8250_CONSOLE
 	hp300_setup_serial_console();
 #endif

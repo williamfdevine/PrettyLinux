@@ -14,7 +14,8 @@
 
 #include <asm/stacktrace.h>
 
-struct return_address_data {
+struct return_address_data
+{
 	unsigned int level;
 	void *addr;
 };
@@ -23,10 +24,13 @@ static int save_return_addr(struct stackframe *frame, void *d)
 {
 	struct return_address_data *data = d;
 
-	if (!data->level) {
+	if (!data->level)
+	{
 		data->addr = (void *)frame->pc;
 		return 1;
-	} else {
+	}
+	else
+	{
 		--data->level;
 		return 0;
 	}
@@ -50,8 +54,12 @@ void *return_address(unsigned int level)
 	walk_stackframe(current, &frame, save_return_addr, &data);
 
 	if (!data.level)
+	{
 		return data.addr;
+	}
 	else
+	{
 		return NULL;
+	}
 }
 EXPORT_SYMBOL_GPL(return_address);

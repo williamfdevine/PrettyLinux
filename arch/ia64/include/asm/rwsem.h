@@ -22,7 +22,7 @@
 #define _ASM_IA64_RWSEM_H
 
 #ifndef _LINUX_RWSEM_H
-#error "Please don't include <asm/rwsem.h> directly, use <linux/rwsem.h> instead."
+	#error "Please don't include <asm/rwsem.h> directly, use <linux/rwsem.h> instead."
 #endif
 
 #include <asm/intrinsics.h>
@@ -43,7 +43,9 @@ __down_read (struct rw_semaphore *sem)
 	long result = ia64_fetchadd8_acq((unsigned long *)&sem->count.counter, 1);
 
 	if (result < 0)
+	{
 		rwsem_down_read_failed(sem);
+	}
 }
 
 /*
@@ -54,10 +56,12 @@ ___down_write (struct rw_semaphore *sem)
 {
 	long old, new;
 
-	do {
+	do
+	{
 		old = atomic_long_read(&sem->count);
 		new = old + RWSEM_ACTIVE_WRITE_BIAS;
-	} while (atomic_long_cmpxchg_acquire(&sem->count, old, new) != old);
+	}
+	while (atomic_long_cmpxchg_acquire(&sem->count, old, new) != old);
 
 	return old;
 }
@@ -66,7 +70,9 @@ static inline void
 __down_write (struct rw_semaphore *sem)
 {
 	if (___down_write(sem))
+	{
 		rwsem_down_write_failed(sem);
+	}
 }
 
 static inline int
@@ -74,7 +80,9 @@ __down_write_killable (struct rw_semaphore *sem)
 {
 	if (___down_write(sem))
 		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
+		{
 			return -EINTR;
+		}
 
 	return 0;
 }
@@ -88,7 +96,9 @@ __up_read (struct rw_semaphore *sem)
 	long result = ia64_fetchadd8_rel((unsigned long *)&sem->count.counter, -1);
 
 	if (result < 0 && (--result & RWSEM_ACTIVE_MASK) == 0)
+	{
 		rwsem_wake(sem);
+	}
 }
 
 /*
@@ -99,13 +109,17 @@ __up_write (struct rw_semaphore *sem)
 {
 	long old, new;
 
-	do {
+	do
+	{
 		old = atomic_long_read(&sem->count);
 		new = old - RWSEM_ACTIVE_WRITE_BIAS;
-	} while (atomic_long_cmpxchg_release(&sem->count, old, new) != old);
+	}
+	while (atomic_long_cmpxchg_release(&sem->count, old, new) != old);
 
 	if (new < 0 && (new & RWSEM_ACTIVE_MASK) == 0)
+	{
 		rwsem_wake(sem);
+	}
 }
 
 /*
@@ -115,11 +129,15 @@ static inline int
 __down_read_trylock (struct rw_semaphore *sem)
 {
 	long tmp;
-	while ((tmp = atomic_long_read(&sem->count)) >= 0) {
-		if (tmp == atomic_long_cmpxchg_acquire(&sem->count, tmp, tmp+1)) {
+
+	while ((tmp = atomic_long_read(&sem->count)) >= 0)
+	{
+		if (tmp == atomic_long_cmpxchg_acquire(&sem->count, tmp, tmp + 1))
+		{
 			return 1;
 		}
 	}
+
 	return 0;
 }
 
@@ -130,7 +148,7 @@ static inline int
 __down_write_trylock (struct rw_semaphore *sem)
 {
 	long tmp = atomic_long_cmpxchg_acquire(&sem->count,
-			RWSEM_UNLOCKED_VALUE, RWSEM_ACTIVE_WRITE_BIAS);
+										   RWSEM_UNLOCKED_VALUE, RWSEM_ACTIVE_WRITE_BIAS);
 	return tmp == RWSEM_UNLOCKED_VALUE;
 }
 
@@ -142,13 +160,17 @@ __downgrade_write (struct rw_semaphore *sem)
 {
 	long old, new;
 
-	do {
+	do
+	{
 		old = atomic_long_read(&sem->count);
 		new = old - RWSEM_WAITING_BIAS;
-	} while (atomic_long_cmpxchg_release(&sem->count, old, new) != old);
+	}
+	while (atomic_long_cmpxchg_release(&sem->count, old, new) != old);
 
 	if (old < 0)
+	{
 		rwsem_downgrade_wake(sem);
+	}
 }
 
 #endif /* _ASM_IA64_RWSEM_H */

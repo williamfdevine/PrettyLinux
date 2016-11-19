@@ -20,22 +20,22 @@
 
 #ifndef __ASSEMBLY__
 #define OMAP242X_CTRL_REGADDR(reg)					\
-		OMAP2_L4_IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
 #define OMAP243X_CTRL_REGADDR(reg)					\
-		OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
 #define OMAP343X_CTRL_REGADDR(reg)					\
-		OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
 #define AM33XX_CTRL_REGADDR(reg)					\
-		AM33XX_L4_WK_IO_ADDRESS(AM33XX_SCM_BASE + (reg))
+	AM33XX_L4_WK_IO_ADDRESS(AM33XX_SCM_BASE + (reg))
 #else
 #define OMAP242X_CTRL_REGADDR(reg)					\
-		OMAP2_L4_IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
 #define OMAP243X_CTRL_REGADDR(reg)					\
-		OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE + (reg))
 #define OMAP343X_CTRL_REGADDR(reg)					\
-		OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
+	OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
 #define AM33XX_CTRL_REGADDR(reg)					\
-		AM33XX_L4_WK_IO_ADDRESS(AM33XX_SCM_BASE + (reg))
+	AM33XX_L4_WK_IO_ADDRESS(AM33XX_SCM_BASE + (reg))
 #endif /* __ASSEMBLY__ */
 
 /*
@@ -164,7 +164,7 @@
 #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
 #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
 #define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
-					+ ((i) >> 1) * 4 + (!((i) & 1)) * 2)
+									 + ((i) >> 1) * 4 + (!((i) & 1)) * 2)
 #define OMAP343X_CONTROL_PROG_IO0	(OMAP2_CONTROL_GENERAL + 0x01D4)
 #define OMAP343X_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
 #define OMAP343X_CONTROL_DSS_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E0)
@@ -210,7 +210,7 @@
 
 /* 34xx PADCONF register offsets */
 #define OMAP343X_PADCONF_ETK(i)		(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
-						(i)*2)
+									 (i)*2)
 #define OMAP343X_PADCONF_ETK_CLK	OMAP343X_PADCONF_ETK(0)
 #define OMAP343X_PADCONF_ETK_CTL	OMAP343X_PADCONF_ETK(1)
 #define OMAP343X_PADCONF_ETK_D0		OMAP343X_PADCONF_ETK(2)
@@ -235,7 +235,7 @@
 #define OMAP36XX_GPIO_IO_PWRDNZ		BIT(6)
 
 #define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
-						0x008 + (i))
+		0x008 + (i))
 #define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
 #define OMAP343X_CONTROL_WKUP_DEBOBS1 (OMAP343X_CONTROL_GENERAL_WKUP + 0x00C)
 #define OMAP343X_CONTROL_WKUP_DEBOBS2 (OMAP343X_CONTROL_GENERAL_WKUP + 0x010)
@@ -360,7 +360,7 @@
 #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
 #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
 #define OMAP343X_SCRATCHPAD_REGADDR(reg)	OMAP2_L4_IO_ADDRESS(\
-						OMAP343X_SCRATCHPAD + reg)
+		OMAP343X_SCRATCHPAD + reg)
 
 /* AM35XX_CONTROL_IPSS_CLK_CTRL bits */
 #define AM35XX_USBOTG_VBUSP_CLK_SHIFT	0
@@ -442,42 +442,42 @@
 
 
 #ifndef __ASSEMBLY__
-#ifdef CONFIG_ARCH_OMAP2PLUS
-extern u8 omap_ctrl_readb(u16 offset);
-extern u16 omap_ctrl_readw(u16 offset);
-extern u32 omap_ctrl_readl(u16 offset);
-extern void omap_ctrl_writeb(u8 val, u16 offset);
-extern void omap_ctrl_writew(u16 val, u16 offset);
-extern void omap_ctrl_writel(u32 val, u16 offset);
+	#ifdef CONFIG_ARCH_OMAP2PLUS
+		extern u8 omap_ctrl_readb(u16 offset);
+		extern u16 omap_ctrl_readw(u16 offset);
+		extern u32 omap_ctrl_readl(u16 offset);
+		extern void omap_ctrl_writeb(u8 val, u16 offset);
+		extern void omap_ctrl_writew(u16 val, u16 offset);
+		extern void omap_ctrl_writel(u32 val, u16 offset);
 
-extern void omap3_save_scratchpad_contents(void);
-extern void omap3_clear_scratchpad_contents(void);
-extern void omap3_restore(void);
-extern void omap3_restore_es3(void);
-extern void omap3_restore_3630(void);
-extern u32 omap3_arm_context[128];
-extern void omap3_control_save_context(void);
-extern void omap3_control_restore_context(void);
-extern void omap3_ctrl_write_boot_mode(u8 bootmode);
-extern void omap_ctrl_write_dsp_boot_addr(u32 bootaddr);
-extern void omap_ctrl_write_dsp_boot_mode(u8 bootmode);
-extern void omap3630_ctrl_disable_rta(void);
-extern int omap3_ctrl_save_padconf(void);
-void omap3_ctrl_init(void);
-int omap2_control_base_init(void);
-int omap_control_init(void);
-void omap2_set_globals_control(void __iomem *ctrl);
-void __init omap3_control_legacy_iomap_init(void);
-#else
-#define omap_ctrl_readb(x)		0
-#define omap_ctrl_readw(x)		0
-#define omap_ctrl_readl(x)		0
-#define omap4_ctrl_pad_readl(x)		0
-#define omap_ctrl_writeb(x, y)		WARN_ON(1)
-#define omap_ctrl_writew(x, y)		WARN_ON(1)
-#define omap_ctrl_writel(x, y)		WARN_ON(1)
-#define omap4_ctrl_pad_writel(x, y)	WARN_ON(1)
-#endif
+		extern void omap3_save_scratchpad_contents(void);
+		extern void omap3_clear_scratchpad_contents(void);
+		extern void omap3_restore(void);
+		extern void omap3_restore_es3(void);
+		extern void omap3_restore_3630(void);
+		extern u32 omap3_arm_context[128];
+		extern void omap3_control_save_context(void);
+		extern void omap3_control_restore_context(void);
+		extern void omap3_ctrl_write_boot_mode(u8 bootmode);
+		extern void omap_ctrl_write_dsp_boot_addr(u32 bootaddr);
+		extern void omap_ctrl_write_dsp_boot_mode(u8 bootmode);
+		extern void omap3630_ctrl_disable_rta(void);
+		extern int omap3_ctrl_save_padconf(void);
+		void omap3_ctrl_init(void);
+		int omap2_control_base_init(void);
+		int omap_control_init(void);
+		void omap2_set_globals_control(void __iomem *ctrl);
+		void __init omap3_control_legacy_iomap_init(void);
+	#else
+		#define omap_ctrl_readb(x)		0
+		#define omap_ctrl_readw(x)		0
+		#define omap_ctrl_readl(x)		0
+		#define omap4_ctrl_pad_readl(x)		0
+		#define omap_ctrl_writeb(x, y)		WARN_ON(1)
+		#define omap_ctrl_writew(x, y)		WARN_ON(1)
+		#define omap_ctrl_writel(x, y)		WARN_ON(1)
+		#define omap4_ctrl_pad_writel(x, y)	WARN_ON(1)
+	#endif
 #endif	/* __ASSEMBLY__ */
 
 #endif /* __ARCH_ARM_MACH_OMAP2_CONTROL_H */

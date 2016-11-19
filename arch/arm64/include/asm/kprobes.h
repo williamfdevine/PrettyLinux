@@ -28,19 +28,22 @@
 
 #include <asm/probes.h>
 
-struct prev_kprobe {
+struct prev_kprobe
+{
 	struct kprobe *kp;
 	unsigned int status;
 };
 
 /* Single step context for kprobe */
-struct kprobe_step_ctx {
+struct kprobe_step_ctx
+{
 	unsigned long ss_pending;
 	unsigned long match_addr;
 };
 
 /* per-cpu kprobe control block */
-struct kprobe_ctlblk {
+struct kprobe_ctlblk
+{
 	unsigned int kprobe_status;
 	unsigned long saved_irqflag;
 	struct prev_kprobe prev_kprobe;
@@ -51,7 +54,7 @@ struct kprobe_ctlblk {
 void arch_remove_kprobe(struct kprobe *);
 int kprobe_fault_handler(struct pt_regs *regs, unsigned int fsr);
 int kprobe_exceptions_notify(struct notifier_block *self,
-			     unsigned long val, void *data);
+							 unsigned long val, void *data);
 int kprobe_breakpoint_handler(struct pt_regs *regs, unsigned int esr);
 int kprobe_single_step_handler(struct pt_regs *regs, unsigned int esr);
 void kretprobe_trampoline(void);

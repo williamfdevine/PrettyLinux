@@ -18,9 +18,9 @@
 
 
 #ifdef HAVE_REALLY_SLOW_DMA_CONTROLLER
-#define dma_outb	outb_p
+	#define dma_outb	outb_p
 #else
-#define dma_outb	outb
+	#define dma_outb	outb
 #endif
 
 #define dma_inb		inb
@@ -74,7 +74,7 @@
  */
 
 #ifndef CONFIG_GENERIC_ISA_DMA_SUPPORT_BROKEN
-#define MAX_DMA_CHANNELS	8
+	#define MAX_DMA_CHANNELS	8
 #endif
 
 /*
@@ -84,15 +84,15 @@
  * for the local devices on Acer PICA or Magnums.
  */
 #if defined(CONFIG_SGI_IP22) || defined(CONFIG_SGI_IP28)
-/* don't care; ISA bus master won't work, ISA slave DMA supports 32bit addr */
-#define MAX_DMA_ADDRESS		PAGE_OFFSET
+	/* don't care; ISA bus master won't work, ISA slave DMA supports 32bit addr */
+	#define MAX_DMA_ADDRESS		PAGE_OFFSET
 #else
-#define MAX_DMA_ADDRESS		(PAGE_OFFSET + 0x01000000)
+	#define MAX_DMA_ADDRESS		(PAGE_OFFSET + 0x01000000)
 #endif
 #define MAX_DMA_PFN		PFN_DOWN(virt_to_phys((void *)MAX_DMA_ADDRESS))
 
 #ifndef MAX_DMA32_PFN
-#define MAX_DMA32_PFN		(1UL << (32 - PAGE_SHIFT))
+	#define MAX_DMA32_PFN		(1UL << (32 - PAGE_SHIFT))
 #endif
 
 /* 8237 DMA controllers */
@@ -171,18 +171,26 @@ static __inline__ void release_dma_lock(unsigned long flags)
 /* enable/disable a specific DMA channel */
 static __inline__ void enable_dma(unsigned int dmanr)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(dmanr,	 DMA1_MASK_REG);
+	}
 	else
+	{
 		dma_outb(dmanr & 3,  DMA2_MASK_REG);
+	}
 }
 
 static __inline__ void disable_dma(unsigned int dmanr)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(dmanr | 4,  DMA1_MASK_REG);
+	}
 	else
+	{
 		dma_outb((dmanr & 3) | 4,  DMA2_MASK_REG);
+	}
 }
 
 /* Clear the 'DMA Pointer Flip Flop'.
@@ -194,19 +202,27 @@ static __inline__ void disable_dma(unsigned int dmanr)
  */
 static __inline__ void clear_dma_ff(unsigned int dmanr)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(0,  DMA1_CLEAR_FF_REG);
+	}
 	else
+	{
 		dma_outb(0,  DMA2_CLEAR_FF_REG);
+	}
 }
 
 /* set mode (above) for a specific DMA channel */
 static __inline__ void set_dma_mode(unsigned int dmanr, char mode)
 {
-	if (dmanr<=3)
+	if (dmanr <= 3)
+	{
 		dma_outb(mode | dmanr,	DMA1_MODE_REG);
+	}
 	else
-		dma_outb(mode | (dmanr&3),  DMA2_MODE_REG);
+	{
+		dma_outb(mode | (dmanr & 3),  DMA2_MODE_REG);
+	}
 }
 
 /* Set only the page register bits of the transfer address.
@@ -216,25 +232,32 @@ static __inline__ void set_dma_mode(unsigned int dmanr, char mode)
  */
 static __inline__ void set_dma_page(unsigned int dmanr, char pagenr)
 {
-	switch(dmanr) {
+	switch (dmanr)
+	{
 		case 0:
 			dma_outb(pagenr, DMA_PAGE_0);
 			break;
+
 		case 1:
 			dma_outb(pagenr, DMA_PAGE_1);
 			break;
+
 		case 2:
 			dma_outb(pagenr, DMA_PAGE_2);
 			break;
+
 		case 3:
 			dma_outb(pagenr, DMA_PAGE_3);
 			break;
+
 		case 5:
 			dma_outb(pagenr & 0xfe, DMA_PAGE_5);
 			break;
+
 		case 6:
 			dma_outb(pagenr & 0xfe, DMA_PAGE_6);
 			break;
+
 		case 7:
 			dma_outb(pagenr & 0xfe, DMA_PAGE_7);
 			break;
@@ -247,13 +270,17 @@ static __inline__ void set_dma_page(unsigned int dmanr, char pagenr)
  */
 static __inline__ void set_dma_addr(unsigned int dmanr, unsigned int a)
 {
-	set_dma_page(dmanr, a>>16);
-	if (dmanr <= 3)	 {
-	    dma_outb( a & 0xff, ((dmanr&3)<<1) + IO_DMA1_BASE );
-	    dma_outb( (a>>8) & 0xff, ((dmanr&3)<<1) + IO_DMA1_BASE );
-	}  else	 {
-	    dma_outb( (a>>1) & 0xff, ((dmanr&3)<<2) + IO_DMA2_BASE );
-	    dma_outb( (a>>9) & 0xff, ((dmanr&3)<<2) + IO_DMA2_BASE );
+	set_dma_page(dmanr, a >> 16);
+
+	if (dmanr <= 3)
+	{
+		dma_outb( a & 0xff, ((dmanr & 3) << 1) + IO_DMA1_BASE );
+		dma_outb( (a >> 8) & 0xff, ((dmanr & 3) << 1) + IO_DMA1_BASE );
+	}
+	else
+	{
+		dma_outb( (a >> 1) & 0xff, ((dmanr & 3) << 2) + IO_DMA2_BASE );
+		dma_outb( (a >> 9) & 0xff, ((dmanr & 3) << 2) + IO_DMA2_BASE );
 	}
 }
 
@@ -269,12 +296,16 @@ static __inline__ void set_dma_addr(unsigned int dmanr, unsigned int a)
 static __inline__ void set_dma_count(unsigned int dmanr, unsigned int count)
 {
 	count--;
-	if (dmanr <= 3)	 {
-	    dma_outb( count & 0xff, ((dmanr&3)<<1) + 1 + IO_DMA1_BASE );
-	    dma_outb( (count>>8) & 0xff, ((dmanr&3)<<1) + 1 + IO_DMA1_BASE );
-	} else {
-	    dma_outb( (count>>1) & 0xff, ((dmanr&3)<<2) + 2 + IO_DMA2_BASE );
-	    dma_outb( (count>>9) & 0xff, ((dmanr&3)<<2) + 2 + IO_DMA2_BASE );
+
+	if (dmanr <= 3)
+	{
+		dma_outb( count & 0xff, ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE );
+		dma_outb( (count >> 8) & 0xff, ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE );
+	}
+	else
+	{
+		dma_outb( (count >> 1) & 0xff, ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE );
+		dma_outb( (count >> 9) & 0xff, ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE );
 	}
 }
 
@@ -289,8 +320,8 @@ static __inline__ void set_dma_count(unsigned int dmanr, unsigned int count)
  */
 static __inline__ int get_dma_residue(unsigned int dmanr)
 {
-	unsigned int io_port = (dmanr<=3)? ((dmanr&3)<<1) + 1 + IO_DMA1_BASE
-					 : ((dmanr&3)<<2) + 2 + IO_DMA2_BASE;
+	unsigned int io_port = (dmanr <= 3) ? ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE
+						   : ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE;
 
 	/* using short to get 16-bit wrap around */
 	unsigned short count;
@@ -298,20 +329,20 @@ static __inline__ int get_dma_residue(unsigned int dmanr)
 	count = 1 + dma_inb(io_port);
 	count += dma_inb(io_port) << 8;
 
-	return (dmanr<=3)? count : (count<<1);
+	return (dmanr <= 3) ? count : (count << 1);
 }
 
 
 /* These are in kernel/dma.c: */
-extern int request_dma(unsigned int dmanr, const char * device_id);	/* reserve a DMA channel */
+extern int request_dma(unsigned int dmanr, const char *device_id);	/* reserve a DMA channel */
 extern void free_dma(unsigned int dmanr);	/* release it again */
 
 /* From PCI */
 
 #ifdef CONFIG_PCI
-extern int isa_dma_bridge_buggy;
+	extern int isa_dma_bridge_buggy;
 #else
-#define isa_dma_bridge_buggy	(0)
+	#define isa_dma_bridge_buggy	(0)
 #endif
 
 #endif /* _ASM_DMA_H */

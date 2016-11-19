@@ -33,7 +33,8 @@ static void pl08x_put_xfer_signal(const struct pl08x_channel_data *cd, int ch)
  * DMA0
  */
 
-static struct pl08x_channel_data s3c64xx_dma0_info[] = {
+static struct pl08x_channel_data s3c64xx_dma0_info[] =
+{
 	{
 		.bus_id = "uart0_tx",
 		.min_signal = 0,
@@ -117,16 +118,17 @@ static struct pl08x_channel_data s3c64xx_dma0_info[] = {
 	}
 };
 
-struct pl08x_platform_data s3c64xx_dma0_plat_data = {
+struct pl08x_platform_data s3c64xx_dma0_plat_data =
+{
 	.memcpy_channel = {
 		.bus_id = "memcpy",
 		.cctl_memcpy =
-			(PL080_BSIZE_4 << PL080_CONTROL_SB_SIZE_SHIFT |
-			PL080_BSIZE_4 << PL080_CONTROL_DB_SIZE_SHIFT |
-			PL080_WIDTH_32BIT << PL080_CONTROL_SWIDTH_SHIFT |
-			PL080_WIDTH_32BIT << PL080_CONTROL_DWIDTH_SHIFT |
-			PL080_CONTROL_PROT_BUFF | PL080_CONTROL_PROT_CACHE |
-			PL080_CONTROL_PROT_SYS),
+		(PL080_BSIZE_4 << PL080_CONTROL_SB_SIZE_SHIFT |
+		PL080_BSIZE_4 << PL080_CONTROL_DB_SIZE_SHIFT |
+		PL080_WIDTH_32BIT << PL080_CONTROL_SWIDTH_SHIFT |
+		PL080_WIDTH_32BIT << PL080_CONTROL_DWIDTH_SHIFT |
+		PL080_CONTROL_PROT_BUFF | PL080_CONTROL_PROT_CACHE |
+		PL080_CONTROL_PROT_SYS),
 	},
 	.lli_buses = PL08X_AHB1,
 	.mem_buses = PL08X_AHB1,
@@ -137,13 +139,14 @@ struct pl08x_platform_data s3c64xx_dma0_plat_data = {
 };
 
 static AMBA_AHB_DEVICE(s3c64xx_dma0, "dma-pl080s.0", 0,
-			0x75000000, {IRQ_DMA0}, &s3c64xx_dma0_plat_data);
+					   0x75000000, {IRQ_DMA0}, &s3c64xx_dma0_plat_data);
 
 /*
  * DMA1
  */
 
-static struct pl08x_channel_data s3c64xx_dma1_info[] = {
+static struct pl08x_channel_data s3c64xx_dma1_info[] =
+{
 	{
 		.bus_id = "pcm1_tx",
 		.min_signal = 0,
@@ -207,16 +210,17 @@ static struct pl08x_channel_data s3c64xx_dma1_info[] = {
 	},
 };
 
-struct pl08x_platform_data s3c64xx_dma1_plat_data = {
+struct pl08x_platform_data s3c64xx_dma1_plat_data =
+{
 	.memcpy_channel = {
 		.bus_id = "memcpy",
 		.cctl_memcpy =
-			(PL080_BSIZE_4 << PL080_CONTROL_SB_SIZE_SHIFT |
-			PL080_BSIZE_4 << PL080_CONTROL_DB_SIZE_SHIFT |
-			PL080_WIDTH_32BIT << PL080_CONTROL_SWIDTH_SHIFT |
-			PL080_WIDTH_32BIT << PL080_CONTROL_DWIDTH_SHIFT |
-			PL080_CONTROL_PROT_BUFF | PL080_CONTROL_PROT_CACHE |
-			PL080_CONTROL_PROT_SYS),
+		(PL080_BSIZE_4 << PL080_CONTROL_SB_SIZE_SHIFT |
+		PL080_BSIZE_4 << PL080_CONTROL_DB_SIZE_SHIFT |
+		PL080_WIDTH_32BIT << PL080_CONTROL_SWIDTH_SHIFT |
+		PL080_WIDTH_32BIT << PL080_CONTROL_DWIDTH_SHIFT |
+		PL080_CONTROL_PROT_BUFF | PL080_CONTROL_PROT_CACHE |
+		PL080_CONTROL_PROT_SYS),
 	},
 	.lli_buses = PL08X_AHB1,
 	.mem_buses = PL08X_AHB1,
@@ -227,18 +231,22 @@ struct pl08x_platform_data s3c64xx_dma1_plat_data = {
 };
 
 static AMBA_AHB_DEVICE(s3c64xx_dma1, "dma-pl080s.1", 0,
-			0x75100000, {IRQ_DMA1}, &s3c64xx_dma1_plat_data);
+					   0x75100000, {IRQ_DMA1}, &s3c64xx_dma1_plat_data);
 
 static int __init s3c64xx_pl080_init(void)
 {
 	if (!soc_is_s3c64xx())
+	{
 		return 0;
+	}
 
 	/* Set all DMA configuration to be DMA, not SDMA */
 	writel(0xffffff, S3C64XX_SDMA_SEL);
 
 	if (of_have_populated_dt())
+	{
 		return 0;
+	}
 
 	amba_device_register(&s3c64xx_dma0_device, &iomem_resource);
 	amba_device_register(&s3c64xx_dma1_device, &iomem_resource);

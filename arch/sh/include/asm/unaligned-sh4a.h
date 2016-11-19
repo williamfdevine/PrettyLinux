@@ -37,8 +37,8 @@ static __always_inline u32 sh4a_get_unaligned_cpu32(const u8 *p)
 
 	__asm__ __volatile__ (
 		"movua.l	@%1, %0\n\t"
-		 : "=z" (unaligned)
-		 : "r" (p)
+		: "=z" (unaligned)
+		: "r" (p)
 	);
 
 	return unaligned;
@@ -53,10 +53,10 @@ static inline u64 sh4a_get_unaligned_cpu64(const u8 *p)
 {
 #ifdef __LITTLE_ENDIAN
 	return (u64)sh4a_get_unaligned_cpu32(p + 4) << 32 |
-		    sh4a_get_unaligned_cpu32(p);
+		   sh4a_get_unaligned_cpu32(p);
 #else
 	return (u64)sh4a_get_unaligned_cpu32(p) << 32 |
-		    sh4a_get_unaligned_cpu32(p + 4);
+		   sh4a_get_unaligned_cpu32(p + 4);
 #endif
 }
 
@@ -188,11 +188,11 @@ static inline void put_unaligned_be64(u64 val, void *p)
 #include <linux/unaligned/generic.h>
 
 #ifdef __LITTLE_ENDIAN
-# define get_unaligned __get_unaligned_le
-# define put_unaligned __put_unaligned_le
+	#define get_unaligned __get_unaligned_le
+	#define put_unaligned __put_unaligned_le
 #else
-# define get_unaligned __get_unaligned_be
-# define put_unaligned __put_unaligned_be
+	#define get_unaligned __get_unaligned_be
+	#define put_unaligned __put_unaligned_be
 #endif
 
 #endif /* __ASM_SH_UNALIGNED_SH4A_H */

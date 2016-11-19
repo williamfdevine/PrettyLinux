@@ -15,8 +15,11 @@ mcrfs(u32 *ccr, u32 crfD, u32 crfS)
 #endif
 
 	clear = 15 << ((7 - crfS) << 2);
+
 	if (!crfS)
+	{
 		clear = 0x90000000;
+	}
 
 	value = (__FPU_FPSCR >> ((7 - crfS) << 2)) & 15;
 	__FPU_FPSCR &= ~(clear);

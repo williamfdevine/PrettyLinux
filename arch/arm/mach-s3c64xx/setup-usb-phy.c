@@ -32,19 +32,25 @@ static int s3c_usb_otgphy_init(struct platform_device *pdev)
 	phyclk = readl(S3C_PHYCLK) & ~S3C_PHYCLK_CLKSEL_MASK;
 
 	xusbxti = clk_get(&pdev->dev, "xusbxti");
-	if (xusbxti && !IS_ERR(xusbxti)) {
-		switch (clk_get_rate(xusbxti)) {
-		case 12 * MHZ:
-			phyclk |= S3C_PHYCLK_CLKSEL_12M;
-			break;
-		case 24 * MHZ:
-			phyclk |= S3C_PHYCLK_CLKSEL_24M;
-			break;
-		default:
-		case 48 * MHZ:
-			/* default reference clock */
-			break;
+
+	if (xusbxti && !IS_ERR(xusbxti))
+	{
+		switch (clk_get_rate(xusbxti))
+		{
+			case 12 * MHZ:
+				phyclk |= S3C_PHYCLK_CLKSEL_12M;
+				break;
+
+			case 24 * MHZ:
+				phyclk |= S3C_PHYCLK_CLKSEL_24M;
+				break;
+
+			default:
+			case 48 * MHZ:
+				/* default reference clock */
+				break;
 		}
+
 		clk_put(xusbxti);
 	}
 
@@ -57,7 +63,7 @@ static int s3c_usb_otgphy_init(struct platform_device *pdev)
 
 	/* reset OTG PHY and Link */
 	writel(S3C_RSTCON_PHY | S3C_RSTCON_HCLK | S3C_RSTCON_PHYCLK,
-			S3C_RSTCON);
+		   S3C_RSTCON);
 	udelay(20);	/* at-least 10uS */
 	writel(0, S3C_RSTCON);
 
@@ -67,7 +73,7 @@ static int s3c_usb_otgphy_init(struct platform_device *pdev)
 static int s3c_usb_otgphy_exit(struct platform_device *pdev)
 {
 	writel((readl(S3C_PHYPWR) | S3C_PHYPWR_ANALOG_POWERDOWN |
-				S3C_PHYPWR_OTG_DISABLE), S3C_PHYPWR);
+			S3C_PHYPWR_OTG_DISABLE), S3C_PHYPWR);
 
 	writel(readl(S3C64XX_OTHERS) & ~S3C64XX_OTHERS_USBMASK, S3C64XX_OTHERS);
 
@@ -77,7 +83,9 @@ static int s3c_usb_otgphy_exit(struct platform_device *pdev)
 int s5p_usb_phy_init(struct platform_device *pdev, int type)
 {
 	if (type == USB_PHY_TYPE_DEVICE)
+	{
 		return s3c_usb_otgphy_init(pdev);
+	}
 
 	return -EINVAL;
 }
@@ -85,7 +93,9 @@ int s5p_usb_phy_init(struct platform_device *pdev, int type)
 int s5p_usb_phy_exit(struct platform_device *pdev, int type)
 {
 	if (type == USB_PHY_TYPE_DEVICE)
+	{
 		return s3c_usb_otgphy_exit(pdev);
+	}
 
 	return -EINVAL;
 }

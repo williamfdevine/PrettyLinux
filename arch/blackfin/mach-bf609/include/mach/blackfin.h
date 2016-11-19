@@ -12,14 +12,14 @@
 
 #include <asm/def_LPBlackfin.h>
 #ifdef CONFIG_BF609
-# include "defBF609.h"
+	#include "defBF609.h"
 #endif
 
 #ifndef __ASSEMBLY__
-# include <asm/cdef_LPBlackfin.h>
-# ifdef CONFIG_BF609
-#  include "cdefBF609.h"
-# endif
+	#include <asm/cdef_LPBlackfin.h>
+	#ifdef CONFIG_BF609
+		#include "cdefBF609.h"
+	#endif
 #endif
 
 #endif

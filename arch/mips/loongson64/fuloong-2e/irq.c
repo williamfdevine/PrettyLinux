@@ -19,27 +19,43 @@ static void i8259_irqdispatch(void)
 	int irq;
 
 	irq = i8259_irq();
+
 	if (irq >= 0)
+	{
 		do_IRQ(irq);
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }
 
 asmlinkage void mach_irq_dispatch(unsigned int pending)
 {
 	if (pending & CAUSEF_IP7)
+	{
 		do_IRQ(MIPS_CPU_IRQ_BASE + 7);
+	}
 	else if (pending & CAUSEF_IP6) /* perf counter loverflow */
+	{
 		do_perfcnt_IRQ();
+	}
 	else if (pending & CAUSEF_IP5)
+	{
 		i8259_irqdispatch();
+	}
 	else if (pending & CAUSEF_IP2)
+	{
 		bonito_irqdispatch();
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }
 
-static struct irqaction cascade_irqaction = {
+static struct irqaction cascade_irqaction =
+{
 	.handler = no_action,
 	.name = "cascade",
 	.flags = IRQF_NO_THREAD,
@@ -55,7 +71,7 @@ void __init mach_init_irq(void)
 
 	/* most bonito irq should be level triggered */
 	LOONGSON_INTEDGE = LOONGSON_ICU_SYSTEMERR | LOONGSON_ICU_MASTERERR |
-	    LOONGSON_ICU_RETRYERR | LOONGSON_ICU_MBOXES;
+					   LOONGSON_ICU_RETRYERR | LOONGSON_ICU_MBOXES;
 
 	/* Sets the first-level interrupt dispatcher. */
 	mips_cpu_irq_init();

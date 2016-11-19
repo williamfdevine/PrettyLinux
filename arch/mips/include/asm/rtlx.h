@@ -46,14 +46,16 @@ extern struct vpe_notifications rtlx_notify;
 extern const struct file_operations rtlx_fops;
 extern void (*aprp_hook)(void);
 
-enum rtlx_state {
+enum rtlx_state
+{
 	RTLX_STATE_UNUSED = 0,
 	RTLX_STATE_INITIALISED,
 	RTLX_STATE_REMOTE_READY,
 	RTLX_STATE_OPENED
 };
 
-extern struct chan_waitqueues {
+extern struct chan_waitqueues
+{
 	wait_queue_head_t rt_queue;
 	wait_queue_head_t lx_queue;
 	atomic_t in_open;
@@ -64,7 +66,8 @@ extern struct chan_waitqueues {
    linux (vpe0) reads lx_buffer and writes rt_buffer
    SP (vpe1) reads rt_buffer and writes lx_buffer
 */
-struct rtlx_channel {
+struct rtlx_channel
+{
 	enum rtlx_state rt_state;
 	enum rtlx_state lx_state;
 
@@ -78,7 +81,8 @@ struct rtlx_channel {
 	char *lx_buffer;
 };
 
-extern struct rtlx_info {
+extern struct rtlx_info
+{
 	unsigned long id;
 	enum rtlx_state state;
 	int ap_int_pending;	/* Status of 0 or 1 for CONFIG_MIPS_CMP only */

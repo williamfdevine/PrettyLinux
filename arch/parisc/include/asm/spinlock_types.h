@@ -1,7 +1,8 @@
 #ifndef __ASM_SPINLOCK_TYPES_H
 #define __ASM_SPINLOCK_TYPES_H
 
-typedef struct {
+typedef struct
+{
 #ifdef CONFIG_PA20
 	volatile unsigned int slock;
 # define __ARCH_SPIN_LOCK_UNLOCKED { 1 }
@@ -11,7 +12,8 @@ typedef struct {
 #endif
 } arch_spinlock_t;
 
-typedef struct {
+typedef struct
+{
 	arch_spinlock_t lock;
 	volatile int counter;
 } arch_rwlock_t;

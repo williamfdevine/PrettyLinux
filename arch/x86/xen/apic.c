@@ -18,14 +18,21 @@ static unsigned int xen_io_apic_read(unsigned apic, unsigned reg)
 	apic_op.apic_physbase = mpc_ioapic_addr(apic);
 	apic_op.reg = reg;
 	ret = HYPERVISOR_physdev_op(PHYSDEVOP_apic_read, &apic_op);
+
 	if (!ret)
+	{
 		return apic_op.value;
+	}
 
 	/* fallback to return an emulated IO_APIC values */
 	if (reg == 0x1)
+	{
 		return 0x00170020;
+	}
 	else if (reg == 0x0)
+	{
 		return apic << 24;
+	}
 
 	return 0xfd;
 }
@@ -38,12 +45,13 @@ static unsigned long xen_set_apic_id(unsigned int x)
 
 static unsigned int xen_get_apic_id(unsigned long x)
 {
-	return ((x)>>24) & 0xFFu;
+	return ((x) >> 24) & 0xFFu;
 }
 
 static u32 xen_apic_read(u32 reg)
 {
-	struct xen_platform_op op = {
+	struct xen_platform_op op =
+	{
 		.cmd = XENPF_get_cpuinfo,
 		.interface_version = XENPF_INTERFACE_VERSION,
 		.u.pcpu_info.xen_cpuid = 0,
@@ -53,33 +61,49 @@ static u32 xen_apic_read(u32 reg)
 	/* Shouldn't need this as APIC is turned off for PV, and we only
 	 * get called on the bootup processor. But just in case. */
 	if (!xen_initial_domain() || smp_processor_id())
+	{
 		return 0;
+	}
 
 	if (reg == APIC_LVR)
+	{
 		return 0x10;
+	}
+
 #ifdef CONFIG_X86_32
+
 	if (reg == APIC_LDR)
+	{
 		return SET_APIC_LOGICAL_ID(1UL << smp_processor_id());
+	}
+
 #endif
+
 	if (reg != APIC_ID)
+	{
 		return 0;
+	}
 
 	ret = HYPERVISOR_platform_op(&op);
+
 	if (ret)
+	{
 		op.u.pcpu_info.apic_id = BAD_APICID;
+	}
 
 	return op.u.pcpu_info.apic_id << 24;
 }
 
 static void xen_apic_write(u32 reg, u32 val)
 {
-	if (reg == APIC_LVTPC) {
+	if (reg == APIC_LVTPC)
+	{
 		(void)pmu_apic_update(reg);
 		return;
 	}
 
 	/* Warn to see if there's any stray references */
-	WARN(1,"register: %x, value: %x\n", reg, val);
+	WARN(1, "register: %x, value: %x\n", reg, val);
 }
 
 static u64 xen_apic_icr_read(void)
@@ -95,13 +119,15 @@ static void xen_apic_icr_write(u32 low, u32 id)
 
 static u32 xen_safe_apic_wait_icr_idle(void)
 {
-        return 0;
+	return 0;
 }
 
 static int xen_apic_probe_pv(void)
 {
 	if (xen_pv_domain())
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -145,12 +171,17 @@ static void xen_silent_inquire(int apicid)
 static int xen_cpu_present_to_apicid(int cpu)
 {
 	if (cpu_present(cpu))
+	{
 		return xen_get_apic_id(xen_apic_read(APIC_ID));
+	}
 	else
+	{
 		return BAD_APICID;
+	}
 }
 
-static struct apic xen_pv_apic = {
+static struct apic xen_pv_apic =
+{
 	.name 				= "Xen PV",
 	.probe 				= xen_apic_probe_pv,
 	.acpi_madt_oem_check		= xen_madt_oem_check,
@@ -208,19 +239,24 @@ static struct apic xen_pv_apic = {
 static void __init xen_apic_check(void)
 {
 	if (apic == &xen_pv_apic)
+	{
 		return;
+	}
 
 	pr_info("Switched APIC routing from %s to %s.\n", apic->name,
-		xen_pv_apic.name);
+			xen_pv_apic.name);
 	apic = &xen_pv_apic;
 }
 void __init xen_init_apic(void)
 {
 	x86_io_apic_ops.read = xen_io_apic_read;
+
 	/* On PV guests the APIC CPUID bit is disabled so none of the
 	 * routines end up executing. */
 	if (!xen_initial_domain())
+	{
 		apic = &xen_pv_apic;
+	}
 
 	x86_platform.apic_post_init = xen_apic_check;
 }

@@ -20,13 +20,15 @@
 #include <asm/sgialib.h>
 #include <asm/bootinfo.h>
 
-struct smatch {
+struct smatch
+{
 	char *arcname;
 	char *liname;
 	int flags;
 };
 
-static struct smatch mach_table[] = {
+static struct smatch mach_table[] =
+{
 	{
 		.arcname	= "SGI-IP22",
 		.liname		= "SGI Indy",
@@ -68,13 +70,16 @@ static struct smatch mach_table[] = {
 
 int prom_flags;
 
-static struct smatch * __init string_to_mach(const char *s)
+static struct smatch *__init string_to_mach(const char *s)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(mach_table); i++) {
+	for (i = 0; i < ARRAY_SIZE(mach_table); i++)
+	{
 		if (!strcmp(s, mach_table[i].arcname))
+		{
 			return &mach_table[i];
+		}
 	}
 
 	panic("Yeee, could not determine architecture type <%s>", s);
@@ -97,7 +102,9 @@ void __init prom_identify_arch(void)
 	 * The root component tells us what machine architecture we have here.
 	 */
 	p = ArcGetChild(PROM_NULL_COMPONENT);
-	if (p == NULL) {
+
+	if (p == NULL)
+	{
 #ifdef CONFIG_SGI_IP27
 		/* IP27 PROM misbehaves, seems to not implement ARC
 		   GetChild().	So we just assume it's an IP27.	 */
@@ -105,8 +112,11 @@ void __init prom_identify_arch(void)
 #else
 		iname = "Unknown";
 #endif
-	} else
+	}
+	else
+	{
 		iname = (char *) (long) p->iname;
+	}
 
 	printk("ARCH: %s\n", iname);
 	mach = string_to_mach(iname);

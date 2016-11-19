@@ -4,7 +4,8 @@
 /*
  * Data for el packet class PAL (14), type LOGOUT_FRAME (1)
  */
-struct ev7_pal_logout_subpacket {
+struct ev7_pal_logout_subpacket
+{
 	u32 mchk_code;
 	u32 subpacket_count;
 	u64 whami;
@@ -19,7 +20,8 @@ struct ev7_pal_logout_subpacket {
 /*
  * Data for el packet class PAL (14), type EV7_PROCESSOR (4)
  */
-struct ev7_pal_processor_subpacket {
+struct ev7_pal_processor_subpacket
+{
 	u64 i_stat;
 	u64 dc_stat;
 	u64 c_addr;
@@ -50,7 +52,8 @@ struct ev7_pal_processor_subpacket {
 /*
  * Data for el packet class PAL (14), type EV7_ZBOX (5)
  */
-struct ev7_pal_zbox_subpacket {
+struct ev7_pal_zbox_subpacket
+{
 	u32 zbox0_dram_err_status_1;
 	u32 zbox0_dram_err_status_2;
 	u32 zbox0_dram_err_status_3;
@@ -83,7 +86,8 @@ struct ev7_pal_zbox_subpacket {
 /*
  * Data for el packet class PAL (14), type EV7_RBOX (6)
  */
-struct ev7_pal_rbox_subpacket {
+struct ev7_pal_rbox_subpacket
+{
 	u64 rbox_cfg;
 	u64 rbox_n_cfg;
 	u64 rbox_s_cfg;
@@ -106,7 +110,8 @@ struct ev7_pal_rbox_subpacket {
 /*
  * Data for el packet class PAL (14), type EV7_IO (7)
  */
-struct ev7_pal_io_one_port {
+struct ev7_pal_io_one_port
+{
 	u64 pox_err_sum;
 	u64 pox_tlb_err;
 	u64 pox_spl_cmplt;
@@ -120,7 +125,8 @@ struct ev7_pal_io_one_port {
 	u64 reserved;
 };
 
-struct ev7_pal_io_subpacket {
+struct ev7_pal_io_subpacket
+{
 	u64 io_asic_rev;
 	u64 io_sys_rev;
 	u64 io7_uph;
@@ -147,7 +153,8 @@ struct ev7_pal_io_subpacket {
  *	   class PAL (14), type LAN (15)
  *	   class PAL (14), type HOT_PLUG (16)
  */
-struct ev7_pal_environmental_subpacket {
+struct ev7_pal_environmental_subpacket
+{
 	u16 cabinet;
 	u16 drawer;
 	u16 reserved1[2];
@@ -162,8 +169,8 @@ struct ev7_pal_environmental_subpacket {
  */
 static inline int ev7_lf_env_index(int type)
 {
-	BUG_ON((type < EL_TYPE__PAL__ENV__AMBIENT_TEMPERATURE) 
-	       || (type > EL_TYPE__PAL__ENV__HOT_PLUG));
+	BUG_ON((type < EL_TYPE__PAL__ENV__AMBIENT_TEMPERATURE)
+		   || (type > EL_TYPE__PAL__ENV__HOT_PLUG));
 
 	return type - EL_TYPE__PAL__ENV__AMBIENT_TEMPERATURE;
 }
@@ -171,8 +178,10 @@ static inline int ev7_lf_env_index(int type)
 /*
  * Data for generic el packet class PAL.
  */
-struct ev7_pal_subpacket {
-	union {
+struct ev7_pal_subpacket
+{
+	union
+	{
 		struct ev7_pal_logout_subpacket logout;	     /* Type     1 */
 		struct ev7_pal_processor_subpacket ev7;	     /* Type     4 */
 		struct ev7_pal_zbox_subpacket zbox;	     /* Type     5 */
@@ -186,7 +195,8 @@ struct ev7_pal_subpacket {
 /*
  * Struct to contain collected logout from subpackets.
  */
-struct ev7_lf_subpackets {
+struct ev7_lf_subpackets
+{
 	struct ev7_pal_logout_subpacket *logout;		/* Type  1 */
 	struct ev7_pal_processor_subpacket *ev7;		/* Type  4 */
 	struct ev7_pal_zbox_subpacket *zbox;			/* Type  5 */

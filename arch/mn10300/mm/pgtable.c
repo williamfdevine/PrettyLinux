@@ -38,19 +38,26 @@ void set_pmd_pfn(unsigned long vaddr, unsigned long pfn, pgprot_t flags)
 	pud_t *pud;
 	pmd_t *pmd;
 
-	if (vaddr & (PMD_SIZE-1)) {		/* vaddr is misaligned */
+	if (vaddr & (PMD_SIZE - 1))  		/* vaddr is misaligned */
+	{
 		printk(KERN_ERR "set_pmd_pfn: vaddr misaligned\n");
 		return; /* BUG(); */
 	}
-	if (pfn & (PTRS_PER_PTE-1)) {		/* pfn is misaligned */
+
+	if (pfn & (PTRS_PER_PTE - 1))  		/* pfn is misaligned */
+	{
 		printk(KERN_ERR "set_pmd_pfn: pfn misaligned\n");
 		return; /* BUG(); */
 	}
+
 	pgd = swapper_pg_dir + pgd_index(vaddr);
-	if (pgd_none(*pgd)) {
+
+	if (pgd_none(*pgd))
+	{
 		printk(KERN_ERR "set_pmd_pfn: pgd_none\n");
 		return; /* BUG(); */
 	}
+
 	pud = pud_offset(pgd, vaddr);
 	pmd = pmd_offset(pud, vaddr);
 	set_pmd(pmd, pfn_pmd(pfn, flags));
@@ -64,8 +71,12 @@ void set_pmd_pfn(unsigned long vaddr, unsigned long pfn, pgprot_t flags)
 pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
 {
 	pte_t *pte = (pte_t *)__get_free_page(GFP_KERNEL);
+
 	if (pte)
+	{
 		clear_page(pte);
+	}
+
 	return pte;
 }
 
@@ -74,17 +85,24 @@ struct page *pte_alloc_one(struct mm_struct *mm, unsigned long address)
 	struct page *pte;
 
 #ifdef CONFIG_HIGHPTE
-	pte = alloc_pages(GFP_KERNEL|__GFP_HIGHMEM, 0);
+	pte = alloc_pages(GFP_KERNEL | __GFP_HIGHMEM, 0);
 #else
 	pte = alloc_pages(GFP_KERNEL, 0);
 #endif
+
 	if (!pte)
+	{
 		return NULL;
+	}
+
 	clear_highpage(pte);
-	if (!pgtable_page_ctor(pte)) {
+
+	if (!pgtable_page_ctor(pte))
+	{
 		__free_page(pte);
 		return NULL;
 	}
+
 	return pte;
 }
 
@@ -109,8 +127,12 @@ static inline void pgd_list_add(pgd_t *pgd)
 {
 	struct page *page = virt_to_page(pgd);
 	page->index = (unsigned long) pgd_list;
+
 	if (pgd_list)
+	{
 		set_page_private(pgd_list, (unsigned long) &page->index);
+	}
+
 	pgd_list = page;
 	set_page_private(page, (unsigned long) &pgd_list);
 }
@@ -121,8 +143,11 @@ static inline void pgd_list_del(pgd_t *pgd)
 	next = (struct page *) page->index;
 	pprev = (struct page **) page_private(page);
 	*pprev = next;
+
 	if (next)
+	{
 		set_page_private(next, (unsigned long) pprev);
+	}
 }
 
 void pgd_ctor(void *pgd)
@@ -130,14 +155,18 @@ void pgd_ctor(void *pgd)
 	unsigned long flags;
 
 	if (PTRS_PER_PMD == 1)
+	{
 		spin_lock_irqsave(&pgd_lock, flags);
+	}
 
 	memcpy((pgd_t *)pgd + USER_PTRS_PER_PGD,
-			swapper_pg_dir + USER_PTRS_PER_PGD,
-			(PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
+		   swapper_pg_dir + USER_PTRS_PER_PGD,
+		   (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 
 	if (PTRS_PER_PMD > 1)
+	{
 		return;
+	}
 
 	pgd_list_add(pgd);
 	spin_unlock_irqrestore(&pgd_lock, flags);

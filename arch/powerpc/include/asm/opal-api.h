@@ -196,7 +196,8 @@
 #ifndef __ASSEMBLY__
 
 /* Other enums */
-enum OpalFreezeState {
+enum OpalFreezeState
+{
 	OPAL_EEH_STOPPED_NOT_FROZEN = 0,
 	OPAL_EEH_STOPPED_MMIO_FREEZE = 1,
 	OPAL_EEH_STOPPED_DMA_FREEZE = 2,
@@ -206,7 +207,8 @@ enum OpalFreezeState {
 	OPAL_EEH_STOPPED_PERM_UNAVAIL = 6
 };
 
-enum OpalEehFreezeActionToken {
+enum OpalEehFreezeActionToken
+{
 	OPAL_EEH_ACTION_CLEAR_FREEZE_MMIO = 1,
 	OPAL_EEH_ACTION_CLEAR_FREEZE_DMA = 2,
 	OPAL_EEH_ACTION_CLEAR_FREEZE_ALL = 3,
@@ -216,7 +218,8 @@ enum OpalEehFreezeActionToken {
 	OPAL_EEH_ACTION_SET_FREEZE_ALL  = 3
 };
 
-enum OpalPciStatusToken {
+enum OpalPciStatusToken
+{
 	OPAL_EEH_NO_ERROR	= 0,
 	OPAL_EEH_IOC_ERROR	= 1,
 	OPAL_EEH_PHB_ERROR	= 2,
@@ -225,7 +228,8 @@ enum OpalPciStatusToken {
 	OPAL_EEH_PE_DMA_ERROR	= 5
 };
 
-enum OpalPciErrorSeverity {
+enum OpalPciErrorSeverity
+{
 	OPAL_EEH_SEV_NO_ERROR	= 0,
 	OPAL_EEH_SEV_IOC_DEAD	= 1,
 	OPAL_EEH_SEV_PHB_DEAD	= 2,
@@ -234,12 +238,14 @@ enum OpalPciErrorSeverity {
 	OPAL_EEH_SEV_INF	= 5
 };
 
-enum OpalErrinjectType {
+enum OpalErrinjectType
+{
 	OPAL_ERR_INJECT_TYPE_IOA_BUS_ERR	= 0,
 	OPAL_ERR_INJECT_TYPE_IOA_BUS_ERR64	= 1,
 };
 
-enum OpalErrinjectFunc {
+enum OpalErrinjectFunc
+{
 	/* IOA bus specific errors */
 	OPAL_ERR_INJECT_FUNC_IOA_LD_MEM_ADDR	= 0,
 	OPAL_ERR_INJECT_FUNC_IOA_LD_MEM_DATA	= 1,
@@ -263,19 +269,22 @@ enum OpalErrinjectFunc {
 	OPAL_ERR_INJECT_FUNC_IOA_DMA_WR_TARGET	= 19,
 };
 
-enum OpalMmioWindowType {
+enum OpalMmioWindowType
+{
 	OPAL_M32_WINDOW_TYPE = 1,
 	OPAL_M64_WINDOW_TYPE = 2,
 	OPAL_IO_WINDOW_TYPE  = 3
 };
 
-enum OpalExceptionHandler {
+enum OpalExceptionHandler
+{
 	OPAL_MACHINE_CHECK_HANDLER	    = 1,
 	OPAL_HYPERVISOR_MAINTENANCE_HANDLER = 2,
 	OPAL_SOFTPATCH_HANDLER		    = 3
 };
 
-enum OpalPendingState {
+enum OpalPendingState
+{
 	OPAL_EVENT_OPAL_INTERNAL   = 0x1,
 	OPAL_EVENT_NVRAM	   = 0x2,
 	OPAL_EVENT_RTC		   = 0x4,
@@ -290,13 +299,15 @@ enum OpalPendingState {
 	OPAL_EVENT_MSG_PENDING	   = 0x800,
 };
 
-enum OpalThreadStatus {
+enum OpalThreadStatus
+{
 	OPAL_THREAD_INACTIVE = 0x0,
 	OPAL_THREAD_STARTED = 0x1,
 	OPAL_THREAD_UNAVAILABLE = 0x2 /* opal-v3 */
 };
 
-enum OpalPciBusCompare {
+enum OpalPciBusCompare
+{
 	OpalPciBusAny	= 0,	/* Any bus number match */
 	OpalPciBus3Bits	= 2,	/* Match top 3 bits of bus number */
 	OpalPciBus4Bits	= 3,	/* Match top 4 bits of bus number */
@@ -306,38 +317,45 @@ enum OpalPciBusCompare {
 	OpalPciBusAll	= 7,	/* Match bus number exactly */
 };
 
-enum OpalDeviceCompare {
+enum OpalDeviceCompare
+{
 	OPAL_IGNORE_RID_DEVICE_NUMBER = 0,
 	OPAL_COMPARE_RID_DEVICE_NUMBER = 1
 };
 
-enum OpalFuncCompare {
+enum OpalFuncCompare
+{
 	OPAL_IGNORE_RID_FUNCTION_NUMBER = 0,
 	OPAL_COMPARE_RID_FUNCTION_NUMBER = 1
 };
 
-enum OpalPeAction {
+enum OpalPeAction
+{
 	OPAL_UNMAP_PE = 0,
 	OPAL_MAP_PE = 1
 };
 
-enum OpalPeltvAction {
+enum OpalPeltvAction
+{
 	OPAL_REMOVE_PE_FROM_DOMAIN = 0,
 	OPAL_ADD_PE_TO_DOMAIN = 1
 };
 
-enum OpalMveEnableAction {
+enum OpalMveEnableAction
+{
 	OPAL_DISABLE_MVE = 0,
 	OPAL_ENABLE_MVE = 1
 };
 
-enum OpalM64Action {
+enum OpalM64Action
+{
 	OPAL_DISABLE_M64 = 0,
 	OPAL_ENABLE_M64_SPLIT = 1,
 	OPAL_ENABLE_M64_NON_SPLIT = 2
 };
 
-enum OpalPciResetScope {
+enum OpalPciResetScope
+{
 	OPAL_RESET_PHB_COMPLETE		= 1,
 	OPAL_RESET_PCI_LINK		= 2,
 	OPAL_RESET_PHB_ERROR		= 3,
@@ -346,7 +364,8 @@ enum OpalPciResetScope {
 	OPAL_RESET_PCI_IODA_TABLE	= 6
 };
 
-enum OpalPciReinitScope {
+enum OpalPciReinitScope
+{
 	/*
 	 * Note: we chose values that do not overlap
 	 * OpalPciResetScope as OPAL v2 used the same
@@ -355,31 +374,36 @@ enum OpalPciReinitScope {
 	OPAL_REINIT_PCI_DEV = 1000
 };
 
-enum OpalPciResetState {
+enum OpalPciResetState
+{
 	OPAL_DEASSERT_RESET = 0,
 	OPAL_ASSERT_RESET   = 1
 };
 
-enum OpalPciSlotPresence {
+enum OpalPciSlotPresence
+{
 	OPAL_PCI_SLOT_EMPTY	= 0,
 	OPAL_PCI_SLOT_PRESENT	= 1
 };
 
-enum OpalPciSlotPower {
+enum OpalPciSlotPower
+{
 	OPAL_PCI_SLOT_POWER_OFF	= 0,
 	OPAL_PCI_SLOT_POWER_ON	= 1,
 	OPAL_PCI_SLOT_OFFLINE	= 2,
 	OPAL_PCI_SLOT_ONLINE	= 3
 };
 
-enum OpalSlotLedType {
+enum OpalSlotLedType
+{
 	OPAL_SLOT_LED_TYPE_ID = 0,	/* IDENTIFY LED */
 	OPAL_SLOT_LED_TYPE_FAULT = 1,	/* FAULT LED */
 	OPAL_SLOT_LED_TYPE_ATTN = 2,	/* System Attention LED */
 	OPAL_SLOT_LED_TYPE_MAX = 3
 };
 
-enum OpalSlotLedState {
+enum OpalSlotLedState
+{
 	OPAL_SLOT_LED_STATE_OFF = 0,	/* LED is OFF */
 	OPAL_SLOT_LED_STATE_ON = 1	/* LED is ON */
 };
@@ -389,13 +413,15 @@ enum OpalSlotLedState {
  * to the content of the first cell of the "reg" property for
  * device nodes on the LPC bus
  */
-enum OpalLPCAddressType {
+enum OpalLPCAddressType
+{
 	OPAL_LPC_MEM	= 0,
 	OPAL_LPC_IO	= 1,
 	OPAL_LPC_FW	= 2,
 };
 
-enum opal_msg_type {
+enum opal_msg_type
+{
 	OPAL_MSG_ASYNC_COMP	= 0,	/* params[0] = token, params[1] = rc,
 					 * additional params function-specific
 					 */
@@ -409,24 +435,28 @@ enum opal_msg_type {
 	OPAL_MSG_TYPE_MAX,
 };
 
-struct opal_msg {
+struct opal_msg
+{
 	__be32 msg_type;
 	__be32 reserved;
 	__be64 params[8];
 };
 
 /* System parameter permission */
-enum OpalSysparamPerm {
+enum OpalSysparamPerm
+{
 	OPAL_SYSPARAM_READ  = 0x1,
 	OPAL_SYSPARAM_WRITE = 0x2,
 	OPAL_SYSPARAM_RW    = (OPAL_SYSPARAM_READ | OPAL_SYSPARAM_WRITE),
 };
 
-enum {
+enum
+{
 	OPAL_IPMI_MSG_FORMAT_VERSION_1 = 1,
 };
 
-struct opal_ipmi_msg {
+struct opal_ipmi_msg
+{
 	uint8_t version;
 	uint8_t netfn;
 	uint8_t cmd;
@@ -434,70 +464,82 @@ struct opal_ipmi_msg {
 };
 
 /* FSP memory errors handling */
-enum OpalMemErr_Version {
+enum OpalMemErr_Version
+{
 	OpalMemErr_V1 = 1,
 };
 
-enum OpalMemErrType {
+enum OpalMemErrType
+{
 	OPAL_MEM_ERR_TYPE_RESILIENCE	= 0,
 	OPAL_MEM_ERR_TYPE_DYN_DALLOC,
 };
 
 /* Memory Reilience error type */
-enum OpalMemErr_ResilErrType {
+enum OpalMemErr_ResilErrType
+{
 	OPAL_MEM_RESILIENCE_CE		= 0,
 	OPAL_MEM_RESILIENCE_UE,
 	OPAL_MEM_RESILIENCE_UE_SCRUB,
 };
 
 /* Dynamic Memory Deallocation type */
-enum OpalMemErr_DynErrType {
+enum OpalMemErr_DynErrType
+{
 	OPAL_MEM_DYNAMIC_DEALLOC	= 0,
 };
 
-struct OpalMemoryErrorData {
-	enum OpalMemErr_Version	version:8;	/* 0x00 */
-	enum OpalMemErrType	type:8;		/* 0x01 */
-	__be16			flags;		/* 0x02 */
-	uint8_t			reserved_1[4];	/* 0x04 */
+struct OpalMemoryErrorData
+{
+	enum OpalMemErr_Version	version : 8;	/* 0x00 */
+		enum OpalMemErrType	type : 8;		/* 0x01 */
+		__be16			flags;		/* 0x02 */
+		uint8_t			reserved_1[4];	/* 0x04 */
 
-	union {
+		union
+	{
 		/* Memory Resilience corrected/uncorrected error info */
-		struct {
-			enum OpalMemErr_ResilErrType	resil_err_type:8;
-			uint8_t				reserved_1[7];
-			__be64				physical_address_start;
-			__be64				physical_address_end;
-		} resilience;
-		/* Dynamic memory deallocation error info */
-		struct {
-			enum OpalMemErr_DynErrType	dyn_err_type:8;
-			uint8_t				reserved_1[7];
-			__be64				physical_address_start;
-			__be64				physical_address_end;
-		} dyn_dealloc;
-	} u;
-};
+		struct
+		{
+			enum OpalMemErr_ResilErrType	resil_err_type : 8;
+				uint8_t				reserved_1[7];
+				__be64				physical_address_start;
+				__be64				physical_address_end;
+			} resilience;
+			/* Dynamic memory deallocation error info */
+			struct
+		{
+			enum OpalMemErr_DynErrType	dyn_err_type : 8;
+				uint8_t				reserved_1[7];
+				__be64				physical_address_start;
+				__be64				physical_address_end;
+			} dyn_dealloc;
+		} u;
+	};
 
-/* HMI interrupt event */
-enum OpalHMI_Version {
+	/* HMI interrupt event */
+	enum OpalHMI_Version
+{
 	OpalHMIEvt_V1 = 1,
 	OpalHMIEvt_V2 = 2,
 };
 
-enum OpalHMI_Severity {
+enum OpalHMI_Severity
+{
 	OpalHMI_SEV_NO_ERROR = 0,
 	OpalHMI_SEV_WARNING = 1,
 	OpalHMI_SEV_ERROR_SYNC = 2,
 	OpalHMI_SEV_FATAL = 3,
 };
 
-enum OpalHMI_Disposition {
+enum OpalHMI_Disposition
+{
 	OpalHMI_DISPOSITION_RECOVERED = 0,
 	OpalHMI_DISPOSITION_NOT_RECOVERED = 1,
 };
 
-enum OpalHMI_ErrType {
+enum OpalHMI_ErrType
+{
 	OpalHMI_ERROR_MALFUNC_ALERT	= 0,
 	OpalHMI_ERROR_PROC_RECOV_DONE,
 	OpalHMI_ERROR_PROC_RECOV_DONE_AGAIN,
@@ -513,13 +555,15 @@ enum OpalHMI_ErrType {
 	OpalHMI_ERROR_CAPP_RECOVERY,
 };
 
-enum OpalHMI_XstopType {
+enum OpalHMI_XstopType
+{
 	CHECKSTOP_TYPE_UNKNOWN	=	0,
 	CHECKSTOP_TYPE_CORE	=	1,
 	CHECKSTOP_TYPE_NX	=	2,
 };
 
-enum OpalHMI_CoreXstopReason {
+enum OpalHMI_CoreXstopReason
+{
 	CORE_CHECKSTOP_IFU_REGFILE		= 0x00000001,
 	CORE_CHECKSTOP_IFU_LOGIC		= 0x00000002,
 	CORE_CHECKSTOP_PC_DURING_RECOV		= 0x00000004,
@@ -539,7 +583,8 @@ enum OpalHMI_CoreXstopReason {
 	CORE_CHECKSTOP_PC_SPRD_HYP_ERR_INJ	= 0x00010000,
 };
 
-enum OpalHMI_NestAccelXstopReason {
+enum OpalHMI_NestAccelXstopReason
+{
 	NX_CHECKSTOP_SHM_INVAL_STATE_ERR	= 0x00000001,
 	NX_CHECKSTOP_DMA_INVAL_STATE_ERR_1	= 0x00000002,
 	NX_CHECKSTOP_DMA_INVAL_STATE_ERR_2	= 0x00000004,
@@ -556,7 +601,8 @@ enum OpalHMI_NestAccelXstopReason {
 	NX_CHECKSTOP_PBI_ISN_UE			= 0x00002000,
 };
 
-struct OpalHMIEvent {
+struct OpalHMIEvent
+{
 	uint8_t		version;	/* 0x00 */
 	uint8_t		severity;	/* 0x01 */
 	uint8_t		type;		/* 0x02 */
@@ -568,16 +614,19 @@ struct OpalHMIEvent {
 	__be64		tfmr;
 
 	/* version 2 and later */
-	union {
+	union
+	{
 		/*
 		 * checkstop info (Core/NX).
 		 * Valid for OpalHMI_ERROR_MALFUNC_ALERT.
 		 */
-		struct {
+		struct
+		{
 			uint8_t	xstop_type;	/* enum OpalHMI_XstopType */
 			uint8_t reserved_1[3];
 			__be32  xstop_reason;
-			union {
+			union
+			{
 				__be32 pir;	/* for CHECKSTOP_TYPE_CORE */
 				__be32 chip_id;	/* for CHECKSTOP_TYPE_NX */
 			} u;
@@ -585,7 +634,8 @@ struct OpalHMIEvent {
 	} u;
 };
 
-enum {
+enum
+{
 	OPAL_P7IOC_DIAG_TYPE_NONE	= 0,
 	OPAL_P7IOC_DIAG_TYPE_RGC	= 1,
 	OPAL_P7IOC_DIAG_TYPE_BI		= 2,
@@ -595,7 +645,8 @@ enum {
 	OPAL_P7IOC_DIAG_TYPE_LAST	= 6
 };
 
-struct OpalIoP7IOCErrorData {
+struct OpalIoP7IOCErrorData
+{
 	__be16 type;
 
 	/* GEM */
@@ -612,25 +663,29 @@ struct OpalIoP7IOCErrorData {
 	__be64 lemAction1;
 	__be64 lemWof;
 
-	union {
-		struct OpalIoP7IOCRgcErrorData {
+	union
+	{
+		struct OpalIoP7IOCRgcErrorData
+		{
 			__be64 rgcStatus;	/* 3E1C10 */
 			__be64 rgcLdcp;		/* 3E1C18 */
-		}rgc;
-		struct OpalIoP7IOCBiErrorData {
+		} rgc;
+		struct OpalIoP7IOCBiErrorData
+		{
 			__be64 biLdcp0;		/* 3C0100, 3C0118 */
 			__be64 biLdcp1;		/* 3C0108, 3C0120 */
 			__be64 biLdcp2;		/* 3C0110, 3C0128 */
 			__be64 biFenceStatus;	/* 3C0130, 3C0130 */
 
 			uint8_t biDownbound;	/* BI Downbound or Upbound */
-		}bi;
-		struct OpalIoP7IOCCiErrorData {
+		} bi;
+		struct OpalIoP7IOCCiErrorData
+		{
 			__be64 ciPortStatus;	/* 3Dn008 */
 			__be64 ciPortLdcp;	/* 3Dn010 */
 
 			uint8_t ciPort;		/* Index of CI port: 0/1 */
-		}ci;
+		} ci;
 	};
 };
 
@@ -638,27 +693,32 @@ struct OpalIoP7IOCErrorData {
  * This structure defines the overlay which will be used to store PHB error
  * data upon request.
  */
-enum {
+enum
+{
 	OPAL_PHB_ERROR_DATA_VERSION_1 = 1,
 };
 
-enum {
+enum
+{
 	OPAL_PHB_ERROR_DATA_TYPE_P7IOC = 1,
 	OPAL_PHB_ERROR_DATA_TYPE_PHB3 = 2
 };
 
-enum {
+enum
+{
 	OPAL_P7IOC_NUM_PEST_REGS = 128,
 	OPAL_PHB3_NUM_PEST_REGS = 256
 };
 
-struct OpalIoPhbErrorCommon {
+struct OpalIoPhbErrorCommon
+{
 	__be32 version;
 	__be32 ioType;
 	__be32 len;
 };
 
-struct OpalIoP7IOCPhbErrorData {
+struct OpalIoP7IOCPhbErrorData
+{
 	struct OpalIoPhbErrorCommon common;
 
 	__be32 brdgCtl;
@@ -717,7 +777,8 @@ struct OpalIoP7IOCPhbErrorData {
 	__be64 pestB[OPAL_P7IOC_NUM_PEST_REGS];
 };
 
-struct OpalIoPhb3ErrorData {
+struct OpalIoPhb3ErrorData
+{
 	struct OpalIoPhbErrorCommon common;
 
 	__be32 brdgCtl;
@@ -779,17 +840,20 @@ struct OpalIoPhb3ErrorData {
 	__be64 pestB[OPAL_PHB3_NUM_PEST_REGS];
 };
 
-enum {
+enum
+{
 	OPAL_REINIT_CPUS_HILE_BE	= (1 << 0),
 	OPAL_REINIT_CPUS_HILE_LE	= (1 << 1),
 };
 
-typedef struct oppanel_line {
+typedef struct oppanel_line
+{
 	__be64 line;
 	__be64 line_len;
 } oppanel_line_t;
 
-enum opal_prd_msg_type {
+enum opal_prd_msg_type
+{
 	OPAL_PRD_MSG_TYPE_INIT = 0,	/* HBRT --> OPAL */
 	OPAL_PRD_MSG_TYPE_FINI,		/* HBRT/kernel --> OPAL */
 	OPAL_PRD_MSG_TYPE_ATTN,		/* HBRT <-- OPAL */
@@ -798,7 +862,8 @@ enum opal_prd_msg_type {
 	OPAL_PRD_MSG_TYPE_OCC_RESET,	/* HBRT <-- OPAL */
 };
 
-struct opal_prd_msg_header {
+struct opal_prd_msg_header
+{
 	uint8_t		type;
 	uint8_t		pad[1];
 	__be16		size;
@@ -811,7 +876,8 @@ struct opal_prd_msg;
 #define OCC_THROTTLE                    2
 #define OCC_MAX_THROTTLE_STATUS         5
 
-struct opal_occ_msg {
+struct opal_occ_msg
+{
 	__be64 type;
 	__be64 chip;
 	__be64 throttle_status;
@@ -824,7 +890,8 @@ struct opal_occ_msg {
  * to represent a block that is 4k aligned *and* each block
  * size except the last one in the list to be as well.
  */
-struct opal_sg_entry {
+struct opal_sg_entry
+{
 	__be64 data;
 	__be64 length;
 };
@@ -834,7 +901,8 @@ struct opal_sg_entry {
  *
  * length = VER | length
  */
-struct opal_sg_list {
+struct opal_sg_list
+{
 	__be64 length;
 	__be64 next;
 	struct opal_sg_entry entry[];
@@ -848,7 +916,8 @@ struct opal_sg_list {
 #define OPAL_DUMP_REGION_HOST_END		0xFF
 
 /* CAPI modes for PHB */
-enum {
+enum
+{
 	OPAL_PHB_CAPI_MODE_PCIE		= 0,
 	OPAL_PHB_CAPI_MODE_CAPI		= 1,
 	OPAL_PHB_CAPI_MODE_SNOOP_OFF    = 2,
@@ -857,7 +926,8 @@ enum {
 };
 
 /* OPAL I2C request */
-struct opal_i2c_request {
+struct opal_i2c_request
+{
 	uint8_t	type;
 #define OPAL_I2C_RAW_READ	0
 #define OPAL_I2C_RAW_WRITE	1
@@ -887,7 +957,8 @@ struct opal_i2c_request {
  */
 
 /* System EPOW type */
-enum OpalSysEpow {
+enum OpalSysEpow
+{
 	OPAL_SYSEPOW_POWER	= 0,	/* Power EPOW */
 	OPAL_SYSEPOW_TEMP	= 1,	/* Temperature EPOW */
 	OPAL_SYSEPOW_COOLING	= 2,	/* Cooling EPOW */
@@ -895,7 +966,8 @@ enum OpalSysEpow {
 };
 
 /* Power EPOW */
-enum OpalSysPower {
+enum OpalSysPower
+{
 	OPAL_SYSPOWER_UPS	= 0x0001, /* System on UPS power */
 	OPAL_SYSPOWER_CHNG	= 0x0002, /* System power config change */
 	OPAL_SYSPOWER_FAIL	= 0x0004, /* System impending power failure */
@@ -903,25 +975,29 @@ enum OpalSysPower {
 };
 
 /* Temperature EPOW */
-enum OpalSysTemp {
+enum OpalSysTemp
+{
 	OPAL_SYSTEMP_AMB	= 0x0001, /* System over ambient temperature */
 	OPAL_SYSTEMP_INT	= 0x0002, /* System over internal temperature */
 	OPAL_SYSTEMP_HMD	= 0x0004, /* System over ambient humidity */
 };
 
 /* Cooling EPOW */
-enum OpalSysCooling {
+enum OpalSysCooling
+{
 	OPAL_SYSCOOL_INSF	= 0x0001, /* System insufficient cooling */
 };
 
 /* Argument to OPAL_CEC_REBOOT2() */
-enum {
+enum
+{
 	OPAL_REBOOT_NORMAL		= 0,
 	OPAL_REBOOT_PLATFORM_ERROR	= 1,
 };
 
 /* Argument to OPAL_PCI_TCE_KILL */
-enum {
+enum
+{
 	OPAL_PCI_TCE_KILL_PAGES,
 	OPAL_PCI_TCE_KILL_PE,
 	OPAL_PCI_TCE_KILL_ALL,

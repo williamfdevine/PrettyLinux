@@ -42,7 +42,9 @@ static void __init omap2_i2c_mux_pins(int bus_id)
 
 	/* First I2C bus is not muxable */
 	if (bus_id == 1)
+	{
 		return;
+	}
 
 	sprintf(mux_name, "i2c%i_scl.i2c%i_scl", bus_id, bus_id);
 	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
@@ -69,13 +71,18 @@ int omap_i2c_reset(struct omap_hwmod *oh)
 	u16 i2c_con;
 	int c = 0;
 
-	if (oh->class->rev == OMAP_I2C_IP_VERSION_2) {
+	if (oh->class->rev == OMAP_I2C_IP_VERSION_2)
+	{
 		i2c_con = OMAP4_I2C_CON_OFFSET;
-	} else if (oh->class->rev == OMAP_I2C_IP_VERSION_1) {
+	}
+	else if (oh->class->rev == OMAP_I2C_IP_VERSION_1)
+	{
 		i2c_con = OMAP2_I2C_CON_OFFSET;
-	} else {
+	}
+	else
+	{
 		WARN(1, "Cannot reset I2C block %s: unsupported revision\n",
-		     oh->name);
+			 oh->name);
 		return -EINVAL;
 	}
 
@@ -94,16 +101,16 @@ int omap_i2c_reset(struct omap_hwmod *oh)
 
 	/* Poll on RESETDONE bit */
 	omap_test_timeout((omap_hwmod_read(oh,
-				oh->class->sysc->syss_offs)
-				& SYSS_RESETDONE_MASK),
-				MAX_MODULE_SOFTRESET_WAIT, c);
+									   oh->class->sysc->syss_offs)
+					   & SYSS_RESETDONE_MASK),
+					  MAX_MODULE_SOFTRESET_WAIT, c);
 
 	if (c == MAX_MODULE_SOFTRESET_WAIT)
 		pr_warn("%s: %s: softreset failed (waited %d usec)\n",
-			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
+				__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
 	else
 		pr_debug("%s: %s: softreset in %d usec\n", __func__,
-			oh->name, c);
+				 oh->name, c);
 
 	return 0;
 }
@@ -113,11 +120,18 @@ static int __init omap_i2c_nr_ports(void)
 	int ports = 0;
 
 	if (cpu_is_omap24xx())
+	{
 		ports = 2;
+	}
 	else if (cpu_is_omap34xx())
+	{
 		ports = 3;
+	}
 	else if (cpu_is_omap44xx())
+	{
 		ports = 4;
+	}
+
 	return ports;
 }
 
@@ -134,7 +148,7 @@ static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
 static const char name[] = "omap_i2c";
 
 int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *i2c_pdata,
-				int bus_id)
+							int bus_id)
 {
 	int l;
 	struct omap_hwmod *oh;
@@ -144,17 +158,21 @@ int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *i2c_pdata,
 	struct omap_i2c_dev_attr *dev_attr;
 
 	if (bus_id > omap_i2c_nr_ports())
+	{
 		return -EINVAL;
+	}
 
 	omap2_i2c_mux_pins(bus_id);
 
 	l = snprintf(oh_name, MAX_OMAP_I2C_HWMOD_NAME_LEN, "i2c%d", bus_id);
 	WARN(l >= MAX_OMAP_I2C_HWMOD_NAME_LEN,
-		"String buffer overflow in I2C%d device setup\n", bus_id);
+		 "String buffer overflow in I2C%d device setup\n", bus_id);
 	oh = omap_hwmod_lookup(oh_name);
-	if (!oh) {
-			pr_err("Could not look up %s\n", oh_name);
-			return -EEXIST;
+
+	if (!oh)
+	{
+		pr_err("Could not look up %s\n", oh_name);
+		return -EEXIST;
 	}
 
 	pdata = i2c_pdata;
@@ -176,9 +194,12 @@ int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *i2c_pdata,
 	 * Only omap3 has support for constraints
 	 */
 	if (cpu_is_omap34xx())
+	{
 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+	}
+
 	pdev = omap_device_build(name, bus_id, oh, pdata,
-				 sizeof(struct omap_i2c_bus_platform_data));
+							 sizeof(struct omap_i2c_bus_platform_data));
 	WARN(IS_ERR(pdev), "Could not build omap_device for %s\n", name);
 
 	return PTR_ERR_OR_ZERO(pdev);

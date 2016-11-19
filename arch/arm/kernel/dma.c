@@ -31,7 +31,9 @@ static dma_t *dma_chan[MAX_DMA_CHANNELS];
 static inline dma_t *dma_channel(unsigned int chan)
 {
 	if (chan >= MAX_DMA_CHANNELS)
+	{
 		return NULL;
+	}
 
 	return dma_chan[chan];
 }
@@ -39,12 +41,17 @@ static inline dma_t *dma_channel(unsigned int chan)
 int __init isa_dma_add(unsigned int chan, dma_t *dma)
 {
 	if (!dma->d_ops)
+	{
 		return -EINVAL;
+	}
 
 	sg_init_table(&dma->buf, 1);
 
 	if (dma_chan[chan])
+	{
 		return -EBUSY;
+	}
+
 	dma_chan[chan] = dma;
 	return 0;
 }
@@ -60,21 +67,30 @@ int request_dma(unsigned int chan, const char *device_id)
 	int ret;
 
 	if (!dma)
+	{
 		goto bad_dma;
+	}
 
 	if (xchg(&dma->lock, 1) != 0)
+	{
 		goto busy;
+	}
 
 	dma->device_id = device_id;
 	dma->active    = 0;
 	dma->invalid   = 1;
 
 	ret = 0;
+
 	if (dma->d_ops->request)
+	{
 		ret = dma->d_ops->request(chan, dma);
+	}
 
 	if (ret)
+	{
 		xchg(&dma->lock, 0);
+	}
 
 	return ret;
 
@@ -97,17 +113,24 @@ void free_dma(unsigned int chan)
 	dma_t *dma = dma_channel(chan);
 
 	if (!dma)
+	{
 		goto bad_dma;
+	}
 
-	if (dma->active) {
+	if (dma->active)
+	{
 		pr_err("dma%d: freeing active DMA\n", chan);
 		dma->d_ops->disable(chan, dma);
 		dma->active = 0;
 	}
 
-	if (xchg(&dma->lock, 0) != 0) {
+	if (xchg(&dma->lock, 0) != 0)
+	{
 		if (dma->d_ops->free)
+		{
 			dma->d_ops->free(chan, dma);
+		}
+
 		return;
 	}
 
@@ -126,7 +149,9 @@ void set_dma_sg (unsigned int chan, struct scatterlist *sg, int nr_sg)
 	dma_t *dma = dma_channel(chan);
 
 	if (dma->active)
+	{
 		pr_err("dma%d: altering DMA SG while DMA active\n", chan);
+	}
 
 	dma->sg = sg;
 	dma->sgcount = nr_sg;
@@ -143,7 +168,9 @@ void __set_dma_addr (unsigned int chan, void *addr)
 	dma_t *dma = dma_channel(chan);
 
 	if (dma->active)
+	{
 		pr_err("dma%d: altering DMA address while DMA active\n", chan);
+	}
 
 	dma->sg = NULL;
 	dma->addr = addr;
@@ -160,7 +187,9 @@ void set_dma_count (unsigned int chan, unsigned long count)
 	dma_t *dma = dma_channel(chan);
 
 	if (dma->active)
+	{
 		pr_err("dma%d: altering DMA count while DMA active\n", chan);
+	}
 
 	dma->sg = NULL;
 	dma->count = count;
@@ -175,7 +204,9 @@ void set_dma_mode (unsigned int chan, unsigned int mode)
 	dma_t *dma = dma_channel(chan);
 
 	if (dma->active)
+	{
 		pr_err("dma%d: altering DMA mode while DMA active\n", chan);
+	}
 
 	dma->dma_mode = mode;
 	dma->invalid = 1;
@@ -189,12 +220,16 @@ void enable_dma (unsigned int chan)
 	dma_t *dma = dma_channel(chan);
 
 	if (!dma->lock)
+	{
 		goto free_dma;
+	}
 
-	if (dma->active == 0) {
+	if (dma->active == 0)
+	{
 		dma->active = 1;
 		dma->d_ops->enable(chan, dma);
 	}
+
 	return;
 
 free_dma:
@@ -210,12 +245,16 @@ void disable_dma (unsigned int chan)
 	dma_t *dma = dma_channel(chan);
 
 	if (!dma->lock)
+	{
 		goto free_dma;
+	}
 
-	if (dma->active == 1) {
+	if (dma->active == 1)
+	{
 		dma->active = 0;
 		dma->d_ops->disable(chan, dma);
 	}
+
 	return;
 
 free_dma:
@@ -246,7 +285,10 @@ void set_dma_speed(unsigned int chan, int cycle_ns)
 	int ret = 0;
 
 	if (dma->d_ops->setspeed)
+	{
 		ret = dma->d_ops->setspeed(chan, dma, cycle_ns);
+	}
+
 	dma->speed = ret;
 }
 EXPORT_SYMBOL(set_dma_speed);
@@ -257,7 +299,9 @@ int get_dma_residue(unsigned int chan)
 	int ret = 0;
 
 	if (dma->d_ops->residue)
+	{
 		ret = dma->d_ops->residue(chan, dma);
+	}
 
 	return ret;
 }
@@ -268,11 +312,16 @@ static int proc_dma_show(struct seq_file *m, void *v)
 {
 	int i;
 
-	for (i = 0 ; i < MAX_DMA_CHANNELS ; i++) {
+	for (i = 0 ; i < MAX_DMA_CHANNELS ; i++)
+	{
 		dma_t *dma = dma_channel(i);
+
 		if (dma && dma->lock)
+		{
 			seq_printf(m, "%2d: %s\n", i, dma->device_id);
+		}
 	}
+
 	return 0;
 }
 
@@ -281,7 +330,8 @@ static int proc_dma_open(struct inode *inode, struct file *file)
 	return single_open(file, proc_dma_show, NULL);
 }
 
-static const struct file_operations proc_dma_operations = {
+static const struct file_operations proc_dma_operations =
+{
 	.open		= proc_dma_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

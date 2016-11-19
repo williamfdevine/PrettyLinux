@@ -20,14 +20,16 @@
 #include <asm/io.h>
 #include <cpu/sh7203.h>
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.phy_interface	= PHY_INTERFACE_MODE_MII,
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
 	.flags		= SMSC911X_USE_32BIT | SMSC911X_SWAP_FIFO,
 };
 
-static struct resource smsc911x_resources[] = {
+static struct resource smsc911x_resources[] =
+{
 	[0] = {
 		.start		= 0x24000000,
 		.end		= 0x240000ff,
@@ -40,7 +42,8 @@ static struct resource smsc911x_resources[] = {
 	},
 };
 
-static struct platform_device smsc911x_device = {
+static struct platform_device smsc911x_device =
+{
 	.name		= "smsc911x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smsc911x_resources),
@@ -50,7 +53,8 @@ static struct platform_device smsc911x_device = {
 	},
 };
 
-static struct gpio_led rsk7203_gpio_leds[] = {
+static struct gpio_led rsk7203_gpio_leds[] =
+{
 	{
 		.name			= "green",
 		.gpio			= GPIO_PE10,
@@ -73,12 +77,14 @@ static struct gpio_led rsk7203_gpio_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data rsk7203_gpio_leds_info = {
+static struct gpio_led_platform_data rsk7203_gpio_leds_info =
+{
 	.leds		= rsk7203_gpio_leds,
 	.num_leds	= ARRAY_SIZE(rsk7203_gpio_leds),
 };
 
-static struct platform_device led_device = {
+static struct platform_device led_device =
+{
 	.name		= "leds-gpio",
 	.id		= -1,
 	.dev		= {
@@ -86,7 +92,8 @@ static struct platform_device led_device = {
 	},
 };
 
-static struct gpio_keys_button rsk7203_gpio_keys_table[] = {
+static struct gpio_keys_button rsk7203_gpio_keys_table[] =
+{
 	{
 		.code		= BTN_0,
 		.gpio		= GPIO_PB0,
@@ -105,20 +112,23 @@ static struct gpio_keys_button rsk7203_gpio_keys_table[] = {
 	},
 };
 
-static struct gpio_keys_platform_data rsk7203_gpio_keys_info = {
+static struct gpio_keys_platform_data rsk7203_gpio_keys_info =
+{
 	.buttons	= rsk7203_gpio_keys_table,
 	.nbuttons	= ARRAY_SIZE(rsk7203_gpio_keys_table),
 	.poll_interval	= 50, /* default to 50ms */
 };
 
-static struct platform_device keys_device = {
+static struct platform_device keys_device =
+{
 	.name		= "gpio-keys-polled",
 	.dev		= {
 		.platform_data	= &rsk7203_gpio_keys_info,
 	},
 };
 
-static struct platform_device *rsk7203_devices[] __initdata = {
+static struct platform_device *rsk7203_devices[] __initdata =
+{
 	&smsc911x_device,
 	&led_device,
 	&keys_device,
@@ -135,6 +145,6 @@ static int __init rsk7203_devices_setup(void)
 	gpio_request(GPIO_FN_IRQ0_PB, NULL);
 
 	return platform_add_devices(rsk7203_devices,
-				    ARRAY_SIZE(rsk7203_devices));
+								ARRAY_SIZE(rsk7203_devices));
 }
 device_initcall(rsk7203_devices_setup);

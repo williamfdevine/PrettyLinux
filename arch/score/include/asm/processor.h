@@ -15,7 +15,7 @@ extern void (*cpu_wait)(void);
 
 extern unsigned long thread_saved_pc(struct task_struct *tsk);
 extern void start_thread(struct pt_regs *regs,
-			unsigned long pc, unsigned long sp);
+						 unsigned long pc, unsigned long sp);
 extern unsigned long get_wchan(struct task_struct *p);
 
 /*
@@ -40,14 +40,15 @@ extern unsigned long get_wchan(struct task_struct *p);
 #define TASK_UNMAPPED_BASE	((TASK_SIZE / 3) & ~(PAGE_SIZE))
 
 #ifdef __KERNEL__
-#define STACK_TOP	TASK_SIZE
-#define STACK_TOP_MAX	TASK_SIZE
+	#define STACK_TOP	TASK_SIZE
+	#define STACK_TOP_MAX	TASK_SIZE
 #endif
 
 /*
  * If you change thread_struct remember to change the #defines below too!
  */
-struct thread_struct {
+struct thread_struct
+{
 	unsigned long reg0, reg2, reg3;
 	unsigned long reg12, reg13, reg14, reg15, reg16;
 	unsigned long reg17, reg18, reg19, reg20, reg21;
@@ -77,23 +78,23 @@ struct thread_struct {
 };
 
 #define INIT_THREAD {						\
-	.reg0			= 0,				\
-	.reg2			= 0,				\
-	.reg3			= 0,				\
-	.reg12			= 0,				\
-	.reg13			= 0,				\
-	.reg14			= 0,				\
-	.reg15			= 0,				\
-	.reg16			= 0,				\
-	.reg17			= 0,				\
-	.reg18			= 0,				\
-	.reg19			= 0,				\
-	.reg20			= 0,				\
-	.reg21			= 0,				\
-	.cp0_psr		= 0,				\
-	.error_code		= 0,				\
-	.trap_no		= 0,				\
-}
+		.reg0			= 0,				\
+						  .reg2			= 0,				\
+											.reg3			= 0,				\
+													.reg12			= 0,				\
+															.reg13			= 0,				\
+																	.reg14			= 0,				\
+																			.reg15			= 0,				\
+																					.reg16			= 0,				\
+																							.reg17			= 0,				\
+																									.reg18			= 0,				\
+																											.reg19			= 0,				\
+																													.reg20			= 0,				\
+																															.reg21			= 0,				\
+																																	.cp0_psr		= 0,				\
+																																			.error_code		= 0,				\
+																																					.trap_no		= 0,				\
+	}
 
 #define kstk_tos(tsk)		\
 	((unsigned long)task_stack_page(tsk) + THREAD_SIZE - 32)

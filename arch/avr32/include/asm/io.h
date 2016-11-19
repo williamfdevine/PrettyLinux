@@ -17,7 +17,7 @@ static __inline__ unsigned long virt_to_phys(volatile void *address)
 	return PHYSADDR(address);
 }
 
-static __inline__ void * phys_to_virt(unsigned long address)
+static __inline__ void *phys_to_virt(unsigned long address)
 {
 	return (void *)P1SEGADDR(address);
 }
@@ -67,7 +67,7 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 
 /* Convert I/O port address to virtual address */
 #ifndef __io
-# define __io(p)	((void *)phys_to_uncached(p))
+	#define __io(p)	((void *)phys_to_uncached(p))
 #endif
 
 /*
@@ -77,62 +77,62 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 #define SLOW_DOWN_IO	do { } while (0)
 
 #define __BUILD_MEMORY_SINGLE(pfx, bwl, type)				\
-static inline void							\
-pfx##write##bwl(type val, volatile void __iomem *addr)			\
-{									\
-	volatile type *__addr;						\
-	type __val;							\
-									\
-	__addr = (void *)__swizzle_addr_##bwl((unsigned long)(addr));	\
-	__val = pfx##ioswab##bwl(__addr, val);				\
-									\
-	BUILD_BUG_ON(sizeof(type) > sizeof(unsigned long));		\
-									\
-	*__addr = __val;						\
-}									\
-									\
-static inline type pfx##read##bwl(const volatile void __iomem *addr)	\
-{									\
-	volatile type *__addr;						\
-	type __val;							\
-									\
-	__addr = (void *)__swizzle_addr_##bwl((unsigned long)(addr));	\
-									\
-	BUILD_BUG_ON(sizeof(type) > sizeof(unsigned long));		\
-									\
-	__val = *__addr;						\
-	return pfx##ioswab##bwl(__addr, __val);				\
-}
+	static inline void							\
+	pfx##write##bwl(type val, volatile void __iomem *addr)			\
+	{									\
+		volatile type *__addr;						\
+		type __val;							\
+		\
+		__addr = (void *)__swizzle_addr_##bwl((unsigned long)(addr));	\
+		__val = pfx##ioswab##bwl(__addr, val);				\
+		\
+		BUILD_BUG_ON(sizeof(type) > sizeof(unsigned long));		\
+		\
+		*__addr = __val;						\
+	}									\
+	\
+	static inline type pfx##read##bwl(const volatile void __iomem *addr)	\
+	{									\
+		volatile type *__addr;						\
+		type __val;							\
+		\
+		__addr = (void *)__swizzle_addr_##bwl((unsigned long)(addr));	\
+		\
+		BUILD_BUG_ON(sizeof(type) > sizeof(unsigned long));		\
+		\
+		__val = *__addr;						\
+		return pfx##ioswab##bwl(__addr, __val);				\
+	}
 
 #define __BUILD_IOPORT_SINGLE(pfx, bwl, type, p, slow)			\
-static inline void pfx##out##bwl##p(type val, unsigned long port)	\
-{									\
-	volatile type *__addr;						\
-	type __val;							\
-									\
-	__addr = __io(__swizzle_addr_##bwl(port));			\
-	__val = pfx##ioswab##bwl(__addr, val);				\
-									\
-	BUILD_BUG_ON(sizeof(type) > sizeof(unsigned long));		\
-									\
-	*__addr = __val;						\
-	slow;								\
-}									\
-									\
-static inline type pfx##in##bwl##p(unsigned long port)			\
-{									\
-	volatile type *__addr;						\
-	type __val;							\
-									\
-	__addr = __io(__swizzle_addr_##bwl(port));			\
-									\
-	BUILD_BUG_ON(sizeof(type) > sizeof(unsigned long));		\
-									\
-	__val = *__addr;						\
-	slow;								\
-									\
-	return pfx##ioswab##bwl(__addr, __val);				\
-}
+	static inline void pfx##out##bwl##p(type val, unsigned long port)	\
+	{									\
+		volatile type *__addr;						\
+		type __val;							\
+		\
+		__addr = __io(__swizzle_addr_##bwl(port));			\
+		__val = pfx##ioswab##bwl(__addr, val);				\
+		\
+		BUILD_BUG_ON(sizeof(type) > sizeof(unsigned long));		\
+		\
+		*__addr = __val;						\
+		slow;								\
+	}									\
+	\
+	static inline type pfx##in##bwl##p(unsigned long port)			\
+	{									\
+		volatile type *__addr;						\
+		type __val;							\
+		\
+		__addr = __io(__swizzle_addr_##bwl(port));			\
+		\
+		BUILD_BUG_ON(sizeof(type) > sizeof(unsigned long));		\
+		\
+		__val = *__addr;						\
+		slow;								\
+		\
+		return pfx##ioswab##bwl(__addr, __val);				\
+	}
 
 #define __BUILD_MEMORY_PFX(bus, bwl, type)				\
 	__BUILD_MEMORY_SINGLE(bus, bwl, type)
@@ -174,42 +174,42 @@ BUILDIO_IOPORT(l, u32)
 #define writel_be			__raw_writel
 
 #define __BUILD_MEMORY_STRING(bwl, type)				\
-static inline void writes##bwl(volatile void __iomem *addr,		\
-			       const void *data, unsigned int count)	\
-{									\
-	const type *__data = data;					\
-									\
-	while (count--)							\
-		__mem_write##bwl(*__data++, addr);			\
-}									\
-									\
-static inline void reads##bwl(const volatile void __iomem *addr,	\
-			      void *data, unsigned int count)		\
-{									\
-	type *__data = data;						\
-									\
-	while (count--)							\
-		*__data++ = __mem_read##bwl(addr);			\
-}
+	static inline void writes##bwl(volatile void __iomem *addr,		\
+								   const void *data, unsigned int count)	\
+	{									\
+		const type *__data = data;					\
+		\
+		while (count--)							\
+			__mem_write##bwl(*__data++, addr);			\
+	}									\
+	\
+	static inline void reads##bwl(const volatile void __iomem *addr,	\
+								  void *data, unsigned int count)		\
+	{									\
+		type *__data = data;						\
+		\
+		while (count--)							\
+			*__data++ = __mem_read##bwl(addr);			\
+	}
 
 #define __BUILD_IOPORT_STRING(bwl, type)				\
-static inline void outs##bwl(unsigned long port, const void *data,	\
-			     unsigned int count)			\
-{									\
-	const type *__data = data;					\
-									\
-	while (count--)							\
-		__mem_out##bwl(*__data++, port);			\
-}									\
-									\
-static inline void ins##bwl(unsigned long port, void *data,		\
-			   unsigned int count)				\
-{									\
-	type *__data = data;						\
-									\
-	while (count--)							\
-		*__data++ = __mem_in##bwl(port);			\
-}
+	static inline void outs##bwl(unsigned long port, const void *data,	\
+								 unsigned int count)			\
+	{									\
+		const type *__data = data;					\
+		\
+		while (count--)							\
+			__mem_out##bwl(*__data++, port);			\
+	}									\
+	\
+	static inline void ins##bwl(unsigned long port, void *data,		\
+								unsigned int count)				\
+	{									\
+		type *__data = data;						\
+		\
+		while (count--)							\
+			*__data++ = __mem_in##bwl(port);			\
+	}
 
 #define BUILDSTRING(bwl, type)						\
 	__BUILD_MEMORY_STRING(bwl, type)				\
@@ -224,46 +224,46 @@ BUILDSTRING(l, u32)
  */
 #ifndef ioread8
 
-#define ioread8(p)		((unsigned int)readb(p))
+	#define ioread8(p)		((unsigned int)readb(p))
 
-#define ioread16(p)		((unsigned int)readw(p))
-#define ioread16be(p)		((unsigned int)__raw_readw(p))
+	#define ioread16(p)		((unsigned int)readw(p))
+	#define ioread16be(p)		((unsigned int)__raw_readw(p))
 
-#define ioread32(p)		((unsigned int)readl(p))
-#define ioread32be(p)		((unsigned int)__raw_readl(p))
+	#define ioread32(p)		((unsigned int)readl(p))
+	#define ioread32be(p)		((unsigned int)__raw_readl(p))
 
-#define iowrite8(v,p)		writeb(v, p)
+	#define iowrite8(v,p)		writeb(v, p)
 
-#define iowrite16(v,p)		writew(v, p)
-#define iowrite16be(v,p)	__raw_writew(v, p)
+	#define iowrite16(v,p)		writew(v, p)
+	#define iowrite16be(v,p)	__raw_writew(v, p)
 
-#define iowrite32(v,p)		writel(v, p)
-#define iowrite32be(v,p)	__raw_writel(v, p)
+	#define iowrite32(v,p)		writel(v, p)
+	#define iowrite32be(v,p)	__raw_writel(v, p)
 
-#define ioread8_rep(p,d,c)	readsb(p,d,c)
-#define ioread16_rep(p,d,c)	readsw(p,d,c)
-#define ioread32_rep(p,d,c)	readsl(p,d,c)
+	#define ioread8_rep(p,d,c)	readsb(p,d,c)
+	#define ioread16_rep(p,d,c)	readsw(p,d,c)
+	#define ioread32_rep(p,d,c)	readsl(p,d,c)
 
-#define iowrite8_rep(p,s,c)	writesb(p,s,c)
-#define iowrite16_rep(p,s,c)	writesw(p,s,c)
-#define iowrite32_rep(p,s,c)	writesl(p,s,c)
+	#define iowrite8_rep(p,s,c)	writesb(p,s,c)
+	#define iowrite16_rep(p,s,c)	writesw(p,s,c)
+	#define iowrite32_rep(p,s,c)	writesl(p,s,c)
 
 #endif
 
-static inline void memcpy_fromio(void * to, const volatile void __iomem *from,
-				 unsigned long count)
+static inline void memcpy_fromio(void *to, const volatile void __iomem *from,
+								 unsigned long count)
 {
 	memcpy(to, (const void __force *)from, count);
 }
 
-static inline void  memcpy_toio(volatile void __iomem *to, const void * from,
-				unsigned long count)
+static inline void  memcpy_toio(volatile void __iomem *to, const void *from,
+								unsigned long count)
 {
 	memcpy((void __force *)to, from, count);
 }
 
 static inline void memset_io(volatile void __iomem *addr, unsigned char val,
-			     unsigned long count)
+							 unsigned long count)
 {
 	memset((void __force *)addr, val, count);
 }
@@ -273,7 +273,7 @@ static inline void memset_io(volatile void __iomem *addr, unsigned char val,
 #define IO_SPACE_LIMIT	0xffffffff
 
 extern void __iomem *__ioremap(unsigned long offset, size_t size,
-			       unsigned long flags);
+							   unsigned long flags);
 extern void __iounmap(void __iomem *addr);
 
 /*

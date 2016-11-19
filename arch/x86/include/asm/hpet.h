@@ -83,7 +83,7 @@ extern void hpet_msi_write(struct hpet_dev *hdev, struct msi_msg *msg);
 extern void hpet_msi_read(struct hpet_dev *hdev, struct msi_msg *msg);
 extern struct irq_domain *hpet_create_irq_domain(int hpet_id);
 extern int hpet_assign_irq(struct irq_domain *domain,
-			   struct hpet_dev *dev, int dev_num);
+						   struct hpet_dev *dev, int dev_num);
 
 #ifdef CONFIG_HPET_EMULATE_RTC
 
@@ -93,7 +93,7 @@ typedef irqreturn_t (*rtc_irq_handler)(int interrupt, void *cookie);
 extern int hpet_mask_rtc_irq_bit(unsigned long bit_mask);
 extern int hpet_set_rtc_irq_bit(unsigned long bit_mask);
 extern int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
-			       unsigned char sec);
+							   unsigned char sec);
 extern int hpet_set_periodic_freq(unsigned long freq);
 extern int hpet_rtc_dropped_irq(void);
 extern int hpet_rtc_timer_init(void);

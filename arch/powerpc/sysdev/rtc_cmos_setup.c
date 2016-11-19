@@ -28,25 +28,38 @@ static int  __init add_rtc(void)
 	memset(&res, 0, sizeof(res));
 
 	np = of_find_compatible_node(NULL, NULL, "pnpPNP,b00");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	ret = of_address_to_resource(np, 0, &res[0]);
 	of_node_put(np);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * RTC_PORT(x) is hardcoded in asm/mc146818rtc.h.  Verify that the
 	 * address provided by the device node matches.
 	 */
 	if (res[0].start != RTC_PORT(0))
+	{
 		return -EINVAL;
+	}
 
 	np = of_find_compatible_node(NULL, NULL, "chrp,iic");
+
 	if (!np)
+	{
 		np = of_find_compatible_node(NULL, NULL, "pnpPNP,000");
-	if (np) {
+	}
+
+	if (np)
+	{
 		of_node_put(np);
 		/*
 		 * Use a fixed interrupt value of 8 since on PPC if we are
@@ -60,7 +73,7 @@ static int  __init add_rtc(void)
 	}
 
 	pd = platform_device_register_simple("rtc_cmos", -1,
-					     &res[0], num_res);
+										 &res[0], num_res);
 
 	return PTR_ERR_OR_ZERO(pd);
 }

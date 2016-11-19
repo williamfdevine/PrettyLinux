@@ -46,8 +46,8 @@
 #define TIMER_2_CR_UPDOWN	(1 << 10)
 #define TIMER_3_CR_UPDOWN	(1 << 11)
 #define TIMER_DEFAULT_FLAGS	(TIMER_1_CR_UPDOWN | \
-				 TIMER_3_CR_ENABLE | \
-				 TIMER_3_CR_UPDOWN)
+							 TIMER_3_CR_ENABLE | \
+							 TIMER_3_CR_UPDOWN)
 
 #define TIMER_1_INT_MATCH1	(1 << 0)
 #define TIMER_1_INT_MATCH2	(1 << 1)
@@ -69,15 +69,18 @@ static u64 notrace gemini_read_sched_clock(void)
 }
 
 static int gemini_timer_set_next_event(unsigned long cycles,
-				       struct clock_event_device *evt)
+									   struct clock_event_device *evt)
 {
 	u32 cr;
 
 	/* Setup the match register */
 	cr = readl(TIMER_COUNT(TIMER1_BASE));
 	writel(cr + cycles, TIMER_MATCH1(TIMER1_BASE));
+
 	if (readl(TIMER_COUNT(TIMER1_BASE)) - cr > cycles)
+	{
 		return -ETIME;
+	}
 
 	return 0;
 }
@@ -144,13 +147,14 @@ static int gemini_timer_set_periodic(struct clock_event_device *evt)
 }
 
 /* Use TIMER1 as clock event */
-static struct clock_event_device gemini_clockevent = {
+static struct clock_event_device gemini_clockevent =
+{
 	.name			= "TIMER1",
 	/* Reasonably fast and accurate clock event */
 	.rating			= 300,
 	.shift                  = 32,
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_next_event		= gemini_timer_set_next_event,
 	.set_state_shutdown	= gemini_timer_shutdown,
 	.set_state_periodic	= gemini_timer_set_periodic,
@@ -169,7 +173,8 @@ static irqreturn_t gemini_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction gemini_timer_irq = {
+static struct irqaction gemini_timer_irq =
+{
 	.name		= "Gemini Timer Tick",
 	.flags		= IRQF_TIMER,
 	.handler	= gemini_timer_interrupt,
@@ -189,19 +194,23 @@ void __init gemini_timer_init(void)
 
 	tick_rate /= 6;		/* APB bus run AHB*(1/6) */
 
-	switch(reg_v & CPU_AHB_RATIO_MASK) {
-	case CPU_AHB_1_1:
-		printk(KERN_CONT "(1/1)\n");
-		break;
-	case CPU_AHB_3_2:
-		printk(KERN_CONT "(3/2)\n");
-		break;
-	case CPU_AHB_24_13:
-		printk(KERN_CONT "(24/13)\n");
-		break;
-	case CPU_AHB_2_1:
-		printk(KERN_CONT "(2/1)\n");
-		break;
+	switch (reg_v & CPU_AHB_RATIO_MASK)
+	{
+		case CPU_AHB_1_1:
+			printk(KERN_CONT "(1/1)\n");
+			break;
+
+		case CPU_AHB_3_2:
+			printk(KERN_CONT "(3/2)\n");
+			break;
+
+		case CPU_AHB_24_13:
+			printk(KERN_CONT "(24/13)\n");
+			break;
+
+		case CPU_AHB_2_1:
+			printk(KERN_CONT "(2/1)\n");
+			break;
 	}
 
 	/*
@@ -220,8 +229,8 @@ void __init gemini_timer_init(void)
 	writel(0, TIMER_MATCH1(TIMER3_BASE));
 	writel(0, TIMER_MATCH2(TIMER3_BASE));
 	clocksource_mmio_init(TIMER_COUNT(TIMER3_BASE),
-			      "gemini_clocksource", tick_rate,
-			      300, 32, clocksource_mmio_readl_up);
+						  "gemini_clocksource", tick_rate,
+						  300, 32, clocksource_mmio_readl_up);
 	sched_clock_register(gemini_read_sched_clock, 32, tick_rate);
 
 	/*
@@ -234,6 +243,6 @@ void __init gemini_timer_init(void)
 	setup_irq(IRQ_TIMER1, &gemini_timer_irq);
 	gemini_clockevent.cpumask = cpumask_of(0);
 	clockevents_config_and_register(&gemini_clockevent, tick_rate,
-					1, 0xffffffff);
+									1, 0xffffffff);
 
 }

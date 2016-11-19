@@ -35,7 +35,7 @@
 void __init mpc8536_ds_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 }
@@ -46,7 +46,9 @@ void __init mpc8536_ds_pic_init(void)
 static void __init mpc8536_ds_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mpc8536_ds_setup_arch()", 0);
+	}
 
 	fsl_pci_assign_primary();
 
@@ -67,16 +69,17 @@ static int __init mpc8536_ds_probe(void)
 	return of_machine_is_compatible("fsl,mpc8536ds");
 }
 
-define_machine(mpc8536_ds) {
+define_machine(mpc8536_ds)
+{
 	.name			= "MPC8536 DS",
-	.probe			= mpc8536_ds_probe,
-	.setup_arch		= mpc8536_ds_setup_arch,
-	.init_IRQ		= mpc8536_ds_pic_init,
+			 .probe			= mpc8536_ds_probe,
+					 .setup_arch		= mpc8536_ds_setup_arch,
+						 .init_IRQ		= mpc8536_ds_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+								 .pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+								  .get_irq		= mpic_get_irq,
+										 .calibrate_decr		= generic_calibrate_decr,
+											 .progress		= udbg_progress,
 };

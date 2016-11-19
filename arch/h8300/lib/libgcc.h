@@ -62,10 +62,12 @@ typedef          int SItype     __attribute__ ((mode (SI)));
 typedef unsigned int USItype    __attribute__ ((mode (SI)));
 typedef		 int DItype	__attribute__ ((mode (DI)));
 typedef unsigned int UDItype	__attribute__ ((mode (DI)));
-struct DWstruct {
+struct DWstruct
+{
 	Wtype high, low;
 };
-typedef union {
+typedef union
+{
 	struct DWstruct s;
 	DWtype ll;
 } DWunion;

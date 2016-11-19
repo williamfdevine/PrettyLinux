@@ -30,25 +30,28 @@
  */
 #define TASK_SIZE	PAGE_OFFSET
 #ifdef __KERNEL__
-#define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
-#define STACK_TOP_MAX	STACK_TOP
+	#define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
+	#define STACK_TOP_MAX	STACK_TOP
 #endif /* __KERNEL__ */
 
 struct task_struct;
 
 #ifdef __KERNEL__
-struct fpq {
+struct fpq
+{
 	unsigned long *insn_addr;
 	unsigned long insn;
 };
 #endif
 
-typedef struct {
+typedef struct
+{
 	int seg;
 } mm_segment_t;
 
 /* The Sparc processor specific thread struct. */
-struct thread_struct {
+struct thread_struct
+{
 	struct pt_regs *kregs;
 	unsigned int _pad1;
 
@@ -69,16 +72,16 @@ struct thread_struct {
 #define SPARC_FLAG_UNALIGNED    0x2    /* is allowed to do unaligned accesses */
 
 #define INIT_THREAD  { \
-	.flags = SPARC_FLAG_KTHREAD, \
-	.current_ds = KERNEL_DS, \
-}
+		.flags = SPARC_FLAG_KTHREAD, \
+				 .current_ds = KERNEL_DS, \
+	}
 
 /* Return saved PC of a blocked thread. */
 unsigned long thread_saved_pc(struct task_struct *t);
 
 /* Do necessary setup to start up a newly executed thread. */
-static inline void start_thread(struct pt_regs * regs, unsigned long pc,
-				    unsigned long sp)
+static inline void start_thread(struct pt_regs *regs, unsigned long pc,
+								unsigned long sp)
 {
 	register unsigned long zero asm("g1");
 
@@ -88,20 +91,20 @@ static inline void start_thread(struct pt_regs * regs, unsigned long pc,
 	regs->y = 0;
 	zero = 0;
 	__asm__ __volatile__("std\t%%g0, [%0 + %3 + 0x00]\n\t"
-			     "std\t%%g0, [%0 + %3 + 0x08]\n\t"
-			     "std\t%%g0, [%0 + %3 + 0x10]\n\t"
-			     "std\t%%g0, [%0 + %3 + 0x18]\n\t"
-			     "std\t%%g0, [%0 + %3 + 0x20]\n\t"
-			     "std\t%%g0, [%0 + %3 + 0x28]\n\t"
-			     "std\t%%g0, [%0 + %3 + 0x30]\n\t"
-			     "st\t%1, [%0 + %3 + 0x38]\n\t"
-			     "st\t%%g0, [%0 + %3 + 0x3c]"
-			     : /* no outputs */
-			     : "r" (regs),
-			       "r" (sp - sizeof(struct reg_window32)),
-			       "r" (zero),
-			       "i" ((const unsigned long)(&((struct pt_regs *)0)->u_regs[0]))
-			     : "memory");
+						 "std\t%%g0, [%0 + %3 + 0x08]\n\t"
+						 "std\t%%g0, [%0 + %3 + 0x10]\n\t"
+						 "std\t%%g0, [%0 + %3 + 0x18]\n\t"
+						 "std\t%%g0, [%0 + %3 + 0x20]\n\t"
+						 "std\t%%g0, [%0 + %3 + 0x28]\n\t"
+						 "std\t%%g0, [%0 + %3 + 0x30]\n\t"
+						 "st\t%1, [%0 + %3 + 0x38]\n\t"
+						 "st\t%%g0, [%0 + %3 + 0x3c]"
+						 : /* no outputs */
+						 : "r" (regs),
+						 "r" (sp - sizeof(struct reg_window32)),
+						 "r" (zero),
+						 "i" ((const unsigned long)(&((struct pt_regs *)0)->u_regs[0]))
+						 : "memory");
 }
 
 /* Free all resources held by a thread. */
@@ -115,13 +118,13 @@ unsigned long get_wchan(struct task_struct *);
 
 #ifdef __KERNEL__
 
-extern struct task_struct *last_task_used_math;
-int do_mathemu(struct pt_regs *regs, struct task_struct *fpt);
+	extern struct task_struct *last_task_used_math;
+	int do_mathemu(struct pt_regs *regs, struct task_struct *fpt);
 
-#define cpu_relax()	barrier()
-#define cpu_relax_lowlatency() cpu_relax()
+	#define cpu_relax()	barrier()
+	#define cpu_relax_lowlatency() cpu_relax()
 
-extern void (*sparc_idle)(void);
+	extern void (*sparc_idle)(void);
 
 #endif
 

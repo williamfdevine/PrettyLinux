@@ -20,7 +20,8 @@
 
 #define REG_RESERVED (~((1ULL << PERF_REG_POWERPC_MAX) - 1))
 
-static unsigned int pt_regs_offset[PERF_REG_POWERPC_MAX] = {
+static unsigned int pt_regs_offset[PERF_REG_POWERPC_MAX] =
+{
 	PT_REGS_OFFSET(PERF_REG_POWERPC_R0,  gpr[0]),
 	PT_REGS_OFFSET(PERF_REG_POWERPC_R1,  gpr[1]),
 	PT_REGS_OFFSET(PERF_REG_POWERPC_R2,  gpr[2]),
@@ -73,7 +74,9 @@ static unsigned int pt_regs_offset[PERF_REG_POWERPC_MAX] = {
 u64 perf_reg_value(struct pt_regs *regs, int idx)
 {
 	if (WARN_ON_ONCE(idx >= PERF_REG_POWERPC_MAX))
+	{
 		return 0;
+	}
 
 	return regs_get_register(regs, pt_regs_offset[idx]);
 }
@@ -81,23 +84,29 @@ u64 perf_reg_value(struct pt_regs *regs, int idx)
 int perf_reg_validate(u64 mask)
 {
 	if (!mask || mask & REG_RESERVED)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
 u64 perf_reg_abi(struct task_struct *task)
 {
 #ifdef CONFIG_PPC64
+
 	if (!test_tsk_thread_flag(task, TIF_32BIT))
+	{
 		return PERF_SAMPLE_REGS_ABI_64;
+	}
 	else
 #endif
-	return PERF_SAMPLE_REGS_ABI_32;
+		return PERF_SAMPLE_REGS_ABI_32;
 }
 
 void perf_get_regs_user(struct perf_regs *regs_user,
-			struct pt_regs *regs,
-			struct pt_regs *regs_user_copy)
+						struct pt_regs *regs,
+						struct pt_regs *regs_user_copy)
 {
 	regs_user->regs = task_pt_regs(current);
 	regs_user->abi  = perf_reg_abi(current);

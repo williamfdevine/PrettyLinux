@@ -39,10 +39,10 @@
 #include <asm/fpu/api.h>
 
 #ifdef CONFIG_X86_32
-/* reduce register pressure */
-# define XOR_CONSTANT_CONSTRAINT "i"
+	/* reduce register pressure */
+	#define XOR_CONSTANT_CONSTRAINT "i"
 #else
-# define XOR_CONSTANT_CONSTRAINT "re"
+	#define XOR_CONSTANT_CONSTRAINT "re"
 #endif
 
 #define OFFS(x)		"16*("#x")"
@@ -61,11 +61,11 @@
 #define NOP(x)
 
 #define BLK64(pf, op, i)				\
-		pf(i)					\
-		op(i, 0)				\
-			op(i + 1, 1)			\
-				op(i + 2, 2)		\
-					op(i + 3, 3)
+	pf(i)					\
+	op(i, 0)				\
+	op(i + 1, 1)			\
+	op(i + 2, 2)		\
+	op(i + 3, 3)
 
 static void
 xor_sse_2(unsigned long bytes, unsigned long *p1, unsigned long *p2)
@@ -77,228 +77,228 @@ xor_sse_2(unsigned long bytes, unsigned long *p1, unsigned long *p2)
 	asm volatile(
 #undef BLOCK
 #define BLOCK(i)					\
-		LD(i, 0)				\
-			LD(i + 1, 1)			\
-		PF1(i)					\
-				PF1(i + 2)		\
-				LD(i + 2, 2)		\
-					LD(i + 3, 3)	\
-		PF0(i + 4)				\
-				PF0(i + 6)		\
-		XO1(i, 0)				\
-			XO1(i + 1, 1)			\
-				XO1(i + 2, 2)		\
-					XO1(i + 3, 3)	\
-		ST(i, 0)				\
-			ST(i + 1, 1)			\
-				ST(i + 2, 2)		\
-					ST(i + 3, 3)	\
+	LD(i, 0)				\
+	LD(i + 1, 1)			\
+	PF1(i)					\
+	PF1(i + 2)		\
+	LD(i + 2, 2)		\
+	LD(i + 3, 3)	\
+	PF0(i + 4)				\
+	PF0(i + 6)		\
+	XO1(i, 0)				\
+	XO1(i + 1, 1)			\
+	XO1(i + 2, 2)		\
+	XO1(i + 3, 3)	\
+	ST(i, 0)				\
+	ST(i + 1, 1)			\
+	ST(i + 2, 2)		\
+	ST(i + 3, 3)	\
 
 
-		PF0(0)
-				PF0(2)
+	PF0(0)
+	PF0(2)
 
 	" .align 32			;\n"
 	" 1:                            ;\n"
 
-		BLOCK(0)
-		BLOCK(4)
-		BLOCK(8)
-		BLOCK(12)
+	BLOCK(0)
+	BLOCK(4)
+	BLOCK(8)
+	BLOCK(12)
 
 	"       add %[inc], %[p1]       ;\n"
 	"       add %[inc], %[p2]       ;\n"
 	"       dec %[cnt]              ;\n"
 	"       jnz 1b                  ;\n"
-	: [cnt] "+r" (lines),
-	  [p1] "+r" (p1), [p2] "+r" (p2)
-	: [inc] XOR_CONSTANT_CONSTRAINT (256UL)
-	: "memory");
+		: [cnt] "+r" (lines),
+		  [p1] "+r" (p1), [p2] "+r" (p2)
+			  : [inc] XOR_CONSTANT_CONSTRAINT (256UL)
+				: "memory");
 
-	kernel_fpu_end();
-}
+		kernel_fpu_end();
+	}
 
-static void
-xor_sse_2_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2)
-{
-	unsigned long lines = bytes >> 8;
+		static void
+		xor_sse_2_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2)
+	{
+		unsigned long lines = bytes >> 8;
 
-	kernel_fpu_begin();
+		kernel_fpu_begin();
 
-	asm volatile(
+		asm volatile(
 #undef BLOCK
 #define BLOCK(i)			\
-		BLK64(PF0, LD, i)	\
-		BLK64(PF1, XO1, i)	\
-		BLK64(NOP, ST, i)	\
+	BLK64(PF0, LD, i)	\
+	BLK64(PF1, XO1, i)	\
+	BLK64(NOP, ST, i)	\
 
 	" .align 32			;\n"
 	" 1:                            ;\n"
 
-		BLOCK(0)
-		BLOCK(4)
-		BLOCK(8)
-		BLOCK(12)
+	BLOCK(0)
+	BLOCK(4)
+	BLOCK(8)
+	BLOCK(12)
 
 	"       add %[inc], %[p1]       ;\n"
 	"       add %[inc], %[p2]       ;\n"
 	"       dec %[cnt]              ;\n"
 	"       jnz 1b                  ;\n"
-	: [cnt] "+r" (lines),
-	  [p1] "+r" (p1), [p2] "+r" (p2)
-	: [inc] XOR_CONSTANT_CONSTRAINT (256UL)
-	: "memory");
+		: [cnt] "+r" (lines),
+		  [p1] "+r" (p1), [p2] "+r" (p2)
+			  : [inc] XOR_CONSTANT_CONSTRAINT (256UL)
+				: "memory");
 
-	kernel_fpu_end();
-}
+		kernel_fpu_end();
+	}
 
-static void
-xor_sse_3(unsigned long bytes, unsigned long *p1, unsigned long *p2,
-	  unsigned long *p3)
-{
-	unsigned long lines = bytes >> 8;
+		static void
+		xor_sse_3(unsigned long bytes, unsigned long *p1, unsigned long *p2,
+				  unsigned long *p3)
+	{
+		unsigned long lines = bytes >> 8;
 
-	kernel_fpu_begin();
+		kernel_fpu_begin();
 
-	asm volatile(
+		asm volatile(
 #undef BLOCK
 #define BLOCK(i) \
-		PF1(i)					\
-				PF1(i + 2)		\
-		LD(i, 0)				\
-			LD(i + 1, 1)			\
-				LD(i + 2, 2)		\
-					LD(i + 3, 3)	\
-		PF2(i)					\
-				PF2(i + 2)		\
-		PF0(i + 4)				\
-				PF0(i + 6)		\
-		XO1(i, 0)				\
-			XO1(i + 1, 1)			\
-				XO1(i + 2, 2)		\
-					XO1(i + 3, 3)	\
-		XO2(i, 0)				\
-			XO2(i + 1, 1)			\
-				XO2(i + 2, 2)		\
-					XO2(i + 3, 3)	\
-		ST(i, 0)				\
-			ST(i + 1, 1)			\
-				ST(i + 2, 2)		\
-					ST(i + 3, 3)	\
+	PF1(i)					\
+	PF1(i + 2)		\
+	LD(i, 0)				\
+	LD(i + 1, 1)			\
+	LD(i + 2, 2)		\
+	LD(i + 3, 3)	\
+	PF2(i)					\
+	PF2(i + 2)		\
+	PF0(i + 4)				\
+	PF0(i + 6)		\
+	XO1(i, 0)				\
+	XO1(i + 1, 1)			\
+	XO1(i + 2, 2)		\
+	XO1(i + 3, 3)	\
+	XO2(i, 0)				\
+	XO2(i + 1, 1)			\
+	XO2(i + 2, 2)		\
+	XO2(i + 3, 3)	\
+	ST(i, 0)				\
+	ST(i + 1, 1)			\
+	ST(i + 2, 2)		\
+	ST(i + 3, 3)	\
 
 
-		PF0(0)
-				PF0(2)
+	PF0(0)
+	PF0(2)
 
 	" .align 32			;\n"
 	" 1:                            ;\n"
 
-		BLOCK(0)
-		BLOCK(4)
-		BLOCK(8)
-		BLOCK(12)
+	BLOCK(0)
+	BLOCK(4)
+	BLOCK(8)
+	BLOCK(12)
 
 	"       add %[inc], %[p1]       ;\n"
 	"       add %[inc], %[p2]       ;\n"
 	"       add %[inc], %[p3]       ;\n"
 	"       dec %[cnt]              ;\n"
 	"       jnz 1b                  ;\n"
-	: [cnt] "+r" (lines),
-	  [p1] "+r" (p1), [p2] "+r" (p2), [p3] "+r" (p3)
-	: [inc] XOR_CONSTANT_CONSTRAINT (256UL)
-	: "memory");
+		: [cnt] "+r" (lines),
+		  [p1] "+r" (p1), [p2] "+r" (p2), [p3] "+r" (p3)
+			  : [inc] XOR_CONSTANT_CONSTRAINT (256UL)
+				: "memory");
 
-	kernel_fpu_end();
-}
+		kernel_fpu_end();
+	}
 
-static void
-xor_sse_3_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2,
-	       unsigned long *p3)
-{
-	unsigned long lines = bytes >> 8;
+		static void
+		xor_sse_3_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2,
+					   unsigned long *p3)
+	{
+		unsigned long lines = bytes >> 8;
 
-	kernel_fpu_begin();
+		kernel_fpu_begin();
 
-	asm volatile(
+		asm volatile(
 #undef BLOCK
 #define BLOCK(i)			\
-		BLK64(PF0, LD, i)	\
-		BLK64(PF1, XO1, i)	\
-		BLK64(PF2, XO2, i)	\
-		BLK64(NOP, ST, i)	\
+	BLK64(PF0, LD, i)	\
+	BLK64(PF1, XO1, i)	\
+	BLK64(PF2, XO2, i)	\
+	BLK64(NOP, ST, i)	\
 
 	" .align 32			;\n"
 	" 1:                            ;\n"
 
-		BLOCK(0)
-		BLOCK(4)
-		BLOCK(8)
-		BLOCK(12)
+	BLOCK(0)
+	BLOCK(4)
+	BLOCK(8)
+	BLOCK(12)
 
 	"       add %[inc], %[p1]       ;\n"
 	"       add %[inc], %[p2]       ;\n"
 	"       add %[inc], %[p3]       ;\n"
 	"       dec %[cnt]              ;\n"
 	"       jnz 1b                  ;\n"
-	: [cnt] "+r" (lines),
-	  [p1] "+r" (p1), [p2] "+r" (p2), [p3] "+r" (p3)
-	: [inc] XOR_CONSTANT_CONSTRAINT (256UL)
-	: "memory");
+		: [cnt] "+r" (lines),
+		  [p1] "+r" (p1), [p2] "+r" (p2), [p3] "+r" (p3)
+			  : [inc] XOR_CONSTANT_CONSTRAINT (256UL)
+				: "memory");
 
-	kernel_fpu_end();
-}
+		kernel_fpu_end();
+	}
 
-static void
-xor_sse_4(unsigned long bytes, unsigned long *p1, unsigned long *p2,
-	  unsigned long *p3, unsigned long *p4)
-{
-	unsigned long lines = bytes >> 8;
+		static void
+		xor_sse_4(unsigned long bytes, unsigned long *p1, unsigned long *p2,
+				  unsigned long *p3, unsigned long *p4)
+	{
+		unsigned long lines = bytes >> 8;
 
-	kernel_fpu_begin();
+		kernel_fpu_begin();
 
-	asm volatile(
+		asm volatile(
 #undef BLOCK
 #define BLOCK(i) \
-		PF1(i)					\
-				PF1(i + 2)		\
-		LD(i, 0)				\
-			LD(i + 1, 1)			\
-				LD(i + 2, 2)		\
-					LD(i + 3, 3)	\
-		PF2(i)					\
-				PF2(i + 2)		\
-		XO1(i, 0)				\
-			XO1(i + 1, 1)			\
-				XO1(i + 2, 2)		\
-					XO1(i + 3, 3)	\
-		PF3(i)					\
-				PF3(i + 2)		\
-		PF0(i + 4)				\
-				PF0(i + 6)		\
-		XO2(i, 0)				\
-			XO2(i + 1, 1)			\
-				XO2(i + 2, 2)		\
-					XO2(i + 3, 3)	\
-		XO3(i, 0)				\
-			XO3(i + 1, 1)			\
-				XO3(i + 2, 2)		\
-					XO3(i + 3, 3)	\
-		ST(i, 0)				\
-			ST(i + 1, 1)			\
-				ST(i + 2, 2)		\
-					ST(i + 3, 3)	\
+	PF1(i)					\
+	PF1(i + 2)		\
+	LD(i, 0)				\
+	LD(i + 1, 1)			\
+	LD(i + 2, 2)		\
+	LD(i + 3, 3)	\
+	PF2(i)					\
+	PF2(i + 2)		\
+	XO1(i, 0)				\
+	XO1(i + 1, 1)			\
+	XO1(i + 2, 2)		\
+	XO1(i + 3, 3)	\
+	PF3(i)					\
+	PF3(i + 2)		\
+	PF0(i + 4)				\
+	PF0(i + 6)		\
+	XO2(i, 0)				\
+	XO2(i + 1, 1)			\
+	XO2(i + 2, 2)		\
+	XO2(i + 3, 3)	\
+	XO3(i, 0)				\
+	XO3(i + 1, 1)			\
+	XO3(i + 2, 2)		\
+	XO3(i + 3, 3)	\
+	ST(i, 0)				\
+	ST(i + 1, 1)			\
+	ST(i + 2, 2)		\
+	ST(i + 3, 3)	\
 
 
-		PF0(0)
-				PF0(2)
+	PF0(0)
+	PF0(2)
 
 	" .align 32			;\n"
 	" 1:                            ;\n"
 
-		BLOCK(0)
-		BLOCK(4)
-		BLOCK(8)
-		BLOCK(12)
+	BLOCK(0)
+	BLOCK(4)
+	BLOCK(8)
+	BLOCK(12)
 
 	"       add %[inc], %[p1]       ;\n"
 	"       add %[inc], %[p2]       ;\n"
@@ -306,38 +306,38 @@ xor_sse_4(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 	"       add %[inc], %[p4]       ;\n"
 	"       dec %[cnt]              ;\n"
 	"       jnz 1b                  ;\n"
-	: [cnt] "+r" (lines), [p1] "+r" (p1),
-	  [p2] "+r" (p2), [p3] "+r" (p3), [p4] "+r" (p4)
-	: [inc] XOR_CONSTANT_CONSTRAINT (256UL)
-	: "memory");
+		: [cnt] "+r" (lines), [p1] "+r" (p1),
+		  [p2] "+r" (p2), [p3] "+r" (p3), [p4] "+r" (p4)
+			  : [inc] XOR_CONSTANT_CONSTRAINT (256UL)
+				: "memory");
 
-	kernel_fpu_end();
-}
+		kernel_fpu_end();
+	}
 
-static void
-xor_sse_4_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2,
-	       unsigned long *p3, unsigned long *p4)
-{
-	unsigned long lines = bytes >> 8;
+		static void
+		xor_sse_4_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2,
+					   unsigned long *p3, unsigned long *p4)
+	{
+		unsigned long lines = bytes >> 8;
 
-	kernel_fpu_begin();
+		kernel_fpu_begin();
 
-	asm volatile(
+		asm volatile(
 #undef BLOCK
 #define BLOCK(i)			\
-		BLK64(PF0, LD, i)	\
-		BLK64(PF1, XO1, i)	\
-		BLK64(PF2, XO2, i)	\
-		BLK64(PF3, XO3, i)	\
-		BLK64(NOP, ST, i)	\
+	BLK64(PF0, LD, i)	\
+	BLK64(PF1, XO1, i)	\
+	BLK64(PF2, XO2, i)	\
+	BLK64(PF3, XO3, i)	\
+	BLK64(NOP, ST, i)	\
 
 	" .align 32			;\n"
 	" 1:                            ;\n"
 
-		BLOCK(0)
-		BLOCK(4)
-		BLOCK(8)
-		BLOCK(12)
+	BLOCK(0)
+	BLOCK(4)
+	BLOCK(8)
+	BLOCK(12)
 
 	"       add %[inc], %[p1]       ;\n"
 	"       add %[inc], %[p2]       ;\n"
@@ -345,71 +345,71 @@ xor_sse_4_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 	"       add %[inc], %[p4]       ;\n"
 	"       dec %[cnt]              ;\n"
 	"       jnz 1b                  ;\n"
-	: [cnt] "+r" (lines), [p1] "+r" (p1),
-	  [p2] "+r" (p2), [p3] "+r" (p3), [p4] "+r" (p4)
-	: [inc] XOR_CONSTANT_CONSTRAINT (256UL)
-	: "memory");
+		: [cnt] "+r" (lines), [p1] "+r" (p1),
+		  [p2] "+r" (p2), [p3] "+r" (p3), [p4] "+r" (p4)
+			  : [inc] XOR_CONSTANT_CONSTRAINT (256UL)
+				: "memory");
 
-	kernel_fpu_end();
-}
+		kernel_fpu_end();
+	}
 
-static void
-xor_sse_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
-	  unsigned long *p3, unsigned long *p4, unsigned long *p5)
-{
-	unsigned long lines = bytes >> 8;
+		static void
+		xor_sse_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
+				  unsigned long *p3, unsigned long *p4, unsigned long *p5)
+	{
+		unsigned long lines = bytes >> 8;
 
-	kernel_fpu_begin();
+		kernel_fpu_begin();
 
-	asm volatile(
+		asm volatile(
 #undef BLOCK
 #define BLOCK(i) \
-		PF1(i)					\
-				PF1(i + 2)		\
-		LD(i, 0)				\
-			LD(i + 1, 1)			\
-				LD(i + 2, 2)		\
-					LD(i + 3, 3)	\
-		PF2(i)					\
-				PF2(i + 2)		\
-		XO1(i, 0)				\
-			XO1(i + 1, 1)			\
-				XO1(i + 2, 2)		\
-					XO1(i + 3, 3)	\
-		PF3(i)					\
-				PF3(i + 2)		\
-		XO2(i, 0)				\
-			XO2(i + 1, 1)			\
-				XO2(i + 2, 2)		\
-					XO2(i + 3, 3)	\
-		PF4(i)					\
-				PF4(i + 2)		\
-		PF0(i + 4)				\
-				PF0(i + 6)		\
-		XO3(i, 0)				\
-			XO3(i + 1, 1)			\
-				XO3(i + 2, 2)		\
-					XO3(i + 3, 3)	\
-		XO4(i, 0)				\
-			XO4(i + 1, 1)			\
-				XO4(i + 2, 2)		\
-					XO4(i + 3, 3)	\
-		ST(i, 0)				\
-			ST(i + 1, 1)			\
-				ST(i + 2, 2)		\
-					ST(i + 3, 3)	\
+	PF1(i)					\
+	PF1(i + 2)		\
+	LD(i, 0)				\
+	LD(i + 1, 1)			\
+	LD(i + 2, 2)		\
+	LD(i + 3, 3)	\
+	PF2(i)					\
+	PF2(i + 2)		\
+	XO1(i, 0)				\
+	XO1(i + 1, 1)			\
+	XO1(i + 2, 2)		\
+	XO1(i + 3, 3)	\
+	PF3(i)					\
+	PF3(i + 2)		\
+	XO2(i, 0)				\
+	XO2(i + 1, 1)			\
+	XO2(i + 2, 2)		\
+	XO2(i + 3, 3)	\
+	PF4(i)					\
+	PF4(i + 2)		\
+	PF0(i + 4)				\
+	PF0(i + 6)		\
+	XO3(i, 0)				\
+	XO3(i + 1, 1)			\
+	XO3(i + 2, 2)		\
+	XO3(i + 3, 3)	\
+	XO4(i, 0)				\
+	XO4(i + 1, 1)			\
+	XO4(i + 2, 2)		\
+	XO4(i + 3, 3)	\
+	ST(i, 0)				\
+	ST(i + 1, 1)			\
+	ST(i + 2, 2)		\
+	ST(i + 3, 3)	\
 
 
-		PF0(0)
-				PF0(2)
+	PF0(0)
+	PF0(2)
 
 	" .align 32			;\n"
 	" 1:                            ;\n"
 
-		BLOCK(0)
-		BLOCK(4)
-		BLOCK(8)
-		BLOCK(12)
+	BLOCK(0)
+	BLOCK(4)
+	BLOCK(8)
+	BLOCK(12)
 
 	"       add %[inc], %[p1]       ;\n"
 	"       add %[inc], %[p2]       ;\n"
@@ -418,39 +418,39 @@ xor_sse_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 	"       add %[inc], %[p5]       ;\n"
 	"       dec %[cnt]              ;\n"
 	"       jnz 1b                  ;\n"
-	: [cnt] "+r" (lines), [p1] "+r" (p1), [p2] "+r" (p2),
-	  [p3] "+r" (p3), [p4] "+r" (p4), [p5] "+r" (p5)
-	: [inc] XOR_CONSTANT_CONSTRAINT (256UL)
-	: "memory");
+		: [cnt] "+r" (lines), [p1] "+r" (p1), [p2] "+r" (p2),
+		  [p3] "+r" (p3), [p4] "+r" (p4), [p5] "+r" (p5)
+			  : [inc] XOR_CONSTANT_CONSTRAINT (256UL)
+				: "memory");
 
-	kernel_fpu_end();
-}
+		kernel_fpu_end();
+	}
 
-static void
-xor_sse_5_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2,
-	       unsigned long *p3, unsigned long *p4, unsigned long *p5)
-{
-	unsigned long lines = bytes >> 8;
+		static void
+		xor_sse_5_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2,
+					   unsigned long *p3, unsigned long *p4, unsigned long *p5)
+	{
+		unsigned long lines = bytes >> 8;
 
-	kernel_fpu_begin();
+		kernel_fpu_begin();
 
-	asm volatile(
+		asm volatile(
 #undef BLOCK
 #define BLOCK(i)			\
-		BLK64(PF0, LD, i)	\
-		BLK64(PF1, XO1, i)	\
-		BLK64(PF2, XO2, i)	\
-		BLK64(PF3, XO3, i)	\
-		BLK64(PF4, XO4, i)	\
-		BLK64(NOP, ST, i)	\
+	BLK64(PF0, LD, i)	\
+	BLK64(PF1, XO1, i)	\
+	BLK64(PF2, XO2, i)	\
+	BLK64(PF3, XO3, i)	\
+	BLK64(PF4, XO4, i)	\
+	BLK64(NOP, ST, i)	\
 
 	" .align 32			;\n"
 	" 1:                            ;\n"
 
-		BLOCK(0)
-		BLOCK(4)
-		BLOCK(8)
-		BLOCK(12)
+	BLOCK(0)
+	BLOCK(4)
+	BLOCK(8)
+	BLOCK(12)
 
 	"       add %[inc], %[p1]       ;\n"
 	"       add %[inc], %[p2]       ;\n"
@@ -459,21 +459,22 @@ xor_sse_5_pf64(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 	"       add %[inc], %[p5]       ;\n"
 	"       dec %[cnt]              ;\n"
 	"       jnz 1b                  ;\n"
-	: [cnt] "+r" (lines), [p1] "+r" (p1), [p2] "+r" (p2),
-	  [p3] "+r" (p3), [p4] "+r" (p4), [p5] "+r" (p5)
-	: [inc] XOR_CONSTANT_CONSTRAINT (256UL)
-	: "memory");
+		: [cnt] "+r" (lines), [p1] "+r" (p1), [p2] "+r" (p2),
+		  [p3] "+r" (p3), [p4] "+r" (p4), [p5] "+r" (p5)
+			  : [inc] XOR_CONSTANT_CONSTRAINT (256UL)
+				: "memory");
 
-	kernel_fpu_end();
-}
+		kernel_fpu_end();
+	}
 
-static struct xor_block_template xor_block_sse_pf64 = {
-	.name = "prefetch64-sse",
-	.do_2 = xor_sse_2_pf64,
-	.do_3 = xor_sse_3_pf64,
-	.do_4 = xor_sse_4_pf64,
-	.do_5 = xor_sse_5_pf64,
-};
+		static struct xor_block_template xor_block_sse_pf64 =
+	{
+		.name = "prefetch64-sse",
+		.do_2 = xor_sse_2_pf64,
+		.do_3 = xor_sse_3_pf64,
+		.do_4 = xor_sse_4_pf64,
+		.do_5 = xor_sse_5_pf64,
+	};
 
 #undef LD
 #undef XO1
@@ -488,9 +489,9 @@ static struct xor_block_template xor_block_sse_pf64 = {
 #undef XOR_CONSTANT_CONSTRAINT
 
 #ifdef CONFIG_X86_32
-# include <asm/xor_32.h>
+	#include <asm/xor_32.h>
 #else
-# include <asm/xor_64.h>
+	#include <asm/xor_64.h>
 #endif
 
 #define XOR_SELECT_TEMPLATE(FASTEST) \

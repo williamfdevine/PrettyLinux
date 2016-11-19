@@ -13,8 +13,12 @@ ia64_handle_exception (struct pt_regs *regs, const struct exception_table_entry 
 	long fix = (u64) &e->fixup + e->fixup;
 
 	regs->r8 = -EFAULT;
+
 	if (fix & 4)
+	{
 		regs->r9 = 0;
+	}
+
 	regs->cr_iip = fix & ~0xf;
 	ia64_psr(regs)->ri = fix & 0x3;		/* set continuation slot number */
 }

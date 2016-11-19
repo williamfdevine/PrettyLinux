@@ -48,10 +48,15 @@ static void at93c_cycle_clk(u32 data)
 static void at93c_write_databit(u8 bit)
 {
 	u32 data = at93c_reg_read();
+
 	if (bit)
+	{
 		data |= 1 << at93c->wdata_shift;
+	}
 	else
+	{
 		data &= ~(1 << at93c->wdata_shift);
+	}
 
 	at93c_reg_write(data);
 	lasat_ndelay(100);
@@ -72,10 +77,12 @@ static u8 at93c_read_byte(void)
 	int i;
 	u8 data = 0;
 
-	for (i = 0; i <= 7; i++) {
+	for (i = 0; i <= 7; i++)
+	{
 		data <<= 1;
 		data |= at93c_read_databit();
 	}
+
 	return data;
 }
 
@@ -85,7 +92,8 @@ static void at93c_write_bits(u32 data, int size)
 	int shift = size - 1;
 	u32 mask = (1 << shift);
 
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		at93c_write_databit((data & mask) >> shift);
 		data <<= 1;
 	}
@@ -94,7 +102,7 @@ static void at93c_write_bits(u32 data, int size)
 static void at93c_init_op(void)
 {
 	at93c_reg_write((at93c_reg_read() | at93c->cs) &
-			~at93c->clk & ~(1 << at93c->rdata_shift));
+					~at93c->clk & ~(1 << at93c->rdata_shift));
 	lasat_ndelay(50);
 }
 
@@ -107,8 +115,10 @@ static void at93c_end_op(void)
 static void at93c_wait(void)
 {
 	at93c_init_op();
+
 	while (!at93c_read_databit())
 		;
+
 	at93c_end_op();
 };
 
@@ -130,7 +140,7 @@ u8 at93c_read(u8 addr)
 {
 	u8 byte;
 	at93c_init_op();
-	at93c_write_bits((addr & AT93C_ADDR_MAX)|AT93C_RCMD, 10);
+	at93c_write_bits((addr & AT93C_ADDR_MAX) | AT93C_RCMD, 10);
 	byte = at93c_read_byte();
 	at93c_end_op();
 	return byte;
@@ -140,7 +150,7 @@ void at93c_write(u8 addr, u8 data)
 {
 	at93c_disable_wp();
 	at93c_init_op();
-	at93c_write_bits((addr & AT93C_ADDR_MAX)|AT93C_WCMD, 10);
+	at93c_write_bits((addr & AT93C_ADDR_MAX) | AT93C_WCMD, 10);
 	at93c_write_bits(data, 8);
 	at93c_end_op();
 	at93c_wait();

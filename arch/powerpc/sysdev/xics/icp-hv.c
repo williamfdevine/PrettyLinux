@@ -29,11 +29,15 @@ static inline unsigned int icp_hv_get_xirr(unsigned char cppr)
 	unsigned int ret = XICS_IRQ_SPURIOUS;
 
 	rc = plpar_hcall(H_XIRR, retbuf, cppr);
-	if (rc == H_SUCCESS) {
+
+	if (rc == H_SUCCESS)
+	{
 		ret = (unsigned int)retbuf[0];
-	} else {
+	}
+	else
+	{
 		pr_err("%s: bad return code xirr cppr=0x%x returned %ld\n",
-			__func__, cppr, rc);
+			   __func__, cppr, rc);
 		WARN_ON_ONCE(1);
 	}
 
@@ -43,9 +47,11 @@ static inline unsigned int icp_hv_get_xirr(unsigned char cppr)
 static inline void icp_hv_set_cppr(u8 value)
 {
 	long rc = plpar_hcall_norets(H_CPPR, value);
-	if (rc != H_SUCCESS) {
+
+	if (rc != H_SUCCESS)
+	{
 		pr_err("%s: bad return code cppr cppr=0x%x returned %ld\n",
-			__func__, value, rc);
+			   __func__, value, rc);
 		WARN_ON_ONCE(1);
 	}
 }
@@ -53,9 +59,11 @@ static inline void icp_hv_set_cppr(u8 value)
 static inline void icp_hv_set_xirr(unsigned int value)
 {
 	long rc = plpar_hcall_norets(H_EOI, value);
-	if (rc != H_SUCCESS) {
+
+	if (rc != H_SUCCESS)
+	{
 		pr_err("%s: bad return code eoi xirr=0x%x returned %ld\n",
-			__func__, value, rc);
+			   __func__, value, rc);
 		WARN_ON_ONCE(1);
 		icp_hv_set_cppr(value >> 24);
 	}
@@ -69,9 +77,11 @@ static inline void icp_hv_set_qirr(int n_cpu , u8 value)
 	/* Make sure all previous accesses are ordered before IPI sending */
 	mb();
 	rc = plpar_hcall_norets(H_IPI, hw_cpu, value);
-	if (rc != H_SUCCESS) {
+
+	if (rc != H_SUCCESS)
+	{
 		pr_err("%s: bad return code qirr cpu=%d hw_cpu=%d mfrr=0x%x "
-			"returned %ld\n", __func__, n_cpu, hw_cpu, value, rc);
+			   "returned %ld\n", __func__, n_cpu, hw_cpu, value, rc);
 		WARN_ON_ONCE(1);
 	}
 }
@@ -112,10 +122,14 @@ static unsigned int icp_hv_get_irq(void)
 	unsigned int irq;
 
 	if (vec == XICS_IRQ_SPURIOUS)
+	{
 		return 0;
+	}
 
 	irq = irq_find_mapping(xics_host, vec);
-	if (likely(irq)) {
+
+	if (likely(irq))
+	{
 		xics_push_cppr(vec);
 		return irq;
 	}
@@ -154,7 +168,8 @@ static irqreturn_t icp_hv_ipi_action(int irq, void *dev_id)
 
 #endif /* CONFIG_SMP */
 
-static const struct icp_ops icp_hv_ops = {
+static const struct icp_ops icp_hv_ops =
+{
 	.get_irq	= icp_hv_get_irq,
 	.eoi		= icp_hv_eoi,
 	.set_priority	= icp_hv_set_cpu_priority,
@@ -171,11 +186,15 @@ int icp_hv_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "ibm,ppc-xicp");
+
 	if (!np)
 		np = of_find_node_by_type(NULL,
-				    "PowerPC-External-Interrupt-Presentation");
+								  "PowerPC-External-Interrupt-Presentation");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	icp_ops = &icp_hv_ops;
 

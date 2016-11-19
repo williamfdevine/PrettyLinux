@@ -19,7 +19,8 @@
 #include <asm/sizes.h>
 
 /* NOR Flash */
-static struct mtd_partition espt_nor_flash_partitions[] = {
+static struct mtd_partition espt_nor_flash_partitions[] =
+{
 	{
 		.name = "U-Boot",
 		.offset = 0,
@@ -36,13 +37,15 @@ static struct mtd_partition espt_nor_flash_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data espt_nor_flash_data = {
+static struct physmap_flash_data espt_nor_flash_data =
+{
 	.width = 2,
 	.parts = espt_nor_flash_partitions,
 	.nr_parts = ARRAY_SIZE(espt_nor_flash_partitions),
 };
 
-static struct resource espt_nor_flash_resources[] = {
+static struct resource espt_nor_flash_resources[] =
+{
 	[0] = {
 		.name = "NOR Flash",
 		.start = 0,
@@ -51,7 +54,8 @@ static struct resource espt_nor_flash_resources[] = {
 	},
 };
 
-static struct platform_device espt_nor_flash_device = {
+static struct platform_device espt_nor_flash_device =
+{
 	.name = "physmap-flash",
 	.resource = espt_nor_flash_resources,
 	.num_resources = ARRAY_SIZE(espt_nor_flash_resources),
@@ -61,7 +65,8 @@ static struct platform_device espt_nor_flash_device = {
 };
 
 /* SH-Ether */
-static struct resource sh_eth_resources[] = {
+static struct resource sh_eth_resources[] =
+{
 	{
 		.start  = 0xFEE00800,   /* use eth1 */
 		.end    = 0xFEE00F7C - 1,
@@ -77,13 +82,15 @@ static struct resource sh_eth_resources[] = {
 	},
 };
 
-static struct sh_eth_plat_data sh7763_eth_pdata = {
+static struct sh_eth_plat_data sh7763_eth_pdata =
+{
 	.phy = 0,
 	.edmac_endian = EDMAC_LITTLE_ENDIAN,
 	.phy_interface = PHY_INTERFACE_MODE_MII,
 };
 
-static struct platform_device espt_eth_device = {
+static struct platform_device espt_eth_device =
+{
 	.name       = "sh7763-gether",
 	.resource   = sh_eth_resources,
 	.num_resources  = ARRAY_SIZE(sh_eth_resources),
@@ -92,7 +99,8 @@ static struct platform_device espt_eth_device = {
 	},
 };
 
-static struct platform_device *espt_devices[] __initdata = {
+static struct platform_device *espt_devices[] __initdata =
+{
 	&espt_nor_flash_device,
 	&espt_eth_device,
 };
@@ -100,10 +108,11 @@ static struct platform_device *espt_devices[] __initdata = {
 static int __init espt_devices_setup(void)
 {
 	return platform_add_devices(espt_devices,
-				    ARRAY_SIZE(espt_devices));
+								ARRAY_SIZE(espt_devices));
 }
 device_initcall(espt_devices_setup);
 
-static struct sh_machine_vector mv_espt __initmv = {
+static struct sh_machine_vector mv_espt __initmv =
+{
 	.mv_name = "ESPT-GIGA",
 };

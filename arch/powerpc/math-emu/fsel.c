@@ -24,10 +24,13 @@ fsel(u32 *frD, void *frA, u32 *frB, u32 *frC)
 	printk("C: %08x %08x\n", frC[0], frC[1]);
 #endif
 
-	if (A_c == FP_CLS_NAN || (A_c != FP_CLS_ZERO && A_s)) {
+	if (A_c == FP_CLS_NAN || (A_c != FP_CLS_ZERO && A_s))
+	{
 		frD[0] = frB[0];
 		frD[1] = frB[1];
-	} else {
+	}
+	else
+	{
 		frD[0] = frC[0];
 		frD[1] = frC[1];
 	}

@@ -27,14 +27,16 @@
 static u8		async_cs, sync_cs;
 static unsigned		refclk_psec;
 
-static struct gpmc_settings tusb_async = {
+static struct gpmc_settings tusb_async =
+{
 	.wait_on_read	= true,
 	.wait_on_write	= true,
 	.device_width	= GPMC_DEVWIDTH_16BIT,
 	.mux_add_data	= GPMC_MUX_AD,
 };
 
-static struct gpmc_settings tusb_sync = {
+static struct gpmc_settings tusb_sync =
+{
 	.burst_read	= true,
 	.burst_write	= true,
 	.sync_read	= true,
@@ -111,24 +113,34 @@ int tusb6010_platform_retime(unsigned is_refclk)
 	int		status;
 
 	if (!refclk_psec)
+	{
 		return -ENODEV;
+	}
 
 	sysclk_ps = is_refclk ? refclk_psec : TUSB6010_OSCCLK_60;
 
 	status = tusb_set_async_mode(sysclk_ps);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		printk(error, "async", status);
 		goto done;
 	}
+
 	status = tusb_set_sync_mode(sysclk_ps);
+
 	if (status < 0)
+	{
 		printk(error, "sync", status);
+	}
+
 done:
 	return status;
 }
 EXPORT_SYMBOL_GPL(tusb6010_platform_retime);
 
-static struct resource tusb_resources[] = {
+static struct resource tusb_resources[] =
+{
 	/* Order is significant!  The start/end fields
 	 * are updated during setup..
 	 */
@@ -146,7 +158,8 @@ static struct resource tusb_resources[] = {
 
 static u64 tusb_dmamask = ~(u32)0;
 
-static struct platform_device tusb_device = {
+static struct platform_device tusb_device =
+{
 	.name		= "musb-tusb",
 	.id		= -1,
 	.dev = {
@@ -161,9 +174,9 @@ static struct platform_device tusb_device = {
 /* this may be called only from board-*.c setup code */
 int __init
 tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
-		unsigned ps_refclk, unsigned waitpin,
-		unsigned async, unsigned sync,
-		unsigned irq, unsigned dmachan)
+						 unsigned ps_refclk, unsigned waitpin,
+						 unsigned async, unsigned sync,
+						 unsigned irq, unsigned dmachan)
 {
 	int		status;
 	static char	error[] __initdata =
@@ -171,85 +184,129 @@ tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
 
 	/* ASYNC region, primarily for PIO */
 	status = gpmc_cs_request(async, SZ_16M, (unsigned long *)
-				&tusb_resources[0].start);
-	if (status < 0) {
+							 &tusb_resources[0].start);
+
+	if (status < 0)
+	{
 		printk(error, 1, status);
 		return status;
 	}
+
 	tusb_resources[0].end = tusb_resources[0].start + 0x9ff;
 	tusb_async.wait_pin = waitpin;
 	async_cs = async;
 
 	status = gpmc_cs_program_settings(async_cs, &tusb_async);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/* SYNC region, primarily for DMA */
 	status = gpmc_cs_request(sync, SZ_16M, (unsigned long *)
-				&tusb_resources[1].start);
-	if (status < 0) {
+							 &tusb_resources[1].start);
+
+	if (status < 0)
+	{
 		printk(error, 2, status);
 		return status;
 	}
+
 	tusb_resources[1].end = tusb_resources[1].start + 0x9ff;
 	tusb_sync.wait_pin = waitpin;
 	sync_cs = sync;
 
 	status = gpmc_cs_program_settings(sync_cs, &tusb_sync);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/* IRQ */
 	status = gpio_request_one(irq, GPIOF_IN, "TUSB6010 irq");
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		printk(error, 3, status);
 		return status;
 	}
+
 	tusb_resources[2].start = gpio_to_irq(irq);
 
 	/* set up memory timings ... can speed them up later */
-	if (!ps_refclk) {
+	if (!ps_refclk)
+	{
 		printk(error, 4, status);
 		return -ENODEV;
 	}
+
 	refclk_psec = ps_refclk;
 	status = tusb6010_platform_retime(1);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		printk(error, 5, status);
 		return status;
 	}
 
 	/* finish device setup ... */
-	if (!data) {
+	if (!data)
+	{
 		printk(error, 6, status);
 		return -ENODEV;
 	}
+
 	tusb_device.dev.platform_data = data;
 
 	/* REVISIT let the driver know what DMA channels work */
 	if (!dmachan)
+	{
 		tusb_device.dev.dma_mask = NULL;
-	else {
+	}
+	else
+	{
 		/* assume OMAP 2420 ES2.0 and later */
 		if (dmachan & (1 << 0))
+		{
 			omap_mux_init_signal("sys_ndmareq0", 0);
+		}
+
 		if (dmachan & (1 << 1))
+		{
 			omap_mux_init_signal("sys_ndmareq1", 0);
+		}
+
 		if (dmachan & (1 << 2))
+		{
 			omap_mux_init_signal("sys_ndmareq2", 0);
+		}
+
 		if (dmachan & (1 << 3))
+		{
 			omap_mux_init_signal("sys_ndmareq3", 0);
+		}
+
 		if (dmachan & (1 << 4))
+		{
 			omap_mux_init_signal("sys_ndmareq4", 0);
+		}
+
 		if (dmachan & (1 << 5))
+		{
 			omap_mux_init_signal("sys_ndmareq5", 0);
+		}
 	}
 
 	/* so far so good ... register the device */
 	status = platform_device_register(&tusb_device);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		printk(error, 7, status);
 		return status;
 	}
+
 	return 0;
 }

@@ -57,14 +57,15 @@ rx164_disable_irq(struct irq_data *d)
 	rx164_update_irq_hw(cached_irq_mask &= ~(1UL << (d->irq - 16)));
 }
 
-static struct irq_chip rx164_irq_type = {
+static struct irq_chip rx164_irq_type =
+{
 	.name		= "RX164",
 	.irq_unmask	= rx164_enable_irq,
 	.irq_mask	= rx164_disable_irq,
 	.irq_mask_ack	= rx164_disable_irq,
 };
 
-static void 
+static void
 rx164_device_interrupt(unsigned long vector)
 {
 	unsigned long pld;
@@ -80,13 +81,18 @@ rx164_device_interrupt(unsigned long vector)
 	 * Now for every possible bit set, work through them and call
 	 * the appropriate interrupt handler.
 	 */
-	while (pld) {
+	while (pld)
+	{
 		i = ffz(~pld);
 		pld &= pld - 1; /* clear least bit set */
-		if (i == 20) {
+
+		if (i == 20)
+		{
 			isa_no_iack_sc_device_interrupt(vector);
-		} else {
-			handle_irq(16+i);
+		}
+		else
+		{
+			handle_irq(16 + i);
 		}
 	}
 }
@@ -97,7 +103,9 @@ rx164_init_irq(void)
 	long i;
 
 	rx164_update_irq_hw(0);
-	for (i = 16; i < 40; ++i) {
+
+	for (i = 16; i < 40; ++i)
+	{
 		irq_set_chip_and_handler(i, &rx164_irq_type, handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
@@ -105,7 +113,7 @@ rx164_init_irq(void)
 	init_i8259a_irqs();
 	common_init_isa_dma();
 
-	setup_irq(16+20, &isa_cascade_irqaction);
+	setup_irq(16 + 20, &isa_cascade_irqaction);
 }
 
 
@@ -114,7 +122,7 @@ rx164_init_irq(void)
  *
  * PASS1:
  *
- *      Slot    IDSEL   INTA    INTB    INTC    INTD    
+ *      Slot    IDSEL   INTA    INTB    INTC    INTD
  *      0       6       5       10      15      20
  *      1       7       4       9       14      19
  *      2       5       3       8       13      18
@@ -122,48 +130,50 @@ rx164_init_irq(void)
  *      4       10      1       6       11      16
  *
  * PASS2:
- *      Slot    IDSEL   INTA    INTB    INTC    INTD    
+ *      Slot    IDSEL   INTA    INTB    INTC    INTD
  *      0       5       1       7       12      17
  *      1       6       2       8       13      18
  *      2       8       3       9       14      19
  *      3       9       4       10      15      20
  *      4       10      5       11      16      6
- *      
+ *
  */
 
 /*
- * IdSel       
+ * IdSel
  *   5  32 bit PCI option slot 0
  *   6  64 bit PCI option slot 1
  *   7  PCI-ISA bridge
  *   7  64 bit PCI option slot 2
  *   9  32 bit PCI option slot 3
  *  10  PCI-PCI bridge
- * 
+ *
  */
 
 static int __init
 rx164_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 #if 0
-	static char irq_tab_pass1[6][5] __initdata = {
-	  /*INT   INTA  INTB  INTC   INTD */
-	  { 16+3, 16+3, 16+8, 16+13, 16+18},      /* IdSel 5,  slot 2 */
-	  { 16+5, 16+5, 16+10, 16+15, 16+20},     /* IdSel 6,  slot 0 */
-	  { 16+4, 16+4, 16+9, 16+14, 16+19},      /* IdSel 7,  slot 1 */
-	  { -1,     -1,    -1,    -1,   -1},      /* IdSel 8, PCI/ISA bridge */
-	  { 16+2, 16+2, 16+7, 16+12, 16+17},      /* IdSel 9,  slot 3 */
-	  { 16+1, 16+1, 16+6, 16+11, 16+16},      /* IdSel 10, slot 4 */
+	static char irq_tab_pass1[6][5] __initdata =
+	{
+		/*INT   INTA  INTB  INTC   INTD */
+		{ 16 + 3, 16 + 3, 16 + 8, 16 + 13, 16 + 18}, /* IdSel 5,  slot 2 */
+		{ 16 + 5, 16 + 5, 16 + 10, 16 + 15, 16 + 20}, /* IdSel 6,  slot 0 */
+		{ 16 + 4, 16 + 4, 16 + 9, 16 + 14, 16 + 19}, /* IdSel 7,  slot 1 */
+		{ -1,     -1,    -1,    -1,   -1},      /* IdSel 8, PCI/ISA bridge */
+		{ 16 + 2, 16 + 2, 16 + 7, 16 + 12, 16 + 17}, /* IdSel 9,  slot 3 */
+		{ 16 + 1, 16 + 1, 16 + 6, 16 + 11, 16 + 16}, /* IdSel 10, slot 4 */
 	};
 #else
-	static char irq_tab[6][5] __initdata = {
-	  /*INT   INTA  INTB  INTC   INTD */
-	  { 16+0, 16+0, 16+6, 16+11, 16+16},      /* IdSel 5,  slot 0 */
-	  { 16+1, 16+1, 16+7, 16+12, 16+17},      /* IdSel 6,  slot 1 */
-	  { -1,     -1,    -1,    -1,   -1},      /* IdSel 7, PCI/ISA bridge */
-	  { 16+2, 16+2, 16+8, 16+13, 16+18},      /* IdSel 8,  slot 2 */
-	  { 16+3, 16+3, 16+9, 16+14, 16+19},      /* IdSel 9,  slot 3 */
-	  { 16+4, 16+4, 16+10, 16+15, 16+5},      /* IdSel 10, PCI-PCI */
+	static char irq_tab[6][5] __initdata =
+	{
+		/*INT   INTA  INTB  INTC   INTD */
+		{ 16 + 0, 16 + 0, 16 + 6, 16 + 11, 16 + 16}, /* IdSel 5,  slot 0 */
+		{ 16 + 1, 16 + 1, 16 + 7, 16 + 12, 16 + 17}, /* IdSel 6,  slot 1 */
+		{ -1,     -1,    -1,    -1,   -1},      /* IdSel 7, PCI/ISA bridge */
+		{ 16 + 2, 16 + 2, 16 + 8, 16 + 13, 16 + 18}, /* IdSel 8,  slot 2 */
+		{ 16 + 3, 16 + 3, 16 + 9, 16 + 14, 16 + 19}, /* IdSel 9,  slot 3 */
+		{ 16 + 4, 16 + 4, 16 + 10, 16 + 15, 16 + 5}, /* IdSel 10, PCI-PCI */
 	};
 #endif
 	const long min_idsel = 5, max_idsel = 10, irqs_per_slot = 5;
@@ -178,7 +188,8 @@ rx164_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
  * The System Vector
  */
 
-struct alpha_machine_vector rx164_mv __initmv = {
+struct alpha_machine_vector rx164_mv __initmv =
+{
 	.vector_name		= "RX164",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,

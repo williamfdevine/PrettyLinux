@@ -96,7 +96,8 @@
  * cf - iret. Normally not used in userspace. Doesn't SEGV unless arguments are bad
  */
 #if defined(CONFIG_X86_32) || defined(CONFIG_IA32_EMULATION)
-static volatile u32 good_insns_32[256 / 32] = {
+static volatile u32 good_insns_32[256 / 32] =
+{
 	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f         */
 	/*      ----------------------------------------------         */
 	W(0x00, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1) | /* 00 */
@@ -158,7 +159,8 @@ static volatile u32 good_insns_32[256 / 32] = {
  * cf - iret. Normally not used in userspace. Doesn't SEGV unless arguments are bad
  */
 #if defined(CONFIG_X86_64)
-static volatile u32 good_insns_64[256 / 32] = {
+static volatile u32 good_insns_64[256 / 32] =
+{
 	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f         */
 	/*      ----------------------------------------------         */
 	W(0x00, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1) | /* 00 */
@@ -208,7 +210,8 @@ static volatile u32 good_insns_64[256 / 32] = {
  *	{rd,wr}{fs,gs}base,{s,l,m}fence.
  *	Why? They are all user-executable.
  */
-static volatile u32 good_2byte_insns[256 / 32] = {
+static volatile u32 good_2byte_insns[256 / 32] =
+{
 	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f         */
 	/*      ----------------------------------------------         */
 	W(0x00, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1) | /* 00 */
@@ -270,16 +273,19 @@ static bool is_prefix_bad(struct insn *insn)
 {
 	int i;
 
-	for (i = 0; i < insn->prefixes.nbytes; i++) {
-		switch (insn->prefixes.bytes[i]) {
-		case 0x26:	/* INAT_PFX_ES   */
-		case 0x2E:	/* INAT_PFX_CS   */
-		case 0x36:	/* INAT_PFX_DS   */
-		case 0x3E:	/* INAT_PFX_SS   */
-		case 0xF0:	/* INAT_PFX_LOCK */
-			return true;
+	for (i = 0; i < insn->prefixes.nbytes; i++)
+	{
+		switch (insn->prefixes.bytes[i])
+		{
+			case 0x26:	/* INAT_PFX_ES   */
+			case 0x2E:	/* INAT_PFX_CS   */
+			case 0x36:	/* INAT_PFX_DS   */
+			case 0x3E:	/* INAT_PFX_SS   */
+			case 0xF0:	/* INAT_PFX_LOCK */
+				return true;
 		}
 	}
+
 	return false;
 }
 
@@ -290,23 +296,37 @@ static int uprobe_init_insn(struct arch_uprobe *auprobe, struct insn *insn, bool
 	insn_init(insn, auprobe->insn, sizeof(auprobe->insn), x86_64);
 	/* has the side-effect of processing the entire instruction */
 	insn_get_length(insn);
+
 	if (WARN_ON_ONCE(!insn_complete(insn)))
+	{
 		return -ENOEXEC;
+	}
 
 	if (is_prefix_bad(insn))
+	{
 		return -ENOTSUPP;
+	}
 
 	if (x86_64)
+	{
 		good_insns = good_insns_64;
+	}
 	else
+	{
 		good_insns = good_insns_32;
+	}
 
 	if (test_bit(OPCODE1(insn), (unsigned long *)good_insns))
+	{
 		return 0;
+	}
 
-	if (insn->opcode.nbytes == 2) {
+	if (insn->opcode.nbytes == 2)
+	{
 		if (test_bit(OPCODE2(insn), (unsigned long *)good_2byte_insns))
+		{
 			return 0;
+		}
 	}
 
 	return -ENOTSUPP;
@@ -344,23 +364,28 @@ static void riprel_analyze(struct arch_uprobe *auprobe, struct insn *insn)
 	u8 reg2;
 
 	if (!insn_rip_relative(insn))
+	{
 		return;
+	}
 
 	/*
 	 * insn_rip_relative() would have decoded rex_prefix, vex_prefix, modrm.
 	 * Clear REX.b bit (extension of MODRM.rm field):
 	 * we want to encode low numbered reg, not r8+.
 	 */
-	if (insn->rex_prefix.nbytes) {
+	if (insn->rex_prefix.nbytes)
+	{
 		cursor = auprobe->insn + insn_offset_rex_prefix(insn);
 		/* REX byte has 0100wrxb layout, clearing REX.b bit */
 		*cursor &= 0xfe;
 	}
+
 	/*
 	 * Similar treatment for VEX3/EVEX prefix.
 	 * TODO: add XOP treatment when insn decoder supports them
 	 */
-	if (insn->vex_prefix.nbytes >= 3) {
+	if (insn->vex_prefix.nbytes >= 3)
+	{
 		/*
 		 * vex2:     c5    rvvvvLpp   (has no b bit)
 		 * vex3/xop: c4/8f rxbmmmmm wvvvvLpp
@@ -417,8 +442,12 @@ static void riprel_analyze(struct arch_uprobe *auprobe, struct insn *insn)
 
 	reg = MODRM_REG(insn);	/* Fetch modrm.reg */
 	reg2 = 0xff;		/* Fetch vex.vvvv */
+
 	if (insn->vex_prefix.nbytes)
+	{
 		reg2 = insn->vex_prefix.bytes[2];
+	}
+
 	/*
 	 * TODO: add XOP vvvv reading.
 	 *
@@ -427,23 +456,30 @@ static void riprel_analyze(struct arch_uprobe *auprobe, struct insn *insn)
 	 * Therefore, let's consider only 3 low-order bits.
 	 */
 	reg2 = ((reg2 >> 3) & 0x7) ^ 0x7;
+
 	/*
 	 * Register numbering is ax,cx,dx,bx, sp,bp,si,di, r8..r15.
 	 *
 	 * Choose scratch reg. Order is important: must not select bx
 	 * if we can use si (cmpxchg8b case!)
 	 */
-	if (reg != 6 && reg2 != 6) {
+	if (reg != 6 && reg2 != 6)
+	{
 		reg2 = 6;
 		auprobe->defparam.fixups |= UPROBE_FIX_RIP_SI;
-	} else if (reg != 7 && reg2 != 7) {
+	}
+	else if (reg != 7 && reg2 != 7)
+	{
 		reg2 = 7;
 		auprobe->defparam.fixups |= UPROBE_FIX_RIP_DI;
 		/* TODO (paranoia): force maskmovq to not use di */
-	} else {
+	}
+	else
+	{
 		reg2 = 3;
 		auprobe->defparam.fixups |= UPROBE_FIX_RIP_BX;
 	}
+
 	/*
 	 * Point cursor at the modrm byte.  The next 4 bytes are the
 	 * displacement.  Beyond the displacement, for some instructions,
@@ -462,9 +498,15 @@ static inline unsigned long *
 scratch_reg(struct arch_uprobe *auprobe, struct pt_regs *regs)
 {
 	if (auprobe->defparam.fixups & UPROBE_FIX_RIP_SI)
+	{
 		return &regs->si;
+	}
+
 	if (auprobe->defparam.fixups & UPROBE_FIX_RIP_DI)
+	{
 		return &regs->di;
+	}
+
 	return &regs->bx;
 }
 
@@ -474,7 +516,8 @@ scratch_reg(struct arch_uprobe *auprobe, struct pt_regs *regs)
  */
 static void riprel_pre_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 {
-	if (auprobe->defparam.fixups & UPROBE_FIX_RIP_MASK) {
+	if (auprobe->defparam.fixups & UPROBE_FIX_RIP_MASK)
+	{
 		struct uprobe_task *utask = current->utask;
 		unsigned long *sr = scratch_reg(auprobe, regs);
 
@@ -485,7 +528,8 @@ static void riprel_pre_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 
 static void riprel_post_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 {
-	if (auprobe->defparam.fixups & UPROBE_FIX_RIP_MASK) {
+	if (auprobe->defparam.fixups & UPROBE_FIX_RIP_MASK)
+	{
 		struct uprobe_task *utask = current->utask;
 		unsigned long *sr = scratch_reg(auprobe, regs);
 
@@ -507,7 +551,8 @@ static void riprel_post_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 }
 #endif /* CONFIG_X86_64 */
 
-struct uprobe_xol_ops {
+struct uprobe_xol_ops
+{
 	bool	(*emulate)(struct arch_uprobe *, struct pt_regs *);
 	int	(*pre_xol)(struct arch_uprobe *, struct pt_regs *);
 	int	(*post_xol)(struct arch_uprobe *, struct pt_regs *);
@@ -530,7 +575,9 @@ static int push_ret_address(struct pt_regs *regs, unsigned long ip)
 	unsigned long new_sp = regs->sp - sizeof_long();
 
 	if (copy_to_user((void __user *)new_sp, &ip, sizeof_long()))
+	{
 		return -EFAULT;
+	}
 
 	regs->sp = new_sp;
 	return 0;
@@ -558,17 +605,27 @@ static int default_post_xol_op(struct arch_uprobe *auprobe, struct pt_regs *regs
 	struct uprobe_task *utask = current->utask;
 
 	riprel_post_xol(auprobe, regs);
-	if (auprobe->defparam.fixups & UPROBE_FIX_IP) {
+
+	if (auprobe->defparam.fixups & UPROBE_FIX_IP)
+	{
 		long correction = utask->vaddr - utask->xol_vaddr;
 		regs->ip += correction;
-	} else if (auprobe->defparam.fixups & UPROBE_FIX_CALL) {
-		regs->sp += sizeof_long(); /* Pop incorrect return address */
-		if (push_ret_address(regs, utask->vaddr + auprobe->defparam.ilen))
-			return -ERESTART;
 	}
+	else if (auprobe->defparam.fixups & UPROBE_FIX_CALL)
+	{
+		regs->sp += sizeof_long(); /* Pop incorrect return address */
+
+		if (push_ret_address(regs, utask->vaddr + auprobe->defparam.ilen))
+		{
+			return -ERESTART;
+		}
+	}
+
 	/* popf; tell the caller to not touch TF */
 	if (auprobe->defparam.fixups & UPROBE_FIX_SETF)
+	{
 		utask->autask.saved_tf = true;
+	}
 
 	return 0;
 }
@@ -578,7 +635,8 @@ static void default_abort_op(struct arch_uprobe *auprobe, struct pt_regs *regs)
 	riprel_post_xol(auprobe, regs);
 }
 
-static const struct uprobe_xol_ops default_xol_ops = {
+static const struct uprobe_xol_ops default_xol_ops =
+{
 	.pre_xol  = default_pre_xol_op,
 	.post_xol = default_post_xol_op,
 	.abort	  = default_abort_op,
@@ -607,14 +665,15 @@ static bool branch_is_call(struct arch_uprobe *auprobe)
 
 static bool is_cond_jmp_opcode(u8 opcode)
 {
-	switch (opcode) {
-	#define DO(expr)	\
-		return true;
-	CASE_COND
-	#undef	DO
+	switch (opcode)
+	{
+#define DO(expr)	\
+	return true;
+			CASE_COND
+#undef	DO
 
-	default:
-		return false;
+		default:
+			return false;
 	}
 }
 
@@ -622,14 +681,15 @@ static bool check_jmp_cond(struct arch_uprobe *auprobe, struct pt_regs *regs)
 {
 	unsigned long flags = regs->flags;
 
-	switch (auprobe->branch.opc1) {
-	#define DO(expr)	\
-		return expr;
-	CASE_COND
-	#undef	DO
+	switch (auprobe->branch.opc1)
+	{
+#define DO(expr)	\
+	return expr;
+			CASE_COND
+#undef	DO
 
-	default:	/* not a conditional jmp */
-		return true;
+		default:	/* not a conditional jmp */
+			return true;
 	}
 }
 
@@ -642,7 +702,8 @@ static bool branch_emulate_op(struct arch_uprobe *auprobe, struct pt_regs *regs)
 	unsigned long new_ip = regs->ip += auprobe->branch.ilen;
 	unsigned long offs = (long)auprobe->branch.offs;
 
-	if (branch_is_call(auprobe)) {
+	if (branch_is_call(auprobe))
+	{
 		/*
 		 * If it fails we execute this (mangled, see the comment in
 		 * branch_clear_offset) insn out-of-line. In the likely case
@@ -653,8 +714,12 @@ static bool branch_emulate_op(struct arch_uprobe *auprobe, struct pt_regs *regs)
 		 * But there is corner case, see the comment in ->post_xol().
 		 */
 		if (push_ret_address(regs, new_ip))
+		{
 			return false;
-	} else if (!check_jmp_cond(auprobe, regs)) {
+		}
+	}
+	else if (!check_jmp_cond(auprobe, regs))
+	{
 		offs = 0;
 	}
 
@@ -692,10 +757,11 @@ static void branch_clear_offset(struct arch_uprobe *auprobe, struct insn *insn)
 	 * of ->insn[] for set_orig_insn().
 	 */
 	memset(auprobe->insn + insn_offset_immediate(insn),
-		0, insn->immediate.nbytes);
+		   0, insn->immediate.nbytes);
 }
 
-static const struct uprobe_xol_ops branch_xol_ops = {
+static const struct uprobe_xol_ops branch_xol_ops =
+{
 	.emulate  = branch_emulate_op,
 	.post_xol = branch_post_xol_op,
 };
@@ -706,27 +772,34 @@ static int branch_setup_xol_ops(struct arch_uprobe *auprobe, struct insn *insn)
 	u8 opc1 = OPCODE1(insn);
 	int i;
 
-	switch (opc1) {
-	case 0xeb:	/* jmp 8 */
-	case 0xe9:	/* jmp 32 */
-	case 0x90:	/* prefix* + nop; same as jmp with .offs = 0 */
-		break;
+	switch (opc1)
+	{
+		case 0xeb:	/* jmp 8 */
+		case 0xe9:	/* jmp 32 */
+		case 0x90:	/* prefix* + nop; same as jmp with .offs = 0 */
+			break;
 
-	case 0xe8:	/* call relative */
-		branch_clear_offset(auprobe, insn);
-		break;
+		case 0xe8:	/* call relative */
+			branch_clear_offset(auprobe, insn);
+			break;
 
-	case 0x0f:
-		if (insn->opcode.nbytes != 2)
-			return -ENOSYS;
-		/*
-		 * If it is a "near" conditional jmp, OPCODE2() - 0x10 matches
-		 * OPCODE1() of the "short" jmp which checks the same condition.
-		 */
-		opc1 = OPCODE2(insn) - 0x10;
-	default:
-		if (!is_cond_jmp_opcode(opc1))
-			return -ENOSYS;
+		case 0x0f:
+			if (insn->opcode.nbytes != 2)
+			{
+				return -ENOSYS;
+			}
+
+			/*
+			 * If it is a "near" conditional jmp, OPCODE2() - 0x10 matches
+			 * OPCODE1() of the "short" jmp which checks the same condition.
+			 */
+			opc1 = OPCODE2(insn) - 0x10;
+
+		default:
+			if (!is_cond_jmp_opcode(opc1))
+			{
+				return -ENOSYS;
+			}
 	}
 
 	/*
@@ -734,9 +807,12 @@ static int branch_setup_xol_ops(struct arch_uprobe *auprobe, struct insn *insn)
 	 * Intel and AMD behavior differ in 64-bit mode: Intel ignores 66 prefix.
 	 * No one uses these insns, reject any branch insns with such prefix.
 	 */
-	for (i = 0; i < insn->prefixes.nbytes; i++) {
+	for (i = 0; i < insn->prefixes.nbytes; i++)
+	{
 		if (insn->prefixes.bytes[i] == 0x66)
+		{
 			return -ENOTSUPP;
+		}
 	}
 
 	auprobe->branch.opc1 = opc1;
@@ -761,43 +837,56 @@ int arch_uprobe_analyze_insn(struct arch_uprobe *auprobe, struct mm_struct *mm, 
 	int ret;
 
 	ret = uprobe_init_insn(auprobe, &insn, is_64bit_mm(mm));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = branch_setup_xol_ops(auprobe, &insn);
+
 	if (ret != -ENOSYS)
+	{
 		return ret;
+	}
 
 	/*
 	 * Figure out which fixups default_post_xol_op() will need to perform,
 	 * and annotate defparam->fixups accordingly.
 	 */
-	switch (OPCODE1(&insn)) {
-	case 0x9d:		/* popf */
-		auprobe->defparam.fixups |= UPROBE_FIX_SETF;
-		break;
-	case 0xc3:		/* ret or lret -- ip is correct */
-	case 0xcb:
-	case 0xc2:
-	case 0xca:
-	case 0xea:		/* jmp absolute -- ip is correct */
-		fix_ip_or_call = 0;
-		break;
-	case 0x9a:		/* call absolute - Fix return addr, not ip */
-		fix_ip_or_call = UPROBE_FIX_CALL;
-		break;
-	case 0xff:
-		switch (MODRM_REG(&insn)) {
-		case 2: case 3:			/* call or lcall, indirect */
-			fix_ip_or_call = UPROBE_FIX_CALL;
+	switch (OPCODE1(&insn))
+	{
+		case 0x9d:		/* popf */
+			auprobe->defparam.fixups |= UPROBE_FIX_SETF;
 			break;
-		case 4: case 5:			/* jmp or ljmp, indirect */
+
+		case 0xc3:		/* ret or lret -- ip is correct */
+		case 0xcb:
+		case 0xc2:
+		case 0xca:
+		case 0xea:		/* jmp absolute -- ip is correct */
 			fix_ip_or_call = 0;
 			break;
-		}
+
+		case 0x9a:		/* call absolute - Fix return addr, not ip */
+			fix_ip_or_call = UPROBE_FIX_CALL;
+			break;
+
+		case 0xff:
+			switch (MODRM_REG(&insn))
+			{
+				case 2: case 3:			/* call or lcall, indirect */
+					fix_ip_or_call = UPROBE_FIX_CALL;
+					break;
+
+				case 4: case 5:			/* jmp or ljmp, indirect */
+					fix_ip_or_call = 0;
+					break;
+			}
+
 		/* fall through */
-	default:
-		riprel_analyze(auprobe, &insn);
+		default:
+			riprel_analyze(auprobe, &insn);
 	}
 
 	auprobe->defparam.ilen = insn.length;
@@ -816,10 +905,14 @@ int arch_uprobe_pre_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 {
 	struct uprobe_task *utask = current->utask;
 
-	if (auprobe->ops->pre_xol) {
+	if (auprobe->ops->pre_xol)
+	{
 		int err = auprobe->ops->pre_xol(auprobe, regs);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	regs->ip = utask->xol_vaddr;
@@ -828,8 +921,11 @@ int arch_uprobe_pre_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 
 	utask->autask.saved_tf = !!(regs->flags & X86_EFLAGS_TF);
 	regs->flags |= X86_EFLAGS_TF;
+
 	if (test_tsk_thread_flag(current, TIF_BLOCKSTEP))
+	{
 		set_task_blockstep(current, false);
+	}
 
 	return 0;
 }
@@ -847,7 +943,9 @@ int arch_uprobe_pre_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 bool arch_uprobe_xol_was_trapped(struct task_struct *t)
 {
 	if (t->thread.trap_nr != UPROBE_TRAP_NR)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -868,30 +966,42 @@ int arch_uprobe_post_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 	WARN_ON_ONCE(current->thread.trap_nr != UPROBE_TRAP_NR);
 	current->thread.trap_nr = utask->autask.saved_trap_nr;
 
-	if (auprobe->ops->post_xol) {
+	if (auprobe->ops->post_xol)
+	{
 		err = auprobe->ops->post_xol(auprobe, regs);
-		if (err) {
+
+		if (err)
+		{
 			/*
 			 * Restore ->ip for restart or post mortem analysis.
 			 * ->post_xol() must not return -ERESTART unless this
 			 * is really possible.
 			 */
 			regs->ip = utask->vaddr;
+
 			if (err == -ERESTART)
+			{
 				err = 0;
+			}
+
 			send_sigtrap = false;
 		}
 	}
+
 	/*
 	 * arch_uprobe_pre_xol() doesn't save the state of TIF_BLOCKSTEP
 	 * so we can get an extra SIGTRAP if we do not clear TF. We need
 	 * to examine the opcode to make it right.
 	 */
 	if (send_sigtrap)
+	{
 		send_sig(SIGTRAP, current, 0);
+	}
 
 	if (!utask->autask.saved_tf)
+	{
 		regs->flags &= ~X86_EFLAGS_TF;
+	}
 
 	return err;
 }
@@ -905,21 +1015,28 @@ int arch_uprobe_exception_notify(struct notifier_block *self, unsigned long val,
 
 	/* We are only interested in userspace traps */
 	if (regs && !user_mode(regs))
+	{
 		return NOTIFY_DONE;
+	}
 
-	switch (val) {
-	case DIE_INT3:
-		if (uprobe_pre_sstep_notifier(regs))
-			ret = NOTIFY_STOP;
+	switch (val)
+	{
+		case DIE_INT3:
+			if (uprobe_pre_sstep_notifier(regs))
+			{
+				ret = NOTIFY_STOP;
+			}
 
-		break;
+			break;
 
-	case DIE_DEBUG:
-		if (uprobe_post_sstep_notifier(regs))
-			ret = NOTIFY_STOP;
+		case DIE_DEBUG:
+			if (uprobe_post_sstep_notifier(regs))
+			{
+				ret = NOTIFY_STOP;
+			}
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return ret;
@@ -935,27 +1052,39 @@ void arch_uprobe_abort_xol(struct arch_uprobe *auprobe, struct pt_regs *regs)
 	struct uprobe_task *utask = current->utask;
 
 	if (auprobe->ops->abort)
+	{
 		auprobe->ops->abort(auprobe, regs);
+	}
 
 	current->thread.trap_nr = utask->autask.saved_trap_nr;
 	regs->ip = utask->vaddr;
+
 	/* clear TF if it was set by us in arch_uprobe_pre_xol() */
 	if (!utask->autask.saved_tf)
+	{
 		regs->flags &= ~X86_EFLAGS_TF;
+	}
 }
 
 static bool __skip_sstep(struct arch_uprobe *auprobe, struct pt_regs *regs)
 {
 	if (auprobe->ops->emulate)
+	{
 		return auprobe->ops->emulate(auprobe, regs);
+	}
+
 	return false;
 }
 
 bool arch_uprobe_skip_sstep(struct arch_uprobe *auprobe, struct pt_regs *regs)
 {
 	bool ret = __skip_sstep(auprobe, regs);
+
 	if (ret && (regs->flags & X86_EFLAGS_TF))
+	{
 		send_sig(SIGTRAP, current, 0);
+	}
+
 	return ret;
 }
 
@@ -966,19 +1095,27 @@ arch_uretprobe_hijack_return_addr(unsigned long trampoline_vaddr, struct pt_regs
 	unsigned long orig_ret_vaddr = 0; /* clear high bits for 32-bit apps */
 
 	if (copy_from_user(&orig_ret_vaddr, (void __user *)regs->sp, rasize))
+	{
 		return -1;
+	}
 
 	/* check whether address has been already hijacked */
 	if (orig_ret_vaddr == trampoline_vaddr)
+	{
 		return orig_ret_vaddr;
+	}
 
 	nleft = copy_to_user((void __user *)regs->sp, &trampoline_vaddr, rasize);
-	if (likely(!nleft))
-		return orig_ret_vaddr;
 
-	if (nleft != rasize) {
+	if (likely(!nleft))
+	{
+		return orig_ret_vaddr;
+	}
+
+	if (nleft != rasize)
+	{
 		pr_err("uprobe: return address clobbered: pid=%d, %%sp=%#lx, "
-			"%%ip=%#lx\n", current->pid, regs->sp, regs->ip);
+			   "%%ip=%#lx\n", current->pid, regs->sp, regs->ip);
 
 		force_sig_info(SIGSEGV, SEND_SIG_FORCED, current);
 	}
@@ -987,10 +1124,14 @@ arch_uretprobe_hijack_return_addr(unsigned long trampoline_vaddr, struct pt_regs
 }
 
 bool arch_uretprobe_is_alive(struct return_instance *ret, enum rp_check ctx,
-				struct pt_regs *regs)
+							 struct pt_regs *regs)
 {
 	if (ctx == RP_CHECK_CALL) /* sp was just decremented by "call" insn */
+	{
 		return regs->sp < ret->stack;
+	}
 	else
+	{
 		return regs->sp <= ret->stack;
+	}
 }

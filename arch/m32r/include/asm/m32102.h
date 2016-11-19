@@ -12,9 +12,9 @@
  * Special Function Register
  *======================================================================*/
 #if !defined(CONFIG_CHIP_M32104)
-#define M32R_SFR_OFFSET  (0x00E00000)  /* 0x00E00000-0x00EFFFFF 1[MB] */
+	#define M32R_SFR_OFFSET  (0x00E00000)  /* 0x00E00000-0x00EFFFFF 1[MB] */
 #else
-#define M32R_SFR_OFFSET  (0x00700000)  /* 0x00700000-0x007FFFFF 1[MB] */
+	#define M32R_SFR_OFFSET  (0x00700000)  /* 0x00700000-0x007FFFFF 1[MB] */
 #endif
 
 /*
@@ -106,31 +106,31 @@
 
 #if (defined(CONFIG_CHIP_M32700) && !defined(CONFIG_PLAT_MAPPI2)) \
 	|| defined(CONFIG_CHIP_M32104)
-#define M32R_MFTCR_MFT0MSK  (1UL<<31)  /* b0 */
-#define M32R_MFTCR_MFT1MSK  (1UL<<30)  /* b1 */
-#define M32R_MFTCR_MFT2MSK  (1UL<<29)  /* b2 */
-#define M32R_MFTCR_MFT3MSK  (1UL<<28)  /* b3 */
-#define M32R_MFTCR_MFT4MSK  (1UL<<27)  /* b4 */
-#define M32R_MFTCR_MFT5MSK  (1UL<<26)  /* b5 */
-#define M32R_MFTCR_MFT0EN   (1UL<<23)  /* b8 */
-#define M32R_MFTCR_MFT1EN   (1UL<<22)  /* b9 */
-#define M32R_MFTCR_MFT2EN   (1UL<<21)  /* b10 */
-#define M32R_MFTCR_MFT3EN   (1UL<<20)  /* b11 */
-#define M32R_MFTCR_MFT4EN   (1UL<<19)  /* b12 */
-#define M32R_MFTCR_MFT5EN   (1UL<<18)  /* b13 */
+	#define M32R_MFTCR_MFT0MSK  (1UL<<31)  /* b0 */
+	#define M32R_MFTCR_MFT1MSK  (1UL<<30)  /* b1 */
+	#define M32R_MFTCR_MFT2MSK  (1UL<<29)  /* b2 */
+	#define M32R_MFTCR_MFT3MSK  (1UL<<28)  /* b3 */
+	#define M32R_MFTCR_MFT4MSK  (1UL<<27)  /* b4 */
+	#define M32R_MFTCR_MFT5MSK  (1UL<<26)  /* b5 */
+	#define M32R_MFTCR_MFT0EN   (1UL<<23)  /* b8 */
+	#define M32R_MFTCR_MFT1EN   (1UL<<22)  /* b9 */
+	#define M32R_MFTCR_MFT2EN   (1UL<<21)  /* b10 */
+	#define M32R_MFTCR_MFT3EN   (1UL<<20)  /* b11 */
+	#define M32R_MFTCR_MFT4EN   (1UL<<19)  /* b12 */
+	#define M32R_MFTCR_MFT5EN   (1UL<<18)  /* b13 */
 #else
-#define M32R_MFTCR_MFT0MSK  (1UL<<15)  /* b16 */
-#define M32R_MFTCR_MFT1MSK  (1UL<<14)  /* b17 */
-#define M32R_MFTCR_MFT2MSK  (1UL<<13)  /* b18 */
-#define M32R_MFTCR_MFT3MSK  (1UL<<12)  /* b19 */
-#define M32R_MFTCR_MFT4MSK  (1UL<<11)  /* b20 */
-#define M32R_MFTCR_MFT5MSK  (1UL<<10)  /* b21 */
-#define M32R_MFTCR_MFT0EN   (1UL<<7)   /* b24 */
-#define M32R_MFTCR_MFT1EN   (1UL<<6)   /* b25 */
-#define M32R_MFTCR_MFT2EN   (1UL<<5)   /* b26 */
-#define M32R_MFTCR_MFT3EN   (1UL<<4)   /* b27 */
-#define M32R_MFTCR_MFT4EN   (1UL<<3)   /* b28 */
-#define M32R_MFTCR_MFT5EN   (1UL<<2)   /* b29 */
+	#define M32R_MFTCR_MFT0MSK  (1UL<<15)  /* b16 */
+	#define M32R_MFTCR_MFT1MSK  (1UL<<14)  /* b17 */
+	#define M32R_MFTCR_MFT2MSK  (1UL<<13)  /* b18 */
+	#define M32R_MFTCR_MFT3MSK  (1UL<<12)  /* b19 */
+	#define M32R_MFTCR_MFT4MSK  (1UL<<11)  /* b20 */
+	#define M32R_MFTCR_MFT5MSK  (1UL<<10)  /* b21 */
+	#define M32R_MFTCR_MFT0EN   (1UL<<7)   /* b24 */
+	#define M32R_MFTCR_MFT1EN   (1UL<<6)   /* b25 */
+	#define M32R_MFTCR_MFT2EN   (1UL<<5)   /* b26 */
+	#define M32R_MFTCR_MFT3EN   (1UL<<4)   /* b27 */
+	#define M32R_MFTCR_MFT4EN   (1UL<<3)   /* b28 */
+	#define M32R_MFTCR_MFT5EN   (1UL<<2)   /* b29 */
 #endif
 
 #define M32R_MFTMOD_CC_MASK    (1UL<<15)  /* b16 */
@@ -201,14 +201,14 @@
 #define M32R_ICU_CR57_PORTL   (0x2E0+M32R_ICU_OFFSET)  /* SIO4 */
 
 #ifdef CONFIG_SMP
-#define M32R_ICU_IPICR0_PORTL (0x2dc+M32R_ICU_OFFSET)  /* IPI0 */
-#define M32R_ICU_IPICR1_PORTL (0x2e0+M32R_ICU_OFFSET)  /* IPI1 */
-#define M32R_ICU_IPICR2_PORTL (0x2e4+M32R_ICU_OFFSET)  /* IPI2 */
-#define M32R_ICU_IPICR3_PORTL (0x2e8+M32R_ICU_OFFSET)  /* IPI3 */
-#define M32R_ICU_IPICR4_PORTL (0x2ec+M32R_ICU_OFFSET)  /* IPI4 */
-#define M32R_ICU_IPICR5_PORTL (0x2f0+M32R_ICU_OFFSET)  /* IPI5 */
-#define M32R_ICU_IPICR6_PORTL (0x2f4+M32R_ICU_OFFSET)  /* IPI6 */
-#define M32R_ICU_IPICR7_PORTL (0x2f8+M32R_ICU_OFFSET)  /* IPI7 */
+	#define M32R_ICU_IPICR0_PORTL (0x2dc+M32R_ICU_OFFSET)  /* IPI0 */
+	#define M32R_ICU_IPICR1_PORTL (0x2e0+M32R_ICU_OFFSET)  /* IPI1 */
+	#define M32R_ICU_IPICR2_PORTL (0x2e4+M32R_ICU_OFFSET)  /* IPI2 */
+	#define M32R_ICU_IPICR3_PORTL (0x2e8+M32R_ICU_OFFSET)  /* IPI3 */
+	#define M32R_ICU_IPICR4_PORTL (0x2ec+M32R_ICU_OFFSET)  /* IPI4 */
+	#define M32R_ICU_IPICR5_PORTL (0x2f0+M32R_ICU_OFFSET)  /* IPI5 */
+	#define M32R_ICU_IPICR6_PORTL (0x2f4+M32R_ICU_OFFSET)  /* IPI6 */
+	#define M32R_ICU_IPICR7_PORTL (0x2f8+M32R_ICU_OFFSET)  /* IPI7 */
 #endif /* CONFIG_SMP */
 
 #define M32R_ICUIMASK_IMSK0  (0UL<<16)  /* b13-b15: Disable interrupt */
@@ -247,66 +247,67 @@
 #define M32R_IRQ_MFT2    (18)  /* MFT2 */
 #define M32R_IRQ_MFT3    (19)  /* MFT3 */
 #ifdef CONFIG_CHIP_M32104
-#define M32R_IRQ_MFTX0   (24)  /* MFTX0 */
-#define M32R_IRQ_MFTX1   (25)  /* MFTX1 */
-#define M32R_IRQ_DMA0    (32)  /* DMA0 */
-#define M32R_IRQ_DMA1    (33)  /* DMA1 */
-#define M32R_IRQ_DMA2    (34)  /* DMA2 */
-#define M32R_IRQ_DMA3    (35)  /* DMA3 */
-#define M32R_IRQ_SIO0_R  (40)  /* SIO0 send    */
-#define M32R_IRQ_SIO0_S  (41)  /* SIO0 receive */
-#define M32R_IRQ_SIO1_R  (42)  /* SIO1 send    */
-#define M32R_IRQ_SIO1_S  (43)  /* SIO1 receive */
-#define M32R_IRQ_SIO2_R  (44)  /* SIO2 send    */
-#define M32R_IRQ_SIO2_S  (45)  /* SIO2 receive */
-#define M32R_IRQ_SIO3_R  (46)  /* SIO3 send    */
-#define M32R_IRQ_SIO3_S  (47)  /* SIO3 receive */
-#define M32R_IRQ_ADC     (56)  /* ADC */
-#define M32R_IRQ_PC      (57)  /* PC */
+	#define M32R_IRQ_MFTX0   (24)  /* MFTX0 */
+	#define M32R_IRQ_MFTX1   (25)  /* MFTX1 */
+	#define M32R_IRQ_DMA0    (32)  /* DMA0 */
+	#define M32R_IRQ_DMA1    (33)  /* DMA1 */
+	#define M32R_IRQ_DMA2    (34)  /* DMA2 */
+	#define M32R_IRQ_DMA3    (35)  /* DMA3 */
+	#define M32R_IRQ_SIO0_R  (40)  /* SIO0 send    */
+	#define M32R_IRQ_SIO0_S  (41)  /* SIO0 receive */
+	#define M32R_IRQ_SIO1_R  (42)  /* SIO1 send    */
+	#define M32R_IRQ_SIO1_S  (43)  /* SIO1 receive */
+	#define M32R_IRQ_SIO2_R  (44)  /* SIO2 send    */
+	#define M32R_IRQ_SIO2_S  (45)  /* SIO2 receive */
+	#define M32R_IRQ_SIO3_R  (46)  /* SIO3 send    */
+	#define M32R_IRQ_SIO3_S  (47)  /* SIO3 receive */
+	#define M32R_IRQ_ADC     (56)  /* ADC */
+	#define M32R_IRQ_PC      (57)  /* PC */
 #else /* ! M32104 */
-#define M32R_IRQ_DMA0    (32)  /* DMA0 */
-#define M32R_IRQ_DMA1    (33)  /* DMA1 */
-#define M32R_IRQ_SIO0_R  (48)  /* SIO0 send    */
-#define M32R_IRQ_SIO0_S  (49)  /* SIO0 receive */
-#define M32R_IRQ_SIO1_R  (50)  /* SIO1 send    */
-#define M32R_IRQ_SIO1_S  (51)  /* SIO1 receive */
-#define M32R_IRQ_SIO2_R  (52)  /* SIO2 send    */
-#define M32R_IRQ_SIO2_S  (53)  /* SIO2 receive */
-#define M32R_IRQ_SIO3_R  (54)  /* SIO3 send    */
-#define M32R_IRQ_SIO3_S  (55)  /* SIO3 receive */
-#define M32R_IRQ_SIO4_R  (56)  /* SIO4 send    */
-#define M32R_IRQ_SIO4_S  (57)  /* SIO4 receive */
+	#define M32R_IRQ_DMA0    (32)  /* DMA0 */
+	#define M32R_IRQ_DMA1    (33)  /* DMA1 */
+	#define M32R_IRQ_SIO0_R  (48)  /* SIO0 send    */
+	#define M32R_IRQ_SIO0_S  (49)  /* SIO0 receive */
+	#define M32R_IRQ_SIO1_R  (50)  /* SIO1 send    */
+	#define M32R_IRQ_SIO1_S  (51)  /* SIO1 receive */
+	#define M32R_IRQ_SIO2_R  (52)  /* SIO2 send    */
+	#define M32R_IRQ_SIO2_S  (53)  /* SIO2 receive */
+	#define M32R_IRQ_SIO3_R  (54)  /* SIO3 send    */
+	#define M32R_IRQ_SIO3_S  (55)  /* SIO3 receive */
+	#define M32R_IRQ_SIO4_R  (56)  /* SIO4 send    */
+	#define M32R_IRQ_SIO4_S  (57)  /* SIO4 receive */
 #endif /* ! M32104 */
 
 #ifdef CONFIG_SMP
-#define M32R_IRQ_IPI0    (56)
-#define M32R_IRQ_IPI1    (57)
-#define M32R_IRQ_IPI2    (58)
-#define M32R_IRQ_IPI3    (59)
-#define M32R_IRQ_IPI4    (60)
-#define M32R_IRQ_IPI5    (61)
-#define M32R_IRQ_IPI6    (62)
-#define M32R_IRQ_IPI7    (63)
-#define M32R_CPUID_PORTL (0xffffffe0)
+	#define M32R_IRQ_IPI0    (56)
+	#define M32R_IRQ_IPI1    (57)
+	#define M32R_IRQ_IPI2    (58)
+	#define M32R_IRQ_IPI3    (59)
+	#define M32R_IRQ_IPI4    (60)
+	#define M32R_IRQ_IPI5    (61)
+	#define M32R_IRQ_IPI6    (62)
+	#define M32R_IRQ_IPI7    (63)
+	#define M32R_CPUID_PORTL (0xffffffe0)
 
-#define M32R_FPGA_TOP (0x000F0000+M32R_SFR_OFFSET)
+	#define M32R_FPGA_TOP (0x000F0000+M32R_SFR_OFFSET)
 
-#define M32R_FPGA_NUM_OF_CPUS_PORTL (0x00+M32R_FPGA_TOP)
-#define M32R_FPGA_CPU_NAME0_PORTL   (0x10+M32R_FPGA_TOP)
-#define M32R_FPGA_CPU_NAME1_PORTL   (0x14+M32R_FPGA_TOP)
-#define M32R_FPGA_CPU_NAME2_PORTL   (0x18+M32R_FPGA_TOP)
-#define M32R_FPGA_CPU_NAME3_PORTL   (0x1c+M32R_FPGA_TOP)
-#define M32R_FPGA_MODEL_ID0_PORTL   (0x20+M32R_FPGA_TOP)
-#define M32R_FPGA_MODEL_ID1_PORTL   (0x24+M32R_FPGA_TOP)
-#define M32R_FPGA_MODEL_ID2_PORTL   (0x28+M32R_FPGA_TOP)
-#define M32R_FPGA_MODEL_ID3_PORTL   (0x2c+M32R_FPGA_TOP)
-#define M32R_FPGA_VERSION0_PORTL    (0x30+M32R_FPGA_TOP)
-#define M32R_FPGA_VERSION1_PORTL    (0x34+M32R_FPGA_TOP)
+	#define M32R_FPGA_NUM_OF_CPUS_PORTL (0x00+M32R_FPGA_TOP)
+	#define M32R_FPGA_CPU_NAME0_PORTL   (0x10+M32R_FPGA_TOP)
+	#define M32R_FPGA_CPU_NAME1_PORTL   (0x14+M32R_FPGA_TOP)
+	#define M32R_FPGA_CPU_NAME2_PORTL   (0x18+M32R_FPGA_TOP)
+	#define M32R_FPGA_CPU_NAME3_PORTL   (0x1c+M32R_FPGA_TOP)
+	#define M32R_FPGA_MODEL_ID0_PORTL   (0x20+M32R_FPGA_TOP)
+	#define M32R_FPGA_MODEL_ID1_PORTL   (0x24+M32R_FPGA_TOP)
+	#define M32R_FPGA_MODEL_ID2_PORTL   (0x28+M32R_FPGA_TOP)
+	#define M32R_FPGA_MODEL_ID3_PORTL   (0x2c+M32R_FPGA_TOP)
+	#define M32R_FPGA_VERSION0_PORTL    (0x30+M32R_FPGA_TOP)
+	#define M32R_FPGA_VERSION1_PORTL    (0x34+M32R_FPGA_TOP)
 
 #endif /* CONFIG_SMP */
 
 #ifndef __ASSEMBLY__
-typedef struct {
+typedef struct
+{
 	unsigned long icucr;	/* ICU Control Register */
 } icu_data_t;
 #endif

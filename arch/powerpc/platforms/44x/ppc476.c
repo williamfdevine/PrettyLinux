@@ -38,7 +38,8 @@
 #include <linux/pci.h>
 #include <linux/i2c.h>
 
-static const struct of_device_id ppc47x_of_bus[] __initconst = {
+static const struct of_device_id ppc47x_of_bus[] __initconst =
+{
 	{ .compatible = "ibm,plb4", },
 	{ .compatible = "ibm,plb6", },
 	{ .compatible = "ibm,opb", },
@@ -50,7 +51,8 @@ static const struct of_device_id ppc47x_of_bus[] __initconst = {
  * to EHCI mode */
 static void quirk_ppc_currituck_usb_fixup(struct pci_dev *dev)
 {
-	if (of_machine_is_compatible("ibm,currituck")) {
+	if (of_machine_is_compatible("ibm,currituck"))
+	{
 		pci_write_config_dword(dev, 0xe0, 0x0114231f);
 		pci_write_config_dword(dev, 0xe4, 0x00006c40);
 	}
@@ -72,7 +74,7 @@ static void __noreturn avr_halt_system(int pwrctl_flags)
 {
 	/* Request the AVR to reset the system */
 	i2c_smbus_write_byte_data(avr_i2c_client,
-				  AVR_PWRCTL_CMD, pwrctl_flags);
+							  AVR_PWRCTL_CMD, pwrctl_flags);
 
 	/* Wait for system to be reset */
 	while (1)
@@ -90,7 +92,7 @@ static void __noreturn avr_reset_system(char *cmd)
 }
 
 static int avr_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+					 const struct i2c_device_id *id)
 {
 	avr_i2c_client = client;
 	ppc_md.restart = avr_reset_system;
@@ -98,12 +100,14 @@ static int avr_probe(struct i2c_client *client,
 	return 0;
 }
 
-static const struct i2c_device_id avr_id[] = {
+static const struct i2c_device_id avr_id[] =
+{
 	{ "akebono-avr", 0 },
 	{ }
 };
 
-static struct i2c_driver avr_driver = {
+static struct i2c_driver avr_driver =
+{
 	.driver = {
 		.name = "akebono-avr",
 	},
@@ -125,15 +129,22 @@ static void __init ppc47x_init_irq(void)
 	struct device_node *np;
 
 	/* Find top level interrupt controller */
-	for_each_node_with_property(np, "interrupt-controller") {
+	for_each_node_with_property(np, "interrupt-controller")
+	{
 		if (of_get_property(np, "interrupts", NULL) == NULL)
+		{
 			break;
+		}
 	}
+
 	if (np == NULL)
+	{
 		panic("Can't find top level interrupt controller");
+	}
 
 	/* Check type and do appropriate initialization */
-	if (of_device_is_compatible(np, "chrp,open-pic")) {
+	if (of_device_is_compatible(np, "chrp,open-pic"))
+	{
 		/* The MPIC driver will get everything it needs from the
 		 * device-tree, just pass 0 to all arguments
 		 */
@@ -142,8 +153,11 @@ static void __init ppc47x_init_irq(void)
 		BUG_ON(mpic == NULL);
 		mpic_init(mpic);
 		ppc_md.get_irq = mpic_get_irq;
-	} else
+	}
+	else
+	{
 		panic("Unrecognized top level interrupt controller");
+	}
 }
 
 #ifdef CONFIG_SMP
@@ -168,9 +182,10 @@ static int smp_ppc47x_kick_cpu(int cpu)
 	spin_table_addr_prop =
 		of_get_property(cpunode, "cpu-release-addr", NULL);
 
-	if (spin_table_addr_prop == NULL) {
+	if (spin_table_addr_prop == NULL)
+	{
 		pr_err("CPU%d: Can't start, missing cpu-release-addr !\n",
-		       cpu);
+			   cpu);
 		return 1;
 	}
 
@@ -190,7 +205,8 @@ static int smp_ppc47x_kick_cpu(int cpu)
 	return 0;
 }
 
-static struct smp_ops_t ppc47x_smp_ops = {
+static struct smp_ops_t ppc47x_smp_ops =
+{
 	.probe		= smp_mpic_probe,
 	.message_pass	= smp_mpic_message_pass,
 	.setup_cpu	= smp_ppc47x_setup_cpu,
@@ -202,7 +218,9 @@ static struct smp_ops_t ppc47x_smp_ops = {
 static void __init ppc47x_smp_init(void)
 {
 	if (mmu_has_feature(MMU_FTR_TYPE_47x))
+	{
 		smp_ops = &ppc47x_smp_ops;
+	}
 }
 
 #else /* CONFIG_SMP */
@@ -226,21 +244,29 @@ static int __init ppc47x_get_board_rev(void)
 	u8 *fpga;
 	struct device_node *np = NULL;
 
-	if (of_machine_is_compatible("ibm,currituck")) {
+	if (of_machine_is_compatible("ibm,currituck"))
+	{
 		np = of_find_compatible_node(NULL, NULL, "ibm,currituck-fpga");
 		reg = 0;
-	} else if (of_machine_is_compatible("ibm,akebono")) {
+	}
+	else if (of_machine_is_compatible("ibm,akebono"))
+	{
 		np = of_find_compatible_node(NULL, NULL, "ibm,akebono-fpga");
 		reg = 2;
 	}
 
 	if (!np)
+	{
 		goto fail;
+	}
 
 	fpga = (u8 *) of_iomap(np, 0);
 	of_node_put(np);
+
 	if (!fpga)
+	{
 		goto fail;
+	}
 
 	board_rev = ioread8(fpga + reg) & 0x03;
 	pr_info("%s: Found board revision %d\n", __func__, board_rev);
@@ -257,14 +283,20 @@ machine_arch_initcall(ppc47x, ppc47x_get_board_rev);
 static void ppc47x_pci_irq_fixup(struct pci_dev *dev)
 {
 	if (dev->vendor == 0x1033 && (dev->device == 0x0035 ||
-				      dev->device == 0x00e0)) {
-		if (board_rev == 0) {
+								  dev->device == 0x00e0))
+	{
+		if (board_rev == 0)
+		{
 			dev->irq = irq_create_mapping(NULL, 47);
 			pr_info("%s: Mapping irq %d\n", __func__, dev->irq);
-		} else if (board_rev == 2) {
+		}
+		else if (board_rev == 2)
+		{
 			dev->irq = irq_create_mapping(NULL, 49);
 			pr_info("%s: Mapping irq %d\n", __func__, dev->irq);
-		} else {
+		}
+		else
+		{
 			pr_alert("%s: Unknown board revision\n", __func__);
 		}
 	}
@@ -276,9 +308,12 @@ static void ppc47x_pci_irq_fixup(struct pci_dev *dev)
 static int __init ppc47x_probe(void)
 {
 	if (of_machine_is_compatible("ibm,akebono"))
+	{
 		return 1;
+	}
 
-	if (of_machine_is_compatible("ibm,currituck")) {
+	if (of_machine_is_compatible("ibm,currituck"))
+	{
 		ppc_md.pci_irq_fixup = ppc47x_pci_irq_fixup;
 		return 1;
 	}
@@ -286,12 +321,13 @@ static int __init ppc47x_probe(void)
 	return 0;
 }
 
-define_machine(ppc47x) {
+define_machine(ppc47x)
+{
 	.name			= "PowerPC 47x",
-	.probe			= ppc47x_probe,
-	.progress		= udbg_progress,
-	.init_IRQ		= ppc47x_init_irq,
-	.setup_arch		= ppc47x_setup_arch,
-	.restart		= ppc4xx_reset_system,
-	.calibrate_decr		= generic_calibrate_decr,
+			 .probe			= ppc47x_probe,
+					 .progress		= udbg_progress,
+						   .init_IRQ		= ppc47x_init_irq,
+								 .setup_arch		= ppc47x_setup_arch,
+									 .restart		= ppc4xx_reset_system,
+											.calibrate_decr		= generic_calibrate_decr,
 };

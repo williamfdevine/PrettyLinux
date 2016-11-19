@@ -18,7 +18,8 @@
 /*
  * Major opcodes; before MIPS IV cop1x was called cop3.
  */
-enum major_op {
+enum major_op
+{
 	spec_op, bcond_op, j_op, jal_op,
 	beq_op, bne_op, blez_op, bgtz_op,
 	addi_op, pop10_op = addi_op, addiu_op, slti_op, sltiu_op,
@@ -40,7 +41,8 @@ enum major_op {
 /*
  * func field of spec opcode.
  */
-enum spec_op {
+enum spec_op
+{
 	sll_op, movc_op, srl_op, sra_op,
 	sllv_op, pmon_op, srlv_op, srav_op,
 	jr_op, jalr_op, movz_op, movn_op,
@@ -62,7 +64,8 @@ enum spec_op {
 /*
  * func field of spec2 opcode.
  */
-enum spec2_op {
+enum spec2_op
+{
 	madd_op, maddu_op, mul_op, spec2_3_unused_op,
 	msub_op, msubu_op, /* more unused ops */
 	clz_op = 0x20, clo_op,
@@ -73,7 +76,8 @@ enum spec2_op {
 /*
  * func field of spec3 opcode.
  */
-enum spec3_op {
+enum spec3_op
+{
 	ext_op, dextm_op, dextu_op, dext_op,
 	ins_op, dinsm_op, dinsu_op, dins_op,
 	yield_op  = 0x09, lx_op     = 0x0a,
@@ -95,42 +99,50 @@ enum spec3_op {
 /*
  * Bits 10-6 minor opcode for r6 spec mult/div encodings
  */
-enum mult_op {
+enum mult_op
+{
 	mult_mult_op = 0x0,
 	mult_mul_op = 0x2,
 	mult_muh_op = 0x3,
 };
-enum multu_op {
+enum multu_op
+{
 	multu_multu_op = 0x0,
 	multu_mulu_op = 0x2,
 	multu_muhu_op = 0x3,
 };
-enum div_op {
+enum div_op
+{
 	div_div_op = 0x0,
 	div_div6_op = 0x2,
 	div_mod_op = 0x3,
 };
-enum divu_op {
+enum divu_op
+{
 	divu_divu_op = 0x0,
 	divu_divu6_op = 0x2,
 	divu_modu_op = 0x3,
 };
-enum dmult_op {
+enum dmult_op
+{
 	dmult_dmult_op = 0x0,
 	dmult_dmul_op = 0x2,
 	dmult_dmuh_op = 0x3,
 };
-enum dmultu_op {
+enum dmultu_op
+{
 	dmultu_dmultu_op = 0x0,
 	dmultu_dmulu_op = 0x2,
 	dmultu_dmuhu_op = 0x3,
 };
-enum ddiv_op {
+enum ddiv_op
+{
 	ddiv_ddiv_op = 0x0,
 	ddiv_ddiv6_op = 0x2,
 	ddiv_dmod_op = 0x3,
 };
-enum ddivu_op {
+enum ddivu_op
+{
 	ddivu_ddivu_op = 0x0,
 	ddivu_ddivu6_op = 0x2,
 	ddivu_dmodu_op = 0x3,
@@ -139,7 +151,8 @@ enum ddivu_op {
 /*
  * rt field of bcond opcodes.
  */
-enum rt_op {
+enum rt_op
+{
 	bltz_op, bgez_op, bltzl_op, bgezl_op,
 	spimi_op, unused_rt_op_0x05, unused_rt_op_0x06, unused_rt_op_0x07,
 	tgei_op, tgeiu_op, tlti_op, tltiu_op,
@@ -153,7 +166,8 @@ enum rt_op {
 /*
  * rs field of cop opcodes.
  */
-enum cop_op {
+enum cop_op
+{
 	mfc_op	      = 0x00, dmfc_op	    = 0x01,
 	cfc_op	      = 0x02, mfhc0_op	    = 0x02,
 	mfhc_op       = 0x03, mtc_op	    = 0x04,
@@ -168,14 +182,16 @@ enum cop_op {
 /*
  * rt field of cop.bc_op opcodes
  */
-enum bcop_op {
+enum bcop_op
+{
 	bcf_op, bct_op, bcfl_op, bctl_op
 };
 
 /*
  * func field of cop0 coi opcodes.
  */
-enum cop0_coi_func {
+enum cop0_coi_func
+{
 	tlbr_op	      = 0x01, tlbwi_op	    = 0x02,
 	tlbwr_op      = 0x06, tlbp_op	    = 0x08,
 	rfe_op	      = 0x10, eret_op	    = 0x18,
@@ -185,7 +201,8 @@ enum cop0_coi_func {
 /*
  * func field of cop0 com opcodes.
  */
-enum cop0_com_func {
+enum cop0_com_func
+{
 	tlbr1_op      = 0x01, tlbw_op	    = 0x02,
 	tlbp1_op      = 0x08, dctr_op	    = 0x09,
 	dctw_op	      = 0x0a
@@ -194,7 +211,8 @@ enum cop0_com_func {
 /*
  * fmt field of cop1 opcodes.
  */
-enum cop1_fmt {
+enum cop1_fmt
+{
 	s_fmt, d_fmt, e_fmt, q_fmt,
 	w_fmt, l_fmt
 };
@@ -202,7 +220,8 @@ enum cop1_fmt {
 /*
  * func field of cop1 instructions using d, s or w format.
  */
-enum cop1_sdw_func {
+enum cop1_sdw_func
+{
 	fadd_op	     =	0x00, fsub_op	   =  0x01,
 	fmul_op	     =	0x02, fdiv_op	   =  0x03,
 	fsqrt_op     =	0x04, fabs_op	   =  0x05,
@@ -228,7 +247,8 @@ enum cop1_sdw_func {
 /*
  * func field of cop1x opcodes (MIPS IV).
  */
-enum cop1x_func {
+enum cop1x_func
+{
 	lwxc1_op     =	0x00, ldxc1_op	   =  0x01,
 	swxc1_op     =  0x08, sdxc1_op	   =  0x09,
 	pfetch_op    =	0x0f, madd_s_op	   =  0x20,
@@ -243,7 +263,8 @@ enum cop1x_func {
 /*
  * func field for mad opcodes (MIPS IV).
  */
-enum mad_func {
+enum mad_func
+{
 	madd_fp_op	= 0x08, msub_fp_op	= 0x0a,
 	nmadd_fp_op	= 0x0c, nmsub_fp_op	= 0x0e
 };
@@ -251,7 +272,8 @@ enum mad_func {
 /*
  * func field for page table walker (Loongson-3).
  */
-enum ptw_func {
+enum ptw_func
+{
 	lwdir_op = 0x00,
 	lwpte_op = 0x01,
 	lddir_op = 0x02,
@@ -261,7 +283,8 @@ enum ptw_func {
 /*
  * func field for special3 lx opcodes (Cavium Octeon).
  */
-enum lx_func {
+enum lx_func
+{
 	lwx_op	= 0x00,
 	lhx_op	= 0x04,
 	lbux_op = 0x06,
@@ -274,7 +297,8 @@ enum lx_func {
 /*
  * BSHFL opcodes
  */
-enum bshfl_func {
+enum bshfl_func
+{
 	wsbh_op = 0x2,
 	dshd_op = 0x5,
 	seb_op  = 0x10,
@@ -284,14 +308,16 @@ enum bshfl_func {
 /*
  * MSA minor opcodes.
  */
-enum msa_func {
+enum msa_func
+{
 	msa_elm_op = 0x19,
 };
 
 /*
  * MSA ELM opcodes.
  */
-enum msa_elm {
+enum msa_elm
+{
 	msa_ctc_op = 0x3e,
 	msa_cfc_op = 0x7e,
 };
@@ -299,7 +325,8 @@ enum msa_elm {
 /*
  * func field for MSA MI10 format.
  */
-enum msa_mi10_func {
+enum msa_mi10_func
+{
 	msa_ld_op = 8,
 	msa_st_op = 9,
 };
@@ -307,7 +334,8 @@ enum msa_mi10_func {
 /*
  * MSA 2 bit format fields.
  */
-enum msa_2b_fmt {
+enum msa_2b_fmt
+{
 	msa_fmt_b = 0,
 	msa_fmt_h = 1,
 	msa_fmt_w = 2,
@@ -317,7 +345,8 @@ enum msa_2b_fmt {
 /*
  * (microMIPS) Major opcodes.
  */
-enum mm_major_op {
+enum mm_major_op
+{
 	mm_pool32a_op, mm_pool16a_op, mm_lbu16_op, mm_move16_op,
 	mm_addi32_op, mm_lbu32_op, mm_sb32_op, mm_lb32_op,
 	mm_pool32b_op, mm_pool16b_op, mm_lhu16_op, mm_andi16_op,
@@ -339,7 +368,8 @@ enum mm_major_op {
 /*
  * (microMIPS) POOL32I minor opcodes.
  */
-enum mm_32i_minor_op {
+enum mm_32i_minor_op
+{
 	mm_bltz_op, mm_bltzal_op, mm_bgez_op, mm_bgezal_op,
 	mm_blez_op, mm_bnezc_op, mm_bgtz_op, mm_beqzc_op,
 	mm_tlti_op, mm_tgei_op, mm_tltiu_op, mm_tgeiu_op,
@@ -354,7 +384,8 @@ enum mm_32i_minor_op {
 /*
  * (microMIPS) POOL32A minor opcodes.
  */
-enum mm_32a_minor_op {
+enum mm_32a_minor_op
+{
 	mm_sll32_op = 0x000,
 	mm_ins_op = 0x00c,
 	mm_sllv32_op = 0x010,
@@ -379,7 +410,8 @@ enum mm_32a_minor_op {
 /*
  * (microMIPS) POOL32B functions.
  */
-enum mm_32b_func {
+enum mm_32b_func
+{
 	mm_lwc2_func = 0x0,
 	mm_lwp_func = 0x1,
 	mm_ldc2_func = 0x2,
@@ -398,7 +430,8 @@ enum mm_32b_func {
 /*
  * (microMIPS) POOL32C functions.
  */
-enum mm_32c_func {
+enum mm_32c_func
+{
 	mm_pref_func = 0x2,
 	mm_ll_func = 0x3,
 	mm_swr_func = 0x9,
@@ -409,7 +442,8 @@ enum mm_32c_func {
 /*
  * (microMIPS) POOL32AXF minor opcodes.
  */
-enum mm_32axf_minor_op {
+enum mm_32axf_minor_op
+{
 	mm_mfc0_op = 0x003,
 	mm_mtc0_op = 0x00b,
 	mm_tlbp_op = 0x00d,
@@ -435,7 +469,8 @@ enum mm_32axf_minor_op {
 /*
  * (microMIPS) POOL32F minor opcodes.
  */
-enum mm_32f_minor_op {
+enum mm_32f_minor_op
+{
 	mm_32f_00_op = 0x00,
 	mm_32f_01_op = 0x01,
 	mm_32f_02_op = 0x02,
@@ -459,7 +494,8 @@ enum mm_32f_minor_op {
 /*
  * (microMIPS) POOL32F secondary minor opcodes.
  */
-enum mm_32f_10_minor_op {
+enum mm_32f_10_minor_op
+{
 	mm_lwxc1_op = 0x1,
 	mm_swxc1_op,
 	mm_ldxc1_op,
@@ -468,7 +504,8 @@ enum mm_32f_10_minor_op {
 	mm_suxc1_op,
 };
 
-enum mm_32f_func {
+enum mm_32f_func
+{
 	mm_lwxc1_func = 0x048,
 	mm_swxc1_func = 0x088,
 	mm_ldxc1_func = 0x0c8,
@@ -478,7 +515,8 @@ enum mm_32f_func {
 /*
  * (microMIPS) POOL32F secondary minor opcodes.
  */
-enum mm_32f_40_minor_op {
+enum mm_32f_40_minor_op
+{
 	mm_fmovf_op,
 	mm_fmovt_op,
 };
@@ -486,7 +524,8 @@ enum mm_32f_40_minor_op {
 /*
  * (microMIPS) POOL32F secondary minor opcodes.
  */
-enum mm_32f_60_minor_op {
+enum mm_32f_60_minor_op
+{
 	mm_fadd_op,
 	mm_fsub_op,
 	mm_fmul_op,
@@ -496,7 +535,8 @@ enum mm_32f_60_minor_op {
 /*
  * (microMIPS) POOL32F secondary minor opcodes.
  */
-enum mm_32f_70_minor_op {
+enum mm_32f_70_minor_op
+{
 	mm_fmovn_op,
 	mm_fmovz_op,
 };
@@ -504,7 +544,8 @@ enum mm_32f_70_minor_op {
 /*
  * (microMIPS) POOL32FXF secondary minor opcodes for POOL32F.
  */
-enum mm_32f_73_minor_op {
+enum mm_32f_73_minor_op
+{
 	mm_fmov0_op = 0x01,
 	mm_fcvtl_op = 0x04,
 	mm_movf0_op = 0x05,
@@ -543,14 +584,16 @@ enum mm_32f_73_minor_op {
 /*
  * (microMIPS) POOL32S minor opcodes.
  */
-enum mm_32s_minor_op {
+enum mm_32s_minor_op
+{
 	mm_32s_elm_op = 0x16,
 };
 
 /*
  * (microMIPS) POOL16C minor opcodes.
  */
-enum mm_16c_minor_op {
+enum mm_16c_minor_op
+{
 	mm_lwm16_op = 0x04,
 	mm_swm16_op = 0x05,
 	mm_jr16_op = 0x0c,
@@ -563,7 +606,8 @@ enum mm_16c_minor_op {
 /*
  * (microMIPS) POOL16D minor opcodes.
  */
-enum mm_16d_minor_op {
+enum mm_16d_minor_op
+{
 	mm_addius5_func,
 	mm_addiusp_func,
 };
@@ -571,7 +615,8 @@ enum mm_16d_minor_op {
 /*
  * (MIPS16e) opcodes.
  */
-enum MIPS16e_ops {
+enum MIPS16e_ops
+{
 	MIPS16e_jal_op = 003,
 	MIPS16e_ld_op = 007,
 	MIPS16e_i8_op = 014,
@@ -593,7 +638,8 @@ enum MIPS16e_ops {
 	MIPS16e_i64_op = 037,
 };
 
-enum MIPS16e_i64_func {
+enum MIPS16e_i64_func
+{
 	MIPS16e_ldsp_func,
 	MIPS16e_sdsp_func,
 	MIPS16e_sdrasp_func,
@@ -601,11 +647,13 @@ enum MIPS16e_i64_func {
 	MIPS16e_ldpc_func,
 };
 
-enum MIPS16e_rr_func {
+enum MIPS16e_rr_func
+{
 	MIPS16e_jr_func,
 };
 
-enum MIPS6e_i8_func {
+enum MIPS6e_i8_func
+{
 	MIPS16e_swrasp_func = 02,
 };
 
@@ -614,154 +662,170 @@ enum MIPS6e_i8_func {
  */
 #define MM_NOP16	0x0c00
 
-struct j_format {
+struct j_format
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6, /* Jump format */
-	__BITFIELD_FIELD(unsigned int target : 26,
-	;))
+					 __BITFIELD_FIELD(unsigned int target : 26,
+									  ;))
 };
 
-struct i_format {			/* signed immediate format */
+struct i_format  			/* signed immediate format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(signed int simmediate : 16,
-	;))))
+					 __BITFIELD_FIELD(unsigned int rs : 5,
+									  __BITFIELD_FIELD(unsigned int rt : 5,
+											  __BITFIELD_FIELD(signed int simmediate : 16,
+													  ;))))
 };
 
-struct u_format {			/* unsigned immediate format */
+struct u_format  			/* unsigned immediate format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int uimmediate : 16,
-	;))))
+					 __BITFIELD_FIELD(unsigned int rs : 5,
+									  __BITFIELD_FIELD(unsigned int rt : 5,
+											  __BITFIELD_FIELD(unsigned int uimmediate : 16,
+													  ;))))
 };
 
-struct c_format {			/* Cache (>= R6000) format */
+struct c_format  			/* Cache (>= R6000) format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int c_op : 3,
-	__BITFIELD_FIELD(unsigned int cache : 2,
-	__BITFIELD_FIELD(unsigned int simmediate : 16,
-	;)))))
+					 __BITFIELD_FIELD(unsigned int rs : 5,
+									  __BITFIELD_FIELD(unsigned int c_op : 3,
+											  __BITFIELD_FIELD(unsigned int cache : 2,
+													  __BITFIELD_FIELD(unsigned int simmediate : 16,
+															  ;)))))
 };
 
-struct r_format {			/* Register format */
+struct r_format  			/* Register format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int rd : 5,
-	__BITFIELD_FIELD(unsigned int re : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int rs : 5,
+									  __BITFIELD_FIELD(unsigned int rt : 5,
+											  __BITFIELD_FIELD(unsigned int rd : 5,
+													  __BITFIELD_FIELD(unsigned int re : 5,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct c0r_format {			/* C0 register format */
+struct c0r_format  			/* C0 register format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int rd : 5,
-	__BITFIELD_FIELD(unsigned int z: 8,
-	__BITFIELD_FIELD(unsigned int sel : 3,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int rs : 5,
+									  __BITFIELD_FIELD(unsigned int rt : 5,
+											  __BITFIELD_FIELD(unsigned int rd : 5,
+													  __BITFIELD_FIELD(unsigned int z: 8,
+															  __BITFIELD_FIELD(unsigned int sel : 3,
+																	  ;))))))
 };
 
-struct mfmc0_format {			/* MFMC0 register format */
+struct mfmc0_format  			/* MFMC0 register format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int rd : 5,
-	__BITFIELD_FIELD(unsigned int re : 5,
-	__BITFIELD_FIELD(unsigned int sc : 1,
-	__BITFIELD_FIELD(unsigned int : 2,
-	__BITFIELD_FIELD(unsigned int sel : 3,
-	;))))))))
+					 __BITFIELD_FIELD(unsigned int rs : 5,
+									  __BITFIELD_FIELD(unsigned int rt : 5,
+											  __BITFIELD_FIELD(unsigned int rd : 5,
+													  __BITFIELD_FIELD(unsigned int re : 5,
+															  __BITFIELD_FIELD(unsigned int sc : 1,
+																	  __BITFIELD_FIELD(unsigned int : 2,
+																			  __BITFIELD_FIELD(unsigned int sel : 3,
+																					  ;))))))))
 };
 
-struct co_format {			/* C0 CO format */
+struct co_format  			/* C0 CO format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int co : 1,
-	__BITFIELD_FIELD(unsigned int code : 19,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))
+					 __BITFIELD_FIELD(unsigned int co : 1,
+									  __BITFIELD_FIELD(unsigned int code : 19,
+											  __BITFIELD_FIELD(unsigned int func : 6,
+													  ;))))
 };
 
-struct p_format {		/* Performance counter format (R10000) */
+struct p_format  		/* Performance counter format (R10000) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int rd : 5,
-	__BITFIELD_FIELD(unsigned int re : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int rs : 5,
+									  __BITFIELD_FIELD(unsigned int rt : 5,
+											  __BITFIELD_FIELD(unsigned int rd : 5,
+													  __BITFIELD_FIELD(unsigned int re : 5,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct f_format {			/* FPU register format */
+struct f_format  			/* FPU register format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int : 1,
-	__BITFIELD_FIELD(unsigned int fmt : 4,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int rd : 5,
-	__BITFIELD_FIELD(unsigned int re : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;)))))))
+					 __BITFIELD_FIELD(unsigned int : 1,
+									  __BITFIELD_FIELD(unsigned int fmt : 4,
+											  __BITFIELD_FIELD(unsigned int rt : 5,
+													  __BITFIELD_FIELD(unsigned int rd : 5,
+															  __BITFIELD_FIELD(unsigned int re : 5,
+																	  __BITFIELD_FIELD(unsigned int func : 6,
+																			  ;)))))))
 };
 
-struct ma_format {		/* FPU multiply and add format (MIPS IV) */
+struct ma_format  		/* FPU multiply and add format (MIPS IV) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int fr : 5,
-	__BITFIELD_FIELD(unsigned int ft : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int func : 4,
-	__BITFIELD_FIELD(unsigned int fmt : 2,
-	;)))))))
+					 __BITFIELD_FIELD(unsigned int fr : 5,
+									  __BITFIELD_FIELD(unsigned int ft : 5,
+											  __BITFIELD_FIELD(unsigned int fs : 5,
+													  __BITFIELD_FIELD(unsigned int fd : 5,
+															  __BITFIELD_FIELD(unsigned int func : 4,
+																	  __BITFIELD_FIELD(unsigned int fmt : 2,
+																			  ;)))))))
 };
 
-struct b_format {			/* BREAK and SYSCALL */
+struct b_format  			/* BREAK and SYSCALL */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int code : 20,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;)))
+					 __BITFIELD_FIELD(unsigned int code : 20,
+									  __BITFIELD_FIELD(unsigned int func : 6,
+											  ;)))
 };
 
-struct ps_format {			/* MIPS-3D / paired single format */
+struct ps_format  			/* MIPS-3D / paired single format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int ft : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int rs : 5,
+									  __BITFIELD_FIELD(unsigned int ft : 5,
+											  __BITFIELD_FIELD(unsigned int fs : 5,
+													  __BITFIELD_FIELD(unsigned int fd : 5,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct v_format {				/* MDMX vector format */
+struct v_format  				/* MDMX vector format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int sel : 4,
-	__BITFIELD_FIELD(unsigned int fmt : 1,
-	__BITFIELD_FIELD(unsigned int vt : 5,
-	__BITFIELD_FIELD(unsigned int vs : 5,
-	__BITFIELD_FIELD(unsigned int vd : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;)))))))
+					 __BITFIELD_FIELD(unsigned int sel : 4,
+									  __BITFIELD_FIELD(unsigned int fmt : 1,
+											  __BITFIELD_FIELD(unsigned int vt : 5,
+													  __BITFIELD_FIELD(unsigned int vs : 5,
+															  __BITFIELD_FIELD(unsigned int vd : 5,
+																	  __BITFIELD_FIELD(unsigned int func : 6,
+																			  ;)))))))
 };
 
-struct msa_mi10_format {		/* MSA MI10 */
+struct msa_mi10_format  		/* MSA MI10 */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(signed int s10 : 10,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(unsigned int wd : 5,
-	__BITFIELD_FIELD(unsigned int func : 4,
-	__BITFIELD_FIELD(unsigned int df : 2,
-	;))))))
+					 __BITFIELD_FIELD(signed int s10 : 10,
+									  __BITFIELD_FIELD(unsigned int rs : 5,
+											  __BITFIELD_FIELD(unsigned int wd : 5,
+													  __BITFIELD_FIELD(unsigned int func : 4,
+															  __BITFIELD_FIELD(unsigned int df : 2,
+																	  ;))))))
 };
 
-struct spec3_format {   /* SPEC3 */
-	__BITFIELD_FIELD(unsigned int opcode:6,
-	__BITFIELD_FIELD(unsigned int rs:5,
-	__BITFIELD_FIELD(unsigned int rt:5,
-	__BITFIELD_FIELD(signed int simmediate:9,
-	__BITFIELD_FIELD(unsigned int func:7,
-	;)))))
+struct spec3_format     /* SPEC3 */
+{
+	__BITFIELD_FIELD(unsigned int opcode: 6,
+					 __BITFIELD_FIELD(unsigned int rs: 5,
+									  __BITFIELD_FIELD(unsigned int rt: 5,
+											  __BITFIELD_FIELD(signed int simmediate: 9,
+													  __BITFIELD_FIELD(unsigned int func: 7,
+															  ;)))))
 };
 
 /*
@@ -771,263 +835,292 @@ struct spec3_format {   /* SPEC3 */
  *	Parenthesis denote whether the format is a microMIPS instruction or
  *	if it is MIPS32 instruction re-encoded for use in the microMIPS ASE.
  */
-struct fb_format {		/* FPU branch format (MIPS32) */
+struct fb_format  		/* FPU branch format (MIPS32) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int bc : 5,
-	__BITFIELD_FIELD(unsigned int cc : 3,
-	__BITFIELD_FIELD(unsigned int flag : 2,
-	__BITFIELD_FIELD(signed int simmediate : 16,
-	;)))))
+					 __BITFIELD_FIELD(unsigned int bc : 5,
+									  __BITFIELD_FIELD(unsigned int cc : 3,
+											  __BITFIELD_FIELD(unsigned int flag : 2,
+													  __BITFIELD_FIELD(signed int simmediate : 16,
+															  ;)))))
 };
 
-struct fp0_format {		/* FPU multiply and add format (MIPS32) */
+struct fp0_format  		/* FPU multiply and add format (MIPS32) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int fmt : 5,
-	__BITFIELD_FIELD(unsigned int ft : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int fmt : 5,
+									  __BITFIELD_FIELD(unsigned int ft : 5,
+											  __BITFIELD_FIELD(unsigned int fs : 5,
+													  __BITFIELD_FIELD(unsigned int fd : 5,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct mm_fp0_format {		/* FPU multiply and add format (microMIPS) */
+struct mm_fp0_format  		/* FPU multiply and add format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int ft : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int fmt : 3,
-	__BITFIELD_FIELD(unsigned int op : 2,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;)))))))
+					 __BITFIELD_FIELD(unsigned int ft : 5,
+									  __BITFIELD_FIELD(unsigned int fs : 5,
+											  __BITFIELD_FIELD(unsigned int fd : 5,
+													  __BITFIELD_FIELD(unsigned int fmt : 3,
+															  __BITFIELD_FIELD(unsigned int op : 2,
+																	  __BITFIELD_FIELD(unsigned int func : 6,
+																			  ;)))))))
 };
 
-struct fp1_format {		/* FPU mfc1 and cfc1 format (MIPS32) */
+struct fp1_format  		/* FPU mfc1 and cfc1 format (MIPS32) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int op : 5,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int op : 5,
+									  __BITFIELD_FIELD(unsigned int rt : 5,
+											  __BITFIELD_FIELD(unsigned int fs : 5,
+													  __BITFIELD_FIELD(unsigned int fd : 5,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct mm_fp1_format {		/* FPU mfc1 and cfc1 format (microMIPS) */
+struct mm_fp1_format  		/* FPU mfc1 and cfc1 format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fmt : 2,
-	__BITFIELD_FIELD(unsigned int op : 8,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int rt : 5,
+									  __BITFIELD_FIELD(unsigned int fs : 5,
+											  __BITFIELD_FIELD(unsigned int fmt : 2,
+													  __BITFIELD_FIELD(unsigned int op : 8,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct mm_fp2_format {		/* FPU movt and movf format (microMIPS) */
+struct mm_fp2_format  		/* FPU movt and movf format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int cc : 3,
-	__BITFIELD_FIELD(unsigned int zero : 2,
-	__BITFIELD_FIELD(unsigned int fmt : 2,
-	__BITFIELD_FIELD(unsigned int op : 3,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))))
+					 __BITFIELD_FIELD(unsigned int fd : 5,
+									  __BITFIELD_FIELD(unsigned int fs : 5,
+											  __BITFIELD_FIELD(unsigned int cc : 3,
+													  __BITFIELD_FIELD(unsigned int zero : 2,
+															  __BITFIELD_FIELD(unsigned int fmt : 2,
+																	  __BITFIELD_FIELD(unsigned int op : 3,
+																			  __BITFIELD_FIELD(unsigned int func : 6,
+																					  ;))))))))
 };
 
-struct mm_fp3_format {		/* FPU abs and neg format (microMIPS) */
+struct mm_fp3_format  		/* FPU abs and neg format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fmt : 3,
-	__BITFIELD_FIELD(unsigned int op : 7,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int rt : 5,
+									  __BITFIELD_FIELD(unsigned int fs : 5,
+											  __BITFIELD_FIELD(unsigned int fmt : 3,
+													  __BITFIELD_FIELD(unsigned int op : 7,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct mm_fp4_format {		/* FPU c.cond format (microMIPS) */
+struct mm_fp4_format  		/* FPU c.cond format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int cc : 3,
-	__BITFIELD_FIELD(unsigned int fmt : 3,
-	__BITFIELD_FIELD(unsigned int cond : 4,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;)))))))
+					 __BITFIELD_FIELD(unsigned int rt : 5,
+									  __BITFIELD_FIELD(unsigned int fs : 5,
+											  __BITFIELD_FIELD(unsigned int cc : 3,
+													  __BITFIELD_FIELD(unsigned int fmt : 3,
+															  __BITFIELD_FIELD(unsigned int cond : 4,
+																	  __BITFIELD_FIELD(unsigned int func : 6,
+																			  ;)))))))
 };
 
-struct mm_fp5_format {		/* FPU lwxc1 and swxc1 format (microMIPS) */
+struct mm_fp5_format  		/* FPU lwxc1 and swxc1 format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int index : 5,
-	__BITFIELD_FIELD(unsigned int base : 5,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int op : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int index : 5,
+									  __BITFIELD_FIELD(unsigned int base : 5,
+											  __BITFIELD_FIELD(unsigned int fd : 5,
+													  __BITFIELD_FIELD(unsigned int op : 5,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct fp6_format {		/* FPU madd and msub format (MIPS IV) */
+struct fp6_format  		/* FPU madd and msub format (MIPS IV) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int fr : 5,
-	__BITFIELD_FIELD(unsigned int ft : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int fr : 5,
+									  __BITFIELD_FIELD(unsigned int ft : 5,
+											  __BITFIELD_FIELD(unsigned int fs : 5,
+													  __BITFIELD_FIELD(unsigned int fd : 5,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct mm_fp6_format {		/* FPU madd and msub format (microMIPS) */
+struct mm_fp6_format  		/* FPU madd and msub format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int ft : 5,
-	__BITFIELD_FIELD(unsigned int fs : 5,
-	__BITFIELD_FIELD(unsigned int fd : 5,
-	__BITFIELD_FIELD(unsigned int fr : 5,
-	__BITFIELD_FIELD(unsigned int func : 6,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int ft : 5,
+									  __BITFIELD_FIELD(unsigned int fs : 5,
+											  __BITFIELD_FIELD(unsigned int fd : 5,
+													  __BITFIELD_FIELD(unsigned int fr : 5,
+															  __BITFIELD_FIELD(unsigned int func : 6,
+																	  ;))))))
 };
 
-struct mm_i_format {		/* Immediate format (microMIPS) */
+struct mm_i_format  		/* Immediate format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(unsigned int rs : 5,
-	__BITFIELD_FIELD(signed int simmediate : 16,
-	;))))
+					 __BITFIELD_FIELD(unsigned int rt : 5,
+									  __BITFIELD_FIELD(unsigned int rs : 5,
+											  __BITFIELD_FIELD(signed int simmediate : 16,
+													  ;))))
 };
 
-struct mm_m_format {		/* Multi-word load/store format (microMIPS) */
+struct mm_m_format  		/* Multi-word load/store format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rd : 5,
-	__BITFIELD_FIELD(unsigned int base : 5,
-	__BITFIELD_FIELD(unsigned int func : 4,
-	__BITFIELD_FIELD(signed int simmediate : 12,
-	;)))))
+					 __BITFIELD_FIELD(unsigned int rd : 5,
+									  __BITFIELD_FIELD(unsigned int base : 5,
+											  __BITFIELD_FIELD(unsigned int func : 4,
+													  __BITFIELD_FIELD(signed int simmediate : 12,
+															  ;)))))
 };
 
-struct mm_x_format {		/* Scaled indexed load format (microMIPS) */
+struct mm_x_format  		/* Scaled indexed load format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int index : 5,
-	__BITFIELD_FIELD(unsigned int base : 5,
-	__BITFIELD_FIELD(unsigned int rd : 5,
-	__BITFIELD_FIELD(unsigned int func : 11,
-	;)))))
+					 __BITFIELD_FIELD(unsigned int index : 5,
+									  __BITFIELD_FIELD(unsigned int base : 5,
+											  __BITFIELD_FIELD(unsigned int rd : 5,
+													  __BITFIELD_FIELD(unsigned int func : 11,
+															  ;)))))
 };
 
-struct mm_a_format {		/* ADDIUPC format (microMIPS) */
+struct mm_a_format  		/* ADDIUPC format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 3,
-	__BITFIELD_FIELD(signed int simmediate : 23,
-	;)))
+					 __BITFIELD_FIELD(unsigned int rs : 3,
+									  __BITFIELD_FIELD(signed int simmediate : 23,
+											  ;)))
 };
 
 /*
  * microMIPS instruction formats (16-bit length)
  */
-struct mm_b0_format {		/* Unconditional branch format (microMIPS) */
+struct mm_b0_format  		/* Unconditional branch format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(signed int simmediate : 10,
-	__BITFIELD_FIELD(unsigned int : 16, /* Ignored */
-	;)))
+					 __BITFIELD_FIELD(signed int simmediate : 10,
+									  __BITFIELD_FIELD(unsigned int : 16, /* Ignored */
+											  ;)))
 };
 
-struct mm_b1_format {		/* Conditional branch format (microMIPS) */
+struct mm_b1_format  		/* Conditional branch format (microMIPS) */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rs : 3,
-	__BITFIELD_FIELD(signed int simmediate : 7,
-	__BITFIELD_FIELD(unsigned int : 16, /* Ignored */
-	;))))
+					 __BITFIELD_FIELD(unsigned int rs : 3,
+									  __BITFIELD_FIELD(signed int simmediate : 7,
+											  __BITFIELD_FIELD(unsigned int : 16, /* Ignored */
+													  ;))))
 };
 
-struct mm16_m_format {		/* Multi-word load/store format */
+struct mm16_m_format  		/* Multi-word load/store format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int func : 4,
-	__BITFIELD_FIELD(unsigned int rlist : 2,
-	__BITFIELD_FIELD(unsigned int imm : 4,
-	__BITFIELD_FIELD(unsigned int : 16, /* Ignored */
-	;)))))
+					 __BITFIELD_FIELD(unsigned int func : 4,
+									  __BITFIELD_FIELD(unsigned int rlist : 2,
+											  __BITFIELD_FIELD(unsigned int imm : 4,
+													  __BITFIELD_FIELD(unsigned int : 16, /* Ignored */
+															  ;)))))
 };
 
-struct mm16_rb_format {		/* Signed immediate format */
+struct mm16_rb_format  		/* Signed immediate format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rt : 3,
-	__BITFIELD_FIELD(unsigned int base : 3,
-	__BITFIELD_FIELD(signed int simmediate : 4,
-	__BITFIELD_FIELD(unsigned int : 16, /* Ignored */
-	;)))))
+					 __BITFIELD_FIELD(unsigned int rt : 3,
+									  __BITFIELD_FIELD(unsigned int base : 3,
+											  __BITFIELD_FIELD(signed int simmediate : 4,
+													  __BITFIELD_FIELD(unsigned int : 16, /* Ignored */
+															  ;)))))
 };
 
-struct mm16_r3_format {		/* Load from global pointer format */
+struct mm16_r3_format  		/* Load from global pointer format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rt : 3,
-	__BITFIELD_FIELD(signed int simmediate : 7,
-	__BITFIELD_FIELD(unsigned int : 16, /* Ignored */
-	;))))
+					 __BITFIELD_FIELD(unsigned int rt : 3,
+									  __BITFIELD_FIELD(signed int simmediate : 7,
+											  __BITFIELD_FIELD(unsigned int : 16, /* Ignored */
+													  ;))))
 };
 
-struct mm16_r5_format {		/* Load/store from stack pointer format */
+struct mm16_r5_format  		/* Load/store from stack pointer format */
+{
 	__BITFIELD_FIELD(unsigned int opcode : 6,
-	__BITFIELD_FIELD(unsigned int rt : 5,
-	__BITFIELD_FIELD(signed int simmediate : 5,
-	__BITFIELD_FIELD(unsigned int : 16, /* Ignored */
-	;))))
+					 __BITFIELD_FIELD(unsigned int rt : 5,
+									  __BITFIELD_FIELD(signed int simmediate : 5,
+											  __BITFIELD_FIELD(unsigned int : 16, /* Ignored */
+													  ;))))
 };
 
 /*
  * MIPS16e instruction formats (16-bit length)
  */
-struct m16e_rr {
+struct m16e_rr
+{
 	__BITFIELD_FIELD(unsigned int opcode : 5,
-	__BITFIELD_FIELD(unsigned int rx : 3,
-	__BITFIELD_FIELD(unsigned int nd : 1,
-	__BITFIELD_FIELD(unsigned int l : 1,
-	__BITFIELD_FIELD(unsigned int ra : 1,
-	__BITFIELD_FIELD(unsigned int func : 5,
-	;))))))
+					 __BITFIELD_FIELD(unsigned int rx : 3,
+									  __BITFIELD_FIELD(unsigned int nd : 1,
+											  __BITFIELD_FIELD(unsigned int l : 1,
+													  __BITFIELD_FIELD(unsigned int ra : 1,
+															  __BITFIELD_FIELD(unsigned int func : 5,
+																	  ;))))))
 };
 
-struct m16e_jal {
+struct m16e_jal
+{
 	__BITFIELD_FIELD(unsigned int opcode : 5,
-	__BITFIELD_FIELD(unsigned int x : 1,
-	__BITFIELD_FIELD(unsigned int imm20_16 : 5,
-	__BITFIELD_FIELD(signed int imm25_21 : 5,
-	;))))
+					 __BITFIELD_FIELD(unsigned int x : 1,
+									  __BITFIELD_FIELD(unsigned int imm20_16 : 5,
+											  __BITFIELD_FIELD(signed int imm25_21 : 5,
+													  ;))))
 };
 
-struct m16e_i64 {
+struct m16e_i64
+{
 	__BITFIELD_FIELD(unsigned int opcode : 5,
-	__BITFIELD_FIELD(unsigned int func : 3,
-	__BITFIELD_FIELD(unsigned int imm : 8,
-	;)))
+					 __BITFIELD_FIELD(unsigned int func : 3,
+									  __BITFIELD_FIELD(unsigned int imm : 8,
+											  ;)))
 };
 
-struct m16e_ri64 {
+struct m16e_ri64
+{
 	__BITFIELD_FIELD(unsigned int opcode : 5,
-	__BITFIELD_FIELD(unsigned int func : 3,
-	__BITFIELD_FIELD(unsigned int ry : 3,
-	__BITFIELD_FIELD(unsigned int imm : 5,
-	;))))
+					 __BITFIELD_FIELD(unsigned int func : 3,
+									  __BITFIELD_FIELD(unsigned int ry : 3,
+											  __BITFIELD_FIELD(unsigned int imm : 5,
+													  ;))))
 };
 
-struct m16e_ri {
+struct m16e_ri
+{
 	__BITFIELD_FIELD(unsigned int opcode : 5,
-	__BITFIELD_FIELD(unsigned int rx : 3,
-	__BITFIELD_FIELD(unsigned int imm : 8,
-	;)))
+					 __BITFIELD_FIELD(unsigned int rx : 3,
+									  __BITFIELD_FIELD(unsigned int imm : 8,
+											  ;)))
 };
 
-struct m16e_rri {
+struct m16e_rri
+{
 	__BITFIELD_FIELD(unsigned int opcode : 5,
-	__BITFIELD_FIELD(unsigned int rx : 3,
-	__BITFIELD_FIELD(unsigned int ry : 3,
-	__BITFIELD_FIELD(unsigned int imm : 5,
-	;))))
+					 __BITFIELD_FIELD(unsigned int rx : 3,
+									  __BITFIELD_FIELD(unsigned int ry : 3,
+											  __BITFIELD_FIELD(unsigned int imm : 5,
+													  ;))))
 };
 
-struct m16e_i8 {
+struct m16e_i8
+{
 	__BITFIELD_FIELD(unsigned int opcode : 5,
-	__BITFIELD_FIELD(unsigned int func : 3,
-	__BITFIELD_FIELD(unsigned int imm : 8,
-	;)))
+					 __BITFIELD_FIELD(unsigned int func : 3,
+									  __BITFIELD_FIELD(unsigned int imm : 8,
+											  ;)))
 };
 
-union mips_instruction {
+union mips_instruction
+{
 	unsigned int word;
 	unsigned short halfword[2];
 	unsigned char byte[4];
@@ -1070,7 +1163,8 @@ union mips_instruction {
 	struct mm16_r5_format mm16_r5_format;
 };
 
-union mips16e_instruction {
+union mips16e_instruction
+{
 	unsigned int full : 16;
 	struct m16e_rr rr;
 	struct m16e_jal jal;

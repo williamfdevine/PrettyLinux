@@ -5,9 +5,9 @@
 #include <stub-data.h>
 
 #ifdef __i386__
-#include "stub_32.h"
+	#include "stub_32.h"
 #else
-#include "stub_64.h"
+	#include "stub_64.h"
 #endif
 
 extern void stub_segv_handler(int, siginfo_t *, void *);

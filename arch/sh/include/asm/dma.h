@@ -31,7 +31,8 @@
 /*
  * DMAC (dma_info) flags
  */
-enum {
+enum
+{
 	DMAC_CHANNELS_CONFIGURED	= 0x01,
 	DMAC_CHANNELS_TEI_CAPABLE	= 0x02,	/* Transfer end interrupt */
 };
@@ -39,7 +40,8 @@ enum {
 /*
  * DMA channel capabilities / flags
  */
-enum {
+enum
+{
 	DMA_CONFIGURED			= 0x01,
 
 	/*
@@ -53,7 +55,8 @@ extern spinlock_t dma_spin_lock;
 
 struct dma_channel;
 
-struct dma_ops {
+struct dma_ops
+{
 	int (*request)(struct dma_channel *chan);
 	void (*free)(struct dma_channel *chan);
 
@@ -63,7 +66,8 @@ struct dma_ops {
 	int (*extend)(struct dma_channel *chan, unsigned long op, void *param);
 };
 
-struct dma_channel {
+struct dma_channel
+{
 	char dev_id[16];		/* unique name per DMAC of channel */
 
 	unsigned int chan;		/* DMAC channel number */
@@ -86,7 +90,8 @@ struct dma_channel {
 	void *priv_data;
 };
 
-struct dma_info {
+struct dma_info
+{
 	struct platform_device *pdev;
 
 	const char *name;
@@ -101,7 +106,8 @@ struct dma_info {
 	int first_vchannel_nr;
 };
 
-struct dma_chan_caps {
+struct dma_chan_caps
+{
 	int ch_num;
 	const char **caplist;
 };
@@ -110,7 +116,7 @@ struct dma_chan_caps {
 
 /* arch/sh/drivers/dma/dma-api.c */
 extern int dma_xfer(unsigned int chan, unsigned long from,
-		    unsigned long to, size_t size, unsigned int mode);
+					unsigned long to, size_t size, unsigned int mode);
 
 #define dma_write(chan, from, to, size)	\
 	dma_xfer(chan, from, to, size, DMA_MODE_WRITE)
@@ -123,7 +129,7 @@ extern int dma_xfer(unsigned int chan, unsigned long from,
 	dma_read(chan, from, to, PAGE_SIZE)
 
 extern int request_dma_bycap(const char **dmac, const char **caps,
-			     const char *dev_id);
+							 const char *dev_id);
 extern int get_dma_residue(unsigned int chan);
 extern struct dma_info *get_dma_info(unsigned int chan);
 extern struct dma_channel *get_dma_channel(unsigned int chan);
@@ -142,9 +148,9 @@ extern int dma_create_sysfs_files(struct dma_channel *, struct dma_info *);
 extern void dma_remove_sysfs_files(struct dma_channel *, struct dma_info *);
 
 #ifdef CONFIG_PCI
-extern int isa_dma_bridge_buggy;
+	extern int isa_dma_bridge_buggy;
 #else
-#define isa_dma_bridge_buggy	(0)
+	#define isa_dma_bridge_buggy	(0)
 #endif
 
 #endif /* __KERNEL__ */

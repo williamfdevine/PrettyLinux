@@ -1,4 +1,4 @@
-/* 
+/*
  * Generate definitions needed by assembly language modules.
  * This code generates raw asm output which is post-processed to extract
  * and format the required data.
@@ -41,9 +41,9 @@
 #include <asm/uaccess.h>
 
 #ifdef CONFIG_64BIT
-#define FRAME_SIZE	128
+	#define FRAME_SIZE	128
 #else
-#define FRAME_SIZE	64
+	#define FRAME_SIZE	64
 #endif
 #define FRAME_ALIGN	64
 
@@ -273,8 +273,8 @@ int main(void)
 	DEFINE(DTLB_OFF_COUNT, offsetof(struct pdc_cache_info, dt_off_count));
 	DEFINE(DTLB_LOOP, offsetof(struct pdc_cache_info, dt_loop));
 	BLANK();
-	DEFINE(TIF_BLOCKSTEP_PA_BIT, 31-TIF_BLOCKSTEP);
-	DEFINE(TIF_SINGLESTEP_PA_BIT, 31-TIF_SINGLESTEP);
+	DEFINE(TIF_BLOCKSTEP_PA_BIT, 31 - TIF_BLOCKSTEP);
+	DEFINE(TIF_SINGLESTEP_PA_BIT, 31 - TIF_SINGLESTEP);
 	BLANK();
 	DEFINE(ASM_PMD_SHIFT, PMD_SHIFT);
 	DEFINE(ASM_PGDIR_SHIFT, PGDIR_SHIFT);

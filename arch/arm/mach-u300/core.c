@@ -167,7 +167,8 @@ static void __iomem *syscon_base;
  * intcon, since the remaining device drivers will map their own memory
  * physical to virtual as the need arise.
  */
-static struct map_desc u300_io_desc[] __initdata = {
+static struct map_desc u300_io_desc[] __initdata =
+{
 	{
 		.virtual	= U300_SLOW_PER_VIRT_BASE,
 		.pfn		= __phys_to_pfn(U300_SLOW_PER_PHYS_BASE),
@@ -193,16 +194,19 @@ static void __init u300_map_io(void)
 	iotable_init(u300_io_desc, ARRAY_SIZE(u300_io_desc));
 }
 
-static unsigned long pin_pullup_conf[] = {
+static unsigned long pin_pullup_conf[] =
+{
 	PIN_CONF_PACKED(PIN_CONFIG_BIAS_PULL_UP, 1),
 };
 
-static unsigned long pin_highz_conf[] = {
+static unsigned long pin_highz_conf[] =
+{
 	PIN_CONF_PACKED(PIN_CONFIG_BIAS_HIGH_IMPEDANCE, 0),
 };
 
 /* Pin control settings */
-static struct pinctrl_map __initdata u300_pinmux_map[] = {
+static struct pinctrl_map __initdata u300_pinmux_map[] =
+{
 	/* anonymous maps for chip power and EMIFs */
 	PIN_MAP_MUX_GROUP_HOG_DEFAULT("pinctrl-u300", NULL, "power"),
 	PIN_MAP_MUX_GROUP_HOG_DEFAULT("pinctrl-u300", NULL, "emif0"),
@@ -213,13 +217,14 @@ static struct pinctrl_map __initdata u300_pinmux_map[] = {
 	PIN_MAP_MUX_GROUP_DEFAULT("uart0", "pinctrl-u300", NULL, "uart0"),
 	/* This pin is used for clock return rather than GPIO */
 	PIN_MAP_CONFIGS_PIN_DEFAULT("mmci", "pinctrl-u300", "PIO APP GPIO 11",
-				    pin_pullup_conf),
+	pin_pullup_conf),
 	/* This pin is used for card detect */
 	PIN_MAP_CONFIGS_PIN_DEFAULT("mmci", "pinctrl-u300", "PIO MS INS",
-				    pin_highz_conf),
+	pin_highz_conf),
 };
 
-struct db_chip {
+struct db_chip
+{
 	u16 chipid;
 	const char *name;
 };
@@ -227,7 +232,8 @@ struct db_chip {
 /*
  * This is a list of the Digital Baseband chips used in the U300 platform.
  */
-static struct db_chip db_chips[] __initdata = {
+static struct db_chip db_chips[] __initdata =
+{
 	{
 		.chipid = 0xb800,
 		.name = "DB3000",
@@ -281,19 +287,23 @@ static void __init u300_init_check_chip(void)
 	chip = db_chips;
 	chipname = unknown;
 
-	for ( ; chip->chipid; chip++) {
-		if (chip->chipid == (val & 0xFF00U)) {
+	for ( ; chip->chipid; chip++)
+	{
+		if (chip->chipid == (val & 0xFF00U))
+		{
 			chipname = chip->name;
 			break;
 		}
 	}
-	printk(KERN_INFO "Initializing U300 system on %s baseband chip " \
-	       "(chip ID 0x%04x)\n", chipname, val);
 
-	if ((val & 0xFF00U) != 0xf000 && (val & 0xFF00U) != 0xf100) {
+	printk(KERN_INFO "Initializing U300 system on %s baseband chip " \
+		   "(chip ID 0x%04x)\n", chipname, val);
+
+	if ((val & 0xFF00U) != 0xf000 && (val & 0xFF00U) != 0xf100)
+	{
 		printk(KERN_ERR "Platform configured for BS335 " \
-		       " with DB3350 but %s detected, expect problems!",
-		       chipname);
+			   " with DB3350 but %s detected, expect problems!",
+			   chipname);
 	}
 }
 
@@ -302,47 +312,51 @@ void coh901327_watchdog_reset(void);
 
 static void u300_restart(enum reboot_mode mode, const char *cmd)
 {
-	switch (mode) {
-	case REBOOT_SOFT:
-	case REBOOT_HARD:
+	switch (mode)
+	{
+		case REBOOT_SOFT:
+		case REBOOT_HARD:
 #ifdef CONFIG_COH901327_WATCHDOG
-		coh901327_watchdog_reset();
+			coh901327_watchdog_reset();
 #endif
-		break;
-	default:
-		/* Do nothing */
-		break;
+			break;
+
+		default:
+			/* Do nothing */
+			break;
 	}
+
 	/* Wait for system do die/reset. */
 	while (1);
 }
 
 /* These are mostly to get the right device names for the clock lookups */
-static struct of_dev_auxdata u300_auxdata_lookup[] __initdata = {
+static struct of_dev_auxdata u300_auxdata_lookup[] __initdata =
+{
 	OF_DEV_AUXDATA("stericsson,pinctrl-u300", U300_SYSCON_BASE,
-		"pinctrl-u300", NULL),
+	"pinctrl-u300", NULL),
 	OF_DEV_AUXDATA("stericsson,gpio-coh901", U300_GPIO_BASE,
-		"u300-gpio", NULL),
+	"u300-gpio", NULL),
 	OF_DEV_AUXDATA("stericsson,coh901327", U300_WDOG_BASE,
-		"coh901327_wdog", NULL),
+	"coh901327_wdog", NULL),
 	OF_DEV_AUXDATA("stericsson,coh901331", U300_RTC_BASE,
-		"rtc-coh901331", NULL),
+	"rtc-coh901331", NULL),
 	OF_DEV_AUXDATA("stericsson,coh901318", U300_DMAC_BASE,
-		"coh901318", NULL),
+	"coh901318", NULL),
 	OF_DEV_AUXDATA("stericsson,fsmc-nand", U300_NAND_IF_PHYS_BASE,
-		"fsmc-nand", NULL),
+	"fsmc-nand", NULL),
 	OF_DEV_AUXDATA("arm,primecell", U300_UART0_BASE,
-		"uart0", NULL),
+	"uart0", NULL),
 	OF_DEV_AUXDATA("arm,primecell", U300_UART1_BASE,
-		"uart1", NULL),
+	"uart1", NULL),
 	OF_DEV_AUXDATA("arm,primecell", U300_SPI_BASE,
-		"pl022", NULL),
+	"pl022", NULL),
 	OF_DEV_AUXDATA("st,ddci2c", U300_I2C0_BASE,
-		"stu300.0", NULL),
+	"stu300.0", NULL),
 	OF_DEV_AUXDATA("st,ddci2c", U300_I2C1_BASE,
-		"stu300.1", NULL),
+	"stu300.1", NULL),
 	OF_DEV_AUXDATA("arm,primecell", U300_MMCSD_BASE,
-		"mmci", NULL),
+	"mmci", NULL),
 	{ /* sentinel */ },
 };
 
@@ -352,15 +366,21 @@ static void __init u300_init_irq_dt(void)
 	struct clk *clk;
 
 	syscon = of_find_node_by_path("/syscon@c0011000");
-	if (!syscon) {
+
+	if (!syscon)
+	{
 		pr_crit("could not find syscon node\n");
 		return;
 	}
+
 	syscon_base = of_iomap(syscon, 0);
-	if (!syscon_base) {
+
+	if (!syscon_base)
+	{
 		pr_crit("could not remap syscon\n");
 		return;
 	}
+
 	/* initialize clocking early, we want to clock the INTCON */
 	u300_clk_init(syscon_base);
 
@@ -389,26 +409,27 @@ static void __init u300_init_machine_dt(void)
 
 	/* Initialize pinmuxing */
 	pinctrl_register_mappings(u300_pinmux_map,
-				  ARRAY_SIZE(u300_pinmux_map));
+							  ARRAY_SIZE(u300_pinmux_map));
 
 	of_platform_default_populate(NULL, u300_auxdata_lookup, NULL);
 
 	/* Enable SEMI self refresh */
 	val = readw(syscon_base + U300_SYSCON_SMCR) |
-		U300_SYSCON_SMCR_SEMI_SREFREQ_ENABLE;
+		  U300_SYSCON_SMCR_SEMI_SREFREQ_ENABLE;
 	writew(val, syscon_base + U300_SYSCON_SMCR);
 }
 
-static const char * u300_board_compat[] = {
+static const char *u300_board_compat[] =
+{
 	"stericsson,u300",
 	NULL,
 };
 
 DT_MACHINE_START(U300_DT, "U300 S335/B335 (Device Tree)")
-	.map_io		= u300_map_io,
+.map_io		= u300_map_io,
 	.init_irq	= u300_init_irq_dt,
-	.init_time	= clocksource_probe,
-	.init_machine	= u300_init_machine_dt,
-	.restart	= u300_restart,
-	.dt_compat      = u300_board_compat,
-MACHINE_END
+	   .init_time	= clocksource_probe,
+		 .init_machine	= u300_init_machine_dt,
+			.restart	= u300_restart,
+				.dt_compat      = u300_board_compat,
+				 MACHINE_END

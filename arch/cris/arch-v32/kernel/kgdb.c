@@ -191,7 +191,7 @@ static int kgdb_started = 0;
 typedef
 struct register_image
 {
-	                      /* Offset */
+	/* Offset */
 	unsigned int   r0;    /* 0x00 */
 	unsigned int   r1;    /* 0x04 */
 	unsigned int   r2;    /* 0x08 */
@@ -213,7 +213,7 @@ struct register_image
 	unsigned char  vr;    /* 0x41; P1, Version register (8-bit) */
 	unsigned int   pid;   /* 0x42; P2, Process ID */
 	unsigned char  srs;   /* 0x46; P3, Support register select (8-bit) */
-        unsigned short wz;    /* 0x47; P4, 16-bit zero register */
+	unsigned short wz;    /* 0x47; P4, 16-bit zero register */
 	unsigned int   exs;   /* 0x49; P5, Exception status */
 	unsigned int   eda;   /* 0x4D; P6, Exception data address */
 	unsigned int   mof;   /* 0x51; P7, Multiply overflow register */
@@ -476,13 +476,14 @@ static int dynamic_bp = 0;
 /* Single-step over library functions creates trap loops. */
 
 /* Copy char s2[] to s1[]. */
-static char*
+static char *
 gdb_cris_strcpy(char *s1, const char *s2)
 {
 	char *s = s1;
 
 	for (s = s1; (*s++ = *s2++) != '\0'; )
 		;
+
 	return s1;
 }
 
@@ -494,11 +495,12 @@ gdb_cris_strlen(const char *s)
 
 	for (sc = s; *sc != '\0'; sc++)
 		;
+
 	return (sc - s);
 }
 
 /* Find first occurrence of c in s[n]. */
-static void*
+static void *
 gdb_cris_memchr(const void *s, int c, int n)
 {
 	const unsigned char uc = c;
@@ -506,7 +508,10 @@ gdb_cris_memchr(const void *s, int c, int n)
 
 	for (su = s; 0 < n; ++su, --n)
 		if (*su == uc)
+		{
 			return (void *)su;
+		}
+
 	return NULL;
 }
 /******************************* Standard library ****************************/
@@ -519,13 +524,16 @@ gdb_cris_strtol(const char *s, char **endptr, int base)
 	char *sd;
 	int x = 0;
 
-	for (s1 = (char*)s; (sd = gdb_cris_memchr(hex_asc, *s1, base)) != NULL; ++s1)
+	for (s1 = (char *)s; (sd = gdb_cris_memchr(hex_asc, *s1, base)) != NULL; ++s1)
+	{
 		x = x * base + (sd - hex_asc);
+	}
 
-        if (endptr) {
-                /* Unconverted suffix is stored in endptr unless endptr is NULL. */
-                *endptr = s1;
-        }
+	if (endptr)
+	{
+		/* Unconverted suffix is stored in endptr unless endptr is NULL. */
+		*endptr = s1;
+	}
 
 	return x;
 }
@@ -539,46 +547,72 @@ write_register(int regno, char *val)
 {
 	int status = SUCCESS;
 
-        if (regno >= R0 && regno <= ACR) {
+	if (regno >= R0 && regno <= ACR)
+	{
 		/* Consecutive 32-bit registers. */
 		if (hex2bin((unsigned char *)&reg.r0 + (regno - R0) * sizeof(unsigned int),
-			    val, sizeof(unsigned int)))
+					val, sizeof(unsigned int)))
+		{
 			status = E08;
+		}
 
-	} else if (regno == BZ || regno == VR || regno == WZ || regno == DZ) {
+	}
+	else if (regno == BZ || regno == VR || regno == WZ || regno == DZ)
+	{
 		/* Read-only registers. */
 		status = E02;
 
-	} else if (regno == PID) {
+	}
+	else if (regno == PID)
+	{
 		/* 32-bit register. (Even though we already checked SRS and WZ, we cannot
 		   combine this with the EXS - SPC write since SRS and WZ have different size.) */
 		if (hex2bin((unsigned char *)&reg.pid, val, sizeof(unsigned int)))
+		{
 			status = E08;
+		}
 
-	} else if (regno == SRS) {
+	}
+	else if (regno == SRS)
+	{
 		/* 8-bit register. */
 		if (hex2bin((unsigned char *)&reg.srs, val, sizeof(unsigned char)))
+		{
 			status = E08;
+		}
 
-	} else if (regno >= EXS && regno <= SPC) {
+	}
+	else if (regno >= EXS && regno <= SPC)
+	{
 		/* Consecutive 32-bit registers. */
 		if (hex2bin((unsigned char *)&reg.exs + (regno - EXS) * sizeof(unsigned int),
-			    val, sizeof(unsigned int)))
+					val, sizeof(unsigned int)))
+		{
 			status = E08;
+		}
 
-       } else if (regno == PC) {
-               /* Pseudo-register. Treat as read-only. */
-               status = E02;
+	}
+	else if (regno == PC)
+	{
+		/* Pseudo-register. Treat as read-only. */
+		status = E02;
 
-       } else if (regno >= S0 && regno <= S15) {
-               /* 32-bit registers. */
-               if (hex2bin((unsigned char *)&sreg.s0_0 + (reg.srs * 16 * sizeof(unsigned int)) + (regno - S0) * sizeof(unsigned int),
-			   val, sizeof(unsigned int)))
+	}
+	else if (regno >= S0 && regno <= S15)
+	{
+		/* 32-bit registers. */
+		if (hex2bin((unsigned char *)&sreg.s0_0 + (reg.srs * 16 * sizeof(unsigned int)) + (regno - S0) * sizeof(unsigned int),
+					val, sizeof(unsigned int)))
+		{
 			status = E08;
-	} else {
+		}
+	}
+	else
+	{
 		/* Non-existing register. */
 		status = E05;
 	}
+
 	return status;
 }
 
@@ -592,39 +626,56 @@ read_register(char regno, unsigned int *valptr)
 	/* We read the zero registers from the register struct (instead of just returning 0)
 	   to catch errors. */
 
-	if (regno >= R0 && regno <= ACR) {
+	if (regno >= R0 && regno <= ACR)
+	{
 		/* Consecutive 32-bit registers. */
 		*valptr = *(unsigned int *)((char *)&reg.r0 + (regno - R0) * sizeof(unsigned int));
 
-	} else if (regno == BZ || regno == VR) {
+	}
+	else if (regno == BZ || regno == VR)
+	{
 		/* Consecutive 8-bit registers. */
 		*valptr = (unsigned int)(*(unsigned char *)
-                                         ((char *)&reg.bz + (regno - BZ) * sizeof(char)));
+								 ((char *)&reg.bz + (regno - BZ) * sizeof(char)));
 
-	} else if (regno == PID) {
+	}
+	else if (regno == PID)
+	{
 		/* 32-bit register. */
 		*valptr =  *(unsigned int *)((char *)&reg.pid);
 
-	} else if (regno == SRS) {
+	}
+	else if (regno == SRS)
+	{
 		/* 8-bit register. */
 		*valptr = (unsigned int)(*(unsigned char *)((char *)&reg.srs));
 
-	} else if (regno == WZ) {
+	}
+	else if (regno == WZ)
+	{
 		/* 16-bit register. */
 		*valptr = (unsigned int)(*(unsigned short *)(char *)&reg.wz);
 
-	} else if (regno >= EXS && regno <= PC) {
+	}
+	else if (regno >= EXS && regno <= PC)
+	{
 		/* Consecutive 32-bit registers. */
 		*valptr = *(unsigned int *)((char *)&reg.exs + (regno - EXS) * sizeof(unsigned int));
 
-	} else if (regno >= S0 && regno <= S15) {
+	}
+	else if (regno >= S0 && regno <= S15)
+	{
 		/* Consecutive 32-bit registers, located elsewhere. */
-		*valptr = *(unsigned int *)((char *)&sreg.s0_0 + (reg.srs * 16 * sizeof(unsigned int)) + (regno - S0) * sizeof(unsigned int));
+		*valptr = *(unsigned int *)((char *)&sreg.s0_0 + (reg.srs * 16 * sizeof(unsigned int)) + (regno - S0) * sizeof(
+										unsigned int));
 
-	} else {
+	}
+	else
+	{
 		/* Non-existing register. */
 		status = E05;
 	}
+
 	return status;
 
 }
@@ -640,20 +691,26 @@ mem2hex(char *buf, unsigned char *mem, int count)
 	int i;
 	int ch;
 
-        if (mem == NULL) {
+	if (mem == NULL)
+	{
 		/* Invalid address, caught by 'm' packet handler. */
-                for (i = 0; i < count; i++) {
-                        *buf++ = '0';
-                        *buf++ = '0';
-                }
-        } else {
-                /* Valid mem address. */
-		for (i = 0; i < count; i++) {
+		for (i = 0; i < count; i++)
+		{
+			*buf++ = '0';
+			*buf++ = '0';
+		}
+	}
+	else
+	{
+		/* Valid mem address. */
+		for (i = 0; i < count; i++)
+		{
 			ch = *mem++;
 			buf = hex_byte_pack(buf, ch);
 		}
-        }
-        /* Terminate properly. */
+	}
+
+	/* Terminate properly. */
 	*buf = '\0';
 	return buf;
 }
@@ -666,12 +723,14 @@ mem2hex_nbo(char *buf, unsigned char *mem, int count)
 	int ch;
 
 	mem += count - 1;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		ch = *mem--;
 		buf = hex_byte_pack(buf, ch);
-        }
+	}
 
-        /* Terminate properly. */
+	/* Terminate properly. */
 	*buf = '\0';
 	return buf;
 }
@@ -680,24 +739,31 @@ mem2hex_nbo(char *buf, unsigned char *mem, int count)
    into memory pointed to by mem, and return a pointer to the character after
    the last byte written.
    Gdb will escape $, #, and the escape char (0x7d). */
-static unsigned char*
+static unsigned char *
 bin2mem(unsigned char *mem, unsigned char *buf, int count)
 {
 	int i;
 	unsigned char *next;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		/* Check for any escaped characters. Be paranoid and
 		   only unescape chars that should be escaped. */
-		if (*buf == 0x7d) {
+		if (*buf == 0x7d)
+		{
 			next = buf + 1;
-			if (*next == 0x3 || *next == 0x4 || *next == 0x5D) {
-				 /* #, $, ESC */
+
+			if (*next == 0x3 || *next == 0x4 || *next == 0x5D)
+			{
+				/* #, $, ESC */
 				buf++;
 				*buf += 0x20;
 			}
 		}
+
 		*mem++ = *buf++;
 	}
+
 	return mem;
 }
 
@@ -712,48 +778,69 @@ getpacket(char *buffer)
 	int count;
 	char ch;
 
-	do {
-		while((ch = getDebugChar ()) != '$')
+	do
+	{
+		while ((ch = getDebugChar ()) != '$')
 			/* Wait for the start character $ and ignore all other characters */;
+
 		checksum = 0;
 		xmitcsum = -1;
 		count = 0;
+
 		/* Read until a # or the end of the buffer is reached */
-		while (count < BUFMAX) {
+		while (count < BUFMAX)
+		{
 			ch = getDebugChar();
+
 			if (ch == '#')
+			{
 				break;
+			}
+
 			checksum = checksum + ch;
 			buffer[count] = ch;
 			count = count + 1;
 		}
 
 		if (count >= BUFMAX)
+		{
 			continue;
+		}
 
 		buffer[count] = 0;
 
-		if (ch == '#') {
+		if (ch == '#')
+		{
 			xmitcsum = hex_to_bin(getDebugChar()) << 4;
 			xmitcsum += hex_to_bin(getDebugChar());
-			if (checksum != xmitcsum) {
+
+			if (checksum != xmitcsum)
+			{
 				/* Wrong checksum */
 				putDebugChar('-');
-			} else {
+			}
+			else
+			{
 				/* Correct checksum */
 				putDebugChar('+');
+
 				/* If sequence characters are received, reply with them */
-				if (buffer[2] == ':') {
+				if (buffer[2] == ':')
+				{
 					putDebugChar(buffer[0]);
 					putDebugChar(buffer[1]);
 					/* Remove the sequence characters from the buffer */
 					count = gdb_cris_strlen(buffer);
+
 					for (i = 3; i <= count; i++)
+					{
 						buffer[i - 3] = buffer[i];
+					}
 				}
 			}
 		}
-	} while (checksum != xmitcsum);
+	}
+	while (checksum != xmitcsum);
 }
 
 /* Send $<data>#<checksum> from the <data> in the array buffer. */
@@ -765,19 +852,26 @@ putpacket(char *buffer)
 	int runlen;
 	int encode;
 
-	do {
+	do
+	{
 		char *src = buffer;
 		putDebugChar('$');
 		checksum = 0;
-		while (*src) {
+
+		while (*src)
+		{
 			/* Do run length encoding */
 			putDebugChar(*src);
 			checksum += *src;
 			runlen = 0;
-			while (runlen < RUNLENMAX && *src == src[runlen]) {
+
+			while (runlen < RUNLENMAX && *src == src[runlen])
+			{
 				runlen++;
 			}
-			if (runlen > 3) {
+
+			if (runlen > 3)
+			{
 				/* Got a useful amount */
 				putDebugChar ('*');
 				checksum += '*';
@@ -785,14 +879,18 @@ putpacket(char *buffer)
 				putDebugChar(encode);
 				checksum += encode;
 				src += runlen;
-			} else {
+			}
+			else
+			{
 				src++;
 			}
 		}
+
 		putDebugChar('#');
 		putDebugChar(hex_asc_hi(checksum));
 		putDebugChar(hex_asc_lo(checksum));
-	} while(kgdb_started && (getDebugChar() != '+'));
+	}
+	while (kgdb_started && (getDebugChar() != '+'));
 }
 
 /* The string str is prepended with the GDB printout token and sent. Required
@@ -810,9 +908,9 @@ putDebugString(const unsigned char *str, int len)
 	asm("move $r10, $spc");
 	asm("nosstep:");
 
-        output_buffer[0] = 'O';
-        mem2hex(&output_buffer[1], (unsigned char *)str, len);
-        putpacket(output_buffer);
+	output_buffer[0] = 'O';
+	mem2hex(&output_buffer[1], (unsigned char *)str, len);
+	putpacket(output_buffer);
 
 	asm("spccont:");
 }
@@ -839,7 +937,8 @@ stub_is_stopped(int sigval)
 	*ptr++ = 'T';
 	ptr = hex_byte_pack(ptr, sigval);
 
-	if (((reg.exs & 0xff00) >> 8) == 0xc) {
+	if (((reg.exs & 0xff00) >> 8) == 0xc)
+	{
 
 		/* Some kind of hardware watchpoint triggered. Find which one
 		   and determine its type (read/write/access).  */
@@ -853,12 +952,16 @@ stub_is_stopped(int sigval)
 		/* The S field of EXS. */
 		S = (reg.exs & 0xffff0000) >> 16;
 
-		if (S & 1) {
+		if (S & 1)
+		{
 			/* Instruction watchpoint. */
 			/* FIXME: Check against, and possibly adjust reported EDA. */
-		} else {
+		}
+		else
+		{
 			/* Data watchpoint.  Find the one that triggered. */
-			for (bp = 0; bp < 6; bp++) {
+			for (bp = 0; bp < 6; bp++)
+			{
 
 				/* Dx_RD, Dx_WR in the S field of EXS for this BP. */
 				int bitpos_trig = 1 + bp * 2;
@@ -870,18 +973,23 @@ stub_is_stopped(int sigval)
 
 				/* Read/write config bits for this BP. */
 				rw_bits = (sreg.s0_3 & (3 << bitpos_config)) >> bitpos_config;
-				if (trig_bits) {
+
+				if (trig_bits)
+				{
 					/* Sanity check: the BP shouldn't trigger for accesses
 					   that it isn't configured for. */
 					if ((rw_bits == 0x1 && trig_bits != 0x1) ||
-					    (rw_bits == 0x2 && trig_bits != 0x2))
+						(rw_bits == 0x2 && trig_bits != 0x2))
+					{
 						panic("Invalid r/w trigging for this BP");
+					}
 
 					/* Mark this BP as trigged for future reference. */
 					trig_mask |= (1 << bp);
 
 					if (reg.eda >= bp_d_regs[bp * 2] &&
-					    reg.eda <= bp_d_regs[bp * 2 + 1]) {
+						reg.eda <= bp_d_regs[bp * 2 + 1])
+					{
 						/* EDA within range for this BP; it must be the one
 						   we're looking for. */
 						stopped_data_address = reg.eda;
@@ -889,25 +997,34 @@ stub_is_stopped(int sigval)
 					}
 				}
 			}
-			if (bp < 6) {
+
+			if (bp < 6)
+			{
 				/* Found a trigged BP with EDA within its configured data range. */
-			} else if (trig_mask) {
+			}
+			else if (trig_mask)
+			{
 				/* Something triggered, but EDA doesn't match any BP's range. */
-				for (bp = 0; bp < 6; bp++) {
+				for (bp = 0; bp < 6; bp++)
+				{
 					/* Dx_BPRD, Dx_BPWR in BP_CTRL for this BP. */
 					int bitpos_config = 2 + bp * 4;
 
 					/* Read/write config bits for this BP (needed later). */
 					rw_bits = (sreg.s0_3 & (3 << bitpos_config)) >> bitpos_config;
 
-					if (trig_mask & (1 << bp)) {
+					if (trig_mask & (1 << bp))
+					{
 						/* EDA within 31 bytes of the configured start address? */
-						if (reg.eda + 31 >= bp_d_regs[bp * 2]) {
+						if (reg.eda + 31 >= bp_d_regs[bp * 2])
+						{
 							/* Changing the reported address to match
 							   the start address of the first applicable BP. */
 							stopped_data_address = bp_d_regs[bp * 2];
 							break;
-						} else {
+						}
+						else
+						{
 							/* We continue since we might find another useful BP. */
 							printk("EDA doesn't match trigged BP's range");
 						}
@@ -917,23 +1034,31 @@ stub_is_stopped(int sigval)
 
 			/* No match yet? */
 			BUG_ON(bp >= 6);
+
 			/* Note that we report the type according to what the BP is configured
 			   for (otherwise we'd never report an 'awatch'), not according to how
 			   it trigged. We did check that the trigged bits match what the BP is
 			   configured for though. */
-			if (rw_bits == 0x1) {
+			if (rw_bits == 0x1)
+			{
 				/* read */
 				strncpy(ptr, "rwatch", 6);
 				ptr += 6;
-			} else if (rw_bits == 0x2) {
+			}
+			else if (rw_bits == 0x2)
+			{
 				/* write */
 				strncpy(ptr, "watch", 5);
 				ptr += 5;
-			} else if (rw_bits == 0x3) {
+			}
+			else if (rw_bits == 0x3)
+			{
 				/* access */
 				strncpy(ptr, "awatch", 6);
 				ptr += 6;
-			} else {
+			}
+			else
+			{
 				panic("Invalid r/w bits for this BP.");
 			}
 
@@ -943,6 +1068,7 @@ stub_is_stopped(int sigval)
 			*ptr++ = ';';
 		}
 	}
+
 	/* Only send PC, frame and stack pointer. */
 	read_register(PC, &reg_cont);
 	ptr = hex_byte_pack(ptr, PC);
@@ -963,11 +1089,11 @@ stub_is_stopped(int sigval)
 	*ptr++ = ';';
 
 	/* Send ERP as well; this will save us an entire register fetch in some cases. */
-        read_register(ERP, &reg_cont);
+	read_register(ERP, &reg_cont);
 	ptr = hex_byte_pack(ptr, ERP);
-        *ptr++ = ':';
-        ptr = mem2hex(ptr, (unsigned char *)&reg_cont, register_size[ERP]);
-        *ptr++ = ';';
+	*ptr++ = ':';
+	ptr = mem2hex(ptr, (unsigned char *)&reg_cont, register_size[ERP]);
+	*ptr++ = ';';
 
 	/* null-terminate and send it off */
 	*ptr = 0;
@@ -981,25 +1107,35 @@ int insn_size(unsigned long pc)
 	unsigned short opcode = *(unsigned short *)pc;
 	int size = 0;
 
-	switch ((opcode & 0x0f00) >> 8) {
-	case 0x0:
-	case 0x9:
-	case 0xb:
-		size = 2;
-		break;
-	case 0xe:
-	case 0xf:
-		size = 6;
-		break;
-	case 0xd:
-		/* Could be 4 or 6; check more bits. */
-		if ((opcode & 0xff) == 0xff)
-			size = 4;
-		else
+	switch ((opcode & 0x0f00) >> 8)
+	{
+		case 0x0:
+		case 0x9:
+		case 0xb:
+			size = 2;
+			break;
+
+		case 0xe:
+		case 0xf:
 			size = 6;
-		break;
-	default:
-		panic("Couldn't find size of opcode 0x%x at 0x%lx\n", opcode, pc);
+			break;
+
+		case 0xd:
+
+			/* Could be 4 or 6; check more bits. */
+			if ((opcode & 0xff) == 0xff)
+			{
+				size = 4;
+			}
+			else
+			{
+				size = 6;
+			}
+
+			break;
+
+		default:
+			panic("Couldn't find size of opcode 0x%x at 0x%lx\n", opcode, pc);
 	}
 
 	return size;
@@ -1012,55 +1148,71 @@ void register_fixup(int sigval)
 
 	/* Standard case. */
 	reg.pc = reg.erp;
-	if (reg.erp & 0x1) {
+
+	if (reg.erp & 0x1)
+	{
 		/* Delay slot bit set.  Report as stopped on proper instruction.  */
-		if (reg.spc) {
+		if (reg.spc)
+		{
 			/* Rely on SPC if set. */
 			reg.pc = reg.spc;
-		} else {
+		}
+		else
+		{
 			/* Calculate the PC from the size of the instruction
 			   that the delay slot we're in belongs to. */
 			reg.pc += insn_size(reg.erp & ~1) - 1 ;
 		}
 	}
 
-	if ((reg.exs & 0x3) == 0x0) {
+	if ((reg.exs & 0x3) == 0x0)
+	{
 		/* Bits 1 - 0 indicate the type of memory operation performed
 		   by the interrupted instruction. 0 means no memory operation,
 		   and EDA is undefined in that case. We zero it to avoid confusion. */
 		reg.eda = 0;
 	}
 
-	if (sigval == SIGTRAP) {
+	if (sigval == SIGTRAP)
+	{
 		/* Break 8, single step or hardware breakpoint exception. */
 
 		/* Check IDX field of EXS. */
-		if (((reg.exs & 0xff00) >> 8) == 0x18) {
+		if (((reg.exs & 0xff00) >> 8) == 0x18)
+		{
 
 			/* Break 8. */
 
-                        /* Static (compiled) breakpoints must return to the next instruction
-			   in order to avoid infinite loops (default value of ERP). Dynamic
-			   (gdb-invoked) must subtract the size of the break instruction from
-			   the ERP so that the instruction that was originally in the break
-			   instruction's place will be run when we return from the exception. */
-			if (!dynamic_bp) {
+			/* Static (compiled) breakpoints must return to the next instruction
+			in order to avoid infinite loops (default value of ERP). Dynamic
+				   (gdb-invoked) must subtract the size of the break instruction from
+				   the ERP so that the instruction that was originally in the break
+				   instruction's place will be run when we return from the exception. */
+			if (!dynamic_bp)
+			{
 				/* Assuming that all breakpoints are dynamic from now on. */
 				dynamic_bp = 1;
-			} else {
+			}
+			else
+			{
 
 				/* Only if not in a delay slot. */
-				if (!(reg.erp & 0x1)) {
+				if (!(reg.erp & 0x1))
+				{
 					reg.erp -= 2;
 					reg.pc -= 2;
 				}
 			}
 
-		} else if (((reg.exs & 0xff00) >> 8) == 0x3) {
+		}
+		else if (((reg.exs & 0xff00) >> 8) == 0x3)
+		{
 			/* Single step. */
 			/* Don't fiddle with S1. */
 
-		} else if (((reg.exs & 0xff00) >> 8) == 0xc) {
+		}
+		else if (((reg.exs & 0xff00) >> 8) == 0xc)
+		{
 
 			/* Hardware watchpoint exception. */
 
@@ -1071,7 +1223,9 @@ void register_fixup(int sigval)
 			/* Don't fiddle with S1. */
 		}
 
-	} else if (sigval == SIGINT) {
+	}
+	else if (sigval == SIGINT)
+	{
 		/* Nothing special. */
 	}
 }
@@ -1086,7 +1240,8 @@ static void insert_watchpoint(char type, int addr, int len)
 	   3 = read watchpoint (supported)
 	   4 = access watchpoint (supported) */
 
-	if (type < '1' || type > '4') {
+	if (type < '1' || type > '4')
+	{
 		output_buffer[0] = 0;
 		return;
 	}
@@ -1094,21 +1249,28 @@ static void insert_watchpoint(char type, int addr, int len)
 	/* Read watchpoints are set as access watchpoints, because of GDB's
 	   inability to deal with pure read watchpoints. */
 	if (type == '3')
+	{
 		type = '4';
+	}
 
-	if (type == '1') {
+	if (type == '1')
+	{
 		/* Hardware (instruction) breakpoint. */
 		/* Bit 0 in BP_CTRL holds the configuration for I0. */
-		if (sreg.s0_3 & 0x1) {
+		if (sreg.s0_3 & 0x1)
+		{
 			/* Already in use. */
 			gdb_cris_strcpy(output_buffer, error_message[E04]);
 			return;
 		}
+
 		/* Configure. */
 		sreg.s1_3 = addr;
 		sreg.s2_3 = (addr + len - 1);
 		sreg.s0_3 |= 1;
-	} else {
+	}
+	else
+	{
 		int bp;
 		unsigned int *bp_d_regs = &sreg.s3_3;
 
@@ -1120,27 +1282,33 @@ static void insert_watchpoint(char type, int addr, int len)
 		   watchpoint will be used. */
 
 		/* First, find a free data watchpoint. */
-		for (bp = 0; bp < 6; bp++) {
+		for (bp = 0; bp < 6; bp++)
+		{
 			/* Each data watchpoint's control registers occupy 2 bits
 			   (hence the 3), starting at bit 2 for D0 (hence the 2)
 			   with 4 bits between for each watchpoint (yes, the 4). */
-			if (!(sreg.s0_3 & (0x3 << (2 + (bp * 4))))) {
+			if (!(sreg.s0_3 & (0x3 << (2 + (bp * 4)))))
+			{
 				break;
 			}
 		}
 
-		if (bp > 5) {
+		if (bp > 5)
+		{
 			/* We're out of watchpoints. */
 			gdb_cris_strcpy(output_buffer, error_message[E04]);
 			return;
 		}
 
 		/* Configure the control register first. */
-		if (type == '3' || type == '4') {
+		if (type == '3' || type == '4')
+		{
 			/* Trigger on read. */
 			sreg.s0_3 |= (1 << (2 + bp * 4));
 		}
-		if (type == '2' || type == '4') {
+
+		if (type == '2' || type == '4')
+		{
 			/* Trigger on write. */
 			sreg.s0_3 |= (2 << (2 + bp * 4));
 		}
@@ -1164,7 +1332,8 @@ static void remove_watchpoint(char type, int addr, int len)
 	   2 = write watchpoint (supported)
 	   3 = read watchpoint (supported)
 	   4 = access watchpoint (supported) */
-	if (type < '1' || type > '4') {
+	if (type < '1' || type > '4')
+	{
 		output_buffer[0] = 0;
 		return;
 	}
@@ -1172,21 +1341,28 @@ static void remove_watchpoint(char type, int addr, int len)
 	/* Read watchpoints are set as access watchpoints, because of GDB's
 	   inability to deal with pure read watchpoints. */
 	if (type == '3')
+	{
 		type = '4';
+	}
 
-	if (type == '1') {
+	if (type == '1')
+	{
 		/* Hardware breakpoint. */
 		/* Bit 0 in BP_CTRL holds the configuration for I0. */
-		if (!(sreg.s0_3 & 0x1)) {
+		if (!(sreg.s0_3 & 0x1))
+		{
 			/* Not in use. */
 			gdb_cris_strcpy(output_buffer, error_message[E04]);
 			return;
 		}
+
 		/* Deconfigure. */
 		sreg.s1_3 = 0;
 		sreg.s2_3 = 0;
 		sreg.s0_3 &= ~1;
-	} else {
+	}
+	else
+	{
 		int bp;
 		unsigned int *bp_d_regs = &sreg.s3_3;
 		/* Try to find a watchpoint that is configured for the
@@ -1196,9 +1372,11 @@ static void remove_watchpoint(char type, int addr, int len)
 		   single switch (addr) as there may be several watchpoints with
 		   the same start address for example. */
 
-		for (bp = 0; bp < 6; bp++) {
+		for (bp = 0; bp < 6; bp++)
+		{
 			if (bp_d_regs[bp * 2] == addr &&
-			    bp_d_regs[bp * 2 + 1] == (addr + len - 1)) {
+				bp_d_regs[bp * 2 + 1] == (addr + len - 1))
+			{
 				/* Matching range. */
 				int bitpos = 2 + bp * 4;
 				int rw_bits;
@@ -1207,15 +1385,17 @@ static void remove_watchpoint(char type, int addr, int len)
 				rw_bits = (sreg.s0_3 & (0x3 << bitpos)) >> bitpos;
 
 				if ((type == '3' && rw_bits == 0x1) ||
-				    (type == '2' && rw_bits == 0x2) ||
-				    (type == '4' && rw_bits == 0x3)) {
+					(type == '2' && rw_bits == 0x2) ||
+					(type == '4' && rw_bits == 0x3))
+				{
 					/* Read/write matched. */
 					break;
 				}
 			}
 		}
 
-		if (bp > 5) {
+		if (bp > 5)
+		{
 			/* No watchpoint matched. */
 			gdb_cris_strcpy(output_buffer, error_message[E04]);
 			return;
@@ -1250,42 +1430,54 @@ handle_exception(int sigval)
 	/* Send response. */
 	stub_is_stopped(sigval);
 
-	for (;;) {
+	for (;;)
+	{
 		output_buffer[0] = '\0';
 		getpacket(input_buffer);
-		switch (input_buffer[0]) {
+
+		switch (input_buffer[0])
+		{
 			case 'g':
 				/* Read registers: g
 				   Success: Each byte of register data is described by two hex digits.
 				   Registers are in the internal order for GDB, and the bytes
 				   in a register  are in the same order the machine uses.
 				   Failure: void. */
-			{
-				char *buf;
-				/* General and special registers. */
-				buf = mem2hex(output_buffer, (char *)&reg, sizeof(registers));
-				/* Support registers. */
-				/* -1 because of the null termination that mem2hex adds. */
-				mem2hex(buf,
-					(char *)&sreg + (reg.srs * 16 * sizeof(unsigned int)),
-					16 * sizeof(unsigned int));
-				break;
-			}
+				{
+					char *buf;
+					/* General and special registers. */
+					buf = mem2hex(output_buffer, (char *)&reg, sizeof(registers));
+					/* Support registers. */
+					/* -1 because of the null termination that mem2hex adds. */
+					mem2hex(buf,
+							(char *)&sreg + (reg.srs * 16 * sizeof(unsigned int)),
+							16 * sizeof(unsigned int));
+					break;
+				}
+
 			case 'G':
+
 				/* Write registers. GXX..XX
 				   Each byte of register data  is described by two hex digits.
 				   Success: OK
 				   Failure: E08. */
 				/* General and special registers. */
 				if (hex2bin((char *)&reg, &input_buffer[1], sizeof(registers)))
+				{
 					gdb_cris_strcpy(output_buffer, error_message[E08]);
+				}
 				/* Support registers. */
 				else if (hex2bin((char *)&sreg + (reg.srs * 16 * sizeof(unsigned int)),
-					&input_buffer[1] + sizeof(registers),
-					16 * sizeof(unsigned int)))
+								 &input_buffer[1] + sizeof(registers),
+								 16 * sizeof(unsigned int)))
+				{
 					gdb_cris_strcpy(output_buffer, error_message[E08]);
+				}
 				else
+				{
 					gdb_cris_strcpy(output_buffer, "OK");
+				}
+
 				break;
 
 			case 'P':
@@ -1301,21 +1493,25 @@ handle_exception(int sigval)
 					int regno = gdb_cris_strtol(&input_buffer[1], &suffix, 16);
 					int status;
 
-					status = write_register(regno, suffix+1);
+					status = write_register(regno, suffix + 1);
 
-					switch (status) {
+					switch (status)
+					{
 						case E02:
 							/* Do not support read-only registers. */
 							gdb_cris_strcpy(output_buffer, error_message[E02]);
 							break;
+
 						case E05:
 							/* Do not support non-existing registers. */
 							gdb_cris_strcpy(output_buffer, error_message[E05]);
 							break;
+
 						case E08:
 							/* Invalid parameter. */
 							gdb_cris_strcpy(output_buffer, error_message[E08]);
 							break;
+
 						default:
 							/* Valid register number. */
 							gdb_cris_strcpy(output_buffer, "OK");
@@ -1332,27 +1528,30 @@ handle_exception(int sigval)
 				   retrieve 108 byte from base address 6000120a.
 				   Failure: void. */
 				{
-                                        char *suffix;
+					char *suffix;
 					unsigned char *addr = (unsigned char *)gdb_cris_strtol(&input_buffer[1],
-                                                                                               &suffix, 16);
-					int len = gdb_cris_strtol(suffix+1, 0, 16);
+										  &suffix, 16);
+					int len = gdb_cris_strtol(suffix + 1, 0, 16);
 
 					/* Bogus read (i.e. outside the kernel's
 					   segment)? . */
 					if (!((unsigned int)addr >= 0xc0000000 &&
-					      (unsigned int)addr < 0xd0000000))
+						  (unsigned int)addr < 0xd0000000))
+					{
 						addr = NULL;
+					}
 
-                                        mem2hex(output_buffer, addr, len);
-                                }
+					mem2hex(output_buffer, addr, len);
+				}
 				break;
 
 			case 'X':
-				/* Write to memory. XAA..AA,LLLL:XX..XX
-				   AA..AA is the start address,  LLLL is the number of bytes, and
-				   XX..XX is the binary data.
-				   Success: OK
-				   Failure: void. */
+
+			/* Write to memory. XAA..AA,LLLL:XX..XX
+			   AA..AA is the start address,  LLLL is the number of bytes, and
+			   XX..XX is the binary data.
+			   Success: OK
+			   Failure: void. */
 			case 'M':
 				/* Write to memory. MAA..AA,LLLL:XX..XX
 				   AA..AA is the start address,  LLLL is the number of bytes, and
@@ -1363,32 +1562,45 @@ handle_exception(int sigval)
 					char *lenptr;
 					char *dataptr;
 					unsigned char *addr = (unsigned char *)gdb_cris_strtol(&input_buffer[1],
-										      &lenptr, 16);
-					int len = gdb_cris_strtol(lenptr+1, &dataptr, 16);
-					if (*lenptr == ',' && *dataptr == ':') {
-						if (input_buffer[0] == 'M') {
+										  &lenptr, 16);
+					int len = gdb_cris_strtol(lenptr + 1, &dataptr, 16);
+
+					if (*lenptr == ',' && *dataptr == ':')
+					{
+						if (input_buffer[0] == 'M')
+						{
 							if (hex2bin(addr, dataptr + 1, len))
+							{
 								gdb_cris_strcpy(output_buffer, error_message[E08]);
+							}
 							else
+							{
 								gdb_cris_strcpy(output_buffer, "OK");
-						} else /* X */ {
+							}
+						}
+						else /* X */
+						{
 							bin2mem(addr, dataptr + 1, len);
 							gdb_cris_strcpy(output_buffer, "OK");
 						}
-					} else {
+					}
+					else
+					{
 						gdb_cris_strcpy(output_buffer, error_message[E06]);
 					}
 				}
 				break;
 
 			case 'c':
+
 				/* Continue execution. cAA..AA
 				   AA..AA is the address where execution is resumed. If AA..AA is
 				   omitted, resume at the present address.
 				   Success: return to the executing thread.
 				   Failure: will never know. */
 
-				if (input_buffer[1] != '\0') {
+				if (input_buffer[1] != '\0')
+				{
 					/* FIXME: Doesn't handle address argument. */
 					gdb_cris_strcpy(output_buffer, error_message[E04]);
 					break;
@@ -1398,22 +1610,26 @@ handle_exception(int sigval)
 
 				/* Set the SPC to some unlikely value.  */
 				reg.spc = 0;
+
 				/* Set the S1 flag to 0 unless some watchpoint is enabled (since setting
 				   S1 to 0 would also disable watchpoints). (Note that bits 26-31 in BP_CTRL
 				   are reserved, so don't check against those). */
-				if ((sreg.s0_3 & 0x3fff) == 0) {
+				if ((sreg.s0_3 & 0x3fff) == 0)
+				{
 					reg.ccs &= ~(1 << (S_CCS_BITNR + CCS_SHIFT));
 				}
 
 				return;
 
 			case 's':
+
 				/* Step. sAA..AA
 				   AA..AA is the address where execution is resumed. If AA..AA is
 				   omitted, resume at the present address. Success: return to the
 				   executing thread. Failure: will never know. */
 
-				if (input_buffer[1] != '\0') {
+				if (input_buffer[1] != '\0')
+				{
 					/* FIXME: Doesn't handle address argument. */
 					gdb_cris_strcpy(output_buffer, error_message[E04]);
 					break;
@@ -1428,36 +1644,36 @@ handle_exception(int sigval)
 				reg.ccs |= (1 << (S_CCS_BITNR + CCS_SHIFT));
 				return;
 
-                       case 'Z':
+			case 'Z':
 
-                               /* Insert breakpoint or watchpoint, Ztype,addr,length.
-                                  Remote protocol says: A remote target shall return an empty string
-                                  for an unrecognized breakpoint or watchpoint packet type. */
-                               {
-                                       char *lenptr;
-                                       char *dataptr;
-                                       int addr = gdb_cris_strtol(&input_buffer[3], &lenptr, 16);
-                                       int len = gdb_cris_strtol(lenptr + 1, &dataptr, 16);
-                                       char type = input_buffer[1];
+				/* Insert breakpoint or watchpoint, Ztype,addr,length.
+				   Remote protocol says: A remote target shall return an empty string
+				   for an unrecognized breakpoint or watchpoint packet type. */
+				{
+					char *lenptr;
+					char *dataptr;
+					int addr = gdb_cris_strtol(&input_buffer[3], &lenptr, 16);
+					int len = gdb_cris_strtol(lenptr + 1, &dataptr, 16);
+					char type = input_buffer[1];
 
-				       insert_watchpoint(type, addr, len);
-                                       break;
-                               }
+					insert_watchpoint(type, addr, len);
+					break;
+				}
 
-                       case 'z':
-                               /* Remove breakpoint or watchpoint, Ztype,addr,length.
-                                  Remote protocol says: A remote target shall return an empty string
-                                  for an unrecognized breakpoint or watchpoint packet type. */
-                               {
-                                       char *lenptr;
-                                       char *dataptr;
-                                       int addr = gdb_cris_strtol(&input_buffer[3], &lenptr, 16);
-                                       int len = gdb_cris_strtol(lenptr + 1, &dataptr, 16);
-                                       char type = input_buffer[1];
+			case 'z':
+				/* Remove breakpoint or watchpoint, Ztype,addr,length.
+				   Remote protocol says: A remote target shall return an empty string
+				   for an unrecognized breakpoint or watchpoint packet type. */
+				{
+					char *lenptr;
+					char *dataptr;
+					int addr = gdb_cris_strtol(&input_buffer[3], &lenptr, 16);
+					int len = gdb_cris_strtol(lenptr + 1, &dataptr, 16);
+					char type = input_buffer[1];
 
-                                       remove_watchpoint(type, addr, len);
-                                       break;
-                               }
+					remove_watchpoint(type, addr, len);
+					break;
+				}
 
 
 			case '?':
@@ -1510,6 +1726,7 @@ handle_exception(int sigval)
 				output_buffer[0] = 0;
 				break;
 		}
+
 		putpacket(output_buffer);
 	}
 }

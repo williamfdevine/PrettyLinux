@@ -42,13 +42,13 @@
 #include "mpc85xx.h"
 
 #ifdef CONFIG_CPM2
-#include <asm/cpm2.h>
+	#include <asm/cpm2.h>
 #endif /* CONFIG_CPM2 */
 
 static void __init stx_gp3_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 
@@ -61,7 +61,9 @@ static void __init stx_gp3_pic_init(void)
 static void __init stx_gp3_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("stx_gp3_setup_arch()", 0);
+	}
 
 	fsl_pci_assign_primary();
 
@@ -96,13 +98,14 @@ static int __init stx_gp3_probe(void)
 	return of_machine_is_compatible("stx,gp3-8560");
 }
 
-define_machine(stx_gp3) {
+define_machine(stx_gp3)
+{
 	.name			= "STX GP3",
-	.probe			= stx_gp3_probe,
-	.setup_arch		= stx_gp3_setup_arch,
-	.init_IRQ		= stx_gp3_pic_init,
-	.show_cpuinfo		= stx_gp3_show_cpuinfo,
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= stx_gp3_probe,
+					 .setup_arch		= stx_gp3_setup_arch,
+						 .init_IRQ		= stx_gp3_pic_init,
+							   .show_cpuinfo		= stx_gp3_show_cpuinfo,
+									 .get_irq		= mpic_get_irq,
+											.calibrate_decr		= generic_calibrate_decr,
+												.progress		= udbg_progress,
 };

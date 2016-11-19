@@ -23,7 +23,8 @@
  * Default rate for the root input clock, reset this with clk_set_rate()
  * from the platform code.
  */
-static struct clk extal_clk = {
+static struct clk extal_clk =
+{
 	.rate		= 33333333,
 };
 
@@ -36,40 +37,48 @@ static unsigned long pll_recalc(struct clk *clk)
 	return clk->parent->rate * multiplier;
 }
 
-static struct sh_clk_ops pll_clk_ops = {
+static struct sh_clk_ops pll_clk_ops =
+{
 	.recalc		= pll_recalc,
 };
 
-static struct clk pll_clk = {
+static struct clk pll_clk =
+{
 	.ops		= &pll_clk_ops,
 	.parent		= &extal_clk,
 	.flags		= CLK_ENABLE_ON_INIT,
 };
 
-static struct clk *clks[] = {
+static struct clk *clks[] =
+{
 	&extal_clk,
 	&pll_clk,
 };
 
 static unsigned int div2[] = { 1, 2, 4, 6, 8, 12, 16, 18,
-			       24, 32, 36, 48 };
+							   24, 32, 36, 48
+							 };
 
-static struct clk_div_mult_table div4_div_mult_table = {
+static struct clk_div_mult_table div4_div_mult_table =
+{
 	.divisors = div2,
 	.nr_divisors = ARRAY_SIZE(div2),
 };
 
-static struct clk_div4_table div4_table = {
+static struct clk_div4_table div4_table =
+{
 	.div_mult_table = &div4_div_mult_table,
 };
 
 enum { DIV4_I, DIV4_U, DIV4_SH, DIV4_B, DIV4_DDR, DIV4_GA,
-	DIV4_DU, DIV4_P, DIV4_NR };
+	   DIV4_DU, DIV4_P, DIV4_NR
+	 };
 
 #define DIV4(_bit, _mask, _flags) \
-  SH_CLK_DIV4(&pll_clk, FRQMR1, _bit, _mask, _flags)
+	SH_CLK_DIV4(&pll_clk, FRQMR1, _bit, _mask, _flags)
 
-struct clk div4_clks[DIV4_NR] = {
+struct clk div4_clks[DIV4_NR] =
+{
 	[DIV4_P] = DIV4(0, 0x0f80, 0),
 	[DIV4_DU] = DIV4(4, 0x0ff0, 0),
 	[DIV4_GA] = DIV4(8, 0x0030, 0),
@@ -84,12 +93,14 @@ struct clk div4_clks[DIV4_NR] = {
 #define MSTPCR1		0xffc80034
 
 enum { MSTP029, MSTP028, MSTP027, MSTP026, MSTP025, MSTP024,
-       MSTP021, MSTP020, MSTP017, MSTP016,
-       MSTP013, MSTP012, MSTP009, MSTP008, MSTP003, MSTP002,
-       MSTP119, MSTP117, MSTP105, MSTP104, MSTP100,
-       MSTP_NR };
+	   MSTP021, MSTP020, MSTP017, MSTP016,
+	   MSTP013, MSTP012, MSTP009, MSTP008, MSTP003, MSTP002,
+	   MSTP119, MSTP117, MSTP105, MSTP104, MSTP100,
+	   MSTP_NR
+	 };
 
-static struct clk mstp_clks[MSTP_NR] = {
+static struct clk mstp_clks[MSTP_NR] =
+{
 	/* MSTPCR0 */
 	[MSTP029] = SH_CLK_MSTP32(&div4_clks[DIV4_P], MSTPCR0, 29, 0),
 	[MSTP028] = SH_CLK_MSTP32(&div4_clks[DIV4_P], MSTPCR0, 28, 0),
@@ -116,7 +127,8 @@ static struct clk mstp_clks[MSTP_NR] = {
 	[MSTP100] = SH_CLK_MSTP32(NULL, MSTPCR1, 0, 0),
 };
 
-static struct clk_lookup lookups[] = {
+static struct clk_lookup lookups[] =
+{
 	/* main clocks */
 	CLKDEV_CON_ID("extal", &extal_clk),
 	CLKDEV_CON_ID("pll_clk", &pll_clk),
@@ -163,15 +175,20 @@ int __init arch_clk_init(void)
 	int i, ret = 0;
 
 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+	{
 		ret |= clk_register(clks[i]);
+	}
 
 	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
 
 	if (!ret)
 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-					   &div4_table);
+								   &div4_table);
+
 	if (!ret)
+	{
 		ret = sh_clk_mstp_register(mstp_clks, MSTP_NR);
+	}
 
 	return ret;
 }

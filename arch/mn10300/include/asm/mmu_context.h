@@ -65,7 +65,8 @@ static inline unsigned long allocate_mmu_context(struct mm_struct *mm)
 	unsigned long *pmc = &mmu_context_cache[smp_processor_id()];
 	unsigned long mc = ++(*pmc);
 
-	if (!(mc & MMU_CONTEXT_TLBPID_MASK)) {
+	if (!(mc & MMU_CONTEXT_TLBPID_MASK))
+	{
 		/* we exhausted the TLB PIDs of this version on this CPU, so we
 		 * flush this CPU's TLB in its entirety and start new cycle */
 		local_flush_tlb_all();
@@ -73,8 +74,11 @@ static inline unsigned long allocate_mmu_context(struct mm_struct *mm)
 		/* fix the TLB version if needed (we avoid version #0 so as to
 		 * distinguish MMU_NO_CONTEXT) */
 		if (!mc)
+		{
 			*pmc = mc = MMU_CONTEXT_FIRST_VERSION;
+		}
 	}
+
 	mm_context(mm) = mc;
 	return mc;
 }
@@ -86,14 +90,18 @@ static inline unsigned long get_mmu_context(struct mm_struct *mm)
 {
 	unsigned long mc = MMU_NO_CONTEXT, cache;
 
-	if (mm) {
+	if (mm)
+	{
 		cache = mmu_context_cache[smp_processor_id()];
 		mc = mm_context(mm);
 
 		/* if we have an old version of the context, replace it */
 		if ((mc ^ cache) & MMU_CONTEXT_VERSION_MASK)
+		{
 			mc = allocate_mmu_context(mm);
+		}
 	}
+
 	return mc;
 }
 
@@ -101,12 +109,15 @@ static inline unsigned long get_mmu_context(struct mm_struct *mm)
  * initialise the context related info for a new mm_struct instance
  */
 static inline int init_new_context(struct task_struct *tsk,
-				   struct mm_struct *mm)
+								   struct mm_struct *mm)
 {
 	int num_cpus = NR_CPUS, i;
 
 	for (i = 0; i < num_cpus; i++)
+	{
 		mm->context.tlbpid[i] = MMU_NO_CONTEXT;
+	}
+
 	return 0;
 }
 
@@ -141,11 +152,12 @@ static inline void activate_context(struct mm_struct *mm)
  * @tsk: The incoming task.
  */
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
 	int cpu = smp_processor_id();
 
-	if (prev != next) {
+	if (prev != next)
+	{
 #ifdef CONFIG_SMP
 		per_cpu(cpu_tlbstate, cpu).active_mm = next;
 #endif

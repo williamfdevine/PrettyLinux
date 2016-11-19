@@ -53,121 +53,121 @@
 #include <asm/war.h>
 
 #ifndef R10000_LLSC_WAR
-#define R10000_LLSC_WAR 0
+	#define R10000_LLSC_WAR 0
 #endif
 
 #if R10000_LLSC_WAR == 1
-#define __beqz	"beqzl	"
+	#define __beqz	"beqzl	"
 #else
-#define __beqz	"beqz	"
+	#define __beqz	"beqz	"
 #endif
 
 #ifndef _LINUX_TYPES_H
-typedef unsigned int u32;
+	typedef unsigned int u32;
 #endif
 
 /*
  * Sets all the masked bits to the corresponding value bits
  */
 static inline void set_value_reg32(volatile u32 *const addr,
-					u32 const mask,
-					u32 const value)
+								   u32 const mask,
+								   u32 const value)
 {
 	u32 temp;
 
 	__asm__ __volatile__(
-	"	.set	push				\n"
-	"	.set	arch=r4000			\n"
-	"1:	ll	%0, %1	# set_value_reg32	\n"
-	"	and	%0, %2				\n"
-	"	or	%0, %3				\n"
-	"	sc	%0, %1				\n"
-	"	"__beqz"%0, 1b				\n"
-	"	nop					\n"
-	"	.set	pop				\n"
-	: "=&r" (temp), "=" GCC_OFF_SMALL_ASM() (*addr)
-	: "ir" (~mask), "ir" (value), GCC_OFF_SMALL_ASM() (*addr));
+		"	.set	push				\n"
+		"	.set	arch=r4000			\n"
+		"1:	ll	%0, %1	# set_value_reg32	\n"
+		"	and	%0, %2				\n"
+		"	or	%0, %3				\n"
+		"	sc	%0, %1				\n"
+		"	"__beqz"%0, 1b				\n"
+		"	nop					\n"
+		"	.set	pop				\n"
+		: "=&r" (temp), "=" GCC_OFF_SMALL_ASM() (*addr)
+		: "ir" (~mask), "ir" (value), GCC_OFF_SMALL_ASM() (*addr));
 }
 
 /*
  * Sets all the masked bits to '1'
  */
 static inline void set_reg32(volatile u32 *const addr,
-				u32 const mask)
+							 u32 const mask)
 {
 	u32 temp;
 
 	__asm__ __volatile__(
-	"	.set	push				\n"
-	"	.set	arch=r4000			\n"
-	"1:	ll	%0, %1		# set_reg32	\n"
-	"	or	%0, %2				\n"
-	"	sc	%0, %1				\n"
-	"	"__beqz"%0, 1b				\n"
-	"	nop					\n"
-	"	.set	pop				\n"
-	: "=&r" (temp), "=" GCC_OFF_SMALL_ASM() (*addr)
-	: "ir" (mask), GCC_OFF_SMALL_ASM() (*addr));
+		"	.set	push				\n"
+		"	.set	arch=r4000			\n"
+		"1:	ll	%0, %1		# set_reg32	\n"
+		"	or	%0, %2				\n"
+		"	sc	%0, %1				\n"
+		"	"__beqz"%0, 1b				\n"
+		"	nop					\n"
+		"	.set	pop				\n"
+		: "=&r" (temp), "=" GCC_OFF_SMALL_ASM() (*addr)
+		: "ir" (mask), GCC_OFF_SMALL_ASM() (*addr));
 }
 
 /*
  * Sets all the masked bits to '0'
  */
 static inline void clear_reg32(volatile u32 *const addr,
-				u32 const mask)
+							   u32 const mask)
 {
 	u32 temp;
 
 	__asm__ __volatile__(
-	"	.set	push				\n"
-	"	.set	arch=r4000			\n"
-	"1:	ll	%0, %1		# clear_reg32	\n"
-	"	and	%0, %2				\n"
-	"	sc	%0, %1				\n"
-	"	"__beqz"%0, 1b				\n"
-	"	nop					\n"
-	"	.set	pop				\n"
-	: "=&r" (temp), "=" GCC_OFF_SMALL_ASM() (*addr)
-	: "ir" (~mask), GCC_OFF_SMALL_ASM() (*addr));
+		"	.set	push				\n"
+		"	.set	arch=r4000			\n"
+		"1:	ll	%0, %1		# clear_reg32	\n"
+		"	and	%0, %2				\n"
+		"	sc	%0, %1				\n"
+		"	"__beqz"%0, 1b				\n"
+		"	nop					\n"
+		"	.set	pop				\n"
+		: "=&r" (temp), "=" GCC_OFF_SMALL_ASM() (*addr)
+		: "ir" (~mask), GCC_OFF_SMALL_ASM() (*addr));
 }
 
 /*
  * Toggles all masked bits from '0' to '1' and '1' to '0'
  */
 static inline void toggle_reg32(volatile u32 *const addr,
-				u32 const mask)
+								u32 const mask)
 {
 	u32 temp;
 
 	__asm__ __volatile__(
-	"	.set	push				\n"
-	"	.set	arch=r4000			\n"
-	"1:	ll	%0, %1		# toggle_reg32	\n"
-	"	xor	%0, %2				\n"
-	"	sc	%0, %1				\n"
-	"	"__beqz"%0, 1b				\n"
-	"	nop					\n"
-	"	.set	pop				\n"
-	: "=&r" (temp), "=" GCC_OFF_SMALL_ASM() (*addr)
-	: "ir" (mask), GCC_OFF_SMALL_ASM() (*addr));
+		"	.set	push				\n"
+		"	.set	arch=r4000			\n"
+		"1:	ll	%0, %1		# toggle_reg32	\n"
+		"	xor	%0, %2				\n"
+		"	sc	%0, %1				\n"
+		"	"__beqz"%0, 1b				\n"
+		"	nop					\n"
+		"	.set	pop				\n"
+		: "=&r" (temp), "=" GCC_OFF_SMALL_ASM() (*addr)
+		: "ir" (mask), GCC_OFF_SMALL_ASM() (*addr));
 }
 
 /*
  * Read all masked bits others are returned as '0'
  */
 static inline u32 read_reg32(volatile u32 *const addr,
-				u32 const mask)
+							 u32 const mask)
 {
 	u32 temp;
 
 	__asm__ __volatile__(
-	"	.set	push				\n"
-	"	.set	noreorder			\n"
-	"	lw	%0, %1		# read		\n"
-	"	and	%0, %2		# mask		\n"
-	"	.set	pop				\n"
-	: "=&r" (temp)
-	: "m" (*addr), "ir" (mask));
+		"	.set	push				\n"
+		"	.set	noreorder			\n"
+		"	lw	%0, %1		# read		\n"
+		"	and	%0, %2		# mask		\n"
+		"	.set	pop				\n"
+		: "=&r" (temp)
+		: "m" (*addr), "ir" (mask));
 
 	return temp;
 }
@@ -184,13 +184,13 @@ static inline u32 blocking_read_reg32(volatile u32 *const addr)
 	u32 temp;
 
 	__asm__ __volatile__(
-	"	.set	push				\n"
-	"	.set	noreorder			\n"
-	"	lw	%0, %1		# read		\n"
-	"	move	%0, %0		# block		\n"
-	"	.set	pop				\n"
-	: "=&r" (temp)
-	: "m" (*addr));
+		"	.set	push				\n"
+		"	.set	noreorder			\n"
+		"	lw	%0, %1		# read		\n"
+		"	move	%0, %0		# block		\n"
+		"	.set	pop				\n"
+		: "=&r" (temp)
+		: "m" (*addr));
 
 	return temp;
 }
@@ -216,22 +216,22 @@ static inline u32 blocking_read_reg32(volatile u32 *const addr)
  */
 #define custom_read_reg32(address, tmp)				\
 	__asm__ __volatile__(					\
-	"	.set	push				\n"	\
-	"	.set	arch=r4000			\n"	\
-	"1:	ll	%0, %1	#custom_read_reg32	\n"	\
-	"	.set	pop				\n"	\
-	: "=r" (tmp), "=" GCC_OFF_SMALL_ASM() (*address)		\
-	: GCC_OFF_SMALL_ASM() (*address))
+											"	.set	push				\n"	\
+											"	.set	arch=r4000			\n"	\
+											"1:	ll	%0, %1	#custom_read_reg32	\n"	\
+											"	.set	pop				\n"	\
+											: "=r" (tmp), "=" GCC_OFF_SMALL_ASM() (*address)		\
+											: GCC_OFF_SMALL_ASM() (*address))
 
 #define custom_write_reg32(address, tmp)			\
 	__asm__ __volatile__(					\
-	"	.set	push				\n"	\
-	"	.set	arch=r4000			\n"	\
-	"	sc	%0, %1	#custom_write_reg32	\n"	\
-	"	"__beqz"%0, 1b				\n"	\
-	"	nop					\n"	\
-	"	.set	pop				\n"	\
-	: "=&r" (tmp), "=" GCC_OFF_SMALL_ASM() (*address)		\
-	: "0" (tmp), GCC_OFF_SMALL_ASM() (*address))
+											"	.set	push				\n"	\
+											"	.set	arch=r4000			\n"	\
+											"	sc	%0, %1	#custom_write_reg32	\n"	\
+											"	"__beqz"%0, 1b				\n"	\
+											"	nop					\n"	\
+											"	.set	pop				\n"	\
+											: "=&r" (tmp), "=" GCC_OFF_SMALL_ASM() (*address)		\
+											: "0" (tmp), GCC_OFF_SMALL_ASM() (*address))
 
 #endif	/* __ASM_REGOPS_H__ */

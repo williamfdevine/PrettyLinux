@@ -53,22 +53,27 @@ static int __init scu_a9_enable(void)
 	unsigned long config_base;
 	void __iomem *scu_base;
 
-	if (!scu_a9_has_base()) {
+	if (!scu_a9_has_base())
+	{
 		pr_err("no configuration base address register!\n");
 		return -ENXIO;
 	}
 
 	/* Config base address register value is zero for uniprocessor */
 	config_base = scu_a9_get_base();
-	if (!config_base) {
+
+	if (!config_base)
+	{
 		pr_err("hardware reports only one core\n");
 		return -ENOENT;
 	}
 
 	scu_base = ioremap((phys_addr_t)config_base, CORTEX_A9_SCU_SIZE);
-	if (!scu_base) {
+
+	if (!scu_base)
+	{
 		pr_err("failed to remap config base (%lu/%u) for SCU\n",
-			config_base, CORTEX_A9_SCU_SIZE);
+			   config_base, CORTEX_A9_SCU_SIZE);
 		return -ENOMEM;
 	}
 
@@ -84,16 +89,17 @@ static u32 secondary_boot_addr_for(unsigned int cpu)
 	u32 secondary_boot_addr = 0;
 	struct device_node *cpu_node = of_get_cpu_node(cpu, NULL);
 
-        if (!cpu_node) {
+	if (!cpu_node)
+	{
 		pr_err("Failed to find device tree node for CPU%u\n", cpu);
 		return 0;
 	}
 
 	if (of_property_read_u32(cpu_node,
-				 OF_SECONDARY_BOOT,
-				 &secondary_boot_addr))
+							 OF_SECONDARY_BOOT,
+							 &secondary_boot_addr))
 		pr_err("required secondary boot register not specified for CPU%u\n",
-			cpu);
+			   cpu);
 
 	of_node_put(cpu_node);
 
@@ -107,11 +113,15 @@ static int nsp_write_lut(unsigned int cpu)
 	const u32 secondary_boot_addr = secondary_boot_addr_for(cpu);
 
 	if (!secondary_boot_addr)
+	{
 		return -EINVAL;
+	}
 
 	sku_rom_lut = ioremap_nocache((phys_addr_t)secondary_boot_addr,
-				      sizeof(phys_addr_t));
-	if (!sku_rom_lut) {
+								  sizeof(phys_addr_t));
+
+	if (!sku_rom_lut)
+	{
 		pr_warn("unable to ioremap SKU-ROM LUT register for cpu %u\n", cpu);
 		return -ENOMEM;
 	}
@@ -134,7 +144,8 @@ static void __init bcm_smp_prepare_cpus(unsigned int max_cpus)
 	const cpumask_t only_cpu_0 = { CPU_BITS_CPU0 };
 
 	/* Enable the SCU on Cortex A9 based SoCs */
-	if (scu_a9_enable()) {
+	if (scu_a9_enable())
+	{
 		/* Update the CPU present map to reflect uniprocessor mode */
 		pr_warn("failed to enable A9 SCU - disabling SMP\n");
 		init_cpu_present(&only_cpu_0);
@@ -170,17 +181,23 @@ static int kona_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	const u32 secondary_boot_addr = secondary_boot_addr_for(cpu);
 
 	cpu_id = cpu_logical_map(cpu);
-	if (cpu_id & ~BOOT_ADDR_CPUID_MASK) {
+
+	if (cpu_id & ~BOOT_ADDR_CPUID_MASK)
+	{
 		pr_err("bad cpu id (%u > %u)\n", cpu_id, BOOT_ADDR_CPUID_MASK);
 		return -EINVAL;
 	}
 
 	if (!secondary_boot_addr)
+	{
 		return -EINVAL;
+	}
 
 	boot_reg = ioremap_nocache((phys_addr_t)secondary_boot_addr,
-				   sizeof(phys_addr_t));
-	if (!boot_reg) {
+							   sizeof(phys_addr_t));
+
+	if (!boot_reg)
+	{
 		pr_err("unable to map boot register for cpu %u\n", cpu_id);
 		return -ENOMEM;
 	}
@@ -201,13 +218,18 @@ static int kona_boot_secondary(unsigned int cpu, struct task_struct *idle)
 
 	/* The low bits will be cleared once the core has started */
 	start_clock = local_clock();
+
 	while (!timeout && readl_relaxed(boot_reg) == boot_val)
+	{
 		timeout = local_clock() - start_clock > SECONDARY_TIMEOUT_NS;
+	}
 
 	iounmap(boot_reg);
 
 	if (!timeout)
+	{
 		return 0;
+	}
 
 	pr_err("timeout waiting for cpu %u to start\n", cpu_id);
 
@@ -236,7 +258,9 @@ static int bcm23550_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 */
 	name = "brcm,bcm23550-cdc";
 	dn = of_find_compatible_node(NULL, NULL, name);
-	if (!dn) {
+
+	if (!dn)
+	{
 		pr_err("unable to find cdc node\n");
 		return -ENODEV;
 	}
@@ -244,15 +268,19 @@ static int bcm23550_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	cdc_base = of_iomap(dn, 0);
 	of_node_put(dn);
 
-	if (!cdc_base) {
+	if (!cdc_base)
+	{
 		pr_err("unable to remap cdc base register\n");
 		return -ENOMEM;
 	}
 
 	/* Boot the secondary core */
 	ret = kona_boot_secondary(cpu, idle);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* Bring this CPU to RUN state so that nIRQ nFIQ
 	 * signals are unblocked.
@@ -274,7 +302,9 @@ static int nsp_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	 * address programmed at SKU ROM LUT location.
 	 */
 	ret = nsp_write_lut(cpu);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("unable to write startup addr to SKU ROM LUT\n");
 		goto out;
 	}
@@ -286,20 +316,23 @@ out:
 	return ret;
 }
 
-static const struct smp_operations kona_smp_ops __initconst = {
+static const struct smp_operations kona_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= bcm_smp_prepare_cpus,
 	.smp_boot_secondary	= kona_boot_secondary,
 };
 CPU_METHOD_OF_DECLARE(bcm_smp_bcm281xx, "brcm,bcm11351-cpu-method",
-			&kona_smp_ops);
+					  &kona_smp_ops);
 
-static const struct smp_operations bcm23550_smp_ops __initconst = {
+static const struct smp_operations bcm23550_smp_ops __initconst =
+{
 	.smp_boot_secondary	= bcm23550_boot_secondary,
 };
 CPU_METHOD_OF_DECLARE(bcm_smp_bcm23550, "brcm,bcm23550",
-			&bcm23550_smp_ops);
+					  &bcm23550_smp_ops);
 
-static const struct smp_operations nsp_smp_ops __initconst = {
+static const struct smp_operations nsp_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= bcm_smp_prepare_cpus,
 	.smp_boot_secondary	= nsp_boot_secondary,
 };

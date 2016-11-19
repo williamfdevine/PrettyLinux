@@ -5,7 +5,8 @@
  *
  */
 
-extern struct at93c_defs {
+extern struct at93c_defs
+{
 	volatile u32 *reg;
 	volatile u32 *rdata_reg;
 	int rdata_shift;

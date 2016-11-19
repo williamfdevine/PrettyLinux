@@ -18,7 +18,7 @@
 #include <asm/sal.h>
 #include <asm/pal.h>
 
- __cacheline_aligned DEFINE_SPINLOCK(sal_lock);
+__cacheline_aligned DEFINE_SPINLOCK(sal_lock);
 unsigned long sal_platform_features;
 
 unsigned short sal_revision;
@@ -27,7 +27,8 @@ unsigned short sal_version;
 #define SAL_MAJOR(x) ((x) >> 8)
 #define SAL_MINOR(x) ((x) & 0xff)
 
-static struct {
+static struct
+{
 	void *addr;	/* function entry point */
 	void *gpval;	/* gp value to use */
 } pdesc;
@@ -45,41 +46,66 @@ const char *
 ia64_sal_strerror (long status)
 {
 	const char *str;
-	switch (status) {
-	      case 0: str = "Call completed without error"; break;
-	      case 1: str = "Effect a warm boot of the system to complete "
-			      "the update"; break;
-	      case -1: str = "Not implemented"; break;
-	      case -2: str = "Invalid argument"; break;
-	      case -3: str = "Call completed with error"; break;
-	      case -4: str = "Virtual address not registered"; break;
-	      case -5: str = "No information available"; break;
-	      case -6: str = "Insufficient space to add the entry"; break;
-	      case -7: str = "Invalid entry_addr value"; break;
-	      case -8: str = "Invalid interrupt vector"; break;
-	      case -9: str = "Requested memory not available"; break;
-	      case -10: str = "Unable to write to the NVM device"; break;
-	      case -11: str = "Invalid partition type specified"; break;
-	      case -12: str = "Invalid NVM_Object id specified"; break;
-	      case -13: str = "NVM_Object already has the maximum number "
-				"of partitions"; break;
-	      case -14: str = "Insufficient space in partition for the "
-				"requested write sub-function"; break;
-	      case -15: str = "Insufficient data buffer space for the "
-				"requested read record sub-function"; break;
-	      case -16: str = "Scratch buffer required for the write/delete "
-				"sub-function"; break;
-	      case -17: str = "Insufficient space in the NVM_Object for the "
-				"requested create sub-function"; break;
-	      case -18: str = "Invalid value specified in the partition_rec "
-				"argument"; break;
-	      case -19: str = "Record oriented I/O not supported for this "
-				"partition"; break;
-	      case -20: str = "Bad format of record to be written or "
-				"required keyword variable not "
-				"specified"; break;
-	      default: str = "Unknown SAL status code"; break;
+
+	switch (status)
+	{
+		case 0: str = "Call completed without error"; break;
+
+		case 1: str = "Effect a warm boot of the system to complete "
+						  "the update"; break;
+
+		case -1: str = "Not implemented"; break;
+
+		case -2: str = "Invalid argument"; break;
+
+		case -3: str = "Call completed with error"; break;
+
+		case -4: str = "Virtual address not registered"; break;
+
+		case -5: str = "No information available"; break;
+
+		case -6: str = "Insufficient space to add the entry"; break;
+
+		case -7: str = "Invalid entry_addr value"; break;
+
+		case -8: str = "Invalid interrupt vector"; break;
+
+		case -9: str = "Requested memory not available"; break;
+
+		case -10: str = "Unable to write to the NVM device"; break;
+
+		case -11: str = "Invalid partition type specified"; break;
+
+		case -12: str = "Invalid NVM_Object id specified"; break;
+
+		case -13: str = "NVM_Object already has the maximum number "
+							"of partitions"; break;
+
+		case -14: str = "Insufficient space in partition for the "
+							"requested write sub-function"; break;
+
+		case -15: str = "Insufficient data buffer space for the "
+							"requested read record sub-function"; break;
+
+		case -16: str = "Scratch buffer required for the write/delete "
+							"sub-function"; break;
+
+		case -17: str = "Insufficient space in the NVM_Object for the "
+							"requested create sub-function"; break;
+
+		case -18: str = "Invalid value specified in the partition_rec "
+							"argument"; break;
+
+		case -19: str = "Record oriented I/O not supported for this "
+							"partition"; break;
+
+		case -20: str = "Bad format of record to be written or "
+							"required keyword variable not "
+							"specified"; break;
+
+		default: str = "Unknown SAL status code"; break;
 	}
+
 	return str;
 }
 
@@ -100,7 +126,7 @@ check_versions (struct ia64_sal_systab *systab)
 
 	/* Check for broken firmware */
 	if ((sal_revision == SAL_VERSION_CODE(49, 29))
-	    && (sal_version == SAL_VERSION_CODE(49, 29)))
+		&& (sal_version == SAL_VERSION_CODE(49, 29)))
 	{
 		/*
 		 * Old firmware for zx2000 prototypes have this weird version number,
@@ -115,7 +141,9 @@ check_versions (struct ia64_sal_systab *systab)
 		 * SGI Altix has hard-coded version 2.9 in their prom
 		 * but they actually implement 3.2, so let's fix it here.
 		 */
+	{
 		sal_revision = SAL_VERSION_CODE(3, 2);
+	}
 }
 
 static void __init
@@ -131,10 +159,16 @@ static void __init
 set_smp_redirect (int flag)
 {
 #ifndef CONFIG_HOTPLUG_CPU
+
 	if (no_int_routing)
+	{
 		smp_int_redirect &= ~flag;
+	}
 	else
+	{
 		smp_int_redirect |= flag;
+	}
+
 #else
 	/*
 	 * For CPU Hotplug we dont want to do any chipset supported
@@ -144,7 +178,7 @@ set_smp_redirect (int flag)
 	 * on again in the vector. This is cumbersome for something that the
 	 * user mode irq balancer will solve anyways.
 	 */
-	no_int_routing=1;
+	no_int_routing = 1;
 	smp_int_redirect &= ~flag;
 #endif
 }
@@ -159,23 +193,35 @@ sal_desc_platform_feature (void *p)
 	sal_platform_features = pf->feature_mask;
 
 	printk(KERN_INFO "SAL Platform features:");
-	if (!sal_platform_features) {
+
+	if (!sal_platform_features)
+	{
 		printk(" None\n");
 		return;
 	}
 
 	if (sal_platform_features & IA64_SAL_PLATFORM_FEATURE_BUS_LOCK)
+	{
 		printk(" BusLock");
-	if (sal_platform_features & IA64_SAL_PLATFORM_FEATURE_IRQ_REDIR_HINT) {
+	}
+
+	if (sal_platform_features & IA64_SAL_PLATFORM_FEATURE_IRQ_REDIR_HINT)
+	{
 		printk(" IRQ_Redirection");
 		set_smp_redirect(SMP_IRQ_REDIRECTION);
 	}
-	if (sal_platform_features & IA64_SAL_PLATFORM_FEATURE_IPI_REDIR_HINT) {
+
+	if (sal_platform_features & IA64_SAL_PLATFORM_FEATURE_IPI_REDIR_HINT)
+	{
 		printk(" IPI_Redirection");
 		set_smp_redirect(SMP_IPI_REDIRECTION);
 	}
+
 	if (sal_platform_features & IA64_SAL_PLATFORM_FEATURE_ITC_DRIFT)
+	{
 		printk(" ITC_Drift");
+	}
+
 	printk("\n");
 }
 
@@ -185,15 +231,17 @@ sal_desc_ap_wakeup (void *p)
 {
 	struct ia64_sal_desc_ap_wakeup *ap = p;
 
-	switch (ap->mechanism) {
-	case IA64_SAL_AP_EXTERNAL_INT:
-		ap_wakeup_vector = ap->vector;
-		printk(KERN_INFO "SAL: AP wakeup using external interrupt "
-				"vector 0x%lx\n", ap_wakeup_vector);
-		break;
-	default:
-		printk(KERN_ERR "SAL: AP wakeup mechanism unsupported!\n");
-		break;
+	switch (ap->mechanism)
+	{
+		case IA64_SAL_AP_EXTERNAL_INT:
+			ap_wakeup_vector = ap->vector;
+			printk(KERN_INFO "SAL: AP wakeup using external interrupt "
+				   "vector 0x%lx\n", ap_wakeup_vector);
+			break;
+
+		default:
+			printk(KERN_ERR "SAL: AP wakeup mechanism unsupported!\n");
+			break;
 	}
 }
 
@@ -202,16 +250,25 @@ chk_nointroute_opt(void)
 {
 	char *cp;
 
-	for (cp = boot_command_line; *cp; ) {
-		if (memcmp(cp, "nointroute", 10) == 0) {
+	for (cp = boot_command_line; *cp; )
+	{
+		if (memcmp(cp, "nointroute", 10) == 0)
+		{
 			no_int_routing = 1;
 			printk ("no_int_routing on\n");
 			break;
-		} else {
+		}
+		else
+		{
 			while (*cp != ' ' && *cp)
+			{
 				++cp;
+			}
+
 			while (*cp == ' ')
+			{
 				++cp;
+			}
 		}
 	}
 }
@@ -246,7 +303,9 @@ check_sal_cache_flush (void)
 	struct ia64_sal_retval isrv;
 
 	if (sal_cache_flush_drops_interrupts)
+	{
 		return;
+	}
 
 	cpu = get_cpu();
 	local_irq_save(flags);
@@ -258,21 +317,28 @@ check_sal_cache_flush (void)
 	platform_send_ipi(cpu, IA64_TIMER_VECTOR, IA64_IPI_DM_INT, 0);
 
 	while (!ia64_get_irr(IA64_TIMER_VECTOR))
+	{
 		cpu_relax();
+	}
 
 	SAL_CALL(isrv, SAL_CACHE_FLUSH, cache_type, 0, 0, 0, 0, 0, 0);
 
 	if (isrv.status)
+	{
 		printk(KERN_ERR "SAL_CAL_FLUSH failed with %ld\n", isrv.status);
+	}
 
-	if (ia64_get_irr(IA64_TIMER_VECTOR)) {
+	if (ia64_get_irr(IA64_TIMER_VECTOR))
+	{
 		vector = ia64_get_ivr();
 		ia64_eoi();
 		WARN_ON(vector != IA64_TIMER_VECTOR);
-	} else {
+	}
+	else
+	{
 		sal_cache_flush_drops_interrupts = 1;
 		printk(KERN_ERR "SAL: SAL_CACHE_FLUSH drops interrupts; "
-			"PAL_CACHE_FLUSH will be used instead\n");
+			   "PAL_CACHE_FLUSH will be used instead\n");
 		ia64_eoi();
 	}
 
@@ -285,7 +351,8 @@ ia64_sal_cache_flush (u64 cache_type)
 {
 	struct ia64_sal_retval isrv;
 
-	if (sal_cache_flush_drops_interrupts) {
+	if (sal_cache_flush_drops_interrupts)
+	{
 		unsigned long flags;
 		u64 progress;
 		s64 rc;
@@ -293,7 +360,7 @@ ia64_sal_cache_flush (u64 cache_type)
 		progress = 0;
 		local_irq_save(flags);
 		rc = ia64_pal_cache_flush(cache_type,
-			PAL_CACHE_FLUSH_INVALIDATE, &progress, NULL);
+								  PAL_CACHE_FLUSH_INVALIDATE, &progress, NULL);
 		local_irq_restore(flags);
 		return rc;
 	}
@@ -309,13 +376,16 @@ ia64_sal_init (struct ia64_sal_systab *systab)
 	char *p;
 	int i;
 
-	if (!systab) {
+	if (!systab)
+	{
 		printk(KERN_WARNING "Hmm, no SAL System Table.\n");
 		return;
 	}
 
 	if (strncmp(systab->signature, "SST_", 4) != 0)
+	{
 		printk(KERN_ERR "bad signature in system table!");
+	}
 
 	check_versions(systab);
 #ifdef CONFIG_SMP
@@ -324,31 +394,38 @@ ia64_sal_init (struct ia64_sal_systab *systab)
 
 	/* revisions are coded in BCD, so %x does the job for us */
 	printk(KERN_INFO "SAL %x.%x: %.32s %.32s%sversion %x.%x\n",
-			SAL_MAJOR(sal_revision), SAL_MINOR(sal_revision),
-			systab->oem_id, systab->product_id,
-			systab->product_id[0] ? " " : "",
-			SAL_MAJOR(sal_version), SAL_MINOR(sal_version));
+		   SAL_MAJOR(sal_revision), SAL_MINOR(sal_revision),
+		   systab->oem_id, systab->product_id,
+		   systab->product_id[0] ? " " : "",
+		   SAL_MAJOR(sal_version), SAL_MINOR(sal_version));
 
 	p = (char *) (systab + 1);
-	for (i = 0; i < systab->entry_count; i++) {
+
+	for (i = 0; i < systab->entry_count; i++)
+	{
 		/*
 		 * The first byte of each entry type contains the type
 		 * descriptor.
 		 */
-		switch (*p) {
-		case SAL_DESC_ENTRY_POINT:
-			sal_desc_entry_point(p);
-			break;
-		case SAL_DESC_PLATFORM_FEATURE:
-			sal_desc_platform_feature(p);
-			break;
-		case SAL_DESC_PTC:
-			ia64_ptc_domain_info = (ia64_sal_desc_ptc_t *)p;
-			break;
-		case SAL_DESC_AP_WAKEUP:
-			sal_desc_ap_wakeup(p);
-			break;
+		switch (*p)
+		{
+			case SAL_DESC_ENTRY_POINT:
+				sal_desc_entry_point(p);
+				break;
+
+			case SAL_DESC_PLATFORM_FEATURE:
+				sal_desc_platform_feature(p);
+				break;
+
+			case SAL_DESC_PTC:
+				ia64_ptc_domain_info = (ia64_sal_desc_ptc_t *)p;
+				break;
+
+			case SAL_DESC_AP_WAKEUP:
+				sal_desc_ap_wakeup(p);
+				break;
 		}
+
 		p += SAL_DESC_SIZE(*p);
 	}
 
@@ -356,10 +433,13 @@ ia64_sal_init (struct ia64_sal_systab *systab)
 
 int
 ia64_sal_oemcall(struct ia64_sal_retval *isrvp, u64 oemfunc, u64 arg1,
-		 u64 arg2, u64 arg3, u64 arg4, u64 arg5, u64 arg6, u64 arg7)
+				 u64 arg2, u64 arg3, u64 arg4, u64 arg5, u64 arg6, u64 arg7)
 {
 	if (oemfunc < IA64_SAL_OEMFUNC_MIN || oemfunc > IA64_SAL_OEMFUNC_MAX)
+	{
 		return -1;
+	}
+
 	SAL_CALL(*isrvp, oemfunc, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 	return 0;
 }
@@ -367,33 +447,39 @@ EXPORT_SYMBOL(ia64_sal_oemcall);
 
 int
 ia64_sal_oemcall_nolock(struct ia64_sal_retval *isrvp, u64 oemfunc, u64 arg1,
-			u64 arg2, u64 arg3, u64 arg4, u64 arg5, u64 arg6,
-			u64 arg7)
+						u64 arg2, u64 arg3, u64 arg4, u64 arg5, u64 arg6,
+						u64 arg7)
 {
 	if (oemfunc < IA64_SAL_OEMFUNC_MIN || oemfunc > IA64_SAL_OEMFUNC_MAX)
+	{
 		return -1;
+	}
+
 	SAL_CALL_NOLOCK(*isrvp, oemfunc, arg1, arg2, arg3, arg4, arg5, arg6,
-			arg7);
+					arg7);
 	return 0;
 }
 EXPORT_SYMBOL(ia64_sal_oemcall_nolock);
 
 int
 ia64_sal_oemcall_reentrant(struct ia64_sal_retval *isrvp, u64 oemfunc,
-			   u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5,
-			   u64 arg6, u64 arg7)
+						   u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5,
+						   u64 arg6, u64 arg7)
 {
 	if (oemfunc < IA64_SAL_OEMFUNC_MIN || oemfunc > IA64_SAL_OEMFUNC_MAX)
+	{
 		return -1;
+	}
+
 	SAL_CALL_REENTRANT(*isrvp, oemfunc, arg1, arg2, arg3, arg4, arg5, arg6,
-			   arg7);
+					   arg7);
 	return 0;
 }
 EXPORT_SYMBOL(ia64_sal_oemcall_reentrant);
 
 long
 ia64_sal_freq_base (unsigned long which, unsigned long *ticks_per_second,
-		    unsigned long *drift_info)
+					unsigned long *drift_info)
 {
 	struct ia64_sal_retval isrv;
 

@@ -21,7 +21,7 @@
 #define BPF_PPC_STACK_BASIC	(48+64)
 #define BPF_PPC_STACK_SAVE	(18*8)
 #define BPF_PPC_STACKFRAME	(BPF_PPC_STACK_BASIC+BPF_PPC_STACK_LOCALS+ \
-				 BPF_PPC_STACK_SAVE)
+							 BPF_PPC_STACK_SAVE)
 #define BPF_PPC_SLOWPATH_FRAME	(48+64)
 #else
 #define BPF_PPC_STACK_R3_OFF	24
@@ -29,7 +29,7 @@
 #define BPF_PPC_STACK_BASIC	(24+32)
 #define BPF_PPC_STACK_SAVE	(18*4)
 #define BPF_PPC_STACKFRAME	(BPF_PPC_STACK_BASIC+BPF_PPC_STACK_LOCALS+ \
-				 BPF_PPC_STACK_SAVE)
+							 BPF_PPC_STACK_SAVE)
 #define BPF_PPC_SLOWPATH_FRAME	(24+32)
 #endif
 
@@ -92,9 +92,9 @@ DECLARE_LOAD_FUNC(sk_load_byte_msh);
 			PPC_LHZ(r, r, IMM_L(i)); } } while(0)
 
 #ifdef CONFIG_PPC64
-#define PPC_LL_OFFS(r, base, i) do { PPC_LD_OFFS(r, base, i); } while(0)
+	#define PPC_LL_OFFS(r, base, i) do { PPC_LD_OFFS(r, base, i); } while(0)
 #else
-#define PPC_LL_OFFS(r, base, i) do { PPC_LWZ_OFFS(r, base, i); } while(0)
+	#define PPC_LL_OFFS(r, base, i) do { PPC_LWZ_OFFS(r, base, i); } while(0)
 #endif
 
 #ifdef CONFIG_SMP
@@ -107,7 +107,7 @@ DECLARE_LOAD_FUNC(sk_load_byte_msh);
 #define PPC_BPF_LOAD_CPU(r)     \
 	do { BUILD_BUG_ON(FIELD_SIZEOF(struct thread_info, cpu) != 4);		\
 		PPC_LHZ_OFFS(r, (1 & ~(THREAD_SIZE - 1)),			\
-				offsetof(struct thread_info, cpu));		\
+					 offsetof(struct thread_info, cpu));		\
 	} while(0)
 #endif
 #else
@@ -115,11 +115,11 @@ DECLARE_LOAD_FUNC(sk_load_byte_msh);
 #endif
 
 #define PPC_LHBRX_OFFS(r, base, i) \
-		do { PPC_LI32(r, i); PPC_LHBRX(r, r, base); } while(0)
+	do { PPC_LI32(r, i); PPC_LHBRX(r, r, base); } while(0)
 #ifdef __LITTLE_ENDIAN__
-#define PPC_NTOHS_OFFS(r, base, i)	PPC_LHBRX_OFFS(r, base, i)
+	#define PPC_NTOHS_OFFS(r, base, i)	PPC_LHBRX_OFFS(r, base, i)
 #else
-#define PPC_NTOHS_OFFS(r, base, i)	PPC_LHZ_OFFS(r, base, i)
+	#define PPC_NTOHS_OFFS(r, base, i)	PPC_LHZ_OFFS(r, base, i)
 #endif
 
 #define SEEN_DATAREF 0x10000 /* might call external helpers */
@@ -128,7 +128,8 @@ DECLARE_LOAD_FUNC(sk_load_byte_msh);
 			      * storage */
 #define SEEN_MEM_MSK 0x0ffff
 
-struct codegen_context {
+struct codegen_context
+{
 	unsigned int seen;
 	unsigned int idx;
 	int pc_ret0; /* bpf index of first RET #0 instruction (if any) */

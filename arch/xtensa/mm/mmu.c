@@ -18,7 +18,7 @@
 #include <asm/io.h>
 
 #if defined(CONFIG_HIGHMEM)
-static void * __init init_pmd(unsigned long vaddr, unsigned long n_pages)
+static void *__init init_pmd(unsigned long vaddr, unsigned long n_pages)
 {
 	pgd_t *pgd = pgd_offset_k(vaddr);
 	pmd_t *pmd = pmd_offset(pgd, vaddr);
@@ -28,22 +28,26 @@ static void * __init init_pmd(unsigned long vaddr, unsigned long n_pages)
 	n_pages = ALIGN(n_pages, PTRS_PER_PTE);
 
 	pr_debug("%s: vaddr: 0x%08lx, n_pages: %ld\n",
-		 __func__, vaddr, n_pages);
+			 __func__, vaddr, n_pages);
 
 	pte = alloc_bootmem_low_pages(n_pages * sizeof(pte_t));
 
 	for (i = 0; i < n_pages; ++i)
+	{
 		pte_clear(NULL, 0, pte + i);
+	}
 
-	for (i = 0; i < n_pages; i += PTRS_PER_PTE, ++pmd) {
+	for (i = 0; i < n_pages; i += PTRS_PER_PTE, ++pmd)
+	{
 		pte_t *cur_pte = pte + i;
 
 		BUG_ON(!pmd_none(*pmd));
 		set_pmd(pmd, __pmd(((unsigned long)cur_pte) & PAGE_MASK));
 		BUG_ON(cur_pte != pte_offset_kernel(pmd, 0));
 		pr_debug("%s: pmd: 0x%p, pte: 0x%p\n",
-			 __func__, pmd, cur_pte);
+				 __func__, pmd, cur_pte);
 	}
+
 	return pte;
 }
 
@@ -86,13 +90,13 @@ void init_mmu(void)
 	 * Update the IO area mapping in case xtensa_kio_paddr has changed
 	 */
 	write_dtlb_entry(__pte(xtensa_kio_paddr + CA_WRITEBACK),
-			XCHAL_KIO_CACHED_VADDR + 6);
+					 XCHAL_KIO_CACHED_VADDR + 6);
 	write_itlb_entry(__pte(xtensa_kio_paddr + CA_WRITEBACK),
-			XCHAL_KIO_CACHED_VADDR + 6);
+					 XCHAL_KIO_CACHED_VADDR + 6);
 	write_dtlb_entry(__pte(xtensa_kio_paddr + CA_BYPASS),
-			XCHAL_KIO_BYPASS_VADDR + 6);
+					 XCHAL_KIO_BYPASS_VADDR + 6);
 	write_itlb_entry(__pte(xtensa_kio_paddr + CA_BYPASS),
-			XCHAL_KIO_BYPASS_VADDR + 6);
+					 XCHAL_KIO_BYPASS_VADDR + 6);
 #endif
 
 	local_flush_tlb_all();

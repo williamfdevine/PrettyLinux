@@ -8,17 +8,21 @@
 #include <linux/types.h>
 
 /* SUPERIO uart register map */
-typedef volatile struct ioc3_uartregs {
-	union {
+typedef volatile struct ioc3_uartregs
+{
+	union
+	{
 		volatile u8	rbr;	/* read only, DLAB == 0 */
 		volatile u8	thr;	/* write only, DLAB == 0 */
 		volatile u8	dll;	/* DLAB == 1 */
 	} u1;
-	union {
+	union
+	{
 		volatile u8	ier;	/* DLAB == 0 */
 		volatile u8	dlm;	/* DLAB == 1 */
 	} u2;
-	union {
+	union
+	{
 		volatile u8	iir;	/* read only */
 		volatile u8	fcr;	/* write only */
 	} u3;
@@ -37,7 +41,8 @@ typedef volatile struct ioc3_uartregs {
 #define iu_iir u3.iir
 #define iu_fcr u3.fcr
 
-struct ioc3_sioregs {
+struct ioc3_sioregs
+{
 	volatile u8		fill[0x141];	/* starts at 0x141 */
 
 	volatile u8		uartc;
@@ -67,7 +72,8 @@ struct ioc3_sioregs {
 };
 
 /* Register layout of IOC3 in configuration space.  */
-struct ioc3 {
+struct ioc3
+{
 	volatile u32	pad0[7];	/* 0x00000  */
 	volatile u32	sio_ir;		/* 0x0001c  */
 	volatile u32	sio_ies;	/* 0x00020  */
@@ -180,7 +186,8 @@ struct ioc3 {
 /*
  * Ethernet RX Buffer
  */
-struct ioc3_erxbuf {
+struct ioc3_erxbuf
+{
 	u32	w0;			/* first word (valid,bcnt,cksum) */
 	u32	err;			/* second word various errors */
 	/* next comes n bytes of padding */
@@ -209,7 +216,8 @@ struct ioc3_erxbuf {
  * Ethernet TX Descriptor
  */
 #define ETXD_DATALEN	104
-struct ioc3_etxd {
+struct ioc3_etxd
+{
 	u32	cmd;				/* command field */
 	u32	bufcnt;				/* buffer counts field */
 	u64	p1;				/* buffer pointer 1 */
@@ -426,22 +434,22 @@ struct ioc3_etxd {
 
 /* per device interrupt masks */
 #define SIO_IR_SA		(SIO_IR_SA_TX_MT | SIO_IR_SA_RX_FULL | \
-				 SIO_IR_SA_RX_HIGH | SIO_IR_SA_RX_TIMER | \
-				 SIO_IR_SA_DELTA_DCD | SIO_IR_SA_DELTA_CTS | \
-				 SIO_IR_SA_INT | SIO_IR_SA_TX_EXPLICIT | \
-				 SIO_IR_SA_MEMERR)
+						 SIO_IR_SA_RX_HIGH | SIO_IR_SA_RX_TIMER | \
+						 SIO_IR_SA_DELTA_DCD | SIO_IR_SA_DELTA_CTS | \
+						 SIO_IR_SA_INT | SIO_IR_SA_TX_EXPLICIT | \
+						 SIO_IR_SA_MEMERR)
 #define SIO_IR_SB		(SIO_IR_SB_TX_MT | SIO_IR_SB_RX_FULL | \
-				 SIO_IR_SB_RX_HIGH | SIO_IR_SB_RX_TIMER | \
-				 SIO_IR_SB_DELTA_DCD | SIO_IR_SB_DELTA_CTS | \
-				 SIO_IR_SB_INT | SIO_IR_SB_TX_EXPLICIT | \
-				 SIO_IR_SB_MEMERR)
+						 SIO_IR_SB_RX_HIGH | SIO_IR_SB_RX_TIMER | \
+						 SIO_IR_SB_DELTA_DCD | SIO_IR_SB_DELTA_CTS | \
+						 SIO_IR_SB_INT | SIO_IR_SB_TX_EXPLICIT | \
+						 SIO_IR_SB_MEMERR)
 #define SIO_IR_PP		(SIO_IR_PP_INT | SIO_IR_PP_INTA | \
-				 SIO_IR_PP_INTB | SIO_IR_PP_MEMERR)
+						 SIO_IR_PP_INTB | SIO_IR_PP_MEMERR)
 #define SIO_IR_RT		(SIO_IR_RT_INT | SIO_IR_GEN_INT1)
 
 /* macro to load pending interrupts */
 #define IOC3_PENDING_INTRS(mem) (PCI_INW(&((mem)->sio_ir)) & \
-				 PCI_INW(&((mem)->sio_ies_ro)))
+								 PCI_INW(&((mem)->sio_ies_ro)))
 
 /* bitmasks for SIO_CR */
 #define SIO_CR_SIO_RESET	0x00000001	/* reset the SIO */
@@ -627,16 +635,17 @@ struct ioc3_etxd {
 #define ETXD_B2CNT_MASK		0x7ff00000
 #define ETXD_B2CNT_SHIFT	20
 
-typedef enum ioc3_subdevs_e {
-    ioc3_subdev_ether,
-    ioc3_subdev_generic,
-    ioc3_subdev_nic,
-    ioc3_subdev_kbms,
-    ioc3_subdev_ttya,
-    ioc3_subdev_ttyb,
-    ioc3_subdev_ecpp,
-    ioc3_subdev_rt,
-    ioc3_nsubdevs
+typedef enum ioc3_subdevs_e
+{
+	ioc3_subdev_ether,
+	ioc3_subdev_generic,
+	ioc3_subdev_nic,
+	ioc3_subdev_kbms,
+	ioc3_subdev_ttya,
+	ioc3_subdev_ttyb,
+	ioc3_subdev_ecpp,
+	ioc3_subdev_rt,
+	ioc3_nsubdevs
 } ioc3_subdev_t;
 
 /* subdevice disable bits,

@@ -33,20 +33,23 @@
 static unsigned long vpci_major;
 static unsigned long vpci_minor;
 
-struct vpci_version {
+struct vpci_version
+{
 	unsigned long major;
 	unsigned long minor;
 };
 
 /* Ordered from largest major to lowest */
-static struct vpci_version vpci_versions[] = {
+static struct vpci_version vpci_versions[] =
+{
 	{ .major = 2, .minor = 0 },
 	{ .major = 1, .minor = 1 },
 };
 
 #define PGLIST_NENTS	(PAGE_SIZE / sizeof(u64))
 
-struct iommu_batch {
+struct iommu_batch
+{
 	struct device	*dev;		/* Device mapping is for.	*/
 	unsigned long	prot;		/* IOMMU page protections	*/
 	unsigned long	entry;		/* Index into IOTSB.		*/
@@ -80,20 +83,26 @@ static long iommu_batch_flush(struct iommu_batch *p)
 
 	/* VPCI maj=1, min=[0,1] only supports read and write */
 	if (vpci_major < 2)
+	{
 		prot &= (HV_PCI_MAP_ATTR_READ | HV_PCI_MAP_ATTR_WRITE);
+	}
 
-	while (npages != 0) {
+	while (npages != 0)
+	{
 		long num;
 
 		num = pci_sun4v_iommu_map(devhandle, HV_PCI_TSBID(0, entry),
-					  npages, prot, __pa(pglist));
-		if (unlikely(num < 0)) {
+								  npages, prot, __pa(pglist));
+
+		if (unlikely(num < 0))
+		{
 			if (printk_ratelimit())
 				printk("iommu_batch_flush: IOMMU map of "
-				       "[%08lx:%08llx:%lx:%lx:%lx] failed with "
-				       "status %ld\n",
-				       devhandle, HV_PCI_TSBID(0, entry),
-				       npages, prot, __pa(pglist), num);
+					   "[%08lx:%08llx:%lx:%lx:%lx] failed with "
+					   "status %ld\n",
+					   devhandle, HV_PCI_TSBID(0, entry),
+					   npages, prot, __pa(pglist), num);
+
 			return -1;
 		}
 
@@ -113,9 +122,15 @@ static inline void iommu_batch_new_entry(unsigned long entry)
 	struct iommu_batch *p = this_cpu_ptr(&iommu_batch);
 
 	if (p->entry + p->npages == entry)
+	{
 		return;
+	}
+
 	if (p->entry != ~0UL)
+	{
 		iommu_batch_flush(p);
+	}
+
 	p->entry = entry;
 }
 
@@ -127,8 +142,11 @@ static inline long iommu_batch_add(u64 phys_page)
 	BUG_ON(p->npages >= PGLIST_NENTS);
 
 	p->pglist[p->npages++] = phys_page;
+
 	if (p->npages == PGLIST_NENTS)
+	{
 		return iommu_batch_flush(p);
+	}
 
 	return 0;
 }
@@ -144,8 +162,8 @@ static inline long iommu_batch_end(void)
 }
 
 static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
-				   dma_addr_t *dma_addrp, gfp_t gfp,
-				   unsigned long attrs)
+								   dma_addr_t *dma_addrp, gfp_t gfp,
+								   unsigned long attrs)
 {
 	unsigned long flags, order, first_page, npages, n;
 	unsigned long prot = 0;
@@ -157,18 +175,26 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
 
 	size = IO_PAGE_ALIGN(size);
 	order = get_order(size);
+
 	if (unlikely(order >= MAX_ORDER))
+	{
 		return NULL;
+	}
 
 	npages = size >> IO_PAGE_SHIFT;
 
 	if (attrs & DMA_ATTR_WEAK_ORDERING)
+	{
 		prot = HV_PCI_MAP_ATTR_RELAXED_ORDER;
+	}
 
 	nid = dev->archdata.numa_node;
 	page = alloc_pages_node(nid, gfp, order);
+
 	if (unlikely(!page))
+	{
 		return NULL;
+	}
 
 	first_page = (unsigned long) page_address(page);
 	memset((char *)first_page, 0, PAGE_SIZE << order);
@@ -176,10 +202,12 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
 	iommu = dev->archdata.iommu;
 
 	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
-				      (unsigned long)(-1), 0);
+								  (unsigned long)(-1), 0);
 
 	if (unlikely(entry == IOMMU_ERROR_CODE))
+	{
 		goto range_alloc_fail;
+	}
 
 	*dma_addrp = (iommu->tbl.table_map_base + (entry << IO_PAGE_SHIFT));
 	ret = (void *) first_page;
@@ -188,18 +216,24 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
 	local_irq_save(flags);
 
 	iommu_batch_start(dev,
-			  (HV_PCI_MAP_ATTR_READ | prot |
-			   HV_PCI_MAP_ATTR_WRITE),
-			  entry);
+					  (HV_PCI_MAP_ATTR_READ | prot |
+					   HV_PCI_MAP_ATTR_WRITE),
+					  entry);
 
-	for (n = 0; n < npages; n++) {
+	for (n = 0; n < npages; n++)
+	{
 		long err = iommu_batch_add(first_page + (n * PAGE_SIZE));
+
 		if (unlikely(err < 0L))
+		{
 			goto iommu_map_fail;
+		}
 	}
 
 	if (unlikely(iommu_batch_end() < 0L))
+	{
 		goto iommu_map_fail;
+	}
 
 	local_irq_restore(flags);
 
@@ -214,25 +248,29 @@ range_alloc_fail:
 }
 
 static void dma_4v_iommu_demap(void *demap_arg, unsigned long entry,
-			       unsigned long npages)
+							   unsigned long npages)
 {
 	u32 devhandle = *(u32 *)demap_arg;
 	unsigned long num, flags;
 
 	local_irq_save(flags);
-	do {
+
+	do
+	{
 		num = pci_sun4v_iommu_demap(devhandle,
-					    HV_PCI_TSBID(0, entry),
-					    npages);
+									HV_PCI_TSBID(0, entry),
+									npages);
 
 		entry += num;
 		npages -= num;
-	} while (npages != 0);
+	}
+	while (npages != 0);
+
 	local_irq_restore(flags);
 }
 
 static void dma_4v_free_coherent(struct device *dev, size_t size, void *cpu,
-				 dma_addr_t dvma, unsigned long attrs)
+								 dma_addr_t dvma, unsigned long attrs)
 {
 	struct pci_pbm_info *pbm;
 	struct iommu *iommu;
@@ -247,14 +285,17 @@ static void dma_4v_free_coherent(struct device *dev, size_t size, void *cpu,
 	dma_4v_iommu_demap(&devhandle, entry, npages);
 	iommu_tbl_range_free(&iommu->tbl, dvma, npages, IOMMU_ERROR_CODE);
 	order = get_order(size);
+
 	if (order < 10)
+	{
 		free_pages((unsigned long)cpu, order);
+	}
 }
 
 static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
-				  unsigned long offset, size_t sz,
-				  enum dma_data_direction direction,
-				  unsigned long attrs)
+								  unsigned long offset, size_t sz,
+								  enum dma_data_direction direction,
+								  unsigned long attrs)
 {
 	struct iommu *iommu;
 	unsigned long flags, npages, oaddr;
@@ -266,47 +307,67 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
 	iommu = dev->archdata.iommu;
 
 	if (unlikely(direction == DMA_NONE))
+	{
 		goto bad;
+	}
 
 	oaddr = (unsigned long)(page_address(page) + offset);
 	npages = IO_PAGE_ALIGN(oaddr + sz) - (oaddr & IO_PAGE_MASK);
 	npages >>= IO_PAGE_SHIFT;
 
 	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
-				      (unsigned long)(-1), 0);
+								  (unsigned long)(-1), 0);
 
 	if (unlikely(entry == IOMMU_ERROR_CODE))
+	{
 		goto bad;
+	}
 
 	bus_addr = (iommu->tbl.table_map_base + (entry << IO_PAGE_SHIFT));
 	ret = bus_addr | (oaddr & ~IO_PAGE_MASK);
 	base_paddr = __pa(oaddr & IO_PAGE_MASK);
 	prot = HV_PCI_MAP_ATTR_READ;
+
 	if (direction != DMA_TO_DEVICE)
+	{
 		prot |= HV_PCI_MAP_ATTR_WRITE;
+	}
 
 	if (attrs & DMA_ATTR_WEAK_ORDERING)
+	{
 		prot |= HV_PCI_MAP_ATTR_RELAXED_ORDER;
+	}
 
 	local_irq_save(flags);
 
 	iommu_batch_start(dev, prot, entry);
 
-	for (i = 0; i < npages; i++, base_paddr += IO_PAGE_SIZE) {
+	for (i = 0; i < npages; i++, base_paddr += IO_PAGE_SIZE)
+	{
 		long err = iommu_batch_add(base_paddr);
+
 		if (unlikely(err < 0L))
+		{
 			goto iommu_map_fail;
+		}
 	}
+
 	if (unlikely(iommu_batch_end() < 0L))
+	{
 		goto iommu_map_fail;
+	}
 
 	local_irq_restore(flags);
 
 	return ret;
 
 bad:
+
 	if (printk_ratelimit())
+	{
 		WARN_ON(1);
+	}
+
 	return DMA_ERROR_CODE;
 
 iommu_map_fail:
@@ -315,8 +376,8 @@ iommu_map_fail:
 }
 
 static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
-			      size_t sz, enum dma_data_direction direction,
-			      unsigned long attrs)
+							  size_t sz, enum dma_data_direction direction,
+							  unsigned long attrs)
 {
 	struct pci_pbm_info *pbm;
 	struct iommu *iommu;
@@ -324,9 +385,13 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
 	long entry;
 	u32 devhandle;
 
-	if (unlikely(direction == DMA_NONE)) {
+	if (unlikely(direction == DMA_NONE))
+	{
 		if (printk_ratelimit())
+		{
 			WARN_ON(1);
+		}
+
 		return;
 	}
 
@@ -343,8 +408,8 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
 }
 
 static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
-			 int nelems, enum dma_data_direction direction,
-			 unsigned long attrs)
+						 int nelems, enum dma_data_direction direction,
+						 unsigned long attrs)
 {
 	struct scatterlist *s, *outs, *segstart;
 	unsigned long flags, handle, prot;
@@ -359,15 +424,23 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
 	BUG_ON(direction == DMA_NONE);
 
 	iommu = dev->archdata.iommu;
+
 	if (nelems == 0 || !iommu)
+	{
 		return 0;
-	
+	}
+
 	prot = HV_PCI_MAP_ATTR_READ;
+
 	if (direction != DMA_TO_DEVICE)
+	{
 		prot |= HV_PCI_MAP_ATTR_WRITE;
+	}
 
 	if (attrs & DMA_ATTR_WEAK_ORDERING)
+	{
 		prot |= HV_PCI_MAP_ATTR_RELAXED_ORDER;
+	}
 
 	outs = s = segstart = &sglist[0];
 	outcount = 1;
@@ -383,28 +456,34 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
 
 	max_seg_size = dma_get_max_seg_size(dev);
 	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
-				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
+							  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
 	base_shift = iommu->tbl.table_map_base >> IO_PAGE_SHIFT;
-	for_each_sg(sglist, s, nelems, i) {
+	for_each_sg(sglist, s, nelems, i)
+	{
 		unsigned long paddr, npages, entry, out_entry = 0, slen;
 
 		slen = s->length;
+
 		/* Sanity check */
-		if (slen == 0) {
+		if (slen == 0)
+		{
 			dma_next = 0;
 			continue;
 		}
+
 		/* Allocate iommu entries for that segment */
 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
 		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
 		entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages,
-					      &handle, (unsigned long)(-1), 0);
+									  &handle, (unsigned long)(-1), 0);
 
 		/* Handle failure */
-		if (unlikely(entry == IOMMU_ERROR_CODE)) {
+		if (unlikely(entry == IOMMU_ERROR_CODE))
+		{
 			if (printk_ratelimit())
 				printk(KERN_INFO "iommu_alloc failed, iommu %p paddr %lx"
-				       " npages %lx\n", iommu, paddr, npages);
+					   " npages %lx\n", iommu, paddr, npages);
+
 			goto iommu_map_failed;
 		}
 
@@ -416,32 +495,43 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
 
 		/* Insert into HW table */
 		paddr &= IO_PAGE_MASK;
-		while (npages--) {
+
+		while (npages--)
+		{
 			err = iommu_batch_add(paddr);
+
 			if (unlikely(err < 0L))
+			{
 				goto iommu_map_failed;
+			}
+
 			paddr += IO_PAGE_SIZE;
 		}
 
 		/* If we are in an open segment, try merging */
-		if (segstart != s) {
+		if (segstart != s)
+		{
 			/* We cannot merge if:
 			 * - allocated dma_addr isn't contiguous to previous allocation
 			 */
 			if ((dma_addr != dma_next) ||
-			    (outs->dma_length + s->length > max_seg_size) ||
-			    (is_span_boundary(out_entry, base_shift,
-					      seg_boundary_size, outs, s))) {
+				(outs->dma_length + s->length > max_seg_size) ||
+				(is_span_boundary(out_entry, base_shift,
+								  seg_boundary_size, outs, s)))
+			{
 				/* Can't merge: create a new segment */
 				segstart = s;
 				outcount++;
 				outs = sg_next(outs);
-			} else {
+			}
+			else
+			{
 				outs->dma_length += s->length;
 			}
 		}
 
-		if (segstart == s) {
+		if (segstart == s)
+		{
 			/* This is a new segment, fill entries */
 			outs->dma_address = dma_addr;
 			outs->dma_length = slen;
@@ -455,11 +545,14 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
 	err = iommu_batch_end();
 
 	if (unlikely(err < 0L))
+	{
 		goto iommu_map_failed;
+	}
 
 	local_irq_restore(flags);
 
-	if (outcount < incount) {
+	if (outcount < incount)
+	{
 		outs = sg_next(outs);
 		outs->dma_address = DMA_ERROR_CODE;
 		outs->dma_length = 0;
@@ -468,21 +561,26 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
 	return outcount;
 
 iommu_map_failed:
-	for_each_sg(sglist, s, nelems, i) {
-		if (s->dma_length != 0) {
+	for_each_sg(sglist, s, nelems, i)
+	{
+		if (s->dma_length != 0)
+		{
 			unsigned long vaddr, npages;
 
 			vaddr = s->dma_address & IO_PAGE_MASK;
 			npages = iommu_num_pages(s->dma_address, s->dma_length,
-						 IO_PAGE_SIZE);
+									 IO_PAGE_SIZE);
 			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
-					     IOMMU_ERROR_CODE);
+								 IOMMU_ERROR_CODE);
 			/* XXX demap? XXX */
 			s->dma_address = DMA_ERROR_CODE;
 			s->dma_length = 0;
 		}
+
 		if (s == outs)
+		{
 			break;
+		}
 	}
 	local_irq_restore(flags);
 
@@ -490,8 +588,8 @@ iommu_map_failed:
 }
 
 static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
-			    int nelems, enum dma_data_direction direction,
-			    unsigned long attrs)
+							int nelems, enum dma_data_direction direction,
+							unsigned long attrs)
 {
 	struct pci_pbm_info *pbm;
 	struct scatterlist *sg;
@@ -504,11 +602,13 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
 	iommu = dev->archdata.iommu;
 	pbm = dev->archdata.host_controller;
 	devhandle = pbm->devhandle;
-	
+
 	local_irq_save(flags);
 
 	sg = sglist;
-	while (nelems--) {
+
+	while (nelems--)
+	{
 		dma_addr_t dma_handle = sg->dma_address;
 		unsigned int len = sg->dma_length;
 		unsigned long npages;
@@ -516,19 +616,23 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
 		unsigned long shift = IO_PAGE_SHIFT;
 
 		if (!len)
+		{
 			break;
+		}
+
 		npages = iommu_num_pages(dma_handle, len, IO_PAGE_SIZE);
 		entry = ((dma_handle - tbl->table_map_base) >> shift);
 		dma_4v_iommu_demap(&devhandle, entry, npages);
 		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
-				     IOMMU_ERROR_CODE);
+							 IOMMU_ERROR_CODE);
 		sg = sg_next(sg);
 	}
 
 	local_irq_restore(flags);
 }
 
-static struct dma_map_ops sun4v_dma_ops = {
+static struct dma_map_ops sun4v_dma_ops =
+{
 	.alloc				= dma_4v_alloc_coherent,
 	.free				= dma_4v_free_coherent,
 	.map_page			= dma_4v_map_page,
@@ -551,33 +655,43 @@ static void pci_sun4v_scan_bus(struct pci_pbm_info *pbm, struct device *parent)
 }
 
 static unsigned long probe_existing_entries(struct pci_pbm_info *pbm,
-					    struct iommu_map_table *iommu)
+		struct iommu_map_table *iommu)
 {
 	struct iommu_pool *pool;
 	unsigned long i, pool_nr, cnt = 0;
 	u32 devhandle;
 
 	devhandle = pbm->devhandle;
-	for (pool_nr = 0; pool_nr < iommu->nr_pools; pool_nr++) {
+
+	for (pool_nr = 0; pool_nr < iommu->nr_pools; pool_nr++)
+	{
 		pool = &(iommu->pools[pool_nr]);
-		for (i = pool->start; i <= pool->end; i++) {
+
+		for (i = pool->start; i <= pool->end; i++)
+		{
 			unsigned long ret, io_attrs, ra;
 
 			ret = pci_sun4v_iommu_getmap(devhandle,
-						     HV_PCI_TSBID(0, i),
-						     &io_attrs, &ra);
-			if (ret == HV_EOK) {
-				if (page_in_phys_avail(ra)) {
+										 HV_PCI_TSBID(0, i),
+										 &io_attrs, &ra);
+
+			if (ret == HV_EOK)
+			{
+				if (page_in_phys_avail(ra))
+				{
 					pci_sun4v_iommu_demap(devhandle,
-							      HV_PCI_TSBID(0,
-							      i), 1);
-				} else {
+										  HV_PCI_TSBID(0,
+													   i), 1);
+				}
+				else
+				{
 					cnt++;
 					__set_bit(i, iommu->map);
 				}
 			}
 		}
 	}
+
 	return cnt;
 }
 
@@ -590,12 +704,16 @@ static int pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
 	const u32 *vdma;
 
 	vdma = of_get_property(pbm->op->dev.of_node, "virtual-dma", NULL);
-	if (!vdma)
-		vdma = vdma_default;
 
-	if ((vdma[0] | vdma[1]) & ~IO_PAGE_MASK) {
+	if (!vdma)
+	{
+		vdma = vdma_default;
+	}
+
+	if ((vdma[0] | vdma[1]) & ~IO_PAGE_MASK)
+	{
 		printk(KERN_ERR PFX "Strange virtual-dma[%08x:%08x].\n",
-		       vdma[0], vdma[1]);
+			   vdma[0], vdma[1]);
 		return -EINVAL;
 	}
 
@@ -614,24 +732,29 @@ static int pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
 	sz = (num_tsb_entries + 7) / 8;
 	sz = (sz + 7UL) & ~7UL;
 	iommu->tbl.map = kzalloc(sz, GFP_KERNEL);
-	if (!iommu->tbl.map) {
+
+	if (!iommu->tbl.map)
+	{
 		printk(KERN_ERR PFX "Error, kmalloc(arena.map) failed.\n");
 		return -ENOMEM;
 	}
+
 	iommu_tbl_pool_init(&iommu->tbl, num_tsb_entries, IO_PAGE_SHIFT,
-			    NULL, false /* no large_pool */,
-			    0 /* default npools */,
-			    false /* want span boundary checking */);
+						NULL, false /* no large_pool */,
+						0 /* default npools */,
+						false /* want span boundary checking */);
 	sz = probe_existing_entries(pbm, &iommu->tbl);
+
 	if (sz)
 		printk("%s: Imported %lu TSB entries from OBP\n",
-		       pbm->name, sz);
+			   pbm->name, sz);
 
 	return 0;
 }
 
 #ifdef CONFIG_PCI_MSI
-struct pci_sun4v_msiq_entry {
+struct pci_sun4v_msiq_entry
+{
 	u64		version_type;
 #define MSIQ_VERSION_MASK		0xffffffff00000000UL
 #define MSIQ_VERSION_SHIFT		32
@@ -676,84 +799,113 @@ struct pci_sun4v_msiq_entry {
 };
 
 static int pci_sun4v_get_head(struct pci_pbm_info *pbm, unsigned long msiqid,
-			      unsigned long *head)
+							  unsigned long *head)
 {
 	unsigned long err, limit;
 
 	err = pci_sun4v_msiq_gethead(pbm->devhandle, msiqid, head);
+
 	if (unlikely(err))
+	{
 		return -ENXIO;
+	}
 
 	limit = pbm->msiq_ent_count * sizeof(struct pci_sun4v_msiq_entry);
+
 	if (unlikely(*head >= limit))
+	{
 		return -EFBIG;
+	}
 
 	return 0;
 }
 
 static int pci_sun4v_dequeue_msi(struct pci_pbm_info *pbm,
-				 unsigned long msiqid, unsigned long *head,
-				 unsigned long *msi)
+								 unsigned long msiqid, unsigned long *head,
+								 unsigned long *msi)
 {
 	struct pci_sun4v_msiq_entry *ep;
 	unsigned long err, type;
 
 	/* Note: void pointer arithmetic, 'head' is a byte offset  */
 	ep = (pbm->msi_queues + ((msiqid - pbm->msiq_first) *
-				 (pbm->msiq_ent_count *
-				  sizeof(struct pci_sun4v_msiq_entry))) +
-	      *head);
+							 (pbm->msiq_ent_count *
+							  sizeof(struct pci_sun4v_msiq_entry))) +
+		  *head);
 
 	if ((ep->version_type & MSIQ_TYPE_MASK) == 0)
+	{
 		return 0;
+	}
 
 	type = (ep->version_type & MSIQ_TYPE_MASK) >> MSIQ_TYPE_SHIFT;
+
 	if (unlikely(type != MSIQ_TYPE_MSI32 &&
-		     type != MSIQ_TYPE_MSI64))
+				 type != MSIQ_TYPE_MSI64))
+	{
 		return -EINVAL;
+	}
 
 	*msi = ep->msi_data;
 
 	err = pci_sun4v_msi_setstate(pbm->devhandle,
-				     ep->msi_data /* msi_num */,
-				     HV_MSISTATE_IDLE);
+								 ep->msi_data /* msi_num */,
+								 HV_MSISTATE_IDLE);
+
 	if (unlikely(err))
+	{
 		return -ENXIO;
+	}
 
 	/* Clear the entry.  */
 	ep->version_type &= ~MSIQ_TYPE_MASK;
 
 	(*head) += sizeof(struct pci_sun4v_msiq_entry);
+
 	if (*head >=
-	    (pbm->msiq_ent_count * sizeof(struct pci_sun4v_msiq_entry)))
+		(pbm->msiq_ent_count * sizeof(struct pci_sun4v_msiq_entry)))
+	{
 		*head = 0;
+	}
 
 	return 1;
 }
 
 static int pci_sun4v_set_head(struct pci_pbm_info *pbm, unsigned long msiqid,
-			      unsigned long head)
+							  unsigned long head)
 {
 	unsigned long err;
 
 	err = pci_sun4v_msiq_sethead(pbm->devhandle, msiqid, head);
+
 	if (unlikely(err))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int pci_sun4v_msi_setup(struct pci_pbm_info *pbm, unsigned long msiqid,
-			       unsigned long msi, int is_msi64)
+							   unsigned long msi, int is_msi64)
 {
 	if (pci_sun4v_msi_setmsiq(pbm->devhandle, msi, msiqid,
-				  (is_msi64 ?
-				   HV_MSITYPE_MSI64 : HV_MSITYPE_MSI32)))
+							  (is_msi64 ?
+							   HV_MSITYPE_MSI64 : HV_MSITYPE_MSI32)))
+	{
 		return -ENXIO;
+	}
+
 	if (pci_sun4v_msi_setstate(pbm->devhandle, msi, HV_MSISTATE_IDLE))
+	{
 		return -ENXIO;
+	}
+
 	if (pci_sun4v_msi_setvalid(pbm->devhandle, msi, HV_MSIVALID_VALID))
+	{
 		return -ENXIO;
+	}
+
 	return 0;
 }
 
@@ -762,8 +914,11 @@ static int pci_sun4v_msi_teardown(struct pci_pbm_info *pbm, unsigned long msi)
 	unsigned long err, msiqid;
 
 	err = pci_sun4v_msi_getmsiq(pbm->devhandle, msi, &msiqid);
+
 	if (err)
+	{
 		return -ENXIO;
+	}
 
 	pci_sun4v_msi_setvalid(pbm->devhandle, msi, HV_MSIVALID_INVALID);
 
@@ -779,40 +934,50 @@ static int pci_sun4v_msiq_alloc(struct pci_pbm_info *pbm)
 	alloc_size = (pbm->msiq_num * q_size);
 	order = get_order(alloc_size);
 	pages = __get_free_pages(GFP_KERNEL | __GFP_COMP, order);
-	if (pages == 0UL) {
+
+	if (pages == 0UL)
+	{
 		printk(KERN_ERR "MSI: Cannot allocate MSI queues (o=%lu).\n",
-		       order);
+			   order);
 		return -ENOMEM;
 	}
+
 	memset((char *)pages, 0, PAGE_SIZE << order);
 	pbm->msi_queues = (void *) pages;
 
-	for (i = 0; i < pbm->msiq_num; i++) {
+	for (i = 0; i < pbm->msiq_num; i++)
+	{
 		unsigned long err, base = __pa(pages + (i * q_size));
 		unsigned long ret1, ret2;
 
 		err = pci_sun4v_msiq_conf(pbm->devhandle,
-					  pbm->msiq_first + i,
-					  base, pbm->msiq_ent_count);
-		if (err) {
+								  pbm->msiq_first + i,
+								  base, pbm->msiq_ent_count);
+
+		if (err)
+		{
 			printk(KERN_ERR "MSI: msiq register fails (err=%lu)\n",
-			       err);
+				   err);
 			goto h_error;
 		}
 
 		err = pci_sun4v_msiq_info(pbm->devhandle,
-					  pbm->msiq_first + i,
-					  &ret1, &ret2);
-		if (err) {
+								  pbm->msiq_first + i,
+								  &ret1, &ret2);
+
+		if (err)
+		{
 			printk(KERN_ERR "MSI: Cannot read msiq (err=%lu)\n",
-			       err);
+				   err);
 			goto h_error;
 		}
-		if (ret1 != base || ret2 != pbm->msiq_ent_count) {
+
+		if (ret1 != base || ret2 != pbm->msiq_ent_count)
+		{
 			printk(KERN_ERR "MSI: Bogus qconf "
-			       "expected[%lx:%x] got[%lx:%lx]\n",
-			       base, pbm->msiq_ent_count,
-			       ret1, ret2);
+				   "expected[%lx:%x] got[%lx:%lx]\n",
+				   base, pbm->msiq_ent_count,
+				   ret1, ret2);
 			goto h_error;
 		}
 	}
@@ -829,7 +994,8 @@ static void pci_sun4v_msiq_free(struct pci_pbm_info *pbm)
 	unsigned long q_size, alloc_size, pages, order;
 	int i;
 
-	for (i = 0; i < pbm->msiq_num; i++) {
+	for (i = 0; i < pbm->msiq_num; i++)
+	{
 		unsigned long msiqid = pbm->msiq_first + i;
 
 		(void) pci_sun4v_msiq_conf(pbm->devhandle, msiqid, 0UL, 0);
@@ -847,23 +1013,31 @@ static void pci_sun4v_msiq_free(struct pci_pbm_info *pbm)
 }
 
 static int pci_sun4v_msiq_build_irq(struct pci_pbm_info *pbm,
-				    unsigned long msiqid,
-				    unsigned long devino)
+									unsigned long msiqid,
+									unsigned long devino)
 {
 	unsigned int irq = sun4v_build_irq(pbm->devhandle, devino);
 
 	if (!irq)
+	{
 		return -ENOMEM;
+	}
 
 	if (pci_sun4v_msiq_setvalid(pbm->devhandle, msiqid, HV_MSIQ_VALID))
+	{
 		return -EINVAL;
+	}
+
 	if (pci_sun4v_msiq_setstate(pbm->devhandle, msiqid, HV_MSIQSTATE_IDLE))
+	{
 		return -EINVAL;
+	}
 
 	return irq;
 }
 
-static const struct sparc64_msiq_ops pci_sun4v_msiq_ops = {
+static const struct sparc64_msiq_ops pci_sun4v_msiq_ops =
+{
 	.get_head	=	pci_sun4v_get_head,
 	.dequeue_msi	=	pci_sun4v_dequeue_msi,
 	.set_head	=	pci_sun4v_set_head,
@@ -885,7 +1059,7 @@ static void pci_sun4v_msi_init(struct pci_pbm_info *pbm)
 #endif /* !(CONFIG_PCI_MSI) */
 
 static int pci_sun4v_pbm_init(struct pci_pbm_info *pbm,
-			      struct platform_device *op, u32 devhandle)
+							  struct platform_device *op, u32 devhandle)
 {
 	struct device_node *dp = op->dev.of_node;
 	int err;
@@ -911,8 +1085,11 @@ static int pci_sun4v_pbm_init(struct pci_pbm_info *pbm,
 	pci_get_pbm_props(pbm);
 
 	err = pci_sun4v_iommu_init(pbm);
+
 	if (err)
+	{
 		return err;
+	}
 
 	pci_sun4v_msi_init(pbm);
 
@@ -936,42 +1113,57 @@ static int pci_sun4v_probe(struct platform_device *op)
 
 	dp = op->dev.of_node;
 
-	if (!hvapi_negotiated++) {
-		for (i = 0; i < ARRAY_SIZE(vpci_versions); i++) {
+	if (!hvapi_negotiated++)
+	{
+		for (i = 0; i < ARRAY_SIZE(vpci_versions); i++)
+		{
 			vpci_major = vpci_versions[i].major;
 			vpci_minor = vpci_versions[i].minor;
 
 			err = sun4v_hvapi_register(HV_GRP_PCI, vpci_major,
-						   &vpci_minor);
+									   &vpci_minor);
+
 			if (!err)
+			{
 				break;
+			}
 		}
 
-		if (err) {
+		if (err)
+		{
 			pr_err(PFX "Could not register hvapi, err=%d\n", err);
 			return err;
 		}
+
 		pr_info(PFX "Registered hvapi major[%lu] minor[%lu]\n",
-			vpci_major, vpci_minor);
+				vpci_major, vpci_minor);
 
 		dma_ops = &sun4v_dma_ops;
 	}
 
 	regs = of_get_property(dp, "reg", NULL);
 	err = -ENODEV;
-	if (!regs) {
+
+	if (!regs)
+	{
 		printk(KERN_ERR PFX "Could not find config registers\n");
 		goto out_err;
 	}
+
 	devhandle = (regs->phys_addr >> 32UL) & 0x0fffffff;
 
 	err = -ENOMEM;
-	if (!iommu_batch_initialized) {
-		for_each_possible_cpu(i) {
+
+	if (!iommu_batch_initialized)
+	{
+		for_each_possible_cpu(i)
+		{
 			unsigned long page = get_zeroed_page(GFP_KERNEL);
 
 			if (!page)
+			{
 				goto out_err;
+			}
 
 			per_cpu(iommu_batch, i).pglist = (u64 *) page;
 		}
@@ -979,13 +1171,17 @@ static int pci_sun4v_probe(struct platform_device *op)
 	}
 
 	pbm = kzalloc(sizeof(*pbm), GFP_KERNEL);
-	if (!pbm) {
+
+	if (!pbm)
+	{
 		printk(KERN_ERR PFX "Could not allocate pci_pbm_info\n");
 		goto out_err;
 	}
 
 	iommu = kzalloc(sizeof(struct iommu), GFP_KERNEL);
-	if (!iommu) {
+
+	if (!iommu)
+	{
 		printk(KERN_ERR PFX "Could not allocate pbm iommu\n");
 		goto out_free_controller;
 	}
@@ -993,8 +1189,11 @@ static int pci_sun4v_probe(struct platform_device *op)
 	pbm->iommu = iommu;
 
 	err = pci_sun4v_pbm_init(pbm, op, devhandle);
+
 	if (err)
+	{
 		goto out_free_iommu;
+	}
 
 	dev_set_drvdata(&op->dev, pbm);
 
@@ -1010,7 +1209,8 @@ out_err:
 	return err;
 }
 
-static const struct of_device_id pci_sun4v_match[] = {
+static const struct of_device_id pci_sun4v_match[] =
+{
 	{
 		.name = "pci",
 		.compatible = "SUNW,sun4v-pci",
@@ -1018,7 +1218,8 @@ static const struct of_device_id pci_sun4v_match[] = {
 	{},
 };
 
-static struct platform_driver pci_sun4v_driver = {
+static struct platform_driver pci_sun4v_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = pci_sun4v_match,

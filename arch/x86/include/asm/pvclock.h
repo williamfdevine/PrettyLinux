@@ -19,8 +19,8 @@ u8 pvclock_read_flags(struct pvclock_vcpu_time_info *src);
 void pvclock_set_flags(u8 flags);
 unsigned long pvclock_tsc_khz(struct pvclock_vcpu_time_info *src);
 void pvclock_read_wallclock(struct pvclock_wall_clock *wall,
-			    struct pvclock_vcpu_time_info *vcpu,
-			    struct timespec *ts);
+							struct pvclock_vcpu_time_info *vcpu,
+							struct timespec *ts);
 void pvclock_resume(void);
 
 void pvclock_touch_watchdogs(void);
@@ -36,7 +36,7 @@ unsigned pvclock_read_begin(const struct pvclock_vcpu_time_info *src)
 
 static __always_inline
 bool pvclock_read_retry(const struct pvclock_vcpu_time_info *src,
-			unsigned version)
+						unsigned version)
 {
 	/* Make sure that the version is re-read after the data. */
 	virt_rmb();
@@ -57,9 +57,13 @@ static inline u64 pvclock_scale_delta(u64 delta, u32 mul_frac, int shift)
 #endif
 
 	if (shift < 0)
+	{
 		delta >>= -shift;
+	}
 	else
+	{
 		delta <<= shift;
+	}
 
 #ifdef __i386__
 	__asm__ (
@@ -76,9 +80,9 @@ static inline u64 pvclock_scale_delta(u64 delta, u32 mul_frac, int shift)
 	__asm__ (
 		"mulq %[mul_frac] ; shrd $32, %[hi], %[lo]"
 		: [lo]"=a"(product),
-		  [hi]"=d"(tmp)
+		[hi]"=d"(tmp)
 		: "0"(delta),
-		  [mul_frac]"rm"((u64)mul_frac));
+		[mul_frac]"rm"((u64)mul_frac));
 #else
 #error implement me!
 #endif
@@ -88,15 +92,16 @@ static inline u64 pvclock_scale_delta(u64 delta, u32 mul_frac, int shift)
 
 static __always_inline
 cycle_t __pvclock_read_cycles(const struct pvclock_vcpu_time_info *src,
-			      u64 tsc)
+							  u64 tsc)
 {
 	u64 delta = tsc - src->tsc_timestamp;
 	cycle_t offset = pvclock_scale_delta(delta, src->tsc_to_system_mul,
-					     src->tsc_shift);
+										 src->tsc_shift);
 	return src->system_time + offset;
 }
 
-struct pvclock_vsyscall_time_info {
+struct pvclock_vsyscall_time_info
+{
 	struct pvclock_vcpu_time_info pvti;
 } __attribute__((__aligned__(SMP_CACHE_BYTES)));
 

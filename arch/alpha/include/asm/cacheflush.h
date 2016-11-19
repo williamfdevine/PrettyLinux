@@ -22,17 +22,17 @@
 
 /* We need to flush the kernel's icache after loading modules.  The
    only other use of this macro is in load_aout_interp which is not
-   used on Alpha. 
+   used on Alpha.
 
    Note that this definition should *not* be used for userspace
    icache flushing.  While functional, it is _way_ overkill.  The
    icache is tagged with ASNs and it suffices to allocate a new ASN
    for the process.  */
 #ifndef CONFIG_SMP
-#define flush_icache_range(start, end)		imb()
+	#define flush_icache_range(start, end)		imb()
 #else
-#define flush_icache_range(start, end)		smp_imb()
-extern void smp_imb(void);
+	#define flush_icache_range(start, end)		smp_imb()
+	extern void smp_imb(void);
 #endif
 
 /* We need to flush the userspace icache after setting breakpoints in
@@ -48,29 +48,35 @@ extern void smp_imb(void);
 extern void __load_new_mm_context(struct mm_struct *);
 static inline void
 flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
-			unsigned long addr, int len)
+						unsigned long addr, int len)
 {
-	if (vma->vm_flags & VM_EXEC) {
+	if (vma->vm_flags & VM_EXEC)
+	{
 		struct mm_struct *mm = vma->vm_mm;
+
 		if (current->active_mm == mm)
+		{
 			__load_new_mm_context(mm);
+		}
 		else
+		{
 			mm->context[smp_processor_id()] = 0;
+		}
 	}
 }
 #else
 extern void flush_icache_user_range(struct vm_area_struct *vma,
-		struct page *page, unsigned long addr, int len);
+									struct page *page, unsigned long addr, int len);
 #endif
 
 /* This is used only in __do_fault and do_swap_page.  */
 #define flush_icache_page(vma, page) \
-  flush_icache_user_range((vma), (page), 0, 0)
+	flush_icache_user_range((vma), (page), 0, 0)
 
 #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
-do { memcpy(dst, src, len); \
-     flush_icache_user_range(vma, page, vaddr, len); \
-} while (0)
+	do { memcpy(dst, src, len); \
+		flush_icache_user_range(vma, page, vaddr, len); \
+	} while (0)
 #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
 	memcpy(dst, src, len)
 

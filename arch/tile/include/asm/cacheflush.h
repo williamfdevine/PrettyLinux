@@ -44,14 +44,14 @@ extern void __flush_icache_range(unsigned long start, unsigned long end);
 #define __flush_icache() __flush_icache_range(0, CHIP_L1I_CACHE_SIZE())
 
 #ifdef CONFIG_SMP
-/*
- * When the kernel writes to its own text we need to do an SMP
- * broadcast to make the L1I coherent everywhere.  This includes
- * module load and single step.
- */
-extern void flush_icache_range(unsigned long start, unsigned long end);
+	/*
+	* When the kernel writes to its own text we need to do an SMP
+	* broadcast to make the L1I coherent everywhere.  This includes
+	* module load and single step.
+	*/
+	extern void flush_icache_range(unsigned long start, unsigned long end);
 #else
-#define flush_icache_range __flush_icache_range
+	#define flush_icache_range __flush_icache_range
 #endif
 
 /*
@@ -62,13 +62,15 @@ extern void flush_icache_range(unsigned long start, unsigned long end);
  * conservative and just do a global icache flush.
  */
 static inline void copy_to_user_page(struct vm_area_struct *vma,
-				     struct page *page, unsigned long vaddr,
-				     void *dst, void *src, int len)
+									 struct page *page, unsigned long vaddr,
+									 void *dst, void *src, int len)
 {
 	memcpy(dst, src, len);
-	if (vma->vm_flags & VM_EXEC) {
+
+	if (vma->vm_flags & VM_EXEC)
+	{
 		flush_icache_range((unsigned long) dst,
-				   (unsigned long) dst + len);
+						   (unsigned long) dst + len);
 	}
 }
 
@@ -80,7 +82,9 @@ static inline void __flush_buffer(void *buffer, size_t size)
 {
 	char *next = (char *)((long)buffer & -L2_CACHE_BYTES);
 	char *finish = (char *)L2_CACHE_ALIGN((long)buffer + size);
-	while (next < finish) {
+
+	while (next < finish)
+	{
 		__insn_flush(next);
 		next += CHIP_FLUSH_STRIDE();
 	}
@@ -91,7 +95,9 @@ static inline void __finv_buffer(void *buffer, size_t size)
 {
 	char *next = (char *)((long)buffer & -L2_CACHE_BYTES);
 	char *finish = (char *)L2_CACHE_ALIGN((long)buffer + size);
-	while (next < finish) {
+
+	while (next < finish)
+	{
 		__insn_finv(next);
 		next += CHIP_FINV_STRIDE();
 	}
@@ -124,7 +130,9 @@ static inline void __inv_buffer(void *buffer, size_t size)
 {
 	char *next = (char *)((long)buffer & -L2_CACHE_BYTES);
 	char *finish = (char *)L2_CACHE_ALIGN((long)buffer + size);
-	while (next < finish) {
+
+	while (next < finish)
+	{
 		__insn_inv(next);
 		next += CHIP_INV_STRIDE();
 	}

@@ -32,13 +32,15 @@ struct kprobe;
 
 #define	arch_specific_insn	arch_probes_insn
 
-struct prev_kprobe {
+struct prev_kprobe
+{
 	struct kprobe *kp;
 	unsigned int status;
 };
 
 /* per-cpu kprobe control block */
-struct kprobe_ctlblk {
+struct kprobe_ctlblk
+{
 	unsigned int kprobe_status;
 	struct prev_kprobe prev_kprobe;
 	struct pt_regs jprobe_saved_regs;
@@ -48,7 +50,7 @@ struct kprobe_ctlblk {
 void arch_remove_kprobe(struct kprobe *);
 int kprobe_fault_handler(struct pt_regs *regs, unsigned int fsr);
 int kprobe_exceptions_notify(struct notifier_block *self,
-			     unsigned long val, void *data);
+							 unsigned long val, void *data);
 
 /* optinsn template addresses */
 extern __visible kprobe_opcode_t optprobe_template_entry;
@@ -67,7 +69,8 @@ extern __visible kprobe_opcode_t optprobe_template_restore_end;
 	 (unsigned long)&optprobe_template_entry)
 #define RELATIVEJUMP_SIZE	4
 
-struct arch_optimized_insn {
+struct arch_optimized_insn
+{
 	/*
 	 * copy of the original instructions.
 	 * Different from x86, ARM kprobe_opcode_t is u32.

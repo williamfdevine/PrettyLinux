@@ -73,8 +73,12 @@ static inline void ftrace_generate_orig_insn(struct ftrace_insn *insn)
 static inline int is_kprobe_on_ftrace(struct ftrace_insn *insn)
 {
 #ifdef CONFIG_KPROBES
+
 	if (insn->opc == BREAKPOINT_INSTRUCTION)
+	{
 		return 1;
+	}
+
 #endif
 	return 0;
 }
@@ -96,23 +100,29 @@ static inline void ftrace_generate_kprobe_call_insn(struct ftrace_insn *insn)
 }
 
 int ftrace_modify_call(struct dyn_ftrace *rec, unsigned long old_addr,
-		       unsigned long addr)
+					   unsigned long addr)
 {
 	return 0;
 }
 
 int ftrace_make_nop(struct module *mod, struct dyn_ftrace *rec,
-		    unsigned long addr)
+					unsigned long addr)
 {
 	struct ftrace_insn orig, new, old;
 
 	if (probe_kernel_read(&old, (void *) rec->ip, sizeof(old)))
+	{
 		return -EFAULT;
-	if (addr == MCOUNT_ADDR) {
+	}
+
+	if (addr == MCOUNT_ADDR)
+	{
 		/* Initial code replacement */
 		ftrace_generate_orig_insn(&orig);
 		ftrace_generate_nop_insn(&new);
-	} else if (is_kprobe_on_ftrace(&old)) {
+	}
+	else if (is_kprobe_on_ftrace(&old))
+	{
 		/*
 		 * If we find a breakpoint instruction, a kprobe has been
 		 * placed at the beginning of the function. We write the
@@ -122,14 +132,20 @@ int ftrace_make_nop(struct module *mod, struct dyn_ftrace *rec,
 		 */
 		ftrace_generate_kprobe_call_insn(&orig);
 		ftrace_generate_kprobe_nop_insn(&new);
-	} else {
+	}
+	else
+	{
 		/* Replace ftrace call with a nop. */
 		ftrace_generate_call_insn(&orig, rec->ip);
 		ftrace_generate_nop_insn(&new);
 	}
+
 	/* Verify that the to be replaced code matches what we expect. */
 	if (memcmp(&orig, &old, sizeof(old)))
+	{
 		return -EINVAL;
+	}
+
 	s390_kernel_write((void *) rec->ip, &new, sizeof(new));
 	return 0;
 }
@@ -139,8 +155,12 @@ int ftrace_make_call(struct dyn_ftrace *rec, unsigned long addr)
 	struct ftrace_insn orig, new, old;
 
 	if (probe_kernel_read(&old, (void *) rec->ip, sizeof(old)))
+	{
 		return -EFAULT;
-	if (is_kprobe_on_ftrace(&old)) {
+	}
+
+	if (is_kprobe_on_ftrace(&old))
+	{
 		/*
 		 * If we find a breakpoint instruction, a kprobe has been
 		 * placed at the beginning of the function. We write the
@@ -150,14 +170,20 @@ int ftrace_make_call(struct dyn_ftrace *rec, unsigned long addr)
 		 */
 		ftrace_generate_kprobe_nop_insn(&orig);
 		ftrace_generate_kprobe_call_insn(&new);
-	} else {
+	}
+	else
+	{
 		/* Replace nop with an ftrace call. */
 		ftrace_generate_nop_insn(&orig);
 		ftrace_generate_call_insn(&new, rec->ip);
 	}
+
 	/* Verify that the to be replaced code matches what we expect. */
 	if (memcmp(&orig, &old, sizeof(old)))
+	{
 		return -EINVAL;
+	}
+
 	s390_kernel_write((void *) rec->ip, &new, sizeof(new));
 	return 0;
 }
@@ -177,8 +203,12 @@ static int __init ftrace_plt_init(void)
 	unsigned int *ip;
 
 	ftrace_plt = (unsigned long) module_alloc(PAGE_SIZE);
+
 	if (!ftrace_plt)
+	{
 		panic("cannot allocate ftrace plt\n");
+	}
+
 	ip = (unsigned int *) ftrace_plt;
 	ip[0] = 0x0d10e310; /* basr 1,0; lg 1,10(1); br 1 */
 	ip[1] = 0x100a0004;
@@ -200,18 +230,31 @@ unsigned long prepare_ftrace_return(unsigned long parent, unsigned long ip)
 	struct ftrace_graph_ent trace;
 
 	if (unlikely(ftrace_graph_is_dead()))
+	{
 		goto out;
+	}
+
 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
+	{
 		goto out;
+	}
+
 	ip -= MCOUNT_INSN_SIZE;
 	trace.func = ip;
 	trace.depth = current->curr_ret_stack + 1;
+
 	/* Only trace if the calling function expects to. */
 	if (!ftrace_graph_entry(&trace))
+	{
 		goto out;
+	}
+
 	if (ftrace_push_return_trace(parent, ip, &trace.depth, 0,
-				     NULL) == -EBUSY)
+								 NULL) == -EBUSY)
+	{
 		goto out;
+	}
+
 	parent = (unsigned long) return_to_handler;
 out:
 	return parent;
@@ -230,7 +273,7 @@ int ftrace_enable_ftrace_graph_caller(void)
 {
 	u8 op = 0x04; /* set mask field to zero */
 
-	s390_kernel_write(__va(ftrace_graph_caller)+1, &op, sizeof(op));
+	s390_kernel_write(__va(ftrace_graph_caller) + 1, &op, sizeof(op));
 	return 0;
 }
 
@@ -238,7 +281,7 @@ int ftrace_disable_ftrace_graph_caller(void)
 {
 	u8 op = 0xf4; /* set mask field to all ones */
 
-	s390_kernel_write(__va(ftrace_graph_caller)+1, &op, sizeof(op));
+	s390_kernel_write(__va(ftrace_graph_caller) + 1, &op, sizeof(op));
 	return 0;
 }
 

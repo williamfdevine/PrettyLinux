@@ -19,7 +19,8 @@ typedef unsigned int	tcflag_t;
  */
 
 #define NCCS 19
-struct termios {
+struct termios
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
@@ -32,7 +33,8 @@ struct termios {
 
 /* For PowerPC the termios and ktermios are the same */
 
-struct ktermios {
+struct ktermios
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */

@@ -12,10 +12,15 @@ mtfsf(unsigned int FM, u32 *frB)
 	u32 fpscr;
 
 	if (likely(FM == 1))
+	{
 		mask = 0x0f;
+	}
 	else if (likely(FM == 0xff))
+	{
 		mask = ~0;
-	else {
+	}
+	else
+	{
 		mask = ((FM & 1) |
 				((FM << 3) & 0x10) |
 				((FM << 6) & 0x100) |
@@ -27,19 +32,23 @@ mtfsf(unsigned int FM, u32 *frB)
 	}
 
 	fpscr = ((__FPU_FPSCR & ~mask) | (frB[1] & mask)) &
-		~(FPSCR_VX | FPSCR_FEX | 0x800);
+			~(FPSCR_VX | FPSCR_FEX | 0x800);
 
 	if (fpscr & (FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI |
-		     FPSCR_VXZDZ | FPSCR_VXIMZ | FPSCR_VXVC |
-		     FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI))
+				 FPSCR_VXZDZ | FPSCR_VXIMZ | FPSCR_VXVC |
+				 FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI))
+	{
 		fpscr |= FPSCR_VX;
+	}
 
 	/* The bit order of exception enables and exception status
 	 * is the same. Simply shift and mask to check for enabled
 	 * exceptions.
 	 */
 	if (fpscr & (fpscr >> 22) &  0xf8)
+	{
 		fpscr |= FPSCR_FEX;
+	}
 
 	__FPU_FPSCR = fpscr;
 

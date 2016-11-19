@@ -57,7 +57,8 @@
  *   to the thread, and must not allow the user to do anything they
  *   couldn't already.
  */
-struct emuframe {
+struct emuframe
+{
 	mips_instruction	emul;
 	mips_instruction	badinst;
 };
@@ -78,13 +79,15 @@ retry:
 	spin_lock(&mm_ctx->bd_emupage_lock);
 
 	/* Ensure we have an allocation bitmap */
-	if (!mm_ctx->bd_emupage_allocmap) {
+	if (!mm_ctx->bd_emupage_allocmap)
+	{
 		mm_ctx->bd_emupage_allocmap =
 			kcalloc(BITS_TO_LONGS(emupage_frame_count),
-					      sizeof(unsigned long),
-				GFP_ATOMIC);
+					sizeof(unsigned long),
+					GFP_ATOMIC);
 
-		if (!mm_ctx->bd_emupage_allocmap) {
+		if (!mm_ctx->bd_emupage_allocmap)
+		{
 			idx = BD_EMUFRAME_NONE;
 			goto out_unlock;
 		}
@@ -92,8 +95,10 @@ retry:
 
 	/* Attempt to allocate a single bit/frame */
 	idx = bitmap_find_free_region(mm_ctx->bd_emupage_allocmap,
-				      emupage_frame_count, 0);
-	if (idx < 0) {
+								  emupage_frame_count, 0);
+
+	if (idx < 0)
+	{
 		/*
 		 * Failed to allocate a frame. We'll wait until one becomes
 		 * available. We unlock the page so that other threads actually
@@ -103,10 +108,13 @@ retry:
 		 * back here again.
 		 */
 		spin_unlock(&mm_ctx->bd_emupage_lock);
+
 		if (!wait_event_killable(mm_ctx->bd_emupage_queue,
-			!bitmap_full(mm_ctx->bd_emupage_allocmap,
-				     emupage_frame_count)))
+								 !bitmap_full(mm_ctx->bd_emupage_allocmap,
+											  emupage_frame_count)))
+		{
 			goto retry;
+		}
 
 		/* Received a fatal signal - just give in */
 		return BD_EMUFRAME_NONE;
@@ -139,9 +147,14 @@ static bool within_emuframe(struct pt_regs *regs)
 	unsigned long base = (unsigned long)dsemul_page();
 
 	if (regs->cp0_epc < base)
+	{
 		return false;
+	}
+
 	if (regs->cp0_epc >= (base + PAGE_SIZE))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -155,13 +168,17 @@ bool dsemul_thread_cleanup(struct task_struct *tsk)
 
 	/* If no frame was allocated, we're done */
 	if (fr_idx == BD_EMUFRAME_NONE)
+	{
 		return false;
+	}
 
 	task_lock(tsk);
 
 	/* Free the frame that this thread had allocated */
 	if (tsk->mm)
+	{
 		free_emuframe(fr_idx, tsk->mm);
+	}
 
 	task_unlock(tsk);
 	return true;
@@ -174,12 +191,18 @@ bool dsemul_thread_rollback(struct pt_regs *regs)
 
 	/* Do nothing if we're not executing from a frame */
 	if (!within_emuframe(regs))
+	{
 		return false;
+	}
 
 	/* Find the frame being executed */
 	fr_idx = atomic_read(&current->thread.bd_emu_frame);
+
 	if (fr_idx == BD_EMUFRAME_NONE)
+	{
 		return false;
+	}
+
 	fr = &dsemul_page()[fr_idx];
 
 	/*
@@ -190,9 +213,13 @@ bool dsemul_thread_rollback(struct pt_regs *regs)
 	 * of the emupage - we'll free the allocated frame anyway.
 	 */
 	if (msk_isa16_mode(regs->cp0_epc) == (unsigned long)&fr->emul)
+	{
 		regs->cp0_epc = current->thread.bd_emu_branch_pc;
+	}
 	else if (msk_isa16_mode(regs->cp0_epc) == (unsigned long)&fr->badinst)
+	{
 		regs->cp0_epc = current->thread.bd_emu_cont_pc;
+	}
 
 	atomic_set(&current->thread.bd_emu_frame, BD_EMUFRAME_NONE);
 	free_emuframe(fr_idx, current->mm);
@@ -207,7 +234,7 @@ void dsemul_mm_cleanup(struct mm_struct *mm)
 }
 
 int mips_dsemul(struct pt_regs *regs, mips_instruction ir,
-		unsigned long branch_pc, unsigned long cont_pc)
+				unsigned long branch_pc, unsigned long cont_pc)
 {
 	int isa16 = get_isa16_mode(regs->cp0_epc);
 	mips_instruction break_math;
@@ -216,18 +243,24 @@ int mips_dsemul(struct pt_regs *regs, mips_instruction ir,
 
 	/* NOP is easy */
 	if (ir == 0)
+	{
 		return -1;
+	}
 
 	/* microMIPS instructions */
-	if (isa16) {
+	if (isa16)
+	{
 		union mips_instruction insn = { .word = ir };
 
 		/* NOP16 aka MOVE16 $0, $0 */
 		if ((ir >> 16) == MM_NOP16)
+		{
 			return -1;
+		}
 
 		/* ADDIUPC */
-		if (insn.mm_a_format.opcode == mm_addiupc_op) {
+		if (insn.mm_a_format.opcode == mm_addiupc_op)
+		{
 			unsigned int rs;
 			s32 v;
 
@@ -243,31 +276,42 @@ int mips_dsemul(struct pt_regs *regs, mips_instruction ir,
 
 	/* Allocate a frame if we don't already have one */
 	fr_idx = atomic_read(&current->thread.bd_emu_frame);
+
 	if (fr_idx == BD_EMUFRAME_NONE)
+	{
 		fr_idx = alloc_emuframe();
+	}
+
 	if (fr_idx == BD_EMUFRAME_NONE)
+	{
 		return SIGBUS;
+	}
+
 	fr = &dsemul_page()[fr_idx];
 
 	/* Retrieve the appropriately encoded break instruction */
 	break_math = BREAK_MATH(isa16);
 
 	/* Write the instructions to the frame */
-	if (isa16) {
+	if (isa16)
+	{
 		err = __put_user(ir >> 16,
-				 (u16 __user *)(&fr->emul));
+						 (u16 __user *)(&fr->emul));
 		err |= __put_user(ir & 0xffff,
-				  (u16 __user *)((long)(&fr->emul) + 2));
+						  (u16 __user *)((long)(&fr->emul) + 2));
 		err |= __put_user(break_math >> 16,
-				  (u16 __user *)(&fr->badinst));
+						  (u16 __user *)(&fr->badinst));
 		err |= __put_user(break_math & 0xffff,
-				  (u16 __user *)((long)(&fr->badinst) + 2));
-	} else {
+						  (u16 __user *)((long)(&fr->badinst) + 2));
+	}
+	else
+	{
 		err = __put_user(ir, &fr->emul);
 		err |= __put_user(break_math, &fr->badinst);
 	}
 
-	if (unlikely(err)) {
+	if (unlikely(err))
+	{
 		MIPS_FPU_EMU_INC_STATS(errors);
 		free_emuframe(fr_idx, current->mm);
 		return SIGBUS;
@@ -290,7 +334,8 @@ int mips_dsemul(struct pt_regs *regs, mips_instruction ir,
 bool do_dsemulret(struct pt_regs *xcp)
 {
 	/* Cleanup the allocated frame, returning if there wasn't one */
-	if (!dsemul_thread_cleanup(current)) {
+	if (!dsemul_thread_cleanup(current))
+	{
 		MIPS_FPU_EMU_INC_STATS(errors);
 		return false;
 	}

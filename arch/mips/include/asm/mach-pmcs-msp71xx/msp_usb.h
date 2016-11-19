@@ -44,7 +44,8 @@
 #define MSP_USB1_HS_END		(MSP_USB1_BASE + 0x401ff)
 
 /* USB Identification registers */
-struct msp_usbid_regs {
+struct msp_usbid_regs
+{
 	u32 id;		/* 0x0: Identification register */
 	u32 hwgen;	/* 0x4: General HW params */
 	u32 hwhost;	/* 0x8: Host HW params */
@@ -59,7 +60,8 @@ struct msp_usbid_regs {
 };
 
 /* MSBus to AMBA registers */
-struct msp_mab_regs {
+struct msp_mab_regs
+{
 	u32 isr;	/* 0x0: Interrupt status */
 	u32 imr;	/* 0x4: Interrupt mask */
 	u32 thcr0;	/* 0x8: Transaction header capture 0 */
@@ -69,7 +71,8 @@ struct msp_mab_regs {
 };
 
 /* EHCI registers */
-struct msp_usbhs_regs {
+struct msp_usbhs_regs
+{
 	u32 hciver;	/* 0x0: Version and offset to operational regs */
 	u32 hcsparams;	/* 0x4: Host control structural parameters */
 	u32 hccparams;	/* 0x8: Host control capability parameters */
@@ -82,8 +85,10 @@ struct msp_usbhs_regs {
 	u32 int_ena;	/* 0x48: USB interrupt enable */
 	u32 frindex;	/* 0x4c: Frame index */
 	u32 reserved3;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 flb_addr; /* 0x54: Frame list base address */
 			u32 next_async_addr; /* 0x58: next asynchronous addr */
 			u32 ttctrl; /* 0x5c: embedded transaction translator
@@ -100,7 +105,8 @@ struct msp_usbhs_regs {
 			u32 mode;	/* 0xa8: USB controller mode */
 		} host;
 
-		struct {
+		struct
+		{
 			u32 dev_addr; /* 0x54: Device address */
 			u32 endpt_list_addr; /* 0x58: Endpoint list address */
 			u32 reserved0[7];
@@ -128,7 +134,8 @@ struct msp_usbhs_regs {
  * This exists mainly as a way to map the non-standard register
  * spaces and make them accessible to the USB ISR.
  */
-struct mspusb_device {
+struct mspusb_device
+{
 	struct msp_mab_regs   __iomem *mab_regs;
 	struct msp_usbid_regs __iomem *usbid_regs;
 	struct msp_usbhs_regs __iomem *usbhs_regs;

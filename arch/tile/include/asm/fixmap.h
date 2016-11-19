@@ -21,8 +21,8 @@
 #ifndef __ASSEMBLY__
 #include <linux/kernel.h>
 #ifdef CONFIG_HIGHMEM
-#include <linux/threads.h>
-#include <asm/kmap_types.h>
+	#include <linux/threads.h>
+	#include <asm/kmap_types.h>
 #endif
 
 /*
@@ -43,7 +43,8 @@
  * TLB entries of such buffers will not be flushed across
  * task switches.
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 #ifdef __tilegx__
 	/*
 	 * TILEPro has unmapped memory above so the hole isn't needed,
@@ -53,11 +54,11 @@ enum fixed_addresses {
 #endif
 #ifdef CONFIG_HIGHMEM
 	FIX_KMAP_BEGIN,	/* reserved pte's for temporary kernel mappings */
-	FIX_KMAP_END = FIX_KMAP_BEGIN+(KM_TYPE_NR*NR_CPUS)-1,
+	FIX_KMAP_END = FIX_KMAP_BEGIN + (KM_TYPE_NR * NR_CPUS) - 1,
 #endif
 #ifdef __tilegx__  /* see homecache.c */
 	FIX_HOMECACHE_BEGIN,
-	FIX_HOMECACHE_END = FIX_HOMECACHE_BEGIN+(NR_CPUS)-1,
+	FIX_HOMECACHE_END = FIX_HOMECACHE_BEGIN + (NR_CPUS) - 1,
 #endif
 	__end_of_permanent_fixed_addresses,
 

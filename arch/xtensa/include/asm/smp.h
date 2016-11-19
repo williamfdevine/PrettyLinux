@@ -14,7 +14,8 @@
 #define raw_smp_processor_id()	(current_thread_info()->cpu)
 #define cpu_logical_map(cpu)	(cpu)
 
-struct start_info {
+struct start_info
+{
 	unsigned long stack;
 };
 extern struct start_info start_info;
@@ -31,10 +32,10 @@ void show_ipi_list(struct seq_file *p, int prec);
 
 #ifdef CONFIG_HOTPLUG_CPU
 
-void __cpu_die(unsigned int cpu);
-int __cpu_disable(void);
-void cpu_die(void);
-void cpu_restart(void);
+	void __cpu_die(unsigned int cpu);
+	int __cpu_disable(void);
+	void cpu_die(void);
+	void cpu_restart(void);
 
 #endif /* CONFIG_HOTPLUG_CPU */
 

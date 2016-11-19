@@ -125,34 +125,35 @@
 
 #ifndef __ASSEMBLY__
 
-struct mmu_hash_ops {
+struct mmu_hash_ops
+{
 	void            (*hpte_invalidate)(unsigned long slot,
-					   unsigned long vpn,
-					   int bpsize, int apsize,
-					   int ssize, int local);
+									   unsigned long vpn,
+									   int bpsize, int apsize,
+									   int ssize, int local);
 	long		(*hpte_updatepp)(unsigned long slot,
-					 unsigned long newpp,
-					 unsigned long vpn,
-					 int bpsize, int apsize,
-					 int ssize, unsigned long flags);
+								 unsigned long newpp,
+								 unsigned long vpn,
+								 int bpsize, int apsize,
+								 int ssize, unsigned long flags);
 	void            (*hpte_updateboltedpp)(unsigned long newpp,
-					       unsigned long ea,
-					       int psize, int ssize);
+										   unsigned long ea,
+										   int psize, int ssize);
 	long		(*hpte_insert)(unsigned long hpte_group,
-				       unsigned long vpn,
-				       unsigned long prpn,
-				       unsigned long rflags,
-				       unsigned long vflags,
-				       int psize, int apsize,
-				       int ssize);
+							   unsigned long vpn,
+							   unsigned long prpn,
+							   unsigned long rflags,
+							   unsigned long vflags,
+							   int psize, int apsize,
+							   int ssize);
 	long		(*hpte_remove)(unsigned long hpte_group);
 	int             (*hpte_removebolted)(unsigned long ea,
-					     int psize, int ssize);
+										 int psize, int ssize);
 	void		(*flush_hash_range)(unsigned long number, int local);
 	void		(*hugepage_invalidate)(unsigned long vsid,
-					       unsigned long addr,
-					       unsigned char *hpte_slot_array,
-					       int psize, int ssize, int local);
+									   unsigned long addr,
+									   unsigned char *hpte_slot_array,
+									   int psize, int ssize, int local);
 	/*
 	 * Special for kexec.
 	 * To be called in real mode with interrupts disabled. No locks are
@@ -164,7 +165,8 @@ struct mmu_hash_ops {
 };
 extern struct mmu_hash_ops mmu_hash_ops;
 
-struct hash_pte {
+struct hash_pte
+{
 	__be64 v;
 	__be64 r;
 };
@@ -180,14 +182,20 @@ static inline int shift_to_mmu_psize(unsigned int shift)
 
 	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize)
 		if (mmu_psize_defs[psize].shift == shift)
+		{
 			return psize;
+		}
+
 	return -1;
 }
 
 static inline unsigned int mmu_psize_to_shift(unsigned int mmu_psize)
 {
 	if (mmu_psize_defs[mmu_psize].shift)
+	{
 		return mmu_psize_defs[mmu_psize].shift;
+	}
+
 	BUG();
 }
 
@@ -196,7 +204,7 @@ static inline unsigned long get_sllp_encoding(int psize)
 	unsigned long sllp;
 
 	sllp = ((mmu_psize_defs[psize].sllp & SLB_VSID_L) >> 6) |
-		((mmu_psize_defs[psize].sllp & SLB_VSID_LP) >> 4);
+		   ((mmu_psize_defs[psize].sllp & SLB_VSID_LP) >> 4);
 	return sllp;
 }
 
@@ -233,14 +241,20 @@ static inline unsigned long get_sllp_encoding(int psize)
 static inline int slb_vsid_shift(int ssize)
 {
 	if (ssize == MMU_SEGSIZE_256M)
+	{
 		return SLB_VSID_SHIFT;
+	}
+
 	return SLB_VSID_SHIFT_1T;
 }
 
 static inline int segment_shift(int ssize)
 {
 	if (ssize == MMU_SEGSIZE_256M)
+	{
 		return SID_SHIFT;
+	}
+
 	return SID_SHIFT_1T;
 }
 
@@ -254,20 +268,29 @@ static inline int segment_shift(int ssize)
 extern u8 hpte_page_sizes[1 << LP_BITS];
 
 static inline unsigned long __hpte_page_size(unsigned long h, unsigned long l,
-					     bool is_base_size)
+		bool is_base_size)
 {
 	unsigned int i, lp;
 
 	if (!(h & HPTE_V_LARGE))
+	{
 		return 1ul << 12;
+	}
 
 	/* Look at the 8 bit LP value */
 	lp = (l >> LP_SHIFT) & ((1 << LP_BITS) - 1);
 	i = hpte_page_sizes[lp];
+
 	if (!i)
+	{
 		return 0;
+	}
+
 	if (!is_base_size)
+	{
 		i >>= 4;
+	}
+
 	return 1ul << mmu_psize_defs[i & 0xf].shift;
 }
 
@@ -303,7 +326,7 @@ extern int mmu_ci_restrictions;
  * of the returned value are zero.
  */
 static inline unsigned long hpte_encode_avpn(unsigned long vpn, int psize,
-					     int ssize)
+		int ssize)
 {
 	unsigned long v;
 	/*
@@ -316,8 +339,12 @@ static inline unsigned long hpte_encode_avpn(unsigned long vpn, int psize,
 	 */
 	v = (vpn >> (23 - VPN_SHIFT)) & ~(mmu_psize_defs[psize].avpnm);
 	v <<= HPTE_V_AVPN_SHIFT;
+
 	if (!cpu_has_feature(CPU_FTR_ARCH_300))
+	{
 		v |= ((unsigned long) ssize) << HPTE_V_SSIZE_SHIFT;
+	}
+
 	return v;
 }
 
@@ -326,12 +353,16 @@ static inline unsigned long hpte_encode_avpn(unsigned long vpn, int psize,
  * using the base page size and actual page size.
  */
 static inline unsigned long hpte_encode_v(unsigned long vpn, int base_psize,
-					  int actual_psize, int ssize)
+		int actual_psize, int ssize)
 {
 	unsigned long v;
 	v = hpte_encode_avpn(vpn, base_psize, ssize);
+
 	if (actual_psize != MMU_PAGE_4K)
+	{
 		v |= HPTE_V_LARGE;
+	}
+
 	return v;
 }
 
@@ -341,16 +372,21 @@ static inline unsigned long hpte_encode_v(unsigned long vpn, int base_psize,
  * aligned for the requested page size
  */
 static inline unsigned long hpte_encode_r(unsigned long pa, int base_psize,
-					  int actual_psize, int ssize)
+		int actual_psize, int ssize)
 {
 
 	if (cpu_has_feature(CPU_FTR_ARCH_300))
+	{
 		pa |= ((unsigned long) ssize) << HPTE_R_3_0_SSIZE_SHIFT;
+	}
 
 	/* A 4K page needs no special encoding */
 	if (actual_psize == MMU_PAGE_4K)
+	{
 		return pa & HPTE_R_RPN;
-	else {
+	}
+	else
+	{
 		unsigned int penc = mmu_psize_defs[base_psize].penc[actual_psize];
 		unsigned int shift = mmu_psize_defs[actual_psize].shift;
 		return (pa & ~((1ul << shift) - 1)) | (penc << LP_SHIFT);
@@ -361,7 +397,7 @@ static inline unsigned long hpte_encode_r(unsigned long pa, int base_psize,
  * Build a VPN_SHIFT bit shifted va given VSID, EA and segment size.
  */
 static inline unsigned long hpt_vpn(unsigned long ea,
-				    unsigned long vsid, int ssize)
+									unsigned long vsid, int ssize)
 {
 	unsigned long mask;
 	int s_shift = segment_shift(ssize);
@@ -374,22 +410,26 @@ static inline unsigned long hpt_vpn(unsigned long ea,
  * This hashes a virtual address
  */
 static inline unsigned long hpt_hash(unsigned long vpn,
-				     unsigned int shift, int ssize)
+									 unsigned int shift, int ssize)
 {
 	int mask;
 	unsigned long hash, vsid;
 
 	/* VPN_SHIFT can be atmost 12 */
-	if (ssize == MMU_SEGSIZE_256M) {
+	if (ssize == MMU_SEGSIZE_256M)
+	{
 		mask = (1ul << (SID_SHIFT - VPN_SHIFT)) - 1;
 		hash = (vpn >> (SID_SHIFT - VPN_SHIFT)) ^
-			((vpn & mask) >> (shift - VPN_SHIFT));
-	} else {
+			   ((vpn & mask) >> (shift - VPN_SHIFT));
+	}
+	else
+	{
 		mask = (1ul << (SID_SHIFT_1T - VPN_SHIFT)) - 1;
 		vsid = vpn >> (SID_SHIFT_1T - VPN_SHIFT);
 		hash = vsid ^ (vsid << 25) ^
-			((vpn & mask) >> (shift - VPN_SHIFT)) ;
+			   ((vpn & mask) >> (shift - VPN_SHIFT)) ;
 	}
+
 	return hash & 0x7fffffffffUL;
 }
 
@@ -397,44 +437,44 @@ static inline unsigned long hpt_hash(unsigned long vpn,
 #define HPTE_NOHPTE_UPDATE	0x2
 
 extern int __hash_page_4K(unsigned long ea, unsigned long access,
-			  unsigned long vsid, pte_t *ptep, unsigned long trap,
-			  unsigned long flags, int ssize, int subpage_prot);
+						  unsigned long vsid, pte_t *ptep, unsigned long trap,
+						  unsigned long flags, int ssize, int subpage_prot);
 extern int __hash_page_64K(unsigned long ea, unsigned long access,
-			   unsigned long vsid, pte_t *ptep, unsigned long trap,
-			   unsigned long flags, int ssize);
+						   unsigned long vsid, pte_t *ptep, unsigned long trap,
+						   unsigned long flags, int ssize);
 struct mm_struct;
 unsigned int hash_page_do_lazy_icache(unsigned int pp, pte_t pte, int trap);
 extern int hash_page_mm(struct mm_struct *mm, unsigned long ea,
-			unsigned long access, unsigned long trap,
-			unsigned long flags);
+						unsigned long access, unsigned long trap,
+						unsigned long flags);
 extern int hash_page(unsigned long ea, unsigned long access, unsigned long trap,
-		     unsigned long dsisr);
+					 unsigned long dsisr);
 int __hash_page_huge(unsigned long ea, unsigned long access, unsigned long vsid,
-		     pte_t *ptep, unsigned long trap, unsigned long flags,
-		     int ssize, unsigned int shift, unsigned int mmu_psize);
+					 pte_t *ptep, unsigned long trap, unsigned long flags,
+					 int ssize, unsigned int shift, unsigned int mmu_psize);
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 extern int __hash_page_thp(unsigned long ea, unsigned long access,
-			   unsigned long vsid, pmd_t *pmdp, unsigned long trap,
-			   unsigned long flags, int ssize, unsigned int psize);
+						   unsigned long vsid, pmd_t *pmdp, unsigned long trap,
+						   unsigned long flags, int ssize, unsigned int psize);
 #else
 static inline int __hash_page_thp(unsigned long ea, unsigned long access,
-				  unsigned long vsid, pmd_t *pmdp,
-				  unsigned long trap, unsigned long flags,
-				  int ssize, unsigned int psize)
+								  unsigned long vsid, pmd_t *pmdp,
+								  unsigned long trap, unsigned long flags,
+								  int ssize, unsigned int psize)
 {
 	BUG();
 	return -1;
 }
 #endif
 extern void hash_failure_debug(unsigned long ea, unsigned long access,
-			       unsigned long vsid, unsigned long trap,
-			       int ssize, int psize, int lpsize,
-			       unsigned long pte);
+							   unsigned long vsid, unsigned long trap,
+							   int ssize, int psize, int lpsize,
+							   unsigned long pte);
 extern int htab_bolt_mapping(unsigned long vstart, unsigned long vend,
-			     unsigned long pstart, unsigned long prot,
-			     int psize, int ssize);
+							 unsigned long pstart, unsigned long prot,
+							 int psize, int ssize);
 int htab_remove_mapping(unsigned long vstart, unsigned long vend,
-			int psize, int ssize);
+						int psize, int ssize);
 extern void add_gpage(u64 addr, u64 page_size, unsigned long number_of_pages);
 extern void demote_segment_4k(struct mm_struct *mm, unsigned long addr);
 
@@ -537,7 +577,7 @@ extern void slb_set_size(u16 size);
 	lis	rx,VSID_MULTIPLIER_##size@h;				\
 	ori	rx,rx,VSID_MULTIPLIER_##size@l;				\
 	mulld	rt,rt,rx;		/* rt = rt * MULTIPLIER */	\
-									\
+	\
 	srdi	rx,rt,VSID_BITS_##size;					\
 	clrldi	rt,rt,(64-VSID_BITS_##size);				\
 	add	rt,rt,rx;		/* add high and low bits */	\
@@ -569,7 +609,8 @@ extern void slb_set_size(u16 size);
  * protects 64k).  For the 3-level tree, each page of pointers then
  * protects 8TB.
  */
-struct subpage_prot_table {
+struct subpage_prot_table
+{
 	unsigned long maxaddr;	/* only addresses < this are protected */
 	unsigned int **protptrs[(TASK_SIZE_USER64 >> 43)];
 	unsigned int *low_prot[4];
@@ -614,24 +655,30 @@ static inline int user_segment_size(unsigned long addr)
 {
 	/* Use 1T segments if possible for addresses >= 1T */
 	if (addr >= (1UL << SID_SHIFT_1T))
+	{
 		return mmu_highuser_ssize;
+	}
+
 	return MMU_SEGSIZE_256M;
 }
 
 static inline unsigned long get_vsid(unsigned long context, unsigned long ea,
-				     int ssize)
+									 int ssize)
 {
 	/*
 	 * Bad address. We return VSID 0 for that
 	 */
 	if ((ea & ~REGION_MASK) >= H_PGTABLE_RANGE)
+	{
 		return 0;
+	}
 
 	if (ssize == MMU_SEGSIZE_256M)
 		return vsid_scramble((context << ESID_BITS)
-				     | (ea >> SID_SHIFT), 256M);
+							 | (ea >> SID_SHIFT), 256M);
+
 	return vsid_scramble((context << ESID_BITS_1T)
-			     | (ea >> SID_SHIFT_1T), 1T);
+						 | (ea >> SID_SHIFT_1T), 1T);
 }
 
 /*

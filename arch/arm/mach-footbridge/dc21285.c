@@ -26,12 +26,12 @@
 #define MAX_SLOTS		21
 
 #define PCICMD_ABORT		((PCI_STATUS_REC_MASTER_ABORT| \
-				  PCI_STATUS_REC_TARGET_ABORT)<<16)
+							  PCI_STATUS_REC_TARGET_ABORT)<<16)
 
 #define PCICMD_ERROR_BITS	((PCI_STATUS_DETECTED_PARITY | \
-				  PCI_STATUS_REC_MASTER_ABORT | \
-				  PCI_STATUS_REC_TARGET_ABORT | \
-				  PCI_STATUS_PARITY) << 16)
+							  PCI_STATUS_REC_MASTER_ABORT | \
+							  PCI_STATUS_REC_TARGET_ABORT | \
+							  PCI_STATUS_PARITY) << 16)
 
 extern int setup_arm_irq(int, struct irqaction *);
 extern void pcibios_report_status(u_int status_mask, int warn);
@@ -41,52 +41,66 @@ dc21285_base_address(struct pci_bus *bus, unsigned int devfn)
 {
 	unsigned long addr = 0;
 
-	if (bus->number == 0) {
+	if (bus->number == 0)
+	{
 		if (PCI_SLOT(devfn) == 0)
 			/*
 			 * For devfn 0, point at the 21285
 			 */
+		{
 			addr = ARMCSR_BASE;
-		else {
+		}
+		else
+		{
 			devfn -= 1 << 3;
 
 			if (devfn < PCI_DEVFN(MAX_SLOTS, 0))
+			{
 				addr = PCICFG0_BASE | 0xc00000 | (devfn << 8);
+			}
 		}
-	} else
+	}
+	else
+	{
 		addr = PCICFG1_BASE | (bus->number << 16) | (devfn << 8);
+	}
 
 	return addr;
 }
 
 static int
 dc21285_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		    int size, u32 *value)
+					int size, u32 *value)
 {
 	unsigned long addr = dc21285_base_address(bus, devfn);
 	u32 v = 0xffffffff;
 
 	if (addr)
-		switch (size) {
-		case 1:
-			asm("ldrb	%0, [%1, %2]"
-				: "=r" (v) : "r" (addr), "r" (where) : "cc");
-			break;
-		case 2:
-			asm("ldrh	%0, [%1, %2]"
-				: "=r" (v) : "r" (addr), "r" (where) : "cc");
-			break;
-		case 4:
-			asm("ldr	%0, [%1, %2]"
-				: "=r" (v) : "r" (addr), "r" (where) : "cc");
-			break;
+		switch (size)
+		{
+			case 1:
+				asm("ldrb	%0, [%1, %2]"
+					: "=r" (v) : "r" (addr), "r" (where) : "cc");
+				break;
+
+			case 2:
+				asm("ldrh	%0, [%1, %2]"
+					: "=r" (v) : "r" (addr), "r" (where) : "cc");
+				break;
+
+			case 4:
+				asm("ldr	%0, [%1, %2]"
+					: "=r" (v) : "r" (addr), "r" (where) : "cc");
+				break;
 		}
 
 	*value = v;
 
 	v = *CSR_PCICMD;
-	if (v & PCICMD_ABORT) {
-		*CSR_PCICMD = v & (0xffff|PCICMD_ABORT);
+
+	if (v & PCICMD_ABORT)
+	{
+		*CSR_PCICMD = v & (0xffff | PCICMD_ABORT);
 		return -1;
 	}
 
@@ -95,40 +109,46 @@ dc21285_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 
 static int
 dc21285_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		     int size, u32 value)
+					 int size, u32 value)
 {
 	unsigned long addr = dc21285_base_address(bus, devfn);
 	u32 v;
 
 	if (addr)
-		switch (size) {
-		case 1:
-			asm("strb	%0, [%1, %2]"
-				: : "r" (value), "r" (addr), "r" (where)
-				: "cc");
-			break;
-		case 2:
-			asm("strh	%0, [%1, %2]"
-				: : "r" (value), "r" (addr), "r" (where)
-				: "cc");
-			break;
-		case 4:
-			asm("str	%0, [%1, %2]"
-				: : "r" (value), "r" (addr), "r" (where)
-				: "cc");
-			break;
+		switch (size)
+		{
+			case 1:
+				asm("strb	%0, [%1, %2]"
+					: : "r" (value), "r" (addr), "r" (where)
+					: "cc");
+				break;
+
+			case 2:
+				asm("strh	%0, [%1, %2]"
+					: : "r" (value), "r" (addr), "r" (where)
+					: "cc");
+				break;
+
+			case 4:
+				asm("str	%0, [%1, %2]"
+					: : "r" (value), "r" (addr), "r" (where)
+					: "cc");
+				break;
 		}
 
 	v = *CSR_PCICMD;
-	if (v & PCICMD_ABORT) {
-		*CSR_PCICMD = v & (0xffff|PCICMD_ABORT);
+
+	if (v & PCICMD_ABORT)
+	{
+		*CSR_PCICMD = v & (0xffff | PCICMD_ABORT);
 		return -1;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops dc21285_ops = {
+struct pci_ops dc21285_ops =
+{
 	.read	= dc21285_read_config,
 	.write	= dc21285_write_config,
 };
@@ -138,14 +158,15 @@ static struct timer_list perr_timer;
 
 static void dc21285_enable_error(unsigned long __data)
 {
-	switch (__data) {
-	case IRQ_PCI_SERR:
-		del_timer(&serr_timer);
-		break;
+	switch (__data)
+	{
+		case IRQ_PCI_SERR:
+			del_timer(&serr_timer);
+			break;
 
-	case IRQ_PCI_PERR:
-		del_timer(&perr_timer);
-		break;
+		case IRQ_PCI_PERR:
+			del_timer(&perr_timer);
+			break;
 	}
 
 	enable_irq(__data);
@@ -163,17 +184,19 @@ static irqreturn_t dc21285_abort_irq(int irq, void *dev_id)
 	status = cmd >> 16;
 	cmd = cmd & 0xffff;
 
-	if (status & PCI_STATUS_REC_MASTER_ABORT) {
+	if (status & PCI_STATUS_REC_MASTER_ABORT)
+	{
 		printk(KERN_DEBUG "PCI: master abort, pc=0x%08lx\n",
-			instruction_pointer(get_irq_regs()));
+			   instruction_pointer(get_irq_regs()));
 		cmd |= PCI_STATUS_REC_MASTER_ABORT << 16;
 	}
 
-	if (status & PCI_STATUS_REC_TARGET_ABORT) {
+	if (status & PCI_STATUS_REC_TARGET_ABORT)
+	{
 		printk(KERN_DEBUG "PCI: target abort: ");
 		pcibios_report_status(PCI_STATUS_REC_MASTER_ABORT |
-				      PCI_STATUS_SIG_TARGET_ABORT |
-				      PCI_STATUS_REC_TARGET_ABORT, 1);
+							  PCI_STATUS_SIG_TARGET_ABORT |
+							  PCI_STATUS_REC_TARGET_ABORT, 1);
 		printk("\n");
 
 		cmd |= PCI_STATUS_REC_TARGET_ABORT << 16;
@@ -255,10 +278,14 @@ int __init dc21285_setup(int nr, struct pci_sys_data *sys)
 	struct resource *res;
 
 	if (nr || !footbridge_cfn_mode())
+	{
 		return 0;
+	}
 
 	res = kzalloc(sizeof(struct resource) * 2, GFP_KERNEL);
-	if (!res) {
+
+	if (!res)
+	{
 		printk("out of memory for root bus resources");
 		return 0;
 	}
@@ -269,9 +296,9 @@ int __init dc21285_setup(int nr, struct pci_sys_data *sys)
 	res[1].name  = "Footbridge prefetch";
 
 	allocate_resource(&iomem_resource, &res[1], 0x20000000,
-			  0xa0000000, 0xffffffff, 0x20000000, NULL, NULL);
+					  0xa0000000, 0xffffffff, 0x20000000, NULL, NULL);
 	allocate_resource(&iomem_resource, &res[0], 0x40000000,
-			  0x80000000, 0xffffffff, 0x40000000, NULL, NULL);
+					  0x80000000, 0xffffffff, 0x40000000, NULL, NULL);
 
 	sys->mem_offset  = DC21285_PCI_MEM;
 
@@ -292,9 +319,12 @@ void __init dc21285_preinit(void)
 	pcibios_min_mem = 0x81000000;
 
 	mem_size = (unsigned int)high_memory - PAGE_OFFSET;
+
 	for (mem_mask = 0x00100000; mem_mask < 0x10000000; mem_mask <<= 1)
 		if (mem_mask >= mem_size)
+		{
 			break;
+		}
 
 	/*
 	 * These registers need to be set up whether we're the
@@ -310,16 +340,17 @@ void __init dc21285_preinit(void)
 	cfn_mode = __footbridge_cfn_mode();
 
 	printk(KERN_INFO "PCI: DC21285 footbridge, revision %02lX, in "
-		"%s mode\n", *CSR_CLASSREV & 0xff, cfn_mode ?
-		"central function" : "addin");
+		   "%s mode\n", *CSR_CLASSREV & 0xff, cfn_mode ?
+		   "central function" : "addin");
 
-	if (footbridge_cfn_mode()) {
+	if (footbridge_cfn_mode())
+	{
 		/*
 		 * Clear any existing errors - we aren't
 		 * interested in historical data...
 		 */
 		*CSR_SA110_CNTL	= (*CSR_SA110_CNTL & 0xffffde07) |
-				  SA110_CNTL_RXSERR;
+						  SA110_CNTL_RXSERR;
 		*CSR_PCICMD = (*CSR_PCICMD & 0xffff) | PCICMD_ERROR_BITS;
 	}
 
@@ -335,17 +366,18 @@ void __init dc21285_preinit(void)
 	 * We don't care if these fail.
 	 */
 	dc21285_request_irq(IRQ_PCI_SERR, dc21285_serr_irq, 0,
-			    "PCI system error", &serr_timer);
+						"PCI system error", &serr_timer);
 	dc21285_request_irq(IRQ_PCI_PERR, dc21285_parity_irq, 0,
-			    "PCI parity error", &perr_timer);
+						"PCI parity error", &perr_timer);
 	dc21285_request_irq(IRQ_PCI_ABORT, dc21285_abort_irq, 0,
-			    "PCI abort", NULL);
+						"PCI abort", NULL);
 	dc21285_request_irq(IRQ_DISCARD_TIMER, dc21285_discard_irq, 0,
-			    "Discard timer", NULL);
+						"Discard timer", NULL);
 	dc21285_request_irq(IRQ_PCI_DPERR, dc21285_dparity_irq, 0,
-			    "PCI data parity", NULL);
+						"PCI data parity", NULL);
 
-	if (cfn_mode) {
+	if (cfn_mode)
+	{
 		/*
 		 * Map our SDRAM at a known address in PCI space, just in case
 		 * the firmware had other ideas.  Using a nonzero base is
@@ -357,8 +389,10 @@ void __init dc21285_preinit(void)
 		*CSR_PCISDRAMBASE     = __virt_to_bus(PAGE_OFFSET);
 		*CSR_PCIROMBASE       = 0;
 		*CSR_PCICMD = PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER |
-			      PCI_COMMAND_INVALIDATE | PCICMD_ERROR_BITS;
-	} else if (footbridge_cfn_mode() != 0) {
+					  PCI_COMMAND_INVALIDATE | PCICMD_ERROR_BITS;
+	}
+	else if (footbridge_cfn_mode() != 0)
+	{
 		/*
 		 * If we are not compiled to accept "add-in" mode, then
 		 * we are using a constant virt_to_bus translation which
@@ -366,7 +400,7 @@ void __init dc21285_preinit(void)
 		 * set up the machine.
 		 */
 		panic("PCI: this kernel is compiled for central "
-			"function mode only");
+			  "function mode only");
 	}
 }
 

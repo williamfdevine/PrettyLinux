@@ -33,9 +33,9 @@
 #include <asm/txx9/tx4927pcic.h>
 
 #ifdef CONFIG_64BIT
-#define TX4927_REG_BASE 0xffffffffff1f0000UL
+	#define TX4927_REG_BASE 0xffffffffff1f0000UL
 #else
-#define TX4927_REG_BASE 0xff1f0000UL
+	#define TX4927_REG_BASE 0xff1f0000UL
 #endif
 #define TX4927_REG_SIZE 0x00010000
 
@@ -75,7 +75,8 @@
 
 #define TX4927_NUM_PIO	16
 
-struct tx4927_sdramc_reg {
+struct tx4927_sdramc_reg
+{
 	u64 cr[4];
 	u64 unused0[4];
 	u64 tr;
@@ -83,11 +84,13 @@ struct tx4927_sdramc_reg {
 	u64 cmd;
 };
 
-struct tx4927_ebusc_reg {
+struct tx4927_ebusc_reg
+{
 	u64 cr[8];
 };
 
-struct tx4927_ccfg_reg {
+struct tx4927_ccfg_reg
+{
 	u64 ccfg;
 	u64 crir;
 	u64 pcfg;
@@ -188,13 +191,13 @@ struct tx4927_ccfg_reg {
 #define TX4927_CLKCTR_SIO1RST	0x00000001
 
 #define tx4927_sdramcptr \
-		((struct tx4927_sdramc_reg __iomem *)TX4927_SDRAMC_REG)
+	((struct tx4927_sdramc_reg __iomem *)TX4927_SDRAMC_REG)
 #define tx4927_pcicptr \
-		((struct tx4927_pcic_reg __iomem *)TX4927_PCIC_REG)
+	((struct tx4927_pcic_reg __iomem *)TX4927_PCIC_REG)
 #define tx4927_ccfgptr \
-		((struct tx4927_ccfg_reg __iomem *)TX4927_CCFG_REG)
+	((struct tx4927_ccfg_reg __iomem *)TX4927_CCFG_REG)
 #define tx4927_ebuscptr \
-		((struct tx4927_ebusc_reg __iomem *)TX4927_EBUSC_REG)
+	((struct tx4927_ebusc_reg __iomem *)TX4927_EBUSC_REG)
 #define tx4927_pioptr		((struct txx9_pio_reg __iomem *)TX4927_PIO_REG)
 
 #define TX4927_REV_PCODE()	\
@@ -240,21 +243,21 @@ static inline void txx9_set64(__u64 __iomem *adr, __u64 bits)
 static inline void tx4927_ccfg_clear(__u64 bits)
 {
 	____raw_writeq(____raw_readq(&tx4927_ccfgptr->ccfg)
-		       & ~(TX4927_CCFG_W1CBITS | bits),
-		       &tx4927_ccfgptr->ccfg);
+				   & ~(TX4927_CCFG_W1CBITS | bits),
+				   &tx4927_ccfgptr->ccfg);
 }
 static inline void tx4927_ccfg_set(__u64 bits)
 {
 	____raw_writeq((____raw_readq(&tx4927_ccfgptr->ccfg)
-			& ~TX4927_CCFG_W1CBITS) | bits,
-		       &tx4927_ccfgptr->ccfg);
+					& ~TX4927_CCFG_W1CBITS) | bits,
+				   &tx4927_ccfgptr->ccfg);
 }
 static inline void tx4927_ccfg_change(__u64 change, __u64 new)
 {
 	____raw_writeq((____raw_readq(&tx4927_ccfgptr->ccfg)
-			& ~(TX4927_CCFG_W1CBITS | change)) |
-		       new,
-		       &tx4927_ccfgptr->ccfg);
+					& ~(TX4927_CCFG_W1CBITS | change)) |
+				   new,
+				   &tx4927_ccfgptr->ccfg);
 }
 
 unsigned int tx4927_get_mem_size(void);

@@ -14,7 +14,8 @@
 struct dma_struct;
 typedef struct dma_struct dma_t;
 
-struct dma_ops {
+struct dma_ops
+{
 	int	(*request)(unsigned int, dma_t *);		/* optional */
 	void	(*free)(unsigned int, dma_t *);			/* optional */
 	void	(*enable)(unsigned int, dma_t *);		/* mandatory */
@@ -24,15 +25,16 @@ struct dma_ops {
 	const char *type;
 };
 
-struct dma_struct {
+struct dma_struct
+{
 	void		*addr;		/* single DMA address		*/
 	unsigned long	count;		/* single DMA size		*/
 	struct scatterlist buf;		/* single DMA			*/
 	int		sgcount;	/* number of DMA SG		*/
 	struct scatterlist *sg;		/* DMA Scatter-Gather List	*/
 
-	unsigned int	active:1;	/* Transfer active		*/
-	unsigned int	invalid:1;	/* Address/Count changed	*/
+	unsigned int	active: 1;	/* Transfer active		*/
+	unsigned int	invalid: 1;	/* Address/Count changed	*/
 
 	unsigned int	dma_mode;	/* DMA mode			*/
 	int		speed;		/* DMA speed			*/

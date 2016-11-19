@@ -167,7 +167,8 @@ extern sci_handler yeeloong_report_lid_status;
 #define REG_DISPLAY_LCD		0xF79F
 
 /* SCI Event Number from EC */
-enum {
+enum
+{
 	EVENT_LID = 0x23,	/*  LID open/close */
 	EVENT_DISPLAY_TOGGLE,	/*  Fn+F3 for display switch */
 	EVENT_SLEEP,		/*  Fn+F1 for entering sleep mode */

@@ -45,15 +45,22 @@ void show_stack(struct task_struct *task, unsigned long *sp)
 
 	printk(KERN_NOTICE "Stack: ");
 	i = 1;
-	while ((long) sp & (PAGE_SIZE - 1)) {
+
+	while ((long) sp & (PAGE_SIZE - 1))
+	{
 		if (i && ((i % 8) == 0))
+		{
 			printk(KERN_NOTICE "\n");
-		if (i > 40) {
+		}
+
+		if (i > 40)
+		{
 			printk(KERN_NOTICE " ...");
 			break;
 		}
 
-		if (__get_user(stackdata, sp++)) {
+		if (__get_user(stackdata, sp++))
+		{
 			printk(KERN_NOTICE " (Bad stack address)");
 			break;
 		}
@@ -61,6 +68,7 @@ void show_stack(struct task_struct *task, unsigned long *sp)
 		printk(KERN_NOTICE " %08lx", stackdata);
 		i++;
 	}
+
 	printk(KERN_NOTICE "\n");
 }
 
@@ -73,18 +81,29 @@ static void show_trace(long *sp)
 
 	printk(KERN_NOTICE "Call Trace:  ");
 	i = 1;
-	while ((long) sp & (PAGE_SIZE - 1)) {
-		if (__get_user(addr, sp++)) {
+
+	while ((long) sp & (PAGE_SIZE - 1))
+	{
+		if (__get_user(addr, sp++))
+		{
 			if (i && ((i % 6) == 0))
+			{
 				printk(KERN_NOTICE "\n");
+			}
+
 			printk(KERN_NOTICE " (Bad stack address)\n");
 			break;
 		}
 
-		if (kernel_text_address(addr)) {
+		if (kernel_text_address(addr))
+		{
 			if (i && ((i % 6) == 0))
+			{
 				printk(KERN_NOTICE "\n");
-			if (i > 40) {
+			}
+
+			if (i > 40)
+			{
 				printk(KERN_NOTICE " ...");
 				break;
 			}
@@ -93,6 +112,7 @@ static void show_trace(long *sp)
 			i++;
 		}
 	}
+
 	printk(KERN_NOTICE "\n");
 }
 
@@ -102,14 +122,18 @@ static void show_code(unsigned int *pc)
 
 	printk(KERN_NOTICE "\nCode:");
 
-	for (i = -3; i < 6; i++) {
+	for (i = -3; i < 6; i++)
+	{
 		unsigned long insn;
-		if (__get_user(insn, pc + i)) {
+
+		if (__get_user(insn, pc + i))
+		{
 			printk(KERN_NOTICE " (Bad address in epc)\n");
 			break;
 		}
+
 		printk(KERN_NOTICE "%c%08lx%c", (i ? ' ' : '<'),
-			insn, (i ? ' ' : '>'));
+			   insn, (i ? ' ' : '>'));
 	}
 }
 
@@ -121,31 +145,31 @@ void show_regs(struct pt_regs *regs)
 	show_regs_print_info(KERN_DEFAULT);
 
 	printk("r0 : %08lx %08lx %08lx %08lx %08lx %08lx %08lx %08lx\n",
-		regs->regs[0], regs->regs[1], regs->regs[2], regs->regs[3],
-		regs->regs[4], regs->regs[5], regs->regs[6], regs->regs[7]);
+		   regs->regs[0], regs->regs[1], regs->regs[2], regs->regs[3],
+		   regs->regs[4], regs->regs[5], regs->regs[6], regs->regs[7]);
 	printk("r8 : %08lx %08lx %08lx %08lx %08lx %08lx %08lx %08lx\n",
-		regs->regs[8], regs->regs[9], regs->regs[10], regs->regs[11],
-		regs->regs[12], regs->regs[13], regs->regs[14], regs->regs[15]);
+		   regs->regs[8], regs->regs[9], regs->regs[10], regs->regs[11],
+		   regs->regs[12], regs->regs[13], regs->regs[14], regs->regs[15]);
 	printk("r16: %08lx %08lx %08lx %08lx %08lx %08lx %08lx %08lx\n",
-		regs->regs[16], regs->regs[17], regs->regs[18], regs->regs[19],
-		regs->regs[20], regs->regs[21], regs->regs[22], regs->regs[23]);
+		   regs->regs[16], regs->regs[17], regs->regs[18], regs->regs[19],
+		   regs->regs[20], regs->regs[21], regs->regs[22], regs->regs[23]);
 	printk("r24: %08lx %08lx %08lx %08lx %08lx %08lx %08lx %08lx\n",
-		regs->regs[24], regs->regs[25], regs->regs[26], regs->regs[27],
-		regs->regs[28], regs->regs[29], regs->regs[30], regs->regs[31]);
+		   regs->regs[24], regs->regs[25], regs->regs[26], regs->regs[27],
+		   regs->regs[28], regs->regs[29], regs->regs[30], regs->regs[31]);
 
 	printk("CEH : %08lx\n", regs->ceh);
 	printk("CEL : %08lx\n", regs->cel);
 
 	printk("EMA:%08lx, epc:%08lx %s\nPSR: %08lx\nECR:%08lx\nCondition : %08lx\n",
-		regs->cp0_ema, regs->cp0_epc, print_tainted(), regs->cp0_psr,
-		regs->cp0_ecr, regs->cp0_condition);
+		   regs->cp0_ema, regs->cp0_epc, print_tainted(), regs->cp0_psr,
+		   regs->cp0_ecr, regs->cp0_condition);
 }
 
 static void show_registers(struct pt_regs *regs)
 {
 	show_regs(regs);
 	printk(KERN_NOTICE "Process %s (pid: %d, stackpage=%08lx)\n",
-		current->comm, current->pid, (unsigned long) current);
+		   current->comm, current->pid, (unsigned long) current);
 	show_stack(current_thread_info()->task, (long *) regs->regs[0]);
 	show_trace((long *) regs->regs[0]);
 	show_code((unsigned int *) regs->cp0_epc);
@@ -153,28 +177,34 @@ static void show_registers(struct pt_regs *regs)
 }
 
 void __die(const char *str, struct pt_regs *regs, const char *file,
-	const char *func, unsigned long line)
+		   const char *func, unsigned long line)
 {
 	console_verbose();
 	printk("%s", str);
+
 	if (file && func)
+	{
 		printk(" in %s:%s, line %ld", file, func, line);
+	}
+
 	printk(":\n");
 	show_registers(regs);
 	do_exit(SIGSEGV);
 }
 
 void __die_if_kernel(const char *str, struct pt_regs *regs,
-		const char *file, const char *func, unsigned long line)
+					 const char *file, const char *func, unsigned long line)
 {
 	if (!user_mode(regs))
+	{
 		__die(str, regs, file, func, line);
+	}
 }
 
 asmlinkage void do_adelinsn(struct pt_regs *regs)
 {
 	printk("do_ADE-linsn:ema:0x%08lx:epc:0x%08lx\n",
-		 regs->cp0_ema, regs->cp0_epc);
+		   regs->cp0_ema, regs->cp0_epc);
 	die_if_kernel("do_ade execution Exception\n", regs);
 	force_sig(SIGBUS, current);
 }
@@ -183,12 +213,15 @@ asmlinkage void do_adedata(struct pt_regs *regs)
 {
 	const struct exception_table_entry *fixup;
 	fixup = search_exception_tables(regs->cp0_epc);
-	if (fixup) {
+
+	if (fixup)
+	{
 		regs->cp0_epc = fixup->fixup;
 		return;
 	}
+
 	printk("do_ADE-data:ema:0x%08lx:epc:0x%08lx\n",
-		 regs->cp0_ema, regs->cp0_epc);
+		   regs->cp0_ema, regs->cp0_epc);
 	die_if_kernel("do_ade execution Exception\n", regs);
 	force_sig(SIGBUS, current);
 }
@@ -242,20 +275,30 @@ asmlinkage void do_ri(struct pt_regs *regs)
 	unsigned long epc = regs->cp0_epc;
 
 	read_tsk_long(current, epc, &epc_insn);
-	if (current->thread.single_step == 1) {
+
+	if (current->thread.single_step == 1)
+	{
 		if ((epc == current->thread.addr1) ||
-		    (epc == current->thread.addr2)) {
+			(epc == current->thread.addr2))
+		{
 			user_disable_single_step(current);
 			force_sig(SIGTRAP, current);
 			return;
-		} else
+		}
+		else
+		{
 			BUG();
-	} else if ((epc_insn == BREAKPOINT32_INSN) ||
-		   ((epc_insn & 0x0000FFFF) == 0x7002) ||
-		   ((epc_insn & 0xFFFF0000) == 0x70020000)) {
-			force_sig(SIGTRAP, current);
-			return;
-	} else {
+		}
+	}
+	else if ((epc_insn == BREAKPOINT32_INSN) ||
+			 ((epc_insn & 0x0000FFFF) == 0x7002) ||
+			 ((epc_insn & 0xFFFF0000) == 0x70020000))
+	{
+		force_sig(SIGTRAP, current);
+		return;
+	}
+	else
+	{
 		die_if_kernel("do_ri execution Exception", regs);
 		force_sig(SIGILL, current);
 	}
@@ -305,16 +348,18 @@ void __init trap_init(void)
 	pgd_current = (unsigned long)init_mm.pgd;
 	/* DEBUG EXCEPTION */
 	memcpy((void *)DEBUG_VECTOR_BASE_ADDR,
-			&debug_exception_vector, DEBUG_VECTOR_SIZE);
+		   &debug_exception_vector, DEBUG_VECTOR_SIZE);
 	/* NMI EXCEPTION */
 	memcpy((void *)GENERAL_VECTOR_BASE_ADDR,
-			&general_exception_vector, GENERAL_VECTOR_SIZE);
+		   &general_exception_vector, GENERAL_VECTOR_SIZE);
 
 	/*
 	 * Initialise exception handlers
 	 */
 	for (i = 0; i <= 31; i++)
+	{
 		set_except_vector(i, handle_reserved);
+	}
 
 	set_except_vector(1, handle_nmi);
 	set_except_vector(2, handle_adelinsn);

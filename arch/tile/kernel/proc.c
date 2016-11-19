@@ -44,30 +44,37 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 {
 	int n = ptr_to_cpu(v);
 
-	if (n == 0) {
+	if (n == 0)
+	{
 		seq_printf(m, "cpu count\t: %d\n", num_online_cpus());
 		seq_printf(m, "cpu list\t: %*pbl\n",
-			   cpumask_pr_args(cpu_online_mask));
+				   cpumask_pr_args(cpu_online_mask));
 		seq_printf(m, "model name\t: %s\n", chip_model);
 		seq_printf(m, "flags\t\t:\n");  /* nothing for now */
 		seq_printf(m, "cpu MHz\t\t: %llu.%06llu\n",
-			   get_clock_rate() / 1000000,
-			   (get_clock_rate() % 1000000));
+				   get_clock_rate() / 1000000,
+				   (get_clock_rate() % 1000000));
 		seq_printf(m, "bogomips\t: %lu.%02lu\n\n",
-			   loops_per_jiffy/(500000/HZ),
-			   (loops_per_jiffy/(5000/HZ)) % 100);
+				   loops_per_jiffy / (500000 / HZ),
+				   (loops_per_jiffy / (5000 / HZ)) % 100);
 	}
 
 #ifdef CONFIG_SMP
+
 	if (!cpu_online(n))
+	{
 		return 0;
+	}
+
 #endif
 
 	seq_printf(m, "processor\t: %d\n", n);
 
 	/* Print only num_online_cpus() blank lines total. */
 	if (cpumask_next(n, cpu_online_mask) < nr_cpu_ids)
+	{
 		seq_printf(m, "\n");
+	}
 
 	return 0;
 }
@@ -84,7 +91,8 @@ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
 static void c_stop(struct seq_file *m, void *v)
 {
 }
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,
@@ -98,8 +106,11 @@ const struct seq_operations cpuinfo_op = {
 static int __init proc_tile_init(void)
 {
 	struct proc_dir_entry *root = proc_mkdir("tile", NULL);
+
 	if (root == NULL)
+	{
 		return 0;
+	}
 
 	proc_tile_hardwall_init(root);
 
@@ -112,7 +123,8 @@ arch_initcall(proc_tile_init);
  * Support /proc/sys/tile directory
  */
 
-static struct ctl_table unaligned_subtable[] = {
+static struct ctl_table unaligned_subtable[] =
+{
 	{
 		.procname	= "enabled",
 		.data		= &unaligned_fixup,
@@ -137,7 +149,8 @@ static struct ctl_table unaligned_subtable[] = {
 	{}
 };
 
-static struct ctl_table unaligned_table[] = {
+static struct ctl_table unaligned_table[] =
+{
 	{
 		.procname	= "unaligned_fixup",
 		.mode		= 0555,
@@ -146,7 +159,8 @@ static struct ctl_table unaligned_table[] = {
 	{}
 };
 
-static struct ctl_path tile_path[] = {
+static struct ctl_path tile_path[] =
+{
 	{ .procname = "tile" },
 	{ }
 };

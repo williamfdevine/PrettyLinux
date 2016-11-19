@@ -210,23 +210,25 @@ struct task_struct;
 
 /* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
 #define ARCH_DLINFO								\
-do {										\
-	extern char __kernel_syscall_via_epc[];					\
-	NEW_AUX_ENT(AT_SYSINFO, (unsigned long) __kernel_syscall_via_epc);	\
-	NEW_AUX_ENT(AT_SYSINFO_EHDR, (unsigned long) GATE_EHDR);		\
-} while (0)
+	do {										\
+		extern char __kernel_syscall_via_epc[];					\
+		NEW_AUX_ENT(AT_SYSINFO, (unsigned long) __kernel_syscall_via_epc);	\
+		NEW_AUX_ENT(AT_SYSINFO_EHDR, (unsigned long) GATE_EHDR);		\
+	} while (0)
 
 /*
  * format for entries in the Global Offset Table
  */
-struct got_entry {
+struct got_entry
+{
 	uint64_t val;
 };
 
 /*
  * Layout of the Function Descriptor
  */
-struct fdesc {
+struct fdesc
+{
 	uint64_t ip;
 	uint64_t gp;
 };

@@ -31,7 +31,8 @@
 
 #define MAX_ENTRY 80
 
-struct env_var {
+struct env_var
+{
 	char	*name;
 	char	*value;
 };
@@ -44,7 +45,9 @@ char *prom_getenv(const char *name)
 
 	for (i = 0; (i < MAX_ENTRY) && adam2_env[i].name; i++)
 		if (!strcmp(name, adam2_env[i].name))
+		{
 			return adam2_env[i].value;
+		}
 
 	return NULL;
 }
@@ -54,14 +57,19 @@ static void  __init ar7_init_cmdline(int argc, char *argv[])
 {
 	int i;
 
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		strlcat(arcs_cmdline, argv[i], COMMAND_LINE_SIZE);
+
 		if (i < (argc - 1))
+		{
 			strlcat(arcs_cmdline, " ", COMMAND_LINE_SIZE);
+		}
 	}
 }
 
-struct psbl_rec {
+struct psbl_rec
+{
 	u32	psbl_size;
 	u32	env_base;
 	u32	env_size;
@@ -71,7 +79,8 @@ struct psbl_rec {
 
 static const char psp_env_version[] __initconst = "TIENV0.8";
 
-struct psp_env_chunk {
+struct psp_env_chunk
+{
 	u8	num;
 	u8	ctrl;
 	u16	csum;
@@ -79,12 +88,14 @@ struct psp_env_chunk {
 	char	data[11];
 } __packed;
 
-struct psp_var_map_entry {
+struct psp_var_map_entry
+{
 	u8	num;
 	char	*value;
 };
 
-static const struct psp_var_map_entry psp_var_map[] = {
+static const struct psp_var_map_entry psp_var_map[] =
+{
 	{  1,	"cpufrequency" },
 	{  2,	"memsize" },
 	{  3,	"flashsize" },
@@ -126,13 +137,15 @@ Data is padded with 0xFF
 
 static char psp_env_data[PSP_ENV_SIZE] = { 0, };
 
-static char * __init lookup_psp_var_map(u8 num)
+static char *__init lookup_psp_var_map(u8 num)
 {
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(psp_var_map); i++)
 		if (psp_var_map[i].num == num)
+		{
 			return psp_var_map[i].value;
+		}
 
 	return NULL;
 }
@@ -141,12 +154,16 @@ static void __init add_adam2_var(char *name, char *value)
 {
 	int i;
 
-	for (i = 0; i < MAX_ENTRY; i++) {
-		if (!adam2_env[i].name) {
+	for (i = 0; i < MAX_ENTRY; i++)
+	{
+		if (!adam2_env[i].name)
+		{
 			adam2_env[i].name = name;
 			adam2_env[i].value = value;
 			return;
-		} else if (!strcmp(adam2_env[i].name, name)) {
+		}
+		else if (!strcmp(adam2_env[i].name, name))
+		{
 			adam2_env[i].value = value;
 			return;
 		}
@@ -163,20 +180,34 @@ static int __init parse_psp_env(void *psp_env_base)
 
 	i = 1;
 	n = PSP_ENV_SIZE / sizeof(struct psp_env_chunk);
-	while (i < n) {
+
+	while (i < n)
+	{
 		if ((chunks[i].num == 0xff) || ((i + chunks[i].len) > n))
+		{
 			break;
+		}
+
 		value = chunks[i].data;
-		if (chunks[i].num) {
+
+		if (chunks[i].num)
+		{
 			name = lookup_psp_var_map(chunks[i].num);
-		} else {
+		}
+		else
+		{
 			name = value;
 			value += strlen(name) + 1;
 		}
+
 		if (name)
+		{
 			add_adam2_var(name, value);
+		}
+
 		i += chunks[i].len;
 	}
+
 	return 0;
 }
 
@@ -186,12 +217,17 @@ static void __init ar7_init_env(struct env_var *env)
 	struct psbl_rec *psbl = (struct psbl_rec *)(KSEG1ADDR(0x14000300));
 	void *psp_env = (void *)KSEG1ADDR(psbl->env_base);
 
-	if (strcmp(psp_env, psp_env_version) == 0) {
+	if (strcmp(psp_env, psp_env_version) == 0)
+	{
 		parse_psp_env(psp_env);
-	} else {
+	}
+	else
+	{
 		for (i = 0; i < MAX_ENTRY; i++, env++)
 			if (env->name)
+			{
 				add_adam2_var(env->name, env->value);
+			}
 	}
 }
 
@@ -204,39 +240,70 @@ static void __init console_config(void)
 	char *s, *p;
 
 	if (strstr(arcs_cmdline, "console="))
+	{
 		return;
+	}
 
 	s = prom_getenv("modetty0");
-	if (s) {
+
+	if (s)
+	{
 		baud = simple_strtoul(s, &p, 10);
 		s = p;
+
 		if (*s == ',')
+		{
 			s++;
+		}
+
 		if (*s)
+		{
 			parity = *s++;
+		}
+
 		if (*s == ',')
+		{
 			s++;
+		}
+
 		if (*s)
+		{
 			bits = *s++;
+		}
+
 		if (*s == ',')
+		{
 			s++;
+		}
+
 		if (*s == 'h')
+		{
 			flow = 'r';
+		}
 	}
 
 	if (baud == 0)
+	{
 		baud = 38400;
+	}
+
 	if (parity != 'n' && parity != 'o' && parity != 'e')
+	{
 		parity = 'n';
+	}
+
 	if (bits != '7' && bits != '8')
+	{
 		bits = '8';
+	}
 
 	if (flow == 'r')
 		sprintf(console_string, " console=ttyS0,%d%c%c%c", baud,
-			parity, bits, flow);
+				parity, bits, flow);
 	else
 		sprintf(console_string, " console=ttyS0,%d%c%c", baud, parity,
-			bits);
+				bits);
+
 	strlcat(arcs_cmdline, console_string, COMMAND_LINE_SIZE);
 #endif
 }
@@ -265,6 +332,7 @@ int prom_putchar(char c)
 {
 	while ((serial_in(UART_LSR) & UART_LSR_TEMT) == 0)
 		;
+
 	serial_out(UART_TX, c);
 	return 1;
 }

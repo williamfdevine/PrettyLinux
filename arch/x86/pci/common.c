@@ -20,7 +20,7 @@
 #include <asm/setup.h>
 
 unsigned int pci_probe = PCI_PROBE_BIOS | PCI_PROBE_CONF1 | PCI_PROBE_CONF2 |
-				PCI_PROBE_MMCONF;
+						 PCI_PROBE_MMCONF;
 
 unsigned int pci_early_dump_regs;
 static int pci_bf_sort;
@@ -28,9 +28,9 @@ static int smbios_type_b1_flag;
 int pci_routeirq;
 int noioapicquirk;
 #ifdef CONFIG_X86_REROUTE_FOR_BROKEN_BOOT_IRQS
-int noioapicreroute = 0;
+	int noioapicreroute = 0;
 #else
-int noioapicreroute = 1;
+	int noioapicreroute = 1;
 #endif
 int pcibios_last_bus = -1;
 unsigned long pirq_table_addr;
@@ -38,38 +38,51 @@ const struct pci_raw_ops *__read_mostly raw_pci_ops;
 const struct pci_raw_ops *__read_mostly raw_pci_ext_ops;
 
 int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
-						int reg, int len, u32 *val)
+				 int reg, int len, u32 *val)
 {
 	if (domain == 0 && reg < 256 && raw_pci_ops)
+	{
 		return raw_pci_ops->read(domain, bus, devfn, reg, len, val);
+	}
+
 	if (raw_pci_ext_ops)
+	{
 		return raw_pci_ext_ops->read(domain, bus, devfn, reg, len, val);
+	}
+
 	return -EINVAL;
 }
 
 int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
-						int reg, int len, u32 val)
+				  int reg, int len, u32 val)
 {
 	if (domain == 0 && reg < 256 && raw_pci_ops)
+	{
 		return raw_pci_ops->write(domain, bus, devfn, reg, len, val);
+	}
+
 	if (raw_pci_ext_ops)
+	{
 		return raw_pci_ext_ops->write(domain, bus, devfn, reg, len, val);
+	}
+
 	return -EINVAL;
 }
 
 static int pci_read(struct pci_bus *bus, unsigned int devfn, int where, int size, u32 *value)
 {
 	return raw_pci_read(pci_domain_nr(bus), bus->number,
-				 devfn, where, size, value);
+						devfn, where, size, value);
 }
 
 static int pci_write(struct pci_bus *bus, unsigned int devfn, int where, int size, u32 value)
 {
 	return raw_pci_write(pci_domain_nr(bus), bus->number,
-				  devfn, where, size, value);
+						 devfn, where, size, value);
 }
 
-struct pci_ops pci_root_ops = {
+struct pci_ops pci_root_ops =
+{
 	.read = pci_read,
 	.write = pci_write,
 };
@@ -87,11 +100,12 @@ static int __init can_skip_ioresource_align(const struct dmi_system_id *d)
 	return 0;
 }
 
-static const struct dmi_system_id can_skip_pciprobe_dmi_table[] __initconst = {
-/*
- * Systems where PCI IO resource ISA alignment can be skipped
- * when the ISA enable bit in the bridge control is not set
- */
+static const struct dmi_system_id can_skip_pciprobe_dmi_table[] __initconst =
+{
+	/*
+	 * Systems where PCI IO resource ISA alignment can be skipped
+	 * when the ISA enable bit in the bridge control is not set
+	 */
 	{
 		.callback = can_skip_ioresource_align,
 		.ident = "IBM System x3800",
@@ -130,28 +144,38 @@ static void pcibios_fixup_device_resources(struct pci_dev *dev)
 	struct resource *bar_r;
 	int bar;
 
-	if (pci_probe & PCI_NOASSIGN_BARS) {
+	if (pci_probe & PCI_NOASSIGN_BARS)
+	{
 		/*
 		* If the BIOS did not assign the BAR, zero out the
 		* resource so the kernel doesn't attempt to assign
 		* it later on in pci_assign_unassigned_resources
 		*/
-		for (bar = 0; bar <= PCI_STD_RESOURCE_END; bar++) {
+		for (bar = 0; bar <= PCI_STD_RESOURCE_END; bar++)
+		{
 			bar_r = &dev->resource[bar];
-			if (bar_r->start == 0 && bar_r->end != 0) {
+
+			if (bar_r->start == 0 && bar_r->end != 0)
+			{
 				bar_r->flags = 0;
 				bar_r->end = 0;
 			}
 		}
 	}
 
-	if (pci_probe & PCI_NOASSIGN_ROMS) {
+	if (pci_probe & PCI_NOASSIGN_ROMS)
+	{
 		if (rom_r->parent)
+		{
 			return;
-		if (rom_r->start) {
+		}
+
+		if (rom_r->start)
+		{
 			/* we deal with BIOS assigned ROM later */
 			return;
 		}
+
 		rom_r->start = rom_r->end = rom_r->flags = 0;
 	}
 }
@@ -167,7 +191,7 @@ void pcibios_fixup_bus(struct pci_bus *b)
 
 	pci_read_bridge_bases(b);
 	list_for_each_entry(dev, &b->devices, bus_list)
-		pcibios_fixup_device_resources(dev);
+	pcibios_fixup_device_resources(dev);
 }
 
 void pcibios_add_bus(struct pci_bus *bus)
@@ -187,32 +211,41 @@ void pcibios_remove_bus(struct pci_bus *bus)
 
 static int __init set_bf_sort(const struct dmi_system_id *d)
 {
-	if (pci_bf_sort == pci_bf_sort_default) {
+	if (pci_bf_sort == pci_bf_sort_default)
+	{
 		pci_bf_sort = pci_dmi_bf;
 		printk(KERN_INFO "PCI: %s detected, enabling pci=bfsort.\n", d->ident);
 	}
+
 	return 0;
 }
 
 static void __init read_dmi_type_b1(const struct dmi_header *dm,
-				    void *private_data)
+									void *private_data)
 {
 	u8 *d = (u8 *)dm + 4;
 
 	if (dm->type != 0xB1)
+	{
 		return;
-	switch (((*(u32 *)d) >> 9) & 0x03) {
-	case 0x00:
-		printk(KERN_INFO "dmi type 0xB1 record - unknown flag\n");
-		break;
-	case 0x01: /* set pci=bfsort */
-		smbios_type_b1_flag = 1;
-		break;
-	case 0x02: /* do not set pci=bfsort */
-		smbios_type_b1_flag = 2;
-		break;
-	default:
-		break;
+	}
+
+	switch (((*(u32 *)d) >> 9) & 0x03)
+	{
+		case 0x00:
+			printk(KERN_INFO "dmi type 0xB1 record - unknown flag\n");
+			break;
+
+		case 0x01: /* set pci=bfsort */
+			smbios_type_b1_flag = 1;
+			break;
+
+		case 0x02: /* do not set pci=bfsort */
+			smbios_type_b1_flag = 2;
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -220,10 +253,12 @@ static int __init find_sort_method(const struct dmi_system_id *d)
 {
 	dmi_walk(read_dmi_type_b1, NULL);
 
-	if (smbios_type_b1_flag == 1) {
+	if (smbios_type_b1_flag == 1)
+	{
 		set_bf_sort(d);
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -235,7 +270,7 @@ static int __init assign_all_busses(const struct dmi_system_id *d)
 {
 	pci_probe |= PCI_ASSIGN_ALL_BUSSES;
 	printk(KERN_INFO "%s detected: enabling PCI bus# renumbering"
-			" (pci=assign-busses)\n", d->ident);
+		   " (pci=assign-busses)\n", d->ident);
 	return 0;
 }
 #endif
@@ -243,16 +278,17 @@ static int __init assign_all_busses(const struct dmi_system_id *d)
 static int __init set_scan_all(const struct dmi_system_id *d)
 {
 	printk(KERN_INFO "PCI: %s detected, enabling pci=pcie_scan_all\n",
-	       d->ident);
+		   d->ident);
 	pci_add_flags(PCI_SCAN_ALL_PCIE_DEVS);
 	return 0;
 }
 
-static const struct dmi_system_id pciprobe_dmi_table[] __initconst = {
+static const struct dmi_system_id pciprobe_dmi_table[] __initconst =
+{
 #ifdef __i386__
-/*
- * Laptops which need pci=assign-busses to see Cardbus cards
- */
+	/*
+	 * Laptops which need pci=assign-busses to see Cardbus cards
+	 */
 	{
 		.callback = assign_all_busses,
 		.ident = "Samsung X20 Laptop",
@@ -447,22 +483,22 @@ static const struct dmi_system_id pciprobe_dmi_table[] __initconst = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "ftServer"),
 		},
 	},
-        {
-                .callback = set_scan_all,
-                .ident = "Stratus/NEC ftServer",
-                .matches = {
-                        DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
-                        DMI_MATCH(DMI_PRODUCT_NAME, "Express5800/R32"),
-                },
-        },
-        {
-                .callback = set_scan_all,
-                .ident = "Stratus/NEC ftServer",
-                .matches = {
-                        DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
-                        DMI_MATCH(DMI_PRODUCT_NAME, "Express5800/R31"),
-                },
-        },
+	{
+		.callback = set_scan_all,
+		.ident = "Stratus/NEC ftServer",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Express5800/R32"),
+		},
+	},
+	{
+		.callback = set_scan_all,
+		.ident = "Stratus/NEC ftServer",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Express5800/R31"),
+		},
+	},
 	{}
 };
 
@@ -478,19 +514,25 @@ void pcibios_scan_root(int busnum)
 	LIST_HEAD(resources);
 
 	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
-	if (!sd) {
+
+	if (!sd)
+	{
 		printk(KERN_ERR "PCI: OOM, skipping PCI bus %02x\n", busnum);
 		return;
 	}
+
 	sd->node = x86_pci_root_bus_node(busnum);
 	x86_pci_root_bus_resources(busnum, &resources);
 	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busnum);
 	bus = pci_scan_root_bus(NULL, busnum, &pci_root_ops, sd, &resources);
-	if (!bus) {
+
+	if (!bus)
+	{
 		pci_free_resource_list(&resources);
 		kfree(sd);
 		return;
 	}
+
 	pci_bus_add_devices(bus);
 }
 
@@ -504,19 +546,23 @@ void __init pcibios_set_cache_line_size(void)
 	 * It's also good for 386/486s (which actually have 16)
 	 * as quite a few PCI devices do not support smaller values.
 	 */
-	if (c->x86_clflush_size > 0) {
+	if (c->x86_clflush_size > 0)
+	{
 		pci_dfl_cache_line_size = c->x86_clflush_size >> 2;
 		printk(KERN_DEBUG "PCI: pci_cache_line_size set to %d bytes\n",
-			pci_dfl_cache_line_size << 2);
-	} else {
- 		pci_dfl_cache_line_size = 32 >> 2;
+			   pci_dfl_cache_line_size << 2);
+	}
+	else
+	{
+		pci_dfl_cache_line_size = 32 >> 2;
 		printk(KERN_DEBUG "PCI: Unknown cacheline size. Setting to 32 bytes\n");
 	}
 }
 
 int __init pcibios_init(void)
 {
-	if (!raw_pci_ops && !raw_pci_ext_ops) {
+	if (!raw_pci_ops && !raw_pci_ext_ops)
+	{
 		printk(KERN_WARNING "PCI: System does not support PCI\n");
 		return 0;
 	}
@@ -525,113 +571,174 @@ int __init pcibios_init(void)
 	pcibios_resource_survey();
 
 	if (pci_bf_sort >= pci_force_bf)
+	{
 		pci_sort_breadthfirst();
+	}
+
 	return 0;
 }
 
 char *__init pcibios_setup(char *str)
 {
-	if (!strcmp(str, "off")) {
+	if (!strcmp(str, "off"))
+	{
 		pci_probe = 0;
 		return NULL;
-	} else if (!strcmp(str, "bfsort")) {
+	}
+	else if (!strcmp(str, "bfsort"))
+	{
 		pci_bf_sort = pci_force_bf;
 		return NULL;
-	} else if (!strcmp(str, "nobfsort")) {
+	}
+	else if (!strcmp(str, "nobfsort"))
+	{
 		pci_bf_sort = pci_force_nobf;
 		return NULL;
 	}
+
 #ifdef CONFIG_PCI_BIOS
-	else if (!strcmp(str, "bios")) {
+	else if (!strcmp(str, "bios"))
+	{
 		pci_probe = PCI_PROBE_BIOS;
 		return NULL;
-	} else if (!strcmp(str, "nobios")) {
+	}
+	else if (!strcmp(str, "nobios"))
+	{
 		pci_probe &= ~PCI_PROBE_BIOS;
 		return NULL;
-	} else if (!strcmp(str, "biosirq")) {
+	}
+	else if (!strcmp(str, "biosirq"))
+	{
 		pci_probe |= PCI_BIOS_IRQ_SCAN;
 		return NULL;
-	} else if (!strncmp(str, "pirqaddr=", 9)) {
-		pirq_table_addr = simple_strtoul(str+9, NULL, 0);
+	}
+	else if (!strncmp(str, "pirqaddr=", 9))
+	{
+		pirq_table_addr = simple_strtoul(str + 9, NULL, 0);
 		return NULL;
 	}
+
 #endif
 #ifdef CONFIG_PCI_DIRECT
-	else if (!strcmp(str, "conf1")) {
+	else if (!strcmp(str, "conf1"))
+	{
 		pci_probe = PCI_PROBE_CONF1 | PCI_NO_CHECKS;
 		return NULL;
 	}
-	else if (!strcmp(str, "conf2")) {
+	else if (!strcmp(str, "conf2"))
+	{
 		pci_probe = PCI_PROBE_CONF2 | PCI_NO_CHECKS;
 		return NULL;
 	}
+
 #endif
 #ifdef CONFIG_PCI_MMCONFIG
-	else if (!strcmp(str, "nommconf")) {
+	else if (!strcmp(str, "nommconf"))
+	{
 		pci_probe &= ~PCI_PROBE_MMCONF;
 		return NULL;
 	}
-	else if (!strcmp(str, "check_enable_amd_mmconf")) {
+	else if (!strcmp(str, "check_enable_amd_mmconf"))
+	{
 		pci_probe |= PCI_CHECK_ENABLE_AMD_MMCONF;
 		return NULL;
 	}
+
 #endif
-	else if (!strcmp(str, "noacpi")) {
+	else if (!strcmp(str, "noacpi"))
+	{
 		acpi_noirq_set();
 		return NULL;
 	}
-	else if (!strcmp(str, "noearly")) {
+	else if (!strcmp(str, "noearly"))
+	{
 		pci_probe |= PCI_PROBE_NOEARLY;
 		return NULL;
 	}
-	else if (!strcmp(str, "usepirqmask")) {
+	else if (!strcmp(str, "usepirqmask"))
+	{
 		pci_probe |= PCI_USE_PIRQ_MASK;
 		return NULL;
-	} else if (!strncmp(str, "irqmask=", 8)) {
-		pcibios_irq_mask = simple_strtol(str+8, NULL, 0);
-		return NULL;
-	} else if (!strncmp(str, "lastbus=", 8)) {
-		pcibios_last_bus = simple_strtol(str+8, NULL, 0);
-		return NULL;
-	} else if (!strcmp(str, "rom")) {
-		pci_probe |= PCI_ASSIGN_ROMS;
-		return NULL;
-	} else if (!strcmp(str, "norom")) {
-		pci_probe |= PCI_NOASSIGN_ROMS;
-		return NULL;
-	} else if (!strcmp(str, "nobar")) {
-		pci_probe |= PCI_NOASSIGN_BARS;
-		return NULL;
-	} else if (!strcmp(str, "assign-busses")) {
-		pci_probe |= PCI_ASSIGN_ALL_BUSSES;
-		return NULL;
-	} else if (!strcmp(str, "use_crs")) {
-		pci_probe |= PCI_USE__CRS;
-		return NULL;
-	} else if (!strcmp(str, "nocrs")) {
-		pci_probe |= PCI_ROOT_NO_CRS;
-		return NULL;
-	} else if (!strcmp(str, "earlydump")) {
-		pci_early_dump_regs = 1;
-		return NULL;
-	} else if (!strcmp(str, "routeirq")) {
-		pci_routeirq = 1;
-		return NULL;
-	} else if (!strcmp(str, "skip_isa_align")) {
-		pci_probe |= PCI_CAN_SKIP_ISA_ALIGN;
-		return NULL;
-	} else if (!strcmp(str, "noioapicquirk")) {
-		noioapicquirk = 1;
-		return NULL;
-	} else if (!strcmp(str, "ioapicreroute")) {
-		if (noioapicreroute != -1)
-			noioapicreroute = 0;
-		return NULL;
-	} else if (!strcmp(str, "noioapicreroute")) {
-		if (noioapicreroute != -1)
-			noioapicreroute = 1;
+	}
+	else if (!strncmp(str, "irqmask=", 8))
+	{
+		pcibios_irq_mask = simple_strtol(str + 8, NULL, 0);
 		return NULL;
 	}
+	else if (!strncmp(str, "lastbus=", 8))
+	{
+		pcibios_last_bus = simple_strtol(str + 8, NULL, 0);
+		return NULL;
+	}
+	else if (!strcmp(str, "rom"))
+	{
+		pci_probe |= PCI_ASSIGN_ROMS;
+		return NULL;
+	}
+	else if (!strcmp(str, "norom"))
+	{
+		pci_probe |= PCI_NOASSIGN_ROMS;
+		return NULL;
+	}
+	else if (!strcmp(str, "nobar"))
+	{
+		pci_probe |= PCI_NOASSIGN_BARS;
+		return NULL;
+	}
+	else if (!strcmp(str, "assign-busses"))
+	{
+		pci_probe |= PCI_ASSIGN_ALL_BUSSES;
+		return NULL;
+	}
+	else if (!strcmp(str, "use_crs"))
+	{
+		pci_probe |= PCI_USE__CRS;
+		return NULL;
+	}
+	else if (!strcmp(str, "nocrs"))
+	{
+		pci_probe |= PCI_ROOT_NO_CRS;
+		return NULL;
+	}
+	else if (!strcmp(str, "earlydump"))
+	{
+		pci_early_dump_regs = 1;
+		return NULL;
+	}
+	else if (!strcmp(str, "routeirq"))
+	{
+		pci_routeirq = 1;
+		return NULL;
+	}
+	else if (!strcmp(str, "skip_isa_align"))
+	{
+		pci_probe |= PCI_CAN_SKIP_ISA_ALIGN;
+		return NULL;
+	}
+	else if (!strcmp(str, "noioapicquirk"))
+	{
+		noioapicquirk = 1;
+		return NULL;
+	}
+	else if (!strcmp(str, "ioapicreroute"))
+	{
+		if (noioapicreroute != -1)
+		{
+			noioapicreroute = 0;
+		}
+
+		return NULL;
+	}
+	else if (!strcmp(str, "noioapicreroute"))
+	{
+		if (noioapicreroute != -1)
+		{
+			noioapicreroute = 1;
+		}
+
+		return NULL;
+	}
+
 	return str;
 }
 
@@ -665,8 +772,10 @@ static void set_dma_domain_ops(struct pci_dev *pdev)
 	struct dma_domain *domain;
 
 	spin_lock(&dma_domain_list_lock);
-	list_for_each_entry(domain, &dma_domain_list, node) {
-		if (pci_domain_nr(pdev->bus) == domain->domain_nr) {
+	list_for_each_entry(domain, &dma_domain_list, node)
+	{
+		if (pci_domain_nr(pdev->bus) == domain->domain_nr)
+		{
 			pdev->dev.archdata.dma_ops = domain->dma_ops;
 			break;
 		}
@@ -680,7 +789,9 @@ static void set_dma_domain_ops(struct pci_dev *pdev) {}
 static void set_dev_domain_options(struct pci_dev *pdev)
 {
 	if (is_vmd(pdev->bus))
+	{
 		pdev->hotplug_user_indicators = 1;
+	}
 }
 
 int pcibios_add_device(struct pci_dev *dev)
@@ -690,28 +801,37 @@ int pcibios_add_device(struct pci_dev *dev)
 	u64 pa_data;
 
 	pa_data = boot_params.hdr.setup_data;
-	while (pa_data) {
-		data = ioremap(pa_data, sizeof(*rom));
-		if (!data)
-			return -ENOMEM;
 
-		if (data->type == SETUP_PCI) {
+	while (pa_data)
+	{
+		data = ioremap(pa_data, sizeof(*rom));
+
+		if (!data)
+		{
+			return -ENOMEM;
+		}
+
+		if (data->type == SETUP_PCI)
+		{
 			rom = (struct pci_setup_rom *)data;
 
 			if ((pci_domain_nr(dev->bus) == rom->segment) &&
-			    (dev->bus->number == rom->bus) &&
-			    (PCI_SLOT(dev->devfn) == rom->device) &&
-			    (PCI_FUNC(dev->devfn) == rom->function) &&
-			    (dev->vendor == rom->vendor) &&
-			    (dev->device == rom->devid)) {
+				(dev->bus->number == rom->bus) &&
+				(PCI_SLOT(dev->devfn) == rom->device) &&
+				(PCI_FUNC(dev->devfn) == rom->function) &&
+				(dev->vendor == rom->vendor) &&
+				(dev->device == rom->devid))
+			{
 				dev->rom = pa_data +
-				      offsetof(struct pci_setup_rom, romdata);
+						   offsetof(struct pci_setup_rom, romdata);
 				dev->romlen = rom->pcilen;
 			}
 		}
+
 		pa_data = data->next;
 		iounmap(data);
 	}
+
 	set_dma_domain_ops(dev);
 	set_dev_domain_options(dev);
 	return 0;
@@ -722,23 +842,34 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
 	int err;
 
 	if ((err = pci_enable_resources(dev, mask)) < 0)
+	{
 		return err;
+	}
 
 	if (!pci_dev_msi_enabled(dev))
+	{
 		return pcibios_enable_irq(dev);
+	}
+
 	return 0;
 }
 
 void pcibios_disable_device (struct pci_dev *dev)
 {
 	if (!pci_dev_msi_enabled(dev) && pcibios_disable_irq)
+	{
 		pcibios_disable_irq(dev);
+	}
 }
 
 int pci_ext_cfg_avail(void)
 {
 	if (raw_pci_ext_ops)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }

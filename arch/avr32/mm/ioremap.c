@@ -20,7 +20,7 @@
  * memory directly.
  */
 void __iomem *__ioremap(unsigned long phys_addr, size_t size,
-			unsigned long flags)
+						unsigned long flags)
 {
 	unsigned long addr;
 	struct vm_struct *area;
@@ -33,12 +33,17 @@ void __iomem *__ioremap(unsigned long phys_addr, size_t size,
 	 * use it.
 	 */
 	if ((phys_addr >= P4SEG) && (flags == 0))
+	{
 		return (void __iomem *)phys_addr;
+	}
 
 	/* Don't allow wraparound or zero size */
 	last_addr = phys_addr + size - 1;
+
 	if (!size || last_addr < phys_addr)
+	{
 		return NULL;
+	}
 
 	/*
 	 * XXX: When mapping regular RAM, we'd better make damn sure
@@ -46,7 +51,9 @@ void __iomem *__ioremap(unsigned long phys_addr, size_t size,
 	 * caller's responsibility...
 	 */
 	if (PHYSADDR(P2SEGADDR(phys_addr)) == phys_addr)
+	{
 		return (void __iomem *)P2SEGADDR(phys_addr);
+	}
 
 	/* Mappings have to be page-aligned */
 	offset = phys_addr & ~PAGE_MASK;
@@ -54,17 +61,23 @@ void __iomem *__ioremap(unsigned long phys_addr, size_t size,
 	size = PAGE_ALIGN(last_addr + 1) - phys_addr;
 
 	prot = __pgprot(_PAGE_PRESENT | _PAGE_GLOBAL | _PAGE_RW | _PAGE_DIRTY
-			| _PAGE_ACCESSED | _PAGE_TYPE_SMALL | flags);
+					| _PAGE_ACCESSED | _PAGE_TYPE_SMALL | flags);
 
 	/*
 	 * Ok, go for it..
 	 */
 	area = get_vm_area(size, VM_IOREMAP);
+
 	if (!area)
+	{
 		return NULL;
+	}
+
 	area->phys_addr = phys_addr;
 	addr = (unsigned long )area->addr;
-	if (ioremap_page_range(addr, addr + size, phys_addr, prot)) {
+
+	if (ioremap_page_range(addr, addr + size, phys_addr, prot))
+	{
 		vunmap((void *)addr);
 		return NULL;
 	}
@@ -78,12 +91,19 @@ void __iounmap(void __iomem *addr)
 	struct vm_struct *p;
 
 	if ((unsigned long)addr >= P4SEG)
+	{
 		return;
+	}
+
 	if (PXSEG(addr) == P2SEG)
+	{
 		return;
+	}
 
 	p = remove_vm_area((void *)(PAGE_MASK & (unsigned long __force)addr));
-	if (unlikely(!p)) {
+
+	if (unlikely(!p))
+	{
 		printk (KERN_ERR "iounmap: bad address %p\n", addr);
 		return;
 	}

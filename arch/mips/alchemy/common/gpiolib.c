@@ -54,10 +54,10 @@ static int gpio2_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int gpio2_direction_output(struct gpio_chip *chip, unsigned offset,
-				  int value)
+								  int value)
 {
 	return alchemy_gpio2_direction_output(offset + ALCHEMY_GPIO2_BASE,
-						value);
+										  value);
 }
 
 static int gpio2_to_irq(struct gpio_chip *chip, unsigned offset)
@@ -72,7 +72,7 @@ static int gpio1_get(struct gpio_chip *chip, unsigned offset)
 }
 
 static void gpio1_set(struct gpio_chip *chip,
-				unsigned offset, int value)
+					  unsigned offset, int value)
 {
 	alchemy_gpio1_set_value(offset + ALCHEMY_GPIO1_BASE, value);
 }
@@ -83,10 +83,10 @@ static int gpio1_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int gpio1_direction_output(struct gpio_chip *chip,
-					unsigned offset, int value)
+								  unsigned offset, int value)
 {
 	return alchemy_gpio1_direction_output(offset + ALCHEMY_GPIO1_BASE,
-					     value);
+										  value);
 }
 
 static int gpio1_to_irq(struct gpio_chip *chip, unsigned offset)
@@ -94,7 +94,8 @@ static int gpio1_to_irq(struct gpio_chip *chip, unsigned offset)
 	return alchemy_gpio1_to_irq(offset + ALCHEMY_GPIO1_BASE);
 }
 
-struct gpio_chip alchemy_gpio_chip[] = {
+struct gpio_chip alchemy_gpio_chip[] =
+{
 	[0] = {
 		.label			= "alchemy-gpio1",
 		.direction_input	= gpio1_direction_input,
@@ -133,7 +134,7 @@ static int alchemy_gpic_dir_input(struct gpio_chip *chip, unsigned int off)
 }
 
 static int alchemy_gpic_dir_output(struct gpio_chip *chip, unsigned int off,
-				   int v)
+								   int v)
 {
 	return au1300_gpio_direction_output(off + AU1300_GPIO_BASE, v);
 }
@@ -143,7 +144,8 @@ static int alchemy_gpic_gpio_to_irq(struct gpio_chip *chip, unsigned int off)
 	return au1300_gpio_to_irq(off + AU1300_GPIO_BASE);
 }
 
-static struct gpio_chip au1300_gpiochip = {
+static struct gpio_chip au1300_gpiochip =
+{
 	.label			= "alchemy-gpic",
 	.direction_input	= alchemy_gpic_dir_input,
 	.direction_output	= alchemy_gpic_dir_output,
@@ -158,18 +160,22 @@ static int __init alchemy_gpiochip_init(void)
 {
 	int ret = 0;
 
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1000:
-		ret = gpiochip_add_data(&alchemy_gpio_chip[0], NULL);
-		break;
-	case ALCHEMY_CPU_AU1500...ALCHEMY_CPU_AU1200:
-		ret = gpiochip_add_data(&alchemy_gpio_chip[0], NULL);
-		ret |= gpiochip_add_data(&alchemy_gpio_chip[1], NULL);
-		break;
-	case ALCHEMY_CPU_AU1300:
-		ret = gpiochip_add_data(&au1300_gpiochip, NULL);
-		break;
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1000:
+			ret = gpiochip_add_data(&alchemy_gpio_chip[0], NULL);
+			break;
+
+		case ALCHEMY_CPU_AU1500...ALCHEMY_CPU_AU1200:
+			ret = gpiochip_add_data(&alchemy_gpio_chip[0], NULL);
+			ret |= gpiochip_add_data(&alchemy_gpio_chip[1], NULL);
+			break;
+
+		case ALCHEMY_CPU_AU1300:
+			ret = gpiochip_add_data(&au1300_gpiochip, NULL);
+			break;
 	}
+
 	return ret;
 }
 arch_initcall(alchemy_gpiochip_init);

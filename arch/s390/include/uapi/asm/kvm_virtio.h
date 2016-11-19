@@ -15,7 +15,8 @@
 
 #include <linux/types.h>
 
-struct kvm_device_desc {
+struct kvm_device_desc
+{
 	/* The device type: console, network, disk etc.  Type 0 terminates. */
 	__u8 type;
 	/* The number of virtqueues (first in config array) */
@@ -36,7 +37,8 @@ struct kvm_device_desc {
  * This is how we expect the device configuration field for a virtqueue
  * to be laid out in config space.
  */
-struct kvm_vqconfig {
+struct kvm_vqconfig
+{
 	/* The token returned with an interrupt. Set by the guest */
 	__u64 token;
 	/* The address of the virtio ring */

@@ -2,10 +2,10 @@
 #define _ASM_X86_E820_H
 
 #ifdef CONFIG_EFI
-#include <linux/numa.h>
-#define E820_X_MAX (E820MAX + 3 * MAX_NUMNODES)
+	#include <linux/numa.h>
+	#define E820_X_MAX (E820MAX + 3 * MAX_NUMNODES)
 #else	/* ! CONFIG_EFI */
-#define E820_X_MAX E820MAX
+	#define E820_X_MAX E820MAX
 #endif
 #include <uapi/asm/e820.h>
 #ifndef __ASSEMBLY__
@@ -21,13 +21,13 @@ extern void e820_print_map(char *who);
 extern int
 sanitize_e820_map(struct e820entry *biosmap, int max_nr_map, u32 *pnr_map);
 extern u64 e820_update_range(u64 start, u64 size, unsigned old_type,
-			       unsigned new_type);
+							 unsigned new_type);
 extern u64 e820_remove_range(u64 start, u64 size, unsigned old_type,
-			     int checktype);
+							 int checktype);
 extern void update_e820(void);
 extern void e820_setup_gap(void);
 extern int e820_search_gap(unsigned long *gapstart, unsigned long *gapsize,
-			unsigned long start_addr, unsigned long long end_addr);
+						   unsigned long start_addr, unsigned long long end_addr);
 struct setup_data;
 extern void parse_e820_ext(u64 phys_addr, u32 data_len);
 

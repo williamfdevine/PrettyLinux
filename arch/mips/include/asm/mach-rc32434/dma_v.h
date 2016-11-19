@@ -16,8 +16,8 @@
 
 #define DMA_CHAN_OFFSET		0x14
 #define IS_DMA_USED(X)		(((X) & \
-				(DMA_DESC_FINI | DMA_DESC_DONE | DMA_DESC_TERM)) \
-				!= 0)
+							  (DMA_DESC_FINI | DMA_DESC_DONE | DMA_DESC_TERM)) \
+							 != 0)
 #define DMA_COUNT(count)	((count) & DMA_DESC_COUNT_MSK)
 
 #define DMA_HALT_TIMEOUT	500
@@ -25,10 +25,15 @@
 static inline int rc32434_halt_dma(struct dma_reg *ch)
 {
 	int timeout = 1;
-	if (__raw_readl(&ch->dmac) & DMA_CHAN_RUN_BIT) {
+
+	if (__raw_readl(&ch->dmac) & DMA_CHAN_RUN_BIT)
+	{
 		__raw_writel(0, &ch->dmac);
-		for (timeout = DMA_HALT_TIMEOUT; timeout > 0; timeout--) {
-			if (__raw_readl(&ch->dmas) & DMA_STAT_HALT) {
+
+		for (timeout = DMA_HALT_TIMEOUT; timeout > 0; timeout--)
+		{
+			if (__raw_readl(&ch->dmas) & DMA_STAT_HALT)
+			{
 				__raw_writel(0, &ch->dmas);
 				break;
 			}

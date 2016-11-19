@@ -10,7 +10,8 @@
 
 #include <time.h>
 
-struct stub_data {
+struct stub_data
+{
 	unsigned long offset;
 	int fd;
 	long err;

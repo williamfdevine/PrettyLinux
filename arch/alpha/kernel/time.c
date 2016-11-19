@@ -94,9 +94,12 @@ rtc_timer_interrupt(int irq, void *dev)
 
 	/* Don't run the hook for UNUSED or SHUTDOWN.  */
 	if (likely(clockevent_state_periodic(ce)))
+	{
 		ce->event_handler(ce);
+	}
 
-	if (test_irq_work_pending()) {
+	if (test_irq_work_pending())
+	{
 		clear_irq_work_pending();
 		irq_work_run();
 	}
@@ -117,12 +120,13 @@ init_rtc_clockevent(void)
 	int cpu = smp_processor_id();
 	struct clock_event_device *ce = &per_cpu(cpu_ce, cpu);
 
-	*ce = (struct clock_event_device){
+	*ce = (struct clock_event_device)
+	{
 		.name = "rtc",
-		.features = CLOCK_EVT_FEAT_PERIODIC,
-		.rating = 100,
-		.cpumask = cpumask_of(cpu),
-		.set_next_event = rtc_ce_set_next_event,
+		 .features = CLOCK_EVT_FEAT_PERIODIC,
+		  .rating = 100,
+		   .cpumask = cpumask_of(cpu),
+			.set_next_event = rtc_ce_set_next_event,
 	};
 
 	clockevents_config_and_register(ce, CONFIG_HZ, 0, 0);
@@ -139,7 +143,8 @@ qemu_cs_read(struct clocksource *cs)
 	return qemu_get_vmtime();
 }
 
-static struct clocksource qemu_cs = {
+static struct clocksource qemu_cs =
+{
 	.name                   = "qemu",
 	.rating                 = 400,
 	.read                   = qemu_cs_read,
@@ -184,15 +189,16 @@ init_qemu_clockevent(void)
 	int cpu = smp_processor_id();
 	struct clock_event_device *ce = &per_cpu(cpu_ce, cpu);
 
-	*ce = (struct clock_event_device){
+	*ce = (struct clock_event_device)
+	{
 		.name = "qemu",
-		.features = CLOCK_EVT_FEAT_ONESHOT,
-		.rating = 400,
-		.cpumask = cpumask_of(cpu),
-		.set_state_shutdown = qemu_ce_shutdown,
-		.set_state_oneshot = qemu_ce_shutdown,
-		.tick_resume = qemu_ce_shutdown,
-		.set_next_event = qemu_ce_set_next_event,
+		 .features = CLOCK_EVT_FEAT_ONESHOT,
+		  .rating = 400,
+		   .cpumask = cpumask_of(cpu),
+			.set_state_shutdown = qemu_ce_shutdown,
+			 .set_state_oneshot = qemu_ce_shutdown,
+			  .tick_resume = qemu_ce_shutdown,
+			   .set_next_event = qemu_ce_set_next_event,
 	};
 
 	clockevents_config_and_register(ce, NSEC_PER_SEC, 1000, LONG_MAX);
@@ -206,31 +212,39 @@ common_init_rtc(void)
 
 	/* Reset periodic interrupt frequency.  */
 #if CONFIG_HZ == 1024 || CONFIG_HZ == 1200
- 	x = CMOS_READ(RTC_FREQ_SELECT) & 0x3f;
+	x = CMOS_READ(RTC_FREQ_SELECT) & 0x3f;
+
 	/* Test includes known working values on various platforms
 	   where 0x26 is wrong; we refuse to change those. */
- 	if (x != 0x26 && x != 0x25 && x != 0x19 && x != 0x06) {
+	if (x != 0x26 && x != 0x25 && x != 0x19 && x != 0x06)
+	{
 		sel = RTC_REF_CLCK_32KHZ + 6;
 	}
+
 #elif CONFIG_HZ == 256 || CONFIG_HZ == 128 || CONFIG_HZ == 64 || CONFIG_HZ == 32
 	sel = RTC_REF_CLCK_32KHZ + __builtin_ffs(32768 / CONFIG_HZ);
 #else
 # error "Unknown HZ from arch/alpha/Kconfig"
 #endif
-	if (sel) {
+
+	if (sel)
+	{
 		printk(KERN_INFO "Setting RTC_FREQ to %d Hz (%x)\n",
-		       CONFIG_HZ, sel);
+			   CONFIG_HZ, sel);
 		CMOS_WRITE(sel, RTC_FREQ_SELECT);
- 	}
+	}
 
 	/* Turn on periodic interrupts.  */
 	x = CMOS_READ(RTC_CONTROL);
-	if (!(x & RTC_PIE)) {
+
+	if (!(x & RTC_PIE))
+	{
 		printk("Turning on RTC interrupts.\n");
 		x |= RTC_PIE;
 		x &= ~(RTC_AIE | RTC_UIE);
 		CMOS_WRITE(x, RTC_CONTROL);
 	}
+
 	(void) CMOS_READ(RTC_INTR_FLAGS);
 
 	outb(0x36, 0x43);	/* pit counter 0: system timer */
@@ -265,7 +279,8 @@ static cycle_t read_rpcc(struct clocksource *cs)
 	return rpcc();
 }
 
-static struct clocksource clocksource_rpcc = {
+static struct clocksource clocksource_rpcc =
+{
 	.name                   = "rpcc",
 	.rating                 = 300,
 	.read                   = read_rpcc,
@@ -284,9 +299,11 @@ static struct clocksource clocksource_rpcc = {
 static unsigned long __init
 validate_cc_value(unsigned long cc)
 {
-	static struct bounds {
+	static struct bounds
+	{
 		unsigned int min, max;
-	} cpu_hz[] __initdata = {
+	} cpu_hz[] __initdata =
+	{
 		[EV3_CPU]    = {   50000000,  200000000 },	/* guess */
 		[EV4_CPU]    = {  100000000,  300000000 },
 		[LCA4_CPU]   = {  100000000,  300000000 },	/* guess */
@@ -312,20 +329,26 @@ validate_cc_value(unsigned long cc)
 	struct percpu_struct *cpu;
 	unsigned int index;
 
-	cpu = (struct percpu_struct *)((char*)hwrpb + hwrpb->processor_offset);
+	cpu = (struct percpu_struct *)((char *)hwrpb + hwrpb->processor_offset);
 	index = cpu->type & 0xffffffff;
 
 	/* If index out of bounds, no way to validate.  */
 	if (index >= ARRAY_SIZE(cpu_hz))
+	{
 		return cc;
+	}
 
 	/* If index contains no data, no way to validate.  */
 	if (cpu_hz[index].max == 0)
+	{
 		return cc;
+	}
 
 	if (cc < cpu_hz[index].min - deviation
-	    || cc > cpu_hz[index].max + deviation)
+		|| cc > cpu_hz[index].max + deviation)
+	{
 		return 0;
+	}
 
 	return cc;
 }
@@ -359,14 +382,20 @@ calibrate_cc_with_pit(void)
 	outb(CALIBRATE_LATCH >> 8, 0x42);	/* MSB of count */
 
 	cc = rpcc();
-	do {
+
+	do
+	{
 		count++;
-	} while ((inb(0x61) & 0x20) == 0 && count < TIMEOUT_COUNT);
+	}
+	while ((inb(0x61) & 0x20) == 0 && count < TIMEOUT_COUNT);
+
 	cc = rpcc() - cc;
 
 	/* Error: ECTCNEVERSET or ECPUTOOFAST.  */
 	if (count <= 1 || count == TIMEOUT_COUNT)
+	{
 		return 0;
+	}
 
 	return ((long)cc * PIT_TICK_RATE) / (CALIBRATE_LATCH + 1);
 }
@@ -379,8 +408,11 @@ calibrate_cc_with_pit(void)
 static unsigned long __init
 rpcc_after_update_in_progress(void)
 {
-	do { } while (!(CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP));
-	do { } while (CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP);
+	do { }
+	while (!(CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP));
+
+	do { }
+	while (CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP);
 
 	return rpcc();
 }
@@ -392,7 +424,8 @@ time_init(void)
 	unsigned long cycle_freq, tolerance;
 	long diff;
 
-	if (alpha_using_qemu) {
+	if (alpha_using_qemu)
+	{
 		clocksource_register_hz(&qemu_cs, NSEC_PER_SEC);
 		init_qemu_clockevent();
 
@@ -403,12 +436,15 @@ time_init(void)
 
 	/* Calibrate CPU clock -- attempt #1.  */
 	if (!est_cycle_freq)
+	{
 		est_cycle_freq = validate_cc_value(calibrate_cc_with_pit());
+	}
 
 	cc1 = rpcc();
 
 	/* Calibrate CPU clock -- attempt #2.  */
-	if (!est_cycle_freq) {
+	if (!est_cycle_freq)
+	{
 		cc1 = rpcc_after_update_in_progress();
 		cc2 = rpcc_after_update_in_progress();
 		est_cycle_freq = validate_cc_value(cc2 - cc1);
@@ -416,29 +452,44 @@ time_init(void)
 	}
 
 	cycle_freq = hwrpb->cycle_freq;
-	if (est_cycle_freq) {
+
+	if (est_cycle_freq)
+	{
 		/* If the given value is within 250 PPM of what we calculated,
 		   accept it.  Otherwise, use what we found.  */
 		tolerance = cycle_freq / 4000;
 		diff = cycle_freq - est_cycle_freq;
+
 		if (diff < 0)
+		{
 			diff = -diff;
-		if ((unsigned long)diff > tolerance) {
+		}
+
+		if ((unsigned long)diff > tolerance)
+		{
 			cycle_freq = est_cycle_freq;
 			printk("HWRPB cycle frequency bogus.  "
-			       "Estimated %lu Hz\n", cycle_freq);
-		} else {
+				   "Estimated %lu Hz\n", cycle_freq);
+		}
+		else
+		{
 			est_cycle_freq = 0;
 		}
-	} else if (! validate_cc_value (cycle_freq)) {
+	}
+	else if (! validate_cc_value (cycle_freq))
+	{
 		printk("HWRPB cycle frequency bogus, "
-		       "and unable to estimate a proper value!\n");
+			   "and unable to estimate a proper value!\n");
 	}
 
 	/* See above for restrictions on using clocksource_rpcc.  */
 #ifndef CONFIG_ALPHA_WTINT
+
 	if (hwrpb->nr_processors == 1)
+	{
 		clocksource_register_hz(&clocksource_rpcc, cycle_freq);
+	}
+
 #endif
 
 	/* Startup the timer source. */
@@ -452,8 +503,12 @@ void __init
 init_clockevent(void)
 {
 	if (alpha_using_qemu)
+	{
 		init_qemu_clockevent();
+	}
 	else
+	{
 		init_rtc_clockevent();
+	}
 }
 #endif

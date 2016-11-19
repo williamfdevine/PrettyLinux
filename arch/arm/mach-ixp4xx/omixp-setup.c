@@ -27,7 +27,8 @@
 
 #include <mach/hardware.h>
 
-static struct resource omixp_flash_resources[] = {
+static struct resource omixp_flash_resources[] =
+{
 	{
 		.flags	= IORESOURCE_MEM,
 	}, {
@@ -35,7 +36,8 @@ static struct resource omixp_flash_resources[] = {
 	},
 };
 
-static struct mtd_partition omixp_partitions[] = {
+static struct mtd_partition omixp_partitions[] =
+{
 	{
 		.name =		"Recovery Bootloader",
 		.size =		0x00020000,
@@ -71,7 +73,8 @@ static struct mtd_partition omixp_partitions[] = {
 	},
 };
 
-static struct flash_platform_data omixp_flash_data[] = {
+static struct flash_platform_data omixp_flash_data[] =
+{
 	{
 		.map_name	= "cfi_probe",
 		.parts		= omixp_partitions,
@@ -83,7 +86,8 @@ static struct flash_platform_data omixp_flash_data[] = {
 	},
 };
 
-static struct platform_device omixp_flash_device[] = {
+static struct platform_device omixp_flash_device[] =
+{
 	{
 		.name		= "IXP4XX-Flash",
 		.id		= 0,
@@ -110,7 +114,8 @@ static struct platform_device omixp_flash_device[] = {
  * This way standard images can be used with the kernel that expect
  * the console on ttyS0.
  */
-static struct resource omixp_uart_resources[] = {
+static struct resource omixp_uart_resources[] =
+{
 	{
 		.start		= IXP4XX_UART2_BASE_PHYS,
 		.end		= IXP4XX_UART2_BASE_PHYS + 0x0fff,
@@ -122,7 +127,8 @@ static struct resource omixp_uart_resources[] = {
 	},
 };
 
-static struct plat_serial8250_port omixp_uart_data[] = {
+static struct plat_serial8250_port omixp_uart_data[] =
+{
 	{
 		.mapbase	= IXP4XX_UART2_BASE_PHYS,
 		.membase	= (char *)IXP4XX_UART2_BASE_VIRT + REG_OFFSET,
@@ -144,7 +150,8 @@ static struct plat_serial8250_port omixp_uart_data[] = {
 	}
 };
 
-static struct platform_device omixp_uart = {
+static struct platform_device omixp_uart =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev.platform_data	= omixp_uart_data,
@@ -152,26 +159,30 @@ static struct platform_device omixp_uart = {
 	.resource		= omixp_uart_resources,
 };
 
-static struct gpio_led mic256_led_pins[] = {
+static struct gpio_led mic256_led_pins[] =
+{
 	{
 		.name		= "LED-A",
 		.gpio		= 7,
 	},
 };
 
-static struct gpio_led_platform_data mic256_led_data = {
+static struct gpio_led_platform_data mic256_led_data =
+{
 	.num_leds		= ARRAY_SIZE(mic256_led_pins),
 	.leds			= mic256_led_pins,
 };
 
-static struct platform_device mic256_leds = {
+static struct platform_device mic256_leds =
+{
 	.name			= "leds-gpio",
 	.id			= -1,
 	.dev.platform_data	= &mic256_led_data,
 };
 
 /* Built-in 10/100 Ethernet MAC interfaces */
-static struct eth_plat_info ixdp425_plat_eth[] = {
+static struct eth_plat_info ixdp425_plat_eth[] =
+{
 	{
 		.phy		= 0,
 		.rxq		= 3,
@@ -183,7 +194,8 @@ static struct eth_plat_info ixdp425_plat_eth[] = {
 	},
 };
 
-static struct platform_device ixdp425_eth[] = {
+static struct platform_device ixdp425_eth[] =
+{
 	{
 		.name			= "ixp4xx_eth",
 		.id			= IXP4XX_ETH_NPEB,
@@ -196,14 +208,16 @@ static struct platform_device ixdp425_eth[] = {
 };
 
 
-static struct platform_device *devixp_pldev[] __initdata = {
+static struct platform_device *devixp_pldev[] __initdata =
+{
 	&omixp_uart,
 	&omixp_flash_device[0],
 	&ixdp425_eth[0],
 	&ixdp425_eth[1],
 };
 
-static struct platform_device *mic256_pldev[] __initdata = {
+static struct platform_device *mic256_pldev[] __initdata =
+{
 	&omixp_uart,
 	&omixp_flash_device[0],
 	&mic256_leds,
@@ -211,7 +225,8 @@ static struct platform_device *mic256_pldev[] __initdata = {
 	&ixdp425_eth[1],
 };
 
-static struct platform_device *miccpt_pldev[] __initdata = {
+static struct platform_device *miccpt_pldev[] __initdata =
+{
 	&omixp_uart,
 	&omixp_flash_device[0],
 	&omixp_flash_device[1],
@@ -232,15 +247,21 @@ static void __init omixp_init(void)
 	omixp_flash_resources[1].end   = IXP4XX_EXP_BUS_END(2);
 
 	if (machine_is_devixp())
+	{
 		platform_add_devices(devixp_pldev, ARRAY_SIZE(devixp_pldev));
+	}
 	else if (machine_is_miccpt())
+	{
 		platform_add_devices(miccpt_pldev, ARRAY_SIZE(miccpt_pldev));
+	}
 	else if (machine_is_mic256())
+	{
 		platform_add_devices(mic256_pldev, ARRAY_SIZE(mic256_pldev));
+	}
 }
 
 #ifdef CONFIG_MACH_DEVIXP
-MACHINE_START(DEVIXP, "Omicron DEVIXP")
+	MACHINE_START(DEVIXP, "Omicron DEVIXP")
 	.atag_offset    = 0x100,
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -248,26 +269,26 @@ MACHINE_START(DEVIXP, "Omicron DEVIXP")
 	.init_time	= ixp4xx_timer_init,
 	.init_machine	= omixp_init,
 	.restart	= ixp4xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_MICCPT
-MACHINE_START(MICCPT, "Omicron MICCPT")
+	MACHINE_START(MICCPT, "Omicron MICCPT")
 	.atag_offset    = 0x100,
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
 	.init_irq	= ixp4xx_init_irq,
 	.init_time	= ixp4xx_timer_init,
 	.init_machine	= omixp_init,
-#if defined(CONFIG_PCI)
-	.dma_zone_size	= SZ_64M,
-#endif
+	#if defined(CONFIG_PCI)
+		.dma_zone_size	= SZ_64M,
+	#endif
 	.restart	= ixp4xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_MIC256
-MACHINE_START(MIC256, "Omicron MIC256")
+	MACHINE_START(MIC256, "Omicron MIC256")
 	.atag_offset    = 0x100,
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -275,5 +296,5 @@ MACHINE_START(MIC256, "Omicron MIC256")
 	.init_time	= ixp4xx_timer_init,
 	.init_machine	= omixp_init,
 	.restart	= ixp4xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif

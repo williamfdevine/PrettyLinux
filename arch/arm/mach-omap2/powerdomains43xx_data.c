@@ -17,7 +17,8 @@
 #include "prcm44xx.h"
 #include "prcm43xx.h"
 
-static struct powerdomain gfx_43xx_pwrdm = {
+static struct powerdomain gfx_43xx_pwrdm =
+{
 	.name		  = "gfx_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = AM43XX_PRM_GFX_INST,
@@ -30,7 +31,8 @@ static struct powerdomain gfx_43xx_pwrdm = {
 	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
 };
 
-static struct powerdomain mpu_43xx_pwrdm = {
+static struct powerdomain mpu_43xx_pwrdm =
+{
 	.name		  = "mpu_pwrdm",
 	.voltdm		  = { .name = "mpu" },
 	.prcm_offs	  = AM43XX_PRM_MPU_INST,
@@ -51,7 +53,8 @@ static struct powerdomain mpu_43xx_pwrdm = {
 	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
 };
 
-static struct powerdomain rtc_43xx_pwrdm = {
+static struct powerdomain rtc_43xx_pwrdm =
+{
 	.name		  = "rtc_pwrdm",
 	.voltdm		  = { .name = "rtc" },
 	.prcm_offs	  = AM43XX_PRM_RTC_INST,
@@ -59,7 +62,8 @@ static struct powerdomain rtc_43xx_pwrdm = {
 	.pwrsts		  = PWRSTS_ON,
 };
 
-static struct powerdomain wkup_43xx_pwrdm = {
+static struct powerdomain wkup_43xx_pwrdm =
+{
 	.name		  = "wkup_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = AM43XX_PRM_WKUP_INST,
@@ -71,7 +75,8 @@ static struct powerdomain wkup_43xx_pwrdm = {
 	},
 };
 
-static struct powerdomain tamper_43xx_pwrdm = {
+static struct powerdomain tamper_43xx_pwrdm =
+{
 	.name		  = "tamper_pwrdm",
 	.voltdm		  = { .name = "tamper" },
 	.prcm_offs	  = AM43XX_PRM_TAMPER_INST,
@@ -79,7 +84,8 @@ static struct powerdomain tamper_43xx_pwrdm = {
 	.pwrsts		  = PWRSTS_ON,
 };
 
-static struct powerdomain cefuse_43xx_pwrdm = {
+static struct powerdomain cefuse_43xx_pwrdm =
+{
 	.name		  = "cefuse_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = AM43XX_PRM_CEFUSE_INST,
@@ -88,7 +94,8 @@ static struct powerdomain cefuse_43xx_pwrdm = {
 	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
 };
 
-static struct powerdomain per_43xx_pwrdm = {
+static struct powerdomain per_43xx_pwrdm =
+{
 	.name		  = "per_pwrdm",
 	.voltdm		  = { .name = "core" },
 	.prcm_offs	  = AM43XX_PRM_PER_INST,
@@ -111,7 +118,8 @@ static struct powerdomain per_43xx_pwrdm = {
 	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
 };
 
-static struct powerdomain *powerdomains_am43xx[] __initdata = {
+static struct powerdomain *powerdomains_am43xx[] __initdata =
+{
 	&gfx_43xx_pwrdm,
 	&mpu_43xx_pwrdm,
 	&rtc_43xx_pwrdm,

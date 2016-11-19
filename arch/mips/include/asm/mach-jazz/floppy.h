@@ -89,7 +89,7 @@ static inline void fd_disable_irq(void)
 static inline int fd_request_irq(void)
 {
 	return request_irq(FLOPPY_IRQ, floppy_interrupt,
-			   0, "floppy", NULL);
+					   0, "floppy", NULL);
 }
 
 static inline void fd_free_irq(void)
@@ -107,8 +107,12 @@ static inline unsigned long fd_dma_mem_alloc(unsigned long size)
 	unsigned long mem;
 
 	mem = __get_dma_pages(GFP_KERNEL, get_order(size));
-	if(!mem)
+
+	if (!mem)
+	{
 		return 0;
+	}
+
 	vdma_alloc(CPHYSADDR(mem), size);	/* XXX error checking */
 
 	return mem;
@@ -126,7 +130,9 @@ static inline unsigned long fd_drive_type(unsigned long n)
 	   Olivetti M700.  Anyway, we should suck this from the ARC
 	   firmware.  */
 	if (n == 0)
-		return 4;	/* 3,5", 1.44mb */
+	{
+		return 4;    /* 3,5", 1.44mb */
+	}
 
 	return 0;
 }

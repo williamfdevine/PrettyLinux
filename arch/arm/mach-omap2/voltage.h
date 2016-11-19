@@ -40,7 +40,8 @@ struct powerdomain;
  *
  * XXX What about VOLTOFFSET/VOLTCTRL?
  */
-struct omap_vfsm_instance {
+struct omap_vfsm_instance
+{
 	u32 voltsetup_mask;
 	u8 voltsetup_reg;
 	u8 voltsetup_off_reg;
@@ -62,7 +63,8 @@ struct omap_vfsm_instance {
  * @volt_data: voltage table having the distinct voltages supported
  *             by the domain and other associated per voltage data.
  */
-struct voltagedomain {
+struct voltagedomain
+{
 	char *name;
 	bool scalable;
 	struct list_head node;
@@ -78,13 +80,14 @@ struct voltagedomain {
 	void (*write) (u32 val, u8 offset);
 	u32 (*rmw)(u32 mask, u32 bits, u8 offset);
 
-	union {
+	union
+	{
 		const char *name;
 		u32 rate;
 	} sys_clk;
 
 	int (*scale) (struct voltagedomain *voltdm,
-		      unsigned long target_volt);
+				  unsigned long target_volt);
 
 	u32 nominal_volt;
 	struct omap_volt_data *volt_data;
@@ -120,7 +123,8 @@ struct voltagedomain {
  * @vsel_to_uv:	PMIC API to convert vsel value to actual voltage in uV.
  * @uv_to_vsel:	PMIC API to convert voltage in uV to vsel value.
  */
-struct omap_voltdm_pmic {
+struct omap_voltdm_pmic
+{
 	int slew_rate;
 	int step_size;
 	u16 i2c_slave_addr;
@@ -139,12 +143,14 @@ struct omap_voltdm_pmic {
 	u8 (*uv_to_vsel) (unsigned long uV);
 };
 
-struct omap_vp_param {
+struct omap_vp_param
+{
 	u32 vddmax;
 	u32 vddmin;
 };
 
-struct omap_vc_param {
+struct omap_vc_param
+{
 	u32 on;
 	u32 onlp;
 	u32 ret;
@@ -152,11 +158,11 @@ struct omap_vc_param {
 };
 
 void omap_voltage_get_volttable(struct voltagedomain *voltdm,
-		struct omap_volt_data **volt_data);
+								struct omap_volt_data **volt_data);
 struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
 		unsigned long volt);
 int omap_voltage_register_pmic(struct voltagedomain *voltdm,
-			       struct omap_voltdm_pmic *pmic);
+							   struct omap_voltdm_pmic *pmic);
 int omap_voltage_late_init(void);
 
 extern void omap2xxx_voltagedomains_init(void);

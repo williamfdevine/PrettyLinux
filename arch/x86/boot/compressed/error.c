@@ -18,5 +18,7 @@ void error(char *m)
 	error_putstr(" -- System halted");
 
 	while (1)
+	{
 		asm("hlt");
+	}
 }

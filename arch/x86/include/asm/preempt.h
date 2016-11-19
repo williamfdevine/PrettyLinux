@@ -33,8 +33,8 @@ static __always_inline void preempt_count_set(int pc)
 #define init_task_preempt_count(p) do { } while (0)
 
 #define init_idle_preempt_count(p, cpu) do { \
-	per_cpu(__preempt_count, (cpu)) = PREEMPT_ENABLED; \
-} while (0)
+		per_cpu(__preempt_count, (cpu)) = PREEMPT_ENABLED; \
+	} while (0)
 
 /*
  * We fold the NEED_RESCHED bit into the preempt count such that
@@ -93,21 +93,21 @@ static __always_inline bool should_resched(int preempt_offset)
 }
 
 #ifdef CONFIG_PREEMPT
-  extern asmlinkage void ___preempt_schedule(void);
+extern asmlinkage void ___preempt_schedule(void);
 # define __preempt_schedule()					\
-({								\
-	register void *__sp asm(_ASM_SP);			\
-	asm volatile ("call ___preempt_schedule" : "+r"(__sp));	\
-})
+	({								\
+		register void *__sp asm(_ASM_SP);			\
+		asm volatile ("call ___preempt_schedule" : "+r"(__sp));	\
+	})
 
-  extern asmlinkage void preempt_schedule(void);
-  extern asmlinkage void ___preempt_schedule_notrace(void);
+extern asmlinkage void preempt_schedule(void);
+extern asmlinkage void ___preempt_schedule_notrace(void);
 # define __preempt_schedule_notrace()					\
-({									\
-	register void *__sp asm(_ASM_SP);				\
-	asm volatile ("call ___preempt_schedule_notrace" : "+r"(__sp));	\
-})
-  extern asmlinkage void preempt_schedule_notrace(void);
+	({									\
+		register void *__sp asm(_ASM_SP);				\
+		asm volatile ("call ___preempt_schedule_notrace" : "+r"(__sp));	\
+	})
+extern asmlinkage void preempt_schedule_notrace(void);
 #endif
 
 #endif /* __ASM_PREEMPT_H */

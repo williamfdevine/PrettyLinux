@@ -59,8 +59,11 @@ retry:
 	smp_rmb();
 	pte.pte_high = ptep->pte_high;
 	smp_rmb();
+
 	if (unlikely(pte.pte_low != ptep->pte_low))
+	{
 		goto retry;
+	}
 
 	return pte;
 #endif
@@ -72,36 +75,52 @@ retry:
  * register pressure.
  */
 static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
-		unsigned long end, int write, struct page **pages, int *nr)
+								  unsigned long end, int write, struct page **pages, int *nr)
 {
 	u64 mask, result;
 	pte_t *ptep;
 
 #ifdef CONFIG_X2TLB
 	result = _PAGE_PRESENT | _PAGE_EXT(_PAGE_EXT_KERN_READ | _PAGE_EXT_USER_READ);
+
 	if (write)
+	{
 		result |= _PAGE_EXT(_PAGE_EXT_KERN_WRITE | _PAGE_EXT_USER_WRITE);
+	}
+
 #elif defined(CONFIG_SUPERH64)
 	result = _PAGE_PRESENT | _PAGE_USER | _PAGE_READ;
+
 	if (write)
+	{
 		result |= _PAGE_WRITE;
+	}
+
 #else
 	result = _PAGE_PRESENT | _PAGE_USER;
+
 	if (write)
+	{
 		result |= _PAGE_RW;
+	}
+
 #endif
 
 	mask = result | _PAGE_SPECIAL;
 
 	ptep = pte_offset_map(&pmd, addr);
-	do {
+
+	do
+	{
 		pte_t pte = gup_get_pte(ptep);
 		struct page *page;
 
-		if ((pte_val(pte) & mask) != result) {
+		if ((pte_val(pte) & mask) != result)
+		{
 			pte_unmap(ptep);
 			return 0;
 		}
+
 		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
 		page = pte_page(pte);
 		get_page(page);
@@ -110,48 +129,68 @@ static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
 		pages[*nr] = page;
 		(*nr)++;
 
-	} while (ptep++, addr += PAGE_SIZE, addr != end);
+	}
+	while (ptep++, addr += PAGE_SIZE, addr != end);
+
 	pte_unmap(ptep - 1);
 
 	return 1;
 }
 
 static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
-		int write, struct page **pages, int *nr)
+						 int write, struct page **pages, int *nr)
 {
 	unsigned long next;
 	pmd_t *pmdp;
 
 	pmdp = pmd_offset(&pud, addr);
-	do {
+
+	do
+	{
 		pmd_t pmd = *pmdp;
 
 		next = pmd_addr_end(addr, end);
+
 		if (pmd_none(pmd))
+		{
 			return 0;
+		}
+
 		if (!gup_pte_range(pmd, addr, next, write, pages, nr))
+		{
 			return 0;
-	} while (pmdp++, addr = next, addr != end);
+		}
+	}
+	while (pmdp++, addr = next, addr != end);
 
 	return 1;
 }
 
 static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
-			int write, struct page **pages, int *nr)
+						 int write, struct page **pages, int *nr)
 {
 	unsigned long next;
 	pud_t *pudp;
 
 	pudp = pud_offset(&pgd, addr);
-	do {
+
+	do
+	{
 		pud_t pud = *pudp;
 
 		next = pud_addr_end(addr, end);
+
 		if (pud_none(pud))
+		{
 			return 0;
+		}
+
 		if (!gup_pmd_range(pud, addr, next, write, pages, nr))
+		{
 			return 0;
-	} while (pudp++, addr = next, addr != end);
+		}
+	}
+	while (pudp++, addr = next, addr != end);
 
 	return 1;
 }
@@ -161,7 +200,7 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
  * back to the regular GUP.
  */
 int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-			  struct page **pages)
+						  struct page **pages)
 {
 	struct mm_struct *mm = current->mm;
 	unsigned long addr, len, end;
@@ -174,9 +213,12 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
 	addr = start;
 	len = (unsigned long) nr_pages << PAGE_SHIFT;
 	end = start + len;
+
 	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
-					(void __user *)start, len)))
+							(void __user *)start, len)))
+	{
 		return 0;
+	}
 
 	/*
 	 * This doesn't prevent pagetable teardown, but does prevent
@@ -184,15 +226,25 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
 	 */
 	local_irq_save(flags);
 	pgdp = pgd_offset(mm, addr);
-	do {
+
+	do
+	{
 		pgd_t pgd = *pgdp;
 
 		next = pgd_addr_end(addr, end);
+
 		if (pgd_none(pgd))
+		{
 			break;
+		}
+
 		if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
+		{
 			break;
-	} while (pgdp++, addr = next, addr != end);
+		}
+	}
+	while (pgdp++, addr = next, addr != end);
+
 	local_irq_restore(flags);
 
 	return nr;
@@ -215,7 +267,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
  * were pinned, returns -errno.
  */
 int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-			struct page **pages)
+						struct page **pages)
 {
 	struct mm_struct *mm = current->mm;
 	unsigned long addr, len, end;
@@ -228,20 +280,33 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
 	len = (unsigned long) nr_pages << PAGE_SHIFT;
 
 	end = start + len;
+
 	if (end < start)
+	{
 		goto slow_irqon;
+	}
 
 	local_irq_disable();
 	pgdp = pgd_offset(mm, addr);
-	do {
+
+	do
+	{
 		pgd_t pgd = *pgdp;
 
 		next = pgd_addr_end(addr, end);
+
 		if (pgd_none(pgd))
+		{
 			goto slow;
+		}
+
 		if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
+		{
 			goto slow;
-	} while (pgdp++, addr = next, addr != end);
+		}
+	}
+	while (pgdp++, addr = next, addr != end);
+
 	local_irq_enable();
 
 	VM_BUG_ON(nr != (end - start) >> PAGE_SHIFT);
@@ -258,15 +323,20 @@ slow_irqon:
 		pages += nr;
 
 		ret = get_user_pages_unlocked(start,
-			(end - start) >> PAGE_SHIFT, pages,
-			write ? FOLL_WRITE : 0);
+									  (end - start) >> PAGE_SHIFT, pages,
+									  write ? FOLL_WRITE : 0);
 
 		/* Have to be a bit careful with return values */
-		if (nr > 0) {
+		if (nr > 0)
+		{
 			if (ret < 0)
+			{
 				ret = nr;
+			}
 			else
+			{
 				ret += nr;
+			}
 		}
 
 		return ret;

@@ -7,7 +7,8 @@
  * between kernel and user space.
  */
 
-struct msqid64_ds {
+struct msqid64_ds
+{
 	struct ipc64_perm msg_perm;
 #ifndef __powerpc64__
 	unsigned int	__unused1;

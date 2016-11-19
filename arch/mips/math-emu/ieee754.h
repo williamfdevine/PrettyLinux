@@ -31,22 +31,26 @@
 #include <linux/sched.h>
 #include <asm/bitfield.h>
 
-union ieee754dp {
-	struct {
-		__BITFIELD_FIELD(unsigned int sign:1,
-		__BITFIELD_FIELD(unsigned int bexp:11,
-		__BITFIELD_FIELD(u64 mant:52,
-		;)))
+union ieee754dp
+{
+	struct
+	{
+		__BITFIELD_FIELD(unsigned int sign: 1,
+						 __BITFIELD_FIELD(unsigned int bexp: 11,
+										  __BITFIELD_FIELD(u64 mant: 52,
+												  ;)))
 	};
 	u64 bits;
 };
 
-union ieee754sp {
-	struct {
-		__BITFIELD_FIELD(unsigned sign:1,
-		__BITFIELD_FIELD(unsigned bexp:8,
-		__BITFIELD_FIELD(unsigned mant:23,
-		;)))
+union ieee754sp
+{
+	struct
+	{
+		__BITFIELD_FIELD(unsigned sign: 1,
+						 __BITFIELD_FIELD(unsigned bexp: 8,
+										  __BITFIELD_FIELD(unsigned mant: 23,
+												  ;)))
 	};
 	u32 bits;
 };
@@ -76,9 +80,9 @@ int ieee754sp_cmp(union ieee754sp x, union ieee754sp y, int cop, int sig);
 union ieee754sp ieee754sp_sqrt(union ieee754sp x);
 
 union ieee754sp ieee754sp_maddf(union ieee754sp z, union ieee754sp x,
-				union ieee754sp y);
+									union ieee754sp y);
 union ieee754sp ieee754sp_msubf(union ieee754sp z, union ieee754sp x,
-				union ieee754sp y);
+									union ieee754sp y);
 int ieee754sp_2008class(union ieee754sp x);
 union ieee754sp ieee754sp_fmin(union ieee754sp x, union ieee754sp y);
 union ieee754sp ieee754sp_fmina(union ieee754sp x, union ieee754sp y);
@@ -110,9 +114,9 @@ int ieee754dp_cmp(union ieee754dp x, union ieee754dp y, int cop, int sig);
 union ieee754dp ieee754dp_sqrt(union ieee754dp x);
 
 union ieee754dp ieee754dp_maddf(union ieee754dp z, union ieee754dp x,
-				union ieee754dp y);
+									union ieee754dp y);
 union ieee754dp ieee754dp_msubf(union ieee754dp z, union ieee754dp x,
-				union ieee754dp y);
+									union ieee754dp y);
 int ieee754dp_2008class(union ieee754dp x);
 union ieee754dp ieee754dp_fmin(union ieee754dp x, union ieee754dp y);
 union ieee754dp ieee754dp_fmina(union ieee754dp x, union ieee754dp y);
@@ -122,7 +126,8 @@ union ieee754dp ieee754dp_fmaxa(union ieee754dp x, union ieee754dp y);
 
 /* 5 types of floating point number
 */
-enum {
+enum
+{
 	IEEE754_CLASS_NORM	= 0x00,
 	IEEE754_CLASS_ZERO	= 0x01,
 	IEEE754_CLASS_DNORM	= 0x02,
@@ -148,18 +153,19 @@ enum {
 /*
  * The control status register
  */
-struct _ieee754_csr {
-	__BITFIELD_FIELD(unsigned fcc:7,	/* condition[7:1] */
-	__BITFIELD_FIELD(unsigned nod:1,	/* set 1 for no denormals */
-	__BITFIELD_FIELD(unsigned c:1,		/* condition[0] */
-	__BITFIELD_FIELD(unsigned pad0:3,
-	__BITFIELD_FIELD(unsigned abs2008:1,	/* IEEE 754-2008 ABS/NEG.fmt */
-	__BITFIELD_FIELD(unsigned nan2008:1,	/* IEEE 754-2008 NaN mode */
-	__BITFIELD_FIELD(unsigned cx:6,		/* exceptions this operation */
-	__BITFIELD_FIELD(unsigned mx:5,		/* exception enable  mask */
-	__BITFIELD_FIELD(unsigned sx:5,		/* exceptions total */
-	__BITFIELD_FIELD(unsigned rm:2,		/* current rounding mode */
-	;))))))))))
+struct _ieee754_csr
+{
+	__BITFIELD_FIELD(unsigned fcc: 7,	/* condition[7:1] */
+					 __BITFIELD_FIELD(unsigned nod: 1,	/* set 1 for no denormals */
+									  __BITFIELD_FIELD(unsigned c: 1,		/* condition[0] */
+											  __BITFIELD_FIELD(unsigned pad0: 3,
+													  __BITFIELD_FIELD(unsigned abs2008: 1,	/* IEEE 754-2008 ABS/NEG.fmt */
+															  __BITFIELD_FIELD(unsigned nan2008: 1,	/* IEEE 754-2008 NaN mode */
+																	  __BITFIELD_FIELD(unsigned cx: 6,		/* exceptions this operation */
+																			  __BITFIELD_FIELD(unsigned mx: 5,		/* exception enable  mask */
+																					  __BITFIELD_FIELD(unsigned sx: 5,		/* exceptions total */
+																							  __BITFIELD_FIELD(unsigned rm: 2,		/* current rounding mode */
+																									  ;))))))))))
 };
 #define ieee754_csr (*(struct _ieee754_csr *)(&current->thread.fpu.fcr31))
 
@@ -245,7 +251,7 @@ extern const union ieee754sp __ieee754sp_spcvals[];
 #define ieee754dp_one(sn)	(ieee754dp_spcvals[IEEE754_SPCVAL_PONE+(sn)])
 #define ieee754dp_ten(sn)	(ieee754dp_spcvals[IEEE754_SPCVAL_PTEN+(sn)])
 #define ieee754dp_indef()	(ieee754dp_spcvals[IEEE754_SPCVAL_INDEF_LEG + \
-						   ieee754_csr.nan2008])
+							 ieee754_csr.nan2008])
 #define ieee754dp_max(sn)	(ieee754dp_spcvals[IEEE754_SPCVAL_PMAX+(sn)])
 #define ieee754dp_min(sn)	(ieee754dp_spcvals[IEEE754_SPCVAL_PMIN+(sn)])
 #define ieee754dp_mind(sn)	(ieee754dp_spcvals[IEEE754_SPCVAL_PMIND+(sn)])
@@ -257,7 +263,7 @@ extern const union ieee754sp __ieee754sp_spcvals[];
 #define ieee754sp_one(sn)	(ieee754sp_spcvals[IEEE754_SPCVAL_PONE+(sn)])
 #define ieee754sp_ten(sn)	(ieee754sp_spcvals[IEEE754_SPCVAL_PTEN+(sn)])
 #define ieee754sp_indef()	(ieee754sp_spcvals[IEEE754_SPCVAL_INDEF_LEG + \
-						   ieee754_csr.nan2008])
+							 ieee754_csr.nan2008])
 #define ieee754sp_max(sn)	(ieee754sp_spcvals[IEEE754_SPCVAL_PMAX+(sn)])
 #define ieee754sp_min(sn)	(ieee754sp_spcvals[IEEE754_SPCVAL_PMIN+(sn)])
 #define ieee754sp_mind(sn)	(ieee754sp_spcvals[IEEE754_SPCVAL_PMIND+(sn)])

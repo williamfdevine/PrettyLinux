@@ -14,47 +14,48 @@
 #define imx_mxc_nand_data_entry_single(soc, _devid, _size)		\
 	{								\
 		.devid = _devid,					\
-		.iobase = soc ## _NFC_BASE_ADDR,			\
-		.iosize = _size,					\
-		.irq = soc ## _INT_NFC					\
+				 .iobase = soc ## _NFC_BASE_ADDR,			\
+						   .iosize = _size,					\
+									 .irq = soc ## _INT_NFC					\
 	}
 
 #define imx_mxc_nandv3_data_entry_single(soc, _devid, _size)		\
 	{								\
 		.devid = _devid,					\
-		.id = -1,						\
-		.iobase = soc ## _NFC_BASE_ADDR,			\
-		.iosize = _size,					\
-		.axibase = soc ## _NFC_AXI_BASE_ADDR,			\
-		.irq = soc ## _INT_NFC					\
+				 .id = -1,						\
+					   .iobase = soc ## _NFC_BASE_ADDR,			\
+								 .iosize = _size,					\
+										   .axibase = soc ## _NFC_AXI_BASE_ADDR,			\
+												   .irq = soc ## _INT_NFC					\
 	}
 
 #ifdef CONFIG_SOC_IMX21
-const struct imx_mxc_nand_data imx21_mxc_nand_data __initconst =
+	const struct imx_mxc_nand_data imx21_mxc_nand_data __initconst =
 	imx_mxc_nand_data_entry_single(MX21, "imx21-nand", SZ_4K);
 #endif /* ifdef CONFIG_SOC_IMX21 */
 
 #ifdef CONFIG_SOC_IMX27
-const struct imx_mxc_nand_data imx27_mxc_nand_data __initconst =
+	const struct imx_mxc_nand_data imx27_mxc_nand_data __initconst =
 	imx_mxc_nand_data_entry_single(MX27, "imx27-nand", SZ_4K);
 #endif /* ifdef CONFIG_SOC_IMX27 */
 
 #ifdef CONFIG_SOC_IMX31
-const struct imx_mxc_nand_data imx31_mxc_nand_data __initconst =
+	const struct imx_mxc_nand_data imx31_mxc_nand_data __initconst =
 	imx_mxc_nand_data_entry_single(MX31, "imx27-nand", SZ_4K);
 #endif
 
 #ifdef CONFIG_SOC_IMX35
-const struct imx_mxc_nand_data imx35_mxc_nand_data __initconst =
+	const struct imx_mxc_nand_data imx35_mxc_nand_data __initconst =
 	imx_mxc_nand_data_entry_single(MX35, "imx25-nand", SZ_8K);
 #endif
 
 struct platform_device *__init imx_add_mxc_nand(
-		const struct imx_mxc_nand_data *data,
-		const struct mxc_nand_platform_data *pdata)
+	const struct imx_mxc_nand_data *data,
+	const struct mxc_nand_platform_data *pdata)
 {
 	/* AXI has to come first, that's how the mxc_nand driver expect it */
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start = data->iobase,
 			.end = data->iobase + data->iosize - 1,
@@ -70,6 +71,6 @@ struct platform_device *__init imx_add_mxc_nand(
 		},
 	};
 	return imx_add_platform_device(data->devid, data->id,
-			res, ARRAY_SIZE(res) - !data->axibase,
-			pdata, sizeof(*pdata));
+								   res, ARRAY_SIZE(res) - !data->axibase,
+								   pdata, sizeof(*pdata));
 }

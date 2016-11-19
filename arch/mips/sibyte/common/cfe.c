@@ -35,17 +35,17 @@
 
 /* Max ram addressable in 32-bit segments */
 #ifdef CONFIG_64BIT
-#define MAX_RAM_SIZE (~0ULL)
+	#define MAX_RAM_SIZE (~0ULL)
 #else
-#ifdef CONFIG_HIGHMEM
-#ifdef CONFIG_PHYS_ADDR_T_64BIT
-#define MAX_RAM_SIZE (~0ULL)
-#else
-#define MAX_RAM_SIZE (0xffffffffULL)
-#endif
-#else
-#define MAX_RAM_SIZE (0x1fffffffULL)
-#endif
+	#ifdef CONFIG_HIGHMEM
+		#ifdef CONFIG_PHYS_ADDR_T_64BIT
+			#define MAX_RAM_SIZE (~0ULL)
+		#else
+			#define MAX_RAM_SIZE (0xffffffffULL)
+		#endif
+	#else
+		#define MAX_RAM_SIZE (0x1fffffffULL)
+	#endif
 #endif
 
 #define SIBYTE_MAX_MEM_REGIONS 8
@@ -56,27 +56,32 @@ unsigned int board_mem_region_count;
 int cfe_cons_handle;
 
 #ifdef CONFIG_BLK_DEV_INITRD
-extern unsigned long initrd_start, initrd_end;
+	extern unsigned long initrd_start, initrd_end;
 #endif
 
 static void __noreturn cfe_linux_exit(void *arg)
 {
 	int warm = *(int *)arg;
 
-	if (smp_processor_id()) {
+	if (smp_processor_id())
+	{
 		static int reboot_smp;
 
 		/* Don't repeat the process from another CPU */
-		if (!reboot_smp) {
+		if (!reboot_smp)
+		{
 			/* Get CPU 0 to do the cfe_exit */
 			reboot_smp = 1;
 			smp_call_function(cfe_linux_exit, arg, 0);
 		}
-	} else {
+	}
+	else
+	{
 		printk("Passing control back to CFE...\n");
 		cfe_exit(warm, 0);
 		printk("cfe_exit returned??\n");
 	}
+
 	while (1);
 }
 
@@ -106,45 +111,63 @@ static __init void prom_meminit(void)
 
 	initrd_pstart = CPHYSADDR(initrd_start);
 	initrd_pend = CPHYSADDR(initrd_end);
+
 	if (initrd_start &&
-	    ((initrd_pstart > MAX_RAM_SIZE)
-	     || (initrd_pend > MAX_RAM_SIZE))) {
+		((initrd_pstart > MAX_RAM_SIZE)
+		 || (initrd_pend > MAX_RAM_SIZE)))
+	{
 		panic("initrd out of addressable memory");
 	}
 
 #endif /* INITRD */
 
 	for (idx = 0; cfe_enummem(idx, mem_flags, &addr, &size, &type) != CFE_ERR_NOMORE;
-	     idx++) {
+		 idx++)
+	{
 		rd_flag = 0;
-		if (type == CFE_MI_AVAILABLE) {
+
+		if (type == CFE_MI_AVAILABLE)
+		{
 			/*
 			 * See if this block contains (any portion of) the
 			 * ramdisk
 			 */
 #ifdef CONFIG_BLK_DEV_INITRD
-			if (initrd_start) {
+			if (initrd_start)
+			{
 				if ((initrd_pstart > addr) &&
-				    (initrd_pstart < (addr + size))) {
+					(initrd_pstart < (addr + size)))
+				{
 					add_memory_region(addr,
-							  initrd_pstart - addr,
-							  BOOT_MEM_RAM);
+									  initrd_pstart - addr,
+									  BOOT_MEM_RAM);
 					rd_flag = 1;
 				}
+
 				if ((initrd_pend > addr) &&
-				    (initrd_pend < (addr + size))) {
+					(initrd_pend < (addr + size)))
+				{
 					add_memory_region(initrd_pend,
-						(addr + size) - initrd_pend,
-						 BOOT_MEM_RAM);
+									  (addr + size) - initrd_pend,
+									  BOOT_MEM_RAM);
 					rd_flag = 1;
 				}
 			}
+
 #endif
-			if (!rd_flag) {
+
+			if (!rd_flag)
+			{
 				if (addr > MAX_RAM_SIZE)
+				{
 					continue;
-				if (addr+size > MAX_RAM_SIZE)
-					size = MAX_RAM_SIZE - (addr+size) + 1;
+				}
+
+				if (addr + size > MAX_RAM_SIZE)
+				{
+					size = MAX_RAM_SIZE - (addr + size) + 1;
+				}
+
 				/*
 				 * memcpy/__copy_user prefetch, which
 				 * will cause a bus error for
@@ -153,26 +176,36 @@ static __init void prom_meminit(void)
 				 * prefetch distance.
 				 */
 				if (size > 512)
+				{
 					size -= 512;
+				}
+
 				add_memory_region(addr, size, BOOT_MEM_RAM);
 			}
+
 			board_mem_region_addrs[board_mem_region_count] = addr;
 			board_mem_region_sizes[board_mem_region_count] = size;
 			board_mem_region_count++;
+
 			if (board_mem_region_count ==
-			    SIBYTE_MAX_MEM_REGIONS) {
+				SIBYTE_MAX_MEM_REGIONS)
+			{
 				/*
 				 * Too many regions.  Need to configure more
 				 */
-				while(1);
+				while (1);
 			}
 		}
 	}
+
 #ifdef CONFIG_BLK_DEV_INITRD
-	if (initrd_start) {
+
+	if (initrd_start)
+	{
 		add_memory_region(initrd_pstart, initrd_pend - initrd_pstart,
-				  BOOT_MEM_RESERVED);
+						  BOOT_MEM_RESERVED);
 	}
+
 #endif
 }
 
@@ -185,8 +218,10 @@ static int __init initrd_setup(char *str)
 	unsigned long initrd_size;
 
 	/* Make a copy of the initrd argument so we can smash it up here */
-	for (idx = 0; idx < sizeof(rdarg)-1; idx++) {
-		if (!str[idx] || (str[idx] == ' ')) break;
+	for (idx = 0; idx < sizeof(rdarg) - 1; idx++)
+	{
+		if (!str[idx] || (str[idx] == ' ')) { break; }
+
 		rdarg[idx] = str[idx];
 	}
 
@@ -197,30 +232,42 @@ static int __init initrd_setup(char *str)
 	 *Initrd location comes in the form "<hex size of ramdisk in bytes>@<location in memory>"
 	 *  e.g. initrd=3abfd@80010000.	 This is set up by the loader.
 	 */
-	for (tmp = str; *tmp != '@'; tmp++) {
-		if (!*tmp) {
+	for (tmp = str; *tmp != '@'; tmp++)
+	{
+		if (!*tmp)
+		{
 			goto fail;
 		}
 	}
+
 	*tmp = 0;
 	tmp++;
-	if (!*tmp) {
+
+	if (!*tmp)
+	{
 		goto fail;
 	}
+
 	initrd_size = simple_strtoul(str, &endptr, 16);
-	if (*endptr) {
-		*(tmp-1) = '@';
+
+	if (*endptr)
+	{
+		*(tmp - 1) = '@';
 		goto fail;
 	}
-	*(tmp-1) = '@';
+
+	*(tmp - 1) = '@';
 	initrd_start = simple_strtoul(tmp, &endptr, 16);
-	if (*endptr) {
+
+	if (*endptr)
+	{
 		goto fail;
 	}
+
 	initrd_end = initrd_start + initrd_size;
 	printk("Found initrd of %lx@%lx\n", initrd_size, initrd_start);
 	return 1;
- fail:
+fail:
 	printk("Bad initrd argument.  Disabling initrd\n");
 	initrd_start = 0;
 	initrd_end = 0;
@@ -251,12 +298,16 @@ void __init prom_init(void)
 	 * Check if a loader was used; if NOT, the 4 arguments are
 	 * what CFE gives us (handle, 0, EPT and EPTSEAL)
 	 */
-	if (argc < 0) {
+	if (argc < 0)
+	{
 		cfe_handle = (uint64_t)(long)argc;
 		cfe_ept = (long)envp;
 		cfe_eptseal = (uint32_t)(unsigned long)prom_vec;
-	} else {
-		if ((int32_t)(long)prom_vec < 0) {
+	}
+	else
+	{
+		if ((int32_t)(long)prom_vec < 0)
+		{
 			/*
 			 * Old loader; all it gives us is the handle,
 			 * so use the "known" entrypoint and assume
@@ -265,7 +316,9 @@ void __init prom_init(void)
 			cfe_handle = (uint64_t)(long)prom_vec;
 			cfe_ept = (uint64_t)((int32_t)0x9fc00500);
 			cfe_eptseal = CFE_EPTSEAL;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Newer loaders bundle the handle/ept/eptseal
 			 * Note: prom_vec is in the loader's useg
@@ -276,22 +329,30 @@ void __init prom_init(void)
 			cfe_eptseal = (unsigned int)((uint32_t *)prom_vec)[3];
 		}
 	}
-	if (cfe_eptseal != CFE_EPTSEAL) {
+
+	if (cfe_eptseal != CFE_EPTSEAL)
+	{
 		/* too early for panic to do any good */
 		printk("CFE's entrypoint seal doesn't match. Spinning.");
+
 		while (1) ;
 	}
+
 	cfe_init(cfe_handle, cfe_ept);
 	/*
 	 * Get the handle for (at least) prom_putchar, possibly for
 	 * boot console
 	 */
 	cfe_cons_handle = cfe_getstdhandle(CFE_STDHANDLE_CONSOLE);
-	if (cfe_getenv("LINUX_CMDLINE", arcs_cmdline, COMMAND_LINE_SIZE) < 0) {
-		if (argc >= 0) {
+
+	if (cfe_getenv("LINUX_CMDLINE", arcs_cmdline, COMMAND_LINE_SIZE) < 0)
+	{
+		if (argc >= 0)
+		{
 			/* The loader should have set the command line */
 			/* too early for panic to do any good */
 			printk("LINUX_CMDLINE not defined in cfe.");
+
 			while (1) ;
 		}
 	}
@@ -299,17 +360,25 @@ void __init prom_init(void)
 #ifdef CONFIG_BLK_DEV_INITRD
 	{
 		char *ptr;
+
 		/* Need to find out early whether we've got an initrd.	So scan
 		   the list looking now */
-		for (ptr = arcs_cmdline; *ptr; ptr++) {
-			while (*ptr == ' ') {
+		for (ptr = arcs_cmdline; *ptr; ptr++)
+		{
+			while (*ptr == ' ')
+			{
 				ptr++;
 			}
-			if (!strncmp(ptr, "initrd=", 7)) {
-				initrd_setup(ptr+7);
+
+			if (!strncmp(ptr, "initrd=", 7))
+			{
+				initrd_setup(ptr + 7);
 				break;
-			} else {
-				while (*ptr && (*ptr != ' ')) {
+			}
+			else
+			{
+				while (*ptr && (*ptr != ' '))
+				{
 					ptr++;
 				}
 			}
@@ -318,7 +387,7 @@ void __init prom_init(void)
 #endif /* CONFIG_BLK_DEV_INITRD */
 
 	/* Not sure this is needed, but it's the safe way. */
-	arcs_cmdline[COMMAND_LINE_SIZE-1] = 0;
+	arcs_cmdline[COMMAND_LINE_SIZE - 1] = 0;
 
 	prom_meminit();
 

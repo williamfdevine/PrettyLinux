@@ -112,15 +112,18 @@ finv_buffer_remote(void *buffer, size_t size, int hfh)
 	 * trap to issue loads directly to each hash-for-home tile for
 	 * each controller (doing it from Linux would trash the TLB).
 	 */
-	if (hfh) {
+	if (hfh)
+	{
 		step_size = L2_CACHE_BYTES;
 #ifdef __tilegx__
 		load_count = (size + L2_CACHE_BYTES - 1) / L2_CACHE_BYTES;
 #else
 		load_count = (STRIPE_WIDTH / L2_CACHE_BYTES) *
-			      (1 << CHIP_LOG_NUM_MSHIMS());
+					 (1 << CHIP_LOG_NUM_MSHIMS());
 #endif
-	} else {
+	}
+	else
+	{
 		step_size = STRIPE_WIDTH;
 		load_count = (1 << CHIP_LOG_NUM_MSHIMS());
 	}
@@ -135,8 +138,11 @@ finv_buffer_remote(void *buffer, size_t size, int hfh)
 
 	/* Figure out how far back we need to go. */
 	base = p - (step_size * (load_count - 2));
+
 	if ((unsigned long)base < (unsigned long)buffer)
+	{
 		base = buffer;
+	}
 
 	/*
 	 * Fire all the loads we need.  The MAF only has eight entries
@@ -144,8 +150,11 @@ finv_buffer_remote(void *buffer, size_t size, int hfh)
 	 * unroll by that amount.
 	 */
 #pragma unroll 8
+
 	for (; p >= base; p -= step_size)
+	{
 		force_load(p);
+	}
 
 	/*
 	 * Repeat, but with finv's instead of loads, to get rid of the
@@ -159,8 +168,11 @@ finv_buffer_remote(void *buffer, size_t size, int hfh)
 	__insn_finv(p);
 	p -= step_size;
 	p = (char *)((unsigned long)p | (step_size - 1));
+
 	for (; p >= base; p -= step_size)
+	{
 		__insn_finv(p);
+	}
 
 	/* Wait for these finv's (and thus the first finvs) to be done. */
 	__insn_mf();

@@ -45,8 +45,8 @@
 #include <asm/tlbflush.h>
 
 #ifndef CONFIG_MMU
-/* I have to use dcache values because I can't relate on ram size */
-# define UNCACHED_SHADOW_MASK (cpuinfo.dcache_high - cpuinfo.dcache_base + 1)
+	/* I have to use dcache values because I can't relate on ram size */
+	#define UNCACHED_SHADOW_MASK (cpuinfo.dcache_high - cpuinfo.dcache_base + 1)
 #endif
 
 /*
@@ -73,22 +73,27 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
 #endif
 
 	if (in_interrupt())
+	{
 		BUG();
+	}
 
 	/* Only allocate page size areas. */
 	size = PAGE_ALIGN(size);
 	order = get_order(size);
 
 	vaddr = __get_free_pages(gfp, order);
+
 	if (!vaddr)
+	{
 		return NULL;
+	}
 
 	/*
 	 * we need to ensure that there are no cachelines in use,
 	 * or worse dirty in this area.
 	 */
 	flush_dcache_range(virt_to_phys((void *)vaddr),
-					virt_to_phys((void *)vaddr) + size);
+					   virt_to_phys((void *)vaddr) + size);
 
 #ifndef CONFIG_MMU
 	ret = (void *)vaddr;
@@ -100,19 +105,25 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
 # ifdef CONFIG_XILINX_UNCACHED_SHADOW
 	ret = (void *)((unsigned) ret | UNCACHED_SHADOW_MASK);
 # endif
+
 	if ((unsigned int)ret > cpuinfo.dcache_base &&
-				(unsigned int)ret < cpuinfo.dcache_high)
+		(unsigned int)ret < cpuinfo.dcache_high)
+	{
 		pr_warn("ERROR: Your cache coherent area is CACHED!!!\n");
+	}
 
 	/* dma_handle is same as physical (shadowed) address */
 	*dma_handle = (dma_addr_t)ret;
 #else
 	/* Allocate some common virtual space to map the new pages. */
 	area = get_vm_area(size, VM_ALLOC);
-	if (!area) {
+
+	if (!area)
+	{
 		free_pages(vaddr, order);
 		return NULL;
 	}
+
 	va = (unsigned long) area->addr;
 	ret = (void *)va;
 
@@ -131,7 +142,8 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
 
 	split_page(page, order);
 
-	for (i = 0; i < size && err == 0; i += PAGE_SIZE) {
+	for (i = 0; i < size && err == 0; i += PAGE_SIZE)
+	{
 #ifdef CONFIG_MMU
 		/* MS: This is the whole magic - use cache inhibit pages */
 		err = map_page(va + i, pa + i, _PAGE_KERNEL | _PAGE_NO_CACHE);
@@ -142,12 +154,14 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
 	}
 
 	/* Free the otherwise unused pages. */
-	while (page < end) {
+	while (page < end)
+	{
 		__free_page(page);
 		page++;
 	}
 
-	if (err) {
+	if (err)
+	{
 		free_pages(vaddr, order);
 		return NULL;
 	}
@@ -169,7 +183,9 @@ unsigned long consistent_virt_to_pfn(void *vaddr)
 	pte_t *ptep = consistent_virt_to_pte(vaddr);
 
 	if (pte_none(*ptep) || !pte_present(*ptep))
+	{
 		return 0;
+	}
 
 	return pte_pfn(*ptep);
 }
@@ -183,7 +199,9 @@ void consistent_free(size_t size, void *vaddr)
 	struct page *page;
 
 	if (in_interrupt())
+	{
 		BUG();
+	}
 
 	size = PAGE_ALIGN(size);
 
@@ -194,25 +212,35 @@ void consistent_free(size_t size, void *vaddr)
 # endif
 	page = virt_to_page(vaddr);
 
-	do {
+	do
+	{
 		__free_reserved_page(page);
 		page++;
-	} while (size -= PAGE_SIZE);
+	}
+	while (size -= PAGE_SIZE);
+
 #else
-	do {
+
+	do
+	{
 		pte_t *ptep = consistent_virt_to_pte(vaddr);
 		unsigned long pfn;
 
-		if (!pte_none(*ptep) && pte_present(*ptep)) {
+		if (!pte_none(*ptep) && pte_present(*ptep))
+		{
 			pfn = pte_pfn(*ptep);
 			pte_clear(&init_mm, (unsigned int)vaddr, ptep);
-			if (pfn_valid(pfn)) {
+
+			if (pfn_valid(pfn))
+			{
 				page = pfn_to_page(pfn);
 				__free_reserved_page(page);
 			}
 		}
+
 		vaddr += PAGE_SIZE;
-	} while (size -= PAGE_SIZE);
+	}
+	while (size -= PAGE_SIZE);
 
 	/* flush tlb */
 	flush_tlb_all();
@@ -236,18 +264,22 @@ void consistent_sync(void *vaddr, size_t size, int direction)
 #endif
 	end = start + size;
 
-	switch (direction) {
-	case PCI_DMA_NONE:
-		BUG();
-	case PCI_DMA_FROMDEVICE:	/* invalidate only */
-		invalidate_dcache_range(start, end);
-		break;
-	case PCI_DMA_TODEVICE:		/* writeback only */
-		flush_dcache_range(start, end);
-		break;
-	case PCI_DMA_BIDIRECTIONAL:	/* writeback and invalidate */
-		flush_dcache_range(start, end);
-		break;
+	switch (direction)
+	{
+		case PCI_DMA_NONE:
+			BUG();
+
+		case PCI_DMA_FROMDEVICE:	/* invalidate only */
+			invalidate_dcache_range(start, end);
+			break;
+
+		case PCI_DMA_TODEVICE:		/* writeback only */
+			flush_dcache_range(start, end);
+			break;
+
+		case PCI_DMA_BIDIRECTIONAL:	/* writeback and invalidate */
+			flush_dcache_range(start, end);
+			break;
 	}
 }
 EXPORT_SYMBOL(consistent_sync);
@@ -258,7 +290,7 @@ EXPORT_SYMBOL(consistent_sync);
  * virtual address
  */
 void consistent_sync_page(struct page *page, unsigned long offset,
-	size_t size, int direction)
+						  size_t size, int direction)
 {
 	unsigned long start = (unsigned long)page_address(page) + offset;
 	consistent_sync((void *)start, size, direction);

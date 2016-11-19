@@ -60,13 +60,14 @@
 #define NUM_SHA1_DIGEST_WORDS 5
 
 enum job_sts {	STS_UNKNOWN = 0,
-		STS_BEING_PROCESSED = 1,
-		STS_COMPLETED = 2,
-		STS_INTERNAL_ERROR = 3,
-		STS_ERROR = 4
-};
+				STS_BEING_PROCESSED = 1,
+				STS_COMPLETED = 2,
+				STS_INTERNAL_ERROR = 3,
+				STS_ERROR = 4
+			 };
 
-struct job_sha1 {
+struct job_sha1
+{
 	u8	*buffer;
 	u32	len;
 	u32	result_digest[NUM_SHA1_DIGEST_WORDS] __aligned(32);
@@ -78,16 +79,19 @@ struct job_sha1 {
 
 /* typedef uint32_t sha1_digest_array[5][8]; */
 
-struct sha1_args_x8 {
+struct sha1_args_x8
+{
 	uint32_t	digest[5][8];
 	uint8_t		*data_ptr[8];
 };
 
-struct sha1_lane_data {
+struct sha1_lane_data
+{
 	struct job_sha1 *job_in_lane;
 };
 
-struct sha1_mb_mgr {
+struct sha1_mb_mgr
+{
 	struct sha1_args_x8 args;
 
 	uint32_t lens[8];
@@ -103,7 +107,7 @@ struct sha1_mb_mgr {
 
 void sha1_mb_mgr_init_avx2(struct sha1_mb_mgr *state);
 struct job_sha1 *sha1_mb_mgr_submit_avx2(struct sha1_mb_mgr *state,
-					 struct job_sha1 *job);
+		struct job_sha1 *job);
 struct job_sha1 *sha1_mb_mgr_flush_avx2(struct sha1_mb_mgr *state);
 struct job_sha1 *sha1_mb_mgr_get_comp_job_avx2(struct sha1_mb_mgr *state);
 

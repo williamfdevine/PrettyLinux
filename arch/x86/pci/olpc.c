@@ -42,7 +42,8 @@
  * ~0 to a base address register.
  */
 
-static const uint32_t lxnb_hdr[] = {  /* dev 1 function 0 - devfn = 8 */
+static const uint32_t lxnb_hdr[] =    /* dev 1 function 0 - devfn = 8 */
+{
 	0x0,	0x0,	0x0,	0x0,
 	0x0,	0x0,	0x0,	0x0,
 
@@ -55,7 +56,8 @@ static const uint32_t lxnb_hdr[] = {  /* dev 1 function 0 - devfn = 8 */
 	0x0,	0x0,	0x0,	0x0,
 };
 
-static const uint32_t gxnb_hdr[] = {  /* dev 1 function 0 - devfn = 8 */
+static const uint32_t gxnb_hdr[] =    /* dev 1 function 0 - devfn = 8 */
+{
 	0xfffffffd, 0x0, 0x0,	0x0,
 	0x0,	0x0,	0x0,	0x0,
 
@@ -68,7 +70,8 @@ static const uint32_t gxnb_hdr[] = {  /* dev 1 function 0 - devfn = 8 */
 	0x0,	0x0,	0x0,	0x0,
 };
 
-static const uint32_t lxfb_hdr[] = {  /* dev 1 function 1 - devfn = 9 */
+static const uint32_t lxfb_hdr[] =    /* dev 1 function 1 - devfn = 9 */
+{
 	0xff000008, 0xffffc000, 0xffffc000, 0xffffc000,
 	0xffffc000,	0x0,	0x0,	0x0,
 
@@ -81,7 +84,8 @@ static const uint32_t lxfb_hdr[] = {  /* dev 1 function 1 - devfn = 9 */
 	0x0,	0x0,	0x0,	0x0,
 };
 
-static const uint32_t gxfb_hdr[] = {  /* dev 1 function 1 - devfn = 9 */
+static const uint32_t gxfb_hdr[] =    /* dev 1 function 1 - devfn = 9 */
+{
 	0xff800008, 0xffffc000, 0xffffc000, 0xffffc000,
 	0x0,	0x0,	0x0,	0x0,
 
@@ -94,7 +98,8 @@ static const uint32_t gxfb_hdr[] = {  /* dev 1 function 1 - devfn = 9 */
 	0x0,	0x0,	0x0,	0x0,
 };
 
-static const uint32_t aes_hdr[] = {	/* dev 1 function 2 - devfn = 0xa */
+static const uint32_t aes_hdr[] =  	/* dev 1 function 2 - devfn = 0xa */
+{
 	0xffffc000, 0x0, 0x0,	0x0,
 	0x0,	0x0,	0x0,	0x0,
 
@@ -108,7 +113,8 @@ static const uint32_t aes_hdr[] = {	/* dev 1 function 2 - devfn = 0xa */
 };
 
 
-static const uint32_t isa_hdr[] = {  /* dev f function 0 - devfn = 78 */
+static const uint32_t isa_hdr[] =    /* dev f function 0 - devfn = 78 */
+{
 	0xfffffff9, 0xffffff01, 0xffffffc1, 0xffffffe1,
 	0xffffff81, 0xffffffc1, 0x0, 0x0,
 
@@ -121,7 +127,8 @@ static const uint32_t isa_hdr[] = {  /* dev f function 0 - devfn = 78 */
 	0x0,	0x0,	0x0,	0x0,
 };
 
-static const uint32_t ac97_hdr[] = {  /* dev f function 3 - devfn = 7b */
+static const uint32_t ac97_hdr[] =    /* dev f function 3 - devfn = 7b */
+{
 	0xffffff81, 0x0, 0x0,	0x0,
 	0x0,	0x0,	0x0,	0x0,
 
@@ -134,7 +141,8 @@ static const uint32_t ac97_hdr[] = {  /* dev f function 3 - devfn = 7b */
 	0x0,	0x0,	0x0,	0x0,
 };
 
-static const uint32_t ohci_hdr[] = {  /* dev f function 4 - devfn = 7c */
+static const uint32_t ohci_hdr[] =    /* dev f function 4 - devfn = 7c */
+{
 	0xfffff000, 0x0, 0x0,	0x0,
 	0x0,	0x0,	0x0,	0x0,
 
@@ -148,7 +156,8 @@ static const uint32_t ohci_hdr[] = {  /* dev f function 4 - devfn = 7c */
 	0x0,	0x0,	0x0,	0x0,
 };
 
-static const uint32_t ehci_hdr[] = {  /* dev f function 4 - devfn = 7d */
+static const uint32_t ehci_hdr[] =    /* dev f function 4 - devfn = 7d */
+{
 	0xfffff000, 0x0, 0x0,	0x0,
 	0x0,	0x0,	0x0,	0x0,
 
@@ -177,7 +186,7 @@ static int is_lx;
 static int is_simulated(unsigned int bus, unsigned int devfn)
 {
 	return (!bus && ((PCI_SLOT(devfn) == NB_SLOT) ||
-			(PCI_SLOT(devfn) == SB_SLOT)));
+					 (PCI_SLOT(devfn) == SB_SLOT)));
 }
 
 static uint32_t *hdr_addr(const uint32_t *hdr, int reg)
@@ -202,7 +211,7 @@ static uint32_t *hdr_addr(const uint32_t *hdr, int reg)
 }
 
 static int pci_olpc_read(unsigned int seg, unsigned int bus,
-		unsigned int devfn, int reg, int len, uint32_t *value)
+						 unsigned int devfn, int reg, int len, uint32_t *value)
 {
 	uint32_t *addr;
 
@@ -210,67 +219,87 @@ static int pci_olpc_read(unsigned int seg, unsigned int bus,
 
 	/* Use the hardware mechanism for non-simulated devices */
 	if (!is_simulated(bus, devfn))
+	{
 		return pci_direct_conf1.read(seg, bus, devfn, reg, len, value);
+	}
 
 	/*
 	 * No device has config registers past 0x70, so we save table space
 	 * by not storing entries for the nonexistent registers
 	 */
 	if (reg >= 0x70)
+	{
 		addr = &zero_loc;
-	else {
-		switch (devfn) {
-		case  0x8:
-			addr = hdr_addr(is_lx ? lxnb_hdr : gxnb_hdr, reg);
-			break;
-		case  0x9:
-			addr = hdr_addr(is_lx ? lxfb_hdr : gxfb_hdr, reg);
-			break;
-		case  0xa:
-			addr = is_lx ? hdr_addr(aes_hdr, reg) : &ff_loc;
-			break;
-		case 0x78:
-			addr = hdr_addr(isa_hdr, reg);
-			break;
-		case 0x7b:
-			addr = hdr_addr(ac97_hdr, reg);
-			break;
-		case 0x7c:
-			addr = hdr_addr(ohci_hdr, reg);
-			break;
-		case 0x7d:
-			addr = hdr_addr(ehci_hdr, reg);
-			break;
-		default:
-			addr = &ff_loc;
-			break;
+	}
+	else
+	{
+		switch (devfn)
+		{
+			case  0x8:
+				addr = hdr_addr(is_lx ? lxnb_hdr : gxnb_hdr, reg);
+				break;
+
+			case  0x9:
+				addr = hdr_addr(is_lx ? lxfb_hdr : gxfb_hdr, reg);
+				break;
+
+			case  0xa:
+				addr = is_lx ? hdr_addr(aes_hdr, reg) : &ff_loc;
+				break;
+
+			case 0x78:
+				addr = hdr_addr(isa_hdr, reg);
+				break;
+
+			case 0x7b:
+				addr = hdr_addr(ac97_hdr, reg);
+				break;
+
+			case 0x7c:
+				addr = hdr_addr(ohci_hdr, reg);
+				break;
+
+			case 0x7d:
+				addr = hdr_addr(ehci_hdr, reg);
+				break;
+
+			default:
+				addr = &ff_loc;
+				break;
 		}
 	}
-	switch (len) {
-	case 1:
-		*value = *(uint8_t *)addr;
-		break;
-	case 2:
-		*value = *(uint16_t *)addr;
-		break;
-	case 4:
-		*value = *addr;
-		break;
-	default:
-		BUG();
+
+	switch (len)
+	{
+		case 1:
+			*value = *(uint8_t *)addr;
+			break;
+
+		case 2:
+			*value = *(uint16_t *)addr;
+			break;
+
+		case 4:
+			*value = *addr;
+			break;
+
+		default:
+			BUG();
 	}
 
 	return 0;
 }
 
 static int pci_olpc_write(unsigned int seg, unsigned int bus,
-		unsigned int devfn, int reg, int len, uint32_t value)
+						  unsigned int devfn, int reg, int len, uint32_t value)
 {
 	WARN_ON(seg);
 
 	/* Use the hardware mechanism for non-simulated devices */
 	if (!is_simulated(bus, devfn))
+	{
 		return pci_direct_conf1.write(seg, bus, devfn, reg, len, value);
+	}
 
 	/* XXX we may want to extend this to simulate EHCI power management */
 
@@ -282,26 +311,32 @@ static int pci_olpc_write(unsigned int seg, unsigned int bus,
 	 * access after such a write will always be a read to the same BAR.
 	 */
 
-	if ((reg >= 0x10) && (reg < 0x2c)) {
+	if ((reg >= 0x10) && (reg < 0x2c))
+	{
 		/* write is to a BAR */
 		if (value == ~0)
+		{
 			bar_probing = 1;
-	} else {
+		}
+	}
+	else
+	{
 		/*
 		 * No warning on writes to ROM BAR, CMD, LATENCY_TIMER,
 		 * CACHE_LINE_SIZE, or PM registers.
 		 */
 		if ((reg != PCI_ROM_ADDRESS) && (reg != PCI_COMMAND_MASTER) &&
-				(reg != PCI_LATENCY_TIMER) &&
-				(reg != PCI_CACHE_LINE_SIZE) && (reg != 0x44))
+			(reg != PCI_LATENCY_TIMER) &&
+			(reg != PCI_CACHE_LINE_SIZE) && (reg != 0x44))
 			printk(KERN_WARNING "OLPC PCI: Config write to devfn"
-				" %x reg %x value %x\n", devfn, reg, value);
+				   " %x reg %x value %x\n", devfn, reg, value);
 	}
 
 	return 0;
 }
 
-static const struct pci_raw_ops pci_olpc_conf = {
+static const struct pci_raw_ops pci_olpc_conf =
+{
 	.read =	pci_olpc_read,
 	.write = pci_olpc_write,
 };

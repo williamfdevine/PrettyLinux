@@ -43,7 +43,7 @@ static int imx_mmdc_probe(struct platform_device *pdev)
 	/* Get ddr type */
 	val = readl_relaxed(reg);
 	ddr_type = (val & BM_MMDC_MDMISC_DDR_TYPE) >>
-		 BP_MMDC_MDMISC_DDR_TYPE;
+			   BP_MMDC_MDMISC_DDR_TYPE;
 
 	reg = mmdc_base + MMDC_MAPSR;
 
@@ -54,11 +54,14 @@ static int imx_mmdc_probe(struct platform_device *pdev)
 
 	/* Ensure it's successfully enabled */
 	while (!(readl_relaxed(reg) & 1 << BP_MMDC_MAPSR_PSS) && --timeout)
+	{
 		cpu_relax();
+	}
 
-	if (unlikely(!timeout)) {
+	if (unlikely(!timeout))
+	{
 		pr_warn("%s: failed to enable automatic power saving\n",
-			__func__);
+				__func__);
 		return -EBUSY;
 	}
 
@@ -70,12 +73,14 @@ int imx_mmdc_get_ddr_type(void)
 	return ddr_type;
 }
 
-static const struct of_device_id imx_mmdc_dt_ids[] = {
+static const struct of_device_id imx_mmdc_dt_ids[] =
+{
 	{ .compatible = "fsl,imx6q-mmdc", },
 	{ /* sentinel */ }
 };
 
-static struct platform_driver imx_mmdc_driver = {
+static struct platform_driver imx_mmdc_driver =
+{
 	.driver		= {
 		.name	= "imx-mmdc",
 		.of_match_table = imx_mmdc_dt_ids,

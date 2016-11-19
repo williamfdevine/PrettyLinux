@@ -27,43 +27,49 @@ struct device;
 #define RAM_OFFSET_MASK 0x3fffffffUL
 
 static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr,
-	size_t size)
+		size_t size)
 {
 	dma_addr_t pa = virt_to_phys(addr) & RAM_OFFSET_MASK;
 
 	if (dev == NULL)
+	{
 		pa += CRIME_HI_MEM_BASE;
+	}
 
 	return pa;
 }
 
 static inline dma_addr_t plat_map_dma_mem_page(struct device *dev,
-	struct page *page)
+		struct page *page)
 {
 	dma_addr_t pa;
 
 	pa = page_to_phys(page) & RAM_OFFSET_MASK;
 
 	if (dev == NULL)
+	{
 		pa += CRIME_HI_MEM_BASE;
+	}
 
 	return pa;
 }
 
 /* This is almost certainly wrong but it's what dma-ip32.c used to use	*/
 static inline unsigned long plat_dma_addr_to_phys(struct device *dev,
-	dma_addr_t dma_addr)
+		dma_addr_t dma_addr)
 {
 	unsigned long addr = dma_addr & RAM_OFFSET_MASK;
 
-	if (dma_addr >= 256*1024*1024)
+	if (dma_addr >= 256 * 1024 * 1024)
+	{
 		addr += CRIME_HI_MEM_BASE;
+	}
 
 	return addr;
 }
 
 static inline void plat_unmap_dma_mem(struct device *dev, dma_addr_t dma_addr,
-	size_t size, enum dma_data_direction direction)
+									  size_t size, enum dma_data_direction direction)
 {
 }
 
@@ -75,7 +81,9 @@ static inline int plat_dma_supported(struct device *dev, u64 mask)
 	 * within a tighter range than GFP_DMA..
 	 */
 	if (mask < DMA_BIT_MASK(24))
+	{
 		return 0;
+	}
 
 	return 1;
 }

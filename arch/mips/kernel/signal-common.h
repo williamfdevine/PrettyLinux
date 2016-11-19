@@ -14,16 +14,16 @@
 /* #define DEBUG_SIG */
 
 #ifdef DEBUG_SIG
-#  define DEBUGP(fmt, args...) printk("%s: " fmt, __func__, ##args)
+	#define DEBUGP(fmt, args...) printk("%s: " fmt, __func__, ##args)
 #else
-#  define DEBUGP(fmt, args...)
+	#define DEBUGP(fmt, args...)
 #endif
 
 /*
  * Determine which stack to use..
  */
 extern void __user *get_sigframe(struct ksignal *ksig, struct pt_regs *regs,
-				 size_t frame_size);
+								 size_t frame_size);
 /* Check and clear pending FPU exceptions in saved CSR */
 extern int fpcsr_pending(unsigned int __user *fpcsr);
 

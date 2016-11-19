@@ -75,7 +75,8 @@
 #define NUM_PTRACE_REG (PTR_MPUACC + 1)
 
 /* User structures for general purpose registers.  */
-struct user_pt_regs {
+struct user_pt_regs
+{
 	__u32		regs[49];
 };
 

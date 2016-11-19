@@ -14,7 +14,8 @@
 #include "sdrc.h"
 
 /* Numonyx  M65KXXXXAM */
-static struct omap_sdrc_params m65kxxxxam_sdrc_params[] = {
+static struct omap_sdrc_params m65kxxxxam_sdrc_params[] =
+{
 	[0] = {
 		.rate		= 200000000,
 		.actim_ctrla	= 0xe321d4c6,

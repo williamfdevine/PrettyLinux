@@ -92,9 +92,9 @@
 #define MD_UREG1_15		0x2200f8 /* uController/UART 1 register	    */
 
 #ifdef CONFIG_SGI_SN_N_MODE
-#define MD_MEM_BANKS		4	 /* 4 banks of memory max in N mode */
+	#define MD_MEM_BANKS		4	 /* 4 banks of memory max in N mode */
 #else
-#define MD_MEM_BANKS		8	 /* 8 banks of memory max in M mode */
+	#define MD_MEM_BANKS		8	 /* 8 banks of memory max in M mode */
 #endif
 
 /*
@@ -149,12 +149,12 @@
 #define MMC_BANK_MASK(_b)	(UINT64_CAST 7 << MMC_BANK_SHFT(_b))
 #define MMC_BANK_ALL_MASK	0xffffff
 #define MMC_RESET_DEFAULTS	(UINT64_CAST 0x0f << MMC_FPROM_CYC_SHFT | \
-				 UINT64_CAST 0x07 << MMC_FPROM_WR_SHFT | \
-				 UINT64_CAST 0x1f << MMC_UCTLR_CYC_SHFT | \
-				 UINT64_CAST 0x0f << MMC_UCTLR_WR_SHFT | \
-				 MMC_IGNORE_ECC | MMC_DIR_PREMIUM | \
-				 UINT64_CAST 0x0f << MMC_REPLY_GUAR_SHFT | \
-				 MMC_BANK_ALL_MASK)
+							 UINT64_CAST 0x07 << MMC_FPROM_WR_SHFT | \
+							 UINT64_CAST 0x1f << MMC_UCTLR_CYC_SHFT | \
+							 UINT64_CAST 0x0f << MMC_UCTLR_WR_SHFT | \
+							 MMC_IGNORE_ECC | MMC_DIR_PREMIUM | \
+							 UINT64_CAST 0x0f << MMC_REPLY_GUAR_SHFT | \
+							 MMC_BANK_ALL_MASK)
 
 /* MD_REFRESH_CONTROL fields */
 
@@ -203,7 +203,7 @@
 #define MLAN_DONE		(UINT64_CAST 0x02)
 #define MLAN_RD_DATA		(UINT64_CAST 0x01)
 #define MLAN_RESET_DEFAULTS	(UINT64_CAST 0x31 << MLAN_PHI1_SHFT | \
-				 UINT64_CAST 0x31 << MLAN_PHI0_SHFT)
+							 UINT64_CAST 0x31 << MLAN_PHI0_SHFT)
 
 /* MD_SLOTID_USTAT bit definitions */
 
@@ -335,10 +335,10 @@
  */
 
 #define MD_PDIR_INIT_LO		(MD_DIR_UNOWNED << MD_PDIR_STATE_SHFT | \
-				 MD_PDIR_AX)
+							 MD_PDIR_AX)
 #define MD_PDIR_INIT_HI		0
 #define MD_PDIR_INIT_PROT	(MD_PROT_RW << MD_PPROT_IO_SHFT | \
-				 MD_PROT_RW << MD_PPROT_SHFT)
+							 MD_PROT_RW << MD_PPROT_SHFT)
 
 /*
  * Standard SIMM directory entry shifts and masks.  Each is valid only in the
@@ -377,7 +377,7 @@
  */
 
 #define MD_SDIR_INIT_LO		(MD_DIR_UNOWNED << MD_SDIR_STATE_SHFT | \
-				 MD_SDIR_AX)
+							 MD_SDIR_AX)
 #define MD_SDIR_INIT_HI		0
 #define MD_SDIR_INIT_PROT	(MD_PROT_RW << MD_SPROT_SHFT)
 
@@ -448,7 +448,7 @@
 #define DIRTYPE_STANDARD 0
 #define MD_MEMORY_CONFIG_DIR_TYPE_GET(region) (\
 	(REMOTE_HUB_L(region, MD_MEMORY_CONFIG) & MMC_DIR_PREMIUM_MASK) >> \
-	MMC_DIR_PREMIUM_SHFT)
+			MMC_DIR_PREMIUM_SHFT)
 
 
 /*
@@ -462,21 +462,21 @@
 
 #define MD_MIG_DIFF_THRESH_SET(region, value) (				\
 	REMOTE_HUB_S((region), MD_MIG_DIFF_THRESH,			\
-		MD_MIG_DIFF_THRES_VALID_MASK | (value)))
+				 MD_MIG_DIFF_THRES_VALID_MASK | (value)))
 
 #define MD_MIG_DIFF_THRESH_DISABLE(region) (			\
 	REMOTE_HUB_S((region), MD_MIG_DIFF_THRESH,			\
-		REMOTE_HUB_L((region), MD_MIG_DIFF_THRESH)		\
-			     & ~MD_MIG_DIFF_THRES_VALID_MASK))
+				 REMOTE_HUB_L((region), MD_MIG_DIFF_THRESH)		\
+				 & ~MD_MIG_DIFF_THRES_VALID_MASK))
 
 #define MD_MIG_DIFF_THRESH_ENABLE(region) (			\
 	REMOTE_HUB_S((region), MD_MIG_DIFF_THRESH,			\
-		REMOTE_HUB_L((region), MD_MIG_DIFF_THRESH)		\
-			     | MD_MIG_DIFF_THRES_VALID_MASK))
+				 REMOTE_HUB_L((region), MD_MIG_DIFF_THRESH)		\
+				 | MD_MIG_DIFF_THRES_VALID_MASK))
 
 #define MD_MIG_DIFF_THRESH_IS_ENABLED(region) (				\
 	REMOTE_HUB_L((region), MD_MIG_DIFF_THRESH) &			\
-	       MD_MIG_DIFF_THRES_VALID_MASK)
+	MD_MIG_DIFF_THRES_VALID_MASK)
 
 #define MD_MIG_VALUE_THRESH_GET(region) (				\
 	REMOTE_HUB_L((region), MD_MIG_VALUE_THRESH) &  \
@@ -484,39 +484,39 @@
 
 #define MD_MIG_VALUE_THRESH_SET(region, value) (			\
 	REMOTE_HUB_S((region), MD_MIG_VALUE_THRESH,			\
-		MD_MIG_VALUE_THRES_VALID_MASK | (value)))
+				 MD_MIG_VALUE_THRES_VALID_MASK | (value)))
 
 #define MD_MIG_VALUE_THRESH_DISABLE(region) (			\
 	REMOTE_HUB_S((region), MD_MIG_VALUE_THRESH,			\
-		REMOTE_HUB_L(region, MD_MIG_VALUE_THRESH)		\
-			     & ~MD_MIG_VALUE_THRES_VALID_MASK))
+				 REMOTE_HUB_L(region, MD_MIG_VALUE_THRESH)		\
+				 & ~MD_MIG_VALUE_THRES_VALID_MASK))
 
 #define MD_MIG_VALUE_THRESH_ENABLE(region) (			\
 	REMOTE_HUB_S((region), MD_MIG_VALUE_THRESH,			\
-		REMOTE_HUB_L((region), MD_MIG_VALUE_THRESH)		\
-			     | MD_MIG_VALUE_THRES_VALID_MASK))
+				 REMOTE_HUB_L((region), MD_MIG_VALUE_THRESH)		\
+				 | MD_MIG_VALUE_THRES_VALID_MASK))
 
 #define MD_MIG_VALUE_THRESH_IS_ENABLED(region) (			\
 	REMOTE_HUB_L((region), MD_MIG_VALUE_THRESH) &			 \
-	       MD_MIG_VALUE_THRES_VALID_MASK)
+	MD_MIG_VALUE_THRES_VALID_MASK)
 
 /*
  * Operations on page migration candidate register
  */
 
 #define MD_MIG_CANDIDATE_GET(my_region_id) ( \
-	REMOTE_HUB_L((my_region_id), MD_MIG_CANDIDATE_CLR))
+		REMOTE_HUB_L((my_region_id), MD_MIG_CANDIDATE_CLR))
 
 #define MD_MIG_CANDIDATE_HWPFN(value) ((value) & MD_MIG_CANDIDATE_ADDR_MASK)
 
 #define MD_MIG_CANDIDATE_NODEID(value) ( \
-	((value) & MD_MIG_CANDIDATE_NODEID_MASK) >> MD_MIG_CANDIDATE_NODEID_SHFT)
+		((value) & MD_MIG_CANDIDATE_NODEID_MASK) >> MD_MIG_CANDIDATE_NODEID_SHFT)
 
 #define MD_MIG_CANDIDATE_TYPE(value) ( \
-	((value) & MD_MIG_CANDIDATE_TYPE_MASK) >> MD_MIG_CANDIDATE_TYPE_SHFT)
+									   ((value) & MD_MIG_CANDIDATE_TYPE_MASK) >> MD_MIG_CANDIDATE_TYPE_SHFT)
 
 #define MD_MIG_CANDIDATE_VALID(value) ( \
-	((value) & MD_MIG_CANDIDATE_VALID_MASK) >> MD_MIG_CANDIDATE_VALID_SHFT)
+										((value) & MD_MIG_CANDIDATE_VALID_MASK) >> MD_MIG_CANDIDATE_VALID_SHFT)
 
 /*
  * Macros to retrieve fields in the protection entry
@@ -524,23 +524,24 @@
 
 /* for Premium SIMM */
 #define MD_PPROT_REFCNT_GET(value) ( \
-	((value) & MD_PPROT_REFCNT_MASK) >> MD_PPROT_REFCNT_SHFT)
+									 ((value) & MD_PPROT_REFCNT_MASK) >> MD_PPROT_REFCNT_SHFT)
 
 #define MD_PPROT_MIGMD_GET(value) ( \
-	((value) & MD_PPROT_MIGMD_MASK) >> MD_PPROT_MIGMD_SHFT)
+									((value) & MD_PPROT_MIGMD_MASK) >> MD_PPROT_MIGMD_SHFT)
 
 /* for Standard SIMM */
 #define MD_SPROT_REFCNT_GET(value) ( \
-	((value) & MD_SPROT_REFCNT_MASK) >> MD_SPROT_REFCNT_SHFT)
+									 ((value) & MD_SPROT_REFCNT_MASK) >> MD_SPROT_REFCNT_SHFT)
 
 #define MD_SPROT_MIGMD_GET(value) ( \
-	((value) & MD_SPROT_MIGMD_MASK) >> MD_SPROT_MIGMD_SHFT)
+									((value) & MD_SPROT_MIGMD_MASK) >> MD_SPROT_MIGMD_SHFT)
 
 /*
  * Format of dir_error, mem_error, protocol_error and misc_error registers
  */
 
-struct dir_error_reg {
+struct dir_error_reg
+{
 	u64	uce_vld:   1,	/*    63: valid directory uce	*/
 		ae_vld:	   1,	/*    62: valid dir prot ecc error */
 		ce_vld:	   1,	/*    61: valid correctable ECC err*/
@@ -548,19 +549,21 @@ struct dir_error_reg {
 		bad_prot:  3,	/* 41-39: encoding, bad access rights*/
 		bad_syn:   7,	/* 38-32: bad dir syndrome	*/
 		rsvd2:	   2,	/* 31-30: reserved		*/
-		hspec_addr:27,	/* 29-03: bddir space bad entry */
+		hspec_addr: 27,	/* 29-03: bddir space bad entry */
 		uce_ovr:   1,	/*     2: multiple dir uce's	*/
 		ae_ovr:	   1,	/*     1: multiple prot ecc errs*/
 		ce_ovr:	   1;	/*     0: multiple correctable errs */
 };
 
-typedef union md_dir_error {
+typedef union md_dir_error
+{
 	u64	derr_reg;	/* the entire register		*/
 	struct dir_error_reg derr_fmt;	/* the register format		*/
 } md_dir_error_t;
 
 
-struct mem_error_reg {
+struct mem_error_reg
+{
 	u64	uce_vld:   1,	/*    63: valid memory uce	*/
 		ce_vld:	   1,	/*    62: valid correctable ECC err*/
 		rsvd1:	  22,	/* 61-40: reserved		*/
@@ -572,76 +575,85 @@ struct mem_error_reg {
 };
 
 
-typedef union md_mem_error {
+typedef union md_mem_error
+{
 	u64	merr_reg;	/* the entire register		*/
 	struct mem_error_reg  merr_fmt; /* format of the mem_error reg	*/
 } md_mem_error_t;
 
 
-struct proto_error_reg {
+struct proto_error_reg
+{
 	u64	valid:	   1,	/*    63: valid protocol error	*/
-		rsvd1:	   2,	/* 62-61: reserved		*/
-		initiator:11,	/* 60-50: id of request initiator*/
-		backoff:   2,	/* 49-48: backoff control	*/
-		msg_type:  8,	/* 47-40: type of request	*/
-		access:	   2,	/* 39-38: access rights of initiator*/
-		priority:  1,	/*    37: priority level of requestor*/
-		dir_state: 4,	/* 36-33: state of directory	*/
-		pointer_me:1,	/*    32: initiator same as dir ptr */
-		address:  29,	/* 31-03: request address	*/
-		rsvd2:	   2,	/* 02-01: reserved		*/
-		overrun:   1;	/*     0: multiple protocol errs */
+		 rsvd1:	   2,	/* 62-61: reserved		*/
+		 initiator: 11,	/* 60-50: id of request initiator*/
+		 backoff:   2,	/* 49-48: backoff control	*/
+		 msg_type:  8,	/* 47-40: type of request	*/
+		 access:	   2,	/* 39-38: access rights of initiator*/
+		 priority:  1,	/*    37: priority level of requestor*/
+		 dir_state: 4,	/* 36-33: state of directory	*/
+		 pointer_me: 1,	/*    32: initiator same as dir ptr */
+		 address:  29,	/* 31-03: request address	*/
+		 rsvd2:	   2,	/* 02-01: reserved		*/
+		 overrun:   1;	/*     0: multiple protocol errs */
 };
 
-typedef union md_proto_error {
+typedef union md_proto_error
+{
 	u64	perr_reg;	/* the entire register		*/
 	struct proto_error_reg	perr_fmt; /* format of the register	*/
 } md_proto_error_t;
 
 
-struct md_sdir_high_fmt {
+struct md_sdir_high_fmt
+{
 	unsigned short sd_hi_bvec : 11,
-		       sd_hi_ecc  : 5;
+			 sd_hi_ecc  : 5;
 };
 
 
-typedef union md_sdir_high {
+typedef union md_sdir_high
+{
 	/* The 16 bits of standard directory, upper word */
 	unsigned short sd_hi_val;
 	struct	md_sdir_high_fmt sd_hi_fmt;
-}md_sdir_high_t;
+} md_sdir_high_t;
 
 
-struct md_sdir_low_shared_fmt {
+struct md_sdir_low_shared_fmt
+{
 	/* The meaning of lower directory, shared */
 	unsigned short	sds_lo_bvec  : 5,
-			sds_lo_unused: 1,
-			sds_lo_state : 3,
-			sds_lo_prio  : 1,
-			sds_lo_ax    : 1,
-			sds_lo_ecc   : 5;
+			  sds_lo_unused: 1,
+			  sds_lo_state : 3,
+			  sds_lo_prio  : 1,
+			  sds_lo_ax    : 1,
+			  sds_lo_ecc   : 5;
 };
 
-struct md_sdir_low_exclusive_fmt {
+struct md_sdir_low_exclusive_fmt
+{
 	/* The meaning of lower directory, exclusive */
 	unsigned short	sde_lo_ptr   : 6,
-			sde_lo_state : 3,
-			sde_lo_prio  : 1,
-			sde_lo_ax    : 1,
-			sde_lo_ecc   : 5;
+			  sde_lo_state : 3,
+			  sde_lo_prio  : 1,
+			  sde_lo_ax    : 1,
+			  sde_lo_ecc   : 5;
 };
 
 
-typedef union md_sdir_low {
+typedef union md_sdir_low
+{
 	/* The 16 bits of standard directory, lower word */
 	unsigned short	sd_lo_val;
 	struct	md_sdir_low_exclusive_fmt sde_lo_fmt;
 	struct	md_sdir_low_shared_fmt sds_lo_fmt;
-}md_sdir_low_t;
+} md_sdir_low_t;
 
 
 
-struct md_pdir_high_fmt {
+struct md_pdir_high_fmt
+{
 	u64	pd_hi_unused   : 16,
 		pd_hi_bvec     : 38,
 		pd_hi_unused1  : 3,
@@ -649,44 +661,48 @@ struct md_pdir_high_fmt {
 };
 
 
-typedef union md_pdir_high {
+typedef union md_pdir_high
+{
 	/* The 48 bits of standard directory, upper word */
 	u64	pd_hi_val;
 	struct md_pdir_high_fmt pd_hi_fmt;
-}md_pdir_high_t;
+} md_pdir_high_t;
 
 
-struct md_pdir_low_shared_fmt {
+struct md_pdir_low_shared_fmt
+{
 	/* The meaning of lower directory, shared */
 	u64	pds_lo_unused	: 16,
-		pds_lo_bvec	: 26,
-		pds_lo_cnt	:  6,
-		pds_lo_state	:  3,
-		pds_lo_ste	:  1,
-		pds_lo_prio	:  4,
-		pds_lo_ax	:  1,
-		pds_lo_ecc	:  7;
+		  pds_lo_bvec	: 26,
+		  pds_lo_cnt	:  6,
+		  pds_lo_state	:  3,
+		  pds_lo_ste	:  1,
+		  pds_lo_prio	:  4,
+		  pds_lo_ax	:  1,
+		  pds_lo_ecc	:  7;
 };
 
-struct md_pdir_low_exclusive_fmt {
+struct md_pdir_low_exclusive_fmt
+{
 	/* The meaning of lower directory, exclusive */
 	u64	pde_lo_unused	: 31,
-		pde_lo_ptr	: 11,
-		pde_lo_unused1	:  6,
-		pde_lo_state	:  3,
-		pde_lo_ste	:  1,
-		pde_lo_prio	:  4,
-		pde_lo_ax	:  1,
-		pde_lo_ecc	:  7;
+		  pde_lo_ptr	: 11,
+		  pde_lo_unused1	:  6,
+		  pde_lo_state	:  3,
+		  pde_lo_ste	:  1,
+		  pde_lo_prio	:  4,
+		  pde_lo_ax	:  1,
+		  pde_lo_ecc	:  7;
 };
 
 
-typedef union md_pdir_loent {
+typedef union md_pdir_loent
+{
 	/* The 48 bits of premium directory, lower word */
 	u64	pd_lo_val;
 	struct md_pdir_low_exclusive_fmt pde_lo_fmt;
 	struct md_pdir_low_shared_fmt	pds_lo_fmt;
-}md_pdir_low_t;
+} md_pdir_low_t;
 
 
 /*
@@ -695,40 +711,48 @@ typedef union md_pdir_loent {
  *   represent directory memory information.
  */
 
-typedef union	md_dir_high	{
+typedef union	md_dir_high
+{
 	md_sdir_high_t	md_sdir_high;
 	md_pdir_high_t	md_pdir_high;
 } md_dir_high_t;
 
-typedef union	md_dir_low	{
+typedef union	md_dir_low
+{
 	md_sdir_low_t	md_sdir_low;
 	md_pdir_low_t	md_pdir_low;
 } md_dir_low_t;
 
-typedef struct	bddir_entry	{
+typedef struct	bddir_entry
+{
 	md_dir_low_t	md_dir_low;
 	md_dir_high_t	md_dir_high;
 } bddir_entry_t;
 
-typedef struct	dir_mem_entry	{
+typedef struct	dir_mem_entry
+{
 	u64		prcpf[MAX_REGIONS];
-	bddir_entry_t	directory_words[MD_PAGE_SIZE/CACHE_SLINE_SIZE];
+	bddir_entry_t	directory_words[MD_PAGE_SIZE / CACHE_SLINE_SIZE];
 } dir_mem_entry_t;
 
 
 
-typedef union md_perf_sel {
+typedef union md_perf_sel
+{
 	u64	perf_sel_reg;
-	struct	{
+	struct
+	{
 		u64	perf_rsvd : 60,
 			perf_en	  :  1,
 			perf_sel  :  3;
 	} perf_sel_bits;
 } md_perf_sel_t;
 
-typedef union md_perf_cnt {
+typedef union md_perf_cnt
+{
 	u64	perf_cnt;
-	struct	{
+	struct
+	{
 		u64	perf_rsvd : 44,
 			perf_cnt  : 20;
 	} perf_cnt_bits;

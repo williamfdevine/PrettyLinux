@@ -31,11 +31,11 @@
 
 #ifdef CONFIG_SMP
 #define LOCK_PREFIX_HERE \
-		".pushsection .smp_locks,\"a\"\n"	\
-		".balign 4\n"				\
-		".long 671f - .\n" /* offset */		\
-		".popsection\n"				\
-		"671:"
+	".pushsection .smp_locks,\"a\"\n"	\
+	".balign 4\n"				\
+	".long 671f - .\n" /* offset */		\
+	".popsection\n"				\
+	"671:"
 
 #define LOCK_PREFIX LOCK_PREFIX_HERE "\n\tlock; "
 
@@ -44,7 +44,8 @@
 #define LOCK_PREFIX ""
 #endif
 
-struct alt_instr {
+struct alt_instr
+{
 	s32 instr_offset;	/* original instruction */
 	s32 repl_offset;	/* offset to replacement instruction */
 	u16 cpuid;		/* cpuid bit set for replacement */
@@ -66,16 +67,16 @@ struct module;
 
 #ifdef CONFIG_SMP
 extern void alternatives_smp_module_add(struct module *mod, char *name,
-					void *locks, void *locks_end,
-					void *text, void *text_end);
+										void *locks, void *locks_end,
+										void *text, void *text_end);
 extern void alternatives_smp_module_del(struct module *mod);
 extern void alternatives_enable_smp(void);
 extern int alternatives_text_reserved(void *start, void *end);
 extern bool skip_smp_alternatives;
 #else
 static inline void alternatives_smp_module_add(struct module *mod, char *name,
-					       void *locks, void *locks_end,
-					       void *text, void *text_end) {}
+		void *locks, void *locks_end,
+		void *text, void *text_end) {}
 static inline void alternatives_smp_module_del(struct module *mod) {}
 static inline void alternatives_enable_smp(void) {}
 static inline int alternatives_text_reserved(void *start, void *end)
@@ -96,7 +97,7 @@ static inline int alternatives_text_reserved(void *start, void *end)
 #define __OLDINSTR(oldinstr, num)					\
 	"661:\n\t" oldinstr "\n662:\n"					\
 	".skip -(((" alt_rlen(num) ")-(" alt_slen ")) > 0) * "		\
-		"((" alt_rlen(num) ")-(" alt_slen ")),0x90\n"
+	"((" alt_rlen(num) ")-(" alt_slen ")),0x90\n"
 
 #define OLDINSTR(oldinstr, num)						\
 	__OLDINSTR(oldinstr, num)					\
@@ -117,7 +118,7 @@ static inline int alternatives_text_reserved(void *start, void *end)
 #define OLDINSTR_2(oldinstr, num1, num2) \
 	"661:\n\t" oldinstr "\n662:\n"								\
 	".skip -((" alt_max_short(alt_rlen(num1), alt_rlen(num2)) " - (" alt_slen ")) > 0) * "	\
-		"(" alt_max_short(alt_rlen(num1), alt_rlen(num2)) " - (" alt_slen ")), 0x90\n"	\
+	"(" alt_max_short(alt_rlen(num1), alt_rlen(num2)) " - (" alt_slen ")), 0x90\n"	\
 	alt_end_marker ":\n"
 
 #define ALTINSTR_ENTRY(feature, num)					      \
@@ -183,7 +184,7 @@ static inline int alternatives_text_reserved(void *start, void *end)
  */
 #define alternative_input(oldinstr, newinstr, feature, input...)	\
 	asm volatile (ALTERNATIVE(oldinstr, newinstr, feature)		\
-		: : "i" (0), ## input)
+				  : : "i" (0), ## input)
 
 /*
  * This is similar to alternative_input. But it has two features and
@@ -194,20 +195,20 @@ static inline int alternatives_text_reserved(void *start, void *end)
  * Otherwise, oldinstr is used.
  */
 #define alternative_input_2(oldinstr, newinstr1, feature1, newinstr2,	     \
-			   feature2, input...)				     \
-	asm volatile(ALTERNATIVE_2(oldinstr, newinstr1, feature1,	     \
-		newinstr2, feature2)					     \
-		: : "i" (0), ## input)
+							feature2, input...)				     \
+asm volatile(ALTERNATIVE_2(oldinstr, newinstr1, feature1,	     \
+						   newinstr2, feature2)					     \
+			 : : "i" (0), ## input)
 
 /* Like alternative_input, but with a single output argument */
 #define alternative_io(oldinstr, newinstr, feature, output, input...)	\
 	asm volatile (ALTERNATIVE(oldinstr, newinstr, feature)		\
-		: output : "i" (0), ## input)
+				  : output : "i" (0), ## input)
 
 /* Like alternative_io, but for replacing a direct call with another one. */
 #define alternative_call(oldfunc, newfunc, feature, output, input...)	\
 	asm volatile (ALTERNATIVE("call %P[old]", "call %P[new]", feature) \
-		: output : [old] "i" (oldfunc), [new] "i" (newfunc), ## input)
+				  : output : [old] "i" (oldfunc), [new] "i" (newfunc), ## input)
 
 /*
  * Like alternative_call, but there are two features and respective functions.
@@ -216,14 +217,14 @@ static inline int alternatives_text_reserved(void *start, void *end)
  * Otherwise, old function is used.
  */
 #define alternative_call_2(oldfunc, newfunc1, feature1, newfunc2, feature2,   \
-			   output, input...)				      \
+						   output, input...)				      \
 {									      \
 	register void *__sp asm(_ASM_SP);				      \
 	asm volatile (ALTERNATIVE_2("call %P[old]", "call %P[new1]", feature1,\
-		"call %P[new2]", feature2)				      \
-		: output, "+r" (__sp)					      \
-		: [old] "i" (oldfunc), [new1] "i" (newfunc1),		      \
-		  [new2] "i" (newfunc2), ## input);			      \
+								"call %P[new2]", feature2)				      \
+				  : output, "+r" (__sp)					      \
+				  : [old] "i" (oldfunc), [new1] "i" (newfunc1),		      \
+				  [new2] "i" (newfunc2), ## input);			      \
 }
 
 /*

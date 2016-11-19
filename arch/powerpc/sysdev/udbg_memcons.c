@@ -24,7 +24,8 @@
 #include <asm/processor.h>
 #include <asm/udbg.h>
 
-struct memcons {
+struct memcons
+{
 	char *output_start;
 	char *output_pos;
 	char *output_end;
@@ -36,7 +37,8 @@ struct memcons {
 static char memcons_output[CONFIG_PPC_MEMCONS_OUTPUT_SIZE];
 static char memcons_input[CONFIG_PPC_MEMCONS_INPUT_SIZE];
 
-struct memcons memcons = {
+struct memcons memcons =
+{
 	.output_start = memcons_output,
 	.output_pos = memcons_output,
 	.output_end = &memcons_output[CONFIG_PPC_MEMCONS_OUTPUT_SIZE],
@@ -52,8 +54,11 @@ void memcons_putc(char c)
 	*memcons.output_pos = c;
 	wmb();
 	new_output_pos = memcons.output_pos + 1;
+
 	if (new_output_pos >= memcons.output_end)
+	{
 		new_output_pos = memcons.output_start;
+	}
 
 	memcons.output_pos = new_output_pos;
 }
@@ -63,14 +68,20 @@ int memcons_getc_poll(void)
 	char c;
 	char *new_input_pos;
 
-	if (*memcons.input_pos) {
+	if (*memcons.input_pos)
+	{
 		c = *memcons.input_pos;
 
 		new_input_pos = memcons.input_pos + 1;
+
 		if (new_input_pos >= memcons.input_end)
+		{
 			new_input_pos = memcons.input_start;
+		}
 		else if (*new_input_pos == '\0')
+		{
 			new_input_pos = memcons.input_start;
+		}
 
 		*memcons.input_pos = '\0';
 		wmb();
@@ -85,12 +96,18 @@ int memcons_getc(void)
 {
 	int c;
 
-	while (1) {
+	while (1)
+	{
 		c = memcons_getc_poll();
+
 		if (c == -1)
+		{
 			cpu_relax();
+		}
 		else
+		{
 			break;
+		}
 	}
 
 	return c;

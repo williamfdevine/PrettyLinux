@@ -26,35 +26,41 @@ MODULE_AUTHOR("Ard Biesheuvel <ard.biesheuvel@linaro.org>");
 MODULE_LICENSE("GPL v2");
 
 asmlinkage void sha2_ce_transform(struct sha256_state *sst, u8 const *src,
-				  int blocks);
+								  int blocks);
 
 static int sha2_ce_update(struct shash_desc *desc, const u8 *data,
-			  unsigned int len)
+						  unsigned int len)
 {
 	struct sha256_state *sctx = shash_desc_ctx(desc);
 
 	if (!may_use_simd() ||
-	    (sctx->count % SHA256_BLOCK_SIZE) + len < SHA256_BLOCK_SIZE)
+		(sctx->count % SHA256_BLOCK_SIZE) + len < SHA256_BLOCK_SIZE)
+	{
 		return crypto_sha256_arm_update(desc, data, len);
+	}
 
 	kernel_neon_begin();
 	sha256_base_do_update(desc, data, len,
-			      (sha256_block_fn *)sha2_ce_transform);
+						  (sha256_block_fn *)sha2_ce_transform);
 	kernel_neon_end();
 
 	return 0;
 }
 
 static int sha2_ce_finup(struct shash_desc *desc, const u8 *data,
-			 unsigned int len, u8 *out)
+						 unsigned int len, u8 *out)
 {
 	if (!may_use_simd())
+	{
 		return crypto_sha256_arm_finup(desc, data, len, out);
+	}
 
 	kernel_neon_begin();
+
 	if (len)
 		sha256_base_do_update(desc, data, len,
-				      (sha256_block_fn *)sha2_ce_transform);
+							  (sha256_block_fn *)sha2_ce_transform);
+
 	sha256_base_do_finalize(desc, (sha256_block_fn *)sha2_ce_transform);
 	kernel_neon_end();
 
@@ -67,41 +73,45 @@ static int sha2_ce_final(struct shash_desc *desc, u8 *out)
 }
 
 static struct shash_alg algs[] = { {
-	.init			= sha224_base_init,
-	.update			= sha2_ce_update,
-	.final			= sha2_ce_final,
-	.finup			= sha2_ce_finup,
-	.descsize		= sizeof(struct sha256_state),
-	.digestsize		= SHA224_DIGEST_SIZE,
-	.base			= {
-		.cra_name		= "sha224",
-		.cra_driver_name	= "sha224-ce",
-		.cra_priority		= 300,
-		.cra_flags		= CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize		= SHA256_BLOCK_SIZE,
-		.cra_module		= THIS_MODULE,
+		.init			= sha224_base_init,
+		.update			= sha2_ce_update,
+		.final			= sha2_ce_final,
+		.finup			= sha2_ce_finup,
+		.descsize		= sizeof(struct sha256_state),
+		.digestsize		= SHA224_DIGEST_SIZE,
+		.base			= {
+			.cra_name		= "sha224",
+			.cra_driver_name	= "sha224-ce",
+			.cra_priority		= 300,
+			.cra_flags		= CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize		= SHA256_BLOCK_SIZE,
+			.cra_module		= THIS_MODULE,
+		}
+	}, {
+		.init			= sha256_base_init,
+		.update			= sha2_ce_update,
+		.final			= sha2_ce_final,
+		.finup			= sha2_ce_finup,
+		.descsize		= sizeof(struct sha256_state),
+		.digestsize		= SHA256_DIGEST_SIZE,
+		.base			= {
+			.cra_name		= "sha256",
+			.cra_driver_name	= "sha256-ce",
+			.cra_priority		= 300,
+			.cra_flags		= CRYPTO_ALG_TYPE_SHASH,
+			.cra_blocksize		= SHA256_BLOCK_SIZE,
+			.cra_module		= THIS_MODULE,
+		}
 	}
-}, {
-	.init			= sha256_base_init,
-	.update			= sha2_ce_update,
-	.final			= sha2_ce_final,
-	.finup			= sha2_ce_finup,
-	.descsize		= sizeof(struct sha256_state),
-	.digestsize		= SHA256_DIGEST_SIZE,
-	.base			= {
-		.cra_name		= "sha256",
-		.cra_driver_name	= "sha256-ce",
-		.cra_priority		= 300,
-		.cra_flags		= CRYPTO_ALG_TYPE_SHASH,
-		.cra_blocksize		= SHA256_BLOCK_SIZE,
-		.cra_module		= THIS_MODULE,
-	}
-} };
+};
 
 static int __init sha2_ce_mod_init(void)
 {
 	if (!(elf_hwcap2 & HWCAP2_SHA2))
+	{
 		return -ENODEV;
+	}
+
 	return crypto_register_shashes(algs, ARRAY_SIZE(algs));
 }
 

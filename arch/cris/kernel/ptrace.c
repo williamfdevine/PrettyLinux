@@ -31,37 +31,53 @@ extern int do_signal(int canrestart, struct pt_regs *regs);
 
 
 void do_notify_resume(int canrestart, struct pt_regs *regs,
-		      __u32 thread_info_flags)
+					  __u32 thread_info_flags)
 {
 	/* deal with pending signal delivery */
 	if (thread_info_flags & _TIF_SIGPENDING)
-		do_signal(canrestart,regs);
+	{
+		do_signal(canrestart, regs);
+	}
 
-	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}
 }
 
 void do_work_pending(int syscall, struct pt_regs *regs,
-		     unsigned int thread_flags)
+					 unsigned int thread_flags)
 {
-	do {
-		if (likely(thread_flags & _TIF_NEED_RESCHED)) {
+	do
+	{
+		if (likely(thread_flags & _TIF_NEED_RESCHED))
+		{
 			schedule();
-		} else {
+		}
+		else
+		{
 			if (unlikely(!user_mode(regs)))
+			{
 				return;
+			}
+
 			local_irq_enable();
-			if (thread_flags & _TIF_SIGPENDING) {
+
+			if (thread_flags & _TIF_SIGPENDING)
+			{
 				do_signal(syscall, regs);
 				syscall = 0;
-			} else {
+			}
+			else
+			{
 				clear_thread_flag(TIF_NOTIFY_RESUME);
 				tracehook_notify_resume(regs);
 			}
 		}
+
 		local_irq_disable();
 		thread_flags = current_thread_info()->flags;
-	} while (thread_flags & _TIF_WORK_MASK);
+	}
+	while (thread_flags & _TIF_WORK_MASK);
 }

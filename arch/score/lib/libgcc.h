@@ -25,11 +25,13 @@
 
 typedef int word_type __attribute__((mode(__word__)));
 
-struct DWstruct {
+struct DWstruct
+{
 	int low, high;
 };
 
-typedef union {
+typedef union
+{
 	struct DWstruct s;
 	long long ll;
 } DWunion;

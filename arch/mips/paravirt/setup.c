@@ -48,11 +48,16 @@ void __init prom_init(void)
 	set_io_port_base(PHYS_TO_XKSEG_UNCACHED(0x1e000000));
 #endif
 
-	for (i = 0; i < argc; i++) {
+	for (i = 0; i < argc; i++)
+	{
 		strlcat(arcs_cmdline, argv[i], COMMAND_LINE_SIZE);
+
 		if (i < argc - 1)
+		{
 			strlcat(arcs_cmdline, " ", COMMAND_LINE_SIZE);
+		}
 	}
+
 	_machine_halt = pv_machine_halt;
 	register_smp_ops(&paravirt_smp_ops);
 }

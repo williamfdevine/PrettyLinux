@@ -73,17 +73,17 @@
 
 #ifndef __ASSEMBLY__
 
-#include <linux/interrupt.h>
-#include <linux/spinlock.h>
-#include <linux/types.h>
+	#include <linux/interrupt.h>
+	#include <linux/spinlock.h>
+	#include <linux/types.h>
 
-struct pt_regs;
+	struct pt_regs;
 
-extern u16 cached_kn01_csr;
+	extern u16 cached_kn01_csr;
 
-extern void dec_kn01_be_init(void);
-extern int dec_kn01_be_handler(struct pt_regs *regs, int is_fixup);
-extern irqreturn_t dec_kn01_be_interrupt(int irq, void *dev_id);
+	extern void dec_kn01_be_init(void);
+	extern int dec_kn01_be_handler(struct pt_regs *regs, int is_fixup);
+	extern irqreturn_t dec_kn01_be_interrupt(int irq, void *dev_id);
 #endif
 
 #endif /* __ASM_MIPS_DEC_KN01_H */

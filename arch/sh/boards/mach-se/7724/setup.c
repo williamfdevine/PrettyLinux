@@ -67,13 +67,15 @@
  */
 
 /* Heartbeat */
-static struct resource heartbeat_resource = {
+static struct resource heartbeat_resource =
+{
 	.start  = PA_LED,
 	.end    = PA_LED,
 	.flags  = IORESOURCE_MEM | IORESOURCE_MEM_16BIT,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name           = "heartbeat",
 	.id             = -1,
 	.num_resources  = 1,
@@ -81,11 +83,13 @@ static struct platform_device heartbeat_device = {
 };
 
 /* LAN91C111 */
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
 };
 
-static struct resource smc91x_eth_resources[] = {
+static struct resource smc91x_eth_resources[] =
+{
 	[0] = {
 		.name   = "SMC91C111" ,
 		.start  = 0x1a300300,
@@ -98,7 +102,8 @@ static struct resource smc91x_eth_resources[] = {
 	},
 };
 
-static struct platform_device smc91x_eth_device = {
+static struct platform_device smc91x_eth_device =
+{
 	.name	= "smc91x",
 	.num_resources  = ARRAY_SIZE(smc91x_eth_resources),
 	.resource       = smc91x_eth_resources,
@@ -108,7 +113,8 @@ static struct platform_device smc91x_eth_device = {
 };
 
 /* MTD */
-static struct mtd_partition nor_flash_partitions[] = {
+static struct mtd_partition nor_flash_partitions[] =
+{
 	{
 		.name = "uboot",
 		.offset = 0,
@@ -125,13 +131,15 @@ static struct mtd_partition nor_flash_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data nor_flash_data = {
+static struct physmap_flash_data nor_flash_data =
+{
 	.width		= 2,
 	.parts		= nor_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(nor_flash_partitions),
 };
 
-static struct resource nor_flash_resources[] = {
+static struct resource nor_flash_resources[] =
+{
 	[0] = {
 		.name	= "NOR Flash",
 		.start	= 0x00000000,
@@ -140,7 +148,8 @@ static struct resource nor_flash_resources[] = {
 	}
 };
 
-static struct platform_device nor_flash_device = {
+static struct platform_device nor_flash_device =
+{
 	.name		= "physmap-flash",
 	.resource	= nor_flash_resources,
 	.num_resources	= ARRAY_SIZE(nor_flash_resources),
@@ -150,7 +159,8 @@ static struct platform_device nor_flash_device = {
 };
 
 /* LCDC */
-static const struct fb_videomode lcdc_720p_modes[] = {
+static const struct fb_videomode lcdc_720p_modes[] =
+{
 	{
 		.name		= "LB070WV1",
 		.sync		= 0, /* hsync and vsync are active low */
@@ -165,7 +175,8 @@ static const struct fb_videomode lcdc_720p_modes[] = {
 	},
 };
 
-static const struct fb_videomode lcdc_vga_modes[] = {
+static const struct fb_videomode lcdc_vga_modes[] =
+{
 	{
 		.name		= "LB070WV1",
 		.sync		= 0, /* hsync and vsync are active low */
@@ -180,7 +191,8 @@ static const struct fb_videomode lcdc_vga_modes[] = {
 	},
 };
 
-static struct sh_mobile_lcdc_info lcdc_info = {
+static struct sh_mobile_lcdc_info lcdc_info =
+{
 	.clock_source = LCDC_CLK_EXTERNAL,
 	.ch[0] = {
 		.chan = LCDC_CHAN_MAINLCD,
@@ -193,7 +205,8 @@ static struct sh_mobile_lcdc_info lcdc_info = {
 	}
 };
 
-static struct resource lcdc_resources[] = {
+static struct resource lcdc_resources[] =
+{
 	[0] = {
 		.name	= "LCDC",
 		.start	= 0xfe940000,
@@ -206,7 +219,8 @@ static struct resource lcdc_resources[] = {
 	},
 };
 
-static struct platform_device lcdc_device = {
+static struct platform_device lcdc_device =
+{
 	.name		= "sh_mobile_lcdc_fb",
 	.num_resources	= ARRAY_SIZE(lcdc_resources),
 	.resource	= lcdc_resources,
@@ -216,11 +230,13 @@ static struct platform_device lcdc_device = {
 };
 
 /* CEU0 */
-static struct sh_mobile_ceu_info sh_mobile_ceu0_info = {
+static struct sh_mobile_ceu_info sh_mobile_ceu0_info =
+{
 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
 };
 
-static struct resource ceu0_resources[] = {
+static struct resource ceu0_resources[] =
+{
 	[0] = {
 		.name	= "CEU0",
 		.start	= 0xfe910000,
@@ -236,7 +252,8 @@ static struct resource ceu0_resources[] = {
 	},
 };
 
-static struct platform_device ceu0_device = {
+static struct platform_device ceu0_device =
+{
 	.name		= "sh_mobile_ceu",
 	.id             = 0, /* "ceu0" clock */
 	.num_resources	= ARRAY_SIZE(ceu0_resources),
@@ -247,11 +264,13 @@ static struct platform_device ceu0_device = {
 };
 
 /* CEU1 */
-static struct sh_mobile_ceu_info sh_mobile_ceu1_info = {
+static struct sh_mobile_ceu_info sh_mobile_ceu1_info =
+{
 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
 };
 
-static struct resource ceu1_resources[] = {
+static struct resource ceu1_resources[] =
+{
 	[0] = {
 		.name	= "CEU1",
 		.start	= 0xfe914000,
@@ -267,7 +286,8 @@ static struct resource ceu1_resources[] = {
 	},
 };
 
-static struct platform_device ceu1_device = {
+static struct platform_device ceu1_device =
+{
 	.name		= "sh_mobile_ceu",
 	.id             = 1, /* "ceu1" clock */
 	.num_resources	= ARRAY_SIZE(ceu1_resources),
@@ -279,7 +299,8 @@ static struct platform_device ceu1_device = {
 
 /* FSI */
 /* change J20, J21, J22 pin to 1-2 connection to use slave mode */
-static struct resource fsi_resources[] = {
+static struct resource fsi_resources[] =
+{
 	[0] = {
 		.name	= "FSI",
 		.start	= 0xFE3C0000,
@@ -292,14 +313,16 @@ static struct resource fsi_resources[] = {
 	},
 };
 
-static struct platform_device fsi_device = {
+static struct platform_device fsi_device =
+{
 	.name		= "sh_fsi",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(fsi_resources),
 	.resource	= fsi_resources,
 };
 
-static struct asoc_simple_card_info fsi_ak4642_info = {
+static struct asoc_simple_card_info fsi_ak4642_info =
+{
 	.name		= "AK4642",
 	.card		= "FSIA-AK4642",
 	.codec		= "ak4642-codec.0-0012",
@@ -314,7 +337,8 @@ static struct asoc_simple_card_info fsi_ak4642_info = {
 	},
 };
 
-static struct platform_device fsi_ak4642_device = {
+static struct platform_device fsi_ak4642_device =
+{
 	.name	= "asoc-simple-card",
 	.dev	= {
 		.platform_data	= &fsi_ak4642_info,
@@ -322,7 +346,8 @@ static struct platform_device fsi_ak4642_device = {
 };
 
 /* KEYSC in SoC (Needs SW33-2 set to ON) */
-static struct sh_keysc_info keysc_info = {
+static struct sh_keysc_info keysc_info =
+{
 	.mode = SH_KEYSC_MODE_1,
 	.scan_timing = 3,
 	.delay = 50,
@@ -336,7 +361,8 @@ static struct sh_keysc_info keysc_info = {
 	},
 };
 
-static struct resource keysc_resources[] = {
+static struct resource keysc_resources[] =
+{
 	[0] = {
 		.name	= "KEYSC",
 		.start  = 0x044b0000,
@@ -349,7 +375,8 @@ static struct resource keysc_resources[] = {
 	},
 };
 
-static struct platform_device keysc_device = {
+static struct platform_device keysc_device =
+{
 	.name           = "sh_keysc",
 	.id             = 0, /* "keysc0" clock */
 	.num_resources  = ARRAY_SIZE(keysc_resources),
@@ -360,7 +387,8 @@ static struct platform_device keysc_device = {
 };
 
 /* SH Eth */
-static struct resource sh_eth_resources[] = {
+static struct resource sh_eth_resources[] =
+{
 	[0] = {
 		.start = SH_ETH_ADDR,
 		.end   = SH_ETH_ADDR + 0x1FC - 1,
@@ -372,13 +400,15 @@ static struct resource sh_eth_resources[] = {
 	},
 };
 
-static struct sh_eth_plat_data sh_eth_plat = {
+static struct sh_eth_plat_data sh_eth_plat =
+{
 	.phy = 0x1f, /* SMSC LAN8187 */
 	.edmac_endian = EDMAC_LITTLE_ENDIAN,
 	.phy_interface = PHY_INTERFACE_MODE_MII,
 };
 
-static struct platform_device sh_eth_device = {
+static struct platform_device sh_eth_device =
+{
 	.name = "sh7724-ether",
 	.id = 0,
 	.dev = {
@@ -388,11 +418,13 @@ static struct platform_device sh_eth_device = {
 	.resource = sh_eth_resources,
 };
 
-static struct r8a66597_platdata sh7724_usb0_host_data = {
+static struct r8a66597_platdata sh7724_usb0_host_data =
+{
 	.on_chip = 1,
 };
 
-static struct resource sh7724_usb0_host_resources[] = {
+static struct resource sh7724_usb0_host_resources[] =
+{
 	[0] = {
 		.start	= 0xa4d80000,
 		.end	= 0xa4d80124 - 1,
@@ -405,7 +437,8 @@ static struct resource sh7724_usb0_host_resources[] = {
 	},
 };
 
-static struct platform_device sh7724_usb0_host_device = {
+static struct platform_device sh7724_usb0_host_device =
+{
 	.name		= "r8a66597_hcd",
 	.id		= 0,
 	.dev = {
@@ -417,11 +450,13 @@ static struct platform_device sh7724_usb0_host_device = {
 	.resource	= sh7724_usb0_host_resources,
 };
 
-static struct r8a66597_platdata sh7724_usb1_gadget_data = {
+static struct r8a66597_platdata sh7724_usb1_gadget_data =
+{
 	.on_chip = 1,
 };
 
-static struct resource sh7724_usb1_gadget_resources[] = {
+static struct resource sh7724_usb1_gadget_resources[] =
+{
 	[0] = {
 		.start	= 0xa4d90000,
 		.end	= 0xa4d90123,
@@ -434,7 +469,8 @@ static struct resource sh7724_usb1_gadget_resources[] = {
 	},
 };
 
-static struct platform_device sh7724_usb1_gadget_device = {
+static struct platform_device sh7724_usb1_gadget_device =
+{
 	.name		= "r8a66597_udc",
 	.id		= 1, /* USB1 */
 	.dev = {
@@ -455,7 +491,8 @@ static struct regulator_consumer_supply fixed3v3_power_consumers[] =
 	REGULATOR_SUPPLY("vqmmc", "sh_mobile_sdhi.1"),
 };
 
-static struct resource sdhi0_cn7_resources[] = {
+static struct resource sdhi0_cn7_resources[] =
+{
 	[0] = {
 		.name	= "SDHI0",
 		.start  = 0x04ce0000,
@@ -468,13 +505,15 @@ static struct resource sdhi0_cn7_resources[] = {
 	},
 };
 
-static struct tmio_mmc_data sh7724_sdhi0_data = {
+static struct tmio_mmc_data sh7724_sdhi0_data =
+{
 	.chan_priv_tx	= (void *)SHDMA_SLAVE_SDHI0_TX,
 	.chan_priv_rx	= (void *)SHDMA_SLAVE_SDHI0_RX,
 	.capabilities	= MMC_CAP_SDIO_IRQ,
 };
 
-static struct platform_device sdhi0_cn7_device = {
+static struct platform_device sdhi0_cn7_device =
+{
 	.name           = "sh_mobile_sdhi",
 	.id		= 0,
 	.num_resources  = ARRAY_SIZE(sdhi0_cn7_resources),
@@ -484,7 +523,8 @@ static struct platform_device sdhi0_cn7_device = {
 	},
 };
 
-static struct resource sdhi1_cn8_resources[] = {
+static struct resource sdhi1_cn8_resources[] =
+{
 	[0] = {
 		.name	= "SDHI1",
 		.start  = 0x04cf0000,
@@ -497,13 +537,15 @@ static struct resource sdhi1_cn8_resources[] = {
 	},
 };
 
-static struct tmio_mmc_data sh7724_sdhi1_data = {
+static struct tmio_mmc_data sh7724_sdhi1_data =
+{
 	.chan_priv_tx	= (void *)SHDMA_SLAVE_SDHI1_TX,
 	.chan_priv_rx	= (void *)SHDMA_SLAVE_SDHI1_RX,
 	.capabilities	= MMC_CAP_SDIO_IRQ,
 };
 
-static struct platform_device sdhi1_cn8_device = {
+static struct platform_device sdhi1_cn8_device =
+{
 	.name           = "sh_mobile_sdhi",
 	.id		= 1,
 	.num_resources  = ARRAY_SIZE(sdhi1_cn8_resources),
@@ -514,7 +556,8 @@ static struct platform_device sdhi1_cn8_device = {
 };
 
 /* IrDA */
-static struct resource irda_resources[] = {
+static struct resource irda_resources[] =
+{
 	[0] = {
 		.name	= "IrDA",
 		.start  = 0xA45D0000,
@@ -527,7 +570,8 @@ static struct resource irda_resources[] = {
 	},
 };
 
-static struct platform_device irda_device = {
+static struct platform_device irda_device =
+{
 	.name           = "sh_sir",
 	.num_resources  = ARRAY_SIZE(irda_resources),
 	.resource       = irda_resources,
@@ -536,24 +580,28 @@ static struct platform_device irda_device = {
 #include <media/i2c/ak881x.h>
 #include <media/drv-intf/sh_vou.h>
 
-static struct ak881x_pdata ak881x_pdata = {
+static struct ak881x_pdata ak881x_pdata =
+{
 	.flags = AK881X_IF_MODE_SLAVE,
 };
 
-static struct i2c_board_info ak8813 = {
+static struct i2c_board_info ak8813 =
+{
 	/* With open J18 jumper address is 0x21 */
 	I2C_BOARD_INFO("ak8813", 0x20),
 	.platform_data = &ak881x_pdata,
 };
 
-static struct sh_vou_pdata sh_vou_pdata = {
+static struct sh_vou_pdata sh_vou_pdata =
+{
 	.bus_fmt	= SH_VOU_BUS_8BIT,
 	.flags		= SH_VOU_HSYNC_LOW | SH_VOU_VSYNC_LOW,
 	.board_info	= &ak8813,
 	.i2c_adap	= 0,
 };
 
-static struct resource sh_vou_resources[] = {
+static struct resource sh_vou_resources[] =
+{
 	[0] = {
 		.start  = 0xfe960000,
 		.end    = 0xfe962043,
@@ -565,7 +613,8 @@ static struct resource sh_vou_resources[] = {
 	},
 };
 
-static struct platform_device vou_device = {
+static struct platform_device vou_device =
+{
 	.name           = "sh-vou",
 	.id		= -1,
 	.num_resources  = ARRAY_SIZE(sh_vou_resources),
@@ -575,7 +624,8 @@ static struct platform_device vou_device = {
 	},
 };
 
-static struct platform_device *ms7724se_devices[] __initdata = {
+static struct platform_device *ms7724se_devices[] __initdata =
+{
 	&heartbeat_device,
 	&smc91x_eth_device,
 	&lcdc_device,
@@ -595,7 +645,8 @@ static struct platform_device *ms7724se_devices[] __initdata = {
 };
 
 /* I2C device */
-static struct i2c_board_info i2c0_devices[] = {
+static struct i2c_board_info i2c0_devices[] =
+{
 	{
 		I2C_BOARD_INFO("ak4642", 0x12),
 	},
@@ -611,9 +662,13 @@ static int __init sh_eth_is_eeprom_ready(void)
 {
 	int t = 10000;
 
-	while (t--) {
+	while (t--)
+	{
 		if (!__raw_readw(EEPROM_STAT))
+		{
 			return 1;
+		}
+
 		udelay(1);
 	}
 
@@ -628,15 +683,21 @@ static void __init sh_eth_init(void)
 
 	/* check EEPROM status */
 	if (!sh_eth_is_eeprom_ready())
+	{
 		return;
+	}
 
 	/* read MAC addr from EEPROM */
-	for (i = 0 ; i < 3 ; i++) {
+	for (i = 0 ; i < 3 ; i++)
+	{
 		__raw_writew(0x0, EEPROM_OP); /* read */
-		__raw_writew(i*2, EEPROM_ADR);
+		__raw_writew(i * 2, EEPROM_ADR);
 		__raw_writew(0x1, EEPROM_STRT);
+
 		if (!sh_eth_is_eeprom_ready())
+		{
 			return;
+		}
 
 		mac = __raw_readw(EEPROM_DATA);
 		sh_eth_plat.mac_addr[i << 1] = mac & 0xff;
@@ -667,7 +728,7 @@ static int __init arch_setup(void)
 {
 	/* enable I2C device */
 	i2c_register_board_info(0, i2c0_devices,
-				ARRAY_SIZE(i2c0_devices));
+							ARRAY_SIZE(i2c0_devices));
 	return 0;
 }
 arch_initcall(arch_setup);
@@ -680,26 +741,26 @@ static int __init devices_setup(void)
 
 	/* register board specific self-refresh code */
 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF |
-					SUSP_SH_RSTANDBY,
-					&ms7724se_sdram_enter_start,
-					&ms7724se_sdram_enter_end,
-					&ms7724se_sdram_leave_start,
-					&ms7724se_sdram_leave_end);
+									SUSP_SH_RSTANDBY,
+									&ms7724se_sdram_enter_start,
+									&ms7724se_sdram_enter_end,
+									&ms7724se_sdram_leave_start,
+									&ms7724se_sdram_leave_end);
 
 	regulator_register_always_on(0, "fixed-3.3V", fixed3v3_power_consumers,
-				     ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
+								 ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
 
 	/* Reset Release */
 	fpga_out = __raw_readw(FPGA_OUT);
 	/* bit4: NTSC_PDN, bit5: NTSC_RESET */
 	fpga_out &= ~((1 << 1)  | /* LAN */
-		      (1 << 4)  | /* AK8813 PDN */
-		      (1 << 5)  | /* AK8813 RESET */
-		      (1 << 6)  | /* VIDEO DAC */
-		      (1 << 7)  | /* AK4643 */
-		      (1 << 8)  | /* IrDA */
-		      (1 << 12) | /* USB0 */
-		      (1 << 14)); /* RMII */
+				  (1 << 4)  | /* AK8813 PDN */
+				  (1 << 5)  | /* AK8813 RESET */
+				  (1 << 6)  | /* VIDEO DAC */
+				  (1 << 7)  | /* AK4643 */
+				  (1 << 8)  | /* IrDA */
+				  (1 << 12) | /* USB0 */
+				  (1 << 14)); /* RMII */
 	__raw_writew(fpga_out | (1 << 4), FPGA_OUT);
 
 	udelay(10);
@@ -840,14 +901,18 @@ static int __init devices_setup(void)
 
 	/* set SPU2 clock to 83.4 MHz */
 	clk = clk_get(NULL, "spu_clk");
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_set_rate(clk, clk_round_rate(clk, 83333333));
 		clk_put(clk);
 	}
 
 	/* change parent of FSI A */
 	clk = clk_get(NULL, "fsia_clk");
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		/* 48kHz dummy clock was used to make sure 1/1 divide */
 		clk_set_rate(&sh7724_fsimcka_clk, 48000);
 		clk_set_parent(clk, &sh7724_fsimcka_clk);
@@ -901,21 +966,27 @@ static int __init devices_setup(void)
 	gpio_direction_input(GPIO_PTX5);
 	sh_eth_init();
 
-	if (sw & SW41_B) {
+	if (sw & SW41_B)
+	{
 		/* 720p */
 		lcdc_info.ch[0].lcd_modes = lcdc_720p_modes;
 		lcdc_info.ch[0].num_modes = ARRAY_SIZE(lcdc_720p_modes);
-	} else {
+	}
+	else
+	{
 		/* VGA */
 		lcdc_info.ch[0].lcd_modes = lcdc_vga_modes;
 		lcdc_info.ch[0].num_modes = ARRAY_SIZE(lcdc_vga_modes);
 	}
 
-	if (sw & SW41_A) {
+	if (sw & SW41_A)
+	{
 		/* Digital monitor */
 		lcdc_info.ch[0].interface_type = RGB18;
 		lcdc_info.ch[0].flags          = 0;
-	} else {
+	}
+	else
+	{
 		/* Analog monitor */
 		lcdc_info.ch[0].interface_type = RGB24;
 		lcdc_info.ch[0].flags          = LCDC_FLAGS_DWPOL;
@@ -936,11 +1007,12 @@ static int __init devices_setup(void)
 	gpio_request(GPIO_FN_DV_HSYNC, NULL);
 
 	return platform_add_devices(ms7724se_devices,
-				    ARRAY_SIZE(ms7724se_devices));
+								ARRAY_SIZE(ms7724se_devices));
 }
 device_initcall(devices_setup);
 
-static struct sh_machine_vector mv_ms7724se __initmv = {
+static struct sh_machine_vector mv_ms7724se __initmv =
+{
 	.mv_name	= "ms7724se",
 	.mv_init_irq	= init_se7724_IRQ,
 };

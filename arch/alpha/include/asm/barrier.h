@@ -61,9 +61,9 @@
 #define read_barrier_depends() __asm__ __volatile__("mb": : :"memory")
 
 #ifdef CONFIG_SMP
-#define __ASM_SMP_MB	"\tmb\n"
+	#define __ASM_SMP_MB	"\tmb\n"
 #else
-#define __ASM_SMP_MB
+	#define __ASM_SMP_MB
 #endif
 
 #include <asm-generic/barrier.h>

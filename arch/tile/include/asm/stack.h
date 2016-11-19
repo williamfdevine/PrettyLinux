@@ -22,7 +22,8 @@
 #include <hv/hypervisor.h>
 
 /* Everything we need to keep track of a backtrace iteration */
-struct KBacktraceIterator {
+struct KBacktraceIterator
+{
 	BacktraceIterator it;
 	struct task_struct *task;     /* task we are backtracing */
 	int end;		      /* iteration complete. */
@@ -43,14 +44,14 @@ struct KBacktraceIterator {
  * information about fault handlers as we pass them on the stack.
  */
 extern void KBacktraceIterator_init(struct KBacktraceIterator *kbt,
-				    struct task_struct *, struct pt_regs *);
+									struct task_struct *, struct pt_regs *);
 
 /* Initialize iterator based on current stack. */
 extern void KBacktraceIterator_init_current(struct KBacktraceIterator *kbt);
 
 /* Helper method for above. */
 extern void _KBacktraceIterator_init_current(struct KBacktraceIterator *kbt,
-				ulong pc, ulong lr, ulong sp, ulong r52);
+		ulong pc, ulong lr, ulong sp, ulong r52);
 
 /* No more frames? */
 extern int KBacktraceIterator_end(struct KBacktraceIterator *kbt);

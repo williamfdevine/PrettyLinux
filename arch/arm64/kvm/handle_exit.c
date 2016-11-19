@@ -39,11 +39,13 @@ static int handle_hvc(struct kvm_vcpu *vcpu, struct kvm_run *run)
 	int ret;
 
 	trace_kvm_hvc_arm64(*vcpu_pc(vcpu), vcpu_get_reg(vcpu, 0),
-			    kvm_vcpu_hvc_get_imm(vcpu));
+						kvm_vcpu_hvc_get_imm(vcpu));
 	vcpu->stat.hvc_exit_stat++;
 
 	ret = kvm_psci_call(vcpu);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kvm_inject_undefined(vcpu);
 		return 1;
 	}
@@ -71,11 +73,14 @@ static int handle_smc(struct kvm_vcpu *vcpu, struct kvm_run *run)
  */
 static int kvm_handle_wfx(struct kvm_vcpu *vcpu, struct kvm_run *run)
 {
-	if (kvm_vcpu_get_hsr(vcpu) & ESR_ELx_WFx_ISS_WFE) {
+	if (kvm_vcpu_get_hsr(vcpu) & ESR_ELx_WFx_ISS_WFE)
+	{
 		trace_kvm_wfx_arm64(*vcpu_pc(vcpu), true);
 		vcpu->stat.wfe_exit_stat++;
 		kvm_vcpu_on_spin(vcpu);
-	} else {
+	}
+	else
+	{
 		trace_kvm_wfx_arm64(*vcpu_pc(vcpu), false);
 		vcpu->stat.wfi_exit_stat++;
 		kvm_vcpu_block(vcpu);
@@ -106,26 +111,30 @@ static int kvm_handle_guest_debug(struct kvm_vcpu *vcpu, struct kvm_run *run)
 	run->exit_reason = KVM_EXIT_DEBUG;
 	run->debug.arch.hsr = hsr;
 
-	switch (ESR_ELx_EC(hsr)) {
-	case ESR_ELx_EC_WATCHPT_LOW:
-		run->debug.arch.far = vcpu->arch.fault.far_el2;
+	switch (ESR_ELx_EC(hsr))
+	{
+		case ESR_ELx_EC_WATCHPT_LOW:
+			run->debug.arch.far = vcpu->arch.fault.far_el2;
+
 		/* fall through */
-	case ESR_ELx_EC_SOFTSTP_LOW:
-	case ESR_ELx_EC_BREAKPT_LOW:
-	case ESR_ELx_EC_BKPT32:
-	case ESR_ELx_EC_BRK64:
-		break;
-	default:
-		kvm_err("%s: un-handled case hsr: %#08x\n",
-			__func__, (unsigned int) hsr);
-		ret = -1;
-		break;
+		case ESR_ELx_EC_SOFTSTP_LOW:
+		case ESR_ELx_EC_BREAKPT_LOW:
+		case ESR_ELx_EC_BKPT32:
+		case ESR_ELx_EC_BRK64:
+			break;
+
+		default:
+			kvm_err("%s: un-handled case hsr: %#08x\n",
+					__func__, (unsigned int) hsr);
+			ret = -1;
+			break;
 	}
 
 	return ret;
 }
 
-static exit_handle_fn arm_exit_handlers[] = {
+static exit_handle_fn arm_exit_handlers[] =
+{
 	[ESR_ELx_EC_WFx]	= kvm_handle_wfx,
 	[ESR_ELx_EC_CP15_32]	= kvm_handle_cp15_32,
 	[ESR_ELx_EC_CP15_64]	= kvm_handle_cp15_64,
@@ -139,9 +148,9 @@ static exit_handle_fn arm_exit_handlers[] = {
 	[ESR_ELx_EC_SYS64]	= kvm_handle_sys_reg,
 	[ESR_ELx_EC_IABT_LOW]	= kvm_handle_guest_abort,
 	[ESR_ELx_EC_DABT_LOW]	= kvm_handle_guest_abort,
-	[ESR_ELx_EC_SOFTSTP_LOW]= kvm_handle_guest_debug,
-	[ESR_ELx_EC_WATCHPT_LOW]= kvm_handle_guest_debug,
-	[ESR_ELx_EC_BREAKPT_LOW]= kvm_handle_guest_debug,
+	[ESR_ELx_EC_SOFTSTP_LOW] = kvm_handle_guest_debug,
+	[ESR_ELx_EC_WATCHPT_LOW] = kvm_handle_guest_debug,
+	[ESR_ELx_EC_BREAKPT_LOW] = kvm_handle_guest_debug,
 	[ESR_ELx_EC_BKPT32]	= kvm_handle_guest_debug,
 	[ESR_ELx_EC_BRK64]	= kvm_handle_guest_debug,
 };
@@ -152,9 +161,10 @@ static exit_handle_fn kvm_get_exit_handler(struct kvm_vcpu *vcpu)
 	u8 hsr_ec = ESR_ELx_EC(hsr);
 
 	if (hsr_ec >= ARRAY_SIZE(arm_exit_handlers) ||
-	    !arm_exit_handlers[hsr_ec]) {
+		!arm_exit_handlers[hsr_ec])
+	{
 		kvm_err("Unknown exception class: hsr: %#08x -- %s\n",
-			hsr, esr_get_class_string(hsr));
+				hsr, esr_get_class_string(hsr));
 		BUG();
 	}
 
@@ -166,11 +176,12 @@ static exit_handle_fn kvm_get_exit_handler(struct kvm_vcpu *vcpu)
  * proper exit to userspace.
  */
 int handle_exit(struct kvm_vcpu *vcpu, struct kvm_run *run,
-		       int exception_index)
+				int exception_index)
 {
 	exit_handle_fn exit_handler;
 
-	if (ARM_SERROR_PENDING(exception_index)) {
+	if (ARM_SERROR_PENDING(exception_index))
+	{
 		u8 hsr_ec = ESR_ELx_EC(kvm_vcpu_get_hsr(vcpu));
 
 		/*
@@ -179,7 +190,8 @@ int handle_exit(struct kvm_vcpu *vcpu, struct kvm_run *run,
 		 * injected the SError.
 		 */
 		if (hsr_ec == ESR_ELx_EC_HVC32 || hsr_ec == ESR_ELx_EC_HVC64 ||
-		    hsr_ec == ESR_ELx_EC_SMC32 || hsr_ec == ESR_ELx_EC_SMC64) {
+			hsr_ec == ESR_ELx_EC_SMC32 || hsr_ec == ESR_ELx_EC_SMC64)
+		{
 			u32 adj =  kvm_vcpu_trap_il_is32bit(vcpu) ? 4 : 2;
 			*vcpu_pc(vcpu) -= adj;
 		}
@@ -190,36 +202,43 @@ int handle_exit(struct kvm_vcpu *vcpu, struct kvm_run *run,
 
 	exception_index = ARM_EXCEPTION_CODE(exception_index);
 
-	switch (exception_index) {
-	case ARM_EXCEPTION_IRQ:
-		return 1;
-	case ARM_EXCEPTION_EL1_SERROR:
-		kvm_inject_vabt(vcpu);
-		return 1;
-	case ARM_EXCEPTION_TRAP:
-		/*
-		 * See ARM ARM B1.14.1: "Hyp traps on instructions
-		 * that fail their condition code check"
-		 */
-		if (!kvm_condition_valid(vcpu)) {
-			kvm_skip_instr(vcpu, kvm_vcpu_trap_il_is32bit(vcpu));
+	switch (exception_index)
+	{
+		case ARM_EXCEPTION_IRQ:
 			return 1;
-		}
 
-		exit_handler = kvm_get_exit_handler(vcpu);
+		case ARM_EXCEPTION_EL1_SERROR:
+			kvm_inject_vabt(vcpu);
+			return 1;
 
-		return exit_handler(vcpu, run);
-	case ARM_EXCEPTION_HYP_GONE:
-		/*
-		 * EL2 has been reset to the hyp-stub. This happens when a guest
-		 * is pre-empted by kvm_reboot()'s shutdown call.
-		 */
-		run->exit_reason = KVM_EXIT_FAIL_ENTRY;
-		return 0;
-	default:
-		kvm_pr_unimpl("Unsupported exception type: %d",
-			      exception_index);
-		run->exit_reason = KVM_EXIT_INTERNAL_ERROR;
-		return 0;
+		case ARM_EXCEPTION_TRAP:
+
+			/*
+			 * See ARM ARM B1.14.1: "Hyp traps on instructions
+			 * that fail their condition code check"
+			 */
+			if (!kvm_condition_valid(vcpu))
+			{
+				kvm_skip_instr(vcpu, kvm_vcpu_trap_il_is32bit(vcpu));
+				return 1;
+			}
+
+			exit_handler = kvm_get_exit_handler(vcpu);
+
+			return exit_handler(vcpu, run);
+
+		case ARM_EXCEPTION_HYP_GONE:
+			/*
+			 * EL2 has been reset to the hyp-stub. This happens when a guest
+			 * is pre-empted by kvm_reboot()'s shutdown call.
+			 */
+			run->exit_reason = KVM_EXIT_FAIL_ENTRY;
+			return 0;
+
+		default:
+			kvm_pr_unimpl("Unsupported exception type: %d",
+						  exception_index);
+			run->exit_reason = KVM_EXIT_INTERNAL_ERROR;
+			return 0;
 	}
 }

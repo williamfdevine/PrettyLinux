@@ -58,16 +58,20 @@ static void __init init_metag_core_clock(void)
 	 */
 	struct device_node *node;
 	node = of_find_compatible_node(NULL, NULL, "img,meta");
-	if (!node) {
+
+	if (!node)
+	{
 		pr_warn("%s: no compatible img,meta DT node found\n",
-			__func__);
+				__func__);
 		return;
 	}
 
 	clk_core = of_clk_get_by_name(node, "core");
-	if (IS_ERR(clk_core)) {
+
+	if (IS_ERR(clk_core))
+	{
 		pr_warn("%s: no core clock found in DT\n",
-			__func__);
+				__func__);
 		return;
 	}
 
@@ -101,10 +105,14 @@ void __init setup_meta_clocks(struct meta_clock_desc *desc)
 {
 	/* copy callbacks */
 	if (desc)
+	{
 		_meta_clock = *desc;
+	}
 
 	/* set fallback functions */
 	if (!_meta_clock.get_core_freq)
+	{
 		_meta_clock.get_core_freq = get_core_freq_default;
+	}
 }
 

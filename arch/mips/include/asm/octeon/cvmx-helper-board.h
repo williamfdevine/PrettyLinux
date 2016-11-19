@@ -36,14 +36,16 @@
 
 #include <asm/octeon/cvmx-helper.h>
 
-enum cvmx_helper_board_usb_clock_types {
+enum cvmx_helper_board_usb_clock_types
+{
 	USB_CLOCK_TYPE_REF_12,
 	USB_CLOCK_TYPE_REF_24,
 	USB_CLOCK_TYPE_REF_48,
 	USB_CLOCK_TYPE_CRYSTAL_12,
 };
 
-typedef enum {
+typedef enum
+{
 	set_phy_link_flags_autoneg = 0x1,
 	set_phy_link_flags_flow_control_dont_touch = 0x0 << 1,
 	set_phy_link_flags_flow_control_enable = 0x1 << 1,
@@ -117,7 +119,7 @@ extern cvmx_helper_link_info_t __cvmx_helper_board_link_get(int ipd_port);
  *	   simple be "support_ports".
  */
 extern int __cvmx_helper_board_interface_probe(int interface,
-					       int supported_ports);
+		int supported_ports);
 
 /**
  * Enable packet input/output from the hardware. This function is

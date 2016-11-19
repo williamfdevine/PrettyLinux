@@ -61,45 +61,45 @@
  */
 
 #if SIBYTE_HDR_FEATURE_1250_112x		/* This MC only on 1250 & 112x */
-#define A_MC_BASE_0		    0x0010051000
-#define A_MC_BASE_1		    0x0010052000
-#define MC_REGISTER_SPACING	    0x1000
+	#define A_MC_BASE_0		    0x0010051000
+	#define A_MC_BASE_1		    0x0010052000
+	#define MC_REGISTER_SPACING	    0x1000
 
-#define A_MC_BASE(ctlid)	    ((ctlid)*MC_REGISTER_SPACING+A_MC_BASE_0)
-#define A_MC_REGISTER(ctlid, reg)    (A_MC_BASE(ctlid)+(reg))
+	#define A_MC_BASE(ctlid)	    ((ctlid)*MC_REGISTER_SPACING+A_MC_BASE_0)
+	#define A_MC_REGISTER(ctlid, reg)    (A_MC_BASE(ctlid)+(reg))
 
-#define R_MC_CONFIG		    0x0000000100
-#define R_MC_DRAMCMD		    0x0000000120
-#define R_MC_DRAMMODE		    0x0000000140
-#define R_MC_TIMING1		    0x0000000160
-#define R_MC_TIMING2		    0x0000000180
-#define R_MC_CS_START		    0x00000001A0
-#define R_MC_CS_END		    0x00000001C0
-#define R_MC_CS_INTERLEAVE	    0x00000001E0
-#define S_MC_CS_STARTEND	    16
+	#define R_MC_CONFIG		    0x0000000100
+	#define R_MC_DRAMCMD		    0x0000000120
+	#define R_MC_DRAMMODE		    0x0000000140
+	#define R_MC_TIMING1		    0x0000000160
+	#define R_MC_TIMING2		    0x0000000180
+	#define R_MC_CS_START		    0x00000001A0
+	#define R_MC_CS_END		    0x00000001C0
+	#define R_MC_CS_INTERLEAVE	    0x00000001E0
+	#define S_MC_CS_STARTEND	    16
 
-#define R_MC_CSX_BASE		    0x0000000200
-#define R_MC_CSX_ROW		    0x0000000000	/* relative to CSX_BASE, above */
-#define R_MC_CSX_COL		    0x0000000020	/* relative to CSX_BASE, above */
-#define R_MC_CSX_BA		    0x0000000040	/* relative to CSX_BASE, above */
-#define MC_CSX_SPACING		    0x0000000060	/* relative to CSX_BASE, above */
+	#define R_MC_CSX_BASE		    0x0000000200
+	#define R_MC_CSX_ROW		    0x0000000000	/* relative to CSX_BASE, above */
+	#define R_MC_CSX_COL		    0x0000000020	/* relative to CSX_BASE, above */
+	#define R_MC_CSX_BA		    0x0000000040	/* relative to CSX_BASE, above */
+	#define MC_CSX_SPACING		    0x0000000060	/* relative to CSX_BASE, above */
 
-#define R_MC_CS0_ROW		    0x0000000200
-#define R_MC_CS0_COL		    0x0000000220
-#define R_MC_CS0_BA		    0x0000000240
-#define R_MC_CS1_ROW		    0x0000000260
-#define R_MC_CS1_COL		    0x0000000280
-#define R_MC_CS1_BA		    0x00000002A0
-#define R_MC_CS2_ROW		    0x00000002C0
-#define R_MC_CS2_COL		    0x00000002E0
-#define R_MC_CS2_BA		    0x0000000300
-#define R_MC_CS3_ROW		    0x0000000320
-#define R_MC_CS3_COL		    0x0000000340
-#define R_MC_CS3_BA		    0x0000000360
-#define R_MC_CS_ATTR		    0x0000000380
-#define R_MC_TEST_DATA		    0x0000000400
-#define R_MC_TEST_ECC		    0x0000000420
-#define R_MC_MCLK_CFG		    0x0000000500
+	#define R_MC_CS0_ROW		    0x0000000200
+	#define R_MC_CS0_COL		    0x0000000220
+	#define R_MC_CS0_BA		    0x0000000240
+	#define R_MC_CS1_ROW		    0x0000000260
+	#define R_MC_CS1_COL		    0x0000000280
+	#define R_MC_CS1_BA		    0x00000002A0
+	#define R_MC_CS2_ROW		    0x00000002C0
+	#define R_MC_CS2_COL		    0x00000002E0
+	#define R_MC_CS2_BA		    0x0000000300
+	#define R_MC_CS3_ROW		    0x0000000320
+	#define R_MC_CS3_COL		    0x0000000340
+	#define R_MC_CS3_BA		    0x0000000360
+	#define R_MC_CS_ATTR		    0x0000000380
+	#define R_MC_TEST_DATA		    0x0000000400
+	#define R_MC_TEST_ECC		    0x0000000420
+	#define R_MC_MCLK_CFG		    0x0000000500
 
 #endif	/* 1250 & 112x */
 
@@ -109,25 +109,25 @@
 
 #if SIBYTE_HDR_FEATURE_1250_112x	/* This L2C only on 1250/112x */
 
-#define A_L2_READ_TAG		    0x0010040018
-#define A_L2_ECC_TAG		    0x0010040038
-#if SIBYTE_HDR_FEATURE(1250, PASS3) || SIBYTE_HDR_FEATURE(112x, PASS1)
-#define A_L2_READ_MISC		    0x0010040058
-#endif /* 1250 PASS3 || 112x PASS1 */
-#define A_L2_WAY_DISABLE	    0x0010041000
-#define A_L2_MAKEDISABLE(x)	    (A_L2_WAY_DISABLE | (((~(x))&0x0F) << 8))
-#define A_L2_MGMT_TAG_BASE	    0x00D0000000
+	#define A_L2_READ_TAG		    0x0010040018
+	#define A_L2_ECC_TAG		    0x0010040038
+	#if SIBYTE_HDR_FEATURE(1250, PASS3) || SIBYTE_HDR_FEATURE(112x, PASS1)
+		#define A_L2_READ_MISC		    0x0010040058
+	#endif /* 1250 PASS3 || 112x PASS1 */
+	#define A_L2_WAY_DISABLE	    0x0010041000
+	#define A_L2_MAKEDISABLE(x)	    (A_L2_WAY_DISABLE | (((~(x))&0x0F) << 8))
+	#define A_L2_MGMT_TAG_BASE	    0x00D0000000
 
-#if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1)
-#define A_L2_CACHE_DISABLE	   0x0010042000
-#define A_L2_MAKECACHEDISABLE(x)   (A_L2_CACHE_DISABLE | (((x)&0x0F) << 8))
-#define A_L2_MISC_CONFIG	   0x0010043000
-#endif /* 1250 PASS2 || 112x PASS1 */
+	#if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1)
+		#define A_L2_CACHE_DISABLE	   0x0010042000
+		#define A_L2_MAKECACHEDISABLE(x)   (A_L2_CACHE_DISABLE | (((x)&0x0F) << 8))
+		#define A_L2_MISC_CONFIG	   0x0010043000
+	#endif /* 1250 PASS2 || 112x PASS1 */
 
-/* Backward-compatibility definitions.	*/
-/* XXX: discourage people from using these constants.  */
-#define A_L2_READ_ADDRESS	    A_L2_READ_TAG
-#define A_L2_EEC_ADDRESS	    A_L2_ECC_TAG
+	/* Backward-compatibility definitions.	*/
+	/* XXX: discourage people from using these constants.  */
+	#define A_L2_READ_ADDRESS	    A_L2_READ_TAG
+	#define A_L2_EEC_ADDRESS	    A_L2_ECC_TAG
 
 #endif
 
@@ -137,8 +137,8 @@
     ********************************************************************* */
 
 #if SIBYTE_HDR_FEATURE_1250_112x	/* This PCI/HT only on 1250/112x */
-#define A_PCI_TYPE00_HEADER	    0x00DE000000
-#define A_PCI_TYPE01_HEADER	    0x00DE000800
+	#define A_PCI_TYPE00_HEADER	    0x00DE000000
+	#define A_PCI_TYPE01_HEADER	    0x00DE000800
 #endif
 
 
@@ -149,7 +149,7 @@
 #define A_MAC_BASE_0		    0x0010064000
 #define A_MAC_BASE_1		    0x0010065000
 #if SIBYTE_HDR_FEATURE_CHIP(1250)
-#define A_MAC_BASE_2		    0x0010066000
+	#define A_MAC_BASE_2		    0x0010066000
 #endif /* 1250 */
 
 #define MAC_SPACING		    0x1000
@@ -163,34 +163,34 @@
 #define MAC_NUM_PORTS		    3
 
 #define A_MAC_CHANNEL_BASE(macnum)		    \
-	    (A_MAC_BASE_0 +			    \
-	     MAC_SPACING*(macnum))
+	(A_MAC_BASE_0 +			    \
+	 MAC_SPACING*(macnum))
 
 #define A_MAC_REGISTER(macnum,reg)		    \
-	    (A_MAC_BASE_0 +			    \
-	     MAC_SPACING*(macnum) + (reg))
+	(A_MAC_BASE_0 +			    \
+	 MAC_SPACING*(macnum) + (reg))
 
 
 #define R_MAC_DMA_CHANNELS		0x800 /* Relative to A_MAC_CHANNEL_BASE */
 
 #define A_MAC_DMA_CHANNEL_BASE(macnum, txrx, chan)  \
-	     ((A_MAC_CHANNEL_BASE(macnum)) +	    \
-	     R_MAC_DMA_CHANNELS +		    \
-	     (MAC_DMA_TXRX_SPACING*(txrx)) +	    \
-	     (MAC_DMA_CHANNEL_SPACING*(chan)))
+	((A_MAC_CHANNEL_BASE(macnum)) +	    \
+	 R_MAC_DMA_CHANNELS +		    \
+	 (MAC_DMA_TXRX_SPACING*(txrx)) +	    \
+	 (MAC_DMA_CHANNEL_SPACING*(chan)))
 
 #define R_MAC_DMA_CHANNEL_BASE(txrx, chan)		\
-	     (R_MAC_DMA_CHANNELS +		     \
-	     (MAC_DMA_TXRX_SPACING*(txrx)) +	    \
-	     (MAC_DMA_CHANNEL_SPACING*(chan)))
+	(R_MAC_DMA_CHANNELS +		     \
+	 (MAC_DMA_TXRX_SPACING*(txrx)) +	    \
+	 (MAC_DMA_CHANNEL_SPACING*(chan)))
 
 #define A_MAC_DMA_REGISTER(macnum, txrx, chan, reg)	      \
-	    (A_MAC_DMA_CHANNEL_BASE(macnum, txrx, chan) +    \
-	    (reg))
+	(A_MAC_DMA_CHANNEL_BASE(macnum, txrx, chan) +    \
+	 (reg))
 
 #define R_MAC_DMA_REGISTER(txrx, chan, reg)	      \
-	    (R_MAC_DMA_CHANNEL_BASE(txrx, chan) +    \
-	    (reg))
+	(R_MAC_DMA_CHANNEL_BASE(txrx, chan) +    \
+	 (reg))
 
 /*
  * DMA channel registers, relative to A_MAC_DMA_CHANNEL_BASE
@@ -204,7 +204,7 @@
 #define R_MAC_DMA_CUR_DSCRB		0x00000028
 #define R_MAC_DMA_CUR_DSCRADDR		0x00000030
 #if SIBYTE_HDR_FEATURE(1250, PASS3) || SIBYTE_HDR_FEATURE(112x, PASS1)
-#define R_MAC_DMA_OODPKTLOST_RX		0x00000038	/* rx only */
+	#define R_MAC_DMA_OODPKTLOST_RX		0x00000038	/* rx only */
 #endif /* 1250 PASS3 || 112x PASS1 */
 
 /*
@@ -245,8 +245,8 @@
 #define R_MAC_ETHERNET_ADDR		0x00000208
 #define R_MAC_PKT_TYPE			0x00000210
 #if SIBYTE_HDR_FEATURE(1250, PASS3) || SIBYTE_HDR_FEATURE(112x, PASS1) || SIBYTE_HDR_FEATURE_CHIP(1480)
-#define R_MAC_ADMASK0			0x00000218
-#define R_MAC_ADMASK1			0x00000220
+	#define R_MAC_ADMASK0			0x00000218
+	#define R_MAC_ADMASK1			0x00000220
 #endif /* 1250 PASS3 || 112x PASS1 || 1480 */
 #define R_MAC_HASH_BASE			0x00000240
 #define R_MAC_ADDR_BASE			0x00000280
@@ -258,7 +258,7 @@
 #define R_MAC_TXD_CTL			0x00000420
 #define R_MAC_MDIO			0x00000428
 #if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1) || SIBYTE_HDR_FEATURE_CHIP(1480)
-#define R_MAC_STATUS1			0x00000430
+	#define R_MAC_STATUS1			0x00000430
 #endif /* 1250 PASS2 || 112x PASS1 || 1480 */
 #define R_MAC_DEBUG_STATUS		0x00000448
 
@@ -292,9 +292,9 @@
 #define R_DUART_TX_HOLD		    0x070
 
 #if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1) || SIBYTE_HDR_FEATURE_CHIP(1480)
-#define R_DUART_FULL_CTL	    0x040
-#define R_DUART_OPCR_X		    0x080
-#define R_DUART_AUXCTL_X	    0x090
+	#define R_DUART_FULL_CTL	    0x040
+	#define R_DUART_OPCR_X		    0x080
+	#define R_DUART_AUXCTL_X	    0x090
 #endif /* 1250 PASS2 || 112x PASS1 || 1480 */
 
 
@@ -374,13 +374,13 @@
 #define A_DUART_INPORT_CHNG_B	    0x00100603E0
 
 #if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1)
-#define A_DUART_FULL_CTL_A	    0x0010060140
-#define A_DUART_FULL_CTL_B	    0x0010060240
+	#define A_DUART_FULL_CTL_A	    0x0010060140
+	#define A_DUART_FULL_CTL_B	    0x0010060240
 
-#define A_DUART_OPCR_A		    0x0010060180
-#define A_DUART_OPCR_B		    0x0010060280
+	#define A_DUART_OPCR_A		    0x0010060180
+	#define A_DUART_OPCR_B		    0x0010060280
 
-#define A_DUART_INPORT_CHNG_DEBUG   0x00100603F0
+	#define A_DUART_INPORT_CHNG_DEBUG   0x00100603F0
 #endif /* 1250 PASS2 || 112x PASS1 */
 
 
@@ -400,24 +400,24 @@
 #define SER_NUM_PORTS		    2
 
 #define A_SER_CHANNEL_BASE(sernum)		    \
-	    (A_SER_BASE_0 +			    \
-	     SER_SPACING*(sernum))
+	(A_SER_BASE_0 +			    \
+	 SER_SPACING*(sernum))
 
 #define A_SER_REGISTER(sernum,reg)		    \
-	    (A_SER_BASE_0 +			    \
-	     SER_SPACING*(sernum) + (reg))
+	(A_SER_BASE_0 +			    \
+	 SER_SPACING*(sernum) + (reg))
 
 
 #define R_SER_DMA_CHANNELS		0   /* Relative to A_SER_BASE_x */
 
 #define A_SER_DMA_CHANNEL_BASE(sernum,txrx)    \
-	     ((A_SER_CHANNEL_BASE(sernum)) +	    \
-	     R_SER_DMA_CHANNELS +		    \
-	     (SER_DMA_TXRX_SPACING*(txrx)))
+	((A_SER_CHANNEL_BASE(sernum)) +	    \
+	 R_SER_DMA_CHANNELS +		    \
+	 (SER_DMA_TXRX_SPACING*(txrx)))
 
 #define A_SER_DMA_REGISTER(sernum, txrx, reg)		\
-	    (A_SER_DMA_CHANNEL_BASE(sernum, txrx) +    \
-	    (reg))
+	(A_SER_DMA_CHANNEL_BASE(sernum, txrx) +    \
+	 (reg))
 
 
 /*
@@ -658,13 +658,13 @@
 #define A_SCD_TIMER_CFG_3	    0x0010020198
 
 #if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1)
-#define A_SCD_SCRATCH		   0x0010020C10
+	#define A_SCD_SCRATCH		   0x0010020C10
 #endif /* 1250 PASS2 || 112x PASS1 */
 
 #if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1) || SIBYTE_HDR_FEATURE_CHIP(1480)
-#define A_SCD_ZBBUS_CYCLE_COUNT	   0x0010030000
-#define A_SCD_ZBBUS_CYCLE_CP0	   0x0010020C00
-#define A_SCD_ZBBUS_CYCLE_CP1	   0x0010020C08
+	#define A_SCD_ZBBUS_CYCLE_COUNT	   0x0010030000
+	#define A_SCD_ZBBUS_CYCLE_CP0	   0x0010020C00
+	#define A_SCD_ZBBUS_CYCLE_CP1	   0x0010020C08
 #endif
 
 /*  *********************************************************************
@@ -694,7 +694,7 @@
 #define A_ADDR_TRAP_CFG_2	    0x0010020450
 #define A_ADDR_TRAP_CFG_3	    0x0010020458
 #if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1) || SIBYTE_HDR_FEATURE_CHIP(1480)
-#define A_ADDR_TRAP_REG_DEBUG	    0x0010020460
+	#define A_ADDR_TRAP_REG_DEBUG	    0x0010020460
 #endif /* 1250 PASS2 || 112x PASS1 || 1480 */
 
 #define ADDR_TRAP_SPACING 8
@@ -740,7 +740,7 @@
  * for mbox_0_set_cpu2 returns 0x00100240C8
  */
 #define A_MAILBOX_REGISTER(reg,cpu) \
-    (A_IMR_CPU0_BASE + (cpu * IMR_REGISTER_SPACING) + reg)
+	(A_IMR_CPU0_BASE + (cpu * IMR_REGISTER_SPACING) + reg)
 
 /*  *********************************************************************
     * System Performance Counter Registers
@@ -762,8 +762,8 @@
 
 #define A_SCD_BUS_ERR_STATUS	    0x0010020880
 #if SIBYTE_HDR_FEATURE(1250, PASS2) || SIBYTE_HDR_FEATURE(112x, PASS1)
-#define A_SCD_BUS_ERR_STATUS_DEBUG  0x00100208D0
-#define A_BUS_ERR_STATUS_DEBUG	0x00100208D0
+	#define A_SCD_BUS_ERR_STATUS_DEBUG  0x00100208D0
+	#define A_BUS_ERR_STATUS_DEBUG	0x00100208D0
 #endif /* 1250 PASS2 || 112x PASS1 */
 #define A_BUS_ERR_DATA_0	    0x00100208A0
 #define A_BUS_ERR_DATA_1	    0x00100208A8
@@ -804,11 +804,11 @@
 #define TRACE_REGISTER_SPACING 8
 #define TRACE_NUM_REGISTERS    8
 #define A_SCD_TRACE_EVENT(n) (((n) & 4) ? \
-   (A_SCD_TRACE_EVENT_4 + (((n) & 3) * TRACE_REGISTER_SPACING)) : \
-   (A_SCD_TRACE_EVENT_0 + ((n) * TRACE_REGISTER_SPACING)))
+							  (A_SCD_TRACE_EVENT_4 + (((n) & 3) * TRACE_REGISTER_SPACING)) : \
+							  (A_SCD_TRACE_EVENT_0 + ((n) * TRACE_REGISTER_SPACING)))
 #define A_SCD_TRACE_SEQUENCE(n) (((n) & 4) ? \
-   (A_SCD_TRACE_SEQUENCE_4 + (((n) & 3) * TRACE_REGISTER_SPACING)) : \
-   (A_SCD_TRACE_SEQUENCE_0 + ((n) * TRACE_REGISTER_SPACING)))
+								 (A_SCD_TRACE_SEQUENCE_4 + (((n) & 3) * TRACE_REGISTER_SPACING)) : \
+								 (A_SCD_TRACE_SEQUENCE_0 + ((n) * TRACE_REGISTER_SPACING)))
 
 /*  *********************************************************************
     * System Generic DMA Registers
@@ -829,24 +829,24 @@
 #define R_DM_DSCR_BASE_DEBUG	    0x0000000018
 
 #if SIBYTE_HDR_FEATURE(1250, PASS3) || SIBYTE_HDR_FEATURE(112x, PASS1)
-#define A_DM_PARTIAL_0		    0x0010020ba0
-#define A_DM_PARTIAL_1		    0x0010020ba8
-#define A_DM_PARTIAL_2		    0x0010020bb0
-#define A_DM_PARTIAL_3		    0x0010020bb8
-#define DM_PARTIAL_REGISTER_SPACING 0x8
-#define A_DM_PARTIAL(idx)	    (A_DM_PARTIAL_0 + ((idx) * DM_PARTIAL_REGISTER_SPACING))
+	#define A_DM_PARTIAL_0		    0x0010020ba0
+	#define A_DM_PARTIAL_1		    0x0010020ba8
+	#define A_DM_PARTIAL_2		    0x0010020bb0
+	#define A_DM_PARTIAL_3		    0x0010020bb8
+	#define DM_PARTIAL_REGISTER_SPACING 0x8
+	#define A_DM_PARTIAL(idx)	    (A_DM_PARTIAL_0 + ((idx) * DM_PARTIAL_REGISTER_SPACING))
 #endif /* 1250 PASS3 || 112x PASS1 */
 
 #if SIBYTE_HDR_FEATURE(1250, PASS3) || SIBYTE_HDR_FEATURE(112x, PASS1)
-#define A_DM_CRC_0		    0x0010020b80
-#define A_DM_CRC_1		    0x0010020b90
-#define DM_CRC_REGISTER_SPACING	    0x10
-#define DM_CRC_NUM_CHANNELS	    2
-#define A_DM_CRC_BASE(idx)	    (A_DM_CRC_0 + ((idx) * DM_CRC_REGISTER_SPACING))
-#define A_DM_CRC_REGISTER(idx, reg)  (A_DM_CRC_BASE(idx) + (reg))
+	#define A_DM_CRC_0		    0x0010020b80
+	#define A_DM_CRC_1		    0x0010020b90
+	#define DM_CRC_REGISTER_SPACING	    0x10
+	#define DM_CRC_NUM_CHANNELS	    2
+	#define A_DM_CRC_BASE(idx)	    (A_DM_CRC_0 + ((idx) * DM_CRC_REGISTER_SPACING))
+	#define A_DM_CRC_REGISTER(idx, reg)  (A_DM_CRC_BASE(idx) + (reg))
 
-#define R_CRC_DEF_0		    0x00
-#define R_CTCP_DEF_0		    0x08
+	#define R_CRC_DEF_0		    0x00
+	#define R_CTCP_DEF_0		    0x08
 #endif /* 1250 PASS3 || 112x PASS1 */
 
 /*  *********************************************************************
@@ -854,39 +854,39 @@
     ********************************************************************* */
 
 #if SIBYTE_HDR_FEATURE_1250_112x
-#define A_PHYS_MEMORY_0			_SB_MAKE64(0x0000000000)
-#define A_PHYS_MEMORY_SIZE		_SB_MAKE64((256*1024*1024))
-#define A_PHYS_SYSTEM_CTL		_SB_MAKE64(0x0010000000)
-#define A_PHYS_IO_SYSTEM		_SB_MAKE64(0x0010060000)
-#define A_PHYS_GENBUS			_SB_MAKE64(0x0010090000)
-#define A_PHYS_GENBUS_END		_SB_MAKE64(0x0040000000)
-#define A_PHYS_LDTPCI_IO_MATCH_BYTES_32 _SB_MAKE64(0x0040000000)
-#define A_PHYS_LDTPCI_IO_MATCH_BITS_32	_SB_MAKE64(0x0060000000)
-#define A_PHYS_MEMORY_1			_SB_MAKE64(0x0080000000)
-#define A_PHYS_MEMORY_2			_SB_MAKE64(0x0090000000)
-#define A_PHYS_MEMORY_3			_SB_MAKE64(0x00C0000000)
-#define A_PHYS_L2_CACHE_TEST		_SB_MAKE64(0x00D0000000)
-#define A_PHYS_LDT_SPECIAL_MATCH_BYTES	_SB_MAKE64(0x00D8000000)
-#define A_PHYS_LDTPCI_IO_MATCH_BYTES	_SB_MAKE64(0x00DC000000)
-#define A_PHYS_LDTPCI_CFG_MATCH_BYTES	_SB_MAKE64(0x00DE000000)
-#define A_PHYS_LDT_SPECIAL_MATCH_BITS	_SB_MAKE64(0x00F8000000)
-#define A_PHYS_LDTPCI_IO_MATCH_BITS	_SB_MAKE64(0x00FC000000)
-#define A_PHYS_LDTPCI_CFG_MATCH_BITS	_SB_MAKE64(0x00FE000000)
-#define A_PHYS_MEMORY_EXP		_SB_MAKE64(0x0100000000)
-#define A_PHYS_MEMORY_EXP_SIZE		_SB_MAKE64((508*1024*1024*1024))
-#define A_PHYS_LDT_EXP			_SB_MAKE64(0x8000000000)
-#define A_PHYS_PCI_FULLACCESS_BYTES	_SB_MAKE64(0xF000000000)
-#define A_PHYS_PCI_FULLACCESS_BITS	_SB_MAKE64(0xF100000000)
-#define A_PHYS_RESERVED			_SB_MAKE64(0xF200000000)
-#define A_PHYS_RESERVED_SPECIAL_LDT	_SB_MAKE64(0xFD00000000)
+	#define A_PHYS_MEMORY_0			_SB_MAKE64(0x0000000000)
+	#define A_PHYS_MEMORY_SIZE		_SB_MAKE64((256*1024*1024))
+	#define A_PHYS_SYSTEM_CTL		_SB_MAKE64(0x0010000000)
+	#define A_PHYS_IO_SYSTEM		_SB_MAKE64(0x0010060000)
+	#define A_PHYS_GENBUS			_SB_MAKE64(0x0010090000)
+	#define A_PHYS_GENBUS_END		_SB_MAKE64(0x0040000000)
+	#define A_PHYS_LDTPCI_IO_MATCH_BYTES_32 _SB_MAKE64(0x0040000000)
+	#define A_PHYS_LDTPCI_IO_MATCH_BITS_32	_SB_MAKE64(0x0060000000)
+	#define A_PHYS_MEMORY_1			_SB_MAKE64(0x0080000000)
+	#define A_PHYS_MEMORY_2			_SB_MAKE64(0x0090000000)
+	#define A_PHYS_MEMORY_3			_SB_MAKE64(0x00C0000000)
+	#define A_PHYS_L2_CACHE_TEST		_SB_MAKE64(0x00D0000000)
+	#define A_PHYS_LDT_SPECIAL_MATCH_BYTES	_SB_MAKE64(0x00D8000000)
+	#define A_PHYS_LDTPCI_IO_MATCH_BYTES	_SB_MAKE64(0x00DC000000)
+	#define A_PHYS_LDTPCI_CFG_MATCH_BYTES	_SB_MAKE64(0x00DE000000)
+	#define A_PHYS_LDT_SPECIAL_MATCH_BITS	_SB_MAKE64(0x00F8000000)
+	#define A_PHYS_LDTPCI_IO_MATCH_BITS	_SB_MAKE64(0x00FC000000)
+	#define A_PHYS_LDTPCI_CFG_MATCH_BITS	_SB_MAKE64(0x00FE000000)
+	#define A_PHYS_MEMORY_EXP		_SB_MAKE64(0x0100000000)
+	#define A_PHYS_MEMORY_EXP_SIZE		_SB_MAKE64((508*1024*1024*1024))
+	#define A_PHYS_LDT_EXP			_SB_MAKE64(0x8000000000)
+	#define A_PHYS_PCI_FULLACCESS_BYTES	_SB_MAKE64(0xF000000000)
+	#define A_PHYS_PCI_FULLACCESS_BITS	_SB_MAKE64(0xF100000000)
+	#define A_PHYS_RESERVED			_SB_MAKE64(0xF200000000)
+	#define A_PHYS_RESERVED_SPECIAL_LDT	_SB_MAKE64(0xFD00000000)
 
-#define A_PHYS_L2CACHE_WAY_SIZE		_SB_MAKE64(0x0000020000)
-#define PHYS_L2CACHE_NUM_WAYS		4
-#define A_PHYS_L2CACHE_TOTAL_SIZE	_SB_MAKE64(0x0000080000)
-#define A_PHYS_L2CACHE_WAY0		_SB_MAKE64(0x00D0180000)
-#define A_PHYS_L2CACHE_WAY1		_SB_MAKE64(0x00D01A0000)
-#define A_PHYS_L2CACHE_WAY2		_SB_MAKE64(0x00D01C0000)
-#define A_PHYS_L2CACHE_WAY3		_SB_MAKE64(0x00D01E0000)
+	#define A_PHYS_L2CACHE_WAY_SIZE		_SB_MAKE64(0x0000020000)
+	#define PHYS_L2CACHE_NUM_WAYS		4
+	#define A_PHYS_L2CACHE_TOTAL_SIZE	_SB_MAKE64(0x0000080000)
+	#define A_PHYS_L2CACHE_WAY0		_SB_MAKE64(0x00D0180000)
+	#define A_PHYS_L2CACHE_WAY1		_SB_MAKE64(0x00D01A0000)
+	#define A_PHYS_L2CACHE_WAY2		_SB_MAKE64(0x00D01C0000)
+	#define A_PHYS_L2CACHE_WAY3		_SB_MAKE64(0x00D01E0000)
 #endif
 
 

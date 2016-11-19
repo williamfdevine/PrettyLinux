@@ -1,7 +1,8 @@
 #ifndef __ASM_CPU_SH4_SIGCONTEXT_H
 #define __ASM_CPU_SH4_SIGCONTEXT_H
 
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long	oldmask;
 
 	/* CPU registers */

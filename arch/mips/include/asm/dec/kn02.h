@@ -82,10 +82,10 @@
 
 #ifndef __ASSEMBLY__
 
-#include <linux/types.h>
+	#include <linux/types.h>
 
-extern u32 cached_kn02_csr;
-extern void init_kn02_irqs(int base);
+	extern u32 cached_kn02_csr;
+	extern void init_kn02_irqs(int base);
 #endif
 
 #endif /* __ASM_MIPS_DEC_KN02_H */

@@ -23,7 +23,8 @@
 #include "cns3xxx.h"
 #include "core.h"
 
-struct cns3xxx_pcie {
+struct cns3xxx_pcie
+{
 	void __iomem *host_regs; /* PCI config registers for host bridge */
 	void __iomem *cfg0_regs; /* PCI Type 0 config registers */
 	void __iomem *cfg1_regs; /* PCI Type 1 config registers */
@@ -52,7 +53,7 @@ static struct cns3xxx_pcie *pbus_to_cnspci(struct pci_bus *bus)
 }
 
 static void __iomem *cns3xxx_pci_map_bus(struct pci_bus *bus,
-					 unsigned int devfn, int where)
+		unsigned int devfn, int where)
 {
 	struct cns3xxx_pcie *cnspci = pbus_to_cnspci(bus);
 	int busno = bus->number;
@@ -61,7 +62,9 @@ static void __iomem *cns3xxx_pci_map_bus(struct pci_bus *bus,
 
 	/* If there is no link, just show the CNS PCI bridge. */
 	if (!cnspci->linked && busno > 0)
+	{
 		return NULL;
+	}
 
 	/*
 	 * The CNS PCI bridge doesn't fit into the PCI hierarchy, though
@@ -69,25 +72,39 @@ static void __iomem *cns3xxx_pci_map_bus(struct pci_bus *bus,
 	 * We place the host bridge on bus 0, and the directly connected
 	 * device on bus 1, slot 0.
 	 */
-	if (busno == 0) { /* internal PCIe bus, host bridge device */
+	if (busno == 0)   /* internal PCIe bus, host bridge device */
+	{
 		if (devfn == 0) /* device# and function# are ignored by hw */
+		{
 			base = cnspci->host_regs;
+		}
 		else
-			return NULL; /* no such device */
+		{
+			return NULL;    /* no such device */
+		}
 
-	} else if (busno == 1) { /* directly connected PCIe device */
+	}
+	else if (busno == 1)     /* directly connected PCIe device */
+	{
 		if (slot == 0) /* device# is ignored by hw */
+		{
 			base = cnspci->cfg0_regs;
+		}
 		else
-			return NULL; /* no such device */
-	} else /* remote PCI bus */
+		{
+			return NULL;    /* no such device */
+		}
+	}
+	else   /* remote PCI bus */
+	{
 		base = cnspci->cfg1_regs + ((busno & 0xf) << 20);
+	}
 
 	return base + (where & 0xffc) + (devfn << 12);
 }
 
 static int cns3xxx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
-				   int where, int size, u32 *val)
+								   int where, int size, u32 *val)
 {
 	int ret;
 	u32 mask = (0x1ull << (size * 8)) - 1;
@@ -96,13 +113,15 @@ static int cns3xxx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
 	ret = pci_generic_config_read32(bus, devfn, where, size, val);
 
 	if (ret == PCIBIOS_SUCCESSFUL && !bus->number && !devfn &&
-	    (where & 0xffc) == PCI_CLASS_REVISION)
+		(where & 0xffc) == PCI_CLASS_REVISION)
 		/*
 		 * RC's class is 0xb, but Linux PCI driver needs 0x604
 		 * for a PCIe bridge. So we must fixup the class code
 		 * to 0x604 here.
 		 */
+	{
 		*val = ((((*val << shift) & 0xff) | (0x604 << 16)) >> shift) & mask;
+	}
 
 	return ret;
 }
@@ -114,7 +133,7 @@ static int cns3xxx_pci_setup(int nr, struct pci_sys_data *sys)
 	struct resource *res_mem = &cnspci->res_mem;
 
 	BUG_ON(request_resource(&iomem_resource, res_io) ||
-	       request_resource(&iomem_resource, res_mem));
+		   request_resource(&iomem_resource, res_mem));
 
 	pci_add_resource_offset(&sys->resources, res_io, sys->io_offset);
 	pci_add_resource_offset(&sys->resources, res_mem, sys->mem_offset);
@@ -122,7 +141,8 @@ static int cns3xxx_pci_setup(int nr, struct pci_sys_data *sys)
 	return 1;
 }
 
-static struct pci_ops cns3xxx_pcie_ops = {
+static struct pci_ops cns3xxx_pcie_ops =
+{
 	.map_bus = cns3xxx_pci_map_bus,
 	.read = cns3xxx_pci_read_config,
 	.write = pci_generic_config_write,
@@ -134,13 +154,14 @@ static int cns3xxx_pcie_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	int irq = cnspci->irqs[!!dev->bus->number];
 
 	pr_info("PCIe map irq: %04d:%02x:%02x.%02x slot %d, pin %d, irq: %d\n",
-		pci_domain_nr(dev->bus), dev->bus->number, PCI_SLOT(dev->devfn),
-		PCI_FUNC(dev->devfn), slot, pin, irq);
+			pci_domain_nr(dev->bus), dev->bus->number, PCI_SLOT(dev->devfn),
+			PCI_FUNC(dev->devfn), slot, pin, irq);
 
 	return irq;
 }
 
-static struct cns3xxx_pcie cns3xxx_pcie[] = {
+static struct cns3xxx_pcie cns3xxx_pcie[] =
+{
 	[0] = {
 		.host_regs = (void __iomem *)CNS3XXX_PCIE0_HOST_BASE_VIRT,
 		.cfg0_regs = (void __iomem *)CNS3XXX_PCIE0_CFG0_BASE_VIRT,
@@ -199,13 +220,19 @@ static void __init cns3xxx_pcie_check_link(struct cns3xxx_pcie *cnspci)
 	pr_info("PCIe: Port[%d] Check data link layer...", port);
 
 	time = jiffies;
-	while (1) {
+
+	while (1)
+	{
 		reg = __raw_readl(MISC_PCIE_PM_DEBUG(port));
-		if (reg & 0x1) {
+
+		if (reg & 0x1)
+		{
 			pr_info("Link up.\n");
 			cnspci->linked = 1;
 			break;
-		} else if (time_after(jiffies, time + 50)) {
+		}
+		else if (time_after(jiffies, time + 50))
+		{
 			pr_info("Device not found.\n");
 			break;
 		}
@@ -213,7 +240,7 @@ static void __init cns3xxx_pcie_check_link(struct cns3xxx_pcie *cnspci)
 }
 
 static void cns3xxx_write_config(struct cns3xxx_pcie *cnspci,
-					 int where, int size, u32 val)
+								 int where, int size, u32 val)
 {
 	void __iomem *base = cnspci->host_regs + (where & 0xffc);
 	u32 v;
@@ -245,7 +272,9 @@ static void __init cns3xxx_pcie_hw_init(struct cns3xxx_pcie *cnspci)
 	cns3xxx_write_config(cnspci, PCI_IO_LIMIT_UPPER16, 2, io_limit);
 
 	if (!cnspci->linked)
+	{
 		return;
+	}
 
 	/* Set Device Max_Read_Request_Size to 128 byte */
 	pcie_bus_config = PCIE_BUS_PEER2PEER;
@@ -255,10 +284,13 @@ static void __init cns3xxx_pcie_hw_init(struct cns3xxx_pcie *cnspci)
 }
 
 static int cns3xxx_pcie_abort_handler(unsigned long addr, unsigned int fsr,
-				      struct pt_regs *regs)
+									  struct pt_regs *regs)
 {
 	if (fsr & (1 << 10))
+	{
 		regs->ARM_pc += 4;
+	}
+
 	return 0;
 }
 
@@ -266,21 +298,23 @@ void __init cns3xxx_pcie_init_late(void)
 {
 	int i;
 	void *private_data;
-	struct hw_pci hw_pci = {
-	       .nr_controllers = 1,
-	       .ops = &cns3xxx_pcie_ops,
-	       .setup = cns3xxx_pci_setup,
-	       .map_irq = cns3xxx_pcie_map_irq,
-	       .private_data = &private_data,
+	struct hw_pci hw_pci =
+	{
+		.nr_controllers = 1,
+		.ops = &cns3xxx_pcie_ops,
+		.setup = cns3xxx_pci_setup,
+		.map_irq = cns3xxx_pcie_map_irq,
+		.private_data = &private_data,
 	};
 
 	pcibios_min_io = 0;
 	pcibios_min_mem = 0;
 
 	hook_fault_code(16 + 6, cns3xxx_pcie_abort_handler, SIGBUS, 0,
-			"imprecise external abort");
+					"imprecise external abort");
 
-	for (i = 0; i < ARRAY_SIZE(cns3xxx_pcie); i++) {
+	for (i = 0; i < ARRAY_SIZE(cns3xxx_pcie); i++)
+	{
 		cns3xxx_pwr_clk_en(0x1 << PM_CLK_GATE_REG_OFFSET_PCIE(i));
 		cns3xxx_pwr_soft_rst(0x1 << PM_SOFT_RST_REG_OFFST_PCIE(i));
 		cns3xxx_pcie_check_link(&cns3xxx_pcie[i]);

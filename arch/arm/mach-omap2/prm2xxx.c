@@ -38,7 +38,8 @@
  *   reset source ID bit shifts (which is an OMAP SoC-independent
  *   enumeration)
  */
-static struct prm_reset_src_map omap2xxx_prm_reset_src_map[] = {
+static struct prm_reset_src_map omap2xxx_prm_reset_src_map[] =
+{
 	{ OMAP_GLOBALCOLD_RST_SHIFT, OMAP_GLOBAL_COLD_RST_SRC_ID_SHIFT },
 	{ OMAP_GLOBALWARM_RST_SHIFT, OMAP_GLOBAL_WARM_RST_SRC_ID_SHIFT },
 	{ OMAP24XX_SECU_VIOL_RST_SHIFT, OMAP_SECU_VIOL_RST_SRC_ID_SHIFT },
@@ -63,9 +64,14 @@ static u32 omap2xxx_prm_read_reset_sources(void)
 	v = omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTST);
 
 	p = omap2xxx_prm_reset_src_map;
-	while (p->reg_shift >= 0 && p->std_shift >= 0) {
+
+	while (p->reg_shift >= 0 && p->std_shift >= 0)
+	{
 		if (v & (1 << p->reg_shift))
+		{
 			r |= 1 << p->std_shift;
+		}
+
 		p++;
 	}
 
@@ -83,18 +89,22 @@ static int omap2xxx_pwrst_to_common_pwrst(u8 omap2xxx_pwrst)
 {
 	u8 pwrst;
 
-	switch (omap2xxx_pwrst) {
-	case OMAP24XX_PWRDM_POWER_OFF:
-		pwrst = PWRDM_POWER_OFF;
-		break;
-	case OMAP24XX_PWRDM_POWER_RET:
-		pwrst = PWRDM_POWER_RET;
-		break;
-	case OMAP24XX_PWRDM_POWER_ON:
-		pwrst = PWRDM_POWER_ON;
-		break;
-	default:
-		return -EINVAL;
+	switch (omap2xxx_pwrst)
+	{
+		case OMAP24XX_PWRDM_POWER_OFF:
+			pwrst = PWRDM_POWER_OFF;
+			break;
+
+		case OMAP24XX_PWRDM_POWER_RET:
+			pwrst = PWRDM_POWER_RET;
+			break;
+
+		case OMAP24XX_PWRDM_POWER_ON:
+			pwrst = PWRDM_POWER_ON;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return pwrst;
@@ -109,7 +119,7 @@ static int omap2xxx_pwrst_to_common_pwrst(u8 omap2xxx_pwrst)
 static void omap2xxx_prm_dpll_reset(void)
 {
 	omap2_prm_set_mod_reg_bits(OMAP_RST_DPLL3_MASK, WKUP_MOD,
-				   OMAP2_RM_RSTCTRL);
+							   OMAP2_RM_RSTCTRL);
 	/* OCP barrier */
 	omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTCTRL);
 }
@@ -136,16 +146,16 @@ static int omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
 int omap2xxx_clkdm_sleep(struct clockdomain *clkdm)
 {
 	omap2_prm_set_mod_reg_bits(OMAP24XX_FORCESTATE_MASK,
-				   clkdm->pwrdm.ptr->prcm_offs,
-				   OMAP2_PM_PWSTCTRL);
+							   clkdm->pwrdm.ptr->prcm_offs,
+							   OMAP2_PM_PWSTCTRL);
 	return 0;
 }
 
 int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm)
 {
 	omap2_prm_clear_mod_reg_bits(OMAP24XX_FORCESTATE_MASK,
-				     clkdm->pwrdm.ptr->prcm_offs,
-				     OMAP2_PM_PWSTCTRL);
+								 clkdm->pwrdm.ptr->prcm_offs,
+								 OMAP2_PM_PWSTCTRL);
 	return 0;
 }
 
@@ -153,23 +163,27 @@ static int omap2xxx_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
 {
 	u8 omap24xx_pwrst;
 
-	switch (pwrst) {
-	case PWRDM_POWER_OFF:
-		omap24xx_pwrst = OMAP24XX_PWRDM_POWER_OFF;
-		break;
-	case PWRDM_POWER_RET:
-		omap24xx_pwrst = OMAP24XX_PWRDM_POWER_RET;
-		break;
-	case PWRDM_POWER_ON:
-		omap24xx_pwrst = OMAP24XX_PWRDM_POWER_ON;
-		break;
-	default:
-		return -EINVAL;
+	switch (pwrst)
+	{
+		case PWRDM_POWER_OFF:
+			omap24xx_pwrst = OMAP24XX_PWRDM_POWER_OFF;
+			break;
+
+		case PWRDM_POWER_RET:
+			omap24xx_pwrst = OMAP24XX_PWRDM_POWER_RET;
+			break;
+
+		case PWRDM_POWER_ON:
+			omap24xx_pwrst = OMAP24XX_PWRDM_POWER_ON;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	omap2_prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
-				   (omap24xx_pwrst << OMAP_POWERSTATE_SHIFT),
-				   pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
+							   (omap24xx_pwrst << OMAP_POWERSTATE_SHIFT),
+							   pwrdm->prcm_offs, OMAP2_PM_PWSTCTRL);
 	return 0;
 }
 
@@ -178,8 +192,8 @@ static int omap2xxx_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
 	u8 omap2xxx_pwrst;
 
 	omap2xxx_pwrst = omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-						       OMAP2_PM_PWSTCTRL,
-						       OMAP_POWERSTATE_MASK);
+					 OMAP2_PM_PWSTCTRL,
+					 OMAP_POWERSTATE_MASK);
 
 	return omap2xxx_pwrst_to_common_pwrst(omap2xxx_pwrst);
 }
@@ -189,13 +203,14 @@ static int omap2xxx_pwrdm_read_pwrst(struct powerdomain *pwrdm)
 	u8 omap2xxx_pwrst;
 
 	omap2xxx_pwrst = omap2_prm_read_mod_bits_shift(pwrdm->prcm_offs,
-						       OMAP2_PM_PWSTST,
-						       OMAP_POWERSTATEST_MASK);
+					 OMAP2_PM_PWSTST,
+					 OMAP_POWERSTATEST_MASK);
 
 	return omap2xxx_pwrst_to_common_pwrst(omap2xxx_pwrst);
 }
 
-struct pwrdm_ops omap2_pwrdm_operations = {
+struct pwrdm_ops omap2_pwrdm_operations =
+{
 	.pwrdm_set_next_pwrst	= omap2xxx_pwrdm_set_next_pwrst,
 	.pwrdm_read_next_pwrst	= omap2xxx_pwrdm_read_next_pwrst,
 	.pwrdm_read_pwrst	= omap2xxx_pwrdm_read_pwrst,
@@ -211,7 +226,8 @@ struct pwrdm_ops omap2_pwrdm_operations = {
  *
  */
 
-static struct prm_ll_data omap2xxx_prm_ll_data = {
+static struct prm_ll_data omap2xxx_prm_ll_data =
+{
 	.read_reset_sources = &omap2xxx_prm_read_reset_sources,
 	.assert_hardreset = &omap2_prm_assert_hardreset,
 	.deassert_hardreset = &omap2_prm_deassert_hardreset,

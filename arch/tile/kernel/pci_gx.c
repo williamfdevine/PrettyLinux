@@ -49,10 +49,10 @@
 #if DEBUG_PCI_CFG
 #define TRACE_CFG_WR(size, val, bus, dev, func, offset) \
 	pr_info("CFG WR %d-byte VAL %#x to bus %d dev %d func %d addr %u\n", \
-		size, val, bus, dev, func, offset & 0xFFF);
+			size, val, bus, dev, func, offset & 0xFFF);
 #define TRACE_CFG_RD(size, val, bus, dev, func, offset) \
 	pr_info("CFG RD %d-byte VAL %#x from bus %d dev %d func %d addr %u\n", \
-		size, val, bus, dev, func, offset & 0xFFF);
+			size, val, bus, dev, func, offset & 0xFFF);
 #else
 #define TRACE_CFG_WR(...)
 #define TRACE_CFG_RD(...)
@@ -110,8 +110,8 @@ static struct cpumask intr_cpus_map;
 
 /* We don't need to worry about the alignment of resources. */
 resource_size_t pcibios_align_resource(void *data, const struct resource *res,
-				       resource_size_t size,
-				       resource_size_t align)
+									   resource_size_t size,
+									   resource_size_t align)
 {
 	return res->start;
 }
@@ -130,15 +130,20 @@ static int tile_irq_cpu(int irq)
 	int cpu;
 
 	count = cpumask_weight(&intr_cpus_map);
-	if (unlikely(count == 0)) {
+
+	if (unlikely(count == 0))
+	{
 		pr_warn("intr_cpus_map empty, interrupts will be delievered to dataplane tiles\n");
 		return irq % (smp_height * smp_width);
 	}
 
 	count = irq % count;
-	for_each_cpu(cpu, &intr_cpus_map) {
+	for_each_cpu(cpu, &intr_cpus_map)
+	{
 		if (i++ == count)
+		{
 			break;
+		}
 	}
 	return cpu;
 }
@@ -152,14 +157,19 @@ static int tile_pcie_open(int trio_index)
 
 	/* This opens a file descriptor to the TRIO shim. */
 	ret = gxio_trio_init(context, trio_index);
+
 	if (ret < 0)
+	{
 		goto gxio_trio_init_failure;
+	}
 
 	/* Allocate an ASID for the kernel. */
 	ret = gxio_trio_alloc_asids(context, 1, 0, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("PCI: ASID alloc failure on TRIO %d, give up\n",
-			trio_index);
+			   trio_index);
 		goto asid_alloc_failure;
 	}
 
@@ -172,9 +182,11 @@ static int tile_pcie_open(int trio_index)
 	 * client of the TRIO's PIO regions.
 	 */
 	ret = gxio_trio_alloc_pio_regions(context, 1, 0, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("PCI: CFG PIO alloc failure on TRIO %d, give up\n",
-			trio_index);
+			   trio_index);
 		goto pio_alloc_failure;
 	}
 
@@ -185,61 +197,74 @@ static int tile_pcie_open(int trio_index)
 	 * is also 0 because it is specified in PIO_REGION_SETUP_CFG_ADDR.
 	 */
 	ret = gxio_trio_init_pio_region_aux(context, context->pio_cfg_index,
-		0, 0, HV_TRIO_PIO_FLAG_CONFIG_SPACE);
-	if (ret < 0) {
+										0, 0, HV_TRIO_PIO_FLAG_CONFIG_SPACE);
+
+	if (ret < 0)
+	{
 		pr_err("PCI: CFG PIO init failure on TRIO %d, give up\n",
-			trio_index);
+			   trio_index);
 		goto pio_alloc_failure;
 	}
+
 #endif
 
 	/* Get the properties of the PCIe ports on this TRIO instance. */
 	ret = gxio_trio_get_port_property(context, &pcie_ports[trio_index]);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("PCI: PCIE_GET_PORT_PROPERTY failure, error %d, on TRIO %d\n",
-		       ret, trio_index);
+			   ret, trio_index);
 		goto get_port_property_failure;
 	}
 
 	context->mmio_base_mac =
 		iorpc_ioremap(context->fd, 0, HV_TRIO_CONFIG_IOREMAP_SIZE);
-	if (context->mmio_base_mac == NULL) {
+
+	if (context->mmio_base_mac == NULL)
+	{
 		pr_err("PCI: TRIO config space mapping failure, error %d, on TRIO %d\n",
-		       ret, trio_index);
+			   ret, trio_index);
 		ret = -ENOMEM;
 
 		goto trio_mmio_mapping_failure;
 	}
 
 	/* Check the port strap state which will override the BIB setting. */
-	for (mac = 0; mac < TILEGX_TRIO_PCIES; mac++) {
+	for (mac = 0; mac < TILEGX_TRIO_PCIES; mac++)
+	{
 		TRIO_PCIE_INTFC_PORT_CONFIG_t port_config;
 		unsigned int reg_offset;
 
 		/* Ignore ports that are not specified in the BIB. */
 		if (!pcie_ports[trio_index].ports[mac].allow_rc &&
-		    !pcie_ports[trio_index].ports[mac].allow_ep)
+			!pcie_ports[trio_index].ports[mac].allow_ep)
+		{
 			continue;
+		}
 
 		reg_offset =
 			(TRIO_PCIE_INTFC_PORT_CONFIG <<
-				TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+			 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 			(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_INTERFACE <<
-				TRIO_CFG_REGION_ADDR__INTFC_SHIFT) |
+			 TRIO_CFG_REGION_ADDR__INTFC_SHIFT) |
 			(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 		port_config.word =
 			__gxio_mmio_read(context->mmio_base_mac + reg_offset);
 
 		if (port_config.strap_state != AUTO_CONFIG_RC &&
-		    port_config.strap_state != AUTO_CONFIG_RC_G1) {
+			port_config.strap_state != AUTO_CONFIG_RC_G1)
+		{
 			/*
 			 * If this is really intended to be an EP port, record
 			 * it so that the endpoint driver will know about it.
 			 */
 			if (port_config.strap_state == AUTO_CONFIG_EP ||
-			    port_config.strap_state == AUTO_CONFIG_EP_G1)
+				port_config.strap_state == AUTO_CONFIG_EP_G1)
+			{
 				pcie_ports[trio_index].ports[mac].allow_ep = 1;
+			}
 		}
 	}
 
@@ -263,9 +288,13 @@ static int __init tile_trio_init(void)
 	int i;
 
 	/* We loop over all the TRIO shims. */
-	for (i = 0; i < TILEGX_NUM_TRIO; i++) {
+	for (i = 0; i < TILEGX_NUM_TRIO; i++)
+	{
 		if (tile_pcie_open(i) < 0)
+		{
 			continue;
+		}
+
 		num_trio_shims++;
 	}
 
@@ -288,7 +317,8 @@ static void tilegx_legacy_irq_unmask(struct irq_data *d)
 	__insn_mtspr(SPR_IPI_MASK_RESET_K, 1UL << d->irq);
 }
 
-static struct irq_chip tilegx_legacy_irq_chip = {
+static struct irq_chip tilegx_legacy_irq_chip =
+{
 	.name			= "tilegx_legacy_irq",
 	.irq_ack		= tilegx_legacy_irq_ack,
 	.irq_mask		= tilegx_legacy_irq_mask,
@@ -320,10 +350,10 @@ static void trio_handle_level_irq(struct irq_desc *desc)
 	 * not sent.
 	 */
 	reg_offset = (TRIO_PCIE_INTFC_MAC_INT_STS <<
-		TRIO_CFG_REGION_ADDR__REG_SHIFT) |
-		(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_INTERFACE <<
-		TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
-		(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
+				  TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+				 (TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_INTERFACE <<
+				  TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+				 (mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 	level_mask = TRIO_PCIE_INTFC_MAC_INT_STS__INT_LEVEL_MASK << intx;
 
@@ -344,16 +374,20 @@ static int tile_init_irqs(struct pci_controller *controller)
 	cpumask_copy(&intr_cpus_map, cpu_online_mask);
 
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		gxio_trio_context_t *context = controller->trio;
 		int cpu;
 
 		/* Ask the kernel to allocate an IRQ. */
 		irq = irq_alloc_hwirq(-1);
-		if (!irq) {
+
+		if (!irq)
+		{
 			pr_err("PCI: no free irq vectors, failed for %d\n", i);
 			goto free_irqs;
 		}
+
 		controller->irq_intx_table[i] = irq;
 
 		/* Distribute the 4 IRQs to different tiles. */
@@ -361,9 +395,11 @@ static int tile_init_irqs(struct pci_controller *controller)
 
 		/* Configure the TRIO intr binding for this IRQ. */
 		result = gxio_trio_config_legacy_intr(context, cpu_x(cpu),
-						      cpu_y(cpu), KERNEL_PL,
-						      irq, controller->mac, i);
-		if (result < 0) {
+											  cpu_y(cpu), KERNEL_PL,
+											  irq, controller->mac, i);
+
+		if (result < 0)
+		{
 			pr_err("PCI: MAC intx config failed for %d\n", i);
 
 			goto free_irqs;
@@ -371,7 +407,7 @@ static int tile_init_irqs(struct pci_controller *controller)
 
 		/* Register the IRQ handler with the kernel. */
 		irq_set_chip_and_handler(irq, &tilegx_legacy_irq_chip,
-					trio_handle_level_irq);
+								 trio_handle_level_irq);
 		irq_set_chip_data(irq, (void *)(uint64_t)i);
 		irq_set_handler_data(irq, controller);
 	}
@@ -379,8 +415,11 @@ static int tile_init_irqs(struct pci_controller *controller)
 	return 0;
 
 free_irqs:
+
 	for (j = 0; j < i; j++)
+	{
 		irq_free_hwirq(controller->irq_intx_table[j]);
+	}
 
 	return -1;
 }
@@ -397,18 +436,22 @@ strapped_for_rc(gxio_trio_context_t *trio_context, int mac)
 	/* Check the port configuration. */
 	reg_offset =
 		(TRIO_PCIE_INTFC_PORT_CONFIG <<
-			TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+		 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 		(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_INTERFACE <<
-			TRIO_CFG_REGION_ADDR__INTFC_SHIFT) |
+		 TRIO_CFG_REGION_ADDR__INTFC_SHIFT) |
 		(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 	port_config.word =
 		__gxio_mmio_read(trio_context->mmio_base_mac + reg_offset);
 
 	if (port_config.strap_state == AUTO_CONFIG_RC ||
-	    port_config.strap_state == AUTO_CONFIG_RC_G1)
+		port_config.strap_state == AUTO_CONFIG_RC_G1)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /*
@@ -422,7 +465,8 @@ int __init tile_pci_init(void)
 	int ctl_index = 0;
 	int i, j;
 
-	if (!pci_probe) {
+	if (!pci_probe)
+	{
 		pr_info("PCI: disabled by boot argument\n");
 		return 0;
 	}
@@ -430,7 +474,9 @@ int __init tile_pci_init(void)
 	pr_info("PCI: Searching for controllers...\n");
 
 	if (num_trio_shims == 0 || sim_is_simulator())
+	{
 		return 0;
+	}
 
 	/*
 	 * Now determine which PCIe ports are configured to operate in RC
@@ -455,25 +501,36 @@ int __init tile_pci_init(void)
 	 * 2. It is allowed to be in either the RC or the EP mode by the BIB,
 	 *    and the hardware strapping pin is set to RC mode.
 	 */
-	for (i = 0; i < TILEGX_NUM_TRIO; i++) {
+	for (i = 0; i < TILEGX_NUM_TRIO; i++)
+	{
 		gxio_trio_context_t *context = &trio_contexts[i];
 
 		if (context->fd < 0)
+		{
 			continue;
+		}
 
-		for (j = 0; j < TILEGX_TRIO_PCIES; j++) {
+		for (j = 0; j < TILEGX_TRIO_PCIES; j++)
+		{
 			int is_rc = 0;
 
 			if (pcie_ports[i].is_gx72 &&
-			    pcie_ports[i].ports[j].allow_rc) {
+				pcie_ports[i].ports[j].allow_rc)
+			{
 				if (!pcie_ports[i].ports[j].allow_ep ||
-				    strapped_for_rc(context, j))
+					strapped_for_rc(context, j))
+				{
 					is_rc = 1;
-			} else if (pcie_ports[i].ports[j].allow_rc &&
-				   strapped_for_rc(context, j)) {
+				}
+			}
+			else if (pcie_ports[i].ports[j].allow_rc &&
+					 strapped_for_rc(context, j))
+			{
 				is_rc = 1;
 			}
-			if (is_rc) {
+
+			if (is_rc)
+			{
 				pcie_rc[i][j] = 1;
 				num_rc_controllers++;
 			}
@@ -482,26 +539,36 @@ int __init tile_pci_init(void)
 
 	/* Return if no PCIe ports are configured to operate in RC mode. */
 	if (num_rc_controllers == 0)
+	{
 		return 0;
+	}
 
 	/* Set the TRIO pointer and MAC index for each PCIe RC port. */
-	for (i = 0; i < TILEGX_NUM_TRIO; i++) {
-		for (j = 0; j < TILEGX_TRIO_PCIES; j++) {
-			if (pcie_rc[i][j]) {
+	for (i = 0; i < TILEGX_NUM_TRIO; i++)
+	{
+		for (j = 0; j < TILEGX_TRIO_PCIES; j++)
+		{
+			if (pcie_rc[i][j])
+			{
 				pci_controllers[ctl_index].trio =
 					&trio_contexts[i];
 				pci_controllers[ctl_index].mac = j;
 				pci_controllers[ctl_index].trio_index = i;
 				ctl_index++;
+
 				if (ctl_index == num_rc_controllers)
+				{
 					goto out;
+				}
 			}
 		}
 	}
 
 out:
+
 	/* Configure each PCIe RC port. */
-	for (i = 0; i < num_rc_controllers; i++) {
+	for (i = 0; i < num_rc_controllers; i++)
+	{
 
 		/* Configure the PCIe MAC to run in RC mode. */
 		struct pci_controller *controller = &pci_controllers[i];
@@ -510,14 +577,14 @@ out:
 		controller->ops = &tile_cfg_ops;
 
 		controller->io_space.start = PCIBIOS_MIN_IO +
-			(i * IO_SPACE_SIZE);
+									 (i * IO_SPACE_SIZE);
 		controller->io_space.end = controller->io_space.start +
-			IO_SPACE_SIZE - 1;
+								   IO_SPACE_SIZE - 1;
 		BUG_ON(controller->io_space.end > IO_SPACE_LIMIT);
 		controller->io_space.flags = IORESOURCE_IO;
 		snprintf(controller->io_space_name,
-			 sizeof(controller->io_space_name),
-			 "PCI I/O domain %d", i);
+				 sizeof(controller->io_space_name),
+				 "PCI I/O domain %d", i);
 		controller->io_space.name = controller->io_space_name;
 
 		/*
@@ -527,15 +594,15 @@ out:
 		 * PA space.
 		 */
 		controller->mem_offset = TILE_PCI_MEM_START +
-			(i * TILE_PCI_BAR_WINDOW_TOP);
+								 (i * TILE_PCI_BAR_WINDOW_TOP);
 		controller->mem_space.start = controller->mem_offset +
-			TILE_PCI_BAR_WINDOW_TOP - TILE_PCI_BAR_WINDOW_SIZE;
+									  TILE_PCI_BAR_WINDOW_TOP - TILE_PCI_BAR_WINDOW_SIZE;
 		controller->mem_space.end = controller->mem_offset +
-			TILE_PCI_BAR_WINDOW_TOP - 1;
+									TILE_PCI_BAR_WINDOW_TOP - 1;
 		controller->mem_space.flags = IORESOURCE_MEM;
 		snprintf(controller->mem_space_name,
-			 sizeof(controller->mem_space_name),
-			 "PCI mem domain %d", i);
+				 sizeof(controller->mem_space_name),
+				 "PCI mem domain %d", i);
 		controller->mem_space.name = controller->mem_space_name;
 	}
 
@@ -569,16 +636,16 @@ static void fixup_read_and_payload_sizes(struct pci_controller *controller)
 	/* Set our max read request size to be 4KB. */
 	reg_offset =
 		(TRIO_PCIE_RC_DEVICE_CONTROL <<
-			TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+		 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 		(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_STANDARD <<
-			TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+		 TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
 		(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 	dev_control.word = __gxio_mmio_read32(trio_context->mmio_base_mac +
-					      reg_offset);
+										  reg_offset);
 	dev_control.max_read_req_sz = 5;
 	__gxio_mmio_write32(trio_context->mmio_base_mac + reg_offset,
-			    dev_control.word);
+						dev_control.word);
 
 	/*
 	 * Set the max payload size supported by this Gx PCIe MAC.
@@ -588,41 +655,43 @@ static void fixup_read_and_payload_sizes(struct pci_controller *controller)
 	 */
 	reg_offset =
 		(TRIO_PCIE_RC_DEVICE_CAP <<
-			TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+		 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 		(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_STANDARD <<
-			TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+		 TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
 		(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 	rc_dev_cap.word = __gxio_mmio_read32(trio_context->mmio_base_mac +
-					     reg_offset);
+										 reg_offset);
 	rc_dev_cap.mps_sup = 1;
 	__gxio_mmio_write32(trio_context->mmio_base_mac + reg_offset,
-			    rc_dev_cap.word);
+						rc_dev_cap.word);
 
 	/* Configure PCI Express MPS setting. */
 	list_for_each_entry(child, &root_bus->children, node)
-		pcie_bus_configure_settings(child);
+	pcie_bus_configure_settings(child);
 
 	/*
 	 * Set the mac_config register in trio based on the MPS/MRS of the link.
 	 */
 	reg_offset =
 		(TRIO_PCIE_RC_DEVICE_CONTROL <<
-			TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+		 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 		(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_STANDARD <<
-			TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+		 TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
 		(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 	dev_control.word = __gxio_mmio_read32(trio_context->mmio_base_mac +
-						reg_offset);
+										  reg_offset);
 
 	err = gxio_trio_set_mps_mrs(trio_context,
-				    dev_control.max_payload_size,
-				    dev_control.max_read_req_sz,
-				    mac);
-	if (err < 0) {
+								dev_control.max_payload_size,
+								dev_control.max_read_req_sz,
+								mac);
+
+	if (err < 0)
+	{
 		pr_err("PCI: PCIE_CONFIGURE_MAC_MPS_MRS failure, MAC %d on TRIO %d\n",
-		       mac, controller->trio_index);
+			   mac, controller->trio_index);
 	}
 }
 
@@ -633,28 +702,50 @@ static int setup_pcie_rc_delay(char *str)
 	unsigned long mac;
 
 	if (str == NULL || !isdigit(*str))
+	{
 		return -EINVAL;
+	}
+
 	trio_index = simple_strtoul(str, (char **)&str, 10);
+
 	if (trio_index >= TILEGX_NUM_TRIO)
+	{
 		return -EINVAL;
+	}
 
 	if (*str != ',')
+	{
 		return -EINVAL;
+	}
 
 	str++;
-	if (!isdigit(*str))
-		return -EINVAL;
-	mac = simple_strtoul(str, (char **)&str, 10);
-	if (mac >= TILEGX_TRIO_PCIES)
-		return -EINVAL;
 
-	if (*str != '\0') {
+	if (!isdigit(*str))
+	{
+		return -EINVAL;
+	}
+
+	mac = simple_strtoul(str, (char **)&str, 10);
+
+	if (mac >= TILEGX_TRIO_PCIES)
+	{
+		return -EINVAL;
+	}
+
+	if (*str != '\0')
+	{
 		if (*str != ',')
+		{
 			return -EINVAL;
+		}
 
 		str++;
+
 		if (!isdigit(*str))
+		{
 			return -EINVAL;
+		}
+
 		delay = simple_strtoul(str, (char **)&str, 10);
 	}
 
@@ -674,7 +765,9 @@ int __init pcibios_init(void)
 	tile_pci_init();
 
 	if (num_rc_controllers == 0)
+	{
 		return 0;
+	}
 
 	/*
 	 * Delay a bit in case devices aren't ready.  Some devices are
@@ -684,7 +777,8 @@ int __init pcibios_init(void)
 	msleep(250);
 
 	/* Scan all of the recorded PCI controllers.  */
-	for (next_busno = 0, i = 0; i < num_rc_controllers; i++) {
+	for (next_busno = 0, i = 0; i < num_rc_controllers; i++)
+	{
 		struct pci_controller *controller = &pci_controllers[i];
 		gxio_trio_context_t *trio_context = controller->trio;
 		TRIO_PCIE_INTFC_PORT_STATUS_t port_status;
@@ -697,7 +791,9 @@ int __init pcibios_init(void)
 		int ret;
 
 		if (trio_context->fd < 0)
+		{
 			continue;
+		}
 
 		trio_index = controller->trio_index;
 		mac = controller->mac;
@@ -708,36 +804,44 @@ int __init pcibios_init(void)
 		 */
 		reg_offset =
 			(TRIO_PCIE_INTFC_PORT_STATUS <<
-				TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+			 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 			(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_INTERFACE <<
-				TRIO_CFG_REGION_ADDR__INTFC_SHIFT) |
+			 TRIO_CFG_REGION_ADDR__INTFC_SHIFT) |
 			(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 		port_status.word =
 			__gxio_mmio_read(trio_context->mmio_base_mac +
-					 reg_offset);
-		if (!port_status.dl_up) {
-			if (rc_delay[trio_index][mac]) {
+							 reg_offset);
+
+		if (!port_status.dl_up)
+		{
+			if (rc_delay[trio_index][mac])
+			{
 				pr_info("Delaying PCIe RC TRIO init %d sec on MAC %d on TRIO %d\n",
-					rc_delay[trio_index][mac], mac,
-					trio_index);
+						rc_delay[trio_index][mac], mac,
+						trio_index);
 				msleep(rc_delay[trio_index][mac] * 1000);
 			}
+
 			ret = gxio_trio_force_rc_link_up(trio_context, mac);
+
 			if (ret < 0)
 				pr_err("PCI: PCIE_FORCE_LINK_UP failure, MAC %d on TRIO %d\n",
-				       mac, trio_index);
+					   mac, trio_index);
 		}
 
 		pr_info("PCI: Found PCI controller #%d on TRIO %d MAC %d\n",
-			i, trio_index, controller->mac);
+				i, trio_index, controller->mac);
 
 		/* Delay the bus probe if needed. */
-		if (rc_delay[trio_index][mac]) {
+		if (rc_delay[trio_index][mac])
+		{
 			pr_info("Delaying PCIe RC bus enumerating %d sec on MAC %d on TRIO %d\n",
-				rc_delay[trio_index][mac], mac, trio_index);
+					rc_delay[trio_index][mac], mac, trio_index);
 			msleep(rc_delay[trio_index][mac] * 1000);
-		} else {
+		}
+		else
+		{
 			/*
 			 * Wait a bit here because some EP devices
 			 * take longer to come up.
@@ -748,15 +852,20 @@ int __init pcibios_init(void)
 		/* Check for PCIe link-up status again. */
 		port_status.word =
 			__gxio_mmio_read(trio_context->mmio_base_mac +
-					 reg_offset);
-		if (!port_status.dl_up) {
-			if (pcie_ports[trio_index].ports[mac].removable) {
+							 reg_offset);
+
+		if (!port_status.dl_up)
+		{
+			if (pcie_ports[trio_index].ports[mac].removable)
+			{
 				pr_info("PCI: link is down, MAC %d on TRIO %d\n",
-					mac, trio_index);
+						mac, trio_index);
 				pr_info("This is expected if no PCIe card is connected to this link\n");
-			} else
+			}
+			else
 				pr_err("PCI: link is down, MAC %d on TRIO %d\n",
-				       mac, trio_index);
+					   mac, trio_index);
+
 			continue;
 		}
 
@@ -767,16 +876,16 @@ int __init pcibios_init(void)
 		 */
 		reg_offset =
 			(TRIO_PCIE_INTFC_TX_FIFO_CTL <<
-				TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+			 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 			(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_INTERFACE <<
-				TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+			 TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
 			(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 		tx_fifo_ctl.word =
 			__gxio_mmio_read(trio_context->mmio_base_mac +
-					 reg_offset);
+							 reg_offset);
 		tx_fifo_ctl.min_p_credits = 0;
 		__gxio_mmio_write(trio_context->mmio_base_mac + reg_offset,
-				  tx_fifo_ctl.word);
+						  tx_fifo_ctl.word);
 
 		/*
 		 * Change the device ID so that Linux bus crawl doesn't confuse
@@ -784,47 +893,49 @@ int __init pcibios_init(void)
 		 */
 		reg_offset =
 			(TRIO_PCIE_RC_DEVICE_ID_VEN_ID <<
-				TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+			 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 			(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_STANDARD <<
-				TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+			 TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
 			(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 		__gxio_mmio_write32(trio_context->mmio_base_mac + reg_offset,
-				    (TILERA_GX36_RC_DEV_ID <<
-				    TRIO_PCIE_RC_DEVICE_ID_VEN_ID__DEV_ID_SHIFT) |
-				    TILERA_VENDOR_ID);
+							(TILERA_GX36_RC_DEV_ID <<
+							 TRIO_PCIE_RC_DEVICE_ID_VEN_ID__DEV_ID_SHIFT) |
+							TILERA_VENDOR_ID);
 
 		/* Set the internal P2P bridge class code. */
 		reg_offset =
 			(TRIO_PCIE_RC_REVISION_ID <<
-				TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+			 TRIO_CFG_REGION_ADDR__REG_SHIFT) |
 			(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_STANDARD <<
-				TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+			 TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
 			(mac << TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 		class_code_revision =
 			__gxio_mmio_read32(trio_context->mmio_base_mac +
-					   reg_offset);
+							   reg_offset);
 		class_code_revision = (class_code_revision & 0xff) |
-			(PCI_CLASS_BRIDGE_PCI << 16);
+							  (PCI_CLASS_BRIDGE_PCI << 16);
 
 		__gxio_mmio_write32(trio_context->mmio_base_mac +
-				    reg_offset, class_code_revision);
+							reg_offset, class_code_revision);
 
 #ifdef USE_SHARED_PCIE_CONFIG_REGION
 
 		/* Map in the MMIO space for the PIO region. */
 		offset = HV_TRIO_PIO_OFFSET(trio_context->pio_cfg_index) |
-			(((unsigned long long)mac) <<
-			TRIO_TILE_PIO_REGION_SETUP_CFG_ADDR__MAC_SHIFT);
+				 (((unsigned long long)mac) <<
+				  TRIO_TILE_PIO_REGION_SETUP_CFG_ADDR__MAC_SHIFT);
 
 #else
 
 		/* Alloc a PIO region for PCI config access per MAC. */
 		ret = gxio_trio_alloc_pio_regions(trio_context, 1, 0, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_err("PCI: PCI CFG PIO alloc failure for mac %d on TRIO %d, give up\n",
-			       mac, trio_index);
+				   mac, trio_index);
 
 			continue;
 		}
@@ -833,18 +944,20 @@ int __init pcibios_init(void)
 
 		/* For PIO CFG, the bus_address_hi parameter is 0. */
 		ret = gxio_trio_init_pio_region_aux(trio_context,
-			trio_context->pio_cfg_index[mac],
-			mac, 0, HV_TRIO_PIO_FLAG_CONFIG_SPACE);
-		if (ret < 0) {
+											trio_context->pio_cfg_index[mac],
+											mac, 0, HV_TRIO_PIO_FLAG_CONFIG_SPACE);
+
+		if (ret < 0)
+		{
 			pr_err("PCI: PCI CFG PIO init failure for mac %d on TRIO %d, give up\n",
-			       mac, trio_index);
+				   mac, trio_index);
 
 			continue;
 		}
 
 		offset = HV_TRIO_PIO_OFFSET(trio_context->pio_cfg_index[mac]) |
-			(((unsigned long long)mac) <<
-			TRIO_TILE_PIO_REGION_SETUP_CFG_ADDR__MAC_SHIFT);
+				 (((unsigned long long)mac) <<
+				  TRIO_TILE_PIO_REGION_SETUP_CFG_ADDR__MAC_SHIFT);
 
 #endif
 
@@ -856,18 +969,21 @@ int __init pcibios_init(void)
 		 */
 		trio_context->mmio_base_pio_cfg[mac] =
 			iorpc_ioremap(trio_context->fd, offset, (1UL <<
-			(TRIO_TILE_PIO_REGION_SETUP_CFG_ADDR__MAC_SHIFT - 1)));
-		if (trio_context->mmio_base_pio_cfg[mac] == NULL) {
+						  (TRIO_TILE_PIO_REGION_SETUP_CFG_ADDR__MAC_SHIFT - 1)));
+
+		if (trio_context->mmio_base_pio_cfg[mac] == NULL)
+		{
 			pr_err("PCI: PIO map failure for mac %d on TRIO %d\n",
-			       mac, trio_index);
+				   mac, trio_index);
 
 			continue;
 		}
 
 		/* Initialize the PCIe interrupts. */
-		if (tile_init_irqs(controller)) {
+		if (tile_init_irqs(controller))
+		{
 			pr_err("PCI: IRQs init failure for mac %d on TRIO %d\n",
-				mac, trio_index);
+				   mac, trio_index);
 
 			continue;
 		}
@@ -878,11 +994,11 @@ int __init pcibios_init(void)
 		 * with the physical RAM.
 		 */
 		pci_add_resource_offset(&resources, &controller->mem_space,
-					controller->mem_offset);
+								controller->mem_offset);
 		pci_add_resource(&resources, &controller->io_space);
 		controller->first_busno = next_busno;
 		bus = pci_scan_root_bus(NULL, next_busno, controller->ops,
-					controller, &resources);
+								controller, &resources);
 		controller->root_bus = bus;
 		next_busno = bus->busn_res.end + 1;
 	}
@@ -899,7 +1015,8 @@ int __init pcibios_init(void)
 	pci_assign_unassigned_resources();
 
 	/* Record the I/O resources in the PCI controller structure. */
-	for (i = 0; i < num_rc_controllers; i++) {
+	for (i = 0; i < num_rc_controllers; i++)
+	{
 		struct pci_controller *controller = &pci_controllers[i];
 		gxio_trio_context_t *trio_context = controller->trio;
 		struct pci_bus *root_bus = pci_controllers[i].root_bus;
@@ -911,16 +1028,20 @@ int __init pcibios_init(void)
 		 * have down links.
 		 */
 		if (root_bus == NULL)
+		{
 			continue;
+		}
 
 		/* Configure the max_payload_size values for this domain. */
 		fixup_read_and_payload_sizes(controller);
 
 		/* Alloc a PIO region for PCI memory access for each RC port. */
 		ret = gxio_trio_alloc_pio_regions(trio_context, 1, 0, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_err("PCI: MEM PIO alloc failure on TRIO %d mac %d, give up\n",
-			       controller->trio_index, controller->mac);
+				   controller->trio_index, controller->mac);
 
 			continue;
 		}
@@ -932,13 +1053,15 @@ int __init pcibios_init(void)
 		 * because we always assign 32-bit PCI bus BAR ranges.
 		 */
 		ret = gxio_trio_init_pio_region_aux(trio_context,
-						    controller->pio_mem_index,
-						    controller->mac,
-						    0,
-						    0);
-		if (ret < 0) {
+											controller->pio_mem_index,
+											controller->mac,
+											0,
+											0);
+
+		if (ret < 0)
+		{
 			pr_err("PCI: MEM PIO init failure on TRIO %d mac %d, give up\n",
-			       controller->trio_index, controller->mac);
+				   controller->trio_index, controller->mac);
 
 			continue;
 		}
@@ -948,9 +1071,11 @@ int __init pcibios_init(void)
 		 * Alloc a PIO region for PCI I/O space access for each RC port.
 		 */
 		ret = gxio_trio_alloc_pio_regions(trio_context, 1, 0, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_err("PCI: I/O PIO alloc failure on TRIO %d mac %d, give up\n",
-			       controller->trio_index, controller->mac);
+				   controller->trio_index, controller->mac);
 
 			continue;
 		}
@@ -962,16 +1087,19 @@ int __init pcibios_init(void)
 		 * because PCI I/O address space is 32-bit.
 		 */
 		ret = gxio_trio_init_pio_region_aux(trio_context,
-						    controller->pio_io_index,
-						    controller->mac,
-						    0,
-						    HV_TRIO_PIO_FLAG_IO_SPACE);
-		if (ret < 0) {
+											controller->pio_io_index,
+											controller->mac,
+											0,
+											HV_TRIO_PIO_FLAG_IO_SPACE);
+
+		if (ret < 0)
+		{
 			pr_err("PCI: I/O PIO init failure on TRIO %d mac %d, give up\n",
-			       controller->trio_index, controller->mac);
+				   controller->trio_index, controller->mac);
 
 			continue;
 		}
+
 #endif
 
 		/*
@@ -979,17 +1107,20 @@ int __init pcibios_init(void)
 		 * that Linux can map all of its PA space to the PCI bus.
 		 * Use the IOMMU to handle hash-for-home memory.
 		 */
-		for_each_online_node(j) {
+		for_each_online_node(j)
+		{
 			unsigned long start_pfn = node_start_pfn[j];
 			unsigned long end_pfn = node_end_pfn[j];
 			unsigned long nr_pages = end_pfn - start_pfn;
 
 			ret = gxio_trio_alloc_memory_maps(trio_context, 1, 0,
-							  0);
-			if (ret < 0) {
+											  0);
+
+			if (ret < 0)
+			{
 				pr_err("PCI: Mem-Map alloc failure on TRIO %d mac %d for MC %d, give up\n",
-				       controller->trio_index, controller->mac,
-				       j);
+					   controller->trio_index, controller->mac,
+					   j);
 
 				goto alloc_mem_map_failed;
 			}
@@ -1009,22 +1140,25 @@ int __init pcibios_init(void)
 			 * map of the low 4GB CPA space.
 			 */
 			ret = gxio_trio_init_memory_map_mmu_aux(trio_context,
-				controller->mem_maps[j],
-				start_pfn << PAGE_SHIFT,
-				nr_pages << PAGE_SHIFT,
-				trio_context->asid,
-				controller->mac,
-				(start_pfn << PAGE_SHIFT) +
-				TILE_PCI_MEM_MAP_BASE_OFFSET,
-				j,
-				GXIO_TRIO_ORDER_MODE_UNORDERED);
-			if (ret < 0) {
+													controller->mem_maps[j],
+													start_pfn << PAGE_SHIFT,
+													nr_pages << PAGE_SHIFT,
+													trio_context->asid,
+													controller->mac,
+													(start_pfn << PAGE_SHIFT) +
+													TILE_PCI_MEM_MAP_BASE_OFFSET,
+													j,
+													GXIO_TRIO_ORDER_MODE_UNORDERED);
+
+			if (ret < 0)
+			{
 				pr_err("PCI: Mem-Map init failure on TRIO %d mac %d for MC %d, give up\n",
-				       controller->trio_index, controller->mac,
-				       j);
+					   controller->trio_index, controller->mac,
+					   j);
 
 				goto alloc_mem_map_failed;
 			}
+
 			continue;
 
 alloc_mem_map_failed:
@@ -1046,10 +1180,12 @@ void pcibios_fixup_bus(struct pci_bus *bus)
 /* Process any "pci=" kernel boot arguments. */
 char *__init pcibios_setup(char *str)
 {
-	if (!strcmp(str, "off")) {
+	if (!strcmp(str, "off"))
+	{
 		pci_probe = 0;
 		return NULL;
 	}
+
 	return str;
 }
 
@@ -1093,25 +1229,31 @@ void __iomem *ioremap(resource_size_t phys_addr, unsigned long size)
 	 * By searching phys_addr in each controller's mem_space, we can
 	 * determine the controller that should accept the PCI memory access.
 	 */
-	for (i = 0; i < num_rc_controllers; i++) {
+	for (i = 0; i < num_rc_controllers; i++)
+	{
 		/*
 		 * Skip controllers that are not properly initialized or
 		 * have down links.
 		 */
 		if (pci_controllers[i].root_bus == NULL)
+		{
 			continue;
+		}
 
 		bar_start = pci_controllers[i].mem_space.start;
 		bar_end = pci_controllers[i].mem_space.end;
 
-		if ((start >= bar_start) && (end <= bar_end)) {
+		if ((start >= bar_start) && (end <= bar_end))
+		{
 			controller = &pci_controllers[i];
 			break;
 		}
 	}
 
 	if (controller == NULL)
+	{
 		return NULL;
+	}
 
 	trio_fd = controller->trio->fd;
 
@@ -1122,7 +1264,7 @@ void __iomem *ioremap(resource_size_t phys_addr, unsigned long size)
 
 	/* We need to keep the PCI bus address's in-page offset in the VA. */
 	return iorpc_ioremap(trio_fd, offset, size) +
-		(start & (PAGE_SIZE - 1));
+		   (start & (PAGE_SIZE - 1));
 }
 EXPORT_SYMBOL(ioremap);
 
@@ -1146,25 +1288,31 @@ void __iomem *ioport_map(unsigned long port, unsigned int size)
 	 * By searching the port in each controller's io_space, we can
 	 * determine the controller that should accept the PCI I/O access.
 	 */
-	for (i = 0; i < num_rc_controllers; i++) {
+	for (i = 0; i < num_rc_controllers; i++)
+	{
 		/*
 		 * Skip controllers that are not properly initialized or
 		 * have down links.
 		 */
 		if (pci_controllers[i].root_bus == NULL)
+		{
 			continue;
+		}
 
 		bar_start = pci_controllers[i].io_space.start;
 		bar_end = pci_controllers[i].io_space.end;
 
-		if ((start >= bar_start) && (end <= bar_end)) {
+		if ((start >= bar_start) && (end <= bar_end))
+		{
 			controller = &pci_controllers[i];
 			break;
 		}
 	}
 
 	if (controller == NULL)
+	{
 		return NULL;
+	}
 
 	trio_fd = controller->trio->fd;
 
@@ -1207,7 +1355,7 @@ EXPORT_SYMBOL(pci_iounmap);
  * specified bus & device.
  */
 static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
-			 int size, u32 *val)
+						 int size, u32 *val)
 {
 	struct pci_controller *controller = bus->sysdata;
 	gxio_trio_context_t *trio_context = controller->trio;
@@ -1223,8 +1371,10 @@ static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
 	 * MMIO space of the MAC. Accesses to the downstream devices
 	 * go to the PIO space.
 	 */
-	if (pci_is_root_bus(bus)) {
-		if (device == 0) {
+	if (pci_is_root_bus(bus))
+	{
+		if (device == 0)
+		{
 			/*
 			 * This is the internal downstream P2P bridge,
 			 * access directly.
@@ -1232,17 +1382,19 @@ static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
 			unsigned int reg_offset;
 
 			reg_offset = ((offset & 0xFFF) <<
-				TRIO_CFG_REGION_ADDR__REG_SHIFT) |
-				(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_PROTECTED
-				<< TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
-				(controller->mac <<
-					TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
+						  TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+						 (TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_PROTECTED
+						  << TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+						 (controller->mac <<
+						  TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 			mmio_addr = trio_context->mmio_base_mac + reg_offset;
 
 			goto valid_device;
 
-		} else {
+		}
+		else
+		{
 			/*
 			 * We fake an empty device for (device > 0),
 			 * since there is only one device on bus 0.
@@ -1255,12 +1407,15 @@ static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
 	 * Accesses to the directly attached device have to be
 	 * sent as type-0 configs.
 	 */
-	if (busnum == (controller->first_busno + 1)) {
+	if (busnum == (controller->first_busno + 1))
+	{
 		/*
 		 * There is only one device off of our built-in P2P bridge.
 		 */
 		if (device != 0)
+		{
 			goto invalid_device;
+		}
 
 		config_type = 0;
 	}
@@ -1277,25 +1432,26 @@ static int tile_cfg_read(struct pci_bus *bus, unsigned int devfn, int offset,
 	 * mapping is per port.
 	 */
 	mmio_addr = trio_context->mmio_base_pio_cfg[controller->mac] +
-		cfg_addr.word;
+				cfg_addr.word;
 
 valid_device:
 
-	switch (size) {
-	case 4:
-		*val = __gxio_mmio_read32(mmio_addr);
-		break;
+	switch (size)
+	{
+		case 4:
+			*val = __gxio_mmio_read32(mmio_addr);
+			break;
 
-	case 2:
-		*val = __gxio_mmio_read16(mmio_addr);
-		break;
+		case 2:
+			*val = __gxio_mmio_read16(mmio_addr);
+			break;
 
-	case 1:
-		*val = __gxio_mmio_read8(mmio_addr);
-		break;
+		case 1:
+			*val = __gxio_mmio_read8(mmio_addr);
+			break;
 
-	default:
-		return PCIBIOS_FUNC_NOT_SUPPORTED;
+		default:
+			return PCIBIOS_FUNC_NOT_SUPPORTED;
 	}
 
 	TRACE_CFG_RD(size, *val, busnum, device, function, offset);
@@ -1304,21 +1460,22 @@ valid_device:
 
 invalid_device:
 
-	switch (size) {
-	case 4:
-		*val = 0xFFFFFFFF;
-		break;
+	switch (size)
+	{
+		case 4:
+			*val = 0xFFFFFFFF;
+			break;
 
-	case 2:
-		*val = 0xFFFF;
-		break;
+		case 2:
+			*val = 0xFFFF;
+			break;
 
-	case 1:
-		*val = 0xFF;
-		break;
+		case 1:
+			*val = 0xFF;
+			break;
 
-	default:
-		return PCIBIOS_FUNC_NOT_SUPPORTED;
+		default:
+			return PCIBIOS_FUNC_NOT_SUPPORTED;
 	}
 
 	return 0;
@@ -1330,7 +1487,7 @@ invalid_device:
  * Note that "val" is the value to write, not a pointer to that value.
  */
 static int tile_cfg_write(struct pci_bus *bus, unsigned int devfn, int offset,
-			  int size, u32 val)
+						  int size, u32 val)
 {
 	struct pci_controller *controller = bus->sysdata;
 	gxio_trio_context_t *trio_context = controller->trio;
@@ -1349,8 +1506,10 @@ static int tile_cfg_write(struct pci_bus *bus, unsigned int devfn, int offset,
 	 * MMIO space of the MAC. Accesses to the downstream devices
 	 * go to the PIO space.
 	 */
-	if (pci_is_root_bus(bus)) {
-		if (device == 0) {
+	if (pci_is_root_bus(bus))
+	{
+		if (device == 0)
+		{
 			/*
 			 * This is the internal downstream P2P bridge,
 			 * access directly.
@@ -1358,17 +1517,19 @@ static int tile_cfg_write(struct pci_bus *bus, unsigned int devfn, int offset,
 			unsigned int reg_offset;
 
 			reg_offset = ((offset & 0xFFF) <<
-				TRIO_CFG_REGION_ADDR__REG_SHIFT) |
-				(TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_PROTECTED
-				<< TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
-				(controller->mac <<
-					TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
+						  TRIO_CFG_REGION_ADDR__REG_SHIFT) |
+						 (TRIO_CFG_REGION_ADDR__INTFC_VAL_MAC_PROTECTED
+						  << TRIO_CFG_REGION_ADDR__INTFC_SHIFT ) |
+						 (controller->mac <<
+						  TRIO_CFG_REGION_ADDR__MAC_SEL_SHIFT);
 
 			mmio_addr = trio_context->mmio_base_mac + reg_offset;
 
 			goto valid_device;
 
-		} else {
+		}
+		else
+		{
 			/*
 			 * We fake an empty device for (device > 0),
 			 * since there is only one device on bus 0.
@@ -1381,12 +1542,15 @@ static int tile_cfg_write(struct pci_bus *bus, unsigned int devfn, int offset,
 	 * Accesses to the directly attached device have to be
 	 * sent as type-0 configs.
 	 */
-	if (busnum == (controller->first_busno + 1)) {
+	if (busnum == (controller->first_busno + 1))
+	{
 		/*
 		 * There is only one device off of our built-in P2P bridge.
 		 */
 		if (device != 0)
+		{
 			goto invalid_device;
+		}
 
 		config_type = 0;
 	}
@@ -1403,28 +1567,29 @@ static int tile_cfg_write(struct pci_bus *bus, unsigned int devfn, int offset,
 	 * mapping is per port.
 	 */
 	mmio_addr = trio_context->mmio_base_pio_cfg[controller->mac] +
-			cfg_addr.word;
+				cfg_addr.word;
 
 valid_device:
 
-	switch (size) {
-	case 4:
-		__gxio_mmio_write32(mmio_addr, val_32);
-		TRACE_CFG_WR(size, val_32, busnum, device, function, offset);
-		break;
+	switch (size)
+	{
+		case 4:
+			__gxio_mmio_write32(mmio_addr, val_32);
+			TRACE_CFG_WR(size, val_32, busnum, device, function, offset);
+			break;
 
-	case 2:
-		__gxio_mmio_write16(mmio_addr, val_16);
-		TRACE_CFG_WR(size, val_16, busnum, device, function, offset);
-		break;
+		case 2:
+			__gxio_mmio_write16(mmio_addr, val_16);
+			TRACE_CFG_WR(size, val_16, busnum, device, function, offset);
+			break;
 
-	case 1:
-		__gxio_mmio_write8(mmio_addr, val_8);
-		TRACE_CFG_WR(size, val_8, busnum, device, function, offset);
-		break;
+		case 1:
+			__gxio_mmio_write8(mmio_addr, val_8);
+			TRACE_CFG_WR(size, val_8, busnum, device, function, offset);
+			break;
 
-	default:
-		return PCIBIOS_FUNC_NOT_SUPPORTED;
+		default:
+			return PCIBIOS_FUNC_NOT_SUPPORTED;
 	}
 
 invalid_device:
@@ -1433,7 +1598,8 @@ invalid_device:
 }
 
 
-static struct pci_ops tile_cfg_ops = {
+static struct pci_ops tile_cfg_ops =
+{
 	.read =         tile_cfg_read,
 	.write =        tile_cfg_write,
 };
@@ -1443,7 +1609,9 @@ static struct pci_ops tile_cfg_ops = {
 static unsigned int tilegx_msi_startup(struct irq_data *d)
 {
 	if (irq_data_get_msi_desc(d))
+	{
 		pci_msi_unmask_irq(d);
+	}
 
 	return 0;
 }
@@ -1465,7 +1633,8 @@ static void tilegx_msi_unmask(struct irq_data *d)
 	pci_msi_unmask_irq(d);
 }
 
-static struct irq_chip tilegx_msi_chip = {
+static struct irq_chip tilegx_msi_chip =
+{
 	.name			= "tilegx_msi",
 	.irq_startup		= tilegx_msi_startup,
 	.irq_ack		= tilegx_msi_ack,
@@ -1490,8 +1659,11 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 	int ret;
 
 	irq = irq_alloc_hwirq(-1);
+
 	if (!irq)
+	{
 		return -ENOSPC;
+	}
 
 	/*
 	 * Since we use a 64-bit Mem-Map to accept the MSI write, we fail
@@ -1499,7 +1671,8 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 	 * These devices will fall back to using the legacy interrupts.
 	 * Most PCIe endpoint devices do support 64-bit message addressing.
 	 */
-	if (desc->msi_attrib.is_64 == 0) {
+	if (desc->msi_attrib.is_64 == 0)
+	{
 		dev_info(&pdev->dev, "64-bit MSI message address not supported, falling back to legacy interrupts\n");
 
 		ret = -ENOMEM;
@@ -1520,35 +1693,43 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 	 * applications.
 	 */
 	mem_map = gxio_trio_alloc_scatter_queues(trio_context, 1, 0, 0);
-	if (mem_map >= 0) {
+
+	if (mem_map >= 0)
+	{
 		TRIO_MAP_SQ_DOORBELL_FMT_t doorbell_template = {{
-			.pop = 0,
-			.doorbell = 1,
-		}};
+				.pop = 0,
+				.doorbell = 1,
+			}
+		};
 
 		mem_map += TRIO_NUM_MAP_MEM_REGIONS;
 		mem_map_base = MEM_MAP_INTR_REGIONS_BASE +
-			mem_map * MEM_MAP_INTR_REGION_SIZE;
+					   mem_map * MEM_MAP_INTR_REGION_SIZE;
 		mem_map_limit = mem_map_base + MEM_MAP_INTR_REGION_SIZE - 1;
 
 		msi_addr = mem_map_base + MEM_MAP_INTR_REGION_SIZE - 8;
 		msg.data = (unsigned int)doorbell_template.word;
-	} else {
+	}
+	else
+	{
 		/* SQ regions are out, allocate from map mem regions. */
 		mem_map = gxio_trio_alloc_memory_maps(trio_context, 1, 0, 0);
-		if (mem_map < 0) {
-			dev_info(&pdev->dev, "%s Mem-Map alloc failure - failed to initialize MSI interrupts - falling back to legacy interrupts\n",
-				 desc->msi_attrib.is_msix ? "MSI-X" : "MSI");
+
+		if (mem_map < 0)
+		{
+			dev_info(&pdev->dev,
+					 "%s Mem-Map alloc failure - failed to initialize MSI interrupts - falling back to legacy interrupts\n",
+					 desc->msi_attrib.is_msix ? "MSI-X" : "MSI");
 			ret = -ENOMEM;
 			goto msi_mem_map_alloc_failure;
 		}
 
 		mem_map_base = MEM_MAP_INTR_REGIONS_BASE +
-			mem_map * MEM_MAP_INTR_REGION_SIZE;
+					   mem_map * MEM_MAP_INTR_REGION_SIZE;
 		mem_map_limit = mem_map_base + MEM_MAP_INTR_REGION_SIZE - 1;
 
 		msi_addr = mem_map_base + TRIO_MAP_MEM_REG_INT3 -
-			TRIO_MAP_MEM_REG_INT0;
+				   TRIO_MAP_MEM_REG_INT0;
 
 		msg.data = mem_map;
 	}
@@ -1561,10 +1742,12 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 	 * set up the IPI binding.
 	 */
 	ret = gxio_trio_config_msi_intr(trio_context, cpu_x(cpu), cpu_y(cpu),
-					KERNEL_PL, irq, controller->mac,
-					mem_map, mem_map_base, mem_map_limit,
-					trio_context->asid);
-	if (ret < 0) {
+									KERNEL_PL, irq, controller->mac,
+									mem_map, mem_map_base, mem_map_limit,
+									trio_context->asid);
+
+	if (ret < 0)
+	{
 		dev_info(&pdev->dev, "HV MSI config failed\n");
 
 		goto hv_msi_config_failure;

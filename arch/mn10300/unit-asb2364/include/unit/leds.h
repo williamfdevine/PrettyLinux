@@ -44,11 +44,11 @@
 #endif
 
 #ifndef __ASSEMBLY__
-extern void peripheral_leds_display_exception(enum exception_code);
-extern void peripheral_leds_led_chase(void);
-extern void peripheral_leds7x4_display_dec(unsigned int, unsigned int);
-extern void peripheral_leds7x4_display_hex(unsigned int, unsigned int);
-extern void debug_to_serial(const char *, int);
+	extern void peripheral_leds_display_exception(enum exception_code);
+	extern void peripheral_leds_led_chase(void);
+	extern void peripheral_leds7x4_display_dec(unsigned int, unsigned int);
+	extern void peripheral_leds7x4_display_hex(unsigned int, unsigned int);
+	extern void debug_to_serial(const char *, int);
 #endif /* __ASSEMBLY__ */
 
 #endif /* _ASM_UNIT_LEDS_H */

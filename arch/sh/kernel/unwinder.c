@@ -25,7 +25,8 @@
  * construct more accurate stack traces.
  */
 static struct list_head unwinder_list;
-static struct unwinder stack_reader = {
+static struct unwinder stack_reader =
+{
 	.name = "stack-reader",
 	.dump = stack_reader_dump,
 	.rating = 50,
@@ -47,7 +48,8 @@ static struct unwinder stack_reader = {
  */
 static struct unwinder *curr_unwinder = &stack_reader;
 
-static struct list_head unwinder_list = {
+static struct list_head unwinder_list =
+{
 	.next = &stack_reader.list,
 	.prev = &stack_reader.list,
 };
@@ -67,11 +69,16 @@ static struct unwinder *select_unwinder(void)
 	struct unwinder *best;
 
 	if (list_empty(&unwinder_list))
+	{
 		return NULL;
+	}
 
 	best = list_entry(unwinder_list.next, struct unwinder, list);
+
 	if (best == curr_unwinder)
+	{
 		return NULL;
+	}
 
 	return best;
 }
@@ -83,15 +90,22 @@ static int unwinder_enqueue(struct unwinder *ops)
 {
 	struct list_head *tmp, *entry = &unwinder_list;
 
-	list_for_each(tmp, &unwinder_list) {
+	list_for_each(tmp, &unwinder_list)
+	{
 		struct unwinder *o;
 
 		o = list_entry(tmp, struct unwinder, list);
+
 		if (o == ops)
+		{
 			return -EBUSY;
+		}
+
 		/* Keep track of the place, where to insert */
 		if (o->rating >= ops->rating)
+		{
 			entry = tmp;
+		}
 	}
 	list_add(&ops->list, entry);
 
@@ -114,8 +128,12 @@ int unwinder_register(struct unwinder *u)
 
 	spin_lock_irqsave(&unwinder_lock, flags);
 	ret = unwinder_enqueue(u);
+
 	if (!ret)
+	{
 		curr_unwinder = select_unwinder();
+	}
+
 	spin_unlock_irqrestore(&unwinder_lock, flags);
 
 	return ret;
@@ -129,8 +147,8 @@ int unwinder_faulted = 0;
  * stack dumper because the current one faulted unexpectedly.
  */
 void unwind_stack(struct task_struct *task, struct pt_regs *regs,
-		  unsigned long *sp, const struct stacktrace_ops *ops,
-		  void *data)
+				  unsigned long *sp, const struct stacktrace_ops *ops,
+				  void *data)
 {
 	unsigned long flags;
 
@@ -145,11 +163,13 @@ void unwind_stack(struct task_struct *task, struct pt_regs *regs,
 	 * Hopefully this will give us a semi-reliable stacktrace so we
 	 * can diagnose why curr_unwinder->dump() faulted.
 	 */
-	if (unwinder_faulted) {
+	if (unwinder_faulted)
+	{
 		spin_lock_irqsave(&unwinder_lock, flags);
 
 		/* Make sure no one beat us to changing the unwinder */
-		if (unwinder_faulted && !list_is_singular(&unwinder_list)) {
+		if (unwinder_faulted && !list_is_singular(&unwinder_list))
+		{
 			list_del(&curr_unwinder->list);
 			curr_unwinder = select_unwinder();
 

@@ -26,9 +26,9 @@
 static inline void invalidate_dcache_line(void *vaddr)
 {
 	asm volatile("cache %0[0], %1"
-		     :
-		     : "r"(vaddr), "n"(CACHE_OP_DCACHE_INVALIDATE)
-		     : "memory");
+				 :
+				 : "r"(vaddr), "n"(CACHE_OP_DCACHE_INVALIDATE)
+				 : "memory");
 }
 
 /*
@@ -38,9 +38,9 @@ static inline void invalidate_dcache_line(void *vaddr)
 static inline void clean_dcache_line(void *vaddr)
 {
 	asm volatile("cache %0[0], %1"
-		     :
-		     : "r"(vaddr), "n"(CACHE_OP_DCACHE_CLEAN)
-		     : "memory");
+				 :
+				 : "r"(vaddr), "n"(CACHE_OP_DCACHE_CLEAN)
+				 : "memory");
 }
 
 /*
@@ -50,9 +50,9 @@ static inline void clean_dcache_line(void *vaddr)
 static inline void flush_dcache_line(void *vaddr)
 {
 	asm volatile("cache %0[0], %1"
-		     :
-		     : "r"(vaddr), "n"(CACHE_OP_DCACHE_CLEAN_INVAL)
-		     : "memory");
+				 :
+				 : "r"(vaddr), "n"(CACHE_OP_DCACHE_CLEAN_INVAL)
+				 : "memory");
 }
 
 /*
@@ -62,9 +62,9 @@ static inline void flush_dcache_line(void *vaddr)
 static inline void invalidate_icache_line(void *vaddr)
 {
 	asm volatile("cache %0[0], %1"
-		     :
-		     : "r"(vaddr), "n"(CACHE_OP_ICACHE_INVALIDATE)
-		     : "memory");
+				 :
+				 : "r"(vaddr), "n"(CACHE_OP_ICACHE_INVALIDATE)
+				 : "memory");
 }
 
 /*
@@ -119,12 +119,12 @@ extern void flush_icache_page(struct vm_area_struct *vma, struct page *page);
 extern void flush_icache_range(unsigned long start, unsigned long end);
 
 extern void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
-		unsigned long vaddr, void *dst, const void *src,
-		unsigned long len);
+							  unsigned long vaddr, void *dst, const void *src,
+							  unsigned long len);
 
 static inline void copy_from_user_page(struct vm_area_struct *vma,
-		struct page *page, unsigned long vaddr, void *dst,
-		const void *src, unsigned long len)
+									   struct page *page, unsigned long vaddr, void *dst,
+									   const void *src, unsigned long len)
 {
 	memcpy(dst, src, len);
 }

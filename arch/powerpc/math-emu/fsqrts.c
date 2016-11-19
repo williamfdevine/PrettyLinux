@@ -25,9 +25,14 @@ fsqrts(void *frD, void *frB)
 #endif
 
 	if (B_s && B_c != FP_CLS_ZERO)
+	{
 		FP_SET_EXCEPTION(EFLAG_VXSQRT);
+	}
+
 	if (B_c == FP_CLS_NAN)
+	{
 		FP_SET_EXCEPTION(EFLAG_VXSNAN);
+	}
 
 	FP_SQRT_D(R, B);
 

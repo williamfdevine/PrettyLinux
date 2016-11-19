@@ -33,13 +33,13 @@
  * x86_64 has a fixed-length stack frame.
  */
 #ifdef CONFIG_X86_32
-# ifdef CONFIG_VM86
-#  define TOP_OF_KERNEL_STACK_PADDING 16
-# else
-#  define TOP_OF_KERNEL_STACK_PADDING 8
-# endif
+	#ifdef CONFIG_VM86
+		#define TOP_OF_KERNEL_STACK_PADDING 16
+	#else
+		#define TOP_OF_KERNEL_STACK_PADDING 8
+	#endif
 #else
-# define TOP_OF_KERNEL_STACK_PADDING 0
+	#define TOP_OF_KERNEL_STACK_PADDING 0
 #endif
 
 /*
@@ -52,14 +52,15 @@ struct task_struct;
 #include <asm/cpufeature.h>
 #include <linux/atomic.h>
 
-struct thread_info {
+struct thread_info
+{
 	unsigned long		flags;		/* low level flags */
 };
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.flags		= 0,			\
-}
+	{						\
+		.flags		= 0,			\
+	}
 
 #define init_stack		(init_thread_union.stack)
 
@@ -134,7 +135,7 @@ struct thread_info {
 /* work to do on any return to user space */
 #define _TIF_ALLWORK_MASK						\
 	((0x0000FFFF & ~_TIF_SECCOMP) | _TIF_SYSCALL_TRACEPOINT |	\
-	_TIF_NOHZ)
+	 _TIF_NOHZ)
 
 /* flags to check in __switch_to() */
 #define _TIF_WORK_CTXSW							\
@@ -172,24 +173,29 @@ static inline unsigned long current_stack_pointer(void)
  *		-1 if placed across a frame boundary (or outside stack)
  *		 0 unable to determine (no frame pointers, etc)
  */
-static inline int arch_within_stack_frames(const void * const stack,
-					   const void * const stackend,
-					   const void *obj, unsigned long len)
+static inline int arch_within_stack_frames(const void *const stack,
+		const void *const stackend,
+		const void *obj, unsigned long len)
 {
 #if defined(CONFIG_FRAME_POINTER)
 	const void *frame = NULL;
 	const void *oldframe;
 
 	oldframe = __builtin_frame_address(1);
+
 	if (oldframe)
+	{
 		frame = __builtin_frame_address(2);
+	}
+
 	/*
 	 * low ----------------------------------------------> high
 	 * [saved bp][saved ip][args][local vars][saved bp][saved ip]
 	 *                     ^----------------^
 	 *               allow copies only within here
 	 */
-	while (stack <= frame && frame < stackend) {
+	while (stack <= frame && frame < stackend)
+	{
 		/*
 		 * If obj + len extends past the last frame, this
 		 * check won't pass and the next frame will be 0,
@@ -197,10 +203,14 @@ static inline int arch_within_stack_frames(const void * const stack,
 		 * the copy as invalid.
 		 */
 		if (obj + len <= frame)
+		{
 			return obj >= oldframe + 2 * sizeof(void *) ? 1 : -1;
+		}
+
 		oldframe = frame;
-		frame = *(const void * const *)frame;
+		frame = *(const void *const *)frame;
 	}
+
 	return -1;
 #else
 	return 0;
@@ -210,13 +220,13 @@ static inline int arch_within_stack_frames(const void * const stack,
 #else /* !__ASSEMBLY__ */
 
 #ifdef CONFIG_X86_64
-# define cpu_current_top_of_stack (cpu_tss + TSS_sp0)
+	#define cpu_current_top_of_stack (cpu_tss + TSS_sp0)
 #endif
 
 #endif
 
 #ifdef CONFIG_COMPAT
-#define TS_I386_REGS_POKED	0x0004	/* regs poked by 32-bit ptracer */
+	#define TS_I386_REGS_POKED	0x0004	/* regs poked by 32-bit ptracer */
 #endif
 #ifndef __ASSEMBLY__
 
@@ -224,7 +234,7 @@ static inline int arch_within_stack_frames(const void * const stack,
 #define in_ia32_syscall() true
 #else
 #define in_ia32_syscall() (IS_ENABLED(CONFIG_IA32_EMULATION) && \
-			   current->thread.status & TS_COMPAT)
+						   current->thread.status & TS_COMPAT)
 #endif
 
 /*

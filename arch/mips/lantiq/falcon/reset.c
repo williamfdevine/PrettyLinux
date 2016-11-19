@@ -59,11 +59,11 @@ static void machine_restart(char *command)
 	/* watchdog magic */
 	ltq_w32(WDT_PW1, (void *)WDT_REG_BASE);
 	ltq_w32(WDT_PW2 |
-		(0x3 << 26) | /* PWL */
-		(0x2 << 24) | /* CLKDIV */
-		(0x1 << 31) | /* enable */
-		(1), /* reload */
-		(void *)WDT_REG_BASE);
+			(0x3 << 26) | /* PWL */
+			(0x2 << 24) | /* CLKDIV */
+			(0x1 << 31) | /* enable */
+			(1), /* reload */
+			(void *)WDT_REG_BASE);
 	unreachable();
 }
 

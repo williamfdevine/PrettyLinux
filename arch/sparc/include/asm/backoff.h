@@ -53,7 +53,7 @@
 
 #define BACKOFF_SPIN(reg, tmp, label)		\
 	mov		reg, tmp;		\
-88:	rd		%ccr, %g0;		\
+	88:	rd		%ccr, %g0;		\
 	rd		%ccr, %g0;		\
 	rd		%ccr, %g0;		\
 	.section	.pause_3insn_patch,"ax";\
@@ -63,13 +63,13 @@
 	clr		tmp;			\
 	.previous;				\
 	brnz,pt		tmp, 88b;		\
-	 sub		tmp, 1, tmp;		\
+	sub		tmp, 1, tmp;		\
 	set		BACKOFF_LIMIT, tmp;	\
 	cmp		reg, tmp;		\
 	bg,pn		%xcc, label;		\
-	 nop;					\
+	nop;					\
 	ba,pt		%xcc, label;		\
-	 sllx		reg, 1, reg;
+	sllx		reg, 1, reg;
 
 #else
 

@@ -20,7 +20,7 @@
 int sparc32_foo(void)
 {
 	DEFINE(AOFF_thread_fork_kpsr,
-			offsetof(struct thread_struct, fork_kpsr));
+		   offsetof(struct thread_struct, fork_kpsr));
 	return 0;
 }
 #else

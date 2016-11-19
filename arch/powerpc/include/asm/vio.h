@@ -33,7 +33,7 @@
 /* End architecture-specific constants */
 
 #define h_vio_signal(ua, mode) \
-  plpar_hcall_norets(H_VIO_SIGNAL, ua, mode)
+	plpar_hcall_norets(H_VIO_SIGNAL, ua, mode)
 
 #define VIO_IRQ_DISABLE		0UL
 #define VIO_IRQ_ENABLE		1UL
@@ -69,7 +69,8 @@ struct iommu_table;
  * @timeout: # of milliseconds to retry h_call, 0 for no timeout.
  * @hcall_err: pointer to return the h_call return value, else NULL
  */
-struct vio_pfo_op {
+struct vio_pfo_op
+{
 	u64 flags;
 	s64 in;
 	s64 inlen;
@@ -84,7 +85,8 @@ struct vio_pfo_op {
 
 /* End PFO specific data */
 
-enum vio_dev_family {
+enum vio_dev_family
+{
 	VDEVICE,	/* The OF node is a child of /vdevice */
 	PFO,		/* The OF node is a child of /ibm,platform-facilities */
 };
@@ -97,13 +99,15 @@ enum vio_dev_family {
  * @allocated: bytes of IO data currently in use by the device.
  * @allocs_failed: number of DMA failures due to insufficient entitlement.
  */
-struct vio_dev {
+struct vio_dev
+{
 	const char *name;
 	const char *type;
 	uint32_t unit_address;
 	uint32_t resource_id;
 	unsigned int irq;
-	struct {
+	struct
+	{
 		size_t desired;
 		size_t entitled;
 		size_t allocated;
@@ -113,7 +117,8 @@ struct vio_dev {
 	struct device dev;
 };
 
-struct vio_driver {
+struct vio_driver
+{
 	const char *name;
 	const struct vio_device_id *id_table;
 	int (*probe)(struct vio_dev *dev, const struct vio_device_id *id);
@@ -127,7 +132,7 @@ struct vio_driver {
 };
 
 extern int __vio_register_driver(struct vio_driver *drv, struct module *owner,
-				 const char *mod_name);
+								 const char *mod_name);
 /*
  * vio_register_driver must be a macro so that KBUILD_MODNAME can be expanded
  */
@@ -145,9 +150,9 @@ extern int vio_h_cop_sync(struct vio_dev *vdev, struct vio_pfo_op *op);
 struct device_node;
 
 extern struct vio_dev *vio_register_device_node(
-		struct device_node *node_vdev);
+	struct device_node *node_vdev);
 extern const void *vio_get_attribute(struct vio_dev *vdev, char *which,
-		int *length);
+									 int *length);
 #ifdef CONFIG_PPC_PSERIES
 extern struct vio_dev *vio_find_node(struct device_node *vnode);
 extern int vio_enable_interrupts(struct vio_dev *dev);

@@ -1,6 +1,6 @@
 /*
  *   linux/arch/parisc/kernel/pa7300lc.c
- *	- PA7300LC-specific functions	
+ *	- PA7300LC-specific functions
  *
  *   Copyright (C) 2000 Philipp Rumpf */
 
@@ -35,12 +35,12 @@ static void pa7300lc_lpmc(int code, struct pt_regs *regs)
 
 	hpa = cpu_hpa();
 	printk(KERN_WARNING
-		"MIOC_CONTROL %08x\n" "MIOC_STATUS  %08x\n"
-		"MDERRADD     %08x\n" "DMAERR       %08x\n"
-		"DIOERR       %08x\n" "HIDMAMEM     %08x\n",
-		gsc_readl(hpa+MIOC_CONTROL), gsc_readl(hpa+MIOC_STATUS),
-		gsc_readl(hpa+MDERRADD), gsc_readl(hpa+DMAERR),
-		gsc_readl(hpa+DIOERR), gsc_readl(hpa+HIDMAMEM));
+		   "MIOC_CONTROL %08x\n" "MIOC_STATUS  %08x\n"
+		   "MDERRADD     %08x\n" "DMAERR       %08x\n"
+		   "DIOERR       %08x\n" "HIDMAMEM     %08x\n",
+		   gsc_readl(hpa + MIOC_CONTROL), gsc_readl(hpa + MIOC_STATUS),
+		   gsc_readl(hpa + MDERRADD), gsc_readl(hpa + DMAERR),
+		   gsc_readl(hpa + DIOERR), gsc_readl(hpa + HIDMAMEM));
 }
 
 void pa7300lc_init(void)

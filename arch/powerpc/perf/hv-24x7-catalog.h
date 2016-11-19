@@ -5,7 +5,8 @@
 
 /* From document "24x7 Event and Group Catalog Formats Proposal" v0.15 */
 
-struct hv_24x7_catalog_page_0 {
+struct hv_24x7_catalog_page_0
+{
 #define HV_24X7_CATALOG_MAGIC 0x32347837 /* "24x7" in ASCII */
 	__be32 magic;
 	__be32 length; /* In 4096 byte pages */
@@ -30,7 +31,8 @@ struct hv_24x7_catalog_page_0 {
 	__u8 reserved6[2];
 } __packed;
 
-struct hv_24x7_event_data {
+struct hv_24x7_event_data
+{
 	__be16 length; /* in bytes, must be a multiple of 16 */
 	__u8 reserved1[2];
 	__u8 domain; /* Chip = 1, Core = 2 */

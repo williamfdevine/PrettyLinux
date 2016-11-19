@@ -41,7 +41,7 @@ static inline void putc(int ch)
 {
 	/* Wait for transmit FIFO to empty */
 	while ((__raw_readl(_UARTREG(LPC32XX_UART_LSR_O)) &
-		UART_STATUS_TX_MT) == 0)
+			UART_STATUS_TX_MT) == 0)
 		;
 
 	__raw_writel((u32) ch, _UARTREG(LPC32XX_UART_DLLFIFO_O));
@@ -50,7 +50,7 @@ static inline void putc(int ch)
 static inline void flush(void)
 {
 	__raw_writel(__raw_readl(_UARTREG(LPC32XX_UART_IIRFCR_O)) |
-		UART_FIFO_CTL_TX_RESET, _UARTREG(LPC32XX_UART_IIRFCR_O));
+				 UART_FIFO_CTL_TX_RESET, _UARTREG(LPC32XX_UART_IIRFCR_O));
 }
 
 /* NULL functions; we don't presently need them */

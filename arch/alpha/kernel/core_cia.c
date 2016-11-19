@@ -30,16 +30,16 @@
 
 
 /*
- * NOTE: Herein lie back-to-back mb instructions.  They are magic. 
+ * NOTE: Herein lie back-to-back mb instructions.  They are magic.
  * One plausible explanation is that the i/o controller does not properly
  * handle the system transaction.  Another involves timing.  Ho hum.
  */
 
 #define DEBUG_CONFIG 0
 #if DEBUG_CONFIG
-# define DBGC(args)	printk args
+	#define DBGC(args)	printk args
 #else
-# define DBGC(args)
+	#define DBGC(args)
 #endif
 
 #define vip	volatile int  *
@@ -52,7 +52,7 @@
  *
  * Type 0:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | |D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|0|
@@ -64,7 +64,7 @@
  *
  * Type 1:
  *
- *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1 
+ *  3 3|3 3 2 2|2 2 2 2|2 2 2 2|1 1 1 1|1 1 1 1|1 1
  *  3 2|1 0 9 8|7 6 5 4|3 2 1 0|9 8 7 6|5 4 3 2|1 0 9 8|7 6 5 4|3 2 1 0
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * | | | | | | | | | | |B|B|B|B|B|B|B|B|D|D|D|D|D|F|F|F|R|R|R|R|R|R|0|1|
@@ -75,11 +75,11 @@
  *	15:11	Device number (5 bits)
  *	10:8	function number
  *	 7:2	register number
- *  
+ *
  * Notes:
- *	The function number selects which function of a multi-function device 
+ *	The function number selects which function of a multi-function device
  *	(e.g., SCSI and Ethernet).
- * 
+ *
  *	The register selects a DWORD (32 bit) register offset.  Hence it
  *	doesn't get shifted by 2 bits as we want to "drop" the bottom two
  *	bits.
@@ -87,7 +87,7 @@
 
 static int
 mk_conf_addr(struct pci_bus *bus_dev, unsigned int device_fn, int where,
-	     unsigned long *pci_addr, unsigned char *type1)
+			 unsigned long *pci_addr, unsigned char *type1)
 {
 	u8 bus = bus_dev->number;
 
@@ -95,8 +95,8 @@ mk_conf_addr(struct pci_bus *bus_dev, unsigned int device_fn, int where,
 	*pci_addr = (bus << 16) | (device_fn << 8) | where;
 
 	DBGC(("mk_conf_addr(bus=%d ,device_fn=0x%x, where=0x%x,"
-	      " returning address 0x%p\n"
-	      bus, device_fn, where, *pci_addr));
+		  " returning address 0x%p\n"
+		  bus, device_fn, where, *pci_addr));
 
 	return 0;
 }
@@ -118,7 +118,8 @@ conf_read(unsigned long addr, unsigned char type1)
 	*(vip)CIA_IOC_CIA_ERR; /* re-read to force write */
 
 	/* If Type1 access, must set CIA CFG. */
-	if (type1) {
+	if (type1)
+	{
 		cia_cfg = *(vip)CIA_IOC_CFG;
 		*(vip)CIA_IOC_CFG = (cia_cfg & ~3) | 1;
 		mb();
@@ -135,16 +136,20 @@ conf_read(unsigned long addr, unsigned char type1)
 	value = *(vip)addr;
 	mb();
 	mb();  /* magic */
-	if (mcheck_taken(0)) {
+
+	if (mcheck_taken(0))
+	{
 		mcheck_taken(0) = 0;
 		value = 0xffffffff;
 		mb();
 	}
+
 	mcheck_expected(0) = 0;
 	mb();
 
 	/* If Type1 access, must reset IOC CFG so normal IO space ops work.  */
-	if (type1) {
+	if (type1)
+	{
 		*(vip)CIA_IOC_CFG = cia_cfg;
 		mb();
 		*(vip)CIA_IOC_CFG;
@@ -172,7 +177,8 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 	*(vip)CIA_IOC_CIA_ERR; /* re-read to force write */
 
 	/* If Type1 access, must set CIA CFG.  */
-	if (type1) {
+	if (type1)
+	{
 		cia_cfg = *(vip)CIA_IOC_CFG;
 		*(vip)CIA_IOC_CFG = (cia_cfg & ~3) | 1;
 		mb();
@@ -194,7 +200,8 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 	mb();
 
 	/* If Type1 access, must reset IOC CFG so normal IO space ops work.  */
-	if (type1) {
+	if (type1)
+	{
 		*(vip)CIA_IOC_CFG = cia_cfg;
 		mb();
 		*(vip)CIA_IOC_CFG;
@@ -204,9 +211,9 @@ conf_write(unsigned long addr, unsigned int value, unsigned char type1)
 	DBGC(("done\n"));
 }
 
-static int 
+static int
 cia_read_config(struct pci_bus *bus, unsigned int devfn, int where, int size,
-		u32 *value)
+				u32 *value)
 {
 	unsigned long addr, pci_addr;
 	long mask;
@@ -214,7 +221,9 @@ cia_read_config(struct pci_bus *bus, unsigned int devfn, int where, int size,
 	int shift;
 
 	if (mk_conf_addr(bus, devfn, where, &pci_addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	mask = (size - 1) * 8;
 	shift = (where & 3) * 8;
@@ -223,16 +232,18 @@ cia_read_config(struct pci_bus *bus, unsigned int devfn, int where, int size,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static int 
+static int
 cia_write_config(struct pci_bus *bus, unsigned int devfn, int where, int size,
-		 u32 value)
+				 u32 value)
 {
 	unsigned long addr, pci_addr;
 	long mask;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, &pci_addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	mask = (size - 1) * 8;
 	addr = (pci_addr << 5) + mask + CIA_CONF;
@@ -240,7 +251,7 @@ cia_write_config(struct pci_bus *bus, unsigned int devfn, int where, int size,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops cia_pci_ops = 
+struct pci_ops cia_pci_ops =
 {
 	.read = 	cia_read_config,
 	.write =	cia_write_config,
@@ -281,7 +292,7 @@ cia_pci_tbi(struct pci_controller *hose, dma_addr_t start, dma_addr_t end)
 /* Always called with interrupts disabled */
 void
 cia_pci_tbi_try2(struct pci_controller *hose,
-		 dma_addr_t start, dma_addr_t end)
+				 dma_addr_t start, dma_addr_t end)
 {
 	void __iomem *bus_addr;
 	int ctrl;
@@ -334,20 +345,22 @@ cia_prepare_tbia_workaround(int window)
 	pte = (virt_to_phys(ppte) >> (PAGE_SHIFT - 1)) | 1;
 
 	for (i = 0; i < CIA_BROKEN_TBIA_SIZE / sizeof(unsigned long); ++i)
+	{
 		ppte[i] = pte;
+	}
 
 	*(vip)CIA_IOC_PCI_Wn_BASE(window) = CIA_BROKEN_TBIA_BASE | 3;
 	*(vip)CIA_IOC_PCI_Wn_MASK(window)
-	  = (CIA_BROKEN_TBIA_SIZE*1024 - 1) & 0xfff00000;
+		= (CIA_BROKEN_TBIA_SIZE * 1024 - 1) & 0xfff00000;
 	*(vip)CIA_IOC_PCI_Tn_BASE(window) = virt_to_phys(ppte) >> 2;
 }
 
 static void __init
 verify_tb_operation(void)
 {
-	static int page[PAGE_SIZE/4]
-		__attribute__((aligned(PAGE_SIZE)))
-		__initdata = { 0 };
+	static int page[PAGE_SIZE / 4]
+	__attribute__((aligned(PAGE_SIZE)))
+	__initdata = { 0 };
 
 	struct pci_iommu_arena *arena = pci_isa_hose->sg_isa;
 	int ctrl, addr0, tag0, pte0, data0;
@@ -356,7 +369,9 @@ verify_tb_operation(void)
 
 	/* pyxis -- tbia is broken */
 	if (pci_isa_hose->dense_io_base)
+	{
 		use_tbia_try2 = 1;
+	}
 
 	/* Put the chip into PCI loopback mode.  */
 	mb();
@@ -380,14 +395,14 @@ verify_tb_operation(void)
 	*(vip)CIA_IOC_TB_TAGn(5) = 0;
 	*(vip)CIA_IOC_TB_TAGn(6) = 0;
 	*(vip)CIA_IOC_TB_TAGn(7) = 0;
-	*(vip)CIA_IOC_TBn_PAGEm(0,0) = pte0;
-	*(vip)CIA_IOC_TBn_PAGEm(0,1) = 0;
-	*(vip)CIA_IOC_TBn_PAGEm(0,2) = 0;
-	*(vip)CIA_IOC_TBn_PAGEm(0,3) = 0;
+	*(vip)CIA_IOC_TBn_PAGEm(0, 0) = pte0;
+	*(vip)CIA_IOC_TBn_PAGEm(0, 1) = 0;
+	*(vip)CIA_IOC_TBn_PAGEm(0, 2) = 0;
+	*(vip)CIA_IOC_TBn_PAGEm(0, 3) = 0;
 	mb();
 
 	/* Get a usable bus address */
-	bus_addr = cia_ioremap(addr0, 8*PAGE_SIZE);
+	bus_addr = cia_ioremap(addr0, 8 * PAGE_SIZE);
 
 	/* First, verify we can read back what we've written.  If
 	   this fails, we can't be sure of any of the other testing
@@ -398,23 +413,32 @@ verify_tb_operation(void)
 	   fails, cia_pci_tbi_try2 might still work.  */
 
 	temp = *(vip)CIA_IOC_TB_TAGn(0);
-	if (temp != tag0) {
+
+	if (temp != tag0)
+	{
 		printk("pci: failed tb register update test "
-		       "(tag0 %#x != %#x)\n", temp, tag0);
+			   "(tag0 %#x != %#x)\n", temp, tag0);
 		goto failed;
 	}
+
 	temp = *(vip)CIA_IOC_TB_TAGn(1);
-	if (temp != 0) {
+
+	if (temp != 0)
+	{
 		printk("pci: failed tb register update test "
-		       "(tag1 %#x != 0)\n", temp);
+			   "(tag1 %#x != 0)\n", temp);
 		goto failed;
 	}
-	temp = *(vip)CIA_IOC_TBn_PAGEm(0,0);
-	if (temp != pte0) {
+
+	temp = *(vip)CIA_IOC_TBn_PAGEm(0, 0);
+
+	if (temp != pte0)
+	{
 		printk("pci: failed tb register update test "
-		       "(pte0 %#x != %#x)\n", temp, pte0);
+			   "(pte0 %#x != %#x)\n", temp, pte0);
 		goto failed;
 	}
+
 	printk("pci: passed tb register update test\n");
 
 	/* Second, verify we can actually do I/O through this entry.  */
@@ -428,26 +452,36 @@ verify_tb_operation(void)
 	mb();
 	mcheck_expected(0) = 0;
 	mb();
-	if (mcheck_taken(0)) {
+
+	if (mcheck_taken(0))
+	{
 		printk("pci: failed sg loopback i/o read test (mcheck)\n");
 		goto failed;
 	}
-	if (temp != data0) {
+
+	if (temp != data0)
+	{
 		printk("pci: failed sg loopback i/o read test "
-		       "(%#x != %#x)\n", temp, data0);
+			   "(%#x != %#x)\n", temp, data0);
 		goto failed;
 	}
+
 	printk("pci: passed sg loopback i/o read test\n");
 
 	/* Third, try to invalidate the TLB.  */
 
-	if (! use_tbia_try2) {
+	if (! use_tbia_try2)
+	{
 		cia_pci_tbi(arena->hose, 0, -1);
 		temp = *(vip)CIA_IOC_TB_TAGn(0);
-		if (temp & 1) {
+
+		if (temp & 1)
+		{
 			use_tbia_try2 = 1;
 			printk("pci: failed tbia test; workaround available\n");
-		} else {
+		}
+		else
+		{
 			printk("pci: passed tbia test\n");
 		}
 	}
@@ -461,19 +495,24 @@ verify_tb_operation(void)
 	mcheck_expected(0) = 1;
 	mcheck_taken(0) = 0;
 	mb();
-	temp = cia_readl(bus_addr + 4*PAGE_SIZE);
+	temp = cia_readl(bus_addr + 4 * PAGE_SIZE);
 	mb();
 	mcheck_expected(0) = 0;
 	mb();
-	if (mcheck_taken(0)) {
+
+	if (mcheck_taken(0))
+	{
 		printk("pci: failed pte write cache snoop test (mcheck)\n");
 		goto failed;
 	}
-	if (temp != data0) {
+
+	if (temp != data0)
+	{
 		printk("pci: failed pte write cache snoop test "
-		       "(%#x != %#x)\n", temp, data0);
+			   "(%#x != %#x)\n", temp, data0);
 		goto failed;
 	}
+
 	printk("pci: passed pte write cache snoop test\n");
 
 	/* Fifth, verify that a previously invalid PTE entry gets
@@ -485,21 +524,27 @@ verify_tb_operation(void)
 	mcheck_expected(0) = 1;
 	mcheck_taken(0) = 0;
 	mb();
-	temp = cia_readl(bus_addr + 5*PAGE_SIZE);
+	temp = cia_readl(bus_addr + 5 * PAGE_SIZE);
 	mb();
 	mcheck_expected(0) = 0;
 	mb();
-	if (mcheck_taken(0)) {
+
+	if (mcheck_taken(0))
+	{
 		printk("pci: failed valid tag invalid pte reload test "
-		       "(mcheck; workaround available)\n");
+			   "(mcheck; workaround available)\n");
 		/* Work around this bug by aligning new allocations
 		   on 4 page boundaries.  */
 		arena->align_entry = 4;
-	} else if (temp != data0) {
+	}
+	else if (temp != data0)
+	{
 		printk("pci: failed valid tag invalid pte reload test "
-		       "(%#x != %#x)\n", temp, data0);
+			   "(%#x != %#x)\n", temp, data0);
 		goto failed;
-	} else {
+	}
+	else
+	{
 		printk("pci: passed valid tag invalid pte reload test\n");
 	}
 
@@ -509,18 +554,19 @@ verify_tb_operation(void)
 	mcheck_expected(0) = 1;
 	mcheck_taken(0) = 0;
 	mb();
-	temp = cia_readl(bus_addr + 6*PAGE_SIZE);
+	temp = cia_readl(bus_addr + 6 * PAGE_SIZE);
 	mb();
 	mcheck_expected(0) = 0;
 	mb();
 	printk("pci: %s pci machine check test\n",
-	       mcheck_taken(0) ? "passed" : "failed");
+		   mcheck_taken(0) ? "passed" : "failed");
 
 	/* Clean up after the tests.  */
 	arena->ptes[4] = 0;
 	arena->ptes[5] = 0;
 
-	if (use_tbia_try2) {
+	if (use_tbia_try2)
+	{
 		alpha_mv.mv_pci_tbi = cia_pci_tbi_try2;
 
 		/* Tags 0-3 must be disabled if we use this workaraund. */
@@ -532,6 +578,7 @@ verify_tb_operation(void)
 
 		printk("pci: tbia workaround enabled\n");
 	}
+
 	alpha_mv.mv_pci_tbi(arena->hose, 0, -1);
 
 exit:
@@ -557,19 +604,20 @@ failed:
 
 #if defined(ALPHA_RESTORE_SRM_SETUP)
 /* Save CIA configuration data as the console had it set up.  */
-struct 
+struct
 {
-    unsigned int hae_mem;
-    unsigned int hae_io;
-    unsigned int pci_dac_offset;
-    unsigned int err_mask;
-    unsigned int cia_ctrl;
-    unsigned int cia_cnfg;
-    struct {
-	unsigned int w_base;
-	unsigned int w_mask;
-	unsigned int t_base;
-    } window[4];
+	unsigned int hae_mem;
+	unsigned int hae_io;
+	unsigned int pci_dac_offset;
+	unsigned int err_mask;
+	unsigned int cia_ctrl;
+	unsigned int cia_cnfg;
+	struct
+	{
+		unsigned int w_base;
+		unsigned int w_mask;
+		unsigned int t_base;
+	} window[4];
 } saved_config __attribute((common));
 
 void
@@ -585,16 +633,22 @@ cia_save_srm_settings(int is_pyxis)
 	saved_config.pci_dac_offset = *(vip)CIA_IOC_PCI_W_DAC;
 
 	if (is_pyxis)
-	    saved_config.cia_cnfg   = *(vip)CIA_IOC_CIA_CNFG;
+	{
+		saved_config.cia_cnfg   = *(vip)CIA_IOC_CIA_CNFG;
+	}
 	else
-	    saved_config.cia_cnfg   = 0;
+	{
+		saved_config.cia_cnfg   = 0;
+	}
 
 	/* Save DMA windows configuration. */
-	for (i = 0; i < 4; i++) {
-	    saved_config.window[i].w_base = *(vip)CIA_IOC_PCI_Wn_BASE(i);
-	    saved_config.window[i].w_mask = *(vip)CIA_IOC_PCI_Wn_MASK(i);
-	    saved_config.window[i].t_base = *(vip)CIA_IOC_PCI_Tn_BASE(i);
+	for (i = 0; i < 4; i++)
+	{
+		saved_config.window[i].w_base = *(vip)CIA_IOC_PCI_Wn_BASE(i);
+		saved_config.window[i].w_mask = *(vip)CIA_IOC_PCI_Wn_MASK(i);
+		saved_config.window[i].t_base = *(vip)CIA_IOC_PCI_Tn_BASE(i);
 	}
+
 	mb();
 }
 
@@ -603,20 +657,23 @@ cia_restore_srm_settings(void)
 {
 	int i;
 
-	for (i = 0; i < 4; i++) {
-	    *(vip)CIA_IOC_PCI_Wn_BASE(i) = saved_config.window[i].w_base;
-	    *(vip)CIA_IOC_PCI_Wn_MASK(i) = saved_config.window[i].w_mask;
-	    *(vip)CIA_IOC_PCI_Tn_BASE(i) = saved_config.window[i].t_base;
+	for (i = 0; i < 4; i++)
+	{
+		*(vip)CIA_IOC_PCI_Wn_BASE(i) = saved_config.window[i].w_base;
+		*(vip)CIA_IOC_PCI_Wn_MASK(i) = saved_config.window[i].w_mask;
+		*(vip)CIA_IOC_PCI_Tn_BASE(i) = saved_config.window[i].t_base;
 	}
 
 	*(vip)CIA_IOC_HAE_MEM   = saved_config.hae_mem;
 	*(vip)CIA_IOC_HAE_IO    = saved_config.hae_io;
-	*(vip)CIA_IOC_PCI_W_DAC = saved_config.pci_dac_offset;	
+	*(vip)CIA_IOC_PCI_W_DAC = saved_config.pci_dac_offset;
 	*(vip)CIA_IOC_ERR_MASK  = saved_config.err_mask;
 	*(vip)CIA_IOC_CIA_CTRL  = saved_config.cia_ctrl;
 
 	if (saved_config.cia_cnfg) /* Must be pyxis. */
-	    *(vip)CIA_IOC_CIA_CNFG  = saved_config.cia_cnfg;
+	{
+		*(vip)CIA_IOC_CIA_CNFG  = saved_config.cia_cnfg;
+	}
 
 	mb();
 }
@@ -634,15 +691,17 @@ do_init_arch(int is_pyxis)
 
 	cia_rev = *(vip)CIA_IOC_CIA_REV & CIA_REV_MASK;
 	printk("pci: cia revision %d%s\n",
-	       cia_rev, is_pyxis ? " (pyxis)" : "");
+		   cia_rev, is_pyxis ? " (pyxis)" : "");
 
 	if (alpha_using_srm)
+	{
 		cia_save_srm_settings(is_pyxis);
+	}
 
 	/* Set up error reporting.  */
 	temp = *(vip)CIA_IOC_ERR_MASK;
 	temp &= ~(CIA_ERR_CPU_PE | CIA_ERR_MEM_NEM | CIA_ERR_PA_PTE_INV
-		  | CIA_ERR_RCVD_MAS_ABT | CIA_ERR_RCVD_TAR_ABT);
+			  | CIA_ERR_RCVD_MAS_ABT | CIA_ERR_RCVD_TAR_ABT);
 	*(vip)CIA_IOC_ERR_MASK = temp;
 
 	/* Clear all currently pending errors.  */
@@ -658,7 +717,7 @@ do_init_arch(int is_pyxis)
 	   accesses.  That is the way we want to use it, and we do not
 	   want to depend on what ARC or SRM might have left behind.  */
 	*(vip)CIA_IOC_CFG = 0;
- 
+
 	/* Zero the HAEs.  */
 	*(vip)CIA_IOC_HAE_MEM = 0;
 	*(vip)CIA_IOC_HAE_IO = 0;
@@ -666,7 +725,8 @@ do_init_arch(int is_pyxis)
 	/* For PYXIS, we always use BWX bus and i/o accesses.  To that end,
 	   make sure they're enabled on the controller.  At the same time,
 	   enable the monster window.  */
-	if (is_pyxis) {
+	if (is_pyxis)
+	{
 		temp = *(vip)CIA_IOC_CIA_CNFG;
 		temp |= CIA_CNFG_IOA_BWEN | CIA_CNFG_PCI_MWEN;
 		*(vip)CIA_IOC_CIA_CNFG = temp;
@@ -685,7 +745,8 @@ do_init_arch(int is_pyxis)
 	hose->mem_space = &iomem_resource;
 	hose->index = 0;
 
-	if (! is_pyxis) {
+	if (! is_pyxis)
+	{
 		struct resource *hae_mem = alloc_resource();
 		hose->mem_space = hae_mem;
 
@@ -695,13 +756,17 @@ do_init_arch(int is_pyxis)
 		hae_mem->flags = IORESOURCE_MEM;
 
 		if (request_resource(&iomem_resource, hae_mem) < 0)
+		{
 			printk(KERN_ERR "Failed to request HAE_MEM\n");
+		}
 
 		hose->sparse_mem_base = CIA_SPARSE_MEM - IDENT_ADDR;
 		hose->dense_mem_base = CIA_DENSE_MEM - IDENT_ADDR;
 		hose->sparse_io_base = CIA_IO - IDENT_ADDR;
 		hose->dense_io_base = 0;
-	} else {
+	}
+	else
+	{
 		hose->sparse_mem_base = 0;
 		hose->dense_mem_base = CIA_BW_MEM - IDENT_ADDR;
 		hose->sparse_io_base = 0;
@@ -718,7 +783,7 @@ do_init_arch(int is_pyxis)
 	 *
 	 * ??? NetBSD hints that page tables must be aligned to 32K,
 	 * possibly due to a hardware bug.  This is over-aligned
-	 * from the 8K alignment one would expect for an 8MB window. 
+	 * from the 8K alignment one would expect for an 8MB window.
 	 * No description of what revisions affected.
 	 */
 
@@ -745,20 +810,28 @@ do_init_arch(int is_pyxis)
 	   elsewhere, we should not claim that we support DAC unless that
 	   4GB covers all of physical memory.
 
-	   On CIA rev 1, apparently W1 and W2 can't be used for SG. 
-	   At least, there are reports that it doesn't work for Alcor. 
-	   In that case, we have no choice but to use W3 for the TBIA 
-	   workaround, which means we can't use DAC at all. */ 
+	   On CIA rev 1, apparently W1 and W2 can't be used for SG.
+	   At least, there are reports that it doesn't work for Alcor.
+	   In that case, we have no choice but to use W3 for the TBIA
+	   workaround, which means we can't use DAC at all. */
 
 	tbia_window = 1;
-	if (is_pyxis) {
+
+	if (is_pyxis)
+	{
 		*(vip)CIA_IOC_PCI_W3_BASE = 0;
-	} else if (cia_rev == 1) {
+	}
+	else if (cia_rev == 1)
+	{
 		*(vip)CIA_IOC_PCI_W1_BASE = 0;
 		tbia_window = 3;
-	} else if (max_low_pfn > (0x100000000UL >> PAGE_SHIFT)) {
+	}
+	else if (max_low_pfn > (0x100000000UL >> PAGE_SHIFT))
+	{
 		*(vip)CIA_IOC_PCI_W3_BASE = 0;
-	} else {
+	}
+	else
+	{
 		*(vip)CIA_IOC_PCI_W3_BASE = 0x00000000 | 1 | 8;
 		*(vip)CIA_IOC_PCI_W3_MASK = 0xfff00000;
 		*(vip)CIA_IOC_PCI_T3_BASE = 0 >> 2;
@@ -793,7 +866,10 @@ pyxis_init_arch(void)
 
 	__asm__ __volatile__ ("rpcc %0" : "=r"(cc0));
 	pyxis_cc = *(vulp)PYXIS_RT_COUNT;
-	do { } while(*(vulp)PYXIS_RT_COUNT - pyxis_cc < 4096);
+
+	do { }
+	while (*(vulp)PYXIS_RT_COUNT - pyxis_cc < 4096);
+
 	__asm__ __volatile__ ("rpcc %0" : "=r"(cc1));
 	cc1 -= cc0;
 	hwrpb->cycle_freq = ((cc1 >> 11) * 100000000UL) / 3;
@@ -806,7 +882,9 @@ void
 cia_kill_arch(int mode)
 {
 	if (alpha_using_srm)
+	{
 		cia_restore_srm_settings();
+	}
 }
 
 void __init
@@ -832,7 +910,8 @@ cia_pci_clr_err(void)
 static void
 cia_decode_pci_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 {
-	static const char * const pci_cmd_desc[16] = {
+	static const char *const pci_cmd_desc[16] =
+	{
 		"Interrupt Acknowledge", "Special Cycle", "I/O Read",
 		"I/O Write", "Reserved 0x4", "Reserved 0x5", "Memory Read",
 		"Memory Write", "Reserved 0x8", "Reserved 0x9",
@@ -842,10 +921,12 @@ cia_decode_pci_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 	};
 
 	if (cia->cia_err & (CIA_ERR_COR_ERR
-			    | CIA_ERR_UN_COR_ERR
-			    | CIA_ERR_MEM_NEM
-			    | CIA_ERR_PA_PTE_INV)) {
-		static const char * const window_desc[6] = {
+						| CIA_ERR_UN_COR_ERR
+						| CIA_ERR_MEM_NEM
+						| CIA_ERR_PA_PTE_INV))
+	{
+		static const char *const window_desc[6] =
+		{
 			"No window active", "Window 0 hit", "Window 1 hit",
 			"Window 2 hit", "Window 3 hit", "Monster window hit"
 		};
@@ -854,7 +935,7 @@ cia_decode_pci_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 		const char *cmd;
 		unsigned long addr, tmp;
 		int lock, dac;
-	
+
 		cmd = pci_cmd_desc[cia->pci_err0 & 0x7];
 		lock = (cia->pci_err0 >> 4) & 1;
 		dac = (cia->pci_err0 >> 5) & 1;
@@ -864,7 +945,9 @@ cia_decode_pci_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 		window = window_desc[tmp];
 
 		addr = cia->pci_err1;
-		if (dac) {
+
+		if (dac)
+		{
 			tmp = *(vip)CIA_IOC_PCI_W_DAC & 0xFFUL;
 			addr |= tmp << 32;
 		}
@@ -873,13 +956,16 @@ cia_decode_pci_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 		printk(KERN_CRIT "  DMA command: %s\n", cmd);
 		printk(KERN_CRIT "  PCI address: %#010lx\n", addr);
 		printk(KERN_CRIT "  %s, Lock: %d, DAC: %d\n",
-		       window, lock, dac);
-	} else if (cia->cia_err & (CIA_ERR_PERR
-				   | CIA_ERR_PCI_ADDR_PE
-				   | CIA_ERR_RCVD_MAS_ABT
-				   | CIA_ERR_RCVD_TAR_ABT
-				   | CIA_ERR_IOA_TIMEOUT)) {
-		static const char * const master_st_desc[16] = {
+			   window, lock, dac);
+	}
+	else if (cia->cia_err & (CIA_ERR_PERR
+							 | CIA_ERR_PCI_ADDR_PE
+							 | CIA_ERR_RCVD_MAS_ABT
+							 | CIA_ERR_RCVD_TAR_ABT
+							 | CIA_ERR_IOA_TIMEOUT))
+	{
+		static const char *const master_st_desc[16] =
+		{
 			"Idle", "Drive bus", "Address step cycle",
 			"Address cycle", "Data cycle", "Last read data cycle",
 			"Last write data cycle", "Read stop cycle",
@@ -888,7 +974,8 @@ cia_decode_pci_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 			"Reserved 0xC", "Reserved 0xD", "Reserved 0xE",
 			"Unknown state"
 		};
-		static const char * const target_st_desc[16] = {
+		static const char *const target_st_desc[16] =
+		{
 			"Idle", "Busy", "Read data cycle", "Write data cycle",
 			"Read stop cycle", "Write stop cycle",
 			"Read turnaround cycle", "Write turnaround cycle",
@@ -908,7 +995,9 @@ cia_decode_pci_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 		dac = (cia->pci_err0 >> 28) & 1;
 
 		addr = cia->pci_err2;
-		if (dac) {
+
+		if (dac)
+		{
 			tmp = *(volatile int *)CIA_IOC_PCI_W_DAC & 0xFFUL;
 			addr |= tmp << 32;
 		}
@@ -916,10 +1005,12 @@ cia_decode_pci_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 		printk(KERN_CRIT "CIA machine check: %s\n", msg);
 		printk(KERN_CRIT "  PCI command: %s\n", cmd);
 		printk(KERN_CRIT "  Master state: %s, Target state: %s\n",
-		       master, target);
+			   master, target);
 		printk(KERN_CRIT "  PCI address: %#010lx, DAC: %d\n",
-		       addr, dac);
-	} else {
+			   addr, dac);
+	}
+	else
+	{
 		printk(KERN_CRIT "CIA machine check: %s\n", msg);
 		printk(KERN_CRIT "  Unknown PCI error\n");
 		printk(KERN_CRIT "  PCI_ERR0 = %#08lx", cia->pci_err0);
@@ -940,9 +1031,13 @@ cia_decode_mem_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 
 	/* If this is a DMA command, also decode the PCI bits.  */
 	if ((cia->mem_err1 >> 20) & 1)
+	{
 		cia_decode_pci_error(cia, msg);
+	}
 	else
+	{
 		printk(KERN_CRIT "CIA machine check: %s\n", msg);
+	}
 
 	mem_port_addr = cia->mem_err0 & 0xfffffff0;
 	mem_port_addr |= (cia->mem_err1 & 0x83UL) << 32;
@@ -951,75 +1046,119 @@ cia_decode_mem_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 
 	tmp = (cia->mem_err1 >> 8) & 0xF;
 	tmp |= ((cia->mem_err1 >> 20) & 1) << 4;
+
 	if ((tmp & 0x1E) == 0x06)
+	{
 		mem_port_cmd = "WRITE BLOCK or WRITE BLOCK LOCK";
+	}
 	else if ((tmp & 0x1C) == 0x08)
+	{
 		mem_port_cmd = "READ MISS or READ MISS MODIFY";
+	}
 	else if (tmp == 0x1C)
+	{
 		mem_port_cmd = "BC VICTIM";
+	}
 	else if ((tmp & 0x1E) == 0x0E)
+	{
 		mem_port_cmd = "READ MISS MODIFY";
+	}
 	else if ((tmp & 0x1C) == 0x18)
+	{
 		mem_port_cmd = "DMA READ or DMA READ MODIFY";
+	}
 	else if ((tmp & 0x1E) == 0x12)
+	{
 		mem_port_cmd = "DMA WRITE";
+	}
 	else
+	{
 		mem_port_cmd = "Unknown";
+	}
 
 	tmp = (cia->mem_err1 >> 16) & 0xF;
-	switch (tmp) {
-	case 0x0:
-		seq_state = "Idle";
-		break;
-	case 0x1:
-		seq_state = "DMA READ or DMA WRITE";
-		break;
-	case 0x2: case 0x3:
-		seq_state = "READ MISS (or READ MISS MODIFY) with victim";
-		break;
-	case 0x4: case 0x5: case 0x6:
-		seq_state = "READ MISS (or READ MISS MODIFY) with no victim";
-		break;
-	case 0x8: case 0x9: case 0xB:
-		seq_state = "Refresh";
-		break;
-	case 0xC:
-		seq_state = "Idle, waiting for DMA pending read";
-		break;
-	case 0xE: case 0xF:
-		seq_state = "Idle, ras precharge";
-		break;
-	default:
-		seq_state = "Unknown";
-		break;
+
+	switch (tmp)
+	{
+		case 0x0:
+			seq_state = "Idle";
+			break;
+
+		case 0x1:
+			seq_state = "DMA READ or DMA WRITE";
+			break;
+
+		case 0x2: case 0x3:
+			seq_state = "READ MISS (or READ MISS MODIFY) with victim";
+			break;
+
+		case 0x4: case 0x5: case 0x6:
+			seq_state = "READ MISS (or READ MISS MODIFY) with no victim";
+			break;
+
+		case 0x8: case 0x9: case 0xB:
+			seq_state = "Refresh";
+			break;
+
+		case 0xC:
+			seq_state = "Idle, waiting for DMA pending read";
+			break;
+
+		case 0xE: case 0xF:
+			seq_state = "Idle, ras precharge";
+			break;
+
+		default:
+			seq_state = "Unknown";
+			break;
 	}
 
 	tmp = (cia->mem_err1 >> 24) & 0x1F;
-	switch (tmp) {
-	case 0x00: set_select = "Set 0 selected"; break;
-	case 0x01: set_select = "Set 1 selected"; break;
-	case 0x02: set_select = "Set 2 selected"; break;
-	case 0x03: set_select = "Set 3 selected"; break;
-	case 0x04: set_select = "Set 4 selected"; break;
-	case 0x05: set_select = "Set 5 selected"; break;
-	case 0x06: set_select = "Set 6 selected"; break;
-	case 0x07: set_select = "Set 7 selected"; break;
-	case 0x08: set_select = "Set 8 selected"; break;
-	case 0x09: set_select = "Set 9 selected"; break;
-	case 0x0A: set_select = "Set A selected"; break;
-	case 0x0B: set_select = "Set B selected"; break;
-	case 0x0C: set_select = "Set C selected"; break;
-	case 0x0D: set_select = "Set D selected"; break;
-	case 0x0E: set_select = "Set E selected"; break;
-	case 0x0F: set_select = "Set F selected"; break;
-	case 0x10: set_select = "No set selected"; break;
-	case 0x1F: set_select = "Refresh cycle"; break;
-	default:   set_select = "Unknown"; break;
+
+	switch (tmp)
+	{
+		case 0x00: set_select = "Set 0 selected"; break;
+
+		case 0x01: set_select = "Set 1 selected"; break;
+
+		case 0x02: set_select = "Set 2 selected"; break;
+
+		case 0x03: set_select = "Set 3 selected"; break;
+
+		case 0x04: set_select = "Set 4 selected"; break;
+
+		case 0x05: set_select = "Set 5 selected"; break;
+
+		case 0x06: set_select = "Set 6 selected"; break;
+
+		case 0x07: set_select = "Set 7 selected"; break;
+
+		case 0x08: set_select = "Set 8 selected"; break;
+
+		case 0x09: set_select = "Set 9 selected"; break;
+
+		case 0x0A: set_select = "Set A selected"; break;
+
+		case 0x0B: set_select = "Set B selected"; break;
+
+		case 0x0C: set_select = "Set C selected"; break;
+
+		case 0x0D: set_select = "Set D selected"; break;
+
+		case 0x0E: set_select = "Set E selected"; break;
+
+		case 0x0F: set_select = "Set F selected"; break;
+
+		case 0x10: set_select = "No set selected"; break;
+
+		case 0x1F: set_select = "Refresh cycle"; break;
+
+		default:   set_select = "Unknown"; break;
 	}
 
 	printk(KERN_CRIT "  Memory port command: %s\n", mem_port_cmd);
 	printk(KERN_CRIT "  Memory port address: %#010lx, mask: %#lx\n",
-	       mem_port_addr, mem_port_mask);
+		   mem_port_addr, mem_port_mask);
 	printk(KERN_CRIT "  Memory sequencer state: %s\n", seq_state);
 	printk(KERN_CRIT "  Memory set: %s\n", set_select);
 }
@@ -1034,11 +1173,16 @@ cia_decode_ecc_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 	cia_decode_mem_error(cia, msg);
 
 	syn = cia->cia_syn & 0xff;
-	if (syn == (syn & -syn)) {
+
+	if (syn == (syn & -syn))
+	{
 		fmt = KERN_CRIT "  ECC syndrome %#x -- check bit %d\n";
 		i = ffs(syn) - 1;
-	} else {
-		static unsigned char const data_bit[64] = {
+	}
+	else
+	{
+		static unsigned char const data_bit[64] =
+		{
 			0xCE, 0xCB, 0xD3, 0xD5,
 			0xD6, 0xD9, 0xDA, 0xDC,
 			0x23, 0x25, 0x26, 0x29,
@@ -1059,12 +1203,18 @@ cia_decode_ecc_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 
 		for (i = 0; i < 64; ++i)
 			if (data_bit[i] == syn)
+			{
 				break;
+			}
 
 		if (i < 64)
+		{
 			fmt = KERN_CRIT "  ECC syndrome %#x -- data bit %d\n";
+		}
 		else
+		{
 			fmt = KERN_CRIT "  ECC syndrome %#x -- unknown bit\n";
+		}
 	}
 
 	printk (fmt, syn, i);
@@ -1073,7 +1223,8 @@ cia_decode_ecc_error(struct el_CIA_sysdata_mcheck *cia, const char *msg)
 static void
 cia_decode_parity_error(struct el_CIA_sysdata_mcheck *cia)
 {
-	static const char * const cmd_desc[16] = {
+	static const char *const cmd_desc[16] =
+	{
 		"NOP", "LOCK", "FETCH", "FETCH_M", "MEMORY BARRIER",
 		"SET DIRTY", "WRITE BLOCK", "WRITE BLOCK LOCK",
 		"READ MISS0", "READ MISS1", "READ MISS MOD0",
@@ -1109,84 +1260,112 @@ cia_decode_mchk(unsigned long la_ptr)
 	cia = (void *)(la_ptr + com->sys_offset);
 
 	if ((cia->cia_err & CIA_ERR_VALID) == 0)
+	{
 		return 0;
+	}
 
 #ifdef CONFIG_VERBOSE_MCHECK
-	if (!alpha_verbose_mcheck)
-		return 1;
 
-	switch (ffs(cia->cia_err & 0xfff) - 1) {
-	case 0: /* CIA_ERR_COR_ERR */
-		cia_decode_ecc_error(cia, "Corrected ECC error");
-		break;
-	case 1: /* CIA_ERR_UN_COR_ERR */
-		cia_decode_ecc_error(cia, "Uncorrected ECC error");
-		break;
-	case 2: /* CIA_ERR_CPU_PE */
-		cia_decode_parity_error(cia);
-		break;
-	case 3: /* CIA_ERR_MEM_NEM */
-		cia_decode_mem_error(cia, "Access to nonexistent memory");
-		break;
-	case 4: /* CIA_ERR_PCI_SERR */
-		cia_decode_pci_error(cia, "PCI bus system error");
-		break;
-	case 5: /* CIA_ERR_PERR */
-		cia_decode_pci_error(cia, "PCI data parity error");
-		break;
-	case 6: /* CIA_ERR_PCI_ADDR_PE */
-		cia_decode_pci_error(cia, "PCI address parity error");
-		break;
-	case 7: /* CIA_ERR_RCVD_MAS_ABT */
-		cia_decode_pci_error(cia, "PCI master abort");
-		break;
-	case 8: /* CIA_ERR_RCVD_TAR_ABT */
-		cia_decode_pci_error(cia, "PCI target abort");
-		break;
-	case 9: /* CIA_ERR_PA_PTE_INV */
-		cia_decode_pci_error(cia, "PCI invalid PTE");
-		break;
-	case 10: /* CIA_ERR_FROM_WRT_ERR */
-		cia_decode_mem_error(cia, "Write to flash ROM attempted");
-		break;
-	case 11: /* CIA_ERR_IOA_TIMEOUT */
-		cia_decode_pci_error(cia, "I/O timeout");
-		break;
+	if (!alpha_verbose_mcheck)
+	{
+		return 1;
+	}
+
+	switch (ffs(cia->cia_err & 0xfff) - 1)
+	{
+		case 0: /* CIA_ERR_COR_ERR */
+			cia_decode_ecc_error(cia, "Corrected ECC error");
+			break;
+
+		case 1: /* CIA_ERR_UN_COR_ERR */
+			cia_decode_ecc_error(cia, "Uncorrected ECC error");
+			break;
+
+		case 2: /* CIA_ERR_CPU_PE */
+			cia_decode_parity_error(cia);
+			break;
+
+		case 3: /* CIA_ERR_MEM_NEM */
+			cia_decode_mem_error(cia, "Access to nonexistent memory");
+			break;
+
+		case 4: /* CIA_ERR_PCI_SERR */
+			cia_decode_pci_error(cia, "PCI bus system error");
+			break;
+
+		case 5: /* CIA_ERR_PERR */
+			cia_decode_pci_error(cia, "PCI data parity error");
+			break;
+
+		case 6: /* CIA_ERR_PCI_ADDR_PE */
+			cia_decode_pci_error(cia, "PCI address parity error");
+			break;
+
+		case 7: /* CIA_ERR_RCVD_MAS_ABT */
+			cia_decode_pci_error(cia, "PCI master abort");
+			break;
+
+		case 8: /* CIA_ERR_RCVD_TAR_ABT */
+			cia_decode_pci_error(cia, "PCI target abort");
+			break;
+
+		case 9: /* CIA_ERR_PA_PTE_INV */
+			cia_decode_pci_error(cia, "PCI invalid PTE");
+			break;
+
+		case 10: /* CIA_ERR_FROM_WRT_ERR */
+			cia_decode_mem_error(cia, "Write to flash ROM attempted");
+			break;
+
+		case 11: /* CIA_ERR_IOA_TIMEOUT */
+			cia_decode_pci_error(cia, "I/O timeout");
+			break;
 	}
 
 	if (cia->cia_err & CIA_ERR_LOST_CORR_ERR)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "Correctable ECC error\n");
+			   "Correctable ECC error\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_UN_CORR_ERR)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "Uncorrectable ECC error\n");
+			   "Uncorrectable ECC error\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_CPU_PE)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "System bus parity error\n");
+			   "System bus parity error\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_MEM_NEM)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "Access to nonexistent memory\n");
+			   "Access to nonexistent memory\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_PERR)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "PCI data parity error\n");
+			   "PCI data parity error\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_PCI_ADDR_PE)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "PCI address parity error\n");
+			   "PCI address parity error\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_RCVD_MAS_ABT)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "PCI master abort\n");
+			   "PCI master abort\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_RCVD_TAR_ABT)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "PCI target abort\n");
+			   "PCI target abort\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_PA_PTE_INV)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "PCI invalid PTE\n");
+			   "PCI invalid PTE\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_FROM_WRT_ERR)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "Write to flash ROM attempted\n");
+			   "Write to flash ROM attempted\n");
+
 	if (cia->cia_err & CIA_ERR_LOST_IOA_TIMEOUT)
 		printk(KERN_CRIT "CIA lost machine check: "
-		       "I/O timeout\n");
+			   "I/O timeout\n");
+
 #endif /* CONFIG_VERBOSE_MCHECK */
 
 	return 1;
@@ -1206,7 +1385,11 @@ cia_machine_check(unsigned long vector, unsigned long la_ptr)
 	mb();
 
 	expected = mcheck_expected(0);
+
 	if (!expected && vector == 0x660)
+	{
 		expected = cia_decode_mchk(la_ptr);
+	}
+
 	process_mcheck_info(vector, la_ptr, "CIA", expected);
 }

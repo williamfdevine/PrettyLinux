@@ -21,8 +21,8 @@
 #define IOP3XX_GPIO_LINE(x)	(x)
 
 #ifndef __ASSEMBLY__
-extern int init_atu;
-extern int iop3xx_get_init_atu(void);
+	extern int init_atu;
+	extern int iop3xx_get_init_atu(void);
 #endif
 
 
@@ -33,12 +33,12 @@ extern int iop3xx_get_init_atu(void);
 #define IOP3XX_PERIPHERAL_VIRT_BASE	0xfedfe000
 #define IOP3XX_PERIPHERAL_SIZE		0x00002000
 #define IOP3XX_PERIPHERAL_UPPER_PA (IOP3XX_PERIPHERAL_PHYS_BASE +\
-					IOP3XX_PERIPHERAL_SIZE - 1)
+									IOP3XX_PERIPHERAL_SIZE - 1)
 #define IOP3XX_PERIPHERAL_UPPER_VA (IOP3XX_PERIPHERAL_VIRT_BASE +\
-					IOP3XX_PERIPHERAL_SIZE - 1)
+									IOP3XX_PERIPHERAL_SIZE - 1)
 #define IOP3XX_PMMR_PHYS_TO_VIRT(addr) (u32) ((u32) (addr) -\
-					(IOP3XX_PERIPHERAL_PHYS_BASE\
-					- IOP3XX_PERIPHERAL_VIRT_BASE))
+		(IOP3XX_PERIPHERAL_PHYS_BASE\
+		 - IOP3XX_PERIPHERAL_VIRT_BASE))
 #define IOP3XX_REG_ADDR(reg)		(IOP3XX_PERIPHERAL_VIRT_BASE + (reg))
 
 /* Address Translation Unit  */
@@ -131,7 +131,7 @@ extern int iop3xx_get_init_atu(void);
 
 /* DMA Controller  */
 #define IOP3XX_DMA_PHYS_BASE(chan) (IOP3XX_PERIPHERAL_PHYS_BASE + \
-					(0x400 + (chan << 6)))
+									(0x400 + (chan << 6)))
 #define IOP3XX_DMA_UPPER_PA(chan)  (IOP3XX_DMA_PHYS_BASE(chan) + 0x27)
 
 /* Peripheral bus interface  */
@@ -297,7 +297,8 @@ static inline u32 read_rcsr(void)
 }
 static inline void write_wdtsr(u32 val)
 {
-	do { } while (0);
+	do { }
+	while (0);
 }
 
 extern struct platform_device iop3xx_dma_0_channel;

@@ -11,31 +11,31 @@ extern void trace_irq_vector_unregfunc(void);
 
 DECLARE_EVENT_CLASS(x86_irq_vector,
 
-	TP_PROTO(int vector),
+					TP_PROTO(int vector),
 
-	TP_ARGS(vector),
+					TP_ARGS(vector),
 
-	TP_STRUCT__entry(
-		__field(		int,	vector	)
-	),
+					TP_STRUCT__entry(
+						__field(		int,	vector	)
+					),
 
-	TP_fast_assign(
-		__entry->vector = vector;
-	),
+					TP_fast_assign(
+						__entry->vector = vector;
+					),
 
-	TP_printk("vector=%d", __entry->vector) );
+					TP_printk("vector=%d", __entry->vector) );
 
 #define DEFINE_IRQ_VECTOR_EVENT(name)		\
-DEFINE_EVENT_FN(x86_irq_vector, name##_entry,	\
-	TP_PROTO(int vector),			\
-	TP_ARGS(vector),			\
-	trace_irq_vector_regfunc,		\
-	trace_irq_vector_unregfunc);		\
-DEFINE_EVENT_FN(x86_irq_vector, name##_exit,	\
-	TP_PROTO(int vector),			\
-	TP_ARGS(vector),			\
-	trace_irq_vector_regfunc,		\
-	trace_irq_vector_unregfunc);
+	DEFINE_EVENT_FN(x86_irq_vector, name##_entry,	\
+					TP_PROTO(int vector),			\
+					TP_ARGS(vector),			\
+					trace_irq_vector_regfunc,		\
+					trace_irq_vector_unregfunc);		\
+	DEFINE_EVENT_FN(x86_irq_vector, name##_exit,	\
+					TP_PROTO(int vector),			\
+					TP_ARGS(vector),			\
+					trace_irq_vector_regfunc,		\
+					trace_irq_vector_unregfunc);
 
 
 /*

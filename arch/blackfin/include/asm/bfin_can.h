@@ -28,12 +28,14 @@
 /*
  * bfin can registers layout
  */
-struct bfin_can_mask_regs {
+struct bfin_can_mask_regs
+{
 	__BFP(aml);
 	__BFP(amh);
 };
 
-struct bfin_can_channel_regs {
+struct bfin_can_channel_regs
+{
 	/* data[0,2,4,6] -> data{0,1,2,3} while data[1,3,5,7] is padding */
 	u16 data[8];
 	__BFP(dlc);
@@ -42,7 +44,8 @@ struct bfin_can_channel_regs {
 	__BFP(id1);
 };
 
-struct bfin_can_regs {
+struct bfin_can_regs
+{
 	/*
 	 * global control and status registers
 	 */

@@ -59,7 +59,9 @@ int ptrace_getregs(struct task_struct *child, void __user *uregs)
 	int i;
 
 	if (!access_ok(VERIFY_WRITE, uregs, sizeof(xtensa_gregset_t)))
+	{
 		return -EIO;
+	}
 
 	__put_user(regs->pc, &gregset->pc);
 	__put_user(regs->ps & ~(1 << PS_EXCM_BIT), &gregset->ps);
@@ -72,7 +74,7 @@ int ptrace_getregs(struct task_struct *child, void __user *uregs)
 
 	for (i = 0; i < XCHAL_NUM_AREGS; i++)
 		__put_user(regs->areg[i],
-				gregset->a + ((wb * 4 + i) % XCHAL_NUM_AREGS));
+				   gregset->a + ((wb * 4 + i) % XCHAL_NUM_AREGS));
 
 	return 0;
 }
@@ -86,7 +88,9 @@ int ptrace_setregs(struct task_struct *child, void __user *uregs)
 	unsigned long wb, ws;
 
 	if (!access_ok(VERIFY_WRITE, uregs, sizeof(xtensa_gregset_t)))
+	{
 		return -EIO;
+	}
 
 	__get_user(regs->pc, &gregset->pc);
 	__get_user(ps, &gregset->ps);
@@ -100,27 +104,34 @@ int ptrace_setregs(struct task_struct *child, void __user *uregs)
 	regs->ps = (regs->ps & ~ps_mask) | (ps & ps_mask) | (1 << PS_EXCM_BIT);
 
 	if (wb >= XCHAL_NUM_AREGS / 4)
+	{
 		return -EFAULT;
+	}
 
-	if (wb != regs->windowbase || ws != regs->windowstart) {
+	if (wb != regs->windowbase || ws != regs->windowstart)
+	{
 		unsigned long rotws, wmask;
 
 		rotws = (((ws | (ws << WSBITS)) >> wb) &
-				((1 << WSBITS) - 1)) & ~1;
+				 ((1 << WSBITS) - 1)) & ~1;
 		wmask = ((rotws ? WSBITS + 1 - ffs(rotws) : 0) << 4) |
-			(rotws & 0xF) | 1;
+				(rotws & 0xF) | 1;
 		regs->windowbase = wb;
 		regs->windowstart = ws;
 		regs->wmask = wmask;
 	}
 
 	if (wb != 0 &&  __copy_from_user(regs->areg + XCHAL_NUM_AREGS - wb * 4,
-				gregset->a, wb * 16))
+									 gregset->a, wb * 16))
+	{
 		return -EFAULT;
+	}
 
 	if (__copy_from_user(regs->areg, gregset->a + wb * 4,
-				(WSBITS - wb) * 16))
+						 (WSBITS - wb) * 16))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -134,18 +145,20 @@ int ptrace_getxregs(struct task_struct *child, void __user *uregs)
 	int ret = 0;
 
 	if (!access_ok(VERIFY_WRITE, uregs, sizeof(elf_xtregs_t)))
+	{
 		return -EIO;
+	}
 
 #if XTENSA_HAVE_COPROCESSORS
 	/* Flush all coprocessor registers to memory. */
 	coprocessor_flush_all(ti);
 	ret |= __copy_to_user(&xtregs->cp0, &ti->xtregs_cp,
-			      sizeof(xtregs_coprocessor_t));
+						  sizeof(xtregs_coprocessor_t));
 #endif
 	ret |= __copy_to_user(&xtregs->opt, &regs->xtregs_opt,
-			      sizeof(xtregs->opt));
-	ret |= __copy_to_user(&xtregs->user,&ti->xtregs_user,
-			      sizeof(xtregs->user));
+						  sizeof(xtregs->opt));
+	ret |= __copy_to_user(&xtregs->user, &ti->xtregs_user,
+						  sizeof(xtregs->user));
 
 	return ret ? -EFAULT : 0;
 }
@@ -158,7 +171,9 @@ int ptrace_setxregs(struct task_struct *child, void __user *uregs)
 	int ret = 0;
 
 	if (!access_ok(VERIFY_READ, uregs, sizeof(elf_xtregs_t)))
+	{
 		return -EFAULT;
+	}
 
 #if XTENSA_HAVE_COPROCESSORS
 	/* Flush all coprocessors before we overwrite them. */
@@ -166,12 +181,12 @@ int ptrace_setxregs(struct task_struct *child, void __user *uregs)
 	coprocessor_release_all(ti);
 
 	ret |= __copy_from_user(&ti->xtregs_cp, &xtregs->cp0,
-				sizeof(xtregs_coprocessor_t));
+							sizeof(xtregs_coprocessor_t));
 #endif
 	ret |= __copy_from_user(&regs->xtregs_opt, &xtregs->opt,
-				sizeof(xtregs->opt));
+							sizeof(xtregs->opt));
 	ret |= __copy_from_user(&ti->xtregs_user, &xtregs->user,
-				sizeof(xtregs->user));
+							sizeof(xtregs->user));
 
 	return ret ? -EFAULT : 0;
 }
@@ -184,7 +199,8 @@ int ptrace_peekusr(struct task_struct *child, long regno, long __user *ret)
 	regs = task_pt_regs(child);
 	tmp = 0;  /* Default return value. */
 
-	switch(regno) {
+	switch (regno)
+	{
 
 		case REG_AR_BASE ... REG_AR_BASE + XCHAL_NUM_AREGS - 1:
 			tmp = regs->areg[regno - REG_AR_BASE];
@@ -209,12 +225,13 @@ int ptrace_peekusr(struct task_struct *child, long regno, long __user *ret)
 			break;		/* tmp = 0 */
 
 		case REG_WS:
-		{
-			unsigned long wb = regs->windowbase;
-			unsigned long ws = regs->windowstart;
-			tmp = ((ws>>wb) | (ws<<(WSBITS-wb))) & ((1<<WSBITS)-1);
-			break;
-		}
+			{
+				unsigned long wb = regs->windowbase;
+				unsigned long ws = regs->windowstart;
+				tmp = ((ws >> wb) | (ws << (WSBITS - wb))) & ((1 << WSBITS) - 1);
+				break;
+			}
+
 		case REG_LBEG:
 			tmp = regs->lbeg;
 			break;
@@ -238,6 +255,7 @@ int ptrace_peekusr(struct task_struct *child, long regno, long __user *ret)
 		default:
 			return -EIO;
 	}
+
 	return put_user(tmp, ret);
 }
 
@@ -246,7 +264,8 @@ int ptrace_pokeusr(struct task_struct *child, long regno, long val)
 	struct pt_regs *regs;
 	regs = task_pt_regs(child);
 
-	switch (regno) {
+	switch (regno)
+	{
 		case REG_AR_BASE ... REG_AR_BASE + XCHAL_NUM_AREGS - 1:
 			regs->areg[regno - REG_AR_BASE] = val;
 			break;
@@ -266,27 +285,37 @@ int ptrace_pokeusr(struct task_struct *child, long regno, long val)
 		default:
 			return -EIO;
 	}
+
 	return 0;
 }
 
 #ifdef CONFIG_HAVE_HW_BREAKPOINT
 static void ptrace_hbptriggered(struct perf_event *bp,
-				struct perf_sample_data *data,
-				struct pt_regs *regs)
+								struct perf_sample_data *data,
+								struct pt_regs *regs)
 {
 	int i;
 	siginfo_t info;
 	struct arch_hw_breakpoint *bkpt = counter_arch_bp(bp);
 
-	if (bp->attr.bp_type & HW_BREAKPOINT_X) {
+	if (bp->attr.bp_type & HW_BREAKPOINT_X)
+	{
 		for (i = 0; i < XCHAL_NUM_IBREAK; ++i)
 			if (current->thread.ptrace_bp[i] == bp)
+			{
 				break;
+			}
+
 		i <<= 1;
-	} else {
+	}
+	else
+	{
 		for (i = 0; i < XCHAL_NUM_DBREAK; ++i)
 			if (current->thread.ptrace_wp[i] == bp)
+			{
 				break;
+			}
+
 		i = (i << 1) | 1;
 	}
 
@@ -311,7 +340,7 @@ static struct perf_event *ptrace_hbp_create(struct task_struct *tsk, int type)
 	attr.disabled	= 1;
 
 	return register_user_hw_breakpoint(&attr, ptrace_hbptriggered, NULL,
-					   tsk);
+									   tsk);
 }
 
 /*
@@ -327,7 +356,7 @@ static struct perf_event *ptrace_hbp_create(struct task_struct *tsk, int type)
  */
 
 static long ptrace_gethbpregs(struct task_struct *child, long addr,
-			      long __user *datap)
+							  long __user *datap)
 {
 	struct perf_event *bp;
 	u32 user_data[2] = {0};
@@ -335,33 +364,49 @@ static long ptrace_gethbpregs(struct task_struct *child, long addr,
 	unsigned idx = addr >> 1;
 
 	if ((!dbreak && idx >= XCHAL_NUM_IBREAK) ||
-	    (dbreak && idx >= XCHAL_NUM_DBREAK))
+		(dbreak && idx >= XCHAL_NUM_DBREAK))
+	{
 		return -EINVAL;
+	}
 
 	if (dbreak)
+	{
 		bp = child->thread.ptrace_wp[idx];
+	}
 	else
+	{
 		bp = child->thread.ptrace_bp[idx];
+	}
 
-	if (bp) {
+	if (bp)
+	{
 		user_data[0] = bp->attr.bp_addr;
 		user_data[1] = bp->attr.disabled ? 0 : bp->attr.bp_len;
-		if (dbreak) {
+
+		if (dbreak)
+		{
 			if (bp->attr.bp_type & HW_BREAKPOINT_R)
+			{
 				user_data[1] |= DBREAKC_LOAD_MASK;
+			}
+
 			if (bp->attr.bp_type & HW_BREAKPOINT_W)
+			{
 				user_data[1] |= DBREAKC_STOR_MASK;
+			}
 		}
 	}
 
 	if (copy_to_user(datap, user_data, sizeof(user_data)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
 
 static long ptrace_sethbpregs(struct task_struct *child, long addr,
-			      long __user *datap)
+							  long __user *datap)
 {
 	struct perf_event *bp;
 	struct perf_event_attr attr;
@@ -371,32 +416,54 @@ static long ptrace_sethbpregs(struct task_struct *child, long addr,
 	int bp_type = 0;
 
 	if ((!dbreak && idx >= XCHAL_NUM_IBREAK) ||
-	    (dbreak && idx >= XCHAL_NUM_DBREAK))
+		(dbreak && idx >= XCHAL_NUM_DBREAK))
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(user_data, datap, sizeof(user_data)))
+	{
 		return -EFAULT;
+	}
 
-	if (dbreak) {
+	if (dbreak)
+	{
 		bp = child->thread.ptrace_wp[idx];
+
 		if (user_data[1] & DBREAKC_LOAD_MASK)
+		{
 			bp_type |= HW_BREAKPOINT_R;
+		}
+
 		if (user_data[1] & DBREAKC_STOR_MASK)
+		{
 			bp_type |= HW_BREAKPOINT_W;
-	} else {
+		}
+	}
+	else
+	{
 		bp = child->thread.ptrace_bp[idx];
 		bp_type = HW_BREAKPOINT_X;
 	}
 
-	if (!bp) {
+	if (!bp)
+	{
 		bp = ptrace_hbp_create(child,
-				       bp_type ? bp_type : HW_BREAKPOINT_RW);
+							   bp_type ? bp_type : HW_BREAKPOINT_RW);
+
 		if (IS_ERR(bp))
+		{
 			return PTR_ERR(bp);
+		}
+
 		if (dbreak)
+		{
 			child->thread.ptrace_wp[idx] = bp;
+		}
 		else
+		{
 			child->thread.ptrace_bp[idx] = bp;
+		}
 	}
 
 	attr = bp->attr;
@@ -410,57 +477,60 @@ static long ptrace_sethbpregs(struct task_struct *child, long addr,
 #endif
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	int ret = -EPERM;
 	void __user *datap = (void __user *) data;
 
-	switch (request) {
-	case PTRACE_PEEKTEXT:	/* read word at location addr. */
-	case PTRACE_PEEKDATA:
-		ret = generic_ptrace_peekdata(child, addr, data);
-		break;
+	switch (request)
+	{
+		case PTRACE_PEEKTEXT:	/* read word at location addr. */
+		case PTRACE_PEEKDATA:
+			ret = generic_ptrace_peekdata(child, addr, data);
+			break;
 
-	case PTRACE_PEEKUSR:	/* read register specified by addr. */
-		ret = ptrace_peekusr(child, addr, datap);
-		break;
+		case PTRACE_PEEKUSR:	/* read register specified by addr. */
+			ret = ptrace_peekusr(child, addr, datap);
+			break;
 
-	case PTRACE_POKETEXT:	/* write the word at location addr. */
-	case PTRACE_POKEDATA:
-		ret = generic_ptrace_pokedata(child, addr, data);
-		break;
+		case PTRACE_POKETEXT:	/* write the word at location addr. */
+		case PTRACE_POKEDATA:
+			ret = generic_ptrace_pokedata(child, addr, data);
+			break;
 
-	case PTRACE_POKEUSR:	/* write register specified by addr. */
-		ret = ptrace_pokeusr(child, addr, data);
-		break;
+		case PTRACE_POKEUSR:	/* write register specified by addr. */
+			ret = ptrace_pokeusr(child, addr, data);
+			break;
 
-	case PTRACE_GETREGS:
-		ret = ptrace_getregs(child, datap);
-		break;
+		case PTRACE_GETREGS:
+			ret = ptrace_getregs(child, datap);
+			break;
 
-	case PTRACE_SETREGS:
-		ret = ptrace_setregs(child, datap);
-		break;
+		case PTRACE_SETREGS:
+			ret = ptrace_setregs(child, datap);
+			break;
 
-	case PTRACE_GETXTREGS:
-		ret = ptrace_getxregs(child, datap);
-		break;
+		case PTRACE_GETXTREGS:
+			ret = ptrace_getxregs(child, datap);
+			break;
 
-	case PTRACE_SETXTREGS:
-		ret = ptrace_setxregs(child, datap);
-		break;
+		case PTRACE_SETXTREGS:
+			ret = ptrace_setxregs(child, datap);
+			break;
 #ifdef CONFIG_HAVE_HW_BREAKPOINT
-	case PTRACE_GETHBPREGS:
-		ret = ptrace_gethbpregs(child, addr, datap);
-		break;
 
-	case PTRACE_SETHBPREGS:
-		ret = ptrace_sethbpregs(child, addr, datap);
-		break;
+		case PTRACE_GETHBPREGS:
+			ret = ptrace_gethbpregs(child, addr, datap);
+			break;
+
+		case PTRACE_SETHBPREGS:
+			ret = ptrace_sethbpregs(child, addr, datap);
+			break;
 #endif
-	default:
-		ret = ptrace_request(child, request, addr, data);
-		break;
+
+		default:
+			ret = ptrace_request(child, request, addr, data);
+			break;
 	}
 
 	return ret;
@@ -472,14 +542,15 @@ void do_syscall_trace(void)
 	 * The 0x80 provides a way for the tracing parent to distinguish
 	 * between a syscall stop and SIGTRAP delivery
 	 */
-	ptrace_notify(SIGTRAP|((current->ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
+	ptrace_notify(SIGTRAP | ((current->ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
 
 	/*
 	 * this isn't the same as continuing with a signal, but it will do
 	 * for normal use.  strace only continues with a signal if the
 	 * stopping signal is not SIGTRAP.  -brl
 	 */
-	if (current->exit_code) {
+	if (current->exit_code)
+	{
 		send_sig(current->exit_code, current, 1);
 		current->exit_code = 0;
 	}
@@ -488,8 +559,10 @@ void do_syscall_trace(void)
 void do_syscall_trace_enter(struct pt_regs *regs)
 {
 	if (test_thread_flag(TIF_SYSCALL_TRACE)
-			&& (current->ptrace & PT_PTRACED))
+		&& (current->ptrace & PT_PTRACED))
+	{
 		do_syscall_trace();
+	}
 
 #if 0
 	audit_syscall_entry(...);
@@ -499,6 +572,8 @@ void do_syscall_trace_enter(struct pt_regs *regs)
 void do_syscall_trace_leave(struct pt_regs *regs)
 {
 	if ((test_thread_flag(TIF_SYSCALL_TRACE))
-			&& (current->ptrace & PT_PTRACED))
+		&& (current->ptrace & PT_PTRACED))
+	{
 		do_syscall_trace();
+	}
 }

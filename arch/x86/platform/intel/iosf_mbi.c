@@ -45,22 +45,34 @@ static int iosf_mbi_pci_read_mdr(u32 mcrx, u32 mcr, u32 *mdr)
 	int result;
 
 	if (!mbi_pdev)
+	{
 		return -ENODEV;
+	}
 
-	if (mcrx) {
+	if (mcrx)
+	{
 		result = pci_write_config_dword(mbi_pdev, MBI_MCRX_OFFSET,
-						mcrx);
+										mcrx);
+
 		if (result < 0)
+		{
 			goto fail_read;
+		}
 	}
 
 	result = pci_write_config_dword(mbi_pdev, MBI_MCR_OFFSET, mcr);
+
 	if (result < 0)
+	{
 		goto fail_read;
+	}
 
 	result = pci_read_config_dword(mbi_pdev, MBI_MDR_OFFSET, mdr);
+
 	if (result < 0)
+	{
 		goto fail_read;
+	}
 
 	return 0;
 
@@ -74,22 +86,34 @@ static int iosf_mbi_pci_write_mdr(u32 mcrx, u32 mcr, u32 mdr)
 	int result;
 
 	if (!mbi_pdev)
+	{
 		return -ENODEV;
+	}
 
 	result = pci_write_config_dword(mbi_pdev, MBI_MDR_OFFSET, mdr);
-	if (result < 0)
-		goto fail_write;
 
-	if (mcrx) {
+	if (result < 0)
+	{
+		goto fail_write;
+	}
+
+	if (mcrx)
+	{
 		result = pci_write_config_dword(mbi_pdev, MBI_MCRX_OFFSET,
-						mcrx);
+										mcrx);
+
 		if (result < 0)
+		{
 			goto fail_write;
+		}
 	}
 
 	result = pci_write_config_dword(mbi_pdev, MBI_MCR_OFFSET, mcr);
+
 	if (result < 0)
+	{
 		goto fail_write;
+	}
 
 	return 0;
 
@@ -105,7 +129,8 @@ int iosf_mbi_read(u8 port, u8 opcode, u32 offset, u32 *mdr)
 	int ret;
 
 	/* Access to the GFX unit is handled by GPU code */
-	if (port == BT_MBI_UNIT_GFX) {
+	if (port == BT_MBI_UNIT_GFX)
+	{
 		WARN_ON(1);
 		return -EPERM;
 	}
@@ -128,7 +153,8 @@ int iosf_mbi_write(u8 port, u8 opcode, u32 offset, u32 mdr)
 	int ret;
 
 	/* Access to the GFX unit is handled by GPU code */
-	if (port == BT_MBI_UNIT_GFX) {
+	if (port == BT_MBI_UNIT_GFX)
+	{
 		WARN_ON(1);
 		return -EPERM;
 	}
@@ -152,7 +178,8 @@ int iosf_mbi_modify(u8 port, u8 opcode, u32 offset, u32 mdr, u32 mask)
 	int ret;
 
 	/* Access to the GFX unit is handled by GPU code */
-	if (port == BT_MBI_UNIT_GFX) {
+	if (port == BT_MBI_UNIT_GFX)
+	{
 		WARN_ON(1);
 		return -EPERM;
 	}
@@ -164,7 +191,9 @@ int iosf_mbi_modify(u8 port, u8 opcode, u32 offset, u32 mdr, u32 mask)
 
 	/* Read current mdr value */
 	ret = iosf_mbi_pci_read_mdr(mcrx, mcr & MBI_RD_MASK, &value);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		spin_unlock_irqrestore(&iosf_mbi_lock, flags);
 		return ret;
 	}
@@ -205,24 +234,26 @@ static int mcr_set(void *data, u64 val)
 {
 	u8 command = ((u32)val & 0xFF000000) >> 24,
 	   port	   = ((u32)val & 0x00FF0000) >> 16,
-	   offset  = ((u32)val & 0x0000FF00) >> 8;
+		  offset  = ((u32)val & 0x0000FF00) >> 8;
 	int err;
 
 	*(u32 *)data = val;
 
 	if (!capable(CAP_SYS_RAWIO))
+	{
 		return -EACCES;
+	}
 
 	if (command & 1u)
 		err = iosf_mbi_write(port,
-			       command,
-			       dbg_mcrx | offset,
-			       dbg_mdr);
+							 command,
+							 dbg_mcrx | offset,
+							 dbg_mdr);
 	else
 		err = iosf_mbi_read(port,
-			      command,
-			      dbg_mcrx | offset,
-			      &dbg_mdr);
+							command,
+							dbg_mcrx | offset,
+							&dbg_mdr);
 
 	return err;
 }
@@ -235,23 +266,35 @@ static void iosf_sideband_debug_init(void)
 	struct dentry *d;
 
 	iosf_dbg = debugfs_create_dir("iosf_sb", NULL);
+
 	if (IS_ERR_OR_NULL(iosf_dbg))
+	{
 		return;
+	}
 
 	/* mdr */
 	d = debugfs_create_x32("mdr", 0660, iosf_dbg, &dbg_mdr);
+
 	if (!d)
+	{
 		goto cleanup;
+	}
 
 	/* mcrx */
 	d = debugfs_create_x32("mcrx", 0660, iosf_dbg, &dbg_mcrx);
+
 	if (!d)
+	{
 		goto cleanup;
+	}
 
 	/* mcr - initiates mailbox tranaction */
 	d = debugfs_create_file("mcr", 0660, iosf_dbg, &dbg_mcr, &iosf_mcr_fops);
+
 	if (!d)
+	{
 		goto cleanup;
+	}
 
 	return;
 
@@ -274,12 +317,14 @@ static inline void iosf_debugfs_remove(void) { }
 #endif /* CONFIG_IOSF_MBI_DEBUG */
 
 static int iosf_mbi_probe(struct pci_dev *pdev,
-			  const struct pci_device_id *unused)
+						  const struct pci_device_id *unused)
 {
 	int ret;
 
 	ret = pci_enable_device(pdev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "error: could not enable device\n");
 		return ret;
 	}
@@ -288,7 +333,8 @@ static int iosf_mbi_probe(struct pci_dev *pdev,
 	return 0;
 }
 
-static const struct pci_device_id iosf_mbi_pci_ids[] = {
+static const struct pci_device_id iosf_mbi_pci_ids[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_BAYTRAIL) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_BRASWELL) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_QUARK_X1000) },
@@ -297,7 +343,8 @@ static const struct pci_device_id iosf_mbi_pci_ids[] = {
 };
 MODULE_DEVICE_TABLE(pci, iosf_mbi_pci_ids);
 
-static struct pci_driver iosf_mbi_pci_driver = {
+static struct pci_driver iosf_mbi_pci_driver =
+{
 	.name		= "iosf_mbi_pci",
 	.probe		= iosf_mbi_probe,
 	.id_table	= iosf_mbi_pci_ids,

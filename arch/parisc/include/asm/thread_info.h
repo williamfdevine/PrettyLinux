@@ -7,7 +7,8 @@
 #include <asm/processor.h>
 #include <asm/special_insns.h>
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct *task;	/* main task structure */
 	unsigned long flags;		/* thread_info flags (see TIF_*) */
 	mm_segment_t addr_limit;	/* user-level address space limit */
@@ -16,13 +17,13 @@ struct thread_info {
 };
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.addr_limit	= KERNEL_DS,		\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.addr_limit	= KERNEL_DS,		\
+													.preempt_count	= INIT_PREEMPT_COUNT,	\
+	}
 
 #define init_thread_info        (init_thread_union.thread_info)
 #define init_stack              (init_thread_union.stack)
@@ -70,19 +71,19 @@ struct thread_info {
 #define _TIF_SYSCALL_TRACEPOINT	(1 << TIF_SYSCALL_TRACEPOINT)
 
 #define _TIF_USER_WORK_MASK     (_TIF_SIGPENDING | _TIF_NOTIFY_RESUME | \
-                                 _TIF_NEED_RESCHED)
+								 _TIF_NEED_RESCHED)
 #define _TIF_SYSCALL_TRACE_MASK (_TIF_SYSCALL_TRACE | _TIF_SINGLESTEP |	\
-				 _TIF_BLOCKSTEP | _TIF_SYSCALL_AUDIT | \
-				 _TIF_SECCOMP | _TIF_SYSCALL_TRACEPOINT)
+								 _TIF_BLOCKSTEP | _TIF_SYSCALL_AUDIT | \
+								 _TIF_SECCOMP | _TIF_SYSCALL_TRACEPOINT)
 
 #ifdef CONFIG_64BIT
-# ifdef CONFIG_COMPAT
-#  define is_32bit_task()	(test_thread_flag(TIF_32BIT))
-# else
-#  define is_32bit_task()	(0)
-# endif
+	#ifdef CONFIG_COMPAT
+		#define is_32bit_task()	(test_thread_flag(TIF_32BIT))
+	#else
+		#define is_32bit_task()	(0)
+	#endif
 #else
-# define is_32bit_task()	(1)
+	#define is_32bit_task()	(1)
 #endif
 
 #endif /* __KERNEL__ */

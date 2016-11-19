@@ -38,11 +38,13 @@
  *	to write an integer number of pages.
  */
 
-struct user_fpu_struct {
+struct user_fpu_struct
+{
 	/* We have no FPU (yet) */
 };
 
-struct user {
+struct user
+{
 	struct pt_regs	regs;			/* entire machine state */
 	size_t		u_tsize;		/* text size (pages) */
 	size_t		u_dsize;		/* data size (pages) */

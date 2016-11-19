@@ -88,7 +88,7 @@ static inline bool pte_xchg(pte_t *ptep, pte_t old, pte_t new)
 	__be64 prev;
 
 	prev = (__force __be64)__cmpxchg_u64(p, (__force unsigned long)pte_raw(old),
-					     (__force unsigned long)pte_raw(new));
+										 (__force unsigned long)pte_raw(new));
 
 	return pte_raw(old) == prev;
 }
@@ -99,7 +99,7 @@ static inline bool pmd_xchg(pmd_t *pmdp, pmd_t old, pmd_t new)
 	__be64 prev;
 
 	prev = (__force __be64)__cmpxchg_u64(p, (__force unsigned long)pmd_raw(old),
-					     (__force unsigned long)pmd_raw(new));
+										 (__force unsigned long)pmd_raw(new));
 
 	return pmd_raw(old) == prev;
 }

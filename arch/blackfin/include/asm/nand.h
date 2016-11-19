@@ -26,7 +26,8 @@
 
 #define NFC_STAT_NBUSY		1
 
-struct bf5xx_nand_platform {
+struct bf5xx_nand_platform
+{
 	/* NAND chip information */
 	unsigned short		data_width;
 

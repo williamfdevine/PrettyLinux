@@ -102,11 +102,11 @@ static inline unsigned long copy_ptea_attributes(unsigned long x)
 /* Mask which drops unused bits from the PTEL value */
 #if defined(CONFIG_CPU_SH3)
 #define _PAGE_CLEAR_FLAGS	(_PAGE_PROTNONE | _PAGE_ACCESSED| \
-				  _PAGE_SZ1	| _PAGE_HW_SHARED)
+							 _PAGE_SZ1	| _PAGE_HW_SHARED)
 #elif defined(CONFIG_X2TLB)
 /* Get rid of the legacy PR/SZ bits when using extended mode */
 #define _PAGE_CLEAR_FLAGS	(_PAGE_PROTNONE | _PAGE_ACCESSED | \
-				 _PAGE_PR_MASK | _PAGE_SZ_MASK)
+							 _PAGE_PR_MASK | _PAGE_SZ_MASK)
 #else
 #define _PAGE_CLEAR_FLAGS	(_PAGE_PROTNONE | _PAGE_ACCESSED)
 #endif
@@ -115,43 +115,43 @@ static inline unsigned long copy_ptea_attributes(unsigned long x)
 
 /* Hardware flags, page size encoding */
 #if !defined(CONFIG_MMU)
-# define _PAGE_FLAGS_HARD	0ULL
+	#define _PAGE_FLAGS_HARD	0ULL
 #elif defined(CONFIG_X2TLB)
-# if defined(CONFIG_PAGE_SIZE_4KB)
-#  define _PAGE_FLAGS_HARD	_PAGE_EXT(_PAGE_EXT_ESZ0)
-# elif defined(CONFIG_PAGE_SIZE_8KB)
-#  define _PAGE_FLAGS_HARD	_PAGE_EXT(_PAGE_EXT_ESZ1)
-# elif defined(CONFIG_PAGE_SIZE_64KB)
-#  define _PAGE_FLAGS_HARD	_PAGE_EXT(_PAGE_EXT_ESZ2)
-# endif
+	#if defined(CONFIG_PAGE_SIZE_4KB)
+		#define _PAGE_FLAGS_HARD	_PAGE_EXT(_PAGE_EXT_ESZ0)
+	#elif defined(CONFIG_PAGE_SIZE_8KB)
+		#define _PAGE_FLAGS_HARD	_PAGE_EXT(_PAGE_EXT_ESZ1)
+	#elif defined(CONFIG_PAGE_SIZE_64KB)
+		#define _PAGE_FLAGS_HARD	_PAGE_EXT(_PAGE_EXT_ESZ2)
+	#endif
 #else
-# if defined(CONFIG_PAGE_SIZE_4KB)
-#  define _PAGE_FLAGS_HARD	_PAGE_SZ0
-# elif defined(CONFIG_PAGE_SIZE_64KB)
-#  define _PAGE_FLAGS_HARD	_PAGE_SZ1
-# endif
+	#if defined(CONFIG_PAGE_SIZE_4KB)
+		#define _PAGE_FLAGS_HARD	_PAGE_SZ0
+	#elif defined(CONFIG_PAGE_SIZE_64KB)
+		#define _PAGE_FLAGS_HARD	_PAGE_SZ1
+	#endif
 #endif
 
 #if defined(CONFIG_X2TLB)
-# if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
-#  define _PAGE_SZHUGE	(_PAGE_EXT_ESZ2)
-# elif defined(CONFIG_HUGETLB_PAGE_SIZE_256K)
-#  define _PAGE_SZHUGE	(_PAGE_EXT_ESZ0 | _PAGE_EXT_ESZ2)
-# elif defined(CONFIG_HUGETLB_PAGE_SIZE_1MB)
-#  define _PAGE_SZHUGE	(_PAGE_EXT_ESZ0 | _PAGE_EXT_ESZ1 | _PAGE_EXT_ESZ2)
-# elif defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
-#  define _PAGE_SZHUGE	(_PAGE_EXT_ESZ3)
-# elif defined(CONFIG_HUGETLB_PAGE_SIZE_64MB)
-#  define _PAGE_SZHUGE	(_PAGE_EXT_ESZ2 | _PAGE_EXT_ESZ3)
-# endif
-# define _PAGE_WIRED	(_PAGE_EXT(_PAGE_EXT_WIRED))
+	#if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
+		#define _PAGE_SZHUGE	(_PAGE_EXT_ESZ2)
+	#elif defined(CONFIG_HUGETLB_PAGE_SIZE_256K)
+		#define _PAGE_SZHUGE	(_PAGE_EXT_ESZ0 | _PAGE_EXT_ESZ2)
+	#elif defined(CONFIG_HUGETLB_PAGE_SIZE_1MB)
+		#define _PAGE_SZHUGE	(_PAGE_EXT_ESZ0 | _PAGE_EXT_ESZ1 | _PAGE_EXT_ESZ2)
+	#elif defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
+		#define _PAGE_SZHUGE	(_PAGE_EXT_ESZ3)
+	#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64MB)
+		#define _PAGE_SZHUGE	(_PAGE_EXT_ESZ2 | _PAGE_EXT_ESZ3)
+	#endif
+	#define _PAGE_WIRED	(_PAGE_EXT(_PAGE_EXT_WIRED))
 #else
-# if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
-#  define _PAGE_SZHUGE	(_PAGE_SZ1)
-# elif defined(CONFIG_HUGETLB_PAGE_SIZE_1MB)
-#  define _PAGE_SZHUGE	(_PAGE_SZ0 | _PAGE_SZ1)
-# endif
-# define _PAGE_WIRED	(0)
+	#if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
+		#define _PAGE_SZHUGE	(_PAGE_SZ1)
+	#elif defined(CONFIG_HUGETLB_PAGE_SIZE_1MB)
+		#define _PAGE_SZHUGE	(_PAGE_SZ0 | _PAGE_SZ1)
+	#endif
+	#define _PAGE_WIRED	(0)
 #endif
 
 /*
@@ -159,7 +159,7 @@ static inline unsigned long copy_ptea_attributes(unsigned long x)
  * to make pte_mkhuge() happy.
  */
 #ifndef _PAGE_SZHUGE
-# define _PAGE_SZHUGE	(_PAGE_FLAGS_HARD)
+	#define _PAGE_SZHUGE	(_PAGE_FLAGS_HARD)
 #endif
 
 /*
@@ -173,103 +173,103 @@ static inline unsigned long copy_ptea_attributes(unsigned long x)
 
 #if defined(CONFIG_X2TLB) /* SH-X2 TLB */
 #define PAGE_NONE	__pgprot(_PAGE_PROTNONE | _PAGE_CACHABLE | \
-				 _PAGE_ACCESSED | _PAGE_FLAGS_HARD)
+							 _PAGE_ACCESSED | _PAGE_FLAGS_HARD)
 
 #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | \
-				 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
-				 _PAGE_EXT(_PAGE_EXT_KERN_READ  | \
-					   _PAGE_EXT_KERN_WRITE | \
-					   _PAGE_EXT_USER_READ  | \
-					   _PAGE_EXT_USER_WRITE))
+							 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
+							 _PAGE_EXT(_PAGE_EXT_KERN_READ  | \
+									   _PAGE_EXT_KERN_WRITE | \
+									   _PAGE_EXT_USER_READ  | \
+									   _PAGE_EXT_USER_WRITE))
 
 #define PAGE_EXECREAD	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | \
-				 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
-				 _PAGE_EXT(_PAGE_EXT_KERN_EXEC | \
-					   _PAGE_EXT_KERN_READ | \
-					   _PAGE_EXT_USER_EXEC | \
-					   _PAGE_EXT_USER_READ))
+								 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
+								 _PAGE_EXT(_PAGE_EXT_KERN_EXEC | \
+										 _PAGE_EXT_KERN_READ | \
+										 _PAGE_EXT_USER_EXEC | \
+										 _PAGE_EXT_USER_READ))
 
 #define PAGE_COPY	PAGE_EXECREAD
 
 #define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | \
-				 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
-				 _PAGE_EXT(_PAGE_EXT_KERN_READ | \
-					   _PAGE_EXT_USER_READ))
+								 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
+								 _PAGE_EXT(_PAGE_EXT_KERN_READ | \
+										 _PAGE_EXT_USER_READ))
 
 #define PAGE_WRITEONLY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | \
-				 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
-				 _PAGE_EXT(_PAGE_EXT_KERN_WRITE | \
-					   _PAGE_EXT_USER_WRITE))
+								 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
+								 _PAGE_EXT(_PAGE_EXT_KERN_WRITE | \
+										 _PAGE_EXT_USER_WRITE))
 
 #define PAGE_RWX	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | \
-				 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
-				 _PAGE_EXT(_PAGE_EXT_KERN_WRITE | \
-					   _PAGE_EXT_KERN_READ  | \
-					   _PAGE_EXT_KERN_EXEC  | \
-					   _PAGE_EXT_USER_WRITE | \
-					   _PAGE_EXT_USER_READ  | \
-					   _PAGE_EXT_USER_EXEC))
+							 _PAGE_CACHABLE | _PAGE_FLAGS_HARD | \
+							 _PAGE_EXT(_PAGE_EXT_KERN_WRITE | \
+									   _PAGE_EXT_KERN_READ  | \
+									   _PAGE_EXT_KERN_EXEC  | \
+									   _PAGE_EXT_USER_WRITE | \
+									   _PAGE_EXT_USER_READ  | \
+									   _PAGE_EXT_USER_EXEC))
 
 #define PAGE_KERNEL	__pgprot(_PAGE_PRESENT | _PAGE_CACHABLE | \
-				 _PAGE_DIRTY | _PAGE_ACCESSED | \
-				 _PAGE_HW_SHARED | _PAGE_FLAGS_HARD | \
-				 _PAGE_EXT(_PAGE_EXT_KERN_READ | \
-					   _PAGE_EXT_KERN_WRITE | \
-					   _PAGE_EXT_KERN_EXEC))
+							 _PAGE_DIRTY | _PAGE_ACCESSED | \
+							 _PAGE_HW_SHARED | _PAGE_FLAGS_HARD | \
+							 _PAGE_EXT(_PAGE_EXT_KERN_READ | \
+									   _PAGE_EXT_KERN_WRITE | \
+									   _PAGE_EXT_KERN_EXEC))
 
 #define PAGE_KERNEL_NOCACHE \
-			__pgprot(_PAGE_PRESENT | _PAGE_DIRTY | \
-				 _PAGE_ACCESSED | _PAGE_HW_SHARED | \
-				 _PAGE_FLAGS_HARD | \
-				 _PAGE_EXT(_PAGE_EXT_KERN_READ | \
+	__pgprot(_PAGE_PRESENT | _PAGE_DIRTY | \
+			 _PAGE_ACCESSED | _PAGE_HW_SHARED | \
+			 _PAGE_FLAGS_HARD | \
+			 _PAGE_EXT(_PAGE_EXT_KERN_READ | \
 					   _PAGE_EXT_KERN_WRITE | \
 					   _PAGE_EXT_KERN_EXEC))
 
 #define PAGE_KERNEL_RO	__pgprot(_PAGE_PRESENT | _PAGE_CACHABLE | \
-				 _PAGE_DIRTY | _PAGE_ACCESSED | \
-				 _PAGE_HW_SHARED | _PAGE_FLAGS_HARD | \
-				 _PAGE_EXT(_PAGE_EXT_KERN_READ | \
-					   _PAGE_EXT_KERN_EXEC))
+								 _PAGE_DIRTY | _PAGE_ACCESSED | \
+								 _PAGE_HW_SHARED | _PAGE_FLAGS_HARD | \
+								 _PAGE_EXT(_PAGE_EXT_KERN_READ | \
+										 _PAGE_EXT_KERN_EXEC))
 
 #define PAGE_KERNEL_PCC(slot, type) \
-			__pgprot(0)
+	__pgprot(0)
 
 #elif defined(CONFIG_MMU) /* SH-X TLB */
 #define PAGE_NONE	__pgprot(_PAGE_PROTNONE | _PAGE_CACHABLE | \
-				 _PAGE_ACCESSED | _PAGE_FLAGS_HARD)
+							 _PAGE_ACCESSED | _PAGE_FLAGS_HARD)
 
 #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER | \
-				 _PAGE_CACHABLE | _PAGE_ACCESSED | \
-				 _PAGE_FLAGS_HARD)
+							 _PAGE_CACHABLE | _PAGE_ACCESSED | \
+							 _PAGE_FLAGS_HARD)
 
 #define PAGE_COPY	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_CACHABLE | \
-				 _PAGE_ACCESSED | _PAGE_FLAGS_HARD)
+							 _PAGE_ACCESSED | _PAGE_FLAGS_HARD)
 
 #define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_CACHABLE | \
-				 _PAGE_ACCESSED | _PAGE_FLAGS_HARD)
+								 _PAGE_ACCESSED | _PAGE_FLAGS_HARD)
 
 #define PAGE_EXECREAD	PAGE_READONLY
 #define PAGE_RWX	PAGE_SHARED
 #define PAGE_WRITEONLY	PAGE_SHARED
 
 #define PAGE_KERNEL	__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_CACHABLE | \
-				 _PAGE_DIRTY | _PAGE_ACCESSED | \
-				 _PAGE_HW_SHARED | _PAGE_FLAGS_HARD)
+							 _PAGE_DIRTY | _PAGE_ACCESSED | \
+							 _PAGE_HW_SHARED | _PAGE_FLAGS_HARD)
 
 #define PAGE_KERNEL_NOCACHE \
-			__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | \
-				 _PAGE_ACCESSED | _PAGE_HW_SHARED | \
-				 _PAGE_FLAGS_HARD)
+	__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | \
+			 _PAGE_ACCESSED | _PAGE_HW_SHARED | \
+			 _PAGE_FLAGS_HARD)
 
 #define PAGE_KERNEL_RO	__pgprot(_PAGE_PRESENT | _PAGE_CACHABLE | \
-				 _PAGE_DIRTY | _PAGE_ACCESSED | \
-				 _PAGE_HW_SHARED | _PAGE_FLAGS_HARD)
+								 _PAGE_DIRTY | _PAGE_ACCESSED | \
+								 _PAGE_HW_SHARED | _PAGE_FLAGS_HARD)
 
 #define PAGE_KERNEL_PCC(slot, type) \
-			__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | \
-				 _PAGE_ACCESSED | _PAGE_FLAGS_HARD | \
-				 (slot ? _PAGE_PCC_AREA5 : _PAGE_PCC_AREA6) | \
-				 (type))
+	__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | \
+			 _PAGE_ACCESSED | _PAGE_FLAGS_HARD | \
+			 (slot ? _PAGE_PCC_AREA5 : _PAGE_PCC_AREA6) | \
+			 (type))
 #else /* no mmu */
 #define PAGE_NONE		__pgprot(0)
 #define PAGE_SHARED		__pgprot(0)
@@ -283,7 +283,7 @@ static inline unsigned long copy_ptea_attributes(unsigned long x)
 #define PAGE_KERNEL_RO		__pgprot(0)
 
 #define PAGE_KERNEL_PCC(slot, type) \
-				__pgprot(0)
+	__pgprot(0)
 #endif
 
 #endif /* __ASSEMBLY__ */
@@ -349,21 +349,21 @@ static inline void set_pte(pte_t *ptep, pte_t pte)
 #endif
 
 #define PTE_BIT_FUNC(h,fn,op) \
-static inline pte_t pte_##fn(pte_t pte) { pte.pte_##h op; return pte; }
+	static inline pte_t pte_##fn(pte_t pte) { pte.pte_##h op; return pte; }
 
 #ifdef CONFIG_X2TLB
-/*
- * We cheat a bit in the SH-X2 TLB case. As the permission bits are
- * individually toggled (and user permissions are entirely decoupled from
- * kernel permissions), we attempt to couple them a bit more sanely here.
- */
-PTE_BIT_FUNC(high, wrprotect, &= ~(_PAGE_EXT_USER_WRITE | _PAGE_EXT_KERN_WRITE));
-PTE_BIT_FUNC(high, mkwrite, |= _PAGE_EXT_USER_WRITE | _PAGE_EXT_KERN_WRITE);
-PTE_BIT_FUNC(high, mkhuge, |= _PAGE_SZHUGE);
+	/*
+	* We cheat a bit in the SH-X2 TLB case. As the permission bits are
+	* individually toggled (and user permissions are entirely decoupled from
+	* kernel permissions), we attempt to couple them a bit more sanely here.
+	*/
+	PTE_BIT_FUNC(high, wrprotect, &= ~(_PAGE_EXT_USER_WRITE | _PAGE_EXT_KERN_WRITE));
+	PTE_BIT_FUNC(high, mkwrite, |= _PAGE_EXT_USER_WRITE | _PAGE_EXT_KERN_WRITE);
+	PTE_BIT_FUNC(high, mkhuge, |= _PAGE_SZHUGE);
 #else
-PTE_BIT_FUNC(low, wrprotect, &= ~_PAGE_RW);
-PTE_BIT_FUNC(low, mkwrite, |= _PAGE_RW);
-PTE_BIT_FUNC(low, mkhuge, |= _PAGE_SZHUGE);
+	PTE_BIT_FUNC(low, wrprotect, &= ~_PAGE_RW);
+	PTE_BIT_FUNC(low, mkwrite, |= _PAGE_RW);
+	PTE_BIT_FUNC(low, mkhuge, |= _PAGE_SZHUGE);
 #endif
 
 PTE_BIT_FUNC(low, mkclean, &= ~_PAGE_DIRTY);
@@ -426,7 +426,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 #ifdef CONFIG_X2TLB
 #define pte_ERROR(e) \
 	printk("%s:%d: bad pte %p(%08lx%08lx).\n", __FILE__, __LINE__, \
-	       &(e), (e).pte_high, (e).pte_low)
+		   &(e), (e).pte_high, (e).pte_low)
 #define pgd_ERROR(e) \
 	printk("%s:%d: bad pgd %016llx.\n", __FILE__, __LINE__, pgd_val(e))
 #else
@@ -457,19 +457,19 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
  *       and _PAGE_PROTNONE bits
  */
 #ifdef CONFIG_X2TLB
-#define __swp_type(x)			((x).val & 0x1f)
-#define __swp_offset(x)			((x).val >> 5)
-#define __swp_entry(type, offset)	((swp_entry_t){ (type) | (offset) << 5})
-#define __pte_to_swp_entry(pte)		((swp_entry_t){ (pte).pte_high })
-#define __swp_entry_to_pte(x)		((pte_t){ 0, (x).val })
+	#define __swp_type(x)			((x).val & 0x1f)
+	#define __swp_offset(x)			((x).val >> 5)
+	#define __swp_entry(type, offset)	((swp_entry_t){ (type) | (offset) << 5})
+	#define __pte_to_swp_entry(pte)		((swp_entry_t){ (pte).pte_high })
+	#define __swp_entry_to_pte(x)		((pte_t){ 0, (x).val })
 
 #else
-#define __swp_type(x)			((x).val & 0xff)
-#define __swp_offset(x)			((x).val >> 10)
-#define __swp_entry(type, offset)	((swp_entry_t){(type) | (offset) <<10})
+	#define __swp_type(x)			((x).val & 0xff)
+	#define __swp_offset(x)			((x).val >> 10)
+	#define __swp_entry(type, offset)	((swp_entry_t){(type) | (offset) <<10})
 
-#define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) >> 1 })
-#define __swp_entry_to_pte(x)		((pte_t) { (x).val << 1 })
+	#define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) >> 1 })
+	#define __swp_entry_to_pte(x)		((pte_t) { (x).val << 1 })
 #endif
 
 #endif /* __ASSEMBLY__ */

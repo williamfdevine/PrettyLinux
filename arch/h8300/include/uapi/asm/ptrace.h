@@ -19,7 +19,8 @@
 /* this struct defines the way the registers are stored on the
    stack during a system call. */
 
-struct pt_regs {
+struct pt_regs
+{
 	long     retpc;
 	long     er4;
 	long     er5;

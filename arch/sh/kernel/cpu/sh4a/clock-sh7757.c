@@ -20,7 +20,8 @@
  * Default rate for the root input clock, reset this with clk_set_rate()
  * from the platform code.
  */
-static struct clk extal_clk = {
+static struct clk extal_clk =
+{
 	.rate		= 48000000,
 };
 
@@ -33,39 +34,46 @@ static unsigned long pll_recalc(struct clk *clk)
 	return clk->parent->rate * multiplier;
 }
 
-static struct sh_clk_ops pll_clk_ops = {
+static struct sh_clk_ops pll_clk_ops =
+{
 	.recalc		= pll_recalc,
 };
 
-static struct clk pll_clk = {
+static struct clk pll_clk =
+{
 	.ops		= &pll_clk_ops,
 	.parent		= &extal_clk,
 	.flags		= CLK_ENABLE_ON_INIT,
 };
 
-static struct clk *clks[] = {
+static struct clk *clks[] =
+{
 	&extal_clk,
 	&pll_clk,
 };
 
 static unsigned int div2[] = { 1, 1, 2, 1, 1, 4, 1, 6,
-			       1, 1, 1, 16, 1, 24, 1, 1 };
+							   1, 1, 1, 16, 1, 24, 1, 1
+							 };
 
-static struct clk_div_mult_table div4_div_mult_table = {
+static struct clk_div_mult_table div4_div_mult_table =
+{
 	.divisors = div2,
 	.nr_divisors = ARRAY_SIZE(div2),
 };
 
-static struct clk_div4_table div4_table = {
+static struct clk_div4_table div4_table =
+{
 	.div_mult_table = &div4_div_mult_table,
 };
 
 enum { DIV4_I, DIV4_SH, DIV4_P, DIV4_NR };
 
 #define DIV4(_bit, _mask, _flags) \
-  SH_CLK_DIV4(&pll_clk, FRQCR, _bit, _mask, _flags)
+	SH_CLK_DIV4(&pll_clk, FRQCR, _bit, _mask, _flags)
 
-struct clk div4_clks[DIV4_NR] = {
+struct clk div4_clks[DIV4_NR] =
+{
 	/*
 	 * P clock is always enable, because some P clock modules is used
 	 * by Host PC.
@@ -80,10 +88,12 @@ struct clk div4_clks[DIV4_NR] = {
 #define MSTPCR2		0xffc10028
 
 enum { MSTP004, MSTP000, MSTP127, MSTP114, MSTP113, MSTP112,
-       MSTP111, MSTP110, MSTP103, MSTP102, MSTP220,
-       MSTP_NR };
+	   MSTP111, MSTP110, MSTP103, MSTP102, MSTP220,
+	   MSTP_NR
+	 };
 
-static struct clk mstp_clks[MSTP_NR] = {
+static struct clk mstp_clks[MSTP_NR] =
+{
 	/* MSTPCR0 */
 	[MSTP004] = SH_CLK_MSTP32(&div4_clks[DIV4_P], MSTPCR0, 4, 0),
 	[MSTP000] = SH_CLK_MSTP32(&div4_clks[DIV4_P], MSTPCR0, 0, 0),
@@ -102,7 +112,8 @@ static struct clk mstp_clks[MSTP_NR] = {
 	[MSTP220] = SH_CLK_MSTP32(&div4_clks[DIV4_P], MSTPCR2, 20, 0),
 };
 
-static struct clk_lookup lookups[] = {
+static struct clk_lookup lookups[] =
+{
 	/* main clocks */
 	CLKDEV_CON_ID("extal", &extal_clk),
 	CLKDEV_CON_ID("pll_clk", &pll_clk),
@@ -140,15 +151,20 @@ int __init arch_clk_init(void)
 	int i, ret = 0;
 
 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+	{
 		ret |= clk_register(clks[i]);
+	}
 
 	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
 
 	if (!ret)
 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-					   &div4_table);
+								   &div4_table);
+
 	if (!ret)
+	{
 		ret = sh_clk_mstp_register(mstp_clks, MSTP_NR);
+	}
 
 	return ret;
 }

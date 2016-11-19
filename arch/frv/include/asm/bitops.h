@@ -20,7 +20,7 @@
 #ifdef __KERNEL__
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <asm-generic/bitops/ffz.h>
@@ -143,7 +143,7 @@ __constant_test_bit(unsigned long nr, const volatile void *addr)
 
 static inline int __test_bit(unsigned long nr, const volatile void *addr)
 {
-	int 	* a = (int *) addr;
+	int 	 *a = (int *) addr;
 	int	mask;
 
 	a += nr >> 5;
@@ -152,9 +152,9 @@ static inline int __test_bit(unsigned long nr, const volatile void *addr)
 }
 
 #define test_bit(nr,addr) \
-(__builtin_constant_p(nr) ? \
- __constant_test_bit((nr),(addr)) : \
- __test_bit((nr),(addr)))
+	(__builtin_constant_p(nr) ? \
+	 __constant_test_bit((nr),(addr)) : \
+	 __test_bit((nr),(addr)))
 
 #include <asm-generic/bitops/find.h>
 
@@ -167,21 +167,21 @@ static inline int __test_bit(unsigned long nr, const volatile void *addr)
  * - return 0 to indicate no bits set
  */
 #define fls(x)						\
-({							\
-	int bit;					\
-							\
-	asm("	subcc	%1,gr0,gr0,icc0		\n"	\
-	    "	ckne	icc0,cc4		\n"	\
-	    "	cscan.p	%1,gr0,%0	,cc4,#1	\n"	\
-	    "	csub	%0,%0,%0	,cc4,#0	\n"	\
-	    "   csub    %2,%0,%0	,cc4,#1	\n"	\
-	    : "=&r"(bit)				\
-	    : "r"(x), "r"(32)				\
-	    : "icc0", "cc4"				\
-	    );						\
-							\
-	bit;						\
-})
+	({							\
+		int bit;					\
+		\
+		asm("	subcc	%1,gr0,gr0,icc0		\n"	\
+			"	ckne	icc0,cc4		\n"	\
+			"	cscan.p	%1,gr0,%0	,cc4,#1	\n"	\
+			"	csub	%0,%0,%0	,cc4,#0	\n"	\
+			"   csub    %2,%0,%0	,cc4,#1	\n"	\
+			: "=&r"(bit)				\
+			: "r"(x), "r"(32)				\
+			: "icc0", "cc4"				\
+		   );						\
+		\
+		bit;						\
+	})
 
 /**
  * fls64 - find last bit set in a 64-bit value
@@ -194,7 +194,8 @@ static inline int __test_bit(unsigned long nr, const volatile void *addr)
 static inline __attribute__((const))
 int fls64(u64 n)
 {
-	union {
+	union
+	{
 		u64 ll;
 		struct { u32 h, l; };
 	} _;
@@ -203,23 +204,23 @@ int fls64(u64 n)
 	_.ll = n;
 
 	asm("	subcc.p		%3,gr0,gr0,icc0		\n"
-	    "	subcc		%4,gr0,gr0,icc1		\n"
-	    "	ckne		icc0,cc4		\n"
-	    "	ckne		icc1,cc5		\n"
-	    "	norcr		cc4,cc5,cc6		\n"
-	    "	csub.p		%0,%0,%0	,cc6,1	\n"
-	    "	orcr		cc5,cc4,cc4		\n"
-	    "	andcr		cc4,cc5,cc4		\n"
-	    "	cscan.p		%3,gr0,%0	,cc4,0	\n"
-	    "   setlos		#64,%1			\n"
-	    "	cscan.p		%4,gr0,%0	,cc4,1	\n"
-	    "   setlos		#32,%2			\n"
-	    "	csub.p		%1,%0,%0	,cc4,0	\n"
-	    "	csub		%2,%0,%0	,cc4,1	\n"
-	    : "=&r"(bit), "=r"(x), "=r"(y)
-	    : "0r"(_.h), "r"(_.l)
-	    : "icc0", "icc1", "cc4", "cc5", "cc6"
-	    );
+		"	subcc		%4,gr0,gr0,icc1		\n"
+		"	ckne		icc0,cc4		\n"
+		"	ckne		icc1,cc5		\n"
+		"	norcr		cc4,cc5,cc6		\n"
+		"	csub.p		%0,%0,%0	,cc6,1	\n"
+		"	orcr		cc5,cc4,cc4		\n"
+		"	andcr		cc4,cc5,cc4		\n"
+		"	cscan.p		%3,gr0,%0	,cc4,0	\n"
+		"   setlos		#64,%1			\n"
+		"	cscan.p		%4,gr0,%0	,cc4,1	\n"
+		"   setlos		#32,%2			\n"
+		"	csub.p		%1,%0,%0	,cc4,0	\n"
+		"	csub		%2,%0,%0	,cc4,1	\n"
+		: "=&r"(bit), "=r"(x), "=r"(y)
+		: "0r"(_.h), "r"(_.l)
+		: "icc0", "icc1", "cc4", "cc5", "cc6"
+	   );
 	return bit;
 
 }
@@ -289,7 +290,8 @@ int __ilog2_u32(u32 n)
 static inline __attribute__((const))
 int __ilog2_u64(u64 n)
 {
-	union {
+	union
+	{
 		u64 ll;
 		struct { u32 h, l; };
 	} _;
@@ -298,17 +300,17 @@ int __ilog2_u64(u64 n)
 	_.ll = n;
 
 	asm("	subcc		%3,gr0,gr0,icc0		\n"
-	    "	ckeq		icc0,cc4		\n"
-	    "	cscan.p		%3,gr0,%0	,cc4,0	\n"
-	    "   setlos		#63,%1			\n"
-	    "	cscan.p		%4,gr0,%0	,cc4,1	\n"
-	    "   setlos		#31,%2			\n"
-	    "	csub.p		%1,%0,%0	,cc4,0	\n"
-	    "	csub		%2,%0,%0	,cc4,1	\n"
-	    : "=&r"(bit), "=r"(x), "=r"(y)
-	    : "0r"(_.h), "r"(_.l)
-	    : "icc0", "cc4"
-	    );
+		"	ckeq		icc0,cc4		\n"
+		"	cscan.p		%3,gr0,%0	,cc4,0	\n"
+		"   setlos		#63,%1			\n"
+		"	cscan.p		%4,gr0,%0	,cc4,1	\n"
+		"   setlos		#31,%2			\n"
+		"	csub.p		%1,%0,%0	,cc4,0	\n"
+		"	csub		%2,%0,%0	,cc4,1	\n"
+		: "=&r"(bit), "=r"(x), "=r"(y)
+		: "0r"(_.h), "r"(_.l)
+		: "icc0", "cc4"
+	   );
 	return bit;
 }
 

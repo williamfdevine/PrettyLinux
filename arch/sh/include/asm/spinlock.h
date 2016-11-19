@@ -12,11 +12,11 @@
 #define __ASM_SH_SPINLOCK_H
 
 #if defined(CONFIG_CPU_SH4A)
-#include <asm/spinlock-llsc.h>
+	#include <asm/spinlock-llsc.h>
 #elif defined(CONFIG_CPU_J2)
-#include <asm/spinlock-cas.h>
+	#include <asm/spinlock-cas.h>
 #else
-#error "The configured cpu type does not support spinlocks"
+	#error "The configured cpu type does not support spinlocks"
 #endif
 
 #endif /* __ASM_SH_SPINLOCK_H */

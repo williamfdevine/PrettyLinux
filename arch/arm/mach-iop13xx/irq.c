@@ -170,28 +170,32 @@ iop13xx_irq_unmask3(struct irq_data *d)
 	write_intctl_3(read_intctl_3() | (1 << (d->irq - 96)));
 }
 
-static struct irq_chip iop13xx_irqchip1 = {
+static struct irq_chip iop13xx_irqchip1 =
+{
 	.name       = "IOP13xx-1",
 	.irq_ack    = iop13xx_irq_mask0,
 	.irq_mask   = iop13xx_irq_mask0,
 	.irq_unmask = iop13xx_irq_unmask0,
 };
 
-static struct irq_chip iop13xx_irqchip2 = {
+static struct irq_chip iop13xx_irqchip2 =
+{
 	.name       = "IOP13xx-2",
 	.irq_ack    = iop13xx_irq_mask1,
 	.irq_mask   = iop13xx_irq_mask1,
 	.irq_unmask = iop13xx_irq_unmask1,
 };
 
-static struct irq_chip iop13xx_irqchip3 = {
+static struct irq_chip iop13xx_irqchip3 =
+{
 	.name       = "IOP13xx-3",
 	.irq_ack    = iop13xx_irq_mask2,
 	.irq_mask   = iop13xx_irq_mask2,
 	.irq_unmask = iop13xx_irq_unmask2,
 };
 
-static struct irq_chip iop13xx_irqchip4 = {
+static struct irq_chip iop13xx_irqchip4 =
+{
 	.name       = "IOP13xx-4",
 	.irq_ack    = iop13xx_irq_mask3,
 	.irq_mask   = iop13xx_irq_mask3,
@@ -222,15 +226,24 @@ void __init iop13xx_init_irq(void)
 	write_intbase(INTBASE);
 	write_intsize(INTSIZE_4);
 
-	for(i = 0; i <= IRQ_IOP13XX_HPI; i++) {
+	for (i = 0; i <= IRQ_IOP13XX_HPI; i++)
+	{
 		if (i < 32)
+		{
 			irq_set_chip(i, &iop13xx_irqchip1);
+		}
 		else if (i < 64)
+		{
 			irq_set_chip(i, &iop13xx_irqchip2);
+		}
 		else if (i < 96)
+		{
 			irq_set_chip(i, &iop13xx_irqchip3);
+		}
 		else
+		{
 			irq_set_chip(i, &iop13xx_irqchip4);
+		}
 
 		irq_set_handler(i, handle_level_irq);
 		irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);

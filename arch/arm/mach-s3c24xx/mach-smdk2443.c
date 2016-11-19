@@ -45,7 +45,8 @@
 #include "common.h"
 #include "common-smdk.h"
 
-static struct map_desc smdk2443_iodesc[] __initdata = {
+static struct map_desc smdk2443_iodesc[] __initdata =
+{
 	/* ISA IO Space map (memory space selected by A24) */
 
 	{
@@ -55,7 +56,7 @@ static struct map_desc smdk2443_iodesc[] __initdata = {
 		.type		= MT_DEVICE,
 	}, {
 		.virtual	= (u32)S3C24XX_VA_ISA_WORD + 0x10000,
-		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1<<24)),
+		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1 << 24)),
 		.length		= SZ_4M,
 		.type		= MT_DEVICE,
 	}, {
@@ -65,7 +66,7 @@ static struct map_desc smdk2443_iodesc[] __initdata = {
 		.type		= MT_DEVICE,
 	}, {
 		.virtual	= (u32)S3C24XX_VA_ISA_BYTE + 0x10000,
-		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1<<24)),
+		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1 << 24)),
 		.length		= SZ_4M,
 		.type		= MT_DEVICE,
 	}
@@ -75,7 +76,8 @@ static struct map_desc smdk2443_iodesc[] __initdata = {
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg smdk2443_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg smdk2443_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -107,7 +109,8 @@ static struct s3c2410_uartcfg smdk2443_uartcfgs[] __initdata = {
 	}
 };
 
-static struct platform_device *smdk2443_devices[] __initdata = {
+static struct platform_device *smdk2443_devices[] __initdata =
+{
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
 	&s3c_device_hsmmc1,
@@ -143,11 +146,11 @@ static void __init smdk2443_machine_init(void)
 }
 
 MACHINE_START(SMDK2443, "SMDK2443")
-	/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
+.atag_offset	= 0x100,
 
 	.init_irq	= s3c2443_init_irq,
-	.map_io		= smdk2443_map_io,
-	.init_machine	= smdk2443_machine_init,
-	.init_time	= smdk2443_init_time,
-MACHINE_END
+	   .map_io		= smdk2443_map_io,
+		   .init_machine	= smdk2443_machine_init,
+			  .init_time	= smdk2443_init_time,
+				MACHINE_END

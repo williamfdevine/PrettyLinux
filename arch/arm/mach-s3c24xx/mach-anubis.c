@@ -57,46 +57,48 @@
 
 #define COPYRIGHT ", Copyright 2005-2009 Simtec Electronics"
 
-static struct map_desc anubis_iodesc[] __initdata = {
-  /* ISA IO areas */
+static struct map_desc anubis_iodesc[] __initdata =
+{
+	/* ISA IO areas */
 
-  {
-	.virtual	= (u32)S3C24XX_VA_ISA_BYTE,
-	.pfn		= __phys_to_pfn(0x0),
-	.length		= SZ_4M,
-	.type		= MT_DEVICE,
-  }, {
-	.virtual	= (u32)S3C24XX_VA_ISA_WORD,
-	.pfn		= __phys_to_pfn(0x0),
-	.length 	= SZ_4M,
-	.type		= MT_DEVICE,
-  },
+	{
+		.virtual	= (u32)S3C24XX_VA_ISA_BYTE,
+		.pfn		= __phys_to_pfn(0x0),
+		.length		= SZ_4M,
+		.type		= MT_DEVICE,
+	}, {
+		.virtual	= (u32)S3C24XX_VA_ISA_WORD,
+		.pfn		= __phys_to_pfn(0x0),
+		.length 	= SZ_4M,
+		.type		= MT_DEVICE,
+	},
 
-  /* we could possibly compress the next set down into a set of smaller tables
-   * pagetables, but that would mean using an L2 section, and it still means
-   * we cannot actually feed the same register to an LDR due to 16K spacing
-   */
+	/* we could possibly compress the next set down into a set of smaller tables
+	 * pagetables, but that would mean using an L2 section, and it still means
+	 * we cannot actually feed the same register to an LDR due to 16K spacing
+	 */
 
-  /* CPLD control registers */
+	/* CPLD control registers */
 
-  {
-	.virtual	= (u32)ANUBIS_VA_CTRL1,
-	.pfn		= __phys_to_pfn(ANUBIS_PA_CTRL1),
-	.length		= SZ_4K,
-	.type		= MT_DEVICE,
-  }, {
-	.virtual	= (u32)ANUBIS_VA_IDREG,
-	.pfn		= __phys_to_pfn(ANUBIS_PA_IDREG),
-	.length		= SZ_4K,
-	.type		= MT_DEVICE,
-  },
+	{
+		.virtual	= (u32)ANUBIS_VA_CTRL1,
+		.pfn		= __phys_to_pfn(ANUBIS_PA_CTRL1),
+		.length		= SZ_4K,
+		.type		= MT_DEVICE,
+	}, {
+		.virtual	= (u32)ANUBIS_VA_IDREG,
+		.pfn		= __phys_to_pfn(ANUBIS_PA_IDREG),
+		.length		= SZ_4K,
+		.type		= MT_DEVICE,
+	},
 };
 
 #define UCON S3C2410_UCON_DEFAULT | S3C2410_UCON_UCLK
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg anubis_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg anubis_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -121,7 +123,8 @@ static int external_map[]   = { 2 };
 static int chip0_map[]      = { 0 };
 static int chip1_map[]      = { 1 };
 
-static struct mtd_partition __initdata anubis_default_nand_part[] = {
+static struct mtd_partition __initdata anubis_default_nand_part[] =
+{
 	[0] = {
 		.name	= "Boot Agent",
 		.size	= SZ_16K,
@@ -144,7 +147,8 @@ static struct mtd_partition __initdata anubis_default_nand_part[] = {
 	}
 };
 
-static struct mtd_partition __initdata anubis_default_nand_part_large[] = {
+static struct mtd_partition __initdata anubis_default_nand_part_large[] =
+{
 	[0] = {
 		.name	= "Boot Agent",
 		.size	= SZ_128K,
@@ -174,7 +178,8 @@ static struct mtd_partition __initdata anubis_default_nand_part_large[] = {
  * socket.
 */
 
-static struct s3c2410_nand_set __initdata anubis_nand_sets[] = {
+static struct s3c2410_nand_set __initdata anubis_nand_sets[] =
+{
 	[1] = {
 		.name		= "External",
 		.nr_chips	= 1,
@@ -205,7 +210,7 @@ static void anubis_nand_select(struct s3c2410_nand_set *set, int slot)
 	slot = set->nr_map[slot] & 3;
 
 	pr_debug("anubis_nand: selecting slot %d (set %p,%p)\n",
-		 slot, set, set->nr_map);
+			 slot, set, set->nr_map);
 
 	tmp = __raw_readb(ANUBIS_VA_CTRL1);
 	tmp &= ~ANUBIS_CTRL1_NANDSEL;
@@ -216,7 +221,8 @@ static void anubis_nand_select(struct s3c2410_nand_set *set, int slot)
 	__raw_writeb(tmp, ANUBIS_VA_CTRL1);
 }
 
-static struct s3c2410_platform_nand __initdata anubis_nand_info = {
+static struct s3c2410_platform_nand __initdata anubis_nand_info =
+{
 	.tacls		= 25,
 	.twrph0		= 55,
 	.twrph1		= 40,
@@ -227,17 +233,20 @@ static struct s3c2410_platform_nand __initdata anubis_nand_info = {
 
 /* IDE channels */
 
-static struct pata_platform_info anubis_ide_platdata = {
+static struct pata_platform_info anubis_ide_platdata =
+{
 	.ioport_shift	= 5,
 };
 
-static struct resource anubis_ide0_resource[] = {
+static struct resource anubis_ide0_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS3, 8 * 32),
 	[2] = DEFINE_RES_MEM(S3C2410_CS3 + (1 << 26) + (6 * 32), 32),
 	[3] = DEFINE_RES_IRQ(ANUBIS_IRQ_IDE0),
 };
 
-static struct platform_device anubis_device_ide0 = {
+static struct platform_device anubis_device_ide0 =
+{
 	.name		= "pata_platform",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(anubis_ide0_resource),
@@ -248,13 +257,15 @@ static struct platform_device anubis_device_ide0 = {
 	},
 };
 
-static struct resource anubis_ide1_resource[] = {
+static struct resource anubis_ide1_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS4, 8 * 32),
 	[1] = DEFINE_RES_MEM(S3C2410_CS4 + (1 << 26) + (6 * 32), 32),
 	[2] = DEFINE_RES_IRQ(ANUBIS_IRQ_IDE0),
 };
 
-static struct platform_device anubis_device_ide1 = {
+static struct platform_device anubis_device_ide1 =
+{
 	.name		= "pata_platform",
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(anubis_ide1_resource),
@@ -267,19 +278,22 @@ static struct platform_device anubis_device_ide1 = {
 
 /* Asix AX88796 10/100 ethernet controller */
 
-static struct ax_plat_data anubis_asix_platdata = {
+static struct ax_plat_data anubis_asix_platdata =
+{
 	.flags		= AXFLG_MAC_FROMDEV,
 	.wordlength	= 2,
 	.dcr_val	= 0x48,
 	.rcr_val	= 0x40,
 };
 
-static struct resource anubis_asix_resource[] = {
+static struct resource anubis_asix_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS5, 0x20 * 0x20),
 	[1] = DEFINE_RES_IRQ(ANUBIS_IRQ_ASIX),
 };
 
-static struct platform_device anubis_device_asix = {
+static struct platform_device anubis_device_asix =
+{
 	.name		= "ax88796",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(anubis_asix_resource),
@@ -291,13 +305,15 @@ static struct platform_device anubis_device_asix = {
 
 /* SM501 */
 
-static struct resource anubis_sm501_resource[] = {
+static struct resource anubis_sm501_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS2, SZ_8M),
 	[1] = DEFINE_RES_MEM(S3C2410_CS2 + SZ_64M - SZ_2M, SZ_2M),
 	[2] = DEFINE_RES_IRQ(IRQ_EINT0),
 };
 
-static struct sm501_initdata anubis_sm501_initdata = {
+static struct sm501_initdata anubis_sm501_initdata =
+{
 	.gpio_high	= {
 		.set	= 0x3F000000,		/* 24bit panel */
 		.mask	= 0x0,
@@ -318,7 +334,8 @@ static struct sm501_initdata anubis_sm501_initdata = {
 	.m1xclk		= 144 * MHZ,
 };
 
-static struct sm501_platdata_gpio_i2c anubis_sm501_gpio_i2c[] = {
+static struct sm501_platdata_gpio_i2c anubis_sm501_gpio_i2c[] =
+{
 	[0] = {
 		.bus_num	= 1,
 		.pin_scl	= 44,
@@ -331,14 +348,16 @@ static struct sm501_platdata_gpio_i2c anubis_sm501_gpio_i2c[] = {
 	},
 };
 
-static struct sm501_platdata anubis_sm501_platdata = {
+static struct sm501_platdata anubis_sm501_platdata =
+{
 	.init		= &anubis_sm501_initdata,
 	.gpio_base	= -1,
 	.gpio_i2c	= anubis_sm501_gpio_i2c,
 	.gpio_i2c_nr	= ARRAY_SIZE(anubis_sm501_gpio_i2c),
 };
 
-static struct platform_device anubis_device_sm501 = {
+static struct platform_device anubis_device_sm501 =
+{
 	.name		= "sm501",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(anubis_sm501_resource),
@@ -350,13 +369,14 @@ static struct platform_device anubis_device_sm501 = {
 
 /* Standard Anubis devices */
 
-static struct platform_device *anubis_devices[] __initdata = {
+static struct platform_device *anubis_devices[] __initdata =
+{
 	&s3c2410_device_dclk,
 	&s3c_device_ohci,
 	&s3c_device_wdt,
 	&s3c_device_adc,
 	&s3c_device_i2c0,
- 	&s3c_device_rtc,
+	&s3c_device_rtc,
 	&s3c_device_nand,
 	&anubis_device_ide0,
 	&anubis_device_ide1,
@@ -366,7 +386,8 @@ static struct platform_device *anubis_devices[] __initdata = {
 
 /* I2C devices. */
 
-static struct i2c_board_info anubis_i2c_devs[] __initdata = {
+static struct i2c_board_info anubis_i2c_devs[] __initdata =
+{
 	{
 		I2C_BOARD_INFO("tps65011", 0x48),
 		.irq	= IRQ_EINT20,
@@ -374,7 +395,8 @@ static struct i2c_board_info anubis_i2c_devs[] __initdata = {
 };
 
 /* Audio setup */
-static struct s3c24xx_audio_simtec_pdata __initdata anubis_audio = {
+static struct s3c24xx_audio_simtec_pdata __initdata anubis_audio =
+{
 	.have_mic	= 1,
 	.have_lout	= 1,
 	.output_cdclk	= 1,
@@ -392,12 +414,15 @@ static void __init anubis_map_io(void)
 
 	/* check for the newer revision boards with large page nand */
 
-	if ((__raw_readb(ANUBIS_VA_IDREG) & ANUBIS_IDREG_REVMASK) >= 4) {
+	if ((__raw_readb(ANUBIS_VA_IDREG) & ANUBIS_IDREG_REVMASK) >= 4)
+	{
 		printk(KERN_INFO "ANUBIS-B detected (revision %d)\n",
-		       __raw_readb(ANUBIS_VA_IDREG) & ANUBIS_IDREG_REVMASK);
+			   __raw_readb(ANUBIS_VA_IDREG) & ANUBIS_IDREG_REVMASK);
 		anubis_nand_sets[0].partitions = anubis_default_nand_part_large;
 		anubis_nand_sets[0].nr_partitions = ARRAY_SIZE(anubis_default_nand_part_large);
-	} else {
+	}
+	else
+	{
 		/* ensure that the GPIO is setup */
 		gpio_request_one(S3C2410_GPA(0), GPIOF_OUT_INIT_HIGH, NULL);
 		gpio_free(S3C2410_GPA(0));
@@ -419,15 +444,15 @@ static void __init anubis_init(void)
 	platform_add_devices(anubis_devices, ARRAY_SIZE(anubis_devices));
 
 	i2c_register_board_info(0, anubis_i2c_devs,
-				ARRAY_SIZE(anubis_i2c_devs));
+							ARRAY_SIZE(anubis_i2c_devs));
 }
 
 
 MACHINE_START(ANUBIS, "Simtec-Anubis")
-	/* Maintainer: Ben Dooks <ben@simtec.co.uk> */
-	.atag_offset	= 0x100,
+/* Maintainer: Ben Dooks <ben@simtec.co.uk> */
+.atag_offset	= 0x100,
 	.map_io		= anubis_map_io,
-	.init_machine	= anubis_init,
-	.init_irq	= s3c2440_init_irq,
-	.init_time	= anubis_init_time,
-MACHINE_END
+		.init_machine	= anubis_init,
+		   .init_irq	= s3c2440_init_irq,
+			  .init_time	= anubis_init_time,
+				MACHINE_END

@@ -10,7 +10,8 @@
 
 #include <linux/percpu.h>
 
-struct blackfin_cpudata {
+struct blackfin_cpudata
+{
 	struct cpu cpu;
 	unsigned int imemctl;
 	unsigned int dmemctl;

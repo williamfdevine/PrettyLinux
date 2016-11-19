@@ -28,7 +28,7 @@
 #else
 static inline void s3c_pm_debug_init_uart(void) {}
 static inline void s3c_pm_arch_update_uart(void __iomem *regs,
-					   struct pm_uart_save *save) {}
+		struct pm_uart_save *save) {}
 #endif
 
 static struct pm_uart_save uart_save;
@@ -75,10 +75,12 @@ void s3c_pm_save_uarts(void)
 	save->ubrdiv = __raw_readl(regs + S3C2410_UBRDIV);
 
 	if (!soc_is_s3c2410())
+	{
 		save->udivslot = __raw_readl(regs + S3C2443_DIVSLOT);
+	}
 
 	S3C_PMDBG("UART[%p]: ULCON=%04x, UCON=%04x, UFCON=%04x, UBRDIV=%04x\n",
-		  regs, save->ulcon, save->ucon, save->ufcon, save->ubrdiv);
+			  regs, save->ulcon, save->ucon, save->ufcon, save->ubrdiv);
 }
 
 void s3c_pm_restore_uarts(void)
@@ -95,5 +97,7 @@ void s3c_pm_restore_uarts(void)
 	__raw_writel(save->ubrdiv, regs + S3C2410_UBRDIV);
 
 	if (!soc_is_s3c2410())
+	{
 		__raw_writel(save->udivslot, regs + S3C2443_DIVSLOT);
+	}
 }

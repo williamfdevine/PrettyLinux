@@ -33,29 +33,32 @@
 #define ALTERA_TIMER_CONTROL_START_MSK	(0x4)
 #define ALTERA_TIMER_CONTROL_STOP_MSK	(0x8)
 
-struct nios2_timer {
+struct nios2_timer
+{
 	void __iomem *base;
 	unsigned long freq;
 };
 
-struct nios2_clockevent_dev {
+struct nios2_clockevent_dev
+{
 	struct nios2_timer timer;
 	struct clock_event_device ced;
 };
 
-struct nios2_clocksource {
+struct nios2_clocksource
+{
 	struct nios2_timer timer;
 	struct clocksource cs;
 };
 
 static inline struct nios2_clockevent_dev *
-	to_nios2_clkevent(struct clock_event_device *evt)
+to_nios2_clkevent(struct clock_event_device *evt)
 {
 	return container_of(evt, struct nios2_clockevent_dev, ced);
 }
 
 static inline struct nios2_clocksource *
-	to_nios2_clksource(struct clocksource *cs)
+to_nios2_clksource(struct clocksource *cs)
 {
 	return container_of(cs, struct nios2_clocksource, cs);
 }
@@ -76,7 +79,7 @@ static inline unsigned long read_timersnapshot(struct nios2_timer *timer)
 
 	timer_writew(timer, 0, ALTERA_TIMER_SNAPL_REG);
 	count = timer_readw(timer, ALTERA_TIMER_SNAPH_REG) << 16 |
-		timer_readw(timer, ALTERA_TIMER_SNAPL_REG);
+			timer_readw(timer, ALTERA_TIMER_SNAPL_REG);
 
 	return count;
 }
@@ -95,7 +98,8 @@ static cycle_t nios2_timer_read(struct clocksource *cs)
 	return ~count;
 }
 
-static struct nios2_clocksource nios2_cs = {
+static struct nios2_clocksource nios2_cs =
+{
 	.cs = {
 		.name	= "nios2-clksrc",
 		.rating	= 250,
@@ -130,33 +134,39 @@ static void nios2_timer_stop(struct nios2_timer *timer)
 }
 
 static void nios2_timer_config(struct nios2_timer *timer, unsigned long period,
-			       bool periodic)
+							   bool periodic)
 {
 	u16 ctrl;
 
 	/* The timer's actual period is one cycle greater than the value
 	 * stored in the period register. */
-	 period--;
+	period--;
 
 	ctrl = timer_readw(timer, ALTERA_TIMER_CONTROL_REG);
 	/* stop counter */
 	timer_writew(timer, ctrl | ALTERA_TIMER_CONTROL_STOP_MSK,
-		ALTERA_TIMER_CONTROL_REG);
+				 ALTERA_TIMER_CONTROL_REG);
 
 	/* write new count */
 	timer_writew(timer, period, ALTERA_TIMER_PERIODL_REG);
 	timer_writew(timer, period >> 16, ALTERA_TIMER_PERIODH_REG);
 
 	ctrl |= ALTERA_TIMER_CONTROL_START_MSK | ALTERA_TIMER_CONTROL_ITO_MSK;
+
 	if (periodic)
+	{
 		ctrl |= ALTERA_TIMER_CONTROL_CONT_MSK;
+	}
 	else
+	{
 		ctrl &= ~ALTERA_TIMER_CONTROL_CONT_MSK;
+	}
+
 	timer_writew(timer, ctrl, ALTERA_TIMER_CONTROL_REG);
 }
 
 static int nios2_timer_set_next_event(unsigned long delta,
-	struct clock_event_device *evt)
+									  struct clock_event_device *evt)
 {
 	struct nios2_clockevent_dev *nios2_ced = to_nios2_clkevent(evt);
 
@@ -207,15 +217,18 @@ irqreturn_t timer_interrupt(int irq, void *dev_id)
 }
 
 static int __init nios2_timer_get_base_and_freq(struct device_node *np,
-				void __iomem **base, u32 *freq)
+		void __iomem **base, u32 *freq)
 {
 	*base = of_iomap(np, 0);
-	if (!*base) {
+
+	if (!*base)
+	{
 		pr_crit("Unable to map reg for %s\n", np->name);
 		return -ENXIO;
 	}
 
-	if (of_property_read_u32(np, "clock-frequency", freq)) {
+	if (of_property_read_u32(np, "clock-frequency", freq))
+	{
 		pr_crit("Unable to get %s clock frequency\n", np->name);
 		return -EINVAL;
 	}
@@ -223,7 +236,8 @@ static int __init nios2_timer_get_base_and_freq(struct device_node *np,
 	return 0;
 }
 
-static struct nios2_clockevent_dev nios2_ce = {
+static struct nios2_clockevent_dev nios2_ce =
+{
 	.ced = {
 		.name = "nios2-clkevent",
 		.features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
@@ -244,11 +258,16 @@ static __init int nios2_clockevent_init(struct device_node *timer)
 	int irq, ret;
 
 	ret = nios2_timer_get_base_and_freq(timer, &iobase, &freq);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	irq = irq_of_parse_and_map(timer, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_crit("Unable to parse timer irq\n");
 		return -EINVAL;
 	}
@@ -264,8 +283,10 @@ static __init int nios2_clockevent_init(struct device_node *timer)
 	timer_writew(&nios2_ce.timer, 0, ALTERA_TIMER_STATUS_REG);
 
 	ret = request_irq(irq, timer_interrupt, IRQF_TIMER, timer->name,
-			  &nios2_ce.ced);
-	if (ret) {
+					  &nios2_ce.ced);
+
+	if (ret)
+	{
 		pr_crit("Unable to setup timer irq\n");
 		return ret;
 	}
@@ -283,15 +304,21 @@ static __init int nios2_clocksource_init(struct device_node *timer)
 	int ret;
 
 	ret = nios2_timer_get_base_and_freq(timer, &iobase, &freq);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nios2_cs.timer.base = iobase;
 	nios2_cs.timer.freq = freq;
 
 	ret = clocksource_register_hz(&nios2_cs.cs, freq);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	timer_writew(&nios2_cs.timer, USHRT_MAX, ALTERA_TIMER_PERIODL_REG);
 	timer_writew(&nios2_cs.timer, USHRT_MAX, ALTERA_TIMER_PERIODH_REG);
@@ -316,16 +343,19 @@ static int __init nios2_time_init(struct device_node *timer)
 	static int num_called;
 	int ret;
 
-	switch (num_called) {
-	case 0:
-		ret = nios2_clockevent_init(timer);
-		break;
-	case 1:
-		ret = nios2_clocksource_init(timer);
-		break;
-	default:
-		ret = 0;
-		break;
+	switch (num_called)
+	{
+		case 0:
+			ret = nios2_clockevent_init(timer);
+			break;
+
+		case 1:
+			ret = nios2_clocksource_init(timer);
+			break;
+
+		default:
+			ret = 0;
+			break;
 	}
 
 	num_called++;
@@ -345,10 +375,12 @@ void __init time_init(void)
 	int count = 0;
 
 	for_each_compatible_node(np, NULL,  ALTR_TIMER_COMPATIBLE)
-		count++;
+	count++;
 
 	if (count < 2)
+	{
 		panic("%d timer is found, it needs 2 timers in system\n", count);
+	}
 
 	clocksource_probe();
 }

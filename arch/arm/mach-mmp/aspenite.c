@@ -32,7 +32,8 @@
 #include "irqs.h"
 #include "common.h"
 
-static unsigned long common_pin_config[] __initdata = {
+static unsigned long common_pin_config[] __initdata =
+{
 	/* Data Flash Interface */
 	GPIO0_DFI_D15,
 	GPIO1_DFI_D14,
@@ -111,15 +112,18 @@ static unsigned long common_pin_config[] __initdata = {
 	GPIO121_KP_MKIN4,
 };
 
-static struct pxa_gpio_platform_data pxa168_gpio_pdata = {
+static struct pxa_gpio_platform_data pxa168_gpio_pdata =
+{
 	.irq_base	= MMP_GPIO_TO_IRQ(0),
 };
 
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= SMC_CS1_PHYS_BASE + 0x300,
 		.end	= SMC_CS1_PHYS_BASE + 0xfffff,
@@ -132,7 +136,8 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.dev		= {
@@ -142,7 +147,8 @@ static struct platform_device smc91x_device = {
 	.resource	= smc91x_resources,
 };
 
-static struct mtd_partition aspenite_nand_partitions[] = {
+static struct mtd_partition aspenite_nand_partitions[] =
+{
 	{
 		.name		= "bootloader",
 		.offset		= 0,
@@ -171,18 +177,21 @@ static struct mtd_partition aspenite_nand_partitions[] = {
 	}
 };
 
-static struct pxa3xx_nand_platform_data aspenite_nand_info = {
+static struct pxa3xx_nand_platform_data aspenite_nand_info =
+{
 	.enable_arbiter	= 1,
 	.num_cs = 1,
 	.parts[0]	= aspenite_nand_partitions,
 	.nr_parts[0]	= ARRAY_SIZE(aspenite_nand_partitions),
 };
 
-static struct i2c_board_info aspenite_i2c_info[] __initdata = {
+static struct i2c_board_info aspenite_i2c_info[] __initdata =
+{
 	{ I2C_BOARD_INFO("wm8753", 0x1b), },
 };
 
-static struct fb_videomode video_modes[] = {
+static struct fb_videomode video_modes[] =
+{
 	[0] = {
 		.pixclock	= 30120,
 		.refresh	= 60,
@@ -198,7 +207,8 @@ static struct fb_videomode video_modes[] = {
 	},
 };
 
-struct pxa168fb_mach_info aspenite_lcd_info = {
+struct pxa168fb_mach_info aspenite_lcd_info =
+{
 	.id			= "Graphic Frame",
 	.modes			= video_modes,
 	.num_modes		= ARRAY_SIZE(video_modes),
@@ -210,7 +220,8 @@ struct pxa168fb_mach_info aspenite_lcd_info = {
 	.invert_pixclock	= 0,
 };
 
-static const unsigned int aspenite_matrix_key_map[] = {
+static const unsigned int aspenite_matrix_key_map[] =
+{
 	KEY(0, 6, KEY_UP),	/* SW 4 */
 	KEY(0, 7, KEY_DOWN),	/* SW 5 */
 	KEY(1, 6, KEY_LEFT),	/* SW 6 */
@@ -219,12 +230,14 @@ static const unsigned int aspenite_matrix_key_map[] = {
 	KEY(4, 7, KEY_ESC),	/* SW 9 */
 };
 
-static struct matrix_keymap_data aspenite_matrix_keymap_data = {
+static struct matrix_keymap_data aspenite_matrix_keymap_data =
+{
 	.keymap			= aspenite_matrix_key_map,
 	.keymap_size		= ARRAY_SIZE(aspenite_matrix_key_map),
 };
 
-static struct pxa27x_keypad_platform_data aspenite_keypad_info __initdata = {
+static struct pxa27x_keypad_platform_data aspenite_keypad_info __initdata =
+{
 	.matrix_key_rows	= 5,
 	.matrix_key_cols	= 8,
 	.matrix_keymap_data	= &aspenite_matrix_keymap_data,
@@ -232,7 +245,8 @@ static struct pxa27x_keypad_platform_data aspenite_keypad_info __initdata = {
 };
 
 #if IS_ENABLED(CONFIG_USB_EHCI_MV)
-static struct mv_usb_platform_data pxa168_sph_pdata = {
+static struct mv_usb_platform_data pxa168_sph_pdata =
+{
 	.mode           = MV_USB_MODE_HOST,
 	.phy_init	= pxa_usb_phy_init,
 	.phy_deinit	= pxa_usb_phy_deinit,
@@ -252,7 +266,7 @@ static void __init common_init(void)
 	pxa168_add_fb(&aspenite_lcd_info);
 	pxa168_add_keypad(&aspenite_keypad_info);
 	platform_device_add_data(&pxa168_device_gpio, &pxa168_gpio_pdata,
-				 sizeof(struct pxa_gpio_platform_data));
+							 sizeof(struct pxa_gpio_platform_data));
 	platform_device_register(&pxa168_device_gpio);
 
 	/* off-chip devices */
@@ -264,19 +278,19 @@ static void __init common_init(void)
 }
 
 MACHINE_START(ASPENITE, "PXA168-based Aspenite Development Platform")
-	.map_io		= mmp_map_io,
+.map_io		= mmp_map_io,
 	.nr_irqs	= MMP_NR_IRQS,
-	.init_irq       = pxa168_init_irq,
-	.init_time	= pxa168_timer_init,
-	.init_machine   = common_init,
-	.restart	= pxa168_restart,
-MACHINE_END
+		.init_irq       = pxa168_init_irq,
+		 .init_time	= pxa168_timer_init,
+		   .init_machine   = common_init,
+			.restart	= pxa168_restart,
+				MACHINE_END
 
-MACHINE_START(ZYLONITE2, "PXA168-based Zylonite2 Development Platform")
-	.map_io		= mmp_map_io,
-	.nr_irqs	= MMP_NR_IRQS,
-	.init_irq       = pxa168_init_irq,
-	.init_time	= pxa168_timer_init,
-	.init_machine   = common_init,
-	.restart	= pxa168_restart,
-MACHINE_END
+				MACHINE_START(ZYLONITE2, "PXA168-based Zylonite2 Development Platform")
+				.map_io		= mmp_map_io,
+					.nr_irqs	= MMP_NR_IRQS,
+						.init_irq       = pxa168_init_irq,
+						 .init_time	= pxa168_timer_init,
+						   .init_machine   = common_init,
+							.restart	= pxa168_restart,
+								MACHINE_END

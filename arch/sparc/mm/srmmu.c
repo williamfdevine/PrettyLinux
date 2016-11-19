@@ -66,13 +66,13 @@ const struct sparc32_cachetlb_ops *sparc32_cachetlb_ops;
 EXPORT_SYMBOL(sparc32_cachetlb_ops);
 
 #ifdef CONFIG_SMP
-const struct sparc32_cachetlb_ops *local_ops;
+	const struct sparc32_cachetlb_ops *local_ops;
 
-#define FLUSH_BEGIN(mm)
-#define FLUSH_END
+	#define FLUSH_BEGIN(mm)
+	#define FLUSH_END
 #else
-#define FLUSH_BEGIN(mm) if ((mm)->context != NO_CONTEXT) {
-#define FLUSH_END	}
+	#define FLUSH_BEGIN(mm) if ((mm)->context != NO_CONTEXT) {
+	#define FLUSH_END	}
 #endif
 
 int flush_page_for_dma_global = 1;
@@ -120,7 +120,9 @@ void pmd_set(pmd_t *pmdp, pte_t *ptep)
 	int i;
 
 	ptp = __nocache_pa(ptep) >> 4;
-	for (i = 0; i < PTRS_PER_PTE/SRMMU_REAL_PTRS_PER_PTE; i++) {
+
+	for (i = 0; i < PTRS_PER_PTE / SRMMU_REAL_PTRS_PER_PTE; i++)
+	{
 		set_pte((pte_t *)&pmdp->pmdv[i], __pte(SRMMU_ET_PTD | ptp));
 		ptp += (SRMMU_REAL_PTRS_PER_PTE * sizeof(pte_t) >> 4);
 	}
@@ -131,8 +133,10 @@ void pmd_populate(struct mm_struct *mm, pmd_t *pmdp, struct page *ptep)
 	unsigned long ptp;	/* Physical address, shifted right by 4 */
 	int i;
 
-	ptp = page_to_pfn(ptep) << (PAGE_SHIFT-4);	/* watch for overflow */
-	for (i = 0; i < PTRS_PER_PTE/SRMMU_REAL_PTRS_PER_PTE; i++) {
+	ptp = page_to_pfn(ptep) << (PAGE_SHIFT - 4);	/* watch for overflow */
+
+	for (i = 0; i < PTRS_PER_PTE / SRMMU_REAL_PTRS_PER_PTE; i++)
+	{
 		set_pte((pte_t *)&pmdp->pmdv[i], __pte(SRMMU_ET_PTD | ptp));
 		ptp += (SRMMU_REAL_PTRS_PER_PTE * sizeof(pte_t) >> 4);
 	}
@@ -145,7 +149,7 @@ pte_t *pte_offset_kernel(pmd_t *dir, unsigned long address)
 
 	pte = __nocache_va((dir->pmdv[0] & SRMMU_PTD_PMASK) << 4);
 	return (pte_t *) pte +
-	    ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1));
+		   ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1));
 }
 
 /*
@@ -158,25 +162,31 @@ static void *__srmmu_get_nocache(int size, int align)
 	int offset;
 	unsigned long addr;
 
-	if (size < SRMMU_NOCACHE_BITMAP_SHIFT) {
+	if (size < SRMMU_NOCACHE_BITMAP_SHIFT)
+	{
 		printk(KERN_ERR "Size 0x%x too small for nocache request\n",
-		       size);
+			   size);
 		size = SRMMU_NOCACHE_BITMAP_SHIFT;
 	}
-	if (size & (SRMMU_NOCACHE_BITMAP_SHIFT - 1)) {
+
+	if (size & (SRMMU_NOCACHE_BITMAP_SHIFT - 1))
+	{
 		printk(KERN_ERR "Size 0x%x unaligned int nocache request\n",
-		       size);
+			   size);
 		size += SRMMU_NOCACHE_BITMAP_SHIFT - 1;
 	}
+
 	BUG_ON(align > SRMMU_NOCACHE_ALIGN_MAX);
 
 	offset = bit_map_string_get(&srmmu_nocache_map,
-				    size >> SRMMU_NOCACHE_BITMAP_SHIFT,
-				    align >> SRMMU_NOCACHE_BITMAP_SHIFT);
-	if (offset == -1) {
+								size >> SRMMU_NOCACHE_BITMAP_SHIFT,
+								align >> SRMMU_NOCACHE_BITMAP_SHIFT);
+
+	if (offset == -1)
+	{
 		printk(KERN_ERR "srmmu: out of nocache %d: %d/%d\n",
-		       size, (int) srmmu_nocache_size,
-		       srmmu_nocache_map.used << SRMMU_NOCACHE_BITMAP_SHIFT);
+			   size, (int) srmmu_nocache_size,
+			   srmmu_nocache_map.used << SRMMU_NOCACHE_BITMAP_SHIFT);
 		return NULL;
 	}
 
@@ -191,7 +201,9 @@ void *srmmu_get_nocache(int size, int align)
 	tmp = __srmmu_get_nocache(size, align);
 
 	if (tmp)
+	{
 		memset(tmp, 0, size);
+	}
 
 	return tmp;
 }
@@ -202,25 +214,35 @@ void srmmu_free_nocache(void *addr, int size)
 	int offset;
 
 	vaddr = (unsigned long)addr;
-	if (vaddr < SRMMU_NOCACHE_VADDR) {
+
+	if (vaddr < SRMMU_NOCACHE_VADDR)
+	{
 		printk("Vaddr %lx is smaller than nocache base 0x%lx\n",
-		    vaddr, (unsigned long)SRMMU_NOCACHE_VADDR);
+			   vaddr, (unsigned long)SRMMU_NOCACHE_VADDR);
 		BUG();
 	}
-	if (vaddr + size > srmmu_nocache_end) {
+
+	if (vaddr + size > srmmu_nocache_end)
+	{
 		printk("Vaddr %lx is bigger than nocache end 0x%lx\n",
-		    vaddr, srmmu_nocache_end);
+			   vaddr, srmmu_nocache_end);
 		BUG();
 	}
-	if (!is_power_of_2(size)) {
+
+	if (!is_power_of_2(size))
+	{
 		printk("Size 0x%x is not a power of 2\n", size);
 		BUG();
 	}
-	if (size < SRMMU_NOCACHE_BITMAP_SHIFT) {
+
+	if (size < SRMMU_NOCACHE_BITMAP_SHIFT)
+	{
 		printk("Size 0x%x is too small\n", size);
 		BUG();
 	}
-	if (vaddr & (size - 1)) {
+
+	if (vaddr & (size - 1))
+	{
 		printk("Vaddr %lx is not aligned to size 0x%x\n", vaddr, size);
 		BUG();
 	}
@@ -232,7 +254,7 @@ void srmmu_free_nocache(void *addr, int size)
 }
 
 static void srmmu_early_allocate_ptable_skeleton(unsigned long start,
-						 unsigned long end);
+		unsigned long end);
 
 /* Return how much physical memory we have.  */
 static unsigned long __init probe_memory(void)
@@ -241,7 +263,9 @@ static unsigned long __init probe_memory(void)
 	int i;
 
 	for (i = 0; sp_banks[i].num_bytes; i++)
+	{
 		total += sp_banks[i].num_bytes;
+	}
 
 	return total;
 }
@@ -258,14 +282,18 @@ static void __init srmmu_nocache_calcsize(void)
 	srmmu_nocache_npages =
 		sysmemavail / SRMMU_NOCACHE_ALCRATIO / 1024 * 256;
 
- /* P3 XXX The 4x overuse: corroborated by /proc/meminfo. */
+	/* P3 XXX The 4x overuse: corroborated by /proc/meminfo. */
 	// if (srmmu_nocache_npages < 256) srmmu_nocache_npages = 256;
 	if (srmmu_nocache_npages < SRMMU_MIN_NOCACHE_PAGES)
+	{
 		srmmu_nocache_npages = SRMMU_MIN_NOCACHE_PAGES;
+	}
 
 	/* anything above 1280 blows up */
 	if (srmmu_nocache_npages > SRMMU_MAX_NOCACHE_PAGES)
+	{
 		srmmu_nocache_npages = SRMMU_MAX_NOCACHE_PAGES;
+	}
 
 	srmmu_nocache_size = srmmu_nocache_npages * PAGE_SIZE;
 	srmmu_nocache_end = SRMMU_NOCACHE_VADDR + srmmu_nocache_size;
@@ -284,12 +312,12 @@ static void __init srmmu_nocache_init(void)
 	bitmap_bits = srmmu_nocache_size >> SRMMU_NOCACHE_BITMAP_SHIFT;
 
 	srmmu_nocache_pool = __alloc_bootmem(srmmu_nocache_size,
-		SRMMU_NOCACHE_ALIGN_MAX, 0UL);
+										 SRMMU_NOCACHE_ALIGN_MAX, 0UL);
 	memset(srmmu_nocache_pool, 0, srmmu_nocache_size);
 
 	srmmu_nocache_bitmap =
 		__alloc_bootmem(BITS_TO_LONGS(bitmap_bits) * sizeof(long),
-				SMP_CACHE_BYTES, 0UL);
+						SMP_CACHE_BYTES, 0UL);
 	bit_map_init(&srmmu_nocache_map, srmmu_nocache_bitmap, bitmap_bits);
 
 	srmmu_swapper_pg_dir = __srmmu_get_nocache(SRMMU_PGD_TABLE_SIZE, SRMMU_PGD_TABLE_SIZE);
@@ -301,7 +329,8 @@ static void __init srmmu_nocache_init(void)
 	paddr = __pa((unsigned long)srmmu_nocache_pool);
 	vaddr = SRMMU_NOCACHE_VADDR;
 
-	while (vaddr < srmmu_nocache_end) {
+	while (vaddr < srmmu_nocache_end)
+	{
 		pgd = pgd_offset_k(vaddr);
 		pmd = pmd_offset(__nocache_fix(pgd), vaddr);
 		pte = pte_offset_kernel(__nocache_fix(pmd), vaddr);
@@ -309,7 +338,9 @@ static void __init srmmu_nocache_init(void)
 		pteval = ((paddr >> 4) | SRMMU_ET_PTE | SRMMU_PRIV);
 
 		if (srmmu_cache_pagetables)
+		{
 			pteval |= SRMMU_CACHE;
+		}
 
 		set_pte(__nocache_fix(pte), __pte(pteval));
 
@@ -326,11 +357,13 @@ pgd_t *get_pgd_fast(void)
 	pgd_t *pgd = NULL;
 
 	pgd = __srmmu_get_nocache(SRMMU_PGD_TABLE_SIZE, SRMMU_PGD_TABLE_SIZE);
-	if (pgd) {
+
+	if (pgd)
+	{
 		pgd_t *init = pgd_offset_k(0);
 		memset(pgd, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
 		memcpy(pgd + USER_PTRS_PER_PGD, init + USER_PTRS_PER_PGD,
-						(PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
+			   (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 	}
 
 	return pgd;
@@ -350,12 +383,18 @@ pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address)
 	struct page *page;
 
 	if ((pte = (unsigned long)pte_alloc_one_kernel(mm, address)) == 0)
+	{
 		return NULL;
+	}
+
 	page = pfn_to_page(__nocache_pa(pte) >> PAGE_SHIFT);
-	if (!pgtable_page_ctor(page)) {
+
+	if (!pgtable_page_ctor(page))
+	{
 		__free_page(page);
 		return NULL;
 	}
+
 	return page;
 }
 
@@ -365,8 +404,12 @@ void pte_free(struct mm_struct *mm, pgtable_t pte)
 
 	pgtable_page_dtor(pte);
 	p = (unsigned long)page_address(pte);	/* Cached address (for test) */
+
 	if (p == 0)
+	{
 		BUG();
+	}
+
 	p = page_to_pfn(pte) << PAGE_SHIFT;	/* Physical address */
 
 	/* free non cached virtual address*/
@@ -376,7 +419,8 @@ void pte_free(struct mm_struct *mm, pgtable_t pte)
 /* context handling - a dynamically sized pool is used */
 #define NO_CONTEXT	-1
 
-struct ctx_list {
+struct ctx_list
+{
 	struct ctx_list *next;
 	struct ctx_list *prev;
 	unsigned int ctx_number;
@@ -411,18 +455,28 @@ static inline void alloc_context(struct mm_struct *old_mm, struct mm_struct *mm)
 	struct ctx_list *ctxp;
 
 	ctxp = ctx_free.next;
-	if (ctxp != &ctx_free) {
+
+	if (ctxp != &ctx_free)
+	{
 		remove_from_ctx_list(ctxp);
 		add_to_used_ctxlist(ctxp);
 		mm->context = ctxp->ctx_number;
 		ctxp->ctx_mm = mm;
 		return;
 	}
+
 	ctxp = ctx_used.next;
+
 	if (ctxp->ctx_mm == old_mm)
+	{
 		ctxp = ctxp->next;
+	}
+
 	if (ctxp == &ctx_used)
+	{
 		panic("out of mmu contexts");
+	}
+
 	flush_cache_mm(ctxp->ctx_mm);
 	flush_tlb_mm(ctxp->ctx_mm);
 	remove_from_ctx_list(ctxp);
@@ -449,25 +503,31 @@ static void __init sparc_context_init(int numctx)
 	size = numctx * sizeof(struct ctx_list);
 	ctx_list_pool = __alloc_bootmem(size, SMP_CACHE_BYTES, 0UL);
 
-	for (ctx = 0; ctx < numctx; ctx++) {
+	for (ctx = 0; ctx < numctx; ctx++)
+	{
 		struct ctx_list *clist;
 
 		clist = (ctx_list_pool + ctx);
 		clist->ctx_number = ctx;
 		clist->ctx_mm = NULL;
 	}
+
 	ctx_free.next = ctx_free.prev = &ctx_free;
 	ctx_used.next = ctx_used.prev = &ctx_used;
+
 	for (ctx = 0; ctx < numctx; ctx++)
+	{
 		add_to_free_ctxlist(ctx_list_pool + ctx);
+	}
 }
 
 void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
-	       struct task_struct *tsk)
+			   struct task_struct *tsk)
 {
 	unsigned long flags;
 
-	if (mm->context == NO_CONTEXT) {
+	if (mm->context == NO_CONTEXT)
+	{
 		spin_lock_irqsave(&srmmu_context_spinlock, flags);
 		alloc_context(old_mm, mm);
 		spin_unlock_irqrestore(&srmmu_context_spinlock, flags);
@@ -475,17 +535,21 @@ void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
 	}
 
 	if (sparc_cpu_model == sparc_leon)
+	{
 		leon_switch_mm();
+	}
 
 	if (is_hypersparc)
+	{
 		hyper_flush_whole_icache();
+	}
 
 	srmmu_set_context(mm->context);
 }
 
 /* Low level IO area allocation on the SRMMU. */
 static inline void srmmu_mapioaddr(unsigned long physaddr,
-				   unsigned long virt_addr, int bus_type)
+								   unsigned long virt_addr, int bus_type)
 {
 	pgd_t *pgdp;
 	pmd_t *pmdp;
@@ -509,14 +573,16 @@ static inline void srmmu_mapioaddr(unsigned long physaddr,
 }
 
 void srmmu_mapiorange(unsigned int bus, unsigned long xpa,
-		      unsigned long xva, unsigned int len)
+					  unsigned long xva, unsigned int len)
 {
-	while (len != 0) {
+	while (len != 0)
+	{
 		len -= PAGE_SIZE;
 		srmmu_mapioaddr(xpa, xva, bus);
 		xva += PAGE_SIZE;
 		xpa += PAGE_SIZE;
 	}
+
 	flush_tlb_all();
 }
 
@@ -536,11 +602,13 @@ static inline void srmmu_unmapioaddr(unsigned long virt_addr)
 
 void srmmu_unmapiorange(unsigned long virt_addr, unsigned int len)
 {
-	while (len != 0) {
+	while (len != 0)
+	{
 		len -= PAGE_SIZE;
 		srmmu_unmapioaddr(virt_addr);
 		virt_addr += PAGE_SIZE;
 	}
+
 	flush_tlb_all();
 }
 
@@ -562,7 +630,7 @@ extern void tsunami_setup_blockops(void);
 extern void swift_flush_cache_all(void);
 extern void swift_flush_cache_mm(struct mm_struct *mm);
 extern void swift_flush_cache_range(struct vm_area_struct *vma,
-				    unsigned long start, unsigned long end);
+									unsigned long start, unsigned long end);
 extern void swift_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
 extern void swift_flush_page_to_ram(unsigned long page);
 extern void swift_flush_page_for_dma(unsigned long page);
@@ -570,7 +638,7 @@ extern void swift_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr)
 extern void swift_flush_tlb_all(void);
 extern void swift_flush_tlb_mm(struct mm_struct *mm);
 extern void swift_flush_tlb_range(struct vm_area_struct *vma,
-				  unsigned long start, unsigned long end);
+								  unsigned long start, unsigned long end);
 extern void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
 
 #if 0  /* P3: deadwood to debug precise flushes on Swift. */
@@ -579,24 +647,30 @@ void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 	int cctx, ctx1;
 
 	page &= PAGE_MASK;
-	if ((ctx1 = vma->vm_mm->context) != -1) {
+
+	if ((ctx1 = vma->vm_mm->context) != -1)
+	{
 		cctx = srmmu_get_context();
-/* Is context # ever different from current context? P3 */
-		if (cctx != ctx1) {
+
+		/* Is context # ever different from current context? P3 */
+		if (cctx != ctx1)
+		{
 			printk("flush ctx %02x curr %02x\n", ctx1, cctx);
 			srmmu_set_context(ctx1);
 			swift_flush_page(page);
 			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
-					"r" (page), "i" (ASI_M_FLUSH_PROBE));
+								 "r" (page), "i" (ASI_M_FLUSH_PROBE));
 			srmmu_set_context(cctx);
-		} else {
-			 /* Rm. prot. bits from virt. c. */
+		}
+		else
+		{
+			/* Rm. prot. bits from virt. c. */
 			/* swift_flush_cache_all(); */
 			/* swift_flush_cache_page(vma, page); */
 			swift_flush_page(page);
 
 			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
-				"r" (page), "i" (ASI_M_FLUSH_PROBE));
+								 "r" (page), "i" (ASI_M_FLUSH_PROBE));
 			/* same as above: srmmu_flush_tlb_page() */
 		}
 	}
@@ -614,7 +688,7 @@ void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 extern void viking_flush_cache_all(void);
 extern void viking_flush_cache_mm(struct mm_struct *mm);
 extern void viking_flush_cache_range(struct vm_area_struct *vma, unsigned long start,
-				     unsigned long end);
+									 unsigned long end);
 extern void viking_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
 extern void viking_flush_page_to_ram(unsigned long page);
 extern void viking_flush_page_for_dma(unsigned long page);
@@ -624,15 +698,15 @@ extern void viking_mxcc_flush_page(unsigned long page);
 extern void viking_flush_tlb_all(void);
 extern void viking_flush_tlb_mm(struct mm_struct *mm);
 extern void viking_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-				   unsigned long end);
+								   unsigned long end);
 extern void viking_flush_tlb_page(struct vm_area_struct *vma,
-				  unsigned long page);
+								  unsigned long page);
 extern void sun4dsmp_flush_tlb_all(void);
 extern void sun4dsmp_flush_tlb_mm(struct mm_struct *mm);
 extern void sun4dsmp_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-				   unsigned long end);
+									 unsigned long end);
 extern void sun4dsmp_flush_tlb_page(struct vm_area_struct *vma,
-				  unsigned long page);
+									unsigned long page);
 
 /* hypersparc.S */
 extern void hypersparc_flush_cache_all(void);
@@ -662,63 +736,99 @@ static void __init early_pgtable_allocfail(char *type)
 }
 
 static void __init srmmu_early_allocate_ptable_skeleton(unsigned long start,
-							unsigned long end)
+		unsigned long end)
 {
 	pgd_t *pgdp;
 	pmd_t *pmdp;
 	pte_t *ptep;
 
-	while (start < end) {
+	while (start < end)
+	{
 		pgdp = pgd_offset_k(start);
-		if (pgd_none(*(pgd_t *)__nocache_fix(pgdp))) {
+
+		if (pgd_none(*(pgd_t *)__nocache_fix(pgdp)))
+		{
 			pmdp = __srmmu_get_nocache(
-			    SRMMU_PMD_TABLE_SIZE, SRMMU_PMD_TABLE_SIZE);
+					   SRMMU_PMD_TABLE_SIZE, SRMMU_PMD_TABLE_SIZE);
+
 			if (pmdp == NULL)
+			{
 				early_pgtable_allocfail("pmd");
+			}
+
 			memset(__nocache_fix(pmdp), 0, SRMMU_PMD_TABLE_SIZE);
 			pgd_set(__nocache_fix(pgdp), pmdp);
 		}
+
 		pmdp = pmd_offset(__nocache_fix(pgdp), start);
-		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
+
+		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp)))
+		{
 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
+
 			if (ptep == NULL)
+			{
 				early_pgtable_allocfail("pte");
+			}
+
 			memset(__nocache_fix(ptep), 0, PTE_SIZE);
 			pmd_set(__nocache_fix(pmdp), ptep);
 		}
+
 		if (start > (0xffffffffUL - PMD_SIZE))
+		{
 			break;
+		}
+
 		start = (start + PMD_SIZE) & PMD_MASK;
 	}
 }
 
 static void __init srmmu_allocate_ptable_skeleton(unsigned long start,
-						  unsigned long end)
+		unsigned long end)
 {
 	pgd_t *pgdp;
 	pmd_t *pmdp;
 	pte_t *ptep;
 
-	while (start < end) {
+	while (start < end)
+	{
 		pgdp = pgd_offset_k(start);
-		if (pgd_none(*pgdp)) {
+
+		if (pgd_none(*pgdp))
+		{
 			pmdp = __srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE, SRMMU_PMD_TABLE_SIZE);
+
 			if (pmdp == NULL)
+			{
 				early_pgtable_allocfail("pmd");
+			}
+
 			memset(pmdp, 0, SRMMU_PMD_TABLE_SIZE);
 			pgd_set(pgdp, pmdp);
 		}
+
 		pmdp = pmd_offset(pgdp, start);
-		if (srmmu_pmd_none(*pmdp)) {
+
+		if (srmmu_pmd_none(*pmdp))
+		{
 			ptep = __srmmu_get_nocache(PTE_SIZE,
-							     PTE_SIZE);
+									   PTE_SIZE);
+
 			if (ptep == NULL)
+			{
 				early_pgtable_allocfail("pte");
+			}
+
 			memset(ptep, 0, PTE_SIZE);
 			pmd_set(pmdp, ptep);
 		}
+
 		if (start > (0xffffffffUL - PMD_SIZE))
+		{
 			break;
+		}
+
 		start = (start + PMD_SIZE) & PMD_MASK;
 	}
 }
@@ -728,15 +838,19 @@ static inline unsigned long srmmu_probe(unsigned long vaddr)
 {
 	unsigned long retval;
 
-	if (sparc_cpu_model != sparc_leon) {
+	if (sparc_cpu_model != sparc_leon)
+	{
 
 		vaddr &= PAGE_MASK;
 		__asm__ __volatile__("lda [%1] %2, %0\n\t" :
-				     "=r" (retval) :
-				     "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
-	} else {
+							 "=r" (retval) :
+							 "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
+	}
+	else
+	{
 		retval = leon_swprobe(vaddr, NULL);
 	}
+
 	return retval;
 }
 
@@ -746,7 +860,7 @@ static inline unsigned long srmmu_probe(unsigned long vaddr)
  * other OS's do.  Yuck... this is much better.
  */
 static void __init srmmu_inherit_prom_mappings(unsigned long start,
-					       unsigned long end)
+		unsigned long end)
 {
 	unsigned long probed;
 	unsigned long addr;
@@ -755,13 +869,22 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
 	pte_t *ptep;
 	int what; /* 0 = normal-pte, 1 = pmd-level pte, 2 = pgd-level pte */
 
-	while (start <= end) {
+	while (start <= end)
+	{
 		if (start == 0)
-			break; /* probably wrap around */
+		{
+			break;    /* probably wrap around */
+		}
+
 		if (start == 0xfef00000)
+		{
 			start = KADB_DEBUGGER_BEGVM;
+		}
+
 		probed = srmmu_probe(start);
-		if (!probed) {
+
+		if (!probed)
+		{
 			/* continue probing until we find an entry */
 			start += PAGE_SIZE;
 			continue;
@@ -771,39 +894,62 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
 		what = 0;
 		addr = start - PAGE_SIZE;
 
-		if (!(start & ~(SRMMU_REAL_PMD_MASK))) {
+		if (!(start & ~(SRMMU_REAL_PMD_MASK)))
+		{
 			if (srmmu_probe(addr + SRMMU_REAL_PMD_SIZE) == probed)
+			{
 				what = 1;
+			}
 		}
 
-		if (!(start & ~(SRMMU_PGDIR_MASK))) {
+		if (!(start & ~(SRMMU_PGDIR_MASK)))
+		{
 			if (srmmu_probe(addr + SRMMU_PGDIR_SIZE) == probed)
+			{
 				what = 2;
+			}
 		}
 
 		pgdp = pgd_offset_k(start);
-		if (what == 2) {
+
+		if (what == 2)
+		{
 			*(pgd_t *)__nocache_fix(pgdp) = __pgd(probed);
 			start += SRMMU_PGDIR_SIZE;
 			continue;
 		}
-		if (pgd_none(*(pgd_t *)__nocache_fix(pgdp))) {
+
+		if (pgd_none(*(pgd_t *)__nocache_fix(pgdp)))
+		{
 			pmdp = __srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE,
-						   SRMMU_PMD_TABLE_SIZE);
+									   SRMMU_PMD_TABLE_SIZE);
+
 			if (pmdp == NULL)
+			{
 				early_pgtable_allocfail("pmd");
+			}
+
 			memset(__nocache_fix(pmdp), 0, SRMMU_PMD_TABLE_SIZE);
 			pgd_set(__nocache_fix(pgdp), pmdp);
 		}
+
 		pmdp = pmd_offset(__nocache_fix(pgdp), start);
-		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
+
+		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp)))
+		{
 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
+
 			if (ptep == NULL)
+			{
 				early_pgtable_allocfail("pte");
+			}
+
 			memset(__nocache_fix(ptep), 0, PTE_SIZE);
 			pmd_set(__nocache_fix(pmdp), ptep);
 		}
-		if (what == 1) {
+
+		if (what == 1)
+		{
 			/* We bend the rule where all 16 PTPs in a pmd_t point
 			 * inside the same PTE page, and we leak a perfectly
 			 * good hardware PTE piece. Alternatives seem worse.
@@ -816,6 +962,7 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
 			start += SRMMU_REAL_PMD_SIZE;
 			continue;
 		}
+
 		ptep = pte_offset_kernel(__nocache_fix(pmdp), start);
 		*(pte_t *)__nocache_fix(ptep) = __pte(probed);
 		start += PAGE_SIZE;
@@ -845,15 +992,21 @@ static unsigned long __init map_spbank(unsigned long vbase, int sp_entry)
 	const unsigned long max_vaddr = PAGE_OFFSET + SRMMU_MAXMEM;
 
 	if (vstart < min_vaddr || vstart >= max_vaddr)
+	{
 		return vstart;
+	}
 
 	if (vend > max_vaddr || vend < min_vaddr)
+	{
 		vend = max_vaddr;
+	}
 
-	while (vstart < vend) {
+	while (vstart < vend)
+	{
 		do_large_mapping(vstart, pstart);
 		vstart += SRMMU_PGDIR_SIZE; pstart += SRMMU_PGDIR_SIZE;
 	}
+
 	return vstart;
 }
 
@@ -861,11 +1014,13 @@ static void __init map_kernel(void)
 {
 	int i;
 
-	if (phys_base > 0) {
+	if (phys_base > 0)
+	{
 		do_large_mapping(PAGE_OFFSET, phys_base);
 	}
 
-	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
+	for (i = 0; sp_banks[i].num_bytes != 0; i++)
+	{
 		map_spbank((unsigned long)__va(sp_banks[i].base_addr), i);
 	}
 }
@@ -886,22 +1041,31 @@ void __init srmmu_paging_init(void)
 	sparc_iomap.start = SUN4M_IOBASE_VADDR;	/* 16MB of IOSPACE on all sun4m's. */
 
 	if (sparc_cpu_model == sun4d)
-		num_contexts = 65536; /* We know it is Viking */
-	else {
+	{
+		num_contexts = 65536;    /* We know it is Viking */
+	}
+	else
+	{
 		/* Find the number of contexts on the srmmu. */
 		cpunode = prom_getchild(prom_root_node);
 		num_contexts = 0;
-		while (cpunode != 0) {
+
+		while (cpunode != 0)
+		{
 			prom_getstring(cpunode, "device_type", node_str, sizeof(node_str));
-			if (!strcmp(node_str, "cpu")) {
+
+			if (!strcmp(node_str, "cpu"))
+			{
 				num_contexts = prom_getintdefault(cpunode, "mmu-nctx", 0x8);
 				break;
 			}
+
 			cpunode = prom_getsibling(cpunode);
 		}
 	}
 
-	if (!num_contexts) {
+	if (!num_contexts)
+	{
 		prom_printf("Something wrong, can't find cpu node in paging_init.\n");
 		prom_halt();
 	}
@@ -919,7 +1083,9 @@ void __init srmmu_paging_init(void)
 	srmmu_ctx_table_phys = (ctxd_t *)__nocache_pa(srmmu_context_table);
 
 	for (i = 0; i < num_contexts; i++)
+	{
 		srmmu_ctxd_set((ctxd_t *)__nocache_fix(&srmmu_context_table[i]), srmmu_swapper_pg_dir);
+	}
 
 	flush_cache_all();
 	srmmu_set_ctable_ptr((unsigned long)srmmu_ctx_table_phys);
@@ -957,7 +1123,9 @@ void __init srmmu_paging_init(void)
 		int znum;
 
 		for (znum = 0; znum < MAX_NR_ZONES; znum++)
+		{
 			zones_size[znum] = zholes_size[znum] = 0;
+		}
 
 		npages = max_low_pfn - pfn_base;
 
@@ -975,14 +1143,14 @@ void __init srmmu_paging_init(void)
 void mmu_info(struct seq_file *m)
 {
 	seq_printf(m,
-		   "MMU type\t: %s\n"
-		   "contexts\t: %d\n"
-		   "nocache total\t: %ld\n"
-		   "nocache used\t: %d\n",
-		   srmmu_name,
-		   num_contexts,
-		   srmmu_nocache_size,
-		   srmmu_nocache_map.used << SRMMU_NOCACHE_BITMAP_SHIFT);
+			   "MMU type\t: %s\n"
+			   "contexts\t: %d\n"
+			   "nocache total\t: %ld\n"
+			   "nocache used\t: %d\n",
+			   srmmu_name,
+			   num_contexts,
+			   srmmu_nocache_size,
+			   srmmu_nocache_map.used << SRMMU_NOCACHE_BITMAP_SHIFT);
 }
 
 int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
@@ -995,7 +1163,8 @@ void destroy_context(struct mm_struct *mm)
 {
 	unsigned long flags;
 
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		flush_cache_mm(mm);
 		srmmu_ctxd_set(&srmmu_context_table[mm->context], srmmu_swapper_pg_dir);
 		flush_tlb_mm(mm);
@@ -1025,45 +1194,68 @@ static void __init init_vac_layout(void)
 #endif
 
 	nd = prom_getchild(prom_root_node);
-	while ((nd = prom_getsibling(nd)) != 0) {
+
+	while ((nd = prom_getsibling(nd)) != 0)
+	{
 		prom_getstring(nd, "device_type", node_str, sizeof(node_str));
-		if (!strcmp(node_str, "cpu")) {
+
+		if (!strcmp(node_str, "cpu"))
+		{
 			vac_line_size = prom_getint(nd, "cache-line-size");
-			if (vac_line_size == -1) {
+
+			if (vac_line_size == -1)
+			{
 				prom_printf("can't determine cache-line-size, halting.\n");
 				prom_halt();
 			}
+
 			cache_lines = prom_getint(nd, "cache-nlines");
-			if (cache_lines == -1) {
+
+			if (cache_lines == -1)
+			{
 				prom_printf("can't determine cache-nlines, halting.\n");
 				prom_halt();
 			}
 
 			vac_cache_size = cache_lines * vac_line_size;
 #ifdef CONFIG_SMP
+
 			if (vac_cache_size > max_size)
+			{
 				max_size = vac_cache_size;
+			}
+
 			if (vac_line_size < min_line_size)
+			{
 				min_line_size = vac_line_size;
+			}
+
 			//FIXME: cpus not contiguous!!
 			cpu++;
+
 			if (cpu >= nr_cpu_ids || !cpu_online(cpu))
+			{
 				break;
+			}
+
 #else
 			break;
 #endif
 		}
 	}
-	if (nd == 0) {
+
+	if (nd == 0)
+	{
 		prom_printf("No CPU nodes found, halting.\n");
 		prom_halt();
 	}
+
 #ifdef CONFIG_SMP
 	vac_cache_size = max_size;
 	vac_line_size = min_line_size;
 #endif
 	printk("SRMMU: Using VAC size of %d bytes, line size %d bytes.\n",
-	       (int)vac_cache_size, (int)vac_line_size);
+		   (int)vac_cache_size, (int)vac_line_size);
 }
 
 static void poke_hypersparc(void)
@@ -1089,7 +1281,8 @@ static void poke_hypersparc(void)
 	clear = srmmu_get_fstatus();
 }
 
-static const struct sparc32_cachetlb_ops hypersparc_ops = {
+static const struct sparc32_cachetlb_ops hypersparc_ops =
+{
 	.cache_all	= hypersparc_flush_cache_all,
 	.cache_mm	= hypersparc_flush_cache_mm,
 	.cache_page	= hypersparc_flush_cache_page,
@@ -1141,7 +1334,8 @@ static void poke_swift(void)
 	srmmu_set_mmureg(mreg);
 }
 
-static const struct sparc32_cachetlb_ops swift_ops = {
+static const struct sparc32_cachetlb_ops swift_ops =
+{
 	.cache_all	= swift_flush_cache_all,
 	.cache_mm	= swift_flush_cache_mm,
 	.cache_page	= swift_flush_cache_page,
@@ -1161,48 +1355,52 @@ static void __init init_swift(void)
 	unsigned long swift_rev;
 
 	__asm__ __volatile__("lda [%1] %2, %0\n\t"
-			     "srl %0, 0x18, %0\n\t" :
-			     "=r" (swift_rev) :
-			     "r" (SWIFT_MASKID_ADDR), "i" (ASI_M_BYPASS));
+						 "srl %0, 0x18, %0\n\t" :
+						 "=r" (swift_rev) :
+						 "r" (SWIFT_MASKID_ADDR), "i" (ASI_M_BYPASS));
 	srmmu_name = "Fujitsu Swift";
-	switch (swift_rev) {
-	case 0x11:
-	case 0x20:
-	case 0x23:
-	case 0x30:
-		srmmu_modtype = Swift_lots_o_bugs;
-		hwbug_bitmask |= (HWBUG_KERN_ACCBROKEN | HWBUG_KERN_CBITBROKEN);
-		/*
-		 * Gee george, I wonder why Sun is so hush hush about
-		 * this hardware bug... really braindamage stuff going
-		 * on here.  However I think we can find a way to avoid
-		 * all of the workaround overhead under Linux.  Basically,
-		 * any page fault can cause kernel pages to become user
-		 * accessible (the mmu gets confused and clears some of
-		 * the ACC bits in kernel ptes).  Aha, sounds pretty
-		 * horrible eh?  But wait, after extensive testing it appears
-		 * that if you use pgd_t level large kernel pte's (like the
-		 * 4MB pages on the Pentium) the bug does not get tripped
-		 * at all.  This avoids almost all of the major overhead.
-		 * Welcome to a world where your vendor tells you to,
-		 * "apply this kernel patch" instead of "sorry for the
-		 * broken hardware, send it back and we'll give you
-		 * properly functioning parts"
-		 */
-		break;
-	case 0x25:
-	case 0x31:
-		srmmu_modtype = Swift_bad_c;
-		hwbug_bitmask |= HWBUG_KERN_CBITBROKEN;
-		/*
-		 * You see Sun allude to this hardware bug but never
-		 * admit things directly, they'll say things like,
-		 * "the Swift chip cache problems" or similar.
-		 */
-		break;
-	default:
-		srmmu_modtype = Swift_ok;
-		break;
+
+	switch (swift_rev)
+	{
+		case 0x11:
+		case 0x20:
+		case 0x23:
+		case 0x30:
+			srmmu_modtype = Swift_lots_o_bugs;
+			hwbug_bitmask |= (HWBUG_KERN_ACCBROKEN | HWBUG_KERN_CBITBROKEN);
+			/*
+			 * Gee george, I wonder why Sun is so hush hush about
+			 * this hardware bug... really braindamage stuff going
+			 * on here.  However I think we can find a way to avoid
+			 * all of the workaround overhead under Linux.  Basically,
+			 * any page fault can cause kernel pages to become user
+			 * accessible (the mmu gets confused and clears some of
+			 * the ACC bits in kernel ptes).  Aha, sounds pretty
+			 * horrible eh?  But wait, after extensive testing it appears
+			 * that if you use pgd_t level large kernel pte's (like the
+			 * 4MB pages on the Pentium) the bug does not get tripped
+			 * at all.  This avoids almost all of the major overhead.
+			 * Welcome to a world where your vendor tells you to,
+			 * "apply this kernel patch" instead of "sorry for the
+			 * broken hardware, send it back and we'll give you
+			 * properly functioning parts"
+			 */
+			break;
+
+		case 0x25:
+		case 0x31:
+			srmmu_modtype = Swift_bad_c;
+			hwbug_bitmask |= HWBUG_KERN_CBITBROKEN;
+			/*
+			 * You see Sun allude to this hardware bug but never
+			 * admit things directly, they'll say things like,
+			 * "the Swift chip cache problems" or similar.
+			 */
+			break;
+
+		default:
+			srmmu_modtype = Swift_ok;
+			break;
 	}
 
 	sparc32_cachetlb_ops = &swift_ops;
@@ -1244,8 +1442,12 @@ static void turbosparc_flush_cache_page(struct vm_area_struct *vma, unsigned lon
 {
 	FLUSH_BEGIN(vma->vm_mm)
 	flush_user_windows();
+
 	if (vma->vm_flags & VM_EXEC)
+	{
 		turbosparc_flush_icache();
+	}
+
 	turbosparc_flush_dcache();
 	FLUSH_END
 }
@@ -1257,7 +1459,10 @@ static void turbosparc_flush_page_to_ram(unsigned long page)
 	volatile unsigned long clear;
 
 	if (srmmu_probe(page))
+	{
 		turbosparc_flush_page_cache(page);
+	}
+
 	clear = srmmu_get_fstatus();
 #endif
 }
@@ -1315,23 +1520,26 @@ static void poke_turbosparc(void)
 #ifdef TURBOSPARC_WRITEBACK
 	ccreg |= (TURBOSPARC_SNENABLE);		/* Do DVMA snooping in Dcache */
 	ccreg &= ~(TURBOSPARC_uS2 | TURBOSPARC_WTENABLE);
-			/* Write-back D-cache, emulate VLSI
-			 * abortion number three, not number one */
+	/* Write-back D-cache, emulate VLSI
+	 * abortion number three, not number one */
 #else
 	/* For now let's play safe, optimize later */
 	ccreg |= (TURBOSPARC_SNENABLE | TURBOSPARC_WTENABLE);
-			/* Do DVMA snooping in Dcache, Write-thru D-cache */
+	/* Do DVMA snooping in Dcache, Write-thru D-cache */
 	ccreg &= ~(TURBOSPARC_uS2);
-			/* Emulate VLSI abortion number three, not number one */
+	/* Emulate VLSI abortion number three, not number one */
 #endif
 
-	switch (ccreg & 7) {
-	case 0: /* No SE cache */
-	case 7: /* Test mode */
-		break;
-	default:
-		ccreg |= (TURBOSPARC_SCENABLE);
+	switch (ccreg & 7)
+	{
+		case 0: /* No SE cache */
+		case 7: /* Test mode */
+			break;
+
+		default:
+			ccreg |= (TURBOSPARC_SCENABLE);
 	}
+
 	turbosparc_set_ccreg(ccreg);
 
 	mreg |= (TURBOSPARC_ICENABLE | TURBOSPARC_DCENABLE); /* I & D caches on */
@@ -1339,7 +1547,8 @@ static void poke_turbosparc(void)
 	srmmu_set_mmureg(mreg);
 }
 
-static const struct sparc32_cachetlb_ops turbosparc_ops = {
+static const struct sparc32_cachetlb_ops turbosparc_ops =
+{
 	.cache_all	= turbosparc_flush_cache_all,
 	.cache_mm	= turbosparc_flush_cache_mm,
 	.cache_page	= turbosparc_flush_cache_page,
@@ -1372,7 +1581,8 @@ static void poke_tsunami(void)
 	srmmu_set_mmureg(mreg);
 }
 
-static const struct sparc32_cachetlb_ops tsunami_ops = {
+static const struct sparc32_cachetlb_ops tsunami_ops =
+{
 	.cache_all	= tsunami_flush_cache_all,
 	.cache_mm	= tsunami_flush_cache_mm,
 	.cache_page	= tsunami_flush_cache_page,
@@ -1407,7 +1617,8 @@ static void poke_viking(void)
 	unsigned long mreg = srmmu_get_mmureg();
 	static int smp_catch;
 
-	if (viking_mxcc_present) {
+	if (viking_mxcc_present)
+	{
 		unsigned long mxcc_control = mxcc_get_creg();
 
 		mxcc_control |= (MXCC_CTL_ECE | MXCC_CTL_PRE | MXCC_CTL_MCE);
@@ -1422,11 +1633,15 @@ static void poke_viking(void)
 
 		/* We do cache ptables on MXCC. */
 		mreg |= VIKING_TCENABLE;
-	} else {
+	}
+	else
+	{
 		unsigned long bpreg;
 
 		mreg &= ~(VIKING_TCENABLE);
-		if (smp_catch++) {
+
+		if (smp_catch++)
+		{
 			/* Must disable mixed-cmd mode here for other cpu's. */
 			bpreg = viking_get_bpreg();
 			bpreg &= ~(VIKING_ACTION_MIX);
@@ -1444,7 +1659,8 @@ static void poke_viking(void)
 	srmmu_set_mmureg(mreg);
 }
 
-static struct sparc32_cachetlb_ops viking_ops = {
+static struct sparc32_cachetlb_ops viking_ops =
+{
 	.cache_all	= viking_flush_cache_all,
 	.cache_mm	= viking_flush_cache_mm,
 	.cache_page	= viking_flush_cache_page,
@@ -1475,7 +1691,8 @@ static struct sparc32_cachetlb_ops viking_ops = {
  * flushes going at once will require SMP locking anyways so there's
  * no real value in trying any harder than this.
  */
-static struct sparc32_cachetlb_ops viking_sun4d_smp_ops = {
+static struct sparc32_cachetlb_ops viking_sun4d_smp_ops =
+{
 	.cache_all	= viking_flush_cache_all,
 	.cache_mm	= viking_flush_cache_mm,
 	.cache_page	= viking_flush_cache_page,
@@ -1495,7 +1712,8 @@ static void __init init_viking(void)
 	unsigned long mreg = srmmu_get_mmureg();
 
 	/* Ahhh, the viking.  SRMMU VLSI abortion number two... */
-	if (mreg & VIKING_MMODE) {
+	if (mreg & VIKING_MMODE)
+	{
 		srmmu_name = "TI Viking";
 		viking_mxcc_present = 0;
 		msi_set_sync();
@@ -1512,18 +1730,22 @@ static void __init init_viking(void)
 		viking_sun4d_smp_ops.page_for_dma = viking_flush_page;
 #endif
 		flush_page_for_dma_global = 0;
-	} else {
+	}
+	else
+	{
 		srmmu_name = "TI Viking/MXCC";
 		viking_mxcc_present = 1;
 		srmmu_cache_pagetables = 1;
 	}
 
 	sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
-		&viking_ops;
+						   &viking_ops;
 #ifdef CONFIG_SMP
+
 	if (sparc_cpu_model == sun4d)
 		sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
-			&viking_sun4d_smp_ops;
+							   &viking_sun4d_smp_ops;
+
 #endif
 
 	poke_srmmu = poke_viking;
@@ -1545,57 +1767,70 @@ static void __init get_srmmu_type(void)
 	psr_vers = (psr >> 24) & 0xf;
 
 	/* First, check for sparc-leon. */
-	if (sparc_cpu_model == sparc_leon) {
+	if (sparc_cpu_model == sparc_leon)
+	{
 		init_leon();
 		return;
 	}
 
 	/* Second, check for HyperSparc or Cypress. */
-	if (mod_typ == 1) {
-		switch (mod_rev) {
-		case 7:
-			/* UP or MP Hypersparc */
-			init_hypersparc();
-			break;
-		case 0:
-		case 2:
-		case 10:
-		case 11:
-		case 12:
-		case 13:
-		case 14:
-		case 15:
-		default:
-			prom_printf("Sparc-Linux Cypress support does not longer exit.\n");
-			prom_halt();
-			break;
+	if (mod_typ == 1)
+	{
+		switch (mod_rev)
+		{
+			case 7:
+				/* UP or MP Hypersparc */
+				init_hypersparc();
+				break;
+
+			case 0:
+			case 2:
+			case 10:
+			case 11:
+			case 12:
+			case 13:
+			case 14:
+			case 15:
+			default:
+				prom_printf("Sparc-Linux Cypress support does not longer exit.\n");
+				prom_halt();
+				break;
 		}
+
 		return;
 	}
 
 	/* Now Fujitsu TurboSparc. It might happen that it is
 	 * in Swift emulation mode, so we will check later...
 	 */
-	if (psr_typ == 0 && psr_vers == 5) {
+	if (psr_typ == 0 && psr_vers == 5)
+	{
 		init_turbosparc();
 		return;
 	}
 
 	/* Next check for Fujitsu Swift. */
-	if (psr_typ == 0 && psr_vers == 4) {
+	if (psr_typ == 0 && psr_vers == 4)
+	{
 		phandle cpunode;
 		char node_str[128];
 
 		/* Look if it is not a TurboSparc emulating Swift... */
 		cpunode = prom_getchild(prom_root_node);
-		while ((cpunode = prom_getsibling(cpunode)) != 0) {
+
+		while ((cpunode = prom_getsibling(cpunode)) != 0)
+		{
 			prom_getstring(cpunode, "device_type", node_str, sizeof(node_str));
-			if (!strcmp(node_str, "cpu")) {
+
+			if (!strcmp(node_str, "cpu"))
+			{
 				if (!prom_getintdefault(cpunode, "psr-implementation", 1) &&
-				    prom_getintdefault(cpunode, "psr-version", 1) == 5) {
+					prom_getintdefault(cpunode, "psr-version", 1) == 5)
+				{
 					init_turbosparc();
 					return;
 				}
+
 				break;
 			}
 		}
@@ -1606,14 +1841,16 @@ static void __init get_srmmu_type(void)
 
 	/* Now the Viking family of srmmu. */
 	if (psr_typ == 4 &&
-	   ((psr_vers == 0) ||
-	    ((psr_vers == 1) && (mod_typ == 0) && (mod_rev == 0)))) {
+		((psr_vers == 0) ||
+		 ((psr_vers == 1) && (mod_typ == 0) && (mod_rev == 0))))
+	{
 		init_viking();
 		return;
 	}
 
 	/* Finally the Tsunami. */
-	if (psr_typ == 4 && psr_vers == 1 && (mod_typ || mod_rev)) {
+	if (psr_typ == 4 && psr_vers == 1 && (mod_typ || mod_rev))
+	{
 		init_tsunami();
 		return;
 	}
@@ -1644,62 +1881,78 @@ static void smp_flush_tlb_all(void)
 
 static void smp_flush_cache_mm(struct mm_struct *mm)
 {
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		cpumask_t cpu_mask;
 		cpumask_copy(&cpu_mask, mm_cpumask(mm));
 		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+
 		if (!cpumask_empty(&cpu_mask))
+		{
 			xc1((smpfunc_t) local_ops->cache_mm, (unsigned long) mm);
+		}
+
 		local_ops->cache_mm(mm);
 	}
 }
 
 static void smp_flush_tlb_mm(struct mm_struct *mm)
 {
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		cpumask_t cpu_mask;
 		cpumask_copy(&cpu_mask, mm_cpumask(mm));
 		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
-		if (!cpumask_empty(&cpu_mask)) {
+
+		if (!cpumask_empty(&cpu_mask))
+		{
 			xc1((smpfunc_t) local_ops->tlb_mm, (unsigned long) mm);
+
 			if (atomic_read(&mm->mm_users) == 1 && current->active_mm == mm)
 				cpumask_copy(mm_cpumask(mm),
-					     cpumask_of(smp_processor_id()));
+							 cpumask_of(smp_processor_id()));
 		}
+
 		local_ops->tlb_mm(mm);
 	}
 }
 
 static void smp_flush_cache_range(struct vm_area_struct *vma,
-				  unsigned long start,
-				  unsigned long end)
+								  unsigned long start,
+								  unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		cpumask_t cpu_mask;
 		cpumask_copy(&cpu_mask, mm_cpumask(mm));
 		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+
 		if (!cpumask_empty(&cpu_mask))
 			xc3((smpfunc_t) local_ops->cache_range,
-			    (unsigned long) vma, start, end);
+				(unsigned long) vma, start, end);
+
 		local_ops->cache_range(vma, start, end);
 	}
 }
 
 static void smp_flush_tlb_range(struct vm_area_struct *vma,
-				unsigned long start,
-				unsigned long end)
+								unsigned long start,
+								unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		cpumask_t cpu_mask;
 		cpumask_copy(&cpu_mask, mm_cpumask(mm));
 		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+
 		if (!cpumask_empty(&cpu_mask))
 			xc3((smpfunc_t) local_ops->tlb_range,
-			    (unsigned long) vma, start, end);
+				(unsigned long) vma, start, end);
+
 		local_ops->tlb_range(vma, start, end);
 	}
 }
@@ -1708,13 +1961,16 @@ static void smp_flush_cache_page(struct vm_area_struct *vma, unsigned long page)
 {
 	struct mm_struct *mm = vma->vm_mm;
 
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		cpumask_t cpu_mask;
 		cpumask_copy(&cpu_mask, mm_cpumask(mm));
 		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+
 		if (!cpumask_empty(&cpu_mask))
 			xc2((smpfunc_t) local_ops->cache_page,
-			    (unsigned long) vma, page);
+				(unsigned long) vma, page);
+
 		local_ops->cache_page(vma, page);
 	}
 }
@@ -1723,13 +1979,16 @@ static void smp_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 {
 	struct mm_struct *mm = vma->vm_mm;
 
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		cpumask_t cpu_mask;
 		cpumask_copy(&cpu_mask, mm_cpumask(mm));
 		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+
 		if (!cpumask_empty(&cpu_mask))
 			xc2((smpfunc_t) local_ops->tlb_page,
-			    (unsigned long) vma, page);
+				(unsigned long) vma, page);
+
 		local_ops->tlb_page(vma, page);
 	}
 }
@@ -1753,13 +2012,16 @@ static void smp_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr)
 	cpumask_t cpu_mask;
 	cpumask_copy(&cpu_mask, mm_cpumask(mm));
 	cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+
 	if (!cpumask_empty(&cpu_mask))
 		xc2((smpfunc_t) local_ops->sig_insns,
-		    (unsigned long) mm, insn_addr);
+			(unsigned long) mm, insn_addr);
+
 	local_ops->sig_insns(mm, insn_addr);
 }
 
-static struct sparc32_cachetlb_ops smp_cachetlb_ops = {
+static struct sparc32_cachetlb_ops smp_cachetlb_ops =
+{
 	.cache_all	= smp_flush_cache_all,
 	.cache_mm	= smp_flush_cache_mm,
 	.cache_page	= smp_flush_cache_page,
@@ -1784,14 +2046,16 @@ void __init load_mmu(void)
 	/* El switcheroo... */
 	local_ops = sparc32_cachetlb_ops;
 
-	if (sparc_cpu_model == sun4d || sparc_cpu_model == sparc_leon) {
+	if (sparc_cpu_model == sun4d || sparc_cpu_model == sparc_leon)
+	{
 		smp_cachetlb_ops.tlb_all = local_ops->tlb_all;
 		smp_cachetlb_ops.tlb_mm = local_ops->tlb_mm;
 		smp_cachetlb_ops.tlb_range = local_ops->tlb_range;
 		smp_cachetlb_ops.tlb_page = local_ops->tlb_page;
 	}
 
-	if (poke_srmmu == poke_viking) {
+	if (poke_srmmu == poke_viking)
+	{
 		/* Avoid unnecessary cross calls. */
 		smp_cachetlb_ops.cache_all = local_ops->cache_all;
 		smp_cachetlb_ops.cache_mm = local_ops->cache_mm;
@@ -1805,19 +2069,32 @@ void __init load_mmu(void)
 
 	/* It really is const after this point. */
 	sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
-		&smp_cachetlb_ops;
+						   &smp_cachetlb_ops;
 #endif
 
 	if (sparc_cpu_model == sun4d)
+	{
 		ld_mmu_iounit();
+	}
 	else
+	{
 		ld_mmu_iommu();
+	}
+
 #ifdef CONFIG_SMP
+
 	if (sparc_cpu_model == sun4d)
+	{
 		sun4d_init_smp();
+	}
 	else if (sparc_cpu_model == sparc_leon)
+	{
 		leon_init_smp();
+	}
 	else
+	{
 		sun4m_init_smp();
+	}
+
 #endif
 }

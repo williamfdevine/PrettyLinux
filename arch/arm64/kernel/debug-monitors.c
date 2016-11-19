@@ -36,7 +36,7 @@
 u8 debug_monitors_arch(void)
 {
 	return cpuid_feature_extract_unsigned_field(read_system_reg(SYS_ID_AA64DFR0_EL1),
-						ID_AA64DFR0_DEBUGVER_SHIFT);
+			ID_AA64DFR0_DEBUGVER_SHIFT);
 }
 
 /*
@@ -92,13 +92,18 @@ void enable_debug_monitors(enum dbg_active_el el)
 	WARN_ON(preemptible());
 
 	if (this_cpu_inc_return(mde_ref_count) == 1)
+	{
 		enable = DBG_MDSCR_MDE;
+	}
 
 	if (el == DBG_ACTIVE_EL1 &&
-	    this_cpu_inc_return(kde_ref_count) == 1)
+		this_cpu_inc_return(kde_ref_count) == 1)
+	{
 		enable |= DBG_MDSCR_KDE;
+	}
 
-	if (enable && debug_enabled) {
+	if (enable && debug_enabled)
+	{
 		mdscr = mdscr_read();
 		mdscr |= enable;
 		mdscr_write(mdscr);
@@ -113,13 +118,18 @@ void disable_debug_monitors(enum dbg_active_el el)
 	WARN_ON(preemptible());
 
 	if (this_cpu_dec_return(mde_ref_count) == 0)
+	{
 		disable = ~DBG_MDSCR_MDE;
+	}
 
 	if (el == DBG_ACTIVE_EL1 &&
-	    this_cpu_dec_return(kde_ref_count) == 0)
+		this_cpu_dec_return(kde_ref_count) == 0)
+	{
 		disable &= ~DBG_MDSCR_KDE;
+	}
 
-	if (disable) {
+	if (disable)
+	{
 		mdscr = mdscr_read();
 		mdscr &= disable;
 		mdscr_write(mdscr);
@@ -140,8 +150,8 @@ static int clear_os_lock(unsigned int cpu)
 static int debug_monitors_init(void)
 {
 	return cpuhp_setup_state(CPUHP_AP_ARM64_DEBUG_MONITORS_STARTING,
-				 "CPUHP_AP_ARM64_DEBUG_MONITORS_STARTING",
-				 clear_os_lock, NULL);
+							 "CPUHP_AP_ARM64_DEBUG_MONITORS_STARTING",
+							 clear_os_lock, NULL);
 }
 postcore_initcall(debug_monitors_init);
 
@@ -192,10 +202,14 @@ static int call_step_hook(struct pt_regs *regs, unsigned int esr)
 
 	rcu_read_lock();
 
-	list_for_each_entry_rcu(hook, &step_hook, node)	{
+	list_for_each_entry_rcu(hook, &step_hook, node)
+	{
 		retval = hook->fn(regs, esr);
+
 		if (retval == DBG_HOOK_HANDLED)
+		{
 			break;
+		}
 	}
 
 	rcu_read_unlock();
@@ -207,7 +221,8 @@ NOKPROBE_SYMBOL(call_step_hook);
 static void send_user_sigtrap(int si_code)
 {
 	struct pt_regs *regs = current_pt_regs();
-	siginfo_t info = {
+	siginfo_t info =
+	{
 		.si_signo	= SIGTRAP,
 		.si_errno	= 0,
 		.si_code	= si_code,
@@ -215,25 +230,32 @@ static void send_user_sigtrap(int si_code)
 	};
 
 	if (WARN_ON(!user_mode(regs)))
+	{
 		return;
+	}
 
 	if (interrupts_enabled(regs))
+	{
 		local_irq_enable();
+	}
 
 	force_sig_info(SIGTRAP, &info, current);
 }
 
 static int single_step_handler(unsigned long addr, unsigned int esr,
-			       struct pt_regs *regs)
+							   struct pt_regs *regs)
 {
 	/*
 	 * If we are stepping a pending breakpoint, call the hw_breakpoint
 	 * handler first.
 	 */
 	if (!reinstall_suspended_bps(regs))
+	{
 		return 0;
+	}
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		send_user_sigtrap(TRAP_TRACE);
 
 		/*
@@ -243,13 +265,22 @@ static int single_step_handler(unsigned long addr, unsigned int esr,
 		 * to the active-not-pending state).
 		 */
 		user_rewind_single_step(current);
-	} else {
+	}
+	else
+	{
 #ifdef	CONFIG_KPROBES
+
 		if (kprobe_single_step_handler(regs, esr) == DBG_HOOK_HANDLED)
+		{
 			return 0;
+		}
+
 #endif
+
 		if (call_step_hook(regs, esr) == DBG_HOOK_HANDLED)
+		{
 			return 0;
+		}
 
 		pr_warning("Unexpected kernel single-step exception at EL1\n");
 		/*
@@ -289,12 +320,16 @@ void unregister_break_hook(struct break_hook *hook)
 static int call_break_hook(struct pt_regs *regs, unsigned int esr)
 {
 	struct break_hook *hook;
-	int (*fn)(struct pt_regs *regs, unsigned int esr) = NULL;
+	int (*fn)(struct pt_regs * regs, unsigned int esr) = NULL;
 
 	rcu_read_lock();
 	list_for_each_entry_rcu(hook, &break_hook, node)
-		if ((esr & hook->esr_mask) == hook->esr_val)
-			fn = hook->fn;
+
+	if ((esr & hook->esr_mask) == hook->esr_val)
+	{
+		fn = hook->fn;
+	}
+
 	rcu_read_unlock();
 
 	return fn ? fn(regs, esr) : DBG_HOOK_ERROR;
@@ -302,18 +337,25 @@ static int call_break_hook(struct pt_regs *regs, unsigned int esr)
 NOKPROBE_SYMBOL(call_break_hook);
 
 static int brk_handler(unsigned long addr, unsigned int esr,
-		       struct pt_regs *regs)
+					   struct pt_regs *regs)
 {
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		send_user_sigtrap(TRAP_BRKPT);
 	}
+
 #ifdef	CONFIG_KPROBES
-	else if ((esr & BRK64_ESR_MASK) == BRK64_ESR_KPROBES) {
+	else if ((esr & BRK64_ESR_MASK) == BRK64_ESR_KPROBES)
+	{
 		if (kprobe_breakpoint_handler(regs, esr) != DBG_HOOK_HANDLED)
+		{
 			return -EFAULT;
+		}
 	}
+
 #endif
-	else if (call_break_hook(regs, esr) != DBG_HOOK_HANDLED) {
+	else if (call_break_hook(regs, esr) != DBG_HOOK_HANDLED)
+	{
 		pr_warn("Unexpected kernel BRK exception at EL1\n");
 		return -EFAULT;
 	}
@@ -330,21 +372,30 @@ int aarch32_break_handler(struct pt_regs *regs)
 	void __user *pc = (void __user *)instruction_pointer(regs);
 
 	if (!compat_user_mode(regs))
+	{
 		return -EFAULT;
+	}
 
-	if (compat_thumb_mode(regs)) {
+	if (compat_thumb_mode(regs))
+	{
 		/* get 16-bit Thumb instruction */
 		get_user(thumb_instr, (u16 __user *)pc);
 		thumb_instr = le16_to_cpu(thumb_instr);
-		if (thumb_instr == AARCH32_BREAK_THUMB2_LO) {
+
+		if (thumb_instr == AARCH32_BREAK_THUMB2_LO)
+		{
 			/* get second half of 32-bit Thumb-2 instruction */
 			get_user(thumb_instr, (u16 __user *)(pc + 2));
 			thumb_instr = le16_to_cpu(thumb_instr);
 			bp = thumb_instr == AARCH32_BREAK_THUMB2_HI;
-		} else {
+		}
+		else
+		{
 			bp = thumb_instr == AARCH32_BREAK_THUMB;
 		}
-	} else {
+	}
+	else
+	{
 		/* 32-bit ARM instruction */
 		get_user(arm_instr, (u32 __user *)pc);
 		arm_instr = le32_to_cpu(arm_instr);
@@ -352,7 +403,9 @@ int aarch32_break_handler(struct pt_regs *regs)
 	}
 
 	if (!bp)
+	{
 		return -EFAULT;
+	}
 
 	send_user_sigtrap(TRAP_BRKPT);
 	return 0;
@@ -362,9 +415,9 @@ NOKPROBE_SYMBOL(aarch32_break_handler);
 static int __init debug_traps_init(void)
 {
 	hook_debug_fault_code(DBG_ESR_EVT_HWSS, single_step_handler, SIGTRAP,
-			      TRAP_TRACE, "single-step handler");
+						  TRAP_TRACE, "single-step handler");
 	hook_debug_fault_code(DBG_ESR_EVT_BRK, brk_handler, SIGTRAP,
-			      TRAP_BRKPT, "ptrace BRK handler");
+						  TRAP_BRKPT, "ptrace BRK handler");
 	return 0;
 }
 arch_initcall(debug_traps_init);
@@ -377,14 +430,18 @@ void user_rewind_single_step(struct task_struct *task)
 	 * to 1 to avoid returning to the active-pending state.
 	 */
 	if (test_ti_thread_flag(task_thread_info(task), TIF_SINGLESTEP))
+	{
 		set_regs_spsr_ss(task_pt_regs(task));
+	}
 }
 NOKPROBE_SYMBOL(user_rewind_single_step);
 
 void user_fastforward_single_step(struct task_struct *task)
 {
 	if (test_ti_thread_flag(task_thread_info(task), TIF_SINGLESTEP))
+	{
 		clear_regs_spsr_ss(task_pt_regs(task));
+	}
 }
 
 /* Kernel API */
@@ -418,7 +475,9 @@ void user_enable_single_step(struct task_struct *task)
 	struct thread_info *ti = task_thread_info(task);
 
 	if (!test_and_set_ti_thread_flag(ti, TIF_SINGLESTEP))
+	{
 		set_regs_spsr_ss(task_pt_regs(task));
+	}
 }
 NOKPROBE_SYMBOL(user_enable_single_step);
 

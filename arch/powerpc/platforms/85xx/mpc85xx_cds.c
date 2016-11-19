@@ -52,7 +52,8 @@
  * various logic and performs system control functions.
  * Here is the FPGA/CPLD register map.
  */
-struct cadmus_reg {
+struct cadmus_reg
+{
 	u8 cm_ver;		/* Board version */
 	u8 cm_csr;		/* General control/status */
 	u8 cm_rst;		/* Reset control */
@@ -72,25 +73,33 @@ static struct cadmus_reg *cadmus;
 #define ARCADIA_2ND_BRIDGE_IDSEL	3
 
 static int mpc85xx_exclude_device(struct pci_controller *hose,
-				  u_char bus, u_char devfn)
+								  u_char bus, u_char devfn)
 {
 	/* We explicitly do not go past the Tundra 320 Bridge */
 	if ((bus == 1) && (PCI_SLOT(devfn) == ARCADIA_2ND_BRIDGE_IDSEL))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
+
 	if ((bus == 0) && (PCI_SLOT(devfn) == ARCADIA_2ND_BRIDGE_IDSEL))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 	else
+	{
 		return PCIBIOS_SUCCESSFUL;
+	}
 }
 
 static int mpc85xx_cds_restart(struct notifier_block *this,
-			       unsigned long mode, void *cmd)
+							   unsigned long mode, void *cmd)
 {
 	struct pci_dev *dev;
 	u_char tmp;
 
 	if ((dev = pci_get_device(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686,
-					NULL))) {
+							  NULL)))
+	{
 
 		/* Use the VIA Super Southbridge to force a PCI reset */
 		pci_read_config_byte(dev, 0x47, &tmp);
@@ -131,39 +140,50 @@ machine_arch_initcall(mpc85xx_cds, mpc85xx_cds_restart_register);
 static void __init mpc85xx_cds_pci_irq_fixup(struct pci_dev *dev)
 {
 	u_char c;
-	if (dev->vendor == PCI_VENDOR_ID_VIA) {
-		switch (dev->device) {
-		case PCI_DEVICE_ID_VIA_82C586_1:
-			/*
-			 * U-Boot does not set the enable bits
-			 * for the IDE device. Force them on here.
-			 */
-			pci_read_config_byte(dev, 0x40, &c);
-			c |= 0x03; /* IDE: Chip Enable Bits */
-			pci_write_config_byte(dev, 0x40, c);
+
+	if (dev->vendor == PCI_VENDOR_ID_VIA)
+	{
+		switch (dev->device)
+		{
+			case PCI_DEVICE_ID_VIA_82C586_1:
+				/*
+				 * U-Boot does not set the enable bits
+				 * for the IDE device. Force them on here.
+				 */
+				pci_read_config_byte(dev, 0x40, &c);
+				c |= 0x03; /* IDE: Chip Enable Bits */
+				pci_write_config_byte(dev, 0x40, c);
+
+				/*
+				 * Since only primary interface works, force the
+				 * IDE function to standard primary IDE interrupt
+				 * w/ 8259 offset
+				 */
+				dev->irq = 14;
+				pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq);
+				break;
 
 			/*
-			 * Since only primary interface works, force the
-			 * IDE function to standard primary IDE interrupt
-			 * w/ 8259 offset
+			 * Force legacy USB interrupt routing
 			 */
-			dev->irq = 14;
-			pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq);
-			break;
-		/*
-		 * Force legacy USB interrupt routing
-		 */
-		case PCI_DEVICE_ID_VIA_82C586_2:
-		/* There are two USB controllers.
-		 * Identify them by functon number
-		 */
-			if (PCI_FUNC(dev->devfn) == 3)
-				dev->irq = 11;
-			else
-				dev->irq = 10;
-			pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq);
-		default:
-			break;
+			case PCI_DEVICE_ID_VIA_82C586_2:
+
+				/* There are two USB controllers.
+				 * Identify them by functon number
+				 */
+				if (PCI_FUNC(dev->devfn) == 3)
+				{
+					dev->irq = 11;
+				}
+				else
+				{
+					dev->irq = 10;
+				}
+
+				pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq);
+
+			default:
+				break;
 		}
 	}
 }
@@ -191,9 +211,11 @@ void mpc85xx_cds_fixup_bus(struct pci_bus *bus)
 	struct resource *res = bus->resource[0];
 
 	if (dev != NULL &&
-	    dev->vendor == PCI_VENDOR_ID_IBM &&
-	    dev->device == PCI_DEVICE_ID_IDT_TSI310) {
-		if (res) {
+		dev->vendor == PCI_VENDOR_ID_IBM &&
+		dev->device == PCI_DEVICE_ID_IDT_TSI310)
+	{
+		if (res)
+		{
 			res->start = 0;
 			res->end   = 0x1fff;
 			res->flags = IORESOURCE_IO;
@@ -212,7 +234,9 @@ static void mpc85xx_8259_cascade_handler(struct irq_desc *desc)
 
 	if (cascade_irq)
 		/* handle an interrupt from the 8259 */
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	/* check for any interrupts from the shared IRQ line */
 	handle_fasteoi_irq(desc);
@@ -223,7 +247,8 @@ static irqreturn_t mpc85xx_8259_cascade_action(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction mpc85xxcds_8259_irqaction = {
+static struct irqaction mpc85xxcds_8259_irqaction =
+{
 	.handler = mpc85xx_8259_cascade_action,
 	.flags = IRQF_SHARED | IRQF_NO_THREAD,
 	.name = "8259 cascade",
@@ -235,7 +260,7 @@ static void __init mpc85xx_cds_pic_init(void)
 {
 	struct mpic *mpic;
 	mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+					  0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 }
@@ -250,18 +275,23 @@ static int mpc85xx_cds_8259_attach(void)
 
 	/* Initialize the i8259 controller */
 	for_each_node_by_type(np, "interrupt-controller")
-		if (of_device_is_compatible(np, "chrp,iic")) {
-			cascade_node = np;
-			break;
-		}
 
-	if (cascade_node == NULL) {
+	if (of_device_is_compatible(np, "chrp,iic"))
+	{
+		cascade_node = np;
+		break;
+	}
+
+	if (cascade_node == NULL)
+	{
 		printk(KERN_DEBUG "Could not find i8259 PIC\n");
 		return -ENODEV;
 	}
 
 	cascade_irq = irq_of_parse_and_map(cascade_node, 0);
-	if (!cascade_irq) {
+
+	if (!cascade_irq)
+	{
 		printk(KERN_ERR "Failed to map cascade interrupt\n");
 		return -ENXIO;
 	}
@@ -275,7 +305,8 @@ static int mpc85xx_cds_8259_attach(void)
 	 *  disabled when the last user of the shared IRQ line frees their
 	 *  interrupt.
 	 */
-	if ((ret = setup_irq(cascade_irq, &mpc85xxcds_8259_irqaction))) {
+	if ((ret = setup_irq(cascade_irq, &mpc85xxcds_8259_irqaction)))
+	{
 		printk(KERN_ERR "Failed to setup cascade interrupt\n");
 		return ret;
 	}
@@ -295,7 +326,9 @@ static void mpc85xx_cds_pci_assign_primary(void)
 	struct device_node *np;
 
 	if (fsl_pci_primary)
+	{
 		return;
+	}
 
 	/*
 	 * MPC85xx_CDS has ISA bridge but unfortunately there is no
@@ -304,15 +337,20 @@ static void mpc85xx_cds_pci_assign_primary(void)
 	 * is for complying to all device trees.
 	 */
 	np = of_find_node_by_name(NULL, "i8259");
-	while ((fsl_pci_primary = of_get_parent(np))) {
+
+	while ((fsl_pci_primary = of_get_parent(np)))
+	{
 		of_node_put(np);
 		np = fsl_pci_primary;
 
 		if ((of_device_is_compatible(np, "fsl,mpc8540-pci") ||
-		    of_device_is_compatible(np, "fsl,mpc8548-pcie")) &&
-		    of_device_is_available(np))
+			 of_device_is_compatible(np, "fsl,mpc8548-pcie")) &&
+			of_device_is_available(np))
+		{
 			return;
+		}
 	}
+
 #endif
 }
 
@@ -325,26 +363,33 @@ static void __init mpc85xx_cds_setup_arch(void)
 	int cds_pci_slot;
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mpc85xx_cds_setup_arch()", 0);
+	}
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc8548cds-fpga");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("Could not find FPGA node.\n");
 		return;
 	}
 
 	cadmus = of_iomap(np, 0);
 	of_node_put(np);
-	if (!cadmus) {
+
+	if (!cadmus)
+	{
 		pr_err("Fail to map FPGA area.\n");
 		return;
 	}
 
-	if (ppc_md.progress) {
+	if (ppc_md.progress)
+	{
 		char buf[40];
 		cds_pci_slot = ((in_8(&cadmus->cm_csr) >> 6) & 0x3) + 1;
 		snprintf(buf, 40, "CDS Version = 0x%x in slot %d\n",
-				in_8(&cadmus->cm_ver), cds_pci_slot);
+				 in_8(&cadmus->cm_ver), cds_pci_slot);
 		ppc_md.progress(buf, 0);
 	}
 
@@ -366,7 +411,7 @@ static void mpc85xx_cds_show_cpuinfo(struct seq_file *m)
 
 	seq_printf(m, "Vendor\t\t: Freescale Semiconductor\n");
 	seq_printf(m, "Machine\t\t: MPC85xx CDS (0x%x)\n",
-			in_8(&cadmus->cm_ver));
+			   in_8(&cadmus->cm_ver));
 	seq_printf(m, "PVR\t\t: 0x%x\n", pvid);
 	seq_printf(m, "SVR\t\t: 0x%x\n", svid);
 
@@ -386,17 +431,18 @@ static int __init mpc85xx_cds_probe(void)
 
 machine_arch_initcall(mpc85xx_cds, mpc85xx_common_publish_devices);
 
-define_machine(mpc85xx_cds) {
+define_machine(mpc85xx_cds)
+{
 	.name		= "MPC85xx CDS",
-	.probe		= mpc85xx_cds_probe,
-	.setup_arch	= mpc85xx_cds_setup_arch,
-	.init_IRQ	= mpc85xx_cds_pic_init,
-	.show_cpuinfo	= mpc85xx_cds_show_cpuinfo,
-	.get_irq	= mpic_get_irq,
+		  .probe		= mpc85xx_cds_probe,
+			   .setup_arch	= mpc85xx_cds_setup_arch,
+				.init_IRQ	= mpc85xx_cds_pic_init,
+				   .show_cpuinfo	= mpc85xx_cds_show_cpuinfo,
+					  .get_irq	= mpic_get_irq,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= mpc85xx_cds_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+						  .pcibios_fixup_bus	= mpc85xx_cds_fixup_bus,
+							.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-	.calibrate_decr = generic_calibrate_decr,
-	.progress	= udbg_progress,
+							 .calibrate_decr = generic_calibrate_decr,
+							  .progress	= udbg_progress,
 };

@@ -32,7 +32,8 @@
 #define POLL_TIME	100000		/* in µs */
 #define EXP		753		/* exp(-1) in fixed-point */
 
-struct spu_gov_info_struct {
+struct spu_gov_info_struct
+{
 	unsigned long busy_spus;	/* fixed-point */
 	struct cpufreq_policy *policy;
 	struct delayed_work work;
@@ -50,7 +51,7 @@ static int calc_freq(struct spu_gov_info_struct *info)
 
 	CALC_LOAD(info->busy_spus, EXP, busy_spus * FIXED_1);
 	pr_debug("cpu %d: busy_spus=%d, info->busy_spus=%ld\n",
-			cpu, busy_spus, info->busy_spus);
+			 cpu, busy_spus, info->busy_spus);
 
 	return info->policy->max * info->busy_spus / FIXED_1;
 }
@@ -92,18 +93,21 @@ static int spu_gov_start(struct cpufreq_policy *policy)
 	struct spu_gov_info_struct *affected_info;
 	int i;
 
-	if (!cpu_online(cpu)) {
+	if (!cpu_online(cpu))
+	{
 		printk(KERN_ERR "cpu %d is not online\n", cpu);
 		return -EINVAL;
 	}
 
-	if (!policy->cur) {
+	if (!policy->cur)
+	{
 		printk(KERN_ERR "no cpu specified in policy\n");
 		return -EINVAL;
 	}
 
 	/* initialize spu_gov_info for all affected cpus */
-	for_each_cpu(i, policy->cpus) {
+	for_each_cpu(i, policy->cpus)
+	{
 		affected_info = &per_cpu(spu_gov_info, i);
 		affected_info->policy = policy;
 	}
@@ -126,13 +130,15 @@ static void spu_gov_stop(struct cpufreq_policy *policy)
 	spu_gov_cancel_work(info);
 
 	/* clean spu_gov_info for all affected cpus */
-	for_each_cpu (i, policy->cpus) {
+	for_each_cpu (i, policy->cpus)
+	{
 		info = &per_cpu(spu_gov_info, i);
 		info->policy = NULL;
 	}
 }
 
-static struct cpufreq_governor spu_governor = {
+static struct cpufreq_governor spu_governor =
+{
 	.name = "spudemand",
 	.start = spu_gov_start,
 	.stop = spu_gov_stop,
@@ -148,8 +154,12 @@ static int __init spu_gov_init(void)
 	int ret;
 
 	ret = cpufreq_register_governor(&spu_governor);
+
 	if (ret)
+	{
 		printk(KERN_ERR "registration of governor failed\n");
+	}
+
 	return ret;
 }
 

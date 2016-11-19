@@ -37,25 +37,33 @@ static int ncores;
 int zynq_cpun_start(u32 address, int cpu)
 {
 	u32 trampoline_code_size = &zynq_secondary_trampoline_end -
-						&zynq_secondary_trampoline;
+							   &zynq_secondary_trampoline;
 
 	/* MS: Expectation that SLCR are directly map and accessible */
 	/* Not possible to jump to non aligned address */
-	if (!(address & 3) && (!address || (address >= trampoline_code_size))) {
+	if (!(address & 3) && (!address || (address >= trampoline_code_size)))
+	{
 		/* Store pointer to ioremap area which points to address 0x0 */
 		static u8 __iomem *zero;
 		u32 trampoline_size = &zynq_secondary_trampoline_jump -
-						&zynq_secondary_trampoline;
+							  &zynq_secondary_trampoline;
 
 		zynq_slcr_cpu_stop(cpu);
-		if (address) {
-			if (__pa(PAGE_OFFSET)) {
+
+		if (address)
+		{
+			if (__pa(PAGE_OFFSET))
+			{
 				zero = ioremap(0, trampoline_code_size);
-				if (!zero) {
+
+				if (!zero)
+				{
 					pr_warn("BOOTUP jump vectors not accessible\n");
 					return -1;
 				}
-			} else {
+			}
+			else
+			{
 				zero = (__force u8 __iomem *)PAGE_OFFSET;
 			}
 
@@ -66,7 +74,7 @@ int zynq_cpun_start(u32 address, int cpu)
 			* 0x8: Jumping address
 			*/
 			memcpy((__force void *)zero, &zynq_secondary_trampoline,
-							trampoline_size);
+				   trampoline_size);
 			writel(address, zero + trampoline_size);
 
 			flush_cache_all();
@@ -74,8 +82,11 @@ int zynq_cpun_start(u32 address, int cpu)
 			smp_wmb();
 
 			if (__pa(PAGE_OFFSET))
+			{
 				iounmap(zero);
+			}
 		}
+
 		zynq_slcr_cpu_start(cpu);
 
 		return 0;
@@ -103,7 +114,9 @@ static void __init zynq_smp_init_cpus(void)
 	ncores = scu_get_core_count(zynq_scu_base);
 
 	for (i = 0; i < ncores && i < CONFIG_NR_CPUS; i++)
+	{
 		set_cpu_possible(i, true);
+	}
 }
 
 static void __init zynq_smp_prepare_cpus(unsigned int max_cpus)
@@ -130,7 +143,9 @@ static int zynq_cpu_kill(unsigned cpu)
 
 	while (zynq_slcr_cpu_state_read(cpu))
 		if (time_after(jiffies, timeout))
+		{
 			return 0;
+		}
 
 	zynq_slcr_cpu_stop(cpu);
 	return 1;
@@ -153,11 +168,14 @@ static void zynq_cpu_die(unsigned int cpu)
 	 * code will have already disabled interrupts
 	 */
 	for (;;)
+	{
 		cpu_do_idle();
+	}
 }
 #endif
 
-const struct smp_operations zynq_smp_ops __initconst = {
+const struct smp_operations zynq_smp_ops __initconst =
+{
 	.smp_init_cpus		= zynq_smp_init_cpus,
 	.smp_prepare_cpus	= zynq_smp_prepare_cpus,
 	.smp_boot_secondary	= zynq_boot_secondary,

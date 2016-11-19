@@ -32,12 +32,12 @@
 
 #define SERIAL_PORT_DFNS						\
 	{								\
-	.baud_base		= BASE_BAUD,				\
-	.irq			= SERIAL_IRQ,				\
-	.flags			= STD_COM_FLAGS,			\
-	.iomem_base		= (u8 *) SERIAL_PORT0_BASE_ADDRESS,	\
-	.iomem_reg_shift	= 2,					\
-	.io_type		= SERIAL_IO_MEM,			\
+		.baud_base		= BASE_BAUD,				\
+						  .irq			= SERIAL_IRQ,				\
+											.flags			= STD_COM_FLAGS,			\
+													.iomem_base		= (u8 *) SERIAL_PORT0_BASE_ADDRESS,	\
+															.iomem_reg_shift	= 2,					\
+																	.io_type		= SERIAL_IO_MEM,			\
 	},
 
 #ifndef __ASSEMBLY__
@@ -53,22 +53,22 @@ static inline void __debug_to_serial(const char *p, int n)
 #define SERIAL_PORT_DFNS /* stolen by gdb-stub */
 
 #if defined(CONFIG_GDBSTUB_ON_TTYS0)
-#define GDBPORT_SERIAL_RX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_RX  * 4, u8)
-#define GDBPORT_SERIAL_TX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_TX  * 4, u8)
-#define GDBPORT_SERIAL_DLL	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_DLL * 4, u8)
-#define GDBPORT_SERIAL_DLM	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_DLM * 4, u8)
-#define GDBPORT_SERIAL_IER	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_IER * 4, u8)
-#define GDBPORT_SERIAL_IIR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_IIR * 4, u8)
-#define GDBPORT_SERIAL_FCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_FCR * 4, u8)
-#define GDBPORT_SERIAL_LCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_LCR * 4, u8)
-#define GDBPORT_SERIAL_MCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MCR * 4, u8)
-#define GDBPORT_SERIAL_LSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_LSR * 4, u8)
-#define GDBPORT_SERIAL_MSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MSR * 4, u8)
-#define GDBPORT_SERIAL_SCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_SCR * 4, u8)
-#define GDBPORT_SERIAL_IRQ	SERIAL_IRQ
+	#define GDBPORT_SERIAL_RX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_RX  * 4, u8)
+	#define GDBPORT_SERIAL_TX	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_TX  * 4, u8)
+	#define GDBPORT_SERIAL_DLL	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_DLL * 4, u8)
+	#define GDBPORT_SERIAL_DLM	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_DLM * 4, u8)
+	#define GDBPORT_SERIAL_IER	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_IER * 4, u8)
+	#define GDBPORT_SERIAL_IIR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_IIR * 4, u8)
+	#define GDBPORT_SERIAL_FCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_FCR * 4, u8)
+	#define GDBPORT_SERIAL_LCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_LCR * 4, u8)
+	#define GDBPORT_SERIAL_MCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MCR * 4, u8)
+	#define GDBPORT_SERIAL_LSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_LSR * 4, u8)
+	#define GDBPORT_SERIAL_MSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MSR * 4, u8)
+	#define GDBPORT_SERIAL_SCR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_SCR * 4, u8)
+	#define GDBPORT_SERIAL_IRQ	SERIAL_IRQ
 
 #elif defined(CONFIG_GDBSTUB_ON_TTYS1)
-#error The ASB2305 doesnt have a /dev/ttyS1
+	#error The ASB2305 doesnt have a /dev/ttyS1
 #endif
 
 #ifndef __ASSEMBLY__
@@ -79,21 +79,21 @@ static inline void __debug_to_serial(const char *p, int n)
 #define TTYS0_MSR	__SYSREG(SERIAL_PORT0_BASE_ADDRESS + UART_MSR * 4, u8)
 
 #define LSR_WAIT_FOR(STATE)				\
-do {							\
-	while (!(TTYS0_LSR & UART_LSR_##STATE)) {}	\
-} while (0)
+	do {							\
+		while (!(TTYS0_LSR & UART_LSR_##STATE)) {}	\
+	} while (0)
 #define FLOWCTL_WAIT_FOR(LINE)				\
-do {							\
-	while (!(TTYS0_MSR & UART_MSR_##LINE)) {}	\
-} while (0)
+	do {							\
+		while (!(TTYS0_MSR & UART_MSR_##LINE)) {}	\
+	} while (0)
 #define FLOWCTL_CLEAR(LINE)			\
-do {						\
-	TTYS0_MCR &= ~UART_MCR_##LINE;		\
-} while (0)
+	do {						\
+		TTYS0_MCR &= ~UART_MCR_##LINE;		\
+	} while (0)
 #define FLOWCTL_SET(LINE)			\
-do {						\
-	TTYS0_MCR |= UART_MCR_##LINE;		\
-} while (0)
+	do {						\
+		TTYS0_MCR |= UART_MCR_##LINE;		\
+	} while (0)
 #define FLOWCTL_QUERY(LINE)	({ TTYS0_MSR & UART_MSR_##LINE; })
 
 static inline void __debug_to_serial(const char *p, int n)
@@ -102,16 +102,20 @@ static inline void __debug_to_serial(const char *p, int n)
 
 	FLOWCTL_SET(DTR);
 
-	for (; n > 0; n--) {
+	for (; n > 0; n--)
+	{
 		LSR_WAIT_FOR(THRE);
 		FLOWCTL_WAIT_FOR(CTS);
 
 		ch = *p++;
-		if (ch == 0x0a) {
+
+		if (ch == 0x0a)
+		{
 			TTYS0_TX = 0x0d;
 			LSR_WAIT_FOR(THRE);
 			FLOWCTL_WAIT_FOR(CTS);
 		}
+
 		TTYS0_TX = ch;
 	}
 

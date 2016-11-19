@@ -2,17 +2,17 @@
 #define _ASM_X86_KEXEC_H
 
 #ifdef CONFIG_X86_32
-# define PA_CONTROL_PAGE	0
-# define VA_CONTROL_PAGE	1
-# define PA_PGD			2
-# define PA_SWAP_PAGE		3
-# define PAGES_NR		4
+	#define PA_CONTROL_PAGE	0
+	#define VA_CONTROL_PAGE	1
+	#define PA_PGD			2
+	#define PA_SWAP_PAGE		3
+	#define PAGES_NR		4
 #else
-# define PA_CONTROL_PAGE	0
-# define VA_CONTROL_PAGE	1
-# define PA_TABLE_PAGE		2
-# define PA_SWAP_PAGE		3
-# define PAGES_NR		4
+	#define PA_CONTROL_PAGE	0
+	#define VA_CONTROL_PAGE	1
+	#define PA_TABLE_PAGE		2
+	#define PA_SWAP_PAGE		3
+	#define PAGES_NR		4
 #endif
 
 # define KEXEC_CONTROL_CODE_MAX_SIZE	2048
@@ -35,33 +35,33 @@ struct kimage;
  * So far x86_64 is limited to 40 physical address bits.
  */
 #ifdef CONFIG_X86_32
-/* Maximum physical address we can use pages from */
-# define KEXEC_SOURCE_MEMORY_LIMIT (-1UL)
-/* Maximum address we can reach in physical address mode */
-# define KEXEC_DESTINATION_MEMORY_LIMIT (-1UL)
-/* Maximum address we can use for the control code buffer */
-# define KEXEC_CONTROL_MEMORY_LIMIT TASK_SIZE
+	/* Maximum physical address we can use pages from */
+	#define KEXEC_SOURCE_MEMORY_LIMIT (-1UL)
+	/* Maximum address we can reach in physical address mode */
+	#define KEXEC_DESTINATION_MEMORY_LIMIT (-1UL)
+	/* Maximum address we can use for the control code buffer */
+	#define KEXEC_CONTROL_MEMORY_LIMIT TASK_SIZE
 
-# define KEXEC_CONTROL_PAGE_SIZE	4096
+	#define KEXEC_CONTROL_PAGE_SIZE	4096
 
-/* The native architecture */
-# define KEXEC_ARCH KEXEC_ARCH_386
+	/* The native architecture */
+	#define KEXEC_ARCH KEXEC_ARCH_386
 
-/* We can also handle crash dumps from 64 bit kernel. */
-# define vmcore_elf_check_arch_cross(x) ((x)->e_machine == EM_X86_64)
+	/* We can also handle crash dumps from 64 bit kernel. */
+	#define vmcore_elf_check_arch_cross(x) ((x)->e_machine == EM_X86_64)
 #else
-/* Maximum physical address we can use pages from */
-# define KEXEC_SOURCE_MEMORY_LIMIT      (MAXMEM-1)
-/* Maximum address we can reach in physical address mode */
-# define KEXEC_DESTINATION_MEMORY_LIMIT (MAXMEM-1)
-/* Maximum address we can use for the control pages */
-# define KEXEC_CONTROL_MEMORY_LIMIT     (MAXMEM-1)
+	/* Maximum physical address we can use pages from */
+	#define KEXEC_SOURCE_MEMORY_LIMIT      (MAXMEM-1)
+	/* Maximum address we can reach in physical address mode */
+	#define KEXEC_DESTINATION_MEMORY_LIMIT (MAXMEM-1)
+	/* Maximum address we can use for the control pages */
+	#define KEXEC_CONTROL_MEMORY_LIMIT     (MAXMEM-1)
 
-/* Allocate one page for the pdp and the second for the code */
-# define KEXEC_CONTROL_PAGE_SIZE  (4096UL + 4096UL)
+	/* Allocate one page for the pdp and the second for the code */
+	#define KEXEC_CONTROL_PAGE_SIZE  (4096UL + 4096UL)
 
-/* The native architecture */
-# define KEXEC_ARCH KEXEC_ARCH_X86_64
+	/* The native architecture */
+	#define KEXEC_ARCH KEXEC_ARCH_X86_64
 #endif
 
 /* Memory to backup during crash kdump */
@@ -74,13 +74,13 @@ struct kimage;
  * fixes it.
  */
 static inline void crash_fixup_ss_esp(struct pt_regs *newregs,
-				      struct pt_regs *oldregs)
+									  struct pt_regs *oldregs)
 {
 #ifdef CONFIG_X86_32
-	newregs->sp = (unsigned long)&(oldregs->sp);
+	newregs->sp = (unsigned long) & (oldregs->sp);
 	asm volatile("xorl %%eax, %%eax\n\t"
-		     "movw %%ss, %%ax\n\t"
-		     :"=a"(newregs->ss));
+				 "movw %%ss, %%ax\n\t"
+				 :"=a"(newregs->ss));
 #endif
 }
 
@@ -90,12 +90,15 @@ static inline void crash_fixup_ss_esp(struct pt_regs *newregs,
  * mode exception.
  */
 static inline void crash_setup_regs(struct pt_regs *newregs,
-				    struct pt_regs *oldregs)
+									struct pt_regs *oldregs)
 {
-	if (oldregs) {
+	if (oldregs)
+	{
 		memcpy(newregs, oldregs, sizeof(*newregs));
 		crash_fixup_ss_esp(newregs, oldregs);
-	} else {
+	}
+	else
+	{
 #ifdef CONFIG_X86_32
 		asm volatile("movl %%ebx,%0" : "=m"(newregs->bx));
 		asm volatile("movl %%ecx,%0" : "=m"(newregs->cx));
@@ -138,22 +141,23 @@ static inline void crash_setup_regs(struct pt_regs *newregs,
 #ifdef CONFIG_X86_32
 asmlinkage unsigned long
 relocate_kernel(unsigned long indirection_page,
-		unsigned long control_page,
-		unsigned long start_address,
-		unsigned int has_pae,
-		unsigned int preserve_context);
+				unsigned long control_page,
+				unsigned long start_address,
+				unsigned int has_pae,
+				unsigned int preserve_context);
 #else
 unsigned long
 relocate_kernel(unsigned long indirection_page,
-		unsigned long page_list,
-		unsigned long start_address,
-		unsigned int preserve_context);
+				unsigned long page_list,
+				unsigned long start_address,
+				unsigned int preserve_context);
 #endif
 
 #define ARCH_HAS_KIMAGE_ARCH
 
 #ifdef CONFIG_X86_32
-struct kimage_arch {
+struct kimage_arch
+{
 	pgd_t *pgd;
 #ifdef CONFIG_X86_PAE
 	pmd_t *pmd0;
@@ -163,7 +167,8 @@ struct kimage_arch {
 	pte_t *pte1;
 };
 #else
-struct kimage_arch {
+struct kimage_arch
+{
 	pud_t *pud;
 	pmd_t *pmd;
 	pte_t *pte;
@@ -187,7 +192,8 @@ struct kimage_arch {
  * with the ones in arch/x86/purgatory/entry64.S. If you make a change here
  * make an appropriate change in purgatory too.
  */
-struct kexec_entry64_regs {
+struct kexec_entry64_regs
+{
 	uint64_t rax;
 	uint64_t rcx;
 	uint64_t rdx;

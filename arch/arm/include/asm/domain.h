@@ -11,8 +11,8 @@
 #define __ASM_PROC_DOMAIN_H
 
 #ifndef __ASSEMBLY__
-#include <asm/barrier.h>
-#include <asm/thread_info.h>
+	#include <asm/barrier.h>
+	#include <asm/thread_info.h>
 #endif
 
 /*
@@ -34,13 +34,13 @@
  * CPUs based on ARMv6+ or the Intel XSC3 core.
  */
 #ifndef CONFIG_IO_36
-#define DOMAIN_KERNEL	0
-#define DOMAIN_USER	1
-#define DOMAIN_IO	2
+	#define DOMAIN_KERNEL	0
+	#define DOMAIN_USER	1
+	#define DOMAIN_IO	2
 #else
-#define DOMAIN_KERNEL	2
-#define DOMAIN_USER	1
-#define DOMAIN_IO	0
+	#define DOMAIN_KERNEL	2
+	#define DOMAIN_USER	1
+	#define DOMAIN_IO	0
 #endif
 #define DOMAIN_VECTORS	3
 
@@ -50,9 +50,9 @@
 #define DOMAIN_NOACCESS	0
 #define DOMAIN_CLIENT	1
 #ifdef CONFIG_CPU_USE_DOMAINS
-#define DOMAIN_MANAGER	3
+	#define DOMAIN_MANAGER	3
 #else
-#define DOMAIN_MANAGER	1
+	#define DOMAIN_MANAGER	1
 #endif
 
 #define domain_mask(dom)	((3) << (2 * (dom)))
@@ -90,9 +90,9 @@ static inline unsigned int get_domain(void)
 	unsigned int domain;
 
 	asm(
-	"mrc	p15, 0, %0, c3, c0	@ get domain"
-	 : "=r" (domain)
-	 : "m" (current_thread_info()->cpu_domain));
+		"mrc	p15, 0, %0, c3, c0	@ get domain"
+		: "=r" (domain)
+		: "m" (current_thread_info()->cpu_domain));
 
 	return domain;
 }
@@ -100,8 +100,8 @@ static inline unsigned int get_domain(void)
 static inline void set_domain(unsigned val)
 {
 	asm volatile(
-	"mcr	p15, 0, %0, c3, c0	@ set domain"
-	  : : "r" (val) : "memory");
+		"mcr	p15, 0, %0, c3, c0	@ set domain"
+		: : "r" (val) : "memory");
 	isb();
 }
 #else
@@ -133,9 +133,9 @@ static inline void modify_domain(unsigned dom, unsigned type)	{ }
  * instructions (inline assembly)
  */
 #ifdef CONFIG_CPU_USE_DOMAINS
-#define TUSER(instr)	#instr "t"
+	#define TUSER(instr)	#instr "t"
 #else
-#define TUSER(instr)	#instr
+	#define TUSER(instr)	#instr
 #endif
 
 #else /* __ASSEMBLY__ */
@@ -145,9 +145,9 @@ static inline void modify_domain(unsigned dom, unsigned type)	{ }
  * instructions
  */
 #ifdef CONFIG_CPU_USE_DOMAINS
-#define TUSER(instr)	instr ## t
+	#define TUSER(instr)	instr ## t
 #else
-#define TUSER(instr)	instr
+	#define TUSER(instr)	instr
 #endif
 
 #endif /* __ASSEMBLY__ */

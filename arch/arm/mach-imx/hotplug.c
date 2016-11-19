@@ -23,19 +23,19 @@ static inline void cpu_enter_lowpower(void)
 
 	asm volatile(
 		"mcr	p15, 0, %1, c7, c5, 0\n"
-	"	mcr	p15, 0, %1, c7, c10, 4\n"
-	/*
-	 * Turn off coherency
-	 */
-	"	mrc	p15, 0, %0, c1, c0, 1\n"
-	"	bic	%0, %0, %3\n"
-	"	mcr	p15, 0, %0, c1, c0, 1\n"
-	"	mrc	p15, 0, %0, c1, c0, 0\n"
-	"	bic	%0, %0, %2\n"
-	"	mcr	p15, 0, %0, c1, c0, 0\n"
-	  : "=&r" (v)
-	  : "r" (0), "Ir" (CR_C), "Ir" (0x40)
-	  : "cc");
+		"	mcr	p15, 0, %1, c7, c10, 4\n"
+		/*
+		 * Turn off coherency
+		 */
+		"	mrc	p15, 0, %0, c1, c0, 1\n"
+		"	bic	%0, %0, %3\n"
+		"	mcr	p15, 0, %0, c1, c0, 1\n"
+		"	mrc	p15, 0, %0, c1, c0, 0\n"
+		"	bic	%0, %0, %2\n"
+		"	mcr	p15, 0, %0, c1, c0, 0\n"
+		: "=&r" (v)
+		: "r" (0), "Ir" (CR_C), "Ir" (0x40)
+		: "cc");
 }
 
 /*
@@ -54,7 +54,9 @@ void imx_cpu_die(unsigned int cpu)
 	imx_set_cpu_arg(cpu, ~0);
 
 	while (1)
+	{
 		cpu_do_idle();
+	}
 }
 
 int imx_cpu_kill(unsigned int cpu)
@@ -63,7 +65,10 @@ int imx_cpu_kill(unsigned int cpu)
 
 	while (imx_get_cpu_arg(cpu) == 0)
 		if (time_after(jiffies, timeout))
+		{
 			return 0;
+		}
+
 	imx_enable_cpu(cpu, false);
 	imx_set_cpu_arg(cpu, 0);
 	return 1;

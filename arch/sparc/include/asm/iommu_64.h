@@ -18,13 +18,15 @@
 #define IOMMU_NUM_CTXS	4096
 #include <linux/iommu-common.h>
 
-struct iommu_arena {
+struct iommu_arena
+{
 	unsigned long	*map;
 	unsigned int	hint;
 	unsigned int	limit;
 };
 
-struct iommu {
+struct iommu
+{
 	struct iommu_map_table	tbl;
 	spinlock_t		lock;
 	u32			dma_addr_mask;
@@ -42,7 +44,8 @@ struct iommu {
 	DECLARE_BITMAP(ctx_bitmap, IOMMU_NUM_CTXS);
 };
 
-struct strbuf {
+struct strbuf
+{
 	int			strbuf_enabled;
 	unsigned long		strbuf_control;
 	unsigned long		strbuf_pflush;
@@ -54,11 +57,11 @@ struct strbuf {
 	unsigned long		strbuf_ctxmatch_base;
 	unsigned long		strbuf_flushflag_pa;
 	volatile unsigned long *strbuf_flushflag;
-	volatile unsigned long	__flushflag_buf[(64+(64-1)) / sizeof(long)];
+	volatile unsigned long	__flushflag_buf[(64 + (64 - 1)) / sizeof(long)];
 };
 
 int iommu_table_init(struct iommu *iommu, int tsbsize,
-		     u32 dma_offset, u32 dma_addr_mask,
-		     int numa_node);
+					 u32 dma_offset, u32 dma_addr_mask,
+					 int numa_node);
 
 #endif /* !(_SPARC64_IOMMU_H) */

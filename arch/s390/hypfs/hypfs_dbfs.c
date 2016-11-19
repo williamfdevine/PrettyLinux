@@ -15,8 +15,12 @@ static struct hypfs_dbfs_data *hypfs_dbfs_data_alloc(struct hypfs_dbfs_file *f)
 	struct hypfs_dbfs_data *data;
 
 	data = kmalloc(sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return NULL;
+	}
+
 	data->dbfs_file = f;
 	return data;
 }
@@ -28,28 +32,36 @@ static void hypfs_dbfs_data_free(struct hypfs_dbfs_data *data)
 }
 
 static ssize_t dbfs_read(struct file *file, char __user *buf,
-			 size_t size, loff_t *ppos)
+						 size_t size, loff_t *ppos)
 {
 	struct hypfs_dbfs_data *data;
 	struct hypfs_dbfs_file *df;
 	ssize_t rc;
 
 	if (*ppos != 0)
+	{
 		return 0;
+	}
 
 	df = file_inode(file)->i_private;
 	mutex_lock(&df->lock);
 	data = hypfs_dbfs_data_alloc(df);
-	if (!data) {
+
+	if (!data)
+	{
 		mutex_unlock(&df->lock);
 		return -ENOMEM;
 	}
+
 	rc = df->data_create(&data->buf, &data->buf_free_ptr, &data->size);
-	if (rc) {
+
+	if (rc)
+	{
 		mutex_unlock(&df->lock);
 		kfree(data);
 		return rc;
 	}
+
 	mutex_unlock(&df->lock);
 
 	rc = simple_read_from_buffer(buf, size, ppos, data->buf, data->size);
@@ -63,15 +75,22 @@ static long dbfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	long rc;
 
 	mutex_lock(&df->lock);
+
 	if (df->unlocked_ioctl)
+	{
 		rc = df->unlocked_ioctl(file, cmd, arg);
+	}
 	else
+	{
 		rc = -ENOTTY;
+	}
+
 	mutex_unlock(&df->lock);
 	return rc;
 }
 
-static const struct file_operations dbfs_ops = {
+static const struct file_operations dbfs_ops =
+{
 	.read		= dbfs_read,
 	.llseek		= no_llseek,
 	.unlocked_ioctl = dbfs_ioctl,
@@ -80,9 +99,13 @@ static const struct file_operations dbfs_ops = {
 int hypfs_dbfs_create_file(struct hypfs_dbfs_file *df)
 {
 	df->dentry = debugfs_create_file(df->name, 0400, dbfs_dir, df,
-					 &dbfs_ops);
+									 &dbfs_ops);
+
 	if (IS_ERR(df->dentry))
+	{
 		return PTR_ERR(df->dentry);
+	}
+
 	mutex_init(&df->lock);
 	return 0;
 }

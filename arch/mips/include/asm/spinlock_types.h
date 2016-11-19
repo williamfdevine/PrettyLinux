@@ -2,20 +2,22 @@
 #define _ASM_SPINLOCK_TYPES_H
 
 #ifndef __LINUX_SPINLOCK_TYPES_H
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
 #include <linux/types.h>
 
 #include <asm/byteorder.h>
 
-typedef union {
+typedef union
+{
 	/*
 	 * bits	 0..15 : serving_now
 	 * bits 16..31 : ticket
 	 */
 	u32 lock;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN
 		u16 ticket;
 		u16 serving_now;
@@ -28,7 +30,8 @@ typedef union {
 
 #define __ARCH_SPIN_LOCK_UNLOCKED	{ .lock = 0 }
 
-typedef struct {
+typedef struct
+{
 	volatile unsigned int lock;
 } arch_rwlock_t;
 

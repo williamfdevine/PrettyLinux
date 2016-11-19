@@ -48,17 +48,20 @@ static void ks8695_pci_setupconfig(unsigned int bus_nr, unsigned int devfn, unsi
 	pbca |= PCI_FUNC(devfn) << 8;
 	pbca |= bus_nr << 16;
 
-	if (bus_nr == 0) {
+	if (bus_nr == 0)
+	{
 		/* use Type-0 transaction */
 		__raw_writel(pbca, KS8695_PCI_VA + KS8695_PBCA);
-	} else {
+	}
+	else
+	{
 		/* use Type-1 transaction */
 		__raw_writel(pbca | PBCA_TYPE1, KS8695_PCI_VA + KS8695_PBCA);
 	}
 }
 
 static void __iomem *ks8695_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
-					int where)
+										int where)
 {
 	ks8695_pci_setupconfig(bus->number, devfn, where);
 	return KS8695_PCI_VA +  KS8695_PBCD;
@@ -70,20 +73,23 @@ static void ks8695_local_writeconfig(int where, u32 value)
 	__raw_writel(value, KS8695_PCI_VA + KS8695_PBCD);
 }
 
-static struct pci_ops ks8695_pci_ops = {
+static struct pci_ops ks8695_pci_ops =
+{
 	.map_bus = ks8695_pci_map_bus,
 	.read	= pci_generic_config_read32,
 	.write	= pci_generic_config_write32,
 };
 
-static struct resource pci_mem = {
+static struct resource pci_mem =
+{
 	.name	= "PCI Memory space",
 	.start	= KS8695_PCIMEM_PA,
 	.end	= KS8695_PCIMEM_PA + (KS8695_PCIMEM_SIZE - 1),
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct resource pci_io = {
+static struct resource pci_io =
+{
 	.name	= "PCI IO space",
 	.start	= KS8695_PCIIO_PA,
 	.end	= KS8695_PCIIO_PA + (KS8695_PCIIO_SIZE - 1),
@@ -93,7 +99,9 @@ static struct resource pci_io = {
 static int __init ks8695_pci_setup(int nr, struct pci_sys_data *sys)
 {
 	if (nr > 0)
+	{
 		return 0;
+	}
 
 	request_resource(&iomem_resource, &pci_mem);
 	request_resource(&ioport_resource, &pci_io);
@@ -111,7 +119,8 @@ static int __init ks8695_pci_setup(int nr, struct pci_sys_data *sys)
 	ks8695_local_writeconfig(PCI_CACHE_LINE_SIZE, (32 << 8) | (L1_CACHE_BYTES / sizeof(u32)));
 
 	/* Reserve PCI memory space for PCI-AHB resources */
-	if (!request_mem_region(KS8695_PCIMEM_PA, SZ_64M, "PCI-AHB Bridge")) {
+	if (!request_mem_region(KS8695_PCIMEM_PA, SZ_64M, "PCI-AHB Bridge"))
+	{
 		printk(KERN_ERR "Cannot allocate PCI-AHB Bridge memory.\n");
 		return -EBUSY;
 	}
@@ -133,13 +142,13 @@ static int ks8695_pci_fault(unsigned long addr, unsigned int fsr, struct pt_regs
 	cmdstat = __raw_readl(KS8695_PCI_VA + KS8695_CRCFCS);
 
 	printk(KERN_ERR "PCI abort: address = 0x%08lx fsr = 0x%03x PC = 0x%08lx LR = 0x%08lx [%s%s%s%s%s]\n",
-		addr, fsr, regs->ARM_pc, regs->ARM_lr,
-		cmdstat & (PCI_STATUS_SIG_TARGET_ABORT << 16) ? "GenTarget" : " ",
-		cmdstat & (PCI_STATUS_REC_TARGET_ABORT << 16) ? "RecvTarget" : " ",
-		cmdstat & (PCI_STATUS_REC_MASTER_ABORT << 16) ? "MasterAbort" : " ",
-		cmdstat & (PCI_STATUS_SIG_SYSTEM_ERROR << 16) ? "SysError" : " ",
-		cmdstat & (PCI_STATUS_DETECTED_PARITY << 16)  ? "Parity" : " "
-	);
+		   addr, fsr, regs->ARM_pc, regs->ARM_lr,
+		   cmdstat & (PCI_STATUS_SIG_TARGET_ABORT << 16) ? "GenTarget" : " ",
+		   cmdstat & (PCI_STATUS_REC_TARGET_ABORT << 16) ? "RecvTarget" : " ",
+		   cmdstat & (PCI_STATUS_REC_MASTER_ABORT << 16) ? "MasterAbort" : " ",
+		   cmdstat & (PCI_STATUS_SIG_SYSTEM_ERROR << 16) ? "SysError" : " ",
+		   cmdstat & (PCI_STATUS_DETECTED_PARITY << 16)  ? "Parity" : " "
+		  );
 
 	__raw_writel(cmdstat, KS8695_PCI_VA + KS8695_CRCFCS);
 
@@ -147,21 +156,27 @@ static int ks8695_pci_fault(unsigned long addr, unsigned int fsr, struct pt_regs
 	 * If the instruction being executed was a read,
 	 * make it look like it read all-ones.
 	 */
-	if ((instr & 0x0c100000) == 0x04100000) {
+	if ((instr & 0x0c100000) == 0x04100000)
+	{
 		int reg = (instr >> 12) & 15;
 		unsigned long val;
 
 		if (instr & 0x00400000)
+		{
 			val = 255;
+		}
 		else
+		{
 			val = -1;
+		}
 
 		regs->uregs[reg] = val;
 		regs->ARM_pc += 4;
 		return 0;
 	}
 
-	if ((instr & 0x0e100090) == 0x00100090) {
+	if ((instr & 0x0e100090) == 0x00100090)
+	{
 		int reg = (instr >> 12) & 15;
 
 		regs->uregs[reg] = -1;
@@ -204,7 +219,9 @@ static void __init ks8695_pci_preinit(void)
 static void ks8695_show_pciregs(void)
 {
 	if (!pci_dbg)
+	{
 		return;
+	}
 
 	printk(KERN_INFO "PCI: CRCFID = %08x\n", __raw_readl(KS8695_PCI_VA + KS8695_CRCFID));
 	printk(KERN_INFO "PCI: CRCFCS = %08x\n", __raw_readl(KS8695_PCI_VA + KS8695_CRCFCS));
@@ -229,7 +246,8 @@ static void ks8695_show_pciregs(void)
 }
 
 
-static struct hw_pci ks8695_pci __initdata = {
+static struct hw_pci ks8695_pci __initdata =
+{
 	.nr_controllers	= 1,
 	.ops		= &ks8695_pci_ops,
 	.preinit	= ks8695_pci_preinit,
@@ -240,7 +258,8 @@ static struct hw_pci ks8695_pci __initdata = {
 
 void __init ks8695_init_pci(struct ks8695_pci_cfg *cfg)
 {
-	if (__raw_readl(KS8695_PCI_VA + KS8695_CRCFRV) & CFRV_GUEST) {
+	if (__raw_readl(KS8695_PCI_VA + KS8695_CRCFRV) & CFRV_GUEST)
+	{
 		printk("PCI: KS8695 in guest mode, not initialising\n");
 		return;
 	}

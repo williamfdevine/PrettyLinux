@@ -48,23 +48,32 @@ static int mpc834xemds_usb_cfg(void)
 	mpc834x_usb_cfg();
 	/* Map BCSR area */
 	np = of_find_node_by_name(NULL, "bcsr");
-	if (np) {
+
+	if (np)
+	{
 		struct resource res;
 
 		of_address_to_resource(np, 0, &res);
 		bcsr_regs = ioremap(res.start, resource_size(&res));
 		of_node_put(np);
 	}
+
 	if (!bcsr_regs)
+	{
 		return -1;
+	}
 
 	/*
 	 * if Processor Board is plugged into PIB board,
 	 * force to use the PHY on Processor Board
 	 */
 	bcsr5 = in_8(bcsr_regs + 5);
+
 	if (!(bcsr5 & BCSR5_INT_USB))
+	{
 		out_8(bcsr_regs + 5, (bcsr5 | BCSR5_INT_USB));
+	}
+
 	iounmap(bcsr_regs);
 	return 0;
 }
@@ -91,14 +100,15 @@ static int __init mpc834x_mds_probe(void)
 	return of_machine_is_compatible("MPC834xMDS");
 }
 
-define_machine(mpc834x_mds) {
+define_machine(mpc834x_mds)
+{
 	.name			= "MPC834x MDS",
-	.probe			= mpc834x_mds_probe,
-	.setup_arch		= mpc834x_mds_setup_arch,
-	.init_IRQ		= mpc83xx_ipic_init_IRQ,
-	.get_irq		= ipic_get_irq,
-	.restart		= mpc83xx_restart,
-	.time_init		= mpc83xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mpc834x_mds_probe,
+					 .setup_arch		= mpc834x_mds_setup_arch,
+						 .init_IRQ		= mpc83xx_ipic_init_IRQ,
+							   .get_irq		= ipic_get_irq,
+									  .restart		= mpc83xx_restart,
+											 .time_init		= mpc83xx_time_init,
+												  .calibrate_decr		= generic_calibrate_decr,
+													  .progress		= udbg_progress,
 };

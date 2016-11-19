@@ -39,7 +39,7 @@
 static inline void *lcsr_address(unsigned long offset)
 {
 	return __va(NUMACHIP_LCSR_BASE | (1UL << 15) |
-		CSR_NODE_BITS(0xfff0) | (offset & CSR_OFFSET_MASK));
+				CSR_NODE_BITS(0xfff0) | (offset & CSR_OFFSET_MASK));
 }
 
 static inline unsigned int read_lcsr(unsigned long offset)
@@ -67,7 +67,7 @@ static inline void write_lcsr(unsigned long offset, unsigned int val)
 static inline void __iomem *numachip2_lcsr_address(unsigned long offset)
 {
 	return (void __iomem *)__va(NUMACHIP2_LCSR_BASE |
-		(offset & (NUMACHIP2_LCSR_SIZE - 1)));
+								(offset & (NUMACHIP2_LCSR_SIZE - 1)));
 }
 
 static inline u32 numachip2_read32_lcsr(unsigned long offset)

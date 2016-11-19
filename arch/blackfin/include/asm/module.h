@@ -9,7 +9,8 @@
 
 #include <asm-generic/module.h>
 
-struct mod_arch_specific {
+struct mod_arch_specific
+{
 	Elf_Shdr	*text_l1;
 	Elf_Shdr	*data_a_l1;
 	Elf_Shdr	*bss_a_l1;

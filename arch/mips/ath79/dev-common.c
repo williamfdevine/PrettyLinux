@@ -24,7 +24,8 @@
 #include "common.h"
 #include "dev-common.h"
 
-static struct resource ath79_uart_resources[] = {
+static struct resource ath79_uart_resources[] =
+{
 	{
 		.start	= AR71XX_UART_BASE,
 		.end	= AR71XX_UART_BASE + AR71XX_UART_SIZE - 1,
@@ -33,7 +34,8 @@ static struct resource ath79_uart_resources[] = {
 };
 
 #define AR71XX_UART_FLAGS (UPF_BOOT_AUTOCONF | UPF_SKIP_TEST | UPF_IOREMAP)
-static struct plat_serial8250_port ath79_uart_data[] = {
+static struct plat_serial8250_port ath79_uart_data[] =
+{
 	{
 		.mapbase	= AR71XX_UART_BASE,
 		.irq		= ATH79_MISC_IRQ(3),
@@ -45,7 +47,8 @@ static struct plat_serial8250_port ath79_uart_data[] = {
 	}
 };
 
-static struct platform_device ath79_uart_device = {
+static struct platform_device ath79_uart_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.resource	= ath79_uart_resources,
@@ -55,7 +58,8 @@ static struct platform_device ath79_uart_device = {
 	},
 };
 
-static struct resource ar933x_uart_resources[] = {
+static struct resource ar933x_uart_resources[] =
+{
 	{
 		.start	= AR933X_UART_BASE,
 		.end	= AR933X_UART_BASE + AR71XX_UART_SIZE - 1,
@@ -68,7 +72,8 @@ static struct resource ar933x_uart_resources[] = {
 	},
 };
 
-static struct platform_device ar933x_uart_device = {
+static struct platform_device ar933x_uart_device =
+{
 	.name		= "ar933x-uart",
 	.id		= -1,
 	.resource	= ar933x_uart_resources,
@@ -82,15 +87,20 @@ void __init ath79_register_uart(void)
 	uart_clk_rate = ath79_get_sys_clk_rate("uart");
 
 	if (soc_is_ar71xx() ||
-	    soc_is_ar724x() ||
-	    soc_is_ar913x() ||
-	    soc_is_ar934x() ||
-	    soc_is_qca955x()) {
+		soc_is_ar724x() ||
+		soc_is_ar913x() ||
+		soc_is_ar934x() ||
+		soc_is_qca955x())
+	{
 		ath79_uart_data[0].uartclk = uart_clk_rate;
 		platform_device_register(&ath79_uart_device);
-	} else if (soc_is_ar933x()) {
+	}
+	else if (soc_is_ar933x())
+	{
 		platform_device_register(&ar933x_uart_device);
-	} else {
+	}
+	else
+	{
 		BUG();
 	}
 }
@@ -110,7 +120,8 @@ void __init ath79_register_wdt(void)
 
 static struct ath79_gpio_platform_data ath79_gpio_pdata;
 
-static struct resource ath79_gpio_resources[] = {
+static struct resource ath79_gpio_resources[] =
+{
 	{
 		.flags = IORESOURCE_MEM,
 		.start = AR71XX_GPIO_BASE,
@@ -123,7 +134,8 @@ static struct resource ath79_gpio_resources[] = {
 	},
 };
 
-static struct platform_device ath79_gpio_device = {
+static struct platform_device ath79_gpio_device =
+{
 	.name		= "ath79-gpio",
 	.id		= -1,
 	.resource	= ath79_gpio_resources,
@@ -135,23 +147,38 @@ static struct platform_device ath79_gpio_device = {
 
 void __init ath79_gpio_init(void)
 {
-	if (soc_is_ar71xx()) {
+	if (soc_is_ar71xx())
+	{
 		ath79_gpio_pdata.ngpios = AR71XX_GPIO_COUNT;
-	} else if (soc_is_ar7240()) {
+	}
+	else if (soc_is_ar7240())
+	{
 		ath79_gpio_pdata.ngpios = AR7240_GPIO_COUNT;
-	} else if (soc_is_ar7241() || soc_is_ar7242()) {
+	}
+	else if (soc_is_ar7241() || soc_is_ar7242())
+	{
 		ath79_gpio_pdata.ngpios = AR7241_GPIO_COUNT;
-	} else if (soc_is_ar913x()) {
+	}
+	else if (soc_is_ar913x())
+	{
 		ath79_gpio_pdata.ngpios = AR913X_GPIO_COUNT;
-	} else if (soc_is_ar933x()) {
+	}
+	else if (soc_is_ar933x())
+	{
 		ath79_gpio_pdata.ngpios = AR933X_GPIO_COUNT;
-	} else if (soc_is_ar934x()) {
+	}
+	else if (soc_is_ar934x())
+	{
 		ath79_gpio_pdata.ngpios = AR934X_GPIO_COUNT;
 		ath79_gpio_pdata.oe_inverted = 1;
-	} else if (soc_is_qca955x()) {
+	}
+	else if (soc_is_qca955x())
+	{
 		ath79_gpio_pdata.ngpios = QCA955X_GPIO_COUNT;
 		ath79_gpio_pdata.oe_inverted = 1;
-	} else {
+	}
+	else
+	{
 		BUG();
 	}
 

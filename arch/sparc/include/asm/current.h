@@ -14,7 +14,7 @@
 #include <linux/thread_info.h>
 
 #ifdef CONFIG_SPARC64
-register struct task_struct *current asm("g4");
+	register struct task_struct *current asm("g4");
 #endif
 
 #ifdef CONFIG_SPARC32

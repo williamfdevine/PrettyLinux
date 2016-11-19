@@ -33,7 +33,9 @@
 static inline void contextidr_thread_switch(struct task_struct *next)
 {
 	if (!IS_ENABLED(CONFIG_PID_IN_CONTEXTIDR))
+	{
 		return;
+	}
 
 	write_sysreg(task_pid_nr(next), contextidr_el1);
 	isb();
@@ -60,7 +62,7 @@ extern u64 idmap_t0sz;
 static inline bool __cpu_uses_extended_idmap(void)
 {
 	return (!IS_ENABLED(CONFIG_ARM64_VA_BITS_48) &&
-		unlikely(idmap_t0sz != TCR_T0SZ(VA_BITS)));
+			unlikely(idmap_t0sz != TCR_T0SZ(VA_BITS)));
 }
 
 /*
@@ -71,7 +73,9 @@ static inline void __cpu_set_tcr_t0sz(unsigned long t0sz)
 	unsigned long tcr;
 
 	if (!__cpu_uses_extended_idmap())
+	{
 		return;
+	}
 
 	tcr = read_sysreg(tcr_el1);
 	tcr &= ~TCR_T0SZ_MASK;
@@ -104,7 +108,9 @@ static inline void cpu_uninstall_idmap(void)
 	cpu_set_default_tcr_t0sz();
 
 	if (mm != &init_mm)
+	{
 		cpu_switch_mm(mm->pgd, mm);
+	}
 }
 
 static inline void cpu_install_idmap(void)
@@ -171,18 +177,21 @@ enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
  */
 static inline void
 switch_mm(struct mm_struct *prev, struct mm_struct *next,
-	  struct task_struct *tsk)
+		  struct task_struct *tsk)
 {
 	unsigned int cpu = smp_processor_id();
 
 	if (prev == next)
+	{
 		return;
+	}
 
 	/*
 	 * init_mm.pgd does not contain any user mappings and it is always
 	 * active for kernel addresses in TTBR1. Just set the reserved TTBR0.
 	 */
-	if (next == &init_mm) {
+	if (next == &init_mm)
+	{
 		cpu_set_reserved_ttbr0();
 		return;
 	}

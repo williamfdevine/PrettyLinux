@@ -67,24 +67,32 @@ void flush_thread(void) {}
  * set up the kernel stack and exception frames for a new process
  */
 int copy_thread(unsigned long clone_flags, unsigned long usp,
-		unsigned long arg, struct task_struct *p)
+				unsigned long arg, struct task_struct *p)
 {
 	struct thread_info *ti = task_thread_info(p);
 	struct pt_regs *childregs = task_pt_regs(p);
 	struct pt_regs *regs = current_pt_regs();
 
 	p->thread.reg0 = (unsigned long) childregs;
-	if (unlikely(p->flags & PF_KTHREAD)) {
+
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		memset(childregs, 0, sizeof(struct pt_regs));
 		p->thread.reg12 = usp;
 		p->thread.reg13 = arg;
 		p->thread.reg3 = (unsigned long) ret_from_kernel_thread;
-	} else {
+	}
+	else
+	{
 		*childregs = *current_pt_regs();
 		childregs->regs[7] = 0;		/* Clear error flag */
 		childregs->regs[4] = 0;		/* Child gets zero as return value */
+
 		if (usp)
-			childregs->regs[0] = usp;	/* user fork */
+		{
+			childregs->regs[0] = usp;    /* user fork */
+		}
+
 		p->thread.reg3 = (unsigned long) ret_from_fork;
 	}
 
@@ -107,10 +115,14 @@ unsigned long thread_saved_pc(struct task_struct *tsk)
 unsigned long get_wchan(struct task_struct *task)
 {
 	if (!task || task == current || task->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	if (!task_stack_page(task))
+	{
 		return 0;
+	}
 
 	return task_pt_regs(task)->cp0_epc;
 }

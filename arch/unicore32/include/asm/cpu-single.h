@@ -24,7 +24,7 @@
 	({						\
 		unsigned long pg;			\
 		__asm__("movc	%0, p0.c2, #0"		\
-			 : "=r" (pg) : : "cc");		\
+				: "=r" (pg) : : "cc");		\
 		pg &= ~0x0fff;				\
 		(pgd_t *)phys_to_virt(pg);		\
 	})

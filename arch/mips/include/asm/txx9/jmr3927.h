@@ -83,13 +83,13 @@
 #define JMR3927_IOC_RESET_PCI	2
 
 #if defined(__BIG_ENDIAN)
-#define jmr3927_ioc_reg_out(d, a)	((*(volatile unsigned char *)(a)) = (d))
-#define jmr3927_ioc_reg_in(a)		(*(volatile unsigned char *)(a))
+	#define jmr3927_ioc_reg_out(d, a)	((*(volatile unsigned char *)(a)) = (d))
+	#define jmr3927_ioc_reg_in(a)		(*(volatile unsigned char *)(a))
 #elif defined(__LITTLE_ENDIAN)
-#define jmr3927_ioc_reg_out(d, a)	((*(volatile unsigned char *)((a)^1)) = (d))
-#define jmr3927_ioc_reg_in(a)		(*(volatile unsigned char *)((a)^1))
+	#define jmr3927_ioc_reg_out(d, a)	((*(volatile unsigned char *)((a)^1)) = (d))
+	#define jmr3927_ioc_reg_in(a)		(*(volatile unsigned char *)((a)^1))
 #else
-#error "No Endian"
+	#error "No Endian"
 #endif
 
 /* LED macro */

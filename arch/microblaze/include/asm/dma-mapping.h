@@ -44,23 +44,26 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 }
 
 static inline void __dma_sync(unsigned long paddr,
-			      size_t size, enum dma_data_direction direction)
+							  size_t size, enum dma_data_direction direction)
 {
-	switch (direction) {
-	case DMA_TO_DEVICE:
-	case DMA_BIDIRECTIONAL:
-		flush_dcache_range(paddr, paddr + size);
-		break;
-	case DMA_FROM_DEVICE:
-		invalidate_dcache_range(paddr, paddr + size);
-		break;
-	default:
-		BUG();
+	switch (direction)
+	{
+		case DMA_TO_DEVICE:
+		case DMA_BIDIRECTIONAL:
+			flush_dcache_range(paddr, paddr + size);
+			break;
+
+		case DMA_FROM_DEVICE:
+			invalidate_dcache_range(paddr, paddr + size);
+			break;
+
+		default:
+			BUG();
 	}
 }
 
 static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-		enum dma_data_direction direction)
+								  enum dma_data_direction direction)
 {
 	BUG_ON(direction == DMA_NONE);
 	__dma_sync(virt_to_phys(vaddr), size, (int)direction);

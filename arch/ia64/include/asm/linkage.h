@@ -3,11 +3,11 @@
 
 #ifndef __ASSEMBLY__
 
-#define asmlinkage CPP_ASMLINKAGE __attribute__((syscall_linkage))
+	#define asmlinkage CPP_ASMLINKAGE __attribute__((syscall_linkage))
 
 #else
 
-#include <asm/asmmacro.h>
+	#include <asm/asmmacro.h>
 
 #endif
 

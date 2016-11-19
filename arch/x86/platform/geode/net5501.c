@@ -31,7 +31,8 @@
 #define BIOS_REGION_BASE		0xffff0000
 #define BIOS_REGION_SIZE		0x00010000
 
-static struct gpio_keys_button net5501_gpio_buttons[] = {
+static struct gpio_keys_button net5501_gpio_buttons[] =
+{
 	{
 		.code = KEY_RESTART,
 		.gpio = 24,
@@ -43,13 +44,15 @@ static struct gpio_keys_button net5501_gpio_buttons[] = {
 		.can_disable = 0,
 	}
 };
-static struct gpio_keys_platform_data net5501_buttons_data = {
+static struct gpio_keys_platform_data net5501_buttons_data =
+{
 	.buttons = net5501_gpio_buttons,
 	.nbuttons = ARRAY_SIZE(net5501_gpio_buttons),
 	.poll_interval = 20,
 };
 
-static struct platform_device net5501_buttons_dev = {
+static struct platform_device net5501_buttons_dev =
+{
 	.name = "gpio-keys-polled",
 	.id = 1,
 	.dev = {
@@ -57,7 +60,8 @@ static struct platform_device net5501_buttons_dev = {
 	}
 };
 
-static struct gpio_led net5501_leds[] = {
+static struct gpio_led net5501_leds[] =
+{
 	{
 		.name = "net5501:1",
 		.gpio = 6,
@@ -66,18 +70,21 @@ static struct gpio_led net5501_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data net5501_leds_data = {
+static struct gpio_led_platform_data net5501_leds_data =
+{
 	.num_leds = ARRAY_SIZE(net5501_leds),
 	.leds = net5501_leds,
 };
 
-static struct platform_device net5501_leds_dev = {
+static struct platform_device net5501_leds_dev =
+{
 	.name = "leds-gpio",
 	.id = -1,
 	.dev.platform_data = &net5501_leds_data,
 };
 
-static struct platform_device *net5501_devs[] __initdata = {
+static struct platform_device *net5501_devs[] __initdata =
+{
 	&net5501_buttons_dev,
 	&net5501_leds_dev,
 };
@@ -88,13 +95,15 @@ static void __init register_net5501(void)
 	platform_add_devices(net5501_devs, ARRAY_SIZE(net5501_devs));
 }
 
-struct net5501_board {
+struct net5501_board
+{
 	u16	offset;
 	u16	len;
 	char	*sig;
 };
 
-static struct net5501_board __initdata boards[] = {
+static struct net5501_board __initdata boards[] =
+{
 	{ 0xb7b, 7, "net5501" },	/* net5501 v1.33/1.33c */
 	{ 0xb1f, 7, "net5501" },	/* net5501 v1.32i */
 };
@@ -106,7 +115,9 @@ static bool __init net5501_present(void)
 	bool found = false;
 
 	rombase = ioremap(BIOS_REGION_BASE, BIOS_REGION_SIZE - 1);
-	if (!rombase) {
+
+	if (!rombase)
+	{
 		printk(KERN_ERR "%s: failed to get rombase\n", KBUILD_MODNAME);
 		return found;
 	}
@@ -114,14 +125,18 @@ static bool __init net5501_present(void)
 	bios = rombase + 0x20;	/* null terminated */
 
 	if (memcmp(bios, "comBIOS", 7))
+	{
 		goto unmap;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(boards); i++) {
+	for (i = 0; i < ARRAY_SIZE(boards); i++)
+	{
 		unsigned char *model = rombase + boards[i].offset;
 
-		if (!memcmp(model, boards[i].sig, boards[i].len)) {
+		if (!memcmp(model, boards[i].sig, boards[i].len))
+		{
 			printk(KERN_INFO "%s: system is recognized as \"%s\"\n",
-			       KBUILD_MODNAME, model);
+				   KBUILD_MODNAME, model);
 
 			found = true;
 			break;
@@ -136,10 +151,14 @@ unmap:
 static int __init net5501_init(void)
 {
 	if (!is_geode())
+	{
 		return 0;
+	}
 
 	if (!net5501_present())
+	{
 		return 0;
+	}
 
 	register_net5501();
 

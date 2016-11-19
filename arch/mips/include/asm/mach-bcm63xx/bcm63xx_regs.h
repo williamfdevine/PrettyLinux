@@ -34,19 +34,19 @@
 #define CKCTL_3368_EPHY_EN		(1 << 21)
 
 #define CKCTL_3368_ALL_SAFE_EN		(CKCTL_3368_MAC_EN | \
-					 CKCTL_3368_TC_EN | \
-					 CKCTL_3368_US_TOP_EN | \
-					 CKCTL_3368_DS_TOP_EN | \
-					 CKCTL_3368_APM_EN | \
-					 CKCTL_3368_SPI_EN | \
-					 CKCTL_3368_USBS_EN | \
-					 CKCTL_3368_BMU_EN | \
-					 CKCTL_3368_PCM_EN | \
-					 CKCTL_3368_NTP_EN | \
-					 CKCTL_3368_ACP_B_EN | \
-					 CKCTL_3368_ACP_A_EN | \
-					 CKCTL_3368_EMUSB_EN | \
-					 CKCTL_3368_USBU_EN)
+									 CKCTL_3368_TC_EN | \
+									 CKCTL_3368_US_TOP_EN | \
+									 CKCTL_3368_DS_TOP_EN | \
+									 CKCTL_3368_APM_EN | \
+									 CKCTL_3368_SPI_EN | \
+									 CKCTL_3368_USBS_EN | \
+									 CKCTL_3368_BMU_EN | \
+									 CKCTL_3368_PCM_EN | \
+									 CKCTL_3368_NTP_EN | \
+									 CKCTL_3368_ACP_B_EN | \
+									 CKCTL_3368_ACP_A_EN | \
+									 CKCTL_3368_EMUSB_EN | \
+									 CKCTL_3368_USBU_EN)
 
 #define CKCTL_6328_PHYMIPS_EN		(1 << 0)
 #define CKCTL_6328_ADSL_QPROC_EN	(1 << 1)
@@ -62,15 +62,15 @@
 #define CKCTL_6328_ROBOSW_EN		(1 << 11)
 
 #define CKCTL_6328_ALL_SAFE_EN		(CKCTL_6328_PHYMIPS_EN |	\
-					CKCTL_6328_ADSL_QPROC_EN |	\
-					CKCTL_6328_ADSL_AFE_EN |	\
-					CKCTL_6328_ADSL_EN |		\
-					CKCTL_6328_SAR_EN  |		\
-					CKCTL_6328_PCM_EN  |		\
-					CKCTL_6328_USBD_EN |		\
-					CKCTL_6328_USBH_EN |		\
-					CKCTL_6328_ROBOSW_EN |		\
-					CKCTL_6328_PCIE_EN)
+									 CKCTL_6328_ADSL_QPROC_EN |	\
+									 CKCTL_6328_ADSL_AFE_EN |	\
+									 CKCTL_6328_ADSL_EN |		\
+									 CKCTL_6328_SAR_EN  |		\
+									 CKCTL_6328_PCM_EN  |		\
+									 CKCTL_6328_USBD_EN |		\
+									 CKCTL_6328_USBH_EN |		\
+									 CKCTL_6328_ROBOSW_EN |		\
+									 CKCTL_6328_PCIE_EN)
 
 #define CKCTL_6338_ADSLPHY_EN		(1 << 0)
 #define CKCTL_6338_MPI_EN		(1 << 1)
@@ -81,10 +81,10 @@
 #define CKCTL_6338_SPI_EN		(1 << 9)
 
 #define CKCTL_6338_ALL_SAFE_EN		(CKCTL_6338_ADSLPHY_EN |	\
-					CKCTL_6338_MPI_EN |		\
-					CKCTL_6338_ENET_EN |		\
-					CKCTL_6338_SAR_EN |		\
-					CKCTL_6338_SPI_EN)
+									 CKCTL_6338_MPI_EN |		\
+									 CKCTL_6338_ENET_EN |		\
+									 CKCTL_6338_SAR_EN |		\
+									 CKCTL_6338_SPI_EN)
 
 /* BCM6345 clock bits are shifted by 16 on the left, because of the test
  * control register which is 16-bits wide. That way we do not have any
@@ -100,8 +100,8 @@
 #define CKCTL_6345_USBH_EN		(1 << 24)
 
 #define CKCTL_6345_ALL_SAFE_EN		(CKCTL_6345_ENET_EN |	\
-					CKCTL_6345_USBH_EN |	\
-					CKCTL_6345_ADSLPHY_EN)
+									 CKCTL_6345_USBH_EN |	\
+									 CKCTL_6345_ADSLPHY_EN)
 
 #define CKCTL_6348_ADSLPHY_EN		(1 << 0)
 #define CKCTL_6348_MPI_EN		(1 << 1)
@@ -114,12 +114,12 @@
 #define CKCTL_6348_SPI_EN		(1 << 9)
 
 #define CKCTL_6348_ALL_SAFE_EN		(CKCTL_6348_ADSLPHY_EN |	\
-					CKCTL_6348_M2M_EN |		\
-					CKCTL_6348_ENET_EN |		\
-					CKCTL_6348_SAR_EN |		\
-					CKCTL_6348_USBS_EN |		\
-					CKCTL_6348_USBH_EN |		\
-					CKCTL_6348_SPI_EN)
+									 CKCTL_6348_M2M_EN |		\
+									 CKCTL_6348_ENET_EN |		\
+									 CKCTL_6348_SAR_EN |		\
+									 CKCTL_6348_USBS_EN |		\
+									 CKCTL_6348_USBH_EN |		\
+									 CKCTL_6348_SPI_EN)
 
 #define CKCTL_6358_ENET_EN		(1 << 4)
 #define CKCTL_6358_ADSLPHY_EN		(1 << 5)
@@ -134,16 +134,16 @@
 #define CKCTL_6358_EPHY_EN		(1 << 21)
 
 #define CKCTL_6358_ALL_SAFE_EN		(CKCTL_6358_ENET_EN |		\
-					CKCTL_6358_ADSLPHY_EN |		\
-					CKCTL_6358_PCM_EN |		\
-					CKCTL_6358_SPI_EN |		\
-					CKCTL_6358_USBS_EN |		\
-					CKCTL_6358_SAR_EN |		\
-					CKCTL_6358_EMUSB_EN |		\
-					CKCTL_6358_ENET0_EN |		\
-					CKCTL_6358_ENET1_EN |		\
-					CKCTL_6358_USBSU_EN |		\
-					CKCTL_6358_EPHY_EN)
+									 CKCTL_6358_ADSLPHY_EN |		\
+									 CKCTL_6358_PCM_EN |		\
+									 CKCTL_6358_SPI_EN |		\
+									 CKCTL_6358_USBS_EN |		\
+									 CKCTL_6358_SAR_EN |		\
+									 CKCTL_6358_EMUSB_EN |		\
+									 CKCTL_6358_ENET0_EN |		\
+									 CKCTL_6358_ENET1_EN |		\
+									 CKCTL_6358_USBSU_EN |		\
+									 CKCTL_6358_EPHY_EN)
 
 #define CKCTL_6362_ADSL_QPROC_EN	(1 << 1)
 #define CKCTL_6362_ADSL_AFE_EN		(1 << 2)
@@ -166,16 +166,16 @@
 #define CKCTL_6362_NAND_EN		(1 << 20)
 
 #define CKCTL_6362_ALL_SAFE_EN		(CKCTL_6362_PHYMIPS_EN |	\
-					CKCTL_6362_ADSL_QPROC_EN |	\
-					CKCTL_6362_ADSL_AFE_EN |	\
-					CKCTL_6362_ADSL_EN |		\
-					CKCTL_6362_SAR_EN  |		\
-					CKCTL_6362_PCM_EN  |		\
-					CKCTL_6362_IPSEC_EN |		\
-					CKCTL_6362_USBD_EN |		\
-					CKCTL_6362_USBH_EN |		\
-					CKCTL_6362_ROBOSW_EN |		\
-					CKCTL_6362_PCIE_EN)
+									 CKCTL_6362_ADSL_QPROC_EN |	\
+									 CKCTL_6362_ADSL_AFE_EN |	\
+									 CKCTL_6362_ADSL_EN |		\
+									 CKCTL_6362_SAR_EN  |		\
+									 CKCTL_6362_PCM_EN  |		\
+									 CKCTL_6362_IPSEC_EN |		\
+									 CKCTL_6362_USBD_EN |		\
+									 CKCTL_6362_USBH_EN |		\
+									 CKCTL_6362_ROBOSW_EN |		\
+									 CKCTL_6362_PCIE_EN)
 
 
 #define CKCTL_6368_VDSL_QPROC_EN	(1 << 2)
@@ -197,17 +197,17 @@
 #define CKCTL_6368_IPSEC_EN		(1 << 18)
 
 #define CKCTL_6368_ALL_SAFE_EN		(CKCTL_6368_SWPKT_USB_EN |	\
-					CKCTL_6368_SWPKT_SAR_EN |	\
-					CKCTL_6368_SPI_EN |		\
-					CKCTL_6368_USBD_EN |		\
-					CKCTL_6368_SAR_EN |		\
-					CKCTL_6368_ROBOSW_EN |		\
-					CKCTL_6368_UTOPIA_EN |		\
-					CKCTL_6368_PCM_EN |		\
-					CKCTL_6368_USBH_EN |		\
-					CKCTL_6368_DISABLE_GLESS_EN |	\
-					CKCTL_6368_NAND_EN |		\
-					CKCTL_6368_IPSEC_EN)
+									 CKCTL_6368_SWPKT_SAR_EN |	\
+									 CKCTL_6368_SPI_EN |		\
+									 CKCTL_6368_USBD_EN |		\
+									 CKCTL_6368_SAR_EN |		\
+									 CKCTL_6368_ROBOSW_EN |		\
+									 CKCTL_6368_UTOPIA_EN |		\
+									 CKCTL_6368_PCM_EN |		\
+									 CKCTL_6368_USBH_EN |		\
+									 CKCTL_6368_DISABLE_GLESS_EN |	\
+									 CKCTL_6368_NAND_EN |		\
+									 CKCTL_6368_IPSEC_EN)
 
 /* System PLL Control register	*/
 #define PERF_SYS_PLL_CTL_REG		0x8
@@ -301,14 +301,14 @@
 #define SOFTRESET_6338_ACLC_MASK	(1 << 8)
 #define SOFTRESET_6338_ADSLMIPSPLL_MASK (1 << 10)
 #define SOFTRESET_6338_ALL	 (SOFTRESET_6338_SPI_MASK |		\
-				  SOFTRESET_6338_ENET_MASK |		\
-				  SOFTRESET_6338_USBH_MASK |		\
-				  SOFTRESET_6338_USBS_MASK |		\
-				  SOFTRESET_6338_ADSL_MASK |		\
-				  SOFTRESET_6338_DMAMEM_MASK |		\
-				  SOFTRESET_6338_SAR_MASK |		\
-				  SOFTRESET_6338_ACLC_MASK |		\
-				  SOFTRESET_6338_ADSLMIPSPLL_MASK)
+							  SOFTRESET_6338_ENET_MASK |		\
+							  SOFTRESET_6338_USBH_MASK |		\
+							  SOFTRESET_6338_USBS_MASK |		\
+							  SOFTRESET_6338_ADSL_MASK |		\
+							  SOFTRESET_6338_DMAMEM_MASK |		\
+							  SOFTRESET_6338_SAR_MASK |		\
+							  SOFTRESET_6338_ACLC_MASK |		\
+							  SOFTRESET_6338_ADSLMIPSPLL_MASK)
 
 #define SOFTRESET_6348_SPI_MASK		(1 << 0)
 #define SOFTRESET_6348_ENET_MASK	(1 << 2)
@@ -321,14 +321,14 @@
 #define SOFTRESET_6348_ADSLMIPSPLL_MASK (1 << 10)
 
 #define SOFTRESET_6348_ALL	 (SOFTRESET_6348_SPI_MASK |		\
-				  SOFTRESET_6348_ENET_MASK |		\
-				  SOFTRESET_6348_USBH_MASK |		\
-				  SOFTRESET_6348_USBS_MASK |		\
-				  SOFTRESET_6348_ADSL_MASK |		\
-				  SOFTRESET_6348_DMAMEM_MASK |		\
-				  SOFTRESET_6348_SAR_MASK |		\
-				  SOFTRESET_6348_ACLC_MASK |		\
-				  SOFTRESET_6348_ADSLMIPSPLL_MASK)
+							  SOFTRESET_6348_ENET_MASK |		\
+							  SOFTRESET_6348_USBH_MASK |		\
+							  SOFTRESET_6348_USBS_MASK |		\
+							  SOFTRESET_6348_ADSL_MASK |		\
+							  SOFTRESET_6348_DMAMEM_MASK |		\
+							  SOFTRESET_6348_SAR_MASK |		\
+							  SOFTRESET_6348_ACLC_MASK |		\
+							  SOFTRESET_6348_ADSLMIPSPLL_MASK)
 
 #define SOFTRESET_6358_SPI_MASK		(1 << 0)
 #define SOFTRESET_6358_ENET_MASK	(1 << 2)
@@ -399,13 +399,13 @@
 #define ADSLPLLCTL_M2BUS_MASK		(0x7 << ADSLPLLCTL_M2BUS_SHIFT)
 
 #define ADSLPLLCTL_VAL(n1, n2, m1ref, m2ref, m1cpu, m1bus, m2bus)	\
-				(((n1) << ADSLPLLCTL_N1_SHIFT) |	\
-				((n2) << ADSLPLLCTL_N2_SHIFT) |		\
-				((m1ref) << ADSLPLLCTL_M1REF_SHIFT) |	\
-				((m2ref) << ADSLPLLCTL_M2REF_SHIFT) |	\
-				((m1cpu) << ADSLPLLCTL_M1CPU_SHIFT) |	\
-				((m1bus) << ADSLPLLCTL_M1BUS_SHIFT) |	\
-				((m2bus) << ADSLPLLCTL_M2BUS_SHIFT))
+	(((n1) << ADSLPLLCTL_N1_SHIFT) |	\
+	 ((n2) << ADSLPLLCTL_N2_SHIFT) |		\
+	 ((m1ref) << ADSLPLLCTL_M1REF_SHIFT) |	\
+	 ((m2ref) << ADSLPLLCTL_M2REF_SHIFT) |	\
+	 ((m1cpu) << ADSLPLLCTL_M1CPU_SHIFT) |	\
+	 ((m1bus) << ADSLPLLCTL_M1BUS_SHIFT) |	\
+	 ((m2bus) << ADSLPLLCTL_M2BUS_SHIFT))
 
 
 /*************************************************************************

@@ -36,16 +36,21 @@ void __init gateway7001_pci_preinit(void)
 }
 
 static int __init gateway7001_map_irq(const struct pci_dev *dev, u8 slot,
-	u8 pin)
+									  u8 pin)
 {
 	if (slot == 1)
+	{
 		return IRQ_IXP4XX_GPIO11;
+	}
 	else if (slot == 2)
+	{
 		return IRQ_IXP4XX_GPIO10;
-	else return -1;
+	}
+	else { return -1; }
 }
 
-struct hw_pci gateway7001_pci __initdata = {
+struct hw_pci gateway7001_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &ixp4xx_ops,
 	.preinit =        gateway7001_pci_preinit,
@@ -56,7 +61,10 @@ struct hw_pci gateway7001_pci __initdata = {
 int __init gateway7001_pci_init(void)
 {
 	if (machine_is_gateway7001())
+	{
 		pci_common_init(&gateway7001_pci);
+	}
+
 	return 0;
 }
 

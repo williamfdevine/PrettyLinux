@@ -29,7 +29,7 @@
 static struct clk cpu_clk_generic[4];
 
 void clkdev_add_static(unsigned long cpu, unsigned long fpi,
-			unsigned long io, unsigned long ppe)
+					   unsigned long io, unsigned long ppe)
 {
 	cpu_clk_generic[0].rate = cpu;
 	cpu_clk_generic[1].rate = fpi;
@@ -67,13 +67,19 @@ static inline int clk_good(struct clk *clk)
 unsigned long clk_get_rate(struct clk *clk)
 {
 	if (unlikely(!clk_good(clk)))
+	{
 		return 0;
+	}
 
 	if (clk->rate != 0)
+	{
 		return clk->rate;
+	}
 
 	if (clk->get_rate != NULL)
+	{
 		return clk->get_rate();
+	}
 
 	return 0;
 }
@@ -82,18 +88,27 @@ EXPORT_SYMBOL(clk_get_rate);
 int clk_set_rate(struct clk *clk, unsigned long rate)
 {
 	if (unlikely(!clk_good(clk)))
+	{
 		return 0;
-	if (clk->rates && *clk->rates) {
+	}
+
+	if (clk->rates && *clk->rates)
+	{
 		unsigned long *r = clk->rates;
 
 		while (*r && (*r != rate))
+		{
 			r++;
-		if (!*r) {
+		}
+
+		if (!*r)
+		{
 			pr_err("clk %s.%s: trying to set invalid rate %ld\n",
-				clk->cl.dev_id, clk->cl.con_id, rate);
+				   clk->cl.dev_id, clk->cl.con_id, rate);
 			return -1;
 		}
 	}
+
 	clk->rate = rate;
 	return 0;
 }
@@ -102,16 +117,25 @@ EXPORT_SYMBOL(clk_set_rate);
 long clk_round_rate(struct clk *clk, unsigned long rate)
 {
 	if (unlikely(!clk_good(clk)))
+	{
 		return 0;
-	if (clk->rates && *clk->rates) {
+	}
+
+	if (clk->rates && *clk->rates)
+	{
 		unsigned long *r = clk->rates;
 
 		while (*r && (*r != rate))
+		{
 			r++;
-		if (!*r) {
+		}
+
+		if (!*r)
+		{
 			return clk->rate;
 		}
 	}
+
 	return rate;
 }
 EXPORT_SYMBOL(clk_round_rate);
@@ -119,10 +143,14 @@ EXPORT_SYMBOL(clk_round_rate);
 int clk_enable(struct clk *clk)
 {
 	if (unlikely(!clk_good(clk)))
+	{
 		return -1;
+	}
 
 	if (clk->enable)
+	{
 		return clk->enable(clk);
+	}
 
 	return -1;
 }
@@ -131,20 +159,28 @@ EXPORT_SYMBOL(clk_enable);
 void clk_disable(struct clk *clk)
 {
 	if (unlikely(!clk_good(clk)))
+	{
 		return;
+	}
 
 	if (clk->disable)
+	{
 		clk->disable(clk);
+	}
 }
 EXPORT_SYMBOL(clk_disable);
 
 int clk_activate(struct clk *clk)
 {
 	if (unlikely(!clk_good(clk)))
+	{
 		return -1;
+	}
 
 	if (clk->activate)
+	{
 		return clk->activate(clk);
+	}
 
 	return -1;
 }
@@ -153,10 +189,14 @@ EXPORT_SYMBOL(clk_activate);
 void clk_deactivate(struct clk *clk)
 {
 	if (unlikely(!clk_good(clk)))
+	{
 		return;
+	}
 
 	if (clk->deactivate)
+	{
 		clk->deactivate(clk);
+	}
 }
 EXPORT_SYMBOL(clk_deactivate);
 

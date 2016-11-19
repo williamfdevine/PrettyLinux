@@ -6,16 +6,16 @@
 #define _UAPI_ASM_M68K_BOOTINFO_APOLLO_H
 
 
-    /*
-     *  Apollo-specific tags
-     */
+/*
+ *  Apollo-specific tags
+ */
 
 #define BI_APOLLO_MODEL		0x8000	/* model (__be32) */
 
 
-    /*
-     *  Apollo models (BI_APOLLO_MODEL)
-     */
+/*
+ *  Apollo models (BI_APOLLO_MODEL)
+ */
 
 #define APOLLO_UNKNOWN		0
 #define APOLLO_DN3000		1

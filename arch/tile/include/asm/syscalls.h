@@ -34,26 +34,26 @@
 /* kernel/sys.c */
 ssize_t sys32_readahead(int fd, u32 offset_lo, u32 offset_hi, u32 count);
 long sys32_fadvise64(int fd, u32 offset_lo, u32 offset_hi,
-		     u32 len, int advice);
+					 u32 len, int advice);
 int sys32_fadvise64_64(int fd, u32 offset_lo, u32 offset_hi,
-		       u32 len_lo, u32 len_hi, int advice);
+					   u32 len_lo, u32 len_hi, int advice);
 long sys_cacheflush(unsigned long addr, unsigned long len,
-		    unsigned long flags);
+					unsigned long flags);
 #ifndef __tilegx__  /* No mmap() in the 32-bit kernel. */
-#define sys_mmap sys_mmap
+	#define sys_mmap sys_mmap
 #endif
 
 #ifndef __tilegx__
-/* mm/fault.c */
-long sys_cmpxchg_badaddr(unsigned long address);
+	/* mm/fault.c */
+	long sys_cmpxchg_badaddr(unsigned long address);
 #endif
 
 #ifdef CONFIG_COMPAT
-/* These four are not defined for 64-bit, but serve as "compat" syscalls. */
-long sys_fcntl64(unsigned int fd, unsigned int cmd, unsigned long arg);
-long sys_fstat64(unsigned long fd, struct stat64 __user *statbuf);
-long sys_truncate64(const char __user *path, loff_t length);
-long sys_ftruncate64(unsigned int fd, loff_t length);
+	/* These four are not defined for 64-bit, but serve as "compat" syscalls. */
+	long sys_fcntl64(unsigned int fd, unsigned int cmd, unsigned long arg);
+	long sys_fstat64(unsigned long fd, struct stat64 __user *statbuf);
+	long sys_truncate64(const char __user *path, loff_t length);
+	long sys_ftruncate64(unsigned int fd, loff_t length);
 #endif
 
 /* Provide versions of standard syscalls that use current_pt_regs(). */
@@ -63,7 +63,7 @@ long sys_rt_sigreturn(void);
 /* These are the intvec*.S trampolines. */
 long _sys_rt_sigreturn(void);
 long _sys_clone(unsigned long clone_flags, unsigned long newsp,
-		void __user *parent_tid, void __user *child_tid);
+				void __user *parent_tid, void __user *child_tid);
 
 #include <asm-generic/syscalls.h>
 

@@ -191,9 +191,9 @@
 #define IRQ_S3C2443_AC97	S3C2410_IRQSUB(28)
 
 #if defined(CONFIG_CPU_S3C2416)
-#define NR_IRQS (IRQ_S3C2416_I2S1 + 1)
+	#define NR_IRQS (IRQ_S3C2416_I2S1 + 1)
 #else
-#define NR_IRQS (IRQ_S3C2443_AC97 + 1)
+	#define NR_IRQS (IRQ_S3C2443_AC97 + 1)
 #endif
 
 /* compatibility define. */
@@ -206,9 +206,9 @@
 #define IRQ_LCD_SYSTEM		IRQ_S3C2443_LCD2
 
 #ifdef CONFIG_CPU_S3C2440
-#define IRQ_S3C244X_AC97 IRQ_S3C2440_AC97
+	#define IRQ_S3C244X_AC97 IRQ_S3C2440_AC97
 #else
-#define IRQ_S3C244X_AC97 IRQ_S3C2443_AC97
+	#define IRQ_S3C244X_AC97 IRQ_S3C2443_AC97
 #endif
 
 /* Our FIQs are routable from IRQ_EINT0 to IRQ_ADCPARENT */

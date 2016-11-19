@@ -72,7 +72,8 @@
  * (because the memory stack pointer MUST ALWAYS be aligned this way)
  *
  */
-struct pt_regs {
+struct pt_regs
+{
 	/* The following registers are saved by SAVE_MIN: */
 	unsigned long b6;		/* scratch */
 	unsigned long b7;		/* scratch */
@@ -153,7 +154,8 @@ struct pt_regs {
  * preserved across a context switch.  This generally consists of
  * "preserved" registers.
  */
-struct switch_stack {
+struct switch_stack
+{
 	unsigned long caller_unat;	/* user NaT collection register (preserved) */
 	unsigned long ar_fpsr;		/* floating-point status register */
 
@@ -205,7 +207,8 @@ struct switch_stack {
 
 
 /* pt_all_user_regs is used for PTRACE_GETREGS PTRACE_SETREGS */
-struct pt_all_user_regs {
+struct pt_all_user_regs
+{
 	unsigned long nat;
 	unsigned long cr_iip;
 	unsigned long cfm;

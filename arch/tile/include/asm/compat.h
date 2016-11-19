@@ -59,12 +59,14 @@ typedef unsigned long compat_elf_greg_t;
 #define COMPAT_ELF_NGREG (sizeof(struct pt_regs) / sizeof(compat_elf_greg_t))
 typedef compat_elf_greg_t compat_elf_gregset_t[COMPAT_ELF_NGREG];
 
-struct compat_timespec {
+struct compat_timespec
+{
 	compat_time_t	tv_sec;
 	s32		tv_nsec;
 };
 
-struct compat_timeval {
+struct compat_timeval
+{
 	compat_time_t	tv_sec;
 	s32		tv_usec;
 };
@@ -72,7 +74,8 @@ struct compat_timeval {
 #define compat_stat stat
 #define compat_statfs statfs
 
-struct compat_sysctl {
+struct compat_sysctl
+{
 	unsigned int	name;
 	int		nlen;
 	unsigned int	oldval;
@@ -83,7 +86,8 @@ struct compat_sysctl {
 };
 
 
-struct compat_flock {
+struct compat_flock
+{
 	short		l_type;
 	short		l_whence;
 	compat_off_t	l_start;
@@ -95,7 +99,8 @@ struct compat_flock {
 #define F_SETLK64	13
 #define F_SETLKW64	14
 
-struct compat_flock64 {
+struct compat_flock64
+{
 	short		l_type;
 	short		l_whence;
 	compat_loff_t	l_start;
@@ -110,29 +115,34 @@ struct compat_flock64 {
 
 typedef u32               compat_sigset_word;
 
-typedef union compat_sigval {
+typedef union compat_sigval
+{
 	compat_int_t	sival_int;
 	compat_uptr_t	sival_ptr;
 } compat_sigval_t;
 
 #define COMPAT_SI_PAD_SIZE	(128/sizeof(int) - 3)
 
-typedef struct compat_siginfo {
+typedef struct compat_siginfo
+{
 	int si_signo;
 	int si_errno;
 	int si_code;
 
-	union {
+	union
+	{
 		int _pad[COMPAT_SI_PAD_SIZE];
 
 		/* kill() */
-		struct {
+		struct
+		{
 			unsigned int _pid;	/* sender's pid */
 			unsigned int _uid;	/* sender's uid */
 		} _kill;
 
 		/* POSIX.1b timers */
-		struct {
+		struct
+		{
 			compat_timer_t _tid;	/* timer id */
 			int _overrun;		/* overrun count */
 			compat_sigval_t _sigval;	/* same as below */
@@ -141,14 +151,16 @@ typedef struct compat_siginfo {
 		} _timer;
 
 		/* POSIX.1b signals */
-		struct {
+		struct
+		{
 			unsigned int _pid;	/* sender's pid */
 			unsigned int _uid;	/* sender's uid */
 			compat_sigval_t _sigval;
 		} _rt;
 
 		/* SIGCHLD */
-		struct {
+		struct
+		{
 			unsigned int _pid;	/* which child */
 			unsigned int _uid;	/* sender's uid */
 			int _status;		/* exit code */
@@ -157,7 +169,8 @@ typedef struct compat_siginfo {
 		} _sigchld;
 
 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-		struct {
+		struct
+		{
 			unsigned int _addr;	/* faulting insn/memory ref. */
 #ifdef __ARCH_SI_TRAPNO
 			int _trapno;	/* TRAP # which caused the signal */
@@ -165,7 +178,8 @@ typedef struct compat_siginfo {
 		} _sigfault;
 
 		/* SIGPOLL */
-		struct {
+		struct
+		{
 			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
 			int _fd;
 		} _sigpoll;
@@ -175,7 +189,8 @@ typedef struct compat_siginfo {
 #define COMPAT_OFF_T_MAX	0x7fffffff
 #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
 
-struct compat_ipc64_perm {
+struct compat_ipc64_perm
+{
 	compat_key_t key;
 	__compat_uid32_t uid;
 	__compat_gid32_t gid;
@@ -189,7 +204,8 @@ struct compat_ipc64_perm {
 	compat_ulong_t unused2;
 };
 
-struct compat_semid64_ds {
+struct compat_semid64_ds
+{
 	struct compat_ipc64_perm sem_perm;
 	compat_time_t  sem_otime;
 	compat_ulong_t __unused1;
@@ -200,7 +216,8 @@ struct compat_semid64_ds {
 	compat_ulong_t __unused4;
 };
 
-struct compat_msqid64_ds {
+struct compat_msqid64_ds
+{
 	struct compat_ipc64_perm msg_perm;
 	compat_time_t  msg_stime;
 	compat_ulong_t __unused1;
@@ -217,7 +234,8 @@ struct compat_msqid64_ds {
 	compat_ulong_t __unused5;
 };
 
-struct compat_shmid64_ds {
+struct compat_shmid64_ds
+{
 	struct compat_ipc64_perm shm_perm;
 	compat_size_t  shm_segsz;
 	compat_time_t  shm_atime;
@@ -268,7 +286,7 @@ static inline int is_compat_task(void)
 }
 
 extern int compat_setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-				 struct pt_regs *regs);
+								 struct pt_regs *regs);
 
 /* Compat syscalls. */
 struct compat_siginfo;
@@ -277,18 +295,18 @@ long compat_sys_rt_sigreturn(void);
 long compat_sys_truncate64(char __user *filename, u32 dummy, u32 low, u32 high);
 long compat_sys_ftruncate64(unsigned int fd, u32 dummy, u32 low, u32 high);
 long compat_sys_pread64(unsigned int fd, char __user *ubuf, size_t count,
-			u32 dummy, u32 low, u32 high);
+						u32 dummy, u32 low, u32 high);
 long compat_sys_pwrite64(unsigned int fd, char __user *ubuf, size_t count,
-			 u32 dummy, u32 low, u32 high);
+						 u32 dummy, u32 low, u32 high);
 long compat_sys_sync_file_range2(int fd, unsigned int flags,
-				 u32 offset_lo, u32 offset_hi,
-				 u32 nbytes_lo, u32 nbytes_hi);
+								 u32 offset_lo, u32 offset_hi,
+								 u32 nbytes_lo, u32 nbytes_hi);
 long compat_sys_fallocate(int fd, int mode,
-			  u32 offset_lo, u32 offset_hi,
-			  u32 len_lo, u32 len_hi);
+						  u32 offset_lo, u32 offset_hi,
+						  u32 len_lo, u32 len_hi);
 long compat_sys_llseek(unsigned int fd, unsigned int offset_high,
-		       unsigned int offset_low, loff_t __user * result,
-		       unsigned int origin);
+					   unsigned int offset_low, loff_t __user *result,
+					   unsigned int origin);
 
 /* Assembly trampoline to avoid clobbering r0. */
 long _compat_sys_rt_sigreturn(void);

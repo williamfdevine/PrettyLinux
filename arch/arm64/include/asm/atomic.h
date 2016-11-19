@@ -31,9 +31,9 @@
 #define __ARM64_IN_ATOMIC_IMPL
 
 #if defined(CONFIG_ARM64_LSE_ATOMICS) && defined(CONFIG_AS_LSE)
-#include <asm/atomic_lse.h>
+	#include <asm/atomic_lse.h>
 #else
-#include <asm/atomic_ll_sc.h>
+	#include <asm/atomic_ll_sc.h>
 #endif
 
 #undef __ARM64_IN_ATOMIC_IMPL
@@ -41,15 +41,15 @@
 #include <asm/cmpxchg.h>
 
 #define ___atomic_add_unless(v, a, u, sfx)				\
-({									\
-	typeof((v)->counter) c, old;					\
-									\
-	c = atomic##sfx##_read(v);					\
-	while (c != (u) &&						\
-	      (old = atomic##sfx##_cmpxchg((v), c, c + (a))) != c)	\
-		c = old;						\
-	c;								\
- })
+	({									\
+		typeof((v)->counter) c, old;					\
+		\
+		c = atomic##sfx##_read(v);					\
+		while (c != (u) &&						\
+			   (old = atomic##sfx##_cmpxchg((v), c, c + (a))) != c)	\
+			c = old;						\
+		c;								\
+	})
 
 #define ATOMIC_INIT(i)	{ (i) }
 

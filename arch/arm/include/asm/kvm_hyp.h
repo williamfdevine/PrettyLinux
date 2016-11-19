@@ -32,10 +32,10 @@
 #define write_special(v, r)					\
 	asm volatile("msr " __stringify(r) ", %0" : : "r" (v))
 #define read_special(r) ({					\
-	u32 __val;						\
-	asm volatile("mrs %0, " __stringify(r) : "=r" (__val));	\
-	__val;							\
-})
+		u32 __val;						\
+		asm volatile("mrs %0, " __stringify(r) : "=r" (__val));	\
+		__val;							\
+	})
 
 #define TTBR0		__ACCESS_CP15_64(0, c2)
 #define TTBR1		__ACCESS_CP15_64(1, c2)
@@ -121,7 +121,7 @@ void __hyp_text __banked_save_state(struct kvm_cpu_context *ctxt);
 void __hyp_text __banked_restore_state(struct kvm_cpu_context *ctxt);
 
 int asmlinkage __guest_enter(struct kvm_vcpu *vcpu,
-			     struct kvm_cpu_context *host);
+							 struct kvm_cpu_context *host);
 int asmlinkage __hyp_do_panic(const char *, int, u32);
 
 #endif /* __ARM_KVM_HYP_H__ */

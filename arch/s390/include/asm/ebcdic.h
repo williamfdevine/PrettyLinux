@@ -10,7 +10,7 @@
 #define _EBCDIC_H
 
 #ifndef _S390_TYPES_H
-#include <types.h>
+	#include <types.h>
 #endif
 
 extern __u8 _ascebc_500[256];   /* ASCII -> EBCDIC 500 conversion table */
@@ -21,10 +21,13 @@ extern __u8 _ebc_tolower[256]; /* EBCDIC -> lowercase */
 extern __u8 _ebc_toupper[256]; /* EBCDIC -> uppercase */
 
 static inline void
-codepage_convert(const __u8 *codepage, volatile __u8 * addr, unsigned long nr)
+codepage_convert(const __u8 *codepage, volatile __u8 *addr, unsigned long nr)
 {
 	if (nr-- <= 0)
+	{
 		return;
+	}
+
 	asm volatile(
 		"	bras	1,1f\n"
 		"	tr	0(1,%0),0(%2)\n"

@@ -51,9 +51,9 @@
 
 #undef DEBUG
 #ifdef DEBUG
-#define DBG(fmt...) udbg_printf(fmt)
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 /* ************************************************************************
@@ -70,7 +70,9 @@ static void __init mpc836x_mds_setup_arch(void)
 
 	/* Map BCSR area */
 	np = of_find_node_by_name(NULL, "bcsr");
-	if (np) {
+
+	if (np)
+	{
 		struct resource res;
 
 		of_address_to_resource(np, 0, &res);
@@ -79,12 +81,17 @@ static void __init mpc836x_mds_setup_arch(void)
 	}
 
 #ifdef CONFIG_QUICC_ENGINE
-	if ((np = of_find_node_by_name(NULL, "par_io")) != NULL) {
+
+	if ((np = of_find_node_by_name(NULL, "par_io")) != NULL)
+	{
 		par_io_init(np);
 		of_node_put(np);
 
 		for (np = NULL; (np = of_find_node_by_name(np, "ucc")) != NULL;)
+		{
 			par_io_of_config(np);
+		}
+
 #ifdef CONFIG_QE_USB
 		/* Must fixup Par IO before QE GPIO chips are registered. */
 		par_io_config_pin(1,  2, 1, 0, 3, 0); /* USBOE  */
@@ -98,7 +105,8 @@ static void __init mpc836x_mds_setup_arch(void)
 	}
 
 	if ((np = of_find_compatible_node(NULL, "network", "ucc_geth"))
-			!= NULL){
+		!= NULL)
+	{
 		uint svid;
 
 		/* Reset the Ethernet PHY */
@@ -109,7 +117,9 @@ static void __init mpc836x_mds_setup_arch(void)
 
 		/* handle mpc8360ea rev.2.1 erratum 2: RGMII Timing */
 		svid = mfspr(SPRN_SVR);
-		if (svid == 0x80480021) {
+
+		if (svid == 0x80480021)
+		{
 			void __iomem *immap;
 
 			immap = ioremap(get_immrbase() + 0x14a8, 8);
@@ -132,6 +142,7 @@ static void __init mpc836x_mds_setup_arch(void)
 		iounmap(bcsr_regs);
 		of_node_put(np);
 	}
+
 #endif				/* CONFIG_QUICC_ENGINE */
 }
 
@@ -146,16 +157,24 @@ static int __init mpc836x_usb_cfg(void)
 	int ret = 0;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc8360mds-bcsr");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	bcsr = of_iomap(np, 0);
 	of_node_put(np);
+
 	if (!bcsr)
+	{
 		return -ENOMEM;
+	}
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc8323-qe-usb");
-	if (!np) {
+
+	if (!np)
+	{
 		ret = -ENODEV;
 		goto err;
 	}
@@ -169,7 +188,7 @@ static int __init mpc836x_usb_cfg(void)
 	 * USB (Eth PHY is in RGMII mode anyway).
 	 */
 	clrsetbits_8(&bcsr[8], BCSR8_TSEC1M_MASK | BCSR8_TSEC2M_MASK,
-			       BCSR8_TSEC1M_RGMII | BCSR8_TSEC2M_RGMII);
+				 BCSR8_TSEC1M_RGMII | BCSR8_TSEC2M_RGMII);
 
 #define BCSR13_USBMASK	0x0f
 #define BCSR13_nUSBEN	0x08 /* 1 - Disable, 0 - Enable			*/
@@ -180,10 +199,14 @@ static int __init mpc836x_usb_cfg(void)
 	clrsetbits_8(&bcsr[13], BCSR13_USBMASK, BCSR13_USBSPEED);
 
 	mode = of_get_property(np, "mode", NULL);
-	if (mode && !strcmp(mode, "peripheral")) {
+
+	if (mode && !strcmp(mode, "peripheral"))
+	{
 		setbits8(&bcsr[13], BCSR13_nUSBVCC);
 		qe_usb_clock_set(QE_CLK21, 48000000);
-	} else {
+	}
+	else
+	{
 		setbits8(&bcsr[13], BCSR13_USBMODE);
 		/*
 		 * The BCSR GPIOs are used to control power and
@@ -209,14 +232,15 @@ static int __init mpc836x_mds_probe(void)
 	return of_machine_is_compatible("MPC836xMDS");
 }
 
-define_machine(mpc836x_mds) {
+define_machine(mpc836x_mds)
+{
 	.name		= "MPC836x MDS",
-	.probe		= mpc836x_mds_probe,
-	.setup_arch	= mpc836x_mds_setup_arch,
-	.init_IRQ	= mpc83xx_ipic_and_qe_init_IRQ,
-	.get_irq	= ipic_get_irq,
-	.restart	= mpc83xx_restart,
-	.time_init	= mpc83xx_time_init,
-	.calibrate_decr	= generic_calibrate_decr,
-	.progress	= udbg_progress,
+		  .probe		= mpc836x_mds_probe,
+			   .setup_arch	= mpc836x_mds_setup_arch,
+				.init_IRQ	= mpc83xx_ipic_and_qe_init_IRQ,
+				   .get_irq	= ipic_get_irq,
+					   .restart	= mpc83xx_restart,
+						   .time_init	= mpc83xx_time_init,
+							 .calibrate_decr	= generic_calibrate_decr,
+							  .progress	= udbg_progress,
 };

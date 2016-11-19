@@ -26,12 +26,13 @@ static cycle_t read_cyclone(struct clocksource *cs)
 	return (cycle_t)readq((void __iomem *)cyclone_mc);
 }
 
-static struct clocksource clocksource_cyclone = {
-        .name           = "cyclone",
-        .rating         = 300,
-        .read           = read_cyclone,
-        .mask           = (1LL << 40) - 1,
-        .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
+static struct clocksource clocksource_cyclone =
+{
+	.name           = "cyclone",
+	.rating         = 300,
+	.read           = read_cyclone,
+	.mask           = (1LL << 40) - 1,
+	.flags          = CLOCK_SOURCE_IS_CONTINUOUS,
 };
 
 int __init init_cyclone_clock(void)
@@ -43,24 +44,31 @@ int __init init_cyclone_clock(void)
 	u32 __iomem *cyclone_timer;	/* Cyclone MPMC0 register */
 
 	if (!use_cyclone)
+	{
 		return 0;
+	}
 
 	printk(KERN_INFO "Summit chipset: Starting Cyclone Counter.\n");
 
 	/* find base address */
 	offset = (CYCLONE_CBAR_ADDR);
 	reg = ioremap_nocache(offset, sizeof(u64));
-	if(!reg){
+
+	if (!reg)
+	{
 		printk(KERN_ERR "Summit chipset: Could not find valid CBAR"
-				" register.\n");
+			   " register.\n");
 		use_cyclone = 0;
 		return -ENODEV;
 	}
+
 	base = readq(reg);
 	iounmap(reg);
-	if(!base){
+
+	if (!base)
+	{
 		printk(KERN_ERR "Summit chipset: Could not find valid CBAR"
-				" value.\n");
+			   " value.\n");
 		use_cyclone = 0;
 		return -ENODEV;
 	}
@@ -68,51 +76,64 @@ int __init init_cyclone_clock(void)
 	/* setup PMCC */
 	offset = (base + CYCLONE_PMCC_OFFSET);
 	reg = ioremap_nocache(offset, sizeof(u64));
-	if(!reg){
+
+	if (!reg)
+	{
 		printk(KERN_ERR "Summit chipset: Could not find valid PMCC"
-				" register.\n");
+			   " register.\n");
 		use_cyclone = 0;
 		return -ENODEV;
 	}
-	writel(0x00000001,reg);
+
+	writel(0x00000001, reg);
 	iounmap(reg);
 
 	/* setup MPCS */
 	offset = (base + CYCLONE_MPCS_OFFSET);
 	reg = ioremap_nocache(offset, sizeof(u64));
-	if(!reg){
+
+	if (!reg)
+	{
 		printk(KERN_ERR "Summit chipset: Could not find valid MPCS"
-				" register.\n");
+			   " register.\n");
 		use_cyclone = 0;
 		return -ENODEV;
 	}
-	writel(0x00000001,reg);
+
+	writel(0x00000001, reg);
 	iounmap(reg);
 
 	/* map in cyclone_timer */
 	offset = (base + CYCLONE_MPMC_OFFSET);
 	cyclone_timer = ioremap_nocache(offset, sizeof(u32));
-	if(!cyclone_timer){
+
+	if (!cyclone_timer)
+	{
 		printk(KERN_ERR "Summit chipset: Could not find valid MPMC"
-				" register.\n");
+			   " register.\n");
 		use_cyclone = 0;
 		return -ENODEV;
 	}
 
 	/*quick test to make sure its ticking*/
-	for(i=0; i<3; i++){
+	for (i = 0; i < 3; i++)
+	{
 		u32 old = readl(cyclone_timer);
 		int stall = 100;
-		while(stall--) barrier();
-		if(readl(cyclone_timer) == old){
+
+		while (stall--) { barrier(); }
+
+		if (readl(cyclone_timer) == old)
+		{
 			printk(KERN_ERR "Summit chipset: Counter not counting!"
-					" DISABLED\n");
+				   " DISABLED\n");
 			iounmap(cyclone_timer);
 			cyclone_timer = NULL;
 			use_cyclone = 0;
 			return -ENODEV;
 		}
 	}
+
 	/* initialize last tick */
 	cyclone_mc = cyclone_timer;
 	clocksource_cyclone.archdata.fsys_mmio = cyclone_timer;

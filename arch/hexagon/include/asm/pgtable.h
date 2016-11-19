@@ -89,29 +89,29 @@ extern unsigned long zero_page_mask;
 #define PGDIR_MASK (~(PGDIR_SIZE-1))
 
 #ifdef CONFIG_PAGE_SIZE_4KB
-#define PTRS_PER_PTE 1024
+	#define PTRS_PER_PTE 1024
 #endif
 
 #ifdef CONFIG_PAGE_SIZE_16KB
-#define PTRS_PER_PTE 256
+	#define PTRS_PER_PTE 256
 #endif
 
 #ifdef CONFIG_PAGE_SIZE_64KB
-#define PTRS_PER_PTE 64
+	#define PTRS_PER_PTE 64
 #endif
 
 #ifdef CONFIG_PAGE_SIZE_256KB
-#define PTRS_PER_PTE 16
+	#define PTRS_PER_PTE 16
 #endif
 
 #ifdef CONFIG_PAGE_SIZE_1MB
-#define PTRS_PER_PTE 4
+	#define PTRS_PER_PTE 4
 #endif
 
 /*  Any bigger and the PTE disappears.  */
 #define pgd_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pgd %08lx.\n", __FILE__, __LINE__,\
-		pgd_val(e))
+		   pgd_val(e))
 
 /*
  * Page Protection Constants. Includes (in this variant) cache attributes.
@@ -119,17 +119,17 @@ extern unsigned long zero_page_mask;
 extern unsigned long _dflt_cache_att;
 
 #define PAGE_NONE	__pgprot(_PAGE_PRESENT | _PAGE_USER | \
-				_dflt_cache_att)
+							 _dflt_cache_att)
 #define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_USER | \
-				_PAGE_READ | _PAGE_EXECUTE | _dflt_cache_att)
+								 _PAGE_READ | _PAGE_EXECUTE | _dflt_cache_att)
 #define PAGE_COPY	PAGE_READONLY
 #define PAGE_EXEC	__pgprot(_PAGE_PRESENT | _PAGE_USER | \
-				_PAGE_READ | _PAGE_EXECUTE | _dflt_cache_att)
+							 _PAGE_READ | _PAGE_EXECUTE | _dflt_cache_att)
 #define PAGE_COPY_EXEC	PAGE_EXEC
 #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_READ | \
-				_PAGE_EXECUTE | _PAGE_WRITE | _dflt_cache_att)
+							 _PAGE_EXECUTE | _PAGE_WRITE | _dflt_cache_att)
 #define PAGE_KERNEL	__pgprot(_PAGE_PRESENT | _PAGE_READ | \
-				_PAGE_WRITE | _PAGE_EXECUTE | _dflt_cache_att)
+							 _PAGE_WRITE | _PAGE_EXECUTE | _dflt_cache_att)
 
 
 /*
@@ -147,9 +147,9 @@ extern unsigned long _dflt_cache_att;
 #define __P010 __P000	/* Write-only copy-on-write */
 #define __P011 __P001	/* Read/Write copy-on-write */
 #define __P100 __pgprot(_PAGE_PRESENT | _PAGE_USER | \
-			_PAGE_EXECUTE | CACHEDEF)
+						_PAGE_EXECUTE | CACHEDEF)
 #define __P101 __pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_EXECUTE | \
-			_PAGE_READ | CACHEDEF)
+						_PAGE_READ | CACHEDEF)
 #define __P110 __P100	/* Write/execute copy-on-write */
 #define __P111 __P101	/* Read/Write/Execute, copy-on-write */
 
@@ -157,16 +157,16 @@ extern unsigned long _dflt_cache_att;
 #define __S000 __P000
 #define __S001 __P001
 #define __S010 __pgprot(_PAGE_PRESENT | _PAGE_USER | \
-			_PAGE_WRITE | CACHEDEF)
+						_PAGE_WRITE | CACHEDEF)
 #define __S011 __pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_READ | \
-			_PAGE_WRITE | CACHEDEF)
+						_PAGE_WRITE | CACHEDEF)
 #define __S100 __pgprot(_PAGE_PRESENT | _PAGE_USER | \
-			_PAGE_EXECUTE | CACHEDEF)
+						_PAGE_EXECUTE | CACHEDEF)
 #define __S101 __P101
 #define __S110 __pgprot(_PAGE_PRESENT | _PAGE_USER | \
-			_PAGE_EXECUTE | _PAGE_WRITE | CACHEDEF)
+						_PAGE_EXECUTE | _PAGE_WRITE | CACHEDEF)
 #define __S111 __pgprot(_PAGE_PRESENT | _PAGE_USER | _PAGE_READ | \
-			_PAGE_EXECUTE | _PAGE_WRITE | CACHEDEF)
+						_PAGE_EXECUTE | _PAGE_WRITE | CACHEDEF)
 
 extern pgd_t swapper_pg_dir[PTRS_PER_PGD];  /* located in head.S */
 
@@ -177,7 +177,7 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];  /* located in head.S */
 
 /*  HUGETLB not working currently  */
 #ifdef CONFIG_HUGETLB_PAGE
-#define pte_mkhuge(pte) __pte((pte_val(pte) & ~0x3) | HVM_HUGEPAGE_SIZE)
+	#define pte_mkhuge(pte) __pte((pte_val(pte) & ~0x3) | HVM_HUGEPAGE_SIZE)
 #endif
 
 /*
@@ -188,13 +188,15 @@ extern void sync_icache_dcache(pte_t pte);
 
 #define pte_present_exec_user(pte) \
 	((pte_val(pte) & (_PAGE_EXECUTE | _PAGE_USER)) == \
-	(_PAGE_EXECUTE | _PAGE_USER))
+	 (_PAGE_EXECUTE | _PAGE_USER))
 
 static inline void set_pte(pte_t *ptep, pte_t pteval)
 {
 	/*  should really be using pte_exec, if it weren't declared later. */
 	if (pte_present_exec_user(pteval))
+	{
 		sync_icache_dcache(pteval);
+	}
 
 	*ptep = pteval;
 }
@@ -211,24 +213,24 @@ static inline void set_pte(pte_t *ptep, pte_t pteval)
 
 static inline void pmd_clear(pmd_t *pmd_entry_ptr)
 {
-	 pmd_val(*pmd_entry_ptr) = _NULL_PMD;
+	pmd_val(*pmd_entry_ptr) = _NULL_PMD;
 }
 
 /*
  * Conveniently, a null PTE value is invalid.
  */
 static inline void pte_clear(struct mm_struct *mm, unsigned long addr,
-				pte_t *ptep)
+							 pte_t *ptep)
 {
 	pte_val(*ptep) = _NULL_PTE;
 }
 
 #ifdef NEED_PMD_INDEX_DESPITE_BEING_2_LEVEL
-/**
- * pmd_index - returns the index of the entry in the PMD page
- * which would control the given virtual address
- */
-#define pmd_index(address) (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
+	/**
+	* pmd_index - returns the index of the entry in the PMD page
+	* which would control the given virtual address
+	*/
+	#define pmd_index(address) (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
 
 #endif
 
@@ -438,7 +440,7 @@ static inline int pte_exec(pte_t pte)
 /* pte_offset_kernel - kernel version of pte_offset */
 #define pte_offset_kernel(dir, address) \
 	((pte_t *) (unsigned long) __va(pmd_val(*dir) & PAGE_MASK) \
-				+  __pte_offset(address))
+	 +  __pte_offset(address))
 
 /* ZERO_PAGE - returns the globally shared zero page */
 #define ZERO_PAGE(vaddr) (virt_to_page(&empty_zero_page))

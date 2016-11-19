@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct subchannel_id {
+struct subchannel_id
+{
 	__u32 cssid : 8;
 	__u32 : 4;
 	__u32 m : 1;

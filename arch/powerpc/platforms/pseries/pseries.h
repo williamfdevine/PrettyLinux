@@ -16,7 +16,7 @@
 struct device_node;
 
 extern void request_event_sources_irqs(struct device_node *np,
-				       irq_handler_t handler, const char *name);
+									   irq_handler_t handler, const char *name);
 
 #include <linux/of.h>
 
@@ -45,14 +45,14 @@ extern void hvc_vio_init_early(void);
 extern void dlpar_free_cc_nodes(struct device_node *);
 extern void dlpar_free_cc_property(struct property *);
 extern struct device_node *dlpar_configure_connector(__be32,
-						struct device_node *);
+		struct device_node *);
 extern int dlpar_attach_node(struct device_node *);
 extern int dlpar_detach_node(struct device_node *);
 extern int dlpar_acquire_drc(u32 drc_index);
 extern int dlpar_release_drc(u32 drc_index);
 
 void queue_hotplug_event(struct pseries_hp_errorlog *hp_errlog,
-			 struct completion *hotplug_done, int *rc);
+						 struct completion *hotplug_done, int *rc);
 #ifdef CONFIG_MEMORY_HOTPLUG
 int dlpar_memory(struct pseries_hp_errorlog *hp_elog);
 #else

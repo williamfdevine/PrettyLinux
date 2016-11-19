@@ -18,11 +18,12 @@
 
 #include <linux/types.h>
 
-enum jz_gpio_function {
-    JZ_GPIO_FUNC_NONE,
-    JZ_GPIO_FUNC1,
-    JZ_GPIO_FUNC2,
-    JZ_GPIO_FUNC3,
+enum jz_gpio_function
+{
+	JZ_GPIO_FUNC_NONE,
+	JZ_GPIO_FUNC1,
+	JZ_GPIO_FUNC2,
+	JZ_GPIO_FUNC3,
 };
 
 /*
@@ -48,17 +49,18 @@ enum jz_gpio_function {
 
 */
 
-struct jz_gpio_bulk_request {
+struct jz_gpio_bulk_request
+{
 	int gpio;
 	const char *name;
 	enum jz_gpio_function function;
 };
 
 #define JZ_GPIO_BULK_PIN(pin) { \
-    .gpio = JZ_GPIO_ ## pin, \
-    .name = #pin, \
-    .function = JZ_GPIO_FUNC_ ## pin \
-}
+		.gpio = JZ_GPIO_ ## pin, \
+				.name = #pin, \
+						.function = JZ_GPIO_FUNC_ ## pin \
+	}
 
 int jz_gpio_bulk_request(const struct jz_gpio_bulk_request *request, size_t num);
 void jz_gpio_bulk_free(const struct jz_gpio_bulk_request *request, size_t num);

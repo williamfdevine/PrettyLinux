@@ -39,20 +39,22 @@
 #include <asm/mmu.h>
 
 #define CONSISTENT_OFFSET(x)	(((unsigned long)(x) - CONSISTENT_START) \
-					>> PAGE_SHIFT)
+								 >> PAGE_SHIFT)
 
 static u64 get_coherent_dma_mask(struct device *dev)
 {
 	u64 mask = ~0ULL;
 
-	if (dev) {
+	if (dev)
+	{
 		mask = dev->coherent_dma_mask;
 
 		/*
 		 * Sanity check the DMA mask - it must be non-zero, and
 		 * must be able to be satisfied by a DMA allocation.
 		 */
-		if (mask == 0) {
+		if (mask == 0)
+		{
 			dev_warn(dev, "coherent DMA mask is unset\n");
 			return 0;
 		}
@@ -96,7 +98,8 @@ static DEFINE_SPINLOCK(consistent_lock);
  * would have to initialise this each time prior to calling
  * metag_vm_region_alloc().
  */
-struct metag_vm_region {
+struct metag_vm_region
+{
 	struct list_head vm_list;
 	unsigned long vm_start;
 	unsigned long vm_end;
@@ -104,34 +107,48 @@ struct metag_vm_region {
 	int			vm_active;
 };
 
-static struct metag_vm_region consistent_head = {
+static struct metag_vm_region consistent_head =
+{
 	.vm_list = LIST_HEAD_INIT(consistent_head.vm_list),
 	.vm_start = CONSISTENT_START,
 	.vm_end = CONSISTENT_END,
 };
 
 static struct metag_vm_region *metag_vm_region_alloc(struct metag_vm_region
-						     *head, size_t size,
-						     gfp_t gfp)
+		*head, size_t size,
+		gfp_t gfp)
 {
 	unsigned long addr = head->vm_start, end = head->vm_end - size;
 	unsigned long flags;
 	struct metag_vm_region *c, *new;
 
 	new = kmalloc(sizeof(struct metag_vm_region), gfp);
+
 	if (!new)
+	{
 		goto out;
+	}
 
 	spin_lock_irqsave(&consistent_lock, flags);
 
-	list_for_each_entry(c, &head->vm_list, vm_list) {
+	list_for_each_entry(c, &head->vm_list, vm_list)
+	{
 		if ((addr + size) < addr)
+		{
 			goto nospc;
+		}
+
 		if ((addr + size) <= c->vm_start)
+		{
 			goto found;
+		}
+
 		addr = c->vm_end;
+
 		if (addr > end)
+		{
 			goto nospc;
+		}
 	}
 
 found:
@@ -154,13 +171,16 @@ out:
 }
 
 static struct metag_vm_region *metag_vm_region_find(struct metag_vm_region
-						    *head, unsigned long addr)
+		*head, unsigned long addr)
 {
 	struct metag_vm_region *c;
 
-	list_for_each_entry(c, &head->vm_list, vm_list) {
+	list_for_each_entry(c, &head->vm_list, vm_list)
+	{
 		if (c->vm_active && c->vm_start == addr)
+		{
 			goto out;
+		}
 	}
 	c = NULL;
 out:
@@ -172,7 +192,7 @@ out:
  * virtual and bus address for that space.
  */
 static void *metag_dma_alloc(struct device *dev, size_t size,
-		dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
+							 dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
 {
 	struct page *page;
 	struct metag_vm_region *c;
@@ -180,31 +200,42 @@ static void *metag_dma_alloc(struct device *dev, size_t size,
 	u64 mask = get_coherent_dma_mask(dev);
 	u64 limit;
 
-	if (!consistent_pte) {
+	if (!consistent_pte)
+	{
 		pr_err("%s: not initialised\n", __func__);
 		dump_stack();
 		return NULL;
 	}
 
 	if (!mask)
+	{
 		goto no_page;
+	}
+
 	size = PAGE_ALIGN(size);
 	limit = (mask + 1) & ~mask;
+
 	if ((limit && size >= limit)
-	    || size >= (CONSISTENT_END - CONSISTENT_START)) {
+		|| size >= (CONSISTENT_END - CONSISTENT_START))
+	{
 		pr_warn("coherent allocation too big (requested %#x mask %#Lx)\n",
-			size, mask);
+				size, mask);
 		return NULL;
 	}
 
 	order = get_order(size);
 
 	if (mask != 0xffffffff)
+	{
 		gfp |= GFP_DMA;
+	}
 
 	page = alloc_pages(gfp, order);
+
 	if (!page)
+	{
 		goto no_page;
+	}
 
 	/*
 	 * Invalidate any data that might be lurking in the
@@ -220,8 +251,10 @@ static void *metag_dma_alloc(struct device *dev, size_t size,
 	 * Allocate a virtual address in the consistent mapping region.
 	 */
 	c = metag_vm_region_alloc(&consistent_head, size,
-				  gfp & ~(__GFP_DMA | __GFP_HIGHMEM));
-	if (c) {
+							  gfp & ~(__GFP_DMA | __GFP_HIGHMEM));
+
+	if (c)
+	{
 		unsigned long vaddr = c->vm_start;
 		pte_t *pte = consistent_pte + CONSISTENT_OFFSET(vaddr);
 		struct page *end = page + (1 << order);
@@ -234,23 +267,26 @@ static void *metag_dma_alloc(struct device *dev, size_t size,
 		 */
 		*handle = page_to_bus(page);
 
-		do {
+		do
+		{
 			BUG_ON(!pte_none(*pte));
 
 			SetPageReserved(page);
 			set_pte_at(&init_mm, vaddr,
-				   pte, mk_pte(page,
-					       pgprot_writecombine
-					       (PAGE_KERNEL)));
+					   pte, mk_pte(page,
+								   pgprot_writecombine
+								   (PAGE_KERNEL)));
 			page++;
 			pte++;
 			vaddr += PAGE_SIZE;
-		} while (size -= PAGE_SIZE);
+		}
+		while (size -= PAGE_SIZE);
 
 		/*
 		 * Free the otherwise unused pages.
 		 */
-		while (page < end) {
+		while (page < end)
+		{
 			__free_page(page);
 			page++;
 		}
@@ -259,7 +295,10 @@ static void *metag_dma_alloc(struct device *dev, size_t size,
 	}
 
 	if (page)
+	{
 		__free_pages(page, order);
+	}
+
 no_page:
 	return NULL;
 }
@@ -268,7 +307,7 @@ no_page:
  * free a page as defined by the above mapping.
  */
 static void metag_dma_free(struct device *dev, size_t size, void *vaddr,
-		dma_addr_t dma_handle, unsigned long attrs)
+						   dma_addr_t dma_handle, unsigned long attrs)
 {
 	struct metag_vm_region *c;
 	unsigned long flags, addr;
@@ -279,30 +318,39 @@ static void metag_dma_free(struct device *dev, size_t size, void *vaddr,
 	spin_lock_irqsave(&consistent_lock, flags);
 
 	c = metag_vm_region_find(&consistent_head, (unsigned long)vaddr);
+
 	if (!c)
+	{
 		goto no_area;
+	}
 
 	c->vm_active = 0;
-	if ((c->vm_end - c->vm_start) != size) {
+
+	if ((c->vm_end - c->vm_start) != size)
+	{
 		pr_err("%s: freeing wrong coherent size (%ld != %d)\n",
-		       __func__, c->vm_end - c->vm_start, size);
+			   __func__, c->vm_end - c->vm_start, size);
 		dump_stack();
 		size = c->vm_end - c->vm_start;
 	}
 
 	ptep = consistent_pte + CONSISTENT_OFFSET(c->vm_start);
 	addr = c->vm_start;
-	do {
+
+	do
+	{
 		pte_t pte = ptep_get_and_clear(&init_mm, addr, ptep);
 		unsigned long pfn;
 
 		ptep++;
 		addr += PAGE_SIZE;
 
-		if (!pte_none(pte) && pte_present(pte)) {
+		if (!pte_none(pte) && pte_present(pte))
+		{
 			pfn = pte_pfn(pte);
 
-			if (pfn_valid(pfn)) {
+			if (pfn_valid(pfn))
+			{
 				struct page *page = pfn_to_page(pfn);
 				__free_reserved_page(page);
 				continue;
@@ -310,8 +358,9 @@ static void metag_dma_free(struct device *dev, size_t size, void *vaddr,
 		}
 
 		pr_crit("%s: bad page in kernel page table\n",
-			__func__);
-	} while (size -= PAGE_SIZE);
+				__func__);
+	}
+	while (size -= PAGE_SIZE);
 
 	flush_tlb_kernel_range(c->vm_start, c->vm_end);
 
@@ -325,22 +374,26 @@ static void metag_dma_free(struct device *dev, size_t size, void *vaddr,
 no_area:
 	spin_unlock_irqrestore(&consistent_lock, flags);
 	pr_err("%s: trying to free invalid coherent area: %p\n",
-	       __func__, vaddr);
+		   __func__, vaddr);
 	dump_stack();
 }
 
 static int metag_dma_mmap(struct device *dev, struct vm_area_struct *vma,
-		void *cpu_addr, dma_addr_t dma_addr, size_t size,
-		unsigned long attrs)
+						  void *cpu_addr, dma_addr_t dma_addr, size_t size,
+						  unsigned long attrs)
 {
 	unsigned long flags, user_size, kern_size;
 	struct metag_vm_region *c;
 	int ret = -ENXIO;
 
 	if (attrs & DMA_ATTR_WRITE_COMBINE)
+	{
 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+	}
 	else
+	{
 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+	}
 
 	user_size = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
 
@@ -348,17 +401,19 @@ static int metag_dma_mmap(struct device *dev, struct vm_area_struct *vma,
 	c = metag_vm_region_find(&consistent_head, (unsigned long)cpu_addr);
 	spin_unlock_irqrestore(&consistent_lock, flags);
 
-	if (c) {
+	if (c)
+	{
 		unsigned long off = vma->vm_pgoff;
 
 		kern_size = (c->vm_end - c->vm_start) >> PAGE_SHIFT;
 
 		if (off < kern_size &&
-		    user_size <= (kern_size - off)) {
+			user_size <= (kern_size - off))
+		{
 			ret = remap_pfn_range(vma, vma->vm_start,
-					      page_to_pfn(c->vm_pages) + off,
-					      user_size << PAGE_SHIFT,
-					      vma->vm_page_prot);
+								  page_to_pfn(c->vm_pages) + off,
+								  user_size << PAGE_SHIFT,
+								  vma->vm_page_prot);
 		}
 	}
 
@@ -377,7 +432,8 @@ static int __init dma_alloc_init(void)
 	pte_t *pte;
 	int ret = 0;
 
-	do {
+	do
+	{
 		int offset = pgd_index(CONSISTENT_START);
 		pgd = pgd_offset(&init_mm, CONSISTENT_START);
 		pud = pud_alloc(&init_mm, pgd, CONSISTENT_START);
@@ -385,7 +441,9 @@ static int __init dma_alloc_init(void)
 		WARN_ON(!pmd_none(*pmd));
 
 		pte = pte_alloc_kernel(pmd, CONSISTENT_START);
-		if (!pte) {
+
+		if (!pte)
+		{
 			pr_err("%s: no pte tables\n", __func__);
 			ret = -ENOMEM;
 			break;
@@ -397,7 +455,8 @@ static int __init dma_alloc_init(void)
 		set_pmd(pmd_k, *pmd);
 
 		consistent_pte = pte;
-	} while (0);
+	}
+	while (0);
 
 	return ret;
 }
@@ -416,34 +475,38 @@ static void dma_sync_for_device(void *vaddr, size_t size, int dma_direction)
 
 	barrier();
 
-	switch (dma_direction) {
-	case DMA_BIDIRECTIONAL:
-		/*
-		 * Writeback to ensure the device can see our latest changes and
-		 * so that we have no dirty lines, and invalidate the cache
-		 * lines too in preparation for receiving the buffer back
-		 * (dma_sync_for_cpu) later.
-		 */
-		flush_dcache_region(vaddr, size);
-		break;
-	case DMA_TO_DEVICE:
-		/*
-		 * Writeback to ensure the device can see our latest changes.
-		 * There's no need to invalidate as the device shouldn't write
-		 * to the buffer.
-		 */
-		writeback_dcache_region(vaddr, size);
-		break;
-	case DMA_FROM_DEVICE:
-		/*
-		 * Invalidate to ensure we have no dirty lines that could get
-		 * written back during the DMA. It's also safe to flush
-		 * (writeback) here if necessary.
-		 */
-		invalidate_dcache_region(vaddr, size);
-		break;
-	case DMA_NONE:
-		BUG();
+	switch (dma_direction)
+	{
+		case DMA_BIDIRECTIONAL:
+			/*
+			 * Writeback to ensure the device can see our latest changes and
+			 * so that we have no dirty lines, and invalidate the cache
+			 * lines too in preparation for receiving the buffer back
+			 * (dma_sync_for_cpu) later.
+			 */
+			flush_dcache_region(vaddr, size);
+			break;
+
+		case DMA_TO_DEVICE:
+			/*
+			 * Writeback to ensure the device can see our latest changes.
+			 * There's no need to invalidate as the device shouldn't write
+			 * to the buffer.
+			 */
+			writeback_dcache_region(vaddr, size);
+			break;
+
+		case DMA_FROM_DEVICE:
+			/*
+			 * Invalidate to ensure we have no dirty lines that could get
+			 * written back during the DMA. It's also safe to flush
+			 * (writeback) here if necessary.
+			 */
+			invalidate_dcache_region(vaddr, size);
+			break;
+
+		case DMA_NONE:
+			BUG();
 	}
 
 	wmb();
@@ -463,17 +526,21 @@ static void dma_sync_for_cpu(void *vaddr, size_t size, int dma_direction)
 	 * This should never cause dirty lines, so a flush or invalidate should
 	 * be safe to allow us to see data from the device.
 	 */
-	if (_meta_l2c_pf_is_enabled()) {
-		switch (dma_direction) {
-		case DMA_BIDIRECTIONAL:
-		case DMA_FROM_DEVICE:
-			invalidate_dcache_region(vaddr, size);
-			break;
-		case DMA_TO_DEVICE:
-			/* The device shouldn't have written to the buffer */
-			break;
-		case DMA_NONE:
-			BUG();
+	if (_meta_l2c_pf_is_enabled())
+	{
+		switch (dma_direction)
+		{
+			case DMA_BIDIRECTIONAL:
+			case DMA_FROM_DEVICE:
+				invalidate_dcache_region(vaddr, size);
+				break;
+
+			case DMA_TO_DEVICE:
+				/* The device shouldn't have written to the buffer */
+				break;
+
+			case DMA_NONE:
+				BUG();
 		}
 	}
 
@@ -481,29 +548,30 @@ static void dma_sync_for_cpu(void *vaddr, size_t size, int dma_direction)
 }
 
 static dma_addr_t metag_dma_map_page(struct device *dev, struct page *page,
-		unsigned long offset, size_t size,
-		enum dma_data_direction direction, unsigned long attrs)
+									 unsigned long offset, size_t size,
+									 enum dma_data_direction direction, unsigned long attrs)
 {
 	dma_sync_for_device((void *)(page_to_phys(page) + offset), size,
-			    direction);
+						direction);
 	return page_to_phys(page) + offset;
 }
 
 static void metag_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
-		size_t size, enum dma_data_direction direction,
-		unsigned long attrs)
+								 size_t size, enum dma_data_direction direction,
+								 unsigned long attrs)
 {
 	dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
 }
 
 static int metag_dma_map_sg(struct device *dev, struct scatterlist *sglist,
-		int nents, enum dma_data_direction direction,
-		unsigned long attrs)
+							int nents, enum dma_data_direction direction,
+							unsigned long attrs)
 {
 	struct scatterlist *sg;
 	int i;
 
-	for_each_sg(sglist, sg, nents, i) {
+	for_each_sg(sglist, sg, nents, i)
+	{
 		BUG_ON(!sg_page(sg));
 
 		sg->dma_address = sg_phys(sg);
@@ -515,13 +583,14 @@ static int metag_dma_map_sg(struct device *dev, struct scatterlist *sglist,
 
 
 static void metag_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
-		int nhwentries, enum dma_data_direction direction,
-		unsigned long attrs)
+							   int nhwentries, enum dma_data_direction direction,
+							   unsigned long attrs)
 {
 	struct scatterlist *sg;
 	int i;
 
-	for_each_sg(sglist, sg, nhwentries, i) {
+	for_each_sg(sglist, sg, nhwentries, i)
+	{
 		BUG_ON(!sg_page(sg));
 
 		sg->dma_address = sg_phys(sg);
@@ -544,14 +613,14 @@ static void metag_dma_sync_single_for_device(struct device *dev,
 }
 
 static void metag_dma_sync_sg_for_cpu(struct device *dev,
-		struct scatterlist *sglist, int nelems,
-		enum dma_data_direction direction)
+									  struct scatterlist *sglist, int nelems,
+									  enum dma_data_direction direction)
 {
 	int i;
 	struct scatterlist *sg;
 
 	for_each_sg(sglist, sg, nelems, i)
-		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
+	dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
 }
 
 static void metag_dma_sync_sg_for_device(struct device *dev,
@@ -562,10 +631,11 @@ static void metag_dma_sync_sg_for_device(struct device *dev,
 	struct scatterlist *sg;
 
 	for_each_sg(sglist, sg, nelems, i)
-		dma_sync_for_device(sg_virt(sg), sg->length, direction);
+	dma_sync_for_device(sg_virt(sg), sg->length, direction);
 }
 
-struct dma_map_ops metag_dma_ops = {
+struct dma_map_ops metag_dma_ops =
+{
 	.alloc			= metag_dma_alloc,
 	.free			= metag_dma_free,
 	.map_page		= metag_dma_map_page,

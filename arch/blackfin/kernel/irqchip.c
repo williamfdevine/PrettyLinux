@@ -23,14 +23,15 @@ void ack_bad_irq(unsigned int irq)
 	printk(KERN_ERR "IRQ: spurious interrupt %d\n", irq);
 }
 
-static struct irq_desc bad_irq_desc = {
+static struct irq_desc bad_irq_desc =
+{
 	.handle_irq = handle_bad_irq,
 	.lock = __RAW_SPIN_LOCK_UNLOCKED(bad_irq_desc.lock),
 };
 
 #ifdef CONFIG_CPUMASK_OFFSTACK
-/* We are not allocating a variable-sized bad_irq_desc.affinity */
-#error "Blackfin architecture does not support CONFIG_CPUMASK_OFFSTACK."
+	/* We are not allocating a variable-sized bad_irq_desc.affinity */
+	#error "Blackfin architecture does not support CONFIG_CPUMASK_OFFSTACK."
 #endif
 
 #ifdef CONFIG_PROC_FS
@@ -40,7 +41,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 
 	seq_printf(p, "%*s: ", prec, "NMI");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", cpu_pda[j].__nmi_count);
+	seq_printf(p, "%10u ", cpu_pda[j].__nmi_count);
 	seq_printf(p, "  CORE  Non Maskable Interrupt\n");
 	seq_printf(p, "%*s: %10u\n", prec, "ERR", atomic_read(&irq_err_count));
 	return 0;
@@ -53,10 +54,11 @@ static void check_stack_overflow(int irq)
 	/* Debugging check for stack overflow: is there less than STACK_WARN free? */
 	long sp = __get_SP() & (THREAD_SIZE - 1);
 
-	if (unlikely(sp < (sizeof(struct thread_info) + STACK_WARN))) {
+	if (unlikely(sp < (sizeof(struct thread_info) + STACK_WARN)))
+	{
 		dump_stack();
 		pr_emerg("irq%i: possible stack overflow only %ld bytes free\n",
-			irq, sp - sizeof(struct thread_info));
+				 irq, sp - sizeof(struct thread_info));
 	}
 }
 #else
@@ -79,8 +81,11 @@ static void maybe_lower_to_irq14(void)
 	CSYNC();
 	pending = bfin_read_IPEND() & ~0x8000;
 	other_ints = pending & (pending - 1);
+
 	if (other_ints == 0)
+	{
 		lower_to_irq14();
+	}
 }
 #else
 static inline void maybe_lower_to_irq14(void) { }
@@ -92,7 +97,7 @@ static inline void maybe_lower_to_irq14(void) { }
  * own 'handler'
  */
 #ifdef CONFIG_DO_IRQ_L1
-__attribute__((l1_text))
+	__attribute__((l1_text))
 #endif
 asmlinkage void asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 {
@@ -107,9 +112,13 @@ asmlinkage void asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 	 * than crashing, do something sensible.
 	 */
 	if (irq >= NR_IRQS)
+	{
 		handle_bad_irq(&bad_irq_desc);
+	}
 	else
+	{
 		generic_handle_irq(irq);
+	}
 
 	maybe_lower_to_irq14();
 
@@ -127,6 +136,6 @@ void __init init_IRQ(void)
 	trace_buff_offset = 0;
 	bfin_write_TBUFCTL(BFIN_TRACE_ON);
 	printk(KERN_INFO "Hardware Trace expanded to %ik\n",
-	  1 << CONFIG_DEBUG_BFIN_HWTRACE_EXPAND_LEN);
+		   1 << CONFIG_DEBUG_BFIN_HWTRACE_EXPAND_LEN);
 #endif
 }

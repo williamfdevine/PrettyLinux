@@ -19,7 +19,8 @@
  * Standard IO mapping for all IOP3xx based systems.  Note that
  * the IOP3xx OCCDR must be mapped uncached and unbuffered.
  */
-static struct map_desc iop3xx_std_desc[] __initdata = {
+static struct map_desc iop3xx_std_desc[] __initdata =
+{
 	{	/* mem mapped registers */
 		.virtual	= IOP3XX_PERIPHERAL_VIRT_BASE,
 		.pfn		= __phys_to_pfn(IOP3XX_PERIPHERAL_PHYS_BASE),

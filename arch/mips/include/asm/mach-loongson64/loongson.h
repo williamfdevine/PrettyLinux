@@ -34,8 +34,8 @@ extern void __init prom_init_cmdline(void);
 extern void __init prom_init_machtype(void);
 extern void __init prom_init_env(void);
 #ifdef CONFIG_LOONGSON_UART_BASE
-extern unsigned long _loongson_uart_base[], loongson_uart_base[];
-extern void prom_init_loongson_uart_base(void);
+	extern unsigned long _loongson_uart_base[], loongson_uart_base[];
+	extern void prom_init_loongson_uart_base(void);
 #endif
 
 static inline void prom_init_uart_base(void)
@@ -54,10 +54,10 @@ extern int mach_i8259_irq(void);
 
 /* We need this in some places... */
 #define delay() ({		\
-	int x;				\
-	for (x = 0; x < 100000; x++)	\
-		__asm__ __volatile__(""); \
-})
+		int x;				\
+		for (x = 0; x < 100000; x++)	\
+			__asm__ __volatile__(""); \
+	})
 
 #define LOONGSON_REG(x) \
 	(*(volatile u32 *)((char *)CKSEG1ADDR(LOONGSON_REG_BASE) + (x)))
@@ -114,9 +114,9 @@ static inline void do_perfcnt_IRQ(void)
 #define LOONGSON_PCICFG_TOP	(LOONGSON_PCICFG_BASE+LOONGSON_PCICFG_SIZE-1)
 
 #if defined(CONFIG_HT_PCI)
-#define LOONGSON_PCIIO_BASE	loongson_sysconf.pci_io_base
+	#define LOONGSON_PCIIO_BASE	loongson_sysconf.pci_io_base
 #else
-#define LOONGSON_PCIIO_BASE	0x1fd00000
+	#define LOONGSON_PCIIO_BASE	0x1fd00000
 #endif
 
 #define LOONGSON_PCIIO_SIZE	0x00100000	/* 1M */
@@ -275,8 +275,8 @@ extern u64 loongson_freqctrl[MAX_PACKAGES];
 	((((ADDR)>>26) & LOONGSON_PCIMAP_PCIMAP_LO0) << ((WIN)*6))
 
 #ifdef CONFIG_CPU_SUPPORTS_CPUFREQ
-#include <linux/cpufreq.h>
-extern struct cpufreq_frequency_table loongson2_clockmod_table[];
+	#include <linux/cpufreq.h>
+	extern struct cpufreq_frequency_table loongson2_clockmod_table[];
 #endif
 
 /*
@@ -342,10 +342,10 @@ extern unsigned long _loongson_addrwincfg_base;
  * size: ~mask + 1
  */
 #define LOONGSON_ADDRWIN_CFG(s, d, w, src, dst, size) do {\
-	s##_WIN##w##_BASE = (src); \
-	s##_WIN##w##_MMAP = (dst) | ADDRWIN_MAP_DST_##d; \
-	s##_WIN##w##_MASK = ~(size-1); \
-} while (0)
+		s##_WIN##w##_BASE = (src); \
+		s##_WIN##w##_MMAP = (dst) | ADDRWIN_MAP_DST_##d; \
+		s##_WIN##w##_MASK = ~(size-1); \
+	} while (0)
 
 #define LOONGSON_ADDRWIN_CPUTOPCI(win, src, dst, size) \
 	LOONGSON_ADDRWIN_CFG(CPU, PCI, win, src, dst, size)

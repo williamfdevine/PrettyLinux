@@ -71,17 +71,17 @@
 #define EX_TLB_SRR1	(11 * 8)
 #define EX_TLB_R7	(12 * 8)
 #ifdef CONFIG_BOOK3E_MMU_TLB_STATS
-#define EX_TLB_R8	(13 * 8)
-#define EX_TLB_R9	(14 * 8)
-#define EX_TLB_LR	(15 * 8)
-#define EX_TLB_SIZE	(16 * 8)
+	#define EX_TLB_R8	(13 * 8)
+	#define EX_TLB_R9	(14 * 8)
+	#define EX_TLB_LR	(15 * 8)
+	#define EX_TLB_SIZE	(16 * 8)
 #else
-#define EX_TLB_SIZE	(13 * 8)
+	#define EX_TLB_SIZE	(13 * 8)
 #endif
 
 #define	START_EXCEPTION(label)						\
 	.globl exc_##label##_book3e;					\
-exc_##label##_book3e:
+	exc_##label##_book3e:
 
 /* TLB miss exception prolog
  *
@@ -185,8 +185,8 @@ exc_##label##_book3e:
 	beq	cr2,61f;						    \
 	addi	r9,r13,MMSTAT_DSTATS+name;				    \
 	b	62f;							    \
-61:	addi	r9,r13,MMSTAT_ISTATS+name;				    \
-62:	bl	tlb_stat_inc;
+	61:	addi	r9,r13,MMSTAT_ISTATS+name;				    \
+	62:	bl	tlb_stat_inc;
 #define TLB_MISS_STATS_SAVE_INFO					    \
 	std	r14,EX_TLB_ESR(r12);	/* save ESR */
 #define TLB_MISS_STATS_SAVE_INFO_BOLTED					    \

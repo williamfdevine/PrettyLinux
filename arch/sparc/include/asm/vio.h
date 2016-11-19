@@ -13,7 +13,8 @@
 #include <asm/ldc.h>
 #include <asm/mdesc.h>
 
-struct vio_msg_tag {
+struct vio_msg_tag
+{
 	u8			type;
 #define VIO_TYPE_CTRL		0x01
 #define VIO_TYPE_DATA		0x02
@@ -38,12 +39,14 @@ struct vio_msg_tag {
 	u32		sid;
 };
 
-struct vio_rdx {
+struct vio_rdx
+{
 	struct vio_msg_tag	tag;
 	u64			resv[6];
 };
 
-struct vio_ver_info {
+struct vio_ver_info
+{
 	struct vio_msg_tag	tag;
 	u16			major;
 	u16			minor;
@@ -57,7 +60,8 @@ struct vio_ver_info {
 	u64			resv2[5];
 };
 
-struct vio_dring_register {
+struct vio_dring_register
+{
 	struct vio_msg_tag	tag;
 	u64			dring_ident;
 	u32			num_descr;
@@ -71,7 +75,8 @@ struct vio_dring_register {
 	struct ldc_trans_cookie	cookies[0];
 };
 
-struct vio_dring_unregister {
+struct vio_dring_unregister
+{
 	struct vio_msg_tag	tag;
 	u64			dring_ident;
 	u64			resv[5];
@@ -84,7 +89,8 @@ struct vio_dring_unregister {
 /* in vers >= 1.2, VIO_DRING_MODE is 0x04 and transfer mode is a bitmask */
 #define VIO_NEW_DRING_MODE	0x04
 
-struct vio_dring_data {
+struct vio_dring_data
+{
 	struct vio_msg_tag	tag;
 	u64			seq;
 	u64			dring_ident;
@@ -100,7 +106,8 @@ struct vio_dring_data {
 	u64			__par4[2];
 };
 
-struct vio_dring_hdr {
+struct vio_dring_hdr
+{
 	u8			state;
 #define VIO_DESC_FREE		0x01
 #define VIO_DESC_READY		0x02
@@ -115,7 +122,8 @@ struct vio_dring_hdr {
 };
 
 /* VIO disk specific structures and defines */
-struct vio_disk_attr_info {
+struct vio_disk_attr_info
+{
 	struct vio_msg_tag	tag;
 	u8			xfer_mode;
 	u8			vdisk_type;
@@ -135,7 +143,8 @@ struct vio_disk_attr_info {
 	u64			resv3[1];
 };
 
-struct vio_disk_desc {
+struct vio_disk_desc
+{
 	struct vio_dring_hdr	hdr;
 	u64			req_id;
 	u8			operation;
@@ -166,12 +175,14 @@ struct vio_disk_desc {
 #define VIO_DISK_ALABEL_LEN	128
 #define VIO_DISK_NUM_PART	8
 
-struct vio_disk_vtoc {
+struct vio_disk_vtoc
+{
 	u8			volume_name[VIO_DISK_VNAME_LEN];
 	u16			sector_size;
 	u16			num_partitions;
 	u8			ascii_label[VIO_DISK_ALABEL_LEN];
-	struct {
+	struct
+	{
 		u16		id;
 		u16		perm_flags;
 		u32		resv;
@@ -180,7 +191,8 @@ struct vio_disk_vtoc {
 	} partitions[VIO_DISK_NUM_PART];
 };
 
-struct vio_disk_geom {
+struct vio_disk_geom
+{
 	u16			num_cyl; /* Num data cylinders		*/
 	u16			alt_cyl; /* Num alternate cylinders	*/
 	u16			beg_cyl; /* Cyl off of fixed head area	*/
@@ -194,21 +206,24 @@ struct vio_disk_geom {
 	u16			rd_skip; /* Num sects to skip, writes	*/
 };
 
-struct vio_disk_devid {
+struct vio_disk_devid
+{
 	u16			resv;
 	u16			type;
 	u32			len;
 	char			id[0];
 };
 
-struct vio_disk_efi {
+struct vio_disk_efi
+{
 	u64			lba;
 	u64			len;
 	char			data[0];
 };
 
 /* VIO net specific structures and defines */
-struct vio_net_attr_info {
+struct vio_net_attr_info
+{
 	struct vio_msg_tag	tag;
 	u8			xfer_mode;
 	u8			addr_type;
@@ -232,7 +247,8 @@ struct vio_net_attr_info {
 
 #define VNET_NUM_MCAST		7
 
-struct vio_net_mcast_info {
+struct vio_net_mcast_info
+{
 	struct vio_msg_tag	tag;
 	u8			set;
 	u8			count;
@@ -240,14 +256,16 @@ struct vio_net_mcast_info {
 	u32			resv;
 };
 
-struct vio_net_desc {
+struct vio_net_desc
+{
 	struct vio_dring_hdr	hdr;
 	u32			size;
 	u32			ncookies;
 	struct ldc_trans_cookie	cookies[0];
 };
 
-struct vio_net_dext {
+struct vio_net_dext
+{
 	u8		flags;
 #define VNET_PKT_HASH			0x01
 #define	VNET_PKT_HCK_IPV4_HDRCKSUM	0x02
@@ -268,7 +286,8 @@ static inline struct vio_net_dext *vio_net_ext(struct vio_net_desc *desc)
 
 #define VIO_MAX_RING_COOKIES	24
 
-struct vio_dring_state {
+struct vio_dring_state
+{
 	u64			ident;
 	void			*base;
 	u64			snd_nxt;
@@ -288,37 +307,45 @@ static inline void *vio_dring_cur(struct vio_dring_state *dr)
 }
 
 static inline void *vio_dring_entry(struct vio_dring_state *dr,
-				    unsigned int index)
+									unsigned int index)
 {
 	return dr->base + (dr->entry_size * index);
 }
 
 static inline u32 vio_dring_avail(struct vio_dring_state *dr,
-				  unsigned int ring_size)
+								  unsigned int ring_size)
 {
 	return (dr->pending -
-		((dr->prod - dr->cons) & (ring_size - 1)) - 1);
+			((dr->prod - dr->cons) & (ring_size - 1)) - 1);
 }
 
 static inline u32 vio_dring_next(struct vio_dring_state *dr, u32 index)
 {
 	if (++index == dr->num_entries)
+	{
 		index = 0;
+	}
+
 	return index;
 }
 
 static inline u32 vio_dring_prev(struct vio_dring_state *dr, u32 index)
 {
 	if (index == 0)
+	{
 		return dr->num_entries - 1;
+	}
 	else
+	{
 		return index - 1;
+	}
 }
 
 #define VIO_MAX_TYPE_LEN	32
 #define VIO_MAX_COMPAT_LEN	64
 
-struct vio_dev {
+struct vio_dev
+{
 	u64			mp;
 	struct device_node	*dp;
 
@@ -337,7 +364,8 @@ struct vio_dev {
 	struct device		dev;
 };
 
-struct vio_driver {
+struct vio_driver
+{
 	const char			*name;
 	struct list_head		node;
 	const struct vio_device_id	*id_table;
@@ -348,25 +376,29 @@ struct vio_driver {
 	struct device_driver		driver;
 };
 
-struct vio_version {
+struct vio_version
+{
 	u16		major;
 	u16		minor;
 };
 
 struct vio_driver_state;
-struct vio_driver_ops {
+struct vio_driver_ops
+{
 	int	(*send_attr)(struct vio_driver_state *vio);
 	int	(*handle_attr)(struct vio_driver_state *vio, void *pkt);
 	void	(*handshake_complete)(struct vio_driver_state *vio);
 };
 
-struct vio_completion {
+struct vio_completion
+{
 	struct completion	com;
 	int			err;
 	int			waiting_for;
 };
 
-struct vio_driver_state {
+struct vio_driver_state
+{
 	/* Protects VIO handshake and, optionally, driver private state.  */
 	spinlock_t		lock;
 
@@ -421,7 +453,7 @@ struct vio_driver_state {
 };
 
 static inline bool vio_version_before(struct vio_driver_state *vio,
-				      u16 major, u16 minor)
+									  u16 major, u16 minor)
 {
 	u32 have = (u32)vio->ver.major << 16 | vio->ver.minor;
 	u32 want = (u32)major << 16 | minor;
@@ -430,7 +462,7 @@ static inline bool vio_version_before(struct vio_driver_state *vio,
 }
 
 static inline bool vio_version_after(struct vio_driver_state *vio,
-				      u16 major, u16 minor)
+									 u16 major, u16 minor)
 {
 	u32 have = (u32)vio->ver.major << 16 | vio->ver.minor;
 	u32 want = (u32)major << 16 | minor;
@@ -439,7 +471,7 @@ static inline bool vio_version_after(struct vio_driver_state *vio,
 }
 
 static inline bool vio_version_after_eq(struct vio_driver_state *vio,
-					u16 major, u16 minor)
+										u16 major, u16 minor)
 {
 	u32 have = (u32)vio->ver.major << 16 | vio->ver.minor;
 	u32 want = (u32)major << 16 | minor;
@@ -448,13 +480,13 @@ static inline bool vio_version_after_eq(struct vio_driver_state *vio,
 }
 
 #define viodbg(TYPE, f, a...) \
-do {	if (vio->debug & VIO_DEBUG_##TYPE) \
-		printk(KERN_INFO "vio: ID[%lu] " f, \
-		       vio->vdev->channel_id, ## a); \
-} while (0)
+	do {	if (vio->debug & VIO_DEBUG_##TYPE) \
+			printk(KERN_INFO "vio: ID[%lu] " f, \
+				   vio->vdev->channel_id, ## a); \
+	} while (0)
 
 int __vio_register_driver(struct vio_driver *drv, struct module *owner,
-				 const char *mod_name);
+						  const char *mod_name);
 /*
  * vio_register_driver must be a macro so that KBUILD_MODNAME can be expanded
  */
@@ -477,15 +509,15 @@ void vio_link_state_change(struct vio_driver_state *vio, int event);
 void vio_conn_reset(struct vio_driver_state *vio);
 int vio_control_pkt_engine(struct vio_driver_state *vio, void *pkt);
 int vio_validate_sid(struct vio_driver_state *vio,
-		     struct vio_msg_tag *tp);
+					 struct vio_msg_tag *tp);
 u32 vio_send_sid(struct vio_driver_state *vio);
 int vio_ldc_alloc(struct vio_driver_state *vio,
-		  struct ldc_channel_config *base_cfg, void *event_arg);
+				  struct ldc_channel_config *base_cfg, void *event_arg);
 void vio_ldc_free(struct vio_driver_state *vio);
 int vio_driver_init(struct vio_driver_state *vio, struct vio_dev *vdev,
-		    u8 dev_class, struct vio_version *ver_table,
-		    int ver_table_size, struct vio_driver_ops *ops,
-		    char *name);
+					u8 dev_class, struct vio_version *ver_table,
+					int ver_table_size, struct vio_driver_ops *ops,
+					char *name);
 
 void vio_port_up(struct vio_driver_state *vio);
 int vio_set_intr(unsigned long dev_ino, int state);

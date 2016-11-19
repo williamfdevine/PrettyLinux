@@ -13,23 +13,23 @@
 #define __ASM_SH_PGTABLE_H
 
 #ifdef CONFIG_X2TLB
-#include <asm/pgtable-3level.h>
+	#include <asm/pgtable-3level.h>
 #else
-#include <asm/pgtable-2level.h>
+	#include <asm/pgtable-2level.h>
 #endif
 #include <asm/page.h>
 #include <asm/mmu.h>
 
 #ifndef __ASSEMBLY__
-#include <asm/addrspace.h>
-#include <asm/fixmap.h>
+	#include <asm/addrspace.h>
+	#include <asm/fixmap.h>
 
-/*
- * ZERO_PAGE is a global shared page that is always zero: used
- * for zero-mapped memory areas etc..
- */
-extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
-#define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
+	/*
+	* ZERO_PAGE is a global shared page that is always zero: used
+	* for zero-mapped memory areas etc..
+	*/
+	extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
+	#define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
 
 #endif /* !__ASSEMBLY__ */
 
@@ -48,9 +48,9 @@ static inline unsigned long long neff_sign_extend(unsigned long val)
 }
 
 #ifdef CONFIG_29BIT
-#define NPHYS		29
+	#define NPHYS		29
 #else
-#define NPHYS		32
+	#define NPHYS		32
 #endif
 
 #define	NPHYS_SIGN	(1LL << (NPHYS - 1))
@@ -71,7 +71,9 @@ static inline unsigned long phys_addr_mask(void)
 {
 	/* Is the MMU in 29bit mode? */
 	if (__in_29bit_mode())
+	{
 		return PHYS_ADDR_MASK29;
+	}
 
 	return PHYS_ADDR_MASK32;
 }
@@ -80,16 +82,16 @@ static inline unsigned long phys_addr_mask(void)
 #define PTE_FLAGS_MASK		(~(PTE_PHYS_MASK) << PAGE_SHIFT)
 
 #ifdef CONFIG_SUPERH32
-#define VMALLOC_START	(P3SEG)
+	#define VMALLOC_START	(P3SEG)
 #else
-#define VMALLOC_START	(0xf0000000)
+	#define VMALLOC_START	(0xf0000000)
 #endif
 #define VMALLOC_END	(FIXADDR_START-2*PAGE_SIZE)
 
 #if defined(CONFIG_SUPERH32)
-#include <asm/pgtable_32.h>
+	#include <asm/pgtable_32.h>
 #else
-#include <asm/pgtable_64.h>
+	#include <asm/pgtable_64.h>
 #endif
 
 /*
@@ -101,7 +103,7 @@ static inline unsigned long phys_addr_mask(void)
  * not only supporting separate execute, read, and write bits, but having
  * completely separate permission bits for user and kernel space.
  */
-	 /*xwr*/
+/*xwr*/
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY
 #define __P010	PAGE_COPY
@@ -135,9 +137,9 @@ struct vm_area_struct;
 struct mm_struct;
 
 extern void __update_cache(struct vm_area_struct *vma,
-			   unsigned long address, pte_t pte);
+						   unsigned long address, pte_t pte);
 extern void __update_tlb(struct vm_area_struct *vma,
-			 unsigned long address, pte_t pte);
+						 unsigned long address, pte_t pte);
 
 static inline void
 update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep)
@@ -150,7 +152,7 @@ update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep)
 extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
 extern void paging_init(void);
 extern void page_table_range_init(unsigned long start, unsigned long end,
-				  pgd_t *pgd);
+								  pgd_t *pgd);
 
 /* arch/sh/mm/mmap.c */
 #define HAVE_ARCH_UNMAPPED_AREA

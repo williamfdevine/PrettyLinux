@@ -44,13 +44,14 @@
  * SD/MMC card controller
  ******************************************************************************/
 #if defined(CONFIG_MMC_PXA) || defined(CONFIG_MMC_PXA_MODULE)
-static struct pxamci_platform_data palm27x_mci_platform_data = {
+static struct pxamci_platform_data palm27x_mci_platform_data =
+{
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.detect_delay_ms	= 200,
 };
 
 void __init palm27x_mmc_init(int detect, int ro, int power,
-					int power_inverted)
+							 int power_inverted)
 {
 	palm27x_mci_platform_data.gpio_card_detect	= detect;
 	palm27x_mci_platform_data.gpio_card_ro		= ro;
@@ -67,7 +68,8 @@ void __init palm27x_mmc_init(int detect, int ro, int power,
 #if defined(CONFIG_SUSPEND)
 void __init palm27x_pm_init(unsigned long str_base)
 {
-	static const unsigned long resume[] = {
+	static const unsigned long resume[] =
+	{
 		0xe3a00101,	/* mov	r0,	#0x40000000 */
 		0xe380060f,	/* orr	r0, r0, #0x00f00000 */
 		0xe590f008,	/* ldr	pc, [r0, #0x08] */
@@ -85,7 +87,8 @@ void __init palm27x_pm_init(unsigned long str_base)
  * Framebuffer
  ******************************************************************************/
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-struct pxafb_mode_info palm_320x480_lcd_mode = {
+struct pxafb_mode_info palm_320x480_lcd_mode =
+{
 	.pixclock	= 57692,
 	.xres		= 320,
 	.yres		= 480,
@@ -100,7 +103,8 @@ struct pxafb_mode_info palm_320x480_lcd_mode = {
 	.vsync_len	= 1,
 };
 
-struct pxafb_mode_info palm_320x320_lcd_mode = {
+struct pxafb_mode_info palm_320x320_lcd_mode =
+{
 	.pixclock	= 115384,
 	.xres		= 320,
 	.yres		= 320,
@@ -115,7 +119,8 @@ struct pxafb_mode_info palm_320x320_lcd_mode = {
 	.vsync_len	= 1,
 };
 
-struct pxafb_mode_info palm_320x320_new_lcd_mode = {
+struct pxafb_mode_info palm_320x320_new_lcd_mode =
+{
 	.pixclock	= 86538,
 	.xres		= 320,
 	.yres		= 320,
@@ -130,7 +135,8 @@ struct pxafb_mode_info palm_320x320_new_lcd_mode = {
 	.vsync_len	= 1,
 };
 
-static struct pxafb_mach_info palm27x_lcd_screen = {
+static struct pxafb_mach_info palm27x_lcd_screen =
+{
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 };
@@ -145,15 +151,20 @@ void __init palm27x_lcd_init(int power, struct pxafb_mode_info *mode)
 {
 	palm27x_lcd_screen.modes = mode;
 
-	if (gpio_is_valid(power)) {
-		if (!gpio_request(power, "LCD power")) {
+	if (gpio_is_valid(power))
+	{
+		if (!gpio_request(power, "LCD power"))
+		{
 			pr_err("Palm27x: failed to claim lcd power gpio!\n");
 			return;
 		}
-		if (!gpio_direction_output(power, 1)) {
+
+		if (!gpio_direction_output(power, 1))
+		{
 			pr_err("Palm27x: lcd power configuration failed!\n");
 			return;
 		}
+
 		palm27x_lcd_power = power;
 		palm27x_lcd_screen.pxafb_lcd_power = palm27x_lcd_ctl;
 	}
@@ -167,11 +178,13 @@ void __init palm27x_lcd_init(int power, struct pxafb_mode_info *mode)
  ******************************************************************************/
 #if	defined(CONFIG_USB_PXA27X) || \
 	defined(CONFIG_USB_PXA27X_MODULE)
-static struct gpio_vbus_mach_info palm27x_udc_info = {
+static struct gpio_vbus_mach_info palm27x_udc_info =
+{
 	.gpio_vbus_inverted	= 1,
 };
 
-static struct platform_device palm27x_gpio_vbus = {
+static struct platform_device palm27x_gpio_vbus =
+{
 	.name	= "gpio-vbus",
 	.id	= -1,
 	.dev	= {
@@ -186,12 +199,16 @@ void __init palm27x_udc_init(int vbus, int pullup, int vbus_inverted)
 
 	palm27x_udc_info.gpio_vbus_inverted = vbus_inverted;
 
-	if (!gpio_request(pullup, "USB Pullup")) {
+	if (!gpio_request(pullup, "USB Pullup"))
+	{
 		gpio_direction_output(pullup,
-			palm27x_udc_info.gpio_vbus_inverted);
+							  palm27x_udc_info.gpio_vbus_inverted);
 		gpio_free(pullup);
-	} else
+	}
+	else
+	{
 		return;
+	}
 
 	platform_device_register(&palm27x_gpio_vbus);
 }
@@ -201,7 +218,8 @@ void __init palm27x_udc_init(int vbus, int pullup, int vbus_inverted)
  * IrDA
  ******************************************************************************/
 #if defined(CONFIG_IRDA) || defined(CONFIG_IRDA_MODULE)
-static struct pxaficp_platform_data palm27x_ficp_platform_data = {
+static struct pxaficp_platform_data palm27x_ficp_platform_data =
+{
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
 
@@ -217,7 +235,8 @@ void __init palm27x_irda_init(int pwdn)
  ******************************************************************************/
 #if	defined(CONFIG_TOUCHSCREEN_WM97XX) || \
 	defined(CONFIG_TOUCHSCREEN_WM97XX_MODULE)
-static struct wm97xx_batt_pdata palm27x_batt_pdata = {
+static struct wm97xx_batt_pdata palm27x_batt_pdata =
+{
 	.batt_aux	= WM97XX_AUX_ID3,
 	.temp_aux	= WM97XX_AUX_ID2,
 	.charge_gpio	= -1,
@@ -229,19 +248,23 @@ static struct wm97xx_batt_pdata palm27x_batt_pdata = {
 	.batt_name	= "main-batt",
 };
 
-static struct wm97xx_pdata palm27x_wm97xx_pdata = {
+static struct wm97xx_pdata palm27x_wm97xx_pdata =
+{
 	.batt_pdata	= &palm27x_batt_pdata,
 };
 
-static pxa2xx_audio_ops_t palm27x_ac97_pdata = {
+static pxa2xx_audio_ops_t palm27x_ac97_pdata =
+{
 	.codec_pdata	= { &palm27x_wm97xx_pdata, },
 };
 
-static struct palm27x_asoc_info palm27x_asoc_pdata = {
+static struct palm27x_asoc_info palm27x_asoc_pdata =
+{
 	.jack_gpio	= -1,
 };
 
-static struct platform_device palm27x_asoc = {
+static struct platform_device palm27x_asoc =
+{
 	.name = "palm27x-asoc",
 	.id   = -1,
 	.dev  = {
@@ -254,14 +277,17 @@ void __init palm27x_ac97_init(int minv, int maxv, int jack, int reset)
 	palm27x_ac97_pdata.reset_gpio	= reset;
 	palm27x_asoc_pdata.jack_gpio	= jack;
 
-	if (minv < 0 || maxv < 0) {
+	if (minv < 0 || maxv < 0)
+	{
 		palm27x_ac97_pdata.codec_pdata[0] = NULL;
 		pxa_set_ac97_info(&palm27x_ac97_pdata);
-	} else {
+	}
+	else
+	{
 		palm27x_batt_pdata.min_voltage	= minv,
-		palm27x_batt_pdata.max_voltage	= maxv,
+							palm27x_batt_pdata.max_voltage	= maxv,
 
-		pxa_set_ac97_info(&palm27x_ac97_pdata);
+												pxa_set_ac97_info(&palm27x_ac97_pdata);
 		platform_device_register(&palm27x_asoc);
 	}
 }
@@ -271,9 +297,10 @@ void __init palm27x_ac97_init(int minv, int maxv, int jack, int reset)
  * Backlight
  ******************************************************************************/
 #if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM_MODULE)
-static struct pwm_lookup palm27x_pwm_lookup[] = {
+static struct pwm_lookup palm27x_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa27x-pwm.0", 0, "pwm-backlight.0", NULL, 3500 * 1024,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
 static int palm_bl_power;
@@ -284,19 +311,34 @@ static int palm27x_backlight_init(struct device *dev)
 	int ret;
 
 	ret = gpio_request(palm_bl_power, "BL POWER");
-	if (ret)
-		goto err;
-	ret = gpio_direction_output(palm_bl_power, 0);
-	if (ret)
-		goto err2;
 
-	if (gpio_is_valid(palm_lcd_power)) {
+	if (ret)
+	{
+		goto err;
+	}
+
+	ret = gpio_direction_output(palm_bl_power, 0);
+
+	if (ret)
+	{
+		goto err2;
+	}
+
+	if (gpio_is_valid(palm_lcd_power))
+	{
 		ret = gpio_request(palm_lcd_power, "LCD POWER");
+
 		if (ret)
+		{
 			goto err2;
+		}
+
 		ret = gpio_direction_output(palm_lcd_power, 0);
+
 		if (ret)
+		{
 			goto err3;
+		}
 	}
 
 	return 0;
@@ -311,19 +353,27 @@ err:
 static int palm27x_backlight_notify(struct device *dev, int brightness)
 {
 	gpio_set_value(palm_bl_power, brightness);
+
 	if (gpio_is_valid(palm_lcd_power))
+	{
 		gpio_set_value(palm_lcd_power, brightness);
+	}
+
 	return brightness;
 }
 
 static void palm27x_backlight_exit(struct device *dev)
 {
 	gpio_free(palm_bl_power);
+
 	if (gpio_is_valid(palm_lcd_power))
+	{
 		gpio_free(palm_lcd_power);
+	}
 }
 
-static struct platform_pwm_backlight_data palm27x_backlight_data = {
+static struct platform_pwm_backlight_data palm27x_backlight_data =
+{
 	.max_brightness	= 0xfe,
 	.dft_brightness	= 0x7e,
 	.enable_gpio	= -1,
@@ -332,7 +382,8 @@ static struct platform_pwm_backlight_data palm27x_backlight_data = {
 	.exit		= palm27x_backlight_exit,
 };
 
-static struct platform_device palm27x_backlight = {
+static struct platform_device palm27x_backlight =
+{
 	.name	= "pwm-backlight",
 	.dev	= {
 		.parent		= &pxa27x_device_pwm0.dev,
@@ -361,19 +412,34 @@ static int palm27x_power_supply_init(struct device *dev)
 	int ret;
 
 	ret = gpio_request(palm_ac_state, "AC state");
-	if (ret)
-		goto err1;
-	ret = gpio_direction_input(palm_ac_state);
-	if (ret)
-		goto err2;
 
-	if (gpio_is_valid(palm_usb_state)) {
+	if (ret)
+	{
+		goto err1;
+	}
+
+	ret = gpio_direction_input(palm_ac_state);
+
+	if (ret)
+	{
+		goto err2;
+	}
+
+	if (gpio_is_valid(palm_usb_state))
+	{
 		ret = gpio_request(palm_usb_state, "USB state");
+
 		if (ret)
+		{
 			goto err2;
+		}
+
 		ret = gpio_direction_input(palm_usb_state);
+
 		if (ret)
+		{
 			goto err3;
+		}
 	}
 
 	return 0;
@@ -400,11 +466,13 @@ static int palm27x_is_usb_online(void)
 {
 	return !gpio_get_value(palm_usb_state);
 }
-static char *palm27x_supplicants[] = {
+static char *palm27x_supplicants[] =
+{
 	"main-battery",
 };
 
-static struct pda_power_pdata palm27x_ps_info = {
+static struct pda_power_pdata palm27x_ps_info =
+{
 	.init			= palm27x_power_supply_init,
 	.exit			= palm27x_power_supply_exit,
 	.is_ac_online		= palm27x_is_ac_online,
@@ -413,7 +481,8 @@ static struct pda_power_pdata palm27x_ps_info = {
 	.num_supplicants	= ARRAY_SIZE(palm27x_supplicants),
 };
 
-static struct platform_device palm27x_power_supply = {
+static struct platform_device palm27x_power_supply =
+{
 	.name = "pda-power",
 	.id   = -1,
 	.dev  = {
@@ -434,11 +503,13 @@ void __init palm27x_power_init(int ac, int usb)
  ******************************************************************************/
 #if defined(CONFIG_REGULATOR_MAX1586) || \
     defined(CONFIG_REGULATOR_MAX1586_MODULE)
-static struct regulator_consumer_supply palm27x_max1587a_consumers[] = {
+static struct regulator_consumer_supply palm27x_max1587a_consumers[] =
+{
 	REGULATOR_SUPPLY("vcc_core", NULL),
 };
 
-static struct regulator_init_data palm27x_max1587a_v3_info = {
+static struct regulator_init_data palm27x_max1587a_v3_info =
+{
 	.constraints = {
 		.name		= "vcc_core range",
 		.min_uV		= 900000,
@@ -450,7 +521,8 @@ static struct regulator_init_data palm27x_max1587a_v3_info = {
 	.num_consumer_supplies	= ARRAY_SIZE(palm27x_max1587a_consumers),
 };
 
-static struct max1586_subdev_data palm27x_max1587a_subdevs[] = {
+static struct max1586_subdev_data palm27x_max1587a_subdevs[] =
+{
 	{
 		.name		= "vcc_core",
 		.id		= MAX1586_V3,
@@ -458,20 +530,23 @@ static struct max1586_subdev_data palm27x_max1587a_subdevs[] = {
 	}
 };
 
-static struct max1586_platform_data palm27x_max1587a_info = {
+static struct max1586_platform_data palm27x_max1587a_info =
+{
 	.subdevs     = palm27x_max1587a_subdevs,
 	.num_subdevs = ARRAY_SIZE(palm27x_max1587a_subdevs),
 	.v3_gain     = MAX1586_GAIN_R24_3k32, /* 730..1550 mV */
 };
 
-static struct i2c_board_info __initdata palm27x_pi2c_board_info[] = {
+static struct i2c_board_info __initdata palm27x_pi2c_board_info[] =
+{
 	{
 		I2C_BOARD_INFO("max1586", 0x14),
 		.platform_data	= &palm27x_max1587a_info,
 	},
 };
 
-static struct i2c_pxa_platform_data palm27x_i2c_power_info = {
+static struct i2c_pxa_platform_data palm27x_i2c_power_info =
+{
 	.use_pio	= 1,
 };
 

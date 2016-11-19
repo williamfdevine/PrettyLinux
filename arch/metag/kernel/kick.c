@@ -78,7 +78,9 @@ kick_handler(TBIRES State, int SigNum, int Triggers, int Inst, PTBI pTBI)
 
 	/* If we interrupted user code handle any critical sections. */
 	if (State.Sig.SaveMask & TBICTX_PRIV_BIT)
+	{
 		restart_critical_section(State);
+	}
 
 	trace_hardirqs_off();
 
@@ -91,12 +93,16 @@ kick_handler(TBIRES State, int SigNum, int Triggers, int Inst, PTBI pTBI)
 	 */
 	spin_lock(&kick_handlers_lock);
 
-	list_for_each(lh, &kick_handlers_list) {
+	list_for_each(lh, &kick_handlers_list)
+	{
 		kh = list_entry(lh, struct kick_irq_handler, list);
 
 		ret = kh->func(State, SigNum, Triggers, Inst, pTBI, &handled);
+
 		if (handled)
+		{
 			break;
+		}
 	}
 
 	spin_unlock(&kick_handlers_lock);

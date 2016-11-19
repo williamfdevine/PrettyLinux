@@ -60,9 +60,9 @@
 #define COMPAT_PSR_GE_MASK	0x000f0000
 
 #ifdef CONFIG_CPU_BIG_ENDIAN
-#define COMPAT_PSR_ENDSTATE	COMPAT_PSR_E_BIT
+	#define COMPAT_PSR_ENDSTATE	COMPAT_PSR_E_BIT
 #else
-#define COMPAT_PSR_ENDSTATE	0
+	#define COMPAT_PSR_ENDSTATE	0
 #endif
 
 /*
@@ -105,10 +105,13 @@
  * exception. Note that sizeof(struct pt_regs) has to be a multiple of 16 (for
  * stack alignment). struct user_pt_regs must form a prefix of struct pt_regs.
  */
-struct pt_regs {
-	union {
+struct pt_regs
+{
+	union
+	{
 		struct user_pt_regs user_regs;
-		struct {
+		struct
+		{
 			u64 regs[31];
 			u64 sp;
 			u64 pc;
@@ -156,7 +159,7 @@ struct pt_regs {
 
 extern int regs_query_register_offset(const char *name);
 extern unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs,
-					       unsigned int n);
+		unsigned int n);
 
 /**
  * regs_get_register() - get register value from its offset
@@ -174,21 +177,27 @@ static inline u64 regs_get_register(struct pt_regs *regs, unsigned int offset)
 	WARN_ON(offset & 7);
 
 	offset >>= 3;
-	switch (offset) {
-	case 0 ... 30:
-		val = regs->regs[offset];
-		break;
-	case offsetof(struct pt_regs, sp) >> 3:
-		val = regs->sp;
-		break;
-	case offsetof(struct pt_regs, pc) >> 3:
-		val = regs->pc;
-		break;
-	case offsetof(struct pt_regs, pstate) >> 3:
-		val = regs->pstate;
-		break;
-	default:
-		val = 0;
+
+	switch (offset)
+	{
+		case 0 ... 30:
+			val = regs->regs[offset];
+			break;
+
+		case offsetof(struct pt_regs, sp) >> 3:
+			val = regs->sp;
+			break;
+
+		case offsetof(struct pt_regs, pc) >> 3:
+			val = regs->pc;
+			break;
+
+		case offsetof(struct pt_regs, pstate) >> 3:
+			val = regs->pstate;
+			break;
+
+		default:
+			val = 0;
 	}
 
 	return val;

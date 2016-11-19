@@ -44,14 +44,16 @@
 
 #define PMI_TIMEOUT		100
 
-typedef struct {
+typedef struct
+{
 	u8	type;
 	u8	data0;
 	u8	data1;
 	u8	data2;
 } pmi_message_t;
 
-struct pmi_handler {
+struct pmi_handler
+{
 	struct list_head node;
 	u8 type;
 	void (*handle_pmi_message) (pmi_message_t);

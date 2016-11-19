@@ -31,8 +31,8 @@ int *__atomic_hashed_lock(volatile void *v)
 	 * Using mm works here because atomic_locks is page aligned.
 	 */
 	unsigned long ptr = __insn_mm((unsigned long)v >> 1,
-				      (unsigned long)atomic_locks,
-				      2, (ATOMIC_HASH_SHIFT + 2) - 1);
+								  (unsigned long)atomic_locks,
+								  2, (ATOMIC_HASH_SHIFT + 2) - 1);
 	return (int *)ptr;
 }
 
@@ -173,7 +173,10 @@ EXPORT_SYMBOL(_atomic64_fetch_xor);
 struct __get_user __atomic_bad_address(int __user *addr)
 {
 	if (unlikely(!access_ok(VERIFY_WRITE, addr, sizeof(int))))
+	{
 		panic("Bad address used for kernel atomic op: %p\n", addr);
+	}
+
 	return (struct __get_user) { .err = -EFAULT };
 }
 
@@ -181,7 +184,7 @@ struct __get_user __atomic_bad_address(int __user *addr)
 void __init __init_atomic_per_cpu(void)
 {
 	/* Validate power-of-two and "bigger than cpus" assumption */
-	BUILD_BUG_ON(ATOMIC_HASH_SIZE & (ATOMIC_HASH_SIZE-1));
+	BUILD_BUG_ON(ATOMIC_HASH_SIZE & (ATOMIC_HASH_SIZE - 1));
 	BUG_ON(ATOMIC_HASH_SIZE < nr_cpu_ids);
 
 	/*

@@ -26,10 +26,10 @@ typedef unsigned long elf_fpregset_t;
 #define ELF_DATA	ELFDATA2MSB
 #define ELF_ARCH	EM_H8_300
 #if defined(CONFIG_CPU_H8300H)
-#define ELF_CORE_EFLAGS 0x810000
+	#define ELF_CORE_EFLAGS 0x810000
 #endif
 #if defined(CONFIG_CPU_H8S)
-#define ELF_CORE_EFLAGS 0x820000
+	#define ELF_CORE_EFLAGS 0x820000
 #endif
 
 #define ELF_PLAT_INIT(_r) do { (_r)->er1 = 0; } while (0)

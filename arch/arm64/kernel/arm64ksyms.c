@@ -34,16 +34,16 @@
 EXPORT_SYMBOL(copy_page);
 EXPORT_SYMBOL(clear_page);
 
-	/* user mem (segment) */
+/* user mem (segment) */
 EXPORT_SYMBOL(__arch_copy_from_user);
 EXPORT_SYMBOL(__arch_copy_to_user);
 EXPORT_SYMBOL(__clear_user);
 EXPORT_SYMBOL(__copy_in_user);
 
-	/* physical memory */
+/* physical memory */
 EXPORT_SYMBOL(memstart_addr);
 
-	/* string / mem functions */
+/* string / mem functions */
 EXPORT_SYMBOL(strchr);
 EXPORT_SYMBOL(strrchr);
 EXPORT_SYMBOL(strcmp);
@@ -59,7 +59,7 @@ EXPORT_SYMBOL(__memmove);
 EXPORT_SYMBOL(memchr);
 EXPORT_SYMBOL(memcmp);
 
-	/* atomic bitops */
+/* atomic bitops */
 EXPORT_SYMBOL(set_bit);
 EXPORT_SYMBOL(test_and_set_bit);
 EXPORT_SYMBOL(clear_bit);
@@ -68,10 +68,10 @@ EXPORT_SYMBOL(change_bit);
 EXPORT_SYMBOL(test_and_change_bit);
 
 #ifdef CONFIG_FUNCTION_TRACER
-EXPORT_SYMBOL(_mcount);
-NOKPROBE_SYMBOL(_mcount);
+	EXPORT_SYMBOL(_mcount);
+	NOKPROBE_SYMBOL(_mcount);
 #endif
 
-	/* arm-smccc */
+/* arm-smccc */
 EXPORT_SYMBOL(arm_smccc_smc);
 EXPORT_SYMBOL(arm_smccc_hvc);

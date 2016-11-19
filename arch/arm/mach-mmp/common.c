@@ -25,7 +25,8 @@
 unsigned int mmp_chip_id;
 EXPORT_SYMBOL(mmp_chip_id);
 
-static struct map_desc standard_io_desc[] __initdata = {
+static struct map_desc standard_io_desc[] __initdata =
+{
 	{
 		.pfn		= __phys_to_pfn(APB_PHYS_BASE),
 		.virtual	= (unsigned long)APB_VIRT_BASE,

@@ -12,12 +12,12 @@
 
 #if _MIPS_SIM != _MIPS_SIM_ABI64 && defined(CONFIG_64BIT)
 
-/* Building 32-bit VDSO for the 64-bit kernel. Fake a 32-bit Kconfig. */
-#undef CONFIG_64BIT
-#define CONFIG_32BIT 1
-#ifndef __ASSEMBLY__
-#include <asm-generic/atomic64.h>
-#endif
+	/* Building 32-bit VDSO for the 64-bit kernel. Fake a 32-bit Kconfig. */
+	#undef CONFIG_64BIT
+	#define CONFIG_32BIT 1
+	#ifndef __ASSEMBLY__
+		#include <asm-generic/atomic64.h>
+	#endif
 #endif
 
 #ifndef __ASSEMBLY__
@@ -42,7 +42,7 @@ static inline unsigned long get_vdso_base(void)
 	 * support for the addiupc reloc
 	 */
 	__asm__("lapc	%0, _start			\n"
-		: "=r" (addr) : :);
+			: "=r" (addr) : :);
 #else
 	/*
 	 * Get the base load address of the VDSO. We have to avoid generating
@@ -56,17 +56,17 @@ static inline unsigned long get_vdso_base(void)
 	 */
 
 	__asm__(
-	"	.set push				\n"
-	"	.set noreorder				\n"
-	"	bal	1f				\n"
-	"	 nop					\n"
-	"	.word	_start - .			\n"
-	"1:	lw	%0, 0($31)			\n"
-	"	" STR(PTR_ADDU) " %0, $31, %0		\n"
-	"	.set pop				\n"
-	: "=r" (addr)
-	:
-	: "$31");
+		"	.set push				\n"
+		"	.set noreorder				\n"
+		"	bal	1f				\n"
+		"	 nop					\n"
+		"	.word	_start - .			\n"
+		"1:	lw	%0, 0($31)			\n"
+		"	" STR(PTR_ADDU) " %0, $31, %0		\n"
+		"	.set pop				\n"
+		: "=r" (addr)
+		:
+		: "$31");
 #endif /* CONFIG_CPU_MIPSR6 */
 
 	return addr;

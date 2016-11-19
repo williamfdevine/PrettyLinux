@@ -41,7 +41,9 @@ static void __init emev2_smp_prepare_cpus(unsigned int max_cpus)
 
 	/* Tell ROM loader about our vector (in headsmp.S) */
 	smu = ioremap(EMEV2_SMU_BASE, PAGE_SIZE);
-	if (smu) {
+
+	if (smu)
+	{
 		iowrite32(__pa(shmobile_boot_vector), smu + SMU_GENERAL_REG0);
 		iounmap(smu);
 	}
@@ -50,7 +52,8 @@ static void __init emev2_smp_prepare_cpus(unsigned int max_cpus)
 	shmobile_smp_scu_prepare_cpus(EMEV2_SCU_BASE, max_cpus);
 }
 
-const struct smp_operations emev2_smp_ops __initconst = {
+const struct smp_operations emev2_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= emev2_smp_prepare_cpus,
 	.smp_boot_secondary	= emev2_boot_secondary,
 };

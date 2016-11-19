@@ -66,7 +66,8 @@
 #define IC_TESTBIT	0x80
 
 /* per-processor fixed function irqs */
-struct alchemy_irqmap {
+struct alchemy_irqmap
+{
 	int irq;	/* linux IRQ number */
 	int type;	/* IRQ_TYPE_ */
 	int prio;	/* irq priority, 0 highest, 3 lowest */
@@ -83,7 +84,8 @@ static int au1300_gpic_settype(struct irq_data *d, unsigned int type);
  * the USB devices-side packet complete interrupt (USB_DEV_REQ_INT)
  * needs the highest priority.
  */
-struct alchemy_irqmap au1000_irqmap[] __initdata = {
+struct alchemy_irqmap au1000_irqmap[] __initdata =
+{
 	{ AU1000_UART0_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1000_UART1_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1000_UART2_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
@@ -91,13 +93,13 @@ struct alchemy_irqmap au1000_irqmap[] __initdata = {
 	{ AU1000_SSI0_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1000_SSI1_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1000_DMA_INT_BASE,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1000_DMA_INT_BASE+1,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1000_DMA_INT_BASE+2,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1000_DMA_INT_BASE+3,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1000_DMA_INT_BASE+4,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1000_DMA_INT_BASE+5,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1000_DMA_INT_BASE+6,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1000_DMA_INT_BASE+7,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1000_DMA_INT_BASE + 1,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1000_DMA_INT_BASE + 2,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1000_DMA_INT_BASE + 3,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1000_DMA_INT_BASE + 4,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1000_DMA_INT_BASE + 5,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1000_DMA_INT_BASE + 6,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1000_DMA_INT_BASE + 7,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1000_TOY_INT,	  IRQ_TYPE_EDGE_RISING, 1, 0 },
 	{ AU1000_TOY_MATCH0_INT,  IRQ_TYPE_EDGE_RISING, 1, 0 },
 	{ AU1000_TOY_MATCH1_INT,  IRQ_TYPE_EDGE_RISING, 1, 0 },
@@ -118,7 +120,8 @@ struct alchemy_irqmap au1000_irqmap[] __initdata = {
 	{ -1, },
 };
 
-struct alchemy_irqmap au1500_irqmap[] __initdata = {
+struct alchemy_irqmap au1500_irqmap[] __initdata =
+{
 	{ AU1500_UART0_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1500_PCI_INTA,	  IRQ_TYPE_LEVEL_LOW,	1, 0 },
 	{ AU1500_PCI_INTB,	  IRQ_TYPE_LEVEL_LOW,	1, 0 },
@@ -126,13 +129,13 @@ struct alchemy_irqmap au1500_irqmap[] __initdata = {
 	{ AU1500_PCI_INTC,	  IRQ_TYPE_LEVEL_LOW,	1, 0 },
 	{ AU1500_PCI_INTD,	  IRQ_TYPE_LEVEL_LOW,	1, 0 },
 	{ AU1500_DMA_INT_BASE,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1500_DMA_INT_BASE+1,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1500_DMA_INT_BASE+2,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1500_DMA_INT_BASE+3,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1500_DMA_INT_BASE+4,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1500_DMA_INT_BASE+5,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1500_DMA_INT_BASE+6,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1500_DMA_INT_BASE+7,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1500_DMA_INT_BASE + 1,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1500_DMA_INT_BASE + 2,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1500_DMA_INT_BASE + 3,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1500_DMA_INT_BASE + 4,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1500_DMA_INT_BASE + 5,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1500_DMA_INT_BASE + 6,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1500_DMA_INT_BASE + 7,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1500_TOY_INT,	  IRQ_TYPE_EDGE_RISING, 1, 0 },
 	{ AU1500_TOY_MATCH0_INT,  IRQ_TYPE_EDGE_RISING, 1, 0 },
 	{ AU1500_TOY_MATCH1_INT,  IRQ_TYPE_EDGE_RISING, 1, 0 },
@@ -151,7 +154,8 @@ struct alchemy_irqmap au1500_irqmap[] __initdata = {
 	{ -1, },
 };
 
-struct alchemy_irqmap au1100_irqmap[] __initdata = {
+struct alchemy_irqmap au1100_irqmap[] __initdata =
+{
 	{ AU1100_UART0_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1100_UART1_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1100_SD_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
@@ -159,13 +163,13 @@ struct alchemy_irqmap au1100_irqmap[] __initdata = {
 	{ AU1100_SSI0_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1100_SSI1_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1100_DMA_INT_BASE,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1100_DMA_INT_BASE+1,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1100_DMA_INT_BASE+2,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1100_DMA_INT_BASE+3,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1100_DMA_INT_BASE+4,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1100_DMA_INT_BASE+5,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1100_DMA_INT_BASE+6,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
-	{ AU1100_DMA_INT_BASE+7,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1100_DMA_INT_BASE + 1,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1100_DMA_INT_BASE + 2,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1100_DMA_INT_BASE + 3,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1100_DMA_INT_BASE + 4,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1100_DMA_INT_BASE + 5,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1100_DMA_INT_BASE + 6,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
+	{ AU1100_DMA_INT_BASE + 7,  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1100_TOY_INT,	  IRQ_TYPE_EDGE_RISING, 1, 0 },
 	{ AU1100_TOY_MATCH0_INT,  IRQ_TYPE_EDGE_RISING, 1, 0 },
 	{ AU1100_TOY_MATCH1_INT,  IRQ_TYPE_EDGE_RISING, 1, 0 },
@@ -186,7 +190,8 @@ struct alchemy_irqmap au1100_irqmap[] __initdata = {
 	{ -1, },
 };
 
-struct alchemy_irqmap au1550_irqmap[] __initdata = {
+struct alchemy_irqmap au1550_irqmap[] __initdata =
+{
 	{ AU1550_UART0_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1550_PCI_INTA,	  IRQ_TYPE_LEVEL_LOW,	1, 0 },
 	{ AU1550_PCI_INTB,	  IRQ_TYPE_LEVEL_LOW,	1, 0 },
@@ -218,7 +223,8 @@ struct alchemy_irqmap au1550_irqmap[] __initdata = {
 	{ -1, },
 };
 
-struct alchemy_irqmap au1200_irqmap[] __initdata = {
+struct alchemy_irqmap au1200_irqmap[] __initdata =
+{
 	{ AU1200_UART0_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
 	{ AU1200_SWT_INT,	  IRQ_TYPE_EDGE_RISING, 1, 0 },
 	{ AU1200_SD_INT,	  IRQ_TYPE_LEVEL_HIGH,	1, 0 },
@@ -245,7 +251,8 @@ struct alchemy_irqmap au1200_irqmap[] __initdata = {
 	{ -1, },
 };
 
-static struct alchemy_irqmap au1300_irqmap[] __initdata = {
+static struct alchemy_irqmap au1300_irqmap[] __initdata =
+{
 	/* multifunction: gpio pin or device */
 	{ AU1300_UART1_INT,	 IRQ_TYPE_LEVEL_HIGH,	1, 0, },
 	{ AU1300_UART2_INT,	 IRQ_TYPE_LEVEL_HIGH,	1, 0, },
@@ -386,14 +393,22 @@ static int au1x_ic1_setwake(struct irq_data *d, unsigned int on)
 	 * are wired up identically on all supported variants.
 	 */
 	if ((bit < 0) || (bit > 7))
+	{
 		return -EINVAL;
+	}
 
 	local_irq_save(flags);
 	wakemsk = alchemy_rdsys(AU1000_SYS_WAKEMSK);
+
 	if (on)
+	{
 		wakemsk |= 1 << bit;
+	}
 	else
+	{
 		wakemsk &= ~(1 << bit);
+	}
+
 	alchemy_wrsys(wakemsk, AU1000_SYS_WAKEMSK);
 	local_irq_restore(flags);
 
@@ -404,7 +419,8 @@ static int au1x_ic1_setwake(struct irq_data *d, unsigned int on)
  * irq_chips for both ICs; this way the mask handlers can be
  * as short as possible.
  */
-static struct irq_chip au1x_ic0_chip = {
+static struct irq_chip au1x_ic0_chip =
+{
 	.name		= "Alchemy-IC0",
 	.irq_ack	= au1x_ic0_ack,
 	.irq_mask	= au1x_ic0_mask,
@@ -413,7 +429,8 @@ static struct irq_chip au1x_ic0_chip = {
 	.irq_set_type	= au1x_ic_settype,
 };
 
-static struct irq_chip au1x_ic1_chip = {
+static struct irq_chip au1x_ic1_chip =
+{
 	.name		= "Alchemy-IC1",
 	.irq_ack	= au1x_ic1_ack,
 	.irq_mask	= au1x_ic1_mask,
@@ -432,65 +449,78 @@ static int au1x_ic_settype(struct irq_data *d, unsigned int flow_type)
 	void __iomem *base;
 	int ret;
 
-	if (irq >= AU1000_INTC1_INT_BASE) {
+	if (irq >= AU1000_INTC1_INT_BASE)
+	{
 		bit = irq - AU1000_INTC1_INT_BASE;
 		chip = &au1x_ic1_chip;
 		base = (void __iomem *)KSEG1ADDR(AU1000_IC1_PHYS_ADDR);
-	} else {
+	}
+	else
+	{
 		bit = irq - AU1000_INTC0_INT_BASE;
 		chip = &au1x_ic0_chip;
 		base = (void __iomem *)KSEG1ADDR(AU1000_IC0_PHYS_ADDR);
 	}
 
 	if (bit > 31)
+	{
 		return -EINVAL;
+	}
 
 	ret = 0;
 
-	switch (flow_type) {	/* cfgregs 2:1:0 */
-	case IRQ_TYPE_EDGE_RISING:	/* 0:0:1 */
-		__raw_writel(1 << bit, base + IC_CFG2CLR);
-		__raw_writel(1 << bit, base + IC_CFG1CLR);
-		__raw_writel(1 << bit, base + IC_CFG0SET);
-		handler = handle_edge_irq;
-		name = "riseedge";
-		break;
-	case IRQ_TYPE_EDGE_FALLING:	/* 0:1:0 */
-		__raw_writel(1 << bit, base + IC_CFG2CLR);
-		__raw_writel(1 << bit, base + IC_CFG1SET);
-		__raw_writel(1 << bit, base + IC_CFG0CLR);
-		handler = handle_edge_irq;
-		name = "falledge";
-		break;
-	case IRQ_TYPE_EDGE_BOTH:	/* 0:1:1 */
-		__raw_writel(1 << bit, base + IC_CFG2CLR);
-		__raw_writel(1 << bit, base + IC_CFG1SET);
-		__raw_writel(1 << bit, base + IC_CFG0SET);
-		handler = handle_edge_irq;
-		name = "bothedge";
-		break;
-	case IRQ_TYPE_LEVEL_HIGH:	/* 1:0:1 */
-		__raw_writel(1 << bit, base + IC_CFG2SET);
-		__raw_writel(1 << bit, base + IC_CFG1CLR);
-		__raw_writel(1 << bit, base + IC_CFG0SET);
-		handler = handle_level_irq;
-		name = "hilevel";
-		break;
-	case IRQ_TYPE_LEVEL_LOW:	/* 1:1:0 */
-		__raw_writel(1 << bit, base + IC_CFG2SET);
-		__raw_writel(1 << bit, base + IC_CFG1SET);
-		__raw_writel(1 << bit, base + IC_CFG0CLR);
-		handler = handle_level_irq;
-		name = "lowlevel";
-		break;
-	case IRQ_TYPE_NONE:		/* 0:0:0 */
-		__raw_writel(1 << bit, base + IC_CFG2CLR);
-		__raw_writel(1 << bit, base + IC_CFG1CLR);
-		__raw_writel(1 << bit, base + IC_CFG0CLR);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (flow_type)  	/* cfgregs 2:1:0 */
+	{
+		case IRQ_TYPE_EDGE_RISING:	/* 0:0:1 */
+			__raw_writel(1 << bit, base + IC_CFG2CLR);
+			__raw_writel(1 << bit, base + IC_CFG1CLR);
+			__raw_writel(1 << bit, base + IC_CFG0SET);
+			handler = handle_edge_irq;
+			name = "riseedge";
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:	/* 0:1:0 */
+			__raw_writel(1 << bit, base + IC_CFG2CLR);
+			__raw_writel(1 << bit, base + IC_CFG1SET);
+			__raw_writel(1 << bit, base + IC_CFG0CLR);
+			handler = handle_edge_irq;
+			name = "falledge";
+			break;
+
+		case IRQ_TYPE_EDGE_BOTH:	/* 0:1:1 */
+			__raw_writel(1 << bit, base + IC_CFG2CLR);
+			__raw_writel(1 << bit, base + IC_CFG1SET);
+			__raw_writel(1 << bit, base + IC_CFG0SET);
+			handler = handle_edge_irq;
+			name = "bothedge";
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:	/* 1:0:1 */
+			__raw_writel(1 << bit, base + IC_CFG2SET);
+			__raw_writel(1 << bit, base + IC_CFG1CLR);
+			__raw_writel(1 << bit, base + IC_CFG0SET);
+			handler = handle_level_irq;
+			name = "hilevel";
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:	/* 1:1:0 */
+			__raw_writel(1 << bit, base + IC_CFG2SET);
+			__raw_writel(1 << bit, base + IC_CFG1SET);
+			__raw_writel(1 << bit, base + IC_CFG0CLR);
+			handler = handle_level_irq;
+			name = "lowlevel";
+			break;
+
+		case IRQ_TYPE_NONE:		/* 0:0:0 */
+			__raw_writel(1 << bit, base + IC_CFG2CLR);
+			__raw_writel(1 << bit, base + IC_CFG1CLR);
+			__raw_writel(1 << bit, base + IC_CFG0CLR);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
+
 	irq_set_chip_handler_name_locked(d, chip, handler, name);
 
 	wmb();
@@ -510,8 +540,8 @@ static int au1x_ic_settype(struct irq_data *d, unsigned int flow_type)
  * be cleared in the register, bits in @set will be set.
  */
 static inline void au1300_gpic_chgcfg(unsigned int gpio,
-				      unsigned long clr,
-				      unsigned long set)
+									  unsigned long clr,
+									  unsigned long set)
 {
 	void __iomem *r = AU1300_GPIC_ADDR;
 	unsigned long l;
@@ -582,7 +612,8 @@ void au1300_set_dbdma_gpio(int dchan, unsigned int gpio)
 {
 	unsigned long r;
 
-	if ((dchan >= 0) && (dchan <= 1)) {
+	if ((dchan >= 0) && (dchan <= 1))
+	{
 		r = __raw_readl(AU1300_GPIC_ADDR + AU1300_GPIC_DMASEL);
 		r &= ~(0xff << (8 * dchan));
 		r |= (gpio & 0x7f) << (8 * dchan);
@@ -594,7 +625,7 @@ void au1300_set_dbdma_gpio(int dchan, unsigned int gpio)
 static inline void gpic_pin_set_idlewake(unsigned int gpio, int allow)
 {
 	au1300_gpic_chgcfg(gpio, GPIC_CFG_IDLEWAKE,
-			   allow ? GPIC_CFG_IDLEWAKE : 0);
+					   allow ? GPIC_CFG_IDLEWAKE : 0);
 }
 
 static void au1300_gpic_mask(struct irq_data *d)
@@ -653,7 +684,8 @@ static void au1300_gpic_ack(struct irq_data *d)
 	wmb();
 }
 
-static struct irq_chip au1300_gpic = {
+static struct irq_chip au1300_gpic =
+{
 	.name		= "GPIOINT",
 	.irq_ack	= au1300_gpic_ack,
 	.irq_mask	= au1300_gpic_mask,
@@ -668,39 +700,46 @@ static int au1300_gpic_settype(struct irq_data *d, unsigned int type)
 	unsigned char *name = NULL;
 	irq_flow_handler_t hdl = NULL;
 
-	switch (type) {
-	case IRQ_TYPE_LEVEL_HIGH:
-		s = GPIC_CFG_IC_LEVEL_HIGH;
-		name = "high";
-		hdl = handle_level_irq;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		s = GPIC_CFG_IC_LEVEL_LOW;
-		name = "low";
-		hdl = handle_level_irq;
-		break;
-	case IRQ_TYPE_EDGE_RISING:
-		s = GPIC_CFG_IC_EDGE_RISE;
-		name = "posedge";
-		hdl = handle_edge_irq;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		s = GPIC_CFG_IC_EDGE_FALL;
-		name = "negedge";
-		hdl = handle_edge_irq;
-		break;
-	case IRQ_TYPE_EDGE_BOTH:
-		s = GPIC_CFG_IC_EDGE_BOTH;
-		name = "bothedge";
-		hdl = handle_edge_irq;
-		break;
-	case IRQ_TYPE_NONE:
-		s = GPIC_CFG_IC_OFF;
-		name = "disabled";
-		hdl = handle_level_irq;
-		break;
-	default:
-		return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_LEVEL_HIGH:
+			s = GPIC_CFG_IC_LEVEL_HIGH;
+			name = "high";
+			hdl = handle_level_irq;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			s = GPIC_CFG_IC_LEVEL_LOW;
+			name = "low";
+			hdl = handle_level_irq;
+			break;
+
+		case IRQ_TYPE_EDGE_RISING:
+			s = GPIC_CFG_IC_EDGE_RISE;
+			name = "posedge";
+			hdl = handle_edge_irq;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			s = GPIC_CFG_IC_EDGE_FALL;
+			name = "negedge";
+			hdl = handle_edge_irq;
+			break;
+
+		case IRQ_TYPE_EDGE_BOTH:
+			s = GPIC_CFG_IC_EDGE_BOTH;
+			name = "bothedge";
+			hdl = handle_edge_irq;
+			break;
+
+		case IRQ_TYPE_NONE:
+			s = GPIC_CFG_IC_OFF;
+			name = "disabled";
+			hdl = handle_level_irq;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	irq_set_chip_handler_name_locked(d, &au1300_gpic, hdl, name);
@@ -761,18 +800,18 @@ static inline void alchemy_ic_resume_one(void __iomem *base, unsigned long *d)
 static int alchemy_ic_suspend(void)
 {
 	alchemy_ic_suspend_one((void __iomem *)KSEG1ADDR(AU1000_IC0_PHYS_ADDR),
-			       alchemy_gpic_pmdata);
+						   alchemy_gpic_pmdata);
 	alchemy_ic_suspend_one((void __iomem *)KSEG1ADDR(AU1000_IC1_PHYS_ADDR),
-			       &alchemy_gpic_pmdata[7]);
+						   &alchemy_gpic_pmdata[7]);
 	return 0;
 }
 
 static void alchemy_ic_resume(void)
 {
 	alchemy_ic_resume_one((void __iomem *)KSEG1ADDR(AU1000_IC1_PHYS_ADDR),
-			      &alchemy_gpic_pmdata[7]);
+						  &alchemy_gpic_pmdata[7]);
 	alchemy_ic_resume_one((void __iomem *)KSEG1ADDR(AU1000_IC0_PHYS_ADDR),
-			      alchemy_gpic_pmdata);
+						  alchemy_gpic_pmdata);
 }
 
 static int alchemy_gpic_suspend(void)
@@ -798,8 +837,11 @@ static int alchemy_gpic_suspend(void)
 
 	/* save pin/int-type configuration */
 	base += AU1300_GPIC_PINCFG;
+
 	for (i = 0; i < ALCHEMY_GPIC_INT_NUM; i++)
+	{
 		alchemy_gpic_pmdata[i + 5] = __raw_readl(base + (i << 2));
+	}
 
 	wmb();
 
@@ -820,8 +862,12 @@ static void alchemy_gpic_resume(void)
 
 	/* restore pin/int-type configurations */
 	base += AU1300_GPIC_PINCFG;
+
 	for (i = 0; i < ALCHEMY_GPIC_INT_NUM; i++)
+	{
 		__raw_writel(alchemy_gpic_pmdata[i + 5], base + (i << 2));
+	}
+
 	wmb();
 
 	/* restore misc register(s) */
@@ -837,12 +883,14 @@ static void alchemy_gpic_resume(void)
 	wmb();
 }
 
-static struct syscore_ops alchemy_ic_pmops = {
+static struct syscore_ops alchemy_ic_pmops =
+{
 	.suspend	= alchemy_ic_suspend,
 	.resume		= alchemy_ic_resume,
 };
 
-static struct syscore_ops alchemy_gpic_pmops = {
+static struct syscore_ops alchemy_gpic_pmops =
+{
 	.suspend	= alchemy_gpic_suspend,
 	.resume		= alchemy_gpic_resume,
 };
@@ -851,14 +899,14 @@ static struct syscore_ops alchemy_gpic_pmops = {
 
 /* create chained handlers for the 4 IC requests to the MIPS IRQ ctrl */
 #define DISP(name, base, addr)						      \
-static void au1000_##name##_dispatch(struct irq_desc *d)		      \
-{									      \
-	unsigned long r = __raw_readl((void __iomem *)KSEG1ADDR(addr));	      \
-	if (likely(r))							      \
-		generic_handle_irq(base + __ffs(r));			      \
-	else								      \
-		spurious_interrupt();					      \
-}
+	static void au1000_##name##_dispatch(struct irq_desc *d)		      \
+	{									      \
+		unsigned long r = __raw_readl((void __iomem *)KSEG1ADDR(addr));	      \
+		if (likely(r))							      \
+			generic_handle_irq(base + __ffs(r));			      \
+		else								      \
+			spurious_interrupt();					      \
+	}
 
 DISP(ic0r0, AU1000_INTC0_INT_BASE, AU1000_IC0_PHYS_ADDR + IC_REQ0INT)
 DISP(ic0r1, AU1000_INTC0_INT_BASE, AU1000_IC0_PHYS_ADDR + IC_REQ1INT)
@@ -887,28 +935,39 @@ static void __init au1000_init_irq(struct alchemy_irqmap *map)
 	 * Use set_irq_type() to set edge/level behaviour at runtime.
 	 */
 	for (irq_nr = AU1000_INTC0_INT_BASE;
-	     (irq_nr < AU1000_INTC0_INT_BASE + 32); irq_nr++)
+		 (irq_nr < AU1000_INTC0_INT_BASE + 32); irq_nr++)
+	{
 		au1x_ic_settype(irq_get_irq_data(irq_nr), IRQ_TYPE_NONE);
+	}
 
 	for (irq_nr = AU1000_INTC1_INT_BASE;
-	     (irq_nr < AU1000_INTC1_INT_BASE + 32); irq_nr++)
+		 (irq_nr < AU1000_INTC1_INT_BASE + 32); irq_nr++)
+	{
 		au1x_ic_settype(irq_get_irq_data(irq_nr), IRQ_TYPE_NONE);
+	}
 
 	/*
 	 * Initialize IC0, which is fixed per processor.
 	 */
-	while (map->irq != -1) {
+	while (map->irq != -1)
+	{
 		irq_nr = map->irq;
 
-		if (irq_nr >= AU1000_INTC1_INT_BASE) {
+		if (irq_nr >= AU1000_INTC1_INT_BASE)
+		{
 			bit = irq_nr - AU1000_INTC1_INT_BASE;
 			base = (void __iomem *)KSEG1ADDR(AU1000_IC1_PHYS_ADDR);
-		} else {
+		}
+		else
+		{
 			bit = irq_nr - AU1000_INTC0_INT_BASE;
 			base = (void __iomem *)KSEG1ADDR(AU1000_IC0_PHYS_ADDR);
 		}
+
 		if (map->prio == 0)
+		{
 			__raw_writel(1 << bit, base + IC_ASSIGNSET);
+		}
 
 		au1x_ic_settype(irq_get_irq_data(irq_nr), map->type);
 		++map;
@@ -929,7 +988,8 @@ static void __init alchemy_gpic_init_irq(const struct alchemy_irqmap *dints)
 	mips_cpu_irq_init();
 
 	/* disable & ack all possible interrupt sources */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		bank_base = AU1300_GPIC_ADDR + (i * 4);
 		__raw_writel(~0UL, bank_base + AU1300_GPIC_IDIS);
 		wmb();
@@ -938,18 +998,22 @@ static void __init alchemy_gpic_init_irq(const struct alchemy_irqmap *dints)
 	}
 
 	/* register an irq_chip for them, with 2nd highest priority */
-	for (i = ALCHEMY_GPIC_INT_BASE; i <= ALCHEMY_GPIC_INT_LAST; i++) {
+	for (i = ALCHEMY_GPIC_INT_BASE; i <= ALCHEMY_GPIC_INT_LAST; i++)
+	{
 		au1300_set_irq_priority(i, 1);
 		au1300_gpic_settype(irq_get_irq_data(i), IRQ_TYPE_NONE);
 	}
 
 	/* setup known on-chip sources */
-	while ((i = dints->irq) != -1) {
+	while ((i = dints->irq) != -1)
+	{
 		au1300_gpic_settype(irq_get_irq_data(i), dints->type);
 		au1300_set_irq_priority(i, dints->prio);
 
 		if (dints->internal)
+		{
 			au1300_pinfunc_to_dev(i - ALCHEMY_GPIC_INT_BASE);
+		}
 
 		dints++;
 	}
@@ -964,28 +1028,35 @@ static void __init alchemy_gpic_init_irq(const struct alchemy_irqmap *dints)
 
 void __init arch_init_irq(void)
 {
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1000:
-		au1000_init_irq(au1000_irqmap);
-		break;
-	case ALCHEMY_CPU_AU1500:
-		au1000_init_irq(au1500_irqmap);
-		break;
-	case ALCHEMY_CPU_AU1100:
-		au1000_init_irq(au1100_irqmap);
-		break;
-	case ALCHEMY_CPU_AU1550:
-		au1000_init_irq(au1550_irqmap);
-		break;
-	case ALCHEMY_CPU_AU1200:
-		au1000_init_irq(au1200_irqmap);
-		break;
-	case ALCHEMY_CPU_AU1300:
-		alchemy_gpic_init_irq(au1300_irqmap);
-		break;
-	default:
-		pr_err("unknown Alchemy IRQ core\n");
-		break;
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1000:
+			au1000_init_irq(au1000_irqmap);
+			break;
+
+		case ALCHEMY_CPU_AU1500:
+			au1000_init_irq(au1500_irqmap);
+			break;
+
+		case ALCHEMY_CPU_AU1100:
+			au1000_init_irq(au1100_irqmap);
+			break;
+
+		case ALCHEMY_CPU_AU1550:
+			au1000_init_irq(au1550_irqmap);
+			break;
+
+		case ALCHEMY_CPU_AU1200:
+			au1000_init_irq(au1200_irqmap);
+			break;
+
+		case ALCHEMY_CPU_AU1300:
+			alchemy_gpic_init_irq(au1300_irqmap);
+			break;
+
+		default:
+			pr_err("unknown Alchemy IRQ core\n");
+			break;
 	}
 }
 

@@ -21,7 +21,7 @@
 #include <linux/io.h>
 
 #ifdef __tilegx__
-#define ARCH_HAS_DMA_GET_REQUIRED_MASK
+	#define ARCH_HAS_DMA_GET_REQUIRED_MASK
 #endif
 
 extern struct dma_map_ops *tile_dma_map_ops;
@@ -32,9 +32,13 @@ extern struct dma_map_ops *gx_hybrid_pci_dma_map_ops;
 static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 {
 	if (dev && dev->archdata.dma_ops)
+	{
 		return dev->archdata.dma_ops;
+	}
 	else
+	{
 		return tile_dma_map_ops;
+	}
 }
 
 static inline dma_addr_t get_dma_offset(struct device *dev)
@@ -67,7 +71,9 @@ static inline void set_dma_ops(struct device *dev, struct dma_map_ops *ops)
 static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
 {
 	if (!dev->dma_mask)
+	{
 		return 0;
+	}
 
 	return addr + size - 1 <= *dev->dma_mask;
 }
@@ -80,7 +86,7 @@ int dma_set_mask(struct device *dev, u64 mask);
  * so there's no need to do any flushing here.
  */
 static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-				  enum dma_data_direction direction)
+								  enum dma_data_direction direction)
 {
 }
 

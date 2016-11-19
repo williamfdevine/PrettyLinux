@@ -25,9 +25,9 @@ static inline bool pt_regs_clear_syscall(struct pt_regs *regs)
 }
 
 #define arch_ptrace_stop_needed(exit_code, info) \
-({	flush_user_windows(); \
-	get_thread_wsaved() != 0; \
-})
+	({	flush_user_windows(); \
+		get_thread_wsaved() != 0; \
+	})
 
 #define arch_ptrace_stop(exit_code, info) \
 	synchronize_user_stack()
@@ -35,7 +35,8 @@ static inline bool pt_regs_clear_syscall(struct pt_regs *regs)
 #define current_pt_regs() \
 	((struct pt_regs *)((unsigned long)current_thread_info() + THREAD_SIZE) - 1)
 
-struct global_reg_snapshot {
+struct global_reg_snapshot
+{
 	unsigned long		tstate;
 	unsigned long		tpc;
 	unsigned long		tnpc;
@@ -46,12 +47,14 @@ struct global_reg_snapshot {
 	unsigned long		pad1;
 };
 
-struct global_pmu_snapshot {
+struct global_pmu_snapshot
+{
 	unsigned long		pcr[4];
 	unsigned long		pic[4];
 };
 
-union global_cpu_snapshot {
+union global_cpu_snapshot
+{
 	struct global_reg_snapshot	reg;
 	struct global_pmu_snapshot	pmu;
 };
@@ -73,9 +76,9 @@ static inline long regs_return_value(struct pt_regs *regs)
 	return regs->u_regs[UREG_I0];
 }
 #ifdef CONFIG_SMP
-unsigned long profile_pc(struct pt_regs *);
+	unsigned long profile_pc(struct pt_regs *);
 #else
-#define profile_pc(regs) instruction_pointer(regs)
+	#define profile_pc(regs) instruction_pointer(regs)
 #endif
 #else /* __ASSEMBLY__ */
 #endif /* __ASSEMBLY__ */
@@ -94,9 +97,9 @@ static inline bool pt_regs_clear_syscall(struct pt_regs *regs)
 }
 
 #define arch_ptrace_stop_needed(exit_code, info) \
-({	flush_user_windows(); \
-	current_thread_info()->w_saved != 0;	\
-})
+	({	flush_user_windows(); \
+		current_thread_info()->w_saved != 0;	\
+	})
 
 #define arch_ptrace_stop(exit_code, info) \
 	synchronize_user_stack()

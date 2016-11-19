@@ -41,12 +41,13 @@ volatile int time_keeper_id = 0; /* smp_processor_id() of time-keeper */
 
 #ifdef CONFIG_IA64_DEBUG_IRQ
 
-unsigned long last_cli_ip;
-EXPORT_SYMBOL(last_cli_ip);
+	unsigned long last_cli_ip;
+	EXPORT_SYMBOL(last_cli_ip);
 
 #endif
 
-static struct clocksource clocksource_itc = {
+static struct clocksource clocksource_itc =
+{
 	.name           = "itc",
 	.rating         = 350,
 	.read           = itc_get_cycles,
@@ -66,7 +67,8 @@ void vtime_account_user(struct task_struct *tsk)
 	cputime_t delta_utime;
 	struct thread_info *ti = task_thread_info(tsk);
 
-	if (ti->ac_utime) {
+	if (ti->ac_utime)
+	{
 		delta_utime = cycle_to_cputime(ti->ac_utime);
 		account_user_time(tsk, delta_utime, delta_utime);
 		ti->ac_utime = 0;
@@ -128,7 +130,8 @@ timer_interrupt (int irq, void *dev_id)
 {
 	unsigned long new_itm;
 
-	if (cpu_is_offline(smp_processor_id())) {
+	if (cpu_is_offline(smp_processor_id()))
+	{
 		return IRQ_HANDLED;
 	}
 
@@ -138,22 +141,27 @@ timer_interrupt (int irq, void *dev_id)
 
 	if (!time_after(ia64_get_itc(), new_itm))
 		printk(KERN_ERR "Oops: timer tick before it's due (itc=%lx,itm=%lx)\n",
-		       ia64_get_itc(), new_itm);
+			   ia64_get_itc(), new_itm);
 
 	profile_tick(CPU_PROFILING);
 
-	while (1) {
+	while (1)
+	{
 		update_process_times(user_mode(get_irq_regs()));
 
 		new_itm += local_cpu_data->itm_delta;
 
 		if (smp_processor_id() == time_keeper_id)
+		{
 			xtime_update(1);
+		}
 
 		local_cpu_data->itm_next = new_itm;
 
 		if (time_after(new_itm, ia64_get_itc()))
+		{
 			break;
+		}
 
 		/*
 		 * Allow IPIs to interrupt the timer loop.
@@ -162,7 +170,8 @@ timer_interrupt (int irq, void *dev_id)
 		local_irq_disable();
 	}
 
-	do {
+	do
+	{
 		/*
 		 * If we're too close to the next clock tick for
 		 * comfort, we increase the safety margin by
@@ -172,11 +181,16 @@ timer_interrupt (int irq, void *dev_id)
 		 * too fast (with the potentially devastating effect
 		 * of losing monotony of time).
 		 */
-		while (!time_after(new_itm, ia64_get_itc() + local_cpu_data->itm_delta/2))
+		while (!time_after(new_itm, ia64_get_itc() + local_cpu_data->itm_delta / 2))
+		{
 			new_itm += local_cpu_data->itm_delta;
+		}
+
 		ia64_set_itm(new_itm);
 		/* double check, in case we got hit by a (slow) PMI: */
-	} while (time_after_eq(ia64_get_itc(), new_itm));
+	}
+	while (time_after_eq(ia64_get_itc(), new_itm));
+
 	return IRQ_HANDLED;
 }
 
@@ -193,14 +207,17 @@ ia64_cpu_local_tick (void)
 	ia64_set_itv(IA64_TIMER_VECTOR);
 
 	delta = local_cpu_data->itm_delta;
+
 	/*
 	 * Stagger the timer tick for each CPU so they don't occur all at (almost) the
 	 * same time:
 	 */
-	if (cpu) {
+	if (cpu)
+	{
 		unsigned long hi = 1UL << ia64_fls(cpu);
-		shift = (2*(cpu - hi) + 1) * delta/hi/2;
+		shift = (2 * (cpu - hi) + 1) * delta / hi / 2;
 	}
+
 	local_cpu_data->itm_next = ia64_get_itc() + delta + shift;
 	ia64_set_itm(local_cpu_data->itm_next);
 }
@@ -229,58 +246,80 @@ void ia64_init_itm(void)
 	 * and the base frequency.
 	 */
 	status = ia64_sal_freq_base(SAL_FREQ_BASE_PLATFORM,
-				    &platform_base_freq, &platform_base_drift);
-	if (status != 0) {
+								&platform_base_freq, &platform_base_drift);
+
+	if (status != 0)
+	{
 		printk(KERN_ERR "SAL_FREQ_BASE_PLATFORM failed: %s\n", ia64_sal_strerror(status));
-	} else {
-		status = ia64_pal_freq_ratios(&proc_ratio, NULL, &itc_ratio);
-		if (status != 0)
-			printk(KERN_ERR "PAL_FREQ_RATIOS failed with status=%ld\n", status);
 	}
-	if (status != 0) {
+	else
+	{
+		status = ia64_pal_freq_ratios(&proc_ratio, NULL, &itc_ratio);
+
+		if (status != 0)
+		{
+			printk(KERN_ERR "PAL_FREQ_RATIOS failed with status=%ld\n", status);
+		}
+	}
+
+	if (status != 0)
+	{
 		/* invent "random" values */
 		printk(KERN_ERR
-		       "SAL/PAL failed to obtain frequency info---inventing reasonable values\n");
+			   "SAL/PAL failed to obtain frequency info---inventing reasonable values\n");
 		platform_base_freq = 100000000;
 		platform_base_drift = -1;	/* no drift info */
 		itc_ratio.num = 3;
 		itc_ratio.den = 1;
 	}
-	if (platform_base_freq < 40000000) {
+
+	if (platform_base_freq < 40000000)
+	{
 		printk(KERN_ERR "Platform base frequency %lu bogus---resetting to 75MHz!\n",
-		       platform_base_freq);
+			   platform_base_freq);
 		platform_base_freq = 75000000;
 		platform_base_drift = -1;
 	}
+
 	if (!proc_ratio.den)
-		proc_ratio.den = 1;	/* avoid division by zero */
+	{
+		proc_ratio.den = 1;    /* avoid division by zero */
+	}
+
 	if (!itc_ratio.den)
-		itc_ratio.den = 1;	/* avoid division by zero */
+	{
+		itc_ratio.den = 1;    /* avoid division by zero */
+	}
 
-	itc_freq = (platform_base_freq*itc_ratio.num)/itc_ratio.den;
+	itc_freq = (platform_base_freq * itc_ratio.num) / itc_ratio.den;
 
-	local_cpu_data->itm_delta = (itc_freq + HZ/2) / HZ;
+	local_cpu_data->itm_delta = (itc_freq + HZ / 2) / HZ;
 	printk(KERN_DEBUG "CPU %d: base freq=%lu.%03luMHz, ITC ratio=%u/%u, "
-	       "ITC freq=%lu.%03luMHz", smp_processor_id(),
-	       platform_base_freq / 1000000, (platform_base_freq / 1000) % 1000,
-	       itc_ratio.num, itc_ratio.den, itc_freq / 1000000, (itc_freq / 1000) % 1000);
+		   "ITC freq=%lu.%03luMHz", smp_processor_id(),
+		   platform_base_freq / 1000000, (platform_base_freq / 1000) % 1000,
+		   itc_ratio.num, itc_ratio.den, itc_freq / 1000000, (itc_freq / 1000) % 1000);
 
-	if (platform_base_drift != -1) {
-		itc_drift = platform_base_drift*itc_ratio.num/itc_ratio.den;
+	if (platform_base_drift != -1)
+	{
+		itc_drift = platform_base_drift * itc_ratio.num / itc_ratio.den;
 		printk("+/-%ldppm\n", itc_drift);
-	} else {
+	}
+	else
+	{
 		itc_drift = -1;
 		printk("\n");
 	}
 
-	local_cpu_data->proc_freq = (platform_base_freq*proc_ratio.num)/proc_ratio.den;
+	local_cpu_data->proc_freq = (platform_base_freq * proc_ratio.num) / proc_ratio.den;
 	local_cpu_data->itc_freq = itc_freq;
-	local_cpu_data->cyc_per_usec = (itc_freq + USEC_PER_SEC/2) / USEC_PER_SEC;
-	local_cpu_data->nsec_per_cyc = ((NSEC_PER_SEC<<IA64_NSEC_PER_CYC_SHIFT)
-					+ itc_freq/2)/itc_freq;
+	local_cpu_data->cyc_per_usec = (itc_freq + USEC_PER_SEC / 2) / USEC_PER_SEC;
+	local_cpu_data->nsec_per_cyc = ((NSEC_PER_SEC << IA64_NSEC_PER_CYC_SHIFT)
+									+ itc_freq / 2) / itc_freq;
 
-	if (!(sal_platform_features & IA64_SAL_PLATFORM_FEATURE_ITC_DRIFT)) {
+	if (!(sal_platform_features & IA64_SAL_PLATFORM_FEATURE_ITC_DRIFT))
+	{
 #ifdef CONFIG_SMP
+
 		/* On IA64 in an SMP configuration ITCs are never accurately synchronized.
 		 * Jitter compensation requires a cmpxchg which may limit
 		 * the scalability of the syscalls for retrieving time.
@@ -292,9 +331,13 @@ void ia64_init_itm(void)
 		 * are too large.
 		 */
 		if (!nojitter)
+		{
 			itc_jitter_data.itc_jitter = 1;
+		}
+
 #endif
-	} else
+	}
+	else
 		/*
 		 * ITC is drifty and we have not synchronized the ITCs in smpboot.c.
 		 * ITC values may fluctuate significantly between processors.
@@ -308,7 +351,9 @@ void ia64_init_itm(void)
 		 * The only way to fix this would be to repeatedly sync the
 		 * ITCs. Until that time we have to avoid ITC.
 		 */
+	{
 		clocksource_itc.rating = 50;
+	}
 
 	/* avoid softlock up message when cpu is unplug and plugged again. */
 	touch_softlockup_watchdog();
@@ -316,9 +361,10 @@ void ia64_init_itm(void)
 	/* Setup the CPU local timer tick */
 	ia64_cpu_local_tick();
 
-	if (!itc_clocksource) {
+	if (!itc_clocksource)
+	{
 		clocksource_register_hz(&clocksource_itc,
-						local_cpu_data->itc_freq);
+								local_cpu_data->itc_freq);
 		itc_clocksource = &clocksource_itc;
 	}
 }
@@ -328,12 +374,17 @@ static cycle_t itc_get_cycles(struct clocksource *cs)
 	unsigned long lcycle, now, ret;
 
 	if (!itc_jitter_data.itc_jitter)
+	{
 		return get_cycles();
+	}
 
 	lcycle = itc_jitter_data.itc_lastcycle;
 	now = get_cycles();
+
 	if (lcycle && time_after(lcycle, now))
+	{
 		return lcycle;
+	}
 
 	/*
 	 * Keep track of the last timer value returned.
@@ -342,14 +393,18 @@ static cycle_t itc_get_cycles(struct clocksource *cs)
 	 * winner of contention updated to. Use the new value instead.
 	 */
 	ret = cmpxchg(&itc_jitter_data.itc_lastcycle, lcycle, now);
+
 	if (unlikely(ret != lcycle))
+	{
 		return ret;
+	}
 
 	return now;
 }
 
 
-static struct irqaction timer_irqaction = {
+static struct irqaction timer_irqaction =
+{
 	.handler =	timer_interrupt,
 	.flags =	IRQF_IRQPOLL,
 	.name =		"timer"
@@ -376,10 +431,12 @@ static void
 ia64_itc_udelay (unsigned long usecs)
 {
 	unsigned long start = ia64_get_itc();
-	unsigned long end = start + usecs*local_cpu_data->cyc_per_usec;
+	unsigned long end = start + usecs * local_cpu_data->cyc_per_usec;
 
 	while (time_before(ia64_get_itc(), end))
+	{
 		cpu_relax();
+	}
 }
 
 void (*ia64_udelay)(unsigned long usecs) = &ia64_itc_udelay;
@@ -397,27 +454,28 @@ void update_vsyscall_tz(void)
 }
 
 void update_vsyscall_old(struct timespec *wall, struct timespec *wtm,
-			 struct clocksource *c, u32 mult, cycle_t cycle_last)
+						 struct clocksource *c, u32 mult, cycle_t cycle_last)
 {
 	write_seqcount_begin(&fsyscall_gtod_data.seq);
 
-        /* copy fsyscall clock data */
-        fsyscall_gtod_data.clk_mask = c->mask;
-        fsyscall_gtod_data.clk_mult = mult;
-        fsyscall_gtod_data.clk_shift = c->shift;
-        fsyscall_gtod_data.clk_fsys_mmio = c->archdata.fsys_mmio;
-        fsyscall_gtod_data.clk_cycle_last = cycle_last;
+	/* copy fsyscall clock data */
+	fsyscall_gtod_data.clk_mask = c->mask;
+	fsyscall_gtod_data.clk_mult = mult;
+	fsyscall_gtod_data.clk_shift = c->shift;
+	fsyscall_gtod_data.clk_fsys_mmio = c->archdata.fsys_mmio;
+	fsyscall_gtod_data.clk_cycle_last = cycle_last;
 
 	/* copy kernel time structures */
-        fsyscall_gtod_data.wall_time.tv_sec = wall->tv_sec;
-        fsyscall_gtod_data.wall_time.tv_nsec = wall->tv_nsec;
+	fsyscall_gtod_data.wall_time.tv_sec = wall->tv_sec;
+	fsyscall_gtod_data.wall_time.tv_nsec = wall->tv_nsec;
 	fsyscall_gtod_data.monotonic_time.tv_sec = wtm->tv_sec
-							+ wall->tv_sec;
+			+ wall->tv_sec;
 	fsyscall_gtod_data.monotonic_time.tv_nsec = wtm->tv_nsec
-							+ wall->tv_nsec;
+			+ wall->tv_nsec;
 
 	/* normalize */
-	while (fsyscall_gtod_data.monotonic_time.tv_nsec >= NSEC_PER_SEC) {
+	while (fsyscall_gtod_data.monotonic_time.tv_nsec >= NSEC_PER_SEC)
+	{
 		fsyscall_gtod_data.monotonic_time.tv_nsec -= NSEC_PER_SEC;
 		fsyscall_gtod_data.monotonic_time.tv_sec++;
 	}

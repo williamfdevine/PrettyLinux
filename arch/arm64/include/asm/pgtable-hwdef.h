@@ -55,20 +55,20 @@
  * PMD_SHIFT determines the size a level 2 page table entry can map.
  */
 #if CONFIG_PGTABLE_LEVELS > 2
-#define PMD_SHIFT		ARM64_HW_PGTABLE_LEVEL_SHIFT(2)
-#define PMD_SIZE		(_AC(1, UL) << PMD_SHIFT)
-#define PMD_MASK		(~(PMD_SIZE-1))
-#define PTRS_PER_PMD		PTRS_PER_PTE
+	#define PMD_SHIFT		ARM64_HW_PGTABLE_LEVEL_SHIFT(2)
+	#define PMD_SIZE		(_AC(1, UL) << PMD_SHIFT)
+	#define PMD_MASK		(~(PMD_SIZE-1))
+	#define PTRS_PER_PMD		PTRS_PER_PTE
 #endif
 
 /*
  * PUD_SHIFT determines the size a level 1 page table entry can map.
  */
 #if CONFIG_PGTABLE_LEVELS > 3
-#define PUD_SHIFT		ARM64_HW_PGTABLE_LEVEL_SHIFT(1)
-#define PUD_SIZE		(_AC(1, UL) << PUD_SHIFT)
-#define PUD_MASK		(~(PUD_SIZE-1))
-#define PTRS_PER_PUD		PTRS_PER_PTE
+	#define PUD_SHIFT		ARM64_HW_PGTABLE_LEVEL_SHIFT(1)
+	#define PUD_SIZE		(_AC(1, UL) << PUD_SHIFT)
+	#define PUD_MASK		(~(PUD_SIZE-1))
+	#define PTRS_PER_PUD		PTRS_PER_PTE
 #endif
 
 /*
@@ -91,14 +91,14 @@
  * Contiguous page definitions.
  */
 #ifdef CONFIG_ARM64_64K_PAGES
-#define CONT_PTE_SHIFT		5
-#define CONT_PMD_SHIFT		5
+	#define CONT_PTE_SHIFT		5
+	#define CONT_PMD_SHIFT		5
 #elif defined(CONFIG_ARM64_16K_PAGES)
-#define CONT_PTE_SHIFT		7
-#define CONT_PMD_SHIFT		5
+	#define CONT_PTE_SHIFT		7
+	#define CONT_PMD_SHIFT		5
 #else
-#define CONT_PTE_SHIFT		4
-#define CONT_PMD_SHIFT		4
+	#define CONT_PTE_SHIFT		4
+	#define CONT_PMD_SHIFT		4
 #endif
 
 #define CONT_PTES		(1 << CONT_PTE_SHIFT)

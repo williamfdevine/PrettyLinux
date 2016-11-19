@@ -22,7 +22,8 @@ extern void davinci_irq_init(void);
 extern void __iomem *davinci_intc_base;
 extern int davinci_intc_type;
 
-struct davinci_timer_instance {
+struct davinci_timer_instance
+{
 	u32		base;
 	u32		bottom_irq;
 	u32		top_irq;
@@ -30,7 +31,8 @@ struct davinci_timer_instance {
 	unsigned int	cmp_irq;
 };
 
-struct davinci_timer_info {
+struct davinci_timer_info
+{
 	struct davinci_timer_instance	*timers;
 	unsigned int			clockevent_id;
 	unsigned int			clocksource_id;
@@ -45,7 +47,8 @@ struct davinci_gpio_controller;
  * Modules that take such base addresses, should internally ioremap() them to
  * use.
  */
-struct davinci_soc_info {
+struct davinci_soc_info
+{
 	struct map_desc			*io_desc;
 	unsigned long			io_desc_num;
 	u32				cpu_id;

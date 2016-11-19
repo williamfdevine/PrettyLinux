@@ -3,7 +3,8 @@
 #ifdef __KERNEL__
 
 /* Grossly misnamed. */
-enum die_val {
+enum die_val
+{
 	DIE_OOPS = 1,
 	DIE_IABR_MATCH,
 	DIE_DABR_MATCH,

@@ -27,11 +27,18 @@ void (*soc_mb)(void);
 void arm_heavy_mb(void)
 {
 #ifdef CONFIG_OUTER_CACHE_SYNC
+
 	if (outer_cache.sync)
+	{
 		outer_cache.sync();
+	}
+
 #endif
+
 	if (soc_mb)
+	{
 		soc_mb();
+	}
 }
 EXPORT_SYMBOL(arm_heavy_mb);
 #endif
@@ -46,10 +53,10 @@ static void flush_pfn_alias(unsigned long pfn, unsigned long vaddr)
 	set_top_pte(to, pfn_pte(pfn, PAGE_KERNEL));
 
 	asm(	"mcrr	p15, 0, %1, %0, c14\n"
-	"	mcr	p15, 0, %2, c7, c10, 4"
-	    :
-	    : "r" (to), "r" (to + PAGE_SIZE - 1), "r" (zero)
-	    : "cc");
+			"	mcr	p15, 0, %2, c7, c10, 4"
+			:
+			: "r" (to), "r" (to + PAGE_SIZE - 1), "r" (zero)
+			: "cc");
 }
 
 static void flush_icache_alias(unsigned long pfn, unsigned long vaddr, unsigned long len)
@@ -65,53 +72,63 @@ static void flush_icache_alias(unsigned long pfn, unsigned long vaddr, unsigned 
 
 void flush_cache_mm(struct mm_struct *mm)
 {
-	if (cache_is_vivt()) {
+	if (cache_is_vivt())
+	{
 		vivt_flush_cache_mm(mm);
 		return;
 	}
 
-	if (cache_is_vipt_aliasing()) {
+	if (cache_is_vipt_aliasing())
+	{
 		asm(	"mcr	p15, 0, %0, c7, c14, 0\n"
-		"	mcr	p15, 0, %0, c7, c10, 4"
-		    :
-		    : "r" (0)
-		    : "cc");
+				"	mcr	p15, 0, %0, c7, c10, 4"
+				:
+				: "r" (0)
+				: "cc");
 	}
 }
 
 void flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end)
 {
-	if (cache_is_vivt()) {
+	if (cache_is_vivt())
+	{
 		vivt_flush_cache_range(vma, start, end);
 		return;
 	}
 
-	if (cache_is_vipt_aliasing()) {
+	if (cache_is_vipt_aliasing())
+	{
 		asm(	"mcr	p15, 0, %0, c7, c14, 0\n"
-		"	mcr	p15, 0, %0, c7, c10, 4"
-		    :
-		    : "r" (0)
-		    : "cc");
+				"	mcr	p15, 0, %0, c7, c10, 4"
+				:
+				: "r" (0)
+				: "cc");
 	}
 
 	if (vma->vm_flags & VM_EXEC)
+	{
 		__flush_icache_all();
+	}
 }
 
 void flush_cache_page(struct vm_area_struct *vma, unsigned long user_addr, unsigned long pfn)
 {
-	if (cache_is_vivt()) {
+	if (cache_is_vivt())
+	{
 		vivt_flush_cache_page(vma, user_addr, pfn);
 		return;
 	}
 
-	if (cache_is_vipt_aliasing()) {
+	if (cache_is_vipt_aliasing())
+	{
 		flush_pfn_alias(pfn, user_addr);
 		__flush_icache_all();
 	}
 
 	if (vma->vm_flags & VM_EXEC && icache_is_vivt_asid_tagged())
+	{
 		__flush_icache_all();
+	}
 }
 
 #else
@@ -129,51 +146,69 @@ static void flush_ptrace_access_other(void *args)
 
 static inline
 void __flush_ptrace_access(struct page *page, unsigned long uaddr, void *kaddr,
-			   unsigned long len, unsigned int flags)
+						   unsigned long len, unsigned int flags)
 {
-	if (cache_is_vivt()) {
-		if (flags & FLAG_PA_CORE_IN_MM) {
+	if (cache_is_vivt())
+	{
+		if (flags & FLAG_PA_CORE_IN_MM)
+		{
 			unsigned long addr = (unsigned long)kaddr;
 			__cpuc_coherent_kern_range(addr, addr + len);
 		}
+
 		return;
 	}
 
-	if (cache_is_vipt_aliasing()) {
+	if (cache_is_vipt_aliasing())
+	{
 		flush_pfn_alias(page_to_pfn(page), uaddr);
 		__flush_icache_all();
 		return;
 	}
 
 	/* VIPT non-aliasing D-cache */
-	if (flags & FLAG_PA_IS_EXEC) {
+	if (flags & FLAG_PA_IS_EXEC)
+	{
 		unsigned long addr = (unsigned long)kaddr;
+
 		if (icache_is_vipt_aliasing())
+		{
 			flush_icache_alias(page_to_pfn(page), uaddr, len);
+		}
 		else
+		{
 			__cpuc_coherent_kern_range(addr, addr + len);
+		}
+
 		if (cache_ops_need_broadcast())
 			smp_call_function(flush_ptrace_access_other,
-					  NULL, 1);
+							  NULL, 1);
 	}
 }
 
 static
 void flush_ptrace_access(struct vm_area_struct *vma, struct page *page,
-			 unsigned long uaddr, void *kaddr, unsigned long len)
+						 unsigned long uaddr, void *kaddr, unsigned long len)
 {
 	unsigned int flags = 0;
+
 	if (cpumask_test_cpu(smp_processor_id(), mm_cpumask(vma->vm_mm)))
+	{
 		flags |= FLAG_PA_CORE_IN_MM;
+	}
+
 	if (vma->vm_flags & VM_EXEC)
+	{
 		flags |= FLAG_PA_IS_EXEC;
+	}
+
 	__flush_ptrace_access(page, uaddr, kaddr, len, flags);
 }
 
 void flush_uprobe_xol_access(struct page *page, unsigned long uaddr,
-			     void *kaddr, unsigned long len)
+							 void *kaddr, unsigned long len)
 {
-	unsigned int flags = FLAG_PA_CORE_IN_MM|FLAG_PA_IS_EXEC;
+	unsigned int flags = FLAG_PA_CORE_IN_MM | FLAG_PA_IS_EXEC;
 
 	__flush_ptrace_access(page, uaddr, kaddr, len, flags);
 }
@@ -186,8 +221,8 @@ void flush_uprobe_xol_access(struct page *page, unsigned long uaddr,
  * Note that this code needs to run on the current CPU.
  */
 void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
-		       unsigned long uaddr, void *dst, const void *src,
-		       unsigned long len)
+					   unsigned long uaddr, void *dst, const void *src,
+					   unsigned long len)
 {
 #ifdef CONFIG_SMP
 	preempt_disable();
@@ -206,21 +241,32 @@ void __flush_dcache_page(struct address_space *mapping, struct page *page)
 	 * page.  This ensures that data in the physical page is mutually
 	 * coherent with the kernels mapping.
 	 */
-	if (!PageHighMem(page)) {
+	if (!PageHighMem(page))
+	{
 		size_t page_size = PAGE_SIZE << compound_order(page);
 		__cpuc_flush_dcache_area(page_address(page), page_size);
-	} else {
+	}
+	else
+	{
 		unsigned long i;
-		if (cache_is_vipt_nonaliasing()) {
-			for (i = 0; i < (1 << compound_order(page)); i++) {
+
+		if (cache_is_vipt_nonaliasing())
+		{
+			for (i = 0; i < (1 << compound_order(page)); i++)
+			{
 				void *addr = kmap_atomic(page + i);
 				__cpuc_flush_dcache_area(addr, PAGE_SIZE);
 				kunmap_atomic(addr);
 			}
-		} else {
-			for (i = 0; i < (1 << compound_order(page)); i++) {
+		}
+		else
+		{
+			for (i = 0; i < (1 << compound_order(page)); i++)
+			{
 				void *addr = kmap_high_get(page + i);
-				if (addr) {
+
+				if (addr)
+				{
 					__cpuc_flush_dcache_area(addr, PAGE_SIZE);
 					kunmap_high(page + i);
 				}
@@ -235,7 +281,7 @@ void __flush_dcache_page(struct address_space *mapping, struct page *page)
 	 */
 	if (mapping && cache_is_vipt_aliasing())
 		flush_pfn_alias(page_to_pfn(page),
-				page->index << PAGE_SHIFT);
+						page->index << PAGE_SHIFT);
 }
 
 static void __flush_dcache_aliases(struct address_space *mapping, struct page *page)
@@ -253,16 +299,23 @@ static void __flush_dcache_aliases(struct address_space *mapping, struct page *p
 	pgoff = page->index;
 
 	flush_dcache_mmap_lock(mapping);
-	vma_interval_tree_foreach(mpnt, &mapping->i_mmap, pgoff, pgoff) {
+	vma_interval_tree_foreach(mpnt, &mapping->i_mmap, pgoff, pgoff)
+	{
 		unsigned long offset;
 
 		/*
 		 * If this VMA is not in our MM, we can ignore it.
 		 */
 		if (mpnt->vm_mm != mm)
+		{
 			continue;
+		}
+
 		if (!(mpnt->vm_flags & VM_MAYSHARE))
+		{
 			continue;
+		}
+
 		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
 		flush_cache_page(mpnt, mpnt->vm_start + offset, page_to_pfn(page));
 	}
@@ -278,22 +331,37 @@ void __sync_icache_dcache(pte_t pteval)
 
 	if (cache_is_vipt_nonaliasing() && !pte_exec(pteval))
 		/* only flush non-aliasing VIPT caches for exec mappings */
+	{
 		return;
+	}
+
 	pfn = pte_pfn(pteval);
+
 	if (!pfn_valid(pfn))
+	{
 		return;
+	}
 
 	page = pfn_to_page(pfn);
+
 	if (cache_is_vipt_aliasing())
+	{
 		mapping = page_mapping(page);
+	}
 	else
+	{
 		mapping = NULL;
+	}
 
 	if (!test_and_set_bit(PG_dcache_clean, &page->flags))
+	{
 		__flush_dcache_page(mapping, page);
+	}
 
 	if (pte_exec(pteval))
+	{
 		__flush_icache_all();
+	}
 }
 #endif
 
@@ -325,19 +393,30 @@ void flush_dcache_page(struct page *page)
 	 * cache lines, and therefore never needs to be flushed.
 	 */
 	if (page == ZERO_PAGE(0))
+	{
 		return;
+	}
 
 	mapping = page_mapping(page);
 
 	if (!cache_ops_need_broadcast() &&
-	    mapping && !page_mapcount(page))
+		mapping && !page_mapcount(page))
+	{
 		clear_bit(PG_dcache_clean, &page->flags);
-	else {
+	}
+	else
+	{
 		__flush_dcache_page(mapping, page);
+
 		if (mapping && cache_is_vivt())
+		{
 			__flush_dcache_aliases(mapping, page);
+		}
 		else if (mapping)
+		{
 			__flush_icache_all();
+		}
+
 		set_bit(PG_dcache_clean, &page->flags);
 	}
 }
@@ -354,15 +433,18 @@ EXPORT_SYMBOL(flush_dcache_page);
  */
 void flush_kernel_dcache_page(struct page *page)
 {
-	if (cache_is_vivt() || cache_is_vipt_aliasing()) {
+	if (cache_is_vivt() || cache_is_vipt_aliasing())
+	{
 		struct address_space *mapping;
 
 		mapping = page_mapping(page);
 
-		if (!mapping || mapping_mapped(mapping)) {
+		if (!mapping || mapping_mapped(mapping))
+		{
 			void *addr;
 
 			addr = page_address(page);
+
 			/*
 			 * kmap_atomic() doesn't set the page virtual
 			 * address for highmem pages, and
@@ -370,7 +452,9 @@ void flush_kernel_dcache_page(struct page *page)
 			 * flushing already.
 			 */
 			if (!IS_ENABLED(CONFIG_HIGHMEM) || addr)
+			{
 				__cpuc_flush_dcache_area(addr, PAGE_SIZE);
+			}
 		}
 	}
 }
@@ -391,15 +475,21 @@ void __flush_anon_page(struct vm_area_struct *vma, struct page *page, unsigned l
 
 	/* VIPT non-aliasing caches need do nothing */
 	if (cache_is_vipt_nonaliasing())
+	{
 		return;
+	}
 
 	/*
 	 * Write back and invalidate userspace mapping.
 	 */
 	pfn = page_to_pfn(page);
-	if (cache_is_vivt()) {
+
+	if (cache_is_vivt())
+	{
 		flush_cache_page(vma, vmaddr, pfn);
-	} else {
+	}
+	else
+	{
 		/*
 		 * For aliasing VIPT, we can flush an alias of the
 		 * userspace address only.

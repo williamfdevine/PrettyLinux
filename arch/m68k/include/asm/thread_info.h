@@ -11,19 +11,20 @@
  * the thread size must match the page size (which is 8k and larger here).
  */
 #if PAGE_SHIFT < 13
-#ifdef CONFIG_4KSTACKS
-#define THREAD_SIZE	4096
+	#ifdef CONFIG_4KSTACKS
+		#define THREAD_SIZE	4096
+	#else
+		#define THREAD_SIZE	8192
+	#endif
 #else
-#define THREAD_SIZE	8192
-#endif
-#else
-#define THREAD_SIZE	PAGE_SIZE
+	#define THREAD_SIZE	PAGE_SIZE
 #endif
 #define THREAD_SIZE_ORDER	((THREAD_SIZE / PAGE_SIZE) - 1)
 
 #ifndef __ASSEMBLY__
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;
 	mm_segment_t		addr_limit;	/* thread address space */
@@ -34,11 +35,11 @@ struct thread_info {
 #endif /* __ASSEMBLY__ */
 
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.addr_limit	= KERNEL_DS,		\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-}
+	{						\
+		.task		= &tsk,			\
+					  .addr_limit	= KERNEL_DS,		\
+									.preempt_count	= INIT_PREEMPT_COUNT,	\
+	}
 
 #define init_stack		(init_thread_union.stack)
 
@@ -52,7 +53,7 @@ static inline struct thread_info *current_thread_info(void)
 		"and.l  %1, %0"
 		: "=&d"(ti)
 		: "di" (~(THREAD_SIZE-1))
-		);
+	);
 	return ti;
 }
 #endif

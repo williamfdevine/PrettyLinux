@@ -15,30 +15,34 @@
 #include <asm/cacheflush.h>
 
 static void c6x_dma_sync(dma_addr_t handle, size_t size,
-			 enum dma_data_direction dir)
+						 enum dma_data_direction dir)
 {
 	unsigned long paddr = handle;
 
 	BUG_ON(!valid_dma_direction(dir));
 
-	switch (dir) {
-	case DMA_FROM_DEVICE:
-		L2_cache_block_invalidate(paddr, paddr + size);
-		break;
-	case DMA_TO_DEVICE:
-		L2_cache_block_writeback(paddr, paddr + size);
-		break;
-	case DMA_BIDIRECTIONAL:
-		L2_cache_block_writeback_invalidate(paddr, paddr + size);
-		break;
-	default:
-		break;
+	switch (dir)
+	{
+		case DMA_FROM_DEVICE:
+			L2_cache_block_invalidate(paddr, paddr + size);
+			break;
+
+		case DMA_TO_DEVICE:
+			L2_cache_block_writeback(paddr, paddr + size);
+			break;
+
+		case DMA_BIDIRECTIONAL:
+			L2_cache_block_writeback_invalidate(paddr, paddr + size);
+			break;
+
+		default:
+			break;
 	}
 }
 
 static dma_addr_t c6x_dma_map_page(struct device *dev, struct page *page,
-		unsigned long offset, size_t size, enum dma_data_direction dir,
-		unsigned long attrs)
+								   unsigned long offset, size_t size, enum dma_data_direction dir,
+								   unsigned long attrs)
 {
 	dma_addr_t handle = virt_to_phys(page_address(page) + offset);
 
@@ -47,18 +51,19 @@ static dma_addr_t c6x_dma_map_page(struct device *dev, struct page *page,
 }
 
 static void c6x_dma_unmap_page(struct device *dev, dma_addr_t handle,
-		size_t size, enum dma_data_direction dir, unsigned long attrs)
+							   size_t size, enum dma_data_direction dir, unsigned long attrs)
 {
 	c6x_dma_sync(handle, size, dir);
 }
 
 static int c6x_dma_map_sg(struct device *dev, struct scatterlist *sglist,
-		int nents, enum dma_data_direction dir, unsigned long attrs)
+						  int nents, enum dma_data_direction dir, unsigned long attrs)
 {
 	struct scatterlist *sg;
 	int i;
 
-	for_each_sg(sglist, sg, nents, i) {
+	for_each_sg(sglist, sg, nents, i)
+	{
 		sg->dma_address = sg_phys(sg);
 		c6x_dma_sync(sg->dma_address, sg->length, dir);
 	}
@@ -67,18 +72,18 @@ static int c6x_dma_map_sg(struct device *dev, struct scatterlist *sglist,
 }
 
 static void c6x_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
-		  int nents, enum dma_data_direction dir, unsigned long attrs)
+							 int nents, enum dma_data_direction dir, unsigned long attrs)
 {
 	struct scatterlist *sg;
 	int i;
 
 	for_each_sg(sglist, sg, nents, i)
-		c6x_dma_sync(sg_dma_address(sg), sg->length, dir);
+	c6x_dma_sync(sg_dma_address(sg), sg->length, dir);
 
 }
 
 static void c6x_dma_sync_single_for_cpu(struct device *dev, dma_addr_t handle,
-		size_t size, enum dma_data_direction dir)
+										size_t size, enum dma_data_direction dir)
 {
 	c6x_dma_sync(handle, size, dir);
 
@@ -92,32 +97,33 @@ static void c6x_dma_sync_single_for_device(struct device *dev,
 }
 
 static void c6x_dma_sync_sg_for_cpu(struct device *dev,
-		struct scatterlist *sglist, int nents,
-		enum dma_data_direction dir)
+									struct scatterlist *sglist, int nents,
+									enum dma_data_direction dir)
 {
 	struct scatterlist *sg;
 	int i;
 
 	for_each_sg(sglist, sg, nents, i)
-		c6x_dma_sync_single_for_cpu(dev, sg_dma_address(sg),
-					sg->length, dir);
+	c6x_dma_sync_single_for_cpu(dev, sg_dma_address(sg),
+								sg->length, dir);
 
 }
 
 static void c6x_dma_sync_sg_for_device(struct device *dev,
-		struct scatterlist *sglist, int nents,
-		enum dma_data_direction dir)
+									   struct scatterlist *sglist, int nents,
+									   enum dma_data_direction dir)
 {
 	struct scatterlist *sg;
 	int i;
 
 	for_each_sg(sglist, sg, nents, i)
-		c6x_dma_sync_single_for_device(dev, sg_dma_address(sg),
-					   sg->length, dir);
+	c6x_dma_sync_single_for_device(dev, sg_dma_address(sg),
+								   sg->length, dir);
 
 }
 
-struct dma_map_ops c6x_dma_ops = {
+struct dma_map_ops c6x_dma_ops =
+{
 	.alloc			= c6x_dma_alloc,
 	.free			= c6x_dma_free,
 	.map_page		= c6x_dma_map_page,

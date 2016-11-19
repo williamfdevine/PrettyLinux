@@ -24,7 +24,8 @@
  * If you change this, change the TI_* offsets below to match.
  */
 #define NSWINS 8
-struct thread_info {
+struct thread_info
+{
 	unsigned long		uwinmask;
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
@@ -54,13 +55,13 @@ struct thread_info {
  * macros/functions for gaining access to the thread information structure
  */
 #define INIT_THREAD_INFO(tsk)				\
-{							\
-	.uwinmask	=	0,			\
-	.task		=	&tsk,			\
-	.flags		=	0,			\
-	.cpu		=	0,			\
-	.preempt_count	=	INIT_PREEMPT_COUNT,	\
-}
+	{							\
+		.uwinmask	=	0,			\
+						.task		=	&tsk,			\
+										.flags		=	0,			\
+												.cpu		=	0,			\
+														.preempt_count	=	INIT_PREEMPT_COUNT,	\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -121,7 +122,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
 #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
 
 #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
-					 _TIF_SIGPENDING)
+									 _TIF_SIGPENDING)
 
 #define is_32bit_task()	(1)
 

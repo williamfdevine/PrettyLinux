@@ -66,22 +66,33 @@ static int fixed_bar_cap(struct pci_bus *bus, unsigned int devfn)
 	pos = PCIE_CAP_OFFSET;
 
 	if (!raw_pci_ext_ops)
+	{
 		return 0;
+	}
 
-	while (pos) {
+	while (pos)
+	{
 		if (raw_pci_ext_ops->read(pci_domain_nr(bus), bus->number,
-					  devfn, pos, 4, &pcie_cap))
+								  devfn, pos, 4, &pcie_cap))
+		{
 			return 0;
+		}
 
 		if (PCI_EXT_CAP_ID(pcie_cap) == 0x0000 ||
 			PCI_EXT_CAP_ID(pcie_cap) == 0xffff)
+		{
 			break;
+		}
 
-		if (PCI_EXT_CAP_ID(pcie_cap) == PCI_EXT_CAP_ID_VNDR) {
+		if (PCI_EXT_CAP_ID(pcie_cap) == PCI_EXT_CAP_ID_VNDR)
+		{
 			raw_pci_ext_ops->read(pci_domain_nr(bus), bus->number,
-					      devfn, pos + 4, 4, &cap_data);
+								  devfn, pos + 4, 4, &cap_data);
+
 			if ((cap_data & 0xffff) == PCIE_VNDR_CAP_ID_FIXED_BAR)
+			{
 				return pos;
+			}
 		}
 
 		pos = PCI_EXT_CAP_NEXT(pcie_cap);
@@ -91,7 +102,7 @@ static int fixed_bar_cap(struct pci_bus *bus, unsigned int devfn)
 }
 
 static int pci_device_update_fixed(struct pci_bus *bus, unsigned int devfn,
-				   int reg, int len, u32 val, int offset)
+								   int reg, int len, u32 val, int offset)
 {
 	u32 size;
 	unsigned int domain, busnum;
@@ -100,14 +111,16 @@ static int pci_device_update_fixed(struct pci_bus *bus, unsigned int devfn,
 	domain = pci_domain_nr(bus);
 	busnum = bus->number;
 
-	if (val == ~0 && len == 4) {
+	if (val == ~0 && len == 4)
+	{
 		unsigned long decode;
 
 		raw_pci_ext_ops->read(domain, busnum, devfn,
-			       offset + 8 + (bar * 4), 4, &size);
+							  offset + 8 + (bar * 4), 4, &size);
 
 		/* Turn the size into a decode pattern for the sizing code */
-		if (size) {
+		if (size)
+		{
 			decode = size - 1;
 			decode |= decode >> 1;
 			decode |= decode >> 2;
@@ -116,7 +129,9 @@ static int pci_device_update_fixed(struct pci_bus *bus, unsigned int devfn,
 			decode |= decode >> 16;
 			decode++;
 			decode = ~(decode - 1);
-		} else {
+		}
+		else
+		{
 			decode = 0;
 		}
 
@@ -127,7 +142,7 @@ static int pci_device_update_fixed(struct pci_bus *bus, unsigned int devfn,
 		 * Note: this assumes the fixed size we got is a power of two.
 		 */
 		return raw_pci_ext_ops->write(domain, busnum, devfn, reg, 4,
-				       decode);
+									  decode);
 	}
 
 	/* This is some other kind of BAR write, so just do it. */
@@ -155,26 +170,33 @@ static bool type1_access_ok(unsigned int bus, unsigned int devfn, int reg)
 	 * shim. Therefore, use the header type in shim instead.
 	 */
 	if (reg >= 0x100 || reg == PCI_STATUS || reg == PCI_HEADER_TYPE)
+	{
 		return false;
+	}
+
 	if (bus == 0 && (devfn == PCI_DEVFN(2, 0)
-				|| devfn == PCI_DEVFN(0, 0)
-				|| devfn == PCI_DEVFN(3, 0)))
+					 || devfn == PCI_DEVFN(0, 0)
+					 || devfn == PCI_DEVFN(3, 0)))
+	{
 		return true;
+	}
+
 	return false; /* Langwell on others */
 }
 
 static int pci_read(struct pci_bus *bus, unsigned int devfn, int where,
-		    int size, u32 *value)
+					int size, u32 *value)
 {
 	if (type1_access_ok(bus->number, devfn, where))
 		return pci_direct_conf1.read(pci_domain_nr(bus), bus->number,
-					devfn, where, size, value);
+									 devfn, where, size, value);
+
 	return raw_pci_ext_ops->read(pci_domain_nr(bus), bus->number,
-			      devfn, where, size, value);
+								 devfn, where, size, value);
 }
 
 static int pci_write(struct pci_bus *bus, unsigned int devfn, int where,
-		     int size, u32 value)
+					 int size, u32 value)
 {
 	int offset;
 
@@ -183,7 +205,9 @@ static int pci_write(struct pci_bus *bus, unsigned int devfn, int where,
 	 * to ROM BAR return 0 then being ignored.
 	 */
 	if (where == PCI_ROM_ADDRESS)
+	{
 		return 0;
+	}
 
 	/*
 	 * Devices with fixed BARs need special handling:
@@ -192,10 +216,12 @@ static int pci_write(struct pci_bus *bus, unsigned int devfn, int where,
 	 *   - other writes to fixed BAR devices should go through mmconfig
 	 */
 	offset = fixed_bar_cap(bus, devfn);
+
 	if (offset &&
-	    (where >= PCI_BASE_ADDRESS_0 && where <= PCI_BASE_ADDRESS_5)) {
+		(where >= PCI_BASE_ADDRESS_0 && where <= PCI_BASE_ADDRESS_5))
+	{
 		return pci_device_update_fixed(bus, devfn, where, size, value,
-					       offset);
+									   offset);
 	}
 
 	/*
@@ -205,9 +231,10 @@ static int pci_write(struct pci_bus *bus, unsigned int devfn, int where,
 	 */
 	if (type1_access_ok(bus->number, devfn, where))
 		return pci_direct_conf1.write(pci_domain_nr(bus), bus->number,
-					      devfn, where, size, value);
+									  devfn, where, size, value);
+
 	return raw_pci_ext_ops->write(pci_domain_nr(bus), bus->number, devfn,
-			       where, size, value);
+								  where, size, value);
 }
 
 static int intel_mid_pci_irq_enable(struct pci_dev *dev)
@@ -217,34 +244,45 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
 	int ret;
 
 	if (dev->irq_managed && dev->irq > 0)
+	{
 		return 0;
+	}
 
-	switch (intel_mid_identify_cpu()) {
-	case INTEL_MID_CPU_CHIP_TANGIER:
-		polarity = IOAPIC_POL_HIGH;
+	switch (intel_mid_identify_cpu())
+	{
+		case INTEL_MID_CPU_CHIP_TANGIER:
+			polarity = IOAPIC_POL_HIGH;
 
-		/* Special treatment for IRQ0 */
-		if (dev->irq == 0) {
-			/*
-			 * Skip HS UART common registers device since it has
-			 * IRQ0 assigned and not used by the kernel.
-			 */
-			if (dev->device == PCI_DEVICE_ID_INTEL_MRFLD_HSU)
-				return -EBUSY;
-			/*
-			 * TNG has IRQ0 assigned to eMMC controller. But there
-			 * are also other devices with bogus PCI configuration
-			 * that have IRQ0 assigned. This check ensures that
-			 * eMMC gets it. The rest of devices still could be
-			 * enabled without interrupt line being allocated.
-			 */
-			if (dev->device != PCI_DEVICE_ID_INTEL_MRFLD_MMC)
-				return 0;
-		}
-		break;
-	default:
-		polarity = IOAPIC_POL_LOW;
-		break;
+			/* Special treatment for IRQ0 */
+			if (dev->irq == 0)
+			{
+				/*
+				 * Skip HS UART common registers device since it has
+				 * IRQ0 assigned and not used by the kernel.
+				 */
+				if (dev->device == PCI_DEVICE_ID_INTEL_MRFLD_HSU)
+				{
+					return -EBUSY;
+				}
+
+				/*
+				 * TNG has IRQ0 assigned to eMMC controller. But there
+				 * are also other devices with bogus PCI configuration
+				 * that have IRQ0 assigned. This check ensures that
+				 * eMMC gets it. The rest of devices still could be
+				 * enabled without interrupt line being allocated.
+				 */
+				if (dev->device != PCI_DEVICE_ID_INTEL_MRFLD_MMC)
+				{
+					return 0;
+				}
+			}
+
+			break;
+
+		default:
+			polarity = IOAPIC_POL_LOW;
+			break;
 	}
 
 	ioapic_set_alloc_attr(&info, dev_to_node(&dev->dev), 1, polarity);
@@ -254,8 +292,11 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
 	 * IOAPIC RTE entries, so we just enable RTE for the device.
 	 */
 	ret = mp_map_gsi_to_irq(dev->irq, IOAPIC_MAP_ALLOC, &info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev->irq_managed = 1;
 
@@ -265,13 +306,15 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
 static void intel_mid_pci_irq_disable(struct pci_dev *dev)
 {
 	if (!mp_should_keep_irq(&dev->dev) && dev->irq_managed &&
-	    dev->irq > 0) {
+		dev->irq > 0)
+	{
 		mp_unmap_irq(dev->irq);
 		dev->irq_managed = 0;
 	}
 }
 
-static struct pci_ops intel_mid_pci_ops = {
+static struct pci_ops intel_mid_pci_ops =
+{
 	.read = pci_read,
 	.write = pci_write,
 };
@@ -305,13 +348,19 @@ static void pci_d3delay_fixup(struct pci_dev *dev)
 	 * SoC/non-SoC kernel we don't want to mangle d3 on non-SoC devices.
 	 */
 	if (!pci_soc_mode)
+	{
 		return;
+	}
+
 	/*
 	 * True PCI devices in Lincroft should allow type 1 access, the rest
 	 * are Langwell fake PCI devices.
 	 */
 	if (type1_access_ok(dev->bus->number, dev->devfn, PCI_DEVICE_ID))
+	{
 		return;
+	}
+
 	dev->d3_delay = 0;
 }
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, PCI_ANY_ID, pci_d3delay_fixup);
@@ -335,11 +384,16 @@ static void mid_power_off_devices(struct pci_dev *dev)
 	int id;
 
 	if (!pci_soc_mode)
+	{
 		return;
+	}
 
 	id = intel_mid_pwr_get_lss_id(dev);
+
 	if (id < 0)
+	{
 		return;
+	}
 
 	/*
 	 * This sets only PMCSR bits. The actual power off will happen in
@@ -360,19 +414,27 @@ static void pci_fixed_bar_fixup(struct pci_dev *dev)
 	int i;
 
 	if (!pci_soc_mode)
+	{
 		return;
+	}
 
 	/* Must have extended configuration space */
 	if (dev->cfg_size < PCIE_CAP_OFFSET + 4)
+	{
 		return;
+	}
 
 	/* Fixup the BAR sizes for fixed BAR devices and make them unmoveable */
 	offset = fixed_bar_cap(dev->bus, dev->devfn);
-	if (!offset || PCI_DEVFN(2, 0) == dev->devfn ||
-	    PCI_DEVFN(2, 2) == dev->devfn)
-		return;
 
-	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
+	if (!offset || PCI_DEVFN(2, 0) == dev->devfn ||
+		PCI_DEVFN(2, 2) == dev->devfn)
+	{
+		return;
+	}
+
+	for (i = 0; i < PCI_ROM_RESOURCE; i++)
+	{
 		pci_read_config_dword(dev, offset + 8 + (i * 4), &size);
 		dev->resource[i].end = dev->resource[i].start + size - 1;
 		dev->resource[i].flags |= IORESOURCE_PCI_FIXED;

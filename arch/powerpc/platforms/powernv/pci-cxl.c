@@ -32,16 +32,24 @@ int pnv_phb_to_cxl_mode(struct pci_dev *dev, uint64_t mode)
 	int rc;
 
 	pe = pnv_ioda_get_pe(dev);
+
 	if (!pe)
+	{
 		return -ENODEV;
+	}
 
 	pe_info(pe, "Switching PHB to CXL\n");
 
 	rc = opal_pci_set_phb_cxl_mode(phb->opal_id, mode, pe->pe_number);
+
 	if (rc == OPAL_UNSUPPORTED)
+	{
 		dev_err(&dev->dev, "Required cxl mode not supported by firmware - update skiboot\n");
+	}
 	else if (rc)
+	{
 		dev_err(&dev->dev, "opal_pci_set_phb_cxl_mode failed: %i\n", rc);
+	}
 
 	return rc;
 }
@@ -56,7 +64,8 @@ int pnv_cxl_alloc_hwirqs(struct pci_dev *dev, int num)
 	struct pnv_phb *phb = hose->private_data;
 	int hwirq = msi_bitmap_alloc_hwirqs(&phb->msi_bmp, num);
 
-	if (hwirq < 0) {
+	if (hwirq < 0)
+	{
 		dev_warn(&dev->dev, "Failed to find a free MSI\n");
 		return -ENOSPC;
 	}
@@ -75,54 +84,75 @@ void pnv_cxl_release_hwirqs(struct pci_dev *dev, int hwirq, int num)
 EXPORT_SYMBOL(pnv_cxl_release_hwirqs);
 
 void pnv_cxl_release_hwirq_ranges(struct cxl_irq_ranges *irqs,
-				  struct pci_dev *dev)
+								  struct pci_dev *dev)
 {
 	struct pci_controller *hose = pci_bus_to_host(dev->bus);
 	struct pnv_phb *phb = hose->private_data;
 	int i, hwirq;
 
-	for (i = 1; i < CXL_IRQ_RANGES; i++) {
+	for (i = 1; i < CXL_IRQ_RANGES; i++)
+	{
 		if (!irqs->range[i])
+		{
 			continue;
+		}
+
 		pr_devel("cxl release irq range 0x%x: offset: 0x%lx  limit: %ld\n",
-			 i, irqs->offset[i],
-			 irqs->range[i]);
+				 i, irqs->offset[i],
+				 irqs->range[i]);
 		hwirq = irqs->offset[i] - phb->msi_base;
 		msi_bitmap_free_hwirqs(&phb->msi_bmp, hwirq,
-				       irqs->range[i]);
+							   irqs->range[i]);
 	}
 }
 EXPORT_SYMBOL(pnv_cxl_release_hwirq_ranges);
 
 int pnv_cxl_alloc_hwirq_ranges(struct cxl_irq_ranges *irqs,
-			       struct pci_dev *dev, int num)
+							   struct pci_dev *dev, int num)
 {
 	struct pci_controller *hose = pci_bus_to_host(dev->bus);
 	struct pnv_phb *phb = hose->private_data;
+
 	int i, hwirq, try;
 
 	memset(irqs, 0, sizeof(struct cxl_irq_ranges));
 
 	/* 0 is reserved for the multiplexed PSL DSI interrupt */
-	for (i = 1; i < CXL_IRQ_RANGES && num; i++) {
+	for (i = 1; i < CXL_IRQ_RANGES && num; i++)
+	{
 		try = num;
-		while (try) {
+
+		while (try)
+		{
 			hwirq = msi_bitmap_alloc_hwirqs(&phb->msi_bmp, try);
+
 			if (hwirq >= 0)
+			{
 				break;
+			}
+
 			try /= 2;
 		}
+
 		if (!try)
+		{
 			goto fail;
+		}
 
 		irqs->offset[i] = phb->msi_base + hwirq;
+
 		irqs->range[i] = try;
+
 		pr_devel("cxl alloc irq range 0x%x: offset: 0x%lx  limit: %li\n",
-			 i, irqs->offset[i], irqs->range[i]);
+				 i, irqs->offset[i], irqs->range[i]);
+
 		num -= try;
 	}
+
 	if (num)
+	{
 		goto fail;
+	}
 
 	return 0;
 fail:
@@ -141,7 +171,7 @@ int pnv_cxl_get_irq_count(struct pci_dev *dev)
 EXPORT_SYMBOL(pnv_cxl_get_irq_count);
 
 int pnv_cxl_ioda_msi_setup(struct pci_dev *dev, unsigned int hwirq,
-			   unsigned int virq)
+						   unsigned int virq)
 {
 	struct pci_controller *hose = pci_bus_to_host(dev->bus);
 	struct pnv_phb *phb = hose->private_data;
@@ -150,16 +180,21 @@ int pnv_cxl_ioda_msi_setup(struct pci_dev *dev, unsigned int hwirq,
 	int rc;
 
 	if (!(pe = pnv_ioda_get_pe(dev)))
+	{
 		return -ENODEV;
+	}
 
 	/* Assign XIVE to PE */
 	rc = opal_pci_set_xive_pe(phb->opal_id, pe->pe_number, xive_num);
-	if (rc) {
+
+	if (rc)
+	{
 		pe_warn(pe, "%s: OPAL error %d setting msi_base 0x%x "
-			"hwirq 0x%x XIVE 0x%x PE\n",
-			pci_name(dev), rc, phb->msi_base, hwirq, xive_num);
+				"hwirq 0x%x XIVE 0x%x PE\n",
+				pci_name(dev), rc, phb->msi_base, hwirq, xive_num);
 		return -EIO;
 	}
+
 	pnv_set_msi_irq_chip(phb, virq);
 
 	return 0;
@@ -174,13 +209,18 @@ static inline int get_cxl_module(void)
 	mutex_lock(&module_mutex);
 
 	cxl_module = find_module("cxl");
+
 	if (cxl_module)
+	{
 		__module_get(cxl_module);
+	}
 
 	mutex_unlock(&module_mutex);
 
 	if (!cxl_module)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -199,7 +239,8 @@ int pnv_cxl_enable_phb_kernel_api(struct pci_controller *hose, bool enable)
 	struct pnv_phb *phb = hose->private_data;
 	int rc;
 
-	if (!enable) {
+	if (!enable)
+	{
 		/*
 		 * Once cxl mode is enabled on the PHB, there is currently no
 		 * known safe method to disable it again, and trying risks a
@@ -217,8 +258,11 @@ int pnv_cxl_enable_phb_kernel_api(struct pci_controller *hose, bool enable)
 	 * mode once enabled...).
 	 */
 	rc = get_cxl_module();
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	phb->flags |= PNV_PHB_FLAG_CXL;
 	hose->controller_ops = pnv_cxl_cx4_ioda_controller_ops;
@@ -267,14 +311,19 @@ bool pnv_cxl_enable_device_hook(struct pci_dev *dev)
 	struct cxl_afu *afu = phb->cxl_afu;
 
 	if (!pnv_pci_enable_device_hook(dev))
+	{
 		return false;
+	}
 
 
 	/* No special handling for the cxl function, which is always PF 0 */
 	if (PCI_FUNC(dev->devfn) == 0)
+	{
 		return true;
+	}
 
-	if (!afu) {
+	if (!afu)
+	{
 		dev_WARN(&dev->dev, "Attempted to enable function > 0 on CXL PHB without a peer AFU\n");
 		return false;
 	}
@@ -295,7 +344,9 @@ void pnv_cxl_disable_device(struct pci_dev *dev)
 
 	/* No special handling for cxl function: */
 	if (PCI_FUNC(dev->devfn) == 0)
+	{
 		return;
+	}
 
 	cxl_pci_disable_device(dev);
 	cxl_afu_put(afu);
@@ -323,35 +374,51 @@ int pnv_cxl_cx4_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
 	int rc;
 
 	if (WARN_ON(!phb) || !phb->msi_bmp.bitmap)
+	{
 		return -ENODEV;
+	}
 
 	if (pdev->no_64bit_msi && !phb->msi32_support)
+	{
 		return -ENODEV;
+	}
 
 	rc = cxl_cx4_setup_msi_irqs(pdev, nvec, type);
-	if (rc)
-		return rc;
 
-	for_each_pci_msi_entry(entry, pdev) {
-		if (!entry->msi_attrib.is_64 && !phb->msi32_support) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	for_each_pci_msi_entry(entry, pdev)
+	{
+		if (!entry->msi_attrib.is_64 && !phb->msi32_support)
+		{
 			pr_warn("%s: Supports only 64-bit MSIs\n",
-				pci_name(pdev));
+					pci_name(pdev));
 			return -ENXIO;
 		}
 
 		hwirq = cxl_next_msi_hwirq(pdev, &ctx, &afu_irq);
+
 		if (WARN_ON(hwirq <= 0))
+		{
 			return (hwirq ? hwirq : -ENOMEM);
+		}
 
 		virq = irq_create_mapping(NULL, hwirq);
-		if (!virq) {
+
+		if (!virq)
+		{
 			pr_warn("%s: Failed to map cxl mode MSI to linux irq\n",
-				pci_name(pdev));
+					pci_name(pdev));
 			return -ENOMEM;
 		}
 
 		rc = pnv_cxl_ioda_msi_setup(pdev, hwirq, virq);
-		if (rc) {
+
+		if (rc)
+		{
 			pr_warn("%s: Failed to setup cxl mode MSI\n", pci_name(pdev));
 			irq_dispose_mapping(virq);
 			return rc;
@@ -371,11 +438,17 @@ void pnv_cxl_cx4_teardown_msi_irqs(struct pci_dev *pdev)
 	irq_hw_number_t hwirq;
 
 	if (WARN_ON(!phb))
+	{
 		return;
+	}
 
-	for_each_pci_msi_entry(entry, pdev) {
+	for_each_pci_msi_entry(entry, pdev)
+	{
 		if (!entry->irq)
+		{
 			continue;
+		}
+
 		hwirq = virq_to_hw(entry->irq);
 		irq_set_msi_desc(entry->irq, NULL);
 		irq_dispose_mapping(entry->irq);

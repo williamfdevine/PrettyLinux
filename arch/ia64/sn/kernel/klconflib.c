@@ -21,7 +21,7 @@ char brick_types[MAX_BRICK_TYPES + 1] = "cri.xdpn%#=vo^kjbf890123456789...";
  * There are three possible formats:
  *
  *   MODULE_FORMAT_BRIEF	is the brief 6-character format, including
- *				the actual brick-type as recorded in the 
+ *				the actual brick-type as recorded in the
  *				moduleid_t, eg. 002c15 for a C-brick, or
  *				101#17 for a PX-brick.
  *
@@ -52,32 +52,33 @@ format_module_id(char *buffer, moduleid_t m, int fmt)
 	/* Be sure we use the same brick type character as displayed
 	 * on the brick's LCD
 	 */
-	switch (brickchar) 
+	switch (brickchar)
 	{
-	case L1_BRICKTYPE_GA:
-	case L1_BRICKTYPE_OPUS_TIO:
-		brickchar = L1_BRICKTYPE_C;
-		break;
+		case L1_BRICKTYPE_GA:
+		case L1_BRICKTYPE_OPUS_TIO:
+			brickchar = L1_BRICKTYPE_C;
+			break;
 
-	case L1_BRICKTYPE_PX:
-	case L1_BRICKTYPE_PE:
-	case L1_BRICKTYPE_PA:
-	case L1_BRICKTYPE_SA: /* we can move this to the "I's" later
+		case L1_BRICKTYPE_PX:
+		case L1_BRICKTYPE_PE:
+		case L1_BRICKTYPE_PA:
+		case L1_BRICKTYPE_SA: /* we can move this to the "I's" later
 			       * if that makes more sense
 			       */
-		brickchar = L1_BRICKTYPE_P;
-		break;
+			brickchar = L1_BRICKTYPE_P;
+			break;
 
-	case L1_BRICKTYPE_IX:
-	case L1_BRICKTYPE_IA:
+		case L1_BRICKTYPE_IX:
+		case L1_BRICKTYPE_IA:
 
-		brickchar = L1_BRICKTYPE_I;
-		break;
+			brickchar = L1_BRICKTYPE_I;
+			break;
 	}
 
 	position = MODULE_GET_BPOS(m);
 
-	if ((fmt == MODULE_FORMAT_BRIEF) || (fmt == MODULE_FORMAT_LCD)) {
+	if ((fmt == MODULE_FORMAT_BRIEF) || (fmt == MODULE_FORMAT_LCD))
+	{
 		/* Brief module number format, eg. 002c15 */
 
 		/* Decompress the rack number */
@@ -88,7 +89,8 @@ format_module_id(char *buffer, moduleid_t m, int fmt)
 		/* Add the brick type */
 		*buffer++ = brickchar;
 	}
-	else if (fmt == MODULE_FORMAT_LONG) {
+	else if (fmt == MODULE_FORMAT_LONG)
+	{
 		/* Fuller hwgraph format, eg. rack/002/bay/15 */
 
 		strcpy(buffer, "rack" "/");  buffer += strlen(buffer);
@@ -102,6 +104,9 @@ format_module_id(char *buffer, moduleid_t m, int fmt)
 
 	/* Add the bay position, using at least two digits */
 	if (position < 10)
+	{
 		*buffer++ = '0';
+	}
+
 	sprintf(buffer, "%d", position);
 }

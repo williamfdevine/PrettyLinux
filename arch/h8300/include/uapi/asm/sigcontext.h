@@ -1,7 +1,8 @@
 #ifndef _ASM_H8300_SIGCONTEXT_H
 #define _ASM_H8300_SIGCONTEXT_H
 
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long  sc_mask;		/* old sigmask */
 	unsigned long  sc_usp;		/* old user stack pointer */
 	unsigned long  sc_er0;

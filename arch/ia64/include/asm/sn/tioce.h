@@ -31,7 +31,8 @@
  * Register layout for TIOCE.  MMR offsets are shown at the far right of the
  * structure definition.
  */
-typedef volatile struct tioce {
+typedef volatile struct tioce
+{
 	/*
 	 * ADMIN : Administration Registers
 	 */
@@ -107,8 +108,9 @@ typedef volatile struct tioce {
 	 * Link#1 MMRs at start at 0x002000, Link#2 MMRs at 0x003000
 	 * NOTE: the comment offsets at far right: let 'z' = {2 or 3}
 	 */
-	#define ce_lsi(link_num)	ce_lsi[link_num-1]
-	struct ce_lsi_reg {
+#define ce_lsi(link_num)	ce_lsi[link_num-1]
+	struct ce_lsi_reg
+	{
 		u64	ce_lsi_lpu_id;			/* 0x00z000 */
 		u64	ce_lsi_rst;			/* 0x00z008 */
 		u64	ce_lsi_dbg_stat;		/* 0x00z010 */
@@ -233,8 +235,8 @@ typedef volatile struct tioce {
 	u64	ce_pad_004078[499];	    /* 0x004078 -- 0x005008 */
 
 	/*
-         * CXM: Coretalk Xmit Module Registers
-         */
+	     * CXM: Coretalk Xmit Module Registers
+	     */
 	u64	ce_cxm_dyn_credit_status;		/* 0x005010 */
 	u64	ce_cxm_last_credit_status;		/* 0x005018 */
 	u64	ce_cxm_credit_limit;			/* 0x005020 */
@@ -243,7 +245,7 @@ typedef volatile struct tioce {
 	u64	ce_pad_005038[3];	    /* 0x005038 -- 0x005048 */
 	u64	ce_cxm_debug_mux;			/* 0x005050 */
 
-        u64        ce_pad_005058[501];         /* 0x005058 -- 0x005FF8 */
+	u64        ce_pad_005058[501];         /* 0x005058 -- 0x005FF8 */
 
 	/*
 	 * DTL: Downstream Transaction Layer Regs (Link#1 and Link#2)
@@ -254,9 +256,10 @@ typedef volatile struct tioce {
 	 * UTL: Link#1 MMRs at start at 0x007000, Link#2 MMRs at 0x009000
 	 * UTL: the comment offsets at far right: let 'z' = {7 or 9}
 	 */
-	#define ce_dtl(link_num)	ce_dtl_utl[link_num-1]
-	#define ce_utl(link_num)	ce_dtl_utl[link_num-1]
-	struct ce_dtl_utl_reg {
+#define ce_dtl(link_num)	ce_dtl_utl[link_num-1]
+#define ce_utl(link_num)	ce_dtl_utl[link_num-1]
+	struct ce_dtl_utl_reg
+	{
 		/* DTL */
 		u64	ce_dtl_dtdr_credit_limit;	/* 0x00y000 */
 		u64	ce_dtl_dtdr_credit_force;	/* 0x00y008 */
@@ -277,7 +280,7 @@ typedef volatile struct tioce {
 
 	/*
 	 * URE: Upstream Request Engine
-         */
+	     */
 	u64	ce_ure_dyn_credit_status;		/* 0x00B010 */
 	u64	ce_ure_last_credit_status;		/* 0x00B018 */
 	u64	ce_ure_credit_limit;			/* 0x00B020 */
@@ -332,49 +335,56 @@ typedef volatile struct tioce {
 	u64	ce_pad_00B1B0[458];	    /* 0x00B1B0 -- 0x00BFF8 */
 
 	/* Upstream Data Buffer, Port1 */
-	struct ce_ure_maint_ups_dat1_data {
+	struct ce_ure_maint_ups_dat1_data
+	{
 		u64	data63_0[512];	    /* 0x00C000 -- 0x00CFF8 */
 		u64	data127_64[512];    /* 0x00D000 -- 0x00DFF8 */
 		u64	parity[512];	    /* 0x00E000 -- 0x00EFF8 */
 	} ce_ure_maint_ups_dat1;
 
 	/* Upstream Header Buffer, Port1 */
-	struct ce_ure_maint_ups_hdr1_data {
+	struct ce_ure_maint_ups_hdr1_data
+	{
 		u64	data63_0[512];	    /* 0x00F000 -- 0x00FFF8 */
 		u64	data127_64[512];    /* 0x010000 -- 0x010FF8 */
 		u64	parity[512];	    /* 0x011000 -- 0x011FF8 */
 	} ce_ure_maint_ups_hdr1;
 
 	/* Upstream Data Buffer, Port2 */
-	struct ce_ure_maint_ups_dat2_data {
+	struct ce_ure_maint_ups_dat2_data
+	{
 		u64	data63_0[512];	    /* 0x012000 -- 0x012FF8 */
 		u64	data127_64[512];    /* 0x013000 -- 0x013FF8 */
 		u64	parity[512];	    /* 0x014000 -- 0x014FF8 */
 	} ce_ure_maint_ups_dat2;
 
 	/* Upstream Header Buffer, Port2 */
-	struct ce_ure_maint_ups_hdr2_data {
+	struct ce_ure_maint_ups_hdr2_data
+	{
 		u64	data63_0[512];	    /* 0x015000 -- 0x015FF8 */
 		u64	data127_64[512];    /* 0x016000 -- 0x016FF8 */
 		u64	parity[512];	    /* 0x017000 -- 0x017FF8 */
 	} ce_ure_maint_ups_hdr2;
 
 	/* Downstream Data Buffer */
-	struct ce_ure_maint_dns_dat_data {
+	struct ce_ure_maint_dns_dat_data
+	{
 		u64	data63_0[512];	    /* 0x018000 -- 0x018FF8 */
 		u64	data127_64[512];    /* 0x019000 -- 0x019FF8 */
 		u64	parity[512];	    /* 0x01A000 -- 0x01AFF8 */
 	} ce_ure_maint_dns_dat;
 
 	/* Downstream Header Buffer */
-	struct	ce_ure_maint_dns_hdr_data {
+	struct	ce_ure_maint_dns_hdr_data
+	{
 		u64	data31_0[64];	    /* 0x01B000 -- 0x01B1F8 */
 		u64	data95_32[64];	    /* 0x01B200 -- 0x01B3F8 */
 		u64	parity[64];	    /* 0x01B400 -- 0x01B5F8 */
 	} ce_ure_maint_dns_hdr;
 
 	/* RCI Buffer Data */
-	struct	ce_ure_maint_rci_data {
+	struct	ce_ure_maint_rci_data
+	{
 		u64	data41_0[64];	    /* 0x01B600 -- 0x01B7F8 */
 		u64	data69_42[64];	    /* 0x01B800 -- 0x01B9F8 */
 	} ce_ure_maint_rci;
@@ -385,7 +395,8 @@ typedef volatile struct tioce {
 	u64	ce_pad_01C000[4224];	    /* 0x01BC00 -- 0x023FF8 */
 
 	/* Admin Build-a-Packet Buffer */
-	struct	ce_adm_maint_bap_buf_data {
+	struct	ce_adm_maint_bap_buf_data
+	{
 		u64	data63_0[258];	    /* 0x024000 -- 0x024808 */
 		u64	data127_64[258];    /* 0x024810 -- 0x025018 */
 		u64	parity[258];	    /* 0x025020 -- 0x025828 */
@@ -403,7 +414,7 @@ typedef volatile struct tioce {
 
 	/*
 	 * DRE: Down Stream Request Engine
-         */
+	     */
 	u64	ce_dre_dyn_credit_status1;		/* 0x040010 */
 	u64	ce_dre_dyn_credit_status2;		/* 0x040018 */
 	u64	ce_dre_last_credit_status1;		/* 0x040020 */
@@ -430,7 +441,8 @@ typedef volatile struct tioce {
 	u64	ce_pad_040128[27];	    /* 0x040128 -- 0x0401F8 */
 
 	/* DRE Downstream Head Queue */
-	struct	ce_dre_maint_ds_head_queue {
+	struct	ce_dre_maint_ds_head_queue
+	{
 		u64	data63_0[32];	    /* 0x040200 -- 0x0402F8 */
 		u64	data127_64[32];	    /* 0x040300 -- 0x0403F8 */
 		u64	parity[32];	    /* 0x040400 -- 0x0404F8 */
@@ -439,7 +451,8 @@ typedef volatile struct tioce {
 	u64	ce_pad_040500[352];	    /* 0x040500 -- 0x040FF8 */
 
 	/* DRE Downstream Data Queue */
-	struct	ce_dre_maint_ds_data_queue {
+	struct	ce_dre_maint_ds_data_queue
+	{
 		u64	data63_0[256];	    /* 0x041000 -- 0x0417F8 */
 		u64	ce_pad_041800[256]; /* 0x041800 -- 0x041FF8 */
 		u64	data127_64[256];    /* 0x042000 -- 0x0427F8 */
@@ -449,7 +462,8 @@ typedef volatile struct tioce {
 	} ce_dre_maint_ds_data_q;
 
 	/* DRE URE Upstream Response Queue */
-	struct	ce_dre_maint_ure_us_rsp_queue {
+	struct	ce_dre_maint_ure_us_rsp_queue
+	{
 		u64	data63_0[8];	    /* 0x044000 -- 0x044038 */
 		u64	ce_pad_044040[24];  /* 0x044040 -- 0x0440F8 */
 		u64	data127_64[8];      /* 0x044100 -- 0x044138 */
@@ -614,8 +628,8 @@ typedef volatile struct tioce {
 #define CE_URE_WRT_MRG_TIMER_SHFT	12
 #define CE_URE_WRT_MRG_TIMER_MASK	(0x7FFULL << CE_URE_WRT_MRG_TIMER_SHFT)
 #define CE_URE_WRT_MRG_TIMER(x)		(((u64)(x) << \
-					  CE_URE_WRT_MRG_TIMER_SHFT) & \
-					 CE_URE_WRT_MRG_TIMER_MASK)
+									  CE_URE_WRT_MRG_TIMER_SHFT) & \
+									 CE_URE_WRT_MRG_TIMER_MASK)
 #define CE_URE_RSPQ_BYPASS_DISABLE	(0x1ULL << 24)
 #define CE_URE_UPS_DAT1_PAR_DISABLE	(0x1ULL << 32)
 #define CE_URE_UPS_HDR1_PAR_DISABLE	(0x1ULL << 33)
@@ -650,11 +664,11 @@ typedef volatile struct tioce {
 #define CE_URE_DEV_MASK			(0x1FULL << DEV_SRC_ID_SHFT)
 #define CE_URE_FNC_MASK			(0x07ULL << FNC_SRC_ID_SHFT)
 #define CE_URE_PIPE_BUS(b)		(((u64)(b) << BUS_SRC_ID_SHFT) & \
-					 CE_URE_BUS_MASK)
+								 CE_URE_BUS_MASK)
 #define CE_URE_PIPE_DEV(d)		(((u64)(d) << DEV_SRC_ID_SHFT) & \
-					 CE_URE_DEV_MASK)
+								 CE_URE_DEV_MASK)
 #define CE_URE_PIPE_FNC(f)		(((u64)(f) << FNC_SRC_ID_SHFT) & \
-					 CE_URE_FNC_MASK)
+								 CE_URE_FNC_MASK)
 
 #define CE_URE_SEL1_SHFT		0
 #define CE_URE_SEL2_SHFT		20
@@ -678,20 +692,20 @@ typedef volatile struct tioce {
 #define CE_URE_ELAL_SHFT		4
 #define CE_URE_ELAL_MASK		(0x7ULL << CE_URE_ELAL_SHFT)
 #define CE_URE_ELAL_SET(n)		(((u64)(n) << CE_URE_ELAL_SHFT) & \
-					 CE_URE_ELAL_MASK)
+								 CE_URE_ELAL_MASK)
 #define CE_URE_ELAL1_SHFT		8
 #define CE_URE_ELAL1_MASK		(0x7ULL << CE_URE_ELAL1_SHFT)
 #define CE_URE_ELAL1_SET(n)		(((u64)(n) << CE_URE_ELAL1_SHFT) & \
-					 CE_URE_ELAL1_MASK)
+								 CE_URE_ELAL1_MASK)
 #define CE_URE_SCC			(0x1ULL << 12)
 #define CE_URE_PN1_SHFT			16
 #define CE_URE_PN1_MASK			(0xFFULL << CE_URE_PN1_SHFT)
 #define CE_URE_PN2_SHFT			24
 #define CE_URE_PN2_MASK			(0xFFULL << CE_URE_PN2_SHFT)
 #define CE_URE_PN1_SET(n)		(((u64)(n) << CE_URE_PN1_SHFT) & \
-					 CE_URE_PN1_MASK)
+								 CE_URE_PN1_MASK)
 #define CE_URE_PN2_SET(n)		(((u64)(n) << CE_URE_PN2_SHFT) & \
-					 CE_URE_PN2_MASK)
+								 CE_URE_PN2_MASK)
 
 /* ce_ure_pcie_control2 register bit masks & shifts */
 #define CE_URE_ABP			(0x1ULL << 0)
@@ -704,19 +718,19 @@ typedef volatile struct tioce {
 #define CE_URE_SPLV_SHFT		7
 #define CE_URE_SPLV_MASK		(0xFFULL << CE_URE_SPLV_SHFT)
 #define CE_URE_SPLV_SET(n)		(((u64)(n) << CE_URE_SPLV_SHFT) & \
-					 CE_URE_SPLV_MASK)
+								 CE_URE_SPLV_MASK)
 #define CE_URE_SPLS_SHFT		15
 #define CE_URE_SPLS_MASK		(0x3ULL << CE_URE_SPLS_SHFT)
 #define CE_URE_SPLS_SET(n)		(((u64)(n) << CE_URE_SPLS_SHFT) & \
-					 CE_URE_SPLS_MASK)
+								 CE_URE_SPLS_MASK)
 #define CE_URE_PSN1_SHFT		19
 #define CE_URE_PSN1_MASK		(0x1FFFULL << CE_URE_PSN1_SHFT)
 #define CE_URE_PSN2_SHFT		32
 #define CE_URE_PSN2_MASK		(0x1FFFULL << CE_URE_PSN2_SHFT)
 #define CE_URE_PSN1_SET(n)		(((u64)(n) << CE_URE_PSN1_SHFT) & \
-					 CE_URE_PSN1_MASK)
+								 CE_URE_PSN1_MASK)
 #define CE_URE_PSN2_SET(n)		(((u64)(n) << CE_URE_PSN2_SHFT) & \
-					 CE_URE_PSN2_MASK)
+								 CE_URE_PSN2_MASK)
 
 /*
  * PIO address space ranges for CE

@@ -58,7 +58,7 @@ static struct clock_event_device timer_ce;
 static char timer_ce_enabled = 0;
 
 #ifdef CONFIG_SMP
-DEFINE_PER_CPU(struct clock_event_device, sparc32_clockevent);
+	DEFINE_PER_CPU(struct clock_event_device, sparc32_clockevent);
 #endif
 
 DEFINE_SPINLOCK(rtc_lock);
@@ -72,11 +72,14 @@ unsigned long profile_pc(struct pt_regs *regs)
 	unsigned long pc = regs->pc;
 
 	if (in_lock_functions(pc) ||
-	    (pc >= (unsigned long) __copy_user_begin &&
-	     pc < (unsigned long) __copy_user_end) ||
-	    (pc >= (unsigned long) __bzero_begin &&
-	     pc < (unsigned long) __bzero_end))
+		(pc >= (unsigned long) __copy_user_begin &&
+		 pc < (unsigned long) __copy_user_end) ||
+		(pc >= (unsigned long) __bzero_begin &&
+		 pc < (unsigned long) __bzero_end))
+	{
 		pc = regs->u_regs[UREG_RETPC];
+	}
+
 	return pc;
 }
 
@@ -86,17 +89,22 @@ volatile u32 __iomem *master_l10_counter;
 
 irqreturn_t notrace timer_interrupt(int dummy, void *dev_id)
 {
-	if (timer_cs_enabled) {
+	if (timer_cs_enabled)
+	{
 		write_seqlock(&timer_cs_lock);
 		timer_cs_internal_counter++;
 		sparc_config.clear_clock_irq();
 		write_sequnlock(&timer_cs_lock);
-	} else {
+	}
+	else
+	{
 		sparc_config.clear_clock_irq();
 	}
 
 	if (timer_ce_enabled)
+	{
 		timer_ce.event_handler(&timer_ce);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -130,7 +138,7 @@ static __init void setup_timer_ce(void)
 	ce->cpumask  = cpu_possible_mask;
 	ce->shift    = 32;
 	ce->mult     = div_sc(sparc_config.clock_rate, NSEC_PER_SEC,
-	                      ce->shift);
+						  ce->shift);
 	clockevents_register_device(ce);
 }
 
@@ -143,7 +151,9 @@ static unsigned int sbus_cycles_offset(void)
 
 	/* Limit hit? */
 	if (val & TIMER_LIMIT_BIT)
+	{
 		offset += sparc_config.cs_period;
+	}
 
 	return offset;
 }
@@ -153,12 +163,14 @@ static cycle_t timer_cs_read(struct clocksource *cs)
 	unsigned int seq, offset;
 	u64 cycles;
 
-	do {
+	do
+	{
 		seq = read_seqbegin(&timer_cs_lock);
 
 		cycles = timer_cs_internal_counter;
 		offset = sparc_config.get_cycles_offset();
-	} while (read_seqretry(&timer_cs_lock, seq));
+	}
+	while (read_seqretry(&timer_cs_lock, seq));
 
 	/* Count absolute cycles */
 	cycles *= sparc_config.cs_period;
@@ -167,7 +179,8 @@ static cycle_t timer_cs_read(struct clocksource *cs)
 	return cycles;
 }
 
-static struct clocksource timer_cs = {
+static struct clocksource timer_cs =
+{
 	.name	= "timer_cs",
 	.rating	= 100,
 	.read	= timer_cs_read,
@@ -199,7 +212,7 @@ static int percpu_ce_set_periodic(struct clock_event_device *evt)
 }
 
 static int percpu_ce_set_next_event(unsigned long delta,
-				    struct clock_event_device *evt)
+									struct clock_event_device *evt)
 {
 	int cpu = cpumask_first(evt->cpumask);
 	unsigned int next = (unsigned int)delta;
@@ -214,7 +227,9 @@ void register_percpu_ce(int cpu)
 	unsigned int features = CLOCK_EVT_FEAT_PERIODIC;
 
 	if (sparc_config.features & FEAT_L14_ONESHOT)
+	{
 		features |= CLOCK_EVT_FEAT_ONESHOT;
+	}
 
 	ce->name           = "percpu_ce";
 	ce->rating         = 200;
@@ -226,7 +241,7 @@ void register_percpu_ce(int cpu)
 	ce->cpumask        = cpumask_of(cpu);
 	ce->shift          = 32;
 	ce->mult           = div_sc(sparc_config.clock_rate, NSEC_PER_SEC,
-	                            ce->shift);
+								ce->shift);
 	ce->max_delta_ns   = clockevent_delta2ns(sparc_config.clock_rate, ce);
 	ce->min_delta_ns   = clockevent_delta2ns(100, ce);
 
@@ -250,13 +265,15 @@ static void mostek_write_byte(struct device *dev, u32 ofs, u8 val)
 	writeb(val, pdata->ioaddr + ofs);
 }
 
-static struct m48t59_plat_data m48t59_data = {
+static struct m48t59_plat_data m48t59_data =
+{
 	.read_byte = mostek_read_byte,
 	.write_byte = mostek_write_byte,
 };
 
 /* resource is set at runtime */
-static struct platform_device m48t59_rtc = {
+static struct platform_device m48t59_rtc =
+{
 	.name		= "rtc-m48t59",
 	.id		= 0,
 	.num_resources	= 1,
@@ -271,39 +288,54 @@ static int clock_probe(struct platform_device *op)
 	const char *model = of_get_property(dp, "model", NULL);
 
 	if (!model)
+	{
 		return -ENODEV;
+	}
 
 	/* Only the primary RTC has an address property */
 	if (!of_find_property(dp, "address", NULL))
+	{
 		return -ENODEV;
+	}
 
 	m48t59_rtc.resource = &op->resource[0];
-	if (!strcmp(model, "mk48t02")) {
+
+	if (!strcmp(model, "mk48t02"))
+	{
 		/* Map the clock register io area read-only */
 		m48t59_data.ioaddr = of_ioremap(&op->resource[0], 0,
-						2048, "rtc-m48t59");
+										2048, "rtc-m48t59");
 		m48t59_data.type = M48T59RTC_TYPE_M48T02;
-	} else if (!strcmp(model, "mk48t08")) {
+	}
+	else if (!strcmp(model, "mk48t08"))
+	{
 		m48t59_data.ioaddr = of_ioremap(&op->resource[0], 0,
-						8192, "rtc-m48t59");
+										8192, "rtc-m48t59");
 		m48t59_data.type = M48T59RTC_TYPE_M48T08;
-	} else
+	}
+	else
+	{
 		return -ENODEV;
+	}
 
 	if (platform_device_register(&m48t59_rtc) < 0)
+	{
 		printk(KERN_ERR "Registering RTC device failed\n");
+	}
 
 	return 0;
 }
 
-static struct of_device_id clock_match[] = {
+static struct of_device_id clock_match[] =
+{
 	{
 		.name = "eeprom",
 	},
 	{},
 };
 
-static struct platform_driver clock_driver = {
+static struct platform_driver clock_driver =
+{
 	.probe		= clock_probe,
 	.driver = {
 		.name = "rtc",
@@ -326,9 +358,15 @@ fs_initcall(clock_init);
 static void __init sparc32_late_time_init(void)
 {
 	if (sparc_config.features & FEAT_L10_CLOCKEVENT)
+	{
 		setup_timer_ce();
+	}
+
 	if (sparc_config.features & FEAT_L10_CLOCKSOURCE)
+	{
 		setup_timer_cs();
+	}
+
 #ifdef CONFIG_SMP
 	register_percpu_ce(smp_processor_id());
 #endif
@@ -346,8 +384,12 @@ void __init time_init(void)
 	late_time_init = sparc32_late_time_init;
 
 	if (pcic_present())
+	{
 		pci_time_init();
+	}
 	else
+	{
 		sbus_time_init();
+	}
 }
 

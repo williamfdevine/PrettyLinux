@@ -12,13 +12,13 @@
 
 #include <asm/io.h>
 #ifdef CONFIG_SPARC64
-#include <asm/pgalloc.h>
-#include <asm/spitfire.h>
-#include <asm/cacheflush.h>
-#include <asm/page.h>
+	#include <asm/pgalloc.h>
+	#include <asm/spitfire.h>
+	#include <asm/cacheflush.h>
+	#include <asm/page.h>
 #else
-#include <asm/pgtable.h>
-#include <asm/psr.h>
+	#include <asm/pgtable.h>
+	#include <asm/psr.h>
 #endif
 
 #define __ide_insl(data_reg, buffer, wcount) \
@@ -40,12 +40,16 @@ static inline void __ide_insw(void __iomem *port, void *dst, u32 count)
 	u16 *ps = dst;
 	u32 *pi;
 
-	if(((unsigned long)ps) & 0x2) {
+	if (((unsigned long)ps) & 0x2)
+	{
 		*ps++ = __raw_readw(port);
 		count--;
 	}
+
 	pi = (u32 *)ps;
-	while(count >= 2) {
+
+	while (count >= 2)
+	{
 		u32 w;
 
 		w  = __raw_readw(port) << 16;
@@ -53,9 +57,13 @@ static inline void __ide_insw(void __iomem *port, void *dst, u32 count)
 		*pi++ = w;
 		count -= 2;
 	}
+
 	ps = (u16 *)pi;
-	if(count)
+
+	if (count)
+	{
 		*ps++ = __raw_readw(port);
+	}
 
 #if defined(CONFIG_SPARC64) && defined(DCACHE_ALIASING_POSSIBLE)
 	__flush_dcache_range((unsigned long)dst, end);
@@ -70,12 +78,16 @@ static inline void __ide_outsw(void __iomem *port, const void *src, u32 count)
 	const u16 *ps = src;
 	const u32 *pi;
 
-	if(((unsigned long)src) & 0x2) {
+	if (((unsigned long)src) & 0x2)
+	{
 		__raw_writew(*ps++, port);
 		count--;
 	}
+
 	pi = (const u32 *)ps;
-	while(count >= 2) {
+
+	while (count >= 2)
+	{
 		u32 w;
 
 		w = *pi++;
@@ -83,9 +95,13 @@ static inline void __ide_outsw(void __iomem *port, const void *src, u32 count)
 		__raw_writew(w, port);
 		count -= 2;
 	}
+
 	ps = (const u16 *)pi;
-	if(count)
+
+	if (count)
+	{
 		__raw_writew(*ps, port);
+	}
 
 #if defined(CONFIG_SPARC64) && defined(DCACHE_ALIASING_POSSIBLE)
 	__flush_dcache_range((unsigned long)src, end);

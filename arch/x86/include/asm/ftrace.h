@@ -3,15 +3,15 @@
 
 #ifdef CONFIG_FUNCTION_TRACER
 #ifdef CC_USING_FENTRY
-# define MCOUNT_ADDR		((unsigned long)(__fentry__))
+	#define MCOUNT_ADDR		((unsigned long)(__fentry__))
 #else
-# define MCOUNT_ADDR		((unsigned long)(mcount))
-# define HAVE_FUNCTION_GRAPH_FP_TEST
+	#define MCOUNT_ADDR		((unsigned long)(mcount))
+	#define HAVE_FUNCTION_GRAPH_FP_TEST
 #endif
 #define MCOUNT_INSN_SIZE	5 /* sizeof mcount call */
 
 #ifdef CONFIG_DYNAMIC_FTRACE
-#define ARCH_SUPPORTS_FTRACE_OPS 1
+	#define ARCH_SUPPORTS_FTRACE_OPS 1
 #endif
 
 #define HAVE_FUNCTION_GRAPH_RET_ADDR_PTR
@@ -32,7 +32,8 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 
 #ifdef CONFIG_DYNAMIC_FTRACE
 
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 	/* No extra data needed for x86 */
 };
 
@@ -62,7 +63,10 @@ int ftrace_int3_handler(struct pt_regs *regs);
 static inline bool arch_trace_is_compat_syscall(struct pt_regs *regs)
 {
 	if (in_compat_syscall())
+	{
 		return true;
+	}
+
 	return false;
 }
 #endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_IA32_EMULATION */

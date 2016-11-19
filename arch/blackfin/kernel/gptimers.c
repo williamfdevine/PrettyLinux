@@ -24,12 +24,12 @@
 #endif
 
 #ifndef CONFIG_BF60x
-# define BFIN_TIMER_NUM_GROUP  (BFIN_TIMER_OCTET(MAX_BLACKFIN_GPTIMERS - 1) + 1)
+	#define BFIN_TIMER_NUM_GROUP  (BFIN_TIMER_OCTET(MAX_BLACKFIN_GPTIMERS - 1) + 1)
 #else
-# define BFIN_TIMER_NUM_GROUP  1
+	#define BFIN_TIMER_NUM_GROUP  1
 #endif
 
-static struct bfin_gptimer_regs * const timer_regs[MAX_BLACKFIN_GPTIMERS] =
+static struct bfin_gptimer_regs *const timer_regs[MAX_BLACKFIN_GPTIMERS] =
 {
 	(void *)TIMER0_CONFIG,
 	(void *)TIMER1_CONFIG,
@@ -51,7 +51,7 @@ static struct bfin_gptimer_regs * const timer_regs[MAX_BLACKFIN_GPTIMERS] =
 #endif
 };
 
-static struct bfin_gptimer_group_regs * const group_regs[BFIN_TIMER_NUM_GROUP] =
+static struct bfin_gptimer_group_regs *const group_regs[BFIN_TIMER_NUM_GROUP] =
 {
 	(void *)TIMER0_GROUP_REG,
 #if (MAX_BLACKFIN_GPTIMERS > 8)
@@ -311,10 +311,13 @@ void enable_gptimers(uint16_t mask)
 	bfin_write16(TIMER_DATA_IMSK, imask);
 #endif
 	tassert((mask & ~BLACKFIN_GPTIMER_IDMASK) == 0);
-	for (i = 0; i < BFIN_TIMER_NUM_GROUP; ++i) {
+
+	for (i = 0; i < BFIN_TIMER_NUM_GROUP; ++i)
+	{
 		bfin_write(&group_regs[i]->enable, mask & 0xFF);
 		mask >>= 8;
 	}
+
 	SSYNC();
 }
 EXPORT_SYMBOL(enable_gptimers);
@@ -324,7 +327,9 @@ static void _disable_gptimers(uint16_t mask)
 	int i;
 	uint16_t m = mask;
 	tassert((mask & ~BLACKFIN_GPTIMER_IDMASK) == 0);
-	for (i = 0; i < BFIN_TIMER_NUM_GROUP; ++i) {
+
+	for (i = 0; i < BFIN_TIMER_NUM_GROUP; ++i)
+	{
 		bfin_write(&group_regs[i]->disable, m & 0xFF);
 		m >>= 8;
 	}
@@ -335,9 +340,13 @@ void disable_gptimers(uint16_t mask)
 #ifndef CONFIG_BF60x
 	int i;
 	_disable_gptimers(mask);
+
 	for (i = 0; i < MAX_BLACKFIN_GPTIMERS; ++i)
 		if (mask & (1 << i))
+		{
 			bfin_write(&group_regs[BFIN_TIMER_OCTET(i)]->status, trun_mask[i]);
+		}
+
 	SSYNC();
 #else
 	_disable_gptimers(mask);
@@ -372,8 +381,12 @@ uint16_t get_enabled_gptimers(void)
 {
 	int i;
 	uint16_t result = 0;
+
 	for (i = 0; i < BFIN_TIMER_NUM_GROUP; ++i)
+	{
 		result |= (bfin_read(&group_regs[i]->enable) << (i << 3));
+	}
+
 	return result;
 }
 EXPORT_SYMBOL(get_enabled_gptimers);

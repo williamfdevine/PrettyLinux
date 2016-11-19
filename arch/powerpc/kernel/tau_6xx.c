@@ -79,24 +79,33 @@ void TAUupdate(int cpu)
 
 	/* if both thresholds are crossed, the step_sizes cancel out
 	 * and the window winds up getting expanded twice. */
-	if((thrm = mfspr(SPRN_THRM1)) & THRM1_TIV){ /* is valid? */
-		if(thrm & THRM1_TIN){ /* crossed low threshold */
-			if (tau[cpu].low >= step_size){
+	if ((thrm = mfspr(SPRN_THRM1)) & THRM1_TIV) /* is valid? */
+	{
+		if (thrm & THRM1_TIN) /* crossed low threshold */
+		{
+			if (tau[cpu].low >= step_size)
+			{
 				tau[cpu].low -= step_size;
 				tau[cpu].high -= (step_size - window_expand);
 			}
+
 			tau[cpu].grew = 1;
 #ifdef DEBUG
 			printk("low threshold crossed ");
 #endif
 		}
 	}
-	if((thrm = mfspr(SPRN_THRM2)) & THRM1_TIV){ /* is valid? */
-		if(thrm & THRM1_TIN){ /* crossed high threshold */
-			if (tau[cpu].high <= 127-step_size){
+
+	if ((thrm = mfspr(SPRN_THRM2)) & THRM1_TIV) /* is valid? */
+	{
+		if (thrm & THRM1_TIN) /* crossed high threshold */
+		{
+			if (tau[cpu].high <= 127 - step_size)
+			{
 				tau[cpu].low += (step_size - window_expand);
 				tau[cpu].high += step_size;
 			}
+
 			tau[cpu].grew = 1;
 #ifdef DEBUG
 			printk("high threshold crossed ");
@@ -120,7 +129,7 @@ void TAUupdate(int cpu)
  * with interrupts disabled
  */
 
-void TAUException(struct pt_regs * regs)
+void TAUException(struct pt_regs *regs)
 {
 	int cpu = smp_processor_id();
 
@@ -133,7 +142,7 @@ void TAUException(struct pt_regs * regs)
 }
 #endif /* CONFIG_TAU_INT */
 
-static void tau_timeout(void * info)
+static void tau_timeout(void *info)
 {
 	int cpu;
 	unsigned long flags;
@@ -149,18 +158,27 @@ static void tau_timeout(void * info)
 #endif
 
 	size = tau[cpu].high - tau[cpu].low;
-	if (size > min_window && ! tau[cpu].grew) {
+
+	if (size > min_window && ! tau[cpu].grew)
+	{
 		/* do an exponential shrink of half the amount currently over size */
 		shrink = (2 + size - min_window) / 4;
-		if (shrink) {
+
+		if (shrink)
+		{
 			tau[cpu].low += shrink;
 			tau[cpu].high -= shrink;
-		} else { /* size must have been min_window + 1 */
+		}
+		else     /* size must have been min_window + 1 */
+		{
 			tau[cpu].low += 1;
 #if 1 /* debug */
-			if ((tau[cpu].high - tau[cpu].low) != min_window){
+
+			if ((tau[cpu].high - tau[cpu].low) != min_window)
+			{
 				printk(KERN_ERR "temp.c: line %d, logic error\n", __LINE__);
 			}
+
 #endif
 		}
 	}
@@ -182,7 +200,7 @@ static void tau_timeout(void * info)
 	 *
 	 * use a extra long time.. (60 us @ 500 mhz)
 	 */
-	mtspr(SPRN_THRM3, THRM3_SITV(500*60) | THRM3_E);
+	mtspr(SPRN_THRM3, THRM3_SITV(500 * 60) | THRM3_E);
 
 	local_irq_restore(flags);
 }
@@ -204,7 +222,7 @@ static void tau_timeout_smp(unsigned long unused)
 
 int tau_initialized = 0;
 
-void __init TAU_init_smp(void * info)
+void __init TAU_init_smp(void *info)
 {
 	unsigned long cpu = smp_processor_id();
 
@@ -221,7 +239,8 @@ int __init TAU_init(void)
 	/* We assume in SMP that if one CPU has TAU support, they
 	 * all have it --BenH
 	 */
-	if (!cpu_has_feature(CPU_FTR_TAU)) {
+	if (!cpu_has_feature(CPU_FTR_TAU))
+	{
 		printk("Thermal assist unit not available\n");
 		tau_initialized = 0;
 		return 1;

@@ -25,7 +25,8 @@
  * This describes a list of registers which is used by the pm core and
  * other subsystem to save and restore register values over suspend.
  */
-struct sleep_save {
+struct sleep_save
+{
 	void __iomem	*reg;
 	unsigned long	val;
 };
@@ -52,7 +53,8 @@ extern void s3c_pm_do_restore_core(const struct sleep_save *ptr, int count);
  * Save block for UART registers to be held over sleep and restored if they
  * are needed (say by debug).
 */
-struct pm_uart_save {
+struct pm_uart_save
+{
 	u32	ulcon;
 	u32	ucon;
 	u32	ufcon;
@@ -96,15 +98,15 @@ static inline void s3c_pm_restore_uarts(void) { }
 /* suspend memory checking */
 
 #ifdef CONFIG_SAMSUNG_PM_CHECK
-extern void s3c_pm_check_prepare(void);
-extern void s3c_pm_check_restore(void);
-extern void s3c_pm_check_cleanup(void);
-extern void s3c_pm_check_store(void);
+	extern void s3c_pm_check_prepare(void);
+	extern void s3c_pm_check_restore(void);
+	extern void s3c_pm_check_cleanup(void);
+	extern void s3c_pm_check_store(void);
 #else
-#define s3c_pm_check_prepare() do { } while (0)
-#define s3c_pm_check_restore() do { } while (0)
-#define s3c_pm_check_cleanup() do { } while (0)
-#define s3c_pm_check_store()   do { } while (0)
+	#define s3c_pm_check_prepare() do { } while (0)
+	#define s3c_pm_check_restore() do { } while (0)
+	#define s3c_pm_check_cleanup() do { } while (0)
+	#define s3c_pm_check_store()   do { } while (0)
 #endif
 
 #endif

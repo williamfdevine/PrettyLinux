@@ -34,7 +34,8 @@ int __init davinci_psc_is_clk_active(unsigned int ctlr, unsigned int id)
 	u32 mdstat;
 	struct davinci_soc_info *soc_info = &davinci_soc_info;
 
-	if (!soc_info->psc_bases || (ctlr >= soc_info->psc_bases_num)) {
+	if (!soc_info->psc_bases || (ctlr >= soc_info->psc_bases_num))
+	{
 		pr_warn("PSC: Bad psc data: 0x%x[%d]\n",
 				(int)soc_info->psc_bases, ctlr);
 		return 0;
@@ -55,7 +56,8 @@ void davinci_psc_reset(unsigned int ctlr, unsigned int id, bool reset)
 	void __iomem *psc_base;
 	struct davinci_soc_info *soc_info = &davinci_soc_info;
 
-	if (!soc_info->psc_bases || (ctlr >= soc_info->psc_bases_num)) {
+	if (!soc_info->psc_bases || (ctlr >= soc_info->psc_bases_num))
+	{
 		pr_warn("PSC: Bad psc data: 0x%x[%d]\n",
 				(int)soc_info->psc_bases, ctlr);
 		return;
@@ -64,10 +66,16 @@ void davinci_psc_reset(unsigned int ctlr, unsigned int id, bool reset)
 	psc_base = ioremap(soc_info->psc_bases[ctlr], SZ_4K);
 
 	mdctl = readl(psc_base + MDCTL + 4 * id);
+
 	if (reset)
+	{
 		mdctl &= ~MDCTL_LRST;
+	}
 	else
+	{
 		mdctl |= MDCTL_LRST;
+	}
+
 	writel(mdctl, psc_base + MDCTL + 4 * id);
 
 	iounmap(psc_base);
@@ -75,14 +83,15 @@ void davinci_psc_reset(unsigned int ctlr, unsigned int id, bool reset)
 
 /* Enable or disable a PSC domain */
 void davinci_psc_config(unsigned int domain, unsigned int ctlr,
-		unsigned int id, bool enable, u32 flags)
+						unsigned int id, bool enable, u32 flags)
 {
 	u32 epcpr, ptcmd, ptstat, pdstat, pdctl, mdstat, mdctl;
 	void __iomem *psc_base;
 	struct davinci_soc_info *soc_info = &davinci_soc_info;
 	u32 next_state = PSC_STATE_ENABLE;
 
-	if (!soc_info->psc_bases || (ctlr >= soc_info->psc_bases_num)) {
+	if (!soc_info->psc_bases || (ctlr >= soc_info->psc_bases_num))
+	{
 		pr_warn("PSC: Bad psc data: 0x%x[%d]\n",
 				(int)soc_info->psc_bases, ctlr);
 		return;
@@ -90,22 +99,33 @@ void davinci_psc_config(unsigned int domain, unsigned int ctlr,
 
 	psc_base = ioremap(soc_info->psc_bases[ctlr], SZ_4K);
 
-	if (!enable) {
+	if (!enable)
+	{
 		if (flags & PSC_SWRSTDISABLE)
+		{
 			next_state = PSC_STATE_SWRSTDISABLE;
+		}
 		else
+		{
 			next_state = PSC_STATE_DISABLE;
+		}
 	}
 
 	mdctl = __raw_readl(psc_base + MDCTL + 4 * id);
 	mdctl &= ~MDSTAT_STATE_MASK;
 	mdctl |= next_state;
+
 	if (flags & PSC_FORCE)
+	{
 		mdctl |= MDCTL_FORCE;
+	}
+
 	__raw_writel(mdctl, psc_base + MDCTL + 4 * id);
 
 	pdstat = __raw_readl(psc_base + PDSTAT + 4 * domain);
-	if ((pdstat & PDSTAT_STATE_MASK) == 0) {
+
+	if ((pdstat & PDSTAT_STATE_MASK) == 0)
+	{
 		pdctl = __raw_readl(psc_base + PDCTL + 4 * domain);
 		pdctl |= PDCTL_NEXT;
 		__raw_writel(pdctl, psc_base + PDCTL + 4 * domain);
@@ -113,25 +133,33 @@ void davinci_psc_config(unsigned int domain, unsigned int ctlr,
 		ptcmd = 1 << domain;
 		__raw_writel(ptcmd, psc_base + PTCMD);
 
-		do {
+		do
+		{
 			epcpr = __raw_readl(psc_base + EPCPR);
-		} while ((((epcpr >> domain) & 1) == 0));
+		}
+		while ((((epcpr >> domain) & 1) == 0));
 
 		pdctl = __raw_readl(psc_base + PDCTL + 4 * domain);
 		pdctl |= PDCTL_EPCGOOD;
 		__raw_writel(pdctl, psc_base + PDCTL + 4 * domain);
-	} else {
+	}
+	else
+	{
 		ptcmd = 1 << domain;
 		__raw_writel(ptcmd, psc_base + PTCMD);
 	}
 
-	do {
+	do
+	{
 		ptstat = __raw_readl(psc_base + PTSTAT);
-	} while (!(((ptstat >> domain) & 1) == 0));
+	}
+	while (!(((ptstat >> domain) & 1) == 0));
 
-	do {
+	do
+	{
 		mdstat = __raw_readl(psc_base + MDSTAT + 4 * id);
-	} while (!((mdstat & MDSTAT_STATE_MASK) == next_state));
+	}
+	while (!((mdstat & MDSTAT_STATE_MASK) == next_state));
 
 	iounmap(psc_base);
 }

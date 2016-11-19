@@ -20,7 +20,8 @@
 /*
  *      DMA channel base address table.
  */
-unsigned int dma_base_addr[MAX_M68K_DMA_CHANNELS] = {
+unsigned int dma_base_addr[MAX_M68K_DMA_CHANNELS] =
+{
 #ifdef MCFDMA_BASE0
 	MCFDMA_BASE0,
 #endif

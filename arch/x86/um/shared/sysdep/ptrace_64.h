@@ -30,15 +30,15 @@
  * are already defined for kernel code, but not for userspace code.
  */
 #ifndef FS_BASE
-/* These aren't defined in ptrace.h, but exist in struct user_regs_struct,
- * which is what x86_64 ptrace actually uses.
- */
-#define FS_BASE (HOST_FS_BASE * sizeof(long))
-#define GS_BASE (HOST_GS_BASE * sizeof(long))
-#define DS (HOST_DS * sizeof(long))
-#define ES (HOST_ES * sizeof(long))
-#define FS (HOST_FS * sizeof(long))
-#define GS (HOST_GS * sizeof(long))
+	/* These aren't defined in ptrace.h, but exist in struct user_regs_struct,
+	* which is what x86_64 ptrace actually uses.
+	*/
+	#define FS_BASE (HOST_FS_BASE * sizeof(long))
+	#define GS_BASE (HOST_GS_BASE * sizeof(long))
+	#define DS (HOST_DS * sizeof(long))
+	#define ES (HOST_ES * sizeof(long))
+	#define FS (HOST_FS * sizeof(long))
+	#define GS (HOST_GS * sizeof(long))
 #endif
 
 #define UPT_R8(r) REGS_R8((r)->gp)

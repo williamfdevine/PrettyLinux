@@ -45,39 +45,48 @@ void show_mem(unsigned int filter)
 	struct zone *zone;
 
 	pr_err("Active:%lu inactive:%lu dirty:%lu writeback:%lu unstable:%lu free:%lu\n slab:%lu mapped:%lu pagetables:%lu bounce:%lu pagecache:%lu swap:%lu\n",
-	       (global_node_page_state(NR_ACTIVE_ANON) +
-		global_node_page_state(NR_ACTIVE_FILE)),
-	       (global_node_page_state(NR_INACTIVE_ANON) +
-		global_node_page_state(NR_INACTIVE_FILE)),
-	       global_node_page_state(NR_FILE_DIRTY),
-	       global_node_page_state(NR_WRITEBACK),
-	       global_node_page_state(NR_UNSTABLE_NFS),
-	       global_page_state(NR_FREE_PAGES),
-	       (global_page_state(NR_SLAB_RECLAIMABLE) +
-		global_page_state(NR_SLAB_UNRECLAIMABLE)),
-	       global_node_page_state(NR_FILE_MAPPED),
-	       global_page_state(NR_PAGETABLE),
-	       global_page_state(NR_BOUNCE),
-	       global_node_page_state(NR_FILE_PAGES),
-	       get_nr_swap_pages());
+		   (global_node_page_state(NR_ACTIVE_ANON) +
+			global_node_page_state(NR_ACTIVE_FILE)),
+		   (global_node_page_state(NR_INACTIVE_ANON) +
+			global_node_page_state(NR_INACTIVE_FILE)),
+		   global_node_page_state(NR_FILE_DIRTY),
+		   global_node_page_state(NR_WRITEBACK),
+		   global_node_page_state(NR_UNSTABLE_NFS),
+		   global_page_state(NR_FREE_PAGES),
+		   (global_page_state(NR_SLAB_RECLAIMABLE) +
+			global_page_state(NR_SLAB_UNRECLAIMABLE)),
+		   global_node_page_state(NR_FILE_MAPPED),
+		   global_page_state(NR_PAGETABLE),
+		   global_page_state(NR_BOUNCE),
+		   global_node_page_state(NR_FILE_PAGES),
+		   get_nr_swap_pages());
 
-	for_each_zone(zone) {
+	for_each_zone(zone)
+	{
 		unsigned long flags, order, total = 0, largest_order = -1;
 
 		if (!populated_zone(zone))
+		{
 			continue;
+		}
 
 		spin_lock_irqsave(&zone->lock, flags);
-		for (order = 0; order < MAX_ORDER; order++) {
+
+		for (order = 0; order < MAX_ORDER; order++)
+		{
 			int nr = zone->free_area[order].nr_free;
 			total += nr << order;
+
 			if (nr)
+			{
 				largest_order = order;
+			}
 		}
+
 		spin_unlock_irqrestore(&zone->lock, flags);
 		pr_err("Node %d %7s: %lukB (largest %luKb)\n",
-		       zone_to_nid(zone), zone->name,
-		       K(total), largest_order ? K(1UL) << largest_order : 0);
+			   zone_to_nid(zone), zone->name,
+			   K(total), largest_order ? K(1UL) << largest_order : 0);
 	}
 }
 
@@ -114,11 +123,16 @@ void shatter_huge_page(unsigned long addr)
 	BUG_ON(!pud_present(*pud));
 	pmd = pmd_offset(pud, addr);
 	BUG_ON(!pmd_present(*pmd));
+
 	if (!pmd_huge_page(*pmd))
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&init_mm.page_table_lock, flags);
-	if (!pmd_huge_page(*pmd)) {
+
+	if (!pmd_huge_page(*pmd))
+	{
 		/* Lost the race to convert the huge page. */
 		spin_unlock_irqrestore(&init_mm.page_table_lock, flags);
 		return;
@@ -130,7 +144,8 @@ void shatter_huge_page(unsigned long addr)
 #ifdef __PAGETABLE_PMD_FOLDED
 	/* Walk every pgd on the system and update the pmd there. */
 	spin_lock(&pgd_lock);
-	list_for_each(pos, &pgd_list) {
+	list_for_each(pos, &pgd_list)
+	{
 		pmd_t *copy_pmd;
 		pgd = list_to_pgd(pos) + pgd_index(addr);
 		pud = pud_offset(pgd, addr);
@@ -142,7 +157,7 @@ void shatter_huge_page(unsigned long addr)
 
 	/* Tell every cpu to notice the change. */
 	flush_remote(0, 0, NULL, addr, HPAGE_SIZE, HPAGE_SIZE,
-		     cpu_possible_mask, NULL, 0);
+				 cpu_possible_mask, NULL, 0);
 
 	/* Hold the lock until the TLB flush is finished to avoid races. */
 	spin_unlock_irqrestore(&init_mm.page_table_lock, flags);
@@ -182,7 +197,7 @@ static void pgd_ctor(pgd_t *pgd)
 {
 	unsigned long flags;
 
-	memset(pgd, 0, KERNEL_PGD_INDEX_START*sizeof(pgd_t));
+	memset(pgd, 0, KERNEL_PGD_INDEX_START * sizeof(pgd_t));
 	spin_lock_irqsave(&pgd_lock, flags);
 
 #ifndef __tilegx__
@@ -195,8 +210,8 @@ static void pgd_ctor(pgd_t *pgd)
 #endif
 
 	memcpy(pgd + KERNEL_PGD_INDEX_START,
-	       swapper_pg_dir + KERNEL_PGD_INDEX_START,
-	       KERNEL_PGD_PTRS * sizeof(pgd_t));
+		   swapper_pg_dir + KERNEL_PGD_INDEX_START,
+		   KERNEL_PGD_PTRS * sizeof(pgd_t));
 
 	pgd_list_add(pgd);
 	spin_unlock_irqrestore(&pgd_lock, flags);
@@ -214,8 +229,12 @@ static void pgd_dtor(pgd_t *pgd)
 pgd_t *pgd_alloc(struct mm_struct *mm)
 {
 	pgd_t *pgd = kmem_cache_alloc(pgd_cache, GFP_KERNEL);
+
 	if (pgd)
+	{
 		pgd_ctor(pgd);
+	}
+
 	return pgd;
 }
 
@@ -229,17 +248,21 @@ void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 #define L2_USER_PGTABLE_PAGES (1 << L2_USER_PGTABLE_ORDER)
 
 struct page *pgtable_alloc_one(struct mm_struct *mm, unsigned long address,
-			       int order)
+							   int order)
 {
-	gfp_t flags = GFP_KERNEL|__GFP_ZERO;
+	gfp_t flags = GFP_KERNEL | __GFP_ZERO;
 	struct page *p;
 	int i;
 
 	p = alloc_pages(flags, L2_USER_PGTABLE_ORDER);
-	if (p == NULL)
-		return NULL;
 
-	if (!pgtable_page_ctor(p)) {
+	if (p == NULL)
+	{
+		return NULL;
+	}
+
+	if (!pgtable_page_ctor(p))
+	{
 		__free_pages(p, L2_USER_PGTABLE_ORDER);
 		return NULL;
 	}
@@ -249,9 +272,10 @@ struct page *pgtable_alloc_one(struct mm_struct *mm, unsigned long address,
 	 * We don't use __GFP_COMP since it doesn't look like it works
 	 * correctly with tlb_remove_page().
 	 */
-	for (i = 1; i < order; ++i) {
-		init_page_count(p+i);
-		inc_zone_page_state(p+i, NR_PAGETABLE);
+	for (i = 1; i < order; ++i)
+	{
+		init_page_count(p + i);
+		inc_zone_page_state(p + i, NR_PAGETABLE);
 	}
 
 	return p;
@@ -269,21 +293,23 @@ void pgtable_free(struct mm_struct *mm, struct page *p, int order)
 	pgtable_page_dtor(p);
 	__free_page(p);
 
-	for (i = 1; i < order; ++i) {
-		__free_page(p+i);
-		dec_zone_page_state(p+i, NR_PAGETABLE);
+	for (i = 1; i < order; ++i)
+	{
+		__free_page(p + i);
+		dec_zone_page_state(p + i, NR_PAGETABLE);
 	}
 }
 
 void __pgtable_free_tlb(struct mmu_gather *tlb, struct page *pte,
-			unsigned long address, int order)
+						unsigned long address, int order)
 {
 	int i;
 
 	pgtable_page_dtor(pte);
 	tlb_remove_page(tlb, pte);
 
-	for (i = 1; i < order; ++i) {
+	for (i = 1; i < order; ++i)
+	{
 		tlb_remove_page(tlb, pte + i);
 		dec_zone_page_state(pte + i, NR_PAGETABLE);
 	}
@@ -296,15 +322,19 @@ void __pgtable_free_tlb(struct mmu_gather *tlb, struct page *pte,
  * window of vulnerability a bit smaller by doing an unlocked 8-bit update.
  */
 int ptep_test_and_clear_young(struct vm_area_struct *vma,
-			      unsigned long addr, pte_t *ptep)
+							  unsigned long addr, pte_t *ptep)
 {
 #if HV_PTE_INDEX_ACCESSED < 8 || HV_PTE_INDEX_ACCESSED >= 16
 # error Code assumes HV_PTE "accessed" bit in second byte
 #endif
 	u8 *tmp = (u8 *)ptep;
 	u8 second_byte = tmp[1];
+
 	if (!(second_byte & (1 << (HV_PTE_INDEX_ACCESSED - 8))))
+	{
 		return 0;
+	}
+
 	tmp[1] = second_byte & ~(1 << (HV_PTE_INDEX_ACCESSED - 8));
 	return 1;
 }
@@ -315,7 +345,7 @@ int ptep_test_and_clear_young(struct vm_area_struct *vma,
  * routine only writes the high word.
  */
 void ptep_set_wrprotect(struct mm_struct *mm,
-			unsigned long addr, pte_t *ptep)
+						unsigned long addr, pte_t *ptep)
 {
 #if HV_PTE_INDEX_WRITABLE < 32
 # error Code assumes HV_PTE "writable" bit in high word
@@ -337,26 +367,42 @@ void ptep_set_wrprotect(struct mm_struct *mm,
  * in the page table.  For bottom-level PTEs, the returned pointer
  * can point to a PTE that is either present or not.
  */
-pte_t *virt_to_pte(struct mm_struct* mm, unsigned long addr)
+pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
 {
 	pgd_t *pgd;
 	pud_t *pud;
 	pmd_t *pmd;
 
 	if (pgd_addr_invalid(addr))
+	{
 		return NULL;
+	}
 
 	pgd = mm ? pgd_offset(mm, addr) : swapper_pg_dir + pgd_index(addr);
 	pud = pud_offset(pgd, addr);
+
 	if (!pud_present(*pud))
+	{
 		return NULL;
+	}
+
 	if (pud_huge_page(*pud))
+	{
 		return (pte_t *)pud;
+	}
+
 	pmd = pmd_offset(pud, addr);
+
 	if (!pmd_present(*pmd))
+	{
 		return NULL;
+	}
+
 	if (pmd_huge_page(*pmd))
+	{
 		return (pte_t *)pmd;
+	}
+
 	return pte_offset_kernel(pmd, addr);
 }
 EXPORT_SYMBOL(virt_to_pte);
@@ -414,28 +460,38 @@ void __set_pte(pte_t *ptep, pte_t pte)
 # if HV_PTE_INDEX_PRESENT >= 32 || HV_PTE_INDEX_MIGRATING >= 32
 #  error Must write the present and migrating bits last
 # endif
-	if (pte_present(pte)) {
+
+	if (pte_present(pte))
+	{
 		((u32 *)ptep)[1] = (u32)(pte_val(pte) >> 32);
 		barrier();
 		((u32 *)ptep)[0] = (u32)(pte_val(pte));
-	} else {
+	}
+	else
+	{
 		((u32 *)ptep)[0] = (u32)(pte_val(pte));
 		barrier();
 		((u32 *)ptep)[1] = (u32)(pte_val(pte) >> 32);
 	}
+
 #endif /* __tilegx__ */
 }
 
 void set_pte(pte_t *ptep, pte_t pte)
 {
 	if (pte_present(pte) &&
-	    (!CHIP_HAS_MMIO() || hv_pte_get_mode(pte) != HV_PTE_MODE_MMIO)) {
+		(!CHIP_HAS_MMIO() || hv_pte_get_mode(pte) != HV_PTE_MODE_MMIO))
+	{
 		/* The PTE actually references physical memory. */
 		unsigned long pfn = pte_pfn(pte);
-		if (pfn_valid(pfn)) {
+
+		if (pfn_valid(pfn))
+		{
 			/* Update the home of the PTE from the struct page. */
 			pte = pte_set_home(pte, page_home(pfn_to_page(pfn)));
-		} else if (hv_pte_get_mode(pte) == 0) {
+		}
+		else if (hv_pte_get_mode(pte) == 0)
+		{
 			/* remap_pfn_range(), etc, must supply PTE mode. */
 			panic("set_pte(): out-of-range PFN and mode 0\n");
 		}
@@ -456,7 +512,8 @@ static inline int mm_is_priority_cached(struct mm_struct *mm)
  */
 void start_mm_caching(struct mm_struct *mm)
 {
-	if (!mm_is_priority_cached(mm)) {
+	if (!mm_is_priority_cached(mm))
+	{
 		mm->context.priority_cached = -1UL;
 		hv_set_caching(-1UL);
 	}
@@ -475,30 +532,45 @@ void start_mm_caching(struct mm_struct *mm)
  */
 static unsigned long update_priority_cached(struct mm_struct *mm)
 {
-	if (mm->context.priority_cached && down_write_trylock(&mm->mmap_sem)) {
+	if (mm->context.priority_cached && down_write_trylock(&mm->mmap_sem))
+	{
 		struct vm_area_struct *vm;
-		for (vm = mm->mmap; vm; vm = vm->vm_next) {
+
+		for (vm = mm->mmap; vm; vm = vm->vm_next)
+		{
 			if (hv_pte_get_cached_priority(vm->vm_page_prot))
+			{
 				break;
+			}
 		}
+
 		if (vm == NULL)
+		{
 			mm->context.priority_cached = 0;
+		}
+
 		up_write(&mm->mmap_sem);
 	}
+
 	return mm->context.priority_cached;
 }
 
 /* Set caching correctly for an mm that we are switching to. */
 void check_mm_caching(struct mm_struct *prev, struct mm_struct *next)
 {
-	if (!mm_is_priority_cached(next)) {
+	if (!mm_is_priority_cached(next))
+	{
 		/*
 		 * If the new mm doesn't use priority caching, just see if we
 		 * need the hv_set_caching(), or can assume it's already zero.
 		 */
 		if (mm_is_priority_cached(prev))
+		{
 			hv_set_caching(0);
-	} else {
+		}
+	}
+	else
+	{
 		hv_set_caching(update_priority_cached(next));
 	}
 }
@@ -507,7 +579,7 @@ void check_mm_caching(struct mm_struct *prev, struct mm_struct *next)
 
 /* Map an arbitrary MMIO address, homed according to pgprot, into VA space. */
 void __iomem *ioremap_prot(resource_size_t phys_addr, unsigned long size,
-			   pgprot_t home)
+						   pgprot_t home)
 {
 	void *addr;
 	struct vm_struct *area;
@@ -516,8 +588,11 @@ void __iomem *ioremap_prot(resource_size_t phys_addr, unsigned long size,
 
 	/* Don't allow wraparound or zero size */
 	last_addr = phys_addr + size - 1;
+
 	if (!size || last_addr < phys_addr)
+	{
 		return NULL;
+	}
 
 	/* Create a read/write, MMIO VA mapping homed at the requested shim. */
 	pgprot = PAGE_KERNEL;
@@ -529,21 +604,28 @@ void __iomem *ioremap_prot(resource_size_t phys_addr, unsigned long size,
 	 */
 	offset = phys_addr & ~PAGE_MASK;
 	phys_addr &= PAGE_MASK;
-	size = PAGE_ALIGN(last_addr+1) - phys_addr;
+	size = PAGE_ALIGN(last_addr + 1) - phys_addr;
 
 	/*
 	 * Ok, go for it..
 	 */
 	area = get_vm_area(size, VM_IOREMAP /* | other flags? */);
+
 	if (!area)
+	{
 		return NULL;
+	}
+
 	area->phys_addr = phys_addr;
 	addr = area->addr;
+
 	if (ioremap_page_range((unsigned long)addr, (unsigned long)addr + size,
-			       phys_addr, pgprot)) {
+						   phys_addr, pgprot))
+	{
 		free_vm_area(area);
 		return NULL;
 	}
+
 	return (__force void __iomem *) (offset + (char *)addr);
 }
 EXPORT_SYMBOL(ioremap_prot);
@@ -552,9 +634,9 @@ EXPORT_SYMBOL(ioremap_prot);
 void iounmap(volatile void __iomem *addr_in)
 {
 	volatile void __iomem *addr = (volatile void __iomem *)
-		(PAGE_MASK & (unsigned long __force)addr_in);
+								  (PAGE_MASK & (unsigned long __force)addr_in);
 #if 1
-	vunmap((void * __force)addr);
+	vunmap((void *__force)addr);
 #else
 	/* x86 uses this complicated flow instead of vunmap().  Is
 	 * there any particular reason we should do the same? */
@@ -567,7 +649,8 @@ void iounmap(volatile void __iomem *addr_in)
 	   cpa takes care of the direct mappings. */
 	p = find_vm_area((void *)addr);
 
-	if (!p) {
+	if (!p)
+	{
 		pr_err("iounmap: bad address %p\n", addr);
 		dump_stack();
 		return;

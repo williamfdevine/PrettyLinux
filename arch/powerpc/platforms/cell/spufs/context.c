@@ -37,14 +37,21 @@ struct spu_context *alloc_spu_context(struct spu_gang *gang)
 {
 	struct spu_context *ctx;
 
-	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+	ctx = kzalloc(sizeof * ctx, GFP_KERNEL);
+
 	if (!ctx)
+	{
 		goto out;
+	}
+
 	/* Binding to physical processor deferred
 	 * until spu_activate().
 	 */
 	if (spu_init_csa(&ctx->csa))
+	{
 		goto out_free;
+	}
+
 	spin_lock_init(&ctx->mmio_lock);
 	mutex_init(&ctx->mapping_lock);
 	kref_init(&ctx->kref);
@@ -60,8 +67,11 @@ struct spu_context *alloc_spu_context(struct spu_gang *gang)
 	ctx->owner = get_task_mm(current);
 	INIT_LIST_HEAD(&ctx->rq);
 	INIT_LIST_HEAD(&ctx->aff_list);
+
 	if (gang)
+	{
 		spu_gang_add_ctx(gang, ctx);
+	}
 
 	__spu_update_sched_info(ctx);
 	spu_set_timeslice(ctx);
@@ -86,17 +96,24 @@ void destroy_spu_context(struct kref *kref)
 	spu_deactivate(ctx);
 	mutex_unlock(&ctx->state_mutex);
 	spu_fini_csa(&ctx->csa);
+
 	if (ctx->gang)
+	{
 		spu_gang_remove_ctx(ctx->gang, ctx);
+	}
+
 	if (ctx->prof_priv_kref)
+	{
 		kref_put(ctx->prof_priv_kref, ctx->prof_priv_release);
+	}
+
 	BUG_ON(!list_empty(&ctx->rq));
 	atomic_dec(&nr_spu_contexts);
 	kfree(ctx->switch_log);
 	kfree(ctx);
 }
 
-struct spu_context * get_spu_context(struct spu_context *ctx)
+struct spu_context *get_spu_context(struct spu_context *ctx)
 {
 	kref_get(&ctx->kref);
 	return ctx;
@@ -118,8 +135,11 @@ void spu_forget(struct spu_context *ctx)
 	 * want this context to be rescheduled on release.
 	 */
 	mutex_lock(&ctx->state_mutex);
+
 	if (ctx->state != SPU_STATE_SAVED)
+	{
 		spu_deactivate(ctx);
+	}
 
 	mm = ctx->owner;
 	ctx->owner = NULL;
@@ -130,20 +150,42 @@ void spu_forget(struct spu_context *ctx)
 void spu_unmap_mappings(struct spu_context *ctx)
 {
 	mutex_lock(&ctx->mapping_lock);
+
 	if (ctx->local_store)
+	{
 		unmap_mapping_range(ctx->local_store, 0, LS_SIZE, 1);
+	}
+
 	if (ctx->mfc)
+	{
 		unmap_mapping_range(ctx->mfc, 0, SPUFS_MFC_MAP_SIZE, 1);
+	}
+
 	if (ctx->cntl)
+	{
 		unmap_mapping_range(ctx->cntl, 0, SPUFS_CNTL_MAP_SIZE, 1);
+	}
+
 	if (ctx->signal1)
+	{
 		unmap_mapping_range(ctx->signal1, 0, SPUFS_SIGNAL_MAP_SIZE, 1);
+	}
+
 	if (ctx->signal2)
+	{
 		unmap_mapping_range(ctx->signal2, 0, SPUFS_SIGNAL_MAP_SIZE, 1);
+	}
+
 	if (ctx->mss)
+	{
 		unmap_mapping_range(ctx->mss, 0, SPUFS_MSS_MAP_SIZE, 1);
+	}
+
 	if (ctx->psmap)
+	{
 		unmap_mapping_range(ctx->psmap, 0, SPUFS_PS_MAP_SIZE, 1);
+	}
+
 	mutex_unlock(&ctx->mapping_lock);
 }
 
@@ -158,10 +200,14 @@ int spu_acquire_saved(struct spu_context *ctx)
 	spu_context_nospu_trace(spu_acquire_saved__enter, ctx);
 
 	ret = spu_acquire(ctx);
-	if (ret)
-		return ret;
 
-	if (ctx->state != SPU_STATE_SAVED) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (ctx->state != SPU_STATE_SAVED)
+	{
 		set_bit(SPU_SCHED_WAS_ACTIVE, &ctx->sched_flags);
 		spu_deactivate(ctx);
 	}
@@ -178,8 +224,10 @@ void spu_release_saved(struct spu_context *ctx)
 	BUG_ON(ctx->state != SPU_STATE_SAVED);
 
 	if (test_and_clear_bit(SPU_SCHED_WAS_ACTIVE, &ctx->sched_flags) &&
-			test_bit(SPU_SCHED_SPU_RUN, &ctx->sched_flags))
+		test_bit(SPU_SCHED_SPU_RUN, &ctx->sched_flags))
+	{
 		spu_activate(ctx, 0);
+	}
 
 	spu_release(ctx);
 }

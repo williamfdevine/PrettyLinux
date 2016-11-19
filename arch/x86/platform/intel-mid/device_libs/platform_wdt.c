@@ -19,7 +19,8 @@
 
 #define TANGIER_EXT_TIMER0_MSI 15
 
-static struct platform_device wdt_dev = {
+static struct platform_device wdt_dev =
+{
 	.name = "intel_mid_wdt",
 	.id = -1,
 };
@@ -31,28 +32,34 @@ static int tangier_probe(struct platform_device *pdev)
 	struct intel_mid_wdt_pdata *pdata = pdev->dev.platform_data;
 
 	if (!pdata)
+	{
 		return -EINVAL;
+	}
 
 	/* IOAPIC builds identity mapping between GSI and IRQ on MID */
 	gsi = pdata->irq;
 	ioapic_set_alloc_attr(&info, cpu_to_node(0), 1, 0);
-	if (mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC, &info) <= 0) {
+
+	if (mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC, &info) <= 0)
+	{
 		dev_warn(&pdev->dev, "cannot find interrupt %d in ioapic\n",
-			 gsi);
+				 gsi);
 		return -EINVAL;
 	}
 
 	return 0;
 }
 
-static struct intel_mid_wdt_pdata tangier_pdata = {
+static struct intel_mid_wdt_pdata tangier_pdata =
+{
 	.irq = TANGIER_EXT_TIMER0_MSI,
 	.probe = tangier_probe,
 };
 
 static int __init register_mid_wdt(void)
 {
-	if (intel_mid_identify_cpu() == INTEL_MID_CPU_CHIP_TANGIER) {
+	if (intel_mid_identify_cpu() == INTEL_MID_CPU_CHIP_TANGIER)
+	{
 		wdt_dev.dev.platform_data = &tangier_pdata;
 		return platform_device_register(&wdt_dev);
 	}

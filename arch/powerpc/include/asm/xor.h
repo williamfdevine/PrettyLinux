@@ -26,17 +26,18 @@
 #include <asm/cpu_has_feature.h>
 
 void xor_altivec_2(unsigned long bytes, unsigned long *v1_in,
-		   unsigned long *v2_in);
+				   unsigned long *v2_in);
 void xor_altivec_3(unsigned long bytes, unsigned long *v1_in,
-		   unsigned long *v2_in, unsigned long *v3_in);
+				   unsigned long *v2_in, unsigned long *v3_in);
 void xor_altivec_4(unsigned long bytes, unsigned long *v1_in,
-		   unsigned long *v2_in, unsigned long *v3_in,
-		   unsigned long *v4_in);
+				   unsigned long *v2_in, unsigned long *v3_in,
+				   unsigned long *v4_in);
 void xor_altivec_5(unsigned long bytes, unsigned long *v1_in,
-		   unsigned long *v2_in, unsigned long *v3_in,
-		   unsigned long *v4_in, unsigned long *v5_in);
+				   unsigned long *v2_in, unsigned long *v3_in,
+				   unsigned long *v4_in, unsigned long *v5_in);
 
-static struct xor_block_template xor_block_altivec = {
+static struct xor_block_template xor_block_altivec =
+{
 	.name = "altivec",
 	.do_2 = xor_altivec_2,
 	.do_3 = xor_altivec_3,
@@ -58,12 +59,12 @@ static struct xor_block_template xor_block_altivec = {
 
 #undef XOR_TRY_TEMPLATES
 #define XOR_TRY_TEMPLATES				\
-do {							\
-	xor_speed(&xor_block_8regs);			\
-	xor_speed(&xor_block_8regs_p);			\
-	xor_speed(&xor_block_32regs);			\
-	xor_speed(&xor_block_32regs_p);			\
-	XOR_SPEED_ALTIVEC();				\
-} while (0)
+	do {							\
+		xor_speed(&xor_block_8regs);			\
+		xor_speed(&xor_block_8regs_p);			\
+		xor_speed(&xor_block_32regs);			\
+		xor_speed(&xor_block_32regs_p);			\
+		XOR_SPEED_ALTIVEC();				\
+	} while (0)
 
 #endif /* _ASM_POWERPC_XOR_H */

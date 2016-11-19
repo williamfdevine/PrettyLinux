@@ -44,7 +44,7 @@
  */
 
 #ifdef CONFIG_PCI
-extern unsigned long ht_eoi_space;
+	extern unsigned long ht_eoi_space;
 #endif
 
 /* Store the CPU id (not the logical number) */
@@ -59,10 +59,13 @@ void bcm1480_mask_irq(int cpu, int irq)
 
 	raw_spin_lock_irqsave(&bcm1480_imr_lock, flags);
 	hl_spacing = 0;
-	if ((irq >= BCM1480_NR_IRQS_HALF) && (irq <= BCM1480_NR_IRQS)) {
+
+	if ((irq >= BCM1480_NR_IRQS_HALF) && (irq <= BCM1480_NR_IRQS))
+	{
 		hl_spacing = BCM1480_IMR_HL_SPACING;
 		irq -= BCM1480_NR_IRQS_HALF;
 	}
+
 	cur_ints = ____raw_readq(IOADDR(A_BCM1480_IMR_MAPPER(cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H + hl_spacing));
 	cur_ints |= (((u64) 1) << irq);
 	____raw_writeq(cur_ints, IOADDR(A_BCM1480_IMR_MAPPER(cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H + hl_spacing));
@@ -76,10 +79,13 @@ void bcm1480_unmask_irq(int cpu, int irq)
 
 	raw_spin_lock_irqsave(&bcm1480_imr_lock, flags);
 	hl_spacing = 0;
-	if ((irq >= BCM1480_NR_IRQS_HALF) && (irq <= BCM1480_NR_IRQS)) {
+
+	if ((irq >= BCM1480_NR_IRQS_HALF) && (irq <= BCM1480_NR_IRQS))
+	{
 		hl_spacing = BCM1480_IMR_HL_SPACING;
 		irq -= BCM1480_NR_IRQS_HALF;
 	}
+
 	cur_ints = ____raw_readq(IOADDR(A_BCM1480_IMR_MAPPER(cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H + hl_spacing));
 	cur_ints &= ~(((u64) 1) << irq);
 	____raw_writeq(cur_ints, IOADDR(A_BCM1480_IMR_MAPPER(cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H + hl_spacing));
@@ -88,7 +94,7 @@ void bcm1480_unmask_irq(int cpu, int irq)
 
 #ifdef CONFIG_SMP
 static int bcm1480_set_affinity(struct irq_data *d, const struct cpumask *mask,
-				bool force)
+								bool force)
 {
 	unsigned int irq_dirty, irq = d->irq;
 	int i = 0, old_cpu, cpu, int_on, k;
@@ -106,26 +112,39 @@ static int bcm1480_set_affinity(struct irq_data *d, const struct cpumask *mask,
 	/* Swizzle each CPU's IMR (but leave the IP selection alone) */
 	old_cpu = bcm1480_irq_owner[irq];
 	irq_dirty = irq;
-	if ((irq_dirty >= BCM1480_NR_IRQS_HALF) && (irq_dirty <= BCM1480_NR_IRQS)) {
+
+	if ((irq_dirty >= BCM1480_NR_IRQS_HALF) && (irq_dirty <= BCM1480_NR_IRQS))
+	{
 		irq_dirty -= BCM1480_NR_IRQS_HALF;
 	}
 
-	for (k=0; k<2; k++) { /* Loop through high and low interrupt mask register */
-		cur_ints = ____raw_readq(IOADDR(A_BCM1480_IMR_MAPPER(old_cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H + (k*BCM1480_IMR_HL_SPACING)));
+	for (k = 0; k < 2; k++) /* Loop through high and low interrupt mask register */
+	{
+		cur_ints = ____raw_readq(IOADDR(A_BCM1480_IMR_MAPPER(old_cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H +
+										(k * BCM1480_IMR_HL_SPACING)));
 		int_on = !(cur_ints & (((u64) 1) << irq_dirty));
-		if (int_on) {
+
+		if (int_on)
+		{
 			/* If it was on, mask it */
 			cur_ints |= (((u64) 1) << irq_dirty);
-			____raw_writeq(cur_ints, IOADDR(A_BCM1480_IMR_MAPPER(old_cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H + (k*BCM1480_IMR_HL_SPACING)));
+			____raw_writeq(cur_ints, IOADDR(A_BCM1480_IMR_MAPPER(old_cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H +
+											(k * BCM1480_IMR_HL_SPACING)));
 		}
+
 		bcm1480_irq_owner[irq] = cpu;
-		if (int_on) {
+
+		if (int_on)
+		{
 			/* unmask for the new CPU */
-			cur_ints = ____raw_readq(IOADDR(A_BCM1480_IMR_MAPPER(cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H + (k*BCM1480_IMR_HL_SPACING)));
+			cur_ints = ____raw_readq(IOADDR(A_BCM1480_IMR_MAPPER(cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H +
+											(k * BCM1480_IMR_HL_SPACING)));
 			cur_ints &= ~(((u64) 1) << irq_dirty);
-			____raw_writeq(cur_ints, IOADDR(A_BCM1480_IMR_MAPPER(cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H + (k*BCM1480_IMR_HL_SPACING)));
+			____raw_writeq(cur_ints, IOADDR(A_BCM1480_IMR_MAPPER(cpu) + R_BCM1480_IMR_INTERRUPT_MASK_H +
+											(k * BCM1480_IMR_HL_SPACING)));
 		}
 	}
+
 	raw_spin_unlock_irqrestore(&bcm1480_imr_lock, flags);
 
 	return 0;
@@ -163,26 +182,36 @@ static void ack_bcm1480_irq(struct irq_data *d)
 	 * changing easier for us)
 	 */
 	irq_dirty = irq;
-	if ((irq_dirty >= BCM1480_NR_IRQS_HALF) && (irq_dirty <= BCM1480_NR_IRQS)) {
+
+	if ((irq_dirty >= BCM1480_NR_IRQS_HALF) && (irq_dirty <= BCM1480_NR_IRQS))
+	{
 		irq_dirty -= BCM1480_NR_IRQS_HALF;
 	}
-	for (k=0; k<2; k++) { /* Loop through high and low LDT interrupts */
+
+	for (k = 0; k < 2; k++) /* Loop through high and low LDT interrupts */
+	{
 		pending = __raw_readq(IOADDR(A_BCM1480_IMR_REGISTER(bcm1480_irq_owner[irq],
-						R_BCM1480_IMR_LDT_INTERRUPT_H + (k*BCM1480_IMR_HL_SPACING))));
+									 R_BCM1480_IMR_LDT_INTERRUPT_H + (k * BCM1480_IMR_HL_SPACING))));
 		pending &= ((u64)1 << (irq_dirty));
-		if (pending) {
+
+		if (pending)
+		{
 #ifdef CONFIG_SMP
 			int i;
-			for (i=0; i<NR_CPUS; i++) {
+
+			for (i = 0; i < NR_CPUS; i++)
+			{
 				/*
 				 * Clear for all CPUs so an affinity switch
 				 * doesn't find an old status
 				 */
 				__raw_writeq(pending, IOADDR(A_BCM1480_IMR_REGISTER(cpu_logical_map(i),
-								R_BCM1480_IMR_LDT_INTERRUPT_CLR_H + (k*BCM1480_IMR_HL_SPACING))));
+											 R_BCM1480_IMR_LDT_INTERRUPT_CLR_H + (k * BCM1480_IMR_HL_SPACING))));
 			}
+
 #else
-			__raw_writeq(pending, IOADDR(A_BCM1480_IMR_REGISTER(0, R_BCM1480_IMR_LDT_INTERRUPT_CLR_H + (k*BCM1480_IMR_HL_SPACING))));
+			__raw_writeq(pending, IOADDR(A_BCM1480_IMR_REGISTER(0,
+										 R_BCM1480_IMR_LDT_INTERRUPT_CLR_H + (k * BCM1480_IMR_HL_SPACING))));
 #endif
 
 			/*
@@ -192,15 +221,21 @@ static void ack_bcm1480_irq(struct irq_data *d)
 			 * level-sensitive, the EOI is required.
 			 */
 #ifdef CONFIG_PCI
+
 			if (ht_eoi_space)
-				*(uint32_t *)(ht_eoi_space+(irq<<16)+(7<<2)) = 0;
+			{
+				*(uint32_t *)(ht_eoi_space + (irq << 16) + (7 << 2)) = 0;
+			}
+
 #endif
 		}
 	}
+
 	bcm1480_mask_irq(bcm1480_irq_owner[irq], irq);
 }
 
-static struct irq_chip bcm1480_irq_type = {
+static struct irq_chip bcm1480_irq_type =
+{
 	.name = "BCM1480-IMR",
 	.irq_mask_ack = ack_bcm1480_irq,
 	.irq_mask = disable_bcm1480_irq,
@@ -214,9 +249,10 @@ void __init init_bcm1480_irqs(void)
 {
 	int i;
 
-	for (i = 0; i < BCM1480_NR_IRQS; i++) {
+	for (i = 0; i < BCM1480_NR_IRQS; i++)
+	{
 		irq_set_chip_and_handler(i, &bcm1480_irq_type,
-					 handle_level_irq);
+								 handle_level_irq);
 		bcm1480_irq_owner[i] = 0;
 	}
 }
@@ -252,24 +288,28 @@ void __init arch_init_irq(void)
 	unsigned int i, cpu;
 	u64 tmp;
 	unsigned int imask = STATUSF_IP4 | STATUSF_IP3 | STATUSF_IP2 |
-		STATUSF_IP1 | STATUSF_IP0;
+						 STATUSF_IP1 | STATUSF_IP0;
 
 	/* Default everything to IP2 */
 	/* Start with _high registers which has no bit 0 interrupt source */
-	for (i = 1; i < BCM1480_NR_IRQS_HALF; i++) {	/* was I0 */
-		for (cpu = 0; cpu < 4; cpu++) {
+	for (i = 1; i < BCM1480_NR_IRQS_HALF; i++)  	/* was I0 */
+	{
+		for (cpu = 0; cpu < 4; cpu++)
+		{
 			__raw_writeq(IMR_IP2_VAL,
-				     IOADDR(A_BCM1480_IMR_REGISTER(cpu,
-								   R_BCM1480_IMR_INTERRUPT_MAP_BASE_H) + (i << 3)));
+						 IOADDR(A_BCM1480_IMR_REGISTER(cpu,
+								 R_BCM1480_IMR_INTERRUPT_MAP_BASE_H) + (i << 3)));
 		}
 	}
 
 	/* Now do _low registers */
-	for (i = 0; i < BCM1480_NR_IRQS_HALF; i++) {
-		for (cpu = 0; cpu < 4; cpu++) {
+	for (i = 0; i < BCM1480_NR_IRQS_HALF; i++)
+	{
+		for (cpu = 0; cpu < 4; cpu++)
+		{
 			__raw_writeq(IMR_IP2_VAL,
-				     IOADDR(A_BCM1480_IMR_REGISTER(cpu,
-								   R_BCM1480_IMR_INTERRUPT_MAP_BASE_L) + (i << 3)));
+						 IOADDR(A_BCM1480_IMR_REGISTER(cpu,
+								 R_BCM1480_IMR_INTERRUPT_MAP_BASE_L) + (i << 3)));
 		}
 	}
 
@@ -280,28 +320,35 @@ void __init arch_init_irq(void)
 	 * inter-cpu messages
 	 */
 	/* Was I1 */
-	for (cpu = 0; cpu < 4; cpu++) {
+	for (cpu = 0; cpu < 4; cpu++)
+	{
 		__raw_writeq(IMR_IP3_VAL, IOADDR(A_BCM1480_IMR_REGISTER(cpu, R_BCM1480_IMR_INTERRUPT_MAP_BASE_H) +
-						 (K_BCM1480_INT_MBOX_0_0 << 3)));
+										 (K_BCM1480_INT_MBOX_0_0 << 3)));
 	}
 
 
 	/* Clear the mailboxes.	 The firmware may leave them dirty */
-	for (cpu = 0; cpu < 4; cpu++) {
+	for (cpu = 0; cpu < 4; cpu++)
+	{
 		__raw_writeq(0xffffffffffffffffULL,
-			     IOADDR(A_BCM1480_IMR_REGISTER(cpu, R_BCM1480_IMR_MAILBOX_0_CLR_CPU)));
+					 IOADDR(A_BCM1480_IMR_REGISTER(cpu, R_BCM1480_IMR_MAILBOX_0_CLR_CPU)));
 		__raw_writeq(0xffffffffffffffffULL,
-			     IOADDR(A_BCM1480_IMR_REGISTER(cpu, R_BCM1480_IMR_MAILBOX_1_CLR_CPU)));
+					 IOADDR(A_BCM1480_IMR_REGISTER(cpu, R_BCM1480_IMR_MAILBOX_1_CLR_CPU)));
 	}
 
 
 	/* Mask everything except the high 16 bit of mailbox_0 registers for all cpus */
 	tmp = ~((u64) 0) ^ ( (((u64) 1) << K_BCM1480_INT_MBOX_0_0));
-	for (cpu = 0; cpu < 4; cpu++) {
+
+	for (cpu = 0; cpu < 4; cpu++)
+	{
 		__raw_writeq(tmp, IOADDR(A_BCM1480_IMR_REGISTER(cpu, R_BCM1480_IMR_INTERRUPT_MASK_H)));
 	}
+
 	tmp = ~((u64) 0);
-	for (cpu = 0; cpu < 4; cpu++) {
+
+	for (cpu = 0; cpu < 4; cpu++)
+	{
 		__raw_writeq(tmp, IOADDR(A_BCM1480_IMR_REGISTER(cpu, R_BCM1480_IMR_INTERRUPT_MASK_L)));
 	}
 
@@ -330,15 +377,20 @@ static inline void dispatch_ip2(void)
 	 */
 	base = A_BCM1480_IMR_MAPPER(cpu);
 	mask_h = __raw_readq(
-		IOADDR(base + R_BCM1480_IMR_INTERRUPT_STATUS_BASE_H));
+				 IOADDR(base + R_BCM1480_IMR_INTERRUPT_STATUS_BASE_H));
 	mask_l = __raw_readq(
-		IOADDR(base + R_BCM1480_IMR_INTERRUPT_STATUS_BASE_L));
+				 IOADDR(base + R_BCM1480_IMR_INTERRUPT_STATUS_BASE_L));
 
-	if (mask_h) {
+	if (mask_h)
+	{
 		if (mask_h ^ 1)
+		{
 			do_IRQ(fls64(mask_h) - 1);
+		}
 		else if (mask_l)
+		{
 			do_IRQ(63 + fls64(mask_l));
+		}
 	}
 }
 
@@ -350,12 +402,20 @@ asmlinkage void plat_irq_dispatch(void)
 	pending = read_c0_cause() & read_c0_status();
 
 	if (pending & CAUSEF_IP4)
+	{
 		do_IRQ(K_BCM1480_INT_TIMER_0 + cpu);
+	}
+
 #ifdef CONFIG_SMP
 	else if (pending & CAUSEF_IP3)
+	{
 		bcm1480_mailbox_interrupt();
+	}
+
 #endif
 
 	else if (pending & CAUSEF_IP2)
+	{
 		dispatch_ip2();
+	}
 }

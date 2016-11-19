@@ -23,17 +23,25 @@
 static inline unsigned long mpx_bd_size_bytes(struct mm_struct *mm)
 {
 	if (is_64bit_mm(mm))
+	{
 		return MPX_BD_SIZE_BYTES_64;
+	}
 	else
+	{
 		return MPX_BD_SIZE_BYTES_32;
+	}
 }
 
 static inline unsigned long mpx_bt_size_bytes(struct mm_struct *mm)
 {
 	if (is_64bit_mm(mm))
+	{
 		return MPX_BT_SIZE_BYTES_64;
+	}
 	else
+	{
 		return MPX_BT_SIZE_BYTES_32;
+	}
 }
 
 /*
@@ -47,30 +55,37 @@ static unsigned long mpx_mmap(unsigned long len)
 
 	/* Only bounds table can be allocated here */
 	if (len != mpx_bt_size_bytes(mm))
+	{
 		return -EINVAL;
+	}
 
 	down_write(&mm->mmap_sem);
 	addr = do_mmap(NULL, 0, len, PROT_READ | PROT_WRITE,
-			MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate);
+				   MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate);
 	up_write(&mm->mmap_sem);
+
 	if (populate)
+	{
 		mm_populate(addr, populate);
+	}
 
 	return addr;
 }
 
-enum reg_type {
+enum reg_type
+{
 	REG_TYPE_RM = 0,
 	REG_TYPE_INDEX,
 	REG_TYPE_BASE,
 };
 
 static int get_reg_offset(struct insn *insn, struct pt_regs *regs,
-			  enum reg_type type)
+						  enum reg_type type)
 {
 	int regno = 0;
 
-	static const int regoff[] = {
+	static const int regoff[] =
+	{
 		offsetof(struct pt_regs, ax),
 		offsetof(struct pt_regs, cx),
 		offsetof(struct pt_regs, dx),
@@ -91,42 +106,60 @@ static int get_reg_offset(struct insn *insn, struct pt_regs *regs,
 #endif
 	};
 	int nr_registers = ARRAY_SIZE(regoff);
+
 	/*
 	 * Don't possibly decode a 32-bit instructions as
 	 * reading a 64-bit-only register.
 	 */
 	if (IS_ENABLED(CONFIG_X86_64) && !insn->x86_64)
+	{
 		nr_registers -= 8;
-
-	switch (type) {
-	case REG_TYPE_RM:
-		regno = X86_MODRM_RM(insn->modrm.value);
-		if (X86_REX_B(insn->rex_prefix.value))
-			regno += 8;
-		break;
-
-	case REG_TYPE_INDEX:
-		regno = X86_SIB_INDEX(insn->sib.value);
-		if (X86_REX_X(insn->rex_prefix.value))
-			regno += 8;
-		break;
-
-	case REG_TYPE_BASE:
-		regno = X86_SIB_BASE(insn->sib.value);
-		if (X86_REX_B(insn->rex_prefix.value))
-			regno += 8;
-		break;
-
-	default:
-		pr_err("invalid register type");
-		BUG();
-		break;
 	}
 
-	if (regno >= nr_registers) {
+	switch (type)
+	{
+		case REG_TYPE_RM:
+			regno = X86_MODRM_RM(insn->modrm.value);
+
+			if (X86_REX_B(insn->rex_prefix.value))
+			{
+				regno += 8;
+			}
+
+			break;
+
+		case REG_TYPE_INDEX:
+			regno = X86_SIB_INDEX(insn->sib.value);
+
+			if (X86_REX_X(insn->rex_prefix.value))
+			{
+				regno += 8;
+			}
+
+			break;
+
+		case REG_TYPE_BASE:
+			regno = X86_SIB_BASE(insn->sib.value);
+
+			if (X86_REX_B(insn->rex_prefix.value))
+			{
+				regno += 8;
+			}
+
+			break;
+
+		default:
+			pr_err("invalid register type");
+			BUG();
+			break;
+	}
+
+	if (regno >= nr_registers)
+	{
 		WARN_ONCE(1, "decoded an instruction with an invalid register");
 		return -EINVAL;
 	}
+
 	return regoff[regno];
 }
 
@@ -145,39 +178,61 @@ static void __user *mpx_get_addr_ref(struct insn *insn, struct pt_regs *regs)
 	insn_get_sib(insn);
 	sib = insn->sib.value;
 
-	if (X86_MODRM_MOD(insn->modrm.value) == 3) {
+	if (X86_MODRM_MOD(insn->modrm.value) == 3)
+	{
 		addr_offset = get_reg_offset(insn, regs, REG_TYPE_RM);
+
 		if (addr_offset < 0)
+		{
 			goto out_err;
+		}
+
 		addr = regs_get_register(regs, addr_offset);
-	} else {
-		if (insn->sib.nbytes) {
+	}
+	else
+	{
+		if (insn->sib.nbytes)
+		{
 			base_offset = get_reg_offset(insn, regs, REG_TYPE_BASE);
+
 			if (base_offset < 0)
+			{
 				goto out_err;
+			}
 
 			indx_offset = get_reg_offset(insn, regs, REG_TYPE_INDEX);
+
 			if (indx_offset < 0)
+			{
 				goto out_err;
+			}
 
 			base = regs_get_register(regs, base_offset);
 			indx = regs_get_register(regs, indx_offset);
 			addr = base + indx * (1 << X86_SIB_SCALE(sib));
-		} else {
+		}
+		else
+		{
 			addr_offset = get_reg_offset(insn, regs, REG_TYPE_RM);
+
 			if (addr_offset < 0)
+			{
 				goto out_err;
+			}
+
 			addr = regs_get_register(regs, addr_offset);
 		}
+
 		addr += insn->displacement.value;
 	}
+
 	return (void __user *)addr;
 out_err:
-	return (void __user *)-1;
+	return (void __user *) - 1;
 }
 
 static int mpx_insn_decode(struct insn *insn,
-			   struct pt_regs *regs)
+						   struct pt_regs *regs)
 {
 	unsigned char buf[MAX_INSN_SIZE];
 	int x86_64 = !test_thread_flag(TIF_IA32);
@@ -186,15 +241,20 @@ static int mpx_insn_decode(struct insn *insn,
 
 	not_copied = copy_from_user(buf, (void __user *)regs->ip, sizeof(buf));
 	nr_copied = sizeof(buf) - not_copied;
+
 	/*
 	 * The decoder _should_ fail nicely if we pass it a short buffer.
 	 * But, let's not depend on that implementation detail.  If we
 	 * did not get anything, just error out now.
 	 */
 	if (!nr_copied)
+	{
 		return -EFAULT;
+	}
+
 	insn_init(insn, buf, nr_copied, x86_64);
 	insn_get_length(insn);
+
 	/*
 	 * copy_from_user() tries to get as many bytes as we could see in
 	 * the largest possible instruction.  If the instruction we are
@@ -204,18 +264,26 @@ static int mpx_insn_decode(struct insn *insn,
 	 * instruction.  Check to see if we got a partial instruction.
 	 */
 	if (nr_copied < insn->length)
+	{
 		return -EFAULT;
+	}
 
 	insn_get_opcode(insn);
+
 	/*
 	 * We only _really_ need to decode bndcl/bndcn/bndcu
 	 * Error out on anything else.
 	 */
 	if (insn->opcode.bytes[0] != 0x0f)
+	{
 		goto bad_opcode;
+	}
+
 	if ((insn->opcode.bytes[1] != 0x1a) &&
-	    (insn->opcode.bytes[1] != 0x1b))
+		(insn->opcode.bytes[1] != 0x1b))
+	{
 		goto bad_opcode;
+	}
 
 	return 0;
 bad_opcode:
@@ -245,8 +313,11 @@ siginfo_t *mpx_generate_siginfo(struct pt_regs *regs)
 	int err;
 
 	err = mpx_insn_decode(&insn, regs);
+
 	if (err)
+	{
 		goto err_out;
+	}
 
 	/*
 	 * We know at this point that we are only dealing with
@@ -254,24 +325,33 @@ siginfo_t *mpx_generate_siginfo(struct pt_regs *regs)
 	 */
 	insn_get_modrm(&insn);
 	bndregno = X86_MODRM_REG(insn.modrm.value);
-	if (bndregno > 3) {
+
+	if (bndregno > 3)
+	{
 		err = -EINVAL;
 		goto err_out;
 	}
+
 	/* get bndregs field from current task's xsave area */
 	bndregs = get_xsave_field_ptr(XFEATURE_MASK_BNDREGS);
-	if (!bndregs) {
+
+	if (!bndregs)
+	{
 		err = -EINVAL;
 		goto err_out;
 	}
+
 	/* now go select the individual register in the set of 4 */
 	bndreg = &bndregs->bndreg[bndregno];
 
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
+
 	/*
 	 * The registers are always 64-bit, but the upper 32
 	 * bits are ignored in 32-bit mode.  Also, note that the
@@ -289,14 +369,17 @@ siginfo_t *mpx_generate_siginfo(struct pt_regs *regs)
 	info->si_errno = 0;
 	info->si_code = SEGV_BNDERR;
 	info->si_addr = mpx_get_addr_ref(&insn, regs);
+
 	/*
 	 * We were not able to extract an address from the instruction,
 	 * probably because there was something invalid in it.
 	 */
-	if (info->si_addr == (void *)-1) {
+	if (info->si_addr == (void *) - 1)
+	{
 		err = -EINVAL;
 		goto err_out;
 	}
+
 	trace_mpx_bounds_register_exception(info->si_addr, bndreg);
 	return info;
 err_out:
@@ -310,29 +393,36 @@ static __user void *mpx_get_bounds_dir(void)
 	const struct mpx_bndcsr *bndcsr;
 
 	if (!cpu_feature_enabled(X86_FEATURE_MPX))
+	{
 		return MPX_INVALID_BOUNDS_DIR;
+	}
 
 	/*
 	 * The bounds directory pointer is stored in a register
 	 * only accessible if we first do an xsave.
 	 */
 	bndcsr = get_xsave_field_ptr(XFEATURE_MASK_BNDCSR);
+
 	if (!bndcsr)
+	{
 		return MPX_INVALID_BOUNDS_DIR;
+	}
 
 	/*
 	 * Make sure the register looks valid by checking the
 	 * enable bit.
 	 */
 	if (!(bndcsr->bndcfgu & MPX_BNDCFG_ENABLE_FLAG))
+	{
 		return MPX_INVALID_BOUNDS_DIR;
+	}
 
 	/*
 	 * Lastly, mask off the low bits used for configuration
 	 * flags, and return the address of the bounds table.
 	 */
 	return (void __user *)(unsigned long)
-		(bndcsr->bndcfgu & MPX_BNDCFG_ADDR_MASK);
+		   (bndcsr->bndcfgu & MPX_BNDCFG_ADDR_MASK);
 }
 
 int mpx_enable_management(void)
@@ -355,8 +445,11 @@ int mpx_enable_management(void)
 	bd_base = mpx_get_bounds_dir();
 	down_write(&mm->mmap_sem);
 	mm->bd_addr = bd_base;
+
 	if (mm->bd_addr == MPX_INVALID_BOUNDS_DIR)
+	{
 		ret = -ENXIO;
+	}
 
 	up_write(&mm->mmap_sem);
 	return ret;
@@ -367,7 +460,9 @@ int mpx_disable_management(void)
 	struct mm_struct *mm = current->mm;
 
 	if (!cpu_feature_enabled(X86_FEATURE_MPX))
+	{
 		return -ENXIO;
+	}
 
 	down_write(&mm->mmap_sem);
 	mm->bd_addr = MPX_INVALID_BOUNDS_DIR;
@@ -376,11 +471,12 @@ int mpx_disable_management(void)
 }
 
 static int mpx_cmpxchg_bd_entry(struct mm_struct *mm,
-		unsigned long *curval,
-		unsigned long __user *addr,
-		unsigned long old_val, unsigned long new_val)
+								unsigned long *curval,
+								unsigned long __user *addr,
+								unsigned long old_val, unsigned long new_val)
 {
 	int ret;
+
 	/*
 	 * user_atomic_cmpxchg_inatomic() actually uses sizeof()
 	 * the pointer that we pass to it to figure out how much
@@ -388,19 +484,23 @@ static int mpx_cmpxchg_bd_entry(struct mm_struct *mm,
 	 * pass a pointer to a 64-bit data type when we only want
 	 * a 32-bit copy.
 	 */
-	if (is_64bit_mm(mm)) {
+	if (is_64bit_mm(mm))
+	{
 		ret = user_atomic_cmpxchg_inatomic(curval,
-				addr, old_val, new_val);
-	} else {
+										   addr, old_val, new_val);
+	}
+	else
+	{
 		u32 uninitialized_var(curval_32);
 		u32 old_val_32 = old_val;
 		u32 new_val_32 = new_val;
 		u32 __user *addr_32 = (u32 __user *)addr;
 
 		ret = user_atomic_cmpxchg_inatomic(&curval_32,
-				addr_32, old_val_32, new_val_32);
+										   addr_32, old_val_32, new_val_32);
 		*curval = curval_32;
 	}
+
 	return ret;
 }
 
@@ -422,8 +522,12 @@ static int allocate_bt(struct mm_struct *mm, long __user *bd_entry)
 	 * bounds table:
 	 */
 	bt_addr = mpx_mmap(mpx_bt_size_bytes(mm));
+
 	if (IS_ERR((void *)bt_addr))
+	{
 		return PTR_ERR((void *)bt_addr);
+	}
+
 	/*
 	 * Set the valid flag (kinda like _PAGE_PRESENT in a pte)
 	 */
@@ -441,9 +545,12 @@ static int allocate_bt(struct mm_struct *mm, long __user *bd_entry)
 	 * of the MPX code that have to pagefault_disable().
 	 */
 	ret = mpx_cmpxchg_bd_entry(mm, &actual_old_val,	bd_entry,
-				   expected_old_val, bd_new_entry);
+							   expected_old_val, bd_new_entry);
+
 	if (ret)
+	{
 		goto out_unmap;
+	}
 
 	/*
 	 * The user_atomic_cmpxchg_inatomic() will only return nonzero
@@ -455,20 +562,24 @@ static int allocate_bt(struct mm_struct *mm, long __user *bd_entry)
 	 * an apparently valid entry.  Assume we raced with another
 	 * thread to instantiate this table and desclare succecss.
 	 */
-	if (actual_old_val & MPX_BD_ENTRY_VALID_FLAG) {
+	if (actual_old_val & MPX_BD_ENTRY_VALID_FLAG)
+	{
 		ret = 0;
 		goto out_unmap;
 	}
+
 	/*
 	 * We found a non-empty bd_entry but it did not have the
 	 * VALID_FLAG set.  Return an error which will result in
 	 * a SEGV since this probably means that somebody scribbled
 	 * some invalid data in to a bounds table.
 	 */
-	if (expected_old_val != actual_old_val) {
+	if (expected_old_val != actual_old_val)
+	{
 		ret = -EINVAL;
 		goto out_unmap;
 	}
+
 	trace_mpx_new_bounds_table(bt_addr);
 	return 0;
 out_unmap:
@@ -494,8 +605,12 @@ static int do_mpx_bt_fault(void)
 	struct mm_struct *mm = current->mm;
 
 	bndcsr = get_xsave_field_ptr(XFEATURE_MASK_BNDCSR);
+
 	if (!bndcsr)
+	{
 		return -EINVAL;
+	}
+
 	/*
 	 * Mask off the preserve and enable bits
 	 */
@@ -505,13 +620,16 @@ static int do_mpx_bt_fault(void)
 	 * entry via BNDSTATUS, so we don't have to go look it up.
 	 */
 	bd_entry = bndcsr->bndstatus & MPX_BNDSTA_ADDR_MASK;
+
 	/*
 	 * Make sure the directory entry is within where we think
 	 * the directory is.
 	 */
 	if ((bd_entry < bd_base) ||
-	    (bd_entry >= bd_base + mpx_bd_size_bytes(mm)))
+		(bd_entry >= bd_base + mpx_bd_size_bytes(mm)))
+	{
 		return -EINVAL;
+	}
 
 	return allocate_bt(mm, (long __user *)bd_entry);
 }
@@ -523,9 +641,12 @@ int mpx_handle_bd_fault(void)
 	 * so refuse to help.
 	 */
 	if (!kernel_managing_mpx_tables(current->mm))
+	{
 		return -EINVAL;
+	}
 
-	if (do_mpx_bt_fault()) {
+	if (do_mpx_bt_fault())
+	{
 		force_sig(SIGSEGV, current);
 		/*
 		 * The force_sig() is essentially "handling" this
@@ -533,6 +654,7 @@ int mpx_handle_bd_fault(void)
 		 * from do_mpx_bt_fault().
 		 */
 	}
+
 	return 0;
 }
 
@@ -546,23 +668,30 @@ static int mpx_resolve_fault(long __user *addr, int write)
 	int nr_pages = 1;
 
 	gup_ret = get_user_pages((unsigned long)addr, nr_pages,
-			write ? FOLL_WRITE : 0,	NULL, NULL);
+							 write ? FOLL_WRITE : 0,	NULL, NULL);
+
 	/*
 	 * get_user_pages() returns number of pages gotten.
 	 * 0 means we failed to fault in and get anything,
 	 * probably because 'addr' is bad.
 	 */
 	if (!gup_ret)
+	{
 		return -EFAULT;
+	}
+
 	/* Other error, return it */
 	if (gup_ret < 0)
+	{
 		return gup_ret;
+	}
+
 	/* must have gup'd a page and gup_ret>0, success */
 	return 0;
 }
 
 static unsigned long mpx_bd_entry_to_bt_addr(struct mm_struct *mm,
-					     unsigned long bd_entry)
+		unsigned long bd_entry)
 {
 	unsigned long bt_addr = bd_entry;
 	int align_to_bytes;
@@ -570,6 +699,7 @@ static unsigned long mpx_bd_entry_to_bt_addr(struct mm_struct *mm,
 	 * Bit 0 in a bt_entry is always the valid bit.
 	 */
 	bt_addr &= ~MPX_BD_ENTRY_VALID_FLAG;
+
 	/*
 	 * Tables are naturally aligned at 8-byte boundaries
 	 * on 64-bit and 4-byte boundaries on 32-bit.  The
@@ -577,10 +707,15 @@ static unsigned long mpx_bd_entry_to_bt_addr(struct mm_struct *mm,
 	 * are ignored by the hardware, so we do the same.
 	 */
 	if (is_64bit_mm(mm))
+	{
 		align_to_bytes = 8;
+	}
 	else
+	{
 		align_to_bytes = 4;
-	bt_addr &= ~(align_to_bytes-1);
+	}
+
+	bt_addr &= ~(align_to_bytes - 1);
 	return bt_addr;
 }
 
@@ -590,13 +725,15 @@ static unsigned long mpx_bd_entry_to_bt_addr(struct mm_struct *mm,
  * a 64-bit kernel and try to get 8 bytes.
  */
 int get_user_bd_entry(struct mm_struct *mm, unsigned long *bd_entry_ret,
-		long __user *bd_entry_ptr)
+					  long __user *bd_entry_ptr)
 {
 	u32 bd_entry_32;
 	int ret;
 
 	if (is_64bit_mm(mm))
+	{
 		return get_user(*bd_entry_ret, bd_entry_ptr);
+	}
 
 	/*
 	 * Note that get_user() uses the type of the *pointer* to
@@ -612,8 +749,8 @@ int get_user_bd_entry(struct mm_struct *mm, unsigned long *bd_entry_ret,
  * directory entry.
  */
 static int get_bt_addr(struct mm_struct *mm,
-			long __user *bd_entry_ptr,
-			unsigned long *bt_addr_result)
+					   long __user *bd_entry_ptr,
+					   unsigned long *bt_addr_result)
 {
 	int ret;
 	int valid_bit;
@@ -621,24 +758,36 @@ static int get_bt_addr(struct mm_struct *mm,
 	unsigned long bt_addr;
 
 	if (!access_ok(VERIFY_READ, (bd_entry_ptr), sizeof(*bd_entry_ptr)))
+	{
 		return -EFAULT;
+	}
 
-	while (1) {
+	while (1)
+	{
 		int need_write = 0;
 
 		pagefault_disable();
 		ret = get_user_bd_entry(mm, &bd_entry, bd_entry_ptr);
 		pagefault_enable();
+
 		if (!ret)
+		{
 			break;
+		}
+
 		if (ret == -EFAULT)
+		{
 			ret = mpx_resolve_fault(bd_entry_ptr, need_write);
+		}
+
 		/*
 		 * If we could not resolve the fault, consider it
 		 * userspace's fault and error out.
 		 */
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	valid_bit = bd_entry & MPX_BD_ENTRY_VALID_FLAG;
@@ -652,7 +801,10 @@ static int get_bt_addr(struct mm_struct *mm,
 	 * -EINVAL return will cause a SIGSEGV.
 	 */
 	if (!valid_bit && bt_addr)
+	{
 		return -EINVAL;
+	}
+
 	/*
 	 * Do we have an completely zeroed bt entry?  That is OK.  It
 	 * just means there was no bounds table for this memory.  Make
@@ -660,7 +812,9 @@ static int get_bt_addr(struct mm_struct *mm,
 	 * a SEGV.
 	 */
 	if (!valid_bit)
+	{
 		return -ENOENT;
+	}
 
 	*bt_addr_result = bt_addr;
 	return 0;
@@ -669,9 +823,13 @@ static int get_bt_addr(struct mm_struct *mm,
 static inline int bt_entry_size_bytes(struct mm_struct *mm)
 {
 	if (is_64bit_mm(mm))
+	{
 		return MPX_BT_ENTRY_BYTES_64;
+	}
 	else
+	{
 		return MPX_BT_ENTRY_BYTES_32;
+	}
 }
 
 /*
@@ -685,15 +843,19 @@ static unsigned long mpx_get_bt_entry_offset_bytes(struct mm_struct *mm,
 	unsigned long bt_table_nr_entries;
 	unsigned long offset = addr;
 
-	if (is_64bit_mm(mm)) {
+	if (is_64bit_mm(mm))
+	{
 		/* Bottom 3 bits are ignored on 64-bit */
 		offset >>= 3;
 		bt_table_nr_entries = MPX_BT_NR_ENTRIES_64;
-	} else {
+	}
+	else
+	{
 		/* Bottom 2 bits are ignored on 32-bit */
 		offset >>= 2;
 		bt_table_nr_entries = MPX_BT_NR_ENTRIES_32;
 	}
+
 	/*
 	 * We know the size of the table in to which we are
 	 * indexing, and we have eliminated all the low bits
@@ -704,7 +866,7 @@ static unsigned long mpx_get_bt_entry_offset_bytes(struct mm_struct *mm,
 	 * are always powers of two so this gives us a proper
 	 * mask.
 	 */
-	offset &= (bt_table_nr_entries-1);
+	offset &= (bt_table_nr_entries - 1);
 	/*
 	 * We now have an entry offset in terms of *entries* in
 	 * the table.  We need to scale it back up to bytes.
@@ -730,7 +892,9 @@ static inline unsigned long bd_entry_virt_space(struct mm_struct *mm)
 	 * running on 64-bit hardware.
 	 */
 	if (!is_64bit_mm(mm))
+	{
 		return (4ULL * GB) / MPX_BD_NR_ENTRIES_32;
+	}
 
 	/*
 	 * 'x86_virt_bits' returns what the hardware is capable
@@ -775,8 +939,11 @@ static noinline int zap_bt_entries_mapping(struct mm_struct *mm,
 	 * cause a SIGSEGV.
 	 */
 	vma = find_vma(mm, start);
+
 	if (!vma || vma->vm_start > start)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * A NUMA policy on a VM_MPX VMA could cause this bounds table to
@@ -785,7 +952,9 @@ static noinline int zap_bt_entries_mapping(struct mm_struct *mm,
 	 * zap only those.
 	 */
 	addr = start;
-	while (vma && vma->vm_start < end) {
+
+	while (vma && vma->vm_start < end)
+	{
 		/*
 		 * We followed a bounds directory entry down
 		 * here.  If we find a non-MPX VMA, that's bad,
@@ -793,15 +962,18 @@ static noinline int zap_bt_entries_mapping(struct mm_struct *mm,
 		 * probably results in a SIGSEGV.
 		 */
 		if (!(vma->vm_flags & VM_MPX))
+		{
 			return -EINVAL;
+		}
 
 		len = min(vma->vm_end, end) - addr;
 		zap_page_range(vma, addr, len, NULL);
-		trace_mpx_unmap_zap(addr, addr+len);
+		trace_mpx_unmap_zap(addr, addr + len);
 
 		vma = vma->vm_next;
 		addr = vma->vm_start;
 	}
+
 	return 0;
 }
 
@@ -819,20 +991,24 @@ static unsigned long mpx_get_bd_entry_offset(struct mm_struct *mm,
 	 * virtual space used by one entry to determine which
 	 * entry "controls" the given virtual address.
 	 */
-	if (is_64bit_mm(mm)) {
+	if (is_64bit_mm(mm))
+	{
 		int bd_entry_size = 8; /* 64-bit pointer */
 		/*
 		 * Take the 64-bit addressing hole in to account.
 		 */
 		addr &= ((1UL << boot_cpu_data.x86_virt_bits) - 1);
 		return (addr / bd_entry_virt_space(mm)) * bd_entry_size;
-	} else {
+	}
+	else
+	{
 		int bd_entry_size = 4; /* 32-bit pointer */
 		/*
 		 * 32-bit has no hole so this case needs no mask
 		 */
 		return (addr / bd_entry_virt_space(mm)) * bd_entry_size;
 	}
+
 	/*
 	 * The two return calls above are exact copies.  If we
 	 * pull out a single copy and put it in here, gcc won't
@@ -843,42 +1019,57 @@ static unsigned long mpx_get_bd_entry_offset(struct mm_struct *mm,
 }
 
 static int unmap_entire_bt(struct mm_struct *mm,
-		long __user *bd_entry, unsigned long bt_addr)
+						   long __user *bd_entry, unsigned long bt_addr)
 {
 	unsigned long expected_old_val = bt_addr | MPX_BD_ENTRY_VALID_FLAG;
 	unsigned long uninitialized_var(actual_old_val);
 	int ret;
 
-	while (1) {
+	while (1)
+	{
 		int need_write = 1;
 		unsigned long cleared_bd_entry = 0;
 
 		pagefault_disable();
 		ret = mpx_cmpxchg_bd_entry(mm, &actual_old_val,
-				bd_entry, expected_old_val, cleared_bd_entry);
+								   bd_entry, expected_old_val, cleared_bd_entry);
 		pagefault_enable();
+
 		if (!ret)
+		{
 			break;
+		}
+
 		if (ret == -EFAULT)
+		{
 			ret = mpx_resolve_fault(bd_entry, need_write);
+		}
+
 		/*
 		 * If we could not resolve the fault, consider it
 		 * userspace's fault and error out.
 		 */
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 	/*
 	 * The cmpxchg was performed, check the results.
 	 */
-	if (actual_old_val != expected_old_val) {
+	if (actual_old_val != expected_old_val)
+	{
 		/*
 		 * Someone else raced with us to unmap the table.
 		 * That is OK, since we were both trying to do
 		 * the same thing.  Declare success.
 		 */
 		if (!actual_old_val)
+		{
 			return 0;
+		}
+
 		/*
 		 * Something messed with the bounds directory
 		 * entry.  We hold mmap_sem for read or write
@@ -888,6 +1079,7 @@ static int unmap_entire_bt(struct mm_struct *mm,
 		 */
 		return -EINVAL;
 	}
+
 	/*
 	 * Note, we are likely being called under do_munmap() already. To
 	 * avoid recursion, do_munmap() will check whether it comes
@@ -897,7 +1089,7 @@ static int unmap_entire_bt(struct mm_struct *mm,
 }
 
 static int try_unmap_single_bt(struct mm_struct *mm,
-	       unsigned long start, unsigned long end)
+							   unsigned long start, unsigned long end)
 {
 	struct vm_area_struct *next;
 	struct vm_area_struct *prev;
@@ -905,7 +1097,7 @@ static int try_unmap_single_bt(struct mm_struct *mm,
 	 * "bta" == Bounds Table Area: the area controlled by the
 	 * bounds table that we are unmapping.
 	 */
-	unsigned long bta_start_vaddr = start & ~(bd_entry_virt_space(mm)-1);
+	unsigned long bta_start_vaddr = start & ~(bd_entry_virt_space(mm) - 1);
 	unsigned long bta_end_vaddr = bta_start_vaddr + bd_entry_virt_space(mm);
 	unsigned long uninitialized_var(bt_addr);
 	void __user *bde_vaddr;
@@ -917,6 +1109,7 @@ static int try_unmap_single_bt(struct mm_struct *mm,
 	 * in to 'next'.
 	 */
 	next = find_vma_prev(mm, start, &prev);
+
 	/*
 	 * Do not count other MPX bounds table VMAs as neighbors.
 	 * Although theoretically possible, we do not allow bounds
@@ -926,9 +1119,15 @@ static int try_unmap_single_bt(struct mm_struct *mm,
 	 * entries in use.
 	 */
 	while (next && (next->vm_flags & VM_MPX))
+	{
 		next = next->vm_next;
+	}
+
 	while (prev && (prev->vm_flags & VM_MPX))
+	{
 		prev = prev->vm_prev;
+	}
+
 	/*
 	 * We know 'start' and 'end' lie within an area controlled
 	 * by a single bounds table.  See if there are any other
@@ -937,8 +1136,10 @@ static int try_unmap_single_bt(struct mm_struct *mm,
 	 * cover the entire table.
 	 */
 	next = find_vma_prev(mm, start, &prev);
+
 	if ((!prev || prev->vm_end <= bta_start_vaddr) &&
-	    (!next || next->vm_start >= bta_end_vaddr)) {
+		(!next || next->vm_start >= bta_end_vaddr))
+	{
 		/*
 		 * No neighbor VMAs controlled by same bounds
 		 * table.  Try to unmap the whole thing
@@ -949,15 +1150,21 @@ static int try_unmap_single_bt(struct mm_struct *mm,
 
 	bde_vaddr = mm->bd_addr + mpx_get_bd_entry_offset(mm, start);
 	ret = get_bt_addr(mm, bde_vaddr, &bt_addr);
+
 	/*
 	 * No bounds table there, so nothing to unmap.
 	 */
-	if (ret == -ENOENT) {
+	if (ret == -ENOENT)
+	{
 		ret = 0;
 		return 0;
 	}
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/*
 	 * We are unmapping an entire table.  Either because the
 	 * unmap that started this whole process was large enough
@@ -965,36 +1172,49 @@ static int try_unmap_single_bt(struct mm_struct *mm,
 	 * but was the area covered by a bounds table.
 	 */
 	if ((start == bta_start_vaddr) &&
-	    (end == bta_end_vaddr))
+		(end == bta_end_vaddr))
+	{
 		return unmap_entire_bt(mm, bde_vaddr, bt_addr);
+	}
+
 	return zap_bt_entries_mapping(mm, bt_addr, start, end);
 }
 
 static int mpx_unmap_tables(struct mm_struct *mm,
-		unsigned long start, unsigned long end)
+							unsigned long start, unsigned long end)
 {
 	unsigned long one_unmap_start;
 	trace_mpx_unmap_search(start, end);
 
 	one_unmap_start = start;
-	while (one_unmap_start < end) {
+
+	while (one_unmap_start < end)
+	{
 		int ret;
-		unsigned long next_unmap_start = ALIGN(one_unmap_start+1,
-						       bd_entry_virt_space(mm));
+		unsigned long next_unmap_start = ALIGN(one_unmap_start + 1,
+											   bd_entry_virt_space(mm));
 		unsigned long one_unmap_end = end;
+
 		/*
 		 * if the end is beyond the current bounds table,
 		 * move it back so we only deal with a single one
 		 * at a time
 		 */
 		if (one_unmap_end > next_unmap_start)
+		{
 			one_unmap_end = next_unmap_start;
+		}
+
 		ret = try_unmap_single_bt(mm, one_unmap_start, one_unmap_end);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		one_unmap_start = next_unmap_start;
 	}
+
 	return 0;
 }
 
@@ -1007,7 +1227,7 @@ static int mpx_unmap_tables(struct mm_struct *mm,
  * necessary, and the 'vma' is the first vma in this range (start -> end).
  */
 void mpx_notify_unmap(struct mm_struct *mm, struct vm_area_struct *vma,
-		unsigned long start, unsigned long end)
+					  unsigned long start, unsigned long end)
 {
 	int ret;
 
@@ -1016,7 +1236,10 @@ void mpx_notify_unmap(struct mm_struct *mm, struct vm_area_struct *vma,
 	 * the kernel to help manage the bounds tables,
 	 */
 	if (!kernel_managing_mpx_tables(current->mm))
+	{
 		return;
+	}
+
 	/*
 	 * This will look across the entire 'start -> end' range,
 	 * and find all of the non-VM_MPX VMAs.
@@ -1027,13 +1250,21 @@ void mpx_notify_unmap(struct mm_struct *mm, struct vm_area_struct *vma,
 	 * which should not occur normally. Being strict about it here
 	 * helps ensure that we do not have an exploitable stack overflow.
 	 */
-	do {
+	do
+	{
 		if (vma->vm_flags & VM_MPX)
+		{
 			return;
+		}
+
 		vma = vma->vm_next;
-	} while (vma && vma->vm_start < end);
+	}
+	while (vma && vma->vm_start < end);
 
 	ret = mpx_unmap_tables(mm, start, end);
+
 	if (ret)
+	{
 		force_sig(SIGSEGV, current);
+	}
 }

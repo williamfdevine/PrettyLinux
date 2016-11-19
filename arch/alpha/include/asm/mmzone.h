@@ -16,15 +16,15 @@ struct bootmem_data_t; /* stupid forward decl. */
 extern pg_data_t node_data[];
 
 #define alpha_pa_to_nid(pa)		\
-        (alpha_mv.pa_to_nid 		\
+	(alpha_mv.pa_to_nid 		\
 	 ? alpha_mv.pa_to_nid(pa)	\
 	 : (0))
 #define node_mem_start(nid)		\
-        (alpha_mv.node_mem_start 	\
+	(alpha_mv.node_mem_start 	\
 	 ? alpha_mv.node_mem_start(nid) \
 	 : (0UL))
 #define node_mem_size(nid)		\
-        (alpha_mv.node_mem_size 	\
+	(alpha_mv.node_mem_size 	\
 	 ? alpha_mv.node_mem_size(nid) 	\
 	 : ((nid) ? (0UL) : (~0UL)))
 
@@ -63,8 +63,8 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p, int n)
  * node's mem_map.
  */
 #define LOCAL_BASE_ADDR(kaddr)						  \
-    ((unsigned long)__va(NODE_DATA(kvaddr_to_nid(kaddr))->node_start_pfn  \
-			 << PAGE_SHIFT))
+	((unsigned long)__va(NODE_DATA(kvaddr_to_nid(kaddr))->node_start_pfn  \
+						 << PAGE_SHIFT))
 
 /* XXX: FIXME -- nyc */
 #define kern_addr_valid(kaddr)	(0)
@@ -76,26 +76,26 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p, int n)
 #define pte_pfn(pte)		(pte_val(pte) >> 32)
 
 #define mk_pte(page, pgprot)						     \
-({								 	     \
-	pte_t pte;                                                           \
-	unsigned long pfn;                                                   \
-									     \
-	pfn = page_to_pfn(page) << 32; \
-	pte_val(pte) = pfn | pgprot_val(pgprot);			     \
-									     \
-	pte;								     \
-})
+	({								 	     \
+		pte_t pte;                                                           \
+		unsigned long pfn;                                                   \
+		\
+		pfn = page_to_pfn(page) << 32; \
+		pte_val(pte) = pfn | pgprot_val(pgprot);			     \
+		\
+		pte;								     \
+	})
 
 #define pte_page(x)							\
-({									\
-       	unsigned long kvirt;						\
-	struct page * __xx;						\
-									\
-	kvirt = (unsigned long)__va(pte_val(x) >> (32-PAGE_SHIFT));	\
-	__xx = virt_to_page(kvirt);					\
-									\
-	__xx;                                                           \
-})
+	({									\
+		unsigned long kvirt;						\
+		struct page * __xx;						\
+		\
+		kvirt = (unsigned long)__va(pte_val(x) >> (32-PAGE_SHIFT));	\
+		__xx = virt_to_page(kvirt);					\
+		\
+		__xx;                                                           \
+	})
 
 #define page_to_pa(page)						\
 	(page_to_pfn(page) << PAGE_SHIFT)

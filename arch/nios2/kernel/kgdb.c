@@ -84,13 +84,17 @@ struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] =
 char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return NULL;
+	}
 
 	if (dbg_reg_def[regno].offset != -1)
 		memcpy(mem, (void *)regs + dbg_reg_def[regno].offset,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 	else
+	{
 		memset(mem, 0, dbg_reg_def[regno].size);
+	}
 
 	return dbg_reg_def[regno].name;
 }
@@ -98,11 +102,13 @@ char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 int dbg_set_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (dbg_reg_def[regno].offset != -1)
 		memcpy((void *)regs + dbg_reg_def[regno].offset, mem,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 
 	return 0;
 }
@@ -120,21 +126,25 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long pc)
 }
 
 int kgdb_arch_handle_exception(int vector, int signo, int err_code,
-				char *remcom_in_buffer, char *remcom_out_buffer,
-				struct pt_regs *regs)
+							   char *remcom_in_buffer, char *remcom_out_buffer,
+							   struct pt_regs *regs)
 {
 	char *ptr;
 	unsigned long addr;
 
-	switch (remcom_in_buffer[0]) {
-	case 's':
-	case 'c':
-		/* handle the optional parameters */
-		ptr = &remcom_in_buffer[1];
-		if (kgdb_hex2long(&ptr, &addr))
-			regs->ea = addr;
+	switch (remcom_in_buffer[0])
+	{
+		case 's':
+		case 'c':
+			/* handle the optional parameters */
+			ptr = &remcom_in_buffer[1];
 
-		return 0;
+			if (kgdb_hex2long(&ptr, &addr))
+			{
+				regs->ea = addr;
+			}
+
+			return 0;
 	}
 
 	return -1; /* this means that we do not want to exit from the handler */
@@ -147,9 +157,13 @@ asmlinkage void kgdb_breakpoint_c(struct pt_regs *regs)
 	 * move it back.  This could be done on the host but we do it here
 	 */
 	if (!wait_for_remote_debugger)
+	{
 		regs->ea -= 4;
+	}
 	else	/* pass the first trap 30 code */
+	{
 		wait_for_remote_debugger = 0;
+	}
 
 	kgdb_handle_exception(30, SIGTRAP, 0, regs);
 }
@@ -165,7 +179,8 @@ void kgdb_arch_exit(void)
 	/* Nothing to do */
 }
 
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 	/* Breakpoint instruction: trap 30 */
 	.gdb_bpt_instr = { 0xba, 0x6f, 0x3b, 0x00 },
 };

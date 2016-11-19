@@ -17,16 +17,17 @@
  * not to the default values if you still want to do syscalls. This
  * call is more for 32bit mode therefore.
  */
-struct user_desc {
+struct user_desc
+{
 	unsigned int  entry_number;
 	unsigned int  base_addr;
 	unsigned int  limit;
-	unsigned int  seg_32bit:1;
-	unsigned int  contents:2;
-	unsigned int  read_exec_only:1;
-	unsigned int  limit_in_pages:1;
-	unsigned int  seg_not_present:1;
-	unsigned int  useable:1;
+	unsigned int  seg_32bit: 1;
+	unsigned int  contents: 2;
+	unsigned int  read_exec_only: 1;
+	unsigned int  limit_in_pages: 1;
+	unsigned int  seg_not_present: 1;
+	unsigned int  useable: 1;
 #ifdef __x86_64__
 	/*
 	 * Because this bit is not present in 32-bit user code, user
@@ -35,7 +36,7 @@ struct user_desc {
 	 * the kernel must act as though lm == 0, regardless of the
 	 * actual value.
 	 */
-	unsigned int  lm:1;
+	unsigned int  lm: 1;
 #endif
 };
 

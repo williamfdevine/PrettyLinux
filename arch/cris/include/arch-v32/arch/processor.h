@@ -13,7 +13,8 @@
  * are hardcoded into _resume, so if this struct is changed, entry.S needs to be
  * changed as well.
  */
-struct thread_struct {
+struct thread_struct
+{
 	unsigned long ksp;	/* Kernel stack pointer. */
 	unsigned long usp;	/* User stack pointer. */
 	unsigned long ccs;	/* Saved flags register. */
@@ -28,24 +29,24 @@ struct thread_struct {
 #define INIT_THREAD { }
 
 #define KSTK_EIP(tsk)		\
-({				\
-	unsigned long eip = 0;	\
-	unsigned long regs = (unsigned long)task_pt_regs(tsk); \
-	if (regs > PAGE_SIZE && virt_addr_valid(regs))	    \
-		eip = ((struct pt_regs *)regs)->erp;	    \
-	eip; \
-})
+	({				\
+		unsigned long eip = 0;	\
+		unsigned long regs = (unsigned long)task_pt_regs(tsk); \
+		if (regs > PAGE_SIZE && virt_addr_valid(regs))	    \
+			eip = ((struct pt_regs *)regs)->erp;	    \
+		eip; \
+	})
 
 /*
  * Give the thread a program location, set user-mode and switch user
  * stackpointer.
  */
 #define start_thread(regs, ip, usp) \
-do { \
-	regs->erp = ip; \
-	regs->ccs |= 1 << (U_CCS_BITNR + CCS_SHIFT); \
-	wrusp(usp); \
-} while(0)
+	do { \
+		regs->erp = ip; \
+		regs->ccs |= 1 << (U_CCS_BITNR + CCS_SHIFT); \
+		wrusp(usp); \
+	} while(0)
 
 /* Nothing special to do for v32 when handling a kernel bus fault fixup. */
 #define arch_fixup(regs) {};

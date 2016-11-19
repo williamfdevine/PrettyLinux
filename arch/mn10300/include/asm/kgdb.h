@@ -23,7 +23,8 @@
  * Note that this register image is in a different order than the register
  * image that Linux produces at interrupt time.
  */
-enum regnames {
+enum regnames
+{
 	GDB_FR_D0		= 0,
 	GDB_FR_D1		= 1,
 	GDB_FR_D2		= 2,

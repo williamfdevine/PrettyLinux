@@ -14,7 +14,7 @@
 #include <asm/oplib.h>
 
 #ifdef CONFIG_KGDB
-extern int kgdb_initialized;
+	extern int kgdb_initialized;
 #endif
 
 static char ppbuf[1024];
@@ -38,18 +38,25 @@ prom_printf(char *fmt, ...)
 	bptr = ppbuf;
 
 #ifdef CONFIG_KGDB
-	if (kgdb_initialized) {
+
+	if (kgdb_initialized)
+	{
 		printk("kgdb_initialized = %d\n", kgdb_initialized);
 		putpacket(bptr, 1);
-	} else
+	}
+	else
 #else
-	while((ch = *(bptr++)) != 0) {
-		if(ch == '\n')
+	while ((ch = *(bptr++)) != 0)
+	{
+		if (ch == '\n')
+		{
 			prom_putchar('\r');
+		}
 
 		prom_putchar(ch);
 	}
+
 #endif
-	va_end(args);
+		va_end(args);
 	return;
 }

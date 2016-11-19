@@ -61,7 +61,8 @@
 #include "generic.h"
 #include "devices.h"
 
-static unsigned long tosa_pin_config[] = {
+static unsigned long tosa_pin_config[] =
+{
 	GPIO78_nCS_2, /* Scoop */
 	GPIO80_nCS_4, /* tg6393xb */
 	GPIO33_nCS_5, /* Scoop */
@@ -168,7 +169,8 @@ static unsigned long tosa_pin_config[] = {
 /*
  * SCOOP Device
  */
-static struct resource tosa_scoop_resources[] = {
+static struct resource tosa_scoop_resources[] =
+{
 	[0] = {
 		.start	= TOSA_CF_PHYS,
 		.end	= TOSA_CF_PHYS + 0xfff,
@@ -176,16 +178,18 @@ static struct resource tosa_scoop_resources[] = {
 	},
 };
 
-static struct scoop_config tosa_scoop_setup = {
+static struct scoop_config tosa_scoop_setup =
+{
 	.io_dir 	= TOSA_SCOOP_IO_DIR,
 	.gpio_base	= TOSA_SCOOP_GPIO_BASE,
 };
 
-static struct platform_device tosascoop_device = {
+static struct platform_device tosascoop_device =
+{
 	.name		= "sharp-scoop",
 	.id		= 0,
 	.dev		= {
- 		.platform_data	= &tosa_scoop_setup,
+		.platform_data	= &tosa_scoop_setup,
 	},
 	.num_resources	= ARRAY_SIZE(tosa_scoop_resources),
 	.resource	= tosa_scoop_resources,
@@ -195,7 +199,8 @@ static struct platform_device tosascoop_device = {
 /*
  * SCOOP Device Jacket
  */
-static struct resource tosa_scoop_jc_resources[] = {
+static struct resource tosa_scoop_jc_resources[] =
+{
 	[0] = {
 		.start		= TOSA_SCOOP_PHYS + 0x40,
 		.end		= TOSA_SCOOP_PHYS + 0xfff,
@@ -203,16 +208,18 @@ static struct resource tosa_scoop_jc_resources[] = {
 	},
 };
 
-static struct scoop_config tosa_scoop_jc_setup = {
+static struct scoop_config tosa_scoop_jc_setup =
+{
 	.io_dir 	= TOSA_SCOOP_JC_IO_DIR,
 	.gpio_base	= TOSA_SCOOP_JC_GPIO_BASE,
 };
 
-static struct platform_device tosascoop_jc_device = {
+static struct platform_device tosascoop_jc_device =
+{
 	.name		= "sharp-scoop",
 	.id		= 1,
 	.dev		= {
- 		.platform_data	= &tosa_scoop_jc_setup,
+		.platform_data	= &tosa_scoop_jc_setup,
 		.parent 	= &tosascoop_device.dev,
 	},
 	.num_resources	= ARRAY_SIZE(tosa_scoop_jc_resources),
@@ -222,20 +229,22 @@ static struct platform_device tosascoop_jc_device = {
 /*
  * PCMCIA
  */
-static struct scoop_pcmcia_dev tosa_pcmcia_scoop[] = {
+static struct scoop_pcmcia_dev tosa_pcmcia_scoop[] =
 {
-	.dev        = &tosascoop_device.dev,
-	.irq        = TOSA_IRQ_GPIO_CF_IRQ,
-	.cd_irq     = TOSA_IRQ_GPIO_CF_CD,
-	.cd_irq_str = "PCMCIA0 CD",
-},{
-	.dev        = &tosascoop_jc_device.dev,
-	.irq        = TOSA_IRQ_GPIO_JC_CF_IRQ,
-	.cd_irq     = -1,
-},
+	{
+		.dev        = &tosascoop_device.dev,
+		.irq        = TOSA_IRQ_GPIO_CF_IRQ,
+		.cd_irq     = TOSA_IRQ_GPIO_CF_CD,
+		.cd_irq_str = "PCMCIA0 CD",
+	}, {
+		.dev        = &tosascoop_jc_device.dev,
+		.irq        = TOSA_IRQ_GPIO_JC_CF_IRQ,
+		.cd_irq     = -1,
+	},
 };
 
-static struct scoop_pcmcia_config tosa_pcmcia_config = {
+static struct scoop_pcmcia_config tosa_pcmcia_config =
+{
 	.devs         = &tosa_pcmcia_scoop[0],
 	.num_devs     = 2,
 };
@@ -243,13 +252,15 @@ static struct scoop_pcmcia_config tosa_pcmcia_config = {
 /*
  * USB Device Controller
  */
-static struct gpio_vbus_mach_info tosa_udc_info = {
+static struct gpio_vbus_mach_info tosa_udc_info =
+{
 	.gpio_pullup		= TOSA_GPIO_USB_PULLUP,
 	.gpio_vbus		= TOSA_GPIO_USB_IN,
 	.gpio_vbus_inverted	= 1,
 };
 
-static struct platform_device tosa_gpio_vbus = {
+static struct platform_device tosa_gpio_vbus =
+{
 	.name	= "gpio-vbus",
 	.id	= -1,
 	.dev	= {
@@ -265,13 +276,19 @@ static int tosa_mci_init(struct device *dev, irq_handler_t tosa_detect_int, void
 	int err;
 
 	err = gpio_request(TOSA_GPIO_nSD_INT, "SD Int");
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "tosa_mci_init: can't request SD_PWR gpio\n");
 		goto err_gpio_int;
 	}
+
 	err = gpio_direction_input(TOSA_GPIO_nSD_INT);
+
 	if (err)
+	{
 		goto err_gpio_int_dir;
+	}
 
 	return 0;
 
@@ -286,9 +303,10 @@ static void tosa_mci_exit(struct device *dev, void *data)
 	gpio_free(TOSA_GPIO_nSD_INT);
 }
 
-static struct pxamci_platform_data tosa_mci_platform_data = {
+static struct pxamci_platform_data tosa_mci_platform_data =
+{
 	.detect_delay_ms	= 250,
-	.ocr_mask       	= MMC_VDD_32_33|MMC_VDD_33_34,
+	.ocr_mask       	= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.init           	= tosa_mci_init,
 	.exit           	= tosa_mci_exit,
 	.gpio_card_detect	= TOSA_GPIO_nSD_DETECT,
@@ -301,11 +319,14 @@ static struct pxamci_platform_data tosa_mci_platform_data = {
  */
 static void tosa_irda_transceiver_mode(struct device *dev, int mode)
 {
-	if (mode & IR_OFF) {
+	if (mode & IR_OFF)
+	{
 		gpio_set_value(TOSA_GPIO_IR_POWERDWN, 0);
 		pxa2xx_transceiver_mode(dev, mode);
 		gpio_direction_output(TOSA_GPIO_IRDA_TX, 0);
-	} else {
+	}
+	else
+	{
 		pxa2xx_transceiver_mode(dev, mode);
 		gpio_set_value(TOSA_GPIO_IR_POWERDWN, 1);
 	}
@@ -316,19 +337,32 @@ static int tosa_irda_startup(struct device *dev)
 	int ret;
 
 	ret = gpio_request(TOSA_GPIO_IRDA_TX, "IrDA TX");
+
 	if (ret)
+	{
 		goto err_tx;
+	}
+
 	ret = gpio_direction_output(TOSA_GPIO_IRDA_TX, 0);
+
 	if (ret)
+	{
 		goto err_tx_dir;
+	}
 
 	ret = gpio_request(TOSA_GPIO_IR_POWERDWN, "IrDA powerdown");
+
 	if (ret)
+	{
 		goto err_pwr;
+	}
 
 	ret = gpio_direction_output(TOSA_GPIO_IR_POWERDWN, 0);
+
 	if (ret)
+	{
 		goto err_pwr_dir;
+	}
 
 	tosa_irda_transceiver_mode(dev, IR_SIRMODE | IR_OFF);
 
@@ -350,7 +384,8 @@ static void tosa_irda_shutdown(struct device *dev)
 	gpio_free(TOSA_GPIO_IRDA_TX);
 }
 
-static struct pxaficp_platform_data tosa_ficp_platform_data = {
+static struct pxaficp_platform_data tosa_ficp_platform_data =
+{
 	.gpio_pwdown		= -1,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 	.transceiver_mode	= tosa_irda_transceiver_mode,
@@ -361,13 +396,15 @@ static struct pxaficp_platform_data tosa_ficp_platform_data = {
 /*
  * Tosa AC IN
  */
-static char *tosa_ac_supplied_to[] = {
+static char *tosa_ac_supplied_to[] =
+{
 	"main-battery",
 	"backup-battery",
 	"jacket-battery",
 };
 
-static struct gpio_charger_platform_data tosa_power_data = {
+static struct gpio_charger_platform_data tosa_power_data =
+{
 	.name			= "charger",
 	.type			= POWER_SUPPLY_TYPE_MAINS,
 	.gpio			= TOSA_GPIO_AC_IN,
@@ -376,18 +413,20 @@ static struct gpio_charger_platform_data tosa_power_data = {
 	.num_supplicants	= ARRAY_SIZE(tosa_ac_supplied_to),
 };
 
-static struct resource tosa_power_resource[] = {
+static struct resource tosa_power_resource[] =
+{
 	{
 		.name		= "ac",
 		.start		= PXA_GPIO_TO_IRQ(TOSA_GPIO_AC_IN),
 		.end		= PXA_GPIO_TO_IRQ(TOSA_GPIO_AC_IN),
 		.flags		= IORESOURCE_IRQ |
-				  IORESOURCE_IRQ_HIGHEDGE |
-				  IORESOURCE_IRQ_LOWEDGE,
+		IORESOURCE_IRQ_HIGHEDGE |
+		IORESOURCE_IRQ_LOWEDGE,
 	},
 };
 
-static struct platform_device tosa_power_device = {
+static struct platform_device tosa_power_device =
+{
 	.name			= "gpio-charger",
 	.id			= -1,
 	.dev.platform_data	= &tosa_power_data,
@@ -398,7 +437,8 @@ static struct platform_device tosa_power_device = {
 /*
  * Tosa Keyboard
  */
-static const uint32_t tosakbd_keymap[] = {
+static const uint32_t tosakbd_keymap[] =
+{
 	KEY(0, 1, KEY_W),
 	KEY(0, 5, KEY_K),
 	KEY(0, 6, KEY_BACKSPACE),
@@ -452,17 +492,19 @@ static const uint32_t tosakbd_keymap[] = {
 	KEY(6, 7, KEY_RIGHT),
 };
 
-static struct matrix_keymap_data tosakbd_keymap_data = {
+static struct matrix_keymap_data tosakbd_keymap_data =
+{
 	.keymap		= tosakbd_keymap,
 	.keymap_size	= ARRAY_SIZE(tosakbd_keymap),
 };
 
 static const int tosakbd_col_gpios[] =
-			{ 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68 };
+{ 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68 };
 static const int tosakbd_row_gpios[] =
-			{ 69, 70, 71, 72, 73, 74, 75 };
+{ 69, 70, 71, 72, 73, 74, 75 };
 
-static struct matrix_keypad_platform_data tosakbd_pdata = {
+static struct matrix_keypad_platform_data tosakbd_pdata =
+{
 	.keymap_data		= &tosakbd_keymap_data,
 	.row_gpios		= tosakbd_row_gpios,
 	.col_gpios		= tosakbd_col_gpios,
@@ -473,7 +515,8 @@ static struct matrix_keypad_platform_data tosakbd_pdata = {
 	.wakeup			= 1,
 };
 
-static struct platform_device tosakbd_device = {
+static struct platform_device tosakbd_device =
+{
 	.name		= "matrix-keypad",
 	.id		= -1,
 	.dev		= {
@@ -481,7 +524,8 @@ static struct platform_device tosakbd_device = {
 	},
 };
 
-static struct gpio_keys_button tosa_gpio_keys[] = {
+static struct gpio_keys_button tosa_gpio_keys[] =
+{
 	/*
 	 * Two following keys are directly tied to "ON" button of tosa. Why?
 	 * The first one can be used as a wakeup source, the second can't;
@@ -532,12 +576,14 @@ static struct gpio_keys_button tosa_gpio_keys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data tosa_gpio_keys_platform_data = {
+static struct gpio_keys_platform_data tosa_gpio_keys_platform_data =
+{
 	.buttons	= tosa_gpio_keys,
 	.nbuttons	= ARRAY_SIZE(tosa_gpio_keys),
 };
 
-static struct platform_device tosa_gpio_keys_device = {
+static struct platform_device tosa_gpio_keys_device =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -548,7 +594,8 @@ static struct platform_device tosa_gpio_keys_device = {
 /*
  * Tosa LEDs
  */
-static struct gpio_led tosa_gpio_leds[] = {
+static struct gpio_led tosa_gpio_leds[] =
+{
 	{
 		.name			= "tosa:amber:charge",
 		.default_trigger	= "main-battery-charging",
@@ -571,12 +618,14 @@ static struct gpio_led tosa_gpio_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data tosa_gpio_leds_platform_data = {
+static struct gpio_led_platform_data tosa_gpio_leds_platform_data =
+{
 	.leds		= tosa_gpio_leds,
 	.num_leds	= ARRAY_SIZE(tosa_gpio_leds),
 };
 
-static struct platform_device tosaled_device = {
+static struct platform_device tosaled_device =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -587,7 +636,8 @@ static struct platform_device tosaled_device = {
 /*
  * Toshiba Mobile IO Controller
  */
-static struct resource tc6393xb_resources[] = {
+static struct resource tc6393xb_resources[] =
+{
 	[0] = {
 		.start	= TOSA_LCDC_PHYS,
 		.end	= TOSA_LCDC_PHYS + 0x3ffffff,
@@ -607,23 +657,46 @@ static int tosa_tc6393xb_enable(struct platform_device *dev)
 	int rc;
 
 	rc = gpio_request(TOSA_GPIO_TC6393XB_REST_IN, "tc6393xb #pclr");
+
 	if (rc)
+	{
 		goto err_req_pclr;
+	}
+
 	rc = gpio_request(TOSA_GPIO_TC6393XB_SUSPEND, "tc6393xb #suspend");
+
 	if (rc)
+	{
 		goto err_req_suspend;
+	}
+
 	rc = gpio_request(TOSA_GPIO_TC6393XB_L3V_ON, "tc6393xb l3v");
+
 	if (rc)
+	{
 		goto err_req_l3v;
+	}
+
 	rc = gpio_direction_output(TOSA_GPIO_TC6393XB_L3V_ON, 0);
+
 	if (rc)
+	{
 		goto err_dir_l3v;
+	}
+
 	rc = gpio_direction_output(TOSA_GPIO_TC6393XB_SUSPEND, 0);
+
 	if (rc)
+	{
 		goto err_dir_suspend;
+	}
+
 	rc = gpio_direction_output(TOSA_GPIO_TC6393XB_REST_IN, 0);
+
 	if (rc)
+	{
 		goto err_dir_pclr;
+	}
 
 	mdelay(1);
 
@@ -673,7 +746,8 @@ static int tosa_tc6393xb_suspend(struct platform_device *dev)
 	return 0;
 }
 
-static struct mtd_partition tosa_nand_partition[] = {
+static struct mtd_partition tosa_nand_partition[] =
+{
 	{
 		.name	= "smf",
 		.offset	= 0,
@@ -693,14 +767,16 @@ static struct mtd_partition tosa_nand_partition[] = {
 
 static uint8_t scan_ff_pattern[] = { 0xff, 0xff };
 
-static struct nand_bbt_descr tosa_tc6393xb_nand_bbt = {
+static struct nand_bbt_descr tosa_tc6393xb_nand_bbt =
+{
 	.options	= 0,
 	.offs		= 4,
 	.len		= 2,
 	.pattern	= scan_ff_pattern
 };
 
-static struct tmio_nand_data tosa_tc6393xb_nand_config = {
+static struct tmio_nand_data tosa_tc6393xb_nand_config =
+{
 	.num_partitions	= ARRAY_SIZE(tosa_nand_partition),
 	.partition	= tosa_nand_partition,
 	.badblock_pattern = &tosa_tc6393xb_nand_bbt,
@@ -711,12 +787,18 @@ static int tosa_tc6393xb_setup(struct platform_device *dev)
 	int rc;
 
 	rc = gpio_request(TOSA_GPIO_CARD_VCC_ON, "CARD_VCC_ON");
+
 	if (rc)
+	{
 		goto err_req;
+	}
 
 	rc = gpio_direction_output(TOSA_GPIO_CARD_VCC_ON, 1);
+
 	if (rc)
+	{
 		goto err_dir;
+	}
 
 	return rc;
 
@@ -732,7 +814,8 @@ static void tosa_tc6393xb_teardown(struct platform_device *dev)
 }
 
 #ifdef CONFIG_MFD_TC6393XB
-static struct fb_videomode tosa_tc6393xb_lcd_mode[] = {
+static struct fb_videomode tosa_tc6393xb_lcd_mode[] =
+{
 	{
 		.xres = 480,
 		.yres = 640,
@@ -745,7 +828,7 @@ static struct fb_videomode tosa_tc6393xb_lcd_mode[] = {
 		.vsync_len = 0x0001,
 		.sync = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 		.vmode = FB_VMODE_NONINTERLACED,
-	},{
+	}, {
 		.xres = 240,
 		.yres = 320,
 		.pixclock = 0x00e7f203,/* PLL divisor */
@@ -760,7 +843,8 @@ static struct fb_videomode tosa_tc6393xb_lcd_mode[] = {
 	}
 };
 
-static struct tmio_fb_data tosa_tc6393xb_fb_config = {
+static struct tmio_fb_data tosa_tc6393xb_fb_config =
+{
 	.lcd_set_power	= tc6393xb_lcd_set_power,
 	.lcd_mode	= tc6393xb_lcd_mode,
 	.num_modes	= ARRAY_SIZE(tosa_tc6393xb_lcd_mode),
@@ -770,7 +854,8 @@ static struct tmio_fb_data tosa_tc6393xb_fb_config = {
 };
 #endif
 
-static struct tc6393xb_platform_data tosa_tc6393xb_data = {
+static struct tc6393xb_platform_data tosa_tc6393xb_data =
+{
 	.scr_pll2cr	= 0x0cc1,
 	.scr_gper	= 0x3300,
 
@@ -793,7 +878,8 @@ static struct tc6393xb_platform_data tosa_tc6393xb_data = {
 };
 
 
-static struct platform_device tc6393xb_device = {
+static struct platform_device tc6393xb_device =
+{
 	.name	= "tc6393xb",
 	.id	= -1,
 	.dev	= {
@@ -803,22 +889,26 @@ static struct platform_device tc6393xb_device = {
 	.resource	= tc6393xb_resources,
 };
 
-static struct tosa_bt_data tosa_bt_data = {
+static struct tosa_bt_data tosa_bt_data =
+{
 	.gpio_pwr	= TOSA_GPIO_BT_PWR_EN,
 	.gpio_reset	= TOSA_GPIO_BT_RESET,
 };
 
-static struct platform_device tosa_bt_device = {
+static struct platform_device tosa_bt_device =
+{
 	.name	= "tosa-bt",
 	.id	= -1,
 	.dev.platform_data = &tosa_bt_data,
 };
 
-static struct pxa2xx_spi_master pxa_ssp_master_info = {
+static struct pxa2xx_spi_master pxa_ssp_master_info =
+{
 	.num_chipselect	= 1,
 };
 
-static struct spi_board_info spi_board_info[] __initdata = {
+static struct spi_board_info spi_board_info[] __initdata =
+{
 	{
 		.modalias	= "tosa-lcd",
 		// .platform_data
@@ -829,21 +919,24 @@ static struct spi_board_info spi_board_info[] __initdata = {
 	},
 };
 
-static struct mtd_partition sharpsl_rom_parts[] = {
+static struct mtd_partition sharpsl_rom_parts[] =
+{
 	{
-		.name	="Boot PROM Filesystem",
+		.name	= "Boot PROM Filesystem",
 		.offset	= 0x00160000,
 		.size	= MTDPART_SIZ_FULL,
 	},
 };
 
-static struct physmap_flash_data sharpsl_rom_data = {
+static struct physmap_flash_data sharpsl_rom_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(sharpsl_rom_parts),
 	.parts		= sharpsl_rom_parts,
 };
 
-static struct resource sharpsl_rom_resources[] = {
+static struct resource sharpsl_rom_resources[] =
+{
 	{
 		.start	= 0x00000000,
 		.end	= 0x007fffff,
@@ -851,7 +944,8 @@ static struct resource sharpsl_rom_resources[] = {
 	},
 };
 
-static struct platform_device sharpsl_rom_device = {
+static struct platform_device sharpsl_rom_device =
+{
 	.name	= "physmap-flash",
 	.id	= -1,
 	.resource = sharpsl_rom_resources,
@@ -859,17 +953,20 @@ static struct platform_device sharpsl_rom_device = {
 	.dev.platform_data = &sharpsl_rom_data,
 };
 
-static struct platform_device wm9712_device = {
+static struct platform_device wm9712_device =
+{
 	.name	= "wm9712-codec",
 	.id	= -1,
 };
 
-static struct platform_device tosa_audio_device = {
+static struct platform_device tosa_audio_device =
+{
 	.name	= "tosa-audio",
 	.id	= -1,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&tosascoop_device,
 	&tosascoop_jc_device,
 	&tc6393xb_device,
@@ -894,8 +991,10 @@ static void tosa_restart(enum reboot_mode mode, const char *cmd)
 	uint32_t msc0 = __raw_readl(MSC0);
 
 	/* Bootloader magic for a reboot */
-	if((msc0 & 0xffff0000) == 0x7ff00000)
+	if ((msc0 & 0xffff0000) == 0x7ff00000)
+	{
 		__raw_writel((msc0 & 0xffff) | 0x7ee00000, MSC0);
+	}
 
 	tosa_poweroff();
 }
@@ -941,12 +1040,12 @@ static void __init fixup_tosa(struct tag *tags, char **cmdline)
 }
 
 MACHINE_START(TOSA, "SHARP Tosa")
-	.fixup          = fixup_tosa,
-	.map_io         = pxa25x_map_io,
-	.nr_irqs	= TOSA_NR_IRQS,
-	.init_irq       = pxa25x_init_irq,
-	.handle_irq       = pxa25x_handle_irq,
-	.init_machine   = tosa_init,
-	.init_time	= pxa_timer_init,
-	.restart	= tosa_restart,
-MACHINE_END
+.fixup          = fixup_tosa,
+ .map_io         = pxa25x_map_io,
+  .nr_irqs	= TOSA_NR_IRQS,
+	  .init_irq       = pxa25x_init_irq,
+	   .handle_irq       = pxa25x_handle_irq,
+		.init_machine   = tosa_init,
+		 .init_time	= pxa_timer_init,
+		   .restart	= tosa_restart,
+			   MACHINE_END

@@ -16,10 +16,11 @@
 #define LC_ORDER 1
 #define LC_PAGES 2
 
-struct lowcore {
-	__u8	pad_0x0000[0x0014-0x0000];	/* 0x0000 */
+struct lowcore
+{
+	__u8	pad_0x0000[0x0014 - 0x0000];	/* 0x0000 */
 	__u32	ipl_parmblock_ptr;		/* 0x0014 */
-	__u8	pad_0x0018[0x0080-0x0018];	/* 0x0018 */
+	__u8	pad_0x0018[0x0080 - 0x0018];	/* 0x0018 */
 	__u32	ext_params;			/* 0x0080 */
 	__u16	ext_cpu_addr;			/* 0x0084 */
 	__u16	ext_int_code;			/* 0x0086 */
@@ -36,30 +37,30 @@ struct lowcore {
 	__u8	per_access_id;			/* 0x00a1 */
 	__u8	op_access_id;			/* 0x00a2 */
 	__u8	ar_mode_id;			/* 0x00a3 */
-	__u8	pad_0x00a4[0x00a8-0x00a4];	/* 0x00a4 */
+	__u8	pad_0x00a4[0x00a8 - 0x00a4];	/* 0x00a4 */
 	__u64	trans_exc_code;			/* 0x00a8 */
 	__u64	monitor_code;			/* 0x00b0 */
 	__u16	subchannel_id;			/* 0x00b8 */
 	__u16	subchannel_nr;			/* 0x00ba */
 	__u32	io_int_parm;			/* 0x00bc */
 	__u32	io_int_word;			/* 0x00c0 */
-	__u8	pad_0x00c4[0x00c8-0x00c4];	/* 0x00c4 */
+	__u8	pad_0x00c4[0x00c8 - 0x00c4];	/* 0x00c4 */
 	__u32	stfl_fac_list;			/* 0x00c8 */
-	__u8	pad_0x00cc[0x00e8-0x00cc];	/* 0x00cc */
+	__u8	pad_0x00cc[0x00e8 - 0x00cc];	/* 0x00cc */
 	__u64	mcck_interruption_code;		/* 0x00e8 */
-	__u8	pad_0x00f0[0x00f4-0x00f0];	/* 0x00f0 */
+	__u8	pad_0x00f0[0x00f4 - 0x00f0];	/* 0x00f0 */
 	__u32	external_damage_code;		/* 0x00f4 */
 	__u64	failing_storage_address;	/* 0x00f8 */
-	__u8	pad_0x0100[0x0110-0x0100];	/* 0x0100 */
+	__u8	pad_0x0100[0x0110 - 0x0100];	/* 0x0100 */
 	__u64	breaking_event_addr;		/* 0x0110 */
-	__u8	pad_0x0118[0x0120-0x0118];	/* 0x0118 */
+	__u8	pad_0x0118[0x0120 - 0x0118];	/* 0x0118 */
 	psw_t	restart_old_psw;		/* 0x0120 */
 	psw_t	external_old_psw;		/* 0x0130 */
 	psw_t	svc_old_psw;			/* 0x0140 */
 	psw_t	program_old_psw;		/* 0x0150 */
 	psw_t	mcck_old_psw;			/* 0x0160 */
 	psw_t	io_old_psw;			/* 0x0170 */
-	__u8	pad_0x0180[0x01a0-0x0180];	/* 0x0180 */
+	__u8	pad_0x0180[0x01a0 - 0x0180];	/* 0x0180 */
 	psw_t	restart_psw;			/* 0x01a0 */
 	psw_t	external_new_psw;		/* 0x01b0 */
 	psw_t	svc_new_psw;			/* 0x01c0 */
@@ -126,16 +127,16 @@ struct lowcore {
 	__u64	percpu_offset;			/* 0x0378 */
 	__u64	vdso_per_cpu_data;		/* 0x0380 */
 	__u64	machine_flags;			/* 0x0388 */
-	__u8	pad_0x0390[0x0398-0x0390];	/* 0x0390 */
+	__u8	pad_0x0390[0x0398 - 0x0390];	/* 0x0390 */
 	__u64	gmap;				/* 0x0398 */
 	__u32	spinlock_lockval;		/* 0x03a0 */
 	__u32	fpu_flags;			/* 0x03a4 */
-	__u8	pad_0x03a8[0x0400-0x03a8];	/* 0x03a8 */
+	__u8	pad_0x03a8[0x0400 - 0x03a8];	/* 0x03a8 */
 
 	/* Per cpu primary space access list */
 	__u32	paste[16];			/* 0x0400 */
 
-	__u8	pad_0x04c0[0x0e00-0x0440];	/* 0x0440 */
+	__u8	pad_0x04c0[0x0e00 - 0x0440];	/* 0x0440 */
 
 	/*
 	 * 0xe00 contains the address of the IPL Parameter Information
@@ -145,40 +146,40 @@ struct lowcore {
 	__u64	ipib;				/* 0x0e00 */
 	__u32	ipib_checksum;			/* 0x0e08 */
 	__u64	vmcore_info;			/* 0x0e0c */
-	__u8	pad_0x0e14[0x0e18-0x0e14];	/* 0x0e14 */
+	__u8	pad_0x0e14[0x0e18 - 0x0e14];	/* 0x0e14 */
 	__u64	os_info;			/* 0x0e18 */
-	__u8	pad_0x0e20[0x0f00-0x0e20];	/* 0x0e20 */
+	__u8	pad_0x0e20[0x0f00 - 0x0e20];	/* 0x0e20 */
 
 	/* Extended facility list */
 	__u64	stfle_fac_list[32];		/* 0x0f00 */
-	__u8	pad_0x1000[0x11b0-0x1000];	/* 0x1000 */
+	__u8	pad_0x1000[0x11b0 - 0x1000];	/* 0x1000 */
 
 	/* Pointer to vector register save area */
 	__u64	vector_save_area_addr;		/* 0x11b0 */
 
 	/* 64 bit extparam used for pfault/diag 250: defined by architecture */
 	__u64	ext_params2;			/* 0x11B8 */
-	__u8	pad_0x11c0[0x1200-0x11C0];	/* 0x11C0 */
+	__u8	pad_0x11c0[0x1200 - 0x11C0];	/* 0x11C0 */
 
 	/* CPU register save area: defined by architecture */
 	__u64	floating_pt_save_area[16];	/* 0x1200 */
 	__u64	gpregs_save_area[16];		/* 0x1280 */
 	psw_t	psw_save_area;			/* 0x1300 */
-	__u8	pad_0x1310[0x1318-0x1310];	/* 0x1310 */
+	__u8	pad_0x1310[0x1318 - 0x1310];	/* 0x1310 */
 	__u32	prefixreg_save_area;		/* 0x1318 */
 	__u32	fpt_creg_save_area;		/* 0x131c */
-	__u8	pad_0x1320[0x1324-0x1320];	/* 0x1320 */
+	__u8	pad_0x1320[0x1324 - 0x1320];	/* 0x1320 */
 	__u32	tod_progreg_save_area;		/* 0x1324 */
 	__u32	cpu_timer_save_area[2];		/* 0x1328 */
 	__u32	clock_comp_save_area[2];	/* 0x1330 */
-	__u8	pad_0x1338[0x1340-0x1338];	/* 0x1338 */
+	__u8	pad_0x1338[0x1340 - 0x1338];	/* 0x1338 */
 	__u32	access_regs_save_area[16];	/* 0x1340 */
 	__u64	cregs_save_area[16];		/* 0x1380 */
-	__u8	pad_0x1400[0x1800-0x1400];	/* 0x1400 */
+	__u8	pad_0x1400[0x1800 - 0x1400];	/* 0x1400 */
 
 	/* Transaction abort diagnostic block */
 	__u8	pgm_tdb[256];			/* 0x1800 */
-	__u8	pad_0x1900[0x1c00-0x1900];	/* 0x1900 */
+	__u8	pad_0x1900[0x1c00 - 0x1900];	/* 0x1900 */
 
 	/* Software defined save area for vector registers */
 	__u8	vector_save_area[1024];		/* 0x1c00 */

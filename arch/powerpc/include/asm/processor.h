@@ -13,29 +13,29 @@
 #include <asm/reg.h>
 
 #ifdef CONFIG_VSX
-#define TS_FPRWIDTH 2
+	#define TS_FPRWIDTH 2
 
-#ifdef __BIG_ENDIAN__
-#define TS_FPROFFSET 0
-#define TS_VSRLOWOFFSET 1
-#else
-#define TS_FPROFFSET 1
-#define TS_VSRLOWOFFSET 0
-#endif
+	#ifdef __BIG_ENDIAN__
+		#define TS_FPROFFSET 0
+		#define TS_VSRLOWOFFSET 1
+	#else
+		#define TS_FPROFFSET 1
+		#define TS_VSRLOWOFFSET 0
+	#endif
 
 #else
-#define TS_FPRWIDTH 1
-#define TS_FPROFFSET 0
+	#define TS_FPRWIDTH 1
+	#define TS_FPROFFSET 0
 #endif
 
 #ifdef CONFIG_PPC64
-/* Default SMT priority is set to 3. Use 11- 13bits to save priority. */
-#define PPR_PRIORITY 3
-#ifdef __ASSEMBLY__
-#define INIT_PPR (PPR_PRIORITY << 50)
-#else
-#define INIT_PPR ((u64)PPR_PRIORITY << 50)
-#endif /* __ASSEMBLY__ */
+	/* Default SMT priority is set to 3. Use 11- 13bits to save priority. */
+	#define PPR_PRIORITY 3
+	#ifdef __ASSEMBLY__
+		#define INIT_PPR (PPR_PRIORITY << 50)
+	#else
+		#define INIT_PPR ((u64)PPR_PRIORITY << 50)
+	#endif /* __ASSEMBLY__ */
 #endif /* CONFIG_PPC64 */
 
 #ifndef __ASSEMBLY__
@@ -64,7 +64,7 @@
 
 #if defined(__KERNEL__) && defined(CONFIG_PPC32)
 
-extern int _chrp_type;
+	extern int _chrp_type;
 
 #endif /* defined(__KERNEL__) && defined(CONFIG_PPC32) */
 
@@ -90,29 +90,29 @@ void release_thread(struct task_struct *);
 
 #ifdef CONFIG_PPC32
 
-#if CONFIG_TASK_SIZE > CONFIG_KERNEL_START
-#error User TASK_SIZE overlaps with KERNEL_START address
-#endif
-#define TASK_SIZE	(CONFIG_TASK_SIZE)
+	#if CONFIG_TASK_SIZE > CONFIG_KERNEL_START
+		#error User TASK_SIZE overlaps with KERNEL_START address
+	#endif
+	#define TASK_SIZE	(CONFIG_TASK_SIZE)
 
-/* This decides where the kernel will search for a free chunk of vm
- * space during mmap's.
- */
-#define TASK_UNMAPPED_BASE	(TASK_SIZE / 8 * 3)
+	/* This decides where the kernel will search for a free chunk of vm
+	* space during mmap's.
+	*/
+	#define TASK_UNMAPPED_BASE	(TASK_SIZE / 8 * 3)
 #endif
 
 #ifdef CONFIG_PPC64
 /* 64-bit user address space is 46-bits (64TB user VM) */
 #define TASK_SIZE_USER64 (0x0000400000000000UL)
 
-/* 
- * 32-bit user address space is 4GB - 1 page 
+/*
+ * 32-bit user address space is 4GB - 1 page
  * (this 1 page is needed so referencing of 0xFFFFFFFF generates EFAULT
  */
 #define TASK_SIZE_USER32 (0x0000000100000000UL - (1*PAGE_SIZE))
 
 #define TASK_SIZE_OF(tsk) (test_tsk_thread_flag(tsk, TIF_32BIT) ? \
-		TASK_SIZE_USER32 : TASK_SIZE_USER64)
+						   TASK_SIZE_USER32 : TASK_SIZE_USER64)
 #define TASK_SIZE	  TASK_SIZE_OF(current)
 
 /* This decides where the kernel will search for a free chunk of vm
@@ -122,7 +122,7 @@ void release_thread(struct task_struct *);
 #define TASK_UNMAPPED_BASE_USER64 (PAGE_ALIGN(TASK_SIZE_USER64 / 4))
 
 #define TASK_UNMAPPED_BASE ((is_32bit_task()) ? \
-		TASK_UNMAPPED_BASE_USER32 : TASK_UNMAPPED_BASE_USER64 )
+							TASK_UNMAPPED_BASE_USER32 : TASK_UNMAPPED_BASE_USER64 )
 #endif
 
 #ifdef __powerpc64__
@@ -131,7 +131,7 @@ void release_thread(struct task_struct *);
 #define STACK_TOP_USER32 TASK_SIZE_USER32
 
 #define STACK_TOP (is_32bit_task() ? \
-		   STACK_TOP_USER32 : STACK_TOP_USER64)
+				   STACK_TOP_USER32 : STACK_TOP_USER64)
 
 #define STACK_TOP_MAX STACK_TOP_USER64
 
@@ -142,7 +142,8 @@ void release_thread(struct task_struct *);
 
 #endif /* __powerpc64__ */
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
@@ -150,18 +151,21 @@ typedef struct {
 #define TS_CKFPR(i) ckfp_state.fpr[i][TS_FPROFFSET]
 
 /* FP and VSX 0-31 register set */
-struct thread_fp_state {
+struct thread_fp_state
+{
 	u64	fpr[32][TS_FPRWIDTH] __attribute__((aligned(16)));
 	u64	fpscr;		/* Floating point status */
 };
 
 /* Complete AltiVec register set including VSCR */
-struct thread_vr_state {
+struct thread_vr_state
+{
 	vector128	vr[32] __attribute__((aligned(16)));
 	vector128	vscr __attribute__((aligned(16)));
 };
 
-struct debug_reg {
+struct debug_reg
+{
 #ifdef CONFIG_PPC_ADV_DEBUG_REGS
 	/*
 	 * The following help to manage the use of Debug Control Registers
@@ -200,7 +204,8 @@ struct debug_reg {
 #endif
 };
 
-struct thread_struct {
+struct thread_struct
+{
 	unsigned long	ksp;		/* Kernel stack pointer */
 
 #ifdef CONFIG_PPC64
@@ -281,7 +286,7 @@ struct thread_struct {
 	unsigned long	ckvrsave; /* Checkpointed VRSAVE */
 #endif /* CONFIG_PPC_TRANSACTIONAL_MEM */
 #ifdef CONFIG_KVM_BOOK3S_32_HANDLER
-	void*		kvm_shadow_vcpu; /* KVM internal data */
+	void		*kvm_shadow_vcpu; /* KVM internal data */
 #endif /* CONFIG_KVM_BOOK3S_32_HANDLER */
 #if defined(CONFIG_KVM) && defined(CONFIG_BOOKE)
 	struct kvm_vcpu	*kvm_vcpu;
@@ -326,36 +331,36 @@ struct thread_struct {
 #ifdef CONFIG_SPE
 #define SPEFSCR_INIT \
 	.spefscr = SPEFSCR_FINVE | SPEFSCR_FDBZE | SPEFSCR_FUNFE | SPEFSCR_FOVFE, \
-	.spefscr_last = SPEFSCR_FINVE | SPEFSCR_FDBZE | SPEFSCR_FUNFE | SPEFSCR_FOVFE,
+			   .spefscr_last = SPEFSCR_FINVE | SPEFSCR_FDBZE | SPEFSCR_FUNFE | SPEFSCR_FOVFE,
 #else
 #define SPEFSCR_INIT
 #endif
 
 #ifdef CONFIG_PPC32
 #define INIT_THREAD { \
-	.ksp = INIT_SP, \
-	.ksp_limit = INIT_SP_LIMIT, \
-	.fs = KERNEL_DS, \
-	.pgdir = swapper_pg_dir, \
-	.fpexc_mode = MSR_FE0 | MSR_FE1, \
-	SPEFSCR_INIT \
-}
+		.ksp = INIT_SP, \
+			   .ksp_limit = INIT_SP_LIMIT, \
+							.fs = KERNEL_DS, \
+								  .pgdir = swapper_pg_dir, \
+										   .fpexc_mode = MSR_FE0 | MSR_FE1, \
+												   SPEFSCR_INIT \
+	}
 #else
 #define INIT_THREAD  { \
-	.ksp = INIT_SP, \
-	.regs = (struct pt_regs *)INIT_SP - 1, /* XXX bogus, I think */ \
-	.fs = KERNEL_DS, \
-	.fpexc_mode = 0, \
-	.ppr = INIT_PPR, \
-	.fscr = FSCR_TAR | FSCR_EBB \
-}
+		.ksp = INIT_SP, \
+			   .regs = (struct pt_regs *)INIT_SP - 1, /* XXX bogus, I think */ \
+					   .fs = KERNEL_DS, \
+							 .fpexc_mode = 0, \
+										   .ppr = INIT_PPR, \
+												   .fscr = FSCR_TAR | FSCR_EBB \
+	}
 #endif
 
 /*
  * Return saved PC of a blocked thread. For now, this is the "user" PC
  */
 #define thread_saved_pc(tsk)    \
-        ((tsk)->thread.regs? (tsk)->thread.regs->nip: 0)
+	((tsk)->thread.regs? (tsk)->thread.regs->nip: 0)
 
 #define task_pt_regs(tsk)	((struct pt_regs *)(tsk)->thread.regs)
 
@@ -399,16 +404,16 @@ static inline unsigned long __pack_fe01(unsigned int fpmode)
 }
 
 #ifdef CONFIG_PPC64
-#define cpu_relax()	do { HMT_low(); HMT_medium(); barrier(); } while (0)
+	#define cpu_relax()	do { HMT_low(); HMT_medium(); barrier(); } while (0)
 #else
-#define cpu_relax()	barrier()
+	#define cpu_relax()	barrier()
 #endif
 
 #define cpu_relax_lowlatency() cpu_relax()
 
 /* Check that a certain kernel stack pointer is valid in task_struct p */
 int validate_sp(unsigned long sp, struct task_struct *p,
-                       unsigned long nbytes);
+				unsigned long nbytes);
 
 /*
  * Prefetch macros.
@@ -420,7 +425,9 @@ int validate_sp(unsigned long sp, struct task_struct *p,
 static inline void prefetch(const void *x)
 {
 	if (unlikely(!x))
+	{
 		return;
+	}
 
 	__asm__ __volatile__ ("dcbt 0,%0" : : "r" (x));
 }
@@ -428,7 +435,9 @@ static inline void prefetch(const void *x)
 static inline void prefetchw(const void *x)
 {
 	if (unlikely(!x))
+	{
 		return;
+	}
 
 	__asm__ __volatile__ ("dcbtst 0,%0" : : "r" (x));
 }
@@ -441,7 +450,10 @@ static inline void prefetchw(const void *x)
 static inline unsigned long get_clean_sp(unsigned long sp, int is_32)
 {
 	if (is_32)
+	{
 		return sp & 0x0ffffffffUL;
+	}
+
 	return sp;
 }
 #else
@@ -469,14 +481,14 @@ extern void cvt_df(double *from, float *to);
 extern void _nmask_and_or_msr(unsigned long nmask, unsigned long or_val);
 
 #ifdef CONFIG_PPC64
-/*
- * We handle most unaligned accesses in hardware. On the other hand 
- * unaligned DMA can be very expensive on some ppc64 IO chips (it does
- * powers of 2 writes until it reaches sufficient alignment).
- *
- * Based on this we disable the IP header alignment in network drivers.
- */
-#define NET_IP_ALIGN	0
+	/*
+	* We handle most unaligned accesses in hardware. On the other hand
+	* unaligned DMA can be very expensive on some ppc64 IO chips (it does
+	* powers of 2 writes until it reaches sufficient alignment).
+	*
+	* Based on this we disable the IP header alignment in network drivers.
+	*/
+	#define NET_IP_ALIGN	0
 #endif
 
 #endif /* __KERNEL__ */

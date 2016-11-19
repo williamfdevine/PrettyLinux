@@ -11,9 +11,9 @@
 #define VERBOSE 0 /* Set to '1' for more logging of test cases */
 
 #ifdef CONFIG_THUMB2_KERNEL
-#define NORMAL_ISA "16"
+	#define NORMAL_ISA "16"
 #else
-#define NORMAL_ISA "32"
+	#define NORMAL_ISA "32"
 #endif
 
 
@@ -56,26 +56,30 @@ extern int kprobe_test_cc_position;
 #define ARG_FLAG_THUMB		0x10	/* Must be 16 so TEST_ISA can be used */
 #define ARG_FLAG_ARM		0x20	/* Must be 32 so TEST_ISA can be used */
 
-struct test_arg {
+struct test_arg
+{
 	u8	type;		/* ARG_TYPE_x */
 	u8	_padding[7];
 };
 
-struct test_arg_regptr {
+struct test_arg_regptr
+{
 	u8	type;		/* ARG_TYPE_REG or ARG_TYPE_PTR or ARG_TYPE_REG_MASKED */
 	u8	reg;
 	u8	_padding[2];
 	u32	val;
 };
 
-struct test_arg_mem {
+struct test_arg_mem
+{
 	u8	type;		/* ARG_TYPE_MEM */
 	u8	index;
 	u8	_padding[2];
 	u32	val;
 };
 
-struct test_arg_end {
+struct test_arg_end
+{
 	u8	type;		/* ARG_TYPE_END */
 	u8	flags;		/* ARG_FLAG_x */
 	u16	code_offset;
@@ -99,9 +103,9 @@ struct test_arg_end {
  */
 
 #if VERBOSE
-#define verbose(fmt, ...) pr_info(fmt, ##__VA_ARGS__)
+	#define verbose(fmt, ...) pr_info(fmt, ##__VA_ARGS__)
 #else
-#define verbose(fmt, ...)
+	#define verbose(fmt, ...)
 #endif
 
 #define TEST_GROUP(title)					\
@@ -111,15 +115,15 @@ struct test_arg_end {
 
 #define TESTCASE_START(title)					\
 	__asm__ __volatile__ (					\
-	"bl	__kprobes_test_case_start		\n\t"	\
-	".pushsection .rodata				\n\t"	\
-	"10:						\n\t"	\
-	/* don't use .asciz here as 'title' may be */		\
-	/* multiple strings to be concatenated.  */		\
-	".ascii "#title"				\n\t"	\
-	".byte	0					\n\t"	\
-	".popsection					\n\t"	\
-	".word	10b					\n\t"
+											"bl	__kprobes_test_case_start		\n\t"	\
+											".pushsection .rodata				\n\t"	\
+											"10:						\n\t"	\
+											/* don't use .asciz here as 'title' may be */		\
+											/* multiple strings to be concatenated.  */		\
+											".ascii "#title"				\n\t"	\
+											".byte	0					\n\t"	\
+											".popsection					\n\t"	\
+											".word	10b					\n\t"
 
 #define	TEST_ARG_REG(reg, val)					\
 	".byte	"__stringify(ARG_TYPE_REG)"		\n\t"	\
@@ -451,8 +455,8 @@ struct test_arg_end {
 
 
 #ifdef CONFIG_THUMB2_KERNEL
-void kprobe_thumb16_test_cases(void);
-void kprobe_thumb32_test_cases(void);
+	void kprobe_thumb16_test_cases(void);
+	void kprobe_thumb32_test_cases(void);
 #else
-void kprobe_arm_test_cases(void);
+	void kprobe_arm_test_cases(void);
 #endif

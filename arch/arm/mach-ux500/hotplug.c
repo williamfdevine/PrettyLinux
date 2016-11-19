@@ -24,10 +24,13 @@
 void ux500_cpu_die(unsigned int cpu)
 {
 	/* directly enter low power state, skipping secure registers */
-	for (;;) {
+	for (;;)
+	{
 		__asm__ __volatile__("dsb\n\t" "wfi\n\t"
-				: : : "memory");
-		if (pen_release == cpu_logical_map(cpu)) {
+							 : : : "memory");
+
+		if (pen_release == cpu_logical_map(cpu))
+		{
 			/*
 			 * OK, proper wakeup, we're done
 			 */

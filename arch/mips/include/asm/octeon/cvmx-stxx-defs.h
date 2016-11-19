@@ -45,21 +45,23 @@
 #define CVMX_STXX_STAT_CTL(block_id) (CVMX_ADD_IO_SEG(0x0001180090000638ull) + ((block_id) & 1) * 0x8000000ull)
 #define CVMX_STXX_STAT_PKT_XMT(block_id) (CVMX_ADD_IO_SEG(0x0001180090000640ull) + ((block_id) & 1) * 0x8000000ull)
 
-union cvmx_stxx_arb_ctl {
+union cvmx_stxx_arb_ctl
+{
 	uint64_t u64;
-	struct cvmx_stxx_arb_ctl_s {
+	struct cvmx_stxx_arb_ctl_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_6_63:58;
-		uint64_t mintrn:1;
-		uint64_t reserved_4_4:1;
-		uint64_t igntpa:1;
-		uint64_t reserved_0_2:3;
+		uint64_t reserved_6_63: 58;
+		uint64_t mintrn: 1;
+		uint64_t reserved_4_4: 1;
+		uint64_t igntpa: 1;
+		uint64_t reserved_0_2: 3;
 #else
-		uint64_t reserved_0_2:3;
-		uint64_t igntpa:1;
-		uint64_t reserved_4_4:1;
-		uint64_t mintrn:1;
-		uint64_t reserved_6_63:58;
+		uint64_t reserved_0_2: 3;
+		uint64_t igntpa: 1;
+		uint64_t reserved_4_4: 1;
+		uint64_t mintrn: 1;
+		uint64_t reserved_6_63: 58;
 #endif
 	} s;
 	struct cvmx_stxx_arb_ctl_s cn38xx;
@@ -68,15 +70,17 @@ union cvmx_stxx_arb_ctl {
 	struct cvmx_stxx_arb_ctl_s cn58xxp1;
 };
 
-union cvmx_stxx_bckprs_cnt {
+union cvmx_stxx_bckprs_cnt
+{
 	uint64_t u64;
-	struct cvmx_stxx_bckprs_cnt_s {
+	struct cvmx_stxx_bckprs_cnt_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_32_63:32;
-		uint64_t cnt:32;
+		uint64_t reserved_32_63: 32;
+		uint64_t cnt: 32;
 #else
-		uint64_t cnt:32;
-		uint64_t reserved_32_63:32;
+		uint64_t cnt: 32;
+		uint64_t reserved_32_63: 32;
 #endif
 	} s;
 	struct cvmx_stxx_bckprs_cnt_s cn38xx;
@@ -85,19 +89,21 @@ union cvmx_stxx_bckprs_cnt {
 	struct cvmx_stxx_bckprs_cnt_s cn58xxp1;
 };
 
-union cvmx_stxx_com_ctl {
+union cvmx_stxx_com_ctl
+{
 	uint64_t u64;
-	struct cvmx_stxx_com_ctl_s {
+	struct cvmx_stxx_com_ctl_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_4_63:60;
-		uint64_t st_en:1;
-		uint64_t reserved_1_2:2;
-		uint64_t inf_en:1;
+		uint64_t reserved_4_63: 60;
+		uint64_t st_en: 1;
+		uint64_t reserved_1_2: 2;
+		uint64_t inf_en: 1;
 #else
-		uint64_t inf_en:1;
-		uint64_t reserved_1_2:2;
-		uint64_t st_en:1;
-		uint64_t reserved_4_63:60;
+		uint64_t inf_en: 1;
+		uint64_t reserved_1_2: 2;
+		uint64_t st_en: 1;
+		uint64_t reserved_4_63: 60;
 #endif
 	} s;
 	struct cvmx_stxx_com_ctl_s cn38xx;
@@ -106,17 +112,19 @@ union cvmx_stxx_com_ctl {
 	struct cvmx_stxx_com_ctl_s cn58xxp1;
 };
 
-union cvmx_stxx_dip_cnt {
+union cvmx_stxx_dip_cnt
+{
 	uint64_t u64;
-	struct cvmx_stxx_dip_cnt_s {
+	struct cvmx_stxx_dip_cnt_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_8_63:56;
-		uint64_t frmmax:4;
-		uint64_t dipmax:4;
+		uint64_t reserved_8_63: 56;
+		uint64_t frmmax: 4;
+		uint64_t dipmax: 4;
 #else
-		uint64_t dipmax:4;
-		uint64_t frmmax:4;
-		uint64_t reserved_8_63:56;
+		uint64_t dipmax: 4;
+		uint64_t frmmax: 4;
+		uint64_t reserved_8_63: 56;
 #endif
 	} s;
 	struct cvmx_stxx_dip_cnt_s cn38xx;
@@ -125,15 +133,17 @@ union cvmx_stxx_dip_cnt {
 	struct cvmx_stxx_dip_cnt_s cn58xxp1;
 };
 
-union cvmx_stxx_ign_cal {
+union cvmx_stxx_ign_cal
+{
 	uint64_t u64;
-	struct cvmx_stxx_ign_cal_s {
+	struct cvmx_stxx_ign_cal_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_16_63:48;
-		uint64_t igntpa:16;
+		uint64_t reserved_16_63: 48;
+		uint64_t igntpa: 16;
 #else
-		uint64_t igntpa:16;
-		uint64_t reserved_16_63:48;
+		uint64_t igntpa: 16;
+		uint64_t reserved_16_63: 48;
 #endif
 	} s;
 	struct cvmx_stxx_ign_cal_s cn38xx;
@@ -142,29 +152,31 @@ union cvmx_stxx_ign_cal {
 	struct cvmx_stxx_ign_cal_s cn58xxp1;
 };
 
-union cvmx_stxx_int_msk {
+union cvmx_stxx_int_msk
+{
 	uint64_t u64;
-	struct cvmx_stxx_int_msk_s {
+	struct cvmx_stxx_int_msk_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_8_63:56;
-		uint64_t frmerr:1;
-		uint64_t unxfrm:1;
-		uint64_t nosync:1;
-		uint64_t diperr:1;
-		uint64_t datovr:1;
-		uint64_t ovrbst:1;
-		uint64_t calpar1:1;
-		uint64_t calpar0:1;
+		uint64_t reserved_8_63: 56;
+		uint64_t frmerr: 1;
+		uint64_t unxfrm: 1;
+		uint64_t nosync: 1;
+		uint64_t diperr: 1;
+		uint64_t datovr: 1;
+		uint64_t ovrbst: 1;
+		uint64_t calpar1: 1;
+		uint64_t calpar0: 1;
 #else
-		uint64_t calpar0:1;
-		uint64_t calpar1:1;
-		uint64_t ovrbst:1;
-		uint64_t datovr:1;
-		uint64_t diperr:1;
-		uint64_t nosync:1;
-		uint64_t unxfrm:1;
-		uint64_t frmerr:1;
-		uint64_t reserved_8_63:56;
+		uint64_t calpar0: 1;
+		uint64_t calpar1: 1;
+		uint64_t ovrbst: 1;
+		uint64_t datovr: 1;
+		uint64_t diperr: 1;
+		uint64_t nosync: 1;
+		uint64_t unxfrm: 1;
+		uint64_t frmerr: 1;
+		uint64_t reserved_8_63: 56;
 #endif
 	} s;
 	struct cvmx_stxx_int_msk_s cn38xx;
@@ -173,31 +185,33 @@ union cvmx_stxx_int_msk {
 	struct cvmx_stxx_int_msk_s cn58xxp1;
 };
 
-union cvmx_stxx_int_reg {
+union cvmx_stxx_int_reg
+{
 	uint64_t u64;
-	struct cvmx_stxx_int_reg_s {
+	struct cvmx_stxx_int_reg_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_9_63:55;
-		uint64_t syncerr:1;
-		uint64_t frmerr:1;
-		uint64_t unxfrm:1;
-		uint64_t nosync:1;
-		uint64_t diperr:1;
-		uint64_t datovr:1;
-		uint64_t ovrbst:1;
-		uint64_t calpar1:1;
-		uint64_t calpar0:1;
+		uint64_t reserved_9_63: 55;
+		uint64_t syncerr: 1;
+		uint64_t frmerr: 1;
+		uint64_t unxfrm: 1;
+		uint64_t nosync: 1;
+		uint64_t diperr: 1;
+		uint64_t datovr: 1;
+		uint64_t ovrbst: 1;
+		uint64_t calpar1: 1;
+		uint64_t calpar0: 1;
 #else
-		uint64_t calpar0:1;
-		uint64_t calpar1:1;
-		uint64_t ovrbst:1;
-		uint64_t datovr:1;
-		uint64_t diperr:1;
-		uint64_t nosync:1;
-		uint64_t unxfrm:1;
-		uint64_t frmerr:1;
-		uint64_t syncerr:1;
-		uint64_t reserved_9_63:55;
+		uint64_t calpar0: 1;
+		uint64_t calpar1: 1;
+		uint64_t ovrbst: 1;
+		uint64_t datovr: 1;
+		uint64_t diperr: 1;
+		uint64_t nosync: 1;
+		uint64_t unxfrm: 1;
+		uint64_t frmerr: 1;
+		uint64_t syncerr: 1;
+		uint64_t reserved_9_63: 55;
 #endif
 	} s;
 	struct cvmx_stxx_int_reg_s cn38xx;
@@ -206,29 +220,31 @@ union cvmx_stxx_int_reg {
 	struct cvmx_stxx_int_reg_s cn58xxp1;
 };
 
-union cvmx_stxx_int_sync {
+union cvmx_stxx_int_sync
+{
 	uint64_t u64;
-	struct cvmx_stxx_int_sync_s {
+	struct cvmx_stxx_int_sync_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_8_63:56;
-		uint64_t frmerr:1;
-		uint64_t unxfrm:1;
-		uint64_t nosync:1;
-		uint64_t diperr:1;
-		uint64_t datovr:1;
-		uint64_t ovrbst:1;
-		uint64_t calpar1:1;
-		uint64_t calpar0:1;
+		uint64_t reserved_8_63: 56;
+		uint64_t frmerr: 1;
+		uint64_t unxfrm: 1;
+		uint64_t nosync: 1;
+		uint64_t diperr: 1;
+		uint64_t datovr: 1;
+		uint64_t ovrbst: 1;
+		uint64_t calpar1: 1;
+		uint64_t calpar0: 1;
 #else
-		uint64_t calpar0:1;
-		uint64_t calpar1:1;
-		uint64_t ovrbst:1;
-		uint64_t datovr:1;
-		uint64_t diperr:1;
-		uint64_t nosync:1;
-		uint64_t unxfrm:1;
-		uint64_t frmerr:1;
-		uint64_t reserved_8_63:56;
+		uint64_t calpar0: 1;
+		uint64_t calpar1: 1;
+		uint64_t ovrbst: 1;
+		uint64_t datovr: 1;
+		uint64_t diperr: 1;
+		uint64_t nosync: 1;
+		uint64_t unxfrm: 1;
+		uint64_t frmerr: 1;
+		uint64_t reserved_8_63: 56;
 #endif
 	} s;
 	struct cvmx_stxx_int_sync_s cn38xx;
@@ -237,15 +253,17 @@ union cvmx_stxx_int_sync {
 	struct cvmx_stxx_int_sync_s cn58xxp1;
 };
 
-union cvmx_stxx_min_bst {
+union cvmx_stxx_min_bst
+{
 	uint64_t u64;
-	struct cvmx_stxx_min_bst_s {
+	struct cvmx_stxx_min_bst_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_9_63:55;
-		uint64_t minb:9;
+		uint64_t reserved_9_63: 55;
+		uint64_t minb: 9;
 #else
-		uint64_t minb:9;
-		uint64_t reserved_9_63:55;
+		uint64_t minb: 9;
+		uint64_t reserved_9_63: 55;
 #endif
 	} s;
 	struct cvmx_stxx_min_bst_s cn38xx;
@@ -254,23 +272,25 @@ union cvmx_stxx_min_bst {
 	struct cvmx_stxx_min_bst_s cn58xxp1;
 };
 
-union cvmx_stxx_spi4_calx {
+union cvmx_stxx_spi4_calx
+{
 	uint64_t u64;
-	struct cvmx_stxx_spi4_calx_s {
+	struct cvmx_stxx_spi4_calx_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_17_63:47;
-		uint64_t oddpar:1;
-		uint64_t prt3:4;
-		uint64_t prt2:4;
-		uint64_t prt1:4;
-		uint64_t prt0:4;
+		uint64_t reserved_17_63: 47;
+		uint64_t oddpar: 1;
+		uint64_t prt3: 4;
+		uint64_t prt2: 4;
+		uint64_t prt1: 4;
+		uint64_t prt0: 4;
 #else
-		uint64_t prt0:4;
-		uint64_t prt1:4;
-		uint64_t prt2:4;
-		uint64_t prt3:4;
-		uint64_t oddpar:1;
-		uint64_t reserved_17_63:47;
+		uint64_t prt0: 4;
+		uint64_t prt1: 4;
+		uint64_t prt2: 4;
+		uint64_t prt3: 4;
+		uint64_t oddpar: 1;
+		uint64_t reserved_17_63: 47;
 #endif
 	} s;
 	struct cvmx_stxx_spi4_calx_s cn38xx;
@@ -279,17 +299,19 @@ union cvmx_stxx_spi4_calx {
 	struct cvmx_stxx_spi4_calx_s cn58xxp1;
 };
 
-union cvmx_stxx_spi4_dat {
+union cvmx_stxx_spi4_dat
+{
 	uint64_t u64;
-	struct cvmx_stxx_spi4_dat_s {
+	struct cvmx_stxx_spi4_dat_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_32_63:32;
-		uint64_t alpha:16;
-		uint64_t max_t:16;
+		uint64_t reserved_32_63: 32;
+		uint64_t alpha: 16;
+		uint64_t max_t: 16;
 #else
-		uint64_t max_t:16;
-		uint64_t alpha:16;
-		uint64_t reserved_32_63:32;
+		uint64_t max_t: 16;
+		uint64_t alpha: 16;
+		uint64_t reserved_32_63: 32;
 #endif
 	} s;
 	struct cvmx_stxx_spi4_dat_s cn38xx;
@@ -298,19 +320,21 @@ union cvmx_stxx_spi4_dat {
 	struct cvmx_stxx_spi4_dat_s cn58xxp1;
 };
 
-union cvmx_stxx_spi4_stat {
+union cvmx_stxx_spi4_stat
+{
 	uint64_t u64;
-	struct cvmx_stxx_spi4_stat_s {
+	struct cvmx_stxx_spi4_stat_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_16_63:48;
-		uint64_t m:8;
-		uint64_t reserved_7_7:1;
-		uint64_t len:7;
+		uint64_t reserved_16_63: 48;
+		uint64_t m: 8;
+		uint64_t reserved_7_7: 1;
+		uint64_t len: 7;
 #else
-		uint64_t len:7;
-		uint64_t reserved_7_7:1;
-		uint64_t m:8;
-		uint64_t reserved_16_63:48;
+		uint64_t len: 7;
+		uint64_t reserved_7_7: 1;
+		uint64_t m: 8;
+		uint64_t reserved_16_63: 48;
 #endif
 	} s;
 	struct cvmx_stxx_spi4_stat_s cn38xx;
@@ -319,15 +343,17 @@ union cvmx_stxx_spi4_stat {
 	struct cvmx_stxx_spi4_stat_s cn58xxp1;
 };
 
-union cvmx_stxx_stat_bytes_hi {
+union cvmx_stxx_stat_bytes_hi
+{
 	uint64_t u64;
-	struct cvmx_stxx_stat_bytes_hi_s {
+	struct cvmx_stxx_stat_bytes_hi_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_32_63:32;
-		uint64_t cnt:32;
+		uint64_t reserved_32_63: 32;
+		uint64_t cnt: 32;
 #else
-		uint64_t cnt:32;
-		uint64_t reserved_32_63:32;
+		uint64_t cnt: 32;
+		uint64_t reserved_32_63: 32;
 #endif
 	} s;
 	struct cvmx_stxx_stat_bytes_hi_s cn38xx;
@@ -336,15 +362,17 @@ union cvmx_stxx_stat_bytes_hi {
 	struct cvmx_stxx_stat_bytes_hi_s cn58xxp1;
 };
 
-union cvmx_stxx_stat_bytes_lo {
+union cvmx_stxx_stat_bytes_lo
+{
 	uint64_t u64;
-	struct cvmx_stxx_stat_bytes_lo_s {
+	struct cvmx_stxx_stat_bytes_lo_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_32_63:32;
-		uint64_t cnt:32;
+		uint64_t reserved_32_63: 32;
+		uint64_t cnt: 32;
 #else
-		uint64_t cnt:32;
-		uint64_t reserved_32_63:32;
+		uint64_t cnt: 32;
+		uint64_t reserved_32_63: 32;
 #endif
 	} s;
 	struct cvmx_stxx_stat_bytes_lo_s cn38xx;
@@ -353,17 +381,19 @@ union cvmx_stxx_stat_bytes_lo {
 	struct cvmx_stxx_stat_bytes_lo_s cn58xxp1;
 };
 
-union cvmx_stxx_stat_ctl {
+union cvmx_stxx_stat_ctl
+{
 	uint64_t u64;
-	struct cvmx_stxx_stat_ctl_s {
+	struct cvmx_stxx_stat_ctl_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_5_63:59;
-		uint64_t clr:1;
-		uint64_t bckprs:4;
+		uint64_t reserved_5_63: 59;
+		uint64_t clr: 1;
+		uint64_t bckprs: 4;
 #else
-		uint64_t bckprs:4;
-		uint64_t clr:1;
-		uint64_t reserved_5_63:59;
+		uint64_t bckprs: 4;
+		uint64_t clr: 1;
+		uint64_t reserved_5_63: 59;
 #endif
 	} s;
 	struct cvmx_stxx_stat_ctl_s cn38xx;
@@ -372,15 +402,17 @@ union cvmx_stxx_stat_ctl {
 	struct cvmx_stxx_stat_ctl_s cn58xxp1;
 };
 
-union cvmx_stxx_stat_pkt_xmt {
+union cvmx_stxx_stat_pkt_xmt
+{
 	uint64_t u64;
-	struct cvmx_stxx_stat_pkt_xmt_s {
+	struct cvmx_stxx_stat_pkt_xmt_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_32_63:32;
-		uint64_t cnt:32;
+		uint64_t reserved_32_63: 32;
+		uint64_t cnt: 32;
 #else
-		uint64_t cnt:32;
-		uint64_t reserved_32_63:32;
+		uint64_t cnt: 32;
+		uint64_t reserved_32_63: 32;
 #endif
 	} s;
 	struct cvmx_stxx_stat_pkt_xmt_s cn38xx;

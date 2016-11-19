@@ -2,7 +2,8 @@
 #define ARCH_X86_CPU_H
 
 /* attempt to consolidate cpu attributes */
-struct cpu_dev {
+struct cpu_dev
+{
 	const char	*c_vendor;
 
 	/* some have two possibilities for cpuid string */
@@ -18,17 +19,19 @@ struct cpu_dev {
 #ifdef CONFIG_X86_32
 	/* Optional vendor specific routine to obtain the cache size. */
 	unsigned int	(*legacy_cache_size)(struct cpuinfo_x86 *,
-					     unsigned int);
+										 unsigned int);
 
 	/* Family/stepping-based lookup table for model names. */
-	struct legacy_cpu_model_info {
+	struct legacy_cpu_model_info
+	{
 		int		family;
 		const char	*model_names[16];
 	}		legacy_models[5];
 #endif
 };
 
-struct _tlb_table {
+struct _tlb_table
+{
 	unsigned char descriptor;
 	char tlb_type;
 	unsigned int entries;
@@ -39,10 +42,10 @@ struct _tlb_table {
 #define cpu_dev_register(cpu_devX) \
 	static const struct cpu_dev *const __cpu_dev_##cpu_devX __used \
 	__attribute__((__section__(".x86_cpu_dev.init"))) = \
-	&cpu_devX;
+			&cpu_devX;
 
 extern const struct cpu_dev *const __x86_cpu_dev_start[],
-			    *const __x86_cpu_dev_end[];
+		   *const __x86_cpu_dev_end[];
 
 extern void get_cpu_cap(struct cpuinfo_x86 *c);
 extern void cpu_detect_cache_sizes(struct cpuinfo_x86 *c);

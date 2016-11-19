@@ -14,7 +14,8 @@
 #include <linux/platform_device.h>
 #include <linux/mc146818rtc.h>
 
-static struct resource loongson_rtc_resources[] = {
+static struct resource loongson_rtc_resources[] =
+{
 	{
 		.start	= RTC_PORT(0),
 		.end	= RTC_PORT(1),
@@ -26,7 +27,8 @@ static struct resource loongson_rtc_resources[] = {
 	}
 };
 
-static struct platform_device loongson_rtc_device = {
+static struct platform_device loongson_rtc_device =
+{
 	.name		= "rtc_cmos",
 	.id		= -1,
 	.resource	= loongson_rtc_resources,

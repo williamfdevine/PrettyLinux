@@ -5,12 +5,14 @@
 
 #include <linux/types.h>
 
-struct hvtramp_mapping {
+struct hvtramp_mapping
+{
 	__u64		vaddr;
 	__u64		tte;
 };
 
-struct hvtramp_descr {
+struct hvtramp_descr
+{
 	__u32			cpu;
 	__u32			num_mappings;
 	__u64			fault_info_va;

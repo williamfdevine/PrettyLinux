@@ -95,105 +95,105 @@ static inline int atomic_cmpxchg(atomic_t *v, int old, int new)
 }
 
 #define ATOMIC_OP(op)							\
-static inline void atomic_##op(int i, atomic_t *v)			\
-{									\
-	int output;							\
-									\
-	__asm__ __volatile__ (						\
-		"1:	%0 = memw_locked(%1);\n"			\
-		"	%0 = "#op "(%0,%2);\n"				\
-		"	memw_locked(%1,P3)=%0;\n"			\
-		"	if !P3 jump 1b;\n"				\
-		: "=&r" (output)					\
-		: "r" (&v->counter), "r" (i)				\
-		: "memory", "p3"					\
-	);								\
-}									\
+	static inline void atomic_##op(int i, atomic_t *v)			\
+	{									\
+		int output;							\
+		\
+		__asm__ __volatile__ (						\
+				"1:	%0 = memw_locked(%1);\n"			\
+				"	%0 = "#op "(%0,%2);\n"				\
+				"	memw_locked(%1,P3)=%0;\n"			\
+				"	if !P3 jump 1b;\n"				\
+				: "=&r" (output)					\
+				: "r" (&v->counter), "r" (i)				\
+				: "memory", "p3"					\
+							 );								\
+	}									\
 
 #define ATOMIC_OP_RETURN(op)						\
-static inline int atomic_##op##_return(int i, atomic_t *v)		\
-{									\
-	int output;							\
-									\
-	__asm__ __volatile__ (						\
-		"1:	%0 = memw_locked(%1);\n"			\
-		"	%0 = "#op "(%0,%2);\n"				\
-		"	memw_locked(%1,P3)=%0;\n"			\
-		"	if !P3 jump 1b;\n"				\
-		: "=&r" (output)					\
-		: "r" (&v->counter), "r" (i)				\
-		: "memory", "p3"					\
-	);								\
-	return output;							\
-}
+	static inline int atomic_##op##_return(int i, atomic_t *v)		\
+	{									\
+		int output;							\
+		\
+		__asm__ __volatile__ (						\
+				"1:	%0 = memw_locked(%1);\n"			\
+				"	%0 = "#op "(%0,%2);\n"				\
+				"	memw_locked(%1,P3)=%0;\n"			\
+				"	if !P3 jump 1b;\n"				\
+				: "=&r" (output)					\
+				: "r" (&v->counter), "r" (i)				\
+				: "memory", "p3"					\
+							 );								\
+		return output;							\
+	}
 
 #define ATOMIC_FETCH_OP(op)						\
-static inline int atomic_fetch_##op(int i, atomic_t *v)			\
-{									\
-	int output, val;						\
-									\
-	__asm__ __volatile__ (						\
-		"1:	%0 = memw_locked(%2);\n"			\
-		"	%1 = "#op "(%0,%3);\n"				\
-		"	memw_locked(%2,P3)=%1;\n"			\
-		"	if !P3 jump 1b;\n"				\
-		: "=&r" (output), "=&r" (val)				\
-		: "r" (&v->counter), "r" (i)				\
-		: "memory", "p3"					\
-	);								\
-	return output;							\
-}
+	static inline int atomic_fetch_##op(int i, atomic_t *v)			\
+	{									\
+		int output, val;						\
+		\
+		__asm__ __volatile__ (						\
+				"1:	%0 = memw_locked(%2);\n"			\
+				"	%1 = "#op "(%0,%3);\n"				\
+				"	memw_locked(%2,P3)=%1;\n"			\
+				"	if !P3 jump 1b;\n"				\
+				: "=&r" (output), "=&r" (val)				\
+				: "r" (&v->counter), "r" (i)				\
+				: "memory", "p3"					\
+							 );								\
+		return output;							\
+	}
 
 #define ATOMIC_OPS(op) ATOMIC_OP(op) ATOMIC_OP_RETURN(op) ATOMIC_FETCH_OP(op)
 
-ATOMIC_OPS(add)
-ATOMIC_OPS(sub)
+	ATOMIC_OPS(add)
+	ATOMIC_OPS(sub)
 
 #undef ATOMIC_OPS
 #define ATOMIC_OPS(op) ATOMIC_OP(op) ATOMIC_FETCH_OP(op)
 
-ATOMIC_OPS(and)
-ATOMIC_OPS(or)
-ATOMIC_OPS(xor)
+	ATOMIC_OPS( and )
+	ATOMIC_OPS( or )
+	ATOMIC_OPS(xor)
 
 #undef ATOMIC_OPS
 #undef ATOMIC_FETCH_OP
 #undef ATOMIC_OP_RETURN
 #undef ATOMIC_OP
 
-/**
- * __atomic_add_unless - add unless the number is a given value
- * @v: pointer to value
- * @a: amount to add
- * @u: unless value is equal to u
- *
- * Returns old value.
- *
- */
+	/**
+	 * __atomic_add_unless - add unless the number is a given value
+	 * @v: pointer to value
+	 * @a: amount to add
+	 * @u: unless value is equal to u
+	 *
+	 * Returns old value.
+	 *
+	 */
 
-static inline int __atomic_add_unless(atomic_t *v, int a, int u)
-{
-	int __oldval;
-	register int tmp;
+	static inline int __atomic_add_unless(atomic_t *v, int a, int u)
+	{
+		int __oldval;
+		register int tmp;
 
-	asm volatile(
-		"1:	%0 = memw_locked(%2);"
-		"	{"
-		"		p3 = cmp.eq(%0, %4);"
-		"		if (p3.new) jump:nt 2f;"
-		"		%1 = add(%0, %3);"
-		"	}"
-		"	memw_locked(%2, p3) = %1;"
-		"	{"
-		"		if !p3 jump 1b;"
-		"	}"
-		"2:"
-		: "=&r" (__oldval), "=&r" (tmp)
-		: "r" (v), "r" (a), "r" (u)
-		: "memory", "p3"
-	);
-	return __oldval;
-}
+		asm volatile(
+			"1:	%0 = memw_locked(%2);"
+			"	{"
+			"		p3 = cmp.eq(%0, %4);"
+			"		if (p3.new) jump:nt 2f;"
+			"		%1 = add(%0, %3);"
+			"	}"
+			"	memw_locked(%2, p3) = %1;"
+			"	{"
+			"		if !p3 jump 1b;"
+			"	}"
+			"2:"
+			: "=&r" (__oldval), "=&r" (tmp)
+			: "r" (v), "r" (a), "r" (u)
+			: "memory", "p3"
+		);
+		return __oldval;
+	}
 
 #define atomic_inc_not_zero(v) atomic_add_unless((v), 1, 0)
 

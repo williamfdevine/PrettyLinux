@@ -9,7 +9,7 @@
  */
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <linux/compiler.h>
@@ -18,11 +18,11 @@
 #include <asm/barrier.h>
 
 #if BITS_PER_LONG == 32
-# define _BITOPS_LONG_SHIFT 5
+	#define _BITOPS_LONG_SHIFT 5
 #elif BITS_PER_LONG == 64
-# define _BITOPS_LONG_SHIFT 6
+	#define _BITOPS_LONG_SHIFT 6
 #else
-# error "Unexpected BITS_PER_LONG"
+	# error "Unexpected BITS_PER_LONG"
 #endif
 
 #define BIT_64(n)			(U64_C(1) << (n))
@@ -36,11 +36,11 @@
  */
 
 #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 1)
-/* Technically wrong, but this avoids compilation errors on some gcc
-   versions. */
-#define BITOP_ADDR(x) "=m" (*(volatile long *) (x))
+	/* Technically wrong, but this avoids compilation errors on some gcc
+	versions. */
+	#define BITOP_ADDR(x) "=m" (*(volatile long *) (x))
 #else
-#define BITOP_ADDR(x) "+m" (*(volatile long *) (x))
+	#define BITOP_ADDR(x) "+m" (*(volatile long *) (x))
 #endif
 
 #define ADDR				BITOP_ADDR(addr)
@@ -71,14 +71,17 @@
 static __always_inline void
 set_bit(long nr, volatile unsigned long *addr)
 {
-	if (IS_IMMEDIATE(nr)) {
+	if (IS_IMMEDIATE(nr))
+	{
 		asm volatile(LOCK_PREFIX "orb %1,%0"
-			: CONST_MASK_ADDR(nr, addr)
-			: "iq" ((u8)CONST_MASK(nr))
-			: "memory");
-	} else {
+					 : CONST_MASK_ADDR(nr, addr)
+					 : "iq" ((u8)CONST_MASK(nr))
+					 : "memory");
+	}
+	else
+	{
 		asm volatile(LOCK_PREFIX "bts %1,%0"
-			: BITOP_ADDR(addr) : "Ir" (nr) : "memory");
+					 : BITOP_ADDR(addr) : "Ir" (nr) : "memory");
 	}
 }
 
@@ -109,14 +112,17 @@ static __always_inline void __set_bit(long nr, volatile unsigned long *addr)
 static __always_inline void
 clear_bit(long nr, volatile unsigned long *addr)
 {
-	if (IS_IMMEDIATE(nr)) {
+	if (IS_IMMEDIATE(nr))
+	{
 		asm volatile(LOCK_PREFIX "andb %1,%0"
-			: CONST_MASK_ADDR(nr, addr)
-			: "iq" ((u8)~CONST_MASK(nr)));
-	} else {
+					 : CONST_MASK_ADDR(nr, addr)
+					 : "iq" ((u8)~CONST_MASK(nr)));
+	}
+	else
+	{
 		asm volatile(LOCK_PREFIX "btr %1,%0"
-			: BITOP_ADDR(addr)
-			: "Ir" (nr));
+					 : BITOP_ADDR(addr)
+					 : "Ir" (nr));
 	}
 }
 
@@ -182,14 +188,17 @@ static __always_inline void __change_bit(long nr, volatile unsigned long *addr)
  */
 static __always_inline void change_bit(long nr, volatile unsigned long *addr)
 {
-	if (IS_IMMEDIATE(nr)) {
+	if (IS_IMMEDIATE(nr))
+	{
 		asm volatile(LOCK_PREFIX "xorb %1,%0"
-			: CONST_MASK_ADDR(nr, addr)
-			: "iq" ((u8)CONST_MASK(nr)));
-	} else {
+					 : CONST_MASK_ADDR(nr, addr)
+					 : "iq" ((u8)CONST_MASK(nr)));
+	}
+	else
+	{
 		asm volatile(LOCK_PREFIX "btc %1,%0"
-			: BITOP_ADDR(addr)
-			: "Ir" (nr));
+					 : BITOP_ADDR(addr)
+					 : "Ir" (nr));
 	}
 }
 
@@ -233,9 +242,9 @@ static __always_inline bool __test_and_set_bit(long nr, volatile unsigned long *
 	bool oldbit;
 
 	asm("bts %2,%1\n\t"
-	    CC_SET(c)
-	    : CC_OUT(c) (oldbit), ADDR
-	    : "Ir" (nr));
+		CC_SET(c)
+		: CC_OUT(c) (oldbit), ADDR
+		: "Ir" (nr));
 	return oldbit;
 }
 
@@ -273,9 +282,9 @@ static __always_inline bool __test_and_clear_bit(long nr, volatile unsigned long
 	bool oldbit;
 
 	asm volatile("btr %2,%1\n\t"
-		     CC_SET(c)
-		     : CC_OUT(c) (oldbit), ADDR
-		     : "Ir" (nr));
+				 CC_SET(c)
+				 : CC_OUT(c) (oldbit), ADDR
+				 : "Ir" (nr));
 	return oldbit;
 }
 
@@ -285,9 +294,9 @@ static __always_inline bool __test_and_change_bit(long nr, volatile unsigned lon
 	bool oldbit;
 
 	asm volatile("btc %2,%1\n\t"
-		     CC_SET(c)
-		     : CC_OUT(c) (oldbit), ADDR
-		     : "Ir" (nr) : "memory");
+				 CC_SET(c)
+				 : CC_OUT(c) (oldbit), ADDR
+				 : "Ir" (nr) : "memory");
 
 	return oldbit;
 }
@@ -307,8 +316,8 @@ static __always_inline bool test_and_change_bit(long nr, volatile unsigned long 
 
 static __always_inline bool constant_test_bit(long nr, const volatile unsigned long *addr)
 {
-	return ((1UL << (nr & (BITS_PER_LONG-1))) &
-		(addr[nr >> _BITOPS_LONG_SHIFT])) != 0;
+	return ((1UL << (nr & (BITS_PER_LONG - 1))) &
+			(addr[nr >> _BITOPS_LONG_SHIFT])) != 0;
 }
 
 static __always_inline bool variable_test_bit(long nr, volatile const unsigned long *addr)
@@ -316,20 +325,20 @@ static __always_inline bool variable_test_bit(long nr, volatile const unsigned l
 	bool oldbit;
 
 	asm volatile("bt %2,%1\n\t"
-		     CC_SET(c)
-		     : CC_OUT(c) (oldbit)
-		     : "m" (*(unsigned long *)addr), "Ir" (nr));
+				 CC_SET(c)
+				 : CC_OUT(c) (oldbit)
+				 : "m" (*(unsigned long *)addr), "Ir" (nr));
 
 	return oldbit;
 }
 
 #if 0 /* Fool kernel-doc since it doesn't do macros yet */
-/**
- * test_bit - Determine whether a bit is set
- * @nr: bit number to test
- * @addr: Address to start counting from
- */
-static bool test_bit(int nr, const volatile unsigned long *addr);
+	/**
+	* test_bit - Determine whether a bit is set
+	* @nr: bit number to test
+	* @addr: Address to start counting from
+	*/
+	static bool test_bit(int nr, const volatile unsigned long *addr);
 #endif
 
 #define test_bit(nr, addr)			\
@@ -374,8 +383,8 @@ static __always_inline unsigned long ffz(unsigned long word)
 static __always_inline unsigned long __fls(unsigned long word)
 {
 	asm("bsr %1,%0"
-	    : "=r" (word)
-	    : "rm" (word));
+		: "=r" (word)
+		: "rm" (word));
 	return word;
 }
 
@@ -408,17 +417,17 @@ static __always_inline int ffs(int x)
 	 * 486 CPUs did not behave this way.
 	 */
 	asm("bsfl %1,%0"
-	    : "=r" (r)
-	    : "rm" (x), "0" (-1));
+		: "=r" (r)
+		: "rm" (x), "0" (-1));
 #elif defined(CONFIG_X86_CMOV)
 	asm("bsfl %1,%0\n\t"
-	    "cmovzl %2,%0"
-	    : "=&r" (r) : "rm" (x), "r" (-1));
+		"cmovzl %2,%0"
+		: "=&r" (r) : "rm" (x), "r" (-1));
 #else
 	asm("bsfl %1,%0\n\t"
-	    "jnz 1f\n\t"
-	    "movl $-1,%0\n"
-	    "1:" : "=r" (r) : "rm" (x));
+		"jnz 1f\n\t"
+		"movl $-1,%0\n"
+		"1:" : "=r" (r) : "rm" (x));
 #endif
 	return r + 1;
 }
@@ -449,17 +458,17 @@ static __always_inline int fls(int x)
 	 * 486 CPUs did not behave this way.
 	 */
 	asm("bsrl %1,%0"
-	    : "=r" (r)
-	    : "rm" (x), "0" (-1));
+		: "=r" (r)
+		: "rm" (x), "0" (-1));
 #elif defined(CONFIG_X86_CMOV)
 	asm("bsrl %1,%0\n\t"
-	    "cmovzl %2,%0"
-	    : "=&r" (r) : "rm" (x), "rm" (-1));
+		"cmovzl %2,%0"
+		: "=&r" (r) : "rm" (x), "rm" (-1));
 #else
 	asm("bsrl %1,%0\n\t"
-	    "jnz 1f\n\t"
-	    "movl $-1,%0\n"
-	    "1:" : "=r" (r) : "rm" (x));
+		"jnz 1f\n\t"
+		"movl $-1,%0\n"
+		"1:" : "=r" (r) : "rm" (x));
 #endif
 	return r + 1;
 }
@@ -485,8 +494,8 @@ static __always_inline int fls64(__u64 x)
 	 * value is written to set it to the same as before.
 	 */
 	asm("bsrq %1,%q0"
-	    : "+r" (bitpos)
-	    : "rm" (x));
+		: "+r" (bitpos)
+		: "rm" (x));
 	return bitpos + 1;
 }
 #else

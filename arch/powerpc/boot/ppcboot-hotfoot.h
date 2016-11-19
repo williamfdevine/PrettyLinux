@@ -3,15 +3,15 @@
  * Please do not imitate or extend this.
  */
 
-/* 
- * Unfortunately, the ESTeem Hotfoot board uses a mangled version of 
- * ppcboot.h for historical reasons, and in the interest of having a 
- * mainline kernel boot on the production board+bootloader, this was the 
+/*
+ * Unfortunately, the ESTeem Hotfoot board uses a mangled version of
+ * ppcboot.h for historical reasons, and in the interest of having a
+ * mainline kernel boot on the production board+bootloader, this was the
  * least-offensive solution.  Please direct all flames to:
  *
  *  Solomon Peachy <solomon@linux-wlan.com>
  *
- * (This header is identical to ppcboot.h except for the 
+ * (This header is identical to ppcboot.h except for the
  *  TARGET_HOTFOOT bits)
  */
 
@@ -46,7 +46,8 @@
 
 #include "types.h"
 
-typedef struct bd_info {
+typedef struct bd_info
+{
 	unsigned long	bi_memstart;	/* start of DRAM memory */
 	unsigned long	bi_memsize;	/* size	 of DRAM memory in bytes */
 	unsigned long	bi_flashstart;	/* start of FLASH memory */
@@ -115,8 +116,8 @@ typedef struct bd_info {
 #define HAVE_ENET3ADDR
 #endif
 #if defined(TARGET_HOTFOOT)
-        int             bi_phynum[2];           /* Determines phy mapping */
-        int             bi_phymode[2];          /* Determines phy mode */
+	int             bi_phynum[2];           /* Determines phy mapping */
+	int             bi_phymode[2];          /* Determines phy mode */
 #endif
 #if defined(TARGET_4xx)
 	unsigned int	bi_opbfreq;		/* OB clock in Hz */

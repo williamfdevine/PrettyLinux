@@ -33,8 +33,9 @@ EXPORT_SYMBOL(memory_end);
 unsigned long memory_size;
 
 static struct pt_regs fake_regs = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0,
-					0};
+		   0, 0, 0, 0, 0, 0,
+		   0
+};
 
 /* Copy a short hook instruction sequence to the exception address */
 static inline void copy_exception_handler(unsigned int addr)
@@ -42,7 +43,8 @@ static inline void copy_exception_handler(unsigned int addr)
 	unsigned int start = (unsigned int) exception_handler_hook;
 	volatile unsigned int tmp = 0;
 
-	if (start == addr) {
+	if (start == addr)
+	{
 		/* The CPU exception address already points to the handler. */
 		return;
 	}
@@ -101,34 +103,49 @@ static inline void copy_fast_tlb_miss_handler(unsigned int addr)
  * @r7: kernel command line
  */
 asmlinkage void __init nios2_boot_init(unsigned r4, unsigned r5, unsigned r6,
-				       unsigned r7)
+									   unsigned r7)
 {
 	unsigned dtb_passed = 0;
 	char cmdline_passed[COMMAND_LINE_SIZE] __maybe_unused = { 0, };
 
 #if defined(CONFIG_NIOS2_PASS_CMDLINE)
-	if (r4 == 0x534f494e) { /* r4 is magic NIOS */
+
+	if (r4 == 0x534f494e)   /* r4 is magic NIOS */
+	{
 #if defined(CONFIG_BLK_DEV_INITRD)
-		if (r5) { /* initramfs */
+
+		if (r5)   /* initramfs */
+		{
 			initrd_start = r5;
 			initrd_end = r6;
 		}
+
 #endif /* CONFIG_BLK_DEV_INITRD */
 		dtb_passed = r6;
 
 		if (r7)
+		{
 			strncpy(cmdline_passed, (char *)r7, COMMAND_LINE_SIZE);
+		}
 	}
+
 #endif
 
 	early_init_devtree((void *)dtb_passed);
 
 #ifndef CONFIG_CMDLINE_FORCE
+
 	if (cmdline_passed[0])
+	{
 		strncpy(boot_command_line, cmdline_passed, COMMAND_LINE_SIZE);
+	}
+
 #ifdef CONFIG_NIOS2_CMDLINE_IGNORE_DTB
 	else
+	{
 		strncpy(boot_command_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
+	}
+
 #endif
 #endif
 }
@@ -164,17 +181,17 @@ void __init setup_arch(char **cmdline_p)
 	 * boot mem_map at the start of memory
 	 */
 	pr_debug("init_bootmem_node(?,%#lx, %#x, %#lx)\n",
-		min_low_pfn, PFN_DOWN(PHYS_OFFSET), max_low_pfn);
+			 min_low_pfn, PFN_DOWN(PHYS_OFFSET), max_low_pfn);
 	bootmap_size = init_bootmem_node(NODE_DATA(0),
-					min_low_pfn, PFN_DOWN(PHYS_OFFSET),
-					max_low_pfn);
+									 min_low_pfn, PFN_DOWN(PHYS_OFFSET),
+									 max_low_pfn);
 
 	/*
 	 * free the usable memory,  we have to make sure we do not free
 	 * the bootmem bitmap so we then reserve it after freeing it :-)
 	 */
 	pr_debug("free_bootmem(%#lx, %#lx)\n",
-		memory_start, memory_end - memory_start);
+			 memory_start, memory_end - memory_start);
 	free_bootmem(memory_start, memory_end - memory_start);
 
 	/*
@@ -189,10 +206,13 @@ void __init setup_arch(char **cmdline_p)
 	reserve_bootmem(memory_start, bootmap_size, BOOTMEM_DEFAULT);
 
 #ifdef CONFIG_BLK_DEV_INITRD
-	if (initrd_start) {
+
+	if (initrd_start)
+	{
 		reserve_bootmem(virt_to_phys((void *)initrd_start),
-				initrd_end - initrd_start, BOOTMEM_DEFAULT);
+						initrd_end - initrd_start, BOOTMEM_DEFAULT);
 	}
+
 #endif /* CONFIG_BLK_DEV_INITRD */
 
 	unflatten_and_copy_device_tree();

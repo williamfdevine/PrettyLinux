@@ -39,7 +39,8 @@
 
 #define NETWORK_INTR			8
 
-struct simeth_local {
+struct simeth_local
+{
 	struct net_device_stats stats;
 	int 			simfd;	 /* descriptor in the simulator */
 };
@@ -52,9 +53,9 @@ static int simeth_rx(struct net_device *dev);
 static struct net_device_stats *simeth_get_stats(struct net_device *dev);
 static irqreturn_t simeth_interrupt(int irq, void *dev_id);
 static void set_multicast_list(struct net_device *dev);
-static int simeth_device_event(struct notifier_block *this,unsigned long event, void *ptr);
+static int simeth_device_event(struct notifier_block *this, unsigned long event, void *ptr);
 
-static char *simeth_version="0.3";
+static char *simeth_version = "0.3";
 
 /*
  * This variable is used to establish a mapping between the Linux/ia64 kernel
@@ -71,7 +72,7 @@ static char *simeth_version="0.3";
  * The default mapping can be changed on the kernel command line by
  * specifying simeth=ethX (or whatever string you want).
  */
-static char *simeth_device="eth0";	 /* default host interface to use */
+static char *simeth_device = "eth0";	 /* default host interface to use */
 
 
 
@@ -81,7 +82,8 @@ static int simeth_debug;		/* set to 1 to get debug information */
 /*
  * Used to catch IFF_UP & IFF_DOWN events
  */
-static struct notifier_block simeth_dev_notifier = {
+static struct notifier_block simeth_dev_notifier =
+{
 	simeth_device_event,
 	NULL
 };
@@ -115,7 +117,7 @@ simeth_probe (void)
 
 	r = simeth_probe1();
 
-	if (r == 0) register_netdevice_notifier(&simeth_dev_notifier);
+	if (r == 0) { register_netdevice_notifier(&simeth_dev_notifier); }
 
 	return r;
 }
@@ -123,7 +125,7 @@ simeth_probe (void)
 static inline int
 netdev_probe(char *name, unsigned char *ether)
 {
-	return ia64_ssc(__pa(name), __pa(ether), 0,0, SSC_NETDEV_PROBE);
+	return ia64_ssc(__pa(name), __pa(ether), 0, 0, SSC_NETDEV_PROBE);
 }
 
 
@@ -131,7 +133,7 @@ static inline int
 netdev_attach(int fd, int irq, unsigned int ipaddr)
 {
 	/* this puts the host interface in the right mode (start interrupting) */
-	return ia64_ssc(fd, ipaddr, 0,0, SSC_NETDEV_ATTACH);
+	return ia64_ssc(fd, ipaddr, 0, 0, SSC_NETDEV_ATTACH);
 }
 
 
@@ -140,7 +142,7 @@ netdev_detach(int fd)
 {
 	/*
 	 * inactivate the host interface (don't interrupt anymore) */
-	return ia64_ssc(fd, 0,0,0, SSC_NETDEV_DETACH);
+	return ia64_ssc(fd, 0, 0, 0, SSC_NETDEV_DETACH);
 }
 
 static inline int
@@ -155,7 +157,8 @@ netdev_read(int fd, unsigned char *buf, unsigned int len)
 	return ia64_ssc(fd, __pa(buf), len, 0, SSC_NETDEV_RECV);
 }
 
-static const struct net_device_ops simeth_netdev_ops = {
+static const struct net_device_ops simeth_netdev_ops =
+{
 	.ndo_open		= simeth_open,
 	.ndo_stop		= simeth_close,
 	.ndo_start_xmit		= simeth_tx,
@@ -188,18 +191,26 @@ simeth_probe1(void)
 	 * let's support just one card for now
 	 */
 	if (test_and_set_bit(0, &card_count))
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * check with the simulator for the device
 	 */
 	fd = netdev_probe(simeth_device, mac_addr);
+
 	if (fd == -1)
+	{
 		return -ENODEV;
+	}
 
 	dev = alloc_etherdev(sizeof(struct simeth_local));
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(dev->dev_addr, mac_addr, sizeof(mac_addr));
 
@@ -209,7 +220,9 @@ simeth_probe1(void)
 	dev->netdev_ops = &simeth_netdev_ops;
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		free_netdev(dev);
 		return err;
 	}
@@ -219,11 +232,14 @@ simeth_probe1(void)
 	 * until a netdev_attach() is called
 	 */
 	if ((rc = hpsim_get_irq(NETWORK_INTR)) < 0)
+	{
 		panic("%s: out of interrupt vectors!\n", __func__);
+	}
+
 	dev->irq = rc;
 
 	printk(KERN_INFO "%s: hosteth=%s simfd=%d, HwAddr=%pm, IRQ %d\n",
-	       dev->name, simeth_device, local->simfd, dev->dev_addr, dev->irq);
+		   dev->name, simeth_device, local->simfd, dev->dev_addr, dev->irq);
 
 	return 0;
 }
@@ -234,7 +250,8 @@ simeth_probe1(void)
 static int
 simeth_open(struct net_device *dev)
 {
-	if (request_irq(dev->irq, simeth_interrupt, 0, "simeth", dev)) {
+	if (request_irq(dev->irq, simeth_interrupt, 0, "simeth", dev))
+	{
 		printk(KERN_WARNING "simeth: unable to get IRQ %d.\n", dev->irq);
 		return -EAGAIN;
 	}
@@ -247,7 +264,7 @@ simeth_open(struct net_device *dev)
 /* copied from lapbether.c */
 static __inline__ int dev_is_ethdev(struct net_device *dev)
 {
-       return ( dev->type == ARPHRD_ETHER && strncmp(dev->name, "dummy", 5));
+	return ( dev->type == ARPHRD_ETHER && strncmp(dev->name, "dummy", 5));
 }
 
 
@@ -266,7 +283,7 @@ static __inline__ int dev_is_ethdev(struct net_device *dev)
  * There may be a better way of doing this, but I don't know which yet.
  */
 static int
-simeth_device_event(struct notifier_block *this,unsigned long event, void *ptr)
+simeth_device_event(struct notifier_block *this, unsigned long event, void *ptr)
 {
 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
 	struct simeth_local *local;
@@ -276,15 +293,18 @@ simeth_device_event(struct notifier_block *this,unsigned long event, void *ptr)
 	int r;
 
 
-	if ( ! dev ) {
+	if ( ! dev )
+	{
 		printk(KERN_WARNING "simeth_device_event dev=0\n");
 		return NOTIFY_DONE;
 	}
 
 	if (dev_net(dev) != &init_net)
+	{
 		return NOTIFY_DONE;
+	}
 
-	if ( event != NETDEV_UP && event != NETDEV_DOWN ) return NOTIFY_DONE;
+	if ( event != NETDEV_UP && event != NETDEV_DOWN ) { return NOTIFY_DONE; }
 
 	/*
 	 * Check whether or not it's for an ethernet device
@@ -292,19 +312,22 @@ simeth_device_event(struct notifier_block *this,unsigned long event, void *ptr)
 	 * XXX Fixme: This works only as long as we support one
 	 * type of ethernet device.
 	 */
-	if ( !dev_is_ethdev(dev) ) return NOTIFY_DONE;
+	if ( !dev_is_ethdev(dev) ) { return NOTIFY_DONE; }
 
-	if ((in_dev=dev->ip_ptr) != NULL) {
-		for (ifap=&in_dev->ifa_list; (ifa=*ifap) != NULL; ifap=&ifa->ifa_next)
-			if (strcmp(dev->name, ifa->ifa_label) == 0) break;
+	if ((in_dev = dev->ip_ptr) != NULL)
+	{
+		for (ifap = &in_dev->ifa_list; (ifa = *ifap) != NULL; ifap = &ifa->ifa_next)
+			if (strcmp(dev->name, ifa->ifa_label) == 0) { break; }
 	}
-	if ( ifa == NULL ) {
+
+	if ( ifa == NULL )
+	{
 		printk(KERN_ERR "simeth_open: can't find device %s's ifa\n", dev->name);
 		return NOTIFY_DONE;
 	}
 
 	printk(KERN_INFO "simeth_device_event: %s ipaddr=0x%x\n",
-	       dev->name, ntohl(ifa->ifa_local));
+		   dev->name, ntohl(ifa->ifa_local));
 
 	/*
 	 * XXX Fix me
@@ -315,11 +338,11 @@ simeth_device_event(struct notifier_block *this,unsigned long event, void *ptr)
 	local = netdev_priv(dev);
 	/* now do it for real */
 	r = event == NETDEV_UP ?
-		netdev_attach(local->simfd, dev->irq, ntohl(ifa->ifa_local)):
+		netdev_attach(local->simfd, dev->irq, ntohl(ifa->ifa_local)) :
 		netdev_detach(local->simfd);
 
 	printk(KERN_INFO "simeth: netdev_attach/detach: event=%s ->%d\n",
-	       event == NETDEV_UP ? "attach":"detach", r);
+		   event == NETDEV_UP ? "attach" : "detach", r);
 
 	return NOTIFY_DONE;
 }
@@ -343,19 +366,28 @@ frame_print(unsigned char *from, unsigned char *frame, int len)
 	int i;
 
 	printk("%s: (%d) %02x", from, len, frame[0] & 0xff);
-	for(i=1; i < 6; i++ ) {
-		printk(":%02x", frame[i] &0xff);
+
+	for (i = 1; i < 6; i++ )
+	{
+		printk(":%02x", frame[i] & 0xff);
 	}
-	printk(" %2x", frame[6] &0xff);
-	for(i=7; i < 12; i++ ) {
-		printk(":%02x", frame[i] &0xff);
+
+	printk(" %2x", frame[6] & 0xff);
+
+	for (i = 7; i < 12; i++ )
+	{
+		printk(":%02x", frame[i] & 0xff);
 	}
+
 	printk(" [%02x%02x]\n", frame[12], frame[13]);
 
-	for(i=14; i < len; i++ ) {
-		printk("%02x ", frame[i] &0xff);
-		if ( (i%10)==0) printk("\n");
+	for (i = 14; i < len; i++ )
+	{
+		printk("%02x ", frame[i] & 0xff);
+
+		if ( (i % 10) == 0) { printk("\n"); }
 	}
+
 	printk("\n");
 }
 
@@ -384,7 +416,7 @@ simeth_tx(struct sk_buff *skb, struct net_device *dev)
 	local->stats.tx_packets++;
 
 
-	if (simeth_debug > 5) frame_print("simeth_tx", skb->data, length);
+	if (simeth_debug > 5) { frame_print("simeth_tx", skb->data, length); }
 
 	netdev_send(local->simfd, skb->data, length);
 
@@ -407,14 +439,16 @@ make_new_skb(struct net_device *dev)
 	 * aligned (on 4byte boundary I assume 14+2=16)
 	 */
 	nskb = dev_alloc_skb(SIMETH_FRAME_SIZE + 2);
-	if ( nskb == NULL ) {
+
+	if ( nskb == NULL )
+	{
 		printk(KERN_NOTICE "%s: memory squeeze. dropping packet.\n", dev->name);
 		return NULL;
 	}
 
 	skb_reserve(nskb, 2);	/* Align IP on 16 byte boundaries */
 
-	skb_put(nskb,SIMETH_FRAME_SIZE);
+	skb_put(nskb, SIMETH_FRAME_SIZE);
 
 	return nskb;
 }
@@ -431,27 +465,35 @@ simeth_rx(struct net_device *dev)
 	int			rcv_count = SIMETH_RECV_MAX;
 
 	local = netdev_priv(dev);
+
 	/*
 	 * the loop concept has been borrowed from other drivers
 	 * looks to me like it's a throttling thing to avoid pushing to many
 	 * packets at one time into the stack. Making sure we can process them
 	 * upstream and make forward progress overall
 	 */
-	do {
-		if ( (skb=make_new_skb(dev)) == NULL ) {
+	do
+	{
+		if ( (skb = make_new_skb(dev)) == NULL )
+		{
 			printk(KERN_NOTICE "%s: memory squeeze. dropping packet.\n", dev->name);
 			local->stats.rx_dropped++;
 			return 0;
 		}
+
 		/*
 		 * Read only one frame at a time
 		 */
 		len = netdev_read(local->simfd, skb->data, SIMETH_FRAME_SIZE);
-		if ( len == 0 ) {
+
+		if ( len == 0 )
+		{
 			if ( simeth_debug > 0 ) printk(KERN_WARNING "%s: count=%d netdev_read=0\n",
-						       dev->name, SIMETH_RECV_MAX-rcv_count);
+											   dev->name, SIMETH_RECV_MAX - rcv_count);
+
 			break;
 		}
+
 #if 0
 		/*
 		 * XXX Fix me
@@ -461,7 +503,7 @@ simeth_rx(struct net_device *dev)
 #endif
 		skb->protocol = eth_type_trans(skb, dev);
 
-		if ( simeth_debug > 6 ) frame_print("simeth_rx", skb->data, len);
+		if ( simeth_debug > 6 ) { frame_print("simeth_rx", skb->data, len); }
 
 		/*
 		 * push the packet up & trigger software interrupt
@@ -471,7 +513,8 @@ simeth_rx(struct net_device *dev)
 		local->stats.rx_packets++;
 		local->stats.rx_bytes += len;
 
-	} while ( --rcv_count );
+	}
+	while ( --rcv_count );
 
 	return len; /* 0 = nothing left to read, otherwise, we can try again */
 }
@@ -488,6 +531,7 @@ simeth_interrupt(int irq, void *dev_id)
 	 * very simple loop because we get interrupts only when receiving
 	 */
 	while (simeth_rx(dev));
+
 	return IRQ_HANDLED;
 }
 

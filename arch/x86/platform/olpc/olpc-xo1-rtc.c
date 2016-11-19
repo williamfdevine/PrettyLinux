@@ -27,7 +27,8 @@ static void rtc_wake_off(struct device *dev)
 	olpc_xo1_pm_wakeup_clear(CS5536_PM_RTC);
 }
 
-static struct resource rtc_platform_resource[] = {
+static struct resource rtc_platform_resource[] =
+{
 	[0] = {
 		.start	= RTC_PORT(0),
 		.end	= RTC_PORT(1),
@@ -40,7 +41,8 @@ static struct resource rtc_platform_resource[] = {
 	}
 };
 
-static struct cmos_rtc_board_info rtc_info = {
+static struct cmos_rtc_board_info rtc_info =
+{
 	.rtc_day_alarm = 0,
 	.rtc_mon_alarm = 0,
 	.rtc_century = 0,
@@ -48,7 +50,8 @@ static struct cmos_rtc_board_info rtc_info = {
 	.wake_off = rtc_wake_off,
 };
 
-static struct platform_device xo1_rtc_device = {
+static struct platform_device xo1_rtc_device =
+{
 	.name = "rtc_cmos",
 	.id = -1,
 	.num_resources = ARRAY_SIZE(rtc_platform_resource),
@@ -62,8 +65,12 @@ static int __init xo1_rtc_init(void)
 	struct device_node *node;
 
 	node = of_find_compatible_node(NULL, NULL, "olpc,xo1-rtc");
+
 	if (!node)
+	{
 		return 0;
+	}
+
 	of_node_put(node);
 
 	pr_info("olpc-xo1-rtc: Initializing OLPC XO-1 RTC\n");
@@ -72,8 +79,11 @@ static int __init xo1_rtc_init(void)
 	rdmsrl(MSR_RTC_CEN_OFFSET, rtc_info.rtc_century);
 
 	r = platform_device_register(&xo1_rtc_device);
+
 	if (r)
+	{
 		return r;
+	}
 
 	device_init_wakeup(&xo1_rtc_device.dev, 1);
 	return 0;

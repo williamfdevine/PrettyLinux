@@ -56,14 +56,16 @@
  */
 #define IMX5_DEFAULT_CPU_IDLE_STATE WAIT_UNCLOCKED_POWER_OFF
 
-struct imx5_suspend_io_state {
+struct imx5_suspend_io_state
+{
 	u32	offset;
 	u32	clear;
 	u32	set;
 	u32	saved_value;
 };
 
-struct imx5_pm_data {
+struct imx5_pm_data
+{
 	phys_addr_t ccm_addr;
 	phys_addr_t cortex_addr;
 	phys_addr_t gpc_addr;
@@ -75,7 +77,8 @@ struct imx5_pm_data {
 	int suspend_io_count;
 };
 
-static const struct imx5_suspend_io_state imx53_suspend_io_config[] = {
+static const struct imx5_suspend_io_state imx53_suspend_io_config[] =
+{
 #define MX53_DSE_HIGHZ_MASK (0x7 << 19)
 	{.offset = 0x584, .clear = MX53_DSE_HIGHZ_MASK}, /* DQM0 */
 	{.offset = 0x594, .clear = MX53_DSE_HIGHZ_MASK}, /* DQM1 */
@@ -102,13 +105,15 @@ static const struct imx5_suspend_io_state imx53_suspend_io_config[] = {
 	{.offset = 0x720, .clear = MX53_DSE_HIGHZ_MASK, .set = 1 << 19}, /* CTLDS */
 };
 
-static const struct imx5_pm_data imx51_pm_data __initconst = {
+static const struct imx5_pm_data imx51_pm_data __initconst =
+{
 	.ccm_addr = 0x73fd4000,
 	.cortex_addr = 0x83fa0000,
 	.gpc_addr = 0x73fd8000,
 };
 
-static const struct imx5_pm_data imx53_pm_data __initconst = {
+static const struct imx5_pm_data imx53_pm_data __initconst =
+{
 	.ccm_addr = 0x53fd4000,
 	.cortex_addr = 0x63fa0000,
 	.gpc_addr = 0x53fd8000,
@@ -129,7 +134,8 @@ static const struct imx5_pm_data imx53_pm_data __initconst = {
  * must be also changed accordingly otherwise, the suspend to ocram
  * function will be broken!
  */
-struct imx5_cpu_suspend_info {
+struct imx5_cpu_suspend_info
+{
 	void __iomem	*m4if_base;
 	void __iomem	*iomuxc_base;
 	u32		io_count;
@@ -154,46 +160,56 @@ static void mx5_cpu_lp_set(enum mxc_cpu_pwr_mode mode)
 
 	/* always allow platform to issue a deep sleep mode request */
 	plat_lpc = imx_readl(cortex_base + MXC_CORTEXA8_PLAT_LPC) &
-	    ~(MXC_CORTEXA8_PLAT_LPC_DSM);
+			   ~(MXC_CORTEXA8_PLAT_LPC_DSM);
 	ccm_clpcr = imx_readl(ccm_base + MXC_CCM_CLPCR) &
-		    ~(MXC_CCM_CLPCR_LPM_MASK);
+				~(MXC_CCM_CLPCR_LPM_MASK);
 	arm_srpgcr = imx_readl(gpc_base + MXC_SRPG_ARM_SRPGCR) &
-		     ~(MXC_SRPGCR_PCR);
+				 ~(MXC_SRPGCR_PCR);
 	empgc0 = imx_readl(gpc_base + MXC_SRPG_EMPGC0_SRPGCR) &
-		 ~(MXC_SRPGCR_PCR);
+			 ~(MXC_SRPGCR_PCR);
 	empgc1 = imx_readl(gpc_base + MXC_SRPG_EMPGC1_SRPGCR) &
-		 ~(MXC_SRPGCR_PCR);
+			 ~(MXC_SRPGCR_PCR);
 
-	switch (mode) {
-	case WAIT_CLOCKED:
-		break;
-	case WAIT_UNCLOCKED:
-		ccm_clpcr |= 0x1 << MXC_CCM_CLPCR_LPM_OFFSET;
-		break;
-	case WAIT_UNCLOCKED_POWER_OFF:
-	case STOP_POWER_OFF:
-		plat_lpc |= MXC_CORTEXA8_PLAT_LPC_DSM
-			    | MXC_CORTEXA8_PLAT_LPC_DBG_DSM;
-		if (mode == WAIT_UNCLOCKED_POWER_OFF) {
+	switch (mode)
+	{
+		case WAIT_CLOCKED:
+			break;
+
+		case WAIT_UNCLOCKED:
 			ccm_clpcr |= 0x1 << MXC_CCM_CLPCR_LPM_OFFSET;
-			ccm_clpcr &= ~MXC_CCM_CLPCR_VSTBY;
-			ccm_clpcr &= ~MXC_CCM_CLPCR_SBYOS;
-			stop_mode = 0;
-		} else {
+			break;
+
+		case WAIT_UNCLOCKED_POWER_OFF:
+		case STOP_POWER_OFF:
+			plat_lpc |= MXC_CORTEXA8_PLAT_LPC_DSM
+						| MXC_CORTEXA8_PLAT_LPC_DBG_DSM;
+
+			if (mode == WAIT_UNCLOCKED_POWER_OFF)
+			{
+				ccm_clpcr |= 0x1 << MXC_CCM_CLPCR_LPM_OFFSET;
+				ccm_clpcr &= ~MXC_CCM_CLPCR_VSTBY;
+				ccm_clpcr &= ~MXC_CCM_CLPCR_SBYOS;
+				stop_mode = 0;
+			}
+			else
+			{
+				ccm_clpcr |= 0x2 << MXC_CCM_CLPCR_LPM_OFFSET;
+				ccm_clpcr |= 0x3 << MXC_CCM_CLPCR_STBY_COUNT_OFFSET;
+				ccm_clpcr |= MXC_CCM_CLPCR_VSTBY;
+				ccm_clpcr |= MXC_CCM_CLPCR_SBYOS;
+				stop_mode = 1;
+			}
+
+			arm_srpgcr |= MXC_SRPGCR_PCR;
+			break;
+
+		case STOP_POWER_ON:
 			ccm_clpcr |= 0x2 << MXC_CCM_CLPCR_LPM_OFFSET;
-			ccm_clpcr |= 0x3 << MXC_CCM_CLPCR_STBY_COUNT_OFFSET;
-			ccm_clpcr |= MXC_CCM_CLPCR_VSTBY;
-			ccm_clpcr |= MXC_CCM_CLPCR_SBYOS;
-			stop_mode = 1;
-		}
-		arm_srpgcr |= MXC_SRPGCR_PCR;
-		break;
-	case STOP_POWER_ON:
-		ccm_clpcr |= 0x2 << MXC_CCM_CLPCR_LPM_OFFSET;
-		break;
-	default:
-		printk(KERN_WARNING "UNKNOWN cpu power mode: %d\n", mode);
-		return;
+			break;
+
+		default:
+			printk(KERN_WARNING "UNKNOWN cpu power mode: %d\n", mode);
+			return;
 	}
 
 	imx_writel(plat_lpc, cortex_base + MXC_CORTEXA8_PLAT_LPC);
@@ -201,7 +217,8 @@ static void mx5_cpu_lp_set(enum mxc_cpu_pwr_mode mode)
 	imx_writel(arm_srpgcr, gpc_base + MXC_SRPG_ARM_SRPGCR);
 	imx_writel(arm_srpgcr, gpc_base + MXC_SRPG_NEON_SRPGCR);
 
-	if (stop_mode) {
+	if (stop_mode)
+	{
 		empgc0 |= MXC_SRPGCR_PCR;
 		empgc1 |= MXC_SRPGCR_PCR;
 
@@ -212,18 +229,22 @@ static void mx5_cpu_lp_set(enum mxc_cpu_pwr_mode mode)
 
 static int mx5_suspend_enter(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_MEM:
-		mx5_cpu_lp_set(STOP_POWER_OFF);
-		break;
-	case PM_SUSPEND_STANDBY:
-		/* DEFAULT_IDLE_STATE already configured */
-		break;
-	default:
-		return -EINVAL;
+	switch (state)
+	{
+		case PM_SUSPEND_MEM:
+			mx5_cpu_lp_set(STOP_POWER_OFF);
+			break;
+
+		case PM_SUSPEND_STANDBY:
+			/* DEFAULT_IDLE_STATE already configured */
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	if (state == PM_SUSPEND_MEM) {
+	if (state == PM_SUSPEND_MEM)
+	{
 		local_flush_tlb_all();
 		flush_cache_all();
 
@@ -232,11 +253,17 @@ static int mx5_suspend_enter(suspend_state_t state)
 		imx_writel(0, gpc_base + MXC_SRPG_EMPGC1_SRPGCR);
 
 		if (imx5_suspend_in_ocram_fn)
+		{
 			imx5_suspend_in_ocram_fn(suspend_ocram_base);
+		}
 		else
+		{
 			cpu_do_idle();
+		}
 
-	} else {
+	}
+	else
+	{
 		cpu_do_idle();
 	}
 
@@ -250,7 +277,8 @@ static int mx5_pm_valid(suspend_state_t state)
 	return (state > PM_SUSPEND_ON && state <= PM_SUSPEND_MAX);
 }
 
-static const struct platform_suspend_ops mx5_suspend_ops = {
+static const struct platform_suspend_ops mx5_suspend_ops =
+{
 	.valid = mx5_pm_valid,
 	.enter = mx5_suspend_enter,
 };
@@ -260,7 +288,9 @@ static inline int imx5_cpu_do_idle(void)
 	int ret = tzic_enable_wake();
 
 	if (likely(!ret))
+	{
 		cpu_do_idle();
+	}
 
 	return ret;
 }
@@ -271,9 +301,9 @@ static void imx5_pm_idle(void)
 }
 
 static int __init imx_suspend_alloc_ocram(
-				size_t size,
-				void __iomem **virt_out,
-				phys_addr_t *phys_out)
+	size_t size,
+	void __iomem **virt_out,
+	phys_addr_t *phys_out)
 {
 	struct device_node *node;
 	struct platform_device *pdev;
@@ -285,27 +315,35 @@ static int __init imx_suspend_alloc_ocram(
 
 	/* Copied from imx6: TODO factorize */
 	node = of_find_compatible_node(NULL, NULL, "mmio-sram");
-	if (!node) {
+
+	if (!node)
+	{
 		pr_warn("%s: failed to find ocram node!\n", __func__);
 		return -ENODEV;
 	}
 
 	pdev = of_find_device_by_node(node);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		pr_warn("%s: failed to find ocram device!\n", __func__);
 		ret = -ENODEV;
 		goto put_node;
 	}
 
 	ocram_pool = gen_pool_get(&pdev->dev, NULL);
-	if (!ocram_pool) {
+
+	if (!ocram_pool)
+	{
 		pr_warn("%s: ocram pool unavailable!\n", __func__);
 		ret = -ENODEV;
 		goto put_node;
 	}
 
 	ocram_base = gen_pool_alloc(ocram_pool, size);
-	if (!ocram_base) {
+
+	if (!ocram_base)
+	{
 		pr_warn("%s: unable to alloc ocram!\n", __func__);
 		ret = -ENOMEM;
 		goto put_node;
@@ -313,10 +351,16 @@ static int __init imx_suspend_alloc_ocram(
 
 	phys = gen_pool_virt_to_phys(ocram_pool, ocram_base);
 	virt = __arm_ioremap_exec(phys, size, false);
+
 	if (phys_out)
+	{
 		*phys_out = phys;
+	}
+
 	if (virt_out)
+	{
 		*virt_out = virt;
+	}
 
 put_node:
 	of_node_put(node);
@@ -332,39 +376,50 @@ static int __init imx5_suspend_init(const struct imx5_pm_data *soc_data)
 	void (*suspend_asm)(void __iomem *) = soc_data->suspend_asm;
 
 	if (!suspend_asm)
+	{
 		return 0;
+	}
 
 	if (!soc_data->suspend_asm_sz || !*soc_data->suspend_asm_sz)
+	{
 		return -EINVAL;
+	}
 
 	ret = imx_suspend_alloc_ocram(
-		*soc_data->suspend_asm_sz + sizeof(*suspend_info),
-		&suspend_ocram_base, NULL);
+			  *soc_data->suspend_asm_sz + sizeof(*suspend_info),
+			  &suspend_ocram_base, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	suspend_info = suspend_ocram_base;
 
 	suspend_info->io_count = soc_data->suspend_io_count;
 	memcpy(suspend_info->io_state, soc_data->suspend_io_config,
-	       sizeof(*suspend_info->io_state) * soc_data->suspend_io_count);
+		   sizeof(*suspend_info->io_state) * soc_data->suspend_io_count);
 
 	suspend_info->m4if_base = ioremap(soc_data->m4if_addr, SZ_16K);
-	if (!suspend_info->m4if_base) {
+
+	if (!suspend_info->m4if_base)
+	{
 		ret = -ENOMEM;
 		goto failed_map_m4if;
 	}
 
 	suspend_info->iomuxc_base = ioremap(soc_data->iomuxc_addr, SZ_16K);
-	if (!suspend_info->iomuxc_base) {
+
+	if (!suspend_info->iomuxc_base)
+	{
 		ret = -ENOMEM;
 		goto failed_map_iomuxc;
 	}
 
 	imx5_suspend_in_ocram_fn = fncpy(
-		suspend_ocram_base + sizeof(*suspend_info),
-		suspend_asm,
-		*soc_data->suspend_asm_sz);
+								   suspend_ocram_base + sizeof(*suspend_info),
+								   suspend_asm,
+								   *soc_data->suspend_asm_sz);
 
 	return 0;
 
@@ -381,11 +436,16 @@ static int __init imx5_pm_common_init(const struct imx5_pm_data *data)
 	struct clk *gpc_dvfs_clk = clk_get(NULL, "gpc_dvfs");
 
 	if (IS_ERR(gpc_dvfs_clk))
+	{
 		return PTR_ERR(gpc_dvfs_clk);
+	}
 
 	ret = clk_prepare_enable(gpc_dvfs_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	arm_pm_idle = imx5_pm_idle;
 
@@ -398,13 +458,17 @@ static int __init imx5_pm_common_init(const struct imx5_pm_data *data)
 	mx5_cpu_lp_set(IMX5_DEFAULT_CPU_IDLE_STATE);
 
 	ret = imx5_cpuidle_init();
+
 	if (ret)
+	{
 		pr_warn("%s: cpuidle init failed %d\n", __func__, ret);
+	}
 
 	ret = imx5_suspend_init(data);
+
 	if (ret)
 		pr_warn("%s: No DDR LPM support with suspend %d!\n",
-			__func__, ret);
+				__func__, ret);
 
 	suspend_set_ops(&mx5_suspend_ops);
 
@@ -414,11 +478,15 @@ static int __init imx5_pm_common_init(const struct imx5_pm_data *data)
 void __init imx51_pm_init(void)
 {
 	if (IS_ENABLED(CONFIG_SOC_IMX51))
+	{
 		imx5_pm_common_init(&imx51_pm_data);
+	}
 }
 
 void __init imx53_pm_init(void)
 {
 	if (IS_ENABLED(CONFIG_SOC_IMX53))
+	{
 		imx5_pm_common_init(&imx53_pm_data);
+	}
 }

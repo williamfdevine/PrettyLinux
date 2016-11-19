@@ -42,7 +42,8 @@ unsigned long __delay_loops_MHz;
 
 static irqreturn_t timer_interrupt(int irq, void *dummy);
 
-static struct irqaction timer_irq  = {
+static struct irqaction timer_irq  =
+{
 	.handler = timer_interrupt,
 	.name = "timer",
 };
@@ -100,7 +101,10 @@ void read_persistent_clock(struct timespec *ts)
 	arch_gettod (&year, &mon, &day, &hour, &min, &sec);
 
 	if ((year += 1900) < 1970)
+	{
 		year += 100;
+	}
+
 	ts->tv_sec = mktime(year, mon, day, hour, min, sec);
 	ts->tv_nsec = 0;
 }

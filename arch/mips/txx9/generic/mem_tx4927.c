@@ -54,7 +54,8 @@ static unsigned int __init tx4927_process_sdccr(u64 __iomem *addr)
 	sdccr_cs = ((val & (7 << 2)) >> 2);
 	sdccr_mw = ((val & (1 << 0)) >> 0);
 
-	if (sdccr_ce) {
+	if (sdccr_ce)
+	{
 		bs = 2 << sdccr_bs;
 		rs = 2048 << sdccr_rs;
 		cs = 256 << sdccr_cs;
@@ -70,6 +71,9 @@ unsigned int __init tx4927_get_mem_size(void)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(tx4927_sdramcptr->cr); i++)
+	{
 		total += tx4927_process_sdccr(&tx4927_sdramcptr->cr[i]);
+	}
+
 	return total;
 }

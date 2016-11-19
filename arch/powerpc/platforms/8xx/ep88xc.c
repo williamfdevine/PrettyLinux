@@ -21,11 +21,13 @@
 
 #include "mpc8xx.h"
 
-struct cpm_pin {
+struct cpm_pin
+{
 	int port, pin, flags;
 };
 
-static struct cpm_pin ep88xc_pins[] = {
+static struct cpm_pin ep88xc_pins[] =
+{
 	/* SMC1 */
 	{1, 24, CPM_PIN_INPUT}, /* RX */
 	{1, 25, CPM_PIN_INPUT | CPM_PIN_SECONDARY}, /* TX */
@@ -89,7 +91,8 @@ static void __init init_ioports(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(ep88xc_pins); i++) {
+	for (i = 0; i < ARRAY_SIZE(ep88xc_pins); i++)
+	{
 		struct cpm_pin *pin = &ep88xc_pins[i];
 		cpm1_set_pin(pin->port, pin->pin, pin->flags);
 	}
@@ -123,7 +126,9 @@ static void __init ep88xc_setup_arch(void)
 	init_ioports();
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,ep88xc-bcsr");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_CRIT "Could not find fsl,ep88xc-bcsr node\n");
 		return;
 	}
@@ -131,14 +136,15 @@ static void __init ep88xc_setup_arch(void)
 	ep88xc_bcsr = of_iomap(np, 0);
 	of_node_put(np);
 
-	if (!ep88xc_bcsr) {
+	if (!ep88xc_bcsr)
+	{
 		printk(KERN_CRIT "Could not remap BCSR\n");
 		return;
 	}
 
 	setbits8(&ep88xc_bcsr[7], BCSR7_SCC2_ENABLE);
 	setbits8(&ep88xc_bcsr[8], BCSR8_PHY1_ENABLE | BCSR8_PHY1_POWER |
-	                          BCSR8_PHY2_ENABLE | BCSR8_PHY2_POWER);
+			 BCSR8_PHY2_ENABLE | BCSR8_PHY2_POWER);
 }
 
 static int __init ep88xc_probe(void)
@@ -146,7 +152,8 @@ static int __init ep88xc_probe(void)
 	return of_machine_is_compatible("fsl,ep88xc");
 }
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .name = "soc", },
 	{ .name = "cpm", },
 	{ .name = "localbus", },
@@ -162,15 +169,16 @@ static int __init declare_of_platform_devices(void)
 }
 machine_device_initcall(ep88xc, declare_of_platform_devices);
 
-define_machine(ep88xc) {
+define_machine(ep88xc)
+{
 	.name = "Embedded Planet EP88xC",
-	.probe = ep88xc_probe,
-	.setup_arch = ep88xc_setup_arch,
-	.init_IRQ = mpc8xx_pics_init,
-	.get_irq	= mpc8xx_get_irq,
-	.restart = mpc8xx_restart,
-	.calibrate_decr = mpc8xx_calibrate_decr,
-	.set_rtc_time = mpc8xx_set_rtc_time,
-	.get_rtc_time = mpc8xx_get_rtc_time,
-	.progress = udbg_progress,
+	 .probe = ep88xc_probe,
+	  .setup_arch = ep88xc_setup_arch,
+	   .init_IRQ = mpc8xx_pics_init,
+		.get_irq	= mpc8xx_get_irq,
+			.restart = mpc8xx_restart,
+			 .calibrate_decr = mpc8xx_calibrate_decr,
+			  .set_rtc_time = mpc8xx_set_rtc_time,
+			   .get_rtc_time = mpc8xx_get_rtc_time,
+				.progress = udbg_progress,
 };

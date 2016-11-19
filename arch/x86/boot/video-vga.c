@@ -16,7 +16,8 @@
 #include "boot.h"
 #include "video.h"
 
-static struct mode_info vga_modes[] = {
+static struct mode_info vga_modes[] =
+{
 	{ VIDEO_80x25,  80, 25, 0 },
 	{ VIDEO_8POINT, 80, 50, 0 },
 	{ VIDEO_80x43,  80, 43, 0 },
@@ -26,12 +27,14 @@ static struct mode_info vga_modes[] = {
 	{ VIDEO_80x60,  80, 60, 0 },
 };
 
-static struct mode_info ega_modes[] = {
+static struct mode_info ega_modes[] =
+{
 	{ VIDEO_80x25,  80, 25, 0 },
 	{ VIDEO_8POINT, 80, 43, 0 },
 };
 
-static struct mode_info cga_modes[] = {
+static struct mode_info cga_modes[] =
+{
 	{ VIDEO_80x25,  80, 25, 0 },
 };
 
@@ -51,7 +54,9 @@ static u8 vga_set_basic_mode(void)
 	mode = oreg.al;
 
 	if (mode != 3 && mode != 7)
+	{
 		mode = 3;
+	}
 
 	/* Set the mode */
 	ireg.ax = mode;		/* AH=0: set mode */
@@ -160,11 +165,11 @@ static void vga_set_vertical_end(int lines)
 {
 	u16 crtc;		/* CRTC base address */
 	u8  ovfw;		/* CRTC overflow register */
-	int end = lines-1;
+	int end = lines - 1;
 
 	crtc = vga_crtc();
 
-	ovfw = 0x3c | ((end >> (8-1)) & 0x02) | ((end >> (9-6)) & 0x40);
+	ovfw = 0x3c | ((end >> (8 - 1)) & 0x02) | ((end >> (9 - 6)) & 0x40);
 
 	out_idx(ovfw, crtc, 0x07); /* Vertical overflow */
 	out_idx(end,  crtc, 0x12); /* Vertical display end */
@@ -173,21 +178,21 @@ static void vga_set_vertical_end(int lines)
 static void vga_set_80x30(void)
 {
 	vga_set_480_scanlines();
-	vga_set_vertical_end(30*16);
+	vga_set_vertical_end(30 * 16);
 }
 
 static void vga_set_80x34(void)
 {
 	vga_set_480_scanlines();
 	vga_set_14font();
-	vga_set_vertical_end(34*14);
+	vga_set_vertical_end(34 * 14);
 }
 
 static void vga_set_80x60(void)
 {
 	vga_set_480_scanlines();
 	vga_set_8font();
-	vga_set_vertical_end(60*8);
+	vga_set_vertical_end(60 * 8);
 }
 
 static int vga_set_mode(struct mode_info *mode)
@@ -199,27 +204,34 @@ static int vga_set_mode(struct mode_info *mode)
 	force_x = mode->x;
 	force_y = mode->y;
 
-	switch (mode->mode) {
-	case VIDEO_80x25:
-		break;
-	case VIDEO_8POINT:
-		vga_set_8font();
-		break;
-	case VIDEO_80x43:
-		vga_set_80x43();
-		break;
-	case VIDEO_80x28:
-		vga_set_14font();
-		break;
-	case VIDEO_80x30:
-		vga_set_80x30();
-		break;
-	case VIDEO_80x34:
-		vga_set_80x34();
-		break;
-	case VIDEO_80x60:
-		vga_set_80x60();
-		break;
+	switch (mode->mode)
+	{
+		case VIDEO_80x25:
+			break;
+
+		case VIDEO_8POINT:
+			vga_set_8font();
+			break;
+
+		case VIDEO_80x43:
+			vga_set_80x43();
+			break;
+
+		case VIDEO_80x28:
+			vga_set_14font();
+			break;
+
+		case VIDEO_80x30:
+			vga_set_80x30();
+			break;
+
+		case VIDEO_80x34:
+			vga_set_80x34();
+			break;
+
+		case VIDEO_80x60:
+			vga_set_80x60();
+			break;
 	}
 
 	return 0;
@@ -232,18 +244,21 @@ static int vga_set_mode(struct mode_info *mode)
  */
 static int vga_probe(void)
 {
-	static const char *card_name[] = {
+	static const char *card_name[] =
+	{
 		"CGA/MDA/HGC", "EGA", "VGA"
 	};
-	static struct mode_info *mode_lists[] = {
+	static struct mode_info *mode_lists[] =
+	{
 		cga_modes,
 		ega_modes,
 		vga_modes,
 	};
-	static int mode_count[] = {
-		sizeof(cga_modes)/sizeof(struct mode_info),
-		sizeof(ega_modes)/sizeof(struct mode_info),
-		sizeof(vga_modes)/sizeof(struct mode_info),
+	static int mode_count[] =
+	{
+		sizeof(cga_modes) / sizeof(struct mode_info),
+		sizeof(ega_modes) / sizeof(struct mode_info),
+		sizeof(vga_modes) / sizeof(struct mode_info),
 	};
 
 	struct biosregs ireg, oreg;
@@ -259,20 +274,26 @@ static int vga_probe(void)
 #endif
 
 	/* If we have MDA/CGA/HGC then BL will be unchanged at 0x10 */
-	if (oreg.bl != 0x10) {
+	if (oreg.bl != 0x10)
+	{
 		/* EGA/VGA */
 		ireg.ax = 0x1a00;
 		intcall(0x10, &ireg, &oreg);
 
-		if (oreg.al == 0x1a) {
+		if (oreg.al == 0x1a)
+		{
 			adapter = ADAPTER_VGA;
 #ifndef _WAKEUP
 			boot_params.screen_info.orig_video_isVGA = 1;
 #endif
-		} else {
+		}
+		else
+		{
 			adapter = ADAPTER_EGA;
 		}
-	} else {
+	}
+	else
+	{
 		adapter = ADAPTER_CGA;
 	}
 
@@ -281,7 +302,8 @@ static int vga_probe(void)
 	return mode_count[adapter];
 }
 
-static __videocard video_vga = {
+static __videocard video_vga =
+{
 	.card_name	= "VGA",
 	.probe		= vga_probe,
 	.set_mode	= vga_set_mode,

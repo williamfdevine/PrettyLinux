@@ -42,7 +42,7 @@
  */
 #define PBC_BASE_ADDRESS        0xf4300000
 #define PBC_REG_ADDR(offset)    (void __force __iomem *) \
-		(PBC_BASE_ADDRESS + (offset))
+	(PBC_BASE_ADDRESS + (offset))
 
 /* When the PBC address connection is fixed in h/w, defined as 1 */
 #define PBC_ADDR_SH             0
@@ -67,7 +67,8 @@
 /* to determine the correct external crystal reference */
 #define CKIH_27MHZ_BIT_SET      (1 << 3)
 
-static const int mx27ads_pins[] __initconst = {
+static const int mx27ads_pins[] __initconst =
+{
 	/* UART0 */
 	PE12_PF_UART1_TXD,
 	PE13_PF_UART1_RXD,
@@ -167,24 +168,28 @@ static const int mx27ads_pins[] __initconst = {
 };
 
 static const struct mxc_nand_platform_data
-mx27ads_nand_board_info __initconst = {
+	mx27ads_nand_board_info __initconst =
+{
 	.width = 1,
 	.hw_ecc = 1,
 };
 
 /* ADS's NOR flash */
-static struct physmap_flash_data mx27ads_flash_data = {
+static struct physmap_flash_data mx27ads_flash_data =
+{
 	.width = 2,
 };
 
-static struct resource mx27ads_flash_resource = {
+static struct resource mx27ads_flash_resource =
+{
 	.start = 0xc0000000,
 	.end = 0xc0000000 + 0x02000000 - 1,
 	.flags = IORESOURCE_MEM,
 
 };
 
-static struct platform_device mx27ads_nor_mtd_device = {
+static struct platform_device mx27ads_nor_mtd_device =
+{
 	.name = "physmap-flash",
 	.id = 0,
 	.dev = {
@@ -194,19 +199,25 @@ static struct platform_device mx27ads_nor_mtd_device = {
 	.resource = &mx27ads_flash_resource,
 };
 
-static const struct imxi2c_platform_data mx27ads_i2c1_data __initconst = {
+static const struct imxi2c_platform_data mx27ads_i2c1_data __initconst =
+{
 	.bitrate = 100000,
 };
 
-static struct i2c_board_info mx27ads_i2c_devices[] = {
+static struct i2c_board_info mx27ads_i2c_devices[] =
+{
 };
 
 static void vgpio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
 	if (value)
+	{
 		imx_writew(PBC_BCTRL1_LCDON, PBC_BCTRL1_SET_REG);
+	}
 	else
+	{
 		imx_writew(PBC_BCTRL1_LCDON, PBC_BCTRL1_CLEAR_REG);
+	}
 }
 
 static int vgpio_dir_out(struct gpio_chip *chip, unsigned offset, int value)
@@ -219,15 +230,17 @@ static int vgpio_dir_out(struct gpio_chip *chip, unsigned offset, int value)
 static struct regulator_consumer_supply mx27ads_lcd_regulator_consumer =
 	REGULATOR_SUPPLY("lcd", "imx-fb.0");
 
-static struct regulator_init_data mx27ads_lcd_regulator_init_data = {
+static struct regulator_init_data mx27ads_lcd_regulator_init_data =
+{
 	.constraints	= {
 		.valid_ops_mask	= REGULATOR_CHANGE_STATUS,
-},
+	},
 	.consumer_supplies	= &mx27ads_lcd_regulator_consumer,
 	.num_consumer_supplies	= 1,
 };
 
-static struct fixed_voltage_config mx27ads_lcd_regulator_pdata = {
+static struct fixed_voltage_config mx27ads_lcd_regulator_pdata =
+{
 	.supply_name	= "LCD",
 	.microvolts	= 3300000,
 	.gpio		= MX27ADS_LCD_GPIO,
@@ -248,12 +261,13 @@ static void __init mx27ads_regulator_init(void)
 	gpiochip_add_data(vchip, NULL);
 
 	platform_device_register_data(NULL, "reg-fixed-voltage",
-				      PLATFORM_DEVID_AUTO,
-				      &mx27ads_lcd_regulator_pdata,
-				      sizeof(mx27ads_lcd_regulator_pdata));
+								  PLATFORM_DEVID_AUTO,
+								  &mx27ads_lcd_regulator_pdata,
+								  sizeof(mx27ads_lcd_regulator_pdata));
 }
 
-static struct imx_fb_videomode mx27ads_modes[] = {
+static struct imx_fb_videomode mx27ads_modes[] =
+{
 	{
 		.mode = {
 			.name		= "Sharp-LQ035Q7",
@@ -273,7 +287,8 @@ static struct imx_fb_videomode mx27ads_modes[] = {
 	},
 };
 
-static const struct imx_fb_platform_data mx27ads_fb_data __initconst = {
+static const struct imx_fb_platform_data mx27ads_fb_data __initconst =
+{
 	.mode = mx27ads_modes,
 	.num_modes = ARRAY_SIZE(mx27ads_modes),
 
@@ -292,17 +307,17 @@ static const struct imx_fb_platform_data mx27ads_fb_data __initconst = {
 };
 
 static int mx27ads_sdhc1_init(struct device *dev, irq_handler_t detect_irq,
-			      void *data)
+							  void *data)
 {
 	return request_irq(gpio_to_irq(IMX_GPIO_NR(5, 21)), detect_irq,
-			   IRQF_TRIGGER_RISING, "sdhc1-card-detect", data);
+					   IRQF_TRIGGER_RISING, "sdhc1-card-detect", data);
 }
 
 static int mx27ads_sdhc2_init(struct device *dev, irq_handler_t detect_irq,
-			      void *data)
+							  void *data)
 {
 	return request_irq(gpio_to_irq(IMX_GPIO_NR(2, 7)), detect_irq,
-			   IRQF_TRIGGER_RISING, "sdhc2-card-detect", data);
+					   IRQF_TRIGGER_RISING, "sdhc2-card-detect", data);
 }
 
 static void mx27ads_sdhc1_exit(struct device *dev, void *data)
@@ -315,21 +330,25 @@ static void mx27ads_sdhc2_exit(struct device *dev, void *data)
 	free_irq(gpio_to_irq(IMX_GPIO_NR(2, 7)), data);
 }
 
-static const struct imxmmc_platform_data sdhc1_pdata __initconst = {
+static const struct imxmmc_platform_data sdhc1_pdata __initconst =
+{
 	.init = mx27ads_sdhc1_init,
 	.exit = mx27ads_sdhc1_exit,
 };
 
-static const struct imxmmc_platform_data sdhc2_pdata __initconst = {
+static const struct imxmmc_platform_data sdhc2_pdata __initconst =
+{
 	.init = mx27ads_sdhc2_init,
 	.exit = mx27ads_sdhc2_exit,
 };
 
-static struct platform_device *platform_devices[] __initdata = {
+static struct platform_device *platform_devices[] __initdata =
+{
 	&mx27ads_nor_mtd_device,
 };
 
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
@@ -338,7 +357,7 @@ static void __init mx27ads_board_init(void)
 	imx27_soc_init();
 
 	mxc_gpio_setup_multiple_pins(mx27ads_pins, ARRAY_SIZE(mx27ads_pins),
-			"mx27ads");
+								 "mx27ads");
 
 	imx27_add_imx_uart0(&uart_pdata);
 	imx27_add_imx_uart1(&uart_pdata);
@@ -350,7 +369,7 @@ static void __init mx27ads_board_init(void)
 
 	/* only the i2c master 1 is used on this CPU card */
 	i2c_register_board_info(1, mx27ads_i2c_devices,
-				ARRAY_SIZE(mx27ads_i2c_devices));
+							ARRAY_SIZE(mx27ads_i2c_devices));
 	imx27_add_imx_i2c(1, &mx27ads_i2c1_data);
 	imx27_add_imx_fb(&mx27ads_fb_data);
 
@@ -373,12 +392,15 @@ static void __init mx27ads_timer_init(void)
 	unsigned long fref = 26000000;
 
 	if ((imx_readw(PBC_VERSION_REG) & CKIH_27MHZ_BIT_SET) == 0)
+	{
 		fref = 27000000;
+	}
 
 	mx27_clocks_init(fref);
 }
 
-static struct map_desc mx27ads_io_desc[] __initdata = {
+static struct map_desc mx27ads_io_desc[] __initdata =
+{
 	{
 		.virtual = PBC_BASE_ADDRESS,
 		.pfn = __phys_to_pfn(MX27_CS4_BASE_ADDR),
@@ -394,13 +416,13 @@ static void __init mx27ads_map_io(void)
 }
 
 MACHINE_START(MX27ADS, "Freescale i.MX27ADS")
-	/* maintainer: Freescale Semiconductor, Inc. */
-	.atag_offset = 0x100,
-	.map_io = mx27ads_map_io,
-	.init_early = imx27_init_early,
-	.init_irq = mx27_init_irq,
+/* maintainer: Freescale Semiconductor, Inc. */
+.atag_offset = 0x100,
+ .map_io = mx27ads_map_io,
+  .init_early = imx27_init_early,
+   .init_irq = mx27_init_irq,
 	.init_time	= mx27ads_timer_init,
-	.init_machine = mx27ads_board_init,
-	.init_late	= mx27ads_late_init,
-	.restart	= mxc_restart,
-MACHINE_END
+	  .init_machine = mx27ads_board_init,
+	   .init_late	= mx27ads_late_init,
+		 .restart	= mxc_restart,
+			 MACHINE_END

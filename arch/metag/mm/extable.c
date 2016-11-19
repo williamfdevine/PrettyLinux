@@ -8,8 +8,11 @@ int fixup_exception(struct pt_regs *regs)
 	unsigned long pc = instruction_pointer(regs);
 
 	fixup = search_exception_tables(pc);
+
 	if (fixup)
+	{
 		regs->ctx.CurrPC = fixup->fixup;
+	}
 
 	return fixup != NULL;
 }

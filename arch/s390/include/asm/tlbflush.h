@@ -47,15 +47,20 @@ static inline void __tlb_flush_full(struct mm_struct *mm)
 {
 	preempt_disable();
 	atomic_inc(&mm->context.flush_count);
-	if (cpumask_equal(mm_cpumask(mm), cpumask_of(smp_processor_id()))) {
+
+	if (cpumask_equal(mm_cpumask(mm), cpumask_of(smp_processor_id())))
+	{
 		/* Local TLB flush */
 		__tlb_flush_local();
-	} else {
+	}
+	else
+	{
 		/* Global TLB flush */
 		__tlb_flush_global();
 		/* Reset TLB flush mask */
 		cpumask_copy(mm_cpumask(mm), &mm->context.cpu_attach_mask);
 	}
+
 	atomic_dec(&mm->context.flush_count);
 	preempt_enable();
 }
@@ -72,13 +77,21 @@ static inline void __tlb_flush_mm(struct mm_struct *mm)
 	preempt_disable();
 	atomic_inc(&mm->context.flush_count);
 	gmap_asce = READ_ONCE(mm->context.gmap_asce);
-	if (MACHINE_HAS_IDTE && gmap_asce != -1UL) {
+
+	if (MACHINE_HAS_IDTE && gmap_asce != -1UL)
+	{
 		if (gmap_asce)
+		{
 			__tlb_flush_idte(gmap_asce);
+		}
+
 		__tlb_flush_idte(mm->context.asce);
-	} else {
+	}
+	else
+	{
 		__tlb_flush_full(mm);
 	}
+
 	/* Reset TLB flush mask */
 	cpumask_copy(mm_cpumask(mm), &mm->context.cpu_attach_mask);
 	atomic_dec(&mm->context.flush_count);
@@ -88,9 +101,13 @@ static inline void __tlb_flush_mm(struct mm_struct *mm)
 static inline void __tlb_flush_kernel(void)
 {
 	if (MACHINE_HAS_IDTE)
+	{
 		__tlb_flush_idte(init_mm.context.asce);
+	}
 	else
+	{
 		__tlb_flush_global();
+	}
 }
 #else
 #define __tlb_flush_global()	__tlb_flush_local()
@@ -110,9 +127,10 @@ static inline void __tlb_flush_kernel(void)
 }
 #endif
 
-static inline void __tlb_flush_mm_lazy(struct mm_struct * mm)
+static inline void __tlb_flush_mm_lazy(struct mm_struct *mm)
 {
-	if (mm->context.flush_mm) {
+	if (mm->context.flush_mm)
+	{
 		__tlb_flush_mm(mm);
 		mm->context.flush_mm = 0;
 	}
@@ -146,13 +164,13 @@ static inline void flush_tlb_mm(struct mm_struct *mm)
 }
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	__tlb_flush_mm_lazy(vma->vm_mm);
 }
 
 static inline void flush_tlb_kernel_range(unsigned long start,
-					  unsigned long end)
+		unsigned long end)
 {
 	__tlb_flush_kernel();
 }

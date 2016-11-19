@@ -14,7 +14,7 @@
 
 #define get_creg(reg) \
 	({ unsigned int __x; \
-	   asm volatile ("mvc .s2 " #reg ",%0\n" : "=b"(__x)); __x; })
+		asm volatile ("mvc .s2 " #reg ",%0\n" : "=b"(__x)); __x; })
 
 #define set_creg(reg, v) \
 	do { unsigned int __x = (unsigned int)(v); \
@@ -24,19 +24,19 @@
 #define or_creg(reg, n) \
 	do { unsigned __x, __n = (unsigned)(n);		  \
 		asm volatile ("mvc .s2 " #reg ",%0\n"	  \
-			      "or  .l2 %1,%0,%0\n"	  \
-			      "mvc .s2 %0," #reg "\n"	  \
-			      "nop\n"			  \
-			      : "=&b"(__x) : "b"(__n));	  \
+					  "or  .l2 %1,%0,%0\n"	  \
+					  "mvc .s2 %0," #reg "\n"	  \
+					  "nop\n"			  \
+					  : "=&b"(__x) : "b"(__n));	  \
 	} while (0)
 
 #define and_creg(reg, n) \
 	do { unsigned __x, __n = (unsigned)(n);		  \
 		asm volatile ("mvc .s2 " #reg ",%0\n"	  \
-			      "and .l2 %1,%0,%0\n"	  \
-			      "mvc .s2 %0," #reg "\n"	  \
-			      "nop\n"    \
-			      : "=&b"(__x) : "b"(__n));	  \
+					  "and .l2 %1,%0,%0\n"	  \
+					  "mvc .s2 %0," #reg "\n"	  \
+					  "nop\n"    \
+					  : "=&b"(__x) : "b"(__n));	  \
 	} while (0)
 
 #define get_coreid() (get_creg(DNUM) & 0xff)
@@ -57,7 +57,7 @@
 #define _extu(x, s, e)							\
 	({      unsigned int __x;					\
 		asm volatile ("extu .S2 %3,%1,%2,%0\n" :		\
-			      "=b"(__x) : "n"(s), "n"(e), "b"(x));	\
-	       __x; })
+					  "=b"(__x) : "n"(s), "n"(e), "b"(x));	\
+		__x; })
 
 #endif /* _ASM_C6X_SPECIAL_INSNS_H */

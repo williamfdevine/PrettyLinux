@@ -23,7 +23,8 @@
 
 #include "generic.h"
 
-static mfp_cfg_t mfp_cfg[] __initdata = {
+static mfp_cfg_t mfp_cfg[] __initdata =
+{
 	/* LCD */
 	GPIO6_2_LCD_LDD_0,
 	GPIO7_2_LCD_LDD_1,
@@ -135,7 +136,8 @@ static mfp_cfg_t mfp_cfg[] __initdata = {
 
 #define NUM_LCD_DETECT_PINS	7
 
-static int lcd_detect_pins[] __initdata = {
+static int lcd_detect_pins[] __initdata =
+{
 	MFP_PIN_GPIO72,   /* LCD_LDD_17 - ORIENT */
 	MFP_PIN_GPIO71,   /* LCD_LDD_16 - LCDID[5] */
 	MFP_PIN_GPIO17_2, /* LCD_BIAS   - LCDID[4] */
@@ -152,7 +154,8 @@ static int lcd_detect_pins[] __initdata = {
 	MFP_PIN_GPIO17,
 };
 
-static int lcd_detect_mfpr[] __initdata = {
+static int lcd_detect_mfpr[] __initdata =
+{
 	/* AF0, DS 1X, Pull Neither, Edge Clear */
 	0x8440, 0x8440, 0x8440, 0x8440, 0x8440, 0x8440, 0x8440,
 	0xc442, /* Backlight, Pull-Up, AF2 */
@@ -168,19 +171,24 @@ static void __init zylonite_detect_lcd_panel(void)
 	/* save the original MFP settings of these pins and configure them
 	 * as GPIO Input, DS01X, Pull Neither, Edge Clear
 	 */
-	for (i = 0; i < ARRAY_SIZE(lcd_detect_pins); i++) {
+	for (i = 0; i < ARRAY_SIZE(lcd_detect_pins); i++)
+	{
 		mfpr_save[i] = pxa3xx_mfp_read(lcd_detect_pins[i]);
 		pxa3xx_mfp_write(lcd_detect_pins[i], lcd_detect_mfpr[i]);
 	}
 
-	for (i = 0; i < NUM_LCD_DETECT_PINS; i++) {
+	for (i = 0; i < NUM_LCD_DETECT_PINS; i++)
+	{
 		id = id << 1;
 		gpio = mfp_to_gpio(lcd_detect_pins[i]);
 		gpio_request(gpio, "LCD_ID_PINS");
 		gpio_direction_input(gpio);
 
 		if (gpio_get_value(gpio))
+		{
 			id = id | 0x1;
+		}
+
 		gpio_free(gpio);
 	}
 
@@ -192,12 +200,15 @@ static void __init zylonite_detect_lcd_panel(void)
 
 	/* restore the original MFP settings */
 	for (i = 0; i < ARRAY_SIZE(lcd_detect_pins); i++)
+	{
 		pxa3xx_mfp_write(lcd_detect_pins[i], mfpr_save[i]);
+	}
 }
 
 void __init zylonite_pxa320_init(void)
 {
-	if (cpu_is_pxa320()) {
+	if (cpu_is_pxa320())
+	{
 		/* initialize MFP */
 		pxa3xx_mfp_config(ARRAY_AND_SIZE(mfp_cfg));
 

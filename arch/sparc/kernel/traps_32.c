@@ -32,12 +32,17 @@
 static void instruction_dump(unsigned long *pc)
 {
 	int i;
-	
-	if((((unsigned long) pc) & 3))
-                return;
 
-	for(i = -3; i < 6; i++)
-		printk("%c%08lx%c",i?' ':'<',pc[i],i?' ':'>');
+	if ((((unsigned long) pc) & 3))
+	{
+		return;
+	}
+
+	for (i = -3; i < 6; i++)
+	{
+		printk("%c%08lx%c", i ? ' ' : '<', pc[i], i ? ' ' : '>');
+	}
+
 	printk("\n");
 }
 
@@ -51,10 +56,10 @@ void __noreturn die_if_kernel(char *str, struct pt_regs *regs)
 
 	/* Amuse the user. */
 	printk(
-"              \\|/ ____ \\|/\n"
-"              \"@'/ ,. \\`@\"\n"
-"              /_| \\__/ |_\\\n"
-"                 \\__U_/\n");
+		"              \\|/ ____ \\|/\n"
+		"              \"@'/ ,. \\`@\"\n"
+		"              /_| \\__/ |_\\\n"
+		"                 \\__U_/\n");
 
 	printk("%s(%d): %s [#%d]\n", current->comm, task_pid_nr(current), str, ++die_counter);
 	show_regs(regs);
@@ -72,19 +77,24 @@ void __noreturn die_if_kernel(char *str, struct pt_regs *regs)
 		 * find some badly aligned kernel stack. Set an upper
 		 * bound in case our stack is trashed and we loop.
 		 */
-		while(rw					&&
-		      count++ < 30				&&
-                      (((unsigned long) rw) >= PAGE_OFFSET)	&&
-		      !(((unsigned long) rw) & 0x7)) {
+		while (rw					&&
+			   count++ < 30				&&
+			   (((unsigned long) rw) >= PAGE_OFFSET)	&&
+			   !(((unsigned long) rw) & 0x7))
+		{
 			printk("Caller[%08lx]: %pS\n", rw->ins[7],
-			       (void *) rw->ins[7]);
+				   (void *) rw->ins[7]);
 			rw = (struct reg_window32 *)rw->ins[6];
 		}
 	}
 	printk("Instruction DUMP:");
 	instruction_dump ((unsigned long *) regs->pc);
-	if(regs->psr & PSR_PS)
+
+	if (regs->psr & PSR_PS)
+	{
 		do_exit(SIGKILL);
+	}
+
 	do_exit(SIGSEGV);
 }
 
@@ -92,14 +102,17 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned long type)
 {
 	siginfo_t info;
 
-	if(type < 0x80) {
+	if (type < 0x80)
+	{
 		/* Sun OS's puke from bad traps, Linux survives! */
 		printk("Unimplemented Sparc TRAP, type = %02lx\n", type);
 		die_if_kernel("Whee... Hello Mr. Penguin", regs);
-	}	
+	}
 
-	if(regs->psr & PSR_PS)
+	if (regs->psr & PSR_PS)
+	{
 		die_if_kernel("Kernel bad trap", regs);
+	}
 
 	info.si_signo = SIGILL;
 	info.si_errno = 0;
@@ -110,15 +123,18 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned long type)
 }
 
 void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-			    unsigned long psr)
+							unsigned long psr)
 {
 	siginfo_t info;
 
-	if(psr & PSR_PS)
+	if (psr & PSR_PS)
+	{
 		die_if_kernel("Kernel illegal instruction", regs);
+	}
+
 #ifdef TRAP_DEBUG
 	printk("Ill instr. at pc=%08lx instruction is %08lx\n",
-	       regs->pc, *(unsigned long *)regs->pc);
+		   regs->pc, *(unsigned long *)regs->pc);
 #endif
 
 	info.si_signo = SIGILL;
@@ -130,12 +146,15 @@ void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned lon
 }
 
 void do_priv_instruction(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-			 unsigned long psr)
+						 unsigned long psr)
 {
 	siginfo_t info;
 
-	if(psr & PSR_PS)
+	if (psr & PSR_PS)
+	{
 		die_if_kernel("Penguin instruction from Penguin mode??!?!", regs);
+	}
+
 	info.si_signo = SIGILL;
 	info.si_errno = 0;
 	info.si_code = ILL_PRVOPC;
@@ -147,16 +166,18 @@ void do_priv_instruction(struct pt_regs *regs, unsigned long pc, unsigned long n
 /* XXX User may want to be allowed to do this. XXX */
 
 void do_memaccess_unaligned(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-			    unsigned long psr)
+							unsigned long psr)
 {
 	siginfo_t info;
 
-	if(regs->psr & PSR_PS) {
+	if (regs->psr & PSR_PS)
+	{
 		printk("KERNEL MNA at pc %08lx npc %08lx called by %08lx\n", pc, npc,
-		       regs->u_regs[UREG_RETPC]);
+			   regs->u_regs[UREG_RETPC]);
 		die_if_kernel("BOGUS", regs);
 		/* die_if_kernel("Kernel MNA access", regs); */
 	}
+
 #if 0
 	show_regs (regs);
 	instruction_dump ((unsigned long *) regs->pc);
@@ -172,44 +193,64 @@ void do_memaccess_unaligned(struct pt_regs *regs, unsigned long pc, unsigned lon
 
 static unsigned long init_fsr = 0x0UL;
 static unsigned long init_fregs[32] __attribute__ ((aligned (8))) =
-                { ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL,
-		  ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL,
-		  ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL,
-		  ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL };
+{
+	~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL,
+	~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL,
+	~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL,
+	~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL, ~0UL
+};
 
 void do_fpd_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-		 unsigned long psr)
+				 unsigned long psr)
 {
 	/* Sanity check... */
-	if(psr & PSR_PS)
+	if (psr & PSR_PS)
+	{
 		die_if_kernel("Kernel gets FloatingPenguinUnit disabled trap", regs);
+	}
 
 	put_psr(get_psr() | PSR_EF);    /* Allow FPU ops. */
 	regs->psr |= PSR_EF;
 #ifndef CONFIG_SMP
-	if(last_task_used_math == current)
+
+	if (last_task_used_math == current)
+	{
 		return;
-	if(last_task_used_math) {
+	}
+
+	if (last_task_used_math)
+	{
 		/* Other processes fpu state, save away */
 		struct task_struct *fptask = last_task_used_math;
 		fpsave(&fptask->thread.float_regs[0], &fptask->thread.fsr,
-		       &fptask->thread.fpqueue[0], &fptask->thread.fpqdepth);
+			   &fptask->thread.fpqueue[0], &fptask->thread.fpqdepth);
 	}
+
 	last_task_used_math = current;
-	if(used_math()) {
+
+	if (used_math())
+	{
 		fpload(&current->thread.float_regs[0], &current->thread.fsr);
-	} else {
+	}
+	else
+	{
 		/* Set initial sane state. */
 		fpload(&init_fregs[0], &init_fsr);
 		set_used_math();
 	}
+
 #else
-	if(!used_math()) {
+
+	if (!used_math())
+	{
 		fpload(&init_fregs[0], &init_fsr);
 		set_used_math();
-	} else {
+	}
+	else
+	{
 		fpload(&current->thread.float_regs[0], &current->thread.fsr);
 	}
+
 	set_thread_flag(TIF_USEDFPU);
 #endif
 }
@@ -220,7 +261,7 @@ static unsigned long fake_queue[32] __attribute__ ((aligned (8)));
 static unsigned long fake_depth;
 
 void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-		 unsigned long psr)
+				 unsigned long psr)
 {
 	static int calls;
 	siginfo_t info;
@@ -237,65 +278,82 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
 	 * happen again.  Thank you crashme...
 	 */
 #ifndef CONFIG_SMP
-	if(!fpt) {
+
+	if (!fpt)
+	{
 #else
-	if (!test_tsk_thread_flag(fpt, TIF_USEDFPU)) {
+
+	if (!test_tsk_thread_flag(fpt, TIF_USEDFPU))
+	{
 #endif
 		fpsave(&fake_regs[0], &fake_fsr, &fake_queue[0], &fake_depth);
 		regs->psr &= ~PSR_EF;
 		return;
 	}
+
 	fpsave(&fpt->thread.float_regs[0], &fpt->thread.fsr,
-	       &fpt->thread.fpqueue[0], &fpt->thread.fpqdepth);
+		   &fpt->thread.fpqueue[0], &fpt->thread.fpqdepth);
 #ifdef DEBUG_FPU
 	printk("Hmm, FP exception, fsr was %016lx\n", fpt->thread.fsr);
 #endif
 
-	switch ((fpt->thread.fsr & 0x1c000)) {
-	/* switch on the contents of the ftt [floating point trap type] field */
+	switch ((fpt->thread.fsr & 0x1c000))
+	{
+			/* switch on the contents of the ftt [floating point trap type] field */
 #ifdef DEBUG_FPU
-	case (1 << 14):
-		printk("IEEE_754_exception\n");
-		break;
+		case (1 << 14):
+			printk("IEEE_754_exception\n");
+			break;
 #endif
-	case (2 << 14):  /* unfinished_FPop (underflow & co) */
-	case (3 << 14):  /* unimplemented_FPop (quad stuff, maybe sqrt) */
-		ret = do_mathemu(regs, fpt);
-		break;
+
+		case (2 << 14):  /* unfinished_FPop (underflow & co) */
+		case (3 << 14):  /* unimplemented_FPop (quad stuff, maybe sqrt) */
+			ret = do_mathemu(regs, fpt);
+			break;
 #ifdef DEBUG_FPU
-	case (4 << 14):
-		printk("sequence_error (OS bug...)\n");
-		break;
-	case (5 << 14):
-		printk("hardware_error (uhoh!)\n");
-		break;
-	case (6 << 14):
-		printk("invalid_fp_register (user error)\n");
-		break;
+
+		case (4 << 14):
+			printk("sequence_error (OS bug...)\n");
+			break;
+
+		case (5 << 14):
+			printk("hardware_error (uhoh!)\n");
+			break;
+
+		case (6 << 14):
+			printk("invalid_fp_register (user error)\n");
+			break;
 #endif /* DEBUG_FPU */
 	}
+
 	/* If we successfully emulated the FPop, we pretend the trap never happened :-> */
-	if (ret) {
+	if (ret)
+	{
 		fpload(&current->thread.float_regs[0], &current->thread.fsr);
 		return;
 	}
+
 	/* nope, better SIGFPE the offending process... */
-	       
+
 #ifdef CONFIG_SMP
 	clear_tsk_thread_flag(fpt, TIF_USEDFPU);
 #endif
-	if(psr & PSR_PS) {
+
+	if (psr & PSR_PS)
+	{
 		/* The first fsr store/load we tried trapped,
 		 * the second one will not (we hope).
 		 */
 		printk("WARNING: FPU exception from kernel mode. at pc=%08lx\n",
-		       regs->pc);
+			   regs->pc);
 		regs->pc = regs->npc;
 		regs->npc += 4;
 		calls++;
-		if(calls > 2)
+
+		if (calls > 2)
 			die_if_kernel("Too many Penguin-FPU traps from kernel mode",
-				      regs);
+						  regs);
+
 		return;
 	}
 
@@ -305,34 +363,53 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
 	info.si_addr = (void __user *)pc;
 	info.si_trapno = 0;
 	info.si_code = __SI_FAULT;
-	if ((fsr & 0x1c000) == (1 << 14)) {
+
+	if ((fsr & 0x1c000) == (1 << 14))
+	{
 		if (fsr & 0x10)
+		{
 			info.si_code = FPE_FLTINV;
+		}
 		else if (fsr & 0x08)
+		{
 			info.si_code = FPE_FLTOVF;
+		}
 		else if (fsr & 0x04)
+		{
 			info.si_code = FPE_FLTUND;
+		}
 		else if (fsr & 0x02)
+		{
 			info.si_code = FPE_FLTDIV;
+		}
 		else if (fsr & 0x01)
+		{
 			info.si_code = FPE_FLTRES;
+		}
 	}
+
 	send_sig_info(SIGFPE, &info, fpt);
 #ifndef CONFIG_SMP
 	last_task_used_math = NULL;
 #endif
 	regs->psr &= ~PSR_EF;
-	if(calls > 0)
-		calls=0;
+
+	if (calls > 0)
+	{
+		calls = 0;
+	}
 }
 
 void handle_tag_overflow(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-			 unsigned long psr)
+						 unsigned long psr)
 {
 	siginfo_t info;
 
-	if(psr & PSR_PS)
+	if (psr & PSR_PS)
+	{
 		die_if_kernel("Penguin overflow trap from kernel mode", regs);
+	}
+
 	info.si_signo = SIGEMT;
 	info.si_errno = 0;
 	info.si_code = EMT_TAGOVF;
@@ -342,25 +419,26 @@ void handle_tag_overflow(struct pt_regs *regs, unsigned long pc, unsigned long n
 }
 
 void handle_watchpoint(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-		       unsigned long psr)
+					   unsigned long psr)
 {
 #ifdef TRAP_DEBUG
 	printk("Watchpoint detected at PC %08lx NPC %08lx PSR %08lx\n",
-	       pc, npc, psr);
+		   pc, npc, psr);
 #endif
-	if(psr & PSR_PS)
+
+	if (psr & PSR_PS)
 		panic("Tell me what a watchpoint trap is, and I'll then deal "
-		      "with such a beast...");
+			  "with such a beast...");
 }
 
 void handle_reg_access(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-		       unsigned long psr)
+					   unsigned long psr)
 {
 	siginfo_t info;
 
 #ifdef TRAP_DEBUG
 	printk("Register Access Exception at PC %08lx NPC %08lx PSR %08lx\n",
-	       pc, npc, psr);
+		   pc, npc, psr);
 #endif
 	info.si_signo = SIGBUS;
 	info.si_errno = 0;
@@ -371,7 +449,7 @@ void handle_reg_access(struct pt_regs *regs, unsigned long pc, unsigned long npc
 }
 
 void handle_cp_disabled(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-			unsigned long psr)
+						unsigned long psr)
 {
 	siginfo_t info;
 
@@ -384,13 +462,13 @@ void handle_cp_disabled(struct pt_regs *regs, unsigned long pc, unsigned long np
 }
 
 void handle_cp_exception(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-			 unsigned long psr)
+						 unsigned long psr)
 {
 	siginfo_t info;
 
 #ifdef TRAP_DEBUG
 	printk("Co-Processor Exception at PC %08lx NPC %08lx PSR %08lx\n",
-	       pc, npc, psr);
+		   pc, npc, psr);
 #endif
 	info.si_signo = SIGILL;
 	info.si_errno = 0;
@@ -401,7 +479,7 @@ void handle_cp_exception(struct pt_regs *regs, unsigned long pc, unsigned long n
 }
 
 void handle_hw_divzero(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-		       unsigned long psr)
+					   unsigned long psr)
 {
 	siginfo_t info;
 
@@ -416,8 +494,8 @@ void handle_hw_divzero(struct pt_regs *regs, unsigned long pc, unsigned long npc
 #ifdef CONFIG_DEBUG_BUGVERBOSE
 void do_BUG(const char *file, int line)
 {
-        // bust_spinlocks(1);   XXX Not in our original BUG()
-        printk("kernel BUG at %s:%d!\n", file, line);
+	// bust_spinlocks(1);   XXX Not in our original BUG()
+	printk("kernel BUG at %s:%d!\n", file, line);
 }
 EXPORT_SYMBOL(do_BUG);
 #endif
@@ -432,20 +510,22 @@ void trap_init(void)
 
 	/* Force linker to barf if mismatched */
 	if (TI_UWINMASK    != offsetof(struct thread_info, uwinmask) ||
-	    TI_TASK        != offsetof(struct thread_info, task) ||
-	    TI_FLAGS       != offsetof(struct thread_info, flags) ||
-	    TI_CPU         != offsetof(struct thread_info, cpu) ||
-	    TI_PREEMPT     != offsetof(struct thread_info, preempt_count) ||
-	    TI_SOFTIRQ     != offsetof(struct thread_info, softirq_count) ||
-	    TI_HARDIRQ     != offsetof(struct thread_info, hardirq_count) ||
-	    TI_KSP         != offsetof(struct thread_info, ksp) ||
-	    TI_KPC         != offsetof(struct thread_info, kpc) ||
-	    TI_KPSR        != offsetof(struct thread_info, kpsr) ||
-	    TI_KWIM        != offsetof(struct thread_info, kwim) ||
-	    TI_REG_WINDOW  != offsetof(struct thread_info, reg_window) ||
-	    TI_RWIN_SPTRS  != offsetof(struct thread_info, rwbuf_stkptrs) ||
-	    TI_W_SAVED     != offsetof(struct thread_info, w_saved))
+		TI_TASK        != offsetof(struct thread_info, task) ||
+		TI_FLAGS       != offsetof(struct thread_info, flags) ||
+		TI_CPU         != offsetof(struct thread_info, cpu) ||
+		TI_PREEMPT     != offsetof(struct thread_info, preempt_count) ||
+		TI_SOFTIRQ     != offsetof(struct thread_info, softirq_count) ||
+		TI_HARDIRQ     != offsetof(struct thread_info, hardirq_count) ||
+		TI_KSP         != offsetof(struct thread_info, ksp) ||
+		TI_KPC         != offsetof(struct thread_info, kpc) ||
+		TI_KPSR        != offsetof(struct thread_info, kpsr) ||
+		TI_KWIM        != offsetof(struct thread_info, kwim) ||
+		TI_REG_WINDOW  != offsetof(struct thread_info, reg_window) ||
+		TI_RWIN_SPTRS  != offsetof(struct thread_info, rwbuf_stkptrs) ||
+		TI_W_SAVED     != offsetof(struct thread_info, w_saved))
+	{
 		thread_info_offsets_are_bolixed_pete();
+	}
 
 	/* Attach to the address space of init_task. */
 	atomic_inc(&init_mm.mm_count);

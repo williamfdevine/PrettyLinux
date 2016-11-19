@@ -24,9 +24,9 @@ extern struct pglist_data *node_data[];
  * ( pfn_to_pgdat(pfn) && ((pfn) < node_end_pfn(pfn_to_nid(pfn))) )
  */
 #if 1	/* M32R_FIXME */
-#define pfn_valid(pfn)	(1)
+	#define pfn_valid(pfn)	(1)
 #else
-#define pfn_valid(pfn)	((pfn) < num_physpages)
+	#define pfn_valid(pfn)	((pfn) < num_physpages)
 #endif
 
 /*
@@ -39,14 +39,16 @@ static __inline__ int pfn_to_nid(unsigned long pfn)
 
 	for (node = 0 ; node < MAX_NUMNODES ; node++)
 		if (pfn >= node_start_pfn(node) && pfn < node_end_pfn(node))
+		{
 			break;
+		}
 
 	return node;
 }
 
 static __inline__ struct pglist_data *pfn_to_pgdat(unsigned long pfn)
 {
-	return(NODE_DATA(pfn_to_nid(pfn)));
+	return (NODE_DATA(pfn_to_nid(pfn)));
 }
 
 #endif /* CONFIG_DISCONTIGMEM */

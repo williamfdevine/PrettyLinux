@@ -32,7 +32,8 @@ void flush_dcache_page(struct page *page)
 
 	kunmap_atomic_primary(vaddr);
 
-	if (dampr2) {
+	if (dampr2)
+	{
 		__set_DAMPR(2, dampr2);
 		__set_IAMPR(2, dampr2);
 	}
@@ -47,7 +48,7 @@ EXPORT_SYMBOL(flush_dcache_page);
  * - so we temporarily attach the page to a bit of virtual space so that is can be flushed
  */
 void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
-			     unsigned long start, unsigned long len)
+							 unsigned long start, unsigned long len)
 {
 	unsigned long dampr2;
 	void *vaddr;
@@ -61,7 +62,8 @@ void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
 
 	kunmap_atomic_primary(vaddr);
 
-	if (dampr2) {
+	if (dampr2)
+	{
 		__set_DAMPR(2, dampr2);
 		__set_IAMPR(2, dampr2);
 	}

@@ -7,19 +7,19 @@
 int kvm_update_cpuid(struct kvm_vcpu *vcpu);
 bool kvm_mpx_supported(void);
 struct kvm_cpuid_entry2 *kvm_find_cpuid_entry(struct kvm_vcpu *vcpu,
-					      u32 function, u32 index);
+		u32 function, u32 index);
 int kvm_dev_ioctl_get_cpuid(struct kvm_cpuid2 *cpuid,
-			    struct kvm_cpuid_entry2 __user *entries,
-			    unsigned int type);
+							struct kvm_cpuid_entry2 __user *entries,
+							unsigned int type);
 int kvm_vcpu_ioctl_set_cpuid(struct kvm_vcpu *vcpu,
-			     struct kvm_cpuid *cpuid,
-			     struct kvm_cpuid_entry __user *entries);
+							 struct kvm_cpuid *cpuid,
+							 struct kvm_cpuid_entry __user *entries);
 int kvm_vcpu_ioctl_set_cpuid2(struct kvm_vcpu *vcpu,
-			      struct kvm_cpuid2 *cpuid,
-			      struct kvm_cpuid_entry2 __user *entries);
+							  struct kvm_cpuid2 *cpuid,
+							  struct kvm_cpuid_entry2 __user *entries);
 int kvm_vcpu_ioctl_get_cpuid2(struct kvm_vcpu *vcpu,
-			      struct kvm_cpuid2 *cpuid,
-			      struct kvm_cpuid_entry2 __user *entries);
+							  struct kvm_cpuid2 *cpuid,
+							  struct kvm_cpuid_entry2 __user *entries);
 void kvm_cpuid(struct kvm_vcpu *vcpu, u32 *eax, u32 *ebx, u32 *ecx, u32 *edx);
 
 int cpuid_query_maxphyaddr(struct kvm_vcpu *vcpu);
@@ -34,7 +34,9 @@ static inline bool guest_cpuid_has_xsave(struct kvm_vcpu *vcpu)
 	struct kvm_cpuid_entry2 *best;
 
 	if (!static_cpu_has(X86_FEATURE_XSAVE))
+	{
 		return false;
+	}
 
 	best = kvm_find_cpuid_entry(vcpu, 1, 0);
 	return best && (best->ecx & bit(X86_FEATURE_XSAVE));
@@ -177,8 +179,11 @@ static inline int guest_cpuid_family(struct kvm_vcpu *vcpu)
 	struct kvm_cpuid_entry2 *best;
 
 	best = kvm_find_cpuid_entry(vcpu, 0x1, 0);
+
 	if (!best)
+	{
 		return -1;
+	}
 
 	return x86_family(best->eax);
 }
@@ -188,8 +193,11 @@ static inline int guest_cpuid_model(struct kvm_vcpu *vcpu)
 	struct kvm_cpuid_entry2 *best;
 
 	best = kvm_find_cpuid_entry(vcpu, 0x1, 0);
+
 	if (!best)
+	{
 		return -1;
+	}
 
 	return x86_model(best->eax);
 }
@@ -199,8 +207,11 @@ static inline int guest_cpuid_stepping(struct kvm_vcpu *vcpu)
 	struct kvm_cpuid_entry2 *best;
 
 	best = kvm_find_cpuid_entry(vcpu, 0x1, 0);
+
 	if (!best)
+	{
 		return -1;
+	}
 
 	return x86_stepping(best->eax);
 }

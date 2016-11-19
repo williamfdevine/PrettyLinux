@@ -75,7 +75,8 @@
 
 #define GPIO_ULPI_PHY_RST	(127)
 
-static mfp_cfg_t cm_x3xx_mfp_cfg[] __initdata = {
+static mfp_cfg_t cm_x3xx_mfp_cfg[] __initdata =
+{
 	/* LCD */
 	GPIO54_LCD_LDD_0,
 	GPIO55_LCD_LDD_1,
@@ -177,21 +178,24 @@ static mfp_cfg_t cm_x3xx_mfp_cfg[] __initdata = {
 	GPIO19_PWM2_OUT,
 };
 
-static mfp_cfg_t cm_x3xx_rev_lt130_mfp_cfg[] __initdata = {
+static mfp_cfg_t cm_x3xx_rev_lt130_mfp_cfg[] __initdata =
+{
 	/* GPIOs */
 	GPIO79_GPIO,			/* LED */
 	GPIO77_GPIO,			/* WiFi reset */
 	GPIO78_GPIO,			/* BT reset */
 };
 
-static mfp_cfg_t cm_x3xx_rev_ge130_mfp_cfg[] __initdata = {
+static mfp_cfg_t cm_x3xx_rev_ge130_mfp_cfg[] __initdata =
+{
 	/* GPIOs */
 	GPIO76_GPIO,			/* LED */
 	GPIO71_GPIO,			/* WiFi reset */
 	GPIO70_GPIO,			/* BT reset */
 };
 
-static mfp_cfg_t cm_x310_mfp_cfg[] __initdata = {
+static mfp_cfg_t cm_x310_mfp_cfg[] __initdata =
+{
 	/* USB PORT 2 */
 	ULPI_STP,
 	ULPI_NXT,
@@ -219,7 +223,8 @@ static mfp_cfg_t cm_x310_mfp_cfg[] __initdata = {
 };
 
 #if defined(CONFIG_DM9000) || defined(CONFIG_DM9000_MODULE)
-static struct resource dm9000_resources[] = {
+static struct resource dm9000_resources[] =
+{
 	[0] = {
 		.start	= CM_X300_ETH_PHYS,
 		.end	= CM_X300_ETH_PHYS + 0x3,
@@ -237,11 +242,13 @@ static struct resource dm9000_resources[] = {
 	}
 };
 
-static struct dm9000_plat_data cm_x300_dm9000_platdata = {
+static struct dm9000_plat_data cm_x300_dm9000_platdata =
+{
 	.flags		= DM9000_PLATF_16BITONLY | DM9000_PLATF_NO_EEPROM,
 };
 
-static struct platform_device dm9000_device = {
+static struct platform_device dm9000_device =
+{
 	.name		= "dm9000",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(dm9000_resources),
@@ -262,7 +269,8 @@ static inline void cm_x300_init_dm9000(void) {}
 
 /* LCD */
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static struct pxafb_mode_info cm_x300_lcd_modes[] = {
+static struct pxafb_mode_info cm_x300_lcd_modes[] =
+{
 	[0] = {
 		.pixclock	= 38250,
 		.bpp		= 16,
@@ -291,7 +299,8 @@ static struct pxafb_mode_info cm_x300_lcd_modes[] = {
 	},
 };
 
-static struct pxafb_mach_info cm_x300_lcd = {
+static struct pxafb_mach_info cm_x300_lcd =
+{
 	.modes			= cm_x300_lcd_modes,
 	.num_modes		= ARRAY_SIZE(cm_x300_lcd_modes),
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
@@ -306,18 +315,21 @@ static inline void cm_x300_init_lcd(void) {}
 #endif
 
 #if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM_MODULE)
-static struct pwm_lookup cm_x300_pwm_lookup[] = {
+static struct pwm_lookup cm_x300_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa27x-pwm.0", 1, "pwm-backlight.0", NULL, 10000,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_pwm_backlight_data cm_x300_backlight_data = {
+static struct platform_pwm_backlight_data cm_x300_backlight_data =
+{
 	.max_brightness	= 100,
 	.dft_brightness	= 100,
 	.enable_gpio	= -1,
 };
 
-static struct platform_device cm_x300_backlight_device = {
+static struct platform_device cm_x300_backlight_device =
+{
 	.name		= "pwm-backlight",
 	.dev		= {
 		.parent = &pxa27x_device_pwm0.dev,
@@ -342,14 +354,16 @@ static inline void cm_x300_init_bl(void) {}
 #define GPIO_LCD_CS	(GPIO_LCD_BASE + 11)	/* aux_gpio3_3 */
 #define LCD_SPI_BUS_NUM	(1)
 
-static struct spi_gpio_platform_data cm_x300_spi_gpio_pdata = {
+static struct spi_gpio_platform_data cm_x300_spi_gpio_pdata =
+{
 	.sck		= GPIO_LCD_SCL,
 	.mosi		= GPIO_LCD_DIN,
 	.miso		= GPIO_LCD_DOUT,
 	.num_chipselect	= 1,
 };
 
-static struct platform_device cm_x300_spi_gpio = {
+static struct platform_device cm_x300_spi_gpio =
+{
 	.name		= "spi_gpio",
 	.id		= LCD_SPI_BUS_NUM,
 	.dev		= {
@@ -357,11 +371,13 @@ static struct platform_device cm_x300_spi_gpio = {
 	},
 };
 
-static struct tdo24m_platform_data cm_x300_tdo24m_pdata = {
+static struct tdo24m_platform_data cm_x300_tdo24m_pdata =
+{
 	.model = TDO35S,
 };
 
-static struct spi_board_info cm_x300_spi_devices[] __initdata = {
+static struct spi_board_info cm_x300_spi_devices[] __initdata =
+{
 	{
 		.modalias		= "tdo24m",
 		.max_speed_hz		= 1000000,
@@ -375,7 +391,7 @@ static struct spi_board_info cm_x300_spi_devices[] __initdata = {
 static void __init cm_x300_init_spi(void)
 {
 	spi_register_board_info(cm_x300_spi_devices,
-				ARRAY_SIZE(cm_x300_spi_devices));
+							ARRAY_SIZE(cm_x300_spi_devices));
 	platform_device_register(&cm_x300_spi_gpio);
 }
 #else
@@ -392,7 +408,8 @@ static inline void cm_x300_init_ac97(void) {}
 #endif
 
 #if defined(CONFIG_MTD_NAND_PXA3xx) || defined(CONFIG_MTD_NAND_PXA3xx_MODULE)
-static struct mtd_partition cm_x300_nand_partitions[] = {
+static struct mtd_partition cm_x300_nand_partitions[] =
+{
 	[0] = {
 		.name        = "OBM",
 		.offset      = 0,
@@ -428,7 +445,8 @@ static struct mtd_partition cm_x300_nand_partitions[] = {
 	},
 };
 
-static struct pxa3xx_nand_platform_data cm_x300_nand_info = {
+static struct pxa3xx_nand_platform_data cm_x300_nand_info =
+{
 	.enable_arbiter	= 1,
 	.keep_config	= 1,
 	.num_cs		= 1,
@@ -445,9 +463,10 @@ static inline void cm_x300_init_nand(void) {}
 #endif
 
 #if defined(CONFIG_MMC) || defined(CONFIG_MMC_MODULE)
-static struct pxamci_platform_data cm_x300_mci_platform_data = {
+static struct pxamci_platform_data cm_x300_mci_platform_data =
+{
 	.detect_delay_ms	= 200,
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_card_detect	= GPIO82_MMC_IRQ,
 	.gpio_card_ro		= GPIO85_MMC_WP,
 	.gpio_power		= -1,
@@ -456,8 +475,8 @@ static struct pxamci_platform_data cm_x300_mci_platform_data = {
 /* The second MMC slot of CM-X300 is hardwired to Libertas card and has
    no detection/ro pins */
 static int cm_x300_mci2_init(struct device *dev,
-			     irq_handler_t cm_x300_detect_int,
-	void *data)
+							 irq_handler_t cm_x300_detect_int,
+							 void *data)
 {
 	return 0;
 }
@@ -466,9 +485,10 @@ static void cm_x300_mci2_exit(struct device *dev, void *data)
 {
 }
 
-static struct pxamci_platform_data cm_x300_mci2_platform_data = {
+static struct pxamci_platform_data cm_x300_mci2_platform_data =
+{
 	.detect_delay_ms	= 200,
-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.init 			= cm_x300_mci2_init,
 	.exit			= cm_x300_mci2_exit,
 	.gpio_card_detect	= -1,
@@ -494,8 +514,10 @@ static int cm_x300_ulpi_phy_reset(void)
 
 	/* reset the PHY */
 	err = gpio_request_one(GPIO_ULPI_PHY_RST, GPIOF_OUT_INIT_LOW,
-			       "ulpi reset");
-	if (err) {
+						   "ulpi reset");
+
+	if (err)
+	{
 		pr_err("failed to request ULPI reset GPIO: %d\n", err);
 		return err;
 	}
@@ -513,18 +535,24 @@ static inline int cm_x300_u2d_init(struct device *dev)
 {
 	int err = 0;
 
-	if (cpu_is_pxa310()) {
+	if (cpu_is_pxa310())
+	{
 		/* CLK_POUT is connected to the ULPI PHY */
 		pout_clk = clk_get(NULL, "CLK_POUT");
-		if (IS_ERR(pout_clk)) {
+
+		if (IS_ERR(pout_clk))
+		{
 			err = PTR_ERR(pout_clk);
 			pr_err("failed to get CLK_POUT: %d\n", err);
 			return err;
 		}
+
 		clk_enable(pout_clk);
 
 		err = cm_x300_ulpi_phy_reset();
-		if (err) {
+
+		if (err)
+		{
 			clk_disable(pout_clk);
 			clk_put(pout_clk);
 		}
@@ -535,13 +563,15 @@ static inline int cm_x300_u2d_init(struct device *dev)
 
 static void cm_x300_u2d_exit(struct device *dev)
 {
-	if (cpu_is_pxa310()) {
+	if (cpu_is_pxa310())
+	{
 		clk_disable(pout_clk);
 		clk_put(pout_clk);
 	}
 }
 
-static struct pxa3xx_u2d_platform_data cm_x300_u2d_platform_data = {
+static struct pxa3xx_u2d_platform_data cm_x300_u2d_platform_data =
+{
 	.ulpi_mode	= ULPI_SER_6PIN,
 	.init		= cm_x300_u2d_init,
 	.exit		= cm_x300_u2d_exit,
@@ -560,12 +590,13 @@ static int cm_x300_ohci_init(struct device *dev)
 {
 	if (cpu_is_pxa300())
 		UP2OCR = UP2OCR_HXS
-			| UP2OCR_HXOE | UP2OCR_DMPDE | UP2OCR_DPPDE;
+				 | UP2OCR_HXOE | UP2OCR_DMPDE | UP2OCR_DPPDE;
 
 	return 0;
 }
 
-static struct pxaohci_platform_data cm_x300_ohci_platform_data = {
+static struct pxaohci_platform_data cm_x300_ohci_platform_data =
+{
 	.port_mode	= PMM_PERPORT_MODE,
 	.flags		= ENABLE_PORT_ALL | POWER_CONTROL_LOW,
 	.init		= cm_x300_ohci_init,
@@ -580,7 +611,8 @@ static inline void cm_x300_init_ohci(void) {}
 #endif
 
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-static struct gpio_led cm_x300_leds[] = {
+static struct gpio_led cm_x300_leds[] =
+{
 	[0] = {
 		.name = "cm-x300:green",
 		.default_trigger = "heartbeat",
@@ -588,12 +620,14 @@ static struct gpio_led cm_x300_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data cm_x300_gpio_led_pdata = {
+static struct gpio_led_platform_data cm_x300_gpio_led_pdata =
+{
 	.num_leds = ARRAY_SIZE(cm_x300_leds),
 	.leds = cm_x300_leds,
 };
 
-static struct platform_device cm_x300_led_device = {
+static struct platform_device cm_x300_led_device =
+{
 	.name		= "leds-gpio",
 	.id		= -1,
 	.dev		= {
@@ -604,9 +638,13 @@ static struct platform_device cm_x300_led_device = {
 static void __init cm_x300_init_leds(void)
 {
 	if (system_rev < 130)
+	{
 		cm_x300_leds[0].gpio = 79;
+	}
 	else
+	{
 		cm_x300_leds[0].gpio = 76;
+	}
 
 	platform_device_register(&cm_x300_led_device);
 }
@@ -616,15 +654,18 @@ static inline void cm_x300_init_leds(void) {}
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
 /* PCA9555 */
-static struct pca953x_platform_data cm_x300_gpio_ext_pdata_0 = {
+static struct pca953x_platform_data cm_x300_gpio_ext_pdata_0 =
+{
 	.gpio_base = 128,
 };
 
-static struct pca953x_platform_data cm_x300_gpio_ext_pdata_1 = {
+static struct pca953x_platform_data cm_x300_gpio_ext_pdata_1 =
+{
 	.gpio_base = 144,
 };
 
-static struct i2c_board_info cm_x300_gpio_ext_info[] = {
+static struct i2c_board_info cm_x300_gpio_ext_info[] =
+{
 	[0] = {
 		I2C_BOARD_INFO("pca9555", 0x24),
 		.platform_data = &cm_x300_gpio_ext_pdata_0,
@@ -639,14 +680,15 @@ static void __init cm_x300_init_i2c(void)
 {
 	pxa_set_i2c_info(NULL);
 	i2c_register_board_info(0, cm_x300_gpio_ext_info,
-				ARRAY_SIZE(cm_x300_gpio_ext_info));
+							ARRAY_SIZE(cm_x300_gpio_ext_info));
 }
 #else
 static inline void cm_x300_init_i2c(void) {}
 #endif
 
 #if defined(CONFIG_RTC_DRV_V3020) || defined(CONFIG_RTC_DRV_V3020_MODULE)
-struct v3020_platform_data cm_x300_v3020_pdata = {
+struct v3020_platform_data cm_x300_v3020_pdata =
+{
 	.use_gpio	= 1,
 	.gpio_cs	= GPIO95_RTC_CS,
 	.gpio_wr	= GPIO96_RTC_WR,
@@ -654,7 +696,8 @@ struct v3020_platform_data cm_x300_v3020_pdata = {
 	.gpio_io	= GPIO98_RTC_IO,
 };
 
-static struct platform_device cm_x300_rtc_device = {
+static struct platform_device cm_x300_rtc_device =
+{
 	.name		= "v3020",
 	.id		= -1,
 	.dev		= {
@@ -671,7 +714,8 @@ static inline void cm_x300_init_rtc(void) {}
 #endif
 
 /* Battery */
-struct power_supply_info cm_x300_psy_info = {
+struct power_supply_info cm_x300_psy_info =
+{
 	.name = "battery",
 	.technology = POWER_SUPPLY_TECHNOLOGY_LIPO,
 	.voltage_max_design = 4200000,
@@ -693,7 +737,8 @@ static void cm_x300_battery_critical(void)
 #endif
 }
 
-struct da9030_battery_info cm_x300_battery_info = {
+struct da9030_battery_info cm_x300_battery_info =
+{
 	.battery_info = &cm_x300_psy_info,
 
 	.charge_milliamp = 1000,
@@ -718,11 +763,13 @@ struct da9030_battery_info cm_x300_battery_info = {
 	.battery_critical = cm_x300_battery_critical,
 };
 
-static struct regulator_consumer_supply buck2_consumers[] = {
+static struct regulator_consumer_supply buck2_consumers[] =
+{
 	REGULATOR_SUPPLY("vcc_core", NULL),
 };
 
-static struct regulator_init_data buck2_data = {
+static struct regulator_init_data buck2_data =
+{
 	.constraints = {
 		.min_uV = 1375000,
 		.max_uV = 1375000,
@@ -737,7 +784,8 @@ static struct regulator_init_data buck2_data = {
 };
 
 /* DA9030 */
-struct da903x_subdev_info cm_x300_da9030_subdevs[] = {
+struct da903x_subdev_info cm_x300_da9030_subdevs[] =
+{
 	{
 		.name = "da903x-battery",
 		.id = DA9030_ID_BAT,
@@ -750,18 +798,21 @@ struct da903x_subdev_info cm_x300_da9030_subdevs[] = {
 	},
 };
 
-static struct da903x_platform_data cm_x300_da9030_info = {
+static struct da903x_platform_data cm_x300_da9030_info =
+{
 	.num_subdevs = ARRAY_SIZE(cm_x300_da9030_subdevs),
 	.subdevs = cm_x300_da9030_subdevs,
 };
 
-static struct i2c_board_info cm_x300_pmic_info = {
+static struct i2c_board_info cm_x300_pmic_info =
+{
 	I2C_BOARD_INFO("da9030", 0x49),
 	.irq = IRQ_WAKEUP0,
 	.platform_data = &cm_x300_da9030_info,
 };
 
-static struct i2c_pxa_platform_data cm_x300_pwr_i2c_info = {
+static struct i2c_pxa_platform_data cm_x300_pwr_i2c_info =
+{
 	.use_pio = 1,
 };
 
@@ -773,7 +824,8 @@ static void __init cm_x300_init_da9030(void)
 }
 
 /* wi2wi gpio setting for system_rev >= 130 */
-static struct gpio cm_x300_wi2wi_gpios[] __initdata = {
+static struct gpio cm_x300_wi2wi_gpios[] __initdata =
+{
 	{ 71, GPIOF_OUT_INIT_HIGH, "wlan en" },
 	{ 70, GPIOF_OUT_INIT_HIGH, "bt reset" },
 };
@@ -782,14 +834,17 @@ static void __init cm_x300_init_wi2wi(void)
 {
 	int err;
 
-	if (system_rev < 130) {
+	if (system_rev < 130)
+	{
 		cm_x300_wi2wi_gpios[0].gpio = 77;	/* wlan en */
 		cm_x300_wi2wi_gpios[1].gpio = 78;	/* bt reset */
 	}
 
 	/* Libertas and CSR reset */
 	err = gpio_request_array(ARRAY_AND_SIZE(cm_x300_wi2wi_gpios));
-	if (err) {
+
+	if (err)
+	{
 		pr_err("failed to request wifi/bt gpios: %d\n", err);
 		return;
 	}
@@ -809,12 +864,18 @@ static void __init cm_x300_init_mfp(void)
 	pxa3xx_mfp_config(ARRAY_AND_SIZE(cm_x3xx_mfp_cfg));
 
 	if (system_rev < 130)
+	{
 		pxa3xx_mfp_config(ARRAY_AND_SIZE(cm_x3xx_rev_lt130_mfp_cfg));
+	}
 	else
+	{
 		pxa3xx_mfp_config(ARRAY_AND_SIZE(cm_x3xx_rev_ge130_mfp_cfg));
+	}
 
 	if (cpu_is_pxa310())
+	{
 		pxa3xx_mfp_config(ARRAY_AND_SIZE(cm_x310_mfp_cfg));
+	}
 }
 
 static void __init cm_x300_init(void)
@@ -823,8 +884,11 @@ static void __init cm_x300_init(void)
 
 	pxa_set_btuart_info(NULL);
 	pxa_set_stuart_info(NULL);
+
 	if (cpu_is_pxa300())
+	{
 		pxa_set_ffuart_info(NULL);
+	}
 
 	cm_x300_init_da9030();
 	cm_x300_init_dm9000();
@@ -849,20 +913,21 @@ static void __init cm_x300_fixup(struct tag *tags, char **cmdline)
 	/* Make sure that mi->bank[0].start = PHYS_ADDR */
 	for (; tags->hdr.size; tags = tag_next(tags))
 		if (tags->hdr.tag == ATAG_MEM &&
-			tags->u.mem.start == 0x80000000) {
+			tags->u.mem.start == 0x80000000)
+		{
 			tags->u.mem.start = 0xa0000000;
 			break;
 		}
 }
 
 MACHINE_START(CM_X300, "CM-X300 module")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa3xx_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa3xx_init_irq,
-	.handle_irq	= pxa3xx_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= cm_x300_init,
-	.fixup		= cm_x300_fixup,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa3xx_init_irq,
+			   .handle_irq	= pxa3xx_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= cm_x300_init,
+					 .fixup		= cm_x300_fixup,
+						  .restart	= pxa_restart,
+							  MACHINE_END

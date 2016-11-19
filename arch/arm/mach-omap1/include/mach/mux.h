@@ -38,62 +38,62 @@
 
 #ifdef	CONFIG_OMAP_MUX_DEBUG
 #define MUX_REG(reg, mode_offset, mode) .mux_reg_name = "FUNC_MUX_CTRL_"#reg, \
-					.mux_reg = FUNC_MUX_CTRL_##reg, \
-					.mask_offset = mode_offset, \
-					.mask = mode,
+		.mux_reg = FUNC_MUX_CTRL_##reg, \
+				   .mask_offset = mode_offset, \
+								  .mask = mode,
 
 #define PULL_REG(reg, bit, status)	.pull_name = "PULL_DWN_CTRL_"#reg, \
-					.pull_reg = PULL_DWN_CTRL_##reg, \
+		.pull_reg = PULL_DWN_CTRL_##reg, \
 					.pull_bit = bit, \
-					.pull_val = status,
+								.pull_val = status,
 
 #define PU_PD_REG(reg, status)		.pu_pd_name = "PU_PD_SEL_"#reg, \
-					.pu_pd_reg = PU_PD_SEL_##reg, \
-					.pu_pd_val = status,
+		.pu_pd_reg = PU_PD_SEL_##reg, \
+					 .pu_pd_val = status,
 
 #define MUX_REG_7XX(reg, mode_offset, mode) .mux_reg_name = "OMAP7XX_IO_CONF_"#reg, \
-					.mux_reg = OMAP7XX_IO_CONF_##reg, \
-					.mask_offset = mode_offset, \
-					.mask = mode,
+		.mux_reg = OMAP7XX_IO_CONF_##reg, \
+				   .mask_offset = mode_offset, \
+								  .mask = mode,
 
 #define PULL_REG_7XX(reg, bit, status)	.pull_name = "OMAP7XX_IO_CONF_"#reg, \
-					.pull_reg = OMAP7XX_IO_CONF_##reg, \
+		.pull_reg = OMAP7XX_IO_CONF_##reg, \
 					.pull_bit = bit, \
-					.pull_val = status,
+								.pull_val = status,
 
 #else
 
 #define MUX_REG(reg, mode_offset, mode) .mux_reg = FUNC_MUX_CTRL_##reg, \
-					.mask_offset = mode_offset, \
-					.mask = mode,
+		.mask_offset = mode_offset, \
+					   .mask = mode,
 
 #define PULL_REG(reg, bit, status)	.pull_reg = PULL_DWN_CTRL_##reg, \
-					.pull_bit = bit, \
+		.pull_bit = bit, \
 					.pull_val = status,
 
 #define PU_PD_REG(reg, status)		.pu_pd_reg = PU_PD_SEL_##reg, \
-					.pu_pd_val = status,
+		.pu_pd_val = status,
 
 #define MUX_REG_7XX(reg, mode_offset, mode) \
-					.mux_reg = OMAP7XX_IO_CONF_##reg, \
-					.mask_offset = mode_offset, \
-					.mask = mode,
+	.mux_reg = OMAP7XX_IO_CONF_##reg, \
+			   .mask_offset = mode_offset, \
+							  .mask = mode,
 
 #define PULL_REG_7XX(reg, bit, status)	.pull_reg = OMAP7XX_IO_CONF_##reg, \
-					.pull_bit = bit, \
+		.pull_bit = bit, \
 					.pull_val = status,
 
 #endif /* CONFIG_OMAP_MUX_DEBUG */
 
 #define MUX_CFG(desc, mux_reg, mode_offset, mode,	\
-		pull_reg, pull_bit, pull_status,	\
-		pu_pd_reg, pu_pd_status, debug_status)	\
+				pull_reg, pull_bit, pull_status,	\
+				pu_pd_reg, pu_pd_status, debug_status)	\
 {							\
 	.name =	 desc,					\
-	.debug = debug_status,				\
-	MUX_REG(mux_reg, mode_offset, mode)		\
-	PULL_REG(pull_reg, pull_bit, pull_status)	\
-	PU_PD_REG(pu_pd_reg, pu_pd_status)		\
+			 .debug = debug_status,				\
+					  MUX_REG(mux_reg, mode_offset, mode)		\
+					  PULL_REG(pull_reg, pull_bit, pull_status)	\
+					  PU_PD_REG(pu_pd_reg, pu_pd_status)		\
 },
 
 
@@ -105,16 +105,17 @@
  *   as mux config
  */
 #define MUX_CFG_7XX(desc, mux_reg, mode_offset, mode,	\
-		   pull_bit, pull_status, debug_status)\
+					pull_bit, pull_status, debug_status)\
 {							\
 	.name =	 desc,					\
-	.debug = debug_status,				\
-	MUX_REG_7XX(mux_reg, mode_offset, mode)		\
-	PULL_REG_7XX(mux_reg, pull_bit, pull_status)	\
-	PU_PD_REG(NA, 0)		\
+			 .debug = debug_status,				\
+					  MUX_REG_7XX(mux_reg, mode_offset, mode)		\
+					  PULL_REG_7XX(mux_reg, pull_bit, pull_status)	\
+					  PU_PD_REG(NA, 0)		\
 },
 
-struct pin_config {
+struct pin_config
+{
 	char 			*name;
 	const unsigned int 	mux_reg;
 	unsigned char		debug;
@@ -137,7 +138,8 @@ struct pin_config {
 
 };
 
-enum omap7xx_index {
+enum omap7xx_index
+{
 	/* OMAP 730 keyboard */
 	E2_7XX_KBR0,
 	J7_7XX_KBR1,
@@ -179,7 +181,8 @@ enum omap7xx_index {
 	UART_7XX_2,
 };
 
-enum omap1xxx_index {
+enum omap1xxx_index
+{
 	/* UART1 (BT_UART_GATING)*/
 	UART1_TX = 0,
 	UART1_RTS,
@@ -432,7 +435,8 @@ enum omap1xxx_index {
 
 };
 
-struct omap_mux_cfg {
+struct omap_mux_cfg
+{
 	struct pin_config	*pins;
 	unsigned long		size;
 	int			(*cfg_reg)(const struct pin_config *cfg);

@@ -88,13 +88,13 @@ static int __init epit_clocksource_init(struct clk *timer_clk)
 	unsigned int c = clk_get_rate(timer_clk);
 
 	return clocksource_mmio_init(timer_base + EPITCNR, "epit", c, 200, 32,
-			clocksource_mmio_readl_down);
+								 clocksource_mmio_readl_down);
 }
 
 /* clock event */
 
 static int epit_set_next_event(unsigned long evt,
-			      struct clock_event_device *unused)
+							   struct clock_event_device *unused)
 {
 	unsigned long tcmp;
 
@@ -142,7 +142,9 @@ static int epit_set_oneshot(struct clock_event_device *evt)
 
 	/* Clear pending interrupt, only while switching mode */
 	if (!clockevent_state_oneshot(evt))
+	{
 		epit_irq_acknowledge();
+	}
 
 	/*
 	 * Do not put overhead of interrupt enable/disable into
@@ -170,13 +172,15 @@ static irqreturn_t epit_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction epit_timer_irq = {
+static struct irqaction epit_timer_irq =
+{
 	.name		= "i.MX EPIT Timer Tick",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= epit_timer_interrupt,
 };
 
-static struct clock_event_device clockevent_epit = {
+static struct clock_event_device clockevent_epit =
+{
 	.name			= "epit",
 	.features		= CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= epit_shutdown,
@@ -190,8 +194,8 @@ static int __init epit_clockevent_init(struct clk *timer_clk)
 {
 	clockevent_epit.cpumask = cpumask_of(0);
 	clockevents_config_and_register(&clockevent_epit,
-					clk_get_rate(timer_clk),
-					0x800, 0xfffffffe);
+									clk_get_rate(timer_clk),
+									0x800, 0xfffffffe);
 
 	return 0;
 }
@@ -201,7 +205,9 @@ void __init epit_timer_init(void __iomem *base, int irq)
 	struct clk *timer_clk;
 
 	timer_clk = clk_get_sys("imx-epit.0", NULL);
-	if (IS_ERR(timer_clk)) {
+
+	if (IS_ERR(timer_clk))
+	{
 		pr_err("i.MX epit: unable to get clk\n");
 		return;
 	}
@@ -217,7 +223,7 @@ void __init epit_timer_init(void __iomem *base, int irq)
 
 	imx_writel(0xffffffff, timer_base + EPITLR);
 	imx_writel(EPITCR_EN | EPITCR_CLKSRC_REF_HIGH | EPITCR_WAITEN,
-		   timer_base + EPITCR);
+			   timer_base + EPITCR);
 
 	/* init and register the timer to the framework */
 	epit_clocksource_init(timer_clk);

@@ -49,13 +49,15 @@
 /* Shift bits for getting status for display */
 #define CHT_DSP_SSS_POS		16
 
-struct punit_device {
+struct punit_device
+{
 	char *name;
 	int reg;
 	int sss_pos;
 };
 
-static const struct punit_device punit_device_tng[] = {
+static const struct punit_device punit_device_tng[] =
+{
 	{ "DISPLAY",	CHT_DSP_SSS,	SSS_SHIFT },
 	{ "VED",	VED_SS_PM0,	SSS_SHIFT },
 	{ "ISP",	ISP_SS_PM0,	SSS_SHIFT },
@@ -63,7 +65,8 @@ static const struct punit_device punit_device_tng[] = {
 	{ NULL }
 };
 
-static const struct punit_device punit_device_byt[] = {
+static const struct punit_device punit_device_byt[] =
+{
 	{ "GFX RENDER",	PWRGT_STATUS,	RENDER_POS },
 	{ "GFX MEDIA",	PWRGT_STATUS,	MEDIA_POS },
 	{ "DISPLAY",	PWRGT_STATUS,	VLV_DISPLAY_POS },
@@ -73,7 +76,8 @@ static const struct punit_device punit_device_byt[] = {
 	{ NULL }
 };
 
-static const struct punit_device punit_device_cht[] = {
+static const struct punit_device punit_device_cht[] =
+{
 	{ "GFX RENDER",	PWRGT_STATUS,	RENDER_POS },
 	{ "GFX MEDIA",	PWRGT_STATUS,	MEDIA_POS },
 	{ "DISPLAY",	CHT_DSP_SSS,	CHT_DSP_SSS_POS },
@@ -83,7 +87,7 @@ static const struct punit_device punit_device_cht[] = {
 	{ NULL }
 };
 
-static const char * const dstates[] = {"D0", "D0i1", "D0i2", "D0i3"};
+static const char *const dstates[] = {"D0", "D0i1", "D0i2", "D0i3"};
 
 static int punit_dev_state_show(struct seq_file *seq_file, void *unused)
 {
@@ -93,17 +97,24 @@ static int punit_dev_state_show(struct seq_file *seq_file, void *unused)
 	int status;
 
 	seq_puts(seq_file, "\n\nPUNIT NORTH COMPLEX DEVICES :\n");
-	while (punit_devp->name) {
+
+	while (punit_devp->name)
+	{
 		status = iosf_mbi_read(BT_MBI_UNIT_PMC, MBI_REG_READ,
-				       punit_devp->reg, &punit_pwr_status);
-		if (status) {
+							   punit_devp->reg, &punit_pwr_status);
+
+		if (status)
+		{
 			seq_printf(seq_file, "%9s : Read Failed\n",
-				   punit_devp->name);
-		} else  {
+					   punit_devp->name);
+		}
+		else
+		{
 			index = (punit_pwr_status >> punit_devp->sss_pos) & 3;
 			seq_printf(seq_file, "%9s : %s\n", punit_devp->name,
-				   dstates[index]);
+					   dstates[index]);
 		}
+
 		punit_devp++;
 	}
 
@@ -115,7 +126,8 @@ static int punit_dev_state_open(struct inode *inode, struct file *file)
 	return single_open(file, punit_dev_state_show, inode->i_private);
 }
 
-static const struct file_operations punit_dev_state_ops = {
+static const struct file_operations punit_dev_state_ops =
+{
 	.open		= punit_dev_state_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -129,13 +141,18 @@ static int punit_dbgfs_register(struct punit_device *punit_device)
 	static struct dentry *dev_state;
 
 	punit_dbg_file = debugfs_create_dir("punit_atom", NULL);
+
 	if (!punit_dbg_file)
+	{
 		return -ENXIO;
+	}
 
 	dev_state = debugfs_create_file("dev_power_state", S_IFREG | S_IRUGO,
-					punit_dbg_file, punit_device,
-					&punit_dev_state_ops);
-	if (!dev_state) {
+									punit_dbg_file, punit_device,
+									&punit_dev_state_ops);
+
+	if (!dev_state)
+	{
 		pr_err("punit_dev_state register failed\n");
 		debugfs_remove(punit_dbg_file);
 		return -ENXIO;
@@ -151,9 +168,10 @@ static void punit_dbgfs_unregister(void)
 
 #define ICPU(model, drv_data) \
 	{ X86_VENDOR_INTEL, 6, model, X86_FEATURE_MWAIT,\
-	  (kernel_ulong_t)&drv_data }
+		(kernel_ulong_t)&drv_data }
 
-static const struct x86_cpu_id intel_punit_cpu_ids[] = {
+static const struct x86_cpu_id intel_punit_cpu_ids[] =
+{
 	ICPU(INTEL_FAM6_ATOM_SILVERMONT1, punit_device_byt),
 	ICPU(INTEL_FAM6_ATOM_MERRIFIELD,  punit_device_tng),
 	ICPU(INTEL_FAM6_ATOM_AIRMONT,	  punit_device_cht),
@@ -168,12 +186,18 @@ static int __init punit_atom_debug_init(void)
 	int ret;
 
 	id = x86_match_cpu(intel_punit_cpu_ids);
+
 	if (!id)
+	{
 		return -ENODEV;
+	}
 
 	ret = punit_dbgfs_register((struct punit_device *)id->driver_data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }

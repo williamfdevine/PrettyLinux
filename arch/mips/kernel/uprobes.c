@@ -24,7 +24,7 @@ static inline int insn_has_delay_slot(const union mips_instruction insn)
  * Return 0 on success or a -ve number on error.
  */
 int arch_uprobe_analyze_insn(struct arch_uprobe *aup,
-	struct mm_struct *mm, unsigned long addr)
+							 struct mm_struct *mm, unsigned long addr)
 {
 	union mips_instruction inst;
 
@@ -33,11 +33,14 @@ int arch_uprobe_analyze_insn(struct arch_uprobe *aup,
 	 * MIPS16 and microMIPS.
 	 */
 	if (addr & 0x03)
+	{
 		return -EINVAL;
+	}
 
 	inst.word = aup->insn[0];
 
-	if (__insn_is_compact_branch(inst)) {
+	if (__insn_is_compact_branch(inst))
+	{
 		pr_notice("Uprobes for compact branches are not supported\n");
 		return -EINVAL;
 	}
@@ -64,31 +67,36 @@ bool is_trap_insn(uprobe_opcode_t *insn)
 
 	inst.word = *insn;
 
-	switch (inst.i_format.opcode) {
-	case spec_op:
-		switch (inst.r_format.func) {
-		case break_op:
-		case teq_op:
-		case tge_op:
-		case tgeu_op:
-		case tlt_op:
-		case tltu_op:
-		case tne_op:
-			return 1;
-		}
-		break;
+	switch (inst.i_format.opcode)
+	{
+		case spec_op:
+			switch (inst.r_format.func)
+			{
+				case break_op:
+				case teq_op:
+				case tge_op:
+				case tgeu_op:
+				case tlt_op:
+				case tltu_op:
+				case tne_op:
+					return 1;
+			}
 
-	case bcond_op:	/* Yes, really ...  */
-		switch (inst.u_format.rt) {
-		case teqi_op:
-		case tgei_op:
-		case tgeiu_op:
-		case tlti_op:
-		case tltiu_op:
-		case tnei_op:
-			return 1;
-		}
-		break;
+			break;
+
+		case bcond_op:	/* Yes, really ...  */
+			switch (inst.u_format.rt)
+			{
+				case teqi_op:
+				case tgei_op:
+				case tgeiu_op:
+				case tlti_op:
+				case tltiu_op:
+				case tnei_op:
+					return 1;
+			}
+
+			break;
 	}
 
 	return 0;
@@ -110,14 +118,17 @@ int arch_uprobe_pre_xol(struct arch_uprobe *aup, struct pt_regs *regs)
 	 * dealt with.  This may require emulation of a branch.
 	 */
 	aup->resume_epc = regs->cp0_epc + 4;
-	if (insn_has_delay_slot((union mips_instruction) aup->insn[0])) {
+
+	if (insn_has_delay_slot((union mips_instruction) aup->insn[0]))
+	{
 		unsigned long epc;
 
 		epc = regs->cp0_epc;
 		__compute_return_epc_for_insn(regs,
-			(union mips_instruction) aup->insn[0]);
+									  (union mips_instruction) aup->insn[0]);
 		aup->resume_epc = regs->cp0_epc;
 	}
+
 	utask->autask.saved_trap_nr = current->thread.trap_nr;
 	current->thread.trap_nr = UPROBE_TRAP_NR;
 	regs->cp0_epc = current->utask->xol_vaddr;
@@ -148,35 +159,49 @@ int arch_uprobe_post_xol(struct arch_uprobe *aup, struct pt_regs *regs)
 bool arch_uprobe_xol_was_trapped(struct task_struct *tsk)
 {
 	if (tsk->thread.trap_nr != UPROBE_TRAP_NR)
+	{
 		return true;
+	}
 
 	return false;
 }
 
 int arch_uprobe_exception_notify(struct notifier_block *self,
-	unsigned long val, void *data)
+								 unsigned long val, void *data)
 {
 	struct die_args *args = data;
 	struct pt_regs *regs = args->regs;
 
 	/* regs == NULL is a kernel bug */
 	if (WARN_ON(!regs))
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* We are only interested in userspace traps */
 	if (!user_mode(regs))
+	{
 		return NOTIFY_DONE;
+	}
 
-	switch (val) {
-	case DIE_UPROBE:
-		if (uprobe_pre_sstep_notifier(regs))
-			return NOTIFY_STOP;
-		break;
-	case DIE_UPROBE_XOL:
-		if (uprobe_post_sstep_notifier(regs))
-			return NOTIFY_STOP;
-	default:
-		break;
+	switch (val)
+	{
+		case DIE_UPROBE:
+			if (uprobe_pre_sstep_notifier(regs))
+			{
+				return NOTIFY_STOP;
+			}
+
+			break;
+
+		case DIE_UPROBE_XOL:
+			if (uprobe_post_sstep_notifier(regs))
+			{
+				return NOTIFY_STOP;
+			}
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -188,7 +213,7 @@ int arch_uprobe_exception_notify(struct notifier_block *self,
  * probed address for the potential restart or for post mortem analysis.
  */
 void arch_uprobe_abort_xol(struct arch_uprobe *aup,
-	struct pt_regs *regs)
+						   struct pt_regs *regs)
 {
 	struct uprobe_task *utask = current->utask;
 
@@ -221,13 +246,13 @@ unsigned long arch_uretprobe_hijack_return_addr(
  * It is required to handle MIPS16 and microMIPS.
  */
 int __weak set_swbp(struct arch_uprobe *auprobe, struct mm_struct *mm,
-	unsigned long vaddr)
+					unsigned long vaddr)
 {
 	return uprobe_write_opcode(mm, vaddr, UPROBE_SWBP_INSN);
 }
 
 void __weak arch_uprobe_copy_ixol(struct page *page, unsigned long vaddr,
-				  void *src, unsigned long len)
+								  void *src, unsigned long len)
 {
 	unsigned long kaddr, kstart;
 

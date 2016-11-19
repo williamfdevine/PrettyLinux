@@ -13,7 +13,8 @@
 #ifndef _SGI_MC_H
 #define _SGI_MC_H
 
-struct sgimc_regs {
+struct sgimc_regs
+{
 	u32 _unused0;
 	volatile u32 cpuctrl0;	/* CPU control register 0, readwrite */
 #define SGIMC_CCTRL0_REFS	0x0000000f /* REFS mask */
@@ -188,7 +189,7 @@ struct sgimc_regs {
 	u32 _unused35;
 	volatile u32 rpsscounter;	/* Chirps at 100ns */
 
-	u32 _unused36[0x1000/4-2*4];
+	u32 _unused36[0x1000 / 4 - 2 * 4];
 
 	u32 _unused37;
 	volatile u32 maddronly;		/* Address DMA goes at */

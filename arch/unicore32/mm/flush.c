@@ -21,22 +21,25 @@ void flush_cache_mm(struct mm_struct *mm)
 }
 
 void flush_cache_range(struct vm_area_struct *vma, unsigned long start,
-		unsigned long end)
+					   unsigned long end)
 {
 	if (vma->vm_flags & VM_EXEC)
+	{
 		__flush_icache_all();
+	}
 }
 
 void flush_cache_page(struct vm_area_struct *vma, unsigned long user_addr,
-		unsigned long pfn)
+					  unsigned long pfn)
 {
 }
 
 static void flush_ptrace_access(struct vm_area_struct *vma, struct page *page,
-			 unsigned long uaddr, void *kaddr, unsigned long len)
+								unsigned long uaddr, void *kaddr, unsigned long len)
 {
 	/* VIPT non-aliasing D-cache */
-	if (vma->vm_flags & VM_EXEC) {
+	if (vma->vm_flags & VM_EXEC)
+	{
 		unsigned long addr = (unsigned long)kaddr;
 
 		__cpuc_coherent_kern_range(addr, addr + len);
@@ -51,8 +54,8 @@ static void flush_ptrace_access(struct vm_area_struct *vma, struct page *page,
  * Note that this code needs to run on the current CPU.
  */
 void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
-		       unsigned long uaddr, void *dst, const void *src,
-		       unsigned long len)
+					   unsigned long uaddr, void *dst, const void *src,
+					   unsigned long len)
 {
 	memcpy(dst, src, len);
 	flush_ptrace_access(vma, page, uaddr, dst, len);
@@ -81,16 +84,25 @@ void flush_dcache_page(struct page *page)
 	 * cache lines, and therefore never needs to be flushed.
 	 */
 	if (page == ZERO_PAGE(0))
+	{
 		return;
+	}
 
 	mapping = page_mapping(page);
 
 	if (mapping && !mapping_mapped(mapping))
+	{
 		clear_bit(PG_dcache_clean, &page->flags);
-	else {
+	}
+	else
+	{
 		__flush_dcache_page(mapping, page);
+
 		if (mapping)
+		{
 			__flush_icache_all();
+		}
+
 		set_bit(PG_dcache_clean, &page->flags);
 	}
 }

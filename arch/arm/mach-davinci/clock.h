@@ -73,7 +73,8 @@
 #define PLLSTAT_GOSTAT	BIT(0)
 #define PLLCMD_GOSET	BIT(0)
 
-struct pll_data {
+struct pll_data
+{
 	u32 phys_base;
 	void __iomem *base;
 	u32 num;
@@ -84,7 +85,8 @@ struct pll_data {
 #define PLL_HAS_PREDIV          0x01
 #define PLL_HAS_POSTDIV         0x02
 
-struct clk {
+struct clk
+{
 	struct list_head	node;
 	struct module		*owner;
 	const char		*name;
@@ -121,20 +123,20 @@ struct clk {
 #define CLK(dev, con, ck) 	\
 	{			\
 		.dev_id = dev,	\
-		.con_id = con,	\
-		.clk = ck,	\
+				  .con_id = con,	\
+							.clk = ck,	\
 	}			\
 
-int davinci_clk_init(struct clk_lookup *clocks);
-int davinci_set_pllrate(struct pll_data *pll, unsigned int prediv,
-				unsigned int mult, unsigned int postdiv);
-int davinci_set_sysclk_rate(struct clk *clk, unsigned long rate);
-int davinci_set_refclk_rate(unsigned long rate);
-int davinci_simple_set_rate(struct clk *clk, unsigned long rate);
-int davinci_clk_reset(struct clk *clk, bool reset);
+	int davinci_clk_init(struct clk_lookup *clocks);
+	int davinci_set_pllrate(struct pll_data *pll, unsigned int prediv,
+							unsigned int mult, unsigned int postdiv);
+	int davinci_set_sysclk_rate(struct clk *clk, unsigned long rate);
+	int davinci_set_refclk_rate(unsigned long rate);
+	int davinci_simple_set_rate(struct clk *clk, unsigned long rate);
+	int davinci_clk_reset(struct clk *clk, bool reset);
 
-extern struct platform_device davinci_wdt_device;
-extern void davinci_watchdog_reset(struct platform_device *);
+	extern struct platform_device davinci_wdt_device;
+	extern void davinci_watchdog_reset(struct platform_device *);
 
 #endif
 

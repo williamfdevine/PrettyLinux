@@ -40,15 +40,15 @@
 
 #define __futex_asm(OP) \
 	asm("1: {" #OP " %1, %3, %4; movei %0, 0 }\n"		\
-	    ".pushsection .fixup,\"ax\"\n"			\
-	    "0: { movei %0, %5; j 9f }\n"			\
-	    ".section __ex_table,\"a\"\n"			\
-	    ".align 8\n"					\
-	    ".quad 1b, 0b\n"					\
-	    ".popsection\n"					\
-	    "9:"						\
-	    : "=r" (ret), "=r" (val), "+m" (*(uaddr))		\
-	    : "r" (uaddr), "r" (oparg), "i" (-EFAULT))
+		".pushsection .fixup,\"ax\"\n"			\
+		"0: { movei %0, %5; j 9f }\n"			\
+		".section __ex_table,\"a\"\n"			\
+		".align 8\n"					\
+		".quad 1b, 0b\n"					\
+		".popsection\n"					\
+		"9:"						\
+		: "=r" (ret), "=r" (val), "+m" (*(uaddr))		\
+		: "r" (uaddr), "r" (oparg), "i" (-EFAULT))
 
 #define __futex_set() __futex_asm(exch4)
 #define __futex_add() __futex_asm(fetchadd4)
@@ -89,7 +89,7 @@
 #define __futex_cmpxchg()						\
 	{								\
 		struct __get_user gu = __atomic32_cmpxchg((u32 __force *)uaddr, \
-							  lock, oldval, oparg); \
+							   lock, oldval, oparg); \
 		val = gu.val;						\
 		ret = gu.err;						\
 	}
@@ -120,70 +120,93 @@ static inline int futex_atomic_op_inuser(int encoded_op, u32 __user *uaddr)
 	BUILD_BUG_ON(sizeof(atomic_t) != sizeof(int));
 
 	if (encoded_op & (FUTEX_OP_OPARG_SHIFT << 28))
+	{
 		oparg = 1 << oparg;
+	}
 
 	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(u32)))
+	{
 		return -EFAULT;
+	}
 
 	pagefault_disable();
-	switch (op) {
-	case FUTEX_OP_SET:
-		__futex_set();
-		break;
-	case FUTEX_OP_ADD:
-		__futex_add();
-		break;
-	case FUTEX_OP_OR:
-		__futex_or();
-		break;
-	case FUTEX_OP_ANDN:
-		__futex_andn();
-		break;
-	case FUTEX_OP_XOR:
-		__futex_xor();
-		break;
-	default:
-		ret = -ENOSYS;
-		break;
-	}
-	pagefault_enable();
 
-	if (!ret) {
-		switch (cmp) {
-		case FUTEX_OP_CMP_EQ:
-			ret = (val == cmparg);
+	switch (op)
+	{
+		case FUTEX_OP_SET:
+			__futex_set();
 			break;
-		case FUTEX_OP_CMP_NE:
-			ret = (val != cmparg);
+
+		case FUTEX_OP_ADD:
+			__futex_add();
 			break;
-		case FUTEX_OP_CMP_LT:
-			ret = (val < cmparg);
+
+		case FUTEX_OP_OR:
+			__futex_or();
 			break;
-		case FUTEX_OP_CMP_GE:
-			ret = (val >= cmparg);
+
+		case FUTEX_OP_ANDN:
+			__futex_andn();
 			break;
-		case FUTEX_OP_CMP_LE:
-			ret = (val <= cmparg);
+
+		case FUTEX_OP_XOR:
+			__futex_xor();
 			break;
-		case FUTEX_OP_CMP_GT:
-			ret = (val > cmparg);
-			break;
+
 		default:
 			ret = -ENOSYS;
+			break;
+	}
+
+	pagefault_enable();
+
+	if (!ret)
+	{
+		switch (cmp)
+		{
+			case FUTEX_OP_CMP_EQ:
+				ret = (val == cmparg);
+				break;
+
+			case FUTEX_OP_CMP_NE:
+				ret = (val != cmparg);
+				break;
+
+			case FUTEX_OP_CMP_LT:
+				ret = (val < cmparg);
+				break;
+
+			case FUTEX_OP_CMP_GE:
+				ret = (val >= cmparg);
+				break;
+
+			case FUTEX_OP_CMP_LE:
+				ret = (val <= cmparg);
+				break;
+
+			case FUTEX_OP_CMP_GT:
+				ret = (val > cmparg);
+				break;
+
+			default:
+				ret = -ENOSYS;
 		}
 	}
+
 	return ret;
 }
 
 static inline int futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
-						u32 oldval, u32 oparg)
+		u32 oldval, u32 oparg)
 {
 	int ret, val;
 
 	__futex_prolog();
 
 	if (!access_ok(VERIFY_WRITE, uaddr, sizeof(u32)))
+	{
 		return -EFAULT;
+	}
 
 	__futex_cmpxchg();
 

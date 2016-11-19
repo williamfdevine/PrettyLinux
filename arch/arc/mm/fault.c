@@ -39,17 +39,25 @@ noinline static int handle_kernel_vaddr_fault(unsigned long address)
 	pgd_k = pgd_offset_k(address);
 
 	if (!pgd_present(*pgd_k))
+	{
 		goto bad_area;
+	}
 
 	pud = pud_offset(pgd, address);
 	pud_k = pud_offset(pgd_k, address);
+
 	if (!pud_present(*pud_k))
+	{
 		goto bad_area;
+	}
 
 	pmd = pmd_offset(pud, address);
 	pmd_k = pmd_offset(pud_k, address);
+
 	if (!pmd_present(*pmd_k))
+	{
 		goto bad_area;
+	}
 
 	set_pmd(pmd, *pmd_k);
 
@@ -79,12 +87,18 @@ void do_page_fault(unsigned long address, struct pt_regs *regs)
 	 * only copy the information from the master page table,
 	 * nothing more.
 	 */
-	if (address >= VMALLOC_START) {
+	if (address >= VMALLOC_START)
+	{
 		ret = handle_kernel_vaddr_fault(address);
+
 		if (unlikely(ret))
+		{
 			goto bad_area_nosemaphore;
+		}
 		else
+		{
 			return;
+		}
 	}
 
 	info.si_code = SEGV_MAPERR;
@@ -94,21 +108,38 @@ void do_page_fault(unsigned long address, struct pt_regs *regs)
 	 * context, we must not take the fault..
 	 */
 	if (faulthandler_disabled() || !mm)
+	{
 		goto no_context;
+	}
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 retry:
 	down_read(&mm->mmap_sem);
 	vma = find_vma(mm, address);
+
 	if (!vma)
+	{
 		goto bad_area;
+	}
+
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
+
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
+	}
+
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
 
 	/*
 	 * Ok, we have a good vm_area for this memory access, so
@@ -120,16 +151,26 @@ good_area:
 	/* Handle protection violation, execute on heap or stack */
 
 	if ((regs->ecr_vec == ECR_V_PROTV) &&
-	    (regs->ecr_cause == ECR_C_PROTV_INST_FETCH))
+		(regs->ecr_cause == ECR_C_PROTV_INST_FETCH))
+	{
 		goto bad_area;
+	}
 
-	if (write) {
+	if (write)
+	{
 		if (!(vma->vm_flags & VM_WRITE))
+		{
 			goto bad_area;
+		}
+
 		flags |= FAULT_FLAG_WRITE;
-	} else {
+	}
+	else
+	{
 		if (!(vma->vm_flags & (VM_READ | VM_EXEC)))
+		{
 			goto bad_area;
+		}
 	}
 
 	/*
@@ -140,29 +181,41 @@ good_area:
 	fault = handle_mm_fault(vma, address, flags);
 
 	/* If Pagefault was interrupted by SIGKILL, exit page fault "early" */
-	if (unlikely(fatal_signal_pending(current))) {
+	if (unlikely(fatal_signal_pending(current)))
+	{
 		if ((fault & VM_FAULT_ERROR) && !(fault & VM_FAULT_RETRY))
+		{
 			up_read(&mm->mmap_sem);
+		}
+
 		if (user_mode(regs))
+		{
 			return;
+		}
 	}
 
 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
 
-	if (likely(!(fault & VM_FAULT_ERROR))) {
-		if (flags & FAULT_FLAG_ALLOW_RETRY) {
+	if (likely(!(fault & VM_FAULT_ERROR)))
+	{
+		if (flags & FAULT_FLAG_ALLOW_RETRY)
+		{
 			/* To avoid updating stats twice for retry case */
-			if (fault & VM_FAULT_MAJOR) {
+			if (fault & VM_FAULT_MAJOR)
+			{
 				tsk->maj_flt++;
 				perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1,
-					      regs, address);
-			} else {
+							  regs, address);
+			}
+			else
+			{
 				tsk->min_flt++;
 				perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1,
-					      regs, address);
+							  regs, address);
 			}
 
-			if (fault & VM_FAULT_RETRY) {
+			if (fault & VM_FAULT_RETRY)
+			{
 				flags &= ~FAULT_FLAG_ALLOW_RETRY;
 				flags |= FAULT_FLAG_TRIED;
 				goto retry;
@@ -175,11 +228,17 @@ good_area:
 	}
 
 	if (fault & VM_FAULT_OOM)
+	{
 		goto out_of_memory;
+	}
 	else if (fault & VM_FAULT_SIGSEGV)
+	{
 		goto bad_area;
+	}
 	else if (fault & VM_FAULT_SIGBUS)
+	{
 		goto do_sigbus;
+	}
 
 	/* no man's land */
 	BUG();
@@ -192,8 +251,10 @@ bad_area:
 	up_read(&mm->mmap_sem);
 
 bad_area_nosemaphore:
+
 	/* User mode accesses just cause a SIGSEGV */
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		tsk->thread.fault_address = address;
 		info.si_signo = SIGSEGV;
 		info.si_errno = 0;
@@ -204,6 +265,7 @@ bad_area_nosemaphore:
 	}
 
 no_context:
+
 	/* Are we prepared to handle this kernel fault?
 	 *
 	 * (The kernel has valid exception-points in the source
@@ -213,14 +275,17 @@ no_context:
 	 *  code)
 	 */
 	if (fixup_exception(regs))
+	{
 		return;
+	}
 
 	die("Oops", regs, address);
 
 out_of_memory:
 	up_read(&mm->mmap_sem);
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		pagefault_out_of_memory();
 		return;
 	}
@@ -231,7 +296,9 @@ do_sigbus:
 	up_read(&mm->mmap_sem);
 
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
 
 	tsk->thread.fault_address = address;
 	info.si_signo = SIGBUS;

@@ -150,13 +150,15 @@
 #define MV64x60_CPU2PCI1_MEM_0_REMAP_LO		0x0110
 #define MV64x60_CPU2PCI1_MEM_0_REMAP_HI		0x0340
 
-struct mv64x60_mem_win {
+struct mv64x60_mem_win
+{
 	u32 hi;
 	u32 lo;
 	u32 size;
 };
 
-struct mv64x60_pci_win {
+struct mv64x60_pci_win
+{
 	u32 fcn;
 	u32 hi;
 	u32 lo;
@@ -164,10 +166,12 @@ struct mv64x60_pci_win {
 };
 
 /* PCI config access routines */
-struct {
+struct
+{
 	u32 addr;
 	u32 data;
-} static mv64x60_pci_cfgio[2] = {
+} static mv64x60_pci_cfgio[2] =
+{
 	{ /* hose 0 */
 		.addr	= 0xcf8,
 		.data	= 0xcfc,
@@ -181,20 +185,21 @@ struct {
 u32 mv64x60_cfg_read(u8 *bridge_base, u8 hose, u8 bus, u8 devfn, u8 offset)
 {
 	out_le32((u32 *)(bridge_base + mv64x60_pci_cfgio[hose].addr),
-			(1 << 31) | (bus << 16) | (devfn << 8) | offset);
+			 (1 << 31) | (bus << 16) | (devfn << 8) | offset);
 	return in_le32((u32 *)(bridge_base + mv64x60_pci_cfgio[hose].data));
 }
 
 void mv64x60_cfg_write(u8 *bridge_base, u8 hose, u8 bus, u8 devfn, u8 offset,
-		u32 val)
+					   u32 val)
 {
 	out_le32((u32 *)(bridge_base + mv64x60_pci_cfgio[hose].addr),
-			(1 << 31) | (bus << 16) | (devfn << 8) | offset);
+			 (1 << 31) | (bus << 16) | (devfn << 8) | offset);
 	out_le32((u32 *)(bridge_base + mv64x60_pci_cfgio[hose].data), val);
 }
 
 /* I/O ctlr -> system memory setup */
-static struct mv64x60_mem_win mv64x60_cpu2mem[MV64x60_CPU2MEM_WINDOWS] = {
+static struct mv64x60_mem_win mv64x60_cpu2mem[MV64x60_CPU2MEM_WINDOWS] =
+{
 	{
 		.lo	= MV64x60_CPU2MEM_0_BASE,
 		.size	= MV64x60_CPU2MEM_0_SIZE,
@@ -213,7 +218,8 @@ static struct mv64x60_mem_win mv64x60_cpu2mem[MV64x60_CPU2MEM_WINDOWS] = {
 	},
 };
 
-static struct mv64x60_mem_win mv64x60_enet2mem[MV64x60_CPU2MEM_WINDOWS] = {
+static struct mv64x60_mem_win mv64x60_enet2mem[MV64x60_CPU2MEM_WINDOWS] =
+{
 	{
 		.lo	= MV64x60_ENET2MEM_0_BASE,
 		.size	= MV64x60_ENET2MEM_0_SIZE,
@@ -232,7 +238,8 @@ static struct mv64x60_mem_win mv64x60_enet2mem[MV64x60_CPU2MEM_WINDOWS] = {
 	},
 };
 
-static struct mv64x60_mem_win mv64x60_mpsc2mem[MV64x60_CPU2MEM_WINDOWS] = {
+static struct mv64x60_mem_win mv64x60_mpsc2mem[MV64x60_CPU2MEM_WINDOWS] =
+{
 	{
 		.lo	= MV64x60_MPSC2MEM_0_BASE,
 		.size	= MV64x60_MPSC2MEM_0_SIZE,
@@ -251,7 +258,8 @@ static struct mv64x60_mem_win mv64x60_mpsc2mem[MV64x60_CPU2MEM_WINDOWS] = {
 	},
 };
 
-static struct mv64x60_mem_win mv64x60_idma2mem[MV64x60_CPU2MEM_WINDOWS] = {
+static struct mv64x60_mem_win mv64x60_idma2mem[MV64x60_CPU2MEM_WINDOWS] =
+{
 	{
 		.lo	= MV64x60_IDMA2MEM_0_BASE,
 		.size	= MV64x60_IDMA2MEM_0_SIZE,
@@ -270,7 +278,7 @@ static struct mv64x60_mem_win mv64x60_idma2mem[MV64x60_CPU2MEM_WINDOWS] = {
 	},
 };
 
-static u32 mv64x60_dram_selects[MV64x60_CPU2MEM_WINDOWS] = {0xe,0xd,0xb,0x7};
+static u32 mv64x60_dram_selects[MV64x60_CPU2MEM_WINDOWS] = {0xe, 0xd, 0xb, 0x7};
 
 /*
  * ENET, MPSC, and IDMA ctlrs on the MV64x60 have separate windows that
@@ -278,7 +286,7 @@ static u32 mv64x60_dram_selects[MV64x60_CPU2MEM_WINDOWS] = {0xe,0xd,0xb,0x7};
  * Configure them to be same as cpu->memory windows.
  */
 void mv64x60_config_ctlr_windows(u8 *bridge_base, u8 *bridge_pbase,
-		u8 is_coherent)
+								 u8 is_coherent)
 {
 	u32 i, base, size, enables, prot = 0, snoop_bits = 0;
 
@@ -288,19 +296,24 @@ void mv64x60_config_ctlr_windows(u8 *bridge_base, u8 *bridge_pbase,
 	out_le32((u32 *)(bridge_base + MV64x60_ENET2MEM_BAR_ENABLE), 0xff);
 
 	if (is_coherent)
-		snoop_bits = 0x2 << 12; /* Writeback */
+	{
+		snoop_bits = 0x2 << 12;    /* Writeback */
+	}
 
 	enables = in_le32((u32 *)(bridge_base + MV64x60_CPU_BAR_ENABLE)) & 0xf;
 
-	for (i=0; i<MV64x60_CPU2MEM_WINDOWS; i++) {
+	for (i = 0; i < MV64x60_CPU2MEM_WINDOWS; i++)
+	{
 		if (enables & (1 << i)) /* Set means disabled */
+		{
 			continue;
+		}
 
 		base = in_le32((u32 *)(bridge_base + mv64x60_cpu2mem[i].lo))
-			<< 16;
+			   << 16;
 		base |= snoop_bits | (mv64x60_dram_selects[i] << 8);
 		size = in_le32((u32 *)(bridge_base + mv64x60_cpu2mem[i].size))
-			<< 16;
+			   << 16;
 		prot |= (0x3 << (i << 1)); /* RW access */
 
 		out_le32((u32 *)(bridge_base + mv64x60_enet2mem[i].lo), base);
@@ -323,7 +336,7 @@ void mv64x60_config_ctlr_windows(u8 *bridge_base, u8 *bridge_pbase,
 
 	/* Set mpsc->bridge's reg window to the bridge's internal registers. */
 	out_le32((u32 *)(bridge_base + MV64x60_MPSC2REGS_BASE),
-			(u32)bridge_pbase);
+			 (u32)bridge_pbase);
 
 	out_le32((u32 *)(bridge_base + MV64x60_ENET2MEM_BAR_ENABLE), enables);
 	out_le32((u32 *)(bridge_base + MV64x60_MPSC2MEM_BAR_ENABLE), enables);
@@ -331,7 +344,8 @@ void mv64x60_config_ctlr_windows(u8 *bridge_base, u8 *bridge_pbase,
 }
 
 /* PCI MEM -> system memory, et. al. setup */
-static struct mv64x60_pci_win mv64x60_pci2mem[2] = {
+static struct mv64x60_pci_win mv64x60_pci2mem[2] =
+{
 	{ /* hose 0 */
 		.fcn	= 0,
 		.hi	= 0x14,
@@ -347,7 +361,8 @@ static struct mv64x60_pci_win mv64x60_pci2mem[2] = {
 };
 
 static struct
-mv64x60_mem_win mv64x60_pci_acc[2][MV64x60_PCI_ACC_CNTL_WINDOWS] = {
+	mv64x60_mem_win mv64x60_pci_acc[2][MV64x60_PCI_ACC_CNTL_WINDOWS] =
+{
 	{ /* hose 0 */
 		{
 			.hi	= MV64x60_PCI0_ACC_CNTL_0_BASE_HI,
@@ -394,7 +409,8 @@ mv64x60_mem_win mv64x60_pci_acc[2][MV64x60_PCI_ACC_CNTL_WINDOWS] = {
 	},
 };
 
-static struct mv64x60_mem_win mv64x60_pci2reg[2] = {
+static struct mv64x60_mem_win mv64x60_pci2reg[2] =
+{
 	{
 		.hi	= 0x24,
 		.lo	= 0x20,
@@ -409,7 +425,7 @@ static struct mv64x60_mem_win mv64x60_pci2reg[2] = {
 
 /* Only need to use 1 window (per hose) to get access to all of system memory */
 void mv64x60_config_pci_windows(u8 *bridge_base, u8 *bridge_pbase, u8 hose,
-		u8 bus, u32 mem_size, u32 acc_bits)
+								u8 bus, u32 mem_size, u32 acc_bits)
 {
 	u32 i, offset, bar_enable, enables;
 
@@ -418,16 +434,20 @@ void mv64x60_config_pci_windows(u8 *bridge_base, u8 *bridge_pbase, u8 hose,
 	bar_enable = hose ? MV64x60_PCI1_BAR_ENABLE : MV64x60_PCI0_BAR_ENABLE;
 	out_le32((u32 *)(bridge_base + bar_enable), enables);
 
-	for (i=0; i<MV64x60_PCI_ACC_CNTL_WINDOWS; i++)
+	for (i = 0; i < MV64x60_PCI_ACC_CNTL_WINDOWS; i++)
+	{
 		out_le32((u32 *)(bridge_base + mv64x60_pci_acc[hose][i].lo), 0);
+	}
 
 	/* If mem_size is 0, leave windows disabled */
 	if (mem_size == 0)
+	{
 		return;
+	}
 
 	/* Cause automatic updates of PCI remap regs */
 	offset = hose ?
-		MV64x60_PCI1_PCI_DECODE_CNTL : MV64x60_PCI0_PCI_DECODE_CNTL;
+			 MV64x60_PCI1_PCI_DECODE_CNTL : MV64x60_PCI0_PCI_DECODE_CNTL;
 	i = in_le32((u32 *)(bridge_base + offset));
 	out_le32((u32 *)(bridge_base + offset), i & ~0x1);
 
@@ -435,33 +455,34 @@ void mv64x60_config_pci_windows(u8 *bridge_base, u8 *bridge_pbase, u8 hose,
 
 	/* Map PCI MEM addr 0 -> System Mem addr 0 */
 	mv64x60_cfg_write(bridge_base, hose, bus,
-			PCI_DEVFN(0, mv64x60_pci2mem[hose].fcn),
-			mv64x60_pci2mem[hose].hi, 0);
+					  PCI_DEVFN(0, mv64x60_pci2mem[hose].fcn),
+					  mv64x60_pci2mem[hose].hi, 0);
 	mv64x60_cfg_write(bridge_base, hose, bus,
-			PCI_DEVFN(0, mv64x60_pci2mem[hose].fcn),
-			mv64x60_pci2mem[hose].lo, 0);
-	out_le32((u32 *)(bridge_base + mv64x60_pci2mem[hose].size),mem_size);
+					  PCI_DEVFN(0, mv64x60_pci2mem[hose].fcn),
+					  mv64x60_pci2mem[hose].lo, 0);
+	out_le32((u32 *)(bridge_base + mv64x60_pci2mem[hose].size), mem_size);
 
 	acc_bits |= MV64x60_PCI_ACC_CNTL_ENABLE;
 	out_le32((u32 *)(bridge_base + mv64x60_pci_acc[hose][0].hi), 0);
 	out_le32((u32 *)(bridge_base + mv64x60_pci_acc[hose][0].lo), acc_bits);
-	out_le32((u32 *)(bridge_base + mv64x60_pci_acc[hose][0].size),mem_size);
+	out_le32((u32 *)(bridge_base + mv64x60_pci_acc[hose][0].size), mem_size);
 
 	/* Set PCI MEM->bridge's reg window to where they are in CPU mem map */
 	i = (u32)bridge_base;
 	i &= 0xffff0000;
 	i |= (0x2 << 1);
-	mv64x60_cfg_write(bridge_base, hose, bus, PCI_DEVFN(0,0),
-			mv64x60_pci2reg[hose].hi, 0);
-	mv64x60_cfg_write(bridge_base, hose, bus, PCI_DEVFN(0,0),
-			mv64x60_pci2reg[hose].lo, i);
+	mv64x60_cfg_write(bridge_base, hose, bus, PCI_DEVFN(0, 0),
+					  mv64x60_pci2reg[hose].hi, 0);
+	mv64x60_cfg_write(bridge_base, hose, bus, PCI_DEVFN(0, 0),
+					  mv64x60_pci2reg[hose].lo, i);
 
 	enables &= ~0x1; /* Enable PCI MEM -> System Mem window 0 */
 	out_le32((u32 *)(bridge_base + bar_enable), enables);
 }
 
 /* CPU -> PCI I/O & MEM setup */
-struct mv64x60_cpu2pci_win mv64x60_cpu2pci_io[2] = {
+struct mv64x60_cpu2pci_win mv64x60_cpu2pci_io[2] =
+{
 	{ /* hose 0 */
 		.lo		= MV64x60_CPU2PCI0_IO_BASE,
 		.size		= MV64x60_CPU2PCI0_IO_SIZE,
@@ -476,7 +497,8 @@ struct mv64x60_cpu2pci_win mv64x60_cpu2pci_io[2] = {
 	},
 };
 
-struct mv64x60_cpu2pci_win mv64x60_cpu2pci_mem[2] = {
+struct mv64x60_cpu2pci_win mv64x60_cpu2pci_mem[2] =
+{
 	{ /* hose 0 */
 		.lo		= MV64x60_CPU2PCI0_MEM_0_BASE,
 		.size		= MV64x60_CPU2PCI0_MEM_0_SIZE,
@@ -493,8 +515,8 @@ struct mv64x60_cpu2pci_win mv64x60_cpu2pci_mem[2] = {
 
 /* Only need to set up 1 window to pci mem space */
 void mv64x60_config_cpu2pci_window(u8 *bridge_base, u8 hose, u32 pci_base_hi,
-		u32 pci_base_lo, u32 cpu_base, u32 size,
-		struct mv64x60_cpu2pci_win *offset_tbl)
+								   u32 pci_base_lo, u32 cpu_base, u32 size,
+								   struct mv64x60_cpu2pci_win *offset_tbl)
 {
 	cpu_base >>= 16;
 	cpu_base |= MV64x60_CPU2PCI_SWAP_NONE;
@@ -502,9 +524,10 @@ void mv64x60_config_cpu2pci_window(u8 *bridge_base, u8 hose, u32 pci_base_hi,
 
 	if (offset_tbl[hose].remap_hi != 0)
 		out_le32((u32 *)(bridge_base + offset_tbl[hose].remap_hi),
-				pci_base_hi);
+				 pci_base_hi);
+
 	out_le32((u32 *)(bridge_base + offset_tbl[hose].remap_lo),
-			pci_base_lo >> 16);
+			 pci_base_lo >> 16);
 
 	size = (size - 1) >> 16;
 	out_le32((u32 *)(bridge_base + offset_tbl[hose].size), size);
@@ -518,10 +541,11 @@ u32 mv64x60_get_mem_size(u8 *bridge_base)
 
 	enables = in_le32((u32 *)(bridge_base + MV64x60_CPU_BAR_ENABLE)) & 0xf;
 
-	for (i=0; i<MV64x60_CPU2MEM_WINDOWS; i++)
-		if (!(enables & (1<<i))) {
-			v = in_le32((u32*)(bridge_base
-						+ mv64x60_cpu2mem[i].size));
+	for (i = 0; i < MV64x60_CPU2MEM_WINDOWS; i++)
+		if (!(enables & (1 << i)))
+		{
+			v = in_le32((u32 *)(bridge_base
+								+ mv64x60_cpu2mem[i].size));
 			v = ((v & 0xffff) + 1) << 16;
 			mem += v;
 		}
@@ -536,10 +560,16 @@ u8 *mv64x60_get_bridge_pbase(void)
 	void *devp;
 
 	devp = find_node_by_compatible(NULL, "marvell,mv64360");
+
 	if (devp == NULL)
+	{
 		goto err_out;
+	}
+
 	if (getprop(devp, "reg", v, sizeof(v)) != sizeof(v))
+	{
 		goto err_out;
+	}
 
 	return (u8 *)v[0];
 
@@ -554,10 +584,16 @@ u8 *mv64x60_get_bridge_base(void)
 	void *devp;
 
 	devp = find_node_by_compatible(NULL, "marvell,mv64360");
+
 	if (devp == NULL)
+	{
 		goto err_out;
+	}
+
 	if (getprop(devp, "virtual-reg", &v, sizeof(v)) != sizeof(v))
+	{
 		goto err_out;
+	}
 
 	return (u8 *)v;
 
@@ -571,11 +607,18 @@ u8 mv64x60_is_coherent(void)
 	void *devp;
 
 	devp = finddevice("/");
+
 	if (devp == NULL)
-		return 1; /* Assume coherency on */
+	{
+		return 1;    /* Assume coherency on */
+	}
 
 	if (getprop(devp, "coherency-off", &v, sizeof(v)) < 0)
-		return 1; /* Coherency on */
+	{
+		return 1;    /* Coherency on */
+	}
 	else
+	{
 		return 0;
+	}
 }

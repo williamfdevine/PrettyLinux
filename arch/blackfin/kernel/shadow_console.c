@@ -23,25 +23,34 @@
 static __initdata char *shadow_console_buffer = (char *)SHADOW_CONSOLE_START;
 
 __init void early_shadow_write(struct console *con, const char *s,
-				unsigned int n)
+							   unsigned int n)
 {
 	unsigned int i;
+
 	/*
 	 * save 2 bytes for the double null at the end
 	 * once we fail on a long line, make sure we don't write a short line afterwards
 	 */
-	if ((shadow_console_buffer + n) <= (char *)(SHADOW_CONSOLE_END - 2)) {
+	if ((shadow_console_buffer + n) <= (char *)(SHADOW_CONSOLE_END - 2))
+	{
 		/* can't use memcpy - it may not be relocated yet */
 		for (i = 0; i <= n; i++)
+		{
 			shadow_console_buffer[i] = s[i];
+		}
+
 		shadow_console_buffer += n;
 		shadow_console_buffer[0] = 0;
 		shadow_console_buffer[1] = 0;
-	} else
+	}
+	else
+	{
 		shadow_console_buffer = (char *)SHADOW_CONSOLE_END;
+	}
 }
 
-static __initdata struct console early_shadow_console = {
+static __initdata struct console early_shadow_console =
+{
 	.name = "early_shadow",
 	.write = early_shadow_write,
 	.flags = CON_BOOT | CON_PRINTBUFFER,
@@ -63,7 +72,8 @@ __init void mark_shadow_error(void)
 
 __init void enable_shadow_console(void)
 {
-	if (!shadow_console_enabled()) {
+	if (!shadow_console_enabled())
+	{
 		register_console(&early_shadow_console);
 		/* for now, assume things are going to fail */
 		mark_shadow_error();
@@ -102,10 +112,12 @@ __init void early_shadow_reg(unsigned long reg, unsigned int n)
 	reg = reg << ((8 - n) * 4);
 	n += 3;
 
-	for (i = 3; i <= n ; i++) {
+	for (i = 3; i <= n ; i++)
+	{
 		ascii[i] = hex_asc_lo(reg >> 28);
 		reg <<= 4;
 	}
+
 	early_shadow_write(NULL, ascii, n);
 
 }

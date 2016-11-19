@@ -83,11 +83,11 @@ typedef elf_fpreg_t elf_fpregset_t;
  */
 #define ELF_CLASS	ELFCLASS32
 #if defined(__LITTLE_ENDIAN__)
-#define ELF_DATA	ELFDATA2LSB
+	#define ELF_DATA	ELFDATA2LSB
 #elif defined(__BIG_ENDIAN__)
-#define ELF_DATA	ELFDATA2MSB
+	#define ELF_DATA	ELFDATA2MSB
 #else
-#error no endian defined
+	#error no endian defined
 #endif
 #define ELF_ARCH	EM_M32R
 

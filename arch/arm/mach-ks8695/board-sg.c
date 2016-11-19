@@ -26,7 +26,8 @@
 #define	FL_BASE		0x02000000
 #define	FL_SIZE		SZ_8M
 
-static struct mtd_partition sg_mtd_partitions[] = {
+static struct mtd_partition sg_mtd_partitions[] =
+{
 	[0] = {
 		.name	= "SnapGear Boot Loader",
 		.size	= SZ_128K,
@@ -50,14 +51,16 @@ static struct mtd_partition sg_mtd_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data sg_mtd_pdata = {
+static struct physmap_flash_data sg_mtd_pdata =
+{
 	.width		= 1,
 	.nr_parts	= ARRAY_SIZE(sg_mtd_partitions),
 	.parts		= sg_mtd_partitions,
 };
 
 
-static struct resource sg_mtd_resource[] = {
+static struct resource sg_mtd_resource[] =
+{
 	[0] = {
 		.start = FL_BASE,
 		.end   = FL_BASE + FL_SIZE - 1,
@@ -65,7 +68,8 @@ static struct resource sg_mtd_resource[] = {
 	},
 };
 
-static struct platform_device sg_mtd_device = {
+static struct platform_device sg_mtd_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(sg_mtd_resource),
@@ -81,11 +85,13 @@ static void __init sg_init(void)
 	ks8695_add_device_wan();
 
 	if (machine_is_sg310())
+	{
 		platform_device_register(&sg_mtd_device);
+	}
 }
 
 #ifdef CONFIG_MACH_LITE300
-MACHINE_START(LITE300, "SecureComputing/SG300")
+	MACHINE_START(LITE300, "SecureComputing/SG300")
 	/* SnapGear */
 	.atag_offset	= 0x100,
 	.map_io		= ks8695_map_io,
@@ -93,11 +99,11 @@ MACHINE_START(LITE300, "SecureComputing/SG300")
 	.init_machine	= sg_init,
 	.init_time	= ks8695_timer_init,
 	.restart	= ks8695_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_SG310
-MACHINE_START(SG310, "McAfee/SG310")
+	MACHINE_START(SG310, "McAfee/SG310")
 	/* SnapGear */
 	.atag_offset	= 0x100,
 	.map_io		= ks8695_map_io,
@@ -105,11 +111,11 @@ MACHINE_START(SG310, "McAfee/SG310")
 	.init_machine	= sg_init,
 	.init_time	= ks8695_timer_init,
 	.restart	= ks8695_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_SE4200
-MACHINE_START(SE4200, "SecureComputing/SE4200")
+	MACHINE_START(SE4200, "SecureComputing/SE4200")
 	/* SnapGear */
 	.atag_offset	= 0x100,
 	.map_io		= ks8695_map_io,
@@ -117,5 +123,5 @@ MACHINE_START(SE4200, "SecureComputing/SE4200")
 	.init_machine	= sg_init,
 	.init_time	= ks8695_timer_init,
 	.restart	= ks8695_restart,
-MACHINE_END
+	MACHINE_END
 #endif

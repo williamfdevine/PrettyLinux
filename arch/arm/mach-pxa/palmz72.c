@@ -59,7 +59,8 @@
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static unsigned long palmz72_pin_config[] __initdata = {
+static unsigned long palmz72_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
@@ -140,7 +141,8 @@ static unsigned long palmz72_pin_config[] __initdata = {
  * GPIO keyboard
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_PXA27x) || defined(CONFIG_KEYBOARD_PXA27x_MODULE)
-static const unsigned int palmz72_matrix_keys[] = {
+static const unsigned int palmz72_matrix_keys[] =
+{
 	KEY(0, 0, KEY_POWER),
 	KEY(0, 1, KEY_F1),
 	KEY(0, 2, KEY_ENTER),
@@ -156,12 +158,14 @@ static const unsigned int palmz72_matrix_keys[] = {
 	KEY(3, 2, KEY_LEFT),
 };
 
-static struct matrix_keymap_data almz72_matrix_keymap_data = {
+static struct matrix_keymap_data almz72_matrix_keymap_data =
+{
 	.keymap			= palmz72_matrix_keys,
 	.keymap_size		= ARRAY_SIZE(palmz72_matrix_keys),
 };
 
-static struct pxa27x_keypad_platform_data palmz72_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data palmz72_keypad_platform_data =
+{
 	.matrix_key_rows	= 4,
 	.matrix_key_cols	= 3,
 	.matrix_keymap_data	= &almz72_matrix_keymap_data,
@@ -181,7 +185,8 @@ static inline void palmz72_kpc_init(void) {}
  * LEDs
  ******************************************************************************/
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-static struct gpio_led gpio_leds[] = {
+static struct gpio_led gpio_leds[] =
+{
 	{
 		.name			= "palmz72:green:led",
 		.default_trigger	= "none",
@@ -189,12 +194,14 @@ static struct gpio_led gpio_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data gpio_led_info = {
+static struct gpio_led_platform_data gpio_led_info =
+{
 	.leds		= gpio_leds,
 	.num_leds	= ARRAY_SIZE(gpio_leds),
 };
 
-static struct platform_device palmz72_leds = {
+static struct platform_device palmz72_leds =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -224,7 +231,8 @@ static inline void palmz72_leds_init(void) {}
 
 #define PALMZ72_SAVE_DWORD ((unsigned long *)0xc0000050)
 
-static struct palmz72_resume_info palmz72_resume_info = {
+static struct palmz72_resume_info palmz72_resume_info =
+{
 	.magic0 = 0xb4e6,
 	.magic1 = 1,
 
@@ -259,17 +267,20 @@ static void palmz72_pm_resume(void)
 	*PALMZ72_SAVE_DWORD = store_ptr;
 }
 
-static struct syscore_ops palmz72_pm_syscore_ops = {
+static struct syscore_ops palmz72_pm_syscore_ops =
+{
 	.suspend = palmz72_pm_suspend,
 	.resume = palmz72_pm_resume,
 };
 
 static int __init palmz72_pm_init(void)
 {
-	if (machine_is_palmz72()) {
+	if (machine_is_palmz72())
+	{
 		register_syscore_ops(&palmz72_pm_syscore_ops);
 		return 0;
 	}
+
 	return -ENODEV;
 }
 
@@ -281,14 +292,16 @@ device_initcall(palmz72_pm_init);
  ******************************************************************************/
 #if defined(CONFIG_SOC_CAMERA_OV9640) || \
 	defined(CONFIG_SOC_CAMERA_OV9640_MODULE)
-static struct pxacamera_platform_data palmz72_pxacamera_platform_data = {
+static struct pxacamera_platform_data palmz72_pxacamera_platform_data =
+{
 	.flags		= PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
-			PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
+	PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
 	.mclk_10khz	= 2600,
 };
 
 /* Board I2C devices. */
-static struct i2c_board_info palmz72_i2c_device[] = {
+static struct i2c_board_info palmz72_i2c_device[] =
+{
 	{
 		I2C_BOARD_INFO("ov9640", 0x30),
 	}
@@ -310,7 +323,8 @@ static int palmz72_camera_reset(struct device *dev)
 	return 0;
 }
 
-static struct soc_camera_link palmz72_iclink = {
+static struct soc_camera_link palmz72_iclink =
+{
 	.bus_id		= 0, /* Match id in pxa27x_device_camera in device.c */
 	.board_info	= &palmz72_i2c_device[0],
 	.i2c_adapter_id	= 0,
@@ -320,14 +334,16 @@ static struct soc_camera_link palmz72_iclink = {
 	.flags		= SOCAM_DATAWIDTH_8,
 };
 
-static struct i2c_gpio_platform_data palmz72_i2c_bus_data = {
+static struct i2c_gpio_platform_data palmz72_i2c_bus_data =
+{
 	.sda_pin	= 118,
 	.scl_pin	= 117,
 	.udelay		= 10,
 	.timeout	= 100,
 };
 
-static struct platform_device palmz72_i2c_bus_device = {
+static struct platform_device palmz72_i2c_bus_device =
+{
 	.name		= "i2c-gpio",
 	.id		= 0, /* we use this as a replacement for i2c-pxa */
 	.dev		= {
@@ -335,7 +351,8 @@ static struct platform_device palmz72_i2c_bus_device = {
 	}
 };
 
-static struct platform_device palmz72_camera = {
+static struct platform_device palmz72_camera =
+{
 	.name	= "soc-camera-pdrv",
 	.id	= -1,
 	.dev	= {
@@ -346,8 +363,9 @@ static struct platform_device palmz72_camera = {
 /* Here we request the camera GPIOs and configure them. We power up the camera
  * module, deassert the reset pin, but put it into powerdown (low to no power
  * consumption) mode. This allows us to later bring the module up fast. */
-static struct gpio palmz72_camera_gpios[] = {
-	{ GPIO_NR_PALMZ72_CAM_POWER,	GPIOF_INIT_HIGH,"Camera DVDD" },
+static struct gpio palmz72_camera_gpios[] =
+{
+	{ GPIO_NR_PALMZ72_CAM_POWER,	GPIOF_INIT_HIGH, "Camera DVDD" },
 	{ GPIO_NR_PALMZ72_CAM_RESET,	GPIOF_INIT_LOW,	"Camera RESET" },
 	{ GPIO_NR_PALMZ72_CAM_PWDN,	GPIOF_INIT_LOW,	"Camera PWDN" },
 };
@@ -357,10 +375,15 @@ static inline void __init palmz72_cam_gpio_init(void)
 	int ret;
 
 	ret = gpio_request_array(ARRAY_AND_SIZE(palmz72_camera_gpios));
+
 	if (!ret)
+	{
 		gpio_free_array(ARRAY_AND_SIZE(palmz72_camera_gpios));
+	}
 	else
+	{
 		printk(KERN_ERR "Camera GPIO init failed!\n");
+	}
 
 	return;
 }
@@ -387,13 +410,13 @@ static void __init palmz72_init(void)
 	pxa_set_stuart_info(NULL);
 
 	palm27x_mmc_init(GPIO_NR_PALMZ72_SD_DETECT_N, GPIO_NR_PALMZ72_SD_RO,
-			GPIO_NR_PALMZ72_SD_POWER_N, 1);
+					 GPIO_NR_PALMZ72_SD_POWER_N, 1);
 	palm27x_lcd_init(-1, &palm_320x320_lcd_mode);
 	palm27x_udc_init(GPIO_NR_PALMZ72_USB_DETECT_N,
-			GPIO_NR_PALMZ72_USB_PULLUP, 0);
+					 GPIO_NR_PALMZ72_USB_PULLUP, 0);
 	palm27x_irda_init(GPIO_NR_PALMZ72_IR_DISABLE);
 	palm27x_ac97_init(PALMZ72_BAT_MIN_VOLTAGE, PALMZ72_BAT_MAX_VOLTAGE,
-			-1, 113);
+					  -1, 113);
 	palm27x_pwm_init(-1, -1);
 	palm27x_power_init(-1, -1);
 	palm27x_pmic_init();
@@ -403,12 +426,12 @@ static void __init palmz72_init(void)
 }
 
 MACHINE_START(PALMZ72, "Palm Zire72")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa27x_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= palmz72_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa27x_init_irq,
+			   .handle_irq	= pxa27x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= palmz72_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

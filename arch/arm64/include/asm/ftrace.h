@@ -22,7 +22,8 @@
 extern void _mcount(unsigned long);
 extern void *return_address(unsigned int);
 
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 	/* No extra data needed for arm64 */
 };
 

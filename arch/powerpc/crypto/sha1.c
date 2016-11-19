@@ -32,7 +32,8 @@ static int sha1_init(struct shash_desc *desc)
 {
 	struct sha1_state *sctx = shash_desc_ctx(desc);
 
-	*sctx = (struct sha1_state){
+	*sctx = (struct sha1_state)
+	{
 		.state = { SHA1_H0, SHA1_H1, SHA1_H2, SHA1_H3, SHA1_H4 },
 	};
 
@@ -40,7 +41,7 @@ static int sha1_init(struct shash_desc *desc)
 }
 
 static int sha1_update(struct shash_desc *desc, const u8 *data,
-			unsigned int len)
+					   unsigned int len)
 {
 	struct sha1_state *sctx = shash_desc_ctx(desc);
 	unsigned int partial, done;
@@ -51,24 +52,29 @@ static int sha1_update(struct shash_desc *desc, const u8 *data,
 	done = 0;
 	src = data;
 
-	if ((partial + len) > 63) {
+	if ((partial + len) > 63)
+	{
 		u32 temp[SHA_WORKSPACE_WORDS];
 
-		if (partial) {
+		if (partial)
+		{
 			done = -partial;
 			memcpy(sctx->buffer + partial, data, done + 64);
 			src = sctx->buffer;
 		}
 
-		do {
+		do
+		{
 			powerpc_sha_transform(sctx->state, src, temp);
 			done += 64;
 			src = data + done;
-		} while (done + 63 < len);
+		}
+		while (done + 63 < len);
 
 		memzero_explicit(temp, sizeof(temp));
 		partial = 0;
 	}
+
 	memcpy(sctx->buffer + partial, src, len - done);
 
 	return 0;
@@ -88,7 +94,7 @@ static int sha1_final(struct shash_desc *desc, u8 *out)
 
 	/* Pad out to 56 mod 64 */
 	index = sctx->count & 0x3f;
-	padlen = (index < 56) ? (56 - index) : ((64+56) - index);
+	padlen = (index < 56) ? (56 - index) : ((64 + 56) - index);
 	sha1_update(desc, padding, padlen);
 
 	/* Append length */
@@ -96,10 +102,12 @@ static int sha1_final(struct shash_desc *desc, u8 *out)
 
 	/* Store state in digest */
 	for (i = 0; i < 5; i++)
+	{
 		dst[i] = cpu_to_be32(sctx->state[i]);
+	}
 
 	/* Wipe context */
-	memset(sctx, 0, sizeof *sctx);
+	memset(sctx, 0, sizeof * sctx);
 
 	return 0;
 }
@@ -120,7 +128,8 @@ static int sha1_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	SHA1_DIGEST_SIZE,
 	.init		=	sha1_init,
 	.update		=	sha1_update,
@@ -131,7 +140,7 @@ static struct shash_alg alg = {
 	.statesize	=	sizeof(struct sha1_state),
 	.base		=	{
 		.cra_name	=	"sha1",
-		.cra_driver_name=	"sha1-powerpc",
+		.cra_driver_name =	"sha1-powerpc",
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA1_BLOCK_SIZE,
 		.cra_module	=	THIS_MODULE,

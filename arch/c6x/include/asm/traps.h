@@ -25,7 +25,8 @@
 #define EXCEPT_CAUSE_FPX  (1 << 1) /* fetch packet exception */
 #define EXCEPT_CAUSE_IFX  (1 << 0) /* instruction fetch exception */
 
-struct exception_info {
+struct exception_info
+{
 	char *kernel_str;
 	int  signo;
 	int  code;

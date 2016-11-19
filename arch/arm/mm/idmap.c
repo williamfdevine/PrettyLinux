@@ -19,38 +19,48 @@ long long arch_phys_to_idmap_offset;
 
 #ifdef CONFIG_ARM_LPAE
 static void idmap_add_pmd(pud_t *pud, unsigned long addr, unsigned long end,
-	unsigned long prot)
+						  unsigned long prot)
 {
 	pmd_t *pmd;
 	unsigned long next;
 
-	if (pud_none_or_clear_bad(pud) || (pud_val(*pud) & L_PGD_SWAPPER)) {
+	if (pud_none_or_clear_bad(pud) || (pud_val(*pud) & L_PGD_SWAPPER))
+	{
 		pmd = pmd_alloc_one(&init_mm, addr);
-		if (!pmd) {
+
+		if (!pmd)
+		{
 			pr_warn("Failed to allocate identity pmd.\n");
 			return;
 		}
+
 		/*
 		 * Copy the original PMD to ensure that the PMD entries for
 		 * the kernel image are preserved.
 		 */
 		if (!pud_none(*pud))
 			memcpy(pmd, pmd_offset(pud, 0),
-			       PTRS_PER_PMD * sizeof(pmd_t));
+				   PTRS_PER_PMD * sizeof(pmd_t));
+
 		pud_populate(&init_mm, pud, pmd);
 		pmd += pmd_index(addr);
-	} else
+	}
+	else
+	{
 		pmd = pmd_offset(pud, addr);
+	}
 
-	do {
+	do
+	{
 		next = pmd_addr_end(addr, end);
 		*pmd = __pmd((addr & PMD_MASK) | prot);
 		flush_pmd_entry(pmd);
-	} while (pmd++, addr = next, addr != end);
+	}
+	while (pmd++, addr = next, addr != end);
 }
 #else	/* !CONFIG_ARM_LPAE */
 static void idmap_add_pmd(pud_t *pud, unsigned long addr, unsigned long end,
-	unsigned long prot)
+						  unsigned long prot)
 {
 	pmd_t *pmd = pmd_offset(pud, addr);
 
@@ -63,19 +73,21 @@ static void idmap_add_pmd(pud_t *pud, unsigned long addr, unsigned long end,
 #endif	/* CONFIG_ARM_LPAE */
 
 static void idmap_add_pud(pgd_t *pgd, unsigned long addr, unsigned long end,
-	unsigned long prot)
+						  unsigned long prot)
 {
 	pud_t *pud = pud_offset(pgd, addr);
 	unsigned long next;
 
-	do {
+	do
+	{
 		next = pud_addr_end(addr, end);
 		idmap_add_pmd(pud, addr, next, prot);
-	} while (pud++, addr = next, addr != end);
+	}
+	while (pud++, addr = next, addr != end);
 }
 
 static void identity_mapping_add(pgd_t *pgd, const char *text_start,
-				 const char *text_end, unsigned long prot)
+								 const char *text_end, unsigned long prot)
 {
 	unsigned long addr, end;
 	unsigned long next;
@@ -87,13 +99,18 @@ static void identity_mapping_add(pgd_t *pgd, const char *text_start,
 	prot |= PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_AF;
 
 	if (cpu_architecture() <= CPU_ARCH_ARMv5TEJ && !cpu_is_xscale_family())
+	{
 		prot |= PMD_BIT4;
+	}
 
 	pgd += pgd_index(addr);
-	do {
+
+	do
+	{
 		next = pgd_addr_end(addr, end);
 		idmap_add_pud(pgd, addr, next, prot);
-	} while (pgd++, addr = next, addr != end);
+	}
+	while (pgd++, addr = next, addr != end);
 }
 
 extern char  __idmap_text_start[], __idmap_text_end[];
@@ -101,11 +118,14 @@ extern char  __idmap_text_start[], __idmap_text_end[];
 static int __init init_static_idmap(void)
 {
 	idmap_pgd = pgd_alloc(&init_mm);
+
 	if (!idmap_pgd)
+	{
 		return -ENOMEM;
+	}
 
 	identity_mapping_add(idmap_pgd, __idmap_text_start,
-			     __idmap_text_end, 0);
+						 __idmap_text_end, 0);
 
 	/* Flush L1 for the hardware to see this page table content */
 	flush_cache_louis();

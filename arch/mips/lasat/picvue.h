@@ -4,7 +4,8 @@
  * Brian Murphy <brian.murphy@eicon.com>
  *
  */
-struct pvc_defs {
+struct pvc_defs
+{
 	volatile u32 *reg;
 	u32 data_shift;
 	u32 data_mask;

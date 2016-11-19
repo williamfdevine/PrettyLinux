@@ -50,7 +50,8 @@ static void s3c2410_pm_prepare(void)
 	S3C_PMDBG("GSTATUS3 0x%08x\n", __raw_readl(S3C2410_GSTATUS3));
 	S3C_PMDBG("GSTATUS4 0x%08x\n", __raw_readl(S3C2410_GSTATUS4));
 
-	if (machine_is_h1940()) {
+	if (machine_is_h1940())
+	{
 		void *base = phys_to_virt(H1940_SUSPEND_CHECK);
 		unsigned long ptr;
 		unsigned long calc = 0;
@@ -58,7 +59,9 @@ static void s3c2410_pm_prepare(void)
 		/* generate check for the bootloader to check on resume */
 
 		for (ptr = 0; ptr < 0x40000; ptr += 0x400)
-			calc += __raw_readl(base+ptr);
+		{
+			calc += __raw_readl(base + ptr);
+		}
 
 		__raw_writel(calc, phys_to_virt(H1940_SUSPEND_CHECKSUM));
 	}
@@ -66,7 +69,8 @@ static void s3c2410_pm_prepare(void)
 	/* RX3715 and RX1950 use similar to H1940 code and the
 	 * same offsets for resume and checksum pointers */
 
-	if (machine_is_rx3715() || machine_is_rx1950()) {
+	if (machine_is_rx3715() || machine_is_rx1950())
+	{
 		void *base = phys_to_virt(H1940_SUSPEND_CHECK);
 		unsigned long ptr;
 		unsigned long calc = 0;
@@ -74,17 +78,21 @@ static void s3c2410_pm_prepare(void)
 		/* generate check for the bootloader to check on resume */
 
 		for (ptr = 0; ptr < 0x40000; ptr += 0x4)
-			calc += __raw_readl(base+ptr);
+		{
+			calc += __raw_readl(base + ptr);
+		}
 
 		__raw_writel(calc, phys_to_virt(H1940_SUSPEND_CHECKSUM));
 	}
 
-	if (machine_is_aml_m5900()) {
+	if (machine_is_aml_m5900())
+	{
 		gpio_request_one(S3C2410_GPF(2), GPIOF_OUT_INIT_HIGH, NULL);
 		gpio_free(S3C2410_GPF(2));
 	}
 
-	if (machine_is_rx1950()) {
+	if (machine_is_rx1950())
+	{
 		/* According to S3C2442 user's manual, page 7-17,
 		 * when the system is operating in NAND boot mode,
 		 * the hardware pin configuration - EINT[23:21] –
@@ -107,13 +115,15 @@ static void s3c2410_pm_resume(void)
 	tmp &= S3C2410_GSTATUS2_OFFRESET;
 	__raw_writel(tmp, S3C2410_GSTATUS2);
 
-	if (machine_is_aml_m5900()) {
+	if (machine_is_aml_m5900())
+	{
 		gpio_request_one(S3C2410_GPF(2), GPIOF_OUT_INIT_LOW, NULL);
 		gpio_free(S3C2410_GPF(2));
 	}
 }
 
-struct syscore_ops s3c2410_pm_syscore_ops = {
+struct syscore_ops s3c2410_pm_syscore_ops =
+{
 	.resume		= s3c2410_pm_resume,
 };
 
@@ -126,7 +136,8 @@ static int s3c2410_pm_add(struct device *dev, struct subsys_interface *sif)
 }
 
 #if defined(CONFIG_CPU_S3C2410)
-static struct subsys_interface s3c2410_pm_interface = {
+static struct subsys_interface s3c2410_pm_interface =
+{
 	.name		= "s3c2410_pm",
 	.subsys		= &s3c2410_subsys,
 	.add_dev	= s3c2410_pm_add,
@@ -141,7 +152,8 @@ static int __init s3c2410_pm_drvinit(void)
 
 arch_initcall(s3c2410_pm_drvinit);
 
-static struct subsys_interface s3c2410a_pm_interface = {
+static struct subsys_interface s3c2410a_pm_interface =
+{
 	.name		= "s3c2410a_pm",
 	.subsys		= &s3c2410a_subsys,
 	.add_dev	= s3c2410_pm_add,
@@ -156,7 +168,8 @@ arch_initcall(s3c2410a_pm_drvinit);
 #endif
 
 #if defined(CONFIG_CPU_S3C2440)
-static struct subsys_interface s3c2440_pm_interface = {
+static struct subsys_interface s3c2440_pm_interface =
+{
 	.name		= "s3c2440_pm",
 	.subsys		= &s3c2440_subsys,
 	.add_dev	= s3c2410_pm_add,
@@ -171,7 +184,8 @@ arch_initcall(s3c2440_pm_drvinit);
 #endif
 
 #if defined(CONFIG_CPU_S3C2442)
-static struct subsys_interface s3c2442_pm_interface = {
+static struct subsys_interface s3c2442_pm_interface =
+{
 	.name		= "s3c2442_pm",
 	.subsys		= &s3c2442_subsys,
 	.add_dev	= s3c2410_pm_add,

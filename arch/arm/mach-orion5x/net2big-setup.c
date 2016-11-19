@@ -48,7 +48,8 @@
  * TODO: Check write support on flash MX29LV400CBTC-70G
  */
 
-static struct mtd_partition net2big_partitions[] = {
+static struct mtd_partition net2big_partitions[] =
+{
 	{
 		.name		= "Full512kb",
 		.size		= MTDPART_SIZ_FULL,
@@ -57,20 +58,23 @@ static struct mtd_partition net2big_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data net2big_nor_flash_data = {
+static struct physmap_flash_data net2big_nor_flash_data =
+{
 	.width		= 1,
 	.parts		= net2big_partitions,
 	.nr_parts	= ARRAY_SIZE(net2big_partitions),
 };
 
-static struct resource net2big_nor_flash_resource = {
+static struct resource net2big_nor_flash_resource =
+{
 	.flags			= IORESOURCE_MEM,
 	.start			= NET2BIG_NOR_BOOT_BASE,
 	.end			= NET2BIG_NOR_BOOT_BASE
-					+ NET2BIG_NOR_BOOT_SIZE - 1,
+	+ NET2BIG_NOR_BOOT_SIZE - 1,
 };
 
-static struct platform_device net2big_nor_flash = {
+static struct platform_device net2big_nor_flash =
+{
 	.name			= "physmap-flash",
 	.id			= 0,
 	.dev		= {
@@ -84,7 +88,8 @@ static struct platform_device net2big_nor_flash = {
  * Ethernet
  ****************************************************************************/
 
-static struct mv643xx_eth_platform_data net2big_eth_data = {
+static struct mv643xx_eth_platform_data net2big_eth_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_ADDR(8),
 };
 
@@ -97,7 +102,8 @@ static struct mv643xx_eth_platform_data net2big_eth_data = {
  * 0x32     | Ricoh 5C372b | RTC
  * 0x50     | HT24LC08     | eeprom (1kB)
  */
-static struct i2c_board_info __initdata net2big_i2c_devices[] = {
+static struct i2c_board_info __initdata net2big_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("rs5c372b", 0x32),
 	}, {
@@ -109,7 +115,8 @@ static struct i2c_board_info __initdata net2big_i2c_devices[] = {
  * SATA
  ****************************************************************************/
 
-static struct mv_sata_platform_data net2big_sata_data = {
+static struct mv_sata_platform_data net2big_sata_data =
+{
 	.n_ports	= 2,
 };
 
@@ -126,40 +133,62 @@ static void __init net2big_sata_power_init(void)
 	orion_gpio_set_valid(NET2BIG_GPIO_SATA1_POWER, 1);
 
 	err = gpio_request(NET2BIG_GPIO_SATA0_POWER, "SATA0 power status");
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		err = gpio_direction_input(NET2BIG_GPIO_SATA0_POWER);
+
 		if (err)
+		{
 			gpio_free(NET2BIG_GPIO_SATA0_POWER);
+		}
 	}
-	if (err) {
+
+	if (err)
+	{
 		pr_err("net2big: failed to setup SATA0 power GPIO\n");
 		return;
 	}
 
 	err = gpio_request(NET2BIG_GPIO_SATA1_POWER, "SATA1 power status");
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		err = gpio_direction_input(NET2BIG_GPIO_SATA1_POWER);
+
 		if (err)
+		{
 			gpio_free(NET2BIG_GPIO_SATA1_POWER);
+		}
 	}
-	if (err) {
+
+	if (err)
+	{
 		pr_err("net2big: failed to setup SATA1 power GPIO\n");
 		goto err_free_1;
 	}
 
 	err = gpio_request(NET2BIG_GPIO_SATA_POWER_REQ, "SATA power request");
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		err = gpio_direction_output(NET2BIG_GPIO_SATA_POWER_REQ, 0);
+
 		if (err)
+		{
 			gpio_free(NET2BIG_GPIO_SATA_POWER_REQ);
+		}
 	}
-	if (err) {
+
+	if (err)
+	{
 		pr_err("net2big: failed to setup SATA power request GPIO\n");
 		goto err_free_2;
 	}
 
 	if (gpio_get_value(NET2BIG_GPIO_SATA0_POWER) &&
-		gpio_get_value(NET2BIG_GPIO_SATA1_POWER)) {
+		gpio_get_value(NET2BIG_GPIO_SATA1_POWER))
+	{
 		return;
 	}
 
@@ -214,7 +243,8 @@ err_free_1:
 #define NET2BIG_GPIO_SATA0_BLUE_LED	17
 #define NET2BIG_GPIO_SATA1_BLUE_LED	13
 
-static struct gpio_led net2big_leds[] = {
+static struct gpio_led net2big_leds[] =
+{
 	{
 		.name = "net2big:red:power",
 		.gpio = NET2BIG_GPIO_PWR_RED_LED,
@@ -233,12 +263,14 @@ static struct gpio_led net2big_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data net2big_led_data = {
+static struct gpio_led_platform_data net2big_led_data =
+{
 	.num_leds = ARRAY_SIZE(net2big_leds),
 	.leds = net2big_leds,
 };
 
-static struct platform_device net2big_gpio_leds = {
+static struct platform_device net2big_gpio_leds =
+{
 	.name           = "leds-gpio",
 	.id             = -1,
 	.dev            = {
@@ -252,38 +284,62 @@ static void __init net2big_gpio_leds_init(void)
 
 	/* Stop initial CPLD slow red/blue blinking on power LED. */
 	err = gpio_request(NET2BIG_GPIO_PWR_LED_BLINK_STOP,
-			   "Power LED blink stop");
-	if (err == 0) {
+					   "Power LED blink stop");
+
+	if (err == 0)
+	{
 		err = gpio_direction_output(NET2BIG_GPIO_PWR_LED_BLINK_STOP, 1);
+
 		if (err)
+		{
 			gpio_free(NET2BIG_GPIO_PWR_LED_BLINK_STOP);
+		}
 	}
+
 	if (err)
+	{
 		pr_err("net2big: failed to setup power LED blink GPIO\n");
+	}
 
 	/*
 	 * Configure SATA0 and SATA1 blue LEDs to blink in relation with the
 	 * hard disk activity.
 	 */
 	err = gpio_request(NET2BIG_GPIO_SATA0_BLUE_LED,
-			   "SATA0 blue LED control");
-	if (err == 0) {
+					   "SATA0 blue LED control");
+
+	if (err == 0)
+	{
 		err = gpio_direction_output(NET2BIG_GPIO_SATA0_BLUE_LED, 1);
+
 		if (err)
+		{
 			gpio_free(NET2BIG_GPIO_SATA0_BLUE_LED);
+		}
 	}
+
 	if (err)
+	{
 		pr_err("net2big: failed to setup SATA0 blue LED GPIO\n");
+	}
 
 	err = gpio_request(NET2BIG_GPIO_SATA1_BLUE_LED,
-			   "SATA1 blue LED control");
-	if (err == 0) {
+					   "SATA1 blue LED control");
+
+	if (err == 0)
+	{
 		err = gpio_direction_output(NET2BIG_GPIO_SATA1_BLUE_LED, 1);
+
 		if (err)
+		{
 			gpio_free(NET2BIG_GPIO_SATA1_BLUE_LED);
+		}
 	}
+
 	if (err)
+	{
 		pr_err("net2big: failed to setup SATA1 blue LED GPIO\n");
+	}
 
 	platform_device_register(&net2big_gpio_leds);
 }
@@ -299,7 +355,8 @@ static void __init net2big_gpio_leds_init(void)
 #define NET2BIG_SWITCH_POWER_ON		0x1
 #define NET2BIG_SWITCH_POWER_OFF	0x2
 
-static struct gpio_keys_button net2big_buttons[] = {
+static struct gpio_keys_button net2big_buttons[] =
+{
 	{
 		.type		= EV_SW,
 		.code		= NET2BIG_SWITCH_POWER_OFF,
@@ -323,12 +380,14 @@ static struct gpio_keys_button net2big_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data net2big_button_data = {
+static struct gpio_keys_platform_data net2big_button_data =
+{
 	.buttons	= net2big_buttons,
 	.nbuttons	= ARRAY_SIZE(net2big_buttons),
 };
 
-static struct platform_device net2big_gpio_buttons = {
+static struct platform_device net2big_gpio_buttons =
+{
 	.name		= "gpio-keys",
 	.id		= -1,
 	.dev		= {
@@ -340,7 +399,8 @@ static struct platform_device net2big_gpio_buttons = {
  * General Setup
  ****************************************************************************/
 
-static unsigned int net2big_mpp_modes[] __initdata = {
+static unsigned int net2big_mpp_modes[] __initdata =
+{
 	MPP0_GPIO,	/* Raid mode (bit 0) */
 	MPP1_GPIO,	/* USB port 2 fuse (0 = Fail, 1 = Ok) */
 	MPP2_GPIO,	/* Raid mode (bit 1) */
@@ -398,38 +458,42 @@ static void __init net2big_init(void)
 	orion5x_sata_init(&net2big_sata_data);
 
 	mvebu_mbus_add_window_by_id(ORION_MBUS_DEVBUS_BOOT_TARGET,
-				    ORION_MBUS_DEVBUS_BOOT_ATTR,
-				    NET2BIG_NOR_BOOT_BASE,
-				    NET2BIG_NOR_BOOT_SIZE);
+								ORION_MBUS_DEVBUS_BOOT_ATTR,
+								NET2BIG_NOR_BOOT_BASE,
+								NET2BIG_NOR_BOOT_SIZE);
 	platform_device_register(&net2big_nor_flash);
 
 	platform_device_register(&net2big_gpio_buttons);
 	net2big_gpio_leds_init();
 
 	i2c_register_board_info(0, net2big_i2c_devices,
-				ARRAY_SIZE(net2big_i2c_devices));
+							ARRAY_SIZE(net2big_i2c_devices));
 
 	orion_gpio_set_valid(NET2BIG_GPIO_POWER_OFF, 1);
 
 	if (gpio_request(NET2BIG_GPIO_POWER_OFF, "power-off") == 0 &&
-	    gpio_direction_output(NET2BIG_GPIO_POWER_OFF, 0) == 0)
+		gpio_direction_output(NET2BIG_GPIO_POWER_OFF, 0) == 0)
+	{
 		pm_power_off = net2big_power_off;
+	}
 	else
+	{
 		pr_err("net2big: failed to configure power-off GPIO\n");
+	}
 
 	pr_notice("net2big: Flash writing is not yet supported.\n");
 }
 
 /* Warning: LaCie use a wrong mach-type (0x20e=526) in their bootloader. */
 MACHINE_START(NET2BIG, "LaCie 2Big Network")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.nr_irqs	= ORION5X_NR_IRQS,
-	.init_machine	= net2big_init,
-	.map_io		= orion5x_map_io,
-	.init_early	= orion5x_init_early,
-	.init_irq	= orion5x_init_irq,
-	.init_time	= orion5x_timer_init,
-	.fixup		= tag_fixup_mem32,
-	.restart	= orion5x_restart,
-MACHINE_END
+		.init_machine	= net2big_init,
+		   .map_io		= orion5x_map_io,
+			   .init_early	= orion5x_init_early,
+				.init_irq	= orion5x_init_irq,
+				   .init_time	= orion5x_timer_init,
+					 .fixup		= tag_fixup_mem32,
+						  .restart	= orion5x_restart,
+							  MACHINE_END
 

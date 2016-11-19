@@ -10,19 +10,19 @@ extern pgd_t *pgd_alloc(struct mm_struct *);
 extern void pgd_free(struct mm_struct *mm, pgd_t *pgd);
 
 #if PAGETABLE_LEVELS > 2
-extern void pud_populate(struct mm_struct *mm, pud_t *pudp, pmd_t *pmd);
-extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
-extern void pmd_free(struct mm_struct *mm, pmd_t *pmd);
+	extern void pud_populate(struct mm_struct *mm, pud_t *pudp, pmd_t *pmd);
+	extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
+	extern void pmd_free(struct mm_struct *mm, pmd_t *pmd);
 #endif
 
 static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
-				       pte_t *pte)
+									   pte_t *pte)
 {
 	set_pmd(pmd, __pmd((unsigned long)pte));
 }
 
 static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
-				pgtable_t pte)
+								pgtable_t pte)
 {
 	set_pmd(pmd, __pmd((unsigned long)page_address(pte)));
 }
@@ -32,25 +32,32 @@ static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
  * Allocate and free page tables.
  */
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					  unsigned long address)
+		unsigned long address)
 {
 	return quicklist_alloc(QUICK_PT, GFP_KERNEL, NULL);
 }
 
 static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
-					unsigned long address)
+									  unsigned long address)
 {
 	struct page *page;
 	void *pg;
 
 	pg = quicklist_alloc(QUICK_PT, GFP_KERNEL, NULL);
+
 	if (!pg)
+	{
 		return NULL;
+	}
+
 	page = virt_to_page(pg);
-	if (!pgtable_page_ctor(page)) {
+
+	if (!pgtable_page_ctor(page))
+	{
 		quicklist_free(QUICK_PT, NULL, pg);
 		return NULL;
 	}
+
 	return page;
 }
 
@@ -66,10 +73,10 @@ static inline void pte_free(struct mm_struct *mm, pgtable_t pte)
 }
 
 #define __pte_free_tlb(tlb,pte,addr)			\
-do {							\
-	pgtable_page_dtor(pte);				\
-	tlb_remove_page((tlb), (pte));			\
-} while (0)
+	do {							\
+		pgtable_page_dtor(pte);				\
+		tlb_remove_page((tlb), (pte));			\
+	} while (0)
 
 static inline void check_pgt_cache(void)
 {

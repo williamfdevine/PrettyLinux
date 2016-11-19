@@ -32,7 +32,8 @@
 /*
  * Default NOR partition layout
  */
-static struct mtd_partition xlr_nor_parts[] = {
+static struct mtd_partition xlr_nor_parts[] =
+{
 	{
 		.name = "User FS",
 		.offset = 0x800000,
@@ -43,7 +44,8 @@ static struct mtd_partition xlr_nor_parts[] = {
 /*
  * Default NAND partition layout
  */
-static struct mtd_partition xlr_nand_parts[] = {
+static struct mtd_partition xlr_nand_parts[] =
+{
 	{
 		.name	= "Root Filesystem",
 		.offset = 64 * 64 * 2048,
@@ -57,19 +59,22 @@ static struct mtd_partition xlr_nand_parts[] = {
 };
 
 /* Use PHYSMAP flash for NOR */
-struct physmap_flash_data xlr_nor_data = {
+struct physmap_flash_data xlr_nor_data =
+{
 	.width		= 2,
 	.parts		= xlr_nor_parts,
 	.nr_parts	= ARRAY_SIZE(xlr_nor_parts),
 };
 
-static struct resource xlr_nor_res[] = {
+static struct resource xlr_nor_res[] =
+{
 	{
 		.flags	= IORESOURCE_MEM,
 	},
 };
 
-static struct platform_device xlr_nor_dev = {
+static struct platform_device xlr_nor_dev =
+{
 	.name	= "physmap-flash",
 	.dev	= {
 		.platform_data	= &xlr_nor_data,
@@ -85,7 +90,8 @@ static struct platform_device xlr_nor_dev = {
  * platform specific info in gen_nand drivier. We will use a global
  * struct for now, since we currently have only one NAND chip per board.
  */
-struct xlr_nand_flash_priv {
+struct xlr_nand_flash_priv
+{
 	int cs;
 	uint64_t flash_mmio;
 };
@@ -93,17 +99,18 @@ struct xlr_nand_flash_priv {
 static struct xlr_nand_flash_priv nand_priv;
 
 static void xlr_nand_ctrl(struct mtd_info *mtd, int cmd,
-		unsigned int ctrl)
+						  unsigned int ctrl)
 {
 	if (ctrl & NAND_CLE)
 		nlm_write_reg(nand_priv.flash_mmio,
-			FLASH_NAND_CLE(nand_priv.cs), cmd);
+					  FLASH_NAND_CLE(nand_priv.cs), cmd);
 	else if (ctrl & NAND_ALE)
 		nlm_write_reg(nand_priv.flash_mmio,
-			FLASH_NAND_ALE(nand_priv.cs), cmd);
+					  FLASH_NAND_ALE(nand_priv.cs), cmd);
 }
 
-struct platform_nand_data xlr_nand_data = {
+struct platform_nand_data xlr_nand_data =
+{
 	.chip = {
 		.nr_chips	= 1,
 		.nr_partitions	= ARRAY_SIZE(xlr_nand_parts),
@@ -115,13 +122,15 @@ struct platform_nand_data xlr_nand_data = {
 	},
 };
 
-static struct resource xlr_nand_res[] = {
+static struct resource xlr_nand_res[] =
+{
 	{
 		.flags		= IORESOURCE_MEM,
 	},
 };
 
-static struct platform_device xlr_nand_dev = {
+static struct platform_device xlr_nand_dev =
+{
 	.name		= "gen_nand",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(xlr_nand_res),
@@ -141,7 +150,7 @@ static struct platform_device xlr_nand_dev = {
  * The CSBASE_ registers are expected to be setup by the bootloader.
  */
 static void setup_flash_resource(uint64_t flash_mmio,
-	uint64_t flash_map_base, int cs, struct resource *res)
+								 uint64_t flash_map_base, int cs, struct resource *res)
 {
 	u32 base, mask;
 
@@ -170,47 +179,60 @@ static int __init xlr_flash_init(void)
 
 	/* Check for boot flash type */
 	boot_nor = boot_nand = 0;
-	if (nlm_chip_is_xls()) {
+
+	if (nlm_chip_is_xls())
+	{
 		/* On XLS, check boot from NAND bit (GPIO reset reg bit 16) */
 		if (gpio_resetcfg & (1 << 16))
+		{
 			boot_nand = 1;
+		}
 
 		/* check boot from PCMCIA, (GPIO reset reg bit 15 */
 		if ((gpio_resetcfg & (1 << 15)) == 0)
-			boot_nor = 1;	/* not set, booted from NOR */
-	} else { /* XLR */
+		{
+			boot_nor = 1;    /* not set, booted from NOR */
+		}
+	}
+	else     /* XLR */
+	{
 		/* check boot from PCMCIA (bit 16 in GPIO reset on XLR) */
 		if ((gpio_resetcfg & (1 << 16)) == 0)
-			boot_nor = 1;	/* not set, booted from NOR */
+		{
+			boot_nor = 1;    /* not set, booted from NOR */
+		}
 	}
 
 	/* boot flash at chip select 0 */
 	cs = 0;
 
-	if (boot_nand) {
+	if (boot_nand)
+	{
 		nand_priv.cs = cs;
 		nand_priv.flash_mmio = flash_mmio;
 		setup_flash_resource(flash_mmio, flash_map_base, cs,
-			 xlr_nand_res);
+							 xlr_nand_res);
 
 		/* Initialize NAND flash at CS 0 */
 		nlm_write_reg(flash_mmio, FLASH_CSDEV_PARM(cs),
-				FLASH_NAND_CSDEV_PARAM);
+					  FLASH_NAND_CSDEV_PARAM);
 		nlm_write_reg(flash_mmio, FLASH_CSTIME_PARMA(cs),
-				FLASH_NAND_CSTIME_PARAMA);
+					  FLASH_NAND_CSTIME_PARAMA);
 		nlm_write_reg(flash_mmio, FLASH_CSTIME_PARMB(cs),
-				FLASH_NAND_CSTIME_PARAMB);
+					  FLASH_NAND_CSTIME_PARAMB);
 
 		pr_info("ChipSelect %d: NAND Flash %pR\n", cs, xlr_nand_res);
 		return platform_device_register(&xlr_nand_dev);
 	}
 
-	if (boot_nor) {
+	if (boot_nor)
+	{
 		setup_flash_resource(flash_mmio, flash_map_base, cs,
-			xlr_nor_res);
+							 xlr_nor_res);
 		pr_info("ChipSelect %d: NOR Flash %pR\n", cs, xlr_nor_res);
 		return platform_device_register(&xlr_nor_dev);
 	}
+
 	return 0;
 }
 

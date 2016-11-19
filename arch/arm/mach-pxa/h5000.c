@@ -41,7 +41,8 @@
  * Flash
  */
 
-static struct mtd_partition h5000_flash0_partitions[] = {
+static struct mtd_partition h5000_flash0_partitions[] =
+{
 	{
 		.name = "bootldr",
 		.size = 0x00040000,
@@ -55,7 +56,8 @@ static struct mtd_partition h5000_flash0_partitions[] = {
 	},
 };
 
-static struct mtd_partition h5000_flash1_partitions[] = {
+static struct mtd_partition h5000_flash1_partitions[] =
+{
 	{
 		.name = "second root",
 		.size = SZ_16M - 0x00040000,
@@ -69,31 +71,36 @@ static struct mtd_partition h5000_flash1_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data h5000_flash0_data = {
+static struct physmap_flash_data h5000_flash0_data =
+{
 	.width = 4,
 	.parts = h5000_flash0_partitions,
 	.nr_parts = ARRAY_SIZE(h5000_flash0_partitions),
 };
 
-static struct physmap_flash_data h5000_flash1_data = {
+static struct physmap_flash_data h5000_flash1_data =
+{
 	.width = 4,
 	.parts = h5000_flash1_partitions,
 	.nr_parts = ARRAY_SIZE(h5000_flash1_partitions),
 };
 
-static struct resource h5000_flash0_resources = {
+static struct resource h5000_flash0_resources =
+{
 	.start = PXA_CS0_PHYS,
 	.end = PXA_CS0_PHYS + SZ_32M - 1,
 	.flags = IORESOURCE_MEM | IORESOURCE_MEM_32BIT,
 };
 
-static struct resource h5000_flash1_resources = {
+static struct resource h5000_flash1_resources =
+{
 	.start = PXA_CS0_PHYS + SZ_32M,
 	.end = PXA_CS0_PHYS + SZ_32M + SZ_16M - 1,
 	.flags = IORESOURCE_MEM | IORESOURCE_MEM_32BIT,
 };
 
-static struct platform_device h5000_flash[] = {
+static struct platform_device h5000_flash[] =
+{
 	{
 		.name = "physmap-flash",
 		.id = 0,
@@ -118,7 +125,8 @@ static struct platform_device h5000_flash[] = {
  * USB Device Controller
  */
 
-static struct pxa2xx_udc_mach_info h5000_udc_mach_info __initdata = {
+static struct pxa2xx_udc_mach_info h5000_udc_mach_info __initdata =
+{
 	.gpio_pullup = H5000_GPIO_USB_PULLUP,
 };
 
@@ -126,7 +134,8 @@ static struct pxa2xx_udc_mach_info h5000_udc_mach_info __initdata = {
  * GPIO setup
  */
 
-static unsigned long h5000_pin_config[] __initdata = {
+static unsigned long h5000_pin_config[] __initdata =
+{
 	/* Crystal and Clock Signals */
 	GPIO12_32KHz,
 
@@ -185,7 +194,8 @@ static void fix_msc(void)
  * Platform devices
  */
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&h5000_flash[0],
 	&h5000_flash[1],
 };
@@ -203,12 +213,12 @@ static void __init h5000_init(void)
 }
 
 MACHINE_START(H5400, "HP iPAQ H5000")
-	.atag_offset = 0x100,
-	.map_io = pxa25x_map_io,
-	.nr_irqs = PXA_NR_IRQS,
-	.init_irq = pxa25x_init_irq,
+.atag_offset = 0x100,
+ .map_io = pxa25x_map_io,
+  .nr_irqs = PXA_NR_IRQS,
+   .init_irq = pxa25x_init_irq,
 	.handle_irq = pxa25x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine = h5000_init,
-	.restart	= pxa_restart,
-MACHINE_END
+	 .init_time	= pxa_timer_init,
+	   .init_machine = h5000_init,
+		.restart	= pxa_restart,
+			MACHINE_END

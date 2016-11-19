@@ -21,7 +21,8 @@
 #include <asm/ppc4xx.h>
 #include "44x.h"
 
-static const struct of_device_id xilinx_of_bus_ids[] __initconst = {
+static const struct of_device_id xilinx_of_bus_ids[] __initconst =
+{
 	{ .compatible = "simple-bus", },
 	{ .compatible = "xlnx,plb-v46-1.00.a", },
 	{ .compatible = "xlnx,plb-v46-1.02.a", },
@@ -44,17 +45,20 @@ machine_device_initcall(virtex, virtex_device_probe);
 static int __init virtex_probe(void)
 {
 	if (!of_machine_is_compatible("xlnx,virtex440"))
+	{
 		return 0;
+	}
 
 	return 1;
 }
 
-define_machine(virtex) {
+define_machine(virtex)
+{
 	.name			= "Xilinx Virtex440",
-	.probe			= virtex_probe,
-	.setup_arch		= xilinx_pci_init,
-	.init_IRQ		= xilinx_intc_init_tree,
-	.get_irq		= xilinx_intc_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.restart		= ppc4xx_reset_system,
+			 .probe			= virtex_probe,
+					 .setup_arch		= xilinx_pci_init,
+						 .init_IRQ		= xilinx_intc_init_tree,
+							   .get_irq		= xilinx_intc_get_irq,
+									  .calibrate_decr		= generic_calibrate_decr,
+										  .restart		= ppc4xx_reset_system,
 };

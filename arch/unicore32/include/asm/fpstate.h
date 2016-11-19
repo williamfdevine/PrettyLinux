@@ -17,7 +17,8 @@
 
 #define FP_REGS_NUMBER		33
 
-struct fp_state {
+struct fp_state
+{
 	unsigned int regs[FP_REGS_NUMBER];
 } __attribute__((aligned(8)));
 

@@ -19,7 +19,8 @@
 #define mfp_to_gpio(m)	((m) % 256)
 
 /* list of all the configurable MFP pins */
-enum {
+enum
+{
 	MFP_PIN_INVALID = -1,
 
 	MFP_PIN_GPIO0 = 0,
@@ -405,7 +406,7 @@ typedef unsigned long mfp_cfg_t;
 #define MFP_PULL(x)		(((x) >> 21) & 0x7)
 
 #define MFP_CFG_DEFAULT		(MFP_AF0 | MFP_DS03X | MFP_LPM_DEFAULT |\
-				 MFP_LPM_EDGE_NONE | MFP_PULL_NONE)
+							 MFP_LPM_EDGE_NONE | MFP_PULL_NONE)
 
 #define MFP_CFG(pin, af)		\
 	((MFP_CFG_DEFAULT & ~MFP_AF_MASK) |\
@@ -442,7 +443,8 @@ typedef unsigned long mfp_cfg_t;
  * MFP_ADDR()   to define a single pin
  * MFP_ADDR_END to signal the end of pin offset definitions
  */
-struct mfp_addr_map {
+struct mfp_addr_map
+{
 	unsigned int	start;
 	unsigned int	end;
 	unsigned long	offset;

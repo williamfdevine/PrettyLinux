@@ -19,8 +19,8 @@ struct device_node;
 #define parent_node(node)	(node)
 
 #define cpumask_of_node(node) ((node) == -1 ?				\
-			       cpu_all_mask :				\
-			       node_to_cpumask_map[node])
+							   cpu_all_mask :				\
+							   node_to_cpumask_map[node])
 
 struct pci_bus;
 #ifdef CONFIG_PCI
@@ -33,8 +33,8 @@ static inline int pcibus_to_node(struct pci_bus *bus)
 #endif
 
 #define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) == -1 ?		\
-				 cpu_all_mask :				\
-				 cpumask_of_node(pcibus_to_node(bus)))
+								 cpu_all_mask :				\
+								 cpumask_of_node(pcibus_to_node(bus)))
 
 extern int __node_distance(int, int);
 #define node_distance(a, b) __node_distance(a, b)
@@ -54,7 +54,7 @@ static inline int sysfs_add_device_to_node(struct device *dev, int nid)
 }
 
 static inline void sysfs_remove_device_from_node(struct device *dev,
-						int nid)
+		int nid)
 {
 }
 #endif /* CONFIG_NUMA */
@@ -81,16 +81,16 @@ static inline int prrn_is_enabled(void)
 #include <asm-generic/topology.h>
 
 #ifdef CONFIG_SMP
-#include <asm/cputable.h>
+	#include <asm/cputable.h>
 
-#ifdef CONFIG_PPC64
-#include <asm/smp.h>
+	#ifdef CONFIG_PPC64
+		#include <asm/smp.h>
 
-#define topology_physical_package_id(cpu)	(cpu_to_chip_id(cpu))
-#define topology_sibling_cpumask(cpu)	(per_cpu(cpu_sibling_map, cpu))
-#define topology_core_cpumask(cpu)	(per_cpu(cpu_core_map, cpu))
-#define topology_core_id(cpu)		(cpu_to_core_id(cpu))
-#endif
+		#define topology_physical_package_id(cpu)	(cpu_to_chip_id(cpu))
+		#define topology_sibling_cpumask(cpu)	(per_cpu(cpu_sibling_map, cpu))
+		#define topology_core_cpumask(cpu)	(per_cpu(cpu_core_map, cpu))
+		#define topology_core_id(cpu)		(cpu_to_core_id(cpu))
+	#endif
 #endif
 
 #endif /* __KERNEL__ */

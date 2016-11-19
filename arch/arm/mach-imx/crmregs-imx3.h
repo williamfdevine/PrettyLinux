@@ -153,7 +153,7 @@ extern void __iomem *mx3_ccm_base;
  */
 #define MXC_CCM_LTR2_WSW_OFFSET(x)              (11 + (x) * 3)
 #define MXC_CCM_LTR2_WSW_MASK(x)                (0x7 << \
-					MXC_CCM_LTR2_WSW_OFFSET((x)))
+		MXC_CCM_LTR2_WSW_OFFSET((x)))
 #define MXC_CCM_LTR2_EMAC_OFFSET                0
 #define MXC_CCM_LTR2_EMAC_MASK                  0x1FF
 
@@ -162,7 +162,7 @@ extern void __iomem *mx3_ccm_base;
  */
 #define MXC_CCM_LTR3_WSW_OFFSET(x)              (5 + (x) * 3)
 #define MXC_CCM_LTR3_WSW_MASK(x)                (0x7 << \
-					MXC_CCM_LTR3_WSW_OFFSET((x)))
+		MXC_CCM_LTR3_WSW_OFFSET((x)))
 
 #define MXC_CCM_PMCR0_DFSUP1                    0x80000000
 #define MXC_CCM_PMCR0_DFSUP1_SPLL               (0 << 31)

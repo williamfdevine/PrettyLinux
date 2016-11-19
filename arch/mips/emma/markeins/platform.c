@@ -38,7 +38,8 @@
 
 #define I2C_EMMA2RH "emma2rh-iic" /* must be in sync with IIC driver */
 
-static struct resource i2c_emma_resources_0[] = {
+static struct resource i2c_emma_resources_0[] =
+{
 	{
 		.name	= NULL,
 		.start	= EMMA2RH_IRQ_PIIC0,
@@ -52,7 +53,8 @@ static struct resource i2c_emma_resources_0[] = {
 	},
 };
 
-struct resource i2c_emma_resources_1[] = {
+struct resource i2c_emma_resources_1[] =
+{
 	{
 		.name	= NULL,
 		.start	= EMMA2RH_IRQ_PIIC1,
@@ -66,7 +68,8 @@ struct resource i2c_emma_resources_1[] = {
 	},
 };
 
-struct resource i2c_emma_resources_2[] = {
+struct resource i2c_emma_resources_2[] =
+{
 	{
 		.name	= NULL,
 		.start	= EMMA2RH_IRQ_PIIC2,
@@ -80,7 +83,8 @@ struct resource i2c_emma_resources_2[] = {
 	},
 };
 
-struct platform_device i2c_emma_devices[] = {
+struct platform_device i2c_emma_devices[] =
+{
 	[0] = {
 		.name = I2C_EMMA2RH,
 		.id = 0,
@@ -104,44 +108,47 @@ struct platform_device i2c_emma_devices[] = {
 #define EMMA2RH_SERIAL_CLOCK 18544000
 #define EMMA2RH_SERIAL_FLAGS UPF_BOOT_AUTOCONF | UPF_SKIP_TEST
 
-static struct  plat_serial8250_port platform_serial_ports[] = {
+static struct  plat_serial8250_port platform_serial_ports[] =
+{
 	[0] = {
-		.membase= (void __iomem*)KSEG1ADDR(EMMA2RH_PFUR0_BASE + 3),
+		.membase = (void __iomem *)KSEG1ADDR(EMMA2RH_PFUR0_BASE + 3),
 		.mapbase = EMMA2RH_PFUR0_BASE + 3,
 		.irq = EMMA2RH_IRQ_PFUR0,
 		.uartclk = EMMA2RH_SERIAL_CLOCK,
 		.regshift = 4,
 		.iotype = UPIO_MEM,
 		.flags = EMMA2RH_SERIAL_FLAGS,
-       }, [1] = {
-		.membase = (void __iomem*)KSEG1ADDR(EMMA2RH_PFUR1_BASE + 3),
+	}, [1] = {
+		.membase = (void __iomem *)KSEG1ADDR(EMMA2RH_PFUR1_BASE + 3),
 		.mapbase = EMMA2RH_PFUR1_BASE + 3,
 		.irq = EMMA2RH_IRQ_PFUR1,
 		.uartclk = EMMA2RH_SERIAL_CLOCK,
 		.regshift = 4,
 		.iotype = UPIO_MEM,
 		.flags = EMMA2RH_SERIAL_FLAGS,
-       }, [2] = {
-		.membase = (void __iomem*)KSEG1ADDR(EMMA2RH_PFUR2_BASE + 3),
+	}, [2] = {
+		.membase = (void __iomem *)KSEG1ADDR(EMMA2RH_PFUR2_BASE + 3),
 		.mapbase = EMMA2RH_PFUR2_BASE + 3,
 		.irq = EMMA2RH_IRQ_PFUR2,
 		.uartclk = EMMA2RH_SERIAL_CLOCK,
 		.regshift = 4,
 		.iotype = UPIO_MEM,
 		.flags = EMMA2RH_SERIAL_FLAGS,
-       }, [3] = {
+	}, [3] = {
 		.flags = 0,
-       },
+	},
 };
 
-static struct  platform_device serial_emma = {
+static struct  platform_device serial_emma =
+{
 	.name = "serial8250",
 	.dev = {
 		.platform_data = &platform_serial_ports,
 	},
 };
 
-static struct mtd_partition markeins_parts[] = {
+static struct mtd_partition markeins_parts[] =
+{
 	[0] = {
 		.name = "RootFS",
 		.offset = 0x00000000,
@@ -174,19 +181,22 @@ static struct mtd_partition markeins_parts[] = {
 	},
 };
 
-static struct physmap_flash_data markeins_flash_data = {
+static struct physmap_flash_data markeins_flash_data =
+{
 	.width		= 2,
 	.nr_parts	= ARRAY_SIZE(markeins_parts),
 	.parts		= markeins_parts
 };
 
-static struct resource markeins_flash_resource = {
+static struct resource markeins_flash_resource =
+{
 	.start		= 0x1e000000,
 	.end		= 0x02000000,
 	.flags		= IORESOURCE_MEM
 };
 
-static struct platform_device markeins_flash_device = {
+static struct platform_device markeins_flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -196,7 +206,8 @@ static struct platform_device markeins_flash_device = {
 	.resource	= &markeins_flash_resource,
 };
 
-static struct platform_device *devices[] = {
+static struct platform_device *devices[] =
+{
 	i2c_emma_devices,
 	i2c_emma_devices + 1,
 	i2c_emma_devices + 2,

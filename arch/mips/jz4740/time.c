@@ -39,7 +39,8 @@ static cycle_t jz4740_clocksource_read(struct clocksource *cs)
 	return jz4740_timer_get_count(TIMER_CLOCKSOURCE);
 }
 
-static struct clocksource jz4740_clocksource = {
+static struct clocksource jz4740_clocksource =
+{
 	.name = "jz4740-timer",
 	.rating = 200,
 	.read = jz4740_clocksource_read,
@@ -59,7 +60,9 @@ static irqreturn_t jz4740_clockevent_irq(int irq, void *devid)
 	jz4740_timer_ack_full(TIMER_CLOCKEVENT);
 
 	if (!clockevent_state_periodic(cd))
+	{
 		jz4740_timer_disable(TIMER_CLOCKEVENT);
+	}
 
 	cd->event_handler(cd);
 
@@ -92,7 +95,7 @@ static int jz4740_clockevent_shutdown(struct clock_event_device *evt)
 }
 
 static int jz4740_clockevent_set_next(unsigned long evt,
-	struct clock_event_device *cd)
+									  struct clock_event_device *cd)
 {
 	jz4740_timer_set_count(TIMER_CLOCKEVENT, 0);
 	jz4740_timer_set_period(TIMER_CLOCKEVENT, evt);
@@ -101,7 +104,8 @@ static int jz4740_clockevent_set_next(unsigned long evt,
 	return 0;
 }
 
-static struct clock_event_device jz4740_clockevent = {
+static struct clock_event_device jz4740_clockevent =
+{
 	.name = "jz4740-timer",
 	.features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
 	.set_next_event = jz4740_clockevent_set_next,
@@ -118,7 +122,8 @@ static struct clock_event_device jz4740_clockevent = {
 #endif
 };
 
-static struct irqaction timer_irqaction = {
+static struct irqaction timer_irqaction =
+{
 	.handler	= jz4740_clockevent_irq,
 	.flags		= IRQF_PERCPU | IRQF_TIMER,
 	.name		= "jz4740-timerirq",
@@ -136,8 +141,12 @@ void __init plat_time_init(void)
 	jz4740_timer_init();
 
 	ext_clk = clk_get(NULL, "ext");
+
 	if (IS_ERR(ext_clk))
+	{
 		panic("unable to get ext clock");
+	}
+
 	clk_rate = clk_get_rate(ext_clk) >> 4;
 	clk_put(ext_clk);
 
@@ -153,7 +162,9 @@ void __init plat_time_init(void)
 	ret = clocksource_register_hz(&jz4740_clocksource, clk_rate);
 
 	if (ret)
+	{
 		printk(KERN_ERR "Failed to register clocksource: %d\n", ret);
+	}
 
 	sched_clock_register(jz4740_read_sched_clock, 16, clk_rate);
 

@@ -15,7 +15,8 @@
  * GPIO_FN_xx - GPIO used to select pin function
  * GPIO_Pxx - GPIO mapped to real I/O pin on CPU
  */
-enum {
+enum
+{
 	/* PTA */
 	GPIO_PTA7, GPIO_PTA6, GPIO_PTA5, GPIO_PTA4,
 	GPIO_PTA3, GPIO_PTA2, GPIO_PTA1, GPIO_PTA0,
@@ -265,7 +266,8 @@ enum {
 	GPIO_FN_IDEA1, GPIO_FN_IDEA0,
 };
 
-enum {
+enum
+{
 	HWBLK_TLB, HWBLK_IC, HWBLK_OC, HWBLK_L2C, HWBLK_ILMEM, HWBLK_FPU,
 	HWBLK_INTC, HWBLK_DMAC0, HWBLK_SHYWAY,
 	HWBLK_HUDI, HWBLK_UBC,

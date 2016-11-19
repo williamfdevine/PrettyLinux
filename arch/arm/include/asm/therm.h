@@ -20,7 +20,8 @@
 #define FAN_ON			1
 #define FAN_ALWAYS_ON		2
 
-struct therm {
+struct therm
+{
 	int hi;
 	int lo;
 };

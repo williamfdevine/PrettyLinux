@@ -4,7 +4,8 @@
 #include <linux/threads.h>
 #include <linux/irq.h>
 
-typedef struct {
+typedef struct
+{
 	unsigned int __softirq_pending;
 	unsigned int __nmi_count;		/* arch dependent */
 } ____cacheline_aligned irq_cpustat_t;

@@ -24,7 +24,8 @@ void __init shx3_cache_init(void)
 	/*
 	 * If we've got cache aliases, resolve them in hardware.
 	 */
-	if (boot_cpu_data.dcache.n_aliases || boot_cpu_data.icache.n_aliases) {
+	if (boot_cpu_data.dcache.n_aliases || boot_cpu_data.icache.n_aliases)
+	{
 		ccr |= CCR_CACHE_SNM;
 
 		boot_cpu_data.icache.n_aliases = 0;

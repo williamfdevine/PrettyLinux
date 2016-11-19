@@ -19,7 +19,8 @@
 #ifndef __LPC32XX_CLOCK_H
 #define __LPC32XX_CLOCK_H
 
-struct clk {
+struct clk
+{
 	struct list_head node;
 	struct clk *parent;
 	u32 rate;

@@ -63,13 +63,17 @@ static int noinline arc_get_timer_clk(struct device_node *node)
 	int ret;
 
 	clk = of_clk_get(node, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("timer missing clk");
 		return PTR_ERR(clk);
 	}
 
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Couldn't enable parent clk\n");
 		return ret;
 	}
@@ -86,7 +90,8 @@ static int noinline arc_get_timer_clk(struct device_node *node)
 static cycle_t arc_read_gfrc(struct clocksource *cs)
 {
 	unsigned long flags;
-	union {
+	union
+	{
 #ifdef CONFIG_CPU_BIG_ENDIAN
 		struct { u32 h, l; };
 #else
@@ -108,7 +113,8 @@ static cycle_t arc_read_gfrc(struct clocksource *cs)
 	return stamp.full;
 }
 
-static struct clocksource arc_counter_gfrc = {
+static struct clocksource arc_counter_gfrc =
+{
 	.name   = "ARConnect GFRC",
 	.rating = 400,
 	.read   = arc_read_gfrc,
@@ -122,11 +128,16 @@ static int __init arc_cs_setup_gfrc(struct device_node *node)
 	int ret;
 
 	if (WARN(!exists, "Global-64-bit-Ctr clocksource not detected"))
+	{
 		return -ENXIO;
+	}
 
 	ret = arc_get_timer_clk(node);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return clocksource_register_hz(&arc_counter_gfrc, arc_timer_freq);
 }
@@ -143,7 +154,8 @@ CLOCKSOURCE_OF_DECLARE(arc_gfrc, "snps,archs-timer-gfrc", arc_cs_setup_gfrc);
 static cycle_t arc_read_rtc(struct clocksource *cs)
 {
 	unsigned long status;
-	union {
+	union
+	{
 #ifdef CONFIG_CPU_BIG_ENDIAN
 		struct { u32 high, low; };
 #else
@@ -158,16 +170,19 @@ static cycle_t arc_read_rtc(struct clocksource *cs)
 	 *  - interrupt/exception taken between the two reads
 	 *  - high increments after low has been read
 	 */
-	do {
+	do
+	{
 		stamp.low = read_aux_reg(AUX_RTC_LOW);
 		stamp.high = read_aux_reg(AUX_RTC_HIGH);
 		status = read_aux_reg(AUX_RTC_CTRL);
-	} while (!(status & _BITUL(31)));
+	}
+	while (!(status & _BITUL(31)));
 
 	return stamp.full;
 }
 
-static struct clocksource arc_counter_rtc = {
+static struct clocksource arc_counter_rtc =
+{
 	.name   = "ARCv2 RTC",
 	.rating = 350,
 	.read   = arc_read_rtc,
@@ -181,15 +196,22 @@ static int __init arc_cs_setup_rtc(struct device_node *node)
 	int ret;
 
 	if (WARN(!exists, "Local-64-bit-Ctr clocksource not detected"))
+	{
 		return -ENXIO;
+	}
 
 	/* Local to CPU hence not usable in SMP */
 	if (WARN(IS_ENABLED(CONFIG_SMP), "Local-64-bit-Ctr not usable in SMP"))
+	{
 		return -EINVAL;
+	}
 
 	ret = arc_get_timer_clk(node);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	write_aux_reg(AUX_RTC_CTRL, 1);
 
@@ -208,7 +230,8 @@ static cycle_t arc_read_timer1(struct clocksource *cs)
 	return (cycle_t) read_aux_reg(ARC_REG_TIMER1_CNT);
 }
 
-static struct clocksource arc_counter_timer1 = {
+static struct clocksource arc_counter_timer1 =
+{
 	.name   = "ARC Timer1",
 	.rating = 300,
 	.read   = arc_read_timer1,
@@ -222,11 +245,16 @@ static int __init arc_cs_setup_timer1(struct device_node *node)
 
 	/* Local to CPU hence not usable in SMP */
 	if (IS_ENABLED(CONFIG_SMP))
+	{
 		return -EINVAL;
+	}
 
 	ret = arc_get_timer_clk(node);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	write_aux_reg(ARC_REG_TIMER1_LIMIT, ARC_TIMER_MAX);
 	write_aux_reg(ARC_REG_TIMER1_CNT, 0);
@@ -253,7 +281,7 @@ static void arc_timer_event_setup(unsigned int cycles)
 
 
 static int arc_clkevent_set_next_event(unsigned long delta,
-				       struct clock_event_device *dev)
+									   struct clock_event_device *dev)
 {
 	arc_timer_event_setup(delta);
 	return 0;
@@ -269,10 +297,11 @@ static int arc_clkevent_set_periodic(struct clock_event_device *dev)
 	return 0;
 }
 
-static DEFINE_PER_CPU(struct clock_event_device, arc_clockevent_device) = {
+static DEFINE_PER_CPU(struct clock_event_device, arc_clockevent_device) =
+{
 	.name			= "ARC Timer0",
 	.features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_PERIODIC,
+	CLOCK_EVT_FEAT_PERIODIC,
 	.rating			= 300,
 	.set_next_event		= arc_clkevent_set_next_event,
 	.set_state_periodic	= arc_clkevent_set_periodic,
@@ -326,33 +355,42 @@ static int __init arc_clockevent_setup(struct device_node *node)
 	int ret;
 
 	arc_timer_irq = irq_of_parse_and_map(node, 0);
-	if (arc_timer_irq <= 0) {
+
+	if (arc_timer_irq <= 0)
+	{
 		pr_err("clockevent: missing irq");
 		return -EINVAL;
 	}
 
 	ret = arc_get_timer_clk(node);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("clockevent: missing clk");
 		return ret;
 	}
 
 	/* Needs apriori irq_set_percpu_devid() done in intc map function */
 	ret = request_percpu_irq(arc_timer_irq, timer_irq_handler,
-				 "Timer0 (per-cpu-tick)", evt);
-	if (ret) {
+							 "Timer0 (per-cpu-tick)", evt);
+
+	if (ret)
+	{
 		pr_err("clockevent: unable to request irq\n");
 		return ret;
 	}
 
 	ret = cpuhp_setup_state(CPUHP_AP_ARC_TIMER_STARTING,
-				"AP_ARC_TIMER_STARTING",
-				arc_timer_starting_cpu,
-				arc_timer_dying_cpu);
-	if (ret) {
+							"AP_ARC_TIMER_STARTING",
+							arc_timer_starting_cpu,
+							arc_timer_dying_cpu);
+
+	if (ret)
+	{
 		pr_err("Failed to setup hotplug state");
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -361,10 +399,13 @@ static int __init arc_of_timer_init(struct device_node *np)
 	static int init_count = 0;
 	int ret;
 
-	if (!init_count) {
+	if (!init_count)
+	{
 		init_count = 1;
 		ret = arc_clockevent_setup(np);
-	} else {
+	}
+	else
+	{
 		ret = arc_cs_setup_timer1(np);
 	}
 

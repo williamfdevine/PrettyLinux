@@ -19,7 +19,9 @@ static int __init prom_meminit_v0(void)
 	int index;
 
 	index = 0;
-	for (p = *(romvec->pv_v0mem.v0_available); p; p = p->theres_more) {
+
+	for (p = *(romvec->pv_v0mem.v0_available); p; p = p->theres_more)
+	{
 		sp_banks[index].base_addr = (unsigned long) p->start_adr;
 		sp_banks[index].num_bytes = p->num_bytes;
 		index++;
@@ -38,7 +40,8 @@ static int __init prom_meminit_v2(void)
 	size = prom_getproperty(node, "available", (char *) reg, sizeof(reg));
 	num_ents = size / sizeof(struct linux_prom_registers);
 
-	for (i = 0; i < num_ents; i++) {
+	for (i = 0; i < num_ents; i++)
+	{
 		sp_banks[i].base_addr = reg[i].phys_addr;
 		sp_banks[i].num_bytes = reg[i].reg_size;
 	}
@@ -51,9 +54,15 @@ static int sp_banks_cmp(const void *a, const void *b)
 	const struct sparc_phys_banks *x = a, *y = b;
 
 	if (x->base_addr > y->base_addr)
+	{
 		return 1;
+	}
+
 	if (x->base_addr < y->base_addr)
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
@@ -62,26 +71,30 @@ void __init prom_meminit(void)
 {
 	int i, num_ents = 0;
 
-	switch (prom_vers) {
-	case PROM_V0:
-		num_ents = prom_meminit_v0();
-		break;
+	switch (prom_vers)
+	{
+		case PROM_V0:
+			num_ents = prom_meminit_v0();
+			break;
 
-	case PROM_V2:
-	case PROM_V3:
-		num_ents = prom_meminit_v2();
-		break;
+		case PROM_V2:
+		case PROM_V3:
+			num_ents = prom_meminit_v2();
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
+
 	sort(sp_banks, num_ents, sizeof(struct sparc_phys_banks),
-	     sp_banks_cmp, NULL);
+		 sp_banks_cmp, NULL);
 
 	/* Sentinel.  */
 	sp_banks[num_ents].base_addr = 0xdeadbeef;
 	sp_banks[num_ents].num_bytes = 0;
 
 	for (i = 0; i < num_ents; i++)
+	{
 		sp_banks[i].num_bytes &= PAGE_MASK;
+	}
 }

@@ -33,13 +33,15 @@ extern unsigned long cris_signal_return_page;
 #define RESTART_CRIS_SYS(regs) regs->r10 = regs->orig_r10; regs->erp -= 2;
 
 /* Signal frames. */
-struct signal_frame {
+struct signal_frame
+{
 	struct sigcontext sc;
 	unsigned long extramask[_NSIG_WORDS - 1];
 	unsigned char retcode[8];	/* Trampoline code. */
 };
 
-struct rt_signal_frame {
+struct rt_signal_frame
+{
 	struct siginfo *pinfo;
 	void *puc;
 	struct siginfo info;
@@ -49,7 +51,7 @@ struct rt_signal_frame {
 
 void do_signal(int restart, struct pt_regs *regs);
 void keep_debug_flags(unsigned long oldccs, unsigned long oldspc,
-		      struct pt_regs *regs);
+					  struct pt_regs *regs);
 
 static int
 restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc)
@@ -57,7 +59,7 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc)
 	unsigned int err = 0;
 	unsigned long old_usp;
 
-        /* Always make any pending restarted system calls return -EINTR */
+	/* Always make any pending restarted system calls return -EINTR */
 	current->restart_block.fn = do_no_restart_syscall;
 
 	/*
@@ -66,7 +68,9 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc)
 	 * checked in sys_sigreturn().
 	 */
 	if (__copy_from_user(regs, sc, sizeof(struct pt_regs)))
+	{
 		goto badframe;
+	}
 
 	/* Make that the user-mode flag is set. */
 	regs->ccs |= (1 << (U_CCS_BITNR + CCS_SHIFT));
@@ -100,21 +104,29 @@ asmlinkage int sys_sigreturn(void)
 	 * user is trying some funny business.
 	 */
 	if (((long)frame) & 3)
+	{
 		goto badframe;
+	}
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__get_user(set.sig[0], &frame->sc.oldmask) ||
-	    (_NSIG_WORDS > 1 && __copy_from_user(&set.sig[1],
-						 frame->extramask,
-						 sizeof(frame->extramask))))
+		(_NSIG_WORDS > 1 && __copy_from_user(&set.sig[1],
+				frame->extramask,
+				sizeof(frame->extramask))))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->sc))
+	{
 		goto badframe;
+	}
 
 	keep_debug_flags(oldccs, oldspc, regs);
 
@@ -141,21 +153,31 @@ asmlinkage int sys_rt_sigreturn(void)
 	 * user is trying some funny business.
 	 */
 	if (((long)frame) & 3)
+	{
 		goto badframe;
+	}
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
 
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	keep_debug_flags(oldccs, oldspc, regs);
 
@@ -169,7 +191,7 @@ badframe:
 /* Setup a signal frame. */
 static int
 setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
-		 unsigned long mask)
+				 unsigned long mask)
 {
 	int err;
 	unsigned long usp;
@@ -219,28 +241,38 @@ setup_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	frame = get_sigframe(ksig, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	err |= setup_sigcontext(&frame->sc, regs, set->sig[0]);
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
-	if (_NSIG_WORDS > 1) {
+	if (_NSIG_WORDS > 1)
+	{
 		err |= __copy_to_user(frame->extramask, &set->sig[1],
-				      sizeof(frame->extramask));
+							  sizeof(frame->extramask));
 	}
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Set up to return from user-space. If provided, use a stub
 	 * already located in user-space.
 	 */
-	if (ksig->ka.sa.sa_flags & SA_RESTORER) {
+	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		return_ip = (unsigned long)ksig->ka.sa.sa_restorer;
-	} else {
+	}
+	else
+	{
 		/* Trampoline - the desired return ip is in the signal return page. */
 		return_ip = cris_signal_return_page;
 
@@ -251,13 +283,15 @@ setup_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 		 * reasons and because gdb uses it as a signature to notice
 		 * signal handler stack frames.
 		 */
-		err |= __put_user(0x9c5f,         (short __user*)(frame->retcode+0));
-		err |= __put_user(__NR_sigreturn, (short __user*)(frame->retcode+2));
-		err |= __put_user(0xe93d,         (short __user*)(frame->retcode+4));
+		err |= __put_user(0x9c5f,         (short __user *)(frame->retcode + 0));
+		err |= __put_user(__NR_sigreturn, (short __user *)(frame->retcode + 2));
+		err |= __put_user(0xe93d,         (short __user *)(frame->retcode + 4));
 	}
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Set up registers for signal handler.
@@ -287,14 +321,18 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	frame = get_sigframe(ksig, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	err |= __put_user(&frame->info, &frame->pinfo);
 	err |= __put_user(&frame->uc, &frame->puc);
 	err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Clear all the bits of the ucontext we don't use.  */
 	err |= __clear_user(&frame->uc, offsetof(struct ucontext, uc_mcontext));
@@ -303,15 +341,20 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	err |= __save_altstack(&frame->uc.uc_stack, rdusp());
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Set up to return from user-space. If provided, use a stub
 	 * already located in user-space.
 	 */
-	if (ksig->ka.sa.sa_flags & SA_RESTORER) {
+	if (ksig->ka.sa.sa_flags & SA_RESTORER)
+	{
 		return_ip = (unsigned long) ksig->ka.sa.sa_restorer;
-	} else {
+	}
+	else
+	{
 		/* Trampoline - the desired return ip is in the signal return page. */
 		return_ip = cris_signal_return_page + 6;
 
@@ -322,16 +365,18 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 		 * reasons and because gdb uses it as a signature to notice
 		 * signal handler stack frames.
 		 */
-		err |= __put_user(0x9c5f, (short __user*)(frame->retcode+0));
+		err |= __put_user(0x9c5f, (short __user *)(frame->retcode + 0));
 
 		err |= __put_user(__NR_rt_sigreturn,
-				  (short __user*)(frame->retcode+2));
+						  (short __user *)(frame->retcode + 2));
 
-		err |= __put_user(0xe93d, (short __user*)(frame->retcode+4));
+		err |= __put_user(0xe93d, (short __user *)(frame->retcode + 4));
 	}
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Set up registers for signal handler.
@@ -362,9 +407,11 @@ handle_signal(int canrestart, struct ksignal *ksig, struct pt_regs *regs)
 	int ret;
 
 	/* Check if this got called from a system call. */
-	if (canrestart) {
+	if (canrestart)
+	{
 		/* If so, check system call restarting. */
-		switch (regs->r10) {
+		switch (regs->r10)
+		{
 			case -ERESTART_RESTARTBLOCK:
 			case -ERESTARTNOHAND:
 				/*
@@ -378,35 +425,41 @@ handle_signal(int canrestart, struct ksignal *ksig, struct pt_regs *regs)
 				regs->r10 = -EINTR;
 				break;
 
-                        case -ERESTARTSYS:
+			case -ERESTARTSYS:
+
 				/*
 				 * This means restart the syscall if
-                                 * there is no handler, or the handler
-                                 * was registered with SA_RESTART.
+				                 * there is no handler, or the handler
+				                 * was registered with SA_RESTART.
 				 */
-				if (!(ksig->ka.sa.sa_flags & SA_RESTART)) {
+				if (!(ksig->ka.sa.sa_flags & SA_RESTART))
+				{
 					regs->r10 = -EINTR;
 					break;
 				}
 
-				/* Fall through. */
+			/* Fall through. */
 
 			case -ERESTARTNOINTR:
 				/*
 				 * This means that the syscall should
-                                 * be called again after the signal
-                                 * handler returns.
+				                 * be called again after the signal
+				                 * handler returns.
 				 */
 				RESTART_CRIS_SYS(regs);
 				break;
-                }
-        }
+		}
+	}
 
 	/* Set up the stack frame. */
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		ret = setup_rt_frame(ksig, oldset, regs);
+	}
 	else
+	{
 		ret = setup_frame(ksig, oldset, regs);
+	}
 
 	signal_setup_done(ret, ksig, 0);
 }
@@ -435,24 +488,30 @@ do_signal(int canrestart, struct pt_regs *regs)
 	 * without doing anything.
 	 */
 	if (!user_mode(regs))
+	{
 		return;
+	}
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* Whee!  Actually deliver the signal.  */
 		handle_signal(canrestart, &ksig, regs);
 		return;
 	}
 
 	/* Got here from a system call? */
-	if (canrestart) {
+	if (canrestart)
+	{
 		/* Restart the system call - no handlers present. */
 		if (regs->r10 == -ERESTARTNOHAND ||
-		    regs->r10 == -ERESTARTSYS ||
-		    regs->r10 == -ERESTARTNOINTR) {
+			regs->r10 == -ERESTARTSYS ||
+			regs->r10 == -ERESTARTNOINTR)
+		{
 			RESTART_CRIS_SYS(regs);
 		}
 
-		if (regs->r10 == -ERESTART_RESTARTBLOCK){
+		if (regs->r10 == -ERESTART_RESTARTBLOCK)
+		{
 			regs->r9 = __NR_restart_syscall;
 			regs->erp -= 2;
 		}
@@ -466,46 +525,60 @@ do_signal(int canrestart, struct pt_regs *regs)
 asmlinkage void
 ugdb_trap_user(struct thread_info *ti, int sig)
 {
-	if (((user_regs(ti)->exs & 0xff00) >> 8) != SINGLE_STEP_INTR_VECT) {
+	if (((user_regs(ti)->exs & 0xff00) >> 8) != SINGLE_STEP_INTR_VECT)
+	{
 		/* Zero single-step PC if the reason we stopped wasn't a single
 		   step exception. This is to avoid relying on it when it isn't
 		   reliable. */
 		user_regs(ti)->spc = 0;
 	}
+
 	/* FIXME: Filter out false h/w breakpoint hits (i.e. EDA
 	   not within any configured h/w breakpoint range). Synchronize with
 	   what already exists for kernel debugging.  */
-	if (((user_regs(ti)->exs & 0xff00) >> 8) == BREAK_8_INTR_VECT) {
+	if (((user_regs(ti)->exs & 0xff00) >> 8) == BREAK_8_INTR_VECT)
+	{
 		/* Break 8: subtract 2 from ERP unless in a delay slot. */
 		if (!(user_regs(ti)->erp & 0x1))
+		{
 			user_regs(ti)->erp -= 2;
+		}
 	}
+
 	sys_kill(ti->task->pid, sig);
 }
 
 void
 keep_debug_flags(unsigned long oldccs, unsigned long oldspc,
-		 struct pt_regs *regs)
+				 struct pt_regs *regs)
 {
-	if (oldccs & (1 << Q_CCS_BITNR)) {
+	if (oldccs & (1 << Q_CCS_BITNR))
+	{
 		/* Pending single step due to single-stepping the break 13
 		   in the signal trampoline: keep the Q flag. */
 		regs->ccs |= (1 << Q_CCS_BITNR);
+
 		/* S flag should be set - complain if it's not. */
-		if (!(oldccs & (1 << (S_CCS_BITNR + CCS_SHIFT)))) {
+		if (!(oldccs & (1 << (S_CCS_BITNR + CCS_SHIFT))))
+		{
 			printk("Q flag but no S flag?");
 		}
+
 		regs->ccs |= (1 << (S_CCS_BITNR + CCS_SHIFT));
 		/* Assume the SPC is valid and interesting. */
 		regs->spc = oldspc;
 
-	} else if (oldccs & (1 << (S_CCS_BITNR + CCS_SHIFT))) {
+	}
+	else if (oldccs & (1 << (S_CCS_BITNR + CCS_SHIFT)))
+	{
 		/* If a h/w bp was set in the signal handler we need
 		   to keep the S flag. */
 		regs->ccs |= (1 << (S_CCS_BITNR + CCS_SHIFT));
 		/* Don't keep the old SPC though; if we got here due to
 		   a single-step, the Q flag should have been set. */
-	} else if (regs->spc) {
+	}
+	else if (regs->spc)
+	{
 		/* If we were single-stepping *before* the signal was taken,
 		   we don't want to restore that state now, because GDB will
 		   have forgotten all about it. */
@@ -518,7 +591,7 @@ keep_debug_flags(unsigned long oldccs, unsigned long oldspc,
 int __init
 cris_init_signal(void)
 {
-	u16* data = kmalloc(PAGE_SIZE, GFP_KERNEL);
+	u16 *data = kmalloc(PAGE_SIZE, GFP_KERNEL);
 
 	/* This is movu.w __NR_sigreturn, r9; break 13; */
 	data[0] = 0x9c5f;
@@ -531,7 +604,7 @@ cris_init_signal(void)
 
 	/* Map to userspace with appropriate permissions (no write access...) */
 	cris_signal_return_page = (unsigned long)
-          __ioremap_prot(virt_to_phys(data), PAGE_SIZE, PAGE_SIGNAL_TRAMPOLINE);
+							  __ioremap_prot(virt_to_phys(data), PAGE_SIZE, PAGE_SIGNAL_TRAMPOLINE);
 
 	return 0;
 }

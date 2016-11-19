@@ -98,7 +98,7 @@
 #define HV_FAST_MACH_EXIT		0x00
 
 #ifndef __ASSEMBLY__
-void sun4v_mach_exit(unsigned long exit_code);
+	void sun4v_mach_exit(unsigned long exit_code);
 #endif
 
 /* Domain services.  */
@@ -128,8 +128,8 @@ void sun4v_mach_exit(unsigned long exit_code);
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_mach_desc(unsigned long buffer_pa,
-			      unsigned long buf_len,
-			      unsigned long *real_buf_len);
+							  unsigned long buf_len,
+							  unsigned long *real_buf_len);
 #endif
 
 /* mach_sir()
@@ -148,7 +148,7 @@ unsigned long sun4v_mach_desc(unsigned long buffer_pa,
 #define HV_FAST_MACH_SIR		0x02
 
 #ifndef __ASSEMBLY__
-void sun4v_mach_sir(void);
+	void sun4v_mach_sir(void);
 #endif
 
 /* mach_set_watchdog()
@@ -205,7 +205,7 @@ void sun4v_mach_sir(void);
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_mach_set_watchdog(unsigned long timeout,
-				      unsigned long *orig_timeout);
+									  unsigned long *orig_timeout);
 #endif
 
 /* CPU services.
@@ -251,9 +251,9 @@ unsigned long sun4v_mach_set_watchdog(unsigned long timeout,
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_cpu_start(unsigned long cpuid,
-			      unsigned long pc,
-			      unsigned long rtba,
-			      unsigned long arg0);
+							  unsigned long pc,
+							  unsigned long rtba,
+							  unsigned long arg0);
 #endif
 
 /* cpu_stop()
@@ -278,7 +278,7 @@ unsigned long sun4v_cpu_start(unsigned long cpuid,
 #define HV_FAST_CPU_STOP		0x11
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_cpu_stop(unsigned long cpuid);
+	unsigned long sun4v_cpu_stop(unsigned long cpuid);
 #endif
 
 /* cpu_yield()
@@ -295,7 +295,7 @@ unsigned long sun4v_cpu_stop(unsigned long cpuid);
 #define HV_FAST_CPU_YIELD		0x12
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_cpu_yield(void);
+	unsigned long sun4v_cpu_yield(void);
 #endif
 
 /* cpu_qconf()
@@ -342,8 +342,8 @@ unsigned long sun4v_cpu_yield(void);
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_cpu_qconf(unsigned long type,
-			      unsigned long queue_paddr,
-			      unsigned long num_queue_entries);
+							  unsigned long queue_paddr,
+							  unsigned long num_queue_entries);
 #endif
 
 /* cpu_qinfo()
@@ -395,8 +395,8 @@ unsigned long sun4v_cpu_qconf(unsigned long type,
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_cpu_mondo_send(unsigned long cpu_count,
-				   unsigned long cpu_list_pa,
-				   unsigned long mondo_block_pa);
+								   unsigned long cpu_list_pa,
+								   unsigned long mondo_block_pa);
 #endif
 
 /* cpu_myid()
@@ -427,7 +427,7 @@ unsigned long sun4v_cpu_mondo_send(unsigned long cpu_count,
 #define  HV_CPU_STATE_ERROR		 0x03
 
 #ifndef __ASSEMBLY__
-long sun4v_cpu_state(unsigned long cpuid);
+	long sun4v_cpu_state(unsigned long cpuid);
 #endif
 
 /* cpu_set_rtba()
@@ -463,7 +463,8 @@ long sun4v_cpu_state(unsigned long cpuid);
  * Layout of a TSB description for mmu_tsb_ctx{,non}0() calls.
  */
 #ifndef __ASSEMBLY__
-struct hv_tsb_descr {
+struct hv_tsb_descr
+{
 	unsigned short		pgsz_idx;
 	unsigned short		assoc;
 	unsigned int		num_ttes;	/* in TTEs */
@@ -514,7 +515,8 @@ struct hv_tsb_descr {
  * on a 64-byte boundary.
  */
 #ifndef __ASSEMBLY__
-struct hv_fault_status {
+struct hv_fault_status
+{
 	unsigned long		i_fault_type;
 	unsigned long		i_fault_addr;
 	unsigned long		i_fault_ctx;
@@ -628,7 +630,7 @@ struct hv_fault_status {
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_mmu_tsb_ctx0(unsigned long num_descriptions,
-				 unsigned long tsb_desc_ra);
+								 unsigned long tsb_desc_ra);
 #endif
 
 /* mmu_tsb_ctxnon0()
@@ -712,7 +714,7 @@ unsigned long sun4v_mmu_tsb_ctx0(unsigned long num_descriptions,
 #define HV_FAST_MMU_DEMAP_ALL		0x24
 
 #ifndef __ASSEMBLY__
-void sun4v_mmu_demap_all(void);
+	void sun4v_mmu_demap_all(void);
 #endif
 
 /* mmu_map_perm_addr()
@@ -743,9 +745,9 @@ void sun4v_mmu_demap_all(void);
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_mmu_map_perm_addr(unsigned long vaddr,
-				      unsigned long set_to_zero,
-				      unsigned long tte,
-				      unsigned long flags);
+									  unsigned long set_to_zero,
+									  unsigned long tte,
+									  unsigned long flags);
 #endif
 
 /* mmu_fault_area_conf()
@@ -947,7 +949,7 @@ unsigned long sun4v_mmu_map_perm_addr(unsigned long vaddr,
 #define HV_FAST_TOD_GET			0x50
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_tod_get(unsigned long *time);
+	unsigned long sun4v_tod_get(unsigned long *time);
 #endif
 
 /* tod_set()
@@ -964,7 +966,7 @@ unsigned long sun4v_tod_get(unsigned long *time);
 #define HV_FAST_TOD_SET			0x51
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_tod_set(unsigned long time);
+	unsigned long sun4v_tod_set(unsigned long time);
 #endif
 
 /* Console services */
@@ -1043,11 +1045,11 @@ unsigned long sun4v_tod_set(unsigned long time);
 long sun4v_con_getchar(long *status);
 long sun4v_con_putchar(long c);
 long sun4v_con_read(unsigned long buffer,
-		    unsigned long size,
-		    unsigned long *bytes_read);
+					unsigned long size,
+					unsigned long *bytes_read);
 unsigned long sun4v_con_write(unsigned long buffer,
-			      unsigned long size,
-			      unsigned long *bytes_written);
+							  unsigned long size,
+							  unsigned long *bytes_written);
 #endif
 
 /* mach_set_soft_state()
@@ -1083,7 +1085,7 @@ unsigned long sun4v_con_write(unsigned long buffer,
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_mach_set_soft_state(unsigned long soft_state,
-				        unsigned long msg_string_ra);
+										unsigned long msg_string_ra);
 #endif
 
 /* mach_get_soft_state()
@@ -1162,19 +1164,19 @@ unsigned long sun4v_mach_set_soft_state(unsigned long soft_state,
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_svc_send(unsigned long svc_id,
-			     unsigned long buffer,
-			     unsigned long buffer_size,
-			     unsigned long *sent_bytes);
+							 unsigned long buffer,
+							 unsigned long buffer_size,
+							 unsigned long *sent_bytes);
 unsigned long sun4v_svc_recv(unsigned long svc_id,
-			     unsigned long buffer,
-			     unsigned long buffer_size,
-			     unsigned long *recv_bytes);
+							 unsigned long buffer,
+							 unsigned long buffer_size,
+							 unsigned long *recv_bytes);
 unsigned long sun4v_svc_getstatus(unsigned long svc_id,
-				  unsigned long *status_bits);
+								  unsigned long *status_bits);
 unsigned long sun4v_svc_setstatus(unsigned long svc_id,
-				  unsigned long status_bits);
+								  unsigned long status_bits);
 unsigned long sun4v_svc_clrstatus(unsigned long svc_id,
-				  unsigned long status_bits);
+								  unsigned long status_bits);
 #endif
 
 /* Trap trace services.
@@ -1191,7 +1193,8 @@ unsigned long sun4v_svc_clrstatus(unsigned long svc_id,
  * follows:
  */
 #ifndef __ASSEMBLY__
-struct hv_trap_trace_control {
+struct hv_trap_trace_control
+{
 	unsigned long		head_offset;
 	unsigned long		tail_offset;
 	unsigned long		__reserved[0x30 / sizeof(unsigned long)];
@@ -1210,7 +1213,8 @@ struct hv_trap_trace_control {
  * Each trap trace buffer entry is laid out as follows:
  */
 #ifndef __ASSEMBLY__
-struct hv_trap_trace_entry {
+struct hv_trap_trace_entry
+{
 	unsigned char	type;		/* Hypervisor or guest entry?	*/
 	unsigned char	hpstate;	/* Hyper-privileged state	*/
 	unsigned char	tl;		/* Trap level			*/
@@ -1461,7 +1465,7 @@ struct hv_trap_trace_entry {
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_devino_to_sysino(unsigned long devhandle,
-				     unsigned long devino);
+									 unsigned long devino);
 #endif
 
 /* intr_getenabled()
@@ -1478,7 +1482,7 @@ unsigned long sun4v_devino_to_sysino(unsigned long devhandle,
 #define HV_FAST_INTR_GETENABLED		0xa1
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_intr_getenabled(unsigned long sysino);
+	unsigned long sun4v_intr_getenabled(unsigned long sysino);
 #endif
 
 /* intr_setenabled()
@@ -1495,7 +1499,7 @@ unsigned long sun4v_intr_getenabled(unsigned long sysino);
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_intr_setenabled(unsigned long sysino,
-				    unsigned long intr_enabled);
+									unsigned long intr_enabled);
 #endif
 
 /* intr_getstate()
@@ -1511,7 +1515,7 @@ unsigned long sun4v_intr_setenabled(unsigned long sysino,
 #define HV_FAST_INTR_GETSTATE		0xa3
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_intr_getstate(unsigned long sysino);
+	unsigned long sun4v_intr_getstate(unsigned long sysino);
 #endif
 
 /* intr_setstate()
@@ -1531,7 +1535,7 @@ unsigned long sun4v_intr_getstate(unsigned long sysino);
 #define HV_FAST_INTR_SETSTATE		0xa4
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_intr_setstate(unsigned long sysino, unsigned long intr_state);
+	unsigned long sun4v_intr_setstate(unsigned long sysino, unsigned long intr_state);
 #endif
 
 /* intr_gettarget()
@@ -1549,7 +1553,7 @@ unsigned long sun4v_intr_setstate(unsigned long sysino, unsigned long intr_state
 #define HV_FAST_INTR_GETTARGET		0xa5
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_intr_gettarget(unsigned long sysino);
+	unsigned long sun4v_intr_gettarget(unsigned long sysino);
 #endif
 
 /* intr_settarget()
@@ -1566,7 +1570,7 @@ unsigned long sun4v_intr_gettarget(unsigned long sysino);
 #define HV_FAST_INTR_SETTARGET		0xa6
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_intr_settarget(unsigned long sysino, unsigned long cpuid);
+	unsigned long sun4v_intr_settarget(unsigned long sysino, unsigned long cpuid);
 #endif
 
 /* vintr_get_cookie()
@@ -1651,29 +1655,29 @@ unsigned long sun4v_intr_settarget(unsigned long sysino, unsigned long cpuid);
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_vintr_get_cookie(unsigned long dev_handle,
-				     unsigned long dev_ino,
-				     unsigned long *cookie);
+									 unsigned long dev_ino,
+									 unsigned long *cookie);
 unsigned long sun4v_vintr_set_cookie(unsigned long dev_handle,
-				     unsigned long dev_ino,
-				     unsigned long cookie);
+									 unsigned long dev_ino,
+									 unsigned long cookie);
 unsigned long sun4v_vintr_get_valid(unsigned long dev_handle,
-				    unsigned long dev_ino,
-				    unsigned long *valid);
+									unsigned long dev_ino,
+									unsigned long *valid);
 unsigned long sun4v_vintr_set_valid(unsigned long dev_handle,
-				    unsigned long dev_ino,
-				    unsigned long valid);
+									unsigned long dev_ino,
+									unsigned long valid);
 unsigned long sun4v_vintr_get_state(unsigned long dev_handle,
-				    unsigned long dev_ino,
-				    unsigned long *state);
+									unsigned long dev_ino,
+									unsigned long *state);
 unsigned long sun4v_vintr_set_state(unsigned long dev_handle,
-				    unsigned long dev_ino,
-				    unsigned long state);
+									unsigned long dev_ino,
+									unsigned long state);
 unsigned long sun4v_vintr_get_target(unsigned long dev_handle,
-				     unsigned long dev_ino,
-				     unsigned long *cpuid);
+									 unsigned long dev_ino,
+									 unsigned long *cpuid);
 unsigned long sun4v_vintr_set_target(unsigned long dev_handle,
-				     unsigned long dev_ino,
-				     unsigned long cpuid);
+									 unsigned long dev_ino,
+									 unsigned long cpuid);
 #endif
 
 /* PCI IO services.
@@ -2548,7 +2552,8 @@ unsigned long sun4v_vintr_set_target(unsigned long dev_handle,
 #define LDC_MTE_SZ8K	0x0000000000000000 /* 8K page            */
 
 #ifndef __ASSEMBLY__
-struct ldc_mtable_entry {
+struct ldc_mtable_entry
+{
 	unsigned long	mte;
 	unsigned long	cookie;
 };
@@ -2632,49 +2637,49 @@ struct ldc_mtable_entry {
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_ldc_tx_qconf(unsigned long channel,
-				 unsigned long ra,
-				 unsigned long num_entries);
+								 unsigned long ra,
+								 unsigned long num_entries);
 unsigned long sun4v_ldc_tx_qinfo(unsigned long channel,
-				 unsigned long *ra,
-				 unsigned long *num_entries);
+								 unsigned long *ra,
+								 unsigned long *num_entries);
 unsigned long sun4v_ldc_tx_get_state(unsigned long channel,
-				     unsigned long *head_off,
-				     unsigned long *tail_off,
-				     unsigned long *chan_state);
+									 unsigned long *head_off,
+									 unsigned long *tail_off,
+									 unsigned long *chan_state);
 unsigned long sun4v_ldc_tx_set_qtail(unsigned long channel,
-				     unsigned long tail_off);
+									 unsigned long tail_off);
 unsigned long sun4v_ldc_rx_qconf(unsigned long channel,
-				 unsigned long ra,
-				 unsigned long num_entries);
+								 unsigned long ra,
+								 unsigned long num_entries);
 unsigned long sun4v_ldc_rx_qinfo(unsigned long channel,
-				 unsigned long *ra,
-				 unsigned long *num_entries);
+								 unsigned long *ra,
+								 unsigned long *num_entries);
 unsigned long sun4v_ldc_rx_get_state(unsigned long channel,
-				     unsigned long *head_off,
-				     unsigned long *tail_off,
-				     unsigned long *chan_state);
+									 unsigned long *head_off,
+									 unsigned long *tail_off,
+									 unsigned long *chan_state);
 unsigned long sun4v_ldc_rx_set_qhead(unsigned long channel,
-				     unsigned long head_off);
+									 unsigned long head_off);
 unsigned long sun4v_ldc_set_map_table(unsigned long channel,
-				      unsigned long ra,
-				      unsigned long num_entries);
+									  unsigned long ra,
+									  unsigned long num_entries);
 unsigned long sun4v_ldc_get_map_table(unsigned long channel,
-				      unsigned long *ra,
-				      unsigned long *num_entries);
+									  unsigned long *ra,
+									  unsigned long *num_entries);
 unsigned long sun4v_ldc_copy(unsigned long channel,
-			     unsigned long dir_code,
-			     unsigned long tgt_raddr,
-			     unsigned long lcl_raddr,
-			     unsigned long len,
-			     unsigned long *actual_len);
+							 unsigned long dir_code,
+							 unsigned long tgt_raddr,
+							 unsigned long lcl_raddr,
+							 unsigned long len,
+							 unsigned long *actual_len);
 unsigned long sun4v_ldc_mapin(unsigned long channel,
-			      unsigned long cookie,
-			      unsigned long *ra,
-			      unsigned long *perm);
+							  unsigned long cookie,
+							  unsigned long *ra,
+							  unsigned long *perm);
 unsigned long sun4v_ldc_unmap(unsigned long ra);
 unsigned long sun4v_ldc_revoke(unsigned long channel,
-			       unsigned long cookie,
-			       unsigned long mte_cookie);
+							   unsigned long cookie,
+							   unsigned long mte_cookie);
 #endif
 
 /* Performance counter services.  */
@@ -2732,13 +2737,13 @@ unsigned long sun4v_ldc_revoke(unsigned long channel,
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_niagara_getperf(unsigned long reg,
-				    unsigned long *val);
+									unsigned long *val);
 unsigned long sun4v_niagara_setperf(unsigned long reg,
-				    unsigned long val);
+									unsigned long val);
 unsigned long sun4v_niagara2_getperf(unsigned long reg,
-				     unsigned long *val);
+									 unsigned long *val);
 unsigned long sun4v_niagara2_setperf(unsigned long reg,
-				     unsigned long val);
+									 unsigned long val);
 #endif
 
 /* MMU statistics services.
@@ -2748,7 +2753,8 @@ unsigned long sun4v_niagara2_setperf(unsigned long reg,
  * updated once configured.  The layout is as follows:
  */
 #ifndef __ASSEMBLY__
-struct hv_mmu_statistics {
+struct hv_mmu_statistics
+{
 	unsigned long immu_tsb_hits_ctx0_8k_tte;
 	unsigned long immu_tsb_ticks_ctx0_8k_tte;
 	unsigned long immu_tsb_hits_ctx0_64k_tte;
@@ -2833,8 +2839,8 @@ struct hv_mmu_statistics {
 #define HV_FAST_MMUSTAT_INFO		0x103
 
 #ifndef __ASSEMBLY__
-unsigned long sun4v_mmustat_conf(unsigned long ra, unsigned long *orig_ra);
-unsigned long sun4v_mmustat_info(unsigned long *ra);
+	unsigned long sun4v_mmustat_conf(unsigned long ra, unsigned long *orig_ra);
+	unsigned long sun4v_mmustat_info(unsigned long *ra);
 #endif
 
 /* NCS crypto services  */
@@ -2844,7 +2850,8 @@ unsigned long sun4v_mmustat_info(unsigned long *ra);
 #define HV_NCS_QTAIL_UPDATE		0x02
 
 #ifndef __ASSEMBLY__
-struct hv_ncs_queue_entry {
+struct hv_ncs_queue_entry
+{
 	/* MAU Control Register */
 	unsigned long	mau_control;
 #define MAU_CONTROL_INV_PARITY	0x0000000000002000
@@ -2873,14 +2880,16 @@ struct hv_ncs_queue_entry {
 	unsigned long	mau_np;
 };
 
-struct hv_ncs_qconf_arg {
+struct hv_ncs_qconf_arg
+{
 	unsigned long	mid;      /* MAU ID, 1 per core on Niagara */
 	unsigned long	base;     /* Real address base of queue */
 	unsigned long	end;	  /* Real address end of queue */
 	unsigned long	num_ents; /* Number of entries in queue */
 };
 
-struct hv_ncs_qtail_update_arg {
+struct hv_ncs_qtail_update_arg
+{
 	unsigned long	mid;      /* MAU ID, 1 per core on Niagara */
 	unsigned long	tail;     /* New tail index to use */
 	unsigned long	syncflag; /* only SYNCFLAG_SYNC is implemented */
@@ -2924,8 +2933,8 @@ struct hv_ncs_qtail_update_arg {
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_ncs_request(unsigned long request,
-			        unsigned long arg_ra,
-			        unsigned long arg_size);
+								unsigned long arg_ra,
+								unsigned long arg_size);
 #endif
 
 #define HV_FAST_FIRE_GET_PERFREG	0x120
@@ -2935,7 +2944,7 @@ unsigned long sun4v_ncs_request(unsigned long request,
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_reboot_data_set(unsigned long ra,
-				    unsigned long len);
+									unsigned long len);
 #endif
 
 #define HV_FAST_VT_GET_PERFREG		0x184
@@ -2943,9 +2952,9 @@ unsigned long sun4v_reboot_data_set(unsigned long ra,
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_vt_get_perfreg(unsigned long reg_num,
-				   unsigned long *reg_val);
+								   unsigned long *reg_val);
 unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
-				   unsigned long reg_val);
+								   unsigned long reg_val);
 #endif
 
 #define	HV_FAST_T5_GET_PERFREG		0x1a8
@@ -2953,9 +2962,9 @@ unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
 
 #ifndef	__ASSEMBLY__
 unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
-				   unsigned long *reg_val);
+								   unsigned long *reg_val);
 unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
-				   unsigned long reg_val);
+								   unsigned long reg_val);
 #endif
 
 
@@ -2964,9 +2973,9 @@ unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
 
 #ifndef	__ASSEMBLY__
 unsigned long sun4v_m7_get_perfreg(unsigned long reg_num,
-				      unsigned long *reg_val);
+								   unsigned long *reg_val);
 unsigned long sun4v_m7_set_perfreg(unsigned long reg_num,
-				      unsigned long reg_val);
+								   unsigned long reg_val);
 #endif
 
 /* Function numbers for HV_CORE_TRAP.  */
@@ -3006,19 +3015,19 @@ unsigned long sun4v_m7_set_perfreg(unsigned long reg_num,
 
 #ifndef __ASSEMBLY__
 unsigned long sun4v_get_version(unsigned long group,
-			        unsigned long *major,
-			        unsigned long *minor);
+								unsigned long *major,
+								unsigned long *minor);
 unsigned long sun4v_set_version(unsigned long group,
-			        unsigned long major,
-			        unsigned long minor,
-			        unsigned long *actual_minor);
+								unsigned long major,
+								unsigned long minor,
+								unsigned long *actual_minor);
 
 int sun4v_hvapi_register(unsigned long group, unsigned long major,
-			 unsigned long *minor);
+						 unsigned long *minor);
 void sun4v_hvapi_unregister(unsigned long group);
 int sun4v_hvapi_get(unsigned long group,
-		    unsigned long *major,
-		    unsigned long *minor);
+					unsigned long *major,
+					unsigned long *minor);
 void sun4v_hvapi_init(void);
 #endif
 

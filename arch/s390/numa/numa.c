@@ -31,7 +31,8 @@ static void plain_setup(void)
 	node_set(0, node_possible_map);
 }
 
-const struct numa_mode numa_mode_plain = {
+const struct numa_mode numa_mode_plain =
+{
 	.name = "plain",
 	.setup = plain_setup,
 };
@@ -46,7 +47,9 @@ int numa_pfn_to_nid(unsigned long pfn)
 void numa_update_cpu_topology(void)
 {
 	if (mode->update_cpu_topology)
+	{
 		mode->update_cpu_topology();
+	}
 }
 
 int __node_distance(int a, int b)
@@ -95,29 +98,41 @@ static void __init numa_setup_memory(void)
 	 * All nodes which are seen here will be set online.
 	 */
 	cur_base = 0;
-	do {
+
+	do
+	{
 		nid = numa_pfn_to_nid(PFN_DOWN(cur_base));
 		node_set_online(nid);
 		memblock_set_node(cur_base, align, &memblock.memory, nid);
 		cur_base += align;
-	} while (cur_base < end_of_dram);
+	}
+	while (cur_base < end_of_dram);
 
 	/* Allocate and fill out node_data */
 	for (nid = 0; nid < MAX_NUMNODES; nid++)
+	{
 		NODE_DATA(nid) = alloc_node_data();
+	}
 
-	for_each_online_node(nid) {
+	for_each_online_node(nid)
+	{
 		unsigned long start_pfn, end_pfn;
 		unsigned long t_start, t_end;
 		int i;
 
 		start_pfn = ULONG_MAX;
 		end_pfn = 0;
-		for_each_mem_pfn_range(i, nid, &t_start, &t_end, NULL) {
+		for_each_mem_pfn_range(i, nid, &t_start, &t_end, NULL)
+		{
 			if (t_start < start_pfn)
+			{
 				start_pfn = t_start;
+			}
+
 			if (t_end > end_pfn)
+			{
 				end_pfn = t_end;
+			}
 		}
 		NODE_DATA(nid)->node_spanned_pages = end_pfn - start_pfn;
 		NODE_DATA(nid)->node_id = nid;
@@ -133,8 +148,12 @@ void __init numa_setup(void)
 {
 	pr_info("NUMA mode: %s\n", mode->name);
 	nodes_clear(node_possible_map);
+
 	if (mode->setup)
+	{
 		mode->setup();
+	}
+
 	numa_setup_memory();
 	memblock_dump_all();
 }
@@ -163,7 +182,7 @@ static int __init numa_init_late(void)
 	int nid;
 
 	for_each_online_node(nid)
-		register_one_node(nid);
+	register_one_node(nid);
 	return 0;
 }
 arch_initcall(numa_init_late);
@@ -178,10 +197,17 @@ early_param("numa_debug", parse_debug);
 static int __init parse_numa(char *parm)
 {
 	if (strcmp(parm, numa_mode_plain.name) == 0)
+	{
 		mode = &numa_mode_plain;
+	}
+
 #ifdef CONFIG_NUMA_EMU
+
 	if (strcmp(parm, numa_mode_emu.name) == 0)
+	{
 		mode = &numa_mode_emu;
+	}
+
 #endif
 	return 0;
 }

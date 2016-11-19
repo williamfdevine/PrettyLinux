@@ -113,10 +113,10 @@
 #define PSC_AC97MSK_RD		(1 << 5)
 #define PSC_AC97MSK_TD		(1 << 4)
 #define PSC_AC97MSK_ALLMASK	(PSC_AC97MSK_GR | PSC_AC97MSK_CD | \
-				 PSC_AC97MSK_RR | PSC_AC97MSK_RO | \
-				 PSC_AC97MSK_RU | PSC_AC97MSK_TR | \
-				 PSC_AC97MSK_TO | PSC_AC97MSK_TU | \
-				 PSC_AC97MSK_RD | PSC_AC97MSK_TD)
+							 PSC_AC97MSK_RR | PSC_AC97MSK_RO | \
+							 PSC_AC97MSK_RU | PSC_AC97MSK_TR | \
+							 PSC_AC97MSK_TO | PSC_AC97MSK_TU | \
+							 PSC_AC97MSK_RD | PSC_AC97MSK_TD)
 
 /* AC97 Protocol Control Register. */
 #define PSC_AC97PCR_RC		(1 << 6)
@@ -166,7 +166,8 @@
 #define PSC_AC97RST_SNC		(1 << 0)
 
 /* PSC in I2S Mode. */
-typedef struct	psc_i2s {
+typedef struct	psc_i2s
+{
 	u32	psc_sel;
 	u32	psc_ctrl;
 	u32	psc_i2scfg;
@@ -235,9 +236,9 @@ typedef struct	psc_i2s {
 #define PSC_I2SMSK_RD		(1 << 5)
 #define PSC_I2SMSK_TD		(1 << 4)
 #define PSC_I2SMSK_ALLMASK	(PSC_I2SMSK_RR | PSC_I2SMSK_RO | \
-				 PSC_I2SMSK_RU | PSC_I2SMSK_TR | \
-				 PSC_I2SMSK_TO | PSC_I2SMSK_TU | \
-				 PSC_I2SMSK_RD | PSC_I2SMSK_TD)
+							 PSC_I2SMSK_RU | PSC_I2SMSK_TR | \
+							 PSC_I2SMSK_TO | PSC_I2SMSK_TU | \
+							 PSC_I2SMSK_RD | PSC_I2SMSK_TD)
 
 /* I2S Protocol Control Register. */
 #define PSC_I2SPCR_RC		(1 << 6)
@@ -271,7 +272,8 @@ typedef struct	psc_i2s {
 #define PSC_I2SEVNT_TD		(1 << 4)
 
 /* PSC in SPI Mode. */
-typedef struct	psc_spi {
+typedef struct	psc_spi
+{
 	u32	psc_sel;
 	u32	psc_ctrl;
 	u32	psc_spicfg;
@@ -329,9 +331,9 @@ typedef struct	psc_spi {
 #define PSC_SPIMSK_SD		(1 << 5)
 #define PSC_SPIMSK_MD		(1 << 4)
 #define PSC_SPIMSK_ALLMASK	(PSC_SPIMSK_MM | PSC_SPIMSK_RR | \
-				 PSC_SPIMSK_RO | PSC_SPIMSK_TO | \
-				 PSC_SPIMSK_TU | PSC_SPIMSK_SD | \
-				 PSC_SPIMSK_MD)
+							 PSC_SPIMSK_RO | PSC_SPIMSK_TO | \
+							 PSC_SPIMSK_TU | PSC_SPIMSK_SD | \
+							 PSC_SPIMSK_MD)
 
 /* SPI Protocol Control Register. */
 #define PSC_SPIPCR_RC		(1 << 6)
@@ -408,10 +410,10 @@ typedef struct	psc_spi {
 #define PSC_SMBMSK_SD		(1 << 5)
 #define PSC_SMBMSK_MD		(1 << 4)
 #define PSC_SMBMSK_ALLMASK	(PSC_SMBMSK_DN | PSC_SMBMSK_AN | \
-				 PSC_SMBMSK_AL | PSC_SMBMSK_RR | \
-				 PSC_SMBMSK_RO | PSC_SMBMSK_TO | \
-				 PSC_SMBMSK_TU | PSC_SMBMSK_SD | \
-				 PSC_SMBMSK_MD)
+							 PSC_SMBMSK_AL | PSC_SMBMSK_RR | \
+							 PSC_SMBMSK_RO | PSC_SMBMSK_TO | \
+							 PSC_SMBMSK_TU | PSC_SMBMSK_SD | \
+							 PSC_SMBMSK_MD)
 
 /* SMBus Protocol Control Register. */
 #define PSC_SMBPCR_DC		(1 << 2)
@@ -444,10 +446,10 @@ typedef struct	psc_spi {
 #define PSC_SMBEVNT_SD		(1 << 5)
 #define PSC_SMBEVNT_MD		(1 << 4)
 #define PSC_SMBEVNT_ALLCLR	(PSC_SMBEVNT_DN | PSC_SMBEVNT_AN | \
-				 PSC_SMBEVNT_AL | PSC_SMBEVNT_RR | \
-				 PSC_SMBEVNT_RO | PSC_SMBEVNT_TO | \
-				 PSC_SMBEVNT_TU | PSC_SMBEVNT_SD | \
-				 PSC_SMBEVNT_MD)
+							 PSC_SMBEVNT_AL | PSC_SMBEVNT_RR | \
+							 PSC_SMBEVNT_RO | PSC_SMBEVNT_TO | \
+							 PSC_SMBEVNT_TU | PSC_SMBEVNT_SD | \
+							 PSC_SMBEVNT_MD)
 
 /* Transmit register control. */
 #define PSC_SMBTXRX_RSR		(1 << 28)

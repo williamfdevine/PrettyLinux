@@ -35,7 +35,7 @@
 #include <platform/simcall.h>
 
 
-void __init platform_init(bp_tag_t* bootparam)
+void __init platform_init(bp_tag_t *bootparam)
 {
 
 }
@@ -61,19 +61,24 @@ void platform_restart(void)
 
 extern void iss_net_poll(void);
 
-const char twirl[]="|/-\\|/-\\";
+const char twirl[] = "|/-\\|/-\\";
 
 void platform_heartbeat(void)
 {
 #if 0
 	static int i = 0, j = 0;
 
-	if (--i < 0) {
+	if (--i < 0)
+	{
 		i = 99;
 		printk("\r%c\r", twirl[j++]);
+
 		if (j == 8)
+		{
 			j = 0;
+		}
 	}
+
 #endif
 }
 
@@ -86,7 +91,8 @@ iss_panic_event(struct notifier_block *this, unsigned long event, void *ptr)
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block iss_panic_block = {
+static struct notifier_block iss_panic_block =
+{
 	iss_panic_event,
 	NULL,
 	0

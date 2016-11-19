@@ -71,7 +71,7 @@ void __init paging_init(void)
 	unsigned long end_mem   = memory_end & PAGE_MASK;
 
 	pr_debug("start_mem is %#lx\nvirtual_end is %#lx\n",
-		 start_mem, end_mem);
+			 start_mem, end_mem);
 
 	/*
 	 * Initialize the bad page table and bad page to point
@@ -90,7 +90,7 @@ void __init paging_init(void)
 	pr_debug("before free_area_init\n");
 
 	pr_debug("free_area_init -> start_mem is %#lx\nvirtual_end is %#lx\n",
-		 start_mem, end_mem);
+			 start_mem, end_mem);
 
 	{
 		unsigned long zones_size[MAX_NR_ZONES] = {0, };

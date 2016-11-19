@@ -59,19 +59,19 @@
  * that as on.
  */
 #if defined(CONFIG_CACHE_I)
-#define CACHE_TYPE	(CACR_DISD + CACR_EUSP)
-#define CACHE_INVTYPEI	0
+	#define CACHE_TYPE	(CACR_DISD + CACR_EUSP)
+	#define CACHE_INVTYPEI	0
 #elif defined(CONFIG_CACHE_D)
-#define CACHE_TYPE	(CACR_DISI + CACR_EUSP)
-#define CACHE_INVTYPED	0
+	#define CACHE_TYPE	(CACR_DISI + CACR_EUSP)
+	#define CACHE_INVTYPED	0
 #elif defined(CONFIG_CACHE_BOTH)
-#define CACHE_TYPE	CACR_EUSP
-#define CACHE_INVTYPEI	CACR_INVI
-#define CACHE_INVTYPED	CACR_INVD
+	#define CACHE_TYPE	CACR_EUSP
+	#define CACHE_INVTYPEI	CACR_INVI
+	#define CACHE_INVTYPED	CACR_INVD
 #else
-/* This is the instruction cache only devices (no split cache, no eusp) */
-#define CACHE_TYPE	0
-#define CACHE_INVTYPEI	0
+	/* This is the instruction cache only devices (no split cache, no eusp) */
+	#define CACHE_TYPE	0
+	#define CACHE_INVTYPEI	0
 #endif
 
 #define CACHE_INIT	(CACR_CINV + CACHE_TYPE)
@@ -79,15 +79,15 @@
 
 #define CACHE_INVALIDATE  (CACHE_MODE + CACR_CINV)
 #if defined(CACHE_INVTYPEI)
-#define CACHE_INVALIDATEI (CACHE_MODE + CACR_CINV + CACHE_INVTYPEI)
+	#define CACHE_INVALIDATEI (CACHE_MODE + CACR_CINV + CACHE_INVTYPEI)
 #endif
 #if defined(CACHE_INVTYPED)
-#define CACHE_INVALIDATED (CACHE_MODE + CACR_CINV + CACHE_INVTYPED)
+	#define CACHE_INVALIDATED (CACHE_MODE + CACR_CINV + CACHE_INVTYPED)
 #endif
 
 #define ACR0_MODE	((CONFIG_RAMBASE & 0xff000000) + \
-			 (0x000f0000) + \
-			 (ACR_ENABLE + ACR_ANY + ACR_CENB + ACR_BWE))
+					 (0x000f0000) + \
+					 (ACR_ENABLE + ACR_ANY + ACR_CENB + ACR_BWE))
 #define ACR1_MODE	0
 
 /****************************************************************************/

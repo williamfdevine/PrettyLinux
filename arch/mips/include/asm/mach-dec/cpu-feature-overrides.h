@@ -55,48 +55,48 @@
 
 /* R3k-specific ones.  */
 #ifdef CONFIG_CPU_R3000
-#define cpu_has_3kex			1
-#define cpu_has_4kex			0
-#define cpu_has_3k_cache		1
-#define cpu_has_4k_cache		0
-#define cpu_has_32fpr			0
-#define cpu_has_counter			0
-#define cpu_has_watch			0
-#define cpu_has_vce			0
-#define cpu_has_cache_cdex_p		0
-#define cpu_has_cache_cdex_s		0
-#define cpu_has_llsc			0
-#define cpu_has_dc_aliases		0
-#define cpu_has_mips_2			0
-#define cpu_has_mips_3			0
-#define cpu_has_nofpuex			1
-#define cpu_has_inclusive_pcaches	0
-#define cpu_dcache_line_size()		4
-#define cpu_icache_line_size()		4
-#define cpu_scache_line_size()		0
+	#define cpu_has_3kex			1
+	#define cpu_has_4kex			0
+	#define cpu_has_3k_cache		1
+	#define cpu_has_4k_cache		0
+	#define cpu_has_32fpr			0
+	#define cpu_has_counter			0
+	#define cpu_has_watch			0
+	#define cpu_has_vce			0
+	#define cpu_has_cache_cdex_p		0
+	#define cpu_has_cache_cdex_s		0
+	#define cpu_has_llsc			0
+	#define cpu_has_dc_aliases		0
+	#define cpu_has_mips_2			0
+	#define cpu_has_mips_3			0
+	#define cpu_has_nofpuex			1
+	#define cpu_has_inclusive_pcaches	0
+	#define cpu_dcache_line_size()		4
+	#define cpu_icache_line_size()		4
+	#define cpu_scache_line_size()		0
 #endif /* CONFIG_CPU_R3000 */
 
 /* R4k-specific ones.  */
 #ifdef CONFIG_CPU_R4X00
-#define cpu_has_3kex			0
-#define cpu_has_4kex			1
-#define cpu_has_3k_cache		0
-#define cpu_has_4k_cache		1
-#define cpu_has_32fpr			1
-#define cpu_has_counter			1
-#define cpu_has_watch			1
-#define cpu_has_vce			1
-#define cpu_has_cache_cdex_p		1
-#define cpu_has_cache_cdex_s		1
-#define cpu_has_llsc			1
-#define cpu_has_dc_aliases		(PAGE_SIZE < 0x4000)
-#define cpu_has_mips_2			1
-#define cpu_has_mips_3			1
-#define cpu_has_nofpuex			0
-#define cpu_has_inclusive_pcaches	1
-#define cpu_dcache_line_size()		16
-#define cpu_icache_line_size()		16
-#define cpu_scache_line_size()		32
+	#define cpu_has_3kex			0
+	#define cpu_has_4kex			1
+	#define cpu_has_3k_cache		0
+	#define cpu_has_4k_cache		1
+	#define cpu_has_32fpr			1
+	#define cpu_has_counter			1
+	#define cpu_has_watch			1
+	#define cpu_has_vce			1
+	#define cpu_has_cache_cdex_p		1
+	#define cpu_has_cache_cdex_s		1
+	#define cpu_has_llsc			1
+	#define cpu_has_dc_aliases		(PAGE_SIZE < 0x4000)
+	#define cpu_has_mips_2			1
+	#define cpu_has_mips_3			1
+	#define cpu_has_nofpuex			0
+	#define cpu_has_inclusive_pcaches	1
+	#define cpu_dcache_line_size()		16
+	#define cpu_icache_line_size()		16
+	#define cpu_scache_line_size()		32
 #endif /* CONFIG_CPU_R4X00 */
 
 #endif /* __ASM_MACH_DEC_CPU_FEATURE_OVERRIDES_H */

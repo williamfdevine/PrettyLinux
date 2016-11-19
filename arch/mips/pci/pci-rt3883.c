@@ -58,7 +58,8 @@
 
 #define RT3883_P2P_BR_DEVNUM	1
 
-struct rt3883_pci_controller {
+struct rt3883_pci_controller
+{
 	void __iomem *base;
 
 	struct device_node *intc_of_node;
@@ -81,27 +82,27 @@ pci_bus_to_rt3883_controller(struct pci_bus *bus)
 }
 
 static inline u32 rt3883_pci_r32(struct rt3883_pci_controller *rpc,
-				 unsigned reg)
+								 unsigned reg)
 {
 	return ioread32(rpc->base + reg);
 }
 
 static inline void rt3883_pci_w32(struct rt3883_pci_controller *rpc,
-				  u32 val, unsigned reg)
+								  u32 val, unsigned reg)
 {
 	iowrite32(val, rpc->base + reg);
 }
 
 static inline u32 rt3883_pci_get_cfgaddr(unsigned int bus, unsigned int slot,
-					 unsigned int func, unsigned int where)
+		unsigned int func, unsigned int where)
 {
 	return (bus << 16) | (slot << 11) | (func << 8) | (where & 0xfc) |
-	       0x80000000;
+		   0x80000000;
 }
 
 static u32 rt3883_pci_read_cfg32(struct rt3883_pci_controller *rpc,
-			       unsigned bus, unsigned slot,
-			       unsigned func, unsigned reg)
+								 unsigned bus, unsigned slot,
+								 unsigned func, unsigned reg)
 {
 	unsigned long flags;
 	u32 address;
@@ -116,8 +117,8 @@ static u32 rt3883_pci_read_cfg32(struct rt3883_pci_controller *rpc,
 }
 
 static void rt3883_pci_write_cfg32(struct rt3883_pci_controller *rpc,
-				 unsigned bus, unsigned slot,
-				 unsigned func, unsigned reg, u32 val)
+								   unsigned bus, unsigned slot,
+								   unsigned func, unsigned reg, u32 val)
 {
 	unsigned long flags;
 	u32 address;
@@ -136,14 +137,16 @@ static void rt3883_pci_irq_handler(struct irq_desc *desc)
 	rpc = irq_desc_get_handler_data(desc);
 
 	pending = rt3883_pci_r32(rpc, RT3883_PCI_REG_PCIINT) &
-		  rt3883_pci_r32(rpc, RT3883_PCI_REG_PCIENA);
+			  rt3883_pci_r32(rpc, RT3883_PCI_REG_PCIENA);
 
-	if (!pending) {
+	if (!pending)
+	{
 		spurious_interrupt();
 		return;
 	}
 
-	while (pending) {
+	while (pending)
+	{
 		unsigned irq, bit = __ffs(pending);
 
 		irq = irq_find_mapping(rpc->irq_domain, bit);
@@ -179,7 +182,8 @@ static void rt3883_pci_irq_mask(struct irq_data *d)
 	rt3883_pci_r32(rpc, RT3883_PCI_REG_PCIENA);
 }
 
-static struct irq_chip rt3883_pci_irq_chip = {
+static struct irq_chip rt3883_pci_irq_chip =
+{
 	.name		= "RT3883 PCI",
 	.irq_mask	= rt3883_pci_irq_mask,
 	.irq_unmask	= rt3883_pci_irq_unmask,
@@ -187,7 +191,7 @@ static struct irq_chip rt3883_pci_irq_chip = {
 };
 
 static int rt3883_pci_irq_map(struct irq_domain *d, unsigned int irq,
-			      irq_hw_number_t hw)
+							  irq_hw_number_t hw)
 {
 	irq_set_chip_and_handler(irq, &rt3883_pci_irq_chip, handle_level_irq);
 	irq_set_chip_data(irq, d->host_data);
@@ -195,20 +199,23 @@ static int rt3883_pci_irq_map(struct irq_domain *d, unsigned int irq,
 	return 0;
 }
 
-static const struct irq_domain_ops rt3883_pci_irq_domain_ops = {
+static const struct irq_domain_ops rt3883_pci_irq_domain_ops =
+{
 	.map = rt3883_pci_irq_map,
 	.xlate = irq_domain_xlate_onecell,
 };
 
 static int rt3883_pci_irq_init(struct device *dev,
-			       struct rt3883_pci_controller *rpc)
+							   struct rt3883_pci_controller *rpc)
 {
 	int irq;
 
 	irq = irq_of_parse_and_map(rpc->intc_of_node, 0);
-	if (irq == 0) {
+
+	if (irq == 0)
+	{
 		dev_err(dev, "%s has no IRQ",
-			of_node_full_name(rpc->intc_of_node));
+				of_node_full_name(rpc->intc_of_node));
 		return -EINVAL;
 	}
 
@@ -217,9 +224,11 @@ static int rt3883_pci_irq_init(struct device *dev,
 
 	rpc->irq_domain =
 		irq_domain_add_linear(rpc->intc_of_node, RT3883_PCI_IRQ_COUNT,
-				      &rt3883_pci_irq_domain_ops,
-				      rpc);
-	if (!rpc->irq_domain) {
+							  &rt3883_pci_irq_domain_ops,
+							  rpc);
+
+	if (!rpc->irq_domain)
+	{
 		dev_err(dev, "unable to add IRQ domain\n");
 		return -ENODEV;
 	}
@@ -230,7 +239,7 @@ static int rt3883_pci_irq_init(struct device *dev,
 }
 
 static int rt3883_pci_config_read(struct pci_bus *bus, unsigned int devfn,
-				  int where, int size, u32 *val)
+								  int where, int size, u32 *val)
 {
 	struct rt3883_pci_controller *rpc;
 	unsigned long flags;
@@ -240,31 +249,36 @@ static int rt3883_pci_config_read(struct pci_bus *bus, unsigned int devfn,
 	rpc = pci_bus_to_rt3883_controller(bus);
 
 	if (!rpc->pcie_ready && bus->number == 1)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	address = rt3883_pci_get_cfgaddr(bus->number, PCI_SLOT(devfn),
-					 PCI_FUNC(devfn), where);
+									 PCI_FUNC(devfn), where);
 
 	rt3883_pci_w32(rpc, address, RT3883_PCI_REG_CFGADDR);
 	data = rt3883_pci_r32(rpc, RT3883_PCI_REG_CFGDATA);
 
-	switch (size) {
-	case 1:
-		*val = (data >> ((where & 3) << 3)) & 0xff;
-		break;
-	case 2:
-		*val = (data >> ((where & 3) << 3)) & 0xffff;
-		break;
-	case 4:
-		*val = data;
-		break;
+	switch (size)
+	{
+		case 1:
+			*val = (data >> ((where & 3) << 3)) & 0xff;
+			break;
+
+		case 2:
+			*val = (data >> ((where & 3) << 3)) & 0xffff;
+			break;
+
+		case 4:
+			*val = data;
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int rt3883_pci_config_write(struct pci_bus *bus, unsigned int devfn,
-				   int where, int size, u32 val)
+								   int where, int size, u32 val)
 {
 	struct rt3883_pci_controller *rpc;
 	unsigned long flags;
@@ -274,26 +288,31 @@ static int rt3883_pci_config_write(struct pci_bus *bus, unsigned int devfn,
 	rpc = pci_bus_to_rt3883_controller(bus);
 
 	if (!rpc->pcie_ready && bus->number == 1)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	address = rt3883_pci_get_cfgaddr(bus->number, PCI_SLOT(devfn),
-					 PCI_FUNC(devfn), where);
+									 PCI_FUNC(devfn), where);
 
 	rt3883_pci_w32(rpc, address, RT3883_PCI_REG_CFGADDR);
 	data = rt3883_pci_r32(rpc, RT3883_PCI_REG_CFGDATA);
 
-	switch (size) {
-	case 1:
-		data = (data & ~(0xff << ((where & 3) << 3))) |
-		       (val << ((where & 3) << 3));
-		break;
-	case 2:
-		data = (data & ~(0xffff << ((where & 3) << 3))) |
-		       (val << ((where & 3) << 3));
-		break;
-	case 4:
-		data = val;
-		break;
+	switch (size)
+	{
+		case 1:
+			data = (data & ~(0xff << ((where & 3) << 3))) |
+				   (val << ((where & 3) << 3));
+			break;
+
+		case 2:
+			data = (data & ~(0xffff << ((where & 3) << 3))) |
+				   (val << ((where & 3) << 3));
+			break;
+
+		case 4:
+			data = val;
+			break;
 	}
 
 	rt3883_pci_w32(rpc, data, RT3883_PCI_REG_CFGDATA);
@@ -301,7 +320,8 @@ static int rt3883_pci_config_write(struct pci_bus *bus, unsigned int devfn,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static struct pci_ops rt3883_pci_ops = {
+static struct pci_ops rt3883_pci_ops =
+{
 	.read	= rt3883_pci_config_read,
 	.write	= rt3883_pci_config_write,
 };
@@ -317,7 +337,8 @@ static void rt3883_pci_preinit(struct rt3883_pci_controller *rpc, unsigned mode)
 	syscfg1 = rt_sysc_r32(RT3883_SYSC_REG_SYSCFG1);
 	clkcfg1 = rt_sysc_r32(RT3883_SYSC_REG_CLKCFG1);
 
-	if (mode & RT3883_PCI_MODE_PCIE) {
+	if (mode & RT3883_PCI_MODE_PCIE)
+	{
 		rstctrl |= RT3883_RSTCTRL_PCIE;
 		rt_sysc_w32(rstctrl, RT3883_SYSC_REG_RSTCTRL);
 
@@ -352,12 +373,14 @@ static void rt3883_pci_preinit(struct rt3883_pci_controller *rpc, unsigned mode)
 
 	clkcfg1 &= ~(RT3883_CLKCFG1_PCI_CLK_EN | RT3883_CLKCFG1_PCIE_CLK_EN);
 
-	if (mode & RT3883_PCI_MODE_PCI) {
+	if (mode & RT3883_PCI_MODE_PCI)
+	{
 		clkcfg1 |= RT3883_CLKCFG1_PCI_CLK_EN;
 		rstctrl &= ~RT3883_RSTCTRL_PCI;
 	}
 
-	if (mode & RT3883_PCI_MODE_PCIE) {
+	if (mode & RT3883_PCI_MODE_PCIE)
+	{
 		clkcfg1 |= RT3883_CLKCFG1_PCIE_CLK_EN;
 		rstctrl &= ~RT3883_RSTCTRL_PCIE;
 	}
@@ -379,14 +402,16 @@ static void rt3883_pci_preinit(struct rt3883_pci_controller *rpc, unsigned mode)
 	rt3883_pci_r32(rpc, RT3883_PCI_REG_PCICFG);
 	msleep(500);
 
-	if (mode & RT3883_PCI_MODE_PCIE) {
+	if (mode & RT3883_PCI_MODE_PCIE)
+	{
 		msleep(500);
 
 		t = rt3883_pci_r32(rpc, RT3883_PCI_REG_STATUS(1));
 
 		rpc->pcie_ready = t & BIT(0);
 
-		if (!rpc->pcie_ready) {
+		if (!rpc->pcie_ready)
+		{
 			/* reset the PCIe block */
 			t = rt_sysc_r32(RT3883_SYSC_REG_RSTCTRL);
 			t |= RT3883_RSTCTRL_PCIE;
@@ -421,79 +446,99 @@ static int rt3883_pci_probe(struct platform_device *pdev)
 	int mode;
 
 	rpc = devm_kzalloc(dev, sizeof(*rpc), GFP_KERNEL);
+
 	if (!rpc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rpc->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(rpc->base))
+	{
 		return PTR_ERR(rpc->base);
+	}
 
 	/* find the interrupt controller child node */
-	for_each_child_of_node(np, child) {
-		if (of_get_property(child, "interrupt-controller", NULL)) {
+	for_each_child_of_node(np, child)
+	{
+		if (of_get_property(child, "interrupt-controller", NULL))
+		{
 			rpc->intc_of_node = child;
 			break;
 		}
 	}
 
-	if (!rpc->intc_of_node) {
+	if (!rpc->intc_of_node)
+	{
 		dev_err(dev, "%s has no %s child node",
-			of_node_full_name(rpc->intc_of_node),
-			"interrupt controller");
+				of_node_full_name(rpc->intc_of_node),
+				"interrupt controller");
 		return -EINVAL;
 	}
 
 	/* find the PCI host bridge child node */
-	for_each_child_of_node(np, child) {
+	for_each_child_of_node(np, child)
+	{
 		if (child->type &&
-		    of_node_cmp(child->type, "pci") == 0) {
+			of_node_cmp(child->type, "pci") == 0)
+		{
 			rpc->pci_controller.of_node = child;
 			break;
 		}
 	}
 
-	if (!rpc->pci_controller.of_node) {
+	if (!rpc->pci_controller.of_node)
+	{
 		dev_err(dev, "%s has no %s child node",
-			of_node_full_name(rpc->intc_of_node),
-			"PCI host bridge");
+				of_node_full_name(rpc->intc_of_node),
+				"PCI host bridge");
 		err = -EINVAL;
 		goto err_put_intc_node;
 	}
 
 	mode = RT3883_PCI_MODE_NONE;
-	for_each_available_child_of_node(rpc->pci_controller.of_node, child) {
+	for_each_available_child_of_node(rpc->pci_controller.of_node, child)
+	{
 		int devfn;
 
 		if (!child->type ||
-		    of_node_cmp(child->type, "pci") != 0)
+			of_node_cmp(child->type, "pci") != 0)
+		{
 			continue;
+		}
 
 		devfn = of_pci_get_devfn(child);
+
 		if (devfn < 0)
+		{
 			continue;
+		}
 
-		switch (PCI_SLOT(devfn)) {
-		case 1:
-			mode |= RT3883_PCI_MODE_PCIE;
-			break;
+		switch (PCI_SLOT(devfn))
+		{
+			case 1:
+				mode |= RT3883_PCI_MODE_PCIE;
+				break;
 
-		case 17:
-		case 18:
-			mode |= RT3883_PCI_MODE_PCI;
-			break;
+			case 17:
+			case 18:
+				mode |= RT3883_PCI_MODE_PCI;
+				break;
 		}
 	}
 
-	if (mode == RT3883_PCI_MODE_NONE) {
+	if (mode == RT3883_PCI_MODE_NONE)
+	{
 		dev_err(dev, "unable to determine PCI mode\n");
 		err = -EINVAL;
 		goto err_put_hb_node;
 	}
 
 	dev_info(dev, "mode:%s%s\n",
-		 (mode & RT3883_PCI_MODE_PCI) ? " PCI" : "",
-		 (mode & RT3883_PCI_MODE_PCIE) ? " PCIe" : "");
+			 (mode & RT3883_PCI_MODE_PCI) ? " PCI" : "",
+			 (mode & RT3883_PCI_MODE_PCIE) ? " PCIe" : "");
 
 	rt3883_pci_preinit(rpc, mode);
 
@@ -503,7 +548,7 @@ static int rt3883_pci_probe(struct platform_device *pdev)
 
 	/* Load PCI I/O and memory resources from DT */
 	pci_load_of_ranges(&rpc->pci_controller,
-			   rpc->pci_controller.of_node);
+					   rpc->pci_controller.of_node);
 
 	rt3883_pci_w32(rpc, rpc->mem_res.start, RT3883_PCI_REG_MEMBASE);
 	rt3883_pci_w32(rpc, rpc->io_res.start, RT3883_PCI_REG_IOBASE);
@@ -526,8 +571,11 @@ static int rt3883_pci_probe(struct platform_device *pdev)
 	rt3883_pci_w32(rpc, 0x28801814, RT3883_PCI_REG_SUBID(1));
 
 	err = rt3883_pci_irq_init(dev, rpc);
+
 	if (err)
+	{
 		goto err_put_hb_node;
+	}
 
 	/* PCIe */
 	val = rt3883_pci_read_cfg32(rpc, 0, 0x01, 0, PCI_COMMAND);
@@ -539,19 +587,22 @@ static int rt3883_pci_probe(struct platform_device *pdev)
 	val |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER;
 	rt3883_pci_write_cfg32(rpc, 0, 0x00, 0, PCI_COMMAND, val);
 
-	if (mode == RT3883_PCI_MODE_PCIE) {
+	if (mode == RT3883_PCI_MODE_PCIE)
+	{
 		rt3883_pci_w32(rpc, 0x03ff0001, RT3883_PCI_REG_BAR0SETUP(0));
 		rt3883_pci_w32(rpc, 0x03ff0001, RT3883_PCI_REG_BAR0SETUP(1));
 
 		rt3883_pci_write_cfg32(rpc, 0, RT3883_P2P_BR_DEVNUM, 0,
-				       PCI_BASE_ADDRESS_0,
-				       RT3883_MEMORY_BASE);
+							   PCI_BASE_ADDRESS_0,
+							   RT3883_MEMORY_BASE);
 		/* flush write */
 		rt3883_pci_read_cfg32(rpc, 0, RT3883_P2P_BR_DEVNUM, 0,
-				      PCI_BASE_ADDRESS_0);
-	} else {
+							  PCI_BASE_ADDRESS_0);
+	}
+	else
+	{
 		rt3883_pci_write_cfg32(rpc, 0, RT3883_P2P_BR_DEVNUM, 0,
-				       PCI_IO_BASE, 0x00000101);
+							   PCI_IO_BASE, 0x00000101);
 	}
 
 	register_pci_controller(&rpc->pci_controller);
@@ -575,12 +626,14 @@ int pcibios_plat_dev_init(struct pci_dev *dev)
 	return 0;
 }
 
-static const struct of_device_id rt3883_pci_ids[] = {
+static const struct of_device_id rt3883_pci_ids[] =
+{
 	{ .compatible = "ralink,rt3883-pci" },
 	{},
 };
 
-static struct platform_driver rt3883_pci_driver = {
+static struct platform_driver rt3883_pci_driver =
+{
 	.probe = rt3883_pci_probe,
 	.driver = {
 		.name = "rt3883-pci",

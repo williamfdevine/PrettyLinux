@@ -33,14 +33,14 @@
 static void dump_mem(const char *, const char *, unsigned long, unsigned long);
 
 void dump_backtrace_entry(unsigned long where,
-		unsigned long from, unsigned long frame)
+						  unsigned long from, unsigned long frame)
 {
 #ifdef CONFIG_KALLSYMS
 	printk(KERN_DEFAULT "[<%08lx>] (%pS) from [<%08lx>] (%pS)\n",
-			where, (void *)where, from, (void *)from);
+		   where, (void *)where, from, (void *)from);
 #else
 	printk(KERN_DEFAULT "Function entered at [<%08lx>] from [<%08lx>]\n",
-			where, from);
+		   where, from);
 #endif
 }
 
@@ -52,8 +52,10 @@ void dump_backtrace_entry(unsigned long where,
 static int verify_stack(unsigned long sp)
 {
 	if (sp < PAGE_OFFSET ||
-	    (sp > (unsigned long)high_memory && high_memory != NULL))
+		(sp > (unsigned long)high_memory && high_memory != NULL))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -62,7 +64,7 @@ static int verify_stack(unsigned long sp)
  * Dump out the contents of some memory nicely...
  */
 static void dump_mem(const char *lvl, const char *str, unsigned long bottom,
-		     unsigned long top)
+					 unsigned long top)
 {
 	unsigned long first;
 	mm_segment_t fs;
@@ -77,24 +79,33 @@ static void dump_mem(const char *lvl, const char *str, unsigned long bottom,
 	set_fs(KERNEL_DS);
 
 	printk(KERN_DEFAULT "%s%s(0x%08lx to 0x%08lx)\n",
-			lvl, str, bottom, top);
+		   lvl, str, bottom, top);
 
-	for (first = bottom & ~31; first < top; first += 32) {
+	for (first = bottom & ~31; first < top; first += 32)
+	{
 		unsigned long p;
 		char str[sizeof(" 12345678") * 8 + 1];
 
 		memset(str, ' ', sizeof(str));
 		str[sizeof(str) - 1] = '\0';
 
-		for (p = first, i = 0; i < 8 && p < top; i++, p += 4) {
-			if (p >= bottom && p < top) {
+		for (p = first, i = 0; i < 8 && p < top; i++, p += 4)
+		{
+			if (p >= bottom && p < top)
+			{
 				unsigned long val;
+
 				if (__get_user(val, (unsigned long *)p) == 0)
+				{
 					sprintf(str + i * 9, " %08lx", val);
+				}
 				else
+				{
 					sprintf(str + i * 9, " ????????");
+				}
 			}
 		}
+
 		printk(KERN_DEFAULT "%s%04lx:%s\n", lvl, first & 0xffff, str);
 	}
 
@@ -117,19 +128,22 @@ static void dump_instr(const char *lvl, struct pt_regs *regs)
 	fs = get_fs();
 	set_fs(KERNEL_DS);
 
-	for (i = -4; i < 1; i++) {
+	for (i = -4; i < 1; i++)
+	{
 		unsigned int val, bad;
 
 		bad = __get_user(val, &((u32 *)addr)[i]);
 
 		if (!bad)
 			p += sprintf(p, i == 0 ? "(%0*x) " : "%0*x ",
-					width, val);
-		else {
+						 width, val);
+		else
+		{
 			p += sprintf(p, "bad PC value");
 			break;
 		}
 	}
+
 	printk(KERN_DEFAULT "%sCode: %s\n", lvl, str);
 
 	set_fs(fs);
@@ -143,31 +157,47 @@ static void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk)
 	printk(KERN_DEFAULT "Backtrace: ");
 
 	if (!tsk)
+	{
 		tsk = current;
+	}
 
-	if (regs) {
+	if (regs)
+	{
 		fp = regs->UCreg_fp;
 		mode = processor_mode(regs);
-	} else if (tsk != current) {
+	}
+	else if (tsk != current)
+	{
 		fp = thread_saved_fp(tsk);
 		mode = 0x10;
-	} else {
+	}
+	else
+	{
 		asm("mov %0, fp" : "=r" (fp) : : "cc");
 		mode = 0x10;
 	}
 
-	if (!fp) {
+	if (!fp)
+	{
 		printk("no frame pointer");
 		ok = 0;
-	} else if (verify_stack(fp)) {
+	}
+	else if (verify_stack(fp))
+	{
 		printk("invalid frame pointer 0x%08x", fp);
 		ok = 0;
-	} else if (fp < (unsigned long)end_of_stack(tsk))
+	}
+	else if (fp < (unsigned long)end_of_stack(tsk))
+	{
 		printk("frame pointer underflow");
+	}
+
 	printk("\n");
 
 	if (ok)
+	{
 		c_backtrace(fp, mode);
+	}
 }
 
 void show_stack(struct task_struct *tsk, unsigned long *sp)
@@ -177,29 +207,33 @@ void show_stack(struct task_struct *tsk, unsigned long *sp)
 }
 
 static int __die(const char *str, int err, struct thread_info *thread,
-		struct pt_regs *regs)
+				 struct pt_regs *regs)
 {
 	struct task_struct *tsk = thread->task;
 	static int die_counter;
 	int ret;
 
 	printk(KERN_EMERG "Internal error: %s: %x [#%d]\n",
-	       str, err, ++die_counter);
+		   str, err, ++die_counter);
 
 	/* trap and error numbers are mostly meaningless on UniCore */
 	ret = notify_die(DIE_OOPS, str, regs, err, tsk->thread.trap_no, \
-			SIGSEGV);
+					 SIGSEGV);
+
 	if (ret == NOTIFY_STOP)
+	{
 		return ret;
+	}
 
 	print_modules();
 	__show_regs(regs);
 	printk(KERN_EMERG "Process %.*s (pid: %d, stack limit = 0x%p)\n",
-		TASK_COMM_LEN, tsk->comm, task_pid_nr(tsk), thread + 1);
+		   TASK_COMM_LEN, tsk->comm, task_pid_nr(tsk), thread + 1);
 
-	if (!user_mode(regs) || in_interrupt()) {
+	if (!user_mode(regs) || in_interrupt())
+	{
 		dump_mem(KERN_EMERG, "Stack: ", regs->UCreg_sp,
-			 THREAD_SIZE + (unsigned long)task_stack_page(tsk));
+				 THREAD_SIZE + (unsigned long)task_stack_page(tsk));
 		dump_backtrace(regs, tsk);
 		dump_instr(KERN_EMERG, regs);
 	}
@@ -230,23 +264,35 @@ void die(const char *str, struct pt_regs *regs, int err)
 	oops_exit();
 
 	if (in_interrupt())
+	{
 		panic("Fatal exception in interrupt");
+	}
+
 	if (panic_on_oops)
+	{
 		panic("Fatal exception");
+	}
+
 	if (ret != NOTIFY_STOP)
+	{
 		do_exit(SIGSEGV);
+	}
 }
 
 void uc32_notify_die(const char *str, struct pt_regs *regs,
-		struct siginfo *info, unsigned long err, unsigned long trap)
+					 struct siginfo *info, unsigned long err, unsigned long trap)
 {
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		current->thread.error_code = err;
 		current->thread.trap_no = trap;
 
 		force_sig_info(info->si_signo, info, current);
-	} else
+	}
+	else
+	{
 		die(str, regs, err);
+	}
 }
 
 /*
@@ -312,11 +358,11 @@ void __init early_trap_init(void)
 	 * are visible to the instruction stream.
 	 */
 	memcpy((void *)vectors,
-			__vectors_start,
-			__vectors_end - __vectors_start);
+		   __vectors_start,
+		   __vectors_end - __vectors_start);
 	memcpy((void *)vectors + 0x200,
-			__stubs_start,
-			__stubs_end - __stubs_start);
+		   __stubs_start,
+		   __stubs_end - __stubs_start);
 
 	early_signal_init();
 

@@ -62,12 +62,16 @@ static void core_sleep_idle(void)
 void arch_cpu_idle(void)
 {
 	if (!frv_dma_inprogress)
+	{
 		core_sleep_idle();
+	}
 	else
+	{
 		local_irq_enable();
+	}
 }
 
-void machine_restart(char * __unused)
+void machine_restart(char *__unused)
 {
 	unsigned long reset_addr;
 #ifdef CONFIG_GDBSTUB
@@ -75,18 +79,22 @@ void machine_restart(char * __unused)
 #endif
 
 	if (PSR_IMPLE(__get_PSR()) == PSR_IMPLE_FR551)
+	{
 		reset_addr = 0xfefff500;
+	}
 	else
+	{
 		reset_addr = 0xfeff0500;
+	}
 
 	/* Software reset. */
 	asm volatile("      dcef @(gr0,gr0),1 ! membar !"
-		     "      sti     %1,@(%0,0) !"
-		     "      nop ! nop ! nop ! nop ! nop ! "
-		     "      nop ! nop ! nop ! nop ! nop ! "
-		     "      nop ! nop ! nop ! nop ! nop ! "
-		     "      nop ! nop ! nop ! nop ! nop ! "
-		     : : "r" (reset_addr), "r" (1) );
+				 "      sti     %1,@(%0,0) !"
+				 "      nop ! nop ! nop ! nop ! nop ! "
+				 "      nop ! nop ! nop ! nop ! nop ! "
+				 "      nop ! nop ! nop ! nop ! nop ! "
+				 "      nop ! nop ! nop ! nop ! nop ! "
+				 : : "r" (reset_addr), "r" (1) );
 
 	for (;;)
 		;
@@ -118,7 +126,10 @@ void flush_thread(void)
 inline unsigned long user_stack(const struct pt_regs *regs)
 {
 	while (regs->next_frame)
+	{
 		regs = regs->next_frame;
+	}
+
 	return user_mode(regs) ? regs->sp : 0;
 }
 
@@ -126,13 +137,13 @@ inline unsigned long user_stack(const struct pt_regs *regs)
  * set up the kernel stack and exception frames for a new process
  */
 int copy_thread(unsigned long clone_flags,
-		unsigned long usp, unsigned long arg,
-		struct task_struct *p)
+				unsigned long usp, unsigned long arg,
+				struct task_struct *p)
 {
 	struct pt_regs *childregs;
 
 	childregs = (struct pt_regs *)
-		(task_stack_page(p) + THREAD_SIZE - FRV_FRAME0_SIZE);
+				(task_stack_page(p) + THREAD_SIZE - FRV_FRAME0_SIZE);
 
 	/* set up the userspace frame (the only place that the USP is stored) */
 	*childregs = *current_pt_regs();
@@ -144,22 +155,29 @@ int copy_thread(unsigned long clone_flags,
 	p->thread.lr	 = 0;
 	p->thread.frame0 = childregs;
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		childregs->gr9 = usp; /* function */
 		childregs->gr8 = arg;
 		p->thread.pc = (unsigned long) ret_from_kernel_thread;
 		save_user_regs(p->thread.user);
 		return 0;
 	}
+
 	if (usp)
+	{
 		childregs->sp = usp;
+	}
+
 	childregs->next_frame	= NULL;
 
 	p->thread.pc = (unsigned long) ret_from_fork;
 
 	/* the new TLS pointer is passed in as arg #5 to sys_clone() */
 	if (clone_flags & CLONE_SETTLS)
+	{
 		childregs->gr29 = childregs->gr12;
+	}
 
 	save_user_regs(p->thread.user);
 
@@ -172,25 +190,34 @@ unsigned long get_wchan(struct task_struct *p)
 	unsigned long fp, pc;
 	unsigned long stack_limit;
 	int count = 0;
+
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	stack_limit = (unsigned long) (p + 1);
 	fp = p->thread.fp;
 	regs0 = p->thread.frame0;
 
-	do {
+	do
+	{
 		if (fp < stack_limit || fp >= (unsigned long) regs0 || fp & 3)
+		{
 			return 0;
+		}
 
 		pc = ((unsigned long *) fp)[2];
 
 		/* FIXME: This depends on the order of these functions. */
 		if (!in_sched_functions(pc))
+		{
 			return pc;
+		}
 
 		fp = *(unsigned long *) fp;
-	} while (count++ < 16);
+	}
+	while (count++ < 16);
 
 	return 0;
 }
@@ -199,9 +226,13 @@ unsigned long thread_saved_pc(struct task_struct *tsk)
 {
 	/* Check whether the thread is blocked in resume() */
 	if (in_sched_functions(tsk->thread.pc))
+	{
 		return ((unsigned long *)tsk->thread.fp)[2];
+	}
 	else
+	{
 		return tsk->thread.pc;
+	}
 }
 
 int elf_check_arch(const struct elf32_hdr *hdr)
@@ -210,63 +241,95 @@ int elf_check_arch(const struct elf32_hdr *hdr)
 	unsigned long psr = __get_PSR();
 
 	if (hdr->e_machine != EM_FRV)
-		return 0;
-
-	switch (hdr->e_flags & EF_FRV_GPR_MASK) {
-	case EF_FRV_GPR64:
-		if ((hsr0 & HSR0_GRN) == HSR0_GRN_32)
-			return 0;
-	case EF_FRV_GPR32:
-	case 0:
-		break;
-	default:
+	{
 		return 0;
 	}
 
-	switch (hdr->e_flags & EF_FRV_FPR_MASK) {
-	case EF_FRV_FPR64:
-		if ((hsr0 & HSR0_FRN) == HSR0_FRN_32)
+	switch (hdr->e_flags & EF_FRV_GPR_MASK)
+	{
+		case EF_FRV_GPR64:
+			if ((hsr0 & HSR0_GRN) == HSR0_GRN_32)
+			{
+				return 0;
+			}
+
+		case EF_FRV_GPR32:
+		case 0:
+			break;
+
+		default:
 			return 0;
-	case EF_FRV_FPR32:
-	case EF_FRV_FPR_NONE:
-	case 0:
-		break;
-	default:
-		return 0;
+	}
+
+	switch (hdr->e_flags & EF_FRV_FPR_MASK)
+	{
+		case EF_FRV_FPR64:
+			if ((hsr0 & HSR0_FRN) == HSR0_FRN_32)
+			{
+				return 0;
+			}
+
+		case EF_FRV_FPR32:
+		case EF_FRV_FPR_NONE:
+		case 0:
+			break;
+
+		default:
+			return 0;
 	}
 
 	if ((hdr->e_flags & EF_FRV_MULADD) == EF_FRV_MULADD)
 		if (PSR_IMPLE(psr) != PSR_IMPLE_FR405 &&
-		    PSR_IMPLE(psr) != PSR_IMPLE_FR451)
+			PSR_IMPLE(psr) != PSR_IMPLE_FR451)
+		{
+			return 0;
+		}
+
+	switch (hdr->e_flags & EF_FRV_CPU_MASK)
+	{
+		case EF_FRV_CPU_GENERIC:
+			break;
+
+		case EF_FRV_CPU_FR300:
+		case EF_FRV_CPU_SIMPLE:
+		case EF_FRV_CPU_TOMCAT:
+		default:
 			return 0;
 
-	switch (hdr->e_flags & EF_FRV_CPU_MASK) {
-	case EF_FRV_CPU_GENERIC:
-		break;
-	case EF_FRV_CPU_FR300:
-	case EF_FRV_CPU_SIMPLE:
-	case EF_FRV_CPU_TOMCAT:
-	default:
-		return 0;
-	case EF_FRV_CPU_FR400:
-		if (PSR_IMPLE(psr) != PSR_IMPLE_FR401 &&
-		    PSR_IMPLE(psr) != PSR_IMPLE_FR405 &&
-		    PSR_IMPLE(psr) != PSR_IMPLE_FR451 &&
-		    PSR_IMPLE(psr) != PSR_IMPLE_FR551)
-			return 0;
-		break;
-	case EF_FRV_CPU_FR450:
-		if (PSR_IMPLE(psr) != PSR_IMPLE_FR451)
-			return 0;
-		break;
-	case EF_FRV_CPU_FR500:
-		if (PSR_IMPLE(psr) != PSR_IMPLE_FR501)
-			return 0;
-		break;
-	case EF_FRV_CPU_FR550:
-		if (PSR_IMPLE(psr) != PSR_IMPLE_FR551)
-			return 0;
-		break;
+		case EF_FRV_CPU_FR400:
+			if (PSR_IMPLE(psr) != PSR_IMPLE_FR401 &&
+				PSR_IMPLE(psr) != PSR_IMPLE_FR405 &&
+				PSR_IMPLE(psr) != PSR_IMPLE_FR451 &&
+				PSR_IMPLE(psr) != PSR_IMPLE_FR551)
+			{
+				return 0;
+			}
+
+			break;
+
+		case EF_FRV_CPU_FR450:
+			if (PSR_IMPLE(psr) != PSR_IMPLE_FR451)
+			{
+				return 0;
+			}
+
+			break;
+
+		case EF_FRV_CPU_FR500:
+			if (PSR_IMPLE(psr) != PSR_IMPLE_FR501)
+			{
+				return 0;
+			}
+
+			break;
+
+		case EF_FRV_CPU_FR550:
+			if (PSR_IMPLE(psr) != PSR_IMPLE_FR551)
+			{
+				return 0;
+			}
+
+			break;
 	}
 
 	return 1;
@@ -275,7 +338,7 @@ int elf_check_arch(const struct elf32_hdr *hdr)
 int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs)
 {
 	memcpy(fpregs,
-	       &current->thread.user->f,
-	       sizeof(current->thread.user->f));
+		   &current->thread.user->f,
+		   sizeof(current->thread.user->f));
 	return 1;
 }

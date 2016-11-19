@@ -5,70 +5,70 @@
  * the undefined gets a sensible default
  */
 #ifndef _PAGE_HASHPTE
-#define _PAGE_HASHPTE	0
+	#define _PAGE_HASHPTE	0
 #endif
 #ifndef _PAGE_SHARED
-#define _PAGE_SHARED	0
+	#define _PAGE_SHARED	0
 #endif
 #ifndef _PAGE_HWWRITE
-#define _PAGE_HWWRITE	0
+	#define _PAGE_HWWRITE	0
 #endif
 #ifndef _PAGE_EXEC
-#define _PAGE_EXEC	0
+	#define _PAGE_EXEC	0
 #endif
 #ifndef _PAGE_ENDIAN
-#define _PAGE_ENDIAN	0
+	#define _PAGE_ENDIAN	0
 #endif
 #ifndef _PAGE_COHERENT
-#define _PAGE_COHERENT	0
+	#define _PAGE_COHERENT	0
 #endif
 #ifndef _PAGE_WRITETHRU
-#define _PAGE_WRITETHRU	0
+	#define _PAGE_WRITETHRU	0
 #endif
 #ifndef _PAGE_4K_PFN
-#define _PAGE_4K_PFN		0
+	#define _PAGE_4K_PFN		0
 #endif
 #ifndef _PAGE_SAO
-#define _PAGE_SAO	0
+	#define _PAGE_SAO	0
 #endif
 #ifndef _PAGE_PSIZE
-#define _PAGE_PSIZE		0
+	#define _PAGE_PSIZE		0
 #endif
 /* _PAGE_RO and _PAGE_RW shall not be defined at the same time */
 #ifndef _PAGE_RO
-#define _PAGE_RO 0
+	#define _PAGE_RO 0
 #else
-#define _PAGE_RW 0
+	#define _PAGE_RW 0
 #endif
 
 #ifndef _PAGE_PTE
-#define _PAGE_PTE 0
+	#define _PAGE_PTE 0
 #endif
 
 #ifndef _PMD_PRESENT_MASK
-#define _PMD_PRESENT_MASK	_PMD_PRESENT
+	#define _PMD_PRESENT_MASK	_PMD_PRESENT
 #endif
 #ifndef _PMD_SIZE
-#define _PMD_SIZE	0
-#define PMD_PAGE_SIZE(pmd)	bad_call_to_PMD_PAGE_SIZE()
+	#define _PMD_SIZE	0
+	#define PMD_PAGE_SIZE(pmd)	bad_call_to_PMD_PAGE_SIZE()
 #endif
 #ifndef _PAGE_KERNEL_RO
-#define _PAGE_KERNEL_RO		(_PAGE_RO)
+	#define _PAGE_KERNEL_RO		(_PAGE_RO)
 #endif
 #ifndef _PAGE_KERNEL_ROX
-#define _PAGE_KERNEL_ROX	(_PAGE_EXEC | _PAGE_RO)
+	#define _PAGE_KERNEL_ROX	(_PAGE_EXEC | _PAGE_RO)
 #endif
 #ifndef _PAGE_KERNEL_RW
-#define _PAGE_KERNEL_RW		(_PAGE_DIRTY | _PAGE_RW | _PAGE_HWWRITE)
+	#define _PAGE_KERNEL_RW		(_PAGE_DIRTY | _PAGE_RW | _PAGE_HWWRITE)
 #endif
 #ifndef _PAGE_KERNEL_RWX
-#define _PAGE_KERNEL_RWX	(_PAGE_DIRTY | _PAGE_RW | _PAGE_HWWRITE | _PAGE_EXEC)
+	#define _PAGE_KERNEL_RWX	(_PAGE_DIRTY | _PAGE_RW | _PAGE_HWWRITE | _PAGE_EXEC)
 #endif
 #ifndef _PAGE_HPTEFLAGS
-#define _PAGE_HPTEFLAGS _PAGE_HASHPTE
+	#define _PAGE_HPTEFLAGS _PAGE_HASHPTE
 #endif
 #ifndef _PTE_NONE_MASK
-#define _PTE_NONE_MASK	_PAGE_HPTEFLAGS
+	#define _PTE_NONE_MASK	_PAGE_HPTEFLAGS
 #endif
 
 /* Make sure we get a link error if PMD_PAGE_SIZE is ever called on a
@@ -93,29 +93,29 @@ static inline bool pte_user(pte_t pte)
  * Platform who don't just pre-define the value so we don't override it here
  */
 #ifndef PTE_RPN_SHIFT
-#define PTE_RPN_SHIFT	(PAGE_SHIFT)
+	#define PTE_RPN_SHIFT	(PAGE_SHIFT)
 #endif
 
 /* The mask covered by the RPN must be a ULL on 32-bit platforms with
  * 64-bit PTEs
  */
 #if defined(CONFIG_PPC32) && defined(CONFIG_PTE_64BIT)
-#define PTE_RPN_MASK	(~((1ULL<<PTE_RPN_SHIFT)-1))
+	#define PTE_RPN_MASK	(~((1ULL<<PTE_RPN_SHIFT)-1))
 #else
-#define PTE_RPN_MASK	(~((1UL<<PTE_RPN_SHIFT)-1))
+	#define PTE_RPN_MASK	(~((1UL<<PTE_RPN_SHIFT)-1))
 #endif
 
 /* _PAGE_CHG_MASK masks of bits that are to be preserved across
  * pgprot changes
  */
 #define _PAGE_CHG_MASK	(PTE_RPN_MASK | _PAGE_HPTEFLAGS | _PAGE_DIRTY | \
-                         _PAGE_ACCESSED | _PAGE_SPECIAL)
+						 _PAGE_ACCESSED | _PAGE_SPECIAL)
 
 /* Mask of bits returned by pte_pgprot() */
 #define PAGE_PROT_BITS	(_PAGE_GUARDED | _PAGE_COHERENT | _PAGE_NO_CACHE | \
-			 _PAGE_WRITETHRU | _PAGE_ENDIAN | _PAGE_4K_PFN | \
-			 _PAGE_USER | _PAGE_ACCESSED | _PAGE_RO | \
-			 _PAGE_RW | _PAGE_HWWRITE | _PAGE_DIRTY | _PAGE_EXEC)
+						 _PAGE_WRITETHRU | _PAGE_ENDIAN | _PAGE_4K_PFN | \
+						 _PAGE_USER | _PAGE_ACCESSED | _PAGE_RO | \
+						 _PAGE_RW | _PAGE_HWWRITE | _PAGE_DIRTY | _PAGE_EXEC)
 
 /*
  * We define 2 sets of base prot bits, one for basic pages (ie,
@@ -126,9 +126,9 @@ static inline bool pte_user(pte_t pte)
 #define _PAGE_BASE_NC	(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_PSIZE)
 #if defined(CONFIG_SMP) || defined(CONFIG_PPC_STD_MMU) || \
 	defined(CONFIG_PPC_E500MC)
-#define _PAGE_BASE	(_PAGE_BASE_NC | _PAGE_COHERENT)
+	#define _PAGE_BASE	(_PAGE_BASE_NC | _PAGE_COHERENT)
 #else
-#define _PAGE_BASE	(_PAGE_BASE_NC)
+	#define _PAGE_BASE	(_PAGE_BASE_NC)
 #endif
 
 /* Permission masks used to generate the __P and __S table,
@@ -144,13 +144,13 @@ static inline bool pte_user(pte_t pte)
 #define PAGE_NONE	__pgprot(_PAGE_BASE)
 #define PAGE_SHARED	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RW)
 #define PAGE_SHARED_X	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RW | \
-				 _PAGE_EXEC)
+								 _PAGE_EXEC)
 #define PAGE_COPY	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RO)
 #define PAGE_COPY_X	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RO | \
-				 _PAGE_EXEC)
+							 _PAGE_EXEC)
 #define PAGE_READONLY	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RO)
 #define PAGE_READONLY_X	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RO | \
-				 _PAGE_EXEC)
+								 _PAGE_EXEC)
 
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY
@@ -173,9 +173,9 @@ static inline bool pte_user(pte_t pte)
 /* Permission masks used for kernel mappings */
 #define PAGE_KERNEL	__pgprot(_PAGE_BASE | _PAGE_KERNEL_RW)
 #define PAGE_KERNEL_NC	__pgprot(_PAGE_BASE_NC | _PAGE_KERNEL_RW | \
-				 _PAGE_NO_CACHE)
+								 _PAGE_NO_CACHE)
 #define PAGE_KERNEL_NCG	__pgprot(_PAGE_BASE_NC | _PAGE_KERNEL_RW | \
-				 _PAGE_NO_CACHE | _PAGE_GUARDED)
+								 _PAGE_NO_CACHE | _PAGE_GUARDED)
 #define PAGE_KERNEL_X	__pgprot(_PAGE_BASE | _PAGE_KERNEL_RWX)
 #define PAGE_KERNEL_RO	__pgprot(_PAGE_BASE | _PAGE_KERNEL_RO)
 #define PAGE_KERNEL_ROX	__pgprot(_PAGE_BASE | _PAGE_KERNEL_ROX)
@@ -186,9 +186,9 @@ static inline bool pte_user(pte_t pte)
  */
 #if defined(CONFIG_KGDB) || defined(CONFIG_XMON) || defined(CONFIG_BDI_SWITCH) ||\
 	defined(CONFIG_KPROBES) || defined(CONFIG_DYNAMIC_FTRACE)
-#define PAGE_KERNEL_TEXT	PAGE_KERNEL_X
+	#define PAGE_KERNEL_TEXT	PAGE_KERNEL_X
 #else
-#define PAGE_KERNEL_TEXT	PAGE_KERNEL_ROX
+	#define PAGE_KERNEL_TEXT	PAGE_KERNEL_ROX
 #endif
 
 /* Make modules code happy. We don't set RO yet */
@@ -202,11 +202,11 @@ static inline bool pte_user(pte_t pte)
 #define __HAVE_ARCH_PTE_SPECIAL
 
 #ifndef _PAGE_READ
-/* if not defined, we should not find _PAGE_WRITE too */
-#define _PAGE_READ 0
-#define _PAGE_WRITE _PAGE_RW
+	/* if not defined, we should not find _PAGE_WRITE too */
+	#define _PAGE_READ 0
+	#define _PAGE_WRITE _PAGE_RW
 #endif
 
 #ifndef H_PAGE_4K_PFN
-#define H_PAGE_4K_PFN 0
+	#define H_PAGE_4K_PFN 0
 #endif

@@ -15,28 +15,28 @@
 
 #ifdef __ASSEMBLY__
 
-#ifdef CONFIG_EVA
+	#ifdef CONFIG_EVA
 
-/*
- * EVA early init code
- *
- * Platforms must define their own 'platform_eva_init' macro in
- * their kernel-entry-init.h header. This macro usually does the
- * platform specific configuration of the segmentation registers,
- * and it is normally called from assembly code.
- *
- */
+		/*
+		* EVA early init code
+		*
+		* Platforms must define their own 'platform_eva_init' macro in
+		* their kernel-entry-init.h header. This macro usually does the
+		* platform specific configuration of the segmentation registers,
+		* and it is normally called from assembly code.
+		*
+		*/
 
-.macro eva_init
-platform_eva_init
-.endm
+		.macro eva_init
+		platform_eva_init
+		.endm
 
-#else
+	#else
 
-.macro eva_init
-.endm
+		.macro eva_init
+		.endm
 
-#endif /* CONFIG_EVA */
+	#endif /* CONFIG_EVA */
 
 #endif /* __ASSEMBLY__ */
 

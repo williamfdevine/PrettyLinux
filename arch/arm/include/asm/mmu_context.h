@@ -36,10 +36,10 @@ init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 
 #ifdef CONFIG_ARM_ERRATA_798181
 void a15_erratum_get_cpumask(int this_cpu, struct mm_struct *mm,
-			     cpumask_t *mask);
+							 cpumask_t *mask);
 #else  /* !CONFIG_ARM_ERRATA_798181 */
 static inline void a15_erratum_get_cpumask(int this_cpu, struct mm_struct *mm,
-					   cpumask_t *mask)
+		cpumask_t *mask)
 {
 }
 #endif /* CONFIG_ARM_ERRATA_798181 */
@@ -49,10 +49,12 @@ static inline void a15_erratum_get_cpumask(int this_cpu, struct mm_struct *mm,
 #ifdef CONFIG_MMU
 
 static inline void check_and_switch_context(struct mm_struct *mm,
-					    struct task_struct *tsk)
+		struct task_struct *tsk)
 {
 	if (unlikely(mm->context.vmalloc_seq != init_mm.context.vmalloc_seq))
+	{
 		__check_vmalloc_seq(mm);
+	}
 
 	if (irqs_disabled())
 		/*
@@ -62,9 +64,13 @@ static inline void check_and_switch_context(struct mm_struct *mm,
 		 * on non-ASID CPUs, the old mm will remain valid until the
 		 * finish_arch_post_lock_switch() call.
 		 */
+	{
 		mm->context.switch_pending = 1;
+	}
 	else
+	{
 		cpu_switch_mm(mm->pgd, mm);
+	}
 }
 
 #ifndef MODULE
@@ -74,7 +80,8 @@ static inline void finish_arch_post_lock_switch(void)
 {
 	struct mm_struct *mm = current->mm;
 
-	if (mm && mm->context.switch_pending) {
+	if (mm && mm->context.switch_pending)
+	{
 		/*
 		 * Preemption must be disabled during cpu_switch_mm() as we
 		 * have some stateful cache flush implementations. Check
@@ -82,10 +89,13 @@ static inline void finish_arch_post_lock_switch(void)
 		 * switch to this mm was already done.
 		 */
 		preempt_disable();
-		if (mm->context.switch_pending) {
+
+		if (mm->context.switch_pending)
+		{
 			mm->context.switch_pending = 0;
 			cpu_switch_mm(mm->pgd, mm);
 		}
+
 		preempt_enable_no_resched();
 	}
 }
@@ -127,7 +137,7 @@ enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
  */
 static inline void
 switch_mm(struct mm_struct *prev, struct mm_struct *next,
-	  struct task_struct *tsk)
+		  struct task_struct *tsk)
 {
 #ifdef CONFIG_MMU
 	unsigned int cpu = smp_processor_id();
@@ -138,15 +148,22 @@ switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	 * if we're new to this CPU.
 	 */
 	if (cache_ops_need_broadcast() &&
-	    !cpumask_empty(mm_cpumask(next)) &&
-	    !cpumask_test_cpu(cpu, mm_cpumask(next)))
+		!cpumask_empty(mm_cpumask(next)) &&
+		!cpumask_test_cpu(cpu, mm_cpumask(next)))
+	{
 		__flush_icache_all();
-
-	if (!cpumask_test_and_set_cpu(cpu, mm_cpumask(next)) || prev != next) {
-		check_and_switch_context(next, tsk);
-		if (cache_is_vivt())
-			cpumask_clear_cpu(cpu, mm_cpumask(prev));
 	}
+
+	if (!cpumask_test_and_set_cpu(cpu, mm_cpumask(next)) || prev != next)
+	{
+		check_and_switch_context(next, tsk);
+
+		if (cache_is_vivt())
+		{
+			cpumask_clear_cpu(cpu, mm_cpumask(prev));
+		}
+	}
+
 #endif
 }
 

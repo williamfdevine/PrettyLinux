@@ -18,7 +18,8 @@
  * - 2 miscellaneous 32-bit values
  */
 
-struct semid64_ds {
+struct semid64_ds
+{
 	struct ipc64_perm sem_perm;	/* permissions .. see ipc.h */
 #ifndef __powerpc64__
 	unsigned long	__unused1;

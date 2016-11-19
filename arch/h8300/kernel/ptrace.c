@@ -26,7 +26,8 @@ extern void user_disable_single_step(struct task_struct *child);
 /* Mapping from PT_xxx to the stack offset at which the register is
    saved.  Notice that usp has no stack-slot and needs to be treated
    specially (see get_reg/put_reg below). */
-static const int register_offset[] = {
+static const int register_offset[] =
+{
 	PT_REG(er1), PT_REG(er2), PT_REG(er3), PT_REG(er4),
 	PT_REG(er5), PT_REG(er6), PT_REG(er0), -1,
 	PT_REG(orig_er0), PT_REG(ccr), PT_REG(pc),
@@ -38,16 +39,19 @@ static const int register_offset[] = {
 /* read register */
 long h8300_get_reg(struct task_struct *task, int regno)
 {
-	switch (regno) {
-	case PT_USP:
-		return task->thread.usp + sizeof(long)*2;
-	case PT_CCR:
-	case PT_EXR:
-	    return *(unsigned short *)(task->thread.esp0 +
-				       register_offset[regno]);
-	default:
-	    return *(unsigned long *)(task->thread.esp0 +
-				      register_offset[regno]);
+	switch (regno)
+	{
+		case PT_USP:
+			return task->thread.usp + sizeof(long) * 2;
+
+		case PT_CCR:
+		case PT_EXR:
+			return *(unsigned short *)(task->thread.esp0 +
+									   register_offset[regno]);
+
+		default:
+			return *(unsigned long *)(task->thread.esp0 +
+									  register_offset[regno]);
 	}
 }
 
@@ -56,39 +60,44 @@ int h8300_put_reg(struct task_struct *task, int regno, unsigned long data)
 	unsigned short oldccr;
 	unsigned short oldexr;
 
-	switch (regno) {
-	case PT_USP:
-		task->thread.usp = data - sizeof(long)*2;
-	case PT_CCR:
-		oldccr = *(unsigned short *)(task->thread.esp0 +
-					     register_offset[regno]);
-		oldccr &= ~CCR_MASK;
-		data &= CCR_MASK;
-		data |= oldccr;
-		*(unsigned short *)(task->thread.esp0 +
-				    register_offset[regno]) = data;
-		break;
-	case PT_EXR:
-		oldexr = *(unsigned short *)(task->thread.esp0 +
-					     register_offset[regno]);
-		oldccr &= ~EXR_MASK;
-		data &= EXR_MASK;
-		data |= oldexr;
-		*(unsigned short *)(task->thread.esp0 +
-				    register_offset[regno]) = data;
-		break;
-	default:
-		*(unsigned long *)(task->thread.esp0 +
-				   register_offset[regno]) = data;
-		break;
+	switch (regno)
+	{
+		case PT_USP:
+			task->thread.usp = data - sizeof(long) * 2;
+
+		case PT_CCR:
+			oldccr = *(unsigned short *)(task->thread.esp0 +
+										 register_offset[regno]);
+			oldccr &= ~CCR_MASK;
+			data &= CCR_MASK;
+			data |= oldccr;
+			*(unsigned short *)(task->thread.esp0 +
+								register_offset[regno]) = data;
+			break;
+
+		case PT_EXR:
+			oldexr = *(unsigned short *)(task->thread.esp0 +
+										 register_offset[regno]);
+			oldccr &= ~EXR_MASK;
+			data &= EXR_MASK;
+			data |= oldexr;
+			*(unsigned short *)(task->thread.esp0 +
+								register_offset[regno]) = data;
+			break;
+
+		default:
+			*(unsigned long *)(task->thread.esp0 +
+							   register_offset[regno]) = data;
+			break;
 	}
+
 	return 0;
 }
 
 static int regs_get(struct task_struct *target,
-		    const struct user_regset *regset,
-		    unsigned int pos, unsigned int count,
-		    void *kbuf, void __user *ubuf)
+					const struct user_regset *regset,
+					unsigned int pos, unsigned int count,
+					void *kbuf, void __user *ubuf)
 {
 	int r;
 	struct user_regs_struct regs;
@@ -96,16 +105,18 @@ static int regs_get(struct task_struct *target,
 
 	/* build user regs in buffer */
 	for (r = 0; r < ARRAY_SIZE(register_offset); r++)
+	{
 		*reg++ = h8300_get_reg(target, r);
+	}
 
 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				   &regs, 0, sizeof(regs));
+							   &regs, 0, sizeof(regs));
 }
 
 static int regs_set(struct task_struct *target,
-		    const struct user_regset *regset,
-		    unsigned int pos, unsigned int count,
-		    const void *kbuf, const void __user *ubuf)
+					const struct user_regset *regset,
+					unsigned int pos, unsigned int count,
+					const void *kbuf, const void __user *ubuf)
 {
 	int r;
 	int ret;
@@ -114,24 +125,34 @@ static int regs_set(struct task_struct *target,
 
 	/* build user regs in buffer */
 	for (reg = (long *)&regs, r = 0; r < ARRAY_SIZE(register_offset); r++)
+	{
 		*reg++ = h8300_get_reg(target, r);
+	}
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 &regs, 0, sizeof(regs));
+							 &regs, 0, sizeof(regs));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* write back to pt_regs */
 	for (reg = (long *)&regs, r = 0; r < ARRAY_SIZE(register_offset); r++)
+	{
 		h8300_put_reg(target, r, *reg++);
+	}
+
 	return 0;
 }
 
-enum h8300_regset {
+enum h8300_regset
+{
 	REGSET_GENERAL,
 };
 
-static const struct user_regset h8300_regsets[] = {
+static const struct user_regset h8300_regsets[] =
+{
 	[REGSET_GENERAL] = {
 		.core_note_type	= NT_PRSTATUS,
 		.n		= ELF_NGREG,
@@ -142,7 +163,8 @@ static const struct user_regset h8300_regsets[] = {
 	},
 };
 
-static const struct user_regset_view user_h8300_native_view = {
+static const struct user_regset_view user_h8300_native_view =
+{
 	.name = "h8300",
 	.e_machine = EM_H8_300,
 	.regsets = h8300_regsets,
@@ -160,15 +182,17 @@ void ptrace_disable(struct task_struct *child)
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	int ret;
 
-	switch (request) {
-	default:
-		ret = ptrace_request(child, request, addr, data);
-		break;
+	switch (request)
+	{
+		default:
+			ret = ptrace_request(child, request, addr, data);
+			break;
 	}
+
 	return ret;
 }
 
@@ -177,18 +201,20 @@ asmlinkage long do_syscall_trace_enter(struct pt_regs *regs)
 	long ret = 0;
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE) &&
-	    tracehook_report_syscall_entry(regs))
+		tracehook_report_syscall_entry(regs))
 		/*
 		 * Tracing decided this syscall should not happen.
 		 * We'll return a bogus call number to get an ENOSYS
 		 * error, but leave the original number in regs->regs[0].
 		 */
+	{
 		ret = -1L;
+	}
 
 	audit_syscall_entry(regs->er1, regs->er2, regs->er3,
-			    regs->er4, regs->er5);
+						regs->er4, regs->er5);
 
-	return ret ?: regs->er0;
+	return ret ? : regs->er0;
 }
 
 asmlinkage void do_syscall_trace_leave(struct pt_regs *regs)
@@ -198,6 +224,9 @@ asmlinkage void do_syscall_trace_leave(struct pt_regs *regs)
 	audit_syscall_exit(regs);
 
 	step = test_thread_flag(TIF_SINGLESTEP);
+
 	if (step || test_thread_flag(TIF_SYSCALL_TRACE))
+	{
 		tracehook_report_syscall_exit(regs, step);
+	}
 }

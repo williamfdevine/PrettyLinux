@@ -8,13 +8,15 @@
 #ifndef __MMU_H
 #define __MMU_H
 
-struct sram_list_struct {
+struct sram_list_struct
+{
 	struct sram_list_struct *next;
 	void *addr;
 	size_t length;
 };
 
-typedef struct {
+typedef struct
+{
 	unsigned long end_brk;
 	unsigned long stack_start;
 

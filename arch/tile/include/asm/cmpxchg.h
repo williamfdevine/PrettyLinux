@@ -24,9 +24,9 @@
 
 /* Nonexistent functions intended to cause compile errors. */
 extern void __xchg_called_with_bad_pointer(void)
-	__compiletime_error("Bad argument size for xchg");
+__compiletime_error("Bad argument size for xchg");
 extern void __cmpxchg_called_with_bad_pointer(void)
-	__compiletime_error("Bad argument size for cmpxchg");
+__compiletime_error("Bad argument size for cmpxchg");
 
 #ifndef __tilegx__
 
@@ -54,7 +54,7 @@ long long _atomic64_cmpxchg(long long *v, long long o, long long n);
 			__cmpxchg_called_with_bad_pointer();		\
 		smp_mb();						\
 		(typeof(*(ptr)))_atomic_cmpxchg((int *)ptr, (int)o,	\
-						(int)n);		\
+										(int)n);		\
 	})
 
 #define xchg64(ptr, n)							\
@@ -63,7 +63,7 @@ long long _atomic64_cmpxchg(long long *v, long long o, long long n);
 			__xchg_called_with_bad_pointer();		\
 		smp_mb();						\
 		(typeof(*(ptr)))_atomic64_xchg((long long *)(ptr),	\
-						(long long)(n));	\
+									   (long long)(n));	\
 	})
 
 #define cmpxchg64(ptr, o, n)						\
@@ -72,7 +72,7 @@ long long _atomic64_cmpxchg(long long *v, long long o, long long n);
 			__cmpxchg_called_with_bad_pointer();		\
 		smp_mb();						\
 		(typeof(*(ptr)))_atomic64_cmpxchg((long long *)ptr,	\
-					(long long)o, (long long)n);	\
+										  (long long)o, (long long)n);	\
 	})
 
 #else
@@ -82,18 +82,18 @@ long long _atomic64_cmpxchg(long long *v, long long o, long long n);
 		typeof(*(ptr)) __x;					\
 		smp_mb();						\
 		switch (sizeof(*(ptr))) {				\
-		case 4:							\
-			__x = (typeof(__x))(unsigned long)		\
-				__insn_exch4((ptr),			\
-					(u32)(unsigned long)(n));	\
-			break;						\
-		case 8:							\
-			__x = (typeof(__x))				\
-				__insn_exch((ptr), (unsigned long)(n));	\
-			break;						\
-		default:						\
-			__xchg_called_with_bad_pointer();		\
-			break;						\
+			case 4:							\
+				__x = (typeof(__x))(unsigned long)		\
+					  __insn_exch4((ptr),			\
+								   (u32)(unsigned long)(n));	\
+				break;						\
+			case 8:							\
+				__x = (typeof(__x))				\
+					  __insn_exch((ptr), (unsigned long)(n));	\
+				break;						\
+			default:						\
+				__xchg_called_with_bad_pointer();		\
+				break;						\
 		}							\
 		smp_mb();						\
 		__x;							\
@@ -105,18 +105,18 @@ long long _atomic64_cmpxchg(long long *v, long long o, long long n);
 		__insn_mtspr(SPR_CMPEXCH_VALUE, (unsigned long)(o));	\
 		smp_mb();						\
 		switch (sizeof(*(ptr))) {				\
-		case 4:							\
-			__x = (typeof(__x))(unsigned long)		\
-				__insn_cmpexch4((ptr),			\
-					(u32)(unsigned long)(n));	\
-			break;						\
-		case 8:							\
-			__x = (typeof(__x))__insn_cmpexch((ptr),	\
-						(long long)(n));	\
-			break;						\
-		default:						\
-			__cmpxchg_called_with_bad_pointer();		\
-			break;						\
+			case 4:							\
+				__x = (typeof(__x))(unsigned long)		\
+					  __insn_cmpexch4((ptr),			\
+									  (u32)(unsigned long)(n));	\
+				break;						\
+			case 8:							\
+				__x = (typeof(__x))__insn_cmpexch((ptr),	\
+												  (long long)(n));	\
+				break;						\
+			default:						\
+				__cmpxchg_called_with_bad_pointer();		\
+				break;						\
 		}							\
 		smp_mb();						\
 		__x;							\

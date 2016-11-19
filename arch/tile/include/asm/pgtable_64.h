@@ -132,7 +132,7 @@ static inline unsigned long pud_index(unsigned long address)
 static inline unsigned long pgd_addr_normalize(unsigned long addr)
 {
 	return ((long)addr << (CHIP_WORD_SIZE() - CHIP_VA_WIDTH())) >>
-		(CHIP_WORD_SIZE() - CHIP_VA_WIDTH());
+		   (CHIP_WORD_SIZE() - CHIP_VA_WIDTH());
 }
 
 /* We don't define any pgds for these addresses. */
@@ -146,22 +146,22 @@ static inline int pgd_addr_invalid(unsigned long addr)
  */
 #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
 static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
-					    unsigned long addr, pte_t *ptep)
+		unsigned long addr, pte_t *ptep)
 {
 	return (__insn_fetchand(&ptep->val, ~HV_PTE_ACCESSED) >>
-		HV_PTE_INDEX_ACCESSED) & 0x1;
+			HV_PTE_INDEX_ACCESSED) & 0x1;
 }
 
 #define __HAVE_ARCH_PTEP_SET_WRPROTECT
 static inline void ptep_set_wrprotect(struct mm_struct *mm,
-				      unsigned long addr, pte_t *ptep)
+									  unsigned long addr, pte_t *ptep)
 {
 	__insn_fetchand(&ptep->val, ~HV_PTE_WRITABLE);
 }
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
-				       unsigned long addr, pte_t *ptep)
+									   unsigned long addr, pte_t *ptep)
 {
 	return hv_pte(__insn_exch(&ptep->val, 0UL));
 }

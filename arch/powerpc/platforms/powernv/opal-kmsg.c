@@ -24,7 +24,7 @@
  * message, it just ensures that OPAL completely flushes the console buffer.
  */
 static void force_opal_console_flush(struct kmsg_dumper *dumper,
-				     enum kmsg_dump_reason reason)
+									 enum kmsg_dump_reason reason)
 {
 	int i;
 	int64_t ret;
@@ -34,17 +34,24 @@ static void force_opal_console_flush(struct kmsg_dumper *dumper,
 	 * so we don't need to do any special flushing.
 	 */
 	if (reason != KMSG_DUMP_PANIC)
+	{
 		return;
+	}
 
-	if (opal_check_token(OPAL_CONSOLE_FLUSH)) {
+	if (opal_check_token(OPAL_CONSOLE_FLUSH))
+	{
 		ret = opal_console_flush(0);
 
 		if (ret == OPAL_UNSUPPORTED || ret == OPAL_PARAMETER)
+		{
 			return;
+		}
 
 		/* Incrementally flush until there's nothing left */
 		while (opal_console_flush(0) != OPAL_SUCCESS);
-	} else {
+	}
+	else
+	{
 		/*
 		 * If OPAL_CONSOLE_FLUSH is not implemented in the firmware,
 		 * the console can still be flushed by calling the polling
@@ -54,13 +61,16 @@ static void force_opal_console_flush(struct kmsg_dumper *dumper,
 		 * to do much else.
 		 */
 		printk(KERN_NOTICE "opal: OPAL_CONSOLE_FLUSH missing.\n");
-		for (i = 0; i < 1024; i++) {
+
+		for (i = 0; i < 1024; i++)
+		{
 			opal_poll_events(NULL);
 		}
 	}
 }
 
-static struct kmsg_dumper opal_kmsg_dumper = {
+static struct kmsg_dumper opal_kmsg_dumper =
+{
 	.dump = force_opal_console_flush
 };
 
@@ -70,6 +80,9 @@ void __init opal_kmsg_init(void)
 
 	/* Add our dumper to the list */
 	rc = kmsg_dump_register(&opal_kmsg_dumper);
+
 	if (rc != 0)
+	{
 		pr_err("opal: kmsg_dump_register failed; returned %d\n", rc);
+	}
 }

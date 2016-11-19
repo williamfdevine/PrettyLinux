@@ -50,7 +50,8 @@ void ack_bad_irq(unsigned int irq);
  * to tell the generic irq code what kind of interrupt is mapped to a
  * particular IRQ number.
  */
-enum {
+enum
+{
 	/* per-cpu interrupt; use enable/disable_percpu_irq() to mask */
 	TILE_IRQ_PERCPU,
 	/* global interrupt, hardware responsible for clearing. */
@@ -80,7 +81,7 @@ void setup_irq_regs(void);
 
 #ifdef __tilegx__
 void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
-				    bool exclude_self);
+									bool exclude_self);
 #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
 #endif
 

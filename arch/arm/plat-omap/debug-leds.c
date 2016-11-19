@@ -25,7 +25,8 @@
  */
 
 /* NOTE:  most boards don't have a static mapping for the FPGA ... */
-struct h2p2_dbg_fpga {
+struct h2p2_dbg_fpga
+{
 	/* offset 0x00 */
 	u16		smc91x[8];
 	/* offset 0x10 */
@@ -48,15 +49,18 @@ static struct h2p2_dbg_fpga __iomem *fpga;
 
 static u16 fpga_led_state;
 
-struct dbg_led {
+struct dbg_led
+{
 	struct led_classdev	cdev;
 	u16			mask;
 };
 
-static const struct {
+static const struct
+{
 	const char *name;
 	const char *trigger;
-} dbg_leds[] = {
+} dbg_leds[] =
+{
 	{ "dbg:d4", "heartbeat", },
 	{ "dbg:d5", "cpu0", },
 	{ "dbg:d6", "default-on", },
@@ -80,16 +84,22 @@ static const struct {
  * LED triggers are compiled in.
  */
 static void dbg_led_set(struct led_classdev *cdev,
-			      enum led_brightness b)
+						enum led_brightness b)
 {
 	struct dbg_led *led = container_of(cdev, struct dbg_led, cdev);
 	u16 reg;
 
 	reg = readw_relaxed(&fpga->leds);
+
 	if (b != LED_OFF)
+	{
 		reg |= led->mask;
+	}
 	else
+	{
 		reg &= ~led->mask;
+	}
+
 	writew_relaxed(reg, &fpga->leds);
 }
 
@@ -108,18 +118,25 @@ static int fpga_probe(struct platform_device *pdev)
 	int i;
 
 	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!iomem)
+	{
 		return -ENODEV;
+	}
 
 	fpga = ioremap(iomem->start, resource_size(iomem));
 	writew_relaxed(0xff, &fpga->leds);
 
-	for (i = 0; i < ARRAY_SIZE(dbg_leds); i++) {
+	for (i = 0; i < ARRAY_SIZE(dbg_leds); i++)
+	{
 		struct dbg_led *led;
 
 		led = kzalloc(sizeof(*led), GFP_KERNEL);
+
 		if (!led)
+		{
 			break;
+		}
 
 		led->cdev.name = dbg_leds[i].name;
 		led->cdev.brightness_set = dbg_led_set;
@@ -127,7 +144,8 @@ static int fpga_probe(struct platform_device *pdev)
 		led->cdev.default_trigger = dbg_leds[i].trigger;
 		led->mask = BIT(i);
 
-		if (led_classdev_register(NULL, &led->cdev) < 0) {
+		if (led_classdev_register(NULL, &led->cdev) < 0)
+		{
 			kfree(led);
 			break;
 		}
@@ -150,12 +168,14 @@ static int fpga_resume_noirq(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops fpga_dev_pm_ops = {
+static const struct dev_pm_ops fpga_dev_pm_ops =
+{
 	.suspend_noirq = fpga_suspend_noirq,
 	.resume_noirq = fpga_resume_noirq,
 };
 
-static struct platform_driver led_driver = {
+static struct platform_driver led_driver =
+{
 	.driver.name	= "omap_dbg_led",
 	.driver.pm	= &fpga_dev_pm_ops,
 	.probe		= fpga_probe,
@@ -164,11 +184,14 @@ static struct platform_driver led_driver = {
 static int __init fpga_init(void)
 {
 	if (machine_is_omap_h4()
-			|| machine_is_omap_h3()
-			|| machine_is_omap_h2()
-			|| machine_is_omap_perseus2()
-			)
+		|| machine_is_omap_h3()
+		|| machine_is_omap_h2()
+		|| machine_is_omap_perseus2()
+	   )
+	{
 		return platform_driver_register(&led_driver);
+	}
+
 	return 0;
 }
 fs_initcall(fpga_init);

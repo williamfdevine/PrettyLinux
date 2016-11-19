@@ -33,19 +33,28 @@ EXPORT_SYMBOL(node_to_cpu_mask);
 void map_cpu_to_node(int cpu, int nid)
 {
 	int oldnid;
-	if (nid < 0) { /* just initialize by zero */
+
+	if (nid < 0)   /* just initialize by zero */
+	{
 		cpu_to_node_map[cpu] = 0;
 		return;
 	}
+
 	/* sanity check first */
 	oldnid = cpu_to_node_map[cpu];
-	if (cpumask_test_cpu(cpu, &node_to_cpu_mask[oldnid])) {
+
+	if (cpumask_test_cpu(cpu, &node_to_cpu_mask[oldnid]))
+	{
 		return; /* nothing to do */
 	}
+
 	/* we don't have cpu-driven node hot add yet...
 	   In usual case, node is created from SRAT at boot time. */
 	if (!node_online(nid))
+	{
 		nid = first_online_node;
+	}
+
 	cpu_to_node_map[cpu] = nid;
 	cpumask_set_cpu(cpu, &node_to_cpu_mask[nid]);
 	return;
@@ -70,16 +79,22 @@ void __init build_cpu_to_node_map(void)
 {
 	int cpu, i, node;
 
-	for(node=0; node < MAX_NUMNODES; node++)
+	for (node = 0; node < MAX_NUMNODES; node++)
+	{
 		cpumask_clear(&node_to_cpu_mask[node]);
+	}
 
-	for_each_possible_early_cpu(cpu) {
+	for_each_possible_early_cpu(cpu)
+	{
 		node = -1;
+
 		for (i = 0; i < NR_CPUS; ++i)
-			if (cpu_physical_id(cpu) == node_cpuid[i].phys_id) {
+			if (cpu_physical_id(cpu) == node_cpuid[i].phys_id)
+			{
 				node = node_cpuid[i].nid;
 				break;
 			}
+
 		map_cpu_to_node(cpu, node);
 	}
 }

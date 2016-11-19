@@ -24,13 +24,15 @@
 
 #ifndef _LANGUAGE_ASSEMBLY
 
-extern struct lasat_misc {
+extern struct lasat_misc
+{
 	volatile u32 *reset_reg;
 	volatile u32 *flash_wp_reg;
 	u32 flash_wp_bit;
 } *lasat_misc;
 
-enum lasat_mtdparts {
+enum lasat_mtdparts
+{
 	LASAT_MTD_BOOTLOADER,
 	LASAT_MTD_SERVICE,
 	LASAT_MTD_NORMAL,
@@ -47,7 +49,8 @@ enum lasat_mtdparts {
 #include <linux/types.h>
 
 #define LASAT_EEPROM_VERSION 7
-struct lasat_eeprom_struct {
+struct lasat_eeprom_struct
+{
 	unsigned int  version;
 	unsigned int  cfg[3];
 	unsigned char hwaddr[6];
@@ -73,7 +76,8 @@ struct lasat_eeprom_struct {
 	unsigned int  crc32;
 };
 
-struct lasat_eeprom_struct_pre7 {
+struct lasat_eeprom_struct_pre7
+{
 	unsigned int  version;
 	unsigned int  flags[3];
 	unsigned char hwaddr0[6];
@@ -134,9 +138,9 @@ struct lasat_eeprom_struct_pre7 {
 #define LASAT_BMID_SAFEPIPE7000		6
 #define LASAT_BMID_SAFEPIPE1000		7
 #if 0
-#define LASAT_BMID_SAFEPIPE30		7
-#define LASAT_BMID_SAFEPIPE5100		8
-#define LASAT_BMID_SAFEPIPE7100		9
+	#define LASAT_BMID_SAFEPIPE30		7
+	#define LASAT_BMID_SAFEPIPE5100		8
+	#define LASAT_BMID_SAFEPIPE7100		9
 #endif
 #define LASAT_BMID_UNKNOWN		0xf
 #define LASAT_MAX_BMID_NAMES		9   /* no larger than 15! */
@@ -174,7 +178,8 @@ struct lasat_eeprom_struct_pre7 {
 #define LASAT_PRID_SAFEPIPE1040		21
 #define LASAT_PRID_SAFEPIPE1060		22
 
-struct lasat_info {
+struct lasat_info
+{
 	unsigned int  li_cpu_hz;
 	unsigned int  li_bus_hz;
 	unsigned int  li_bmid;
@@ -198,7 +203,9 @@ extern struct lasat_info lasat_board_info;
 static inline unsigned long lasat_flash_partition_start(int partno)
 {
 	if (partno < 0 || partno >= LASAT_MTD_LAST)
+	{
 		return 0;
+	}
 
 	return lasat_board_info.li_flashpart_base[partno];
 }
@@ -206,7 +213,9 @@ static inline unsigned long lasat_flash_partition_start(int partno)
 static inline unsigned long lasat_flash_partition_size(int partno)
 {
 	if (partno < 0 || partno >= LASAT_MTD_LAST)
+	{
 		return 0;
+	}
 
 	return lasat_board_info.li_flashpart_size[partno];
 }

@@ -17,7 +17,8 @@
 #ifndef __ASSEMBLY__
 
 /* IRQ IDs presented to drivers */
-enum {
+enum
+{
 	IRQ_MB93493_VDC			= IRQ_BASE_MB93493 + 0,
 	IRQ_MB93493_VCC			= IRQ_BASE_MB93493 + 1,
 	IRQ_MB93493_AUDIO_OUT		= IRQ_BASE_MB93493 + 2,

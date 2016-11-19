@@ -15,13 +15,13 @@ struct irq_data;
 
 extern unsigned int get_clk_frequency_khz(int info);
 extern void __init pxa_dt_irq_init(int (*fn)(struct irq_data *,
-					     unsigned int));
+								   unsigned int));
 extern void __init pxa_map_io(void);
 extern void pxa_timer_init(void);
 
 #define SET_BANK(__nr,__start,__size) \
 	mi->bank[__nr].start = (__start), \
-	mi->bank[__nr].size = (__size)
+						   mi->bank[__nr].size = (__size)
 
 #define ARRAY_AND_SIZE(x)	(x), ARRAY_SIZE(x)
 
@@ -64,18 +64,18 @@ static inline void pxa2xx_clear_reset_status(unsigned int mask) {}
  * removed, and replaced with a clk_get(NULL, "core").
  */
 #ifdef CONFIG_PXA25x
-extern unsigned pxa25x_get_clk_frequency_khz(int);
+	extern unsigned pxa25x_get_clk_frequency_khz(int);
 #else
-#define pxa25x_get_clk_frequency_khz(x)		(0)
+	#define pxa25x_get_clk_frequency_khz(x)		(0)
 #endif
 
 #ifdef CONFIG_PXA27x
 #else
-#define pxa27x_get_clk_frequency_khz(x)		(0)
+	#define pxa27x_get_clk_frequency_khz(x)		(0)
 #endif
 
 #ifdef CONFIG_PXA3xx
-extern unsigned	pxa3xx_get_clk_frequency_khz(int);
+	extern unsigned	pxa3xx_get_clk_frequency_khz(int);
 #else
-#define pxa3xx_get_clk_frequency_khz(x)		(0)
+	#define pxa3xx_get_clk_frequency_khz(x)		(0)
 #endif

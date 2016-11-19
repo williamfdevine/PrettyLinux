@@ -8,7 +8,8 @@
 #ifndef _UAPI__ASM_AVR32_SIGCONTEXT_H
 #define _UAPI__ASM_AVR32_SIGCONTEXT_H
 
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long	oldmask;
 
 	/* CPU registers */

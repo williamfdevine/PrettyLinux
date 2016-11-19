@@ -29,10 +29,13 @@ void __init prom_init(void)
 #ifdef CONFIG_BLK_DEV_INITRD
 	/* Read the initrd address from the firmware environment */
 	initrd_start = fw_getenvl("initrd_start");
-	if (initrd_start) {
+
+	if (initrd_start)
+	{
 		initrd_start = KSEG0ADDR(initrd_start);
 		initrd_end = initrd_start + fw_getenvl("initrd_size");
 	}
+
 #endif
 }
 

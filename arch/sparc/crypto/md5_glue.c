@@ -27,7 +27,7 @@
 #include "opcodes.h"
 
 asmlinkage void md5_sparc64_transform(u32 *digest, const char *data,
-				      unsigned int rounds);
+									  unsigned int rounds);
 
 static int md5_sparc64_init(struct shash_desc *desc)
 {
@@ -43,17 +43,21 @@ static int md5_sparc64_init(struct shash_desc *desc)
 }
 
 static void __md5_sparc64_update(struct md5_state *sctx, const u8 *data,
-				 unsigned int len, unsigned int partial)
+								 unsigned int len, unsigned int partial)
 {
 	unsigned int done = 0;
 
 	sctx->byte_count += len;
-	if (partial) {
+
+	if (partial)
+	{
 		done = MD5_HMAC_BLOCK_SIZE - partial;
 		memcpy((u8 *)sctx->block + partial, data, done);
 		md5_sparc64_transform(sctx->hash, (u8 *)sctx->block, 1);
 	}
-	if (len - done >= MD5_HMAC_BLOCK_SIZE) {
+
+	if (len - done >= MD5_HMAC_BLOCK_SIZE)
+	{
 		const unsigned int rounds = (len - done) / MD5_HMAC_BLOCK_SIZE;
 
 		md5_sparc64_transform(sctx->hash, data + done, rounds);
@@ -64,17 +68,21 @@ static void __md5_sparc64_update(struct md5_state *sctx, const u8 *data,
 }
 
 static int md5_sparc64_update(struct shash_desc *desc, const u8 *data,
-			      unsigned int len)
+							  unsigned int len)
 {
 	struct md5_state *sctx = shash_desc_ctx(desc);
 	unsigned int partial = sctx->byte_count % MD5_HMAC_BLOCK_SIZE;
 
 	/* Handle the fast case right here */
-	if (partial + len < MD5_HMAC_BLOCK_SIZE) {
+	if (partial + len < MD5_HMAC_BLOCK_SIZE)
+	{
 		sctx->byte_count += len;
 		memcpy((u8 *)sctx->block + partial, data, len);
-	} else
+	}
+	else
+	{
 		__md5_sparc64_update(sctx, data, len, partial);
+	}
 
 	return 0;
 }
@@ -92,20 +100,26 @@ static int md5_sparc64_final(struct shash_desc *desc, u8 *out)
 
 	/* Pad out to 56 mod 64 and append length */
 	index = sctx->byte_count % MD5_HMAC_BLOCK_SIZE;
-	padlen = (index < 56) ? (56 - index) : ((MD5_HMAC_BLOCK_SIZE+56) - index);
+	padlen = (index < 56) ? (56 - index) : ((MD5_HMAC_BLOCK_SIZE + 56) - index);
 
 	/* We need to fill a whole block for __md5_sparc64_update() */
-	if (padlen <= 56) {
+	if (padlen <= 56)
+	{
 		sctx->byte_count += padlen;
 		memcpy((u8 *)sctx->block + index, padding, padlen);
-	} else {
+	}
+	else
+	{
 		__md5_sparc64_update(sctx, padding, padlen, index);
 	}
+
 	__md5_sparc64_update(sctx, (const u8 *)&bits, sizeof(bits), 56);
 
 	/* Store state in digest */
 	for (i = 0; i < MD5_HASH_WORDS; i++)
+	{
 		dst[i] = sctx->hash[i];
+	}
 
 	/* Wipe context */
 	memset(sctx, 0, sizeof(*sctx));
@@ -131,7 +145,8 @@ static int md5_sparc64_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	MD5_DIGEST_SIZE,
 	.init		=	md5_sparc64_init,
 	.update		=	md5_sparc64_update,
@@ -142,7 +157,7 @@ static struct shash_alg alg = {
 	.statesize	=	sizeof(struct md5_state),
 	.base		=	{
 		.cra_name	=	"md5",
-		.cra_driver_name=	"md5-sparc64",
+		.cra_driver_name =	"md5-sparc64",
 		.cra_priority	=	SPARC_CR_OPCODE_PRIORITY,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	MD5_HMAC_BLOCK_SIZE,
@@ -155,21 +170,28 @@ static bool __init sparc64_has_md5_opcode(void)
 	unsigned long cfr;
 
 	if (!(sparc64_elf_hwcap & HWCAP_SPARC_CRYPTO))
+	{
 		return false;
+	}
 
 	__asm__ __volatile__("rd %%asr26, %0" : "=r" (cfr));
+
 	if (!(cfr & CFR_MD5))
+	{
 		return false;
+	}
 
 	return true;
 }
 
 static int __init md5_sparc64_mod_init(void)
 {
-	if (sparc64_has_md5_opcode()) {
+	if (sparc64_has_md5_opcode())
+	{
 		pr_info("Using sparc64 md5 opcode optimized MD5 implementation\n");
 		return crypto_register_shash(&alg);
 	}
+
 	pr_info("sparc64 md5 opcode not available.\n");
 	return -ENODEV;
 }

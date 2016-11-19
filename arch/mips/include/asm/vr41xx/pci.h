@@ -22,42 +22,50 @@
 
 #define PCI_MASTER_ADDRESS_MASK 0x7fffffffU
 
-struct pci_master_address_conversion {
+struct pci_master_address_conversion
+{
 	uint32_t bus_base_address;
 	uint32_t address_mask;
 	uint32_t pci_base_address;
 };
 
-struct pci_target_address_conversion {
+struct pci_target_address_conversion
+{
 	uint32_t address_mask;
 	uint32_t bus_base_address;
 };
 
-typedef enum {
+typedef enum
+{
 	CANNOT_LOCK_FROM_DEVICE,
 	CAN_LOCK_FROM_DEVICE,
 } pci_exclusive_access_t;
 
-struct pci_mailbox_address {
+struct pci_mailbox_address
+{
 	uint32_t base_address;
 };
 
-struct pci_target_address_window {
+struct pci_target_address_window
+{
 	uint32_t base_address;
 };
 
-typedef enum {
+typedef enum
+{
 	PCI_ARBITRATION_MODE_FAIR,
 	PCI_ARBITRATION_MODE_ALTERNATE_0,
 	PCI_ARBITRATION_MODE_ALTERNATE_B,
 } pci_arbiter_priority_control_t;
 
-typedef enum {
+typedef enum
+{
 	PCI_TAKE_AWAY_GNT_DISABLE,
 	PCI_TAKE_AWAY_GNT_ENABLE,
 } pci_take_away_gnt_mode_t;
 
-struct pci_controller_unit_setup {
+struct pci_controller_unit_setup
+{
 	struct pci_master_address_conversion *master_memory1;
 	struct pci_master_address_conversion *master_memory2;
 

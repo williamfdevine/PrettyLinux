@@ -11,7 +11,8 @@
 #include <linux/cpumask.h>
 #include <linux/list.h>
 
-struct toptree {
+struct toptree
+{
 	int level;
 	int id;
 	cpumask_t mask;
@@ -30,7 +31,7 @@ int toptree_count(struct toptree *context, int level);
 
 struct toptree *toptree_first(struct toptree *context, int level);
 struct toptree *toptree_next(struct toptree *cur, struct toptree *context,
-			     int level);
+							 int level);
 
 #define toptree_for_each_child(child, ptree)				\
 	list_for_each_entry(child,  &ptree->children, sibling)
@@ -44,15 +45,15 @@ struct toptree *toptree_next(struct toptree *cur, struct toptree *context,
 
 #define toptree_for_each(ptree, cont, ttype)		\
 	for (ptree = toptree_first(cont, ttype);	\
-	     ptree != NULL;				\
-	     ptree = toptree_next(ptree, cont, ttype))
+		 ptree != NULL;				\
+		 ptree = toptree_next(ptree, cont, ttype))
 
 #define toptree_for_each_safe(ptree, tmp, cont, ttype)		\
 	for (ptree = toptree_first(cont, ttype),		\
-		     tmp = toptree_next(ptree, cont, ttype);	\
-	     ptree != NULL;					\
-	     ptree = tmp,					\
-		     tmp = toptree_next(ptree, cont, ttype))
+		 tmp = toptree_next(ptree, cont, ttype);	\
+		 ptree != NULL;					\
+		 ptree = tmp,					\
+		 tmp = toptree_next(ptree, cont, ttype))
 
 #define toptree_for_each_sibling(ptree, start)			\
 	toptree_for_each(ptree, start->parent, start->level)

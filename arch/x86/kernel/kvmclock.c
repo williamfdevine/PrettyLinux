@@ -105,7 +105,8 @@ static cycle_t kvm_sched_clock_read(void)
 
 static inline void kvm_sched_clock_init(bool stable)
 {
-	if (!stable) {
+	if (!stable)
+	{
 		pv_time_ops.sched_clock = kvm_clock_read;
 		return;
 	}
@@ -115,10 +116,10 @@ static inline void kvm_sched_clock_init(bool stable)
 	set_sched_clock_stable();
 
 	printk(KERN_INFO "kvm-clock: using sched offset of %llu cycles\n",
-			kvm_sched_clock_offset);
+		   kvm_sched_clock_offset);
 
 	BUILD_BUG_ON(sizeof(kvm_sched_clock_offset) >
-	         sizeof(((struct pvclock_vcpu_time_info *)NULL)->system_time));
+				 sizeof(((struct pvclock_vcpu_time_info *)NULL)->system_time));
 }
 
 /*
@@ -162,10 +163,14 @@ bool kvm_check_and_clear_guest_paused(void)
 	int cpu = smp_processor_id();
 
 	if (!hv_clock)
+	{
 		return ret;
+	}
 
 	src = &hv_clock[cpu].pvti;
-	if ((src->flags & PVCLOCK_GUEST_STOPPED) != 0) {
+
+	if ((src->flags & PVCLOCK_GUEST_STOPPED) != 0)
+	{
 		src->flags &= ~PVCLOCK_GUEST_STOPPED;
 		pvclock_touch_watchdogs();
 		ret = true;
@@ -174,7 +179,8 @@ bool kvm_check_and_clear_guest_paused(void)
 	return ret;
 }
 
-static struct clocksource kvm_clock = {
+static struct clocksource kvm_clock =
+{
 	.name = "kvm-clock",
 	.read = kvm_clock_get_cycles,
 	.rating = 400,
@@ -189,14 +195,16 @@ int kvm_register_clock(char *txt)
 	struct pvclock_vcpu_time_info *src;
 
 	if (!hv_clock)
+	{
 		return 0;
+	}
 
 	src = &hv_clock[cpu].pvti;
 	low = (int)slow_virt_to_phys(src) | 1;
 	high = ((u64)slow_virt_to_phys(src) >> 32);
 	ret = native_write_msr_safe(msr_kvm_system_time, low, high);
 	printk(KERN_INFO "kvm-clock: cpu %d, msr %x:%x, %s\n",
-	       cpu, high, low, txt);
+		   cpu, high, low, txt);
 
 	return ret;
 }
@@ -252,34 +260,47 @@ void __init kvmclock_init(void)
 	int size, cpu;
 	u8 flags;
 
-	size = PAGE_ALIGN(sizeof(struct pvclock_vsyscall_time_info)*NR_CPUS);
+	size = PAGE_ALIGN(sizeof(struct pvclock_vsyscall_time_info) * NR_CPUS);
 
 	if (!kvm_para_available())
+	{
 		return;
+	}
 
-	if (kvmclock && kvm_para_has_feature(KVM_FEATURE_CLOCKSOURCE2)) {
+	if (kvmclock && kvm_para_has_feature(KVM_FEATURE_CLOCKSOURCE2))
+	{
 		msr_kvm_system_time = MSR_KVM_SYSTEM_TIME_NEW;
 		msr_kvm_wall_clock = MSR_KVM_WALL_CLOCK_NEW;
-	} else if (!(kvmclock && kvm_para_has_feature(KVM_FEATURE_CLOCKSOURCE)))
+	}
+	else if (!(kvmclock && kvm_para_has_feature(KVM_FEATURE_CLOCKSOURCE)))
+	{
 		return;
+	}
 
 	printk(KERN_INFO "kvm-clock: Using msrs %x and %x",
-		msr_kvm_system_time, msr_kvm_wall_clock);
+		   msr_kvm_system_time, msr_kvm_wall_clock);
 
 	mem = memblock_alloc(size, PAGE_SIZE);
+
 	if (!mem)
+	{
 		return;
+	}
+
 	hv_clock = __va(mem);
 	memset(hv_clock, 0, size);
 
-	if (kvm_register_clock("primary cpu clock")) {
+	if (kvm_register_clock("primary cpu clock"))
+	{
 		hv_clock = NULL;
 		memblock_free(mem, size);
 		return;
 	}
 
 	if (kvm_para_has_feature(KVM_FEATURE_CLOCKSOURCE_STABLE_BIT))
+	{
 		pvclock_set_flags(PVCLOCK_TSC_STABLE_BIT);
+	}
 
 	cpu = get_cpu();
 	vcpu_time = &hv_clock[cpu].pvti;
@@ -316,16 +337,19 @@ int __init kvm_setup_vsyscall_timeinfo(void)
 	unsigned int size;
 
 	if (!hv_clock)
+	{
 		return 0;
+	}
 
-	size = PAGE_ALIGN(sizeof(struct pvclock_vsyscall_time_info)*NR_CPUS);
+	size = PAGE_ALIGN(sizeof(struct pvclock_vsyscall_time_info) * NR_CPUS);
 
 	cpu = get_cpu();
 
 	vcpu_time = &hv_clock[cpu].pvti;
 	flags = pvclock_read_flags(vcpu_time);
 
-	if (!(flags & PVCLOCK_TSC_STABLE_BIT)) {
+	if (!(flags & PVCLOCK_TSC_STABLE_BIT))
+	{
 		put_cpu();
 		return 1;
 	}

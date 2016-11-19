@@ -30,11 +30,11 @@
  * See cpu-sh2/watchdog.h for explanation of this stupidity..
  */
 #ifndef WTCNT_R
-#  define WTCNT_R	WTCNT
+	#define WTCNT_R	WTCNT
 #endif
 
 #ifndef WTCSR_R
-#  define WTCSR_R	WTCSR
+	#define WTCSR_R	WTCSR
 #endif
 
 /*

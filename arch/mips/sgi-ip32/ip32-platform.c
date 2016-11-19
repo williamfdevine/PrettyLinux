@@ -19,22 +19,24 @@ extern void ip32_prepare_poweroff(void);
 #define MACEISA_SERIAL2_OFFS   offsetof(struct sgi_mace, isa.serial2)
 
 #define MACE_PORT(offset,_irq)						\
-{									\
-	.mapbase	= MACE_BASE + offset,				\
-	.irq		= _irq,						\
-	.uartclk	= 1843200,					\
-	.iotype		= UPIO_MEM,					\
-	.flags		= UPF_SKIP_TEST|UPF_IOREMAP,			\
-	.regshift	= 8,						\
-}
+	{									\
+		.mapbase	= MACE_BASE + offset,				\
+					  .irq		= _irq,						\
+									.uartclk	= 1843200,					\
+											.iotype		= UPIO_MEM,					\
+													.flags		= UPF_SKIP_TEST|UPF_IOREMAP,			\
+															.regshift	= 8,						\
+	}
 
-static struct plat_serial8250_port uart8250_data[] = {
+static struct plat_serial8250_port uart8250_data[] =
+{
 	MACE_PORT(MACEISA_SERIAL1_OFFS, MACEISA_SERIAL1_IRQ),
 	MACE_PORT(MACEISA_SERIAL2_OFFS, MACEISA_SERIAL2_IRQ),
 	{ },
 };
 
-static struct platform_device uart8250_device = {
+static struct platform_device uart8250_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -55,12 +57,18 @@ static __init int meth_devinit(void)
 	int ret;
 
 	pd = platform_device_alloc("meth", -1);
+
 	if (!pd)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add(pd);
+
 	if (ret)
+	{
 		platform_device_put(pd);
+	}
 
 	return ret;
 }
@@ -73,12 +81,18 @@ static __init int sgio2audio_devinit(void)
 	int ret;
 
 	pd = platform_device_alloc("sgio2audio", -1);
+
 	if (!pd)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add(pd);
+
 	if (ret)
+	{
 		platform_device_put(pd);
+	}
 
 	return ret;
 }
@@ -95,7 +109,8 @@ device_initcall(sgio2btns_devinit);
 #define MACE_RTC_RES_START (MACE_BASE + offsetof(struct sgi_mace, isa.rtc))
 #define MACE_RTC_RES_END (MACE_RTC_RES_START + 32767)
 
-static struct resource ip32_rtc_resources[] = {
+static struct resource ip32_rtc_resources[] =
+{
 	{
 		.start	= MACEISA_RTC_IRQ,
 		.end	= MACEISA_RTC_IRQ,
@@ -109,7 +124,8 @@ static struct resource ip32_rtc_resources[] = {
 
 /* RTC registers on IP32 are each padded by 256 bytes (0x100). */
 static struct ds1685_rtc_platform_data
-ip32_rtc_platform_data[] = {
+	ip32_rtc_platform_data[] =
+{
 	{
 		.regstep = 0x100,
 		.bcd_mode = true,
@@ -120,7 +136,8 @@ ip32_rtc_platform_data[] = {
 	},
 };
 
-struct platform_device ip32_rtc_device = {
+struct platform_device ip32_rtc_device =
+{
 	.name			= "rtc-ds1685",
 	.id			= -1,
 	.dev			= {

@@ -12,7 +12,8 @@
 struct ar231x_board_config ath25_board;
 enum ath25_soc_type ath25_soc = ATH25_SOC_UNKNOWN;
 
-static struct resource ath25_wmac0_res[] = {
+static struct resource ath25_wmac0_res[] =
+{
 	{
 		.name = "wmac0_membase",
 		.flags = IORESOURCE_MEM,
@@ -23,7 +24,8 @@ static struct resource ath25_wmac0_res[] = {
 	}
 };
 
-static struct resource ath25_wmac1_res[] = {
+static struct resource ath25_wmac1_res[] =
+{
 	{
 		.name = "wmac1_membase",
 		.flags = IORESOURCE_MEM,
@@ -34,7 +36,8 @@ static struct resource ath25_wmac1_res[] = {
 	}
 };
 
-static struct platform_device ath25_wmac[] = {
+static struct platform_device ath25_wmac[] =
+{
 	{
 		.id = 0,
 		.name = "ar231x-wmac",
@@ -51,7 +54,8 @@ static struct platform_device ath25_wmac[] = {
 	},
 };
 
-static const char * const soc_type_strings[] = {
+static const char *const soc_type_strings[] =
+{
 	[ATH25_SOC_AR5312] = "Atheros AR5312",
 	[ATH25_SOC_AR2312] = "Atheros AR2312",
 	[ATH25_SOC_AR2313] = "Atheros AR2313",
@@ -65,8 +69,11 @@ static const char * const soc_type_strings[] = {
 const char *get_system_type(void)
 {
 	if ((ath25_soc >= ARRAY_SIZE(soc_type_strings)) ||
-	    !soc_type_strings[ath25_soc])
+		!soc_type_strings[ath25_soc])
+	{
 		return soc_type_strings[ATH25_SOC_UNKNOWN];
+	}
+
 	return soc_type_strings[ath25_soc];
 }
 
@@ -103,9 +110,13 @@ int __init ath25_add_wmac(int nr, u32 base, int irq)
 static int __init ath25_register_devices(void)
 {
 	if (is_ar5312())
+	{
 		ar5312_init_devices();
+	}
 	else
+	{
 		ar2315_init_devices();
+	}
 
 	return 0;
 }
@@ -115,9 +126,13 @@ device_initcall(ath25_register_devices);
 static int __init ath25_arch_init(void)
 {
 	if (is_ar5312())
+	{
 		ar5312_arch_init();
+	}
 	else
+	{
 		ar2315_arch_init();
+	}
 
 	return 0;
 }

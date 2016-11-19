@@ -199,14 +199,14 @@
 
 /* XLP9XX fuse block */
 #define nlm_get_fuse_pcibase(node)	\
-			nlm_pcicfg_base(XLP9XX_IO_FUSE_OFFSET(node))
+	nlm_pcicfg_base(XLP9XX_IO_FUSE_OFFSET(node))
 #define nlm_get_fuse_regbase(node)	\
-			(nlm_get_fuse_pcibase(node) + XLP_IO_PCI_HDRSZ)
+	(nlm_get_fuse_pcibase(node) + XLP_IO_PCI_HDRSZ)
 
 #define nlm_get_clock_pcibase(node)	\
-			nlm_pcicfg_base(XLP9XX_IO_CLOCK_OFFSET(node))
+	nlm_pcicfg_base(XLP9XX_IO_CLOCK_OFFSET(node))
 #define nlm_get_clock_regbase(node)	\
-			(nlm_get_clock_pcibase(node) + XLP_IO_PCI_HDRSZ)
+	(nlm_get_clock_pcibase(node) + XLP_IO_PCI_HDRSZ)
 
 unsigned int nlm_get_pic_frequency(int node);
 #endif

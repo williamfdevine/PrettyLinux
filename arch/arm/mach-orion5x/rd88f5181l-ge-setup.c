@@ -38,18 +38,21 @@
 /*****************************************************************************
  * 16M NOR Flash on Device bus Boot chip select
  ****************************************************************************/
-static struct physmap_flash_data rd88f5181l_ge_nor_boot_flash_data = {
+static struct physmap_flash_data rd88f5181l_ge_nor_boot_flash_data =
+{
 	.width		= 1,
 };
 
-static struct resource rd88f5181l_ge_nor_boot_flash_resource = {
+static struct resource rd88f5181l_ge_nor_boot_flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 	.start		= RD88F5181L_GE_NOR_BOOT_BASE,
 	.end		= RD88F5181L_GE_NOR_BOOT_BASE +
-			  RD88F5181L_GE_NOR_BOOT_SIZE - 1,
+	RD88F5181L_GE_NOR_BOOT_SIZE - 1,
 };
 
-static struct platform_device rd88f5181l_ge_nor_boot_flash = {
+static struct platform_device rd88f5181l_ge_nor_boot_flash =
+{
 	.name			= "physmap-flash",
 	.id			= 0,
 	.dev		= {
@@ -63,7 +66,8 @@ static struct platform_device rd88f5181l_ge_nor_boot_flash = {
 /*****************************************************************************
  * General Setup
  ****************************************************************************/
-static unsigned int rd88f5181l_ge_mpp_modes[] __initdata = {
+static unsigned int rd88f5181l_ge_mpp_modes[] __initdata =
+{
 	MPP0_GPIO,		/* LED1 */
 	MPP1_GPIO,		/* LED5 */
 	MPP2_GPIO,		/* LED4 */
@@ -87,13 +91,15 @@ static unsigned int rd88f5181l_ge_mpp_modes[] __initdata = {
 	0,
 };
 
-static struct mv643xx_eth_platform_data rd88f5181l_ge_eth_data = {
+static struct mv643xx_eth_platform_data rd88f5181l_ge_eth_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_NONE,
 	.speed		= SPEED_1000,
 	.duplex		= DUPLEX_FULL,
 };
 
-static struct dsa_chip_data rd88f5181l_ge_switch_chip_data = {
+static struct dsa_chip_data rd88f5181l_ge_switch_chip_data =
+{
 	.port_names[0]	= "lan2",
 	.port_names[1]	= "lan1",
 	.port_names[2]	= "wan",
@@ -102,12 +108,14 @@ static struct dsa_chip_data rd88f5181l_ge_switch_chip_data = {
 	.port_names[7]	= "lan3",
 };
 
-static struct dsa_platform_data __initdata rd88f5181l_ge_switch_plat_data = {
+static struct dsa_platform_data __initdata rd88f5181l_ge_switch_plat_data =
+{
 	.nr_chips	= 1,
 	.chip		= &rd88f5181l_ge_switch_chip_data,
 };
 
-static struct i2c_board_info __initdata rd88f5181l_ge_i2c_rtc = {
+static struct i2c_board_info __initdata rd88f5181l_ge_i2c_rtc =
+{
 	I2C_BOARD_INFO("ds1338", 0x68),
 };
 
@@ -130,9 +138,9 @@ static void __init rd88f5181l_ge_init(void)
 	orion5x_uart0_init();
 
 	mvebu_mbus_add_window_by_id(ORION_MBUS_DEVBUS_BOOT_TARGET,
-				    ORION_MBUS_DEVBUS_BOOT_ATTR,
-				    RD88F5181L_GE_NOR_BOOT_BASE,
-				    RD88F5181L_GE_NOR_BOOT_SIZE);
+								ORION_MBUS_DEVBUS_BOOT_ATTR,
+								RD88F5181L_GE_NOR_BOOT_BASE,
+								RD88F5181L_GE_NOR_BOOT_SIZE);
 	platform_device_register(&rd88f5181l_ge_nor_boot_flash);
 
 	i2c_register_board_info(0, &rd88f5181l_ge_i2c_rtc, 1);
@@ -147,19 +155,27 @@ rd88f5181l_ge_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	 * Check for devices with hard-wired IRQs.
 	 */
 	irq = orion5x_pci_map_irq(dev, slot, pin);
+
 	if (irq != -1)
+	{
 		return irq;
+	}
 
 	/*
 	 * Cardbus slot.
 	 */
 	if (pin == 1)
+	{
 		return gpio_to_irq(4);
+	}
 	else
+	{
 		return gpio_to_irq(10);
+	}
 }
 
-static struct hw_pci rd88f5181l_ge_pci __initdata = {
+static struct hw_pci rd88f5181l_ge_pci __initdata =
+{
 	.nr_controllers	= 2,
 	.setup		= orion5x_pci_sys_setup,
 	.scan		= orion5x_pci_sys_scan_bus,
@@ -168,7 +184,8 @@ static struct hw_pci rd88f5181l_ge_pci __initdata = {
 
 static int __init rd88f5181l_ge_pci_init(void)
 {
-	if (machine_is_rd88f5181l_ge()) {
+	if (machine_is_rd88f5181l_ge())
+	{
 		orion5x_pci_set_cardbus_mode();
 		pci_common_init(&rd88f5181l_ge_pci);
 	}
@@ -178,14 +195,14 @@ static int __init rd88f5181l_ge_pci_init(void)
 subsys_initcall(rd88f5181l_ge_pci_init);
 
 MACHINE_START(RD88F5181L_GE, "Marvell Orion-VoIP GE Reference Design")
-	/* Maintainer: Lennert Buytenhek <buytenh@marvell.com> */
-	.atag_offset	= 0x100,
+/* Maintainer: Lennert Buytenhek <buytenh@marvell.com> */
+.atag_offset	= 0x100,
 	.nr_irqs	= ORION5X_NR_IRQS,
-	.init_machine	= rd88f5181l_ge_init,
-	.map_io		= orion5x_map_io,
-	.init_early	= orion5x_init_early,
-	.init_irq	= orion5x_init_irq,
-	.init_time	= orion5x_timer_init,
-	.fixup		= tag_fixup_mem32,
-	.restart	= orion5x_restart,
-MACHINE_END
+		.init_machine	= rd88f5181l_ge_init,
+		   .map_io		= orion5x_map_io,
+			   .init_early	= orion5x_init_early,
+				.init_irq	= orion5x_init_irq,
+				   .init_time	= orion5x_timer_init,
+					 .fixup		= tag_fixup_mem32,
+						  .restart	= orion5x_restart,
+							  MACHINE_END

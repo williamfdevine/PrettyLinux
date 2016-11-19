@@ -45,10 +45,16 @@ void kvm_inject_pabt(struct kvm_vcpu *vcpu, unsigned long addr);
 static inline void vcpu_reset_hcr(struct kvm_vcpu *vcpu)
 {
 	vcpu->arch.hcr_el2 = HCR_GUEST_FLAGS;
+
 	if (is_kernel_in_hyp_mode())
+	{
 		vcpu->arch.hcr_el2 |= HCR_E2H;
+	}
+
 	if (test_bit(KVM_ARM_VCPU_EL1_32BIT, vcpu->arch.features))
+	{
 		vcpu->arch.hcr_el2 &= ~HCR_RW;
+	}
 }
 
 static inline unsigned long vcpu_get_hcr(struct kvm_vcpu *vcpu)
@@ -84,7 +90,9 @@ static inline bool vcpu_mode_is_32bit(const struct kvm_vcpu *vcpu)
 static inline bool kvm_condition_valid(const struct kvm_vcpu *vcpu)
 {
 	if (vcpu_mode_is_32bit(vcpu))
+	{
 		return kvm_condition_valid32(vcpu);
+	}
 
 	return true;
 }
@@ -92,9 +100,13 @@ static inline bool kvm_condition_valid(const struct kvm_vcpu *vcpu)
 static inline void kvm_skip_instr(struct kvm_vcpu *vcpu, bool is_wide_instr)
 {
 	if (vcpu_mode_is_32bit(vcpu))
+	{
 		kvm_skip_instr32(vcpu, is_wide_instr);
+	}
 	else
+	{
 		*vcpu_pc(vcpu) += 4;
+	}
 }
 
 static inline void vcpu_set_thumb(struct kvm_vcpu *vcpu)
@@ -108,23 +120,27 @@ static inline void vcpu_set_thumb(struct kvm_vcpu *vcpu)
  * AArch32 with banked registers.
  */
 static inline unsigned long vcpu_get_reg(const struct kvm_vcpu *vcpu,
-					 u8 reg_num)
+		u8 reg_num)
 {
 	return (reg_num == 31) ? 0 : vcpu_gp_regs(vcpu)->regs.regs[reg_num];
 }
 
 static inline void vcpu_set_reg(struct kvm_vcpu *vcpu, u8 reg_num,
-				unsigned long val)
+								unsigned long val)
 {
 	if (reg_num != 31)
+	{
 		vcpu_gp_regs(vcpu)->regs.regs[reg_num] = val;
+	}
 }
 
 /* Get vcpu SPSR for current mode */
 static inline unsigned long *vcpu_spsr(const struct kvm_vcpu *vcpu)
 {
 	if (vcpu_mode_is_32bit(vcpu))
+	{
 		return vcpu_spsr32(vcpu);
+	}
 
 	return (unsigned long *)&vcpu_gp_regs(vcpu)->spsr[KVM_SPSR_EL1];
 }
@@ -133,7 +149,8 @@ static inline bool vcpu_mode_priv(const struct kvm_vcpu *vcpu)
 {
 	u32 mode;
 
-	if (vcpu_mode_is_32bit(vcpu)) {
+	if (vcpu_mode_is_32bit(vcpu))
+	{
 		mode = *vcpu_cpsr(vcpu) & COMPAT_PSR_MODE_MASK;
 		return mode > COMPAT_PSR_MODE_USR;
 	}
@@ -153,7 +170,9 @@ static inline int kvm_vcpu_get_condition(const struct kvm_vcpu *vcpu)
 	u32 esr = kvm_vcpu_get_hsr(vcpu);
 
 	if (esr & ESR_ELx_CV)
+	{
 		return (esr & ESR_ELx_COND_MASK) >> ESR_ELx_COND_SHIFT;
+	}
 
 	return -1;
 }
@@ -201,7 +220,7 @@ static inline bool kvm_vcpu_dabt_iss1tw(const struct kvm_vcpu *vcpu)
 static inline bool kvm_vcpu_dabt_iswrite(const struct kvm_vcpu *vcpu)
 {
 	return !!(kvm_vcpu_get_hsr(vcpu) & ESR_ELx_WNR) ||
-		kvm_vcpu_dabt_iss1tw(vcpu); /* AF/DBM update */
+		   kvm_vcpu_dabt_iss1tw(vcpu); /* AF/DBM update */
 }
 
 static inline bool kvm_vcpu_dabt_is_cm(const struct kvm_vcpu *vcpu)
@@ -248,44 +267,61 @@ static inline unsigned long kvm_vcpu_get_mpidr_aff(struct kvm_vcpu *vcpu)
 static inline void kvm_vcpu_set_be(struct kvm_vcpu *vcpu)
 {
 	if (vcpu_mode_is_32bit(vcpu))
+	{
 		*vcpu_cpsr(vcpu) |= COMPAT_PSR_E_BIT;
+	}
 	else
+	{
 		vcpu_sys_reg(vcpu, SCTLR_EL1) |= (1 << 25);
+	}
 }
 
 static inline bool kvm_vcpu_is_be(struct kvm_vcpu *vcpu)
 {
 	if (vcpu_mode_is_32bit(vcpu))
+	{
 		return !!(*vcpu_cpsr(vcpu) & COMPAT_PSR_E_BIT);
+	}
 
 	return !!(vcpu_sys_reg(vcpu, SCTLR_EL1) & (1 << 25));
 }
 
 static inline unsigned long vcpu_data_guest_to_host(struct kvm_vcpu *vcpu,
-						    unsigned long data,
-						    unsigned int len)
+		unsigned long data,
+		unsigned int len)
 {
-	if (kvm_vcpu_is_be(vcpu)) {
-		switch (len) {
-		case 1:
-			return data & 0xff;
-		case 2:
-			return be16_to_cpu(data & 0xffff);
-		case 4:
-			return be32_to_cpu(data & 0xffffffff);
-		default:
-			return be64_to_cpu(data);
+	if (kvm_vcpu_is_be(vcpu))
+	{
+		switch (len)
+		{
+			case 1:
+				return data & 0xff;
+
+			case 2:
+				return be16_to_cpu(data & 0xffff);
+
+			case 4:
+				return be32_to_cpu(data & 0xffffffff);
+
+			default:
+				return be64_to_cpu(data);
 		}
-	} else {
-		switch (len) {
-		case 1:
-			return data & 0xff;
-		case 2:
-			return le16_to_cpu(data & 0xffff);
-		case 4:
-			return le32_to_cpu(data & 0xffffffff);
-		default:
-			return le64_to_cpu(data);
+	}
+	else
+	{
+		switch (len)
+		{
+			case 1:
+				return data & 0xff;
+
+			case 2:
+				return le16_to_cpu(data & 0xffff);
+
+			case 4:
+				return le32_to_cpu(data & 0xffffffff);
+
+			default:
+				return le64_to_cpu(data);
 		}
 	}
 
@@ -293,30 +329,41 @@ static inline unsigned long vcpu_data_guest_to_host(struct kvm_vcpu *vcpu,
 }
 
 static inline unsigned long vcpu_data_host_to_guest(struct kvm_vcpu *vcpu,
-						    unsigned long data,
-						    unsigned int len)
+		unsigned long data,
+		unsigned int len)
 {
-	if (kvm_vcpu_is_be(vcpu)) {
-		switch (len) {
-		case 1:
-			return data & 0xff;
-		case 2:
-			return cpu_to_be16(data & 0xffff);
-		case 4:
-			return cpu_to_be32(data & 0xffffffff);
-		default:
-			return cpu_to_be64(data);
+	if (kvm_vcpu_is_be(vcpu))
+	{
+		switch (len)
+		{
+			case 1:
+				return data & 0xff;
+
+			case 2:
+				return cpu_to_be16(data & 0xffff);
+
+			case 4:
+				return cpu_to_be32(data & 0xffffffff);
+
+			default:
+				return cpu_to_be64(data);
 		}
-	} else {
-		switch (len) {
-		case 1:
-			return data & 0xff;
-		case 2:
-			return cpu_to_le16(data & 0xffff);
-		case 4:
-			return cpu_to_le32(data & 0xffffffff);
-		default:
-			return cpu_to_le64(data);
+	}
+	else
+	{
+		switch (len)
+		{
+			case 1:
+				return data & 0xff;
+
+			case 2:
+				return cpu_to_le16(data & 0xffff);
+
+			case 4:
+				return cpu_to_le32(data & 0xffffffff);
+
+			default:
+				return cpu_to_le64(data);
 		}
 	}
 

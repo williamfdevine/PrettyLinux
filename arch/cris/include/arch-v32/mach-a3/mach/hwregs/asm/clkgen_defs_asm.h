@@ -30,22 +30,22 @@
 #endif
 
 #ifndef REG_LSB
-#define REG_LSB( scope, reg, field ) reg_##scope##_##reg##___##field##___lsb
+	#define REG_LSB( scope, reg, field ) reg_##scope##_##reg##___##field##___lsb
 #endif
 
 #ifndef REG_BIT
-#define REG_BIT( scope, reg, field ) reg_##scope##_##reg##___##field##___bit
+	#define REG_BIT( scope, reg, field ) reg_##scope##_##reg##___##field##___bit
 #endif
 
 #ifndef REG_ADDR
-#define REG_ADDR( scope, inst, reg ) REG_ADDR_X_(inst, reg_##scope##_##reg##_offset)
-#define REG_ADDR_X_( inst, offs ) ((inst) + offs)
+	#define REG_ADDR( scope, inst, reg ) REG_ADDR_X_(inst, reg_##scope##_##reg##_offset)
+	#define REG_ADDR_X_( inst, offs ) ((inst) + offs)
 #endif
 
 #ifndef REG_ADDR_VECT
 #define REG_ADDR_VECT( scope, inst, reg, index ) \
 	REG_ADDR_VECT_X_(inst, reg_##scope##_##reg##_offset, index, \
-			 STRIDE_##scope##_##reg )
+					 STRIDE_##scope##_##reg )
 #define REG_ADDR_VECT_X_( inst, offs, index, stride ) \
 	((inst) + offs + (index) * stride)
 #endif

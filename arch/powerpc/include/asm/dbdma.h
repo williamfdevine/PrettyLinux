@@ -11,21 +11,22 @@
 /*
  * DBDMA control/status registers.  All little-endian.
  */
-struct dbdma_regs {
-    unsigned int control;	/* lets you change bits in status */
-    unsigned int status;	/* DMA and device status bits (see below) */
-    unsigned int cmdptr_hi;	/* upper 32 bits of command address */
-    unsigned int cmdptr;	/* (lower 32 bits of) command address (phys) */
-    unsigned int intr_sel;	/* select interrupt condition bit */
-    unsigned int br_sel;	/* select branch condition bit */
-    unsigned int wait_sel;	/* select wait condition bit */
-    unsigned int xfer_mode;
-    unsigned int data2ptr_hi;
-    unsigned int data2ptr;
-    unsigned int res1;
-    unsigned int address_hi;
-    unsigned int br_addr_hi;
-    unsigned int res2[3];
+struct dbdma_regs
+{
+	unsigned int control;	/* lets you change bits in status */
+	unsigned int status;	/* DMA and device status bits (see below) */
+	unsigned int cmdptr_hi;	/* upper 32 bits of command address */
+	unsigned int cmdptr;	/* (lower 32 bits of) command address (phys) */
+	unsigned int intr_sel;	/* select interrupt condition bit */
+	unsigned int br_sel;	/* select branch condition bit */
+	unsigned int wait_sel;	/* select wait condition bit */
+	unsigned int xfer_mode;
+	unsigned int data2ptr_hi;
+	unsigned int data2ptr;
+	unsigned int res1;
+	unsigned int address_hi;
+	unsigned int br_addr_hi;
+	unsigned int res2[3];
 };
 
 /* Bits in control and status registers */
@@ -41,7 +42,8 @@ struct dbdma_regs {
 /*
  * DBDMA command structure.  These fields are all little-endian!
  */
-struct dbdma_cmd {
+struct dbdma_cmd
+{
 	__le16 req_count;	/* requested byte transfer count */
 	__le16 command;		/* command word (has bit-fields) */
 	__le32 phy_addr;	/* physical data address */
@@ -89,20 +91,20 @@ struct dbdma_cmd {
 
 /* Align an address for a DBDMA command structure */
 #define DBDMA_ALIGN(x)	(((unsigned long)(x) + sizeof(struct dbdma_cmd) - 1) \
-			 & -sizeof(struct dbdma_cmd))
+						 & -sizeof(struct dbdma_cmd))
 
 /* Useful macros */
 #define DBDMA_DO_STOP(regs) do {				\
-	out_le32(&((regs)->control), (RUN|FLUSH)<<16);		\
-	while(in_le32(&((regs)->status)) & (ACTIVE|FLUSH))	\
-		; \
-} while(0)
+		out_le32(&((regs)->control), (RUN|FLUSH)<<16);		\
+		while(in_le32(&((regs)->status)) & (ACTIVE|FLUSH))	\
+			; \
+	} while(0)
 
 #define DBDMA_DO_RESET(regs) do {				\
-	out_le32(&((regs)->control), (ACTIVE|DEAD|WAKE|FLUSH|PAUSE|RUN)<<16);\
-	while(in_le32(&((regs)->status)) & (RUN)) \
-		; \
-} while(0)
+		out_le32(&((regs)->control), (ACTIVE|DEAD|WAKE|FLUSH|PAUSE|RUN)<<16);\
+		while(in_le32(&((regs)->status)) & (RUN)) \
+			; \
+	} while(0)
 
 #endif /* _ASM_DBDMA_H_ */
 #endif /* __KERNEL__ */

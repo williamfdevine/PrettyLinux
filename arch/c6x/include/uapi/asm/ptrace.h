@@ -14,11 +14,11 @@
 #define BKPT_OPCODE	0x56454314	/* illegal opcode */
 
 #ifdef _BIG_ENDIAN
-#define PT_LO(odd, even)  odd
-#define PT_HI(odd, even)  even
+	#define PT_LO(odd, even)  odd
+	#define PT_HI(odd, even)  even
 #else
-#define PT_LO(odd, even)  even
-#define PT_HI(odd, even)  odd
+	#define PT_LO(odd, even)  even
+	#define PT_HI(odd, even)  odd
 #endif
 
 #define PT_A4_ORG  PT_LO(1, 0)
@@ -105,9 +105,9 @@
 #ifndef __ASSEMBLY__
 
 #ifdef _BIG_ENDIAN
-#define REG_PAIR(odd, even) unsigned long odd; unsigned long even
+	#define REG_PAIR(odd, even) unsigned long odd; unsigned long even
 #else
-#define REG_PAIR(odd, even) unsigned long even; unsigned long odd
+	#define REG_PAIR(odd, even) unsigned long even; unsigned long odd
 #endif
 
 /*
@@ -116,7 +116,8 @@
  * are saved and restored using double-word memory operations
  * which means the word ordering of the pair depends on endianess.
  */
-struct pt_regs {
+struct pt_regs
+{
 	REG_PAIR(tsr, orig_a4);
 	REG_PAIR(rilc, ilc);
 	REG_PAIR(pc, csr);

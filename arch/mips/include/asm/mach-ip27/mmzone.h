@@ -9,12 +9,14 @@
 
 #define LEVELS_PER_SLICE	128
 
-struct slice_data {
+struct slice_data
+{
 	unsigned long irq_enable_mask[2];
 	int level_to_irq[LEVELS_PER_SLICE];
 };
 
-struct hub_data {
+struct hub_data
+{
 	kern_vars_t	kern_vars;
 	DECLARE_BITMAP(h_bigwin_used, HUB_NUM_BIG_WINDOW);
 	cpumask_t	h_cpus;
@@ -23,7 +25,8 @@ struct hub_data {
 	struct slice_data slice[2];
 };
 
-struct node_data {
+struct node_data
+{
 	struct pglist_data pglist;
 	struct hub_data hub;
 };

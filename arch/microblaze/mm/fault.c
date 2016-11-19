@@ -48,13 +48,22 @@ static int store_updates_sp(struct pt_regs *regs)
 	unsigned int inst;
 
 	if (get_user(inst, (unsigned int __user *)regs->pc))
+	{
 		return 0;
+	}
+
 	/* check for 1 in the rD field */
 	if (((inst >> 21) & 0x1f) != 1)
+	{
 		return 0;
+	}
+
 	/* check for store opcodes */
 	if ((inst & 0xd0000000) == 0xd0000000)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -67,10 +76,12 @@ static int store_updates_sp(struct pt_regs *regs)
 void bad_page_fault(struct pt_regs *regs, unsigned long address, int sig)
 {
 	const struct exception_table_entry *fixup;
-/* MS: no context */
+	/* MS: no context */
 	/* Are we prepared to handle this fault?  */
 	fixup = search_exception_tables(regs->pc);
-	if (fixup) {
+
+	if (fixup)
+	{
 		regs->pc = fixup->fixup;
 		return;
 	}
@@ -84,7 +95,7 @@ void bad_page_fault(struct pt_regs *regs, unsigned long address, int sig)
  * 0 for an instruction fault.
  */
 void do_page_fault(struct pt_regs *regs, unsigned long address,
-		   unsigned long error_code)
+				   unsigned long error_code)
 {
 	struct vm_area_struct *vma;
 	struct mm_struct *mm = current->mm;
@@ -98,30 +109,38 @@ void do_page_fault(struct pt_regs *regs, unsigned long address,
 	regs->esr = error_code;
 
 	/* On a kernel SLB miss we can only check for a valid exception entry */
-	if (unlikely(kernel_mode(regs) && (address >= TASK_SIZE))) {
+	if (unlikely(kernel_mode(regs) && (address >= TASK_SIZE)))
+	{
 		pr_warn("kernel task_size exceed");
 		_exception(SIGSEGV, regs, code, address);
 	}
 
 	/* for instr TLB miss and instr storage exception ESR_S is undefined */
 	if ((error_code & 0x13) == 0x13 || (error_code & 0x11) == 0x11)
+	{
 		is_write = 0;
+	}
 
-	if (unlikely(faulthandler_disabled() || !mm)) {
+	if (unlikely(faulthandler_disabled() || !mm))
+	{
 		if (kernel_mode(regs))
+		{
 			goto bad_area_nosemaphore;
+		}
 
 		/* faulthandler_disabled() in user mode is really bad,
 		   as is current->mm == NULL. */
 		pr_emerg("Page fault in user mode with faulthandler_disabled(), mm = %p\n",
-			 mm);
+				 mm);
 		pr_emerg("r15 = %lx  MSR = %lx\n",
-		       regs->r15, regs->msr);
+				 regs->r15, regs->msr);
 		die("Weird page fault", regs, SIGSEGV);
 	}
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
 
 	/* When running in the kernel we expect faults to occur only to
 	 * addresses in user space.  All other faults represent errors in the
@@ -138,26 +157,38 @@ void do_page_fault(struct pt_regs *regs, unsigned long address,
 	 * source.  If this is invalid we can skip the address space check,
 	 * thus avoiding the deadlock.
 	 */
-	if (unlikely(!down_read_trylock(&mm->mmap_sem))) {
+	if (unlikely(!down_read_trylock(&mm->mmap_sem)))
+	{
 		if (kernel_mode(regs) && !search_exception_tables(regs->pc))
+		{
 			goto bad_area_nosemaphore;
+		}
 
 retry:
 		down_read(&mm->mmap_sem);
 	}
 
 	vma = find_vma(mm, address);
+
 	if (unlikely(!vma))
+	{
 		goto bad_area;
+	}
 
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
 
 	if (unlikely(!(vma->vm_flags & VM_GROWSDOWN)))
+	{
 		goto bad_area;
+	}
 
 	if (unlikely(!is_write))
+	{
 		goto bad_area;
+	}
 
 	/*
 	 * N.B. The ABI allows programs to access up to
@@ -168,12 +199,16 @@ retry:
 	 * before setting the user r1.  Thus we allow the stack to
 	 * expand to 1MB without further checks.
 	 */
-	if (unlikely(address + 0x100000 < vma->vm_end)) {
+	if (unlikely(address + 0x100000 < vma->vm_end))
+	{
 
 		/* get user regs even if this fault is in kernel mode */
 		struct pt_regs *uregs = current->thread.regs;
+
 		if (uregs == NULL)
+		{
 			goto bad_area;
+		}
 
 		/*
 		 * A user-mode access to an address a long way below
@@ -189,26 +224,42 @@ retry:
 		 */
 		if (address + 2048 < uregs->r1
 			&& (kernel_mode(regs) || !store_updates_sp(regs)))
-				goto bad_area;
+		{
+			goto bad_area;
+		}
 	}
+
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
 
 good_area:
 	code = SEGV_ACCERR;
 
 	/* a write */
-	if (unlikely(is_write)) {
+	if (unlikely(is_write))
+	{
 		if (unlikely(!(vma->vm_flags & VM_WRITE)))
+		{
 			goto bad_area;
+		}
+
 		flags |= FAULT_FLAG_WRITE;
-	/* a read */
-	} else {
+		/* a read */
+	}
+	else
+	{
 		/* protection fault */
 		if (unlikely(error_code & 0x08000000))
+		{
 			goto bad_area;
+		}
+
 		if (unlikely(!(vma->vm_flags & (VM_READ | VM_EXEC))))
+		{
 			goto bad_area;
+		}
 	}
 
 	/*
@@ -219,24 +270,41 @@ good_area:
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return;
+	}
 
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
 
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
 		if (unlikely(fault & VM_FAULT_MAJOR))
+		{
 			current->maj_flt++;
+		}
 		else
+		{
 			current->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 			flags |= FAULT_FLAG_TRIED;
 
@@ -267,34 +335,43 @@ bad_area_nosemaphore:
 	pte_errors++;
 
 	/* User mode accesses cause a SIGSEGV */
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		_exception(SIGSEGV, regs, code, address);
-/*		info.si_signo = SIGSEGV;
-		info.si_errno = 0;
-		info.si_code = code;
-		info.si_addr = (void *) address;
-		force_sig_info(SIGSEGV, &info, current);*/
+		/*		info.si_signo = SIGSEGV;
+				info.si_errno = 0;
+				info.si_code = code;
+				info.si_addr = (void *) address;
+				force_sig_info(SIGSEGV, &info, current);*/
 		return;
 	}
 
 	bad_page_fault(regs, address, SIGSEGV);
 	return;
 
-/*
- * We ran out of memory, or some other thing happened to us that made
- * us unable to handle the page fault gracefully.
- */
+	/*
+	 * We ran out of memory, or some other thing happened to us that made
+	 * us unable to handle the page fault gracefully.
+	 */
 out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(regs))
+	{
 		bad_page_fault(regs, address, SIGKILL);
+	}
 	else
+	{
 		pagefault_out_of_memory();
+	}
+
 	return;
 
 do_sigbus:
 	up_read(&mm->mmap_sem);
-	if (user_mode(regs)) {
+
+	if (user_mode(regs))
+	{
 		info.si_signo = SIGBUS;
 		info.si_errno = 0;
 		info.si_code = BUS_ADRERR;
@@ -302,5 +379,6 @@ do_sigbus:
 		force_sig_info(SIGBUS, &info, current);
 		return;
 	}
+
 	bad_page_fault(regs, address, SIGBUS);
 }

@@ -27,7 +27,7 @@
 #define MN10300_SRC_IOBCLK	MN10300_IOBCLK
 
 #ifndef HZ
-# error HZ undeclared.
+	# error HZ undeclared.
 #endif /* !HZ */
 
 #define MN10300_JCCLK		(MN10300_SRC_IOBCLK)
@@ -38,7 +38,7 @@
 
 /* Check bit width of MTM interval value that sets base register */
 #if (MN10300_JC_PER_HZ - 1) > TMJCBR_MAX
-# error MTM tick timer interval value is overflow.
+	# error MTM tick timer interval value is overflow.
 #endif
 
 static inline void stop_jiffies_counter(void)

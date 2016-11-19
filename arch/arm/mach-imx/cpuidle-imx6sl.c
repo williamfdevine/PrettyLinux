@@ -14,7 +14,7 @@
 #include "cpuidle.h"
 
 static int imx6sl_enter_wait(struct cpuidle_device *dev,
-			    struct cpuidle_driver *drv, int index)
+							 struct cpuidle_driver *drv, int index)
 {
 	imx6_set_lpm(WAIT_UNCLOCKED);
 	/*
@@ -29,7 +29,8 @@ static int imx6sl_enter_wait(struct cpuidle_device *dev,
 	return index;
 }
 
-static struct cpuidle_driver imx6sl_cpuidle_driver = {
+static struct cpuidle_driver imx6sl_cpuidle_driver =
+{
 	.name = "imx6sl_cpuidle",
 	.owner = THIS_MODULE,
 	.states = {

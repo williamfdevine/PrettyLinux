@@ -76,7 +76,7 @@ static int ks8695_set_periodic(struct clock_event_device *evt)
 }
 
 static int ks8695_set_next_event(unsigned long cycles,
-				 struct clock_event_device *evt)
+								 struct clock_event_device *evt)
 
 {
 	u32 half = DIV_ROUND_CLOSEST(cycles, 2);
@@ -98,12 +98,13 @@ static int ks8695_set_next_event(unsigned long cycles,
 	return 0;
 }
 
-static struct clock_event_device clockevent_ks8695 = {
+static struct clock_event_device clockevent_ks8695 =
+{
 	.name			= "ks8695_t1tc",
 	/* Reasonably fast and accurate clock event */
 	.rating			= 300,
 	.features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_PERIODIC,
+	CLOCK_EVT_FEAT_PERIODIC,
 	.set_next_event		= ks8695_set_next_event,
 	.set_state_periodic	= ks8695_set_periodic,
 };
@@ -119,7 +120,8 @@ static irqreturn_t ks8695_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction ks8695_timer_irq = {
+static struct irqaction ks8695_timer_irq =
+{
 	.name		= "ks8695_tick",
 	.flags		= IRQF_TIMER,
 	.handler	= ks8695_timer_interrupt,
@@ -141,8 +143,8 @@ static void ks8695_timer_setup(void)
 	 * accept up to a 32bit full word (0xFFFFFFFFU).
 	 */
 	clockevents_config_and_register(&clockevent_ks8695,
-					KS8695_CLOCK_RATE, 2,
-					0xFFFFFFFFU);
+									KS8695_CLOCK_RATE, 2,
+									0xFFFFFFFFU);
 }
 
 void __init ks8695_timer_init(void)
@@ -158,7 +160,9 @@ void ks8695_restart(enum reboot_mode reboot_mode, const char *cmd)
 	unsigned int reg;
 
 	if (reboot_mode == REBOOT_SOFT)
+	{
 		soft_restart(0);
+	}
 
 	/* disable timer0 */
 	reg = readl_relaxed(KS8695_TMR_VA + KS8695_TMCON);

@@ -42,7 +42,7 @@ int hwreg_present(volatile void *regp)
 		"tstb %3@\n\t"
 		"nop\n\t"
 		"moveq #1,%0\n"
-	"Lberr1:\n\t"
+		"Lberr1:\n\t"
 		"movel %1,%/sp\n\t"
 		"movec %2,%/vbr"
 		: "=&d" (ret), "=&r" (save_sp), "=&r" (save_vbr)
@@ -79,7 +79,7 @@ int hwreg_write(volatile void *regp, unsigned short val)
 		 * with 1 at the time the bus error happens!
 		 */
 		"moveq #1,%0\n"
-	"Lberr2:\n\t"
+		"Lberr2:\n\t"
 		"movel %1,%/sp\n\t"
 		"movec %2,%/vbr"
 		: "=&d" (ret), "=&r" (save_sp), "=&r" (save_vbr)

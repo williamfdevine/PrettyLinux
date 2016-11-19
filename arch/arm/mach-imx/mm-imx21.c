@@ -30,7 +30,8 @@
 #include "iomux-v1.h"
 
 /* MX21 memory map definition */
-static struct map_desc imx21_io_desc[] __initdata = {
+static struct map_desc imx21_io_desc[] __initdata =
+{
 	/*
 	 * this fixed mapping covers:
 	 * - AIPI1
@@ -67,7 +68,7 @@ void __init imx21_init_early(void)
 {
 	mxc_set_cpu_type(MXC_CPU_MX21);
 	imx_iomuxv1_init(MX21_IO_ADDRESS(MX21_GPIO_BASE_ADDR),
-			MX21_NUM_GPIO_PORT);
+					 MX21_NUM_GPIO_PORT);
 }
 
 void __init mx21_init_irq(void)
@@ -75,7 +76,8 @@ void __init mx21_init_irq(void)
 	mxc_init_irq(MX21_IO_ADDRESS(MX21_AVIC_BASE_ADDR));
 }
 
-static const struct resource imx21_audmux_res[] __initconst = {
+static const struct resource imx21_audmux_res[] __initconst =
+{
 	DEFINE_RES_MEM(MX21_AUDMUX_BASE_ADDR, SZ_4K),
 };
 
@@ -93,7 +95,7 @@ void __init imx21_soc_init(void)
 
 	pinctrl_provide_dummies();
 	imx_add_imx_dma("imx21-dma", MX21_DMA_BASE_ADDR,
-			MX21_INT_DMACH0, 0); /* No ERR irq */
+					MX21_INT_DMACH0, 0); /* No ERR irq */
 	platform_device_register_simple("imx21-audmux", 0, imx21_audmux_res,
-					ARRAY_SIZE(imx21_audmux_res));
+									ARRAY_SIZE(imx21_audmux_res));
 }

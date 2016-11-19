@@ -34,7 +34,8 @@
 
 #define sys_mmap2 sys_mmap_pgoff
 /* Note that we don't include <linux/unistd.h> but <asm/unistd.h> */
-void *sys_call_table[__NR_syscalls] = {
-	[0 ... __NR_syscalls-1] = sys_ni_syscall,
+void *sys_call_table[__NR_syscalls] =
+{
+	[0 ... __NR_syscalls - 1] = sys_ni_syscall,
 #include <asm/unistd.h>
 };

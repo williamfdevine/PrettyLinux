@@ -3,24 +3,24 @@
 
 #ifdef __KERNEL__
 
-#include <linux/dma-mapping.h>
+	#include <linux/dma-mapping.h>
 
-/* Can be used to override the logic in pci_scan_bus for skipping
- * already-configured bus numbers - to be used for buggy BIOSes
- * or architectures with incomplete PCI setup by the loader.
- */
-#define pcibios_assign_all_busses()	0
+	/* Can be used to override the logic in pci_scan_bus for skipping
+	* already-configured bus numbers - to be used for buggy BIOSes
+	* or architectures with incomplete PCI setup by the loader.
+	*/
+	#define pcibios_assign_all_busses()	0
 
-#define PCIBIOS_MIN_IO		0UL
-#define PCIBIOS_MIN_MEM		0UL
+	#define PCIBIOS_MIN_IO		0UL
+	#define PCIBIOS_MIN_MEM		0UL
 
-#define PCI_IRQ_NONE		0xffffffff
+	#define PCI_IRQ_NONE		0xffffffff
 
-/* Dynamic DMA mapping stuff.
- */
-#define PCI_DMA_BUS_IS_PHYS	(0)
+	/* Dynamic DMA mapping stuff.
+	*/
+	#define PCI_DMA_BUS_IS_PHYS	(0)
 
-struct pci_dev;
+	struct pci_dev;
 
 #endif /* __KERNEL__ */
 

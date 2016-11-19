@@ -7,7 +7,8 @@
 
 #define IO_TRAPPED_MAGIC 0xfeedbeef
 
-struct trapped_io {
+struct trapped_io
+{
 	unsigned int magic;
 	struct resource *resource;
 	unsigned int num_resources;
@@ -21,8 +22,8 @@ int register_trapped_io(struct trapped_io *tiop);
 int handle_trapped_io(struct pt_regs *regs, unsigned long address);
 
 void __iomem *match_trapped_io_handler(struct list_head *list,
-				       unsigned long offset,
-				       unsigned long size);
+									   unsigned long offset,
+									   unsigned long size);
 
 #ifdef CONFIG_HAS_IOMEM
 extern struct list_head trapped_mem;

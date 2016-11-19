@@ -14,14 +14,14 @@
 
 #ifndef __ASSEMBLY__
 
-#ifdef CONFIG_ARC_CURR_IN_REG
+	#ifdef CONFIG_ARC_CURR_IN_REG
 
-register struct task_struct *curr_arc asm("r25");
-#define current (curr_arc)
+		register struct task_struct *curr_arc asm("r25");
+		#define current (curr_arc)
 
-#else
-#include <asm-generic/current.h>
-#endif /* ! CONFIG_ARC_CURR_IN_REG */
+	#else
+		#include <asm-generic/current.h>
+	#endif /* ! CONFIG_ARC_CURR_IN_REG */
 
 #endif /* ! __ASSEMBLY__ */
 

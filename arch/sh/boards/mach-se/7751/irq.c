@@ -14,12 +14,14 @@
 #include <asm/irq.h>
 #include <mach-se/mach/se7751.h>
 
-static struct ipr_data ipr_irq_table[] = {
+static struct ipr_data ipr_irq_table[] =
+{
 	{ 13, 3, 3, 2 },
 	/* Add additional entries here as drivers are added and tested. */
 };
 
-static unsigned long ipr_offsets[] = {
+static unsigned long ipr_offsets[] =
+{
 	BCR_ILCRA,
 	BCR_ILCRB,
 	BCR_ILCRC,
@@ -29,7 +31,8 @@ static unsigned long ipr_offsets[] = {
 	BCR_ILCRG,
 };
 
-static struct ipr_desc ipr_irq_desc = {
+static struct ipr_desc ipr_irq_desc =
+{
 	.ipr_offsets	= ipr_offsets,
 	.nr_offsets	= ARRAY_SIZE(ipr_offsets),
 

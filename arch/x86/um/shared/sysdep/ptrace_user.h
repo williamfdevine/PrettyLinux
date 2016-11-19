@@ -21,7 +21,7 @@
  * 2.4 name and value for 2.4 host compatibility.
  */
 #ifndef PTRACE_OLDSETOPTIONS
-#define PTRACE_OLDSETOPTIONS 21
+	#define PTRACE_OLDSETOPTIONS 21
 #endif
 
 #endif

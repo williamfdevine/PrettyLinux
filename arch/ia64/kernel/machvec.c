@@ -12,7 +12,7 @@
 struct ia64_machine_vector ia64_mv;
 EXPORT_SYMBOL(ia64_mv);
 
-static struct ia64_machine_vector * __init
+static struct ia64_machine_vector *__init
 lookup_machvec (const char *name)
 {
 	extern struct ia64_machine_vector machvec_start[];
@@ -21,7 +21,9 @@ lookup_machvec (const char *name)
 
 	for (mv = machvec_start; mv < machvec_end; ++mv)
 		if (strcmp (mv->name, name) == 0)
+		{
 			return mv;
+		}
 
 	return 0;
 }
@@ -32,11 +34,15 @@ machvec_init (const char *name)
 	struct ia64_machine_vector *mv;
 
 	if (!name)
+	{
 		name = acpi_get_sysname();
+	}
+
 	mv = lookup_machvec(name);
+
 	if (!mv)
 		panic("generic kernel failed to find machine vector for"
-		      " platform %s!", name);
+			  " platform %s!", name);
 
 	ia64_mv = *mv;
 	printk(KERN_INFO "booting generic kernel on platform %s\n", name);
@@ -50,11 +56,16 @@ machvec_init_from_cmdline(const char *cmdline)
 	char *end;
 
 	if (! (start = strstr(cmdline, "machvec=")) )
+	{
 		return machvec_init(NULL);
+	}
 
 	strlcpy(str, start + strlen("machvec="), sizeof(str));
+
 	if ( (end = strchr(str, ' ')) )
+	{
 		*end = '\0';
+	}
 
 	return machvec_init(str);
 }
@@ -75,7 +86,7 @@ EXPORT_SYMBOL(machvec_timer_interrupt);
 
 void
 machvec_dma_sync_single(struct device *hwdev, dma_addr_t dma_handle, size_t size,
-			enum dma_data_direction dir)
+						enum dma_data_direction dir)
 {
 	mb();
 }
@@ -83,7 +94,7 @@ EXPORT_SYMBOL(machvec_dma_sync_single);
 
 void
 machvec_dma_sync_sg(struct device *hwdev, struct scatterlist *sg, int n,
-		    enum dma_data_direction dir)
+					enum dma_data_direction dir)
 {
 	mb();
 }

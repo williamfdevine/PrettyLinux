@@ -35,28 +35,34 @@ typedef u8 uprobe_opcode_t;
 
 struct uprobe_xol_ops;
 
-struct arch_uprobe {
-	union {
+struct arch_uprobe
+{
+	union
+	{
 		u8			insn[MAX_UINSN_BYTES];
 		u8			ixol[MAX_UINSN_BYTES];
 	};
 
 	const struct uprobe_xol_ops	*ops;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			s32	offs;
 			u8	ilen;
 			u8	opc1;
 		}			branch;
-		struct {
+		struct
+		{
 			u8	fixups;
 			u8	ilen;
 		} 			defparam;
 	};
 };
 
-struct arch_uprobe_task {
+struct arch_uprobe_task
+{
 #ifdef CONFIG_X86_64
 	unsigned long			saved_scratch_register;
 #endif

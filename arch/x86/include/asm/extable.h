@@ -13,7 +13,8 @@
  * on our cache or tlb entries.
  */
 
-struct exception_table_entry {
+struct exception_table_entry
+{
 	int insn, fixup, handler;
 };
 struct pt_regs;

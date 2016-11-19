@@ -40,7 +40,8 @@
 unsigned int idt_cpu_freq = 132000000;
 EXPORT_SYMBOL(idt_cpu_freq);
 
-static struct resource ddr_reg[] = {
+static struct resource ddr_reg[] =
+{
 	{
 		.name = "ddr-reg",
 		.start = DDR0_PHYS_ADDR,
@@ -79,41 +80,62 @@ void __init prom_setup_cmdline(void)
 	prom_argv = (char **) fw_arg1;
 
 	cp = cmd_line;
-		/* Note: it is common that parameters start
-		 * at argv[1] and not argv[0],
-		 * however, our elf loader starts at [0] */
-	for (i = 0; i < prom_argc; i++) {
-		if (match_tag(prom_argv[i], FREQ_TAG)) {
+
+	/* Note: it is common that parameters start
+	 * at argv[1] and not argv[0],
+	 * however, our elf loader starts at [0] */
+	for (i = 0; i < prom_argc; i++)
+	{
+		if (match_tag(prom_argv[i], FREQ_TAG))
+		{
 			idt_cpu_freq = tag2ul(prom_argv[i], FREQ_TAG);
 			continue;
 		}
+
 #ifdef IGNORE_CMDLINE_MEM
+
 		/* parses out the "mem=xx" arg */
 		if (match_tag(prom_argv[i], MEM_TAG))
+		{
 			continue;
+		}
+
 #endif
+
 		if (i > 0)
+		{
 			*(cp++) = ' ';
-		if (match_tag(prom_argv[i], BOARD_TAG)) {
+		}
+
+		if (match_tag(prom_argv[i], BOARD_TAG))
+		{
 			board = prom_argv[i] + strlen(BOARD_TAG);
 
 			if (match_tag(board, BOARD_RB532A))
+			{
 				mips_machtype = MACH_MIKROTIK_RB532A;
+			}
 			else
+			{
 				mips_machtype = MACH_MIKROTIK_RB532;
+			}
 		}
 
 		strcpy(cp, prom_argv[i]);
 		cp += strlen(prom_argv[i]);
 	}
+
 	*(cp++) = ' ';
 
 	i = strlen(arcs_cmdline);
-	if (i > 0) {
+
+	if (i > 0)
+	{
 		*(cp++) = ' ';
 		strcpy(cp, arcs_cmdline);
 		cp += strlen(arcs_cmdline);
 	}
+
 	cmd_line[COMMAND_LINE_SIZE - 1] = '\0';
 
 	strcpy(arcs_cmdline, cmd_line);
@@ -126,9 +148,10 @@ void __init prom_init(void)
 	phys_addr_t ddrbase;
 
 	ddr = ioremap_nocache(ddr_reg[0].start,
-			ddr_reg[0].end - ddr_reg[0].start);
+						  ddr_reg[0].end - ddr_reg[0].start);
 
-	if (!ddr) {
+	if (!ddr)
+	{
 		printk(KERN_ERR "Unable to remap DDR register\n");
 		return;
 	}

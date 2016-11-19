@@ -52,7 +52,8 @@
 #include "iomux-mx3.h"
 #include "ulpi.h"
 
-static unsigned int moboard_pins[] = {
+static unsigned int moboard_pins[] =
+{
 	/* UART0 */
 	MX31_PIN_TXD1__TXD1, MX31_PIN_RXD1__RXD1,
 	MX31_PIN_CTS1__GPIO2_7,
@@ -109,17 +110,20 @@ static unsigned int moboard_pins[] = {
 	MX31_PIN_SCK4__SCK4, MX31_PIN_SFS4__SFS4,
 };
 
-static struct physmap_flash_data mx31moboard_flash_data = {
+static struct physmap_flash_data mx31moboard_flash_data =
+{
 	.width	= 2,
 };
 
-static struct resource mx31moboard_flash_resource = {
+static struct resource mx31moboard_flash_resource =
+{
 	.start	= 0xa0000000,
 	.end	= 0xa1ffffff,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device mx31moboard_flash = {
+static struct platform_device mx31moboard_flash =
+{
 	.name	= "physmap-flash",
 	.id	= 0,
 	.dev	= {
@@ -131,38 +135,46 @@ static struct platform_device mx31moboard_flash = {
 
 static void __init moboard_uart0_init(void)
 {
-	if (!gpio_request(IOMUX_TO_GPIO(MX31_PIN_CTS1), "uart0-cts-hack")) {
+	if (!gpio_request(IOMUX_TO_GPIO(MX31_PIN_CTS1), "uart0-cts-hack"))
+	{
 		gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_CTS1), 0);
 		gpio_free(IOMUX_TO_GPIO(MX31_PIN_CTS1));
 	}
 }
 
-static const struct imxuart_platform_data uart0_pdata __initconst = {
+static const struct imxuart_platform_data uart0_pdata __initconst =
+{
 };
 
-static const struct imxuart_platform_data uart4_pdata __initconst = {
+static const struct imxuart_platform_data uart4_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
-static const struct imxi2c_platform_data moboard_i2c0_data __initconst = {
+static const struct imxi2c_platform_data moboard_i2c0_data __initconst =
+{
 	.bitrate = 400000,
 };
 
-static const struct imxi2c_platform_data moboard_i2c1_data __initconst = {
+static const struct imxi2c_platform_data moboard_i2c1_data __initconst =
+{
 	.bitrate = 100000,
 };
 
-static int moboard_spi1_cs[] = {
+static int moboard_spi1_cs[] =
+{
 	MXC_SPI_CS(0),
 	MXC_SPI_CS(2),
 };
 
-static const struct spi_imx_master moboard_spi1_pdata __initconst = {
+static const struct spi_imx_master moboard_spi1_pdata __initconst =
+{
 	.chipselect	= moboard_spi1_cs,
 	.num_chipselect	= ARRAY_SIZE(moboard_spi1_cs),
 };
 
-static struct regulator_consumer_supply sdhc_consumers[] = {
+static struct regulator_consumer_supply sdhc_consumers[] =
+{
 	{
 		.dev_name = "imx31-mmc.0",
 		.supply	= "sdhc0_vcc",
@@ -173,14 +185,15 @@ static struct regulator_consumer_supply sdhc_consumers[] = {
 	},
 };
 
-static struct regulator_init_data sdhc_vreg_data = {
+static struct regulator_init_data sdhc_vreg_data =
+{
 	.constraints = {
 		.min_uV = 2700000,
 		.max_uV = 3000000,
 		.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |
-			REGULATOR_CHANGE_MODE | REGULATOR_CHANGE_STATUS,
+		REGULATOR_CHANGE_MODE | REGULATOR_CHANGE_STATUS,
 		.valid_modes_mask = REGULATOR_MODE_NORMAL |
-			REGULATOR_MODE_FAST,
+		REGULATOR_MODE_FAST,
 		.always_on = 0,
 		.boot_on = 1,
 	},
@@ -188,21 +201,23 @@ static struct regulator_init_data sdhc_vreg_data = {
 	.consumer_supplies = sdhc_consumers,
 };
 
-static struct regulator_consumer_supply cam_consumers[] = {
+static struct regulator_consumer_supply cam_consumers[] =
+{
 	{
 		.dev_name = "mx3_camera.0",
 		.supply = "cam_vcc",
 	},
 };
 
-static struct regulator_init_data cam_vreg_data = {
+static struct regulator_init_data cam_vreg_data =
+{
 	.constraints = {
 		.min_uV = 2700000,
 		.max_uV = 3000000,
 		.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |
-			REGULATOR_CHANGE_MODE | REGULATOR_CHANGE_STATUS,
+		REGULATOR_CHANGE_MODE | REGULATOR_CHANGE_STATUS,
 		.valid_modes_mask = REGULATOR_MODE_NORMAL |
-			REGULATOR_MODE_FAST,
+		REGULATOR_MODE_FAST,
 		.always_on = 0,
 		.boot_on = 1,
 	},
@@ -210,7 +225,8 @@ static struct regulator_init_data cam_vreg_data = {
 	.consumer_supplies = cam_consumers,
 };
 
-static struct mc13xxx_regulator_init_data moboard_regulators[] = {
+static struct mc13xxx_regulator_init_data moboard_regulators[] =
+{
 	{
 		.id = MC13783_REG_VMMC1,
 		.init_data = &sdhc_vreg_data,
@@ -221,7 +237,8 @@ static struct mc13xxx_regulator_init_data moboard_regulators[] = {
 	},
 };
 
-static struct mc13xxx_led_platform_data moboard_led[] = {
+static struct mc13xxx_led_platform_data moboard_led[] =
+{
 	{
 		.id = MC13783_LED_R1,
 		.name = "coreboard-led-4:red",
@@ -248,34 +265,38 @@ static struct mc13xxx_led_platform_data moboard_led[] = {
 	},
 };
 
-static struct mc13xxx_leds_platform_data moboard_leds = {
+static struct mc13xxx_leds_platform_data moboard_leds =
+{
 	.num_leds = ARRAY_SIZE(moboard_led),
 	.led = moboard_led,
 	.led_control[0]	= MC13783_LED_C0_ENABLE | MC13783_LED_C0_ABMODE(0),
 	.led_control[1]	= MC13783_LED_C1_SLEWLIM,
 	.led_control[2]	= MC13783_LED_C2_SLEWLIM,
 	.led_control[3]	= MC13783_LED_C3_PERIOD(0) |
-			  MC13783_LED_C3_CURRENT_R1(2) |
-			  MC13783_LED_C3_CURRENT_G1(2) |
-			  MC13783_LED_C3_CURRENT_B1(2),
+	MC13783_LED_C3_CURRENT_R1(2) |
+	MC13783_LED_C3_CURRENT_G1(2) |
+	MC13783_LED_C3_CURRENT_B1(2),
 	.led_control[4]	= MC13783_LED_C4_PERIOD(0) |
-			  MC13783_LED_C4_CURRENT_R2(3) |
-			  MC13783_LED_C4_CURRENT_G2(3) |
-			  MC13783_LED_C4_CURRENT_B2(3),
+	MC13783_LED_C4_CURRENT_R2(3) |
+	MC13783_LED_C4_CURRENT_G2(3) |
+	MC13783_LED_C4_CURRENT_B2(3),
 };
 
-static struct mc13xxx_buttons_platform_data moboard_buttons = {
+static struct mc13xxx_buttons_platform_data moboard_buttons =
+{
 	.b1on_flags = MC13783_BUTTON_DBNC_750MS | MC13783_BUTTON_ENABLE |
-			MC13783_BUTTON_POL_INVERT,
+	MC13783_BUTTON_POL_INVERT,
 	.b1on_key = KEY_POWER,
 };
 
-static struct mc13xxx_codec_platform_data moboard_codec = {
+static struct mc13xxx_codec_platform_data moboard_codec =
+{
 	.dac_ssi_port = MC13783_SSI1_PORT,
 	.adc_ssi_port = MC13783_SSI1_PORT,
 };
 
-static struct mc13xxx_platform_data moboard_pmic = {
+static struct mc13xxx_platform_data moboard_pmic =
+{
 	.regulators = {
 		.regulators = moboard_regulators,
 		.num_regulators = ARRAY_SIZE(moboard_regulators),
@@ -286,11 +307,13 @@ static struct mc13xxx_platform_data moboard_pmic = {
 	.flags = MC13XXX_USE_RTC | MC13XXX_USE_ADC | MC13XXX_USE_CODEC,
 };
 
-static struct imx_ssi_platform_data moboard_ssi_pdata = {
+static struct imx_ssi_platform_data moboard_ssi_pdata =
+{
 	.flags = IMX_SSI_DMA | IMX_SSI_NET,
 };
 
-static struct spi_board_info moboard_spi_board_info[] __initdata = {
+static struct spi_board_info moboard_spi_board_info[] __initdata =
+{
 	{
 		.modalias = "mc13783",
 		/* irq number is run-time assigned */
@@ -302,11 +325,13 @@ static struct spi_board_info moboard_spi_board_info[] __initdata = {
 	},
 };
 
-static int moboard_spi2_cs[] = {
+static int moboard_spi2_cs[] =
+{
 	MXC_SPI_CS(1),
 };
 
-static const struct spi_imx_master moboard_spi2_pdata __initconst = {
+static const struct spi_imx_master moboard_spi2_pdata __initconst =
+{
 	.chipselect	= moboard_spi2_cs,
 	.num_chipselect	= ARRAY_SIZE(moboard_spi2_cs),
 };
@@ -320,26 +345,36 @@ static int moboard_sdhc1_get_ro(struct device *dev)
 }
 
 static int moboard_sdhc1_init(struct device *dev, irq_handler_t detect_irq,
-		void *data)
+							  void *data)
 {
 	int ret;
 
 	ret = gpio_request(SDHC1_CD, "sdhc-detect");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	gpio_direction_input(SDHC1_CD);
 
 	ret = gpio_request(SDHC1_WP, "sdhc-wp");
+
 	if (ret)
+	{
 		goto err_gpio_free;
+	}
+
 	gpio_direction_input(SDHC1_WP);
 
 	ret = request_irq(gpio_to_irq(SDHC1_CD), detect_irq,
-		IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-		"sdhc1-card-detect", data);
+					  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+					  "sdhc1-card-detect", data);
+
 	if (ret)
+	{
 		goto err_gpio_free_2;
+	}
 
 	return 0;
 
@@ -358,7 +393,8 @@ static void moboard_sdhc1_exit(struct device *dev, void *data)
 	gpio_free(SDHC1_CD);
 }
 
-static const struct imxmmc_platform_data sdhc1_pdata __initconst = {
+static const struct imxmmc_platform_data sdhc1_pdata __initconst =
+{
 	.get_ro	= moboard_sdhc1_get_ro,
 	.init	= moboard_sdhc1_init,
 	.exit	= moboard_sdhc1_exit,
@@ -369,7 +405,7 @@ static const struct imxmmc_platform_data sdhc1_pdata __initconst = {
  */
 #define USB_RESET_B	IOMUX_TO_GPIO(MX31_PIN_GPIO1_0)
 #define USB_PAD_CFG (PAD_CTL_DRV_MAX | PAD_CTL_SRE_FAST | PAD_CTL_HYS_CMOS | \
-		      PAD_CTL_ODE_CMOS)
+					 PAD_CTL_ODE_CMOS)
 
 #define OTG_EN_B IOMUX_TO_GPIO(MX31_PIN_USB_OC)
 #define USBH2_EN_B IOMUX_TO_GPIO(MX31_PIN_SCK6)
@@ -420,7 +456,8 @@ static int moboard_usbh2_init_hw(struct platform_device *pdev)
 	return mx31_initialize_usb_hw(pdev->id, MXC_EHCI_POWER_PINS_ENABLED);
 }
 
-static struct mxc_usbh_platform_data usbh2_pdata __initdata = {
+static struct mxc_usbh_platform_data usbh2_pdata __initdata =
+{
 	.init	= moboard_usbh2_init_hw,
 	.portsc	= MXC_EHCI_MODE_ULPI | MXC_EHCI_UTMI_8BIT,
 };
@@ -430,16 +467,20 @@ static int __init moboard_usbh2_init(void)
 	struct platform_device *pdev;
 
 	usbh2_pdata.otg = imx_otg_ulpi_create(ULPI_OTG_DRVVBUS |
-			ULPI_OTG_DRVVBUS_EXT);
+										  ULPI_OTG_DRVVBUS_EXT);
+
 	if (!usbh2_pdata.otg)
+	{
 		return -ENODEV;
+	}
 
 	pdev = imx31_add_mxc_ehci_hs(2, &usbh2_pdata);
 
 	return PTR_ERR_OR_ZERO(pdev);
 }
 
-static const struct gpio_led mx31moboard_leds[] __initconst = {
+static const struct gpio_led mx31moboard_leds[] __initconst =
+{
 	{
 		.name	= "coreboard-led-0:red:running",
 		.default_trigger = "heartbeat",
@@ -456,16 +497,19 @@ static const struct gpio_led mx31moboard_leds[] __initconst = {
 	},
 };
 
-static const struct gpio_led_platform_data mx31moboard_led_pdata __initconst = {
+static const struct gpio_led_platform_data mx31moboard_led_pdata __initconst =
+{
 	.num_leds	= ARRAY_SIZE(mx31moboard_leds),
 	.leds		= mx31moboard_leds,
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&mx31moboard_flash,
 };
 
-static struct mx3_camera_pdata camera_pdata __initdata = {
+static struct mx3_camera_pdata camera_pdata __initdata =
+{
 	.flags		= MX3_CAMERA_DATAWIDTH_8 | MX3_CAMERA_DATAWIDTH_10,
 	.mclk_10khz	= 4800,
 };
@@ -481,17 +525,24 @@ static int __init mx31moboard_init_cam(void)
 	imx31_add_ipu_core();
 
 	pdev = imx31_alloc_mx3_camera(&camera_pdata);
+
 	if (IS_ERR(pdev))
+	{
 		return PTR_ERR(pdev);
+	}
 
 	dma = dma_declare_coherent_memory(&pdev->dev,
-					mx3_camera_base, mx3_camera_base,
-					MX3_CAMERA_BUF_SIZE,
-					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+									  mx3_camera_base, mx3_camera_base,
+									  MX3_CAMERA_BUF_SIZE,
+									  DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+
 	if (!(dma & DMA_MEMORY_MAP))
+	{
 		goto err;
+	}
 
 	ret = platform_device_add(pdev);
+
 	if (ret)
 err:
 		platform_device_put(pdev);
@@ -505,7 +556,9 @@ static void mx31moboard_poweroff(void)
 	struct clk *clk = clk_get_sys("imx2-wdt.0", NULL);
 
 	if (!IS_ERR(clk))
+	{
 		clk_prepare_enable(clk);
+	}
 
 	mxc_iomux_mode(MX31_PIN_WATCHDOG_RST__WATCHDOG_RST);
 
@@ -523,7 +576,7 @@ static void __init mx31moboard_init(void)
 	imx31_soc_init();
 
 	mxc_iomux_setup_multiple_pins(moboard_pins, ARRAY_SIZE(moboard_pins),
-		"moboard");
+								  "moboard");
 
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 
@@ -554,9 +607,9 @@ static void __init mx31moboard_late(void)
 	gpio_request(IOMUX_TO_GPIO(MX31_PIN_GPIO1_3), "pmic-irq");
 	gpio_direction_input(IOMUX_TO_GPIO(MX31_PIN_GPIO1_3));
 	moboard_spi_board_info[0].irq =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_3));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_3));
 	spi_register_board_info(moboard_spi_board_info,
-		ARRAY_SIZE(moboard_spi_board_info));
+							ARRAY_SIZE(moboard_spi_board_info));
 
 	imx31_add_mxc_mmc(0, &sdhc1_pdata);
 
@@ -565,22 +618,27 @@ static void __init mx31moboard_late(void)
 
 	imx_add_platform_device("imx_mc13783", 0, NULL, 0, NULL, 0);
 
-	switch (mx31moboard_baseboard) {
-	case MX31NOBOARD:
-		break;
-	case MX31DEVBOARD:
-		mx31moboard_devboard_init();
-		break;
-	case MX31MARXBOT:
-		mx31moboard_marxbot_init();
-		break;
-	case MX31SMARTBOT:
-	case MX31EYEBOT:
-		mx31moboard_smartbot_init(mx31moboard_baseboard);
-		break;
-	default:
-		printk(KERN_ERR "Illegal mx31moboard_baseboard type %d\n",
-			mx31moboard_baseboard);
+	switch (mx31moboard_baseboard)
+	{
+		case MX31NOBOARD:
+			break;
+
+		case MX31DEVBOARD:
+			mx31moboard_devboard_init();
+			break;
+
+		case MX31MARXBOT:
+			mx31moboard_marxbot_init();
+			break;
+
+		case MX31SMARTBOT:
+		case MX31EYEBOT:
+			mx31moboard_smartbot_init(mx31moboard_baseboard);
+			break;
+
+		default:
+			printk(KERN_ERR "Illegal mx31moboard_baseboard type %d\n",
+				   mx31moboard_baseboard);
 	}
 }
 
@@ -593,18 +651,18 @@ static void __init mx31moboard_reserve(void)
 {
 	/* reserve 4 MiB for mx3-camera */
 	mx3_camera_base = arm_memblock_steal(MX3_CAMERA_BUF_SIZE,
-			MX3_CAMERA_BUF_SIZE);
+										 MX3_CAMERA_BUF_SIZE);
 }
 
 MACHINE_START(MX31MOBOARD, "EPFL Mobots mx31moboard")
-	/* Maintainer: Philippe Retornaz, EPFL Mobots group */
-	.atag_offset = 0x100,
-	.reserve = mx31moboard_reserve,
-	.map_io = mx31_map_io,
-	.init_early = imx31_init_early,
+/* Maintainer: Philippe Retornaz, EPFL Mobots group */
+.atag_offset = 0x100,
+ .reserve = mx31moboard_reserve,
+  .map_io = mx31_map_io,
+   .init_early = imx31_init_early,
 	.init_irq = mx31_init_irq,
-	.init_time	= mx31moboard_timer_init,
-	.init_machine = mx31moboard_init,
-	.init_late	= mx31moboard_late,
-	.restart	= mxc_restart,
-MACHINE_END
+	 .init_time	= mx31moboard_timer_init,
+	   .init_machine = mx31moboard_init,
+		.init_late	= mx31moboard_late,
+		  .restart	= mxc_restart,
+			  MACHINE_END

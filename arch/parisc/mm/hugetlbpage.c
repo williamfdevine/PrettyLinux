@@ -22,21 +22,30 @@
 
 unsigned long
 hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
-		unsigned long len, unsigned long pgoff, unsigned long flags)
+						  unsigned long len, unsigned long pgoff, unsigned long flags)
 {
 	struct hstate *h = hstate_file(file);
 
 	if (len & ~huge_page_mask(h))
+	{
 		return -EINVAL;
+	}
+
 	if (len > TASK_SIZE)
+	{
 		return -ENOMEM;
+	}
 
 	if (flags & MAP_FIXED)
 		if (prepare_hugepage_range(file, addr, len))
+		{
 			return -EINVAL;
+		}
 
 	if (addr)
+	{
 		addr = ALIGN(addr, huge_page_size(h));
+	}
 
 	/* we need to make sure the colouring is OK */
 	return arch_get_unmapped_area(file, addr, len, pgoff, flags);
@@ -44,7 +53,7 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
 
 
 pte_t *huge_pte_alloc(struct mm_struct *mm,
-			unsigned long addr, unsigned long sz)
+					  unsigned long addr, unsigned long sz)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -60,11 +69,17 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
 
 	pgd = pgd_offset(mm, addr);
 	pud = pud_alloc(mm, pgd, addr);
-	if (pud) {
+
+	if (pud)
+	{
 		pmd = pmd_alloc(mm, pud, addr);
+
 		if (pmd)
+		{
 			pte = pte_alloc_map(mm, pmd, addr);
+		}
 	}
+
 	return pte;
 }
 
@@ -78,14 +93,22 @@ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
 	addr &= HPAGE_MASK;
 
 	pgd = pgd_offset(mm, addr);
-	if (!pgd_none(*pgd)) {
+
+	if (!pgd_none(*pgd))
+	{
 		pud = pud_offset(pgd, addr);
-		if (!pud_none(*pud)) {
+
+		if (!pud_none(*pud))
+		{
 			pmd = pmd_offset(pud, addr);
+
 			if (!pmd_none(*pmd))
+			{
 				pte = pte_offset_map(pmd, addr);
+			}
 		}
 	}
+
 	return pte;
 }
 
@@ -104,7 +127,8 @@ static inline void purge_tlb_entries_huge(struct mm_struct *mm, unsigned long ad
 	addr &= HPAGE_MASK;
 	addr |= _HUGE_PAGE_SIZE_ENCODING_DEFAULT;
 
-	for (i = 0; i < (1 << (HPAGE_SHIFT-REAL_HPAGE_SHIFT)); i++) {
+	for (i = 0; i < (1 << (HPAGE_SHIFT - REAL_HPAGE_SHIFT)); i++)
+	{
 		purge_tlb_entries(mm, addr);
 		addr += (1UL << REAL_HPAGE_SHIFT);
 	}
@@ -112,7 +136,7 @@ static inline void purge_tlb_entries_huge(struct mm_struct *mm, unsigned long ad
 
 /* __set_huge_pte_at() must be called holding the pa_tlb_lock. */
 static void __set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-		     pte_t *ptep, pte_t entry)
+							  pte_t *ptep, pte_t entry)
 {
 	unsigned long addr_start;
 	int i;
@@ -120,7 +144,8 @@ static void __set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
 	addr &= HPAGE_MASK;
 	addr_start = addr;
 
-	for (i = 0; i < (1 << HUGETLB_PAGE_ORDER); i++) {
+	for (i = 0; i < (1 << HUGETLB_PAGE_ORDER); i++)
+	{
 		set_pte(ptep, entry);
 		ptep++;
 
@@ -132,7 +157,7 @@ static void __set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
 }
 
 void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-		     pte_t *ptep, pte_t entry)
+					 pte_t *ptep, pte_t entry)
 {
 	unsigned long flags;
 
@@ -143,7 +168,7 @@ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
 
 
 pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
-			      pte_t *ptep)
+							  pte_t *ptep)
 {
 	unsigned long flags;
 	pte_t entry;
@@ -158,7 +183,7 @@ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
 
 
 void huge_ptep_set_wrprotect(struct mm_struct *mm,
-				unsigned long addr, pte_t *ptep)
+							 unsigned long addr, pte_t *ptep)
 {
 	unsigned long flags;
 	pte_t old_pte;
@@ -170,17 +195,20 @@ void huge_ptep_set_wrprotect(struct mm_struct *mm,
 }
 
 int huge_ptep_set_access_flags(struct vm_area_struct *vma,
-				unsigned long addr, pte_t *ptep,
-				pte_t pte, int dirty)
+							   unsigned long addr, pte_t *ptep,
+							   pte_t pte, int dirty)
 {
 	unsigned long flags;
 	int changed;
 
 	purge_tlb_start(flags);
 	changed = !pte_same(*ptep, pte);
-	if (changed) {
+
+	if (changed)
+	{
 		__set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
 	}
+
 	purge_tlb_end(flags);
 	return changed;
 }

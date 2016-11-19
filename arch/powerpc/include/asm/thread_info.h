@@ -13,19 +13,19 @@
 /* We have 8k stacks on ppc32 and 16k on ppc64 */
 
 #if defined(CONFIG_PPC64)
-#define THREAD_SHIFT		14
+	#define THREAD_SHIFT		14
 #elif defined(CONFIG_PPC_256K_PAGES)
-#define THREAD_SHIFT		15
+	#define THREAD_SHIFT		15
 #else
-#define THREAD_SHIFT		13
+	#define THREAD_SHIFT		13
 #endif
 
 #define THREAD_SIZE		(1 << THREAD_SHIFT)
 
 #ifdef CONFIG_PPC64
-#define CURRENT_THREAD_INFO(dest, sp)	stringify_in_c(clrrdi dest, sp, THREAD_SHIFT)
+	#define CURRENT_THREAD_INFO(dest, sp)	stringify_in_c(clrrdi dest, sp, THREAD_SHIFT)
 #else
-#define CURRENT_THREAD_INFO(dest, sp)	stringify_in_c(rlwinm dest, sp, 0, 0, 31-THREAD_SHIFT)
+	#define CURRENT_THREAD_INFO(dest, sp)	stringify_in_c(rlwinm dest, sp, 0, 0, 31-THREAD_SHIFT)
 #endif
 
 #ifndef __ASSEMBLY__
@@ -38,7 +38,8 @@
 /*
  * low level task data.
  */
-struct thread_info {
+struct thread_info
+{
 	struct task_struct *task;		/* main task structure */
 	int		cpu;			/* cpu we're on */
 	int		preempt_count;		/* 0 => preemptable,
@@ -58,12 +59,12 @@ struct thread_info {
  * macros/functions for gaining access to the thread information structure
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task =		&tsk,			\
-	.cpu =		0,			\
-	.preempt_count = INIT_PREEMPT_COUNT,	\
-	.flags =	0,			\
-}
+	{						\
+		.task =		&tsk,			\
+					.cpu =		0,			\
+								.preempt_count = INIT_PREEMPT_COUNT,	\
+										.flags =	0,			\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -75,7 +76,7 @@ static inline struct thread_info *current_thread_info(void)
 {
 	unsigned long val;
 
-	asm (CURRENT_THREAD_INFO(%0,1) : "=r" (val));
+	asm (CURRENT_THREAD_INFO(%0, 1) : "=r" (val));
 
 	return (struct thread_info *)val;
 }
@@ -105,7 +106,7 @@ static inline struct thread_info *current_thread_info(void)
 						for stack store? */
 #define TIF_MEMDIE		17	/* is terminating due to OOM killer */
 #if defined(CONFIG_PPC64)
-#define TIF_ELF2ABI		18	/* function descriptors must die! */
+	#define TIF_ELF2ABI		18	/* function descriptors must die! */
 #endif
 
 /* as above, but as bit values */
@@ -126,12 +127,12 @@ static inline struct thread_info *current_thread_info(void)
 #define _TIF_EMULATE_STACK_STORE	(1<<TIF_EMULATE_STACK_STORE)
 #define _TIF_NOHZ		(1<<TIF_NOHZ)
 #define _TIF_SYSCALL_DOTRACE	(_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | \
-				 _TIF_SECCOMP | _TIF_SYSCALL_TRACEPOINT | \
-				 _TIF_NOHZ)
+								 _TIF_SECCOMP | _TIF_SYSCALL_TRACEPOINT | \
+								 _TIF_NOHZ)
 
 #define _TIF_USER_WORK_MASK	(_TIF_SIGPENDING | _TIF_NEED_RESCHED | \
-				 _TIF_NOTIFY_RESUME | _TIF_UPROBE | \
-				 _TIF_RESTORE_TM)
+							 _TIF_NOTIFY_RESUME | _TIF_UPROBE | \
+							 _TIF_RESTORE_TM)
 #define _TIF_PERSYSCALL_MASK	(_TIF_RESTOREALL|_TIF_NOERROR)
 
 /* Bits in local_flags */
@@ -155,15 +156,15 @@ static inline bool test_thread_local_flags(unsigned int flags)
 }
 
 #ifdef CONFIG_PPC64
-#define is_32bit_task()	(test_thread_flag(TIF_32BIT))
+	#define is_32bit_task()	(test_thread_flag(TIF_32BIT))
 #else
-#define is_32bit_task()	(1)
+	#define is_32bit_task()	(1)
 #endif
 
 #if defined(CONFIG_PPC64)
-#define is_elf2_task() (test_thread_flag(TIF_ELF2ABI))
+	#define is_elf2_task() (test_thread_flag(TIF_ELF2ABI))
 #else
-#define is_elf2_task() (0)
+	#define is_elf2_task() (0)
 #endif
 
 #endif	/* !__ASSEMBLY__ */

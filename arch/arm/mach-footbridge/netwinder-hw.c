@@ -79,9 +79,14 @@ void nw_gpio_modify_op(unsigned int mask, unsigned int set)
 	current_gpio_op = new_gpio;
 
 	if (changed & 0xff)
+	{
 		outb(new_gpio, GP1_IO_BASE);
+	}
+
 	if (changed & 0xff00)
+	{
 		outb(new_gpio >> 8, GP2_IO_BASE);
+	}
 }
 EXPORT_SYMBOL(nw_gpio_modify_op);
 
@@ -99,7 +104,8 @@ static inline void __gpio_modify_io(int mask, int in)
 
 	wb977_device_select(7);
 
-	for (port = 0xe1; changed && port < 0xe8; changed >>= 1) {
+	for (port = 0xe1; changed && port < 0xe8; changed >>= 1)
+	{
 		wb977_wb(port, new_gpio & 1);
 
 		port += 1;
@@ -108,7 +114,8 @@ static inline void __gpio_modify_io(int mask, int in)
 
 	wb977_device_select(8);
 
-	for (port = 0xe8; changed && port < 0xec; changed >>= 1) {
+	for (port = 0xe8; changed && port < 0xec; changed >>= 1)
+	{
 		wb977_wb(port, new_gpio & 1);
 
 		port += 1;
@@ -368,15 +375,16 @@ void nw_cpld_modify(unsigned int mask, unsigned int set)
 	nw_gpio_modify_io(GPIO_DATA | GPIO_IOCLK | GPIO_IOLOAD, 0);
 	nw_gpio_modify_op(GPIO_IOLOAD, 0);
 
-	for (msk = 8; msk; msk >>= 1) {
+	for (msk = 8; msk; msk >>= 1)
+	{
 		int bit = current_cpld & msk;
 
 		nw_gpio_modify_op(GPIO_DATA | GPIO_IOCLK, bit ? GPIO_DATA : 0);
 		nw_gpio_modify_op(GPIO_IOCLK, GPIO_IOCLK);
 	}
 
-	nw_gpio_modify_op(GPIO_IOCLK|GPIO_DATA, 0);
-	nw_gpio_modify_op(GPIO_IOLOAD|GPIO_DSCLK, GPIO_IOLOAD|GPIO_DSCLK);
+	nw_gpio_modify_op(GPIO_IOCLK | GPIO_DATA, 0);
+	nw_gpio_modify_op(GPIO_IOLOAD | GPIO_DSCLK, GPIO_IOLOAD | GPIO_DSCLK);
 	nw_gpio_modify_op(GPIO_IOLOAD, 0);
 }
 EXPORT_SYMBOL(nw_cpld_modify);
@@ -391,14 +399,16 @@ static void __init cpld_init(void)
 }
 
 static unsigned char rwa_unlock[] __initdata =
-{ 0x00, 0x00, 0x6a, 0xb5, 0xda, 0xed, 0xf6, 0xfb, 0x7d, 0xbe, 0xdf, 0x6f, 0x37, 0x1b,
-  0x0d, 0x86, 0xc3, 0x61, 0xb0, 0x58, 0x2c, 0x16, 0x8b, 0x45, 0xa2, 0xd1, 0xe8, 0x74,
-  0x3a, 0x9d, 0xce, 0xe7, 0x73, 0x39 };
+{
+	0x00, 0x00, 0x6a, 0xb5, 0xda, 0xed, 0xf6, 0xfb, 0x7d, 0xbe, 0xdf, 0x6f, 0x37, 0x1b,
+	0x0d, 0x86, 0xc3, 0x61, 0xb0, 0x58, 0x2c, 0x16, 0x8b, 0x45, 0xa2, 0xd1, 0xe8, 0x74,
+	0x3a, 0x9d, 0xce, 0xe7, 0x73, 0x39
+};
 
 #ifndef DEBUG
-#define dprintk(x...)
+	#define dprintk(x...)
 #else
-#define dprintk(x...) printk(x)
+	#define dprintk(x...) printk(x)
 #endif
 
 #define WRITE_RWA(r,v) do { outb((r), 0x279); udelay(10); outb((v), 0xa79); } while (0)
@@ -410,7 +420,8 @@ static inline void rwa010_unlock(void)
 	WRITE_RWA(2, 2);
 	mdelay(10);
 
-	for (i = 0; i < sizeof(rwa_unlock); i++) {
+	for (i = 0; i < sizeof(rwa_unlock); i++)
+	{
 		outb(rwa_unlock[i], 0x279);
 		udelay(10);
 	}
@@ -429,9 +440,13 @@ static inline void rwa010_read_ident(void)
 	mdelay(1);
 
 	dprintk("Identifier: ");
-	for (i = 0; i < 9; i++) {
+
+	for (i = 0; i < 9; i++)
+	{
 		si[i] = 0;
-		for (j = 0; j < 8; j++) {
+
+		for (j = 0; j < 8; j++)
+		{
 			int bit;
 			udelay(250);
 			inb(0x203);
@@ -441,8 +456,10 @@ static inline void rwa010_read_ident(void)
 			bit = (bit == 0xaa) ? 1 : 0;
 			si[i] |= bit << j;
 		}
+
 		dprintk("(%02X) ", si[i]);
 	}
+
 	dprintk("\n");
 }
 
@@ -542,25 +559,39 @@ static void rwa010_soundblaster_reset(void)
 	udelay(3);
 	outb(0, 0x226);
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		if (inb(0x22e) & 0x80)
+		{
 			break;
+		}
+
 		mdelay(1);
 	}
+
 	if (i == 5)
+	{
 		printk("SoundBlaster: DSP reset failed\n");
+	}
 
 	dprintk("SoundBlaster DSP reset: %02X (AA)\n", inb(0x22a));
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		if ((inb(0x22c) & 0x80) == 0)
+		{
 			break;
+		}
+
 		mdelay(1);
 	}
 
 	if (i == 5)
+	{
 		printk("SoundBlaster: DSP not ready\n");
-	else {
+	}
+	else
+	{
 		outb(0xe1, 0x22c);
 
 		dprintk("SoundBlaster DSP id: ");
@@ -569,14 +600,20 @@ static void rwa010_soundblaster_reset(void)
 		i |= inb(0x22a) << 8;
 		dprintk("%04X\n", i);
 
-		for (i = 0; i < 5; i++) {
+		for (i = 0; i < 5; i++)
+		{
 			if ((inb(0x22c) & 0x80) == 0)
+			{
 				break;
+			}
+
 			mdelay(1);
 		}
 
 		if (i == 5)
+		{
 			printk("SoundBlaster: could not turn speaker off\n");
+		}
 
 		outb(0xd3, 0x22c);
 	}
@@ -604,11 +641,13 @@ static void __init rwa010_init(void)
  */
 static int __init nw_hw_init(void)
 {
-	if (machine_is_netwinder()) {
+	if (machine_is_netwinder())
+	{
 		wb977_init();
 		cpld_init();
 		rwa010_init();
 	}
+
 	return 0;
 }
 
@@ -636,10 +675,13 @@ fixup_netwinder(struct tag *tags, char **cmdline)
 
 static void netwinder_restart(enum reboot_mode mode, const char *cmd)
 {
-	if (mode == REBOOT_SOFT) {
+	if (mode == REBOOT_SOFT)
+	{
 		/* Jump into the ROM */
 		soft_restart(0x41000000);
-	} else {
+	}
+	else
+	{
 		local_irq_disable();
 		local_fiq_disable();
 
@@ -662,7 +704,8 @@ static void netwinder_restart(enum reboot_mode mode, const char *cmd)
 
 /* LEDs */
 #if defined(CONFIG_NEW_LEDS) && defined(CONFIG_LEDS_CLASS)
-struct netwinder_led {
+struct netwinder_led
+{
 	struct led_classdev     cdev;
 	u8                      mask;
 };
@@ -671,10 +714,12 @@ struct netwinder_led {
  * The triggers lines up below will only be used if the
  * LED triggers are compiled in.
  */
-static const struct {
+static const struct
+{
 	const char *name;
 	const char *trigger;
-} netwinder_leds[] = {
+} netwinder_leds[] =
+{
 	{ "netwinder:green", "heartbeat", },
 	{ "netwinder:red", "cpu0", },
 };
@@ -685,19 +730,25 @@ static const struct {
  *  - clearing bit means turn on LED
  */
 static void netwinder_led_set(struct led_classdev *cdev,
-		enum led_brightness b)
+							  enum led_brightness b)
 {
 	struct netwinder_led *led = container_of(cdev,
-			struct netwinder_led, cdev);
+								struct netwinder_led, cdev);
 	unsigned long flags;
 	u32 reg;
 
 	raw_spin_lock_irqsave(&nw_gpio_lock, flags);
 	reg = nw_gpio_read();
+
 	if (b != LED_OFF)
+	{
 		reg &= ~led->mask;
+	}
 	else
+	{
 		reg |= led->mask;
+	}
+
 	nw_gpio_modify_op(led->mask, reg);
 	raw_spin_unlock_irqrestore(&nw_gpio_lock, flags);
 }
@@ -705,7 +756,7 @@ static void netwinder_led_set(struct led_classdev *cdev,
 static enum led_brightness netwinder_led_get(struct led_classdev *cdev)
 {
 	struct netwinder_led *led = container_of(cdev,
-			struct netwinder_led, cdev);
+								struct netwinder_led, cdev);
 	unsigned long flags;
 	u32 reg;
 
@@ -721,14 +772,20 @@ static int __init netwinder_leds_init(void)
 	int i;
 
 	if (!machine_is_netwinder())
+	{
 		return -ENODEV;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(netwinder_leds); i++) {
+	for (i = 0; i < ARRAY_SIZE(netwinder_leds); i++)
+	{
 		struct netwinder_led *led;
 
 		led = kzalloc(sizeof(*led), GFP_KERNEL);
+
 		if (!led)
+		{
 			break;
+		}
 
 		led->cdev.name = netwinder_leds[i].name;
 		led->cdev.brightness_set = netwinder_led_set;
@@ -736,11 +793,16 @@ static int __init netwinder_leds_init(void)
 		led->cdev.default_trigger = netwinder_leds[i].trigger;
 
 		if (i == 0)
+		{
 			led->mask = GPIO_GREEN_LED;
+		}
 		else
+		{
 			led->mask = GPIO_RED_LED;
+		}
 
-		if (led_classdev_register(NULL, &led->cdev) < 0) {
+		if (led_classdev_register(NULL, &led->cdev) < 0)
+		{
 			kfree(led);
 			break;
 		}
@@ -757,15 +819,15 @@ fs_initcall(netwinder_leds_init);
 #endif
 
 MACHINE_START(NETWINDER, "Rebel-NetWinder")
-	/* Maintainer: Russell King/Rebel.com */
-	.atag_offset	= 0x100,
+/* Maintainer: Russell King/Rebel.com */
+.atag_offset	= 0x100,
 	.video_start	= 0x000a0000,
-	.video_end	= 0x000bffff,
-	.reserve_lp0	= 1,
-	.reserve_lp2	= 1,
-	.fixup		= fixup_netwinder,
-	.map_io		= footbridge_map_io,
-	.init_irq	= footbridge_init_irq,
-	.init_time	= isa_timer_init,
-	.restart	= netwinder_restart,
-MACHINE_END
+		.video_end	= 0x000bffff,
+		  .reserve_lp0	= 1,
+			  .reserve_lp2	= 1,
+				  .fixup		= fixup_netwinder,
+					   .map_io		= footbridge_map_io,
+						   .init_irq	= footbridge_init_irq,
+							  .init_time	= isa_timer_init,
+								.restart	= netwinder_restart,
+									MACHINE_END

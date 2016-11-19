@@ -48,14 +48,21 @@ static void set_omap_uart_info(unsigned char port)
 static inline void putc(int c)
 {
 	if (!uart_base)
+	{
 		return;
+	}
 
 	/* Check for UART 16x mode */
 	if ((uart_base[UART_OMAP_MDR1 << uart_shift] & MDR1_MODE_MASK) != 0)
+	{
 		return;
+	}
 
 	while (!(uart_base[UART_LSR << uart_shift] & UART_LSR_THRE))
+	{
 		barrier();
+	}
+
 	uart_base[UART_TX << uart_shift] = c;
 }
 
@@ -77,11 +84,11 @@ static inline void flush(void)
 
 #define DEBUG_LL_OMAP7XX(p, mach)					\
 	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP7XX_PORT_SHIFT,	\
-		OMAP1UART##p)
+					OMAP1UART##p)
 
 #define DEBUG_LL_OMAP1(p, mach)						\
 	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-		OMAP1UART##p)
+					OMAP1UART##p)
 
 static inline void arch_decomp_setup(void)
 {
@@ -93,7 +100,8 @@ static inline void arch_decomp_setup(void)
 	 * as machine_is functions are optimized out for the boards that
 	 * are not selected.
 	 */
-	do {
+	do
+	{
 		/* omap7xx/8xx based boards using UART1 with shift 0 */
 		DEBUG_LL_OMAP7XX(1, herald);
 		DEBUG_LL_OMAP7XX(1, omap_perseus2);
@@ -113,5 +121,6 @@ static inline void arch_decomp_setup(void)
 
 		/* omap15xx/16xx based boards using UART3 */
 		DEBUG_LL_OMAP1(3, sx1);
-	} while (0);
+	}
+	while (0);
 }

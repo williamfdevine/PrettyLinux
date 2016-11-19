@@ -38,7 +38,7 @@
 #include <asm/txx9/ndfmc.h>
 #include <asm/txx9/dmac.h>
 #ifdef CONFIG_CPU_TX49XX
-#include <asm/txx9/tx4938.h>
+	#include <asm/txx9/tx4938.h>
 #endif
 
 /* EBUSC settings of TX4927, etc. */
@@ -48,7 +48,8 @@ static char txx9_ce_res_name[8][4];	/* "CEn" */
 /* pcode, internal register */
 unsigned int txx9_pcode;
 char txx9_pcode_str[8];
-static struct resource txx9_reg_res = {
+static struct resource txx9_reg_res =
+{
 	.name = txx9_pcode_str,
 	.flags = IORESOURCE_MEM,
 };
@@ -57,7 +58,8 @@ txx9_reg_res_init(unsigned int pcode, unsigned long base, unsigned long size)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(txx9_ce_res); i++) {
+	for (i = 0; i < ARRAY_SIZE(txx9_ce_res); i++)
+	{
 		sprintf(txx9_ce_res_name[i], "CE%d", i);
 		txx9_ce_res[i].flags = IORESOURCE_MEM;
 		txx9_ce_res[i].name = txx9_ce_res_name[i];
@@ -65,7 +67,9 @@ txx9_reg_res_init(unsigned int pcode, unsigned long base, unsigned long size)
 
 	txx9_pcode = pcode;
 	sprintf(txx9_pcode_str, "TX%x", pcode);
-	if (base) {
+
+	if (base)
+	{
 		txx9_reg_res.start = base & 0xfffffffffULL;
 		txx9_reg_res.end = (base & 0xfffffffffULL) + (size - 1);
 		request_resource(&iomem_resource, &txx9_reg_res);
@@ -78,10 +82,10 @@ unsigned int txx9_cpu_clock;
 unsigned int txx9_gbus_clock;
 
 #ifdef CONFIG_CPU_TX39XX
-/* don't enable by default - see errata */
-int txx9_ccfg_toeon __initdata;
+	/* don't enable by default - see errata */
+	int txx9_ccfg_toeon __initdata;
 #else
-int txx9_ccfg_toeon __initdata = 1;
+	int txx9_ccfg_toeon __initdata = 1;
 #endif
 
 #define BOARD_VEC(board)	extern struct txx9_board_vec board;
@@ -91,7 +95,8 @@ int txx9_ccfg_toeon __initdata = 1;
 struct txx9_board_vec *txx9_board_vec __initdata;
 static char txx9_system_type[32];
 
-static struct txx9_board_vec *board_vecs[] __initdata = {
+static struct txx9_board_vec *board_vecs[] __initdata =
+{
 #define BOARD_VEC(board)	&board,
 #include <asm/txx9/boards.h>
 #undef BOARD_VEC
@@ -102,10 +107,14 @@ static struct txx9_board_vec *__init find_board_byname(const char *name)
 	int i;
 
 	/* search board_vecs table */
-	for (i = 0; i < ARRAY_SIZE(board_vecs); i++) {
+	for (i = 0; i < ARRAY_SIZE(board_vecs); i++)
+	{
 		if (strstr(board_vecs[i]->system, name))
+		{
 			return board_vecs[i];
+		}
 	}
+
 	return NULL;
 }
 
@@ -115,30 +124,42 @@ static void __init prom_init_cmdline(void)
 	int *argv32;
 	int i;			/* Always ignore the "-c" at argv[0] */
 
-	if (fw_arg0 >= CKSEG0 || fw_arg1 < CKSEG0) {
+	if (fw_arg0 >= CKSEG0 || fw_arg1 < CKSEG0)
+	{
 		/*
 		 * argc is not a valid number, or argv32 is not a valid
 		 * pointer
 		 */
 		argc = 0;
 		argv32 = NULL;
-	} else {
+	}
+	else
+	{
 		argc = (int)fw_arg0;
 		argv32 = (int *)fw_arg1;
 	}
 
 	arcs_cmdline[0] = '\0';
 
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		char *str = (char *)(long)argv32[i];
+
 		if (i != 1)
+		{
 			strcat(arcs_cmdline, " ");
-		if (strchr(str, ' ')) {
+		}
+
+		if (strchr(str, ' '))
+		{
 			strcat(arcs_cmdline, "\"");
 			strcat(arcs_cmdline, str);
 			strcat(arcs_cmdline, "\"");
-		} else
+		}
+		else
+		{
 			strcat(arcs_cmdline, str);
+		}
 	}
 }
 
@@ -155,8 +176,10 @@ static void __init early_flush_dcache(void)
 	unsigned long addr, end;
 
 	end = INDEX_BASE + dc_size / 4;
+
 	/* 4way, waybit=0 */
-	for (addr = INDEX_BASE; addr < end; addr += linesz) {
+	for (addr = INDEX_BASE; addr < end; addr += linesz)
+	{
 		cache_op(Index_Writeback_Inv_D, addr | 0);
 		cache_op(Index_Writeback_Inv_D, addr | 1);
 		cache_op(Index_Writeback_Inv_D, addr | 2);
@@ -169,12 +192,16 @@ static void __init txx9_cache_fixup(void)
 	unsigned int conf;
 
 	conf = read_c0_config();
+
 	/* flush and disable */
-	if (txx9_ic_disable) {
+	if (txx9_ic_disable)
+	{
 		conf |= TX49_CONF_IC;
 		write_c0_config(conf);
 	}
-	if (txx9_dc_disable) {
+
+	if (txx9_dc_disable)
+	{
 		early_flush_dcache();
 		conf |= TX49_CONF_DC;
 		write_c0_config(conf);
@@ -182,16 +209,28 @@ static void __init txx9_cache_fixup(void)
 
 	/* enable cache */
 	conf = read_c0_config();
+
 	if (!txx9_ic_disable)
+	{
 		conf &= ~TX49_CONF_IC;
+	}
+
 	if (!txx9_dc_disable)
+	{
 		conf &= ~TX49_CONF_DC;
+	}
+
 	write_c0_config(conf);
 
 	if (conf & TX49_CONF_IC)
+	{
 		pr_info("TX49XX I-Cache disabled.\n");
+	}
+
 	if (conf & TX49_CONF_DC)
+	{
 		pr_info("TX49XX D-Cache disabled.\n");
+	}
 }
 #elif defined(CONFIG_CPU_TX39XX)
 /* flush all cache on very early stage (before tx39_cache_init) */
@@ -199,13 +238,15 @@ static void __init early_flush_dcache(void)
 {
 	unsigned int conf = read_c0_config();
 	unsigned int dc_size = 1 << (10 + ((conf & TX39_CONF_DCS_MASK) >>
-					   TX39_CONF_DCS_SHIFT));
+									   TX39_CONF_DCS_SHIFT));
 	unsigned int linesz = 16;
 	unsigned long addr, end;
 
 	end = INDEX_BASE + dc_size / 2;
+
 	/* 2way, waybit=0 */
-	for (addr = INDEX_BASE; addr < end; addr += linesz) {
+	for (addr = INDEX_BASE; addr < end; addr += linesz)
+	{
 		cache_op(Index_Writeback_Inv_D, addr | 0);
 		cache_op(Index_Writeback_Inv_D, addr | 1);
 	}
@@ -216,12 +257,16 @@ static void __init txx9_cache_fixup(void)
 	unsigned int conf;
 
 	conf = read_c0_config();
+
 	/* flush and disable */
-	if (txx9_ic_disable) {
+	if (txx9_ic_disable)
+	{
 		conf &= ~TX39_CONF_ICE;
 		write_c0_config(conf);
 	}
-	if (txx9_dc_disable) {
+
+	if (txx9_dc_disable)
+	{
 		early_flush_dcache();
 		conf &= ~TX39_CONF_DCE;
 		write_c0_config(conf);
@@ -229,16 +274,28 @@ static void __init txx9_cache_fixup(void)
 
 	/* enable cache */
 	conf = read_c0_config();
+
 	if (!txx9_ic_disable)
+	{
 		conf |= TX39_CONF_ICE;
+	}
+
 	if (!txx9_dc_disable)
+	{
 		conf |= TX39_CONF_DCE;
+	}
+
 	write_c0_config(conf);
 
 	if (!(conf & TX39_CONF_ICE))
+	{
 		pr_info("TX39XX I-Cache disabled.\n");
+	}
+
 	if (!(conf & TX39_CONF_DCE))
+	{
 		pr_info("TX39XX D-Cache disabled.\n");
+	}
 }
 #else
 static inline void txx9_cache_fixup(void)
@@ -254,31 +311,53 @@ static void __init preprocess_cmdline(void)
 	strcpy(cmdline, arcs_cmdline);
 	s = cmdline;
 	arcs_cmdline[0] = '\0';
-	while (s && *s) {
+
+	while (s && *s)
+	{
 		char *str = strsep(&s, " ");
-		if (strncmp(str, "board=", 6) == 0) {
+
+		if (strncmp(str, "board=", 6) == 0)
+		{
 			txx9_board_vec = find_board_byname(str + 6);
 			continue;
-		} else if (strncmp(str, "masterclk=", 10) == 0) {
+		}
+		else if (strncmp(str, "masterclk=", 10) == 0)
+		{
 			unsigned int val;
+
 			if (kstrtouint(str + 10, 10, &val) == 0)
+			{
 				txx9_master_clock = val;
+			}
+
 			continue;
-		} else if (strcmp(str, "icdisable") == 0) {
+		}
+		else if (strcmp(str, "icdisable") == 0)
+		{
 			txx9_ic_disable = 1;
 			continue;
-		} else if (strcmp(str, "dcdisable") == 0) {
+		}
+		else if (strcmp(str, "dcdisable") == 0)
+		{
 			txx9_dc_disable = 1;
 			continue;
-		} else if (strcmp(str, "toeoff") == 0) {
+		}
+		else if (strcmp(str, "toeoff") == 0)
+		{
 			txx9_ccfg_toeon = 0;
 			continue;
-		} else if (strcmp(str, "toeon") == 0) {
+		}
+		else if (strcmp(str, "toeon") == 0)
+		{
 			txx9_ccfg_toeon = 1;
 			continue;
 		}
+
 		if (arcs_cmdline[0])
+		{
 			strcat(arcs_cmdline, " ");
+		}
+
 		strcat(arcs_cmdline, str);
 	}
 
@@ -291,13 +370,21 @@ static void __init select_board(void)
 
 	/* first, determine by "board=" argument in preprocess_cmdline() */
 	if (txx9_board_vec)
+	{
 		return;
+	}
+
 	/* next, determine by "board" envvar */
 	envstr = prom_getenv("board");
-	if (envstr) {
+
+	if (envstr)
+	{
 		txx9_board_vec = find_board_byname(envstr);
+
 		if (txx9_board_vec)
+		{
 			return;
+		}
 	}
 
 	/* select "default" board */
@@ -305,26 +392,33 @@ static void __init select_board(void)
 	txx9_board_vec = &jmr3927_vec;
 #endif
 #ifdef CONFIG_CPU_TX49XX
-	switch (TX4938_REV_PCODE()) {
+
+	switch (TX4938_REV_PCODE())
+	{
 #ifdef CONFIG_TOSHIBA_RBTX4927
-	case 0x4927:
-		txx9_board_vec = &rbtx4927_vec;
-		break;
-	case 0x4937:
-		txx9_board_vec = &rbtx4937_vec;
-		break;
+
+		case 0x4927:
+			txx9_board_vec = &rbtx4927_vec;
+			break;
+
+		case 0x4937:
+			txx9_board_vec = &rbtx4937_vec;
+			break;
 #endif
 #ifdef CONFIG_TOSHIBA_RBTX4938
-	case 0x4938:
-		txx9_board_vec = &rbtx4938_vec;
-		break;
+
+		case 0x4938:
+			txx9_board_vec = &rbtx4938_vec;
+			break;
 #endif
 #ifdef CONFIG_TOSHIBA_RBTX4939
-	case 0x4939:
-		txx9_board_vec = &rbtx4939_vec;
-		break;
+
+		case 0x4939:
+			txx9_board_vec = &rbtx4939_vec;
+			break;
 #endif
 	}
+
 #endif
 }
 
@@ -345,7 +439,9 @@ void __init prom_free_prom_memory(void)
 	unsigned long eaddr = __pa_symbol(&_text);
 
 	if (saddr < eaddr)
+	{
 		free_init_pages("prom memory", saddr, eaddr);
+	}
 }
 
 const char *get_system_type(void)
@@ -358,15 +454,23 @@ const char *__init prom_getenv(const char *name)
 	const s32 *str;
 
 	if (fw_arg2 < CKSEG0)
+	{
 		return NULL;
+	}
 
 	str = (const s32 *)fw_arg2;
+
 	/* YAMON style ("name", "value" pairs) */
-	while (str[0] && str[1]) {
+	while (str[0] && str[1])
+	{
 		if (!strcmp((const char *)(unsigned long)str[0], name))
+		{
 			return (const char *)(unsigned long)str[1];
+		}
+
 		str += 2;
 	}
+
 	return NULL;
 }
 
@@ -374,10 +478,15 @@ static void __noreturn txx9_machine_halt(void)
 {
 	local_irq_disable();
 	clear_c0_status(ST0_IM);
-	while (1) {
-		if (cpu_wait) {
+
+	while (1)
+	{
+		if (cpu_wait)
+		{
 			(*cpu_wait)();
-			if (cpu_has_counter) {
+
+			if (cpu_has_counter)
+			{
 				/*
 				 * Clear counter interrupt while it
 				 * breaks WAIT instruction even if
@@ -392,7 +501,8 @@ static void __noreturn txx9_machine_halt(void)
 /* Watchdog support */
 void __init txx9_wdt_init(unsigned long base)
 {
-	struct resource res = {
+	struct resource res =
+	{
 		.start	= base,
 		.end	= base + 0x100 - 1,
 		.flags	= IORESOURCE_MEM,
@@ -411,13 +521,14 @@ void txx9_wdt_now(unsigned long base)
 	__raw_writel(TXx9_TMWTMR_TWIE, &tmrptr->wtmr);
 	__raw_writel(1, &tmrptr->cpra); /* immediate */
 	__raw_writel(TXx9_TMTCR_TCE | TXx9_TMTCR_CCDE | TXx9_TMTCR_TMODE_WDOG,
-		     &tmrptr->tcr);
+				 &tmrptr->tcr);
 }
 
 /* SPI support */
 void __init txx9_spi_init(int busid, unsigned long base, int irq)
 {
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start	= base,
 			.end	= base + 0x20 - 1,
@@ -428,21 +539,24 @@ void __init txx9_spi_init(int busid, unsigned long base, int irq)
 		},
 	};
 	platform_device_register_simple("spi_txx9", busid,
-					res, ARRAY_SIZE(res));
+									res, ARRAY_SIZE(res));
 }
 
 void __init txx9_ethaddr_init(unsigned int id, unsigned char *ethaddr)
 {
 	struct platform_device *pdev =
 		platform_device_alloc("tc35815-mac", id);
+
 	if (!pdev ||
-	    platform_device_add_data(pdev, ethaddr, 6) ||
-	    platform_device_add(pdev))
+		platform_device_add_data(pdev, ethaddr, 6) ||
+		platform_device_add(pdev))
+	{
 		platform_device_put(pdev);
+	}
 }
 
 void __init txx9_sio_init(unsigned long baseaddr, int irq,
-			  unsigned int line, unsigned int sclk, int nocts)
+						  unsigned int line, unsigned int sclk, int nocts)
 {
 #ifdef CONFIG_SERIAL_TXX9
 	struct uart_port req;
@@ -453,13 +567,22 @@ void __init txx9_sio_init(unsigned long baseaddr, int irq,
 	req.membase = ioremap(baseaddr, 0x24);
 	req.mapbase = baseaddr;
 	req.irq = irq;
+
 	if (!nocts)
+	{
 		req.flags |= UPF_BUGGY_UART /*HAVE_CTS_LINE*/;
-	if (sclk) {
+	}
+
+	if (sclk)
+	{
 		req.flags |= UPF_MAGIC_MULTIPLIER /*USE_SCLK*/;
 		req.uartclk = sclk;
-	} else
+	}
+	else
+	{
 		req.uartclk = TXX9_IMCLK;
+	}
+
 	early_serial_txx9_setup(&req);
 #endif /* CONFIG_SERIAL_TXX9 */
 }
@@ -482,9 +605,11 @@ static void early_txx9_sio_putchar(char c)
 #define TXX9_SICISR	0x0c
 #define TXX9_SITFIFO	0x1c
 #define TXX9_SICISR_TXALS	0x00000002
+
 	while (!(__raw_readl(early_txx9_sio_port + TXX9_SICISR) &
-		 TXX9_SICISR_TXALS))
+			 TXX9_SICISR_TXALS))
 		;
+
 	__raw_writel(c, early_txx9_sio_port + TXX9_SITFIFO);
 }
 
@@ -533,23 +658,34 @@ static void txx9_clk_init(void)
 	int error;
 
 	hw = clk_hw_register_fixed_rate(NULL, "gbus", NULL, 0, txx9_gbus_clock);
-	if (IS_ERR(hw)) {
+
+	if (IS_ERR(hw))
+	{
 		error = PTR_ERR(hw);
 		goto fail;
 	}
 
 	hw = clk_hw_register_fixed_factor(NULL, "imbus", "gbus", 0, 1, 2);
 	error = clk_hw_register_clkdev(hw, "imbus_clk", NULL);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 #ifdef CONFIG_CPU_TX49XX
-	if (TX4938_REV_PCODE() == 0x4938) {
+
+	if (TX4938_REV_PCODE() == 0x4938)
+	{
 		hw = clk_hw_register_fixed_factor(NULL, "spi", "gbus", 0, 1, 4);
 		error = clk_hw_register_clkdev(hw, "spi-baseclk", NULL);
+
 		if (error)
+		{
 			goto fail;
+		}
 	}
+
 #endif
 
 	return;
@@ -563,7 +699,10 @@ static int __init _txx9_arch_init(void)
 	txx9_clk_init();
 
 	if (txx9_board_vec->arch_init)
+	{
 		txx9_board_vec->arch_init();
+	}
+
 	return 0;
 }
 arch_initcall(_txx9_arch_init);
@@ -571,7 +710,10 @@ arch_initcall(_txx9_arch_init);
 static int __init _txx9_device_init(void)
 {
 	if (txx9_board_vec->device_init)
+	{
 		txx9_board_vec->device_init();
+	}
+
 	return 0;
 }
 device_initcall(_txx9_device_init);
@@ -583,9 +725,13 @@ asmlinkage void plat_irq_dispatch(void)
 	int irq = txx9_irq_dispatch(pending);
 
 	if (likely(irq >= 0))
+	{
 		do_IRQ(irq);
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }
 
 /* see include/asm-mips/mach-tx39xx/mangle-port.h, for example. */
@@ -614,11 +760,12 @@ EXPORT_SYMBOL(__mem_ioswabw);
 #endif
 
 void __init txx9_physmap_flash_init(int no, unsigned long addr,
-				    unsigned long size,
-				    const struct physmap_flash_data *pdata)
+									unsigned long size,
+									const struct physmap_flash_data *pdata)
 {
 #if IS_ENABLED(CONFIG_MTD_PHYSMAP)
-	struct resource res = {
+	struct resource res =
+	{
 		.start = addr,
 		.end = addr + size - 1,
 		.flags = IORESOURCE_MEM,
@@ -629,8 +776,9 @@ void __init txx9_physmap_flash_init(int no, unsigned long addr,
 
 	/* If this area contained boot area, make separate partition */
 	if (pdata->nr_parts == 0 && !pdata->parts &&
-	    addr < 0x1fc00000 && addr + size > 0x1fc00000 &&
-	    !parts[0].name) {
+		addr < 0x1fc00000 && addr + size > 0x1fc00000 &&
+		!parts[0].name)
+	{
 		parts[0].name = "boot";
 		parts[0].offset = 0x1fc00000 - addr;
 		parts[0].size = addr + size - 0x1fc00000;
@@ -644,19 +792,24 @@ void __init txx9_physmap_flash_init(int no, unsigned long addr,
 	}
 
 	pdev = platform_device_alloc("physmap-flash", no);
+
 	if (!pdev ||
-	    platform_device_add_resources(pdev, &res, 1) ||
-	    platform_device_add_data(pdev, pdata, sizeof(*pdata)) ||
-	    platform_device_add(pdev))
+		platform_device_add_resources(pdev, &res, 1) ||
+		platform_device_add_data(pdev, pdata, sizeof(*pdata)) ||
+		platform_device_add(pdev))
+	{
 		platform_device_put(pdev);
+	}
+
 #endif
 }
 
 void __init txx9_ndfmc_init(unsigned long baseaddr,
-			    const struct txx9ndfmc_platform_data *pdata)
+							const struct txx9ndfmc_platform_data *pdata)
 {
 #if IS_ENABLED(CONFIG_MTD_NAND_TXX9NDFMC)
-	struct resource res = {
+	struct resource res =
+	{
 		.start = baseaddr,
 		.end = baseaddr + 0x1000 - 1,
 		.flags = IORESOURCE_MEM,
@@ -664,10 +817,13 @@ void __init txx9_ndfmc_init(unsigned long baseaddr,
 	struct platform_device *pdev = platform_device_alloc("txx9ndfmc", -1);
 
 	if (!pdev ||
-	    platform_device_add_resources(pdev, &res, 1) ||
-	    platform_device_add_data(pdev, pdata, sizeof(*pdata)) ||
-	    platform_device_add(pdev))
+		platform_device_add_resources(pdev, &res, 1) ||
+		platform_device_add_data(pdev, pdata, sizeof(*pdata)) ||
+		platform_device_add(pdev))
+	{
 		platform_device_put(pdev);
+	}
+
 #endif
 }
 
@@ -676,7 +832,8 @@ static DEFINE_SPINLOCK(txx9_iocled_lock);
 
 #define TXX9_IOCLED_MAXLEDS 8
 
-struct txx9_iocled_data {
+struct txx9_iocled_data
+{
 	struct gpio_chip chip;
 	u8 cur_val;
 	void __iomem *mmioaddr;
@@ -692,15 +849,21 @@ static int txx9_iocled_get(struct gpio_chip *chip, unsigned int offset)
 }
 
 static void txx9_iocled_set(struct gpio_chip *chip, unsigned int offset,
-			    int value)
+							int value)
 {
 	struct txx9_iocled_data *data = gpiochip_get_data(chip);
 	unsigned long flags;
 	spin_lock_irqsave(&txx9_iocled_lock, flags);
+
 	if (value)
+	{
 		data->cur_val |= 1 << offset;
+	}
 	else
+	{
 		data->cur_val &= ~(1 << offset);
+	}
+
 	writeb(data->cur_val, data->mmioaddr);
 	mmiowb();
 	spin_unlock_irqrestore(&txx9_iocled_lock, flags);
@@ -712,20 +875,21 @@ static int txx9_iocled_dir_in(struct gpio_chip *chip, unsigned int offset)
 }
 
 static int txx9_iocled_dir_out(struct gpio_chip *chip, unsigned int offset,
-			       int value)
+							   int value)
 {
 	txx9_iocled_set(chip, offset, value);
 	return 0;
 }
 
 void __init txx9_iocled_init(unsigned long baseaddr,
-			     int basenum, unsigned int num, int lowactive,
-			     const char *color, char **deftriggers)
+							 int basenum, unsigned int num, int lowactive,
+							 const char *color, char **deftriggers)
 {
 	struct txx9_iocled_data *iocled;
 	struct platform_device *pdev;
 	int i;
-	static char *default_triggers[] __initdata = {
+	static char *default_triggers[] __initdata =
+	{
 		"heartbeat",
 		"disk-activity",
 		"nand-disk",
@@ -733,13 +897,24 @@ void __init txx9_iocled_init(unsigned long baseaddr,
 	};
 
 	if (!deftriggers)
+	{
 		deftriggers = default_triggers;
+	}
+
 	iocled = kzalloc(sizeof(*iocled), GFP_KERNEL);
+
 	if (!iocled)
+	{
 		return;
+	}
+
 	iocled->mmioaddr = ioremap(baseaddr, 1);
+
 	if (!iocled->mmioaddr)
+	{
 		goto out_free;
+	}
+
 	iocled->chip.get = txx9_iocled_get;
 	iocled->chip.set = txx9_iocled_set;
 	iocled->chip.direction_input = txx9_iocled_dir_in;
@@ -747,29 +922,49 @@ void __init txx9_iocled_init(unsigned long baseaddr,
 	iocled->chip.label = "iocled";
 	iocled->chip.base = basenum;
 	iocled->chip.ngpio = num;
+
 	if (gpiochip_add_data(&iocled->chip, iocled))
+	{
 		goto out_unmap;
+	}
+
 	if (basenum < 0)
+	{
 		basenum = iocled->chip.base;
+	}
 
 	pdev = platform_device_alloc("leds-gpio", basenum);
+
 	if (!pdev)
+	{
 		goto out_gpio;
+	}
+
 	iocled->pdata.num_leds = num;
 	iocled->pdata.leds = iocled->leds;
-	for (i = 0; i < num; i++) {
+
+	for (i = 0; i < num; i++)
+	{
 		struct gpio_led *led = &iocled->leds[i];
 		snprintf(iocled->names[i], sizeof(iocled->names[i]),
-			 "iocled:%s:%u", color, i);
+				 "iocled:%s:%u", color, i);
 		led->name = iocled->names[i];
 		led->gpio = basenum + i;
 		led->active_low = lowactive;
+
 		if (deftriggers && *deftriggers)
+		{
 			led->default_trigger = *deftriggers++;
+		}
 	}
+
 	pdev->dev.platform_data = &iocled->pdata;
+
 	if (platform_device_add(pdev))
+	{
 		goto out_pdev;
+	}
+
 	return;
 
 out_pdev:
@@ -783,17 +978,18 @@ out_free:
 }
 #else /* CONFIG_LEDS_GPIO */
 void __init txx9_iocled_init(unsigned long baseaddr,
-			     int basenum, unsigned int num, int lowactive,
-			     const char *color, char **deftriggers)
+							 int basenum, unsigned int num, int lowactive,
+							 const char *color, char **deftriggers)
 {
 }
 #endif /* CONFIG_LEDS_GPIO */
 
 void __init txx9_dmac_init(int id, unsigned long baseaddr, int irq,
-			   const struct txx9dmac_platform_data *pdata)
+						   const struct txx9dmac_platform_data *pdata)
 {
 #if IS_ENABLED(CONFIG_TXX9_DMAC)
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start = baseaddr,
 			.end = baseaddr + 0x800 - 1,
@@ -806,7 +1002,8 @@ void __init txx9_dmac_init(int id, unsigned long baseaddr, int irq,
 		}
 	};
 #ifdef CONFIG_MACH_TX49XX
-	struct resource chan_res[] = {
+	struct resource chan_res[] =
+	{
 		{
 			.flags = IORESOURCE_IRQ,
 		}
@@ -817,40 +1014,49 @@ void __init txx9_dmac_init(int id, unsigned long baseaddr, int irq,
 	int i;
 
 	if (!pdev ||
-	    platform_device_add_resources(pdev, res, ARRAY_SIZE(res)) ||
-	    platform_device_add_data(pdev, pdata, sizeof(*pdata)) ||
-	    platform_device_add(pdev)) {
+		platform_device_add_resources(pdev, res, ARRAY_SIZE(res)) ||
+		platform_device_add_data(pdev, pdata, sizeof(*pdata)) ||
+		platform_device_add(pdev))
+	{
 		platform_device_put(pdev);
 		return;
 	}
+
 	memset(&cpdata, 0, sizeof(cpdata));
 	cpdata.dmac_dev = pdev;
-	for (i = 0; i < TXX9_DMA_MAX_NR_CHANNELS; i++) {
+
+	for (i = 0; i < TXX9_DMA_MAX_NR_CHANNELS; i++)
+	{
 #ifdef CONFIG_MACH_TX49XX
 		chan_res[0].start = irq + i;
 #endif
 		pdev = platform_device_alloc("txx9dmac-chan",
-					     id * TXX9_DMA_MAX_NR_CHANNELS + i);
+									 id * TXX9_DMA_MAX_NR_CHANNELS + i);
+
 		if (!pdev ||
 #ifdef CONFIG_MACH_TX49XX
-		    platform_device_add_resources(pdev, chan_res,
-						  ARRAY_SIZE(chan_res)) ||
+			platform_device_add_resources(pdev, chan_res,
+										  ARRAY_SIZE(chan_res)) ||
 #endif
-		    platform_device_add_data(pdev, &cpdata, sizeof(cpdata)) ||
-		    platform_device_add(pdev))
+			platform_device_add_data(pdev, &cpdata, sizeof(cpdata)) ||
+			platform_device_add(pdev))
+		{
 			platform_device_put(pdev);
+		}
 	}
+
 #endif
 }
 
 void __init txx9_aclc_init(unsigned long baseaddr, int irq,
-			   unsigned int dmac_id,
-			   unsigned int dma_chan_out,
-			   unsigned int dma_chan_in)
+						   unsigned int dmac_id,
+						   unsigned int dma_chan_out,
+						   unsigned int dma_chan_in)
 {
 #if IS_ENABLED(CONFIG_SND_SOC_TXX9ACLC)
 	unsigned int dma_base = dmac_id * TXX9_DMA_MAX_NR_CHANNELS;
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start = baseaddr,
 			.end = baseaddr + 0x100 - 1,
@@ -872,49 +1078,66 @@ void __init txx9_aclc_init(unsigned long baseaddr, int irq,
 		platform_device_alloc("txx9aclc-ac97", -1);
 
 	if (!pdev ||
-	    platform_device_add_resources(pdev, res, ARRAY_SIZE(res)) ||
-	    platform_device_add(pdev))
+		platform_device_add_resources(pdev, res, ARRAY_SIZE(res)) ||
+		platform_device_add(pdev))
+	{
 		platform_device_put(pdev);
+	}
+
 #endif
 }
 
-static struct bus_type txx9_sramc_subsys = {
+static struct bus_type txx9_sramc_subsys =
+{
 	.name = "txx9_sram",
 	.dev_name = "txx9_sram",
 };
 
-struct txx9_sramc_dev {
+struct txx9_sramc_dev
+{
 	struct device dev;
 	struct bin_attribute bindata_attr;
 	void __iomem *base;
 };
 
 static ssize_t txx9_sram_read(struct file *filp, struct kobject *kobj,
-			      struct bin_attribute *bin_attr,
-			      char *buf, loff_t pos, size_t size)
+							  struct bin_attribute *bin_attr,
+							  char *buf, loff_t pos, size_t size)
 {
 	struct txx9_sramc_dev *dev = bin_attr->private;
 	size_t ramsize = bin_attr->size;
 
 	if (pos >= ramsize)
+	{
 		return 0;
+	}
+
 	if (pos + size > ramsize)
+	{
 		size = ramsize - pos;
+	}
+
 	memcpy_fromio(buf, dev->base + pos, size);
 	return size;
 }
 
 static ssize_t txx9_sram_write(struct file *filp, struct kobject *kobj,
-			       struct bin_attribute *bin_attr,
-			       char *buf, loff_t pos, size_t size)
+							   struct bin_attribute *bin_attr,
+							   char *buf, loff_t pos, size_t size)
 {
 	struct txx9_sramc_dev *dev = bin_attr->private;
 	size_t ramsize = bin_attr->size;
 
 	if (pos >= ramsize)
+	{
 		return 0;
+	}
+
 	if (pos + size > ramsize)
+	{
 		size = ramsize - pos;
+	}
+
 	memcpy_toio(dev->base + pos, buf, size);
 	return size;
 }
@@ -934,17 +1157,28 @@ void __init txx9_sramc_init(struct resource *r)
 	int err;
 
 	err = subsys_system_register(&txx9_sramc_subsys, NULL);
+
 	if (err)
+	{
 		return;
+	}
+
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return;
+	}
+
 	size = resource_size(r);
 	dev->base = ioremap(r->start, size);
-	if (!dev->base) {
+
+	if (!dev->base)
+	{
 		kfree(dev);
 		return;
 	}
+
 	dev->dev.release = &txx9_device_release;
 	dev->dev.bus = &txx9_sramc_subsys;
 	sysfs_bin_attr_init(&dev->bindata_attr);
@@ -955,14 +1189,21 @@ void __init txx9_sramc_init(struct resource *r)
 	dev->bindata_attr.size = size;
 	dev->bindata_attr.private = dev;
 	err = device_register(&dev->dev);
+
 	if (err)
+	{
 		goto exit_put;
+	}
+
 	err = sysfs_create_bin_file(&dev->dev.kobj, &dev->bindata_attr);
-	if (err) {
+
+	if (err)
+	{
 		device_unregister(&dev->dev);
 		iounmap(dev->base);
 		kfree(dev);
 	}
+
 	return;
 exit_put:
 	put_device(&dev->dev);

@@ -1,7 +1,8 @@
 #ifndef __TSS_SEGMENT_H
 #define __TSS_SEGMENT_H
 
-struct tss_segment_32 {
+struct tss_segment_32
+{
 	u32 prev_task_link;
 	u32 esp0;
 	u32 ss0;
@@ -31,7 +32,8 @@ struct tss_segment_32 {
 	u16 io_map;
 };
 
-struct tss_segment_16 {
+struct tss_segment_16
+{
 	u16 prev_task_link;
 	u16 sp0;
 	u16 ss0;

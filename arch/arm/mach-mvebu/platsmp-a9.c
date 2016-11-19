@@ -25,7 +25,7 @@
 extern void mvebu_cortex_a9_secondary_startup(void);
 
 static int mvebu_cortex_a9_boot_secondary(unsigned int cpu,
-						    struct task_struct *idle)
+		struct task_struct *idle)
 {
 	int ret, hw_cpu;
 
@@ -38,10 +38,16 @@ static int mvebu_cortex_a9_boot_secondary(unsigned int cpu,
 	 * address.
 	 */
 	hw_cpu = cpu_logical_map(cpu);
+
 	if (of_machine_is_compatible("marvell,armada375"))
+	{
 		mvebu_system_controller_set_cpu_boot_addr(mvebu_cortex_a9_secondary_startup);
+	}
 	else
+	{
 		mvebu_pmsu_set_cpu_boot_addr(hw_cpu, mvebu_cortex_a9_secondary_startup);
+	}
+
 	smp_wmb();
 
 	/*
@@ -51,7 +57,9 @@ static int mvebu_cortex_a9_boot_secondary(unsigned int cpu,
 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
 
 	ret = mvebu_cpu_reset_deassert(hw_cpu);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Could not start the secondary CPU: %d\n", ret);
 		return ret;
 	}
@@ -93,11 +101,13 @@ static int armada_38x_cpu_kill(unsigned int cpu)
 }
 #endif
 
-static const struct smp_operations mvebu_cortex_a9_smp_ops __initconst = {
+static const struct smp_operations mvebu_cortex_a9_smp_ops __initconst =
+{
 	.smp_boot_secondary	= mvebu_cortex_a9_boot_secondary,
 };
 
-static const struct smp_operations armada_38x_smp_ops __initconst = {
+static const struct smp_operations armada_38x_smp_ops __initconst =
+{
 	.smp_boot_secondary	= mvebu_cortex_a9_boot_secondary,
 	.smp_secondary_init     = armada_38x_secondary_init,
 #ifdef CONFIG_HOTPLUG_CPU
@@ -107,8 +117,8 @@ static const struct smp_operations armada_38x_smp_ops __initconst = {
 };
 
 CPU_METHOD_OF_DECLARE(mvebu_armada_375_smp, "marvell,armada-375-smp",
-		      &mvebu_cortex_a9_smp_ops);
+					  &mvebu_cortex_a9_smp_ops);
 CPU_METHOD_OF_DECLARE(mvebu_armada_380_smp, "marvell,armada-380-smp",
-		      &armada_38x_smp_ops);
+					  &armada_38x_smp_ops);
 CPU_METHOD_OF_DECLARE(mvebu_armada_390_smp, "marvell,armada-390-smp",
-		      &armada_38x_smp_ops);
+					  &armada_38x_smp_ops);

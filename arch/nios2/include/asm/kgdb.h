@@ -26,7 +26,8 @@
 #define CACHE_FLUSH_IS_SAFE	1
 #define BUFMAX			2048
 
-enum regnames {
+enum regnames
+{
 	GDB_R0 = 0,
 	GDB_AT,
 	GDB_R2,

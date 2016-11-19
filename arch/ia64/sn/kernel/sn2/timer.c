@@ -27,12 +27,13 @@ static cycle_t read_sn2(struct clocksource *cs)
 	return (cycle_t)readq(RTC_COUNTER_ADDR);
 }
 
-static struct clocksource clocksource_sn2 = {
-        .name           = "sn2_rtc",
-        .rating         = 450,
-        .read           = read_sn2,
-        .mask           = (1LL << 55) - 1,
-        .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
+static struct clocksource clocksource_sn2 =
+{
+	.name           = "sn2_rtc",
+	.rating         = 450,
+	.read           = read_sn2,
+	.mask           = (1LL << 55) - 1,
+	.flags          = CLOCK_SOURCE_IS_CONTINUOUS,
 };
 
 /*
@@ -45,10 +46,12 @@ ia64_sn_udelay (unsigned long usecs)
 {
 	unsigned long start = rtc_time();
 	unsigned long end = start +
-			usecs * sn_rtc_cycles_per_second / 1000000;
+						usecs * sn_rtc_cycles_per_second / 1000000;
 
 	while (time_before((unsigned long)rtc_time(), end))
+	{
 		cpu_relax();
+	}
 }
 
 void __init sn_timer_init(void)

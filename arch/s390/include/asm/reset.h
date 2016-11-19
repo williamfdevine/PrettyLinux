@@ -8,7 +8,8 @@
 
 #include <linux/list.h>
 
-struct reset_call {
+struct reset_call
+{
 	struct list_head list;
 	void (*fn)(void);
 };

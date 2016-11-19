@@ -228,7 +228,7 @@
  */
 #define INSN_DECODE_IPA0(ipa0, insn, rshift, mask)		\
 	(insn >> 56) == (ipa0) ?				\
-		((ipa0 << 8) | ((insn >> rshift) & mask)) :
+	((ipa0 << 8) | ((insn >> rshift) & mask)) :
 
 #define INSN_DECODE(insn) (insn >> 56)
 
@@ -238,14 +238,14 @@
  * of the instruction in the icpt_insn_codes table.
  */
 #define icpt_insn_decoder(insn) (		\
-	INSN_DECODE_IPA0(0x01, insn, 48, 0xff)	\
-	INSN_DECODE_IPA0(0xaa, insn, 48, 0x0f)	\
-	INSN_DECODE_IPA0(0xb2, insn, 48, 0xff)	\
-	INSN_DECODE_IPA0(0xb9, insn, 48, 0xff)	\
-	INSN_DECODE_IPA0(0xe3, insn, 48, 0xff)	\
-	INSN_DECODE_IPA0(0xe5, insn, 48, 0xff)	\
-	INSN_DECODE_IPA0(0xeb, insn, 16, 0xff)	\
-	INSN_DECODE_IPA0(0xc8, insn, 48, 0x0f)	\
-	INSN_DECODE(insn))
+										INSN_DECODE_IPA0(0x01, insn, 48, 0xff)	\
+										INSN_DECODE_IPA0(0xaa, insn, 48, 0x0f)	\
+										INSN_DECODE_IPA0(0xb2, insn, 48, 0xff)	\
+										INSN_DECODE_IPA0(0xb9, insn, 48, 0xff)	\
+										INSN_DECODE_IPA0(0xe3, insn, 48, 0xff)	\
+										INSN_DECODE_IPA0(0xe5, insn, 48, 0xff)	\
+										INSN_DECODE_IPA0(0xeb, insn, 16, 0xff)	\
+										INSN_DECODE_IPA0(0xc8, insn, 48, 0x0f)	\
+										INSN_DECODE(insn))
 
 #endif /* _UAPI_ASM_S390_SIE_H */

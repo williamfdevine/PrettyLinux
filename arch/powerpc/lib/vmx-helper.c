@@ -26,7 +26,9 @@
 int enter_vmx_usercopy(void)
 {
 	if (in_interrupt())
+	{
 		return 0;
+	}
 
 	preempt_disable();
 	/*
@@ -56,7 +58,9 @@ int exit_vmx_usercopy(void)
 int enter_vmx_copy(void)
 {
 	if (in_interrupt())
+	{
 		return 0;
+	}
 
 	preempt_disable();
 

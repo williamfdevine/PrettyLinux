@@ -29,7 +29,8 @@ void omap1_restart(enum reboot_mode mode, const char *cmd)
 	 * Workaround for 5912/1611b bug mentioned in sprz209d.pdf p. 28
 	 * "Global Software Reset Affects Traffic Controller Frequency".
 	 */
-	if (cpu_is_omap5912()) {
+	if (cpu_is_omap5912())
+	{
 		omap_writew(omap_readw(DPLL_CTL) & ~(1 << 4), DPLL_CTL);
 		omap_writew(0x8, ARM_RSTCT1);
 	}
@@ -51,13 +52,24 @@ u32 omap1_get_reset_sources(void)
 	rs = __raw_readw(OMAP1_IO_ADDRESS(ARM_SYSST));
 
 	if (rs & (1 << ARM_SYSST_POR_SHIFT))
+	{
 		ret |= 1 << OMAP_GLOBAL_COLD_RST_SRC_ID_SHIFT;
+	}
+
 	if (rs & (1 << ARM_SYSST_EXT_RST_SHIFT))
+	{
 		ret |= 1 << OMAP_EXTWARM_RST_SRC_ID_SHIFT;
+	}
+
 	if (rs & (1 << ARM_SYSST_ARM_WDRST_SHIFT))
+	{
 		ret |= 1 << OMAP_MPU_WD_RST_SRC_ID_SHIFT;
+	}
+
 	if (rs & (1 << ARM_SYSST_GLOB_SWRST_SHIFT))
+	{
 		ret |= 1 << OMAP_GLOBAL_WARM_RST_SRC_ID_SHIFT;
+	}
 
 	return ret;
 }

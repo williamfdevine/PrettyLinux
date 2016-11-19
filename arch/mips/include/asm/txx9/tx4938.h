@@ -16,9 +16,9 @@
 #include <asm/txx9/tx4927.h>
 
 #ifdef CONFIG_64BIT
-#define TX4938_REG_BASE 0xffffffffff1f0000UL /* == TX4937_REG_BASE */
+	#define TX4938_REG_BASE 0xffffffffff1f0000UL /* == TX4937_REG_BASE */
 #else
-#define TX4938_REG_BASE 0xff1f0000UL /* == TX4937_REG_BASE */
+	#define TX4938_REG_BASE 0xff1f0000UL /* == TX4937_REG_BASE */
 #endif
 #define TX4938_REG_SIZE 0x00010000 /* == TX4937_REG_SIZE */
 
@@ -40,11 +40,13 @@
 #define TX4938_ACLC_REG		(TX4938_REG_BASE + 0xf700)
 #define TX4938_SPI_REG		(TX4938_REG_BASE + 0xf800)
 
-struct tx4938_sramc_reg {
+struct tx4938_sramc_reg
+{
 	u64 cr;
 };
 
-struct tx4938_ccfg_reg {
+struct tx4938_ccfg_reg
+{
 	u64 ccfg;
 	u64 crir;
 	u64 pcfg;
@@ -252,12 +254,12 @@ struct tx4938_ccfg_reg {
 #define tx4938_ebuscptr		tx4927_ebuscptr
 #define tx4938_pcicptr		tx4927_pcicptr
 #define tx4938_pcic1ptr \
-		((struct tx4927_pcic_reg __iomem *)TX4938_PCIC1_REG)
+	((struct tx4927_pcic_reg __iomem *)TX4938_PCIC1_REG)
 #define tx4938_ccfgptr \
-		((struct tx4938_ccfg_reg __iomem *)TX4938_CCFG_REG)
+	((struct tx4938_ccfg_reg __iomem *)TX4938_CCFG_REG)
 #define tx4938_pioptr		((struct txx9_pio_reg __iomem *)TX4938_PIO_REG)
 #define tx4938_sramcptr \
-		((struct tx4938_sramc_reg __iomem *)TX4938_SRAMC_REG)
+	((struct tx4938_sramc_reg __iomem *)TX4938_SRAMC_REG)
 
 
 #define TX4938_REV_PCODE()	\
@@ -293,7 +295,8 @@ void tx4938_irq_init(void);
 void tx4938_mtd_init(int ch);
 void tx4938_ndfmc_init(unsigned int hold, unsigned int spw);
 
-struct tx4938ide_platform_info {
+struct tx4938ide_platform_info
+{
 	/*
 	 * I/O port shift, for platforms with ports that are
 	 * constantly spaced and need larger than the 1-byte

@@ -44,7 +44,7 @@
 #define MAS0_TLBSEL_SHIFT	28
 #define MAS0_TLBSEL(x)		(((x) << MAS0_TLBSEL_SHIFT) & MAS0_TLBSEL_MASK)
 #define MAS0_GET_TLBSEL(mas0)	(((mas0) & MAS0_TLBSEL_MASK) >> \
-			MAS0_TLBSEL_SHIFT)
+								 MAS0_TLBSEL_SHIFT)
 #define MAS0_ESEL_MASK		0x0FFF0000
 #define MAS0_ESEL_SHIFT		16
 #define MAS0_ESEL(x)		(((x) << MAS0_ESEL_SHIFT) & MAS0_ESEL_MASK)
@@ -147,7 +147,7 @@
 #define MMUCSR0_TLB2FI	0x00000040	/* TLB2 Flash invalidate */
 #define MMUCSR0_TLB3FI	0x00000020	/* TLB3 Flash invalidate */
 #define MMUCSR0_TLBFI	(MMUCSR0_TLB0FI | MMUCSR0_TLB1FI | \
-			 MMUCSR0_TLB2FI | MMUCSR0_TLB3FI)
+						 MMUCSR0_TLB2FI | MMUCSR0_TLB3FI)
 #define MMUCSR0_TLB0PS	0x00000780	/* TLB0 Page Size */
 #define MMUCSR0_TLB1PS	0x00007800	/* TLB1 Page Size */
 #define MMUCSR0_TLB2PS	0x00078000	/* TLB2 Page Size */
@@ -225,7 +225,8 @@
 
 extern unsigned int tlbcam_index;
 
-typedef struct {
+typedef struct
+{
 	unsigned int	id;
 	unsigned int	active;
 	unsigned long	vdso_base;
@@ -263,14 +264,20 @@ static inline int shift_to_mmu_psize(unsigned int shift)
 
 	for (psize = 0; psize < MMU_PAGE_COUNT; ++psize)
 		if (mmu_psize_defs[psize].shift == shift)
+		{
 			return psize;
+		}
+
 	return -1;
 }
 
 static inline unsigned int mmu_psize_to_shift(unsigned int mmu_psize)
 {
 	if (mmu_psize_defs[mmu_psize].shift)
+	{
 		return mmu_psize_defs[mmu_psize].shift;
+	}
+
 	BUG();
 }
 
@@ -278,17 +285,18 @@ static inline unsigned int mmu_psize_to_shift(unsigned int mmu_psize)
  * constants
  */
 #if defined(CONFIG_PPC_4K_PAGES)
-#define mmu_virtual_psize	MMU_PAGE_4K
+	#define mmu_virtual_psize	MMU_PAGE_4K
 #elif defined(CONFIG_PPC_64K_PAGES)
-#define mmu_virtual_psize	MMU_PAGE_64K
+	#define mmu_virtual_psize	MMU_PAGE_64K
 #else
-#error Unsupported page size
+	#error Unsupported page size
 #endif
 
 extern int mmu_linear_psize;
 extern int mmu_vmemmap_psize;
 
-struct tlb_core_data {
+struct tlb_core_data
+{
 	/*
 	 * Per-core spinlock for e6500 TLB handlers (no tlbsrx.)
 	 * Must be the first struct element.
@@ -300,21 +308,21 @@ struct tlb_core_data {
 };
 
 #ifdef CONFIG_PPC64
-extern unsigned long linear_map_top;
-extern int book3e_htw_mode;
+	extern unsigned long linear_map_top;
+	extern int book3e_htw_mode;
 
-#define PPC_HTW_NONE	0
-#define PPC_HTW_IBM	1
-#define PPC_HTW_E6500	2
+	#define PPC_HTW_NONE	0
+	#define PPC_HTW_IBM	1
+	#define PPC_HTW_E6500	2
 
-/*
- * 64-bit booke platforms don't load the tlb in the tlb miss handler code.
- * HUGETLB_NEED_PRELOAD handles this - it causes huge_ptep_set_access_flags to
- * return 1, indicating that the tlb requires preloading.
- */
-#define HUGETLB_NEED_PRELOAD
+	/*
+	* 64-bit booke platforms don't load the tlb in the tlb miss handler code.
+	* HUGETLB_NEED_PRELOAD handles this - it causes huge_ptep_set_access_flags to
+	* return 1, indicating that the tlb requires preloading.
+	*/
+	#define HUGETLB_NEED_PRELOAD
 
-#define mmu_cleanup_all NULL
+	#define mmu_cleanup_all NULL
 
 #endif
 

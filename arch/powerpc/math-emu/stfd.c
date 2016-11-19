@@ -14,7 +14,9 @@ stfd(void *frS, void *ea)
 #endif
 
 	if (copy_to_user(ea, frS, sizeof(double)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }

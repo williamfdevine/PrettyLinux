@@ -13,8 +13,9 @@
  * on our cache or tlb entries.
  */
 
-struct exception_table_entry {
-        unsigned int insn, fixup;
+struct exception_table_entry
+{
+	unsigned int insn, fixup;
 };
 
 #endif

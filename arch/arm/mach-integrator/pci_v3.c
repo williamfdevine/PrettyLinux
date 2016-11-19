@@ -361,7 +361,7 @@ static u64 pre_mem_pci_sz;
 #define V3_LB_BASE_PREFETCH 0
 
 static void __iomem *v3_open_config_window(struct pci_bus *bus,
-					   unsigned int devfn, int offset)
+		unsigned int devfn, int offset)
 {
 	unsigned int address, mapaddress, busnr;
 
@@ -374,7 +374,8 @@ static void __iomem *v3_open_config_window(struct pci_bus *bus,
 	BUG_ON(busnr > 255);
 	BUG_ON(devfn > 255);
 
-	if (busnr == 0) {
+	if (busnr == 0)
+	{
 		int slot = PCI_SLOT(devfn);
 
 		/*
@@ -394,15 +395,21 @@ static void __iomem *v3_open_config_window(struct pci_bus *bus,
 			/*
 			 * high order bits are handled by the MAP register
 			 */
+		{
 			mapaddress |= 1 << (slot - 5);
+		}
 		else
 			/*
 			 * low order bits handled directly in the address
 			 */
+		{
 			address |= 1 << (slot + 11);
-	} else {
-        	/*
-		 * not the local bus segment so need a type 1 config cycle
+		}
+	}
+	else
+	{
+		/*
+		* not the local bus segment so need a type 1 config cycle
 		 *
 		 * address:
 		 *  23:16 = bus number
@@ -423,13 +430,13 @@ static void __iomem *v3_open_config_window(struct pci_bus *bus,
 	 * configuration memory
 	 */
 	v3_writel(V3_LB_BASE0, v3_addr_to_lb_base(non_mem.start) |
-			V3_LB_BASE_ADR_SIZE_512MB | V3_LB_BASE_ENABLE);
+			  V3_LB_BASE_ADR_SIZE_512MB | V3_LB_BASE_ENABLE);
 
 	/*
 	 * Set up base1/map1 to point into configuration space.
 	 */
 	v3_writel(V3_LB_BASE1, v3_addr_to_lb_base(conf_mem.start) |
-			V3_LB_BASE_ADR_SIZE_16MB | V3_LB_BASE_ENABLE);
+			  V3_LB_BASE_ADR_SIZE_16MB | V3_LB_BASE_ENABLE);
 	v3_writew(V3_LB_MAP1, mapaddress);
 
 	return PCI_CONFIG_VADDR + address + offset;
@@ -441,20 +448,20 @@ static void v3_close_config_window(void)
 	 * Reassign base1 for use by prefetchable PCI memory
 	 */
 	v3_writel(V3_LB_BASE1, v3_addr_to_lb_base(pre_mem.start) |
-			V3_LB_BASE_ADR_SIZE_256MB | V3_LB_BASE_PREFETCH |
-			V3_LB_BASE_ENABLE);
+			  V3_LB_BASE_ADR_SIZE_256MB | V3_LB_BASE_PREFETCH |
+			  V3_LB_BASE_ENABLE);
 	v3_writew(V3_LB_MAP1, v3_addr_to_lb_map(pre_mem_pci) |
-			V3_LB_MAP_TYPE_MEM_MULTIPLE);
+			  V3_LB_MAP_TYPE_MEM_MULTIPLE);
 
 	/*
 	 * And shrink base0 back to a 256M window (NOTE: MAP0 already correct)
 	 */
 	v3_writel(V3_LB_BASE0, v3_addr_to_lb_base(non_mem.start) |
-			V3_LB_BASE_ADR_SIZE_256MB | V3_LB_BASE_ENABLE);
+			  V3_LB_BASE_ADR_SIZE_256MB | V3_LB_BASE_ENABLE);
 }
 
 static int v3_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-			  int size, u32 *val)
+						  int size, u32 *val)
 {
 	int ret = pci_generic_config_read(bus, devfn, where, size, val);
 	v3_close_config_window();
@@ -462,14 +469,15 @@ static int v3_read_config(struct pci_bus *bus, unsigned int devfn, int where,
 }
 
 static int v3_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-			   int size, u32 val)
+						   int size, u32 val)
 {
 	int ret = pci_generic_config_write(bus, devfn, where, size, val);
 	v3_close_config_window();
 	return ret;
 }
 
-static struct pci_ops pci_v3_ops = {
+static struct pci_ops pci_v3_ops =
+{
 	.map_bus = v3_open_config_window,
 	.read	= v3_read_config,
 	.write	= v3_write_config,
@@ -477,15 +485,18 @@ static struct pci_ops pci_v3_ops = {
 
 static int __init pci_v3_setup_resources(struct pci_sys_data *sys)
 {
-	if (request_resource(&iomem_resource, &non_mem)) {
+	if (request_resource(&iomem_resource, &non_mem))
+	{
 		printk(KERN_ERR "PCI: unable to allocate non-prefetchable "
-		       "memory region\n");
+			   "memory region\n");
 		return -EBUSY;
 	}
-	if (request_resource(&iomem_resource, &pre_mem)) {
+
+	if (request_resource(&iomem_resource, &pre_mem))
+	{
 		release_resource(&non_mem);
 		printk(KERN_ERR "PCI: unable to allocate prefetchable "
-		       "memory region\n");
+			   "memory region\n");
 		return -EBUSY;
 	}
 
@@ -518,8 +529,9 @@ v3_pci_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	char buf[128];
 
 	sprintf(buf, "V3 fault: addr 0x%08lx, FSR 0x%03x, PC 0x%08lx [%08lx] LBFADDR=%08x LBFCODE=%02x ISTAT=%02x\n",
-		addr, fsr, pc, instr, __raw_readl(ap_syscon_base + INTEGRATOR_SC_LBFADDR_OFFSET), __raw_readl(ap_syscon_base + INTEGRATOR_SC_LBFCODE_OFFSET) & 255,
-		v3_readb(V3_LB_ISTAT));
+			addr, fsr, pc, instr, __raw_readl(ap_syscon_base + INTEGRATOR_SC_LBFADDR_OFFSET),
+			__raw_readl(ap_syscon_base + INTEGRATOR_SC_LBFCODE_OFFSET) & 255,
+			v3_readb(V3_LB_ISTAT));
 	printk(KERN_DEBUG "%s", buf);
 #endif
 
@@ -530,21 +542,27 @@ v3_pci_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	 * If the instruction being executed was a read,
 	 * make it look like it read all-ones.
 	 */
-	if ((instr & 0x0c100000) == 0x04100000) {
+	if ((instr & 0x0c100000) == 0x04100000)
+	{
 		int reg = (instr >> 12) & 15;
 		unsigned long val;
 
 		if (instr & 0x00400000)
+		{
 			val = 255;
+		}
 		else
+		{
 			val = -1;
+		}
 
 		regs->uregs[reg] = val;
 		regs->ARM_pc += 4;
 		return 0;
 	}
 
-	if ((instr & 0x0e100090) == 0x00100090) {
+	if ((instr & 0x0e100090) == 0x00100090)
+	{
 		int reg = (instr >> 12) & 15;
 
 		regs->uregs[reg] = -1;
@@ -565,10 +583,10 @@ static irqreturn_t v3_irq(int irq, void *devid)
 	extern void printascii(const char *);
 
 	sprintf(buf, "V3 int %d: pc=0x%08lx [%08lx] LBFADDR=%08x LBFCODE=%02x "
-		"ISTAT=%02x\n", irq, pc, instr,
-		__raw_readl(ap_syscon_base + INTEGRATOR_SC_LBFADDR_OFFSET),
-		__raw_readl(ap_syscon_base + INTEGRATOR_SC_LBFCODE_OFFSET) & 255,
-		v3_readb(V3_LB_ISTAT));
+			"ISTAT=%02x\n", irq, pc, instr,
+			__raw_readl(ap_syscon_base + INTEGRATOR_SC_LBFADDR_OFFSET),
+			__raw_readl(ap_syscon_base + INTEGRATOR_SC_LBFCODE_OFFSET) & 255,
+			v3_readb(V3_LB_ISTAT));
 	printascii(buf);
 #endif
 
@@ -577,15 +595,18 @@ static irqreturn_t v3_irq(int irq, void *devid)
 	__raw_writel(3, ap_syscon_base + INTEGRATOR_SC_PCIENABLE_OFFSET);
 
 #ifdef CONFIG_DEBUG_LL
+
 	/*
 	 * If the instruction being executed was a read,
 	 * make it look like it read all-ones.
 	 */
-	if ((instr & 0x0c100000) == 0x04100000) {
+	if ((instr & 0x0c100000) == 0x04100000)
+	{
 		int reg = (instr >> 16) & 15;
 		sprintf(buf, "   reg%d = %08lx\n", reg, regs->uregs[reg]);
 		printascii(buf);
 	}
+
 #endif
 	return IRQ_HANDLED;
 }
@@ -595,9 +616,12 @@ static int __init pci_v3_setup(int nr, struct pci_sys_data *sys)
 	int ret = 0;
 
 	if (!ap_syscon_base)
+	{
 		return -EINVAL;
+	}
 
-	if (nr == 0) {
+	if (nr == 0)
+	{
 		sys->mem_offset = non_mem.start;
 		ret = pci_v3_setup_resources(sys);
 	}
@@ -628,32 +652,34 @@ static void __init pci_v3_preinit(void)
 	 * Unlock V3 registers, but only if they were previously locked.
 	 */
 	if (v3_readw(V3_SYSTEM) & V3_SYSTEM_M_LOCK)
+	{
 		v3_writew(V3_SYSTEM, 0xa05f);
+	}
 
 	/*
 	 * Setup window 0 - PCI non-prefetchable memory
 	 *  Local: 0x40000000 Bus: 0x00000000 Size: 256MB
 	 */
 	v3_writel(V3_LB_BASE0, v3_addr_to_lb_base(non_mem.start) |
-			V3_LB_BASE_ADR_SIZE_256MB | V3_LB_BASE_ENABLE);
+			  V3_LB_BASE_ADR_SIZE_256MB | V3_LB_BASE_ENABLE);
 	v3_writew(V3_LB_MAP0, v3_addr_to_lb_map(non_mem_pci) |
-			V3_LB_MAP_TYPE_MEM);
+			  V3_LB_MAP_TYPE_MEM);
 
 	/*
 	 * Setup window 1 - PCI prefetchable memory
 	 *  Local: 0x50000000 Bus: 0x10000000 Size: 256MB
 	 */
 	v3_writel(V3_LB_BASE1, v3_addr_to_lb_base(pre_mem.start) |
-			V3_LB_BASE_ADR_SIZE_256MB | V3_LB_BASE_PREFETCH |
-			V3_LB_BASE_ENABLE);
+			  V3_LB_BASE_ADR_SIZE_256MB | V3_LB_BASE_PREFETCH |
+			  V3_LB_BASE_ENABLE);
 	v3_writew(V3_LB_MAP1, v3_addr_to_lb_map(pre_mem_pci) |
-			V3_LB_MAP_TYPE_MEM_MULTIPLE);
+			  V3_LB_MAP_TYPE_MEM_MULTIPLE);
 
 	/*
 	 * Setup window 2 - PCI IO
 	 */
 	v3_writel(V3_LB_BASE2, v3_addr_to_lb_base2(io_address) |
-			V3_LB_BASE_ENABLE);
+			  V3_LB_BASE_ENABLE);
 	v3_writew(V3_LB_MAP2, v3_addr_to_lb_map2(0));
 
 	/*
@@ -664,7 +690,7 @@ static void __init pci_v3_preinit(void)
 	v3_writew(V3_PCI_CFG, temp);
 
 	printk(KERN_DEBUG "FIFO_CFG: %04x  FIFO_PRIO: %04x\n",
-		v3_readw(V3_FIFO_CFG), v3_readw(V3_FIFO_PRIORITY));
+		   v3_readw(V3_FIFO_CFG), v3_readw(V3_FIFO_PRIORITY));
 
 	/*
 	 * Set the V3 FIFO such that writes have higher priority than
@@ -694,7 +720,7 @@ static void __init pci_v3_postinit(void)
 	phys_addr_t io_address = pci_pio_to_address(io_mem.start);
 
 	pci_cmd = PCI_COMMAND_MEMORY |
-		  PCI_COMMAND_MASTER | PCI_COMMAND_INVALIDATE;
+			  PCI_COMMAND_MASTER | PCI_COMMAND_INVALIDATE;
 
 	v3_writew(V3_PCI_CMD, pci_cmd);
 
@@ -703,9 +729,11 @@ static void __init pci_v3_postinit(void)
 
 #if 0
 	ret = request_irq(IRQ_AP_LBUSTIMEOUT, lb_timeout, 0, "bus timeout", NULL);
+
 	if (ret)
 		printk(KERN_ERR "PCI: unable to grab local bus timeout "
-		       "interrupt: %d\n", ret);
+			   "interrupt: %d\n", ret);
+
 #endif
 
 	register_isa_ports(non_mem.start, io_address, 0);
@@ -751,12 +779,15 @@ static void __init pci_v3_postinit(void)
 static u8 __init pci_v3_swizzle(struct pci_dev *dev, u8 *pinp)
 {
 	if (*pinp == 0)
+	{
 		*pinp = 1;
+	}
 
 	return pci_common_swizzle(dev, pinp);
 }
 
-static struct hw_pci pci_v3 __initdata = {
+static struct hw_pci pci_v3 __initdata =
+{
 	.swizzle		= pci_v3_swizzle,
 	.setup			= pci_v3_setup,
 	.nr_controllers		= 1,
@@ -775,71 +806,95 @@ static int __init pci_v3_probe(struct platform_device *pdev)
 
 	/* Remap the Integrator system controller */
 	ap_syscon_base = devm_ioremap(&pdev->dev, INTEGRATOR_SC_BASE, 0x100);
-	if (!ap_syscon_base) {
+
+	if (!ap_syscon_base)
+	{
 		dev_err(&pdev->dev, "unable to remap the AP syscon for PCIv3\n");
 		return -ENODEV;
 	}
 
 	/* Device tree probe path */
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "no device tree node for PCIv3\n");
 		return -ENODEV;
 	}
 
 	if (of_pci_range_parser_init(&parser, np))
+	{
 		return -EINVAL;
+	}
 
 	/* Get base for bridge registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "unable to obtain PCIv3 base\n");
 		return -ENODEV;
 	}
+
 	pci_v3_base = devm_ioremap(&pdev->dev, res->start,
-				   resource_size(res));
-	if (!pci_v3_base) {
+							   resource_size(res));
+
+	if (!pci_v3_base)
+	{
 		dev_err(&pdev->dev, "unable to remap PCIv3 base\n");
 		return -ENODEV;
 	}
 
 	/* Get and request error IRQ resource */
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		dev_err(&pdev->dev, "unable to obtain PCIv3 error IRQ\n");
 		return -ENODEV;
 	}
+
 	ret = devm_request_irq(&pdev->dev, irq, v3_irq, 0,
-			"PCIv3 error", NULL);
-	if (ret < 0) {
+						   "PCIv3 error", NULL);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "unable to request PCIv3 error IRQ %d (%d)\n", irq, ret);
 		return ret;
 	}
 
-	for_each_of_pci_range(&parser, &range) {
-		if (!range.flags) {
+	for_each_of_pci_range(&parser, &range)
+	{
+		if (!range.flags)
+		{
 			ret = of_pci_range_to_resource(&range, np, &conf_mem);
 			conf_mem.name = "PCIv3 config";
 		}
-		if (range.flags & IORESOURCE_IO) {
+
+		if (range.flags & IORESOURCE_IO)
+		{
 			ret = of_pci_range_to_resource(&range, np, &io_mem);
 			io_mem.name = "PCIv3 I/O";
 		}
+
 		if ((range.flags & IORESOURCE_MEM) &&
-			!(range.flags & IORESOURCE_PREFETCH)) {
+			!(range.flags & IORESOURCE_PREFETCH))
+		{
 			non_mem_pci = range.pci_addr;
 			non_mem_pci_sz = range.size;
 			ret = of_pci_range_to_resource(&range, np, &non_mem);
 			non_mem.name = "PCIv3 non-prefetched mem";
 		}
+
 		if ((range.flags & IORESOURCE_MEM) &&
-			(range.flags & IORESOURCE_PREFETCH)) {
+			(range.flags & IORESOURCE_PREFETCH))
+		{
 			pre_mem_pci = range.pci_addr;
 			pre_mem_pci_sz = range.size;
 			ret = of_pci_range_to_resource(&range, np, &pre_mem);
 			pre_mem.name = "PCIv3 prefetched mem";
 		}
 
-		if (ret < 0) {
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "missing ranges in device node\n");
 			return ret;
 		}
@@ -851,12 +906,14 @@ static int __init pci_v3_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id pci_ids[] = {
+static const struct of_device_id pci_ids[] =
+{
 	{ .compatible = "v3,v360epc-pci", },
 	{},
 };
 
-static struct platform_driver pci_v3_driver = {
+static struct platform_driver pci_v3_driver =
+{
 	.driver = {
 		.name = "pci-v3",
 		.of_match_table = pci_ids,
@@ -877,7 +934,8 @@ subsys_initcall(pci_v3_init);
  * ec000000	61000000	PCI config space	PHYS_PCI_CONFIG_BASE	(max 16M)
  * fee00000	60000000	PCI IO			PHYS_PCI_IO_BASE	(max 16M)
  */
-static struct map_desc pci_v3_io_desc[] __initdata __maybe_unused = {
+static struct map_desc pci_v3_io_desc[] __initdata __maybe_unused =
+{
 	{
 		.virtual	= (unsigned long)PCI_MEMORY_VADDR,
 		.pfn		= __phys_to_pfn(PHYS_PCI_MEM_BASE),

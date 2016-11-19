@@ -47,12 +47,13 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 	ii_ieclr_u_t ieclr;
 
 	BTE_PRINTK(("shub1_bte_error_handler(%p) - %d\n", err_nodepda,
-		    smp_processor_id()));
+				smp_processor_id()));
 
 	if ((err_nodepda->bte_if[0].bh_error == BTE_SUCCESS) &&
-	    (err_nodepda->bte_if[1].bh_error == BTE_SUCCESS)) {
+		(err_nodepda->bte_if[1].bh_error == BTE_SUCCESS))
+	{
 		BTE_PRINTK(("eh:%p:%d Nothing to do.\n", err_nodepda,
-			    smp_processor_id()));
+					smp_processor_id()));
 		return 1;
 	}
 
@@ -73,32 +74,41 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 	 * goes through the LLP handshake, but then comes back up.
 	 */
 	icmr.ii_icmr_regval = REMOTE_HUB_L(nasid, IIO_ICMR);
-	if (icmr.ii_icmr_fld_s.i_crb_mark != 0) {
+
+	if (icmr.ii_icmr_fld_s.i_crb_mark != 0)
+	{
 		/*
 		 * There are errors which still need to be cleaned up by
 		 * hubiio_crb_error_handler
 		 */
 		mod_timer(recovery_timer, jiffies + (HZ * 5));
 		BTE_PRINTK(("eh:%p:%d Marked Giving up\n", err_nodepda,
-			    smp_processor_id()));
+					smp_processor_id()));
 		return 1;
 	}
-	if (icmr.ii_icmr_fld_s.i_crb_vld != 0) {
+
+	if (icmr.ii_icmr_fld_s.i_crb_vld != 0)
+	{
 
 		valid_crbs = icmr.ii_icmr_fld_s.i_crb_vld;
 
-		for (i = 0; i < IIO_NUM_CRBS; i++) {
-			if (!((1 << i) & valid_crbs)) {
+		for (i = 0; i < IIO_NUM_CRBS; i++)
+		{
+			if (!((1 << i) & valid_crbs))
+			{
 				/* This crb was not marked as valid, ignore */
 				continue;
 			}
+
 			icrbd.ii_icrb0_d_regval =
-			    REMOTE_HUB_L(nasid, IIO_ICRB_D(i));
-			if (icrbd.d_bteop) {
+				REMOTE_HUB_L(nasid, IIO_ICRB_D(i));
+
+			if (icrbd.d_bteop)
+			{
 				mod_timer(recovery_timer, jiffies + (HZ * 5));
 				BTE_PRINTK(("eh:%p:%d Valid %d, Giving up\n",
-					    err_nodepda, smp_processor_id(),
-					    i));
+							err_nodepda, smp_processor_id(),
+							i));
 				return 1;
 			}
 		}
@@ -112,10 +122,17 @@ int shub1_bte_error_handler(unsigned long _nodepda)
 
 	/* Clear BTE0/1 error bits */
 	ieclr.ii_ieclr_regval = 0;
+
 	if (err_nodepda->bte_if[0].bh_error != BTE_SUCCESS)
+	{
 		ieclr.ii_ieclr_fld_s.i_e_bte_0 = 1;
+	}
+
 	if (err_nodepda->bte_if[1].bh_error != BTE_SUCCESS)
+	{
 		ieclr.ii_ieclr_fld_s.i_e_bte_1 = 1;
+	}
+
 	REMOTE_HUB_S(nasid, IIO_IECLR, ieclr.ii_ieclr_regval);
 
 	/* Reinitialize both BTE state machines. */
@@ -145,22 +162,32 @@ int shub2_bte_error_handler(unsigned long _nodepda)
 	/*
 	 * Verify that all the BTEs are complete
 	 */
-	for (i = 0; i < BTES_PER_NODE; i++) {
+	for (i = 0; i < BTES_PER_NODE; i++)
+	{
 		bte = &err_nodepda->bte_if[i];
 		status = BTE_LNSTAT_LOAD(bte);
-		if (status & IBLS_ERROR) {
+
+		if (status & IBLS_ERROR)
+		{
 			bte->bh_error = BTE_SHUB2_ERROR(status);
 			continue;
 		}
+
 		if (!(status & IBLS_BUSY))
+		{
 			continue;
+		}
+
 		mod_timer(recovery_timer, jiffies + (HZ * 5));
 		BTE_PRINTK(("eh:%p:%d Marked Giving up\n", err_nodepda,
-			    smp_processor_id()));
+					smp_processor_id()));
 		return 1;
 	}
+
 	if (ia64_sn_bte_recovery(nasid))
+	{
 		panic("bte_error_handler(): Fatal BTE Error");
+	}
 
 	del_timer(recovery_timer);
 	return 0;
@@ -180,7 +207,7 @@ void bte_error_handler(unsigned long _nodepda)
 	bte_result_t bh_error;
 
 	BTE_PRINTK(("bte_error_handler(%p) - %d\n", err_nodepda,
-		    smp_processor_id()));
+				smp_processor_id()));
 
 	spin_lock_irqsave(recovery_lock, irq_flags);
 
@@ -188,44 +215,55 @@ void bte_error_handler(unsigned long _nodepda)
 	 * Lock all interfaces on this node to prevent new transfers
 	 * from being queued.
 	 */
-	for (i = 0; i < BTES_PER_NODE; i++) {
-		if (err_nodepda->bte_if[i].cleanup_active) {
+	for (i = 0; i < BTES_PER_NODE; i++)
+	{
+		if (err_nodepda->bte_if[i].cleanup_active)
+		{
 			continue;
 		}
+
 		spin_lock(&err_nodepda->bte_if[i].spinlock);
 		BTE_PRINTK(("eh:%p:%d locked %d\n", err_nodepda,
-			    smp_processor_id(), i));
+					smp_processor_id(), i));
 		err_nodepda->bte_if[i].cleanup_active = 1;
 	}
 
-	if (is_shub1()) {
-		if (shub1_bte_error_handler(_nodepda)) {
+	if (is_shub1())
+	{
+		if (shub1_bte_error_handler(_nodepda))
+		{
 			spin_unlock_irqrestore(recovery_lock, irq_flags);
 			return;
 		}
-	} else {
-		if (shub2_bte_error_handler(_nodepda)) {
+	}
+	else
+	{
+		if (shub2_bte_error_handler(_nodepda))
+		{
 			spin_unlock_irqrestore(recovery_lock, irq_flags);
 			return;
 		}
 	}
 
-	for (i = 0; i < BTES_PER_NODE; i++) {
+	for (i = 0; i < BTES_PER_NODE; i++)
+	{
 		bh_error = err_nodepda->bte_if[i].bh_error;
-		if (bh_error != BTE_SUCCESS) {
+
+		if (bh_error != BTE_SUCCESS)
+		{
 			/* There is an error which needs to be notified */
 			notify = err_nodepda->bte_if[i].most_rcnt_na;
 			BTE_PRINTK(("cnode %d bte %d error=0x%lx\n",
-				    err_nodepda->bte_if[i].bte_cnode,
-				    err_nodepda->bte_if[i].bte_num,
-				    IBLS_ERROR | (u64) bh_error));
+						err_nodepda->bte_if[i].bte_cnode,
+						err_nodepda->bte_if[i].bte_num,
+						IBLS_ERROR | (u64) bh_error));
 			*notify = IBLS_ERROR | bh_error;
 			err_nodepda->bte_if[i].bh_error = BTE_SUCCESS;
 		}
 
 		err_nodepda->bte_if[i].cleanup_active = 0;
 		BTE_PRINTK(("eh:%p:%d Unlocked %d\n", err_nodepda,
-			    smp_processor_id(), i));
+					smp_processor_id(), i));
 		spin_unlock(&err_nodepda->bte_if[i].spinlock);
 	}
 
@@ -238,7 +276,7 @@ void bte_error_handler(unsigned long _nodepda)
  */
 void
 bte_crb_error_handler(cnodeid_t cnode, int btenum,
-                      int crbnum, ioerror_t * ioe, int bteop)
+					  int crbnum, ioerror_t *ioe, int bteop)
 {
 	struct bteinfo_s *bte;
 
@@ -254,7 +292,7 @@ bte_crb_error_handler(cnodeid_t cnode, int btenum,
 	bte->bte_error_count++;
 
 	BTE_PRINTK(("Got an error on cnode %d bte %d: HW error type 0x%x\n",
-		bte->bte_cnode, bte->bte_num, ioe->ie_errortype));
+				bte->bte_cnode, bte->bte_num, ioe->ie_errortype));
 	bte_error_handler((unsigned long) NODEPDA(cnode));
 }
 

@@ -11,13 +11,15 @@
 #ifndef _ASM_SIGCONTEXT_H
 #define _ASM_SIGCONTEXT_H
 
-struct fpucontext {
+struct fpucontext
+{
 	/* Regular FPU environment */
 	unsigned long	fs[32];		/* fpu registers */
 	unsigned long	fpcr;		/* fpu control register */
 };
 
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long	d0;
 	unsigned long	d1;
 	unsigned long	d2;

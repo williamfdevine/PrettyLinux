@@ -23,7 +23,8 @@
 #include "common.h"
 #include "mpp.h"
 
-static unsigned int wnr854t_mpp_modes[] __initdata = {
+static unsigned int wnr854t_mpp_modes[] __initdata =
+{
 	MPP0_GPIO,		/* Power LED green (0=on) */
 	MPP1_GPIO,		/* Reset Button (0=off) */
 	MPP2_GPIO,		/* Power LED blink (0=off) */
@@ -53,7 +54,8 @@ static unsigned int wnr854t_mpp_modes[] __initdata = {
 #define WNR854T_NOR_BOOT_BASE	0xf4000000
 #define WNR854T_NOR_BOOT_SIZE	SZ_8M
 
-static struct mtd_partition wnr854t_nor_flash_partitions[] = {
+static struct mtd_partition wnr854t_nor_flash_partitions[] =
+{
 	{
 		.name		= "kernel",
 		.offset		= 0x00000000,
@@ -69,19 +71,22 @@ static struct mtd_partition wnr854t_nor_flash_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data wnr854t_nor_flash_data = {
+static struct physmap_flash_data wnr854t_nor_flash_data =
+{
 	.width		= 2,
 	.parts		= wnr854t_nor_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(wnr854t_nor_flash_partitions),
 };
 
-static struct resource wnr854t_nor_flash_resource = {
+static struct resource wnr854t_nor_flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 	.start		= WNR854T_NOR_BOOT_BASE,
 	.end		= WNR854T_NOR_BOOT_BASE + WNR854T_NOR_BOOT_SIZE - 1,
 };
 
-static struct platform_device wnr854t_nor_flash = {
+static struct platform_device wnr854t_nor_flash =
+{
 	.name			= "physmap-flash",
 	.id			= 0,
 	.dev		= {
@@ -91,13 +96,15 @@ static struct platform_device wnr854t_nor_flash = {
 	.resource		= &wnr854t_nor_flash_resource,
 };
 
-static struct mv643xx_eth_platform_data wnr854t_eth_data = {
+static struct mv643xx_eth_platform_data wnr854t_eth_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_NONE,
 	.speed		= SPEED_1000,
 	.duplex		= DUPLEX_FULL,
 };
 
-static struct dsa_chip_data wnr854t_switch_chip_data = {
+static struct dsa_chip_data wnr854t_switch_chip_data =
+{
 	.port_names[0] = "lan3",
 	.port_names[1] = "lan4",
 	.port_names[2] = "wan",
@@ -106,7 +113,8 @@ static struct dsa_chip_data wnr854t_switch_chip_data = {
 	.port_names[7] = "lan2",
 };
 
-static struct dsa_platform_data __initdata wnr854t_switch_plat_data = {
+static struct dsa_platform_data __initdata wnr854t_switch_plat_data =
+{
 	.nr_chips	= 1,
 	.chip		= &wnr854t_switch_chip_data,
 };
@@ -128,14 +136,14 @@ static void __init wnr854t_init(void)
 	orion5x_uart0_init();
 
 	mvebu_mbus_add_window_by_id(ORION_MBUS_DEVBUS_BOOT_TARGET,
-				    ORION_MBUS_DEVBUS_BOOT_ATTR,
-				    WNR854T_NOR_BOOT_BASE,
-				    WNR854T_NOR_BOOT_SIZE);
+								ORION_MBUS_DEVBUS_BOOT_ATTR,
+								WNR854T_NOR_BOOT_BASE,
+								WNR854T_NOR_BOOT_SIZE);
 	platform_device_register(&wnr854t_nor_flash);
 }
 
 static int __init wnr854t_pci_map_irq(const struct pci_dev *dev, u8 slot,
-	u8 pin)
+									  u8 pin)
 {
 	int irq;
 
@@ -143,19 +151,25 @@ static int __init wnr854t_pci_map_irq(const struct pci_dev *dev, u8 slot,
 	 * Check for devices with hard-wired IRQs.
 	 */
 	irq = orion5x_pci_map_irq(dev, slot, pin);
+
 	if (irq != -1)
+	{
 		return irq;
+	}
 
 	/*
 	 * Mini-PCI slot.
 	 */
 	if (slot == 7)
+	{
 		return gpio_to_irq(4);
+	}
 
 	return -1;
 }
 
-static struct hw_pci wnr854t_pci __initdata = {
+static struct hw_pci wnr854t_pci __initdata =
+{
 	.nr_controllers	= 2,
 	.setup		= orion5x_pci_sys_setup,
 	.scan		= orion5x_pci_sys_scan_bus,
@@ -165,21 +179,23 @@ static struct hw_pci wnr854t_pci __initdata = {
 static int __init wnr854t_pci_init(void)
 {
 	if (machine_is_wnr854t())
+	{
 		pci_common_init(&wnr854t_pci);
+	}
 
 	return 0;
 }
 subsys_initcall(wnr854t_pci_init);
 
 MACHINE_START(WNR854T, "Netgear WNR854T")
-	/* Maintainer: Imre Kaloz <kaloz@openwrt.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Imre Kaloz <kaloz@openwrt.org> */
+.atag_offset	= 0x100,
 	.nr_irqs	= ORION5X_NR_IRQS,
-	.init_machine	= wnr854t_init,
-	.map_io		= orion5x_map_io,
-	.init_early	= orion5x_init_early,
-	.init_irq	= orion5x_init_irq,
-	.init_time	= orion5x_timer_init,
-	.fixup		= tag_fixup_mem32,
-	.restart	= orion5x_restart,
-MACHINE_END
+		.init_machine	= wnr854t_init,
+		   .map_io		= orion5x_map_io,
+			   .init_early	= orion5x_init_early,
+				.init_irq	= orion5x_init_irq,
+				   .init_time	= orion5x_timer_init,
+					 .fixup		= tag_fixup_mem32,
+						  .restart	= orion5x_restart,
+							  MACHINE_END

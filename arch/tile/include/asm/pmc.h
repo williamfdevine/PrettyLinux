@@ -21,30 +21,30 @@
 
 /* Bitfields below are derived from SPR PERF_COUNT_CTL*/
 #ifndef __tilegx__
-/* PERF_COUNT_CTL on TILEPro */
-#define TILE_CTL_EXCL_USER	(1 << 7) /* exclude user level */
-#define TILE_CTL_EXCL_KERNEL	(1 << 8) /* exclude kernel level */
-#define TILE_CTL_EXCL_HV	(1 << 9) /* exclude hypervisor level */
+	/* PERF_COUNT_CTL on TILEPro */
+	#define TILE_CTL_EXCL_USER	(1 << 7) /* exclude user level */
+	#define TILE_CTL_EXCL_KERNEL	(1 << 8) /* exclude kernel level */
+	#define TILE_CTL_EXCL_HV	(1 << 9) /* exclude hypervisor level */
 
-#define TILE_SEL_MASK		0x7f	/* 7 bits for event SEL,
-					COUNT_0_SEL */
-#define TILE_PLM_MASK		0x780	/* 4 bits priv level msks,
-					COUNT_0_MASK*/
-#define TILE_EVENT_MASK	(TILE_SEL_MASK | TILE_PLM_MASK)
+	#define TILE_SEL_MASK		0x7f	/* 7 bits for event SEL,
+	COUNT_0_SEL */
+	#define TILE_PLM_MASK		0x780	/* 4 bits priv level msks,
+	COUNT_0_MASK*/
+	#define TILE_EVENT_MASK	(TILE_SEL_MASK | TILE_PLM_MASK)
 
 #else /* __tilegx__*/
-/* PERF_COUNT_CTL on TILEGx*/
-#define TILE_CTL_EXCL_USER	(1 << 10) /* exclude user level */
-#define TILE_CTL_EXCL_KERNEL	(1 << 11) /* exclude kernel level */
-#define TILE_CTL_EXCL_HV	(1 << 12) /* exclude hypervisor level */
+	/* PERF_COUNT_CTL on TILEGx*/
+	#define TILE_CTL_EXCL_USER	(1 << 10) /* exclude user level */
+	#define TILE_CTL_EXCL_KERNEL	(1 << 11) /* exclude kernel level */
+	#define TILE_CTL_EXCL_HV	(1 << 12) /* exclude hypervisor level */
 
-#define TILE_SEL_MASK		0x3f	/* 6 bits for event SEL,
-					COUNT_0_SEL*/
-#define TILE_BOX_MASK		0x1c0	/* 3 bits box msks,
-					COUNT_0_BOX */
-#define TILE_PLM_MASK		0x3c00	/* 4 bits priv level msks,
-					COUNT_0_MASK */
-#define TILE_EVENT_MASK	(TILE_SEL_MASK | TILE_BOX_MASK | TILE_PLM_MASK)
+	#define TILE_SEL_MASK		0x3f	/* 6 bits for event SEL,
+	COUNT_0_SEL*/
+	#define TILE_BOX_MASK		0x1c0	/* 3 bits box msks,
+	COUNT_0_BOX */
+	#define TILE_PLM_MASK		0x3c00	/* 4 bits priv level msks,
+	COUNT_0_MASK */
+	#define TILE_EVENT_MASK	(TILE_SEL_MASK | TILE_BOX_MASK | TILE_PLM_MASK)
 #endif /* __tilegx__*/
 
 /* Takes register and fault number.  Returns error to disable the interrupt. */

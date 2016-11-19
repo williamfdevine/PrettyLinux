@@ -11,7 +11,8 @@
 
 #include <linux/types.h>
 
-struct txx9_tmr_reg {
+struct txx9_tmr_reg
+{
 	u32 tcr;
 	u32 tisr;
 	u32 cpra;
@@ -53,15 +54,15 @@ struct txx9_tmr_reg {
 #define TXx9_TMWTMR_TWC		0x00000001
 
 void txx9_clocksource_init(unsigned long baseaddr,
-			   unsigned int imbusclk);
+						   unsigned int imbusclk);
 void txx9_clockevent_init(unsigned long baseaddr, int irq,
-			  unsigned int imbusclk);
+						  unsigned int imbusclk);
 void txx9_tmr_init(unsigned long baseaddr);
 
 #ifdef CONFIG_CPU_TX39XX
-#define TXX9_TIMER_BITS 24
+	#define TXX9_TIMER_BITS 24
 #else
-#define TXX9_TIMER_BITS 32
+	#define TXX9_TIMER_BITS 32
 #endif
 
 #endif /* __ASM_TXX9TMR_H */

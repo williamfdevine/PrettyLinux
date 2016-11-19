@@ -7,13 +7,14 @@ typedef unsigned char   cc_t;
 typedef unsigned int    speed_t;
 
 #if defined(__sparc__) && defined(__arch64__)
-typedef unsigned int    tcflag_t;
+	typedef unsigned int    tcflag_t;
 #else
-typedef unsigned long   tcflag_t;
+	typedef unsigned long   tcflag_t;
 #endif
 
 #define NCC 8
-struct termio {
+struct termio
+{
 	unsigned short c_iflag;		/* input mode flags */
 	unsigned short c_oflag;		/* output mode flags */
 	unsigned short c_cflag;		/* control mode flags */
@@ -23,7 +24,8 @@ struct termio {
 };
 
 #define NCCS 17
-struct termios {
+struct termios
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
@@ -32,29 +34,31 @@ struct termios {
 #ifndef __KERNEL__
 	cc_t c_cc[NCCS];		/* control characters */
 #else
-	cc_t c_cc[NCCS+2];	/* kernel needs 2 more to hold vmin/vtime */
+	cc_t c_cc[NCCS + 2];	/* kernel needs 2 more to hold vmin/vtime */
 #define SIZEOF_USER_TERMIOS sizeof (struct termios) - (2*sizeof (cc_t))
 #endif
 };
 
-struct termios2 {
+struct termios2
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
 	tcflag_t c_lflag;		/* local mode flags */
 	cc_t c_line;			/* line discipline */
-	cc_t c_cc[NCCS+2];		/* control characters */
+	cc_t c_cc[NCCS + 2];		/* control characters */
 	speed_t c_ispeed;		/* input speed */
 	speed_t c_ospeed;		/* output speed */
 };
 
-struct ktermios {
+struct ktermios
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
 	tcflag_t c_lflag;		/* local mode flags */
 	cc_t c_line;			/* line discipline */
-	cc_t c_cc[NCCS+2];		/* control characters */
+	cc_t c_cc[NCCS + 2];		/* control characters */
 	speed_t c_ispeed;		/* input speed */
 	speed_t c_ospeed;		/* output speed */
 };
@@ -84,8 +88,8 @@ struct ktermios {
  * shared with eof/eol
  */
 #ifndef __KERNEL__
-#define VMIN     VEOF
-#define VTIME    VEOL
+	#define VMIN     VEOF
+	#define VTIME    VEOL
 #endif
 
 /* c_iflag bits */

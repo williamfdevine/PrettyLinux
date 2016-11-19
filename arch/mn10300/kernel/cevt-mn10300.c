@@ -16,28 +16,32 @@
 #include "internal.h"
 
 #ifdef CONFIG_SMP
-#if (CONFIG_NR_CPUS > 2) && !defined(CONFIG_GEENERIC_CLOCKEVENTS_BROADCAST)
-#error "This doesn't scale well! Need per-core local timers."
-#endif
+	#if (CONFIG_NR_CPUS > 2) && !defined(CONFIG_GEENERIC_CLOCKEVENTS_BROADCAST)
+		#error "This doesn't scale well! Need per-core local timers."
+	#endif
 #else /* CONFIG_SMP */
-#define stop_jiffies_counter1()
-#define reload_jiffies_counter1(x)
-#define TMJC1IRQ TMJCIRQ
+	#define stop_jiffies_counter1()
+	#define reload_jiffies_counter1(x)
+	#define TMJC1IRQ TMJCIRQ
 #endif
 
 
 static int next_event(unsigned long delta,
-		      struct clock_event_device *evt)
+					  struct clock_event_device *evt)
 {
 	unsigned int cpu = smp_processor_id();
 
-	if (cpu == 0) {
+	if (cpu == 0)
+	{
 		stop_jiffies_counter();
 		reload_jiffies_counter(delta - 1);
-	} else {
+	}
+	else
+	{
 		stop_jiffies_counter1();
 		reload_jiffies_counter1(delta - 1);
 	}
+
 	return 0;
 }
 
@@ -50,9 +54,13 @@ static irqreturn_t timer_interrupt(int irq, void *dev_id)
 	unsigned int cpu = smp_processor_id();
 
 	if (cpu == 0)
+	{
 		stop_jiffies_counter();
+	}
 	else
+	{
 		stop_jiffies_counter1();
+	}
 
 	cd = &per_cpu(mn10300_clockevent_device, cpu);
 	cd->event_handler(cd);
@@ -65,7 +73,7 @@ static void event_handler(struct clock_event_device *dev)
 }
 
 static inline void setup_jiffies_interrupt(int irq,
-					   struct irqaction *action)
+		struct irqaction *action)
 {
 	u16 tmp;
 	setup_irq(irq, action);
@@ -82,10 +90,13 @@ int __init init_clockevents(void)
 
 	cd = &per_cpu(mn10300_clockevent_device, cpu);
 
-	if (cpu == 0) {
+	if (cpu == 0)
+	{
 		stop_jiffies_counter();
 		cd->irq	= TMJCIRQ;
-	} else {
+	}
+	else
+	{
 		stop_jiffies_counter1();
 		cd->irq	= TMJC1IRQ;
 	}
@@ -121,10 +132,13 @@ int __init init_clockevents(void)
 	}
 #endif
 
-	if (cpu == 0) {
+	if (cpu == 0)
+	{
 		reload_jiffies_counter(MN10300_JC_PER_HZ - 1);
 		iact->name = "CPU0 Timer";
-	} else {
+	}
+	else
+	{
 		reload_jiffies_counter1(MN10300_JC_PER_HZ - 1);
 		iact->name = "CPU1 Timer";
 	}

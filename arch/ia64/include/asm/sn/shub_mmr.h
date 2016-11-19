@@ -93,13 +93,13 @@
 /*   Description:  Deadlock response detected                           */
 #define SH_PIO_WRITE_STATUS_WRITE_DEADLOCK_SHFT		1
 #define SH_PIO_WRITE_STATUS_WRITE_DEADLOCK_MASK \
-					__IA64_UL_CONST(0x0000000000000002)
+	__IA64_UL_CONST(0x0000000000000002)
 
 /*   SH_PIO_WRITE_STATUS_0_PENDING_WRITE_COUNT                          */
 /*   Description:  Count of currently pending PIO writes                */
 #define SH_PIO_WRITE_STATUS_PENDING_WRITE_COUNT_SHFT	56
 #define SH_PIO_WRITE_STATUS_PENDING_WRITE_COUNT_MASK \
-					__IA64_UL_CONST(0x3f00000000000000)
+	__IA64_UL_CONST(0x3f00000000000000)
 
 /* ==================================================================== */
 /*                Register "SH_PIO_WRITE_STATUS_0_ALIAS"                */
@@ -269,7 +269,7 @@
 /*   Description:  Enable RTC 1 Interrupt                               */
 #define SH_RTC1_INT_ENABLE_RTC1_ENABLE_SHFT		0
 #define SH_RTC1_INT_ENABLE_RTC1_ENABLE_MASK \
-					__IA64_UL_CONST(0x0000000000000001)
+	__IA64_UL_CONST(0x0000000000000001)
 
 /* ==================================================================== */
 /*                    Register "SH_RTC2_INT_CONFIG"                     */
@@ -320,7 +320,7 @@
 /*   Description:  Enable RTC 2 Interrupt                               */
 #define SH_RTC2_INT_ENABLE_RTC2_ENABLE_SHFT		0
 #define SH_RTC2_INT_ENABLE_RTC2_ENABLE_MASK \
-					__IA64_UL_CONST(0x0000000000000001)
+	__IA64_UL_CONST(0x0000000000000001)
 
 /* ==================================================================== */
 /*                    Register "SH_RTC3_INT_CONFIG"                     */
@@ -371,7 +371,7 @@
 /*   Description:  Enable RTC 3 Interrupt                               */
 #define SH_RTC3_INT_ENABLE_RTC3_ENABLE_SHFT		0
 #define SH_RTC3_INT_ENABLE_RTC3_ENABLE_MASK \
-					__IA64_UL_CONST(0x0000000000000001)
+	__IA64_UL_CONST(0x0000000000000001)
 
 /*   SH_EVENT_OCCURRED_RTC1_INT                                         */
 /*   Description:  Pending RTC 1 Interrupt                              */

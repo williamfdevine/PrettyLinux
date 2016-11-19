@@ -77,7 +77,8 @@ static void hlwd_pic_unmask(struct irq_data *d)
 }
 
 
-static struct irq_chip hlwd_pic = {
+static struct irq_chip hlwd_pic =
+{
 	.name		= "hlwd-pic",
 	.irq_ack	= hlwd_pic_ack,
 	.irq_mask_ack	= hlwd_pic_mask_and_ack,
@@ -93,7 +94,7 @@ static struct irq_chip hlwd_pic = {
 static struct irq_domain *hlwd_irq_host;
 
 static int hlwd_pic_map(struct irq_domain *h, unsigned int virq,
-			   irq_hw_number_t hwirq)
+						irq_hw_number_t hwirq)
 {
 	irq_set_chip_data(virq, h->host_data);
 	irq_set_status_flags(virq, IRQ_LEVEL);
@@ -101,7 +102,8 @@ static int hlwd_pic_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops hlwd_irq_domain_ops = {
+static const struct irq_domain_ops hlwd_irq_domain_ops =
+{
 	.map = hlwd_pic_map,
 };
 
@@ -112,9 +114,12 @@ static unsigned int __hlwd_pic_get_irq(struct irq_domain *h)
 	u32 irq_status;
 
 	irq_status = in_be32(io_base + HW_BROADWAY_ICR) &
-		     in_be32(io_base + HW_BROADWAY_IMR);
+				 in_be32(io_base + HW_BROADWAY_IMR);
+
 	if (irq_status == 0)
-		return 0;	/* no more IRQs pending */
+	{
+		return 0;    /* no more IRQs pending */
+	}
 
 	irq = __ffs(irq_status);
 	return irq_linear_revmap(h, irq);
@@ -131,15 +136,24 @@ static void hlwd_pic_irq_cascade(struct irq_desc *desc)
 	raw_spin_unlock(&desc->lock);
 
 	virq = __hlwd_pic_get_irq(irq_domain);
+
 	if (virq)
+	{
 		generic_handle_irq(virq);
+	}
 	else
+	{
 		pr_err("spurious interrupt!\n");
+	}
 
 	raw_spin_lock(&desc->lock);
 	chip->irq_ack(&desc->irq_data); /* IRQ_LEVEL */
+
 	if (!irqd_irq_disabled(&desc->irq_data) && chip->irq_unmask)
+	{
 		chip->irq_unmask(&desc->irq_data);
+	}
+
 	raw_spin_unlock(&desc->lock);
 }
 
@@ -163,12 +177,17 @@ struct irq_domain *hlwd_pic_init(struct device_node *np)
 	int retval;
 
 	retval = of_address_to_resource(np, 0, &res);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("no io memory range found\n");
 		return NULL;
 	}
+
 	io_base = ioremap(res.start, resource_size(&res));
-	if (!io_base) {
+
+	if (!io_base)
+	{
 		pr_err("ioremap failed\n");
 		return NULL;
 	}
@@ -178,8 +197,10 @@ struct irq_domain *hlwd_pic_init(struct device_node *np)
 	__hlwd_quiesce(io_base);
 
 	irq_domain = irq_domain_add_linear(np, HLWD_NR_IRQS,
-					   &hlwd_irq_domain_ops, io_base);
-	if (!irq_domain) {
+									   &hlwd_irq_domain_ops, io_base);
+
+	if (!irq_domain)
+	{
 		pr_err("failed to allocate irq_domain\n");
 		iounmap(io_base);
 		return NULL;
@@ -205,15 +226,18 @@ void hlwd_pic_probe(void)
 	const u32 *interrupts;
 	int cascade_virq;
 
-	for_each_compatible_node(np, NULL, "nintendo,hollywood-pic") {
+	for_each_compatible_node(np, NULL, "nintendo,hollywood-pic")
+	{
 		interrupts = of_get_property(np, "interrupts", NULL);
-		if (interrupts) {
+
+		if (interrupts)
+		{
 			host = hlwd_pic_init(np);
 			BUG_ON(!host);
 			cascade_virq = irq_of_parse_and_map(np, 0);
 			irq_set_handler_data(cascade_virq, host);
 			irq_set_chained_handler(cascade_virq,
-						hlwd_pic_irq_cascade);
+									hlwd_pic_irq_cascade);
 			hlwd_irq_host = host;
 			break;
 		}

@@ -63,7 +63,7 @@
 void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value);
 #define ams_delta_latch2_write(mask, value) \
 	ams_delta_latch_write(AMS_DELTA_LATCH2_GPIO_BASE, \
-			AMS_DELTA_LATCH2_NGPIO, (mask), (value))
+						  AMS_DELTA_LATCH2_NGPIO, (mask), (value))
 #endif
 
 #endif /* CONFIG_MACH_AMS_DELTA */

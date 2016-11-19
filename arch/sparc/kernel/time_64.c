@@ -61,7 +61,10 @@ unsigned long profile_pc(struct pt_regs *regs)
 	unsigned long pc = instruction_pointer(regs);
 
 	if (in_lock_functions(pc))
+	{
 		return regs->u_regs[UREG_RETPC];
+	}
+
 	return pc;
 }
 EXPORT_SYMBOL(profile_pc);
@@ -74,29 +77,29 @@ static void tick_disable_protection(void)
 	 * read back of %tick after writing it.
 	 */
 	__asm__ __volatile__(
-	"	ba,pt	%%xcc, 1f\n"
-	"	 nop\n"
-	"	.align	64\n"
-	"1:	rd	%%tick, %%g2\n"
-	"	add	%%g2, 6, %%g2\n"
-	"	andn	%%g2, %0, %%g2\n"
-	"	wrpr	%%g2, 0, %%tick\n"
-	"	rdpr	%%tick, %%g0"
-	: /* no outputs */
-	: "r" (TICK_PRIV_BIT)
-	: "g2");
+		"	ba,pt	%%xcc, 1f\n"
+		"	 nop\n"
+		"	.align	64\n"
+		"1:	rd	%%tick, %%g2\n"
+		"	add	%%g2, 6, %%g2\n"
+		"	andn	%%g2, %0, %%g2\n"
+		"	wrpr	%%g2, 0, %%tick\n"
+		"	rdpr	%%tick, %%g0"
+		: /* no outputs */
+		: "r" (TICK_PRIV_BIT)
+		: "g2");
 }
 
 static void tick_disable_irq(void)
 {
 	__asm__ __volatile__(
-	"	ba,pt	%%xcc, 1f\n"
-	"	 nop\n"
-	"	.align	64\n"
-	"1:	wr	%0, 0x0, %%tick_cmpr\n"
-	"	rd	%%tick_cmpr, %%g0"
-	: /* no outputs */
-	: "r" (TICKCMP_IRQ_BIT));
+		"	ba,pt	%%xcc, 1f\n"
+		"	 nop\n"
+		"	.align	64\n"
+		"1:	wr	%0, 0x0, %%tick_cmpr\n"
+		"	rd	%%tick_cmpr, %%g0"
+		: /* no outputs */
+		: "r" (TICKCMP_IRQ_BIT));
 }
 
 static void tick_init_tick(void)
@@ -110,8 +113,8 @@ static unsigned long long tick_get_tick(void)
 	unsigned long ret;
 
 	__asm__ __volatile__("rd	%%tick, %0\n\t"
-			     "mov	%0, %0"
-			     : "=r" (ret));
+						 "mov	%0, %0"
+						 : "=r" (ret));
 
 	return ret & ~TICK_PRIV_BIT;
 }
@@ -121,7 +124,7 @@ static int tick_add_compare(unsigned long adj)
 	unsigned long orig_tick, new_tick, new_compare;
 
 	__asm__ __volatile__("rd	%%tick, %0"
-			     : "=r" (orig_tick));
+						 : "=r" (orig_tick));
 
 	orig_tick &= ~TICKCMP_IRQ_BIT;
 
@@ -135,19 +138,19 @@ static int tick_add_compare(unsigned long adj)
 	 * read back from %tick_cmpr right after writing to it. -DaveM
 	 */
 	__asm__ __volatile__("ba,pt	%%xcc, 1f\n\t"
-			     " add	%1, %2, %0\n\t"
-			     ".align	64\n"
-			     "1:\n\t"
-			     "wr	%0, 0, %%tick_cmpr\n\t"
-			     "rd	%%tick_cmpr, %%g0\n\t"
-			     : "=r" (new_compare)
-			     : "r" (orig_tick), "r" (adj));
+						 " add	%1, %2, %0\n\t"
+						 ".align	64\n"
+						 "1:\n\t"
+						 "wr	%0, 0, %%tick_cmpr\n\t"
+						 "rd	%%tick_cmpr, %%g0\n\t"
+						 : "=r" (new_compare)
+						 : "r" (orig_tick), "r" (adj));
 
 	__asm__ __volatile__("rd	%%tick, %0"
-			     : "=r" (new_tick));
+						 : "=r" (new_tick));
 	new_tick &= ~TICKCMP_IRQ_BIT;
 
-	return ((long)(new_tick - (orig_tick+adj))) > 0L;
+	return ((long)(new_tick - (orig_tick + adj))) > 0L;
 }
 
 static unsigned long tick_add_tick(unsigned long adj)
@@ -156,15 +159,16 @@ static unsigned long tick_add_tick(unsigned long adj)
 
 	/* Also need to handle Blackbird bug here too. */
 	__asm__ __volatile__("rd	%%tick, %0\n\t"
-			     "add	%0, %1, %0\n\t"
-			     "wrpr	%0, 0, %%tick\n\t"
-			     : "=&r" (new_tick)
-			     : "r" (adj));
+						 "add	%0, %1, %0\n\t"
+						 "wrpr	%0, 0, %%tick\n\t"
+						 : "=&r" (new_tick)
+						 : "r" (adj));
 
 	return new_tick;
 }
 
-static struct sparc64_tick_ops tick_operations __read_mostly = {
+static struct sparc64_tick_ops tick_operations __read_mostly =
+{
 	.name		=	"tick",
 	.init_tick	=	tick_init_tick,
 	.disable_irq	=	tick_disable_irq,
@@ -180,9 +184,9 @@ EXPORT_SYMBOL(tick_ops);
 static void stick_disable_irq(void)
 {
 	__asm__ __volatile__(
-	"wr	%0, 0x0, %%asr25"
-	: /* no outputs */
-	: "r" (TICKCMP_IRQ_BIT));
+		"wr	%0, 0x0, %%asr25"
+		: /* no outputs */
+		: "r" (TICKCMP_IRQ_BIT));
 }
 
 static void stick_init_tick(void)
@@ -191,18 +195,19 @@ static void stick_init_tick(void)
 	 * allowed on sun4v.  The Hypervisor controls that
 	 * bit, per-strand.
 	 */
-	if (tlb_type != hypervisor) {
+	if (tlb_type != hypervisor)
+	{
 		tick_disable_protection();
 		tick_disable_irq();
 
 		/* Let the user get at STICK too. */
 		__asm__ __volatile__(
-		"	rd	%%asr24, %%g2\n"
-		"	andn	%%g2, %0, %%g2\n"
-		"	wr	%%g2, 0, %%asr24"
-		: /* no outputs */
-		: "r" (TICK_PRIV_BIT)
-		: "g1", "g2");
+			"	rd	%%asr24, %%g2\n"
+			"	andn	%%g2, %0, %%g2\n"
+			"	wr	%%g2, 0, %%asr24"
+			: /* no outputs */
+			: "r" (TICK_PRIV_BIT)
+			: "g1", "g2");
 	}
 
 	stick_disable_irq();
@@ -213,7 +218,7 @@ static unsigned long long stick_get_tick(void)
 	unsigned long ret;
 
 	__asm__ __volatile__("rd	%%asr24, %0"
-			     : "=r" (ret));
+						 : "=r" (ret));
 
 	return ret & ~TICK_PRIV_BIT;
 }
@@ -223,10 +228,10 @@ static unsigned long stick_add_tick(unsigned long adj)
 	unsigned long new_tick;
 
 	__asm__ __volatile__("rd	%%asr24, %0\n\t"
-			     "add	%0, %1, %0\n\t"
-			     "wr	%0, 0, %%asr24\n\t"
-			     : "=&r" (new_tick)
-			     : "r" (adj));
+						 "add	%0, %1, %0\n\t"
+						 "wr	%0, 0, %%asr24\n\t"
+						 : "=&r" (new_tick)
+						 : "r" (adj));
 
 	return new_tick;
 }
@@ -236,21 +241,22 @@ static int stick_add_compare(unsigned long adj)
 	unsigned long orig_tick, new_tick;
 
 	__asm__ __volatile__("rd	%%asr24, %0"
-			     : "=r" (orig_tick));
+						 : "=r" (orig_tick));
 	orig_tick &= ~TICKCMP_IRQ_BIT;
 
 	__asm__ __volatile__("wr	%0, 0, %%asr25"
-			     : /* no outputs */
-			     : "r" (orig_tick + adj));
+						 : /* no outputs */
+						 : "r" (orig_tick + adj));
 
 	__asm__ __volatile__("rd	%%asr24, %0"
-			     : "=r" (new_tick));
+						 : "=r" (new_tick));
 	new_tick &= ~TICKCMP_IRQ_BIT;
 
-	return ((long)(new_tick - (orig_tick+adj))) > 0L;
+	return ((long)(new_tick - (orig_tick + adj))) > 0L;
 }
 
-static struct sparc64_tick_ops stick_operations __read_mostly = {
+static struct sparc64_tick_ops stick_operations __read_mostly =
+{
 	.name		=	"stick",
 	.init_tick	=	stick_init_tick,
 	.disable_irq	=	stick_disable_irq,
@@ -283,22 +289,22 @@ static struct sparc64_tick_ops stick_operations __read_mostly = {
 static unsigned long __hbird_read_stick(void)
 {
 	unsigned long ret, tmp1, tmp2, tmp3;
-	unsigned long addr = HBIRD_STICK_ADDR+8;
+	unsigned long addr = HBIRD_STICK_ADDR + 8;
 
 	__asm__ __volatile__("ldxa	[%1] %5, %2\n"
-			     "1:\n\t"
-			     "sub	%1, 0x8, %1\n\t"
-			     "ldxa	[%1] %5, %3\n\t"
-			     "add	%1, 0x8, %1\n\t"
-			     "ldxa	[%1] %5, %4\n\t"
-			     "cmp	%4, %2\n\t"
-			     "bne,a,pn	%%xcc, 1b\n\t"
-			     " mov	%4, %2\n\t"
-			     "sllx	%4, 32, %4\n\t"
-			     "or	%3, %4, %0\n\t"
-			     : "=&r" (ret), "=&r" (addr),
-			       "=&r" (tmp1), "=&r" (tmp2), "=&r" (tmp3)
-			     : "i" (ASI_PHYS_BYPASS_EC_E), "1" (addr));
+						 "1:\n\t"
+						 "sub	%1, 0x8, %1\n\t"
+						 "ldxa	[%1] %5, %3\n\t"
+						 "add	%1, 0x8, %1\n\t"
+						 "ldxa	[%1] %5, %4\n\t"
+						 "cmp	%4, %2\n\t"
+						 "bne,a,pn	%%xcc, 1b\n\t"
+						 " mov	%4, %2\n\t"
+						 "sllx	%4, 32, %4\n\t"
+						 "or	%3, %4, %0\n\t"
+						 : "=&r" (ret), "=&r" (addr),
+						 "=&r" (tmp1), "=&r" (tmp2), "=&r" (tmp3)
+						 : "i" (ASI_PHYS_BYPASS_EC_E), "1" (addr));
 
 	return ret;
 }
@@ -310,13 +316,13 @@ static void __hbird_write_stick(unsigned long val)
 	unsigned long addr = HBIRD_STICK_ADDR;
 
 	__asm__ __volatile__("stxa	%%g0, [%0] %4\n\t"
-			     "add	%0, 0x8, %0\n\t"
-			     "stxa	%3, [%0] %4\n\t"
-			     "sub	%0, 0x8, %0\n\t"
-			     "stxa	%2, [%0] %4"
-			     : "=&r" (addr)
-			     : "0" (addr), "r" (low), "r" (high),
-			       "i" (ASI_PHYS_BYPASS_EC_E));
+						 "add	%0, 0x8, %0\n\t"
+						 "stxa	%3, [%0] %4\n\t"
+						 "sub	%0, 0x8, %0\n\t"
+						 "stxa	%2, [%0] %4"
+						 : "=&r" (addr)
+						 : "0" (addr), "r" (low), "r" (high),
+						 "i" (ASI_PHYS_BYPASS_EC_E));
 }
 
 static void __hbird_write_compare(unsigned long val)
@@ -326,11 +332,11 @@ static void __hbird_write_compare(unsigned long val)
 	unsigned long addr = HBIRD_STICKCMP_ADDR + 0x8UL;
 
 	__asm__ __volatile__("stxa	%3, [%0] %4\n\t"
-			     "sub	%0, 0x8, %0\n\t"
-			     "stxa	%2, [%0] %4"
-			     : "=&r" (addr)
-			     : "0" (addr), "r" (low), "r" (high),
-			       "i" (ASI_PHYS_BYPASS_EC_E));
+						 "sub	%0, 0x8, %0\n\t"
+						 "stxa	%2, [%0] %4"
+						 : "=&r" (addr)
+						 : "0" (addr), "r" (low), "r" (high),
+						 "i" (ASI_PHYS_BYPASS_EC_E));
 }
 
 static void hbtick_disable_irq(void)
@@ -381,7 +387,8 @@ static int hbtick_add_compare(unsigned long adj)
 	return ((long)(val2 - val)) > 0L;
 }
 
-static struct sparc64_tick_ops hbtick_operations __read_mostly = {
+static struct sparc64_tick_ops hbtick_operations __read_mostly =
+{
 	.name		=	"hbtick",
 	.init_tick	=	hbtick_init_tick,
 	.disable_irq	=	hbtick_disable_irq,
@@ -398,7 +405,8 @@ EXPORT_SYMBOL(cmos_regs);
 
 static struct resource rtc_cmos_resource;
 
-static struct platform_device rtc_cmos_device = {
+static struct platform_device rtc_cmos_device =
+{
 	.name		= "rtc_cmos",
 	.id		= -1,
 	.resource	= &rtc_cmos_resource,
@@ -410,7 +418,7 @@ static int rtc_probe(struct platform_device *op)
 	struct resource *r;
 
 	printk(KERN_INFO "%s: RTC regs at 0x%llx\n",
-	       op->dev.of_node->full_name, op->resource[0].start);
+		   op->dev.of_node->full_name, op->resource[0].start);
 
 	/* The CMOS RTC driver only accepts IORESOURCE_IO, so cons
 	 * up a fake resource so that the probe works for all cases.
@@ -428,7 +436,8 @@ static int rtc_probe(struct platform_device *op)
 	return platform_device_register(&rtc_cmos_device);
 }
 
-static const struct of_device_id rtc_match[] = {
+static const struct of_device_id rtc_match[] =
+{
 	{
 		.name = "rtc",
 		.compatible = "m5819",
@@ -448,7 +457,8 @@ static const struct of_device_id rtc_match[] = {
 	{},
 };
 
-static struct platform_driver rtc_driver = {
+static struct platform_driver rtc_driver =
+{
 	.probe		= rtc_probe,
 	.driver = {
 		.name = "rtc",
@@ -456,7 +466,8 @@ static struct platform_driver rtc_driver = {
 	},
 };
 
-static struct platform_device rtc_bq4802_device = {
+static struct platform_device rtc_bq4802_device =
+{
 	.name		= "rtc-bq4802",
 	.id		= -1,
 	.num_resources	= 1,
@@ -466,13 +477,14 @@ static int bq4802_probe(struct platform_device *op)
 {
 
 	printk(KERN_INFO "%s: BQ4802 regs at 0x%llx\n",
-	       op->dev.of_node->full_name, op->resource[0].start);
+		   op->dev.of_node->full_name, op->resource[0].start);
 
 	rtc_bq4802_device.resource = &op->resource[0];
 	return platform_device_register(&rtc_bq4802_device);
 }
 
-static const struct of_device_id bq4802_match[] = {
+static const struct of_device_id bq4802_match[] =
+{
 	{
 		.name = "rtc",
 		.compatible = "bq4802",
@@ -480,7 +492,8 @@ static const struct of_device_id bq4802_match[] = {
 	{},
 };
 
-static struct platform_driver bq4802_driver = {
+static struct platform_driver bq4802_driver =
+{
 	.probe		= bq4802_probe,
 	.driver = {
 		.name = "bq4802",
@@ -504,12 +517,14 @@ static void mostek_write_byte(struct device *dev, u32 ofs, u8 val)
 	writeb(val, regs + ofs);
 }
 
-static struct m48t59_plat_data m48t59_data = {
+static struct m48t59_plat_data m48t59_data =
+{
 	.read_byte	= mostek_read_byte,
 	.write_byte	= mostek_write_byte,
 };
 
-static struct platform_device m48t59_rtc = {
+static struct platform_device m48t59_rtc =
+{
 	.name		= "rtc-m48t59",
 	.id		= 0,
 	.num_resources	= 1,
@@ -526,24 +541,28 @@ static int mostek_probe(struct platform_device *op)
 	 * We should only match the one that is on the central FHC bus.
 	 */
 	if (!strcmp(dp->parent->name, "fhc") &&
-	    strcmp(dp->parent->parent->name, "central") != 0)
+		strcmp(dp->parent->parent->name, "central") != 0)
+	{
 		return -ENODEV;
+	}
 
 	printk(KERN_INFO "%s: Mostek regs at 0x%llx\n",
-	       dp->full_name, op->resource[0].start);
+		   dp->full_name, op->resource[0].start);
 
 	m48t59_rtc.resource = &op->resource[0];
 	return platform_device_register(&m48t59_rtc);
 }
 
-static const struct of_device_id mostek_match[] = {
+static const struct of_device_id mostek_match[] =
+{
 	{
 		.name = "eeprom",
 	},
 	{},
 };
 
-static struct platform_driver mostek_driver = {
+static struct platform_driver mostek_driver =
+{
 	.probe		= mostek_probe,
 	.driver = {
 		.name = "mostek",
@@ -551,12 +570,14 @@ static struct platform_driver mostek_driver = {
 	},
 };
 
-static struct platform_device rtc_sun4v_device = {
+static struct platform_device rtc_sun4v_device =
+{
 	.name		= "rtc-sun4v",
 	.id		= -1,
 };
 
-static struct platform_device rtc_starfire_device = {
+static struct platform_device rtc_starfire_device =
+{
 	.name		= "rtc-starfire",
 	.id		= -1,
 };
@@ -564,10 +585,14 @@ static struct platform_device rtc_starfire_device = {
 static int __init clock_init(void)
 {
 	if (this_is_starfire)
+	{
 		return platform_device_register(&rtc_starfire_device);
+	}
 
 	if (tlb_type == hypervisor)
+	{
 		return platform_device_register(&rtc_sun4v_device);
+	}
 
 	(void) platform_driver_register(&rtc_driver);
 	(void) platform_driver_register(&mostek_driver);
@@ -589,22 +614,30 @@ static unsigned long sparc64_init_timers(void)
 	unsigned long freq;
 
 	dp = of_find_node_by_path("/");
-	if (tlb_type == spitfire) {
+
+	if (tlb_type == spitfire)
+	{
 		unsigned long ver, manuf, impl;
 
 		__asm__ __volatile__ ("rdpr %%ver, %0"
-				      : "=&r" (ver));
+							  : "=&r" (ver));
 		manuf = ((ver >> 48) & 0xffff);
 		impl = ((ver >> 32) & 0xffff);
-		if (manuf == 0x17 && impl == 0x13) {
+
+		if (manuf == 0x17 && impl == 0x13)
+		{
 			/* Hummingbird, aka Ultra-IIe */
 			tick_ops = &hbtick_operations;
 			freq = of_getintprop_default(dp, "stick-frequency", 0);
-		} else {
+		}
+		else
+		{
 			tick_ops = &tick_operations;
 			freq = local_cpu_data().clock_tick;
 		}
-	} else {
+	}
+	else
+	{
 		tick_ops = &stick_operations;
 		freq = of_getintprop_default(dp, "stick-frequency", 0);
 	}
@@ -612,7 +645,8 @@ static unsigned long sparc64_init_timers(void)
 	return freq;
 }
 
-struct freq_table {
+struct freq_table
+{
 	unsigned long clock_tick_ref;
 	unsigned int ref_freq;
 };
@@ -623,7 +657,10 @@ unsigned long sparc64_get_clock_tick(unsigned int cpu)
 	struct freq_table *ft = &per_cpu(sparc64_freq_table, cpu);
 
 	if (ft->clock_tick_ref)
+	{
 		return ft->clock_tick_ref;
+	}
+
 	return cpu_data(cpu).clock_tick;
 }
 EXPORT_SYMBOL(sparc64_get_clock_tick);
@@ -631,28 +668,32 @@ EXPORT_SYMBOL(sparc64_get_clock_tick);
 #ifdef CONFIG_CPU_FREQ
 
 static int sparc64_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
-				    void *data)
+									void *data)
 {
 	struct cpufreq_freqs *freq = data;
 	unsigned int cpu = freq->cpu;
 	struct freq_table *ft = &per_cpu(sparc64_freq_table, cpu);
 
-	if (!ft->ref_freq) {
+	if (!ft->ref_freq)
+	{
 		ft->ref_freq = freq->old;
 		ft->clock_tick_ref = cpu_data(cpu).clock_tick;
 	}
+
 	if ((val == CPUFREQ_PRECHANGE  && freq->old < freq->new) ||
-	    (val == CPUFREQ_POSTCHANGE && freq->old > freq->new)) {
+		(val == CPUFREQ_POSTCHANGE && freq->old > freq->new))
+	{
 		cpu_data(cpu).clock_tick =
 			cpufreq_scale(ft->clock_tick_ref,
-				      ft->ref_freq,
-				      freq->new);
+						  ft->ref_freq,
+						  freq->new);
 	}
 
 	return 0;
 }
 
-static struct notifier_block sparc64_cpufreq_notifier_block = {
+static struct notifier_block sparc64_cpufreq_notifier_block =
+{
 	.notifier_call	= sparc64_cpufreq_notifier
 };
 
@@ -660,7 +701,7 @@ static int __init register_sparc64_cpufreq_notifier(void)
 {
 
 	cpufreq_register_notifier(&sparc64_cpufreq_notifier_block,
-				  CPUFREQ_TRANSITION_NOTIFIER);
+							  CPUFREQ_TRANSITION_NOTIFIER);
 	return 0;
 }
 
@@ -669,7 +710,7 @@ core_initcall(register_sparc64_cpufreq_notifier);
 #endif /* CONFIG_CPU_FREQ */
 
 static int sparc64_next_event(unsigned long delta,
-			      struct clock_event_device *evt)
+							  struct clock_event_device *evt)
 {
 	return tick_ops->add_compare(delta) ? -ETIME : 0;
 }
@@ -680,7 +721,8 @@ static int sparc64_timer_shutdown(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device sparc64_clockevent = {
+static struct clock_event_device sparc64_clockevent =
+{
 	.features		= CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= sparc64_timer_shutdown,
 	.set_next_event		= sparc64_next_event,
@@ -704,11 +746,15 @@ void __irq_entry timer_interrupt(int irq, struct pt_regs *regs)
 	local_cpu_data().irq0_irqs++;
 	kstat_incr_irq_this_cpu(0);
 
-	if (unlikely(!evt->event_handler)) {
+	if (unlikely(!evt->event_handler))
+	{
 		printk(KERN_WARNING
-		       "Spurious SPARC64 timer interrupt on cpu %d\n", cpu);
-	} else
+			   "Spurious SPARC64 timer interrupt on cpu %d\n", cpu);
+	}
+	else
+	{
 		evt->event_handler(evt);
+	}
 
 	irq_exit();
 
@@ -724,16 +770,16 @@ void setup_sparc64_timer(void)
 	 * uninterrupted.
 	 */
 	__asm__ __volatile__("rdpr	%%pstate, %0\n\t"
-			     "wrpr	%0, %1, %%pstate"
-			     : "=r" (pstate)
-			     : "i" (PSTATE_IE));
+						 "wrpr	%0, %1, %%pstate"
+						 : "=r" (pstate)
+						 : "i" (PSTATE_IE));
 
 	tick_ops->init_tick();
 
 	/* Restore PSTATE_IE. */
 	__asm__ __volatile__("wrpr	%0, 0x0, %%pstate"
-			     : /* no outputs */
-			     : "r" (pstate));
+						 : /* no outputs */
+						 : "r" (pstate));
 
 	sevt = this_cpu_ptr(&sparc64_events);
 
@@ -745,7 +791,8 @@ void setup_sparc64_timer(void)
 
 #define SPARC64_NSEC_PER_CYC_SHIFT	10UL
 
-static struct clocksource clocksource_tick = {
+static struct clocksource clocksource_tick =
+{
 	.rating		= 100,
 	.mask		= CLOCKSOURCE_MASK(64),
 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
@@ -758,9 +805,12 @@ void __delay(unsigned long loops)
 	unsigned long bclock, now;
 
 	bclock = tick_ops->get_tick();
-	do {
+
+	do
+	{
 		now = tick_ops->get_tick();
-	} while ((now-bclock) < loops);
+	}
+	while ((now - bclock) < loops);
 }
 EXPORT_SYMBOL(__delay);
 
@@ -789,7 +839,7 @@ void __init time_init(void)
 
 	clocksource_register_hz(&clocksource_tick, freq);
 	printk("clocksource: mult[%x] shift[%d]\n",
-	       clocksource_tick.mult, clocksource_tick.shift);
+		   clocksource_tick.mult, clocksource_tick.shift);
 
 	sparc64_clockevent.name = tick_ops->name;
 	clockevents_calc_mult_shift(&sparc64_clockevent, freq, 4);
@@ -800,7 +850,7 @@ void __init time_init(void)
 		clockevent_delta2ns(0xF, &sparc64_clockevent);
 
 	printk("clockevent: mult[%x] shift[%d]\n",
-	       sparc64_clockevent.mult, sparc64_clockevent.shift);
+		   sparc64_clockevent.mult, sparc64_clockevent.shift);
 
 	setup_sparc64_timer();
 }
@@ -810,7 +860,7 @@ unsigned long long sched_clock(void)
 	unsigned long ticks = tick_ops->get_tick();
 
 	return (ticks * timer_ticks_per_nsec_quotient)
-		>> SPARC64_NSEC_PER_CYC_SHIFT;
+		   >> SPARC64_NSEC_PER_CYC_SHIFT;
 }
 
 int read_current_timer(unsigned long *timer_val)

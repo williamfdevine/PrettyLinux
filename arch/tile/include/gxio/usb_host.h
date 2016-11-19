@@ -31,7 +31,8 @@
  */
 
 /* A context object used to manage USB hardware resources. */
-typedef struct {
+typedef struct
+{
 
 	/* File descriptor for calling up to the hypervisor. */
 	int fd;
@@ -54,7 +55,7 @@ typedef struct {
  *  GXIO_ERR_xxx error code.
  */
 extern int gxio_usb_host_init(gxio_usb_host_context_t *context, int usb_index,
-			      int is_ehci);
+							  int is_ehci);
 
 /* Destroy a USB context.
  *

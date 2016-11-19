@@ -35,14 +35,15 @@ void flush_tlb_mm(struct mm_struct *mm)
 {
 	HV_Remote_ASID asids[NR_CPUS];
 	int i = 0, cpu;
-	for_each_cpu(cpu, mm_cpumask(mm)) {
+	for_each_cpu(cpu, mm_cpumask(mm))
+	{
 		HV_Remote_ASID *asid = &asids[i++];
 		asid->y = cpu / smp_topology.width;
 		asid->x = cpu % smp_topology.width;
 		asid->asid = per_cpu(current_asid, cpu);
 	}
 	flush_remote(0, HV_FLUSH_EVICT_L1I, mm_cpumask(mm),
-		     0, 0, 0, NULL, asids, i);
+				 0, 0, 0, NULL, asids, i);
 }
 
 void flush_tlb_current_task(void)
@@ -51,12 +52,12 @@ void flush_tlb_current_task(void)
 }
 
 void flush_tlb_page_mm(struct vm_area_struct *vma, struct mm_struct *mm,
-		       unsigned long va)
+					   unsigned long va)
 {
 	unsigned long size = vma_kernel_pagesize(vma);
 	int cache = (vma->vm_flags & VM_EXEC) ? HV_FLUSH_EVICT_L1I : 0;
 	flush_remote(0, cache, mm_cpumask(mm),
-		     va, size, size, mm_cpumask(mm), NULL, 0);
+				 va, size, size, mm_cpumask(mm), NULL, 0);
 }
 
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long va)
@@ -66,28 +67,34 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long va)
 EXPORT_SYMBOL(flush_tlb_page);
 
 void flush_tlb_range(struct vm_area_struct *vma,
-		     unsigned long start, unsigned long end)
+					 unsigned long start, unsigned long end)
 {
 	unsigned long size = vma_kernel_pagesize(vma);
 	struct mm_struct *mm = vma->vm_mm;
 	int cache = (vma->vm_flags & VM_EXEC) ? HV_FLUSH_EVICT_L1I : 0;
 	flush_remote(0, cache, mm_cpumask(mm), start, end - start, size,
-		     mm_cpumask(mm), NULL, 0);
+				 mm_cpumask(mm), NULL, 0);
 }
 
 void flush_tlb_all(void)
 {
 	int i;
-	for (i = 0; ; ++i) {
+
+	for (i = 0; ; ++i)
+	{
 		HV_VirtAddrRange r = hv_inquire_virtual(i);
+
 		if (r.size == 0)
+		{
 			break;
+		}
+
 		flush_remote(0, HV_FLUSH_EVICT_L1I, cpu_online_mask,
-			     r.start, r.size, PAGE_SIZE, cpu_online_mask,
-			     NULL, 0);
+					 r.start, r.size, PAGE_SIZE, cpu_online_mask,
+					 NULL, 0);
 		flush_remote(0, 0, NULL,
-			     r.start, r.size, HPAGE_SIZE, cpu_online_mask,
-			     NULL, 0);
+					 r.start, r.size, HPAGE_SIZE, cpu_online_mask,
+					 NULL, 0);
 	}
 }
 
@@ -100,5 +107,5 @@ void flush_tlb_all(void)
 void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 {
 	flush_remote(0, 0, NULL,
-		     start, end - start, PAGE_SIZE, cpu_online_mask, NULL, 0);
+				 start, end - start, PAGE_SIZE, cpu_online_mask, NULL, 0);
 }

@@ -13,11 +13,12 @@
  */
 
 #ifndef __KERNEL_STRICT_NAMES
-#include <linux/types.h>
-typedef __kernel_fsid_t	fsid_t;
+	#include <linux/types.h>
+	typedef __kernel_fsid_t	fsid_t;
 #endif
 
-struct statfs {
+struct statfs
+{
 	unsigned int	f_type;
 	unsigned int	f_bsize;
 	unsigned long	f_blocks;
@@ -32,7 +33,8 @@ struct statfs {
 	unsigned int	f_spare[4];
 };
 
-struct statfs64 {
+struct statfs64
+{
 	unsigned int	f_type;
 	unsigned int	f_bsize;
 	unsigned long long f_blocks;

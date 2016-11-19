@@ -50,10 +50,10 @@ early_param("efi_no_storage_paranoia", setup_storage_paranoia);
 void efi_delete_dummy_variable(void)
 {
 	efi.set_variable(efi_dummy_name, &EFI_DUMMY_GUID,
-			 EFI_VARIABLE_NON_VOLATILE |
-			 EFI_VARIABLE_BOOTSERVICE_ACCESS |
-			 EFI_VARIABLE_RUNTIME_ACCESS,
-			 0, NULL);
+					 EFI_VARIABLE_NON_VOLATILE |
+					 EFI_VARIABLE_BOOTSERVICE_ACCESS |
+					 EFI_VARIABLE_RUNTIME_ACCESS,
+					 0, NULL);
 }
 
 /*
@@ -72,13 +72,18 @@ query_variable_store_nonblocking(u32 attributes, unsigned long size)
 	u64 storage_size, remaining_size, max_size;
 
 	status = efi.query_variable_info_nonblocking(attributes, &storage_size,
-						     &remaining_size,
-						     &max_size);
+			 &remaining_size,
+			 &max_size);
+
 	if (status != EFI_SUCCESS)
+	{
 		return status;
+	}
 
 	if (remaining_size - size < EFI_MIN_RESERVE)
+	{
 		return EFI_OUT_OF_RESOURCES;
+	}
 
 	return EFI_SUCCESS;
 }
@@ -91,21 +96,28 @@ query_variable_store_nonblocking(u32 attributes, unsigned long size)
  * store.
  */
 efi_status_t efi_query_variable_store(u32 attributes, unsigned long size,
-				      bool nonblocking)
+									  bool nonblocking)
 {
 	efi_status_t status;
 	u64 storage_size, remaining_size, max_size;
 
 	if (!(attributes & EFI_VARIABLE_NON_VOLATILE))
+	{
 		return 0;
+	}
 
 	if (nonblocking)
+	{
 		return query_variable_store_nonblocking(attributes, size);
+	}
 
 	status = efi.query_variable_info(attributes, &storage_size,
-					 &remaining_size, &max_size);
+									 &remaining_size, &max_size);
+
 	if (status != EFI_SUCCESS)
+	{
 		return status;
+	}
 
 	/*
 	 * We account for that by refusing the write if permitting it would
@@ -113,7 +125,8 @@ efi_status_t efi_query_variable_store(u32 attributes, unsigned long size,
 	 * Samsung, so should be safe.
 	 */
 	if ((remaining_size - size < EFI_MIN_RESERVE) &&
-		!efi_no_storage_paranoia) {
+		!efi_no_storage_paranoia)
+	{
 
 		/*
 		 * Triggering garbage collection may require that the firmware
@@ -124,15 +137,18 @@ efi_status_t efi_query_variable_store(u32 attributes, unsigned long size,
 		void *dummy = kzalloc(dummy_size, GFP_ATOMIC);
 
 		if (!dummy)
+		{
 			return EFI_OUT_OF_RESOURCES;
+		}
 
 		status = efi.set_variable(efi_dummy_name, &EFI_DUMMY_GUID,
-					  EFI_VARIABLE_NON_VOLATILE |
-					  EFI_VARIABLE_BOOTSERVICE_ACCESS |
-					  EFI_VARIABLE_RUNTIME_ACCESS,
-					  dummy_size, dummy);
+								  EFI_VARIABLE_NON_VOLATILE |
+								  EFI_VARIABLE_BOOTSERVICE_ACCESS |
+								  EFI_VARIABLE_RUNTIME_ACCESS,
+								  dummy_size, dummy);
 
-		if (status == EFI_SUCCESS) {
+		if (status == EFI_SUCCESS)
+		{
 			/*
 			 * This should have failed, so if it didn't make sure
 			 * that we delete it...
@@ -147,16 +163,20 @@ efi_status_t efi_query_variable_store(u32 attributes, unsigned long size,
 		 * run, so check the variable info again
 		 */
 		status = efi.query_variable_info(attributes, &storage_size,
-						 &remaining_size, &max_size);
+										 &remaining_size, &max_size);
 
 		if (status != EFI_SUCCESS)
+		{
 			return status;
+		}
 
 		/*
 		 * There still isn't enough room, so return an error
 		 */
 		if (remaining_size - size < EFI_MIN_RESERVE)
+		{
 			return EFI_OUT_OF_RESOURCES;
+		}
 	}
 
 	return EFI_SUCCESS;
@@ -191,12 +211,14 @@ void __init efi_arch_mem_reserve(phys_addr_t addr, u64 size)
 	int num_entries;
 	void *new;
 
-	if (efi_mem_desc_lookup(addr, &md)) {
+	if (efi_mem_desc_lookup(addr, &md))
+	{
 		pr_err("Failed to lookup EFI memory descriptor for %pa\n", &addr);
 		return;
 	}
 
-	if (addr + size > md.phys_addr + (md.num_pages << EFI_PAGE_SHIFT)) {
+	if (addr + size > md.phys_addr + (md.num_pages << EFI_PAGE_SHIFT))
+	{
 		pr_err("Region spans EFI memory descriptors, %pa\n", &addr);
 		return;
 	}
@@ -215,13 +237,17 @@ void __init efi_arch_mem_reserve(phys_addr_t addr, u64 size)
 	new_size = efi.memmap.desc_size * num_entries;
 
 	new_phys = memblock_alloc(new_size, 0);
-	if (!new_phys) {
+
+	if (!new_phys)
+	{
 		pr_err("Could not allocate boot services memmap\n");
 		return;
 	}
 
 	new = early_memremap(new_phys, new_size);
-	if (!new) {
+
+	if (!new)
+	{
 		pr_err("Failed to map new boot services memmap\n");
 		return;
 	}
@@ -245,10 +271,14 @@ void __init efi_arch_mem_reserve(phys_addr_t addr, u64 size)
 static bool can_free_region(u64 start, u64 size)
 {
 	if (start + size > __pa_symbol(_text) && start <= __pa_symbol(_end))
+	{
 		return false;
+	}
 
-	if (!e820_all_mapped(start, start+size, E820_RAM))
+	if (!e820_all_mapped(start, start + size, E820_RAM))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -257,14 +287,17 @@ void __init efi_reserve_boot_services(void)
 {
 	efi_memory_desc_t *md;
 
-	for_each_efi_memory_desc(md) {
+	for_each_efi_memory_desc(md)
+	{
 		u64 start = md->phys_addr;
 		u64 size = md->num_pages << EFI_PAGE_SHIFT;
 		bool already_reserved;
 
 		if (md->type != EFI_BOOT_SERVICES_CODE &&
-		    md->type != EFI_BOOT_SERVICES_DATA)
+			md->type != EFI_BOOT_SERVICES_DATA)
+		{
 			continue;
+		}
 
 		already_reserved = memblock_is_region_reserved(start, size);
 
@@ -282,7 +315,8 @@ void __init efi_reserve_boot_services(void)
 		 * contain boot services code/data but is marked
 		 * E820_RESERVED by trim_bios_range().
 		 */
-		if (!already_reserved) {
+		if (!already_reserved)
+		{
 			memblock_reserve(start, size);
 
 			/*
@@ -291,7 +325,9 @@ void __init efi_reserve_boot_services(void)
 			 * free it later.
 			 */
 			if (can_free_region(start, size))
+			{
 				continue;
+			}
 		}
 
 		/*
@@ -314,19 +350,22 @@ void __init efi_free_boot_services(void)
 	int num_entries = 0;
 	void *new, *new_md;
 
-	for_each_efi_memory_desc(md) {
+	for_each_efi_memory_desc(md)
+	{
 		unsigned long long start = md->phys_addr;
 		unsigned long long size = md->num_pages << EFI_PAGE_SHIFT;
 		size_t rm_size;
 
 		if (md->type != EFI_BOOT_SERVICES_CODE &&
-		    md->type != EFI_BOOT_SERVICES_DATA) {
+			md->type != EFI_BOOT_SERVICES_DATA)
+		{
 			num_entries++;
 			continue;
 		}
 
 		/* Do not free, someone else owns it: */
-		if (md->attribute & EFI_MEMORY_RUNTIME) {
+		if (md->attribute & EFI_MEMORY_RUNTIME)
+		{
 			num_entries++;
 			continue;
 		}
@@ -345,7 +384,9 @@ void __init efi_free_boot_services(void)
 		 * panicing early.)
 		 */
 		rm_size = real_mode_size_needed();
-		if (rm_size && (start + rm_size) < (1<<20) && size >= rm_size) {
+
+		if (rm_size && (start + rm_size) < (1 << 20) && size >= rm_size)
+		{
 			set_real_mode_mem(start, rm_size);
 			start += rm_size;
 			size -= rm_size;
@@ -356,13 +397,17 @@ void __init efi_free_boot_services(void)
 
 	new_size = efi.memmap.desc_size * num_entries;
 	new_phys = memblock_alloc(new_size, 0);
-	if (!new_phys) {
+
+	if (!new_phys)
+	{
 		pr_err("Failed to allocate new EFI memmap\n");
 		return;
 	}
 
 	new = memremap(new_phys, new_size, MEMREMAP_WB);
-	if (!new) {
+
+	if (!new)
+	{
 		pr_err("Failed to map new EFI memmap\n");
 		return;
 	}
@@ -373,11 +418,14 @@ void __init efi_free_boot_services(void)
 	 * regions have now been freed.
 	 */
 	new_md = new;
-	for_each_efi_memory_desc(md) {
+	for_each_efi_memory_desc(md)
+	{
 		if (!(md->attribute & EFI_MEMORY_RUNTIME) &&
-		    (md->type == EFI_BOOT_SERVICES_CODE ||
-		     md->type == EFI_BOOT_SERVICES_DATA))
+			(md->type == EFI_BOOT_SERVICES_CODE ||
+			 md->type == EFI_BOOT_SERVICES_DATA))
+		{
 			continue;
+		}
 
 		memcpy(new_md, md, efi.memmap.desc_size);
 		new_md += efi.memmap.desc_size;
@@ -385,7 +433,8 @@ void __init efi_free_boot_services(void)
 
 	memunmap(new);
 
-	if (efi_memmap_install(new_phys, num_entries)) {
+	if (efi_memmap_install(new_phys, num_entries))
+	{
 		pr_err("Could not install new EFI memmap\n");
 		return;
 	}
@@ -407,38 +456,53 @@ int __init efi_reuse_config(u64 tables, int nr_tables)
 	struct efi_setup_data *data;
 
 	if (!efi_setup)
+	{
 		return 0;
+	}
 
 	if (!efi_enabled(EFI_64BIT))
+	{
 		return 0;
+	}
 
 	data = early_memremap(efi_setup, sizeof(*data));
-	if (!data) {
+
+	if (!data)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	if (!data->smbios)
+	{
 		goto out_memremap;
+	}
 
 	sz = sizeof(efi_config_table_64_t);
 
 	p = tablep = early_memremap(tables, nr_tables * sz);
-	if (!p) {
+
+	if (!p)
+	{
 		pr_err("Could not map Configuration table!\n");
 		ret = -ENOMEM;
 		goto out_memremap;
 	}
 
-	for (i = 0; i < efi.systab->nr_tables; i++) {
+	for (i = 0; i < efi.systab->nr_tables; i++)
+	{
 		efi_guid_t guid;
 
 		guid = ((efi_config_table_64_t *)p)->guid;
 
 		if (!efi_guidcmp(guid, SMBIOS_TABLE_GUID))
+		{
 			((efi_config_table_64_t *)p)->table = data->smbios;
+		}
+
 		p += sz;
 	}
+
 	early_memunmap(tablep, nr_tables * sz);
 
 out_memremap:
@@ -447,9 +511,12 @@ out:
 	return ret;
 }
 
-static const struct dmi_system_id sgi_uv1_dmi[] = {
-	{ NULL, "SGI UV1",
-		{	DMI_MATCH(DMI_PRODUCT_NAME,	"Stoutland Platform"),
+static const struct dmi_system_id sgi_uv1_dmi[] =
+{
+	{
+		NULL, "SGI UV1",
+		{
+			DMI_MATCH(DMI_PRODUCT_NAME,	"Stoutland Platform"),
 			DMI_MATCH(DMI_PRODUCT_VERSION,	"1.0"),
 			DMI_MATCH(DMI_BIOS_VENDOR,	"SGI.COM"),
 		}
@@ -464,14 +531,17 @@ void __init efi_apply_memmap_quirks(void)
 	 * firmware/kernel architectures since there is no support for runtime
 	 * services.
 	 */
-	if (!efi_runtime_supported()) {
+	if (!efi_runtime_supported())
+	{
 		pr_info("Setup done, disabling due to 32/64-bit mismatch\n");
 		efi_memmap_unmap();
 	}
 
 	/* UV2+ BIOS has a fix for this issue.  UV1 still needs the quirk. */
 	if (dmi_check_system(sgi_uv1_dmi))
+	{
 		set_bit(EFI_OLD_MEMMAP, &efi.flags);
+	}
 }
 
 /*
@@ -485,7 +555,9 @@ void __init efi_apply_memmap_quirks(void)
 bool efi_reboot_required(void)
 {
 	if (!acpi_gbl_reduced_hardware)
+	{
 		return false;
+	}
 
 	efi_reboot_quirk_mode = EFI_RESET_WARM;
 	return true;

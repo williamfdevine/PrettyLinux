@@ -19,7 +19,7 @@
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-#include <linux/types.h>
+	#include <linux/types.h>
 #endif
 #include <asm/cpu-regs.h>
 
@@ -29,9 +29,9 @@
 #define CROSS_ICR_CPU_SHIFT	16
 
 #define CROSS_GxICR(X, CPU)	__SYSREG(0xc4000000 + (X) * 4 + \
-	((X) >= 64 && (X) < 192) * 0xf00 + ((CPU) << CROSS_ICR_CPU_SHIFT), u16)
+									 ((X) >= 64 && (X) < 192) * 0xf00 + ((CPU) << CROSS_ICR_CPU_SHIFT), u16)
 #define CROSS_GxICR_u8(X, CPU)	__SYSREG(0xc4000000 + (X) * 4 +		\
-	(((X) >= 64) && ((X) < 192)) * 0xf00 + ((CPU) << CROSS_ICR_CPU_SHIFT), u8)
+		(((X) >= 64) && ((X) < 192)) * 0xf00 + ((CPU) << CROSS_ICR_CPU_SHIFT), u8)
 
 /* CPU ID register */
 #define CPUID		__SYSREGC(0xc0000054, u32)

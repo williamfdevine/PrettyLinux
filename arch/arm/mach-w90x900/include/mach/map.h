@@ -17,9 +17,9 @@
 #define __ASM_ARCH_MAP_H
 
 #ifndef __ASSEMBLY__
-#define W90X900_ADDR(x)		((void __iomem *)(0xF0000000 + (x)))
+	#define W90X900_ADDR(x)		((void __iomem *)(0xF0000000 + (x)))
 #else
-#define W90X900_ADDR(x)		(0xF0000000 + (x))
+	#define W90X900_ADDR(x)		(0xF0000000 + (x))
 #endif
 
 #define AHB_IO_BASE		0xB0000000

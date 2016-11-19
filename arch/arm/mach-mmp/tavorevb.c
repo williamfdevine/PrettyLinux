@@ -23,7 +23,8 @@
 
 #include "common.h"
 
-static unsigned long tavorevb_pin_config[] __initdata = {
+static unsigned long tavorevb_pin_config[] __initdata =
+{
 	/* UART2 */
 	GPIO47_UART2_RXD,
 	GPIO48_UART2_TXD,
@@ -61,15 +62,18 @@ static unsigned long tavorevb_pin_config[] __initdata = {
 	DF_RDY0_DF_RDY0,
 };
 
-static struct pxa_gpio_platform_data pxa910_gpio_pdata = {
+static struct pxa_gpio_platform_data pxa910_gpio_pdata =
+{
 	.irq_base	= MMP_GPIO_TO_IRQ(0),
 };
 
-static struct smc91x_platdata tavorevb_smc91x_info = {
+static struct smc91x_platdata tavorevb_smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
 };
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start	= SMC_CS1_PHYS_BASE + 0x300,
 		.end	= SMC_CS1_PHYS_BASE + 0xfffff,
@@ -82,7 +86,8 @@ static struct resource smc91x_resources[] = {
 	}
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= 0,
 	.dev		= {
@@ -99,7 +104,7 @@ static void __init tavorevb_init(void)
 	/* on-chip devices */
 	pxa910_add_uart(1);
 	platform_device_add_data(&pxa910_device_gpio, &pxa910_gpio_pdata,
-				 sizeof(struct pxa_gpio_platform_data));
+							 sizeof(struct pxa_gpio_platform_data));
 	platform_device_register(&pxa910_device_gpio);
 
 	/* off-chip devices */
@@ -107,10 +112,10 @@ static void __init tavorevb_init(void)
 }
 
 MACHINE_START(TAVOREVB, "PXA910 Evaluation Board (aka TavorEVB)")
-	.map_io		= mmp_map_io,
+.map_io		= mmp_map_io,
 	.nr_irqs	= MMP_NR_IRQS,
-	.init_irq       = pxa910_init_irq,
-	.init_time	= pxa910_timer_init,
-	.init_machine   = tavorevb_init,
-	.restart	= mmp_restart,
-MACHINE_END
+		.init_irq       = pxa910_init_irq,
+		 .init_time	= pxa910_timer_init,
+		   .init_machine   = tavorevb_init,
+			.restart	= mmp_restart,
+				MACHINE_END

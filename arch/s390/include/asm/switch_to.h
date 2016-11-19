@@ -29,18 +29,18 @@ static inline void restore_access_regs(unsigned int *acrs)
 }
 
 #define switch_to(prev,next,last) do {					\
-	if (prev->mm) {							\
-		save_fpu_regs();					\
-		save_access_regs(&prev->thread.acrs[0]);		\
-		save_ri_cb(prev->thread.ri_cb);				\
-	}								\
-	if (next->mm) {							\
-		update_cr_regs(next);					\
-		set_cpu_flag(CIF_FPU);					\
-		restore_access_regs(&next->thread.acrs[0]);		\
-		restore_ri_cb(next->thread.ri_cb, prev->thread.ri_cb);	\
-	}								\
-	prev = __switch_to(prev,next);					\
-} while (0)
+		if (prev->mm) {							\
+			save_fpu_regs();					\
+			save_access_regs(&prev->thread.acrs[0]);		\
+			save_ri_cb(prev->thread.ri_cb);				\
+		}								\
+		if (next->mm) {							\
+			update_cr_regs(next);					\
+			set_cpu_flag(CIF_FPU);					\
+			restore_access_regs(&next->thread.acrs[0]);		\
+			restore_ri_cb(next->thread.ri_cb, prev->thread.ri_cb);	\
+		}								\
+		prev = __switch_to(prev,next);					\
+	} while (0)
 
 #endif /* __ASM_SWITCH_TO_H */

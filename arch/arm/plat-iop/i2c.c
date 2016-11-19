@@ -29,15 +29,16 @@
 #include <asm/mach/arch.h>
 
 #ifdef CONFIG_ARCH_IOP32X
-#define IRQ_IOP3XX_I2C_0	IRQ_IOP32X_I2C_0
-#define IRQ_IOP3XX_I2C_1	IRQ_IOP32X_I2C_1
+	#define IRQ_IOP3XX_I2C_0	IRQ_IOP32X_I2C_0
+	#define IRQ_IOP3XX_I2C_1	IRQ_IOP32X_I2C_1
 #endif
 #ifdef CONFIG_ARCH_IOP33X
-#define IRQ_IOP3XX_I2C_0	IRQ_IOP33X_I2C_0
-#define IRQ_IOP3XX_I2C_1	IRQ_IOP33X_I2C_1
+	#define IRQ_IOP3XX_I2C_0	IRQ_IOP33X_I2C_0
+	#define IRQ_IOP3XX_I2C_1	IRQ_IOP33X_I2C_1
 #endif
 
-static struct resource iop3xx_i2c0_resources[] = {
+static struct resource iop3xx_i2c0_resources[] =
+{
 	[0] = {
 		.start	= 0xfffff680,
 		.end	= 0xfffff697,
@@ -50,7 +51,8 @@ static struct resource iop3xx_i2c0_resources[] = {
 	},
 };
 
-struct platform_device iop3xx_i2c0_device = {
+struct platform_device iop3xx_i2c0_device =
+{
 	.name		= "IOP3xx-I2C",
 	.id		= 0,
 	.num_resources	= 2,
@@ -58,7 +60,8 @@ struct platform_device iop3xx_i2c0_device = {
 };
 
 
-static struct resource iop3xx_i2c1_resources[] = {
+static struct resource iop3xx_i2c1_resources[] =
+{
 	[0] = {
 		.start	= 0xfffff6a0,
 		.end	= 0xfffff6b7,
@@ -71,7 +74,8 @@ static struct resource iop3xx_i2c1_resources[] = {
 	}
 };
 
-struct platform_device iop3xx_i2c1_device = {
+struct platform_device iop3xx_i2c1_device =
+{
 	.name		= "IOP3xx-I2C",
 	.id		= 1,
 	.num_resources	= 2,

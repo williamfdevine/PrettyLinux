@@ -47,7 +47,7 @@ void local_flush_tlb_mm(struct mm_struct *mm)
 }
 
 void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-			    unsigned long end)
+						   unsigned long end)
 {
 	BUG();
 }
@@ -91,7 +91,7 @@ void kunmap_coherent(void *kvaddr)
 }
 
 void __init page_table_range_init(unsigned long start, unsigned long end,
-				  pgd_t *pgd_base)
+								  pgd_t *pgd_base)
 {
 }
 

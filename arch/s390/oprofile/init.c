@@ -18,7 +18,10 @@ static int __s390_backtrace(void *data, unsigned long address, int reliable)
 	unsigned int *depth = data;
 
 	if (*depth == 0)
+	{
 		return 1;
+	}
+
 	(*depth)--;
 	oprofile_add_trace(address);
 	return 0;
@@ -27,7 +30,10 @@ static int __s390_backtrace(void *data, unsigned long address, int reliable)
 static void s390_backtrace(struct pt_regs *regs, unsigned int depth)
 {
 	if (user_mode(regs))
+	{
 		return;
+	}
+
 	dump_trace(__s390_backtrace, &depth, NULL, regs->gprs[15]);
 }
 

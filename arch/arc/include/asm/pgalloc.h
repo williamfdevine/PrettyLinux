@@ -57,7 +57,8 @@ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
 	int num, num2;
 	pgd_t *ret = (pgd_t *) __get_free_pages(GFP_KERNEL, __get_order_pgd());
 
-	if (ret) {
+	if (ret)
+	{
 		num = USER_PTRS_PER_PGD + USER_KERNEL_GUTTER / PGDIR_SIZE;
 		memzero(ret, num * sizeof(pgd_t));
 
@@ -65,9 +66,10 @@ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
 		memcpy(ret + num, swapper_pg_dir + num, num2 * sizeof(pgd_t));
 
 		memzero(ret + num + num2,
-			       (PTRS_PER_PGD - num - num2) * sizeof(pgd_t));
+				(PTRS_PER_PGD - num - num2) * sizeof(pgd_t));
 
 	}
+
 	return ret;
 }
 
@@ -91,12 +93,12 @@ static inline int __get_order_pte(void)
 }
 
 static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-					unsigned long address)
+		unsigned long address)
 {
 	pte_t *pte;
 
 	pte = (pte_t *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
-					 __get_order_pte());
+									 __get_order_pte());
 
 	return pte;
 }
@@ -108,11 +110,17 @@ pte_alloc_one(struct mm_struct *mm, unsigned long address)
 	struct page *page;
 
 	pte_pg = (pgtable_t)__get_free_pages(GFP_KERNEL, __get_order_pte());
+
 	if (!pte_pg)
+	{
 		return 0;
+	}
+
 	memzero((void *)pte_pg, PTRS_PER_PTE * sizeof(pte_t));
 	page = virt_to_page(pte_pg);
-	if (!pgtable_page_ctor(page)) {
+
+	if (!pgtable_page_ctor(page))
+	{
 		__free_page(page);
 		return 0;
 	}

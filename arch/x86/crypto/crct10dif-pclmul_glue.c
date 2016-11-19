@@ -34,9 +34,10 @@
 #include <asm/cpu_device_id.h>
 
 asmlinkage __u16 crc_t10dif_pcl(__u16 crc, const unsigned char *buf,
-				size_t len);
+								size_t len);
 
-struct chksum_desc_ctx {
+struct chksum_desc_ctx
+{
 	__u16 crc;
 };
 
@@ -55,16 +56,21 @@ static int chksum_init(struct shash_desc *desc)
 }
 
 static int chksum_update(struct shash_desc *desc, const u8 *data,
-			 unsigned int length)
+						 unsigned int length)
 {
 	struct chksum_desc_ctx *ctx = shash_desc_ctx(desc);
 
-	if (irq_fpu_usable()) {
+	if (irq_fpu_usable())
+	{
 		kernel_fpu_begin();
 		ctx->crc = crc_t10dif_pcl(ctx->crc, data, length);
 		kernel_fpu_end();
-	} else
+	}
+	else
+	{
 		ctx->crc = crc_t10dif_generic(ctx->crc, data, length);
+	}
+
 	return 0;
 }
 
@@ -77,19 +83,24 @@ static int chksum_final(struct shash_desc *desc, u8 *out)
 }
 
 static int __chksum_finup(__u16 *crcp, const u8 *data, unsigned int len,
-			u8 *out)
+						  u8 *out)
 {
-	if (irq_fpu_usable()) {
+	if (irq_fpu_usable())
+	{
 		kernel_fpu_begin();
 		*(__u16 *)out = crc_t10dif_pcl(*crcp, data, len);
 		kernel_fpu_end();
-	} else
+	}
+	else
+	{
 		*(__u16 *)out = crc_t10dif_generic(*crcp, data, len);
+	}
+
 	return 0;
 }
 
 static int chksum_finup(struct shash_desc *desc, const u8 *data,
-			unsigned int len, u8 *out)
+						unsigned int len, u8 *out)
 {
 	struct chksum_desc_ctx *ctx = shash_desc_ctx(desc);
 
@@ -97,14 +108,15 @@ static int chksum_finup(struct shash_desc *desc, const u8 *data,
 }
 
 static int chksum_digest(struct shash_desc *desc, const u8 *data,
-			 unsigned int length, u8 *out)
+						 unsigned int length, u8 *out)
 {
 	struct chksum_desc_ctx *ctx = shash_desc_ctx(desc);
 
 	return __chksum_finup(&ctx->crc, data, length, out);
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize		=	CRC_T10DIF_DIGEST_SIZE,
 	.init		=	chksum_init,
 	.update		=	chksum_update,
@@ -121,7 +133,8 @@ static struct shash_alg alg = {
 	}
 };
 
-static const struct x86_cpu_id crct10dif_cpu_id[] = {
+static const struct x86_cpu_id crct10dif_cpu_id[] =
+{
 	X86_FEATURE_MATCH(X86_FEATURE_PCLMULQDQ),
 	{}
 };
@@ -130,7 +143,9 @@ MODULE_DEVICE_TABLE(x86cpu, crct10dif_cpu_id);
 static int __init crct10dif_intel_mod_init(void)
 {
 	if (!x86_match_cpu(crct10dif_cpu_id))
+	{
 		return -ENODEV;
+	}
 
 	return crypto_register_shash(&alg);
 }

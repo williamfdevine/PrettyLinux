@@ -52,7 +52,8 @@
 
 #include "common.h"
 
-static struct map_desc at2440evb_iodesc[] __initdata = {
+static struct map_desc at2440evb_iodesc[] __initdata =
+{
 	/* Nothing here */
 };
 
@@ -60,7 +61,8 @@ static struct map_desc at2440evb_iodesc[] __initdata = {
 #define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE)
 #define UFCON (S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE)
 
-static struct s3c2410_uartcfg at2440evb_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg at2440evb_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -81,7 +83,8 @@ static struct s3c2410_uartcfg at2440evb_uartcfgs[] __initdata = {
 
 /* NAND Flash on AT2440EVB board */
 
-static struct mtd_partition __initdata at2440evb_default_nand_part[] = {
+static struct mtd_partition __initdata at2440evb_default_nand_part[] =
+{
 	[0] = {
 		.name	= "Boot Agent",
 		.size	= SZ_256K,
@@ -99,7 +102,8 @@ static struct mtd_partition __initdata at2440evb_default_nand_part[] = {
 	},
 };
 
-static struct s3c2410_nand_set __initdata at2440evb_nand_sets[] = {
+static struct s3c2410_nand_set __initdata at2440evb_nand_sets[] =
+{
 	[0] = {
 		.name		= "nand",
 		.nr_chips	= 1,
@@ -108,7 +112,8 @@ static struct s3c2410_nand_set __initdata at2440evb_nand_sets[] = {
 	},
 };
 
-static struct s3c2410_platform_nand __initdata at2440evb_nand_info = {
+static struct s3c2410_platform_nand __initdata at2440evb_nand_info =
+{
 	.tacls		= 25,
 	.twrph0		= 55,
 	.twrph1		= 40,
@@ -118,18 +123,21 @@ static struct s3c2410_platform_nand __initdata at2440evb_nand_info = {
 
 /* DM9000AEP 10/100 ethernet controller */
 
-static struct resource at2440evb_dm9k_resource[] = {
+static struct resource at2440evb_dm9k_resource[] =
+{
 	[0] = DEFINE_RES_MEM(S3C2410_CS3, 4),
 	[1] = DEFINE_RES_MEM(S3C2410_CS3 + 4, 4),
 	[2] = DEFINE_RES_NAMED(IRQ_EINT7, 1, NULL, IORESOURCE_IRQ \
-					| IORESOURCE_IRQ_HIGHEDGE),
+	| IORESOURCE_IRQ_HIGHEDGE),
 };
 
-static struct dm9000_plat_data at2440evb_dm9k_pdata = {
+static struct dm9000_plat_data at2440evb_dm9k_pdata =
+{
 	.flags		= (DM9000_PLATF_16BITONLY | DM9000_PLATF_NO_EEPROM),
 };
 
-static struct platform_device at2440evb_device_eth = {
+static struct platform_device at2440evb_device_eth =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(at2440evb_dm9k_resource),
@@ -139,19 +147,21 @@ static struct platform_device at2440evb_device_eth = {
 	},
 };
 
-static struct s3c24xx_mci_pdata at2440evb_mci_pdata __initdata = {
+static struct s3c24xx_mci_pdata at2440evb_mci_pdata __initdata =
+{
 	.gpio_detect	= S3C2410_GPG(10),
 };
 
 /* 7" LCD panel */
 
-static struct s3c2410fb_display at2440evb_lcd_cfg __initdata = {
+static struct s3c2410fb_display at2440evb_lcd_cfg __initdata =
+{
 
 	.lcdcon5	= S3C2410_LCDCON5_FRM565 |
-			  S3C2410_LCDCON5_INVVLINE |
-			  S3C2410_LCDCON5_INVVFRAME |
-			  S3C2410_LCDCON5_PWREN |
-			  S3C2410_LCDCON5_HWSWP,
+	S3C2410_LCDCON5_INVVLINE |
+	S3C2410_LCDCON5_INVVFRAME |
+	S3C2410_LCDCON5_PWREN |
+	S3C2410_LCDCON5_HWSWP,
 
 	.type		= S3C2410_LCDCON1_TFT,
 
@@ -170,13 +180,15 @@ static struct s3c2410fb_display at2440evb_lcd_cfg __initdata = {
 	.vsync_len	= 2,
 };
 
-static struct s3c2410fb_mach_info at2440evb_fb_info __initdata = {
+static struct s3c2410fb_mach_info at2440evb_fb_info __initdata =
+{
 	.displays	= &at2440evb_lcd_cfg,
 	.num_displays	= 1,
 	.default_display = 0,
 };
 
-static struct platform_device *at2440evb_devices[] __initdata = {
+static struct platform_device *at2440evb_devices[] __initdata =
+{
 	&s3c_device_ohci,
 	&s3c_device_wdt,
 	&s3c_device_adc,
@@ -213,9 +225,9 @@ static void __init at2440evb_init(void)
 
 
 MACHINE_START(AT2440EVB, "AT2440EVB")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= at2440evb_map_io,
-	.init_machine	= at2440evb_init,
-	.init_irq	= s3c2440_init_irq,
-	.init_time	= at2440evb_init_time,
-MACHINE_END
+		.init_machine	= at2440evb_init,
+		   .init_irq	= s3c2440_init_irq,
+			  .init_time	= at2440evb_init_time,
+				MACHINE_END

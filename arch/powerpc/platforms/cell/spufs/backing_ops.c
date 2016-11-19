@@ -54,19 +54,23 @@ static void gen_spu_event(struct spu_context *ctx, u32 event)
 	ch0_data = ctx->csa.spu_chnldata_RW[0];
 	ch1_data = ctx->csa.spu_chnldata_RW[1];
 	ctx->csa.spu_chnldata_RW[0] |= event;
-	if ((ch0_cnt == 0) && !(ch0_data & event) && (ch1_data & event)) {
+
+	if ((ch0_cnt == 0) && !(ch0_data & event) && (ch1_data & event))
+	{
 		ctx->csa.spu_chnlcnt_RW[0] = 1;
 	}
 }
 
-static int spu_backing_mbox_read(struct spu_context *ctx, u32 * data)
+static int spu_backing_mbox_read(struct spu_context *ctx, u32 *data)
 {
 	u32 mbox_stat;
 	int ret = 0;
 
 	spin_lock(&ctx->csa.register_lock);
 	mbox_stat = ctx->csa.prob.mb_stat_R;
-	if (mbox_stat & 0x0000ff) {
+
+	if (mbox_stat & 0x0000ff)
+	{
 		/* Read the first available word.
 		 * Implementation note: the depth
 		 * of pu_mb_R is currently 1.
@@ -77,6 +81,7 @@ static int spu_backing_mbox_read(struct spu_context *ctx, u32 * data)
 		gen_spu_event(ctx, MFC_PU_MAILBOX_AVAILABLE_EVENT);
 		ret = 4;
 	}
+
 	spin_unlock(&ctx->csa.register_lock);
 	return ret;
 }
@@ -87,7 +92,7 @@ static u32 spu_backing_mbox_stat_read(struct spu_context *ctx)
 }
 
 static unsigned int spu_backing_mbox_stat_poll(struct spu_context *ctx,
-					  unsigned int events)
+		unsigned int events)
 {
 	int ret;
 	u32 stat;
@@ -101,36 +106,48 @@ static unsigned int spu_backing_mbox_stat_poll(struct spu_context *ctx,
 	   but first mark any pending interrupts as done so
 	   we don't get woken up unnecessarily */
 
-	if (events & (POLLIN | POLLRDNORM)) {
+	if (events & (POLLIN | POLLRDNORM))
+	{
 		if (stat & 0xff0000)
+		{
 			ret |= POLLIN | POLLRDNORM;
-		else {
+		}
+		else
+		{
 			ctx->csa.priv1.int_stat_class2_RW &=
 				~CLASS2_MAILBOX_INTR;
 			ctx->csa.priv1.int_mask_class2_RW |=
 				CLASS2_ENABLE_MAILBOX_INTR;
 		}
 	}
-	if (events & (POLLOUT | POLLWRNORM)) {
+
+	if (events & (POLLOUT | POLLWRNORM))
+	{
 		if (stat & 0x00ff00)
+		{
 			ret = POLLOUT | POLLWRNORM;
-		else {
+		}
+		else
+		{
 			ctx->csa.priv1.int_stat_class2_RW &=
 				~CLASS2_MAILBOX_THRESHOLD_INTR;
 			ctx->csa.priv1.int_mask_class2_RW |=
 				CLASS2_ENABLE_MAILBOX_THRESHOLD_INTR;
 		}
 	}
+
 	spin_unlock_irq(&ctx->csa.register_lock);
 	return ret;
 }
 
-static int spu_backing_ibox_read(struct spu_context *ctx, u32 * data)
+static int spu_backing_ibox_read(struct spu_context *ctx, u32 *data)
 {
 	int ret;
 
 	spin_lock(&ctx->csa.register_lock);
-	if (ctx->csa.prob.mb_stat_R & 0xff0000) {
+
+	if (ctx->csa.prob.mb_stat_R & 0xff0000)
+	{
 		/* Read the first available word.
 		 * Implementation note: the depth
 		 * of puint_mb_R is currently 1.
@@ -140,11 +157,14 @@ static int spu_backing_ibox_read(struct spu_context *ctx, u32 * data)
 		ctx->csa.spu_chnlcnt_RW[30] = 1;
 		gen_spu_event(ctx, MFC_PU_INT_MAILBOX_AVAILABLE_EVENT);
 		ret = 4;
-	} else {
+	}
+	else
+	{
 		/* make sure we get woken up by the interrupt */
 		ctx->csa.priv1.int_mask_class2_RW |= CLASS2_ENABLE_MAILBOX_INTR;
 		ret = 0;
 	}
+
 	spin_unlock(&ctx->csa.register_lock);
 	return ret;
 }
@@ -154,7 +174,9 @@ static int spu_backing_wbox_write(struct spu_context *ctx, u32 data)
 	int ret;
 
 	spin_lock(&ctx->csa.register_lock);
-	if ((ctx->csa.prob.mb_stat_R) & 0x00ff00) {
+
+	if ((ctx->csa.prob.mb_stat_R) & 0x00ff00)
+	{
 		int slot = ctx->csa.spu_chnlcnt_RW[29];
 		int avail = (ctx->csa.prob.mb_stat_R & 0x00ff00) >> 8;
 
@@ -169,13 +191,16 @@ static int spu_backing_wbox_write(struct spu_context *ctx, u32 data)
 		ctx->csa.prob.mb_stat_R |= (((4 - slot) & 0xff) << 8);
 		gen_spu_event(ctx, MFC_SPU_MAILBOX_WRITTEN_EVENT);
 		ret = 4;
-	} else {
+	}
+	else
+	{
 		/* make sure we get woken up by the interrupt when space
 		   becomes available */
 		ctx->csa.priv1.int_mask_class2_RW |=
 			CLASS2_ENABLE_MAILBOX_THRESHOLD_INTR;
 		ret = 0;
 	}
+
 	spin_unlock(&ctx->csa.register_lock);
 	return ret;
 }
@@ -188,10 +213,16 @@ static u32 spu_backing_signal1_read(struct spu_context *ctx)
 static void spu_backing_signal1_write(struct spu_context *ctx, u32 data)
 {
 	spin_lock(&ctx->csa.register_lock);
+
 	if (ctx->csa.priv2.spu_cfg_RW & 0x1)
+	{
 		ctx->csa.spu_chnldata_RW[3] |= data;
+	}
 	else
+	{
 		ctx->csa.spu_chnldata_RW[3] = data;
+	}
+
 	ctx->csa.spu_chnlcnt_RW[3] = 1;
 	gen_spu_event(ctx, MFC_SIGNAL_1_EVENT);
 	spin_unlock(&ctx->csa.register_lock);
@@ -205,10 +236,16 @@ static u32 spu_backing_signal2_read(struct spu_context *ctx)
 static void spu_backing_signal2_write(struct spu_context *ctx, u32 data)
 {
 	spin_lock(&ctx->csa.register_lock);
+
 	if (ctx->csa.priv2.spu_cfg_RW & 0x2)
+	{
 		ctx->csa.spu_chnldata_RW[4] |= data;
+	}
 	else
+	{
 		ctx->csa.spu_chnldata_RW[4] = data;
+	}
+
 	ctx->csa.spu_chnlcnt_RW[4] = 1;
 	gen_spu_event(ctx, MFC_SIGNAL_2_EVENT);
 	spin_unlock(&ctx->csa.register_lock);
@@ -220,10 +257,16 @@ static void spu_backing_signal1_type_set(struct spu_context *ctx, u64 val)
 
 	spin_lock(&ctx->csa.register_lock);
 	tmp = ctx->csa.priv2.spu_cfg_RW;
+
 	if (val)
+	{
 		tmp |= 1;
+	}
 	else
+	{
 		tmp &= ~1;
+	}
+
 	ctx->csa.priv2.spu_cfg_RW = tmp;
 	spin_unlock(&ctx->csa.register_lock);
 }
@@ -239,10 +282,16 @@ static void spu_backing_signal2_type_set(struct spu_context *ctx, u64 val)
 
 	spin_lock(&ctx->csa.register_lock);
 	tmp = ctx->csa.priv2.spu_cfg_RW;
+
 	if (val)
+	{
 		tmp |= 2;
+	}
 	else
+	{
 		tmp &= ~2;
+	}
+
 	ctx->csa.priv2.spu_cfg_RW = tmp;
 	spin_unlock(&ctx->csa.register_lock);
 }
@@ -286,7 +335,9 @@ static void spu_backing_runcntl_write(struct spu_context *ctx, u32 val)
 {
 	spin_lock(&ctx->csa.register_lock);
 	ctx->csa.prob.spu_runcntl_RW = val;
-	if (val & SPU_RUNCNTL_RUNNABLE) {
+
+	if (val & SPU_RUNCNTL_RUNNABLE)
+	{
 		ctx->csa.prob.spu_status_R &=
 			~SPU_STATUS_STOPPED_BY_STOP &
 			~SPU_STATUS_STOPPED_BY_HALT &
@@ -294,9 +345,12 @@ static void spu_backing_runcntl_write(struct spu_context *ctx, u32 val)
 			~SPU_STATUS_INVALID_INSTR &
 			~SPU_STATUS_INVALID_CH;
 		ctx->csa.prob.spu_status_R |= SPU_STATUS_RUNNING;
-	} else {
+	}
+	else
+	{
 		ctx->csa.prob.spu_status_R &= ~SPU_STATUS_RUNNING;
 	}
+
 	spin_unlock(&ctx->csa.register_lock);
 }
 
@@ -327,16 +381,20 @@ static void spu_backing_master_stop(struct spu_context *ctx)
 	spin_unlock(&csa->register_lock);
 }
 
-static int spu_backing_set_mfc_query(struct spu_context * ctx, u32 mask,
-					u32 mode)
+static int spu_backing_set_mfc_query(struct spu_context *ctx, u32 mask,
+									 u32 mode)
 {
 	struct spu_problem_collapsed *prob = &ctx->csa.prob;
 	int ret;
 
 	spin_lock(&ctx->csa.register_lock);
 	ret = -EAGAIN;
+
 	if (prob->dma_querytype_RW)
+	{
 		goto out;
+	}
+
 	ret = 0;
 	/* FIXME: what are the side-effects of this? */
 	prob->dma_querymask_RW = mask;
@@ -353,7 +411,7 @@ out:
 	return ret;
 }
 
-static u32 spu_backing_read_mfc_tagstatus(struct spu_context * ctx)
+static u32 spu_backing_read_mfc_tagstatus(struct spu_context *ctx)
 {
 	return ctx->csa.prob.dma_tagstatus_R;
 }
@@ -364,7 +422,7 @@ static u32 spu_backing_get_mfc_free_elements(struct spu_context *ctx)
 }
 
 static int spu_backing_send_mfc_command(struct spu_context *ctx,
-					struct mfc_dma_command *cmd)
+										struct mfc_dma_command *cmd)
 {
 	int ret;
 
@@ -381,7 +439,8 @@ static void spu_backing_restart_dma(struct spu_context *ctx)
 	ctx->csa.priv2.mfc_control_RW |= MFC_CNTL_RESTART_DMA_COMMAND;
 }
 
-struct spu_context_ops spu_backing_ops = {
+struct spu_context_ops spu_backing_ops =
+{
 	.mbox_read = spu_backing_mbox_read,
 	.mbox_stat_read = spu_backing_mbox_stat_read,
 	.mbox_stat_poll = spu_backing_mbox_stat_poll,

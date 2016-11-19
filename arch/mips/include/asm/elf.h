@@ -52,10 +52,10 @@
 #define DT_MIPS_ICHECKSUM	0x70000003
 #define DT_MIPS_IVERSION	0x70000004
 #define DT_MIPS_FLAGS		0x70000005
-	#define RHF_NONE	0x00000000
-	#define RHF_HARDWAY	0x00000001
-	#define RHF_NOTPOT	0x00000002
-	#define RHF_SGI_ONLY	0x00000010
+#define RHF_NONE	0x00000000
+#define RHF_HARDWAY	0x00000001
+#define RHF_NOTPOT	0x00000002
+#define RHF_SGI_ONLY	0x00000010
 #define DT_MIPS_BASE_ADDRESS	0x70000006
 #define DT_MIPS_CONFLICT	0x70000008
 #define DT_MIPS_LIBLIST		0x70000009
@@ -184,7 +184,8 @@
 #define MIPS_ABI_FP_64		6	/* -mips32r2 -mfp64 */
 #define MIPS_ABI_FP_64A		7	/* -mips32r2 -mfp64 -mno-odd-spreg */
 
-struct mips_elf_abiflags_v0 {
+struct mips_elf_abiflags_v0
+{
 	uint16_t version;	/* Version of flags structure */
 	uint8_t isa_level;	/* The level of the ISA: 1-5, 32, 64 */
 	uint8_t isa_rev;	/* The revision of ISA: 0 for MIPS V and below,
@@ -200,51 +201,51 @@ struct mips_elf_abiflags_v0 {
 };
 
 #ifndef ELF_ARCH
-/* ELF register definitions */
-#define ELF_NGREG	45
-#define ELF_NFPREG	33
+	/* ELF register definitions */
+	#define ELF_NGREG	45
+	#define ELF_NFPREG	33
 
-typedef unsigned long elf_greg_t;
-typedef elf_greg_t elf_gregset_t[ELF_NGREG];
+	typedef unsigned long elf_greg_t;
+	typedef elf_greg_t elf_gregset_t[ELF_NGREG];
 
-typedef double elf_fpreg_t;
-typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
+	typedef double elf_fpreg_t;
+	typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 
-#ifdef CONFIG_32BIT
-/*
- * This is used to ensure we don't load something for the wrong architecture.
- */
-#define elf_check_arch elfo32_check_arch
+	#ifdef CONFIG_32BIT
+		/*
+		* This is used to ensure we don't load something for the wrong architecture.
+		*/
+		#define elf_check_arch elfo32_check_arch
 
-/*
- * These are used to set parameters in the core dumps.
- */
-#define ELF_CLASS	ELFCLASS32
+		/*
+		* These are used to set parameters in the core dumps.
+		*/
+		#define ELF_CLASS	ELFCLASS32
 
-#endif /* CONFIG_32BIT */
+	#endif /* CONFIG_32BIT */
 
-#ifdef CONFIG_64BIT
-/*
- * This is used to ensure we don't load something for the wrong architecture.
- */
-#define elf_check_arch elfn64_check_arch
+	#ifdef CONFIG_64BIT
+		/*
+		* This is used to ensure we don't load something for the wrong architecture.
+		*/
+		#define elf_check_arch elfn64_check_arch
 
-/*
- * These are used to set parameters in the core dumps.
- */
-#define ELF_CLASS	ELFCLASS64
+		/*
+		* These are used to set parameters in the core dumps.
+		*/
+		#define ELF_CLASS	ELFCLASS64
 
-#endif /* CONFIG_64BIT */
+	#endif /* CONFIG_64BIT */
 
-/*
- * These are used to set parameters in the core dumps.
- */
-#ifdef __MIPSEB__
-#define ELF_DATA	ELFDATA2MSB
-#elif defined(__MIPSEL__)
-#define ELF_DATA	ELFDATA2LSB
-#endif
-#define ELF_ARCH	EM_MIPS
+	/*
+	* These are used to set parameters in the core dumps.
+	*/
+	#ifdef __MIPSEB__
+		#define ELF_DATA	ELFDATA2MSB
+	#elif defined(__MIPSEL__)
+		#define ELF_DATA	ELFDATA2LSB
+	#endif
+	#define ELF_ARCH	EM_MIPS
 
 #endif /* !defined(ELF_ARCH) */
 
@@ -255,9 +256,9 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
  * in its ELF header flags.
  */
 #ifdef CONFIG_MIPS_O32_FP64_SUPPORT
-# define __MIPS_O32_FP64_MUST_BE_ZERO	0
+	#define __MIPS_O32_FP64_MUST_BE_ZERO	0
 #else
-# define __MIPS_O32_FP64_MUST_BE_ZERO	EF_MIPS_FP64
+	#define __MIPS_O32_FP64_MUST_BE_ZERO	EF_MIPS_FP64
 #endif
 
 #define mips_elf_check_machine(x) ((x)->e_machine == EM_MIPS)
@@ -269,59 +270,59 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
  * Return non-zero if HDR identifies an o32 ELF binary.
  */
 #define elfo32_check_arch(hdr)						\
-({									\
-	int __res = 1;							\
-	struct elfhdr *__h = (hdr);					\
-									\
-	if (!mips_elf_check_machine(__h))				\
-		__res = 0;						\
-	if (__h->e_ident[EI_CLASS] != ELFCLASS32)			\
-		__res = 0;						\
-	if ((__h->e_flags & EF_MIPS_ABI2) != 0)				\
-		__res = 0;						\
-	if (((__h->e_flags & EF_MIPS_ABI) != 0) &&			\
-	    ((__h->e_flags & EF_MIPS_ABI) != EF_MIPS_ABI_O32))		\
-		__res = 0;						\
-	if (__h->e_flags & __MIPS_O32_FP64_MUST_BE_ZERO)		\
-		__res = 0;						\
-									\
-	__res;								\
-})
+	({									\
+		int __res = 1;							\
+		struct elfhdr *__h = (hdr);					\
+		\
+		if (!mips_elf_check_machine(__h))				\
+			__res = 0;						\
+		if (__h->e_ident[EI_CLASS] != ELFCLASS32)			\
+			__res = 0;						\
+		if ((__h->e_flags & EF_MIPS_ABI2) != 0)				\
+			__res = 0;						\
+		if (((__h->e_flags & EF_MIPS_ABI) != 0) &&			\
+			((__h->e_flags & EF_MIPS_ABI) != EF_MIPS_ABI_O32))		\
+			__res = 0;						\
+		if (__h->e_flags & __MIPS_O32_FP64_MUST_BE_ZERO)		\
+			__res = 0;						\
+		\
+		__res;								\
+	})
 
 /*
  * Return non-zero if HDR identifies an n64 ELF binary.
  */
 #define elfn64_check_arch(hdr)						\
-({									\
-	int __res = 1;							\
-	struct elfhdr *__h = (hdr);					\
-									\
-	if (!mips_elf_check_machine(__h))				\
-		__res = 0;						\
-	if (__h->e_ident[EI_CLASS] != ELFCLASS64)			\
-		__res = 0;						\
-									\
-	__res;								\
-})
+	({									\
+		int __res = 1;							\
+		struct elfhdr *__h = (hdr);					\
+		\
+		if (!mips_elf_check_machine(__h))				\
+			__res = 0;						\
+		if (__h->e_ident[EI_CLASS] != ELFCLASS64)			\
+			__res = 0;						\
+		\
+		__res;								\
+	})
 
 /*
  * Return non-zero if HDR identifies an n32 ELF binary.
  */
 #define elfn32_check_arch(hdr)						\
-({									\
-	int __res = 1;							\
-	struct elfhdr *__h = (hdr);					\
-									\
-	if (!mips_elf_check_machine(__h))				\
-		__res = 0;						\
-	if (__h->e_ident[EI_CLASS] != ELFCLASS32)			\
-		__res = 0;						\
-	if (((__h->e_flags & EF_MIPS_ABI2) == 0) ||			\
-	    ((__h->e_flags & EF_MIPS_ABI) != 0))			\
-		__res = 0;						\
-									\
-	__res;								\
-})
+	({									\
+		int __res = 1;							\
+		struct elfhdr *__h = (hdr);					\
+		\
+		if (!mips_elf_check_machine(__h))				\
+			__res = 0;						\
+		if (__h->e_ident[EI_CLASS] != ELFCLASS32)			\
+			__res = 0;						\
+		if (((__h->e_flags & EF_MIPS_ABI2) == 0) ||			\
+			((__h->e_flags & EF_MIPS_ABI) != 0))			\
+			__res = 0;						\
+		\
+		__res;								\
+	})
 
 struct mips_abi;
 
@@ -332,18 +333,18 @@ extern struct mips_abi mips_abi_n32;
 #ifdef CONFIG_32BIT
 
 #define SET_PERSONALITY2(ex, state)					\
-do {									\
-	clear_thread_flag(TIF_HYBRID_FPREGS);				\
-	set_thread_flag(TIF_32BIT_FPREGS);				\
-									\
-	current->thread.abi = &mips_abi;				\
-									\
-	mips_set_personality_fp(state);					\
-	mips_set_personality_nan(state);				\
-									\
-	if (personality(current->personality) != PER_LINUX)		\
-		set_personality(PER_LINUX);				\
-} while (0)
+	do {									\
+		clear_thread_flag(TIF_HYBRID_FPREGS);				\
+		set_thread_flag(TIF_32BIT_FPREGS);				\
+		\
+		current->thread.abi = &mips_abi;				\
+		\
+		mips_set_personality_fp(state);					\
+		mips_set_personality_nan(state);				\
+		\
+		if (personality(current->personality) != PER_LINUX)		\
+			set_personality(PER_LINUX);				\
+	} while (0)
 
 #endif /* CONFIG_32BIT */
 
@@ -353,7 +354,7 @@ do {									\
 #define __SET_PERSONALITY32_N32()					\
 	do {								\
 		set_thread_flag(TIF_32BIT_ADDR);			\
-									\
+		\
 		current->thread.abi = &mips_abi_n32;			\
 	} while (0)
 #else
@@ -368,9 +369,9 @@ do {									\
 		set_thread_flag(TIF_32BIT_ADDR);			\
 		clear_thread_flag(TIF_HYBRID_FPREGS);			\
 		set_thread_flag(TIF_32BIT_FPREGS);			\
-									\
+		\
 		current->thread.abi = &mips_abi_32;			\
-									\
+		\
 		mips_set_personality_fp(state);				\
 	} while (0)
 #else
@@ -380,37 +381,37 @@ do {									\
 
 #ifdef CONFIG_MIPS32_COMPAT
 #define __SET_PERSONALITY32(ex, state)					\
-do {									\
-	if ((((ex).e_flags & EF_MIPS_ABI2) != 0) &&			\
-	     ((ex).e_flags & EF_MIPS_ABI) == 0)				\
-		__SET_PERSONALITY32_N32();				\
-	else								\
-		__SET_PERSONALITY32_O32(ex, state);			\
-} while (0)
+	do {									\
+		if ((((ex).e_flags & EF_MIPS_ABI2) != 0) &&			\
+			((ex).e_flags & EF_MIPS_ABI) == 0)				\
+			__SET_PERSONALITY32_N32();				\
+		else								\
+			__SET_PERSONALITY32_O32(ex, state);			\
+	} while (0)
 #else
 #define __SET_PERSONALITY32(ex, state) do { } while (0)
 #endif
 
 #define SET_PERSONALITY2(ex, state)					\
-do {									\
-	unsigned int p;							\
-									\
-	clear_thread_flag(TIF_32BIT_REGS);				\
-	clear_thread_flag(TIF_32BIT_FPREGS);				\
-	clear_thread_flag(TIF_HYBRID_FPREGS);				\
-	clear_thread_flag(TIF_32BIT_ADDR);				\
-									\
-	if ((ex).e_ident[EI_CLASS] == ELFCLASS32)			\
-		__SET_PERSONALITY32(ex, state);				\
-	else								\
-		current->thread.abi = &mips_abi;			\
-									\
-	mips_set_personality_nan(state);				\
-									\
-	p = personality(current->personality);				\
-	if (p != PER_LINUX32 && p != PER_LINUX)				\
-		set_personality(PER_LINUX);				\
-} while (0)
+	do {									\
+		unsigned int p;							\
+		\
+		clear_thread_flag(TIF_32BIT_REGS);				\
+		clear_thread_flag(TIF_32BIT_FPREGS);				\
+		clear_thread_flag(TIF_HYBRID_FPREGS);				\
+		clear_thread_flag(TIF_32BIT_ADDR);				\
+		\
+		if ((ex).e_ident[EI_CLASS] == ELFCLASS32)			\
+			__SET_PERSONALITY32(ex, state);				\
+		else								\
+			current->thread.abi = &mips_abi;			\
+		\
+		mips_set_personality_nan(state);				\
+		\
+		p = personality(current->personality);				\
+		if (p != PER_LINUX32 && p != PER_LINUX)				\
+			set_personality(PER_LINUX);				\
+	} while (0)
 
 #endif /* CONFIG_64BIT */
 
@@ -439,15 +440,15 @@ extern const char *__elf_platform;
  * on the MIPS.
  */
 #define ELF_PLAT_INIT(_r, load_addr)	do { \
-	_r->regs[1] = _r->regs[2] = _r->regs[3] = _r->regs[4] = 0;	\
-	_r->regs[5] = _r->regs[6] = _r->regs[7] = _r->regs[8] = 0;	\
-	_r->regs[9] = _r->regs[10] = _r->regs[11] = _r->regs[12] = 0;	\
-	_r->regs[13] = _r->regs[14] = _r->regs[15] = _r->regs[16] = 0;	\
-	_r->regs[17] = _r->regs[18] = _r->regs[19] = _r->regs[20] = 0;	\
-	_r->regs[21] = _r->regs[22] = _r->regs[23] = _r->regs[24] = 0;	\
-	_r->regs[25] = _r->regs[26] = _r->regs[27] = _r->regs[28] = 0;	\
-	_r->regs[30] = _r->regs[31] = 0;				\
-} while (0)
+		_r->regs[1] = _r->regs[2] = _r->regs[3] = _r->regs[4] = 0;	\
+		_r->regs[5] = _r->regs[6] = _r->regs[7] = _r->regs[8] = 0;	\
+		_r->regs[9] = _r->regs[10] = _r->regs[11] = _r->regs[12] = 0;	\
+		_r->regs[13] = _r->regs[14] = _r->regs[15] = _r->regs[16] = 0;	\
+		_r->regs[17] = _r->regs[18] = _r->regs[19] = _r->regs[20] = 0;	\
+		_r->regs[21] = _r->regs[22] = _r->regs[23] = _r->regs[24] = 0;	\
+		_r->regs[25] = _r->regs[26] = _r->regs[27] = _r->regs[28] = 0;	\
+		_r->regs[30] = _r->regs[31] = 0;				\
+	} while (0)
 
 /* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
    use of this is to invoke "./ld.so someprog" to test out a new version of
@@ -455,22 +456,23 @@ extern const char *__elf_platform;
    that it will "exec", and that there is sufficient room for the brk.	*/
 
 #ifndef ELF_ET_DYN_BASE
-#define ELF_ET_DYN_BASE		(TASK_SIZE / 3 * 2)
+	#define ELF_ET_DYN_BASE		(TASK_SIZE / 3 * 2)
 #endif
 
 /* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
 #define ARCH_DLINFO							\
-do {									\
-	NEW_AUX_ENT(AT_SYSINFO_EHDR,					\
-		    (unsigned long)current->mm->context.vdso);		\
-} while (0)
+	do {									\
+		NEW_AUX_ENT(AT_SYSINFO_EHDR,					\
+					(unsigned long)current->mm->context.vdso);		\
+	} while (0)
 
 #define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
 struct linux_binprm;
 extern int arch_setup_additional_pages(struct linux_binprm *bprm,
-				       int uses_interp);
+									   int uses_interp);
 
-struct arch_elf_state {
+struct arch_elf_state
+{
 	int nan_2008;
 	int fp_abi;
 	int interp_fp_abi;
@@ -480,21 +482,21 @@ struct arch_elf_state {
 #define MIPS_ABI_FP_UNKNOWN	(-1)	/* Unknown FP ABI (kernel internal) */
 
 #define INIT_ARCH_ELF_STATE {			\
-	.nan_2008 = -1,				\
-	.fp_abi = MIPS_ABI_FP_UNKNOWN,		\
-	.interp_fp_abi = MIPS_ABI_FP_UNKNOWN,	\
-	.overall_fp_mode = -1,			\
-}
+		.nan_2008 = -1,				\
+					.fp_abi = MIPS_ABI_FP_UNKNOWN,		\
+							  .interp_fp_abi = MIPS_ABI_FP_UNKNOWN,	\
+											   .overall_fp_mode = -1,			\
+	}
 
 /* Whether to accept legacy-NaN and 2008-NaN user binaries.  */
 extern bool mips_use_nan_legacy;
 extern bool mips_use_nan_2008;
 
 extern int arch_elf_pt_proc(void *ehdr, void *phdr, struct file *elf,
-			    bool is_interp, struct arch_elf_state *state);
+							bool is_interp, struct arch_elf_state *state);
 
 extern int arch_check_elf(void *ehdr, bool has_interpreter, void *interp_ehdr,
-			  struct arch_elf_state *state);
+						  struct arch_elf_state *state);
 
 extern void mips_set_personality_nan(struct arch_elf_state *state);
 extern void mips_set_personality_fp(struct arch_elf_state *state);

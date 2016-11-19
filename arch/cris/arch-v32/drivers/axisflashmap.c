@@ -36,11 +36,11 @@
 #define PAGESIZE (512)
 
 #if CONFIG_ETRAX_FLASH_BUSWIDTH==1
-#define flash_data __u8
+	#define flash_data __u8
 #elif CONFIG_ETRAX_FLASH_BUSWIDTH==2
-#define flash_data __u16
+	#define flash_data __u16
 #elif CONFIG_ETRAX_FLASH_BUSWIDTH==4
-#define flash_data __u32
+	#define flash_data __u32
 #endif
 
 /* From head.S */
@@ -48,12 +48,13 @@ extern unsigned long romfs_in_flash; /* 1 when romfs_start, _length in flash */
 extern unsigned long romfs_start, romfs_length;
 extern unsigned long nand_boot; /* 1 when booted from nand flash */
 
-struct partition_name {
+struct partition_name
+{
 	char name[6];
 };
 
 /* The master mtd for the entire flash. */
-struct mtd_info* axisflash_mtd = NULL;
+struct mtd_info *axisflash_mtd = NULL;
 
 /* Map driver functions. */
 
@@ -65,7 +66,7 @@ static map_word flash_read(struct map_info *map, unsigned long ofs)
 }
 
 static void flash_copy_from(struct map_info *map, void *to,
-			    unsigned long from, ssize_t len)
+							unsigned long from, ssize_t len)
 {
 	memcpy(to, (void *)(map->map_priv_1 + from), len);
 }
@@ -90,7 +91,8 @@ static void flash_write(struct map_info *map, map_word d, unsigned long adr)
  * MEM_CSE0_START but must rely on that FLASH_UNCACHED_ADDR is the start
  * address of cse0.
  */
-static struct map_info map_cse0 = {
+static struct map_info map_cse0 =
+{
 	.name = "cse0",
 	.size = MEM_CSE0_SIZE,
 	.bankwidth = CONFIG_ETRAX_FLASH_BUSWIDTH,
@@ -106,7 +108,8 @@ static struct map_info map_cse0 = {
  * If there was a gap between cse0 and cse1, map_priv_1 would get the wrong
  * address, but there isn't.
  */
-static struct map_info map_cse1 = {
+static struct map_info map_cse1 =
+{
 	.name = "cse1",
 	.size = MEM_CSE1_SIZE,
 	.bankwidth = CONFIG_ETRAX_FLASH_BUSWIDTH,
@@ -118,21 +121,22 @@ static struct map_info map_cse1 = {
 
 #define MAX_PARTITIONS			7
 #ifdef CONFIG_ETRAX_NANDBOOT
-#define NUM_DEFAULT_PARTITIONS		4
-#define DEFAULT_ROOTFS_PARTITION_NO	2
-#define DEFAULT_MEDIA_SIZE              0x2000000 /* 32 megs */
+	#define NUM_DEFAULT_PARTITIONS		4
+	#define DEFAULT_ROOTFS_PARTITION_NO	2
+	#define DEFAULT_MEDIA_SIZE              0x2000000 /* 32 megs */
 #else
-#define NUM_DEFAULT_PARTITIONS		3
-#define DEFAULT_ROOTFS_PARTITION_NO	(-1)
-#define DEFAULT_MEDIA_SIZE              0x800000 /* 8 megs */
+	#define NUM_DEFAULT_PARTITIONS		3
+	#define DEFAULT_ROOTFS_PARTITION_NO	(-1)
+	#define DEFAULT_MEDIA_SIZE              0x800000 /* 8 megs */
 #endif
 
 #if (MAX_PARTITIONS < NUM_DEFAULT_PARTITIONS)
-#error MAX_PARTITIONS must be >= than NUM_DEFAULT_PARTITIONS
+	#error MAX_PARTITIONS must be >= than NUM_DEFAULT_PARTITIONS
 #endif
 
 /* Initialize the ones normally used. */
-static struct mtd_partition axis_partitions[MAX_PARTITIONS] = {
+static struct mtd_partition axis_partitions[MAX_PARTITIONS] =
+{
 	{
 		.name = "part0",
 		.size = CONFIG_ETRAX_PTABLE_SECTOR,
@@ -176,7 +180,8 @@ static struct mtd_partition axis_partitions[MAX_PARTITIONS] = {
  * likely the size of one flash block and "filesystem"-partition needs
  * to be >=5 blocks to be able to use JFFS.
  */
-static struct mtd_partition axis_default_partitions[NUM_DEFAULT_PARTITIONS] = {
+static struct mtd_partition axis_default_partitions[NUM_DEFAULT_PARTITIONS] =
+{
 	{
 		.name = "boot firmware",
 		.size = CONFIG_ETRAX_PTABLE_SECTOR,
@@ -206,7 +211,8 @@ static struct mtd_partition axis_default_partitions[NUM_DEFAULT_PARTITIONS] = {
 
 #ifdef CONFIG_ETRAX_AXISFLASHMAP_MTD0WHOLE
 /* Main flash device */
-static struct mtd_partition main_partition = {
+static struct mtd_partition main_partition =
+{
 	.name = "main",
 	.size = 0,
 	.offset = 0
@@ -214,7 +220,8 @@ static struct mtd_partition main_partition = {
 #endif
 
 /* Auxiliary partition if we find another flash */
-static struct mtd_partition aux_partition = {
+static struct mtd_partition aux_partition =
+{
 	.name = "aux",
 	.size = 0,
 	.offset = 0
@@ -229,15 +236,19 @@ static struct mtd_info *probe_cs(struct map_info *map_cs)
 	struct mtd_info *mtd_cs = NULL;
 
 	printk(KERN_INFO
-	       "%s: Probing a 0x%08lx bytes large window at 0x%08lx.\n",
-	       map_cs->name, map_cs->size, map_cs->map_priv_1);
+		   "%s: Probing a 0x%08lx bytes large window at 0x%08lx.\n",
+		   map_cs->name, map_cs->size, map_cs->map_priv_1);
 
 #ifdef CONFIG_MTD_CFI
 	mtd_cs = do_map_probe("cfi_probe", map_cs);
 #endif
 #ifdef CONFIG_MTD_JEDECPROBE
+
 	if (!mtd_cs)
+	{
 		mtd_cs = do_map_probe("jedec_probe", map_cs);
+	}
+
 #endif
 
 	return mtd_cs;
@@ -253,7 +264,7 @@ static struct mtd_info *probe_cs(struct map_info *map_cs)
  * to do that anyway and you can put totally different chips on cse0 and cse1
  * so it isn't really much of a restriction.
  */
-extern struct mtd_info* __init crisv32_nand_flash_probe (void);
+extern struct mtd_info *__init crisv32_nand_flash_probe (void);
 static struct mtd_info *flash_probe(void)
 {
 	struct mtd_info *mtd_cse0;
@@ -263,16 +274,23 @@ static struct mtd_info *flash_probe(void)
 	int count = 0;
 
 	if ((mtd_cse0 = probe_cs(&map_cse0)) != NULL)
+	{
 		mtds[count++] = mtd_cse0;
-	if ((mtd_cse1 = probe_cs(&map_cse1)) != NULL)
-		mtds[count++] = mtd_cse1;
+	}
 
-	if (!mtd_cse0 && !mtd_cse1) {
+	if ((mtd_cse1 = probe_cs(&map_cse1)) != NULL)
+	{
+		mtds[count++] = mtd_cse1;
+	}
+
+	if (!mtd_cse0 && !mtd_cse1)
+	{
 		/* No chip found. */
 		return NULL;
 	}
 
-	if (count > 1) {
+	if (count > 1)
+	{
 		/* Since the concatenation layer adds a small overhead we
 		 * could try to figure out if the chips in cse0 and cse1 are
 		 * identical and reprobe the whole cse0+cse1 window. But since
@@ -281,17 +299,22 @@ static struct mtd_info *flash_probe(void)
 		 * complicating the probing procedure.
 		 */
 		mtd_total = mtd_concat_create(mtds, count, "cse0+cse1");
-		if (!mtd_total) {
+
+		if (!mtd_total)
+		{
 			printk(KERN_ERR "%s and %s: Concatenation failed!\n",
-				map_cse0.name, map_cse1.name);
+				   map_cse0.name, map_cse1.name);
 
 			/* The best we can do now is to only use what we found
 			 * at cse0. */
 			mtd_total = mtd_cse0;
 			map_destroy(mtd_cse1);
 		}
-	} else
+	}
+	else
+	{
 		mtd_total = mtd_cse0 ? mtd_cse0 : mtd_cse1;
+	}
 
 	return mtd_total;
 }
@@ -321,30 +344,35 @@ static int __init init_axis_flash(void)
 	 * with our usage.
 	 */
 #if !defined(CONFIG_MTD_MTDRAM) || (CONFIG_MTDRAM_TOTAL_SIZE != 0)
-	if (!romfs_in_flash && !nand_boot) {
+
+	if (!romfs_in_flash && !nand_boot)
+	{
 		printk(KERN_EMERG "axisflashmap: Cannot create an MTD RAM "
-		       "device; configure CONFIG_MTD_MTDRAM with size = 0!\n");
+			   "device; configure CONFIG_MTD_MTDRAM with size = 0!\n");
 		panic("This kernel cannot boot from RAM!\n");
 	}
+
 #endif
 
 	main_mtd = flash_probe();
+
 	if (main_mtd)
 		printk(KERN_INFO "%s: 0x%08llx bytes of NOR flash memory.\n",
-		       main_mtd->name, main_mtd->size);
+			   main_mtd->name, main_mtd->size);
 
 #ifdef CONFIG_ETRAX_NANDFLASH
 	aux_mtd = crisv32_nand_flash_probe();
+
 	if (aux_mtd)
 		printk(KERN_INFO "%s: 0x%08x bytes of NAND flash memory.\n",
-			aux_mtd->name, aux_mtd->size);
+			   aux_mtd->name, aux_mtd->size);
 
 #ifdef CONFIG_ETRAX_NANDBOOT
 	{
 		struct mtd_info *tmp_mtd;
 
 		printk(KERN_INFO "axisflashmap: Set to boot from NAND flash, "
-		       "making NAND flash primary device.\n");
+			   "making NAND flash primary device.\n");
 		tmp_mtd = main_mtd;
 		main_mtd = aux_mtd;
 		aux_mtd = tmp_mtd;
@@ -352,7 +380,8 @@ static int __init init_axis_flash(void)
 #endif /* CONFIG_ETRAX_NANDBOOT */
 #endif /* CONFIG_ETRAX_NANDFLASH */
 
-	if (!main_mtd && !aux_mtd) {
+	if (!main_mtd && !aux_mtd)
+	{
 		/* There's no reason to use this module if no flash chip can
 		 * be identified. Make sure that's understood.
 		 */
@@ -360,21 +389,27 @@ static int __init init_axis_flash(void)
 	}
 
 #if 0 /* Dump flash memory so we can see what is going on */
-	if (main_mtd) {
+
+	if (main_mtd)
+	{
 		int sectoraddr;
-		for (sectoraddr = 0; sectoraddr < 2*65536+4096;
-				sectoraddr += PAGESIZE) {
+
+		for (sectoraddr = 0; sectoraddr < 2 * 65536 + 4096;
+			 sectoraddr += PAGESIZE)
+		{
 			main_mtd->read(main_mtd, sectoraddr, PAGESIZE, &len,
-				page);
+						   page);
 			printk(KERN_INFO
-			       "Sector at %d (length %d):\n",
-			       sectoraddr, len);
+				   "Sector at %d (length %d):\n",
+				   sectoraddr, len);
 			print_hex_dump(KERN_INFO, "", DUMP_PREFIX_NONE, 16, 1, page, PAGESIZE, false);
 		}
 	}
+
 #endif
 
-	if (main_mtd) {
+	if (main_mtd)
+	{
 		loff_t ptable_sector = CONFIG_ETRAX_PTABLE_SECTOR;
 		main_mtd->owner = THIS_MODULE;
 		axisflash_mtd = main_mtd;
@@ -387,38 +422,50 @@ static int __init init_axis_flash(void)
 		 * it will be in first good block after that.
 		 */
 		int blockstat;
-		do {
+
+		do
+		{
 			blockstat = mtd_block_isbad(main_mtd, ptable_sector);
+
 			if (blockstat < 0)
-				ptable_sector = 0; /* read error */
+			{
+				ptable_sector = 0;    /* read error */
+			}
 			else if (blockstat)
+			{
 				ptable_sector += main_mtd->erasesize;
-		} while (blockstat && ptable_sector);
+			}
+		}
+		while (blockstat && ptable_sector);
+
 #endif
-		if (ptable_sector) {
+
+		if (ptable_sector)
+		{
 			mtd_read(main_mtd, ptable_sector, PAGESIZE, &len,
-				 page);
+					 page);
 			ptable_head = &((struct partitiontable *) page)->head;
 		}
 
 #if 0 /* Dump partition table so we can see what is going on */
 		printk(KERN_INFO
-		       "axisflashmap: flash read %d bytes at 0x%08x, data: %8ph\n",
-		       len, CONFIG_ETRAX_PTABLE_SECTOR, page);
+			   "axisflashmap: flash read %d bytes at 0x%08x, data: %8ph\n",
+			   len, CONFIG_ETRAX_PTABLE_SECTOR, page);
 		printk(KERN_INFO
-		       "axisflashmap: partition table offset %d, data: %8ph\n",
-		       PARTITION_TABLE_OFFSET, page + PARTITION_TABLE_OFFSET);
+			   "axisflashmap: partition table offset %d, data: %8ph\n",
+			   PARTITION_TABLE_OFFSET, page + PARTITION_TABLE_OFFSET);
 #endif
 	}
 
 	if (ptable_head && (ptable_head->magic == PARTITION_TABLE_MAGIC)
-	    && (ptable_head->size <
-		(MAX_PARTITIONS * sizeof(struct partitiontable_entry) +
-		PARTITIONTABLE_END_MARKER_SIZE))
-	    && (*(unsigned long*)((void*)ptable_head + sizeof(*ptable_head) +
-				  ptable_head->size -
-				  PARTITIONTABLE_END_MARKER_SIZE)
-		== PARTITIONTABLE_END_MARKER)) {
+		&& (ptable_head->size <
+			(MAX_PARTITIONS * sizeof(struct partitiontable_entry) +
+			 PARTITIONTABLE_END_MARKER_SIZE))
+		&& (*(unsigned long *)((void *)ptable_head + sizeof(*ptable_head) +
+							   ptable_head->size -
+							   PARTITIONTABLE_END_MARKER_SIZE)
+			== PARTITIONTABLE_END_MARKER))
+	{
 		/* Looks like a start, sane length and end of a
 		 * partition table, lets check csum etc.
 		 */
@@ -431,56 +478,67 @@ static int __init init_axis_flash(void)
 		unsigned long csum = 0;
 
 		ptable = (struct partitiontable_entry *)
-			((unsigned long)ptable_head + sizeof(*ptable_head));
+				 ((unsigned long)ptable_head + sizeof(*ptable_head));
 
 		/* Lets be PARANOID, and check the checksum. */
-		p = (unsigned char*) ptable;
+		p = (unsigned char *) ptable;
 
-		while (p <= (unsigned char*)max_addr) {
+		while (p <= (unsigned char *)max_addr)
+		{
 			csum += *p++;
 			csum += *p++;
 			csum += *p++;
 			csum += *p++;
 		}
+
 		ptable_ok = (csum == ptable_head->checksum);
 
 		/* Read the entries and use/show the info.  */
 		printk(KERN_INFO "axisflashmap: "
-		       "Found a%s partition table at 0x%p-0x%p.\n",
-		       (ptable_ok ? " valid" : "n invalid"), ptable_head,
-		       max_addr);
+			   "Found a%s partition table at 0x%p-0x%p.\n",
+			   (ptable_ok ? " valid" : "n invalid"), ptable_head,
+			   max_addr);
 
 		/* We have found a working bootblock.  Now read the
 		 * partition table.  Scan the table.  It ends with 0xffffffff.
 		 */
 		while (ptable_ok
-		       && ptable->offset != PARTITIONTABLE_END_MARKER
-		       && ptable < max_addr
-		       && pidx < MAX_PARTITIONS - 1) {
+			   && ptable->offset != PARTITIONTABLE_END_MARKER
+			   && ptable < max_addr
+			   && pidx < MAX_PARTITIONS - 1)
+		{
 
 			axis_partitions[pidx].offset = offset + ptable->offset;
 #ifdef CONFIG_ETRAX_NANDFLASH
-			if (main_mtd->type == MTD_NANDFLASH) {
+
+			if (main_mtd->type == MTD_NANDFLASH)
+			{
 				axis_partitions[pidx].size =
-					(((ptable+1)->offset ==
+					(((ptable + 1)->offset ==
 					  PARTITIONTABLE_END_MARKER) ?
-					  main_mtd->size :
-					  ((ptable+1)->offset + offset)) -
+					 main_mtd->size :
+					 ((ptable + 1)->offset + offset)) -
 					(ptable->offset + offset);
 
-			} else
+			}
+			else
 #endif /* CONFIG_ETRAX_NANDFLASH */
 				axis_partitions[pidx].size = ptable->size;
+
 #ifdef CONFIG_ETRAX_NANDBOOT
+
 			/* Save partition number of jffs2 ro partition.
 			 * Needed if RAM booting or root file system in RAM.
 			 */
 			if (!nand_boot &&
-			    ram_rootfs_partition < 0 && /* not already set */
-			    ptable->type == PARTITION_TYPE_JFFS2 &&
-			    (ptable->flags & PARTITION_FLAGS_READONLY_MASK) ==
+				ram_rootfs_partition < 0 && /* not already set */
+				ptable->type == PARTITION_TYPE_JFFS2 &&
+				(ptable->flags & PARTITION_FLAGS_READONLY_MASK) ==
 				PARTITION_FLAGS_READONLY)
+			{
 				ram_rootfs_partition = pidx;
+			}
+
 #endif /* CONFIG_ETRAX_NANDBOOT */
 			pidx++;
 			ptable++;
@@ -491,35 +549,42 @@ static int __init init_axis_flash(void)
 	/* Only use default table if we actually have a device (main_mtd) */
 
 	partition = &axis_partitions[0];
-	if (main_mtd && !ptable_ok) {
+
+	if (main_mtd && !ptable_ok)
+	{
 		memcpy(axis_partitions, axis_default_partitions,
-		       sizeof(axis_default_partitions));
+			   sizeof(axis_default_partitions));
 		pidx = NUM_DEFAULT_PARTITIONS;
 		ram_rootfs_partition = DEFAULT_ROOTFS_PARTITION_NO;
 	}
 
 	/* Add artificial partitions for rootfs if necessary */
-	if (romfs_in_flash) {
+	if (romfs_in_flash)
+	{
 		/* rootfs is in directly accessible flash memory = NOR flash.
 		   Add an overlapping device for the rootfs partition. */
 		printk(KERN_INFO "axisflashmap: Adding partition for "
-		       "overlapping root file system image\n");
+			   "overlapping root file system image\n");
 		axis_partitions[pidx].size = romfs_length;
 		axis_partitions[pidx].offset = romfs_start - FLASH_CACHED_ADDR;
 		axis_partitions[pidx].name = "romfs";
 		axis_partitions[pidx].mask_flags |= MTD_WRITEABLE;
 		ram_rootfs_partition = -1;
 		pidx++;
-	} else if (romfs_length && !nand_boot) {
+	}
+	else if (romfs_length && !nand_boot)
+	{
 		/* romfs exists in memory, but not in flash, so must be in RAM.
 		 * Configure an MTDRAM partition. */
-		if (ram_rootfs_partition < 0) {
+		if (ram_rootfs_partition < 0)
+		{
 			/* None set yet, put it at the end */
 			ram_rootfs_partition = pidx;
 			pidx++;
 		}
+
 		printk(KERN_INFO "axisflashmap: Adding partition for "
-		       "root file system image in RAM\n");
+			   "root file system image in RAM\n");
 		axis_partitions[ram_rootfs_partition].size = romfs_length;
 		axis_partitions[ram_rootfs_partition].offset = romfs_start;
 		axis_partitions[ram_rootfs_partition].name = "romfs";
@@ -528,58 +593,73 @@ static int __init init_axis_flash(void)
 	}
 
 #ifdef CONFIG_ETRAX_AXISFLASHMAP_MTD0WHOLE
-	if (main_mtd) {
+
+	if (main_mtd)
+	{
 		main_partition.size = main_mtd->size;
 		err = mtd_device_register(main_mtd, &main_partition, 1);
+
 		if (err)
 			panic("axisflashmap: Could not initialize "
-			      "partition for whole main mtd device!\n");
+				  "partition for whole main mtd device!\n");
 	}
+
 #endif
 
 	/* Now, register all partitions with mtd.
 	 * We do this one at a time so we can slip in an MTDRAM device
 	 * in the proper place if required. */
 
-	for (part = 0; part < pidx; part++) {
-		if (part == ram_rootfs_partition) {
+	for (part = 0; part < pidx; part++)
+	{
+		if (part == ram_rootfs_partition)
+		{
 			/* add MTDRAM partition here */
 			struct mtd_info *mtd_ram;
 
 			mtd_ram = kmalloc(sizeof(struct mtd_info), GFP_KERNEL);
+
 			if (!mtd_ram)
 				panic("axisflashmap: Couldn't allocate memory "
-				      "for mtd_info!\n");
+					  "for mtd_info!\n");
+
 			printk(KERN_INFO "axisflashmap: Adding RAM partition "
-			       "for rootfs image.\n");
+				   "for rootfs image.\n");
 			err = mtdram_init_device(mtd_ram,
-						 (void *)(u_int32_t)partition[part].offset,
-						 partition[part].size,
-						 partition[part].name);
+									 (void *)(u_int32_t)partition[part].offset,
+									 partition[part].size,
+									 partition[part].name);
+
 			if (err)
 				panic("axisflashmap: Could not initialize "
-				      "MTD RAM device!\n");
+					  "MTD RAM device!\n");
+
 			/* JFFS2 likes to have an erasesize. Keep potential
 			 * JFFS2 rootfs happy by providing one. Since image
 			 * was most likely created for main mtd, use that
 			 * erasesize, if available. Otherwise, make a guess. */
 			mtd_ram->erasesize = (main_mtd ? main_mtd->erasesize :
-				CONFIG_ETRAX_PTABLE_SECTOR);
-		} else {
+								  CONFIG_ETRAX_PTABLE_SECTOR);
+		}
+		else
+		{
 			err = mtd_device_register(main_mtd, &partition[part],
-						  1);
+									  1);
+
 			if (err)
 				panic("axisflashmap: Could not add mtd "
-					"partition %d\n", part);
+					  "partition %d\n", part);
 		}
 	}
 
-	if (aux_mtd) {
+	if (aux_mtd)
+	{
 		aux_partition.size = aux_mtd->size;
 		err = mtd_device_register(aux_mtd, &aux_partition, 1);
+
 		if (err)
 			panic("axisflashmap: Could not initialize "
-			      "aux mtd device!\n");
+				  "aux mtd device!\n");
 
 	}
 

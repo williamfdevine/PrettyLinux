@@ -10,7 +10,8 @@
 #include <net_kern.h>
 #include "tuntap.h"
 
-struct tuntap_init {
+struct tuntap_init
+{
 	char *dev_name;
 	char *gate_addr;
 };
@@ -30,15 +31,19 @@ static void tuntap_init(struct net_device *dev, void *data)
 	tpri->dev = dev;
 
 	printk(KERN_INFO "TUN/TAP backend - ");
+
 	if (tpri->gate_addr != NULL)
+	{
 		printk(KERN_CONT "IP = %s", tpri->gate_addr);
+	}
+
 	printk(KERN_CONT "\n");
 }
 
 static int tuntap_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
 {
 	return net_read(fd, skb_mac_header(skb),
-			skb->dev->mtu + ETH_HEADER_OTHER);
+					skb->dev->mtu + ETH_HEADER_OTHER);
 }
 
 static int tuntap_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
@@ -46,7 +51,8 @@ static int tuntap_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
 	return net_write(fd, skb->data, skb->len);
 }
 
-const struct net_kern_info tuntap_kern_info = {
+const struct net_kern_info tuntap_kern_info =
+{
 	.init			= tuntap_init,
 	.protocol		= eth_protocol,
 	.read			= tuntap_read,
@@ -58,16 +64,22 @@ int tuntap_setup(char *str, char **mac_out, void *data)
 	struct tuntap_init *init = data;
 
 	*init = ((struct tuntap_init)
-		{ .dev_name 	= NULL,
-		  .gate_addr 	= NULL });
+	{
+		.dev_name 	= NULL,
+		  .gate_addr 	= NULL
+	});
+
 	if (tap_setup_common(str, "tuntap", &init->dev_name, mac_out,
-			    &init->gate_addr))
+						 &init->gate_addr))
+	{
 		return 0;
+	}
 
 	return 1;
 }
 
-static struct transport tuntap_transport = {
+static struct transport tuntap_transport =
+{
 	.list 		= LIST_HEAD_INIT(tuntap_transport.list),
 	.name 		= "tuntap",
 	.setup  	= tuntap_setup,

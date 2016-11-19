@@ -17,7 +17,8 @@
 #include <linux/of.h>
 
 /* Other Prototypes */
-enum early_consoles {
+enum early_consoles
+{
 	UARTLITE = 1,
 	UART16550 = 2,
 };

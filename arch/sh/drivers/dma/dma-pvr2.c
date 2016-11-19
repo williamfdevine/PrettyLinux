@@ -23,15 +23,16 @@ static int count;
 
 static irqreturn_t pvr2_dma_interrupt(int irq, void *dev_id)
 {
-	if (get_dma_residue(PVR2_CASCADE_CHAN)) {
+	if (get_dma_residue(PVR2_CASCADE_CHAN))
+	{
 		printk(KERN_WARNING "DMA: SH DMAC did not complete transfer "
-		       "on channel %d, waiting..\n", PVR2_CASCADE_CHAN);
+			   "on channel %d, waiting..\n", PVR2_CASCADE_CHAN);
 		dma_wait_for_completion(PVR2_CASCADE_CHAN);
 	}
 
 	if (count++ < 10)
 		pr_debug("Got a pvr2 dma interrupt for channel %d\n",
-			 irq - HW_EVENT_PVR2_DMA);
+				 irq - HW_EVENT_PVR2_DMA);
 
 	xfer_complete = 1;
 
@@ -41,7 +42,9 @@ static irqreturn_t pvr2_dma_interrupt(int irq, void *dev_id)
 static int pvr2_request_dma(struct dma_channel *chan)
 {
 	if (__raw_readl(PVR2_DMA_MODE) != 0)
+	{
 		return -EBUSY;
+	}
 
 	__raw_writel(0, PVR2_DMA_LMMODE0);
 
@@ -56,7 +59,9 @@ static int pvr2_get_dma_residue(struct dma_channel *chan)
 static int pvr2_xfer_dma(struct dma_channel *chan)
 {
 	if (chan->sar || !chan->dar)
+	{
 		return -EINVAL;
+	}
 
 	xfer_complete = 0;
 
@@ -67,18 +72,21 @@ static int pvr2_xfer_dma(struct dma_channel *chan)
 	return 0;
 }
 
-static struct irqaction pvr2_dma_irq = {
+static struct irqaction pvr2_dma_irq =
+{
 	.name		= "pvr2 DMA handler",
 	.handler	= pvr2_dma_interrupt,
 };
 
-static struct dma_ops pvr2_dma_ops = {
+static struct dma_ops pvr2_dma_ops =
+{
 	.request	= pvr2_request_dma,
 	.get_residue	= pvr2_get_dma_residue,
 	.xfer		= pvr2_xfer_dma,
 };
 
-static struct dma_info pvr2_dma_info = {
+static struct dma_info pvr2_dma_info =
+{
 	.name		= "pvr2_dmac",
 	.nr_channels	= 1,
 	.ops		= &pvr2_dma_ops,

@@ -50,7 +50,8 @@
 #define XTENSA_PMU_PMSTAT_OVFL		0x00000001
 #define XTENSA_PMU_PMSTAT_INTASRT	0x00000010
 
-struct xtensa_pmu_events {
+struct xtensa_pmu_events
+{
 	/* Array of events currently on this core */
 	struct perf_event *event[XCHAL_NUM_PERF_COUNTERS];
 	/* Bitmap of used hardware counters */
@@ -58,7 +59,8 @@ struct xtensa_pmu_events {
 };
 static DEFINE_PER_CPU(struct xtensa_pmu_events, xtensa_pmu_events);
 
-static const u32 xtensa_hw_ctl[] = {
+static const u32 xtensa_hw_ctl[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES]		= XTENSA_PMU_MASK(0, 0x1),
 	[PERF_COUNT_HW_INSTRUCTIONS]		= XTENSA_PMU_MASK(2, 0xffff),
 	[PERF_COUNT_HW_CACHE_REFERENCES]	= XTENSA_PMU_MASK(10, 0x1),
@@ -73,7 +75,8 @@ static const u32 xtensa_hw_ctl[] = {
 
 #define C(_x) PERF_COUNT_HW_CACHE_##_x
 
-static const u32 xtensa_cache_ctl[][C(OP_MAX)][C(RESULT_MAX)] = {
+static const u32 xtensa_cache_ctl[][C(OP_MAX)][C(RESULT_MAX)] =
+{
 	[C(L1D)] = {
 		[C(OP_READ)] = {
 			[C(RESULT_ACCESS)]	= XTENSA_PMU_MASK(10, 0x1),
@@ -114,14 +117,18 @@ static int xtensa_pmu_cache_event(u64 config)
 	cache_result = (config >> 16) & 0xff;
 
 	if (cache_type >= ARRAY_SIZE(xtensa_cache_ctl) ||
-	    cache_op >= C(OP_MAX) ||
-	    cache_result >= C(RESULT_MAX))
+		cache_op >= C(OP_MAX) ||
+		cache_result >= C(RESULT_MAX))
+	{
 		return -EINVAL;
+	}
 
 	ret = xtensa_cache_ctl[cache_type][cache_op][cache_result];
 
 	if (ret == 0)
+	{
 		return -EINVAL;
+	}
 
 	return ret;
 }
@@ -137,16 +144,18 @@ static inline void xtensa_pmu_write_counter(int idx, uint32_t v)
 }
 
 static void xtensa_perf_event_update(struct perf_event *event,
-				     struct hw_perf_event *hwc, int idx)
+									 struct hw_perf_event *hwc, int idx)
 {
 	uint64_t prev_raw_count, new_raw_count;
 	int64_t delta;
 
-	do {
+	do
+	{
 		prev_raw_count = local64_read(&hwc->prev_count);
 		new_raw_count = xtensa_pmu_read_counter(event->hw.idx);
-	} while (local64_cmpxchg(&hwc->prev_count, prev_raw_count,
-				 new_raw_count) != prev_raw_count);
+	}
+	while (local64_cmpxchg(&hwc->prev_count, prev_raw_count,
+						   new_raw_count) != prev_raw_count);
 
 	delta = (new_raw_count - prev_raw_count) & XTENSA_PMU_COUNTER_MASK;
 
@@ -155,30 +164,40 @@ static void xtensa_perf_event_update(struct perf_event *event,
 }
 
 static bool xtensa_perf_event_set_period(struct perf_event *event,
-					 struct hw_perf_event *hwc, int idx)
+		struct hw_perf_event *hwc, int idx)
 {
 	bool rc = false;
 	s64 left;
 
-	if (!is_sampling_event(event)) {
+	if (!is_sampling_event(event))
+	{
 		left = XTENSA_PMU_COUNTER_MAX;
-	} else {
+	}
+	else
+	{
 		s64 period = hwc->sample_period;
 
 		left = local64_read(&hwc->period_left);
-		if (left <= -period) {
+
+		if (left <= -period)
+		{
 			left = period;
 			local64_set(&hwc->period_left, left);
 			hwc->last_period = period;
 			rc = true;
-		} else if (left <= 0) {
+		}
+		else if (left <= 0)
+		{
 			left += period;
 			local64_set(&hwc->period_left, left);
 			hwc->last_period = period;
 			rc = true;
 		}
+
 		if (left > XTENSA_PMU_COUNTER_MAX)
+		{
 			left = XTENSA_PMU_COUNTER_MAX;
+		}
 	}
 
 	local64_set(&hwc->prev_count, -left);
@@ -202,36 +221,48 @@ static int xtensa_pmu_event_init(struct perf_event *event)
 {
 	int ret;
 
-	switch (event->attr.type) {
-	case PERF_TYPE_HARDWARE:
-		if (event->attr.config >= ARRAY_SIZE(xtensa_hw_ctl) ||
-		    xtensa_hw_ctl[event->attr.config] == 0)
-			return -EINVAL;
-		event->hw.config = xtensa_hw_ctl[event->attr.config];
-		return 0;
+	switch (event->attr.type)
+	{
+		case PERF_TYPE_HARDWARE:
+			if (event->attr.config >= ARRAY_SIZE(xtensa_hw_ctl) ||
+				xtensa_hw_ctl[event->attr.config] == 0)
+			{
+				return -EINVAL;
+			}
 
-	case PERF_TYPE_HW_CACHE:
-		ret = xtensa_pmu_cache_event(event->attr.config);
-		if (ret < 0)
-			return ret;
-		event->hw.config = ret;
-		return 0;
+			event->hw.config = xtensa_hw_ctl[event->attr.config];
+			return 0;
 
-	case PERF_TYPE_RAW:
-		/* Not 'previous counter' select */
-		if ((event->attr.config & XTENSA_PMU_PMCTRL_SELECT) ==
-		    (1 << XTENSA_PMU_PMCTRL_SELECT_SHIFT))
-			return -EINVAL;
-		event->hw.config = (event->attr.config &
-				    (XTENSA_PMU_PMCTRL_KRNLCNT |
-				     XTENSA_PMU_PMCTRL_TRACELEVEL |
-				     XTENSA_PMU_PMCTRL_SELECT |
-				     XTENSA_PMU_PMCTRL_MASK)) |
-			XTENSA_PMU_PMCTRL_INTEN;
-		return 0;
+		case PERF_TYPE_HW_CACHE:
+			ret = xtensa_pmu_cache_event(event->attr.config);
 
-	default:
-		return -ENOENT;
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			event->hw.config = ret;
+			return 0;
+
+		case PERF_TYPE_RAW:
+
+			/* Not 'previous counter' select */
+			if ((event->attr.config & XTENSA_PMU_PMCTRL_SELECT) ==
+				(1 << XTENSA_PMU_PMCTRL_SELECT_SHIFT))
+			{
+				return -EINVAL;
+			}
+
+			event->hw.config = (event->attr.config &
+								(XTENSA_PMU_PMCTRL_KRNLCNT |
+								 XTENSA_PMU_PMCTRL_TRACELEVEL |
+								 XTENSA_PMU_PMCTRL_SELECT |
+								 XTENSA_PMU_PMCTRL_MASK)) |
+							   XTENSA_PMU_PMCTRL_INTEN;
+			return 0;
+
+		default:
+			return -ENOENT;
 	}
 }
 
@@ -246,9 +277,12 @@ static void xtensa_pmu_start(struct perf_event *event, int flags)
 	int idx = hwc->idx;
 
 	if (WARN_ON_ONCE(idx == -1))
+	{
 		return;
+	}
 
-	if (flags & PERF_EF_RELOAD) {
+	if (flags & PERF_EF_RELOAD)
+	{
 		WARN_ON_ONCE(!(event->hw.state & PERF_HES_UPTODATE));
 		xtensa_perf_event_set_period(event, hwc, idx);
 	}
@@ -263,15 +297,17 @@ static void xtensa_pmu_stop(struct perf_event *event, int flags)
 	struct hw_perf_event *hwc = &event->hw;
 	int idx = hwc->idx;
 
-	if (!(hwc->state & PERF_HES_STOPPED)) {
+	if (!(hwc->state & PERF_HES_STOPPED))
+	{
 		set_er(0, XTENSA_PMU_PMCTRL(idx));
 		set_er(get_er(XTENSA_PMU_PMSTAT(idx)),
-		       XTENSA_PMU_PMSTAT(idx));
+			   XTENSA_PMU_PMSTAT(idx));
 		hwc->state |= PERF_HES_STOPPED;
 	}
 
 	if ((flags & PERF_EF_UPDATE) &&
-	    !(event->hw.state & PERF_HES_UPTODATE)) {
+		!(event->hw.state & PERF_HES_UPTODATE))
+	{
 		xtensa_perf_event_update(event, &event->hw, idx);
 		event->hw.state |= PERF_HES_UPTODATE;
 	}
@@ -287,21 +323,28 @@ static int xtensa_pmu_add(struct perf_event *event, int flags)
 	struct hw_perf_event *hwc = &event->hw;
 	int idx = hwc->idx;
 
-	if (__test_and_set_bit(idx, ev->used_mask)) {
+	if (__test_and_set_bit(idx, ev->used_mask))
+	{
 		idx = find_first_zero_bit(ev->used_mask,
-					  XCHAL_NUM_PERF_COUNTERS);
+								  XCHAL_NUM_PERF_COUNTERS);
+
 		if (idx == XCHAL_NUM_PERF_COUNTERS)
+		{
 			return -EAGAIN;
+		}
 
 		__set_bit(idx, ev->used_mask);
 		hwc->idx = idx;
 	}
+
 	ev->event[idx] = event;
 
 	hwc->state = PERF_HES_UPTODATE | PERF_HES_STOPPED;
 
 	if (flags & PERF_EF_START)
+	{
 		xtensa_pmu_start(event, PERF_EF_RELOAD);
+	}
 
 	perf_event_update_userpage(event);
 	return 0;
@@ -330,17 +373,17 @@ static int callchain_trace(struct stackframe *frame, void *data)
 }
 
 void perf_callchain_kernel(struct perf_callchain_entry_ctx *entry,
-			   struct pt_regs *regs)
+						   struct pt_regs *regs)
 {
 	xtensa_backtrace_kernel(regs, entry->max_stack,
-				callchain_trace, NULL, entry);
+							callchain_trace, NULL, entry);
 }
 
 void perf_callchain_user(struct perf_callchain_entry_ctx *entry,
-			 struct pt_regs *regs)
+						 struct pt_regs *regs)
 {
 	xtensa_backtrace_user(regs, entry->max_stack,
-			      callchain_trace, entry);
+						  callchain_trace, entry);
 }
 
 void perf_event_print_debug(void)
@@ -350,12 +393,14 @@ void perf_event_print_debug(void)
 
 	local_irq_save(flags);
 	pr_info("CPU#%d: PMG: 0x%08lx\n", smp_processor_id(),
-		get_er(XTENSA_PMU_PMG));
+			get_er(XTENSA_PMU_PMG));
+
 	for (i = 0; i < XCHAL_NUM_PERF_COUNTERS; ++i)
 		pr_info("PM%d: 0x%08lx, PMCTRL%d: 0x%08lx, PMSTAT%d: 0x%08lx\n",
-			i, get_er(XTENSA_PMU_PM(i)),
-			i, get_er(XTENSA_PMU_PMCTRL(i)),
-			i, get_er(XTENSA_PMU_PMSTAT(i)));
+				i, get_er(XTENSA_PMU_PM(i)),
+				i, get_er(XTENSA_PMU_PMCTRL(i)),
+				i, get_er(XTENSA_PMU_PMSTAT(i)));
+
 	local_irq_restore(flags);
 }
 
@@ -366,34 +411,44 @@ irqreturn_t xtensa_pmu_irq_handler(int irq, void *dev_id)
 	unsigned i;
 
 	for (i = find_first_bit(ev->used_mask, XCHAL_NUM_PERF_COUNTERS);
-	     i < XCHAL_NUM_PERF_COUNTERS;
-	     i = find_next_bit(ev->used_mask, XCHAL_NUM_PERF_COUNTERS, i + 1)) {
+		 i < XCHAL_NUM_PERF_COUNTERS;
+		 i = find_next_bit(ev->used_mask, XCHAL_NUM_PERF_COUNTERS, i + 1))
+	{
 		uint32_t v = get_er(XTENSA_PMU_PMSTAT(i));
 		struct perf_event *event = ev->event[i];
 		struct hw_perf_event *hwc = &event->hw;
 		u64 last_period;
 
 		if (!(v & XTENSA_PMU_PMSTAT_OVFL))
+		{
 			continue;
+		}
 
 		set_er(v, XTENSA_PMU_PMSTAT(i));
 		xtensa_perf_event_update(event, hwc, i);
 		last_period = hwc->last_period;
-		if (xtensa_perf_event_set_period(event, hwc, i)) {
+
+		if (xtensa_perf_event_set_period(event, hwc, i))
+		{
 			struct perf_sample_data data;
 			struct pt_regs *regs = get_irq_regs();
 
 			perf_sample_data_init(&data, 0, last_period);
+
 			if (perf_event_overflow(event, &data, regs))
+			{
 				xtensa_pmu_stop(event, 0);
+			}
 		}
 
 		rc = IRQ_HANDLED;
 	}
+
 	return rc;
 }
 
-static struct pmu xtensa_pmu = {
+static struct pmu xtensa_pmu =
+{
 	.pmu_enable = xtensa_pmu_enable,
 	.pmu_disable = xtensa_pmu_disable,
 	.event_init = xtensa_pmu_event_init,
@@ -409,10 +464,13 @@ static int xtensa_pmu_setup(int cpu)
 	unsigned i;
 
 	set_er(0, XTENSA_PMU_PMG);
-	for (i = 0; i < XCHAL_NUM_PERF_COUNTERS; ++i) {
+
+	for (i = 0; i < XCHAL_NUM_PERF_COUNTERS; ++i)
+	{
 		set_er(0, XTENSA_PMU_PMCTRL(i));
 		set_er(get_er(XTENSA_PMU_PMSTAT(i)), XTENSA_PMU_PMSTAT(i));
 	}
+
 	return 0;
 }
 
@@ -422,24 +480,34 @@ static int __init xtensa_pmu_init(void)
 	int irq = irq_create_mapping(NULL, XCHAL_PROFILING_INTERRUPT);
 
 	ret = cpuhp_setup_state(CPUHP_AP_PERF_XTENSA_STARTING,
-				"AP_PERF_XTENSA_STARTING", xtensa_pmu_setup,
-				NULL);
-	if (ret) {
+							"AP_PERF_XTENSA_STARTING", xtensa_pmu_setup,
+							NULL);
+
+	if (ret)
+	{
 		pr_err("xtensa_pmu: failed to register CPU-hotplug.\n");
 		return ret;
 	}
+
 #if XTENSA_FAKE_NMI
 	enable_irq(irq);
 #else
 	ret = request_irq(irq, xtensa_pmu_irq_handler, IRQF_PERCPU,
-			  "pmu", NULL);
+					  "pmu", NULL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 #endif
 
 	ret = perf_pmu_register(&xtensa_pmu, "cpu", PERF_TYPE_RAW);
+
 	if (ret)
+	{
 		free_irq(irq, NULL);
+	}
 
 	return ret;
 }

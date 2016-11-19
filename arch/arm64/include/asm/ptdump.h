@@ -20,12 +20,14 @@
 
 #include <linux/mm_types.h>
 
-struct addr_marker {
+struct addr_marker
+{
 	unsigned long start_address;
 	char *name;
 };
 
-struct ptdump_info {
+struct ptdump_info
+{
 	struct mm_struct		*mm;
 	const struct addr_marker	*markers;
 	unsigned long			base_addr;

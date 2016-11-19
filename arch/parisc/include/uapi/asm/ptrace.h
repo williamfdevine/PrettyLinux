@@ -7,7 +7,7 @@
 
 #include <linux/types.h>
 
-/* This struct defines the way the registers are stored on the 
+/* This struct defines the way the registers are stored on the
  * stack during a system call.
  *
  * N.B. gdb/strace care about the size and offsets within this
@@ -20,7 +20,8 @@
  * It can be accessed through PTRACE_PEEKUSR/PTRACE_POKEUSR only.
  */
 
-struct pt_regs {
+struct pt_regs
+{
 	unsigned long gr[32];	/* PSW is in gr[0] */
 	__u64 fr[32];
 	unsigned long sr[ 8];
@@ -47,7 +48,8 @@ struct pt_regs {
  * It can be accessed through PTRACE_GETREGSET with NT_PRSTATUS
  * and through PTRACE_GETREGS.
  */
-struct user_regs_struct {
+struct user_regs_struct
+{
 	unsigned long gr[32];	/* PSW is in gr[0] */
 	unsigned long sr[8];
 	unsigned long iaoq[2];
@@ -60,7 +62,7 @@ struct user_regs_struct {
 	unsigned long cr0;
 	unsigned long cr24, cr25, cr26, cr27, cr28, cr29, cr30, cr31;
 	unsigned long cr8, cr9, cr12, cr13, cr10, cr15;
-	unsigned long _pad[80-64];	/* pad to ELF_NGREG (80) */
+	unsigned long _pad[80 - 64];	/* pad to ELF_NGREG (80) */
 };
 
 /**
@@ -72,7 +74,8 @@ struct user_regs_struct {
  * It can be accessed through PTRACE_GETREGSET with NT_PRFPREG
  * and through PTRACE_GETFPREGS.
  */
-struct user_fp_struct {
+struct user_fp_struct
+{
 	__u64 fr[32];
 };
 

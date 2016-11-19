@@ -55,14 +55,17 @@ void __init unit_init_IRQ(void)
 {
 	unsigned int extnum;
 
-	for (extnum = 0; extnum < NR_XIRQS; extnum++) {
-		switch (GET_XIRQ_TRIGGER(extnum)) {
-		case XIRQ_TRIGGER_HILEVEL:
-		case XIRQ_TRIGGER_LOWLEVEL:
-			mn10300_set_lateack_irq_type(XIRQ2IRQ(extnum));
-			break;
-		default:
-			break;
+	for (extnum = 0; extnum < NR_XIRQS; extnum++)
+	{
+		switch (GET_XIRQ_TRIGGER(extnum))
+		{
+			case XIRQ_TRIGGER_HILEVEL:
+			case XIRQ_TRIGGER_LOWLEVEL:
+				mn10300_set_lateack_irq_type(XIRQ2IRQ(extnum));
+				break;
+
+			default:
+				break;
 		}
 	}
 }

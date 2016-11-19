@@ -18,21 +18,21 @@
 #include <asm/war.h>
 
 #ifndef CONFIG_CPU_DADDI_WORKAROUNDS
-#define GCC_DADDI_IMM_ASM() "I"
+	#define GCC_DADDI_IMM_ASM() "I"
 #else
-#define GCC_DADDI_IMM_ASM() "r"
+	#define GCC_DADDI_IMM_ASM() "r"
 #endif
 
 void __delay(unsigned long loops)
 {
 	__asm__ __volatile__ (
-	"	.set	noreorder				\n"
-	"	.align	3					\n"
-	"1:	bnez	%0, 1b					\n"
-	"	 " __stringify(LONG_SUBU) "	%0, %1		\n"
-	"	.set	reorder					\n"
-	: "=r" (loops)
-	: GCC_DADDI_IMM_ASM() (1), "0" (loops));
+		"	.set	noreorder				\n"
+		"	.align	3					\n"
+		"1:	bnez	%0, 1b					\n"
+		"	 " __stringify(LONG_SUBU) "	%0, %1		\n"
+		"	.set	reorder					\n"
+		: "=r" (loops)
+		: GCC_DADDI_IMM_ASM() (1), "0" (loops));
 }
 EXPORT_SYMBOL(__delay);
 

@@ -46,7 +46,8 @@
 #define LXT971_PHY_ID	(0x001378e2)
 #define LXT971_PHY_MASK	(0xfffffff0)
 
-static struct mtd_partition davinci_evm_norflash_partitions[] = {
+static struct mtd_partition davinci_evm_norflash_partitions[] =
+{
 	/* bootloader (UBL, U-Boot, etc) in first 5 sectors */
 	{
 		.name		= "bootloader",
@@ -77,7 +78,8 @@ static struct mtd_partition davinci_evm_norflash_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data davinci_evm_norflash_data = {
+static struct physmap_flash_data davinci_evm_norflash_data =
+{
 	.width		= 2,
 	.parts		= davinci_evm_norflash_partitions,
 	.nr_parts	= ARRAY_SIZE(davinci_evm_norflash_partitions),
@@ -85,13 +87,15 @@ static struct physmap_flash_data davinci_evm_norflash_data = {
 
 /* NOTE: CFI probe will correctly detect flash part as 32M, but EMIF
  * limits addresses to 16M, so using addresses past 16M will wrap */
-static struct resource davinci_evm_norflash_resource = {
+static struct resource davinci_evm_norflash_resource =
+{
 	.start		= DM644X_ASYNC_EMIF_DATA_CE0_BASE,
 	.end		= DM644X_ASYNC_EMIF_DATA_CE0_BASE + SZ_16M - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device davinci_evm_norflash_device = {
+static struct platform_device davinci_evm_norflash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -105,7 +109,8 @@ static struct platform_device davinci_evm_norflash_device = {
  * It may used instead of the (default) NOR chip to boot, using TI's
  * tools to install the secondary boot loader (UBL) and U-Boot.
  */
-static struct mtd_partition davinci_evm_nandflash_partition[] = {
+static struct mtd_partition davinci_evm_nandflash_partition[] =
+{
 	/* Bootloader layout depends on whose u-boot is installed, but we
 	 * can hide all the details.
 	 *  - block 0 for u-boot environment ... in mainline u-boot
@@ -139,7 +144,8 @@ static struct mtd_partition davinci_evm_nandflash_partition[] = {
 	 */
 };
 
-static struct davinci_aemif_timing davinci_evm_nandflash_timing = {
+static struct davinci_aemif_timing davinci_evm_nandflash_timing =
+{
 	.wsetup		= 20,
 	.wstrobe	= 40,
 	.whold		= 20,
@@ -149,7 +155,8 @@ static struct davinci_aemif_timing davinci_evm_nandflash_timing = {
 	.ta		= 40,
 };
 
-static struct davinci_nand_pdata davinci_evm_nandflash_data = {
+static struct davinci_nand_pdata davinci_evm_nandflash_data =
+{
 	.parts		= davinci_evm_nandflash_partition,
 	.nr_parts	= ARRAY_SIZE(davinci_evm_nandflash_partition),
 	.ecc_mode	= NAND_ECC_HW,
@@ -158,7 +165,8 @@ static struct davinci_nand_pdata davinci_evm_nandflash_data = {
 	.timing		= &davinci_evm_nandflash_timing,
 };
 
-static struct resource davinci_evm_nandflash_resource[] = {
+static struct resource davinci_evm_nandflash_resource[] =
+{
 	{
 		.start		= DM644X_ASYNC_EMIF_DATA_CE0_BASE,
 		.end		= DM644X_ASYNC_EMIF_DATA_CE0_BASE + SZ_16M - 1,
@@ -170,7 +178,8 @@ static struct resource davinci_evm_nandflash_resource[] = {
 	},
 };
 
-static struct platform_device davinci_evm_nandflash_device = {
+static struct platform_device davinci_evm_nandflash_device =
+{
 	.name		= "davinci_nand",
 	.id		= 0,
 	.dev		= {
@@ -182,7 +191,8 @@ static struct platform_device davinci_evm_nandflash_device = {
 
 static u64 davinci_fb_dma_mask = DMA_BIT_MASK(32);
 
-static struct platform_device davinci_fb_device = {
+static struct platform_device davinci_fb_device =
+{
 	.name		= "davincifb",
 	.id		= -1,
 	.dev = {
@@ -192,7 +202,8 @@ static struct platform_device davinci_fb_device = {
 	.num_resources = 0,
 };
 
-static struct tvp514x_platform_data dm644xevm_tvp5146_pdata = {
+static struct tvp514x_platform_data dm644xevm_tvp5146_pdata =
+{
 	.clk_polarity = 0,
 	.hs_polarity = 1,
 	.vs_polarity = 1
@@ -200,7 +211,8 @@ static struct tvp514x_platform_data dm644xevm_tvp5146_pdata = {
 
 #define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
 /* Inputs available at the TVP5146 */
-static struct v4l2_input dm644xevm_tvp5146_inputs[] = {
+static struct v4l2_input dm644xevm_tvp5146_inputs[] =
+{
 	{
 		.index = 0,
 		.name = "Composite",
@@ -220,7 +232,8 @@ static struct v4l2_input dm644xevm_tvp5146_inputs[] = {
  * ouput that goes to vpfe. There is a one to one correspondence
  * with tvp5146_inputs
  */
-static struct vpfe_route dm644xevm_tvp5146_routes[] = {
+static struct vpfe_route dm644xevm_tvp5146_routes[] =
+{
 	{
 		.input = INPUT_CVBS_VI2B,
 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
@@ -231,7 +244,8 @@ static struct vpfe_route dm644xevm_tvp5146_routes[] = {
 	},
 };
 
-static struct vpfe_subdev_info dm644xevm_vpfe_sub_devs[] = {
+static struct vpfe_subdev_info dm644xevm_vpfe_sub_devs[] =
+{
 	{
 		.name = "tvp5146",
 		.grp_id = 0,
@@ -251,7 +265,8 @@ static struct vpfe_subdev_info dm644xevm_vpfe_sub_devs[] = {
 	},
 };
 
-static struct vpfe_config dm644xevm_capture_cfg = {
+static struct vpfe_config dm644xevm_capture_cfg =
+{
 	.num_subdevs = ARRAY_SIZE(dm644xevm_vpfe_sub_devs),
 	.i2c_adapter_id = 1,
 	.sub_devs = dm644xevm_vpfe_sub_devs,
@@ -259,7 +274,8 @@ static struct vpfe_config dm644xevm_capture_cfg = {
 	.ccdc = "DM6446 CCDC",
 };
 
-static struct platform_device rtc_dev = {
+static struct platform_device rtc_dev =
+{
 	.name           = "rtc_davinci_evm",
 	.id             = -1,
 };
@@ -275,21 +291,29 @@ static struct platform_device rtc_dev = {
 
 /* U2 -- LEDs */
 
-static struct gpio_led evm_leds[] = {
-	{ .name = "DS8", .active_low = 1,
-		.default_trigger = "heartbeat", },
+static struct gpio_led evm_leds[] =
+{
+	{
+		.name = "DS8", .active_low = 1,
+		.default_trigger = "heartbeat",
+	},
 	{ .name = "DS7", .active_low = 1, },
 	{ .name = "DS6", .active_low = 1, },
 	{ .name = "DS5", .active_low = 1, },
 	{ .name = "DS4", .active_low = 1, },
 	{ .name = "DS3", .active_low = 1, },
-	{ .name = "DS2", .active_low = 1,
-		.default_trigger = "mmc0", },
-	{ .name = "DS1", .active_low = 1,
-		.default_trigger = "disk-activity", },
+	{
+		.name = "DS2", .active_low = 1,
+		.default_trigger = "mmc0",
+	},
+	{
+		.name = "DS1", .active_low = 1,
+		.default_trigger = "disk-activity",
+	},
 };
 
-static const struct gpio_led_platform_data evm_led_data = {
+static const struct gpio_led_platform_data evm_led_data =
+{
 	.num_leds	= ARRAY_SIZE(evm_leds),
 	.leds		= evm_leds,
 };
@@ -302,7 +326,8 @@ evm_led_setup(struct i2c_client *client, int gpio, unsigned ngpio, void *c)
 	struct gpio_led *leds = evm_leds;
 	int status;
 
-	while (ngpio--) {
+	while (ngpio--)
+	{
 		leds->gpio = gpio++;
 		leds++;
 	}
@@ -312,28 +337,34 @@ evm_led_setup(struct i2c_client *client, int gpio, unsigned ngpio, void *c)
 	 */
 	evm_led_dev = platform_device_alloc("leds-gpio", 0);
 	platform_device_add_data(evm_led_dev,
-			&evm_led_data, sizeof evm_led_data);
+							 &evm_led_data, sizeof evm_led_data);
 
 	evm_led_dev->dev.parent = &client->dev;
 	status = platform_device_add(evm_led_dev);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		platform_device_put(evm_led_dev);
 		evm_led_dev = NULL;
 	}
+
 	return status;
 }
 
 static int
 evm_led_teardown(struct i2c_client *client, int gpio, unsigned ngpio, void *c)
 {
-	if (evm_led_dev) {
+	if (evm_led_dev)
+	{
 		platform_device_unregister(evm_led_dev);
 		evm_led_dev = NULL;
 	}
+
 	return 0;
 }
 
-static struct pcf857x_platform_data pcf_data_u2 = {
+static struct pcf857x_platform_data pcf_data_u2 =
+{
 	.gpio_base	= PCF_Uxx_BASE(0),
 	.setup		= evm_led_setup,
 	.teardown	= evm_led_teardown,
@@ -363,14 +394,25 @@ evm_u18_setup(struct i2c_client *client, int gpio, unsigned ngpio, void *c)
 	/* export dip switch option */
 	sw_gpio = gpio + 7;
 	status = gpio_request(sw_gpio, "user_sw");
+
 	if (status == 0)
+	{
 		status = gpio_direction_input(sw_gpio);
+	}
+
 	if (status == 0)
+	{
 		status = device_create_file(&client->dev, &dev_attr_user_sw);
+	}
 	else
+	{
 		gpio_free(sw_gpio);
+	}
+
 	if (status != 0)
+	{
 		sw_gpio = -EINVAL;
+	}
 
 	/* audio PLL:  48 kHz (vs 44.1 or 32), single rate (vs double) */
 	gpio_request(gpio + 3, "pll_fs2");
@@ -392,14 +434,17 @@ evm_u18_teardown(struct i2c_client *client, int gpio, unsigned ngpio, void *c)
 	gpio_free(gpio + 2);
 	gpio_free(gpio + 3);
 
-	if (sw_gpio > 0) {
+	if (sw_gpio > 0)
+	{
 		device_remove_file(&client->dev, &dev_attr_user_sw);
 		gpio_free(sw_gpio);
 	}
+
 	return 0;
 }
 
-static struct pcf857x_platform_data pcf_data_u18 = {
+static struct pcf857x_platform_data pcf_data_u18 =
+{
 	.gpio_base	= PCF_Uxx_BASE(1),
 	.n_latch	= (1 << 3) | (1 << 2) | (1 << 1),
 	.setup		= evm_u18_setup,
@@ -458,7 +503,8 @@ evm_u35_teardown(struct i2c_client *client, int gpio, unsigned ngpio, void *c)
 	return 0;
 }
 
-static struct pcf857x_platform_data pcf_data_u35 = {
+static struct pcf857x_platform_data pcf_data_u35 =
+{
 	.gpio_base	= PCF_Uxx_BASE(2),
 	.setup		= evm_u35_setup,
 	.teardown	= evm_u35_teardown,
@@ -472,8 +518,9 @@ static struct pcf857x_platform_data pcf_data_u35 = {
  *  - ... newer boards may have more
  */
 
-static struct at24_platform_data eeprom_info = {
-	.byte_len	= (256*1024) / 8,
+static struct at24_platform_data eeprom_info =
+{
+	.byte_len	= (256 * 1024) / 8,
 	.page_size	= 64,
 	.flags		= AT24_FLAG_ADDR16,
 	.setup          = davinci_get_mac_addr,
@@ -488,7 +535,7 @@ static struct at24_platform_data eeprom_info = {
 static struct i2c_client *dm6446evm_msp;
 
 static int dm6446evm_msp_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+							   const struct i2c_device_id *id)
 {
 	dm6446evm_msp = client;
 	return 0;
@@ -500,12 +547,14 @@ static int dm6446evm_msp_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id dm6446evm_msp_ids[] = {
+static const struct i2c_device_id dm6446evm_msp_ids[] =
+{
 	{ "dm6446evm_msp", 0, },
 	{ /* end of list */ },
 };
 
-static struct i2c_driver dm6446evm_msp_driver = {
+static struct i2c_driver dm6446evm_msp_driver =
+{
 	.driver.name	= "dm6446evm_msp",
 	.id_table	= dm6446evm_msp_ids,
 	.probe		= dm6446evm_msp_probe,
@@ -516,7 +565,8 @@ static int dm6444evm_msp430_get_pins(void)
 {
 	static const char txbuf[2] = { 2, 4, };
 	char buf[4];
-	struct i2c_msg msg[2] = {
+	struct i2c_msg msg[2] =
+	{
 		{
 			.flags = 0,
 			.len = 2,
@@ -531,7 +581,9 @@ static int dm6444evm_msp430_get_pins(void)
 	int status;
 
 	if (!dm6446evm_msp)
+	{
 		return -ENXIO;
+	}
 
 	msg[0].addr = dm6446evm_msp->addr;
 	msg[1].addr = dm6446evm_msp->addr;
@@ -541,8 +593,11 @@ static int dm6444evm_msp430_get_pins(void)
 	 *   RS Addr R [A] [len=4] A [cmd=4] A [port2] A [port3] N P
 	 */
 	status = i2c_transfer(dm6446evm_msp->adapter, msg, 2);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	dev_dbg(&dm6446evm_msp->dev, "PINS: %4ph\n", buf);
 
@@ -563,13 +618,15 @@ static int dm6444evm_mmc_get_ro(int module)
 	return (status < 0) ? status : status & BIT(6 + 8);
 }
 
-static struct davinci_mmc_config dm6446evm_mmc_config = {
+static struct davinci_mmc_config dm6446evm_mmc_config =
+{
 	.get_cd		= dm6444evm_mmc_get_cd,
 	.get_ro		= dm6444evm_mmc_get_ro,
 	.wires		= 4,
 };
 
-static struct i2c_board_info __initdata i2c_info[] =  {
+static struct i2c_board_info __initdata i2c_info[] =
+{
 	{
 		I2C_BOARD_INFO("dm6446evm_msp", 0x23),
 	},
@@ -597,7 +654,8 @@ static struct i2c_board_info __initdata i2c_info[] =  {
 /* The msp430 uses a slow bitbanged I2C implementation (ergo 20 KHz),
  * which requires 100 usec of idle bus after i2c writes sent to it.
  */
-static struct davinci_i2c_platform_data i2c_pdata = {
+static struct davinci_i2c_platform_data i2c_pdata =
+{
 	.bus_freq	= 20 /* kHz */,
 	.bus_delay	= 100 /* usec */,
 	.sda_pin        = 44,
@@ -615,7 +673,8 @@ static void __init evm_init_i2c(void)
 #define VENC_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
 
 /* venc standard timings */
-static struct vpbe_enc_mode_info dm644xevm_enc_std_timing[] = {
+static struct vpbe_enc_mode_info dm644xevm_enc_std_timing[] =
+{
 	{
 		.name		= "ntsc",
 		.timings_type	= VPBE_ENC_STD,
@@ -643,7 +702,8 @@ static struct vpbe_enc_mode_info dm644xevm_enc_std_timing[] = {
 };
 
 /* venc dv preset timings */
-static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] = {
+static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] =
+{
 	{
 		.name		= "480p59_94",
 		.timings_type	= VPBE_ENC_DV_TIMINGS,
@@ -678,7 +738,8 @@ static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] = {
  * than one output. Userspace applications use index of the array to
  * set an output.
  */
-static struct vpbe_output dm644xevm_vpbe_outputs[] = {
+static struct vpbe_output dm644xevm_vpbe_outputs[] =
+{
 	{
 		.output		= {
 			.index		= 0,
@@ -706,7 +767,8 @@ static struct vpbe_output dm644xevm_vpbe_outputs[] = {
 	},
 };
 
-static struct vpbe_config dm644xevm_display_cfg = {
+static struct vpbe_config dm644xevm_display_cfg =
+{
 	.module_name	= "dm644x-vpbe-display",
 	.i2c_adapter_id	= 1,
 	.osd		= {
@@ -719,7 +781,8 @@ static struct vpbe_config dm644xevm_display_cfg = {
 	.outputs	= dm644xevm_vpbe_outputs,
 };
 
-static struct platform_device *davinci_evm_devices[] __initdata = {
+static struct platform_device *davinci_evm_devices[] __initdata =
+{
 	&davinci_fb_device,
 	&rtc_dev,
 };
@@ -756,40 +819,54 @@ static __init void davinci_evm_init(void)
 	struct davinci_soc_info *soc_info = &davinci_soc_info;
 
 	ret = dm644x_gpio_register();
+
 	if (ret)
+	{
 		pr_warn("%s: GPIO init failed: %d\n", __func__, ret);
+	}
 
 	aemif_clk = clk_get(NULL, "aemif");
 	clk_prepare_enable(aemif_clk);
 
-	if (HAS_ATA) {
+	if (HAS_ATA)
+	{
 		if (HAS_NAND || HAS_NOR)
 			pr_warn("WARNING: both IDE and Flash are enabled, but they share AEMIF pins\n"
-				"\tDisable IDE for NAND/NOR support\n");
+					"\tDisable IDE for NAND/NOR support\n");
+
 		davinci_init_ide();
-	} else if (HAS_NAND || HAS_NOR) {
+	}
+	else if (HAS_NAND || HAS_NOR)
+	{
 		davinci_cfg_reg(DM644X_HPIEN_DISABLE);
 		davinci_cfg_reg(DM644X_ATAEN_DISABLE);
 
 		/* only one device will be jumpered and detected */
-		if (HAS_NAND) {
+		if (HAS_NAND)
+		{
 			platform_device_register(&davinci_evm_nandflash_device);
 
 			if (davinci_aemif_setup(&davinci_evm_nandflash_device))
 				pr_warn("%s: Cannot configure AEMIF\n",
-					__func__);
+						__func__);
 
 #ifdef CONFIG_I2C
 			evm_leds[7].default_trigger = "nand-disk";
 #endif
+
 			if (HAS_NOR)
+			{
 				pr_warn("WARNING: both NAND and NOR flash are enabled; disable one of them.\n");
-		} else if (HAS_NOR)
+			}
+		}
+		else if (HAS_NOR)
+		{
 			platform_device_register(&davinci_evm_norflash_device);
+		}
 	}
 
 	platform_add_devices(davinci_evm_devices,
-			     ARRAY_SIZE(davinci_evm_devices));
+						 ARRAY_SIZE(davinci_evm_devices));
 #ifdef CONFIG_I2C
 	evm_init_i2c();
 	davinci_setup_mmc(0, &dm6446evm_mmc_config);
@@ -802,22 +879,23 @@ static __init void davinci_evm_init(void)
 	/* irlml6401 switches over 1A, in under 8 msec */
 	davinci_setup_usb(1000, 8);
 
-	if (IS_BUILTIN(CONFIG_PHYLIB)) {
+	if (IS_BUILTIN(CONFIG_PHYLIB))
+	{
 		soc_info->emac_pdata->phy_id = DM644X_EVM_PHY_ID;
 		/* Register the fixup for PHY on DaVinci */
 		phy_register_fixup_for_uid(LXT971_PHY_ID, LXT971_PHY_MASK,
-						davinci_phy_fixup);
+								   davinci_phy_fixup);
 	}
 }
 
 MACHINE_START(DAVINCI_EVM, "DaVinci DM644x EVM")
-	/* Maintainer: MontaVista Software <source@mvista.com> */
-	.atag_offset  = 0x100,
-	.map_io	      = davinci_evm_map_io,
-	.init_irq     = davinci_irq_init,
-	.init_time	= davinci_timer_init,
-	.init_machine = davinci_evm_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= davinci_restart,
-MACHINE_END
+/* Maintainer: MontaVista Software <source@mvista.com> */
+.atag_offset  = 0x100,
+ .map_io	      = davinci_evm_map_io,
+  .init_irq     = davinci_irq_init,
+   .init_time	= davinci_timer_init,
+	 .init_machine = davinci_evm_init,
+	  .init_late	= davinci_init_late,
+		.dma_zone_size	= SZ_128M,
+		  .restart	= davinci_restart,
+			  MACHINE_END

@@ -30,13 +30,14 @@ static void __init mmp_init_time(void)
 	of_clk_init(NULL);
 }
 
-static const char *const mmp2_dt_board_compat[] __initconst = {
+static const char *const mmp2_dt_board_compat[] __initconst =
+{
 	"mrvl,mmp2-brownstone",
 	NULL,
 };
 
 DT_MACHINE_START(MMP2_DT, "Marvell MMP2 (Device Tree Support)")
-	.map_io		= mmp_map_io,
+.map_io		= mmp_map_io,
 	.init_time	= mmp_init_time,
-	.dt_compat	= mmp2_dt_board_compat,
-MACHINE_END
+	  .dt_compat	= mmp2_dt_board_compat,
+		MACHINE_END

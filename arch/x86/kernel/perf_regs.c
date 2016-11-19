@@ -8,14 +8,15 @@
 #include <asm/ptrace.h>
 
 #ifdef CONFIG_X86_32
-#define PERF_REG_X86_MAX PERF_REG_X86_32_MAX
+	#define PERF_REG_X86_MAX PERF_REG_X86_32_MAX
 #else
-#define PERF_REG_X86_MAX PERF_REG_X86_64_MAX
+	#define PERF_REG_X86_MAX PERF_REG_X86_64_MAX
 #endif
 
 #define PT_REGS_OFFSET(id, r) [id] = offsetof(struct pt_regs, r)
 
-static unsigned int pt_regs_offset[PERF_REG_X86_MAX] = {
+static unsigned int pt_regs_offset[PERF_REG_X86_MAX] =
+{
 	PT_REGS_OFFSET(PERF_REG_X86_AX, ax),
 	PT_REGS_OFFSET(PERF_REG_X86_BX, bx),
 	PT_REGS_OFFSET(PERF_REG_X86_CX, cx),
@@ -38,10 +39,10 @@ static unsigned int pt_regs_offset[PERF_REG_X86_MAX] = {
 	 * The pt_regs struct does not store
 	 * ds, es, fs, gs in 64 bit mode.
 	 */
-	(unsigned int) -1,
-	(unsigned int) -1,
-	(unsigned int) -1,
-	(unsigned int) -1,
+	(unsigned int) - 1,
+	(unsigned int) - 1,
+	(unsigned int) - 1,
+	(unsigned int) - 1,
 #endif
 #ifdef CONFIG_X86_64
 	PT_REGS_OFFSET(PERF_REG_X86_R8, r8),
@@ -58,7 +59,9 @@ static unsigned int pt_regs_offset[PERF_REG_X86_MAX] = {
 u64 perf_reg_value(struct pt_regs *regs, int idx)
 {
 	if (WARN_ON_ONCE(idx >= ARRAY_SIZE(pt_regs_offset)))
+	{
 		return 0;
+	}
 
 	return regs_get_register(regs, pt_regs_offset[idx]);
 }
@@ -69,7 +72,9 @@ u64 perf_reg_value(struct pt_regs *regs, int idx)
 int perf_reg_validate(u64 mask)
 {
 	if (!mask || mask & REG_RESERVED)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -80,25 +85,29 @@ u64 perf_reg_abi(struct task_struct *task)
 }
 
 void perf_get_regs_user(struct perf_regs *regs_user,
-			struct pt_regs *regs,
-			struct pt_regs *regs_user_copy)
+						struct pt_regs *regs,
+						struct pt_regs *regs_user_copy)
 {
 	regs_user->regs = task_pt_regs(current);
 	regs_user->abi = perf_reg_abi(current);
 }
 #else /* CONFIG_X86_64 */
 #define REG_NOSUPPORT ((1ULL << PERF_REG_X86_DS) | \
-		       (1ULL << PERF_REG_X86_ES) | \
-		       (1ULL << PERF_REG_X86_FS) | \
-		       (1ULL << PERF_REG_X86_GS))
+					   (1ULL << PERF_REG_X86_ES) | \
+					   (1ULL << PERF_REG_X86_FS) | \
+					   (1ULL << PERF_REG_X86_GS))
 
 int perf_reg_validate(u64 mask)
 {
 	if (!mask || mask & REG_RESERVED)
+	{
 		return -EINVAL;
+	}
 
 	if (mask & REG_NOSUPPORT)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -106,14 +115,18 @@ int perf_reg_validate(u64 mask)
 u64 perf_reg_abi(struct task_struct *task)
 {
 	if (test_tsk_thread_flag(task, TIF_IA32))
+	{
 		return PERF_SAMPLE_REGS_ABI_32;
+	}
 	else
+	{
 		return PERF_SAMPLE_REGS_ABI_64;
+	}
 }
 
 void perf_get_regs_user(struct perf_regs *regs_user,
-			struct pt_regs *regs,
-			struct pt_regs *regs_user_copy)
+						struct pt_regs *regs,
+						struct pt_regs *regs_user_copy)
 {
 	struct pt_regs *user_regs = task_pt_regs(current);
 
@@ -124,7 +137,8 @@ void perf_get_regs_user(struct perf_regs *regs_user,
 	 * that happened during task_pt_regs setup.
 	 */
 	if (regs->sp > (unsigned long)&user_regs->r11 &&
-	    regs->sp <= (unsigned long)(user_regs + 1)) {
+		regs->sp <= (unsigned long)(user_regs + 1))
+	{
 		regs_user->abi = PERF_SAMPLE_REGS_ABI_NONE;
 		regs_user->regs = NULL;
 		return;
@@ -168,7 +182,7 @@ void perf_get_regs_user(struct perf_regs *regs_user,
 	 * change during context switches.
 	 */
 	regs_user->abi = user_64bit_mode(user_regs) ?
-		PERF_SAMPLE_REGS_ABI_64 : PERF_SAMPLE_REGS_ABI_32;
+					 PERF_SAMPLE_REGS_ABI_64 : PERF_SAMPLE_REGS_ABI_32;
 
 	regs_user->regs = regs_user_copy;
 }

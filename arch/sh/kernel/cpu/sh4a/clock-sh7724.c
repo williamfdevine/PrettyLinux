@@ -43,7 +43,8 @@
 #define LSTATS		0xa4150060
 
 /* Fixed 32 KHz root clock for RTC and Power Management purposes */
-static struct clk r_clk = {
+static struct clk r_clk =
+{
 	.rate           = 32768,
 };
 
@@ -51,7 +52,8 @@ static struct clk r_clk = {
  * Default rate for the root input clock, reset this with clk_set_rate()
  * from the platform code.
  */
-static struct clk extal_clk = {
+static struct clk extal_clk =
+{
 	.rate		= 33333333,
 };
 
@@ -62,19 +64,25 @@ static unsigned long fll_recalc(struct clk *clk)
 	unsigned long div = 1;
 
 	if (__raw_readl(PLLCR) & 0x1000)
+	{
 		mult = __raw_readl(FLLFRQ) & 0x3ff;
+	}
 
 	if (__raw_readl(FLLFRQ) & 0x4000)
+	{
 		div = 2;
+	}
 
 	return (clk->parent->rate * mult) / div;
 }
 
-static struct sh_clk_ops fll_clk_ops = {
+static struct sh_clk_ops fll_clk_ops =
+{
 	.recalc		= fll_recalc,
 };
 
-static struct clk fll_clk = {
+static struct clk fll_clk =
+{
 	.ops		= &fll_clk_ops,
 	.parent		= &r_clk,
 	.flags		= CLK_ENABLE_ON_INIT,
@@ -85,16 +93,20 @@ static unsigned long pll_recalc(struct clk *clk)
 	unsigned long mult = 1;
 
 	if (__raw_readl(PLLCR) & 0x4000)
+	{
 		mult = (((__raw_readl(FRQCRA) >> 24) & 0x3f) + 1) * 2;
+	}
 
 	return clk->parent->rate * mult;
 }
 
-static struct sh_clk_ops pll_clk_ops = {
+static struct sh_clk_ops pll_clk_ops =
+{
 	.recalc		= pll_recalc,
 };
 
-static struct clk pll_clk = {
+static struct clk pll_clk =
+{
 	.ops		= &pll_clk_ops,
 	.flags		= CLK_ENABLE_ON_INIT,
 };
@@ -105,26 +117,32 @@ static unsigned long div3_recalc(struct clk *clk)
 	return clk->parent->rate / 3;
 }
 
-static struct sh_clk_ops div3_clk_ops = {
+static struct sh_clk_ops div3_clk_ops =
+{
 	.recalc		= div3_recalc,
 };
 
-static struct clk div3_clk = {
+static struct clk div3_clk =
+{
 	.ops		= &div3_clk_ops,
 	.parent		= &pll_clk,
 };
 
 /* External input clock (pin name: FSIMCKA/FSIMCKB/DV_CLKI ) */
-struct clk sh7724_fsimcka_clk = {
+struct clk sh7724_fsimcka_clk =
+{
 };
 
-struct clk sh7724_fsimckb_clk = {
+struct clk sh7724_fsimckb_clk =
+{
 };
 
-struct clk sh7724_dv_clki = {
+struct clk sh7724_dv_clki =
+{
 };
 
-static struct clk *main_clks[] = {
+static struct clk *main_clks[] =
+{
 	&r_clk,
 	&extal_clk,
 	&fll_clk,
@@ -147,12 +165,14 @@ static void div4_kick(struct clk *clk)
 
 static int divisors[] = { 2, 3, 4, 6, 8, 12, 16, 0, 24, 32, 36, 48, 0, 72 };
 
-static struct clk_div_mult_table div4_div_mult_table = {
+static struct clk_div_mult_table div4_div_mult_table =
+{
 	.divisors = divisors,
 	.nr_divisors = ARRAY_SIZE(divisors),
 };
 
-static struct clk_div4_table div4_table = {
+static struct clk_div4_table div4_table =
+{
 	.div_mult_table = &div4_div_mult_table,
 	.kick = div4_kick,
 };
@@ -160,9 +180,10 @@ static struct clk_div4_table div4_table = {
 enum { DIV4_I, DIV4_SH, DIV4_B, DIV4_P, DIV4_M1, DIV4_NR };
 
 #define DIV4(_reg, _bit, _mask, _flags) \
-  SH_CLK_DIV4(&pll_clk, _reg, _bit, _mask, _flags)
+	SH_CLK_DIV4(&pll_clk, _reg, _bit, _mask, _flags)
 
-struct clk div4_clks[DIV4_NR] = {
+struct clk div4_clks[DIV4_NR] =
+{
 	[DIV4_I] = DIV4(FRQCRA, 20, 0x2f7d, CLK_ENABLE_ON_INIT),
 	[DIV4_SH] = DIV4(FRQCRA, 12, 0x2f7c, CLK_ENABLE_ON_INIT),
 	[DIV4_B] = DIV4(FRQCRA, 8, 0x2f7c, CLK_ENABLE_ON_INIT),
@@ -173,45 +194,51 @@ struct clk div4_clks[DIV4_NR] = {
 enum { DIV6_V, DIV6_I, DIV6_S, DIV6_FA, DIV6_FB, DIV6_NR };
 
 /* Indices are important - they are the actual src selecting values */
-static struct clk *common_parent[] = {
+static struct clk *common_parent[] =
+{
 	[0] = &div3_clk,
 	[1] = NULL,
 };
 
-static struct clk *vclkcr_parent[8] = {
+static struct clk *vclkcr_parent[8] =
+{
 	[0] = &div3_clk,
 	[2] = &sh7724_dv_clki,
 	[4] = &extal_clk,
 };
 
-static struct clk *fclkacr_parent[] = {
+static struct clk *fclkacr_parent[] =
+{
 	[0] = &div3_clk,
 	[1] = NULL,
 	[2] = &sh7724_fsimcka_clk,
 	[3] = NULL,
 };
 
-static struct clk *fclkbcr_parent[] = {
+static struct clk *fclkbcr_parent[] =
+{
 	[0] = &div3_clk,
 	[1] = NULL,
 	[2] = &sh7724_fsimckb_clk,
 	[3] = NULL,
 };
 
-static struct clk div6_clks[DIV6_NR] = {
+static struct clk div6_clks[DIV6_NR] =
+{
 	[DIV6_V] = SH_CLK_DIV6_EXT(VCLKCR, 0,
-			vclkcr_parent, ARRAY_SIZE(vclkcr_parent), 12, 3),
+	vclkcr_parent, ARRAY_SIZE(vclkcr_parent), 12, 3),
 	[DIV6_I] = SH_CLK_DIV6_EXT(IRDACLKCR, 0,
-			common_parent, ARRAY_SIZE(common_parent), 6, 1),
+	common_parent, ARRAY_SIZE(common_parent), 6, 1),
 	[DIV6_S] = SH_CLK_DIV6_EXT(SPUCLKCR, CLK_ENABLE_ON_INIT,
-			common_parent, ARRAY_SIZE(common_parent), 6, 1),
+	common_parent, ARRAY_SIZE(common_parent), 6, 1),
 	[DIV6_FA] = SH_CLK_DIV6_EXT(FCLKACR, 0,
-				      fclkacr_parent, ARRAY_SIZE(fclkacr_parent), 6, 2),
+	fclkacr_parent, ARRAY_SIZE(fclkacr_parent), 6, 2),
 	[DIV6_FB] = SH_CLK_DIV6_EXT(FCLKBCR, 0,
-				      fclkbcr_parent, ARRAY_SIZE(fclkbcr_parent), 6, 2),
+	fclkbcr_parent, ARRAY_SIZE(fclkbcr_parent), 6, 2),
 };
 
-static struct clk mstp_clks[HWBLK_NR] = {
+static struct clk mstp_clks[HWBLK_NR] =
+{
 	[HWBLK_TLB] = SH_CLK_MSTP32(&div4_clks[DIV4_I],	    MSTPCR0, 31, CLK_ENABLE_ON_INIT),
 	[HWBLK_IC] = SH_CLK_MSTP32(&div4_clks[DIV4_I],	    MSTPCR0, 30, CLK_ENABLE_ON_INIT),
 	[HWBLK_OC] = SH_CLK_MSTP32(&div4_clks[DIV4_I],	    MSTPCR0, 29, CLK_ENABLE_ON_INIT),
@@ -268,7 +295,8 @@ static struct clk mstp_clks[HWBLK_NR] = {
 	[HWBLK_LCDC] = SH_CLK_MSTP32(&div4_clks[DIV4_B],    MSTPCR2, 0, 0),
 };
 
-static struct clk_lookup lookups[] = {
+static struct clk_lookup lookups[] =
+{
 	/* main clocks */
 	CLKDEV_CON_ID("rclk", &r_clk),
 	CLKDEV_CON_ID("extal", &extal_clk),
@@ -357,23 +385,35 @@ int __init arch_clk_init(void)
 
 	/* autodetect extal or fll configuration */
 	if (__raw_readl(PLLCR) & 0x1000)
+	{
 		pll_clk.parent = &fll_clk;
+	}
 	else
+	{
 		pll_clk.parent = &extal_clk;
+	}
 
 	for (k = 0; !ret && (k < ARRAY_SIZE(main_clks)); k++)
+	{
 		ret = clk_register(main_clks[k]);
+	}
 
 	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
 
 	if (!ret)
+	{
 		ret = sh_clk_div4_register(div4_clks, DIV4_NR, &div4_table);
+	}
 
 	if (!ret)
+	{
 		ret = sh_clk_div6_reparent_register(div6_clks, DIV6_NR);
+	}
 
 	if (!ret)
+	{
 		ret = sh_clk_mstp_register(mstp_clks, HWBLK_NR);
+	}
 
 	return ret;
 }

@@ -17,14 +17,18 @@
 
 #if defined(CONFIG_NEW_LEDS) && defined(CONFIG_LEDS_CLASS)
 static void ebsa110_led_set(struct led_classdev *cdev,
-			      enum led_brightness b)
+							enum led_brightness b)
 {
 	u8 reg = __raw_readb(SOFT_BASE);
 
 	if (b != LED_OFF)
+	{
 		reg |= 0x80;
+	}
 	else
+	{
 		reg &= ~0x80;
+	}
 
 	__raw_writeb(reg, SOFT_BASE);
 }
@@ -43,11 +47,16 @@ static int __init ebsa110_leds_init(void)
 	int ret;
 
 	if (!machine_is_ebsa110())
+	{
 		return -ENODEV;
+	}
 
 	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
+
 	if (!cdev)
+	{
 		return -ENOMEM;
+	}
 
 	cdev->name = "ebsa110:0";
 	cdev->brightness_set = ebsa110_led_set;
@@ -55,7 +64,9 @@ static int __init ebsa110_leds_init(void)
 	cdev->default_trigger = "heartbeat";
 
 	ret = led_classdev_register(NULL, cdev);
-	if (ret	< 0) {
+
+	if (ret	< 0)
+	{
 		kfree(cdev);
 		return ret;
 	}

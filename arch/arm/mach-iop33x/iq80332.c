@@ -40,9 +40,13 @@ static void __init iq80332_timer_init(void)
 {
 	/* D-Step parts and the iop333 run at a higher internal bus frequency */
 	if (*IOP3XX_ATURID >= 0xa || *IOP3XX_ATUDID == 0x374)
+	{
 		iop_init_time(333000000);
+	}
 	else
+	{
 		iop_init_time(266000000);
+	}
 }
 
 
@@ -54,32 +58,44 @@ iq80332_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq;
 
-	if (slot == 4 && pin == 1) {
+	if (slot == 4 && pin == 1)
+	{
 		/* PCI-X Slot INTA */
 		irq = IRQ_IOP33X_XINT0;
-	} else if (slot == 4 && pin == 2) {
+	}
+	else if (slot == 4 && pin == 2)
+	{
 		/* PCI-X Slot INTB */
 		irq = IRQ_IOP33X_XINT1;
-	} else if (slot == 4 && pin == 3) {
+	}
+	else if (slot == 4 && pin == 3)
+	{
 		/* PCI-X Slot INTC */
 		irq = IRQ_IOP33X_XINT2;
-	} else if (slot == 4 && pin == 4) {
+	}
+	else if (slot == 4 && pin == 4)
+	{
 		/* PCI-X Slot INTD */
 		irq = IRQ_IOP33X_XINT3;
-	} else if (slot == 6) {
+	}
+	else if (slot == 6)
+	{
 		/* GigE */
 		irq = IRQ_IOP33X_XINT2;
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "iq80332_pci_map_irq() called for unknown "
-			"device PCI:%d:%d:%d\n", dev->bus->number,
-			PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
+			   "device PCI:%d:%d:%d\n", dev->bus->number,
+			   PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn));
 		irq = -1;
 	}
 
 	return irq;
 }
 
-static struct hw_pci iq80332_pci __initdata = {
+static struct hw_pci iq80332_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &iop3xx_ops,
 	.setup		= iop3xx_pci_setup,
@@ -91,7 +107,9 @@ static int __init iq80332_pci_init(void)
 {
 	if ((iop3xx_get_init_atu() == IOP3XX_INIT_ATU_ENABLE) &&
 		machine_is_iq80332())
+	{
 		pci_common_init(&iq80332_pci);
+	}
 
 	return 0;
 }
@@ -102,17 +120,20 @@ subsys_initcall(iq80332_pci_init);
 /*
  * IQ80332 machine initialisation.
  */
-static struct physmap_flash_data iq80332_flash_data = {
+static struct physmap_flash_data iq80332_flash_data =
+{
 	.width		= 1,
 };
 
-static struct resource iq80332_flash_resource = {
+static struct resource iq80332_flash_resource =
+{
 	.start		= 0xc0000000,
 	.end		= 0xc07fffff,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device iq80332_flash_device = {
+static struct platform_device iq80332_flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -122,15 +143,16 @@ static struct platform_device iq80332_flash_device = {
 	.resource	= &iq80332_flash_resource,
 };
 
-static struct resource iq80332_gpio_res[] = {
+static struct resource iq80332_gpio_res[] =
+{
 	DEFINE_RES_MEM((IOP3XX_PERIPHERAL_PHYS_BASE + 0x1780), 0x10),
 };
 
 static void __init iq80332_init_machine(void)
 {
 	platform_device_register_simple("gpio-iop", 0,
-					iq80332_gpio_res,
-					ARRAY_SIZE(iq80332_gpio_res));
+									iq80332_gpio_res,
+									ARRAY_SIZE(iq80332_gpio_res));
 	platform_device_register(&iop3xx_i2c0_device);
 	platform_device_register(&iop3xx_i2c1_device);
 	platform_device_register(&iop33x_uart0_device);
@@ -142,11 +164,11 @@ static void __init iq80332_init_machine(void)
 }
 
 MACHINE_START(IQ80332, "Intel IQ80332")
-	/* Maintainer: Intel Corp. */
-	.atag_offset	= 0x100,
+/* Maintainer: Intel Corp. */
+.atag_offset	= 0x100,
 	.map_io		= iop3xx_map_io,
-	.init_irq	= iop33x_init_irq,
-	.init_time	= iq80332_timer_init,
-	.init_machine	= iq80332_init_machine,
-	.restart	= iop3xx_restart,
-MACHINE_END
+		.init_irq	= iop33x_init_irq,
+		   .init_time	= iq80332_timer_init,
+			 .init_machine	= iq80332_init_machine,
+				.restart	= iop3xx_restart,
+					MACHINE_END

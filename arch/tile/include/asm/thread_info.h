@@ -24,7 +24,8 @@
  * Low level task data that assembly code needs immediate access to.
  * The structure is placed at the bottom of the supervisor stack.
  */
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	unsigned long		status;		/* thread-synchronous flags */
@@ -49,15 +50,15 @@ struct thread_info {
  * macros/functions for gaining access to the thread information structure.
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-	.step_state	= NULL,			\
-	.align_ctl	= 0,			\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+															.step_state	= NULL,			\
+																	.align_ctl	= 0,			\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -65,9 +66,9 @@ struct thread_info {
 #endif /* !__ASSEMBLY__ */
 
 #if PAGE_SIZE < 8192
-#define THREAD_SIZE_ORDER (13 - PAGE_SHIFT)
+	#define THREAD_SIZE_ORDER (13 - PAGE_SHIFT)
 #else
-#define THREAD_SIZE_ORDER (0)
+	#define THREAD_SIZE_ORDER (0)
 #endif
 #define THREAD_SIZE_PAGES (1 << THREAD_SIZE_ORDER)
 
@@ -84,7 +85,7 @@ void arch_release_thread_stack(unsigned long *stack);
 register unsigned long stack_pointer __asm__("sp");
 
 #define current_thread_info() \
-  ((struct thread_info *)(stack_pointer & -THREAD_SIZE))
+	((struct thread_info *)(stack_pointer & -THREAD_SIZE))
 
 /* Sit on a nap instruction until interrupted. */
 extern void smp_nap(void);
@@ -101,9 +102,9 @@ extern void _cpu_idle(void);
  * like to guarantee that the macro expands to exactly one instruction.
  */
 #ifdef __tilegx__
-#define EXTRACT_THREAD_INFO(reg) mm reg, zero, LOG2_THREAD_SIZE, 63
+	#define EXTRACT_THREAD_INFO(reg) mm reg, zero, LOG2_THREAD_SIZE, 63
 #else
-#define GET_THREAD_INFO(reg) mm reg, sp, zero, LOG2_THREAD_SIZE, 31
+	#define GET_THREAD_INFO(reg) mm reg, sp, zero, LOG2_THREAD_SIZE, 31
 #endif
 
 #endif /* !__ASSEMBLY__ */
@@ -164,7 +165,7 @@ extern void _cpu_idle(void);
  * have to worry about atomic accesses.
  */
 #ifdef __tilegx__
-#define TS_COMPAT		0x0001	/* 32-bit compatibility mode */
+	#define TS_COMPAT		0x0001	/* 32-bit compatibility mode */
 #endif
 
 #endif /* _ASM_TILE_THREAD_INFO_H */

@@ -28,13 +28,17 @@ static void __init sni_pcimt_sc_init(void)
 	unsigned int scsiz, sc_size;
 
 	scsiz = cacheconf & 7;
-	if (scsiz == 0) {
+
+	if (scsiz == 0)
+	{
 		printk("Second level cache is deactivated.\n");
 		return;
 	}
-	if (scsiz >= 6) {
+
+	if (scsiz >= 6)
+	{
 		printk("Invalid second level cache size configured, "
-		       "deactivating second level cache.\n");
+			   "deactivating second level cache.\n");
 		cacheconf = 0;
 		return;
 	}
@@ -58,9 +62,11 @@ static inline void sni_pcimt_detect(void)
 	csmsr = *(volatile unsigned char *)PCIMT_CSMSR;
 
 	p += sprintf(p, "%s PCI", (csmsr & 0x80) ? "RM200" : "RM300");
+
 	if ((csmsr & 0x80) == 0)
 		p += sprintf(p, ", board revision %s",
-			     (csmsr & 0x20) ? "D" : "C");
+					 (csmsr & 0x20) ? "D" : "C");
+
 	asic = csmsr & 0x80;
 	asic = (csmsr & 0x08) ? asic : !asic;
 	p += sprintf(p, ", ASIC PCI Rev %s", asic ? "1.0" : "1.1");
@@ -70,19 +76,21 @@ static inline void sni_pcimt_detect(void)
 #define PORT(_base,_irq)				\
 	{						\
 		.iobase		= _base,		\
-		.irq		= _irq,			\
-		.uartclk	= 1843200,		\
-		.iotype		= UPIO_PORT,		\
-		.flags		= UPF_BOOT_AUTOCONF,	\
+					  .irq		= _irq,			\
+									.uartclk	= 1843200,		\
+											.iotype		= UPIO_PORT,		\
+													.flags		= UPF_BOOT_AUTOCONF,	\
 	}
 
-static struct plat_serial8250_port pcimt_data[] = {
+static struct plat_serial8250_port pcimt_data[] =
+{
 	PORT(0x3f8, 4),
 	PORT(0x2f8, 3),
 	{ },
 };
 
-static struct platform_device pcimt_serial8250_device = {
+static struct platform_device pcimt_serial8250_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -90,7 +98,8 @@ static struct platform_device pcimt_serial8250_device = {
 	},
 };
 
-static struct resource pcimt_cmos_rsrc[] = {
+static struct resource pcimt_cmos_rsrc[] =
+{
 	{
 		.start = 0x70,
 		.end   = 0x71,
@@ -103,21 +112,24 @@ static struct resource pcimt_cmos_rsrc[] = {
 	}
 };
 
-static struct platform_device pcimt_cmos_device = {
+static struct platform_device pcimt_cmos_device =
+{
 	.name		= "rtc_cmos",
 	.num_resources	= ARRAY_SIZE(pcimt_cmos_rsrc),
 	.resource	= pcimt_cmos_rsrc
 };
 
 
-static struct resource sni_io_resource = {
+static struct resource sni_io_resource =
+{
 	.start	= 0x00000000UL,
 	.end	= 0x03bfffffUL,
 	.name	= "PCIMT IO MEM",
 	.flags	= IORESOURCE_IO,
 };
 
-static struct resource pcimt_io_resources[] = {
+static struct resource pcimt_io_resources[] =
+{
 	{
 		.start	= 0x00,
 		.end	= 0x1f,
@@ -151,7 +163,8 @@ static struct resource pcimt_io_resources[] = {
 	}
 };
 
-static struct resource pcimt_mem_resources[] = {
+static struct resource pcimt_mem_resources[] =
+{
 	{
 		/*
 		 * this region should only be 4 bytes long,
@@ -164,7 +177,8 @@ static struct resource pcimt_mem_resources[] = {
 	}
 };
 
-static struct resource sni_mem_resource = {
+static struct resource sni_mem_resource =
+{
 	.start	= 0x18000000UL,
 	.end	= 0x1fbfffffUL,
 	.name	= "PCIMT PCI MEM",
@@ -177,16 +191,22 @@ static void __init sni_pcimt_resource_init(void)
 
 	/* request I/O space for devices used on all i[345]86 PCs */
 	for (i = 0; i < ARRAY_SIZE(pcimt_io_resources); i++)
+	{
 		request_resource(&sni_io_resource, pcimt_io_resources + i);
+	}
+
 	/* request MEM space for devices used on all i[345]86 PCs */
 	for (i = 0; i < ARRAY_SIZE(pcimt_mem_resources); i++)
+	{
 		request_resource(&sni_mem_resource, pcimt_mem_resources + i);
+	}
 }
 
 extern struct pci_ops sni_pcimt_ops;
 
 #ifdef CONFIG_PCI
-static struct pci_controller sni_controller = {
+static struct pci_controller sni_controller =
+{
 	.pci_ops	= &sni_pcimt_ops,
 	.mem_resource	= &sni_mem_resource,
 	.mem_offset	= 0x00000000UL,
@@ -210,7 +230,8 @@ void disable_pcimt_irq(struct irq_data *d)
 	*(volatile u8 *) PCIMT_IRQSEL &= mask;
 }
 
-static struct irq_chip pcimt_irq_type = {
+static struct irq_chip pcimt_irq_type =
+{
 	.name = "PCIMT",
 	.irq_mask = disable_pcimt_irq,
 	.irq_unmask = enable_pcimt_irq,
@@ -235,7 +256,8 @@ static void pcimt_hwint1(void)
 	u8 pend = *(volatile char *)PCIMT_CSITPEND;
 	unsigned long flags;
 
-	if (pend & IT_EISA) {
+	if (pend & IT_EISA)
+	{
 		int irq;
 		/*
 		 * Note: ASIC PCI's builtin interrupt acknowledge feature is
@@ -243,13 +265,17 @@ static void pcimt_hwint1(void)
 		 * interrupts, so don't use PCIMT_INT_ACKNOWLEDGE ...
 		 */
 		irq = i8259_irq();
+
 		if (unlikely(irq < 0))
+		{
 			return;
+		}
 
 		do_IRQ(irq);
 	}
 
-	if (!(pend & IT_SCSI)) {
+	if (!(pend & IT_SCSI))
+	{
 		flags = read_c0_status();
 		clear_c0_status(ST0_IM);
 		do_IRQ(PCIMT_IRQ_SCSI);
@@ -278,14 +304,23 @@ static void sni_pcimt_hwint(void)
 	u32 pending = read_c0_cause() & read_c0_status();
 
 	if (pending & C_IRQ5)
+	{
 		do_IRQ(MIPS_CPU_IRQ_BASE + 7);
+	}
 	else if (pending & C_IRQ4)
+	{
 		do_IRQ(MIPS_CPU_IRQ_BASE + 6);
+	}
 	else if (pending & C_IRQ3)
+	{
 		pcimt_hwint3();
+	}
 	else if (pending & C_IRQ1)
+	{
 		pcimt_hwint1();
-	else if (pending & C_IRQ0) {
+	}
+	else if (pending & C_IRQ0)
+	{
 		pcimt_hwint0();
 	}
 }
@@ -296,11 +331,15 @@ void __init sni_pcimt_irq_init(void)
 
 	*(volatile u8 *) PCIMT_IRQSEL = IT_ETH | IT_EISA;
 	mips_cpu_irq_init();
+
 	/* Actually we've got more interrupts to handle ...  */
 	for (i = PCIMT_IRQ_INT2; i <= PCIMT_IRQ_SCSI; i++)
+	{
 		irq_set_chip_and_handler(i, &pcimt_irq_type, handle_level_irq);
+	}
+
 	sni_hwint = sni_pcimt_hwint;
-	change_c0_status(ST0_IM, IE_IRQ1|IE_IRQ3);
+	change_c0_status(ST0_IM, IE_IRQ1 | IE_IRQ3);
 }
 
 void __init sni_pcimt_init(void)
@@ -317,13 +356,14 @@ void __init sni_pcimt_init(void)
 
 static int __init snirm_pcimt_setup_devinit(void)
 {
-	switch (sni_brd_type) {
-	case SNI_BRD_PCI_MTOWER:
-	case SNI_BRD_PCI_DESKTOP:
-	case SNI_BRD_PCI_MTOWER_CPLUS:
-		platform_device_register(&pcimt_serial8250_device);
-		platform_device_register(&pcimt_cmos_device);
-		break;
+	switch (sni_brd_type)
+	{
+		case SNI_BRD_PCI_MTOWER:
+		case SNI_BRD_PCI_DESKTOP:
+		case SNI_BRD_PCI_MTOWER_CPLUS:
+			platform_device_register(&pcimt_serial8250_device);
+			platform_device_register(&pcimt_cmos_device);
+			break;
 	}
 
 	return 0;

@@ -29,7 +29,8 @@
 #include "iomux-mx3.h"
 #include "ulpi.h"
 
-static unsigned int devboard_pins[] = {
+static unsigned int devboard_pins[] =
+{
 	/* UART1 */
 	MX31_PIN_CTS2__CTS2, MX31_PIN_RTS2__RTS2,
 	MX31_PIN_TXD2__TXD2, MX31_PIN_RXD2__RXD2,
@@ -49,7 +50,8 @@ static unsigned int devboard_pins[] = {
 	MX31_PIN_RI_DCE1__GPIO2_10, MX31_PIN_DCD_DCE1__GPIO2_11,
 };
 
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
@@ -62,26 +64,36 @@ static int devboard_sdhc2_get_ro(struct device *dev)
 }
 
 static int devboard_sdhc2_init(struct device *dev, irq_handler_t detect_irq,
-		void *data)
+							   void *data)
 {
 	int ret;
 
 	ret = gpio_request(SDHC2_CD, "sdhc-detect");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	gpio_direction_input(SDHC2_CD);
 
 	ret = gpio_request(SDHC2_WP, "sdhc-wp");
+
 	if (ret)
+	{
 		goto err_gpio_free;
+	}
+
 	gpio_direction_input(SDHC2_WP);
 
 	ret = request_irq(gpio_to_irq(SDHC2_CD), detect_irq,
-		IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-		"sdhc2-card-detect", data);
+					  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+					  "sdhc2-card-detect", data);
+
 	if (ret)
+	{
 		goto err_gpio_free_2;
+	}
 
 	return 0;
 
@@ -100,7 +112,8 @@ static void devboard_sdhc2_exit(struct device *dev, void *data)
 	gpio_free(SDHC2_CD);
 }
 
-static const struct imxmmc_platform_data sdhc2_pdata __initconst = {
+static const struct imxmmc_platform_data sdhc2_pdata __initconst =
+{
 	.get_ro	= devboard_sdhc2_get_ro,
 	.init	= devboard_sdhc2_init,
 	.exit	= devboard_sdhc2_exit,
@@ -113,28 +126,32 @@ static const struct imxmmc_platform_data sdhc2_pdata __initconst = {
 
 static void devboard_init_sel_gpios(void)
 {
-	if (!gpio_request(SEL0, "sel0")) {
+	if (!gpio_request(SEL0, "sel0"))
+	{
 		gpio_direction_input(SEL0);
 		gpio_export(SEL0, true);
 	}
 
-	if (!gpio_request(SEL1, "sel1")) {
+	if (!gpio_request(SEL1, "sel1"))
+	{
 		gpio_direction_input(SEL1);
 		gpio_export(SEL1, true);
 	}
 
-	if (!gpio_request(SEL2, "sel2")) {
+	if (!gpio_request(SEL2, "sel2"))
+	{
 		gpio_direction_input(SEL2);
 		gpio_export(SEL2, true);
 	}
 
-	if (!gpio_request(SEL3, "sel3")) {
+	if (!gpio_request(SEL3, "sel3"))
+	{
 		gpio_direction_input(SEL3);
 		gpio_export(SEL3, true);
 	}
 }
 #define USB_PAD_CFG (PAD_CTL_DRV_MAX | PAD_CTL_SRE_FAST | PAD_CTL_HYS_CMOS | \
-			PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
+					 PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
 
 static int devboard_usbh1_hw_init(struct platform_device *pdev)
 {
@@ -152,7 +169,7 @@ static int devboard_usbh1_hw_init(struct platform_device *pdev)
 	mdelay(10);
 
 	return mx31_initialize_usb_hw(pdev->id, MXC_EHCI_POWER_PINS_ENABLED |
-			MXC_EHCI_INTERFACE_SINGLE_UNI);
+								  MXC_EHCI_INTERFACE_SINGLE_UNI);
 }
 
 #define USBH1_VBUSEN_B	IOMUX_TO_GPIO(MX31_PIN_NFRE_B)
@@ -161,16 +178,23 @@ static int devboard_usbh1_hw_init(struct platform_device *pdev)
 static int devboard_isp1105_init(struct usb_phy *otg)
 {
 	int ret = gpio_request(USBH1_MODE, "usbh1-mode");
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/* single ended */
 	gpio_direction_output(USBH1_MODE, 0);
 
 	ret = gpio_request(USBH1_VBUSEN_B, "usbh1-vbusen");
-	if (ret) {
+
+	if (ret)
+	{
 		gpio_free(USBH1_MODE);
 		return ret;
 	}
+
 	gpio_direction_output(USBH1_VBUSEN_B, 1);
 
 	return 0;
@@ -180,14 +204,19 @@ static int devboard_isp1105_init(struct usb_phy *otg)
 static int devboard_isp1105_set_vbus(struct usb_otg *otg, bool on)
 {
 	if (on)
+	{
 		gpio_set_value(USBH1_VBUSEN_B, 0);
+	}
 	else
+	{
 		gpio_set_value(USBH1_VBUSEN_B, 1);
+	}
 
 	return 0;
 }
 
-static struct mxc_usbh_platform_data usbh1_pdata __initdata = {
+static struct mxc_usbh_platform_data usbh1_pdata __initdata =
+{
 	.init	= devboard_usbh1_hw_init,
 	.portsc	= MXC_EHCI_MODE_UTMI | MXC_EHCI_SERIAL,
 };
@@ -198,11 +227,16 @@ static int __init devboard_usbh1_init(void)
 	struct platform_device *pdev;
 
 	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	phy->otg = kzalloc(sizeof(struct usb_otg), GFP_KERNEL);
-	if (!phy->otg) {
+
+	if (!phy->otg)
+	{
 		kfree(phy);
 		return -ENOMEM;
 	}
@@ -219,7 +253,8 @@ static int __init devboard_usbh1_init(void)
 }
 
 
-static const struct fsl_usb2_platform_data usb_pdata __initconst = {
+static const struct fsl_usb2_platform_data usb_pdata __initconst =
+{
 	.operating_mode	= FSL_USB2_DR_DEVICE,
 	.phy_mode	= FSL_USB2_PHY_ULPI,
 };
@@ -232,7 +267,7 @@ void __init mx31moboard_devboard_init(void)
 	printk(KERN_INFO "Initializing mx31devboard peripherals\n");
 
 	mxc_iomux_setup_multiple_pins(devboard_pins, ARRAY_SIZE(devboard_pins),
-		"devboard");
+								  "devboard");
 
 	imx31_add_imx_uart1(&uart_pdata);
 

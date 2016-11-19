@@ -21,15 +21,15 @@
 #include <linux/types.h>
 
 #ifdef CONFIG_ETRAX_ARCH_V32
-#include <hwregs/reg_rdwr.h>
-#include <hwregs/reg_map.h>
-#include <hwregs/ser_defs.h>
-#include <hwregs/pinmux_defs.h>
-#ifdef CONFIG_CRIS_MACH_ARTPEC3
-#include <hwregs/clkgen_defs.h>
-#endif
+	#include <hwregs/reg_rdwr.h>
+	#include <hwregs/reg_map.h>
+	#include <hwregs/ser_defs.h>
+	#include <hwregs/pinmux_defs.h>
+	#ifdef CONFIG_CRIS_MACH_ARTPEC3
+		#include <hwregs/clkgen_defs.h>
+	#endif
 #else
-#include <arch/svinto.h>
+	#include <arch/svinto.h>
 #endif
 
 /*
@@ -49,7 +49,7 @@ typedef unsigned short ush;
 typedef unsigned long  ulg;
 
 #define WSIZE 0x8000		/* Window size must be at least 32k, */
-				/* and a power of two */
+/* and a power of two */
 
 static uch *inbuf;	     /* input buffer */
 static uch window[WSIZE];    /* Sliding window buffer */
@@ -117,7 +117,7 @@ static unsigned long output_ptr;
 /* the "heap" is put directly after the BSS ends, at end */
 
 extern int _end;
-static long free_mem_ptr = (long)&_end;
+static long free_mem_ptr = (long) &_end;
 static long free_mem_end_ptr;
 
 #include "../../../../../lib/inflate.c"
@@ -130,7 +130,8 @@ static inline void serout(const char *s, reg_scope_instances regi_ser)
 	reg_ser_rs_stat_din rs;
 	reg_ser_rw_dout dout = {.data = *s};
 
-	do {
+	do
+	{
 		rs = REG_RD(ser, regi_ser, rs_stat_din);
 	}
 	while (!rs.tr_rdy);/* Wait for transceiver. */
@@ -153,7 +154,9 @@ static inline void serout(const char *s, reg_scope_instances regi_ser)
 static void aputs(const char *s)
 {
 #ifndef CONFIG_ETRAX_DEBUG_PORT_NULL
-	while (*s) {
+
+	while (*s)
+	{
 #ifdef CONFIG_ETRAX_DEBUG_PORT0
 		SEROUT(s, 0);
 #endif
@@ -167,15 +170,16 @@ static void aputs(const char *s)
 		SEROUT(s, 3);
 #endif
 	}
+
 #endif /* CONFIG_ETRAX_DEBUG_PORT_NULL */
 }
 
 void *memset(void *s, int c, size_t n)
 {
 	int i;
-	char *ss = (char*)s;
+	char *ss = (char *)s;
 
-	for (i=0;i<n;i++) ss[i] = c;
+	for (i = 0; i < n; i++) { ss[i] = c; }
 
 	return s;
 }
@@ -186,7 +190,9 @@ void *memcpy(void *__dest, __const void *__src, size_t __n)
 	char *d = (char *)__dest, *s = (char *)__src;
 
 	for (i = 0; i < __n; i++)
+	{
 		d[i] = s[i];
+	}
 
 	return __dest;
 }
@@ -204,12 +210,15 @@ static void flush_window(void)
 
 	in = window;
 	out = &output_data[output_ptr];
-	for (n = 0; n < outcnt; n++) {
+
+	for (n = 0; n < outcnt; n++)
+	{
 		ch = *out = *in;
 		out++;
 		in++;
 		c = crc_32_tab[((int)c ^ ch) & 0xff] ^ (c >> 8);
 	}
+
 	crc = c;
 	bytes_out += (ulg)outcnt;
 	output_ptr += (ulg)outcnt;
@@ -222,7 +231,7 @@ static void error(char *x)
 	aputs(x);
 	aputs("\n\n -- System halted\n");
 
-	while(1);	/* Halt */
+	while (1);	/* Halt */
 }
 
 void setup_normal_output_buffer(void)
@@ -361,13 +370,16 @@ void decompress_kernel(void)
 	makecrc();
 
 	__asm__ volatile ("move $vr,%0" : "=rm" (revision));
-	if (revision < compile_rev) {
+
+	if (revision < compile_rev)
+	{
 #ifdef CONFIG_ETRAX_ARCH_V32
 		aputs("You need at least ETRAX FS to run Linux 2.6/crisv32\n");
 #else
 		aputs("You need an ETRAX 100LX to run linux 2.6/crisv10\n");
 #endif
-		while(1);
+
+		while (1);
 	}
 
 	aputs("Uncompressing Linux...\n");

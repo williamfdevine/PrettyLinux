@@ -8,7 +8,8 @@
 #include <asm/kmap_types.h>
 #include <asm/pgtable.h>
 
-enum fixed_addresses {
+enum fixed_addresses
+{
 	FIX_EARLYCON_MEM_BASE,
 	__end_of_permanent_fixed_addresses,
 

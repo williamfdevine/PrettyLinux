@@ -21,7 +21,8 @@
 /* The list ends with an ATAG_NONE node. */
 #define ATAG_NONE	0x00000000
 
-struct tag_header {
+struct tag_header
+{
 	__u32 size;
 	__u32 tag;
 };
@@ -29,7 +30,8 @@ struct tag_header {
 /* The list must start with an ATAG_CORE node */
 #define ATAG_CORE	0x54410001
 
-struct tag_core {
+struct tag_core
+{
 	__u32 flags;		/* bit 0 = read-only */
 	__u32 pagesize;
 	__u32 rootdev;
@@ -38,7 +40,8 @@ struct tag_core {
 /* it is allowed to have multiple ATAG_MEM nodes */
 #define ATAG_MEM	0x54410002
 
-struct tag_mem32 {
+struct tag_mem32
+{
 	__u32	size;
 	__u32	start;	/* physical start address */
 };
@@ -46,7 +49,8 @@ struct tag_mem32 {
 /* VGA text type displays */
 #define ATAG_VIDEOTEXT	0x54410003
 
-struct tag_videotext {
+struct tag_videotext
+{
 	__u8		x;
 	__u8		y;
 	__u16		video_page;
@@ -61,7 +65,8 @@ struct tag_videotext {
 /* describes how the ramdisk will be used in kernel */
 #define ATAG_RAMDISK	0x54410004
 
-struct tag_ramdisk {
+struct tag_ramdisk
+{
 	__u32 flags;	/* bit 0 = load, bit 1 = prompt */
 	__u32 size;	/* decompressed ramdisk size in _kilo_ bytes */
 	__u32 start;	/* starting block of floppy-based RAM disk image */
@@ -77,7 +82,8 @@ struct tag_ramdisk {
 /* describes where the compressed ramdisk image lives (physical address) */
 #define ATAG_INITRD2	0x54420005
 
-struct tag_initrd {
+struct tag_initrd
+{
 	__u32 start;	/* physical start address */
 	__u32 size;	/* size of compressed ramdisk image in bytes */
 };
@@ -85,7 +91,8 @@ struct tag_initrd {
 /* board serial number. "64 bits should be enough for everybody" */
 #define ATAG_SERIAL	0x54410006
 
-struct tag_serialnr {
+struct tag_serialnr
+{
 	__u32 low;
 	__u32 high;
 };
@@ -93,7 +100,8 @@ struct tag_serialnr {
 /* board revision */
 #define ATAG_REVISION	0x54410007
 
-struct tag_revision {
+struct tag_revision
+{
 	__u32 rev;
 };
 
@@ -102,7 +110,8 @@ struct tag_revision {
  */
 #define ATAG_VIDEOLFB	0x54410008
 
-struct tag_videolfb {
+struct tag_videolfb
+{
 	__u16		lfb_width;
 	__u16		lfb_height;
 	__u16		lfb_depth;
@@ -122,14 +131,16 @@ struct tag_videolfb {
 /* command line: \0 terminated string */
 #define ATAG_CMDLINE	0x54410009
 
-struct tag_cmdline {
+struct tag_cmdline
+{
 	char	cmdline[1];	/* this is the minimum size */
 };
 
 /* acorn RiscPC specific information */
 #define ATAG_ACORN	0x41000101
 
-struct tag_acorn {
+struct tag_acorn
+{
 	__u32 memc_control_reg;
 	__u32 vram_pages;
 	__u8 sounddefault;
@@ -139,13 +150,16 @@ struct tag_acorn {
 /* footbridge memory clock, see arch/arm/mach-footbridge/arch.c */
 #define ATAG_MEMCLK	0x41000402
 
-struct tag_memclk {
+struct tag_memclk
+{
 	__u32 fmemclk;
 };
 
-struct tag {
+struct tag
+{
 	struct tag_header hdr;
-	union {
+	union
+	{
 		struct tag_core		core;
 		struct tag_mem32	mem;
 		struct tag_videotext	videotext;
@@ -168,14 +182,15 @@ struct tag {
 	} u;
 };
 
-struct tagtable {
+struct tagtable
+{
 	__u32 tag;
 	int (*parse)(const struct tag *);
 };
 
 #define tag_member_present(tag,member)				\
 	((unsigned long)(&((struct tag *)0L)->member + 1)	\
-		<= (tag)->hdr.size * 4)
+	 <= (tag)->hdr.size * 4)
 
 #define tag_next(t)	((struct tag *)((__u32 *)(t) + (t)->hdr.size))
 #define tag_size(type)	((sizeof(struct tag_header) + sizeof(struct type)) >> 2)

@@ -62,17 +62,17 @@
 /* deal with the registers that move under the 2412/2413 */
 
 #if defined(CONFIG_CPU_S3C2412) || defined(CONFIG_CPU_S3C2413)
-#ifndef __ASSEMBLY__
-extern void __iomem *s3c24xx_va_gpio2;
-#endif
-#ifdef CONFIG_CPU_S3C2412_ONLY
-#define S3C24XX_VA_GPIO2	(S3C24XX_VA_GPIO + 0x10)
+	#ifndef __ASSEMBLY__
+		extern void __iomem *s3c24xx_va_gpio2;
+	#endif
+	#ifdef CONFIG_CPU_S3C2412_ONLY
+		#define S3C24XX_VA_GPIO2	(S3C24XX_VA_GPIO + 0x10)
+	#else
+		#define S3C24XX_VA_GPIO2 s3c24xx_va_gpio2
+	#endif
 #else
-#define S3C24XX_VA_GPIO2 s3c24xx_va_gpio2
-#endif
-#else
-#define s3c24xx_va_gpio2 S3C24XX_VA_GPIO
-#define S3C24XX_VA_GPIO2 S3C24XX_VA_GPIO
+	#define s3c24xx_va_gpio2 S3C24XX_VA_GPIO
+	#define S3C24XX_VA_GPIO2 S3C24XX_VA_GPIO
 #endif
 
 #include <plat/map-s5p.h>

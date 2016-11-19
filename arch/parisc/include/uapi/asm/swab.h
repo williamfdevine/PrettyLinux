@@ -9,9 +9,9 @@
 static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
 {
 	__asm__("dep %0, 15, 8, %0\n\t"		/* deposit 00ab -> 0bab */
-		"shd %%r0, %0, 8, %0"		/* shift 000000ab -> 00ba */
-		: "=r" (x)
-		: "0" (x));
+			"shd %%r0, %0, 8, %0"		/* shift 000000ab -> 00ba */
+			: "=r" (x)
+			: "0" (x));
 	return x;
 }
 #define __arch_swab16 __arch_swab16
@@ -19,10 +19,10 @@ static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
 static inline __attribute_const__ __u32 __arch_swab24(__u32 x)
 {
 	__asm__("shd %0, %0, 8, %0\n\t"		/* shift xabcxabc -> cxab */
-		"dep %0, 15, 8, %0\n\t"		/* deposit cxab -> cbab */
-		"shd %%r0, %0, 8, %0"		/* shift 0000cbab -> 0cba */
-		: "=r" (x)
-		: "0" (x));
+			"dep %0, 15, 8, %0\n\t"		/* deposit cxab -> cbab */
+			"shd %%r0, %0, 8, %0"		/* shift 0000cbab -> 0cba */
+			: "=r" (x)
+			: "0" (x));
 	return x;
 }
 
@@ -30,10 +30,10 @@ static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
 {
 	unsigned int temp;
 	__asm__("shd %0, %0, 16, %1\n\t"	/* shift abcdabcd -> cdab */
-		"dep %1, 15, 8, %1\n\t"		/* deposit cdab -> cbab */
-		"shd %0, %1, 8, %0"		/* shift abcdcbab -> dcba */
-		: "=r" (x), "=&r" (temp)
-		: "0" (x));
+			"dep %1, 15, 8, %1\n\t"		/* deposit cdab -> cbab */
+			"shd %0, %1, 8, %0"		/* shift abcdcbab -> dcba */
+			: "=r" (x), "=&r" (temp)
+			: "0" (x));
 	return x;
 }
 #define __arch_swab32 __arch_swab32
@@ -53,11 +53,11 @@ static inline __attribute_const__ __u64 __arch_swab64(__u64 x)
 {
 	__u64 temp;
 	__asm__("permh,3210 %0, %0\n\t"
-		"hshl %0, 8, %1\n\t"
-		"hshr,u %0, 8, %0\n\t"
-		"or %1, %0, %0"
-		: "=r" (x), "=&r" (temp)
-		: "0" (x));
+			"hshl %0, 8, %1\n\t"
+			"hshr,u %0, 8, %0\n\t"
+			"or %1, %0, %0"
+			: "=r" (x), "=&r" (temp)
+			: "0" (x));
 	return x;
 }
 #define __arch_swab64 __arch_swab64

@@ -28,7 +28,8 @@ DEFINE_CLK(mcfuart0, "mcfuart.0", MCF_BUSCLK);
 DEFINE_CLK(mcfuart1, "mcfuart.1", MCF_BUSCLK);
 DEFINE_CLK(mcfqspi0, "mcfqspi.0", MCF_BUSCLK);
 
-struct clk *mcf_clks[] = {
+struct clk *mcf_clks[] =
+{
 	&clk_pll,
 	&clk_sys,
 	&clk_mcftmr0,
@@ -52,7 +53,7 @@ static void __init m525x_qspi_init(void)
 
 	/* QSPI irq setup */
 	writeb(MCFSIM_ICR_AUTOVEC | MCFSIM_ICR_LEVEL4 | MCFSIM_ICR_PRI0,
-	       MCFSIM_QSPIICR);
+		   MCFSIM_QSPIICR);
 	mcf_mapirq2imr(MCF_IRQ_QSPI, MCFINTC_QSPI);
 #endif /* IS_ENABLED(CONFIG_SPI_COLDFIRE_QSPI) */
 }
@@ -64,7 +65,7 @@ static void __init m525x_i2c_init(void)
 
 	/* first I2C controller uses regular irq setup */
 	writeb(MCFSIM_ICR_AUTOVEC | MCFSIM_ICR_LEVEL5 | MCFSIM_ICR_PRI0,
-		MCFSIM_I2CICR);
+		   MCFSIM_I2CICR);
 	mcf_mapirq2imr(MCF_IRQ_I2C0, MCFINTC_I2C);
 
 	/* second I2C controller is completely different */

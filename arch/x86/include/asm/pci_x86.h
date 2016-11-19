@@ -10,10 +10,10 @@
 #define DBG(fmt, ...) printk(fmt, ##__VA_ARGS__)
 #else
 #define DBG(fmt, ...)				\
-do {						\
-	if (0)					\
-		printk(fmt, ##__VA_ARGS__);	\
-} while (0)
+	do {						\
+		if (0)					\
+			printk(fmt, ##__VA_ARGS__);	\
+	} while (0)
 #endif
 
 #define PCI_PROBE_BIOS		0x0001
@@ -39,7 +39,8 @@ do {						\
 extern unsigned int pci_probe;
 extern unsigned long pirq_table_addr;
 
-enum pci_bf_sort_state {
+enum pci_bf_sort_state
+{
 	pci_bf_sort_default,
 	pci_force_nobf,
 	pci_force_bf,
@@ -60,9 +61,11 @@ void pcibios_scan_specific_bus(int busn);
 
 /* pci-irq.c */
 
-struct irq_info {
+struct irq_info
+{
 	u8 bus, devfn;			/* Bus, device and function */
-	struct {
+	struct
+	{
 		u8 link;		/* IRQ line ID, chipset dependent,
 					   0 = not routed */
 		u16 bitmap;		/* Available IRQs */
@@ -71,7 +74,8 @@ struct irq_info {
 	u8 rfu;
 } __attribute__((packed));
 
-struct irq_routing_table {
+struct irq_routing_table
+{
 	u32 signature;			/* PIRQ_SIGNATURE should be here */
 	u16 version;			/* PIRQ_VERSION */
 	u16 size;			/* Table size in bytes */
@@ -95,11 +99,12 @@ extern void (*pcibios_disable_irq)(struct pci_dev *dev);
 
 extern bool mp_should_keep_irq(struct device *dev);
 
-struct pci_raw_ops {
+struct pci_raw_ops
+{
 	int (*read)(unsigned int domain, unsigned int bus, unsigned int devfn,
-						int reg, int len, u32 *val);
+				int reg, int len, u32 *val);
 	int (*write)(unsigned int domain, unsigned int bus, unsigned int devfn,
-						int reg, int len, u32 val);
+				 int reg, int len, u32 val);
 };
 
 extern const struct pci_raw_ops *raw_pci_ops;
@@ -128,7 +133,8 @@ extern void pcibios_fixup_irqs(void);
 /* "PCI MMCONFIG %04x [bus %02x-%02x]" */
 #define PCI_MMCFG_RESOURCE_NAME_LEN (22 + 4 + 2 + 2)
 
-struct pci_mmcfg_region {
+struct pci_mmcfg_region
+{
 	struct list_head list;
 	struct resource res;
 	u64 address;
@@ -144,7 +150,7 @@ extern void __init pci_mmcfg_arch_free(void);
 extern int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg);
 extern void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg);
 extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
-			       phys_addr_t addr);
+							   phys_addr_t addr);
 extern int pci_mmconfig_delete(u16 seg, u8 start, u8 end);
 extern struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
 
@@ -196,15 +202,15 @@ static inline void mmio_config_writel(void __iomem *pos, u32 val)
 }
 
 #ifdef CONFIG_PCI
-# ifdef CONFIG_ACPI
-#  define x86_default_pci_init		pci_acpi_init
-# else
-#  define x86_default_pci_init		pci_legacy_init
-# endif
-# define x86_default_pci_init_irq	pcibios_irq_init
-# define x86_default_pci_fixup_irqs	pcibios_fixup_irqs
+	#ifdef CONFIG_ACPI
+		#define x86_default_pci_init		pci_acpi_init
+	#else
+		#define x86_default_pci_init		pci_legacy_init
+	#endif
+	#define x86_default_pci_init_irq	pcibios_irq_init
+	#define x86_default_pci_fixup_irqs	pcibios_fixup_irqs
 #else
-# define x86_default_pci_init		NULL
-# define x86_default_pci_init_irq	NULL
-# define x86_default_pci_fixup_irqs	NULL
+	#define x86_default_pci_init		NULL
+	#define x86_default_pci_init_irq	NULL
+	#define x86_default_pci_fixup_irqs	NULL
 #endif

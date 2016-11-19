@@ -28,7 +28,8 @@
  *
  */
 
-static const uint8_t __initconst pci_bus0_irq_routing[32][4] = {
+static const uint8_t __initconst pci_bus0_irq_routing[32][4] =
+{
 	[0 ] = { IRQ_FPGA_MB86943_PCI_INTA },
 	[16] = { IRQ_FPGA_RTL8029_INTA },
 	[17] = { IRQ_FPGA_PCI_INTC, IRQ_FPGA_PCI_INTD, IRQ_FPGA_PCI_INTA, IRQ_FPGA_PCI_INTB },
@@ -45,12 +46,16 @@ void __init pcibios_fixup_irqs(void)
 	struct pci_dev *dev = NULL;
 	uint8_t line, pin;
 
-	for_each_pci_dev(dev) {
+	for_each_pci_dev(dev)
+	{
 		pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
-		if (pin) {
+
+		if (pin)
+		{
 			dev->irq = pci_bus0_irq_routing[PCI_SLOT(dev->devfn)][pin - 1];
 			pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq);
 		}
+
 		pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &line);
 	}
 }

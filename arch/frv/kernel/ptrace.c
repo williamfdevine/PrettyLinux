@@ -38,29 +38,32 @@
  * retrieve the contents of FRV userspace general registers
  */
 static int genregs_get(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       void *kbuf, void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   void *kbuf, void __user *ubuf)
 {
 	const struct user_int_regs *iregs = &target->thread.user->i;
 	int ret;
 
 	ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				  iregs, 0, sizeof(*iregs));
+							  iregs, 0, sizeof(*iregs));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf,
-					sizeof(*iregs), -1);
+									sizeof(*iregs), -1);
 }
 
 /*
  * update the contents of the FRV userspace general registers
  */
 static int genregs_set(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       const void *kbuf, const void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   const void *kbuf, const void __user *ubuf)
 {
 	struct user_int_regs *iregs = &target->thread.user->i;
 	unsigned int offs_gr0, offs_gr1;
@@ -68,82 +71,101 @@ static int genregs_set(struct task_struct *target,
 
 	/* not allowed to set PSR or __status */
 	if (pos < offsetof(struct user_int_regs, psr) + sizeof(long) &&
-	    pos + count > offsetof(struct user_int_regs, psr))
+		pos + count > offsetof(struct user_int_regs, psr))
+	{
 		return -EIO;
+	}
 
 	if (pos < offsetof(struct user_int_regs, __status) + sizeof(long) &&
-	    pos + count > offsetof(struct user_int_regs, __status))
+		pos + count > offsetof(struct user_int_regs, __status))
+	{
 		return -EIO;
+	}
 
 	/* set the control regs */
 	offs_gr0 = offsetof(struct user_int_regs, gr[0]);
 	offs_gr1 = offsetof(struct user_int_regs, gr[1]);
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 iregs, 0, offs_gr0);
+							 iregs, 0, offs_gr0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* skip GR0/TBR */
 	ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-					offs_gr0, offs_gr1);
+									offs_gr0, offs_gr1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* set the general regs */
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 &iregs->gr[1], offs_gr1, sizeof(*iregs));
+							 &iregs->gr[1], offs_gr1, sizeof(*iregs));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-					sizeof(*iregs), -1);
+									 sizeof(*iregs), -1);
 }
 
 /*
  * retrieve the contents of FRV userspace FP/Media registers
  */
 static int fpmregs_get(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       void *kbuf, void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   void *kbuf, void __user *ubuf)
 {
 	const struct user_fpmedia_regs *fpregs = &target->thread.user->f;
 	int ret;
 
 	ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				  fpregs, 0, sizeof(*fpregs));
+							  fpregs, 0, sizeof(*fpregs));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf,
-					sizeof(*fpregs), -1);
+									sizeof(*fpregs), -1);
 }
 
 /*
  * update the contents of the FRV userspace FP/Media registers
  */
 static int fpmregs_set(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       const void *kbuf, const void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   const void *kbuf, const void __user *ubuf)
 {
 	struct user_fpmedia_regs *fpregs = &target->thread.user->f;
 	int ret;
 
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 fpregs, 0, sizeof(*fpregs));
+							 fpregs, 0, sizeof(*fpregs));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-					sizeof(*fpregs), -1);
+									 sizeof(*fpregs), -1);
 }
 
 /*
  * determine if the FP/Media registers have actually been used
  */
 static int fpmregs_active(struct task_struct *target,
-			  const struct user_regset *regset)
+						  const struct user_regset *regset)
 {
 	return tsk_used_math(target) ? regset->n : 0;
 }
@@ -151,12 +173,14 @@ static int fpmregs_active(struct task_struct *target,
 /*
  * Define the register sets available on the FRV under Linux
  */
-enum frv_regset {
+enum frv_regset
+{
 	REGSET_GENERAL,
 	REGSET_FPMEDIA,
 };
 
-static const struct user_regset frv_regsets[] = {
+static const struct user_regset frv_regsets[] =
+{
 	/*
 	 * General register format is:
 	 *	PSR, ISR, CCR, CCCR, LR, LCR, PC, (STATUS), SYSCALLNO, ORIG_G8
@@ -185,7 +209,8 @@ static const struct user_regset frv_regsets[] = {
 	},
 };
 
-static const struct user_regset_view user_frv_native_view = {
+static const struct user_regset_view user_frv_native_view =
+{
 	.name		= "frv",
 	.e_machine	= EM_FRV,
 	.regsets	= frv_regsets,
@@ -205,7 +230,9 @@ static inline long get_reg(struct task_struct *task, int regno)
 	struct user_context *user = task->thread.user;
 
 	if (regno < 0 || regno >= PT__END)
+	{
 		return 0;
+	}
 
 	return ((unsigned long *) user)[regno];
 }
@@ -214,22 +241,27 @@ static inline long get_reg(struct task_struct *task, int regno)
  * Write contents of register REGNO in task TASK.
  */
 static inline int put_reg(struct task_struct *task, int regno,
-			  unsigned long data)
+						  unsigned long data)
 {
 	struct user_context *user = task->thread.user;
 
 	if (regno < 0 || regno >= PT__END)
+	{
 		return -EIO;
+	}
 
-	switch (regno) {
-	case PT_GR(0):
-		return 0;
-	case PT_PSR:
-	case PT__STATUS:
-		return -EIO;
-	default:
-		((unsigned long *) user)[regno] = data;
-		return 0;
+	switch (regno)
+	{
+		case PT_GR(0):
+			return 0;
+
+		case PT_PSR:
+		case PT__STATUS:
+			return -EIO;
+
+		default:
+			((unsigned long *) user)[regno] = data;
+			return 0;
 	}
 }
 
@@ -254,97 +286,113 @@ void ptrace_disable(struct task_struct *child)
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	unsigned long tmp;
 	int ret;
 	int regno = addr >> 2;
 	unsigned long __user *datap = (unsigned long __user *) data;
 
-	switch (request) {
+	switch (request)
+	{
 		/* read the word at location addr in the USER area. */
-	case PTRACE_PEEKUSR: {
-		tmp = 0;
-		ret = -EIO;
-		if (addr & 3)
+		case PTRACE_PEEKUSR:
+			{
+				tmp = 0;
+				ret = -EIO;
+
+				if (addr & 3)
+				{
+					break;
+				}
+
+				ret = 0;
+
+				switch (regno)
+				{
+					case 0 ... PT__END - 1:
+						tmp = get_reg(child, regno);
+						break;
+
+					case PT__END + 0:
+						tmp = child->mm->end_code - child->mm->start_code;
+						break;
+
+					case PT__END + 1:
+						tmp = child->mm->end_data - child->mm->start_data;
+						break;
+
+					case PT__END + 2:
+						tmp = child->mm->start_stack - child->mm->start_brk;
+						break;
+
+					case PT__END + 3:
+						tmp = child->mm->start_code;
+						break;
+
+					case PT__END + 4:
+						tmp = child->mm->start_stack;
+						break;
+
+					default:
+						ret = -EIO;
+						break;
+				}
+
+				if (ret == 0)
+				{
+					ret = put_user(tmp, datap);
+				}
+
+				break;
+			}
+
+		case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+			ret = -EIO;
+
+			if (addr & 3)
+			{
+				break;
+			}
+
+			switch (regno)
+			{
+				case 0 ... PT__END - 1:
+					ret = put_reg(child, regno, data);
+					break;
+			}
+
 			break;
 
-		ret = 0;
-		switch (regno) {
-		case 0 ... PT__END - 1:
-			tmp = get_reg(child, regno);
-			break;
+		case PTRACE_GETREGS:	/* Get all integer regs from the child. */
+			return copy_regset_to_user(child, &user_frv_native_view,
+									   REGSET_GENERAL,
+									   0, sizeof(child->thread.user->i),
+									   datap);
 
-		case PT__END + 0:
-			tmp = child->mm->end_code - child->mm->start_code;
-			break;
+		case PTRACE_SETREGS:	/* Set all integer regs in the child. */
+			return copy_regset_from_user(child, &user_frv_native_view,
+										 REGSET_GENERAL,
+										 0, sizeof(child->thread.user->i),
+										 datap);
 
-		case PT__END + 1:
-			tmp = child->mm->end_data - child->mm->start_data;
-			break;
+		case PTRACE_GETFPREGS:	/* Get the child FP/Media state. */
+			return copy_regset_to_user(child, &user_frv_native_view,
+									   REGSET_FPMEDIA,
+									   0, sizeof(child->thread.user->f),
+									   datap);
 
-		case PT__END + 2:
-			tmp = child->mm->start_stack - child->mm->start_brk;
-			break;
-
-		case PT__END + 3:
-			tmp = child->mm->start_code;
-			break;
-
-		case PT__END + 4:
-			tmp = child->mm->start_stack;
-			break;
+		case PTRACE_SETFPREGS:	/* Set the child FP/Media state. */
+			return copy_regset_from_user(child, &user_frv_native_view,
+										 REGSET_FPMEDIA,
+										 0, sizeof(child->thread.user->f),
+										 datap);
 
 		default:
-			ret = -EIO;
+			ret = ptrace_request(child, request, addr, data);
 			break;
-		}
-
-		if (ret == 0)
-			ret = put_user(tmp, datap);
-		break;
 	}
 
-	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
-		ret = -EIO;
-		if (addr & 3)
-			break;
-
-		switch (regno) {
-		case 0 ... PT__END - 1:
-			ret = put_reg(child, regno, data);
-			break;
-		}
-		break;
-
-	case PTRACE_GETREGS:	/* Get all integer regs from the child. */
-		return copy_regset_to_user(child, &user_frv_native_view,
-					   REGSET_GENERAL,
-					   0, sizeof(child->thread.user->i),
-					   datap);
-
-	case PTRACE_SETREGS:	/* Set all integer regs in the child. */
-		return copy_regset_from_user(child, &user_frv_native_view,
-					     REGSET_GENERAL,
-					     0, sizeof(child->thread.user->i),
-					     datap);
-
-	case PTRACE_GETFPREGS:	/* Get the child FP/Media state. */
-		return copy_regset_to_user(child, &user_frv_native_view,
-					   REGSET_FPMEDIA,
-					   0, sizeof(child->thread.user->f),
-					   datap);
-
-	case PTRACE_SETFPREGS:	/* Set the child FP/Media state. */
-		return copy_regset_from_user(child, &user_frv_native_view,
-					     REGSET_FPMEDIA,
-					     0, sizeof(child->thread.user->f),
-					     datap);
-
-	default:
-		ret = ptrace_request(child, request, addr, data);
-		break;
-	}
 	return ret;
 }
 
@@ -355,7 +403,9 @@ long arch_ptrace(struct task_struct *child, long request,
 asmlinkage unsigned long syscall_trace_entry(void)
 {
 	__frame->__status |= REG__STATUS_SYSC_ENTRY;
-	if (tracehook_report_syscall_entry(__frame)) {
+
+	if (tracehook_report_syscall_entry(__frame))
+	{
 		/* tracing decided this syscall should not happen, so
 		 * We'll return a bogus call number to get an ENOSYS
 		 * error, but leave the original number in

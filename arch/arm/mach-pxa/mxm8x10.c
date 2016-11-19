@@ -232,7 +232,8 @@ GPIO95  -   SSP4_TXD
 GPIO96  -   SSP4_RXD
 */
 
-static mfp_cfg_t mfp_cfg[] __initdata = {
+static mfp_cfg_t mfp_cfg[] __initdata =
+{
 	/* USB */
 	GPIO10_UTM_CLK,
 	GPIO49_U2D_PHYDATA_0,
@@ -323,7 +324,8 @@ static mfp_cfg_t mfp_cfg[] __initdata = {
 
 /* MMC/MCI Support */
 #if defined(CONFIG_MMC)
-static struct pxamci_platform_data mxm_8x10_mci_platform_data = {
+static struct pxamci_platform_data mxm_8x10_mci_platform_data =
+{
 	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34,
 	.detect_delay_ms = 10,
 	.gpio_card_detect = MXM_8X10_SD_nCD,
@@ -338,7 +340,8 @@ void __init mxm_8x10_mmc_init(void)
 #endif
 
 /* USB Open Host Controller Interface */
-static struct pxaohci_platform_data mxm_8x10_ohci_platform_data = {
+static struct pxaohci_platform_data mxm_8x10_ohci_platform_data =
+{
 	.port_mode = PMM_NPS_MODE,
 	.flags = ENABLE_PORT_ALL
 };
@@ -349,7 +352,8 @@ void __init mxm_8x10_usb_host_init(void)
 }
 
 /* AC97 Sound Support */
-static struct platform_device mxm_8x10_ac97_device = {
+static struct platform_device mxm_8x10_ac97_device =
+{
 	.name = "pxa2xx-ac97"
 };
 
@@ -362,33 +366,35 @@ void __init mxm_8x10_ac97_init(void)
 #if defined(CONFIG_MTD_NAND_PXA3xx) || defined(CONFIG_MTD_NAND_PXA3xx_MODULE)
 #define NAND_BLOCK_SIZE SZ_128K
 #define NB(x)           (NAND_BLOCK_SIZE * (x))
-static struct mtd_partition mxm_8x10_nand_partitions[] = {
+static struct mtd_partition mxm_8x10_nand_partitions[] =
+{
 	[0] = {
-	       .name = "boot",
-	       .size = NB(0x002),
-	       .offset = NB(0x000),
-	       .mask_flags = MTD_WRITEABLE
+		.name = "boot",
+		.size = NB(0x002),
+		.offset = NB(0x000),
+		.mask_flags = MTD_WRITEABLE
 	},
 	[1] = {
-	       .name = "kernel",
-	       .size = NB(0x010),
-	       .offset = NB(0x002),
-	       .mask_flags = MTD_WRITEABLE
+		.name = "kernel",
+		.size = NB(0x010),
+		.offset = NB(0x002),
+		.mask_flags = MTD_WRITEABLE
 	},
 	[2] = {
-	       .name = "root",
-	       .size = NB(0x36c),
-	       .offset = NB(0x012)
+		.name = "root",
+		.size = NB(0x36c),
+		.offset = NB(0x012)
 	},
 	[3] = {
-	       .name = "bbt",
-	       .size = NB(0x082),
-	       .offset = NB(0x37e),
-	       .mask_flags = MTD_WRITEABLE
+		.name = "bbt",
+		.size = NB(0x082),
+		.offset = NB(0x37e),
+		.mask_flags = MTD_WRITEABLE
 	}
 };
 
-static struct pxa3xx_nand_platform_data mxm_8x10_nand_info = {
+static struct pxa3xx_nand_platform_data mxm_8x10_nand_info =
+{
 	.enable_arbiter	= 1,
 	.keep_config	= 1,
 	.num_cs		= 1,
@@ -405,29 +411,32 @@ static inline void mxm_8x10_nand_init(void) {}
 #endif /* CONFIG_MTD_NAND_PXA3xx || CONFIG_MTD_NAND_PXA3xx_MODULE */
 
 /* Ethernet support: Davicom DM9000 */
-static struct resource dm9k_resources[] = {
+static struct resource dm9k_resources[] =
+{
 	[0] = {
-	       .start = MXM_8X10_ETH_PHYS + 0x300,
-	       .end = MXM_8X10_ETH_PHYS + 0x300,
-	       .flags = IORESOURCE_MEM
+		.start = MXM_8X10_ETH_PHYS + 0x300,
+		.end = MXM_8X10_ETH_PHYS + 0x300,
+		.flags = IORESOURCE_MEM
 	},
 	[1] = {
-	       .start = MXM_8X10_ETH_PHYS + 0x308,
-	       .end = MXM_8X10_ETH_PHYS + 0x308,
-	       .flags = IORESOURCE_MEM
+		.start = MXM_8X10_ETH_PHYS + 0x308,
+		.end = MXM_8X10_ETH_PHYS + 0x308,
+		.flags = IORESOURCE_MEM
 	},
 	[2] = {
-	       .start = PXA_GPIO_TO_IRQ(mfp_to_gpio(MFP_PIN_GPIO9)),
-	       .end = PXA_GPIO_TO_IRQ(mfp_to_gpio(MFP_PIN_GPIO9)),
-	       .flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHEDGE
+		.start = PXA_GPIO_TO_IRQ(mfp_to_gpio(MFP_PIN_GPIO9)),
+		.end = PXA_GPIO_TO_IRQ(mfp_to_gpio(MFP_PIN_GPIO9)),
+		.flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHEDGE
 	}
 };
 
-static struct dm9000_plat_data dm9k_plat_data = {
+static struct dm9000_plat_data dm9k_plat_data =
+{
 	.flags = DM9000_PLATF_16BITONLY
 };
 
-static struct platform_device dm9k_device = {
+static struct platform_device dm9k_device =
+{
 	.name = "dm9000",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(dm9k_resources),
@@ -451,7 +460,8 @@ static void __init mxm_8x10_uarts_init(void)
 }
 
 /* I2C and Real Time Clock */
-static struct i2c_board_info __initdata mxm_8x10_i2c_devices[] = {
+static struct i2c_board_info __initdata mxm_8x10_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("ds1337", 0x68)
 	}
@@ -460,7 +470,7 @@ static struct i2c_board_info __initdata mxm_8x10_i2c_devices[] = {
 static void __init mxm_8x10_i2c_init(void)
 {
 	i2c_register_board_info(0, mxm_8x10_i2c_devices,
-				ARRAY_SIZE(mxm_8x10_i2c_devices));
+							ARRAY_SIZE(mxm_8x10_i2c_devices));
 	pxa_set_i2c_info(NULL);
 }
 

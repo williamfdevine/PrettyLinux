@@ -33,7 +33,8 @@ static int lsapic_retrigger(struct irq_data *data)
 	return 1;
 }
 
-struct irq_chip irq_type_ia64_lsapic = {
+struct irq_chip irq_type_ia64_lsapic =
+{
 	.name =			"LSAPIC",
 	.irq_startup =		lsapic_noop_startup,
 	.irq_shutdown =		lsapic_noop,

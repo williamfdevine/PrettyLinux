@@ -34,7 +34,8 @@
 
 #define MFPR_VIRT_BASE	(APB_VIRT_BASE + 0x1e000)
 
-static struct mfp_addr_map mmp2_addr_map[] __initdata = {
+static struct mfp_addr_map mmp2_addr_map[] __initdata =
+{
 
 	MFP_ADDR_X(GPIO0, GPIO58, 0x54),
 	MFP_ADDR_X(GPIO59, GPIO73, 0x280),
@@ -104,15 +105,16 @@ void __init mmp2_init_irq(void)
 
 static int __init mmp2_init(void)
 {
-	if (cpu_is_mmp2()) {
+	if (cpu_is_mmp2())
+	{
 #ifdef CONFIG_CACHE_TAUROS2
 		tauros2_init(0);
 #endif
 		mfp_init_base(MFPR_VIRT_BASE);
 		mfp_init_addr(mmp2_addr_map);
 		mmp2_clk_init(APB_PHYS_BASE + 0x50000,
-			      AXI_PHYS_BASE + 0x82800,
-			      APB_PHYS_BASE + 0x15000);
+					  AXI_PHYS_BASE + 0x82800,
+					  APB_PHYS_BASE + 0x15000);
 	}
 
 	return 0;
@@ -157,7 +159,8 @@ MMP2_DEVICE(asram, "asram", -1, NONE, 0xe0000000, 0x4000);
 /* 0xd1000000 ~ 0xd101ffff is reserved for secure processor */
 MMP2_DEVICE(isram, "isram", -1, NONE, 0xd1020000, 0x18000);
 
-struct resource mmp2_resource_gpio[] = {
+struct resource mmp2_resource_gpio[] =
+{
 	{
 		.start	= 0xd4019000,
 		.end	= 0xd4019fff,
@@ -170,7 +173,8 @@ struct resource mmp2_resource_gpio[] = {
 	},
 };
 
-struct platform_device mmp2_device_gpio = {
+struct platform_device mmp2_device_gpio =
+{
 	.name		= "mmp2-gpio",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(mmp2_resource_gpio),

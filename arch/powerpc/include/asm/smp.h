@@ -1,4 +1,4 @@
-/* 
+/*
  * smp.h: PowerPC-specific SMP code.
  *
  * Original was a copy of sparc smp.h.  Now heavily modified
@@ -25,7 +25,7 @@
 #ifndef __ASSEMBLY__
 
 #ifdef CONFIG_PPC64
-#include <asm/paca.h>
+	#include <asm/paca.h>
 #endif
 #include <asm/percpu.h>
 
@@ -37,7 +37,8 @@ extern int cpu_to_chip_id(int cpu);
 
 #ifdef CONFIG_SMP
 
-struct smp_ops_t {
+struct smp_ops_t
+{
 	void  (*message_pass)(int cpu, int msg);
 #ifdef CONFIG_PPC_SMP_MUXED_IPI
 	void  (*cause_ipi)(int cpu, unsigned long data);
@@ -61,15 +62,15 @@ extern void smp_generic_take_timebase(void);
 DECLARE_PER_CPU(unsigned int, cpu_pvr);
 
 #ifdef CONFIG_HOTPLUG_CPU
-extern void migrate_irqs(void);
-int generic_cpu_disable(void);
-void generic_cpu_die(unsigned int cpu);
-void generic_set_cpu_dead(unsigned int cpu);
-void generic_set_cpu_up(unsigned int cpu);
-int generic_check_cpu_restart(unsigned int cpu);
-int is_cpu_dead(unsigned int cpu);
+	extern void migrate_irqs(void);
+	int generic_cpu_disable(void);
+	void generic_cpu_die(unsigned int cpu);
+	void generic_set_cpu_dead(unsigned int cpu);
+	void generic_set_cpu_up(unsigned int cpu);
+	int generic_check_cpu_restart(unsigned int cpu);
+	int is_cpu_dead(unsigned int cpu);
 #else
-#define generic_set_cpu_up(i)	do { } while (0)
+	#define generic_set_cpu_up(i)	do { } while (0)
 #endif
 
 #ifdef CONFIG_PPC64

@@ -34,7 +34,7 @@ void pcibios_fixup_bus(struct pci_bus *bus)
  * We don't have to worry about legacy ISA devices, so nothing to do here
  */
 resource_size_t pcibios_align_resource(void *data, const struct resource *res,
-				resource_size_t size, resource_size_t align)
+									   resource_size_t size, resource_size_t align)
 {
 	return res->start;
 }
@@ -45,10 +45,16 @@ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
 int pcibios_alloc_irq(struct pci_dev *dev)
 {
 	if (acpi_disabled)
+	{
 		dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+	}
+
 #ifdef CONFIG_ACPI
 	else
+	{
 		return acpi_pci_irq_enable(dev);
+	}
+
 #endif
 
 	return 0;
@@ -58,22 +64,28 @@ int pcibios_alloc_irq(struct pci_dev *dev)
  * raw_pci_read/write - Platform-specific PCI config space access.
  */
 int raw_pci_read(unsigned int domain, unsigned int bus,
-		  unsigned int devfn, int reg, int len, u32 *val)
+				 unsigned int devfn, int reg, int len, u32 *val)
 {
 	struct pci_bus *b = pci_find_bus(domain, bus);
 
 	if (!b)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
+
 	return b->ops->read(b, devfn, reg, len, val);
 }
 
 int raw_pci_write(unsigned int domain, unsigned int bus,
-		unsigned int devfn, int reg, int len, u32 val)
+				  unsigned int devfn, int reg, int len, u32 val)
 {
 	struct pci_bus *b = pci_find_bus(domain, bus);
 
 	if (!b)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
+
 	return b->ops->write(b, devfn, reg, len, val);
 }
 
@@ -89,7 +101,8 @@ EXPORT_SYMBOL(pcibus_to_node);
 
 #ifdef CONFIG_ACPI
 
-struct acpi_pci_generic_root_info {
+struct acpi_pci_generic_root_info
+{
 	struct acpi_pci_root_info	common;
 	struct pci_config_window	*cfg;	/* config space mapping */
 };
@@ -105,7 +118,8 @@ int acpi_pci_bus_find_domain_nr(struct pci_bus *bus)
 
 int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
 {
-	if (!acpi_disabled) {
+	if (!acpi_disabled)
+	{
 		struct pci_config_window *cfg = bridge->bus->sysdata;
 		struct acpi_device *adev = to_acpi_device(cfg->parent);
 		ACPI_COMPANION_SET(&bridge->dev, adev);
@@ -129,11 +143,14 @@ pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root)
 
 	/* Use address from _CBA if present, otherwise lookup MCFG */
 	if (!root->mcfg_addr)
+	{
 		root->mcfg_addr = pci_mcfg_lookup(seg, bus_res);
+	}
 
-	if (!root->mcfg_addr) {
+	if (!root->mcfg_addr)
+	{
 		dev_err(&root->device->dev, "%04x:%pR ECAM region not found\n",
-			seg, bus_res);
+				seg, bus_res);
 		return NULL;
 	}
 
@@ -142,10 +159,12 @@ pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root)
 	cfgres.end = cfgres.start + resource_size(bus_res) * bsz - 1;
 	cfgres.flags = IORESOURCE_MEM;
 	cfg = pci_ecam_create(&root->device->dev, &cfgres, bus_res,
-			      &pci_generic_ecam_ops);
-	if (IS_ERR(cfg)) {
+						  &pci_generic_ecam_ops);
+
+	if (IS_ERR(cfg))
+	{
 		dev_err(&root->device->dev, "%04x:%pR error %ld mapping ECAM\n",
-			seg, bus_res, PTR_ERR(cfg));
+				seg, bus_res, PTR_ERR(cfg));
 		return NULL;
 	}
 
@@ -162,7 +181,8 @@ static void pci_acpi_generic_release_info(struct acpi_pci_root_info *ci)
 	kfree(ri);
 }
 
-static struct acpi_pci_root_ops acpi_pci_root_ops = {
+static struct acpi_pci_root_ops acpi_pci_root_ops =
+{
 	.release_info = pci_acpi_generic_release_info,
 };
 
@@ -174,26 +194,34 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
 	struct pci_bus *bus, *child;
 
 	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
+
 	if (!ri)
+	{
 		return NULL;
+	}
 
 	ri->cfg = pci_acpi_setup_ecam_mapping(root);
-	if (!ri->cfg) {
+
+	if (!ri->cfg)
+	{
 		kfree(ri);
 		return NULL;
 	}
 
 	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
 	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
-				   ri->cfg);
+							   ri->cfg);
+
 	if (!bus)
+	{
 		return NULL;
+	}
 
 	pci_bus_size_bridges(bus);
 	pci_bus_assign_resources(bus);
 
 	list_for_each_entry(child, &bus->children, node)
-		pcie_bus_configure_settings(child);
+	pcie_bus_configure_settings(child);
 
 	return bus;
 }

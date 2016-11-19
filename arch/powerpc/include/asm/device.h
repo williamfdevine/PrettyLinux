@@ -9,8 +9,8 @@
 struct dma_map_ops;
 struct device_node;
 #ifdef CONFIG_PPC64
-struct pci_dn;
-struct iommu_table;
+	struct pci_dn;
+	struct iommu_table;
 #endif
 
 /*
@@ -19,7 +19,8 @@ struct iommu_table;
  * When adding fields, consider macio_add_one_device in
  * drivers/macintosh/macio_asic.c
  */
-struct dev_archdata {
+struct dev_archdata
+{
 	/* DMA operations on that device */
 	struct dma_map_ops	*dma_ops;
 
@@ -54,7 +55,8 @@ struct dev_archdata {
 #endif
 };
 
-struct pdev_archdata {
+struct pdev_archdata
+{
 	u64 dma_mask;
 };
 

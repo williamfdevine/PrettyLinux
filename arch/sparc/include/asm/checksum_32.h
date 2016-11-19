@@ -50,64 +50,67 @@ csum_partial_copy_nocheck(const void *src, void *dst, int len, __wsum sum)
 	__asm__ __volatile__ (
 		"call __csum_partial_copy_sparc_generic\n\t"
 		" mov %6, %%g7\n"
-	: "=&r" (ret), "=&r" (d), "=&r" (l)
-	: "0" (ret), "1" (d), "2" (l), "r" (sum)
-	: "o2", "o3", "o4", "o5", "o7",
-	  "g2", "g3", "g4", "g5", "g7",
-	  "memory", "cc");
+		: "=&r" (ret), "=&r" (d), "=&r" (l)
+		: "0" (ret), "1" (d), "2" (l), "r" (sum)
+		: "o2", "o3", "o4", "o5", "o7",
+		"g2", "g3", "g4", "g5", "g7",
+		"memory", "cc");
 	return (__force __wsum)ret;
 }
 
 static inline __wsum
 csum_partial_copy_from_user(const void __user *src, void *dst, int len,
-			    __wsum sum, int *err)
-  {
+							__wsum sum, int *err)
+{
 	register unsigned long ret asm("o0") = (unsigned long)src;
 	register char *d asm("o1") = dst;
 	register int l asm("g1") = len;
 	register __wsum s asm("g7") = sum;
 
 	__asm__ __volatile__ (
-	".section __ex_table,#alloc\n\t"
-	".align 4\n\t"
-	".word 1f,2\n\t"
-	".previous\n"
-	"1:\n\t"
-	"call __csum_partial_copy_sparc_generic\n\t"
-	" st %8, [%%sp + 64]\n"
-	: "=&r" (ret), "=&r" (d), "=&r" (l), "=&r" (s)
-	: "0" (ret), "1" (d), "2" (l), "3" (s), "r" (err)
-	: "o2", "o3", "o4", "o5", "o7", "g2", "g3", "g4", "g5",
-	  "cc", "memory");
-	return (__force __wsum)ret;
-}
-
-static inline __wsum
-csum_partial_copy_to_user(const void *src, void __user *dst, int len,
-			  __wsum sum, int *err)
-{
-	if (!access_ok (VERIFY_WRITE, dst, len)) {
-		*err = -EFAULT;
-		return sum;
-	} else {
-		register unsigned long ret asm("o0") = (unsigned long)src;
-		register char __user *d asm("o1") = dst;
-		register int l asm("g1") = len;
-		register __wsum s asm("g7") = sum;
-
-		__asm__ __volatile__ (
 		".section __ex_table,#alloc\n\t"
 		".align 4\n\t"
-		".word 1f,1\n\t"
+		".word 1f,2\n\t"
 		".previous\n"
 		"1:\n\t"
 		"call __csum_partial_copy_sparc_generic\n\t"
 		" st %8, [%%sp + 64]\n"
 		: "=&r" (ret), "=&r" (d), "=&r" (l), "=&r" (s)
 		: "0" (ret), "1" (d), "2" (l), "3" (s), "r" (err)
-		: "o2", "o3", "o4", "o5", "o7",
-		  "g2", "g3", "g4", "g5",
-		  "cc", "memory");
+		: "o2", "o3", "o4", "o5", "o7", "g2", "g3", "g4", "g5",
+		"cc", "memory");
+	return (__force __wsum)ret;
+}
+
+static inline __wsum
+csum_partial_copy_to_user(const void *src, void __user *dst, int len,
+						  __wsum sum, int *err)
+{
+	if (!access_ok (VERIFY_WRITE, dst, len))
+	{
+		*err = -EFAULT;
+		return sum;
+	}
+	else
+	{
+		register unsigned long ret asm("o0") = (unsigned long)src;
+		register char __user *d asm("o1") = dst;
+		register int l asm("g1") = len;
+		register __wsum s asm("g7") = sum;
+
+		__asm__ __volatile__ (
+			".section __ex_table,#alloc\n\t"
+			".align 4\n\t"
+			".word 1f,1\n\t"
+			".previous\n"
+			"1:\n\t"
+			"call __csum_partial_copy_sparc_generic\n\t"
+			" st %8, [%%sp + 64]\n"
+			: "=&r" (ret), "=&r" (d), "=&r" (l), "=&r" (s)
+			: "0" (ret), "1" (d), "2" (l), "3" (s), "r" (err)
+			: "o2", "o3", "o4", "o5", "o7",
+			"g2", "g3", "g4", "g5",
+			"cc", "memory");
 		return (__force __wsum)ret;
 	}
 }
@@ -127,30 +130,30 @@ static inline __sum16 ip_fast_csum(const void *iph, unsigned int ihl)
 	 *       both operands.
 	 */
 	__asm__ __volatile__("sub\t%2, 4, %%g4\n\t"
-			     "ld\t[%1 + 0x00], %0\n\t"
-			     "ld\t[%1 + 0x04], %%g2\n\t"
-			     "ld\t[%1 + 0x08], %%g3\n\t"
-			     "addcc\t%%g2, %0, %0\n\t"
-			     "addxcc\t%%g3, %0, %0\n\t"
-			     "ld\t[%1 + 0x0c], %%g2\n\t"
-			     "ld\t[%1 + 0x10], %%g3\n\t"
-			     "addxcc\t%%g2, %0, %0\n\t"
-			     "addx\t%0, %%g0, %0\n"
-			     "1:\taddcc\t%%g3, %0, %0\n\t"
-			     "add\t%1, 4, %1\n\t"
-			     "addxcc\t%0, %%g0, %0\n\t"
-			     "subcc\t%%g4, 1, %%g4\n\t"
-			     "be,a\t2f\n\t"
-			     "sll\t%0, 16, %%g2\n\t"
-			     "b\t1b\n\t"
-			     "ld\t[%1 + 0x10], %%g3\n"
-			     "2:\taddcc\t%0, %%g2, %%g2\n\t"
-			     "srl\t%%g2, 16, %0\n\t"
-			     "addx\t%0, %%g0, %0\n\t"
-			     "xnor\t%%g0, %0, %0"
-			     : "=r" (sum), "=&r" (iph)
-			     : "r" (ihl), "1" (iph)
-			     : "g2", "g3", "g4", "cc", "memory");
+						 "ld\t[%1 + 0x00], %0\n\t"
+						 "ld\t[%1 + 0x04], %%g2\n\t"
+						 "ld\t[%1 + 0x08], %%g3\n\t"
+						 "addcc\t%%g2, %0, %0\n\t"
+						 "addxcc\t%%g3, %0, %0\n\t"
+						 "ld\t[%1 + 0x0c], %%g2\n\t"
+						 "ld\t[%1 + 0x10], %%g3\n\t"
+						 "addxcc\t%%g2, %0, %0\n\t"
+						 "addx\t%0, %%g0, %0\n"
+						 "1:\taddcc\t%%g3, %0, %0\n\t"
+						 "add\t%1, 4, %1\n\t"
+						 "addxcc\t%0, %%g0, %0\n\t"
+						 "subcc\t%%g4, 1, %%g4\n\t"
+						 "be,a\t2f\n\t"
+						 "sll\t%0, 16, %%g2\n\t"
+						 "b\t1b\n\t"
+						 "ld\t[%1 + 0x10], %%g3\n"
+						 "2:\taddcc\t%0, %%g2, %%g2\n\t"
+						 "srl\t%%g2, 16, %0\n\t"
+						 "addx\t%0, %%g0, %0\n\t"
+						 "xnor\t%%g0, %0, %0"
+						 : "=r" (sum), "=&r" (iph)
+						 : "r" (ihl), "1" (iph)
+						 : "g2", "g3", "g4", "cc", "memory");
 	return sum;
 }
 
@@ -160,27 +163,27 @@ static inline __sum16 csum_fold(__wsum sum)
 	unsigned int tmp;
 
 	__asm__ __volatile__("addcc\t%0, %1, %1\n\t"
-			     "srl\t%1, 16, %1\n\t"
-			     "addx\t%1, %%g0, %1\n\t"
-			     "xnor\t%%g0, %1, %0"
-			     : "=&r" (sum), "=r" (tmp)
-			     : "0" (sum), "1" ((__force u32)sum<<16)
-			     : "cc");
+						 "srl\t%1, 16, %1\n\t"
+						 "addx\t%1, %%g0, %1\n\t"
+						 "xnor\t%%g0, %1, %0"
+						 : "=&r" (sum), "=r" (tmp)
+						 : "0" (sum), "1" ((__force u32)sum<<16)
+						 : "cc");
 	return (__force __sum16)sum;
 }
 
 static inline __wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr,
-					__u32 len, __u8 proto,
-					__wsum sum)
+										__u32 len, __u8 proto,
+										__wsum sum)
 {
 	__asm__ __volatile__("addcc\t%1, %0, %0\n\t"
-			     "addxcc\t%2, %0, %0\n\t"
-			     "addxcc\t%3, %0, %0\n\t"
-			     "addx\t%0, %%g0, %0\n\t"
-			     : "=r" (sum), "=r" (saddr)
-			     : "r" (daddr), "r" (proto + len), "0" (sum),
-			       "1" (saddr)
-			     : "cc");
+						 "addxcc\t%2, %0, %0\n\t"
+						 "addxcc\t%3, %0, %0\n\t"
+						 "addx\t%0, %%g0, %0\n\t"
+						 : "=r" (sum), "=r" (saddr)
+						 : "r" (daddr), "r" (proto + len), "0" (sum),
+						 "1" (saddr)
+						 : "cc");
 	return sum;
 }
 
@@ -189,17 +192,17 @@ static inline __wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr,
  * returns a 16-bit checksum, already complemented
  */
 static inline __sum16 csum_tcpudp_magic(__be32 saddr, __be32 daddr,
-					__u32 len, __u8 proto,
-					__wsum sum)
+										__u32 len, __u8 proto,
+										__wsum sum)
 {
-	return csum_fold(csum_tcpudp_nofold(saddr,daddr,len,proto,sum));
+	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
 }
 
 #define _HAVE_ARCH_IPV6_CSUM
 
 static inline __sum16 csum_ipv6_magic(const struct in6_addr *saddr,
-				      const struct in6_addr *daddr,
-				      __u32 len, __u8 proto, __wsum sum)
+									  const struct in6_addr *daddr,
+									  __u32 len, __u8 proto, __wsum sum)
 {
 	__asm__ __volatile__ (
 		"addcc	%3, %4, %%g4\n\t"
@@ -223,7 +226,7 @@ static inline __sum16 csum_ipv6_magic(const struct in6_addr *saddr,
 		"addx	0, %0, %0\n"
 		: "=&r" (sum)
 		: "r" (saddr), "r" (daddr),
-		  "r"(htonl(len)), "r"(htonl(proto)), "r"(sum)
+		"r"(htonl(len)), "r"(htonl(proto)), "r"(sum)
 		: "g2", "g3", "g4", "cc");
 
 	return csum_fold(sum);

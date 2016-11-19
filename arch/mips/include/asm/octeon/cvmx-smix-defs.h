@@ -30,160 +30,183 @@
 
 static inline uint64_t CVMX_SMIX_CLK(unsigned long offset)
 {
-	switch (cvmx_get_octeon_family()) {
-	case OCTEON_CN30XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN50XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN38XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN31XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN58XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001818ull) + (offset) * 256;
-	case OCTEON_CNF71XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN61XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN56XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN66XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN52XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN63XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001818ull) + (offset) * 256;
-	case OCTEON_CN68XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000003818ull) + (offset) * 128;
+	switch (cvmx_get_octeon_family())
+	{
+		case OCTEON_CN30XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN50XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN38XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN31XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN58XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001818ull) + (offset) * 256;
+
+		case OCTEON_CNF71XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN61XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN56XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN66XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN52XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN63XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001818ull) + (offset) * 256;
+
+		case OCTEON_CN68XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000003818ull) + (offset) * 128;
 	}
+
 	return CVMX_ADD_IO_SEG(0x0001180000001818ull) + (offset) * 256;
 }
 
 static inline uint64_t CVMX_SMIX_CMD(unsigned long offset)
 {
-	switch (cvmx_get_octeon_family()) {
-	case OCTEON_CN30XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN50XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN38XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN31XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN58XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001800ull) + (offset) * 256;
-	case OCTEON_CNF71XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN61XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN56XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN66XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN52XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN63XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001800ull) + (offset) * 256;
-	case OCTEON_CN68XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000003800ull) + (offset) * 128;
+	switch (cvmx_get_octeon_family())
+	{
+		case OCTEON_CN30XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN50XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN38XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN31XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN58XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001800ull) + (offset) * 256;
+
+		case OCTEON_CNF71XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN61XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN56XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN66XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN52XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN63XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001800ull) + (offset) * 256;
+
+		case OCTEON_CN68XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000003800ull) + (offset) * 128;
 	}
+
 	return CVMX_ADD_IO_SEG(0x0001180000001800ull) + (offset) * 256;
 }
 
 static inline uint64_t CVMX_SMIX_EN(unsigned long offset)
 {
-	switch (cvmx_get_octeon_family()) {
-	case OCTEON_CN30XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN50XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN38XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN31XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN58XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001820ull) + (offset) * 256;
-	case OCTEON_CNF71XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN61XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN56XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN66XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN52XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN63XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001820ull) + (offset) * 256;
-	case OCTEON_CN68XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000003820ull) + (offset) * 128;
+	switch (cvmx_get_octeon_family())
+	{
+		case OCTEON_CN30XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN50XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN38XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN31XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN58XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001820ull) + (offset) * 256;
+
+		case OCTEON_CNF71XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN61XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN56XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN66XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN52XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN63XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001820ull) + (offset) * 256;
+
+		case OCTEON_CN68XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000003820ull) + (offset) * 128;
 	}
+
 	return CVMX_ADD_IO_SEG(0x0001180000001820ull) + (offset) * 256;
 }
 
 static inline uint64_t CVMX_SMIX_RD_DAT(unsigned long offset)
 {
-	switch (cvmx_get_octeon_family()) {
-	case OCTEON_CN30XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN50XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN38XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN31XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN58XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001810ull) + (offset) * 256;
-	case OCTEON_CNF71XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN61XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN56XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN66XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN52XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN63XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001810ull) + (offset) * 256;
-	case OCTEON_CN68XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000003810ull) + (offset) * 128;
+	switch (cvmx_get_octeon_family())
+	{
+		case OCTEON_CN30XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN50XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN38XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN31XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN58XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001810ull) + (offset) * 256;
+
+		case OCTEON_CNF71XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN61XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN56XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN66XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN52XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN63XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001810ull) + (offset) * 256;
+
+		case OCTEON_CN68XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000003810ull) + (offset) * 128;
 	}
+
 	return CVMX_ADD_IO_SEG(0x0001180000001810ull) + (offset) * 256;
 }
 
 static inline uint64_t CVMX_SMIX_WR_DAT(unsigned long offset)
 {
-	switch (cvmx_get_octeon_family()) {
-	case OCTEON_CN30XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN50XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN38XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN31XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN58XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001808ull) + (offset) * 256;
-	case OCTEON_CNF71XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN61XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN56XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN66XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN52XX & OCTEON_FAMILY_MASK:
-	case OCTEON_CN63XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000001808ull) + (offset) * 256;
-	case OCTEON_CN68XX & OCTEON_FAMILY_MASK:
-		return CVMX_ADD_IO_SEG(0x0001180000003808ull) + (offset) * 128;
+	switch (cvmx_get_octeon_family())
+	{
+		case OCTEON_CN30XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN50XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN38XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN31XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN58XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001808ull) + (offset) * 256;
+
+		case OCTEON_CNF71XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN61XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN56XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN66XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN52XX &OCTEON_FAMILY_MASK:
+		case OCTEON_CN63XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000001808ull) + (offset) * 256;
+
+		case OCTEON_CN68XX &OCTEON_FAMILY_MASK:
+			return CVMX_ADD_IO_SEG(0x0001180000003808ull) + (offset) * 128;
 	}
+
 	return CVMX_ADD_IO_SEG(0x0001180000001808ull) + (offset) * 256;
 }
 
-union cvmx_smix_clk {
+union cvmx_smix_clk
+{
 	uint64_t u64;
-	struct cvmx_smix_clk_s {
+	struct cvmx_smix_clk_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_25_63:39;
-		uint64_t mode:1;
-		uint64_t reserved_21_23:3;
-		uint64_t sample_hi:5;
-		uint64_t sample_mode:1;
-		uint64_t reserved_14_14:1;
-		uint64_t clk_idle:1;
-		uint64_t preamble:1;
-		uint64_t sample:4;
-		uint64_t phase:8;
+		uint64_t reserved_25_63: 39;
+		uint64_t mode: 1;
+		uint64_t reserved_21_23: 3;
+		uint64_t sample_hi: 5;
+		uint64_t sample_mode: 1;
+		uint64_t reserved_14_14: 1;
+		uint64_t clk_idle: 1;
+		uint64_t preamble: 1;
+		uint64_t sample: 4;
+		uint64_t phase: 8;
 #else
-		uint64_t phase:8;
-		uint64_t sample:4;
-		uint64_t preamble:1;
-		uint64_t clk_idle:1;
-		uint64_t reserved_14_14:1;
-		uint64_t sample_mode:1;
-		uint64_t sample_hi:5;
-		uint64_t reserved_21_23:3;
-		uint64_t mode:1;
-		uint64_t reserved_25_63:39;
+		uint64_t phase: 8;
+		uint64_t sample: 4;
+		uint64_t preamble: 1;
+		uint64_t clk_idle: 1;
+		uint64_t reserved_14_14: 1;
+		uint64_t sample_mode: 1;
+		uint64_t sample_hi: 5;
+		uint64_t reserved_21_23: 3;
+		uint64_t mode: 1;
+		uint64_t reserved_25_63: 39;
 #endif
 	} s;
-	struct cvmx_smix_clk_cn30xx {
+	struct cvmx_smix_clk_cn30xx
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_21_63:43;
-		uint64_t sample_hi:5;
-		uint64_t sample_mode:1;
-		uint64_t reserved_14_14:1;
-		uint64_t clk_idle:1;
-		uint64_t preamble:1;
-		uint64_t sample:4;
-		uint64_t phase:8;
+		uint64_t reserved_21_63: 43;
+		uint64_t sample_hi: 5;
+		uint64_t sample_mode: 1;
+		uint64_t reserved_14_14: 1;
+		uint64_t clk_idle: 1;
+		uint64_t preamble: 1;
+		uint64_t sample: 4;
+		uint64_t phase: 8;
 #else
-		uint64_t phase:8;
-		uint64_t sample:4;
-		uint64_t preamble:1;
-		uint64_t clk_idle:1;
-		uint64_t reserved_14_14:1;
-		uint64_t sample_mode:1;
-		uint64_t sample_hi:5;
-		uint64_t reserved_21_63:43;
+		uint64_t phase: 8;
+		uint64_t sample: 4;
+		uint64_t preamble: 1;
+		uint64_t clk_idle: 1;
+		uint64_t reserved_14_14: 1;
+		uint64_t sample_mode: 1;
+		uint64_t sample_hi: 5;
+		uint64_t reserved_21_63: 43;
 #endif
 	} cn30xx;
 	struct cvmx_smix_clk_cn30xx cn31xx;
@@ -205,40 +228,43 @@ union cvmx_smix_clk {
 	struct cvmx_smix_clk_s cnf71xx;
 };
 
-union cvmx_smix_cmd {
+union cvmx_smix_cmd
+{
 	uint64_t u64;
-	struct cvmx_smix_cmd_s {
+	struct cvmx_smix_cmd_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_18_63:46;
-		uint64_t phy_op:2;
-		uint64_t reserved_13_15:3;
-		uint64_t phy_adr:5;
-		uint64_t reserved_5_7:3;
-		uint64_t reg_adr:5;
+		uint64_t reserved_18_63: 46;
+		uint64_t phy_op: 2;
+		uint64_t reserved_13_15: 3;
+		uint64_t phy_adr: 5;
+		uint64_t reserved_5_7: 3;
+		uint64_t reg_adr: 5;
 #else
-		uint64_t reg_adr:5;
-		uint64_t reserved_5_7:3;
-		uint64_t phy_adr:5;
-		uint64_t reserved_13_15:3;
-		uint64_t phy_op:2;
-		uint64_t reserved_18_63:46;
+		uint64_t reg_adr: 5;
+		uint64_t reserved_5_7: 3;
+		uint64_t phy_adr: 5;
+		uint64_t reserved_13_15: 3;
+		uint64_t phy_op: 2;
+		uint64_t reserved_18_63: 46;
 #endif
 	} s;
-	struct cvmx_smix_cmd_cn30xx {
+	struct cvmx_smix_cmd_cn30xx
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_17_63:47;
-		uint64_t phy_op:1;
-		uint64_t reserved_13_15:3;
-		uint64_t phy_adr:5;
-		uint64_t reserved_5_7:3;
-		uint64_t reg_adr:5;
+		uint64_t reserved_17_63: 47;
+		uint64_t phy_op: 1;
+		uint64_t reserved_13_15: 3;
+		uint64_t phy_adr: 5;
+		uint64_t reserved_5_7: 3;
+		uint64_t reg_adr: 5;
 #else
-		uint64_t reg_adr:5;
-		uint64_t reserved_5_7:3;
-		uint64_t phy_adr:5;
-		uint64_t reserved_13_15:3;
-		uint64_t phy_op:1;
-		uint64_t reserved_17_63:47;
+		uint64_t reg_adr: 5;
+		uint64_t reserved_5_7: 3;
+		uint64_t phy_adr: 5;
+		uint64_t reserved_13_15: 3;
+		uint64_t phy_op: 1;
+		uint64_t reserved_17_63: 47;
 #endif
 	} cn30xx;
 	struct cvmx_smix_cmd_cn30xx cn31xx;
@@ -260,15 +286,17 @@ union cvmx_smix_cmd {
 	struct cvmx_smix_cmd_s cnf71xx;
 };
 
-union cvmx_smix_en {
+union cvmx_smix_en
+{
 	uint64_t u64;
-	struct cvmx_smix_en_s {
+	struct cvmx_smix_en_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_1_63:63;
-		uint64_t en:1;
+		uint64_t reserved_1_63: 63;
+		uint64_t en: 1;
 #else
-		uint64_t en:1;
-		uint64_t reserved_1_63:63;
+		uint64_t en: 1;
+		uint64_t reserved_1_63: 63;
 #endif
 	} s;
 	struct cvmx_smix_en_s cn30xx;
@@ -291,19 +319,21 @@ union cvmx_smix_en {
 	struct cvmx_smix_en_s cnf71xx;
 };
 
-union cvmx_smix_rd_dat {
+union cvmx_smix_rd_dat
+{
 	uint64_t u64;
-	struct cvmx_smix_rd_dat_s {
+	struct cvmx_smix_rd_dat_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_18_63:46;
-		uint64_t pending:1;
-		uint64_t val:1;
-		uint64_t dat:16;
+		uint64_t reserved_18_63: 46;
+		uint64_t pending: 1;
+		uint64_t val: 1;
+		uint64_t dat: 16;
 #else
-		uint64_t dat:16;
-		uint64_t val:1;
-		uint64_t pending:1;
-		uint64_t reserved_18_63:46;
+		uint64_t dat: 16;
+		uint64_t val: 1;
+		uint64_t pending: 1;
+		uint64_t reserved_18_63: 46;
 #endif
 	} s;
 	struct cvmx_smix_rd_dat_s cn30xx;
@@ -326,19 +356,21 @@ union cvmx_smix_rd_dat {
 	struct cvmx_smix_rd_dat_s cnf71xx;
 };
 
-union cvmx_smix_wr_dat {
+union cvmx_smix_wr_dat
+{
 	uint64_t u64;
-	struct cvmx_smix_wr_dat_s {
+	struct cvmx_smix_wr_dat_s
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint64_t reserved_18_63:46;
-		uint64_t pending:1;
-		uint64_t val:1;
-		uint64_t dat:16;
+		uint64_t reserved_18_63: 46;
+		uint64_t pending: 1;
+		uint64_t val: 1;
+		uint64_t dat: 16;
 #else
-		uint64_t dat:16;
-		uint64_t val:1;
-		uint64_t pending:1;
-		uint64_t reserved_18_63:46;
+		uint64_t dat: 16;
+		uint64_t val: 1;
+		uint64_t pending: 1;
+		uint64_t reserved_18_63: 46;
 #endif
 	} s;
 	struct cvmx_smix_wr_dat_s cn30xx;

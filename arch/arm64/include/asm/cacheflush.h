@@ -77,7 +77,7 @@ static inline void flush_cache_mm(struct mm_struct *mm)
 }
 
 static inline void flush_cache_page(struct vm_area_struct *vma,
-				    unsigned long user_addr, unsigned long pfn)
+									unsigned long user_addr, unsigned long pfn)
 {
 }
 
@@ -94,7 +94,7 @@ extern void __dma_flush_area(const void *, size_t);
  * space" model to handle this.
  */
 extern void copy_to_user_page(struct vm_area_struct *, struct page *,
-	unsigned long, void *, const void *, unsigned long);
+							  unsigned long, void *, const void *, unsigned long);
 #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
 	do {							\
 		memcpy(dst, src, len);				\

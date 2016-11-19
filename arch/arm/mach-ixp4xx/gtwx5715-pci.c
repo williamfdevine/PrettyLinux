@@ -54,18 +54,23 @@ static int __init gtwx5715_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	int rc = -1;
 
 	if ((slot == SLOT0_DEVID && pin == 1) ||
-	    (slot == SLOT1_DEVID && pin == 2))
+		(slot == SLOT1_DEVID && pin == 2))
+	{
 		rc = IXP4XX_GPIO_IRQ(INTA);
+	}
 	else if ((slot == SLOT0_DEVID && pin == 2) ||
-		 (slot == SLOT1_DEVID && pin == 1))
+			 (slot == SLOT1_DEVID && pin == 1))
+	{
 		rc = IXP4XX_GPIO_IRQ(INTB);
+	}
 
 	printk(KERN_INFO "%s: Mapped slot %d pin %d to IRQ %d\n",
-	       __func__, slot, pin, rc);
+		   __func__, slot, pin, rc);
 	return rc;
 }
 
-struct hw_pci gtwx5715_pci __initdata = {
+struct hw_pci gtwx5715_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &ixp4xx_ops,
 	.preinit =        gtwx5715_pci_preinit,
@@ -76,7 +81,9 @@ struct hw_pci gtwx5715_pci __initdata = {
 int __init gtwx5715_pci_init(void)
 {
 	if (machine_is_gtwx5715())
+	{
 		pci_common_init(&gtwx5715_pci);
+	}
 
 	return 0;
 }

@@ -37,7 +37,7 @@ void ack_bad_irq(unsigned int irq)
 	printk(KERN_CRIT "Unexpected IRQ trap at vector %u\n", irq);
 }
 
-#ifdef CONFIG_SMP 
+#ifdef CONFIG_SMP
 static char irq_user_affinity[NR_IRQS];
 
 int irq_select_affinity(unsigned int irq)
@@ -48,15 +48,23 @@ int irq_select_affinity(unsigned int irq)
 	int cpu = last_cpu + 1;
 
 	if (!data)
+	{
 		return 1;
+	}
+
 	chip = irq_data_get_irq_chip(data);
 
 	if (!chip->irq_set_affinity || irq_user_affinity[irq])
+	{
 		return 1;
+	}
 
 	while (!cpu_possible(cpu) ||
-	       !cpumask_test_cpu(cpu, irq_default_affinity))
-		cpu = (cpu < (NR_CPUS-1) ? cpu + 1 : 0);
+		   !cpumask_test_cpu(cpu, irq_default_affinity))
+	{
+		cpu = (cpu < (NR_CPUS - 1) ? cpu + 1 : 0);
+	}
+
 	last_cpu = cpu;
 
 	cpumask_copy(irq_data_get_affinity_mask(data), cpumask_of(cpu));
@@ -72,12 +80,12 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 #ifdef CONFIG_SMP
 	seq_puts(p, "IPI: ");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10lu ", cpu_data[j].ipi_count);
+	seq_printf(p, "%10lu ", cpu_data[j].ipi_count);
 	seq_putc(p, '\n');
 #endif
 	seq_puts(p, "PMI: ");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10lu ", per_cpu(irq_pmi_count, j));
+	seq_printf(p, "%10lu ", per_cpu(irq_pmi_count, j));
 	seq_puts(p, "          Performance Monitoring\n");
 	seq_printf(p, "ERR: %10lu\n", irq_err_count);
 	return 0;
@@ -93,8 +101,8 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 
 void
 handle_irq(int irq)
-{	
-	/* 
+{
+	/*
 	 * We ack quickly, we don't want the irq controller
 	 * thinking we're snobs just because some other CPU has
 	 * disabled global interrupts (we have already done the
@@ -104,15 +112,16 @@ handle_irq(int irq)
 	 * 0 return value means that this irq is already being
 	 * handled by some other CPU. (or is disabled)
 	 */
-	static unsigned int illegal_count=0;
+	static unsigned int illegal_count = 0;
 	struct irq_desc *desc = irq_to_desc(irq);
-	
+
 	if (!desc || ((unsigned) irq > ACTUAL_NR_IRQS &&
-	    illegal_count < MAX_ILLEGAL_IRQS)) {
+				  illegal_count < MAX_ILLEGAL_IRQS))
+	{
 		irq_err_count++;
 		illegal_count++;
 		printk(KERN_CRIT "device_interrupt: invalid interrupt %d\n",
-		       irq);
+			   irq);
 		return;
 	}
 

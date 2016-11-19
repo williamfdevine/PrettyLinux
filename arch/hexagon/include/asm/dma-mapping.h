@@ -37,7 +37,9 @@ extern struct dma_map_ops *dma_ops;
 static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 {
 	if (unlikely(dev == NULL))
+	{
 		return NULL;
+	}
 
 	return dma_ops;
 }
@@ -46,12 +48,15 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 extern int dma_supported(struct device *dev, u64 mask);
 extern int dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
 extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-			   enum dma_data_direction direction);
+						   enum dma_data_direction direction);
 
 static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
 {
 	if (!dev->dma_mask)
+	{
 		return 0;
+	}
+
 	return addr + size - 1 <= *dev->dma_mask;
 }
 

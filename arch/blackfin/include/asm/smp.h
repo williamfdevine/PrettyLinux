@@ -22,30 +22,31 @@ extern void arch_send_call_function_single_ipi(int cpu);
 extern void arch_send_call_function_ipi_mask(const struct cpumask *mask);
 
 #if defined(CONFIG_SMP) && defined(CONFIG_ICACHE_FLUSH_L1)
-asmlinkage void blackfin_icache_flush_range_l1(unsigned long *ptr);
-extern unsigned long blackfin_iflush_l1_entry[NR_CPUS];
+	asmlinkage void blackfin_icache_flush_range_l1(unsigned long *ptr);
+	extern unsigned long blackfin_iflush_l1_entry[NR_CPUS];
 #endif
 
-struct corelock_slot {
+struct corelock_slot
+{
 	int lock;
 };
 extern struct corelock_slot corelock;
 
 #ifdef __ARCH_SYNC_CORE_ICACHE
-extern unsigned long icache_invld_count[NR_CPUS];
+	extern unsigned long icache_invld_count[NR_CPUS];
 #endif
 #ifdef __ARCH_SYNC_CORE_DCACHE
-extern unsigned long dcache_invld_count[NR_CPUS];
+	extern unsigned long dcache_invld_count[NR_CPUS];
 #endif
 
 void smp_icache_flush_range_others(unsigned long start,
-					unsigned long end);
+								   unsigned long end);
 #ifdef CONFIG_HOTPLUG_CPU
-void coreb_die(void);
-void cpu_die(void);
-void platform_cpu_die(void);
-int __cpu_disable(void);
-int __cpu_die(unsigned int cpu);
+	void coreb_die(void);
+	void cpu_die(void);
+	void platform_cpu_die(void);
+	int __cpu_disable(void);
+	int __cpu_die(unsigned int cpu);
 #endif
 
 void smp_timer_broadcast(const struct cpumask *mask);

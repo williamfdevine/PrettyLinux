@@ -21,7 +21,8 @@ typedef unsigned long long int cryptocop_session_id;
 #define CRYPTOCOP_IO_PROCESS_OP        _IOWR(ETRAXCRYPTOCOP_IOCTYPE, 3, struct strcop_crypto_op)
 #define CRYPTOCOP_IO_MAXNR             (3)
 
-typedef enum {
+typedef enum
+{
 	cryptocop_cipher_des = 0,
 	cryptocop_cipher_3des = 1,
 	cryptocop_cipher_aes = 2,
@@ -29,25 +30,29 @@ typedef enum {
 	cryptocop_cipher_none
 } cryptocop_cipher_type;
 
-typedef enum {
+typedef enum
+{
 	cryptocop_digest_sha1 = 0,
 	cryptocop_digest_md5 = 1,
 	cryptocop_digest_none
 } cryptocop_digest_type;
 
-typedef enum {
+typedef enum
+{
 	cryptocop_csum_le = 0,
 	cryptocop_csum_be = 1,
 	cryptocop_csum_none
 } cryptocop_csum_type;
 
-typedef enum {
+typedef enum
+{
 	cryptocop_cipher_mode_ecb = 0,
 	cryptocop_cipher_mode_cbc,
 	cryptocop_cipher_mode_none
 } cryptocop_cipher_mode;
 
-typedef enum {
+typedef enum
+{
 	cryptocop_3des_eee = 0,
 	cryptocop_3des_eed = 1,
 	cryptocop_3des_ede = 2,
@@ -59,7 +64,8 @@ typedef enum {
 } cryptocop_3des_mode;
 
 /* Usermode accessible (ioctl) operations. */
-struct strcop_session_op{
+struct strcop_session_op
+{
 	cryptocop_session_id    ses_id;
 
 	cryptocop_cipher_type   cipher; /* AES, DES, 3DES, m2m, none */
@@ -80,7 +86,8 @@ struct strcop_session_op{
 #define CRYPTOCOP_MAX_IV_LENGTH       (16)  /* (3)DES==8, AES == 16 */
 #define CRYPTOCOP_MAX_KEY_LENGTH      (32)
 
-struct strcop_crypto_op{
+struct strcop_crypto_op
+{
 	cryptocop_session_id ses_id;
 
 	/* Indata. */
@@ -88,9 +95,9 @@ struct strcop_crypto_op{
 	size_t                   inlen; /* Total indata length. */
 
 	/* Cipher configuration. */
-	unsigned char            do_cipher:1;
-	unsigned char            decrypt:1; /* 1 == decrypt, 0 == encrypt */
-	unsigned char            cipher_explicit:1;
+	unsigned char            do_cipher: 1;
+	unsigned char            decrypt: 1; /* 1 == decrypt, 0 == encrypt */
+	unsigned char            cipher_explicit: 1;
 	size_t                   cipher_start;
 	size_t                   cipher_len;
 	/* cipher_iv is used if do_cipher and cipher_explicit and the cipher
@@ -102,14 +109,14 @@ struct strcop_crypto_op{
 	size_t                   cipher_outlen;
 
 	/* digest configuration. */
-	unsigned char            do_digest:1;
+	unsigned char            do_digest: 1;
 	size_t                   digest_start;
 	size_t                   digest_len;
 	/* Outdata.  The actual length is determined by the type of the digest. */
 	unsigned char            digest[CRYPTOCOP_MAX_DIGEST_LENGTH];
 
 	/* Checksum configuration. */
-	unsigned char            do_csum:1;
+	unsigned char            do_csum: 1;
 	size_t                   csum_start;
 	size_t                   csum_len;
 	/* Outdata. */

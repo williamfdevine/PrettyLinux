@@ -48,10 +48,12 @@
 
 #include "common.h"
 
-static struct map_desc vstms_iodesc[] __initdata = {
+static struct map_desc vstms_iodesc[] __initdata =
+{
 };
 
-static struct s3c2410_uartcfg vstms_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg vstms_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -75,7 +77,8 @@ static struct s3c2410_uartcfg vstms_uartcfgs[] __initdata = {
 	}
 };
 
-static struct mtd_partition __initdata vstms_nand_part[] = {
+static struct mtd_partition __initdata vstms_nand_part[] =
+{
 	[0] = {
 		.name	= "Boot Agent",
 		.size	= 0x7C000,
@@ -98,7 +101,8 @@ static struct mtd_partition __initdata vstms_nand_part[] = {
 	},
 };
 
-static struct s3c2410_nand_set __initdata vstms_nand_sets[] = {
+static struct s3c2410_nand_set __initdata vstms_nand_sets[] =
+{
 	[0] = {
 		.name		= "NAND",
 		.nr_chips	= 1,
@@ -111,7 +115,8 @@ static struct s3c2410_nand_set __initdata vstms_nand_sets[] = {
  * chips and beyond.
 */
 
-static struct s3c2410_platform_nand __initdata vstms_nand_info = {
+static struct s3c2410_platform_nand __initdata vstms_nand_info =
+{
 	.tacls		= 20,
 	.twrph0		= 60,
 	.twrph1		= 20,
@@ -119,7 +124,8 @@ static struct s3c2410_platform_nand __initdata vstms_nand_info = {
 	.sets		= vstms_nand_sets,
 };
 
-static struct platform_device *vstms_devices[] __initdata = {
+static struct platform_device *vstms_devices[] __initdata =
+{
 	&s3c_device_ohci,
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
@@ -131,7 +137,8 @@ static struct platform_device *vstms_devices[] __initdata = {
 
 static void __init vstms_fixup(struct tag *tags, char **cmdline)
 {
-	if (tags != phys_to_virt(S3C2410_SDRAM_PA + 0x100)) {
+	if (tags != phys_to_virt(S3C2410_SDRAM_PA + 0x100))
+	{
 		memblock_add(0x30000000, SZ_64M);
 	}
 }
@@ -158,11 +165,11 @@ static void __init vstms_init(void)
 }
 
 MACHINE_START(VSTMS, "VSTMS")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 
 	.fixup		= vstms_fixup,
-	.init_irq	= s3c2412_init_irq,
-	.init_machine	= vstms_init,
-	.map_io		= vstms_map_io,
-	.init_time	= vstms_init_time,
-MACHINE_END
+		 .init_irq	= s3c2412_init_irq,
+			.init_machine	= vstms_init,
+			   .map_io		= vstms_map_io,
+				   .init_time	= vstms_init_time,
+					 MACHINE_END

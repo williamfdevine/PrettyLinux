@@ -20,7 +20,7 @@ extern void clear_page(void *page);
 	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vmaddr)
 #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
 
-extern void copy_page(void * _to, void * _from);
+extern void copy_page(void *_to, void *_from);
 #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
 
 #ifdef STRICT_MM_TYPECHECKS
@@ -65,17 +65,17 @@ typedef unsigned long pgprot_t;
 typedef struct page *pgtable_t;
 
 #ifdef USE_48_BIT_KSEG
-#define PAGE_OFFSET		0xffff800000000000UL
+	#define PAGE_OFFSET		0xffff800000000000UL
 #else
-#define PAGE_OFFSET		0xfffffc0000000000UL
+	#define PAGE_OFFSET		0xfffffc0000000000UL
 #endif
 
 #else
 
 #ifdef USE_48_BIT_KSEG
-#define PAGE_OFFSET		0xffff800000000000
+	#define PAGE_OFFSET		0xffff800000000000
 #else
-#define PAGE_OFFSET		0xfffffc0000000000
+	#define PAGE_OFFSET		0xfffffc0000000000
 #endif
 
 #endif /* !__ASSEMBLY__ */
@@ -83,14 +83,14 @@ typedef struct page *pgtable_t;
 #define __pa(x)			((unsigned long) (x) - PAGE_OFFSET)
 #define __va(x)			((void *)((unsigned long) (x) + PAGE_OFFSET))
 #ifndef CONFIG_DISCONTIGMEM
-#define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+	#define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 
-#define pfn_valid(pfn)		((pfn) < max_mapnr)
-#define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+	#define pfn_valid(pfn)		((pfn) < max_mapnr)
+	#define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
 #endif /* CONFIG_DISCONTIGMEM */
 
 #define VM_DATA_DEFAULT_FLAGS		(VM_READ | VM_WRITE | VM_EXEC | \
-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+									 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/memory_model.h>
 #include <asm-generic/getorder.h>

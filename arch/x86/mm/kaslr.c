@@ -46,11 +46,11 @@
 static const unsigned long vaddr_start = __PAGE_OFFSET_BASE;
 
 #if defined(CONFIG_X86_ESPFIX64)
-static const unsigned long vaddr_end = ESPFIX_BASE_ADDR;
+	static const unsigned long vaddr_end = ESPFIX_BASE_ADDR;
 #elif defined(CONFIG_EFI)
-static const unsigned long vaddr_end = EFI_VA_START;
+	static const unsigned long vaddr_end = EFI_VA_START;
 #else
-static const unsigned long vaddr_end = __START_KERNEL_map;
+	static const unsigned long vaddr_end = __START_KERNEL_map;
 #endif
 
 /* Default values */
@@ -66,10 +66,12 @@ EXPORT_SYMBOL(vmemmap_base);
  * earlier during boot). The list is ordered based on virtual addresses. This
  * order is kept after randomization.
  */
-static __initdata struct kaslr_memory_region {
+static __initdata struct kaslr_memory_region
+{
 	unsigned long *base;
 	unsigned long size_tb;
-} kaslr_regions[] = {
+} kaslr_regions[] =
+{
 	{ &page_offset_base, 64/* Maximum */ },
 	{ &vmalloc_base, VMALLOC_SIZE_TB },
 	{ &vmemmap_base, 1 },
@@ -105,14 +107,16 @@ void __init kernel_randomize_memory(void)
 	 */
 	BUILD_BUG_ON(vaddr_start >= vaddr_end);
 	BUILD_BUG_ON(IS_ENABLED(CONFIG_X86_ESPFIX64) &&
-		     vaddr_end >= EFI_VA_START);
+				 vaddr_end >= EFI_VA_START);
 	BUILD_BUG_ON((IS_ENABLED(CONFIG_X86_ESPFIX64) ||
-		      IS_ENABLED(CONFIG_EFI)) &&
-		     vaddr_end >= __START_KERNEL_map);
+				  IS_ENABLED(CONFIG_EFI)) &&
+				 vaddr_end >= __START_KERNEL_map);
 	BUILD_BUG_ON(vaddr_end > __START_KERNEL_map);
 
 	if (!kaslr_memory_enabled())
+	{
 		return;
+	}
 
 	/*
 	 * Update Physical memory mapping to available and
@@ -120,20 +124,26 @@ void __init kernel_randomize_memory(void)
 	 */
 	BUG_ON(kaslr_regions[0].base != &page_offset_base);
 	memory_tb = DIV_ROUND_UP(max_pfn << PAGE_SHIFT, 1UL << TB_SHIFT) +
-		CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
+				CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
 
 	/* Adapt phyiscal memory region size based on available memory */
 	if (memory_tb < kaslr_regions[0].size_tb)
+	{
 		kaslr_regions[0].size_tb = memory_tb;
+	}
 
 	/* Calculate entropy available between regions */
 	remain_entropy = vaddr_end - vaddr_start;
+
 	for (i = 0; i < ARRAY_SIZE(kaslr_regions); i++)
+	{
 		remain_entropy -= get_padding(&kaslr_regions[i]);
+	}
 
 	prandom_seed_state(&rand_state, kaslr_get_random_long("Memory"));
 
-	for (i = 0; i < ARRAY_SIZE(kaslr_regions); i++) {
+	for (i = 0; i < ARRAY_SIZE(kaslr_regions); i++)
+	{
 		unsigned long entropy;
 
 		/*
@@ -167,7 +177,8 @@ void __meminit init_trampoline(void)
 	pud_t *pud_page, *pud_page_tramp;
 	int i;
 
-	if (!kaslr_memory_enabled()) {
+	if (!kaslr_memory_enabled())
+	{
 		init_trampoline_default();
 		return;
 	}
@@ -178,7 +189,8 @@ void __meminit init_trampoline(void)
 	pgd = pgd_offset_k((unsigned long)__va(paddr));
 	pud_page = (pud_t *) pgd_page_vaddr(*pgd);
 
-	for (i = pud_index(paddr); i < PTRS_PER_PUD; i++, paddr = paddr_next) {
+	for (i = pud_index(paddr); i < PTRS_PER_PUD; i++, paddr = paddr_next)
+	{
 		pud_t *pud, *pud_tramp;
 		unsigned long vaddr = (unsigned long)__va(paddr);
 
@@ -190,5 +202,5 @@ void __meminit init_trampoline(void)
 	}
 
 	set_pgd(&trampoline_pgd_entry,
-		__pgd(_KERNPG_TABLE | __pa(pud_page_tramp)));
+			__pgd(_KERNPG_TABLE | __pa(pud_page_tramp)));
 }

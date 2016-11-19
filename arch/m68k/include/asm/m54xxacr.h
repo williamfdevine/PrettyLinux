@@ -47,18 +47,18 @@
 
 #if defined(CONFIG_M5407)
 
-#define ICACHE_SIZE 0x4000	/* instruction - 16k */
-#define DCACHE_SIZE 0x2000	/* data - 8k */
+	#define ICACHE_SIZE 0x4000	/* instruction - 16k */
+	#define DCACHE_SIZE 0x2000	/* data - 8k */
 
 #elif defined(CONFIG_M54xx)
 
-#define ICACHE_SIZE 0x8000	/* instruction - 32k */
-#define DCACHE_SIZE 0x8000	/* data - 32k */
+	#define ICACHE_SIZE 0x8000	/* instruction - 32k */
+	#define DCACHE_SIZE 0x8000	/* data - 32k */
 
 #elif defined(CONFIG_M5441x)
 
-#define ICACHE_SIZE 0x2000	/* instruction - 8k */
-#define DCACHE_SIZE 0x2000	/* data - 8k */
+	#define ICACHE_SIZE 0x2000	/* instruction - 8k */
+	#define DCACHE_SIZE 0x2000	/* data - 8k */
 #endif
 
 #define CACHE_LINE_SIZE 0x0010	/* 16 bytes */
@@ -77,14 +77,14 @@
 /* attention : enabling CACR_DESB requires a "nop" to flush the store buffer */
 /* use '+' instead of '|' for assembler's sake */
 
-	/* Enable data cache */
-	/* Enable data store buffer */
-	/* outside ACRs : No cache, precise */
-	/* Enable instruction+branch caches */
+/* Enable data cache */
+/* Enable data store buffer */
+/* outside ACRs : No cache, precise */
+/* Enable instruction+branch caches */
 #if defined(CONFIG_M5407)
-#define CACHE_MODE (CACR_DEC+CACR_DESB+CACR_DDCM_P+CACR_BEC+CACR_IEC)
+	#define CACHE_MODE (CACR_DEC+CACR_DESB+CACR_DDCM_P+CACR_BEC+CACR_IEC)
 #else
-#define CACHE_MODE (CACR_DEC+CACR_DESB+CACR_DDCM_P+CACR_BEC+CACR_IEC+CACR_EUSP)
+	#define CACHE_MODE (CACR_DEC+CACR_DESB+CACR_DDCM_P+CACR_BEC+CACR_IEC+CACR_EUSP)
 #endif
 #define CACHE_INIT (CACR_DCINVA+CACR_BCINVA+CACR_ICINVA)
 
@@ -95,17 +95,17 @@
  *	cacheable and supervisor access only.
  */
 #define ACR0_MODE	(ACR_BA(IOMEMBASE)+ACR_ADMSK(IOMEMSIZE)+ \
-			 ACR_ENABLE+ACR_SUPER+ACR_CM_OFF_PRE+ACR_SP)
+					 ACR_ENABLE+ACR_SUPER+ACR_CM_OFF_PRE+ACR_SP)
 #if defined(CONFIG_CACHE_COPYBACK)
 #define ACR1_MODE	(ACR_BA(CONFIG_RAMBASE)+ACR_ADMSK(CONFIG_RAMSIZE)+ \
-			 ACR_ENABLE+ACR_SUPER+ACR_SP+ACR_CM_CP)
+					 ACR_ENABLE+ACR_SUPER+ACR_SP+ACR_CM_CP)
 #else
 #define ACR1_MODE	(ACR_BA(CONFIG_RAMBASE)+ACR_ADMSK(CONFIG_RAMSIZE)+ \
-			 ACR_ENABLE+ACR_SUPER+ACR_SP+ACR_CM_WT)
+					 ACR_ENABLE+ACR_SUPER+ACR_SP+ACR_CM_WT)
 #endif
 #define ACR2_MODE	0
 #define ACR3_MODE	(ACR_BA(CONFIG_RAMBASE)+ACR_ADMSK(CONFIG_RAMSIZE)+ \
-			 ACR_ENABLE+ACR_SUPER+ACR_SP)
+					 ACR_ENABLE+ACR_SUPER+ACR_SP)
 
 #else
 
@@ -113,9 +113,9 @@
  *	For the non-MMU enabled case we map all of RAM as cacheable.
  */
 #if defined(CONFIG_CACHE_COPYBACK)
-#define DATA_CACHE_MODE (ACR_ENABLE+ACR_ANY+ACR_CM_CP)
+	#define DATA_CACHE_MODE (ACR_ENABLE+ACR_ANY+ACR_CM_CP)
 #else
-#define DATA_CACHE_MODE (ACR_ENABLE+ACR_ANY+ACR_CM_WT)
+	#define DATA_CACHE_MODE (ACR_ENABLE+ACR_ANY+ACR_CM_WT)
 #endif
 #define INSN_CACHE_MODE (ACR_ENABLE+ACR_ANY)
 
@@ -128,8 +128,8 @@
 #define ACR3_MODE	0
 
 #if ((DATA_CACHE_MODE & ACR_CM) == ACR_CM_CP)
-/* Copyback cache mode must push dirty cache lines first */
-#define	CACHE_PUSH
+	/* Copyback cache mode must push dirty cache lines first */
+	#define	CACHE_PUSH
 #endif
 
 #endif /* CONFIG_MMU */

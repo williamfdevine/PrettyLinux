@@ -33,7 +33,8 @@ static struct clk *wdt_clock;
 
 void samsung_wdt_reset(void)
 {
-	if (!wdt_base) {
+	if (!wdt_base)
+	{
 		pr_err("%s: wdt reset not initialized\n", __func__);
 		/* delay to allow the serial port to show the message */
 		mdelay(50);
@@ -41,7 +42,9 @@ void samsung_wdt_reset(void)
 	}
 
 	if (!IS_ERR(wdt_clock))
+	{
 		clk_prepare_enable(wdt_clock);
+	}
 
 	/* disable watchdog, to be safe  */
 	__raw_writel(0, wdt_base + S3C2410_WTCON);
@@ -52,8 +55,8 @@ void samsung_wdt_reset(void)
 
 	/* set the watchdog to go and reset... */
 	__raw_writel(S3C2410_WTCON_ENABLE | S3C2410_WTCON_DIV16 |
-			S3C2410_WTCON_RSTEN | S3C2410_WTCON_PRESCALE(0x20),
-			wdt_base + S3C2410_WTCON);
+				 S3C2410_WTCON_RSTEN | S3C2410_WTCON_PRESCALE(0x20),
+				 wdt_base + S3C2410_WTCON);
 
 	/* wait for reset to assert... */
 	mdelay(500);
@@ -65,7 +68,8 @@ void samsung_wdt_reset(void)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id s3c2410_wdt_match[] = {
+static const struct of_device_id s3c2410_wdt_match[] =
+{
 	{ .compatible = "samsung,s3c2410-wdt" },
 	{},
 };
@@ -75,13 +79,17 @@ void __init samsung_wdt_reset_of_init(void)
 	struct device_node *np;
 
 	np = of_find_matching_node(NULL, s3c2410_wdt_match);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("%s: failed to find watchdog node\n", __func__);
 		return;
 	}
 
 	wdt_base = of_iomap(np, 0);
-	if (!wdt_base) {
+
+	if (!wdt_base)
+	{
 		pr_err("%s: failed to map watchdog registers\n", __func__);
 		return;
 	}

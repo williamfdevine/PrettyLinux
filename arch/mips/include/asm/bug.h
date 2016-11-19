@@ -20,14 +20,20 @@ static inline void __noreturn BUG(void)
 
 static inline void  __BUG_ON(unsigned long condition)
 {
-	if (__builtin_constant_p(condition)) {
+	if (__builtin_constant_p(condition))
+	{
 		if (condition)
+		{
 			BUG();
+		}
 		else
+		{
 			return;
+		}
 	}
+
 	__asm__ __volatile__("tne $0, %0, %1"
-			     : : "r" (condition), "i" (BRK_BUG));
+						 : : "r" (condition), "i" (BRK_BUG));
 }
 
 #define BUG_ON(C) __BUG_ON((unsigned long)(C))

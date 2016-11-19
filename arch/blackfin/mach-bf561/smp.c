@@ -81,10 +81,13 @@ int platform_boot_secondary(unsigned int cpu, struct task_struct *idle)
 
 	spin_lock(&boot_lock);
 
-	if ((bfin_read_SYSCR() & COREB_SRAM_INIT) == 0) {
+	if ((bfin_read_SYSCR() & COREB_SRAM_INIT) == 0)
+	{
 		/* CoreB already running, sending ipi to wakeup it */
 		smp_send_reschedule(cpu);
-	} else {
+	}
+	else
+	{
 		/* Kick CoreB, which should start execution from CORE_SRAM_BASE. */
 		bfin_write_SYSCR(bfin_read_SYSCR() & ~COREB_SRAM_INIT);
 		SSYNC();
@@ -93,17 +96,26 @@ int platform_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	timeout = jiffies + HZ;
 	/* release the lock and let coreb run */
 	spin_unlock(&boot_lock);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		if (cpu_online(cpu))
+		{
 			break;
+		}
+
 		udelay(100);
 		barrier();
 	}
 
-	if (cpu_online(cpu)) {
+	if (cpu_online(cpu))
+	{
 		return 0;
-	} else
+	}
+	else
+	{
 		panic("CPU%u: processor failed to boot\n", cpu);
+	}
 }
 
 static const char supple0[] = "IRQ_SUPPLE_0";
@@ -114,9 +126,12 @@ void __init platform_request_ipi(int irq, void *handler)
 	const char *name = (irq == IRQ_SUPPLE_0) ? supple0 : supple1;
 
 	ret = request_irq(irq, handler, IRQF_PERCPU | IRQF_NO_SUSPEND |
-			IRQF_FORCE_RESUME, name, handler);
+					  IRQF_FORCE_RESUME, name, handler);
+
 	if (ret)
+	{
 		panic("Cannot request %s for IPI service", name);
+	}
 }
 
 void platform_send_ipi(cpumask_t callmap, int irq)
@@ -124,7 +139,8 @@ void platform_send_ipi(cpumask_t callmap, int irq)
 	unsigned int cpu;
 	int offset = (irq == IRQ_SUPPLE_0) ? 6 : 8;
 
-	for_each_cpu(cpu, &callmap) {
+	for_each_cpu(cpu, &callmap)
+	{
 		BUG_ON(cpu >= 2);
 		SSYNC();
 		bfin_write_SICB_SYSCR(bfin_read_SICB_SYSCR() | (1 << (offset + cpu)));

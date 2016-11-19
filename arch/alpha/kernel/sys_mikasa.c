@@ -54,14 +54,15 @@ mikasa_disable_irq(struct irq_data *d)
 	mikasa_update_irq_hw(cached_irq_mask &= ~(1 << (d->irq - 16)));
 }
 
-static struct irq_chip mikasa_irq_type = {
+static struct irq_chip mikasa_irq_type =
+{
 	.name		= "MIKASA",
 	.irq_unmask	= mikasa_enable_irq,
 	.irq_mask	= mikasa_disable_irq,
 	.irq_mask_ack	= mikasa_disable_irq,
 };
 
-static void 
+static void
 mikasa_device_interrupt(unsigned long vector)
 {
 	unsigned long pld;
@@ -69,19 +70,24 @@ mikasa_device_interrupt(unsigned long vector)
 
 	/* Read the interrupt summary registers */
 	pld = (((~inw(0x534) & 0x0000ffffUL) << 16)
-	       | (((unsigned long) inb(0xa0)) << 8)
-	       | inb(0x20));
+		   | (((unsigned long) inb(0xa0)) << 8)
+		   | inb(0x20));
 
 	/*
 	 * Now for every possible bit set, work through them and call
 	 * the appropriate interrupt handler.
 	 */
-	while (pld) {
+	while (pld)
+	{
 		i = ffz(~pld);
 		pld &= pld - 1; /* clear least bit set */
-		if (i < 16) {
+
+		if (i < 16)
+		{
 			isa_device_interrupt(vector);
-		} else {
+		}
+		else
+		{
 			handle_irq(i);
 		}
 	}
@@ -93,13 +99,16 @@ mikasa_init_irq(void)
 	long i;
 
 	if (alpha_using_srm)
+	{
 		alpha_mv.device_interrupt = srm_device_interrupt;
+	}
 
 	mikasa_update_irq_hw(0);
 
-	for (i = 16; i < 32; ++i) {
+	for (i = 16; i < 32; ++i)
+	{
 		irq_set_chip_and_handler(i, &mikasa_irq_type,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_set_status_flags(i, IRQ_LEVEL);
 	}
 
@@ -138,9 +147,9 @@ mikasa_init_irq(void)
  * 11       PCI on board slot 0
  * 12       PCI on board slot 1
  * 13       PCI on board slot 2
- *   
  *
- * This two layered interrupt approach means that we allocate IRQ 16 and 
+ *
+ * This two layered interrupt approach means that we allocate IRQ 16 and
  * above for PCI interrupts.  The IRQ relates to which bit the interrupt
  * comes in on.  This makes interrupt processing much easier.
  */
@@ -148,16 +157,17 @@ mikasa_init_irq(void)
 static int __init
 mikasa_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[8][5] __initdata = {
+	static char irq_tab[8][5] __initdata =
+	{
 		/*INT    INTA   INTB   INTC   INTD */
-		{16+12, 16+12, 16+12, 16+12, 16+12},	/* IdSel 17,  SCSI */
+		{16 + 12, 16 + 12, 16 + 12, 16 + 12, 16 + 12},	/* IdSel 17,  SCSI */
 		{   -1,    -1,    -1,    -1,    -1},	/* IdSel 18,  PCEB */
 		{   -1,    -1,    -1,    -1,    -1},	/* IdSel 19,  ???? */
 		{   -1,    -1,    -1,    -1,    -1},	/* IdSel 20,  ???? */
 		{   -1,    -1,    -1,    -1,    -1},	/* IdSel 21,  ???? */
-		{ 16+0,  16+0,  16+1,  16+2,  16+3},	/* IdSel 22,  slot 0 */
-		{ 16+4,  16+4,  16+5,  16+6,  16+7},	/* IdSel 23,  slot 1 */
-		{ 16+8,  16+8,  16+9, 16+10, 16+11},	/* IdSel 24,  slot 2 */
+		{ 16 + 0,  16 + 0,  16 + 1,  16 + 2,  16 + 3},	/* IdSel 22,  slot 0 */
+		{ 16 + 4,  16 + 4,  16 + 5,  16 + 6,  16 + 7},	/* IdSel 23,  slot 1 */
+		{ 16 + 8,  16 + 8,  16 + 9, 16 + 10, 16 + 11},	/* IdSel 24,  slot 2 */
 	};
 	const long min_idsel = 6, max_idsel = 13, irqs_per_slot = 5;
 	return COMMON_TABLE_LOOKUP;
@@ -186,9 +196,9 @@ mikasa_apecs_machine_check(unsigned long vector, unsigned long la_ptr)
 
 	code = mchk_header->code;
 	process_mcheck_info(vector, la_ptr, "MIKASA APECS",
-			    (mcheck_expected(0)
-			     && (code == MCHK_NO_DEVSEL
-			         || code == MCHK_NO_TABT)));
+						(mcheck_expected(0)
+						 && (code == MCHK_NO_DEVSEL
+							 || code == MCHK_NO_TABT)));
 }
 #endif
 
@@ -198,7 +208,8 @@ mikasa_apecs_machine_check(unsigned long vector, unsigned long la_ptr)
  */
 
 #if defined(CONFIG_ALPHA_GENERIC) || !defined(CONFIG_ALPHA_PRIMO)
-struct alpha_machine_vector mikasa_mv __initmv = {
+struct alpha_machine_vector mikasa_mv __initmv =
+{
 	.vector_name		= "Mikasa",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -222,7 +233,8 @@ ALIAS_MV(mikasa)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_PRIMO)
-struct alpha_machine_vector mikasa_primo_mv __initmv = {
+struct alpha_machine_vector mikasa_primo_mv __initmv =
+{
 	.vector_name		= "Mikasa-Primo",
 	DO_EV5_MMU,
 	DO_DEFAULT_RTC,

@@ -47,13 +47,16 @@ static int get_mx51_srev(void)
 {
 	u32 rev = imx5_read_srev_reg("fsl,imx51-iim");
 
-	switch (rev) {
-	case 0x0:
-		return IMX_CHIP_REVISION_2_0;
-	case 0x10:
-		return IMX_CHIP_REVISION_3_0;
-	default:
-		return IMX_CHIP_REVISION_UNKNOWN;
+	switch (rev)
+	{
+		case 0x0:
+			return IMX_CHIP_REVISION_2_0;
+
+		case 0x10:
+			return IMX_CHIP_REVISION_3_0;
+
+		default:
+			return IMX_CHIP_REVISION_UNKNOWN;
 	}
 }
 
@@ -64,7 +67,9 @@ static int get_mx51_srev(void)
 int mx51_revision(void)
 {
 	if (mx5_cpu_rev == -1)
+	{
 		mx5_cpu_rev = get_mx51_srev();
+	}
 
 	return mx5_cpu_rev;
 }
@@ -80,10 +85,12 @@ EXPORT_SYMBOL(mx51_revision);
 int __init mx51_neon_fixup(void)
 {
 	if (mx51_revision() < IMX_CHIP_REVISION_3_0 &&
-			(elf_hwcap & HWCAP_NEON)) {
+		(elf_hwcap & HWCAP_NEON))
+	{
 		elf_hwcap &= ~HWCAP_NEON;
 		pr_info("Turning off NEON support, detected broken NEON implementation\n");
 	}
+
 	return 0;
 }
 
@@ -93,15 +100,19 @@ static int get_mx53_srev(void)
 {
 	u32 rev = imx5_read_srev_reg("fsl,imx53-iim");
 
-	switch (rev) {
-	case 0x0:
-		return IMX_CHIP_REVISION_1_0;
-	case 0x2:
-		return IMX_CHIP_REVISION_2_0;
-	case 0x3:
-		return IMX_CHIP_REVISION_2_1;
-	default:
-		return IMX_CHIP_REVISION_UNKNOWN;
+	switch (rev)
+	{
+		case 0x0:
+			return IMX_CHIP_REVISION_1_0;
+
+		case 0x2:
+			return IMX_CHIP_REVISION_2_0;
+
+		case 0x3:
+			return IMX_CHIP_REVISION_2_1;
+
+		default:
+			return IMX_CHIP_REVISION_UNKNOWN;
 	}
 }
 
@@ -112,7 +123,9 @@ static int get_mx53_srev(void)
 int mx53_revision(void)
 {
 	if (mx5_cpu_rev == -1)
+	{
 		mx5_cpu_rev = get_mx53_srev();
+	}
 
 	return mx5_cpu_rev;
 }

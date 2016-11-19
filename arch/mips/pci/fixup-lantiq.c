@@ -15,10 +15,14 @@ int (*ltq_pci_plat_dev_init)(struct pci_dev *dev) = NULL;
 int pcibios_plat_dev_init(struct pci_dev *dev)
 {
 	if (ltq_pci_plat_arch_init)
+	{
 		return ltq_pci_plat_arch_init(dev);
+	}
 
 	if (ltq_pci_plat_dev_init)
+	{
 		return ltq_pci_plat_dev_init(dev);
+	}
 
 	return 0;
 }

@@ -31,8 +31,8 @@
  */
 typedef struct pcie_rc_config
 {
-  int intr;                     /**< interrupt number used for downcall */
-  int plx_gen1;                 /**< flag for PLX Gen 1 configuration */
+	int intr;                     /**< interrupt number used for downcall */
+	int plx_gen1;                 /**< flag for PLX Gen 1 configuration */
 } pcie_rc_config_t;
 
 #endif  /* _SYS_HV_DRV_PCIE_RC_INTF_H */

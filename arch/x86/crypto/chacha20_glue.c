@@ -22,18 +22,21 @@
 asmlinkage void chacha20_block_xor_ssse3(u32 *state, u8 *dst, const u8 *src);
 asmlinkage void chacha20_4block_xor_ssse3(u32 *state, u8 *dst, const u8 *src);
 #ifdef CONFIG_AS_AVX2
-asmlinkage void chacha20_8block_xor_avx2(u32 *state, u8 *dst, const u8 *src);
-static bool chacha20_use_avx2;
+	asmlinkage void chacha20_8block_xor_avx2(u32 *state, u8 *dst, const u8 *src);
+	static bool chacha20_use_avx2;
 #endif
 
 static void chacha20_dosimd(u32 *state, u8 *dst, const u8 *src,
-			    unsigned int bytes)
+							unsigned int bytes)
 {
 	u8 buf[CHACHA20_BLOCK_SIZE];
 
 #ifdef CONFIG_AS_AVX2
-	if (chacha20_use_avx2) {
-		while (bytes >= CHACHA20_BLOCK_SIZE * 8) {
+
+	if (chacha20_use_avx2)
+	{
+		while (bytes >= CHACHA20_BLOCK_SIZE * 8)
+		{
 			chacha20_8block_xor_avx2(state, dst, src);
 			bytes -= CHACHA20_BLOCK_SIZE * 8;
 			src += CHACHA20_BLOCK_SIZE * 8;
@@ -41,22 +44,29 @@ static void chacha20_dosimd(u32 *state, u8 *dst, const u8 *src,
 			state[12] += 8;
 		}
 	}
+
 #endif
-	while (bytes >= CHACHA20_BLOCK_SIZE * 4) {
+
+	while (bytes >= CHACHA20_BLOCK_SIZE * 4)
+	{
 		chacha20_4block_xor_ssse3(state, dst, src);
 		bytes -= CHACHA20_BLOCK_SIZE * 4;
 		src += CHACHA20_BLOCK_SIZE * 4;
 		dst += CHACHA20_BLOCK_SIZE * 4;
 		state[12] += 4;
 	}
-	while (bytes >= CHACHA20_BLOCK_SIZE) {
+
+	while (bytes >= CHACHA20_BLOCK_SIZE)
+	{
 		chacha20_block_xor_ssse3(state, dst, src);
 		bytes -= CHACHA20_BLOCK_SIZE;
 		src += CHACHA20_BLOCK_SIZE;
 		dst += CHACHA20_BLOCK_SIZE;
 		state[12]++;
 	}
-	if (bytes) {
+
+	if (bytes)
+	{
 		memcpy(buf, src, bytes);
 		chacha20_block_xor_ssse3(state, buf, buf);
 		memcpy(dst, buf, bytes);
@@ -64,14 +74,16 @@ static void chacha20_dosimd(u32 *state, u8 *dst, const u8 *src,
 }
 
 static int chacha20_simd(struct blkcipher_desc *desc, struct scatterlist *dst,
-			 struct scatterlist *src, unsigned int nbytes)
+						 struct scatterlist *src, unsigned int nbytes)
 {
 	u32 *state, state_buf[16 + (CHACHA20_STATE_ALIGN / sizeof(u32)) - 1];
 	struct blkcipher_walk walk;
 	int err;
 
 	if (nbytes <= CHACHA20_BLOCK_SIZE || !may_use_simd())
+	{
 		return crypto_chacha20_crypt(desc, dst, src, nbytes);
+	}
 
 	state = (u32 *)roundup((uintptr_t)state_buf, CHACHA20_STATE_ALIGN);
 
@@ -82,16 +94,18 @@ static int chacha20_simd(struct blkcipher_desc *desc, struct scatterlist *dst,
 
 	kernel_fpu_begin();
 
-	while (walk.nbytes >= CHACHA20_BLOCK_SIZE) {
+	while (walk.nbytes >= CHACHA20_BLOCK_SIZE)
+	{
 		chacha20_dosimd(state, walk.dst.virt.addr, walk.src.virt.addr,
-				rounddown(walk.nbytes, CHACHA20_BLOCK_SIZE));
+						rounddown(walk.nbytes, CHACHA20_BLOCK_SIZE));
 		err = blkcipher_walk_done(desc, &walk,
-					  walk.nbytes % CHACHA20_BLOCK_SIZE);
+								  walk.nbytes % CHACHA20_BLOCK_SIZE);
 	}
 
-	if (walk.nbytes) {
+	if (walk.nbytes)
+	{
 		chacha20_dosimd(state, walk.dst.virt.addr, walk.src.virt.addr,
-				walk.nbytes);
+						walk.nbytes);
 		err = blkcipher_walk_done(desc, &walk, 0);
 	}
 
@@ -100,7 +114,8 @@ static int chacha20_simd(struct blkcipher_desc *desc, struct scatterlist *dst,
 	return err;
 }
 
-static struct crypto_alg alg = {
+static struct crypto_alg alg =
+{
 	.cra_name		= "chacha20",
 	.cra_driver_name	= "chacha20-simd",
 	.cra_priority		= 300,
@@ -126,12 +141,14 @@ static struct crypto_alg alg = {
 static int __init chacha20_simd_mod_init(void)
 {
 	if (!boot_cpu_has(X86_FEATURE_SSSE3))
+	{
 		return -ENODEV;
+	}
 
 #ifdef CONFIG_AS_AVX2
 	chacha20_use_avx2 = boot_cpu_has(X86_FEATURE_AVX) &&
-			    boot_cpu_has(X86_FEATURE_AVX2) &&
-			    cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM, NULL);
+						boot_cpu_has(X86_FEATURE_AVX2) &&
+						cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM, NULL);
 #endif
 	return crypto_register_alg(&alg);
 }

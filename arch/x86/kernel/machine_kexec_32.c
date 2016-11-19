@@ -88,14 +88,17 @@ static int machine_kexec_alloc_page_tables(struct kimage *image)
 #endif
 	image->arch.pte0 = (pte_t *)get_zeroed_page(GFP_KERNEL);
 	image->arch.pte1 = (pte_t *)get_zeroed_page(GFP_KERNEL);
+
 	if (!image->arch.pgd ||
 #ifdef CONFIG_X86_PAE
-	    !image->arch.pmd0 || !image->arch.pmd1 ||
+		!image->arch.pmd0 || !image->arch.pmd1 ||
 #endif
-	    !image->arch.pte0 || !image->arch.pte1) {
+		!image->arch.pte0 || !image->arch.pte1)
+	{
 		machine_kexec_free_page_tables(image);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
@@ -107,13 +110,21 @@ static void machine_kexec_page_table_set_one(
 
 	pgd += pgd_index(vaddr);
 #ifdef CONFIG_X86_PAE
+
 	if (!(pgd_val(*pgd) & _PAGE_PRESENT))
+	{
 		set_pgd(pgd, __pgd(__pa(pmd) | _PAGE_PRESENT));
+	}
+
 #endif
 	pud = pud_offset(pgd, vaddr);
 	pmd = pmd_offset(pud, vaddr);
+
 	if (!(pmd_val(*pmd) & _PAGE_PRESENT))
+	{
 		set_pmd(pmd, __pmd(__pa(pte) | _PAGE_TABLE));
+	}
+
 	pte = pte_offset_kernel(pmd, vaddr);
 	set_pte(pte, pfn_pte(paddr >> PAGE_SHIFT, PAGE_KERNEL_EXEC));
 }
@@ -159,8 +170,12 @@ int machine_kexec_prepare(struct kimage *image)
 
 	set_pages_x(image->control_code_page, 1);
 	error = machine_kexec_alloc_page_tables(image);
+
 	if (error)
+	{
 		return error;
+	}
+
 	machine_kexec_prepare_page_tables(image);
 	return 0;
 }
@@ -185,15 +200,19 @@ void machine_kexec(struct kimage *image)
 	void *control_page;
 	int save_ftrace_enabled;
 	asmlinkage unsigned long
-		(*relocate_kernel_ptr)(unsigned long indirection_page,
-				       unsigned long control_page,
-				       unsigned long start_address,
-				       unsigned int has_pae,
-				       unsigned int preserve_context);
+	(*relocate_kernel_ptr)(unsigned long indirection_page,
+						   unsigned long control_page,
+						   unsigned long start_address,
+						   unsigned int has_pae,
+						   unsigned int preserve_context);
 
 #ifdef CONFIG_KEXEC_JUMP
+
 	if (image->preserve_context)
+	{
 		save_processor_state();
+	}
+
 #endif
 
 	save_ftrace_enabled = __ftrace_enabled_save();
@@ -202,7 +221,8 @@ void machine_kexec(struct kimage *image)
 	local_irq_disable();
 	hw_breakpoint_disable();
 
-	if (image->preserve_context) {
+	if (image->preserve_context)
+	{
 #ifdef CONFIG_X86_IO_APIC
 		/*
 		 * We need to put APICs in legacy mode so that we can
@@ -225,7 +245,7 @@ void machine_kexec(struct kimage *image)
 
 	if (image->type == KEXEC_TYPE_DEFAULT)
 		page_list[PA_SWAP_PAGE] = (page_to_pfn(image->swap_page)
-						<< PAGE_SHIFT);
+								   << PAGE_SHIFT);
 
 	/*
 	 * The segment registers are funny things, they have both a
@@ -247,14 +267,18 @@ void machine_kexec(struct kimage *image)
 
 	/* now call it */
 	image->start = relocate_kernel_ptr((unsigned long)image->head,
-					   (unsigned long)page_list,
-					   image->start,
-					   boot_cpu_has(X86_FEATURE_PAE),
-					   image->preserve_context);
+									   (unsigned long)page_list,
+									   image->start,
+									   boot_cpu_has(X86_FEATURE_PAE),
+									   image->preserve_context);
 
 #ifdef CONFIG_KEXEC_JUMP
+
 	if (image->preserve_context)
+	{
 		restore_processor_state();
+	}
+
 #endif
 
 	__ftrace_enabled_restore(save_ftrace_enabled);

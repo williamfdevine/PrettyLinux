@@ -39,24 +39,29 @@ static inline void cache_wback_all(void)
 
 	addrstart = CACHE_OC_ADDRESS_ARRAY;
 
-	do {
+	do
+	{
 		unsigned long addr;
 
 		for (addr = addrstart;
-		     addr < addrstart + waysize;
-		     addr += current_cpu_data.dcache.linesz) {
+			 addr < addrstart + waysize;
+			 addr += current_cpu_data.dcache.linesz)
+		{
 			unsigned long data;
 			int v = SH_CACHE_UPDATED | SH_CACHE_VALID;
 
 			data = __raw_readl(addr);
 
 			if ((data & v) == v)
+			{
 				__raw_writel(data & ~v, addr);
+			}
 
 		}
 
 		addrstart += current_cpu_data.dcache.way_incr;
-	} while (--ways);
+	}
+	while (--ways);
 }
 
 /*
@@ -107,23 +112,28 @@ static void __flush_dcache_page(unsigned long phys)
 
 	addrstart = CACHE_OC_ADDRESS_ARRAY;
 
-	do {
+	do
+	{
 		unsigned long addr;
 
 		for (addr = addrstart;
-		     addr < addrstart + waysize;
-		     addr += current_cpu_data.dcache.linesz) {
+			 addr < addrstart + waysize;
+			 addr += current_cpu_data.dcache.linesz)
+		{
 			unsigned long data;
 
 			data = __raw_readl(addr) & (0x1ffffC00 | SH_CACHE_VALID);
-		        if (data == phys) {
+
+			if (data == phys)
+			{
 				data &= ~(SH_CACHE_VALID | SH_CACHE_UPDATED);
 				__raw_writel(data, addr);
 			}
 		}
 
 		addrstart += current_cpu_data.dcache.way_incr;
-	} while (--ways);
+	}
+	while (--ways);
 
 	back_to_cached();
 	local_irq_restore(flags);
@@ -139,9 +149,13 @@ static void sh7705_flush_dcache_page(void *arg)
 	struct address_space *mapping = page_mapping(page);
 
 	if (mapping && !mapping_mapped(mapping))
+	{
 		clear_bit(PG_dcache_clean, &page->flags);
+	}
 	else
+	{
 		__flush_dcache_page(__pa(page_address(page)));
+	}
 }
 
 static void sh7705_flush_cache_all(void *args)

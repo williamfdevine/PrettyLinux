@@ -23,28 +23,33 @@ static suspend_state_t lite5200_pm_target_state;
 
 static int lite5200_pm_valid(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-	case PM_SUSPEND_MEM:
-		return 1;
-	default:
-		return 0;
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+		case PM_SUSPEND_MEM:
+			return 1;
+
+		default:
+			return 0;
 	}
 }
 
 static int lite5200_pm_begin(suspend_state_t state)
 {
-	if (lite5200_pm_valid(state)) {
+	if (lite5200_pm_valid(state))
+	{
 		lite5200_pm_target_state = state;
 		return 0;
 	}
+
 	return -EINVAL;
 }
 
 static int lite5200_pm_prepare(void)
 {
 	struct device_node *np;
-	const struct of_device_id immr_ids[] = {
+	const struct of_device_id immr_ids[] =
+	{
 		{ .compatible = "fsl,mpc5200-immr", },
 		{ .compatible = "fsl,mpc5200b-immr", },
 		{ .type = "soc", .compatible = "mpc5200", }, /* lite5200 */
@@ -56,20 +61,30 @@ static int lite5200_pm_prepare(void)
 
 	/* deep sleep? let mpc52xx code handle that */
 	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY)
+	{
 		return mpc52xx_pm_prepare();
+	}
 
 	if (lite5200_pm_target_state != PM_SUSPEND_MEM)
+	{
 		return -EINVAL;
+	}
 
 	/* map registers */
 	np = of_find_matching_node(NULL, immr_ids);
 	regaddr_p = of_get_address(np, 0, NULL, NULL);
+
 	if (regaddr_p)
+	{
 		regaddr64 = of_translate_address(np, regaddr_p);
+	}
+
 	of_node_put(np);
 
 	mbar = ioremap((u32) regaddr64, 0xC000);
-	if (!mbar) {
+
+	if (!mbar)
+	{
 		printk(KERN_ERR "%s:%i Error mapping registers\n", __func__, __LINE__);
 		return -ENOSYS;
 	}
@@ -162,8 +177,10 @@ static void lite5200_restore_regs(void)
 	out_8(&bes->IntVect2, sbes.IntVect2);
 	out_be16(&bes->PtdCntrl, sbes.PtdCntrl);
 
-	for (i=0; i<32; i++)
+	for (i = 0; i < 32; i++)
+	{
 		out_8(&bes->ipr[i], sbes.ipr[i]);
+	}
 
 	out_be32(&bes->cReqSelect, sbes.cReqSelect);
 	out_be32(&bes->task_size0, sbes.task_size0);
@@ -177,8 +194,10 @@ static void lite5200_restore_regs(void)
 	out_be32(&bes->PTDDebug, sbes.PTDDebug);
 
 	/* restore tasks */
-	for (i=0; i<16; i++)
+	for (i = 0; i < 16; i++)
+	{
 		out_be16(&bes->tcr[i], sbes.tcr[i]);
+	}
 
 	/* enable interrupts */
 	out_be32(&bes->IntPend, sbes.IntPend);
@@ -204,7 +223,8 @@ static void lite5200_restore_regs(void)
 static int lite5200_pm_enter(suspend_state_t state)
 {
 	/* deep sleep? let mpc52xx code handle that */
-	if (state == PM_SUSPEND_STANDBY) {
+	if (state == PM_SUSPEND_STANDBY)
+	{
 		return mpc52xx_pm_enter(state);
 	}
 
@@ -225,7 +245,9 @@ static void lite5200_pm_finish(void)
 {
 	/* deep sleep? let mpc52xx code handle that */
 	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY)
+	{
 		mpc52xx_pm_finish();
+	}
 }
 
 static void lite5200_pm_end(void)
@@ -233,7 +255,8 @@ static void lite5200_pm_end(void)
 	lite5200_pm_target_state = PM_SUSPEND_ON;
 }
 
-static const struct platform_suspend_ops lite5200_pm_ops = {
+static const struct platform_suspend_ops lite5200_pm_ops =
+{
 	.valid		= lite5200_pm_valid,
 	.begin		= lite5200_pm_begin,
 	.prepare	= lite5200_pm_prepare,

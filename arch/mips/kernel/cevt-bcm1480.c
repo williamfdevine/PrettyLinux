@@ -90,9 +90,13 @@ static irqreturn_t sibyte_counter_handler(int irq, void *dev_id)
 	unsigned long tmode;
 
 	if (clockevent_state_periodic(cd))
+	{
 		tmode = M_SCD_TIMER_ENABLE | M_SCD_TIMER_MODE_CONTINUOUS;
+	}
 	else
+	{
 		tmode = 0;
+	}
 
 	/* ACK interrupt */
 	cfg = IOADDR(A_SCD_TIMER_REGISTER(cpu, R_SCD_TIMER_CFG));
@@ -120,7 +124,7 @@ void sb1480_clockevent_init(void)
 	sprintf(name, "bcm1480-counter-%d", cpu);
 	cd->name		= name;
 	cd->features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT;
+						  CLOCK_EVT_FEAT_ONESHOT;
 	clockevent_set_clock(cd, V_SCD_TIMER_FREQ);
 	cd->max_delta_ns	= clockevent_delta2ns(0x7fffff, cd);
 	cd->min_delta_ns	= clockevent_delta2ns(2, cd);
@@ -139,8 +143,8 @@ void sb1480_clockevent_init(void)
 	 * Map the timer interrupt to IP[4] of this cpu
 	 */
 	__raw_writeq(IMR_IP4_VAL,
-		     IOADDR(A_BCM1480_IMR_REGISTER(cpu,
-			R_BCM1480_IMR_INTERRUPT_MAP_BASE_H) + (irq << 3)));
+				 IOADDR(A_BCM1480_IMR_REGISTER(cpu,
+						 R_BCM1480_IMR_INTERRUPT_MAP_BASE_H) + (irq << 3)));
 
 	bcm1480_unmask_irq(cpu, irq);
 

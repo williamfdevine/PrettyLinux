@@ -45,13 +45,15 @@
 /*
  * IRQ2 is cascade interrupt to second interrupt controller
  */
-static struct irqaction irq2 = {
+static struct irqaction irq2 =
+{
 	.handler = no_action,
 	.name = "cascade",
 	.flags = IRQF_NO_THREAD,
 };
 
-DEFINE_PER_CPU(vector_irq_t, vector_irq) = {
+DEFINE_PER_CPU(vector_irq_t, vector_irq) =
+{
 	[0 ... NR_VECTORS - 1] = VECTOR_UNUSED,
 };
 
@@ -59,9 +61,12 @@ int vector_used_by_percpu_irq(unsigned int vector)
 {
 	int cpu;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (!IS_ERR_OR_NULL(per_cpu(vector_irq, cpu)[vector]))
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -78,7 +83,9 @@ void __init init_ISA_irqs(void)
 	legacy_pic->init(0);
 
 	for (i = 0; i < nr_legacy_irqs(); i++)
+	{
 		irq_set_chip_and_handler(i, chip, handle_level_irq);
+	}
 }
 
 void __init init_IRQ(void)
@@ -94,7 +101,9 @@ void __init init_IRQ(void)
 	 * irq's migrate etc.
 	 */
 	for (i = 0; i < nr_legacy_irqs(); i++)
+	{
 		per_cpu(vector_irq, 0)[ISA_IRQ_VECTOR(i)] = irq_to_desc(i);
+	}
 
 	x86_init.irqs.intr_init();
 }
@@ -113,7 +122,7 @@ static void __init smp_intr_init(void)
 
 	/* IPI for generic single function call */
 	alloc_intr_gate(CALL_FUNCTION_SINGLE_VECTOR,
-			call_function_single_interrupt);
+					call_function_single_interrupt);
 
 	/* Low priority IPI to cleanup after moving an irq */
 	set_intr_gate(IRQ_MOVE_CLEANUP_VECTOR, irq_move_cleanup_interrupt);
@@ -182,18 +191,21 @@ void __init native_init_IRQ(void)
 #ifndef CONFIG_X86_LOCAL_APIC
 #define first_system_vector NR_VECTORS
 #endif
-	for_each_clear_bit_from(i, used_vectors, first_system_vector) {
+	for_each_clear_bit_from(i, used_vectors, first_system_vector)
+	{
 		/* IA32_SYSCALL_VECTOR could be used in trap_init already. */
 		set_intr_gate(i, irq_entries_start +
-				8 * (i - FIRST_EXTERNAL_VECTOR));
+					  8 * (i - FIRST_EXTERNAL_VECTOR));
 	}
 #ifdef CONFIG_X86_LOCAL_APIC
 	for_each_clear_bit_from(i, used_vectors, NR_VECTORS)
-		set_intr_gate(i, spurious_interrupt);
+	set_intr_gate(i, spurious_interrupt);
 #endif
 
 	if (!acpi_ioapic && !of_ioapic && nr_legacy_irqs())
+	{
 		setup_irq(2, &irq2);
+	}
 
 #ifdef CONFIG_X86_32
 	irq_ctx_init(smp_processor_id());

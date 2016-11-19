@@ -12,11 +12,13 @@
 
 typedef unsigned long old_sigset_t;		/* at least 32 bits */
 
-typedef struct {
+typedef struct
+{
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
 
-struct osf_sigaction {
+struct osf_sigaction
+{
 	__sighandler_t	sa_handler;
 	old_sigset_t	sa_mask;
 	int		sa_flags;

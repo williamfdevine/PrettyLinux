@@ -23,15 +23,16 @@
 static DEFINE_SPINLOCK(dma_spin_lock);
 
 #define claim_dma_lock() \
-({	unsigned long flags; \
-	spin_lock_irqsave(&dma_spin_lock, flags); \
-	flags; \
-})
+	({	unsigned long flags; \
+		spin_lock_irqsave(&dma_spin_lock, flags); \
+		flags; \
+	})
 
 #define release_dma_lock(__flags) \
 	spin_unlock_irqrestore(&dma_spin_lock, __flags);
 
-static struct sparc_ebus_info {
+static struct sparc_ebus_info
+{
 	struct ebus_dma_info info;
 	unsigned int addr;
 	unsigned int count;
@@ -45,19 +46,28 @@ static DECLARE_BITMAP(dma_slot_map, PARPORT_PC_MAX_PORTS);
 static inline int request_dma(unsigned int dmanr, const char *device_id)
 {
 	if (dmanr >= PARPORT_PC_MAX_PORTS)
+	{
 		return -EINVAL;
+	}
+
 	if (xchg(&sparc_ebus_dmas[dmanr].lock, 1) != 0)
+	{
 		return -EBUSY;
+	}
+
 	return 0;
 }
 
 static inline void free_dma(unsigned int dmanr)
 {
-	if (dmanr >= PARPORT_PC_MAX_PORTS) {
+	if (dmanr >= PARPORT_PC_MAX_PORTS)
+	{
 		printk(KERN_WARNING "Trying to free DMA%d\n", dmanr);
 		return;
 	}
-	if (xchg(&sparc_ebus_dmas[dmanr].lock, 0) == 0) {
+
+	if (xchg(&sparc_ebus_dmas[dmanr].lock, 0) == 0)
+	{
 		printk(KERN_WARNING "Trying to free free DMA%d\n", dmanr);
 		return;
 	}
@@ -68,9 +78,11 @@ static inline void enable_dma(unsigned int dmanr)
 	ebus_dma_enable(&sparc_ebus_dmas[dmanr].info, 1);
 
 	if (ebus_dma_request(&sparc_ebus_dmas[dmanr].info,
-			     sparc_ebus_dmas[dmanr].addr,
-			     sparc_ebus_dmas[dmanr].count))
+						 sparc_ebus_dmas[dmanr].addr,
+						 sparc_ebus_dmas[dmanr].count))
+	{
 		BUG();
+	}
 }
 
 static inline void disable_dma(unsigned int dmanr)
@@ -114,23 +126,36 @@ static int ecpp_probe(struct platform_device *op)
 	int slot, err;
 
 	parent = op->dev.of_node->parent;
-	if (!strcmp(parent->name, "dma")) {
+
+	if (!strcmp(parent->name, "dma"))
+	{
 		p = parport_pc_probe_port(base, base + 0x400,
-					  op->archdata.irqs[0], PARPORT_DMA_NOFIFO,
-					  op->dev.parent->parent, 0);
+								  op->archdata.irqs[0], PARPORT_DMA_NOFIFO,
+								  op->dev.parent->parent, 0);
+
 		if (!p)
+		{
 			return -ENOMEM;
+		}
+
 		dev_set_drvdata(&op->dev, p);
 		return 0;
 	}
 
-	for (slot = 0; slot < PARPORT_PC_MAX_PORTS; slot++) {
+	for (slot = 0; slot < PARPORT_PC_MAX_PORTS; slot++)
+	{
 		if (!test_and_set_bit(slot, dma_slot_map))
+		{
 			break;
+		}
 	}
+
 	err = -ENODEV;
+
 	if (slot >= PARPORT_PC_MAX_PORTS)
+	{
 		goto out_err;
+	}
 
 	spin_lock_init(&sparc_ebus_dmas[slot].info.lock);
 
@@ -139,15 +164,20 @@ static int ecpp_probe(struct platform_device *op)
 		of_ioremap(&op->resource[2], 0, d_len, "ECPP DMA");
 
 	if (!sparc_ebus_dmas[slot].info.regs)
+	{
 		goto out_clear_map;
+	}
 
 	sparc_ebus_dmas[slot].info.flags = 0;
 	sparc_ebus_dmas[slot].info.callback = NULL;
 	sparc_ebus_dmas[slot].info.client_cookie = NULL;
 	sparc_ebus_dmas[slot].info.irq = 0xdeadbeef;
 	strcpy(sparc_ebus_dmas[slot].info.name, "parport");
+
 	if (ebus_dma_register(&sparc_ebus_dmas[slot].info))
+	{
 		goto out_unmap_regs;
+	}
 
 	ebus_dma_irq_enable(&sparc_ebus_dmas[slot].info, 1);
 
@@ -155,24 +185,27 @@ static int ecpp_probe(struct platform_device *op)
 	/* Enable ECP, set bit 2 of the CTR first */
 	outb(0x04, base + 0x02);
 	ns87303_modify(config, PCR,
-		       PCR_EPP_ENABLE |
-		       PCR_IRQ_ODRAIN,
-		       PCR_ECP_ENABLE |
-		       PCR_ECP_CLK_ENA |
-		       PCR_IRQ_POLAR);
+				   PCR_EPP_ENABLE |
+				   PCR_IRQ_ODRAIN,
+				   PCR_ECP_ENABLE |
+				   PCR_ECP_CLK_ENA |
+				   PCR_IRQ_POLAR);
 
 	/* CTR bit 5 controls direction of port */
 	ns87303_modify(config, PTR,
-		       0, PTR_LPT_REG_DIR);
+				   0, PTR_LPT_REG_DIR);
 
 	p = parport_pc_probe_port(base, base + 0x400,
-				  op->archdata.irqs[0],
-				  slot,
-				  op->dev.parent,
-				  0);
+							  op->archdata.irqs[0],
+							  slot,
+							  op->dev.parent,
+							  0);
 	err = -ENOMEM;
+
 	if (!p)
+	{
 		goto out_disable_irq;
+	}
 
 	dev_set_drvdata(&op->dev, p);
 
@@ -199,7 +232,8 @@ static int ecpp_remove(struct platform_device *op)
 
 	parport_pc_unregister_port(p);
 
-	if (slot != PARPORT_DMA_NOFIFO) {
+	if (slot != PARPORT_DMA_NOFIFO)
+	{
 		unsigned long d_base = op->resource[2].start;
 		unsigned long d_len;
 
@@ -208,15 +242,16 @@ static int ecpp_remove(struct platform_device *op)
 		ebus_dma_irq_enable(&sparc_ebus_dmas[slot].info, 0);
 		ebus_dma_unregister(&sparc_ebus_dmas[slot].info);
 		of_iounmap(&op->resource[2],
-			   sparc_ebus_dmas[slot].info.regs,
-			   d_len);
+				   sparc_ebus_dmas[slot].info.regs,
+				   d_len);
 		clear_bit(slot, dma_slot_map);
 	}
 
 	return 0;
 }
 
-static const struct of_device_id ecpp_match[] = {
+static const struct of_device_id ecpp_match[] =
+{
 	{
 		.name = "ecpp",
 	},
@@ -235,7 +270,8 @@ static const struct of_device_id ecpp_match[] = {
 	{},
 };
 
-static struct platform_driver ecpp_driver = {
+static struct platform_driver ecpp_driver =
+{
 	.driver = {
 		.name = "ecpp",
 		.of_match_table = ecpp_match,

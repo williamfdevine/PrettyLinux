@@ -46,56 +46,80 @@ void decode_address(char *buf, unsigned long address)
 	/* look up the address and see if we are in kernel space */
 	symname = kallsyms_lookup(address, &symsize, &offset, &modname, namebuf);
 
-	if (symname) {
+	if (symname)
+	{
 		/* yeah! kernel space! */
 		if (!modname)
+		{
 			modname = delim = "";
+		}
+
 		sprintf(buf, "{ %s%s%s%s + 0x%lx }",
-			delim, modname, delim, symname,
-			(unsigned long)offset);
+				delim, modname, delim, symname,
+				(unsigned long)offset);
 		return;
 	}
+
 #endif
 
-	if (address >= FIXED_CODE_START && address < FIXED_CODE_END) {
+	if (address >= FIXED_CODE_START && address < FIXED_CODE_END)
+	{
 		/* Problem in fixed code section? */
 		strcat(buf, "/* Maybe fixed code section */");
 		return;
 
-	} else if (address < CONFIG_BOOT_LOAD) {
+	}
+	else if (address < CONFIG_BOOT_LOAD)
+	{
 		/* Problem somewhere before the kernel start address */
 		strcat(buf, "/* Maybe null pointer? */");
 		return;
 
-	} else if (address >= COREMMR_BASE) {
+	}
+	else if (address >= COREMMR_BASE)
+	{
 		strcat(buf, "/* core mmrs */");
 		return;
 
-	} else if (address >= SYSMMR_BASE) {
+	}
+	else if (address >= SYSMMR_BASE)
+	{
 		strcat(buf, "/* system mmrs */");
 		return;
 
-	} else if (address >= L1_ROM_START && address < L1_ROM_START + L1_ROM_LENGTH) {
+	}
+	else if (address >= L1_ROM_START && address < L1_ROM_START + L1_ROM_LENGTH)
+	{
 		strcat(buf, "/* on-chip L1 ROM */");
 		return;
 
-	} else if (address >= L1_SCRATCH_START && address < L1_SCRATCH_START + L1_SCRATCH_LENGTH) {
+	}
+	else if (address >= L1_SCRATCH_START && address < L1_SCRATCH_START + L1_SCRATCH_LENGTH)
+	{
 		strcat(buf, "/* on-chip scratchpad */");
 		return;
 
-	} else if (address >= physical_mem_end && address < ASYNC_BANK0_BASE) {
+	}
+	else if (address >= physical_mem_end && address < ASYNC_BANK0_BASE)
+	{
 		strcat(buf, "/* unconnected memory */");
 		return;
 
-	} else if (address >= ASYNC_BANK3_BASE + ASYNC_BANK3_SIZE && address < BOOT_ROM_START) {
+	}
+	else if (address >= ASYNC_BANK3_BASE + ASYNC_BANK3_SIZE && address < BOOT_ROM_START)
+	{
 		strcat(buf, "/* reserved memory */");
 		return;
 
-	} else if (address >= L1_DATA_A_START && address < L1_DATA_A_START + L1_DATA_A_LENGTH) {
+	}
+	else if (address >= L1_DATA_A_START && address < L1_DATA_A_START + L1_DATA_A_LENGTH)
+	{
 		strcat(buf, "/* on-chip Data Bank A */");
 		return;
 
-	} else if (address >= L1_DATA_B_START && address < L1_DATA_B_START + L1_DATA_B_LENGTH) {
+	}
+	else if (address >= L1_DATA_B_START && address < L1_DATA_B_START + L1_DATA_B_LENGTH)
+	{
 		strcat(buf, "/* on-chip Data Bank B */");
 		return;
 	}
@@ -104,7 +128,8 @@ void decode_address(char *buf, unsigned long address)
 	 * Don't walk any of the vmas if we are oopsing, it has been known
 	 * to cause problems - corrupt vmas (kernel crashes) cause double faults
 	 */
-	if (oops_in_progress) {
+	if (oops_in_progress)
+	{
 		strcat(buf, "/* kernel dynamic memory (maybe user-space) */");
 		return;
 	}
@@ -114,32 +139,45 @@ void decode_address(char *buf, unsigned long address)
 	 * bit more specific
 	 */
 	read_lock(&tasklist_lock);
-	for_each_process(p) {
+	for_each_process(p)
+	{
 		struct task_struct *t;
 
 		t = find_lock_task_mm(p);
+
 		if (!t)
+		{
 			continue;
+		}
 
 		mm = t->mm;
-		if (!down_read_trylock(&mm->mmap_sem))
-			goto __continue;
 
-		for (n = rb_first(&mm->mm_rb); n; n = rb_next(n)) {
+		if (!down_read_trylock(&mm->mmap_sem))
+		{
+			goto __continue;
+		}
+
+		for (n = rb_first(&mm->mm_rb); n; n = rb_next(n))
+		{
 			struct vm_area_struct *vma;
 
 			vma = rb_entry(n, struct vm_area_struct, vm_rb);
 
-			if (address >= vma->vm_start && address < vma->vm_end) {
+			if (address >= vma->vm_start && address < vma->vm_end)
+			{
 				char _tmpbuf[256];
 				char *name = t->comm;
 				struct file *file = vma->vm_file;
 
-				if (file) {
+				if (file)
+				{
 					char *d_name = file_path(file, _tmpbuf,
-						      sizeof(_tmpbuf));
+											 sizeof(_tmpbuf));
+
 					if (!IS_ERR(d_name))
+					{
 						name = d_name;
+					}
 				}
 
 				/* FLAT does not have its text aligned to the start of
@@ -150,25 +188,31 @@ void decode_address(char *buf, unsigned long address)
 				 * make sure current is valid
 				 */
 				if ((unsigned long)current >= FIXED_CODE_START &&
-				    !((unsigned long)current & 0x3)) {
+					!((unsigned long)current & 0x3))
+				{
 					if (current->mm &&
-					    (address > current->mm->start_code) &&
-					    (address < current->mm->end_code))
+						(address > current->mm->start_code) &&
+						(address < current->mm->end_code))
+					{
 						offset = address - current->mm->start_code;
+					}
 					else
 						offset = (address - vma->vm_start) +
-							 (vma->vm_pgoff << PAGE_SHIFT);
+								 (vma->vm_pgoff << PAGE_SHIFT);
 
 					sprintf(buf, "[ %s + 0x%lx ]", name, offset);
-				} else
+				}
+				else
 					sprintf(buf, "[ %s vma:0x%lx-0x%lx]",
-						name, vma->vm_start, vma->vm_end);
+							name, vma->vm_start, vma->vm_end);
 
 				up_read(&mm->mmap_sem);
 				task_unlock(t);
 
 				if (buf[0] == '\0')
+				{
 					sprintf(buf, "[ %s ] dynamic memory", name);
+				}
 
 				goto done;
 			}
@@ -201,21 +245,27 @@ bool get_mem16(unsigned short *val, unsigned short *address)
 
 	/* Check for odd addresses */
 	if (addr & 0x1)
+	{
 		return false;
+	}
 
-	switch (bfin_mem_access_type(addr, 2)) {
-	case BFIN_MEM_ACCESS_CORE:
-	case BFIN_MEM_ACCESS_CORE_ONLY:
-		*val = *address;
-		return true;
-	case BFIN_MEM_ACCESS_DMA:
-		dma_memcpy(val, address, 2);
-		return true;
-	case BFIN_MEM_ACCESS_ITEST:
-		isram_memcpy(val, address, 2);
-		return true;
-	default: /* invalid access */
-		return false;
+	switch (bfin_mem_access_type(addr, 2))
+	{
+		case BFIN_MEM_ACCESS_CORE:
+		case BFIN_MEM_ACCESS_CORE_ONLY:
+			*val = *address;
+			return true;
+
+		case BFIN_MEM_ACCESS_DMA:
+			dma_memcpy(val, address, 2);
+			return true;
+
+		case BFIN_MEM_ACCESS_ITEST:
+			isram_memcpy(val, address, 2);
+			return true;
+
+		default: /* invalid access */
+			return false;
 	}
 }
 
@@ -226,30 +276,47 @@ bool get_instruction(unsigned int *val, unsigned short *address)
 
 	/* Check for odd addresses */
 	if (addr & 0x1)
+	{
 		return false;
+	}
 
 	/* MMR region will never have instructions */
 	if (addr >= SYSMMR_BASE)
+	{
 		return false;
+	}
 
 	/* Scratchpad will never have instructions */
 	if (addr >= L1_SCRATCH_START && addr < L1_SCRATCH_START + L1_SCRATCH_LENGTH)
+	{
 		return false;
+	}
 
 	/* Data banks will never have instructions */
 	if (addr >= BOOT_ROM_START + BOOT_ROM_LENGTH && addr < L1_CODE_START)
+	{
 		return false;
+	}
 
 	if (!get_mem16(&opcode0, address))
+	{
 		return false;
+	}
 
 	/* was this a 32-bit instruction? If so, get the next 16 bits */
-	if ((opcode0 & 0xc000) == 0xc000) {
+	if ((opcode0 & 0xc000) == 0xc000)
+	{
 		if (!get_mem16(&opcode1, address + 1))
+		{
 			return false;
+		}
+
 		*val = (opcode0 << 16) + opcode1;
-	} else
+	}
+	else
+	{
 		*val = opcode0;
+	}
 
 	return true;
 }
@@ -277,43 +344,81 @@ static void decode_ProgCtrl_0(unsigned int opcode)
 	int prgfunc = ((opcode >> ProgCtrl_prgfunc_bits) & ProgCtrl_prgfunc_mask);
 
 	if (prgfunc == 0 && poprnd == 0)
+	{
 		pr_cont("NOP");
+	}
 	else if (prgfunc == 1 && poprnd == 0)
+	{
 		pr_cont("RTS");
+	}
 	else if (prgfunc == 1 && poprnd == 1)
+	{
 		pr_cont("RTI");
+	}
 	else if (prgfunc == 1 && poprnd == 2)
+	{
 		pr_cont("RTX");
+	}
 	else if (prgfunc == 1 && poprnd == 3)
+	{
 		pr_cont("RTN");
+	}
 	else if (prgfunc == 1 && poprnd == 4)
+	{
 		pr_cont("RTE");
+	}
 	else if (prgfunc == 2 && poprnd == 0)
+	{
 		pr_cont("IDLE");
+	}
 	else if (prgfunc == 2 && poprnd == 3)
+	{
 		pr_cont("CSYNC");
+	}
 	else if (prgfunc == 2 && poprnd == 4)
+	{
 		pr_cont("SSYNC");
+	}
 	else if (prgfunc == 2 && poprnd == 5)
+	{
 		pr_cont("EMUEXCPT");
+	}
 	else if (prgfunc == 3)
+	{
 		pr_cont("CLI R%i", poprnd);
+	}
 	else if (prgfunc == 4)
+	{
 		pr_cont("STI R%i", poprnd);
+	}
 	else if (prgfunc == 5)
+	{
 		pr_cont("JUMP (P%i)", poprnd);
+	}
 	else if (prgfunc == 6)
+	{
 		pr_cont("CALL (P%i)", poprnd);
+	}
 	else if (prgfunc == 7)
+	{
 		pr_cont("CALL (PC + P%i)", poprnd);
+	}
 	else if (prgfunc == 8)
+	{
 		pr_cont("JUMP (PC + P%i", poprnd);
+	}
 	else if (prgfunc == 9)
+	{
 		pr_cont("RAISE %i", poprnd);
+	}
 	else if (prgfunc == 10)
+	{
 		pr_cont("EXCPT %i", poprnd);
+	}
 	else
+	{
 		pr_cont("0x%04x", opcode);
+	}
 
 }
 
@@ -348,9 +453,13 @@ static void decode_CALLa_0(unsigned int opcode)
 	int S   = ((opcode >> (CALLa_S_bits - 16)) & CALLa_S_mask);
 
 	if (S)
+	{
 		pr_cont("CALL pcrel");
+	}
 	else
+	{
 		pr_cont("JUMP.L");
+	}
 }
 
 #define LoopSetup_opcode                0xe0800000
@@ -376,10 +485,16 @@ static void decode_LoopSetup_0(unsigned int opcode)
 	int rop = ((opcode >> LoopSetup_rop_bits) & LoopSetup_rop_mask);
 
 	pr_cont("LSETUP <> LC%i", c);
+
 	if ((rop & 1) == 1)
+	{
 		pr_cont("= P%i", reg);
+	}
+
 	if ((rop & 2) == 2)
+	{
 		pr_cont(" >> 0x1");
+	}
 }
 
 #define DspLDST_opcode          0x9c00
@@ -404,41 +519,52 @@ static void decode_dspLDST_0(unsigned int opcode)
 	int aop = ((opcode >> DspLDST_aop_bits) & DspLDST_aop_mask);
 	int reg = ((opcode >> DspLDST_reg_bits) & DspLDST_reg_mask);
 
-	if (W == 0) {
+	if (W == 0)
+	{
 		pr_cont("R%i", reg);
-		switch (m) {
-		case 0:
-			pr_cont(" = ");
-			break;
-		case 1:
-			pr_cont(".L = ");
-			break;
-		case 2:
-			pr_cont(".W = ");
-			break;
+
+		switch (m)
+		{
+			case 0:
+				pr_cont(" = ");
+				break;
+
+			case 1:
+				pr_cont(".L = ");
+				break;
+
+			case 2:
+				pr_cont(".W = ");
+				break;
 		}
 	}
 
 	pr_cont("[ I%i", i);
 
-	switch (aop) {
-	case 0:
-		pr_cont("++ ]");
-		break;
-	case 1:
-		pr_cont("-- ]");
-		break;
+	switch (aop)
+	{
+		case 0:
+			pr_cont("++ ]");
+			break;
+
+		case 1:
+			pr_cont("-- ]");
+			break;
 	}
 
-	if (W == 1) {
+	if (W == 1)
+	{
 		pr_cont(" = R%i", reg);
-		switch (m) {
-		case 1:
-			pr_cont(".L = ");
-			break;
-		case 2:
-			pr_cont(".W = ");
-			break;
+
+		switch (m)
+		{
+			case 1:
+				pr_cont(".L = ");
+				break;
+
+			case 2:
+				pr_cont(".W = ");
+				break;
 		}
 	}
 }
@@ -469,37 +595,51 @@ static void decode_LDST_0(unsigned int opcode)
 	int ptr = ((opcode >> LDST_ptr_bits) & LDST_ptr_mask);
 
 	if (W == 0)
+	{
 		pr_cont("%s%i = ", (sz == 0 && Z == 1) ? "P" : "R", reg);
+	}
 
-	switch (sz) {
-	case 1:
-		pr_cont("W");
-		break;
-	case 2:
-		pr_cont("B");
-		break;
+	switch (sz)
+	{
+		case 1:
+			pr_cont("W");
+			break;
+
+		case 2:
+			pr_cont("B");
+			break;
 	}
 
 	pr_cont("[P%i", ptr);
 
-	switch (aop) {
-	case 0:
-		pr_cont("++");
-		break;
-	case 1:
-		pr_cont("--");
-		break;
+	switch (aop)
+	{
+		case 0:
+			pr_cont("++");
+			break;
+
+		case 1:
+			pr_cont("--");
+			break;
 	}
+
 	pr_cont("]");
 
 	if (W == 1)
+	{
 		pr_cont(" = %s%i ", (sz == 0 && Z == 1) ? "P" : "R", reg);
+	}
 
-	if (sz) {
+	if (sz)
+	{
 		if (Z)
+		{
 			pr_cont(" (X)");
+		}
 		else
+		{
 			pr_cont(" (Z)");
+		}
 	}
 }
 
@@ -525,16 +665,25 @@ static void decode_LDSTii_0(unsigned int opcode)
 	int op = ((opcode >> LDSTii_op_bit) & LDSTii_op_mask);
 	int W = ((opcode >> LDSTii_W_bit) & LDSTii_W_mask);
 
-	if (W == 0) {
+	if (W == 0)
+	{
 		pr_cont("%s%i = %s[P%i + %i]", op == 3 ? "R" : "P", reg,
-			op == 1 || op == 2 ? "" : "W", ptr, offset);
+				op == 1 || op == 2 ? "" : "W", ptr, offset);
+
 		if (op == 2)
+		{
 			pr_cont("(Z)");
+		}
+
 		if (op == 3)
+		{
 			pr_cont("(X)");
-	} else {
+		}
+	}
+	else
+	{
 		pr_cont("%s[P%i + %i] = %s%i", op == 0 ? "" : "W", ptr,
-			offset, op == 3 ? "P" : "R", reg);
+				offset, op == 3 ? "P" : "R", reg);
 	}
 }
 
@@ -564,57 +713,96 @@ static void decode_LDSTidxI_0(unsigned int opcode)
 	int offset = ((opcode >> LDSTidxI_offset_bits) & LDSTidxI_offset_mask);
 
 	if (W == 0)
+	{
 		pr_cont("%s%i = ", sz == 0 && Z == 1 ? "P" : "R", reg);
+	}
 
 	if (sz == 1)
+	{
 		pr_cont("W");
+	}
+
 	if (sz == 2)
+	{
 		pr_cont("B");
+	}
 
 	pr_cont("[P%i + %s0x%x]", ptr, offset & 0x20 ? "-" : "",
-		(offset & 0x1f) << 2);
+			(offset & 0x1f) << 2);
 
-	if (W == 0 && sz != 0) {
+	if (W == 0 && sz != 0)
+	{
 		if (Z)
+		{
 			pr_cont("(X)");
+		}
 		else
+		{
 			pr_cont("(Z)");
+		}
 	}
 
 	if (W == 1)
+	{
 		pr_cont("= %s%i", (sz == 0 && Z == 1) ? "P" : "R", reg);
+	}
 
 }
 
 static void decode_opcode(unsigned int opcode)
 {
 #ifdef CONFIG_BUG
+
 	if (opcode == BFIN_BUG_OPCODE)
+	{
 		pr_cont("BUG");
+	}
 	else
 #endif
-	if ((opcode & 0xffffff00) == ProgCtrl_opcode)
-		decode_ProgCtrl_0(opcode);
-	else if ((opcode & 0xfffff000) == BRCC_opcode)
-		decode_BRCC_0(opcode);
-	else if ((opcode & 0xfffff000) == 0x2000)
-		pr_cont("JUMP.S");
-	else if ((opcode & 0xfe000000) == CALLa_opcode)
-		decode_CALLa_0(opcode);
-	else if ((opcode & 0xff8000C0) == LoopSetup_opcode)
-		decode_LoopSetup_0(opcode);
-	else if ((opcode & 0xfffffc00) == DspLDST_opcode)
-		decode_dspLDST_0(opcode);
-	else if ((opcode & 0xfffff000) == LDST_opcode)
-		decode_LDST_0(opcode);
-	else if ((opcode & 0xffffe000) == LDSTii_opcode)
-		decode_LDSTii_0(opcode);
-	else if ((opcode & 0xfc000000) == LDSTidxI_opcode)
-		decode_LDSTidxI_0(opcode);
-	else if (opcode & 0xffff0000)
-		pr_cont("0x%08x", opcode);
-	else
-		pr_cont("0x%04x", opcode);
+		if ((opcode & 0xffffff00) == ProgCtrl_opcode)
+		{
+			decode_ProgCtrl_0(opcode);
+		}
+		else if ((opcode & 0xfffff000) == BRCC_opcode)
+		{
+			decode_BRCC_0(opcode);
+		}
+		else if ((opcode & 0xfffff000) == 0x2000)
+		{
+			pr_cont("JUMP.S");
+		}
+		else if ((opcode & 0xfe000000) == CALLa_opcode)
+		{
+			decode_CALLa_0(opcode);
+		}
+		else if ((opcode & 0xff8000C0) == LoopSetup_opcode)
+		{
+			decode_LoopSetup_0(opcode);
+		}
+		else if ((opcode & 0xfffffc00) == DspLDST_opcode)
+		{
+			decode_dspLDST_0(opcode);
+		}
+		else if ((opcode & 0xfffff000) == LDST_opcode)
+		{
+			decode_LDST_0(opcode);
+		}
+		else if ((opcode & 0xffffe000) == LDSTii_opcode)
+		{
+			decode_LDSTii_0(opcode);
+		}
+		else if ((opcode & 0xfc000000) == LDSTidxI_opcode)
+		{
+			decode_LDSTidxI_0(opcode);
+		}
+		else if (opcode & 0xffff0000)
+		{
+			pr_cont("0x%08x", opcode);
+		}
+		else
+		{
+			pr_cont("0x%04x", opcode);
+		}
 }
 
 #define BIT_MULTI_INS 0x08000000
@@ -623,7 +811,9 @@ static void decode_instruction(unsigned short *address)
 	unsigned int opcode;
 
 	if (!get_instruction(&opcode, address))
+	{
 		return;
+	}
 
 	decode_opcode(opcode);
 
@@ -632,15 +822,24 @@ static void decode_instruction(unsigned short *address)
 	 * This test collidates with the unlink instruction, so disallow that
 	 */
 	if ((opcode & 0xc0000000) == 0xc0000000 &&
-	    (opcode & BIT_MULTI_INS) &&
-	    (opcode & 0xe8000000) != 0xe8000000) {
+		(opcode & BIT_MULTI_INS) &&
+		(opcode & 0xe8000000) != 0xe8000000)
+	{
 		pr_cont(" || ");
+
 		if (!get_instruction(&opcode, address + 2))
+		{
 			return;
+		}
+
 		decode_opcode(opcode);
 		pr_cont(" || ");
+
 		if (!get_instruction(&opcode, address + 3))
+		{
 			return;
+		}
+
 		decode_opcode(opcode);
 	}
 }
@@ -665,16 +864,20 @@ void dump_bfin_trace_buffer(void)
 	pr_notice("WARNING: Expanded trace turned on - can not trace exceptions\n");
 #endif
 
-	if (likely(bfin_read_TBUFSTAT() & TBUFCNT)) {
-		for (; bfin_read_TBUFSTAT() & TBUFCNT; i++) {
+	if (likely(bfin_read_TBUFSTAT() & TBUFCNT))
+	{
+		for (; bfin_read_TBUFSTAT() & TBUFCNT; i++)
+		{
 			addr = (unsigned short *)bfin_read_TBUF();
 			decode_address(buf, (unsigned long)addr);
 			pr_notice("%4i Target : %s\n", i, buf);
+
 			/* Normally, the faulting instruction doesn't go into
 			 * the trace buffer, (since it doesn't commit), so
 			 * we print out the fault address here
 			 */
-			if (!fault && addr == ((unsigned short *)evt_ivhw)) {
+			if (!fault && addr == ((unsigned short *)evt_ivhw))
+			{
 				addr = (unsigned short *)bfin_read_TBUF();
 				decode_address(buf, (unsigned long)addr);
 				pr_notice("      FAULT : %s ", buf);
@@ -683,14 +886,17 @@ void dump_bfin_trace_buffer(void)
 				fault = 1;
 				continue;
 			}
+
 			if (!fault && addr == (unsigned short *)trap &&
-				(cpu_pda[cpu].seqstat & SEQSTAT_EXCAUSE) > VEC_EXCPT15) {
+				(cpu_pda[cpu].seqstat & SEQSTAT_EXCAUSE) > VEC_EXCPT15)
+			{
 				decode_address(buf, cpu_pda[cpu].icplb_fault_addr);
 				pr_notice("      FAULT : %s ", buf);
 				decode_instruction((unsigned short *)cpu_pda[cpu].icplb_fault_addr);
 				pr_cont("\n");
 				fault = 1;
 			}
+
 			addr = (unsigned short *)bfin_read_TBUF();
 			decode_address(buf, (unsigned long)addr);
 			pr_notice("     Source : %s ", buf);
@@ -700,28 +906,44 @@ void dump_bfin_trace_buffer(void)
 	}
 
 #ifdef CONFIG_DEBUG_BFIN_HWTRACE_EXPAND
+
 	if (trace_buff_offset)
+	{
 		index = trace_buff_offset / 4;
+	}
 	else
+	{
 		index = EXPAND_LEN;
+	}
 
 	j = (1 << CONFIG_DEBUG_BFIN_HWTRACE_EXPAND_LEN) * 128;
-	while (j) {
+
+	while (j)
+	{
 		decode_address(buf, software_trace_buff[index]);
 		pr_notice("%4i Target : %s\n", i, buf);
 		index -= 1;
+
 		if (index < 0)
+		{
 			index = EXPAND_LEN;
+		}
+
 		decode_address(buf, software_trace_buff[index]);
 		pr_notice("     Source : %s ", buf);
 		decode_instruction((unsigned short *)software_trace_buff[index]);
 		pr_cont("\n");
 		index -= 1;
+
 		if (index < 0)
+		{
 			index = EXPAND_LEN;
+		}
+
 		j--;
 		i++;
 	}
+
 #endif
 
 	trace_buffer_restore(tflags);
@@ -736,47 +958,71 @@ void dump_bfin_process(struct pt_regs *fp)
 	unsigned int context = bfin_read_IPEND();
 
 	if (oops_in_progress)
+	{
 		pr_emerg("Kernel OOPS in progress\n");
+	}
 
 	if (context & 0x0020 && (fp->seqstat & SEQSTAT_EXCAUSE) == VEC_HWERR)
+	{
 		pr_notice("HW Error context\n");
+	}
 	else if (context & 0x0020)
+	{
 		pr_notice("Deferred Exception context\n");
+	}
 	else if (context & 0x3FC0)
+	{
 		pr_notice("Interrupt context\n");
+	}
 	else if (context & 0x4000)
+	{
 		pr_notice("Deferred Interrupt context\n");
+	}
 	else if (context & 0x8000)
+	{
 		pr_notice("Kernel process context\n");
+	}
 
 	/* Because we are crashing, and pointers could be bad, we check things
 	 * pretty closely before we use them
 	 */
 	if ((unsigned long)current >= FIXED_CODE_START &&
-	    !((unsigned long)current & 0x3) && current->pid) {
+		!((unsigned long)current & 0x3) && current->pid)
+	{
 		pr_notice("CURRENT PROCESS:\n");
+
 		if (current->comm >= (char *)FIXED_CODE_START)
 			pr_notice("COMM=%s PID=%d",
-				current->comm, current->pid);
+					  current->comm, current->pid);
 		else
+		{
 			pr_notice("COMM= invalid");
+		}
 
 		pr_cont("  CPU=%d\n", current_thread_info()->cpu);
+
 		if (!((unsigned long)current->mm & 0x3) &&
-			(unsigned long)current->mm >= FIXED_CODE_START) {
+			(unsigned long)current->mm >= FIXED_CODE_START)
+		{
 			pr_notice("TEXT = 0x%p-0x%p        DATA = 0x%p-0x%p\n",
-				(void *)current->mm->start_code,
-				(void *)current->mm->end_code,
-				(void *)current->mm->start_data,
-				(void *)current->mm->end_data);
+					  (void *)current->mm->start_code,
+					  (void *)current->mm->end_code,
+					  (void *)current->mm->start_data,
+					  (void *)current->mm->end_data);
 			pr_notice(" BSS = 0x%p-0x%p  USER-STACK = 0x%p\n\n",
-				(void *)current->mm->end_data,
-				(void *)current->mm->brk,
-				(void *)current->mm->start_stack);
-		} else
+					  (void *)current->mm->end_data,
+					  (void *)current->mm->brk,
+					  (void *)current->mm->start_stack);
+		}
+		else
+		{
 			pr_notice("invalid mm\n");
-	} else
+		}
+	}
+	else
+	{
 		pr_notice("No Valid process in current context\n");
+	}
 }
 
 void dump_bfin_mem(struct pt_regs *fp)
@@ -789,56 +1035,74 @@ void dump_bfin_mem(struct pt_regs *fp)
 	pr_notice("return address: [0x%p]; contents of:", erraddr);
 
 	for (addr = (unsigned short *)((unsigned long)erraddr & ~0xF) - 0x10;
-	     addr < (unsigned short *)((unsigned long)erraddr & ~0xF) + 0x10;
-	     addr++) {
+		 addr < (unsigned short *)((unsigned long)erraddr & ~0xF) + 0x10;
+		 addr++)
+	{
 		if (!((unsigned long)addr & 0xF))
+		{
 			pr_notice("0x%p: ", addr);
+		}
 
-		if (!get_mem16(&val, addr)) {
-				val = 0;
-				sprintf(buf, "????");
-		} else
+		if (!get_mem16(&val, addr))
+		{
+			val = 0;
+			sprintf(buf, "????");
+		}
+		else
+		{
 			sprintf(buf, "%04x", val);
+		}
 
-		if (addr == erraddr) {
+		if (addr == erraddr)
+		{
 			pr_cont("[%s]", buf);
 			err = val;
-		} else
+		}
+		else
+		{
 			pr_cont(" %s ", buf);
+		}
 
 		/* Do any previous instructions turn on interrupts? */
 		if (addr <= erraddr &&				/* in the past */
-		    ((val >= 0x0040 && val <= 0x0047) ||	/* STI instruction */
-		      val == 0x017b))				/* [SP++] = RETI */
+			((val >= 0x0040 && val <= 0x0047) ||	/* STI instruction */
+			 val == 0x017b))				/* [SP++] = RETI */
+		{
 			sti = 1;
+		}
 	}
 
 	pr_cont("\n");
 
 	/* Hardware error interrupts can be deferred */
 	if (unlikely(sti && (fp->seqstat & SEQSTAT_EXCAUSE) == VEC_HWERR &&
-	    oops_in_progress)){
+				 oops_in_progress))
+	{
 		pr_notice("Looks like this was a deferred error - sorry\n");
 #ifndef CONFIG_DEBUG_HWERR
 		pr_notice("The remaining message may be meaningless\n");
 		pr_notice("You should enable CONFIG_DEBUG_HWERR to get a better idea where it came from\n");
 #else
+
 		/* If we are handling only one peripheral interrupt
 		 * and current mm and pid are valid, and the last error
 		 * was in that user space process's text area
 		 * print it out - because that is where the problem exists
 		 */
 		if ((!(((fp)->ipend & ~0x30) & (((fp)->ipend & ~0x30) - 1))) &&
-		     (current->pid && current->mm)) {
+			(current->pid && current->mm))
+		{
 			/* And the last RETI points to the current userspace context */
 			if ((fp + 1)->pc >= current->mm->start_code &&
-			    (fp + 1)->pc <= current->mm->end_code) {
+				(fp + 1)->pc <= current->mm->end_code)
+			{
 				pr_notice("It might be better to look around here :\n");
 				pr_notice("-------------------------------------------\n");
 				show_regs(fp + 1);
 				pr_notice("-------------------------------------------\n");
 			}
 		}
+
 #endif
 	}
 }
@@ -857,82 +1121,120 @@ void show_regs(struct pt_regs *fp)
 
 	if (CPUID != bfin_cpuid())
 		pr_notice("Compiled for cpu family 0x%04x (Rev %d), "
-			"but running on:0x%04x (Rev %d)\n",
-			CPUID, bfin_compiled_revid(), bfin_cpuid(), bfin_revid());
+				  "but running on:0x%04x (Rev %d)\n",
+				  CPUID, bfin_compiled_revid(), bfin_cpuid(), bfin_revid());
 
 	pr_notice("ADSP-%s-0.%d",
-		CPU, bfin_compiled_revid());
+			  CPU, bfin_compiled_revid());
 
 	if (bfin_compiled_revid() !=  bfin_revid())
+	{
 		pr_cont("(Detected 0.%d)", bfin_revid());
+	}
 
 	pr_cont(" %lu(MHz CCLK) %lu(MHz SCLK) (%s)\n",
-		get_cclk()/1000000, get_sclk()/1000000,
+			get_cclk() / 1000000, get_sclk() / 1000000,
 #ifdef CONFIG_MPU
-		"mpu on"
+			"mpu on"
 #else
-		"mpu off"
+			"mpu off"
 #endif
-		);
+		   );
 
 	pr_notice("%s", linux_banner);
 
 	pr_notice("\nSEQUENCER STATUS:\t\t%s\n", print_tainted());
 	pr_notice(" SEQSTAT: %08lx  IPEND: %04lx  IMASK: %04lx  SYSCFG: %04lx\n",
-		(long)fp->seqstat, fp->ipend, cpu_pda[raw_smp_processor_id()].ex_imask, fp->syscfg);
+			  (long)fp->seqstat, fp->ipend, cpu_pda[raw_smp_processor_id()].ex_imask, fp->syscfg);
+
 	if (fp->ipend & EVT_IRPTEN)
+	{
 		pr_notice("  Global Interrupts Disabled (IPEND[4])\n");
+	}
+
 	if (!(cpu_pda[raw_smp_processor_id()].ex_imask & (EVT_IVG13 | EVT_IVG12 | EVT_IVG11 |
 			EVT_IVG10 | EVT_IVG9 | EVT_IVG8 | EVT_IVG7 | EVT_IVTMR)))
+	{
 		pr_notice("  Peripheral interrupts masked off\n");
+	}
+
 	if (!(cpu_pda[raw_smp_processor_id()].ex_imask & (EVT_IVG15 | EVT_IVG14)))
+	{
 		pr_notice("  Kernel interrupts masked off\n");
-	if ((fp->seqstat & SEQSTAT_EXCAUSE) == VEC_HWERR) {
+	}
+
+	if ((fp->seqstat & SEQSTAT_EXCAUSE) == VEC_HWERR)
+	{
 		pr_notice("  HWERRCAUSE: 0x%lx\n",
-			(fp->seqstat & SEQSTAT_HWERRCAUSE) >> 14);
+				  (fp->seqstat & SEQSTAT_HWERRCAUSE) >> 14);
 #ifdef EBIU_ERRMST
+
 		/* If the error was from the EBIU, print it out */
-		if (bfin_read_EBIU_ERRMST() & CORE_ERROR) {
+		if (bfin_read_EBIU_ERRMST() & CORE_ERROR)
+		{
 			pr_notice("  EBIU Error Reason  : 0x%04x\n",
-				bfin_read_EBIU_ERRMST());
+					  bfin_read_EBIU_ERRMST());
 			pr_notice("  EBIU Error Address : 0x%08x\n",
-				bfin_read_EBIU_ERRADD());
+					  bfin_read_EBIU_ERRADD());
 		}
+
 #endif
 	}
+
 	pr_notice("  EXCAUSE   : 0x%lx\n",
-		fp->seqstat & SEQSTAT_EXCAUSE);
-	for (i = 2; i <= 15 ; i++) {
-		if (fp->ipend & (1 << i)) {
-			if (i != 4) {
-				decode_address(buf, bfin_read32(EVT0 + 4*i));
+			  fp->seqstat & SEQSTAT_EXCAUSE);
+
+	for (i = 2; i <= 15 ; i++)
+	{
+		if (fp->ipend & (1 << i))
+		{
+			if (i != 4)
+			{
+				decode_address(buf, bfin_read32(EVT0 + 4 * i));
 				pr_notice("  physical IVG%i asserted : %s\n", i, buf);
-			} else
+			}
+			else
+			{
 				pr_notice("  interrupts disabled\n");
+			}
 		}
 	}
 
 	/* if no interrupts are going off, don't print this out */
-	if (fp->ipend & ~0x3F) {
-		for (i = 0; i < (NR_IRQS - 1); i++) {
+	if (fp->ipend & ~0x3F)
+	{
+		for (i = 0; i < (NR_IRQS - 1); i++)
+		{
 			struct irq_desc *desc = irq_to_desc(i);
+
 			if (!in_atomic)
+			{
 				raw_spin_lock_irqsave(&desc->lock, flags);
+			}
 
 			action = desc->action;
+
 			if (!action)
+			{
 				goto unlock;
+			}
 
 			decode_address(buf, (unsigned int)action->handler);
 			pr_notice("  logical irq %3d mapped  : %s", i, buf);
-			for (action = action->next; action; action = action->next) {
+
+			for (action = action->next; action; action = action->next)
+			{
 				decode_address(buf, (unsigned int)action->handler);
 				pr_cont(", %s", buf);
 			}
+
 			pr_cont("\n");
 unlock:
+
 			if (!in_atomic)
+			{
 				raw_spin_unlock_irqrestore(&desc->lock, flags);
+			}
 		}
 	}
 
@@ -948,7 +1250,8 @@ unlock:
 	pr_notice(" PC  : %s\n", buf);
 
 	if (((long)fp->seqstat &  SEQSTAT_EXCAUSE) &&
-	    (((long)fp->seqstat & SEQSTAT_EXCAUSE) != VEC_HWERR)) {
+		(((long)fp->seqstat & SEQSTAT_EXCAUSE) != VEC_HWERR))
+	{
 		decode_address(buf, cpu_pda[cpu].dcplb_fault_addr);
 		pr_notice("DCPLB_FAULT_ADDR: %s\n", buf);
 		decode_address(buf, cpu_pda[cpu].icplb_fault_addr);
@@ -957,30 +1260,30 @@ unlock:
 
 	pr_notice("PROCESSOR STATE:\n");
 	pr_notice(" R0 : %08lx    R1 : %08lx    R2 : %08lx    R3 : %08lx\n",
-		fp->r0, fp->r1, fp->r2, fp->r3);
+			  fp->r0, fp->r1, fp->r2, fp->r3);
 	pr_notice(" R4 : %08lx    R5 : %08lx    R6 : %08lx    R7 : %08lx\n",
-		fp->r4, fp->r5, fp->r6, fp->r7);
+			  fp->r4, fp->r5, fp->r6, fp->r7);
 	pr_notice(" P0 : %08lx    P1 : %08lx    P2 : %08lx    P3 : %08lx\n",
-		fp->p0, fp->p1, fp->p2, fp->p3);
+			  fp->p0, fp->p1, fp->p2, fp->p3);
 	pr_notice(" P4 : %08lx    P5 : %08lx    FP : %08lx    SP : %08lx\n",
-		fp->p4, fp->p5, fp->fp, (long)fp);
+			  fp->p4, fp->p5, fp->fp, (long)fp);
 	pr_notice(" LB0: %08lx    LT0: %08lx    LC0: %08lx\n",
-		fp->lb0, fp->lt0, fp->lc0);
+			  fp->lb0, fp->lt0, fp->lc0);
 	pr_notice(" LB1: %08lx    LT1: %08lx    LC1: %08lx\n",
-		fp->lb1, fp->lt1, fp->lc1);
+			  fp->lb1, fp->lt1, fp->lc1);
 	pr_notice(" B0 : %08lx    L0 : %08lx    M0 : %08lx    I0 : %08lx\n",
-		fp->b0, fp->l0, fp->m0, fp->i0);
+			  fp->b0, fp->l0, fp->m0, fp->i0);
 	pr_notice(" B1 : %08lx    L1 : %08lx    M1 : %08lx    I1 : %08lx\n",
-		fp->b1, fp->l1, fp->m1, fp->i1);
+			  fp->b1, fp->l1, fp->m1, fp->i1);
 	pr_notice(" B2 : %08lx    L2 : %08lx    M2 : %08lx    I2 : %08lx\n",
-		fp->b2, fp->l2, fp->m2, fp->i2);
+			  fp->b2, fp->l2, fp->m2, fp->i2);
 	pr_notice(" B3 : %08lx    L3 : %08lx    M3 : %08lx    I3 : %08lx\n",
-		fp->b3, fp->l3, fp->m3, fp->i3);
+			  fp->b3, fp->l3, fp->m3, fp->i3);
 	pr_notice("A0.w: %08lx   A0.x: %08lx   A1.w: %08lx   A1.x: %08lx\n",
-		fp->a0w, fp->a0x, fp->a1w, fp->a1x);
+			  fp->a0w, fp->a0x, fp->a1w, fp->a1x);
 
 	pr_notice("USP : %08lx  ASTAT: %08lx\n",
-		rdusp(), fp->astat);
+			  rdusp(), fp->astat);
 
 	pr_notice("\n");
 }

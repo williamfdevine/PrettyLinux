@@ -28,29 +28,39 @@ static __init pteval_t create_mapping_protection(efi_memory_desc_t *md)
 	u32 type = md->type;
 
 	if (type == EFI_MEMORY_MAPPED_IO)
+	{
 		return PROT_DEVICE_nGnRE;
+	}
 
 	if (WARN_ONCE(!PAGE_ALIGNED(md->phys_addr),
-		      "UEFI Runtime regions are not aligned to 64 KB -- buggy firmware?"))
+				  "UEFI Runtime regions are not aligned to 64 KB -- buggy firmware?"))
 		/*
 		 * If the region is not aligned to the page size of the OS, we
 		 * can not use strict permissions, since that would also affect
 		 * the mapping attributes of the adjacent regions.
 		 */
+	{
 		return pgprot_val(PAGE_KERNEL_EXEC);
+	}
 
 	/* R-- */
 	if ((attr & (EFI_MEMORY_XP | EFI_MEMORY_RO)) ==
-	    (EFI_MEMORY_XP | EFI_MEMORY_RO))
+		(EFI_MEMORY_XP | EFI_MEMORY_RO))
+	{
 		return pgprot_val(PAGE_KERNEL_RO);
+	}
 
 	/* R-X */
 	if (attr & EFI_MEMORY_RO)
+	{
 		return pgprot_val(PAGE_KERNEL_ROX);
+	}
 
 	/* RW- */
 	if (attr & EFI_MEMORY_XP || type != EFI_RUNTIME_SERVICES_CODE)
+	{
 		return pgprot_val(PAGE_KERNEL);
+	}
 
 	/* RWX */
 	return pgprot_val(PAGE_KERNEL_EXEC);
@@ -63,10 +73,11 @@ int __init efi_create_mapping(struct mm_struct *mm, efi_memory_desc_t *md)
 {
 	pteval_t prot_val = create_mapping_protection(md);
 	bool allow_block_mappings = (md->type != EFI_RUNTIME_SERVICES_CODE &&
-				     md->type != EFI_RUNTIME_SERVICES_DATA);
+								 md->type != EFI_RUNTIME_SERVICES_DATA);
 
 	if (!PAGE_ALIGNED(md->phys_addr) ||
-	    !PAGE_ALIGNED(md->num_pages << EFI_PAGE_SHIFT)) {
+		!PAGE_ALIGNED(md->num_pages << EFI_PAGE_SHIFT))
+	{
 		/*
 		 * If the end address of this region is not aligned to page
 		 * size, the mapping is rounded up, and may end up sharing a
@@ -80,30 +91,36 @@ int __init efi_create_mapping(struct mm_struct *mm, efi_memory_desc_t *md)
 	}
 
 	create_pgd_mapping(mm, md->phys_addr, md->virt_addr,
-			   md->num_pages << EFI_PAGE_SHIFT,
-			   __pgprot(prot_val | PTE_NG), allow_block_mappings);
+					   md->num_pages << EFI_PAGE_SHIFT,
+					   __pgprot(prot_val | PTE_NG), allow_block_mappings);
 	return 0;
 }
 
 static int __init set_permissions(pte_t *ptep, pgtable_t token,
-				  unsigned long addr, void *data)
+								  unsigned long addr, void *data)
 {
 	efi_memory_desc_t *md = data;
 	pte_t pte = *ptep;
 
 	if (md->attribute & EFI_MEMORY_RO)
+	{
 		pte = set_pte_bit(pte, __pgprot(PTE_RDONLY));
+	}
+
 	if (md->attribute & EFI_MEMORY_XP)
+	{
 		pte = set_pte_bit(pte, __pgprot(PTE_PXN));
+	}
+
 	set_pte(ptep, pte);
 	return 0;
 }
 
 int __init efi_set_mapping_permissions(struct mm_struct *mm,
-				       efi_memory_desc_t *md)
+									   efi_memory_desc_t *md)
 {
 	BUG_ON(md->type != EFI_RUNTIME_SERVICES_CODE &&
-	       md->type != EFI_RUNTIME_SERVICES_DATA);
+		   md->type != EFI_RUNTIME_SERVICES_DATA);
 
 	/*
 	 * Calling apply_to_page_range() is only safe on regions that are
@@ -113,8 +130,8 @@ int __init efi_set_mapping_permissions(struct mm_struct *mm,
 	 * routines), there is no need to check that again here.
 	 */
 	return apply_to_page_range(mm, md->virt_addr,
-				   md->num_pages << EFI_PAGE_SHIFT,
-				   set_permissions, md);
+							   md->num_pages << EFI_PAGE_SHIFT,
+							   set_permissions, md);
 }
 
 static int __init arm64_dmi_init(void)
@@ -125,8 +142,12 @@ static int __init arm64_dmi_init(void)
 	 * itself, depends on dmi_scan_machine() having been called already.
 	 */
 	dmi_scan_machine();
+
 	if (dmi_available)
+	{
 		dmi_set_dump_stack_arch_desc();
+	}
+
 	return 0;
 }
 core_initcall(arm64_dmi_init);

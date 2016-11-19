@@ -59,11 +59,13 @@ bool port_cf9_safe = false;
  */
 static int __init set_acpi_reboot(const struct dmi_system_id *d)
 {
-	if (reboot_type != BOOT_ACPI) {
+	if (reboot_type != BOOT_ACPI)
+	{
 		reboot_type = BOOT_ACPI;
 		pr_info("%s series board detected. Selecting %s-method for reboots.\n",
-			d->ident, "ACPI");
+				d->ident, "ACPI");
 	}
+
 	return 0;
 }
 
@@ -73,11 +75,13 @@ static int __init set_acpi_reboot(const struct dmi_system_id *d)
  */
 static int __init set_bios_reboot(const struct dmi_system_id *d)
 {
-	if (reboot_type != BOOT_BIOS) {
+	if (reboot_type != BOOT_BIOS)
+	{
 		reboot_type = BOOT_BIOS;
 		pr_info("%s series board detected. Selecting %s-method for reboots.\n",
-			d->ident, "BIOS");
+				d->ident, "BIOS");
 	}
+
 	return 0;
 }
 
@@ -111,17 +115,17 @@ void __noreturn machine_real_restart(unsigned int type)
 	/* Jump to the identity-mapped low memory code */
 #ifdef CONFIG_X86_32
 	asm volatile("jmpl *%0" : :
-		     "rm" (real_mode_header->machine_real_restart_asm),
-		     "a" (type));
+				 "rm" (real_mode_header->machine_real_restart_asm),
+				 "a" (type));
 #else
 	asm volatile("ljmpl *%0" : :
-		     "m" (real_mode_header->machine_real_restart_asm),
-		     "D" (type));
+				 "m" (real_mode_header->machine_real_restart_asm),
+				 "D" (type));
 #endif
 	unreachable();
 }
 #ifdef CONFIG_APM_MODULE
-EXPORT_SYMBOL(machine_real_restart);
+	EXPORT_SYMBOL(machine_real_restart);
 #endif
 
 /*
@@ -129,28 +133,33 @@ EXPORT_SYMBOL(machine_real_restart);
  */
 static int __init set_pci_reboot(const struct dmi_system_id *d)
 {
-	if (reboot_type != BOOT_CF9_FORCE) {
+	if (reboot_type != BOOT_CF9_FORCE)
+	{
 		reboot_type = BOOT_CF9_FORCE;
 		pr_info("%s series board detected. Selecting %s-method for reboots.\n",
-			d->ident, "PCI");
+				d->ident, "PCI");
 	}
+
 	return 0;
 }
 
 static int __init set_kbd_reboot(const struct dmi_system_id *d)
 {
-	if (reboot_type != BOOT_KBD) {
+	if (reboot_type != BOOT_KBD)
+	{
 		reboot_type = BOOT_KBD;
 		pr_info("%s series board detected. Selecting %s-method for reboot.\n",
-			d->ident, "KBD");
+				d->ident, "KBD");
 	}
+
 	return 0;
 }
 
 /*
  * This is a single dmi_table handling all reboot quirks.
  */
-static struct dmi_system_id __initdata reboot_dmi_table[] = {
+static struct dmi_system_id __initdata reboot_dmi_table[] =
+{
 
 	/* Acer */
 	{	/* Handle reboot issue on Acer Aspire one */
@@ -199,8 +208,8 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
 		.callback = set_pci_reboot,
 		.ident = "Apple iMac10,1",
 		.matches = {
-		    DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-		    DMI_MATCH(DMI_PRODUCT_NAME, "iMac10,1"),
+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "iMac10,1"),
 		},
 	},
 
@@ -449,7 +458,9 @@ static int __init reboot_init(void)
 	 * on the command line
 	 */
 	if (!reboot_default)
+	{
 		return 0;
+	}
 
 	/*
 	 * The DMI quirks table takes precedence. If no quirks entry
@@ -459,7 +470,9 @@ static int __init reboot_init(void)
 	rv = dmi_check_system(reboot_dmi_table);
 
 	if (!rv && efi_reboot_required())
+	{
 		reboot_type = BOOT_EFI;
+	}
 
 	return 0;
 }
@@ -469,9 +482,13 @@ static inline void kb_wait(void)
 {
 	int i;
 
-	for (i = 0; i < 0x10000; i++) {
+	for (i = 0; i < 0x10000; i++)
+	{
 		if ((inb(0x64) & 0x02) == 0)
+		{
 			break;
+		}
+
 		udelay(2);
 	}
 }
@@ -506,7 +523,8 @@ static void emergency_vmx_disable_all(void)
 	 * CPUs anyway. But we can miss it on the small window where KVM
 	 * is still enabling VMX.
 	 */
-	if (cpu_has_vmx() && cpu_vmx_enabled()) {
+	if (cpu_has_vmx() && cpu_vmx_enabled())
+	{
 		/* Disable VMX on this CPU. */
 		cpu_vmxoff();
 
@@ -548,7 +566,9 @@ static void native_machine_emergency_restart(void)
 	unsigned short mode;
 
 	if (reboot_emergency)
+	{
 		emergency_vmx_disable_all();
+	}
 
 	tboot_shutdown(TB_SHUTDOWN_REBOOT);
 
@@ -560,72 +580,84 @@ static void native_machine_emergency_restart(void)
 	 * If an EFI capsule has been registered with the firmware then
 	 * override the reboot= parameter.
 	 */
-	if (efi_capsule_pending(NULL)) {
+	if (efi_capsule_pending(NULL))
+	{
 		pr_info("EFI capsule is pending, forcing EFI reboot.\n");
 		reboot_type = BOOT_EFI;
 	}
 
-	for (;;) {
+	for (;;)
+	{
 		/* Could also try the reset bit in the Hammer NB */
-		switch (reboot_type) {
-		case BOOT_ACPI:
-			acpi_reboot();
-			reboot_type = BOOT_KBD;
-			break;
+		switch (reboot_type)
+		{
+			case BOOT_ACPI:
+				acpi_reboot();
+				reboot_type = BOOT_KBD;
+				break;
 
-		case BOOT_KBD:
-			mach_reboot_fixups(); /* For board specific fixups */
+			case BOOT_KBD:
+				mach_reboot_fixups(); /* For board specific fixups */
 
-			for (i = 0; i < 10; i++) {
-				kb_wait();
-				udelay(50);
-				outb(0xfe, 0x64); /* Pulse reset low */
-				udelay(50);
-			}
-			if (attempt == 0 && orig_reboot_type == BOOT_ACPI) {
-				attempt = 1;
-				reboot_type = BOOT_ACPI;
-			} else {
-				reboot_type = BOOT_EFI;
-			}
-			break;
+				for (i = 0; i < 10; i++)
+				{
+					kb_wait();
+					udelay(50);
+					outb(0xfe, 0x64); /* Pulse reset low */
+					udelay(50);
+				}
 
-		case BOOT_EFI:
-			efi_reboot(reboot_mode, NULL);
-			reboot_type = BOOT_BIOS;
-			break;
+				if (attempt == 0 && orig_reboot_type == BOOT_ACPI)
+				{
+					attempt = 1;
+					reboot_type = BOOT_ACPI;
+				}
+				else
+				{
+					reboot_type = BOOT_EFI;
+				}
 
-		case BOOT_BIOS:
-			machine_real_restart(MRR_BIOS);
+				break;
 
-			/* We're probably dead after this, but... */
-			reboot_type = BOOT_CF9_SAFE;
-			break;
+			case BOOT_EFI:
+				efi_reboot(reboot_mode, NULL);
+				reboot_type = BOOT_BIOS;
+				break;
 
-		case BOOT_CF9_FORCE:
-			port_cf9_safe = true;
+			case BOOT_BIOS:
+				machine_real_restart(MRR_BIOS);
+
+				/* We're probably dead after this, but... */
+				reboot_type = BOOT_CF9_SAFE;
+				break;
+
+			case BOOT_CF9_FORCE:
+				port_cf9_safe = true;
+
 			/* Fall through */
 
-		case BOOT_CF9_SAFE:
-			if (port_cf9_safe) {
-				u8 reboot_code = reboot_mode == REBOOT_WARM ?  0x06 : 0x0E;
-				u8 cf9 = inb(0xcf9) & ~reboot_code;
-				outb(cf9|2, 0xcf9); /* Request hard reset */
-				udelay(50);
-				/* Actually do the reset */
-				outb(cf9|reboot_code, 0xcf9);
-				udelay(50);
-			}
-			reboot_type = BOOT_TRIPLE;
-			break;
+			case BOOT_CF9_SAFE:
+				if (port_cf9_safe)
+				{
+					u8 reboot_code = reboot_mode == REBOOT_WARM ?  0x06 : 0x0E;
+					u8 cf9 = inb(0xcf9) & ~reboot_code;
+					outb(cf9 | 2, 0xcf9); /* Request hard reset */
+					udelay(50);
+					/* Actually do the reset */
+					outb(cf9 | reboot_code, 0xcf9);
+					udelay(50);
+				}
 
-		case BOOT_TRIPLE:
-			load_idt(&no_idt);
-			__asm__ __volatile__("int3");
+				reboot_type = BOOT_TRIPLE;
+				break;
 
-			/* We're probably dead after this, but... */
-			reboot_type = BOOT_KBD;
-			break;
+			case BOOT_TRIPLE:
+				load_idt(&no_idt);
+				__asm__ __volatile__("int3");
+
+				/* We're probably dead after this, but... */
+				reboot_type = BOOT_KBD;
+				break;
 		}
 	}
 }
@@ -680,7 +712,10 @@ static void native_machine_restart(char *__unused)
 	pr_notice("machine restart\n");
 
 	if (!reboot_force)
+	{
 		machine_shutdown();
+	}
+
 	__machine_emergency_restart(0);
 }
 
@@ -696,16 +731,22 @@ static void native_machine_halt(void)
 
 static void native_machine_power_off(void)
 {
-	if (pm_power_off) {
+	if (pm_power_off)
+	{
 		if (!reboot_force)
+		{
 			machine_shutdown();
+		}
+
 		pm_power_off();
 	}
+
 	/* A fallback in case there is no PM info available */
 	tboot_shutdown(TB_SHUTDOWN_HALT);
 }
 
-struct machine_ops machine_ops __ro_after_init = {
+struct machine_ops machine_ops __ro_after_init =
+{
 	.power_off = native_machine_power_off,
 	.shutdown = native_machine_shutdown,
 	.emergency_restart = native_machine_emergency_restart,
@@ -770,7 +811,10 @@ static int crash_nmi_callback(unsigned int val, struct pt_regs *regs)
 	 * an NMI if system was initially booted with nmi_watchdog parameter.
 	 */
 	if (cpu == crashing_cpu)
+	{
 		return NMI_HANDLED;
+	}
+
 	local_irq_disable();
 
 	shootdown_callback(cpu, regs);
@@ -778,8 +822,11 @@ static int crash_nmi_callback(unsigned int val, struct pt_regs *regs)
 	atomic_dec(&waiting_for_crash_ipi);
 	/* Assume hlt works */
 	halt();
+
 	for (;;)
+	{
 		cpu_relax();
+	}
 
 	return NMI_HANDLED;
 }
@@ -807,10 +854,14 @@ void nmi_shootdown_cpus(nmi_shootdown_cb callback)
 	shootdown_callback = callback;
 
 	atomic_set(&waiting_for_crash_ipi, num_online_cpus() - 1);
+
 	/* Would it be better to replace the trap vector here? */
 	if (register_nmi_handler(NMI_LOCAL, crash_nmi_callback,
-				 NMI_FLAG_FIRST, "crash"))
-		return;		/* Return what? */
+							 NMI_FLAG_FIRST, "crash"))
+	{
+		return;    /* Return what? */
+	}
+
 	/*
 	 * Ensure the new callback function is set before sending
 	 * out the NMI
@@ -823,7 +874,9 @@ void nmi_shootdown_cpus(nmi_shootdown_cb callback)
 	WRITE_ONCE(crash_ipi_issued, 1);
 
 	msecs = 1000; /* Wait at most a second for the other cpus to stop */
-	while ((atomic_read(&waiting_for_crash_ipi) > 0) && msecs) {
+
+	while ((atomic_read(&waiting_for_crash_ipi) > 0) && msecs)
+	{
 		mdelay(1);
 		msecs--;
 	}
@@ -839,13 +892,16 @@ void nmi_shootdown_cpus(nmi_shootdown_cb callback)
 void run_crash_ipi_callback(struct pt_regs *regs)
 {
 	if (crash_ipi_issued)
+	{
 		crash_nmi_callback(0, regs);
+	}
 }
 
 /* Override the weak function in kernel/panic.c */
 void nmi_panic_self_stop(struct pt_regs *regs)
 {
-	while (1) {
+	while (1)
+	{
 		/* If no CPU is preparing crash dump, we simply loop here. */
 		run_crash_ipi_callback(regs);
 		cpu_relax();

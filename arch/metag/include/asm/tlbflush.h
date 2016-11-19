@@ -27,7 +27,7 @@ static inline void __flush_tlb(void)
 	/* flush TLB entries for just the current hardware thread */
 	int thread = hard_processor_id();
 	metag_out32(0, (LINSYSCFLUSH_TxMMCU_BASE +
-			LINSYSCFLUSH_TxMMCU_STRIDE * thread));
+					LINSYSCFLUSH_TxMMCU_STRIDE * thread));
 }
 #else
 static inline void __flush_tlb(void)
@@ -46,29 +46,31 @@ static inline void __flush_tlb(void)
 static inline void flush_tlb_mm(struct mm_struct *mm)
 {
 	if (mm == current->active_mm)
+	{
 		__flush_tlb();
+	}
 }
 
 static inline void flush_tlb_page(struct vm_area_struct *vma,
-				  unsigned long addr)
+								  unsigned long addr)
 {
 	flush_tlb_mm(vma->vm_mm);
 }
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
-				   unsigned long start, unsigned long end)
+								   unsigned long start, unsigned long end)
 {
 	flush_tlb_mm(vma->vm_mm);
 }
 
 static inline void flush_tlb_pgtables(struct mm_struct *mm,
-				      unsigned long start, unsigned long end)
+									  unsigned long start, unsigned long end)
 {
 	flush_tlb_mm(mm);
 }
 
 static inline void flush_tlb_kernel_range(unsigned long start,
-					  unsigned long end)
+		unsigned long end)
 {
 	flush_tlb_all();
 }

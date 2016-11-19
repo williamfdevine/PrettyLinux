@@ -7,7 +7,8 @@
 
 #define ATH25_IRQ_CPU_CLOCK	(MIPS_CPU_IRQ_BASE + 7)	/* C0_CAUSE: 0x8000 */
 
-enum ath25_soc_type {
+enum ath25_soc_type
+{
 	/* handled by ar5312.c */
 	ATH25_SOC_AR2312,
 	ATH25_SOC_AR2313,

@@ -21,11 +21,11 @@
  */
 #define GxICR(X)						\
 	__SYSREG(0xd4000000 + (X) * 4 +				\
-		 (((X) >= 64) && ((X) < 192)) * 0xf00, u16)
+			 (((X) >= 64) && ((X) < 192)) * 0xf00, u16)
 
 #define GxICR_u8(X)							\
 	__SYSREG(0xd4000000 + (X) * 4 +					\
-		 (((X) >= 64) && ((X) < 192)) * 0xf00, u8)
+			 (((X) >= 64) && ((X) < 192)) * 0xf00, u8)
 
 #include <proc/intctl-regs.h>
 
@@ -59,8 +59,8 @@
 #define NUM2GxICR_LEVEL(num)	((num) << GxICR_LEVEL_SHIFT)
 
 #ifndef __ASSEMBLY__
-extern void set_intr_level(int irq, u16 level);
-extern void mn10300_set_lateack_irq_type(int irq);
+	extern void set_intr_level(int irq, u16 level);
+	extern void mn10300_set_lateack_irq_type(int irq);
 #endif
 
 /* external interrupts */

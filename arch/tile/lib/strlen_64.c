@@ -27,8 +27,11 @@ size_t strlen(const char *s)
 	uint64_t v = *p | MASK(s_int);
 
 	uint64_t bits;
+
 	while ((bits = __insn_v1cmpeqi(v, 0)) == 0)
+	{
 		v = *++p;
+	}
 
 	return ((const char *)p) + (CFZ(bits) >> 3) - s;
 }

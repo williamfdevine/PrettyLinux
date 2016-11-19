@@ -27,7 +27,8 @@ static void __init shmin_setup(char **cmdline_p)
 	__set_io_port_base(SHMIN_IO_BASE);
 }
 
-static struct sh_machine_vector mv_shmin __initmv = {
+static struct sh_machine_vector mv_shmin __initmv =
+{
 	.mv_name	= "SHMIN",
 	.mv_setup	= shmin_setup,
 	.mv_init_irq	= init_shmin_irq,

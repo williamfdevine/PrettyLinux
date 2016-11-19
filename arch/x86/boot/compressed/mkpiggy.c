@@ -37,7 +37,8 @@ int main(int argc, char *argv[])
 	FILE *f = NULL;
 	int retval = 1;
 
-	if (argc < 2) {
+	if (argc < 2)
+	{
 		fprintf(stderr, "Usage: %s compressed_file\n", argv[0]);
 		goto bail;
 	}
@@ -45,17 +46,21 @@ int main(int argc, char *argv[])
 	/* Get the information for the compressed kernel image first */
 
 	f = fopen(argv[1], "r");
-	if (!f) {
+
+	if (!f)
+	{
 		perror(argv[1]);
 		goto bail;
 	}
 
 
-	if (fseek(f, -4L, SEEK_END)) {
+	if (fseek(f, -4L, SEEK_END))
+	{
 		perror(argv[1]);
 	}
 
-	if (fread(&olen, sizeof(olen), 1, f) != 1) {
+	if (fread(&olen, sizeof(olen), 1, f) != 1)
+	{
 		perror(argv[1]);
 		goto bail;
 	}
@@ -76,7 +81,11 @@ int main(int argc, char *argv[])
 
 	retval = 0;
 bail:
+
 	if (f)
+	{
 		fclose(f);
+	}
+
 	return retval;
 }

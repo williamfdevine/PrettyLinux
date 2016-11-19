@@ -50,7 +50,7 @@ int pci64_dma_supported(struct pci_dev *pdev, u64 device_mask);
 /* signal32.c */
 void do_sigreturn32(struct pt_regs *regs);
 asmlinkage void do_rt_sigreturn32(struct pt_regs *regs);
-void do_signal32(struct pt_regs * regs);
+void do_signal32(struct pt_regs *regs);
 asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp);
 
 /* compat_audit.c */
@@ -72,13 +72,13 @@ void cpu_probe(void);
 
 /* traps_32.c */
 void handle_hw_divzero(struct pt_regs *regs, unsigned long pc,
-                       unsigned long npc, unsigned long psr);
+					   unsigned long npc, unsigned long psr);
 /* irq_32.c */
 extern struct irqaction static_irqaction[];
 extern int static_irq_count;
 extern spinlock_t irq_action_lock;
 
-void unexpected_irq(int irq, void *dev_id, struct pt_regs * regs);
+void unexpected_irq(int irq, void *dev_id, struct pt_regs *regs);
 void init_IRQ(void);
 
 /* sun4m_irq.c */
@@ -100,9 +100,9 @@ extern spinlock_t sun4d_imsk_lock;
 
 void sun4d_init_IRQ(void);
 int sun4d_request_irq(unsigned int irq,
-                      irq_handler_t handler,
-                      unsigned long irqflags,
-                      const char *devname, void *dev_id);
+					  irq_handler_t handler,
+					  unsigned long irqflags,
+					  const char *devname, void *dev_id);
 int show_sun4d_interrupts(struct seq_file *, void *);
 void sun4d_distribute_irqs(void);
 void sun4d_free_irq(unsigned int irq, void *dev_id);
@@ -148,18 +148,18 @@ extern unsigned long sun4d_cpu_startup;
 
 /* process_32.c */
 asmlinkage int sparc_do_fork(unsigned long clone_flags,
-                             unsigned long stack_start,
-                             struct pt_regs *regs,
-                             unsigned long stack_size);
+							 unsigned long stack_start,
+							 struct pt_regs *regs,
+							 unsigned long stack_size);
 
 /* signal_32.c */
 asmlinkage void do_sigreturn(struct pt_regs *regs);
 asmlinkage void do_rt_sigreturn(struct pt_regs *regs);
 void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
-                      unsigned long thread_info_flags);
+					  unsigned long thread_info_flags);
 asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
-                               struct sigstack __user *ossptr,
-                               unsigned long sp);
+							   struct sigstack __user *ossptr,
+							   unsigned long sp);
 
 /* ptrace_32.c */
 asmlinkage int syscall_trace(struct pt_regs *regs, int syscall_exit_p);

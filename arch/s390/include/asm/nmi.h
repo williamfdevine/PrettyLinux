@@ -21,9 +21,11 @@
 
 #ifndef __ASSEMBLY__
 
-union mci {
+union mci
+{
 	unsigned long val;
-	struct {
+	struct
+	{
 		u64 sd :  1; /* 00 system damage */
 		u64 pd :  1; /* 01 instruction-processing damage */
 		u64 sr :  1; /* 02 system recovery */

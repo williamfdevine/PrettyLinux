@@ -34,22 +34,27 @@ extern void build_tlb_refill_handler(void);
  */
 static inline void flush_micro_tlb(void)
 {
-	switch (current_cpu_type()) {
-	case CPU_LOONGSON2:
-		write_c0_diag(LOONGSON_DIAG_ITLB);
-		break;
-	case CPU_LOONGSON3:
-		write_c0_diag(LOONGSON_DIAG_ITLB | LOONGSON_DIAG_DTLB);
-		break;
-	default:
-		break;
+	switch (current_cpu_type())
+	{
+		case CPU_LOONGSON2:
+			write_c0_diag(LOONGSON_DIAG_ITLB);
+			break;
+
+		case CPU_LOONGSON3:
+			write_c0_diag(LOONGSON_DIAG_ITLB | LOONGSON_DIAG_DTLB);
+			break;
+
+		default:
+			break;
 	}
 }
 
 static inline void flush_micro_tlb_vm(struct vm_area_struct *vma)
 {
 	if (vma->vm_flags & VM_EXEC)
+	{
 		flush_micro_tlb();
+	}
 }
 
 void local_flush_tlb_all(void)
@@ -71,23 +76,31 @@ void local_flush_tlb_all(void)
 	 * Blast 'em all away.
 	 * If there are any wired entries, fall back to iterating
 	 */
-	if (cpu_has_tlbinv && !entry) {
-		if (current_cpu_data.tlbsizevtlb) {
+	if (cpu_has_tlbinv && !entry)
+	{
+		if (current_cpu_data.tlbsizevtlb)
+		{
 			write_c0_index(0);
 			mtc0_tlbw_hazard();
 			tlbinvf();  /* invalidate VTLB */
 		}
+
 		ftlbhighset = current_cpu_data.tlbsizevtlb +
-			current_cpu_data.tlbsizeftlbsets;
+					  current_cpu_data.tlbsizeftlbsets;
+
 		for (entry = current_cpu_data.tlbsizevtlb;
-		     entry < ftlbhighset;
-		     entry++) {
+			 entry < ftlbhighset;
+			 entry++)
+		{
 			write_c0_index(entry);
 			mtc0_tlbw_hazard();
 			tlbinvf();  /* invalidate one FTLB set */
 		}
-	} else {
-		while (entry < current_cpu_data.tlbsize) {
+	}
+	else
+	{
+		while (entry < current_cpu_data.tlbsize)
+		{
 			/* Make sure all entries differ. */
 			write_c0_entryhi(UNIQUE_ENTRYHI(entry));
 			write_c0_index(entry);
@@ -96,6 +109,7 @@ void local_flush_tlb_all(void)
 			entry++;
 		}
 	}
+
 	tlbw_use_hazard();
 	write_c0_entryhi(old_ctx);
 	htw_start();
@@ -114,7 +128,8 @@ void local_flush_tlb_mm(struct mm_struct *mm)
 
 	cpu = smp_processor_id();
 
-	if (cpu_context(cpu, mm) != 0) {
+	if (cpu_context(cpu, mm) != 0)
+	{
 		drop_mmu_context(mm, cpu);
 	}
 
@@ -122,26 +137,31 @@ void local_flush_tlb_mm(struct mm_struct *mm)
 }
 
 void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-	unsigned long end)
+						   unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	int cpu = smp_processor_id();
 
-	if (cpu_context(cpu, mm) != 0) {
+	if (cpu_context(cpu, mm) != 0)
+	{
 		unsigned long size, flags;
 
 		local_irq_save(flags);
 		start = round_down(start, PAGE_SIZE << 1);
 		end = round_up(end, PAGE_SIZE << 1);
 		size = (end - start) >> (PAGE_SHIFT + 1);
+
 		if (size <= (current_cpu_data.tlbsizeftlbsets ?
-			     current_cpu_data.tlbsize / 8 :
-			     current_cpu_data.tlbsize / 2)) {
+					 current_cpu_data.tlbsize / 8 :
+					 current_cpu_data.tlbsize / 2))
+		{
 			int oldpid = read_c0_entryhi();
 			int newpid = cpu_asid(cpu, mm);
 
 			htw_stop();
-			while (start < end) {
+
+			while (start < end)
+			{
 				int idx;
 
 				write_c0_entryhi(start | newpid);
@@ -152,19 +172,27 @@ void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 				idx = read_c0_index();
 				write_c0_entrylo0(0);
 				write_c0_entrylo1(0);
+
 				if (idx < 0)
+				{
 					continue;
+				}
+
 				/* Make sure all entries differ. */
 				write_c0_entryhi(UNIQUE_ENTRYHI(idx));
 				mtc0_tlbw_hazard();
 				tlb_write_indexed();
 			}
+
 			tlbw_use_hazard();
 			write_c0_entryhi(oldpid);
 			htw_start();
-		} else {
+		}
+		else
+		{
 			drop_mmu_context(mm, cpu);
 		}
+
 		flush_micro_tlb();
 		local_irq_restore(flags);
 	}
@@ -177,9 +205,11 @@ void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 	local_irq_save(flags);
 	size = (end - start + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
 	size = (size + 1) >> 1;
+
 	if (size <= (current_cpu_data.tlbsizeftlbsets ?
-		     current_cpu_data.tlbsize / 8 :
-		     current_cpu_data.tlbsize / 2)) {
+				 current_cpu_data.tlbsize / 8 :
+				 current_cpu_data.tlbsize / 2))
+	{
 		int pid = read_c0_entryhi();
 
 		start &= (PAGE_MASK << 1);
@@ -187,7 +217,8 @@ void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 		end &= (PAGE_MASK << 1);
 		htw_stop();
 
-		while (start < end) {
+		while (start < end)
+		{
 			int idx;
 
 			write_c0_entryhi(start);
@@ -198,19 +229,27 @@ void local_flush_tlb_kernel_range(unsigned long start, unsigned long end)
 			idx = read_c0_index();
 			write_c0_entrylo0(0);
 			write_c0_entrylo1(0);
+
 			if (idx < 0)
+			{
 				continue;
+			}
+
 			/* Make sure all entries differ. */
 			write_c0_entryhi(UNIQUE_ENTRYHI(idx));
 			mtc0_tlbw_hazard();
 			tlb_write_indexed();
 		}
+
 		tlbw_use_hazard();
 		write_c0_entryhi(pid);
 		htw_start();
-	} else {
+	}
+	else
+	{
 		local_flush_tlb_all();
 	}
+
 	flush_micro_tlb();
 	local_irq_restore(flags);
 }
@@ -219,7 +258,8 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 {
 	int cpu = smp_processor_id();
 
-	if (cpu_context(cpu, vma->vm_mm) != 0) {
+	if (cpu_context(cpu, vma->vm_mm) != 0)
+	{
 		unsigned long flags;
 		int oldpid, newpid, idx;
 
@@ -235,15 +275,19 @@ void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 		idx = read_c0_index();
 		write_c0_entrylo0(0);
 		write_c0_entrylo1(0);
+
 		if (idx < 0)
+		{
 			goto finish;
+		}
+
 		/* Make sure all entries differ. */
 		write_c0_entryhi(UNIQUE_ENTRYHI(idx));
 		mtc0_tlbw_hazard();
 		tlb_write_indexed();
 		tlbw_use_hazard();
 
-	finish:
+finish:
 		write_c0_entryhi(oldpid);
 		htw_start();
 		flush_micro_tlb_vm(vma);
@@ -271,13 +315,16 @@ void local_flush_tlb_one(unsigned long page)
 	idx = read_c0_index();
 	write_c0_entrylo0(0);
 	write_c0_entrylo1(0);
-	if (idx >= 0) {
+
+	if (idx >= 0)
+	{
 		/* Make sure all entries differ. */
 		write_c0_entryhi(UNIQUE_ENTRYHI(idx));
 		mtc0_tlbw_hazard();
 		tlb_write_indexed();
 		tlbw_use_hazard();
 	}
+
 	write_c0_entryhi(oldpid);
 	htw_start();
 	flush_micro_tlb();
@@ -289,7 +336,7 @@ void local_flush_tlb_one(unsigned long page)
  * updates the TLB with the new pte(s), and another which also checks
  * for the R4k "end of page" hardware bug and does the needy.
  */
-void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
+void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
 {
 	unsigned long flags;
 	pgd_t *pgdp;
@@ -302,7 +349,9 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
 	 * Handle debugger faulting in for debugee.
 	 */
 	if (current->active_mm != vma->vm_mm)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
@@ -318,8 +367,10 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
 	pmdp = pmd_offset(pudp, address);
 	idx = read_c0_index();
 #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+
 	/* this could be a huge page  */
-	if (pmd_huge(*pmdp)) {
+	if (pmd_huge(*pmdp))
+	{
 		unsigned long lo;
 		write_c0_pagemask(PM_HUGE_MASK);
 		ptep = (pte_t *)pmdp;
@@ -328,13 +379,20 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
 		write_c0_entrylo1(lo + (HPAGE_SIZE >> 7));
 
 		mtc0_tlbw_hazard();
+
 		if (idx < 0)
+		{
 			tlb_write_random();
+		}
 		else
+		{
 			tlb_write_indexed();
+		}
+
 		tlbw_use_hazard();
 		write_c0_pagemask(PM_DEFAULT_MASK);
-	} else
+	}
+	else
 #endif
 	{
 		ptep = pte_offset_map(pmdp, address);
@@ -342,12 +400,20 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
 #if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
 #ifdef CONFIG_XPA
 		write_c0_entrylo0(pte_to_entrylo(ptep->pte_high));
+
 		if (cpu_has_xpa)
+		{
 			writex_c0_entrylo0(ptep->pte_low & _PFNX_MASK);
+		}
+
 		ptep++;
 		write_c0_entrylo1(pte_to_entrylo(ptep->pte_high));
+
 		if (cpu_has_xpa)
+		{
 			writex_c0_entrylo1(ptep->pte_low & _PFNX_MASK);
+		}
+
 #else
 		write_c0_entrylo0(ptep->pte_high);
 		ptep++;
@@ -358,11 +424,17 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
 		write_c0_entrylo1(pte_to_entrylo(pte_val(*ptep)));
 #endif
 		mtc0_tlbw_hazard();
+
 		if (idx < 0)
+		{
 			tlb_write_random();
+		}
 		else
+		{
 			tlb_write_indexed();
+		}
 	}
+
 	tlbw_use_hazard();
 	htw_start();
 	flush_micro_tlb_vm(vma);
@@ -370,7 +442,7 @@ void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
 }
 
 void add_wired_entry(unsigned long entrylo0, unsigned long entrylo1,
-		     unsigned long entryhi, unsigned long pagemask)
+					 unsigned long entryhi, unsigned long pagemask)
 {
 #ifdef CONFIG_XPA
 	panic("Broken for XPA kernels");
@@ -412,7 +484,8 @@ int has_transparent_hugepage(void)
 {
 	static unsigned int mask = -1;
 
-	if (mask == -1) {	/* first call comes during __init */
+	if (mask == -1)  	/* first call comes during __init */
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
@@ -422,6 +495,7 @@ int has_transparent_hugepage(void)
 		write_c0_pagemask(PM_DEFAULT_MASK);
 		local_irq_restore(flags);
 	}
+
 	return mask == PM_HUGE_MASK;
 }
 
@@ -436,7 +510,7 @@ int has_transparent_hugepage(void)
 int temp_tlb_entry;
 
 __init int add_temporary_entry(unsigned long entrylo0, unsigned long entrylo1,
-			       unsigned long entryhi, unsigned long pagemask)
+							   unsigned long entryhi, unsigned long pagemask)
 {
 	int ret = 0;
 	unsigned long flags;
@@ -450,9 +524,11 @@ __init int add_temporary_entry(unsigned long entrylo0, unsigned long entrylo1,
 	old_ctx = read_c0_entryhi();
 	old_pagemask = read_c0_pagemask();
 	wired = read_c0_wired();
-	if (--temp_tlb_entry < wired) {
+
+	if (--temp_tlb_entry < wired)
+	{
 		printk(KERN_WARNING
-		       "No TLB space left for add_temporary_entry\n");
+			   "No TLB space left for add_temporary_entry\n");
 		ret = -ENOSPC;
 		goto out;
 	}
@@ -497,17 +573,24 @@ static void r4k_tlb_configure(void)
 	 */
 	write_c0_pagemask(PM_DEFAULT_MASK);
 	back_to_back_c0_hazard();
+
 	if (read_c0_pagemask() != PM_DEFAULT_MASK)
+	{
 		panic("MMU doesn't support PAGE_SIZE=0x%lx", PAGE_SIZE);
+	}
 
 	write_c0_wired(0);
-	if (current_cpu_type() == CPU_R10000 ||
-	    current_cpu_type() == CPU_R12000 ||
-	    current_cpu_type() == CPU_R14000 ||
-	    current_cpu_type() == CPU_R16000)
-		write_c0_framemask(0);
 
-	if (cpu_has_rixi) {
+	if (current_cpu_type() == CPU_R10000 ||
+		current_cpu_type() == CPU_R12000 ||
+		current_cpu_type() == CPU_R14000 ||
+		current_cpu_type() == CPU_R16000)
+	{
+		write_c0_framemask(0);
+	}
+
+	if (cpu_has_rixi)
+	{
 		/*
 		 * Enable the no read, no exec bits, and enable large physical
 		 * address.
@@ -531,33 +614,40 @@ void tlb_init(void)
 {
 	r4k_tlb_configure();
 
-	if (ntlb) {
-		if (ntlb > 1 && ntlb <= current_cpu_data.tlbsize) {
+	if (ntlb)
+	{
+		if (ntlb > 1 && ntlb <= current_cpu_data.tlbsize)
+		{
 			int wired = current_cpu_data.tlbsize - ntlb;
 			write_c0_wired(wired);
-			write_c0_index(wired-1);
+			write_c0_index(wired - 1);
 			printk("Restricting TLB to %d entries\n", ntlb);
-		} else
+		}
+		else
+		{
 			printk("Ignoring invalid argument ntlb=%d\n", ntlb);
+		}
 	}
 
 	build_tlb_refill_handler();
 }
 
 static int r4k_tlb_pm_notifier(struct notifier_block *self, unsigned long cmd,
-			       void *v)
+							   void *v)
 {
-	switch (cmd) {
-	case CPU_PM_ENTER_FAILED:
-	case CPU_PM_EXIT:
-		r4k_tlb_configure();
-		break;
+	switch (cmd)
+	{
+		case CPU_PM_ENTER_FAILED:
+		case CPU_PM_EXIT:
+			r4k_tlb_configure();
+			break;
 	}
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block r4k_tlb_pm_notifier_block = {
+static struct notifier_block r4k_tlb_pm_notifier_block =
+{
 	.notifier_call = r4k_tlb_pm_notifier,
 };
 

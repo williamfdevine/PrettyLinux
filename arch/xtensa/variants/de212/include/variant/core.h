@@ -1,4 +1,4 @@
-/* 
+/*
  * xtensa/config/core-isa.h -- HAL definitions that are dependent on Xtensa
  *				processor CORE configuration
  *
@@ -111,7 +111,7 @@
 #define XCHAL_HAVE_HIFI3_VFPU		0	/* HiFi3 Audio Engine VFPU option */
 #define XCHAL_HAVE_HIFI2		0	/* HiFi2 Audio Engine pkg */
 #define XCHAL_HAVE_HIFI2EP		0	/* HiFi2EP */
-#define XCHAL_HAVE_HIFI_MINI		0	
+#define XCHAL_HAVE_HIFI_MINI		0
 
 
 #define XCHAL_HAVE_VECTORFPU2005	0	/* vector or user floating-point pkg */
@@ -270,10 +270,10 @@
 
 /*  Whether MEMCTL register has anything useful  */
 #define XCHAL_USE_MEMCTL		(((XCHAL_LOOP_BUFFER_SIZE > 0)	||	\
-					   XCHAL_DCACHE_IS_COHERENT	||	\
-					   XCHAL_HAVE_ICACHE_DYN_WAYS	||	\
-					   XCHAL_HAVE_DCACHE_DYN_WAYS)	&&	\
-					   (XCHAL_HW_MIN_VERSION >= XTENSA_HWVERSION_RE_2012_0))
+								  XCHAL_DCACHE_IS_COHERENT	||	\
+								  XCHAL_HAVE_ICACHE_DYN_WAYS	||	\
+								  XCHAL_HAVE_DCACHE_DYN_WAYS)	&&	\
+								 (XCHAL_HW_MIN_VERSION >= XTENSA_HWVERSION_RE_2012_0))
 
 
 /*----------------------------------------------------------------------
@@ -324,7 +324,7 @@
 #define XCHAL_NUM_INTLEVELS		6	/* number of interrupt levels
 						   (not including level zero) */
 #define XCHAL_EXCM_LEVEL		3	/* level masked by PS.EXCM */
-	/* (always 1 in XEA1; levels 2 .. EXCM_LEVEL are "medium priority") */
+/* (always 1 in XEA1; levels 2 .. EXCM_LEVEL are "medium priority") */
 
 /*  Masks of interrupts at each interrupt level:  */
 #define XCHAL_INTLEVEL1_MASK		0x001F80FF

@@ -4,7 +4,8 @@
 #include <linux/ioport.h>
 #include <linux/list.h>
 
-struct tcm_allocation {
+struct tcm_allocation
+{
 	struct list_head list;
 	unsigned int tag;
 	unsigned long addr;
@@ -14,7 +15,8 @@ struct tcm_allocation {
 /*
  * TCM memory region descriptor.
  */
-struct tcm_region {
+struct tcm_region
+{
 	unsigned int tag;
 	struct resource res;
 };

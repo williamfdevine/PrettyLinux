@@ -337,14 +337,14 @@
 #define __set_DAMLR(R,V)  	do { asm volatile("movgs %0,damlr"#R : : "r"(V)); } while(0)
 
 #define save_dampr(R, _dampr)					\
-do {								\
-	asm volatile("movsg dampr"R",%0" : "=r"(_dampr));	\
+	do {								\
+		asm volatile("movsg dampr"R",%0" : "=r"(_dampr));	\
 } while(0)
 
 #define restore_dampr(R, _dampr)			\
-do {							\
-	asm volatile("movgs %0,dampr"R :: "r"(_dampr));	\
-} while(0)
+	do {							\
+		asm volatile("movgs %0,dampr"R :: "r"(_dampr));	\
+	} while(0)
 
 /*
  * AMCR - Address Mapping Control Register

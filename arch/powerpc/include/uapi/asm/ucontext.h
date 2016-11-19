@@ -2,14 +2,15 @@
 #define _ASM_POWERPC_UCONTEXT_H
 
 #ifdef __powerpc64__
-#include <asm/sigcontext.h>
+	#include <asm/sigcontext.h>
 #else
-#include <asm/elf.h>
+	#include <asm/elf.h>
 #endif
 #include <asm/signal.h>
 
 #ifndef __powerpc64__
-struct mcontext {
+struct mcontext
+{
 	elf_gregset_t	mc_gregs;
 	elf_fpregset_t	mc_fregs;
 	unsigned long	mc_pad[2];
@@ -17,7 +18,8 @@ struct mcontext {
 };
 #endif
 
-struct ucontext {
+struct ucontext
+{
 	unsigned long	uc_flags;
 	struct ucontext __user *uc_link;
 	stack_t		uc_stack;

@@ -44,11 +44,13 @@
 
 #include "mpc8xx.h"
 
-struct cpm_pin {
+struct cpm_pin
+{
 	int port, pin, flags;
 };
 
-static struct cpm_pin tqm8xx_pins[] __initdata = {
+static struct cpm_pin tqm8xx_pins[] __initdata =
+{
 	/* SMC1 */
 	{CPM_PORTB, 24, CPM_PIN_INPUT}, /* RX */
 	{CPM_PORTB, 25, CPM_PIN_INPUT | CPM_PIN_SECONDARY}, /* TX */
@@ -63,7 +65,8 @@ static struct cpm_pin tqm8xx_pins[] __initdata = {
 	{CPM_PORTC, 11, CPM_PIN_INPUT | CPM_PIN_SECONDARY | CPM_PIN_GPIO},
 };
 
-static struct cpm_pin tqm8xx_fec_pins[] __initdata = {
+static struct cpm_pin tqm8xx_fec_pins[] __initdata =
+{
 	/* MII */
 	{CPM_PORTD, 3, CPM_PIN_OUTPUT},
 	{CPM_PORTD, 4, CPM_PIN_OUTPUT},
@@ -84,7 +87,8 @@ static void __init init_pins(int n, struct cpm_pin *pin)
 {
 	int i;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		cpm1_set_pin(pin->port, pin->pin, pin->flags);
 		pin++;
 	}
@@ -101,11 +105,18 @@ static void __init init_ioports(void)
 	cpm1_clk_setup(CPM_CLK_SMC1, CPM_BRG1, CPM_CLK_RTX);
 
 	dnode = of_find_node_by_name(NULL, "aliases");
+
 	if (dnode == NULL)
+	{
 		return;
+	}
+
 	prop = of_find_property(dnode, "ethernet1", &len);
+
 	if (prop == NULL)
+	{
 		return;
+	}
 
 	/* init FEC pins */
 	init_pins(ARRAY_SIZE(tqm8xx_fec_pins), &tqm8xx_fec_pins[0]);
@@ -122,7 +133,8 @@ static int __init tqm8xx_probe(void)
 	return of_machine_is_compatible("tqc,tqm8xx");
 }
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .name = "soc", },
 	{ .name = "cpm", },
 	{ .name = "localbus", },
@@ -138,15 +150,16 @@ static int __init declare_of_platform_devices(void)
 }
 machine_device_initcall(tqm8xx, declare_of_platform_devices);
 
-define_machine(tqm8xx) {
+define_machine(tqm8xx)
+{
 	.name			= "TQM8xx",
-	.probe			= tqm8xx_probe,
-	.setup_arch		= tqm8xx_setup_arch,
-	.init_IRQ		= mpc8xx_pics_init,
-	.get_irq		= mpc8xx_get_irq,
-	.restart		= mpc8xx_restart,
-	.calibrate_decr		= mpc8xx_calibrate_decr,
-	.set_rtc_time		= mpc8xx_set_rtc_time,
-	.get_rtc_time		= mpc8xx_get_rtc_time,
-	.progress		= udbg_progress,
+			 .probe			= tqm8xx_probe,
+					 .setup_arch		= tqm8xx_setup_arch,
+						 .init_IRQ		= mpc8xx_pics_init,
+							   .get_irq		= mpc8xx_get_irq,
+									  .restart		= mpc8xx_restart,
+											 .calibrate_decr		= mpc8xx_calibrate_decr,
+												 .set_rtc_time		= mpc8xx_set_rtc_time,
+													   .get_rtc_time		= mpc8xx_get_rtc_time,
+															 .progress		= udbg_progress,
 };

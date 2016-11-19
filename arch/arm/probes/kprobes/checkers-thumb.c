@@ -26,7 +26,8 @@ static enum probes_insn __kprobes t32_check_stack(probes_opcode_t insn,
 	 * PROBES_T32_LDMSTM, PROBES_T32_LDRDSTRD and PROBES_T32_LDRSTR
 	 * may get here. Simply mark all normal insns as STACK_USE_NONE.
 	 */
-	static const union decode_item table[] = {
+	static const union decode_item table[] =
+	{
 
 		/*
 		 * First, filter out all ldr insns to make our life easier.
@@ -83,7 +84,8 @@ static enum probes_insn __kprobes t32_check_stack(probes_opcode_t insn,
 	return probes_decode_insn(insn, asi, table, false, false, stack_check_actions, NULL);
 }
 
-const struct decode_checker t32_stack_checker[NUM_PROBES_T32_ACTIONS] = {
+const struct decode_checker t32_stack_checker[NUM_PROBES_T32_ACTIONS] =
+{
 	[PROBES_T32_LDMSTM] = {.checker = t32_check_stack},
 	[PROBES_T32_LDRDSTRD] = {.checker = t32_check_stack},
 	[PROBES_T32_LDRSTR] = {.checker = t32_check_stack},
@@ -105,6 +107,7 @@ static enum probes_insn __kprobes t16_check_stack(probes_opcode_t insn,
  * T16 encoding is simple: only the 'push' insn can need extra stack space.
  * Other insns, like str, can only use r0-r7 as Rn.
  */
-const struct decode_checker t16_stack_checker[NUM_PROBES_T16_ACTIONS] = {
+const struct decode_checker t16_stack_checker[NUM_PROBES_T16_ACTIONS] =
+{
 	[PROBES_T16_PUSH] = {.checker = t16_check_stack},
 };

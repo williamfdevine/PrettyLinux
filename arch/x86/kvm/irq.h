@@ -38,7 +38,8 @@
 struct kvm;
 struct kvm_vcpu;
 
-struct kvm_kpic_state {
+struct kvm_kpic_state
+{
 	u8 last_irr;	/* edge detection */
 	u8 irr;		/* interrupt request register */
 	u8 imr;		/* interrupt mask register */
@@ -59,7 +60,8 @@ struct kvm_kpic_state {
 	struct kvm_pic *pics_state;
 };
 
-struct kvm_pic {
+struct kvm_pic
+{
 	spinlock_t lock;
 	bool wakeup_needed;
 	unsigned pending_acks;

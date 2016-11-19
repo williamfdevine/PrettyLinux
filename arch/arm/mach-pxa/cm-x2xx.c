@@ -73,7 +73,8 @@ extern void cmx270_init(void);
 #define CMX270_ETHIRQ		PXA_GPIO_TO_IRQ(GPIO10_ETHIRQ)
 
 #if defined(CONFIG_DM9000) || defined(CONFIG_DM9000_MODULE)
-static struct resource cmx255_dm9000_resource[] = {
+static struct resource cmx255_dm9000_resource[] =
+{
 	[0] = {
 		.start = CMX255_DM9000_PHYS_BASE,
 		.end   = CMX255_DM9000_PHYS_BASE + 3,
@@ -91,7 +92,8 @@ static struct resource cmx255_dm9000_resource[] = {
 	}
 };
 
-static struct resource cmx270_dm9000_resource[] = {
+static struct resource cmx270_dm9000_resource[] =
+{
 	[0] = {
 		.start = CMX270_DM9000_PHYS_BASE,
 		.end   = CMX270_DM9000_PHYS_BASE + 3,
@@ -109,11 +111,13 @@ static struct resource cmx270_dm9000_resource[] = {
 	}
 };
 
-static struct dm9000_plat_data cmx270_dm9000_platdata = {
+static struct dm9000_plat_data cmx270_dm9000_platdata =
+{
 	.flags		= DM9000_PLATF_32BITONLY | DM9000_PLATF_NO_EEPROM,
 };
 
-static struct platform_device cmx2xx_dm9000_device = {
+static struct platform_device cmx2xx_dm9000_device =
+{
 	.name		= "dm9000",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(cmx270_dm9000_resource),
@@ -125,9 +129,14 @@ static struct platform_device cmx2xx_dm9000_device = {
 static void __init cmx2xx_init_dm9000(void)
 {
 	if (cpu_is_pxa25x())
+	{
 		cmx2xx_dm9000_device.resource = cmx255_dm9000_resource;
+	}
 	else
+	{
 		cmx2xx_dm9000_device.resource = cmx270_dm9000_resource;
+	}
+
 	platform_device_register(&cmx2xx_dm9000_device);
 }
 #else
@@ -136,7 +145,8 @@ static inline void cmx2xx_init_dm9000(void) {}
 
 /* UCB1400 touchscreen controller */
 #if defined(CONFIG_TOUCHSCREEN_UCB1400) || defined(CONFIG_TOUCHSCREEN_UCB1400_MODULE)
-static struct platform_device cmx2xx_ts_device = {
+static struct platform_device cmx2xx_ts_device =
+{
 	.name		= "ucb1400_core",
 	.id		= -1,
 };
@@ -151,7 +161,8 @@ static inline void cmx2xx_init_touchscreen(void) {}
 
 /* CM-X270 LEDs */
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-static struct gpio_led cmx2xx_leds[] = {
+static struct gpio_led cmx2xx_leds[] =
+{
 	[0] = {
 		.name = "cm-x2xx:red",
 		.default_trigger = "nand-disk",
@@ -164,12 +175,14 @@ static struct gpio_led cmx2xx_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data cmx2xx_gpio_led_pdata = {
+static struct gpio_led_platform_data cmx2xx_gpio_led_pdata =
+{
 	.num_leds = ARRAY_SIZE(cmx2xx_leds),
 	.leds = cmx2xx_leds,
 };
 
-static struct platform_device cmx2xx_led_device = {
+static struct platform_device cmx2xx_led_device =
+{
 	.name		= "leds-gpio",
 	.id		= -1,
 	.dev		= {
@@ -179,13 +192,17 @@ static struct platform_device cmx2xx_led_device = {
 
 static void __init cmx2xx_init_leds(void)
 {
-	if (cpu_is_pxa25x()) {
+	if (cpu_is_pxa25x())
+	{
 		cmx2xx_leds[0].gpio = CMX255_GPIO_RED;
 		cmx2xx_leds[1].gpio = CMX255_GPIO_GREEN;
-	} else {
+	}
+	else
+	{
 		cmx2xx_leds[0].gpio = CMX270_GPIO_RED;
 		cmx2xx_leds[1].gpio = CMX270_GPIO_GREEN;
 	}
+
 	platform_device_register(&cmx2xx_led_device);
 }
 #else
@@ -205,7 +222,8 @@ static inline void cmx2xx_init_leds(void) {}
 #define MTYPE_TFT320x240	6
 #define MTYPE_STN640x480	7
 
-static struct pxafb_mode_info generic_stn_320x240_mode = {
+static struct pxafb_mode_info generic_stn_320x240_mode =
+{
 	.pixclock	= 76923,
 	.bpp		= 8,
 	.xres		= 320,
@@ -217,20 +235,22 @@ static struct pxafb_mode_info generic_stn_320x240_mode = {
 	.right_margin	= 3,
 	.lower_margin	= 0,
 	.sync		= (FB_SYNC_HOR_HIGH_ACT |
-			   FB_SYNC_VERT_HIGH_ACT),
+	FB_SYNC_VERT_HIGH_ACT),
 	.cmap_greyscale = 0,
 };
 
-static struct pxafb_mach_info generic_stn_320x240 = {
+static struct pxafb_mach_info generic_stn_320x240 =
+{
 	.modes		= &generic_stn_320x240_mode,
 	.num_modes	= 1,
-	.lcd_conn	= LCD_COLOR_STN_8BPP | LCD_PCLK_EDGE_FALL |\
-			  LCD_AC_BIAS_FREQ(0xff),
+	.lcd_conn	= LCD_COLOR_STN_8BPP | LCD_PCLK_EDGE_FALL | \
+	LCD_AC_BIAS_FREQ(0xff),
 	.cmap_inverse	= 0,
 	.cmap_static	= 0,
 };
 
-static struct pxafb_mode_info generic_tft_640x480_mode = {
+static struct pxafb_mode_info generic_tft_640x480_mode =
+{
 	.pixclock	= 38461,
 	.bpp		= 8,
 	.xres		= 640,
@@ -245,16 +265,18 @@ static struct pxafb_mode_info generic_tft_640x480_mode = {
 	.cmap_greyscale = 0,
 };
 
-static struct pxafb_mach_info generic_tft_640x480 = {
+static struct pxafb_mach_info generic_tft_640x480 =
+{
 	.modes		= &generic_tft_640x480_mode,
 	.num_modes	= 1,
-	.lcd_conn	= LCD_COLOR_TFT_8BPP | LCD_PCLK_EDGE_FALL |\
-			  LCD_AC_BIAS_FREQ(0xff),
+	.lcd_conn	= LCD_COLOR_TFT_8BPP | LCD_PCLK_EDGE_FALL | \
+	LCD_AC_BIAS_FREQ(0xff),
 	.cmap_inverse	= 0,
 	.cmap_static	= 0,
 };
 
-static struct pxafb_mode_info generic_crt_640x480_mode = {
+static struct pxafb_mode_info generic_crt_640x480_mode =
+{
 	.pixclock	= 38461,
 	.bpp		= 8,
 	.xres		= 640,
@@ -266,11 +288,12 @@ static struct pxafb_mode_info generic_crt_640x480_mode = {
 	.right_margin	= 16,
 	.lower_margin	= 10,
 	.sync		= (FB_SYNC_HOR_HIGH_ACT |
-			   FB_SYNC_VERT_HIGH_ACT),
+	FB_SYNC_VERT_HIGH_ACT),
 	.cmap_greyscale = 0,
 };
 
-static struct pxafb_mach_info generic_crt_640x480 = {
+static struct pxafb_mach_info generic_crt_640x480 =
+{
 	.modes		= &generic_crt_640x480_mode,
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_TFT_8BPP | LCD_AC_BIAS_FREQ(0xff),
@@ -278,7 +301,8 @@ static struct pxafb_mach_info generic_crt_640x480 = {
 	.cmap_static	= 0,
 };
 
-static struct pxafb_mode_info generic_crt_800x600_mode = {
+static struct pxafb_mode_info generic_crt_800x600_mode =
+{
 	.pixclock	= 28846,
 	.bpp		= 8,
 	.xres		= 800,
@@ -290,11 +314,12 @@ static struct pxafb_mode_info generic_crt_800x600_mode = {
 	.right_margin	= 26,
 	.lower_margin	= 11,
 	.sync		= (FB_SYNC_HOR_HIGH_ACT |
-			   FB_SYNC_VERT_HIGH_ACT),
+	FB_SYNC_VERT_HIGH_ACT),
 	.cmap_greyscale = 0,
 };
 
-static struct pxafb_mach_info generic_crt_800x600 = {
+static struct pxafb_mach_info generic_crt_800x600 =
+{
 	.modes		= &generic_crt_800x600_mode,
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_TFT_8BPP | LCD_AC_BIAS_FREQ(0xff),
@@ -302,7 +327,8 @@ static struct pxafb_mach_info generic_crt_800x600 = {
 	.cmap_static	= 0,
 };
 
-static struct pxafb_mode_info generic_tft_320x240_mode = {
+static struct pxafb_mode_info generic_tft_320x240_mode =
+{
 	.pixclock	= 134615,
 	.bpp		= 16,
 	.xres		= 320,
@@ -317,7 +343,8 @@ static struct pxafb_mode_info generic_tft_320x240_mode = {
 	.cmap_greyscale = 0,
 };
 
-static struct pxafb_mach_info generic_tft_320x240 = {
+static struct pxafb_mach_info generic_tft_320x240 =
+{
 	.modes		= &generic_tft_320x240_mode,
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_AC_BIAS_FREQ(0xff),
@@ -325,7 +352,8 @@ static struct pxafb_mach_info generic_tft_320x240 = {
 	.cmap_static	= 0,
 };
 
-static struct pxafb_mode_info generic_stn_640x480_mode = {
+static struct pxafb_mode_info generic_stn_640x480_mode =
+{
 	.pixclock	= 57692,
 	.bpp		= 8,
 	.xres		= 640,
@@ -337,11 +365,12 @@ static struct pxafb_mode_info generic_stn_640x480_mode = {
 	.right_margin	= 10,
 	.lower_margin	= 5,
 	.sync		= (FB_SYNC_HOR_HIGH_ACT |
-			   FB_SYNC_VERT_HIGH_ACT),
+	FB_SYNC_VERT_HIGH_ACT),
 	.cmap_greyscale = 0,
 };
 
-static struct pxafb_mach_info generic_stn_640x480 = {
+static struct pxafb_mach_info generic_stn_640x480 =
+{
 	.modes		= &generic_stn_640x480_mode,
 	.num_modes	= 1,
 	.lcd_conn	= LCD_COLOR_STN_8BPP | LCD_AC_BIAS_FREQ(0xff),
@@ -354,29 +383,38 @@ static struct pxafb_mach_info *cmx2xx_display = &generic_crt_640x480;
 static int __init cmx2xx_set_display(char *str)
 {
 	int disp_type = simple_strtol(str, NULL, 0);
-	switch (disp_type) {
-	case MTYPE_STN320x240:
-		cmx2xx_display = &generic_stn_320x240;
-		break;
-	case MTYPE_TFT640x480:
-		cmx2xx_display = &generic_tft_640x480;
-		break;
-	case MTYPE_CRT640x480:
-		cmx2xx_display = &generic_crt_640x480;
-		break;
-	case MTYPE_CRT800x600:
-		cmx2xx_display = &generic_crt_800x600;
-		break;
-	case MTYPE_TFT320x240:
-		cmx2xx_display = &generic_tft_320x240;
-		break;
-	case MTYPE_STN640x480:
-		cmx2xx_display = &generic_stn_640x480;
-		break;
-	default: /* fallback to CRT 640x480 */
-		cmx2xx_display = &generic_crt_640x480;
-		break;
+
+	switch (disp_type)
+	{
+		case MTYPE_STN320x240:
+			cmx2xx_display = &generic_stn_320x240;
+			break;
+
+		case MTYPE_TFT640x480:
+			cmx2xx_display = &generic_tft_640x480;
+			break;
+
+		case MTYPE_CRT640x480:
+			cmx2xx_display = &generic_crt_640x480;
+			break;
+
+		case MTYPE_CRT800x600:
+			cmx2xx_display = &generic_crt_800x600;
+			break;
+
+		case MTYPE_TFT320x240:
+			cmx2xx_display = &generic_tft_320x240;
+			break;
+
+		case MTYPE_STN640x480:
+			cmx2xx_display = &generic_stn_640x480;
+			break;
+
+		default: /* fallback to CRT 640x480 */
+			cmx2xx_display = &generic_crt_640x480;
+			break;
 	}
+
 	return 1;
 }
 
@@ -434,7 +472,8 @@ static void cmx2xx_resume(void)
 	__raw_writel(sleep_save_msc[2], MSC2);
 }
 
-static struct syscore_ops cmx2xx_pm_syscore_ops = {
+static struct syscore_ops cmx2xx_pm_syscore_ops =
+{
 	.resume = cmx2xx_resume,
 	.suspend = cmx2xx_suspend,
 };
@@ -467,9 +506,13 @@ static void __init cmx2xx_init(void)
 	cmx2xx_pm_init();
 
 	if (cpu_is_pxa25x())
+	{
 		cmx255_init();
+	}
 	else
+	{
 		cmx270_init();
+	}
 
 	cmx2xx_init_dm9000();
 	cmx2xx_init_display();
@@ -482,10 +525,13 @@ static void __init cmx2xx_init(void)
 
 static void __init cmx2xx_init_irq(void)
 {
-	if (cpu_is_pxa25x()) {
+	if (cpu_is_pxa25x())
+	{
 		pxa25x_init_irq();
 		cmx2xx_pci_init_irq(CMX255_GPIO_IT8152_IRQ);
-	} else {
+	}
+	else
+	{
 		pxa27x_init_irq();
 		cmx2xx_pci_init_irq(CMX270_GPIO_IT8152_IRQ);
 	}
@@ -493,7 +539,8 @@ static void __init cmx2xx_init_irq(void)
 
 #ifdef CONFIG_PCI
 /* Map PCI companion statically */
-static struct map_desc cmx2xx_io_desc[] __initdata = {
+static struct map_desc cmx2xx_io_desc[] __initdata =
+{
 	[0] = { /* PCI bridge */
 		.virtual	= (unsigned long)CMX2XX_IT8152_VIRT,
 		.pfn		= __phys_to_pfn(PXA_CS4_PHYS),
@@ -505,10 +552,14 @@ static struct map_desc cmx2xx_io_desc[] __initdata = {
 static void __init cmx2xx_map_io(void)
 {
 	if (cpu_is_pxa25x())
+	{
 		pxa25x_map_io();
+	}
 
 	if (cpu_is_pxa27x())
+	{
 		pxa27x_map_io();
+	}
 
 	iotable_init(cmx2xx_io_desc, ARRAY_SIZE(cmx2xx_io_desc));
 
@@ -518,24 +569,28 @@ static void __init cmx2xx_map_io(void)
 static void __init cmx2xx_map_io(void)
 {
 	if (cpu_is_pxa25x())
+	{
 		pxa25x_map_io();
+	}
 
 	if (cpu_is_pxa27x())
+	{
 		pxa27x_map_io();
+	}
 }
 #endif
 
 MACHINE_START(ARMCORE, "Compulab CM-X2XX")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= cmx2xx_map_io,
-	.nr_irqs	= CMX2XX_NR_IRQS,
-	.init_irq	= cmx2xx_init_irq,
-	/* NOTE: pxa25x_handle_irq() works on PXA27x w/o camera support */
-	.handle_irq	= pxa25x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= cmx2xx_init,
+		.nr_irqs	= CMX2XX_NR_IRQS,
+			.init_irq	= cmx2xx_init_irq,
+			   /* NOTE: pxa25x_handle_irq() works on PXA27x w/o camera support */
+			   .handle_irq	= pxa25x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= cmx2xx_init,
 #ifdef CONFIG_PCI
 	.dma_zone_size	= SZ_64M,
 #endif
-	.restart	= pxa_restart,
-MACHINE_END
+					 .restart	= pxa_restart,
+						 MACHINE_END

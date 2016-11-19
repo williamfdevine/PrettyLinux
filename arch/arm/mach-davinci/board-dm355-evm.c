@@ -43,7 +43,8 @@
  */
 #define NAND_BLOCK_SIZE		SZ_128K
 
-static struct mtd_partition davinci_nand_partitions[] = {
+static struct mtd_partition davinci_nand_partitions[] =
+{
 	{
 		/* UBL (a few copies) plus U-Boot */
 		.name		= "bootloader",
@@ -75,7 +76,8 @@ static struct mtd_partition davinci_nand_partitions[] = {
 	/* two blocks with bad block table (and mirror) at the end */
 };
 
-static struct davinci_nand_pdata davinci_nand_data = {
+static struct davinci_nand_pdata davinci_nand_data =
+{
 	.mask_chipsel		= BIT(14),
 	.parts			= davinci_nand_partitions,
 	.nr_parts		= ARRAY_SIZE(davinci_nand_partitions),
@@ -84,7 +86,8 @@ static struct davinci_nand_pdata davinci_nand_data = {
 	.ecc_bits		= 4,
 };
 
-static struct resource davinci_nand_resources[] = {
+static struct resource davinci_nand_resources[] =
+{
 	{
 		.start		= DM355_ASYNC_EMIF_DATA_CE0_BASE,
 		.end		= DM355_ASYNC_EMIF_DATA_CE0_BASE + SZ_32M - 1,
@@ -96,7 +99,8 @@ static struct resource davinci_nand_resources[] = {
 	},
 };
 
-static struct platform_device davinci_nand_device = {
+static struct platform_device davinci_nand_device =
+{
 	.name			= "davinci_nand",
 	.id			= 0,
 
@@ -108,7 +112,8 @@ static struct platform_device davinci_nand_device = {
 	},
 };
 
-static struct davinci_i2c_platform_data i2c_pdata = {
+static struct davinci_i2c_platform_data i2c_pdata =
+{
 	.bus_freq	= 400	/* kHz */,
 	.bus_delay	= 0	/* usec */,
 	.sda_pin        = 15,
@@ -131,8 +136,10 @@ static void dm355evm_mmcsd_gpios(unsigned gpio)
 	dm355evm_mmc_gpios = gpio;
 }
 
-static struct i2c_board_info dm355evm_i2c_info[] = {
-	{	I2C_BOARD_INFO("dm355evm_msp", 0x25),
+static struct i2c_board_info dm355evm_i2c_info[] =
+{
+	{
+		I2C_BOARD_INFO("dm355evm_msp", 0x25),
 		.platform_data = dm355evm_mmcsd_gpios,
 	},
 	/* { plus irq  }, */
@@ -148,10 +155,11 @@ static void __init evm_init_i2c(void)
 	dm355evm_i2c_info[0].irq = gpio_to_irq(5);
 
 	i2c_register_board_info(1, dm355evm_i2c_info,
-			ARRAY_SIZE(dm355evm_i2c_info));
+							ARRAY_SIZE(dm355evm_i2c_info));
 }
 
-static struct resource dm355evm_dm9000_rsrc[] = {
+static struct resource dm355evm_dm9000_rsrc[] =
+{
 	{
 		/* addr */
 		.start	= 0x04014000,
@@ -164,18 +172,20 @@ static struct resource dm355evm_dm9000_rsrc[] = {
 		.flags	= IORESOURCE_MEM,
 	}, {
 		.flags	= IORESOURCE_IRQ
-			| IORESOURCE_IRQ_HIGHEDGE /* rising (active high) */,
+		| IORESOURCE_IRQ_HIGHEDGE /* rising (active high) */,
 	},
 };
 
-static struct platform_device dm355evm_dm9000 = {
+static struct platform_device dm355evm_dm9000 =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.resource	= dm355evm_dm9000_rsrc,
 	.num_resources	= ARRAY_SIZE(dm355evm_dm9000_rsrc),
 };
 
-static struct tvp514x_platform_data tvp5146_pdata = {
+static struct tvp514x_platform_data tvp5146_pdata =
+{
 	.clk_polarity = 0,
 	.hs_polarity = 1,
 	.vs_polarity = 1
@@ -183,7 +193,8 @@ static struct tvp514x_platform_data tvp5146_pdata = {
 
 #define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
 /* Inputs available at the TVP5146 */
-static struct v4l2_input tvp5146_inputs[] = {
+static struct v4l2_input tvp5146_inputs[] =
+{
 	{
 		.index = 0,
 		.name = "Composite",
@@ -203,7 +214,8 @@ static struct v4l2_input tvp5146_inputs[] = {
  * ouput that goes to vpfe. There is a one to one correspondence
  * with tvp5146_inputs
  */
-static struct vpfe_route tvp5146_routes[] = {
+static struct vpfe_route tvp5146_routes[] =
+{
 	{
 		.input = INPUT_CVBS_VI2B,
 		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
@@ -214,7 +226,8 @@ static struct vpfe_route tvp5146_routes[] = {
 	},
 };
 
-static struct vpfe_subdev_info vpfe_sub_devs[] = {
+static struct vpfe_subdev_info vpfe_sub_devs[] =
+{
 	{
 		.name = "tvp5146",
 		.grp_id = 0,
@@ -234,7 +247,8 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
 	}
 };
 
-static struct vpfe_config vpfe_cfg = {
+static struct vpfe_config vpfe_cfg =
+{
 	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
 	.i2c_adapter_id = 1,
 	.sub_devs = vpfe_sub_devs,
@@ -243,7 +257,8 @@ static struct vpfe_config vpfe_cfg = {
 };
 
 /* venc standards timings */
-static struct vpbe_enc_mode_info dm355evm_enc_preset_timing[] = {
+static struct vpbe_enc_mode_info dm355evm_enc_preset_timing[] =
+{
 	{
 		.name		= "ntsc",
 		.timings_type	= VPBE_ENC_STD,
@@ -279,7 +294,8 @@ static struct vpbe_enc_mode_info dm355evm_enc_preset_timing[] = {
  * Driver uses this index to pass it to encoder when it supports more than
  * one output. Application uses index of the array to set an output.
  */
-static struct vpbe_output dm355evm_vpbe_outputs[] = {
+static struct vpbe_output dm355evm_vpbe_outputs[] =
+{
 	{
 		.output		= {
 			.index		= 0,
@@ -296,7 +312,8 @@ static struct vpbe_output dm355evm_vpbe_outputs[] = {
 	},
 };
 
-static struct vpbe_config dm355evm_display_cfg = {
+static struct vpbe_config dm355evm_display_cfg =
+{
 	.module_name	= "dm355-vpbe-display",
 	.i2c_adapter_id	= 1,
 	.osd		= {
@@ -309,7 +326,8 @@ static struct vpbe_config dm355evm_display_cfg = {
 	.outputs	= dm355evm_vpbe_outputs,
 };
 
-static struct platform_device *davinci_evm_devices[] __initdata = {
+static struct platform_device *davinci_evm_devices[] __initdata =
+{
 	&dm355evm_dm9000,
 	&davinci_nand_device,
 };
@@ -322,7 +340,10 @@ static void __init dm355_evm_map_io(void)
 static int dm355evm_mmc_get_cd(int module)
 {
 	if (!gpio_is_valid(dm355evm_mmc_gpios))
+	{
 		return -ENXIO;
+	}
+
 	/* low == card present */
 	return !gpio_get_value_cansleep(dm355evm_mmc_gpios + 2 * module + 1);
 }
@@ -330,12 +351,16 @@ static int dm355evm_mmc_get_cd(int module)
 static int dm355evm_mmc_get_ro(int module)
 {
 	if (!gpio_is_valid(dm355evm_mmc_gpios))
+	{
 		return -ENXIO;
+	}
+
 	/* high == card's write protect switch active */
 	return gpio_get_value_cansleep(dm355evm_mmc_gpios + 2 * module + 0);
 }
 
-static struct davinci_mmc_config dm355evm_mmc_config = {
+static struct davinci_mmc_config dm355evm_mmc_config =
+{
 	.get_cd		= dm355evm_mmc_get_cd,
 	.get_ro		= dm355evm_mmc_get_ro,
 	.wires		= 4,
@@ -350,14 +375,16 @@ static struct davinci_mmc_config dm355evm_mmc_config = {
  */
 #define USB_ID_VALUE	1	/* ID pulled low */
 
-static struct spi_eeprom at25640a = {
+static struct spi_eeprom at25640a =
+{
 	.byte_len	= SZ_64K / 8,
 	.name		= "at25640a",
 	.page_size	= 32,
 	.flags		= EE_ADDR2,
 };
 
-static struct spi_board_info dm355_evm_spi_info[] __initconst = {
+static struct spi_board_info dm355_evm_spi_info[] __initconst =
+{
 	{
 		.modalias	= "at25",
 		.platform_data	= &at25640a,
@@ -374,19 +401,25 @@ static __init void dm355_evm_init(void)
 	int ret;
 
 	ret = dm355_gpio_register();
+
 	if (ret)
+	{
 		pr_warn("%s: GPIO init failed: %d\n", __func__, ret);
+	}
 
 	gpio_request(1, "dm9000");
 	gpio_direction_input(1);
 	dm355evm_dm9000_rsrc[2].start = gpio_to_irq(1);
 
 	aemif = clk_get(&dm355evm_dm9000.dev, "aemif");
+
 	if (!WARN(IS_ERR(aemif), "unable to get AEMIF clock\n"))
+	{
 		clk_prepare_enable(aemif);
+	}
 
 	platform_add_devices(davinci_evm_devices,
-			     ARRAY_SIZE(davinci_evm_devices));
+						 ARRAY_SIZE(davinci_evm_devices));
 	evm_init_i2c();
 	davinci_serial_init(dm355_serial_device);
 
@@ -406,19 +439,19 @@ static __init void dm355_evm_init(void)
 	dm355_init_video(&vpfe_cfg, &dm355evm_display_cfg);
 
 	dm355_init_spi0(BIT(0), dm355_evm_spi_info,
-			ARRAY_SIZE(dm355_evm_spi_info));
+					ARRAY_SIZE(dm355_evm_spi_info));
 
 	/* DM335 EVM uses ASP1; line-out is a stereo mini-jack */
 	dm355_init_asp1(ASP1_TX_EVT_EN | ASP1_RX_EVT_EN);
 }
 
 MACHINE_START(DAVINCI_DM355_EVM, "DaVinci DM355 EVM")
-	.atag_offset  = 0x100,
-	.map_io	      = dm355_evm_map_io,
-	.init_irq     = davinci_irq_init,
-	.init_time	= davinci_timer_init,
-	.init_machine = dm355_evm_init,
-	.init_late	= davinci_init_late,
-	.dma_zone_size	= SZ_128M,
-	.restart	= davinci_restart,
-MACHINE_END
+.atag_offset  = 0x100,
+ .map_io	      = dm355_evm_map_io,
+  .init_irq     = davinci_irq_init,
+   .init_time	= davinci_timer_init,
+	 .init_machine = dm355_evm_init,
+	  .init_late	= davinci_init_late,
+		.dma_zone_size	= SZ_128M,
+		  .restart	= davinci_restart,
+			  MACHINE_END

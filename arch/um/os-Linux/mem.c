@@ -26,14 +26,21 @@ static int __init check_tmpfs(const char *dir)
 	struct statfs st;
 
 	printf("Checking if %s is on tmpfs...", dir);
-	if (statfs(dir, &st) < 0) {
+
+	if (statfs(dir, &st) < 0)
+	{
 		printf("%s\n", strerror(errno));
-	} else if (st.f_type != TMPFS_MAGIC) {
+	}
+	else if (st.f_type != TMPFS_MAGIC)
+	{
 		printf("no\n");
-	} else {
+	}
+	else
+	{
 		printf("OK\n");
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -44,16 +51,18 @@ static int __init check_tmpfs(const char *dir)
  * Otherwise, we try common tmpfs locations, and if no tmpfs directory is found
  * then we fall back to /tmp.
  */
-static char * __init choose_tempdir(void)
+static char *__init choose_tempdir(void)
 {
-	static const char * const vars[] = {
+	static const char *const vars[] =
+	{
 		"TMPDIR",
 		"TMP",
 		"TEMP",
 		NULL
 	};
 	static const char fallback_dir[] = "/tmp";
-	static const char * const tmpfs_dirs[] = {
+	static const char *const tmpfs_dirs[] =
+	{
 		"/dev/shm",
 		fallback_dir,
 		NULL
@@ -62,22 +71,36 @@ static char * __init choose_tempdir(void)
 	const char *dir;
 
 	printf("Checking environment variables for a tempdir...");
-	for (i = 0; vars[i]; i++) {
+
+	for (i = 0; vars[i]; i++)
+	{
 		dir = getenv(vars[i]);
-		if ((dir != NULL) && (*dir != '\0')) {
+
+		if ((dir != NULL) && (*dir != '\0'))
+		{
 			printf("%s\n", dir);
+
 			if (check_tmpfs(dir) >= 0)
+			{
 				goto done;
+			}
 			else
+			{
 				goto warn;
+			}
 		}
 	}
+
 	printf("none found\n");
 
-	for (i = 0; tmpfs_dirs[i]; i++) {
+	for (i = 0; tmpfs_dirs[i]; i++)
+	{
 		dir = tmpfs_dirs[i];
+
 		if (check_tmpfs(dir) >= 0)
+		{
 			goto done;
+		}
 	}
 
 	dir = fallback_dir;
@@ -97,42 +120,57 @@ static int __init make_tempfile(const char *template)
 	char *tempname;
 	int fd;
 
-	if (tempdir == NULL) {
+	if (tempdir == NULL)
+	{
 		tempdir = choose_tempdir();
-		if (tempdir == NULL) {
+
+		if (tempdir == NULL)
+		{
 			fprintf(stderr, "Failed to choose tempdir: %s\n",
-				strerror(errno));
+					strerror(errno));
 			return -1;
 		}
 	}
 
 #ifdef O_TMPFILE
 	fd = open(tempdir, O_CLOEXEC | O_RDWR | O_EXCL | O_TMPFILE, 0700);
+
 	/*
 	 * If the running system does not support O_TMPFILE flag then retry
 	 * without it.
 	 */
 	if (fd != -1 || (errno != EINVAL && errno != EISDIR &&
-			errno != EOPNOTSUPP))
+					 errno != EOPNOTSUPP))
+	{
 		return fd;
+	}
+
 #endif
 
 	tempname = malloc(strlen(tempdir) + strlen(template) + 1);
+
 	if (tempname == NULL)
+	{
 		return -1;
+	}
 
 	strcpy(tempname, tempdir);
 	strcat(tempname, template);
 	fd = mkstemp(tempname);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		fprintf(stderr, "open - cannot create %s: %s\n", tempname,
-			strerror(errno));
+				strerror(errno));
 		goto out;
 	}
-	if (unlink(tempname) < 0) {
+
+	if (unlink(tempname) < 0)
+	{
 		perror("unlink");
 		goto close;
 	}
+
 	free(tempname);
 	return fd;
 close:
@@ -150,14 +188,18 @@ static int __init create_tmp_file(unsigned long long len)
 	char zero;
 
 	fd = make_tempfile(TEMPNAME_TEMPLATE);
+
 	if (fd < 0)
+	{
 		exit(1);
+	}
 
 	/*
 	 * Seek to len - 1 because writing a character there will
 	 * increase the file size by one byte, to the desired length.
 	 */
-	if (lseek64(fd, len - 1, SEEK_SET) < 0) {
+	if (lseek64(fd, len - 1, SEEK_SET) < 0)
+	{
 		perror("lseek64");
 		exit(1);
 	}
@@ -165,7 +207,9 @@ static int __init create_tmp_file(unsigned long long len)
 	zero = 0;
 
 	err = write(fd, &zero, 1);
-	if (err != 1) {
+
+	if (err != 1)
+	{
 		perror("write");
 		exit(1);
 	}
@@ -180,10 +224,13 @@ int __init create_mem_file(unsigned long long len)
 	fd = create_tmp_file(len);
 
 	err = os_set_exec_close(fd);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		errno = -err;
 		perror("exec_close");
 	}
+
 	return fd;
 }
 
@@ -193,16 +240,23 @@ void __init check_tmpexec(void)
 	int err, fd = create_tmp_file(UM_KERN_PAGE_SIZE);
 
 	addr = mmap(NULL, UM_KERN_PAGE_SIZE,
-		    PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
+				PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
 	printf("Checking PROT_EXEC mmap in %s...", tempdir);
-	if (addr == MAP_FAILED) {
+
+	if (addr == MAP_FAILED)
+	{
 		err = errno;
 		printf("%s\n", strerror(err));
 		close(fd);
+
 		if (err == EPERM)
+		{
 			printf("%s must be not mounted noexec\n", tempdir);
+		}
+
 		exit(1);
 	}
+
 	printf("OK\n");
 	munmap(addr, UM_KERN_PAGE_SIZE);
 

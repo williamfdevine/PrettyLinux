@@ -23,21 +23,28 @@ int __init pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	int irq = 0;
 
-	if (slot == sb_slot) {
-		switch (PCI_FUNC(dev->devfn)) {
-		case 2:
-			irq = 10;
-			break;
-		case 3:
-			irq = 11;
-			break;
-		case 5:
-			irq = 9;
-			break;
+	if (slot == sb_slot)
+	{
+		switch (PCI_FUNC(dev->devfn))
+		{
+			case 2:
+				irq = 10;
+				break;
+
+			case 3:
+				irq = 11;
+				break;
+
+			case 5:
+				irq = 9;
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		irq = LOONGSON_IRQ_BASE + 25 + pin;
 	}
+
 	return irq;
 
 }
@@ -124,7 +131,7 @@ static void loongson2e_686b_func0_fixup(struct pci_dev *pdev)
 	/* route PIRQA-D irq */
 	pci_write_config_byte(pdev, 0x55, 0x90);	/* bit 7-4, PIRQA */
 	pci_write_config_byte(pdev, 0x56, 0xba);	/* bit 7-4, PIRQC; */
-							/* 3-0, PIRQB */
+	/* 3-0, PIRQB */
 	pci_write_config_byte(pdev, 0x57, 0xd0);	/* bit 7-4, PIRQD */
 
 	/* enable function 5/6, audio/modem */
@@ -142,8 +149,8 @@ static void loongson2e_686b_func1_fixup(struct pci_dev *pdev)
 	/* Modify IDE controller setup */
 	pci_write_config_byte(pdev, PCI_LATENCY_TIMER, 48);
 	pci_write_config_byte(pdev, PCI_COMMAND,
-			      PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
-			      PCI_COMMAND_MASTER);
+						  PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
+						  PCI_COMMAND_MASTER);
 	pci_write_config_byte(pdev, 0x40, 0x0b);
 	/* legacy mode */
 	pci_write_config_byte(pdev, 0x42, 0x09);
@@ -187,8 +194,8 @@ static void loongson2e_686b_func5_fixup(struct pci_dev *pdev)
 
 	/* enable IO */
 	pci_write_config_byte(pdev, PCI_COMMAND,
-			      PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
-			      PCI_COMMAND_MASTER);
+						  PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
+						  PCI_COMMAND_MASTER);
 	pci_read_config_dword(pdev, 0x4, &val);
 	pci_write_config_dword(pdev, 0x4, val | 1);
 
@@ -212,14 +219,14 @@ static void loongson2e_686b_func5_fixup(struct pci_dev *pdev)
 }
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686,
-			 loongson2e_686b_func0_fixup);
+						 loongson2e_686b_func0_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_1,
-			 loongson2e_686b_func1_fixup);
+						 loongson2e_686b_func1_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_2,
-			 loongson2e_686b_func2_fixup);
+						 loongson2e_686b_func2_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_3,
-			 loongson2e_686b_func3_fixup);
+						 loongson2e_686b_func3_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_5,
-			 loongson2e_686b_func5_fixup);
+						 loongson2e_686b_func5_fixup);
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB,
-			 loongson2e_nec_fixup);
+						 loongson2e_nec_fixup);

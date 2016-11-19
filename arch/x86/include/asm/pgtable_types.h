@@ -53,33 +53,33 @@
 #define _PAGE_SPECIAL	(_AT(pteval_t, 1) << _PAGE_BIT_SPECIAL)
 #define _PAGE_CPA_TEST	(_AT(pteval_t, 1) << _PAGE_BIT_CPA_TEST)
 #ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
-#define _PAGE_PKEY_BIT0	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT0)
-#define _PAGE_PKEY_BIT1	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT1)
-#define _PAGE_PKEY_BIT2	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT2)
-#define _PAGE_PKEY_BIT3	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT3)
+	#define _PAGE_PKEY_BIT0	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT0)
+	#define _PAGE_PKEY_BIT1	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT1)
+	#define _PAGE_PKEY_BIT2	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT2)
+	#define _PAGE_PKEY_BIT3	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT3)
 #else
-#define _PAGE_PKEY_BIT0	(_AT(pteval_t, 0))
-#define _PAGE_PKEY_BIT1	(_AT(pteval_t, 0))
-#define _PAGE_PKEY_BIT2	(_AT(pteval_t, 0))
-#define _PAGE_PKEY_BIT3	(_AT(pteval_t, 0))
+	#define _PAGE_PKEY_BIT0	(_AT(pteval_t, 0))
+	#define _PAGE_PKEY_BIT1	(_AT(pteval_t, 0))
+	#define _PAGE_PKEY_BIT2	(_AT(pteval_t, 0))
+	#define _PAGE_PKEY_BIT3	(_AT(pteval_t, 0))
 #endif
 #define __HAVE_ARCH_PTE_SPECIAL
 
 #define _PAGE_PKEY_MASK (_PAGE_PKEY_BIT0 | \
-			 _PAGE_PKEY_BIT1 | \
-			 _PAGE_PKEY_BIT2 | \
-			 _PAGE_PKEY_BIT3)
+						 _PAGE_PKEY_BIT1 | \
+						 _PAGE_PKEY_BIT2 | \
+						 _PAGE_PKEY_BIT3)
 
 #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
-#define _PAGE_KNL_ERRATUM_MASK (_PAGE_DIRTY | _PAGE_ACCESSED)
+	#define _PAGE_KNL_ERRATUM_MASK (_PAGE_DIRTY | _PAGE_ACCESSED)
 #else
-#define _PAGE_KNL_ERRATUM_MASK 0
+	#define _PAGE_KNL_ERRATUM_MASK 0
 #endif
 
 #ifdef CONFIG_KMEMCHECK
-#define _PAGE_HIDDEN	(_AT(pteval_t, 1) << _PAGE_BIT_HIDDEN)
+	#define _PAGE_HIDDEN	(_AT(pteval_t, 1) << _PAGE_BIT_HIDDEN)
 #else
-#define _PAGE_HIDDEN	(_AT(pteval_t, 0))
+	#define _PAGE_HIDDEN	(_AT(pteval_t, 0))
 #endif
 
 /*
@@ -89,9 +89,9 @@
  */
 
 #ifdef CONFIG_MEM_SOFT_DIRTY
-#define _PAGE_SOFT_DIRTY	(_AT(pteval_t, 1) << _PAGE_BIT_SOFT_DIRTY)
+	#define _PAGE_SOFT_DIRTY	(_AT(pteval_t, 1) << _PAGE_BIT_SOFT_DIRTY)
 #else
-#define _PAGE_SOFT_DIRTY	(_AT(pteval_t, 0))
+	#define _PAGE_SOFT_DIRTY	(_AT(pteval_t, 0))
 #endif
 
 /*
@@ -105,26 +105,26 @@
  * mark if and only if the PTE has present bit clear!
  */
 #ifdef CONFIG_MEM_SOFT_DIRTY
-#define _PAGE_SWP_SOFT_DIRTY	_PAGE_PSE
+	#define _PAGE_SWP_SOFT_DIRTY	_PAGE_PSE
 #else
-#define _PAGE_SWP_SOFT_DIRTY	(_AT(pteval_t, 0))
+	#define _PAGE_SWP_SOFT_DIRTY	(_AT(pteval_t, 0))
 #endif
 
 #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
-#define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
-#define _PAGE_DEVMAP	(_AT(u64, 1) << _PAGE_BIT_DEVMAP)
-#define __HAVE_ARCH_PTE_DEVMAP
+	#define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
+	#define _PAGE_DEVMAP	(_AT(u64, 1) << _PAGE_BIT_DEVMAP)
+	#define __HAVE_ARCH_PTE_DEVMAP
 #else
-#define _PAGE_NX	(_AT(pteval_t, 0))
-#define _PAGE_DEVMAP	(_AT(pteval_t, 0))
+	#define _PAGE_NX	(_AT(pteval_t, 0))
+	#define _PAGE_DEVMAP	(_AT(pteval_t, 0))
 #endif
 
 #define _PAGE_PROTNONE	(_AT(pteval_t, 1) << _PAGE_BIT_PROTNONE)
 
 #define _PAGE_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER |	\
-			 _PAGE_ACCESSED | _PAGE_DIRTY)
+					 _PAGE_ACCESSED | _PAGE_DIRTY)
 #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED |	\
-			 _PAGE_DIRTY)
+						 _PAGE_DIRTY)
 
 /*
  * Set of bits not changed in pte_modify.  The pte's
@@ -133,8 +133,8 @@
  * pte_modify() does modify it.
  */
 #define _PAGE_CHG_MASK	(PTE_PFN_MASK | _PAGE_PCD | _PAGE_PWT |		\
-			 _PAGE_SPECIAL | _PAGE_ACCESSED | _PAGE_DIRTY |	\
-			 _PAGE_SOFT_DIRTY)
+						 _PAGE_SPECIAL | _PAGE_ACCESSED | _PAGE_DIRTY |	\
+						 _PAGE_SOFT_DIRTY)
 #define _HPAGE_CHG_MASK (_PAGE_CHG_MASK | _PAGE_PSE)
 
 /*
@@ -146,7 +146,8 @@
  * right now and likely would break too much if changed.
  */
 #ifndef __ASSEMBLY__
-enum page_cache_mode {
+enum page_cache_mode
+{
 	_PAGE_CACHE_MODE_WB = 0,
 	_PAGE_CACHE_MODE_WC = 1,
 	_PAGE_CACHE_MODE_UC_MINUS = 2,
@@ -162,19 +163,19 @@ enum page_cache_mode {
 
 #define PAGE_NONE	__pgprot(_PAGE_PROTNONE | _PAGE_ACCESSED)
 #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER | \
-				 _PAGE_ACCESSED | _PAGE_NX)
+							 _PAGE_ACCESSED | _PAGE_NX)
 
 #define PAGE_SHARED_EXEC	__pgprot(_PAGE_PRESENT | _PAGE_RW |	\
-					 _PAGE_USER | _PAGE_ACCESSED)
+									 _PAGE_USER | _PAGE_ACCESSED)
 #define PAGE_COPY_NOEXEC	__pgprot(_PAGE_PRESENT | _PAGE_USER |	\
-					 _PAGE_ACCESSED | _PAGE_NX)
+									 _PAGE_ACCESSED | _PAGE_NX)
 #define PAGE_COPY_EXEC		__pgprot(_PAGE_PRESENT | _PAGE_USER |	\
-					 _PAGE_ACCESSED)
+									 _PAGE_ACCESSED)
 #define PAGE_COPY		PAGE_COPY_NOEXEC
 #define PAGE_READONLY		__pgprot(_PAGE_PRESENT | _PAGE_USER |	\
-					 _PAGE_ACCESSED | _PAGE_NX)
+									 _PAGE_ACCESSED | _PAGE_NX)
 #define PAGE_READONLY_EXEC	__pgprot(_PAGE_PRESENT | _PAGE_USER |	\
-					 _PAGE_ACCESSED)
+									 _PAGE_ACCESSED)
 
 #define __PAGE_KERNEL_EXEC						\
 	(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_GLOBAL)
@@ -227,17 +228,17 @@ enum page_cache_mode {
  * early identity mapping  pte attrib macros.
  */
 #ifdef CONFIG_X86_64
-#define __PAGE_KERNEL_IDENT_LARGE_EXEC	__PAGE_KERNEL_LARGE_EXEC
+	#define __PAGE_KERNEL_IDENT_LARGE_EXEC	__PAGE_KERNEL_LARGE_EXEC
 #else
-#define PTE_IDENT_ATTR	 0x003		/* PRESENT+RW */
-#define PDE_IDENT_ATTR	 0x063		/* PRESENT+RW+DIRTY+ACCESSED */
-#define PGD_IDENT_ATTR	 0x001		/* PRESENT (no other attributes) */
+	#define PTE_IDENT_ATTR	 0x003		/* PRESENT+RW */
+	#define PDE_IDENT_ATTR	 0x063		/* PRESENT+RW+DIRTY+ACCESSED */
+	#define PGD_IDENT_ATTR	 0x001		/* PRESENT (no other attributes) */
 #endif
 
 #ifdef CONFIG_X86_32
-# include <asm/pgtable_32_types.h>
+	#include <asm/pgtable_32_types.h>
 #else
-# include <asm/pgtable_64_types.h>
+	#include <asm/pgtable_64_types.h>
 #endif
 
 #ifndef __ASSEMBLY__
@@ -317,9 +318,13 @@ static inline pmdval_t native_pmd_val(pmd_t pmd)
 static inline pudval_t pud_pfn_mask(pud_t pud)
 {
 	if (native_pud_val(pud) & _PAGE_PSE)
+	{
 		return PHYSICAL_PUD_PAGE_MASK;
+	}
 	else
+	{
 		return PTE_PFN_MASK;
+	}
 }
 
 static inline pudval_t pud_flags_mask(pud_t pud)
@@ -335,9 +340,13 @@ static inline pudval_t pud_flags(pud_t pud)
 static inline pmdval_t pmd_pfn_mask(pmd_t pmd)
 {
 	if (native_pmd_val(pmd) & _PAGE_PSE)
+	{
 		return PHYSICAL_PMD_PAGE_MASK;
+	}
 	else
+	{
 		return PTE_PFN_MASK;
+	}
 }
 
 static inline pmdval_t pmd_flags_mask(pmd_t pmd)
@@ -383,7 +392,10 @@ extern uint8_t __pte2cachemode_tbl[8];
 static inline unsigned long cachemode2protval(enum page_cache_mode pcm)
 {
 	if (likely(pcm == 0))
+	{
 		return 0;
+	}
+
 	return __cachemode2pte_tbl[pcm];
 }
 static inline pgprot_t cachemode2pgprot(enum page_cache_mode pcm)
@@ -395,8 +407,12 @@ static inline enum page_cache_mode pgprot2cachemode(pgprot_t pgprot)
 	unsigned long masked;
 
 	masked = pgprot_val(pgprot) & _PAGE_CACHE_MASK;
+
 	if (likely(masked == 0))
+	{
 		return 0;
+	}
+
 	return __pte2cachemode_tbl[__pte2cm_idx(masked)];
 }
 static inline pgprot_t pgprot_4k_2_large(pgprot_t pgprot)
@@ -405,7 +421,7 @@ static inline pgprot_t pgprot_4k_2_large(pgprot_t pgprot)
 	pgprot_t new;
 
 	pgprot_val(new) = (val & ~(_PAGE_PAT | _PAGE_PAT_LARGE)) |
-		((val & _PAGE_PAT) << (_PAGE_BIT_PAT_LARGE - _PAGE_BIT_PAT));
+					  ((val & _PAGE_PAT) << (_PAGE_BIT_PAT_LARGE - _PAGE_BIT_PAT));
 	return new;
 }
 static inline pgprot_t pgprot_large_2_4k(pgprot_t pgprot)
@@ -414,8 +430,8 @@ static inline pgprot_t pgprot_large_2_4k(pgprot_t pgprot)
 	pgprot_t new;
 
 	pgprot_val(new) = (val & ~(_PAGE_PAT | _PAGE_PAT_LARGE)) |
-			  ((val & _PAGE_PAT_LARGE) >>
-			   (_PAGE_BIT_PAT_LARGE - _PAGE_BIT_PAT));
+					  ((val & _PAGE_PAT_LARGE) >>
+					   (_PAGE_BIT_PAT_LARGE - _PAGE_BIT_PAT));
 	return new;
 }
 
@@ -438,21 +454,22 @@ extern pgprot_t pgprot_writethrough(pgprot_t prot);
 #define __HAVE_PHYS_MEM_ACCESS_PROT
 struct file;
 pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-                              unsigned long size, pgprot_t vma_prot);
+							  unsigned long size, pgprot_t vma_prot);
 
 /* Install a pte for a particular vaddr in kernel space. */
 void set_pte_vaddr(unsigned long vaddr, pte_t pte);
 
 #ifdef CONFIG_X86_32
-extern void native_pagetable_init(void);
+	extern void native_pagetable_init(void);
 #else
-#define native_pagetable_init        paging_init
+	#define native_pagetable_init        paging_init
 #endif
 
 struct seq_file;
 extern void arch_report_meminfo(struct seq_file *m);
 
-enum pg_level {
+enum pg_level
+{
 	PG_LEVEL_NONE,
 	PG_LEVEL_4K,
 	PG_LEVEL_2M,
@@ -474,11 +491,11 @@ static inline void update_page_count(int level, unsigned long pages) { }
  */
 extern pte_t *lookup_address(unsigned long address, unsigned int *level);
 extern pte_t *lookup_address_in_pgd(pgd_t *pgd, unsigned long address,
-				    unsigned int *level);
+									unsigned int *level);
 extern pmd_t *lookup_pmd_address(unsigned long address);
 extern phys_addr_t slow_virt_to_phys(void *__address);
 extern int kernel_map_pages_in_pgd(pgd_t *pgd, u64 pfn, unsigned long address,
-				   unsigned numpages, unsigned long page_flags);
+								   unsigned numpages, unsigned long page_flags);
 #endif	/* !__ASSEMBLY__ */
 
 #endif /* _ASM_X86_PGTABLE_DEFS_H */

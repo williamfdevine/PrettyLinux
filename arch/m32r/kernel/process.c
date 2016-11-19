@@ -11,7 +11,7 @@
 #undef DEBUG_PROCESS
 #ifdef DEBUG_PROCESS
 #define DPRINTK(fmt, args...)  printk("%s:%d:%s: " fmt, __FILE__, __LINE__, \
-  __func__, ##args)
+									  __func__, ##args)
 #else
 #define DPRINTK(fmt, args...)
 #endif
@@ -54,15 +54,21 @@ void machine_restart(char *__unused)
 #endif
 
 	printk("Please push reset button!\n");
+
 	while (1)
+	{
 		cpu_relax();
+	}
 }
 
 void machine_halt(void)
 {
 	printk("Please push reset button!\n");
+
 	while (1)
+	{
 		cpu_relax();
+	}
 }
 
 void machine_power_off(void)
@@ -70,32 +76,32 @@ void machine_power_off(void)
 	/* M32R_FIXME */
 }
 
-void show_regs(struct pt_regs * regs)
+void show_regs(struct pt_regs *regs)
 {
 	printk("\n");
 	show_regs_print_info(KERN_DEFAULT);
 
 	printk("BPC[%08lx]:PSW[%08lx]:LR [%08lx]:FP [%08lx]\n", \
-	  regs->bpc, regs->psw, regs->lr, regs->fp);
+		   regs->bpc, regs->psw, regs->lr, regs->fp);
 	printk("BBPC[%08lx]:BBPSW[%08lx]:SPU[%08lx]:SPI[%08lx]\n", \
-	  regs->bbpc, regs->bbpsw, regs->spu, regs->spi);
+		   regs->bbpc, regs->bbpsw, regs->spu, regs->spi);
 	printk("R0 [%08lx]:R1 [%08lx]:R2 [%08lx]:R3 [%08lx]\n", \
-	  regs->r0, regs->r1, regs->r2, regs->r3);
+		   regs->r0, regs->r1, regs->r2, regs->r3);
 	printk("R4 [%08lx]:R5 [%08lx]:R6 [%08lx]:R7 [%08lx]\n", \
-	  regs->r4, regs->r5, regs->r6, regs->r7);
+		   regs->r4, regs->r5, regs->r6, regs->r7);
 	printk("R8 [%08lx]:R9 [%08lx]:R10[%08lx]:R11[%08lx]\n", \
-	  regs->r8, regs->r9, regs->r10, regs->r11);
+		   regs->r8, regs->r9, regs->r10, regs->r11);
 	printk("R12[%08lx]\n", \
-	  regs->r12);
+		   regs->r12);
 
 #if defined(CONFIG_ISA_M32R2) && defined(CONFIG_ISA_DSP_LEVEL2)
 	printk("ACC0H[%08lx]:ACC0L[%08lx]\n", \
-	  regs->acc0h, regs->acc0l);
+		   regs->acc0h, regs->acc0l);
 	printk("ACC1H[%08lx]:ACC1L[%08lx]\n", \
-	  regs->acc1h, regs->acc1l);
+		   regs->acc1h, regs->acc1l);
 #elif defined(CONFIG_ISA_M32R2) || defined(CONFIG_ISA_M32R)
 	printk("ACCH[%08lx]:ACCL[%08lx]\n", \
-	  regs->acc0h, regs->acc0l);
+		   regs->acc0h, regs->acc0l);
 #else
 #error unknown isa configuration
 #endif
@@ -120,26 +126,34 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu)
 }
 
 int copy_thread(unsigned long clone_flags, unsigned long spu,
-	unsigned long arg, struct task_struct *tsk)
+				unsigned long arg, struct task_struct *tsk)
 {
 	struct pt_regs *childregs = task_pt_regs(tsk);
 	extern void ret_from_fork(void);
 	extern void ret_from_kernel_thread(void);
 
-	if (unlikely(tsk->flags & PF_KTHREAD)) {
+	if (unlikely(tsk->flags & PF_KTHREAD))
+	{
 		memset(childregs, 0, sizeof(struct pt_regs));
 		childregs->psw = M32R_PSW_BIE;
 		childregs->r1 = spu;	/* fn */
 		childregs->r0 = arg;
 		tsk->thread.lr = (unsigned long)ret_from_kernel_thread;
-	} else {
+	}
+	else
+	{
 		/* Copy registers */
 		*childregs = *current_pt_regs();
+
 		if (spu)
+		{
 			childregs->spu = spu;
+		}
+
 		childregs->r0 = 0;	/* Child gets zero as return value */
 		tsk->thread.lr = (unsigned long)ret_from_fork;
 	}
+
 	tsk->thread.sp = (unsigned long)childregs;
 
 	return 0;

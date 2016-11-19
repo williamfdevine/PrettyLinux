@@ -14,7 +14,8 @@
 #ifndef ASMARM_HARDWARE_ICST_H
 #define ASMARM_HARDWARE_ICST_H
 
-struct icst_params {
+struct icst_params
+{
 	unsigned long	ref;
 	unsigned long	vco_max;	/* inclusive */
 	unsigned long	vco_min;	/* exclusive */
@@ -26,7 +27,8 @@ struct icst_params {
 	const unsigned char *idx2s;	/* chip specific idx2s array */
 };
 
-struct icst_vco {
+struct icst_vco
+{
 	unsigned short	v;
 	unsigned char	r;
 	unsigned char	s;

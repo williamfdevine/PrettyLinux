@@ -21,7 +21,8 @@
 #include "prm-regbits-33xx.h"
 #include "prm33xx.h"
 
-static struct powerdomain gfx_33xx_pwrdm = {
+static struct powerdomain gfx_33xx_pwrdm =
+{
 	.name			= "gfx_pwrdm",
 	.voltdm			= { .name = "core" },
 	.prcm_offs		= AM33XX_PRM_GFX_MOD,
@@ -52,7 +53,8 @@ static struct powerdomain gfx_33xx_pwrdm = {
 	},
 };
 
-static struct powerdomain rtc_33xx_pwrdm = {
+static struct powerdomain rtc_33xx_pwrdm =
+{
 	.name			= "rtc_pwrdm",
 	.voltdm			= { .name = "rtc" },
 	.prcm_offs		= AM33XX_PRM_RTC_MOD,
@@ -62,7 +64,8 @@ static struct powerdomain rtc_33xx_pwrdm = {
 	.logicretstate_mask	= AM33XX_LOGICRETSTATE_MASK,
 };
 
-static struct powerdomain wkup_33xx_pwrdm = {
+static struct powerdomain wkup_33xx_pwrdm =
+{
 	.name			= "wkup_pwrdm",
 	.voltdm			= { .name = "core" },
 	.prcm_offs		= AM33XX_PRM_WKUP_MOD,
@@ -72,7 +75,8 @@ static struct powerdomain wkup_33xx_pwrdm = {
 	.logicretstate_mask	= AM33XX_LOGICRETSTATE_3_3_MASK,
 };
 
-static struct powerdomain per_33xx_pwrdm = {
+static struct powerdomain per_33xx_pwrdm =
+{
 	.name			= "per_pwrdm",
 	.voltdm			= { .name = "core" },
 	.prcm_offs		= AM33XX_PRM_PER_MOD,
@@ -115,7 +119,8 @@ static struct powerdomain per_33xx_pwrdm = {
 	},
 };
 
-static struct powerdomain mpu_33xx_pwrdm = {
+static struct powerdomain mpu_33xx_pwrdm =
+{
 	.name			= "mpu_pwrdm",
 	.voltdm			= { .name = "mpu" },
 	.prcm_offs		= AM33XX_PRM_MPU_MOD,
@@ -158,7 +163,8 @@ static struct powerdomain mpu_33xx_pwrdm = {
 	},
 };
 
-static struct powerdomain cefuse_33xx_pwrdm = {
+static struct powerdomain cefuse_33xx_pwrdm =
+{
 	.name		= "cefuse_pwrdm",
 	.voltdm		= { .name = "core" },
 	.prcm_offs	= AM33XX_PRM_CEFUSE_MOD,
@@ -167,7 +173,8 @@ static struct powerdomain cefuse_33xx_pwrdm = {
 	.pwrsts		= PWRSTS_OFF_ON,
 };
 
-static struct powerdomain *powerdomains_am33xx[] __initdata = {
+static struct powerdomain *powerdomains_am33xx[] __initdata =
+{
 	&gfx_33xx_pwrdm,
 	&rtc_33xx_pwrdm,
 	&wkup_33xx_pwrdm,

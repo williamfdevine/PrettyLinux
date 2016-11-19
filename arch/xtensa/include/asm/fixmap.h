@@ -15,8 +15,8 @@
 
 #include <asm/pgtable.h>
 #ifdef CONFIG_HIGHMEM
-#include <linux/threads.h>
-#include <asm/kmap_types.h>
+	#include <linux/threads.h>
+	#include <asm/kmap_types.h>
 #endif
 
 /*
@@ -34,12 +34,13 @@
  * higher than 1) use fixmap_set(idx,phys) to associate
  * physical memory with fixmap indices.
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 #ifdef CONFIG_HIGHMEM
 	/* reserved pte's for temporary kernel mappings */
 	FIX_KMAP_BEGIN,
 	FIX_KMAP_END = FIX_KMAP_BEGIN +
-		(KM_TYPE_NR * NR_CPUS * DCACHE_N_COLORS) - 1,
+				   (KM_TYPE_NR *NR_CPUS * DCACHE_N_COLORS) - 1,
 #endif
 	__end_of_fixed_addresses
 };
@@ -63,7 +64,7 @@ static __always_inline unsigned long fix_to_virt(const unsigned int idx)
 	 * table.
 	 */
 	BUILD_BUG_ON(FIXADDR_START <
-		     XCHAL_PAGE_TABLE_VADDR + XCHAL_PAGE_TABLE_SIZE);
+				 XCHAL_PAGE_TABLE_VADDR + XCHAL_PAGE_TABLE_SIZE);
 	BUILD_BUG_ON(idx >= __end_of_fixed_addresses);
 	return __fix_to_virt(idx);
 }
@@ -78,8 +79,8 @@ static inline unsigned long virt_to_fix(const unsigned long vaddr)
 
 #define kmap_get_fixmap_pte(vaddr) \
 	pte_offset_kernel( \
-		pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr)), \
-		(vaddr) \
-	)
+					   pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr)), \
+					   (vaddr) \
+					 )
 
 #endif

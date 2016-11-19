@@ -22,14 +22,16 @@
 
 /* define specific CPU platform device */
 
-static struct platform_device *nuc960_dev[] __initdata = {
+static struct platform_device *nuc960_dev[] __initdata =
+{
 	&nuc900_device_kpi,
 	&nuc900_device_fmi,
 };
 
 /* define specific CPU platform io map */
 
-static struct map_desc nuc960evb_iodesc[] __initdata = {
+static struct map_desc nuc960evb_iodesc[] __initdata =
+{
 };
 
 /*Init NUC960 evb io*/

@@ -53,29 +53,35 @@
  * Names taken from the databooks, refer to them for more information,
  * especially which ones are share a clock line.
  */
-static const char * const alchemy_au1300_intclknames[] = {
+static const char *const alchemy_au1300_intclknames[] =
+{
 	"lcd_intclk", "gpemgp_clk", "maempe_clk", "maebsa_clk",
 	"EXTCLK0", "EXTCLK1"
 };
 
-static const char * const alchemy_au1200_intclknames[] = {
+static const char *const alchemy_au1200_intclknames[] =
+{
 	"lcd_intclk", NULL, NULL, NULL, "EXTCLK0", "EXTCLK1"
 };
 
-static const char * const alchemy_au1550_intclknames[] = {
+static const char *const alchemy_au1550_intclknames[] =
+{
 	"usb_clk", "psc0_intclk", "psc1_intclk", "pci_clko",
 	"EXTCLK0", "EXTCLK1"
 };
 
-static const char * const alchemy_au1100_intclknames[] = {
+static const char *const alchemy_au1100_intclknames[] =
+{
 	"usb_clk", "lcd_intclk", NULL, "i2s_clk", "EXTCLK0", "EXTCLK1"
 };
 
-static const char * const alchemy_au1500_intclknames[] = {
+static const char *const alchemy_au1500_intclknames[] =
+{
 	NULL, "usbd_clk", "usbh_clk", "pci_clko", "EXTCLK0", "EXTCLK1"
 };
 
-static const char * const alchemy_au1000_intclknames[] = {
+static const char *const alchemy_au1000_intclknames[] =
+{
 	"irda_clk", "usbd_clk", "usbh_clk", "i2s_clk", "EXTCLK0",
 	"EXTCLK1"
 };
@@ -83,11 +89,13 @@ static const char * const alchemy_au1000_intclknames[] = {
 /* aliases for a few on-chip sources which are either shared
  * or have gone through name changes.
  */
-static struct clk_aliastable {
+static struct clk_aliastable
+{
 	char *alias;
 	char *base;
 	int cputype;
-} alchemy_clk_aliases[] __initdata = {
+} alchemy_clk_aliases[] __initdata =
+{
 	{ "usbh_clk", "usb_clk",    ALCHEMY_CPU_AU1100 },
 	{ "usbd_clk", "usb_clk",    ALCHEMY_CPU_AU1100 },
 	{ "irda_clk", "usb_clk",    ALCHEMY_CPU_AU1100 },
@@ -115,7 +123,7 @@ static spinlock_t alchemy_clk_csrc_lock;
 /* CPU Core clock *****************************************************/
 
 static unsigned long alchemy_clk_cpu_recalc(struct clk_hw *hw,
-					    unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned long t;
 
@@ -125,11 +133,18 @@ static unsigned long alchemy_clk_cpu_recalc(struct clk_hw *hw,
 	 * over backwards trying to determine the frequency.
 	 */
 	if (unlikely(au1xxx_cpu_has_pll_wo()))
+	{
 		t = 396000000;
-	else {
+	}
+	else
+	{
 		t = alchemy_rdsys(AU1000_SYS_CPUPLL) & 0x7f;
+
 		if (alchemy_get_cputype() < ALCHEMY_CPU_AU1300)
+		{
 			t &= 0x3f;
+		}
+
 		t *= parent_rate;
 	}
 
@@ -142,19 +157,23 @@ void __init alchemy_set_lpj(void)
 	preset_lpj /= 2 * HZ;
 }
 
-static struct clk_ops alchemy_clkops_cpu = {
+static struct clk_ops alchemy_clkops_cpu =
+{
 	.recalc_rate	= alchemy_clk_cpu_recalc,
 };
 
 static struct clk __init *alchemy_clk_setup_cpu(const char *parent_name,
-						int ctype)
+		int ctype)
 {
 	struct clk_init_data id;
 	struct clk_hw *h;
 
 	h = kzalloc(sizeof(*h), GFP_KERNEL);
+
 	if (!h)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	id.name = ALCHEMY_CPU_CLK;
 	id.parent_names = &parent_name;
@@ -168,7 +187,8 @@ static struct clk __init *alchemy_clk_setup_cpu(const char *parent_name,
 
 /* AUXPLLs ************************************************************/
 
-struct alchemy_auxpll_clk {
+struct alchemy_auxpll_clk
+{
 	struct clk_hw hw;
 	unsigned long reg;	/* au1300 has also AUXPLL2 */
 	int maxmult;		/* max multiplier */
@@ -176,7 +196,7 @@ struct alchemy_auxpll_clk {
 #define to_auxpll_clk(x) container_of(x, struct alchemy_auxpll_clk, hw)
 
 static unsigned long alchemy_clk_aux_recalc(struct clk_hw *hw,
-					    unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct alchemy_auxpll_clk *a = to_auxpll_clk(hw);
 
@@ -184,62 +204,79 @@ static unsigned long alchemy_clk_aux_recalc(struct clk_hw *hw,
 }
 
 static int alchemy_clk_aux_setr(struct clk_hw *hw,
-				unsigned long rate,
-				unsigned long parent_rate)
+								unsigned long rate,
+								unsigned long parent_rate)
 {
 	struct alchemy_auxpll_clk *a = to_auxpll_clk(hw);
 	unsigned long d = rate;
 
 	if (rate)
+	{
 		d /= parent_rate;
+	}
 	else
+	{
 		d = 0;
+	}
 
 	/* minimum is 84MHz, max is 756-1032 depending on variant */
 	if (((d < 7) && (d != 0)) || (d > a->maxmult))
+	{
 		return -EINVAL;
+	}
 
 	alchemy_wrsys(d, a->reg);
 	return 0;
 }
 
 static long alchemy_clk_aux_roundr(struct clk_hw *hw,
-					    unsigned long rate,
-					    unsigned long *parent_rate)
+								   unsigned long rate,
+								   unsigned long *parent_rate)
 {
 	struct alchemy_auxpll_clk *a = to_auxpll_clk(hw);
 	unsigned long mult;
 
 	if (!rate || !*parent_rate)
+	{
 		return 0;
+	}
 
 	mult = rate / (*parent_rate);
 
 	if (mult && (mult < 7))
+	{
 		mult = 7;
+	}
+
 	if (mult > a->maxmult)
+	{
 		mult = a->maxmult;
+	}
 
 	return (*parent_rate) * mult;
 }
 
-static struct clk_ops alchemy_clkops_aux = {
+static struct clk_ops alchemy_clkops_aux =
+{
 	.recalc_rate	= alchemy_clk_aux_recalc,
 	.set_rate	= alchemy_clk_aux_setr,
 	.round_rate	= alchemy_clk_aux_roundr,
 };
 
 static struct clk __init *alchemy_clk_setup_aux(const char *parent_name,
-						char *name, int maxmult,
-						unsigned long reg)
+		char *name, int maxmult,
+		unsigned long reg)
 {
 	struct clk_init_data id;
 	struct clk *c;
 	struct alchemy_auxpll_clk *a;
 
 	a = kzalloc(sizeof(*a), GFP_KERNEL);
+
 	if (!a)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	id.name = name;
 	id.parent_names = &parent_name;
@@ -252,10 +289,15 @@ static struct clk __init *alchemy_clk_setup_aux(const char *parent_name,
 	a->hw.init = &id;
 
 	c = clk_register(NULL, &a->hw);
+
 	if (!IS_ERR(c))
+	{
 		clk_register_clkdev(c, name, NULL);
+	}
 	else
+	{
 		kfree(a);
+	}
 
 	return c;
 }
@@ -268,9 +310,13 @@ static struct clk __init  *alchemy_clk_setup_sysbus(const char *pn)
 	struct clk *c;
 
 	c = clk_register_fixed_factor(NULL, ALCHEMY_SYSBUS_CLK,
-				      pn, 0, 1, v);
+								  pn, 0, 1, v);
+
 	if (!IS_ERR(c))
+	{
 		clk_register_clkdev(c, ALCHEMY_SYSBUS_CLK, NULL);
+	}
+
 	return c;
 }
 
@@ -282,9 +328,13 @@ static struct clk __init *alchemy_clk_setup_periph(const char *pn)
 	struct clk *c;
 
 	c = clk_register_fixed_factor(NULL, ALCHEMY_PERIPH_CLK,
-				      pn, 0, 1, 2);
+								  pn, 0, 1, 2);
+
 	if (!IS_ERR(c))
+	{
 		clk_register_clkdev(c, ALCHEMY_PERIPH_CLK, NULL);
+	}
+
 	return c;
 }
 
@@ -297,28 +347,35 @@ static struct clk __init *alchemy_clk_setup_mem(const char *pn, int ct)
 	struct clk *c;
 	int div;
 
-	switch (ct) {
-	case ALCHEMY_CPU_AU1550:
-	case ALCHEMY_CPU_AU1200:
-		v = __raw_readl(addr + AU1550_MEM_SDCONFIGB);
-		div = (v & (1 << 15)) ? 1 : 2;
-		break;
-	case ALCHEMY_CPU_AU1300:
-		v = __raw_readl(addr + AU1550_MEM_SDCONFIGB);
-		div = (v & (1 << 31)) ? 1 : 2;
-		break;
-	case ALCHEMY_CPU_AU1000:
-	case ALCHEMY_CPU_AU1500:
-	case ALCHEMY_CPU_AU1100:
-	default:
-		div = 2;
-		break;
+	switch (ct)
+	{
+		case ALCHEMY_CPU_AU1550:
+		case ALCHEMY_CPU_AU1200:
+			v = __raw_readl(addr + AU1550_MEM_SDCONFIGB);
+			div = (v & (1 << 15)) ? 1 : 2;
+			break;
+
+		case ALCHEMY_CPU_AU1300:
+			v = __raw_readl(addr + AU1550_MEM_SDCONFIGB);
+			div = (v & (1 << 31)) ? 1 : 2;
+			break;
+
+		case ALCHEMY_CPU_AU1000:
+		case ALCHEMY_CPU_AU1500:
+		case ALCHEMY_CPU_AU1100:
+		default:
+			div = 2;
+			break;
 	}
 
 	c = clk_register_fixed_factor(NULL, ALCHEMY_MEM_CLK, pn,
-				      0, 1, div);
+								  0, 1, div);
+
 	if (!IS_ERR(c))
+	{
 		clk_register_clkdev(c, ALCHEMY_MEM_CLK, NULL);
+	}
+
 	return c;
 }
 
@@ -336,25 +393,33 @@ static struct clk __init *alchemy_clk_setup_lrclk(const char *pn, int t)
 	struct clk *c;
 	unsigned long v = alchemy_rdsmem(AU1000_MEM_STCFG0);
 
-	switch (t) {
-	case ALCHEMY_CPU_AU1000:
-	case ALCHEMY_CPU_AU1500:
-		v = 4 + ((v >> 11) & 1);
-		break;
-	default:	/* all other models */
-		v = ((v >> 13) & 7) + 1;
+	switch (t)
+	{
+		case ALCHEMY_CPU_AU1000:
+		case ALCHEMY_CPU_AU1500:
+			v = 4 + ((v >> 11) & 1);
+			break;
+
+		default:	/* all other models */
+			v = ((v >> 13) & 7) + 1;
 	}
+
 	c = clk_register_fixed_factor(NULL, ALCHEMY_LR_CLK,
-				      pn, 0, 1, v);
+								  pn, 0, 1, v);
+
 	if (!IS_ERR(c))
+	{
 		clk_register_clkdev(c, ALCHEMY_LR_CLK, NULL);
+	}
+
 	return c;
 }
 
 /* Clock dividers and muxes *******************************************/
 
 /* data for fgen and csrc mux-dividers */
-struct alchemy_fgcs_clk {
+struct alchemy_fgcs_clk
+{
 	struct clk_hw hw;
 	spinlock_t *reglock;	/* register lock		  */
 	unsigned long reg;	/* SYS_FREQCTRL0/1		  */
@@ -366,33 +431,44 @@ struct alchemy_fgcs_clk {
 #define to_fgcs_clk(x) container_of(x, struct alchemy_fgcs_clk, hw)
 
 static long alchemy_calc_div(unsigned long rate, unsigned long prate,
-			       int scale, int maxdiv, unsigned long *rv)
+							 int scale, int maxdiv, unsigned long *rv)
 {
 	long div1, div2;
 
 	div1 = prate / rate;
-	if ((prate / div1) > rate)
-		div1++;
 
-	if (scale == 2) {	/* only div-by-multiple-of-2 possible */
+	if ((prate / div1) > rate)
+	{
+		div1++;
+	}
+
+	if (scale == 2)  	/* only div-by-multiple-of-2 possible */
+	{
 		if (div1 & 1)
-			div1++;	/* stay <=prate */
+		{
+			div1++;    /* stay <=prate */
+		}
 	}
 
 	div2 = (div1 / scale) - 1;	/* value to write to register */
 
 	if (div2 > maxdiv)
+	{
 		div2 = maxdiv;
+	}
+
 	if (rv)
+	{
 		*rv = div2;
+	}
 
 	div1 = ((div2 + 1) * scale);
 	return div1;
 }
 
 static int alchemy_clk_fgcs_detr(struct clk_hw *hw,
-				 struct clk_rate_request *req,
-				 int scale, int maxdiv)
+								 struct clk_rate_request *req,
+								 int scale, int maxdiv)
 {
 	struct clk_hw *pc, *bpc, *free;
 	long tdv, tpr, pr, nr, br, bpr, diff, lastdiff;
@@ -407,71 +483,104 @@ static int alchemy_clk_fgcs_detr(struct clk_hw *hw,
 	/* look at the rates each enabled parent supplies and select
 	 * the one that gets closest to but not over the requested rate.
 	 */
-	for (j = 0; j < 7; j++) {
+	for (j = 0; j < 7; j++)
+	{
 		pc = clk_hw_get_parent_by_index(hw, j);
+
 		if (!pc)
+		{
 			break;
+		}
 
 		/* if this parent is currently unused, remember it.
 		 * XXX: we would actually want clk_has_active_children()
 		 * but this is a good-enough approximation for now.
 		 */
-		if (!clk_hw_is_prepared(pc)) {
+		if (!clk_hw_is_prepared(pc))
+		{
 			if (!free)
+			{
 				free = pc;
+			}
 		}
 
 		pr = clk_hw_get_rate(pc);
+
 		if (pr < req->rate)
+		{
 			continue;
+		}
 
 		/* what can hardware actually provide */
 		tdv = alchemy_calc_div(req->rate, pr, scale, maxdiv, NULL);
 		nr = pr / tdv;
 		diff = req->rate - nr;
-		if (nr > req->rate)
-			continue;
 
-		if (diff < lastdiff) {
+		if (nr > req->rate)
+		{
+			continue;
+		}
+
+		if (diff < lastdiff)
+		{
 			lastdiff = diff;
 			bpr = pr;
 			bpc = pc;
 			br = nr;
 		}
+
 		if (diff == 0)
+		{
 			break;
+		}
 	}
 
 	/* if we couldn't get the exact rate we wanted from the enabled
 	 * parents, maybe we can tell an available disabled/inactive one
 	 * to give us a rate we can divide down to the requested rate.
 	 */
-	if (lastdiff && free) {
-		for (j = (maxdiv == 4) ? 1 : scale; j <= maxdiv; j += scale) {
+	if (lastdiff && free)
+	{
+		for (j = (maxdiv == 4) ? 1 : scale; j <= maxdiv; j += scale)
+		{
 			tpr = req->rate * j;
+
 			if (tpr < 0)
+			{
 				break;
+			}
+
 			pr = clk_hw_round_rate(free, tpr);
 
 			tdv = alchemy_calc_div(req->rate, pr, scale, maxdiv,
-					       NULL);
+								   NULL);
 			nr = pr / tdv;
 			diff = req->rate - nr;
+
 			if (nr > req->rate)
+			{
 				continue;
-			if (diff < lastdiff) {
+			}
+
+			if (diff < lastdiff)
+			{
 				lastdiff = diff;
 				bpr = pr;
 				bpc = free;
 				br = nr;
 			}
+
 			if (diff == 0)
+			{
 				break;
+			}
 		}
 	}
 
 	if (br < 0)
+	{
 		return br;
+	}
 
 	req->best_parent_rate = bpr;
 	req->best_parent_hw = bpc;
@@ -521,10 +630,16 @@ static int alchemy_clk_fgv1_setp(struct clk_hw *hw, u8 index)
 
 	spin_lock_irqsave(c->reglock, flags);
 	v = alchemy_rdsys(c->reg);
+
 	if (index)
+	{
 		v |= (1 << c->shift);
+	}
 	else
+	{
 		v &= ~(1 << c->shift);
+	}
+
 	alchemy_wrsys(v, c->reg);
 	spin_unlock_irqrestore(c->reglock, flags);
 
@@ -539,14 +654,17 @@ static u8 alchemy_clk_fgv1_getp(struct clk_hw *hw)
 }
 
 static int alchemy_clk_fgv1_setr(struct clk_hw *hw, unsigned long rate,
-				 unsigned long parent_rate)
+								 unsigned long parent_rate)
 {
 	struct alchemy_fgcs_clk *c = to_fgcs_clk(hw);
 	unsigned long div, v, flags, ret;
 	int sh = c->shift + 2;
 
 	if (!rate || !parent_rate || rate > (parent_rate / 2))
+	{
 		return -EINVAL;
+	}
+
 	ret = alchemy_calc_div(rate, parent_rate, 2, 512, &div);
 	spin_lock_irqsave(c->reglock, flags);
 	v = alchemy_rdsys(c->reg);
@@ -559,7 +677,7 @@ static int alchemy_clk_fgv1_setr(struct clk_hw *hw, unsigned long rate,
 }
 
 static unsigned long alchemy_clk_fgv1_recalc(struct clk_hw *hw,
-					     unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct alchemy_fgcs_clk *c = to_fgcs_clk(hw);
 	unsigned long v = alchemy_rdsys(c->reg) >> (c->shift + 2);
@@ -569,13 +687,14 @@ static unsigned long alchemy_clk_fgv1_recalc(struct clk_hw *hw,
 }
 
 static int alchemy_clk_fgv1_detr(struct clk_hw *hw,
-				 struct clk_rate_request *req)
+								 struct clk_rate_request *req)
 {
 	return alchemy_clk_fgcs_detr(hw, req, 2, 512);
 }
 
 /* Au1000, Au1100, Au15x0, Au12x0 */
-static struct clk_ops alchemy_clkops_fgenv1 = {
+static struct clk_ops alchemy_clkops_fgenv1 =
+{
 	.recalc_rate	= alchemy_clk_fgv1_recalc,
 	.determine_rate	= alchemy_clk_fgv1_detr,
 	.set_rate	= alchemy_clk_fgv1_setr,
@@ -636,8 +755,12 @@ static int alchemy_clk_fgv2_setp(struct clk_hw *hw, u8 index)
 
 	spin_lock_irqsave(c->reglock, flags);
 	c->parent = index + 1;	/* value to write to register */
+
 	if (c->isen)
+	{
 		__alchemy_clk_fgv2_en(c);
+	}
+
 	spin_unlock_irqrestore(c->reglock, flags);
 
 	return 0;
@@ -660,18 +783,20 @@ static u8 alchemy_clk_fgv2_getp(struct clk_hw *hw)
  * range, but making them also much more flexible.
  */
 static int alchemy_clk_fgv2_setr(struct clk_hw *hw, unsigned long rate,
-				 unsigned long parent_rate)
+								 unsigned long parent_rate)
 {
 	struct alchemy_fgcs_clk *c = to_fgcs_clk(hw);
 	int sh = c->shift + 2;
 	unsigned long div, v, flags, ret;
 
 	if (!rate || !parent_rate || rate > parent_rate)
+	{
 		return -EINVAL;
+	}
 
 	v = alchemy_rdsys(c->reg) & (1 << 30); /* test "scale" bit */
 	ret = alchemy_calc_div(rate, parent_rate, v ? 1 : 2,
-			       v ? 256 : 512, &div);
+						   v ? 256 : 512, &div);
 
 	spin_lock_irqsave(c->reglock, flags);
 	v = alchemy_rdsys(c->reg);
@@ -684,7 +809,7 @@ static int alchemy_clk_fgv2_setr(struct clk_hw *hw, unsigned long rate,
 }
 
 static unsigned long alchemy_clk_fgv2_recalc(struct clk_hw *hw,
-					     unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct alchemy_fgcs_clk *c = to_fgcs_clk(hw);
 	int sh = c->shift + 2;
@@ -692,22 +817,28 @@ static unsigned long alchemy_clk_fgv2_recalc(struct clk_hw *hw,
 
 	v = alchemy_rdsys(c->reg);
 	t = parent_rate / (((v >> sh) & 0xff) + 1);
+
 	if ((v & (1 << 30)) == 0)		/* test scale bit */
+	{
 		t /= 2;
+	}
 
 	return t;
 }
 
 static int alchemy_clk_fgv2_detr(struct clk_hw *hw,
-				 struct clk_rate_request *req)
+								 struct clk_rate_request *req)
 {
 	struct alchemy_fgcs_clk *c = to_fgcs_clk(hw);
 	int scale, maxdiv;
 
-	if (alchemy_rdsys(c->reg) & (1 << 30)) {
+	if (alchemy_rdsys(c->reg) & (1 << 30))
+	{
 		scale = 1;
 		maxdiv = 256;
-	} else {
+	}
+	else
+	{
 		scale = 2;
 		maxdiv = 512;
 	}
@@ -716,7 +847,8 @@ static int alchemy_clk_fgv2_detr(struct clk_hw *hw,
 }
 
 /* Au1300 larger input mux, no separate disable bit, flexible divider */
-static struct clk_ops alchemy_clkops_fgenv2 = {
+static struct clk_ops alchemy_clkops_fgenv2 =
+{
 	.recalc_rate	= alchemy_clk_fgv2_recalc,
 	.determine_rate	= alchemy_clk_fgv2_detr,
 	.set_rate	= alchemy_clk_fgv2_setr,
@@ -727,17 +859,21 @@ static struct clk_ops alchemy_clkops_fgenv2 = {
 	.is_enabled	= alchemy_clk_fgv2_isen,
 };
 
-static const char * const alchemy_clk_fgv1_parents[] = {
+static const char *const alchemy_clk_fgv1_parents[] =
+{
 	ALCHEMY_CPU_CLK, ALCHEMY_AUXPLL_CLK
 };
 
-static const char * const alchemy_clk_fgv2_parents[] = {
+static const char *const alchemy_clk_fgv2_parents[] =
+{
 	ALCHEMY_AUXPLL2_CLK, ALCHEMY_CPU_CLK, ALCHEMY_AUXPLL_CLK
 };
 
-static const char * const alchemy_clk_fgen_names[] = {
+static const char *const alchemy_clk_fgen_names[] =
+{
 	ALCHEMY_FG0_CLK, ALCHEMY_FG1_CLK, ALCHEMY_FG2_CLK,
-	ALCHEMY_FG3_CLK, ALCHEMY_FG4_CLK, ALCHEMY_FG5_CLK };
+	ALCHEMY_FG3_CLK, ALCHEMY_FG4_CLK, ALCHEMY_FG5_CLK
+};
 
 static int __init alchemy_clk_init_fgens(int ctype)
 {
@@ -747,36 +883,49 @@ static int __init alchemy_clk_init_fgens(int ctype)
 	unsigned long v;
 	int i, ret;
 
-	switch (ctype) {
-	case ALCHEMY_CPU_AU1000...ALCHEMY_CPU_AU1200:
-		id.ops = &alchemy_clkops_fgenv1;
-		id.parent_names = alchemy_clk_fgv1_parents;
-		id.num_parents = 2;
-		break;
-	case ALCHEMY_CPU_AU1300:
-		id.ops = &alchemy_clkops_fgenv2;
-		id.parent_names = alchemy_clk_fgv2_parents;
-		id.num_parents = 3;
-		break;
-	default:
-		return -ENODEV;
+	switch (ctype)
+	{
+		case ALCHEMY_CPU_AU1000...ALCHEMY_CPU_AU1200:
+			id.ops = &alchemy_clkops_fgenv1;
+			id.parent_names = alchemy_clk_fgv1_parents;
+			id.num_parents = 2;
+			break;
+
+		case ALCHEMY_CPU_AU1300:
+			id.ops = &alchemy_clkops_fgenv2;
+			id.parent_names = alchemy_clk_fgv2_parents;
+			id.num_parents = 3;
+			break;
+
+		default:
+			return -ENODEV;
 	}
+
 	id.flags = CLK_SET_RATE_PARENT | CLK_GET_RATE_NOCACHE;
 
 	a = kzalloc((sizeof(*a)) * 6, GFP_KERNEL);
+
 	if (!a)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&alchemy_clk_fg0_lock);
 	spin_lock_init(&alchemy_clk_fg1_lock);
 	ret = 0;
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		id.name = alchemy_clk_fgen_names[i];
 		a->shift = 10 * (i < 3 ? i : i - 3);
-		if (i > 2) {
+
+		if (i > 2)
+		{
 			a->reg = AU1000_SYS_FREQCTRL1;
 			a->reglock = &alchemy_clk_fg1_lock;
-		} else {
+		}
+		else
+		{
 			a->reg = AU1000_SYS_FREQCTRL0;
 			a->reglock = &alchemy_clk_fg0_lock;
 		}
@@ -784,22 +933,34 @@ static int __init alchemy_clk_init_fgens(int ctype)
 		/* default to first parent if bootloader has set
 		 * the mux to disabled state.
 		 */
-		if (ctype == ALCHEMY_CPU_AU1300) {
+		if (ctype == ALCHEMY_CPU_AU1300)
+		{
 			v = alchemy_rdsys(a->reg);
 			a->parent = (v >> a->shift) & 3;
-			if (!a->parent) {
+
+			if (!a->parent)
+			{
 				a->parent = 1;
 				a->isen = 0;
-			} else
+			}
+			else
+			{
 				a->isen = 1;
+			}
 		}
 
 		a->hw.init = &id;
 		c = clk_register(NULL, &a->hw);
+
 		if (IS_ERR(c))
+		{
 			ret++;
+		}
 		else
+		{
 			clk_register_clkdev(c, id.name, NULL);
+		}
+
 		a++;
 	}
 
@@ -859,8 +1020,12 @@ static int alchemy_clk_csrc_setp(struct clk_hw *hw, u8 index)
 
 	spin_lock_irqsave(c->reglock, flags);
 	c->parent = index + 1;	/* value to write to register */
+
 	if (c->isen)
+	{
 		__alchemy_clk_csrc_en(c);
+	}
+
 	spin_unlock_irqrestore(c->reglock, flags);
 
 	return 0;
@@ -874,7 +1039,7 @@ static u8 alchemy_clk_csrc_getp(struct clk_hw *hw)
 }
 
 static unsigned long alchemy_clk_csrc_recalc(struct clk_hw *hw,
-					     unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct alchemy_fgcs_clk *c = to_fgcs_clk(hw);
 	unsigned long v = (alchemy_rdsys(c->reg) >> c->shift) & 3;
@@ -883,27 +1048,39 @@ static unsigned long alchemy_clk_csrc_recalc(struct clk_hw *hw,
 }
 
 static int alchemy_clk_csrc_setr(struct clk_hw *hw, unsigned long rate,
-				 unsigned long parent_rate)
+								 unsigned long parent_rate)
 {
 	struct alchemy_fgcs_clk *c = to_fgcs_clk(hw);
 	unsigned long d, v, flags;
 	int i;
 
 	if (!rate || !parent_rate || rate > parent_rate)
+	{
 		return -EINVAL;
+	}
 
 	d = (parent_rate + (rate / 2)) / rate;
+
 	if (d > 4)
+	{
 		return -EINVAL;
+	}
+
 	if ((d == 3) && (c->dt[2] != 3))
+	{
 		d = 4;
+	}
 
 	for (i = 0; i < 4; i++)
 		if (c->dt[i] == d)
+		{
 			break;
+		}
 
 	if (i >= 4)
-		return -EINVAL;	/* oops */
+	{
+		return -EINVAL;    /* oops */
+	}
 
 	spin_lock_irqsave(c->reglock, flags);
 	v = alchemy_rdsys(c->reg);
@@ -916,7 +1093,7 @@ static int alchemy_clk_csrc_setr(struct clk_hw *hw, unsigned long rate,
 }
 
 static int alchemy_clk_csrc_detr(struct clk_hw *hw,
-				 struct clk_rate_request *req)
+								 struct clk_rate_request *req)
 {
 	struct alchemy_fgcs_clk *c = to_fgcs_clk(hw);
 	int scale = c->dt[2] == 3 ? 1 : 2; /* au1300 check */
@@ -924,7 +1101,8 @@ static int alchemy_clk_csrc_detr(struct clk_hw *hw,
 	return alchemy_clk_fgcs_detr(hw, req, scale, 4);
 }
 
-static struct clk_ops alchemy_clkops_csrc = {
+static struct clk_ops alchemy_clkops_csrc =
+{
 	.recalc_rate	= alchemy_clk_csrc_recalc,
 	.determine_rate	= alchemy_clk_csrc_detr,
 	.set_rate	= alchemy_clk_csrc_setr,
@@ -935,7 +1113,8 @@ static struct clk_ops alchemy_clkops_csrc = {
 	.is_enabled	= alchemy_clk_csrc_isen,
 };
 
-static const char * const alchemy_clk_csrc_parents[] = {
+static const char *const alchemy_clk_csrc_parents[] =
+{
 	/* disabled at index 0 */ ALCHEMY_AUXPLL_CLK,
 	ALCHEMY_FG0_CLK, ALCHEMY_FG1_CLK, ALCHEMY_FG2_CLK,
 	ALCHEMY_FG3_CLK, ALCHEMY_FG4_CLK, ALCHEMY_FG5_CLK
@@ -948,7 +1127,7 @@ static int alchemy_csrc_dt2[] = { 1, 4, 3, 2 };	/* Au1300 */
 static int __init alchemy_clk_setup_imux(int ctype)
 {
 	struct alchemy_fgcs_clk *a;
-	const char * const *names;
+	const char *const *names;
 	struct clk_init_data id;
 	unsigned long v;
 	int i, ret, *dt;
@@ -960,41 +1139,56 @@ static int __init alchemy_clk_setup_imux(int ctype)
 	id.flags = CLK_SET_RATE_PARENT | CLK_GET_RATE_NOCACHE;
 
 	dt = alchemy_csrc_dt1;
-	switch (ctype) {
-	case ALCHEMY_CPU_AU1000:
-		names = alchemy_au1000_intclknames;
-		break;
-	case ALCHEMY_CPU_AU1500:
-		names = alchemy_au1500_intclknames;
-		break;
-	case ALCHEMY_CPU_AU1100:
-		names = alchemy_au1100_intclknames;
-		break;
-	case ALCHEMY_CPU_AU1550:
-		names = alchemy_au1550_intclknames;
-		break;
-	case ALCHEMY_CPU_AU1200:
-		names = alchemy_au1200_intclknames;
-		break;
-	case ALCHEMY_CPU_AU1300:
-		dt = alchemy_csrc_dt2;
-		names = alchemy_au1300_intclknames;
-		break;
-	default:
-		return -ENODEV;
+
+	switch (ctype)
+	{
+		case ALCHEMY_CPU_AU1000:
+			names = alchemy_au1000_intclknames;
+			break;
+
+		case ALCHEMY_CPU_AU1500:
+			names = alchemy_au1500_intclknames;
+			break;
+
+		case ALCHEMY_CPU_AU1100:
+			names = alchemy_au1100_intclknames;
+			break;
+
+		case ALCHEMY_CPU_AU1550:
+			names = alchemy_au1550_intclknames;
+			break;
+
+		case ALCHEMY_CPU_AU1200:
+			names = alchemy_au1200_intclknames;
+			break;
+
+		case ALCHEMY_CPU_AU1300:
+			dt = alchemy_csrc_dt2;
+			names = alchemy_au1300_intclknames;
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	a = kzalloc((sizeof(*a)) * 6, GFP_KERNEL);
+
 	if (!a)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&alchemy_clk_csrc_lock);
 	ret = 0;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		id.name = names[i];
+
 		if (!id.name)
+		{
 			goto next;
+		}
 
 		a->shift = i * 5;
 		a->reg = AU1000_SYS_CLKSRC;
@@ -1006,18 +1200,29 @@ static int __init alchemy_clk_setup_imux(int ctype)
 		 */
 		v = alchemy_rdsys(a->reg);
 		a->parent = ((v >> a->shift) >> 2) & 7;
-		if (!a->parent) {
+
+		if (!a->parent)
+		{
 			a->parent = 1;
 			a->isen = 0;
-		} else
+		}
+		else
+		{
 			a->isen = 1;
+		}
 
 		a->hw.init = &id;
 		c = clk_register(NULL, &a->hw);
+
 		if (IS_ERR(c))
+		{
 			ret++;
+		}
 		else
+		{
 			clk_register_clkdev(c, id.name, NULL);
+		}
+
 next:
 		a++;
 	}
@@ -1043,7 +1248,7 @@ static int __init alchemy_clk_init(void)
 
 	/* Root of the Alchemy clock tree: external 12MHz crystal osc */
 	c = clk_register_fixed_rate(NULL, ALCHEMY_ROOT_CLK, NULL,
-					   0, ALCHEMY_ROOTCLK_RATE);
+								0, ALCHEMY_ROOTCLK_RATE);
 	ERRCK(c)
 
 	/* CPU core clock */
@@ -1053,13 +1258,14 @@ static int __init alchemy_clk_init(void)
 	/* AUXPLLs: max 1GHz on Au1300, 748MHz on older models */
 	i = (ctype == ALCHEMY_CPU_AU1300) ? 84 : 63;
 	c = alchemy_clk_setup_aux(ALCHEMY_ROOT_CLK, ALCHEMY_AUXPLL_CLK,
-				  i, AU1000_SYS_AUXPLL);
+							  i, AU1000_SYS_AUXPLL);
 	ERRCK(c)
 
-	if (ctype == ALCHEMY_CPU_AU1300) {
+	if (ctype == ALCHEMY_CPU_AU1300)
+	{
 		c = alchemy_clk_setup_aux(ALCHEMY_ROOT_CLK,
-					  ALCHEMY_AUXPLL2_CLK, i,
-					  AU1300_SYS_AUXPLL2);
+								  ALCHEMY_AUXPLL2_CLK, i,
+								  AU1300_SYS_AUXPLL2);
 		ERRCK(c)
 	}
 
@@ -1081,22 +1287,30 @@ static int __init alchemy_clk_init(void)
 
 	/* Frequency dividers 0-5 */
 	ret = alchemy_clk_init_fgens(ctype);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
 	/* diving muxes for internal sources */
 	ret = alchemy_clk_setup_imux(ctype);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
 	/* set up aliases drivers might look for */
-	while (t->base) {
+	while (t->base)
+	{
 		if (t->cputype == ctype)
+		{
 			clk_add_alias(t->alias, NULL, t->base, NULL);
+		}
+
 		t++;
 	}
 

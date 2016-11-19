@@ -24,38 +24,39 @@ MODULE_DESCRIPTION("SHA1 secure hash using ARMv8 Crypto Extensions");
 MODULE_AUTHOR("Ard Biesheuvel <ard.biesheuvel@linaro.org>");
 MODULE_LICENSE("GPL v2");
 
-struct sha1_ce_state {
+struct sha1_ce_state
+{
 	struct sha1_state	sst;
 	u32			finalize;
 };
 
 asmlinkage void sha1_ce_transform(struct sha1_ce_state *sst, u8 const *src,
-				  int blocks);
+								  int blocks);
 
 static int sha1_ce_update(struct shash_desc *desc, const u8 *data,
-			  unsigned int len)
+						  unsigned int len)
 {
 	struct sha1_ce_state *sctx = shash_desc_ctx(desc);
 
 	sctx->finalize = 0;
 	kernel_neon_begin_partial(16);
 	sha1_base_do_update(desc, data, len,
-			    (sha1_block_fn *)sha1_ce_transform);
+						(sha1_block_fn *)sha1_ce_transform);
 	kernel_neon_end();
 
 	return 0;
 }
 
 static int sha1_ce_finup(struct shash_desc *desc, const u8 *data,
-			 unsigned int len, u8 *out)
+						 unsigned int len, u8 *out)
 {
 	struct sha1_ce_state *sctx = shash_desc_ctx(desc);
 	bool finalize = !sctx->sst.count && !(len % SHA1_BLOCK_SIZE);
 
 	ASM_EXPORT(sha1_ce_offsetof_count,
-		   offsetof(struct sha1_ce_state, sst.count));
+			   offsetof(struct sha1_ce_state, sst.count));
 	ASM_EXPORT(sha1_ce_offsetof_finalize,
-		   offsetof(struct sha1_ce_state, finalize));
+			   offsetof(struct sha1_ce_state, finalize));
 
 	/*
 	 * Allow the asm code to perform the finalization if there is no
@@ -65,9 +66,13 @@ static int sha1_ce_finup(struct shash_desc *desc, const u8 *data,
 
 	kernel_neon_begin_partial(16);
 	sha1_base_do_update(desc, data, len,
-			    (sha1_block_fn *)sha1_ce_transform);
+						(sha1_block_fn *)sha1_ce_transform);
+
 	if (!finalize)
+	{
 		sha1_base_do_finalize(desc, (sha1_block_fn *)sha1_ce_transform);
+	}
+
 	kernel_neon_end();
 	return sha1_base_finish(desc, out);
 }
@@ -83,7 +88,8 @@ static int sha1_ce_final(struct shash_desc *desc, u8 *out)
 	return sha1_base_finish(desc, out);
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.init			= sha1_base_init,
 	.update			= sha1_ce_update,
 	.final			= sha1_ce_final,

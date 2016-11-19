@@ -27,7 +27,8 @@
 #include "vp.h"
 #include "prm2xxx_3xxx.h"
 
-static const struct omap_vp_ops omap3_vp_ops = {
+static const struct omap_vp_ops omap3_vp_ops =
+{
 	.check_txdone = omap_prm_vp_check_txdone,
 	.clear_txdone = omap_prm_vp_clear_txdone,
 };
@@ -36,7 +37,8 @@ static const struct omap_vp_ops omap3_vp_ops = {
  * VP data common to 34xx/36xx chips
  * XXX This stuff presumably belongs in the vp3xxx.c or vp.c file.
  */
-static const struct omap_vp_common omap3_vp_common = {
+static const struct omap_vp_common omap3_vp_common =
+{
 	.vpconfig_erroroffset_mask = OMAP3430_ERROROFFSET_MASK,
 	.vpconfig_errorgain_mask = OMAP3430_ERRORGAIN_MASK,
 	.vpconfig_initvoltage_mask = OMAP3430_INITVOLTAGE_MASK,
@@ -56,7 +58,8 @@ static const struct omap_vp_common omap3_vp_common = {
 	.ops = &omap3_vp_ops,
 };
 
-struct omap_vp_instance omap3_vp_mpu = {
+struct omap_vp_instance omap3_vp_mpu =
+{
 	.id = OMAP3_VP_VDD_MPU_ID,
 	.common = &omap3_vp_common,
 	.vpconfig = OMAP3_PRM_VP1_CONFIG_OFFSET,
@@ -67,7 +70,8 @@ struct omap_vp_instance omap3_vp_mpu = {
 	.voltage = OMAP3_PRM_VP1_VOLTAGE_OFFSET,
 };
 
-struct omap_vp_instance omap3_vp_core = {
+struct omap_vp_instance omap3_vp_core =
+{
 	.id = OMAP3_VP_VDD_CORE_ID,
 	.common = &omap3_vp_common,
 	.vpconfig = OMAP3_PRM_VP2_CONFIG_OFFSET,
@@ -78,12 +82,14 @@ struct omap_vp_instance omap3_vp_core = {
 	.voltage = OMAP3_PRM_VP2_VOLTAGE_OFFSET,
 };
 
-struct omap_vp_param omap3_mpu_vp_data = {
+struct omap_vp_param omap3_mpu_vp_data =
+{
 	.vddmin			= OMAP3430_VP1_VLIMITTO_VDDMIN,
 	.vddmax			= OMAP3430_VP1_VLIMITTO_VDDMAX,
 };
 
-struct omap_vp_param omap3_core_vp_data = {
+struct omap_vp_param omap3_core_vp_data =
+{
 	.vddmin			= OMAP3430_VP2_VLIMITTO_VDDMIN,
 	.vddmax			= OMAP3430_VP2_VLIMITTO_VDDMAX,
 };

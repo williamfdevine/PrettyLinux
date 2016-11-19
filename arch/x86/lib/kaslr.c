@@ -16,12 +16,12 @@
  * or changed to their regular kernel equivalent.
  */
 #ifndef KASLR_COMPRESSED_BOOT
-#include <asm/cpufeature.h>
-#include <asm/setup.h>
+	#include <asm/cpufeature.h>
+	#include <asm/setup.h>
 
-#define debug_putstr(v) early_printk("%s", v)
-#define has_cpuflag(f) boot_cpu_has(f)
-#define get_boot_seed() kaslr_offset()
+	#define debug_putstr(v) early_printk("%s", v)
+	#define has_cpuflag(f) boot_cpu_has(f)
+	#define get_boot_seed() kaslr_offset()
 #endif
 
 #define I8254_PORT_CONTROL	0x43
@@ -33,13 +33,15 @@ static inline u16 i8254(void)
 {
 	u16 status, timer;
 
-	do {
+	do
+	{
 		outb(I8254_PORT_CONTROL,
-		     I8254_CMD_READBACK | I8254_SELECT_COUNTER0);
+			 I8254_CMD_READBACK | I8254_SELECT_COUNTER0);
 		status = inb(I8254_PORT_COUNTER0);
 		timer  = inb(I8254_PORT_COUNTER0);
 		timer |= inb(I8254_PORT_COUNTER0) << 8;
-	} while (status & I8254_STATUS_NOTREADY);
+	}
+	while (status & I8254_STATUS_NOTREADY);
 
 	return timer;
 }
@@ -57,15 +59,19 @@ unsigned long kaslr_get_random_long(const char *purpose)
 	debug_putstr(purpose);
 	debug_putstr(" KASLR using");
 
-	if (has_cpuflag(X86_FEATURE_RDRAND)) {
+	if (has_cpuflag(X86_FEATURE_RDRAND))
+	{
 		debug_putstr(" RDRAND");
-		if (rdrand_long(&raw)) {
+
+		if (rdrand_long(&raw))
+		{
 			random ^= raw;
 			use_i8254 = false;
 		}
 	}
 
-	if (has_cpuflag(X86_FEATURE_TSC)) {
+	if (has_cpuflag(X86_FEATURE_TSC))
+	{
 		debug_putstr(" RDTSC");
 		raw = rdtsc();
 
@@ -73,15 +79,16 @@ unsigned long kaslr_get_random_long(const char *purpose)
 		use_i8254 = false;
 	}
 
-	if (use_i8254) {
+	if (use_i8254)
+	{
 		debug_putstr(" i8254");
 		random ^= i8254();
 	}
 
 	/* Circular multiply for better bit diffusion */
 	asm("mul %3"
-	    : "=a" (random), "=d" (raw)
-	    : "a" (random), "rm" (mix_const));
+		: "=a" (random), "=d" (raw)
+		: "a" (random), "rm" (mix_const));
 	random += raw;
 
 	debug_putstr("...\n");

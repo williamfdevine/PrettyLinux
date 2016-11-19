@@ -30,14 +30,16 @@
 #ifdef	CONFIG_ACPI
 /* ACPI table mapping after acpi_gbl_permanent_mmap is set */
 static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-					    acpi_size size)
+		acpi_size size)
 {
 	/*
 	 * EFI's reserve_regions() call adds memory with the WB attribute
 	 * to memblock via early_init_dt_add_memory_arch().
 	 */
 	if (!memblock_is_memory(phys))
+	{
 		return ioremap(phys, size);
+	}
 
 	return ioremap_cache(phys, size);
 }
@@ -105,16 +107,20 @@ acpi_set_mailbox_entry(int cpu, struct acpi_madt_generic_interrupt *processor)
 static inline const char *acpi_get_enable_method(int cpu)
 {
 	if (acpi_psci_present())
+	{
 		return "psci";
+	}
 
 	if (acpi_parking_protocol_valid(cpu))
+	{
 		return "parking-protocol";
+	}
 
 	return NULL;
 }
 
 #ifdef	CONFIG_ACPI_APEI
-pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+	pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
 #endif
 
 #ifdef CONFIG_ACPI_NUMA

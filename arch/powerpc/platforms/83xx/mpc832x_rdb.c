@@ -34,28 +34,30 @@
 
 #undef DEBUG
 #ifdef DEBUG
-#define DBG(fmt...) udbg_printf(fmt)
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 #ifdef CONFIG_QUICC_ENGINE
 static int __init of_fsl_spi_probe(char *type, char *compatible, u32 sysclk,
-				   struct spi_board_info *board_infos,
-				   unsigned int num_board_infos,
-				   void (*cs_control)(struct spi_device *dev,
-						      bool on))
+								   struct spi_board_info *board_infos,
+								   unsigned int num_board_infos,
+								   void (*cs_control)(struct spi_device *dev,
+										   bool on))
 {
 	struct device_node *np;
 	unsigned int i = 0;
 
-	for_each_compatible_node(np, type, compatible) {
+	for_each_compatible_node(np, type, compatible)
+	{
 		int ret;
 		unsigned int j;
 		const void *prop;
 		struct resource res[2];
 		struct platform_device *pdev;
-		struct fsl_spi_platform_data pdata = {
+		struct fsl_spi_platform_data pdata =
+		{
 			.cs_control = cs_control,
 		};
 
@@ -64,50 +66,83 @@ static int __init of_fsl_spi_probe(char *type, char *compatible, u32 sysclk,
 		pdata.sysclk = sysclk;
 
 		prop = of_get_property(np, "reg", NULL);
+
 		if (!prop)
+		{
 			goto err;
+		}
+
 		pdata.bus_num = *(u32 *)prop;
 
 		prop = of_get_property(np, "cell-index", NULL);
+
 		if (prop)
+		{
 			i = *(u32 *)prop;
+		}
 
 		prop = of_get_property(np, "mode", NULL);
-		if (prop && !strcmp(prop, "cpu-qe"))
-			pdata.flags = SPI_QE_CPU_MODE;
 
-		for (j = 0; j < num_board_infos; j++) {
+		if (prop && !strcmp(prop, "cpu-qe"))
+		{
+			pdata.flags = SPI_QE_CPU_MODE;
+		}
+
+		for (j = 0; j < num_board_infos; j++)
+		{
 			if (board_infos[j].bus_num == pdata.bus_num)
+			{
 				pdata.max_chipselect++;
+			}
 		}
 
 		if (!pdata.max_chipselect)
+		{
 			continue;
+		}
 
 		ret = of_address_to_resource(np, 0, &res[0]);
+
 		if (ret)
+		{
 			goto err;
+		}
 
 		ret = of_irq_to_resource(np, 0, &res[1]);
+
 		if (!ret)
+		{
 			goto err;
+		}
 
 		pdev = platform_device_alloc("mpc83xx_spi", i);
+
 		if (!pdev)
+		{
 			goto err;
+		}
 
 		ret = platform_device_add_data(pdev, &pdata, sizeof(pdata));
+
 		if (ret)
+		{
 			goto unreg;
+		}
 
 		ret = platform_device_add_resources(pdev, res,
-						    ARRAY_SIZE(res));
+											ARRAY_SIZE(res));
+
 		if (ret)
+		{
 			goto unreg;
+		}
 
 		ret = platform_device_add(pdev);
+
 		if (ret)
+		{
 			goto unreg;
+		}
 
 		goto next;
 unreg:
@@ -122,26 +157,32 @@ next:
 }
 
 static int __init fsl_spi_init(struct spi_board_info *board_infos,
-			       unsigned int num_board_infos,
-			       void (*cs_control)(struct spi_device *spi,
-						  bool on))
+							   unsigned int num_board_infos,
+							   void (*cs_control)(struct spi_device *spi,
+									   bool on))
 {
 	u32 sysclk = -1;
 	int ret;
 
 	/* SPI controller is either clocked from QE or SoC clock */
 	sysclk = get_brgfreq();
-	if (sysclk == -1) {
+
+	if (sysclk == -1)
+	{
 		sysclk = fsl_get_sys_freq();
+
 		if (sysclk == -1)
+		{
 			return -ENODEV;
+		}
 	}
 
 	ret = of_fsl_spi_probe(NULL, "fsl,spi", sysclk, board_infos,
-			       num_board_infos, cs_control);
+						   num_board_infos, cs_control);
+
 	if (!ret)
 		of_fsl_spi_probe("spi", "fsl_spi", sysclk, board_infos,
-				 num_board_infos, cs_control);
+						 num_board_infos, cs_control);
 
 	return spi_register_board_info(board_infos, num_board_infos);
 }
@@ -152,11 +193,13 @@ static void mpc83xx_spi_cs_control(struct spi_device *spi, bool on)
 	par_io_data_set(3, 13, on);
 }
 
-static struct mmc_spi_platform_data mpc832x_mmc_pdata = {
+static struct mmc_spi_platform_data mpc832x_mmc_pdata =
+{
 	.ocr_mask = MMC_VDD_33_34,
 };
 
-static struct spi_board_info mpc832x_spi_boardinfo = {
+static struct spi_board_info mpc832x_spi_boardinfo =
+{
 	.bus_num = 0x4c0,
 	.chip_select = 0,
 	.max_speed_hz = 50000000,
@@ -180,7 +223,10 @@ static int __init mpc832x_spi_init(void)
 	 * mmc-spi-slot node.
 	 */
 	if (of_find_compatible_node(NULL, NULL, "mmc-spi-slot"))
+	{
 		return 0;
+	}
+
 	return fsl_spi_init(&mpc832x_spi_boardinfo, 1, mpc83xx_spi_cs_control);
 }
 machine_device_initcall(mpc832x_rdb, mpc832x_spi_init);
@@ -200,13 +246,18 @@ static void __init mpc832x_rdb_setup_arch(void)
 	mpc83xx_setup_arch();
 
 #ifdef CONFIG_QUICC_ENGINE
-	if ((np = of_find_node_by_name(NULL, "par_io")) != NULL) {
+
+	if ((np = of_find_node_by_name(NULL, "par_io")) != NULL)
+	{
 		par_io_init(np);
 		of_node_put(np);
 
 		for (np = NULL; (np = of_find_node_by_name(np, "ucc")) != NULL;)
+		{
 			par_io_of_config(np);
+		}
 	}
+
 #endif				/* CONFIG_QUICC_ENGINE */
 }
 
@@ -220,14 +271,15 @@ static int __init mpc832x_rdb_probe(void)
 	return of_machine_is_compatible("MPC832xRDB");
 }
 
-define_machine(mpc832x_rdb) {
+define_machine(mpc832x_rdb)
+{
 	.name		= "MPC832x RDB",
-	.probe		= mpc832x_rdb_probe,
-	.setup_arch	= mpc832x_rdb_setup_arch,
-	.init_IRQ	= mpc83xx_ipic_and_qe_init_IRQ,
-	.get_irq	= ipic_get_irq,
-	.restart	= mpc83xx_restart,
-	.time_init	= mpc83xx_time_init,
-	.calibrate_decr	= generic_calibrate_decr,
-	.progress	= udbg_progress,
+		  .probe		= mpc832x_rdb_probe,
+			   .setup_arch	= mpc832x_rdb_setup_arch,
+				.init_IRQ	= mpc83xx_ipic_and_qe_init_IRQ,
+				   .get_irq	= ipic_get_irq,
+					   .restart	= mpc83xx_restart,
+						   .time_init	= mpc83xx_time_init,
+							 .calibrate_decr	= generic_calibrate_decr,
+							  .progress	= udbg_progress,
 };

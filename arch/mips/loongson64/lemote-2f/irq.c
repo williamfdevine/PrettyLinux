@@ -36,14 +36,21 @@ int mach_i8259_irq(void)
 
 	irq = -1;
 
-	if ((LOONGSON_INTISR & LOONGSON_INTEN) & LOONGSON_INT_BIT_INT0) {
+	if ((LOONGSON_INTISR & LOONGSON_INTEN) & LOONGSON_INT_BIT_INT0)
+	{
 		raw_spin_lock(&i8259A_lock);
 		isr = inb(PIC_MASTER_CMD) &
-			~inb(PIC_MASTER_IMR) & ~(1 << PIC_CASCADE_IR);
+			  ~inb(PIC_MASTER_IMR) & ~(1 << PIC_CASCADE_IR);
+
 		if (!isr)
+		{
 			isr = (inb(PIC_SLAVE_CMD) & ~inb(PIC_SLAVE_IMR)) << 8;
+		}
+
 		irq = ffs(isr) - 1;
-		if (unlikely(irq == 7)) {
+
+		if (unlikely(irq == 7))
+		{
 			/*
 			 * This may be a spurious interrupt.
 			 *
@@ -52,9 +59,13 @@ int mach_i8259_irq(void)
 			 * interrupt.
 			 */
 			outb(0x0B, PIC_MASTER_ISR);	/* ISR register */
+
 			if (~inb(PIC_MASTER_ISR) & 0x80)
+			{
 				irq = -1;
+			}
 		}
+
 		raw_spin_unlock(&i8259A_lock);
 	}
 
@@ -67,25 +78,40 @@ static void i8259_irqdispatch(void)
 	int irq;
 
 	irq = mach_i8259_irq();
+
 	if (irq >= 0)
+	{
 		do_IRQ(irq);
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }
 
 void mach_irq_dispatch(unsigned int pending)
 {
 	if (pending & CAUSEF_IP7)
+	{
 		do_IRQ(LOONGSON_TIMER_IRQ);
-	else if (pending & CAUSEF_IP6) {	/* North Bridge, Perf counter */
+	}
+	else if (pending & CAUSEF_IP6)  	/* North Bridge, Perf counter */
+	{
 		do_perfcnt_IRQ();
 		bonito_irqdispatch();
-	} else if (pending & CAUSEF_IP3)	/* CPU UART */
+	}
+	else if (pending & CAUSEF_IP3)	/* CPU UART */
+	{
 		do_IRQ(LOONGSON_UART_IRQ);
+	}
 	else if (pending & CAUSEF_IP2)	/* South Bridge */
+	{
 		i8259_irqdispatch();
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }
 
 static irqreturn_t ip6_action(int cpl, void *dev_id)
@@ -93,13 +119,15 @@ static irqreturn_t ip6_action(int cpl, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction ip6_irqaction = {
+static struct irqaction ip6_irqaction =
+{
 	.handler = ip6_action,
 	.name = "cascade",
 	.flags = IRQF_SHARED | IRQF_NO_THREAD,
 };
 
-static struct irqaction cascade_irqaction = {
+static struct irqaction cascade_irqaction =
+{
 	.handler = no_action,
 	.name = "cascade",
 	.flags = IRQF_NO_THREAD,

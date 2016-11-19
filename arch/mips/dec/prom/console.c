@@ -16,14 +16,18 @@
 #include <asm/dec/prom.h>
 
 static void __init prom_console_write(struct console *con, const char *s,
-				      unsigned int c)
+									  unsigned int c)
 {
 	char buf[81];
 	unsigned int chunk = sizeof(buf) - 1;
 
-	while (c > 0) {
+	while (c > 0)
+	{
 		if (chunk > c)
+		{
 			chunk = c;
+		}
+
 		memcpy(buf, s, chunk);
 		buf[chunk] = '\0';
 		prom_printf("%s", buf);
@@ -32,7 +36,8 @@ static void __init prom_console_write(struct console *con, const char *s,
 	}
 }
 
-static struct console promcons __initdata = {
+static struct console promcons __initdata =
+{
 	.name	= "prom",
 	.write	= prom_console_write,
 	.flags	= CON_BOOT | CON_PRINTBUFFER,

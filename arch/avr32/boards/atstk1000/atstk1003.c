@@ -29,21 +29,24 @@
 #include "atstk1000.h"
 
 /* Oscillator frequencies. These are board specific */
-unsigned long at32_board_osc_rates[3] = {
+unsigned long at32_board_osc_rates[3] =
+{
 	[0] = 32768,	/* 32.768 kHz on RTC osc */
 	[1] = 20000000,	/* 20 MHz on osc0 */
 	[2] = 12000000,	/* 12 MHz on osc1 */
 };
 
 #ifdef CONFIG_BOARD_ATSTK1000_EXTDAC
-static struct at73c213_board_info at73c213_data = {
+static struct at73c213_board_info at73c213_data =
+{
 	.ssc_id		= 0,
 	.shortname	= "AVR32 STK1000 external DAC",
 };
 #endif
 
 #ifndef CONFIG_BOARD_ATSTK100X_SW1_CUSTOM
-static struct spi_board_info spi0_board_info[] __initdata = {
+static struct spi_board_info spi0_board_info[] __initdata =
+{
 #ifdef CONFIG_BOARD_ATSTK1000_EXTDAC
 	{
 		/* AT73C213 */
@@ -63,12 +66,14 @@ static struct spi_board_info spi0_board_info[] __initdata = {
 
 #ifdef CONFIG_BOARD_ATSTK100X_SPI1
 static struct spi_board_info spi1_board_info[] __initdata = { {
-	/* patch in custom entries here */
-} };
+		/* patch in custom entries here */
+	}
+};
 #endif
 
 #ifndef CONFIG_BOARD_ATSTK100X_SW2_CUSTOM
-static struct mci_platform_data __initdata mci0_data = {
+static struct mci_platform_data __initdata mci0_data =
+{
 	.slot[0] = {
 		.bus_width	= 4,
 		.detect_pin	= -ENODEV,
@@ -84,13 +89,21 @@ static void __init atstk1003_setup_extdac(void)
 	struct clk *pll;
 
 	gclk = clk_get(NULL, "gclk0");
-	if (IS_ERR(gclk))
-		goto err_gclk;
-	pll = clk_get(NULL, "pll0");
-	if (IS_ERR(pll))
-		goto err_pll;
 
-	if (clk_set_parent(gclk, pll)) {
+	if (IS_ERR(gclk))
+	{
+		goto err_gclk;
+	}
+
+	pll = clk_get(NULL, "pll0");
+
+	if (IS_ERR(pll))
+	{
+		goto err_pll;
+	}
+
+	if (clk_set_parent(gclk, pll))
+	{
 		pr_debug("STK1000: failed to set pll0 as parent for DAC clock\n");
 		goto err_set_clk;
 	}

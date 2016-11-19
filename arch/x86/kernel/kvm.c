@@ -52,8 +52,8 @@ static int kvmapf = 1;
 
 static int parse_no_kvmapf(char *arg)
 {
-        kvmapf = 0;
-        return 0;
+	kvmapf = 0;
+	return 0;
 }
 
 early_param("no-kvmapf", parse_no_kvmapf);
@@ -61,8 +61,8 @@ early_param("no-kvmapf", parse_no_kvmapf);
 static int steal_acc = 1;
 static int parse_no_stealacc(char *arg)
 {
-        steal_acc = 0;
-        return 0;
+	steal_acc = 0;
+	return 0;
 }
 
 early_param("no-steal-acc", parse_no_stealacc);
@@ -70,8 +70,8 @@ early_param("no-steal-acc", parse_no_stealacc);
 static int kvmclock_vsyscall = 1;
 static int parse_no_kvmclock_vsyscall(char *arg)
 {
-        kvmclock_vsyscall = 0;
-        return 0;
+	kvmclock_vsyscall = 0;
+	return 0;
 }
 
 early_param("no-kvmclock-vsyscall", parse_no_kvmclock_vsyscall);
@@ -90,7 +90,8 @@ static void kvm_io_delay(void)
 #define KVM_TASK_SLEEP_HASHBITS 8
 #define KVM_TASK_SLEEP_HASHSIZE (1<<KVM_TASK_SLEEP_HASHBITS)
 
-struct kvm_task_sleep_node {
+struct kvm_task_sleep_node
+{
 	struct hlist_node link;
 	struct swait_queue_head wq;
 	u32 token;
@@ -98,21 +99,26 @@ struct kvm_task_sleep_node {
 	bool halted;
 };
 
-static struct kvm_task_sleep_head {
+static struct kvm_task_sleep_head
+{
 	raw_spinlock_t lock;
 	struct hlist_head list;
 } async_pf_sleepers[KVM_TASK_SLEEP_HASHSIZE];
 
 static struct kvm_task_sleep_node *_find_apf_task(struct kvm_task_sleep_head *b,
-						  u32 token)
+		u32 token)
 {
 	struct hlist_node *p;
 
-	hlist_for_each(p, &b->list) {
+	hlist_for_each(p, &b->list)
+	{
 		struct kvm_task_sleep_node *n =
 			hlist_entry(p, typeof(*n), link);
+
 		if (n->token == token)
+		{
 			return n;
+		}
 	}
 
 	return NULL;
@@ -129,7 +135,9 @@ void kvm_async_pf_task_wait(u32 token)
 
 	raw_spin_lock(&b->lock);
 	e = _find_apf_task(b, token);
-	if (e) {
+
+	if (e)
+	{
 		/* dummy entry exist -> wake up was delivered ahead of PF */
 		hlist_del(&e->link);
 		kfree(e);
@@ -146,17 +154,26 @@ void kvm_async_pf_task_wait(u32 token)
 	hlist_add_head(&n.link, &b->list);
 	raw_spin_unlock(&b->lock);
 
-	for (;;) {
+	for (;;)
+	{
 		if (!n.halted)
+		{
 			prepare_to_swait(&n.wq, &wait, TASK_UNINTERRUPTIBLE);
-		if (hlist_unhashed(&n.link))
-			break;
+		}
 
-		if (!n.halted) {
+		if (hlist_unhashed(&n.link))
+		{
+			break;
+		}
+
+		if (!n.halted)
+		{
 			local_irq_enable();
 			schedule();
 			local_irq_disable();
-		} else {
+		}
+		else
+		{
 			/*
 			 * We cannot reschedule. So halt.
 			 */
@@ -166,8 +183,11 @@ void kvm_async_pf_task_wait(u32 token)
 			local_irq_disable();
 		}
 	}
+
 	if (!n.halted)
+	{
 		finish_swait(&n.wq, &wait);
+	}
 
 	rcu_irq_exit();
 	return;
@@ -177,25 +197,35 @@ EXPORT_SYMBOL_GPL(kvm_async_pf_task_wait);
 static void apf_task_wake_one(struct kvm_task_sleep_node *n)
 {
 	hlist_del_init(&n->link);
+
 	if (n->halted)
+	{
 		smp_send_reschedule(n->cpu);
+	}
 	else if (swait_active(&n->wq))
+	{
 		swake_up(&n->wq);
+	}
 }
 
 static void apf_task_wake_all(void)
 {
 	int i;
 
-	for (i = 0; i < KVM_TASK_SLEEP_HASHSIZE; i++) {
+	for (i = 0; i < KVM_TASK_SLEEP_HASHSIZE; i++)
+	{
 		struct hlist_node *p, *next;
 		struct kvm_task_sleep_head *b = &async_pf_sleepers[i];
 		raw_spin_lock(&b->lock);
-		hlist_for_each_safe(p, next, &b->list) {
+		hlist_for_each_safe(p, next, &b->list)
+		{
 			struct kvm_task_sleep_node *n =
 				hlist_entry(p, typeof(*n), link);
+
 			if (n->cpu == smp_processor_id())
+			{
 				apf_task_wake_one(n);
+			}
 		}
 		raw_spin_unlock(&b->lock);
 	}
@@ -207,7 +237,8 @@ void kvm_async_pf_task_wake(u32 token)
 	struct kvm_task_sleep_head *b = &async_pf_sleepers[key];
 	struct kvm_task_sleep_node *n;
 
-	if (token == ~0) {
+	if (token == ~0)
+	{
 		apf_task_wake_all();
 		return;
 	}
@@ -215,13 +246,17 @@ void kvm_async_pf_task_wake(u32 token)
 again:
 	raw_spin_lock(&b->lock);
 	n = _find_apf_task(b, token);
-	if (!n) {
+
+	if (!n)
+	{
 		/*
 		 * async PF was not yet handled.
 		 * Add dummy entry for the token.
 		 */
 		n = kzalloc(sizeof(*n), GFP_ATOMIC);
-		if (!n) {
+
+		if (!n)
+		{
 			/*
 			 * Allocation failed! Busy wait while other cpu
 			 * handles async PF.
@@ -230,12 +265,17 @@ again:
 			cpu_relax();
 			goto again;
 		}
+
 		n->token = token;
 		n->cpu = smp_processor_id();
 		init_swait_queue_head(&n->wq);
 		hlist_add_head(&n->link, &b->list);
-	} else
+	}
+	else
+	{
 		apf_task_wake_one(n);
+	}
+
 	raw_spin_unlock(&b->lock);
 	return;
 }
@@ -245,7 +285,8 @@ u32 kvm_read_and_reset_pf_reason(void)
 {
 	u32 reason = 0;
 
-	if (__this_cpu_read(apf_reason.enabled)) {
+	if (__this_cpu_read(apf_reason.enabled))
+	{
 		reason = __this_cpu_read(apf_reason.reason);
 		__this_cpu_write(apf_reason.reason, 0);
 	}
@@ -260,23 +301,26 @@ do_async_page_fault(struct pt_regs *regs, unsigned long error_code)
 {
 	enum ctx_state prev_state;
 
-	switch (kvm_read_and_reset_pf_reason()) {
-	default:
-		trace_do_page_fault(regs, error_code);
-		break;
-	case KVM_PV_REASON_PAGE_NOT_PRESENT:
-		/* page is swapped out by the host. */
-		prev_state = exception_enter();
-		exit_idle();
-		kvm_async_pf_task_wait((u32)read_cr2());
-		exception_exit(prev_state);
-		break;
-	case KVM_PV_REASON_PAGE_READY:
-		rcu_irq_enter();
-		exit_idle();
-		kvm_async_pf_task_wake((u32)read_cr2());
-		rcu_irq_exit();
-		break;
+	switch (kvm_read_and_reset_pf_reason())
+	{
+		default:
+			trace_do_page_fault(regs, error_code);
+			break;
+
+		case KVM_PV_REASON_PAGE_NOT_PRESENT:
+			/* page is swapped out by the host. */
+			prev_state = exception_enter();
+			exit_idle();
+			kvm_async_pf_task_wait((u32)read_cr2());
+			exception_exit(prev_state);
+			break;
+
+		case KVM_PV_REASON_PAGE_READY:
+			rcu_irq_enter();
+			exit_idle();
+			kvm_async_pf_task_wake((u32)read_cr2());
+			rcu_irq_exit();
+			break;
 	}
 }
 NOKPROBE_SYMBOL(do_async_page_fault);
@@ -286,7 +330,9 @@ static void __init paravirt_ops_setup(void)
 	pv_info.name = "KVM";
 
 	if (kvm_para_has_feature(KVM_FEATURE_NOP_IO_DELAY))
+	{
 		pv_cpu_ops.io_delay = kvm_io_delay;
+	}
 
 #ifdef CONFIG_X86_IO_APIC
 	no_timer_check = 1;
@@ -299,11 +345,13 @@ static void kvm_register_steal_time(void)
 	struct kvm_steal_time *st = &per_cpu(steal_time, cpu);
 
 	if (!has_steal_clock)
+	{
 		return;
+	}
 
 	wrmsrl(MSR_KVM_STEAL_TIME, (slow_virt_to_phys(st) | KVM_MSR_ENABLED));
 	pr_info("kvm-stealtime: cpu %d, msr %llx\n",
-		cpu, (unsigned long long) slow_virt_to_phys(st));
+			cpu, (unsigned long long) slow_virt_to_phys(st));
 }
 
 static DEFINE_PER_CPU(unsigned long, kvm_apic_eoi) = KVM_PV_EOI_DISABLED;
@@ -318,16 +366,22 @@ static void kvm_guest_apic_eoi_write(u32 reg, u32 val)
 	 * An optimization barrier is implied in apic write.
 	 */
 	if (__test_and_clear_bit(KVM_PV_EOI_BIT, this_cpu_ptr(&kvm_apic_eoi)))
+	{
 		return;
+	}
+
 	apic_write(APIC_EOI, APIC_EOI_ACK);
 }
 
 static void kvm_guest_cpu_init(void)
 {
 	if (!kvm_para_available())
+	{
 		return;
+	}
 
-	if (kvm_para_has_feature(KVM_FEATURE_ASYNC_PF) && kvmapf) {
+	if (kvm_para_has_feature(KVM_FEATURE_ASYNC_PF) && kvmapf)
+	{
 		u64 pa = slow_virt_to_phys(this_cpu_ptr(&apf_reason));
 
 #ifdef CONFIG_PREEMPT
@@ -336,33 +390,38 @@ static void kvm_guest_cpu_init(void)
 		wrmsrl(MSR_KVM_ASYNC_PF_EN, pa | KVM_ASYNC_PF_ENABLED);
 		__this_cpu_write(apf_reason.enabled, 1);
 		printk(KERN_INFO"KVM setup async PF for cpu %d\n",
-		       smp_processor_id());
+			   smp_processor_id());
 	}
 
-	if (kvm_para_has_feature(KVM_FEATURE_PV_EOI)) {
+	if (kvm_para_has_feature(KVM_FEATURE_PV_EOI))
+	{
 		unsigned long pa;
 		/* Size alignment is implied but just to make it explicit. */
 		BUILD_BUG_ON(__alignof__(kvm_apic_eoi) < 4);
 		__this_cpu_write(kvm_apic_eoi, 0);
 		pa = slow_virt_to_phys(this_cpu_ptr(&kvm_apic_eoi))
-			| KVM_MSR_ENABLED;
+			 | KVM_MSR_ENABLED;
 		wrmsrl(MSR_KVM_PV_EOI_EN, pa);
 	}
 
 	if (has_steal_clock)
+	{
 		kvm_register_steal_time();
+	}
 }
 
 static void kvm_pv_disable_apf(void)
 {
 	if (!__this_cpu_read(apf_reason.enabled))
+	{
 		return;
+	}
 
 	wrmsrl(MSR_KVM_ASYNC_PF_EN, 0);
 	__this_cpu_write(apf_reason.enabled, 0);
 
 	printk(KERN_INFO"Unregister pv shared memory for cpu %d\n",
-	       smp_processor_id());
+		   smp_processor_id());
 }
 
 static void kvm_pv_guest_cpu_reboot(void *unused)
@@ -373,20 +432,27 @@ static void kvm_pv_guest_cpu_reboot(void *unused)
 	 * New kernel can re-enable when it boots.
 	 */
 	if (kvm_para_has_feature(KVM_FEATURE_PV_EOI))
+	{
 		wrmsrl(MSR_KVM_PV_EOI_EN, 0);
+	}
+
 	kvm_pv_disable_apf();
 	kvm_disable_steal_time();
 }
 
 static int kvm_pv_reboot_notify(struct notifier_block *nb,
-				unsigned long code, void *unused)
+								unsigned long code, void *unused)
 {
 	if (code == SYS_RESTART)
+	{
 		on_each_cpu(kvm_pv_guest_cpu_reboot, NULL, 1);
+	}
+
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block kvm_pv_reboot_nb = {
+static struct notifier_block kvm_pv_reboot_nb =
+{
 	.notifier_call = kvm_pv_reboot_notify,
 };
 
@@ -397,12 +463,15 @@ static u64 kvm_steal_clock(int cpu)
 	int version;
 
 	src = &per_cpu(steal_time, cpu);
-	do {
+
+	do
+	{
 		version = src->version;
 		rmb();
 		steal = src->steal;
 		rmb();
-	} while ((version & 1) || (version != src->version));
+	}
+	while ((version & 1) || (version != src->version));
 
 	return steal;
 }
@@ -410,7 +479,9 @@ static u64 kvm_steal_clock(int cpu)
 void kvm_disable_steal_time(void)
 {
 	if (!has_steal_clock)
+	{
 		return;
+	}
 
 	wrmsr(MSR_KVM_STEAL_TIME, 0, 0);
 }
@@ -426,8 +497,12 @@ static void __init kvm_smp_prepare_boot_cpu(void)
 static void kvm_guest_cpu_offline(void)
 {
 	kvm_disable_steal_time();
+
 	if (kvm_para_has_feature(KVM_FEATURE_PV_EOI))
+	{
 		wrmsrl(MSR_KVM_PV_EOI_EN, 0);
+	}
+
 	kvm_pv_disable_apf();
 	apf_task_wake_all();
 }
@@ -459,31 +534,48 @@ void __init kvm_guest_init(void)
 	int i;
 
 	if (!kvm_para_available())
+	{
 		return;
+	}
 
 	paravirt_ops_setup();
 	register_reboot_notifier(&kvm_pv_reboot_nb);
-	for (i = 0; i < KVM_TASK_SLEEP_HASHSIZE; i++)
-		raw_spin_lock_init(&async_pf_sleepers[i].lock);
-	if (kvm_para_has_feature(KVM_FEATURE_ASYNC_PF))
-		x86_init.irqs.trap_init = kvm_apf_trap_init;
 
-	if (kvm_para_has_feature(KVM_FEATURE_STEAL_TIME)) {
+	for (i = 0; i < KVM_TASK_SLEEP_HASHSIZE; i++)
+	{
+		raw_spin_lock_init(&async_pf_sleepers[i].lock);
+	}
+
+	if (kvm_para_has_feature(KVM_FEATURE_ASYNC_PF))
+	{
+		x86_init.irqs.trap_init = kvm_apf_trap_init;
+	}
+
+	if (kvm_para_has_feature(KVM_FEATURE_STEAL_TIME))
+	{
 		has_steal_clock = 1;
 		pv_time_ops.steal_clock = kvm_steal_clock;
 	}
 
 	if (kvm_para_has_feature(KVM_FEATURE_PV_EOI))
+	{
 		apic_set_eoi_write(kvm_guest_apic_eoi_write);
+	}
 
 	if (kvmclock_vsyscall)
+	{
 		kvm_setup_vsyscall_timeinfo();
+	}
 
 #ifdef CONFIG_SMP
 	smp_ops.smp_prepare_boot_cpu = kvm_smp_prepare_boot_cpu;
+
 	if (cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN, "x86/kvm:online",
-				      kvm_cpu_online, kvm_cpu_down_prepare) < 0)
+								  kvm_cpu_online, kvm_cpu_down_prepare) < 0)
+	{
 		pr_err("kvm_guest: Failed to install cpu hotplug callbacks\n");
+	}
+
 #else
 	kvm_guest_cpu_init();
 #endif
@@ -499,10 +591,14 @@ void __init kvm_guest_init(void)
 static noinline uint32_t __kvm_cpuid_base(void)
 {
 	if (boot_cpu_data.cpuid_level < 0)
-		return 0;	/* So we don't blow up on old processors */
+	{
+		return 0;    /* So we don't blow up on old processors */
+	}
 
 	if (boot_cpu_has(X86_FEATURE_HYPERVISOR))
+	{
 		return hypervisor_cpuid_base("KVMKVMKVM\0\0\0", 0);
+	}
 
 	return 0;
 }
@@ -512,7 +608,9 @@ static inline uint32_t kvm_cpuid_base(void)
 	static int kvm_cpuid_base = -1;
 
 	if (kvm_cpuid_base == -1)
+	{
 		kvm_cpuid_base = __kvm_cpuid_base();
+	}
 
 	return kvm_cpuid_base;
 }
@@ -533,7 +631,8 @@ static uint32_t __init kvm_detect(void)
 	return kvm_cpuid_base();
 }
 
-const struct hypervisor_x86 x86_hyper_kvm __refconst = {
+const struct hypervisor_x86 x86_hyper_kvm __refconst =
+{
 	.name			= "KVM",
 	.detect			= kvm_detect,
 	.x2apic_available	= kvm_para_available,
@@ -542,10 +641,14 @@ EXPORT_SYMBOL_GPL(x86_hyper_kvm);
 
 static __init int activate_jump_labels(void)
 {
-	if (has_steal_clock) {
+	if (has_steal_clock)
+	{
 		static_key_slow_inc(&paravirt_steal_enabled);
+
 		if (steal_acc)
+		{
 			static_key_slow_inc(&paravirt_steal_rq_enabled);
+		}
 	}
 
 	return 0;
@@ -571,12 +674,16 @@ static void kvm_wait(u8 *ptr, u8 val)
 	unsigned long flags;
 
 	if (in_nmi())
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
 	if (READ_ONCE(*ptr) != val)
+	{
 		goto out;
+	}
 
 	/*
 	 * halt until it's our turn and kicked. Note that we do safe halt
@@ -584,9 +691,13 @@ static void kvm_wait(u8 *ptr, u8 val)
 	 * in irq spinlock slowpath and no spurious interrupt occur to save us.
 	 */
 	if (arch_irqs_disabled_flags(flags))
+	{
 		halt();
+	}
 	else
+	{
 		safe_halt();
+	}
 
 out:
 	local_irq_restore(flags);
@@ -598,10 +709,15 @@ out:
 void __init kvm_spinlock_init(void)
 {
 	if (!kvm_para_available())
+	{
 		return;
+	}
+
 	/* Does host kernel support KVM_FEATURE_PV_UNHALT? */
 	if (!kvm_para_has_feature(KVM_FEATURE_PV_UNHALT))
+	{
 		return;
+	}
 
 	__pv_init_lock_hash();
 	pv_lock_ops.queued_spin_lock_slowpath = __pv_queued_spin_lock_slowpath;
@@ -613,9 +729,14 @@ void __init kvm_spinlock_init(void)
 static __init int kvm_spinlock_init_jump(void)
 {
 	if (!kvm_para_available())
+	{
 		return 0;
+	}
+
 	if (!kvm_para_has_feature(KVM_FEATURE_PV_UNHALT))
+	{
 		return 0;
+	}
 
 	static_key_slow_inc(&paravirt_ticketlocks_enabled);
 	printk(KERN_INFO "KVM setup paravirtual spinlock\n");

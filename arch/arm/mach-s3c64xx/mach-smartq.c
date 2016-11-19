@@ -50,7 +50,8 @@
 #define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE)
 #define UFCON (S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE)
 
-static struct s3c2410_uartcfg smartq_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg smartq_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -78,7 +79,8 @@ static void smartq_usb_host_powercontrol(int port, int to)
 {
 	pr_debug("%s(%d, %d)\n", __func__, port, to);
 
-	if (port == 0) {
+	if (port == 0)
+	{
 		gpio_set_value(S3C64XX_GPL(0), to);
 		gpio_set_value(S3C64XX_GPL(1), to);
 	}
@@ -88,10 +90,13 @@ static irqreturn_t smartq_usb_host_ocirq(int irq, void *pw)
 {
 	struct s3c2410_hcd_info *info = pw;
 
-	if (gpio_get_value(S3C64XX_GPL(10)) == 0) {
+	if (gpio_get_value(S3C64XX_GPL(10)) == 0)
+	{
 		pr_debug("%s: over-current irq (oc detected)\n", __func__);
 		s3c2410_usb_report_oc(info, 3);
-	} else {
+	}
+	else
+	{
 		pr_debug("%s: over-current irq (oc cleared)\n", __func__);
 		s3c2410_usb_report_oc(info, 0);
 	}
@@ -105,21 +110,30 @@ static void smartq_usb_host_enableoc(struct s3c2410_hcd_info *info, int on)
 
 	/* This isn't present on a SmartQ 5 board */
 	if (machine_is_smartq5())
+	{
 		return;
+	}
 
-	if (on) {
+	if (on)
+	{
 		ret = request_irq(gpio_to_irq(S3C64XX_GPL(10)),
-				  smartq_usb_host_ocirq,
-				  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-				  "USB host overcurrent", info);
+						  smartq_usb_host_ocirq,
+						  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+						  "USB host overcurrent", info);
+
 		if (ret != 0)
+		{
 			pr_err("failed to request usb oc irq: %d\n", ret);
-	} else {
+		}
+	}
+	else
+	{
 		free_irq(gpio_to_irq(S3C64XX_GPL(10)), info);
 	}
 }
 
-static struct s3c2410_hcd_info smartq_usb_host_info = {
+static struct s3c2410_hcd_info smartq_usb_host_info =
+{
 	.port[0]	= {
 		.flags	= S3C_HCDFLG_USED
 	},
@@ -131,37 +145,42 @@ static struct s3c2410_hcd_info smartq_usb_host_info = {
 	.enable_oc	= smartq_usb_host_enableoc,
 };
 
-static struct gpio_vbus_mach_info smartq_usb_otg_vbus_pdata = {
+static struct gpio_vbus_mach_info smartq_usb_otg_vbus_pdata =
+{
 	.gpio_vbus		= S3C64XX_GPL(9),
 	.gpio_pullup		= -1,
 	.gpio_vbus_inverted	= true,
 };
 
-static struct platform_device smartq_usb_otg_vbus_dev = {
+static struct platform_device smartq_usb_otg_vbus_dev =
+{
 	.name			= "gpio-vbus",
 	.dev.platform_data	= &smartq_usb_otg_vbus_pdata,
 };
 
-static struct pwm_lookup smartq_pwm_lookup[] = {
+static struct pwm_lookup smartq_pwm_lookup[] =
+{
 	PWM_LOOKUP("samsung-pwm", 1, "pwm-backlight.0", NULL,
-		   1000000000 / (1000 * 20), PWM_POLARITY_NORMAL),
+	1000000000 / (1000 * 20), PWM_POLARITY_NORMAL),
 };
 
 static int smartq_bl_init(struct device *dev)
 {
-    s3c_gpio_cfgpin(S3C64XX_GPF(15), S3C_GPIO_SFN(2));
+	s3c_gpio_cfgpin(S3C64XX_GPF(15), S3C_GPIO_SFN(2));
 
-    return 0;
+	return 0;
 }
 
-static struct platform_pwm_backlight_data smartq_backlight_data = {
+static struct platform_pwm_backlight_data smartq_backlight_data =
+{
 	.max_brightness	= 1000,
 	.dft_brightness	= 600,
 	.enable_gpio	= -1,
 	.init		= smartq_bl_init,
 };
 
-static struct platform_device smartq_backlight_device = {
+static struct platform_device smartq_backlight_device =
+{
 	.name		= "pwm-backlight",
 	.dev		= {
 		.parent	= &samsung_device_pwm.dev,
@@ -169,26 +188,31 @@ static struct platform_device smartq_backlight_device = {
 	},
 };
 
-static struct s3c2410_ts_mach_info smartq_touchscreen_pdata __initdata = {
+static struct s3c2410_ts_mach_info smartq_touchscreen_pdata __initdata =
+{
 	.delay			= 65535,
 	.presc			= 99,
 	.oversampling_shift	= 4,
 };
 
-static struct s3c_sdhci_platdata smartq_internal_hsmmc_pdata = {
+static struct s3c_sdhci_platdata smartq_internal_hsmmc_pdata =
+{
 	.max_width		= 4,
 	.cd_type		= S3C_SDHCI_CD_PERMANENT,
 };
 
-static struct s3c_hwmon_pdata smartq_hwmon_pdata __initdata = {
+static struct s3c_hwmon_pdata smartq_hwmon_pdata __initdata =
+{
 	/* Battery voltage (?-4.2V) */
-	.in[0] = &(struct s3c_hwmon_chcfg) {
+	.in[0] = &(struct s3c_hwmon_chcfg)
+	{
 		.name		= "smartq:battery-voltage",
 		.mult		= 3300,
 		.div		= 2048,
 	},
 	/* Reference voltage (1.2V) */
-	.in[1] = &(struct s3c_hwmon_chcfg) {
+	.in[1] = &(struct s3c_hwmon_chcfg)
+	{
 		.name		= "smartq:reference-voltage",
 		.mult		= 3300,
 		.div		= 4096,
@@ -202,8 +226,11 @@ static int __init smartq_lcd_setup_gpio(void)
 	int ret;
 
 	ret = gpio_request(S3C64XX_GPM(3), "LCD power");
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* turn power off */
 	gpio_direction_output(S3C64XX_GPM(3), 0);
@@ -212,13 +239,15 @@ static int __init smartq_lcd_setup_gpio(void)
 }
 
 /* GPM0 -> CS */
-static struct spi_gpio_platform_data smartq_lcd_control = {
+static struct spi_gpio_platform_data smartq_lcd_control =
+{
 	.sck			= S3C64XX_GPM(1),
 	.mosi			= S3C64XX_GPM(2),
 	.miso			= S3C64XX_GPM(2),
 };
 
-static struct platform_device smartq_lcd_control_device = {
+static struct platform_device smartq_lcd_control_device =
+{
 	.name			= "spi-gpio",
 	.id			= 1,
 	.dev.platform_data	= &smartq_lcd_control,
@@ -229,21 +258,25 @@ static void smartq_lcd_power_set(struct plat_lcd_data *pd, unsigned int power)
 	gpio_direction_output(S3C64XX_GPM(3), power);
 }
 
-static struct plat_lcd_data smartq_lcd_power_data = {
+static struct plat_lcd_data smartq_lcd_power_data =
+{
 	.set_power	= smartq_lcd_power_set,
 };
 
-static struct platform_device smartq_lcd_power_device = {
+static struct platform_device smartq_lcd_power_device =
+{
 	.name			= "platform-lcd",
 	.dev.parent		= &s3c_device_fb.dev,
 	.dev.platform_data	= &smartq_lcd_power_data,
 };
 
-static struct i2c_board_info smartq_i2c_devs[] __initdata = {
+static struct i2c_board_info smartq_i2c_devs[] __initdata =
+{
 	{ I2C_BOARD_INFO("wm8987", 0x1a), },
 };
 
-static struct platform_device *smartq_devices[] __initdata = {
+static struct platform_device *smartq_devices[] __initdata =
+{
 	&s3c_device_hsmmc1,	/* Init iNAND first, ... */
 	&s3c_device_hsmmc0,	/* ... then the external SD card */
 	&s3c_device_hsmmc2,
@@ -288,7 +321,9 @@ static int __init smartq_power_off_init(void)
 	int ret;
 
 	ret = gpio_request(S3C64XX_GPK(15), "Power control");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: failed to get GPK15\n", __func__);
 		return ret;
 	}
@@ -306,21 +341,28 @@ static int __init smartq_usb_host_init(void)
 	int ret;
 
 	ret = gpio_request(S3C64XX_GPL(0), "USB power control");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: failed to get GPL0\n", __func__);
 		return ret;
 	}
 
 	ret = gpio_request(S3C64XX_GPL(1), "USB host power control");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: failed to get GPL1\n", __func__);
 		goto err;
 	}
 
-	if (!machine_is_smartq5()) {
+	if (!machine_is_smartq5())
+	{
 		/* This isn't present on a SmartQ 5 board */
 		ret = gpio_request(S3C64XX_GPL(10), "USB host overcurrent");
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_err("%s: failed to get GPL10\n", __func__);
 			goto err2;
 		}
@@ -329,8 +371,11 @@ static int __init smartq_usb_host_init(void)
 	/* turn power off */
 	gpio_direction_output(S3C64XX_GPL(0), 0);
 	gpio_direction_output(S3C64XX_GPL(1), 0);
+
 	if (!machine_is_smartq5())
+	{
 		gpio_direction_input(S3C64XX_GPL(10));
+	}
 
 	s3c_device_ohci.dev.platform_data = &smartq_usb_host_info;
 
@@ -348,13 +393,17 @@ static int __init smartq_wifi_init(void)
 	int ret;
 
 	ret = gpio_request(S3C64XX_GPK(1), "wifi control");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: failed to get GPK1\n", __func__);
 		return ret;
 	}
 
 	ret = gpio_request(S3C64XX_GPK(2), "wifi reset");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: failed to get GPK2\n", __func__);
 		gpio_free(S3C64XX_GPK(1));
 		return ret;
@@ -384,7 +433,8 @@ void __init smartq_map_io(void)
 	smartq_lcd_mode_set();
 }
 
-static struct gpiod_lookup_table smartq_audio_gpios = {
+static struct gpiod_lookup_table smartq_audio_gpios =
+{
 	.dev_id = "smartq-audio",
 	.table = {
 		GPIO_LOOKUP("GPL", 12, "headphone detect", 0),
@@ -403,7 +453,7 @@ void __init smartq_machine_init(void)
 	s3c64xx_ts_set_platdata(&smartq_touchscreen_pdata);
 
 	i2c_register_board_info(0, smartq_i2c_devs,
-				ARRAY_SIZE(smartq_i2c_devs));
+							ARRAY_SIZE(smartq_i2c_devs));
 
 	WARN_ON(smartq_lcd_setup_gpio());
 	WARN_ON(smartq_power_off_init());

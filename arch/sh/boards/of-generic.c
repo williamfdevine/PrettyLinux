@@ -39,7 +39,8 @@ static void dummy_send_ipi(unsigned int cpu, unsigned int message)
 {
 }
 
-static struct plat_smp_ops dummy_smp_ops = {
+static struct plat_smp_ops dummy_smp_ops =
+{
 	.smp_setup		= dummy_smp_setup,
 	.prepare_cpus		= dummy_prepare_cpus,
 	.start_cpu		= dummy_start_cpu,
@@ -52,7 +53,7 @@ static struct plat_smp_ops dummy_smp_ops = {
 
 extern const struct of_cpu_method __cpu_method_of_table[];
 const struct of_cpu_method __cpu_method_of_table_sentinel
-	__section(__cpu_method_of_table_end);
+__section(__cpu_method_of_table_end);
 
 static void sh_of_smp_probe(void)
 {
@@ -64,28 +65,39 @@ static void sh_of_smp_probe(void)
 
 	init_cpu_possible(cpumask_of(0));
 
-	while ((np = of_find_node_by_type(np, "cpu"))) {
+	while ((np = of_find_node_by_type(np, "cpu")))
+	{
 		const __be32 *cell = of_get_property(np, "reg", NULL);
 		u64 id = -1;
-		if (cell) id = of_read_number(cell, of_n_addr_cells(np));
-		if (id < NR_CPUS) {
+
+		if (cell) { id = of_read_number(cell, of_n_addr_cells(np)); }
+
+		if (id < NR_CPUS)
+		{
 			if (!method)
+			{
 				of_property_read_string(np, "enable-method", &method);
+			}
+
 			set_cpu_possible(id, true);
 			set_cpu_present(id, true);
 			__cpu_number_map[id] = id;
 			__cpu_logical_map[id] = id;
 		}
 	}
-	if (!method) {
+
+	if (!method)
+	{
 		np = of_find_node_by_name(NULL, "cpus");
 		of_property_read_string(np, "enable-method", &method);
 	}
 
 	pr_info("CPU enable method: %s\n", method);
+
 	if (method)
 		for (; m->method; m++)
-			if (!strcmp(m->method, method)) {
+			if (!strcmp(m->method, method))
+			{
 				register_smp_ops(m->ops);
 				return;
 			}
@@ -136,7 +148,9 @@ static void __init sh_of_setup(char **cmdline_p)
 
 	sh_mv.mv_name = "Unknown SH model";
 	root = of_find_node_by_path("/");
-	if (root) {
+
+	if (root)
+	{
 		of_property_read_string(root, "model", &sh_mv.mv_name);
 		of_node_put(root);
 	}
@@ -167,7 +181,8 @@ static int __init sh_of_clk_init(void)
 	return 0;
 }
 
-static struct sh_machine_vector __initmv sh_of_generic_mv = {
+static struct sh_machine_vector __initmv sh_of_generic_mv =
+{
 	.mv_setup	= sh_of_setup,
 	.mv_name	= "devicetree", /* replaced by DT root's model */
 	.mv_irq_demux	= sh_of_irq_demux,

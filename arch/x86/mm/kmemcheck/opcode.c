@@ -42,36 +42,46 @@ void kmemcheck_opcode_decode(const uint8_t *op, unsigned int *size)
 	int operand_size_override = 4;
 
 	/* prefixes */
-	for (; opcode_is_prefix(*op); ++op) {
+	for (; opcode_is_prefix(*op); ++op)
+	{
 		if (*op == 0x66)
+		{
 			operand_size_override = 2;
+		}
 	}
 
 	/* REX prefix */
-	if (opcode_is_rex_prefix(*op)) {
+	if (opcode_is_rex_prefix(*op))
+	{
 		uint8_t rex = *op;
 
 		++op;
-		if (rex & REX_W) {
-			switch (*op) {
-			case 0x63:
-				*size = 4;
-				return;
-			case 0x0f:
-				++op;
 
-				switch (*op) {
-				case 0xb6:
-				case 0xbe:
-					*size = 1;
+		if (rex & REX_W)
+		{
+			switch (*op)
+			{
+				case 0x63:
+					*size = 4;
 					return;
-				case 0xb7:
-				case 0xbf:
-					*size = 2;
-					return;
-				}
 
-				break;
+				case 0x0f:
+					++op;
+
+					switch (*op)
+					{
+						case 0xb6:
+						case 0xbe:
+							*size = 1;
+							return;
+
+						case 0xb7:
+						case 0xbf:
+							*size = 2;
+							return;
+					}
+
+					break;
 			}
 
 			*size = 8;
@@ -80,7 +90,8 @@ void kmemcheck_opcode_decode(const uint8_t *op, unsigned int *size)
 	}
 
 	/* escape opcode */
-	if (*op == 0x0f) {
+	if (*op == 0x0f)
+	{
 		++op;
 
 		/*
@@ -89,7 +100,9 @@ void kmemcheck_opcode_decode(const uint8_t *op, unsigned int *size)
 		 * already handled in the conditional below.
 		 */
 		if (*op == 0xb7 || *op == 0xbf)
+		{
 			operand_size_override = 2;
+		}
 	}
 
 	*size = (*op & 1) ? operand_size_override : 1;
@@ -99,8 +112,14 @@ const uint8_t *kmemcheck_opcode_get_primary(const uint8_t *op)
 {
 	/* skip prefixes */
 	while (opcode_is_prefix(*op))
+	{
 		++op;
+	}
+
 	if (opcode_is_rex_prefix(*op))
+	{
 		++op;
+	}
+
 	return op;
 }

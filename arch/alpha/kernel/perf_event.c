@@ -30,7 +30,8 @@
 #define PMC_NO_INDEX -1
 
 /* For tracking PMCs and the hw events they monitor on each CPU. */
-struct cpu_hw_events {
+struct cpu_hw_events
+{
 	int			enabled;
 	/* Number of events scheduled; also number entries valid in arrays below. */
 	int			n_events;
@@ -57,7 +58,8 @@ DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events);
  * A structure to hold the description of the PMCs available on a particular
  * type of Alpha CPU.
  */
-struct alpha_pmu_t {
+struct alpha_pmu_t
+{
 	/* Mapping of the perf system hw event types to indigenous event types */
 	const int *event_map;
 	/* The number of entries in the event_map */
@@ -81,7 +83,7 @@ struct alpha_pmu_t {
 	 * hardware restrictions is pmc_max_period - pmc_left.
 	 */
 	long pmc_left[3];
-	 /* Subroutine for allocation of PMCs.  Enforces constraints. */
+	/* Subroutine for allocation of PMCs.  Enforces constraints. */
 	int (*check_constraints)(struct perf_event **, unsigned long *, int);
 	/* Subroutine for checking validity of a raw event for this PMU. */
 	int (*raw_event_valid)(u64 config);
@@ -109,7 +111,8 @@ static const struct alpha_pmu_t *alpha_pmu;
  * actual codes that are used to program the PMCs hence we introduce our
  * own hw event type identifiers.
  */
-enum ev67_pmc_event_type {
+enum ev67_pmc_event_type
+{
 	EV67_CYCLES = 1,
 	EV67_INSTRUCTIONS,
 	EV67_BCACHEMISS,
@@ -120,14 +123,16 @@ enum ev67_pmc_event_type {
 
 
 /* Mapping of the hw event types to the perf tool interface */
-static const int ev67_perfmon_event_map[] = {
+static const int ev67_perfmon_event_map[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES]	 = EV67_CYCLES,
 	[PERF_COUNT_HW_INSTRUCTIONS]	 = EV67_INSTRUCTIONS,
 	[PERF_COUNT_HW_CACHE_REFERENCES] = HW_OP_UNSUPPORTED,
 	[PERF_COUNT_HW_CACHE_MISSES]	 = EV67_BCACHEMISS,
 };
 
-struct ev67_mapping_t {
+struct ev67_mapping_t
+{
 	int config;
 	int idx;
 };
@@ -136,7 +141,8 @@ struct ev67_mapping_t {
  * The mapping used for one event only - these must be in same order as enum
  * ev67_pmc_event_type definition.
  */
-static const struct ev67_mapping_t ev67_mapping[] = {
+static const struct ev67_mapping_t ev67_mapping[] =
+{
 	{EV67_PCTR_INSTR_CYCLES, 1},	 /* EV67_CYCLES, */
 	{EV67_PCTR_INSTR_CYCLES, 0},	 /* EV67_INSTRUCTIONS */
 	{EV67_PCTR_INSTR_BCACHEMISS, 1}, /* EV67_BCACHEMISS */
@@ -149,43 +155,55 @@ static const struct ev67_mapping_t ev67_mapping[] = {
  * EV67 PMU.  Also allocate counter indices and config.
  */
 static int ev67_check_constraints(struct perf_event **event,
-				unsigned long *evtype, int n_ev)
+								  unsigned long *evtype, int n_ev)
 {
 	int idx0;
 	unsigned long config;
 
-	idx0 = ev67_mapping[evtype[0]-1].idx;
-	config = ev67_mapping[evtype[0]-1].config;
+	idx0 = ev67_mapping[evtype[0] - 1].idx;
+	config = ev67_mapping[evtype[0] - 1].config;
+
 	if (n_ev == 1)
+	{
 		goto success;
+	}
 
 	BUG_ON(n_ev != 2);
 
-	if (evtype[0] == EV67_MBOXREPLAY || evtype[1] == EV67_MBOXREPLAY) {
+	if (evtype[0] == EV67_MBOXREPLAY || evtype[1] == EV67_MBOXREPLAY)
+	{
 		/* MBOX replay traps must be on PMC 1 */
 		idx0 = (evtype[0] == EV67_MBOXREPLAY) ? 1 : 0;
+
 		/* Only cycles can accompany MBOX replay traps */
-		if (evtype[idx0] == EV67_CYCLES) {
+		if (evtype[idx0] == EV67_CYCLES)
+		{
 			config = EV67_PCTR_CYCLES_MBOX;
 			goto success;
 		}
 	}
 
-	if (evtype[0] == EV67_BCACHEMISS || evtype[1] == EV67_BCACHEMISS) {
+	if (evtype[0] == EV67_BCACHEMISS || evtype[1] == EV67_BCACHEMISS)
+	{
 		/* Bcache misses must be on PMC 1 */
 		idx0 = (evtype[0] == EV67_BCACHEMISS) ? 1 : 0;
+
 		/* Only instructions can accompany Bcache misses */
-		if (evtype[idx0] == EV67_INSTRUCTIONS) {
+		if (evtype[idx0] == EV67_INSTRUCTIONS)
+		{
 			config = EV67_PCTR_INSTR_BCACHEMISS;
 			goto success;
 		}
 	}
 
-	if (evtype[0] == EV67_INSTRUCTIONS || evtype[1] == EV67_INSTRUCTIONS) {
+	if (evtype[0] == EV67_INSTRUCTIONS || evtype[1] == EV67_INSTRUCTIONS)
+	{
 		/* Instructions must be on PMC 0 */
 		idx0 = (evtype[0] == EV67_INSTRUCTIONS) ? 0 : 1;
+
 		/* By this point only cycles can accompany instructions */
-		if (evtype[idx0^1] == EV67_CYCLES) {
+		if (evtype[idx0 ^ 1] == EV67_CYCLES)
+		{
 			config = EV67_PCTR_INSTR_CYCLES;
 			goto success;
 		}
@@ -197,10 +215,13 @@ static int ev67_check_constraints(struct perf_event **event,
 success:
 	event[0]->hw.idx = idx0;
 	event[0]->hw.config_base = config;
-	if (n_ev == 2) {
+
+	if (n_ev == 2)
+	{
 		event[1]->hw.idx = idx0 ^ 1;
 		event[1]->hw.config_base = config;
 	}
+
 	return 0;
 }
 
@@ -211,13 +232,14 @@ static int ev67_raw_event_valid(u64 config)
 };
 
 
-static const struct alpha_pmu_t ev67_pmu = {
+static const struct alpha_pmu_t ev67_pmu =
+{
 	.event_map = ev67_perfmon_event_map,
 	.max_events = ARRAY_SIZE(ev67_perfmon_event_map),
 	.num_pmcs = 2,
 	.pmc_count_shift = {EV67_PCTR_0_COUNT_SHIFT, EV67_PCTR_1_COUNT_SHIFT, 0},
 	.pmc_count_mask = {EV67_PCTR_0_COUNT_MASK,  EV67_PCTR_1_COUNT_MASK,  0},
-	.pmc_max_period = {(1UL<<20) - 1, (1UL<<20) - 1, 0},
+	.pmc_max_period = {(1UL << 20) - 1, (1UL << 20) - 1, 0},
 	.pmc_left = {16, 4, 0},
 	.check_constraints = ev67_check_constraints,
 	.raw_event_valid = ev67_raw_event_valid,
@@ -233,7 +255,7 @@ static inline void alpha_write_pmc(int idx, unsigned long val)
 {
 	val &= alpha_pmu->pmc_count_mask[idx];
 	val <<= alpha_pmu->pmc_count_shift[idx];
-	val |= (1<<idx);
+	val |= (1 << idx);
 	wrperfmon(PERFMON_CMD_WRITE, val);
 }
 
@@ -249,20 +271,22 @@ static inline unsigned long alpha_read_pmc(int idx)
 
 /* Set a new period to sample over */
 static int alpha_perf_event_set_period(struct perf_event *event,
-				struct hw_perf_event *hwc, int idx)
+									   struct hw_perf_event *hwc, int idx)
 {
 	long left = local64_read(&hwc->period_left);
 	long period = hwc->sample_period;
 	int ret = 0;
 
-	if (unlikely(left <= -period)) {
+	if (unlikely(left <= -period))
+	{
 		left = period;
 		local64_set(&hwc->period_left, left);
 		hwc->last_period = period;
 		ret = 1;
 	}
 
-	if (unlikely(left <= 0)) {
+	if (unlikely(left <= 0))
+	{
 		left += period;
 		local64_set(&hwc->period_left, left);
 		hwc->last_period = period;
@@ -274,10 +298,14 @@ static int alpha_perf_event_set_period(struct perf_event *event,
 	 * written with values that are too close to the maximum period.
 	 */
 	if (unlikely(left < alpha_pmu->pmc_left[idx]))
+	{
 		left = alpha_pmu->pmc_left[idx];
+	}
 
 	if (left > (long)alpha_pmu->pmc_max_period[idx])
+	{
 		left = alpha_pmu->pmc_max_period[idx];
+	}
 
 	local64_set(&hwc->prev_count, (unsigned long)(-left));
 
@@ -304,7 +332,7 @@ static int alpha_perf_event_set_period(struct perf_event *event,
  * The check for delta negative hopefully always rectifies this situation.
  */
 static unsigned long alpha_perf_event_update(struct perf_event *event,
-					struct hw_perf_event *hwc, int idx, long ovf)
+		struct hw_perf_event *hwc, int idx, long ovf)
 {
 	long prev_raw_count, new_raw_count;
 	long delta;
@@ -314,15 +342,18 @@ again:
 	new_raw_count = alpha_read_pmc(idx);
 
 	if (local64_cmpxchg(&hwc->prev_count, prev_raw_count,
-			     new_raw_count) != prev_raw_count)
+						new_raw_count) != prev_raw_count)
+	{
 		goto again;
+	}
 
 	delta = (new_raw_count - (prev_raw_count & alpha_pmu->pmc_count_mask[idx])) + ovf;
 
 	/* It is possible on very rare occasions that the PMC has overflowed
 	 * but the interrupt is yet to come.  Detect and fix this situation.
 	 */
-	if (unlikely(delta < 0)) {
+	if (unlikely(delta < 0))
+	{
 		delta += alpha_pmu->pmc_max_period[idx] + 1;
 	}
 
@@ -337,23 +368,33 @@ again:
  * Collect all HW events into the array event[].
  */
 static int collect_events(struct perf_event *group, int max_count,
-			  struct perf_event *event[], unsigned long *evtype,
-			  int *current_idx)
+						  struct perf_event *event[], unsigned long *evtype,
+						  int *current_idx)
 {
 	struct perf_event *pe;
 	int n = 0;
 
-	if (!is_software_event(group)) {
+	if (!is_software_event(group))
+	{
 		if (n >= max_count)
+		{
 			return -1;
+		}
+
 		event[n] = group;
 		evtype[n] = group->hw.event_base;
 		current_idx[n++] = PMC_NO_INDEX;
 	}
-	list_for_each_entry(pe, &group->sibling_list, group_entry) {
-		if (!is_software_event(pe) && pe->state != PERF_EVENT_STATE_OFF) {
+
+	list_for_each_entry(pe, &group->sibling_list, group_entry)
+	{
+		if (!is_software_event(pe) && pe->state != PERF_EVENT_STATE_OFF)
+		{
 			if (n >= max_count)
+			{
 				return -1;
+			}
+
 			event[n] = pe;
 			evtype[n] = pe->hw.event_base;
 			current_idx[n++] = PMC_NO_INDEX;
@@ -368,15 +409,19 @@ static int collect_events(struct perf_event *group, int max_count,
  * Check that a group of events can be simultaneously scheduled on to the PMU.
  */
 static int alpha_check_constraints(struct perf_event **events,
-				   unsigned long *evtypes, int n_ev)
+								   unsigned long *evtypes, int n_ev)
 {
 
 	/* No HW events is possible from hw_perf_group_sched_in(). */
 	if (n_ev == 0)
+	{
 		return 0;
+	}
 
 	if (n_ev > alpha_pmu->num_pmcs)
+	{
 		return -1;
+	}
 
 	return alpha_pmu->check_constraints(events, evtypes, n_ev);
 }
@@ -392,14 +437,18 @@ static void maybe_change_configuration(struct cpu_hw_events *cpuc)
 	int j;
 
 	if (cpuc->n_added == 0)
+	{
 		return;
+	}
 
 	/* Find counters that are moving to another PMC and update */
-	for (j = 0; j < cpuc->n_events; j++) {
+	for (j = 0; j < cpuc->n_events; j++)
+	{
 		struct perf_event *pe = cpuc->event[j];
 
 		if (cpuc->current_idx[j] != PMC_NO_INDEX &&
-			cpuc->current_idx[j] != pe->hw.idx) {
+			cpuc->current_idx[j] != pe->hw.idx)
+		{
 			alpha_perf_event_update(pe, &pe->hw, cpuc->current_idx[j], 0);
 			cpuc->current_idx[j] = PMC_NO_INDEX;
 		}
@@ -407,19 +456,25 @@ static void maybe_change_configuration(struct cpu_hw_events *cpuc)
 
 	/* Assign to counters all unassigned events. */
 	cpuc->idx_mask = 0;
-	for (j = 0; j < cpuc->n_events; j++) {
+
+	for (j = 0; j < cpuc->n_events; j++)
+	{
 		struct perf_event *pe = cpuc->event[j];
 		struct hw_perf_event *hwc = &pe->hw;
 		int idx = hwc->idx;
 
-		if (cpuc->current_idx[j] == PMC_NO_INDEX) {
+		if (cpuc->current_idx[j] == PMC_NO_INDEX)
+		{
 			alpha_perf_event_set_period(pe, hwc, idx);
 			cpuc->current_idx[j] = idx;
 		}
 
 		if (!(hwc->state & PERF_HES_STOPPED))
-			cpuc->idx_mask |= (1<<cpuc->current_idx[j]);
+		{
+			cpuc->idx_mask |= (1 << cpuc->current_idx[j]);
+		}
 	}
+
 	cpuc->config = cpuc->event[0]->hw.config_base;
 }
 
@@ -453,12 +508,15 @@ static int alpha_pmu_add(struct perf_event *event, int flags)
 
 	/* Insert event on to PMU and if successful modify ret to valid return */
 	n0 = cpuc->n_events;
-	if (n0 < alpha_pmu->num_pmcs) {
+
+	if (n0 < alpha_pmu->num_pmcs)
+	{
 		cpuc->event[n0] = event;
 		cpuc->evtype[n0] = event->hw.event_base;
 		cpuc->current_idx[n0] = PMC_NO_INDEX;
 
-		if (!alpha_check_constraints(cpuc->event, cpuc->evtype, n0+1)) {
+		if (!alpha_check_constraints(cpuc->event, cpuc->evtype, n0 + 1))
+		{
 			cpuc->n_events++;
 			cpuc->n_added++;
 			ret = 0;
@@ -466,8 +524,11 @@ static int alpha_pmu_add(struct perf_event *event, int flags)
 	}
 
 	hwc->state = PERF_HES_UPTODATE;
+
 	if (!(flags & PERF_EF_START))
+	{
 		hwc->state |= PERF_HES_STOPPED;
+	}
 
 	local_irq_restore(irq_flags);
 	perf_pmu_enable(event->pmu);
@@ -491,14 +552,17 @@ static void alpha_pmu_del(struct perf_event *event, int flags)
 	perf_pmu_disable(event->pmu);
 	local_irq_save(irq_flags);
 
-	for (j = 0; j < cpuc->n_events; j++) {
-		if (event == cpuc->event[j]) {
+	for (j = 0; j < cpuc->n_events; j++)
+	{
+		if (event == cpuc->event[j])
+		{
 			int idx = cpuc->current_idx[j];
 
 			/* Shift remaining entries down into the existing
 			 * slot.
 			 */
-			while (++j < cpuc->n_events) {
+			while (++j < cpuc->n_events)
+			{
 				cpuc->event[j - 1] = cpuc->event[j];
 				cpuc->evtype[j - 1] = cpuc->evtype[j];
 				cpuc->current_idx[j - 1] =
@@ -509,7 +573,7 @@ static void alpha_pmu_del(struct perf_event *event, int flags)
 			alpha_perf_event_update(event, hwc, idx, 0);
 			perf_event_update_userpage(event);
 
-			cpuc->idx_mask &= ~(1UL<<idx);
+			cpuc->idx_mask &= ~(1UL << idx);
 			cpuc->n_events--;
 			break;
 		}
@@ -533,18 +597,22 @@ static void alpha_pmu_stop(struct perf_event *event, int flags)
 	struct hw_perf_event *hwc = &event->hw;
 	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
 
-	if (!(hwc->state & PERF_HES_STOPPED)) {
-		cpuc->idx_mask &= ~(1UL<<hwc->idx);
+	if (!(hwc->state & PERF_HES_STOPPED))
+	{
+		cpuc->idx_mask &= ~(1UL << hwc->idx);
 		hwc->state |= PERF_HES_STOPPED;
 	}
 
-	if ((flags & PERF_EF_UPDATE) && !(hwc->state & PERF_HES_UPTODATE)) {
+	if ((flags & PERF_EF_UPDATE) && !(hwc->state & PERF_HES_UPTODATE))
+	{
 		alpha_perf_event_update(event, hwc, hwc->idx, 0);
 		hwc->state |= PERF_HES_UPTODATE;
 	}
 
 	if (cpuc->enabled)
-		wrperfmon(PERFMON_CMD_DISABLE, (1UL<<hwc->idx));
+	{
+		wrperfmon(PERFMON_CMD_DISABLE, (1UL << hwc->idx));
+	}
 }
 
 
@@ -554,18 +622,24 @@ static void alpha_pmu_start(struct perf_event *event, int flags)
 	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
 
 	if (WARN_ON_ONCE(!(hwc->state & PERF_HES_STOPPED)))
+	{
 		return;
+	}
 
-	if (flags & PERF_EF_RELOAD) {
+	if (flags & PERF_EF_RELOAD)
+	{
 		WARN_ON_ONCE(!(hwc->state & PERF_HES_UPTODATE));
 		alpha_perf_event_set_period(event, hwc, hwc->idx);
 	}
 
 	hwc->state = 0;
 
-	cpuc->idx_mask |= 1UL<<hwc->idx;
+	cpuc->idx_mask |= 1UL << hwc->idx;
+
 	if (cpuc->enabled)
-		wrperfmon(PERFMON_CMD_ENABLE, (1UL<<hwc->idx));
+	{
+		wrperfmon(PERFMON_CMD_ENABLE, (1UL << hwc->idx));
+	}
 }
 
 
@@ -611,27 +685,42 @@ static int __hw_perf_event_init(struct perf_event *event)
 	/* We only support a limited range of HARDWARE event types with one
 	 * only programmable via a RAW event type.
 	 */
-	if (attr->type == PERF_TYPE_HARDWARE) {
+	if (attr->type == PERF_TYPE_HARDWARE)
+	{
 		if (attr->config >= alpha_pmu->max_events)
+		{
 			return -EINVAL;
+		}
+
 		ev = alpha_pmu->event_map[attr->config];
-	} else if (attr->type == PERF_TYPE_HW_CACHE) {
+	}
+	else if (attr->type == PERF_TYPE_HW_CACHE)
+	{
 		return -EOPNOTSUPP;
-	} else if (attr->type == PERF_TYPE_RAW) {
+	}
+	else if (attr->type == PERF_TYPE_RAW)
+	{
 		if (!alpha_pmu->raw_event_valid(attr->config))
+		{
 			return -EINVAL;
+		}
+
 		ev = attr->config;
-	} else {
+	}
+	else
+	{
 		return -EOPNOTSUPP;
 	}
 
-	if (ev < 0) {
+	if (ev < 0)
+	{
 		return ev;
 	}
 
 	/* The EV67 does not support mode exclusion */
 	if (attr->exclude_kernel || attr->exclude_user
-			|| attr->exclude_hv || attr->exclude_idle) {
+		|| attr->exclude_hv || attr->exclude_idle)
+	{
 		return -EPERM;
 	}
 
@@ -651,18 +740,26 @@ static int __hw_perf_event_init(struct perf_event *event)
 	 * be scheduled on to the PMU.
 	 */
 	n = 0;
-	if (event->group_leader != event) {
+
+	if (event->group_leader != event)
+	{
 		n = collect_events(event->group_leader,
-				alpha_pmu->num_pmcs - 1,
-				evts, evtypes, idx_rubbish_bin);
+						   alpha_pmu->num_pmcs - 1,
+						   evts, evtypes, idx_rubbish_bin);
+
 		if (n < 0)
+		{
 			return -EINVAL;
+		}
 	}
+
 	evtypes[n] = hwc->event_base;
 	evts[n] = event;
 
 	if (alpha_check_constraints(evts, evtypes, n + 1))
+	{
 		return -EINVAL;
+	}
 
 	/* Indicate that PMU config and idx are yet to be determined. */
 	hwc->config_base = 0;
@@ -680,7 +777,8 @@ static int __hw_perf_event_init(struct perf_event *event)
 	 * anything else ever going to use it?
 	 */
 
-	if (!hwc->sample_period) {
+	if (!hwc->sample_period)
+	{
 		hwc->sample_period = alpha_pmu->pmc_max_period[0];
 		hwc->last_period = hwc->sample_period;
 		local64_set(&hwc->period_left, hwc->sample_period);
@@ -698,20 +796,25 @@ static int alpha_pmu_event_init(struct perf_event *event)
 
 	/* does not support taken branch sampling */
 	if (has_branch_stack(event))
+	{
 		return -EOPNOTSUPP;
+	}
 
-	switch (event->attr.type) {
-	case PERF_TYPE_RAW:
-	case PERF_TYPE_HARDWARE:
-	case PERF_TYPE_HW_CACHE:
-		break;
+	switch (event->attr.type)
+	{
+		case PERF_TYPE_RAW:
+		case PERF_TYPE_HARDWARE:
+		case PERF_TYPE_HW_CACHE:
+			break;
 
-	default:
-		return -ENOENT;
+		default:
+			return -ENOENT;
 	}
 
 	if (!alpha_pmu)
+	{
 		return -ENODEV;
+	}
 
 	/* Do the real initialisation work. */
 	err = __hw_perf_event_init(event);
@@ -727,12 +830,15 @@ static void alpha_pmu_enable(struct pmu *pmu)
 	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
 
 	if (cpuc->enabled)
+	{
 		return;
+	}
 
 	cpuc->enabled = 1;
 	barrier();
 
-	if (cpuc->n_events > 0) {
+	if (cpuc->n_events > 0)
+	{
 		/* Update cpuc with information from any new scheduled events. */
 		maybe_change_configuration(cpuc);
 
@@ -753,7 +859,9 @@ static void alpha_pmu_disable(struct pmu *pmu)
 	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
 
 	if (!cpuc->enabled)
+	{
 		return;
+	}
 
 	cpuc->enabled = 0;
 	cpuc->n_added = 0;
@@ -761,7 +869,8 @@ static void alpha_pmu_disable(struct pmu *pmu)
 	wrperfmon(PERFMON_CMD_DISABLE, cpuc->idx_mask);
 }
 
-static struct pmu pmu = {
+static struct pmu pmu =
+{
 	.pmu_enable	= alpha_pmu_enable,
 	.pmu_disable	= alpha_pmu_disable,
 	.event_init	= alpha_pmu_event_init,
@@ -785,7 +894,9 @@ void perf_event_print_debug(void)
 	int cpu;
 
 	if (!supported_cpu())
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
@@ -806,7 +917,7 @@ void perf_event_print_debug(void)
  * overflows.  The PMC that overflowed is passed in la_ptr.
  */
 static void alpha_perf_event_irq_handler(unsigned long la_ptr,
-					struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	struct cpu_hw_events *cpuc;
 	struct perf_sample_data data;
@@ -825,7 +936,8 @@ static void alpha_perf_event_irq_handler(unsigned long la_ptr,
 	wrperfmon(PERFMON_CMD_DISABLE, cpuc->idx_mask);
 
 	/* la_ptr is the counter that overflowed. */
-	if (unlikely(la_ptr >= alpha_pmu->num_pmcs)) {
+	if (unlikely(la_ptr >= alpha_pmu->num_pmcs))
+	{
 		/* This should never occur! */
 		irq_err_count++;
 		pr_warning("PMI: silly index %ld\n", la_ptr);
@@ -835,12 +947,16 @@ static void alpha_perf_event_irq_handler(unsigned long la_ptr,
 
 	idx = la_ptr;
 
-	for (j = 0; j < cpuc->n_events; j++) {
+	for (j = 0; j < cpuc->n_events; j++)
+	{
 		if (cpuc->current_idx[j] == idx)
+		{
 			break;
+		}
 	}
 
-	if (unlikely(j == cpuc->n_events)) {
+	if (unlikely(j == cpuc->n_events))
+	{
 		/* This can occur if the event is disabled right on a PMC overflow. */
 		wrperfmon(PERFMON_CMD_ENABLE, cpuc->idx_mask);
 		return;
@@ -848,7 +964,8 @@ static void alpha_perf_event_irq_handler(unsigned long la_ptr,
 
 	event = cpuc->event[j];
 
-	if (unlikely(!event)) {
+	if (unlikely(!event))
+	{
 		/* This should never occur! */
 		irq_err_count++;
 		pr_warning("PMI: No event at index %d!\n", idx);
@@ -857,17 +974,20 @@ static void alpha_perf_event_irq_handler(unsigned long la_ptr,
 	}
 
 	hwc = &event->hw;
-	alpha_perf_event_update(event, hwc, idx, alpha_pmu->pmc_max_period[idx]+1);
+	alpha_perf_event_update(event, hwc, idx, alpha_pmu->pmc_max_period[idx] + 1);
 	perf_sample_data_init(&data, 0, hwc->last_period);
 
-	if (alpha_perf_event_set_period(event, hwc, idx)) {
-		if (perf_event_overflow(event, &data, regs)) {
+	if (alpha_perf_event_set_period(event, hwc, idx))
+	{
+		if (perf_event_overflow(event, &data, regs))
+		{
 			/* Interrupts coming too quickly; "throttle" the
 			 * counter, i.e., disable it for a little while.
 			 */
 			alpha_pmu_stop(event, 0);
 		}
 	}
+
 	wrperfmon(PERFMON_CMD_ENABLE, cpuc->idx_mask);
 
 	return;
@@ -882,7 +1002,8 @@ int __init init_hw_perf_events(void)
 {
 	pr_info("Performance events: ");
 
-	if (!supported_cpu()) {
+	if (!supported_cpu())
+	{
 		pr_cont("No support for your CPU.\n");
 		return 0;
 	}

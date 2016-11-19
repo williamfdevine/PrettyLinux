@@ -54,7 +54,8 @@ u16 cpu_mask;
 #define OMAP3PLUS_DPLL_FINT_MIN		32000
 #define OMAP3PLUS_DPLL_FINT_MAX		52000000
 
-static struct ti_clk_ll_ops omap_clk_ll_ops = {
+static struct ti_clk_ll_ops omap_clk_ll_ops =
+{
 	.clkdm_clk_enable = clkdm_clk_enable,
 	.clkdm_clk_disable = clkdm_clk_disable,
 	.cm_wait_module_ready = omap_cm_wait_module_ready,
@@ -97,18 +98,24 @@ void omap2_init_clk_clkdm(struct clk_hw *hw)
 	const char *clk_name;
 
 	if (!clk->clkdm_name)
+	{
 		return;
+	}
 
 	clk_name = __clk_get_name(hw->clk);
 
 	clkdm = clkdm_lookup(clk->clkdm_name);
-	if (clkdm) {
+
+	if (clkdm)
+	{
 		pr_debug("clock: associated clk %s to clkdm %s\n",
-			 clk_name, clk->clkdm_name);
+				 clk_name, clk->clkdm_name);
 		clk->clkdm = clkdm;
-	} else {
+	}
+	else
+	{
 		pr_debug("clock: could not associate clk %s to clkdm %s\n",
-			 clk_name, clk->clkdm_name);
+				 clk_name, clk->clkdm_name);
 	}
 }
 
@@ -123,10 +130,14 @@ static int __init omap_clk_setup(char *str)
 	get_option(&str, &mpurate);
 
 	if (!mpurate)
+	{
 		return 1;
+	}
 
 	if (mpurate < 1000)
+	{
 		mpurate *= 1000000;
+	}
 
 	return 1;
 }
@@ -145,30 +156,39 @@ __setup("mpurate=", omap_clk_setup);
  * removed from the clock code.  No return value.
  */
 void __init omap2_clk_print_new_rates(const char *hfclkin_ck_name,
-				      const char *core_ck_name,
-				      const char *mpu_ck_name)
+									  const char *core_ck_name,
+									  const char *mpu_ck_name)
 {
 	struct clk *hfclkin_ck, *core_ck, *mpu_ck;
 	unsigned long hfclkin_rate;
 
 	mpu_ck = clk_get(NULL, mpu_ck_name);
+
 	if (WARN(IS_ERR(mpu_ck), "clock: failed to get %s.\n", mpu_ck_name))
+	{
 		return;
+	}
 
 	core_ck = clk_get(NULL, core_ck_name);
+
 	if (WARN(IS_ERR(core_ck), "clock: failed to get %s.\n", core_ck_name))
+	{
 		return;
+	}
 
 	hfclkin_ck = clk_get(NULL, hfclkin_ck_name);
+
 	if (WARN(IS_ERR(hfclkin_ck), "Failed to get %s.\n", hfclkin_ck_name))
+	{
 		return;
+	}
 
 	hfclkin_rate = clk_get_rate(hfclkin_ck);
 
 	pr_info("Switched to new clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
-		(hfclkin_rate / 1000000), ((hfclkin_rate / 100000) % 10),
-		(clk_get_rate(core_ck) / 1000000),
-		(clk_get_rate(mpu_ck) / 1000000));
+			(hfclkin_rate / 1000000), ((hfclkin_rate / 100000) % 10),
+			(clk_get_rate(core_ck) / 1000000),
+			(clk_get_rate(mpu_ck) / 1000000));
 }
 
 /**
@@ -179,28 +199,37 @@ void __init omap2_clk_print_new_rates(const char *hfclkin_ck_name,
 void __init ti_clk_init_features(void)
 {
 	struct ti_clk_features features = { 0 };
+
 	/* Fint setup for DPLLs */
-	if (cpu_is_omap3430()) {
+	if (cpu_is_omap3430())
+	{
 		features.fint_min = OMAP3430_DPLL_FINT_BAND1_MIN;
 		features.fint_max = OMAP3430_DPLL_FINT_BAND2_MAX;
 		features.fint_band1_max = OMAP3430_DPLL_FINT_BAND1_MAX;
 		features.fint_band2_min = OMAP3430_DPLL_FINT_BAND2_MIN;
-	} else {
+	}
+	else
+	{
 		features.fint_min = OMAP3PLUS_DPLL_FINT_MIN;
 		features.fint_max = OMAP3PLUS_DPLL_FINT_MAX;
 	}
 
 	/* Bypass value setup for DPLLs */
-	if (cpu_is_omap24xx()) {
+	if (cpu_is_omap24xx())
+	{
 		features.dpll_bypass_vals |=
 			(1 << OMAP2XXX_EN_DPLL_LPBYPASS) |
 			(1 << OMAP2XXX_EN_DPLL_FRBYPASS);
-	} else if (cpu_is_omap34xx()) {
+	}
+	else if (cpu_is_omap34xx())
+	{
 		features.dpll_bypass_vals |=
 			(1 << OMAP3XXX_EN_DPLL_LPBYPASS) |
 			(1 << OMAP3XXX_EN_DPLL_FRBYPASS);
-	} else if (soc_is_am33xx() || cpu_is_omap44xx() || soc_is_am43xx() ||
-		   soc_is_omap54xx() || soc_is_dra7xx()) {
+	}
+	else if (soc_is_am33xx() || cpu_is_omap44xx() || soc_is_am43xx() ||
+			 soc_is_omap54xx() || soc_is_dra7xx())
+	{
 		features.dpll_bypass_vals |=
 			(1 << OMAP4XXX_EN_DPLL_LPBYPASS) |
 			(1 << OMAP4XXX_EN_DPLL_FRBYPASS) |
@@ -209,7 +238,9 @@ void __init ti_clk_init_features(void)
 
 	/* Jitter correction only available on OMAP343X */
 	if (cpu_is_omap343x())
+	{
 		features.flags |= TI_CLK_DPLL_HAS_FREQSEL;
+	}
 
 	/* Idlest value for interface clocks.
 	 * 24xx uses 0 to indicate not ready, and 1 to indicate ready.
@@ -217,17 +248,25 @@ void __init ti_clk_init_features(void)
 	 * AM35xx uses both, depending on the module.
 	 */
 	if (cpu_is_omap24xx())
+	{
 		features.cm_idlest_val = OMAP24XX_CM_IDLEST_VAL;
+	}
 	else if (cpu_is_omap34xx())
+	{
 		features.cm_idlest_val = OMAP34XX_CM_IDLEST_VAL;
+	}
 
 	/* On OMAP3430 ES1.0, DPLL4 can't be re-programmed */
 	if (omap_rev() == OMAP3430_REV_ES1_0)
+	{
 		features.flags |= TI_CLK_DPLL4_DENY_REPROGRAM;
+	}
 
 	/* Errata I810 for omap5 / dra7 */
 	if (soc_is_omap54xx() || soc_is_dra7xx())
+	{
 		features.flags |= TI_CLK_ERRATA_I810;
+	}
 
 	ti_clk_setup_features(&features);
 }

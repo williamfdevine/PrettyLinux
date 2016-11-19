@@ -67,7 +67,7 @@ void smp_flush_cache_all_interrupt(void);
 
 static void flush_tlb_all_ipi(void *);
 static void flush_tlb_others(cpumask_t, struct mm_struct *,
-	struct vm_area_struct *, unsigned long);
+							 struct vm_area_struct *, unsigned long);
 
 void smp_invalidate_interrupt(void);
 
@@ -155,12 +155,16 @@ void smp_flush_cache_all(void)
 	cpumask_copy(&cpumask, cpu_online_mask);
 	cpumask_clear_cpu(smp_processor_id(), &cpumask);
 	spin_lock(&flushcache_lock);
-	mask=cpumask_bits(&cpumask);
+	mask = cpumask_bits(&cpumask);
 	atomic_or(*mask, (atomic_t *)&flushcache_cpumask);
 	send_IPI_mask(&cpumask, INVALIDATE_CACHE_IPI, 0);
 	_flush_cache_copyback_all();
+
 	while (flushcache_cpumask)
+	{
 		mb();
+	}
+
 	spin_unlock(&flushcache_lock);
 	preempt_enable();
 }
@@ -257,17 +261,27 @@ void smp_flush_tlb_mm(struct mm_struct *mm)
 	cpumask_copy(&cpu_mask, mm_cpumask(mm));
 	cpumask_clear_cpu(cpu_id, &cpu_mask);
 
-	if (*mmc != NO_CONTEXT) {
+	if (*mmc != NO_CONTEXT)
+	{
 		local_irq_save(flags);
 		*mmc = NO_CONTEXT;
+
 		if (mm == current->mm)
+		{
 			activate_context(mm);
+		}
 		else
+		{
 			cpumask_clear_cpu(cpu_id, mm_cpumask(mm));
+		}
+
 		local_irq_restore(flags);
 	}
+
 	if (!cpumask_empty(&cpu_mask))
+	{
 		flush_tlb_others(cpu_mask, mm, NULL, FLUSH_ALL);
+	}
 
 	preempt_enable();
 }
@@ -291,7 +305,7 @@ void smp_flush_tlb_mm(struct mm_struct *mm)
  *
  *==========================================================================*/
 void smp_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-	unsigned long end)
+						 unsigned long end)
 {
 	smp_flush_tlb_mm(vma->vm_mm);
 }
@@ -328,19 +342,27 @@ void smp_flush_tlb_page(struct vm_area_struct *vma, unsigned long va)
 	cpumask_clear_cpu(cpu_id, &cpu_mask);
 
 #ifdef DEBUG_SMP
+
 	if (!mm)
+	{
 		BUG();
+	}
+
 #endif
 
-	if (*mmc != NO_CONTEXT) {
+	if (*mmc != NO_CONTEXT)
+	{
 		local_irq_save(flags);
 		va &= PAGE_MASK;
 		va |= (*mmc & MMU_CONTEXT_ASID_MASK);
 		__flush_tlb_page(va);
 		local_irq_restore(flags);
 	}
+
 	if (!cpumask_empty(&cpu_mask))
+	{
 		flush_tlb_others(cpu_mask, mm, vma, va);
+	}
 
 	preempt_enable();
 }
@@ -369,14 +391,18 @@ void smp_flush_tlb_page(struct vm_area_struct *vma, unsigned long va)
  *
  *==========================================================================*/
 static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
-	struct vm_area_struct *vma, unsigned long va)
+							 struct vm_area_struct *vma, unsigned long va)
 {
 	unsigned long *mask;
 #ifdef DEBUG_SMP
 	unsigned long flags;
 	__save_flags(flags);
+
 	if (!(flags & 0x0040))	/* Interrupt Disable NONONO */
+	{
 		BUG();
+	}
+
 #endif /* DEBUG_SMP */
 
 	/*
@@ -393,8 +419,11 @@ static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
 
 	/* If a CPU which we ran on has gone down, OK. */
 	cpumask_and(&cpumask, &cpumask, cpu_online_mask);
+
 	if (cpumask_empty(&cpumask))
+	{
 		return;
+	}
 
 	/*
 	 * i'm not happy about this global shared spinlock in the
@@ -407,7 +436,7 @@ static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
 	flush_mm = mm;
 	flush_vma = vma;
 	flush_va = va;
-	mask=cpumask_bits(&cpumask);
+	mask = cpumask_bits(&cpumask);
 	atomic_or(*mask, (atomic_t *)&flush_cpumask);
 
 	/*
@@ -416,7 +445,8 @@ static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
 	 */
 	send_IPI_mask(&cpumask, INVALIDATE_TLB_IPI, 0);
 
-	while (!cpumask_empty(&flush_cpumask)) {
+	while (!cpumask_empty(&flush_cpumask))
+	{
 		/* nothing. lockup detection does not belong here */
 		mb();
 	}
@@ -452,23 +482,35 @@ void smp_invalidate_interrupt(void)
 	unsigned long *mmc = &flush_mm->context[cpu_id];
 
 	if (!cpumask_test_cpu(cpu_id, &flush_cpumask))
+	{
 		return;
+	}
 
-	if (flush_va == FLUSH_ALL) {
+	if (flush_va == FLUSH_ALL)
+	{
 		*mmc = NO_CONTEXT;
+
 		if (flush_mm == current->active_mm)
+		{
 			activate_context(flush_mm);
+		}
 		else
+		{
 			cpumask_clear_cpu(cpu_id, mm_cpumask(flush_mm));
-	} else {
+		}
+	}
+	else
+	{
 		unsigned long va = flush_va;
 
-		if (*mmc != NO_CONTEXT) {
+		if (*mmc != NO_CONTEXT)
+		{
 			va &= PAGE_MASK;
 			va |= (*mmc & MMU_CONTEXT_ASID_MASK);
 			__flush_tlb_page(va);
 		}
 	}
+
 	cpumask_clear_cpu(cpu_id, &flush_cpumask);
 }
 
@@ -667,7 +709,8 @@ void smp_local_timer_interrupt(void)
 
 	profile_tick(CPU_PROFILING);
 
-	if (--per_cpu(prof_counter, cpu_id) <= 0) {
+	if (--per_cpu(prof_counter, cpu_id) <= 0)
+	{
 		/*
 		 * The multiplier may have changed since the last time we got
 		 * to this point as a result of the user writing to
@@ -678,6 +721,7 @@ void smp_local_timer_interrupt(void)
 		 */
 		per_cpu(prof_counter, cpu_id)
 			= per_cpu(prof_multiplier, cpu_id);
+
 		if (per_cpu(prof_counter, cpu_id)
 			!= per_cpu(prof_old_multiplier, cpu_id))
 		{
@@ -749,15 +793,20 @@ static void send_IPI_mask(const struct cpumask *cpumask, int ipi_num, int try)
 	int num_cpus = num_online_cpus();
 
 	if (num_cpus <= 1)	/* NO MP */
+	{
 		return;
+	}
 
 	cpumask_and(&tmp, cpumask, cpu_online_mask);
 	BUG_ON(!cpumask_equal(cpumask, &tmp));
 
 	cpumask_clear(&physid_mask);
-	for_each_cpu(cpu_id, cpumask) {
+	for_each_cpu(cpu_id, cpumask)
+	{
 		if ((phys_id = cpu_to_physid(cpu_id)) != -1)
+		{
 			cpumask_set_cpu(phys_id, &physid_mask);
+		}
 	}
 
 	send_IPI_mask_phys(&physid_mask, ipi_num, try);
@@ -784,7 +833,7 @@ static void send_IPI_mask(const struct cpumask *cpumask, int ipi_num, int try)
  *
  *==========================================================================*/
 unsigned long send_IPI_mask_phys(const cpumask_t *physid_mask, int ipi_num,
-	int try)
+								 int try)
 {
 	spinlock_t *ipilock;
 	volatile unsigned long *ipicr_addr;
@@ -794,14 +843,19 @@ unsigned long send_IPI_mask_phys(const cpumask_t *physid_mask, int ipi_num,
 
 
 	if (mask & ~physids_coerce(phys_cpu_present_map))
+	{
 		BUG();
+	}
+
 	if (ipi_num >= NR_IPIS || ipi_num < 0)
+	{
 		BUG();
+	}
 
 	mask <<= IPI_SHIFT;
 	ipilock = &ipi_lock[ipi_num];
 	ipicr_addr = (volatile unsigned long *)(M32R_ICU_IPICR_ADDR
-		+ (ipi_num << 2));
+											+ (ipi_num << 2));
 	my_physid_mask = ~(1 << smp_processor_id());
 
 	/*

@@ -81,38 +81,44 @@
 #define MAX_IMAGE_SIZE	0x40000000
 
 /* Image status */
-enum {
+enum
+{
 	IMAGE_INVALID,
 	IMAGE_LOADING,
 	IMAGE_READY,
 };
 
 /* Candidate image data */
-struct image_data_t {
+struct image_data_t
+{
 	int		status;
 	void		*data;
 	uint32_t	size;
 };
 
 /* Candidate image header */
-struct image_header_t {
+struct image_header_t
+{
 	uint16_t	magic;
 	uint16_t	version;
 	uint32_t	size;
 };
 
-struct validate_flash_t {
+struct validate_flash_t
+{
 	int		status;		/* Return status */
 	void		*buf;		/* Candidate image buffer */
 	uint32_t	buf_size;	/* Image size */
 	uint32_t	result;		/* Update results token */
 };
 
-struct manage_flash_t {
+struct manage_flash_t
+{
 	int status;		/* Return status */
 };
 
-struct update_flash_t {
+struct update_flash_t
+{
 	int status;		/* Return status */
 };
 
@@ -122,7 +128,8 @@ static struct validate_flash_t	validate_flash_data;
 static struct manage_flash_t	manage_flash_data;
 
 /* Initialize update_flash_data status to No Operation */
-static struct update_flash_t	update_flash_data = {
+static struct update_flash_t	update_flash_data =
+{
 	.status = FLASH_NO_OP,
 };
 
@@ -152,13 +159,14 @@ static inline void opal_flash_validate(void)
  *     new image version details
  */
 static ssize_t validate_show(struct kobject *kobj,
-			     struct kobj_attribute *attr, char *buf)
+							 struct kobj_attribute *attr, char *buf)
 {
 	struct validate_flash_t *args_buf = &validate_flash_data;
 	int len;
 
 	/* Candidate image is not validated */
-	if (args_buf->status < VALIDATE_TMP_UPDATE) {
+	if (args_buf->status < VALIDATE_TMP_UPDATE)
+	{
 		len = sprintf(buf, "%d\n", args_buf->status);
 		goto out;
 	}
@@ -168,16 +176,22 @@ static ssize_t validate_show(struct kobject *kobj,
 
 	/* Current and candidate image version details */
 	if ((args_buf->result != VALIDATE_TMP_UPDATE) &&
-	    (args_buf->result < VALIDATE_CUR_UNKNOWN))
+		(args_buf->result < VALIDATE_CUR_UNKNOWN))
+	{
 		goto out;
+	}
 
-	if (args_buf->buf_size > (VALIDATE_BUF_SIZE - len)) {
+	if (args_buf->buf_size > (VALIDATE_BUF_SIZE - len))
+	{
 		memcpy(buf + len, args_buf->buf, VALIDATE_BUF_SIZE - len);
 		len = VALIDATE_BUF_SIZE;
-	} else {
+	}
+	else
+	{
 		memcpy(buf + len, args_buf->buf, args_buf->buf_size);
 		len += args_buf->buf_size;
 	}
+
 out:
 	/* Set status to default */
 	args_buf->status = FLASH_NO_OP;
@@ -192,18 +206,21 @@ out:
  *   candidate image.
  */
 static ssize_t validate_store(struct kobject *kobj,
-			      struct kobj_attribute *attr,
-			      const char *buf, size_t count)
+							  struct kobj_attribute *attr,
+							  const char *buf, size_t count)
 {
 	struct validate_flash_t *args_buf = &validate_flash_data;
 
 	if (buf[0] != '1')
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&image_data_mutex);
 
 	if (image_data.status != IMAGE_READY ||
-	    image_data.size < VALIDATE_BUF_SIZE) {
+		image_data.size < VALIDATE_BUF_SIZE)
+	{
 		args_buf->result = VALIDATE_INVALID_IMG;
 		args_buf->status = VALIDATE_IMG_INCOMPLETE;
 		goto out;
@@ -237,7 +254,7 @@ static inline void opal_flash_manage(uint8_t op)
  * Show manage flash status
  */
 static ssize_t manage_show(struct kobject *kobj,
-			   struct kobj_attribute *attr, char *buf)
+						   struct kobj_attribute *attr, char *buf)
 {
 	struct manage_flash_t *const args_buf = &manage_flash_data;
 	int rc;
@@ -254,19 +271,23 @@ static ssize_t manage_show(struct kobject *kobj,
  *   1 - Commit
  */
 static ssize_t manage_store(struct kobject *kobj,
-			    struct kobj_attribute *attr,
-			    const char *buf, size_t count)
+							struct kobj_attribute *attr,
+							const char *buf, size_t count)
 {
 	uint8_t op;
-	switch (buf[0]) {
-	case '0':
-		op = FLASH_REJECT_TMP_SIDE;
-		break;
-	case '1':
-		op = FLASH_COMMIT_TMP_SIDE;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (buf[0])
+	{
+		case '0':
+			op = FLASH_REJECT_TMP_SIDE;
+			break;
+
+		case '1':
+			op = FLASH_COMMIT_TMP_SIDE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* commit/reject temporary image */
@@ -283,15 +304,19 @@ static int opal_flash_update(int op)
 	unsigned long addr;
 	int64_t rc = OPAL_PARAMETER;
 
-	if (op == FLASH_UPDATE_CANCEL) {
+	if (op == FLASH_UPDATE_CANCEL)
+	{
 		pr_alert("FLASH: Image update cancelled\n");
 		addr = '\0';
 		goto flash;
 	}
 
 	list = opal_vmalloc_to_sg_list(image_data.data, image_data.size);
+
 	if (!list)
+	{
 		goto invalid_img;
+	}
 
 	/* First entry address */
 	addr = __pa(list);
@@ -309,7 +334,9 @@ static void flash_return_cpu(void *info)
 	int cpu = smp_processor_id();
 
 	if (!cpu_online(cpu))
+	{
 		return;
+	}
 
 	/* Disable IRQ */
 	hard_irq_disable();
@@ -324,7 +351,9 @@ void opal_flash_term_callback(void)
 	struct cpumask mask;
 
 	if (update_flash_data.status != FLASH_IMG_READY)
+	{
 		return;
+	}
 
 	pr_alert("FLASH: Flashing new firmware\n");
 	pr_alert("FLASH: Image is %u bytes\n", image_data.size);
@@ -337,9 +366,11 @@ void opal_flash_term_callback(void)
 	/* Return secondary CPUs to firmware */
 	cpumask_copy(&mask, cpu_online_mask);
 	cpumask_clear_cpu(smp_processor_id(), &mask);
+
 	if (!cpumask_empty(&mask))
 		smp_call_function_many(&mask,
-				       flash_return_cpu, NULL, false);
+							   flash_return_cpu, NULL, false);
+
 	/* Hard disable interrupts */
 	hard_irq_disable();
 }
@@ -348,7 +379,7 @@ void opal_flash_term_callback(void)
  * Show candidate image status
  */
 static ssize_t update_show(struct kobject *kobj,
-			   struct kobj_attribute *attr, char *buf)
+						   struct kobj_attribute *attr, char *buf)
 {
 	struct update_flash_t *const args_buf = &update_flash_data;
 	return sprintf(buf, "%d\n", args_buf->status);
@@ -360,30 +391,40 @@ static ssize_t update_show(struct kobject *kobj,
  *  0 - Cancel flash request
  */
 static ssize_t update_store(struct kobject *kobj,
-			    struct kobj_attribute *attr,
-			    const char *buf, size_t count)
+							struct kobj_attribute *attr,
+							const char *buf, size_t count)
 {
 	struct update_flash_t *const args_buf = &update_flash_data;
 	int rc = count;
 
 	mutex_lock(&image_data_mutex);
 
-	switch (buf[0]) {
-	case '0':
-		if (args_buf->status == FLASH_IMG_READY)
-			opal_flash_update(FLASH_UPDATE_CANCEL);
-		args_buf->status = FLASH_NO_OP;
-		break;
-	case '1':
-		/* Image is loaded? */
-		if (image_data.status == IMAGE_READY)
-			args_buf->status =
-				opal_flash_update(FLASH_UPDATE_INIT);
-		else
-			args_buf->status = FLASH_INVALID_IMG;
-		break;
-	default:
-		rc = -EINVAL;
+	switch (buf[0])
+	{
+		case '0':
+			if (args_buf->status == FLASH_IMG_READY)
+			{
+				opal_flash_update(FLASH_UPDATE_CANCEL);
+			}
+
+			args_buf->status = FLASH_NO_OP;
+			break;
+
+		case '1':
+
+			/* Image is loaded? */
+			if (image_data.status == IMAGE_READY)
+				args_buf->status =
+					opal_flash_update(FLASH_UPDATE_INIT);
+			else
+			{
+				args_buf->status = FLASH_INVALID_IMG;
+			}
+
+			break;
+
+		default:
+			rc = -EINVAL;
 	}
 
 	mutex_unlock(&image_data_mutex);
@@ -400,11 +441,14 @@ static void free_image_buf(void)
 
 	addr = image_data.data;
 	size = PAGE_ALIGN(image_data.size);
-	while (size > 0) {
+
+	while (size > 0)
+	{
 		ClearPageReserved(vmalloc_to_page(addr));
 		addr += PAGE_SIZE;
 		size -= PAGE_SIZE;
 	}
+
 	vfree(image_data.data);
 	image_data.data = NULL;
 	image_data.status = IMAGE_INVALID;
@@ -418,7 +462,8 @@ static int alloc_image_buf(char *buffer, size_t count)
 	void *addr;
 	int size;
 
-	if (count < sizeof(struct image_header_t)) {
+	if (count < sizeof(struct image_header_t))
+	{
 		pr_warn("FLASH: Invalid candidate image\n");
 		return -EINVAL;
 	}
@@ -427,17 +472,22 @@ static int alloc_image_buf(char *buffer, size_t count)
 	image_data.size = be32_to_cpu(image_header.size);
 	pr_debug("FLASH: Candidate image size = %u\n", image_data.size);
 
-	if (image_data.size > MAX_IMAGE_SIZE) {
+	if (image_data.size > MAX_IMAGE_SIZE)
+	{
 		pr_warn("FLASH: Too large image\n");
 		return -EINVAL;
 	}
-	if (image_data.size < VALIDATE_BUF_SIZE) {
+
+	if (image_data.size < VALIDATE_BUF_SIZE)
+	{
 		pr_warn("FLASH: Image is shorter than expected\n");
 		return -EINVAL;
 	}
 
 	image_data.data = vzalloc(PAGE_ALIGN(image_data.size));
-	if (!image_data.data) {
+
+	if (!image_data.data)
+	{
 		pr_err("%s : Failed to allocate memory\n", __func__);
 		return -ENOMEM;
 	}
@@ -445,7 +495,9 @@ static int alloc_image_buf(char *buffer, size_t count)
 	/* Pin memory */
 	addr = image_data.data;
 	size = PAGE_ALIGN(image_data.size);
-	while (size > 0) {
+
+	while (size > 0)
+	{
 		SetPageReserved(vmalloc_to_page(addr));
 		addr += PAGE_SIZE;
 		size -= PAGE_SIZE;
@@ -462,35 +514,45 @@ static int alloc_image_buf(char *buffer, size_t count)
  * and pre-allocate required memory.
  */
 static ssize_t image_data_write(struct file *filp, struct kobject *kobj,
-				struct bin_attribute *bin_attr,
-				char *buffer, loff_t pos, size_t count)
+								struct bin_attribute *bin_attr,
+								char *buffer, loff_t pos, size_t count)
 {
 	int rc;
 
 	mutex_lock(&image_data_mutex);
 
 	/* New image ? */
-	if (pos == 0) {
+	if (pos == 0)
+	{
 		/* Free memory, if already allocated */
 		if (image_data.data)
+		{
 			free_image_buf();
+		}
 
 		/* Cancel outstanding image update request */
 		if (update_flash_data.status == FLASH_IMG_READY)
+		{
 			opal_flash_update(FLASH_UPDATE_CANCEL);
+		}
 
 		/* Allocate memory */
 		rc = alloc_image_buf(buffer, count);
+
 		if (rc)
+		{
 			goto out;
+		}
 	}
 
-	if (image_data.status != IMAGE_LOADING) {
+	if (image_data.status != IMAGE_LOADING)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
 
-	if ((pos + count) > image_data.size) {
+	if ((pos + count) > image_data.size)
+	{
 		rc = -EINVAL;
 		goto out;
 	}
@@ -499,7 +561,8 @@ static ssize_t image_data_write(struct file *filp, struct kobject *kobj,
 	rc = count;
 
 	/* Set image status */
-	if ((pos + count) == image_data.size) {
+	if ((pos + count) == image_data.size)
+	{
 		pr_debug("FLASH: Candidate image loaded....\n");
 		image_data.status = IMAGE_READY;
 	}
@@ -520,7 +583,8 @@ out:
  *   update_flash	: Flash new firmware image
  *
  */
-static struct bin_attribute image_data_attr = {
+static struct bin_attribute image_data_attr =
+{
 	.attr = {.name = "image", .mode = 0200},
 	.size = MAX_IMAGE_SIZE,	/* Limit image size */
 	.write = image_data_write,
@@ -535,14 +599,16 @@ static struct kobj_attribute manage_attribute =
 static struct kobj_attribute update_attribute =
 	__ATTR(update_flash, 0600, update_show, update_store);
 
-static struct attribute *image_op_attrs[] = {
+static struct attribute *image_op_attrs[] =
+{
 	&validate_attribute.attr,
 	&manage_attribute.attr,
 	&update_attribute.attr,
 	NULL	/* need to NULL terminate the list of attributes */
 };
 
-static struct attribute_group image_op_attr_group = {
+static struct attribute_group image_op_attr_group =
+{
 	.attrs = image_op_attrs,
 };
 
@@ -552,26 +618,33 @@ void __init opal_flash_update_init(void)
 
 	/* Allocate validate image buffer */
 	validate_flash_data.buf = kzalloc(VALIDATE_BUF_SIZE, GFP_KERNEL);
-	if (!validate_flash_data.buf) {
+
+	if (!validate_flash_data.buf)
+	{
 		pr_err("%s : Failed to allocate memory\n", __func__);
 		return;
 	}
 
 	/* Make sure /sys/firmware/opal directory is created */
-	if (!opal_kobj) {
+	if (!opal_kobj)
+	{
 		pr_warn("FLASH: opal kobject is not available\n");
 		goto nokobj;
 	}
 
 	/* Create the sysfs files */
 	ret = sysfs_create_group(opal_kobj, &image_op_attr_group);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("FLASH: Failed to create sysfs files\n");
 		goto nokobj;
 	}
 
 	ret = sysfs_create_bin_file(opal_kobj, &image_data_attr);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("FLASH: Failed to create sysfs files\n");
 		goto nosysfs_file;
 	}

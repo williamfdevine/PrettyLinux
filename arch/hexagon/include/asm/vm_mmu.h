@@ -70,9 +70,9 @@
 #define	__HEXAGON_C_WT		0x1	/* Write-through, no L2 */
 #define	__HEXAGON_C_UNC		0x6	/* Uncached memory */
 #if CONFIG_HEXAGON_ARCH_VERSION >= 2
-#define	__HEXAGON_C_DEV		0x4	/* Device register space */
+	#define	__HEXAGON_C_DEV		0x4	/* Device register space */
 #else
-#define __HEXAGON_C_DEV		__HEXAGON_C_UNC
+	#define __HEXAGON_C_DEV		__HEXAGON_C_UNC
 #endif
 #define	__HEXAGON_C_WT_L2	0x5	/* Write-through, with L2 */
 #define	__HEXAGON_C_WB_L2	0x7	/* Write-back, with L2 */

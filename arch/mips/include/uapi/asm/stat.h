@@ -15,7 +15,8 @@
 
 #if (_MIPS_SIM == _MIPS_SIM_ABI32) || (_MIPS_SIM == _MIPS_SIM_NABI32)
 
-struct stat {
+struct stat
+{
 	unsigned	st_dev;
 	long		st_pad1[3];		/* Reserved for network id */
 	ino_t		st_ino;
@@ -48,7 +49,8 @@ struct stat {
  * struct stat of the 64-bit kernel.
  */
 
-struct stat64 {
+struct stat64
+{
 	unsigned long	st_dev;
 	unsigned long	st_pad0[3];	/* Reserved for st_dev expansion  */
 
@@ -89,7 +91,8 @@ struct stat64 {
 #if _MIPS_SIM == _MIPS_SIM_ABI64
 
 /* The memory layout is the same as of struct stat64 of the 32-bit kernel.  */
-struct stat {
+struct stat
+{
 	unsigned int		st_dev;
 	unsigned int		st_pad0[3]; /* Reserved for st_dev expansion */
 

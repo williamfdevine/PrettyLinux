@@ -29,21 +29,21 @@ static u64 ehci_dmamask = DMA_BIT_MASK(32);
 
 #define USB_HOST_DEF(unit, type, dmamask) \
 	static struct \
-	    tilegx_usb_platform_data tilegx_usb_platform_data_ ## type ## \
+		tilegx_usb_platform_data tilegx_usb_platform_data_ ## type ## \
 		hci ## unit = { \
 		.dev_index = unit, \
 	}; \
 	\
 	static struct platform_device tilegx_usb_ ## type ## hci ## unit = { \
 		.name		= "tilegx-" #type "hci", \
-		.id		= unit, \
-		.dev = { \
-			.dma_mask		= dmamask, \
-			.coherent_dma_mask	= DMA_BIT_MASK(32), \
-			.platform_data = \
-				&tilegx_usb_platform_data_ ## type ## hci ## \
-				unit, \
-		}, \
+					  .id		= unit, \
+								.dev = { \
+										 .dma_mask		= dmamask, \
+										 .coherent_dma_mask	= DMA_BIT_MASK(32), \
+										 .platform_data = \
+												 &tilegx_usb_platform_data_ ## type ## hci ## \
+												 unit, \
+									   }, \
 	};
 
 USB_HOST_DEF(0, e, &ehci_dmamask)
@@ -53,7 +53,8 @@ USB_HOST_DEF(1, o, NULL)
 
 #undef USB_HOST_DEF
 
-static struct platform_device *tilegx_usb_devices[] __initdata = {
+static struct platform_device *tilegx_usb_devices[] __initdata =
+{
 	&tilegx_usb_ehci0,
 	&tilegx_usb_ehci1,
 	&tilegx_usb_ohci0,
@@ -64,7 +65,7 @@ static struct platform_device *tilegx_usb_devices[] __initdata = {
 static int __init tilegx_usb_init(void)
 {
 	platform_add_devices(tilegx_usb_devices,
-			     ARRAY_SIZE(tilegx_usb_devices));
+						 ARRAY_SIZE(tilegx_usb_devices));
 
 	return 0;
 }

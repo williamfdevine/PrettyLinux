@@ -204,7 +204,7 @@
 #define XCHAL_NUM_INTLEVELS		2	/* number of interrupt levels
 						   (not including level zero) */
 #define XCHAL_EXCM_LEVEL		1	/* level masked by PS.EXCM */
-	/* (always 1 in XEA1; levels 2 .. EXCM_LEVEL are "medium priority") */
+/* (always 1 in XEA1; levels 2 .. EXCM_LEVEL are "medium priority") */
 
 /*  Masks of interrupts at each interrupt level:  */
 #define XCHAL_INTLEVEL1_MASK		0x00000FFF

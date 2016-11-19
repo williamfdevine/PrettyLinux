@@ -39,7 +39,8 @@
 #define L2SRAM_BAR_MSK_LO18	0xFFFFC000	/* Lower 18 bits */
 #define L2SRAM_BARE_MSK_HI4	0x0000000F	/* Upper 4 bits */
 
-enum cache_sram_lock_ways {
+enum cache_sram_lock_ways
+{
 	LOCK_WAYS_ZERO,
 	LOCK_WAYS_EIGHTH,
 	LOCK_WAYS_TWO_EIGHTH,
@@ -47,7 +48,8 @@ enum cache_sram_lock_ways {
 	LOCK_WAYS_FULL = 8,
 };
 
-struct mpc85xx_l2ctlr {
+struct mpc85xx_l2ctlr
+{
 	u32	ctl;		/* 0x000 - L2 control */
 	u8	res1[0xC];
 	u32	ewar0;		/* 0x010 - External write address 0 */
@@ -89,13 +91,14 @@ struct mpc85xx_l2ctlr {
 	u8	res9[0x1A4];
 };
 
-struct sram_parameters {
+struct sram_parameters
+{
 	unsigned int sram_size;
 	phys_addr_t sram_offset;
 };
 
 extern int instantiate_cache_sram(struct platform_device *dev,
-		struct sram_parameters sram_params);
+								  struct sram_parameters sram_params);
 extern void remove_cache_sram(struct platform_device *dev);
 
 #endif /* __FSL_85XX_CACHE_CTLR_H__ */

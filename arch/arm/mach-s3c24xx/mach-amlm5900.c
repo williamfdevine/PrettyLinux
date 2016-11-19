@@ -69,9 +69,10 @@
 #include "common.h"
 
 static struct resource amlm5900_nor_resource =
-			DEFINE_RES_MEM(0x00000000, SZ_16M);
+	DEFINE_RES_MEM(0x00000000, SZ_16M);
 
-static struct mtd_partition amlm5900_mtd_partitions[] = {
+static struct mtd_partition amlm5900_mtd_partitions[] =
+{
 	{
 		.name		= "System",
 		.size		= 0x240000,
@@ -96,30 +97,34 @@ static struct mtd_partition amlm5900_mtd_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data amlm5900_flash_data = {
+static struct physmap_flash_data amlm5900_flash_data =
+{
 	.width		= 2,
 	.parts		= amlm5900_mtd_partitions,
 	.nr_parts	= ARRAY_SIZE(amlm5900_mtd_partitions),
 };
 
-static struct platform_device amlm5900_device_nor = {
+static struct platform_device amlm5900_device_nor =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev = {
-			.platform_data = &amlm5900_flash_data,
-		},
+		.platform_data = &amlm5900_flash_data,
+	},
 	.num_resources	= 1,
 	.resource	= &amlm5900_nor_resource,
 };
 
-static struct map_desc amlm5900_iodesc[] __initdata = {
+static struct map_desc amlm5900_iodesc[] __initdata =
+{
 };
 
 #define UCON S3C2410_UCON_DEFAULT
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg amlm5900_uartcfgs[] = {
+static struct s3c2410_uartcfg amlm5900_uartcfgs[] =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -144,7 +149,8 @@ static struct s3c2410_uartcfg amlm5900_uartcfgs[] = {
 };
 
 
-static struct platform_device *amlm5900_devices[] __initdata = {
+static struct platform_device *amlm5900_devices[] __initdata =
+{
 #ifdef CONFIG_FB_S3C2410
 	&s3c_device_lcd,
 #endif
@@ -152,9 +158,9 @@ static struct platform_device *amlm5900_devices[] __initdata = {
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
 	&s3c_device_ohci,
- 	&s3c_device_rtc,
+	&s3c_device_rtc,
 	&s3c_device_usbgadget,
-        &s3c_device_sdi,
+	&s3c_device_sdi,
 	&amlm5900_device_nor,
 };
 
@@ -172,7 +178,8 @@ static void __init amlm5900_init_time(void)
 }
 
 #ifdef CONFIG_FB_S3C2410
-static struct s3c2410fb_display __initdata amlm5900_lcd_info = {
+static struct s3c2410fb_display __initdata amlm5900_lcd_info =
+{
 	.width		= 160,
 	.height		= 160,
 
@@ -191,7 +198,8 @@ static struct s3c2410fb_display __initdata amlm5900_lcd_info = {
 	.lcdcon5	= 0x00000001,
 };
 
-static struct s3c2410fb_mach_info __initdata amlm5900_fb_info = {
+static struct s3c2410fb_mach_info __initdata amlm5900_fb_info =
+{
 
 	.displays = &amlm5900_lcd_info,
 	.num_displays = 1,
@@ -220,11 +228,15 @@ static void amlm5900_init_pm(void)
 	int ret = 0;
 
 	ret = request_irq(IRQ_EINT9, &amlm5900_wake_interrupt,
-				IRQF_TRIGGER_RISING | IRQF_SHARED,
-				"amlm5900_wakeup", &amlm5900_wake_interrupt);
-	if (ret != 0) {
+					  IRQF_TRIGGER_RISING | IRQF_SHARED,
+					  "amlm5900_wakeup", &amlm5900_wake_interrupt);
+
+	if (ret != 0)
+	{
 		printk(KERN_ERR "AML-M5900: no wakeup irq, %d?\n", ret);
-	} else {
+	}
+	else
+	{
 		enable_irq_wake(IRQ_EINT9);
 		/* configure the suspend/resume status pin */
 		s3c_gpio_cfgpin(S3C2410_GPF(2), S3C2410_GPIO_OUTPUT);
@@ -242,9 +254,9 @@ static void __init amlm5900_init(void)
 }
 
 MACHINE_START(AML_M5900, "AML_M5900")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= amlm5900_map_io,
-	.init_irq	= s3c2410_init_irq,
-	.init_machine	= amlm5900_init,
-	.init_time	= amlm5900_init_time,
-MACHINE_END
+		.init_irq	= s3c2410_init_irq,
+		   .init_machine	= amlm5900_init,
+			  .init_time	= amlm5900_init_time,
+				MACHINE_END

@@ -13,15 +13,17 @@ struct ccw_driver;
  * @ungroup_work: work to be done when a ccwgroup notifier has action
  *	type %BUS_NOTIFY_UNBIND_DRIVER
  */
-struct ccwgroup_device {
-	enum {
+struct ccwgroup_device
+{
+	enum
+	{
 		CCWGROUP_OFFLINE,
 		CCWGROUP_ONLINE,
 	} state;
-/* private: */
+	/* private: */
 	atomic_t onoff;
 	struct mutex reg_mutex;
-/* public: */
+	/* public: */
 	unsigned int count;
 	struct device	dev;
 	struct work_struct ungroup_work;
@@ -42,7 +44,8 @@ struct ccwgroup_device {
  * @restore: callback for restoring after hibernation
  * @driver: embedded driver structure
  */
-struct ccwgroup_driver {
+struct ccwgroup_driver
+{
 	int (*setup) (struct ccwgroup_device *);
 	void (*remove) (struct ccwgroup_device *);
 	int (*set_online) (struct ccwgroup_device *);
@@ -60,7 +63,7 @@ struct ccwgroup_driver {
 extern int  ccwgroup_driver_register   (struct ccwgroup_driver *cdriver);
 extern void ccwgroup_driver_unregister (struct ccwgroup_driver *cdriver);
 int ccwgroup_create_dev(struct device *root, struct ccwgroup_driver *gdrv,
-			int num_devices, const char *buf);
+						int num_devices, const char *buf);
 
 extern int ccwgroup_set_online(struct ccwgroup_device *gdev);
 extern int ccwgroup_set_offline(struct ccwgroup_device *gdev);

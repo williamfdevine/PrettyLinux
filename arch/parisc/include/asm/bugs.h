@@ -15,5 +15,5 @@
 
 static inline void check_bugs(void)
 {
-//	identify_cpu(&boot_cpu_data);
+	//	identify_cpu(&boot_cpu_data);
 }

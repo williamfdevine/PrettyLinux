@@ -13,7 +13,8 @@
 
 #if _MIPS_SIM == _MIPS_SIM_ABI64 || _MIPS_SIM == _MIPS_SIM_NABI32
 
-struct sigcontext32 {
+struct sigcontext32
+{
 	__u32		sc_regmask;	/* Unused */
 	__u32		sc_status;	/* Unused */
 	__u64		sc_pc;

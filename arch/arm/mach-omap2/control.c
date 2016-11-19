@@ -38,7 +38,8 @@ static void __iomem *omap2_ctrl_base;
 static s16 omap2_ctrl_offset;
 
 #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
-struct omap3_scratchpad {
+struct omap3_scratchpad
+{
 	u32 boot_config_ptr;
 	u32 public_restore_ptr;
 	u32 secure_ram_restore_ptr;
@@ -47,13 +48,15 @@ struct omap3_scratchpad {
 	u32 sdrc_block_offset;
 };
 
-struct omap3_scratchpad_prcm_block {
+struct omap3_scratchpad_prcm_block
+{
 	u32 prm_contents[2];
 	u32 cm_contents[11];
 	u32 prcm_block_size;
 };
 
-struct omap3_scratchpad_sdrc_block {
+struct omap3_scratchpad_sdrc_block
+{
 	u16 sysconfig;
 	u16 cs_cfg;
 	u16 sharing;
@@ -95,7 +98,8 @@ void *omap3_secure_ram_storage;
  */
 u32 omap3_arm_context[128];
 
-struct omap3_control_regs {
+struct omap3_control_regs
+{
 	u32 sysconfig;
 	u32 devconf0;
 	u32 mem_dftrw0;
@@ -243,12 +247,13 @@ void omap3_ctrl_write_boot_mode(u8 bootmode)
 void omap_ctrl_write_dsp_boot_addr(u32 bootaddr)
 {
 	u32 offset = cpu_is_omap243x() ? OMAP243X_CONTROL_IVA2_BOOTADDR :
-		     cpu_is_omap34xx() ? OMAP343X_CONTROL_IVA2_BOOTADDR :
-		     cpu_is_omap44xx() ? OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR :
-		     soc_is_omap54xx() ? OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR :
-		     0;
+				 cpu_is_omap34xx() ? OMAP343X_CONTROL_IVA2_BOOTADDR :
+				 cpu_is_omap44xx() ? OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR :
+				 soc_is_omap54xx() ? OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR :
+				 0;
 
-	if (!offset) {
+	if (!offset)
+	{
 		pr_err("%s: unsupported omap type\n", __func__);
 		return;
 	}
@@ -266,10 +271,11 @@ void omap_ctrl_write_dsp_boot_addr(u32 bootaddr)
 void omap_ctrl_write_dsp_boot_mode(u8 bootmode)
 {
 	u32 offset = cpu_is_omap243x() ? OMAP243X_CONTROL_IVA2_BOOTMOD :
-		     cpu_is_omap34xx() ? OMAP343X_CONTROL_IVA2_BOOTMOD :
-		     0;
+				 cpu_is_omap34xx() ? OMAP343X_CONTROL_IVA2_BOOTMOD :
+				 0;
 
-	if (!offset) {
+	if (!offset)
+	{
 		pr_err("%s: unsupported omap type\n", __func__);
 		return;
 	}
@@ -289,9 +295,13 @@ void omap3_clear_scratchpad_contents(void)
 	u32 offset = 0;
 
 	v_addr = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD_ROM);
-	if (omap3xxx_prm_clear_global_cold_reset()) {
+
+	if (omap3xxx_prm_clear_global_cold_reset())
+	{
 		for ( ; offset <= max_offset; offset += 0x4)
+		{
 			writel_relaxed(0x0, (v_addr + offset));
+		}
 	}
 }
 
@@ -313,12 +323,13 @@ void omap3_save_scratchpad_contents(void)
 	 * The restore pointer is stored into the scratchpad.
 	 */
 	scratchpad_contents.boot_config_ptr = 0x0;
+
 	if (cpu_is_omap3630())
 		scratchpad_contents.public_restore_ptr =
 			virt_to_phys(omap3_restore_3630);
 	else if (omap_rev() != OMAP3430_REV_ES3_0 &&
-					omap_rev() != OMAP3430_REV_ES3_1 &&
-					omap_rev() != OMAP3430_REV_ES3_1_2)
+			 omap_rev() != OMAP3430_REV_ES3_1 &&
+			 omap_rev() != OMAP3430_REV_ES3_1_2)
 		scratchpad_contents.public_restore_ptr =
 			virt_to_phys(omap3_restore);
 	else
@@ -326,10 +337,13 @@ void omap3_save_scratchpad_contents(void)
 			virt_to_phys(omap3_restore_es3);
 
 	if (omap_type() == OMAP2_DEVICE_TYPE_GP)
+	{
 		scratchpad_contents.secure_ram_restore_ptr = 0x0;
+	}
 	else
 		scratchpad_contents.secure_ram_restore_ptr =
 			(u32) __pa(omap3_secure_ram_storage);
+
 	scratchpad_contents.sdrc_module_semaphore = 0x0;
 	scratchpad_contents.prcm_block_offset = 0x2C;
 	scratchpad_contents.sdrc_block_offset = 0x64;
@@ -342,29 +356,32 @@ void omap3_save_scratchpad_contents(void)
 
 	/* Populate the SDRC block contents */
 	sdrc_block_contents.sysconfig =
-			(sdrc_read_reg(SDRC_SYSCONFIG) & 0xFFFF);
+		(sdrc_read_reg(SDRC_SYSCONFIG) & 0xFFFF);
 	sdrc_block_contents.cs_cfg =
-			(sdrc_read_reg(SDRC_CS_CFG) & 0xFFFF);
+		(sdrc_read_reg(SDRC_CS_CFG) & 0xFFFF);
 	sdrc_block_contents.sharing =
-			(sdrc_read_reg(SDRC_SHARING) & 0xFFFF);
+		(sdrc_read_reg(SDRC_SHARING) & 0xFFFF);
 	sdrc_block_contents.err_type =
-			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
+		(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
 	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
 	sdrc_block_contents.dll_b_ctrl = 0x0;
+
 	/*
 	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
 	 * be programed to issue automatic self refresh on timeout
 	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
 	 */
 	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
-			&& (omap_rev() >= OMAP3430_REV_ES3_0))
+		&& (omap_rev() >= OMAP3430_REV_ES3_0))
 		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
-				~(SDRC_POWER_AUTOCOUNT_MASK|
-				SDRC_POWER_CLKCTRL_MASK)) |
-				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
-				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
+									 ~(SDRC_POWER_AUTOCOUNT_MASK |
+									   SDRC_POWER_CLKCTRL_MASK)) |
+									(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
+									SDRC_SELF_REFRESH_ON_AUTOCOUNT;
 	else
+	{
 		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
+	}
 
 	sdrc_block_contents.cs_0 = 0x0;
 	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
@@ -373,11 +390,11 @@ void omap3_save_scratchpad_contents(void)
 	sdrc_block_contents.emr_2_0 = 0x0;
 	sdrc_block_contents.emr_3_0 = 0x0;
 	sdrc_block_contents.actim_ctrla_0 =
-			sdrc_read_reg(SDRC_ACTIM_CTRL_A_0);
+		sdrc_read_reg(SDRC_ACTIM_CTRL_A_0);
 	sdrc_block_contents.actim_ctrlb_0 =
-			sdrc_read_reg(SDRC_ACTIM_CTRL_B_0);
+		sdrc_read_reg(SDRC_ACTIM_CTRL_B_0);
 	sdrc_block_contents.rfr_ctrl_0 =
-			sdrc_read_reg(SDRC_RFR_CTRL_0);
+		sdrc_read_reg(SDRC_RFR_CTRL_0);
 	sdrc_block_contents.cs_1 = 0x0;
 	sdrc_block_contents.mcfg_1 = sdrc_read_reg(SDRC_MCFG_1);
 	sdrc_block_contents.mr_1 = sdrc_read_reg(SDRC_MR_1) & 0xFFFF;
@@ -385,11 +402,11 @@ void omap3_save_scratchpad_contents(void)
 	sdrc_block_contents.emr_2_1 = 0x0;
 	sdrc_block_contents.emr_3_1 = 0x0;
 	sdrc_block_contents.actim_ctrla_1 =
-			sdrc_read_reg(SDRC_ACTIM_CTRL_A_1);
+		sdrc_read_reg(SDRC_ACTIM_CTRL_A_1);
 	sdrc_block_contents.actim_ctrlb_1 =
-			sdrc_read_reg(SDRC_ACTIM_CTRL_B_1);
+		sdrc_read_reg(SDRC_ACTIM_CTRL_B_1);
 	sdrc_block_contents.rfr_ctrl_1 =
-			sdrc_read_reg(SDRC_RFR_CTRL_1);
+		sdrc_read_reg(SDRC_RFR_CTRL_1);
 	sdrc_block_contents.dcdl_1_ctrl = 0x0;
 	sdrc_block_contents.dcdl_2_ctrl = 0x0;
 	sdrc_block_contents.flags = 0x0;
@@ -400,21 +417,21 @@ void omap3_save_scratchpad_contents(void)
 	/* Copy all the contents to the scratchpad location */
 	scratchpad_address = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD);
 	memcpy_toio(scratchpad_address, &scratchpad_contents,
-		 sizeof(scratchpad_contents));
+				sizeof(scratchpad_contents));
 	/* Scratchpad contents being 32 bits, a divide by 4 done here */
 	memcpy_toio(scratchpad_address +
-		scratchpad_contents.prcm_block_offset,
-		&prcm_block_contents, sizeof(prcm_block_contents));
+				scratchpad_contents.prcm_block_offset,
+				&prcm_block_contents, sizeof(prcm_block_contents));
 	memcpy_toio(scratchpad_address +
-		scratchpad_contents.sdrc_block_offset,
-		&sdrc_block_contents, sizeof(sdrc_block_contents));
+				scratchpad_contents.sdrc_block_offset,
+				&sdrc_block_contents, sizeof(sdrc_block_contents));
 	/*
 	 * Copies the address of the location in SDRAM where ARM
 	 * registers get saved during a MPU OFF transition.
 	 */
 	memcpy_toio(scratchpad_address +
-		scratchpad_contents.sdrc_block_offset +
-		sizeof(sdrc_block_contents), &arm_context_addr, 4);
+				scratchpad_contents.sdrc_block_offset +
+				sizeof(sdrc_block_contents), &arm_context_addr, 4);
 }
 
 void omap3_control_save_context(void)
@@ -422,28 +439,28 @@ void omap3_control_save_context(void)
 	control_context.sysconfig = omap_ctrl_readl(OMAP2_CONTROL_SYSCONFIG);
 	control_context.devconf0 = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
 	control_context.mem_dftrw0 =
-			omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW0);
+		omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW0);
 	control_context.mem_dftrw1 =
-			omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW1);
+		omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW1);
 	control_context.msuspendmux_0 =
-			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_0);
+		omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_0);
 	control_context.msuspendmux_1 =
-			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_1);
+		omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_1);
 	control_context.msuspendmux_2 =
-			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_2);
+		omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_2);
 	control_context.msuspendmux_3 =
-			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_3);
+		omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_3);
 	control_context.msuspendmux_4 =
-			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_4);
+		omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_4);
 	control_context.msuspendmux_5 =
-			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_5);
+		omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_5);
 	control_context.sec_ctrl = omap_ctrl_readl(OMAP2_CONTROL_SEC_CTRL);
 	control_context.devconf1 = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
 	control_context.csirxfe = omap_ctrl_readl(OMAP343X_CONTROL_CSIRXFE);
 	control_context.iva2_bootaddr =
-			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTADDR);
+		omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTADDR);
 	control_context.iva2_bootmod =
-			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTMOD);
+		omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTMOD);
 	control_context.wkup_ctrl = omap_ctrl_readl(OMAP34XX_CONTROL_WKUP_CTRL);
 	control_context.debobs_0 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(0));
 	control_context.debobs_1 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(1));
@@ -457,17 +474,17 @@ void omap3_control_save_context(void)
 	control_context.prog_io0 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO0);
 	control_context.prog_io1 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
 	control_context.dss_dpll_spreading =
-			omap_ctrl_readl(OMAP343X_CONTROL_DSS_DPLL_SPREADING);
+		omap_ctrl_readl(OMAP343X_CONTROL_DSS_DPLL_SPREADING);
 	control_context.core_dpll_spreading =
-			omap_ctrl_readl(OMAP343X_CONTROL_CORE_DPLL_SPREADING);
+		omap_ctrl_readl(OMAP343X_CONTROL_CORE_DPLL_SPREADING);
 	control_context.per_dpll_spreading =
-			omap_ctrl_readl(OMAP343X_CONTROL_PER_DPLL_SPREADING);
+		omap_ctrl_readl(OMAP343X_CONTROL_PER_DPLL_SPREADING);
 	control_context.usbhost_dpll_spreading =
 		omap_ctrl_readl(OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
 	control_context.pbias_lite =
-			omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
+		omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
 	control_context.temp_sensor =
-			omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
+		omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
 	control_context.sramldo4 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO4);
 	control_context.sramldo5 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO5);
 	control_context.csi = omap_ctrl_readl(OMAP343X_CONTROL_CSI);
@@ -480,28 +497,28 @@ void omap3_control_restore_context(void)
 	omap_ctrl_writel(control_context.sysconfig, OMAP2_CONTROL_SYSCONFIG);
 	omap_ctrl_writel(control_context.devconf0, OMAP2_CONTROL_DEVCONF0);
 	omap_ctrl_writel(control_context.mem_dftrw0,
-					OMAP343X_CONTROL_MEM_DFTRW0);
+					 OMAP343X_CONTROL_MEM_DFTRW0);
 	omap_ctrl_writel(control_context.mem_dftrw1,
-					OMAP343X_CONTROL_MEM_DFTRW1);
+					 OMAP343X_CONTROL_MEM_DFTRW1);
 	omap_ctrl_writel(control_context.msuspendmux_0,
-					OMAP2_CONTROL_MSUSPENDMUX_0);
+					 OMAP2_CONTROL_MSUSPENDMUX_0);
 	omap_ctrl_writel(control_context.msuspendmux_1,
-					OMAP2_CONTROL_MSUSPENDMUX_1);
+					 OMAP2_CONTROL_MSUSPENDMUX_1);
 	omap_ctrl_writel(control_context.msuspendmux_2,
-					OMAP2_CONTROL_MSUSPENDMUX_2);
+					 OMAP2_CONTROL_MSUSPENDMUX_2);
 	omap_ctrl_writel(control_context.msuspendmux_3,
-					OMAP2_CONTROL_MSUSPENDMUX_3);
+					 OMAP2_CONTROL_MSUSPENDMUX_3);
 	omap_ctrl_writel(control_context.msuspendmux_4,
-					OMAP2_CONTROL_MSUSPENDMUX_4);
+					 OMAP2_CONTROL_MSUSPENDMUX_4);
 	omap_ctrl_writel(control_context.msuspendmux_5,
-					OMAP2_CONTROL_MSUSPENDMUX_5);
+					 OMAP2_CONTROL_MSUSPENDMUX_5);
 	omap_ctrl_writel(control_context.sec_ctrl, OMAP2_CONTROL_SEC_CTRL);
 	omap_ctrl_writel(control_context.devconf1, OMAP343X_CONTROL_DEVCONF1);
 	omap_ctrl_writel(control_context.csirxfe, OMAP343X_CONTROL_CSIRXFE);
 	omap_ctrl_writel(control_context.iva2_bootaddr,
-					OMAP343X_CONTROL_IVA2_BOOTADDR);
+					 OMAP343X_CONTROL_IVA2_BOOTADDR);
 	omap_ctrl_writel(control_context.iva2_bootmod,
-					OMAP343X_CONTROL_IVA2_BOOTMOD);
+					 OMAP343X_CONTROL_IVA2_BOOTMOD);
 	omap_ctrl_writel(control_context.wkup_ctrl, OMAP34XX_CONTROL_WKUP_CTRL);
 	omap_ctrl_writel(control_context.debobs_0, OMAP343X_CONTROL_DEBOBS(0));
 	omap_ctrl_writel(control_context.debobs_1, OMAP343X_CONTROL_DEBOBS(1));
@@ -515,28 +532,31 @@ void omap3_control_restore_context(void)
 	omap_ctrl_writel(control_context.prog_io0, OMAP343X_CONTROL_PROG_IO0);
 	omap_ctrl_writel(control_context.prog_io1, OMAP343X_CONTROL_PROG_IO1);
 	omap_ctrl_writel(control_context.dss_dpll_spreading,
-					OMAP343X_CONTROL_DSS_DPLL_SPREADING);
+					 OMAP343X_CONTROL_DSS_DPLL_SPREADING);
 	omap_ctrl_writel(control_context.core_dpll_spreading,
-					OMAP343X_CONTROL_CORE_DPLL_SPREADING);
+					 OMAP343X_CONTROL_CORE_DPLL_SPREADING);
 	omap_ctrl_writel(control_context.per_dpll_spreading,
-					OMAP343X_CONTROL_PER_DPLL_SPREADING);
+					 OMAP343X_CONTROL_PER_DPLL_SPREADING);
 	omap_ctrl_writel(control_context.usbhost_dpll_spreading,
-				OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
+					 OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
 	omap_ctrl_writel(control_context.pbias_lite,
-					OMAP343X_CONTROL_PBIAS_LITE);
+					 OMAP343X_CONTROL_PBIAS_LITE);
 	omap_ctrl_writel(control_context.temp_sensor,
-					OMAP343X_CONTROL_TEMP_SENSOR);
+					 OMAP343X_CONTROL_TEMP_SENSOR);
 	omap_ctrl_writel(control_context.sramldo4, OMAP343X_CONTROL_SRAMLDO4);
 	omap_ctrl_writel(control_context.sramldo5, OMAP343X_CONTROL_SRAMLDO5);
 	omap_ctrl_writel(control_context.csi, OMAP343X_CONTROL_CSI);
 	omap_ctrl_writel(control_context.padconf_sys_nirq,
-			 OMAP343X_CONTROL_PADCONF_SYSNIRQ);
+					 OMAP343X_CONTROL_PADCONF_SYSNIRQ);
 }
 
 void omap3630_ctrl_disable_rta(void)
 {
 	if (!cpu_is_omap3630())
+	{
 		return;
+	}
+
 	omap_ctrl_writel(OMAP36XX_RTA_DISABLE, OMAP36XX_CONTROL_MEM_RTA_CTRL);
 }
 
@@ -561,8 +581,10 @@ int omap3_ctrl_save_padconf(void)
 
 	/* wait for the save to complete */
 	while (!(omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
-		 & PADCONF_SAVE_DONE))
+			 & PADCONF_SAVE_DONE))
+	{
 		udelay(1);
+	}
 
 	return 0;
 }
@@ -576,7 +598,7 @@ int omap3_ctrl_save_padconf(void)
 static void __init omap3_ctrl_set_iva_bootmode_idle(void)
 {
 	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
-			 OMAP343X_CONTROL_IVA2_BOOTMOD);
+					 OMAP343X_CONTROL_IVA2_BOOTMOD);
 }
 
 /**
@@ -621,21 +643,25 @@ void __init omap3_ctrl_init(void)
 }
 #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
 
-struct control_init_data {
+struct control_init_data
+{
 	int index;
 	s16 offset;
 };
 
-static struct control_init_data ctrl_data = {
+static struct control_init_data ctrl_data =
+{
 	.index = TI_CLKM_CTRL,
 };
 
-static const struct control_init_data omap2_ctrl_data = {
+static const struct control_init_data omap2_ctrl_data =
+{
 	.index = TI_CLKM_CTRL,
 	.offset = -OMAP2_CONTROL_GENERAL,
 };
 
-static const struct of_device_id omap_scrm_dt_match_table[] = {
+static const struct of_device_id omap_scrm_dt_match_table[] =
+{
 	{ .compatible = "ti,am3-scm", .data = &ctrl_data },
 	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
 	{ .compatible = "ti,omap2-scm", .data = &omap2_ctrl_data },
@@ -661,12 +687,16 @@ int __init omap2_control_base_init(void)
 	const struct of_device_id *match;
 	struct control_init_data *data;
 
-	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match) {
+	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match)
+	{
 		data = (struct control_init_data *)match->data;
 
 		omap2_ctrl_base = of_iomap(np, 0);
+
 		if (!omap2_ctrl_base)
+		{
 			return -ENOMEM;
+		}
 
 		omap2_ctrl_offset = data->offset;
 	}
@@ -688,7 +718,8 @@ int __init omap_control_init(void)
 	int ret;
 	struct regmap *syscon;
 
-	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match) {
+	for_each_matching_node_and_match(np, omap_scrm_dt_match_table, &match)
+	{
 		data = match->data;
 
 		/*
@@ -697,25 +728,37 @@ int __init omap_control_init(void)
 		 */
 		scm_conf = of_get_child_by_name(np, "scm_conf");
 
-		if (scm_conf) {
+		if (scm_conf)
+		{
 			syscon = syscon_node_to_regmap(scm_conf);
 
 			if (IS_ERR(syscon))
+			{
 				return PTR_ERR(syscon);
-
-			if (of_get_child_by_name(scm_conf, "clocks")) {
-				ret = omap2_clk_provider_init(scm_conf,
-							      data->index,
-							      syscon, NULL);
-				if (ret)
-					return ret;
 			}
-		} else {
+
+			if (of_get_child_by_name(scm_conf, "clocks"))
+			{
+				ret = omap2_clk_provider_init(scm_conf,
+											  data->index,
+											  syscon, NULL);
+
+				if (ret)
+				{
+					return ret;
+				}
+			}
+		}
+		else
+		{
 			/* No scm_conf found, direct access */
 			ret = omap2_clk_provider_init(np, data->index, NULL,
-						      omap2_ctrl_base);
+										  omap2_ctrl_base);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 	}
 

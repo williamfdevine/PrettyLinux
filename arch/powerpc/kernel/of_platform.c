@@ -43,20 +43,26 @@ static int of_pci_phb_probe(struct platform_device *dev)
 
 	/* Check if we can do that ... */
 	if (ppc_md.pci_setup_phb == NULL)
+	{
 		return -ENODEV;
+	}
 
 	pr_info("Setting up PCI bus %s\n", dev->dev.of_node->full_name);
 
 	/* Alloc and setup PHB data structure */
 	phb = pcibios_alloc_controller(dev->dev.of_node);
+
 	if (!phb)
+	{
 		return -ENODEV;
+	}
 
 	/* Setup parent in sysfs */
 	phb->parent = &dev->dev;
 
 	/* Setup the PHB using arch provided callback */
-	if (ppc_md.pci_setup_phb(phb)) {
+	if (ppc_md.pci_setup_phb(phb))
+	{
 		pcibios_free_controller(phb);
 		return -ENODEV;
 	}
@@ -72,12 +78,17 @@ static int of_pci_phb_probe(struct platform_device *dev)
 
 	/* Register devices with EEH */
 	if (dev->dev.of_node->child)
+	{
 		eeh_add_device_tree_early(PCI_DN(dev->dev.of_node));
+	}
 
 	/* Scan the bus */
 	pcibios_scan_phb(phb);
+
 	if (phb->bus == NULL)
+	{
 		return -ENXIO;
+	}
 
 	/* Claim resources. This might need some rework as well depending
 	 * whether we are doing probe-only or not, like assigning unassigned
@@ -97,7 +108,8 @@ static int of_pci_phb_probe(struct platform_device *dev)
 	return 0;
 }
 
-static const struct of_device_id of_pci_phb_ids[] = {
+static const struct of_device_id of_pci_phb_ids[] =
+{
 	{ .type = "pci", },
 	{ .type = "pcix", },
 	{ .type = "pcie", },
@@ -106,7 +118,8 @@ static const struct of_device_id of_pci_phb_ids[] = {
 	{}
 };
 
-static struct platform_driver of_pci_phb_driver = {
+static struct platform_driver of_pci_phb_driver =
+{
 	.probe = of_pci_phb_probe,
 	.driver = {
 		.name = "of-pci",

@@ -30,7 +30,8 @@
 #include <linux/device.h>
 #include <linux/spinlock.h>
 
-struct fsl_lbc_bank {
+struct fsl_lbc_bank
+{
 	__be32 br;             /**< Base Register  */
 #define BR_BA           0xFFFF8000
 #define BR_BA_SHIFT             15
@@ -100,7 +101,8 @@ struct fsl_lbc_bank {
 #define OR_GPCM_AM_SHIFT		15
 };
 
-struct fsl_lbc_regs {
+struct fsl_lbc_regs
+{
 	struct fsl_lbc_bank bank[12];
 	u8 res0[0x8];
 	__be32 mar;             /**< UPM Address Register */
@@ -135,8 +137,8 @@ struct fsl_lbc_regs {
 #define LTESR_CC   0x00000001
 #define LTESR_NAND_MASK (LTESR_FCT | LTESR_PAR | LTESR_CC)
 #define LTESR_MASK      (LTESR_BM | LTESR_FCT | LTESR_PAR | LTESR_WP \
-			 | LTESR_ATMW | LTESR_ATMR | LTESR_CS | LTESR_UPM \
-			 | LTESR_CC)
+						 | LTESR_ATMW | LTESR_ATMR | LTESR_CS | LTESR_UPM \
+						 | LTESR_CC)
 #define LTESR_CLEAR	0xFFFFFFFF
 #define LTECCR_CLEAR	0xFFFFFFFF
 #define LTESR_STATUS	LTESR_MASK
@@ -246,7 +248,8 @@ struct fsl_lbc_regs {
 /*
  * FSL UPM routines
  */
-struct fsl_upm {
+struct fsl_upm
+{
 	__be32 __iomem *mxmr;
 	int width;
 };
@@ -279,12 +282,15 @@ static inline void fsl_upm_end_pattern(struct fsl_upm *upm)
 	clrbits32(upm->mxmr, MxMR_OP_RP);
 
 	while (in_be32(upm->mxmr) & MxMR_OP_RP)
+	{
 		cpu_relax();
+	}
 }
 
 /* overview of the fsl lbc controller */
 
-struct fsl_lbc_ctrl {
+struct fsl_lbc_ctrl
+{
 	/* device info */
 	struct device			*dev;
 	struct fsl_lbc_regs __iomem	*regs;
@@ -303,7 +309,7 @@ struct fsl_lbc_ctrl {
 };
 
 extern int fsl_upm_run_pattern(struct fsl_upm *upm, void __iomem *io_base,
-			       u32 mar);
+							   u32 mar);
 extern struct fsl_lbc_ctrl *fsl_lbc_ctrl_dev;
 
 #endif /* __ASM_FSL_LBC_H */

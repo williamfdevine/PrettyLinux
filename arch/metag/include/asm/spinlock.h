@@ -5,9 +5,9 @@
 #include <asm/processor.h>
 
 #ifdef CONFIG_METAG_ATOMICITY_LOCK1
-#include <asm/spinlock_lock1.h>
+	#include <asm/spinlock_lock1.h>
 #else
-#include <asm/spinlock_lnkget.h>
+	#include <asm/spinlock_lnkget.h>
 #endif
 
 /*

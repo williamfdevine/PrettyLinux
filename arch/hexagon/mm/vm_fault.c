@@ -60,60 +60,96 @@ void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
 	 * then must not take the fault.
 	 */
 	if (unlikely(in_interrupt() || !mm))
+	{
 		goto no_context;
+	}
 
 	local_irq_enable();
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 retry:
 	down_read(&mm->mmap_sem);
 	vma = find_vma(mm, address);
+
 	if (!vma)
+	{
 		goto bad_area;
+	}
 
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
 
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
+	}
 
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
 
 good_area:
 	/* Address space is OK.  Now check access rights. */
 	si_code = SEGV_ACCERR;
 
-	switch (cause) {
-	case FLT_IFETCH:
-		if (!(vma->vm_flags & VM_EXEC))
-			goto bad_area;
-		break;
-	case FLT_LOAD:
-		if (!(vma->vm_flags & VM_READ))
-			goto bad_area;
-		break;
-	case FLT_STORE:
-		if (!(vma->vm_flags & VM_WRITE))
-			goto bad_area;
-		flags |= FAULT_FLAG_WRITE;
-		break;
+	switch (cause)
+	{
+		case FLT_IFETCH:
+			if (!(vma->vm_flags & VM_EXEC))
+			{
+				goto bad_area;
+			}
+
+			break;
+
+		case FLT_LOAD:
+			if (!(vma->vm_flags & VM_READ))
+			{
+				goto bad_area;
+			}
+
+			break;
+
+		case FLT_STORE:
+			if (!(vma->vm_flags & VM_WRITE))
+			{
+				goto bad_area;
+			}
+
+			flags |= FAULT_FLAG_WRITE;
+			break;
 	}
 
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return;
+	}
 
 	/* The most common case -- we are done. */
-	if (likely(!(fault & VM_FAULT_ERROR))) {
-		if (flags & FAULT_FLAG_ALLOW_RETRY) {
+	if (likely(!(fault & VM_FAULT_ERROR)))
+	{
+		if (flags & FAULT_FLAG_ALLOW_RETRY)
+		{
 			if (fault & VM_FAULT_MAJOR)
+			{
 				current->maj_flt++;
+			}
 			else
+			{
 				current->min_flt++;
-			if (fault & VM_FAULT_RETRY) {
+			}
+
+			if (fault & VM_FAULT_RETRY)
+			{
 				flags &= ~FAULT_FLAG_ALLOW_RETRY;
 				flags |= FAULT_FLAG_TRIED;
 				goto retry;
@@ -128,9 +164,12 @@ good_area:
 
 	/* Handle copyin/out exception cases */
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
 
-	if (fault & VM_FAULT_OOM) {
+	if (fault & VM_FAULT_OOM)
+	{
 		pagefault_out_of_memory();
 		return;
 	}
@@ -138,15 +177,18 @@ good_area:
 	/* User-mode address is in the memory map, but we are
 	 * unable to fix up the page fault.
 	 */
-	if (fault & VM_FAULT_SIGBUS) {
+	if (fault & VM_FAULT_SIGBUS)
+	{
 		info.si_signo = SIGBUS;
 		info.si_code = BUS_ADRERR;
 	}
 	/* Address is not in the memory map */
-	else {
+	else
+	{
 		info.si_signo = SIGSEGV;
 		info.si_code = SEGV_ACCERR;
 	}
+
 	info.si_errno = 0;
 	info.si_addr = (void __user *)address;
 	force_sig_info(info.si_signo, &info, current);
@@ -155,7 +197,8 @@ good_area:
 bad_area:
 	up_read(&mm->mmap_sem);
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		info.si_signo = SIGSEGV;
 		info.si_errno = 0;
 		info.si_code = si_code;
@@ -163,11 +206,14 @@ bad_area:
 		force_sig_info(info.si_signo, &info, current);
 		return;
 	}
+
 	/* Kernel-mode fault falls through */
 
 no_context:
 	fixup = search_exception_tables(pt_elr(regs));
-	if (fixup) {
+
+	if (fixup)
+	{
 		pt_set_elr(regs, fixup->fixup);
 		return;
 	}
@@ -175,7 +221,7 @@ no_context:
 	/* Things are looking very, very bad now */
 	bust_spinlocks(1);
 	printk(KERN_EMERG "Unable to handle kernel paging request at "
-		"virtual address 0x%08lx, regs %p\n", address, regs);
+		   "virtual address 0x%08lx, regs %p\n", address, regs);
 	die("Bad Kernel VA", regs, SIGKILL);
 }
 

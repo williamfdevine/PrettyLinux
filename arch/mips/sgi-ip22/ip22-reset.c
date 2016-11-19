@@ -57,7 +57,8 @@ static void __noreturn sgi_machine_power_off(void)
 	hpc3c0->rtcregs[RTC_WSEC] = 0;
 	hpc3c0->rtcregs[RTC_WHSEC] = 0;
 
-	while (1) {
+	while (1)
+	{
 		sgioc->panel = ~SGIOC_PANEL_POWERON;
 		/* Good bye cruel world ...  */
 
@@ -70,15 +71,22 @@ static void __noreturn sgi_machine_power_off(void)
 static void __noreturn sgi_machine_restart(char *command)
 {
 	if (machine_state & MACHINE_SHUTTING_DOWN)
+	{
 		sgi_machine_power_off();
+	}
+
 	sgimc->cpuctrl0 |= SGIMC_CCTRL0_SYSINIT;
+
 	while (1);
 }
 
 static void __noreturn sgi_machine_halt(void)
 {
 	if (machine_state & MACHINE_SHUTTING_DOWN)
+	{
 		sgi_machine_power_off();
+	}
+
 	ArcEnterInteractiveMode();
 }
 
@@ -90,7 +98,7 @@ static void power_timeout(unsigned long data)
 static void blink_timeout(unsigned long data)
 {
 	/* XXX fix this for fullhouse  */
-	sgi_ioc_reset ^= (SGIOC_RESET_LC0OFF|SGIOC_RESET_LC1OFF);
+	sgi_ioc_reset ^= (SGIOC_RESET_LC0OFF | SGIOC_RESET_LC1OFF);
 	sgioc->reset = sgi_ioc_reset;
 
 	mod_timer(&blink_timer, jiffies + data);
@@ -99,20 +107,24 @@ static void blink_timeout(unsigned long data)
 static void debounce(unsigned long data)
 {
 	del_timer(&debounce_timer);
-	if (sgint->istat1 & SGINT_ISTAT1_PWR) {
+
+	if (sgint->istat1 & SGINT_ISTAT1_PWR)
+	{
 		/* Interrupt still being sent. */
 		debounce_timer.expires = jiffies + (HZ / 20); /* 0.05s	*/
 		add_timer(&debounce_timer);
 
 		sgioc->panel = SGIOC_PANEL_POWERON | SGIOC_PANEL_POWERINTR |
-			       SGIOC_PANEL_VOLDNINTR | SGIOC_PANEL_VOLDNHOLD |
-			       SGIOC_PANEL_VOLUPINTR | SGIOC_PANEL_VOLUPHOLD;
+					   SGIOC_PANEL_VOLDNINTR | SGIOC_PANEL_VOLDNHOLD |
+					   SGIOC_PANEL_VOLUPINTR | SGIOC_PANEL_VOLUPHOLD;
 
 		return;
 	}
 
 	if (machine_state & MACHINE_PANICED)
+	{
 		sgimc->cpuctrl0 |= SGIMC_CCTRL0_SYSINIT;
+	}
 
 	enable_irq(SGI_PANEL_IRQ);
 }
@@ -120,10 +132,13 @@ static void debounce(unsigned long data)
 static inline void power_button(void)
 {
 	if (machine_state & MACHINE_PANICED)
+	{
 		return;
+	}
 
 	if ((machine_state & MACHINE_SHUTTING_DOWN) ||
-			kill_cad_pid(SIGINT, 1)) {
+		kill_cad_pid(SIGINT, 1))
+	{
 		/* No init process or button pressed twice.  */
 		sgi_machine_power_off();
 	}
@@ -145,7 +160,8 @@ static irqreturn_t panel_int(int irq, void *dev_id)
 	buttons = sgioc->panel;
 	sgioc->panel = SGIOC_PANEL_POWERON | SGIOC_PANEL_POWERINTR;
 
-	if (sgint->istat1 & SGINT_ISTAT1_PWR) {
+	if (sgint->istat1 & SGINT_ISTAT1_PWR)
+	{
 		/* Wait until interrupt goes away */
 		disable_irq_nosync(SGI_PANEL_IRQ);
 		init_timer(&debounce_timer);
@@ -160,16 +176,21 @@ static irqreturn_t panel_int(int irq, void *dev_id)
 	 * for volume control". This is not true, all bits are pulled high
 	 * on fullhouse */
 	if (!(buttons & SGIOC_PANEL_POWERINTR))
+	{
 		power_button();
+	}
 
 	return IRQ_HANDLED;
 }
 
 static int panic_event(struct notifier_block *this, unsigned long event,
-		      void *ptr)
+					   void *ptr)
 {
 	if (machine_state & MACHINE_PANICED)
+	{
 		return NOTIFY_DONE;
+	}
+
 	machine_state |= MACHINE_PANICED;
 
 	blink_timer.data = PANIC_FREQ;
@@ -178,7 +199,8 @@ static int panic_event(struct notifier_block *this, unsigned long event,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block panic_block = {
+static struct notifier_block panic_block =
+{
 	.notifier_call	= panic_event,
 };
 
@@ -191,7 +213,9 @@ static int __init reboot_setup(void)
 	pm_power_off = sgi_machine_power_off;
 
 	res = request_irq(SGI_PANEL_IRQ, panel_int, 0, "Front Panel", NULL);
-	if (res) {
+
+	if (res)
+	{
 		printk(KERN_ERR "Allocation of front panel IRQ failed\n");
 		return res;
 	}

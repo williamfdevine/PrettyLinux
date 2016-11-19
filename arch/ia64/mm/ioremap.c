@@ -26,8 +26,12 @@ early_ioremap (unsigned long phys_addr, unsigned long size)
 {
 	u64 attr;
 	attr = kern_mem_attribute(phys_addr, size);
+
 	if (attr & EFI_MEMORY_WB)
+	{
 		return (void __iomem *) phys_to_virt(phys_addr);
+	}
+
 	return __ioremap_uc(phys_addr);
 }
 
@@ -48,10 +52,15 @@ ioremap (unsigned long phys_addr, unsigned long size)
 	 * Documentation/ia64/aliasing.txt.
 	 */
 	attr = kern_mem_attribute(phys_addr, size);
+
 	if (attr & EFI_MEMORY_WB)
+	{
 		return (void __iomem *) phys_to_virt(phys_addr);
+	}
 	else if (attr & EFI_MEMORY_UC)
+	{
 		return __ioremap_uc(phys_addr);
+	}
 
 	/*
 	 * Some chipsets don't support UC access to memory.  If
@@ -59,8 +68,11 @@ ioremap (unsigned long phys_addr, unsigned long size)
 	 */
 	gran_base = GRANULEROUNDDOWN(phys_addr);
 	gran_size = GRANULEROUNDUP(phys_addr + size) - gran_base;
+
 	if (efi_mem_attribute(gran_base, gran_size) & EFI_MEMORY_WB)
+	{
 		return (void __iomem *) phys_to_virt(phys_addr);
+	}
 
 	/*
 	 * WB is not supported for the whole granule, so we can't use
@@ -70,7 +82,9 @@ ioremap (unsigned long phys_addr, unsigned long size)
 	 */
 	page_base = phys_addr & PAGE_MASK;
 	size = PAGE_ALIGN(phys_addr + size) - page_base;
-	if (efi_mem_attribute(page_base, size) & EFI_MEMORY_WB) {
+
+	if (efi_mem_attribute(page_base, size) & EFI_MEMORY_WB)
+	{
 		prot = PAGE_KERNEL;
 
 		/*
@@ -83,13 +97,18 @@ ioremap (unsigned long phys_addr, unsigned long size)
 		 * Ok, go for it..
 		 */
 		area = get_vm_area(size, VM_IOREMAP);
+
 		if (!area)
+		{
 			return NULL;
+		}
 
 		area->phys_addr = phys_addr;
 		addr = (void __iomem *) area->addr;
+
 		if (ioremap_page_range((unsigned long) addr,
-				(unsigned long) addr + size, phys_addr, prot)) {
+							   (unsigned long) addr + size, phys_addr, prot))
+		{
 			vunmap((void __force *) addr);
 			return NULL;
 		}
@@ -105,7 +124,9 @@ void __iomem *
 ioremap_nocache (unsigned long phys_addr, unsigned long size)
 {
 	if (kern_mem_attribute(phys_addr, size) & EFI_MEMORY_WB)
+	{
 		return NULL;
+	}
 
 	return __ioremap_uc(phys_addr);
 }
@@ -120,6 +141,8 @@ void
 iounmap (volatile void __iomem *addr)
 {
 	if (REGION_NUMBER(addr) == RGN_GATE)
+	{
 		vunmap((void *) ((unsigned long) addr & PAGE_MASK));
+	}
 }
 EXPORT_SYMBOL(iounmap);

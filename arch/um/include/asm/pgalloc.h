@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
  * Copyright 2003 PathScale, Inc.
  * Derived from include/asm-i386/pgalloc.h and include/asm-i386/pgtable.h
@@ -15,8 +15,8 @@
 
 #define pmd_populate(mm, pmd, pte) 				\
 	set_pmd(pmd, __pmd(_PAGE_TABLE +			\
-		((unsigned long long)page_to_pfn(pte) <<	\
-			(unsigned long long) PAGE_SHIFT)))
+					   ((unsigned long long)page_to_pfn(pte) <<	\
+						(unsigned long long) PAGE_SHIFT)))
 #define pmd_pgtable(pmd) pmd_page(pmd)
 
 /*
@@ -40,10 +40,10 @@ static inline void pte_free(struct mm_struct *mm, pgtable_t pte)
 }
 
 #define __pte_free_tlb(tlb,pte, address)		\
-do {							\
-	pgtable_page_dtor(pte);				\
-	tlb_remove_page((tlb),(pte));			\
-} while (0)
+	do {							\
+		pgtable_page_dtor(pte);				\
+		tlb_remove_page((tlb),(pte));			\
+	} while (0)
 
 #ifdef CONFIG_3_LEVEL_PGTABLES
 

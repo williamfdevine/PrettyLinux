@@ -49,7 +49,8 @@ static void __init glantank_timer_init(void)
 /*
  * GLAN Tank I/O.
  */
-static struct map_desc glantank_io_desc[] __initdata = {
+static struct map_desc glantank_io_desc[] __initdata =
+{
 	{	/* on-board devices */
 		.virtual	= GLANTANK_UART,
 		.pfn		= __phys_to_pfn(GLANTANK_UART),
@@ -76,7 +77,8 @@ void __init glantank_map_io(void)
 static int __init
 glantank_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static int pci_irq_table[][4] = {
+	static int pci_irq_table[][4] =
+	{
 		/*
 		 * PCI IDSEL/INTPIN->INTLINE
 		 * A       B       C       D
@@ -92,7 +94,8 @@ glantank_pci_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	return pci_irq_table[slot % 4][pin - 1];
 }
 
-static struct hw_pci glantank_pci __initdata = {
+static struct hw_pci glantank_pci __initdata =
+{
 	.nr_controllers = 1,
 	.ops		= &iop3xx_ops,
 	.setup		= iop3xx_pci_setup,
@@ -103,7 +106,9 @@ static struct hw_pci glantank_pci __initdata = {
 static int __init glantank_pci_init(void)
 {
 	if (machine_is_glantank())
+	{
 		pci_common_init(&glantank_pci);
+	}
 
 	return 0;
 }
@@ -114,17 +119,20 @@ subsys_initcall(glantank_pci_init);
 /*
  * GLAN Tank machine initialization.
  */
-static struct physmap_flash_data glantank_flash_data = {
+static struct physmap_flash_data glantank_flash_data =
+{
 	.width		= 2,
 };
 
-static struct resource glantank_flash_resource = {
+static struct resource glantank_flash_resource =
+{
 	.start		= 0xf0000000,
 	.end		= 0xf007ffff,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device glantank_flash_device = {
+static struct platform_device glantank_flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev		= {
@@ -134,7 +142,8 @@ static struct platform_device glantank_flash_device = {
 	.resource	= &glantank_flash_resource,
 };
 
-static struct plat_serial8250_port glantank_serial_port[] = {
+static struct plat_serial8250_port glantank_serial_port[] =
+{
 	{
 		.mapbase	= GLANTANK_UART,
 		.membase	= (char *)GLANTANK_UART,
@@ -147,13 +156,15 @@ static struct plat_serial8250_port glantank_serial_port[] = {
 	{ },
 };
 
-static struct resource glantank_uart_resource = {
+static struct resource glantank_uart_resource =
+{
 	.start		= GLANTANK_UART,
 	.end		= GLANTANK_UART + 7,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device glantank_serial_device = {
+static struct platform_device glantank_serial_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev		= {
@@ -163,12 +174,14 @@ static struct platform_device glantank_serial_device = {
 	.resource	= &glantank_uart_resource,
 };
 
-static struct f75375s_platform_data glantank_f75375s = {
+static struct f75375s_platform_data glantank_f75375s =
+{
 	.pwm		= { 255, 255 },
 	.pwm_enable	= { 0, 0 },
 };
 
-static struct i2c_board_info __initdata glantank_i2c_devices[] = {
+static struct i2c_board_info __initdata glantank_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("rs5c372a", 0x32),
 	},
@@ -197,17 +210,17 @@ static void __init glantank_init_machine(void)
 	platform_device_register(&iop3xx_dma_1_channel);
 
 	i2c_register_board_info(0, glantank_i2c_devices,
-		ARRAY_SIZE(glantank_i2c_devices));
+							ARRAY_SIZE(glantank_i2c_devices));
 
 	pm_power_off = glantank_power_off;
 }
 
 MACHINE_START(GLANTANK, "GLAN Tank")
-	/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Lennert Buytenhek <buytenh@wantstofly.org> */
+.atag_offset	= 0x100,
 	.map_io		= glantank_map_io,
-	.init_irq	= iop32x_init_irq,
-	.init_time	= glantank_timer_init,
-	.init_machine	= glantank_init_machine,
-	.restart	= iop3xx_restart,
-MACHINE_END
+		.init_irq	= iop32x_init_irq,
+		   .init_time	= glantank_timer_init,
+			 .init_machine	= glantank_init_machine,
+				.restart	= iop3xx_restart,
+					MACHINE_END

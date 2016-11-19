@@ -36,20 +36,28 @@ static inline void __iomem *ioremap_nocache(unsigned long offset,
 		unsigned long size)
 {
 	if (offset >= XCHAL_KIO_PADDR
-	    && offset - XCHAL_KIO_PADDR < XCHAL_KIO_SIZE)
-		return (void*)(offset-XCHAL_KIO_PADDR+XCHAL_KIO_BYPASS_VADDR);
+		&& offset - XCHAL_KIO_PADDR < XCHAL_KIO_SIZE)
+	{
+		return (void *)(offset - XCHAL_KIO_PADDR + XCHAL_KIO_BYPASS_VADDR);
+	}
 	else
+	{
 		return xtensa_ioremap_nocache(offset, size);
+	}
 }
 
 static inline void __iomem *ioremap_cache(unsigned long offset,
 		unsigned long size)
 {
 	if (offset >= XCHAL_KIO_PADDR
-	    && offset - XCHAL_KIO_PADDR < XCHAL_KIO_SIZE)
-		return (void*)(offset-XCHAL_KIO_PADDR+XCHAL_KIO_CACHED_VADDR);
+		&& offset - XCHAL_KIO_PADDR < XCHAL_KIO_SIZE)
+	{
+		return (void *)(offset - XCHAL_KIO_PADDR + XCHAL_KIO_CACHED_VADDR);
+	}
 	else
+	{
 		return xtensa_ioremap_cache(offset, size);
+	}
 }
 #define ioremap_cache ioremap_cache
 
@@ -66,10 +74,12 @@ static inline void iounmap(volatile void __iomem *addr)
 	unsigned long va = (unsigned long) addr;
 
 	if (!(va >= XCHAL_KIO_CACHED_VADDR &&
-	      va - XCHAL_KIO_CACHED_VADDR < XCHAL_KIO_SIZE) &&
-	    !(va >= XCHAL_KIO_BYPASS_VADDR &&
-	      va - XCHAL_KIO_BYPASS_VADDR < XCHAL_KIO_SIZE))
+		  va - XCHAL_KIO_CACHED_VADDR < XCHAL_KIO_SIZE) &&
+		!(va >= XCHAL_KIO_BYPASS_VADDR &&
+		  va - XCHAL_KIO_BYPASS_VADDR < XCHAL_KIO_SIZE))
+	{
 		xtensa_iounmap(addr);
+	}
 }
 
 #define virt_to_bus     virt_to_phys

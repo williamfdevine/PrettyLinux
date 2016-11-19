@@ -4,7 +4,8 @@
 #include <asm/ioctls.h>
 #include <asm/termbits.h>
 
-struct sgttyb {
+struct sgttyb
+{
 	char	sg_ispeed;
 	char	sg_ospeed;
 	char	sg_erase;
@@ -12,7 +13,8 @@ struct sgttyb {
 	short	sg_flags;
 };
 
-struct tchars {
+struct tchars
+{
 	char	t_intrc;
 	char	t_quitc;
 	char	t_startc;
@@ -21,7 +23,8 @@ struct tchars {
 	char	t_brkc;
 };
 
-struct ltchars {
+struct ltchars
+{
 	char	t_suspc;
 	char	t_dsuspc;
 	char	t_rprntc;
@@ -30,7 +33,8 @@ struct ltchars {
 	char	t_lnextc;
 };
 
-struct winsize {
+struct winsize
+{
 	unsigned short ws_row;
 	unsigned short ws_col;
 	unsigned short ws_xpixel;
@@ -38,7 +42,8 @@ struct winsize {
 };
 
 #define NCC 8
-struct termio {
+struct termio
+{
 	unsigned short c_iflag;		/* input mode flags */
 	unsigned short c_oflag;		/* output mode flags */
 	unsigned short c_cflag;		/* control mode flags */

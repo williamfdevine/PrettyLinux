@@ -18,9 +18,9 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
 {
 	u8 ret;
 	asm volatile("GETB %0,[%1]"
-		     : "=da" (ret)
-		     : "da" (addr)
-		     : "memory");
+				 : "=da" (ret)
+				 : "da" (addr)
+				 : "memory");
 	return ret;
 }
 
@@ -29,9 +29,9 @@ static inline u16 __raw_readw(const volatile void __iomem *addr)
 {
 	u16 ret;
 	asm volatile("GETW %0,[%1]"
-		     : "=da" (ret)
-		     : "da" (addr)
-		     : "memory");
+				 : "=da" (ret)
+				 : "da" (addr)
+				 : "memory");
 	return ret;
 }
 
@@ -40,9 +40,9 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 {
 	u32 ret;
 	asm volatile("GETD %0,[%1]"
-		     : "=da" (ret)
-		     : "da" (addr)
-		     : "memory");
+				 : "=da" (ret)
+				 : "da" (addr)
+				 : "memory");
 	return ret;
 }
 
@@ -51,9 +51,9 @@ static inline u64 __raw_readq(const volatile void __iomem *addr)
 {
 	u64 ret;
 	asm volatile("GETL %0,%t0,[%1]"
-		     : "=da" (ret)
-		     : "da" (addr)
-		     : "memory");
+				 : "=da" (ret)
+				 : "da" (addr)
+				 : "memory");
 	return ret;
 }
 
@@ -61,40 +61,40 @@ static inline u64 __raw_readq(const volatile void __iomem *addr)
 static inline void __raw_writeb(u8 b, volatile void __iomem *addr)
 {
 	asm volatile("SETB [%0],%1"
-		     :
-		     : "da" (addr),
-		       "da" (b)
-		     : "memory");
+				 :
+				 : "da" (addr),
+				 "da" (b)
+				 : "memory");
 }
 
 #define __raw_writew __raw_writew
 static inline void __raw_writew(u16 b, volatile void __iomem *addr)
 {
 	asm volatile("SETW [%0],%1"
-		     :
-		     : "da" (addr),
-		       "da" (b)
-		     : "memory");
+				 :
+				 : "da" (addr),
+				 "da" (b)
+				 : "memory");
 }
 
 #define __raw_writel __raw_writel
 static inline void __raw_writel(u32 b, volatile void __iomem *addr)
 {
 	asm volatile("SETD [%0],%1"
-		     :
-		     : "da" (addr),
-		       "da" (b)
-		     : "memory");
+				 :
+				 : "da" (addr),
+				 "da" (b)
+				 : "memory");
 }
 
 #define __raw_writeq __raw_writeq
 static inline void __raw_writeq(u64 b, volatile void __iomem *addr)
 {
 	asm volatile("SETL [%0],%1,%t1"
-		     :
-		     : "da" (addr),
-		       "da" (b)
-		     : "memory");
+				 :
+				 : "da" (addr),
+				 "da" (b)
+				 : "memory");
 }
 
 /*
@@ -134,7 +134,7 @@ static inline void __raw_writeq(u64 b, volatile void __iomem *addr)
  */
 
 extern void __iomem *__ioremap(unsigned long offset,
-			       size_t size, unsigned long flags);
+							   size_t size, unsigned long flags);
 extern void __iounmap(void __iomem *addr);
 
 /**

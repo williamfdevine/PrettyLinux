@@ -46,7 +46,8 @@
 #include "nand-core.h"
 #include "regs-dsc.h"
 
-static struct map_desc s3c244x_iodesc[] __initdata = {
+static struct map_desc s3c244x_iodesc[] __initdata =
+{
 	IODESC_ENT(CLKPWR),
 	IODESC_ENT(TIMER),
 	IODESC_ENT(WATCHDOG),
@@ -77,12 +78,14 @@ void __init s3c244x_map_io(void)
 
 /* Since the S3C2442 and S3C2440 share items, put both subsystems here */
 
-struct bus_type s3c2440_subsys = {
+struct bus_type s3c2440_subsys =
+{
 	.name		= "s3c2440-core",
 	.dev_name	= "s3c2440-core",
 };
 
-struct bus_type s3c2442_subsys = {
+struct bus_type s3c2442_subsys =
+{
 	.name		= "s3c2442-core",
 	.dev_name	= "s3c2442-core",
 };
@@ -109,7 +112,8 @@ core_initcall(s3c2442_core_init);
 
 
 #ifdef CONFIG_PM_SLEEP
-static struct sleep_save s3c244x_sleep[] = {
+static struct sleep_save s3c244x_sleep[] =
+{
 	SAVE_ITEM(S3C2440_DSC0),
 	SAVE_ITEM(S3C2440_DSC1),
 	SAVE_ITEM(S3C2440_GPJDAT),
@@ -128,7 +132,8 @@ static void s3c244x_resume(void)
 	s3c_pm_do_restore(s3c244x_sleep, ARRAY_SIZE(s3c244x_sleep));
 }
 
-struct syscore_ops s3c244x_pm_syscore_ops = {
+struct syscore_ops s3c244x_pm_syscore_ops =
+{
 	.suspend	= s3c244x_suspend,
 	.resume		= s3c244x_resume,
 };

@@ -39,7 +39,9 @@ char *strchr(const char *s, int c)
 	uint32_t v = (*p | before_mask) ^ (goal & __insn_shrib(before_mask, 1));
 
 	uint32_t zero_matches, goal_matches;
-	while (1) {
+
+	while (1)
+	{
 		/* Look for a terminating '\0'. */
 		zero_matches = __insn_seqb(v, 0);
 
@@ -47,7 +49,9 @@ char *strchr(const char *s, int c)
 		goal_matches = __insn_seqb(v, goal);
 
 		if (__builtin_expect(zero_matches | goal_matches, 0))
+		{
 			break;
+		}
 
 		v = *++p;
 	}

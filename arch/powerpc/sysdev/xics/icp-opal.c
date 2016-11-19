@@ -50,15 +50,24 @@ static unsigned int icp_opal_get_irq(void)
 	int64_t rc;
 
 	rc = opal_int_get_xirr(&xirr, false);
+
 	if (rc < 0)
+	{
 		return 0;
+	}
+
 	xirr = be32_to_cpu(xirr);
 	vec = xirr & 0x00ffffff;
+
 	if (vec == XICS_IRQ_SPURIOUS)
+	{
 		return 0;
+	}
 
 	irq = irq_find_mapping(xics_host, vec);
-	if (likely(irq)) {
+
+	if (likely(irq))
+	{
 		xics_push_cppr(vec);
 		return irq;
 	}
@@ -94,7 +103,9 @@ static void icp_opal_eoi(struct irq_data *d)
 	 * external interrupt in that case, so we force a replay.
 	 */
 	if (rc > 0)
+	{
 		force_external_irq_replay();
+	}
 }
 
 #ifdef CONFIG_SMP
@@ -117,7 +128,8 @@ static irqreturn_t icp_opal_ipi_action(int irq, void *dev_id)
 
 #endif /* CONFIG_SMP */
 
-static const struct icp_ops icp_opal_ops = {
+static const struct icp_ops icp_opal_ops =
+{
 	.get_irq	= icp_opal_get_irq,
 	.eoi		= icp_opal_eoi,
 	.set_priority	= icp_opal_set_cpu_priority,
@@ -134,8 +146,11 @@ int icp_opal_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "ibm,opal-intc");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	icp_ops = &icp_opal_ops;
 

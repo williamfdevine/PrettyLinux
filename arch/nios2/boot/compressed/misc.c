@@ -43,7 +43,7 @@ typedef unsigned char  uch;
 typedef unsigned short ush;
 typedef unsigned long  ulg;
 #define WSIZE 0x8000		/* Window size must be at least 32k, */
-				/* and a power of two */
+/* and a power of two */
 
 static uch *inbuf;		/* input buffer */
 static uch window[WSIZE];	/* Sliding window buffer */
@@ -65,19 +65,19 @@ static unsigned outcnt;	/* bytes in output buffer */
 #define get_byte()  (inptr < insize ? inbuf[inptr++] : fill_inbuf())
 
 #ifdef DEBUG
-#  define Assert(cond, msg) {if (!(cond)) error(msg); }
-#  define Trace(x) fprintf x
-#  define Tracev(x) {if (verbose) fprintf x ; }
-#  define Tracevv(x) {if (verbose > 1) fprintf x ; }
-#  define Tracec(c, x) {if (verbose && (c)) fprintf x ; }
-#  define Tracecv(c, x) {if (verbose > 1 && (c)) fprintf x ; }
+	#define Assert(cond, msg) {if (!(cond)) error(msg); }
+	#define Trace(x) fprintf x
+	#define Tracev(x) {if (verbose) fprintf x ; }
+	#define Tracevv(x) {if (verbose > 1) fprintf x ; }
+	#define Tracec(c, x) {if (verbose && (c)) fprintf x ; }
+	#define Tracecv(c, x) {if (verbose > 1 && (c)) fprintf x ; }
 #else
-#  define Assert(cond, msg)
-#  define Trace(x)
-#  define Tracev(x)
-#  define Tracevv(x)
-#  define Tracec(c, x)
-#  define Tracecv(c, x)
+	#define Assert(cond, msg)
+	#define Trace(x)
+	#define Tracev(x)
+	#define Tracevv(x)
+	#define Tracec(c, x)
+	#define Tracecv(c, x)
 #endif
 static int  fill_inbuf(void);
 static void flush_window(void);
@@ -110,7 +110,10 @@ void *memset(void *s, int c, size_t n)
 	char *ss = (char *)s;
 
 	for (i = 0; i < n; i++)
+	{
 		ss[i] = c;
+	}
+
 	return s;
 }
 
@@ -120,7 +123,10 @@ void *memcpy(void *__dest, __const void *__src, size_t __n)
 	char *d = (char *)__dest, *s = (char *)__src;
 
 	for (i = 0; i < __n; i++)
+	{
 		d[i] = s[i];
+	}
+
 	return __dest;
 }
 
@@ -131,7 +137,9 @@ void *memcpy(void *__dest, __const void *__src, size_t __n)
 static int fill_inbuf(void)
 {
 	if (insize != 0)
+	{
 		error("ran out of input data");
+	}
 
 	inbuf = input_data;
 	insize = input_len;
@@ -151,10 +159,13 @@ static void flush_window(void)
 
 	in = window;
 	out = &output_data[output_ptr];
-	for (n = 0; n < outcnt; n++) {
+
+	for (n = 0; n < outcnt; n++)
+	{
 		ch = *out++ = *in++;
 		c = crc_32_tab[((int)c ^ ch) & 0xff] ^ (c >> 8);
 	}
+
 	crc = c;
 	bytes_out += (ulg)outcnt;
 	output_ptr += (ulg)outcnt;
@@ -174,7 +185,7 @@ static void error(char *x)
 void decompress_kernel(void)
 {
 	output_data = (void *) (CONFIG_NIOS2_MEM_BASE |
-				CONFIG_NIOS2_KERNEL_REGION_BASE);
+							CONFIG_NIOS2_KERNEL_REGION_BASE);
 	output_ptr = 0;
 	free_mem_ptr = (unsigned long)&_end;
 	free_mem_end_ptr = free_mem_ptr + HEAP_SIZE;

@@ -21,7 +21,8 @@
 
 void kvm_reset_coprocs(struct kvm_vcpu *vcpu);
 
-struct kvm_coproc_target_table {
+struct kvm_coproc_target_table
+{
 	unsigned target;
 	const struct coproc_reg *table;
 	size_t num;

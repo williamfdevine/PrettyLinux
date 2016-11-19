@@ -30,7 +30,8 @@
  * and the pci-dma.c will take care of the rest.
  */
 
-struct iommu_table_entry {
+struct iommu_table_entry
+{
 	initcall_t	detect;
 	initcall_t	depend;
 	void		(*early_init)(void); /* No memory allocate available. */
@@ -51,9 +52,9 @@ struct iommu_table_entry {
 	static const struct iommu_table_entry				\
 		__iommu_entry_##_detect __used				\
 	__attribute__ ((unused, __section__(".iommu_table"),		\
-			aligned((sizeof(void *)))))	\
-	= {_detect, _depend, _early_init, _late_init,			\
-	   _finish ? IOMMU_FINISH_IF_DETECTED : 0}
+					aligned((sizeof(void *)))))	\
+		= {_detect, _depend, _early_init, _late_init,			\
+		   _finish ? IOMMU_FINISH_IF_DETECTED : 0}
 /*
  * The simplest IOMMU definition. Provide the detection routine
  * and it will be run after the SWIOTLB and the other IOMMUs
@@ -93,9 +94,9 @@ struct iommu_table_entry {
 	__IOMMU_INIT(_detect, _depend, _init, _late_init, 0)
 
 void sort_iommu_table(struct iommu_table_entry *start,
-		      struct iommu_table_entry *finish);
+					  struct iommu_table_entry *finish);
 
 void check_iommu_entries(struct iommu_table_entry *start,
-			 struct iommu_table_entry *finish);
+						 struct iommu_table_entry *finish);
 
 #endif /* _ASM_X86_IOMMU_TABLE_H */

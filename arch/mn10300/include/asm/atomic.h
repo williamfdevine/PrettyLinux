@@ -46,64 +46,64 @@
 #define atomic_set(v, i) WRITE_ONCE(((v)->counter), (i))
 
 #define ATOMIC_OP(op)							\
-static inline void atomic_##op(int i, atomic_t *v)			\
-{									\
-	int retval, status;						\
-									\
-	asm volatile(							\
-		"1:	mov	%4,(_AAR,%3)	\n"			\
-		"	mov	(_ADR,%3),%1	\n"			\
-		"	" #op "	%5,%1		\n"			\
-		"	mov	%1,(_ADR,%3)	\n"			\
-		"	mov	(_ADR,%3),%0	\n"	/* flush */	\
-		"	mov	(_ASR,%3),%0	\n"			\
-		"	or	%0,%0		\n"			\
-		"	bne	1b		\n"			\
-		: "=&r"(status), "=&r"(retval), "=m"(v->counter)	\
-		: "a"(ATOMIC_OPS_BASE_ADDR), "r"(&v->counter), "r"(i)	\
-		: "memory", "cc");					\
-}
+	static inline void atomic_##op(int i, atomic_t *v)			\
+	{									\
+		int retval, status;						\
+		\
+		asm volatile(							\
+												"1:	mov	%4,(_AAR,%3)	\n"			\
+												"	mov	(_ADR,%3),%1	\n"			\
+												"	" #op "	%5,%1		\n"			\
+												"	mov	%1,(_ADR,%3)	\n"			\
+												"	mov	(_ADR,%3),%0	\n"	/* flush */	\
+												"	mov	(_ASR,%3),%0	\n"			\
+												"	or	%0,%0		\n"			\
+												"	bne	1b		\n"			\
+												: "=&r"(status), "=&r"(retval), "=m"(v->counter)	\
+												: "a"(ATOMIC_OPS_BASE_ADDR), "r"(&v->counter), "r"(i)	\
+												: "memory", "cc");					\
+	}
 
 #define ATOMIC_OP_RETURN(op)						\
-static inline int atomic_##op##_return(int i, atomic_t *v)		\
-{									\
-	int retval, status;						\
-									\
-	asm volatile(							\
-		"1:	mov	%4,(_AAR,%3)	\n"			\
-		"	mov	(_ADR,%3),%1	\n"			\
-		"	" #op "	%5,%1		\n"			\
-		"	mov	%1,(_ADR,%3)	\n"			\
-		"	mov	(_ADR,%3),%0	\n"	/* flush */	\
-		"	mov	(_ASR,%3),%0	\n"			\
-		"	or	%0,%0		\n"			\
-		"	bne	1b		\n"			\
-		: "=&r"(status), "=&r"(retval), "=m"(v->counter)	\
-		: "a"(ATOMIC_OPS_BASE_ADDR), "r"(&v->counter), "r"(i)	\
-		: "memory", "cc");					\
-	return retval;							\
-}
+	static inline int atomic_##op##_return(int i, atomic_t *v)		\
+	{									\
+		int retval, status;						\
+		\
+		asm volatile(							\
+												"1:	mov	%4,(_AAR,%3)	\n"			\
+												"	mov	(_ADR,%3),%1	\n"			\
+												"	" #op "	%5,%1		\n"			\
+												"	mov	%1,(_ADR,%3)	\n"			\
+												"	mov	(_ADR,%3),%0	\n"	/* flush */	\
+												"	mov	(_ASR,%3),%0	\n"			\
+												"	or	%0,%0		\n"			\
+												"	bne	1b		\n"			\
+												: "=&r"(status), "=&r"(retval), "=m"(v->counter)	\
+												: "a"(ATOMIC_OPS_BASE_ADDR), "r"(&v->counter), "r"(i)	\
+												: "memory", "cc");					\
+		return retval;							\
+	}
 
 #define ATOMIC_FETCH_OP(op)						\
-static inline int atomic_fetch_##op(int i, atomic_t *v)			\
-{									\
-	int retval, status;						\
-									\
-	asm volatile(							\
-		"1:	mov	%4,(_AAR,%3)	\n"			\
-		"	mov	(_ADR,%3),%1	\n"			\
-		"	mov	%1,%0		\n"			\
-		"	" #op "	%5,%0		\n"			\
-		"	mov	%0,(_ADR,%3)	\n"			\
-		"	mov	(_ADR,%3),%0	\n"	/* flush */	\
-		"	mov	(_ASR,%3),%0	\n"			\
-		"	or	%0,%0		\n"			\
-		"	bne	1b		\n"			\
-		: "=&r"(status), "=&r"(retval), "=m"(v->counter)	\
-		: "a"(ATOMIC_OPS_BASE_ADDR), "r"(&v->counter), "r"(i)	\
-		: "memory", "cc");					\
-	return retval;							\
-}
+	static inline int atomic_fetch_##op(int i, atomic_t *v)			\
+	{									\
+		int retval, status;						\
+		\
+		asm volatile(							\
+												"1:	mov	%4,(_AAR,%3)	\n"			\
+												"	mov	(_ADR,%3),%1	\n"			\
+												"	mov	%1,%0		\n"			\
+												"	" #op "	%5,%0		\n"			\
+												"	mov	%0,(_ADR,%3)	\n"			\
+												"	mov	(_ADR,%3),%0	\n"	/* flush */	\
+												"	mov	(_ASR,%3),%0	\n"			\
+												"	or	%0,%0		\n"			\
+												"	bne	1b		\n"			\
+												: "=&r"(status), "=&r"(retval), "=m"(v->counter)	\
+												: "a"(ATOMIC_OPS_BASE_ADDR), "r"(&v->counter), "r"(i)	\
+												: "memory", "cc");					\
+		return retval;							\
+	}
 
 #define ATOMIC_OPS(op) ATOMIC_OP(op) ATOMIC_OP_RETURN(op) ATOMIC_FETCH_OP(op)
 
@@ -113,8 +113,8 @@ ATOMIC_OPS(sub)
 #undef ATOMIC_OPS
 #define ATOMIC_OPS(op) ATOMIC_OP(op) ATOMIC_FETCH_OP(op)
 
-ATOMIC_OPS(and)
-ATOMIC_OPS(or)
+ATOMIC_OPS( and )
+ATOMIC_OPS( or )
 ATOMIC_OPS(xor)
 
 #undef ATOMIC_OPS
@@ -145,13 +145,13 @@ static inline void atomic_dec(atomic_t *v)
 #define atomic_inc_and_test(v)		(atomic_add_return(1, (v)) == 0)
 
 #define __atomic_add_unless(v, a, u)				\
-({								\
-	int c, old;						\
-	c = atomic_read(v);					\
-	while (c != (u) && (old = atomic_cmpxchg((v), c, c + (a))) != c) \
-		c = old;					\
-	c;							\
-})
+	({								\
+		int c, old;						\
+		c = atomic_read(v);					\
+		while (c != (u) && (old = atomic_cmpxchg((v), c, c + (a))) != c) \
+			c = old;					\
+		c;							\
+	})
 
 #define atomic_xchg(ptr, v)		(xchg(&(ptr)->counter, (v)))
 #define atomic_cmpxchg(v, old, new)	(cmpxchg(&((v)->counter), (old), (new)))

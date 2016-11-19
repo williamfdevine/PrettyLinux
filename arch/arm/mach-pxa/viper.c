@@ -85,19 +85,25 @@ static void viper_icr_clear_bit(unsigned int bit)
 static void viper_cf_reset(int state)
 {
 	if (state)
+	{
 		viper_icr_set_bit(VIPER_ICR_CF_RST);
+	}
 	else
+	{
 		viper_icr_clear_bit(VIPER_ICR_CF_RST);
+	}
 }
 
-static struct arcom_pcmcia_pdata viper_pcmcia_info = {
+static struct arcom_pcmcia_pdata viper_pcmcia_info =
+{
 	.cd_gpio	= VIPER_CF_CD_GPIO,
 	.rdy_gpio	= VIPER_CF_RDY_GPIO,
 	.pwr_gpio	= VIPER_CF_POWER_GPIO,
 	.reset		= viper_cf_reset,
 };
 
-static struct platform_device viper_pcmcia_device = {
+static struct platform_device viper_pcmcia_device =
+{
 	.name		= "viper-pcmcia",
 	.id		= -1,
 	.dev		= {
@@ -145,7 +151,8 @@ static void viper_cpu_resume(void)
 	viper_icr_clear_bit(VIPER_ICR_R_DIS);
 }
 
-static struct syscore_ops viper_cpu_syscore_ops = {
+static struct syscore_ops viper_cpu_syscore_ops =
+{
 	.suspend	= viper_cpu_suspend,
 	.resume		= viper_cpu_resume,
 };
@@ -169,35 +176,52 @@ static void viper_set_core_cpu_voltage(unsigned long khz, int force)
 	unsigned int divisor = 0;
 	const char *v;
 
-	if (khz < 200000) {
+	if (khz < 200000)
+	{
 		v = "1.0"; divisor = 0xfff;
-	} else if (khz < 300000) {
+	}
+	else if (khz < 300000)
+	{
 		v = "1.1"; divisor = 0xde5;
-	} else {
+	}
+	else
+	{
 		v = "1.3"; divisor = 0x325;
 	}
 
 	pr_debug("viper: setting CPU core voltage to %sV at %d.%03dMHz\n",
-		 v, (int)khz / 1000, (int)khz % 1000);
+			 v, (int)khz / 1000, (int)khz % 1000);
 
 #define STEP 0x100
-	do {
+
+	do
+	{
 		int step;
 
 		if (force)
+		{
 			step = divisor;
+		}
 		else if (current_voltage_divisor < divisor - STEP)
+		{
 			step = current_voltage_divisor + STEP;
+		}
 		else if (current_voltage_divisor > divisor + STEP)
+		{
 			step = current_voltage_divisor - STEP;
+		}
 		else
+		{
 			step = divisor;
+		}
+
 		force = 0;
 
 		gpio_set_value(VIPER_PSU_CLK_GPIO, 0);
 		gpio_set_value(VIPER_PSU_nCS_LD_GPIO, 0);
 
-		for (i = 1 << 11 ; i > 0 ; i >>= 1) {
+		for (i = 1 << 11 ; i > 0 ; i >>= 1)
+		{
 			udelay(1);
 
 			gpio_set_value(VIPER_PSU_DATA_GPIO, step & i);
@@ -208,6 +232,7 @@ static void viper_set_core_cpu_voltage(unsigned long khz, int force)
 
 			gpio_set_value(VIPER_PSU_CLK_GPIO, 0);
 		}
+
 		udelay(1);
 
 		gpio_set_value(VIPER_PSU_nCS_LD_GPIO, 1);
@@ -216,13 +241,15 @@ static void viper_set_core_cpu_voltage(unsigned long khz, int force)
 		gpio_set_value(VIPER_PSU_nCS_LD_GPIO, 0);
 
 		current_voltage_divisor = step;
-	} while (current_voltage_divisor != divisor);
+	}
+	while (current_voltage_divisor != divisor);
 }
 
 /* Interrupt handling */
 static unsigned long viper_irq_enabled_mask;
 static const int viper_isa_irqs[] = { 3, 4, 5, 6, 7, 10, 11, 12, 9, 14, 15 };
-static const int viper_isa_irq_map[] = {
+static const int viper_isa_irq_map[] =
+{
 	0,		/* ISA irq #0, invalid */
 	0,		/* ISA irq #1, invalid */
 	0,		/* ISA irq #2, invalid */
@@ -256,9 +283,13 @@ static void viper_ack_irq(struct irq_data *d)
 	int viper_irq = viper_irq_to_bitmask(d->irq);
 
 	if (viper_irq & 0xff)
+	{
 		VIPER_LO_IRQ_STATUS = viper_irq;
+	}
 	else
+	{
 		VIPER_HI_IRQ_STATUS = (viper_irq >> 8);
+	}
 }
 
 static void viper_mask_irq(struct irq_data *d)
@@ -274,7 +305,7 @@ static void viper_unmask_irq(struct irq_data *d)
 static inline unsigned long viper_irq_pending(void)
 {
 	return (VIPER_HI_IRQ_STATUS << 8 | VIPER_LO_IRQ_STATUS) &
-			viper_irq_enabled_mask;
+		   viper_irq_enabled_mask;
 }
 
 static void viper_irq_handler(struct irq_desc *desc)
@@ -283,20 +314,26 @@ static void viper_irq_handler(struct irq_desc *desc)
 	unsigned long pending;
 
 	pending = viper_irq_pending();
-	do {
+
+	do
+	{
 		/* we're in a chained irq handler,
 		 * so ack the interrupt by hand */
 		desc->irq_data.chip->irq_ack(&desc->irq_data);
 
-		if (likely(pending)) {
+		if (likely(pending))
+		{
 			irq = viper_bit_to_irq(__ffs(pending));
 			generic_handle_irq(irq);
 		}
+
 		pending = viper_irq_pending();
-	} while (pending);
+	}
+	while (pending);
 }
 
-static struct irq_chip viper_irq_chip = {
+static struct irq_chip viper_irq_chip =
+{
 	.name		= "ISA",
 	.irq_ack	= viper_ack_irq,
 	.irq_mask	= viper_mask_irq,
@@ -311,20 +348,22 @@ static void __init viper_init_irq(void)
 	pxa25x_init_irq();
 
 	/* setup ISA IRQs */
-	for (level = 0; level < ARRAY_SIZE(viper_isa_irqs); level++) {
+	for (level = 0; level < ARRAY_SIZE(viper_isa_irqs); level++)
+	{
 		isa_irq = viper_bit_to_irq(level);
 		irq_set_chip_and_handler(isa_irq, &viper_irq_chip,
-					 handle_edge_irq);
+								 handle_edge_irq);
 		irq_clear_status_flags(isa_irq, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
 
 	irq_set_chained_handler(gpio_to_irq(VIPER_CPLD_GPIO),
-				viper_irq_handler);
+							viper_irq_handler);
 	irq_set_irq_type(gpio_to_irq(VIPER_CPLD_GPIO), IRQ_TYPE_EDGE_BOTH);
 }
 
 /* Flat Panel */
-static struct pxafb_mode_info fb_mode_info[] = {
+static struct pxafb_mode_info fb_mode_info[] =
+{
 	{
 		.pixclock	= 157500,
 
@@ -345,15 +384,17 @@ static struct pxafb_mode_info fb_mode_info[] = {
 	},
 };
 
-static struct pxafb_mach_info fb_info = {
+static struct pxafb_mach_info fb_info =
+{
 	.modes			= fb_mode_info,
 	.num_modes		= 1,
 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
 };
 
-static struct pwm_lookup viper_pwm_lookup[] = {
+static struct pwm_lookup viper_pwm_lookup[] =
+{
 	PWM_LOOKUP("pxa25x-pwm.0", 0, "pwm-backlight.0", NULL, 1000000,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
 static int viper_backlight_init(struct device *dev)
@@ -362,20 +403,32 @@ static int viper_backlight_init(struct device *dev)
 
 	/* GPIO9 and 10 control FB backlight. Initialise to off */
 	ret = gpio_request(VIPER_BCKLIGHT_EN_GPIO, "Backlight");
+
 	if (ret)
+	{
 		goto err_request_bckl;
+	}
 
 	ret = gpio_request(VIPER_LCD_EN_GPIO, "LCD");
+
 	if (ret)
+	{
 		goto err_request_lcd;
+	}
 
 	ret = gpio_direction_output(VIPER_BCKLIGHT_EN_GPIO, 0);
+
 	if (ret)
+	{
 		goto err_dir;
+	}
 
 	ret = gpio_direction_output(VIPER_LCD_EN_GPIO, 0);
+
 	if (ret)
+	{
 		goto err_dir;
+	}
 
 	return 0;
 
@@ -403,7 +456,8 @@ static void viper_backlight_exit(struct device *dev)
 	gpio_free(VIPER_BCKLIGHT_EN_GPIO);
 }
 
-static struct platform_pwm_backlight_data viper_backlight_data = {
+static struct platform_pwm_backlight_data viper_backlight_data =
+{
 	.max_brightness	= 100,
 	.dft_brightness	= 100,
 	.enable_gpio	= -1,
@@ -412,7 +466,8 @@ static struct platform_pwm_backlight_data viper_backlight_data = {
 	.exit		= viper_backlight_exit,
 };
 
-static struct platform_device viper_backlight_device = {
+static struct platform_device viper_backlight_device =
+{
 	.name		= "pwm-backlight",
 	.dev		= {
 		.parent		= &pxa25x_device_pwm0.dev,
@@ -421,7 +476,8 @@ static struct platform_device viper_backlight_device = {
 };
 
 /* Ethernet */
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.name	= "smc91x-regs",
 		.start  = VIPER_ETH_PHYS + 0x300,
@@ -441,13 +497,15 @@ static struct resource smc91x_resources[] = {
 	},
 };
 
-static struct smc91x_platdata viper_smc91x_info = {
+static struct smc91x_platdata viper_smc91x_info =
+{
 	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT,
 	.leda	= RPC_LED_100_10,
 	.ledb	= RPC_LED_TX_RX,
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= -1,
 	.num_resources  = ARRAY_SIZE(smc91x_resources),
@@ -458,14 +516,16 @@ static struct platform_device smc91x_device = {
 };
 
 /* i2c */
-static struct i2c_gpio_platform_data i2c_bus_data = {
+static struct i2c_gpio_platform_data i2c_bus_data =
+{
 	.sda_pin = VIPER_RTC_I2C_SDA_GPIO,
 	.scl_pin = VIPER_RTC_I2C_SCL_GPIO,
 	.udelay  = 10,
 	.timeout = HZ,
 };
 
-static struct platform_device i2c_bus_device = {
+static struct platform_device i2c_bus_device =
+{
 	.name		= "i2c-gpio",
 	.id		= 1, /* pxa2xx-i2c is bus 0, so start at 1 */
 	.dev = {
@@ -473,7 +533,8 @@ static struct platform_device i2c_bus_device = {
 	}
 };
 
-static struct i2c_board_info __initdata viper_i2c_devices[] = {
+static struct i2c_board_info __initdata viper_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("ds1338", 0x68),
 	},
@@ -486,7 +547,8 @@ static struct i2c_board_info __initdata viper_i2c_devices[] = {
  * Choose your poison.
  */
 
-static struct resource viper_serial_resources[] = {
+static struct resource viper_serial_resources[] =
+{
 #ifndef CONFIG_SERIAL_PXA
 	{
 		.start	= 0x40100000,
@@ -520,11 +582,12 @@ static struct resource viper_serial_resources[] = {
 #endif
 };
 
-static struct plat_serial8250_port serial_platform_data[] = {
+static struct plat_serial8250_port serial_platform_data[] =
+{
 #ifndef CONFIG_SERIAL_PXA
 	/* Internal UARTs */
 	{
-		.membase	= (void *)&FFUART,
+		.membase	= (void *) &FFUART,
 		.mapbase	= __PREG(FFUART),
 		.irq		= IRQ_FFUART,
 		.uartclk	= 921600 * 16,
@@ -533,7 +596,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
 		.iotype		= UPIO_MEM,
 	},
 	{
-		.membase	= (void *)&BTUART,
+		.membase	= (void *) &BTUART,
 		.mapbase	= __PREG(BTUART),
 		.irq		= IRQ_BTUART,
 		.uartclk	= 921600 * 16,
@@ -542,7 +605,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
 		.iotype		= UPIO_MEM,
 	},
 	{
-		.membase	= (void *)&STUART,
+		.membase	= (void *) &STUART,
 		.mapbase	= __PREG(STUART),
 		.irq		= IRQ_STUART,
 		.uartclk	= 921600 * 16,
@@ -559,7 +622,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
 		.regshift	= 1,
 		.iotype		= UPIO_MEM,
 		.flags		= UPF_BOOT_AUTOCONF | UPF_IOREMAP |
-				  UPF_SKIP_TEST,
+		UPF_SKIP_TEST,
 	},
 	{
 		.mapbase	= VIPER_UARTB_PHYS,
@@ -569,13 +632,14 @@ static struct plat_serial8250_port serial_platform_data[] = {
 		.regshift	= 1,
 		.iotype		= UPIO_MEM,
 		.flags		= UPF_BOOT_AUTOCONF | UPF_IOREMAP |
-				  UPF_SKIP_TEST,
+		UPF_SKIP_TEST,
 	},
 #endif
 	{ },
 };
 
-static struct platform_device serial_device = {
+static struct platform_device serial_device =
+{
 	.name			= "serial8250",
 	.id			= 0,
 	.dev			= {
@@ -591,7 +655,8 @@ static void isp116x_delay(struct device *dev, int delay)
 	ndelay(delay);
 }
 
-static struct resource isp116x_resources[] = {
+static struct resource isp116x_resources[] =
+{
 	[0] = { /* DATA */
 		.start  = VIPER_USB_PHYS + 0,
 		.end    = VIPER_USB_PHYS + 1,
@@ -610,7 +675,8 @@ static struct resource isp116x_resources[] = {
 };
 
 /* (DataBusWidth16|AnalogOCEnable|DREQOutputPolarity|DownstreamPort15KRSel ) */
-static struct isp116x_platform_data isp116x_platform_data = {
+static struct isp116x_platform_data isp116x_platform_data =
+{
 	/* Enable internal resistors on downstream ports */
 	.sel15Kres		= 1,
 	/* On-chip overcurrent protection */
@@ -627,7 +693,8 @@ static struct isp116x_platform_data isp116x_platform_data = {
 	.delay			= isp116x_delay,
 };
 
-static struct platform_device isp116x_device = {
+static struct platform_device isp116x_device =
+{
 	.name			= "isp116x-hcd",
 	.id			= -1,
 	.num_resources  	= ARRAY_SIZE(isp116x_resources),
@@ -639,7 +706,8 @@ static struct platform_device isp116x_device = {
 };
 
 /* MTD */
-static struct resource mtd_resources[] = {
+static struct resource mtd_resources[] =
+{
 	[0] = {	/* RedBoot config + filesystem flash */
 		.start	= VIPER_FLASH_PHYS,
 		.end	= VIPER_FLASH_PHYS + SZ_32M - 1,
@@ -651,23 +719,25 @@ static struct resource mtd_resources[] = {
 		.flags	= IORESOURCE_MEM,
 	},
 	[2] = { /*
-		 * SRAM size is actually 256KB, 8bits, with a sparse mapping
-		 * (each byte is on a 16bit boundary).
-		 */
+	 * SRAM size is actually 256KB, 8bits, with a sparse mapping
+	 * (each byte is on a 16bit boundary).
+	 */
 		.start	= _VIPER_SRAM_BASE,
 		.end	= _VIPER_SRAM_BASE + SZ_512K - 1,
 		.flags	= IORESOURCE_MEM,
 	},
 };
 
-static struct mtd_partition viper_boot_flash_partition = {
+static struct mtd_partition viper_boot_flash_partition =
+{
 	.name		= "RedBoot",
 	.size		= SZ_1M,
 	.offset		= 0,
 	.mask_flags	= MTD_WRITEABLE,	/* force R/O */
 };
 
-static struct physmap_flash_data viper_flash_data[] = {
+static struct physmap_flash_data viper_flash_data[] =
+{
 	[0] = {
 		.width		= 2,
 		.parts		= NULL,
@@ -680,7 +750,8 @@ static struct physmap_flash_data viper_flash_data[] = {
 	},
 };
 
-static struct platform_device viper_mtd_devices[] = {
+static struct platform_device viper_mtd_devices[] =
+{
 	[0] = {
 		.name		= "physmap-flash",
 		.id		= 0,
@@ -701,7 +772,8 @@ static struct platform_device viper_mtd_devices[] = {
 	},
 };
 
-static struct platform_device *viper_devs[] __initdata = {
+static struct platform_device *viper_devs[] __initdata =
+{
 	&smc91x_device,
 	&i2c_bus_device,
 	&serial_device,
@@ -712,7 +784,8 @@ static struct platform_device *viper_devs[] __initdata = {
 	&viper_pcmcia_device,
 };
 
-static mfp_cfg_t viper_pin_config[] __initdata = {
+static mfp_cfg_t viper_pin_config[] __initdata =
+{
 	/* Chip selects */
 	GPIO15_nCS_1,
 	GPIO78_nCS_2,
@@ -782,7 +855,8 @@ __setup("tpm=", viper_tpm_setup);
 static void __init viper_tpm_init(void)
 {
 	struct platform_device *tpm_device;
-	struct i2c_gpio_platform_data i2c_tpm_data = {
+	struct i2c_gpio_platform_data i2c_tpm_data =
+	{
 		.sda_pin = VIPER_TPM_I2C_SDA_GPIO,
 		.scl_pin = VIPER_TPM_I2C_SCL_GPIO,
 		.udelay  = 10,
@@ -792,22 +866,32 @@ static void __init viper_tpm_init(void)
 
 	/* Allocate TPM i2c bus if requested */
 	if (!viper_tpm)
+	{
 		return;
+	}
 
 	tpm_device = platform_device_alloc("i2c-gpio", 2);
-	if (tpm_device) {
+
+	if (tpm_device)
+	{
 		if (!platform_device_add_data(tpm_device,
-					      &i2c_tpm_data,
-					      sizeof(i2c_tpm_data))) {
-			if (platform_device_add(tpm_device)) {
+									  &i2c_tpm_data,
+									  sizeof(i2c_tpm_data)))
+		{
+			if (platform_device_add(tpm_device))
+			{
 				errstr = "register TPM i2c bus";
 				goto error_free_tpm;
 			}
-		} else {
+		}
+		else
+		{
 			errstr = "allocate TPM i2c bus data";
 			goto error_free_tpm;
 		}
-	} else {
+	}
+	else
+	{
 		errstr = "allocate TPM i2c device";
 		goto error_tpm;
 	}
@@ -823,18 +907,26 @@ error_tpm:
 static void __init viper_init_vcore_gpios(void)
 {
 	if (gpio_request(VIPER_PSU_DATA_GPIO, "PSU data"))
+	{
 		goto err_request_data;
+	}
 
 	if (gpio_request(VIPER_PSU_CLK_GPIO, "PSU clock"))
+	{
 		goto err_request_clk;
+	}
 
 	if (gpio_request(VIPER_PSU_nCS_LD_GPIO, "PSU cs"))
+	{
 		goto err_request_cs;
+	}
 
 	if (gpio_direction_output(VIPER_PSU_DATA_GPIO, 0) ||
-	    gpio_direction_output(VIPER_PSU_CLK_GPIO, 0) ||
-	    gpio_direction_output(VIPER_PSU_nCS_LD_GPIO, 0))
+		gpio_direction_output(VIPER_PSU_CLK_GPIO, 0) ||
+		gpio_direction_output(VIPER_PSU_nCS_LD_GPIO, 0))
+	{
 		goto err_dir;
+	}
 
 	/* c/should assume redboot set the correct level ??? */
 	viper_set_core_cpu_voltage(get_clk_frequency_khz(0), 1);
@@ -854,10 +946,14 @@ err_request_data:
 static void __init viper_init_serial_gpio(void)
 {
 	if (gpio_request(VIPER_UART_SHDN_GPIO, "UARTs shutdown"))
+	{
 		goto err_request;
+	}
 
 	if (gpio_direction_output(VIPER_UART_SHDN_GPIO, 0))
+	{
 		goto err_dir;
+	}
 
 	return;
 
@@ -869,44 +965,54 @@ err_request:
 
 #ifdef CONFIG_CPU_FREQ
 static int viper_cpufreq_notifier(struct notifier_block *nb,
-				  unsigned long val, void *data)
+								  unsigned long val, void *data)
 {
 	struct cpufreq_freqs *freq = data;
 
 	/* TODO: Adjust timings??? */
 
-	switch (val) {
-	case CPUFREQ_PRECHANGE:
-		if (freq->old < freq->new) {
-			/* we are getting faster so raise the voltage
-			 * before we change freq */
-			viper_set_core_cpu_voltage(freq->new, 0);
-		}
-		break;
-	case CPUFREQ_POSTCHANGE:
-		if (freq->old > freq->new) {
-			/* we are slowing down so drop the power
-			 * after we change freq */
-			viper_set_core_cpu_voltage(freq->new, 0);
-		}
-		break;
-	default:
-		/* ignore */
-		break;
+	switch (val)
+	{
+		case CPUFREQ_PRECHANGE:
+			if (freq->old < freq->new)
+			{
+				/* we are getting faster so raise the voltage
+				 * before we change freq */
+				viper_set_core_cpu_voltage(freq->new, 0);
+			}
+
+			break;
+
+		case CPUFREQ_POSTCHANGE:
+			if (freq->old > freq->new)
+			{
+				/* we are slowing down so drop the power
+				 * after we change freq */
+				viper_set_core_cpu_voltage(freq->new, 0);
+			}
+
+			break;
+
+		default:
+			/* ignore */
+			break;
 	}
 
 	return 0;
 }
 
-static struct notifier_block viper_cpufreq_notifier_block = {
+static struct notifier_block viper_cpufreq_notifier_block =
+{
 	.notifier_call  = viper_cpufreq_notifier
 };
 
 static void __init viper_init_cpufreq(void)
 {
 	if (cpufreq_register_notifier(&viper_cpufreq_notifier_block,
-				      CPUFREQ_TRANSITION_NOTIFIER))
+								  CPUFREQ_TRANSITION_NOTIFIER))
+	{
 		pr_err("viper: Failed to setup cpufreq notifier\n");
+	}
 }
 #else
 static inline void viper_init_cpufreq(void) {}
@@ -916,6 +1022,7 @@ static void viper_power_off(void)
 {
 	pr_notice("Shutting off UPS\n");
 	gpio_set_value(VIPER_UPS_GPIO, 1);
+
 	/* Spin to death... */
 	while (1);
 }
@@ -939,8 +1046,11 @@ static void __init viper_init(void)
 
 	/* v1 hardware cannot use the datacs line */
 	version = viper_hw_version();
+
 	if (version == 0)
+	{
 		smc91x_device.num_resources--;
+	}
 
 	pxa_set_i2c_info(NULL);
 	pwm_add_table(viper_pwm_lookup, ARRAY_SIZE(viper_pwm_lookup));
@@ -951,16 +1061,19 @@ static void __init viper_init(void)
 
 	register_syscore_ops(&viper_cpu_syscore_ops);
 
-	if (version) {
+	if (version)
+	{
 		pr_info("viper: hardware v%di%d detected. "
-			"CPLD revision %d.\n",
-			VIPER_BOARD_VERSION(version),
-			VIPER_BOARD_ISSUE(version),
-			VIPER_CPLD_REVISION(version));
+				"CPLD revision %d.\n",
+				VIPER_BOARD_VERSION(version),
+				VIPER_BOARD_ISSUE(version),
+				VIPER_CPLD_REVISION(version));
 		system_rev = (VIPER_BOARD_VERSION(version) << 8) |
-			     (VIPER_BOARD_ISSUE(version) << 4) |
-			     VIPER_CPLD_REVISION(version);
-	} else {
+					 (VIPER_BOARD_ISSUE(version) << 4) |
+					 VIPER_CPLD_REVISION(version);
+	}
+	else
+	{
 		pr_info("viper: No version register.\n");
 	}
 
@@ -970,7 +1083,8 @@ static void __init viper_init(void)
 	pxa_set_ac97_info(NULL);
 }
 
-static struct map_desc viper_io_desc[] __initdata = {
+static struct map_desc viper_io_desc[] __initdata =
+{
 	{
 		.virtual = VIPER_CPLD_BASE,
 		.pfn     = __phys_to_pfn(VIPER_CPLD_PHYS),
@@ -995,13 +1109,13 @@ static void __init viper_map_io(void)
 }
 
 MACHINE_START(VIPER, "Arcom/Eurotech VIPER SBC")
-	/* Maintainer: Marc Zyngier <maz@misterjones.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Marc Zyngier <maz@misterjones.org> */
+.atag_offset	= 0x100,
 	.map_io		= viper_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= viper_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= viper_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= viper_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= viper_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

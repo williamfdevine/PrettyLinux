@@ -40,7 +40,7 @@ static void __init mpc5121_ads_setup_arch(void)
 
 #ifdef CONFIG_PCI
 	for_each_compatible_node(np, "pci", "fsl,mpc5121-pci")
-		mpc83xx_add_bridge(np);
+	mpc83xx_add_bridge(np);
 #endif
 
 	mpc512x_setup_arch();
@@ -58,20 +58,23 @@ static void __init mpc5121_ads_init_IRQ(void)
 static int __init mpc5121_ads_probe(void)
 {
 	if (!of_machine_is_compatible("fsl,mpc5121ads"))
+	{
 		return 0;
+	}
 
 	mpc512x_init_early();
 
 	return 1;
 }
 
-define_machine(mpc5121_ads) {
+define_machine(mpc5121_ads)
+{
 	.name			= "MPC5121 ADS",
-	.probe			= mpc5121_ads_probe,
-	.setup_arch		= mpc5121_ads_setup_arch,
-	.init			= mpc512x_init,
-	.init_IRQ		= mpc5121_ads_init_IRQ,
-	.get_irq		= ipic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.restart		= mpc512x_restart,
+			 .probe			= mpc5121_ads_probe,
+					 .setup_arch		= mpc5121_ads_setup_arch,
+						 .init			= mpc512x_init,
+								  .init_IRQ		= mpc5121_ads_init_IRQ,
+										.get_irq		= ipic_get_irq,
+											   .calibrate_decr		= generic_calibrate_decr,
+												   .restart		= mpc512x_restart,
 };

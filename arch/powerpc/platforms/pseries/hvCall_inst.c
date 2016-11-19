@@ -36,13 +36,15 @@ DEFINE_PER_CPU(struct hcall_stats[HCALL_STAT_ARRAY_SIZE], hcall_stats);
  */
 static void *hc_start(struct seq_file *m, loff_t *pos)
 {
-	if ((int)*pos < (HCALL_STAT_ARRAY_SIZE-1))
+	if ((int)*pos < (HCALL_STAT_ARRAY_SIZE - 1))
+	{
 		return (void *)(unsigned long)(*pos + 1);
+	}
 
 	return NULL;
 }
 
-static void *hc_next(struct seq_file *m, void *p, loff_t * pos)
+static void *hc_next(struct seq_file *m, void *p, loff_t *pos)
 {
 	++*pos;
 
@@ -58,26 +60,28 @@ static int hc_show(struct seq_file *m, void *p)
 	unsigned long h_num = (unsigned long)p;
 	struct hcall_stats *hs = m->private;
 
-	if (hs[h_num].num_calls) {
+	if (hs[h_num].num_calls)
+	{
 		if (cpu_has_feature(CPU_FTR_PURR))
-			seq_printf(m, "%lu %lu %lu %lu\n", h_num<<2,
-				   hs[h_num].num_calls,
-				   hs[h_num].tb_total,
-				   hs[h_num].purr_total);
+			seq_printf(m, "%lu %lu %lu %lu\n", h_num << 2,
+					   hs[h_num].num_calls,
+					   hs[h_num].tb_total,
+					   hs[h_num].purr_total);
 		else
-			seq_printf(m, "%lu %lu %lu\n", h_num<<2,
-				   hs[h_num].num_calls,
-				   hs[h_num].tb_total);
+			seq_printf(m, "%lu %lu %lu\n", h_num << 2,
+					   hs[h_num].num_calls,
+					   hs[h_num].tb_total);
 	}
 
 	return 0;
 }
 
-static const struct seq_operations hcall_inst_seq_ops = {
-        .start = hc_start,
-        .next  = hc_next,
-        .stop  = hc_stop,
-        .show  = hc_show
+static const struct seq_operations hcall_inst_seq_ops =
+{
+	.start = hc_start,
+	.next  = hc_next,
+	.stop  = hc_stop,
+	.show  = hc_show
 };
 
 static int hcall_inst_seq_open(struct inode *inode, struct file *file)
@@ -92,7 +96,8 @@ static int hcall_inst_seq_open(struct inode *inode, struct file *file)
 	return rc;
 }
 
-static const struct file_operations hcall_inst_seq_fops = {
+static const struct file_operations hcall_inst_seq_fops =
+{
 	.open = hcall_inst_seq_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -108,7 +113,9 @@ static void probe_hcall_entry(void *ignored, unsigned long opcode, unsigned long
 	struct hcall_stats *h;
 
 	if (opcode > MAX_HCALL_OPCODE)
+	{
 		return;
+	}
 
 	h = this_cpu_ptr(&hcall_stats[opcode / 4]);
 	h->tb_start = mftb();
@@ -116,12 +123,14 @@ static void probe_hcall_entry(void *ignored, unsigned long opcode, unsigned long
 }
 
 static void probe_hcall_exit(void *ignored, unsigned long opcode, unsigned long retval,
-			     unsigned long *retbuf)
+							 unsigned long *retbuf)
 {
 	struct hcall_stats *h;
 
 	if (opcode > MAX_HCALL_OPCODE)
+	{
 		return;
+	}
 
 	h = this_cpu_ptr(&hcall_stats[opcode / 4]);
 	h->num_calls++;
@@ -137,28 +146,40 @@ static int __init hcall_inst_init(void)
 	int cpu;
 
 	if (!firmware_has_feature(FW_FEATURE_LPAR))
+	{
 		return 0;
+	}
 
 	if (register_trace_hcall_entry(probe_hcall_entry, NULL))
+	{
 		return -EINVAL;
+	}
 
-	if (register_trace_hcall_exit(probe_hcall_exit, NULL)) {
+	if (register_trace_hcall_exit(probe_hcall_exit, NULL))
+	{
 		unregister_trace_hcall_entry(probe_hcall_entry, NULL);
 		return -EINVAL;
 	}
 
 	hcall_root = debugfs_create_dir(HCALL_ROOT_DIR, NULL);
-	if (!hcall_root)
-		return -ENOMEM;
 
-	for_each_possible_cpu(cpu) {
+	if (!hcall_root)
+	{
+		return -ENOMEM;
+	}
+
+	for_each_possible_cpu(cpu)
+	{
 		snprintf(cpu_name_buf, CPU_NAME_BUF_SIZE, "cpu%d", cpu);
 		hcall_file = debugfs_create_file(cpu_name_buf, S_IRUGO,
-						 hcall_root,
-						 per_cpu(hcall_stats, cpu),
-						 &hcall_inst_seq_fops);
+										 hcall_root,
+										 per_cpu(hcall_stats, cpu),
+										 &hcall_inst_seq_fops);
+
 		if (!hcall_file)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	return 0;

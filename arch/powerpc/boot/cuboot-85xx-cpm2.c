@@ -35,29 +35,35 @@ static void platform_fixups(void)
 	 * this can do a simple path lookup.
 	 */
 	devp = find_node_by_devtype(NULL, "soc");
-	if (devp) {
+
+	if (devp)
+	{
 		void *serial = NULL;
 
 		setprop(devp, "bus-frequency", &bd.bi_busfreq,
-		        sizeof(bd.bi_busfreq));
+				sizeof(bd.bi_busfreq));
 
-		while ((serial = find_node_by_devtype(serial, "serial"))) {
+		while ((serial = find_node_by_devtype(serial, "serial")))
+		{
 			if (get_parent(serial) != devp)
+			{
 				continue;
+			}
 
 			setprop(serial, "clock-frequency", &bd.bi_busfreq,
-			        sizeof(bd.bi_busfreq));
+					sizeof(bd.bi_busfreq));
 		}
 	}
 
 	devp = find_node_by_compatible(NULL, "fsl,cpm2-brg");
+
 	if (devp)
 		setprop(devp, "clock-frequency", &bd.bi_brgfreq,
-		        sizeof(bd.bi_brgfreq));
+				sizeof(bd.bi_brgfreq));
 }
 
 void platform_init(unsigned long r3, unsigned long r4, unsigned long r5,
-                   unsigned long r6, unsigned long r7)
+				   unsigned long r6, unsigned long r7)
 {
 	CUBOOT_INIT();
 	fdt_init(_dtb_start);

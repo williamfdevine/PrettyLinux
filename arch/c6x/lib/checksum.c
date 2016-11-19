@@ -14,16 +14,21 @@
  */
 __wsum
 csum_partial_copy_from_user(const void __user *src, void *dst, int len,
-			    __wsum sum, int *csum_err)
+							__wsum sum, int *csum_err)
 {
 	int missing;
 
 	missing = __copy_from_user(dst, src, len);
-	if (missing) {
+
+	if (missing)
+	{
 		memset(dst + len - missing, 0, missing);
 		*csum_err = -EFAULT;
-	} else
+	}
+	else
+	{
 		*csum_err = 0;
+	}
 
 	return csum_partial(dst, len, sum);
 }

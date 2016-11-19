@@ -24,15 +24,15 @@
 /* #define BTE_DEBUG_VERBOSE */
 
 #ifdef BTE_DEBUG
-#  define BTE_PRINTK(x) printk x	/* Terse */
-#  ifdef BTE_DEBUG_VERBOSE
-#    define BTE_PRINTKV(x) printk x	/* Verbose */
-#  else
-#    define BTE_PRINTKV(x)
-#  endif /* BTE_DEBUG_VERBOSE */
+	#define BTE_PRINTK(x) printk x	/* Terse */
+	#ifdef BTE_DEBUG_VERBOSE
+		#define BTE_PRINTKV(x) printk x	/* Verbose */
+	#else
+		#define BTE_PRINTKV(x)
+	#endif /* BTE_DEBUG_VERBOSE */
 #else
-#  define BTE_PRINTK(x)
-#  define BTE_PRINTKV(x)
+	#define BTE_PRINTK(x)
+	#define BTE_PRINTKV(x)
 #endif	/* BTE_DEBUG */
 
 
@@ -52,27 +52,27 @@
 #define BTE2OFF_NOTIFY	(SH2_BT_ENG_NOTIF_ADDR_0 - SH2_BT_ENG_CSR_0)
 
 #define BTE_BASE_ADDR(interface) 				\
-    (is_shub2() ? (interface == 0) ? SH2_BT_ENG_CSR_0 :		\
-		  (interface == 1) ? SH2_BT_ENG_CSR_1 :		\
-		  (interface == 2) ? SH2_BT_ENG_CSR_2 :		\
-		  		     SH2_BT_ENG_CSR_3 		\
-		: (interface == 0) ? IIO_IBLS0 : IIO_IBLS1)
+	(is_shub2() ? (interface == 0) ? SH2_BT_ENG_CSR_0 :		\
+	 (interface == 1) ? SH2_BT_ENG_CSR_1 :		\
+	 (interface == 2) ? SH2_BT_ENG_CSR_2 :		\
+	 SH2_BT_ENG_CSR_3 		\
+	 : (interface == 0) ? IIO_IBLS0 : IIO_IBLS1)
 
 #define BTE_SOURCE_ADDR(base)					\
-    (is_shub2() ? base + (BTE2OFF_SRC/8) 			\
-		: base + (BTEOFF_SRC/8))
+	(is_shub2() ? base + (BTE2OFF_SRC/8) 			\
+	 : base + (BTEOFF_SRC/8))
 
 #define BTE_DEST_ADDR(base)					\
-    (is_shub2() ? base + (BTE2OFF_DEST/8) 			\
-		: base + (BTEOFF_DEST/8))
+	(is_shub2() ? base + (BTE2OFF_DEST/8) 			\
+	 : base + (BTEOFF_DEST/8))
 
 #define BTE_CTRL_ADDR(base)					\
-    (is_shub2() ? base + (BTE2OFF_CTRL/8) 			\
-		: base + (BTEOFF_CTRL/8))
+	(is_shub2() ? base + (BTE2OFF_CTRL/8) 			\
+	 : base + (BTEOFF_CTRL/8))
 
 #define BTE_NOTIF_ADDR(base)					\
-    (is_shub2() ? base + (BTE2OFF_NOTIFY/8) 			\
-		: base + (BTEOFF_NOTIFY/8))
+	(is_shub2() ? base + (BTE2OFF_NOTIFY/8) 			\
+	 : base + (BTEOFF_NOTIFY/8))
 
 /* Define hardware modes */
 #define BTE_NOTIFY IBCT_NOTIFY
@@ -96,37 +96,37 @@
  * Start with macros to locate the BTE control registers.
  */
 #define BTE_LNSTAT_LOAD(_bte)						\
-			HUB_L(_bte->bte_base_addr)
+	HUB_L(_bte->bte_base_addr)
 #define BTE_LNSTAT_STORE(_bte, _x)					\
-			HUB_S(_bte->bte_base_addr, (_x))
+	HUB_S(_bte->bte_base_addr, (_x))
 #define BTE_SRC_STORE(_bte, _x)						\
-({									\
+	({									\
 		u64 __addr = ((_x) & ~AS_MASK);				\
 		if (is_shub2()) 					\
 			__addr = SH2_TIO_PHYS_TO_DMA(__addr);		\
 		HUB_S(_bte->bte_source_addr, __addr);			\
-})
+	})
 #define BTE_DEST_STORE(_bte, _x)					\
-({									\
+	({									\
 		u64 __addr = ((_x) & ~AS_MASK);				\
 		if (is_shub2()) 					\
 			__addr = SH2_TIO_PHYS_TO_DMA(__addr);		\
 		HUB_S(_bte->bte_destination_addr, __addr);		\
-})
+	})
 #define BTE_CTRL_STORE(_bte, _x)					\
-			HUB_S(_bte->bte_control_addr, (_x))
+	HUB_S(_bte->bte_control_addr, (_x))
 #define BTE_NOTIF_STORE(_bte, _x)					\
-({									\
+	({									\
 		u64 __addr = ia64_tpa((_x) & ~AS_MASK);			\
 		if (is_shub2()) 					\
 			__addr = SH2_TIO_PHYS_TO_DMA(__addr);		\
 		HUB_S(_bte->bte_notify_addr, __addr);			\
-})
+	})
 
 #define BTE_START_TRANSFER(_bte, _len, _mode)				\
 	is_shub2() ? BTE_CTRL_STORE(_bte, IBLS_BUSY | (_mode << 24) | _len) \
-		: BTE_LNSTAT_STORE(_bte, _len);				\
-		  BTE_CTRL_STORE(_bte, _mode)
+	: BTE_LNSTAT_STORE(_bte, _len);				\
+	BTE_CTRL_STORE(_bte, _mode)
 
 /* Possible results from bte_copy and bte_unaligned_copy */
 /* The following error codes map into the BTE hardware codes
@@ -137,7 +137,8 @@
  */
 #define BTEFAIL_OFFSET	1
 
-typedef enum {
+typedef enum
+{
 	BTE_SUCCESS,		/* 0 is success */
 	BTEFAIL_DIR,		/* Directory error due to IIO access*/
 	BTEFAIL_POISON,		/* poison error on IO access (write to poison page) */
@@ -164,15 +165,15 @@ typedef enum {
 
 #define BTE_ERROR_RETRY(value)						\
 	(is_shub2() ? (value != BTEFAIL_SH2_CRB_TO)			\
-		: (value != BTEFAIL_TOUT))
+	 : (value != BTEFAIL_TOUT))
 
 /*
  * On shub1 BTE_ERR_MASK will always be false, so no need for is_shub2()
  */
 #define BTE_SHUB2_ERROR(_status)					\
 	((_status & BTE_ERR_MASK) 					\
-	   ? (((_status >> BTE_ERR_SHIFT) & BTE_ERR_BITS) | IBLS_ERROR) \
-	   : _status)
+	 ? (((_status >> BTE_ERR_SHIFT) & BTE_ERR_BITS) | IBLS_ERROR) \
+	 : _status)
 
 #define BTE_GET_ERROR_STATUS(_status)					\
 	(BTE_SHUB2_ERROR(_status) & ~IBLS_ERROR)
@@ -187,7 +188,8 @@ typedef enum {
  * This structure contains everything necessary
  * to work with a BTE.
  */
-struct bteinfo_s {
+struct bteinfo_s
+{
 	volatile u64 notify ____cacheline_aligned;
 	u64 *bte_base_addr ____cacheline_aligned;
 	u64 *bte_source_addr;

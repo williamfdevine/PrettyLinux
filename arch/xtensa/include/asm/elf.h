@@ -75,7 +75,8 @@
 
 typedef unsigned long elf_greg_t;
 
-typedef struct {
+typedef struct
+{
 	elf_greg_t pc;
 	elf_greg_t ps;
 	elf_greg_t lbeg;
@@ -85,7 +86,7 @@ typedef struct {
 	elf_greg_t windowstart;
 	elf_greg_t windowbase;
 	elf_greg_t threadptr;
-	elf_greg_t reserved[7+48];
+	elf_greg_t reserved[7 + 48];
 	elf_greg_t a[64];
 } xtensa_gregset_t;
 
@@ -108,18 +109,18 @@ extern void xtensa_elf_core_copy_regs (xtensa_gregset_t *, struct pt_regs *);
  */
 
 #define elf_check_arch(x) ( ( (x)->e_machine == EM_XTENSA )  || \
-			    ( (x)->e_machine == EM_XTENSA_OLD ) )
+							( (x)->e_machine == EM_XTENSA_OLD ) )
 
 /*
  * These are used to set parameters in the core dumps.
  */
 
 #ifdef __XTENSA_EL__
-# define ELF_DATA	ELFDATA2LSB
+	#define ELF_DATA	ELFDATA2LSB
 #elif defined(__XTENSA_EB__)
-# define ELF_DATA	ELFDATA2MSB
+	#define ELF_DATA	ELFDATA2MSB
 #else
-# error processor byte order undefined!
+	# error processor byte order undefined!
 #endif
 
 #define ELF_CLASS	ELFCLASS32
@@ -170,12 +171,13 @@ extern void xtensa_elf_core_copy_regs (xtensa_gregset_t *, struct pt_regs *);
 
 #define ELF_PLAT_INIT(_r, load_addr) \
 	do { _r->areg[0]=0; /*_r->areg[1]=0;*/ _r->areg[2]=0;  _r->areg[3]=0;  \
-	     _r->areg[4]=0;  _r->areg[5]=0;    _r->areg[6]=0;  _r->areg[7]=0;  \
-	     _r->areg[8]=0;  _r->areg[9]=0;    _r->areg[10]=0; _r->areg[11]=0; \
-	     _r->areg[12]=0; _r->areg[13]=0;   _r->areg[14]=0; _r->areg[15]=0; \
+		_r->areg[4]=0;  _r->areg[5]=0;    _r->areg[6]=0;  _r->areg[7]=0;  \
+		_r->areg[8]=0;  _r->areg[9]=0;    _r->areg[10]=0; _r->areg[11]=0; \
+		_r->areg[12]=0; _r->areg[13]=0;   _r->areg[14]=0; _r->areg[15]=0; \
 	} while (0)
 
-typedef struct {
+typedef struct
+{
 	xtregs_opt_t	opt;
 	xtregs_user_t	user;
 #if XTENSA_HAVE_COPROCESSORS
@@ -195,13 +197,13 @@ typedef struct {
 
 struct task_struct;
 
-extern void do_copy_regs (xtensa_gregset_t*, struct pt_regs*,
-			  struct task_struct*);
-extern void do_restore_regs (xtensa_gregset_t*, struct pt_regs*,
-			     struct task_struct*);
-extern void do_save_fpregs (elf_fpregset_t*, struct pt_regs*,
-			    struct task_struct*);
-extern int do_restore_fpregs (elf_fpregset_t*, struct pt_regs*,
-			      struct task_struct*);
+extern void do_copy_regs (xtensa_gregset_t *, struct pt_regs *,
+						  struct task_struct *);
+extern void do_restore_regs (xtensa_gregset_t *, struct pt_regs *,
+							 struct task_struct *);
+extern void do_save_fpregs (elf_fpregset_t *, struct pt_regs *,
+							struct task_struct *);
+extern int do_restore_fpregs (elf_fpregset_t *, struct pt_regs *,
+							  struct task_struct *);
 
 #endif	/* _XTENSA_ELF_H */

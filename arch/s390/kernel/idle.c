@@ -29,7 +29,7 @@ void enabled_wait(void)
 
 	/* Wait for external, I/O or machine check interrupt. */
 	psw_mask = PSW_KERNEL_BITS | PSW_MASK_WAIT | PSW_MASK_DAT |
-		PSW_MASK_IO | PSW_MASK_EXT | PSW_MASK_MCHECK;
+			   PSW_MASK_IO | PSW_MASK_EXT | PSW_MASK_MCHECK;
 	clear_cpu_flag(CIF_NOHZ_DELAY);
 
 	/* Call the assembler magic in entry.S */
@@ -49,36 +49,45 @@ void enabled_wait(void)
 NOKPROBE_SYMBOL(enabled_wait);
 
 static ssize_t show_idle_count(struct device *dev,
-				struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct s390_idle_data *idle = &per_cpu(s390_idle, dev->id);
 	unsigned long long idle_count;
 	unsigned int seq;
 
-	do {
+	do
+	{
 		seq = read_seqcount_begin(&idle->seqcount);
 		idle_count = ACCESS_ONCE(idle->idle_count);
+
 		if (ACCESS_ONCE(idle->clock_idle_enter))
+		{
 			idle_count++;
-	} while (read_seqcount_retry(&idle->seqcount, seq));
+		}
+	}
+	while (read_seqcount_retry(&idle->seqcount, seq));
+
 	return sprintf(buf, "%llu\n", idle_count);
 }
 DEVICE_ATTR(idle_count, 0444, show_idle_count, NULL);
 
 static ssize_t show_idle_time(struct device *dev,
-				struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct s390_idle_data *idle = &per_cpu(s390_idle, dev->id);
 	unsigned long long now, idle_time, idle_enter, idle_exit;
 	unsigned int seq;
 
-	do {
+	do
+	{
 		now = get_tod_clock();
 		seq = read_seqcount_begin(&idle->seqcount);
 		idle_time = ACCESS_ONCE(idle->idle_time);
 		idle_enter = ACCESS_ONCE(idle->clock_idle_enter);
 		idle_exit = ACCESS_ONCE(idle->clock_idle_exit);
-	} while (read_seqcount_retry(&idle->seqcount, seq));
+	}
+	while (read_seqcount_retry(&idle->seqcount, seq));
+
 	idle_time += idle_enter ? ((idle_exit ? : now) - idle_enter) : 0;
 	return sprintf(buf, "%llu\n", idle_time >> 12);
 }
@@ -90,13 +99,16 @@ cputime64_t arch_cpu_idle_time(int cpu)
 	unsigned long long now, idle_enter, idle_exit;
 	unsigned int seq;
 
-	do {
+	do
+	{
 		now = get_tod_clock();
 		seq = read_seqcount_begin(&idle->seqcount);
 		idle_enter = ACCESS_ONCE(idle->clock_idle_enter);
 		idle_exit = ACCESS_ONCE(idle->clock_idle_exit);
-	} while (read_seqcount_retry(&idle->seqcount, seq));
-	return idle_enter ? ((idle_exit ?: now) - idle_enter) : 0;
+	}
+	while (read_seqcount_retry(&idle->seqcount, seq));
+
+	return idle_enter ? ((idle_exit ? : now) - idle_enter) : 0;
 }
 
 void arch_cpu_idle_enter(void)
@@ -108,15 +120,21 @@ void arch_cpu_idle(void)
 {
 	if (!test_cpu_flag(CIF_MCCK_PENDING))
 		/* Halt the cpu and keep track of cpu time accounting. */
+	{
 		enabled_wait();
+	}
+
 	local_irq_enable();
 }
 
 void arch_cpu_idle_exit(void)
 {
 	local_mcck_enable();
+
 	if (test_cpu_flag(CIF_MCCK_PENDING))
+	{
 		s390_handle_mcck();
+	}
 }
 
 void arch_cpu_idle_dead(void)

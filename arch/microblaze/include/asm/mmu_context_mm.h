@@ -24,7 +24,7 @@
  * to spread out the entries in the MMU hash table.
  */
 # define CTX_TO_VSID(ctx, va)	(((ctx) * (897 * 16) + ((va) >> 28) * 0x111) \
-				 & 0xffffff)
+								 & 0xffffff)
 
 /*
    MicroBlaze has 256 contexts, so we can just rotate through these
@@ -72,7 +72,7 @@ extern mm_context_t next_mmu_context;
  * These variables support that.
  */
 extern atomic_t nr_free_contexts;
-extern struct mm_struct *context_mm[LAST_CONTEXT+1];
+extern struct mm_struct *context_mm[LAST_CONTEXT + 1];
 extern void steal_context(void);
 
 /*
@@ -83,15 +83,27 @@ static inline void get_mmu_context(struct mm_struct *mm)
 	mm_context_t ctx;
 
 	if (mm->context != NO_CONTEXT)
+	{
 		return;
-	while (atomic_dec_if_positive(&nr_free_contexts) < 0)
-		steal_context();
-	ctx = next_mmu_context;
-	while (test_and_set_bit(ctx, context_map)) {
-		ctx = find_next_zero_bit(context_map, LAST_CONTEXT+1, ctx);
-		if (ctx > LAST_CONTEXT)
-			ctx = 0;
 	}
+
+	while (atomic_dec_if_positive(&nr_free_contexts) < 0)
+	{
+		steal_context();
+	}
+
+	ctx = next_mmu_context;
+
+	while (test_and_set_bit(ctx, context_map))
+	{
+		ctx = find_next_zero_bit(context_map, LAST_CONTEXT + 1, ctx);
+
+		if (ctx > LAST_CONTEXT)
+		{
+			ctx = 0;
+		}
+	}
+
 	next_mmu_context = (ctx + 1) & LAST_CONTEXT;
 	mm->context = ctx;
 	context_mm[ctx] = mm;
@@ -107,7 +119,8 @@ static inline void get_mmu_context(struct mm_struct *mm)
  */
 static inline void destroy_context(struct mm_struct *mm)
 {
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		clear_bit(mm->context, context_map);
 		mm->context = NO_CONTEXT;
 		atomic_inc(&nr_free_contexts);
@@ -115,7 +128,7 @@ static inline void destroy_context(struct mm_struct *mm)
 }
 
 static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-			     struct task_struct *tsk)
+							 struct task_struct *tsk)
 {
 	tsk->thread.pgdir = next->pgd;
 	get_mmu_context(next);
@@ -127,7 +140,7 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
  * the context for the new mm so we see the new mappings.
  */
 static inline void activate_mm(struct mm_struct *active_mm,
-			struct mm_struct *mm)
+							   struct mm_struct *mm)
 {
 	current->thread.pgdir = mm->pgd;
 	get_mmu_context(mm);

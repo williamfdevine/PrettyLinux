@@ -21,7 +21,7 @@
 #define flat_get_addr_from_rp(rp, relval, flags, persistent) \
 	({(void)persistent; \
 		get_unaligned(rp) & (((flags) & FLAT_FLAG_GOTPIC) ?	\
-				     0xffffffff : 0x00ffffff); })
+							 0xffffffff : 0x00ffffff); })
 #define flat_put_addr_at_rp(rp, addr, rel) \
 	put_unaligned(((*(char *)(rp)) << 24) | ((addr) & 0x00ffffff), (rp))
 

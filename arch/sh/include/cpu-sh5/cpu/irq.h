@@ -72,23 +72,23 @@
 #define NR_INTC_IRQS	64
 
 #ifdef CONFIG_SH_CAYMAN
-#define NR_EXT_IRQS     32
-#define START_EXT_IRQS  64
+	#define NR_EXT_IRQS     32
+	#define START_EXT_IRQS  64
 
-/* PCI bus 2 uses encoded external interrupts on the Cayman board */
-#define IRQ_P2INTA      (START_EXT_IRQS + (3*8) + 0)
-#define IRQ_P2INTB      (START_EXT_IRQS + (3*8) + 1)
-#define IRQ_P2INTC      (START_EXT_IRQS + (3*8) + 2)
-#define IRQ_P2INTD      (START_EXT_IRQS + (3*8) + 3)
+	/* PCI bus 2 uses encoded external interrupts on the Cayman board */
+	#define IRQ_P2INTA      (START_EXT_IRQS + (3*8) + 0)
+	#define IRQ_P2INTB      (START_EXT_IRQS + (3*8) + 1)
+	#define IRQ_P2INTC      (START_EXT_IRQS + (3*8) + 2)
+	#define IRQ_P2INTD      (START_EXT_IRQS + (3*8) + 3)
 
-#define I8042_KBD_IRQ	(START_EXT_IRQS + 2)
-#define I8042_AUX_IRQ	(START_EXT_IRQS + 6)
+	#define I8042_KBD_IRQ	(START_EXT_IRQS + 2)
+	#define I8042_AUX_IRQ	(START_EXT_IRQS + 6)
 
-#define IRQ_CFCARD	(START_EXT_IRQS + 7)
-#define IRQ_PCMCIA	(0)
+	#define IRQ_CFCARD	(START_EXT_IRQS + 7)
+	#define IRQ_PCMCIA	(0)
 
 #else
-#define NR_EXT_IRQS	0
+	#define NR_EXT_IRQS	0
 #endif
 
 /* Default IRQs, fixed */
@@ -110,7 +110,7 @@
 #define	IRL0_PRIORITY	13
 #define TOP_PRIORITY	15
 
-extern int intc_evt_to_irq[(0xE20/0x20)+1];
+extern int intc_evt_to_irq[(0xE20 / 0x20) + 1];
 extern int platform_int_priority[NR_INTC_IRQS];
 
 #endif /* __ASM_SH_CPU_SH5_IRQ_H */

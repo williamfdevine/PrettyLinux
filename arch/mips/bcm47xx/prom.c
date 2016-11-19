@@ -45,9 +45,9 @@ const char *get_system_type(void)
 __init void bcm47xx_set_system_type(u16 chip_id)
 {
 	snprintf(bcm47xx_system_type, sizeof(bcm47xx_system_type),
-		 (chip_id > 0x9999) ? "Broadcom BCM%d" :
-				      "Broadcom BCM%04X",
-		 chip_id);
+			 (chip_id > 0x9999) ? "Broadcom BCM%d" :
+			 "Broadcom BCM%04X",
+			 chip_id);
 }
 
 static unsigned long lowmem __initdata;
@@ -78,16 +78,22 @@ static __init void prom_init_mem(void)
 	/* Accessing memory after 128 MiB will cause an exception */
 	max = 128 << 20;
 
-	for (mem = 1 << 20; mem < max; mem += 1 << 20) {
+	for (mem = 1 << 20; mem < max; mem += 1 << 20)
+	{
 		/* Loop condition may be not enough, off may be over 1 MiB */
-		if (off + mem >= max) {
+		if (off + mem >= max)
+		{
 			mem = max;
 			pr_debug("Assume 128MB RAM\n");
 			break;
 		}
+
 		if (!memcmp(prom_init, prom_init + mem, 32))
+		{
 			break;
+		}
 	}
+
 	lowmem = mem;
 
 	/* Ignoring the last page when ddr size is 128M. Cached
@@ -96,7 +102,10 @@ static __init void prom_init_mem(void)
 	 * space.
 	 */
 	if (c->cputype == CPU_74K && (mem == (128  << 20)))
+	{
 		mem -= 0x1000;
+	}
+
 	add_memory_region(0, mem, BOOT_MEM_RAM);
 }
 
@@ -141,13 +150,19 @@ void __init bcm47xx_prom_highmem_init(void)
 	bool highmem_region = false;
 
 	if (WARN_ON(bcm47xx_bus_type != BCM47XX_BUS_TYPE_BCMA))
+	{
 		return;
+	}
 
 	if (bcm47xx_bus.bcma.bus.chipinfo.id == BCMA_CHIP_ID_BCM4706)
+	{
 		highmem_region = true;
+	}
 
 	if (lowmem != 128 << 20 || !highmem_region)
+	{
 		return;
+	}
 
 	early_tlb_init();
 
@@ -157,23 +172,30 @@ void __init bcm47xx_prom_highmem_init(void)
 	 *      0x90000000      0xd0000000      (2nd: 256MB)
 	 */
 	add_temporary_entry(ENTRYLO(0x80000000),
-			    ENTRYLO(0x80000000 + (256 << 20)),
-			    EXTVBASE, PM_256M);
+						ENTRYLO(0x80000000 + (256 << 20)),
+						EXTVBASE, PM_256M);
 
 	off = EXTVBASE + __pa(off);
-	for (extmem = 128 << 20; extmem < 512 << 20; extmem <<= 1) {
+
+	for (extmem = 128 << 20; extmem < 512 << 20; extmem <<= 1)
+	{
 		if (!memcmp(prom_init, (void *)(off + extmem), 16))
+		{
 			break;
+		}
 	}
+
 	extmem -= lowmem;
 
 	early_tlb_init();
 
 	if (!extmem)
+	{
 		return;
+	}
 
 	pr_warn("Found %lu MiB of extra memory, but highmem is unsupported yet!\n",
-		extmem >> 20);
+			extmem >> 20);
 
 	/* TODO: Register extra memory */
 }

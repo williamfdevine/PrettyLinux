@@ -25,12 +25,12 @@ static int shmobile_scu_cpu_prepare(unsigned int cpu)
 {
 	/* For this particular CPU register SCU SMP boot vector */
 	shmobile_smp_hook(cpu, virt_to_phys(shmobile_boot_scu),
-			  shmobile_scu_base_phys);
+					  shmobile_scu_base_phys);
 	return 0;
 }
 
 void __init shmobile_smp_scu_prepare_cpus(phys_addr_t scu_base_phys,
-					  unsigned int max_cpus)
+		unsigned int max_cpus)
 {
 	/* install boot code shared by all CPUs */
 	shmobile_boot_fn = virt_to_phys(shmobile_smp_boot);
@@ -43,8 +43,8 @@ void __init shmobile_smp_scu_prepare_cpus(phys_addr_t scu_base_phys,
 
 	/* Use CPU notifier for reset vector control */
 	cpuhp_setup_state_nocalls(CPUHP_ARM_SHMOBILE_SCU_PREPARE,
-				  "arm/shmobile-scu:prepare",
-				  shmobile_scu_cpu_prepare, NULL);
+							  "arm/shmobile-scu:prepare",
+							  shmobile_scu_cpu_prepare, NULL);
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -68,7 +68,9 @@ static int shmobile_smp_scu_psr_core_disabled(int cpu)
 	unsigned long mask = SCU_PM_POWEROFF << (cpu * 8);
 
 	if ((__raw_readl(shmobile_scu_base + 8) & mask) == mask)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -81,9 +83,12 @@ int shmobile_smp_scu_cpu_kill(unsigned int cpu)
 	 * here we need wait for shutdown code in platform_cpu_die() to
 	 * finish before asking SoC-specific code to power off the CPU core.
 	 */
-	for (k = 0; k < 1000; k++) {
+	for (k = 0; k < 1000; k++)
+	{
 		if (shmobile_smp_scu_psr_core_disabled(cpu))
+		{
 			return 1;
+		}
 
 		mdelay(1);
 	}

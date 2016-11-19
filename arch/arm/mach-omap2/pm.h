@@ -53,15 +53,15 @@ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
 extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
 
 #ifdef CONFIG_PM_DEBUG
-extern u32 enable_off_mode;
+	extern u32 enable_off_mode;
 #else
-#define enable_off_mode 0
+	#define enable_off_mode 0
 #endif
 
 #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
-extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+	extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
 #else
-#define pm_dbg_update_time(pwrdm, prev) do {} while (0);
+	#define pm_dbg_update_time(pwrdm, prev) do {} while (0);
 #endif /* CONFIG_PM_DEBUG */
 
 /* 24xx */
@@ -69,7 +69,7 @@ extern void omap24xx_idle_loop_suspend(void);
 extern unsigned int omap24xx_idle_loop_suspend_sz;
 
 extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdrc_dlla_ctrl,
-					void __iomem *sdrc_power);
+								 void __iomem *sdrc_power);
 extern unsigned int omap24xx_cpu_suspend_sz;
 
 /* 3xxx */

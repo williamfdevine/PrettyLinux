@@ -33,34 +33,34 @@
  */
 
 #define DECLARE_DYN_OUT(sz,fnsuffix,instr) \
-static inline void __out##fnsuffix (unsigned int val, unsigned int port) \
-{ \
-	unsigned long temp;				      \
-	__asm__ __volatile__(				      \
-	"cmp	%2, #(1<<28)\n\t"			      \
-	"mov	%0, %2\n\t"				      \
-	"addcc	%0, %0, %3\n\t"				      \
-	"str" instr " %1, [%0, #0 ]	@ out" #fnsuffix      \
-	: "=&r" (temp)					      \
-	: "r" (val), "r" (port), "Ir" (PCIO_BASE_##fnsuffix)  \
-	: "cc");					      \
-}
+	static inline void __out##fnsuffix (unsigned int val, unsigned int port) \
+	{ \
+		unsigned long temp;				      \
+		__asm__ __volatile__(				      \
+				"cmp	%2, #(1<<28)\n\t"			      \
+				"mov	%0, %2\n\t"				      \
+				"addcc	%0, %0, %3\n\t"				      \
+				"str" instr " %1, [%0, #0 ]	@ out" #fnsuffix      \
+				: "=&r" (temp)					      \
+				: "r" (val), "r" (port), "Ir" (PCIO_BASE_##fnsuffix)  \
+				: "cc");					      \
+	}
 
 
 #define DECLARE_DYN_IN(sz,fnsuffix,instr)				\
-static inline unsigned sz __in##fnsuffix (unsigned int port)		\
-{									\
-	unsigned long temp, value;					\
-	__asm__ __volatile__(						\
-	"cmp	%2, #(1<<28)\n\t"					\
-	"mov	%0, %2\n\t"						\
-	"addcc	%0, %0, %3\n\t"						\
-	"ldr" instr "	%1, [%0, #0 ]	@ in" #fnsuffix		\
-	: "=&r" (temp), "=r" (value)					\
-	: "r" (port), "Ir" (PCIO_BASE_##fnsuffix)	\
-	: "cc");							\
-	return (unsigned sz)value;					\
-}
+	static inline unsigned sz __in##fnsuffix (unsigned int port)		\
+	{									\
+		unsigned long temp, value;					\
+		__asm__ __volatile__(						\
+				"cmp	%2, #(1<<28)\n\t"					\
+				"mov	%0, %2\n\t"						\
+				"addcc	%0, %0, %3\n\t"						\
+				"ldr" instr "	%1, [%0, #0 ]	@ in" #fnsuffix		\
+				: "=&r" (temp), "=r" (value)					\
+				: "r" (port), "Ir" (PCIO_BASE_##fnsuffix)	\
+				: "cc");							\
+		return (unsigned sz)value;					\
+	}
 
 static inline void __iomem *__ioaddr (unsigned long port)
 {
@@ -71,9 +71,9 @@ static inline void __iomem *__ioaddr (unsigned long port)
 	DECLARE_DYN_IN(sz,fnsuffix,instr) \
 	DECLARE_DYN_OUT(sz,fnsuffix,instr)
 
-DECLARE_IO(char,b,"b")
-DECLARE_IO(short,w,"h")
-DECLARE_IO(int,l,"")
+DECLARE_IO(char, b, "b")
+DECLARE_IO(short, w, "h")
+DECLARE_IO(int, l, "")
 
 #undef DECLARE_IO
 #undef DECLARE_DYN_IN
@@ -85,110 +85,110 @@ DECLARE_IO(int,l,"")
  * +/-4096 immediate operand.
  */
 #define __outbc(value,port)						\
-({									\
-	if (__PORT_PCIO((port)))					\
-		__asm__ __volatile__(					\
-		"strb	%0, [%1, %2]	@ outbc"			\
-		: : "r" (value), "r" (PCIO_BASE), "Jr" ((port)));	\
-	else								\
-		__asm__ __volatile__(					\
-		"strb	%0, [%1, #0]	@ outbc"			\
-		: : "r" (value), "r" ((port)));				\
-})
+	({									\
+		if (__PORT_PCIO((port)))					\
+			__asm__ __volatile__(					\
+													"strb	%0, [%1, %2]	@ outbc"			\
+													: : "r" (value), "r" (PCIO_BASE), "Jr" ((port)));	\
+		else								\
+			__asm__ __volatile__(					\
+													"strb	%0, [%1, #0]	@ outbc"			\
+													: : "r" (value), "r" ((port)));				\
+	})
 
 #define __inbc(port)							\
-({									\
-	unsigned char result;						\
-	if (__PORT_PCIO((port)))					\
-		__asm__ __volatile__(					\
-		"ldrb	%0, [%1, %2]	@ inbc"				\
-		: "=r" (result) : "r" (PCIO_BASE), "Jr" ((port)));	\
-	else								\
-		__asm__ __volatile__(					\
-		"ldrb	%0, [%1, #0]	@ inbc"				\
-		: "=r" (result) : "r" ((port)));			\
-	result;								\
-})
+	({									\
+		unsigned char result;						\
+		if (__PORT_PCIO((port)))					\
+			__asm__ __volatile__(					\
+													"ldrb	%0, [%1, %2]	@ inbc"				\
+													: "=r" (result) : "r" (PCIO_BASE), "Jr" ((port)));	\
+		else								\
+			__asm__ __volatile__(					\
+													"ldrb	%0, [%1, #0]	@ inbc"				\
+													: "=r" (result) : "r" ((port)));			\
+		result;								\
+	})
 
 #define __outwc(value,port)						\
-({									\
-	unsigned long v = value;					\
-	if (__PORT_PCIO((port))) {					\
-		if ((port) < 256 && (port) > -256)			\
-			__asm__ __volatile__(				\
-			"strh	%0, [%1, %2]	@ outwc"		\
-			: : "r" (v), "r" (PCIO_BASE), "Jr" ((port)));	\
-		else if ((port) > 0)					\
-			__asm__ __volatile__(				\
-			"strh	%0, [%1, %2]	@ outwc"		\
-			: : "r" (v),					\
-			    "r" (PCIO_BASE + ((port) & ~0xff)),		\
-			     "Jr" (((port) & 0xff)));			\
-		else							\
-			__asm__ __volatile__(				\
-			"strh	%0, [%1, #0]	@ outwc"		\
-			: : "r" (v),					\
-			    "r" (PCIO_BASE + (port)));			\
-	} else								\
-		__asm__ __volatile__(					\
-		"strh	%0, [%1, #0]	@ outwc"			\
-		: : "r" (v), "r" ((port)));				\
-})
+	({									\
+		unsigned long v = value;					\
+		if (__PORT_PCIO((port))) {					\
+			if ((port) < 256 && (port) > -256)			\
+				__asm__ __volatile__(				\
+													"strh	%0, [%1, %2]	@ outwc"		\
+													: : "r" (v), "r" (PCIO_BASE), "Jr" ((port)));	\
+			else if ((port) > 0)					\
+				__asm__ __volatile__(				\
+													"strh	%0, [%1, %2]	@ outwc"		\
+													: : "r" (v),					\
+													"r" (PCIO_BASE + ((port) & ~0xff)),		\
+													"Jr" (((port) & 0xff)));			\
+			else							\
+				__asm__ __volatile__(				\
+													"strh	%0, [%1, #0]	@ outwc"		\
+													: : "r" (v),					\
+													"r" (PCIO_BASE + (port)));			\
+		} else								\
+			__asm__ __volatile__(					\
+													"strh	%0, [%1, #0]	@ outwc"			\
+													: : "r" (v), "r" ((port)));				\
+	})
 
 #define __inwc(port)							\
-({									\
-	unsigned short result;						\
-	if (__PORT_PCIO((port))) {					\
-		if ((port) < 256 && (port) > -256 )			\
-			__asm__ __volatile__(				\
-			"ldrh	%0, [%1, %2]	@ inwc"			\
-			: "=r" (result)					\
-			: "r" (PCIO_BASE),				\
-			  "Jr" ((port)));				\
-		else if ((port) > 0)					\
-			__asm__ __volatile__(				\
-			"ldrh	%0, [%1, %2]	@ inwc"			\
-			: "=r" (result)					\
-			: "r" (PCIO_BASE + ((port) & ~0xff)),		\
-			  "Jr" (((port) & 0xff)));			\
-		else							\
-			__asm__ __volatile__(				\
-			"ldrh	%0, [%1, #0]	@ inwc"			\
-			: "=r" (result)					\
-			: "r" (PCIO_BASE + ((port))));			\
-	} else								\
-		__asm__ __volatile__(					\
-		"ldrh	%0, [%1, #0]	@ inwc"				\
-		: "=r" (result) : "r" ((port)));			\
-	result;								\
-})
+	({									\
+		unsigned short result;						\
+		if (__PORT_PCIO((port))) {					\
+			if ((port) < 256 && (port) > -256 )			\
+				__asm__ __volatile__(				\
+													"ldrh	%0, [%1, %2]	@ inwc"			\
+													: "=r" (result)					\
+													: "r" (PCIO_BASE),				\
+													"Jr" ((port)));				\
+			else if ((port) > 0)					\
+				__asm__ __volatile__(				\
+													"ldrh	%0, [%1, %2]	@ inwc"			\
+													: "=r" (result)					\
+													: "r" (PCIO_BASE + ((port) & ~0xff)),		\
+													"Jr" (((port) & 0xff)));			\
+			else							\
+				__asm__ __volatile__(				\
+													"ldrh	%0, [%1, #0]	@ inwc"			\
+													: "=r" (result)					\
+													: "r" (PCIO_BASE + ((port))));			\
+		} else								\
+			__asm__ __volatile__(					\
+													"ldrh	%0, [%1, #0]	@ inwc"				\
+													: "=r" (result) : "r" ((port)));			\
+		result;								\
+	})
 
 #define __outlc(value,port)						\
-({									\
-	unsigned long v = value;					\
-	if (__PORT_PCIO((port)))					\
-		__asm__ __volatile__(					\
-		"str	%0, [%1, %2]	@ outlc"			\
-		: : "r" (v), "r" (PCIO_BASE), "Jr" ((port)));	\
-	else								\
-		__asm__ __volatile__(					\
-		"str	%0, [%1, #0]	@ outlc"			\
-		: : "r" (v), "r" ((port)));		\
-})
+	({									\
+		unsigned long v = value;					\
+		if (__PORT_PCIO((port)))					\
+			__asm__ __volatile__(					\
+													"str	%0, [%1, %2]	@ outlc"			\
+													: : "r" (v), "r" (PCIO_BASE), "Jr" ((port)));	\
+		else								\
+			__asm__ __volatile__(					\
+													"str	%0, [%1, #0]	@ outlc"			\
+													: : "r" (v), "r" ((port)));		\
+	})
 
 #define __inlc(port)							\
-({									\
-	unsigned long result;						\
-	if (__PORT_PCIO((port)))					\
-		__asm__ __volatile__(					\
-		"ldr	%0, [%1, %2]	@ inlc"				\
-		: "=r" (result) : "r" (PCIO_BASE), "Jr" ((port)));	\
-	else								\
-		__asm__ __volatile__(					\
-		"ldr	%0, [%1, #0]	@ inlc"				\
-		: "=r" (result) : "r" ((port)));		\
-	result;								\
-})
+	({									\
+		unsigned long result;						\
+		if (__PORT_PCIO((port)))					\
+			__asm__ __volatile__(					\
+													"ldr	%0, [%1, %2]	@ inlc"				\
+													: "=r" (result) : "r" (PCIO_BASE), "Jr" ((port)));	\
+		else								\
+			__asm__ __volatile__(					\
+													"ldr	%0, [%1, #0]	@ inlc"				\
+													: "=r" (result) : "r" ((port)));		\
+		result;								\
+	})
 
 #define __ioaddrc(port)	((__PORT_PCIO(port) ? PCIO_BASE + (port) : (void __iomem *)0 + (port)))
 

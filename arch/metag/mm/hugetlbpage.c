@@ -28,36 +28,55 @@
  * size aligned regions are ok without further preparation.
  */
 int prepare_hugepage_range(struct file *file, unsigned long addr,
-						unsigned long len)
+						   unsigned long len)
 {
 	struct mm_struct *mm = current->mm;
 	struct hstate *h = hstate_file(file);
 	struct vm_area_struct *vma;
 
 	if (len & ~huge_page_mask(h))
+	{
 		return -EINVAL;
+	}
+
 	if (addr & ~huge_page_mask(h))
+	{
 		return -EINVAL;
+	}
+
 	if (TASK_SIZE - len < addr)
+	{
 		return -EINVAL;
+	}
 
 	vma = find_vma(mm, ALIGN_HUGEPT(addr));
+
 	if (vma && !(vma->vm_flags & MAP_HUGETLB))
+	{
 		return -EINVAL;
+	}
 
 	vma = find_vma(mm, addr);
-	if (vma) {
+
+	if (vma)
+	{
 		if (addr + len > vma->vm_start)
+		{
 			return -EINVAL;
+		}
+
 		if (!(vma->vm_flags & MAP_HUGETLB) &&
-		    (ALIGN_HUGEPT(addr + len) > vma->vm_start))
+			(ALIGN_HUGEPT(addr + len) > vma->vm_start))
+		{
 			return -EINVAL;
+		}
 	}
+
 	return 0;
 }
 
 pte_t *huge_pte_alloc(struct mm_struct *mm,
-			unsigned long addr, unsigned long sz)
+					  unsigned long addr, unsigned long sz)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -100,7 +119,7 @@ int pud_huge(pud_t pud)
 }
 
 struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
-			     pmd_t *pmd, int write)
+							 pmd_t *pmd, int write)
 {
 	return NULL;
 }
@@ -127,50 +146,73 @@ hugetlb_get_unmapped_area_existing(unsigned long len)
 	unsigned long start_addr, addr;
 	int after_huge;
 
-	if (mm->context.part_huge) {
+	if (mm->context.part_huge)
+	{
 		start_addr = mm->context.part_huge;
 		after_huge = 1;
-	} else {
+	}
+	else
+	{
 		start_addr = TASK_UNMAPPED_BASE;
 		after_huge = 0;
 	}
+
 new_search:
 	addr = start_addr;
 
-	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
-		if ((!vma && !after_huge) || TASK_SIZE - len < addr) {
+	for (vma = find_vma(mm, addr); ; vma = vma->vm_next)
+	{
+		if ((!vma && !after_huge) || TASK_SIZE - len < addr)
+		{
 			/*
 			 * Start a new search - just in case we missed
 			 * some holes.
 			 */
-			if (start_addr != TASK_UNMAPPED_BASE) {
+			if (start_addr != TASK_UNMAPPED_BASE)
+			{
 				start_addr = TASK_UNMAPPED_BASE;
 				goto new_search;
 			}
+
 			return 0;
 		}
+
 		/* skip ahead if we've aligned right over some vmas */
 		if (vma && vma->vm_end <= addr)
+		{
 			continue;
+		}
+
 		/* space before the next vma? */
 		if (after_huge && (!vma || ALIGN_HUGEPT(addr + len)
-			    <= vma->vm_start)) {
+						   <= vma->vm_start))
+		{
 			unsigned long end = addr + len;
+
 			if (end & HUGEPT_MASK)
+			{
 				mm->context.part_huge = end;
+			}
 			else if (addr == mm->context.part_huge)
+			{
 				mm->context.part_huge = 0;
+			}
+
 			return addr;
 		}
-		if (vma->vm_flags & MAP_HUGETLB) {
+
+		if (vma->vm_flags & MAP_HUGETLB)
+		{
 			/* space after a huge vma in 2nd level page table? */
-			if (vma->vm_end & HUGEPT_MASK) {
+			if (vma->vm_end & HUGEPT_MASK)
+			{
 				after_huge = 1;
 				/* no need to align to the next PT block */
 				addr = vma->vm_end;
 				continue;
 			}
 		}
+
 		after_huge = 0;
 		addr = ALIGN_HUGEPT(vma->vm_end);
 	}
@@ -194,25 +236,38 @@ hugetlb_get_unmapped_area_new_pmd(unsigned long len)
 
 unsigned long
 hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
-		unsigned long len, unsigned long pgoff, unsigned long flags)
+						  unsigned long len, unsigned long pgoff, unsigned long flags)
 {
 	struct hstate *h = hstate_file(file);
 
 	if (len & ~huge_page_mask(h))
+	{
 		return -EINVAL;
-	if (len > TASK_SIZE)
-		return -ENOMEM;
+	}
 
-	if (flags & MAP_FIXED) {
+	if (len > TASK_SIZE)
+	{
+		return -ENOMEM;
+	}
+
+	if (flags & MAP_FIXED)
+	{
 		if (prepare_hugepage_range(file, addr, len))
+		{
 			return -EINVAL;
+		}
+
 		return addr;
 	}
 
-	if (addr) {
+	if (addr)
+	{
 		addr = ALIGN(addr, huge_page_size(h));
+
 		if (!prepare_hugepage_range(file, addr, len))
+		{
 			return addr;
+		}
 	}
 
 	/*
@@ -220,8 +275,11 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
 	 * minimise fragmentation caused by huge pages.
 	 */
 	addr = hugetlb_get_unmapped_area_existing(len);
+
 	if (addr)
+	{
 		return addr;
+	}
 
 	/*
 	 * Find an unmapped naturally aligned set of 4MB blocks that we can use
@@ -236,14 +294,19 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
 static __init int setup_hugepagesz(char *opt)
 {
 	unsigned long ps = memparse(opt, &opt);
-	if (ps == (1 << HPAGE_SHIFT)) {
+
+	if (ps == (1 << HPAGE_SHIFT))
+	{
 		hugetlb_add_hstate(HPAGE_SHIFT - PAGE_SHIFT);
-	} else {
+	}
+	else
+	{
 		hugetlb_bad_size();
 		pr_err("hugepagesz: Unsupported page size %lu M\n",
-		       ps >> 20);
+			   ps >> 20);
 		return 0;
 	}
+
 	return 1;
 }
 __setup("hugepagesz=", setup_hugepagesz);

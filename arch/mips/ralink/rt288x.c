@@ -29,7 +29,8 @@ static struct rt2880_pmx_func mdio_func[] = { FUNC("mdio", 0, 22, 2) };
 static struct rt2880_pmx_func sdram_func[] = { FUNC("sdram", 0, 24, 16) };
 static struct rt2880_pmx_func pci_func[] = { FUNC("pci", 0, 40, 32) };
 
-static struct rt2880_pmx_group rt2880_pinmux_data_act[] = {
+static struct rt2880_pmx_group rt2880_pinmux_data_act[] =
+{
 	GRP("i2c", i2c_func, 1, RT2880_GPIO_MODE_I2C),
 	GRP("spi", spi_func, 1, RT2880_GPIO_MODE_SPI),
 	GRP("uartlite", uartlite_func, 1, RT2880_GPIO_MODE_UART0),
@@ -56,19 +57,23 @@ void __init ralink_clk_init(void)
 	u32 t = rt_sysc_r32(SYSC_REG_SYSTEM_CONFIG);
 	t = ((t >> SYSTEM_CONFIG_CPUCLK_SHIFT) & SYSTEM_CONFIG_CPUCLK_MASK);
 
-	switch (t) {
-	case SYSTEM_CONFIG_CPUCLK_250:
-		cpu_rate = 250000000;
-		break;
-	case SYSTEM_CONFIG_CPUCLK_266:
-		cpu_rate = 266666667;
-		break;
-	case SYSTEM_CONFIG_CPUCLK_280:
-		cpu_rate = 280000000;
-		break;
-	case SYSTEM_CONFIG_CPUCLK_300:
-		cpu_rate = 300000000;
-		break;
+	switch (t)
+	{
+		case SYSTEM_CONFIG_CPUCLK_250:
+			cpu_rate = 250000000;
+			break;
+
+		case SYSTEM_CONFIG_CPUCLK_266:
+			cpu_rate = 266666667;
+			break;
+
+		case SYSTEM_CONFIG_CPUCLK_280:
+			cpu_rate = 280000000;
+			break;
+
+		case SYSTEM_CONFIG_CPUCLK_300:
+			cpu_rate = 300000000;
+			break;
 	}
 
 	ralink_clk_add("cpu", cpu_rate);
@@ -86,7 +91,9 @@ void __init ralink_of_remap(void)
 	rt_memc_membase = plat_of_remap_node("ralink,rt2880-memc");
 
 	if (!rt_sysc_membase || !rt_memc_membase)
+	{
 		panic("Failed to remap core resources");
+	}
 }
 
 void prom_soc_init(struct ralink_soc_info *soc_info)
@@ -101,18 +108,21 @@ void prom_soc_init(struct ralink_soc_info *soc_info)
 	n1 = __raw_readl(sysc + SYSC_REG_CHIP_NAME1);
 	id = __raw_readl(sysc + SYSC_REG_CHIP_ID);
 
-	if (n0 == RT2880_CHIP_NAME0 && n1 == RT2880_CHIP_NAME1) {
+	if (n0 == RT2880_CHIP_NAME0 && n1 == RT2880_CHIP_NAME1)
+	{
 		soc_info->compatible = "ralink,r2880-soc";
 		name = "RT2880";
-	} else {
+	}
+	else
+	{
 		panic("rt288x: unknown SoC, n0:%08x n1:%08x", n0, n1);
 	}
 
 	snprintf(soc_info->sys_type, RAMIPS_SYS_TYPE_LEN,
-		"Ralink %s id:%u rev:%u",
-		name,
-		(id >> CHIP_ID_ID_SHIFT) & CHIP_ID_ID_MASK,
-		(id & CHIP_ID_REV_MASK));
+			 "Ralink %s id:%u rev:%u",
+			 name,
+			 (id >> CHIP_ID_ID_SHIFT) & CHIP_ID_ID_MASK,
+			 (id & CHIP_ID_REV_MASK));
 
 	soc_info->mem_base = RT2880_SDRAM_BASE;
 	soc_info->mem_size_min = RT2880_MEM_SIZE_MIN;

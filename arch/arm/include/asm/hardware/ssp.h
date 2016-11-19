@@ -10,7 +10,8 @@
 #ifndef SSP_H
 #define SSP_H
 
-struct ssp_state {
+struct ssp_state
+{
 	unsigned int	cr0;
 	unsigned int	cr1;
 };

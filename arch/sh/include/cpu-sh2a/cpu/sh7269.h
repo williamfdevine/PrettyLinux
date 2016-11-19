@@ -1,7 +1,8 @@
 #ifndef __ASM_SH7269_H__
 #define __ASM_SH7269_H__
 
-enum {
+enum
+{
 	/* Port A */
 	GPIO_PA1, GPIO_PA0,
 

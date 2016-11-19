@@ -16,7 +16,7 @@
  * This is a kludge, until I know better. --zaitcev XXX
  */
 static inline void flush_tlb_kernel_range(unsigned long start,
-					  unsigned long end)
+		unsigned long end)
 {
 	flush_tlb_all();
 }

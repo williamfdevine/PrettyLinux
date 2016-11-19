@@ -4,15 +4,15 @@
 #include <linux/perf_event.h>
 
 #ifndef REQUEST_FILE
-#error "REQUEST_FILE must be defined before including"
+	#error "REQUEST_FILE must be defined before including"
 #endif
 
 #ifndef NAME_LOWER
-#error "NAME_LOWER must be defined before including"
+	#error "NAME_LOWER must be defined before including"
 #endif
 
 #ifndef NAME_UPPER
-#error "NAME_UPPER must be defined before including"
+	#error "NAME_UPPER must be defined before including"
 #endif
 
 #define BE_TYPE_b1 __u8
@@ -21,7 +21,7 @@
 #define BE_TYPE_b8 __be64
 
 #define BYTES_TO_BE_TYPE(bytes) \
-		BE_TYPE_b##bytes
+	BE_TYPE_b##bytes
 
 #define CAT2_(a, b) a ## b
 #define CAT2(a, b) CAT2_(a, b)
@@ -39,7 +39,8 @@
 #include "_clear.h"
 #define REQUEST_(r_name, r_value, r_idx_1, r_fields) \
 	REQUEST_VALUE(r_name) = r_value,
-enum CAT2(NAME_LOWER, _requests) {
+enum CAT2(NAME_LOWER, _requests)
+{
 #include REQUEST_FILE
 };
 
@@ -54,9 +55,9 @@ enum CAT2(NAME_LOWER, _requests) {
 #define STRUCT_NAME_(name_lower, r_name) STRUCT_NAME__(name_lower, r_name)
 #define STRUCT_NAME(r_name) STRUCT_NAME_(NAME_LOWER, r_name)
 #define REQUEST_(r_name, r_value, r_idx_1, r_fields)	\
-struct STRUCT_NAME(r_name) {				\
-	r_fields					\
-};
+	struct STRUCT_NAME(r_name) {				\
+		r_fields					\
+	};
 #define __field_(r_name, r_value, r_idx_1, f_offset, f_bytes, f_name) \
 	BYTES_TO_BE_TYPE(f_bytes) f_name;
 #define __count_(r_name, r_value, r_idx_1, f_offset, f_bytes, f_name) \
@@ -72,7 +73,7 @@ struct STRUCT_NAME(r_name) {				\
  */
 #include "_clear.h"
 #define REQUEST_(r_name, r_value, index, r_fields)			\
-r_fields
+	r_fields
 #define __field_(r_name, r_value, r_idx_1, f_offset, f_size, f_name) \
 	BUILD_BUG_ON(offsetof(struct STRUCT_NAME(r_name), f_name) != f_offset);
 #define __count_(r_name, r_value, r_idx_1, c_offset, c_size, c_name) \
@@ -109,15 +110,15 @@ static inline void CAT2(NAME_LOWER, _assert_offsets_correct)(void)
 #define __field_(r_name, r_value, r_idx_1, f_offset, f_size, f_name)
 #define __array_(r_name, r_value, r_idx_1, a_offset, a_size, a_name)
 #define __count_(r_name, r_value, r_idx_1, c_offset, c_size, c_name)	\
-PMU_EVENT_ATTR_STRING(							\
-		CAT3(r_name, _, c_name),				\
-		EVENT_ATTR_NAME(r_name, c_name),			\
-		"request=" __stringify(r_value) ","			\
-		r_idx_1 ","						\
-		"counter_info_version="					\
+	PMU_EVENT_ATTR_STRING(							\
+			CAT3(r_name, _, c_name),				\
+			EVENT_ATTR_NAME(r_name, c_name),			\
+			"request=" __stringify(r_value) ","			\
+			r_idx_1 ","						\
+			"counter_info_version="					\
 			__stringify(COUNTER_INFO_VERSION_CURRENT) ","	\
-		"length=" #c_size ","					\
-		"offset=" #c_offset)
+			"length=" #c_size ","					\
+			"offset=" #c_offset)
 #define REQUEST_(r_name, r_value, r_idx_1, r_fields)			\
 	r_fields
 
@@ -137,7 +138,8 @@ PMU_EVENT_ATTR_STRING(							\
 #define REQUEST_(r_name, r_value, r_idx_1, r_fields)			\
 	r_fields
 
-static __maybe_unused struct attribute *hv_gpci_event_attrs[] = {
+static __maybe_unused struct attribute *hv_gpci_event_attrs[] =
+{
 #include REQUEST_FILE
 	NULL
 };

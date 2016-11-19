@@ -5,7 +5,7 @@
 #include <os.h>
 
 static void kmsg_dumper_stdout(struct kmsg_dumper *dumper,
-				enum kmsg_dump_reason reason)
+							   enum kmsg_dump_reason reason)
 {
 	static char line[1024];
 
@@ -14,24 +14,33 @@ static void kmsg_dumper_stdout(struct kmsg_dumper *dumper,
 
 	/* only dump kmsg when no console is available */
 	if (!console_trylock())
+	{
 		return;
+	}
 
 	if (console_drivers != NULL)
+	{
 		con_available = true;
+	}
 
 	console_unlock();
 
 	if (con_available == true)
+	{
 		return;
+	}
 
 	printf("kmsg_dump:\n");
-	while (kmsg_dump_get_line(dumper, true, line, sizeof(line), &len)) {
+
+	while (kmsg_dump_get_line(dumper, true, line, sizeof(line), &len))
+	{
 		line[len] = '\0';
 		printf("%s", line);
 	}
 }
 
-static struct kmsg_dumper kmsg_dumper = {
+static struct kmsg_dumper kmsg_dumper =
+{
 	.dump = kmsg_dumper_stdout
 };
 

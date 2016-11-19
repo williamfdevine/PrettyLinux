@@ -44,7 +44,7 @@
 #include <asm/irq.h>
 
 static int stdma_locked;			/* the semaphore */
-						/* int func to be called */
+/* int func to be called */
 static irq_handler_t stdma_isr;
 static void *stdma_isr_data;			/* data passed to isr */
 static DECLARE_WAIT_QUEUE_HEAD(stdma_wait);	/* wait queue for ST-DMA */
@@ -71,7 +71,9 @@ int stdma_try_lock(irq_handler_t handler, void *data)
 	unsigned long flags;
 
 	local_irq_save(flags);
-	if (stdma_locked) {
+
+	if (stdma_locked)
+	{
 		local_irq_restore(flags);
 		return 0;
 	}
@@ -198,9 +200,12 @@ EXPORT_SYMBOL(stdma_islocked);
 void __init stdma_init(void)
 {
 	stdma_isr = NULL;
+
 	if (request_irq(IRQ_MFP_FDC, stdma_int, IRQF_SHARED,
-			"ST-DMA floppy,ACSI,IDE,Falcon-SCSI", stdma_int))
+					"ST-DMA floppy,ACSI,IDE,Falcon-SCSI", stdma_int))
+	{
 		pr_err("Couldn't register ST-DMA interrupt\n");
+	}
 }
 
 
@@ -214,7 +219,10 @@ void __init stdma_init(void)
 
 static irqreturn_t stdma_int(int irq, void *dummy)
 {
-  if (stdma_isr)
-      (*stdma_isr)(irq, stdma_isr_data);
-  return IRQ_HANDLED;
+	if (stdma_isr)
+	{
+		(*stdma_isr)(irq, stdma_isr_data);
+	}
+
+	return IRQ_HANDLED;
 }

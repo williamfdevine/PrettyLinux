@@ -13,7 +13,8 @@
 #include "ops.h"
 #include "page.h"
 
-struct cpm_scc {
+struct cpm_scc
+{
 	u32 gsmrl;
 	u32 gsmrh;
 	u16 psmr;
@@ -28,7 +29,8 @@ struct cpm_scc {
 	u8 res4[8];
 };
 
-struct cpm_smc {
+struct cpm_smc
+{
 	u8 res1[2];
 	u16 smcmr;
 	u8 res2[2];
@@ -38,7 +40,8 @@ struct cpm_smc {
 	u8 res4[5];
 };
 
-struct cpm_param {
+struct cpm_param
+{
 	u16 rbase;
 	u16 tbase;
 	u8 rfcr;
@@ -61,7 +64,8 @@ struct cpm_param {
 	u8 res5[4];
 };
 
-struct cpm_bd {
+struct cpm_bd
+{
 	u16 sc;   /* Status and Control */
 	u16 len;  /* Data length in buffer */
 	u8 *addr; /* Buffer address in host memory */
@@ -165,7 +169,9 @@ static int cpm_serial_open(void)
 static void cpm_serial_putc(unsigned char c)
 {
 	while (tbdf->sc & 0x8000)
+	{
 		barrier();
+	}
 
 	sync();
 
@@ -204,51 +210,79 @@ int cpm_console_init(void *devp, struct serial_console_data *scdp)
 	void *muram_addr;
 	unsigned long muram_offset, muram_size;
 
-	if (dt_is_compatible(devp, "fsl,cpm1-smc-uart")) {
+	if (dt_is_compatible(devp, "fsl,cpm1-smc-uart"))
+	{
 		is_smc = 1;
-	} else if (dt_is_compatible(devp, "fsl,cpm2-scc-uart")) {
+	}
+	else if (dt_is_compatible(devp, "fsl,cpm2-scc-uart"))
+	{
 		is_cpm2 = 1;
-	} else if (dt_is_compatible(devp, "fsl,cpm2-smc-uart")) {
+	}
+	else if (dt_is_compatible(devp, "fsl,cpm2-smc-uart"))
+	{
 		is_cpm2 = 1;
 		is_smc = 1;
 	}
 
-	if (is_smc) {
+	if (is_smc)
+	{
 		enable_port = smc_enable_port;
 		disable_port = smc_disable_port;
-	} else {
+	}
+	else
+	{
 		enable_port = scc_enable_port;
 		disable_port = scc_disable_port;
 	}
 
 	if (is_cpm2)
+	{
 		do_cmd = cpm2_cmd;
+	}
 	else
+	{
 		do_cmd = cpm1_cmd;
+	}
 
 	if (getprop(devp, "fsl,cpm-command", &cpm_cmd, 4) < 4)
+	{
 		return -1;
+	}
 
 	if (dt_get_virtual_reg(devp, vreg, 2) < 2)
+	{
 		return -1;
+	}
 
 	if (is_smc)
+	{
 		smc = vreg[0];
+	}
 	else
+	{
 		scc = vreg[0];
+	}
 
 	param = vreg[1];
 
 	parent = get_parent(devp);
+
 	if (!parent)
+	{
 		return -1;
+	}
 
 	if (dt_get_virtual_reg(parent, &cpcr, 1) < 1)
+	{
 		return -1;
+	}
 
 	muram = finddevice("/soc/cpm/muram/data");
+
 	if (!muram)
+	{
 		return -1;
+	}
 
 	/* For bootwrapper-compatible device trees, we assume that the first
 	 * entry has at least 128 bytes, and that #address-cells/#data-cells
@@ -256,10 +290,14 @@ int cpm_console_init(void *devp, struct serial_console_data *scdp)
 	 */
 
 	if (dt_get_virtual_reg(muram, &muram_addr, 1) < 1)
+	{
 		return -1;
+	}
 
 	if (getprop(muram, "reg", reg, 8) < 8)
+	{
 		return -1;
+	}
 
 	muram_offset = reg[0];
 	muram_size = reg[1];
@@ -271,7 +309,8 @@ int cpm_console_init(void *devp, struct serial_console_data *scdp)
 
 	cbd_offset = muram_offset + muram_size - 2 * sizeof(struct cpm_bd);
 
-	if (is_cpm2 && is_smc) {
+	if (is_cpm2 && is_smc)
+	{
 		u16 *smc_base = (u16 *)param;
 		u16 pram_offset;
 

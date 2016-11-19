@@ -23,7 +23,8 @@
 /*
  * This is the layout of the regset returned by the GETREGSET ptrace call
  */
-struct user_regs_struct {
+struct user_regs_struct
+{
 	/* GPR R0-R31... */
 	unsigned long gpr[32];
 	unsigned long pc;

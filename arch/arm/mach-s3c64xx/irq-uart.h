@@ -9,7 +9,8 @@
  * published by the Free Software Foundation.
 */
 
-struct s3c_uart_irq {
+struct s3c_uart_irq
+{
 	void __iomem	*regs;
 	unsigned int	 base_irq;
 	unsigned int	 parent_irq;

@@ -35,9 +35,9 @@
 #include <asm/traps.h>
 
 #ifdef CONFIG_SMP
-# if XCHAL_HAVE_S32C1I == 0
-#  error "The S32C1I option is required for SMP."
-# endif
+	#if XCHAL_HAVE_S32C1I == 0
+		#  error "The S32C1I option is required for SMP."
+	#endif
 #endif
 
 static void system_invalidate_dcache_range(unsigned long start,
@@ -50,7 +50,8 @@ static void system_flush_invalidate_dcache_range(unsigned long start,
 #define IPI_IRQ	0
 
 static irqreturn_t ipi_interrupt(int irq, void *dev_id);
-static struct irqaction ipi_irqaction = {
+static struct irqaction ipi_irqaction =
+{
 	.handler =	ipi_interrupt,
 	.flags =	IRQF_PERCPU,
 	.name =		"ipi",
@@ -81,7 +82,9 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 	unsigned i;
 
 	for (i = 0; i < max_cpus; ++i)
+	{
 		set_cpu_present(i, true);
+	}
 }
 
 void __init smp_init_cpus(void)
@@ -94,7 +97,9 @@ void __init smp_init_cpus(void)
 	pr_info("%s: Core Id = %d\n", __func__, core_id);
 
 	for (i = 0; i < ncpus; ++i)
+	{
 		set_cpu_possible(i, true);
+	}
 }
 
 void __init smp_prepare_boot_cpu(void)
@@ -119,15 +124,20 @@ void secondary_start_kernel(void)
 	init_mmu();
 
 #ifdef CONFIG_DEBUG_KERNEL
-	if (boot_secondary_processors == 0) {
+
+	if (boot_secondary_processors == 0)
+	{
 		pr_debug("%s: boot_secondary_processors:%d; Hanging cpu:%d\n",
-			__func__, boot_secondary_processors, cpu);
+				 __func__, boot_secondary_processors, cpu);
+
 		for (;;)
+		{
 			__asm__ __volatile__ ("waiti " __stringify(LOCKLEVEL));
+		}
 	}
 
 	pr_debug("%s: boot_secondary_processors:%d; Booting cpu:%d\n",
-		__func__, boot_secondary_processors, cpu);
+			 __func__, boot_secondary_processors, cpu);
 #endif
 	/* Init EXCSAVE1 */
 
@@ -167,7 +177,7 @@ static void mx_cpu_start(void *p)
 
 	set_er(run_stall_mask & ~(1u << cpu), MPSCORE);
 	pr_debug("%s: cpu: %d, run_stall_mask: %lx ---> %lx\n",
-			__func__, cpu, run_stall_mask, get_er(MPSCORE));
+			 __func__, cpu, run_stall_mask, get_er(MPSCORE));
 }
 
 static void mx_cpu_stop(void *p)
@@ -177,11 +187,11 @@ static void mx_cpu_stop(void *p)
 
 	set_er(run_stall_mask | (1u << cpu), MPSCORE);
 	pr_debug("%s: cpu: %d, run_stall_mask: %lx ---> %lx\n",
-			__func__, cpu, run_stall_mask, get_er(MPSCORE));
+			 __func__, cpu, run_stall_mask, get_er(MPSCORE));
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
-unsigned long cpu_start_id __cacheline_aligned;
+	unsigned long cpu_start_id __cacheline_aligned;
 #endif
 unsigned long cpu_start_ccount;
 
@@ -194,30 +204,39 @@ static int boot_secondary(unsigned int cpu, struct task_struct *ts)
 #ifdef CONFIG_HOTPLUG_CPU
 	cpu_start_id = cpu;
 	system_flush_invalidate_dcache_range(
-			(unsigned long)&cpu_start_id, sizeof(cpu_start_id));
+		(unsigned long)&cpu_start_id, sizeof(cpu_start_id));
 #endif
 	smp_call_function_single(0, mx_cpu_start, (void *)cpu, 1);
 
-	for (i = 0; i < 2; ++i) {
+	for (i = 0; i < 2; ++i)
+	{
 		do
+		{
 			ccount = get_ccount();
+		}
 		while (!ccount);
 
 		cpu_start_ccount = ccount;
 
-		while (time_before(jiffies, timeout)) {
+		while (time_before(jiffies, timeout))
+		{
 			mb();
+
 			if (!cpu_start_ccount)
+			{
 				break;
+			}
 		}
 
-		if (cpu_start_ccount) {
+		if (cpu_start_ccount)
+		{
 			smp_call_function_single(0, mx_cpu_stop,
-					(void *)cpu, 1);
+									 (void *)cpu, 1);
 			cpu_start_ccount = 0;
 			return -EIO;
 		}
 	}
+
 	return 0;
 }
 
@@ -226,24 +245,33 @@ int __cpu_up(unsigned int cpu, struct task_struct *idle)
 	int ret = 0;
 
 	if (cpu_asid_cache(cpu) == 0)
+	{
 		cpu_asid_cache(cpu) = ASID_USER_FIRST;
+	}
 
 	start_info.stack = (unsigned long)task_pt_regs(idle);
 	wmb();
 
 	pr_debug("%s: Calling wakeup_secondary(cpu:%d, idle:%p, sp: %08lx)\n",
-			__func__, cpu, idle, start_info.stack);
+			 __func__, cpu, idle, start_info.stack);
 
 	ret = boot_secondary(cpu, idle);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		wait_for_completion_timeout(&cpu_running,
-				msecs_to_jiffies(1000));
+									msecs_to_jiffies(1000));
+
 		if (!cpu_online(cpu))
+		{
 			ret = -EIO;
+		}
 	}
 
 	if (ret)
+	{
 		pr_err("CPU %u failed to boot\n", cpu);
+	}
 
 	return ret;
 }
@@ -293,14 +321,19 @@ static void platform_cpu_kill(unsigned int cpu)
 void __cpu_die(unsigned int cpu)
 {
 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		system_invalidate_dcache_range((unsigned long)&cpu_start_id,
-				sizeof(cpu_start_id));
-		if (cpu_start_id == -cpu) {
+									   sizeof(cpu_start_id));
+
+		if (cpu_start_id == -cpu)
+		{
 			platform_cpu_kill(cpu);
 			return;
 		}
 	}
+
 	pr_err("CPU%u: unable to kill\n", cpu);
 }
 
@@ -321,43 +354,50 @@ void __ref cpu_die(void)
 	idle_task_exit();
 	local_irq_disable();
 	__asm__ __volatile__(
-			"	movi	a2, cpu_restart\n"
-			"	jx	a2\n");
+		"	movi	a2, cpu_restart\n"
+		"	jx	a2\n");
 }
 
 #endif /* CONFIG_HOTPLUG_CPU */
 
-enum ipi_msg_type {
+enum ipi_msg_type
+{
 	IPI_RESCHEDULE = 0,
 	IPI_CALL_FUNC,
 	IPI_CPU_STOP,
 	IPI_MAX
 };
 
-static const struct {
+static const struct
+{
 	const char *short_text;
 	const char *long_text;
-} ipi_text[] = {
+} ipi_text[] =
+{
 	{ .short_text = "RES", .long_text = "Rescheduling interrupts" },
 	{ .short_text = "CAL", .long_text = "Function call interrupts" },
 	{ .short_text = "DIE", .long_text = "CPU shutdown interrupts" },
 };
 
-struct ipi_data {
+struct ipi_data
+{
 	unsigned long ipi_count[IPI_MAX];
 };
 
 static DEFINE_PER_CPU(struct ipi_data, ipi_data);
 
 static void send_ipi_message(const struct cpumask *callmask,
-		enum ipi_msg_type msg_id)
+							 enum ipi_msg_type msg_id)
 {
 	int index;
 	unsigned long mask = 0;
 
 	for_each_cpu(index, callmask)
-		if (index != smp_processor_id())
-			mask |= 1 << index;
+
+	if (index != smp_processor_id())
+	{
+		mask |= 1 << index;
+	}
 
 	set_er(mask, MIPISET(msg_id));
 }
@@ -400,18 +440,28 @@ irqreturn_t ipi_interrupt(int irq, void *dev_id)
 	unsigned i;
 
 	msg = get_er(MIPICAUSE(cpu));
+
 	for (i = 0; i < IPI_MAX; i++)
-		if (msg & (1 << i)) {
+		if (msg & (1 << i))
+		{
 			set_er(1 << i, MIPICAUSE(cpu));
 			++ipi->ipi_count[i];
 		}
 
 	if (msg & (1 << IPI_RESCHEDULE))
+	{
 		scheduler_ipi();
+	}
+
 	if (msg & (1 << IPI_CALL_FUNC))
+	{
 		generic_smp_call_function_interrupt();
+	}
+
 	if (msg & (1 << IPI_CPU_STOP))
+	{
 		ipi_cpu_stop(cpu);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -421,11 +471,12 @@ void show_ipi_list(struct seq_file *p, int prec)
 	unsigned int cpu;
 	unsigned i;
 
-	for (i = 0; i < IPI_MAX; ++i) {
+	for (i = 0; i < IPI_MAX; ++i)
+	{
 		seq_printf(p, "%*s:", prec, ipi_text[i].short_text);
 		for_each_online_cpu(cpu)
-			seq_printf(p, " %10lu",
-					per_cpu(ipi_data, cpu).ipi_count[i]);
+		seq_printf(p, " %10lu",
+				   per_cpu(ipi_data, cpu).ipi_count[i]);
 		seq_printf(p, "   %s\n", ipi_text[i].long_text);
 	}
 }
@@ -438,7 +489,8 @@ int setup_profiling_timer(unsigned int multiplier)
 
 /* TLB flush functions */
 
-struct flush_data {
+struct flush_data
+{
 	struct vm_area_struct *vma;
 	unsigned long addr1;
 	unsigned long addr2;
@@ -472,7 +524,8 @@ static void ipi_flush_tlb_page(void *arg)
 
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long addr)
 {
-	struct flush_data fd = {
+	struct flush_data fd =
+	{
 		.vma = vma,
 		.addr1 = addr,
 	};
@@ -486,9 +539,10 @@ static void ipi_flush_tlb_range(void *arg)
 }
 
 void flush_tlb_range(struct vm_area_struct *vma,
-		     unsigned long start, unsigned long end)
+					 unsigned long start, unsigned long end)
 {
-	struct flush_data fd = {
+	struct flush_data fd =
+	{
 		.vma = vma,
 		.addr1 = start,
 		.addr2 = end,
@@ -504,7 +558,8 @@ static void ipi_flush_tlb_kernel_range(void *arg)
 
 void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 {
-	struct flush_data fd = {
+	struct flush_data fd =
+	{
 		.addr1 = start,
 		.addr2 = end,
 	};
@@ -530,9 +585,10 @@ static void ipi_flush_cache_page(void *arg)
 }
 
 void flush_cache_page(struct vm_area_struct *vma,
-		     unsigned long address, unsigned long pfn)
+					  unsigned long address, unsigned long pfn)
 {
-	struct flush_data fd = {
+	struct flush_data fd =
+	{
 		.vma = vma,
 		.addr1 = address,
 		.addr2 = pfn,
@@ -547,9 +603,10 @@ static void ipi_flush_cache_range(void *arg)
 }
 
 void flush_cache_range(struct vm_area_struct *vma,
-		     unsigned long start, unsigned long end)
+					   unsigned long start, unsigned long end)
 {
-	struct flush_data fd = {
+	struct flush_data fd =
+	{
 		.vma = vma,
 		.addr1 = start,
 		.addr2 = end,
@@ -565,7 +622,8 @@ static void ipi_flush_icache_range(void *arg)
 
 void flush_icache_range(unsigned long start, unsigned long end)
 {
-	struct flush_data fd = {
+	struct flush_data fd =
+	{
 		.addr1 = start,
 		.addr2 = end,
 	};
@@ -584,7 +642,8 @@ static void ipi_invalidate_dcache_range(void *arg)
 static void system_invalidate_dcache_range(unsigned long start,
 		unsigned long size)
 {
-	struct flush_data fd = {
+	struct flush_data fd =
+	{
 		.addr1 = start,
 		.addr2 = size,
 	};
@@ -600,7 +659,8 @@ static void ipi_flush_invalidate_dcache_range(void *arg)
 static void system_flush_invalidate_dcache_range(unsigned long start,
 		unsigned long size)
 {
-	struct flush_data fd = {
+	struct flush_data fd =
+	{
 		.addr1 = start,
 		.addr2 = size,
 	};

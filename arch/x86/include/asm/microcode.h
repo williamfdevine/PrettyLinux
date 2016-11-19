@@ -6,21 +6,22 @@
 #include <linux/initrd.h>
 
 #define native_rdmsr(msr, val1, val2)			\
-do {							\
-	u64 __val = native_read_msr((msr));		\
-	(void)((val1) = (u32)__val);			\
-	(void)((val2) = (u32)(__val >> 32));		\
-} while (0)
+	do {							\
+		u64 __val = native_read_msr((msr));		\
+		(void)((val1) = (u32)__val);			\
+		(void)((val2) = (u32)(__val >> 32));		\
+	} while (0)
 
 #define native_wrmsr(msr, low, high)			\
 	native_write_msr(msr, low, high)
 
 #define native_wrmsrl(msr, val)				\
 	native_write_msr((msr),				\
-			 (u32)((u64)(val)),		\
-			 (u32)((u64)(val) >> 32))
+					 (u32)((u64)(val)),		\
+					 (u32)((u64)(val) >> 32))
 
-struct cpu_signature {
+struct cpu_signature
+{
 	unsigned int sig;
 	unsigned int pf;
 	unsigned int rev;
@@ -30,12 +31,13 @@ struct device;
 
 enum ucode_state { UCODE_ERROR, UCODE_OK, UCODE_NFOUND };
 
-struct microcode_ops {
+struct microcode_ops
+{
 	enum ucode_state (*request_microcode_user) (int cpu,
-				const void __user *buf, size_t size);
+			const void __user *buf, size_t size);
 
 	enum ucode_state (*request_microcode_fw) (int cpu, struct device *,
-						  bool refresh_fw);
+			bool refresh_fw);
 
 	void (*microcode_fini_cpu) (int cpu);
 
@@ -49,7 +51,8 @@ struct microcode_ops {
 	int (*collect_cpu_info) (int cpu, struct cpu_signature *csig);
 };
 
-struct ucode_cpu_info {
+struct ucode_cpu_info
+{
 	struct cpu_signature	cpu_sig;
 	int			valid;
 	void			*mc;
@@ -63,19 +66,19 @@ static inline int __init microcode_init(void)	{ return 0; };
 #endif
 
 #ifdef CONFIG_MICROCODE_INTEL
-extern struct microcode_ops * __init init_intel_microcode(void);
+extern struct microcode_ops *__init init_intel_microcode(void);
 #else
-static inline struct microcode_ops * __init init_intel_microcode(void)
+static inline struct microcode_ops *__init init_intel_microcode(void)
 {
 	return NULL;
 }
 #endif /* CONFIG_MICROCODE_INTEL */
 
 #ifdef CONFIG_MICROCODE_AMD
-extern struct microcode_ops * __init init_amd_microcode(void);
+extern struct microcode_ops *__init init_amd_microcode(void);
 extern void __exit exit_amd_microcode(void);
 #else
-static inline struct microcode_ops * __init init_amd_microcode(void)
+static inline struct microcode_ops *__init init_amd_microcode(void)
 {
 	return NULL;
 }
@@ -93,7 +96,7 @@ static inline void __exit exit_amd_microcode(void) {}
 #define CPUID_AMD3 QCHAR('c', 'A', 'M', 'D')
 
 #define CPUID_IS(a, b, c, ebx, ecx, edx)	\
-		(!((ebx ^ (a))|(edx ^ (b))|(ecx ^ (c))))
+	(!((ebx ^ (a))|(edx ^ (b))|(ecx ^ (c))))
 
 /*
  * In early loading microcode phase on BSP, boot_cpu_data is not set up yet.
@@ -112,10 +115,14 @@ static inline int x86_cpuid_vendor(void)
 	native_cpuid(&eax, &ebx, &ecx, &edx);
 
 	if (CPUID_IS(CPUID_INTEL1, CPUID_INTEL2, CPUID_INTEL3, ebx, ecx, edx))
+	{
 		return X86_VENDOR_INTEL;
+	}
 
 	if (CPUID_IS(CPUID_AMD1, CPUID_AMD2, CPUID_AMD3, ebx, ecx, edx))
+	{
 		return X86_VENDOR_AMD;
+	}
 
 	return X86_VENDOR_UNKNOWN;
 }

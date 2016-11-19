@@ -23,7 +23,8 @@
 #define EHV_PIC_VECPRI_POLARITY_MASK 0x1
 #define EHV_PIC_VECPRI_SENSE_MASK 0x2
 
-struct ehv_pic {
+struct ehv_pic
+{
 	/* The remapper for this EHV_PIC */
 	struct irq_domain	*irqhost;
 

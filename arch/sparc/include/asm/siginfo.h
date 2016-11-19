@@ -1,13 +1,13 @@
 #ifndef __SPARC_SIGINFO_H
-#define __SPARC_SIGINFO_H
+	#define __SPARC_SIGINFO_H
 
-#include <uapi/asm/siginfo.h>
+	#include <uapi/asm/siginfo.h>
 
 
-#ifdef CONFIG_COMPAT
+	#ifdef CONFIG_COMPAT
 
-struct compat_siginfo;
+		struct compat_siginfo;
 
-#endif /* CONFIG_COMPAT */
+	#endif /* CONFIG_COMPAT */
 
 #endif /* !(__SPARC_SIGINFO_H) */

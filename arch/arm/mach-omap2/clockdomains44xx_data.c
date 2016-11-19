@@ -33,7 +33,8 @@
 
 /* Static Dependencies for OMAP4 Clock Domains */
 
-static struct clkdm_dep d2d_wkup_sleep_deps[] = {
+static struct clkdm_dep d2d_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "abe_clkdm" },
 	{ .clkdm_name = "ivahd_clkdm" },
 	{ .clkdm_name = "l3_1_clkdm" },
@@ -45,86 +46,9 @@ static struct clkdm_dep d2d_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep ducati_wkup_sleep_deps[] = {
+static struct clkdm_dep ducati_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "abe_clkdm" },
-	{ .clkdm_name = "ivahd_clkdm" },
-	{ .clkdm_name = "l3_1_clkdm" },
-	{ .clkdm_name = "l3_2_clkdm" },
-	{ .clkdm_name = "l3_dss_clkdm" },
-	{ .clkdm_name = "l3_emif_clkdm" },
-	{ .clkdm_name = "l3_gfx_clkdm" },
-	{ .clkdm_name = "l3_init_clkdm" },
-	{ .clkdm_name = "l4_cfg_clkdm" },
-	{ .clkdm_name = "l4_per_clkdm" },
-	{ .clkdm_name = "l4_secure_clkdm" },
-	{ .clkdm_name = "l4_wkup_clkdm" },
-	{ .clkdm_name = "tesla_clkdm" },
-	{ NULL },
-};
-
-static struct clkdm_dep iss_wkup_sleep_deps[] = {
-	{ .clkdm_name = "ivahd_clkdm" },
-	{ .clkdm_name = "l3_1_clkdm" },
-	{ .clkdm_name = "l3_emif_clkdm" },
-	{ NULL },
-};
-
-static struct clkdm_dep ivahd_wkup_sleep_deps[] = {
-	{ .clkdm_name = "l3_1_clkdm" },
-	{ .clkdm_name = "l3_emif_clkdm" },
-	{ NULL },
-};
-
-static struct clkdm_dep l3_dma_wkup_sleep_deps[] = {
-	{ .clkdm_name = "abe_clkdm" },
-	{ .clkdm_name = "ducati_clkdm" },
-	{ .clkdm_name = "ivahd_clkdm" },
-	{ .clkdm_name = "l3_1_clkdm" },
-	{ .clkdm_name = "l3_dss_clkdm" },
-	{ .clkdm_name = "l3_emif_clkdm" },
-	{ .clkdm_name = "l3_init_clkdm" },
-	{ .clkdm_name = "l4_cfg_clkdm" },
-	{ .clkdm_name = "l4_per_clkdm" },
-	{ .clkdm_name = "l4_secure_clkdm" },
-	{ .clkdm_name = "l4_wkup_clkdm" },
-	{ NULL },
-};
-
-static struct clkdm_dep l3_dss_wkup_sleep_deps[] = {
-	{ .clkdm_name = "ivahd_clkdm" },
-	{ .clkdm_name = "l3_2_clkdm" },
-	{ .clkdm_name = "l3_emif_clkdm" },
-	{ NULL },
-};
-
-static struct clkdm_dep l3_gfx_wkup_sleep_deps[] = {
-	{ .clkdm_name = "ivahd_clkdm" },
-	{ .clkdm_name = "l3_1_clkdm" },
-	{ .clkdm_name = "l3_emif_clkdm" },
-	{ NULL },
-};
-
-static struct clkdm_dep l3_init_wkup_sleep_deps[] = {
-	{ .clkdm_name = "abe_clkdm" },
-	{ .clkdm_name = "ivahd_clkdm" },
-	{ .clkdm_name = "l3_emif_clkdm" },
-	{ .clkdm_name = "l4_cfg_clkdm" },
-	{ .clkdm_name = "l4_per_clkdm" },
-	{ .clkdm_name = "l4_secure_clkdm" },
-	{ .clkdm_name = "l4_wkup_clkdm" },
-	{ NULL },
-};
-
-static struct clkdm_dep l4_secure_wkup_sleep_deps[] = {
-	{ .clkdm_name = "l3_1_clkdm" },
-	{ .clkdm_name = "l3_emif_clkdm" },
-	{ .clkdm_name = "l4_per_clkdm" },
-	{ NULL },
-};
-
-static struct clkdm_dep mpu_wkup_sleep_deps[] = {
-	{ .clkdm_name = "abe_clkdm" },
-	{ .clkdm_name = "ducati_clkdm" },
 	{ .clkdm_name = "ivahd_clkdm" },
 	{ .clkdm_name = "l3_1_clkdm" },
 	{ .clkdm_name = "l3_2_clkdm" },
@@ -140,7 +64,94 @@ static struct clkdm_dep mpu_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clkdm_dep tesla_wkup_sleep_deps[] = {
+static struct clkdm_dep iss_wkup_sleep_deps[] =
+{
+	{ .clkdm_name = "ivahd_clkdm" },
+	{ .clkdm_name = "l3_1_clkdm" },
+	{ .clkdm_name = "l3_emif_clkdm" },
+	{ NULL },
+};
+
+static struct clkdm_dep ivahd_wkup_sleep_deps[] =
+{
+	{ .clkdm_name = "l3_1_clkdm" },
+	{ .clkdm_name = "l3_emif_clkdm" },
+	{ NULL },
+};
+
+static struct clkdm_dep l3_dma_wkup_sleep_deps[] =
+{
+	{ .clkdm_name = "abe_clkdm" },
+	{ .clkdm_name = "ducati_clkdm" },
+	{ .clkdm_name = "ivahd_clkdm" },
+	{ .clkdm_name = "l3_1_clkdm" },
+	{ .clkdm_name = "l3_dss_clkdm" },
+	{ .clkdm_name = "l3_emif_clkdm" },
+	{ .clkdm_name = "l3_init_clkdm" },
+	{ .clkdm_name = "l4_cfg_clkdm" },
+	{ .clkdm_name = "l4_per_clkdm" },
+	{ .clkdm_name = "l4_secure_clkdm" },
+	{ .clkdm_name = "l4_wkup_clkdm" },
+	{ NULL },
+};
+
+static struct clkdm_dep l3_dss_wkup_sleep_deps[] =
+{
+	{ .clkdm_name = "ivahd_clkdm" },
+	{ .clkdm_name = "l3_2_clkdm" },
+	{ .clkdm_name = "l3_emif_clkdm" },
+	{ NULL },
+};
+
+static struct clkdm_dep l3_gfx_wkup_sleep_deps[] =
+{
+	{ .clkdm_name = "ivahd_clkdm" },
+	{ .clkdm_name = "l3_1_clkdm" },
+	{ .clkdm_name = "l3_emif_clkdm" },
+	{ NULL },
+};
+
+static struct clkdm_dep l3_init_wkup_sleep_deps[] =
+{
+	{ .clkdm_name = "abe_clkdm" },
+	{ .clkdm_name = "ivahd_clkdm" },
+	{ .clkdm_name = "l3_emif_clkdm" },
+	{ .clkdm_name = "l4_cfg_clkdm" },
+	{ .clkdm_name = "l4_per_clkdm" },
+	{ .clkdm_name = "l4_secure_clkdm" },
+	{ .clkdm_name = "l4_wkup_clkdm" },
+	{ NULL },
+};
+
+static struct clkdm_dep l4_secure_wkup_sleep_deps[] =
+{
+	{ .clkdm_name = "l3_1_clkdm" },
+	{ .clkdm_name = "l3_emif_clkdm" },
+	{ .clkdm_name = "l4_per_clkdm" },
+	{ NULL },
+};
+
+static struct clkdm_dep mpu_wkup_sleep_deps[] =
+{
+	{ .clkdm_name = "abe_clkdm" },
+	{ .clkdm_name = "ducati_clkdm" },
+	{ .clkdm_name = "ivahd_clkdm" },
+	{ .clkdm_name = "l3_1_clkdm" },
+	{ .clkdm_name = "l3_2_clkdm" },
+	{ .clkdm_name = "l3_dss_clkdm" },
+	{ .clkdm_name = "l3_emif_clkdm" },
+	{ .clkdm_name = "l3_gfx_clkdm" },
+	{ .clkdm_name = "l3_init_clkdm" },
+	{ .clkdm_name = "l4_cfg_clkdm" },
+	{ .clkdm_name = "l4_per_clkdm" },
+	{ .clkdm_name = "l4_secure_clkdm" },
+	{ .clkdm_name = "l4_wkup_clkdm" },
+	{ .clkdm_name = "tesla_clkdm" },
+	{ NULL },
+};
+
+static struct clkdm_dep tesla_wkup_sleep_deps[] =
+{
 	{ .clkdm_name = "abe_clkdm" },
 	{ .clkdm_name = "ivahd_clkdm" },
 	{ .clkdm_name = "l3_1_clkdm" },
@@ -153,7 +164,8 @@ static struct clkdm_dep tesla_wkup_sleep_deps[] = {
 	{ NULL },
 };
 
-static struct clockdomain l4_cefuse_44xx_clkdm = {
+static struct clockdomain l4_cefuse_44xx_clkdm =
+{
 	.name		  = "l4_cefuse_clkdm",
 	.pwrdm		  = { .name = "cefuse_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -162,7 +174,8 @@ static struct clockdomain l4_cefuse_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain l4_cfg_44xx_clkdm = {
+static struct clockdomain l4_cfg_44xx_clkdm =
+{
 	.name		  = "l4_cfg_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -172,7 +185,8 @@ static struct clockdomain l4_cfg_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain tesla_44xx_clkdm = {
+static struct clockdomain tesla_44xx_clkdm =
+{
 	.name		  = "tesla_clkdm",
 	.pwrdm		  = { .name = "tesla_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM1_PARTITION,
@@ -184,7 +198,8 @@ static struct clockdomain tesla_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l3_gfx_44xx_clkdm = {
+static struct clockdomain l3_gfx_44xx_clkdm =
+{
 	.name		  = "l3_gfx_clkdm",
 	.pwrdm		  = { .name = "gfx_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -196,7 +211,8 @@ static struct clockdomain l3_gfx_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain ivahd_44xx_clkdm = {
+static struct clockdomain ivahd_44xx_clkdm =
+{
 	.name		  = "ivahd_clkdm",
 	.pwrdm		  = { .name = "ivahd_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -208,7 +224,8 @@ static struct clockdomain ivahd_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l4_secure_44xx_clkdm = {
+static struct clockdomain l4_secure_44xx_clkdm =
+{
 	.name		  = "l4_secure_clkdm",
 	.pwrdm		  = { .name = "l4per_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -220,7 +237,8 @@ static struct clockdomain l4_secure_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l4_per_44xx_clkdm = {
+static struct clockdomain l4_per_44xx_clkdm =
+{
 	.name		  = "l4_per_clkdm",
 	.pwrdm		  = { .name = "l4per_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -230,7 +248,8 @@ static struct clockdomain l4_per_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain abe_44xx_clkdm = {
+static struct clockdomain abe_44xx_clkdm =
+{
 	.name		  = "abe_clkdm",
 	.pwrdm		  = { .name = "abe_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM1_PARTITION,
@@ -240,7 +259,8 @@ static struct clockdomain abe_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l3_instr_44xx_clkdm = {
+static struct clockdomain l3_instr_44xx_clkdm =
+{
 	.name		  = "l3_instr_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -248,7 +268,8 @@ static struct clockdomain l3_instr_44xx_clkdm = {
 	.clkdm_offs	  = OMAP4430_CM2_CORE_L3INSTR_CDOFFS,
 };
 
-static struct clockdomain l3_init_44xx_clkdm = {
+static struct clockdomain l3_init_44xx_clkdm =
+{
 	.name		  = "l3_init_clkdm",
 	.pwrdm		  = { .name = "l3init_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -260,7 +281,8 @@ static struct clockdomain l3_init_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain d2d_44xx_clkdm = {
+static struct clockdomain d2d_44xx_clkdm =
+{
 	.name		  = "d2d_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -271,7 +293,8 @@ static struct clockdomain d2d_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain mpu0_44xx_clkdm = {
+static struct clockdomain mpu0_44xx_clkdm =
+{
 	.name		  = "mpu0_clkdm",
 	.pwrdm		  = { .name = "cpu0_pwrdm" },
 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
@@ -280,7 +303,8 @@ static struct clockdomain mpu0_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain mpu1_44xx_clkdm = {
+static struct clockdomain mpu1_44xx_clkdm =
+{
 	.name		  = "mpu1_clkdm",
 	.pwrdm		  = { .name = "cpu1_pwrdm" },
 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
@@ -289,7 +313,8 @@ static struct clockdomain mpu1_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain l3_emif_44xx_clkdm = {
+static struct clockdomain l3_emif_44xx_clkdm =
+{
 	.name		  = "l3_emif_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -299,7 +324,8 @@ static struct clockdomain l3_emif_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain l4_ao_44xx_clkdm = {
+static struct clockdomain l4_ao_44xx_clkdm =
+{
 	.name		  = "l4_ao_clkdm",
 	.pwrdm		  = { .name = "always_on_core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -308,7 +334,8 @@ static struct clockdomain l4_ao_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain ducati_44xx_clkdm = {
+static struct clockdomain ducati_44xx_clkdm =
+{
 	.name		  = "ducati_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -320,7 +347,8 @@ static struct clockdomain ducati_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain mpu_44xx_clkdm = {
+static struct clockdomain mpu_44xx_clkdm =
+{
 	.name		  = "mpuss_clkdm",
 	.pwrdm		  = { .name = "mpu_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM1_PARTITION,
@@ -331,7 +359,8 @@ static struct clockdomain mpu_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain l3_2_44xx_clkdm = {
+static struct clockdomain l3_2_44xx_clkdm =
+{
 	.name		  = "l3_2_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -341,7 +370,8 @@ static struct clockdomain l3_2_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain l3_1_44xx_clkdm = {
+static struct clockdomain l3_1_44xx_clkdm =
+{
 	.name		  = "l3_1_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -351,7 +381,8 @@ static struct clockdomain l3_1_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP,
 };
 
-static struct clockdomain iss_44xx_clkdm = {
+static struct clockdomain iss_44xx_clkdm =
+{
 	.name		  = "iss_clkdm",
 	.pwrdm		  = { .name = "cam_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -362,7 +393,8 @@ static struct clockdomain iss_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_SWSUP,
 };
 
-static struct clockdomain l3_dss_44xx_clkdm = {
+static struct clockdomain l3_dss_44xx_clkdm =
+{
 	.name		  = "l3_dss_clkdm",
 	.pwrdm		  = { .name = "dss_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -374,7 +406,8 @@ static struct clockdomain l3_dss_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 };
 
-static struct clockdomain l4_wkup_44xx_clkdm = {
+static struct clockdomain l4_wkup_44xx_clkdm =
+{
 	.name		  = "l4_wkup_clkdm",
 	.pwrdm		  = { .name = "wkup_pwrdm" },
 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
@@ -384,17 +417,19 @@ static struct clockdomain l4_wkup_44xx_clkdm = {
 	.flags		  = CLKDM_CAN_HWSUP | CLKDM_ACTIVE_WITH_MPU,
 };
 
-static struct clockdomain emu_sys_44xx_clkdm = {
+static struct clockdomain emu_sys_44xx_clkdm =
+{
 	.name		  = "emu_sys_clkdm",
 	.pwrdm		  = { .name = "emu_pwrdm" },
 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
 	.cm_inst	  = OMAP4430_PRM_EMU_CM_INST,
 	.clkdm_offs	  = OMAP4430_PRM_EMU_CM_EMU_CDOFFS,
 	.flags		  = (CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_FORCE_WAKEUP |
-			     CLKDM_MISSING_IDLE_REPORTING),
+	CLKDM_MISSING_IDLE_REPORTING),
 };
 
-static struct clockdomain l3_dma_44xx_clkdm = {
+static struct clockdomain l3_dma_44xx_clkdm =
+{
 	.name		  = "l3_dma_clkdm",
 	.pwrdm		  = { .name = "core_pwrdm" },
 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
@@ -406,7 +441,8 @@ static struct clockdomain l3_dma_44xx_clkdm = {
 };
 
 /* As clockdomains are added or removed above, this list must also be changed */
-static struct clockdomain *clockdomains_omap44xx[] __initdata = {
+static struct clockdomain *clockdomains_omap44xx[] __initdata =
+{
 	&l4_cefuse_44xx_clkdm,
 	&l4_cfg_44xx_clkdm,
 	&tesla_44xx_clkdm,

@@ -44,9 +44,9 @@ extern void __const_udelay(unsigned long);
 
 #define udelay(n)							\
 	(__builtin_constant_p(n) ?					\
-	  ((n) > (MAX_UDELAY_MS * 1000) ? __bad_udelay() :		\
-			__const_udelay((n) * ((2199023U*HZ)>>11))) :	\
-	  __udelay(n))
+	 ((n) > (MAX_UDELAY_MS * 1000) ? __bad_udelay() :		\
+	  __const_udelay((n) * ((2199023U*HZ)>>11))) :	\
+	 __udelay(n))
 
 #endif /* __UNICORE_DELAY_H__ */
 

@@ -15,7 +15,8 @@
 #ifndef __ASM_JZ4740_CLOCK_H__
 #define __ASM_JZ4740_CLOCK_H__
 
-enum jz4740_wait_mode {
+enum jz4740_wait_mode
+{
 	JZ4740_WAIT_MODE_IDLE,
 	JZ4740_WAIT_MODE_SLEEP,
 };

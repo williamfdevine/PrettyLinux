@@ -21,11 +21,14 @@
  */
 static void realmode_switch_hook(void)
 {
-	if (boot_params.hdr.realmode_swtch) {
+	if (boot_params.hdr.realmode_swtch)
+	{
 		asm volatile("lcallw *%0"
-			     : : "m" (boot_params.hdr.realmode_swtch)
-			     : "eax", "ebx", "ecx", "edx");
-	} else {
+					 : : "m" (boot_params.hdr.realmode_swtch)
+					 : "eax", "ebx", "ecx", "edx");
+	}
+	else
+	{
 		asm volatile("cli");
 		outb(0x80, 0x70); /* Disable NMI */
 		io_delay();
@@ -58,7 +61,8 @@ static void reset_coprocessor(void)
  * Set up the GDT
  */
 
-struct gdt_ptr {
+struct gdt_ptr
+{
 	u16 len;
 	u32 ptr;
 } __attribute__((packed));
@@ -67,7 +71,8 @@ static void setup_gdt(void)
 {
 	/* There are machines which are known to not boot with the GDT
 	   being 8-byte unaligned.  Intel recommends 16 byte alignment. */
-	static const u64 boot_gdt[] __attribute__((aligned(16))) = {
+	static const u64 boot_gdt[] __attribute__((aligned(16))) =
+	{
 		/* CS: code, read/execute, 4 GB, base 0 */
 		[GDT_ENTRY_BOOT_CS] = GDT_ENTRY(0xc09b, 0, 0xfffff),
 		/* DS: data, read/write, 4 GB, base 0 */
@@ -83,7 +88,7 @@ static void setup_gdt(void)
 	   proper kernel GDT. */
 	static struct gdt_ptr gdt;
 
-	gdt.len = sizeof(boot_gdt)-1;
+	gdt.len = sizeof(boot_gdt) - 1;
 	gdt.ptr = (u32)&boot_gdt + (ds() << 4);
 
 	asm volatile("lgdtl %0" : : "m" (gdt));
@@ -107,7 +112,8 @@ void go_to_protected_mode(void)
 	realmode_switch_hook();
 
 	/* Enable the A20 gate */
-	if (enable_a20()) {
+	if (enable_a20())
+	{
 		puts("A20 gate not responding, unable to boot...\n");
 		die();
 	}
@@ -122,5 +128,5 @@ void go_to_protected_mode(void)
 	setup_idt();
 	setup_gdt();
 	protected_mode_jump(boot_params.hdr.code32_start,
-			    (u32)&boot_params + (ds() << 4));
+						(u32)&boot_params + (ds() << 4));
 }

@@ -29,7 +29,7 @@
 #define PAGE_OFFSET	XCHAL_KSEG_CACHED_VADDR
 #define PHYS_OFFSET	XCHAL_KSEG_PADDR
 #define MAX_LOW_PFN	(PHYS_PFN(XCHAL_KSEG_PADDR) + \
-			 PHYS_PFN(XCHAL_KSEG_SIZE))
+					 PHYS_PFN(XCHAL_KSEG_SIZE))
 #else
 #define PAGE_OFFSET	PLATFORM_DEFAULT_MEM_START
 #define PHYS_OFFSET	PLATFORM_DEFAULT_MEM_START
@@ -67,23 +67,23 @@
  */
 
 #if DCACHE_WAY_SIZE > PAGE_SIZE
-# define DCACHE_ALIAS_ORDER	(DCACHE_WAY_SHIFT - PAGE_SHIFT)
-# define DCACHE_ALIAS_MASK	(PAGE_MASK & (DCACHE_WAY_SIZE - 1))
-# define DCACHE_ALIAS(a)	(((a) & DCACHE_ALIAS_MASK) >> PAGE_SHIFT)
-# define DCACHE_ALIAS_EQ(a,b)	((((a) ^ (b)) & DCACHE_ALIAS_MASK) == 0)
+	#define DCACHE_ALIAS_ORDER	(DCACHE_WAY_SHIFT - PAGE_SHIFT)
+	#define DCACHE_ALIAS_MASK	(PAGE_MASK & (DCACHE_WAY_SIZE - 1))
+	#define DCACHE_ALIAS(a)	(((a) & DCACHE_ALIAS_MASK) >> PAGE_SHIFT)
+	#define DCACHE_ALIAS_EQ(a,b)	((((a) ^ (b)) & DCACHE_ALIAS_MASK) == 0)
 #else
-# define DCACHE_ALIAS_ORDER	0
-# define DCACHE_ALIAS(a)	((void)(a), 0)
+	#define DCACHE_ALIAS_ORDER	0
+	#define DCACHE_ALIAS(a)	((void)(a), 0)
 #endif
 #define DCACHE_N_COLORS		(1 << DCACHE_ALIAS_ORDER)
 
 #if ICACHE_WAY_SIZE > PAGE_SIZE
-# define ICACHE_ALIAS_ORDER	(ICACHE_WAY_SHIFT - PAGE_SHIFT)
-# define ICACHE_ALIAS_MASK	(PAGE_MASK & (ICACHE_WAY_SIZE - 1))
-# define ICACHE_ALIAS(a)	(((a) & ICACHE_ALIAS_MASK) >> PAGE_SHIFT)
-# define ICACHE_ALIAS_EQ(a,b)	((((a) ^ (b)) & ICACHE_ALIAS_MASK) == 0)
+	#define ICACHE_ALIAS_ORDER	(ICACHE_WAY_SHIFT - PAGE_SHIFT)
+	#define ICACHE_ALIAS_MASK	(PAGE_MASK & (ICACHE_WAY_SIZE - 1))
+	#define ICACHE_ALIAS(a)	(((a) & ICACHE_ALIAS_MASK) >> PAGE_SHIFT)
+	#define ICACHE_ALIAS_EQ(a,b)	((((a) ^ (b)) & ICACHE_ALIAS_MASK) == 0)
 #else
-# define ICACHE_ALIAS_ORDER	0
+	#define ICACHE_ALIAS_ORDER	0
 #endif
 
 
@@ -143,13 +143,13 @@ extern void copy_page(void *to, void *from);
 #if defined(CONFIG_MMU) && DCACHE_WAY_SIZE > PAGE_SIZE
 extern void clear_page_alias(void *vaddr, unsigned long paddr);
 extern void copy_page_alias(void *to, void *from,
-			    unsigned long to_paddr, unsigned long from_paddr);
+							unsigned long to_paddr, unsigned long from_paddr);
 
 #define clear_user_highpage clear_user_highpage
 void clear_user_highpage(struct page *page, unsigned long vaddr);
 #define __HAVE_ARCH_COPY_USER_HIGHPAGE
 void copy_user_highpage(struct page *to, struct page *from,
-			unsigned long vaddr, struct vm_area_struct *vma);
+						unsigned long vaddr, struct vm_area_struct *vma);
 #else
 # define clear_user_page(page, vaddr, pg)	clear_page(page)
 # define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
@@ -172,7 +172,7 @@ void copy_user_highpage(struct page *to, struct page *from,
 	((pfn) >= ARCH_PFN_OFFSET && ((pfn) - ARCH_PFN_OFFSET) < max_mapnr)
 
 #ifdef CONFIG_DISCONTIGMEM
-# error CONFIG_DISCONTIGMEM not supported
+	# error CONFIG_DISCONTIGMEM not supported
 #endif
 
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
@@ -183,7 +183,7 @@ void copy_user_highpage(struct page *to, struct page *from,
 #endif /* __ASSEMBLY__ */
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/memory_model.h>
 #endif /* _XTENSA_PAGE_H */

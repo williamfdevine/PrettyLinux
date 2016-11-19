@@ -60,7 +60,7 @@ static inline void clear_page(void *addr)
 	eightx = onex << 3;
 
 	asm volatile(
-	"mtctr	%1	# clear_page\n\
+		"mtctr	%1	# clear_page\n\
 	.balign	16\n\
 1:	dcbz	0,%0\n\
 	dcbz	%3,%0\n\
@@ -72,11 +72,11 @@ static inline void clear_page(void *addr)
 	dcbz	%9,%0\n\
 	add	%0,%0,%10\n\
 	bdnz+	1b"
-	: "=&r" (addr)
-	: "r" (iterations), "0" (addr), "b" (onex), "b" (twox),
+		: "=&r" (addr)
+		: "r" (iterations), "0" (addr), "b" (onex), "b" (twox),
 		"b" (twox+onex), "b" (fourx), "b" (fourx+onex),
 		"b" (twox+fourx), "b" (eightx-onex), "r" (eightx)
-	: "ctr", "memory");
+		: "ctr", "memory");
 }
 
 extern void copy_page(void *to, void *from);
@@ -108,7 +108,8 @@ extern u64 ppc64_pft_size;
 
 #ifndef __ASSEMBLY__
 
-struct slice_mask {
+struct slice_mask
+{
 	u16 low_slices;
 	u64 high_slices;
 };
@@ -116,17 +117,17 @@ struct slice_mask {
 struct mm_struct;
 
 extern unsigned long slice_get_unmapped_area(unsigned long addr,
-					     unsigned long len,
-					     unsigned long flags,
-					     unsigned int psize,
-					     int topdown);
+		unsigned long len,
+		unsigned long flags,
+		unsigned int psize,
+		int topdown);
 
 extern unsigned int get_slice_psize(struct mm_struct *mm,
-				    unsigned long addr);
+									unsigned long addr);
 
 extern void slice_set_user_psize(struct mm_struct *mm, unsigned int psize);
 extern void slice_set_range_psize(struct mm_struct *mm, unsigned long start,
-				  unsigned long len, unsigned int psize);
+								  unsigned long len, unsigned int psize);
 
 #endif /* __ASSEMBLY__ */
 #else
@@ -134,15 +135,15 @@ extern void slice_set_range_psize(struct mm_struct *mm, unsigned long start,
 #ifdef CONFIG_PPC_STD_MMU_64
 #define get_slice_psize(mm, addr)	((mm)->context.user_psize)
 #define slice_set_user_psize(mm, psize)		\
-do {						\
-	(mm)->context.user_psize = (psize);	\
-	(mm)->context.sllp = SLB_VSID_USER | mmu_psize_defs[(psize)].sllp; \
-} while (0)
+	do {						\
+		(mm)->context.user_psize = (psize);	\
+		(mm)->context.sllp = SLB_VSID_USER | mmu_psize_defs[(psize)].sllp; \
+	} while (0)
 #else /* CONFIG_PPC_STD_MMU_64 */
 #ifdef CONFIG_PPC_64K_PAGES
-#define get_slice_psize(mm, addr)	MMU_PAGE_64K
+	#define get_slice_psize(mm, addr)	MMU_PAGE_64K
 #else /* CONFIG_PPC_64K_PAGES */
-#define get_slice_psize(mm, addr)	MMU_PAGE_4K
+	#define get_slice_psize(mm, addr)	MMU_PAGE_4K
 #endif /* !CONFIG_PPC_64K_PAGES */
 #define slice_set_user_psize(mm, psize)	do { BUG(); } while(0)
 #endif /* !CONFIG_PPC_STD_MMU_64 */
@@ -153,9 +154,9 @@ do {						\
 
 #ifdef CONFIG_HUGETLB_PAGE
 
-#ifdef CONFIG_PPC_MM_SLICES
-#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
-#endif
+	#ifdef CONFIG_PPC_MM_SLICES
+		#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+	#endif
 
 #endif /* !CONFIG_HUGETLB_PAGE */
 
@@ -170,10 +171,10 @@ do {						\
  * we turn execute permission off.
  */
 #define VM_STACK_DEFAULT_FLAGS32	(VM_READ | VM_WRITE | VM_EXEC | \
-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+									 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #define VM_STACK_DEFAULT_FLAGS64	(VM_READ | VM_WRITE | \
-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+									 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #define VM_STACK_DEFAULT_FLAGS \
 	(is_32bit_task() ? \

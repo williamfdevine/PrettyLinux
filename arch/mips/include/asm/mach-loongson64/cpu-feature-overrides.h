@@ -45,9 +45,9 @@
 #define cpu_has_local_ebase	0
 
 #ifdef CONFIG_CPU_LOONGSON3
-#define cpu_has_wsbh		1
-#define cpu_has_ic_fills_f_dc	1
-#define cpu_hwrena_impl_bits	0xc0000000
+	#define cpu_has_wsbh		1
+	#define cpu_has_ic_fills_f_dc	1
+	#define cpu_hwrena_impl_bits	0xc0000000
 #endif
 
 #endif /* __ASM_MACH_LOONGSON64_CPU_FEATURE_OVERRIDES_H */

@@ -4,7 +4,8 @@
 #include <uapi/asm/svm.h>
 
 
-enum {
+enum
+{
 	INTERCEPT_INTR,
 	INTERCEPT_NMI,
 	INTERCEPT_SMI,
@@ -54,7 +55,8 @@ enum {
 };
 
 
-struct __attribute__ ((__packed__)) vmcb_control_area {
+struct __attribute__ ((__packed__)) vmcb_control_area
+{
 	u32 intercept_cr;
 	u32 intercept_dr;
 	u32 intercept_exceptions;
@@ -136,14 +138,16 @@ struct __attribute__ ((__packed__)) vmcb_control_area {
 #define SVM_VM_CR_SVM_LOCK_MASK 0x0008ULL
 #define SVM_VM_CR_SVM_DIS_MASK  0x0010ULL
 
-struct __attribute__ ((__packed__)) vmcb_seg {
+struct __attribute__ ((__packed__)) vmcb_seg
+{
 	u16 selector;
 	u16 attrib;
 	u32 limit;
 	u64 base;
 };
 
-struct __attribute__ ((__packed__)) vmcb_save_area {
+struct __attribute__ ((__packed__)) vmcb_save_area
+{
 	struct vmcb_seg es;
 	struct vmcb_seg cs;
 	struct vmcb_seg ss;
@@ -188,7 +192,8 @@ struct __attribute__ ((__packed__)) vmcb_save_area {
 	u64 last_excp_to;
 };
 
-struct __attribute__ ((__packed__)) vmcb {
+struct __attribute__ ((__packed__)) vmcb
+{
 	struct vmcb_control_area control;
 	struct vmcb_save_area save;
 };

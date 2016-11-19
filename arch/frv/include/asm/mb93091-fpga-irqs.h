@@ -17,7 +17,8 @@
 #ifndef __ASSEMBLY__
 
 /* IRQ IDs presented to drivers */
-enum {
+enum
+{
 	IRQ_FPGA__UNUSED			= IRQ_BASE_FPGA,
 	IRQ_FPGA_SYSINT_BUS_EXPANSION_1,
 	IRQ_FPGA_SL_BUS_EXPANSION_2,

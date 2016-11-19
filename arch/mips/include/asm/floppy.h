@@ -12,7 +12,7 @@
 
 #include <linux/dma-mapping.h>
 
-static inline void fd_cacheflush(char * addr, long size)
+static inline void fd_cacheflush(char *addr, long size)
 {
 	dma_cache_sync(NULL, addr, size, DMA_BIDIRECTIONAL);
 }

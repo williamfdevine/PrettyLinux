@@ -19,8 +19,8 @@
 #include <asm/machdep.h>
 
 int __hash_page_thp(unsigned long ea, unsigned long access, unsigned long vsid,
-		    pmd_t *pmdp, unsigned long trap, unsigned long flags,
-		    int ssize, unsigned int psize)
+					pmd_t *pmdp, unsigned long trap, unsigned long flags,
+					int ssize, unsigned int psize)
 {
 	unsigned int index, valid;
 	unsigned char *hpte_slot_array;
@@ -32,29 +32,43 @@ int __hash_page_thp(unsigned long ea, unsigned long access, unsigned long vsid,
 	/*
 	 * atomically mark the linux large page PMD busy and dirty
 	 */
-	do {
+	do
+	{
 		pmd_t pmd = READ_ONCE(*pmdp);
 
 		old_pmd = pmd_val(pmd);
+
 		/* If PMD busy, retry the access */
 		if (unlikely(old_pmd & H_PAGE_BUSY))
+		{
 			return 0;
+		}
+
 		/* If PMD permissions don't match, take page fault */
 		if (unlikely(!check_pte_access(access, old_pmd)))
+		{
 			return 1;
+		}
+
 		/*
 		 * Try to lock the PTE, add ACCESSED and DIRTY if it was
 		 * a write access
 		 */
 		new_pmd = old_pmd | H_PAGE_BUSY | _PAGE_ACCESSED;
+
 		if (access & _PAGE_WRITE)
+		{
 			new_pmd |= _PAGE_DIRTY;
-	} while (!pmd_xchg(pmdp, __pmd(old_pmd), __pmd(new_pmd)));
+		}
+	}
+	while (!pmd_xchg(pmdp, __pmd(old_pmd), __pmd(new_pmd)));
 
 	rflags = htab_convert_pte_flags(new_pmd);
 
 #if 0
-	if (!cpu_has_feature(CPU_FTR_COHERENT_ICACHE)) {
+
+	if (!cpu_has_feature(CPU_FTR_COHERENT_ICACHE))
+	{
 
 		/*
 		 * No CPU has hugepages but lacks no execute, so we
@@ -62,6 +76,7 @@ int __hash_page_thp(unsigned long ea, unsigned long access, unsigned long vsid,
 		 */
 		rflags = hash_page_do_lazy_icache(rflags, __pte(old_pte), trap);
 	}
+
 #endif
 	/*
 	 * Find the slot index details for this ea, using base page size.
@@ -72,15 +87,18 @@ int __hash_page_thp(unsigned long ea, unsigned long access, unsigned long vsid,
 
 	vpn = hpt_vpn(ea, vsid, ssize);
 	hpte_slot_array = get_hpte_slot_array(pmdp);
-	if (psize == MMU_PAGE_4K) {
+
+	if (psize == MMU_PAGE_4K)
+	{
 		/*
 		 * invalidate the old hpte entry if we have that mapped via 64K
 		 * base page size. This is because demote_segment won't flush
 		 * hash page table entries.
 		 */
-		if ((old_pmd & H_PAGE_HASHPTE) && !(old_pmd & H_PAGE_COMBO)) {
+		if ((old_pmd & H_PAGE_HASHPTE) && !(old_pmd & H_PAGE_COMBO))
+		{
 			flush_hash_hugepage(vsid, ea, pmdp, MMU_PAGE_64K,
-					    ssize, flags);
+								ssize, flags);
 			/*
 			 * With THP, we also clear the slot information with
 			 * respect to all the 64K hash pte mapping the 16MB
@@ -94,21 +112,29 @@ int __hash_page_thp(unsigned long ea, unsigned long access, unsigned long vsid,
 	}
 
 	valid = hpte_valid(hpte_slot_array, index);
-	if (valid) {
+
+	if (valid)
+	{
 		/* update the hpte bits */
 		hash = hpt_hash(vpn, shift, ssize);
 		hidx =  hpte_hash_index(hpte_slot_array, index);
+
 		if (hidx & _PTEIDX_SECONDARY)
+		{
 			hash = ~hash;
+		}
+
 		slot = (hash & htab_hash_mask) * HPTES_PER_GROUP;
 		slot += hidx & _PTEIDX_GROUP_IX;
 
 		ret = mmu_hash_ops.hpte_updatepp(slot, rflags, vpn,
-						 psize, lpsize, ssize, flags);
+										 psize, lpsize, ssize, flags);
+
 		/*
 		 * We failed to update, try to insert a new entry.
 		 */
-		if (ret == -1) {
+		if (ret == -1)
+		{
 			/*
 			 * large pte is marked busy, so we can be sure
 			 * nobody is looking at hpte_slot_array. hence we can
@@ -119,7 +145,8 @@ int __hash_page_thp(unsigned long ea, unsigned long access, unsigned long vsid,
 		}
 	}
 
-	if (!valid) {
+	if (!valid)
+	{
 		unsigned long hpte_group;
 
 		hash = hpt_hash(vpn, shift, ssize);
@@ -132,36 +159,43 @@ repeat:
 
 		/* Insert into the hash table, primary slot */
 		slot = mmu_hash_ops.hpte_insert(hpte_group, vpn, pa, rflags, 0,
-						psize, lpsize, ssize);
+										psize, lpsize, ssize);
+
 		/*
 		 * Primary is full, try the secondary
 		 */
-		if (unlikely(slot == -1)) {
+		if (unlikely(slot == -1))
+		{
 			hpte_group = ((~hash & htab_hash_mask) *
-				      HPTES_PER_GROUP) & ~0x7UL;
+						  HPTES_PER_GROUP) & ~0x7UL;
 			slot = mmu_hash_ops.hpte_insert(hpte_group, vpn, pa,
-							rflags,
-							HPTE_V_SECONDARY,
-							psize, lpsize, ssize);
-			if (slot == -1) {
+											rflags,
+											HPTE_V_SECONDARY,
+											psize, lpsize, ssize);
+
+			if (slot == -1)
+			{
 				if (mftb() & 0x1)
 					hpte_group = ((hash & htab_hash_mask) *
-						      HPTES_PER_GROUP) & ~0x7UL;
+								  HPTES_PER_GROUP) & ~0x7UL;
 
 				mmu_hash_ops.hpte_remove(hpte_group);
 				goto repeat;
 			}
 		}
+
 		/*
 		 * Hypervisor failure. Restore old pmd and return -1
 		 * similar to __hash_page_*
 		 */
-		if (unlikely(slot == -2)) {
+		if (unlikely(slot == -2))
+		{
 			*pmdp = __pmd(old_pmd);
 			hash_failure_debug(ea, access, vsid, trap, ssize,
-					   psize, lpsize, old_pmd);
+							   psize, lpsize, old_pmd);
 			return -1;
 		}
+
 		/*
 		 * large pte is marked busy, so we can be sure
 		 * nobody is looking at hpte_slot_array. hence we can
@@ -169,12 +203,16 @@ repeat:
 		 */
 		mark_hpte_slot_valid(hpte_slot_array, index, slot);
 	}
+
 	/*
 	 * Mark the pte with H_PAGE_COMBO, if we are trying to hash it with
 	 * base page size 4k.
 	 */
 	if (psize == MMU_PAGE_4K)
+	{
 		new_pmd |= H_PAGE_COMBO;
+	}
+
 	/*
 	 * The hpte valid is stored in the pgtable whose address is in the
 	 * second half of the PMD. Order this against clearing of the busy bit in

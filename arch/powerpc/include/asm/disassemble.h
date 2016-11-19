@@ -101,21 +101,27 @@ static inline unsigned make_dsisr(unsigned instr)
 	/* bits  6:15 --> 22:31 */
 	dsisr = (instr & 0x03ff0000) >> 16;
 
-	if (IS_XFORM(instr)) {
+	if (IS_XFORM(instr))
+	{
 		/* bits 29:30 --> 15:16 */
 		dsisr |= (instr & 0x00000006) << 14;
 		/* bit     25 -->    17 */
 		dsisr |= (instr & 0x00000040) << 8;
 		/* bits 21:24 --> 18:21 */
 		dsisr |= (instr & 0x00000780) << 3;
-	} else {
+	}
+	else
+	{
 		/* bit      5 -->    17 */
 		dsisr |= (instr & 0x04000000) >> 12;
 		/* bits  1: 4 --> 18:21 */
 		dsisr |= (instr & 0x78000000) >> 17;
+
 		/* bits 30:31 --> 12:13 */
 		if (IS_DSFORM(instr))
+		{
 			dsisr |= (instr & 0x00000003) << 18;
+		}
 	}
 
 	return dsisr;

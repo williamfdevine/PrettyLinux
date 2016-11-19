@@ -27,7 +27,8 @@
 #define SPEAR310_UART5_BASE		UL(0xB2200000)
 
 /* DMAC platform data's slave info */
-struct pl08x_channel_data spear310_dma_info[] = {
+struct pl08x_channel_data spear310_dma_info[] =
+{
 	{
 		.bus_id = "uart0_rx",
 		.min_signal = 2,
@@ -188,7 +189,8 @@ struct pl08x_channel_data spear310_dma_info[] = {
 };
 
 /* uart devices plat data */
-static struct amba_pl011_data spear310_uart_data[] = {
+static struct amba_pl011_data spear310_uart_data[] =
+{
 	{
 		.dma_filter = pl08x_filter_id,
 		.dma_tx_param = "uart1_tx",
@@ -213,21 +215,22 @@ static struct amba_pl011_data spear310_uart_data[] = {
 };
 
 /* Add SPEAr310 auxdata to pass platform data */
-static struct of_dev_auxdata spear310_auxdata_lookup[] __initdata = {
+static struct of_dev_auxdata spear310_auxdata_lookup[] __initdata =
+{
 	OF_DEV_AUXDATA("arm,pl022", SPEAR3XX_ICM1_SSP_BASE, NULL,
-			&pl022_plat_data),
+	&pl022_plat_data),
 	OF_DEV_AUXDATA("arm,pl080", SPEAR_ICM3_DMA_BASE, NULL,
-			&pl080_plat_data),
+	&pl080_plat_data),
 	OF_DEV_AUXDATA("arm,pl011", SPEAR310_UART1_BASE, NULL,
-			&spear310_uart_data[0]),
+	&spear310_uart_data[0]),
 	OF_DEV_AUXDATA("arm,pl011", SPEAR310_UART2_BASE, NULL,
-			&spear310_uart_data[1]),
+	&spear310_uart_data[1]),
 	OF_DEV_AUXDATA("arm,pl011", SPEAR310_UART3_BASE, NULL,
-			&spear310_uart_data[2]),
+	&spear310_uart_data[2]),
 	OF_DEV_AUXDATA("arm,pl011", SPEAR310_UART4_BASE, NULL,
-			&spear310_uart_data[3]),
+	&spear310_uart_data[3]),
 	OF_DEV_AUXDATA("arm,pl011", SPEAR310_UART5_BASE, NULL,
-			&spear310_uart_data[4]),
+	&spear310_uart_data[4]),
 	{}
 };
 
@@ -239,7 +242,8 @@ static void __init spear310_dt_init(void)
 	of_platform_default_populate(NULL, spear310_auxdata_lookup, NULL);
 }
 
-static const char * const spear310_dt_board_compat[] = {
+static const char *const spear310_dt_board_compat[] =
+{
 	"st,spear310",
 	"st,spear310-evb",
 	NULL,
@@ -251,9 +255,9 @@ static void __init spear310_map_io(void)
 }
 
 DT_MACHINE_START(SPEAR310_DT, "ST SPEAr310 SoC with Flattened Device Tree")
-	.map_io		=	spear310_map_io,
+.map_io		=	spear310_map_io,
 	.init_time	=	spear3xx_timer_init,
-	.init_machine	=	spear310_dt_init,
-	.restart	=	spear_restart,
-	.dt_compat	=	spear310_dt_board_compat,
-MACHINE_END
+	  .init_machine	=	spear310_dt_init,
+		 .restart	=	spear_restart,
+			 .dt_compat	=	spear310_dt_board_compat,
+			   MACHINE_END

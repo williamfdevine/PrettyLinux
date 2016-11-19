@@ -28,19 +28,21 @@ static int probe_one_port(nasid_t nasid, int widget, int masterwid)
 	xwidget_part_num_t	partnum;
 
 	widget_id = *(volatile widgetreg_t *)
-		(RAW_NODE_SWIN_BASE(nasid, widget) + WIDGET_ID);
+				(RAW_NODE_SWIN_BASE(nasid, widget) + WIDGET_ID);
 	partnum = XWIDGET_PART_NUM(widget_id);
 
 	printk(KERN_INFO "Cpu %d, Nasid 0x%x, widget 0x%x (partnum 0x%x) is ",
-			smp_processor_id(), nasid, widget, partnum);
+		   smp_processor_id(), nasid, widget, partnum);
 
-	switch (partnum) {
-	case BRIDGE_WIDGET_PART_NUM:
-	case XBRIDGE_WIDGET_PART_NUM:
-		bridge_probe(nasid, widget, masterwid);
-		break;
-	default:
-		break;
+	switch (partnum)
+	{
+		case BRIDGE_WIDGET_PART_NUM:
+		case XBRIDGE_WIDGET_PART_NUM:
+			bridge_probe(nasid, widget, masterwid);
+			break;
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -59,12 +61,18 @@ static int xbow_probe(nasid_t nasid)
 	 * need to probe xbow
 	 */
 	brd = find_lboard((lboard_t *)KL_CONFIG_INFO(nasid), KLTYPE_MIDPLANE8);
+
 	if (!brd)
+	{
 		return -ENODEV;
+	}
 
 	xbow_p = (klxbow_t *)find_component(brd, NULL, KLSTRUCT_XBOW);
+
 	if (!xbow_p)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Okay, here's a xbow. Let's arbitrate and find
@@ -74,26 +82,40 @@ static int xbow_probe(nasid_t nasid)
 	 */
 #ifdef WIDGET_A
 	i = HUB_WIDGET_ID_MAX + 1;
-	do {
+
+	do
+	{
 		i--;
-	} while ((!XBOW_PORT_TYPE_HUB(xbow_p, i)) ||
-		 (!XBOW_PORT_IS_ENABLED(xbow_p, i)));
+	}
+	while ((!XBOW_PORT_TYPE_HUB(xbow_p, i)) ||
+		   (!XBOW_PORT_IS_ENABLED(xbow_p, i)));
+
 #else
 	i = HUB_WIDGET_ID_MIN - 1;
-	do {
+
+	do
+	{
 		i++;
-	} while ((!XBOW_PORT_TYPE_HUB(xbow_p, i)) ||
-		 (!XBOW_PORT_IS_ENABLED(xbow_p, i)));
+	}
+	while ((!XBOW_PORT_TYPE_HUB(xbow_p, i)) ||
+		   (!XBOW_PORT_IS_ENABLED(xbow_p, i)));
+
 #endif
 
 	masterwid = i;
-	if (nasid != XBOW_PORT_NASID(xbow_p, i))
-		return 1;
 
-	for (i = HUB_WIDGET_ID_MIN; i <= HUB_WIDGET_ID_MAX; i++) {
+	if (nasid != XBOW_PORT_NASID(xbow_p, i))
+	{
+		return 1;
+	}
+
+	for (i = HUB_WIDGET_ID_MIN; i <= HUB_WIDGET_ID_MAX; i++)
+	{
 		if (XBOW_PORT_IS_ENABLED(xbow_p, i) &&
-		    XBOW_PORT_TYPE_IO(xbow_p, i))
+			XBOW_PORT_TYPE_IO(xbow_p, i))
+		{
 			probe_one_port(nasid, i, masterwid);
+		}
 	}
 
 	return 0;
@@ -111,25 +133,30 @@ void xtalk_probe_node(cnodeid_t nid)
 
 	/* check whether the link is up */
 	if (!(hubreg & IIO_LLP_CSR_IS_UP))
+	{
 		return;
+	}
 
 	widget_id = *(volatile widgetreg_t *)
-		       (RAW_NODE_SWIN_BASE(nasid, 0x0) + WIDGET_ID);
+				(RAW_NODE_SWIN_BASE(nasid, 0x0) + WIDGET_ID);
 	partnum = XWIDGET_PART_NUM(widget_id);
 
 	printk(KERN_INFO "Cpu %d, Nasid 0x%x: partnum 0x%x is ",
-			smp_processor_id(), nasid, partnum);
+		   smp_processor_id(), nasid, partnum);
 
-	switch (partnum) {
-	case BRIDGE_WIDGET_PART_NUM:
-		bridge_probe(nasid, 0x8, 0xa);
-		break;
-	case XBOW_WIDGET_PART_NUM:
-	case XXBOW_WIDGET_PART_NUM:
-		xbow_probe(nasid);
-		break;
-	default:
-		printk(" unknown widget??\n");
-		break;
+	switch (partnum)
+	{
+		case BRIDGE_WIDGET_PART_NUM:
+			bridge_probe(nasid, 0x8, 0xa);
+			break;
+
+		case XBOW_WIDGET_PART_NUM:
+		case XXBOW_WIDGET_PART_NUM:
+			xbow_probe(nasid);
+			break;
+
+		default:
+			printk(" unknown widget??\n");
+			break;
 	}
 }

@@ -36,7 +36,8 @@
 
 static const unsigned long kbase = VMLINUX_LOAD_ADDRESS & 0xfff00000;
 
-struct bmips_quirk {
+struct bmips_quirk
+{
 	const char		*compatible;
 	void			(*quirk_fn)(void);
 };
@@ -44,7 +45,7 @@ struct bmips_quirk {
 static void kbase_setup(void)
 {
 	__raw_writel(kbase | RELO_NORMAL_VEC,
-		     BMIPS_GET_CBR() + BMIPS_RELO_VECTOR_CONTROL_1);
+				 BMIPS_GET_CBR() + BMIPS_RELO_VECTOR_CONTROL_1);
 	ebase = kbase;
 }
 
@@ -91,9 +92,13 @@ static void bcm6328_quirks(void)
 {
 	/* Check CPU1 status in OTP (it is usually disabled) */
 	if (__raw_readl(REG_BCM6328_OTP) & BCM6328_TP1_DISABLED)
+	{
 		bmips_smp_enabled = 0;
+	}
 	else
+	{
 		bcm63xx_fixup_cpu1();
+	}
 }
 
 static void bcm6358_quirks(void)
@@ -110,7 +115,8 @@ static void bcm6368_quirks(void)
 	bcm63xx_fixup_cpu1();
 }
 
-static const struct bmips_quirk bmips_quirk_list[] = {
+static const struct bmips_quirk bmips_quirk_list[] =
+{
 	{ "brcm,bcm3368",		&bcm6358_quirks			},
 	{ "brcm,bcm3384-viper",		&bcm3384_viper_quirks		},
 	{ "brcm,bcm33843-viper",	&bcm3384_viper_quirks		},
@@ -144,10 +150,17 @@ void __init plat_time_init(void)
 	u32 freq;
 
 	np = of_find_node_by_name(NULL, "cpus");
+
 	if (!np)
+	{
 		panic("missing 'cpus' DT node");
+	}
+
 	if (of_property_read_u32(np, "mips-hpt-frequency", &freq) < 0)
+	{
 		panic("missing 'mips-hpt-frequency' property");
+	}
+
 	of_node_put(np);
 
 	mips_hpt_frequency = freq;
@@ -165,25 +178,39 @@ void __init plat_mem_setup(void)
 	ioport_resource.end = ~0;
 
 #ifdef CONFIG_MIPS_ELF_APPENDED_DTB
+
 	if (!fdt_check_header(&__appended_dtb))
+	{
 		dtb = (void *)&__appended_dtb;
+	}
 	else
 #endif
-	/* intended to somewhat resemble ARM; see Documentation/arm/Booting */
-	if (fw_arg0 == 0 && fw_arg1 == 0xffffffff)
-		dtb = phys_to_virt(fw_arg2);
-	else if (fw_passed_dtb) /* UHI interface */
-		dtb = (void *)fw_passed_dtb;
-	else if (__dtb_start != __dtb_end)
-		dtb = (void *)__dtb_start;
-	else
-		panic("no dtb found");
+
+		/* intended to somewhat resemble ARM; see Documentation/arm/Booting */
+		if (fw_arg0 == 0 && fw_arg1 == 0xffffffff)
+		{
+			dtb = phys_to_virt(fw_arg2);
+		}
+		else if (fw_passed_dtb) /* UHI interface */
+		{
+			dtb = (void *)fw_passed_dtb;
+		}
+		else if (__dtb_start != __dtb_end)
+		{
+			dtb = (void *)__dtb_start;
+		}
+		else
+		{
+			panic("no dtb found");
+		}
 
 	__dt_setup_arch(dtb);
 
-	for (q = bmips_quirk_list; q->quirk_fn; q++) {
+	for (q = bmips_quirk_list; q->quirk_fn; q++)
+	{
 		if (of_flat_dt_is_compatible(of_get_flat_dt_root(),
-					     q->compatible)) {
+									 q->compatible))
+		{
 			q->quirk_fn();
 		}
 	}
@@ -197,8 +224,12 @@ void __init device_tree_init(void)
 
 	/* Disable SMP boot unless both CPUs are listed in DT and !disabled */
 	np = of_find_node_by_name(NULL, "cpus");
+
 	if (np && of_get_available_child_count(np) <= 1)
+	{
 		bmips_smp_enabled = 0;
+	}
+
 	of_node_put(np);
 }
 

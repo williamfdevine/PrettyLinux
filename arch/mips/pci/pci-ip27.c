@@ -55,7 +55,9 @@ int bridge_probe(nasid_t nasid, int widget_id, int masterwid)
 
 	/* XXX: kludge alert.. */
 	if (!num_bridges)
+	{
 		ioport_resource.end = ~0UL;
+	}
 
 	bc = &bridges[num_bridges];
 
@@ -102,7 +104,7 @@ int bridge_probe(nasid_t nasid, int widget_id, int masterwid)
 	 * swap pio's to pci mem and io space (big windows)
 	 */
 	bridge->b_wid_control |= BRIDGE_CTRL_IO_SWAP |
-				 BRIDGE_CTRL_MEM_SWAP;
+							 BRIDGE_CTRL_MEM_SWAP;
 #ifdef CONFIG_PAGE_SIZE_4KB
 	bridge->b_wid_control &= ~BRIDGE_CTRL_PAGE_SIZE;
 #else /* 16kB or larger */
@@ -118,10 +120,12 @@ int bridge_probe(nasid_t nasid, int widget_id, int masterwid)
 	bridge->b_dir_map = (masterwid << 20);	/* DMA */
 	bridge->b_int_enable = 0;
 
-	for (slot = 0; slot < 8; slot ++) {
+	for (slot = 0; slot < 8; slot ++)
+	{
 		bridge->b_device[slot].reg |= BRIDGE_DEV_SWAP_DIR;
 		bc->pci_int[slot] = -1;
 	}
+
 	bridge->b_wid_tflush;	  /* wait until Bridge PIO complete */
 
 	bc->base = bridge;
@@ -149,7 +153,8 @@ int pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 
 static inline struct pci_dev *bridge_root_dev(struct pci_dev *dev)
 {
-	while (dev->bus->parent) {
+	while (dev->bus->parent)
+	{
 		/* Move up the chain of bridges. */
 		dev = dev->bus->self;
 	}
@@ -166,10 +171,15 @@ int pcibios_plat_dev_init(struct pci_dev *dev)
 	int irq;
 
 	irq = bc->pci_int[slot];
-	if (irq == -1) {
+
+	if (irq == -1)
+	{
 		irq = request_bridge_irq(bc);
+
 		if (irq < 0)
+		{
 			return irq;
+		}
 
 		bc->pci_int[slot] = irq;
 	}
@@ -227,4 +237,4 @@ EXPORT_SYMBOL(pcibus_to_node);
 #endif /* CONFIG_NUMA */
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SGI, PCI_DEVICE_ID_SGI_IOC3,
-	pci_fixup_ioc3);
+						 pci_fixup_ioc3);

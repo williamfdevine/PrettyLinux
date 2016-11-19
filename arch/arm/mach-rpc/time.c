@@ -43,14 +43,20 @@ static u32 ioc_timer_gettimeoffset(void)
 	count2 = ioc_readb(IOC_T0CNTL) | (ioc_readb(IOC_T0CNTH) << 8);
 
 	offset = count2;
-	if (count2 < count1) {
+
+	if (count2 < count1)
+	{
 		/*
 		 * We have not had an interrupt between reading count1
 		 * and count2.
 		 */
 		if (status & (1 << 5))
+		{
 			offset -= RPC_LATCH;
-	} else if (count2 > count1) {
+		}
+	}
+	else if (count2 > count1)
+	{
 		/*
 		 * We have just had another interrupt between reading
 		 * count1 and count2.
@@ -76,7 +82,8 @@ ioc_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction ioc_timer_irq = {
+static struct irqaction ioc_timer_irq =
+{
 	.name		= "timer",
 	.handler	= ioc_timer_interrupt
 };

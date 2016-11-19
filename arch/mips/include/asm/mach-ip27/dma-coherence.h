@@ -19,7 +19,7 @@
 struct device;
 
 static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr,
-	size_t size)
+		size_t size)
 {
 	dma_addr_t pa = dev_to_baddr(dev, virt_to_phys(addr));
 
@@ -27,7 +27,7 @@ static inline dma_addr_t plat_map_dma_mem(struct device *dev, void *addr,
 }
 
 static inline dma_addr_t plat_map_dma_mem_page(struct device *dev,
-	struct page *page)
+		struct page *page)
 {
 	dma_addr_t pa = dev_to_baddr(dev, page_to_phys(page));
 
@@ -35,13 +35,13 @@ static inline dma_addr_t plat_map_dma_mem_page(struct device *dev,
 }
 
 static inline unsigned long plat_dma_addr_to_phys(struct device *dev,
-	dma_addr_t dma_addr)
+		dma_addr_t dma_addr)
 {
 	return dma_addr & ~(0xffUL << 56);
 }
 
 static inline void plat_unmap_dma_mem(struct device *dev, dma_addr_t dma_addr,
-	size_t size, enum dma_data_direction direction)
+									  size_t size, enum dma_data_direction direction)
 {
 }
 
@@ -53,7 +53,9 @@ static inline int plat_dma_supported(struct device *dev, u64 mask)
 	 * within a tighter range than GFP_DMA..
 	 */
 	if (mask < DMA_BIT_MASK(24))
+	{
 		return 0;
+	}
 
 	return 1;
 }

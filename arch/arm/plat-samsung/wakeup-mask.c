@@ -20,15 +20,17 @@
 #include <plat/pm.h>
 
 void samsung_sync_wakemask(void __iomem *reg,
-			   struct samsung_wakeup_mask *mask, int nr_mask)
+						   struct samsung_wakeup_mask *mask, int nr_mask)
 {
 	struct irq_data *data;
 	u32 val;
 
 	val = __raw_readl(reg);
 
-	for (; nr_mask > 0; nr_mask--, mask++) {
-		if (mask->irq == NO_WAKEUP_IRQ) {
+	for (; nr_mask > 0; nr_mask--, mask++)
+	{
+		if (mask->irq == NO_WAKEUP_IRQ)
+		{
 			val |= mask->bit;
 			continue;
 		}
@@ -37,9 +39,13 @@ void samsung_sync_wakemask(void __iomem *reg,
 
 		/* bit of a liberty to read this directly from irq_data. */
 		if (irqd_is_wakeup_set(data))
+		{
 			val &= ~mask->bit;
+		}
 		else
+		{
 			val |= mask->bit;
+		}
 	}
 
 	printk(KERN_INFO "wakemask %08x => %08x\n", __raw_readl(reg), val);

@@ -56,9 +56,9 @@
 #include <asm/stacktrace.h>
 
 #ifdef CONFIG_CC_STACKPROTECTOR
-#include <linux/stackprotector.h>
-unsigned long __stack_chk_guard __read_mostly;
-EXPORT_SYMBOL(__stack_chk_guard);
+	#include <linux/stackprotector.h>
+	unsigned long __stack_chk_guard __read_mostly;
+	EXPORT_SYMBOL(__stack_chk_guard);
 #endif
 
 /*
@@ -87,7 +87,7 @@ void arch_cpu_idle(void)
 #ifdef CONFIG_HOTPLUG_CPU
 void arch_cpu_idle_dead(void)
 {
-       cpu_die();
+	cpu_die();
 }
 #endif
 
@@ -114,6 +114,7 @@ void machine_halt(void)
 {
 	local_irq_disable();
 	smp_send_stop();
+
 	while (1);
 }
 
@@ -127,8 +128,11 @@ void machine_power_off(void)
 {
 	local_irq_disable();
 	smp_send_stop();
+
 	if (pm_power_off)
+	{
 		pm_power_off();
+	}
 }
 
 /*
@@ -151,18 +155,25 @@ void machine_restart(char *cmd)
 	 * ResetSystem().
 	 */
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
+	{
 		efi_reboot(reboot_mode, NULL);
+	}
 
 	/* Now call the architecture specific reboot code. */
 	if (arm_pm_restart)
+	{
 		arm_pm_restart(reboot_mode, cmd);
+	}
 	else
+	{
 		do_kernel_restart(cmd);
+	}
 
 	/*
 	 * Whoops - the architecture was unable to reboot.
 	 */
 	printk("Reboot failed -- System halted\n");
+
 	while (1);
 }
 
@@ -171,11 +182,14 @@ void __show_regs(struct pt_regs *regs)
 	int i, top_reg;
 	u64 lr, sp;
 
-	if (compat_user_mode(regs)) {
+	if (compat_user_mode(regs))
+	{
 		lr = regs->compat_lr;
 		sp = regs->compat_sp;
 		top_reg = 12;
-	} else {
+	}
+	else
+	{
 		lr = regs->regs[30];
 		sp = regs->sp;
 		top_reg = 29;
@@ -185,26 +199,29 @@ void __show_regs(struct pt_regs *regs)
 	print_symbol("PC is at %s\n", instruction_pointer(regs));
 	print_symbol("LR is at %s\n", lr);
 	printk("pc : [<%016llx>] lr : [<%016llx>] pstate: %08llx\n",
-	       regs->pc, lr, regs->pstate);
+		   regs->pc, lr, regs->pstate);
 	printk("sp : %016llx\n", sp);
 
 	i = top_reg;
 
-	while (i >= 0) {
+	while (i >= 0)
+	{
 		printk("x%-2d: %016llx ", i, regs->regs[i]);
 		i--;
 
-		if (i % 2 == 0) {
+		if (i % 2 == 0)
+		{
 			pr_cont("x%-2d: %016llx ", i, regs->regs[i]);
 			i--;
 		}
 
 		pr_cont("\n");
 	}
+
 	printk("\n");
 }
 
-void show_regs(struct pt_regs * regs)
+void show_regs(struct pt_regs *regs)
 {
 	printk("\n");
 	__show_regs(regs);
@@ -214,7 +231,8 @@ static void tls_thread_flush(void)
 {
 	write_sysreg(0, tpidr_el0);
 
-	if (is_compat_task()) {
+	if (is_compat_task())
+	{
 		current->thread.tp_value = 0;
 
 		/*
@@ -241,7 +259,10 @@ void release_thread(struct task_struct *dead_task)
 int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
 {
 	if (current->mm)
+	{
 		fpsimd_preserve_current_state();
+	}
+
 	*dst = *src;
 	return 0;
 }
@@ -249,13 +270,14 @@ int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
 asmlinkage void ret_from_fork(void) asm("ret_from_fork");
 
 int copy_thread(unsigned long clone_flags, unsigned long stack_start,
-		unsigned long stk_sz, struct task_struct *p)
+				unsigned long stk_sz, struct task_struct *p)
 {
 	struct pt_regs *childregs = task_pt_regs(p);
 
 	memset(&p->thread.cpu_context, 0, sizeof(struct cpu_context));
 
-	if (likely(!(p->flags & PF_KTHREAD))) {
+	if (likely(!(p->flags & PF_KTHREAD)))
+	{
 		*childregs = *current_pt_regs();
 		childregs->regs[0] = 0;
 
@@ -265,11 +287,16 @@ int copy_thread(unsigned long clone_flags, unsigned long stack_start,
 		 */
 		*task_user_tls(p) = read_sysreg(tpidr_el0);
 
-		if (stack_start) {
+		if (stack_start)
+		{
 			if (is_compat_thread(task_thread_info(p)))
+			{
 				childregs->compat_sp = stack_start;
+			}
 			else
+			{
 				childregs->sp = stack_start;
+			}
 		}
 
 		/*
@@ -277,16 +304,25 @@ int copy_thread(unsigned long clone_flags, unsigned long stack_start,
 		 * for the new thread.
 		 */
 		if (clone_flags & CLONE_SETTLS)
+		{
 			p->thread.tp_value = childregs->regs[3];
-	} else {
+		}
+	}
+	else
+	{
 		memset(childregs, 0, sizeof(struct pt_regs));
 		childregs->pstate = PSR_MODE_EL1h;
+
 		if (IS_ENABLED(CONFIG_ARM64_UAO) &&
-		    cpus_have_cap(ARM64_HAS_UAO))
+			cpus_have_cap(ARM64_HAS_UAO))
+		{
 			childregs->pstate |= PSR_UAO_BIT;
+		}
+
 		p->thread.cpu_context.x19 = stack_start;
 		p->thread.cpu_context.x20 = stk_sz;
 	}
+
 	p->thread.cpu_context.pc = (unsigned long)ret_from_fork;
 	p->thread.cpu_context.sp = (unsigned long)childregs;
 
@@ -304,7 +340,7 @@ static void tls_thread_switch(struct task_struct *next)
 
 	tpidr = *task_user_tls(next);
 	tpidrro = is_compat_thread(task_thread_info(next)) ?
-		  next->thread.tp_value : 0;
+			  next->thread.tp_value : 0;
 
 	write_sysreg(tpidr, tpidr_el0);
 	write_sysreg(tpidrro, tpidrro_el0);
@@ -313,11 +349,16 @@ static void tls_thread_switch(struct task_struct *next)
 /* Restore the UAO state depending on next's addr_limit */
 void uao_thread_switch(struct task_struct *next)
 {
-	if (IS_ENABLED(CONFIG_ARM64_UAO)) {
+	if (IS_ENABLED(CONFIG_ARM64_UAO))
+	{
 		if (task_thread_info(next)->addr_limit == KERNEL_DS)
+		{
 			asm(ALTERNATIVE("nop", SET_PSTATE_UAO(1), ARM64_HAS_UAO));
+		}
 		else
+		{
 			asm(ALTERNATIVE("nop", SET_PSTATE_UAO(0), ARM64_HAS_UAO));
+		}
 	}
 }
 
@@ -325,7 +366,7 @@ void uao_thread_switch(struct task_struct *next)
  * Thread switching.
  */
 struct task_struct *__switch_to(struct task_struct *prev,
-				struct task_struct *next)
+								struct task_struct *next)
 {
 	struct task_struct *last;
 
@@ -352,8 +393,11 @@ unsigned long get_wchan(struct task_struct *p)
 	struct stackframe frame;
 	unsigned long stack_page;
 	int count = 0;
+
 	if (!p || p == current || p->state == TASK_RUNNING)
+	{
 		return 0;
+	}
 
 	frame.fp = thread_saved_fp(p);
 	frame.sp = thread_saved_sp(p);
@@ -362,28 +406,44 @@ unsigned long get_wchan(struct task_struct *p)
 	frame.graph = p->curr_ret_stack;
 #endif
 	stack_page = (unsigned long)task_stack_page(p);
-	do {
+
+	do
+	{
 		if (frame.sp < stack_page ||
-		    frame.sp >= stack_page + THREAD_SIZE ||
-		    unwind_frame(p, &frame))
+			frame.sp >= stack_page + THREAD_SIZE ||
+			unwind_frame(p, &frame))
+		{
 			return 0;
+		}
+
 		if (!in_sched_functions(frame.pc))
+		{
 			return frame.pc;
-	} while (count ++ < 16);
+		}
+	}
+	while (count ++ < 16);
+
 	return 0;
 }
 
 unsigned long arch_align_stack(unsigned long sp)
 {
 	if (!(current->personality & ADDR_NO_RANDOMIZE) && randomize_va_space)
+	{
 		sp -= get_random_int() & ~PAGE_MASK;
+	}
+
 	return sp & ~0xf;
 }
 
 unsigned long arch_randomize_brk(struct mm_struct *mm)
 {
 	if (is_compat_task())
+	{
 		return randomize_page(mm->brk, 0x02000000);
+	}
 	else
+	{
 		return randomize_page(mm->brk, 0x40000000);
+	}
 }

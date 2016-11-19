@@ -29,10 +29,13 @@ int s390_sha_update(struct shash_desc *desc, const u8 *data, unsigned int len)
 	ctx->count += len;
 
 	if ((index + len) < bsize)
+	{
 		goto store;
+	}
 
 	/* process one stored block */
-	if (index) {
+	if (index)
+	{
 		memcpy(ctx->buf + index, data, bsize - index);
 		cpacf_kimd(ctx->func, ctx->state, ctx->buf, bsize);
 		data += bsize - index;
@@ -41,15 +44,20 @@ int s390_sha_update(struct shash_desc *desc, const u8 *data, unsigned int len)
 	}
 
 	/* process as many blocks as possible */
-	if (len >= bsize) {
+	if (len >= bsize)
+	{
 		n = len & ~(bsize - 1);
 		cpacf_kimd(ctx->func, ctx->state, data, n);
 		data += n;
 		len -= n;
 	}
+
 store:
+
 	if (len)
+	{
 		memcpy(ctx->buf + index , data, len);
+	}
 
 	return 0;
 }
@@ -87,7 +95,7 @@ int s390_sha_final(struct shash_desc *desc, u8 *out)
 	/* copy digest to out */
 	memcpy(out, ctx->state, crypto_shash_digestsize(desc->tfm));
 	/* wipe context */
-	memset(ctx, 0, sizeof *ctx);
+	memset(ctx, 0, sizeof * ctx);
 
 	return 0;
 }

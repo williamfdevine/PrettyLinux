@@ -17,7 +17,7 @@ extern const unsigned int sys_call_table[];
 
 /* The system call number is given by the user in %g1 */
 static inline long syscall_get_nr(struct task_struct *task,
-				  struct pt_regs *regs)
+								  struct pt_regs *regs)
 {
 	int syscall_p = pt_regs_is_syscall(regs);
 
@@ -25,7 +25,7 @@ static inline long syscall_get_nr(struct task_struct *task,
 }
 
 static inline void syscall_rollback(struct task_struct *task,
-				    struct pt_regs *regs)
+									struct pt_regs *regs)
 {
 	/* XXX This needs some thought.  On Sparc we don't
 	 * XXX save away the original %o0 value somewhere.
@@ -65,7 +65,7 @@ static inline void syscall_clear_error(struct pt_regs *regs)
 #endif
 
 static inline long syscall_get_error(struct task_struct *task,
-				     struct pt_regs *regs)
+									 struct pt_regs *regs)
 {
 	long val = regs->u_regs[UREG_I0];
 
@@ -73,7 +73,7 @@ static inline long syscall_get_error(struct task_struct *task,
 }
 
 static inline long syscall_get_return_value(struct task_struct *task,
-					    struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	long val = regs->u_regs[UREG_I0];
 
@@ -81,50 +81,64 @@ static inline long syscall_get_return_value(struct task_struct *task,
 }
 
 static inline void syscall_set_return_value(struct task_struct *task,
-					    struct pt_regs *regs,
-					    int error, long val)
+		struct pt_regs *regs,
+		int error, long val)
 {
-	if (error) {
+	if (error)
+	{
 		syscall_set_error(regs);
 		regs->u_regs[UREG_I0] = -error;
-	} else {
+	}
+	else
+	{
 		syscall_clear_error(regs);
 		regs->u_regs[UREG_I0] = val;
 	}
 }
 
 static inline void syscall_get_arguments(struct task_struct *task,
-					 struct pt_regs *regs,
-					 unsigned int i, unsigned int n,
-					 unsigned long *args)
+		struct pt_regs *regs,
+		unsigned int i, unsigned int n,
+		unsigned long *args)
 {
 	int zero_extend = 0;
 	unsigned int j;
 
 #ifdef CONFIG_SPARC64
+
 	if (test_tsk_thread_flag(task, TIF_32BIT))
+	{
 		zero_extend = 1;
+	}
+
 #endif
 
-	for (j = 0; j < n; j++) {
+	for (j = 0; j < n; j++)
+	{
 		unsigned long val = regs->u_regs[UREG_I0 + i + j];
 
 		if (zero_extend)
+		{
 			args[j] = (u32) val;
+		}
 		else
+		{
 			args[j] = val;
+		}
 	}
 }
 
 static inline void syscall_set_arguments(struct task_struct *task,
-					 struct pt_regs *regs,
-					 unsigned int i, unsigned int n,
-					 const unsigned long *args)
+		struct pt_regs *regs,
+		unsigned int i, unsigned int n,
+		const unsigned long *args)
 {
 	unsigned int j;
 
 	for (j = 0; j < n; j++)
+	{
 		regs->u_regs[UREG_I0 + i + j] = args[j];
+	}
 }
 
 static inline int syscall_get_arch(void)

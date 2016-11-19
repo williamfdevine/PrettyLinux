@@ -30,7 +30,8 @@
 
 #ifdef CONFIG_SMP
 
-struct flush_tlb_info {
+struct flush_tlb_info
+{
 	struct mm_struct *flush_mm;
 	unsigned long flush_start;
 	unsigned long flush_end;
@@ -43,9 +44,14 @@ struct flush_tlb_info {
 void leave_mm(int cpu)
 {
 	struct mm_struct *active_mm = this_cpu_read(cpu_tlbstate.active_mm);
+
 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
+	{
 		BUG();
-	if (cpumask_test_cpu(cpu, mm_cpumask(active_mm))) {
+	}
+
+	if (cpumask_test_cpu(cpu, mm_cpumask(active_mm)))
+	{
 		cpumask_clear_cpu(cpu, mm_cpumask(active_mm));
 		load_cr3(swapper_pg_dir);
 		/*
@@ -62,7 +68,7 @@ EXPORT_SYMBOL_GPL(leave_mm);
 #endif /* CONFIG_SMP */
 
 void switch_mm(struct mm_struct *prev, struct mm_struct *next,
-	       struct task_struct *tsk)
+			   struct task_struct *tsk)
 {
 	unsigned long flags;
 
@@ -72,12 +78,14 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 }
 
 void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
-			struct task_struct *tsk)
+						struct task_struct *tsk)
 {
 	unsigned cpu = smp_processor_id();
 
-	if (likely(prev != next)) {
-		if (IS_ENABLED(CONFIG_VMAP_STACK)) {
+	if (likely(prev != next))
+	{
+		if (IS_ENABLED(CONFIG_VMAP_STACK))
+		{
 			/*
 			 * If our current stack is in vmalloc space and isn't
 			 * mapped in the new pgd, we'll double-fault.  Forcibly
@@ -88,7 +96,9 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 			pgd_t *pgd = next->pgd + stack_pgd_index;
 
 			if (unlikely(pgd_none(*pgd)))
+			{
 				set_pgd(pgd, init_mm.pgd[stack_pgd_index]);
+			}
 		}
 
 #ifdef CONFIG_SMP
@@ -137,6 +147,7 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 		load_mm_cr4(next);
 
 #ifdef CONFIG_MODIFY_LDT_SYSCALL
+
 		/*
 		 * Load the LDT, if the LDT is different.
 		 *
@@ -150,15 +161,21 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 		 * prev->context.ldt, because mms never share an LDT.
 		 */
 		if (unlikely(prev->context.ldt != next->context.ldt))
+		{
 			load_mm_ldt(next);
+		}
+
 #endif
 	}
+
 #ifdef CONFIG_SMP
-	  else {
+	else
+	{
 		this_cpu_write(cpu_tlbstate.state, TLBSTATE_OK);
 		BUG_ON(this_cpu_read(cpu_tlbstate.active_mm) != next);
 
-		if (!cpumask_test_cpu(cpu, mm_cpumask(next))) {
+		if (!cpumask_test_cpu(cpu, mm_cpumask(next)))
+		{
 			/*
 			 * On established mms, the mm_cpumask is only changed
 			 * from irq context, from ptep_clear_flush() while in
@@ -181,6 +198,7 @@ void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
 			load_mm_ldt(next);
 		}
 	}
+
 #endif
 }
 
@@ -234,58 +252,81 @@ static void flush_tlb_func(void *info)
 	inc_irq_stat(irq_tlb_count);
 
 	if (f->flush_mm && f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
+	{
 		return;
+	}
 
 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
-	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK) {
-		if (f->flush_end == TLB_FLUSH_ALL) {
+
+	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
+	{
+		if (f->flush_end == TLB_FLUSH_ALL)
+		{
 			local_flush_tlb();
 			trace_tlb_flush(TLB_REMOTE_SHOOTDOWN, TLB_FLUSH_ALL);
-		} else {
+		}
+		else
+		{
 			unsigned long addr;
 			unsigned long nr_pages =
 				(f->flush_end - f->flush_start) / PAGE_SIZE;
 			addr = f->flush_start;
-			while (addr < f->flush_end) {
+
+			while (addr < f->flush_end)
+			{
 				__flush_tlb_single(addr);
 				addr += PAGE_SIZE;
 			}
+
 			trace_tlb_flush(TLB_REMOTE_SHOOTDOWN, nr_pages);
 		}
-	} else
+	}
+	else
+	{
 		leave_mm(smp_processor_id());
+	}
 
 }
 
 void native_flush_tlb_others(const struct cpumask *cpumask,
-				 struct mm_struct *mm, unsigned long start,
-				 unsigned long end)
+							 struct mm_struct *mm, unsigned long start,
+							 unsigned long end)
 {
 	struct flush_tlb_info info;
 
 	if (end == 0)
+	{
 		end = start + PAGE_SIZE;
+	}
+
 	info.flush_mm = mm;
 	info.flush_start = start;
 	info.flush_end = end;
 
 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH);
+
 	if (end == TLB_FLUSH_ALL)
+	{
 		trace_tlb_flush(TLB_REMOTE_SEND_IPI, TLB_FLUSH_ALL);
+	}
 	else
 		trace_tlb_flush(TLB_REMOTE_SEND_IPI,
-				(end - start) >> PAGE_SHIFT);
+						(end - start) >> PAGE_SHIFT);
 
-	if (is_uv_system()) {
+	if (is_uv_system())
+	{
 		unsigned int cpu;
 
 		cpu = smp_processor_id();
 		cpumask = uv_flush_tlb_others(cpumask, mm, start, end, cpu);
+
 		if (cpumask)
 			smp_call_function_many(cpumask, flush_tlb_func,
-								&info, 1);
+								   &info, 1);
+
 		return;
 	}
+
 	smp_call_function_many(cpumask, flush_tlb_func, &info, 1);
 }
 
@@ -301,8 +342,12 @@ void flush_tlb_current_task(void)
 	local_flush_tlb();
 
 	trace_tlb_flush(TLB_LOCAL_SHOOTDOWN, TLB_FLUSH_ALL);
+
 	if (cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids)
+	{
 		flush_tlb_others(mm_cpumask(mm), mm, 0UL, TLB_FLUSH_ALL);
+	}
+
 	preempt_enable();
 }
 
@@ -319,21 +364,24 @@ void flush_tlb_current_task(void)
 static unsigned long tlb_single_page_flush_ceiling __read_mostly = 33;
 
 void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
-				unsigned long end, unsigned long vmflag)
+						unsigned long end, unsigned long vmflag)
 {
 	unsigned long addr;
 	/* do a global flush by default */
 	unsigned long base_pages_to_flush = TLB_FLUSH_ALL;
 
 	preempt_disable();
-	if (current->active_mm != mm) {
+
+	if (current->active_mm != mm)
+	{
 		/* Synchronize with switch_mm. */
 		smp_mb();
 
 		goto out;
 	}
 
-	if (!current->mm) {
+	if (!current->mm)
+	{
 		leave_mm(smp_processor_id());
 
 		/* Synchronize with switch_mm. */
@@ -343,31 +391,44 @@ void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
 	}
 
 	if ((end != TLB_FLUSH_ALL) && !(vmflag & VM_HUGETLB))
+	{
 		base_pages_to_flush = (end - start) >> PAGE_SHIFT;
+	}
 
 	/*
 	 * Both branches below are implicit full barriers (MOV to CR or
 	 * INVLPG) that synchronize with switch_mm.
 	 */
-	if (base_pages_to_flush > tlb_single_page_flush_ceiling) {
+	if (base_pages_to_flush > tlb_single_page_flush_ceiling)
+	{
 		base_pages_to_flush = TLB_FLUSH_ALL;
 		count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
 		local_flush_tlb();
-	} else {
+	}
+	else
+	{
 		/* flush range by one by one 'invlpg' */
-		for (addr = start; addr < end;	addr += PAGE_SIZE) {
+		for (addr = start; addr < end;	addr += PAGE_SIZE)
+		{
 			count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ONE);
 			__flush_tlb_single(addr);
 		}
 	}
+
 	trace_tlb_flush(TLB_LOCAL_MM_SHOOTDOWN, base_pages_to_flush);
 out:
-	if (base_pages_to_flush == TLB_FLUSH_ALL) {
+
+	if (base_pages_to_flush == TLB_FLUSH_ALL)
+	{
 		start = 0UL;
 		end = TLB_FLUSH_ALL;
 	}
+
 	if (cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids)
+	{
 		flush_tlb_others(mm_cpumask(mm), mm, start, end);
+	}
+
 	preempt_enable();
 }
 
@@ -377,14 +438,18 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long start)
 
 	preempt_disable();
 
-	if (current->active_mm == mm) {
-		if (current->mm) {
+	if (current->active_mm == mm)
+	{
+		if (current->mm)
+		{
 			/*
 			 * Implicit full barrier (INVLPG) that synchronizes
 			 * with switch_mm.
 			 */
 			__flush_tlb_one(start);
-		} else {
+		}
+		else
+		{
 			leave_mm(smp_processor_id());
 
 			/* Synchronize with switch_mm. */
@@ -393,7 +458,9 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long start)
 	}
 
 	if (cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids)
+	{
 		flush_tlb_others(mm_cpumask(mm), mm, start, 0UL);
+	}
 
 	preempt_enable();
 }
@@ -402,8 +469,11 @@ static void do_flush_tlb_all(void *info)
 {
 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
 	__flush_tlb_all();
+
 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_LAZY)
+	{
 		leave_mm(smp_processor_id());
+	}
 }
 
 void flush_tlb_all(void)
@@ -419,7 +489,9 @@ static void do_kernel_range_flush(void *info)
 
 	/* flush range by one by one 'invlpg' */
 	for (addr = f->flush_start; addr < f->flush_end; addr += PAGE_SIZE)
+	{
 		__flush_tlb_single(addr);
+	}
 }
 
 void flush_tlb_kernel_range(unsigned long start, unsigned long end)
@@ -427,9 +499,12 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 
 	/* Balance as user space task's flush, a bit conservative */
 	if (end == TLB_FLUSH_ALL ||
-	    (end - start) > tlb_single_page_flush_ceiling * PAGE_SIZE) {
+		(end - start) > tlb_single_page_flush_ceiling * PAGE_SIZE)
+	{
 		on_each_cpu(do_flush_tlb_all, NULL, 1);
-	} else {
+	}
+	else
+	{
 		struct flush_tlb_info info;
 		info.flush_start = start;
 		info.flush_end = end;
@@ -438,7 +513,7 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 }
 
 static ssize_t tlbflush_read_file(struct file *file, char __user *user_buf,
-			     size_t count, loff_t *ppos)
+								  size_t count, loff_t *ppos)
 {
 	char buf[32];
 	unsigned int len;
@@ -448,28 +523,37 @@ static ssize_t tlbflush_read_file(struct file *file, char __user *user_buf,
 }
 
 static ssize_t tlbflush_write_file(struct file *file,
-		 const char __user *user_buf, size_t count, loff_t *ppos)
+								   const char __user *user_buf, size_t count, loff_t *ppos)
 {
 	char buf[32];
 	ssize_t len;
 	int ceiling;
 
 	len = min(count, sizeof(buf) - 1);
+
 	if (copy_from_user(buf, user_buf, len))
+	{
 		return -EFAULT;
+	}
 
 	buf[len] = '\0';
+
 	if (kstrtoint(buf, 0, &ceiling))
+	{
 		return -EINVAL;
+	}
 
 	if (ceiling < 0)
+	{
 		return -EINVAL;
+	}
 
 	tlb_single_page_flush_ceiling = ceiling;
 	return count;
 }
 
-static const struct file_operations fops_tlbflush = {
+static const struct file_operations fops_tlbflush =
+{
 	.read = tlbflush_read_file,
 	.write = tlbflush_write_file,
 	.llseek = default_llseek,
@@ -478,7 +562,7 @@ static const struct file_operations fops_tlbflush = {
 static int __init create_tlb_single_page_flush_ceiling(void)
 {
 	debugfs_create_file("tlb_single_page_flush_ceiling", S_IRUSR | S_IWUSR,
-			    arch_debugfs_dir, NULL, &fops_tlbflush);
+						arch_debugfs_dir, NULL, &fops_tlbflush);
 	return 0;
 }
 late_initcall(create_tlb_single_page_flush_ceiling);

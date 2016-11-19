@@ -15,22 +15,26 @@ int swiotlb __read_mostly;
 EXPORT_SYMBOL(swiotlb);
 
 static void *ia64_swiotlb_alloc_coherent(struct device *dev, size_t size,
-					 dma_addr_t *dma_handle, gfp_t gfp,
-					 unsigned long attrs)
+		dma_addr_t *dma_handle, gfp_t gfp,
+		unsigned long attrs)
 {
 	if (dev->coherent_dma_mask != DMA_BIT_MASK(64))
+	{
 		gfp |= GFP_DMA;
+	}
+
 	return swiotlb_alloc_coherent(dev, size, dma_handle, gfp);
 }
 
 static void ia64_swiotlb_free_coherent(struct device *dev, size_t size,
-				       void *vaddr, dma_addr_t dma_addr,
-				       unsigned long attrs)
+									   void *vaddr, dma_addr_t dma_addr,
+									   unsigned long attrs)
 {
 	swiotlb_free_coherent(dev, size, vaddr, dma_addr);
 }
 
-struct dma_map_ops swiotlb_dma_ops = {
+struct dma_map_ops swiotlb_dma_ops =
+{
 	.alloc = ia64_swiotlb_alloc_coherent,
 	.free = ia64_swiotlb_free_coherent,
 	.map_page = swiotlb_map_page,
@@ -53,7 +57,8 @@ void __init swiotlb_dma_init(void)
 
 void __init pci_swiotlb_init(void)
 {
-	if (!iommu_detected) {
+	if (!iommu_detected)
+	{
 #ifdef CONFIG_IA64_GENERIC
 		swiotlb = 1;
 		printk(KERN_INFO "PCI-DMA: Re-initialize machine vector.\n");

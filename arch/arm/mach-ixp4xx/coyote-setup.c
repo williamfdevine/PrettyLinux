@@ -33,16 +33,19 @@
 #define COYOTE_IDE_ERROR_PORT	0xFFFE10E2
 #define IRQ_COYOTE_IDE		IRQ_IXP4XX_GPIO5
 
-static struct flash_platform_data coyote_flash_data = {
+static struct flash_platform_data coyote_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.width		= 2,
 };
 
-static struct resource coyote_flash_resource = {
+static struct resource coyote_flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device coyote_flash = {
+static struct platform_device coyote_flash =
+{
 	.name		= "IXP4XX-Flash",
 	.id		= 0,
 	.dev		= {
@@ -52,13 +55,15 @@ static struct platform_device coyote_flash = {
 	.resource	= &coyote_flash_resource,
 };
 
-static struct resource coyote_uart_resource = {
+static struct resource coyote_uart_resource =
+{
 	.start	= IXP4XX_UART2_BASE_PHYS,
 	.end	= IXP4XX_UART2_BASE_PHYS + 0x0fff,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct plat_serial8250_port coyote_uart_data[] = {
+static struct plat_serial8250_port coyote_uart_data[] =
+{
 	{
 		.mapbase	= IXP4XX_UART2_BASE_PHYS,
 		.membase	= (char *)IXP4XX_UART2_BASE_VIRT + REG_OFFSET,
@@ -71,7 +76,8 @@ static struct plat_serial8250_port coyote_uart_data[] = {
 	{ },
 };
 
-static struct platform_device coyote_uart = {
+static struct platform_device coyote_uart =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -81,7 +87,8 @@ static struct platform_device coyote_uart = {
 	.resource	= &coyote_uart_resource,
 };
 
-static struct platform_device *coyote_devices[] __initdata = {
+static struct platform_device *coyote_devices[] __initdata =
+{
 	&coyote_flash,
 	&coyote_uart
 };
@@ -96,9 +103,10 @@ static void __init coyote_init(void)
 	*IXP4XX_EXP_CS0 |= IXP4XX_FLASH_WRITABLE;
 	*IXP4XX_EXP_CS1 = *IXP4XX_EXP_CS0;
 
-	if (machine_is_ixdpg425()) {
+	if (machine_is_ixdpg425())
+	{
 		coyote_uart_data[0].membase =
-			(char*)(IXP4XX_UART1_BASE_VIRT + REG_OFFSET);
+			(char *)(IXP4XX_UART1_BASE_VIRT + REG_OFFSET);
 		coyote_uart_data[0].mapbase = IXP4XX_UART1_BASE_PHYS;
 		coyote_uart_data[0].irq = IRQ_IXP4XX_UART1;
 	}
@@ -107,7 +115,7 @@ static void __init coyote_init(void)
 }
 
 #ifdef CONFIG_ARCH_ADI_COYOTE
-MACHINE_START(ADI_COYOTE, "ADI Engineering Coyote")
+	MACHINE_START(ADI_COYOTE, "ADI Engineering Coyote")
 	/* Maintainer: MontaVista Software, Inc. */
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -115,11 +123,11 @@ MACHINE_START(ADI_COYOTE, "ADI Engineering Coyote")
 	.init_time	= ixp4xx_timer_init,
 	.atag_offset	= 0x100,
 	.init_machine	= coyote_init,
-#if defined(CONFIG_PCI)
-	.dma_zone_size	= SZ_64M,
-#endif
+	#if defined(CONFIG_PCI)
+		.dma_zone_size	= SZ_64M,
+	#endif
 	.restart	= ixp4xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 
 /*
@@ -127,7 +135,7 @@ MACHINE_END
  * is connected.
  */
 #ifdef CONFIG_MACH_IXDPG425
-MACHINE_START(IXDPG425, "Intel IXDPG425")
+	MACHINE_START(IXDPG425, "Intel IXDPG425")
 	/* Maintainer: MontaVista Software, Inc. */
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -136,6 +144,6 @@ MACHINE_START(IXDPG425, "Intel IXDPG425")
 	.atag_offset	= 0x100,
 	.init_machine	= coyote_init,
 	.restart	= ixp4xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 

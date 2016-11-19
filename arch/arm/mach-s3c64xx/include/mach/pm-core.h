@@ -60,15 +60,15 @@ static inline void s3c_pm_arch_show_resume_irqs(void)
 /* make these defines, we currently do not have any need to change
  * the IRQ wake controls depending on the CPU we are running on */
 #ifdef CONFIG_PM_SLEEP
-#define s3c_irqwake_eintallow	((1 << 28) - 1)
-#define s3c_irqwake_intallow	(~0)
+	#define s3c_irqwake_eintallow	((1 << 28) - 1)
+	#define s3c_irqwake_intallow	(~0)
 #else
-#define s3c_irqwake_eintallow 0
-#define s3c_irqwake_intallow  0
+	#define s3c_irqwake_eintallow 0
+	#define s3c_irqwake_intallow  0
 #endif
 
 static inline void s3c_pm_arch_update_uart(void __iomem *regs,
-					   struct pm_uart_save *save)
+		struct pm_uart_save *save)
 {
 	u32 ucon = __raw_readl(regs + S3C2410_UCON);
 	u32 ucon_clk = ucon & S3C6400_UCON_CLKMASK;
@@ -86,7 +86,8 @@ static inline void s3c_pm_arch_update_uart(void __iomem *regs,
 	 * that the CLK field is correctly modified if the bootloader
 	 * has changed anything.
 	 */
-	if (ucon_clk != save_clk) {
+	if (ucon_clk != save_clk)
+	{
 		new_ucon = save->ucon;
 		delta = ucon_clk ^ save_clk;
 
@@ -94,17 +95,20 @@ static inline void s3c_pm_arch_update_uart(void __iomem *regs,
 		 * either UCLK can be tested for by a bit-test
 		 * with UCLK0 */
 		if (ucon_clk & S3C6400_UCON_UCLK0 &&
-		    !(save_clk & S3C6400_UCON_UCLK0) &&
-		    delta & S3C6400_UCON_PCLK2) {
+			!(save_clk & S3C6400_UCON_UCLK0) &&
+			delta & S3C6400_UCON_PCLK2)
+		{
 			new_ucon &= ~S3C6400_UCON_UCLK0;
-		} else if (delta == S3C6400_UCON_PCLK2) {
+		}
+		else if (delta == S3C6400_UCON_PCLK2)
+		{
 			/* as an precaution, don't change from
 			 * PCLK2 => PCLK or vice-versa */
 			new_ucon ^= S3C6400_UCON_PCLK2;
 		}
 
 		S3C_PMDBG("ucon change %04x => %04x (save=%04x)\n",
-			  ucon, new_ucon, save->ucon);
+				  ucon, new_ucon, save->ucon);
 		save->ucon = new_ucon;
 	}
 }

@@ -9,15 +9,15 @@
 
 /* PAGE_SHIFT determines the page size */
 #if defined(CONFIG_PAGE_SIZE_4KB)
-# define PAGE_SHIFT	12
+	#define PAGE_SHIFT	12
 #elif defined(CONFIG_PAGE_SIZE_8KB)
-# define PAGE_SHIFT	13
+	#define PAGE_SHIFT	13
 #elif defined(CONFIG_PAGE_SIZE_16KB)
-# define PAGE_SHIFT	14
+	#define PAGE_SHIFT	14
 #elif defined(CONFIG_PAGE_SIZE_64KB)
-# define PAGE_SHIFT	16
+	#define PAGE_SHIFT	16
 #else
-# error "Bogus kernel page size?"
+	# error "Bogus kernel page size?"
 #endif
 
 #define PAGE_SIZE	(_AC(1, UL) << PAGE_SHIFT)
@@ -25,23 +25,23 @@
 #define PTE_MASK	PAGE_MASK
 
 #if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
-#define HPAGE_SHIFT	16
+	#define HPAGE_SHIFT	16
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_256K)
-#define HPAGE_SHIFT	18
+	#define HPAGE_SHIFT	18
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_1MB)
-#define HPAGE_SHIFT	20
+	#define HPAGE_SHIFT	20
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
-#define HPAGE_SHIFT	22
+	#define HPAGE_SHIFT	22
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_64MB)
-#define HPAGE_SHIFT	26
+	#define HPAGE_SHIFT	26
 #elif defined(CONFIG_HUGETLB_PAGE_SIZE_512MB)
-#define HPAGE_SHIFT	29
+	#define HPAGE_SHIFT	29
 #endif
 
 #ifdef CONFIG_HUGETLB_PAGE
-#define HPAGE_SIZE		(1UL << HPAGE_SHIFT)
-#define HPAGE_MASK		(~(HPAGE_SIZE-1))
-#define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT-PAGE_SHIFT)
+	#define HPAGE_SIZE		(1UL << HPAGE_SHIFT)
+	#define HPAGE_MASK		(~(HPAGE_SIZE-1))
+	#define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT-PAGE_SHIFT)
 #endif
 
 #ifndef __ASSEMBLY__
@@ -65,7 +65,7 @@ struct page;
 struct vm_area_struct;
 
 extern void copy_user_highpage(struct page *to, struct page *from,
-			       unsigned long vaddr, struct vm_area_struct *vma);
+							   unsigned long vaddr, struct vm_area_struct *vma);
 #define __HAVE_ARCH_COPY_USER_HIGHPAGE
 extern void clear_user_highpage(struct page *page, unsigned long vaddr);
 #define clear_user_highpage	clear_user_highpage
@@ -118,9 +118,9 @@ typedef struct page *pgtable_t;
  * of the kernel is loaded.
  */
 #ifdef CONFIG_PHYSICAL_START
-#define PHYSICAL_OFFSET (CONFIG_PHYSICAL_START - __MEMORY_START)
+	#define PHYSICAL_OFFSET (CONFIG_PHYSICAL_START - __MEMORY_START)
 #else
-#define PHYSICAL_OFFSET 0
+	#define PHYSICAL_OFFSET 0
 #endif
 
 /*
@@ -139,29 +139,29 @@ typedef struct page *pgtable_t;
  * added or subtracted as required.
  */
 #ifdef CONFIG_PMB
-#define ___pa(x)	((x)-PAGE_OFFSET+__MEMORY_START)
-#define ___va(x)	((x)+PAGE_OFFSET-__MEMORY_START)
+	#define ___pa(x)	((x)-PAGE_OFFSET+__MEMORY_START)
+	#define ___va(x)	((x)+PAGE_OFFSET-__MEMORY_START)
 #else
-#define ___pa(x)	((x)-PAGE_OFFSET)
-#define ___va(x)	((x)+PAGE_OFFSET)
+	#define ___pa(x)	((x)-PAGE_OFFSET)
+	#define ___va(x)	((x)+PAGE_OFFSET)
 #endif
 
 #ifndef __ASSEMBLY__
-#define __pa(x)		___pa((unsigned long)x)
-#define __va(x)		(void *)___va((unsigned long)x)
+	#define __pa(x)		___pa((unsigned long)x)
+	#define __va(x)		(void *)___va((unsigned long)x)
 #endif /* !__ASSEMBLY__ */
 
 #ifdef CONFIG_UNCACHED_MAPPING
-#if defined(CONFIG_29BIT)
-#define UNCAC_ADDR(addr)	P2SEGADDR(addr)
-#define CAC_ADDR(addr)		P1SEGADDR(addr)
+	#if defined(CONFIG_29BIT)
+		#define UNCAC_ADDR(addr)	P2SEGADDR(addr)
+		#define CAC_ADDR(addr)		P1SEGADDR(addr)
+	#else
+		#define UNCAC_ADDR(addr)	((addr) - PAGE_OFFSET + uncached_start)
+		#define CAC_ADDR(addr)		((addr) - uncached_start + PAGE_OFFSET)
+	#endif
 #else
-#define UNCAC_ADDR(addr)	((addr) - PAGE_OFFSET + uncached_start)
-#define CAC_ADDR(addr)		((addr) - uncached_start + PAGE_OFFSET)
-#endif
-#else
-#define UNCAC_ADDR(addr)	((addr))
-#define CAC_ADDR(addr)		((addr))
+	#define UNCAC_ADDR(addr)	((addr))
+	#define CAC_ADDR(addr)		((addr))
 #endif
 
 #define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
@@ -177,12 +177,12 @@ typedef struct page *pgtable_t;
 #define ARCH_PFN_OFFSET		(PFN_START)
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 #ifdef CONFIG_FLATMEM
-#define pfn_valid(pfn)		((pfn) >= min_low_pfn && (pfn) < max_low_pfn)
+	#define pfn_valid(pfn)		((pfn) >= min_low_pfn && (pfn) < max_low_pfn)
 #endif
 #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 #include <asm-generic/memory_model.h>
 #include <asm-generic/getorder.h>
@@ -194,14 +194,14 @@ typedef struct page *pgtable_t;
 #define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
 
 #ifdef CONFIG_SUPERH64
-/*
- * While BYTES_PER_WORD == 4 on the current sh64 ABI, GCC will still
- * happily generate {ld/st}.q pairs, requiring us to have 8-byte
- * alignment to avoid traps. The kmalloc alignment is guaranteed by
- * virtue of L1_CACHE_BYTES, requiring this to only be special cased
- * for slab caches.
- */
-#define ARCH_SLAB_MINALIGN	8
+	/*
+	* While BYTES_PER_WORD == 4 on the current sh64 ABI, GCC will still
+	* happily generate {ld/st}.q pairs, requiring us to have 8-byte
+	* alignment to avoid traps. The kmalloc alignment is guaranteed by
+	* virtue of L1_CACHE_BYTES, requiring this to only be special cased
+	* for slab caches.
+	*/
+	#define ARCH_SLAB_MINALIGN	8
 #endif
 
 #endif /* __ASM_SH_PAGE_H */

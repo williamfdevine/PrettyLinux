@@ -29,9 +29,9 @@
 static inline void sync_set_bit(long nr, volatile unsigned long *addr)
 {
 	asm volatile("lock; bts %1,%0"
-		     : "+m" (ADDR)
-		     : "Ir" (nr)
-		     : "memory");
+				 : "+m" (ADDR)
+				 : "Ir" (nr)
+				 : "memory");
 }
 
 /**
@@ -47,9 +47,9 @@ static inline void sync_set_bit(long nr, volatile unsigned long *addr)
 static inline void sync_clear_bit(long nr, volatile unsigned long *addr)
 {
 	asm volatile("lock; btr %1,%0"
-		     : "+m" (ADDR)
-		     : "Ir" (nr)
-		     : "memory");
+				 : "+m" (ADDR)
+				 : "Ir" (nr)
+				 : "memory");
 }
 
 /**
@@ -64,9 +64,9 @@ static inline void sync_clear_bit(long nr, volatile unsigned long *addr)
 static inline void sync_change_bit(long nr, volatile unsigned long *addr)
 {
 	asm volatile("lock; btc %1,%0"
-		     : "+m" (ADDR)
-		     : "Ir" (nr)
-		     : "memory");
+				 : "+m" (ADDR)
+				 : "Ir" (nr)
+				 : "memory");
 }
 
 /**
@@ -82,8 +82,8 @@ static inline int sync_test_and_set_bit(long nr, volatile unsigned long *addr)
 	unsigned char oldbit;
 
 	asm volatile("lock; bts %2,%1\n\tsetc %0"
-		     : "=qm" (oldbit), "+m" (ADDR)
-		     : "Ir" (nr) : "memory");
+				 : "=qm" (oldbit), "+m" (ADDR)
+				 : "Ir" (nr) : "memory");
 	return oldbit;
 }
 
@@ -100,8 +100,8 @@ static inline int sync_test_and_clear_bit(long nr, volatile unsigned long *addr)
 	unsigned char oldbit;
 
 	asm volatile("lock; btr %2,%1\n\tsetc %0"
-		     : "=qm" (oldbit), "+m" (ADDR)
-		     : "Ir" (nr) : "memory");
+				 : "=qm" (oldbit), "+m" (ADDR)
+				 : "Ir" (nr) : "memory");
 	return oldbit;
 }
 
@@ -118,8 +118,8 @@ static inline int sync_test_and_change_bit(long nr, volatile unsigned long *addr
 	unsigned char oldbit;
 
 	asm volatile("lock; btc %2,%1\n\tsetc %0"
-		     : "=qm" (oldbit), "+m" (ADDR)
-		     : "Ir" (nr) : "memory");
+				 : "=qm" (oldbit), "+m" (ADDR)
+				 : "Ir" (nr) : "memory");
 	return oldbit;
 }
 

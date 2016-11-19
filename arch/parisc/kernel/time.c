@@ -40,15 +40,15 @@
 static unsigned long clocktick __read_mostly;	/* timer cycles per tick */
 
 #ifndef CONFIG_64BIT
-/*
- * The processor-internal cycle counter (Control Register 16) is used as time
- * source for the sched_clock() function.  This register is 64bit wide on a
- * 64-bit kernel and 32bit on a 32-bit kernel. Since sched_clock() always
- * requires a 64bit counter we emulate on the 32-bit kernel the higher 32bits
- * with a per-cpu variable which we increase every time the counter
- * wraps-around (which happens every ~4 secounds).
- */
-static DEFINE_PER_CPU(unsigned long, cr16_high_32_bits);
+	/*
+	* The processor-internal cycle counter (Control Register 16) is used as time
+	* source for the sched_clock() function.  This register is 64bit wide on a
+	* 64-bit kernel and 32bit on a 32-bit kernel. Since sched_clock() always
+	* requires a 64bit counter we emulate on the 32-bit kernel the higher 32bits
+	* with a per-cpu variable which we increase every time the counter
+	* wraps-around (which happens every ~4 secounds).
+	*/
+	static DEFINE_PER_CPU(unsigned long, cr16_high_32_bits);
 #endif
 
 /*
@@ -60,7 +60,7 @@ static DEFINE_PER_CPU(unsigned long, cr16_high_32_bits);
  * rate of 1.  The write-only register is 32-bits wide.  When the lowest
  * 32 bits of the read-only register compare equal to the write-only
  * register, it raises a maskable external interrupt.  Each processor has
- * an Interval Timer of its own and they are not synchronised.  
+ * an Interval Timer of its own and they are not synchronised.
  *
  * We want to generate an interrupt every 1/HZ seconds.  So we program
  * CR16 to interrupt every @clocktick cycles.  The it_value in cpu_data
@@ -90,16 +90,21 @@ irqreturn_t __irq_entry timer_interrupt(int irq, void *dev_id)
 
 	cycles_elapsed = now - next_tick;
 
-	if ((cycles_elapsed >> 6) < cpt) {
+	if ((cycles_elapsed >> 6) < cpt)
+	{
 		/* use "cheap" math (add/subtract) instead
 		 * of the more expensive div/mul method
 		 */
 		cycles_remainder = cycles_elapsed;
-		while (cycles_remainder > cpt) {
+
+		while (cycles_remainder > cpt)
+		{
 			cycles_remainder -= cpt;
 			ticks_elapsed++;
 		}
-	} else {
+	}
+	else
+	{
 		/* TODO: Reduce this to one fdiv op */
 		cycles_remainder = cycles_elapsed % cpt;
 		ticks_elapsed += cycles_elapsed / cpt;
@@ -122,9 +127,13 @@ irqreturn_t __irq_entry timer_interrupt(int irq, void *dev_id)
 	mtctl(next_tick, 16);
 
 #if !defined(CONFIG_64BIT)
+
 	/* check for overflow on a 32bit kernel (every ~4 seconds). */
 	if (unlikely(next_tick < now))
+	{
 		this_cpu_inc(cr16_high_32_bits);
+	}
+
 #endif
 
 	/* Skip one clocktick on purpose if we missed next_tick.
@@ -138,19 +147,24 @@ irqreturn_t __irq_entry timer_interrupt(int irq, void *dev_id)
 	 * with a very large unsigned number.
 	 */
 	now2 = mfctl(16);
+
 	if (next_tick - now2 > cpt)
-		mtctl(next_tick+cpt, 16);
+	{
+		mtctl(next_tick + cpt, 16);
+	}
 
 #if 1
-/*
- * GGG: DEBUG code for how many cycles programming CR16 used.
- */
+
+	/*
+	 * GGG: DEBUG code for how many cycles programming CR16 used.
+	 */
 	if (unlikely(now2 - now > 0x3000)) 	/* 12K cycles */
 		printk (KERN_CRIT "timer_interrupt(CPU %d): SLOW! 0x%lx cycles!"
-			" cyc %lX rem %lX "
-			" next/now %lX/%lX\n",
-			cpu, now2 - now, cycles_elapsed, cycles_remainder,
-			next_tick, now );
+				" cyc %lX rem %lX "
+				" next/now %lX/%lX\n",
+				cpu, now2 - now, cycles_elapsed, cycles_remainder,
+				next_tick, now );
+
 #endif
 
 	/* Can we differentiate between "early CR16" (aka Scenario 1) and
@@ -163,27 +177,31 @@ irqreturn_t __irq_entry timer_interrupt(int irq, void *dev_id)
 	 * It's important NO printk's are between reading CR16 and
 	 * setting up the next value. May introduce huge variance.
 	 */
-	if (unlikely(ticks_elapsed > HZ)) {
+	if (unlikely(ticks_elapsed > HZ))
+	{
 		/* Scenario 3: very long delay?  bad in any case */
 		printk (KERN_CRIT "timer_interrupt(CPU %d): delayed!"
-			" cycles %lX rem %lX "
-			" next/now %lX/%lX\n",
-			cpu,
-			cycles_elapsed, cycles_remainder,
-			next_tick, now );
+				" cycles %lX rem %lX "
+				" next/now %lX/%lX\n",
+				cpu,
+				cycles_elapsed, cycles_remainder,
+				next_tick, now );
 	}
 
 	/* Done mucking with unreliable delivery of interrupts.
 	 * Go do system house keeping.
 	 */
 
-	if (!--cpuinfo->prof_counter) {
+	if (!--cpuinfo->prof_counter)
+	{
 		cpuinfo->prof_counter = cpuinfo->prof_multiplier;
 		update_process_times(user_mode(get_irq_regs()));
 	}
 
 	if (cpu == 0)
+	{
 		xtime_update(ticks_elapsed);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -194,11 +212,17 @@ unsigned long profile_pc(struct pt_regs *regs)
 	unsigned long pc = instruction_pointer(regs);
 
 	if (regs->gr[0] & PSW_N)
+	{
 		pc -= 4;
+	}
 
 #ifdef CONFIG_SMP
+
 	if (in_lock_functions(pc))
+	{
 		pc = regs->gr[2];
+	}
+
 #endif
 
 	return pc;
@@ -213,7 +237,8 @@ static cycle_t read_cr16(struct clocksource *cs)
 	return get_cycles();
 }
 
-static struct clocksource clocksource_cr16 = {
+static struct clocksource clocksource_cr16 =
+{
 	.name			= "cr16",
 	.rating			= 300,
 	.read			= read_cr16,
@@ -237,8 +262,11 @@ static int rtc_generic_get_time(struct device *dev, struct rtc_time *tm)
 	struct pdc_tod tod_data;
 
 	memset(tm, 0, sizeof(*tm));
+
 	if (pdc_tod_read(&tod_data) < 0)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* we treat tod_sec as unsigned, so this can work until year 2106 */
 	rtc_time64_to_tm(tod_data.tod_sec, tm);
@@ -250,12 +278,15 @@ static int rtc_generic_set_time(struct device *dev, struct rtc_time *tm)
 	time64_t secs = rtc_tm_to_time64(tm);
 
 	if (pdc_tod_set(secs, 0) < 0)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	return 0;
 }
 
-static const struct rtc_class_ops rtc_generic_ops = {
+static const struct rtc_class_ops rtc_generic_ops =
+{
 	.read_time = rtc_generic_get_time,
 	.set_time = rtc_generic_set_time,
 };
@@ -265,8 +296,8 @@ static int __init rtc_init(void)
 	struct platform_device *pdev;
 
 	pdev = platform_device_register_data(NULL, "rtc-generic", -1,
-					     &rtc_generic_ops,
-					     sizeof(rtc_generic_ops));
+										 &rtc_generic_ops,
+										 sizeof(rtc_generic_ops));
 
 	return PTR_ERR_OR_ZERO(pdev);
 }
@@ -276,12 +307,16 @@ device_initcall(rtc_init);
 void read_persistent_clock(struct timespec *ts)
 {
 	static struct pdc_tod tod_data;
-	if (pdc_tod_read(&tod_data) == 0) {
+
+	if (pdc_tod_read(&tod_data) == 0)
+	{
 		ts->tv_sec = tod_data.tod_sec;
 		ts->tv_nsec = tod_data.tod_usec * 1000;
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "Error reading tod clock\n");
-	        ts->tv_sec = 0;
+		ts->tv_sec = 0;
 		ts->tv_nsec = 0;
 	}
 }
@@ -318,12 +353,12 @@ void __init time_init(void)
 {
 	unsigned long current_cr16_khz;
 
-	current_cr16_khz = PAGE0->mem_10msec/10;  /* kHz */
+	current_cr16_khz = PAGE0->mem_10msec / 10; /* kHz */
 	clocktick = (100 * PAGE0->mem_10msec) / HZ;
 
 	/* calculate mult/shift values for cr16 */
 	clocks_calc_mult_shift(&cyc2ns_mul, &cyc2ns_shift, current_cr16_khz,
-				NSEC_PER_MSEC, 0);
+						   NSEC_PER_MSEC, 0);
 
 	start_cpu_itimer();	/* get CPU 0 started */
 

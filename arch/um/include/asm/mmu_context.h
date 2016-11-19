@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
  * Licensed under the GPL
  */
@@ -19,12 +19,12 @@ static inline void arch_dup_mmap(struct mm_struct *oldmm, struct mm_struct *mm)
 }
 extern void arch_exit_mmap(struct mm_struct *mm);
 static inline void arch_unmap(struct mm_struct *mm,
-			struct vm_area_struct *vma,
-			unsigned long start, unsigned long end)
+							  struct vm_area_struct *vma,
+							  unsigned long start, unsigned long end)
 {
 }
 static inline void arch_bprm_mm_init(struct mm_struct *mm,
-				     struct vm_area_struct *vma)
+									 struct vm_area_struct *vma)
 {
 }
 
@@ -61,21 +61,25 @@ static inline void activate_mm(struct mm_struct *old, struct mm_struct *new)
 	up_write(&new->mmap_sem);
 }
 
-static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next, 
-			     struct task_struct *tsk)
+static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
+							 struct task_struct *tsk)
 {
 	unsigned cpu = smp_processor_id();
 
-	if(prev != next){
+	if (prev != next)
+	{
 		cpumask_clear_cpu(cpu, mm_cpumask(prev));
 		cpumask_set_cpu(cpu, mm_cpumask(next));
-		if(next != &init_mm)
+
+		if (next != &init_mm)
+		{
 			__switch_mm(&next->context.id);
+		}
 	}
 }
 
-static inline void enter_lazy_tlb(struct mm_struct *mm, 
-				  struct task_struct *tsk)
+static inline void enter_lazy_tlb(struct mm_struct *mm,
+								  struct task_struct *tsk)
 {
 }
 

@@ -10,23 +10,23 @@
  * number is 140 so NR_IRQS needs to be 141.
  */
 #if defined(CONFIG_COLDFIRE)
-#define NR_IRQS 256
+	#define NR_IRQS 256
 #elif defined(CONFIG_VME) || defined(CONFIG_SUN3) || defined(CONFIG_SUN3X)
-#define NR_IRQS 200
+	#define NR_IRQS 200
 #elif defined(CONFIG_ATARI)
-#define NR_IRQS 141
+	#define NR_IRQS 141
 #elif defined(CONFIG_MAC)
-#define NR_IRQS 72
+	#define NR_IRQS 72
 #elif defined(CONFIG_Q40)
-#define NR_IRQS	43
+	#define NR_IRQS	43
 #elif defined(CONFIG_AMIGA) || !defined(CONFIG_MMU)
-#define NR_IRQS	32
+	#define NR_IRQS	32
 #elif defined(CONFIG_APOLLO)
-#define NR_IRQS	24
+	#define NR_IRQS	24
 #elif defined(CONFIG_HP300)
-#define NR_IRQS	8
+	#define NR_IRQS	8
 #else
-#define NR_IRQS	0
+	#define NR_IRQS	0
 #endif
 
 #if defined(CONFIG_M68020) || defined(CONFIG_M68030) || \
@@ -61,11 +61,11 @@ extern unsigned int m68k_irq_startup(struct irq_data *data);
 extern unsigned int m68k_irq_startup_irq(unsigned int irq);
 extern void m68k_irq_shutdown(struct irq_data *data);
 extern void m68k_setup_auto_interrupt(void (*handler)(unsigned int,
-						      struct pt_regs *));
+									  struct pt_regs *));
 extern void m68k_setup_user_interrupt(unsigned int vec, unsigned int cnt);
 extern void m68k_setup_irq_controller(struct irq_chip *,
-				      void (*handle)(struct irq_desc *desc),
-				      unsigned int irq, unsigned int cnt);
+									  void (*handle)(struct irq_desc *desc),
+									  unsigned int irq, unsigned int cnt);
 
 extern unsigned int irq_canonicalize(unsigned int irq);
 

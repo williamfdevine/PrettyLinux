@@ -48,7 +48,7 @@
 
 #ifdef CONFIG_PPC_SPLPAR
 #define ACCOUNT_STOLEN_TIME						\
-BEGIN_FW_FTR_SECTION;							\
+	BEGIN_FW_FTR_SECTION;							\
 	beq	33f;							\
 	/* from user - see if there are any DTL entries to process */	\
 	ld	r10,PACALPPACAPTR(r13);	/* get ptr to VPA */		\
@@ -60,8 +60,8 @@ BEGIN_FW_FTR_SECTION;							\
 	bl	accumulate_stolen_time;				\
 	ld	r12,_MSR(r1);						\
 	andi.	r10,r12,MSR_PR;		/* Restore cr0 (coming from user) */ \
-33:									\
-END_FW_FTR_SECTION_IFSET(FW_FEATURE_SPLPAR)
+	33:									\
+	END_FW_FTR_SECTION_IFSET(FW_FEATURE_SPLPAR)
 
 #else  /* CONFIG_PPC_SPLPAR */
 #define ACCOUNT_STOLEN_TIME
@@ -83,9 +83,9 @@ END_FW_FTR_SECTION_IFSET(FW_FEATURE_SPLPAR)
 #define SAVE_GPR(n, base)	stw	n,GPR0+4*(n)(base)
 #define REST_GPR(n, base)	lwz	n,GPR0+4*(n)(base)
 #define SAVE_NVGPRS(base)	SAVE_GPR(13, base); SAVE_8GPRS(14, base); \
-				SAVE_10GPRS(22, base)
+	SAVE_10GPRS(22, base)
 #define REST_NVGPRS(base)	REST_GPR(13, base); REST_8GPRS(14, base); \
-				REST_10GPRS(22, base)
+	REST_10GPRS(22, base)
 #endif
 
 #define SAVE_2GPRS(n, base)	SAVE_GPR(n, base); SAVE_GPR(n+1, base)
@@ -128,11 +128,11 @@ END_FW_FTR_SECTION_IFSET(FW_FEATURE_SPLPAR)
 #define LXVD2X_ROT(n,b,base)		LXVD2X(n,b,base)
 #else
 #define STXVD2X_ROT(n,b,base)		XXSWAPD(n,n);		\
-					STXVD2X(n,b,base);	\
-					XXSWAPD(n,n)
+	STXVD2X(n,b,base);	\
+	XXSWAPD(n,n)
 
 #define LXVD2X_ROT(n,b,base)		LXVD2X(n,b,base);	\
-					XXSWAPD(n,n)
+	XXSWAPD(n,n)
 #endif
 /* Save the lower 32 VSRs in the thread VSR region */
 #define SAVE_VSR(n,b,base)	li b,16*(n);  STXVD2X_ROT(n,R##base,R##b)
@@ -175,9 +175,9 @@ END_FW_FTR_SECTION_IFSET(FW_FEATURE_SPLPAR)
 #define HMT_EXTRA_HIGH	or	7,7,7		# power7 only
 
 #ifdef CONFIG_PPC64
-#define ULONG_SIZE 	8
+	#define ULONG_SIZE 	8
 #else
-#define ULONG_SIZE	4
+	#define ULONG_SIZE	4
 #endif
 #define __VCPU_GPR(n)	(VCPU_GPRS + (n * ULONG_SIZE))
 #define VCPU_GPR(n)	__VCPU_GPR(__REG_##n)
@@ -190,11 +190,11 @@ END_FW_FTR_SECTION_IFSET(FW_FEATURE_SPLPAR)
 #define STK_REG(i)     __STK_REG(__REG_##i)
 
 #ifdef PPC64_ELF_ABI_v2
-#define STK_GOT		24
-#define __STK_PARAM(i)	(32 + ((i)-3)*8)
+	#define STK_GOT		24
+	#define __STK_PARAM(i)	(32 + ((i)-3)*8)
 #else
-#define STK_GOT		40
-#define __STK_PARAM(i)	(48 + ((i)-3)*8)
+	#define STK_GOT		40
+	#define __STK_PARAM(i)	(48 + ((i)-3)*8)
 #endif
 #define STK_PARAM(i)	__STK_PARAM(__REG_##i)
 
@@ -204,14 +204,14 @@ END_FW_FTR_SECTION_IFSET(FW_FEATURE_SPLPAR)
 	.align 2 ; \
 	.type name,@function; \
 	.globl name; \
-name:
+	name:
 
 #define _GLOBAL_TOC(name) \
 	.align 2 ; \
 	.type name,@function; \
 	.globl name; \
-name: \
-0:	addis r2,r12,(.TOC.-0b)@ha; \
+	name: \
+	0:	addis r2,r12,(.TOC.-0b)@ha; \
 	addi r2,r2,(.TOC.-0b)@l; \
 	.localentry name,.-name
 
@@ -227,13 +227,13 @@ name: \
 	.globl name; \
 	.globl GLUE(.,name); \
 	.pushsection ".opd","aw"; \
-name: \
+	name: \
 	.quad GLUE(.,name); \
 	.quad .TOC.@tocbase; \
 	.quad 0; \
 	.popsection; \
 	.type GLUE(.,name),@function; \
-GLUE(.,name):
+	GLUE(.,name):
 
 #define _GLOBAL_TOC(name) _GLOBAL(name)
 
@@ -245,12 +245,12 @@ GLUE(.,name):
 
 #define _ENTRY(n)	\
 	.globl n;	\
-n:
+	n:
 
 #define _GLOBAL(n)	\
 	.stabs __stringify(n:F-1),N_FUN,0,0,n;\
 	.globl n;	\
-n:
+	n:
 
 #define _GLOBAL_TOC(name) _GLOBAL(name)
 
@@ -273,7 +273,7 @@ n:
 #define FUNC_START(name)	_GLOBAL(name)
 #define FUNC_END(name)
 
-/* 
+/*
  * LOAD_REG_IMMEDIATE(rn, expr)
  *   Loads the value of the constant expression 'expr' into register 'rn'
  *   using immediate instructions only.  Use this when it's important not
@@ -306,15 +306,15 @@ n:
 /* Be careful, this will clobber the lr register. */
 #define LOAD_REG_ADDR_PIC(reg, name)		\
 	bl	0f;				\
-0:	mflr	reg;				\
+	0:	mflr	reg;				\
 	addis	reg,reg,(name - 0b)@ha;		\
 	addi	reg,reg,(name - 0b)@l;
 
 #ifdef __powerpc64__
 #ifdef HAVE_AS_ATHIGH
-#define __AS_ATHIGH high
+	#define __AS_ATHIGH high
 #else
-#define __AS_ATHIGH h
+	#define __AS_ATHIGH h
 #endif
 #define LOAD_REG_IMMEDIATE(reg,expr)		\
 	lis     reg,(expr)@highest;		\
@@ -351,18 +351,18 @@ n:
 /* various errata or part fixups */
 #ifdef CONFIG_PPC601_SYNC_FIX
 #define SYNC				\
-BEGIN_FTR_SECTION			\
+	BEGIN_FTR_SECTION			\
 	sync;				\
 	isync;				\
-END_FTR_SECTION_IFSET(CPU_FTR_601)
+	END_FTR_SECTION_IFSET(CPU_FTR_601)
 #define SYNC_601			\
-BEGIN_FTR_SECTION			\
+	BEGIN_FTR_SECTION			\
 	sync;				\
-END_FTR_SECTION_IFSET(CPU_FTR_601)
+	END_FTR_SECTION_IFSET(CPU_FTR_601)
 #define ISYNC_601			\
-BEGIN_FTR_SECTION			\
+	BEGIN_FTR_SECTION			\
 	isync;				\
-END_FTR_SECTION_IFSET(CPU_FTR_601)
+	END_FTR_SECTION_IFSET(CPU_FTR_601)
 #else
 #define	SYNC
 #define SYNC_601
@@ -371,11 +371,11 @@ END_FTR_SECTION_IFSET(CPU_FTR_601)
 
 #if defined(CONFIG_PPC_CELL) || defined(CONFIG_PPC_FSL_BOOK3E)
 #define MFTB(dest)			\
-90:	mfspr dest, SPRN_TBRL;		\
-BEGIN_FTR_SECTION_NESTED(96);		\
+	90:	mfspr dest, SPRN_TBRL;		\
+	BEGIN_FTR_SECTION_NESTED(96);		\
 	cmpwi dest,0;			\
 	beq-  90b;			\
-END_FTR_SECTION_NESTED(CPU_FTR_CELL_TB_BUG, CPU_FTR_CELL_TB_BUG, 96)
+	END_FTR_SECTION_NESTED(CPU_FTR_CELL_TB_BUG, CPU_FTR_CELL_TB_BUG, 96)
 #elif defined(CONFIG_8xx)
 #define MFTB(dest)			mftb dest
 #else
@@ -387,10 +387,10 @@ END_FTR_SECTION_NESTED(CPU_FTR_CELL_TB_BUG, CPU_FTR_CELL_TB_BUG, 96)
 #else /* CONFIG_SMP */
 /* tlbsync is not implemented on 601 */
 #define TLBSYNC				\
-BEGIN_FTR_SECTION			\
+	BEGIN_FTR_SECTION			\
 	tlbsync;			\
 	sync;				\
-END_FTR_SECTION_IFCLR(CPU_FTR_601)
+	END_FTR_SECTION_IFCLR(CPU_FTR_601)
 #endif
 
 #ifdef CONFIG_PPC64
@@ -416,7 +416,7 @@ END_FTR_SECTION_IFCLR(CPU_FTR_601)
 	lis	r4,KERNELBASE@h;		\
 	.machine push;				\
 	.machine "power4";			\
-0:	tlbie	r4;				\
+	0:	tlbie	r4;				\
 	.machine pop;				\
 	addi	r4,r4,0x1000;			\
 	bdnz	0b
@@ -424,9 +424,9 @@ END_FTR_SECTION_IFCLR(CPU_FTR_601)
 
 
 #ifdef CONFIG_IBM440EP_ERR42
-#define PPC440EP_ERR42 isync
+	#define PPC440EP_ERR42 isync
 #else
-#define PPC440EP_ERR42
+	#define PPC440EP_ERR42
 #endif
 
 /* The following stops all load and store data streams associated with stream
@@ -434,11 +434,11 @@ END_FTR_SECTION_IFCLR(CPU_FTR_601)
  * dcbt are different so we use machine "power4" here explicitly.
  */
 #define DCBT_STOP_ALL_STREAM_IDS(scratch)	\
-.machine push ;					\
-.machine "power4" ;				\
-       lis     scratch,0x60000000@h;		\
-       dcbt    r0,scratch,0b01010;		\
-.machine pop
+	.machine push ;					\
+	.machine "power4" ;				\
+	lis     scratch,0x60000000@h;		\
+	dcbt    r0,scratch,0b01010;		\
+	.machine pop
 
 /*
  * toreal/fromreal/tophys/tovirt macros. 32-bit BookE makes them
@@ -484,14 +484,14 @@ END_FTR_SECTION_IFCLR(CPU_FTR_601)
 #define fromreal(rd)	tovirt(rd,rd)
 
 #define tophys(rd,rs)				\
-0:	addis	rd,rs,-PAGE_OFFSET@h;		\
+	0:	addis	rd,rs,-PAGE_OFFSET@h;		\
 	.section ".vtop_fixup","aw";		\
 	.align  1;				\
 	.long   0b;				\
 	.previous
 
 #define tovirt(rd,rs)				\
-0:	addis	rd,rs,PAGE_OFFSET@h;		\
+	0:	addis	rd,rs,PAGE_OFFSET@h;		\
 	.section ".ptov_fixup","aw";		\
 	.align  1;				\
 	.long   0b;				\
@@ -499,18 +499,18 @@ END_FTR_SECTION_IFCLR(CPU_FTR_601)
 #endif
 
 #ifdef CONFIG_PPC_BOOK3S_64
-#define RFI		rfid
-#define MTMSRD(r)	mtmsrd	r
-#define MTMSR_EERI(reg)	mtmsrd	reg,1
+	#define RFI		rfid
+	#define MTMSRD(r)	mtmsrd	r
+	#define MTMSR_EERI(reg)	mtmsrd	reg,1
 #else
-#define FIX_SRR1(ra, rb)
-#ifndef CONFIG_40x
-#define	RFI		rfi
-#else
-#define RFI		rfi; b .	/* Prevent prefetch past rfi */
-#endif
-#define MTMSRD(r)	mtmsr	r
-#define MTMSR_EERI(reg)	mtmsr	reg
+	#define FIX_SRR1(ra, rb)
+	#ifndef CONFIG_40x
+		#define	RFI		rfi
+	#else
+		#define RFI		rfi; b .	/* Prevent prefetch past rfi */
+	#endif
+	#define MTMSRD(r)	mtmsr	r
+	#define MTMSR_EERI(reg)	mtmsr	reg
 #endif
 
 #endif /* __KERNEL__ */

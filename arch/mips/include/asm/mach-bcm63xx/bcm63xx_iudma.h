@@ -6,7 +6,8 @@
 /*
  * rx/tx dma descriptor
  */
-struct bcm_enet_desc {
+struct bcm_enet_desc
+{
 	u32 len_stat;
 	u32 address;
 };
@@ -30,9 +31,9 @@ struct bcm_enet_desc {
 #define DMADESC_CRC_MASK	(1 << 1)
 #define DMADESC_OV_MASK		(1 << 0)
 #define DMADESC_ERR_MASK	(DMADESC_UNDER_MASK | \
-				DMADESC_OVSIZE_MASK | \
-				DMADESC_RXER_MASK | \
-				DMADESC_CRC_MASK | \
-				DMADESC_OV_MASK)
+							 DMADESC_OVSIZE_MASK | \
+							 DMADESC_RXER_MASK | \
+							 DMADESC_CRC_MASK | \
+							 DMADESC_OV_MASK)
 
 #endif /* ! BCM63XX_IUDMA_H_ */

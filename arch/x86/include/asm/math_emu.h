@@ -7,7 +7,8 @@
    following a device-not-present interrupt, part of it saved
    automatically by the 80386/80486.
    */
-struct math_emu_info {
+struct math_emu_info
+{
 	long ___orig_eip;
 	struct pt_regs *regs;
 };

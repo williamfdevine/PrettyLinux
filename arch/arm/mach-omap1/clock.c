@@ -59,24 +59,32 @@ unsigned long omap1_sossi_recalc(struct clk *clk)
 
 static void omap1_clk_allow_idle(struct clk *clk)
 {
-	struct arm_idlect1_clk * iclk = (struct arm_idlect1_clk *)clk;
+	struct arm_idlect1_clk *iclk = (struct arm_idlect1_clk *)clk;
 
 	if (!(clk->flags & CLOCK_IDLE_CONTROL))
+	{
 		return;
+	}
 
 	if (iclk->no_idle_count > 0 && !(--iclk->no_idle_count))
+	{
 		arm_idlect1_mask |= 1 << iclk->idlect_shift;
+	}
 }
 
 static void omap1_clk_deny_idle(struct clk *clk)
 {
-	struct arm_idlect1_clk * iclk = (struct arm_idlect1_clk *)clk;
+	struct arm_idlect1_clk *iclk = (struct arm_idlect1_clk *)clk;
 
 	if (!(clk->flags & CLOCK_IDLE_CONTROL))
+	{
 		return;
+	}
 
 	if (iclk->no_idle_count++ == 0)
+	{
 		arm_idlect1_mask &= ~(1 << iclk->idlect_shift);
+	}
 }
 
 static __u16 verify_ckctl_value(__u16 newval)
@@ -109,17 +117,34 @@ static __u16 verify_ckctl_value(__u16 newval)
 	dspmmu_exp = (newval >> CKCTL_DSPMMUDIV_OFFSET) & 3;
 
 	if (dspmmu_exp < dsp_exp)
+	{
 		dspmmu_exp = dsp_exp;
-	if (dspmmu_exp > dsp_exp+1)
-		dspmmu_exp = dsp_exp+1;
+	}
+
+	if (dspmmu_exp > dsp_exp + 1)
+	{
+		dspmmu_exp = dsp_exp + 1;
+	}
+
 	if (tc_exp < arm_exp)
+	{
 		tc_exp = arm_exp;
+	}
+
 	if (tc_exp < dspmmu_exp)
+	{
 		tc_exp = dspmmu_exp;
+	}
+
 	if (tc_exp > lcd_exp)
+	{
 		lcd_exp = tc_exp;
+	}
+
 	if (tc_exp > per_exp)
+	{
 		per_exp = tc_exp;
+	}
 
 	newval &= 0xf000;
 	newval |= per_exp << CKCTL_PERDIV_OFFSET;
@@ -146,17 +171,24 @@ static int calc_dsor_exp(struct clk *clk, unsigned long rate)
 	 * DSPMMU_CK >= TC_CK
 	 */
 	unsigned long realrate;
-	struct clk * parent;
+	struct clk *parent;
 	unsigned  dsor_exp;
 
 	parent = clk->parent;
+
 	if (unlikely(parent == NULL))
+	{
 		return -EIO;
+	}
 
 	realrate = parent->rate;
-	for (dsor_exp=0; dsor_exp<4; dsor_exp++) {
+
+	for (dsor_exp = 0; dsor_exp < 4; dsor_exp++)
+	{
 		if (realrate <= rate)
+		{
 			break;
+		}
 
 		realrate /= 2;
 	}
@@ -194,25 +226,34 @@ unsigned long omap1_ckctl_recalc_dsp_domain(struct clk *clk)
 int omap1_select_table_rate(struct clk *clk, unsigned long rate)
 {
 	/* Find the highest supported frequency <= rate and switch to it */
-	struct mpu_rate * ptr;
+	struct mpu_rate *ptr;
 	unsigned long ref_rate;
 
 	ref_rate = ck_ref_p->rate;
 
-	for (ptr = omap1_rate_table; ptr->rate; ptr++) {
+	for (ptr = omap1_rate_table; ptr->rate; ptr++)
+	{
 		if (!(ptr->flags & cpu_mask))
+		{
 			continue;
+		}
 
 		if (ptr->xtal != ref_rate)
+		{
 			continue;
+		}
 
 		/* Can check only after xtal frequency check */
 		if (ptr->rate <= rate)
+		{
 			break;
+		}
 	}
 
 	if (!ptr->rate)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * In most cases we should not need to reprogram DPLL.
@@ -232,10 +273,16 @@ int omap1_clk_set_rate_dsp_domain(struct clk *clk, unsigned long rate)
 	u16 regval;
 
 	dsor_exp = calc_dsor_exp(clk, rate);
+
 	if (dsor_exp > 3)
+	{
 		dsor_exp = -EINVAL;
+	}
+
 	if (dsor_exp < 0)
+	{
 		return dsor_exp;
+	}
 
 	regval = __raw_readw(DSP_CKCTL);
 	regval &= ~(3 << clk->rate_offset);
@@ -249,10 +296,17 @@ int omap1_clk_set_rate_dsp_domain(struct clk *clk, unsigned long rate)
 long omap1_clk_round_rate_ckctl_arm(struct clk *clk, unsigned long rate)
 {
 	int dsor_exp = calc_dsor_exp(clk, rate);
+
 	if (dsor_exp < 0)
+	{
 		return dsor_exp;
+	}
+
 	if (dsor_exp > 3)
+	{
 		dsor_exp = 3;
+	}
+
 	return clk->parent->rate / (1 << dsor_exp);
 }
 
@@ -262,10 +316,16 @@ int omap1_clk_set_rate_ckctl_arm(struct clk *clk, unsigned long rate)
 	u16 regval;
 
 	dsor_exp = calc_dsor_exp(clk, rate);
+
 	if (dsor_exp > 3)
+	{
 		dsor_exp = -EINVAL;
+	}
+
 	if (dsor_exp < 0)
+	{
 		return dsor_exp;
+	}
 
 	regval = omap_readw(ARM_CKCTL);
 	regval &= ~(3 << clk->rate_offset);
@@ -279,7 +339,7 @@ int omap1_clk_set_rate_ckctl_arm(struct clk *clk, unsigned long rate)
 long omap1_round_to_table_rate(struct clk *clk, unsigned long rate)
 {
 	/* Find the highest supported frequency <= rate */
-	struct mpu_rate * ptr;
+	struct mpu_rate *ptr;
 	long highest_rate;
 	unsigned long ref_rate;
 
@@ -287,18 +347,25 @@ long omap1_round_to_table_rate(struct clk *clk, unsigned long rate)
 
 	highest_rate = -EINVAL;
 
-	for (ptr = omap1_rate_table; ptr->rate; ptr++) {
+	for (ptr = omap1_rate_table; ptr->rate; ptr++)
+	{
 		if (!(ptr->flags & cpu_mask))
+		{
 			continue;
+		}
 
 		if (ptr->xtal != ref_rate)
+		{
 			continue;
+		}
 
 		highest_rate = ptr->rate;
 
 		/* Can check only after xtal frequency check */
 		if (ptr->rate <= rate)
+		{
 			break;
+		}
 	}
 
 	return highest_rate;
@@ -317,12 +384,19 @@ static unsigned calc_ext_dsor(unsigned long rate)
 	 * Minimum dsor is 2 and maximum is 96. Odd divisors starting from 9
 	 * can not be used.
 	 */
-	for (dsor = 2; dsor < 96; ++dsor) {
+	for (dsor = 2; dsor < 96; ++dsor)
+	{
 		if ((dsor & 1) && dsor > 8)
+		{
 			continue;
+		}
+
 		if (rate >= 96000000 / dsor)
+		{
 			break;
+		}
 	}
+
 	return dsor;
 }
 
@@ -332,12 +406,20 @@ int omap1_set_uart_rate(struct clk *clk, unsigned long rate)
 	unsigned int val;
 
 	val = __raw_readl(clk->enable_reg);
+
 	if (rate == 12000000)
+	{
 		val &= ~(1 << clk->enable_bit);
+	}
 	else if (rate == 48000000)
+	{
 		val |= (1 << clk->enable_bit);
+	}
 	else
+	{
 		return -EINVAL;
+	}
+
 	__raw_writel(val, clk->enable_reg);
 	clk->rate = rate;
 
@@ -352,10 +434,15 @@ int omap1_set_ext_clk_rate(struct clk *clk, unsigned long rate)
 
 	dsor = calc_ext_dsor(rate);
 	clk->rate = 96000000 / dsor;
+
 	if (dsor > 8)
+	{
 		ratio_bits = ((dsor - 8) / 2 + 6) << 2;
+	}
 	else
+	{
 		ratio_bits = (dsor - 2) << 2;
+	}
 
 	ratio_bits |= __raw_readw(clk->enable_reg) & ~0xfd;
 	__raw_writew(ratio_bits, clk->enable_reg);
@@ -373,8 +460,11 @@ int omap1_set_sossi_rate(struct clk *clk, unsigned long rate)
 	/* Round towards slower frequency */
 	div = (p_rate + rate - 1) / rate;
 	div--;
+
 	if (div < 0 || div > 7)
+	{
 		return -EINVAL;
+	}
 
 	l = omap_readl(MOD_CONF_CTRL_1);
 	l &= ~(7 << 17);
@@ -401,10 +491,15 @@ void omap1_init_ext_clk(struct clk *clk)
 	__raw_writew(ratio_bits, clk->enable_reg);
 
 	ratio_bits = (ratio_bits & 0xfc) >> 2;
+
 	if (ratio_bits > 6)
+	{
 		dsor = (ratio_bits - 6) * 2 + 8;
+	}
 	else
+	{
 		dsor = ratio_bits + 2;
+	}
 
 	clk-> rate = 96000000 / dsor;
 }
@@ -413,23 +508,36 @@ int omap1_clk_enable(struct clk *clk)
 {
 	int ret = 0;
 
-	if (clk->usecount++ == 0) {
-		if (clk->parent) {
+	if (clk->usecount++ == 0)
+	{
+		if (clk->parent)
+		{
 			ret = omap1_clk_enable(clk->parent);
+
 			if (ret)
+			{
 				goto err;
+			}
 
 			if (clk->flags & CLOCK_NO_IDLE_PARENT)
+			{
 				omap1_clk_deny_idle(clk->parent);
+			}
 		}
 
 		ret = clk->ops->enable(clk);
-		if (ret) {
+
+		if (ret)
+		{
 			if (clk->parent)
+			{
 				omap1_clk_disable(clk->parent);
+			}
+
 			goto err;
 		}
 	}
+
 	return ret;
 
 err:
@@ -439,12 +547,18 @@ err:
 
 void omap1_clk_disable(struct clk *clk)
 {
-	if (clk->usecount > 0 && !(--clk->usecount)) {
+	if (clk->usecount > 0 && !(--clk->usecount))
+	{
 		clk->ops->disable(clk);
-		if (likely(clk->parent)) {
+
+		if (likely(clk->parent))
+		{
 			omap1_clk_disable(clk->parent);
+
 			if (clk->flags & CLOCK_NO_IDLE_PARENT)
+			{
 				omap1_clk_allow_idle(clk->parent);
+			}
 		}
 	}
 }
@@ -454,17 +568,21 @@ static int omap1_clk_enable_generic(struct clk *clk)
 	__u16 regval16;
 	__u32 regval32;
 
-	if (unlikely(clk->enable_reg == NULL)) {
+	if (unlikely(clk->enable_reg == NULL))
+	{
 		printk(KERN_ERR "clock.c: Enable for %s without enable code\n",
-		       clk->name);
+			   clk->name);
 		return -EINVAL;
 	}
 
-	if (clk->flags & ENABLE_REG_32BIT) {
+	if (clk->flags & ENABLE_REG_32BIT)
+	{
 		regval32 = __raw_readl(clk->enable_reg);
 		regval32 |= (1 << clk->enable_bit);
 		__raw_writel(regval32, clk->enable_reg);
-	} else {
+	}
+	else
+	{
 		regval16 = __raw_readw(clk->enable_reg);
 		regval16 |= (1 << clk->enable_bit);
 		__raw_writew(regval16, clk->enable_reg);
@@ -479,20 +597,26 @@ static void omap1_clk_disable_generic(struct clk *clk)
 	__u32 regval32;
 
 	if (clk->enable_reg == NULL)
+	{
 		return;
+	}
 
-	if (clk->flags & ENABLE_REG_32BIT) {
+	if (clk->flags & ENABLE_REG_32BIT)
+	{
 		regval32 = __raw_readl(clk->enable_reg);
 		regval32 &= ~(1 << clk->enable_bit);
 		__raw_writel(regval32, clk->enable_reg);
-	} else {
+	}
+	else
+	{
 		regval16 = __raw_readw(clk->enable_reg);
 		regval16 &= ~(1 << clk->enable_bit);
 		__raw_writew(regval16, clk->enable_reg);
 	}
 }
 
-const struct clkops clkops_generic = {
+const struct clkops clkops_generic =
+{
 	.enable		= omap1_clk_enable_generic,
 	.disable	= omap1_clk_disable_generic,
 };
@@ -502,7 +626,9 @@ static int omap1_clk_enable_dsp_domain(struct clk *clk)
 	int retval;
 
 	retval = omap1_clk_enable(api_ck_p);
-	if (!retval) {
+
+	if (!retval)
+	{
 		retval = omap1_clk_enable_generic(clk);
 		omap1_clk_disable(api_ck_p);
 	}
@@ -512,13 +638,15 @@ static int omap1_clk_enable_dsp_domain(struct clk *clk)
 
 static void omap1_clk_disable_dsp_domain(struct clk *clk)
 {
-	if (omap1_clk_enable(api_ck_p) == 0) {
+	if (omap1_clk_enable(api_ck_p) == 0)
+	{
 		omap1_clk_disable_generic(clk);
 		omap1_clk_disable(api_ck_p);
 	}
 }
 
-const struct clkops clkops_dspck = {
+const struct clkops clkops_dspck =
+{
 	.enable		= omap1_clk_enable_dsp_domain,
 	.disable	= omap1_clk_disable_dsp_domain,
 };
@@ -530,11 +658,13 @@ static int omap1_clk_enable_uart_functional_16xx(struct clk *clk)
 	struct uart_clk *uclk;
 
 	ret = omap1_clk_enable_generic(clk);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		/* Set smart idle acknowledgement mode */
 		uclk = (struct uart_clk *)clk;
 		omap_writeb((omap_readb(uclk->sysc_addr) & ~0x10) | 8,
-			    uclk->sysc_addr);
+					uclk->sysc_addr);
 	}
 
 	return ret;
@@ -553,7 +683,8 @@ static void omap1_clk_disable_uart_functional_16xx(struct clk *clk)
 }
 
 /* XXX SYSC register handling does not belong in the clock framework */
-const struct clkops clkops_uart_16xx = {
+const struct clkops clkops_uart_16xx =
+{
 	.enable		= omap1_clk_enable_uart_functional_16xx,
 	.disable	= omap1_clk_disable_uart_functional_16xx,
 };
@@ -561,7 +692,9 @@ const struct clkops clkops_uart_16xx = {
 long omap1_clk_round_rate(struct clk *clk, unsigned long rate)
 {
 	if (clk->round_rate != NULL)
+	{
 		return clk->round_rate(clk, rate);
+	}
 
 	return clk->rate;
 }
@@ -571,7 +704,10 @@ int omap1_clk_set_rate(struct clk *clk, unsigned long rate)
 	int  ret = -EINVAL;
 
 	if (clk->set_rate)
+	{
 		ret = clk->set_rate(clk, rate);
+	}
+
 	return ret;
 }
 
@@ -587,20 +723,27 @@ void omap1_clk_disable_unused(struct clk *clk)
 
 	/* Clocks in the DSP domain need api_ck. Just assume bootloader
 	 * has not enabled any DSP clocks */
-	if (clk->enable_reg == DSP_IDLECT2) {
+	if (clk->enable_reg == DSP_IDLECT2)
+	{
 		pr_info("Skipping reset check for DSP domain clock \"%s\"\n",
-			clk->name);
+				clk->name);
 		return;
 	}
 
 	/* Is the clock already disabled? */
 	if (clk->flags & ENABLE_REG_32BIT)
+	{
 		regval32 = __raw_readl(clk->enable_reg);
+	}
 	else
+	{
 		regval32 = __raw_readw(clk->enable_reg);
+	}
 
 	if ((regval32 & (1 << clk->enable_bit)) == 0)
+	{
 		return;
+	}
 
 	printk(KERN_INFO "Disabling unused clock \"%s\"... ", clk->name);
 	clk->ops->disable(clk);
@@ -616,7 +759,9 @@ int clk_enable(struct clk *clk)
 	int ret;
 
 	if (clk == NULL || IS_ERR(clk))
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&clockfw_lock, flags);
 	ret = omap1_clk_enable(clk);
@@ -631,12 +776,16 @@ void clk_disable(struct clk *clk)
 	unsigned long flags;
 
 	if (clk == NULL || IS_ERR(clk))
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&clockfw_lock, flags);
-	if (clk->usecount == 0) {
+
+	if (clk->usecount == 0)
+	{
 		pr_err("Trying disable clock %s with 0 usecount\n",
-		       clk->name);
+			   clk->name);
 		WARN_ON(1);
 		goto out;
 	}
@@ -654,7 +803,9 @@ unsigned long clk_get_rate(struct clk *clk)
 	unsigned long ret;
 
 	if (clk == NULL || IS_ERR(clk))
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&clockfw_lock, flags);
 	ret = clk->rate;
@@ -674,7 +825,9 @@ long clk_round_rate(struct clk *clk, unsigned long rate)
 	long ret;
 
 	if (clk == NULL || IS_ERR(clk))
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&clockfw_lock, flags);
 	ret = omap1_clk_round_rate(clk, rate);
@@ -690,12 +843,18 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 	int ret = -EINVAL;
 
 	if (clk == NULL || IS_ERR(clk))
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&clockfw_lock, flags);
 	ret = omap1_clk_set_rate(clk, rate);
+
 	if (ret == 0)
+	{
 		propagate_rate(clk);
+	}
+
 	spin_unlock_irqrestore(&clockfw_lock, flags);
 
 	return ret;
@@ -731,10 +890,14 @@ static int __init omap_clk_setup(char *str)
 	get_option(&str, &mpurate);
 
 	if (!mpurate)
+	{
 		return 1;
+	}
 
 	if (mpurate < 1000)
+	{
 		mpurate *= 1000000;
+	}
 
 	return 1;
 }
@@ -760,8 +923,12 @@ unsigned long omap_fixed_divisor_recalc(struct clk *clk)
 void clk_reparent(struct clk *child, struct clk *parent)
 {
 	list_del_init(&child->sibling);
+
 	if (parent)
+	{
 		list_add(&child->sibling, &parent->children);
+	}
+
 	child->parent = parent;
 
 	/* now do the debugfs renaming to reattach the child
@@ -773,9 +940,13 @@ void propagate_rate(struct clk *tclk)
 {
 	struct clk *clkp;
 
-	list_for_each_entry(clkp, &tclk->children, sibling) {
+	list_for_each_entry(clkp, &tclk->children, sibling)
+	{
 		if (clkp->recalc)
+		{
 			clkp->rate = clkp->recalc(clkp);
+		}
+
 		propagate_rate(clkp);
 	}
 }
@@ -793,9 +964,13 @@ void recalculate_root_clocks(void)
 {
 	struct clk *clkp;
 
-	list_for_each_entry(clkp, &root_clks, sibling) {
+	list_for_each_entry(clkp, &root_clks, sibling)
+	{
 		if (clkp->recalc)
+		{
 			clkp->rate = clkp->recalc(clkp);
+		}
+
 		propagate_rate(clkp);
 	}
 }
@@ -815,23 +990,36 @@ void clk_preinit(struct clk *clk)
 int clk_register(struct clk *clk)
 {
 	if (clk == NULL || IS_ERR(clk))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * trap out already registered clocks
 	 */
 	if (clk->node.next || clk->node.prev)
+	{
 		return 0;
+	}
 
 	mutex_lock(&clocks_mutex);
+
 	if (clk->parent)
+	{
 		list_add(&clk->sibling, &clk->parent->children);
+	}
 	else
+	{
 		list_add(&clk->sibling, &root_clks);
+	}
 
 	list_add(&clk->node, &clocks);
+
 	if (clk->init)
+	{
 		clk->init(clk);
+	}
+
 	mutex_unlock(&clocks_mutex);
 
 	return 0;
@@ -841,7 +1029,9 @@ EXPORT_SYMBOL(clk_register);
 void clk_unregister(struct clk *clk)
 {
 	if (clk == NULL || IS_ERR(clk))
+	{
 		return;
+	}
 
 	mutex_lock(&clocks_mutex);
 	list_del(&clk->sibling);
@@ -855,8 +1045,11 @@ void clk_enable_init_clocks(void)
 	struct clk *clkp;
 
 	list_for_each_entry(clkp, &clocks, node)
-		if (clkp->flags & ENABLE_ON_INIT)
-			clk_enable(clkp);
+
+	if (clkp->flags & ENABLE_ON_INIT)
+	{
+		clk_enable(clkp);
+	}
 }
 
 /**
@@ -874,8 +1067,10 @@ struct clk *omap_clk_get_by_name(const char *name)
 
 	mutex_lock(&clocks_mutex);
 
-	list_for_each_entry(c, &clocks, node) {
-		if (!strcmp(c->name, name)) {
+	list_for_each_entry(c, &clocks, node)
+	{
+		if (!strcmp(c->name, name))
+		{
 			ret = c;
 			break;
 		}
@@ -894,8 +1089,11 @@ int omap_clk_enable_autoidle_all(void)
 	spin_lock_irqsave(&clockfw_lock, flags);
 
 	list_for_each_entry(c, &clocks, node)
-		if (c->ops->allow_idle)
-			c->ops->allow_idle(c);
+
+	if (c->ops->allow_idle)
+	{
+		c->ops->allow_idle(c);
+	}
 
 	spin_unlock_irqrestore(&clockfw_lock, flags);
 
@@ -910,8 +1108,11 @@ int omap_clk_disable_autoidle_all(void)
 	spin_lock_irqsave(&clockfw_lock, flags);
 
 	list_for_each_entry(c, &clocks, node)
-		if (c->ops->deny_idle)
-			c->ops->deny_idle(c);
+
+	if (c->ops->deny_idle)
+	{
+		c->ops->deny_idle(c);
+	}
 
 	spin_unlock_irqrestore(&clockfw_lock, flags);
 
@@ -930,7 +1131,8 @@ static void clkll_disable_null(struct clk *clk)
 {
 }
 
-const struct clkops clkops_null = {
+const struct clkops clkops_null =
+{
 	.enable		= clkll_enable_null,
 	.disable	= clkll_disable_null,
 };
@@ -940,7 +1142,8 @@ const struct clkops clkops_null = {
  *
  * Used for clock aliases that are needed on some OMAPs, but not others
  */
-struct clk dummy_ck = {
+struct clk dummy_ck =
+{
 	.name	= "dummy",
 	.ops	= &clkops_null,
 };
@@ -961,12 +1164,17 @@ static int __init clk_disable_unused(void)
 	pr_info("clock: disabling unused clocks to save power\n");
 
 	spin_lock_irqsave(&clockfw_lock, flags);
-	list_for_each_entry(ck, &clocks, node) {
+	list_for_each_entry(ck, &clocks, node)
+	{
 		if (ck->ops == &clkops_null)
+		{
 			continue;
+		}
 
 		if (ck->usecount > 0 || !ck->enable_reg)
+		{
 			continue;
+		}
 
 		omap1_clk_disable_unused(ck);
 	}
@@ -995,13 +1203,14 @@ static int clk_dbg_show_summary(struct seq_file *s, void *unused)
 
 	mutex_lock(&clocks_mutex);
 	seq_printf(s, "%-30s %-30s %-10s %s\n",
-		   "clock-name", "parent-name", "rate", "use-count");
+			   "clock-name", "parent-name", "rate", "use-count");
 
-	list_for_each_entry(c, &clocks, node) {
+	list_for_each_entry(c, &clocks, node)
+	{
 		pa = c->parent;
 		seq_printf(s, "%-30s %-30s %-10lu %d\n",
-			   c->name, pa ? pa->name : "none", c->rate,
-			   c->usecount);
+				   c->name, pa ? pa->name : "none", c->rate,
+				   c->usecount);
 	}
 	mutex_unlock(&clocks_mutex);
 
@@ -1013,7 +1222,8 @@ static int clk_dbg_open(struct inode *inode, struct file *file)
 	return single_open(file, clk_dbg_show_summary, inode->i_private);
 }
 
-static const struct file_operations debug_clock_fops = {
+static const struct file_operations debug_clock_fops =
+{
 	.open           = clk_dbg_open,
 	.read           = seq_read,
 	.llseek         = seq_lseek,
@@ -1027,25 +1237,38 @@ static int clk_debugfs_register_one(struct clk *c)
 	struct clk *pa = c->parent;
 
 	d = debugfs_create_dir(c->name, pa ? pa->dent : clk_debugfs_root);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
+
 	c->dent = d;
 
 	d = debugfs_create_u8("usecount", S_IRUGO, c->dent, (u8 *)&c->usecount);
-	if (!d) {
+
+	if (!d)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
+
 	d = debugfs_create_u32("rate", S_IRUGO, c->dent, (u32 *)&c->rate);
-	if (!d) {
+
+	if (!d)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
+
 	d = debugfs_create_x32("flags", S_IRUGO, c->dent, (u32 *)&c->flags);
-	if (!d) {
+
+	if (!d)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
+
 	return 0;
 
 err_out:
@@ -1058,17 +1281,26 @@ static int clk_debugfs_register(struct clk *c)
 	int err;
 	struct clk *pa = c->parent;
 
-	if (pa && !pa->dent) {
+	if (pa && !pa->dent)
+	{
 		err = clk_debugfs_register(pa);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (!c->dent) {
+	if (!c->dent)
+	{
 		err = clk_debugfs_register_one(c);
+
 		if (err)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 
@@ -1079,20 +1311,31 @@ static int __init clk_debugfs_init(void)
 	int err;
 
 	d = debugfs_create_dir("clock", NULL);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
+
 	clk_debugfs_root = d;
 
-	list_for_each_entry(c, &clocks, node) {
+	list_for_each_entry(c, &clocks, node)
+	{
 		err = clk_debugfs_register(c);
+
 		if (err)
+		{
 			goto err_out;
+		}
 	}
 
 	d = debugfs_create_file("summary", S_IRUGO,
-		d, NULL, &debug_clock_fops);
+							d, NULL, &debug_clock_fops);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 err_out:

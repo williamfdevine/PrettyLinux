@@ -13,7 +13,8 @@
 #include <asm/termbits.h>
 #include <asm/ioctls.h>
 
-struct sgttyb {
+struct sgttyb
+{
 	char	sg_ispeed;
 	char	sg_ospeed;
 	char	sg_erase;
@@ -21,7 +22,8 @@ struct sgttyb {
 	int	sg_flags;	/* SGI special - int, not short */
 };
 
-struct tchars {
+struct tchars
+{
 	char	t_intrc;
 	char	t_quitc;
 	char	t_startc;
@@ -30,7 +32,8 @@ struct tchars {
 	char	t_brkc;
 };
 
-struct ltchars {
+struct ltchars
+{
 	char	t_suspc;	/* stop process signal */
 	char	t_dsuspc;	/* delayed stop process signal */
 	char	t_rprntc;	/* reprint line */
@@ -42,7 +45,8 @@ struct ltchars {
 /* TIOCGSIZE, TIOCSSIZE not defined yet.  Only needed for SunOS source
    compatibility anyway ... */
 
-struct winsize {
+struct winsize
+{
 	unsigned short ws_row;
 	unsigned short ws_col;
 	unsigned short ws_xpixel;
@@ -50,7 +54,8 @@ struct winsize {
 };
 
 #define NCC	8
-struct termio {
+struct termio
+{
 	unsigned short c_iflag;		/* input mode flags */
 	unsigned short c_oflag;		/* output mode flags */
 	unsigned short c_cflag;		/* control mode flags */

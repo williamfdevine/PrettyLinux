@@ -69,7 +69,8 @@ extern unsigned long initial_leap_seconds;
 #define PTFF_SGS	0x43	/* set gross steering rate */
 
 /* Query TOD offset result */
-struct ptff_qto {
+struct ptff_qto
+{
 	unsigned long long physical_clock;
 	unsigned long long tod_offset;
 	unsigned long long logical_tod_offset;
@@ -85,7 +86,8 @@ static inline int ptff_query(unsigned int nr)
 }
 
 /* Query UTC information result */
-struct ptff_qui {
+struct ptff_qui
+{
 	unsigned int tm : 2;
 	unsigned int ts : 2;
 	unsigned int : 28;

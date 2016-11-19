@@ -83,7 +83,8 @@
 #define NOMADIK_UART1_VBASE	0xF01FB000
 
 /* This is needed for LL-debug/earlyprintk/debug-macro.S */
-static struct map_desc cpu8815_io_desc[] __initdata = {
+static struct map_desc cpu8815_io_desc[] __initdata =
+{
 	{
 		.virtual =	NOMADIK_UART1_VBASE,
 		.pfn =		__phys_to_pfn(NOMADIK_UART1_BASE),
@@ -107,16 +108,17 @@ static void cpu8815_restart(enum reboot_mode mode, const char *cmd)
 	writel(1, srcbase + 0x18);
 }
 
-static const char * cpu8815_board_compat[] = {
+static const char *cpu8815_board_compat[] =
+{
 	"st,nomadik-nhk-15",
 	"calaosystems,usb-s8815",
 	NULL,
 };
 
 DT_MACHINE_START(NOMADIK_DT, "Nomadik STn8815")
-	.l2c_aux_val	= 0,
+.l2c_aux_val	= 0,
 	.l2c_aux_mask	= ~0,
-	.map_io		= cpu8815_map_io,
-	.restart	= cpu8815_restart,
-	.dt_compat      = cpu8815_board_compat,
-MACHINE_END
+	   .map_io		= cpu8815_map_io,
+		   .restart	= cpu8815_restart,
+			   .dt_compat      = cpu8815_board_compat,
+				MACHINE_END

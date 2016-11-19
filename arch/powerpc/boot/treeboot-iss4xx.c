@@ -42,16 +42,25 @@ static void iss_4xx_fixups(void)
 	u32 reg[3];
 
 	memory = finddevice("/memory");
+
 	if (!memory)
+	{
 		fatal("Can't find memory node\n");
+	}
+
 	/* This assumes #address-cells = 2, #size-cells =1 and that */
 	getprop(memory, "reg", reg, sizeof(reg));
+
 	if (reg[2])
 		/* If the device tree specifies the memory range, use it */
+	{
 		ibm4xx_memstart = reg[1];
+	}
 	else
 		/* othersize, read it from the SDRAM controller */
+	{
 		ibm4xx_sdram_fixup_memsize();
+	}
 }
 
 static void *iss_4xx_vmlinux_alloc(unsigned long size)

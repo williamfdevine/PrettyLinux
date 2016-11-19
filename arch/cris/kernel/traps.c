@@ -16,7 +16,7 @@
 #include <linux/module.h>
 #include <linux/utsname.h>
 #ifdef CONFIG_KALLSYMS
-#include <linux/kallsyms.h>
+	#include <linux/kallsyms.h>
 #endif
 
 #include <asm/pgtable.h>
@@ -29,9 +29,9 @@ extern void reset_watchdog(void);
 extern void show_registers(struct pt_regs *regs);
 
 #ifdef CONFIG_DEBUG_BUGVERBOSE
-extern void handle_BUG(struct pt_regs *regs);
+	extern void handle_BUG(struct pt_regs *regs);
 #else
-#define handle_BUG(regs)
+	#define handle_BUG(regs)
 #endif
 
 static int kstack_depth_to_print = 24;
@@ -50,14 +50,17 @@ void show_trace(unsigned long *stack)
 	module_start = VMALLOC_START;
 	module_end = VMALLOC_END;
 
-	while (((long)stack & (THREAD_SIZE - 1)) != 0) {
-		if (__get_user(addr, stack)) {
+	while (((long)stack & (THREAD_SIZE - 1)) != 0)
+	{
+		if (__get_user(addr, stack))
+		{
 			/* This message matches "failing address" marked
 			   s390 in ksymoops, so lines containing it will
 			   not be filtered out by ksymoops.  */
 			pr_err("Failing address 0x%lx\n", (unsigned long)stack);
 			break;
 		}
+
 		stack++;
 
 		/*
@@ -69,13 +72,18 @@ void show_trace(unsigned long *stack)
 		 * out the call path that was taken.
 		 */
 		if (((addr >= (unsigned long)&_stext) &&
-		     (addr <= (unsigned long)&_etext)) ||
-		    ((addr >= module_start) && (addr <= module_end))) {
+			 (addr <= (unsigned long)&_etext)) ||
+			((addr >= module_start) && (addr <= module_end)))
+		{
 #ifdef CONFIG_KALLSYMS
 			print_ip_sym(addr);
 #else
+
 			if (i && ((i % 8) == 0))
+			{
 				pr_err("\n       ");
+			}
+
 			pr_err("[<%08lx>] ", addr);
 			i++;
 #endif
@@ -109,31 +117,47 @@ show_stack(struct task_struct *task, unsigned long *sp)
 	 * back trace.
 	 */
 
-	if (sp == NULL) {
+	if (sp == NULL)
+	{
 		if (task)
-			sp = (unsigned long*)task->thread.ksp;
+		{
+			sp = (unsigned long *)task->thread.ksp;
+		}
 		else
-			sp = (unsigned long*)rdsp();
+		{
+			sp = (unsigned long *)rdsp();
+		}
 	}
 
 	stack = sp;
 
 	pr_err("\nStack from %08lx:\n       ", (unsigned long)stack);
-	for (i = 0; i < kstack_depth_to_print; i++) {
-		if (((long)stack & (THREAD_SIZE-1)) == 0)
+
+	for (i = 0; i < kstack_depth_to_print; i++)
+	{
+		if (((long)stack & (THREAD_SIZE - 1)) == 0)
+		{
 			break;
+		}
+
 		if (i && ((i % 8) == 0))
+		{
 			pr_err("\n       ");
-		if (__get_user(addr, stack)) {
+		}
+
+		if (__get_user(addr, stack))
+		{
 			/* This message matches "failing address" marked
 			   s390 in ksymoops, so lines containing it will
 			   not be filtered out by ksymoops.  */
 			pr_err("Failing address 0x%lx\n", (unsigned long)stack);
 			break;
 		}
+
 		stack++;
 		pr_err("%08lx ", addr);
 	}
+
 	show_trace(sp);
 }
 
@@ -147,8 +171,12 @@ show_stack(void)
 	int i;
 
 	pr_err("Stack dump [0x%08lx]:\n", (unsigned long)sp);
+
 	for (i = 0; i < 16; i++)
-		pr_err("sp + %d: 0x%08lx\n", i*4, sp[i]);
+	{
+		pr_err("sp + %d: 0x%08lx\n", i * 4, sp[i]);
+	}
+
 	return 0;
 }
 #endif
@@ -195,6 +223,7 @@ void watchdog_bite_hook(struct pt_regs *regs)
 
 	while (1)
 		; /* Do nothing. */
+
 #else
 	show_registers(regs);
 #endif
@@ -204,7 +233,9 @@ void watchdog_bite_hook(struct pt_regs *regs)
 void die_if_kernel(const char *str, struct pt_regs *regs, long err)
 {
 	if (user_mode(regs))
+	{
 		return;
+	}
 
 #ifdef CONFIG_ETRAX_WATCHDOG_NICE_DOGGY
 	/*

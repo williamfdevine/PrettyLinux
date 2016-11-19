@@ -50,7 +50,7 @@ static volatile int ikbd_self_test;
 /* timestamp when last received a char */
 static volatile unsigned long self_test_last_rcv;
 /* bitmap of keys reported as broken */
-static unsigned long broken_keys[128/(sizeof(unsigned long)*8)] = { 0, };
+static unsigned long broken_keys[128 / (sizeof(unsigned long) * 8)] = { 0, };
 
 #define BREAK_MASK	(0x80)
 
@@ -100,13 +100,15 @@ static unsigned long broken_keys[128/(sizeof(unsigned long)*8)] = { 0, };
  *  - Keypad Left/Right Parenthesis mapped to new K_PPAREN[LR]
  */
 
-typedef enum kb_state_t {
+typedef enum kb_state_t
+{
 	KEYBOARD, AMOUSE, RMOUSE, JOYSTICK, CLOCK, RESYNC
 } KB_STATE_T;
 
 #define	IS_SYNC_CODE(sc)	((sc) >= 0x04 && (sc) <= 0xfb)
 
-typedef struct keyboard_state {
+typedef struct keyboard_state
+{
 	unsigned char buf[6];
 	int len;
 	KB_STATE_T state;
@@ -138,28 +140,42 @@ static irqreturn_t atari_keyboard_interrupt(int irq, void *dummy)
 	int break_flag;
 
 repeat:
+
 	if (acia.mid_ctrl & ACIA_IRQ)
 		if (atari_MIDI_interrupt_hook)
+		{
 			atari_MIDI_interrupt_hook();
+		}
+
 	acia_stat = acia.key_ctrl;
+
 	/* check out if the interrupt came from this ACIA */
 	if (!((acia_stat | acia.mid_ctrl) & ACIA_IRQ))
+	{
 		return IRQ_HANDLED;
+	}
 
-	if (acia_stat & ACIA_OVRN) {
+	if (acia_stat & ACIA_OVRN)
+	{
 		/* a very fast typist or a slow system, give a warning */
 		/* ...happens often if interrupts were disabled for too long */
 		printk(KERN_DEBUG "Keyboard overrun\n");
 		scancode = acia.key_data;
+
 		if (ikbd_self_test)
 			/* During self test, don't do resyncing, just process the code */
+		{
 			goto interpret_scancode;
-		else if (IS_SYNC_CODE(scancode)) {
+		}
+		else if (IS_SYNC_CODE(scancode))
+		{
 			/* This code seem already to be the start of a new packet or a
 			 * single scancode */
 			kb_state.state = KEYBOARD;
 			goto interpret_scancode;
-		} else {
+		}
+		else
+		{
 			/* Go to RESYNC state and skip this byte */
 			kb_state.state = RESYNC;
 			kb_state.len = 1;	/* skip max. 1 another byte */
@@ -167,138 +183,178 @@ repeat:
 		}
 	}
 
-	if (acia_stat & ACIA_RDRF) {
+	if (acia_stat & ACIA_RDRF)
+	{
 		/* received a character */
 		scancode = acia.key_data;	/* get it or reset the ACIA, I'll get it! */
-	interpret_scancode:
-		switch (kb_state.state) {
-		case KEYBOARD:
-			switch (scancode) {
-			case 0xF7:
-				kb_state.state = AMOUSE;
-				kb_state.len = 0;
-				break;
+interpret_scancode:
 
-			case 0xF8:
-			case 0xF9:
-			case 0xFA:
-			case 0xFB:
-				kb_state.state = RMOUSE;
-				kb_state.len = 1;
-				kb_state.buf[0] = scancode;
-				break;
+		switch (kb_state.state)
+		{
+			case KEYBOARD:
+				switch (scancode)
+				{
+					case 0xF7:
+						kb_state.state = AMOUSE;
+						kb_state.len = 0;
+						break;
 
-			case 0xFC:
-				kb_state.state = CLOCK;
-				kb_state.len = 0;
-				break;
+					case 0xF8:
+					case 0xF9:
+					case 0xFA:
+					case 0xFB:
+						kb_state.state = RMOUSE;
+						kb_state.len = 1;
+						kb_state.buf[0] = scancode;
+						break;
 
-			case 0xFE:
-			case 0xFF:
-				kb_state.state = JOYSTICK;
-				kb_state.len = 1;
-				kb_state.buf[0] = scancode;
-				break;
+					case 0xFC:
+						kb_state.state = CLOCK;
+						kb_state.len = 0;
+						break;
 
-			case 0xF1:
-				/* during self-test, note that 0xf1 received */
-				if (ikbd_self_test) {
-					++ikbd_self_test;
-					self_test_last_rcv = jiffies;
-					break;
+					case 0xFE:
+					case 0xFF:
+						kb_state.state = JOYSTICK;
+						kb_state.len = 1;
+						kb_state.buf[0] = scancode;
+						break;
+
+					case 0xF1:
+
+						/* during self-test, note that 0xf1 received */
+						if (ikbd_self_test)
+						{
+							++ikbd_self_test;
+							self_test_last_rcv = jiffies;
+							break;
+						}
+
+					/* FALL THROUGH */
+
+					default:
+						break_flag = scancode & BREAK_MASK;
+						scancode &= ~BREAK_MASK;
+
+						if (ikbd_self_test)
+						{
+							/* Scancodes sent during the self-test stand for broken
+							 * keys (keys being down). The code *should* be a break
+							 * code, but nevertheless some AT keyboard interfaces send
+							 * make codes instead. Therefore, simply ignore
+							 * break_flag...
+							 */
+							int keyval, keytyp;
+
+							set_bit(scancode, broken_keys);
+							self_test_last_rcv = jiffies;
+							/* new Linux scancodes; approx. */
+							keyval = scancode;
+							keytyp = KTYP(keyval) - 0xf0;
+							keyval = KVAL(keyval);
+
+							printk(KERN_WARNING "Key with scancode %d ", scancode);
+
+							if (keytyp == KT_LATIN || keytyp == KT_LETTER)
+							{
+								if (keyval < ' ')
+								{
+									printk("('^%c') ", keyval + '@');
+								}
+								else
+								{
+									printk("('%c') ", keyval);
+								}
+							}
+
+							printk("is broken -- will be ignored.\n");
+							break;
+						}
+						else if (test_bit(scancode, broken_keys))
+						{
+							break;
+						}
+
+						if (atari_input_keyboard_interrupt_hook)
+						{
+							atari_input_keyboard_interrupt_hook((unsigned char)scancode, !break_flag);
+						}
+
+						break;
 				}
-				/* FALL THROUGH */
 
-			default:
-				break_flag = scancode & BREAK_MASK;
-				scancode &= ~BREAK_MASK;
-				if (ikbd_self_test) {
-					/* Scancodes sent during the self-test stand for broken
-					 * keys (keys being down). The code *should* be a break
-					 * code, but nevertheless some AT keyboard interfaces send
-					 * make codes instead. Therefore, simply ignore
-					 * break_flag...
-					 */
-					int keyval, keytyp;
-
-					set_bit(scancode, broken_keys);
-					self_test_last_rcv = jiffies;
-					/* new Linux scancodes; approx. */
-					keyval = scancode;
-					keytyp = KTYP(keyval) - 0xf0;
-					keyval = KVAL(keyval);
-
-					printk(KERN_WARNING "Key with scancode %d ", scancode);
-					if (keytyp == KT_LATIN || keytyp == KT_LETTER) {
-						if (keyval < ' ')
-							printk("('^%c') ", keyval + '@');
-						else
-							printk("('%c') ", keyval);
-					}
-					printk("is broken -- will be ignored.\n");
-					break;
-				} else if (test_bit(scancode, broken_keys))
-					break;
-
-				if (atari_input_keyboard_interrupt_hook)
-					atari_input_keyboard_interrupt_hook((unsigned char)scancode, !break_flag);
 				break;
-			}
-			break;
 
-		case AMOUSE:
-			kb_state.buf[kb_state.len++] = scancode;
-			if (kb_state.len == 5) {
+			case AMOUSE:
+				kb_state.buf[kb_state.len++] = scancode;
+
+				if (kb_state.len == 5)
+				{
+					kb_state.state = KEYBOARD;
+					/* not yet used */
+					/* wake up someone waiting for this */
+				}
+
+				break;
+
+			case RMOUSE:
+				kb_state.buf[kb_state.len++] = scancode;
+
+				if (kb_state.len == 3)
+				{
+					kb_state.state = KEYBOARD;
+
+					if (atari_input_mouse_interrupt_hook)
+					{
+						atari_input_mouse_interrupt_hook(kb_state.buf);
+					}
+				}
+
+				break;
+
+			case JOYSTICK:
+				kb_state.buf[1] = scancode;
 				kb_state.state = KEYBOARD;
-				/* not yet used */
-				/* wake up someone waiting for this */
-			}
-			break;
-
-		case RMOUSE:
-			kb_state.buf[kb_state.len++] = scancode;
-			if (kb_state.len == 3) {
-				kb_state.state = KEYBOARD;
-				if (atari_input_mouse_interrupt_hook)
-					atari_input_mouse_interrupt_hook(kb_state.buf);
-			}
-			break;
-
-		case JOYSTICK:
-			kb_state.buf[1] = scancode;
-			kb_state.state = KEYBOARD;
 #ifdef FIXED_ATARI_JOYSTICK
-			atari_joystick_interrupt(kb_state.buf);
+				atari_joystick_interrupt(kb_state.buf);
 #endif
-			break;
+				break;
 
-		case CLOCK:
-			kb_state.buf[kb_state.len++] = scancode;
-			if (kb_state.len == 6) {
-				kb_state.state = KEYBOARD;
-				/* wake up someone waiting for this.
-				   But will this ever be used, as Linux keeps its own time.
-				   Perhaps for synchronization purposes? */
-				/* wake_up_interruptible(&clock_wait); */
-			}
-			break;
+			case CLOCK:
+				kb_state.buf[kb_state.len++] = scancode;
 
-		case RESYNC:
-			if (kb_state.len <= 0 || IS_SYNC_CODE(scancode)) {
-				kb_state.state = KEYBOARD;
-				goto interpret_scancode;
-			}
-			kb_state.len--;
-			break;
+				if (kb_state.len == 6)
+				{
+					kb_state.state = KEYBOARD;
+					/* wake up someone waiting for this.
+					   But will this ever be used, as Linux keeps its own time.
+					   Perhaps for synchronization purposes? */
+					/* wake_up_interruptible(&clock_wait); */
+				}
+
+				break;
+
+			case RESYNC:
+				if (kb_state.len <= 0 || IS_SYNC_CODE(scancode))
+				{
+					kb_state.state = KEYBOARD;
+					goto interpret_scancode;
+				}
+
+				kb_state.len--;
+				break;
 		}
 	}
 
 #if 0
+
 	if (acia_stat & ACIA_CTS)
 		/* cannot happen */;
+
 #endif
 
-	if (acia_stat & (ACIA_FE | ACIA_PE)) {
+	if (acia_stat & (ACIA_FE | ACIA_PE))
+	{
 		printk("Error in keyboard communication\n");
 	}
 
@@ -321,10 +377,16 @@ void ikbd_write(const char *str, int len)
 	u_char acia_stat;
 
 	if ((len < 1) || (len > 7))
+	{
 		panic("ikbd: maximum string length exceeded");
-	while (len) {
+	}
+
+	while (len)
+	{
 		acia_stat = acia.key_ctrl;
-		if (acia_stat & ACIA_TDRE) {
+
+		if (acia_stat & ACIA_TDRE)
+		{
 			acia.key_data = *str++;
 			len--;
 		}
@@ -364,7 +426,7 @@ EXPORT_SYMBOL(ikbd_mouse_rel_pos);
 /* Set absolute mouse position reporting */
 void ikbd_mouse_abs_pos(int xmax, int ymax)
 {
-	char cmd[5] = { 0x09, xmax>>8, xmax&0xFF, ymax>>8, ymax&0xFF };
+	char cmd[5] = { 0x09, xmax >> 8, xmax & 0xFF, ymax >> 8, ymax & 0xFF };
 
 	ikbd_write(cmd, 5);
 }
@@ -407,7 +469,7 @@ void ikbd_mouse_pos_get(int *x, int *y)
 /* Load mouse position */
 void ikbd_mouse_pos_set(int x, int y)
 {
-	char cmd[6] = { 0x0E, 0x00, x>>8, x&0xFF, y>>8, y&0xFF };
+	char cmd[6] = { 0x0E, 0x00, x >> 8, x & 0xFF, y >> 8, y & 0xFF };
 
 	ikbd_write(cmd, 6);
 }
@@ -499,29 +561,36 @@ int atari_keyb_init(void)
 	int error;
 
 	if (atari_keyb_done)
+	{
 		return 0;
+	}
 
 	kb_state.state = KEYBOARD;
 	kb_state.len = 0;
 
 	error = request_irq(IRQ_MFP_ACIA, atari_keyboard_interrupt, 0,
-			    "keyboard,mouse,MIDI", atari_keyboard_interrupt);
+						"keyboard,mouse,MIDI", atari_keyboard_interrupt);
+
 	if (error)
+	{
 		return error;
+	}
 
 	atari_turnoff_irq(IRQ_MFP_ACIA);
-	do {
+
+	do
+	{
 		/* reset IKBD ACIA */
 		acia.key_ctrl = ACIA_RESET |
-				((atari_switches & ATARI_SWITCH_IKBD) ?
-				 ACIA_RHTID : 0);
+						((atari_switches & ATARI_SWITCH_IKBD) ?
+						 ACIA_RHTID : 0);
 		(void)acia.key_ctrl;
 		(void)acia.key_data;
 
 		/* reset MIDI ACIA */
 		acia.mid_ctrl = ACIA_RESET |
-				((atari_switches & ATARI_SWITCH_MIDI) ?
-				 ACIA_RHTID : 0);
+						((atari_switches & ATARI_SWITCH_MIDI) ?
+						 ACIA_RHTID : 0);
 		(void)acia.mid_ctrl;
 		(void)acia.mid_data;
 
@@ -529,16 +598,17 @@ int atari_keyb_init(void)
 		/* 8 data no parity 1 start 1 stop bit */
 		/* receive interrupt enabled */
 		/* RTS low (except if switch selected), transmit interrupt disabled */
-		acia.key_ctrl = (ACIA_DIV64|ACIA_D8N1S|ACIA_RIE) |
-				((atari_switches & ATARI_SWITCH_IKBD) ?
-				 ACIA_RHTID : ACIA_RLTID);
+		acia.key_ctrl = (ACIA_DIV64 | ACIA_D8N1S | ACIA_RIE) |
+						((atari_switches & ATARI_SWITCH_IKBD) ?
+						 ACIA_RHTID : ACIA_RLTID);
 
 		acia.mid_ctrl = ACIA_DIV16 | ACIA_D8N1S |
-				((atari_switches & ATARI_SWITCH_MIDI) ?
-				 ACIA_RHTID : 0);
+						((atari_switches & ATARI_SWITCH_MIDI) ?
+						 ACIA_RHTID : 0);
 
-	/* make sure the interrupt line is up */
-	} while ((st_mfp.par_dt_reg & 0x10) == 0);
+		/* make sure the interrupt line is up */
+	}
+	while ((st_mfp.par_dt_reg & 0x10) == 0);
 
 	/* enable ACIA Interrupts */
 	st_mfp.active_edge &= ~0x10;
@@ -549,11 +619,18 @@ int atari_keyb_init(void)
 	/* wait for a period of inactivity (here: 0.25s), then assume the IKBD's
 	 * self-test is finished */
 	self_test_last_rcv = jiffies;
-	while (time_before(jiffies, self_test_last_rcv + HZ/4))
+
+	while (time_before(jiffies, self_test_last_rcv + HZ / 4))
+	{
 		barrier();
+	}
+
 	/* if not incremented: no 0xf1 received */
 	if (ikbd_self_test == 1)
+	{
 		printk(KERN_ERR "WARNING: keyboard self test failed!\n");
+	}
+
 	ikbd_self_test = 0;
 
 	ikbd_mouse_disable();

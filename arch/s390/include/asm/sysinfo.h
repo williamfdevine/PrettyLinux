@@ -17,11 +17,12 @@
 #include <asm/bitsperlong.h>
 #include <linux/uuid.h>
 
-struct sysinfo_1_1_1 {
-	unsigned char p:1;
-	unsigned char :6;
-	unsigned char t:1;
-	unsigned char :8;
+struct sysinfo_1_1_1
+{
+	unsigned char p: 1;
+	unsigned char : 6;
+	unsigned char t: 1;
+	unsigned char : 8;
 	unsigned char ccr;
 	unsigned char cai;
 	char reserved_0[28];
@@ -44,7 +45,8 @@ struct sysinfo_1_1_1 {
 	unsigned int ntr;
 };
 
-struct sysinfo_1_2_1 {
+struct sysinfo_1_2_1
+{
 	char reserved_0[80];
 	char sequence[16];
 	char plant[4];
@@ -52,15 +54,16 @@ struct sysinfo_1_2_1 {
 	unsigned short cpu_address;
 };
 
-struct sysinfo_1_2_2 {
+struct sysinfo_1_2_2
+{
 	char format;
 	char reserved_0[1];
 	unsigned short acc_offset;
-	unsigned char mt_installed :1;
-	unsigned char :2;
-	unsigned char mt_stid :5;
-	unsigned char :3;
-	unsigned char mt_gtid :5;
+	unsigned char mt_installed : 1;
+	unsigned char : 2;
+	unsigned char mt_stid : 5;
+	unsigned char : 3;
+	unsigned char mt_gtid : 5;
 	char reserved_1[18];
 	unsigned int nominal_cap;
 	unsigned int secondary_cap;
@@ -72,12 +75,14 @@ struct sysinfo_1_2_2 {
 	unsigned short adjustment[0];
 };
 
-struct sysinfo_1_2_2_extension {
+struct sysinfo_1_2_2_extension
+{
 	unsigned int alt_capability;
 	unsigned short alt_adjustment[0];
 };
 
-struct sysinfo_2_2_1 {
+struct sysinfo_2_2_1
+{
 	char reserved_0[80];
 	char sequence[16];
 	char plant[4];
@@ -85,7 +90,8 @@ struct sysinfo_2_2_1 {
 	unsigned short cpu_address;
 };
 
-struct sysinfo_2_2_2 {
+struct sysinfo_2_2_2
+{
 	char reserved_0[32];
 	unsigned short lpar_number;
 	char reserved_1;
@@ -97,13 +103,13 @@ struct sysinfo_2_2_2 {
 	char name[8];
 	unsigned int caf;
 	char reserved_2[8];
-	unsigned char mt_installed :1;
-	unsigned char :2;
-	unsigned char mt_stid :5;
-	unsigned char :3;
-	unsigned char mt_gtid :5;
-	unsigned char :3;
-	unsigned char mt_psmtid :5;
+	unsigned char mt_installed : 1;
+	unsigned char : 2;
+	unsigned char mt_stid : 5;
+	unsigned char : 3;
+	unsigned char mt_gtid : 5;
+	unsigned char : 3;
+	unsigned char mt_psmtid : 5;
 	char reserved_3[5];
 	unsigned short cpus_dedicated;
 	unsigned short cpus_shared;
@@ -113,11 +119,13 @@ struct sysinfo_2_2_2 {
 #define LPAR_CHAR_SHARED	(1 << 6)
 #define LPAR_CHAR_LIMITED	(1 << 5)
 
-struct sysinfo_3_2_2 {
+struct sysinfo_3_2_2
+{
 	char reserved_0[31];
-	unsigned char :4;
-	unsigned char count:4;
-	struct {
+	unsigned char : 4;
+	unsigned char count: 4;
+	struct
+	{
 		char reserved_0[4];
 		unsigned short cpus_total;
 		unsigned short cpus_configured;
@@ -140,29 +148,33 @@ extern int topology_max_mnest;
 #define TOPOLOGY_CORE_BITS	64
 #define TOPOLOGY_NR_MAG		6
 
-struct topology_core {
+struct topology_core
+{
 	unsigned char nl;
 	unsigned char reserved0[3];
-	unsigned char :6;
-	unsigned char pp:2;
+	unsigned char : 6;
+	unsigned char pp: 2;
 	unsigned char reserved1;
 	unsigned short origin;
 	unsigned long mask[TOPOLOGY_CORE_BITS / BITS_PER_LONG];
 };
 
-struct topology_container {
+struct topology_container
+{
 	unsigned char nl;
 	unsigned char reserved[6];
 	unsigned char id;
 };
 
-union topology_entry {
+union topology_entry
+{
 	unsigned char nl;
 	struct topology_core cpu;
 	struct topology_container container;
 };
 
-struct sysinfo_15_1_x {
+struct sysinfo_15_1_x
+{
 	unsigned char reserved0[2];
 	unsigned short length;
 	unsigned char mag[TOPOLOGY_NR_MAG];
@@ -177,7 +189,8 @@ int stsi(void *sysinfo, int fc, int sel1, int sel2);
 /*
  * Service level reporting interface.
  */
-struct service_level {
+struct service_level
+{
 	struct list_head list;
 	void (*seq_print)(struct seq_file *, struct service_level *);
 };

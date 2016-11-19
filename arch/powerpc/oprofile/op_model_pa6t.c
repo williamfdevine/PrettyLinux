@@ -40,57 +40,71 @@ static u64 reset_value[OP_MAX_COUNTER];
 
 static inline u64 ctr_read(unsigned int i)
 {
-	switch (i) {
-	case 0:
-		return mfspr(SPRN_PA6T_PMC0);
-	case 1:
-		return mfspr(SPRN_PA6T_PMC1);
-	case 2:
-		return mfspr(SPRN_PA6T_PMC2);
-	case 3:
-		return mfspr(SPRN_PA6T_PMC3);
-	case 4:
-		return mfspr(SPRN_PA6T_PMC4);
-	case 5:
-		return mfspr(SPRN_PA6T_PMC5);
-	default:
-		printk(KERN_ERR "ctr_read called with bad arg %u\n", i);
-		return 0;
+	switch (i)
+	{
+		case 0:
+			return mfspr(SPRN_PA6T_PMC0);
+
+		case 1:
+			return mfspr(SPRN_PA6T_PMC1);
+
+		case 2:
+			return mfspr(SPRN_PA6T_PMC2);
+
+		case 3:
+			return mfspr(SPRN_PA6T_PMC3);
+
+		case 4:
+			return mfspr(SPRN_PA6T_PMC4);
+
+		case 5:
+			return mfspr(SPRN_PA6T_PMC5);
+
+		default:
+			printk(KERN_ERR "ctr_read called with bad arg %u\n", i);
+			return 0;
 	}
 }
 
 static inline void ctr_write(unsigned int i, u64 val)
 {
-	switch (i) {
-	case 0:
-		mtspr(SPRN_PA6T_PMC0, val);
-		break;
-	case 1:
-		mtspr(SPRN_PA6T_PMC1, val);
-		break;
-	case 2:
-		mtspr(SPRN_PA6T_PMC2, val);
-		break;
-	case 3:
-		mtspr(SPRN_PA6T_PMC3, val);
-		break;
-	case 4:
-		mtspr(SPRN_PA6T_PMC4, val);
-		break;
-	case 5:
-		mtspr(SPRN_PA6T_PMC5, val);
-		break;
-	default:
-		printk(KERN_ERR "ctr_write called with bad arg %u\n", i);
-		break;
+	switch (i)
+	{
+		case 0:
+			mtspr(SPRN_PA6T_PMC0, val);
+			break;
+
+		case 1:
+			mtspr(SPRN_PA6T_PMC1, val);
+			break;
+
+		case 2:
+			mtspr(SPRN_PA6T_PMC2, val);
+			break;
+
+		case 3:
+			mtspr(SPRN_PA6T_PMC3, val);
+			break;
+
+		case 4:
+			mtspr(SPRN_PA6T_PMC4, val);
+			break;
+
+		case 5:
+			mtspr(SPRN_PA6T_PMC5, val);
+			break;
+
+		default:
+			printk(KERN_ERR "ctr_write called with bad arg %u\n", i);
+			break;
 	}
 }
 
 
 /* precompute the values to stuff in the hardware registers */
 static int pa6t_reg_setup(struct op_counter_config *ctr,
-			   struct op_system_config *sys,
-			   int num_ctrs)
+						  struct op_system_config *sys,
+						  int num_ctrs)
 {
 	int pmc;
 
@@ -102,21 +116,30 @@ static int pa6t_reg_setup(struct op_counter_config *ctr,
 	 * setup user and kernel profiling
 	 */
 	for (pmc = 0; pmc < cur_cpu_spec->num_pmcs; pmc++)
-		if (!ctr[pmc].enabled) {
+		if (!ctr[pmc].enabled)
+		{
 			sys->mmcr0 &= ~(0x1UL << pmc);
-			sys->mmcr0 &= ~(0x1UL << (pmc+12));
+			sys->mmcr0 &= ~(0x1UL << (pmc + 12));
 			pr_debug("turned off counter %u\n", pmc);
 		}
 
 	if (sys->enable_kernel)
+	{
 		sys->mmcr0 |= PA6T_MMCR0_SUPEN | PA6T_MMCR0_HYPEN;
+	}
 	else
+	{
 		sys->mmcr0 &= ~(PA6T_MMCR0_SUPEN | PA6T_MMCR0_HYPEN);
+	}
 
 	if (sys->enable_user)
+	{
 		sys->mmcr0 |= PA6T_MMCR0_PREN;
+	}
 	else
+	{
 		sys->mmcr0 &= ~PA6T_MMCR0_PREN;
+	}
 
 	/*
 	 * The performance counter event settings are given in the mmcr0 and
@@ -128,7 +151,8 @@ static int pa6t_reg_setup(struct op_counter_config *ctr,
 	pr_debug("mmcr0_val inited to %016lx\n", sys->mmcr0);
 	pr_debug("mmcr1_val inited to %016lx\n", sys->mmcr1);
 
-	for (pmc = 0; pmc < cur_cpu_spec->num_pmcs; pmc++) {
+	for (pmc = 0; pmc < cur_cpu_spec->num_pmcs; pmc++)
+	{
 		/* counters are 40 bit. Move to cputable at some point? */
 		reset_value[pmc] = (0x1UL << 39) - ctr[pmc].count;
 		pr_debug("reset_value for pmc%u inited to 0x%llx\n",
@@ -152,9 +176,9 @@ static int pa6t_cpu_setup(struct op_counter_config *ctr)
 	mtspr(SPRN_PA6T_MMCR1, mmcr1);
 
 	pr_debug("setup on cpu %d, mmcr0 %016lx\n", smp_processor_id(),
-		mfspr(SPRN_PA6T_MMCR0));
+			 mfspr(SPRN_PA6T_MMCR0));
 	pr_debug("setup on cpu %d, mmcr1 %016lx\n", smp_processor_id(),
-		mfspr(SPRN_PA6T_MMCR1));
+			 mfspr(SPRN_PA6T_MMCR1));
 
 	return 0;
 }
@@ -168,9 +192,13 @@ static int pa6t_start(struct op_counter_config *ctr)
 
 	for (i = 0; i < cur_cpu_spec->num_pmcs; i++)
 		if (ctr[i].enabled)
+		{
 			ctr_write(i, reset_value[i]);
+		}
 		else
+		{
 			ctr_write(i, 0UL);
+		}
 
 	mtspr(SPRN_PA6T_MMCR0, mmcr0);
 
@@ -197,7 +225,7 @@ static void pa6t_stop(void)
 
 /* handle the perfmon overflow vector */
 static void pa6t_handle_interrupt(struct pt_regs *regs,
-				  struct op_counter_config *ctr)
+								  struct op_counter_config *ctr)
 {
 	unsigned long pc = mfspr(SPRN_PA6T_SIAR);
 	int is_kernel = is_kernel_addr(pc);
@@ -212,14 +240,23 @@ static void pa6t_handle_interrupt(struct pt_regs *regs,
 	/* Record samples. We've got one global bit for whether a sample
 	 * was taken, so add it for any counter that triggered overflow.
 	 */
-	for (i = 0; i < cur_cpu_spec->num_pmcs; i++) {
+	for (i = 0; i < cur_cpu_spec->num_pmcs; i++)
+	{
 		val = ctr_read(i);
-		if (val & (0x1UL << 39)) { /* Overflow bit set */
-			if (oprofile_running && ctr[i].enabled) {
+
+		if (val & (0x1UL << 39))   /* Overflow bit set */
+		{
+			if (oprofile_running && ctr[i].enabled)
+			{
 				if (mmcr0 & PA6T_MMCR0_SIARLOG)
+				{
 					oprofile_add_ext_sample(pc, regs, i, is_kernel);
+				}
+
 				ctr_write(i, reset_value[i]);
-			} else {
+			}
+			else
+			{
 				ctr_write(i, 0UL);
 			}
 		}
@@ -230,7 +267,8 @@ static void pa6t_handle_interrupt(struct pt_regs *regs,
 	mtspr(SPRN_PA6T_MMCR0, mmcr0);
 }
 
-struct op_powerpc_model op_model_pa6t = {
+struct op_powerpc_model op_model_pa6t =
+{
 	.reg_setup		= pa6t_reg_setup,
 	.cpu_setup		= pa6t_cpu_setup,
 	.start			= pa6t_start,

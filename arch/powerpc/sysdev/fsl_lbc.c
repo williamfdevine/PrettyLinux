@@ -50,7 +50,9 @@ u32 fsl_lbc_addr(phys_addr_t addr_base)
 	u32 addr = addr_base & 0xffff8000;
 
 	if (of_device_is_compatible(np, "fsl,elbc"))
+	{
 		return addr;
+	}
 
 	return addr | ((addr_base & 0x300000000ull) >> 19);
 }
@@ -71,15 +73,21 @@ int fsl_lbc_find(phys_addr_t addr_base)
 	struct fsl_lbc_regs __iomem *lbc;
 
 	if (!fsl_lbc_ctrl_dev || !fsl_lbc_ctrl_dev->regs)
+	{
 		return -ENODEV;
+	}
 
 	lbc = fsl_lbc_ctrl_dev->regs;
-	for (i = 0; i < ARRAY_SIZE(lbc->bank); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(lbc->bank); i++)
+	{
 		u32 br = in_be32(&lbc->bank[i].br);
 		u32 or = in_be32(&lbc->bank[i].or);
 
 		if (br & BR_V && (br & or & BR_BA) == fsl_lbc_addr(addr_base))
+		{
 			return i;
+		}
 	}
 
 	return -ENOENT;
@@ -102,41 +110,54 @@ int fsl_upm_find(phys_addr_t addr_base, struct fsl_upm *upm)
 	struct fsl_lbc_regs __iomem *lbc;
 
 	bank = fsl_lbc_find(addr_base);
+
 	if (bank < 0)
+	{
 		return bank;
+	}
 
 	if (!fsl_lbc_ctrl_dev || !fsl_lbc_ctrl_dev->regs)
+	{
 		return -ENODEV;
+	}
 
 	lbc = fsl_lbc_ctrl_dev->regs;
 	br = in_be32(&lbc->bank[bank].br);
 
-	switch (br & BR_MSEL) {
-	case BR_MS_UPMA:
-		upm->mxmr = &lbc->mamr;
-		break;
-	case BR_MS_UPMB:
-		upm->mxmr = &lbc->mbmr;
-		break;
-	case BR_MS_UPMC:
-		upm->mxmr = &lbc->mcmr;
-		break;
-	default:
-		return -EINVAL;
+	switch (br & BR_MSEL)
+	{
+		case BR_MS_UPMA:
+			upm->mxmr = &lbc->mamr;
+			break;
+
+		case BR_MS_UPMB:
+			upm->mxmr = &lbc->mbmr;
+			break;
+
+		case BR_MS_UPMC:
+			upm->mxmr = &lbc->mcmr;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (br & BR_PS) {
-	case BR_PS_8:
-		upm->width = 8;
-		break;
-	case BR_PS_16:
-		upm->width = 16;
-		break;
-	case BR_PS_32:
-		upm->width = 32;
-		break;
-	default:
-		return -EINVAL;
+	switch (br & BR_PS)
+	{
+		case BR_PS_8:
+			upm->width = 8;
+			break;
+
+		case BR_PS_16:
+			upm->width = 16;
+			break;
+
+		case BR_PS_32:
+			upm->width = 32;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -159,25 +180,31 @@ int fsl_upm_run_pattern(struct fsl_upm *upm, void __iomem *io_base, u32 mar)
 	unsigned long flags;
 
 	if (!fsl_lbc_ctrl_dev || !fsl_lbc_ctrl_dev->regs)
+	{
 		return -ENODEV;
+	}
 
 	spin_lock_irqsave(&fsl_lbc_lock, flags);
 
 	out_be32(&fsl_lbc_ctrl_dev->regs->mar, mar);
 
-	switch (upm->width) {
-	case 8:
-		out_8(io_base, 0x0);
-		break;
-	case 16:
-		out_be16(io_base, 0x0);
-		break;
-	case 32:
-		out_be32(io_base, 0x0);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (upm->width)
+	{
+		case 8:
+			out_8(io_base, 0x0);
+			break;
+
+		case 16:
+			out_be16(io_base, 0x0);
+			break;
+
+		case 32:
+			out_be32(io_base, 0x0);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	spin_unlock_irqrestore(&fsl_lbc_lock, flags);
@@ -187,7 +214,7 @@ int fsl_upm_run_pattern(struct fsl_upm *upm, void __iomem *io_base, u32 mar)
 EXPORT_SYMBOL(fsl_upm_run_pattern);
 
 static int fsl_lbc_ctrl_init(struct fsl_lbc_ctrl *ctrl,
-			     struct device_node *node)
+							 struct device_node *node)
 {
 	struct fsl_lbc_regs __iomem *lbc = ctrl->regs;
 
@@ -200,7 +227,9 @@ static int fsl_lbc_ctrl_init(struct fsl_lbc_ctrl *ctrl,
 
 	/* Set the monitor timeout value to the maximum for erratum A001 */
 	if (of_device_is_compatible(node, "fsl,elbc"))
+	{
 		clrsetbits_be32(&lbc->lbcr, LBCR_BMT, LBCR_BMTPS);
+	}
 
 	return 0;
 }
@@ -219,7 +248,9 @@ static irqreturn_t fsl_lbc_ctrl_irq(int irqno, void *data)
 
 	spin_lock_irqsave(&fsl_lbc_lock, flags);
 	status = in_be32(&lbc->ltesr);
-	if (!status) {
+
+	if (!status)
+	{
 		spin_unlock_irqrestore(&fsl_lbc_lock, flags);
 		return IRQ_NONE;
 	}
@@ -231,38 +262,50 @@ static irqreturn_t fsl_lbc_ctrl_irq(int irqno, void *data)
 
 	if (status & LTESR_BM)
 		dev_err(ctrl->dev, "Local bus monitor time-out: "
-			"LTESR 0x%08X\n", status);
+				"LTESR 0x%08X\n", status);
+
 	if (status & LTESR_WP)
 		dev_err(ctrl->dev, "Write protect error: "
-			"LTESR 0x%08X\n", status);
+				"LTESR 0x%08X\n", status);
+
 	if (status & LTESR_ATMW)
 		dev_err(ctrl->dev, "Atomic write error: "
-			"LTESR 0x%08X\n", status);
+				"LTESR 0x%08X\n", status);
+
 	if (status & LTESR_ATMR)
 		dev_err(ctrl->dev, "Atomic read error: "
-			"LTESR 0x%08X\n", status);
+				"LTESR 0x%08X\n", status);
+
 	if (status & LTESR_CS)
 		dev_err(ctrl->dev, "Chip select error: "
-			"LTESR 0x%08X\n", status);
-	if (status & LTESR_FCT) {
+				"LTESR 0x%08X\n", status);
+
+	if (status & LTESR_FCT)
+	{
 		dev_err(ctrl->dev, "FCM command time-out: "
-			"LTESR 0x%08X\n", status);
+				"LTESR 0x%08X\n", status);
 		smp_wmb();
 		wake_up(&ctrl->irq_wait);
 	}
-	if (status & LTESR_PAR) {
+
+	if (status & LTESR_PAR)
+	{
 		dev_err(ctrl->dev, "Parity or Uncorrectable ECC error: "
-			"LTESR 0x%08X\n", status);
+				"LTESR 0x%08X\n", status);
 		smp_wmb();
 		wake_up(&ctrl->irq_wait);
 	}
-	if (status & LTESR_CC) {
+
+	if (status & LTESR_CC)
+	{
 		smp_wmb();
 		wake_up(&ctrl->irq_wait);
 	}
+
 	if (status & ~LTESR_MASK)
 		dev_err(ctrl->dev, "Unknown error: "
-			"LTESR 0x%08X\n", status);
+				"LTESR 0x%08X\n", status);
+
 	spin_unlock_irqrestore(&fsl_lbc_lock, flags);
 	return IRQ_HANDLED;
 }
@@ -281,14 +324,18 @@ static int fsl_lbc_ctrl_probe(struct platform_device *dev)
 {
 	int ret;
 
-	if (!dev->dev.of_node) {
+	if (!dev->dev.of_node)
+	{
 		dev_err(&dev->dev, "Device OF-Node is NULL");
 		return -EFAULT;
 	}
 
 	fsl_lbc_ctrl_dev = kzalloc(sizeof(*fsl_lbc_ctrl_dev), GFP_KERNEL);
+
 	if (!fsl_lbc_ctrl_dev)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(&dev->dev, fsl_lbc_ctrl_dev);
 
@@ -296,14 +343,18 @@ static int fsl_lbc_ctrl_probe(struct platform_device *dev)
 	init_waitqueue_head(&fsl_lbc_ctrl_dev->irq_wait);
 
 	fsl_lbc_ctrl_dev->regs = of_iomap(dev->dev.of_node, 0);
-	if (!fsl_lbc_ctrl_dev->regs) {
+
+	if (!fsl_lbc_ctrl_dev->regs)
+	{
 		dev_err(&dev->dev, "failed to get memory region\n");
 		ret = -ENODEV;
 		goto err;
 	}
 
 	fsl_lbc_ctrl_dev->irq[0] = irq_of_parse_and_map(dev->dev.of_node, 0);
-	if (!fsl_lbc_ctrl_dev->irq[0]) {
+
+	if (!fsl_lbc_ctrl_dev->irq[0])
+	{
 		dev_err(&dev->dev, "failed to get irq resource\n");
 		ret = -ENODEV;
 		goto err;
@@ -312,23 +363,32 @@ static int fsl_lbc_ctrl_probe(struct platform_device *dev)
 	fsl_lbc_ctrl_dev->dev = &dev->dev;
 
 	ret = fsl_lbc_ctrl_init(fsl_lbc_ctrl_dev, dev->dev.of_node);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = request_irq(fsl_lbc_ctrl_dev->irq[0], fsl_lbc_ctrl_irq, 0,
-				"fsl-lbc", fsl_lbc_ctrl_dev);
-	if (ret != 0) {
+					  "fsl-lbc", fsl_lbc_ctrl_dev);
+
+	if (ret != 0)
+	{
 		dev_err(&dev->dev, "failed to install irq (%d)\n",
-			fsl_lbc_ctrl_dev->irq[0]);
+				fsl_lbc_ctrl_dev->irq[0]);
 		ret = fsl_lbc_ctrl_dev->irq[0];
 		goto err;
 	}
 
 	fsl_lbc_ctrl_dev->irq[1] = irq_of_parse_and_map(dev->dev.of_node, 1);
-	if (fsl_lbc_ctrl_dev->irq[1]) {
+
+	if (fsl_lbc_ctrl_dev->irq[1])
+	{
 		ret = request_irq(fsl_lbc_ctrl_dev->irq[1], fsl_lbc_ctrl_irq,
-				IRQF_SHARED, "fsl-lbc-err", fsl_lbc_ctrl_dev);
-		if (ret) {
+						  IRQF_SHARED, "fsl-lbc-err", fsl_lbc_ctrl_dev);
+
+		if (ret)
+		{
 			dev_err(&dev->dev, "failed to install irq (%d)\n",
 					fsl_lbc_ctrl_dev->irq[1]);
 			ret = fsl_lbc_ctrl_dev->irq[1];
@@ -359,16 +419,25 @@ static int fsl_lbc_syscore_suspend(void)
 	struct fsl_lbc_regs __iomem *lbc;
 
 	ctrl = fsl_lbc_ctrl_dev;
+
 	if (!ctrl)
+	{
 		goto out;
+	}
 
 	lbc = ctrl->regs;
+
 	if (!lbc)
+	{
 		goto out;
+	}
 
 	ctrl->saved_regs = kmalloc(sizeof(struct fsl_lbc_regs), GFP_KERNEL);
+
 	if (!ctrl->saved_regs)
+	{
 		return -ENOMEM;
+	}
 
 	_memcpy_fromio(ctrl->saved_regs, lbc, sizeof(struct fsl_lbc_regs));
 
@@ -383,16 +452,23 @@ static void fsl_lbc_syscore_resume(void)
 	struct fsl_lbc_regs __iomem *lbc;
 
 	ctrl = fsl_lbc_ctrl_dev;
+
 	if (!ctrl)
+	{
 		goto out;
+	}
 
 	lbc = ctrl->regs;
-	if (!lbc)
-		goto out;
 
-	if (ctrl->saved_regs) {
+	if (!lbc)
+	{
+		goto out;
+	}
+
+	if (ctrl->saved_regs)
+	{
 		_memcpy_toio(lbc, ctrl->saved_regs,
-				sizeof(struct fsl_lbc_regs));
+					 sizeof(struct fsl_lbc_regs));
 		kfree(ctrl->saved_regs);
 		ctrl->saved_regs = NULL;
 	}
@@ -402,7 +478,8 @@ out:
 }
 #endif /* CONFIG_SUSPEND */
 
-static const struct of_device_id fsl_lbc_match[] = {
+static const struct of_device_id fsl_lbc_match[] =
+{
 	{ .compatible = "fsl,elbc", },
 	{ .compatible = "fsl,pq3-localbus", },
 	{ .compatible = "fsl,pq2-localbus", },
@@ -411,13 +488,15 @@ static const struct of_device_id fsl_lbc_match[] = {
 };
 
 #ifdef CONFIG_SUSPEND
-static struct syscore_ops lbc_syscore_pm_ops = {
+static struct syscore_ops lbc_syscore_pm_ops =
+{
 	.suspend = fsl_lbc_syscore_suspend,
 	.resume = fsl_lbc_syscore_resume,
 };
 #endif
 
-static struct platform_driver fsl_lbc_ctrl_driver = {
+static struct platform_driver fsl_lbc_ctrl_driver =
+{
 	.driver = {
 		.name = "fsl-lbc",
 		.of_match_table = fsl_lbc_match,

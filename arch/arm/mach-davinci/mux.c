@@ -40,30 +40,39 @@ int davinci_cfg_reg(const unsigned long index)
 	unsigned int mask, warn = 0;
 
 	if (WARN_ON(!soc_info->pinmux_pins))
+	{
 		return -ENODEV;
-
-	if (!pinmux_base) {
-		pinmux_base = ioremap(soc_info->pinmux_base, SZ_4K);
-		if (WARN_ON(!pinmux_base))
-			return -ENOMEM;
 	}
 
-	if (index >= soc_info->pinmux_pins_num) {
+	if (!pinmux_base)
+	{
+		pinmux_base = ioremap(soc_info->pinmux_base, SZ_4K);
+
+		if (WARN_ON(!pinmux_base))
+		{
+			return -ENOMEM;
+		}
+	}
+
+	if (index >= soc_info->pinmux_pins_num)
+	{
 		pr_err("Invalid pin mux index: %lu (%lu)\n",
-		       index, soc_info->pinmux_pins_num);
+			   index, soc_info->pinmux_pins_num);
 		dump_stack();
 		return -ENODEV;
 	}
 
 	cfg = &soc_info->pinmux_pins[index];
 
-	if (cfg->name == NULL) {
+	if (cfg->name == NULL)
+	{
 		pr_err("No entry for the specified index\n");
 		return -ENODEV;
 	}
 
 	/* Update the mux register in question */
-	if (cfg->mask) {
+	if (cfg->mask)
+	{
 		unsigned	tmp1, tmp2;
 
 		spin_lock_irqsave(&mux_spin_lock, flags);
@@ -77,24 +86,30 @@ int davinci_cfg_reg(const unsigned long index)
 		reg |= tmp2;
 
 		if (tmp1 != tmp2)
+		{
 			warn = 1;
+		}
 
 		__raw_writel(reg, pinmux_base + cfg->mux_reg);
 		spin_unlock_irqrestore(&mux_spin_lock, flags);
 	}
 
-	if (warn) {
+	if (warn)
+	{
 #ifdef CONFIG_DAVINCI_MUX_WARNINGS
 		pr_warn("initialized %s\n", cfg->name);
 #endif
 	}
 
 #ifdef CONFIG_DAVINCI_MUX_DEBUG
-	if (cfg->debug || warn) {
+
+	if (cfg->debug || warn)
+	{
 		pr_warn("Setting register %s\n", cfg->name);
 		pr_warn("   %s (0x%08x) = 0x%08x -> 0x%08x\n",
-			cfg->mux_reg_name, cfg->mux_reg, reg_orig, reg);
+				cfg->mux_reg_name, cfg->mux_reg, reg_orig, reg);
 	}
+
 #endif
 
 	return 0;
@@ -106,10 +121,14 @@ int davinci_cfg_reg_list(const short pins[])
 	int i, error = -EINVAL;
 
 	if (pins)
-		for (i = 0; pins[i] >= 0; i++) {
+		for (i = 0; pins[i] >= 0; i++)
+		{
 			error = davinci_cfg_reg(pins[i]);
+
 			if (error)
+			{
 				break;
+			}
 		}
 
 	return error;

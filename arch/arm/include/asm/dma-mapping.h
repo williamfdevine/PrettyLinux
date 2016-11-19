@@ -19,16 +19,23 @@ extern struct dma_map_ops arm_coherent_dma_ops;
 static inline struct dma_map_ops *__generic_dma_ops(struct device *dev)
 {
 	if (dev && dev->archdata.dma_ops)
+	{
 		return dev->archdata.dma_ops;
+	}
+
 	return &arm_dma_ops;
 }
 
 static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 {
 	if (xen_initial_domain())
+	{
 		return xen_dma_ops;
+	}
 	else
+	{
 		return __generic_dma_ops(dev);
+	}
 }
 
 static inline void set_dma_ops(struct device *dev, struct dma_map_ops *ops)
@@ -41,7 +48,7 @@ static inline void set_dma_ops(struct device *dev, struct dma_map_ops *ops)
 extern int dma_supported(struct device *dev, u64 mask);
 
 #ifdef __arch_page_to_dma
-#error Please update to __arch_pfn_to_dma
+	#error Please update to __arch_pfn_to_dma
 #endif
 
 /*
@@ -53,7 +60,10 @@ extern int dma_supported(struct device *dev, u64 mask);
 static inline dma_addr_t pfn_to_dma(struct device *dev, unsigned long pfn)
 {
 	if (dev)
+	{
 		pfn -= dev->dma_pfn_offset;
+	}
+
 	return (dma_addr_t)__pfn_to_bus(pfn);
 }
 
@@ -62,14 +72,17 @@ static inline unsigned long dma_to_pfn(struct device *dev, dma_addr_t addr)
 	unsigned long pfn = __bus_to_pfn(addr);
 
 	if (dev)
+	{
 		pfn += dev->dma_pfn_offset;
+	}
 
 	return pfn;
 }
 
 static inline void *dma_to_virt(struct device *dev, dma_addr_t addr)
 {
-	if (dev) {
+	if (dev)
+	{
 		unsigned long pfn = dma_to_pfn(dev, addr);
 
 		return phys_to_virt(__pfn_to_phys(pfn));
@@ -81,7 +94,9 @@ static inline void *dma_to_virt(struct device *dev, dma_addr_t addr)
 static inline dma_addr_t virt_to_dma(struct device *dev, void *addr)
 {
 	if (dev)
+	{
 		return pfn_to_dma(dev, virt_to_pfn(addr));
+	}
 
 	return (dma_addr_t)__virt_to_bus((unsigned long)(addr));
 }
@@ -117,7 +132,7 @@ static inline unsigned long dma_max_pfn(struct device *dev)
 
 #define arch_setup_dma_ops arch_setup_dma_ops
 extern void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
-			       const struct iommu_ops *iommu, bool coherent);
+							   const struct iommu_ops *iommu, bool coherent);
 
 #define arch_teardown_dma_ops arch_teardown_dma_ops
 extern void arch_teardown_dma_ops(struct device *dev);
@@ -145,16 +160,23 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
 	u64 limit, mask;
 
 	if (!dev->dma_mask)
+	{
 		return 0;
+	}
 
 	mask = *dev->dma_mask;
 
 	limit = (mask + 1) & ~mask;
+
 	if (limit && size > limit)
+	{
 		return 0;
+	}
 
 	if ((addr | (addr + size - 1)) & ~mask)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -173,7 +195,7 @@ static inline void dma_mark_clean(void *addr, size_t size) { }
  * to be the device-viewed address.
  */
 extern void *arm_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
-			   gfp_t gfp, unsigned long attrs);
+						   gfp_t gfp, unsigned long attrs);
 
 /**
  * arm_dma_free - free memory allocated by arm_dma_alloc
@@ -190,7 +212,7 @@ extern void *arm_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
  * during and after this call executing are illegal.
  */
 extern void arm_dma_free(struct device *dev, size_t size, void *cpu_addr,
-			 dma_addr_t handle, unsigned long attrs);
+						 dma_addr_t handle, unsigned long attrs);
 
 /**
  * arm_dma_mmap - map a coherent DMA allocation into user space
@@ -206,8 +228,8 @@ extern void arm_dma_free(struct device *dev, size_t size, void *cpu_addr,
  * driver until the user space mapping has been released.
  */
 extern int arm_dma_mmap(struct device *dev, struct vm_area_struct *vma,
-			void *cpu_addr, dma_addr_t dma_addr, size_t size,
-			unsigned long attrs);
+						void *cpu_addr, dma_addr_t dma_addr, size_t size,
+						unsigned long attrs);
 
 /*
  * This can be called during early boot to increase the size of the atomic
@@ -241,7 +263,7 @@ extern void __init init_dma_coherent_pool_size(unsigned long size);
  * appropriate DMA pools for the device.
  */
 extern int dmabounce_register_dev(struct device *, unsigned long,
-		unsigned long, int (*)(struct device *, dma_addr_t, size_t));
+								  unsigned long, int (*)(struct device *, dma_addr_t, size_t));
 
 /**
  * dmabounce_unregister_dev
@@ -261,16 +283,16 @@ extern void dmabounce_unregister_dev(struct device *);
  * The scatter list versions of the above methods.
  */
 extern int arm_dma_map_sg(struct device *, struct scatterlist *, int,
-		enum dma_data_direction, unsigned long attrs);
+						  enum dma_data_direction, unsigned long attrs);
 extern void arm_dma_unmap_sg(struct device *, struct scatterlist *, int,
-		enum dma_data_direction, unsigned long attrs);
+							 enum dma_data_direction, unsigned long attrs);
 extern void arm_dma_sync_sg_for_cpu(struct device *, struct scatterlist *, int,
-		enum dma_data_direction);
+									enum dma_data_direction);
 extern void arm_dma_sync_sg_for_device(struct device *, struct scatterlist *, int,
-		enum dma_data_direction);
+									   enum dma_data_direction);
 extern int arm_dma_get_sgtable(struct device *dev, struct sg_table *sgt,
-		void *cpu_addr, dma_addr_t dma_addr, size_t size,
-		unsigned long attrs);
+							   void *cpu_addr, dma_addr_t dma_addr, size_t size,
+							   unsigned long attrs);
 
 #endif /* __KERNEL__ */
 #endif

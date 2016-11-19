@@ -39,7 +39,8 @@
 /*****************************************************************************
  * I/O Address Mapping
  ****************************************************************************/
-static struct map_desc orion5x_io_desc[] __initdata = {
+static struct map_desc orion5x_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long) ORION5X_REGS_VIRT_BASE,
 		.pfn		= __phys_to_pfn(ORION5X_REGS_PHYS_BASE),
@@ -77,7 +78,7 @@ void __init clk_init(void)
 void __init orion5x_ehci0_init(void)
 {
 	orion_ehci_init(ORION5X_USB0_PHYS_BASE, IRQ_ORION5X_USB0_CTRL,
-			EHCI_PHY_ORION);
+					EHCI_PHY_ORION);
 }
 
 
@@ -96,9 +97,9 @@ void __init orion5x_ehci1_init(void)
 void __init orion5x_eth_init(struct mv643xx_eth_platform_data *eth_data)
 {
 	orion_ge00_init(eth_data,
-			ORION5X_ETH_PHYS_BASE, IRQ_ORION5X_ETH_SUM,
-			IRQ_ORION5X_ETH_ERR,
-			MV643XX_TX_CSUM_DEFAULT_LIMIT);
+					ORION5X_ETH_PHYS_BASE, IRQ_ORION5X_ETH_SUM,
+					IRQ_ORION5X_ETH_ERR,
+					MV643XX_TX_CSUM_DEFAULT_LIMIT);
 }
 
 
@@ -145,7 +146,7 @@ void __init orion5x_spi_init(void)
 void __init orion5x_uart0_init(void)
 {
 	orion_uart0_init(UART0_VIRT_BASE, UART0_PHYS_BASE,
-			 IRQ_ORION5X_UART0, tclk);
+					 IRQ_ORION5X_UART0, tclk);
 }
 
 /*****************************************************************************
@@ -154,7 +155,7 @@ void __init orion5x_uart0_init(void)
 void __init orion5x_uart1_init(void)
 {
 	orion_uart1_init(UART1_VIRT_BASE, UART1_PHYS_BASE,
-			 IRQ_ORION5X_UART1, tclk);
+					 IRQ_ORION5X_UART1, tclk);
 }
 
 /*****************************************************************************
@@ -163,8 +164,8 @@ void __init orion5x_uart1_init(void)
 void __init orion5x_xor_init(void)
 {
 	orion_xor0_init(ORION5X_XOR_PHYS_BASE,
-			ORION5X_XOR_PHYS_BASE + 0x200,
-			IRQ_ORION5X_XOR0, IRQ_ORION5X_XOR1);
+					ORION5X_XOR_PHYS_BASE + 0x200,
+					IRQ_ORION5X_XOR0, IRQ_ORION5X_XOR1);
 }
 
 /*****************************************************************************
@@ -173,22 +174,24 @@ void __init orion5x_xor_init(void)
 static void __init orion5x_crypto_init(void)
 {
 	mvebu_mbus_add_window_by_id(ORION_MBUS_SRAM_TARGET,
-				    ORION_MBUS_SRAM_ATTR,
-				    ORION5X_SRAM_PHYS_BASE,
-				    ORION5X_SRAM_SIZE);
+								ORION_MBUS_SRAM_ATTR,
+								ORION5X_SRAM_PHYS_BASE,
+								ORION5X_SRAM_SIZE);
 	orion_crypto_init(ORION5X_CRYPTO_PHYS_BASE, ORION5X_SRAM_PHYS_BASE,
-			  SZ_8K, IRQ_ORION5X_CESA);
+					  SZ_8K, IRQ_ORION5X_CESA);
 }
 
 /*****************************************************************************
  * Watchdog
  ****************************************************************************/
-static struct resource orion_wdt_resource[] = {
-		DEFINE_RES_MEM(TIMER_PHYS_BASE, 0x04),
-		DEFINE_RES_MEM(RSTOUTn_MASK_PHYS, 0x04),
+static struct resource orion_wdt_resource[] =
+{
+	DEFINE_RES_MEM(TIMER_PHYS_BASE, 0x04),
+	DEFINE_RES_MEM(RSTOUTn_MASK_PHYS, 0x04),
 };
 
-static struct platform_device orion_wdt_device = {
+static struct platform_device orion_wdt_device =
+{
 	.name		= "orion_wdt",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(orion_wdt_resource),
@@ -213,19 +216,31 @@ void __init orion5x_init_early(void)
 
 	/* Initialize the MBUS driver */
 	orion5x_pcie_id(&dev, &rev);
+
 	if (dev == MV88F5281_DEV_ID)
+	{
 		mbus_soc_name = "marvell,orion5x-88f5281-mbus";
+	}
 	else if (dev == MV88F5182_DEV_ID)
+	{
 		mbus_soc_name = "marvell,orion5x-88f5182-mbus";
+	}
 	else if (dev == MV88F5181_DEV_ID)
+	{
 		mbus_soc_name = "marvell,orion5x-88f5181-mbus";
+	}
 	else if (dev == MV88F6183_DEV_ID)
+	{
 		mbus_soc_name = "marvell,orion5x-88f6183-mbus";
+	}
 	else
+	{
 		mbus_soc_name = NULL;
+	}
+
 	mvebu_mbus_init(mbus_soc_name, ORION5X_BRIDGE_WINS_BASE,
-			ORION5X_BRIDGE_WINS_SZ,
-			ORION5X_DDR_WINS_BASE, ORION5X_DDR_WINS_SZ);
+					ORION5X_BRIDGE_WINS_SZ,
+					ORION5X_DDR_WINS_BASE, ORION5X_DDR_WINS_SZ);
 }
 
 void orion5x_setup_wins(void)
@@ -235,23 +250,23 @@ void orion5x_setup_wins(void)
 	 * here once Orion5x is migrated to the pci-mvebu driver.
 	 */
 	mvebu_mbus_add_window_remap_by_id(ORION_MBUS_PCIE_IO_TARGET,
-					  ORION_MBUS_PCIE_IO_ATTR,
-					  ORION5X_PCIE_IO_PHYS_BASE,
-					  ORION5X_PCIE_IO_SIZE,
-					  ORION5X_PCIE_IO_BUS_BASE);
+									  ORION_MBUS_PCIE_IO_ATTR,
+									  ORION5X_PCIE_IO_PHYS_BASE,
+									  ORION5X_PCIE_IO_SIZE,
+									  ORION5X_PCIE_IO_BUS_BASE);
 	mvebu_mbus_add_window_by_id(ORION_MBUS_PCIE_MEM_TARGET,
-				    ORION_MBUS_PCIE_MEM_ATTR,
-				    ORION5X_PCIE_MEM_PHYS_BASE,
-				    ORION5X_PCIE_MEM_SIZE);
+								ORION_MBUS_PCIE_MEM_ATTR,
+								ORION5X_PCIE_MEM_PHYS_BASE,
+								ORION5X_PCIE_MEM_SIZE);
 	mvebu_mbus_add_window_remap_by_id(ORION_MBUS_PCI_IO_TARGET,
-					  ORION_MBUS_PCI_IO_ATTR,
-					  ORION5X_PCI_IO_PHYS_BASE,
-					  ORION5X_PCI_IO_SIZE,
-					  ORION5X_PCI_IO_BUS_BASE);
+									  ORION_MBUS_PCI_IO_ATTR,
+									  ORION5X_PCI_IO_PHYS_BASE,
+									  ORION5X_PCI_IO_SIZE,
+									  ORION5X_PCI_IO_BUS_BASE);
 	mvebu_mbus_add_window_by_id(ORION_MBUS_PCI_MEM_TARGET,
-				    ORION_MBUS_PCI_MEM_ATTR,
-				    ORION5X_PCI_MEM_PHYS_BASE,
-				    ORION5X_PCI_MEM_SIZE);
+								ORION_MBUS_PCI_MEM_ATTR,
+								ORION5X_PCI_MEM_PHYS_BASE,
+								ORION5X_PCI_MEM_SIZE);
 }
 
 int orion5x_tclk;
@@ -261,9 +276,12 @@ static int __init orion5x_find_tclk(void)
 	u32 dev, rev;
 
 	orion5x_pcie_id(&dev, &rev);
+
 	if (dev == MV88F6183_DEV_ID &&
-	    (readl(MPP_RESET_SAMPLE) & 0x00000200) == 0)
+		(readl(MPP_RESET_SAMPLE) & 0x00000200) == 0)
+	{
 		return 133333333;
+	}
 
 	return 166666667;
 }
@@ -273,7 +291,7 @@ void __init orion5x_timer_init(void)
 	orion5x_tclk = orion5x_find_tclk();
 
 	orion_time_init(ORION5X_BRIDGE_VIRT_BASE, BRIDGE_INT_TIMER1_CLR,
-			IRQ_ORION5X_BRIDGE, orion5x_tclk);
+					IRQ_ORION5X_BRIDGE, orion5x_tclk);
 }
 
 
@@ -287,37 +305,64 @@ void __init orion5x_id(u32 *dev, u32 *rev, char **dev_name)
 {
 	orion5x_pcie_id(dev, rev);
 
-	if (*dev == MV88F5281_DEV_ID) {
-		if (*rev == MV88F5281_REV_D2) {
+	if (*dev == MV88F5281_DEV_ID)
+	{
+		if (*rev == MV88F5281_REV_D2)
+		{
 			*dev_name = "MV88F5281-D2";
-		} else if (*rev == MV88F5281_REV_D1) {
+		}
+		else if (*rev == MV88F5281_REV_D1)
+		{
 			*dev_name = "MV88F5281-D1";
-		} else if (*rev == MV88F5281_REV_D0) {
+		}
+		else if (*rev == MV88F5281_REV_D0)
+		{
 			*dev_name = "MV88F5281-D0";
-		} else {
+		}
+		else
+		{
 			*dev_name = "MV88F5281-Rev-Unsupported";
 		}
-	} else if (*dev == MV88F5182_DEV_ID) {
-		if (*rev == MV88F5182_REV_A2) {
+	}
+	else if (*dev == MV88F5182_DEV_ID)
+	{
+		if (*rev == MV88F5182_REV_A2)
+		{
 			*dev_name = "MV88F5182-A2";
-		} else {
+		}
+		else
+		{
 			*dev_name = "MV88F5182-Rev-Unsupported";
 		}
-	} else if (*dev == MV88F5181_DEV_ID) {
-		if (*rev == MV88F5181_REV_B1) {
+	}
+	else if (*dev == MV88F5181_DEV_ID)
+	{
+		if (*rev == MV88F5181_REV_B1)
+		{
 			*dev_name = "MV88F5181-Rev-B1";
-		} else if (*rev == MV88F5181L_REV_A1) {
+		}
+		else if (*rev == MV88F5181L_REV_A1)
+		{
 			*dev_name = "MV88F5181L-Rev-A1";
-		} else {
+		}
+		else
+		{
 			*dev_name = "MV88F5181(L)-Rev-Unsupported";
 		}
-	} else if (*dev == MV88F6183_DEV_ID) {
-		if (*rev == MV88F6183_REV_B0) {
+	}
+	else if (*dev == MV88F6183_DEV_ID)
+	{
+		if (*rev == MV88F6183_REV_B0)
+		{
 			*dev_name = "MV88F6183-Rev-B0";
-		} else {
+		}
+		else
+		{
 			*dev_name = "MV88F6183-Rev-Unsupported";
 		}
-	} else {
+	}
+	else
+	{
 		*dev_name = "Device-Unknown";
 	}
 }
@@ -342,7 +387,8 @@ void __init orion5x_init(void)
 	 * Don't issue "Wait for Interrupt" instruction if we are
 	 * running on D0 5281 silicon.
 	 */
-	if (dev == MV88F5281_DEV_ID && rev == MV88F5281_REV_D0) {
+	if (dev == MV88F5281_DEV_ID && rev == MV88F5281_REV_D0)
+	{
 		printk(KERN_INFO "Orion: Applying 5281 D0 WFI workaround.\n");
 		cpu_idle_poll_ctrl(true);
 	}
@@ -352,8 +398,10 @@ void __init orion5x_init(void)
 	 * while 5180n/5181/5281 don't have crypto.
 	 */
 	if ((dev == MV88F5181_DEV_ID && rev >= MV88F5181L_REV_A0) ||
-	    dev == MV88F5182_DEV_ID || dev == MV88F6183_DEV_ID)
+		dev == MV88F5182_DEV_ID || dev == MV88F6183_DEV_ID)
+	{
 		orion5x_crypto_init();
+	}
 
 	/*
 	 * Register watchdog driver
@@ -380,11 +428,12 @@ void __init tag_fixup_mem32(struct tag *t, char **from)
 {
 	for (; t->hdr.size; t = tag_next(t))
 		if (t->hdr.tag == ATAG_MEM &&
-		    (!t->u.mem.size || t->u.mem.size & ~PAGE_MASK ||
-		     t->u.mem.start & ~PAGE_MASK)) {
+			(!t->u.mem.size || t->u.mem.size & ~PAGE_MASK ||
+			 t->u.mem.start & ~PAGE_MASK))
+		{
 			printk(KERN_WARNING
-			       "Clearing invalid memory bank %dKB@0x%08x\n",
-			       t->u.mem.size / 1024, t->u.mem.start);
+				   "Clearing invalid memory bank %dKB@0x%08x\n",
+				   t->u.mem.size / 1024, t->u.mem.start);
 			t->hdr.tag = 0;
 		}
 }

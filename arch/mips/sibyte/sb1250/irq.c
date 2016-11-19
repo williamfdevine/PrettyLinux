@@ -43,7 +43,7 @@
  */
 
 #ifdef CONFIG_SIBYTE_HAS_LDT
-extern unsigned long ldt_eoi_space;
+	extern unsigned long ldt_eoi_space;
 #endif
 
 /* Store the CPU id (not the logical number) */
@@ -58,10 +58,10 @@ void sb1250_mask_irq(int cpu, int irq)
 
 	raw_spin_lock_irqsave(&sb1250_imr_lock, flags);
 	cur_ints = ____raw_readq(IOADDR(A_IMR_MAPPER(cpu) +
-					R_IMR_INTERRUPT_MASK));
+									R_IMR_INTERRUPT_MASK));
 	cur_ints |= (((u64) 1) << irq);
 	____raw_writeq(cur_ints, IOADDR(A_IMR_MAPPER(cpu) +
-					R_IMR_INTERRUPT_MASK));
+									R_IMR_INTERRUPT_MASK));
 	raw_spin_unlock_irqrestore(&sb1250_imr_lock, flags);
 }
 
@@ -72,16 +72,16 @@ void sb1250_unmask_irq(int cpu, int irq)
 
 	raw_spin_lock_irqsave(&sb1250_imr_lock, flags);
 	cur_ints = ____raw_readq(IOADDR(A_IMR_MAPPER(cpu) +
-					R_IMR_INTERRUPT_MASK));
+									R_IMR_INTERRUPT_MASK));
 	cur_ints &= ~(((u64) 1) << irq);
 	____raw_writeq(cur_ints, IOADDR(A_IMR_MAPPER(cpu) +
-					R_IMR_INTERRUPT_MASK));
+									R_IMR_INTERRUPT_MASK));
 	raw_spin_unlock_irqrestore(&sb1250_imr_lock, flags);
 }
 
 #ifdef CONFIG_SMP
 static int sb1250_set_affinity(struct irq_data *d, const struct cpumask *mask,
-			       bool force)
+							   bool force)
 {
 	int i = 0, old_cpu, cpu, int_on;
 	unsigned int irq = d->irq;
@@ -99,23 +99,29 @@ static int sb1250_set_affinity(struct irq_data *d, const struct cpumask *mask,
 	/* Swizzle each CPU's IMR (but leave the IP selection alone) */
 	old_cpu = sb1250_irq_owner[irq];
 	cur_ints = ____raw_readq(IOADDR(A_IMR_MAPPER(old_cpu) +
-					R_IMR_INTERRUPT_MASK));
+									R_IMR_INTERRUPT_MASK));
 	int_on = !(cur_ints & (((u64) 1) << irq));
-	if (int_on) {
+
+	if (int_on)
+	{
 		/* If it was on, mask it */
 		cur_ints |= (((u64) 1) << irq);
 		____raw_writeq(cur_ints, IOADDR(A_IMR_MAPPER(old_cpu) +
-					R_IMR_INTERRUPT_MASK));
+										R_IMR_INTERRUPT_MASK));
 	}
+
 	sb1250_irq_owner[irq] = cpu;
-	if (int_on) {
+
+	if (int_on)
+	{
 		/* unmask for the new CPU */
 		cur_ints = ____raw_readq(IOADDR(A_IMR_MAPPER(cpu) +
-					R_IMR_INTERRUPT_MASK));
+										R_IMR_INTERRUPT_MASK));
 		cur_ints &= ~(((u64) 1) << irq);
 		____raw_writeq(cur_ints, IOADDR(A_IMR_MAPPER(cpu) +
-					R_IMR_INTERRUPT_MASK));
+										R_IMR_INTERRUPT_MASK));
 	}
+
 	raw_spin_unlock_irqrestore(&sb1250_imr_lock, flags);
 
 	return 0;
@@ -150,11 +156,15 @@ static void ack_sb1250_irq(struct irq_data *d)
 	 * changing easier for us)
 	 */
 	pending = __raw_readq(IOADDR(A_IMR_REGISTER(sb1250_irq_owner[irq],
-						    R_IMR_LDT_INTERRUPT)));
+								 R_IMR_LDT_INTERRUPT)));
 	pending &= ((u64)1 << (irq));
-	if (pending) {
+
+	if (pending)
+	{
 		int i;
-		for (i=0; i<NR_CPUS; i++) {
+
+		for (i = 0; i < NR_CPUS; i++)
+		{
 			int cpu;
 #ifdef CONFIG_SMP
 			cpu = cpu_logical_map(i);
@@ -166,8 +176,8 @@ static void ack_sb1250_irq(struct irq_data *d)
 			 * doesn't find an old status
 			 */
 			__raw_writeq(pending,
-				     IOADDR(A_IMR_REGISTER(cpu,
-						R_IMR_LDT_INTERRUPT_CLR)));
+						 IOADDR(A_IMR_REGISTER(cpu,
+											   R_IMR_LDT_INTERRUPT_CLR)));
 		}
 
 		/*
@@ -176,13 +186,15 @@ static void ack_sb1250_irq(struct irq_data *d)
 		 * this EOI shouldn't hurt.  If they are
 		 * level-sensitive, the EOI is required.
 		 */
-		*(uint32_t *)(ldt_eoi_space+(irq<<16)+(7<<2)) = 0;
+		*(uint32_t *)(ldt_eoi_space + (irq << 16) + (7 << 2)) = 0;
 	}
+
 #endif
 	sb1250_mask_irq(sb1250_irq_owner[irq], irq);
 }
 
-static struct irq_chip sb1250_irq_type = {
+static struct irq_chip sb1250_irq_type =
+{
 	.name = "SB1250-IMR",
 	.irq_mask_ack = ack_sb1250_irq,
 	.irq_unmask = enable_sb1250_irq,
@@ -196,9 +208,10 @@ void __init init_sb1250_irqs(void)
 {
 	int i;
 
-	for (i = 0; i < SB1250_NR_IRQS; i++) {
+	for (i = 0; i < SB1250_NR_IRQS; i++)
+	{
 		irq_set_chip_and_handler(i, &sb1250_irq_type,
-					 handle_level_irq);
+								 handle_level_irq);
 		sb1250_irq_owner[i] = 0;
 	}
 }
@@ -236,18 +249,19 @@ void __init arch_init_irq(void)
 	unsigned int i;
 	u64 tmp;
 	unsigned int imask = STATUSF_IP4 | STATUSF_IP3 | STATUSF_IP2 |
-		STATUSF_IP1 | STATUSF_IP0;
+						 STATUSF_IP1 | STATUSF_IP0;
 
 	/* Default everything to IP2 */
-	for (i = 0; i < SB1250_NR_IRQS; i++) {	/* was I0 */
+	for (i = 0; i < SB1250_NR_IRQS; i++)  	/* was I0 */
+	{
 		__raw_writeq(IMR_IP2_VAL,
-			     IOADDR(A_IMR_REGISTER(0,
-						   R_IMR_INTERRUPT_MAP_BASE) +
-				    (i << 3)));
+					 IOADDR(A_IMR_REGISTER(0,
+										   R_IMR_INTERRUPT_MAP_BASE) +
+							(i << 3)));
 		__raw_writeq(IMR_IP2_VAL,
-			     IOADDR(A_IMR_REGISTER(1,
-						   R_IMR_INTERRUPT_MAP_BASE) +
-				    (i << 3)));
+					 IOADDR(A_IMR_REGISTER(1,
+										   R_IMR_INTERRUPT_MAP_BASE) +
+							(i << 3)));
 	}
 
 	init_sb1250_irqs();
@@ -258,17 +272,17 @@ void __init arch_init_irq(void)
 	 */
 	/* Was I1 */
 	__raw_writeq(IMR_IP3_VAL,
-		     IOADDR(A_IMR_REGISTER(0, R_IMR_INTERRUPT_MAP_BASE) +
-			    (K_INT_MBOX_0 << 3)));
+				 IOADDR(A_IMR_REGISTER(0, R_IMR_INTERRUPT_MAP_BASE) +
+						(K_INT_MBOX_0 << 3)));
 	__raw_writeq(IMR_IP3_VAL,
-		     IOADDR(A_IMR_REGISTER(1, R_IMR_INTERRUPT_MAP_BASE) +
-			    (K_INT_MBOX_0 << 3)));
+				 IOADDR(A_IMR_REGISTER(1, R_IMR_INTERRUPT_MAP_BASE) +
+						(K_INT_MBOX_0 << 3)));
 
 	/* Clear the mailboxes.	 The firmware may leave them dirty */
 	__raw_writeq(0xffffffffffffffffULL,
-		     IOADDR(A_IMR_REGISTER(0, R_IMR_MAILBOX_CLR_CPU)));
+				 IOADDR(A_IMR_REGISTER(0, R_IMR_MAILBOX_CLR_CPU)));
 	__raw_writeq(0xffffffffffffffffULL,
-		     IOADDR(A_IMR_REGISTER(1, R_IMR_MAILBOX_CLR_CPU)));
+				 IOADDR(A_IMR_REGISTER(1, R_IMR_MAILBOX_CLR_CPU)));
 
 	/* Mask everything except the mailbox registers for both cpus */
 	tmp = ~((u64) 0) ^ (((u64) 1) << K_INT_MBOX_0);
@@ -298,9 +312,12 @@ static inline void dispatch_ip2(void)
 	 * to detect which CPU we're on, now that smp_affinity is supported.
 	 */
 	mask = __raw_readq(IOADDR(A_IMR_REGISTER(cpu,
-				  R_IMR_INTERRUPT_STATUS_BASE)));
+							  R_IMR_INTERRUPT_STATUS_BASE)));
+
 	if (mask)
+	{
 		do_IRQ(fls64(mask) - 1);
+	}
 }
 
 asmlinkage void plat_irq_dispatch(void)
@@ -321,17 +338,28 @@ asmlinkage void plat_irq_dispatch(void)
 	pending = read_c0_cause() & read_c0_status() & ST0_IM;
 
 	if (pending & CAUSEF_IP7) /* CPU performance counter interrupt */
+	{
 		do_IRQ(MIPS_CPU_IRQ_BASE + 7);
+	}
 	else if (pending & CAUSEF_IP4)
-		do_IRQ(K_INT_TIMER_0 + cpu);	/* sb1250_timer_interrupt() */
+	{
+		do_IRQ(K_INT_TIMER_0 + cpu);    /* sb1250_timer_interrupt() */
+	}
 
 #ifdef CONFIG_SMP
 	else if (pending & CAUSEF_IP3)
+	{
 		sb1250_mailbox_interrupt();
+	}
+
 #endif
 
 	else if (pending & CAUSEF_IP2)
+	{
 		dispatch_ip2();
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }

@@ -15,7 +15,8 @@
 #define DAVINCI_TIMER1_BASE		(IO_PHYS + 0x21800)
 #define DAVINCI_WDOG_BASE		(IO_PHYS + 0x21C00)
 
-enum {
+enum
+{
 	T0_BOT,
 	T0_TOP,
 	T1_BOT,

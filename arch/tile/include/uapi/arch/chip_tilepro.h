@@ -198,61 +198,61 @@
 
 #ifndef __OPEN_SOURCE__  /* features only relevant to hypervisor-level code */
 
-/** How many entries are present in the instruction TLB? */
-#define CHIP_ITLB_ENTRIES() 16
+	/** How many entries are present in the instruction TLB? */
+	#define CHIP_ITLB_ENTRIES() 16
 
-/** How many entries are present in the data TLB? */
-#define CHIP_DTLB_ENTRIES() 16
+	/** How many entries are present in the data TLB? */
+	#define CHIP_DTLB_ENTRIES() 16
 
-/** How many MAF entries does the XAUI shim have? */
-#define CHIP_XAUI_MAF_ENTRIES() 32
+	/** How many MAF entries does the XAUI shim have? */
+	#define CHIP_XAUI_MAF_ENTRIES() 32
 
-/** Does the memory shim have a source-id table? */
-#define CHIP_HAS_MSHIM_SRCID_TABLE() 0
+	/** Does the memory shim have a source-id table? */
+	#define CHIP_HAS_MSHIM_SRCID_TABLE() 0
 
-/** Does the L1 instruction cache clear on reset? */
-#define CHIP_HAS_L1I_CLEAR_ON_RESET() 1
+	/** Does the L1 instruction cache clear on reset? */
+	#define CHIP_HAS_L1I_CLEAR_ON_RESET() 1
 
-/** Does the chip come out of reset with valid coordinates on all tiles?
- * Note that if defined, this also implies that the upper left is 1,1.
- */
-#define CHIP_HAS_VALID_TILE_COORD_RESET() 1
+	/** Does the chip come out of reset with valid coordinates on all tiles?
+	* Note that if defined, this also implies that the upper left is 1,1.
+	*/
+	#define CHIP_HAS_VALID_TILE_COORD_RESET() 1
 
-/** Does the chip have unified packet formats? */
-#define CHIP_HAS_UNIFIED_PACKET_FORMATS() 1
+	/** Does the chip have unified packet formats? */
+	#define CHIP_HAS_UNIFIED_PACKET_FORMATS() 1
 
-/** Does the chip support write reordering? */
-#define CHIP_HAS_WRITE_REORDERING() 1
+	/** Does the chip support write reordering? */
+	#define CHIP_HAS_WRITE_REORDERING() 1
 
-/** Does the chip support Y-X routing as well as X-Y? */
-#define CHIP_HAS_Y_X_ROUTING() 1
+	/** Does the chip support Y-X routing as well as X-Y? */
+	#define CHIP_HAS_Y_X_ROUTING() 1
 
-/** Is INTCTRL_3 managed with the correct MPL? */
-#define CHIP_HAS_INTCTRL_3_STATUS_FIX() 1
+	/** Is INTCTRL_3 managed with the correct MPL? */
+	#define CHIP_HAS_INTCTRL_3_STATUS_FIX() 1
 
-/** Is it possible to configure the chip to be big-endian? */
-#define CHIP_HAS_BIG_ENDIAN_CONFIG() 1
+	/** Is it possible to configure the chip to be big-endian? */
+	#define CHIP_HAS_BIG_ENDIAN_CONFIG() 1
 
-/** Is the CACHE_RED_WAY_OVERRIDDEN SPR supported? */
-#define CHIP_HAS_CACHE_RED_WAY_OVERRIDDEN() 1
+	/** Is the CACHE_RED_WAY_OVERRIDDEN SPR supported? */
+	#define CHIP_HAS_CACHE_RED_WAY_OVERRIDDEN() 1
 
-/** Is the DIAG_TRACE_WAY SPR supported? */
-#define CHIP_HAS_DIAG_TRACE_WAY() 1
+	/** Is the DIAG_TRACE_WAY SPR supported? */
+	#define CHIP_HAS_DIAG_TRACE_WAY() 1
 
-/** Is the MEM_STRIPE_CONFIG SPR supported? */
-#define CHIP_HAS_MEM_STRIPE_CONFIG() 1
+	/** Is the MEM_STRIPE_CONFIG SPR supported? */
+	#define CHIP_HAS_MEM_STRIPE_CONFIG() 1
 
-/** Are the TLB_PERF SPRs supported? */
-#define CHIP_HAS_TLB_PERF() 1
+	/** Are the TLB_PERF SPRs supported? */
+	#define CHIP_HAS_TLB_PERF() 1
 
-/** Is the VDN_SNOOP_SHIM_CTL SPR supported? */
-#define CHIP_HAS_VDN_SNOOP_SHIM_CTL() 1
+	/** Is the VDN_SNOOP_SHIM_CTL SPR supported? */
+	#define CHIP_HAS_VDN_SNOOP_SHIM_CTL() 1
 
-/** Does the chip support rev1 DMA packets? */
-#define CHIP_HAS_REV1_DMA_PACKETS() 1
+	/** Does the chip support rev1 DMA packets? */
+	#define CHIP_HAS_REV1_DMA_PACKETS() 1
 
-/** Does the chip have an IPI shim? */
-#define CHIP_HAS_IPI() 0
+	/** Does the chip have an IPI shim? */
+	#define CHIP_HAS_IPI() 0
 
 #endif /* !__OPEN_SOURCE__ */
 #endif /* __ARCH_CHIP_H__ */

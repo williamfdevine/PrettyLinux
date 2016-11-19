@@ -12,7 +12,7 @@
 #define _ASM_SGI_SN0_HUBNI_H
 
 #ifndef __ASSEMBLY__
-#include <linux/types.h>
+	#include <linux/types.h>
 #endif
 
 /*
@@ -187,9 +187,9 @@
 #define NPP_MAXBURST_SHFT	0
 #define NPP_MAXBURST_MASK	(UINT64_CAST 0x3ff)
 #define NPP_RESET_DFLT_HUB20	((UINT64_CAST 1	    << NPP_NULLTO_SHFT) | \
-				 (UINT64_CAST 0x3f0 << NPP_MAXBURST_SHFT))
+								 (UINT64_CAST 0x3f0 << NPP_MAXBURST_SHFT))
 #define NPP_RESET_DEFAULTS	((UINT64_CAST 6	    << NPP_NULLTO_SHFT) | \
-				 (UINT64_CAST 0x3f0 << NPP_MAXBURST_SHFT))
+							 (UINT64_CAST 0x3f0 << NPP_MAXBURST_SHFT))
 
 
 /* NI_PORT_ERROR mask and shift definitions */
@@ -214,9 +214,9 @@
 #define NPE_COUNT_MAX		0xff
 
 #define NPE_FATAL_ERRORS	(NPE_LINKRESET | NPE_INTERNALERROR |	\
-				 NPE_BADMESSAGE | NPE_BADDEST |		\
-				 NPE_FIFOOVERFLOW | NPE_CREDITTO_MASK | \
-				 NPE_TAILTO_MASK)
+							 NPE_BADMESSAGE | NPE_BADDEST |		\
+							 NPE_FIFOOVERFLOW | NPE_CREDITTO_MASK | \
+							 NPE_TAILTO_MASK)
 
 /* NI_META_TABLE mask and shift definitions */
 
@@ -228,21 +228,23 @@
 
 #ifndef __ASSEMBLY__
 
-typedef union	hubni_port_error_u {
+typedef union	hubni_port_error_u
+{
 	u64	nipe_reg_value;
-	struct {
-	    u64 nipe_rsvd:	26,	/* unused */
-		nipe_lnk_reset:	 1,	/* link reset */
-		nipe_intl_err:	 1,	/* internal error */
-		nipe_bad_msg:	 1,	/* bad message */
-		nipe_bad_dest:	 1,	/* bad dest	*/
-		nipe_fifo_ovfl:	 1,	/* fifo overflow */
-		nipe_rsvd1:	 1,	/* unused */
-		nipe_credit_to:	 4,	/* credit timeout */
-		nipe_tail_to:	 4,	/* tail timeout */
-		nipe_retry_cnt:	 8,	/* retry error count */
-		nipe_cb_cnt:	 8,	/* checkbit error count */
-		nipe_sn_cnt:	 8;	/* sequence number count */
+	struct
+	{
+		u64 nipe_rsvd:	26,	/* unused */
+			 nipe_lnk_reset:	 1,	/* link reset */
+			 nipe_intl_err:	 1,	/* internal error */
+			 nipe_bad_msg:	 1,	/* bad message */
+			 nipe_bad_dest:	 1,	/* bad dest	*/
+			 nipe_fifo_ovfl:	 1,	/* fifo overflow */
+			 nipe_rsvd1:	 1,	/* unused */
+			 nipe_credit_to:	 4,	/* credit timeout */
+			 nipe_tail_to:	 4,	/* tail timeout */
+			 nipe_retry_cnt:	 8,	/* retry error count */
+			 nipe_cb_cnt:	 8,	/* checkbit error count */
+			 nipe_sn_cnt:	 8;	/* sequence number count */
 	} nipe_fields_s;
 } hubni_port_error_t;
 

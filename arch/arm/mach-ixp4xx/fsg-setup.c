@@ -35,16 +35,19 @@
 #define FSG_RB_GPIO		9	/* reset button */
 #define FSG_UB_GPIO		10	/* usb button */
 
-static struct flash_platform_data fsg_flash_data = {
+static struct flash_platform_data fsg_flash_data =
+{
 	.map_name		= "cfi_probe",
 	.width			= 2,
 };
 
-static struct resource fsg_flash_resource = {
+static struct resource fsg_flash_resource =
+{
 	.flags			= IORESOURCE_MEM,
 };
 
-static struct platform_device fsg_flash = {
+static struct platform_device fsg_flash =
+{
 	.name			= "IXP4XX-Flash",
 	.id			= 0,
 	.dev = {
@@ -54,12 +57,14 @@ static struct platform_device fsg_flash = {
 	.resource		= &fsg_flash_resource,
 };
 
-static struct i2c_gpio_platform_data fsg_i2c_gpio_data = {
+static struct i2c_gpio_platform_data fsg_i2c_gpio_data =
+{
 	.sda_pin		= FSG_SDA_PIN,
 	.scl_pin		= FSG_SCL_PIN,
 };
 
-static struct platform_device fsg_i2c_gpio = {
+static struct platform_device fsg_i2c_gpio =
+{
 	.name			= "i2c-gpio",
 	.id			= 0,
 	.dev = {
@@ -67,13 +72,15 @@ static struct platform_device fsg_i2c_gpio = {
 	},
 };
 
-static struct i2c_board_info __initdata fsg_i2c_board_info [] = {
+static struct i2c_board_info __initdata fsg_i2c_board_info [] =
+{
 	{
 		I2C_BOARD_INFO("isl1208", 0x6f),
 	},
 };
 
-static struct resource fsg_uart_resources[] = {
+static struct resource fsg_uart_resources[] =
+{
 	{
 		.start		= IXP4XX_UART1_BASE_PHYS,
 		.end		= IXP4XX_UART1_BASE_PHYS + 0x0fff,
@@ -86,7 +93,8 @@ static struct resource fsg_uart_resources[] = {
 	}
 };
 
-static struct plat_serial8250_port fsg_uart_data[] = {
+static struct plat_serial8250_port fsg_uart_data[] =
+{
 	{
 		.mapbase	= IXP4XX_UART1_BASE_PHYS,
 		.membase	= (char *)IXP4XX_UART1_BASE_VIRT + REG_OFFSET,
@@ -108,7 +116,8 @@ static struct plat_serial8250_port fsg_uart_data[] = {
 	{ }
 };
 
-static struct platform_device fsg_uart = {
+static struct platform_device fsg_uart =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev = {
@@ -118,13 +127,15 @@ static struct platform_device fsg_uart = {
 	.resource		= fsg_uart_resources,
 };
 
-static struct platform_device fsg_leds = {
+static struct platform_device fsg_leds =
+{
 	.name		= "fsg-led",
 	.id		= -1,
 };
 
 /* Built-in 10/100 Ethernet MAC interfaces */
-static struct eth_plat_info fsg_plat_eth[] = {
+static struct eth_plat_info fsg_plat_eth[] =
+{
 	{
 		.phy		= 5,
 		.rxq		= 3,
@@ -136,7 +147,8 @@ static struct eth_plat_info fsg_plat_eth[] = {
 	}
 };
 
-static struct platform_device fsg_eth[] = {
+static struct platform_device fsg_eth[] =
+{
 	{
 		.name			= "ixp4xx_eth",
 		.id			= IXP4XX_ETH_NPEB,
@@ -152,7 +164,8 @@ static struct platform_device fsg_eth[] = {
 	}
 };
 
-static struct platform_device *fsg_devices[] __initdata = {
+static struct platform_device *fsg_devices[] __initdata =
+{
 	&fsg_i2c_gpio,
 	&fsg_flash,
 	&fsg_leds,
@@ -197,7 +210,7 @@ static void __init fsg_init(void)
 	*IXP4XX_EXP_CS2 = 0xbfff0002;
 
 	i2c_register_board_info(0, fsg_i2c_board_info,
-				ARRAY_SIZE(fsg_i2c_board_info));
+							ARRAY_SIZE(fsg_i2c_board_info));
 
 	/* This is only useful on a modified machine, but it is valuable
 	 * to have it first in order to see debug messages, and so that
@@ -208,17 +221,19 @@ static void __init fsg_init(void)
 	platform_add_devices(fsg_devices, ARRAY_SIZE(fsg_devices));
 
 	if (request_irq(gpio_to_irq(FSG_RB_GPIO), &fsg_reset_handler,
-			IRQF_TRIGGER_LOW, "FSG reset button", NULL) < 0) {
+					IRQF_TRIGGER_LOW, "FSG reset button", NULL) < 0)
+	{
 
 		printk(KERN_DEBUG "Reset Button IRQ %d not available\n",
-			gpio_to_irq(FSG_RB_GPIO));
+			   gpio_to_irq(FSG_RB_GPIO));
 	}
 
 	if (request_irq(gpio_to_irq(FSG_SB_GPIO), &fsg_power_handler,
-			IRQF_TRIGGER_LOW, "FSG power button", NULL) < 0) {
+					IRQF_TRIGGER_LOW, "FSG power button", NULL) < 0)
+	{
 
 		printk(KERN_DEBUG "Power Button IRQ %d not available\n",
-			gpio_to_irq(FSG_SB_GPIO));
+			   gpio_to_irq(FSG_SB_GPIO));
 	}
 
 	/*
@@ -227,13 +242,18 @@ static void __init fsg_init(void)
 	 * byteswap it if we're in LE mode.
 	 */
 	f = ioremap(IXP4XX_EXP_BUS_BASE(0), 0x400000);
-	if (f) {
+
+	if (f)
+	{
 #ifdef __ARMEB__
 		int i;
-		for (i = 0; i < 6; i++) {
+
+		for (i = 0; i < 6; i++)
+		{
 			fsg_plat_eth[0].hwaddr[i] = readb(f + 0x3C0422 + i);
 			fsg_plat_eth[1].hwaddr[i] = readb(f + 0x3C043B + i);
 		}
+
 #else
 
 		/*
@@ -258,24 +278,25 @@ static void __init fsg_init(void)
 #endif
 		iounmap(f);
 	}
+
 	printk(KERN_INFO "FSG: Using MAC address %pM for port 0\n",
-	       fsg_plat_eth[0].hwaddr);
+		   fsg_plat_eth[0].hwaddr);
 	printk(KERN_INFO "FSG: Using MAC address %pM for port 1\n",
-	       fsg_plat_eth[1].hwaddr);
+		   fsg_plat_eth[1].hwaddr);
 
 }
 
 MACHINE_START(FSG, "Freecom FSG-3")
-	/* Maintainer: www.nslu2-linux.org */
-	.map_io		= ixp4xx_map_io,
+/* Maintainer: www.nslu2-linux.org */
+.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
-	.init_irq	= ixp4xx_init_irq,
-	.init_time	= ixp4xx_timer_init,
-	.atag_offset	= 0x100,
-	.init_machine	= fsg_init,
+	 .init_irq	= ixp4xx_init_irq,
+		.init_time	= ixp4xx_timer_init,
+		  .atag_offset	= 0x100,
+			  .init_machine	= fsg_init,
 #if defined(CONFIG_PCI)
 	.dma_zone_size	= SZ_64M,
 #endif
-	.restart	= ixp4xx_restart,
-MACHINE_END
+				 .restart	= ixp4xx_restart,
+					 MACHINE_END
 

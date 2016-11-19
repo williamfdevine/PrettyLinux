@@ -18,11 +18,11 @@
 static inline void __delay(unsigned long loops)
 {
 	asm volatile ("# __delay		\n\t"		\
-			"1: addi	%0, %0, -1\t\n"		\
-			"bneid	%0, 1b		\t\n"		\
-			"nop			\t\n"
-			: "=r" (loops)
-			: "0" (loops));
+				  "1: addi	%0, %0, -1\t\n"		\
+				  "bneid	%0, 1b		\t\n"		\
+				  "nop			\t\n"
+				  : "=r" (loops)
+				  : "0" (loops));
 }
 
 /*
@@ -48,13 +48,13 @@ static inline void __udelay(unsigned int x)
 
 	unsigned long long tmp =
 		(unsigned long long)x * (unsigned long long)loops_per_jiffy \
-			* 226LL;
+		* 226LL;
 	unsigned loops = tmp >> 32;
 
-/*
-	__asm__("mulxuu %0,%1,%2" : "=r" (loops) :
-		"r" (x), "r" (loops_per_jiffy * 226));
-*/
+	/*
+		__asm__("mulxuu %0,%1,%2" : "=r" (loops) :
+			"r" (x), "r" (loops_per_jiffy * 226));
+	*/
 	__delay(loops);
 }
 

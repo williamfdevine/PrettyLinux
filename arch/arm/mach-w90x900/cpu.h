@@ -17,23 +17,23 @@
  */
 
 #define IODESC_ENT(y)                                  \
-{                                                      \
-       .virtual = (unsigned long)W90X900_VA_##y,       \
-       .pfn     = __phys_to_pfn(W90X900_PA_##y),       \
-       .length  = W90X900_SZ_##y,                      \
-       .type    = MT_DEVICE,                           \
-}
+	{                                                      \
+		.virtual = (unsigned long)W90X900_VA_##y,       \
+				   .pfn     = __phys_to_pfn(W90X900_PA_##y),       \
+							  .length  = W90X900_SZ_##y,                      \
+										 .type    = MT_DEVICE,                           \
+	}
 
 #define NUC900_8250PORT(name)					\
-{								\
-	.membase	= name##_BA,				\
-	.mapbase	= name##_PA,				\
-	.irq		= IRQ_##name,				\
-	.uartclk	= 11313600,				\
-	.regshift	= 2,					\
-	.iotype		= UPIO_MEM,				\
-	.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,	\
-}
+	{								\
+		.membase	= name##_BA,				\
+					  .mapbase	= name##_PA,				\
+									.irq		= IRQ_##name,				\
+											.uartclk	= 11313600,				\
+													.regshift	= 2,					\
+															.iotype		= UPIO_MEM,				\
+																	.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,	\
+	}
 
 /*Cpu identifier register*/
 

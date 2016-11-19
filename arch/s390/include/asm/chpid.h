@@ -8,7 +8,8 @@
 #include <uapi/asm/chpid.h>
 #include <asm/cio.h>
 
-struct channel_path_desc {
+struct channel_path_desc
+{
 	u8 flags;
 	u8 lsn;
 	u8 desc;
@@ -32,8 +33,11 @@ static inline int chp_id_is_equal(struct chp_id *a, struct chp_id *b)
 static inline void chp_id_next(struct chp_id *chpid)
 {
 	if (chpid->id < __MAX_CHPID)
+	{
 		chpid->id++;
-	else {
+	}
+	else
+	{
 		chpid->id = 0;
 		chpid->cssid++;
 	}

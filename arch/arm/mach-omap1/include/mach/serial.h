@@ -42,7 +42,7 @@
 #define OMAP1UART3		13
 
 #ifndef __ASSEMBLER__
-extern void omap_serial_init(void);
+	extern void omap_serial_init(void);
 #endif
 
 #endif

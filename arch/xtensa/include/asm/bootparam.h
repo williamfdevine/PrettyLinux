@@ -31,13 +31,15 @@
 
 /* All records are aligned to 4 bytes */
 
-typedef struct bp_tag {
+typedef struct bp_tag
+{
 	unsigned short id;	/* tag id */
 	unsigned short size;	/* size of this record excluding the structure*/
 	unsigned long data[0];	/* data */
 } bp_tag_t;
 
-struct bp_meminfo {
+struct bp_meminfo
+{
 	unsigned long type;
 	unsigned long start;
 	unsigned long end;

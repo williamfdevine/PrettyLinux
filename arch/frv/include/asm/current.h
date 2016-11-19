@@ -14,16 +14,16 @@
 
 #ifndef __ASSEMBLY__
 
-/*
- * dedicate GR29 to keeping the current task pointer
- */
-register struct task_struct *current asm("gr29");
+	/*
+	* dedicate GR29 to keeping the current task pointer
+	*/
+	register struct task_struct *current asm("gr29");
 
-#define get_current() current
+	#define get_current() current
 
 #else
 
-#define CURRENT gr29
+	#define CURRENT gr29
 
 #endif
 

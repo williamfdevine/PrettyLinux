@@ -2,12 +2,13 @@
 #define _SPARC_KGDB_H
 
 #ifdef CONFIG_SPARC32
-#define BUFMAX			2048
+	#define BUFMAX			2048
 #else
-#define BUFMAX			4096
+	#define BUFMAX			4096
 #endif
 
-enum regnames {
+enum regnames
+{
 	GDB_G0, GDB_G1, GDB_G2, GDB_G3, GDB_G4, GDB_G5, GDB_G6, GDB_G7,
 	GDB_O0, GDB_O1, GDB_O2, GDB_O3, GDB_O4, GDB_O5, GDB_SP, GDB_O7,
 	GDB_L0, GDB_L1, GDB_L2, GDB_L3, GDB_L4, GDB_L5, GDB_L6, GDB_L7,
@@ -25,9 +26,9 @@ enum regnames {
 };
 
 #ifdef CONFIG_SPARC32
-#define NUMREGBYTES		((GDB_CSR + 1) * 4)
+	#define NUMREGBYTES		((GDB_CSR + 1) * 4)
 #else
-#define NUMREGBYTES		((GDB_Y + 1) * 8)
+	#define NUMREGBYTES		((GDB_Y + 1) * 8)
 #endif
 
 struct pt_regs;

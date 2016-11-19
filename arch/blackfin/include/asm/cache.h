@@ -29,8 +29,8 @@
  */
 #ifdef CONFIG_CACHELINE_ALIGNED_L1
 #define __cacheline_aligned				\
-	  __attribute__((__aligned__(L1_CACHE_BYTES),	\
-		__section__(".data_l1.cacheline_aligned")))
+	__attribute__((__aligned__(L1_CACHE_BYTES),	\
+				   __section__(".data_l1.cacheline_aligned")))
 #endif
 
 #endif
@@ -42,12 +42,12 @@
 
 #if defined(CONFIG_SMP) && \
     !defined(CONFIG_BFIN_CACHE_COHERENT)
-# if defined(CONFIG_BFIN_EXTMEM_ICACHEABLE) || defined(CONFIG_BFIN_L2_ICACHEABLE)
-# define __ARCH_SYNC_CORE_ICACHE
-# endif
-# if defined(CONFIG_BFIN_EXTMEM_DCACHEABLE) || defined(CONFIG_BFIN_L2_DCACHEABLE)
-# define __ARCH_SYNC_CORE_DCACHE
-# endif
+#if defined(CONFIG_BFIN_EXTMEM_ICACHEABLE) || defined(CONFIG_BFIN_L2_ICACHEABLE)
+	#define __ARCH_SYNC_CORE_ICACHE
+#endif
+#if defined(CONFIG_BFIN_EXTMEM_DCACHEABLE) || defined(CONFIG_BFIN_L2_DCACHEABLE)
+	#define __ARCH_SYNC_CORE_DCACHE
+#endif
 #ifndef __ASSEMBLY__
 asmlinkage void __raw_smp_mark_barrier_asm(void);
 asmlinkage void __raw_smp_check_barrier_asm(void);

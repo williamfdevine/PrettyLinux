@@ -30,11 +30,13 @@
 #include "mpc86xads.h"
 #include "mpc8xx.h"
 
-struct cpm_pin {
+struct cpm_pin
+{
 	int port, pin, flags;
 };
 
-static struct cpm_pin mpc866ads_pins[] = {
+static struct cpm_pin mpc866ads_pins[] =
+{
 	/* SMC1 */
 	{CPM_PORTB, 24, CPM_PIN_INPUT}, /* RX */
 	{CPM_PORTB, 25, CPM_PIN_INPUT | CPM_PIN_SECONDARY}, /* TX */
@@ -76,7 +78,8 @@ static void __init init_ioports(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(mpc866ads_pins); i++) {
+	for (i = 0; i < ARRAY_SIZE(mpc866ads_pins); i++)
+	{
 		struct cpm_pin *pin = &mpc866ads_pins[i];
 		cpm1_set_pin(pin->port, pin->pin, pin->flags);
 	}
@@ -99,7 +102,9 @@ static void __init mpc86xads_setup_arch(void)
 	init_ioports();
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc866ads-bcsr");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_CRIT "Could not find fsl,mpc866ads-bcsr node\n");
 		return;
 	}
@@ -107,7 +112,8 @@ static void __init mpc86xads_setup_arch(void)
 	bcsr_io = of_iomap(np, 0);
 	of_node_put(np);
 
-	if (bcsr_io == NULL) {
+	if (bcsr_io == NULL)
+	{
 		printk(KERN_CRIT "Could not remap BCSR\n");
 		return;
 	}
@@ -121,7 +127,8 @@ static int __init mpc86xads_probe(void)
 	return of_machine_is_compatible("fsl,mpc866ads");
 }
 
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .name = "soc", },
 	{ .name = "cpm", },
 	{ .name = "localbus", },
@@ -136,15 +143,16 @@ static int __init declare_of_platform_devices(void)
 }
 machine_device_initcall(mpc86x_ads, declare_of_platform_devices);
 
-define_machine(mpc86x_ads) {
+define_machine(mpc86x_ads)
+{
 	.name			= "MPC86x ADS",
-	.probe			= mpc86xads_probe,
-	.setup_arch		= mpc86xads_setup_arch,
-	.init_IRQ		= mpc8xx_pics_init,
-	.get_irq		= mpc8xx_get_irq,
-	.restart		= mpc8xx_restart,
-	.calibrate_decr		= mpc8xx_calibrate_decr,
-	.set_rtc_time		= mpc8xx_set_rtc_time,
-	.get_rtc_time		= mpc8xx_get_rtc_time,
-	.progress		= udbg_progress,
+			 .probe			= mpc86xads_probe,
+					 .setup_arch		= mpc86xads_setup_arch,
+						 .init_IRQ		= mpc8xx_pics_init,
+							   .get_irq		= mpc8xx_get_irq,
+									  .restart		= mpc8xx_restart,
+											 .calibrate_decr		= mpc8xx_calibrate_decr,
+												 .set_rtc_time		= mpc8xx_set_rtc_time,
+													   .get_rtc_time		= mpc8xx_get_rtc_time,
+															 .progress		= udbg_progress,
 };

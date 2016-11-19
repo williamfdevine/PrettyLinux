@@ -24,12 +24,12 @@
  * pages encoded in the PTEs can be different
  */
 int __meminit vmemmap_create_mapping(unsigned long start,
-				     unsigned long page_size,
-				     unsigned long phys)
+									 unsigned long page_size,
+									 unsigned long phys)
 {
 	/* Create a PTE encoding without page size */
 	unsigned long i, flags = _PAGE_PRESENT | _PAGE_ACCESSED |
-		_PAGE_KERNEL_RW;
+							 _PAGE_KERNEL_RW;
 
 	/* PTEs only contain page size encodings up to 32M */
 	BUG_ON(mmu_psize_defs[mmu_vmemmap_psize].enc > 0xf);
@@ -42,14 +42,16 @@ int __meminit vmemmap_create_mapping(unsigned long start,
 	 * thus must have the low bits clear
 	 */
 	for (i = 0; i < page_size; i += PAGE_SIZE)
+	{
 		BUG_ON(map_kernel_page(start + i, phys, flags));
+	}
 
 	return 0;
 }
 
 #ifdef CONFIG_MEMORY_HOTPLUG
 void vmemmap_remove_mapping(unsigned long start,
-			    unsigned long page_size)
+							unsigned long page_size)
 {
 }
 #endif
@@ -78,43 +80,68 @@ int map_kernel_page(unsigned long ea, unsigned long pa, unsigned long flags)
 	pte_t *ptep;
 
 	BUILD_BUG_ON(TASK_SIZE_USER64 > PGTABLE_RANGE);
-	if (slab_is_available()) {
+
+	if (slab_is_available())
+	{
 		pgdp = pgd_offset_k(ea);
 		pudp = pud_alloc(&init_mm, pgdp, ea);
+
 		if (!pudp)
+		{
 			return -ENOMEM;
+		}
+
 		pmdp = pmd_alloc(&init_mm, pudp, ea);
+
 		if (!pmdp)
+		{
 			return -ENOMEM;
+		}
+
 		ptep = pte_alloc_kernel(pmdp, ea);
+
 		if (!ptep)
+		{
 			return -ENOMEM;
+		}
+
 		set_pte_at(&init_mm, ea, ptep, pfn_pte(pa >> PAGE_SHIFT,
-							  __pgprot(flags)));
-	} else {
+											   __pgprot(flags)));
+	}
+	else
+	{
 		pgdp = pgd_offset_k(ea);
 #ifndef __PAGETABLE_PUD_FOLDED
-		if (pgd_none(*pgdp)) {
+
+		if (pgd_none(*pgdp))
+		{
 			pudp = early_alloc_pgtable(PUD_TABLE_SIZE);
 			BUG_ON(pudp == NULL);
 			pgd_populate(&init_mm, pgdp, pudp);
 		}
+
 #endif /* !__PAGETABLE_PUD_FOLDED */
 		pudp = pud_offset(pgdp, ea);
-		if (pud_none(*pudp)) {
+
+		if (pud_none(*pudp))
+		{
 			pmdp = early_alloc_pgtable(PMD_TABLE_SIZE);
 			BUG_ON(pmdp == NULL);
 			pud_populate(&init_mm, pudp, pmdp);
 		}
+
 		pmdp = pmd_offset(pudp, ea);
-		if (!pmd_present(*pmdp)) {
+
+		if (!pmd_present(*pmdp))
+		{
 			ptep = early_alloc_pgtable(PAGE_SIZE);
 			BUG_ON(ptep == NULL);
 			pmd_populate_kernel(&init_mm, pmdp, ptep);
 		}
+
 		ptep = pte_offset_kernel(pmdp, ea);
 		set_pte_at(&init_mm, ea, ptep, pfn_pte(pa >> PAGE_SHIFT,
-							  __pgprot(flags)));
+											   __pgprot(flags)));
 	}
 
 	smp_wmb();

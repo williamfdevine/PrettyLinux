@@ -27,7 +27,7 @@ extern unsigned long tb_ticks_per_sec;
 extern struct clock_event_device decrementer_clockevent;
 
 struct rtc_time;
-extern void to_tm(int tim, struct rtc_time * tm);
+extern void to_tm(int tim, struct rtc_time *tm);
 extern void tick_broadcast_ipi_handler(void);
 
 extern void generic_calibrate_decr(void);
@@ -38,7 +38,8 @@ extern unsigned long ppc_proc_freq;
 extern unsigned long ppc_tb_freq;
 #define DEFAULT_TB_FREQ		125000000UL
 
-struct div_result {
+struct div_result
+{
 	u64 result_high;
 	u64 result_low;
 };
@@ -46,9 +47,9 @@ struct div_result {
 /* Accessor functions for the timebase (RTC on 601) registers. */
 /* If one day CONFIG_POWER is added just define __USE_RTC as 1 */
 #ifdef CONFIG_6xx
-#define __USE_RTC()	(!cpu_has_feature(CPU_FTR_USE_TB))
+	#define __USE_RTC()	(!cpu_has_feature(CPU_FTR_USE_TB))
 #else
-#define __USE_RTC()	0
+	#define __USE_RTC()	0
 #endif
 
 #ifdef CONFIG_PPC64
@@ -93,18 +94,25 @@ static inline u64 get_rtc(void)
 {
 	unsigned int hi, lo, hi2;
 
-	do {
+	do
+	{
 		asm volatile("mfrtcu %0; mfrtcl %1; mfrtcu %2"
-			     : "=r" (hi), "=r" (lo), "=r" (hi2));
-	} while (hi2 != hi);
+					 : "=r" (hi), "=r" (lo), "=r" (hi2));
+	}
+	while (hi2 != hi);
+
 	return (u64)hi * 1000000000 + lo;
 }
 
 static inline u64 get_vtb(void)
 {
 #ifdef CONFIG_PPC_BOOK3S_64
+
 	if (cpu_has_feature(CPU_FTR_ARCH_207S))
+	{
 		return mfspr(SPRN_VTB);
+	}
+
 #endif
 	return 0;
 }
@@ -119,11 +127,13 @@ static inline u64 get_tb(void)
 {
 	unsigned int tbhi, tblo, tbhi2;
 
-	do {
+	do
+	{
 		tbhi = get_tbu();
 		tblo = get_tbl();
 		tbhi2 = get_tbu();
-	} while (tbhi != tbhi2);
+	}
+	while (tbhi != tbhi2);
 
 	return ((u64)tbhi << 32) | tblo;
 }
@@ -175,30 +185,33 @@ static inline void set_dec(u64 val)
 
 static inline unsigned long tb_ticks_since(unsigned long tstamp)
 {
-	if (__USE_RTC()) {
+	if (__USE_RTC())
+	{
 		int delta = get_rtcl() - (unsigned int) tstamp;
 		return delta < 0 ? delta + 1000000000 : delta;
 	}
+
 	return get_tbl() - tstamp;
 }
 
 #define mulhwu(x,y) \
-({unsigned z; asm ("mulhwu %0,%1,%2" : "=r" (z) : "r" (x), "r" (y)); z;})
+	({unsigned z; asm ("mulhwu %0,%1,%2" : "=r" (z) : "r" (x), "r" (y)); z;})
 
 #ifdef CONFIG_PPC64
 #define mulhdu(x,y) \
-({unsigned long z; asm ("mulhdu %0,%1,%2" : "=r" (z) : "r" (x), "r" (y)); z;})
+	({unsigned long z; asm ("mulhdu %0,%1,%2" : "=r" (z) : "r" (x), "r" (y)); z;})
 #else
 extern u64 mulhdu(u64, u64);
 #endif
 
 extern void div128_by_32(u64 dividend_high, u64 dividend_low,
-			 unsigned divisor, struct div_result *dr);
+						 unsigned divisor, struct div_result *dr);
 
 /* Used to store Processor Utilization register (purr) values */
 
-struct cpu_usage {
-        u64 current_tb;  /* Holds the current purr register values */
+struct cpu_usage
+{
+	u64 current_tb;  /* Holds the current purr register values */
 };
 
 DECLARE_PER_CPU(struct cpu_usage, cpu_usage_array);

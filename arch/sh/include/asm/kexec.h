@@ -31,11 +31,14 @@
 void reserve_crashkernel(void);
 
 static inline void crash_setup_regs(struct pt_regs *newregs,
-				    struct pt_regs *oldregs)
+									struct pt_regs *oldregs)
 {
 	if (oldregs)
+	{
 		memcpy(newregs, oldregs, sizeof(*newregs));
-	else {
+	}
+	else
+	{
 		__asm__ __volatile__ ("mov r0, %0" : "=r" (newregs->regs[0]));
 		__asm__ __volatile__ ("mov r1, %0" : "=r" (newregs->regs[1]));
 		__asm__ __volatile__ ("mov r2, %0" : "=r" (newregs->regs[2]));

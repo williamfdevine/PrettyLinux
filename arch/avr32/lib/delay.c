@@ -31,9 +31,12 @@ void __delay(unsigned long loops)
 	unsigned bclock, now;
 
 	bclock = sysreg_read(COUNT);
-	do {
+
+	do
+	{
 		now = sysreg_read(COUNT);
-	} while ((now - bclock) < loops);
+	}
+	while ((now - bclock) < loops);
 }
 
 inline void __const_udelay(unsigned long xloops)
@@ -41,8 +44,8 @@ inline void __const_udelay(unsigned long xloops)
 	unsigned long long loops;
 
 	asm("mulu.d %0, %1, %2"
-	    : "=r"(loops)
-	    : "r"(current_cpu_data.loops_per_jiffy * HZ), "r"(xloops));
+		: "=r"(loops)
+		: "r"(current_cpu_data.loops_per_jiffy * HZ), "r"(xloops));
 	__delay(loops >> 32);
 }
 

@@ -34,14 +34,17 @@ typedef ppc_opcode_t uprobe_opcode_t;
 #define UPROBE_SWBP_INSN	BREAKPOINT_INSTRUCTION
 #define UPROBE_SWBP_INSN_SIZE	4 /* swbp insn size in bytes */
 
-struct arch_uprobe {
-	union {
+struct arch_uprobe
+{
+	union
+	{
 		u32	insn;
 		u32	ixol;
 	};
 };
 
-struct arch_uprobe_task {
+struct arch_uprobe_task
+{
 	unsigned long	saved_trap_nr;
 };
 

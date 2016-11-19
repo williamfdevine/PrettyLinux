@@ -82,38 +82,38 @@ extern int elf_check_arch(const struct elf32_hdr *hdr);
 #define ELF_ARCH	EM_FRV
 
 #define ELF_PLAT_INIT(_r)			\
-do {						\
-	__kernel_frame0_ptr->gr16	= 0;	\
-	__kernel_frame0_ptr->gr17	= 0;	\
-	__kernel_frame0_ptr->gr18	= 0;	\
-	__kernel_frame0_ptr->gr19	= 0;	\
-	__kernel_frame0_ptr->gr20	= 0;	\
-	__kernel_frame0_ptr->gr21	= 0;	\
-	__kernel_frame0_ptr->gr22	= 0;	\
-	__kernel_frame0_ptr->gr23	= 0;	\
-	__kernel_frame0_ptr->gr24	= 0;	\
-	__kernel_frame0_ptr->gr25	= 0;	\
-	__kernel_frame0_ptr->gr26	= 0;	\
-	__kernel_frame0_ptr->gr27	= 0;	\
-	__kernel_frame0_ptr->gr29	= 0;	\
-} while(0)
+	do {						\
+		__kernel_frame0_ptr->gr16	= 0;	\
+		__kernel_frame0_ptr->gr17	= 0;	\
+		__kernel_frame0_ptr->gr18	= 0;	\
+		__kernel_frame0_ptr->gr19	= 0;	\
+		__kernel_frame0_ptr->gr20	= 0;	\
+		__kernel_frame0_ptr->gr21	= 0;	\
+		__kernel_frame0_ptr->gr22	= 0;	\
+		__kernel_frame0_ptr->gr23	= 0;	\
+		__kernel_frame0_ptr->gr24	= 0;	\
+		__kernel_frame0_ptr->gr25	= 0;	\
+		__kernel_frame0_ptr->gr26	= 0;	\
+		__kernel_frame0_ptr->gr27	= 0;	\
+		__kernel_frame0_ptr->gr29	= 0;	\
+	} while(0)
 
 #define ELF_FDPIC_PLAT_INIT(_regs, _exec_map_addr, _interp_map_addr, _dynamic_addr)	\
-do {											\
-	__kernel_frame0_ptr->gr16	= _exec_map_addr;				\
-	__kernel_frame0_ptr->gr17	= _interp_map_addr;				\
-	__kernel_frame0_ptr->gr18	= _dynamic_addr;				\
-	__kernel_frame0_ptr->gr19	= 0;						\
-	__kernel_frame0_ptr->gr20	= 0;						\
-	__kernel_frame0_ptr->gr21	= 0;						\
-	__kernel_frame0_ptr->gr22	= 0;						\
-	__kernel_frame0_ptr->gr23	= 0;						\
-	__kernel_frame0_ptr->gr24	= 0;						\
-	__kernel_frame0_ptr->gr25	= 0;						\
-	__kernel_frame0_ptr->gr26	= 0;						\
-	__kernel_frame0_ptr->gr27	= 0;						\
-	__kernel_frame0_ptr->gr29	= 0;						\
-} while(0)
+	do {											\
+		__kernel_frame0_ptr->gr16	= _exec_map_addr;				\
+		__kernel_frame0_ptr->gr17	= _interp_map_addr;				\
+		__kernel_frame0_ptr->gr18	= _dynamic_addr;				\
+		__kernel_frame0_ptr->gr19	= 0;						\
+		__kernel_frame0_ptr->gr20	= 0;						\
+		__kernel_frame0_ptr->gr21	= 0;						\
+		__kernel_frame0_ptr->gr22	= 0;						\
+		__kernel_frame0_ptr->gr23	= 0;						\
+		__kernel_frame0_ptr->gr24	= 0;						\
+		__kernel_frame0_ptr->gr25	= 0;						\
+		__kernel_frame0_ptr->gr26	= 0;						\
+		__kernel_frame0_ptr->gr27	= 0;						\
+		__kernel_frame0_ptr->gr29	= 0;						\
+	} while(0)
 
 #define CORE_DUMP_USE_REGSET
 #define ELF_FDPIC_CORE_EFLAGS	EF_FRV_FDPIC

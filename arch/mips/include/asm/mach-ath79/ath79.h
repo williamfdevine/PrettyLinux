@@ -17,7 +17,8 @@
 #include <linux/types.h>
 #include <linux/io.h>
 
-enum ath79_soc_type {
+enum ath79_soc_type
+{
 	ATH79_SOC_UNKNOWN,
 	ATH79_SOC_AR7130,
 	ATH79_SOC_AR7141,
@@ -42,15 +43,15 @@ extern unsigned int ath79_soc_rev;
 static inline int soc_is_ar71xx(void)
 {
 	return (ath79_soc == ATH79_SOC_AR7130 ||
-		ath79_soc == ATH79_SOC_AR7141 ||
-		ath79_soc == ATH79_SOC_AR7161);
+			ath79_soc == ATH79_SOC_AR7141 ||
+			ath79_soc == ATH79_SOC_AR7161);
 }
 
 static inline int soc_is_ar724x(void)
 {
 	return (ath79_soc == ATH79_SOC_AR7240 ||
-		ath79_soc == ATH79_SOC_AR7241 ||
-		ath79_soc == ATH79_SOC_AR7242);
+			ath79_soc == ATH79_SOC_AR7241 ||
+			ath79_soc == ATH79_SOC_AR7242);
 }
 
 static inline int soc_is_ar7240(void)
@@ -71,13 +72,13 @@ static inline int soc_is_ar7242(void)
 static inline int soc_is_ar913x(void)
 {
 	return (ath79_soc == ATH79_SOC_AR9130 ||
-		ath79_soc == ATH79_SOC_AR9132);
+			ath79_soc == ATH79_SOC_AR9132);
 }
 
 static inline int soc_is_ar933x(void)
 {
 	return (ath79_soc == ATH79_SOC_AR9330 ||
-		ath79_soc == ATH79_SOC_AR9331);
+			ath79_soc == ATH79_SOC_AR9331);
 }
 
 static inline int soc_is_ar9341(void)
@@ -146,6 +147,6 @@ void ath79_device_reset_clear(u32 mask);
 
 void ath79_cpu_irq_init(unsigned irq_wb_chan2, unsigned irq_wb_chan3);
 void ath79_misc_irq_init(void __iomem *regs, int irq,
-			int irq_base, bool is_ar71xx);
+						 int irq_base, bool is_ar71xx);
 
 #endif /* __ASM_MACH_ATH79_H */

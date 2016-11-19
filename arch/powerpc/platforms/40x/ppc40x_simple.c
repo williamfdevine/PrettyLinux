@@ -24,7 +24,8 @@
 #include <linux/init.h>
 #include <linux/of_platform.h>
 
-static const struct of_device_id ppc40x_of_bus[] __initconst = {
+static const struct of_device_id ppc40x_of_bus[] __initconst =
+{
 	{ .compatible = "ibm,plb3", },
 	{ .compatible = "ibm,plb4", },
 	{ .compatible = "ibm,opb", },
@@ -50,7 +51,8 @@ machine_device_initcall(ppc40x_simple, ppc40x_device_probe);
  * Again, if your board needs to do things differently then create a
  * board.c file for it rather than adding it to this list.
  */
-static const char * const board[] __initconst = {
+static const char *const board[] __initconst =
+{
 	"amcc,acadia",
 	"amcc,haleakala",
 	"amcc,kilauea",
@@ -63,7 +65,8 @@ static const char * const board[] __initconst = {
 
 static int __init ppc40x_probe(void)
 {
-	if (of_device_compatible_match(of_root, board)) {
+	if (of_device_compatible_match(of_root, board))
+	{
 		pci_set_flags(PCI_REASSIGN_ALL_RSRC);
 		return 1;
 	}
@@ -71,12 +74,13 @@ static int __init ppc40x_probe(void)
 	return 0;
 }
 
-define_machine(ppc40x_simple) {
+define_machine(ppc40x_simple)
+{
 	.name = "PowerPC 40x Platform",
-	.probe = ppc40x_probe,
-	.progress = udbg_progress,
-	.init_IRQ = uic_init_tree,
-	.get_irq = uic_get_irq,
-	.restart = ppc4xx_reset_system,
-	.calibrate_decr = generic_calibrate_decr,
+	 .probe = ppc40x_probe,
+	  .progress = udbg_progress,
+	   .init_IRQ = uic_init_tree,
+		.get_irq = uic_get_irq,
+		 .restart = ppc4xx_reset_system,
+		  .calibrate_decr = generic_calibrate_decr,
 };

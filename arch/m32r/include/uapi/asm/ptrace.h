@@ -73,7 +73,8 @@
 
 /* this struct defines the way the registers are stored on the
    stack during a system call. */
-struct pt_regs {
+struct pt_regs
+{
 	/* Saved main processor registers. */
 	unsigned long r4;
 	unsigned long r5;

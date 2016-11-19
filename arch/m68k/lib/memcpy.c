@@ -13,8 +13,12 @@ void *memcpy(void *to, const void *from, size_t n)
 	size_t temp;
 
 	if (!n)
+	{
 		return xto;
-	if ((long)to & 1) {
+	}
+
+	if ((long)to & 1)
+	{
 		char *cto = to;
 		const char *cfrom = from;
 		*cto++ = *cfrom++;
@@ -22,16 +26,26 @@ void *memcpy(void *to, const void *from, size_t n)
 		from = cfrom;
 		n--;
 	}
+
 #if defined(CONFIG_M68000)
-	if ((long)from & 1) {
+
+	if ((long)from & 1)
+	{
 		char *cto = to;
 		const char *cfrom = from;
+
 		for (; n; n--)
+		{
 			*cto++ = *cfrom++;
+		}
+
 		return xto;
 	}
+
 #endif
-	if (n > 2 && (long)to & 2) {
+
+	if (n > 2 && (long)to & 2)
+	{
 		short *sto = to;
 		const short *sfrom = from;
 		*sto++ = *sfrom++;
@@ -39,13 +53,20 @@ void *memcpy(void *to, const void *from, size_t n)
 		from = sfrom;
 		n -= 2;
 	}
+
 	temp = n >> 2;
-	if (temp) {
+
+	if (temp)
+	{
 		long *lto = to;
 		const long *lfrom = from;
 #if defined(CONFIG_M68000) || defined(CONFIG_COLDFIRE)
+
 		for (; temp; temp--)
+		{
 			*lto++ = *lfrom++;
+		}
+
 #else
 		size_t temp1;
 		asm volatile (
@@ -72,18 +93,23 @@ void *memcpy(void *to, const void *from, size_t n)
 		to = lto;
 		from = lfrom;
 	}
-	if (n & 2) {
+
+	if (n & 2)
+	{
 		short *sto = to;
 		const short *sfrom = from;
 		*sto++ = *sfrom++;
 		to = sto;
 		from = sfrom;
 	}
-	if (n & 1) {
+
+	if (n & 1)
+	{
 		char *cto = to;
 		const char *cfrom = from;
 		*cto = *cfrom;
 	}
+
 	return xto;
 }
 EXPORT_SYMBOL(memcpy);

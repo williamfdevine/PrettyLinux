@@ -18,21 +18,29 @@ static void *loongson_dma_alloc_coherent(struct device *dev, size_t size,
 	gfp &= ~(__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM);
 
 #ifdef CONFIG_ISA
+
 	if (dev == NULL)
+	{
 		gfp |= __GFP_DMA;
+	}
 	else
 #endif
 #ifdef CONFIG_ZONE_DMA
-	if (dev->coherent_dma_mask < DMA_BIT_MASK(32))
-		gfp |= __GFP_DMA;
-	else
+		if (dev->coherent_dma_mask < DMA_BIT_MASK(32))
+		{
+			gfp |= __GFP_DMA;
+		}
+		else
 #endif
 #ifdef CONFIG_ZONE_DMA32
-	if (dev->coherent_dma_mask < DMA_BIT_MASK(40))
-		gfp |= __GFP_DMA32;
-	else
+			if (dev->coherent_dma_mask < DMA_BIT_MASK(40))
+			{
+				gfp |= __GFP_DMA32;
+			}
+			else
 #endif
-	;
+				;
+
 	gfp |= __GFP_NORETRY;
 
 	ret = swiotlb_alloc_coherent(dev, size, dma_handle, gfp);
@@ -41,25 +49,25 @@ static void *loongson_dma_alloc_coherent(struct device *dev, size_t size,
 }
 
 static void loongson_dma_free_coherent(struct device *dev, size_t size,
-		void *vaddr, dma_addr_t dma_handle, unsigned long attrs)
+									   void *vaddr, dma_addr_t dma_handle, unsigned long attrs)
 {
 	swiotlb_free_coherent(dev, size, vaddr, dma_handle);
 }
 
 static dma_addr_t loongson_dma_map_page(struct device *dev, struct page *page,
-				unsigned long offset, size_t size,
-				enum dma_data_direction dir,
-				unsigned long attrs)
+										unsigned long offset, size_t size,
+										enum dma_data_direction dir,
+										unsigned long attrs)
 {
 	dma_addr_t daddr = swiotlb_map_page(dev, page, offset, size,
-					dir, attrs);
+										dir, attrs);
 	mb();
 	return daddr;
 }
 
 static int loongson_dma_map_sg(struct device *dev, struct scatterlist *sg,
-				int nents, enum dma_data_direction dir,
-				unsigned long attrs)
+							   int nents, enum dma_data_direction dir,
+							   unsigned long attrs)
 {
 	int r = swiotlb_map_sg_attrs(dev, sg, nents, dir, 0);
 	mb();
@@ -68,16 +76,16 @@ static int loongson_dma_map_sg(struct device *dev, struct scatterlist *sg,
 }
 
 static void loongson_dma_sync_single_for_device(struct device *dev,
-				dma_addr_t dma_handle, size_t size,
-				enum dma_data_direction dir)
+		dma_addr_t dma_handle, size_t size,
+		enum dma_data_direction dir)
 {
 	swiotlb_sync_single_for_device(dev, dma_handle, size, dir);
 	mb();
 }
 
 static void loongson_dma_sync_sg_for_device(struct device *dev,
-				struct scatterlist *sg, int nents,
-				enum dma_data_direction dir)
+		struct scatterlist *sg, int nents,
+		enum dma_data_direction dir)
 {
 	swiotlb_sync_sg_for_device(dev, sg, nents, dir);
 	mb();
@@ -86,9 +94,12 @@ static void loongson_dma_sync_sg_for_device(struct device *dev,
 static int loongson_dma_set_mask(struct device *dev, u64 mask)
 {
 	if (!dev->dma_mask || !dma_supported(dev, mask))
+	{
 		return -EIO;
+	}
 
-	if (mask > DMA_BIT_MASK(loongson_sysconf.dma_mask_bits)) {
+	if (mask > DMA_BIT_MASK(loongson_sysconf.dma_mask_bits))
+	{
 		*dev->dma_mask = DMA_BIT_MASK(loongson_sysconf.dma_mask_bits);
 		return -EIO;
 	}
@@ -122,7 +133,8 @@ phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr)
 	return daddr;
 }
 
-static struct dma_map_ops loongson_dma_map_ops = {
+static struct dma_map_ops loongson_dma_map_ops =
+{
 	.alloc = loongson_dma_alloc_coherent,
 	.free = loongson_dma_free_coherent,
 	.map_page = loongson_dma_map_page,

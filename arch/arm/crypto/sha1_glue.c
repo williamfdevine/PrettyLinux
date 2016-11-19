@@ -28,16 +28,16 @@
 #include "sha1.h"
 
 asmlinkage void sha1_block_data_order(u32 *digest,
-		const unsigned char *data, unsigned int rounds);
+									  const unsigned char *data, unsigned int rounds);
 
 int sha1_update_arm(struct shash_desc *desc, const u8 *data,
-		    unsigned int len)
+					unsigned int len)
 {
 	/* make sure casting to sha1_block_fn() is safe */
 	BUILD_BUG_ON(offsetof(struct sha1_state, state) != 0);
 
 	return sha1_base_do_update(desc, data, len,
-				   (sha1_block_fn *)sha1_block_data_order);
+							   (sha1_block_fn *)sha1_block_data_order);
 }
 EXPORT_SYMBOL_GPL(sha1_update_arm);
 
@@ -48,15 +48,16 @@ static int sha1_final(struct shash_desc *desc, u8 *out)
 }
 
 int sha1_finup_arm(struct shash_desc *desc, const u8 *data,
-		   unsigned int len, u8 *out)
+				   unsigned int len, u8 *out)
 {
 	sha1_base_do_update(desc, data, len,
-			    (sha1_block_fn *)sha1_block_data_order);
+						(sha1_block_fn *)sha1_block_data_order);
 	return sha1_final(desc, out);
 }
 EXPORT_SYMBOL_GPL(sha1_finup_arm);
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	=	SHA1_DIGEST_SIZE,
 	.init		=	sha1_base_init,
 	.update		=	sha1_update_arm,
@@ -65,7 +66,7 @@ static struct shash_alg alg = {
 	.descsize	=	sizeof(struct sha1_state),
 	.base		=	{
 		.cra_name	=	"sha1",
-		.cra_driver_name=	"sha1-asm",
+		.cra_driver_name =	"sha1-asm",
 		.cra_priority	=	150,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA1_BLOCK_SIZE,

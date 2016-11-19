@@ -27,8 +27,8 @@ static int jz4740_pm_enter(suspend_state_t state)
 	jz4740_clock_set_wait_mode(JZ4740_WAIT_MODE_SLEEP);
 
 	__asm__(".set\tmips3\n\t"
-		"wait\n\t"
-		".set\tmips0");
+			"wait\n\t"
+			".set\tmips0");
 
 	jz4740_clock_set_wait_mode(JZ4740_WAIT_MODE_IDLE);
 
@@ -37,7 +37,8 @@ static int jz4740_pm_enter(suspend_state_t state)
 	return 0;
 }
 
-static const struct platform_suspend_ops jz4740_pm_ops = {
+static const struct platform_suspend_ops jz4740_pm_ops =
+{
 	.valid		= suspend_valid_only_mem,
 	.enter		= jz4740_pm_enter,
 };

@@ -20,7 +20,8 @@
 #include <linux/interrupt.h>
 #include <linux/time.h>
 
-struct mpic_timer {
+struct mpic_timer
+{
 	void			*dev;
 	struct cascade_priv	*cascade_handle;
 	unsigned int		num;
@@ -29,14 +30,14 @@ struct mpic_timer {
 
 #ifdef CONFIG_MPIC_TIMER
 struct mpic_timer *mpic_request_timer(irq_handler_t fn,  void *dev,
-		const struct timeval *time);
+									  const struct timeval *time);
 void mpic_start_timer(struct mpic_timer *handle);
 void mpic_stop_timer(struct mpic_timer *handle);
 void mpic_get_remain_time(struct mpic_timer *handle, struct timeval *time);
 void mpic_free_timer(struct mpic_timer *handle);
 #else
 struct mpic_timer *mpic_request_timer(irq_handler_t fn,  void *dev,
-		const struct timeval *time) { return NULL; }
+									  const struct timeval *time) { return NULL; }
 void mpic_start_timer(struct mpic_timer *handle) { }
 void mpic_stop_timer(struct mpic_timer *handle) { }
 void mpic_get_remain_time(struct mpic_timer *handle, struct timeval *time) { }

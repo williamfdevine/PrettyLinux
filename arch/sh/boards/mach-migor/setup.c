@@ -45,11 +45,13 @@
  * 0x18000000       8GB    8   NAND Flash (K9K8G08U0A)
  */
 
-static struct smc91x_platdata smc91x_info = {
+static struct smc91x_platdata smc91x_info =
+{
 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
 };
 
-static struct resource smc91x_eth_resources[] = {
+static struct resource smc91x_eth_resources[] =
+{
 	[0] = {
 		.name   = "SMC91C111" ,
 		.start  = 0x10000300,
@@ -62,7 +64,8 @@ static struct resource smc91x_eth_resources[] = {
 	},
 };
 
-static struct platform_device smc91x_eth_device = {
+static struct platform_device smc91x_eth_device =
+{
 	.name           = "smc91x",
 	.num_resources  = ARRAY_SIZE(smc91x_eth_resources),
 	.resource       = smc91x_eth_resources,
@@ -71,7 +74,8 @@ static struct platform_device smc91x_eth_device = {
 	},
 };
 
-static struct sh_keysc_info sh_keysc_info = {
+static struct sh_keysc_info sh_keysc_info =
+{
 	.mode = SH_KEYSC_MODE_2, /* KEYOUT0->4, KEYIN1->5 */
 	.scan_timing = 3,
 	.delay = 5,
@@ -84,7 +88,8 @@ static struct sh_keysc_info sh_keysc_info = {
 	},
 };
 
-static struct resource sh_keysc_resources[] = {
+static struct resource sh_keysc_resources[] =
+{
 	[0] = {
 		.start  = 0x044b0000,
 		.end    = 0x044b000f,
@@ -96,7 +101,8 @@ static struct resource sh_keysc_resources[] = {
 	},
 };
 
-static struct platform_device sh_keysc_device = {
+static struct platform_device sh_keysc_device =
+{
 	.name           = "sh_keysc",
 	.id             = 0, /* "keysc0" clock */
 	.num_resources  = ARRAY_SIZE(sh_keysc_resources),
@@ -126,13 +132,15 @@ static struct mtd_partition migor_nor_flash_partitions[] =
 	},
 };
 
-static struct physmap_flash_data migor_nor_flash_data = {
+static struct physmap_flash_data migor_nor_flash_data =
+{
 	.width		= 2,
 	.parts		= migor_nor_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(migor_nor_flash_partitions),
 };
 
-static struct resource migor_nor_flash_resources[] = {
+static struct resource migor_nor_flash_resources[] =
+{
 	[0] = {
 		.name		= "NOR Flash",
 		.start		= 0x00000000,
@@ -141,7 +149,8 @@ static struct resource migor_nor_flash_resources[] = {
 	}
 };
 
-static struct platform_device migor_nor_flash_device = {
+static struct platform_device migor_nor_flash_device =
+{
 	.name		= "physmap-flash",
 	.resource	= migor_nor_flash_resources,
 	.num_resources	= ARRAY_SIZE(migor_nor_flash_resources),
@@ -150,7 +159,8 @@ static struct platform_device migor_nor_flash_device = {
 	},
 };
 
-static struct mtd_partition migor_nand_flash_partitions[] = {
+static struct mtd_partition migor_nand_flash_partitions[] =
+{
 	{
 		.name		= "nanddata1",
 		.offset		= 0x0,
@@ -164,19 +174,27 @@ static struct mtd_partition migor_nand_flash_partitions[] = {
 };
 
 static void migor_nand_flash_cmd_ctl(struct mtd_info *mtd, int cmd,
-				     unsigned int ctrl)
+									 unsigned int ctrl)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		writeb(cmd, chip->IO_ADDR_W + 0x00400000);
+	}
 	else if (ctrl & NAND_ALE)
+	{
 		writeb(cmd, chip->IO_ADDR_W + 0x00800000);
+	}
 	else
+	{
 		writeb(cmd, chip->IO_ADDR_W);
+	}
 }
 
 static int migor_nand_flash_ready(struct mtd_info *mtd)
@@ -184,7 +202,8 @@ static int migor_nand_flash_ready(struct mtd_info *mtd)
 	return gpio_get_value(GPIO_PTA1); /* NAND_RBn */
 }
 
-static struct platform_nand_data migor_nand_flash_data = {
+static struct platform_nand_data migor_nand_flash_data =
+{
 	.chip = {
 		.nr_chips = 1,
 		.partitions = migor_nand_flash_partitions,
@@ -197,7 +216,8 @@ static struct platform_nand_data migor_nand_flash_data = {
 	},
 };
 
-static struct resource migor_nand_flash_resources[] = {
+static struct resource migor_nand_flash_resources[] =
+{
 	[0] = {
 		.name		= "NAND Flash",
 		.start		= 0x18000000,
@@ -206,7 +226,8 @@ static struct resource migor_nand_flash_resources[] = {
 	},
 };
 
-static struct platform_device migor_nand_flash_device = {
+static struct platform_device migor_nand_flash_device =
+{
 	.name		= "gen_nand",
 	.resource	= migor_nand_flash_resources,
 	.num_resources	= ARRAY_SIZE(migor_nand_flash_resources),
@@ -215,7 +236,8 @@ static struct platform_device migor_nand_flash_device = {
 	}
 };
 
-static const struct fb_videomode migor_lcd_modes[] = {
+static const struct fb_videomode migor_lcd_modes[] =
+{
 	{
 #if defined(CONFIG_SH_MIGOR_RTA_WVGA)
 		.name = "LB070WV1",
@@ -240,7 +262,8 @@ static const struct fb_videomode migor_lcd_modes[] = {
 	},
 };
 
-static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
+static struct sh_mobile_lcdc_info sh_mobile_lcdc_info =
+{
 #if defined(CONFIG_SH_MIGOR_RTA_WVGA)
 	.clock_source = LCDC_CLK_BUS,
 	.ch[0] = {
@@ -279,7 +302,8 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
 #endif
 };
 
-static struct resource migor_lcdc_resources[] = {
+static struct resource migor_lcdc_resources[] =
+{
 	[0] = {
 		.name	= "LCDC",
 		.start	= 0xfe940000, /* P4-only space */
@@ -292,7 +316,8 @@ static struct resource migor_lcdc_resources[] = {
 	},
 };
 
-static struct platform_device migor_lcdc_device = {
+static struct platform_device migor_lcdc_device =
+{
 	.name		= "sh_mobile_lcdc_fb",
 	.num_resources	= ARRAY_SIZE(migor_lcdc_resources),
 	.resource	= migor_lcdc_resources,
@@ -317,12 +342,17 @@ static void camera_power_on(int is_tw)
 
 	/* use VIO_RST to take camera out of reset */
 	mdelay(10);
-	if (is_tw) {
+
+	if (is_tw)
+	{
 		gpio_set_value(GPIO_PTT2, 0);
 		gpio_set_value(GPIO_PTT0, 0);
-	} else {
+	}
+	else
+	{
 		gpio_set_value(GPIO_PTT0, 1);
 	}
+
 	gpio_set_value(GPIO_PTT3, 0);
 	mdelay(10);
 	gpio_set_value(GPIO_PTT3, 1);
@@ -341,9 +371,13 @@ static void camera_power_off(void)
 static int ov7725_power(struct device *dev, int mode)
 {
 	if (mode)
+	{
 		camera_power_on(0);
+	}
 	else
+	{
 		camera_power_off();
+	}
 
 	return 0;
 }
@@ -351,18 +385,24 @@ static int ov7725_power(struct device *dev, int mode)
 static int tw9910_power(struct device *dev, int mode)
 {
 	if (mode)
+	{
 		camera_power_on(1);
+	}
 	else
+	{
 		camera_power_off();
+	}
 
 	return 0;
 }
 
-static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+static struct sh_mobile_ceu_info sh_mobile_ceu_info =
+{
 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
 };
 
-static struct resource migor_ceu_resources[] = {
+static struct resource migor_ceu_resources[] =
+{
 	[0] = {
 		.name	= "CEU",
 		.start	= 0xfe910000,
@@ -378,7 +418,8 @@ static struct resource migor_ceu_resources[] = {
 	},
 };
 
-static struct platform_device migor_ceu_device = {
+static struct platform_device migor_ceu_device =
+{
 	.name		= "sh_mobile_ceu",
 	.id             = 0, /* "ceu0" clock */
 	.num_resources	= ARRAY_SIZE(migor_ceu_resources),
@@ -395,7 +436,8 @@ static struct regulator_consumer_supply fixed3v3_power_consumers[] =
 	REGULATOR_SUPPLY("vqmmc", "sh_mobile_sdhi.0"),
 };
 
-static struct resource sdhi_cn9_resources[] = {
+static struct resource sdhi_cn9_resources[] =
+{
 	[0] = {
 		.name	= "SDHI",
 		.start	= 0x04ce0000,
@@ -408,13 +450,15 @@ static struct resource sdhi_cn9_resources[] = {
 	},
 };
 
-static struct tmio_mmc_data sh7724_sdhi_data = {
+static struct tmio_mmc_data sh7724_sdhi_data =
+{
 	.chan_priv_tx	= (void *)SHDMA_SLAVE_SDHI0_TX,
 	.chan_priv_rx	= (void *)SHDMA_SLAVE_SDHI0_RX,
 	.capabilities	= MMC_CAP_SDIO_IRQ,
 };
 
-static struct platform_device sdhi_cn9_device = {
+static struct platform_device sdhi_cn9_device =
+{
 	.name		= "sh_mobile_sdhi",
 	.num_resources	= ARRAY_SIZE(sdhi_cn9_resources),
 	.resource	= sdhi_cn9_resources,
@@ -423,7 +467,8 @@ static struct platform_device sdhi_cn9_device = {
 	},
 };
 
-static struct i2c_board_info migor_i2c_devices[] = {
+static struct i2c_board_info migor_i2c_devices[] =
+{
 	{
 		I2C_BOARD_INFO("rs5c372b", 0x32),
 	},
@@ -436,7 +481,8 @@ static struct i2c_board_info migor_i2c_devices[] = {
 	},
 };
 
-static struct i2c_board_info migor_i2c_camera[] = {
+static struct i2c_board_info migor_i2c_camera[] =
+{
 	{
 		I2C_BOARD_INFO("ov772x", 0x21),
 	},
@@ -447,26 +493,30 @@ static struct i2c_board_info migor_i2c_camera[] = {
 
 static struct ov772x_camera_info ov7725_info;
 
-static struct soc_camera_link ov7725_link = {
+static struct soc_camera_link ov7725_link =
+{
 	.power		= ov7725_power,
 	.board_info	= &migor_i2c_camera[0],
 	.i2c_adapter_id	= 0,
 	.priv		= &ov7725_info,
 };
 
-static struct tw9910_video_info tw9910_info = {
+static struct tw9910_video_info tw9910_info =
+{
 	.buswidth	= SOCAM_DATAWIDTH_8,
 	.mpout		= TW9910_MPO_FIELD,
 };
 
-static struct soc_camera_link tw9910_link = {
+static struct soc_camera_link tw9910_link =
+{
 	.power		= tw9910_power,
 	.board_info	= &migor_i2c_camera[1],
 	.i2c_adapter_id	= 0,
 	.priv		= &tw9910_info,
 };
 
-static struct platform_device migor_camera[] = {
+static struct platform_device migor_camera[] =
+{
 	{
 		.name	= "soc-camera-pdrv",
 		.id	= 0,
@@ -482,7 +532,8 @@ static struct platform_device migor_camera[] = {
 	},
 };
 
-static struct platform_device *migor_devices[] __initdata = {
+static struct platform_device *migor_devices[] __initdata =
+{
 	&smc91x_eth_device,
 	&sh_keysc_device,
 	&migor_lcdc_device,
@@ -503,13 +554,13 @@ static int __init migor_devices_setup(void)
 {
 	/* register board specific self-refresh code */
 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF,
-					&migor_sdram_enter_start,
-					&migor_sdram_enter_end,
-					&migor_sdram_leave_start,
-					&migor_sdram_leave_end);
+									&migor_sdram_enter_start,
+									&migor_sdram_enter_end,
+									&migor_sdram_leave_start,
+									&migor_sdram_leave_end);
 
 	regulator_register_always_on(0, "fixed-3.3V", fixed3v3_power_consumers,
-				     ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
+								 ARRAY_SIZE(fixed3v3_power_consumers), 3300000);
 
 	/* Let D11 LED show STATUS0 */
 	gpio_request(GPIO_FN_STATUS0, NULL);
@@ -648,7 +699,7 @@ static int __init migor_devices_setup(void)
 	__raw_writew(__raw_readw(PORT_MSELCRA) | 1, PORT_MSELCRA);
 
 	i2c_register_board_info(0, migor_i2c_devices,
-				ARRAY_SIZE(migor_i2c_devices));
+							ARRAY_SIZE(migor_i2c_devices));
 
 	return platform_add_devices(migor_devices, ARRAY_SIZE(migor_devices));
 }
@@ -668,7 +719,8 @@ static int migor_mode_pins(void)
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_migor __initmv = {
+static struct sh_machine_vector mv_migor __initmv =
+{
 	.mv_name		= "Migo-R",
 	.mv_mode_pins		= migor_mode_pins,
 };

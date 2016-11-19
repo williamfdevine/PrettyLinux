@@ -34,7 +34,9 @@ void pnx833x_machine_restart(char *command)
 void pnx833x_machine_halt(void)
 {
 	while (1)
+	{
 		__asm__ __volatile__ ("wait");
+	}
 
 }
 

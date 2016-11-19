@@ -48,7 +48,7 @@ void stage2_unmap_vm(struct kvm *kvm);
 int kvm_alloc_stage2_pgd(struct kvm *kvm);
 void kvm_free_stage2_pgd(struct kvm *kvm);
 int kvm_phys_addr_ioremap(struct kvm *kvm, phys_addr_t guest_ipa,
-			  phys_addr_t pa, unsigned long size, bool writable);
+						  phys_addr_t pa, unsigned long size, bool writable);
 
 int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run);
 
@@ -128,9 +128,9 @@ static inline bool vcpu_has_cache_enabled(struct kvm_vcpu *vcpu)
 }
 
 static inline void __coherent_cache_guest_page(struct kvm_vcpu *vcpu,
-					       kvm_pfn_t pfn,
-					       unsigned long size,
-					       bool ipa_uncached)
+		kvm_pfn_t pfn,
+		unsigned long size,
+		bool ipa_uncached)
 {
 	/*
 	 * If we are going to insert an instruction page and the icache is
@@ -155,17 +155,22 @@ static inline void __coherent_cache_guest_page(struct kvm_vcpu *vcpu,
 	VM_BUG_ON(size & ~PAGE_MASK);
 
 	if (!need_flush && !icache_is_pipt())
+	{
 		goto vipt_cache;
+	}
 
-	while (size) {
+	while (size)
+	{
 		void *va = kmap_atomic_pfn(pfn);
 
 		if (need_flush)
+		{
 			kvm_flush_dcache_to_poc(va, PAGE_SIZE);
+		}
 
 		if (icache_is_pipt())
 			__cpuc_coherent_user_range((unsigned long)va,
-						   (unsigned long)va + PAGE_SIZE);
+									   (unsigned long)va + PAGE_SIZE);
 
 		size -= PAGE_SIZE;
 		pfn++;
@@ -174,7 +179,9 @@ static inline void __coherent_cache_guest_page(struct kvm_vcpu *vcpu,
 	}
 
 vipt_cache:
-	if (!icache_is_pipt() && !icache_is_vivt_asid_tagged()) {
+
+	if (!icache_is_pipt() && !icache_is_vivt_asid_tagged())
+	{
 		/* any kind of VIPT cache */
 		__flush_icache_all();
 	}
@@ -194,7 +201,8 @@ static inline void __kvm_flush_dcache_pmd(pmd_t pmd)
 	unsigned long size = PMD_SIZE;
 	kvm_pfn_t pfn = pmd_pfn(pmd);
 
-	while (size) {
+	while (size)
+	{
 		void *va = kmap_atomic_pfn(pfn);
 
 		kvm_flush_dcache_to_poc(va, PAGE_SIZE);
@@ -221,9 +229,9 @@ static inline bool __kvm_cpu_uses_extended_idmap(void)
 }
 
 static inline void __kvm_extend_hypmap(pgd_t *boot_hyp_pgd,
-				       pgd_t *hyp_pgd,
-				       pgd_t *merged_hyp_pgd,
-				       unsigned long hyp_idmap_start) { }
+									   pgd_t *hyp_pgd,
+									   pgd_t *merged_hyp_pgd,
+									   unsigned long hyp_idmap_start) { }
 
 static inline unsigned int kvm_get_vmid_bits(void)
 {

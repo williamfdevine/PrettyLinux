@@ -1,7 +1,8 @@
 #ifndef _ALPHA_STAT_H
 #define _ALPHA_STAT_H
 
-struct stat {
+struct stat
+{
 	unsigned int	st_dev;
 	unsigned int	st_ino;
 	unsigned int	st_mode;
@@ -22,7 +23,8 @@ struct stat {
 /* The stat64 structure increases the size of dev_t, blkcnt_t, adds
    nanosecond resolution times, and padding for expansion.  */
 
-struct stat64 {
+struct stat64
+{
 	unsigned long	st_dev;
 	unsigned long	st_ino;
 	unsigned long	st_rdev;
@@ -37,12 +39,12 @@ struct stat64 {
 	unsigned int	__pad0;
 
 	unsigned long	st_atime;
-	unsigned long 	st_atime_nsec; 
+	unsigned long 	st_atime_nsec;
 	unsigned long	st_mtime;
 	unsigned long	st_mtime_nsec;
 	unsigned long	st_ctime;
 	unsigned long   st_ctime_nsec;
-  	long		__unused[3];
+	long		__unused[3];
 };
 
 #endif

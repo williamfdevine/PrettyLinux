@@ -20,12 +20,14 @@
 
 extern void __init mmp_dt_init_timer(void);
 
-static const char *const pxa168_dt_board_compat[] __initconst = {
+static const char *const pxa168_dt_board_compat[] __initconst =
+{
 	"mrvl,pxa168-aspenite",
 	NULL,
 };
 
-static const char *const pxa910_dt_board_compat[] __initconst = {
+static const char *const pxa910_dt_board_compat[] __initconst =
+{
 	"mrvl,pxa910-dkb",
 	NULL,
 };
@@ -40,13 +42,13 @@ static void __init mmp_init_time(void)
 }
 
 DT_MACHINE_START(PXA168_DT, "Marvell PXA168 (Device Tree Support)")
-	.map_io		= mmp_map_io,
+.map_io		= mmp_map_io,
 	.init_time	= mmp_init_time,
-	.dt_compat	= pxa168_dt_board_compat,
-MACHINE_END
+	  .dt_compat	= pxa168_dt_board_compat,
+		MACHINE_END
 
-DT_MACHINE_START(PXA910_DT, "Marvell PXA910 (Device Tree Support)")
-	.map_io		= mmp_map_io,
-	.init_time	= mmp_init_time,
-	.dt_compat	= pxa910_dt_board_compat,
-MACHINE_END
+		DT_MACHINE_START(PXA910_DT, "Marvell PXA910 (Device Tree Support)")
+		.map_io		= mmp_map_io,
+			.init_time	= mmp_init_time,
+			  .dt_compat	= pxa910_dt_board_compat,
+				MACHINE_END

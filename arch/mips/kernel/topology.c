@@ -13,17 +13,19 @@ static int __init topology_init(void)
 
 #ifdef CONFIG_NUMA
 	for_each_online_node(i)
-		register_one_node(i);
+	register_one_node(i);
 #endif /* CONFIG_NUMA */
 
-	for_each_present_cpu(i) {
+	for_each_present_cpu(i)
+	{
 		struct cpu *c = &per_cpu(cpu_devices, i);
 
 		c->hotpluggable = 1;
 		ret = register_cpu(c, i);
+
 		if (ret)
 			printk(KERN_WARNING "topology_init: register_cpu %d "
-			       "failed (%d)\n", i, ret);
+				   "failed (%d)\n", i, ret);
 	}
 
 	return 0;

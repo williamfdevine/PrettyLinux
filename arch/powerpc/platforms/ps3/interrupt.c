@@ -30,11 +30,11 @@
 #include "platform.h"
 
 #if defined(DEBUG)
-#define DBG udbg_printf
-#define FAIL udbg_printf
+	#define DBG udbg_printf
+	#define FAIL udbg_printf
 #else
-#define DBG pr_devel
-#define FAIL pr_debug
+	#define DBG pr_devel
+	#define FAIL pr_debug
 #endif
 
 /**
@@ -66,8 +66,10 @@
 
 #define PS3_BMP_MINALIGN 64
 
-struct ps3_bmp {
-	struct {
+struct ps3_bmp
+{
+	struct
+	{
 		u64 status;
 		u64 unused_1[3];
 		unsigned long mask;
@@ -85,7 +87,8 @@ struct ps3_bmp {
  * @ipi_mask: Mask of IPI virqs
  */
 
-struct ps3_private {
+struct ps3_private
+{
 	struct ps3_bmp bmp __attribute__ ((aligned (PS3_BMP_MINALIGN)));
 	spinlock_t bmp_lock;
 	u64 ppe_id;
@@ -152,14 +155,17 @@ static void ps3_chip_eoi(struct irq_data *d)
 	/* non-IPIs are EOIed here. */
 
 	if (!test_bit(63 - d->irq, &pd->ipi_mask))
+	{
 		lv1_end_of_interrupt_ext(pd->ppe_id, pd->thread_id, d->irq);
+	}
 }
 
 /**
  * ps3_irq_chip - Represents the ps3_bmp as a Linux struct irq_chip.
  */
 
-static struct irq_chip ps3_irq_chip = {
+static struct irq_chip ps3_irq_chip =
+{
 	.name = "ps3",
 	.irq_mask = ps3_chip_mask,
 	.irq_unmask = ps3_chip_unmask,
@@ -178,7 +184,7 @@ static struct irq_chip ps3_irq_chip = {
  */
 
 static int ps3_virq_setup(enum ps3_cpu_binding cpu, unsigned long outlet,
-			  unsigned int *virq)
+						  unsigned int *virq)
 {
 	int result;
 	struct ps3_private *pd;
@@ -186,15 +192,18 @@ static int ps3_virq_setup(enum ps3_cpu_binding cpu, unsigned long outlet,
 	/* This defines the default interrupt distribution policy. */
 
 	if (cpu == PS3_BINDING_CPU_ANY)
+	{
 		cpu = 0;
+	}
 
 	pd = &per_cpu(ps3_private, cpu);
 
 	*virq = irq_create_mapping(NULL, outlet);
 
-	if (!*virq) {
+	if (!*virq)
+	{
 		FAIL("%s:%d: irq_create_mapping failed: outlet %lu\n",
-			__func__, __LINE__, outlet);
+			 __func__, __LINE__, outlet);
 		result = -ENOMEM;
 		goto fail_create;
 	}
@@ -204,9 +213,10 @@ static int ps3_virq_setup(enum ps3_cpu_binding cpu, unsigned long outlet,
 
 	result = irq_set_chip_data(*virq, pd);
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: irq_set_chip_data failed\n",
-			__func__, __LINE__);
+			 __func__, __LINE__);
 		goto fail_set;
 	}
 
@@ -252,14 +262,15 @@ static int ps3_virq_destroy(unsigned int virq)
  */
 
 int ps3_irq_plug_setup(enum ps3_cpu_binding cpu, unsigned long outlet,
-	unsigned int *virq)
+					   unsigned int *virq)
 {
 	int result;
 	struct ps3_private *pd;
 
 	result = ps3_virq_setup(cpu, outlet, virq);
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: ps3_virq_setup failed\n", __func__, __LINE__);
 		goto fail_setup;
 	}
@@ -269,11 +280,12 @@ int ps3_irq_plug_setup(enum ps3_cpu_binding cpu, unsigned long outlet,
 	/* Binds outlet to cpu + virq. */
 
 	result = lv1_connect_irq_plug_ext(pd->ppe_id, pd->thread_id, *virq,
-		outlet, 0);
+									  outlet, 0);
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: lv1_connect_irq_plug_ext failed: %s\n",
-		__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 		result = -EPERM;
 		goto fail_connect;
 	}
@@ -310,7 +322,7 @@ int ps3_irq_plug_destroy(unsigned int virq)
 
 	if (result)
 		FAIL("%s:%d: lv1_disconnect_irq_plug_ext failed: %s\n",
-		__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 
 	ps3_virq_destroy(virq);
 
@@ -336,9 +348,10 @@ int ps3_event_receive_port_setup(enum ps3_cpu_binding cpu, unsigned int *virq)
 
 	result = lv1_construct_event_receive_port(&outlet);
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: lv1_construct_event_receive_port failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 		*virq = 0;
 		return result;
 	}
@@ -371,7 +384,7 @@ int ps3_event_receive_port_destroy(unsigned int virq)
 
 	if (result)
 		FAIL("%s:%d: lv1_destruct_event_receive_port failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 
 	/*
 	 * Don't call ps3_virq_destroy() here since ps3_smp_cleanup_cpu()
@@ -399,7 +412,7 @@ int ps3_send_event_locally(unsigned int virq)
  */
 
 int ps3_sb_event_receive_port_setup(struct ps3_system_bus_device *dev,
-	enum ps3_cpu_binding cpu, unsigned int *virq)
+									enum ps3_cpu_binding cpu, unsigned int *virq)
 {
 	/* this should go in system-bus.c */
 
@@ -408,15 +421,18 @@ int ps3_sb_event_receive_port_setup(struct ps3_system_bus_device *dev,
 	result = ps3_event_receive_port_setup(cpu, virq);
 
 	if (result)
+	{
 		return result;
+	}
 
 	result = lv1_connect_interrupt_event_receive_port(dev->bus_id,
-		dev->dev_id, virq_to_hw(*virq), dev->interrupt_id);
+			 dev->dev_id, virq_to_hw(*virq), dev->interrupt_id);
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: lv1_connect_interrupt_event_receive_port"
-			" failed: %s\n", __func__, __LINE__,
-			ps3_result(result));
+			 " failed: %s\n", __func__, __LINE__,
+			 ps3_result(result));
 		ps3_event_receive_port_destroy(*virq);
 		*virq = 0;
 		return result;
@@ -430,7 +446,7 @@ int ps3_sb_event_receive_port_setup(struct ps3_system_bus_device *dev,
 EXPORT_SYMBOL(ps3_sb_event_receive_port_setup);
 
 int ps3_sb_event_receive_port_destroy(struct ps3_system_bus_device *dev,
-	unsigned int virq)
+									  unsigned int virq)
 {
 	/* this should go in system-bus.c */
 
@@ -440,12 +456,12 @@ int ps3_sb_event_receive_port_destroy(struct ps3_system_bus_device *dev,
 		dev->interrupt_id, virq);
 
 	result = lv1_disconnect_interrupt_event_receive_port(dev->bus_id,
-		dev->dev_id, virq_to_hw(virq), dev->interrupt_id);
+			 dev->dev_id, virq_to_hw(virq), dev->interrupt_id);
 
 	if (result)
 		FAIL("%s:%d: lv1_disconnect_interrupt_event_receive_port"
-			" failed: %s\n", __func__, __LINE__,
-			ps3_result(result));
+			 " failed: %s\n", __func__, __LINE__,
+			 ps3_result(result));
 
 	result = ps3_event_receive_port_destroy(virq);
 	BUG_ON(result);
@@ -475,16 +491,17 @@ EXPORT_SYMBOL(ps3_sb_event_receive_port_destroy);
  */
 
 int ps3_io_irq_setup(enum ps3_cpu_binding cpu, unsigned int interrupt_id,
-	unsigned int *virq)
+					 unsigned int *virq)
 {
 	int result;
 	u64 outlet;
 
 	result = lv1_construct_io_irq_outlet(interrupt_id, &outlet);
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: lv1_construct_io_irq_outlet failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
@@ -514,7 +531,7 @@ int ps3_io_irq_destroy(unsigned int virq)
 
 	if (result)
 		FAIL("%s:%d: lv1_destruct_io_irq_outlet failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 
 	return result;
 }
@@ -531,8 +548,8 @@ EXPORT_SYMBOL_GPL(ps3_io_irq_destroy);
  * freeing the interrupt will return a wrong state error.
  */
 
-int ps3_vuart_irq_setup(enum ps3_cpu_binding cpu, void* virt_addr_bmp,
-	unsigned int *virq)
+int ps3_vuart_irq_setup(enum ps3_cpu_binding cpu, void *virt_addr_bmp,
+						unsigned int *virq)
 {
 	int result;
 	u64 outlet;
@@ -544,9 +561,10 @@ int ps3_vuart_irq_setup(enum ps3_cpu_binding cpu, void* virt_addr_bmp,
 
 	result = lv1_configure_virtual_uart_irq(lpar_addr, &outlet);
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: lv1_configure_virtual_uart_irq failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
@@ -564,9 +582,10 @@ int ps3_vuart_irq_destroy(unsigned int virq)
 	ps3_chip_mask(irq_get_irq_data(virq));
 	result = lv1_deconfigure_virtual_uart_irq();
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: lv1_configure_virtual_uart_irq failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
@@ -588,7 +607,7 @@ EXPORT_SYMBOL_GPL(ps3_vuart_irq_destroy);
  */
 
 int ps3_spe_irq_setup(enum ps3_cpu_binding cpu, unsigned long spe_id,
-	unsigned int class, unsigned int *virq)
+					  unsigned int class, unsigned int *virq)
 {
 	int result;
 	u64 outlet;
@@ -597,9 +616,10 @@ int ps3_spe_irq_setup(enum ps3_cpu_binding cpu, unsigned long spe_id,
 
 	result = lv1_get_spe_irq_outlet(spe_id, class, &outlet);
 
-	if (result) {
+	if (result)
+	{
 		FAIL("%s:%d: lv1_get_spe_irq_outlet failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+			 __func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
@@ -627,48 +647,48 @@ int ps3_spe_irq_destroy(unsigned int virq)
 
 #if defined(DEBUG)
 static void _dump_64_bmp(const char *header, const u64 *p, unsigned cpu,
-	const char* func, int line)
+						 const char *func, int line)
 {
 	pr_debug("%s:%d: %s %u {%04llx_%04llx_%04llx_%04llx}\n",
-		func, line, header, cpu,
-		*p >> 48, (*p >> 32) & 0xffff, (*p >> 16) & 0xffff,
-		*p & 0xffff);
+			 func, line, header, cpu,
+			 *p >> 48, (*p >> 32) & 0xffff, (*p >> 16) & 0xffff,
+			 *p & 0xffff);
 }
 
 static void __maybe_unused _dump_256_bmp(const char *header,
-	const u64 *p, unsigned cpu, const char* func, int line)
+		const u64 *p, unsigned cpu, const char *func, int line)
 {
 	pr_debug("%s:%d: %s %u {%016llx:%016llx:%016llx:%016llx}\n",
-		func, line, header, cpu, p[0], p[1], p[2], p[3]);
+			 func, line, header, cpu, p[0], p[1], p[2], p[3]);
 }
 
 #define dump_bmp(_x) _dump_bmp(_x, __func__, __LINE__)
-static void _dump_bmp(struct ps3_private* pd, const char* func, int line)
+static void _dump_bmp(struct ps3_private *pd, const char *func, int line)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&pd->bmp_lock, flags);
 	_dump_64_bmp("stat", &pd->bmp.status, pd->thread_id, func, line);
-	_dump_64_bmp("mask", (u64*)&pd->bmp.mask, pd->thread_id, func, line);
+	_dump_64_bmp("mask", (u64 *)&pd->bmp.mask, pd->thread_id, func, line);
 	spin_unlock_irqrestore(&pd->bmp_lock, flags);
 }
 
 #define dump_mask(_x) _dump_mask(_x, __func__, __LINE__)
 static void __maybe_unused _dump_mask(struct ps3_private *pd,
-	const char* func, int line)
+									  const char *func, int line)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&pd->bmp_lock, flags);
-	_dump_64_bmp("mask", (u64*)&pd->bmp.mask, pd->thread_id, func, line);
+	_dump_64_bmp("mask", (u64 *)&pd->bmp.mask, pd->thread_id, func, line);
 	spin_unlock_irqrestore(&pd->bmp_lock, flags);
 }
 #else
-static void dump_bmp(struct ps3_private* pd) {};
+static void dump_bmp(struct ps3_private *pd) {};
 #endif /* defined(DEBUG) */
 
 static int ps3_host_map(struct irq_domain *h, unsigned int virq,
-	irq_hw_number_t hwirq)
+						irq_hw_number_t hwirq)
 {
 	DBG("%s:%d: hwirq %lu, virq %u\n", __func__, __LINE__, hwirq,
 		virq);
@@ -679,13 +699,14 @@ static int ps3_host_map(struct irq_domain *h, unsigned int virq,
 }
 
 static int ps3_host_match(struct irq_domain *h, struct device_node *np,
-			  enum irq_domain_bus_token bus_token)
+						  enum irq_domain_bus_token bus_token)
 {
 	/* Match all */
 	return 1;
 }
 
-static const struct irq_domain_ops ps3_host_ops = {
+static const struct irq_domain_ops ps3_host_ops =
+{
 	.map = ps3_host_map,
 	.match = ps3_host_match,
 };
@@ -719,12 +740,15 @@ static unsigned int ps3_get_irq(void)
 	/* check for ipi break first to stop this cpu ASAP */
 
 	if (x & pd->ipi_debug_brk_mask)
+	{
 		x &= pd->ipi_debug_brk_mask;
+	}
 
 	asm volatile("cntlzd %0,%1" : "=r" (plug) : "r" (x));
 	plug &= 0x3f;
 
-	if (unlikely(!plug)) {
+	if (unlikely(!plug))
+	{
 		DBG("%s:%d: no plug found: thread_id %llu\n", __func__,
 			__LINE__, pd->thread_id);
 		dump_bmp(&per_cpu(ps3_private, 0));
@@ -733,17 +757,22 @@ static unsigned int ps3_get_irq(void)
 	}
 
 #if defined(DEBUG)
-	if (unlikely(plug < NUM_ISA_INTERRUPTS || plug > PS3_PLUG_MAX)) {
+
+	if (unlikely(plug < NUM_ISA_INTERRUPTS || plug > PS3_PLUG_MAX))
+	{
 		dump_bmp(&per_cpu(ps3_private, 0));
 		dump_bmp(&per_cpu(ps3_private, 1));
 		BUG();
 	}
+
 #endif
 
 	/* IPIs are EOIed here. */
 
 	if (test_bit(63 - plug, &pd->ipi_mask))
+	{
 		lv1_end_of_interrupt_ext(pd->ppe_id, pd->thread_id, plug);
+	}
 
 	return plug;
 }
@@ -757,7 +786,8 @@ void __init ps3_init_IRQ(void)
 	host = irq_domain_add_nomap(NULL, PS3_PLUG_MAX + 1, &ps3_host_ops, NULL);
 	irq_set_default_host(host);
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct ps3_private *pd = &per_cpu(ps3_private, cpu);
 
 		lv1_get_logical_ppe_id(&pd->ppe_id);
@@ -769,12 +799,12 @@ void __init ps3_init_IRQ(void)
 			ps3_mm_phys_to_lpar(__pa(&pd->bmp)));
 
 		result = lv1_configure_irq_state_bitmap(pd->ppe_id,
-			pd->thread_id, ps3_mm_phys_to_lpar(__pa(&pd->bmp)));
+												pd->thread_id, ps3_mm_phys_to_lpar(__pa(&pd->bmp)));
 
 		if (result)
 			FAIL("%s:%d: lv1_configure_irq_state_bitmap failed:"
-				" %s\n", __func__, __LINE__,
-				ps3_result(result));
+				 " %s\n", __func__, __LINE__,
+				 ps3_result(result));
 	}
 
 	ppc_md.get_irq = ps3_get_irq;

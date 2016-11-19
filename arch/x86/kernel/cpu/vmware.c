@@ -52,7 +52,7 @@ static inline int __vmware_platform(void)
 {
 	uint32_t eax, ebx, ecx, edx;
 	VMWARE_PORT(GETVERSION, eax, ebx, ecx, edx);
-	return eax != (uint32_t)-1 && ebx == VMWARE_HYPERVISOR_MAGIC;
+	return eax != (uint32_t) - 1 && ebx == VMWARE_HYPERVISOR_MAGIC;
 }
 
 static unsigned long vmware_get_tsc_khz(void)
@@ -66,10 +66,11 @@ static unsigned long vmware_get_tsc_khz(void)
 	do_div(tsc_hz, 1000);
 	BUG_ON(tsc_hz >> 32);
 	pr_info("TSC freq read from hypervisor : %lu.%03lu MHz\n",
-			 (unsigned long) tsc_hz / 1000,
-			 (unsigned long) tsc_hz % 1000);
+			(unsigned long) tsc_hz / 1000,
+			(unsigned long) tsc_hz % 1000);
 
-	if (!preset_lpj) {
+	if (!preset_lpj)
+	{
 		lpj = ((u64)tsc_hz * 1000);
 		do_div(lpj, HZ);
 		preset_lpj = lpj;
@@ -84,15 +85,18 @@ static void __init vmware_platform_setup(void)
 
 	VMWARE_PORT(GETHZ, eax, ebx, ecx, edx);
 
-	if (ebx != UINT_MAX) {
+	if (ebx != UINT_MAX)
+	{
 		x86_platform.calibrate_tsc = vmware_get_tsc_khz;
 #ifdef CONFIG_X86_LOCAL_APIC
 		/* Skip lapic calibration since we know the bus frequency. */
 		lapic_timer_frequency = ecx / HZ;
 		pr_info("Host bus clock speed read from hypervisor : %u Hz\n",
-			ecx);
+				ecx);
 #endif
-	} else {
+	}
+	else
+	{
 		pr_warn("Failed to get TSC freq from the hypervisor\n");
 	}
 
@@ -108,17 +112,24 @@ static void __init vmware_platform_setup(void)
  */
 static uint32_t __init vmware_platform(void)
 {
-	if (boot_cpu_has(X86_FEATURE_HYPERVISOR)) {
+	if (boot_cpu_has(X86_FEATURE_HYPERVISOR))
+	{
 		unsigned int eax;
 		unsigned int hyper_vendor_id[3];
 
 		cpuid(CPUID_VMWARE_INFO_LEAF, &eax, &hyper_vendor_id[0],
-		      &hyper_vendor_id[1], &hyper_vendor_id[2]);
+			  &hyper_vendor_id[1], &hyper_vendor_id[2]);
+
 		if (!memcmp(hyper_vendor_id, "VMwareVMware", 12))
+		{
 			return CPUID_VMWARE_INFO_LEAF;
-	} else if (dmi_available && dmi_name_in_serial("VMware") &&
-		   __vmware_platform())
+		}
+	}
+	else if (dmi_available && dmi_name_in_serial("VMware") &&
+			 __vmware_platform())
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -147,10 +158,11 @@ static bool __init vmware_legacy_x2apic_available(void)
 	uint32_t eax, ebx, ecx, edx;
 	VMWARE_PORT(GETVCPU_INFO, eax, ebx, ecx, edx);
 	return (eax & (1 << VMWARE_PORT_CMD_VCPU_RESERVED)) == 0 &&
-	       (eax & (1 << VMWARE_PORT_CMD_LEGACY_X2APIC)) != 0;
+		   (eax & (1 << VMWARE_PORT_CMD_LEGACY_X2APIC)) != 0;
 }
 
-const __refconst struct hypervisor_x86 x86_hyper_vmware = {
+const __refconst struct hypervisor_x86 x86_hyper_vmware =
+{
 	.name			= "VMware",
 	.detect			= vmware_platform,
 	.set_cpu_features	= vmware_set_cpu_features,

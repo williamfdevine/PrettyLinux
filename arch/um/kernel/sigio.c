@@ -25,12 +25,15 @@ int write_sigio_irq(int fd)
 	int err;
 
 	err = um_request_irq(SIGIO_WRITE_IRQ, fd, IRQ_READ, sigio_interrupt,
-			     0, "write sigio", NULL);
-	if (err) {
+						 0, "write sigio", NULL);
+
+	if (err)
+	{
 		printk(KERN_ERR "write_sigio_irq : um_request_irq failed, "
-		       "err = %d\n", err);
+			   "err = %d\n", err);
 		return -1;
 	}
+
 	sigio_irq_fd = fd;
 	return 0;
 }

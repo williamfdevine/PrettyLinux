@@ -17,7 +17,8 @@
 #include <asm/pstate.h>
 #include <asm/ldc.h>
 
-struct {
+struct
+{
 	long prom_callback;			/* 0x00 */
 	void (*prom_cif_handler)(long *);	/* 0x08 */
 } p1275buf;

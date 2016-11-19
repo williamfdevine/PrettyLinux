@@ -4,7 +4,7 @@
  */
 
 #ifdef CONFIG_SPARC32
-#include <asm/cpudata.h>
+	#include <asm/cpudata.h>
 #endif
 
 extern unsigned long loops_per_jiffy;

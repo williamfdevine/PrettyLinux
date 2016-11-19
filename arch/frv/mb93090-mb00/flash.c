@@ -23,7 +23,8 @@
  * default MTD partition table for both main flash devices, expected to be
  * overridden by RedBoot
  */
-static struct mtd_partition mb93090_partitions[] = {
+static struct mtd_partition mb93090_partitions[] =
+{
 	{
 		.name		= "Filesystem",
 		.size		= MTDPART_SIZ_FULL,
@@ -34,19 +35,22 @@ static struct mtd_partition mb93090_partitions[] = {
 /*
  * Definition of the MB93090 Boot ROM (on the CPU card)
  */
-static struct physmap_flash_data mb93090_bootrom_data = {
+static struct physmap_flash_data mb93090_bootrom_data =
+{
 	.width		= 2,
 	.nr_parts	= 2,
 	.parts		= mb93090_partitions,
 };
 
-static struct resource mb93090_bootrom_resource = {
+static struct resource mb93090_bootrom_resource =
+{
 	.start		= MB93090_BOOTROM_ADDR,
 	.end		= MB93090_BOOTROM_ADDR + MB93090_BOOTROM_SIZE - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device mb93090_bootrom = {
+static struct platform_device mb93090_bootrom =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev.platform_data = &mb93090_bootrom_data,
@@ -57,19 +61,22 @@ static struct platform_device mb93090_bootrom = {
 /*
  * Definition of the MB93090 User ROM definition (on the motherboard)
  */
-static struct physmap_flash_data mb93090_userrom_data = {
+static struct physmap_flash_data mb93090_userrom_data =
+{
 	.width		= 2,
 	.nr_parts	= 2,
 	.parts		= mb93090_partitions,
 };
 
-static struct resource mb93090_userrom_resource = {
+static struct resource mb93090_userrom_resource =
+{
 	.start		= MB93090_USERROM_ADDR,
 	.end		= MB93090_USERROM_ADDR + MB93090_USERROM_SIZE - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device mb93090_userrom = {
+static struct platform_device mb93090_userrom =
+{
 	.name		= "physmap-flash",
 	.id		= 1,
 	.dev.platform_data = &mb93090_userrom_data,

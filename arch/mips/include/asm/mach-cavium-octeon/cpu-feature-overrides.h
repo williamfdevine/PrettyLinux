@@ -36,9 +36,9 @@
  * interrupts for atomic access than a LL/SC.
  */
 #ifdef CONFIG_SMP
-# define kernel_uses_llsc	1
+	#define kernel_uses_llsc	1
 #else
-# define kernel_uses_llsc	0
+	#define kernel_uses_llsc	0
 #endif
 #define cpu_has_vtag_icache	1
 #define cpu_has_dc_aliases	0
@@ -66,11 +66,11 @@
 #define PREFETCH_STRIDE 128
 
 #ifdef __OCTEON__
-/*
- * All gcc versions that have OCTEON support define __OCTEON__ and have the
- *  __builtin_popcount support.
- */
-#define ARCH_HAS_USABLE_BUILTIN_POPCOUNT 1
+	/*
+	* All gcc versions that have OCTEON support define __OCTEON__ and have the
+	*  __builtin_popcount support.
+	*/
+	#define ARCH_HAS_USABLE_BUILTIN_POPCOUNT 1
 #endif
 
 static inline int octeon_has_saa(void)

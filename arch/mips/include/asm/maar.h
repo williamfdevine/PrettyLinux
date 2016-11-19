@@ -42,12 +42,12 @@ unsigned platform_maar_init(unsigned num_pairs);
  * specified by attrs to the range of addresses from lower to higher.
  */
 static inline void write_maar_pair(unsigned idx, phys_addr_t lower,
-				   phys_addr_t upper, unsigned attrs)
+								   phys_addr_t upper, unsigned attrs)
 {
 	/* Addresses begin at bit 16, but are shifted right 4 bits */
 	BUG_ON(lower & (0xffff | ~(MIPS_MAAR_ADDR << 4)));
 	BUG_ON(((upper & 0xffff) != 0xffff)
-		|| ((upper & ~0xffffull) & ~(MIPS_MAAR_ADDR << 4)));
+		   || ((upper & ~0xffffull) & ~(MIPS_MAAR_ADDR << 4)));
 
 	/* Automatically set MIPS_MAAR_V */
 	attrs |= MIPS_MAAR_V;
@@ -87,7 +87,8 @@ extern void maar_init(void);
  * Registers - applying attributes from attrs to the range of physical
  * addresses from lower to upper inclusive.
  */
-struct maar_config {
+struct maar_config
+{
 	phys_addr_t lower;
 	phys_addr_t upper;
 	unsigned attrs;
@@ -105,12 +106,14 @@ struct maar_config {
  * Return:	The number of MAAR pairs configured.
  */
 static inline unsigned maar_config(const struct maar_config *cfg,
-				   unsigned num_cfg, unsigned num_pairs)
+								   unsigned num_cfg, unsigned num_pairs)
 {
 	unsigned i;
 
 	for (i = 0; i < min(num_cfg, num_pairs); i++)
+	{
 		write_maar_pair(i, cfg[i].lower, cfg[i].upper, cfg[i].attrs);
+	}
 
 	return i;
 }

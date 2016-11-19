@@ -26,7 +26,7 @@ void radix__local_flush_hugetlb_page(struct vm_area_struct *vma, unsigned long v
 }
 
 void radix__flush_hugetlb_tlb_range(struct vm_area_struct *vma, unsigned long start,
-				   unsigned long end)
+									unsigned long end)
 {
 	int psize;
 	struct hstate *hstate = hstate_file(vma->vm_file);
@@ -42,8 +42,8 @@ void radix__flush_hugetlb_tlb_range(struct vm_area_struct *vma, unsigned long st
  */
 unsigned long
 radix__hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
-				unsigned long len, unsigned long pgoff,
-				unsigned long flags)
+								 unsigned long len, unsigned long pgoff,
+								 unsigned long flags)
 {
 	struct mm_struct *mm = current->mm;
 	struct vm_area_struct *vma;
@@ -51,23 +51,37 @@ radix__hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
 	struct vm_unmapped_area_info info;
 
 	if (len & ~huge_page_mask(h))
+	{
 		return -EINVAL;
-	if (len > TASK_SIZE)
-		return -ENOMEM;
+	}
 
-	if (flags & MAP_FIXED) {
+	if (len > TASK_SIZE)
+	{
+		return -ENOMEM;
+	}
+
+	if (flags & MAP_FIXED)
+	{
 		if (prepare_hugepage_range(file, addr, len))
+		{
 			return -EINVAL;
+		}
+
 		return addr;
 	}
 
-	if (addr) {
+	if (addr)
+	{
 		addr = ALIGN(addr, huge_page_size(h));
 		vma = find_vma(mm, addr);
+
 		if (TASK_SIZE - len >= addr &&
-		    (!vma || addr + len <= vma->vm_start))
+			(!vma || addr + len <= vma->vm_start))
+		{
 			return addr;
+		}
 	}
+
 	/*
 	 * We are always doing an topdown search here. Slice code
 	 * does that too.

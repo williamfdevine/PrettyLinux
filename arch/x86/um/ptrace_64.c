@@ -53,62 +53,74 @@ static const int reg_offsets[] =
 int putreg(struct task_struct *child, int regno, unsigned long value)
 {
 #ifdef TIF_IA32
+
 	/*
 	 * Some code in the 64bit emulation may not be 64bit clean.
 	 * Don't take any chances.
 	 */
 	if (test_tsk_thread_flag(child, TIF_IA32))
+	{
 		value &= 0xffffffff;
+	}
+
 #endif
-	switch (regno) {
-	case R8:
-	case R9:
-	case R10:
-	case R11:
-	case R12:
-	case R13:
-	case R14:
-	case R15:
-	case RIP:
-	case RSP:
-	case RAX:
-	case RBX:
-	case RCX:
-	case RDX:
-	case RSI:
-	case RDI:
-	case RBP:
-		break;
 
-	case ORIG_RAX:
-		/* Update the syscall number. */
-		UPT_SYSCALL_NR(&child->thread.regs.regs) = value;
-		break;
+	switch (regno)
+	{
+		case R8:
+		case R9:
+		case R10:
+		case R11:
+		case R12:
+		case R13:
+		case R14:
+		case R15:
+		case RIP:
+		case RSP:
+		case RAX:
+		case RBX:
+		case RCX:
+		case RDX:
+		case RSI:
+		case RDI:
+		case RBP:
+			break;
 
-	case FS:
-	case GS:
-	case DS:
-	case ES:
-	case SS:
-	case CS:
-		if (value && (value & 3) != 3)
-			return -EIO;
-		value &= 0xffff;
-		break;
+		case ORIG_RAX:
+			/* Update the syscall number. */
+			UPT_SYSCALL_NR(&child->thread.regs.regs) = value;
+			break;
 
-	case FS_BASE:
-	case GS_BASE:
-		if (!((value >> 48) == 0 || (value >> 48) == 0xffff))
-			return -EIO;
-		break;
+		case FS:
+		case GS:
+		case DS:
+		case ES:
+		case SS:
+		case CS:
+			if (value && (value & 3) != 3)
+			{
+				return -EIO;
+			}
 
-	case EFLAGS:
-		value &= FLAG_MASK;
-		child->thread.regs.regs.gp[HOST_EFLAGS] |= value;
-		return 0;
+			value &= 0xffff;
+			break;
 
-	default:
-		panic("Bad register in putreg(): %d\n", regno);
+		case FS_BASE:
+		case GS_BASE:
+			if (!((value >> 48) == 0 || (value >> 48) == 0xffff))
+			{
+				return -EIO;
+			}
+
+			break;
+
+		case EFLAGS:
+			value &= FLAG_MASK;
+			child->thread.regs.regs.gp[HOST_EFLAGS] |= value;
+			return 0;
+
+		default:
+			panic("Bad register in putreg(): %d\n", regno);
 	}
 
 	child->thread.regs.regs.gp[reg_offsets[regno >> 3]] = value;
@@ -118,19 +130,29 @@ int putreg(struct task_struct *child, int regno, unsigned long value)
 int poke_user(struct task_struct *child, long addr, long data)
 {
 	if ((addr & 3) || addr < 0)
+	{
 		return -EIO;
+	}
 
 	if (addr < MAX_REG_OFFSET)
+	{
 		return putreg(child, addr, data);
+	}
 	else if ((addr >= offsetof(struct user, u_debugreg[0])) &&
-		(addr <= offsetof(struct user, u_debugreg[7]))) {
+			 (addr <= offsetof(struct user, u_debugreg[7])))
+	{
 		addr -= offsetof(struct user, u_debugreg[0]);
 		addr = addr >> 2;
+
 		if ((addr == 4) || (addr == 5))
+		{
 			return -EIO;
+		}
+
 		child->thread.arch.debugregs[addr] = data;
 		return 0;
 	}
+
 	return -EIO;
 }
 
@@ -138,43 +160,52 @@ unsigned long getreg(struct task_struct *child, int regno)
 {
 	unsigned long mask = ~0UL;
 #ifdef TIF_IA32
+
 	if (test_tsk_thread_flag(child, TIF_IA32))
+	{
 		mask = 0xffffffff;
-#endif
-	switch (regno) {
-	case R8:
-	case R9:
-	case R10:
-	case R11:
-	case R12:
-	case R13:
-	case R14:
-	case R15:
-	case RIP:
-	case RSP:
-	case RAX:
-	case RBX:
-	case RCX:
-	case RDX:
-	case RSI:
-	case RDI:
-	case RBP:
-	case ORIG_RAX:
-	case EFLAGS:
-	case FS_BASE:
-	case GS_BASE:
-		break;
-	case FS:
-	case GS:
-	case DS:
-	case ES:
-	case SS:
-	case CS:
-		mask = 0xffff;
-		break;
-	default:
-		panic("Bad register in getreg: %d\n", regno);
 	}
+
+#endif
+
+	switch (regno)
+	{
+		case R8:
+		case R9:
+		case R10:
+		case R11:
+		case R12:
+		case R13:
+		case R14:
+		case R15:
+		case RIP:
+		case RSP:
+		case RAX:
+		case RBX:
+		case RCX:
+		case RDX:
+		case RSI:
+		case RDI:
+		case RBP:
+		case ORIG_RAX:
+		case EFLAGS:
+		case FS_BASE:
+		case GS_BASE:
+			break;
+
+		case FS:
+		case GS:
+		case DS:
+		case ES:
+		case SS:
+		case CS:
+			mask = 0xffff;
+			break;
+
+		default:
+			panic("Bad register in getreg: %d\n", regno);
+	}
+
 	return mask & child->thread.regs.regs.gp[reg_offsets[regno >> 3]];
 }
 
@@ -184,17 +215,24 @@ int peek_user(struct task_struct *child, long addr, long data)
 	unsigned long tmp;
 
 	if ((addr & 3) || addr < 0)
+	{
 		return -EIO;
+	}
 
 	tmp = 0;  /* Default return condition */
+
 	if (addr < MAX_REG_OFFSET)
+	{
 		tmp = getreg(child, addr);
+	}
 	else if ((addr >= offsetof(struct user, u_debugreg[0])) &&
-		(addr <= offsetof(struct user, u_debugreg[7]))) {
+			 (addr <= offsetof(struct user, u_debugreg[7])))
+	{
 		addr -= offsetof(struct user, u_debugreg[0]);
 		addr = addr >> 2;
 		tmp = child->thread.arch.debugregs[addr];
 	}
+
 	return put_user(tmp, (unsigned long *) data);
 }
 
@@ -205,7 +243,9 @@ int is_syscall(unsigned long addr)
 	int n;
 
 	n = copy_from_user(&instr, (void __user *) addr, sizeof(instr));
-	if (n) {
+
+	if (n)
+	{
 		/*
 		 * access_process_vm() grants access to vsyscall and stub,
 		 * while copy_from_user doesn't. Maybe access_process_vm is
@@ -213,13 +253,16 @@ int is_syscall(unsigned long addr)
 		 * in case of singlestepping, if copy_from_user failed.
 		 */
 		n = access_process_vm(current, addr, &instr, sizeof(instr),
-				FOLL_FORCE);
-		if (n != sizeof(instr)) {
+							  FOLL_FORCE);
+
+		if (n != sizeof(instr))
+		{
 			printk("is_syscall : failed to read instruction from "
-			       "0x%lx\n", addr);
+				   "0x%lx\n", addr);
 			return 1;
 		}
 	}
+
 	/* sysenter */
 	return instr == 0x050f;
 }
@@ -230,13 +273,19 @@ static int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *c
 	struct user_i387_struct fpregs;
 
 	err = save_i387_registers(userspace_pid[cpu],
-				  (unsigned long *) &fpregs);
+							  (unsigned long *) &fpregs);
+
 	if (err)
+	{
 		return err;
+	}
 
 	n = copy_to_user(buf, &fpregs, sizeof(fpregs));
+
 	if (n > 0)
+	{
 		return -EFAULT;
+	}
 
 	return n;
 }
@@ -247,30 +296,36 @@ static int set_fpregs(struct user_i387_struct __user *buf, struct task_struct *c
 	struct user_i387_struct fpregs;
 
 	n = copy_from_user(&fpregs, buf, sizeof(fpregs));
+
 	if (n > 0)
+	{
 		return -EFAULT;
+	}
 
 	return restore_i387_registers(userspace_pid[cpu],
-				      (unsigned long *) &fpregs);
+								  (unsigned long *) &fpregs);
 }
 
 long subarch_ptrace(struct task_struct *child, long request,
-		    unsigned long addr, unsigned long data)
+					unsigned long addr, unsigned long data)
 {
 	int ret = -EIO;
 	void __user *datap = (void __user *) data;
 
-	switch (request) {
-	case PTRACE_GETFPREGS: /* Get the child FPU state. */
-		ret = get_fpregs(datap, child);
-		break;
-	case PTRACE_SETFPREGS: /* Set the child FPU state. */
-		ret = set_fpregs(datap, child);
-		break;
-	case PTRACE_ARCH_PRCTL:
-		/* XXX Calls ptrace on the host - needs some SMP thinking */
-		ret = arch_prctl(child, data, (void __user *) addr);
-		break;
+	switch (request)
+	{
+		case PTRACE_GETFPREGS: /* Get the child FPU state. */
+			ret = get_fpregs(datap, child);
+			break;
+
+		case PTRACE_SETFPREGS: /* Set the child FPU state. */
+			ret = set_fpregs(datap, child);
+			break;
+
+		case PTRACE_ARCH_PRCTL:
+			/* XXX Calls ptrace on the host - needs some SMP thinking */
+			ret = arch_prctl(child, data, (void __user *) addr);
+			break;
 	}
 
 	return ret;

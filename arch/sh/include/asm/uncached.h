@@ -17,36 +17,36 @@ extern void uncached_resize(unsigned long size);
  * When handling TLB or caches, we need to do it from an uncached area.
  */
 #define jump_to_uncached()			\
-do {						\
-	unsigned long __dummy;			\
-						\
-	__asm__ __volatile__(			\
-		"mova	1f, %0\n\t"		\
-		"add	%1, %0\n\t"		\
-		"jmp	@%0\n\t"		\
-		" nop\n\t"			\
-		".balign 4\n"			\
-		"1:"				\
-		: "=&z" (__dummy)		\
-		: "r" (cached_to_uncached));	\
-} while (0)
+	do {						\
+		unsigned long __dummy;			\
+		\
+		__asm__ __volatile__(			\
+										"mova	1f, %0\n\t"		\
+										"add	%1, %0\n\t"		\
+										"jmp	@%0\n\t"		\
+										" nop\n\t"			\
+										".balign 4\n"			\
+										"1:"				\
+										: "=&z" (__dummy)		\
+										: "r" (cached_to_uncached));	\
+	} while (0)
 
 /*
  * Back to cached area.
  */
 #define back_to_cached()				\
-do {							\
-	unsigned long __dummy;				\
-	ctrl_barrier();					\
-	__asm__ __volatile__(				\
-		"mov.l	1f, %0\n\t"			\
-		"jmp	@%0\n\t"			\
-		" nop\n\t"				\
-		".balign 4\n"				\
-		"1:	.long 2f\n"			\
-		"2:"					\
-		: "=&r" (__dummy));			\
-} while (0)
+	do {							\
+		unsigned long __dummy;				\
+		ctrl_barrier();					\
+		__asm__ __volatile__(				\
+											"mov.l	1f, %0\n\t"			\
+											"jmp	@%0\n\t"			\
+											" nop\n\t"				\
+											".balign 4\n"				\
+											"1:	.long 2f\n"			\
+											"2:"					\
+											: "=&r" (__dummy));			\
+	} while (0)
 #else
 #define virt_addr_uncached(kaddr)	(0)
 #define uncached_init()			do { } while (0)

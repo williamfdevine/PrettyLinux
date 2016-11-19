@@ -44,8 +44,12 @@ static struct cma *kvm_cma;
 static int __init early_parse_kvm_cma_resv(char *p)
 {
 	pr_debug("%s(%s)\n", __func__, p);
+
 	if (!p)
+	{
 		return -EINVAL;
+	}
+
 	return kstrtoul(p, 0, &kvm_cma_resv_ratio);
 }
 early_param("kvm_cma_resv_ratio", early_parse_kvm_cma_resv);
@@ -82,22 +86,27 @@ void __init kvm_cma_reserve(void)
 	 * We need CMA reservation only when we are in HV mode
 	 */
 	if (!cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		return;
+	}
+
 	/*
 	 * We cannot use memblock_phys_mem_size() here, because
 	 * memblock_analyze() has not been called yet.
 	 */
 	for_each_memblock(memory, reg)
-		selected_size += memblock_region_memory_end_pfn(reg) -
-				 memblock_region_memory_base_pfn(reg);
+	selected_size += memblock_region_memory_end_pfn(reg) -
+					 memblock_region_memory_base_pfn(reg);
 
 	selected_size = (selected_size * kvm_cma_resv_ratio / 100) << PAGE_SHIFT;
-	if (selected_size) {
+
+	if (selected_size)
+	{
 		pr_debug("%s: reserving %ld MiB for global area\n", __func__,
-			 (unsigned long)selected_size / SZ_1M);
+				 (unsigned long)selected_size / SZ_1M);
 		align_size = HPT_ALIGN_PAGES << PAGE_SHIFT;
 		cma_declare_contiguous(0, selected_size, 0, align_size,
-			KVM_CMA_CHUNK_ORDER - PAGE_SHIFT, false, &kvm_cma);
+							   KVM_CMA_CHUNK_ORDER - PAGE_SHIFT, false, &kvm_cma);
 	}
 }
 
@@ -109,7 +118,7 @@ void __init kvm_cma_reserve(void)
  * the guest.
  */
 long int kvmppc_rm_h_confer(struct kvm_vcpu *vcpu, int target,
-			    unsigned int yield_count)
+							unsigned int yield_count)
 {
 	struct kvmppc_vcore *vc = local_paca->kvm_hstate.kvm_vcore;
 	int ptid = local_paca->kvm_hstate.ptid;
@@ -120,15 +129,20 @@ long int kvmppc_rm_h_confer(struct kvm_vcpu *vcpu, int target,
 	int rv = H_SUCCESS; /* => don't yield */
 
 	set_bit(ptid, &vc->conferring_threads);
-	while ((get_tb() < stop) && !VCORE_IS_EXITING(vc)) {
+
+	while ((get_tb() < stop) && !VCORE_IS_EXITING(vc))
+	{
 		threads_running = VCORE_ENTRY_MAP(vc);
 		threads_ceded = vc->napping_threads;
 		threads_conferring = vc->conferring_threads;
-		if ((threads_ceded | threads_conferring) == threads_running) {
+
+		if ((threads_ceded | threads_conferring) == threads_running)
+		{
 			rv = H_TOO_HARD; /* => do yield */
 			break;
 		}
 	}
+
 	clear_bit(ptid, &vc->conferring_threads);
 	return rv;
 }
@@ -168,9 +182,12 @@ extern int hcall_real_table[], hcall_real_table_end[];
 int kvmppc_hcall_impl_hv_realmode(unsigned long cmd)
 {
 	cmd /= 4;
+
 	if (cmd < hcall_real_table_end - hcall_real_table &&
-	    hcall_real_table[cmd])
+		hcall_real_table[cmd])
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -185,7 +202,9 @@ EXPORT_SYMBOL_GPL(kvmppc_hwrng_present);
 long kvmppc_h_random(struct kvm_vcpu *vcpu)
 {
 	if (powernv_get_random_real_mode(&vcpu->arch.gpr[4]))
+	{
 		return H_SUCCESS;
+	}
 
 	return H_HARDWARE;
 }
@@ -193,7 +212,7 @@ long kvmppc_h_random(struct kvm_vcpu *vcpu)
 static inline void rm_writeb(unsigned long paddr, u8 val)
 {
 	__asm__ __volatile__("stbcix %0,0,%1"
-		: : "r" (val), "r" (paddr) : "memory");
+						 : : "r" (val), "r" (paddr) : "memory");
 }
 
 /*
@@ -208,8 +227,9 @@ void kvmhv_rm_send_ipi(int cpu)
 
 	/* On POWER8 for IPIs to threads in the same core, use msgsnd */
 	if (cpu_has_feature(CPU_FTR_ARCH_207S) &&
-	    cpu_first_thread_sibling(cpu) ==
-	    cpu_first_thread_sibling(raw_smp_processor_id())) {
+		cpu_first_thread_sibling(cpu) ==
+		cpu_first_thread_sibling(raw_smp_processor_id()))
+	{
 		unsigned long msg = PPC_DBELL_TYPE(PPC_DBELL_SERVER);
 		msg |= cpu_thread_in_core(cpu);
 		__asm__ __volatile__ (PPC_MSGSND(%0) : : "r" (msg));
@@ -231,9 +251,12 @@ static void kvmhv_interrupt_vcore(struct kvmppc_vcore *vc, int active)
 
 	/* Order setting of exit map vs. msgsnd/IPI */
 	smp_mb();
+
 	for (; active; active >>= 1, ++cpu)
 		if (active & 1)
+		{
 			kvmhv_rm_send_ipi(cpu);
+		}
 }
 
 void kvmhv_commence_exit(int trap)
@@ -246,13 +269,18 @@ void kvmhv_commence_exit(int trap)
 	/* Set our bit in the threads-exiting-guest map in the 0xff00
 	   bits of vcore->entry_exit_map */
 	me = 0x100 << ptid;
-	do {
+
+	do
+	{
 		ee = vc->entry_exit_map;
-	} while (cmpxchg(&vc->entry_exit_map, ee, ee | me) != ee);
+	}
+	while (cmpxchg(&vc->entry_exit_map, ee, ee | me) != ee);
 
 	/* Are we the first here? */
 	if ((ee >> 8) != 0)
+	{
 		return;
+	}
 
 	/*
 	 * Trigger the other threads in this vcore to exit the guest.
@@ -260,28 +288,45 @@ void kvmhv_commence_exit(int trap)
 	 * will be already on their way out of the guest.
 	 */
 	if (trap != BOOK3S_INTERRUPT_HV_DECREMENTER)
+	{
 		kvmhv_interrupt_vcore(vc, ee & ~(1 << ptid));
+	}
 
 	/*
 	 * If we are doing dynamic micro-threading, interrupt the other
 	 * subcores to pull them out of their guests too.
 	 */
 	if (!sip)
+	{
 		return;
+	}
 
-	for (i = 0; i < MAX_SUBCORES; ++i) {
+	for (i = 0; i < MAX_SUBCORES; ++i)
+	{
 		vc = sip->master_vcs[i];
+
 		if (!vc)
+		{
 			break;
-		do {
+		}
+
+		do
+		{
 			ee = vc->entry_exit_map;
+
 			/* Already asked to exit? */
 			if ((ee >> 8) != 0)
+			{
 				break;
-		} while (cmpxchg(&vc->entry_exit_map, ee,
-				 ee | VCORE_EXIT_REQ) != ee);
+			}
+		}
+		while (cmpxchg(&vc->entry_exit_map, ee,
+					   ee | VCORE_EXIT_REQ) != ee);
+
 		if ((ee >> 8) == 0)
+		{
 			kvmhv_interrupt_vcore(vc, ee);
+		}
 	}
 }
 
@@ -290,7 +335,7 @@ EXPORT_SYMBOL_GPL(kvmppc_host_rm_ops_hv);
 
 #ifdef CONFIG_KVM_XICS
 static struct kvmppc_irq_map *get_irqmap(struct kvmppc_passthru_irqmap *pimap,
-					 u32 xisr)
+		u32 xisr)
 {
 	int i;
 
@@ -304,8 +349,10 @@ static struct kvmppc_irq_map *get_irqmap(struct kvmppc_passthru_irqmap *pimap,
 	 * and the loads here in the reader, so that if we find a matching
 	 * hwirq here, the associated GSI and irq_desc fields are valid.
 	 */
-	for (i = 0; i < pimap->n_mapped; i++)  {
-		if (xisr == pimap->mapped[i].r_hwirq) {
+	for (i = 0; i < pimap->n_mapped; i++)
+	{
+		if (xisr == pimap->mapped[i].r_hwirq)
+		{
 			/*
 			 * Order subsequent reads in the caller to serialize
 			 * with the writer.
@@ -314,6 +361,7 @@ static struct kvmppc_irq_map *get_irqmap(struct kvmppc_passthru_irqmap *pimap,
 			return &pimap->mapped[i];
 		}
 	}
+
 	return NULL;
 }
 
@@ -336,14 +384,25 @@ static int kvmppc_check_passthru(u32 xisr, __be32 xirr)
 	struct kvm_vcpu *vcpu;
 
 	vcpu = local_paca->kvm_hstate.kvm_vcpu;
+
 	if (!vcpu)
+	{
 		return 1;
+	}
+
 	pimap = kvmppc_get_passthru_irqmap(vcpu->kvm);
+
 	if (!pimap)
+	{
 		return 1;
+	}
+
 	irq_map = get_irqmap(pimap, xisr);
+
 	if (!irq_map)
+	{
 		return 1;
+	}
 
 	/* We're handling this interrupt, generic code doesn't need to */
 	local_paca->kvm_hstate.saved_xirr = 0;
@@ -378,13 +437,19 @@ long kvmppc_read_intr(void)
 
 	/* see if a host IPI is pending */
 	host_ipi = local_paca->kvm_hstate.host_ipi;
+
 	if (host_ipi)
+	{
 		return 1;
+	}
 
 	/* Now read the interrupt from the ICP */
 	xics_phys = local_paca->kvm_hstate.xics_phys;
+
 	if (unlikely(!xics_phys))
+	{
 		return 1;
+	}
 
 	/*
 	 * Save XIRR for later. Since we get control in reverse endian
@@ -404,13 +469,16 @@ long kvmppc_read_intr(void)
 
 	/* if nothing pending in the ICP */
 	if (!xisr)
+	{
 		return 0;
+	}
 
 	/* We found something in the ICP...
 	 *
 	 * If it is an IPI, clear the MFRR and EOI it.
 	 */
-	if (xisr == XICS_IPI) {
+	if (xisr == XICS_IPI)
+	{
 		_stbcix(xics_phys + XICS_MFRR, 0xff);
 		_stwcix(xics_phys + XICS_XIRR, xirr);
 		/*
@@ -425,7 +493,9 @@ long kvmppc_read_intr(void)
 		 * guest
 		 */
 		host_ipi = local_paca->kvm_hstate.host_ipi;
-		if (unlikely(host_ipi != 0)) {
+
+		if (unlikely(host_ipi != 0))
+		{
 			/* We raced with the host,
 			 * we need to resend that IPI, bummer
 			 */

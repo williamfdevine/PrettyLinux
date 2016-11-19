@@ -37,74 +37,86 @@
 #define ADMA_SLAR(src, chan)	(chan->mmr_base + (0x3c + (src << 3)))
 #define ADMA_SUAR(src, chan)	(chan->mmr_base + (0x40 + (src << 3)))
 
-struct iop13xx_adma_src {
+struct iop13xx_adma_src
+{
 	u32 src_addr;
-	union {
+	union
+	{
 		u32 upper_src_addr;
-		struct {
-			unsigned int pq_upper_src_addr:24;
-			unsigned int pq_dmlt:8;
+		struct
+		{
+			unsigned int pq_upper_src_addr: 24;
+			unsigned int pq_dmlt: 8;
 		};
 	};
 };
 
-struct iop13xx_adma_desc_ctrl {
-	unsigned int int_en:1;
-	unsigned int xfer_dir:2;
-	unsigned int src_select:4;
-	unsigned int zero_result:1;
-	unsigned int block_fill_en:1;
-	unsigned int crc_gen_en:1;
-	unsigned int crc_xfer_dis:1;
-	unsigned int crc_seed_fetch_dis:1;
-	unsigned int status_write_back_en:1;
-	unsigned int endian_swap_en:1;
-	unsigned int reserved0:2;
-	unsigned int pq_update_xfer_en:1;
-	unsigned int dual_xor_en:1;
-	unsigned int pq_xfer_en:1;
-	unsigned int p_xfer_dis:1;
-	unsigned int reserved1:10;
-	unsigned int relax_order_en:1;
-	unsigned int no_snoop_en:1;
+struct iop13xx_adma_desc_ctrl
+{
+	unsigned int int_en: 1;
+	unsigned int xfer_dir: 2;
+	unsigned int src_select: 4;
+	unsigned int zero_result: 1;
+	unsigned int block_fill_en: 1;
+	unsigned int crc_gen_en: 1;
+	unsigned int crc_xfer_dis: 1;
+	unsigned int crc_seed_fetch_dis: 1;
+	unsigned int status_write_back_en: 1;
+	unsigned int endian_swap_en: 1;
+	unsigned int reserved0: 2;
+	unsigned int pq_update_xfer_en: 1;
+	unsigned int dual_xor_en: 1;
+	unsigned int pq_xfer_en: 1;
+	unsigned int p_xfer_dis: 1;
+	unsigned int reserved1: 10;
+	unsigned int relax_order_en: 1;
+	unsigned int no_snoop_en: 1;
 };
 
-struct iop13xx_adma_byte_count {
-	unsigned int byte_count:24;
-	unsigned int host_if:3;
-	unsigned int reserved:2;
-	unsigned int zero_result_err_q:1;
-	unsigned int zero_result_err:1;
-	unsigned int tx_complete:1;
+struct iop13xx_adma_byte_count
+{
+	unsigned int byte_count: 24;
+	unsigned int host_if: 3;
+	unsigned int reserved: 2;
+	unsigned int zero_result_err_q: 1;
+	unsigned int zero_result_err: 1;
+	unsigned int tx_complete: 1;
 };
 
-struct iop13xx_adma_desc_hw {
+struct iop13xx_adma_desc_hw
+{
 	u32 next_desc;
-	union {
+	union
+	{
 		u32 desc_ctrl;
 		struct iop13xx_adma_desc_ctrl desc_ctrl_field;
 	};
-	union {
+	union
+	{
 		u32 crc_addr;
 		u32 block_fill_data;
 		u32 q_dest_addr;
 	};
-	union {
+	union
+	{
 		u32 byte_count;
 		struct iop13xx_adma_byte_count byte_count_field;
 	};
-	union {
+	union
+	{
 		u32 dest_addr;
 		u32 p_dest_addr;
 	};
-	union {
+	union
+	{
 		u32 upper_dest_addr;
 		u32 pq_upper_dest_addr;
 	};
 	struct iop13xx_adma_src src[1];
 };
 
-struct iop13xx_adma_desc_dual_xor {
+struct iop13xx_adma_desc_dual_xor
+{
 	u32 next_desc;
 	u32 desc_ctrl;
 	u32 reserved;
@@ -123,7 +135,8 @@ struct iop13xx_adma_desc_dual_xor {
 	u32 d_upper_dest_addr;
 };
 
-struct iop13xx_adma_desc_pq_update {
+struct iop13xx_adma_desc_pq_update
+{
 	u32 next_desc;
 	u32 desc_ctrl;
 	u32 reserved;
@@ -137,9 +150,10 @@ struct iop13xx_adma_desc_pq_update {
 	u32 p_src_addr;
 	u32 p_upper_src_addr;
 	u32 q_src_addr;
-	struct {
-		unsigned int q_upper_src_addr:24;
-		unsigned int q_dmlt:8;
+	struct
+	{
+		unsigned int q_upper_src_addr: 24;
+		unsigned int q_dmlt: 8;
 	};
 	u32 q_dest_addr;
 	u32 q_upper_dest_addr;
@@ -158,7 +172,7 @@ static inline u32 iop_chan_get_current_descriptor(struct iop_adma_chan *chan)
 }
 
 static inline void iop_chan_set_next_descriptor(struct iop_adma_chan *chan,
-						u32 next_desc_addr)
+		u32 next_desc_addr)
 {
 	__raw_writel(next_desc_addr, ADMA_ANDAR(chan));
 }
@@ -169,9 +183,13 @@ static inline char iop_chan_is_busy(struct iop_adma_chan *chan)
 {
 	if (__raw_readl(ADMA_ACSR(chan)) &
 		ADMA_STATUS_BUSY)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static inline int
@@ -201,10 +219,10 @@ static inline int
 iop_chan_xor_slot_count(size_t len, int src_cnt, int *slots_per_op)
 {
 	static const char slot_count_table[] = { 1, 2, 2, 2,
-						 2, 3, 3, 3,
-						 3, 4, 4, 4,
-						 4, 5, 5, 5,
-						};
+											 2, 3, 3, 3,
+											 3, 4, 4, 4,
+											 4, 5, 5, 5,
+										   };
 	*slots_per_op = slot_count_table[src_cnt - 1];
 	return *slots_per_op;
 }
@@ -219,22 +237,22 @@ iop_chan_xor_slot_count(size_t len, int src_cnt, int *slots_per_op)
 #define iop_chan_pq_zero_sum_slot_count iop_chan_xor_slot_count
 
 static inline u32 iop_desc_get_byte_count(struct iop_adma_desc_slot *desc,
-					struct iop_adma_chan *chan)
+		struct iop_adma_chan *chan)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
 	return hw_desc->byte_count_field.byte_count;
 }
 
 static inline u32 iop_desc_get_src_addr(struct iop_adma_desc_slot *desc,
-					struct iop_adma_chan *chan,
-					int src_idx)
+										struct iop_adma_chan *chan,
+										int src_idx)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
 	return hw_desc->src[src_idx].src_addr;
 }
 
 static inline u32 iop_desc_get_src_count(struct iop_adma_desc_slot *desc,
-					struct iop_adma_chan *chan)
+		struct iop_adma_chan *chan)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
 	return hw_desc->desc_ctrl_field.src_select + 1;
@@ -244,7 +262,8 @@ static inline void
 iop_desc_init_memcpy(struct iop_adma_desc_slot *desc, unsigned long flags)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
-	union {
+	union
+	{
 		u32 value;
 		struct iop13xx_adma_desc_ctrl field;
 	} u_desc_ctrl;
@@ -260,7 +279,8 @@ static inline void
 iop_desc_init_memset(struct iop_adma_desc_slot *desc, unsigned long flags)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
-	union {
+	union
+	{
 		u32 value;
 		struct iop13xx_adma_desc_ctrl field;
 	} u_desc_ctrl;
@@ -276,10 +296,11 @@ iop_desc_init_memset(struct iop_adma_desc_slot *desc, unsigned long flags)
 /* to do: support buffers larger than ADMA_MAX_BYTE_COUNT */
 static inline void
 iop_desc_init_xor(struct iop_adma_desc_slot *desc, int src_cnt,
-		  unsigned long flags)
+				  unsigned long flags)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
-	union {
+	union
+	{
 		u32 value;
 		struct iop13xx_adma_desc_ctrl field;
 	} u_desc_ctrl;
@@ -297,10 +318,11 @@ iop_desc_init_xor(struct iop_adma_desc_slot *desc, int src_cnt,
 /* to do: support buffers larger than ADMA_MAX_BYTE_COUNT */
 static inline int
 iop_desc_init_zero_sum(struct iop_adma_desc_slot *desc, int src_cnt,
-		       unsigned long flags)
+					   unsigned long flags)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
-	union {
+	union
+	{
 		u32 value;
 		struct iop13xx_adma_desc_ctrl field;
 	} u_desc_ctrl;
@@ -319,10 +341,11 @@ iop_desc_init_zero_sum(struct iop_adma_desc_slot *desc, int src_cnt,
 
 static inline void
 iop_desc_init_pq(struct iop_adma_desc_slot *desc, int src_cnt,
-		  unsigned long flags)
+				 unsigned long flags)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
-	union {
+	union
+	{
 		u32 value;
 		struct iop13xx_adma_desc_ctrl field;
 	} u_desc_ctrl;
@@ -338,10 +361,11 @@ iop_desc_init_pq(struct iop_adma_desc_slot *desc, int src_cnt,
 
 static inline void
 iop_desc_init_pq_zero_sum(struct iop_adma_desc_slot *desc, int src_cnt,
-			  unsigned long flags)
+						  unsigned long flags)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
-	union {
+	union
+	{
 		u32 value;
 		struct iop13xx_adma_desc_ctrl field;
 	} u_desc_ctrl;
@@ -358,8 +382,8 @@ iop_desc_init_pq_zero_sum(struct iop_adma_desc_slot *desc, int src_cnt,
 }
 
 static inline void iop_desc_set_byte_count(struct iop_adma_desc_slot *desc,
-					struct iop_adma_chan *chan,
-					u32 byte_count)
+		struct iop_adma_chan *chan,
+		u32 byte_count)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
 	hw_desc->byte_count = byte_count;
@@ -372,17 +396,23 @@ iop_desc_set_zero_sum_byte_count(struct iop_adma_desc_slot *desc, u32 len)
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc, *iter;
 	int i = 0;
 
-	if (len <= IOP_ADMA_ZERO_SUM_MAX_BYTE_COUNT) {
+	if (len <= IOP_ADMA_ZERO_SUM_MAX_BYTE_COUNT)
+	{
 		hw_desc->byte_count = len;
-	} else {
-		do {
+	}
+	else
+	{
+		do
+		{
 			iter = iop_hw_desc_slot_idx(hw_desc, i);
 			iter->byte_count = IOP_ADMA_ZERO_SUM_MAX_BYTE_COUNT;
 			len -= IOP_ADMA_ZERO_SUM_MAX_BYTE_COUNT;
 			i += slots_per_op;
-		} while (len > IOP_ADMA_ZERO_SUM_MAX_BYTE_COUNT);
+		}
+		while (len > IOP_ADMA_ZERO_SUM_MAX_BYTE_COUNT);
 
-		if (len) {
+		if (len)
+		{
 			iter = iop_hw_desc_slot_idx(hw_desc, i);
 			iter->byte_count = len;
 		}
@@ -392,8 +422,8 @@ iop_desc_set_zero_sum_byte_count(struct iop_adma_desc_slot *desc, u32 len)
 #define iop_desc_set_pq_zero_sum_byte_count iop_desc_set_zero_sum_byte_count
 
 static inline void iop_desc_set_dest_addr(struct iop_adma_desc_slot *desc,
-					struct iop_adma_chan *chan,
-					dma_addr_t addr)
+		struct iop_adma_chan *chan,
+		dma_addr_t addr)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
 	hw_desc->dest_addr = addr;
@@ -411,7 +441,7 @@ iop_desc_set_pq_addr(struct iop_adma_desc_slot *desc, dma_addr_t *addr)
 }
 
 static inline void iop_desc_set_memcpy_src_addr(struct iop_adma_desc_slot *desc,
-					dma_addr_t addr)
+		dma_addr_t addr)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
 	hw_desc->src[0].src_addr = addr;
@@ -419,50 +449,58 @@ static inline void iop_desc_set_memcpy_src_addr(struct iop_adma_desc_slot *desc,
 }
 
 static inline void iop_desc_set_xor_src_addr(struct iop_adma_desc_slot *desc,
-					int src_idx, dma_addr_t addr)
+		int src_idx, dma_addr_t addr)
 {
 	int slot_cnt = desc->slot_cnt, slots_per_op = desc->slots_per_op;
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc, *iter;
 	int i = 0;
 
-	do {
+	do
+	{
 		iter = iop_hw_desc_slot_idx(hw_desc, i);
 		iter->src[src_idx].src_addr = addr;
 		iter->src[src_idx].upper_src_addr = 0;
 		slot_cnt -= slots_per_op;
-		if (slot_cnt) {
+
+		if (slot_cnt)
+		{
 			i += slots_per_op;
 			addr += IOP_ADMA_XOR_MAX_BYTE_COUNT;
 		}
-	} while (slot_cnt);
+	}
+	while (slot_cnt);
 }
 
 static inline void
 iop_desc_set_pq_src_addr(struct iop_adma_desc_slot *desc, int src_idx,
-			 dma_addr_t addr, unsigned char coef)
+						 dma_addr_t addr, unsigned char coef)
 {
 	int slot_cnt = desc->slot_cnt, slots_per_op = desc->slots_per_op;
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc, *iter;
 	struct iop13xx_adma_src *src;
 	int i = 0;
 
-	do {
+	do
+	{
 		iter = iop_hw_desc_slot_idx(hw_desc, i);
 		src = &iter->src[src_idx];
 		src->src_addr = addr;
 		src->pq_upper_src_addr = 0;
 		src->pq_dmlt = coef;
 		slot_cnt -= slots_per_op;
-		if (slot_cnt) {
+
+		if (slot_cnt)
+		{
 			i += slots_per_op;
 			addr += IOP_ADMA_PQ_MAX_BYTE_COUNT;
 		}
-	} while (slot_cnt);
+	}
+	while (slot_cnt);
 }
 
 static inline void
 iop_desc_init_interrupt(struct iop_adma_desc_slot *desc,
-	struct iop_adma_chan *chan)
+						struct iop_adma_chan *chan)
 {
 	iop_desc_init_memcpy(desc, 1);
 	iop_desc_set_byte_count(desc, chan, 0);
@@ -475,14 +513,14 @@ iop_desc_init_interrupt(struct iop_adma_desc_slot *desc,
 
 static inline void
 iop_desc_set_pq_zero_sum_addr(struct iop_adma_desc_slot *desc, int pq_idx,
-			      dma_addr_t *src)
+							  dma_addr_t *src)
 {
 	iop_desc_set_xor_src_addr(desc, pq_idx, src[pq_idx]);
-	iop_desc_set_xor_src_addr(desc, pq_idx+1, src[pq_idx+1]);
+	iop_desc_set_xor_src_addr(desc, pq_idx + 1, src[pq_idx + 1]);
 }
 
 static inline void iop_desc_set_next_desc(struct iop_adma_desc_slot *desc,
-					u32 next_desc_addr)
+		u32 next_desc_addr)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
 
@@ -503,7 +541,7 @@ static inline void iop_desc_clear_next_desc(struct iop_adma_desc_slot *desc)
 }
 
 static inline void iop_desc_set_block_fill_val(struct iop_adma_desc_slot *desc,
-						u32 val)
+		u32 val)
 {
 	struct iop13xx_adma_desc_hw *hw_desc = desc->hw_desc;
 	hw_desc->block_fill_data = val;
@@ -517,7 +555,7 @@ iop_desc_get_zero_result(struct iop_adma_desc_slot *desc)
 	struct iop13xx_adma_byte_count byte_count = hw_desc->byte_count_field;
 	enum sum_check_flags flags;
 
-	BUG_ON(!(byte_count.tx_complete && desc_ctrl.zero_result));
+	BUG_ON(!(byte_count.tx_complete &&desc_ctrl.zero_result));
 
 	flags = byte_count.zero_result_err_q << SUM_CHECK_Q;
 	flags |= byte_count.zero_result_err << SUM_CHECK_P;

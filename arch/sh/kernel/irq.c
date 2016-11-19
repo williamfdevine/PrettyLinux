@@ -43,7 +43,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 
 	seq_printf(p, "%*s: ", prec, "NMI");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stat[j].__nmi_count);
+	seq_printf(p, "%10u ", irq_stat[j].__nmi_count);
 	seq_printf(p, "  Non-maskable interrupts\n");
 
 	seq_printf(p, "%*s: %10u\n", prec, "ERR", atomic_read(&irq_err_count));
@@ -56,9 +56,10 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 /*
  * per-CPU IRQ handling contexts (thread information and stack)
  */
-union irq_ctx {
+union irq_ctx
+{
 	struct thread_info	tinfo;
-	u32			stack[THREAD_SIZE/sizeof(u32)];
+	u32			stack[THREAD_SIZE / sizeof(u32)];
 };
 
 static union irq_ctx *hardirq_ctx[NR_CPUS] __read_mostly;
@@ -80,7 +81,8 @@ static inline void handle_one_irq(unsigned int irq)
 	 * handler) we can't do that and just have to keep using the
 	 * current stack (which is the irq stack already after all)
 	 */
-	if (curctx != irqctx) {
+	if (curctx != irqctx)
+	{
 		u32 *isp;
 
 		isp = (u32 *)((char *)irqctx + sizeof(*irqctx));
@@ -106,10 +108,13 @@ static inline void handle_one_irq(unsigned int irq)
 			: /* no outputs */
 			: "r" (irq), "r" (generic_handle_irq), "r" (isp)
 			: "memory", "r0", "r1", "r2", "r3", "r4",
-			  "r5", "r6", "r7", "r8", "t", "pr"
+			"r5", "r6", "r7", "r8", "t", "pr"
 		);
-	} else
+	}
+	else
+	{
 		generic_handle_irq(irq);
+	}
 }
 
 /*
@@ -120,7 +125,9 @@ void irq_ctx_init(int cpu)
 	union irq_ctx *irqctx;
 
 	if (hardirq_ctx[cpu])
+	{
 		return;
+	}
 
 	irqctx = (union irq_ctx *)&hardirq_stack[cpu * THREAD_SIZE];
 	irqctx->tinfo.task		= NULL;
@@ -139,7 +146,7 @@ void irq_ctx_init(int cpu)
 	softirq_ctx[cpu] = irqctx;
 
 	printk("CPU %u irqstacks, hard=%p soft=%p\n",
-		cpu, hardirq_ctx[cpu], softirq_ctx[cpu]);
+		   cpu, hardirq_ctx[cpu], softirq_ctx[cpu]);
 }
 
 void irq_ctx_exit(int cpu)
@@ -171,7 +178,7 @@ void do_softirq_own_stack(void)
 		: /* no outputs */
 		: "r" (__do_softirq), "r" (isp)
 		: "memory", "r0", "r1", "r2", "r3", "r4",
-		  "r5", "r6", "r7", "r8", "r9", "r15", "t", "pr"
+		"r5", "r6", "r7", "r8", "r9", "r15", "t", "pr"
 	);
 }
 #else
@@ -189,7 +196,8 @@ asmlinkage __irq_entry int do_IRQ(unsigned int irq, struct pt_regs *regs)
 
 	irq = irq_demux(irq_lookup(irq));
 
-	if (irq != NO_IRQ_IGNORE) {
+	if (irq != NO_IRQ_IGNORE)
+	{
 		handle_one_irq(irq);
 		irq_finish(irq);
 	}
@@ -207,7 +215,9 @@ void __init init_IRQ(void)
 
 	/* Perform the machine specific initialisation */
 	if (sh_mv.mv_init_irq)
+	{
 		sh_mv.mv_init_irq();
+	}
 
 	intc_finalize();
 
@@ -224,19 +234,24 @@ void migrate_irqs(void)
 {
 	unsigned int irq, cpu = smp_processor_id();
 
-	for_each_active_irq(irq) {
+	for_each_active_irq(irq)
+	{
 		struct irq_data *data = irq_get_irq_data(irq);
 
-		if (irq_data_get_node(data) == cpu) {
+		if (irq_data_get_node(data) == cpu)
+		{
 			struct cpumask *mask = irq_data_get_affinity_mask(data);
 			unsigned int newcpu = cpumask_any_and(mask,
-							      cpu_online_mask);
-			if (newcpu >= nr_cpu_ids) {
+												  cpu_online_mask);
+
+			if (newcpu >= nr_cpu_ids)
+			{
 				pr_info_ratelimited("IRQ%u no longer affine to CPU%u\n",
-						    irq, cpu);
+									irq, cpu);
 
 				cpumask_setall(mask);
 			}
+
 			irq_set_affinity(irq, mask);
 		}
 	}

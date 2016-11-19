@@ -20,20 +20,28 @@ void *return_address(unsigned int depth)
 	unsigned long ra;
 	int i;
 
-	for (i = 0, frame = NULL, ra = 0; i <= depth; i++) {
+	for (i = 0, frame = NULL, ra = 0; i <= depth; i++)
+	{
 		struct dwarf_frame *tmp;
 
 		tmp = dwarf_unwind_stack(ra, frame);
+
 		if (!tmp)
+		{
 			return NULL;
+		}
 
 		if (frame)
+		{
 			dwarf_free_frame(frame);
+		}
 
 		frame = tmp;
 
 		if (!frame || !frame->return_addr)
+		{
 			break;
+		}
 
 		ra = frame->return_addr;
 	}
@@ -42,7 +50,9 @@ void *return_address(unsigned int depth)
 	WARN_ON(i != depth + 1);
 
 	if (frame)
+	{
 		dwarf_free_frame(frame);
+	}
 
 	return (void *)ra;
 }

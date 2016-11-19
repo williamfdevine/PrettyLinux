@@ -13,11 +13,13 @@
 #include <init.h>
 #include <os.h>
 
-struct hostaudio_state {
+struct hostaudio_state
+{
 	int fd;
 };
 
-struct hostmixer_state {
+struct hostmixer_state
+{
 	int fd;
 };
 
@@ -33,12 +35,12 @@ static char *dsp = HOSTAUDIO_DEV_DSP;
 static char *mixer = HOSTAUDIO_DEV_MIXER;
 
 #define DSP_HELP \
-"    This is used to specify the host dsp device to the hostaudio driver.\n" \
-"    The default is \"" HOSTAUDIO_DEV_DSP "\".\n\n"
+	"    This is used to specify the host dsp device to the hostaudio driver.\n" \
+	"    The default is \"" HOSTAUDIO_DEV_DSP "\".\n\n"
 
 #define MIXER_HELP \
-"    This is used to specify the host mixer device to the hostaudio driver.\n"\
-"    The default is \"" HOSTAUDIO_DEV_MIXER "\".\n\n"
+	"    This is used to specify the host mixer device to the hostaudio driver.\n"\
+	"    The default is \"" HOSTAUDIO_DEV_MIXER "\".\n\n"
 
 module_param(dsp, charp, 0644);
 MODULE_PARM_DESC(dsp, DSP_HELP);
@@ -68,7 +70,7 @@ static DEFINE_MUTEX(hostaudio_mutex);
 /* /dev/dsp file operations */
 
 static ssize_t hostaudio_read(struct file *file, char __user *buffer,
-			      size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct hostaudio_state *state = file->private_data;
 	void *kbuf;
@@ -79,15 +81,23 @@ static ssize_t hostaudio_read(struct file *file, char __user *buffer,
 #endif
 
 	kbuf = kmalloc(count, GFP_KERNEL);
+
 	if (kbuf == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	err = os_read_file(state->fd, kbuf, count);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	if (copy_to_user(buffer, kbuf, err))
+	{
 		err = -EFAULT;
+	}
 
 out:
 	kfree(kbuf);
@@ -95,7 +105,7 @@ out:
 }
 
 static ssize_t hostaudio_write(struct file *file, const char __user *buffer,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	struct hostaudio_state *state = file->private_data;
 	void *kbuf;
@@ -106,21 +116,28 @@ static ssize_t hostaudio_write(struct file *file, const char __user *buffer,
 #endif
 
 	kbuf = memdup_user(buffer, count);
+
 	if (IS_ERR(kbuf))
+	{
 		return PTR_ERR(kbuf);
+	}
 
 	err = os_write_file(state->fd, kbuf, count);
+
 	if (err < 0)
+	{
 		goto out;
+	}
+
 	*ppos += err;
 
- out:
+out:
 	kfree(kbuf);
 	return err;
 }
 
 static unsigned int hostaudio_poll(struct file *file,
-				   struct poll_table_struct *wait)
+								   struct poll_table_struct *wait)
 {
 	unsigned int mask = 0;
 
@@ -132,7 +149,7 @@ static unsigned int hostaudio_poll(struct file *file,
 }
 
 static long hostaudio_ioctl(struct file *file,
-			   unsigned int cmd, unsigned long arg)
+							unsigned int cmd, unsigned long arg)
 {
 	struct hostaudio_state *state = file->private_data;
 	unsigned long data = 0;
@@ -141,34 +158,45 @@ static long hostaudio_ioctl(struct file *file,
 #ifdef DEBUG
 	printk(KERN_DEBUG "hostaudio: ioctl called, cmd = %u\n", cmd);
 #endif
-	switch(cmd){
-	case SNDCTL_DSP_SPEED:
-	case SNDCTL_DSP_STEREO:
-	case SNDCTL_DSP_GETBLKSIZE:
-	case SNDCTL_DSP_CHANNELS:
-	case SNDCTL_DSP_SUBDIVIDE:
-	case SNDCTL_DSP_SETFRAGMENT:
-		if (get_user(data, (int __user *) arg))
-			return -EFAULT;
-		break;
-	default:
-		break;
+
+	switch (cmd)
+	{
+		case SNDCTL_DSP_SPEED:
+		case SNDCTL_DSP_STEREO:
+		case SNDCTL_DSP_GETBLKSIZE:
+		case SNDCTL_DSP_CHANNELS:
+		case SNDCTL_DSP_SUBDIVIDE:
+		case SNDCTL_DSP_SETFRAGMENT:
+			if (get_user(data, (int __user *) arg))
+			{
+				return -EFAULT;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	err = os_ioctl_generic(state->fd, cmd, (unsigned long) &data);
 
-	switch(cmd){
-	case SNDCTL_DSP_SPEED:
-	case SNDCTL_DSP_STEREO:
-	case SNDCTL_DSP_GETBLKSIZE:
-	case SNDCTL_DSP_CHANNELS:
-	case SNDCTL_DSP_SUBDIVIDE:
-	case SNDCTL_DSP_SETFRAGMENT:
-		if (put_user(data, (int __user *) arg))
-			return -EFAULT;
-		break;
-	default:
-		break;
+	switch (cmd)
+	{
+		case SNDCTL_DSP_SPEED:
+		case SNDCTL_DSP_STEREO:
+		case SNDCTL_DSP_GETBLKSIZE:
+		case SNDCTL_DSP_CHANNELS:
+		case SNDCTL_DSP_SUBDIVIDE:
+		case SNDCTL_DSP_SETFRAGMENT:
+			if (put_user(data, (int __user *) arg))
+			{
+				return -EFAULT;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	return err;
@@ -187,13 +215,21 @@ static int hostaudio_open(struct inode *inode, struct file *file)
 #endif
 
 	state = kmalloc(sizeof(struct hostaudio_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	if (file->f_mode & FMODE_READ)
+	{
 		r = 1;
+	}
+
 	if (file->f_mode & FMODE_WRITE)
+	{
 		w = 1;
+	}
 
 	kernel_param_lock(THIS_MODULE);
 	mutex_lock(&hostaudio_mutex);
@@ -201,10 +237,12 @@ static int hostaudio_open(struct inode *inode, struct file *file)
 	mutex_unlock(&hostaudio_mutex);
 	kernel_param_unlock(THIS_MODULE);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		kfree(state);
 		return ret;
 	}
+
 	state->fd = ret;
 	file->private_data = state;
 	return 0;
@@ -226,7 +264,7 @@ static int hostaudio_release(struct inode *inode, struct file *file)
 /* /dev/mixer file operations */
 
 static long hostmixer_ioctl_mixdev(struct file *file,
-				  unsigned int cmd, unsigned long arg)
+								   unsigned int cmd, unsigned long arg)
 {
 	struct hostmixer_state *state = file->private_data;
 
@@ -248,13 +286,21 @@ static int hostmixer_open_mixdev(struct inode *inode, struct file *file)
 #endif
 
 	state = kmalloc(sizeof(struct hostmixer_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	if (file->f_mode & FMODE_READ)
+	{
 		r = 1;
+	}
+
 	if (file->f_mode & FMODE_WRITE)
+	{
 		w = 1;
+	}
 
 	kernel_param_lock(THIS_MODULE);
 	mutex_lock(&hostaudio_mutex);
@@ -262,10 +308,11 @@ static int hostmixer_open_mixdev(struct inode *inode, struct file *file)
 	mutex_unlock(&hostaudio_mutex);
 	kernel_param_unlock(THIS_MODULE);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		kernel_param_lock(THIS_MODULE);
 		printk(KERN_ERR "hostaudio_open_mixdev failed to open '%s', "
-		       "err = %d\n", dsp, -ret);
+			   "err = %d\n", dsp, -ret);
 		kernel_param_unlock(THIS_MODULE);
 		kfree(state);
 		return ret;
@@ -291,7 +338,8 @@ static int hostmixer_release(struct inode *inode, struct file *file)
 
 /* kernel module operations */
 
-static const struct file_operations hostaudio_fops = {
+static const struct file_operations hostaudio_fops =
+{
 	.owner          = THIS_MODULE,
 	.llseek         = no_llseek,
 	.read           = hostaudio_read,
@@ -303,7 +351,8 @@ static const struct file_operations hostaudio_fops = {
 	.release        = hostaudio_release,
 };
 
-static const struct file_operations hostmixer_fops = {
+static const struct file_operations hostmixer_fops =
+{
 	.owner          = THIS_MODULE,
 	.llseek         = no_llseek,
 	.unlocked_ioctl	= hostmixer_ioctl_mixdev,
@@ -311,7 +360,8 @@ static const struct file_operations hostmixer_fops = {
 	.release        = hostmixer_release,
 };
 
-struct {
+struct
+{
 	int dev_audio;
 	int dev_mixer;
 } module_data;
@@ -324,19 +374,23 @@ static int __init hostaudio_init_module(void)
 {
 	kernel_param_lock(THIS_MODULE);
 	printk(KERN_INFO "UML Audio Relay (host dsp = %s, host mixer = %s)\n",
-	       dsp, mixer);
+		   dsp, mixer);
 	kernel_param_unlock(THIS_MODULE);
 
 	module_data.dev_audio = register_sound_dsp(&hostaudio_fops, -1);
-	if (module_data.dev_audio < 0) {
+
+	if (module_data.dev_audio < 0)
+	{
 		printk(KERN_ERR "hostaudio: couldn't register DSP device!\n");
 		return -ENODEV;
 	}
 
 	module_data.dev_mixer = register_sound_mixer(&hostmixer_fops, -1);
-	if (module_data.dev_mixer < 0) {
+
+	if (module_data.dev_mixer < 0)
+	{
 		printk(KERN_ERR "hostmixer: couldn't register mixer "
-		       "device!\n");
+			   "device!\n");
 		unregister_sound_dsp(module_data.dev_audio);
 		return -ENODEV;
 	}

@@ -42,7 +42,8 @@
  *   Index into __pte2cachemode_tbl[] are the caching attribute bits of the pte
  *   (_PAGE_PWT, _PAGE_PCD, _PAGE_PAT) at index bit positions 0, 1, 2.
  */
-uint16_t __cachemode2pte_tbl[_PAGE_CACHE_MODE_NUM] = {
+uint16_t __cachemode2pte_tbl[_PAGE_CACHE_MODE_NUM] =
+{
 	[_PAGE_CACHE_MODE_WB      ]	= 0         | 0        ,
 	[_PAGE_CACHE_MODE_WC      ]	= 0         | _PAGE_PCD,
 	[_PAGE_CACHE_MODE_UC_MINUS]	= 0         | _PAGE_PCD,
@@ -52,7 +53,8 @@ uint16_t __cachemode2pte_tbl[_PAGE_CACHE_MODE_NUM] = {
 };
 EXPORT_SYMBOL(__cachemode2pte_tbl);
 
-uint8_t __pte2cachemode_tbl[8] = {
+uint8_t __pte2cachemode_tbl[8] =
+{
 	[__pte2cm_idx( 0        | 0         | 0        )] = _PAGE_CACHE_MODE_WB,
 	[__pte2cm_idx(_PAGE_PWT | 0         | 0        )] = _PAGE_CACHE_MODE_UC_MINUS,
 	[__pte2cm_idx( 0        | _PAGE_PCD | 0        )] = _PAGE_CACHE_MODE_UC_MINUS,
@@ -86,33 +88,46 @@ __ref void *alloc_low_pages(unsigned int num)
 	unsigned long pfn;
 	int i;
 
-	if (after_bootmem) {
+	if (after_bootmem)
+	{
 		unsigned int order;
 
 		order = get_order((unsigned long)num << PAGE_SHIFT);
 		return (void *)__get_free_pages(GFP_ATOMIC | __GFP_NOTRACK |
-						__GFP_ZERO, order);
+										__GFP_ZERO, order);
 	}
 
-	if ((pgt_buf_end + num) > pgt_buf_top || !can_use_brk_pgt) {
+	if ((pgt_buf_end + num) > pgt_buf_top || !can_use_brk_pgt)
+	{
 		unsigned long ret;
+
 		if (min_pfn_mapped >= max_pfn_mapped)
+		{
 			panic("alloc_low_pages: ran out of memory");
+		}
+
 		ret = memblock_find_in_range(min_pfn_mapped << PAGE_SHIFT,
-					max_pfn_mapped << PAGE_SHIFT,
-					PAGE_SIZE * num , PAGE_SIZE);
+									 max_pfn_mapped << PAGE_SHIFT,
+									 PAGE_SIZE * num , PAGE_SIZE);
+
 		if (!ret)
+		{
 			panic("alloc_low_pages: can not alloc memory");
+		}
+
 		memblock_reserve(ret, PAGE_SIZE * num);
 		pfn = ret >> PAGE_SHIFT;
-	} else {
+	}
+	else
+	{
 		pfn = pgt_buf_end;
 		pgt_buf_end += num;
 		printk(KERN_DEBUG "BRK [%#010lx, %#010lx] PGTABLE\n",
-			pfn << PAGE_SHIFT, (pgt_buf_end << PAGE_SHIFT) - 1);
+			   pfn << PAGE_SHIFT, (pgt_buf_end << PAGE_SHIFT) - 1);
 	}
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		void *adr;
 
 		adr = __va((pfn + i) << PAGE_SHIFT);
@@ -129,9 +144,9 @@ __ref void *alloc_low_pages(unsigned int num)
  * randomization is enabled.
  */
 #ifndef CONFIG_RANDOMIZE_MEMORY
-#define INIT_PGD_PAGE_COUNT      6
+	#define INIT_PGD_PAGE_COUNT      6
 #else
-#define INIT_PGD_PAGE_COUNT      12
+	#define INIT_PGD_PAGE_COUNT      12
 #endif
 #define INIT_PGT_BUF_SIZE	(INIT_PGD_PAGE_COUNT * PAGE_SIZE)
 RESERVE_BRK(early_pgt_alloc, INIT_PGT_BUF_SIZE);
@@ -151,7 +166,8 @@ int after_bootmem;
 
 early_param_on_off("gbpages", "nogbpages", direct_gbpages, CONFIG_X86_DIRECT_GBPAGES);
 
-struct map_range {
+struct map_range
+{
 	unsigned long start;
 	unsigned long end;
 	unsigned page_size_mask;
@@ -162,6 +178,7 @@ static int page_size_mask;
 static void __init probe_page_size_mask(void)
 {
 #if !defined(CONFIG_KMEMCHECK)
+
 	/*
 	 * For CONFIG_KMEMCHECK or pagealloc debugging, identity mapping will
 	 * use small pages.
@@ -169,44 +186,60 @@ static void __init probe_page_size_mask(void)
 	 * large pages into small in interrupt context, etc.
 	 */
 	if (boot_cpu_has(X86_FEATURE_PSE) && !debug_pagealloc_enabled())
+	{
 		page_size_mask |= 1 << PG_LEVEL_2M;
+	}
+
 #endif
 
 	/* Enable PSE if available */
 	if (boot_cpu_has(X86_FEATURE_PSE))
+	{
 		cr4_set_bits_and_update_boot(X86_CR4_PSE);
+	}
 
 	/* Enable PGE if available */
-	if (boot_cpu_has(X86_FEATURE_PGE)) {
+	if (boot_cpu_has(X86_FEATURE_PGE))
+	{
 		cr4_set_bits_and_update_boot(X86_CR4_PGE);
 		__supported_pte_mask |= _PAGE_GLOBAL;
-	} else
+	}
+	else
+	{
 		__supported_pte_mask &= ~_PAGE_GLOBAL;
+	}
 
 	/* Enable 1 GB linear kernel mappings if available: */
-	if (direct_gbpages && boot_cpu_has(X86_FEATURE_GBPAGES)) {
+	if (direct_gbpages && boot_cpu_has(X86_FEATURE_GBPAGES))
+	{
 		printk(KERN_INFO "Using GB pages for direct mapping\n");
 		page_size_mask |= 1 << PG_LEVEL_1G;
-	} else {
+	}
+	else
+	{
 		direct_gbpages = 0;
 	}
 }
 
 #ifdef CONFIG_X86_32
-#define NR_RANGE_MR 3
+	#define NR_RANGE_MR 3
 #else /* CONFIG_X86_64 */
-#define NR_RANGE_MR 5
+	#define NR_RANGE_MR 5
 #endif
 
 static int __meminit save_mr(struct map_range *mr, int nr_range,
-			     unsigned long start_pfn, unsigned long end_pfn,
-			     unsigned long page_size_mask)
+							 unsigned long start_pfn, unsigned long end_pfn,
+							 unsigned long page_size_mask)
 {
-	if (start_pfn < end_pfn) {
+	if (start_pfn < end_pfn)
+	{
 		if (nr_range >= NR_RANGE_MR)
+		{
 			panic("run out of range for init_memory_mapping\n");
-		mr[nr_range].start = start_pfn<<PAGE_SHIFT;
-		mr[nr_range].end   = end_pfn<<PAGE_SHIFT;
+		}
+
+		mr[nr_range].start = start_pfn << PAGE_SHIFT;
+		mr[nr_range].end   = end_pfn << PAGE_SHIFT;
 		mr[nr_range].page_size_mask = page_size_mask;
 		nr_range++;
 	}
@@ -219,31 +252,43 @@ static int __meminit save_mr(struct map_range *mr, int nr_range,
  *	big page size instead small one if nearby are ram too.
  */
 static void __ref adjust_range_page_size_mask(struct map_range *mr,
-							 int nr_range)
+		int nr_range)
 {
 	int i;
 
-	for (i = 0; i < nr_range; i++) {
-		if ((page_size_mask & (1<<PG_LEVEL_2M)) &&
-		    !(mr[i].page_size_mask & (1<<PG_LEVEL_2M))) {
+	for (i = 0; i < nr_range; i++)
+	{
+		if ((page_size_mask & (1 << PG_LEVEL_2M)) &&
+			!(mr[i].page_size_mask & (1 << PG_LEVEL_2M)))
+		{
 			unsigned long start = round_down(mr[i].start, PMD_SIZE);
 			unsigned long end = round_up(mr[i].end, PMD_SIZE);
 
 #ifdef CONFIG_X86_32
+
 			if ((end >> PAGE_SHIFT) > max_low_pfn)
+			{
 				continue;
+			}
+
 #endif
 
 			if (memblock_is_region_memory(start, end - start))
-				mr[i].page_size_mask |= 1<<PG_LEVEL_2M;
+			{
+				mr[i].page_size_mask |= 1 << PG_LEVEL_2M;
+			}
 		}
-		if ((page_size_mask & (1<<PG_LEVEL_1G)) &&
-		    !(mr[i].page_size_mask & (1<<PG_LEVEL_1G))) {
+
+		if ((page_size_mask & (1 << PG_LEVEL_1G)) &&
+			!(mr[i].page_size_mask & (1 << PG_LEVEL_1G)))
+		{
 			unsigned long start = round_down(mr[i].start, PUD_SIZE);
 			unsigned long end = round_up(mr[i].end, PUD_SIZE);
 
 			if (memblock_is_region_memory(start, end - start))
-				mr[i].page_size_mask |= 1<<PG_LEVEL_1G;
+			{
+				mr[i].page_size_mask |= 1 << PG_LEVEL_1G;
+			}
 		}
 	}
 }
@@ -255,27 +300,34 @@ static const char *page_size_string(struct map_range *mr)
 	static const char str_4m[] = "4M";
 	static const char str_4k[] = "4k";
 
-	if (mr->page_size_mask & (1<<PG_LEVEL_1G))
+	if (mr->page_size_mask & (1 << PG_LEVEL_1G))
+	{
 		return str_1g;
+	}
+
 	/*
 	 * 32-bit without PAE has a 4M large page size.
 	 * PG_LEVEL_2M is misnamed, but we can at least
 	 * print out the right size in the string.
 	 */
 	if (IS_ENABLED(CONFIG_X86_32) &&
-	    !IS_ENABLED(CONFIG_X86_PAE) &&
-	    mr->page_size_mask & (1<<PG_LEVEL_2M))
+		!IS_ENABLED(CONFIG_X86_PAE) &&
+		mr->page_size_mask & (1 << PG_LEVEL_2M))
+	{
 		return str_4m;
+	}
 
-	if (mr->page_size_mask & (1<<PG_LEVEL_2M))
+	if (mr->page_size_mask & (1 << PG_LEVEL_2M))
+	{
 		return str_2m;
+	}
 
 	return str_4k;
 }
 
 static int __meminit split_mem_range(struct map_range *mr, int nr_range,
-				     unsigned long start,
-				     unsigned long end)
+									 unsigned long start,
+									 unsigned long end)
 {
 	unsigned long start_pfn, end_pfn, limit_pfn;
 	unsigned long pfn;
@@ -286,6 +338,7 @@ static int __meminit split_mem_range(struct map_range *mr, int nr_range,
 	/* head if not big page alignment ? */
 	pfn = start_pfn = PFN_DOWN(start);
 #ifdef CONFIG_X86_32
+
 	/*
 	 * Don't use a large page for the first 2/4MB of memory
 	 * because there are often fixed size MTRRs in there
@@ -293,15 +346,25 @@ static int __meminit split_mem_range(struct map_range *mr, int nr_range,
 	 * slowdowns.
 	 */
 	if (pfn == 0)
+	{
 		end_pfn = PFN_DOWN(PMD_SIZE);
+	}
 	else
+	{
 		end_pfn = round_up(pfn, PFN_DOWN(PMD_SIZE));
+	}
+
 #else /* CONFIG_X86_64 */
 	end_pfn = round_up(pfn, PFN_DOWN(PMD_SIZE));
 #endif
+
 	if (end_pfn > limit_pfn)
+	{
 		end_pfn = limit_pfn;
-	if (start_pfn < end_pfn) {
+	}
+
+	if (start_pfn < end_pfn)
+	{
 		nr_range = save_mr(mr, nr_range, start_pfn, end_pfn, 0);
 		pfn = end_pfn;
 	}
@@ -312,13 +375,18 @@ static int __meminit split_mem_range(struct map_range *mr, int nr_range,
 	end_pfn = round_down(limit_pfn, PFN_DOWN(PMD_SIZE));
 #else /* CONFIG_X86_64 */
 	end_pfn = round_up(pfn, PFN_DOWN(PUD_SIZE));
+
 	if (end_pfn > round_down(limit_pfn, PFN_DOWN(PMD_SIZE)))
+	{
 		end_pfn = round_down(limit_pfn, PFN_DOWN(PMD_SIZE));
+	}
+
 #endif
 
-	if (start_pfn < end_pfn) {
+	if (start_pfn < end_pfn)
+	{
 		nr_range = save_mr(mr, nr_range, start_pfn, end_pfn,
-				page_size_mask & (1<<PG_LEVEL_2M));
+						   page_size_mask & (1 << PG_LEVEL_2M));
 		pfn = end_pfn;
 	}
 
@@ -326,21 +394,26 @@ static int __meminit split_mem_range(struct map_range *mr, int nr_range,
 	/* big page (1G) range */
 	start_pfn = round_up(pfn, PFN_DOWN(PUD_SIZE));
 	end_pfn = round_down(limit_pfn, PFN_DOWN(PUD_SIZE));
-	if (start_pfn < end_pfn) {
+
+	if (start_pfn < end_pfn)
+	{
 		nr_range = save_mr(mr, nr_range, start_pfn, end_pfn,
-				page_size_mask &
-				 ((1<<PG_LEVEL_2M)|(1<<PG_LEVEL_1G)));
+						   page_size_mask &
+						   ((1 << PG_LEVEL_2M) | (1 << PG_LEVEL_1G)));
 		pfn = end_pfn;
 	}
 
 	/* tail is not big page (1G) alignment */
 	start_pfn = round_up(pfn, PFN_DOWN(PMD_SIZE));
 	end_pfn = round_down(limit_pfn, PFN_DOWN(PMD_SIZE));
-	if (start_pfn < end_pfn) {
+
+	if (start_pfn < end_pfn)
+	{
 		nr_range = save_mr(mr, nr_range, start_pfn, end_pfn,
-				page_size_mask & (1<<PG_LEVEL_2M));
+						   page_size_mask & (1 << PG_LEVEL_2M));
 		pfn = end_pfn;
 	}
+
 #endif
 
 	/* tail is not big page (2M) alignment */
@@ -349,26 +422,33 @@ static int __meminit split_mem_range(struct map_range *mr, int nr_range,
 	nr_range = save_mr(mr, nr_range, start_pfn, end_pfn, 0);
 
 	if (!after_bootmem)
+	{
 		adjust_range_page_size_mask(mr, nr_range);
+	}
 
 	/* try to merge same page size and continuous */
-	for (i = 0; nr_range > 1 && i < nr_range - 1; i++) {
+	for (i = 0; nr_range > 1 && i < nr_range - 1; i++)
+	{
 		unsigned long old_start;
-		if (mr[i].end != mr[i+1].start ||
-		    mr[i].page_size_mask != mr[i+1].page_size_mask)
+
+		if (mr[i].end != mr[i + 1].start ||
+			mr[i].page_size_mask != mr[i + 1].page_size_mask)
+		{
 			continue;
+		}
+
 		/* move it */
 		old_start = mr[i].start;
-		memmove(&mr[i], &mr[i+1],
-			(nr_range - 1 - i) * sizeof(struct map_range));
+		memmove(&mr[i], &mr[i + 1],
+				(nr_range - 1 - i) * sizeof(struct map_range));
 		mr[i--].start = old_start;
 		nr_range--;
 	}
 
 	for (i = 0; i < nr_range; i++)
 		pr_debug(" [mem %#010lx-%#010lx] page %s\n",
-				mr[i].start, mr[i].end - 1,
-				page_size_string(&mr[i]));
+				 mr[i].start, mr[i].end - 1,
+				 page_size_string(&mr[i]));
 
 	return nr_range;
 }
@@ -379,14 +459,14 @@ int nr_pfn_mapped;
 static void add_pfn_range_mapped(unsigned long start_pfn, unsigned long end_pfn)
 {
 	nr_pfn_mapped = add_range_with_merge(pfn_mapped, E820_X_MAX,
-					     nr_pfn_mapped, start_pfn, end_pfn);
+										 nr_pfn_mapped, start_pfn, end_pfn);
 	nr_pfn_mapped = clean_sort_range(pfn_mapped, E820_X_MAX);
 
 	max_pfn_mapped = max(max_pfn_mapped, end_pfn);
 
-	if (start_pfn < (1UL<<(32-PAGE_SHIFT)))
+	if (start_pfn < (1UL << (32 - PAGE_SHIFT)))
 		max_low_pfn_mapped = max(max_low_pfn_mapped,
-					 min(end_pfn, 1UL<<(32-PAGE_SHIFT)));
+								 min(end_pfn, 1UL << (32 - PAGE_SHIFT)));
 }
 
 bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
@@ -395,8 +475,10 @@ bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
 
 	for (i = 0; i < nr_pfn_mapped; i++)
 		if ((start_pfn >= pfn_mapped[i].start) &&
-		    (end_pfn <= pfn_mapped[i].end))
+			(end_pfn <= pfn_mapped[i].end))
+		{
 			return true;
+		}
 
 	return false;
 }
@@ -407,21 +489,21 @@ bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
  * the physical memory. To access them they are temporarily mapped.
  */
 unsigned long __ref init_memory_mapping(unsigned long start,
-					       unsigned long end)
+										unsigned long end)
 {
 	struct map_range mr[NR_RANGE_MR];
 	unsigned long ret = 0;
 	int nr_range, i;
 
 	pr_debug("init_memory_mapping: [mem %#010lx-%#010lx]\n",
-	       start, end - 1);
+			 start, end - 1);
 
 	memset(mr, 0, sizeof(mr));
 	nr_range = split_mem_range(mr, 0, start, end);
 
 	for (i = 0; i < nr_range; i++)
 		ret = kernel_physical_mapping_init(mr[i].start, mr[i].end,
-						   mr[i].page_size_mask);
+										   mr[i].page_size_mask);
 
 	add_pfn_range_mapped(start >> PAGE_SHIFT, ret >> PAGE_SHIFT);
 
@@ -442,25 +524,29 @@ unsigned long __ref init_memory_mapping(unsigned long start,
  * will be mapped in init_range_memory_mapping().
  */
 static unsigned long __init init_range_memory_mapping(
-					   unsigned long r_start,
-					   unsigned long r_end)
+	unsigned long r_start,
+	unsigned long r_end)
 {
 	unsigned long start_pfn, end_pfn;
 	unsigned long mapped_ram_size = 0;
 	int i;
 
-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL) {
+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL)
+	{
 		u64 start = clamp_val(PFN_PHYS(start_pfn), r_start, r_end);
 		u64 end = clamp_val(PFN_PHYS(end_pfn), r_start, r_end);
+
 		if (start >= end)
+		{
 			continue;
+		}
 
 		/*
 		 * if it is overlapping with brk pgt, we need to
 		 * alloc pgt buf from memblock instead.
 		 */
-		can_use_brk_pgt = max(start, (u64)pgt_buf_end<<PAGE_SHIFT) >=
-				    min(end, (u64)pgt_buf_top<<PAGE_SHIFT);
+		can_use_brk_pgt = max(start, (u64)pgt_buf_end << PAGE_SHIFT) >=
+						  min(end, (u64)pgt_buf_top << PAGE_SHIFT);
 		init_memory_mapping(start, end);
 		mapped_ram_size += end - start;
 		can_use_brk_pgt = true;
@@ -499,7 +585,7 @@ static unsigned long __init get_new_step_size(unsigned long step_size)
  * memory in top-down.
  */
 static void __init memory_map_top_down(unsigned long map_start,
-				       unsigned long map_end)
+									   unsigned long map_end)
 {
 	unsigned long real_end, start, last_start;
 	unsigned long step_size;
@@ -522,23 +608,37 @@ static void __init memory_map_top_down(unsigned long map_start,
 	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
 	 * for page table.
 	 */
-	while (last_start > map_start) {
-		if (last_start > step_size) {
+	while (last_start > map_start)
+	{
+		if (last_start > step_size)
+		{
 			start = round_down(last_start - 1, step_size);
+
 			if (start < map_start)
+			{
 				start = map_start;
-		} else
+			}
+		}
+		else
+		{
 			start = map_start;
+		}
+
 		mapped_ram_size += init_range_memory_mapping(start,
-							last_start);
+						   last_start);
 		last_start = start;
 		min_pfn_mapped = last_start >> PAGE_SHIFT;
+
 		if (mapped_ram_size >= step_size)
+		{
 			step_size = get_new_step_size(step_size);
+		}
 	}
 
 	if (real_end < map_end)
+	{
 		init_range_memory_mapping(real_end, map_end);
+	}
 }
 
 /**
@@ -553,7 +653,7 @@ static void __init memory_map_top_down(unsigned long map_start,
  * in [map_start, map_end) in bottom-up.
  */
 static void __init memory_map_bottom_up(unsigned long map_start,
-					unsigned long map_end)
+										unsigned long map_end)
 {
 	unsigned long next, start;
 	unsigned long mapped_ram_size = 0;
@@ -569,12 +669,19 @@ static void __init memory_map_bottom_up(unsigned long map_start,
 	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
 	 * for page table.
 	 */
-	while (start < map_end) {
-		if (step_size && map_end - start > step_size) {
+	while (start < map_end)
+	{
+		if (step_size && map_end - start > step_size)
+		{
 			next = round_up(start + 1, step_size);
+
 			if (next > map_end)
+			{
 				next = map_end;
-		} else {
+			}
+		}
+		else
+		{
 			next = map_end;
 		}
 
@@ -582,7 +689,9 @@ static void __init memory_map_bottom_up(unsigned long map_start,
 		start = next;
 
 		if (mapped_ram_size >= step_size)
+		{
 			step_size = get_new_step_size(step_size);
+		}
 	}
 }
 
@@ -608,7 +717,8 @@ void __init init_mem_mapping(void)
 	 * If the allocation is in bottom-up direction, we setup direct mapping
 	 * in bottom-up, otherwise we setup direct mapping in top-down.
 	 */
-	if (memblock_bottom_up()) {
+	if (memblock_bottom_up())
+	{
 		unsigned long kernel_end = __pa_symbol(_end);
 
 		/*
@@ -620,15 +730,20 @@ void __init init_mem_mapping(void)
 		 */
 		memory_map_bottom_up(kernel_end, end);
 		memory_map_bottom_up(ISA_END_ADDRESS, kernel_end);
-	} else {
+	}
+	else
+	{
 		memory_map_top_down(ISA_END_ADDRESS, end);
 	}
 
 #ifdef CONFIG_X86_64
-	if (max_pfn > max_low_pfn) {
+
+	if (max_pfn > max_low_pfn)
+	{
 		/* can we preseve max_low_pfn ?*/
 		max_low_pfn = max_pfn;
 	}
+
 #else
 	early_ioremap_page_table_range_init();
 #endif
@@ -652,11 +767,20 @@ void __init init_mem_mapping(void)
 int devmem_is_allowed(unsigned long pagenr)
 {
 	if (pagenr < 256)
+	{
 		return 1;
+	}
+
 	if (iomem_is_exclusive(pagenr << PAGE_SHIFT))
+	{
 		return 0;
+	}
+
 	if (!page_is_ram(pagenr))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -668,24 +792,30 @@ void free_init_pages(char *what, unsigned long begin, unsigned long end)
 	begin_aligned = PAGE_ALIGN(begin);
 	end_aligned   = end & PAGE_MASK;
 
-	if (WARN_ON(begin_aligned != begin || end_aligned != end)) {
+	if (WARN_ON(begin_aligned != begin || end_aligned != end))
+	{
 		begin = begin_aligned;
 		end   = end_aligned;
 	}
 
 	if (begin >= end)
+	{
 		return;
+	}
 
 	/*
 	 * If debugging page accesses then do not free this memory but
 	 * mark them not present - any buggy init-section access will
 	 * create a kernel page fault:
 	 */
-	if (debug_pagealloc_enabled()) {
+	if (debug_pagealloc_enabled())
+	{
 		pr_info("debug: unmapping init [mem %#010lx-%#010lx]\n",
-			begin, end - 1);
+				begin, end - 1);
 		set_memory_np(begin, (end - begin) >> PAGE_SHIFT);
-	} else {
+	}
+	else
+	{
 		/*
 		 * We just marked the kernel text read only above, now that
 		 * we are going to free part of that, we need to make that
@@ -695,7 +825,7 @@ void free_init_pages(char *what, unsigned long begin, unsigned long end)
 		set_memory_rw(begin, (end - begin) >> PAGE_SHIFT);
 
 		free_reserved_area((void *)begin, (void *)end,
-				   POISON_FREE_INITMEM, what);
+						   POISON_FREE_INITMEM, what);
 	}
 }
 
@@ -704,8 +834,8 @@ void __ref free_initmem(void)
 	e820_reallocate_tables();
 
 	free_init_pages("unused kernel",
-			(unsigned long)(&__init_begin),
-			(unsigned long)(&__init_end));
+					(unsigned long)(&__init_begin),
+					(unsigned long)(&__init_end));
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -744,7 +874,8 @@ void __init zone_sizes_init(void)
 	free_area_init_nodes(max_zone_pfns);
 }
 
-DEFINE_PER_CPU_SHARED_ALIGNED(struct tlb_state, cpu_tlbstate) = {
+DEFINE_PER_CPU_SHARED_ALIGNED(struct tlb_state, cpu_tlbstate) =
+{
 #ifdef CONFIG_SMP
 	.active_mm = &init_mm,
 	.state = 0,

@@ -12,7 +12,8 @@
 #ifndef __ASM_PLAT_FB_S3C2410_H
 #define __ASM_PLAT_FB_S3C2410_H __FILE__
 
-struct s3c2410fb_hw {
+struct s3c2410fb_hw
+{
 	unsigned long	lcdcon1;
 	unsigned long	lcdcon2;
 	unsigned long	lcdcon3;
@@ -21,7 +22,8 @@ struct s3c2410fb_hw {
 };
 
 /* LCD description */
-struct s3c2410fb_display {
+struct s3c2410fb_display
+{
 	/* LCD type */
 	unsigned type;
 
@@ -46,7 +48,8 @@ struct s3c2410fb_display {
 	unsigned long	lcdcon5;
 };
 
-struct s3c2410fb_mach_info {
+struct s3c2410fb_mach_info
+{
 
 	struct s3c2410fb_display *displays;	/* attached displays info */
 	unsigned num_displays;			/* number of defined displays */

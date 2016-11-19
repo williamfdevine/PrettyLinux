@@ -20,7 +20,7 @@
 #ifdef __KERNEL__
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <linux/compiler.h>
@@ -149,26 +149,26 @@ ____atomic_test_and_change_bit(unsigned int bit, volatile unsigned long *p)
 /*
  * Native endian assembly bitops.  nr = 0 -> word 0 bit 0.
  */
-extern void _set_bit(int nr, volatile unsigned long * p);
-extern void _clear_bit(int nr, volatile unsigned long * p);
-extern void _change_bit(int nr, volatile unsigned long * p);
-extern int _test_and_set_bit(int nr, volatile unsigned long * p);
-extern int _test_and_clear_bit(int nr, volatile unsigned long * p);
-extern int _test_and_change_bit(int nr, volatile unsigned long * p);
+extern void _set_bit(int nr, volatile unsigned long *p);
+extern void _clear_bit(int nr, volatile unsigned long *p);
+extern void _change_bit(int nr, volatile unsigned long *p);
+extern int _test_and_set_bit(int nr, volatile unsigned long *p);
+extern int _test_and_clear_bit(int nr, volatile unsigned long *p);
+extern int _test_and_change_bit(int nr, volatile unsigned long *p);
 
 /*
  * Little endian assembly bitops.  nr = 0 -> byte 0 bit 0.
  */
-extern int _find_first_zero_bit_le(const void * p, unsigned size);
-extern int _find_next_zero_bit_le(const void * p, int size, int offset);
+extern int _find_first_zero_bit_le(const void *p, unsigned size);
+extern int _find_next_zero_bit_le(const void *p, int size, int offset);
 extern int _find_first_bit_le(const unsigned long *p, unsigned size);
 extern int _find_next_bit_le(const unsigned long *p, int size, int offset);
 
 /*
  * Big endian assembly bitops.  nr = 0 -> byte 3 bit 0.
  */
-extern int _find_first_zero_bit_be(const void * p, unsigned size);
-extern int _find_next_zero_bit_be(const void * p, int size, int offset);
+extern int _find_first_zero_bit_be(const void *p, unsigned size);
+extern int _find_next_zero_bit_be(const void *p, int size, int offset);
 extern int _find_first_bit_be(const unsigned long *p, unsigned size);
 extern int _find_next_bit_be(const unsigned long *p, int size, int offset);
 
@@ -193,22 +193,22 @@ extern int _find_next_bit_be(const unsigned long *p, int size, int offset);
 #define test_and_change_bit(nr,p)	ATOMIC_BITOP(test_and_change_bit,nr,p)
 
 #ifndef __ARMEB__
-/*
- * These are the little endian, atomic definitions.
- */
-#define find_first_zero_bit(p,sz)	_find_first_zero_bit_le(p,sz)
-#define find_next_zero_bit(p,sz,off)	_find_next_zero_bit_le(p,sz,off)
-#define find_first_bit(p,sz)		_find_first_bit_le(p,sz)
-#define find_next_bit(p,sz,off)		_find_next_bit_le(p,sz,off)
+	/*
+	* These are the little endian, atomic definitions.
+	*/
+	#define find_first_zero_bit(p,sz)	_find_first_zero_bit_le(p,sz)
+	#define find_next_zero_bit(p,sz,off)	_find_next_zero_bit_le(p,sz,off)
+	#define find_first_bit(p,sz)		_find_first_bit_le(p,sz)
+	#define find_next_bit(p,sz,off)		_find_next_bit_le(p,sz,off)
 
 #else
-/*
- * These are the big endian, atomic definitions.
- */
-#define find_first_zero_bit(p,sz)	_find_first_zero_bit_be(p,sz)
-#define find_next_zero_bit(p,sz,off)	_find_next_zero_bit_be(p,sz,off)
-#define find_first_bit(p,sz)		_find_first_bit_be(p,sz)
-#define find_next_bit(p,sz,off)		_find_next_bit_be(p,sz,off)
+	/*
+	* These are the big endian, atomic definitions.
+	*/
+	#define find_first_zero_bit(p,sz)	_find_first_zero_bit_be(p,sz)
+	#define find_next_zero_bit(p,sz,off)	_find_next_zero_bit_be(p,sz,off)
+	#define find_first_bit(p,sz)		_find_first_bit_be(p,sz)
+	#define find_next_bit(p,sz,off)		_find_next_bit_be(p,sz,off)
 
 #endif
 
@@ -227,27 +227,40 @@ static inline int constant_fls(int x)
 	int r = 32;
 
 	if (!x)
+	{
 		return 0;
-	if (!(x & 0xffff0000u)) {
+	}
+
+	if (!(x & 0xffff0000u))
+	{
 		x <<= 16;
 		r -= 16;
 	}
-	if (!(x & 0xff000000u)) {
+
+	if (!(x & 0xff000000u))
+	{
 		x <<= 8;
 		r -= 8;
 	}
-	if (!(x & 0xf0000000u)) {
+
+	if (!(x & 0xf0000000u))
+	{
 		x <<= 4;
 		r -= 4;
 	}
-	if (!(x & 0xc0000000u)) {
+
+	if (!(x & 0xc0000000u))
+	{
 		x <<= 2;
 		r -= 2;
 	}
-	if (!(x & 0x80000000u)) {
+
+	if (!(x & 0x80000000u))
+	{
 		x <<= 1;
 		r -= 1;
 	}
+
 	return r;
 }
 
@@ -273,7 +286,9 @@ static inline unsigned int __clz(unsigned int x)
 static inline int fls(int x)
 {
 	if (__builtin_constant_p(x))
-	       return constant_fls(x);
+	{
+		return constant_fls(x);
+	}
 
 	return 32 - __clz(x);
 }

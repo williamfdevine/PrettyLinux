@@ -29,7 +29,8 @@
 #include <mach/misc_regs.h>
 
 /* dmac device registration */
-static struct pl08x_channel_data spear600_dma_info[] = {
+static struct pl08x_channel_data spear600_dma_info[] =
+{
 	{
 		.bus_id = "ssp1_rx",
 		.min_signal = 0,
@@ -321,16 +322,17 @@ static struct pl08x_channel_data spear600_dma_info[] = {
 	},
 };
 
-static struct pl08x_platform_data spear6xx_pl080_plat_data = {
+static struct pl08x_platform_data spear6xx_pl080_plat_data =
+{
 	.memcpy_channel = {
 		.bus_id = "memcpy",
 		.cctl_memcpy =
-			(PL080_BSIZE_16 << PL080_CONTROL_SB_SIZE_SHIFT | \
-			PL080_BSIZE_16 << PL080_CONTROL_DB_SIZE_SHIFT | \
-			PL080_WIDTH_32BIT << PL080_CONTROL_SWIDTH_SHIFT | \
-			PL080_WIDTH_32BIT << PL080_CONTROL_DWIDTH_SHIFT | \
-			PL080_CONTROL_PROT_BUFF | PL080_CONTROL_PROT_CACHE | \
-			PL080_CONTROL_PROT_SYS),
+		(PL080_BSIZE_16 << PL080_CONTROL_SB_SIZE_SHIFT | \
+		PL080_BSIZE_16 << PL080_CONTROL_DB_SIZE_SHIFT | \
+		PL080_WIDTH_32BIT << PL080_CONTROL_SWIDTH_SHIFT | \
+		PL080_WIDTH_32BIT << PL080_CONTROL_DWIDTH_SHIFT | \
+		PL080_CONTROL_PROT_BUFF | PL080_CONTROL_PROT_CACHE | \
+		PL080_CONTROL_PROT_SYS),
 	},
 	.lli_buses = PL08X_AHB1,
 	.mem_buses = PL08X_AHB1,
@@ -348,7 +350,8 @@ static struct pl08x_platform_data spear6xx_pl080_plat_data = {
  * 0xD0000000		0xFD000000
  * 0xFC000000		0xFC000000
  */
-struct map_desc spear6xx_io_desc[] __initdata = {
+struct map_desc spear6xx_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)VA_SPEAR6XX_ML_CPU_BASE,
 		.pfn		= __phys_to_pfn(SPEAR_ICM3_ML1_2_BASE),
@@ -382,16 +385,20 @@ void __init spear6xx_timer_init(void)
 
 	/* get the system timer clock */
 	gpt_clk = clk_get_sys("gpt0", NULL);
-	if (IS_ERR(gpt_clk)) {
+
+	if (IS_ERR(gpt_clk))
+	{
 		pr_err("%s:couldn't get clk for gpt\n", __func__);
 		BUG();
 	}
 
 	/* get the suitable parent clock for timer*/
 	pclk = clk_get(NULL, pclk_name);
-	if (IS_ERR(pclk)) {
+
+	if (IS_ERR(pclk))
+	{
 		pr_err("%s:couldn't get %s as parent for gpt\n",
-				__func__, pclk_name);
+			   __func__, pclk_name);
 		BUG();
 	}
 
@@ -403,9 +410,10 @@ void __init spear6xx_timer_init(void)
 }
 
 /* Add auxdata to pass platform data */
-struct of_dev_auxdata spear6xx_auxdata_lookup[] __initdata = {
+struct of_dev_auxdata spear6xx_auxdata_lookup[] __initdata =
+{
 	OF_DEV_AUXDATA("arm,pl080", SPEAR_ICM3_DMA_BASE, NULL,
-			&spear6xx_pl080_plat_data),
+	&spear6xx_pl080_plat_data),
 	{}
 };
 
@@ -414,15 +422,16 @@ static void __init spear600_dt_init(void)
 	of_platform_default_populate(NULL, spear6xx_auxdata_lookup, NULL);
 }
 
-static const char *spear600_dt_board_compat[] = {
+static const char *spear600_dt_board_compat[] =
+{
 	"st,spear600",
 	NULL
 };
 
 DT_MACHINE_START(SPEAR600_DT, "ST SPEAr600 (Flattened Device Tree)")
-	.map_io		=	spear6xx_map_io,
+.map_io		=	spear6xx_map_io,
 	.init_time	=	spear6xx_timer_init,
-	.init_machine	=	spear600_dt_init,
-	.restart	=	spear_restart,
-	.dt_compat	=	spear600_dt_board_compat,
-MACHINE_END
+	  .init_machine	=	spear600_dt_init,
+		 .restart	=	spear_restart,
+			 .dt_compat	=	spear600_dt_board_compat,
+			   MACHINE_END

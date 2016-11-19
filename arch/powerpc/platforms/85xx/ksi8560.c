@@ -47,9 +47,13 @@ static void __iomem *cpld_base = NULL;
 static void __noreturn machine_restart(char *cmd)
 {
 	if (cpld_base)
+	{
 		out_8(cpld_base + KSI8560_CPLD_RCR1, KSI8560_CPLD_RCR1_CPUHR);
+	}
 	else
+	{
 		printk(KERN_ERR "Can't find CPLD base, hang forever\n");
+	}
 
 	for (;;);
 }
@@ -57,7 +61,7 @@ static void __noreturn machine_restart(char *cmd)
 static void __init ksi8560_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 
@@ -68,11 +72,13 @@ static void __init ksi8560_pic_init(void)
 /*
  * Setup I/O ports
  */
-struct cpm_pin {
+struct cpm_pin
+{
 	int port, pin, flags;
 };
 
-static struct cpm_pin __initdata ksi8560_pins[] = {
+static struct cpm_pin __initdata ksi8560_pins[] =
+{
 	/* SCC1 */
 	{3, 29, CPM_PIN_OUTPUT | CPM_PIN_PRIMARY},
 	{3, 30, CPM_PIN_OUTPUT | CPM_PIN_SECONDARY},
@@ -107,7 +113,8 @@ static void __init init_ioports(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(ksi8560_pins); i++) {
+	for (i = 0; i < ARRAY_SIZE(ksi8560_pins); i++)
+	{
 		struct cpm_pin *pin = &ksi8560_pins[i];
 		cpm2_set_pin(pin->port, pin->pin, pin->flags);
 	}
@@ -129,13 +136,20 @@ static void __init ksi8560_setup_arch(void)
 	struct device_node *cpld;
 
 	cpld = of_find_compatible_node(NULL, NULL, "emerson,KSI8560-cpld");
+
 	if (cpld)
+	{
 		cpld_base = of_iomap(cpld, 0);
+	}
 	else
+	{
 		printk(KERN_ERR "Can't find CPLD in device tree\n");
+	}
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("ksi8560_setup_arch()", 0);
+	}
 
 #ifdef CONFIG_CPM2
 	cpm2_reset();
@@ -153,13 +167,17 @@ static void ksi8560_show_cpuinfo(struct seq_file *m)
 	seq_printf(m, "Vendor\t\t: Emerson Network Power\n");
 	seq_printf(m, "Board\t\t: KSI8560\n");
 
-	if (cpld_base) {
+	if (cpld_base)
+	{
 		seq_printf(m, "Hardware rev\t: %d\n",
-					in_8(cpld_base + KSI8560_CPLD_HVR));
+				   in_8(cpld_base + KSI8560_CPLD_HVR));
 		seq_printf(m, "CPLD rev\t: %d\n",
-					in_8(cpld_base + KSI8560_CPLD_PVR));
-	} else
+				   in_8(cpld_base + KSI8560_CPLD_PVR));
+	}
+	else
+	{
 		seq_printf(m, "Unknown Hardware and CPLD revs\n");
+	}
 
 	seq_printf(m, "PVR\t\t: 0x%x\n", pvid);
 	seq_printf(m, "SVR\t\t: 0x%x\n", svid);
@@ -179,13 +197,14 @@ static int __init ksi8560_probe(void)
 	return of_machine_is_compatible("emerson,KSI8560");
 }
 
-define_machine(ksi8560) {
+define_machine(ksi8560)
+{
 	.name			= "KSI8560",
-	.probe			= ksi8560_probe,
-	.setup_arch		= ksi8560_setup_arch,
-	.init_IRQ		= ksi8560_pic_init,
-	.show_cpuinfo		= ksi8560_show_cpuinfo,
-	.get_irq		= mpic_get_irq,
-	.restart		= machine_restart,
-	.calibrate_decr		= generic_calibrate_decr,
+			 .probe			= ksi8560_probe,
+					 .setup_arch		= ksi8560_setup_arch,
+						 .init_IRQ		= ksi8560_pic_init,
+							   .show_cpuinfo		= ksi8560_show_cpuinfo,
+									 .get_irq		= mpic_get_irq,
+											.restart		= machine_restart,
+												   .calibrate_decr		= generic_calibrate_decr,
 };

@@ -38,7 +38,8 @@
  * The lock here controls access to the list data structure as well as
  * to the items on the list.
  */
-struct hardwall_type {
+struct hardwall_type
+{
 	int index;
 	int is_xdn;
 	int is_idn;
@@ -49,7 +50,8 @@ struct hardwall_type {
 	struct proc_dir_entry *proc_dir;
 };
 
-enum hardwall_index {
+enum hardwall_index
+{
 	HARDWALL_UDN = 0,
 #ifndef __tilepro__
 	HARDWALL_IDN = 1,
@@ -58,7 +60,8 @@ enum hardwall_index {
 	_HARDWALL_TYPES
 };
 
-static struct hardwall_type hardwall_types[] = {
+static struct hardwall_type hardwall_types[] =
+{
 	{  /* user-space access to UDN */
 		0,
 		1,
@@ -98,7 +101,8 @@ static struct hardwall_type hardwall_types[] = {
  * one-to-one with a "struct file *" from opening a hardwall device file.
  * Note that the file's private data points back to this structure.
  */
-struct hardwall_info {
+struct hardwall_info
+{
 	struct list_head list;             /* for hardwall_types.list */
 	struct list_head task_head;        /* head of tasks in this hardwall */
 	struct hardwall_type *type;        /* type of this resource */
@@ -181,21 +185,21 @@ early_param("noipi", noipi);
 			__insn_mtspr(SPR_MPL_UDN_##name, (val));	\
 	} while (0)
 #define mfspr_XDN(hwt, name) \
-  ((hwt)->is_idn ? __insn_mfspr(SPR_IDN_##name) : __insn_mfspr(SPR_UDN_##name))
+	((hwt)->is_idn ? __insn_mfspr(SPR_IDN_##name) : __insn_mfspr(SPR_UDN_##name))
 #endif
 
 /* Set a CPU bit if the CPU is online. */
 #define cpu_online_set(cpu, dst) do { \
-	if (cpu_online(cpu))          \
-		cpumask_set_cpu(cpu, dst);    \
-} while (0)
+		if (cpu_online(cpu))          \
+			cpumask_set_cpu(cpu, dst);    \
+	} while (0)
 
 
 /* Does the given rectangle contain the given x,y coordinate? */
 static int contains(struct hardwall_info *r, int x, int y)
 {
 	return (x >= r->ulhc_x && x < r->ulhc_x + r->width) &&
-		(y >= r->ulhc_y && y < r->ulhc_y + r->height);
+		   (y >= r->ulhc_y && y < r->ulhc_y + r->height);
 }
 
 /* Compute the rectangle parameters and validate the cpumask. */
@@ -215,13 +219,17 @@ static int check_rectangle(struct hardwall_info *r, struct cpumask *mask)
 
 	/* Width and height must be positive */
 	if (r->width <= 0 || r->height <= 0)
+	{
 		return -EINVAL;
+	}
 
 	/* Confirm that the cpumask is exactly the rectangle. */
 	for (y = 0, cpu = 0; y < smp_height; ++y)
 		for (x = 0; x < smp_width; ++x, ++cpu)
 			if (cpumask_test_cpu(cpu, mask) != contains(r, x, y))
+			{
 				return -EINVAL;
+			}
 
 	/*
 	 * Note that offline cpus can't be drained when this user network
@@ -239,7 +247,8 @@ static int check_rectangle(struct hardwall_info *r, struct cpumask *mask)
  */
 
 /* Bit field values to mask together for writes to SPR_XDN_DIRECTION_PROTECT */
-enum direction_protect {
+enum direction_protect
+{
 	N_PROTECT = (1 << 0),
 	E_PROTECT = (1 << 1),
 	S_PROTECT = (1 << 2),
@@ -250,8 +259,12 @@ enum direction_protect {
 static inline int xdn_which_interrupt(struct hardwall_type *hwt)
 {
 #ifndef __tilepro__
+
 	if (hwt->is_idn)
+	{
 		return INT_IDN_FIREWALL;
+	}
+
 #endif
 	return INT_UDN_FIREWALL;
 }
@@ -276,14 +289,27 @@ static void hardwall_setup_func(void *info)
 	int x = cpu_x(cpu);
 	int y = cpu_y(cpu);
 	int bits = 0;
+
 	if (x == r->ulhc_x)
+	{
 		bits |= W_PROTECT;
+	}
+
 	if (x == r->ulhc_x + r->width - 1)
+	{
 		bits |= E_PROTECT;
+	}
+
 	if (y == r->ulhc_y)
+	{
 		bits |= N_PROTECT;
+	}
+
 	if (y == r->ulhc_y + r->height - 1)
+	{
 		bits |= S_PROTECT;
+	}
+
 	BUG_ON(bits == 0);
 	mtspr_XDN(hwt, DIRECTION_PROTECT, bits);
 	enable_firewall_interrupts(hwt);
@@ -300,7 +326,9 @@ static void hardwall_protect_rectangle(struct hardwall_info *r)
 	/* First include the top and bottom edges */
 	cpu = r->ulhc_y * smp_width + r->ulhc_x;
 	delta = (r->height - 1) * smp_width;
-	for (x = 0; x < r->width; ++x, ++cpu) {
+
+	for (x = 0; x < r->width; ++x, ++cpu)
+	{
 		cpu_online_set(cpu, &rect_cpus);
 		cpu_online_set(cpu + delta, &rect_cpus);
 	}
@@ -308,7 +336,9 @@ static void hardwall_protect_rectangle(struct hardwall_info *r)
 	/* Then the left and right edges */
 	cpu -= r->width;
 	delta = r->width - 1;
-	for (y = 0; y < r->height; ++y, cpu += smp_width) {
+
+	for (y = 0; y < r->height; ++y, cpu += smp_width)
+	{
 		cpu_online_set(cpu, &rect_cpus);
 		cpu_online_set(cpu + delta, &rect_cpus);
 	}
@@ -318,7 +348,7 @@ static void hardwall_protect_rectangle(struct hardwall_info *r)
 }
 
 /* Entered from INT_xDN_FIREWALL interrupt vector with irqs disabled. */
-void __kprobes do_hardwall_trap(struct pt_regs* regs, int fault_num)
+void __kprobes do_hardwall_trap(struct pt_regs *regs, int fault_num)
 {
 	struct hardwall_info *rect;
 	struct hardwall_type *hwt;
@@ -331,25 +361,33 @@ void __kprobes do_hardwall_trap(struct pt_regs* regs, int fault_num)
 	irq_enter();
 
 	/* Figure out which network trapped. */
-	switch (fault_num) {
+	switch (fault_num)
+	{
 #ifndef __tilepro__
-	case INT_IDN_FIREWALL:
-		hwt = &hardwall_types[HARDWALL_IDN];
-		break;
+
+		case INT_IDN_FIREWALL:
+			hwt = &hardwall_types[HARDWALL_IDN];
+			break;
 #endif
-	case INT_UDN_FIREWALL:
-		hwt = &hardwall_types[HARDWALL_UDN];
-		break;
-	default:
-		BUG();
+
+		case INT_UDN_FIREWALL:
+			hwt = &hardwall_types[HARDWALL_UDN];
+			break;
+
+		default:
+			BUG();
 	}
+
 	BUG_ON(hwt->disabled);
 
 	/* This tile trapped a network access; find the rectangle. */
 	spin_lock(&hwt->lock);
-	list_for_each_entry(rect, &hwt->list, list) {
+	list_for_each_entry(rect, &hwt->list, list)
+	{
 		if (cpumask_test_cpu(cpu, &rect->cpumask))
+		{
 			break;
+		}
 	}
 
 	/*
@@ -364,10 +402,11 @@ void __kprobes do_hardwall_trap(struct pt_regs* regs, int fault_num)
 	 * the abort signal has been sent and we are just waiting for things
 	 * to quiesce.
 	 */
-	if (rect->teardown_in_progress) {
+	if (rect->teardown_in_progress)
+	{
 		pr_notice("cpu %d: detected %s hardwall violation %#lx while teardown already in progress\n",
-			  cpu, hwt->name,
-			  (long)mfspr_XDN(hwt, DIRECTION_PROTECT));
+				  cpu, hwt->name,
+				  (long)mfspr_XDN(hwt, DIRECTION_PROTECT));
 		goto done;
 	}
 
@@ -382,24 +421,30 @@ void __kprobes do_hardwall_trap(struct pt_regs* regs, int fault_num)
 	rect->teardown_in_progress = 1;
 	wmb(); /* Ensure visibility of rectangle before notifying processes. */
 	pr_notice("cpu %d: detected %s hardwall violation %#lx...\n",
-		  cpu, hwt->name, (long)mfspr_XDN(hwt, DIRECTION_PROTECT));
+			  cpu, hwt->name, (long)mfspr_XDN(hwt, DIRECTION_PROTECT));
 	info.si_signo = SIGILL;
 	info.si_errno = 0;
 	info.si_code = ILL_HARDWALL;
 	found_processes = 0;
 	list_for_each_entry(p, &rect->task_head,
-			    thread.hardwall[hwt->index].list) {
+						thread.hardwall[hwt->index].list)
+	{
 		BUG_ON(p->thread.hardwall[hwt->index].info != rect);
-		if (!(p->flags & PF_EXITING)) {
+
+		if (!(p->flags & PF_EXITING))
+		{
 			found_processes = 1;
 			pr_notice("hardwall: killing %d\n", p->pid);
 			do_send_sig_info(info.si_signo, &info, p, false);
 		}
 	}
-	if (!found_processes)
-		pr_notice("hardwall: no associated processes!\n");
 
- done:
+	if (!found_processes)
+	{
+		pr_notice("hardwall: no associated processes!\n");
+	}
+
+done:
 	spin_unlock(&hwt->lock);
 
 	/*
@@ -419,10 +464,13 @@ void __kprobes do_hardwall_trap(struct pt_regs* regs, int fault_num)
 void grant_hardwall_mpls(struct hardwall_type *hwt)
 {
 #ifndef __tilepro__
-	if (!hwt->is_xdn) {
+
+	if (!hwt->is_xdn)
+	{
 		__insn_mtspr(SPR_MPL_IPI_0_SET_0, 1);
 		return;
 	}
+
 #endif
 	mtspr_MPL_XDN(hwt, ACCESS_SET_0, 1);
 	mtspr_MPL_XDN(hwt, AVAIL_SET_0, 1);
@@ -438,10 +486,13 @@ void grant_hardwall_mpls(struct hardwall_type *hwt)
 void restrict_hardwall_mpls(struct hardwall_type *hwt)
 {
 #ifndef __tilepro__
-	if (!hwt->is_xdn) {
+
+	if (!hwt->is_xdn)
+	{
 		__insn_mtspr(SPR_MPL_IPI_0_SET_1, 1);
 		return;
 	}
+
 #endif
 	mtspr_MPL_XDN(hwt, ACCESS_SET_1, 1);
 	mtspr_MPL_XDN(hwt, AVAIL_SET_1, 1);
@@ -455,14 +506,21 @@ void restrict_hardwall_mpls(struct hardwall_type *hwt)
 
 /* Restrict or deny as necessary for the task we're switching to. */
 void hardwall_switch_tasks(struct task_struct *prev,
-			   struct task_struct *next)
+						   struct task_struct *next)
 {
 	int i;
-	for (i = 0; i < HARDWALL_TYPES; ++i) {
-		if (prev->thread.hardwall[i].info != NULL) {
+
+	for (i = 0; i < HARDWALL_TYPES; ++i)
+	{
+		if (prev->thread.hardwall[i].info != NULL)
+		{
 			if (next->thread.hardwall[i].info == NULL)
+			{
 				restrict_hardwall_mpls(&hardwall_types[i]);
-		} else if (next->thread.hardwall[i].info != NULL) {
+			}
+		}
+		else if (next->thread.hardwall[i].info != NULL)
+		{
 			grant_hardwall_mpls(&hardwall_types[i]);
 		}
 	}
@@ -473,7 +531,7 @@ int hardwall_ipi_valid(int cpu)
 {
 #ifdef __tilegx__
 	struct hardwall_info *info =
-		current->thread.hardwall[HARDWALL_IPI].info;
+			current->thread.hardwall[HARDWALL_IPI].info;
 	return info && cpumask_test_cpu(cpu, &info->cpumask);
 #else
 	return 0;
@@ -486,8 +544,8 @@ int hardwall_ipi_valid(int cpu)
 
 /* Create a hardwall for the given resource */
 static struct hardwall_info *hardwall_create(struct hardwall_type *hwt,
-					     size_t size,
-					     const unsigned char __user *bits)
+		size_t size,
+		const unsigned char __user *bits)
 {
 	struct hardwall_info *iter, *info;
 	struct cpumask mask;
@@ -496,44 +554,67 @@ static struct hardwall_info *hardwall_create(struct hardwall_type *hwt,
 
 	/* Reject crazy sizes out of hand, a la sys_mbind(). */
 	if (size > PAGE_SIZE)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* Copy whatever fits into a cpumask. */
 	if (copy_from_user(&mask, bits, min(sizeof(struct cpumask), size)))
+	{
 		return ERR_PTR(-EFAULT);
+	}
 
 	/*
 	 * If the size was short, clear the rest of the mask;
 	 * otherwise validate that the rest of the user mask was zero
 	 * (we don't try hard to be efficient when validating huge masks).
 	 */
-	if (size < sizeof(struct cpumask)) {
+	if (size < sizeof(struct cpumask))
+	{
 		memset((char *)&mask + size, 0, sizeof(struct cpumask) - size);
-	} else if (size > sizeof(struct cpumask)) {
+	}
+	else if (size > sizeof(struct cpumask))
+	{
 		size_t i;
-		for (i = sizeof(struct cpumask); i < size; ++i) {
+
+		for (i = sizeof(struct cpumask); i < size; ++i)
+		{
 			char c;
+
 			if (get_user(c, &bits[i]))
+			{
 				return ERR_PTR(-EFAULT);
+			}
+
 			if (c)
+			{
 				return ERR_PTR(-EINVAL);
+			}
 		}
 	}
 
 	/* Allocate a new hardwall_info optimistically. */
 	info = kmalloc(sizeof(struct hardwall_info),
-			GFP_KERNEL | __GFP_ZERO);
+				   GFP_KERNEL | __GFP_ZERO);
+
 	if (info == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	INIT_LIST_HEAD(&info->task_head);
 	info->type = hwt;
 
 	/* Compute the rectangle size and validate that it's plausible. */
 	cpumask_copy(&info->cpumask, &mask);
 	info->id = find_first_bit(cpumask_bits(&mask), nr_cpumask_bits);
-	if (hwt->is_xdn) {
+
+	if (hwt->is_xdn)
+	{
 		rc = check_rectangle(info, &mask);
-		if (rc != 0) {
+
+		if (rc != 0)
+		{
 			kfree(info);
 			return ERR_PTR(rc);
 		}
@@ -549,8 +630,10 @@ static struct hardwall_info *hardwall_create(struct hardwall_type *hwt,
 
 	/* Confirm it doesn't overlap and add it to the list. */
 	spin_lock_irqsave(&hwt->lock, flags);
-	list_for_each_entry(iter, &hwt->list, list) {
-		if (cpumask_intersects(&iter->cpumask, &info->cpumask)) {
+	list_for_each_entry(iter, &hwt->list, list)
+	{
+		if (cpumask_intersects(&iter->cpumask, &info->cpumask))
+		{
 			spin_unlock_irqrestore(&hwt->lock, flags);
 			kfree(info);
 			return ERR_PTR(-EBUSY);
@@ -561,7 +644,9 @@ static struct hardwall_info *hardwall_create(struct hardwall_type *hwt,
 
 	/* Set up appropriate hardwalling on all affected cpus. */
 	if (hwt->is_xdn)
+	{
 		hardwall_protect_rectangle(info);
+	}
 
 	/* Create a /proc/tile/hardwall entry. */
 	hardwall_add_proc(info);
@@ -580,28 +665,39 @@ static int hardwall_activate(struct hardwall_info *info)
 
 	/* Require a hardwall. */
 	if (info == NULL)
+	{
 		return -ENODATA;
+	}
 
 	/* Not allowed to activate a hardwall that is being torn down. */
 	if (info->teardown_in_progress)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Get our affinity; if we're not bound to this tile uniquely,
 	 * we can't access the network registers.
 	 */
 	if (cpumask_weight(&p->cpus_allowed) != 1)
+	{
 		return -EPERM;
+	}
 
 	/* Make sure we are bound to a cpu assigned to this resource. */
 	cpu = smp_processor_id();
 	BUG_ON(cpumask_first(&p->cpus_allowed) != cpu);
+
 	if (!cpumask_test_cpu(cpu, &info->cpumask))
+	{
 		return -EINVAL;
+	}
 
 	/* If we are already bound to this hardwall, it's a no-op. */
 	hwt = info->type;
-	if (ts->hardwall[hwt->index].info) {
+
+	if (ts->hardwall[hwt->index].info)
+	{
 		BUG_ON(ts->hardwall[hwt->index].info != info);
 		return 0;
 	}
@@ -613,7 +709,7 @@ static int hardwall_activate(struct hardwall_info *info)
 	spin_unlock_irqrestore(&hwt->lock, flags);
 	grant_hardwall_mpls(hwt);
 	printk(KERN_DEBUG "Pid %d (%s) activated for %s hardwall: cpu %d\n",
-	       p->pid, p->comm, hwt->name, cpu);
+		   p->pid, p->comm, hwt->name, cpu);
 	return 0;
 }
 
@@ -624,51 +720,64 @@ static int hardwall_activate(struct hardwall_info *info)
  * We assume the cpus_allowed, pid, and comm fields are still valid.
  */
 static void _hardwall_deactivate(struct hardwall_type *hwt,
-				 struct task_struct *task)
+								 struct task_struct *task)
 {
 	struct thread_struct *ts = &task->thread;
 
-	if (cpumask_weight(&task->cpus_allowed) != 1) {
+	if (cpumask_weight(&task->cpus_allowed) != 1)
+	{
 		pr_err("pid %d (%s) releasing %s hardwall with an affinity mask containing %d cpus!\n",
-		       task->pid, task->comm, hwt->name,
-		       cpumask_weight(&task->cpus_allowed));
+			   task->pid, task->comm, hwt->name,
+			   cpumask_weight(&task->cpus_allowed));
 		BUG();
 	}
 
 	BUG_ON(ts->hardwall[hwt->index].info == NULL);
 	ts->hardwall[hwt->index].info = NULL;
 	list_del(&ts->hardwall[hwt->index].list);
+
 	if (task == current)
+	{
 		restrict_hardwall_mpls(hwt);
+	}
 }
 
 /* Deactivate a task's hardwall. */
 static int hardwall_deactivate(struct hardwall_type *hwt,
-			       struct task_struct *task)
+							   struct task_struct *task)
 {
 	unsigned long flags;
 	int activated;
 
 	spin_lock_irqsave(&hwt->lock, flags);
 	activated = (task->thread.hardwall[hwt->index].info != NULL);
+
 	if (activated)
+	{
 		_hardwall_deactivate(hwt, task);
+	}
+
 	spin_unlock_irqrestore(&hwt->lock, flags);
 
 	if (!activated)
+	{
 		return -EINVAL;
+	}
 
 	printk(KERN_DEBUG "Pid %d (%s) deactivated for %s hardwall: cpu %d\n",
-	       task->pid, task->comm, hwt->name, raw_smp_processor_id());
+		   task->pid, task->comm, hwt->name, raw_smp_processor_id());
 	return 0;
 }
 
 void hardwall_deactivate_all(struct task_struct *task)
 {
 	int i;
+
 	for (i = 0; i < HARDWALL_TYPES; ++i)
 		if (task->thread.hardwall[i].info)
+		{
 			hardwall_deactivate(&hardwall_types[i], task);
+		}
 }
 
 /* Stop the switch before draining the network. */
@@ -677,9 +786,9 @@ static void stop_xdn_switch(void *arg)
 #if !CHIP_HAS_REV1_XDN()
 	/* Freeze the switch and the demux. */
 	__insn_mtspr(SPR_UDN_SP_FREEZE,
-		     SPR_UDN_SP_FREEZE__SP_FRZ_MASK |
-		     SPR_UDN_SP_FREEZE__DEMUX_FRZ_MASK |
-		     SPR_UDN_SP_FREEZE__NON_DEST_EXT_MASK);
+				 SPR_UDN_SP_FREEZE__SP_FRZ_MASK |
+				 SPR_UDN_SP_FREEZE__DEMUX_FRZ_MASK |
+				 SPR_UDN_SP_FREEZE__NON_DEST_EXT_MASK);
 #else
 	/*
 	 * Drop all packets bound for the core or off the edge.
@@ -701,22 +810,43 @@ static void stop_xdn_switch(void *arg)
 static void empty_xdn_demuxes(struct hardwall_type *hwt)
 {
 #ifndef __tilepro__
-	if (hwt->is_idn) {
+
+	if (hwt->is_idn)
+	{
 		while (__insn_mfspr(SPR_IDN_DATA_AVAIL) & (1 << 0))
+		{
 			(void) __tile_idn0_receive();
+		}
+
 		while (__insn_mfspr(SPR_IDN_DATA_AVAIL) & (1 << 1))
+		{
 			(void) __tile_idn1_receive();
+		}
+
 		return;
 	}
+
 #endif
+
 	while (__insn_mfspr(SPR_UDN_DATA_AVAIL) & (1 << 0))
+	{
 		(void) __tile_udn0_receive();
+	}
+
 	while (__insn_mfspr(SPR_UDN_DATA_AVAIL) & (1 << 1))
+	{
 		(void) __tile_udn1_receive();
+	}
+
 	while (__insn_mfspr(SPR_UDN_DATA_AVAIL) & (1 << 2))
+	{
 		(void) __tile_udn2_receive();
+	}
+
 	while (__insn_mfspr(SPR_UDN_DATA_AVAIL) & (1 << 3))
+	{
 		(void) __tile_udn3_receive();
+	}
 }
 
 /* Drain all the state from a stopped switch. */
@@ -734,42 +864,66 @@ static void drain_xdn_switch(void *arg)
 	 * messages before we stop draining.
 	 */
 	int pending = mfspr_XDN(hwt, PENDING);
-	while (pending--) {
+
+	while (pending--)
+	{
 		empty_xdn_demuxes(hwt);
+
 		if (hwt->is_idn)
+		{
 			__tile_idn_send(0);
+		}
 		else
+		{
 			__tile_udn_send(0);
+		}
 	}
+
 	atomic_dec(&info->xdn_pending_count);
+
 	while (atomic_read(&info->xdn_pending_count))
+	{
 		empty_xdn_demuxes(hwt);
+	}
+
 #else
 	int i;
 	int from_tile_words, ca_count;
 
 	/* Empty out the 5 switch point fifos. */
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		int words, j;
 		__insn_mtspr(SPR_UDN_SP_FIFO_SEL, i);
 		words = __insn_mfspr(SPR_UDN_SP_STATE) & 0xF;
+
 		for (j = 0; j < words; j++)
+		{
 			(void) __insn_mfspr(SPR_UDN_SP_FIFO_DATA);
+		}
+
 		BUG_ON((__insn_mfspr(SPR_UDN_SP_STATE) & 0xF) != 0);
 	}
 
 	/* Dump out the 3 word fifo at top. */
 	from_tile_words = (__insn_mfspr(SPR_UDN_DEMUX_STATUS) >> 10) & 0x3;
+
 	for (i = 0; i < from_tile_words; i++)
+	{
 		(void) __insn_mfspr(SPR_UDN_DEMUX_WRITE_FIFO);
+	}
 
 	/* Empty out demuxes. */
 	empty_xdn_demuxes(hwt);
 
 	/* Empty out catch all. */
 	ca_count = __insn_mfspr(SPR_UDN_DEMUX_CA_COUNT);
+
 	for (i = 0; i < ca_count; i++)
+	{
 		(void) __insn_mfspr(SPR_UDN_CA_DATA);
+	}
+
 	BUG_ON(__insn_mfspr(SPR_UDN_DEMUX_CA_COUNT) != 0);
 
 	/* Clear demux logic. */
@@ -779,10 +933,12 @@ static void drain_xdn_switch(void *arg)
 	 * Write switch state; experimentation indicates that 0xc3000
 	 * is an idle switch point.
 	 */
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		__insn_mtspr(SPR_UDN_SP_FIFO_SEL, i);
 		__insn_mtspr(SPR_UDN_SP_STATE, 0xc3000);
 	}
+
 #endif
 }
 
@@ -790,7 +946,9 @@ static void drain_xdn_switch(void *arg)
 static void reset_xdn_network_state(struct hardwall_type *hwt)
 {
 	if (hwt->disabled)
+	{
 		return;
+	}
 
 	/* Clear out other random registers so we have a clean slate. */
 	mtspr_XDN(hwt, DIRECTION_PROTECT, 0);
@@ -856,7 +1014,9 @@ static void hardwall_destroy(struct hardwall_info *info)
 
 	/* Make sure this file actually represents a hardwall. */
 	if (info == NULL)
+	{
 		return;
+	}
 
 	/*
 	 * Deactivate any remaining tasks.  It's possible to race with
@@ -869,22 +1029,23 @@ static void hardwall_destroy(struct hardwall_info *info)
 	info->teardown_in_progress = 1;
 	spin_lock_irqsave(&hwt->lock, flags);
 	list_for_each_entry(task, &info->task_head,
-			    thread.hardwall[hwt->index].list)
-		_hardwall_deactivate(hwt, task);
+						thread.hardwall[hwt->index].list)
+	_hardwall_deactivate(hwt, task);
 	spin_unlock_irqrestore(&hwt->lock, flags);
 
-	if (hwt->is_xdn) {
+	if (hwt->is_xdn)
+	{
 		/* Configure the switches for draining the user network. */
 		printk(KERN_DEBUG
-		       "Clearing %s hardwall rectangle %dx%d %d,%d\n",
-		       hwt->name, info->width, info->height,
-		       info->ulhc_x, info->ulhc_y);
+			   "Clearing %s hardwall rectangle %dx%d %d,%d\n",
+			   hwt->name, info->width, info->height,
+			   info->ulhc_x, info->ulhc_y);
 		on_each_cpu_mask(&info->cpumask, stop_xdn_switch, hwt, 1);
 
 		/* Drain the network. */
 #if CHIP_HAS_REV1_XDN()
 		atomic_set(&info->xdn_pending_count,
-			   cpumask_weight(&info->cpumask));
+				   cpumask_weight(&info->cpumask));
 		on_each_cpu_mask(&info->cpumask, drain_xdn_switch, info, 0);
 #else
 		on_each_cpu_mask(&info->cpumask, drain_xdn_switch, info, 1);
@@ -915,12 +1076,13 @@ static int hardwall_proc_show(struct seq_file *sf, void *v)
 }
 
 static int hardwall_proc_open(struct inode *inode,
-			      struct file *file)
+							  struct file *file)
 {
 	return single_open(file, hardwall_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations hardwall_proc_fops = {
+static const struct file_operations hardwall_proc_fops =
+{
 	.open		= hardwall_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -932,7 +1094,7 @@ static void hardwall_add_proc(struct hardwall_info *info)
 	char buf[64];
 	snprintf(buf, sizeof(buf), "%d", info->id);
 	proc_create_data(buf, 0444, info->type->proc_dir,
-			 &hardwall_proc_fops, info);
+					 &hardwall_proc_fops, info);
 }
 
 static void hardwall_remove_proc(struct hardwall_info *info)
@@ -943,27 +1105,42 @@ static void hardwall_remove_proc(struct hardwall_info *info)
 }
 
 int proc_pid_hardwall(struct seq_file *m, struct pid_namespace *ns,
-		      struct pid *pid, struct task_struct *task)
+					  struct pid *pid, struct task_struct *task)
 {
 	int i;
 	int n = 0;
-	for (i = 0; i < HARDWALL_TYPES; ++i) {
+
+	for (i = 0; i < HARDWALL_TYPES; ++i)
+	{
 		struct hardwall_info *info = task->thread.hardwall[i].info;
+
 		if (info)
+		{
 			seq_printf(m, "%s: %d\n", info->type->name, info->id);
+		}
 	}
+
 	return n;
 }
 
 void proc_tile_hardwall_init(struct proc_dir_entry *root)
 {
 	int i;
-	for (i = 0; i < HARDWALL_TYPES; ++i) {
+
+	for (i = 0; i < HARDWALL_TYPES; ++i)
+	{
 		struct hardwall_type *hwt = &hardwall_types[i];
+
 		if (hwt->disabled)
+		{
 			continue;
+		}
+
 		if (hardwall_proc_dir == NULL)
+		{
 			hardwall_proc_dir = proc_mkdir("hardwall", root);
+		}
+
 		hwt->proc_dir = proc_mkdir(hwt->name, hardwall_proc_dir);
 	}
 }
@@ -977,52 +1154,71 @@ static long hardwall_ioctl(struct file *file, unsigned int a, unsigned long b)
 {
 	struct hardwall_info *info = file->private_data;
 	int minor = iminor(file->f_mapping->host);
-	struct hardwall_type* hwt;
+	struct hardwall_type *hwt;
 
 	if (_IOC_TYPE(a) != HARDWALL_IOCTL_BASE)
+	{
 		return -EINVAL;
+	}
 
 	BUILD_BUG_ON(HARDWALL_TYPES != _HARDWALL_TYPES);
 	BUILD_BUG_ON(HARDWALL_TYPES !=
-		     sizeof(hardwall_types)/sizeof(hardwall_types[0]));
+				 sizeof(hardwall_types) / sizeof(hardwall_types[0]));
 
 	if (minor < 0 || minor >= HARDWALL_TYPES)
+	{
 		return -EINVAL;
+	}
+
 	hwt = &hardwall_types[minor];
 	WARN_ON(info && hwt != info->type);
 
-	switch (_IOC_NR(a)) {
-	case _HARDWALL_CREATE:
-		if (hwt->disabled)
-			return -ENOSYS;
-		if (info != NULL)
-			return -EALREADY;
-		info = hardwall_create(hwt, _IOC_SIZE(a),
-				       (const unsigned char __user *)b);
-		if (IS_ERR(info))
-			return PTR_ERR(info);
-		file->private_data = info;
-		return 0;
+	switch (_IOC_NR(a))
+	{
+		case _HARDWALL_CREATE:
+			if (hwt->disabled)
+			{
+				return -ENOSYS;
+			}
 
-	case _HARDWALL_ACTIVATE:
-		return hardwall_activate(info);
+			if (info != NULL)
+			{
+				return -EALREADY;
+			}
 
-	case _HARDWALL_DEACTIVATE:
-		if (current->thread.hardwall[hwt->index].info != info)
+			info = hardwall_create(hwt, _IOC_SIZE(a),
+								   (const unsigned char __user *)b);
+
+			if (IS_ERR(info))
+			{
+				return PTR_ERR(info);
+			}
+
+			file->private_data = info;
+			return 0;
+
+		case _HARDWALL_ACTIVATE:
+			return hardwall_activate(info);
+
+		case _HARDWALL_DEACTIVATE:
+			if (current->thread.hardwall[hwt->index].info != info)
+			{
+				return -EINVAL;
+			}
+
+			return hardwall_deactivate(hwt, current);
+
+		case _HARDWALL_GET_ID:
+			return info ? info->id : -EINVAL;
+
+		default:
 			return -EINVAL;
-		return hardwall_deactivate(hwt, current);
-
-	case _HARDWALL_GET_ID:
-		return info ? info->id : -EINVAL;
-
-	default:
-		return -EINVAL;
 	}
 }
 
 #ifdef CONFIG_COMPAT
 static long hardwall_compat_ioctl(struct file *file,
-				  unsigned int a, unsigned long b)
+								  unsigned int a, unsigned long b)
 {
 	/* Sign-extend the argument so it can be used as a pointer. */
 	return hardwall_ioctl(file, a, (unsigned long)compat_ptr(b));
@@ -1036,7 +1232,8 @@ static int hardwall_flush(struct file *file, fl_owner_t owner)
 	struct task_struct *task, *tmp;
 	unsigned long flags;
 
-	if (info) {
+	if (info)
+	{
 		/*
 		 * NOTE: if multiple threads are activated on this hardwall
 		 * file, the other threads will continue having access to the
@@ -1049,9 +1246,12 @@ static int hardwall_flush(struct file *file, fl_owner_t owner)
 		struct hardwall_type *hwt = info->type;
 		spin_lock_irqsave(&hwt->lock, flags);
 		list_for_each_entry_safe(task, tmp, &info->task_head,
-					 thread.hardwall[hwt->index].list) {
+								 thread.hardwall[hwt->index].list)
+		{
 			if (task->files == owner || task->files == NULL)
+			{
 				_hardwall_deactivate(hwt, task);
+			}
 		}
 		spin_unlock_irqrestore(&hwt->lock, flags);
 	}
@@ -1066,7 +1266,8 @@ static int hardwall_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations dev_hardwall_fops = {
+static const struct file_operations dev_hardwall_fops =
+{
 	.open           = nonseekable_open,
 	.unlocked_ioctl = hardwall_ioctl,
 #ifdef CONFIG_COMPAT
@@ -1084,12 +1285,19 @@ static int __init dev_hardwall_init(void)
 	dev_t dev;
 
 	rc = alloc_chrdev_region(&dev, 0, HARDWALL_TYPES, "hardwall");
+
 	if (rc < 0)
+	{
 		return rc;
+	}
+
 	cdev_init(&hardwall_dev, &dev_hardwall_fops);
 	rc = cdev_add(&hardwall_dev, dev, HARDWALL_TYPES);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	return 0;
 }

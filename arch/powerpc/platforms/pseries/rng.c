@@ -20,7 +20,8 @@ static int pseries_get_random_long(unsigned long *v)
 {
 	unsigned long retbuf[PLPAR_HCALL_BUFSIZE];
 
-	if (plpar_hcall(H_RANDOM, retbuf) == H_SUCCESS) {
+	if (plpar_hcall(H_RANDOM, retbuf) == H_SUCCESS)
+	{
 		*v = retbuf[0];
 		return 1;
 	}
@@ -33,8 +34,11 @@ static __init int rng_init(void)
 	struct device_node *dn;
 
 	dn = of_find_compatible_node(NULL, NULL, "ibm,random");
+
 	if (!dn)
+	{
 		return -ENODEV;
+	}
 
 	pr_info("Registering arch random hook.\n");
 

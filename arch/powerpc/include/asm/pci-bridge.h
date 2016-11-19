@@ -16,7 +16,8 @@ struct device_node;
 /*
  * PCI controller operations
  */
-struct pci_controller_ops {
+struct pci_controller_ops
+{
 	void		(*dma_dev_setup)(struct pci_dev *pdev);
 	void		(*dma_bus_setup)(struct pci_bus *bus);
 
@@ -32,14 +33,14 @@ struct pci_controller_ops {
 
 	/* Called during PCI resource reassignment */
 	resource_size_t (*window_alignment)(struct pci_bus *bus,
-					    unsigned long type);
+										unsigned long type);
 	void		(*setup_bridge)(struct pci_bus *bus,
-					unsigned long type);
+								unsigned long type);
 	void		(*reset_secondary_bus)(struct pci_dev *pdev);
 
 #ifdef CONFIG_PCI_MSI
 	int		(*setup_msi_irqs)(struct pci_dev *pdev,
-					  int nvec, int type);
+							  int nvec, int type);
 	void		(*teardown_msi_irqs)(struct pci_dev *pdev);
 #endif
 
@@ -52,7 +53,8 @@ struct pci_controller_ops {
 /*
  * Structure of a PCI controller (host bridge)
  */
-struct pci_controller {
+struct pci_controller
+{
 	struct pci_bus *bus;
 	char is_dynamic;
 #ifdef CONFIG_PPC64
@@ -134,34 +136,34 @@ struct pci_controller {
 /* These are used for config access before all the PCI probing
    has been done. */
 extern int early_read_config_byte(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u8 *val);
+								  int dev_fn, int where, u8 *val);
 extern int early_read_config_word(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u16 *val);
+								  int dev_fn, int where, u16 *val);
 extern int early_read_config_dword(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u32 *val);
+								   int dev_fn, int where, u32 *val);
 extern int early_write_config_byte(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u8 val);
+								   int dev_fn, int where, u8 val);
 extern int early_write_config_word(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u16 val);
+								   int dev_fn, int where, u16 val);
 extern int early_write_config_dword(struct pci_controller *hose, int bus,
-			int dev_fn, int where, u32 val);
+									int dev_fn, int where, u32 val);
 
 extern int early_find_capability(struct pci_controller *hose, int bus,
-				 int dev_fn, int cap);
+								 int dev_fn, int cap);
 
-extern void setup_indirect_pci(struct pci_controller* hose,
-			       resource_size_t cfg_addr,
-			       resource_size_t cfg_data, u32 flags);
+extern void setup_indirect_pci(struct pci_controller *hose,
+							   resource_size_t cfg_addr,
+							   resource_size_t cfg_data, u32 flags);
 
 extern int indirect_read_config(struct pci_bus *bus, unsigned int devfn,
-				int offset, int len, u32 *val);
+								int offset, int len, u32 *val);
 
 extern int __indirect_read_config(struct pci_controller *hose,
-				  unsigned char bus_number, unsigned int devfn,
-				  int offset, int len, u32 *val);
+								  unsigned char bus_number, unsigned int devfn,
+								  int offset, int len, u32 *val);
 
 extern int indirect_write_config(struct pci_bus *bus, unsigned int devfn,
-				 int offset, int len, u32 val);
+								 int offset, int len, u32 val);
 
 static inline struct pci_controller *pci_bus_to_host(const struct pci_bus *bus)
 {
@@ -171,7 +173,7 @@ static inline struct pci_controller *pci_bus_to_host(const struct pci_bus *bus)
 #ifndef CONFIG_PPC64
 
 extern int pci_device_from_OF_node(struct device_node *node,
-				   u8 *bus, u8 *devfn);
+								   u8 *bus, u8 *devfn);
 extern void pci_create_OF_bus_map(void);
 
 static inline int isa_vaddr_is_ioport(void __iomem *address)
@@ -190,7 +192,8 @@ static inline int isa_vaddr_is_ioport(void __iomem *address)
  */
 struct iommu_table;
 
-struct pci_dn {
+struct pci_dn
+{
 	int     flags;
 #define PCI_DN_FLAG_IOV_VF	0x01
 
@@ -233,19 +236,22 @@ struct pci_dn {
 #define PCI_DN(dn)	((struct pci_dn *) (dn)->data)
 
 extern struct pci_dn *pci_get_pdn_by_devfn(struct pci_bus *bus,
-					   int devfn);
+		int devfn);
 extern struct pci_dn *pci_get_pdn(struct pci_dev *pdev);
 extern struct pci_dn *add_dev_pci_data(struct pci_dev *pdev);
 extern void remove_dev_pci_data(struct pci_dev *pdev);
 extern struct pci_dn *pci_add_device_node_info(struct pci_controller *hose,
-					       struct device_node *dn);
+		struct device_node *dn);
 extern void pci_remove_device_node_info(struct device_node *dn);
 
 static inline int pci_device_from_OF_node(struct device_node *np,
-					  u8 *bus, u8 *devfn)
+		u8 *bus, u8 *devfn)
 {
 	if (!PCI_DN(np))
+	{
 		return -ENODEV;
+	}
+
 	*bus = PCI_DN(np)->busno;
 	*devfn = PCI_DN(np)->devfn;
 	return 0;
@@ -283,20 +289,20 @@ extern int pcibios_unmap_io_space(struct pci_bus *bus);
 extern int pcibios_map_io_space(struct pci_bus *bus);
 
 #ifdef CONFIG_NUMA
-#define PHB_SET_NODE(PHB, NODE)		((PHB)->node = (NODE))
+	#define PHB_SET_NODE(PHB, NODE)		((PHB)->node = (NODE))
 #else
-#define PHB_SET_NODE(PHB, NODE)		((PHB)->node = -1)
+	#define PHB_SET_NODE(PHB, NODE)		((PHB)->node = -1)
 #endif
 
 #endif	/* CONFIG_PPC64 */
 
 /* Get the PCI host controller for an OF device */
 extern struct pci_controller *pci_find_hose_for_OF_device(
-			struct device_node* node);
+	struct device_node *node);
 
 /* Fill up host controller resources from the OF node */
 extern void pci_process_bridge_OF_ranges(struct pci_controller *hose,
-			struct device_node *dev, int primary);
+		struct device_node *dev, int primary);
 
 /* Allocate & free a PCI host bridge structure */
 extern struct pci_controller *pcibios_alloc_controller(struct device_node *dev);

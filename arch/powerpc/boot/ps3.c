@@ -31,7 +31,7 @@ extern int lv1_panic(u64 in_1);
 extern int lv1_get_logical_partition_id(u64 *out_1);
 extern int lv1_get_logical_ppe_id(u64 *out_1);
 extern int lv1_get_repository_node_value(u64 in_1, u64 in_2, u64 in_3,
-	u64 in_4, u64 in_5, u64 *out_1, u64 *out_2);
+		u64 in_4, u64 in_5, u64 *out_1, u64 *out_2);
 
 #ifdef DEBUG
 #define DBG(fmt...) printf(fmt)
@@ -48,14 +48,18 @@ BSS_STACK(4096);
  */
 
 static char cmdline[BOOT_COMMAND_LINE_SIZE]
-	__attribute__((__section__("__builtin_cmdline")));
+__attribute__((__section__("__builtin_cmdline")));
 
 static void prep_cmdline(void *chosen)
 {
 	if (cmdline[0] == '\0')
-		getprop(chosen, "bootargs", cmdline, BOOT_COMMAND_LINE_SIZE-1);
+	{
+		getprop(chosen, "bootargs", cmdline, BOOT_COMMAND_LINE_SIZE - 1);
+	}
 	else
+	{
 		setprop_str(chosen, "bootargs", cmdline);
+	}
 
 	printf("cmdline: '%s'\n", cmdline);
 }
@@ -71,6 +75,7 @@ static void ps3_exit(void)
 	/* lv1_panic will shutdown the lpar. */
 
 	lv1_panic(0); /* zero = do not reboot */
+
 	while (1);
 }
 
@@ -84,12 +89,16 @@ static int ps3_repository_read_rm_size(u64 *rm_size)
 	result = lv1_get_logical_partition_id(&lpar_id);
 
 	if (result)
+	{
 		return -1;
+	}
 
 	result = lv1_get_logical_ppe_id(&ppe_id);
 
 	if (result)
+	{
 		return -1;
+	}
 
 	/*
 	 * n1: 0000000062690000 : ....bi..
@@ -99,13 +108,13 @@ static int ps3_repository_read_rm_size(u64 *rm_size)
 	*/
 
 	result = lv1_get_repository_node_value(lpar_id, 0x0000000062690000ULL,
-		0x7075000000000000ULL, ppe_id, 0x726d5f73697a6500ULL, rm_size,
-		&v2);
+										   0x7075000000000000ULL, ppe_id, 0x726d5f73697a6500ULL, rm_size,
+										   &v2);
 
 	printf("%s:%d: ppe_id  %lu \n", __func__, __LINE__,
-		(unsigned long)ppe_id);
+		   (unsigned long)ppe_id);
 	printf("%s:%d: lpar_id %lu \n", __func__, __LINE__,
-		(unsigned long)lpar_id);
+		   (unsigned long)lpar_id);
 	printf("%s:%d: rm_size %llxh \n", __func__, __LINE__, *rm_size);
 
 	return result ? -1 : 0;
@@ -140,7 +149,8 @@ void platform_init(unsigned long null_check)
 	ps3_repository_read_rm_size(&rm_size);
 	dt_fixup_memory(0, rm_size);
 
-	if (_initrd_end > _initrd_start) {
+	if (_initrd_end > _initrd_start)
+	{
 		setprop_val(chosen, "linux,initrd-start", (u32)(_initrd_start));
 		setprop_val(chosen, "linux,initrd-end", (u32)(_initrd_end));
 	}
@@ -156,7 +166,9 @@ void platform_init(unsigned long null_check)
 	val = *(unsigned long *)0;
 
 	if (val != null_check)
+	{
 		printf("null check failed: %lx != %lx\n\r", val, null_check);
+	}
 
 	((kernel_entry_t)0)(ft_addr, 0, NULL);
 

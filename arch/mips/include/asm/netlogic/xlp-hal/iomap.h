@@ -51,7 +51,7 @@
 #define XLP_IO_PCI_OFFSET(b, d, f)	(((b) << 20) | ((d) << 15) | ((f) << 12))
 
 #define XLP_HDR_OFFSET(node, bus, dev, fn) \
-		XLP_IO_PCI_OFFSET(bus, XLP_IO_DEV(node, dev), fn)
+	XLP_IO_PCI_OFFSET(bus, XLP_IO_DEV(node, dev), fn)
 
 #define XLP_IO_BRIDGE_OFFSET(node)	XLP_HDR_OFFSET(node, 0, 0, 0)
 /* coherent inter chip */
@@ -113,7 +113,7 @@
 
 /* Things have changed drastically in XLP 9XX */
 #define XLP9XX_HDR_OFFSET(n, d, f)	\
-			XLP_IO_PCI_OFFSET(xlp9xx_get_socbus(n), d, f)
+	XLP_IO_PCI_OFFSET(xlp9xx_get_socbus(n), d, f)
 
 #define XLP9XX_IO_BRIDGE_OFFSET(node)	XLP_IO_PCI_OFFSET(0, 0, node)
 #define XLP9XX_IO_PIC_OFFSET(node)	XLP9XX_HDR_OFFSET(node, 2, 0)
@@ -205,7 +205,10 @@ static inline int xlp9xx_get_socbus(int node)
 	uint64_t socbridge;
 
 	if (node == 0)
+	{
 		return 1;
+	}
+
 	socbridge = nlm_pcicfg_base(XLP9XX_IO_BRIDGE_OFFSET(node));
 	return (nlm_read_pci_reg(socbridge, 0x6) >> 8) & 0xff;
 }

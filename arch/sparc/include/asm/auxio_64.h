@@ -75,23 +75,23 @@
 
 #ifndef __ASSEMBLY__
 
-#define AUXIO_LTE_ON	1
-#define AUXIO_LTE_OFF	0
+	#define AUXIO_LTE_ON	1
+	#define AUXIO_LTE_OFF	0
 
-/* auxio_set_lte - Set Link Test Enable (TPE Link Detect)
- *
- * on - AUXIO_LTE_ON or AUXIO_LTE_OFF
- */
-void auxio_set_lte(int on);
+	/* auxio_set_lte - Set Link Test Enable (TPE Link Detect)
+	*
+	* on - AUXIO_LTE_ON or AUXIO_LTE_OFF
+	*/
+	void auxio_set_lte(int on);
 
-#define AUXIO_LED_ON	1
-#define AUXIO_LED_OFF	0
+	#define AUXIO_LED_ON	1
+	#define AUXIO_LED_OFF	0
 
-/* auxio_set_led - Set system front panel LED
- *
- * on - AUXIO_LED_ON or AUXIO_LED_OFF
- */
-void auxio_set_led(int on);
+	/* auxio_set_led - Set system front panel LED
+	*
+	* on - AUXIO_LED_ON or AUXIO_LED_OFF
+	*/
+	void auxio_set_led(int on);
 
 #endif /* ifndef __ASSEMBLY__ */
 

@@ -141,8 +141,8 @@ int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
  * control information
  */
 int copy_thread(unsigned long clone_flags,
-		unsigned long c_usp, unsigned long ustk_size,
-		struct task_struct *p)
+				unsigned long c_usp, unsigned long ustk_size,
+				struct task_struct *p)
 {
 	struct thread_info *ti = task_thread_info(p);
 	struct pt_regs *c_regs;
@@ -163,7 +163,8 @@ int copy_thread(unsigned long clone_flags,
 	p->thread.wchan	= p->thread.pc;
 	p->thread.usp	= c_usp;
 
-	if (unlikely(p->flags & PF_KTHREAD)) {
+	if (unlikely(p->flags & PF_KTHREAD))
+	{
 		memset(c_regs, 0, sizeof(struct pt_regs));
 		c_regs->a0 = c_usp; /* function */
 		c_regs->d0 = ustk_size; /* argument */
@@ -172,14 +173,21 @@ int copy_thread(unsigned long clone_flags,
 		p->thread.pc	= (unsigned long) ret_from_kernel_thread;
 		return 0;
 	}
+
 	*c_regs = *current_pt_regs();
+
 	if (c_usp)
+	{
 		c_regs->sp = c_usp;
+	}
+
 	c_regs->epsw &= ~EPSW_FE; /* my FPU */
 
 	/* the new TLS pointer is passed in as arg #5 to sys_clone() */
 	if (clone_flags & CLONE_SETTLS)
+	{
 		c_regs->e2 = current_frame()->d3;
+	}
 
 	p->thread.pc	= (unsigned long) ret_from_fork;
 

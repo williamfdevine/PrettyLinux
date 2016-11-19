@@ -29,7 +29,9 @@ static void __iomem *ctr;
 static u64 notrace versatile_read_sched_clock(void)
 {
 	if (ctr)
+	{
 		return readl(ctr);
+	}
 
 	return 0;
 }

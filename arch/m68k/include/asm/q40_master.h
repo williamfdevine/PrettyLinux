@@ -34,7 +34,7 @@
 #define FRAME_RATE_REG       0x38      /* generate FRAME ints at 200 HZ rate */
 
 #if 0
-#define SER_ENABLE_REG      0x0c      /* allow serial ints to be generated */
+	#define SER_ENABLE_REG      0x0c      /* allow serial ints to be generated */
 #endif
 #define EXT_ENABLE_REG      0x10      /* ... rest of the ISA ints ... */
 

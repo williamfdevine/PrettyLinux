@@ -87,7 +87,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct mn10300_dmactl_regs {
+struct mn10300_dmactl_regs
+{
 	u32		ctr;
 	const void	*src;
 	void		*dst;

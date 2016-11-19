@@ -26,7 +26,8 @@
  * itself and may change without notice.
  */
 
-struct vdso_data {
+struct vdso_data
+{
 	seqcount_t tz_seq;	/* Timezone seqlock                   */
 	seqcount_t tb_seq;	/* Timebase seqlock                   */
 	__u64 cycle_last;       /* TOD clock for xtime                */

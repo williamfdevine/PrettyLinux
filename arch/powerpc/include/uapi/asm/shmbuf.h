@@ -19,7 +19,8 @@
  * - 2 miscellaneous 32-bit values
  */
 
-struct shmid64_ds {
+struct shmid64_ds
+{
 	struct ipc64_perm	shm_perm;	/* operation perms */
 #ifndef __powerpc64__
 	unsigned long		__unused1;
@@ -44,7 +45,8 @@ struct shmid64_ds {
 	unsigned long		__unused6;
 };
 
-struct shminfo64 {
+struct shminfo64
+{
 	unsigned long	shmmax;
 	unsigned long	shmmin;
 	unsigned long	shmmni;

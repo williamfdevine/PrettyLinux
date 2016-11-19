@@ -28,7 +28,8 @@ static int __init topology_init(void)
 {
 	int num;
 
-	for_each_present_cpu(num) {
+	for_each_present_cpu(num)
+	{
 		register_cpu(&per_cpu(cpu_devices, num), num);
 	}
 	return 0;

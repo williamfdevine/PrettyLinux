@@ -26,72 +26,97 @@ int os_waiting_for_events(struct irq_fd *active_fds)
 	int i, n, err;
 
 	n = poll(pollfds, pollfds_num, 0);
-	if (n < 0) {
+
+	if (n < 0)
+	{
 		err = -errno;
+
 		if (errno != EINTR)
 			printk(UM_KERN_ERR "os_waiting_for_events:"
-			       " poll returned %d, errno = %d\n", n, errno);
+				   " poll returned %d, errno = %d\n", n, errno);
+
 		return err;
 	}
 
 	if (n == 0)
+	{
 		return 0;
+	}
 
 	irq_fd = active_fds;
 
-	for (i = 0; i < pollfds_num; i++) {
-		if (pollfds[i].revents != 0) {
+	for (i = 0; i < pollfds_num; i++)
+	{
+		if (pollfds[i].revents != 0)
+		{
 			irq_fd->current_events = pollfds[i].revents;
 			pollfds[i].fd = -1;
 		}
+
 		irq_fd = irq_fd->next;
 	}
+
 	return n;
 }
 
 int os_create_pollfd(int fd, int events, void *tmp_pfd, int size_tmpfds)
 {
-	if (pollfds_num == pollfds_size) {
-		if (size_tmpfds <= pollfds_size * sizeof(pollfds[0])) {
+	if (pollfds_num == pollfds_size)
+	{
+		if (size_tmpfds <= pollfds_size * sizeof(pollfds[0]))
+		{
 			/* return min size needed for new pollfds area */
 			return (pollfds_size + 1) * sizeof(pollfds[0]);
 		}
 
-		if (pollfds != NULL) {
+		if (pollfds != NULL)
+		{
 			memcpy(tmp_pfd, pollfds,
-			       sizeof(pollfds[0]) * pollfds_size);
+				   sizeof(pollfds[0]) * pollfds_size);
 			/* remove old pollfds */
 			kfree(pollfds);
 		}
+
 		pollfds = tmp_pfd;
 		pollfds_size++;
-	} else
-		kfree(tmp_pfd);	/* remove not used tmp_pfd */
+	}
+	else
+	{
+		kfree(tmp_pfd);    /* remove not used tmp_pfd */
+	}
 
-	pollfds[pollfds_num] = ((struct pollfd) { .fd		= fd,
-						  .events	= events,
-						  .revents	= 0 });
+	pollfds[pollfds_num] = ((struct pollfd)
+	{
+		.fd		= fd,
+			.events	= events,
+			 .revents	= 0
+	});
 	pollfds_num++;
 
 	return 0;
 }
 
 void os_free_irq_by_cb(int (*test)(struct irq_fd *, void *), void *arg,
-		struct irq_fd *active_fds, struct irq_fd ***last_irq_ptr2)
+					   struct irq_fd *active_fds, struct irq_fd ***last_irq_ptr2)
 {
 	struct irq_fd **prev;
 	int i = 0;
 
 	prev = &active_fds;
-	while (*prev != NULL) {
-		if ((*test)(*prev, arg)) {
+
+	while (*prev != NULL)
+	{
+		if ((*test)(*prev, arg))
+		{
 			struct irq_fd *old_fd = *prev;
+
 			if ((pollfds[i].fd != -1) &&
-			    (pollfds[i].fd != (*prev)->fd)) {
+				(pollfds[i].fd != (*prev)->fd))
+			{
 				printk(UM_KERN_ERR "os_free_irq_by_cb - "
-				       "mismatch between active_fds and "
-				       "pollfds, fd %d vs %d\n",
-				       (*prev)->fd, pollfds[i].fd);
+					   "mismatch between active_fds and "
+					   "pollfds, fd %d vs %d\n",
+					   (*prev)->fd, pollfds[i].fd);
 				goto out;
 			}
 
@@ -102,20 +127,29 @@ void os_free_irq_by_cb(int (*test)(struct irq_fd *, void *), void *arg,
 			 * (though it doesn't spot as such)!
 			 */
 			memmove(&pollfds[i], &pollfds[i + 1],
-			       (pollfds_num - i) * sizeof(pollfds[0]));
+					(pollfds_num - i) * sizeof(pollfds[0]));
+
 			if (*last_irq_ptr2 == &old_fd->next)
+			{
 				*last_irq_ptr2 = prev;
+			}
 
 			*prev = (*prev)->next;
+
 			if (old_fd->type == IRQ_WRITE)
+			{
 				ignore_sigio_fd(old_fd->fd);
+			}
+
 			kfree(old_fd);
 			continue;
 		}
+
 		prev = &(*prev)->next;
 		i++;
 	}
- out:
+
+out:
 	return;
 }
 

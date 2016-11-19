@@ -42,7 +42,7 @@ static int itimer_set_periodic(struct clock_event_device *evt)
 }
 
 static int itimer_next_event(unsigned long delta,
-			     struct clock_event_device *evt)
+							 struct clock_event_device *evt)
 {
 	return os_timer_one_shot(delta);
 }
@@ -53,12 +53,13 @@ static int itimer_one_shot(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device timer_clockevent = {
+static struct clock_event_device timer_clockevent =
+{
 	.name			= "posix-timer",
 	.rating			= 250,
 	.cpumask		= cpu_all_mask,
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= itimer_shutdown,
 	.set_state_periodic	= itimer_set_periodic,
 	.set_state_oneshot	= itimer_one_shot,
@@ -74,7 +75,7 @@ static irqreturn_t um_timer(int irq, void *dev)
 {
 	if (get_current()->mm != NULL)
 	{
-        /* userspace - relay signal, results in correct userspace timers */
+		/* userspace - relay signal, results in correct userspace timers */
 		os_alarm_process(get_current()->mm->context.id.u.pid);
 	}
 
@@ -88,7 +89,8 @@ static cycle_t timer_read(struct clocksource *cs)
 	return os_nsecs() / TIMER_MULTIPLIER;
 }
 
-static struct clocksource timer_clocksource = {
+static struct clocksource timer_clocksource =
+{
 	.name		= "timer",
 	.rating		= 300,
 	.read		= timer_read,
@@ -101,21 +103,27 @@ static void __init timer_setup(void)
 	int err;
 
 	err = request_irq(TIMER_IRQ, um_timer, IRQF_TIMER, "hr timer", NULL);
+
 	if (err != 0)
 		printk(KERN_ERR "register_timer : request_irq failed - "
-		       "errno = %d\n", -err);
+			   "errno = %d\n", -err);
 
 	err = os_timer_create(NULL);
-	if (err != 0) {
+
+	if (err != 0)
+	{
 		printk(KERN_ERR "creation of timer failed - errno = %d\n", -err);
 		return;
 	}
 
-	err = clocksource_register_hz(&timer_clocksource, NSEC_PER_SEC/TIMER_MULTIPLIER);
-	if (err) {
+	err = clocksource_register_hz(&timer_clocksource, NSEC_PER_SEC / TIMER_MULTIPLIER);
+
+	if (err)
+	{
 		printk(KERN_ERR "clocksource_register_hz returned %d\n", err);
 		return;
 	}
+
 	clockevents_register_device(&timer_clockevent);
 }
 
@@ -124,7 +132,7 @@ void read_persistent_clock(struct timespec *ts)
 	long long nsecs = os_persistent_clock_emulation();
 
 	set_normalized_timespec(ts, nsecs / NSEC_PER_SEC,
-				nsecs % NSEC_PER_SEC);
+							nsecs % NSEC_PER_SEC);
 }
 
 void __init time_init(void)

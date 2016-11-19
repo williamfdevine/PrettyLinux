@@ -10,9 +10,9 @@
 #define __TYPE_IS_PTR(t) (!__builtin_types_compatible_p(typeof(0?(t)0:0ULL), u64))
 
 #define __SC_DELOUSE(t,v) ({ \
-	BUILD_BUG_ON(sizeof(t) > 4 && !__TYPE_IS_PTR(t)); \
-	(t)(__TYPE_IS_PTR(t) ? ((v) & 0x7fffffff) : (v)); \
-})
+		BUILD_BUG_ON(sizeof(t) > 4 && !__TYPE_IS_PTR(t)); \
+		(t)(__TYPE_IS_PTR(t) ? ((v) & 0x7fffffff) : (v)); \
+	})
 
 #define PSW32_MASK_PER		0x40000000UL
 #define PSW32_MASK_DAT		0x04000000UL
@@ -41,9 +41,9 @@
 #define PSW32_ASC_HOME		0x0000C000UL
 
 #define PSW32_USER_BITS (PSW32_MASK_DAT | PSW32_MASK_IO | PSW32_MASK_EXT | \
-			 PSW32_DEFAULT_KEY | PSW32_MASK_BASE | \
-			 PSW32_MASK_MCHECK | PSW32_MASK_PSTATE | \
-			 PSW32_ASC_PRIMARY)
+						 PSW32_DEFAULT_KEY | PSW32_MASK_BASE | \
+						 PSW32_MASK_MCHECK | PSW32_MASK_PSTATE | \
+						 PSW32_ASC_PRIMARY)
 
 #define COMPAT_USER_HZ		100
 #define COMPAT_UTS_MACHINE	"s390\0\0\0\0"
@@ -78,33 +78,39 @@ typedef u32		compat_ulong_t;
 typedef u64		compat_u64;
 typedef u32		compat_uptr_t;
 
-typedef struct {
+typedef struct
+{
 	u32 mask;
 	u32 addr;
 } __aligned(8) psw_compat_t;
 
-typedef struct {
+typedef struct
+{
 	psw_compat_t psw;
 	u32 gprs[NUM_GPRS];
 	u32 acrs[NUM_ACRS];
 	u32 orig_gpr2;
 } s390_compat_regs;
 
-typedef struct {
+typedef struct
+{
 	u32 gprs_high[NUM_GPRS];
 } s390_compat_regs_high;
 
-struct compat_timespec {
+struct compat_timespec
+{
 	compat_time_t	tv_sec;
 	s32		tv_nsec;
 };
 
-struct compat_timeval {
+struct compat_timeval
+{
 	compat_time_t	tv_sec;
 	s32		tv_usec;
 };
 
-struct compat_stat {
+struct compat_stat
+{
 	compat_dev_t	st_dev;
 	u16		__pad1;
 	compat_ino_t	st_ino;
@@ -127,7 +133,8 @@ struct compat_stat {
 	u32		__unused5;
 };
 
-struct compat_flock {
+struct compat_flock
+{
 	short		l_type;
 	short		l_whence;
 	compat_off_t	l_start;
@@ -137,9 +144,10 @@ struct compat_flock {
 
 #define F_GETLK64       12
 #define F_SETLK64       13
-#define F_SETLKW64      14    
+#define F_SETLKW64      14
 
-struct compat_flock64 {
+struct compat_flock64
+{
 	short		l_type;
 	short		l_whence;
 	compat_loff_t	l_start;
@@ -147,7 +155,8 @@ struct compat_flock64 {
 	compat_pid_t	l_pid;
 };
 
-struct compat_statfs {
+struct compat_statfs
+{
 	u32		f_type;
 	u32		f_bsize;
 	u32		f_blocks;
@@ -162,7 +171,8 @@ struct compat_statfs {
 	u32		f_spare[4];
 };
 
-struct compat_statfs64 {
+struct compat_statfs64
+{
 	u32		f_type;
 	u32		f_bsize;
 	u64		f_blocks;
@@ -187,27 +197,32 @@ typedef u32		compat_old_sigset_t;	/* at least 32 bits */
 
 typedef u32		compat_sigset_word;
 
-typedef union compat_sigval {
+typedef union compat_sigval
+{
 	compat_int_t	sival_int;
 	compat_uptr_t	sival_ptr;
 } compat_sigval_t;
 
-typedef struct compat_siginfo {
+typedef struct compat_siginfo
+{
 	int	si_signo;
 	int	si_errno;
 	int	si_code;
 
-	union {
-		int _pad[128/sizeof(int) - 3];
+	union
+	{
+		int _pad[128 / sizeof(int) - 3];
 
 		/* kill() */
-		struct {
+		struct
+		{
 			pid_t	_pid;	/* sender's pid */
 			uid_t	_uid;	/* sender's uid */
 		} _kill;
 
 		/* POSIX.1b timers */
-		struct {
+		struct
+		{
 			compat_timer_t _tid;		/* timer id */
 			int _overrun;			/* overrun count */
 			compat_sigval_t _sigval;	/* same as below */
@@ -215,14 +230,16 @@ typedef struct compat_siginfo {
 		} _timer;
 
 		/* POSIX.1b signals */
-		struct {
+		struct
+		{
 			pid_t			_pid;	/* sender's pid */
 			uid_t			_uid;	/* sender's uid */
 			compat_sigval_t		_sigval;
 		} _rt;
 
 		/* SIGCHLD */
-		struct {
+		struct
+		{
 			pid_t			_pid;	/* which child */
 			uid_t			_uid;	/* sender's uid */
 			int			_status;/* exit code */
@@ -231,12 +248,14 @@ typedef struct compat_siginfo {
 		} _sigchld;
 
 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-		struct {
+		struct
+		{
 			__u32	_addr;	/* faulting insn/memory ref. - pointer */
 		} _sigfault;
 
 		/* SIGPOLL */
-		struct {
+		struct
+		{
 			int	_band;	/* POLL_IN, POLL_OUT, POLL_MSG */
 			int	_fd;
 		} _sigpoll;
@@ -292,14 +311,19 @@ static inline void __user *arch_compat_alloc_user_space(long len)
 	unsigned long stack;
 
 	stack = KSTK_ESP(current);
+
 	if (is_compat_task())
+	{
 		stack &= 0x7fffffffUL;
+	}
+
 	return (void __user *) (stack - len);
 }
 
 #endif
 
-struct compat_ipc64_perm {
+struct compat_ipc64_perm
+{
 	compat_key_t key;
 	__compat_uid32_t uid;
 	__compat_gid32_t gid;
@@ -313,7 +337,8 @@ struct compat_ipc64_perm {
 	unsigned int __unused2;
 };
 
-struct compat_semid64_ds {
+struct compat_semid64_ds
+{
 	struct compat_ipc64_perm sem_perm;
 	compat_time_t  sem_otime;
 	compat_ulong_t __pad1;
@@ -324,7 +349,8 @@ struct compat_semid64_ds {
 	compat_ulong_t __unused2;
 };
 
-struct compat_msqid64_ds {
+struct compat_msqid64_ds
+{
 	struct compat_ipc64_perm msg_perm;
 	compat_time_t   msg_stime;
 	compat_ulong_t __pad1;
@@ -341,7 +367,8 @@ struct compat_msqid64_ds {
 	compat_ulong_t __unused2;
 };
 
-struct compat_shmid64_ds {
+struct compat_shmid64_ds
+{
 	struct compat_ipc64_perm shm_perm;
 	compat_size_t  shm_segsz;
 	compat_time_t  shm_atime;

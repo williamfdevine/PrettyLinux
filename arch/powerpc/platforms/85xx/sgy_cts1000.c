@@ -24,7 +24,8 @@
 
 static struct device_node *halt_node;
 
-static const struct of_device_id child_match[] = {
+static const struct of_device_id child_match[] =
+{
 	{
 		.compatible = "sgy,gpio-halt",
 	},
@@ -44,12 +45,16 @@ static void __noreturn gpio_halt_cb(void)
 	int trigger, gpio;
 
 	if (!halt_node)
+	{
 		panic("No reset GPIO information was provided in DT\n");
+	}
 
 	gpio = of_get_gpio_flags(halt_node, 0, &flags);
 
 	if (!gpio_is_valid(gpio))
+	{
 		panic("Provided GPIO is invalid\n");
+	}
 
 	trigger = (flags == OF_GPIO_ACTIVE_LOW);
 
@@ -68,7 +73,7 @@ static irqreturn_t gpio_halt_irq(int irq, void *__data)
 	printk(KERN_INFO "gpio-halt: shutdown due to power button IRQ.\n");
 	schedule_work(&gpio_halt_wq);
 
-        return IRQ_HANDLED;
+	return IRQ_HANDLED;
 };
 
 static int gpio_halt_probe(struct platform_device *pdev)
@@ -79,27 +84,39 @@ static int gpio_halt_probe(struct platform_device *pdev)
 	int trigger;
 
 	if (!node)
+	{
 		return -ENODEV;
+	}
 
 	/* If there's no matching child, this isn't really an error */
 	halt_node = of_find_matching_node(node, child_match);
+
 	if (!halt_node)
+	{
 		return 0;
+	}
 
 	/* Technically we could just read the first one, but punish
 	 * DT writers for invalid form. */
 	if (of_gpio_count(halt_node) != 1)
+	{
 		return -EINVAL;
+	}
 
 	/* Get the gpio number relative to the dynamic base. */
 	gpio = of_get_gpio_flags(halt_node, 0, &flags);
+
 	if (!gpio_is_valid(gpio))
+	{
 		return -EINVAL;
+	}
 
 	err = gpio_request(gpio, "gpio-halt");
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "gpio-halt: error requesting GPIO %d.\n",
-		       gpio);
+			   gpio);
 		halt_node = NULL;
 		return err;
 	}
@@ -111,10 +128,12 @@ static int gpio_halt_probe(struct platform_device *pdev)
 	/* Now get the IRQ which tells us when the power button is hit */
 	irq = irq_of_parse_and_map(halt_node, 0);
 	err = request_irq(irq, gpio_halt_irq, IRQF_TRIGGER_RISING |
-			  IRQF_TRIGGER_FALLING, "gpio-halt", halt_node);
-	if (err) {
+					  IRQF_TRIGGER_FALLING, "gpio-halt", halt_node);
+
+	if (err)
+	{
 		printk(KERN_ERR "gpio-halt: error requesting IRQ %d for "
-		       "GPIO %d.\n", irq, gpio);
+			   "GPIO %d.\n", irq, gpio);
 		gpio_free(gpio);
 		halt_node = NULL;
 		return err;
@@ -125,14 +144,15 @@ static int gpio_halt_probe(struct platform_device *pdev)
 	pm_power_off = gpio_halt_cb;
 
 	printk(KERN_INFO "gpio-halt: registered GPIO %d (%d trigger, %d"
-	       " irq).\n", gpio, trigger, irq);
+		   " irq).\n", gpio, trigger, irq);
 
 	return 0;
 }
 
 static int gpio_halt_remove(struct platform_device *pdev)
 {
-	if (halt_node) {
+	if (halt_node)
+	{
 		int gpio = of_get_gpio(halt_node, 0);
 		int irq = irq_of_parse_and_map(halt_node, 0);
 
@@ -149,7 +169,8 @@ static int gpio_halt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id gpio_halt_match[] = {
+static const struct of_device_id gpio_halt_match[] =
+{
 	/* We match on the gpio bus itself and scan the children since they
 	 * wont be matched against us. We know the bus wont match until it
 	 * has been registered too. */
@@ -160,7 +181,8 @@ static const struct of_device_id gpio_halt_match[] = {
 };
 MODULE_DEVICE_TABLE(of, gpio_halt_match);
 
-static struct platform_driver gpio_halt_driver = {
+static struct platform_driver gpio_halt_driver =
+{
 	.driver = {
 		.name		= "gpio-halt",
 		.of_match_table = gpio_halt_match,

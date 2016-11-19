@@ -23,7 +23,8 @@
 
 /* define specific CPU platform device */
 
-static struct platform_device *nuc910_dev[] __initdata = {
+static struct platform_device *nuc910_dev[] __initdata =
+{
 	&nuc900_device_ts,
 	&nuc900_device_rtc,
 	&nuc900_device_lcd,
@@ -32,7 +33,8 @@ static struct platform_device *nuc910_dev[] __initdata = {
 
 /* define specific CPU platform io map */
 
-static struct map_desc nuc910evb_iodesc[] __initdata = {
+static struct map_desc nuc910evb_iodesc[] __initdata =
+{
 	IODESC_ENT(USBEHCIHOST),
 	IODESC_ENT(USBOHCIHOST),
 	IODESC_ENT(KPI),

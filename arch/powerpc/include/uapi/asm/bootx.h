@@ -12,13 +12,13 @@
 #include <linux/types.h>
 
 #ifdef macintosh
-#include <Types.h>
-#include "linux_type_defs.h"
+	#include <Types.h>
+	#include "linux_type_defs.h"
 #endif
 
 #ifdef macintosh
-/* All this requires PowerPC alignment */
-#pragma options align=power
+	/* All this requires PowerPC alignment */
+	#pragma options align=power
 #endif
 
 /* On kernel entry:
@@ -54,8 +54,8 @@
    machines */
 typedef struct boot_info_map_entry
 {
-    __u32       physAddr;                /* Physical starting address */
-    __u32       size;                    /* Size in bytes */
+	__u32       physAddr;                /* Physical starting address */
+	__u32       size;                    /* Size in bytes */
 } boot_info_map_entry_t;
 
 
@@ -64,69 +64,69 @@ typedef struct boot_info_map_entry
  * at the end of this structure. */
 typedef struct boot_infos
 {
-    /* Version of this structure */
-    __u32       version;
-    /* backward compatible down to version: */
-    __u32       compatible_version;
+	/* Version of this structure */
+	__u32       version;
+	/* backward compatible down to version: */
+	__u32       compatible_version;
 
-    /* NEW (vers. 2) this holds the current _logical_ base addr of
-       the frame buffer (for use by early boot message) */
-    __u8*       logicalDisplayBase;
+	/* NEW (vers. 2) this holds the current _logical_ base addr of
+	   the frame buffer (for use by early boot message) */
+	__u8       *logicalDisplayBase;
 
-    /* NEW (vers. 4) Apple's machine identification */
-    __u32       machineID;
+	/* NEW (vers. 4) Apple's machine identification */
+	__u32       machineID;
 
-    /* NEW (vers. 4) Detected hw architecture */
-    __u32       architecture;
+	/* NEW (vers. 4) Detected hw architecture */
+	__u32       architecture;
 
-    /* The device tree (internal addresses relative to the beginning of the tree,
-     * device tree offset relative to the beginning of this structure).
-     * On pre-PCI macintosh (BOOT_ARCH_PCI bit set to 0 in architecture), this
-     * field is 0.
-     */
-    __u32       deviceTreeOffset;        /* Device tree offset */
-    __u32       deviceTreeSize;          /* Size of the device tree */
+	/* The device tree (internal addresses relative to the beginning of the tree,
+	 * device tree offset relative to the beginning of this structure).
+	 * On pre-PCI macintosh (BOOT_ARCH_PCI bit set to 0 in architecture), this
+	 * field is 0.
+	 */
+	__u32       deviceTreeOffset;        /* Device tree offset */
+	__u32       deviceTreeSize;          /* Size of the device tree */
 
-    /* Some infos about the current MacOS display */
-    __u32       dispDeviceRect[4];       /* left,top,right,bottom */
-    __u32       dispDeviceDepth;         /* (8, 16 or 32) */
-    __u8*       dispDeviceBase;          /* base address (physical) */
-    __u32       dispDeviceRowBytes;      /* rowbytes (in bytes) */
-    __u32       dispDeviceColorsOffset;  /* Colormap (8 bits only) or 0 (*) */
-    /* Optional offset in the registry to the current
-     * MacOS display. (Can be 0 when not detected) */
-     __u32      dispDeviceRegEntryOffset;
+	/* Some infos about the current MacOS display */
+	__u32       dispDeviceRect[4];       /* left,top,right,bottom */
+	__u32       dispDeviceDepth;         /* (8, 16 or 32) */
+	__u8       *dispDeviceBase;          /* base address (physical) */
+	__u32       dispDeviceRowBytes;      /* rowbytes (in bytes) */
+	__u32       dispDeviceColorsOffset;  /* Colormap (8 bits only) or 0 (*) */
+	/* Optional offset in the registry to the current
+	 * MacOS display. (Can be 0 when not detected) */
+	__u32      dispDeviceRegEntryOffset;
 
-    /* Optional pointer to boot ramdisk (offset from this structure) */
-    __u32       ramDisk;
-    __u32       ramDiskSize;             /* size of ramdisk image */
+	/* Optional pointer to boot ramdisk (offset from this structure) */
+	__u32       ramDisk;
+	__u32       ramDiskSize;             /* size of ramdisk image */
 
-    /* Kernel command line arguments (offset from this structure) */
-    __u32       kernelParamsOffset;
+	/* Kernel command line arguments (offset from this structure) */
+	__u32       kernelParamsOffset;
 
-    /* ALL BELOW NEW (vers. 4) */
+	/* ALL BELOW NEW (vers. 4) */
 
-    /* This defines the physical memory. Valid with BOOT_ARCH_NUBUS flag
-       (non-PCI) only. On PCI, memory is contiguous and it's size is in the
-       device-tree. */
-    boot_info_map_entry_t
-    	        physMemoryMap[MAX_MEM_MAP_SIZE]; /* Where the phys memory is */
-    __u32       physMemoryMapSize;               /* How many entries in map */
+	/* This defines the physical memory. Valid with BOOT_ARCH_NUBUS flag
+	   (non-PCI) only. On PCI, memory is contiguous and it's size is in the
+	   device-tree. */
+	boot_info_map_entry_t
+	physMemoryMap[MAX_MEM_MAP_SIZE]; /* Where the phys memory is */
+	__u32       physMemoryMapSize;               /* How many entries in map */
 
 
-    /* The framebuffer size (optional, currently 0) */
-    __u32       frameBufferSize;         /* Represents a max size, can be 0. */
+	/* The framebuffer size (optional, currently 0) */
+	__u32       frameBufferSize;         /* Represents a max size, can be 0. */
 
-    /* NEW (vers. 5) */
+	/* NEW (vers. 5) */
 
-    /* Total params size (args + colormap + device tree + ramdisk) */
-    __u32       totalParamsSize;
+	/* Total params size (args + colormap + device tree + ramdisk) */
+	__u32       totalParamsSize;
 
 } boot_infos_t;
 
 
 #ifdef macintosh
-#pragma options align=reset
+	#pragma options align=reset
 #endif
 
 #endif /* _UAPI__ASM_BOOTX_H__ */

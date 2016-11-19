@@ -448,13 +448,13 @@
  * timed out.
  */
 #define omap_test_timeout(cond, timeout, index)			\
-({								\
-	for (index = 0; index < timeout; index++) {		\
-		if (cond)					\
-			break;					\
-		udelay(1);					\
-	}							\
-})
+	({								\
+		for (index = 0; index < timeout; index++) {		\
+			if (cond)					\
+				break;					\
+			udelay(1);					\
+		}							\
+	})
 
 /**
  * struct omap_prcm_irq - describes a PRCM interrupt bit
@@ -468,7 +468,8 @@
  * see omap_prm_irq_handler() for more details.  I/O ring interrupts should
  * have @priority set to true.
  */
-struct omap_prcm_irq {
+struct omap_prcm_irq
+{
 	const char *name;
 	unsigned int offset;
 	bool priority;
@@ -498,7 +499,8 @@ struct omap_prcm_irq {
  * @suspend_save_flag are populated dynamically, and are not to be
  * specified in static initializers.
  */
-struct omap_prcm_irq_setup {
+struct omap_prcm_irq_setup
+{
 	u16 ack;
 	u16 mask;
 	u16 pm_ctrl;
@@ -521,9 +523,9 @@ struct omap_prcm_irq_setup {
 
 /* OMAP_PRCM_IRQ: convenience macro for creating struct omap_prcm_irq records */
 #define OMAP_PRCM_IRQ(_name, _offset, _priority) {	\
-	.name = _name,					\
-	.offset = _offset,				\
-	.priority = _priority				\
+		.name = _name,					\
+				.offset = _offset,				\
+						  .priority = _priority				\
 	}
 
 /**
@@ -536,7 +538,8 @@ struct omap_prcm_irq_setup {
  * @init: low level PRCM init function for this module
  * @np: device node for this PRCM module
  */
-struct omap_prcm_init_data {
+struct omap_prcm_init_data
+{
 	int index;
 	void __iomem *mem;
 	s16 offset;

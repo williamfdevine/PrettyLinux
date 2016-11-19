@@ -24,7 +24,8 @@
 #include <asm/tlb.h>
 #include <asm/cputhreads.h>
 
-enum vcpu_ftr {
+enum vcpu_ftr
+{
 	VCPU_FTR_MMU_V2
 };
 
@@ -40,24 +41,28 @@ enum vcpu_ftr {
 /* bits [6-5] MAS2_X1 and MAS2_X0 and [4-0] bits for WIMGE */
 #define E500_TLB_MAS2_ATTR	(0x7f)
 
-struct tlbe_ref {
+struct tlbe_ref
+{
 	kvm_pfn_t pfn;		/* valid only for TLB0, except briefly */
 	unsigned int flags;	/* E500_TLB_* */
 };
 
-struct tlbe_priv {
+struct tlbe_priv
+{
 	struct tlbe_ref ref;
 };
 
 #ifdef CONFIG_KVM_E500V2
-struct vcpu_id_table;
+	struct vcpu_id_table;
 #endif
 
-struct kvmppc_e500_tlb_params {
+struct kvmppc_e500_tlb_params
+{
 	int entries, ways, sets;
 };
 
-struct kvmppc_vcpu_e500 {
+struct kvmppc_vcpu_e500
+{
 	struct kvm_vcpu vcpu;
 
 	/* Unmodified copy of the guest's TLB -- shared with host userspace. */
@@ -120,13 +125,13 @@ static inline struct kvmppc_vcpu_e500 *to_e500(struct kvm_vcpu *vcpu)
 #define E500_TLB_USER_PERM_MASK (MAS3_UX|MAS3_UR|MAS3_UW)
 #define E500_TLB_SUPER_PERM_MASK (MAS3_SX|MAS3_SR|MAS3_SW)
 #define MAS2_ATTRIB_MASK \
-	  (MAS2_X0 | MAS2_X1 | MAS2_E | MAS2_G)
+	(MAS2_X0 | MAS2_X1 | MAS2_E | MAS2_G)
 #define MAS3_ATTRIB_MASK \
-	  (MAS3_U0 | MAS3_U1 | MAS3_U2 | MAS3_U3 \
-	   | E500_TLB_USER_PERM_MASK | E500_TLB_SUPER_PERM_MASK)
+	(MAS3_U0 | MAS3_U1 | MAS3_U2 | MAS3_U3 \
+	 | E500_TLB_USER_PERM_MASK | E500_TLB_SUPER_PERM_MASK)
 
 int kvmppc_e500_emul_mt_mmucsr0(struct kvmppc_vcpu_e500 *vcpu_e500,
-				ulong value);
+								ulong value);
 int kvmppc_e500_emul_tlbwe(struct kvm_vcpu *vcpu);
 int kvmppc_e500_emul_tlbre(struct kvm_vcpu *vcpu);
 int kvmppc_e500_emul_tlbivax(struct kvm_vcpu *vcpu, gva_t ea);
@@ -139,14 +144,14 @@ void kvmppc_get_sregs_e500_tlb(struct kvm_vcpu *vcpu, struct kvm_sregs *sregs);
 int kvmppc_set_sregs_e500_tlb(struct kvm_vcpu *vcpu, struct kvm_sregs *sregs);
 
 int kvmppc_get_one_reg_e500_tlb(struct kvm_vcpu *vcpu, u64 id,
-				union kvmppc_one_reg *val);
+								union kvmppc_one_reg *val);
 int kvmppc_set_one_reg_e500_tlb(struct kvm_vcpu *vcpu, u64 id,
-			       union kvmppc_one_reg *val);
+								union kvmppc_one_reg *val);
 
 #ifdef CONFIG_KVM_E500V2
 unsigned int kvmppc_e500_get_sid(struct kvmppc_vcpu_e500 *vcpu_e500,
-				 unsigned int as, unsigned int gid,
-				 unsigned int pr, int avoid_recursion);
+								 unsigned int as, unsigned int gid,
+								 unsigned int pr, int avoid_recursion);
 #endif
 
 /* TLB helper functions */
@@ -253,24 +258,33 @@ static inline unsigned int get_tlb_esel_bit(const struct kvm_vcpu *vcpu)
 }
 
 static inline int tlbe_is_host_safe(const struct kvm_vcpu *vcpu,
-			const struct kvm_book3e_206_tlb_entry *tlbe)
+									const struct kvm_book3e_206_tlb_entry *tlbe)
 {
 	gpa_t gpa;
 
 	if (!get_tlb_v(tlbe))
+	{
 		return 0;
+	}
 
 #ifndef CONFIG_KVM_BOOKE_HV
+
 	/* Does it match current guest AS? */
 	/* XXX what about IS != DS? */
 	if (get_tlb_ts(tlbe) != !!(vcpu->arch.shared->msr & MSR_IS))
+	{
 		return 0;
+	}
+
 #endif
 
 	gpa = get_tlb_raddr(tlbe);
+
 	if (!gfn_to_memslot(vcpu->kvm, gpa >> PAGE_SHIFT))
 		/* Mapping is not for RAM. */
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -283,7 +297,7 @@ static inline struct kvm_book3e_206_tlb_entry *get_entry(
 }
 
 void kvmppc_e500_tlbil_one(struct kvmppc_vcpu_e500 *vcpu_e500,
-			   struct kvm_book3e_206_tlb_entry *gtlbe);
+						   struct kvm_book3e_206_tlb_entry *gtlbe);
 void kvmppc_e500_tlbil_all(struct kvmppc_vcpu_e500 *vcpu_e500);
 
 #ifdef CONFIG_KVM_BOOKE_HV
@@ -300,7 +314,9 @@ static inline int get_thread_specific_lpid(int vm_lpid)
 	int vcpu_lpid = vm_lpid;
 
 	if (threads_per_core == 2)
+	{
 		vcpu_lpid |= smp_processor_id() & 1;
+	}
 
 	return vcpu_lpid;
 }
@@ -311,7 +327,7 @@ static inline int get_lpid(struct kvm_vcpu *vcpu)
 }
 #else
 unsigned int kvmppc_e500_get_tlb_stid(struct kvm_vcpu *vcpu,
-				      struct kvm_book3e_206_tlb_entry *gtlbe);
+									  struct kvm_book3e_206_tlb_entry *gtlbe);
 
 static inline unsigned int get_tlbmiss_tid(struct kvm_vcpu *vcpu)
 {
@@ -326,16 +342,20 @@ static inline unsigned int get_tlbmiss_tid(struct kvm_vcpu *vcpu)
 #endif /* !BOOKE_HV */
 
 static inline bool has_feature(const struct kvm_vcpu *vcpu,
-			       enum vcpu_ftr ftr)
+							   enum vcpu_ftr ftr)
 {
 	bool has_ftr;
-	switch (ftr) {
-	case VCPU_FTR_MMU_V2:
-		has_ftr = ((vcpu->arch.mmucfg & MMUCFG_MAVN) == MMUCFG_MAVN_V2);
-		break;
-	default:
-		return false;
+
+	switch (ftr)
+	{
+		case VCPU_FTR_MMU_V2:
+			has_ftr = ((vcpu->arch.mmucfg & MMUCFG_MAVN) == MMUCFG_MAVN_V2);
+			break;
+
+		default:
+			return false;
 	}
+
 	return has_ftr;
 }
 

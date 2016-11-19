@@ -34,8 +34,8 @@
 #include <xen/grant_table.h>
 
 int arch_gnttab_map_shared(xen_pfn_t *frames, unsigned long nr_gframes,
-			   unsigned long max_nr_gframes,
-			   void **__shared)
+						   unsigned long max_nr_gframes,
+						   void **__shared)
 {
 	return -ENOSYS;
 }

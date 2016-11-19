@@ -72,15 +72,15 @@ int omap_msdi_reset(struct omap_hwmod *oh)
 
 	/* Poll on RESETDONE bit */
 	omap_test_timeout((omap_hwmod_read(oh, oh->class->sysc->syss_offs)
-			   & SYSS_RESETDONE_MASK),
-			  MAX_MODULE_SOFTRESET_WAIT, c);
+					   & SYSS_RESETDONE_MASK),
+					  MAX_MODULE_SOFTRESET_WAIT, c);
 
 	if (c == MAX_MODULE_SOFTRESET_WAIT)
 		pr_warn("%s: %s: softreset failed (waited %d usec)\n",
-			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
+				__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
 	else
 		pr_debug("%s: %s: softreset in %d usec\n", __func__,
-			 oh->name, c);
+				 oh->name, c);
 
 	/* Disable the MSDI internal clock */
 	v &= ~MSDI_CON_CLKD_MASK;

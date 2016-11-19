@@ -8,17 +8,19 @@
 #define HVERSION_REV_ANY_ID	PA_HVERSION_REV_ANY_ID
 #define SVERSION_ANY_ID		PA_SVERSION_ANY_ID
 
-struct hp_hardware {
-	unsigned short	hw_type:5;	/* HPHW_xxx */
+struct hp_hardware
+{
+	unsigned short	hw_type: 5;	/* HPHW_xxx */
 	unsigned short	hversion;
-	unsigned long	sversion:28;
+	unsigned long	sversion: 28;
 	unsigned short	opt;
 	const char	name[80];	/* The hardware description */
 };
 
 struct parisc_device;
 
-enum cpu_type {
+enum cpu_type
+{
 	pcx	= 0, /* pa7000		pa 1.0  */
 	pcxs	= 1, /* pa7000		pa 1.1a */
 	pcxt	= 2, /* pa7100		pa 1.1b */
@@ -34,50 +36,52 @@ enum cpu_type {
 	mako2	= 12  /* pa8900		pa 2.0  */
 };
 
-extern const char * const cpu_name_version[][2]; /* mapping from enum cpu_type to strings */
+extern const char *const cpu_name_version[][2];  /* mapping from enum cpu_type to strings */
 
 struct parisc_driver;
 
-struct io_module {
-        volatile uint32_t nothing;		/* reg 0 */
-        volatile uint32_t io_eim;
-        volatile uint32_t io_dc_adata;
-        volatile uint32_t io_ii_cdata;
-        volatile uint32_t io_dma_link;		/* reg 4 */
-        volatile uint32_t io_dma_command;
-        volatile uint32_t io_dma_address;
-        volatile uint32_t io_dma_count;
-        volatile uint32_t io_flex;		/* reg 8 */
-        volatile uint32_t io_spa_address;
-        volatile uint32_t reserved1[2];
-        volatile uint32_t io_command;		/* reg 12 */
-        volatile uint32_t io_status;
-        volatile uint32_t io_control;
-        volatile uint32_t io_data;
-        volatile uint32_t reserved2;		/* reg 16 */
-        volatile uint32_t chain_addr;
-        volatile uint32_t sub_mask_clr;
-        volatile uint32_t reserved3[13];
-        volatile uint32_t undefined[480];
-        volatile uint32_t unpriv[512];
+struct io_module
+{
+	volatile uint32_t nothing;		/* reg 0 */
+	volatile uint32_t io_eim;
+	volatile uint32_t io_dc_adata;
+	volatile uint32_t io_ii_cdata;
+	volatile uint32_t io_dma_link;		/* reg 4 */
+	volatile uint32_t io_dma_command;
+	volatile uint32_t io_dma_address;
+	volatile uint32_t io_dma_count;
+	volatile uint32_t io_flex;		/* reg 8 */
+	volatile uint32_t io_spa_address;
+	volatile uint32_t reserved1[2];
+	volatile uint32_t io_command;		/* reg 12 */
+	volatile uint32_t io_status;
+	volatile uint32_t io_control;
+	volatile uint32_t io_data;
+	volatile uint32_t reserved2;		/* reg 16 */
+	volatile uint32_t chain_addr;
+	volatile uint32_t sub_mask_clr;
+	volatile uint32_t reserved3[13];
+	volatile uint32_t undefined[480];
+	volatile uint32_t unpriv[512];
 };
 
-struct bc_module {
-        volatile uint32_t unused1[12];
-        volatile uint32_t io_command;
-        volatile uint32_t io_status;
-        volatile uint32_t io_control;
-        volatile uint32_t unused2[1];
-        volatile uint32_t io_err_resp;
-        volatile uint32_t io_err_info;
-        volatile uint32_t io_err_req;
-        volatile uint32_t unused3[11];
-        volatile uint32_t io_io_low;
-        volatile uint32_t io_io_high;
+struct bc_module
+{
+	volatile uint32_t unused1[12];
+	volatile uint32_t io_command;
+	volatile uint32_t io_status;
+	volatile uint32_t io_control;
+	volatile uint32_t unused2[1];
+	volatile uint32_t io_err_resp;
+	volatile uint32_t io_err_info;
+	volatile uint32_t io_err_req;
+	volatile uint32_t unused3[11];
+	volatile uint32_t io_io_low;
+	volatile uint32_t io_io_high;
 };
 
-#define HPHW_NPROC     0 
-#define HPHW_MEMORY    1       
+#define HPHW_NPROC     0
+#define HPHW_MEMORY    1
 #define HPHW_B_DMA     2
 #define HPHW_OBSOLETE  3
 #define HPHW_A_DMA     4

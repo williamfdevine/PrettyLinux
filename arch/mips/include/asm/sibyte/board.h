@@ -20,20 +20,20 @@
 #define _SIBYTE_BOARD_H
 
 #if defined(CONFIG_SIBYTE_SWARM) || defined(CONFIG_SIBYTE_CRHONE) || \
-    defined(CONFIG_SIBYTE_CRHINE) || defined(CONFIG_SIBYTE_LITTLESUR)
-#include <asm/sibyte/swarm.h>
+	defined(CONFIG_SIBYTE_CRHINE) || defined(CONFIG_SIBYTE_LITTLESUR)
+	#include <asm/sibyte/swarm.h>
 #endif
 
 #if defined(CONFIG_SIBYTE_SENTOSA) || defined(CONFIG_SIBYTE_RHONE)
-#include <asm/sibyte/sentosa.h>
+	#include <asm/sibyte/sentosa.h>
 #endif
 
 #ifdef CONFIG_SIBYTE_CARMEL
-#include <asm/sibyte/carmel.h>
+	#include <asm/sibyte/carmel.h>
 #endif
 
 #ifdef CONFIG_SIBYTE_BIGSUR
-#include <asm/sibyte/bigsur.h>
+	#include <asm/sibyte/bigsur.h>
 #endif
 
 #ifdef __ASSEMBLY__
@@ -58,9 +58,9 @@
 void swarm_setup(void);
 
 #ifdef LEDS_PHYS
-extern void setleds(char *str);
+	extern void setleds(char *str);
 #else
-#define setleds(s) do { } while (0)
+	#define setleds(s) do { } while (0)
 #endif /* LEDS_PHYS */
 
 #endif /* __ASSEMBLY__ */

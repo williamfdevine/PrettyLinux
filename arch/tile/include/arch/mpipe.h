@@ -32,44 +32,44 @@
 __extension__
 typedef union
 {
-  struct
-  {
+	struct
+	{
 #ifndef __BIG_ENDIAN__
-    /* Reserved. */
-    uint_reg_t __reserved_0  : 3;
-    /* NotifRing to be released */
-    uint_reg_t ring          : 8;
-    /* Bucket to be released */
-    uint_reg_t bucket        : 13;
-    /* Enable NotifRing release */
-    uint_reg_t ring_enable   : 1;
-    /* Enable Bucket release */
-    uint_reg_t bucket_enable : 1;
-    /*
-     * This field of the address selects the region (address space) to be
-     * accessed.  For the iDMA release region, this field must be 4.
-     */
-    uint_reg_t region        : 3;
-    /* Reserved. */
-    uint_reg_t __reserved_1  : 6;
-    /* This field of the address indexes the 32 entry service domain table. */
-    uint_reg_t svc_dom       : 5;
-    /* Reserved. */
-    uint_reg_t __reserved_2  : 24;
+		/* Reserved. */
+		uint_reg_t __reserved_0  : 3;
+		/* NotifRing to be released */
+		uint_reg_t ring          : 8;
+		/* Bucket to be released */
+		uint_reg_t bucket        : 13;
+		/* Enable NotifRing release */
+		uint_reg_t ring_enable   : 1;
+		/* Enable Bucket release */
+		uint_reg_t bucket_enable : 1;
+		/*
+		 * This field of the address selects the region (address space) to be
+		 * accessed.  For the iDMA release region, this field must be 4.
+		 */
+		uint_reg_t region        : 3;
+		/* Reserved. */
+		uint_reg_t __reserved_1  : 6;
+		/* This field of the address indexes the 32 entry service domain table. */
+		uint_reg_t svc_dom       : 5;
+		/* Reserved. */
+		uint_reg_t __reserved_2  : 24;
 #else   /* __BIG_ENDIAN__ */
-    uint_reg_t __reserved_2  : 24;
-    uint_reg_t svc_dom       : 5;
-    uint_reg_t __reserved_1  : 6;
-    uint_reg_t region        : 3;
-    uint_reg_t bucket_enable : 1;
-    uint_reg_t ring_enable   : 1;
-    uint_reg_t bucket        : 13;
-    uint_reg_t ring          : 8;
-    uint_reg_t __reserved_0  : 3;
+		uint_reg_t __reserved_2  : 24;
+		uint_reg_t svc_dom       : 5;
+		uint_reg_t __reserved_1  : 6;
+		uint_reg_t region        : 3;
+		uint_reg_t bucket_enable : 1;
+		uint_reg_t ring_enable   : 1;
+		uint_reg_t bucket        : 13;
+		uint_reg_t ring          : 8;
+		uint_reg_t __reserved_0  : 3;
 #endif
-  };
+	};
 
-  uint_reg_t word;
+	uint_reg_t word;
 } MPIPE_IDMA_RELEASE_REGION_ADDR_t;
 
 /*
@@ -81,24 +81,24 @@ typedef union
 __extension__
 typedef union
 {
-  struct
-  {
+	struct
+	{
 #ifndef __BIG_ENDIAN__
-    /*
-     * Number of packets being released.  The load balancer's count of
-     * inflight packets will be decremented by this amount for the associated
-     * Bucket and/or NotifRing
-     */
-    uint_reg_t count      : 16;
-    /* Reserved. */
-    uint_reg_t __reserved : 48;
+		/*
+		 * Number of packets being released.  The load balancer's count of
+		 * inflight packets will be decremented by this amount for the associated
+		 * Bucket and/or NotifRing
+		 */
+		uint_reg_t count      : 16;
+		/* Reserved. */
+		uint_reg_t __reserved : 48;
 #else   /* __BIG_ENDIAN__ */
-    uint_reg_t __reserved : 48;
-    uint_reg_t count      : 16;
+		uint_reg_t __reserved : 48;
+		uint_reg_t count      : 16;
 #endif
-  };
+	};
 
-  uint_reg_t word;
+	uint_reg_t word;
 } MPIPE_IDMA_RELEASE_REGION_VAL_t;
 
 /*
@@ -113,38 +113,38 @@ typedef union
 __extension__
 typedef union
 {
-  struct
-  {
+	struct
+	{
 #ifndef __BIG_ENDIAN__
-    /* Reserved. */
-    uint_reg_t __reserved_0 : 3;
-    /* BufferStack being accessed. */
-    uint_reg_t stack        : 5;
-    /* Reserved. */
-    uint_reg_t __reserved_1 : 18;
-    /*
-     * This field of the address selects the region (address space) to be
-     * accessed.  For the buffer stack manager region, this field must be 6.
-     */
-    uint_reg_t region       : 3;
-    /* Reserved. */
-    uint_reg_t __reserved_2 : 6;
-    /* This field of the address indexes the 32 entry service domain table. */
-    uint_reg_t svc_dom      : 5;
-    /* Reserved. */
-    uint_reg_t __reserved_3 : 24;
+		/* Reserved. */
+		uint_reg_t __reserved_0 : 3;
+		/* BufferStack being accessed. */
+		uint_reg_t stack        : 5;
+		/* Reserved. */
+		uint_reg_t __reserved_1 : 18;
+		/*
+		 * This field of the address selects the region (address space) to be
+		 * accessed.  For the buffer stack manager region, this field must be 6.
+		 */
+		uint_reg_t region       : 3;
+		/* Reserved. */
+		uint_reg_t __reserved_2 : 6;
+		/* This field of the address indexes the 32 entry service domain table. */
+		uint_reg_t svc_dom      : 5;
+		/* Reserved. */
+		uint_reg_t __reserved_3 : 24;
 #else   /* __BIG_ENDIAN__ */
-    uint_reg_t __reserved_3 : 24;
-    uint_reg_t svc_dom      : 5;
-    uint_reg_t __reserved_2 : 6;
-    uint_reg_t region       : 3;
-    uint_reg_t __reserved_1 : 18;
-    uint_reg_t stack        : 5;
-    uint_reg_t __reserved_0 : 3;
+		uint_reg_t __reserved_3 : 24;
+		uint_reg_t svc_dom      : 5;
+		uint_reg_t __reserved_2 : 6;
+		uint_reg_t region       : 3;
+		uint_reg_t __reserved_1 : 18;
+		uint_reg_t stack        : 5;
+		uint_reg_t __reserved_0 : 3;
 #endif
-  };
+	};
 
-  uint_reg_t word;
+	uint_reg_t word;
 } MPIPE_BSM_REGION_ADDR_t;
 
 /*
@@ -159,73 +159,73 @@ typedef union
 __extension__
 typedef union
 {
-  struct
-  {
+	struct
+	{
 #ifndef __BIG_ENDIAN__
-    /* Reserved. */
-    uint_reg_t __reserved_0 : 7;
-    /*
-     * Base virtual address of the buffer.  Must be sign extended by consumer.
-     */
-    int_reg_t va           : 35;
-    /* Reserved. */
-    uint_reg_t __reserved_1 : 6;
-    /*
-     * Index of the buffer stack to which this buffer belongs.  Ignored on
-     * writes since the offset bits specify the stack being accessed.
-     */
-    uint_reg_t stack_idx    : 5;
-    /* Reserved. */
-    uint_reg_t __reserved_2 : 3;
-    /*
-     * Instance ID.  For devices that support automatic buffer return between
-     * mPIPE instances, this field indicates the buffer owner.  If the INST
-     * field does not match the mPIPE's instance number when a packet is
-     * egressed, buffers with HWB set will be returned to the other mPIPE
-     * instance.  Note that not all devices support multi-mPIPE buffer
-     * return.  The MPIPE_EDMA_INFO.REMOTE_BUFF_RTN_SUPPORT bit indicates
-     * whether the INST field in the buffer descriptor is populated by iDMA
-     * hardware. This field is ignored on writes.
-     */
-    uint_reg_t inst         : 2;
-    /*
-     * Reads as one to indicate that this is a hardware managed buffer.
-     * Ignored on writes since all buffers on a given stack are the same size.
-     */
-    uint_reg_t hwb          : 1;
-    /*
-     * Encoded size of buffer (ignored on writes):
-     * 0 = 128 bytes
-     * 1 = 256 bytes
-     * 2 = 512 bytes
-     * 3 = 1024 bytes
-     * 4 = 1664 bytes
-     * 5 = 4096 bytes
-     * 6 = 10368 bytes
-     * 7 = 16384 bytes
-     */
-    uint_reg_t size         : 3;
-    /*
-     * Valid indication for the buffer.  Ignored on writes.
-     * 0 : Valid buffer descriptor popped from stack.
-     * 3 : Could not pop a buffer from the stack.  Either the stack is empty,
-     * or the hardware's prefetch buffer is empty for this stack.
-     */
-    uint_reg_t c            : 2;
+		/* Reserved. */
+		uint_reg_t __reserved_0 : 7;
+		/*
+		 * Base virtual address of the buffer.  Must be sign extended by consumer.
+		 */
+		int_reg_t va           : 35;
+		/* Reserved. */
+		uint_reg_t __reserved_1 : 6;
+		/*
+		 * Index of the buffer stack to which this buffer belongs.  Ignored on
+		 * writes since the offset bits specify the stack being accessed.
+		 */
+		uint_reg_t stack_idx    : 5;
+		/* Reserved. */
+		uint_reg_t __reserved_2 : 3;
+		/*
+		 * Instance ID.  For devices that support automatic buffer return between
+		 * mPIPE instances, this field indicates the buffer owner.  If the INST
+		 * field does not match the mPIPE's instance number when a packet is
+		 * egressed, buffers with HWB set will be returned to the other mPIPE
+		 * instance.  Note that not all devices support multi-mPIPE buffer
+		 * return.  The MPIPE_EDMA_INFO.REMOTE_BUFF_RTN_SUPPORT bit indicates
+		 * whether the INST field in the buffer descriptor is populated by iDMA
+		 * hardware. This field is ignored on writes.
+		 */
+		uint_reg_t inst         : 2;
+		/*
+		 * Reads as one to indicate that this is a hardware managed buffer.
+		 * Ignored on writes since all buffers on a given stack are the same size.
+		 */
+		uint_reg_t hwb          : 1;
+		/*
+		 * Encoded size of buffer (ignored on writes):
+		 * 0 = 128 bytes
+		 * 1 = 256 bytes
+		 * 2 = 512 bytes
+		 * 3 = 1024 bytes
+		 * 4 = 1664 bytes
+		 * 5 = 4096 bytes
+		 * 6 = 10368 bytes
+		 * 7 = 16384 bytes
+		 */
+		uint_reg_t size         : 3;
+		/*
+		 * Valid indication for the buffer.  Ignored on writes.
+		 * 0 : Valid buffer descriptor popped from stack.
+		 * 3 : Could not pop a buffer from the stack.  Either the stack is empty,
+		 * or the hardware's prefetch buffer is empty for this stack.
+		 */
+		uint_reg_t c            : 2;
 #else   /* __BIG_ENDIAN__ */
-    uint_reg_t c            : 2;
-    uint_reg_t size         : 3;
-    uint_reg_t hwb          : 1;
-    uint_reg_t inst         : 2;
-    uint_reg_t __reserved_2 : 3;
-    uint_reg_t stack_idx    : 5;
-    uint_reg_t __reserved_1 : 6;
-    int_reg_t va           : 35;
-    uint_reg_t __reserved_0 : 7;
+		uint_reg_t c            : 2;
+		uint_reg_t size         : 3;
+		uint_reg_t hwb          : 1;
+		uint_reg_t inst         : 2;
+		uint_reg_t __reserved_2 : 3;
+		uint_reg_t stack_idx    : 5;
+		uint_reg_t __reserved_1 : 6;
+		int_reg_t va           : 35;
+		uint_reg_t __reserved_0 : 7;
 #endif
-  };
+	};
 
-  uint_reg_t word;
+	uint_reg_t word;
 } MPIPE_BSM_REGION_VAL_t;
 
 /*
@@ -237,38 +237,38 @@ typedef union
 __extension__
 typedef union
 {
-  struct
-  {
+	struct
+	{
 #ifndef __BIG_ENDIAN__
-    /* Reserved. */
-    uint_reg_t __reserved_0 : 3;
-    /* eDMA ring being accessed */
-    uint_reg_t ring         : 6;
-    /* Reserved. */
-    uint_reg_t __reserved_1 : 17;
-    /*
-     * This field of the address selects the region (address space) to be
-     * accessed.  For the egress DMA post region, this field must be 5.
-     */
-    uint_reg_t region       : 3;
-    /* Reserved. */
-    uint_reg_t __reserved_2 : 6;
-    /* This field of the address indexes the 32 entry service domain table. */
-    uint_reg_t svc_dom      : 5;
-    /* Reserved. */
-    uint_reg_t __reserved_3 : 24;
+		/* Reserved. */
+		uint_reg_t __reserved_0 : 3;
+		/* eDMA ring being accessed */
+		uint_reg_t ring         : 6;
+		/* Reserved. */
+		uint_reg_t __reserved_1 : 17;
+		/*
+		 * This field of the address selects the region (address space) to be
+		 * accessed.  For the egress DMA post region, this field must be 5.
+		 */
+		uint_reg_t region       : 3;
+		/* Reserved. */
+		uint_reg_t __reserved_2 : 6;
+		/* This field of the address indexes the 32 entry service domain table. */
+		uint_reg_t svc_dom      : 5;
+		/* Reserved. */
+		uint_reg_t __reserved_3 : 24;
 #else   /* __BIG_ENDIAN__ */
-    uint_reg_t __reserved_3 : 24;
-    uint_reg_t svc_dom      : 5;
-    uint_reg_t __reserved_2 : 6;
-    uint_reg_t region       : 3;
-    uint_reg_t __reserved_1 : 17;
-    uint_reg_t ring         : 6;
-    uint_reg_t __reserved_0 : 3;
+		uint_reg_t __reserved_3 : 24;
+		uint_reg_t svc_dom      : 5;
+		uint_reg_t __reserved_2 : 6;
+		uint_reg_t region       : 3;
+		uint_reg_t __reserved_1 : 17;
+		uint_reg_t ring         : 6;
+		uint_reg_t __reserved_0 : 3;
 #endif
-  };
+	};
 
-  uint_reg_t word;
+	uint_reg_t word;
 } MPIPE_EDMA_POST_REGION_ADDR_t;
 
 /*
@@ -280,57 +280,57 @@ typedef union
 __extension__
 typedef union
 {
-  struct
-  {
+	struct
+	{
 #ifndef __BIG_ENDIAN__
-    /*
-     * For writes, this specifies the current ring tail pointer prior to any
-     * post.  For example, to post 1 or more descriptors starting at location
-     * 23, this would contain 23 (not 24).  On writes, this index must be
-     * masked based on the ring size.  The new tail pointer after this post
-     * is COUNT+RING_IDX (masked by the ring size).
-     *
-     * For reads, this provides the hardware descriptor fetcher's head
-     * pointer.  The descriptors prior to the head pointer, however, may not
-     * yet have been processed so this indicator is only used to determine
-     * how full the ring is and if software may post more descriptors.
-     */
-    uint_reg_t ring_idx   : 16;
-    /*
-     * For writes, this specifies number of contiguous descriptors that are
-     * being posted.  Software may post up to RingSize descriptors with a
-     * single MMIO store.  A zero in this field on a write will "wake up" an
-     * eDMA ring and cause it fetch descriptors regardless of the hardware's
-     * current view of the state of the tail pointer.
-     *
-     * For reads, this field provides a rolling count of the number of
-     * descriptors that have been completely processed.  This may be used by
-     * software to determine when buffers associated with a descriptor may be
-     * returned or reused.  When the ring's flush bit is cleared by software
-     * (after having been set by HW or SW), the COUNT will be cleared.
-     */
-    uint_reg_t count      : 16;
-    /*
-     * For writes, this specifies the generation number of the tail being
-     * posted. Note that if tail+cnt wraps to the beginning of the ring, the
-     * eDMA hardware assumes that the descriptors posted at the beginning of
-     * the ring are also valid so it is okay to post around the wrap point.
-     *
-     * For reads, this is the current generation number.  Valid descriptors
-     * will have the inverse of this generation number.
-     */
-    uint_reg_t gen        : 1;
-    /* Reserved. */
-    uint_reg_t __reserved : 31;
+		/*
+		 * For writes, this specifies the current ring tail pointer prior to any
+		 * post.  For example, to post 1 or more descriptors starting at location
+		 * 23, this would contain 23 (not 24).  On writes, this index must be
+		 * masked based on the ring size.  The new tail pointer after this post
+		 * is COUNT+RING_IDX (masked by the ring size).
+		 *
+		 * For reads, this provides the hardware descriptor fetcher's head
+		 * pointer.  The descriptors prior to the head pointer, however, may not
+		 * yet have been processed so this indicator is only used to determine
+		 * how full the ring is and if software may post more descriptors.
+		 */
+		uint_reg_t ring_idx   : 16;
+		/*
+		 * For writes, this specifies number of contiguous descriptors that are
+		 * being posted.  Software may post up to RingSize descriptors with a
+		 * single MMIO store.  A zero in this field on a write will "wake up" an
+		 * eDMA ring and cause it fetch descriptors regardless of the hardware's
+		 * current view of the state of the tail pointer.
+		 *
+		 * For reads, this field provides a rolling count of the number of
+		 * descriptors that have been completely processed.  This may be used by
+		 * software to determine when buffers associated with a descriptor may be
+		 * returned or reused.  When the ring's flush bit is cleared by software
+		 * (after having been set by HW or SW), the COUNT will be cleared.
+		 */
+		uint_reg_t count      : 16;
+		/*
+		 * For writes, this specifies the generation number of the tail being
+		 * posted. Note that if tail+cnt wraps to the beginning of the ring, the
+		 * eDMA hardware assumes that the descriptors posted at the beginning of
+		 * the ring are also valid so it is okay to post around the wrap point.
+		 *
+		 * For reads, this is the current generation number.  Valid descriptors
+		 * will have the inverse of this generation number.
+		 */
+		uint_reg_t gen        : 1;
+		/* Reserved. */
+		uint_reg_t __reserved : 31;
 #else   /* __BIG_ENDIAN__ */
-    uint_reg_t __reserved : 31;
-    uint_reg_t gen        : 1;
-    uint_reg_t count      : 16;
-    uint_reg_t ring_idx   : 16;
+		uint_reg_t __reserved : 31;
+		uint_reg_t gen        : 1;
+		uint_reg_t count      : 16;
+		uint_reg_t ring_idx   : 16;
 #endif
-  };
+	};
 
-  uint_reg_t word;
+	uint_reg_t word;
 } MPIPE_EDMA_POST_REGION_VAL_t;
 
 /*
@@ -342,29 +342,29 @@ typedef union
 __extension__
 typedef union
 {
-  struct
-  {
+	struct
+	{
 #ifndef __BIG_ENDIAN__
-    /* NotifRing currently assigned to this bucket. */
-    uint_reg_t notifring  : 8;
-    /* Current reference count. */
-    uint_reg_t count      : 16;
-    /* Group associated with this bucket. */
-    uint_reg_t group      : 5;
-    /* Mode select for this bucket. */
-    uint_reg_t mode       : 3;
-    /* Reserved. */
-    uint_reg_t __reserved : 32;
+		/* NotifRing currently assigned to this bucket. */
+		uint_reg_t notifring  : 8;
+		/* Current reference count. */
+		uint_reg_t count      : 16;
+		/* Group associated with this bucket. */
+		uint_reg_t group      : 5;
+		/* Mode select for this bucket. */
+		uint_reg_t mode       : 3;
+		/* Reserved. */
+		uint_reg_t __reserved : 32;
 #else   /* __BIG_ENDIAN__ */
-    uint_reg_t __reserved : 32;
-    uint_reg_t mode       : 3;
-    uint_reg_t group      : 5;
-    uint_reg_t count      : 16;
-    uint_reg_t notifring  : 8;
+		uint_reg_t __reserved : 32;
+		uint_reg_t mode       : 3;
+		uint_reg_t group      : 5;
+		uint_reg_t count      : 16;
+		uint_reg_t notifring  : 8;
 #endif
-  };
+	};
 
-  uint_reg_t word;
+	uint_reg_t word;
 } MPIPE_LBL_INIT_DAT_BSTS_TBL_t;
 #endif /* !defined(__ASSEMBLER__) */
 

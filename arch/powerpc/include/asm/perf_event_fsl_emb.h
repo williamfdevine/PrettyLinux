@@ -23,7 +23,8 @@
 #define FSL_EMB_EVENT_THRESHMUL  0x0000070000000000ULL
 #define FSL_EMB_EVENT_THRESH     0x0000003f00000000ULL
 
-struct fsl_emb_pmu {
+struct fsl_emb_pmu
+{
 	const char	*name;
 	int		n_counter; /* total number of counters */
 
@@ -43,8 +44,8 @@ struct fsl_emb_pmu {
 	int		n_generic;
 	int		*generic_events;
 	int		(*cache_events)[PERF_COUNT_HW_CACHE_MAX]
-			       [PERF_COUNT_HW_CACHE_OP_MAX]
-			       [PERF_COUNT_HW_CACHE_RESULT_MAX];
+	[PERF_COUNT_HW_CACHE_OP_MAX]
+	[PERF_COUNT_HW_CACHE_RESULT_MAX];
 };
 
 int register_fsl_emb_pmu(struct fsl_emb_pmu *);

@@ -85,8 +85,8 @@ static inline void l2_clean_pa_range(unsigned long start, unsigned long end)
 	va_end = va_start + (end - start);
 	raw_local_irq_save(flags);
 	__asm__("mcr p15, 1, %0, c15, c9, 4\n\t"
-		"mcr p15, 1, %1, c15, c9, 5"
-		: : "r" (va_start), "r" (va_end));
+			"mcr p15, 1, %1, c15, c9, 5"
+			: : "r" (va_start), "r" (va_end));
 	raw_local_irq_restore(flags);
 	l2_put_va(va_start);
 }
@@ -116,8 +116,8 @@ static inline void l2_inv_pa_range(unsigned long start, unsigned long end)
 	va_end = va_start + (end - start);
 	raw_local_irq_save(flags);
 	__asm__("mcr p15, 1, %0, c15, c11, 4\n\t"
-		"mcr p15, 1, %1, c15, c11, 5"
-		: : "r" (va_start), "r" (va_end));
+			"mcr p15, 1, %1, c15, c11, 5"
+			: : "r" (va_start), "r" (va_end));
 	raw_local_irq_restore(flags);
 	l2_put_va(va_start);
 }
@@ -157,13 +157,17 @@ static unsigned long calc_range_end(unsigned long start, unsigned long end)
 	 * until completion.
 	 */
 	if (range_end > start + MAX_RANGE_SIZE)
+	{
 		range_end = start + MAX_RANGE_SIZE;
+	}
 
 	/*
 	 * Cache range operations can't straddle a page boundary.
 	 */
 	if (range_end > (start | (PAGE_SIZE - 1)) + 1)
+	{
 		range_end = (start | (PAGE_SIZE - 1)) + 1;
+	}
 
 	return range_end;
 }
@@ -173,7 +177,8 @@ static void feroceon_l2_inv_range(unsigned long start, unsigned long end)
 	/*
 	 * Clean and invalidate partial first cache line.
 	 */
-	if (start & (CACHE_LINE_SIZE - 1)) {
+	if (start & (CACHE_LINE_SIZE - 1))
+	{
 		l2_clean_inv_pa(start & ~(CACHE_LINE_SIZE - 1));
 		start = (start | (CACHE_LINE_SIZE - 1)) + 1;
 	}
@@ -181,7 +186,8 @@ static void feroceon_l2_inv_range(unsigned long start, unsigned long end)
 	/*
 	 * Clean and invalidate partial last cache line.
 	 */
-	if (start < end && end & (CACHE_LINE_SIZE - 1)) {
+	if (start < end && end & (CACHE_LINE_SIZE - 1))
+	{
 		l2_clean_inv_pa(end & ~(CACHE_LINE_SIZE - 1));
 		end &= ~(CACHE_LINE_SIZE - 1);
 	}
@@ -189,7 +195,8 @@ static void feroceon_l2_inv_range(unsigned long start, unsigned long end)
 	/*
 	 * Invalidate all full cache lines between 'start' and 'end'.
 	 */
-	while (start < end) {
+	while (start < end)
+	{
 		unsigned long range_end = calc_range_end(start, end);
 		l2_inv_pa_range(start, range_end - CACHE_LINE_SIZE);
 		start = range_end;
@@ -204,10 +211,13 @@ static void feroceon_l2_clean_range(unsigned long start, unsigned long end)
 	 * If L2 is forced to WT, the L2 will always be clean and we
 	 * don't need to do anything here.
 	 */
-	if (!l2_wt_override) {
+	if (!l2_wt_override)
+	{
 		start &= ~(CACHE_LINE_SIZE - 1);
 		end = (end + CACHE_LINE_SIZE - 1) & ~(CACHE_LINE_SIZE - 1);
-		while (start != end) {
+
+		while (start != end)
+		{
 			unsigned long range_end = calc_range_end(start, end);
 			l2_clean_pa_range(start, range_end - CACHE_LINE_SIZE);
 			start = range_end;
@@ -221,10 +231,16 @@ static void feroceon_l2_flush_range(unsigned long start, unsigned long end)
 {
 	start &= ~(CACHE_LINE_SIZE - 1);
 	end = (end + CACHE_LINE_SIZE - 1) & ~(CACHE_LINE_SIZE - 1);
-	while (start != end) {
+
+	while (start != end)
+	{
 		unsigned long range_end = calc_range_end(start, end);
+
 		if (!l2_wt_override)
+		{
 			l2_clean_pa_range(start, range_end - CACHE_LINE_SIZE);
+		}
+
 		l2_inv_pa_range(start, range_end - CACHE_LINE_SIZE);
 		start = range_end;
 	}
@@ -243,7 +259,9 @@ static int __init flush_and_disable_dcache(void)
 	u32 cr;
 
 	cr = get_cr();
-	if (cr & CR_C) {
+
+	if (cr & CR_C)
+	{
 		unsigned long flags;
 
 		raw_local_irq_save(flags);
@@ -252,6 +270,7 @@ static int __init flush_and_disable_dcache(void)
 		raw_local_irq_restore(flags);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -273,11 +292,14 @@ static int __init invalidate_and_disable_icache(void)
 	u32 cr;
 
 	cr = get_cr();
-	if (cr & CR_I) {
+
+	if (cr & CR_I)
+	{
 		set_cr(cr & ~CR_I);
 		__invalidate_icache();
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -312,7 +334,9 @@ static void __init disable_l2_prefetch(void)
 	 * Disable L2 Prefetch bit is set.
 	 */
 	u = read_extra_features();
-	if (!(u & 0x01000000)) {
+
+	if (!(u & 0x01000000))
+	{
 		pr_info("Feroceon L2: Disabling L2 prefetch.\n");
 		write_extra_features(u | 0x01000000);
 	}
@@ -323,7 +347,9 @@ static void __init enable_l2(void)
 	u32 u;
 
 	u = read_extra_features();
-	if (!(u & 0x00400000)) {
+
+	if (!(u & 0x00400000))
+	{
 		int i, d;
 
 		pr_info("Feroceon L2: Enabling L2\n");
@@ -332,13 +358,20 @@ static void __init enable_l2(void)
 		i = invalidate_and_disable_icache();
 		l2_inv_all();
 		write_extra_features(u | 0x00400000);
+
 		if (i)
+		{
 			enable_icache();
+		}
+
 		if (d)
+		{
 			enable_dcache();
-	} else
+		}
+	}
+	else
 		pr_err(FW_BUG
-		       "Feroceon L2: bootloader left the L2 cache on!\n");
+			   "Feroceon L2: bootloader left the L2 cache on!\n");
 }
 
 void __init feroceon_l2_init(int __l2_wt_override)
@@ -354,10 +387,11 @@ void __init feroceon_l2_init(int __l2_wt_override)
 	enable_l2();
 
 	pr_info("Feroceon L2: Cache support initialised%s.\n",
-			 l2_wt_override ? ", in WT override mode" : "");
+			l2_wt_override ? ", in WT override mode" : "");
 }
 #ifdef CONFIG_OF
-static const struct of_device_id feroceon_ids[] __initconst = {
+static const struct of_device_id feroceon_ids[] __initconst =
+{
 	{ .compatible = "marvell,kirkwood-cache"},
 	{ .compatible = "marvell,feroceon-cache"},
 	{}
@@ -374,15 +408,24 @@ int __init feroceon_of_init(void)
 #endif
 
 	node = of_find_matching_node(NULL, feroceon_ids);
-	if (node && of_device_is_compatible(node, "marvell,kirkwood-cache")) {
+
+	if (node && of_device_is_compatible(node, "marvell,kirkwood-cache"))
+	{
 		base = of_iomap(node, 0);
+
 		if (!base)
+		{
 			return -ENOMEM;
+		}
 
 		if (l2_wt_override)
+		{
 			writel(readl(base) | L2_WRITETHROUGH_KIRKWOOD, base);
+		}
 		else
+		{
 			writel(readl(base) & ~L2_WRITETHROUGH_KIRKWOOD, base);
+		}
 	}
 
 	feroceon_l2_init(l2_wt_override);

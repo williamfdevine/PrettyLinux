@@ -2,13 +2,13 @@
 #define _ASM_X86_PAGE_64_DEFS_H
 
 #ifndef __ASSEMBLY__
-#include <asm/kaslr.h>
+	#include <asm/kaslr.h>
 #endif
 
 #ifdef CONFIG_KASAN
-#define KASAN_STACK_ORDER 1
+	#define KASAN_STACK_ORDER 1
 #else
-#define KASAN_STACK_ORDER 0
+	#define KASAN_STACK_ORDER 0
 #endif
 
 #define THREAD_SIZE_ORDER	(2 + KASAN_STACK_ORDER)
@@ -38,9 +38,9 @@
  */
 #define __PAGE_OFFSET_BASE      _AC(0xffff880000000000, UL)
 #ifdef CONFIG_RANDOMIZE_MEMORY
-#define __PAGE_OFFSET           page_offset_base
+	#define __PAGE_OFFSET           page_offset_base
 #else
-#define __PAGE_OFFSET           __PAGE_OFFSET_BASE
+	#define __PAGE_OFFSET           __PAGE_OFFSET_BASE
 #endif /* CONFIG_RANDOMIZE_MEMORY */
 
 #define __START_KERNEL_map	_AC(0xffffffff80000000, UL)
@@ -57,9 +57,9 @@
  * kernel page table mapping, reducing the size of the modules area.
  */
 #if defined(CONFIG_RANDOMIZE_BASE)
-#define KERNEL_IMAGE_SIZE	(1024 * 1024 * 1024)
+	#define KERNEL_IMAGE_SIZE	(1024 * 1024 * 1024)
 #else
-#define KERNEL_IMAGE_SIZE	(512 * 1024 * 1024)
+	#define KERNEL_IMAGE_SIZE	(512 * 1024 * 1024)
 #endif
 
 #endif /* _ASM_X86_PAGE_64_DEFS_H */

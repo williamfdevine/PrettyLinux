@@ -38,12 +38,18 @@ static int axxia_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	u32 tmp;
 
 	syscon_np = of_find_compatible_node(NULL, NULL, "lsi,axxia-syscon");
+
 	if (!syscon_np)
+	{
 		return -ENOENT;
+	}
 
 	syscon = of_iomap(syscon_np, 0);
+
 	if (!syscon)
+	{
 		return -ENOMEM;
+	}
 
 	tmp = readl(syscon + SC_RST_CPU_HOLD);
 	writel(0xab, syscon + SC_CRIT_WRITE_KEY);
@@ -62,27 +68,38 @@ static void __init axxia_smp_prepare_cpus(unsigned int max_cpus)
 	 * Initialise the present map, which describes the set of CPUs actually
 	 * populated at the present time.
 	 */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct device_node *np;
 		u32 release_phys;
 
 		np = of_get_cpu_node(cpu, NULL);
-		if (!np)
-			continue;
-		if (of_property_read_u32(np, "cpu-release-addr", &release_phys))
-			continue;
 
-		if (cpu_count < max_cpus) {
+		if (!np)
+		{
+			continue;
+		}
+
+		if (of_property_read_u32(np, "cpu-release-addr", &release_phys))
+		{
+			continue;
+		}
+
+		if (cpu_count < max_cpus)
+		{
 			set_cpu_present(cpu, true);
 			cpu_count++;
 		}
 
 		if (release_phys != 0)
+		{
 			write_release_addr(release_phys);
+		}
 	}
 }
 
-static const struct smp_operations axxia_smp_ops __initconst = {
+static const struct smp_operations axxia_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= axxia_smp_prepare_cpus,
 	.smp_boot_secondary	= axxia_boot_secondary,
 };

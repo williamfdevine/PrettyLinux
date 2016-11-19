@@ -61,7 +61,8 @@
 #define MPMU_AWUCRM_AP1_TIMER_1			(1 << 8)
 #define MPMU_AWUCRM_WAKEUP(x)			(1 << ((x) & 0x7))
 
-enum {
+enum
+{
 	POWER_MODE_ACTIVE = 0,
 	POWER_MODE_CORE_INTIDLE,
 	POWER_MODE_CORE_EXTIDLE,

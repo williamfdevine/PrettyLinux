@@ -22,14 +22,16 @@
  * so we need manually differentiate SoC families. This is what the
  * field msr_plat does.
  */
-struct freq_desc {
+struct freq_desc
+{
 	u8 x86_family;	/* CPU family */
 	u8 x86_model;	/* model */
 	u8 msr_plat;	/* 1: use MSR_PLATFORM_INFO, 0: MSR_IA32_PERF_STATUS */
 	u32 freqs[MAX_NUM_FREQS];
 };
 
-static struct freq_desc freq_desc_tables[] = {
+static struct freq_desc freq_desc_tables[] =
+{
 	/* PNW */
 	{ 6, 0x27, 0, { 0, 0, 0, 0, 0, 99840, 0, 83200 } },
 	/* CLV+ */
@@ -41,18 +43,25 @@ static struct freq_desc freq_desc_tables[] = {
 	/* ANN - Intel Atom processor Z3500 series */
 	{ 6, 0x5a, 1, { 83300, 100000, 133300, 100000, 0, 0, 0, 0 } },
 	/* AMT - Intel Atom processor X7-Z8000 and X5-Z8000 series */
-	{ 6, 0x4c, 1, { 83300, 100000, 133300, 116700,
-			80000, 93300, 90000, 88900, 87500 } },
+	{
+		6, 0x4c, 1, {
+			83300, 100000, 133300, 116700,
+			80000, 93300, 90000, 88900, 87500
+		}
+	},
 };
 
 static int match_cpu(u8 family, u8 model)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(freq_desc_tables); i++) {
+	for (i = 0; i < ARRAY_SIZE(freq_desc_tables); i++)
+	{
 		if ((family == freq_desc_tables[i].x86_family) &&
 			(model == freq_desc_tables[i].x86_model))
+		{
 			return i;
+		}
 	}
 
 	return -1;
@@ -75,16 +84,24 @@ unsigned long cpu_khz_from_msr(void)
 	int cpu_index;
 
 	if (boot_cpu_data.x86_vendor != X86_VENDOR_INTEL)
+	{
 		return 0;
+	}
 
 	cpu_index = match_cpu(boot_cpu_data.x86, boot_cpu_data.x86_model);
-	if (cpu_index < 0)
-		return 0;
 
-	if (freq_desc_tables[cpu_index].msr_plat) {
+	if (cpu_index < 0)
+	{
+		return 0;
+	}
+
+	if (freq_desc_tables[cpu_index].msr_plat)
+	{
 		rdmsr(MSR_PLATFORM_INFO, lo, hi);
 		ratio = (lo >> 8) & 0xff;
-	} else {
+	}
+	else
+	{
 		rdmsr(MSR_IA32_PERF_STATUS, lo, hi);
 		ratio = (hi >> 8) & 0x1f;
 	}

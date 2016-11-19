@@ -25,7 +25,7 @@
 #define cpu_has_vtag_icache		0
 
 #if !defined(CONFIG_SYS_HAS_CPU_BMIPS4350)
-#define cpu_has_dc_aliases		0
+	#define cpu_has_dc_aliases		0
 #endif
 
 #define cpu_has_ic_fills_f_dc		0

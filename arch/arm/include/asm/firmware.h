@@ -20,7 +20,8 @@
  *
  * A filled up structure can be registered with register_firmware_ops().
  */
-struct firmware_ops {
+struct firmware_ops
+{
 	/*
 	 * Inform the firmware we intend to enter CPU idle mode
 	 */

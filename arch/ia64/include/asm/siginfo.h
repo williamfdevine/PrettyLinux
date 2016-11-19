@@ -14,10 +14,14 @@ static inline void
 copy_siginfo (siginfo_t *to, siginfo_t *from)
 {
 	if (from->si_code < 0)
+	{
 		memcpy(to, from, sizeof(siginfo_t));
+	}
 	else
 		/* _sigchld is currently the largest know union member */
-		memcpy(to, from, 4*sizeof(int) + sizeof(from->_sifields._sigchld));
+	{
+		memcpy(to, from, 4 * sizeof(int) + sizeof(from->_sifields._sigchld));
+	}
 }
 
 #endif /* _ASM_IA64_SIGINFO_H */

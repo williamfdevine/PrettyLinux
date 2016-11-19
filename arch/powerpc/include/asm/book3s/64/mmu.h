@@ -11,12 +11,14 @@
  *    penc  : is the HPTE encoding mask for the "LP" field:
  *
  */
-struct mmu_psize_def {
+struct mmu_psize_def
+{
 	unsigned int	shift;	/* number of bits */
 	int		penc[MMU_PAGE_COUNT];	/* HPTE encoding */
 	unsigned int	tlbiel;	/* tlbiel supported for that page size */
 	unsigned long	avpnm;	/* bits to mask out in AVPN in the HPTE */
-	union {
+	union
+	{
 		unsigned long	sllp;	/* SLB L||LP (exact mask to use in slbmte) */
 		unsigned long ap;	/* Ap encoding used by PowerISA 3.0 */
 	};
@@ -32,13 +34,15 @@ extern struct mmu_psize_def mmu_psize_defs[MMU_PAGE_COUNT];
 /*
  * ISA 3.0 partiton and process table entry format
  */
-struct prtb_entry {
+struct prtb_entry
+{
 	__be64 prtb0;
 	__be64 prtb1;
 };
 extern struct prtb_entry *process_tb;
 
-struct patb_entry {
+struct patb_entry
+{
 	__be64 patb0;
 	__be64 patb1;
 };
@@ -62,7 +66,8 @@ extern struct patb_entry *partition_tb;
 typedef unsigned long mm_context_id_t;
 struct spinlock;
 
-typedef struct {
+typedef struct
+{
 	mm_context_id_t id;
 	u16 user_psize;		/* page size index */
 
@@ -109,7 +114,10 @@ extern void radix__early_init_mmu(void);
 static inline void early_init_mmu(void)
 {
 	if (radix_enabled())
+	{
 		return radix__early_init_mmu();
+	}
+
 	return hash__early_init_mmu();
 }
 extern void hash__early_init_mmu_secondary(void);
@@ -117,26 +125,30 @@ extern void radix__early_init_mmu_secondary(void);
 static inline void early_init_mmu_secondary(void)
 {
 	if (radix_enabled())
+	{
 		return radix__early_init_mmu_secondary();
+	}
+
 	return hash__early_init_mmu_secondary();
 }
 
 extern void hash__setup_initial_memory_limit(phys_addr_t first_memblock_base,
-					 phys_addr_t first_memblock_size);
+		phys_addr_t first_memblock_size);
 extern void radix__setup_initial_memory_limit(phys_addr_t first_memblock_base,
-					 phys_addr_t first_memblock_size);
+		phys_addr_t first_memblock_size);
 static inline void setup_initial_memory_limit(phys_addr_t first_memblock_base,
-					      phys_addr_t first_memblock_size)
+		phys_addr_t first_memblock_size)
 {
 	if (early_radix_enabled())
 		return radix__setup_initial_memory_limit(first_memblock_base,
-						   first_memblock_size);
+				first_memblock_size);
+
 	return hash__setup_initial_memory_limit(first_memblock_base,
-					   first_memblock_size);
+											first_memblock_size);
 }
 
 extern int (*register_process_table)(unsigned long base, unsigned long page_size,
-				     unsigned long tbl_size);
+									 unsigned long tbl_size);
 
 #endif /* __ASSEMBLY__ */
 #endif /* _ASM_POWERPC_BOOK3S_64_MMU_H_ */

@@ -85,8 +85,9 @@
  * same kernel as the Host (or at least, built from the same source code).
 :*/
 
-struct lguest_data lguest_data = {
-	.hcall_status = { [0 ... LHCALL_RING_SIZE-1] = 0xFF },
+struct lguest_data lguest_data =
+{
+	.hcall_status = { [0 ... LHCALL_RING_SIZE - 1] = 0xFF },
 	.noirq_iret = (u32)lguest_noirq_iret,
 	.kernel_address = PAGE_OFFSET,
 	.blocked_interrupts = { 1 }, /* Block timer interrupts */
@@ -106,8 +107,8 @@ struct lguest_data lguest_data = {
  * which empties it for next time!
  */
 static void async_hcall(unsigned long call, unsigned long arg1,
-			unsigned long arg2, unsigned long arg3,
-			unsigned long arg4)
+						unsigned long arg2, unsigned long arg3,
+						unsigned long arg4)
 {
 	/* Note: This code assumes we're uniprocessor. */
 	static unsigned int next_call;
@@ -119,10 +120,14 @@ static void async_hcall(unsigned long call, unsigned long arg1,
 	 * one!
 	 */
 	local_irq_save(flags);
-	if (lguest_data.hcall_status[next_call] != 0xFF) {
+
+	if (lguest_data.hcall_status[next_call] != 0xFF)
+	{
 		/* Table full, so do normal hcall which will flush table. */
 		hcall(call, arg1, arg2, arg3, arg4);
-	} else {
+	}
+	else
+	{
 		lguest_data.hcalls[next_call].arg0 = call;
 		lguest_data.hcalls[next_call].arg1 = arg1;
 		lguest_data.hcalls[next_call].arg2 = arg2;
@@ -131,9 +136,13 @@ static void async_hcall(unsigned long call, unsigned long arg1,
 		/* Arguments must all be written before we mark it to go */
 		wmb();
 		lguest_data.hcall_status[next_call] = 0;
+
 		if (++next_call == LHCALL_RING_SIZE)
+		{
 			next_call = 0;
+		}
 	}
+
 	local_irq_restore(flags);
 }
 
@@ -154,44 +163,60 @@ static void async_hcall(unsigned long call, unsigned long arg1,
 static void lazy_hcall1(unsigned long call, unsigned long arg1)
 {
 	if (paravirt_get_lazy_mode() == PARAVIRT_LAZY_NONE)
+	{
 		hcall(call, arg1, 0, 0, 0);
+	}
 	else
+	{
 		async_hcall(call, arg1, 0, 0, 0);
+	}
 }
 
 /* You can imagine what lazy_hcall2, 3 and 4 look like. :*/
 static void lazy_hcall2(unsigned long call,
-			unsigned long arg1,
-			unsigned long arg2)
+						unsigned long arg1,
+						unsigned long arg2)
 {
 	if (paravirt_get_lazy_mode() == PARAVIRT_LAZY_NONE)
+	{
 		hcall(call, arg1, arg2, 0, 0);
+	}
 	else
+	{
 		async_hcall(call, arg1, arg2, 0, 0);
+	}
 }
 
 static void lazy_hcall3(unsigned long call,
-			unsigned long arg1,
-			unsigned long arg2,
-			unsigned long arg3)
+						unsigned long arg1,
+						unsigned long arg2,
+						unsigned long arg3)
 {
 	if (paravirt_get_lazy_mode() == PARAVIRT_LAZY_NONE)
+	{
 		hcall(call, arg1, arg2, arg3, 0);
+	}
 	else
+	{
 		async_hcall(call, arg1, arg2, arg3, 0);
+	}
 }
 
 #ifdef CONFIG_X86_PAE
 static void lazy_hcall4(unsigned long call,
-			unsigned long arg1,
-			unsigned long arg2,
-			unsigned long arg3,
-			unsigned long arg4)
+						unsigned long arg1,
+						unsigned long arg2,
+						unsigned long arg3,
+						unsigned long arg4)
 {
 	if (paravirt_get_lazy_mode() == PARAVIRT_LAZY_NONE)
+	{
 		hcall(call, arg1, arg2, arg3, arg4);
+	}
 	else
+	{
 		async_hcall(call, arg1, arg2, arg3, arg4);
+	}
 }
 #endif
 
@@ -287,7 +312,7 @@ extern void lg_restore_fl(unsigned long flags);
  * Host to make the change anyway, because the Host controls the real IDT.
  */
 static void lguest_write_idt_entry(gate_desc *dt,
-				   int entrynum, const gate_desc *g)
+								   int entrynum, const gate_desc *g)
 {
 	/*
 	 * The gate_desc structure is 8 bytes long: we hand it to the Host in
@@ -312,8 +337,10 @@ static void lguest_load_idt(const struct desc_ptr *desc)
 	unsigned int i;
 	struct desc_struct *idt = (void *)desc->address;
 
-	for (i = 0; i < (desc->size+1)/8; i++)
+	for (i = 0; i < (desc->size + 1) / 8; i++)
+	{
 		hcall(LHCALL_LOAD_IDT_ENTRY, i, idt[i].a, idt[i].b, 0);
+	}
 }
 
 /*
@@ -333,8 +360,10 @@ static void lguest_load_gdt(const struct desc_ptr *desc)
 	unsigned int i;
 	struct desc_struct *gdt = (void *)desc->address;
 
-	for (i = 0; i < (desc->size+1)/8; i++)
+	for (i = 0; i < (desc->size + 1) / 8; i++)
+	{
 		hcall(LHCALL_LOAD_GDT_ENTRY, i, gdt[i].a, gdt[i].b, 0);
+	}
 }
 
 /*
@@ -342,12 +371,12 @@ static void lguest_load_gdt(const struct desc_ptr *desc)
  * then tell the host about it.
  */
 static void lguest_write_gdt_entry(struct desc_struct *dt, int entrynum,
-				   const void *desc, int type)
+								   const void *desc, int type)
 {
 	native_write_gdt_entry(dt, entrynum, desc, type);
 	/* Tell Host about this new entry. */
 	hcall(LHCALL_LOAD_GDT_ENTRY, entrynum,
-	      dt[entrynum].a, dt[entrynum].b, 0);
+		  dt[entrynum].a, dt[entrynum].b, 0);
 }
 
 /*
@@ -420,73 +449,81 @@ static void lguest_load_tr_desc(void)
  * too worked up about it.
  */
 static void lguest_cpuid(unsigned int *ax, unsigned int *bx,
-			 unsigned int *cx, unsigned int *dx)
+						 unsigned int *cx, unsigned int *dx)
 {
 	int function = *ax;
 
 	native_cpuid(ax, bx, cx, dx);
-	switch (function) {
-	/*
-	 * CPUID 0 gives the highest legal CPUID number (and the ID string).
-	 * We futureproof our code a little by sticking to known CPUID values.
-	 */
-	case 0:
-		if (*ax > 5)
-			*ax = 5;
-		break;
 
-	/*
-	 * CPUID 1 is a basic feature request.
-	 *
-	 * CX: we only allow kernel to see SSE3, CMPXCHG16B and SSSE3
-	 * DX: SSE, SSE2, FXSR, MMX, CMOV, CMPXCHG8B, TSC, FPU and PAE.
-	 */
-	case 1:
-		*cx &= 0x00002201;
-		*dx &= 0x07808151;
+	switch (function)
+	{
 		/*
-		 * The Host can do a nice optimization if it knows that the
-		 * kernel mappings (addresses above 0xC0000000 or whatever
-		 * PAGE_OFFSET is set to) haven't changed.  But Linux calls
-		 * flush_tlb_user() for both user and kernel mappings unless
-		 * the Page Global Enable (PGE) feature bit is set.
+		 * CPUID 0 gives the highest legal CPUID number (and the ID string).
+		 * We futureproof our code a little by sticking to known CPUID values.
 		 */
-		*dx |= 0x00002000;
+		case 0:
+			if (*ax > 5)
+			{
+				*ax = 5;
+			}
+
+			break;
+
 		/*
-		 * We also lie, and say we're family id 5.  6 or greater
-		 * leads to a rdmsr in early_init_intel which we can't handle.
-		 * Family ID is returned as bits 8-12 in ax.
+		 * CPUID 1 is a basic feature request.
+		 *
+		 * CX: we only allow kernel to see SSE3, CMPXCHG16B and SSSE3
+		 * DX: SSE, SSE2, FXSR, MMX, CMOV, CMPXCHG8B, TSC, FPU and PAE.
 		 */
-		*ax &= 0xFFFFF0FF;
-		*ax |= 0x00000500;
-		break;
+		case 1:
+			*cx &= 0x00002201;
+			*dx &= 0x07808151;
+			/*
+			 * The Host can do a nice optimization if it knows that the
+			 * kernel mappings (addresses above 0xC0000000 or whatever
+			 * PAGE_OFFSET is set to) haven't changed.  But Linux calls
+			 * flush_tlb_user() for both user and kernel mappings unless
+			 * the Page Global Enable (PGE) feature bit is set.
+			 */
+			*dx |= 0x00002000;
+			/*
+			 * We also lie, and say we're family id 5.  6 or greater
+			 * leads to a rdmsr in early_init_intel which we can't handle.
+			 * Family ID is returned as bits 8-12 in ax.
+			 */
+			*ax &= 0xFFFFF0FF;
+			*ax |= 0x00000500;
+			break;
 
-	/*
-	 * This is used to detect if we're running under KVM.  We might be,
-	 * but that's a Host matter, not us.  So say we're not.
-	 */
-	case KVM_CPUID_SIGNATURE:
-		*bx = *cx = *dx = 0;
-		break;
+		/*
+		 * This is used to detect if we're running under KVM.  We might be,
+		 * but that's a Host matter, not us.  So say we're not.
+		 */
+		case KVM_CPUID_SIGNATURE:
+			*bx = *cx = *dx = 0;
+			break;
 
-	/*
-	 * 0x80000000 returns the highest Extended Function, so we futureproof
-	 * like we do above by limiting it to known fields.
-	 */
-	case 0x80000000:
-		if (*ax > 0x80000008)
-			*ax = 0x80000008;
-		break;
+		/*
+		 * 0x80000000 returns the highest Extended Function, so we futureproof
+		 * like we do above by limiting it to known fields.
+		 */
+		case 0x80000000:
+			if (*ax > 0x80000008)
+			{
+				*ax = 0x80000008;
+			}
 
-	/*
-	 * PAE systems can mark pages as non-executable.  Linux calls this the
-	 * NX bit.  Intel calls it XD (eXecute Disable), AMD EVP (Enhanced
-	 * Virus Protection).  We just switch it off here, since we don't
-	 * support it.
-	 */
-	case 0x80000001:
-		*dx &= ~(1 << 20);
-		break;
+			break;
+
+		/*
+		 * PAE systems can mark pages as non-executable.  Linux calls this the
+		 * NX bit.  Intel calls it XD (eXecute Disable), AMD EVP (Enhanced
+		 * Virus Protection).  We just switch it off here, since we don't
+		 * support it.
+		 */
+		case 0x80000001:
+			*dx &= ~(1 << 20);
+			break;
 	}
 }
 
@@ -556,8 +593,10 @@ static void lguest_write_cr3(unsigned long cr3)
 
 	/* These two page tables are simple, linear, and used during boot */
 	if (cr3 != __pa_symbol(swapper_pg_dir) &&
-	    cr3 != __pa_symbol(initial_page_table))
+		cr3 != __pa_symbol(initial_page_table))
+	{
 		cr3_changed = true;
+	}
 }
 
 static unsigned long lguest_read_cr3(void)
@@ -669,12 +708,12 @@ static void lguest_write_cr4(unsigned long val)
  * we need to tell the Host which one we're changing (mm->pgd).
  */
 static void lguest_pte_update(struct mm_struct *mm, unsigned long addr,
-			       pte_t *ptep)
+							  pte_t *ptep)
 {
 #ifdef CONFIG_X86_PAE
 	/* PAE needs to hand a 64 bit page table entry, so it uses two args. */
 	lazy_hcall4(LHCALL_SET_PTE, __pa(mm->pgd), addr,
-		    ptep->pte_low, ptep->pte_high);
+				ptep->pte_low, ptep->pte_high);
 #else
 	lazy_hcall3(LHCALL_SET_PTE, __pa(mm->pgd), addr, ptep->pte_low);
 #endif
@@ -682,7 +721,7 @@ static void lguest_pte_update(struct mm_struct *mm, unsigned long addr,
 
 /* This is the "set and update" combo-meal-deal version. */
 static void lguest_set_pte_at(struct mm_struct *mm, unsigned long addr,
-			      pte_t *ptep, pte_t pteval)
+							  pte_t *ptep, pte_t pteval)
 {
 	native_set_pte(ptep, pteval);
 	lguest_pte_update(mm, addr, ptep);
@@ -702,14 +741,14 @@ static void lguest_set_pud(pud_t *pudp, pud_t pudval)
 
 	/* 32 bytes aligned pdpt address and the index. */
 	lazy_hcall2(LHCALL_SET_PGD, __pa(pudp) & 0xFFFFFFE0,
-		   (__pa(pudp) & 0x1F) / sizeof(pud_t));
+				(__pa(pudp) & 0x1F) / sizeof(pud_t));
 }
 
 static void lguest_set_pmd(pmd_t *pmdp, pmd_t pmdval)
 {
 	native_set_pmd(pmdp, pmdval);
 	lazy_hcall2(LHCALL_SET_PMD, __pa(pmdp) & PAGE_MASK,
-		   (__pa(pmdp) & (PAGE_SIZE - 1)) / sizeof(pmd_t));
+				(__pa(pmdp) & (PAGE_SIZE - 1)) / sizeof(pmd_t));
 }
 #else
 
@@ -718,7 +757,7 @@ static void lguest_set_pmd(pmd_t *pmdp, pmd_t pmdval)
 {
 	native_set_pmd(pmdp, pmdval);
 	lazy_hcall2(LHCALL_SET_PGD, __pa(pmdp) & PAGE_MASK,
-		   (__pa(pmdp) & (PAGE_SIZE - 1)) / sizeof(pmd_t));
+				(__pa(pmdp) & (PAGE_SIZE - 1)) / sizeof(pmd_t));
 }
 #endif
 
@@ -736,8 +775,11 @@ static void lguest_set_pmd(pmd_t *pmdp, pmd_t pmdval)
 static void lguest_set_pte(pte_t *ptep, pte_t pteval)
 {
 	native_set_pte(ptep, pteval);
+
 	if (cr3_changed)
+	{
 		lazy_hcall1(LHCALL_FLUSH_TLB, 1);
+	}
 }
 
 #ifdef CONFIG_X86_PAE
@@ -749,12 +791,15 @@ static void lguest_set_pte(pte_t *ptep, pte_t pteval)
 static void lguest_set_pte_atomic(pte_t *ptep, pte_t pte)
 {
 	native_set_pte_atomic(ptep, pte);
+
 	if (cr3_changed)
+	{
 		lazy_hcall1(LHCALL_FLUSH_TLB, 1);
+	}
 }
 
 static void lguest_pte_clear(struct mm_struct *mm, unsigned long addr,
-			     pte_t *ptep)
+							 pte_t *ptep)
 {
 	native_pte_clear(mm, addr, ptep);
 	lguest_pte_update(mm, addr, ptep);
@@ -828,7 +873,8 @@ static void enable_lguest_irq(struct irq_data *data)
 }
 
 /* This structure describes the lguest IRQ controller. */
-static struct irq_chip lguest_irq_controller = {
+static struct irq_chip lguest_irq_controller =
+{
 	.name		= "lguest",
 	.irq_mask	= disable_lguest_irq,
 	.irq_mask_ack	= disable_lguest_irq,
@@ -848,15 +894,18 @@ static int lguest_setup_irq(unsigned int irq)
 
 	/* Returns -ve error or vector number. */
 	err = irq_alloc_desc_at(irq, 0);
+
 	if (err < 0 && err != -EEXIST)
+	{
 		return err;
+	}
 
 	/*
 	 * Tell the Linux infrastructure that the interrupt is
 	 * controlled by our level-based lguest interrupt controller.
 	 */
 	irq_set_chip_and_handler_name(irq, &lguest_irq_controller,
-				      handle_level_irq, "level");
+								  handle_level_irq, "level");
 
 	/* Some systems map "vectors" to interrupts weirdly.  Not us! */
 	desc = irq_to_desc(irq);
@@ -872,8 +921,12 @@ static int lguest_enable_irq(struct pci_dev *dev)
 	/* We literally use the PCI interrupt line as the irq number. */
 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &line);
 	err = lguest_setup_irq(line);
+
 	if (!err)
+	{
 		dev->irq = line;
+	}
+
 	return err;
 }
 
@@ -891,10 +944,11 @@ static void __init lguest_init_IRQ(void)
 {
 	unsigned int i;
 
-	for (i = FIRST_EXTERNAL_VECTOR; i < FIRST_SYSTEM_VECTOR; i++) {
+	for (i = FIRST_EXTERNAL_VECTOR; i < FIRST_SYSTEM_VECTOR; i++)
+	{
 		if (i != IA32_SYSCALL_VECTOR)
 			set_intr_gate(i, irq_entries_start +
-					8 * (i - FIRST_EXTERNAL_VECTOR));
+						  8 * (i - FIRST_EXTERNAL_VECTOR));
 	}
 
 	/*
@@ -940,7 +994,8 @@ static cycle_t lguest_clock_read(struct clocksource *cs)
 	 * and getting 99 and 0.  As Linux tends to come apart under the stress
 	 * of time travel, we must be careful:
 	 */
-	do {
+	do
+	{
 		/* First we read the seconds part. */
 		sec = lguest_data.time.tv_sec;
 		/*
@@ -954,14 +1009,16 @@ static cycle_t lguest_clock_read(struct clocksource *cs)
 		/* Make sure we've done that. */
 		rmb();
 		/* Now if the seconds part has changed, try again. */
-	} while (unlikely(lguest_data.time.tv_sec != sec));
+	}
+	while (unlikely(lguest_data.time.tv_sec != sec));
 
 	/* Our lguest clock is in real nanoseconds. */
-	return sec*1000000000ULL + nsec;
+	return sec * 1000000000ULL + nsec;
 }
 
 /* This is the fallback clocksource: lower priority than the TSC clocksource. */
-static struct clocksource lguest_clock = {
+static struct clocksource lguest_clock =
+{
 	.name		= "lguest",
 	.rating		= 200,
 	.read		= lguest_clock_read,
@@ -975,14 +1032,16 @@ static struct clocksource lguest_clock = {
  * just applied the patch.
  */
 static int lguest_clockevent_set_next_event(unsigned long delta,
-                                           struct clock_event_device *evt)
+		struct clock_event_device *evt)
 {
 	/* FIXME: I don't think this can ever happen, but James tells me he had
 	 * to put this code in.  Maybe we should remove it now.  Anyone? */
-	if (delta < LG_CLOCK_MIN_DELTA) {
+	if (delta < LG_CLOCK_MIN_DELTA)
+	{
 		if (printk_ratelimit())
 			printk(KERN_DEBUG "%s: small delta %lu ns\n",
-			       __func__, delta);
+				   __func__, delta);
+
 		return -ETIME;
 	}
 
@@ -999,7 +1058,8 @@ static int lguest_clockevent_shutdown(struct clock_event_device *evt)
 }
 
 /* This describes our primitive timer chip. */
-static struct clock_event_device lguest_clockevent = {
+static struct clock_event_device lguest_clockevent =
+{
 	.name                   = "lguest",
 	.features               = CLOCK_EVT_FEAT_ONESHOT,
 	.set_next_event         = lguest_clockevent_set_next_event,
@@ -1035,7 +1095,10 @@ static void lguest_time_init(void)
 {
 	/* Set up the timer interrupt (0) to go to our simple timer routine */
 	if (lguest_setup_irq(0) != 0)
+	{
 		panic("Could not set up timer irq");
+	}
+
 	irq_set_handler(0, lguest_time_irq);
 
 	clocksource_register_hz(&lguest_clock, NSEC_PER_SEC);
@@ -1067,10 +1130,10 @@ static void lguest_time_init(void)
  * of pages in the stack.
  */
 static void lguest_load_sp0(struct tss_struct *tss,
-			    struct thread_struct *thread)
+							struct thread_struct *thread)
 {
 	lazy_hcall3(LHCALL_SET_STACK, __KERNEL_DS | 0x1, thread->sp0,
-		   THREAD_SIZE / PAGE_SIZE);
+				THREAD_SIZE / PAGE_SIZE);
 	tss->x86_tss.sp0 = thread->sp0;
 }
 
@@ -1166,7 +1229,7 @@ static void lguest_safe_halt(void)
 static void lguest_power_off(void)
 {
 	hcall(LHCALL_SHUTDOWN, __pa("Power down"),
-	      LGUEST_SHUTDOWN_POWEROFF, 0, 0);
+		  LGUEST_SHUTDOWN_POWEROFF, 0, 0);
 }
 
 /*
@@ -1181,7 +1244,8 @@ static int lguest_panic(struct notifier_block *nb, unsigned long l, void *p)
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block paniced = {
+static struct notifier_block paniced =
+{
 	.notifier_call = lguest_panic
 };
 
@@ -1193,8 +1257,8 @@ static __init char *lguest_memory_setup(void)
 	 * Launcher populated the first entry with our memory limit.
 	 */
 	e820_add_region(boot_params.e820_map[0].addr,
-			  boot_params.e820_map[0].size,
-			  boot_params.e820_map[0].type);
+					boot_params.e820_map[0].size,
+					boot_params.e820_map[0].type);
 
 	/* This string is for the boot messages. */
 	return "LGUEST";
@@ -1208,14 +1272,14 @@ static int console_access_cap;
 static void set_cfg_window(u32 cfg_offset, u32 off)
 {
 	write_pci_config_byte(0, 1, 0,
-			      cfg_offset + offsetof(struct virtio_pci_cap, bar),
-			      0);
+						  cfg_offset + offsetof(struct virtio_pci_cap, bar),
+						  0);
 	write_pci_config(0, 1, 0,
-			 cfg_offset + offsetof(struct virtio_pci_cap, length),
-			 4);
+					 cfg_offset + offsetof(struct virtio_pci_cap, length),
+					 4);
 	write_pci_config(0, 1, 0,
-			 cfg_offset + offsetof(struct virtio_pci_cap, offset),
-			 off);
+					 cfg_offset + offsetof(struct virtio_pci_cap, offset),
+					 off);
 }
 
 static void write_bar_via_cfg(u32 cfg_offset, u32 off, u32 val)
@@ -1227,7 +1291,7 @@ static void write_bar_via_cfg(u32 cfg_offset, u32 off, u32 val)
 	 */
 	set_cfg_window(cfg_offset, off);
 	write_pci_config(0, 1, 0,
-			 cfg_offset + sizeof(struct virtio_pci_cap), val);
+					 cfg_offset + sizeof(struct virtio_pci_cap), val);
 }
 
 static void probe_pci_console(void)
@@ -1238,45 +1302,59 @@ static void probe_pci_console(void)
 	/* Avoid recursive printk into here. */
 	console_cfg_offset = -1;
 
-	if (!early_pci_allowed()) {
+	if (!early_pci_allowed())
+	{
 		printk(KERN_ERR "lguest: early PCI access not allowed!\n");
 		return;
 	}
 
 	/* We expect a console PCI device at BUS0, slot 1. */
-	if (read_pci_config(0, 1, 0, 0) != 0x10431AF4) {
+	if (read_pci_config(0, 1, 0, 0) != 0x10431AF4)
+	{
 		printk(KERN_ERR "lguest: PCI device is %#x!\n",
-		       read_pci_config(0, 1, 0, 0));
+			   read_pci_config(0, 1, 0, 0));
 		return;
 	}
 
 	/* Find the capabilities we need (must be in bar0) */
 	cap = read_pci_config_byte(0, 1, 0, PCI_CAPABILITY_LIST);
-	while (cap) {
+
+	while (cap)
+	{
 		u8 vndr = read_pci_config_byte(0, 1, 0, cap);
-		if (vndr == PCI_CAP_ID_VNDR) {
+
+		if (vndr == PCI_CAP_ID_VNDR)
+		{
 			u8 type, bar;
 
 			type = read_pci_config_byte(0, 1, 0,
-			    cap + offsetof(struct virtio_pci_cap, cfg_type));
+										cap + offsetof(struct virtio_pci_cap, cfg_type));
 			bar = read_pci_config_byte(0, 1, 0,
-			    cap + offsetof(struct virtio_pci_cap, bar));
+									   cap + offsetof(struct virtio_pci_cap, bar));
 
-			switch (type) {
-			case VIRTIO_PCI_CAP_DEVICE_CFG:
-				if (bar == 0)
-					device_cap = cap;
-				break;
-			case VIRTIO_PCI_CAP_PCI_CFG:
-				console_access_cap = cap;
-				break;
+			switch (type)
+			{
+				case VIRTIO_PCI_CAP_DEVICE_CFG:
+					if (bar == 0)
+					{
+						device_cap = cap;
+					}
+
+					break;
+
+				case VIRTIO_PCI_CAP_PCI_CFG:
+					console_access_cap = cap;
+					break;
 			}
 		}
+
 		cap = read_pci_config_byte(0, 1, 0, cap + PCI_CAP_LIST_NEXT);
 	}
-	if (!device_cap || !console_access_cap) {
+
+	if (!device_cap || !console_access_cap)
+	{
 		printk(KERN_ERR "lguest: No caps (%u/%u/%u) in console!\n",
-		       common_cap, device_cap, console_access_cap);
+			   common_cap, device_cap, console_access_cap);
 		return;
 	}
 
@@ -1288,15 +1366,17 @@ static void probe_pci_console(void)
 	 * it should ignore the access.
 	 */
 	device_len = read_pci_config(0, 1, 0,
-			device_cap + offsetof(struct virtio_pci_cap, length));
+								 device_cap + offsetof(struct virtio_pci_cap, length));
+
 	if (device_len < (offsetof(struct virtio_console_config, emerg_wr)
-			  + sizeof(u32))) {
+					  + sizeof(u32)))
+	{
 		printk(KERN_ERR "lguest: console missing emerg_wr field\n");
 		return;
 	}
 
 	console_cfg_offset = read_pci_config(0, 1, 0,
-			device_cap + offsetof(struct virtio_pci_cap, offset));
+										 device_cap + offsetof(struct virtio_pci_cap, offset));
 	printk(KERN_INFO "lguest: Console via virtio-pci emerg_wr\n");
 }
 
@@ -1310,18 +1390,24 @@ static __init int early_put_chars(u32 vtermno, const char *buf, int count)
 {
 	/* If we couldn't find PCI console, forget it. */
 	if (console_cfg_offset < 0)
+	{
 		return count;
+	}
 
-	if (unlikely(!console_cfg_offset)) {
+	if (unlikely(!console_cfg_offset))
+	{
 		probe_pci_console();
+
 		if (console_cfg_offset < 0)
+		{
 			return count;
+		}
 	}
 
 	write_bar_via_cfg(console_access_cap,
-			  console_cfg_offset
-			  + offsetof(struct virtio_console_config, emerg_wr),
-			  buf[0]);
+					  console_cfg_offset
+					  + offsetof(struct virtio_console_config, emerg_wr),
+					  buf[0]);
 	return 1;
 }
 
@@ -1362,7 +1448,8 @@ static void lguest_restart(char *reason)
 static const struct lguest_insns
 {
 	const char *start, *end;
-} lguest_insns[] = {
+} lguest_insns[] =
+{
 	[PARAVIRT_PATCH(pv_irq_ops.irq_disable)] = { lgstart_cli, lgend_cli },
 	[PARAVIRT_PATCH(pv_irq_ops.save_fl)] = { lgstart_pushf, lgend_pushf },
 };
@@ -1373,19 +1460,23 @@ static const struct lguest_insns
  * the available space we used.
  */
 static unsigned lguest_patch(u8 type, u16 clobber, void *ibuf,
-			     unsigned long addr, unsigned len)
+							 unsigned long addr, unsigned len)
 {
 	unsigned int insn_len;
 
 	/* Don't do anything special if we don't have a replacement */
 	if (type >= ARRAY_SIZE(lguest_insns) || !lguest_insns[type].start)
+	{
 		return paravirt_patch_default(type, clobber, ibuf, addr, len);
+	}
 
 	insn_len = lguest_insns[type].end - lguest_insns[type].start;
 
 	/* Similarly if it can't fit (doesn't happen, but let's be thorough). */
 	if (len < insn_len)
+	{
 		return paravirt_patch_default(type, clobber, ibuf, addr, len);
+	}
 
 	/* Copy in our instructions. */
 	memcpy(ibuf, lguest_insns[type].start, insn_len);

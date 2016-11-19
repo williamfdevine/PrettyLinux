@@ -47,11 +47,13 @@
 /* Device classes, types, and identifiers for prom
  * device inventory queries.
  */
-enum linux_devclass {
+enum linux_devclass
+{
 	system, processor, cache, adapter, controller, peripheral, memory
 };
 
-enum linux_devtypes {
+enum linux_devtypes
+{
 	/* Generic stuff. */
 	Arc, Cpu, Fpu,
 
@@ -71,12 +73,14 @@ enum linux_devtypes {
 	net_peripheral, misc_peripheral, anon
 };
 
-enum linux_identifier {
+enum linux_identifier
+{
 	bogus, ronly, removable, consin, consout, input, output
 };
 
 /* A prom device tree component. */
-struct linux_component {
+struct linux_component
+{
 	enum linux_devclass	class;	/* node class */
 	enum linux_devtypes	type;	/* node type */
 	enum linux_identifier	iflags; /* node flags */
@@ -90,12 +94,14 @@ struct linux_component {
 };
 typedef struct linux_component pcomponent;
 
-struct linux_sysid {
+struct linux_sysid
+{
 	char vend[8], prod[8];
 };
 
 /* ARCS prom memory descriptors. */
-enum arcs_memtypes {
+enum arcs_memtypes
+{
 	arcs_eblock,  /* exception block */
 	arcs_rvpage,  /* ARCS romvec page */
 	arcs_fcontig, /* Contiguous and free */
@@ -107,7 +113,8 @@ enum arcs_memtypes {
 };
 
 /* ARC has slightly different types than ARCS */
-enum arc_memtypes {
+enum arc_memtypes
+{
 	arc_eblock,  /* exception block */
 	arc_rvpage,  /* romvec page */
 	arc_free,    /* Generic free memory */
@@ -118,19 +125,22 @@ enum arc_memtypes {
 	arc_fcontig, /* Contiguous and free */
 };
 
-union linux_memtypes {
-    enum arcs_memtypes arcs;
-    enum arc_memtypes arc;
+union linux_memtypes
+{
+	enum arcs_memtypes arcs;
+	enum arc_memtypes arc;
 };
 
-struct linux_mdesc {
+struct linux_mdesc
+{
 	union linux_memtypes type;
 	ULONG base;
 	ULONG pages;
 };
 
 /* Time of day descriptor. */
-struct linux_tinfo {
+struct linux_tinfo
+{
 	unsigned short yr;
 	unsigned short mnth;
 	unsigned short day;
@@ -141,28 +151,33 @@ struct linux_tinfo {
 };
 
 /* ARCS virtual dirents. */
-struct linux_vdirent {
+struct linux_vdirent
+{
 	ULONG namelen;
 	unsigned char attr;
 	char fname[32]; /* XXX empirical, should be a define */
 };
 
 /* Other stuff for files. */
-enum linux_omode {
+enum linux_omode
+{
 	rdonly, wronly, rdwr, wronly_creat, rdwr_creat,
 	wronly_ssede, rdwr_ssede, dirent, dirent_creat
 };
 
-enum linux_seekmode {
+enum linux_seekmode
+{
 	absolute, relative
 };
 
-enum linux_mountops {
+enum linux_mountops
+{
 	media_load, media_unload
 };
 
 /* This prom has a bolixed design. */
-struct linux_bigint {
+struct linux_bigint
+{
 #ifdef __MIPSEL__
 	u32 lo;
 	s32 hi;
@@ -172,7 +187,8 @@ struct linux_bigint {
 #endif
 };
 
-struct linux_finfo {
+struct linux_finfo
+{
 	struct linux_bigint   begin;
 	struct linux_bigint   end;
 	struct linux_bigint   cur;
@@ -184,7 +200,8 @@ struct linux_finfo {
 
 /* This describes the vector containing function pointers to the ARC
    firmware functions.	*/
-struct linux_romvec {
+struct linux_romvec
+{
 	LONG	load;			/* Load an executable image. */
 	LONG	invoke;			/* Invoke a standalong image. */
 	LONG	exec;			/* Load and begin execution of a
@@ -242,7 +259,8 @@ struct linux_romvec {
 /* The SGI ARCS parameter block is in a fixed location for standalone
  * programs to access PROM facilities easily.
  */
-typedef struct _SYSTEM_PARAMETER_BLOCK {
+typedef struct _SYSTEM_PARAMETER_BLOCK
+{
 	ULONG			magic;		/* magic cookie */
 #define PROMBLOCK_MAGIC	     0x53435241
 
@@ -271,8 +289,10 @@ typedef struct _SYSTEM_PARAMETER_BLOCK {
 #define ROMVECTOR ((struct linux_romvec *) (long)(PROMBLOCK)->romvec)
 
 /* Cache layout parameter block. */
-union linux_cache_key {
-	struct param {
+union linux_cache_key
+{
+	struct param
+	{
 #ifdef __MIPSEL__
 		unsigned short size;
 		unsigned char lsize;
@@ -287,7 +307,8 @@ union linux_cache_key {
 };
 
 /* Configuration data. */
-struct linux_cdata {
+struct linux_cdata
+{
 	char *name;
 	int mlen;
 	enum linux_devtypes type;
@@ -306,7 +327,8 @@ struct linux_cdata {
 #define SGIPROM_DELFILE	  0x20	/* Deleted file */
 
 /* SGI ARCS boot record information. */
-struct sgi_partition {
+struct sgi_partition
+{
 	unsigned char flag;
 #define SGIPART_UNUSED 0x00
 #define SGIPART_ACTIVE 0x80
@@ -321,14 +343,16 @@ struct sgi_partition {
 #define SGIBBLOCK_MAGIC	  0xaa55
 #define SGIBBLOCK_MAXPART 0x0004
 
-struct sgi_bootblock {
+struct sgi_bootblock
+{
 	unsigned char _unused[446];
 	struct sgi_partition partitions[SGIBBLOCK_MAXPART];
 	unsigned short magic;
 };
 
 /* BIOS parameter block. */
-struct sgi_bparm_block {
+struct sgi_bparm_block
+{
 	unsigned short bytes_sect;    /* bytes per sector */
 	unsigned char  sect_clust;    /* sectors per cluster */
 	unsigned short sect_resv;     /* reserved sectors */
@@ -342,7 +366,8 @@ struct sgi_bparm_block {
 	unsigned short nhsects;	      /* # of hidden sectors */
 };
 
-struct sgi_bsector {
+struct sgi_bsector
+{
 	unsigned char	jmpinfo[3];
 	unsigned char	manuf_name[8];
 	struct sgi_bparm_block info;
@@ -350,7 +375,8 @@ struct sgi_bsector {
 
 /* Debugging block used with SGI symmon symbolic debugger. */
 #define SMB_DEBUG_MAGIC	  0xfeeddead
-struct linux_smonblock {
+struct linux_smonblock
+{
 	unsigned long	magic;
 	void		(*handler)(void);  /* Breakpoint routine. */
 	unsigned long	dtable_base;	   /* Base addr of dbg table. */
@@ -373,107 +399,107 @@ struct linux_smonblock {
 	"$12", "$13", "$14", "$15", "$16", "$24", "$25", "$31"
 
 #define ARC_CALL0(dest)							\
-({	long __res;							\
-	long __vec = (long) romvec->dest;				\
-	__asm__ __volatile__(						\
-	"dsubu\t$29, 32\n\t"						\
-	"jalr\t%1\n\t"							\
-	"daddu\t$29, 32\n\t"						\
-	"move\t%0, $2"							\
-	: "=r" (__res), "=r" (__vec)					\
-	: "1" (__vec)							\
-	: __arc_clobbers, "$4", "$5", "$6", "$7");			\
-	(unsigned long) __res;						\
-})
+	({	long __res;							\
+		long __vec = (long) romvec->dest;				\
+		__asm__ __volatile__(						\
+				"dsubu\t$29, 32\n\t"						\
+				"jalr\t%1\n\t"							\
+				"daddu\t$29, 32\n\t"						\
+				"move\t%0, $2"							\
+				: "=r" (__res), "=r" (__vec)					\
+				: "1" (__vec)							\
+				: __arc_clobbers, "$4", "$5", "$6", "$7");			\
+		(unsigned long) __res;						\
+	})
 
 #define ARC_CALL1(dest, a1)						\
-({	long __res;							\
-	register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
-	long __vec = (long) romvec->dest;				\
-	__asm__ __volatile__(						\
-	"dsubu\t$29, 32\n\t"						\
-	"jalr\t%1\n\t"							\
-	"daddu\t$29, 32\n\t"						\
-	"move\t%0, $2"							\
-	: "=r" (__res), "=r" (__vec)					\
-	: "1" (__vec), "r" (__a1)					\
-	: __arc_clobbers, "$5", "$6", "$7");				\
-	(unsigned long) __res;						\
-})
+	({	long __res;							\
+		register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
+		long __vec = (long) romvec->dest;				\
+		__asm__ __volatile__(						\
+				"dsubu\t$29, 32\n\t"						\
+				"jalr\t%1\n\t"							\
+				"daddu\t$29, 32\n\t"						\
+				"move\t%0, $2"							\
+				: "=r" (__res), "=r" (__vec)					\
+				: "1" (__vec), "r" (__a1)					\
+				: __arc_clobbers, "$5", "$6", "$7");				\
+		(unsigned long) __res;						\
+	})
 
 #define ARC_CALL2(dest, a1, a2)						\
-({	long __res;							\
-	register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
-	register signed int __a2 __asm__("$5") = (int) (long) (a2);	\
-	long __vec = (long) romvec->dest;				\
-	__asm__ __volatile__(						\
-	"dsubu\t$29, 32\n\t"						\
-	"jalr\t%1\n\t"							\
-	"daddu\t$29, 32\n\t"						\
-	"move\t%0, $2"							\
-	: "=r" (__res), "=r" (__vec)					\
-	: "1" (__vec), "r" (__a1), "r" (__a2)				\
-	: __arc_clobbers, "$6", "$7");					\
-	__res;								\
-})
+	({	long __res;							\
+		register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
+		register signed int __a2 __asm__("$5") = (int) (long) (a2);	\
+		long __vec = (long) romvec->dest;				\
+		__asm__ __volatile__(						\
+				"dsubu\t$29, 32\n\t"						\
+				"jalr\t%1\n\t"							\
+				"daddu\t$29, 32\n\t"						\
+				"move\t%0, $2"							\
+				: "=r" (__res), "=r" (__vec)					\
+				: "1" (__vec), "r" (__a1), "r" (__a2)				\
+				: __arc_clobbers, "$6", "$7");					\
+		__res;								\
+	})
 
 #define ARC_CALL3(dest, a1, a2, a3)					\
-({	long __res;							\
-	register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
-	register signed int __a2 __asm__("$5") = (int) (long) (a2);	\
-	register signed int __a3 __asm__("$6") = (int) (long) (a3);	\
-	long __vec = (long) romvec->dest;				\
-	__asm__ __volatile__(						\
-	"dsubu\t$29, 32\n\t"						\
-	"jalr\t%1\n\t"							\
-	"daddu\t$29, 32\n\t"						\
-	"move\t%0, $2"							\
-	: "=r" (__res), "=r" (__vec)					\
-	: "1" (__vec), "r" (__a1), "r" (__a2), "r" (__a3)		\
-	: __arc_clobbers, "$7");					\
-	__res;								\
-})
+	({	long __res;							\
+		register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
+		register signed int __a2 __asm__("$5") = (int) (long) (a2);	\
+		register signed int __a3 __asm__("$6") = (int) (long) (a3);	\
+		long __vec = (long) romvec->dest;				\
+		__asm__ __volatile__(						\
+				"dsubu\t$29, 32\n\t"						\
+				"jalr\t%1\n\t"							\
+				"daddu\t$29, 32\n\t"						\
+				"move\t%0, $2"							\
+				: "=r" (__res), "=r" (__vec)					\
+				: "1" (__vec), "r" (__a1), "r" (__a2), "r" (__a3)		\
+				: __arc_clobbers, "$7");					\
+		__res;								\
+	})
 
 #define ARC_CALL4(dest, a1, a2, a3, a4)					\
-({	long __res;							\
-	register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
-	register signed int __a2 __asm__("$5") = (int) (long) (a2);	\
-	register signed int __a3 __asm__("$6") = (int) (long) (a3);	\
-	register signed int __a4 __asm__("$7") = (int) (long) (a4);	\
-	long __vec = (long) romvec->dest;				\
-	__asm__ __volatile__(						\
-	"dsubu\t$29, 32\n\t"						\
-	"jalr\t%1\n\t"							\
-	"daddu\t$29, 32\n\t"						\
-	"move\t%0, $2"							\
-	: "=r" (__res), "=r" (__vec)					\
-	: "1" (__vec), "r" (__a1), "r" (__a2), "r" (__a3),		\
-	  "r" (__a4)							\
-	: __arc_clobbers);						\
-	__res;								\
-})
+	({	long __res;							\
+		register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
+		register signed int __a2 __asm__("$5") = (int) (long) (a2);	\
+		register signed int __a3 __asm__("$6") = (int) (long) (a3);	\
+		register signed int __a4 __asm__("$7") = (int) (long) (a4);	\
+		long __vec = (long) romvec->dest;				\
+		__asm__ __volatile__(						\
+				"dsubu\t$29, 32\n\t"						\
+				"jalr\t%1\n\t"							\
+				"daddu\t$29, 32\n\t"						\
+				"move\t%0, $2"							\
+				: "=r" (__res), "=r" (__vec)					\
+				: "1" (__vec), "r" (__a1), "r" (__a2), "r" (__a3),		\
+				"r" (__a4)							\
+				: __arc_clobbers);						\
+		__res;								\
+	})
 
 #define ARC_CALL5(dest, a1, a2, a3, a4, a5)					\
-({	long __res;							\
-	register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
-	register signed int __a2 __asm__("$5") = (int) (long) (a2);	\
-	register signed int __a3 __asm__("$6") = (int) (long) (a3);	\
-	register signed int __a4 __asm__("$7") = (int) (long) (a4);	\
-	register signed int __a5 = (int) (long) (a5);			\
-	long __vec = (long) romvec->dest;				\
-	__asm__ __volatile__(						\
-	"dsubu\t$29, 32\n\t"						\
-	"sw\t%7, 16($29)\n\t"						\
-	"jalr\t%1\n\t"							\
-	"daddu\t$29, 32\n\t"						\
-	"move\t%0, $2"							\
-	: "=r" (__res), "=r" (__vec)					\
-	: "1" (__vec),							\
-	  "r" (__a1), "r" (__a2), "r" (__a3), "r" (__a4),		\
-	  "r" (__a5)							\
-	: __arc_clobbers);						\
-	__res;								\
-})
+	({	long __res;							\
+		register signed int __a1 __asm__("$4") = (int) (long) (a1);	\
+		register signed int __a2 __asm__("$5") = (int) (long) (a2);	\
+		register signed int __a3 __asm__("$6") = (int) (long) (a3);	\
+		register signed int __a4 __asm__("$7") = (int) (long) (a4);	\
+		register signed int __a5 = (int) (long) (a5);			\
+		long __vec = (long) romvec->dest;				\
+		__asm__ __volatile__(						\
+				"dsubu\t$29, 32\n\t"						\
+				"sw\t%7, 16($29)\n\t"						\
+				"jalr\t%1\n\t"							\
+				"daddu\t$29, 32\n\t"						\
+				"move\t%0, $2"							\
+				: "=r" (__res), "=r" (__vec)					\
+				: "1" (__vec),							\
+				"r" (__a1), "r" (__a2), "r" (__a3), "r" (__a4),		\
+				"r" (__a5)							\
+				: __arc_clobbers);						\
+		__res;								\
+	})
 
 #endif /* defined(CONFIG_64BIT) && defined(CONFIG_FW_ARC32) */
 
@@ -481,68 +507,68 @@ struct linux_smonblock {
     (defined(CONFIG_64BIT) && defined(CONFIG_FW_ARC64))
 
 #define ARC_CALL0(dest)							\
-({	long __res;							\
-	long (*__vec)(void) = (void *) romvec->dest;			\
-									\
-	__res = __vec();						\
-	__res;								\
-})
+	({	long __res;							\
+		long (*__vec)(void) = (void *) romvec->dest;			\
+		\
+		__res = __vec();						\
+		__res;								\
+	})
 
 #define ARC_CALL1(dest, a1)						\
-({	long __res;							\
-	long __a1 = (long) (a1);					\
-	long (*__vec)(long) = (void *) romvec->dest;			\
-									\
-	__res = __vec(__a1);						\
-	__res;								\
-})
+	({	long __res;							\
+		long __a1 = (long) (a1);					\
+		long (*__vec)(long) = (void *) romvec->dest;			\
+		\
+		__res = __vec(__a1);						\
+		__res;								\
+	})
 
 #define ARC_CALL2(dest, a1, a2)						\
-({	long __res;							\
-	long __a1 = (long) (a1);					\
-	long __a2 = (long) (a2);					\
-	long (*__vec)(long, long) = (void *) romvec->dest;		\
-									\
-	__res = __vec(__a1, __a2);					\
-	__res;								\
-})
+	({	long __res;							\
+		long __a1 = (long) (a1);					\
+		long __a2 = (long) (a2);					\
+		long (*__vec)(long, long) = (void *) romvec->dest;		\
+		\
+		__res = __vec(__a1, __a2);					\
+		__res;								\
+	})
 
 #define ARC_CALL3(dest, a1, a2, a3)					\
-({	long __res;							\
-	long __a1 = (long) (a1);					\
-	long __a2 = (long) (a2);					\
-	long __a3 = (long) (a3);					\
-	long (*__vec)(long, long, long) = (void *) romvec->dest;	\
-									\
-	__res = __vec(__a1, __a2, __a3);				\
-	__res;								\
-})
+	({	long __res;							\
+		long __a1 = (long) (a1);					\
+		long __a2 = (long) (a2);					\
+		long __a3 = (long) (a3);					\
+		long (*__vec)(long, long, long) = (void *) romvec->dest;	\
+		\
+		__res = __vec(__a1, __a2, __a3);				\
+		__res;								\
+	})
 
 #define ARC_CALL4(dest, a1, a2, a3, a4)					\
-({	long __res;							\
-	long __a1 = (long) (a1);					\
-	long __a2 = (long) (a2);					\
-	long __a3 = (long) (a3);					\
-	long __a4 = (long) (a4);					\
-	long (*__vec)(long, long, long, long) = (void *) romvec->dest;	\
-									\
-	__res = __vec(__a1, __a2, __a3, __a4);				\
-	__res;								\
-})
+	({	long __res;							\
+		long __a1 = (long) (a1);					\
+		long __a2 = (long) (a2);					\
+		long __a3 = (long) (a3);					\
+		long __a4 = (long) (a4);					\
+		long (*__vec)(long, long, long, long) = (void *) romvec->dest;	\
+		\
+		__res = __vec(__a1, __a2, __a3, __a4);				\
+		__res;								\
+	})
 
 #define ARC_CALL5(dest, a1, a2, a3, a4, a5)				\
-({	long __res;							\
-	long __a1 = (long) (a1);					\
-	long __a2 = (long) (a2);					\
-	long __a3 = (long) (a3);					\
-	long __a4 = (long) (a4);					\
-	long __a5 = (long) (a5);					\
-	long (*__vec)(long, long, long, long, long);			\
-	__vec = (void *) romvec->dest;					\
-									\
-	__res = __vec(__a1, __a2, __a3, __a4, __a5);			\
-	__res;								\
-})
+	({	long __res;							\
+		long __a1 = (long) (a1);					\
+		long __a2 = (long) (a2);					\
+		long __a3 = (long) (a3);					\
+		long __a4 = (long) (a4);					\
+		long __a5 = (long) (a5);					\
+		long (*__vec)(long, long, long, long, long);			\
+		__vec = (void *) romvec->dest;					\
+		\
+		__res = __vec(__a1, __a2, __a3, __a4, __a5);			\
+		__res;								\
+	})
 #endif /* both kernel and ARC either 32-bit or 64-bit */
 
 #endif /* _ASM_SGIARCS_H */

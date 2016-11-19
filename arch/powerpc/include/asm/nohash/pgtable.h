@@ -2,9 +2,9 @@
 #define _ASM_POWERPC_NOHASH_PGTABLE_H
 
 #if defined(CONFIG_PPC64)
-#include <asm/nohash/64/pgtable.h>
+	#include <asm/nohash/64/pgtable.h>
 #else
-#include <asm/nohash/32/pgtable.h>
+	#include <asm/nohash/32/pgtable.h>
 #endif
 
 #ifndef __ASSEMBLY__
@@ -29,7 +29,7 @@ static inline pgprot_t pte_pgprot(pte_t pte)	{ return __pgprot(pte_val(pte) & PA
 static inline int pte_protnone(pte_t pte)
 {
 	return (pte_val(pte) &
-		(_PAGE_PRESENT | _PAGE_USER)) == _PAGE_PRESENT;
+			(_PAGE_PRESENT | _PAGE_USER)) == _PAGE_PRESENT;
 }
 
 static inline int pmd_protnone(pmd_t pmd)
@@ -49,11 +49,15 @@ static inline int pte_present(pte_t pte)
  * Even if PTEs can be unsigned long long, a PFN is always an unsigned
  * long for now.
  */
-static inline pte_t pfn_pte(unsigned long pfn, pgprot_t pgprot) {
+static inline pte_t pfn_pte(unsigned long pfn, pgprot_t pgprot)
+{
 	return __pte(((pte_basic_t)(pfn) << PTE_RPN_SHIFT) |
-		     pgprot_val(pgprot)); }
-static inline unsigned long pte_pfn(pte_t pte)	{
-	return pte_val(pte) >> PTE_RPN_SHIFT; }
+				 pgprot_val(pgprot));
+}
+static inline unsigned long pte_pfn(pte_t pte)
+{
+	return pte_val(pte) >> PTE_RPN_SHIFT;
+}
 
 /* Generic modifiers for PTE bits */
 static inline pte_t pte_wrprotect(pte_t pte)
@@ -113,7 +117,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
  * low level function in the respective pgtable-* files
  */
 extern void set_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
-		       pte_t pte);
+					   pte_t pte);
 
 /* This low level function performs the actual PTE insertion
  * Setting the PTE depends on the MMU type and other factors. It's
@@ -121,9 +125,10 @@ extern void set_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
  * I'm keeping it in one place rather than spread around
  */
 static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
-				pte_t *ptep, pte_t pte, int percpu)
+								pte_t *ptep, pte_t pte, int percpu)
 {
 #if defined(CONFIG_PPC_STD_MMU_32) && defined(CONFIG_SMP) && !defined(CONFIG_PTE_64BIT)
+
 	/* First case is 32-bit Hash MMU in SMP mode with 32-bit PTEs. We use the
 	 * helper pte_update() which does an atomic update. We need to do that
 	 * because a concurrent invalidation can clear _PAGE_HASHPTE. If it's a
@@ -132,11 +137,14 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 	 */
 	if (percpu)
 		*ptep = __pte((pte_val(*ptep) & _PAGE_HASHPTE)
-			      | (pte_val(pte) & ~_PAGE_HASHPTE));
+					  | (pte_val(pte) & ~_PAGE_HASHPTE));
 	else
+	{
 		pte_update(ptep, ~_PAGE_HASHPTE, pte_val(pte));
+	}
 
 #elif defined(CONFIG_PPC32) && defined(CONFIG_PTE_64BIT)
+
 	/* Second case is 32-bit with 64-bit PTE.  In this case, we
 	 * can just store as long as we do the two halves in the right order
 	 * with a barrier in between. This is possible because we take care,
@@ -145,21 +153,27 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 	 * In the percpu case, we also fallback to the simple update preserving
 	 * the hash bits
 	 */
-	if (percpu) {
+	if (percpu)
+	{
 		*ptep = __pte((pte_val(*ptep) & _PAGE_HASHPTE)
-			      | (pte_val(pte) & ~_PAGE_HASHPTE));
+					  | (pte_val(pte) & ~_PAGE_HASHPTE));
 		return;
 	}
+
 #if _PAGE_HASHPTE != 0
+
 	if (pte_val(*ptep) & _PAGE_HASHPTE)
+	{
 		flush_hash_entry(mm, ptep, addr);
+	}
+
 #endif
 	__asm__ __volatile__("\
 		stw%U0%X0 %2,%0\n\
 		eieio\n\
 		stw%U0%X0 %L2,%1"
-	: "=m" (*ptep), "=m" (*((unsigned char *)ptep+4))
-	: "r" (pte) : "memory");
+						 : "=m" (*ptep), "=m" (*((unsigned char *)ptep+4))
+						 : "r" (pte) : "memory");
 
 #elif defined(CONFIG_PPC_STD_MMU_32)
 	/* Third case is 32-bit hash table in UP mode, we need to preserve
@@ -168,7 +182,7 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 	 * and see we need to keep track that this PTE needs invalidating
 	 */
 	*ptep = __pte((pte_val(*ptep) & _PAGE_HASHPTE)
-		      | (pte_val(pte) & ~_PAGE_HASHPTE));
+				  | (pte_val(pte) & ~_PAGE_HASHPTE));
 
 #else
 	/* Anything else just stores the PTE normally. That covers all 64-bit
@@ -177,6 +191,7 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 	*ptep = pte;
 
 #ifdef CONFIG_PPC_BOOK3E_64
+
 	/*
 	 * With hardware tablewalk, a sync is needed to ensure that
 	 * subsequent accesses see the PTE we just wrote.  Unlike userspace
@@ -184,7 +199,10 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 	 * the new PTE will be seen the first time.
 	 */
 	if (is_kernel_addr(addr))
+	{
 		mb();
+	}
+
 #endif
 #endif
 }
@@ -192,35 +210,35 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
 
 #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
 extern int ptep_set_access_flags(struct vm_area_struct *vma, unsigned long address,
-				 pte_t *ptep, pte_t entry, int dirty);
+								 pte_t *ptep, pte_t entry, int dirty);
 
 /*
  * Macro to mark a page protection value as "uncacheable".
  */
 
 #define _PAGE_CACHE_CTL	(_PAGE_COHERENT | _PAGE_GUARDED | _PAGE_NO_CACHE | \
-			 _PAGE_WRITETHRU)
+						 _PAGE_WRITETHRU)
 
 #define pgprot_noncached(prot)	  (__pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) | \
-				            _PAGE_NO_CACHE | _PAGE_GUARDED))
+								   _PAGE_NO_CACHE | _PAGE_GUARDED))
 
 #define pgprot_noncached_wc(prot) (__pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) | \
-				            _PAGE_NO_CACHE))
+								   _PAGE_NO_CACHE))
 
 #define pgprot_cached(prot)       (__pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) | \
-				            _PAGE_COHERENT))
+								   _PAGE_COHERENT))
 
 #define pgprot_cached_wthru(prot) (__pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) | \
-				            _PAGE_COHERENT | _PAGE_WRITETHRU))
+								   _PAGE_COHERENT | _PAGE_WRITETHRU))
 
 #define pgprot_cached_noncoherent(prot) \
-		(__pgprot(pgprot_val(prot) & ~_PAGE_CACHE_CTL))
+	(__pgprot(pgprot_val(prot) & ~_PAGE_CACHE_CTL))
 
 #define pgprot_writecombine pgprot_noncached_wc
 
 struct file;
 extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-				     unsigned long size, pgprot_t vma_prot);
+									 unsigned long size, pgprot_t vma_prot);
 #define __HAVE_PHYS_MEM_ACCESS_PROT
 
 #ifdef CONFIG_HUGETLB_PAGE

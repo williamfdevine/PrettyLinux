@@ -41,7 +41,9 @@ static DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events);
 const char *perf_pmu_name(void)
 {
 	if (!metag_pmu)
+	{
 		return NULL;
+	}
 
 	return metag_pmu->name;
 }
@@ -50,7 +52,9 @@ EXPORT_SYMBOL_GPL(perf_pmu_name);
 int perf_num_counters(void)
 {
 	if (metag_pmu)
+	{
 		return metag_pmu->max_events;
+	}
 
 	return 0;
 }
@@ -65,32 +69,42 @@ static void release_pmu_hardware(void)
 {
 	int irq;
 	unsigned int version = (metag_pmu->version &
-			(METAC_ID_MINOR_BITS | METAC_ID_REV_BITS)) >>
-			METAC_ID_REV_S;
+							(METAC_ID_MINOR_BITS | METAC_ID_REV_BITS)) >>
+						   METAC_ID_REV_S;
 
 	/* Early cores don't have overflow interrupts */
 	if (version < 0x0104)
+	{
 		return;
+	}
 
 	irq = internal_irq_map(17);
+
 	if (irq >= 0)
+	{
 		free_irq(irq, (void *)1);
+	}
 
 	irq = internal_irq_map(16);
+
 	if (irq >= 0)
+	{
 		free_irq(irq, (void *)0);
+	}
 }
 
 static int reserve_pmu_hardware(void)
 {
 	int err = 0, irq[2];
 	unsigned int version = (metag_pmu->version &
-			(METAC_ID_MINOR_BITS | METAC_ID_REV_BITS)) >>
-			METAC_ID_REV_S;
+							(METAC_ID_MINOR_BITS | METAC_ID_REV_BITS)) >>
+						   METAC_ID_REV_S;
 
 	/* Early cores don't have overflow interrupts */
 	if (version < 0x0104)
+	{
 		goto out;
+	}
 
 	/*
 	 * Bit 16 on HWSTATMETA is the interrupt for performance counter 0;
@@ -99,28 +113,38 @@ static int reserve_pmu_hardware(void)
 	 * register, however it holds a 32-bit value as opposed to 24-bit.
 	 */
 	irq[0] = internal_irq_map(16);
-	if (irq[0] < 0) {
+
+	if (irq[0] < 0)
+	{
 		pr_err("unable to map internal IRQ %d\n", 16);
 		goto out;
 	}
+
 	err = request_irq(irq[0], metag_pmu->handle_irq, IRQF_NOBALANCING,
-			"metagpmu0", (void *)0);
-	if (err) {
+					  "metagpmu0", (void *)0);
+
+	if (err)
+	{
 		pr_err("unable to request IRQ%d for metag PMU counters\n",
-				irq[0]);
+			   irq[0]);
 		goto out;
 	}
 
 	irq[1] = internal_irq_map(17);
-	if (irq[1] < 0) {
+
+	if (irq[1] < 0)
+	{
 		pr_err("unable to map internal IRQ %d\n", 17);
 		goto out_irq1;
 	}
+
 	err = request_irq(irq[1], metag_pmu->handle_irq, IRQF_NOBALANCING,
-			"metagpmu1", (void *)1);
-	if (err) {
+					  "metagpmu1", (void *)1);
+
+	if (err)
+	{
 		pr_err("unable to request IRQ%d for metag PMU counters\n",
-				irq[1]);
+			   irq[1]);
 		goto out_irq1;
 	}
 
@@ -146,48 +170,60 @@ static int metag_pmu_event_init(struct perf_event *event)
 	int err = 0;
 	atomic_t *active_events = &metag_pmu->active_events;
 
-	if (!metag_pmu_initialised()) {
+	if (!metag_pmu_initialised())
+	{
 		err = -ENODEV;
 		goto out;
 	}
 
 	if (has_branch_stack(event))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	event->destroy = _hw_perf_event_destroy;
 
-	if (!atomic_inc_not_zero(active_events)) {
+	if (!atomic_inc_not_zero(active_events))
+	{
 		mutex_lock(&metag_pmu->reserve_mutex);
+
 		if (atomic_read(active_events) == 0)
+		{
 			err = reserve_pmu_hardware();
+		}
 
 		if (!err)
+		{
 			atomic_inc(active_events);
+		}
 
 		mutex_unlock(&metag_pmu->reserve_mutex);
 	}
 
 	/* Hardware and caches counters */
-	switch (event->attr.type) {
-	case PERF_TYPE_HARDWARE:
-	case PERF_TYPE_HW_CACHE:
-	case PERF_TYPE_RAW:
-		err = _hw_perf_event_init(event);
-		break;
+	switch (event->attr.type)
+	{
+		case PERF_TYPE_HARDWARE:
+		case PERF_TYPE_HW_CACHE:
+		case PERF_TYPE_RAW:
+			err = _hw_perf_event_init(event);
+			break;
 
-	default:
-		return -ENOENT;
+		default:
+			return -ENOENT;
 	}
 
 	if (err)
+	{
 		event->destroy(event);
+	}
 
 out:
 	return err;
 }
 
 void metag_pmu_event_update(struct perf_event *event,
-		struct hw_perf_event *hwc, int idx)
+							struct hw_perf_event *hwc, int idx)
 {
 	u64 prev_raw_count, new_raw_count;
 	s64 delta;
@@ -206,8 +242,10 @@ again:
 	new_raw_count = metag_pmu->read(idx);
 
 	if (local64_cmpxchg(&hwc->prev_count, prev_raw_count,
-			new_raw_count) != prev_raw_count)
+						new_raw_count) != prev_raw_count)
+	{
 		goto again;
+	}
 
 	/*
 	 * Calculate the delta and add it to the counter.
@@ -219,7 +257,7 @@ again:
 }
 
 int metag_pmu_event_set_period(struct perf_event *event,
-		struct hw_perf_event *hwc, int idx)
+							   struct hw_perf_event *hwc, int idx)
 {
 	s64 left = local64_read(&hwc->period_left);
 	s64 period = hwc->sample_period;
@@ -227,16 +265,20 @@ int metag_pmu_event_set_period(struct perf_event *event,
 
 	/* The period may have been changed */
 	if (unlikely(period != hwc->last_period))
+	{
 		left += period - hwc->last_period;
+	}
 
-	if (unlikely(left <= -period)) {
+	if (unlikely(left <= -period))
+	{
 		left = period;
 		local64_set(&hwc->period_left, left);
 		hwc->last_period = period;
 		ret = 1;
 	}
 
-	if (unlikely(left <= 0)) {
+	if (unlikely(left <= 0))
+	{
 		left += period;
 		local64_set(&hwc->period_left, left);
 		hwc->last_period = period;
@@ -244,9 +286,12 @@ int metag_pmu_event_set_period(struct perf_event *event,
 	}
 
 	if (left > (s64)metag_pmu->max_period)
+	{
 		left = metag_pmu->max_period;
+	}
 
-	if (metag_pmu->write) {
+	if (metag_pmu->write)
+	{
 		local64_set(&hwc->prev_count, -(s32)left);
 		metag_pmu->write(idx, -left & MAX_PERIOD);
 	}
@@ -263,13 +308,17 @@ static void metag_pmu_start(struct perf_event *event, int flags)
 	int idx = hwc->idx;
 
 	if (WARN_ON_ONCE(idx == -1))
+	{
 		return;
+	}
 
 	/*
 	 * We always have to reprogram the period, so ignore PERF_EF_RELOAD.
 	 */
 	if (flags & PERF_EF_RELOAD)
+	{
 		WARN_ON_ONCE(!(hwc->state & PERF_HES_UPTODATE));
+	}
 
 	hwc->state = 0;
 
@@ -284,7 +333,10 @@ static void metag_pmu_start(struct perf_event *event, int flags)
 	 * anyway.
 	 */
 	if (metag_pmu->max_period)
+	{
 		metag_pmu_event_set_period(event, hwc, hwc->idx);
+	}
+
 	cpuc->events[idx] = event;
 	metag_pmu->enable(hwc, idx);
 }
@@ -297,7 +349,8 @@ static void metag_pmu_stop(struct perf_event *event, int flags)
 	 * We should always update the counter on stop; see comment above
 	 * why.
 	 */
-	if (!(hwc->state & PERF_HES_STOPPED)) {
+	if (!(hwc->state & PERF_HES_STOPPED))
+	{
 		metag_pmu_event_update(event, hwc, hwc->idx);
 		metag_pmu->disable(hwc, hwc->idx);
 		hwc->state |= PERF_HES_STOPPED | PERF_HES_UPTODATE;
@@ -313,32 +366,43 @@ static int metag_pmu_add(struct perf_event *event, int flags)
 	perf_pmu_disable(event->pmu);
 
 	/* check whether we're counting instructions */
-	if (hwc->config == 0x100) {
+	if (hwc->config == 0x100)
+	{
 		if (__test_and_set_bit(METAG_INST_COUNTER,
-				cpuc->used_mask)) {
+							   cpuc->used_mask))
+		{
 			ret = -EAGAIN;
 			goto out;
 		}
+
 		idx = METAG_INST_COUNTER;
-	} else {
+	}
+	else
+	{
 		/* Check whether we have a spare counter */
 		idx = find_first_zero_bit(cpuc->used_mask,
-				atomic_read(&metag_pmu->active_events));
-		if (idx >= METAG_INST_COUNTER) {
+								  atomic_read(&metag_pmu->active_events));
+
+		if (idx >= METAG_INST_COUNTER)
+		{
 			ret = -EAGAIN;
 			goto out;
 		}
 
 		__set_bit(idx, cpuc->used_mask);
 	}
+
 	hwc->idx = idx;
 
 	/* Make sure the counter is disabled */
 	metag_pmu->disable(hwc, idx);
 
 	hwc->state = PERF_HES_STOPPED | PERF_HES_UPTODATE;
+
 	if (flags & PERF_EF_START)
+	{
 		metag_pmu_start(event, PERF_EF_RELOAD);
+	}
 
 	perf_event_update_userpage(event);
 out:
@@ -366,12 +430,15 @@ static void metag_pmu_read(struct perf_event *event)
 
 	/* Don't read disabled counters! */
 	if (hwc->idx < 0)
+	{
 		return;
+	}
 
 	metag_pmu_event_update(event, hwc, hwc->idx);
 }
 
-static struct pmu pmu = {
+static struct pmu pmu =
+{
 	.pmu_enable	= metag_pmu_enable,
 	.pmu_disable	= metag_pmu_disable,
 
@@ -385,7 +452,8 @@ static struct pmu pmu = {
 };
 
 /* Core counter specific functions */
-static const int metag_general_events[] = {
+static const int metag_general_events[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES] = 0x03,
 	[PERF_COUNT_HW_INSTRUCTIONS] = 0x100,
 	[PERF_COUNT_HW_CACHE_REFERENCES] = -1,
@@ -398,7 +466,8 @@ static const int metag_general_events[] = {
 	[PERF_COUNT_HW_REF_CPU_CYCLES] = -1,
 };
 
-static const int metag_pmu_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
+static const int metag_pmu_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] =
+{
 	[C(L1D)] = {
 		[C(OP_READ)] = {
 			[C(RESULT_ACCESS)] = 0x08,
@@ -505,7 +574,8 @@ static void _hw_perf_event_destroy(struct perf_event *event)
 	atomic_t *active_events = &metag_pmu->active_events;
 	struct mutex *pmu_mutex = &metag_pmu->reserve_mutex;
 
-	if (atomic_dec_and_mutex_lock(active_events, pmu_mutex)) {
+	if (atomic_dec_and_mutex_lock(active_events, pmu_mutex))
+	{
 		release_pmu_hardware();
 		mutex_unlock(pmu_mutex);
 	}
@@ -517,7 +587,9 @@ static int _hw_perf_cache_event(int config, int *evp)
 	int ev;
 
 	if (!metag_pmu->cache_events)
+	{
 		return -EINVAL;
+	}
 
 	/* Unpack config */
 	type = config & 0xff;
@@ -525,15 +597,24 @@ static int _hw_perf_cache_event(int config, int *evp)
 	result = (config >> 16) & 0xff;
 
 	if (type >= PERF_COUNT_HW_CACHE_MAX ||
-			op >= PERF_COUNT_HW_CACHE_OP_MAX ||
-			result >= PERF_COUNT_HW_CACHE_RESULT_MAX)
+		op >= PERF_COUNT_HW_CACHE_OP_MAX ||
+		result >= PERF_COUNT_HW_CACHE_RESULT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ev = (*metag_pmu->cache_events)[type][op][result];
+
 	if (ev == 0)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (ev == -1)
+	{
 		return -EINVAL;
+	}
+
 	*evp = ev;
 	return 0;
 }
@@ -544,28 +625,37 @@ static int _hw_perf_event_init(struct perf_event *event)
 	struct hw_perf_event *hwc = &event->hw;
 	int mapping = 0, err;
 
-	switch (attr->type) {
-	case PERF_TYPE_HARDWARE:
-		if (attr->config >= PERF_COUNT_HW_MAX)
-			return -EINVAL;
+	switch (attr->type)
+	{
+		case PERF_TYPE_HARDWARE:
+			if (attr->config >= PERF_COUNT_HW_MAX)
+			{
+				return -EINVAL;
+			}
 
-		mapping = metag_pmu->event_map(attr->config);
-		break;
+			mapping = metag_pmu->event_map(attr->config);
+			break;
 
-	case PERF_TYPE_HW_CACHE:
-		err = _hw_perf_cache_event(attr->config, &mapping);
-		if (err)
-			return err;
-		break;
+		case PERF_TYPE_HW_CACHE:
+			err = _hw_perf_cache_event(attr->config, &mapping);
 
-	case PERF_TYPE_RAW:
-		mapping = attr->config;
-		break;
+			if (err)
+			{
+				return err;
+			}
+
+			break;
+
+		case PERF_TYPE_RAW:
+			mapping = attr->config;
+			break;
 	}
 
 	/* Return early if the event is unsupported */
 	if (mapping == -1)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Don't assign an index until the event is placed into the hardware.
@@ -584,8 +674,10 @@ static int _hw_perf_event_init(struct perf_event *event)
 	 * likely to overtake the previous one (unless there are IRQ latency
 	 * issues...)
 	 */
-	if (metag_pmu->max_period) {
-		if (!hwc->sample_period) {
+	if (metag_pmu->max_period)
+	{
+		if (!hwc->sample_period)
+		{
 			hwc->sample_period = metag_pmu->max_period >> 1;
 			hwc->last_period = hwc->sample_period;
 			local64_set(&hwc->period_left, hwc->sample_period);
@@ -608,16 +700,18 @@ static void metag_pmu_enable_counter(struct hw_perf_event *event, int idx)
 	 * Check if we're enabling the instruction counter (index of
 	 * MAX_HWEVENTS - 1)
 	 */
-	if (METAG_INST_COUNTER == idx) {
+	if (METAG_INST_COUNTER == idx)
+	{
 		WARN_ONCE((config != 0x100),
-			"invalid configuration (%d) for counter (%d)\n",
-			config, idx);
+				  "invalid configuration (%d) for counter (%d)\n",
+				  config, idx);
 		local64_set(&event->prev_count, __core_reg_get(TXTACTCYC));
 		goto unlock;
 	}
 
 	/* Check for a core internal or performance channel event. */
-	if (tmp) {
+	if (tmp)
+	{
 		/* PERF_ICORE/PERF_CHAN only exist since Meta2 */
 #ifdef METAC_2_1
 		void *perf_addr;
@@ -626,22 +720,26 @@ static void metag_pmu_enable_counter(struct hw_perf_event *event, int idx)
 		 * Anything other than a cycle count will write the low-
 		 * nibble to the correct counter register.
 		 */
-		switch (tmp) {
-		case 0xd0:
-			perf_addr = (void *)PERF_ICORE(idx);
-			break;
+		switch (tmp)
+		{
+			case 0xd0:
+				perf_addr = (void *)PERF_ICORE(idx);
+				break;
 
-		case 0xf0:
-			perf_addr = (void *)PERF_CHAN(idx);
-			break;
+			case 0xf0:
+				perf_addr = (void *)PERF_CHAN(idx);
+				break;
 
-		default:
-			perf_addr = NULL;
-			break;
+			default:
+				perf_addr = NULL;
+				break;
 		}
 
 		if (perf_addr)
+		{
 			metag_out32((config & 0x0f), perf_addr);
+		}
+
 #endif
 
 		/*
@@ -652,19 +750,24 @@ static void metag_pmu_enable_counter(struct hw_perf_event *event, int idx)
 	}
 
 	tmp = ((config & 0xf) << 28) |
-			((1 << 24) << hard_processor_id());
+		  ((1 << 24) << hard_processor_id());
+
 	if (metag_pmu->max_period)
 		/*
 		 * Cores supporting overflow interrupts may have had the counter
 		 * set to a specific value that needs preserving.
 		 */
+	{
 		tmp |= metag_in32(PERF_COUNT(idx)) & 0x00ffffff;
+	}
 	else
 		/*
 		 * Older cores reset the counter on write, so prev_count needs
 		 * resetting too so we can calculate a correct delta.
 		 */
+	{
 		local64_set(&event->prev_count, 0);
+	}
 
 	metag_out32(tmp, PERF_COUNT(idx));
 unlock:
@@ -683,7 +786,9 @@ static void metag_pmu_disable_counter(struct hw_perf_event *event, int idx)
 	 * is the counter we're attempting to disable.
 	 */
 	if (METAG_INST_COUNTER == idx)
+	{
 		return;
+	}
 
 	/*
 	 * The counter value _should_ have been read prior to disabling,
@@ -709,7 +814,8 @@ static u64 metag_pmu_read_counter(int idx)
 {
 	u32 tmp = 0;
 
-	if (METAG_INST_COUNTER == idx) {
+	if (METAG_INST_COUNTER == idx)
+	{
 		tmp = __core_reg_get(TXTACTCYC);
 		goto out;
 	}
@@ -730,7 +836,9 @@ static void metag_pmu_write_counter(int idx, u32 val)
 	 * ignore the write, as the register is read-only and clear-on-write.
 	 */
 	if (METAG_INST_COUNTER == idx)
+	{
 		return;
+	}
 
 	/*
 	 * We'll keep the thread mask and event id, and just update the
@@ -782,10 +890,11 @@ static irqreturn_t metag_pmu_counter_overflow(int irq, void *dev)
 	 * completed. Note the counter value may have been modified while it was
 	 * inactive to set it up ready for the next interrupt.
 	 */
-	if (!perf_event_overflow(event, &sampledata, regs)) {
+	if (!perf_event_overflow(event, &sampledata, regs))
+	{
 		__global_lock2(flags);
 		counter = (counter & 0xff000000) |
-			  (metag_in32(PERF_COUNT(idx)) & 0x00ffffff);
+				  (metag_in32(PERF_COUNT(idx)) & 0x00ffffff);
 		metag_out32(counter, PERF_COUNT(idx));
 		__global_unlock2(flags);
 	}
@@ -793,7 +902,8 @@ static irqreturn_t metag_pmu_counter_overflow(int irq, void *dev)
 	return IRQ_HANDLED;
 }
 
-static struct metag_pmu _metag_pmu = {
+static struct metag_pmu _metag_pmu =
+{
 	.handle_irq	= metag_pmu_counter_overflow,
 	.enable		= metag_pmu_enable_counter,
 	.disable	= metag_pmu_disable_counter,
@@ -823,16 +933,20 @@ static int __init init_hw_perf_events(void)
 	u32 version = *(u32 *)METAC_ID;
 	int major = (version & METAC_ID_MAJOR_BITS) >> METAC_ID_MAJOR_S;
 	int min_rev = (version & (METAC_ID_MINOR_BITS | METAC_ID_REV_BITS))
-			>> METAC_ID_REV_S;
+				  >> METAC_ID_REV_S;
 
 	/* Not a Meta 2 core, then not supported */
-	if (0x02 > major) {
+	if (0x02 > major)
+	{
 		pr_info("no hardware counter support available\n");
 		goto out;
-	} else if (0x02 == major) {
+	}
+	else if (0x02 == major)
+	{
 		metag_pmu = &_metag_pmu;
 
-		if (min_rev < 0x0104) {
+		if (min_rev < 0x0104)
+		{
 			/*
 			 * A core without overflow interrupts, and clear-on-
 			 * write counters.
@@ -855,7 +969,8 @@ static int __init init_hw_perf_events(void)
 	 * interrupts - and so are unable to do sampling without extra work
 	 * and timer assistance.
 	 */
-	if (metag_pmu->max_period == 0) {
+	if (metag_pmu->max_period == 0)
+	{
 		metag_pmu->pmu.capabilities |= PERF_PMU_CAP_NO_INTERRUPT;
 	}
 
@@ -868,12 +983,16 @@ static int __init init_hw_perf_events(void)
 	metag_out32(0, PERF_COUNT(1));
 
 	cpuhp_setup_state(CPUHP_AP_PERF_METAG_STARTING,
-			  "AP_PERF_METAG_STARTING", metag_pmu_starting_cpu,
-			  NULL);
+					  "AP_PERF_METAG_STARTING", metag_pmu_starting_cpu,
+					  NULL);
 
 	ret = perf_pmu_register(&pmu, metag_pmu->name, PERF_TYPE_RAW);
+
 	if (ret)
+	{
 		cpuhp_remove_state_nocalls(CPUHP_AP_PERF_METAG_STARTING);
+	}
+
 	return ret;
 }
 early_initcall(init_hw_perf_events);

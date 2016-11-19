@@ -63,15 +63,18 @@
 #define OPENPIC_CPU_REG_START        0x20000
 #define OPENPIC_CPU_REG_SIZE         (0x100 + ((MAX_CPU - 1) * 0x1000))
 
-struct fsl_mpic_info {
+struct fsl_mpic_info
+{
 	int max_ext;
 };
 
-static struct fsl_mpic_info fsl_mpic_20 = {
+static struct fsl_mpic_info fsl_mpic_20 =
+{
 	.max_ext = 12,
 };
 
-static struct fsl_mpic_info fsl_mpic_42 = {
+static struct fsl_mpic_info fsl_mpic_42 =
+{
 	.max_ext = 12,
 };
 
@@ -123,19 +126,21 @@ static int get_current_cpu(void)
 }
 
 static int openpic_cpu_write_internal(void *opaque, gpa_t addr,
-				      u32 val, int idx);
+									  u32 val, int idx);
 static int openpic_cpu_read_internal(void *opaque, gpa_t addr,
-				     u32 *ptr, int idx);
+									 u32 *ptr, int idx);
 static inline void write_IRQreg_idr(struct openpic *opp, int n_IRQ,
-				    uint32_t val);
+									uint32_t val);
 
-enum irq_type {
+enum irq_type
+{
 	IRQ_TYPE_NORMAL = 0,
 	IRQ_TYPE_FSLINT,	/* FSL internal interrupt -- level only */
 	IRQ_TYPE_FSLSPECIAL,	/* FSL timer/IPI interrupt, edge, no polarity */
 };
 
-struct irq_queue {
+struct irq_queue
+{
 	/* Round up to the nearest 64 IRQs so that the queue length
 	 * won't change when moving between 32 and 64 bit hosts.
 	 */
@@ -144,7 +149,8 @@ struct irq_queue {
 	int priority;
 };
 
-struct irq_source {
+struct irq_source
+{
 	uint32_t ivpr;		/* IRQ vector/priority register */
 	uint32_t idr;		/* IRQ destination register */
 	uint32_t destmask;	/* bitmap of CPU destinations */
@@ -152,8 +158,8 @@ struct irq_source {
 	int output;		/* IRQ level, e.g. ILR_INTTGT_INT */
 	int pending;		/* TRUE if IRQ is pending */
 	enum irq_type type;
-	bool level:1;		/* level-triggered */
-	bool nomask:1;	/* critical interrupts ignore mask on some FSL MPICs */
+	bool level: 1;		/* level-triggered */
+	bool nomask: 1;	/* critical interrupts ignore mask on some FSL MPICs */
 };
 
 #define IVPR_MASK_SHIFT       31
@@ -175,7 +181,8 @@ struct irq_source {
 #define IDR_EP      0x80000000	/* external pin */
 #define IDR_CI      0x40000000	/* critical interrupt */
 
-struct irq_dest {
+struct irq_dest
+{
 	struct kvm_vcpu *vcpu;
 
 	int32_t ctpr;		/* CPU current task priority */
@@ -188,7 +195,8 @@ struct irq_dest {
 
 #define MAX_MMIO_REGIONS 10
 
-struct openpic {
+struct openpic
+{
 	struct kvm *kvm;
 	struct kvm_device *dev;
 	struct kvm_io_device mmio;
@@ -224,12 +232,14 @@ struct openpic {
 	struct irq_dest dst[MAX_CPU];
 	uint32_t nb_cpus;
 	/* Timer registers */
-	struct {
+	struct
+	{
 		uint32_t tccr;	/* Global timer current count register */
 		uint32_t tbcr;	/* Global timer base count register */
 	} timers[MAX_TMR];
 	/* Shared MSI registers */
-	struct {
+	struct
+	{
 		uint32_t msir;	/* Shared Message Signaled Interrupt Register */
 	} msi[MAX_MSI];
 	uint32_t max_irq;
@@ -240,41 +250,48 @@ struct openpic {
 
 
 static void mpic_irq_raise(struct openpic *opp, struct irq_dest *dst,
-			   int output)
+						   int output)
 {
-	struct kvm_interrupt irq = {
+	struct kvm_interrupt irq =
+	{
 		.irq = KVM_INTERRUPT_SET_LEVEL,
 	};
 
-	if (!dst->vcpu) {
+	if (!dst->vcpu)
+	{
 		pr_debug("%s: destination cpu %d does not exist\n",
-			 __func__, (int)(dst - &opp->dst[0]));
+				 __func__, (int)(dst - &opp->dst[0]));
 		return;
 	}
 
 	pr_debug("%s: cpu %d output %d\n", __func__, dst->vcpu->arch.irq_cpu_id,
-		output);
+			 output);
 
 	if (output != ILR_INTTGT_INT)	/* TODO */
+	{
 		return;
+	}
 
 	kvm_vcpu_ioctl_interrupt(dst->vcpu, &irq);
 }
 
 static void mpic_irq_lower(struct openpic *opp, struct irq_dest *dst,
-			   int output)
+						   int output)
 {
-	if (!dst->vcpu) {
+	if (!dst->vcpu)
+	{
 		pr_debug("%s: destination cpu %d does not exist\n",
-			 __func__, (int)(dst - &opp->dst[0]));
+				 __func__, (int)(dst - &opp->dst[0]));
 		return;
 	}
 
 	pr_debug("%s: cpu %d output %d\n", __func__, dst->vcpu->arch.irq_cpu_id,
-		output);
+			 output);
 
 	if (output != ILR_INTTGT_INT)	/* TODO */
+	{
 		return;
+	}
 
 	kvmppc_core_dequeue_external(dst->vcpu);
 }
@@ -295,15 +312,20 @@ static void IRQ_check(struct openpic *opp, struct irq_queue *q)
 	int next = -1;
 	int priority = -1;
 
-	for (;;) {
+	for (;;)
+	{
 		irq = find_next_bit(q->queue, opp->max_irq, irq + 1);
+
 		if (irq == opp->max_irq)
+		{
 			break;
+		}
 
 		pr_debug("IRQ_check: irq %d set ivpr_pr=%d pr=%d\n",
-			irq, IVPR_PRIORITY(opp->src[irq].ivpr), priority);
+				 irq, IVPR_PRIORITY(opp->src[irq].ivpr), priority);
 
-		if (IVPR_PRIORITY(opp->src[irq].ivpr) > priority) {
+		if (IVPR_PRIORITY(opp->src[irq].ivpr) > priority)
+		{
 			next = irq;
 			priority = IVPR_PRIORITY(opp->src[irq].ivpr);
 		}
@@ -322,7 +344,7 @@ static int IRQ_get_next(struct openpic *opp, struct irq_queue *q)
 }
 
 static void IRQ_local_pipe(struct openpic *opp, int n_CPU, int n_IRQ,
-			   bool active, bool was_active)
+						   bool active, bool was_active)
 {
 	struct irq_dest *dst;
 	struct irq_source *src;
@@ -332,29 +354,35 @@ static void IRQ_local_pipe(struct openpic *opp, int n_CPU, int n_IRQ,
 	src = &opp->src[n_IRQ];
 
 	pr_debug("%s: IRQ %d active %d was %d\n",
-		__func__, n_IRQ, active, was_active);
+			 __func__, n_IRQ, active, was_active);
 
-	if (src->output != ILR_INTTGT_INT) {
+	if (src->output != ILR_INTTGT_INT)
+	{
 		pr_debug("%s: output %d irq %d active %d was %d count %d\n",
-			__func__, src->output, n_IRQ, active, was_active,
-			dst->outputs_active[src->output]);
+				 __func__, src->output, n_IRQ, active, was_active,
+				 dst->outputs_active[src->output]);
 
 		/* On Freescale MPIC, critical interrupts ignore priority,
 		 * IACK, EOI, etc.  Before MPIC v4.1 they also ignore
 		 * masking.
 		 */
-		if (active) {
+		if (active)
+		{
 			if (!was_active &&
-			    dst->outputs_active[src->output]++ == 0) {
+				dst->outputs_active[src->output]++ == 0)
+			{
 				pr_debug("%s: Raise OpenPIC output %d cpu %d irq %d\n",
-					__func__, src->output, n_CPU, n_IRQ);
+						 __func__, src->output, n_CPU, n_IRQ);
 				mpic_irq_raise(opp, dst, src->output);
 			}
-		} else {
+		}
+		else
+		{
 			if (was_active &&
-			    --dst->outputs_active[src->output] == 0) {
+				--dst->outputs_active[src->output] == 0)
+			{
 				pr_debug("%s: Lower OpenPIC output %d cpu %d irq %d\n",
-					__func__, src->output, n_CPU, n_IRQ);
+						 __func__, src->output, n_CPU, n_IRQ);
 				mpic_irq_lower(opp, dst, src->output);
 			}
 		}
@@ -368,41 +396,56 @@ static void IRQ_local_pipe(struct openpic *opp, int n_CPU, int n_IRQ,
 	 * it is still raised, in case ctpr is lowered later.
 	 */
 	if (active)
+	{
 		IRQ_setbit(&dst->raised, n_IRQ);
+	}
 	else
+	{
 		IRQ_resetbit(&dst->raised, n_IRQ);
+	}
 
 	IRQ_check(opp, &dst->raised);
 
-	if (active && priority <= dst->ctpr) {
+	if (active && priority <= dst->ctpr)
+	{
 		pr_debug("%s: IRQ %d priority %d too low for ctpr %d on CPU %d\n",
-			__func__, n_IRQ, priority, dst->ctpr, n_CPU);
+				 __func__, n_IRQ, priority, dst->ctpr, n_CPU);
 		active = 0;
 	}
 
-	if (active) {
+	if (active)
+	{
 		if (IRQ_get_next(opp, &dst->servicing) >= 0 &&
-		    priority <= dst->servicing.priority) {
+			priority <= dst->servicing.priority)
+		{
 			pr_debug("%s: IRQ %d is hidden by servicing IRQ %d on CPU %d\n",
-				__func__, n_IRQ, dst->servicing.next, n_CPU);
-		} else {
+					 __func__, n_IRQ, dst->servicing.next, n_CPU);
+		}
+		else
+		{
 			pr_debug("%s: Raise OpenPIC INT output cpu %d irq %d/%d\n",
-				__func__, n_CPU, n_IRQ, dst->raised.next);
+					 __func__, n_CPU, n_IRQ, dst->raised.next);
 			mpic_irq_raise(opp, dst, ILR_INTTGT_INT);
 		}
-	} else {
+	}
+	else
+	{
 		IRQ_get_next(opp, &dst->servicing);
+
 		if (dst->raised.priority > dst->ctpr &&
-		    dst->raised.priority > dst->servicing.priority) {
+			dst->raised.priority > dst->servicing.priority)
+		{
 			pr_debug("%s: IRQ %d inactive, IRQ %d prio %d above %d/%d, CPU %d\n",
-				__func__, n_IRQ, dst->raised.next,
-				dst->raised.priority, dst->ctpr,
-				dst->servicing.priority, n_CPU);
+					 __func__, n_IRQ, dst->raised.next,
+					 dst->raised.priority, dst->ctpr,
+					 dst->servicing.priority, n_CPU);
 			/* IRQ line stays asserted */
-		} else {
+		}
+		else
+		{
 			pr_debug("%s: IRQ %d inactive, current prio %d/%d, CPU %d\n",
-				__func__, n_IRQ, dst->ctpr,
-				dst->servicing.priority, n_CPU);
+					 __func__, n_IRQ, dst->ctpr,
+					 dst->servicing.priority, n_CPU);
 			mpic_irq_lower(opp, dst, ILR_INTTGT_INT);
 		}
 	}
@@ -418,7 +461,8 @@ static void openpic_update_irq(struct openpic *opp, int n_IRQ)
 	src = &opp->src[n_IRQ];
 	active = src->pending;
 
-	if ((src->ivpr & IVPR_MASK_MASK) && !src->nomask) {
+	if ((src->ivpr & IVPR_MASK_MASK) && !src->nomask)
+	{
 		/* Interrupt source is disabled */
 		pr_debug("%s: IRQ %d is disabled\n", __func__, n_IRQ);
 		active = false;
@@ -430,42 +474,59 @@ static void openpic_update_irq(struct openpic *opp, int n_IRQ)
 	 * We don't have a similar check for already-active because
 	 * ctpr may have changed and we need to withdraw the interrupt.
 	 */
-	if (!active && !was_active) {
+	if (!active && !was_active)
+	{
 		pr_debug("%s: IRQ %d is already inactive\n", __func__, n_IRQ);
 		return;
 	}
 
 	if (active)
+	{
 		src->ivpr |= IVPR_ACTIVITY_MASK;
+	}
 	else
+	{
 		src->ivpr &= ~IVPR_ACTIVITY_MASK;
+	}
 
-	if (src->destmask == 0) {
+	if (src->destmask == 0)
+	{
 		/* No target */
 		pr_debug("%s: IRQ %d has no target\n", __func__, n_IRQ);
 		return;
 	}
 
-	if (src->destmask == (1 << src->last_cpu)) {
+	if (src->destmask == (1 << src->last_cpu))
+	{
 		/* Only one CPU is allowed to receive this IRQ */
 		IRQ_local_pipe(opp, src->last_cpu, n_IRQ, active, was_active);
-	} else if (!(src->ivpr & IVPR_MODE_MASK)) {
+	}
+	else if (!(src->ivpr & IVPR_MODE_MASK))
+	{
 		/* Directed delivery mode */
-		for (i = 0; i < opp->nb_cpus; i++) {
-			if (src->destmask & (1 << i)) {
+		for (i = 0; i < opp->nb_cpus; i++)
+		{
+			if (src->destmask & (1 << i))
+			{
 				IRQ_local_pipe(opp, i, n_IRQ, active,
-					       was_active);
+							   was_active);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* Distributed delivery mode */
-		for (i = src->last_cpu + 1; i != src->last_cpu; i++) {
+		for (i = src->last_cpu + 1; i != src->last_cpu; i++)
+		{
 			if (i == opp->nb_cpus)
+			{
 				i = 0;
+			}
 
-			if (src->destmask & (1 << i)) {
+			if (src->destmask & (1 << i))
+			{
 				IRQ_local_pipe(opp, i, n_IRQ, active,
-					       was_active);
+							   was_active);
 				src->last_cpu = i;
 				break;
 			}
@@ -478,26 +539,33 @@ static void openpic_set_irq(void *opaque, int n_IRQ, int level)
 	struct openpic *opp = opaque;
 	struct irq_source *src;
 
-	if (n_IRQ >= MAX_IRQ) {
+	if (n_IRQ >= MAX_IRQ)
+	{
 		WARN_ONCE(1, "%s: IRQ %d out of range\n", __func__, n_IRQ);
 		return;
 	}
 
 	src = &opp->src[n_IRQ];
 	pr_debug("openpic: set irq %d = %d ivpr=0x%08x\n",
-		n_IRQ, level, src->ivpr);
-	if (src->level) {
+			 n_IRQ, level, src->ivpr);
+
+	if (src->level)
+	{
 		/* level-sensitive irq */
 		src->pending = level;
 		openpic_update_irq(opp, n_IRQ);
-	} else {
+	}
+	else
+	{
 		/* edge-sensitive irq */
-		if (level) {
+		if (level)
+		{
 			src->pending = 1;
 			openpic_update_irq(opp, n_IRQ);
 		}
 
-		if (src->output != ILR_INTTGT_INT) {
+		if (src->output != ILR_INTTGT_INT)
+		{
 			/* Edge-triggered interrupts shouldn't be used
 			 * with non-INT delivery, but just in case,
 			 * try to make it do something sane rather than
@@ -517,44 +585,52 @@ static void openpic_reset(struct openpic *opp)
 	opp->gcr = GCR_RESET;
 	/* Initialise controller registers */
 	opp->frr = ((opp->nb_irqs - 1) << FRR_NIRQ_SHIFT) |
-	    (opp->vid << FRR_VID_SHIFT);
+			   (opp->vid << FRR_VID_SHIFT);
 
 	opp->pir = 0;
 	opp->spve = -1 & opp->vector_mask;
 	opp->tfrr = opp->tfrr_reset;
+
 	/* Initialise IRQ sources */
-	for (i = 0; i < opp->max_irq; i++) {
+	for (i = 0; i < opp->max_irq; i++)
+	{
 		opp->src[i].ivpr = opp->ivpr_reset;
 
-		switch (opp->src[i].type) {
-		case IRQ_TYPE_NORMAL:
-			opp->src[i].level =
-			    !!(opp->ivpr_reset & IVPR_SENSE_MASK);
-			break;
+		switch (opp->src[i].type)
+		{
+			case IRQ_TYPE_NORMAL:
+				opp->src[i].level =
+					!!(opp->ivpr_reset & IVPR_SENSE_MASK);
+				break;
 
-		case IRQ_TYPE_FSLINT:
-			opp->src[i].ivpr |= IVPR_POLARITY_MASK;
-			break;
+			case IRQ_TYPE_FSLINT:
+				opp->src[i].ivpr |= IVPR_POLARITY_MASK;
+				break;
 
-		case IRQ_TYPE_FSLSPECIAL:
-			break;
+			case IRQ_TYPE_FSLSPECIAL:
+				break;
 		}
 
 		write_IRQreg_idr(opp, i, opp->idr_reset);
 	}
+
 	/* Initialise IRQ destinations */
-	for (i = 0; i < MAX_CPU; i++) {
+	for (i = 0; i < MAX_CPU; i++)
+	{
 		opp->dst[i].ctpr = 15;
 		memset(&opp->dst[i].raised, 0, sizeof(struct irq_queue));
 		opp->dst[i].raised.next = -1;
 		memset(&opp->dst[i].servicing, 0, sizeof(struct irq_queue));
 		opp->dst[i].servicing.next = -1;
 	}
+
 	/* Initialise timers */
-	for (i = 0; i < MAX_TMR; i++) {
+	for (i = 0; i < MAX_TMR; i++)
+	{
 		opp->timers[i].tccr = 0;
 		opp->timers[i].tbcr = TBCR_CI;
 	}
+
 	/* Go out of RESET state */
 	opp->gcr = 0;
 }
@@ -567,7 +643,9 @@ static inline uint32_t read_IRQreg_idr(struct openpic *opp, int n_IRQ)
 static inline uint32_t read_IRQreg_ilr(struct openpic *opp, int n_IRQ)
 {
 	if (opp->flags & OPENPIC_FLAG_ILR)
+	{
 		return opp->src[n_IRQ].output;
+	}
 
 	return 0xffffffff;
 }
@@ -578,7 +656,7 @@ static inline uint32_t read_IRQreg_ivpr(struct openpic *opp, int n_IRQ)
 }
 
 static inline void write_IRQreg_idr(struct openpic *opp, int n_IRQ,
-				    uint32_t val)
+									uint32_t val)
 {
 	struct irq_source *src = &opp->src[n_IRQ];
 	uint32_t normal_mask = (1UL << opp->nb_cpus) - 1;
@@ -587,7 +665,8 @@ static inline void write_IRQreg_idr(struct openpic *opp, int n_IRQ,
 	int crit_shift = IDR_EP_SHIFT - opp->nb_cpus;
 	int i;
 
-	if (opp->flags & OPENPIC_FLAG_IDR_CRIT) {
+	if (opp->flags & OPENPIC_FLAG_IDR_CRIT)
+	{
 		crit_mask = mask << crit_shift;
 		mask |= crit_mask | IDR_EP;
 	}
@@ -595,49 +674,60 @@ static inline void write_IRQreg_idr(struct openpic *opp, int n_IRQ,
 	src->idr = val & mask;
 	pr_debug("Set IDR %d to 0x%08x\n", n_IRQ, src->idr);
 
-	if (opp->flags & OPENPIC_FLAG_IDR_CRIT) {
-		if (src->idr & crit_mask) {
-			if (src->idr & normal_mask) {
+	if (opp->flags & OPENPIC_FLAG_IDR_CRIT)
+	{
+		if (src->idr & crit_mask)
+		{
+			if (src->idr & normal_mask)
+			{
 				pr_debug("%s: IRQ configured for multiple output types, using critical\n",
-					__func__);
+						 __func__);
 			}
 
 			src->output = ILR_INTTGT_CINT;
 			src->nomask = true;
 			src->destmask = 0;
 
-			for (i = 0; i < opp->nb_cpus; i++) {
+			for (i = 0; i < opp->nb_cpus; i++)
+			{
 				int n_ci = IDR_CI0_SHIFT - i;
 
 				if (src->idr & (1UL << n_ci))
+				{
 					src->destmask |= 1UL << i;
+				}
 			}
-		} else {
+		}
+		else
+		{
 			src->output = ILR_INTTGT_INT;
 			src->nomask = false;
 			src->destmask = src->idr & normal_mask;
 		}
-	} else {
+	}
+	else
+	{
 		src->destmask = src->idr;
 	}
 }
 
 static inline void write_IRQreg_ilr(struct openpic *opp, int n_IRQ,
-				    uint32_t val)
+									uint32_t val)
 {
-	if (opp->flags & OPENPIC_FLAG_ILR) {
+	if (opp->flags & OPENPIC_FLAG_ILR)
+	{
 		struct irq_source *src = &opp->src[n_IRQ];
 
 		src->output = val & ILR_INTTGT_MASK;
 		pr_debug("Set ILR %d to 0x%08x, output %d\n", n_IRQ, src->idr,
-			src->output);
+				 src->output);
 
 		/* TODO: on MPIC v4.0 only, set nomask for non-INT */
 	}
 }
 
 static inline void write_IRQreg_ivpr(struct openpic *opp, int n_IRQ,
-				     uint32_t val)
+									 uint32_t val)
 {
 	uint32_t mask;
 
@@ -645,39 +735,41 @@ static inline void write_IRQreg_ivpr(struct openpic *opp, int n_IRQ,
 	 * the polarity bit is read-only on internal interrupts.
 	 */
 	mask = IVPR_MASK_MASK | IVPR_PRIORITY_MASK | IVPR_SENSE_MASK |
-	    IVPR_POLARITY_MASK | opp->vector_mask;
+		   IVPR_POLARITY_MASK | opp->vector_mask;
 
 	/* ACTIVITY bit is read-only */
 	opp->src[n_IRQ].ivpr =
-	    (opp->src[n_IRQ].ivpr & IVPR_ACTIVITY_MASK) | (val & mask);
+		(opp->src[n_IRQ].ivpr & IVPR_ACTIVITY_MASK) | (val & mask);
 
 	/* For FSL internal interrupts, The sense bit is reserved and zero,
 	 * and the interrupt is always level-triggered.  Timers and IPIs
 	 * have no sense or polarity bits, and are edge-triggered.
 	 */
-	switch (opp->src[n_IRQ].type) {
-	case IRQ_TYPE_NORMAL:
-		opp->src[n_IRQ].level =
-		    !!(opp->src[n_IRQ].ivpr & IVPR_SENSE_MASK);
-		break;
+	switch (opp->src[n_IRQ].type)
+	{
+		case IRQ_TYPE_NORMAL:
+			opp->src[n_IRQ].level =
+				!!(opp->src[n_IRQ].ivpr & IVPR_SENSE_MASK);
+			break;
 
-	case IRQ_TYPE_FSLINT:
-		opp->src[n_IRQ].ivpr &= ~IVPR_SENSE_MASK;
-		break;
+		case IRQ_TYPE_FSLINT:
+			opp->src[n_IRQ].ivpr &= ~IVPR_SENSE_MASK;
+			break;
 
-	case IRQ_TYPE_FSLSPECIAL:
-		opp->src[n_IRQ].ivpr &= ~(IVPR_POLARITY_MASK | IVPR_SENSE_MASK);
-		break;
+		case IRQ_TYPE_FSLSPECIAL:
+			opp->src[n_IRQ].ivpr &= ~(IVPR_POLARITY_MASK | IVPR_SENSE_MASK);
+			break;
 	}
 
 	openpic_update_irq(opp, n_IRQ);
 	pr_debug("Set IVPR %d to 0x%08x -> 0x%08x\n", n_IRQ, val,
-		opp->src[n_IRQ].ivpr);
+			 opp->src[n_IRQ].ivpr);
 }
 
 static void openpic_gcr_write(struct openpic *opp, uint64_t val)
 {
-	if (val & GCR_RESET) {
+	if (val & GCR_RESET)
+	{
 		openpic_reset(opp);
 		return;
 	}
@@ -692,51 +784,64 @@ static int openpic_gbl_write(void *opaque, gpa_t addr, u32 val)
 	int err = 0;
 
 	pr_debug("%s: addr %#llx <= %08x\n", __func__, addr, val);
-	if (addr & 0xF)
-		return 0;
 
-	switch (addr) {
-	case 0x00:	/* Block Revision Register1 (BRR1) is Readonly */
-		break;
-	case 0x40:
-	case 0x50:
-	case 0x60:
-	case 0x70:
-	case 0x80:
-	case 0x90:
-	case 0xA0:
-	case 0xB0:
-		err = openpic_cpu_write_internal(opp, addr, val,
-						 get_current_cpu());
-		break;
-	case 0x1000:		/* FRR */
-		break;
-	case 0x1020:		/* GCR */
-		openpic_gcr_write(opp, val);
-		break;
-	case 0x1080:		/* VIR */
-		break;
-	case 0x1090:		/* PIR */
-		/*
-		 * This register is used to reset a CPU core --
-		 * let userspace handle it.
-		 */
-		err = -ENXIO;
-		break;
-	case 0x10A0:		/* IPI_IVPR */
-	case 0x10B0:
-	case 0x10C0:
-	case 0x10D0: {
-		int idx;
-		idx = (addr - 0x10A0) >> 4;
-		write_IRQreg_ivpr(opp, opp->irq_ipi0 + idx, val);
-		break;
+	if (addr & 0xF)
+	{
+		return 0;
 	}
-	case 0x10E0:		/* SPVE */
-		opp->spve = val & opp->vector_mask;
-		break;
-	default:
-		break;
+
+	switch (addr)
+	{
+		case 0x00:	/* Block Revision Register1 (BRR1) is Readonly */
+			break;
+
+		case 0x40:
+		case 0x50:
+		case 0x60:
+		case 0x70:
+		case 0x80:
+		case 0x90:
+		case 0xA0:
+		case 0xB0:
+			err = openpic_cpu_write_internal(opp, addr, val,
+											 get_current_cpu());
+			break;
+
+		case 0x1000:		/* FRR */
+			break;
+
+		case 0x1020:		/* GCR */
+			openpic_gcr_write(opp, val);
+			break;
+
+		case 0x1080:		/* VIR */
+			break;
+
+		case 0x1090:		/* PIR */
+			/*
+			 * This register is used to reset a CPU core --
+			 * let userspace handle it.
+			 */
+			err = -ENXIO;
+			break;
+
+		case 0x10A0:		/* IPI_IVPR */
+		case 0x10B0:
+		case 0x10C0:
+		case 0x10D0:
+			{
+				int idx;
+				idx = (addr - 0x10A0) >> 4;
+				write_IRQreg_ivpr(opp, opp->irq_ipi0 + idx, val);
+				break;
+			}
+
+		case 0x10E0:		/* SPVE */
+			opp->spve = val & opp->vector_mask;
+			break;
+
+		default:
+			break;
 	}
 
 	return err;
@@ -750,52 +855,64 @@ static int openpic_gbl_read(void *opaque, gpa_t addr, u32 *ptr)
 
 	pr_debug("%s: addr %#llx\n", __func__, addr);
 	retval = 0xFFFFFFFF;
-	if (addr & 0xF)
-		goto out;
 
-	switch (addr) {
-	case 0x1000:		/* FRR */
-		retval = opp->frr;
-		retval |= (opp->nb_cpus - 1) << FRR_NCPU_SHIFT;
-		break;
-	case 0x1020:		/* GCR */
-		retval = opp->gcr;
-		break;
-	case 0x1080:		/* VIR */
-		retval = opp->vir;
-		break;
-	case 0x1090:		/* PIR */
-		retval = 0x00000000;
-		break;
-	case 0x00:		/* Block Revision Register1 (BRR1) */
-		retval = opp->brr1;
-		break;
-	case 0x40:
-	case 0x50:
-	case 0x60:
-	case 0x70:
-	case 0x80:
-	case 0x90:
-	case 0xA0:
-	case 0xB0:
-		err = openpic_cpu_read_internal(opp, addr,
-			&retval, get_current_cpu());
-		break;
-	case 0x10A0:		/* IPI_IVPR */
-	case 0x10B0:
-	case 0x10C0:
-	case 0x10D0:
-		{
-			int idx;
-			idx = (addr - 0x10A0) >> 4;
-			retval = read_IRQreg_ivpr(opp, opp->irq_ipi0 + idx);
-		}
-		break;
-	case 0x10E0:		/* SPVE */
-		retval = opp->spve;
-		break;
-	default:
-		break;
+	if (addr & 0xF)
+	{
+		goto out;
+	}
+
+	switch (addr)
+	{
+		case 0x1000:		/* FRR */
+			retval = opp->frr;
+			retval |= (opp->nb_cpus - 1) << FRR_NCPU_SHIFT;
+			break;
+
+		case 0x1020:		/* GCR */
+			retval = opp->gcr;
+			break;
+
+		case 0x1080:		/* VIR */
+			retval = opp->vir;
+			break;
+
+		case 0x1090:		/* PIR */
+			retval = 0x00000000;
+			break;
+
+		case 0x00:		/* Block Revision Register1 (BRR1) */
+			retval = opp->brr1;
+			break;
+
+		case 0x40:
+		case 0x50:
+		case 0x60:
+		case 0x70:
+		case 0x80:
+		case 0x90:
+		case 0xA0:
+		case 0xB0:
+			err = openpic_cpu_read_internal(opp, addr,
+											&retval, get_current_cpu());
+			break;
+
+		case 0x10A0:		/* IPI_IVPR */
+		case 0x10B0:
+		case 0x10C0:
+		case 0x10D0:
+			{
+				int idx;
+				idx = (addr - 0x10A0) >> 4;
+				retval = read_IRQreg_ivpr(opp, opp->irq_ipi0 + idx);
+			}
+			break;
+
+		case 0x10E0:		/* SPVE */
+			retval = opp->spve;
+			break;
+
+		default:
+			break;
 	}
 
 out:
@@ -812,10 +929,14 @@ static int openpic_tmr_write(void *opaque, gpa_t addr, u32 val)
 	addr += 0x10f0;
 
 	pr_debug("%s: addr %#llx <= %08x\n", __func__, addr, val);
-	if (addr & 0xF)
-		return 0;
 
-	if (addr == 0x10f0) {
+	if (addr & 0xF)
+	{
+		return 0;
+	}
+
+	if (addr == 0x10f0)
+	{
 		/* TFRR */
 		opp->tfrr = val;
 		return 0;
@@ -824,23 +945,29 @@ static int openpic_tmr_write(void *opaque, gpa_t addr, u32 val)
 	idx = (addr >> 6) & 0x3;
 	addr = addr & 0x30;
 
-	switch (addr & 0x30) {
-	case 0x00:		/* TCCR */
-		break;
-	case 0x10:		/* TBCR */
-		if ((opp->timers[idx].tccr & TCCR_TOG) != 0 &&
-		    (val & TBCR_CI) == 0 &&
-		    (opp->timers[idx].tbcr & TBCR_CI) != 0)
-			opp->timers[idx].tccr &= ~TCCR_TOG;
+	switch (addr & 0x30)
+	{
+		case 0x00:		/* TCCR */
+			break;
 
-		opp->timers[idx].tbcr = val;
-		break;
-	case 0x20:		/* TVPR */
-		write_IRQreg_ivpr(opp, opp->irq_tim0 + idx, val);
-		break;
-	case 0x30:		/* TDR */
-		write_IRQreg_idr(opp, opp->irq_tim0 + idx, val);
-		break;
+		case 0x10:		/* TBCR */
+			if ((opp->timers[idx].tccr & TCCR_TOG) != 0 &&
+				(val & TBCR_CI) == 0 &&
+				(opp->timers[idx].tbcr & TBCR_CI) != 0)
+			{
+				opp->timers[idx].tccr &= ~TCCR_TOG;
+			}
+
+			opp->timers[idx].tbcr = val;
+			break;
+
+		case 0x20:		/* TVPR */
+			write_IRQreg_ivpr(opp, opp->irq_tim0 + idx, val);
+			break;
+
+		case 0x30:		/* TDR */
+			write_IRQreg_idr(opp, opp->irq_tim0 + idx, val);
+			break;
 	}
 
 	return 0;
@@ -853,29 +980,38 @@ static int openpic_tmr_read(void *opaque, gpa_t addr, u32 *ptr)
 	int idx;
 
 	pr_debug("%s: addr %#llx\n", __func__, addr);
+
 	if (addr & 0xF)
+	{
 		goto out;
+	}
 
 	idx = (addr >> 6) & 0x3;
-	if (addr == 0x0) {
+
+	if (addr == 0x0)
+	{
 		/* TFRR */
 		retval = opp->tfrr;
 		goto out;
 	}
 
-	switch (addr & 0x30) {
-	case 0x00:		/* TCCR */
-		retval = opp->timers[idx].tccr;
-		break;
-	case 0x10:		/* TBCR */
-		retval = opp->timers[idx].tbcr;
-		break;
-	case 0x20:		/* TIPV */
-		retval = read_IRQreg_ivpr(opp, opp->irq_tim0 + idx);
-		break;
-	case 0x30:		/* TIDE (TIDR) */
-		retval = read_IRQreg_idr(opp, opp->irq_tim0 + idx);
-		break;
+	switch (addr & 0x30)
+	{
+		case 0x00:		/* TCCR */
+			retval = opp->timers[idx].tccr;
+			break;
+
+		case 0x10:		/* TBCR */
+			retval = opp->timers[idx].tbcr;
+			break;
+
+		case 0x20:		/* TIPV */
+			retval = read_IRQreg_ivpr(opp, opp->irq_tim0 + idx);
+			break;
+
+		case 0x30:		/* TIDE (TIDR) */
+			retval = read_IRQreg_idr(opp, opp->irq_tim0 + idx);
+			break;
 	}
 
 out:
@@ -894,16 +1030,19 @@ static int openpic_src_write(void *opaque, gpa_t addr, u32 val)
 	addr = addr & 0xffff;
 	idx = addr >> 5;
 
-	switch (addr & 0x1f) {
-	case 0x00:
-		write_IRQreg_ivpr(opp, idx, val);
-		break;
-	case 0x10:
-		write_IRQreg_idr(opp, idx, val);
-		break;
-	case 0x18:
-		write_IRQreg_ilr(opp, idx, val);
-		break;
+	switch (addr & 0x1f)
+	{
+		case 0x00:
+			write_IRQreg_ivpr(opp, idx, val);
+			break;
+
+		case 0x10:
+			write_IRQreg_idr(opp, idx, val);
+			break;
+
+		case 0x18:
+			write_IRQreg_ilr(opp, idx, val);
+			break;
 	}
 
 	return 0;
@@ -921,16 +1060,19 @@ static int openpic_src_read(void *opaque, gpa_t addr, u32 *ptr)
 	addr = addr & 0xffff;
 	idx = addr >> 5;
 
-	switch (addr & 0x1f) {
-	case 0x00:
-		retval = read_IRQreg_ivpr(opp, idx);
-		break;
-	case 0x10:
-		retval = read_IRQreg_idr(opp, idx);
-		break;
-	case 0x18:
-		retval = read_IRQreg_ilr(opp, idx);
-		break;
+	switch (addr & 0x1f)
+	{
+		case 0x00:
+			retval = read_IRQreg_ivpr(opp, idx);
+			break;
+
+		case 0x10:
+			retval = read_IRQreg_idr(opp, idx);
+			break;
+
+		case 0x18:
+			retval = read_IRQreg_ilr(opp, idx);
+			break;
 	}
 
 	pr_debug("%s: => 0x%08x\n", __func__, retval);
@@ -945,20 +1087,25 @@ static int openpic_msi_write(void *opaque, gpa_t addr, u32 val)
 	int srs, ibs;
 
 	pr_debug("%s: addr %#llx <= 0x%08x\n", __func__, addr, val);
-	if (addr & 0xF)
-		return 0;
 
-	switch (addr) {
-	case MSIIR_OFFSET:
-		srs = val >> MSIIR_SRS_SHIFT;
-		idx += srs;
-		ibs = (val & MSIIR_IBS_MASK) >> MSIIR_IBS_SHIFT;
-		opp->msi[srs].msir |= 1 << ibs;
-		openpic_set_irq(opp, idx, 1);
-		break;
-	default:
-		/* most registers are read-only, thus ignored */
-		break;
+	if (addr & 0xF)
+	{
+		return 0;
+	}
+
+	switch (addr)
+	{
+		case MSIIR_OFFSET:
+			srs = val >> MSIIR_SRS_SHIFT;
+			idx += srs;
+			ibs = (val & MSIIR_IBS_MASK) >> MSIIR_IBS_SHIFT;
+			opp->msi[srs].msir |= 1 << ibs;
+			openpic_set_irq(opp, idx, 1);
+			break;
+
+		default:
+			/* most registers are read-only, thus ignored */
+			break;
 	}
 
 	return 0;
@@ -971,29 +1118,37 @@ static int openpic_msi_read(void *opaque, gpa_t addr, u32 *ptr)
 	int i, srs;
 
 	pr_debug("%s: addr %#llx\n", __func__, addr);
+
 	if (addr & 0xF)
+	{
 		return -ENXIO;
+	}
 
 	srs = addr >> 4;
 
-	switch (addr) {
-	case 0x00:
-	case 0x10:
-	case 0x20:
-	case 0x30:
-	case 0x40:
-	case 0x50:
-	case 0x60:
-	case 0x70:		/* MSIRs */
-		r = opp->msi[srs].msir;
-		/* Clear on read */
-		opp->msi[srs].msir = 0;
-		openpic_set_irq(opp, opp->irq_msi + srs, 0);
-		break;
-	case 0x120:		/* MSISR */
-		for (i = 0; i < MAX_MSI; i++)
-			r |= (opp->msi[i].msir ? 1 : 0) << i;
-		break;
+	switch (addr)
+	{
+		case 0x00:
+		case 0x10:
+		case 0x20:
+		case 0x30:
+		case 0x40:
+		case 0x50:
+		case 0x60:
+		case 0x70:		/* MSIRs */
+			r = opp->msi[srs].msir;
+			/* Clear on read */
+			opp->msi[srs].msir = 0;
+			openpic_set_irq(opp, opp->irq_msi + srs, 0);
+			break;
+
+		case 0x120:		/* MSISR */
+			for (i = 0; i < MAX_MSI; i++)
+			{
+				r |= (opp->msi[i].msir ? 1 : 0) << i;
+			}
+
+			break;
 	}
 
 	pr_debug("%s: => 0x%08x\n", __func__, r);
@@ -1022,7 +1177,7 @@ static int openpic_summary_write(void *opaque, gpa_t addr, u32 val)
 }
 
 static int openpic_cpu_write_internal(void *opaque, gpa_t addr,
-				      u32 val, int idx)
+									  u32 val, int idx)
 {
 	struct openpic *opp = opaque;
 	struct irq_source *src;
@@ -1030,87 +1185,105 @@ static int openpic_cpu_write_internal(void *opaque, gpa_t addr,
 	int s_IRQ, n_IRQ;
 
 	pr_debug("%s: cpu %d addr %#llx <= 0x%08x\n", __func__, idx,
-		addr, val);
+			 addr, val);
 
 	if (idx < 0)
+	{
 		return 0;
+	}
 
 	if (addr & 0xF)
+	{
 		return 0;
+	}
 
 	dst = &opp->dst[idx];
 	addr &= 0xFF0;
-	switch (addr) {
-	case 0x40:		/* IPIDR */
-	case 0x50:
-	case 0x60:
-	case 0x70:
-		idx = (addr - 0x40) >> 4;
-		/* we use IDE as mask which CPUs to deliver the IPI to still. */
-		opp->src[opp->irq_ipi0 + idx].destmask |= val;
-		openpic_set_irq(opp, opp->irq_ipi0 + idx, 1);
-		openpic_set_irq(opp, opp->irq_ipi0 + idx, 0);
-		break;
-	case 0x80:		/* CTPR */
-		dst->ctpr = val & 0x0000000F;
 
-		pr_debug("%s: set CPU %d ctpr to %d, raised %d servicing %d\n",
-			__func__, idx, dst->ctpr, dst->raised.priority,
-			dst->servicing.priority);
-
-		if (dst->raised.priority <= dst->ctpr) {
-			pr_debug("%s: Lower OpenPIC INT output cpu %d due to ctpr\n",
-				__func__, idx);
-			mpic_irq_lower(opp, dst, ILR_INTTGT_INT);
-		} else if (dst->raised.priority > dst->servicing.priority) {
-			pr_debug("%s: Raise OpenPIC INT output cpu %d irq %d\n",
-				__func__, idx, dst->raised.next);
-			mpic_irq_raise(opp, dst, ILR_INTTGT_INT);
-		}
-
-		break;
-	case 0x90:		/* WHOAMI */
-		/* Read-only register */
-		break;
-	case 0xA0:		/* IACK */
-		/* Read-only register */
-		break;
-	case 0xB0: {		/* EOI */
-		int notify_eoi;
-
-		pr_debug("EOI\n");
-		s_IRQ = IRQ_get_next(opp, &dst->servicing);
-
-		if (s_IRQ < 0) {
-			pr_debug("%s: EOI with no interrupt in service\n",
-				__func__);
+	switch (addr)
+	{
+		case 0x40:		/* IPIDR */
+		case 0x50:
+		case 0x60:
+		case 0x70:
+			idx = (addr - 0x40) >> 4;
+			/* we use IDE as mask which CPUs to deliver the IPI to still. */
+			opp->src[opp->irq_ipi0 + idx].destmask |= val;
+			openpic_set_irq(opp, opp->irq_ipi0 + idx, 1);
+			openpic_set_irq(opp, opp->irq_ipi0 + idx, 0);
 			break;
-		}
 
-		IRQ_resetbit(&dst->servicing, s_IRQ);
-		/* Notify listeners that the IRQ is over */
-		notify_eoi = s_IRQ;
-		/* Set up next servicing IRQ */
-		s_IRQ = IRQ_get_next(opp, &dst->servicing);
-		/* Check queued interrupts. */
-		n_IRQ = IRQ_get_next(opp, &dst->raised);
-		src = &opp->src[n_IRQ];
-		if (n_IRQ != -1 &&
-		    (s_IRQ == -1 ||
-		     IVPR_PRIORITY(src->ivpr) > dst->servicing.priority)) {
-			pr_debug("Raise OpenPIC INT output cpu %d irq %d\n",
-				idx, n_IRQ);
-			mpic_irq_raise(opp, dst, ILR_INTTGT_INT);
-		}
+		case 0x80:		/* CTPR */
+			dst->ctpr = val & 0x0000000F;
 
-		spin_unlock(&opp->lock);
-		kvm_notify_acked_irq(opp->kvm, 0, notify_eoi);
-		spin_lock(&opp->lock);
+			pr_debug("%s: set CPU %d ctpr to %d, raised %d servicing %d\n",
+					 __func__, idx, dst->ctpr, dst->raised.priority,
+					 dst->servicing.priority);
 
-		break;
-	}
-	default:
-		break;
+			if (dst->raised.priority <= dst->ctpr)
+			{
+				pr_debug("%s: Lower OpenPIC INT output cpu %d due to ctpr\n",
+						 __func__, idx);
+				mpic_irq_lower(opp, dst, ILR_INTTGT_INT);
+			}
+			else if (dst->raised.priority > dst->servicing.priority)
+			{
+				pr_debug("%s: Raise OpenPIC INT output cpu %d irq %d\n",
+						 __func__, idx, dst->raised.next);
+				mpic_irq_raise(opp, dst, ILR_INTTGT_INT);
+			}
+
+			break;
+
+		case 0x90:		/* WHOAMI */
+			/* Read-only register */
+			break;
+
+		case 0xA0:		/* IACK */
+			/* Read-only register */
+			break;
+
+		case 0xB0:  		/* EOI */
+			{
+				int notify_eoi;
+
+				pr_debug("EOI\n");
+				s_IRQ = IRQ_get_next(opp, &dst->servicing);
+
+				if (s_IRQ < 0)
+				{
+					pr_debug("%s: EOI with no interrupt in service\n",
+							 __func__);
+					break;
+				}
+
+				IRQ_resetbit(&dst->servicing, s_IRQ);
+				/* Notify listeners that the IRQ is over */
+				notify_eoi = s_IRQ;
+				/* Set up next servicing IRQ */
+				s_IRQ = IRQ_get_next(opp, &dst->servicing);
+				/* Check queued interrupts. */
+				n_IRQ = IRQ_get_next(opp, &dst->raised);
+				src = &opp->src[n_IRQ];
+
+				if (n_IRQ != -1 &&
+					(s_IRQ == -1 ||
+					 IVPR_PRIORITY(src->ivpr) > dst->servicing.priority))
+				{
+					pr_debug("Raise OpenPIC INT output cpu %d irq %d\n",
+							 idx, n_IRQ);
+					mpic_irq_raise(opp, dst, ILR_INTTGT_INT);
+				}
+
+				spin_unlock(&opp->lock);
+				kvm_notify_acked_irq(opp->kvm, 0, notify_eoi);
+				spin_lock(&opp->lock);
+
+				break;
+			}
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -1121,11 +1294,11 @@ static int openpic_cpu_write(void *opaque, gpa_t addr, u32 val)
 	struct openpic *opp = opaque;
 
 	return openpic_cpu_write_internal(opp, addr, val,
-					 (addr & 0x1f000) >> 12);
+									  (addr & 0x1f000) >> 12);
 }
 
 static uint32_t openpic_iack(struct openpic *opp, struct irq_dest *dst,
-			     int cpu)
+							 int cpu)
 {
 	struct irq_source *src;
 	int retval, irq;
@@ -1138,31 +1311,41 @@ static uint32_t openpic_iack(struct openpic *opp, struct irq_dest *dst,
 
 	if (irq == -1)
 		/* No more interrupt pending */
+	{
 		return opp->spve;
+	}
 
 	src = &opp->src[irq];
+
 	if (!(src->ivpr & IVPR_ACTIVITY_MASK) ||
-	    !(IVPR_PRIORITY(src->ivpr) > dst->ctpr)) {
+		!(IVPR_PRIORITY(src->ivpr) > dst->ctpr))
+	{
 		pr_err("%s: bad raised IRQ %d ctpr %d ivpr 0x%08x\n",
-			__func__, irq, dst->ctpr, src->ivpr);
+			   __func__, irq, dst->ctpr, src->ivpr);
 		openpic_update_irq(opp, irq);
 		retval = opp->spve;
-	} else {
+	}
+	else
+	{
 		/* IRQ enter servicing state */
 		IRQ_setbit(&dst->servicing, irq);
 		retval = IVPR_VECTOR(opp, src->ivpr);
 	}
 
-	if (!src->level) {
+	if (!src->level)
+	{
 		/* edge-sensitive IRQ */
 		src->ivpr &= ~IVPR_ACTIVITY_MASK;
 		src->pending = 0;
 		IRQ_resetbit(&dst->raised, irq);
 	}
 
-	if ((irq >= opp->irq_ipi0) && (irq < (opp->irq_ipi0 + MAX_IPI))) {
+	if ((irq >= opp->irq_ipi0) && (irq < (opp->irq_ipi0 + MAX_IPI)))
+	{
 		src->destmask &= ~(1 << cpu);
-		if (src->destmask && !src->level) {
+
+		if (src->destmask && !src->level)
+		{
 			/* trigger on CPUs that didn't know about it yet */
 			openpic_set_irq(opp, irq, 1);
 			openpic_set_irq(opp, irq, 0);
@@ -1183,13 +1366,15 @@ void kvmppc_mpic_set_epr(struct kvm_vcpu *vcpu)
 	spin_lock_irqsave(&opp->lock, flags);
 
 	if ((opp->gcr & opp->mpic_mode_mask) == GCR_MODE_PROXY)
+	{
 		kvmppc_set_epr(vcpu, openpic_iack(opp, &opp->dst[cpu], cpu));
+	}
 
 	spin_unlock_irqrestore(&opp->lock, flags);
 }
 
 static int openpic_cpu_read_internal(void *opaque, gpa_t addr,
-				     u32 *ptr, int idx)
+									 u32 *ptr, int idx)
 {
 	struct openpic *opp = opaque;
 	struct irq_dest *dst;
@@ -1199,29 +1384,40 @@ static int openpic_cpu_read_internal(void *opaque, gpa_t addr,
 	retval = 0xFFFFFFFF;
 
 	if (idx < 0)
+	{
 		goto out;
+	}
 
 	if (addr & 0xF)
+	{
 		goto out;
+	}
 
 	dst = &opp->dst[idx];
 	addr &= 0xFF0;
-	switch (addr) {
-	case 0x80:		/* CTPR */
-		retval = dst->ctpr;
-		break;
-	case 0x90:		/* WHOAMI */
-		retval = idx;
-		break;
-	case 0xA0:		/* IACK */
-		retval = openpic_iack(opp, dst, idx);
-		break;
-	case 0xB0:		/* EOI */
-		retval = 0;
-		break;
-	default:
-		break;
+
+	switch (addr)
+	{
+		case 0x80:		/* CTPR */
+			retval = dst->ctpr;
+			break;
+
+		case 0x90:		/* WHOAMI */
+			retval = idx;
+			break;
+
+		case 0xA0:		/* IACK */
+			retval = openpic_iack(opp, dst, idx);
+			break;
+
+		case 0xB0:		/* EOI */
+			retval = 0;
+			break;
+
+		default:
+			break;
 	}
+
 	pr_debug("%s: => 0x%08x\n", __func__, retval);
 
 out:
@@ -1234,52 +1430,59 @@ static int openpic_cpu_read(void *opaque, gpa_t addr, u32 *ptr)
 	struct openpic *opp = opaque;
 
 	return openpic_cpu_read_internal(opp, addr, ptr,
-					 (addr & 0x1f000) >> 12);
+									 (addr & 0x1f000) >> 12);
 }
 
-struct mem_reg {
+struct mem_reg
+{
 	int (*read)(void *opaque, gpa_t addr, u32 *ptr);
 	int (*write)(void *opaque, gpa_t addr, u32 val);
 	gpa_t start_addr;
 	int size;
 };
 
-static const struct mem_reg openpic_gbl_mmio = {
+static const struct mem_reg openpic_gbl_mmio =
+{
 	.write = openpic_gbl_write,
 	.read = openpic_gbl_read,
 	.start_addr = OPENPIC_GLB_REG_START,
 	.size = OPENPIC_GLB_REG_SIZE,
 };
 
-static const struct mem_reg openpic_tmr_mmio = {
+static const struct mem_reg openpic_tmr_mmio =
+{
 	.write = openpic_tmr_write,
 	.read = openpic_tmr_read,
 	.start_addr = OPENPIC_TMR_REG_START,
 	.size = OPENPIC_TMR_REG_SIZE,
 };
 
-static const struct mem_reg openpic_cpu_mmio = {
+static const struct mem_reg openpic_cpu_mmio =
+{
 	.write = openpic_cpu_write,
 	.read = openpic_cpu_read,
 	.start_addr = OPENPIC_CPU_REG_START,
 	.size = OPENPIC_CPU_REG_SIZE,
 };
 
-static const struct mem_reg openpic_src_mmio = {
+static const struct mem_reg openpic_src_mmio =
+{
 	.write = openpic_src_write,
 	.read = openpic_src_read,
 	.start_addr = OPENPIC_SRC_REG_START,
 	.size = OPENPIC_SRC_REG_SIZE,
 };
 
-static const struct mem_reg openpic_msi_mmio = {
+static const struct mem_reg openpic_msi_mmio =
+{
 	.read = openpic_msi_read,
 	.write = openpic_msi_write,
 	.start_addr = OPENPIC_MSI_REG_START,
 	.size = OPENPIC_MSI_REG_SIZE,
 };
 
-static const struct mem_reg openpic_summary_mmio = {
+static const struct mem_reg openpic_summary_mmio =
+{
 	.read = openpic_summary_read,
 	.write = openpic_summary_write,
 	.start_addr = OPENPIC_SUMMARY_REG_START,
@@ -1288,7 +1491,8 @@ static const struct mem_reg openpic_summary_mmio = {
 
 static void add_mmio_region(struct openpic *opp, const struct mem_reg *mr)
 {
-	if (opp->num_mmio_regions >= MAX_MMIO_REGIONS) {
+	if (opp->num_mmio_regions >= MAX_MMIO_REGIONS)
+	{
 		WARN(1, "kvm mpic: too many mmio regions\n");
 		return;
 	}
@@ -1322,16 +1526,20 @@ static void fsl_common_init(struct openpic *opp)
 	opp->irq_msi = 224;
 
 	for (i = 0; i < opp->fsl->max_ext; i++)
+	{
 		opp->src[i].level = false;
+	}
 
 	/* Internal interrupts, including message and MSI */
-	for (i = 16; i < MAX_SRC; i++) {
+	for (i = 16; i < MAX_SRC; i++)
+	{
 		opp->src[i].type = IRQ_TYPE_FSLINT;
 		opp->src[i].level = true;
 	}
 
 	/* timers and IPIs */
-	for (i = MAX_SRC; i < virq; i++) {
+	for (i = MAX_SRC; i < virq; i++)
+	{
 		opp->src[i].type = IRQ_TYPE_FSLSPECIAL;
 		opp->src[i].level = false;
 	}
@@ -1341,11 +1549,14 @@ static int kvm_mpic_read_internal(struct openpic *opp, gpa_t addr, u32 *ptr)
 {
 	int i;
 
-	for (i = 0; i < opp->num_mmio_regions; i++) {
+	for (i = 0; i < opp->num_mmio_regions; i++)
+	{
 		const struct mem_reg *mr = opp->mmio_regions[i];
 
 		if (mr->start_addr > addr || addr >= mr->start_addr + mr->size)
+		{
 			continue;
+		}
 
 		return mr->read(opp, addr - mr->start_addr, ptr);
 	}
@@ -1357,11 +1568,14 @@ static int kvm_mpic_write_internal(struct openpic *opp, gpa_t addr, u32 val)
 {
 	int i;
 
-	for (i = 0; i < opp->num_mmio_regions; i++) {
+	for (i = 0; i < opp->num_mmio_regions; i++)
+	{
 		const struct mem_reg *mr = opp->mmio_regions[i];
 
 		if (mr->start_addr > addr || addr >= mr->start_addr + mr->size)
+		{
 			continue;
+		}
 
 		return mr->write(opp, addr - mr->start_addr, val);
 	}
@@ -1370,19 +1584,21 @@ static int kvm_mpic_write_internal(struct openpic *opp, gpa_t addr, u32 val)
 }
 
 static int kvm_mpic_read(struct kvm_vcpu *vcpu,
-			 struct kvm_io_device *this,
-			 gpa_t addr, int len, void *ptr)
+						 struct kvm_io_device *this,
+						 gpa_t addr, int len, void *ptr)
 {
 	struct openpic *opp = container_of(this, struct openpic, mmio);
 	int ret;
-	union {
+	union
+	{
 		u32 val;
 		u8 bytes[4];
 	} u;
 
-	if (addr & (len - 1)) {
+	if (addr & (len - 1))
+	{
 		pr_debug("%s: bad alignment %llx/%d\n",
-			 __func__, addr, len);
+				 __func__, addr, len);
 		return -EINVAL;
 	}
 
@@ -1395,15 +1611,20 @@ static int kvm_mpic_read(struct kvm_vcpu *vcpu,
 	 * people dumping registers a byte at a time -- it works in real
 	 * hardware (reads only, not writes).
 	 */
-	if (len == 4) {
+	if (len == 4)
+	{
 		*(u32 *)ptr = u.val;
 		pr_debug("%s: addr %llx ret %d len 4 val %x\n",
-			 __func__, addr, ret, u.val);
-	} else if (len == 1) {
+				 __func__, addr, ret, u.val);
+	}
+	else if (len == 1)
+	{
 		*(u8 *)ptr = u.bytes[addr & 3];
 		pr_debug("%s: addr %llx ret %d len 1 val %x\n",
-			 __func__, addr, ret, u.bytes[addr & 3]);
-	} else {
+				 __func__, addr, ret, u.bytes[addr & 3]);
+	}
+	else
+	{
 		pr_debug("%s: bad length %d\n", __func__, len);
 		return -EINVAL;
 	}
@@ -1412,33 +1633,37 @@ static int kvm_mpic_read(struct kvm_vcpu *vcpu,
 }
 
 static int kvm_mpic_write(struct kvm_vcpu *vcpu,
-			  struct kvm_io_device *this,
-			  gpa_t addr, int len, const void *ptr)
+						  struct kvm_io_device *this,
+						  gpa_t addr, int len, const void *ptr)
 {
 	struct openpic *opp = container_of(this, struct openpic, mmio);
 	int ret;
 
-	if (len != 4) {
+	if (len != 4)
+	{
 		pr_debug("%s: bad length %d\n", __func__, len);
 		return -EOPNOTSUPP;
 	}
-	if (addr & 3) {
+
+	if (addr & 3)
+	{
 		pr_debug("%s: bad alignment %llx/%d\n", __func__, addr, len);
 		return -EOPNOTSUPP;
 	}
 
 	spin_lock_irq(&opp->lock);
 	ret = kvm_mpic_write_internal(opp, addr - opp->reg_base,
-				      *(const u32 *)ptr);
+								  *(const u32 *)ptr);
 	spin_unlock_irq(&opp->lock);
 
 	pr_debug("%s: addr %llx ret %d val %x\n",
-		 __func__, addr, ret, *(const u32 *)ptr);
+			 __func__, addr, ret, *(const u32 *)ptr);
 
 	return ret;
 }
 
-static const struct kvm_io_device_ops mpic_mmio_ops = {
+static const struct kvm_io_device_ops mpic_mmio_ops =
+{
 	.read = kvm_mpic_read,
 	.write = kvm_mpic_write,
 };
@@ -1448,8 +1673,8 @@ static void map_mmio(struct openpic *opp)
 	kvm_iodevice_init(&opp->mmio, &mpic_mmio_ops);
 
 	kvm_io_bus_register_dev(opp->kvm, KVM_MMIO_BUS,
-				opp->reg_base, OPENPIC_REG_SIZE,
-				&opp->mmio);
+							opp->reg_base, OPENPIC_REG_SIZE,
+							&opp->mmio);
 }
 
 static void unmap_mmio(struct openpic *opp)
@@ -1462,16 +1687,21 @@ static int set_base_addr(struct openpic *opp, struct kvm_device_attr *attr)
 	u64 base;
 
 	if (copy_from_user(&base, (u64 __user *)(long)attr->addr, sizeof(u64)))
+	{
 		return -EFAULT;
+	}
 
-	if (base & 0x3ffff) {
+	if (base & 0x3ffff)
+	{
 		pr_debug("kvm mpic %s: KVM_DEV_MPIC_BASE_ADDR %08llx not aligned\n",
-			 __func__, base);
+				 __func__, base);
 		return -EINVAL;
 	}
 
 	if (base == opp->reg_base)
+	{
 		return 0;
+	}
 
 	mutex_lock(&opp->kvm->slots_lock);
 
@@ -1479,10 +1709,12 @@ static int set_base_addr(struct openpic *opp, struct kvm_device_attr *attr)
 	opp->reg_base = base;
 
 	pr_debug("kvm mpic %s: KVM_DEV_MPIC_BASE_ADDR %08llx\n",
-		 __func__, base);
+			 __func__, base);
 
 	if (base == 0)
+	{
 		goto out;
+	}
 
 	map_mmio(opp);
 
@@ -1499,14 +1731,20 @@ static int access_reg(struct openpic *opp, gpa_t addr, u32 *val, int type)
 	int ret;
 
 	if (addr & 3)
+	{
 		return -ENXIO;
+	}
 
 	spin_lock_irq(&opp->lock);
 
 	if (type == ATTR_SET)
+	{
 		ret = kvm_mpic_write_internal(opp, addr, *val);
+	}
 	else
+	{
 		ret = kvm_mpic_read_internal(opp, addr, val);
+	}
 
 	spin_unlock_irq(&opp->lock);
 
@@ -1520,35 +1758,45 @@ static int mpic_set_attr(struct kvm_device *dev, struct kvm_device_attr *attr)
 	struct openpic *opp = dev->private;
 	u32 attr32;
 
-	switch (attr->group) {
-	case KVM_DEV_MPIC_GRP_MISC:
-		switch (attr->attr) {
-		case KVM_DEV_MPIC_BASE_ADDR:
-			return set_base_addr(opp, attr);
-		}
+	switch (attr->group)
+	{
+		case KVM_DEV_MPIC_GRP_MISC:
+			switch (attr->attr)
+			{
+				case KVM_DEV_MPIC_BASE_ADDR:
+					return set_base_addr(opp, attr);
+			}
 
-		break;
+			break;
 
-	case KVM_DEV_MPIC_GRP_REGISTER:
-		if (get_user(attr32, (u32 __user *)(long)attr->addr))
-			return -EFAULT;
+		case KVM_DEV_MPIC_GRP_REGISTER:
+			if (get_user(attr32, (u32 __user *)(long)attr->addr))
+			{
+				return -EFAULT;
+			}
 
-		return access_reg(opp, attr->attr, &attr32, ATTR_SET);
+			return access_reg(opp, attr->attr, &attr32, ATTR_SET);
 
-	case KVM_DEV_MPIC_GRP_IRQ_ACTIVE:
-		if (attr->attr > MAX_SRC)
-			return -EINVAL;
+		case KVM_DEV_MPIC_GRP_IRQ_ACTIVE:
+			if (attr->attr > MAX_SRC)
+			{
+				return -EINVAL;
+			}
 
-		if (get_user(attr32, (u32 __user *)(long)attr->addr))
-			return -EFAULT;
+			if (get_user(attr32, (u32 __user *)(long)attr->addr))
+			{
+				return -EFAULT;
+			}
 
-		if (attr32 != 0 && attr32 != 1)
-			return -EINVAL;
+			if (attr32 != 0 && attr32 != 1)
+			{
+				return -EINVAL;
+			}
 
-		spin_lock_irq(&opp->lock);
-		openpic_set_irq(opp, attr->attr, attr32);
-		spin_unlock_irq(&opp->lock);
-		return 0;
+			spin_lock_irq(&opp->lock);
+			openpic_set_irq(opp, attr->attr, attr32);
+			spin_unlock_irq(&opp->lock);
+			return 0;
 	}
 
 	return -ENXIO;
@@ -1561,45 +1809,58 @@ static int mpic_get_attr(struct kvm_device *dev, struct kvm_device_attr *attr)
 	u32 attr32;
 	int ret;
 
-	switch (attr->group) {
-	case KVM_DEV_MPIC_GRP_MISC:
-		switch (attr->attr) {
-		case KVM_DEV_MPIC_BASE_ADDR:
-			mutex_lock(&opp->kvm->slots_lock);
-			attr64 = opp->reg_base;
-			mutex_unlock(&opp->kvm->slots_lock);
+	switch (attr->group)
+	{
+		case KVM_DEV_MPIC_GRP_MISC:
+			switch (attr->attr)
+			{
+				case KVM_DEV_MPIC_BASE_ADDR:
+					mutex_lock(&opp->kvm->slots_lock);
+					attr64 = opp->reg_base;
+					mutex_unlock(&opp->kvm->slots_lock);
 
-			if (copy_to_user((u64 __user *)(long)attr->addr,
-					 &attr64, sizeof(u64)))
+					if (copy_to_user((u64 __user *)(long)attr->addr,
+									 &attr64, sizeof(u64)))
+					{
+						return -EFAULT;
+					}
+
+					return 0;
+			}
+
+			break;
+
+		case KVM_DEV_MPIC_GRP_REGISTER:
+			ret = access_reg(opp, attr->attr, &attr32, ATTR_GET);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			if (put_user(attr32, (u32 __user *)(long)attr->addr))
+			{
 				return -EFAULT;
+			}
 
 			return 0;
-		}
 
-		break;
+		case KVM_DEV_MPIC_GRP_IRQ_ACTIVE:
+			if (attr->attr > MAX_SRC)
+			{
+				return -EINVAL;
+			}
 
-	case KVM_DEV_MPIC_GRP_REGISTER:
-		ret = access_reg(opp, attr->attr, &attr32, ATTR_GET);
-		if (ret)
-			return ret;
+			spin_lock_irq(&opp->lock);
+			attr32 = opp->src[attr->attr].pending;
+			spin_unlock_irq(&opp->lock);
 
-		if (put_user(attr32, (u32 __user *)(long)attr->addr))
-			return -EFAULT;
+			if (put_user(attr32, (u32 __user *)(long)attr->addr))
+			{
+				return -EFAULT;
+			}
 
-		return 0;
-
-	case KVM_DEV_MPIC_GRP_IRQ_ACTIVE:
-		if (attr->attr > MAX_SRC)
-			return -EINVAL;
-
-		spin_lock_irq(&opp->lock);
-		attr32 = opp->src[attr->attr].pending;
-		spin_unlock_irq(&opp->lock);
-
-		if (put_user(attr32, (u32 __user *)(long)attr->addr))
-			return -EFAULT;
-
-		return 0;
+			return 0;
 	}
 
 	return -ENXIO;
@@ -1607,23 +1868,27 @@ static int mpic_get_attr(struct kvm_device *dev, struct kvm_device_attr *attr)
 
 static int mpic_has_attr(struct kvm_device *dev, struct kvm_device_attr *attr)
 {
-	switch (attr->group) {
-	case KVM_DEV_MPIC_GRP_MISC:
-		switch (attr->attr) {
-		case KVM_DEV_MPIC_BASE_ADDR:
-			return 0;
-		}
+	switch (attr->group)
+	{
+		case KVM_DEV_MPIC_GRP_MISC:
+			switch (attr->attr)
+			{
+				case KVM_DEV_MPIC_BASE_ADDR:
+					return 0;
+			}
 
-		break;
-
-	case KVM_DEV_MPIC_GRP_REGISTER:
-		return 0;
-
-	case KVM_DEV_MPIC_GRP_IRQ_ACTIVE:
-		if (attr->attr > MAX_SRC)
 			break;
 
-		return 0;
+		case KVM_DEV_MPIC_GRP_REGISTER:
+			return 0;
+
+		case KVM_DEV_MPIC_GRP_IRQ_ACTIVE:
+			if (attr->attr > MAX_SRC)
+			{
+				break;
+			}
+
+			return 0;
 	}
 
 	return -ENXIO;
@@ -1644,8 +1909,11 @@ static int mpic_set_default_irq_routing(struct openpic *opp)
 
 	/* Create a nop default map, so that dereferencing it still works */
 	routing = kzalloc((sizeof(*routing)), GFP_KERNEL);
+
 	if (!routing)
+	{
 		return -ENOMEM;
+	}
 
 	kvm_set_irq_routing(opp->kvm, routing, 0, 0);
 
@@ -1660,11 +1928,16 @@ static int mpic_create(struct kvm_device *dev, u32 type)
 
 	/* We only support one MPIC at a time for now */
 	if (dev->kvm->arch.mpic)
+	{
 		return -EINVAL;
+	}
 
 	opp = kzalloc(sizeof(struct openpic), GFP_KERNEL);
+
 	if (!opp)
+	{
 		return -ENOMEM;
+	}
 
 	dev->private = opp;
 	opp->kvm = dev->kvm;
@@ -1677,37 +1950,41 @@ static int mpic_create(struct kvm_device *dev, u32 type)
 	add_mmio_region(opp, &openpic_src_mmio);
 	add_mmio_region(opp, &openpic_cpu_mmio);
 
-	switch (opp->model) {
-	case KVM_DEV_TYPE_FSL_MPIC_20:
-		opp->fsl = &fsl_mpic_20;
-		opp->brr1 = 0x00400200;
-		opp->flags |= OPENPIC_FLAG_IDR_CRIT;
-		opp->nb_irqs = 80;
-		opp->mpic_mode_mask = GCR_MODE_MIXED;
+	switch (opp->model)
+	{
+		case KVM_DEV_TYPE_FSL_MPIC_20:
+			opp->fsl = &fsl_mpic_20;
+			opp->brr1 = 0x00400200;
+			opp->flags |= OPENPIC_FLAG_IDR_CRIT;
+			opp->nb_irqs = 80;
+			opp->mpic_mode_mask = GCR_MODE_MIXED;
 
-		fsl_common_init(opp);
+			fsl_common_init(opp);
 
-		break;
+			break;
 
-	case KVM_DEV_TYPE_FSL_MPIC_42:
-		opp->fsl = &fsl_mpic_42;
-		opp->brr1 = 0x00400402;
-		opp->flags |= OPENPIC_FLAG_ILR;
-		opp->nb_irqs = 196;
-		opp->mpic_mode_mask = GCR_MODE_PROXY;
+		case KVM_DEV_TYPE_FSL_MPIC_42:
+			opp->fsl = &fsl_mpic_42;
+			opp->brr1 = 0x00400402;
+			opp->flags |= OPENPIC_FLAG_ILR;
+			opp->nb_irqs = 196;
+			opp->mpic_mode_mask = GCR_MODE_PROXY;
 
-		fsl_common_init(opp);
+			fsl_common_init(opp);
 
-		break;
+			break;
 
-	default:
-		ret = -ENODEV;
-		goto err;
+		default:
+			ret = -ENODEV;
+			goto err;
 	}
 
 	ret = mpic_set_default_irq_routing(opp);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	openpic_reset(opp);
 
@@ -1721,7 +1998,8 @@ err:
 	return ret;
 }
 
-struct kvm_device_ops kvm_mpic_ops = {
+struct kvm_device_ops kvm_mpic_ops =
+{
 	.name = "kvm-mpic",
 	.create = mpic_create,
 	.destroy = mpic_destroy,
@@ -1731,25 +2009,36 @@ struct kvm_device_ops kvm_mpic_ops = {
 };
 
 int kvmppc_mpic_connect_vcpu(struct kvm_device *dev, struct kvm_vcpu *vcpu,
-			     u32 cpu)
+							 u32 cpu)
 {
 	struct openpic *opp = dev->private;
 	int ret = 0;
 
 	if (dev->ops != &kvm_mpic_ops)
+	{
 		return -EPERM;
+	}
+
 	if (opp->kvm != vcpu->kvm)
+	{
 		return -EPERM;
+	}
+
 	if (cpu < 0 || cpu >= MAX_CPU)
+	{
 		return -EPERM;
+	}
 
 	spin_lock_irq(&opp->lock);
 
-	if (opp->dst[cpu].vcpu) {
+	if (opp->dst[cpu].vcpu)
+	{
 		ret = -EEXIST;
 		goto out;
 	}
-	if (vcpu->arch.irq_type) {
+
+	if (vcpu->arch.irq_type)
+	{
 		ret = -EBUSY;
 		goto out;
 	}
@@ -1763,7 +2052,9 @@ int kvmppc_mpic_connect_vcpu(struct kvm_device *dev, struct kvm_vcpu *vcpu,
 
 	/* This might need to be changed if GCR gets extended */
 	if (opp->mpic_mode_mask == GCR_MODE_PROXY)
+	{
 		vcpu->arch.epr_flags |= KVMPPC_EPR_KERNEL;
+	}
 
 out:
 	spin_unlock_irq(&opp->lock);
@@ -1789,8 +2080,8 @@ void kvmppc_mpic_disconnect_vcpu(struct openpic *opp, struct kvm_vcpu *vcpu)
  *  > 0   Number of CPUs interrupt was delivered to
  */
 static int mpic_set_irq(struct kvm_kernel_irq_routing_entry *e,
-			struct kvm *kvm, int irq_source_id, int level,
-			bool line_status)
+						struct kvm *kvm, int irq_source_id, int level,
+						bool line_status)
 {
 	u32 irq = e->irqchip.pin;
 	struct openpic *opp = kvm->arch.mpic;
@@ -1805,7 +2096,7 @@ static int mpic_set_irq(struct kvm_kernel_irq_routing_entry *e,
 }
 
 int kvm_set_msi(struct kvm_kernel_irq_routing_entry *e,
-		struct kvm *kvm, int irq_source_id, int level, bool line_status)
+				struct kvm *kvm, int irq_source_id, int level, bool line_status)
 {
 	struct openpic *opp = kvm->arch.mpic;
 	unsigned long flags;
@@ -1824,27 +2115,34 @@ int kvm_set_msi(struct kvm_kernel_irq_routing_entry *e,
 }
 
 int kvm_set_routing_entry(struct kvm *kvm,
-			  struct kvm_kernel_irq_routing_entry *e,
-			  const struct kvm_irq_routing_entry *ue)
+						  struct kvm_kernel_irq_routing_entry *e,
+						  const struct kvm_irq_routing_entry *ue)
 {
 	int r = -EINVAL;
 
-	switch (ue->type) {
-	case KVM_IRQ_ROUTING_IRQCHIP:
-		e->set = mpic_set_irq;
-		e->irqchip.irqchip = ue->u.irqchip.irqchip;
-		e->irqchip.pin = ue->u.irqchip.pin;
-		if (e->irqchip.pin >= KVM_IRQCHIP_NUM_PINS)
+	switch (ue->type)
+	{
+		case KVM_IRQ_ROUTING_IRQCHIP:
+			e->set = mpic_set_irq;
+			e->irqchip.irqchip = ue->u.irqchip.irqchip;
+			e->irqchip.pin = ue->u.irqchip.pin;
+
+			if (e->irqchip.pin >= KVM_IRQCHIP_NUM_PINS)
+			{
+				goto out;
+			}
+
+			break;
+
+		case KVM_IRQ_ROUTING_MSI:
+			e->set = kvm_set_msi;
+			e->msi.address_lo = ue->u.msi.address_lo;
+			e->msi.address_hi = ue->u.msi.address_hi;
+			e->msi.data = ue->u.msi.data;
+			break;
+
+		default:
 			goto out;
-		break;
-	case KVM_IRQ_ROUTING_MSI:
-		e->set = kvm_set_msi;
-		e->msi.address_lo = ue->u.msi.address_lo;
-		e->msi.address_hi = ue->u.msi.address_hi;
-		e->msi.data = ue->u.msi.data;
-		break;
-	default:
-		goto out;
 	}
 
 	r = 0;

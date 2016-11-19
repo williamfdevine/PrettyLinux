@@ -15,9 +15,9 @@
 #define IPL_MAX		7
 
 #ifdef CONFIG_ALPHA_BROKEN_IRQ_MASK
-#undef IPL_MIN
-#define IPL_MIN		__min_ipl
-extern int __min_ipl;
+	#undef IPL_MIN
+	#define IPL_MIN		__min_ipl
+	extern int __min_ipl;
 #endif
 
 #define getipl()		(rdps() & 7)

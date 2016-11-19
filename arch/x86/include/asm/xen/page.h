@@ -16,12 +16,14 @@
 #include <xen/features.h>
 
 /* Xen machine address */
-typedef struct xmaddr {
+typedef struct xmaddr
+{
 	phys_addr_t maddr;
 } xmaddr_t;
 
 /* Xen pseudo-physical address */
-typedef struct xpaddr {
+typedef struct xpaddr
+{
 	phys_addr_t paddr;
 } xpaddr_t;
 
@@ -49,14 +51,14 @@ extern unsigned long get_phys_to_machine(unsigned long pfn);
 extern bool set_phys_to_machine(unsigned long pfn, unsigned long mfn);
 extern bool __set_phys_to_machine(unsigned long pfn, unsigned long mfn);
 extern unsigned long __init set_phys_range_identity(unsigned long pfn_s,
-						    unsigned long pfn_e);
+		unsigned long pfn_e);
 
 extern int set_foreign_p2m_mapping(struct gnttab_map_grant_ref *map_ops,
-				   struct gnttab_map_grant_ref *kmap_ops,
-				   struct page **pages, unsigned int count);
+								   struct gnttab_map_grant_ref *kmap_ops,
+								   struct page **pages, unsigned int count);
 extern int clear_foreign_p2m_mapping(struct gnttab_unmap_grant_ref *unmap_ops,
-				     struct gnttab_unmap_grant_ref *kunmap_ops,
-				     struct page **pages, unsigned int count);
+									 struct gnttab_unmap_grant_ref *kunmap_ops,
+									 struct page **pages, unsigned int count);
 
 /*
  * Helper functions to write or read unsigned long values to/from
@@ -87,14 +89,22 @@ static inline unsigned long __pfn_to_mfn(unsigned long pfn)
 	unsigned long mfn;
 
 	if (pfn < xen_p2m_size)
+	{
 		mfn = xen_p2m_addr[pfn];
+	}
 	else if (unlikely(pfn < xen_max_p2m_pfn))
+	{
 		return get_phys_to_machine(pfn);
+	}
 	else
+	{
 		return IDENTITY_FRAME(pfn);
+	}
 
 	if (unlikely(mfn == INVALID_P2M_ENTRY))
+	{
 		return get_phys_to_machine(pfn);
+	}
 
 	return mfn;
 }
@@ -109,12 +119,16 @@ static inline unsigned long pfn_to_mfn(unsigned long pfn)
 	 * out which call.
 	 */
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return pfn;
+	}
 
 	mfn = __pfn_to_mfn(pfn);
 
 	if (mfn != INVALID_P2M_ENTRY)
+	{
 		mfn &= ~(FOREIGN_FRAME_BIT | IDENTITY_FRAME_BIT);
+	}
 
 	return mfn;
 }
@@ -122,7 +136,9 @@ static inline unsigned long pfn_to_mfn(unsigned long pfn)
 static inline int phys_to_machine_mapping_valid(unsigned long pfn)
 {
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return 1;
+	}
 
 	return __pfn_to_mfn(pfn) != INVALID_P2M_ENTRY;
 }
@@ -133,10 +149,14 @@ static inline unsigned long mfn_to_pfn_no_overrides(unsigned long mfn)
 	int ret;
 
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return mfn;
+	}
 
 	if (unlikely(mfn >= machine_to_phys_nr))
+	{
 		return ~0;
+	}
 
 	/*
 	 * The array access can fail (e.g., device space beyond end of RAM).
@@ -144,8 +164,11 @@ static inline unsigned long mfn_to_pfn_no_overrides(unsigned long mfn)
 	 * but we must handle the fault without crashing!
 	 */
 	ret = xen_safe_read_ulong(&machine_to_phys_mapping[mfn], &pfn);
+
 	if (ret < 0)
+	{
 		return ~0;
+	}
 
 	return pfn;
 }
@@ -160,18 +183,25 @@ static inline unsigned long mfn_to_pfn(unsigned long mfn)
 	 * out which call.
 	 */
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return mfn;
+	}
 
 	pfn = mfn_to_pfn_no_overrides(mfn);
+
 	if (__pfn_to_mfn(pfn) != mfn)
+	{
 		pfn = ~0;
+	}
 
 	/*
 	 * pfn is ~0 if there are no entries in the m2p for mfn or the
 	 * entry doesn't map back to the mfn.
 	 */
 	if (pfn == ~0 && __pfn_to_mfn(mfn) == IDENTITY_FRAME(mfn))
+	{
 		pfn = mfn;
+	}
 
 	return pfn;
 }
@@ -192,17 +222,25 @@ static inline xpaddr_t machine_to_phys(xmaddr_t machine)
 static inline unsigned long pfn_to_gfn(unsigned long pfn)
 {
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return pfn;
+	}
 	else
+	{
 		return pfn_to_mfn(pfn);
+	}
 }
 
 static inline unsigned long gfn_to_pfn(unsigned long gfn)
 {
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return gfn;
+	}
 	else
+	{
 		return mfn_to_pfn(gfn);
+	}
 }
 
 /* Pseudo-physical <-> Bus conversion */
@@ -234,11 +272,17 @@ static inline unsigned long bfn_to_local_pfn(unsigned long mfn)
 	unsigned long pfn;
 
 	if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		return mfn;
+	}
 
 	pfn = mfn_to_pfn(mfn);
+
 	if (__pfn_to_mfn(pfn) != mfn)
-		return -1; /* force !pfn_valid() */
+	{
+		return -1;    /* force !pfn_valid() */
+	}
+
 	return pfn;
 }
 
@@ -262,7 +306,7 @@ static inline pte_t mfn_pte(unsigned long page_nr, pgprot_t pgprot)
 	pte_t pte;
 
 	pte.pte = ((phys_addr_t)page_nr << PAGE_SHIFT) |
-			massage_pgprot(pgprot);
+			  massage_pgprot(pgprot);
 
 	return pte;
 }
@@ -279,9 +323,9 @@ static inline pte_t __pte_ma(pteval_t x)
 
 #define pmd_val_ma(v) ((v).pmd)
 #ifdef __PAGETABLE_PUD_FOLDED
-#define pud_val_ma(v) ((v).pgd.pgd)
+	#define pud_val_ma(v) ((v).pgd.pgd)
 #else
-#define pud_val_ma(v) ((v).pud)
+	#define pud_val_ma(v) ((v).pud)
 #endif
 #define __pmd_ma(x)	((pmd_t) { (x) } )
 
@@ -298,8 +342,8 @@ void make_lowmem_page_readwrite(void *vaddr);
 #define xen_unmap(cookie) iounmap((cookie))
 
 static inline bool xen_arch_need_swiotlb(struct device *dev,
-					 phys_addr_t phys,
-					 dma_addr_t dev_addr)
+		phys_addr_t phys,
+		dma_addr_t dev_addr)
 {
 	return false;
 }

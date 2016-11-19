@@ -4,7 +4,8 @@
 /* IA32 compatible user structures for ptrace.
  * These should be used for 32bit coredumps too. */
 
-struct user_i387_ia32_struct {
+struct user_i387_ia32_struct
+{
 	u32	cwd;
 	u32	swd;
 	u32	twd;
@@ -16,7 +17,8 @@ struct user_i387_ia32_struct {
 };
 
 /* FSAVE frame with extensions */
-struct user32_fxsr_struct {
+struct user32_fxsr_struct
+{
 	unsigned short	cwd;
 	unsigned short	swd;
 	unsigned short	twd;	/* not compatible to 64bit twd */
@@ -32,7 +34,8 @@ struct user32_fxsr_struct {
 	int	padding[56];
 };
 
-struct user_regs_struct32 {
+struct user_regs_struct32
+{
 	__u32 ebx, ecx, edx, esi, edi, ebp, eax;
 	unsigned short ds, __ds, es, __es;
 	unsigned short fs, __fs, gs, __gs;
@@ -42,28 +45,29 @@ struct user_regs_struct32 {
 	unsigned short ss, __ss;
 };
 
-struct user32 {
-  struct user_regs_struct32 regs; /* Where the registers are actually stored */
-  int u_fpvalid;		/* True if math co-processor being used. */
-				/* for this mess. Not yet used. */
-  struct user_i387_ia32_struct i387;	/* Math Co-processor registers. */
-/* The rest of this junk is to help gdb figure out what goes where */
-  __u32 u_tsize;	/* Text segment size (pages). */
-  __u32 u_dsize;	/* Data segment size (pages). */
-  __u32 u_ssize;	/* Stack segment size (pages). */
-  __u32 start_code;     /* Starting virtual address of text. */
-  __u32 start_stack;	/* Starting virtual address of stack area.
+struct user32
+{
+	struct user_regs_struct32 regs; /* Where the registers are actually stored */
+	int u_fpvalid;		/* True if math co-processor being used. */
+	/* for this mess. Not yet used. */
+	struct user_i387_ia32_struct i387;	/* Math Co-processor registers. */
+	/* The rest of this junk is to help gdb figure out what goes where */
+	__u32 u_tsize;	/* Text segment size (pages). */
+	__u32 u_dsize;	/* Data segment size (pages). */
+	__u32 u_ssize;	/* Stack segment size (pages). */
+	__u32 start_code;     /* Starting virtual address of text. */
+	__u32 start_stack;	/* Starting virtual address of stack area.
 				   This is actually the bottom of the stack,
 				   the top of the stack is always found in the
 				   esp register.  */
-  __u32 signal;     		/* Signal that caused the core dump. */
-  int reserved;			/* No __u32er used */
-  __u32 u_ar0;	/* Used by gdb to help find the values for */
-				/* the registers. */
-  __u32 u_fpstate;	/* Math Co-processor pointer. */
-  __u32 magic;		/* To uniquely identify a core file */
-  char u_comm[32];		/* User command that was responsible */
-  int u_debugreg[8];
+	__u32 signal;     		/* Signal that caused the core dump. */
+	int reserved;			/* No __u32er used */
+	__u32 u_ar0;	/* Used by gdb to help find the values for */
+	/* the registers. */
+	__u32 u_fpstate;	/* Math Co-processor pointer. */
+	__u32 magic;		/* To uniquely identify a core file */
+	char u_comm[32];		/* User command that was responsible */
+	int u_debugreg[8];
 };
 
 

@@ -45,7 +45,8 @@
  * The Hypervisor barfs if the lppaca crosses a page boundary.  A 1k
  * alignment is sufficient to prevent this
  */
-struct lppaca {
+struct lppaca
+{
 	/* cacheline 1 contains read-only data */
 
 	__be32	desc;			/* Eye catcher 0xD397D781 */
@@ -57,7 +58,7 @@ struct lppaca {
 	volatile __be32 dyn_hw_proc_id;	/* Dynamic hardware proc id */
 	u8	reserved4[56];
 	volatile u8 vphn_assoc_counts[8]; /* Virtual processor home node */
-					  /* associativity change counters */
+	/* associativity change counters */
 	u8	reserved5[32];
 
 	/* cacheline 2 contains local read-write data */
@@ -122,11 +123,13 @@ static inline bool lppaca_shared_proc(struct lppaca *l)
  * contains adjacent ESID and VSID pairs for each shadowed SLB.  The
  * ESID is stored in the lower 64bits, then the VSID.
  */
-struct slb_shadow {
+struct slb_shadow
+{
 	__be32	persistent;		/* Number of persistent SLBs */
 	__be32	buffer_length;		/* Total shadow buffer length */
 	__be64	reserved;
-	struct	{
+	struct
+	{
 		__be64     esid;
 		__be64	vsid;
 	} save_area[SLB_NUM_BOLTED];
@@ -135,7 +138,8 @@ struct slb_shadow {
 /*
  * Layout of entries in the hypervisor's dispatch trace log buffer.
  */
-struct dtl_entry {
+struct dtl_entry
+{
 	u8	dispatch_reason;
 	u8	preempt_reason;
 	__be16	processor_id;

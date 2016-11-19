@@ -27,21 +27,21 @@
 #define DEBUG_DUMP_CONFIG 1
 
 #if DEBUG_CONFIG
-# define DBG_CFG(args)	printk args
+	#define DBG_CFG(args)	printk args
 #else
-# define DBG_CFG(args)
+	#define DBG_CFG(args)
 #endif
 
 #if DEBUG_DUMP_REGS
-static void wildfire_dump_pci_regs(int qbbno, int hoseno);
-static void wildfire_dump_pca_regs(int qbbno, int pcano);
-static void wildfire_dump_qsa_regs(int qbbno);
-static void wildfire_dump_qsd_regs(int qbbno);
-static void wildfire_dump_iop_regs(int qbbno);
-static void wildfire_dump_gp_regs(int qbbno);
+	static void wildfire_dump_pci_regs(int qbbno, int hoseno);
+	static void wildfire_dump_pca_regs(int qbbno, int pcano);
+	static void wildfire_dump_qsa_regs(int qbbno);
+	static void wildfire_dump_qsd_regs(int qbbno);
+	static void wildfire_dump_iop_regs(int qbbno);
+	static void wildfire_dump_gp_regs(int qbbno);
 #endif
 #if DEBUG_DUMP_CONFIG
-static void wildfire_dump_hardware_config(void);
+	static void wildfire_dump_hardware_config(void);
 #endif
 
 unsigned char wildfire_hard_qbb_map[WILDFIRE_MAX_QBB];
@@ -68,11 +68,11 @@ wildfire_init_hose(int qbbno, int hoseno)
 	hose->io_space = alloc_resource();
 	hose->mem_space = alloc_resource();
 
-        /* This is for userland consumption. */
-        hose->sparse_mem_base = 0;
-        hose->sparse_io_base  = 0;
-        hose->dense_mem_base  = WILDFIRE_MEM(qbbno, hoseno);
-        hose->dense_io_base   = WILDFIRE_IO(qbbno, hoseno);
+	/* This is for userland consumption. */
+	hose->sparse_mem_base = 0;
+	hose->sparse_io_base  = 0;
+	hose->dense_mem_base  = WILDFIRE_MEM(qbbno, hoseno);
+	hose->dense_io_base   = WILDFIRE_IO(qbbno, hoseno);
 
 	hose->config_space_base = WILDFIRE_CONF(qbbno, hoseno);
 	hose->index = (qbbno << 3) + hoseno;
@@ -82,36 +82,37 @@ wildfire_init_hose(int qbbno, int hoseno)
 	hose->io_space->name = pci_io_names[hoseno];
 	hose->io_space->flags = IORESOURCE_IO;
 
-	hose->mem_space->start = WILDFIRE_MEM(qbbno, hoseno)-WILDFIRE_MEM_BIAS;
+	hose->mem_space->start = WILDFIRE_MEM(qbbno, hoseno) - WILDFIRE_MEM_BIAS;
 	hose->mem_space->end = hose->mem_space->start + 0xffffffff;
 	hose->mem_space->name = pci_mem_names[hoseno];
 	hose->mem_space->flags = IORESOURCE_MEM;
 
 	if (request_resource(&ioport_resource, hose->io_space) < 0)
 		printk(KERN_ERR "Failed to request IO on qbb %d hose %d\n",
-		       qbbno, hoseno);
+			   qbbno, hoseno);
+
 	if (request_resource(&iomem_resource, hose->mem_space) < 0)
 		printk(KERN_ERR "Failed to request MEM on qbb %d hose %d\n",
-		       qbbno, hoseno);
+			   qbbno, hoseno);
 
 #if DEBUG_DUMP_REGS
 	wildfire_dump_pci_regs(qbbno, hoseno);
 #endif
 
-        /*
-         * Set up the PCI to main memory translation windows.
-         *
-         * Note: Window 3 is scatter-gather only
-         * 
-         * Window 0 is scatter-gather 8MB at 8MB (for isa)
-	 * Window 1 is direct access 1GB at 1GB
+	/*
+	 * Set up the PCI to main memory translation windows.
+	 *
+	 * Note: Window 3 is scatter-gather only
+	 *
+	 * Window 0 is scatter-gather 8MB at 8MB (for isa)
+	* Window 1 is direct access 1GB at 1GB
 	 * Window 2 is direct access 1GB at 2GB
-         * Window 3 is scatter-gather 128MB at 3GB
-         * ??? We ought to scale window 3 memory.
-         *
-         */
-        hose->sg_isa = iommu_arena_new(hose, 0x00800000, 0x00800000, 0);
-        hose->sg_pci = iommu_arena_new(hose, 0xc0000000, 0x08000000, 0);
+	       * Window 3 is scatter-gather 128MB at 3GB
+	       * ??? We ought to scale window 3 memory.
+	       *
+	       */
+	hose->sg_isa = iommu_arena_new(hose, 0x00800000, 0x00800000, 0);
+	hose->sg_pci = iommu_arena_new(hose, 0xc0000000, 0x08000000, 0);
 
 	pci = WILDFIRE_pci(qbbno, hoseno);
 
@@ -120,11 +121,11 @@ wildfire_init_hose(int qbbno, int hoseno)
 	pci->pci_window[0].tbase.csr = virt_to_phys(hose->sg_isa->ptes);
 
 	pci->pci_window[1].wbase.csr = 0x40000000 | 1;
-	pci->pci_window[1].wmask.csr = (0x40000000 -1) & 0xfff00000;
+	pci->pci_window[1].wmask.csr = (0x40000000 - 1) & 0xfff00000;
 	pci->pci_window[1].tbase.csr = 0;
 
 	pci->pci_window[2].wbase.csr = 0x80000000 | 1;
-	pci->pci_window[2].wmask.csr = (0x40000000 -1) & 0xfff00000;
+	pci->pci_window[2].wmask.csr = (0x40000000 - 1) & 0xfff00000;
 	pci->pci_window[2].tbase.csr = 0x40000000;
 
 	pci->pci_window[3].wbase.csr = hose->sg_pci->dma_base | 3;
@@ -140,7 +141,9 @@ wildfire_init_pca(int qbbno, int pcano)
 
 	/* Test for PCA existence first. */
 	if (!WILDFIRE_PCA_EXISTS(qbbno, pcano))
-	    return;
+	{
+		return;
+	}
 
 #if DEBUG_DUMP_REGS
 	wildfire_dump_pca_regs(qbbno, pcano);
@@ -158,7 +161,9 @@ wildfire_init_qbb(int qbbno)
 
 	/* Test for QBB existence first. */
 	if (!WILDFIRE_QBB_EXISTS(qbbno))
+	{
 		return;
+	}
 
 #if DEBUG_DUMP_REGS
 	wildfire_dump_qsa_regs(qbbno);
@@ -168,7 +173,8 @@ wildfire_init_qbb(int qbbno)
 #endif
 
 	/* Init all PCAs here. */
-	for (pcano = 0; pcano < WILDFIRE_PCA_PER_QBB; pcano++) {
+	for (pcano = 0; pcano < WILDFIRE_PCA_PER_QBB; pcano++)
+	{
 		wildfire_init_pca(qbbno, pcano);
 	}
 }
@@ -220,80 +226,96 @@ wildfire_hardware_probe(void)
 #endif
 
 	if (temp & 0x40) /* Is there an HS? */
+	{
 		wildfire_hs_mask = 1;
+	}
 
-	if (temp & 0x20) { /* Is there a GP? */
+	if (temp & 0x20)   /* Is there a GP? */
+	{
 		gp = WILDFIRE_gp(soft_qbb);
 		temp = 0;
-		for (i = 0; i < 4; i++) {
+
+		for (i = 0; i < 4; i++)
+		{
 			temp |= gp->gpa_qbb_map[i].csr << (i * 8);
 #if 0
 			printk(KERN_ERR "GPA_QBB_MAP[%d] at base %p is 0x%lx\n",
-			       i, gp, temp);
+				   i, gp, temp);
 #endif
 		}
 
-		for (hard_qbb = 0; hard_qbb < WILDFIRE_MAX_QBB; hard_qbb++) {
-			if (temp & 8) { /* Is there a QBB? */
+		for (hard_qbb = 0; hard_qbb < WILDFIRE_MAX_QBB; hard_qbb++)
+		{
+			if (temp & 8)   /* Is there a QBB? */
+			{
 				soft_qbb = temp & 7;
 				wildfire_hard_qbb_mask |= (1 << hard_qbb);
 				wildfire_soft_qbb_mask |= (1 << soft_qbb);
 			}
+
 			temp >>= 4;
 		}
+
 		wildfire_gp_mask = wildfire_soft_qbb_mask;
-        }
+	}
 
 	/* Next determine each QBBs resources. */
-	for (soft_qbb = 0; soft_qbb < WILDFIRE_MAX_QBB; soft_qbb++) {
-	    if (WILDFIRE_QBB_EXISTS(soft_qbb)) {
-	        qsd = WILDFIRE_qsd(soft_qbb);
-		temp = qsd->qsd_whami.csr;
+	for (soft_qbb = 0; soft_qbb < WILDFIRE_MAX_QBB; soft_qbb++)
+	{
+		if (WILDFIRE_QBB_EXISTS(soft_qbb))
+		{
+			qsd = WILDFIRE_qsd(soft_qbb);
+			temp = qsd->qsd_whami.csr;
 #if 0
-	printk(KERN_ERR "QSD_WHAMI at base %p is 0x%lx\n", qsd, temp);
+			printk(KERN_ERR "QSD_WHAMI at base %p is 0x%lx\n", qsd, temp);
 #endif
-		hard_qbb = (temp >> 8) & 7;
-		wildfire_hard_qbb_map[hard_qbb] = soft_qbb;
-		wildfire_soft_qbb_map[soft_qbb] = hard_qbb;
+			hard_qbb = (temp >> 8) & 7;
+			wildfire_hard_qbb_map[hard_qbb] = soft_qbb;
+			wildfire_soft_qbb_map[soft_qbb] = hard_qbb;
 
-		qsa = WILDFIRE_qsa(soft_qbb);
-		temp = qsa->qsa_qbb_pop[0].csr;
+			qsa = WILDFIRE_qsa(soft_qbb);
+			temp = qsa->qsa_qbb_pop[0].csr;
 #if 0
-	printk(KERN_ERR "QSA_QBB_POP_0 at base %p is 0x%lx\n", qsa, temp);
+			printk(KERN_ERR "QSA_QBB_POP_0 at base %p is 0x%lx\n", qsa, temp);
 #endif
-		wildfire_cpu_mask |= ((temp >> 0) & 0xf) << (soft_qbb << 2);
-		wildfire_mem_mask |= ((temp >> 4) & 0xf) << (soft_qbb << 2);
+			wildfire_cpu_mask |= ((temp >> 0) & 0xf) << (soft_qbb << 2);
+			wildfire_mem_mask |= ((temp >> 4) & 0xf) << (soft_qbb << 2);
 
-		temp = qsa->qsa_qbb_pop[1].csr;
+			temp = qsa->qsa_qbb_pop[1].csr;
 #if 0
-	printk(KERN_ERR "QSA_QBB_POP_1 at base %p is 0x%lx\n", qsa, temp);
+			printk(KERN_ERR "QSA_QBB_POP_1 at base %p is 0x%lx\n", qsa, temp);
 #endif
-		wildfire_iop_mask |= (1 << soft_qbb);
-		wildfire_ior_mask |= ((temp >> 4) & 0xf) << (soft_qbb << 2);
+			wildfire_iop_mask |= (1 << soft_qbb);
+			wildfire_ior_mask |= ((temp >> 4) & 0xf) << (soft_qbb << 2);
 
-		temp = qsa->qsa_qbb_id.csr;
+			temp = qsa->qsa_qbb_id.csr;
 #if 0
-	printk(KERN_ERR "QSA_QBB_ID at %p is 0x%lx\n", qsa, temp);
+			printk(KERN_ERR "QSA_QBB_ID at %p is 0x%lx\n", qsa, temp);
 #endif
-		if (temp & 0x20)
-		    wildfire_gp_mask |= (1 << soft_qbb);
 
-		/* Probe for PCA existence here. */
-		for (i = 0; i < WILDFIRE_PCA_PER_QBB; i++) {
-		    iop = WILDFIRE_iop(soft_qbb);
-		    ne = WILDFIRE_ne(soft_qbb, i);
-		    fe = WILDFIRE_fe(soft_qbb, i);
+			if (temp & 0x20)
+			{
+				wildfire_gp_mask |= (1 << soft_qbb);
+			}
 
-		    if ((iop->iop_hose[i].init.csr & 1) == 1 &&
-			((ne->ne_what_am_i.csr & 0xf00000300UL) == 0x100000300UL) &&
-			((fe->fe_what_am_i.csr & 0xf00000300UL) == 0x100000200UL))
-		    {
-		        wildfire_pca_mask |= 1 << ((soft_qbb << 2) + i);
-		    }
+			/* Probe for PCA existence here. */
+			for (i = 0; i < WILDFIRE_PCA_PER_QBB; i++)
+			{
+				iop = WILDFIRE_iop(soft_qbb);
+				ne = WILDFIRE_ne(soft_qbb, i);
+				fe = WILDFIRE_fe(soft_qbb, i);
+
+				if ((iop->iop_hose[i].init.csr & 1) == 1 &&
+					((ne->ne_what_am_i.csr & 0xf00000300UL) == 0x100000300UL) &&
+					((fe->fe_what_am_i.csr & 0xf00000300UL) == 0x100000200UL))
+				{
+					wildfire_pca_mask |= 1 << ((soft_qbb << 2) + i);
+				}
+			}
+
 		}
-
-	    }
 	}
+
 #if DEBUG_DUMP_CONFIG
 	wildfire_dump_hardware_config();
 #endif
@@ -312,11 +334,12 @@ wildfire_init_arch(void)
 	wildfire_hardware_probe();
 
 	/* Now init all the found QBBs. */
-	for (qbbno = 0; qbbno < WILDFIRE_MAX_QBB; qbbno++) {
+	for (qbbno = 0; qbbno < WILDFIRE_MAX_QBB; qbbno++)
+	{
 		wildfire_init_qbb(qbbno);
 	}
 
-	/* Normal direct PCI DMA mapping. */ 
+	/* Normal direct PCI DMA mapping. */
 	__direct_map_base = 0x40000000UL;
 	__direct_map_size = 0x80000000UL;
 }
@@ -332,7 +355,7 @@ wildfire_machine_check(unsigned long vector, unsigned long la_ptr)
 	mb();
 
 	process_mcheck_info(vector, la_ptr, "WILDFIRE",
-			    mcheck_expected(smp_processor_id()));
+						mcheck_expected(smp_processor_id()));
 }
 
 void
@@ -353,85 +376,98 @@ wildfire_pci_tbi(struct pci_controller *hose, dma_addr_t start, dma_addr_t end)
 
 static int
 mk_conf_addr(struct pci_bus *pbus, unsigned int device_fn, int where,
-	     unsigned long *pci_addr, unsigned char *type1)
+			 unsigned long *pci_addr, unsigned char *type1)
 {
 	struct pci_controller *hose = pbus->sysdata;
 	unsigned long addr;
 	u8 bus = pbus->number;
 
 	DBG_CFG(("mk_conf_addr(bus=%d ,device_fn=0x%x, where=0x%x, "
-		 "pci_addr=0x%p, type1=0x%p)\n",
-		 bus, device_fn, where, pci_addr, type1));
+			 "pci_addr=0x%p, type1=0x%p)\n",
+			 bus, device_fn, where, pci_addr, type1));
 
 	if (!pbus->parent) /* No parent means peer PCI bus. */
+	{
 		bus = 0;
+	}
+
 	*type1 = (bus != 0);
 
 	addr = (bus << 16) | (device_fn << 8) | where;
 	addr |= hose->config_space_base;
-		
+
 	*pci_addr = addr;
 	DBG_CFG(("mk_conf_addr: returning pci_addr 0x%lx\n", addr));
 	return 0;
 }
 
-static int 
+static int
 wildfire_read_config(struct pci_bus *bus, unsigned int devfn, int where,
-		     int size, u32 *value)
+					 int size, u32 *value)
 {
 	unsigned long addr;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, &addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
-	switch (size) {
-	case 1:
-		*value = __kernel_ldbu(*(vucp)addr);
-		break;
-	case 2:
-		*value = __kernel_ldwu(*(vusp)addr);
-		break;
-	case 4:
-		*value = *(vuip)addr;
-		break;
+	switch (size)
+	{
+		case 1:
+			*value = __kernel_ldbu(*(vucp)addr);
+			break;
+
+		case 2:
+			*value = __kernel_ldwu(*(vusp)addr);
+			break;
+
+		case 4:
+			*value = *(vuip)addr;
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static int 
+static int
 wildfire_write_config(struct pci_bus *bus, unsigned int devfn, int where,
-		      int size, u32 value)
+					  int size, u32 value)
 {
 	unsigned long addr;
 	unsigned char type1;
 
 	if (mk_conf_addr(bus, devfn, where, &addr, &type1))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
-	switch (size) {
-	case 1:
-		__kernel_stb(value, *(vucp)addr);
-		mb();
-		__kernel_ldbu(*(vucp)addr);
-		break;
-	case 2:
-		__kernel_stw(value, *(vusp)addr);
-		mb();
-		__kernel_ldwu(*(vusp)addr);
-		break;
-	case 4:
-		*(vuip)addr = value;
-		mb();
-		*(vuip)addr;
-		break;
+	switch (size)
+	{
+		case 1:
+			__kernel_stb(value, *(vucp)addr);
+			mb();
+			__kernel_ldbu(*(vucp)addr);
+			break;
+
+		case 2:
+			__kernel_stw(value, *(vusp)addr);
+			mb();
+			__kernel_ldwu(*(vusp)addr);
+			break;
+
+		case 4:
+			*(vuip)addr = value;
+			mb();
+			*(vuip)addr;
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
-struct pci_ops wildfire_pci_ops = 
+struct pci_ops wildfire_pci_ops =
 {
 	.read =		wildfire_read_config,
 	.write =	wildfire_write_config,
@@ -473,10 +509,10 @@ wildfire_dump_pci_regs(int qbbno, int hoseno)
 	int i;
 
 	printk(KERN_ERR "PCI registers for QBB %d hose %d (%p)\n",
-	       qbbno, hoseno, pci);
+		   qbbno, hoseno, pci);
 
 	printk(KERN_ERR " PCI_IO_ADDR_EXT: 0x%16lx\n",
-	       pci->pci_io_addr_ext.csr);
+		   pci->pci_io_addr_ext.csr);
 	printk(KERN_ERR " PCI_CTRL:        0x%16lx\n", pci->pci_ctrl.csr);
 	printk(KERN_ERR " PCI_ERR_SUM:     0x%16lx\n", pci->pci_err_sum.csr);
 	printk(KERN_ERR " PCI_ERR_ADDR:    0x%16lx\n", pci->pci_err_addr.csr);
@@ -485,13 +521,16 @@ wildfire_dump_pci_regs(int qbbno, int hoseno)
 	printk(KERN_ERR " PCI_SENT_INT:    0x%16lx\n", pci->pci_sent_int.csr);
 
 	printk(KERN_ERR " DMA window registers for QBB %d hose %d (%p)\n",
-	       qbbno, hoseno, pci);
-	for (i = 0; i < 4; i++) {
+		   qbbno, hoseno, pci);
+
+	for (i = 0; i < 4; i++)
+	{
 		printk(KERN_ERR "  window %d: 0x%16lx 0x%16lx 0x%16lx\n", i,
-		       pci->pci_window[i].wbase.csr,
-		       pci->pci_window[i].wmask.csr,
-		       pci->pci_window[i].tbase.csr);
+			   pci->pci_window[i].wbase.csr,
+			   pci->pci_window[i].wmask.csr,
+			   pci->pci_window[i].tbase.csr);
 	}
+
 	printk(KERN_ERR "\n");
 }
 
@@ -502,21 +541,23 @@ wildfire_dump_pca_regs(int qbbno, int pcano)
 	int i;
 
 	printk(KERN_ERR "PCA registers for QBB %d PCA %d (%p)\n",
-	       qbbno, pcano, pca);
+		   qbbno, pcano, pca);
 
 	printk(KERN_ERR " PCA_WHAT_AM_I: 0x%16lx\n", pca->pca_what_am_i.csr);
 	printk(KERN_ERR " PCA_ERR_SUM:   0x%16lx\n", pca->pca_err_sum.csr);
 	printk(KERN_ERR " PCA_PEND_INT:  0x%16lx\n", pca->pca_pend_int.csr);
 	printk(KERN_ERR " PCA_SENT_INT:  0x%16lx\n", pca->pca_sent_int.csr);
 	printk(KERN_ERR " PCA_STDIO_EL:  0x%16lx\n",
-	       pca->pca_stdio_edge_level.csr);
+		   pca->pca_stdio_edge_level.csr);
 
 	printk(KERN_ERR " PCA target registers for QBB %d PCA %d (%p)\n",
-	       qbbno, pcano, pca);
-	for (i = 0; i < 4; i++) {
-	  printk(KERN_ERR "  target %d: 0x%16lx 0x%16lx\n", i,
-		       pca->pca_int[i].target.csr,
-		       pca->pca_int[i].enable.csr);
+		   qbbno, pcano, pca);
+
+	for (i = 0; i < 4; i++)
+	{
+		printk(KERN_ERR "  target %d: 0x%16lx 0x%16lx\n", i,
+			   pca->pca_int[i].target.csr,
+			   pca->pca_int[i].enable.csr);
 	}
 
 	printk(KERN_ERR "\n");
@@ -536,11 +577,11 @@ wildfire_dump_qsa_regs(int qbbno)
 
 	for (i = 0; i < 5; i++)
 		printk(KERN_ERR " QSA_CONFIG_%d:    0x%16lx\n",
-		       i, qsa->qsa_config[i].csr);
+			   i, qsa->qsa_config[i].csr);
 
 	for (i = 0; i < 2; i++)
 		printk(KERN_ERR " QSA_QBB_POP_%d:   0x%16lx\n",
-		       i, qsa->qsa_qbb_pop[0].csr);
+			   i, qsa->qsa_qbb_pop[0].csr);
 
 	printk(KERN_ERR "\n");
 }
@@ -555,17 +596,17 @@ wildfire_dump_qsd_regs(int qbbno)
 	printk(KERN_ERR " QSD_WHAMI:         0x%16lx\n", qsd->qsd_whami.csr);
 	printk(KERN_ERR " QSD_REV:           0x%16lx\n", qsd->qsd_rev.csr);
 	printk(KERN_ERR " QSD_PORT_PRESENT:  0x%16lx\n",
-	       qsd->qsd_port_present.csr);
+		   qsd->qsd_port_present.csr);
 	printk(KERN_ERR " QSD_PORT_ACTUVE:   0x%16lx\n",
-	       qsd->qsd_port_active.csr);
+		   qsd->qsd_port_active.csr);
 	printk(KERN_ERR " QSD_FAULT_ENA:     0x%16lx\n",
-	       qsd->qsd_fault_ena.csr);
+		   qsd->qsd_fault_ena.csr);
 	printk(KERN_ERR " QSD_CPU_INT_ENA:   0x%16lx\n",
-	       qsd->qsd_cpu_int_ena.csr);
+		   qsd->qsd_cpu_int_ena.csr);
 	printk(KERN_ERR " QSD_MEM_CONFIG:    0x%16lx\n",
-	       qsd->qsd_mem_config.csr);
+		   qsd->qsd_mem_config.csr);
 	printk(KERN_ERR " QSD_ERR_SUM:       0x%16lx\n",
-	       qsd->qsd_err_sum.csr);
+		   qsd->qsd_err_sum.csr);
 
 	printk(KERN_ERR "\n");
 }
@@ -581,16 +622,17 @@ wildfire_dump_iop_regs(int qbbno)
 	printk(KERN_ERR " IOA_CONFIG:          0x%16lx\n", iop->ioa_config.csr);
 	printk(KERN_ERR " IOD_CONFIG:          0x%16lx\n", iop->iod_config.csr);
 	printk(KERN_ERR " IOP_SWITCH_CREDITS:  0x%16lx\n",
-	       iop->iop_switch_credits.csr);
+		   iop->iop_switch_credits.csr);
 	printk(KERN_ERR " IOP_HOSE_CREDITS:    0x%16lx\n",
-	       iop->iop_hose_credits.csr);
+		   iop->iop_hose_credits.csr);
 
-	for (i = 0; i < 4; i++) 
+	for (i = 0; i < 4; i++)
 		printk(KERN_ERR " IOP_HOSE_%d_INIT:     0x%16lx\n",
-		       i, iop->iop_hose[i].init.csr);
-	for (i = 0; i < 4; i++) 
+			   i, iop->iop_hose[i].init.csr);
+
+	for (i = 0; i < 4; i++)
 		printk(KERN_ERR " IOP_DEV_INT_TARGET_%d: 0x%16lx\n",
-		       i, iop->iop_dev_int[i].target.csr);
+			   i, iop->iop_dev_int[i].target.csr);
 
 	printk(KERN_ERR "\n");
 }
@@ -602,12 +644,13 @@ wildfire_dump_gp_regs(int qbbno)
 	int i;
 
 	printk(KERN_ERR "GP registers for QBB %d (%p)\n", qbbno, gp);
-	for (i = 0; i < 4; i++) 
+
+	for (i = 0; i < 4; i++)
 		printk(KERN_ERR " GPA_QBB_MAP_%d:     0x%16lx\n",
-		       i, gp->gpa_qbb_map[i].csr);
+			   i, gp->gpa_qbb_map[i].csr);
 
 	printk(KERN_ERR " GPA_MEM_POP_MAP:   0x%16lx\n",
-	       gp->gpa_mem_pop_map.csr);
+		   gp->gpa_mem_pop_map.csr);
 	printk(KERN_ERR " GPA_SCRATCH:       0x%16lx\n", gp->gpa_scratch.csr);
 	printk(KERN_ERR " GPA_DIAG:          0x%16lx\n", gp->gpa_diag.csr);
 	printk(KERN_ERR " GPA_CONFIG_0:      0x%16lx\n", gp->gpa_config_0.csr);
@@ -639,19 +682,31 @@ wildfire_dump_hardware_config(void)
 	printk(KERN_ERR " mem_mask:       0x%16lx\n", wildfire_mem_mask);
 
 	printk(" hard_qbb_map: ");
+
 	for (i = 0; i < WILDFIRE_MAX_QBB; i++)
-	    if (wildfire_hard_qbb_map[i] == QBB_MAP_EMPTY)
-		printk("--- ");
-	    else
-		printk("%3d ", wildfire_hard_qbb_map[i]);
+		if (wildfire_hard_qbb_map[i] == QBB_MAP_EMPTY)
+		{
+			printk("--- ");
+		}
+		else
+		{
+			printk("%3d ", wildfire_hard_qbb_map[i]);
+		}
+
 	printk("\n");
 
 	printk(" soft_qbb_map: ");
+
 	for (i = 0; i < WILDFIRE_MAX_QBB; i++)
-	    if (wildfire_soft_qbb_map[i] == QBB_MAP_EMPTY)
-		printk("--- ");
-	    else
-		printk("%3d ", wildfire_soft_qbb_map[i]);
+		if (wildfire_soft_qbb_map[i] == QBB_MAP_EMPTY)
+		{
+			printk("--- ");
+		}
+		else
+		{
+			printk("%3d ", wildfire_soft_qbb_map[i]);
+		}
+
 	printk("\n");
 }
 #endif /* DUMP_CONFIG */

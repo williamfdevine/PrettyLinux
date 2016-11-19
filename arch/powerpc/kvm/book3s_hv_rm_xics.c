@@ -35,22 +35,25 @@ int kvm_irq_bypass = 1;
 EXPORT_SYMBOL(kvm_irq_bypass);
 
 static void icp_rm_deliver_irq(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
-			    u32 new_irq);
+							   u32 new_irq);
 static int xics_opal_rm_set_server(unsigned int hw_irq, int server_cpu);
 
 /* -- ICS routines -- */
 static void ics_rm_check_resend(struct kvmppc_xics *xics,
-				struct kvmppc_ics *ics, struct kvmppc_icp *icp)
+								struct kvmppc_ics *ics, struct kvmppc_icp *icp)
 {
 	int i;
 
 	arch_spin_lock(&ics->lock);
 
-	for (i = 0; i < KVMPPC_XICS_IRQ_PER_ICS; i++) {
+	for (i = 0; i < KVMPPC_XICS_IRQ_PER_ICS; i++)
+	{
 		struct ics_irq_state *state = &ics->irq_state[i];
 
 		if (!state->resend)
+		{
 			continue;
+		}
 
 		arch_spin_unlock(&ics->lock);
 		icp_rm_deliver_irq(xics, icp, state->number);
@@ -89,24 +92,29 @@ static inline void icp_send_hcore_msg(int hcore, struct kvm_vcpu *vcpu) { }
  * Else, returns a CPU Id which has been reserved for use
  */
 static inline int grab_next_hostcore(int start,
-		struct kvmppc_host_rm_core *rm_core, int max, int action)
+									 struct kvmppc_host_rm_core *rm_core, int max, int action)
 {
 	bool success;
 	int core;
 	union kvmppc_rm_state old, new;
 
-	for (core = start + 1; core < max; core++)  {
+	for (core = start + 1; core < max; core++)
+	{
 		old = new = READ_ONCE(rm_core[core].rm_state);
 
 		if (!old.in_host || old.rm_action)
+		{
 			continue;
+		}
 
 		/* Try to grab this host core if not taken already. */
 		new.rm_action = action;
 
 		success = cmpxchg64(&rm_core[core].rm_state.raw,
-						old.raw, new.raw) == old.raw;
-		if (success) {
+							old.raw, new.raw) == old.raw;
+
+		if (success)
+		{
 			/*
 			 * Make sure that the store to the rm_action is made
 			 * visible before we return to caller (and the
@@ -128,14 +136,17 @@ static inline int find_available_hostcore(int action)
 	struct kvmppc_host_rm_core *rm_core = kvmppc_host_rm_ops_hv->rm_core;
 
 	core = grab_next_hostcore(my_core, rm_core, cpu_nr_cores(), action);
+
 	if (core == -1)
+	{
 		core = grab_next_hostcore(core, rm_core, my_core, action);
+	}
 
 	return core;
 }
 
 static void icp_rm_set_vcpu_irq(struct kvm_vcpu *vcpu,
-				struct kvm_vcpu *this_vcpu)
+								struct kvm_vcpu *this_vcpu)
 {
 	struct kvmppc_icp *this_icp = this_vcpu->arch.icp;
 	int cpu;
@@ -146,7 +157,8 @@ static void icp_rm_set_vcpu_irq(struct kvm_vcpu *vcpu,
 	set_bit(BOOK3S_IRQPRIO_EXTERNAL_LEVEL, &vcpu->arch.pending_exceptions);
 
 	/* Kick self ? Just set MER and return */
-	if (vcpu == this_vcpu) {
+	if (vcpu == this_vcpu)
+	{
 		mtspr(SPRN_LPCR, mfspr(SPRN_LPCR) | LPCR_MER);
 		return;
 	}
@@ -157,16 +169,26 @@ static void icp_rm_set_vcpu_irq(struct kvm_vcpu *vcpu,
 	 * if we can't find one, set up state to eventually return too hard.
 	 */
 	cpu = vcpu->arch.thread_cpu;
-	if (cpu < 0 || cpu >= nr_cpu_ids) {
+
+	if (cpu < 0 || cpu >= nr_cpu_ids)
+	{
 		hcore = -1;
+
 		if (kvmppc_host_rm_ops_hv && h_ipi_redirect)
+		{
 			hcore = find_available_hostcore(XICS_RM_KICK_VCPU);
-		if (hcore != -1) {
+		}
+
+		if (hcore != -1)
+		{
 			icp_send_hcore_msg(hcore, vcpu);
-		} else {
+		}
+		else
+		{
 			this_icp->rm_action |= XICS_RM_KICK_VCPU;
 			this_icp->rm_kick_target = vcpu;
 		}
+
 		return;
 	}
 
@@ -178,13 +200,13 @@ static void icp_rm_clr_vcpu_irq(struct kvm_vcpu *vcpu)
 {
 	/* Note: Only called on self ! */
 	clear_bit(BOOK3S_IRQPRIO_EXTERNAL_LEVEL,
-		  &vcpu->arch.pending_exceptions);
+			  &vcpu->arch.pending_exceptions);
 	mtspr(SPRN_LPCR, mfspr(SPRN_LPCR) & ~LPCR_MER);
 }
 
 static inline bool icp_rm_try_update(struct kvmppc_icp *icp,
-				     union kvmppc_icp_state old,
-				     union kvmppc_icp_state new)
+									 union kvmppc_icp_state old,
+									 union kvmppc_icp_state new)
 {
 	struct kvm_vcpu *this_vcpu = local_paca->kvm_hstate.kvm_vcpu;
 	bool success;
@@ -194,8 +216,11 @@ static inline bool icp_rm_try_update(struct kvmppc_icp *icp,
 
 	/* Attempt atomic update */
 	success = cmpxchg64(&icp->state.raw, old.raw, new.raw) == old.raw;
+
 	if (!success)
+	{
 		goto bail;
+	}
 
 	/*
 	 * Check for output state update
@@ -213,65 +238,78 @@ static inline bool icp_rm_try_update(struct kvmppc_icp *icp,
 	 * interrupt is still pending.
 	 */
 	if (new.out_ee)
+	{
 		icp_rm_set_vcpu_irq(icp->vcpu, this_vcpu);
+	}
 
 	/* Expose the state change for debug purposes */
 	this_vcpu->arch.icp->rm_dbgstate = new;
 	this_vcpu->arch.icp->rm_dbgtgt = icp->vcpu;
 
- bail:
+bail:
 	return success;
 }
 
 static inline int check_too_hard(struct kvmppc_xics *xics,
-				 struct kvmppc_icp *icp)
+								 struct kvmppc_icp *icp)
 {
 	return (xics->real_mode_dbg || icp->rm_action) ? H_TOO_HARD : H_SUCCESS;
 }
 
 static void icp_rm_check_resend(struct kvmppc_xics *xics,
-			     struct kvmppc_icp *icp)
+								struct kvmppc_icp *icp)
 {
 	u32 icsid;
 
 	/* Order this load with the test for need_resend in the caller */
 	smp_rmb();
-	for_each_set_bit(icsid, icp->resend_map, xics->max_icsid + 1) {
+	for_each_set_bit(icsid, icp->resend_map, xics->max_icsid + 1)
+	{
 		struct kvmppc_ics *ics = xics->ics[icsid];
 
 		if (!test_and_clear_bit(icsid, icp->resend_map))
+		{
 			continue;
+		}
+
 		if (!ics)
+		{
 			continue;
+		}
+
 		ics_rm_check_resend(xics, ics, icp);
 	}
 }
 
 static bool icp_rm_try_to_deliver(struct kvmppc_icp *icp, u32 irq, u8 priority,
-			       u32 *reject)
+								  u32 *reject)
 {
 	union kvmppc_icp_state old_state, new_state;
 	bool success;
 
-	do {
+	do
+	{
 		old_state = new_state = READ_ONCE(icp->state);
 
 		*reject = 0;
 
 		/* See if we can deliver */
 		success = new_state.cppr > priority &&
-			new_state.mfrr > priority &&
-			new_state.pending_pri > priority;
+				  new_state.mfrr > priority &&
+				  new_state.pending_pri > priority;
 
 		/*
 		 * If we can, check for a rejection and perform the
 		 * delivery
 		 */
-		if (success) {
+		if (success)
+		{
 			*reject = new_state.xisr;
 			new_state.xisr = irq;
 			new_state.pending_pri = priority;
-		} else {
+		}
+		else
+		{
 			/*
 			 * If we failed to deliver we set need_resend
 			 * so a subsequent CPPR state change causes us
@@ -280,13 +318,14 @@ static bool icp_rm_try_to_deliver(struct kvmppc_icp *icp, u32 irq, u8 priority,
 			new_state.need_resend = true;
 		}
 
-	} while (!icp_rm_try_update(icp, old_state, new_state));
+	}
+	while (!icp_rm_try_update(icp, old_state, new_state));
 
 	return success;
 }
 
 static void icp_rm_deliver_irq(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
-			    u32 new_irq)
+							   u32 new_irq)
 {
 	struct ics_irq_state *state;
 	struct kvmppc_ics *ics;
@@ -308,23 +347,29 @@ static void icp_rm_deliver_irq(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
 	 * thus we may need to re-do the ICP lookup as well
 	 */
 
- again:
+again:
 	/* Get the ICS state and lock it */
 	ics = kvmppc_xics_find_ics(xics, new_irq, &src);
-	if (!ics) {
+
+	if (!ics)
+	{
 		/* Unsafe increment, but this does not need to be accurate */
 		xics->err_noics++;
 		return;
 	}
+
 	state = &ics->irq_state[src];
 
 	/* Get a lock on the ICS */
 	arch_spin_lock(&ics->lock);
 
 	/* Get our server */
-	if (!icp || state->server != icp->server_num) {
+	if (!icp || state->server != icp->server_num)
+	{
 		icp = kvmppc_xics_find_server(xics->kvm, state->server);
-		if (!icp) {
+
+		if (!icp)
+		{
 			/* Unsafe increment again*/
 			xics->err_noicp++;
 			goto out;
@@ -349,7 +394,8 @@ static void icp_rm_deliver_irq(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
 	 * implementation will differ from PAPR and not lose such
 	 * interrupts.
 	 */
-	if (state->priority == MASKED) {
+	if (state->priority == MASKED)
+	{
 		state->masked_pending = 1;
 		goto out;
 	}
@@ -370,16 +416,20 @@ static void icp_rm_deliver_irq(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
 	 * processor may well have already consumed & completed it, and thus
 	 * the rejected interrupt might actually be already acceptable.
 	 */
-	if (icp_rm_try_to_deliver(icp, new_irq, state->priority, &reject)) {
+	if (icp_rm_try_to_deliver(icp, new_irq, state->priority, &reject))
+	{
 		/*
 		 * Delivery was successful, did we reject somebody else ?
 		 */
-		if (reject && reject != XICS_IPI) {
+		if (reject && reject != XICS_IPI)
+		{
 			arch_spin_unlock(&ics->lock);
 			new_irq = reject;
 			goto again;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * We failed to deliver the interrupt we need to set the
 		 * resend map bit and mark the ICS state as needing a resend
@@ -394,17 +444,20 @@ static void icp_rm_deliver_irq(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
 		 * retry
 		 */
 		smp_mb();
-		if (!icp->state.need_resend) {
+
+		if (!icp->state.need_resend)
+		{
 			arch_spin_unlock(&ics->lock);
 			goto again;
 		}
 	}
- out:
+
+out:
 	arch_spin_unlock(&ics->lock);
 }
 
 static void icp_rm_down_cppr(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
-			     u8 new_cppr)
+							 u8 new_cppr)
 {
 	union kvmppc_icp_state old_state, new_state;
 	bool resend;
@@ -438,7 +491,8 @@ static void icp_rm_down_cppr(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
 	 * a H_TOO_HARD return and the whole transaction will be handled
 	 * in virtual mode.
 	 */
-	do {
+	do
+	{
 		old_state = new_state = READ_ONCE(icp->state);
 
 		/* Down_CPPR */
@@ -454,7 +508,8 @@ static void icp_rm_down_cppr(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
 		 * it's either more favored than us or non existent
 		 */
 		if (new_state.mfrr < new_cppr &&
-		    new_state.mfrr <= new_state.pending_pri) {
+			new_state.mfrr <= new_state.pending_pri)
+		{
 			new_state.pending_pri = new_state.mfrr;
 			new_state.xisr = XICS_IPI;
 		}
@@ -463,14 +518,16 @@ static void icp_rm_down_cppr(struct kvmppc_xics *xics, struct kvmppc_icp *icp,
 		resend = new_state.need_resend;
 		new_state.need_resend = 0;
 
-	} while (!icp_rm_try_update(icp, old_state, new_state));
+	}
+	while (!icp_rm_try_update(icp, old_state, new_state));
 
 	/*
 	 * Now handle resend checks. Those are asynchronous to the ICP
 	 * state update in HW (ie bus transactions) so we can handle them
 	 * separately here as well.
 	 */
-	if (resend) {
+	if (resend)
+	{
 		icp->n_check_resend++;
 		icp_rm_check_resend(xics, icp);
 	}
@@ -485,7 +542,9 @@ unsigned long kvmppc_rm_h_xirr(struct kvm_vcpu *vcpu)
 	u32 xirr;
 
 	if (!xics || !xics->real_mode)
+	{
 		return H_TOO_HARD;
+	}
 
 	/* First clear the interrupt */
 	icp_rm_clr_vcpu_irq(icp->vcpu);
@@ -497,17 +556,23 @@ unsigned long kvmppc_rm_h_xirr(struct kvm_vcpu *vcpu)
 	 * current CPPR, then clear the XISR & set CPPR to the
 	 * pending priority
 	 */
-	do {
+	do
+	{
 		old_state = new_state = READ_ONCE(icp->state);
 
 		xirr = old_state.xisr | (((u32)old_state.cppr) << 24);
+
 		if (!old_state.xisr)
+		{
 			break;
+		}
+
 		new_state.cppr = new_state.pending_pri;
 		new_state.pending_pri = 0xff;
 		new_state.xisr = 0;
 
-	} while (!icp_rm_try_update(icp, old_state, new_state));
+	}
+	while (!icp_rm_try_update(icp, old_state, new_state));
 
 	/* Return the result in GPR4 */
 	vcpu->arch.gpr[4] = xirr;
@@ -516,7 +581,7 @@ unsigned long kvmppc_rm_h_xirr(struct kvm_vcpu *vcpu)
 }
 
 int kvmppc_rm_h_ipi(struct kvm_vcpu *vcpu, unsigned long server,
-		    unsigned long mfrr)
+					unsigned long mfrr)
 {
 	union kvmppc_icp_state old_state, new_state;
 	struct kvmppc_xics *xics = vcpu->kvm->arch.xics;
@@ -526,15 +591,25 @@ int kvmppc_rm_h_ipi(struct kvm_vcpu *vcpu, unsigned long server,
 	bool local;
 
 	if (!xics || !xics->real_mode)
+	{
 		return H_TOO_HARD;
+	}
 
 	local = this_icp->server_num == server;
+
 	if (local)
+	{
 		icp = this_icp;
+	}
 	else
+	{
 		icp = kvmppc_xics_find_server(vcpu->kvm, server);
+	}
+
 	if (!icp)
+	{
 		return H_PARAMETER;
+	}
 
 	/*
 	 * ICP state: Set_MFRR
@@ -563,7 +638,8 @@ int kvmppc_rm_h_ipi(struct kvm_vcpu *vcpu, unsigned long server,
 	 * we don't have that state, so we simply trigger a resend
 	 * whenever the MFRR is made less favored.
 	 */
-	do {
+	do
+	{
 		old_state = new_state = READ_ONCE(icp->state);
 
 		/* Set_MFRR */
@@ -572,29 +648,36 @@ int kvmppc_rm_h_ipi(struct kvm_vcpu *vcpu, unsigned long server,
 		/* Check_IPI */
 		reject = 0;
 		resend = false;
-		if (mfrr < new_state.cppr) {
+
+		if (mfrr < new_state.cppr)
+		{
 			/* Reject a pending interrupt if not an IPI */
-			if (mfrr <= new_state.pending_pri) {
+			if (mfrr <= new_state.pending_pri)
+			{
 				reject = new_state.xisr;
 				new_state.pending_pri = mfrr;
 				new_state.xisr = XICS_IPI;
 			}
 		}
 
-		if (mfrr > old_state.mfrr) {
+		if (mfrr > old_state.mfrr)
+		{
 			resend = new_state.need_resend;
 			new_state.need_resend = 0;
 		}
-	} while (!icp_rm_try_update(icp, old_state, new_state));
+	}
+	while (!icp_rm_try_update(icp, old_state, new_state));
 
 	/* Handle reject in real mode */
-	if (reject && reject != XICS_IPI) {
+	if (reject && reject != XICS_IPI)
+	{
 		this_icp->n_reject++;
 		icp_rm_deliver_irq(xics, icp, reject);
 	}
 
 	/* Handle resends in real mode */
-	if (resend) {
+	if (resend)
+	{
 		this_icp->n_check_resend++;
 		icp_rm_check_resend(xics, icp);
 	}
@@ -610,7 +693,9 @@ int kvmppc_rm_h_cppr(struct kvm_vcpu *vcpu, unsigned long cppr)
 	u32 reject;
 
 	if (!xics || !xics->real_mode)
+	{
 		return H_TOO_HARD;
+	}
 
 	/*
 	 * ICP State: Set_CPPR
@@ -619,11 +704,15 @@ int kvmppc_rm_h_cppr(struct kvm_vcpu *vcpu, unsigned long cppr)
 	 * value outside of the transaction as the CPPR is only
 	 * ever changed by the processor on itself
 	 */
-	if (cppr > icp->state.cppr) {
+	if (cppr > icp->state.cppr)
+	{
 		icp_rm_down_cppr(xics, icp, cppr);
 		goto bail;
-	} else if (cppr == icp->state.cppr)
+	}
+	else if (cppr == icp->state.cppr)
+	{
 		return H_SUCCESS;
+	}
 
 	/*
 	 * ICP State: Up_CPPR
@@ -638,29 +727,34 @@ int kvmppc_rm_h_cppr(struct kvm_vcpu *vcpu, unsigned long cppr)
 	 */
 	icp_rm_clr_vcpu_irq(icp->vcpu);
 
-	do {
+	do
+	{
 		old_state = new_state = READ_ONCE(icp->state);
 
 		reject = 0;
 		new_state.cppr = cppr;
 
-		if (cppr <= new_state.pending_pri) {
+		if (cppr <= new_state.pending_pri)
+		{
 			reject = new_state.xisr;
 			new_state.xisr = 0;
 			new_state.pending_pri = 0xff;
 		}
 
-	} while (!icp_rm_try_update(icp, old_state, new_state));
+	}
+	while (!icp_rm_try_update(icp, old_state, new_state));
 
 	/*
 	 * Check for rejects. They are handled by doing a new delivery
 	 * attempt (see comments in icp_rm_deliver_irq).
 	 */
-	if (reject && reject != XICS_IPI) {
+	if (reject && reject != XICS_IPI)
+	{
 		icp->n_reject++;
 		icp_rm_deliver_irq(xics, icp, reject);
 	}
- bail:
+
+bail:
 	return check_too_hard(xics, icp);
 }
 
@@ -674,7 +768,9 @@ int kvmppc_rm_h_eoi(struct kvm_vcpu *vcpu, unsigned long xirr)
 	u16 src;
 
 	if (!xics || !xics->real_mode)
+	{
 		return H_TOO_HARD;
+	}
 
 	/*
 	 * ICP State: EOI
@@ -694,7 +790,10 @@ int kvmppc_rm_h_eoi(struct kvm_vcpu *vcpu, unsigned long xirr)
 
 	/* IPIs have no EOI */
 	if (irq == XICS_IPI)
+	{
 		goto bail;
+	}
+
 	/*
 	 * EOI handling: If the interrupt is still asserted, we need to
 	 * resend it. We can take a lockless "peek" at the ICS state here.
@@ -702,36 +801,49 @@ int kvmppc_rm_h_eoi(struct kvm_vcpu *vcpu, unsigned long xirr)
 	 * "Message" interrupts will never have "asserted" set
 	 */
 	ics = kvmppc_xics_find_ics(xics, irq, &src);
+
 	if (!ics)
+	{
 		goto bail;
+	}
+
 	state = &ics->irq_state[src];
 
 	/* Still asserted, resend it */
-	if (state->asserted) {
+	if (state->asserted)
+	{
 		icp->n_reject++;
 		icp_rm_deliver_irq(xics, icp, irq);
 	}
 
-	if (!hlist_empty(&vcpu->kvm->irq_ack_notifier_list)) {
+	if (!hlist_empty(&vcpu->kvm->irq_ack_notifier_list))
+	{
 		icp->rm_action |= XICS_RM_NOTIFY_EOI;
 		icp->rm_eoied_irq = irq;
 	}
 
-	if (state->host_irq) {
+	if (state->host_irq)
+	{
 		++vcpu->stat.pthru_all;
-		if (state->intr_cpu != -1) {
+
+		if (state->intr_cpu != -1)
+		{
 			int pcpu = raw_smp_processor_id();
 
 			pcpu = cpu_first_thread_sibling(pcpu);
 			++vcpu->stat.pthru_host;
-			if (state->intr_cpu != pcpu) {
+
+			if (state->intr_cpu != pcpu)
+			{
 				++vcpu->stat.pthru_bad_aff;
 				xics_opal_rm_set_server(state->host_irq, pcpu);
 			}
+
 			state->intr_cpu = -1;
 		}
 	}
- bail:
+
+bail:
 	return check_too_hard(xics, icp);
 }
 
@@ -745,7 +857,9 @@ static void icp_eoi(struct irq_chip *c, u32 hwirq, u32 xirr)
 	rc = pnv_opal_pci_msi_eoi(c, hwirq);
 
 	if (rc)
+	{
 		eoi_rc = rc;
+	}
 
 	iosync();
 
@@ -777,10 +891,12 @@ static inline void this_cpu_inc_rm(unsigned int __percpu *addr)
 	raddr = per_cpu_ptr(addr, cpu);
 	l = (unsigned long)raddr;
 
-	if (REGION_ID(l) == VMALLOC_REGION_ID) {
+	if (REGION_ID(l) == VMALLOC_REGION_ID)
+	{
 		l = vmalloc_to_phys(raddr);
 		raddr = (unsigned int *)l;
 	}
+
 	++*raddr;
 }
 
@@ -809,9 +925,9 @@ static void kvmppc_rm_handle_irq_desc(struct irq_desc *desc)
 }
 
 long kvmppc_deliver_irq_passthru(struct kvm_vcpu *vcpu,
-				 u32 xirr,
-				 struct kvmppc_irq_map *irq_map,
-				 struct kvmppc_passthru_irqmap *pimap)
+								 u32 xirr,
+								 struct kvmppc_irq_map *irq_map,
+								 struct kvmppc_passthru_irqmap *pimap)
 {
 	struct kvmppc_xics *xics;
 	struct kvmppc_icp *icp;
@@ -828,9 +944,13 @@ long kvmppc_deliver_irq_passthru(struct kvm_vcpu *vcpu,
 	icp_eoi(irq_desc_get_chip(irq_map->desc), irq_map->r_hwirq, xirr);
 
 	if (check_too_hard(xics, icp) == H_TOO_HARD)
+	{
 		return 2;
+	}
 	else
+	{
 		return -2;
+	}
 }
 
 /*  --- Non-real mode XICS-related built-in routines ---  */
@@ -840,13 +960,15 @@ long kvmppc_deliver_irq_passthru(struct kvm_vcpu *vcpu,
  */
 static void rm_host_ipi_action(int action, void *data)
 {
-	switch (action) {
-	case XICS_RM_KICK_VCPU:
-		kvmppc_host_rm_ops_hv->vcpu_kick(data);
-		break;
-	default:
-		WARN(1, "Unexpected rm_action=%d data=%p\n", action, data);
-		break;
+	switch (action)
+	{
+		case XICS_RM_KICK_VCPU:
+			kvmppc_host_rm_ops_hv->vcpu_kick(data);
+			break;
+
+		default:
+			WARN(1, "Unexpected rm_action=%d data=%p\n", action, data);
+			break;
 	}
 
 }
@@ -860,9 +982,10 @@ void kvmppc_xics_ipi_action(void)
 	core = cpu >> threads_shift;
 	rm_corep = &kvmppc_host_rm_ops_hv->rm_core[core];
 
-	if (rm_corep->rm_data) {
+	if (rm_corep->rm_data)
+	{
 		rm_host_ipi_action(rm_corep->rm_state.rm_action,
-							rm_corep->rm_data);
+						   rm_corep->rm_data);
 		/* Order these stores against the real mode KVM */
 		rm_corep->rm_data = NULL;
 		smp_wmb();

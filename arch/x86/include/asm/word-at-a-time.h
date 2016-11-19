@@ -10,7 +10,8 @@
  * bit count instruction, that might be better than the multiply
  * and shift, for example.
  */
-struct word_at_a_time {
+struct word_at_a_time
+{
 	const unsigned long one_bits, high_bits;
 };
 
@@ -26,7 +27,7 @@ struct word_at_a_time {
  */
 static inline long count_masked_bytes(unsigned long mask)
 {
-	return mask*0x0001020304050608ul >> 56;
+	return mask * 0x0001020304050608ul >> 56;
 }
 
 #else	/* 32-bit case */
@@ -35,7 +36,7 @@ static inline long count_masked_bytes(unsigned long mask)
 static inline long count_masked_bytes(long mask)
 {
 	/* (000000 0000ff 00ffff ffffff) -> ( 1 1 2 3 ) */
-	long a = (0x0ff0001+mask) >> 23;
+	long a = (0x0ff0001 + mask) >> 23;
 	/* Fix the 1 for 00 case */
 	return a & mask;
 }
@@ -95,10 +96,10 @@ static inline unsigned long load_unaligned_zeropad(const void *addr)
 		"jmp 2b\n"
 		".previous\n"
 		_ASM_EXTABLE(1b, 3b)
-		:"=&r" (ret),"=&c" (dummy)
+		:"=&r" (ret), "=&c" (dummy)
 		:"m" (*(unsigned long *)addr),
-		 "i" (-sizeof(unsigned long)),
-		 "i" (sizeof(unsigned long)-1));
+		"i" (-sizeof(unsigned long)),
+		"i" (sizeof(unsigned long)-1));
 	return ret;
 }
 

@@ -32,15 +32,16 @@ static unsigned int vdso_pages;
 static struct page **vdso_pagelist;
 
 #ifdef CONFIG_COMPAT
-static unsigned int vdso32_pages;
-static struct page **vdso32_pagelist;
+	static unsigned int vdso32_pages;
+	static struct page **vdso32_pagelist;
 #endif
 static int vdso_ready;
 
 /*
  * The vdso data page.
  */
-static union {
+static union
+{
 	struct vdso_data	data;
 	u8			page[PAGE_SIZE];
 } vdso_data_store __page_aligned_data;
@@ -56,11 +57,14 @@ static struct page **vdso_setup(void *vdso_kbase, unsigned int pages)
 
 	pagelist = kzalloc(sizeof(struct page *) * (pages + 1), GFP_KERNEL);
 	BUG_ON(pagelist == NULL);
-	for (i = 0; i < pages - 1; i++) {
-		struct page *pg = virt_to_page(vdso_kbase + i*PAGE_SIZE);
+
+	for (i = 0; i < pages - 1; i++)
+	{
+		struct page *pg = virt_to_page(vdso_kbase + i * PAGE_SIZE);
 		ClearPageReserved(pg);
 		pagelist[i] = pg;
 	}
+
 	pagelist[pages - 1] = virt_to_page(vdso_data);
 	pagelist[pages] = NULL;
 
@@ -75,7 +79,8 @@ static int __init vdso_init(void)
 	 * We can disable vDSO support generally, but we need to retain
 	 * one page to support the two-bundle (16-byte) rt_sigreturn path.
 	 */
-	if (!vdso_enabled) {
+	if (!vdso_enabled)
+	{
 		size_t offset = (unsigned long)&__vdso_rt_sigreturn;
 		static struct page *sigret_page;
 		sigret_page = alloc_page(GFP_KERNEL | __GFP_ZERO);
@@ -84,7 +89,7 @@ static int __init vdso_init(void)
 		vdso_pages = 1;
 		BUG_ON(offset >= PAGE_SIZE);
 		memcpy(page_address(sigret_page) + offset,
-		       vdso_start + offset, 16);
+			   vdso_start + offset, 16);
 #ifdef CONFIG_COMPAT
 		vdso32_pages = vdso_pages;
 		vdso32_pagelist = vdso_pagelist;
@@ -113,10 +118,17 @@ arch_initcall(vdso_init);
 const char *arch_vma_name(struct vm_area_struct *vma)
 {
 	if (vma->vm_mm && vma->vm_start == VDSO_BASE)
+	{
 		return "[vdso]";
+	}
+
 #ifndef __tilegx__
+
 	if (vma->vm_start == MEM_USER_INTRPT)
+	{
 		return "[intrpt]";
+	}
+
 #endif
 	return NULL;
 }
@@ -130,17 +142,22 @@ int setup_vdso_pages(void)
 	int retval = 0;
 
 	if (!vdso_ready)
+	{
 		return 0;
+	}
 
 	mm->context.vdso_base = 0;
 
 	pagelist = vdso_pagelist;
 	pages = vdso_pages;
 #ifdef CONFIG_COMPAT
-	if (is_compat_task()) {
+
+	if (is_compat_task())
+	{
 		pagelist = vdso32_pagelist;
 		pages = vdso32_pages;
 	}
+
 #endif
 
 	/*
@@ -148,13 +165,17 @@ int setup_vdso_pages(void)
 	 * process.
 	 */
 	if (pages == 0)
+	{
 		return 0;
+	}
 
 	vdso_base = get_unmapped_area(NULL, vdso_base,
-				      (pages << PAGE_SHIFT) +
-				      ((VDSO_ALIGNMENT - 1) & PAGE_MASK),
-				      0, 0);
-	if (IS_ERR_VALUE(vdso_base)) {
+								  (pages << PAGE_SHIFT) +
+								  ((VDSO_ALIGNMENT - 1) & PAGE_MASK),
+								  0, 0);
+
+	if (IS_ERR_VALUE(vdso_base))
+	{
 		retval = vdso_base;
 		return retval;
 	}
@@ -180,12 +201,15 @@ int setup_vdso_pages(void)
 	 * pages though
 	 */
 	retval = install_special_mapping(mm, vdso_base,
-					 pages << PAGE_SHIFT,
-					 VM_READ|VM_EXEC |
-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
-					 pagelist);
+									 pages << PAGE_SHIFT,
+									 VM_READ | VM_EXEC |
+									 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+									 pagelist);
+
 	if (retval)
+	{
 		mm->context.vdso_base = 0;
+	}
 
 	return retval;
 }

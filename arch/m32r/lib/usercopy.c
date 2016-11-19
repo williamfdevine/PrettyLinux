@@ -15,8 +15,12 @@ unsigned long
 __generic_copy_to_user(void __user *to, const void *from, unsigned long n)
 {
 	prefetch(from);
+
 	if (access_ok(VERIFY_WRITE, to, n))
-		__copy_user(to,from,n);
+	{
+		__copy_user(to, from, n);
+	}
+
 	return n;
 }
 
@@ -24,10 +28,16 @@ unsigned long
 __generic_copy_from_user(void *to, const void __user *from, unsigned long n)
 {
 	prefetchw(to);
+
 	if (access_ok(VERIFY_READ, from, n))
-		__copy_user_zeroing(to,from,n);
+	{
+		__copy_user_zeroing(to, from, n);
+	}
 	else
+	{
 		memset(to, 0, n);
+	}
+
 	return n;
 }
 
@@ -39,73 +49,73 @@ __generic_copy_from_user(void *to, const void __user *from, unsigned long n)
 #ifdef CONFIG_ISA_DUAL_ISSUE
 
 #define __do_strncpy_from_user(dst,src,count,res)			\
-do {									\
-	int __d0, __d1, __d2;						\
-	__asm__ __volatile__(						\
-		"	beqz	%1, 2f\n"				\
-		"	.fillinsn\n"					\
-		"0:	ldb	r14, @%3    ||	addi	%3, #1\n"	\
-		"	stb	r14, @%4    ||	addi	%4, #1\n"	\
-		"	beqz	r14, 1f\n"				\
-		"	addi	%1, #-1\n"				\
-		"	bnez	%1, 0b\n"				\
-		"	.fillinsn\n"					\
-		"1:	sub	%0, %1\n"				\
-		"	.fillinsn\n"					\
-		"2:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"3:	seth	r14, #high(2b)\n"			\
-		"	or3	r14, r14, #low(2b)\n"			\
-		"	jmp	r14	    ||	ldi	%0, #%5\n"	\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 0b,3b\n"					\
-		".previous"						\
-		: "=&r"(res), "=&r"(count), "=&r" (__d0), "=&r" (__d1),	\
-		  "=&r" (__d2)						\
-		: "i"(-EFAULT), "0"(count), "1"(count), "3"(src), 	\
-		  "4"(dst)						\
-		: "r14", "cbit", "memory");				\
-} while (0)
+	do {									\
+		int __d0, __d1, __d2;						\
+		__asm__ __volatile__(						\
+				"	beqz	%1, 2f\n"				\
+				"	.fillinsn\n"					\
+				"0:	ldb	r14, @%3    ||	addi	%3, #1\n"	\
+				"	stb	r14, @%4    ||	addi	%4, #1\n"	\
+				"	beqz	r14, 1f\n"				\
+				"	addi	%1, #-1\n"				\
+				"	bnez	%1, 0b\n"				\
+				"	.fillinsn\n"					\
+				"1:	sub	%0, %1\n"				\
+				"	.fillinsn\n"					\
+				"2:\n"							\
+				".section .fixup,\"ax\"\n"				\
+				"	.balign 4\n"					\
+				"3:	seth	r14, #high(2b)\n"			\
+				"	or3	r14, r14, #low(2b)\n"			\
+				"	jmp	r14	    ||	ldi	%0, #%5\n"	\
+				".previous\n"						\
+				".section __ex_table,\"a\"\n"				\
+				"	.balign 4\n"					\
+				"	.long 0b,3b\n"					\
+				".previous"						\
+				: "=&r"(res), "=&r"(count), "=&r" (__d0), "=&r" (__d1),	\
+				"=&r" (__d2)						\
+				: "i"(-EFAULT), "0"(count), "1"(count), "3"(src), 	\
+				"4"(dst)						\
+				: "r14", "cbit", "memory");				\
+	} while (0)
 
 #else /* not CONFIG_ISA_DUAL_ISSUE */
 
 #define __do_strncpy_from_user(dst,src,count,res)			\
-do {									\
-	int __d0, __d1, __d2;						\
-	__asm__ __volatile__(						\
-		"	beqz	%1, 2f\n"				\
-		"	.fillinsn\n"					\
-		"0:	ldb	r14, @%3\n"				\
-		"	stb	r14, @%4\n"				\
-		"	addi	%3, #1\n"				\
-		"	addi	%4, #1\n"				\
-		"	beqz	r14, 1f\n"				\
-		"	addi	%1, #-1\n"				\
-		"	bnez	%1, 0b\n"				\
-		"	.fillinsn\n"					\
-		"1:	sub	%0, %1\n"				\
-		"	.fillinsn\n"					\
-		"2:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"3:	ldi	%0, #%5\n"				\
-		"	seth	r14, #high(2b)\n"			\
-		"	or3	r14, r14, #low(2b)\n"			\
-		"	jmp	r14\n"					\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 0b,3b\n"					\
-		".previous"						\
-		: "=&r"(res), "=&r"(count), "=&r" (__d0), "=&r" (__d1),	\
-		  "=&r" (__d2)						\
-		: "i"(-EFAULT), "0"(count), "1"(count), "3"(src),	\
-		  "4"(dst)						\
-		: "r14", "cbit", "memory");				\
-} while (0)
+	do {									\
+		int __d0, __d1, __d2;						\
+		__asm__ __volatile__(						\
+				"	beqz	%1, 2f\n"				\
+				"	.fillinsn\n"					\
+				"0:	ldb	r14, @%3\n"				\
+				"	stb	r14, @%4\n"				\
+				"	addi	%3, #1\n"				\
+				"	addi	%4, #1\n"				\
+				"	beqz	r14, 1f\n"				\
+				"	addi	%1, #-1\n"				\
+				"	bnez	%1, 0b\n"				\
+				"	.fillinsn\n"					\
+				"1:	sub	%0, %1\n"				\
+				"	.fillinsn\n"					\
+				"2:\n"							\
+				".section .fixup,\"ax\"\n"				\
+				"	.balign 4\n"					\
+				"3:	ldi	%0, #%5\n"				\
+				"	seth	r14, #high(2b)\n"			\
+				"	or3	r14, r14, #low(2b)\n"			\
+				"	jmp	r14\n"					\
+				".previous\n"						\
+				".section __ex_table,\"a\"\n"				\
+				"	.balign 4\n"					\
+				"	.long 0b,3b\n"					\
+				".previous"						\
+				: "=&r"(res), "=&r"(count), "=&r" (__d0), "=&r" (__d1),	\
+				"=&r" (__d2)						\
+				: "i"(-EFAULT), "0"(count), "1"(count), "3"(src),	\
+				"4"(dst)						\
+				: "r14", "cbit", "memory");				\
+	} while (0)
 
 #endif /* CONFIG_ISA_DUAL_ISSUE */
 
@@ -121,8 +131,12 @@ long
 strncpy_from_user(char *dst, const char __user *src, long count)
 {
 	long res = -EFAULT;
+
 	if (access_ok(VERIFY_READ, src, 1))
+	{
 		__do_strncpy_from_user(dst, src, count, res);
+	}
+
 	return res;
 }
 
@@ -134,89 +148,89 @@ strncpy_from_user(char *dst, const char __user *src, long count)
 #ifdef CONFIG_ISA_DUAL_ISSUE
 
 #define __do_clear_user(addr,size)					\
-do {									\
-	int __dst, __c;							\
-  	__asm__ __volatile__(						\
-		"	beqz	%1, 9f\n"				\
-		"	and3	r14, %0, #3\n"				\
-		"	bnez	r14, 2f\n"				\
-		"	and3	r14, %1, #3\n"				\
-		"	bnez	r14, 2f\n"				\
-		"	and3	%1, %1, #3\n"				\
-		"	beqz	%2, 2f\n"				\
-		"	addi	%0, #-4\n"				\
-		"	.fillinsn\n"					\
-		"0:	; word clear \n"				\
-		"	st	%6, @+%0    ||	addi	%2, #-1\n"	\
-		"	bnez	%2, 0b\n"				\
-		"	beqz	%1, 9f\n"				\
-		"	.fillinsn\n"					\
-		"2:	; byte clear \n"				\
-		"	stb	%6, @%0	    ||	addi	%1, #-1\n"	\
-		"	addi	%0, #1\n"				\
-		"	bnez	%1, 2b\n"				\
-		"	.fillinsn\n"					\
-		"9:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"4:	slli	%2, #2\n"				\
-		"	seth	r14, #high(9b)\n"			\
-		"	or3	r14, r14, #low(9b)\n"			\
-		"	jmp	r14	    ||	add	%1, %2\n"	\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 0b,4b\n"					\
-		"	.long 2b,9b\n"					\
-		".previous\n"						\
-		: "=&r"(__dst), "=&r"(size), "=&r"(__c)			\
-		: "0"(addr), "1"(size), "2"(size / 4), "r"(0)		\
-		: "r14", "cbit", "memory");				\
-} while (0)
+	do {									\
+		int __dst, __c;							\
+		__asm__ __volatile__(						\
+				"	beqz	%1, 9f\n"				\
+				"	and3	r14, %0, #3\n"				\
+				"	bnez	r14, 2f\n"				\
+				"	and3	r14, %1, #3\n"				\
+				"	bnez	r14, 2f\n"				\
+				"	and3	%1, %1, #3\n"				\
+				"	beqz	%2, 2f\n"				\
+				"	addi	%0, #-4\n"				\
+				"	.fillinsn\n"					\
+				"0:	; word clear \n"				\
+				"	st	%6, @+%0    ||	addi	%2, #-1\n"	\
+				"	bnez	%2, 0b\n"				\
+				"	beqz	%1, 9f\n"				\
+				"	.fillinsn\n"					\
+				"2:	; byte clear \n"				\
+				"	stb	%6, @%0	    ||	addi	%1, #-1\n"	\
+				"	addi	%0, #1\n"				\
+				"	bnez	%1, 2b\n"				\
+				"	.fillinsn\n"					\
+				"9:\n"							\
+				".section .fixup,\"ax\"\n"				\
+				"	.balign 4\n"					\
+				"4:	slli	%2, #2\n"				\
+				"	seth	r14, #high(9b)\n"			\
+				"	or3	r14, r14, #low(9b)\n"			\
+				"	jmp	r14	    ||	add	%1, %2\n"	\
+				".previous\n"						\
+				".section __ex_table,\"a\"\n"				\
+				"	.balign 4\n"					\
+				"	.long 0b,4b\n"					\
+				"	.long 2b,9b\n"					\
+				".previous\n"						\
+				: "=&r"(__dst), "=&r"(size), "=&r"(__c)			\
+				: "0"(addr), "1"(size), "2"(size / 4), "r"(0)		\
+				: "r14", "cbit", "memory");				\
+	} while (0)
 
 #else /* not CONFIG_ISA_DUAL_ISSUE */
 
 #define __do_clear_user(addr,size)					\
-do {									\
-	int __dst, __c;							\
-  	__asm__ __volatile__(						\
-		"	beqz	%1, 9f\n"				\
-		"	and3	r14, %0, #3\n"				\
-		"	bnez	r14, 2f\n"				\
-		"	and3	r14, %1, #3\n"				\
-		"	bnez	r14, 2f\n"				\
-		"	and3	%1, %1, #3\n"				\
-		"	beqz	%2, 2f\n"				\
-		"	addi	%0, #-4\n"				\
-		"	.fillinsn\n"					\
-		"0:	st	%6, @+%0	; word clear \n"	\
-		"	addi	%2, #-1\n"				\
-		"	bnez	%2, 0b\n"				\
-		"	beqz	%1, 9f\n"				\
-		"	.fillinsn\n"					\
-		"2:	stb	%6, @%0		; byte clear \n"	\
-		"	addi	%1, #-1\n"				\
-		"	addi	%0, #1\n"				\
-		"	bnez	%1, 2b\n"				\
-		"	.fillinsn\n"					\
-		"9:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"4:	slli	%2, #2\n"				\
-		"	add	%1, %2\n"				\
-		"	seth	r14, #high(9b)\n"			\
-		"	or3	r14, r14, #low(9b)\n"			\
-		"	jmp	r14\n"					\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 0b,4b\n"					\
-		"	.long 2b,9b\n"					\
-		".previous\n"						\
-		: "=&r"(__dst), "=&r"(size), "=&r"(__c)			\
-		: "0"(addr), "1"(size), "2"(size / 4), "r"(0)		\
-		: "r14", "cbit", "memory");				\
-} while (0)
+	do {									\
+		int __dst, __c;							\
+		__asm__ __volatile__(						\
+				"	beqz	%1, 9f\n"				\
+				"	and3	r14, %0, #3\n"				\
+				"	bnez	r14, 2f\n"				\
+				"	and3	r14, %1, #3\n"				\
+				"	bnez	r14, 2f\n"				\
+				"	and3	%1, %1, #3\n"				\
+				"	beqz	%2, 2f\n"				\
+				"	addi	%0, #-4\n"				\
+				"	.fillinsn\n"					\
+				"0:	st	%6, @+%0	; word clear \n"	\
+				"	addi	%2, #-1\n"				\
+				"	bnez	%2, 0b\n"				\
+				"	beqz	%1, 9f\n"				\
+				"	.fillinsn\n"					\
+				"2:	stb	%6, @%0		; byte clear \n"	\
+				"	addi	%1, #-1\n"				\
+				"	addi	%0, #1\n"				\
+				"	bnez	%1, 2b\n"				\
+				"	.fillinsn\n"					\
+				"9:\n"							\
+				".section .fixup,\"ax\"\n"				\
+				"	.balign 4\n"					\
+				"4:	slli	%2, #2\n"				\
+				"	add	%1, %2\n"				\
+				"	seth	r14, #high(9b)\n"			\
+				"	or3	r14, r14, #low(9b)\n"			\
+				"	jmp	r14\n"					\
+				".previous\n"						\
+				".section __ex_table,\"a\"\n"				\
+				"	.balign 4\n"					\
+				"	.long 0b,4b\n"					\
+				"	.long 2b,9b\n"					\
+				".previous\n"						\
+				: "=&r"(__dst), "=&r"(size), "=&r"(__c)			\
+				: "0"(addr), "1"(size), "2"(size / 4), "r"(0)		\
+				: "r14", "cbit", "memory");				\
+	} while (0)
 
 #endif /* not CONFIG_ISA_DUAL_ISSUE */
 
@@ -224,7 +238,10 @@ unsigned long
 clear_user(void __user *to, unsigned long n)
 {
 	if (access_ok(VERIFY_WRITE, to, n))
+	{
 		__do_clear_user(to, n);
+	}
+
 	return n;
 }
 

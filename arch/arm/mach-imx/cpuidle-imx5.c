@@ -11,13 +11,14 @@
 #include <asm/system_misc.h>
 
 static int imx5_cpuidle_enter(struct cpuidle_device *dev,
-			      struct cpuidle_driver *drv, int index)
+							  struct cpuidle_driver *drv, int index)
 {
 	arm_pm_idle();
 	return index;
 }
 
-static struct cpuidle_driver imx5_cpuidle_driver = {
+static struct cpuidle_driver imx5_cpuidle_driver =
+{
 	.name             = "imx5_cpuidle",
 	.owner            = THIS_MODULE,
 	.states[0] = {

@@ -43,19 +43,21 @@
 #include "internal.h"
 
 #if (CONFIG_INTERRUPT_VECTOR_BASE & 0xffffff)
-#error "INTERRUPT_VECTOR_BASE not aligned to 16MiB boundary!"
+	#error "INTERRUPT_VECTOR_BASE not aligned to 16MiB boundary!"
 #endif
 
 int kstack_depth_to_print = 24;
 
 spinlock_t die_lock = __SPIN_LOCK_UNLOCKED(die_lock);
 
-struct exception_to_signal_map {
+struct exception_to_signal_map
+{
 	u8	signo;
 	u32	si_code;
 };
 
-static const struct exception_to_signal_map exception_to_signal_map[256] = {
+static const struct exception_to_signal_map exception_to_signal_map[256] =
+{
 	/* MMU exceptions */
 	[EXCEP_ITLBMISS >> 3]	= { 0, 0 },
 	[EXCEP_DTLBMISS >> 3]	= { 0, 0 },
@@ -123,73 +125,96 @@ static const struct exception_to_signal_map exception_to_signal_map[256] = {
  * happens due to something kernel code did
  */
 int die_if_no_fixup(const char *str, struct pt_regs *regs,
-		    enum exception_code code)
+					enum exception_code code)
 {
 	u8 opcode;
 	int signo, si_code;
 
 	if (user_mode(regs))
+	{
 		return 0;
+	}
 
 	peripheral_leds_display_exception(code);
 
 	signo = exception_to_signal_map[code >> 3].signo;
 	si_code = exception_to_signal_map[code >> 3].si_code;
 
-	switch (code) {
+	switch (code)
+	{
 		/* see if we can fixup the kernel accessing memory */
-	case EXCEP_ITLBMISS:
-	case EXCEP_DTLBMISS:
-	case EXCEP_IAERROR:
-	case EXCEP_DAERROR:
-	case EXCEP_MEMERR:
-	case EXCEP_MISALIGN:
-	case EXCEP_BUSERROR:
-	case EXCEP_ILLDATACC:
-	case EXCEP_IOINSACC:
-	case EXCEP_PRIVINSACC:
-	case EXCEP_PRIVDATACC:
-	case EXCEP_DATINSACC:
-		if (fixup_exception(regs))
-			return 1;
-		break;
-
-	case EXCEP_TRAP:
-	case EXCEP_UNIMPINS:
-		if (probe_kernel_read(&opcode, (u8 *)regs->pc, 1) < 0)
-			break;
-		if (opcode == 0xff) {
-			if (notify_die(DIE_BREAKPOINT, str, regs, code, 0, 0))
+		case EXCEP_ITLBMISS:
+		case EXCEP_DTLBMISS:
+		case EXCEP_IAERROR:
+		case EXCEP_DAERROR:
+		case EXCEP_MEMERR:
+		case EXCEP_MISALIGN:
+		case EXCEP_BUSERROR:
+		case EXCEP_ILLDATACC:
+		case EXCEP_IOINSACC:
+		case EXCEP_PRIVINSACC:
+		case EXCEP_PRIVDATACC:
+		case EXCEP_DATINSACC:
+			if (fixup_exception(regs))
+			{
 				return 1;
-			if (at_debugger_breakpoint(regs))
-				regs->pc++;
-			signo = SIGTRAP;
-			si_code = TRAP_BRKPT;
-		}
-		break;
+			}
 
-	case EXCEP_SYSCALL1 ... EXCEP_SYSCALL14:
-		/* syscall return addr is _after_ the instruction */
-		regs->pc -= 2;
-		break;
+			break;
 
-	case EXCEP_SYSCALL15:
-		if (report_bug(regs->pc, regs) == BUG_TRAP_TYPE_WARN)
-			return 1;
+		case EXCEP_TRAP:
+		case EXCEP_UNIMPINS:
+			if (probe_kernel_read(&opcode, (u8 *)regs->pc, 1) < 0)
+			{
+				break;
+			}
 
-		/* syscall return addr is _after_ the instruction */
-		regs->pc -= 2;
-		break;
+			if (opcode == 0xff)
+			{
+				if (notify_die(DIE_BREAKPOINT, str, regs, code, 0, 0))
+				{
+					return 1;
+				}
 
-	default:
-		break;
+				if (at_debugger_breakpoint(regs))
+				{
+					regs->pc++;
+				}
+
+				signo = SIGTRAP;
+				si_code = TRAP_BRKPT;
+			}
+
+			break;
+
+		case EXCEP_SYSCALL1 ... EXCEP_SYSCALL14:
+			/* syscall return addr is _after_ the instruction */
+			regs->pc -= 2;
+			break;
+
+		case EXCEP_SYSCALL15:
+			if (report_bug(regs->pc, regs) == BUG_TRAP_TYPE_WARN)
+			{
+				return 1;
+			}
+
+			/* syscall return addr is _after_ the instruction */
+			regs->pc -= 2;
+			break;
+
+		default:
+			break;
 	}
 
 	if (debugger_intercept(code, signo, si_code, regs) == 0)
+	{
 		return 1;
+	}
 
 	if (notify_die(DIE_GPF, str, regs, code, 0, 0))
+	{
 		return 1;
+	}
 
 	/* make the process die as the last resort */
 	die(str, regs, code);
@@ -204,7 +229,9 @@ asmlinkage void handle_exception(struct pt_regs *regs, u32 intcode)
 
 	/* deal with kernel exceptions here */
 	if (die_if_no_fixup(NULL, regs, intcode))
+	{
 		return;
+	}
 
 	/* otherwise it's a userspace exception */
 	info.si_signo = exception_to_signal_map[intcode >> 3].signo;
@@ -221,7 +248,9 @@ asmlinkage void nmi(struct pt_regs *regs, enum exception_code code)
 {
 	/* see if gdbstub wants to deal with it */
 	if (debugger_intercept(code, SIGQUIT, 0, regs))
+	{
 		return;
+	}
 
 	printk(KERN_WARNING "--- Register Dump ---\n");
 	show_registers(regs);
@@ -243,24 +272,37 @@ void show_trace(unsigned long *sp)
 
 	raslot = ULONG_MAX;
 	bottom = (stack + THREAD_SIZE) & ~(THREAD_SIZE - 1);
-	for (; stack < bottom; stack += sizeof(addr)) {
+
+	for (; stack < bottom; stack += sizeof(addr))
+	{
 		addr = *(unsigned long *)stack;
-		if (stack == fp) {
-			if (addr > stack && addr < bottom) {
+
+		if (stack == fp)
+		{
+			if (addr > stack && addr < bottom)
+			{
 				fp = addr;
 				raslot = stack + sizeof(addr);
 				continue;
 			}
+
 			fp = 0;
 			raslot = ULONG_MAX;
 		}
 
-		if (__kernel_text_address(addr)) {
+		if (__kernel_text_address(addr))
+		{
 			printk(" [<%08lx>]", addr);
+
 			if (stack >= raslot)
+			{
 				raslot = ULONG_MAX;
+			}
 			else
+			{
 				printk(" ?");
+			}
+
 			print_symbol(" %s", addr);
 			printk("\n");
 		}
@@ -278,15 +320,25 @@ void show_stack(struct task_struct *task, unsigned long *sp)
 	int i;
 
 	if (!sp)
+	{
 		sp = (unsigned long *) &sp;
+	}
 
 	stack = sp;
 	printk(KERN_EMERG "Stack:");
-	for (i = 0; i < kstack_depth_to_print; i++) {
+
+	for (i = 0; i < kstack_depth_to_print; i++)
+	{
 		if (((long) stack & (THREAD_SIZE - 1)) == 0)
+		{
 			break;
+		}
+
 		if ((i % 8) == 0)
+		{
 			printk(KERN_EMERG "  ");
+		}
+
 		printk("%08lx ", *stack++);
 	}
 
@@ -303,26 +355,26 @@ void show_registers_only(struct pt_regs *regs)
 	ssp = (unsigned long) regs + sizeof(*regs);
 
 	printk(KERN_EMERG "PC:  %08lx EPSW:  %08lx  SSP: %08lx mode: %s\n",
-	       regs->pc, regs->epsw, ssp, user_mode(regs) ? "User" : "Super");
+		   regs->pc, regs->epsw, ssp, user_mode(regs) ? "User" : "Super");
 	printk(KERN_EMERG "d0:  %08lx   d1:  %08lx   d2: %08lx   d3: %08lx\n",
-	       regs->d0, regs->d1, regs->d2, regs->d3);
+		   regs->d0, regs->d1, regs->d2, regs->d3);
 	printk(KERN_EMERG "a0:  %08lx   a1:  %08lx   a2: %08lx   a3: %08lx\n",
-	       regs->a0, regs->a1, regs->a2, regs->a3);
+		   regs->a0, regs->a1, regs->a2, regs->a3);
 	printk(KERN_EMERG "e0:  %08lx   e1:  %08lx   e2: %08lx   e3: %08lx\n",
-	       regs->e0, regs->e1, regs->e2, regs->e3);
+		   regs->e0, regs->e1, regs->e2, regs->e3);
 	printk(KERN_EMERG "e4:  %08lx   e5:  %08lx   e6: %08lx   e7: %08lx\n",
-	       regs->e4, regs->e5, regs->e6, regs->e7);
+		   regs->e4, regs->e5, regs->e6, regs->e7);
 	printk(KERN_EMERG "lar: %08lx   lir: %08lx  mdr: %08lx  usp: %08lx\n",
-	       regs->lar, regs->lir, regs->mdr, regs->sp);
+		   regs->lar, regs->lir, regs->mdr, regs->sp);
 	printk(KERN_EMERG "cvf: %08lx   crl: %08lx  crh: %08lx  drq: %08lx\n",
-	       regs->mcvf, regs->mcrl, regs->mcrh, regs->mdrq);
+		   regs->mcvf, regs->mcrl, regs->mcrh, regs->mdrq);
 	printk(KERN_EMERG "threadinfo=%p task=%p)\n",
-	       current_thread_info(), current);
+		   current_thread_info(), current);
 
 	if ((unsigned long) current >= PAGE_OFFSET &&
-	    (unsigned long) current < (unsigned long)high_memory)
+		(unsigned long) current < (unsigned long)high_memory)
 		printk(KERN_EMERG "Process %s (pid: %d)\n",
-		       current->comm, current->pid);
+			   current->comm, current->pid);
 
 #ifdef CONFIG_SMP
 	printk(KERN_EMERG "CPUID:  %08x\n", CPUID);
@@ -350,28 +402,42 @@ void show_registers(struct pt_regs *regs)
 	show_registers_only(regs);
 
 	if (!user_mode(regs))
+	{
 		sp = (unsigned long) regs + sizeof(*regs);
+	}
 	else
+	{
 		sp = regs->sp;
+	}
 
 	/* when in-kernel, we also print out the stack and code at the
 	 * time of the fault..
 	 */
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		printk(KERN_EMERG "\n");
 		show_stack(current, (unsigned long *) sp);
 
 #if 0
 		printk(KERN_EMERG "\nCode: ");
-		if (regs->pc < PAGE_OFFSET)
-			goto bad;
 
-		for (i = 0; i < 20; i++) {
+		if (regs->pc < PAGE_OFFSET)
+		{
+			goto bad;
+		}
+
+		for (i = 0; i < 20; i++)
+		{
 			unsigned char c;
+
 			if (__get_user(c, &((unsigned char *) regs->pc)[i]))
+			{
 				goto bad;
+			}
+
 			printk("%02x ", c);
 		}
+
 #else
 		i = 0;
 #endif
@@ -396,7 +462,9 @@ void show_trace_task(struct task_struct *tsk)
 
 	/* User space on another CPU? */
 	if ((sp ^ (unsigned long) tsk) & (PAGE_MASK << 1))
+	{
 		return;
+	}
 
 	show_trace((unsigned long *) sp);
 }
@@ -409,11 +477,12 @@ void die(const char *str, struct pt_regs *regs, enum exception_code code)
 	console_verbose();
 	spin_lock_irq(&die_lock);
 	printk(KERN_EMERG "\n%s: %04x\n",
-	       str, code & 0xffff);
+		   str, code & 0xffff);
 	show_registers(regs);
 
 	if (regs->pc >= 0x02000000 && regs->pc < 0x04000000 &&
-	    (regs->epsw & (EPSW_IM | EPSW_IE)) != (EPSW_IM | EPSW_IE)) {
+		(regs->epsw & (EPSW_IM | EPSW_IE)) != (EPSW_IM | EPSW_IE))
+	{
 		printk(KERN_EMERG "Exception in usermode interrupt handler\n");
 		printk(KERN_EMERG "\nPlease connect to kernel debugger !!\n");
 		asm volatile ("0: bra 0b");
@@ -448,26 +517,28 @@ asmlinkage void io_bus_error(u32 bcberr, u32 bcbear, struct pt_regs *regs)
 	printk(KERN_EMERG "==========================\n");
 
 	if (bcberr & BCBERR_BEME)
+	{
 		printk(KERN_EMERG "- Multiple recorded errors\n");
+	}
 
 	printk(KERN_EMERG "- Faulting Buses:%s%s%s\n",
-	       bcberr & BCBERR_BEMR_CI  ? " CPU-Ins-Fetch" : "",
-	       bcberr & BCBERR_BEMR_CD  ? " CPU-Data" : "",
-	       bcberr & BCBERR_BEMR_DMA ? " DMA" : "");
+		   bcberr & BCBERR_BEMR_CI  ? " CPU-Ins-Fetch" : "",
+		   bcberr & BCBERR_BEMR_CD  ? " CPU-Data" : "",
+		   bcberr & BCBERR_BEMR_DMA ? " DMA" : "");
 
 	printk(KERN_EMERG "- %s %s access made to %s at address %08x\n",
-	       bcberr &	BCBERR_BEBST ? "Burst" : "Single",
-	       bcberr &	BCBERR_BERW ? "Read" : "Write",
-	       bcberr &	BCBERR_BESB_MON  ? "Monitor Space" :
-	       bcberr &	BCBERR_BESB_IO   ? "Internal CPU I/O Space" :
-	       bcberr &	BCBERR_BESB_EX   ? "External I/O Bus" :
-	       bcberr &	BCBERR_BESB_OPEX ? "External Memory Bus" :
-	       "On Chip Memory",
-	       bcbear
-	       );
+		   bcberr &	BCBERR_BEBST ? "Burst" : "Single",
+		   bcberr &	BCBERR_BERW ? "Read" : "Write",
+		   bcberr &	BCBERR_BESB_MON  ? "Monitor Space" :
+		   bcberr &	BCBERR_BESB_IO   ? "Internal CPU I/O Space" :
+		   bcberr &	BCBERR_BESB_EX   ? "External I/O Bus" :
+		   bcberr &	BCBERR_BESB_OPEX ? "External Memory Bus" :
+		   "On Chip Memory",
+		   bcbear
+		  );
 
 	printk(KERN_EMERG "- Detected by the %s\n",
-	       bcberr&BCBERR_BESD ? "Bus Control Unit" : "Slave Bus");
+		   bcberr & BCBERR_BESD ? "Bus Control Unit" : "Slave Bus");
 
 #ifdef CONFIG_PCI
 #define BRIDGEREGB(X) (*(volatile __u8  *)(0xBE040000 + (X)))
@@ -475,17 +546,17 @@ asmlinkage void io_bus_error(u32 bcberr, u32 bcbear, struct pt_regs *regs)
 #define BRIDGEREGL(X) (*(volatile __u32 *)(0xBE040000 + (X)))
 
 	printk(KERN_EMERG "- PCI Memory Paging Reg:         %08x\n",
-	       *(volatile __u32 *) (0xBFFFFFF4));
+		   *(volatile __u32 *) (0xBFFFFFF4));
 	printk(KERN_EMERG "- PCI Bridge Base Address 0:     %08x\n",
-	       BRIDGEREGL(PCI_BASE_ADDRESS_0));
+		   BRIDGEREGL(PCI_BASE_ADDRESS_0));
 	printk(KERN_EMERG "- PCI Bridge AMPCI Base Address: %08x\n",
-	       BRIDGEREGL(0x48));
+		   BRIDGEREGL(0x48));
 	printk(KERN_EMERG "- PCI Bridge Command:                %04hx\n",
-	       BRIDGEREGW(PCI_COMMAND));
+		   BRIDGEREGW(PCI_COMMAND));
 	printk(KERN_EMERG "- PCI Bridge Status:                 %04hx\n",
-	       BRIDGEREGW(PCI_STATUS));
+		   BRIDGEREGW(PCI_STATUS));
 	printk(KERN_EMERG "- PCI Bridge Int Status:         %08hx\n",
-	       BRIDGEREGL(0x4c));
+		   BRIDGEREGL(0x4c));
 #endif
 
 	printk(KERN_EMERG "\n");
@@ -498,19 +569,23 @@ asmlinkage void io_bus_error(u32 bcberr, u32 bcbear, struct pt_regs *regs)
  * handle an exception for which a handler has not yet been installed
  */
 asmlinkage void uninitialised_exception(struct pt_regs *regs,
-					enum exception_code code)
+										enum exception_code code)
 {
 
 	/* see if gdbstub wants to deal with it */
 	if (debugger_intercept(code, SIGSYS, 0, regs) == 0)
+	{
 		return;
+	}
 
 	peripheral_leds_display_exception(code);
 	printk(KERN_EMERG "Uninitialised Exception 0x%04x\n", code & 0xFFFF);
 	show_registers(regs);
 
 	for (;;)
+	{
 		continue;
+	}
 }
 
 /*

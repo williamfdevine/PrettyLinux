@@ -18,7 +18,8 @@
 
 struct task_struct;
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	__u32			cpu;
@@ -32,12 +33,12 @@ struct thread_info {
 };
 
 #define INIT_THREAD_INFO(tsk)						\
-{									\
-	.task		= &tsk,						\
-	.flags		= 0,						\
-	.cpu		= 0,						\
-	.preempt_count	= INIT_PREEMPT_COUNT,				\
-}
+	{									\
+		.task		= &tsk,						\
+					  .flags		= 0,						\
+									.cpu		= 0,						\
+											.preempt_count	= INIT_PREEMPT_COUNT,				\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)

@@ -43,9 +43,9 @@
 
 #undef DEBUG
 #ifdef DEBUG
-#define DBG(fmt...) udbg_printf(fmt)
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 /* ************************************************************************
@@ -62,7 +62,9 @@ static void __init mpc832x_sys_setup_arch(void)
 
 	/* Map BCSR area */
 	np = of_find_node_by_name(NULL, "bcsr");
-	if (np) {
+
+	if (np)
+	{
 		struct resource res;
 
 		of_address_to_resource(np, 0, &res);
@@ -71,16 +73,21 @@ static void __init mpc832x_sys_setup_arch(void)
 	}
 
 #ifdef CONFIG_QUICC_ENGINE
-	if ((np = of_find_node_by_name(NULL, "par_io")) != NULL) {
+
+	if ((np = of_find_node_by_name(NULL, "par_io")) != NULL)
+	{
 		par_io_init(np);
 		of_node_put(np);
 
 		for (np = NULL; (np = of_find_node_by_name(np, "ucc")) != NULL;)
+		{
 			par_io_of_config(np);
+		}
 	}
 
 	if ((np = of_find_compatible_node(NULL, "network", "ucc_geth"))
-			!= NULL){
+		!= NULL)
+	{
 		/* Reset the Ethernet PHYs */
 #define BCSR8_FETH_RST 0x50
 		clrbits8(&bcsr_regs[8], BCSR8_FETH_RST);
@@ -89,6 +96,7 @@ static void __init mpc832x_sys_setup_arch(void)
 		iounmap(bcsr_regs);
 		of_node_put(np);
 	}
+
 #endif				/* CONFIG_QUICC_ENGINE */
 }
 
@@ -102,14 +110,15 @@ static int __init mpc832x_sys_probe(void)
 	return of_machine_is_compatible("MPC832xMDS");
 }
 
-define_machine(mpc832x_mds) {
+define_machine(mpc832x_mds)
+{
 	.name 		= "MPC832x MDS",
-	.probe 		= mpc832x_sys_probe,
-	.setup_arch 	= mpc832x_sys_setup_arch,
-	.init_IRQ	= mpc83xx_ipic_and_qe_init_IRQ,
-	.get_irq 	= ipic_get_irq,
-	.restart 	= mpc83xx_restart,
-	.time_init 	= mpc83xx_time_init,
-	.calibrate_decr	= generic_calibrate_decr,
-	.progress 	= udbg_progress,
+		 .probe 		= mpc832x_sys_probe,
+			 .setup_arch 	= mpc832x_sys_setup_arch,
+				 .init_IRQ	= mpc83xx_ipic_and_qe_init_IRQ,
+					.get_irq 	= ipic_get_irq,
+					   .restart 	= mpc83xx_restart,
+						  .time_init 	= mpc83xx_time_init,
+						   .calibrate_decr	= generic_calibrate_decr,
+							.progress 	= udbg_progress,
 };

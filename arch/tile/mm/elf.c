@@ -29,13 +29,16 @@
 static void sim_notify_exec(const char *binary_name)
 {
 	unsigned char c;
-	do {
+
+	do
+	{
 		c = *binary_name++;
 		__insn_mtspr(SPR_SIM_CONTROL,
-			     (SIM_CONTROL_OS_EXEC
-			      | (c << _SIM_CONTROL_OPERATOR_BITS)));
+					 (SIM_CONTROL_OS_EXEC
+					  | (c << _SIM_CONTROL_OPERATOR_BITS)));
 
-	} while (c);
+	}
+	while (c);
 }
 
 static int notify_exec(struct mm_struct *mm)
@@ -46,28 +49,45 @@ static int notify_exec(struct mm_struct *mm)
 	struct file *exe_file;
 
 	if (!sim_is_simulator())
+	{
 		return 1;
+	}
 
 	buf = (char *) __get_free_page(GFP_KERNEL);
+
 	if (buf == NULL)
+	{
 		return 0;
+	}
 
 	exe_file = get_mm_exe_file(mm);
+
 	if (exe_file == NULL)
+	{
 		goto done_free;
+	}
 
 	path = file_path(exe_file, buf, PAGE_SIZE);
+
 	if (IS_ERR(path))
+	{
 		goto done_put;
+	}
 
 	down_read(&mm->mmap_sem);
-	for (vma = current->mm->mmap; ; vma = vma->vm_next) {
-		if (vma == NULL) {
+
+	for (vma = current->mm->mmap; ; vma = vma->vm_next)
+	{
+		if (vma == NULL)
+		{
 			up_read(&mm->mmap_sem);
 			goto done_put;
 		}
+
 		if (vma->vm_file == exe_file)
+		{
 			break;
+		}
 	}
 
 	/*
@@ -75,22 +95,28 @@ static int notify_exec(struct mm_struct *mm)
 	 * The somewhat cryptic overuse of SIM_CONTROL_DLOPEN allows us
 	 * to be backward-compatible with older simulator releases.
 	 */
-	if (vma->vm_start == (ELF_ET_DYN_BASE & PAGE_MASK)) {
+	if (vma->vm_start == (ELF_ET_DYN_BASE & PAGE_MASK))
+	{
 		char buf[64];
 		int i;
 
 		snprintf(buf, sizeof(buf), "0x%lx:@", vma->vm_start);
-		for (i = 0; ; ++i) {
+
+		for (i = 0; ; ++i)
+		{
 			char c = buf[i];
 			__insn_mtspr(SPR_SIM_CONTROL,
-				     (SIM_CONTROL_DLOPEN
-				      | (c << _SIM_CONTROL_OPERATOR_BITS)));
-			if (c == '\0') {
+						 (SIM_CONTROL_DLOPEN
+						  | (c << _SIM_CONTROL_OPERATOR_BITS)));
+
+			if (c == '\0')
+			{
 				ret = 1; /* success */
 				break;
 			}
 		}
 	}
+
 	up_read(&mm->mmap_sem);
 
 	sim_notify_exec(path);
@@ -105,17 +131,19 @@ done_free:
 static void sim_notify_interp(unsigned long load_addr)
 {
 	size_t i;
-	for (i = 0; i < sizeof(load_addr); i++) {
+
+	for (i = 0; i < sizeof(load_addr); i++)
+	{
 		unsigned char c = load_addr >> (i * 8);
 		__insn_mtspr(SPR_SIM_CONTROL,
-			     (SIM_CONTROL_OS_INTERP
-			      | (c << _SIM_CONTROL_OPERATOR_BITS)));
+					 (SIM_CONTROL_OS_INTERP
+					  | (c << _SIM_CONTROL_OPERATOR_BITS)));
 	}
 }
 
 
 int arch_setup_additional_pages(struct linux_binprm *bprm,
-				int executable_stack)
+								int executable_stack)
 {
 	struct mm_struct *mm = current->mm;
 	int retval = 0;
@@ -126,27 +154,35 @@ int arch_setup_additional_pages(struct linux_binprm *bprm,
 	 * whatever was passed as the linux_binprm filename.
 	 */
 	if (!notify_exec(mm))
+	{
 		sim_notify_exec(bprm->filename);
+	}
 
 	down_write(&mm->mmap_sem);
 
 	retval = setup_vdso_pages();
 
 #ifndef __tilegx__
+
 	/*
 	 * Set up a user-interrupt mapping here; the user can't
 	 * create one themselves since it is above TASK_SIZE.
 	 * We make it unwritable by default, so the model for adding
 	 * interrupt vectors always involves an mprotect.
 	 */
-	if (!retval) {
+	if (!retval)
+	{
 		unsigned long addr = MEM_USER_INTRPT;
 		addr = mmap_region(NULL, addr, INTRPT_SIZE,
-				   VM_READ|VM_EXEC|
-				   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC, 0);
-		if (addr > (unsigned long) -PAGE_SIZE)
+						   VM_READ | VM_EXEC |
+						   VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC, 0);
+
+		if (addr > (unsigned long) - PAGE_SIZE)
+		{
 			retval = (int) addr;
+		}
 	}
+
 #endif
 
 	up_write(&mm->mmap_sem);

@@ -126,8 +126,8 @@
 	 (EVENT_UNIT_MASK      << EVENT_UNIT_SHIFT)		|	\
 	 (EVENT_COMBINE_MASK   << EVENT_COMBINE_SHIFT)		|	\
 	 (EVENT_MARKED_MASK    << EVENT_MARKED_SHIFT)		|	\
-	  EVENT_LINUX_MASK					|	\
-	  EVENT_PSEL_MASK)
+	 EVENT_LINUX_MASK					|	\
+	 EVENT_PSEL_MASK)
 
 #define ONLY_PLM \
 	(PERF_SAMPLE_BRANCH_USER        |\
@@ -229,8 +229,8 @@
 
 int isa207_get_constraint(u64 event, unsigned long *maskp, unsigned long *valp);
 int isa207_compute_mmcr(u64 event[], int n_ev,
-				unsigned int hwc[], unsigned long mmcr[],
-				struct perf_event *pevents[]);
+						unsigned int hwc[], unsigned long mmcr[],
+						struct perf_event *pevents[]);
 void isa207_disable_pmc(unsigned int pmc, unsigned long mmcr[]);
 
 #endif

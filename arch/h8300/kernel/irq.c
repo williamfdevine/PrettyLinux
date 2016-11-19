@@ -14,7 +14,8 @@
 #ifdef CONFIG_RAMKERNEL
 typedef void (*h8300_vector)(void);
 
-static const h8300_vector __initconst trap_table[] = {
+static const h8300_vector __initconst trap_table[] =
+{
 	0, 0, 0, 0,
 	_trace_break,
 	0, 0,
@@ -33,20 +34,27 @@ static unsigned long __init *get_vector_address(void)
 	base = rom_vector[EXT_IRQ0] & ADDR_MASK;
 
 	/* check romvector format */
-	for (vec_no = EXT_IRQ0 + 1; vec_no <= EXT_IRQ0+EXT_IRQS; vec_no++) {
-		if ((base+(vec_no - EXT_IRQ0)*4) !=
-		    (rom_vector[vec_no] & ADDR_MASK))
+	for (vec_no = EXT_IRQ0 + 1; vec_no <= EXT_IRQ0 + EXT_IRQS; vec_no++)
+	{
+		if ((base + (vec_no - EXT_IRQ0) * 4) !=
+			(rom_vector[vec_no] & ADDR_MASK))
+		{
 			return NULL;
+		}
 	}
 
 	/* ramvector base address */
-	base -= EXT_IRQ0*4;
+	base -= EXT_IRQ0 * 4;
 
 	/* writerble? */
 	tmp = ~(*(volatile unsigned long *)base);
 	(*(volatile unsigned long *)base) = tmp;
+
 	if ((*(volatile unsigned long *)base) != tmp)
+	{
 		return NULL;
+	}
+
 	return (unsigned long *)base;
 }
 
@@ -57,23 +65,38 @@ static void __init setup_vector(void)
 	const h8300_vector *trap_entry;
 
 	ramvec = get_vector_address();
+
 	if (ramvec == NULL)
+	{
 		panic("interrupt vector serup failed.");
+	}
 	else
+	{
 		pr_debug("virtual vector at 0x%p\n", ramvec);
+	}
 
 	/* create redirect table */
 	ramvec_p = ramvec;
 	trap_entry = trap_table;
-	for (i = 0; i < NR_IRQS; i++) {
-		if (i < 12) {
+
+	for (i = 0; i < NR_IRQS; i++)
+	{
+		if (i < 12)
+		{
 			if (*trap_entry)
+			{
 				*ramvec_p = VECTOR(*trap_entry);
+			}
+
 			ramvec_p++;
 			trap_entry++;
-		} else
+		}
+		else
+		{
 			*ramvec_p++ = REDIRECT(_interrupt_entry);
+		}
 	}
+
 	_interrupt_redirect_table = ramvec;
 }
 #else

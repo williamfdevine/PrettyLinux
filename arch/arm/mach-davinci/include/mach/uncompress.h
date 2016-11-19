@@ -33,20 +33,29 @@ u32 *uart;
 static inline void putc(char c)
 {
 	if (!uart)
+	{
 		return;
+	}
 
 	while (!(uart[UART_LSR] & UART_LSR_THRE))
+	{
 		barrier();
+	}
+
 	uart[UART_TX] = c;
 }
 
 static inline void flush(void)
 {
 	if (!uart)
+	{
 		return;
+	}
 
 	while (!(uart[UART_LSR] & UART_LSR_THRE))
+	{
 		barrier();
+	}
 }
 
 static inline void set_uart_info(u32 phys)
@@ -76,7 +85,8 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
 	 * as machine_is functions are optimized out for the boards that
 	 * are not selected.
 	 */
-	do {
+	do
+	{
 		/* Davinci boards */
 		DEBUG_LL_DAVINCI(davinci_evm,		0);
 		DEBUG_LL_DAVINCI(sffsdr,		0);
@@ -91,7 +101,8 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
 		DEBUG_LL_DA8XX(davinci_da850_evm,	2);
 		DEBUG_LL_DA8XX(mityomapl138,		1);
 		DEBUG_LL_DA8XX(omapl138_hawkboard,	2);
-	} while (0);
+	}
+	while (0);
 }
 
 #define arch_decomp_setup()	__arch_decomp_setup(arch_id)

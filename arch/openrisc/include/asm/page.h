@@ -24,9 +24,9 @@
 
 #define PAGE_SHIFT      13
 #ifdef __ASSEMBLY__
-#define PAGE_SIZE       (1 << PAGE_SHIFT)
+	#define PAGE_SIZE       (1 << PAGE_SHIFT)
 #else
-#define PAGE_SIZE       (1UL << PAGE_SHIFT)
+	#define PAGE_SIZE       (1UL << PAGE_SHIFT)
 #endif
 #define PAGE_MASK       (~(PAGE_SIZE-1))
 
@@ -49,13 +49,16 @@
 /*
  * These are used to make use of C type-checking..
  */
-typedef struct {
+typedef struct
+{
 	unsigned long pte;
 } pte_t;
-typedef struct {
+typedef struct
+{
 	unsigned long pgd;
 } pgd_t;
-typedef struct {
+typedef struct
+{
 	unsigned long pgprot;
 } pgprot_t;
 typedef struct page *pgtable_t;
@@ -92,7 +95,7 @@ typedef struct page *pgtable_t;
 
 
 #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+								 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 
 
 #include <asm-generic/memory_model.h>

@@ -29,7 +29,8 @@ struct task_struct;
 /* this struct defines the way the registers are stored on the
    stack during a system call. */
 
-struct pt_regs {
+struct pt_regs
+{
 	long orig_pc;
 	long ipend;
 	long seqstat;

@@ -80,7 +80,8 @@ static void __init s3c64xx_init_uarts(struct s3c2410_uartcfg *cfg, int no)
 static const char name_s3c6400[] = "S3C6400";
 static const char name_s3c6410[] = "S3C6410";
 
-static struct cpu_table cpu_ids[] __initdata = {
+static struct cpu_table cpu_ids[] __initdata =
+{
 	{
 		.idcode		= S3C6400_CPU_ID,
 		.idmask		= S3C64XX_CPU_MASK,
@@ -103,7 +104,8 @@ static struct cpu_table cpu_ids[] __initdata = {
 /* see notes on uart map in arch/arm/mach-s3c64xx/include/mach/debug-macro.S */
 #define UART_OFFS (S3C_PA_UART & 0xfffff)
 
-static struct map_desc s3c_iodesc[] __initdata = {
+static struct map_desc s3c_iodesc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)S3C_VA_SYS,
 		.pfn		= __phys_to_pfn(S3C64XX_PA_SYSCON),
@@ -157,16 +159,19 @@ static struct map_desc s3c_iodesc[] __initdata = {
 	},
 };
 
-static struct bus_type s3c64xx_subsys = {
+static struct bus_type s3c64xx_subsys =
+{
 	.name		= "s3c64xx-core",
 	.dev_name	= "s3c64xx-core",
 };
 
-static struct device s3c64xx_dev = {
+static struct device s3c64xx_dev =
+{
 	.bus	= &s3c64xx_subsys,
 };
 
-static struct samsung_pwm_variant s3c64xx_pwm_variant = {
+static struct samsung_pwm_variant s3c64xx_pwm_variant =
+{
 	.bits		= 32,
 	.div_base	= 0,
 	.has_tint_cstat	= true,
@@ -181,13 +186,14 @@ void __init samsung_set_timer_source(unsigned int event, unsigned int source)
 
 void __init samsung_timer_init(void)
 {
-	unsigned int timer_irqs[SAMSUNG_PWM_NUM] = {
+	unsigned int timer_irqs[SAMSUNG_PWM_NUM] =
+	{
 		IRQ_TIMER0_VIC, IRQ_TIMER1_VIC, IRQ_TIMER2_VIC,
 		IRQ_TIMER3_VIC, IRQ_TIMER4_VIC,
 	};
 
 	samsung_pwm_clocksource_init(S3C_VA_TIMER,
-					timer_irqs, &s3c64xx_pwm_variant);
+								 timer_irqs, &s3c64xx_pwm_variant);
 }
 
 /* read cpu identification code */
@@ -210,7 +216,9 @@ static __init int s3c64xx_dev_init(void)
 {
 	/* Not applicable when using DT. */
 	if (of_have_populated_dt() || !soc_is_s3c64xx())
+	{
 		return 0;
+	}
 
 	subsys_system_register(&s3c64xx_subsys, NULL);
 	return device_register(&s3c64xx_dev);
@@ -224,10 +232,10 @@ core_initcall(s3c64xx_dev_init);
  */
 #define IRQ_VIC0_RESUME (1 << (IRQ_RTC_TIC - IRQ_VIC0_BASE))
 #define IRQ_VIC1_RESUME (1 << (IRQ_RTC_ALARM - IRQ_VIC1_BASE) |	\
-			 1 << (IRQ_PENDN - IRQ_VIC1_BASE) |	\
-			 1 << (IRQ_HSMMC0 - IRQ_VIC1_BASE) |	\
-			 1 << (IRQ_HSMMC1 - IRQ_VIC1_BASE) |	\
-			 1 << (IRQ_HSMMC2 - IRQ_VIC1_BASE))
+						 1 << (IRQ_PENDN - IRQ_VIC1_BASE) |	\
+						 1 << (IRQ_HSMMC0 - IRQ_VIC1_BASE) |	\
+						 1 << (IRQ_HSMMC1 - IRQ_VIC1_BASE) |	\
+						 1 << (IRQ_HSMMC2 - IRQ_VIC1_BASE))
 
 void __init s3c64xx_init_irq(u32 vic0_valid, u32 vic1_valid)
 {
@@ -289,47 +297,59 @@ static int s3c_irq_eint_set_type(struct irq_data *data, unsigned int type)
 	void __iomem *reg;
 
 	if (offs > 27)
+	{
 		return -EINVAL;
-
-	if (offs <= 15)
-		reg = S3C64XX_EINT0CON0;
-	else
-		reg = S3C64XX_EINT0CON1;
-
-	switch (type) {
-	case IRQ_TYPE_NONE:
-		printk(KERN_WARNING "No edge setting!\n");
-		break;
-
-	case IRQ_TYPE_EDGE_RISING:
-		newvalue = S3C2410_EXTINT_RISEEDGE;
-		break;
-
-	case IRQ_TYPE_EDGE_FALLING:
-		newvalue = S3C2410_EXTINT_FALLEDGE;
-		break;
-
-	case IRQ_TYPE_EDGE_BOTH:
-		newvalue = S3C2410_EXTINT_BOTHEDGE;
-		break;
-
-	case IRQ_TYPE_LEVEL_LOW:
-		newvalue = S3C2410_EXTINT_LOWLEV;
-		break;
-
-	case IRQ_TYPE_LEVEL_HIGH:
-		newvalue = S3C2410_EXTINT_HILEV;
-		break;
-
-	default:
-		printk(KERN_ERR "No such irq type %d", type);
-		return -1;
 	}
 
 	if (offs <= 15)
-		shift = (offs / 2) * 4;
+	{
+		reg = S3C64XX_EINT0CON0;
+	}
 	else
+	{
+		reg = S3C64XX_EINT0CON1;
+	}
+
+	switch (type)
+	{
+		case IRQ_TYPE_NONE:
+			printk(KERN_WARNING "No edge setting!\n");
+			break;
+
+		case IRQ_TYPE_EDGE_RISING:
+			newvalue = S3C2410_EXTINT_RISEEDGE;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			newvalue = S3C2410_EXTINT_FALLEDGE;
+			break;
+
+		case IRQ_TYPE_EDGE_BOTH:
+			newvalue = S3C2410_EXTINT_BOTHEDGE;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			newvalue = S3C2410_EXTINT_LOWLEV;
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:
+			newvalue = S3C2410_EXTINT_HILEV;
+			break;
+
+		default:
+			printk(KERN_ERR "No such irq type %d", type);
+			return -1;
+	}
+
+	if (offs <= 15)
+	{
+		shift = (offs / 2) * 4;
+	}
+	else
+	{
 		shift = ((offs - 16) / 2) * 4;
+	}
+
 	mask = 0x7 << shift;
 
 	ctrl = __raw_readl(reg);
@@ -339,13 +359,18 @@ static int s3c_irq_eint_set_type(struct irq_data *data, unsigned int type)
 
 	/* set the GPIO pin appropriately */
 
-	if (offs < 16) {
+	if (offs < 16)
+	{
 		pin = S3C64XX_GPN(offs);
 		pin_val = S3C_GPIO_SFN(2);
-	} else if (offs < 23) {
+	}
+	else if (offs < 23)
+	{
 		pin = S3C64XX_GPL(offs + 8 - 16);
 		pin_val = S3C_GPIO_SFN(3);
-	} else {
+	}
+	else
+	{
 		pin = S3C64XX_GPM(offs - 23);
 		pin_val = S3C_GPIO_SFN(3);
 	}
@@ -355,7 +380,8 @@ static int s3c_irq_eint_set_type(struct irq_data *data, unsigned int type)
 	return 0;
 }
 
-static struct irq_chip s3c_irq_eint = {
+static struct irq_chip s3c_irq_eint =
+{
 	.name		= "s3c-eint",
 	.irq_mask	= s3c_irq_eint_mask,
 	.irq_unmask	= s3c_irq_eint_unmask,
@@ -381,9 +407,12 @@ static inline void s3c_irq_demux_eint(unsigned int start, unsigned int end)
 	status >>= start;
 	status &= (1 << (end - start + 1)) - 1;
 
-	for (irq = IRQ_EINT(start); irq <= IRQ_EINT(end); irq++) {
+	for (irq = IRQ_EINT(start); irq <= IRQ_EINT(end); irq++)
+	{
 		if (status & 1)
+		{
 			generic_handle_irq(irq);
+		}
 
 		status >>= 1;
 	}
@@ -415,9 +444,12 @@ static int __init s3c64xx_init_irq_eint(void)
 
 	/* On DT-enabled systems EINTs are handled by pinctrl-s3c64xx driver. */
 	if (of_have_populated_dt() || !soc_is_s3c64xx())
+	{
 		return -ENODEV;
+	}
 
-	for (irq = IRQ_EINT(0); irq <= IRQ_EINT(27); irq++) {
+	for (irq = IRQ_EINT(0); irq <= IRQ_EINT(27); irq++)
+	{
 		irq_set_chip_and_handler(irq, &s3c_irq_eint, handle_level_irq);
 		irq_set_chip_data(irq, (void *)eint_irq_to_bit(irq));
 		irq_clear_status_flags(irq, IRQ_NOREQUEST);
@@ -435,7 +467,9 @@ arch_initcall(s3c64xx_init_irq_eint);
 void s3c64xx_restart(enum reboot_mode mode, const char *cmd)
 {
 	if (mode != REBOOT_SOFT)
+	{
 		samsung_wdt_reset();
+	}
 
 	/* if all else fails, or mode was for soft, jump to 0 */
 	soft_restart(0);

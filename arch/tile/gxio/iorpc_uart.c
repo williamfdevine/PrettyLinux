@@ -15,12 +15,13 @@
 /* This file is machine-generated; DO NOT EDIT! */
 #include "gxio/iorpc_uart.h"
 
-struct cfg_interrupt_param {
+struct cfg_interrupt_param
+{
 	union iorpc_interrupt interrupt;
 };
 
 int gxio_uart_cfg_interrupt(gxio_uart_context_t *context, int inter_x,
-			    int inter_y, int inter_ipi, int inter_event)
+							int inter_y, int inter_ipi, int inter_event)
 {
 	struct cfg_interrupt_param temp;
 	struct cfg_interrupt_param *params = &temp;
@@ -31,12 +32,13 @@ int gxio_uart_cfg_interrupt(gxio_uart_context_t *context, int inter_x,
 	params->interrupt.kernel.event = inter_event;
 
 	return hv_dev_pwrite(context->fd, 0, (HV_VirtAddr) params,
-			     sizeof(*params), GXIO_UART_OP_CFG_INTERRUPT);
+						 sizeof(*params), GXIO_UART_OP_CFG_INTERRUPT);
 }
 
 EXPORT_SYMBOL(gxio_uart_cfg_interrupt);
 
-struct get_mmio_base_param {
+struct get_mmio_base_param
+{
 	HV_PTE base;
 };
 
@@ -47,8 +49,8 @@ int gxio_uart_get_mmio_base(gxio_uart_context_t *context, HV_PTE *base)
 	struct get_mmio_base_param *params = &temp;
 
 	__result =
-	    hv_dev_pread(context->fd, 0, (HV_VirtAddr) params, sizeof(*params),
-			 GXIO_UART_OP_GET_MMIO_BASE);
+		hv_dev_pread(context->fd, 0, (HV_VirtAddr) params, sizeof(*params),
+					 GXIO_UART_OP_GET_MMIO_BASE);
 	*base = params->base;
 
 	return __result;
@@ -56,13 +58,14 @@ int gxio_uart_get_mmio_base(gxio_uart_context_t *context, HV_PTE *base)
 
 EXPORT_SYMBOL(gxio_uart_get_mmio_base);
 
-struct check_mmio_offset_param {
+struct check_mmio_offset_param
+{
 	unsigned long offset;
 	unsigned long size;
 };
 
 int gxio_uart_check_mmio_offset(gxio_uart_context_t *context,
-				unsigned long offset, unsigned long size)
+								unsigned long offset, unsigned long size)
 {
 	struct check_mmio_offset_param temp;
 	struct check_mmio_offset_param *params = &temp;
@@ -71,7 +74,7 @@ int gxio_uart_check_mmio_offset(gxio_uart_context_t *context,
 	params->size = size;
 
 	return hv_dev_pwrite(context->fd, 0, (HV_VirtAddr) params,
-			     sizeof(*params), GXIO_UART_OP_CHECK_MMIO_OFFSET);
+						 sizeof(*params), GXIO_UART_OP_CHECK_MMIO_OFFSET);
 }
 
 EXPORT_SYMBOL(gxio_uart_check_mmio_offset);

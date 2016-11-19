@@ -135,33 +135,40 @@ static inline void __cpacf_query(unsigned int opcode, cpacf_mask_t *mask)
 
 static inline int __cpacf_check_opcode(unsigned int opcode)
 {
-	switch (opcode) {
-	case CPACF_KMAC:
-	case CPACF_KM:
-	case CPACF_KMC:
-	case CPACF_KIMD:
-	case CPACF_KLMD:
-		return test_facility(17);	/* check for MSA */
-	case CPACF_PCKMO:
-		return test_facility(76);	/* check for MSA3 */
-	case CPACF_KMF:
-	case CPACF_KMO:
-	case CPACF_PCC:
-	case CPACF_KMCTR:
-		return test_facility(77);	/* check for MSA4 */
-	case CPACF_PPNO:
-		return test_facility(57);	/* check for MSA5 */
-	default:
-		BUG();
+	switch (opcode)
+	{
+		case CPACF_KMAC:
+		case CPACF_KM:
+		case CPACF_KMC:
+		case CPACF_KIMD:
+		case CPACF_KLMD:
+			return test_facility(17);	/* check for MSA */
+
+		case CPACF_PCKMO:
+			return test_facility(76);	/* check for MSA3 */
+
+		case CPACF_KMF:
+		case CPACF_KMO:
+		case CPACF_PCC:
+		case CPACF_KMCTR:
+			return test_facility(77);	/* check for MSA4 */
+
+		case CPACF_PPNO:
+			return test_facility(57);	/* check for MSA5 */
+
+		default:
+			BUG();
 	}
 }
 
 static inline int cpacf_query(unsigned int opcode, cpacf_mask_t *mask)
 {
-	if (__cpacf_check_opcode(opcode)) {
+	if (__cpacf_check_opcode(opcode))
+	{
 		__cpacf_query(opcode, mask);
 		return 1;
 	}
+
 	memset(mask, 0, sizeof(*mask));
 	return 0;
 }
@@ -176,7 +183,10 @@ static inline int cpacf_query_func(unsigned int opcode, unsigned int func)
 	cpacf_mask_t mask;
 
 	if (cpacf_query(opcode, &mask))
+	{
 		return cpacf_test_func(&mask, func);
+	}
+
 	return 0;
 }
 
@@ -192,7 +202,7 @@ static inline int cpacf_query_func(unsigned int opcode, unsigned int func)
  * encryption/decryption funcs
  */
 static inline int cpacf_km(unsigned long func, void *param,
-			   u8 *dest, const u8 *src, long src_len)
+						   u8 *dest, const u8 *src, long src_len)
 {
 	register unsigned long r0 asm("0") = (unsigned long) func;
 	register unsigned long r1 asm("1") = (unsigned long) param;
@@ -222,7 +232,7 @@ static inline int cpacf_km(unsigned long func, void *param,
  * encryption/decryption funcs
  */
 static inline int cpacf_kmc(unsigned long func, void *param,
-			    u8 *dest, const u8 *src, long src_len)
+							u8 *dest, const u8 *src, long src_len)
 {
 	register unsigned long r0 asm("0") = (unsigned long) func;
 	register unsigned long r1 asm("1") = (unsigned long) param;
@@ -249,7 +259,7 @@ static inline int cpacf_kmc(unsigned long func, void *param,
  * @src_len: length of src operand in bytes
  */
 static inline void cpacf_kimd(unsigned long func, void *param,
-			      const u8 *src, long src_len)
+							  const u8 *src, long src_len)
 {
 	register unsigned long r0 asm("0") = (unsigned long) func;
 	register unsigned long r1 asm("1") = (unsigned long) param;
@@ -272,7 +282,7 @@ static inline void cpacf_kimd(unsigned long func, void *param,
  * @src_len: length of src operand in bytes
  */
 static inline void cpacf_klmd(unsigned long func, void *param,
-			      const u8 *src, long src_len)
+							  const u8 *src, long src_len)
 {
 	register unsigned long r0 asm("0") = (unsigned long) func;
 	register unsigned long r1 asm("1") = (unsigned long) param;
@@ -298,7 +308,7 @@ static inline void cpacf_klmd(unsigned long func, void *param,
  * Returns 0 for the query func, number of processed bytes for digest funcs
  */
 static inline int cpacf_kmac(unsigned long func, void *param,
-			     const u8 *src, long src_len)
+							 const u8 *src, long src_len)
 {
 	register unsigned long r0 asm("0") = (unsigned long) func;
 	register unsigned long r1 asm("1") = (unsigned long) param;
@@ -328,7 +338,7 @@ static inline int cpacf_kmac(unsigned long func, void *param,
  * encryption/decryption funcs
  */
 static inline int cpacf_kmctr(unsigned long func, void *param, u8 *dest,
-			      const u8 *src, long src_len, u8 *counter)
+							  const u8 *src, long src_len, u8 *counter)
 {
 	register unsigned long r0 asm("0") = (unsigned long) func;
 	register unsigned long r1 asm("1") = (unsigned long) param;
@@ -341,7 +351,7 @@ static inline int cpacf_kmctr(unsigned long func, void *param, u8 *dest,
 		"0:	.insn	rrf,%[opc] << 16,%[dst],%[src],%[ctr],0\n"
 		"	brc	1,0b\n" /* handle partial completion */
 		: [src] "+a" (r2), [len] "+d" (r3),
-		  [dst] "+a" (r4), [ctr] "+a" (r6)
+		[dst] "+a" (r4), [ctr] "+a" (r6)
 		: [fc] "d" (r0), [pba] "a" (r1), [opc] "i" (CPACF_KMCTR)
 		: "cc", "memory");
 
@@ -359,8 +369,8 @@ static inline int cpacf_kmctr(unsigned long func, void *param, u8 *dest,
  * @seed_len: size of seed data in bytes
  */
 static inline void cpacf_ppno(unsigned long func, void *param,
-			      u8 *dest, long dest_len,
-			      const u8 *seed, long seed_len)
+							  u8 *dest, long dest_len,
+							  const u8 *seed, long seed_len)
 {
 	register unsigned long r0 asm("0") = (unsigned long) func;
 	register unsigned long r1 asm("1") = (unsigned long) param;
@@ -374,7 +384,7 @@ static inline void cpacf_ppno(unsigned long func, void *param,
 		"	brc	1,0b\n"	  /* handle partial completion */
 		: [dst] "+a" (r2), [dlen] "+d" (r3)
 		: [fc] "d" (r0), [pba] "a" (r1),
-		  [seed] "a" (r4), [slen] "d" (r5), [opc] "i" (CPACF_PPNO)
+		[seed] "a" (r4), [slen] "d" (r5), [opc] "i" (CPACF_PPNO)
 		: "cc", "memory");
 }
 

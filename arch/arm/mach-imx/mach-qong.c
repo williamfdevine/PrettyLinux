@@ -50,11 +50,13 @@
 	(QONG_FPGA_BASEADDR + QONG_DNET_ID * QONG_FPGA_PERIPH_SIZE)
 #define QONG_DNET_SIZE		0x00001000
 
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
-static int uart_pins[] = {
+static int uart_pins[] =
+{
 	MX31_PIN_CTS1__CTS1,
 	MX31_PIN_RTS1__RTS1,
 	MX31_PIN_TXD1__TXD1,
@@ -64,11 +66,12 @@ static int uart_pins[] = {
 static inline void __init mxc_init_imx_uart(void)
 {
 	mxc_iomux_setup_multiple_pins(uart_pins, ARRAY_SIZE(uart_pins),
-			"uart-0");
+								  "uart-0");
 	imx31_add_imx_uart0(&uart_pdata);
 }
 
-static struct resource dnet_resources[] = {
+static struct resource dnet_resources[] =
+{
 	{
 		.name	= "dnet-memory",
 		.start	= QONG_DNET_BASEADDR,
@@ -80,7 +83,8 @@ static struct resource dnet_resources[] = {
 	},
 };
 
-static struct platform_device dnet_device = {
+static struct platform_device dnet_device =
+{
 	.name			= "dnet",
 	.id			= -1,
 	.num_resources		= ARRAY_SIZE(dnet_resources),
@@ -101,22 +105,25 @@ static int __init qong_init_dnet(void)
 
 /* MTD NOR flash */
 
-static struct physmap_flash_data qong_flash_data = {
+static struct physmap_flash_data qong_flash_data =
+{
 	.width = 2,
 };
 
-static struct resource qong_flash_resource = {
+static struct resource qong_flash_resource =
+{
 	.start = MX31_CS0_BASE_ADDR,
 	.end = MX31_CS0_BASE_ADDR + SZ_128M - 1,
 	.flags = IORESOURCE_MEM,
 };
 
-static struct platform_device qong_nor_mtd_device = {
+static struct platform_device qong_nor_mtd_device =
+{
 	.name = "physmap-flash",
 	.id = 0,
 	.dev = {
 		.platform_data = &qong_flash_data,
-		},
+	},
 	.resource = &qong_flash_resource,
 	.num_resources = 1,
 };
@@ -134,12 +141,18 @@ static void qong_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 	struct nand_chip *nand_chip = mtd_to_nand(mtd);
 
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		writeb(cmd, nand_chip->IO_ADDR_W + (1 << 24));
+	}
 	else
+	{
 		writeb(cmd, nand_chip->IO_ADDR_W + (1 << 23));
+	}
 }
 
 /*
@@ -153,12 +166,17 @@ static int qong_nand_device_ready(struct mtd_info *mtd)
 static void qong_nand_select_chip(struct mtd_info *mtd, int chip)
 {
 	if (chip >= 0)
+	{
 		gpio_set_value(IOMUX_TO_GPIO(MX31_PIN_NFCE_B), 0);
+	}
 	else
+	{
 		gpio_set_value(IOMUX_TO_GPIO(MX31_PIN_NFCE_B), 1);
+	}
 }
 
-static struct platform_nand_data qong_nand_data = {
+static struct platform_nand_data qong_nand_data =
+{
 	.chip = {
 		.nr_chips		= 1,
 		.chip_delay		= 20,
@@ -171,13 +189,15 @@ static struct platform_nand_data qong_nand_data = {
 	}
 };
 
-static struct resource qong_nand_resource = {
+static struct resource qong_nand_resource =
+{
 	.start		= MX31_CS3_BASE_ADDR,
 	.end		= MX31_CS3_BASE_ADDR + SZ_32M - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device qong_nand_device = {
+static struct platform_device qong_nand_device =
+{
 	.name		= "gen_nand",
 	.id		= -1,
 	.dev		= {
@@ -198,18 +218,27 @@ static void __init qong_init_nand_mtd(void)
 
 	/* enable pin */
 	mxc_iomux_mode(IOMUX_MODE(MX31_PIN_NFCE_B, IOMUX_CONFIG_GPIO));
+
 	if (!gpio_request(IOMUX_TO_GPIO(MX31_PIN_NFCE_B), "nand_enable"))
+	{
 		gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_NFCE_B), 0);
+	}
 
 	/* ready/busy pin */
 	mxc_iomux_mode(IOMUX_MODE(MX31_PIN_NFRB, IOMUX_CONFIG_GPIO));
+
 	if (!gpio_request(IOMUX_TO_GPIO(MX31_PIN_NFRB), "nand_rdy"))
+	{
 		gpio_direction_input(IOMUX_TO_GPIO(MX31_PIN_NFRB));
+	}
 
 	/* write protect pin */
 	mxc_iomux_mode(IOMUX_MODE(MX31_PIN_NFWP_B, IOMUX_CONFIG_GPIO));
+
 	if (!gpio_request(IOMUX_TO_GPIO(MX31_PIN_NFWP_B), "nand_wp"))
+	{
 		gpio_direction_input(IOMUX_TO_GPIO(MX31_PIN_NFWP_B));
+	}
 
 	platform_device_register(&qong_nand_device);
 }
@@ -220,20 +249,24 @@ static void __init qong_init_fpga(void)
 	u32 fpga_ver;
 
 	regs = ioremap(QONG_FPGA_CTRL_BASEADDR, QONG_FPGA_CTRL_SIZE);
-	if (!regs) {
+
+	if (!regs)
+	{
 		printk(KERN_ERR "%s: failed to map registers, aborting.\n",
-				__func__);
+			   __func__);
 		return;
 	}
 
 	fpga_ver = readl(regs + QONG_FPGA_CTRL_VERSION);
 	iounmap(regs);
 	printk(KERN_INFO "Qong FPGA version %d.%d.%d\n",
-			(fpga_ver & 0xF000) >> 12,
-			(fpga_ver & 0x0F00) >> 8, fpga_ver & 0x00FF);
-	if (fpga_ver < QONG_FPGA_VERSION(0, 8, 7)) {
+		   (fpga_ver & 0xF000) >> 12,
+		   (fpga_ver & 0x0F00) >> 8, fpga_ver & 0x00FF);
+
+	if (fpga_ver < QONG_FPGA_VERSION(0, 8, 7))
+	{
 		printk(KERN_ERR "qong: Unexpected FPGA version, FPGA-based "
-				"devices won't be registered!\n");
+			   "devices won't be registered!\n");
 		return;
 	}
 
@@ -260,13 +293,13 @@ static void __init qong_timer_init(void)
 }
 
 MACHINE_START(QONG, "Dave/DENX QongEVB-LITE")
-	/* Maintainer: DENX Software Engineering GmbH */
-	.atag_offset = 0x100,
-	.map_io = mx31_map_io,
-	.init_early = imx31_init_early,
-	.init_irq = mx31_init_irq,
+/* Maintainer: DENX Software Engineering GmbH */
+.atag_offset = 0x100,
+ .map_io = mx31_map_io,
+  .init_early = imx31_init_early,
+   .init_irq = mx31_init_irq,
 	.init_time	= qong_timer_init,
-	.init_machine = qong_init,
-	.init_late	= qong_init_fpga,
-	.restart	= mxc_restart,
-MACHINE_END
+	  .init_machine = qong_init,
+	   .init_late	= qong_init_fpga,
+		 .restart	= mxc_restart,
+			 MACHINE_END

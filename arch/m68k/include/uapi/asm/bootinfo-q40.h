@@ -6,9 +6,9 @@
 #define _UAPI_ASM_M68K_BOOTINFO_Q40_H
 
 
-    /*
-     *  Latest Q40 bootinfo version
-     */
+/*
+ *  Latest Q40 bootinfo version
+ */
 
 #define Q40_BOOTI_VERSION	MK_BI_VERSION(2, 0)
 

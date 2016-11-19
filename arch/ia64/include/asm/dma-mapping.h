@@ -19,16 +19,18 @@ extern struct ia64_machine_vector ia64_mv;
 extern void set_iommu_machvec(void);
 
 extern void machvec_dma_sync_single(struct device *, dma_addr_t, size_t,
-				    enum dma_data_direction);
+									enum dma_data_direction);
 extern void machvec_dma_sync_sg(struct device *, struct scatterlist *, int,
-				enum dma_data_direction);
+								enum dma_data_direction);
 
 #define get_dma_ops(dev) platform_dma_get_ops(dev)
 
 static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
 {
 	if (!dev->dma_mask)
+	{
 		return 0;
+	}
 
 	return addr + size - 1 <= *dev->dma_mask;
 }
@@ -45,7 +47,7 @@ static inline phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr)
 
 static inline void
 dma_cache_sync (struct device *dev, void *vaddr, size_t size,
-	enum dma_data_direction dir)
+				enum dma_data_direction dir)
 {
 	/*
 	 * IA-64 is cache-coherent, so this is mostly a no-op.  However, we do need to

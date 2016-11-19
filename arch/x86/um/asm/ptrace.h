@@ -3,7 +3,7 @@
 
 #include <linux/compiler.h>
 #ifndef CONFIG_X86_32
-#define __FRAME_OFFSETS /* Needed to get the R* macros */
+	#define __FRAME_OFFSETS /* Needed to get the R* macros */
 #endif
 #include <asm/ptrace-generic.h>
 
@@ -48,10 +48,10 @@ struct user_desc;
 #ifdef CONFIG_X86_32
 
 extern int ptrace_get_thread_area(struct task_struct *child, int idx,
-                                  struct user_desc __user *user_desc);
+								  struct user_desc __user *user_desc);
 
 extern int ptrace_set_thread_area(struct task_struct *child, int idx,
-                                  struct user_desc __user *user_desc);
+								  struct user_desc __user *user_desc);
 
 #else
 
@@ -67,19 +67,19 @@ extern int ptrace_set_thread_area(struct task_struct *child, int idx,
 #include <asm/errno.h>
 
 static inline int ptrace_get_thread_area(struct task_struct *child, int idx,
-                                         struct user_desc __user *user_desc)
+		struct user_desc __user *user_desc)
 {
-        return -ENOSYS;
+	return -ENOSYS;
 }
 
 static inline int ptrace_set_thread_area(struct task_struct *child, int idx,
-                                         struct user_desc __user *user_desc)
+		struct user_desc __user *user_desc)
 {
-        return -ENOSYS;
+	return -ENOSYS;
 }
 
 extern long arch_prctl(struct task_struct *task, int code,
-		       unsigned long __user *addr);
+					   unsigned long __user *addr);
 
 #endif
 #define user_stack_pointer(regs) PT_REGS_SP(regs)

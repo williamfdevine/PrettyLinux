@@ -20,13 +20,16 @@ static void *mpu3050_platform_data(void *info)
 	int intr = get_gpio_by_name("mpu3050_int");
 
 	if (intr < 0)
+	{
 		return NULL;
+	}
 
 	i2c_info->irq = intr + INTEL_MID_IRQ_OFFSET;
 	return NULL;
 }
 
-static const struct devs_id mpu3050_dev_id __initconst = {
+static const struct devs_id mpu3050_dev_id __initconst =
+{
 	.name = "mpu3050",
 	.type = SFI_DEV_TYPE_I2C,
 	.delay = 1,

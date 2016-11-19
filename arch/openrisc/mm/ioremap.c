@@ -48,8 +48,11 @@ __ioremap(phys_addr_t addr, unsigned long size, pgprot_t prot)
 
 	/* Don't allow wraparound or zero size */
 	last_addr = addr + size - 1;
+
 	if (!size || last_addr < addr)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Mappings have to be page-aligned
@@ -58,23 +61,39 @@ __ioremap(phys_addr_t addr, unsigned long size, pgprot_t prot)
 	p = addr & PAGE_MASK;
 	size = PAGE_ALIGN(last_addr + 1) - p;
 
-	if (likely(mem_init_done)) {
+	if (likely(mem_init_done))
+	{
 		area = get_vm_area(size, VM_IOREMAP);
+
 		if (!area)
+		{
 			return NULL;
+		}
+
 		v = (unsigned long)area->addr;
-	} else {
+	}
+	else
+	{
 		if ((fixmaps_used + (size >> PAGE_SHIFT)) > FIX_N_IOREMAPS)
+		{
 			return NULL;
+		}
+
 		v = fix_to_virt(FIX_IOREMAP_BEGIN + fixmaps_used);
 		fixmaps_used += (size >> PAGE_SHIFT);
 	}
 
-	if (ioremap_page_range(v, v + size, p, prot)) {
+	if (ioremap_page_range(v, v + size, p, prot))
+	{
 		if (likely(mem_init_done))
+		{
 			vfree(area->addr);
+		}
 		else
+		{
 			fixmaps_used -= (size >> PAGE_SHIFT);
+		}
+
 		return NULL;
 	}
 
@@ -86,7 +105,8 @@ void iounmap(void *addr)
 	/* If the page is from the fixmap pool then we just clear out
 	 * the fixmap mapping.
 	 */
-	if (unlikely((unsigned long)addr > FIXADDR_START)) {
+	if (unlikely((unsigned long)addr > FIXADDR_START))
+	{
 		/* This is a bit broken... we don't really know
 		 * how big the area is so it's difficult to know
 		 * how many fixed pages to invalidate...
@@ -117,13 +137,16 @@ void iounmap(void *addr)
  */
 
 pte_t __ref *pte_alloc_one_kernel(struct mm_struct *mm,
-					 unsigned long address)
+								  unsigned long address)
 {
 	pte_t *pte;
 
-	if (likely(mem_init_done)) {
+	if (likely(mem_init_done))
+	{
 		pte = (pte_t *) __get_free_page(GFP_KERNEL);
-	} else {
+	}
+	else
+	{
 		pte = (pte_t *) alloc_bootmem_low_pages(PAGE_SIZE);
 #if 0
 		/* FIXME: use memblock... */
@@ -132,6 +155,9 @@ pte_t __ref *pte_alloc_one_kernel(struct mm_struct *mm,
 	}
 
 	if (pte)
+	{
 		clear_page(pte);
+	}
+
 	return pte;
 }

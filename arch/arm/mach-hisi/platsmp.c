@@ -26,16 +26,24 @@ static void __iomem *ctrl_base;
 void hi3xxx_set_cpu_jump(int cpu, void *jump_addr)
 {
 	cpu = cpu_logical_map(cpu);
+
 	if (!cpu || !ctrl_base)
+	{
 		return;
+	}
+
 	writel_relaxed(virt_to_phys(jump_addr), ctrl_base + ((cpu - 1) << 2));
 }
 
 int hi3xxx_get_cpu_jump(int cpu)
 {
 	cpu = cpu_logical_map(cpu);
+
 	if (!cpu || !ctrl_base)
+	{
 		return 0;
+	}
+
 	return readl_relaxed(ctrl_base + ((cpu - 1) << 2));
 }
 
@@ -44,13 +52,17 @@ static void __init hisi_enable_scu_a9(void)
 	unsigned long base = 0;
 	void __iomem *scu_base = NULL;
 
-	if (scu_a9_has_base()) {
+	if (scu_a9_has_base())
+	{
 		base = scu_a9_get_base();
 		scu_base = ioremap(base, SZ_4K);
-		if (!scu_base) {
+
+		if (!scu_base)
+		{
 			pr_err("ioremap(scu_base) failed\n");
 			return;
 		}
+
 		scu_enable(scu_base);
 		iounmap(scu_base);
 	}
@@ -62,21 +74,31 @@ static void __init hi3xxx_smp_prepare_cpus(unsigned int max_cpus)
 	u32 offset = 0;
 
 	hisi_enable_scu_a9();
-	if (!ctrl_base) {
+
+	if (!ctrl_base)
+	{
 		np = of_find_compatible_node(NULL, NULL, "hisilicon,sysctrl");
-		if (!np) {
+
+		if (!np)
+		{
 			pr_err("failed to find hisilicon,sysctrl node\n");
 			return;
 		}
+
 		ctrl_base = of_iomap(np, 0);
-		if (!ctrl_base) {
+
+		if (!ctrl_base)
+		{
 			pr_err("failed to map address\n");
 			return;
 		}
-		if (of_property_read_u32(np, "smp-offset", &offset) < 0) {
+
+		if (of_property_read_u32(np, "smp-offset", &offset) < 0)
+		{
 			pr_err("failed to find smp-offset property\n");
 			return;
 		}
+
 		ctrl_base += offset;
 	}
 }
@@ -89,7 +111,8 @@ static int hi3xxx_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	return 0;
 }
 
-static const struct smp_operations hi3xxx_smp_ops __initconst = {
+static const struct smp_operations hi3xxx_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= hi3xxx_smp_prepare_cpus,
 	.smp_boot_secondary	= hi3xxx_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU
@@ -126,7 +149,8 @@ static int hix5hd2_boot_secondary(unsigned int cpu, struct task_struct *idle)
 }
 
 
-static const struct smp_operations hix5hd2_smp_ops __initconst = {
+static const struct smp_operations hix5hd2_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= hisi_common_smp_prepare_cpus,
 	.smp_boot_secondary	= hix5hd2_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU
@@ -160,8 +184,12 @@ static int hip01_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	hip01_set_boot_addr(HIP01_BOOT_ADDRESS, jumpaddr);
 
 	node = of_find_compatible_node(NULL, NULL, "hisilicon,hip01-sysctrl");
+
 	if (WARN_ON(!node))
+	{
 		return -1;
+	}
+
 	ctrl_base = of_iomap(node, 0);
 
 	/* set the secondary core boot from DDR */
@@ -176,7 +204,8 @@ static int hip01_boot_secondary(unsigned int cpu, struct task_struct *idle)
 	return 0;
 }
 
-static const struct smp_operations hip01_smp_ops __initconst = {
+static const struct smp_operations hip01_smp_ops __initconst =
+{
 	.smp_prepare_cpus       = hisi_common_smp_prepare_cpus,
 	.smp_boot_secondary     = hip01_boot_secondary,
 };

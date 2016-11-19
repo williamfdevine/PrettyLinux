@@ -20,15 +20,19 @@ static atomic_t master = ATOMIC_INIT(0);
 static DEFINE_SPINLOCK(master_lock);
 
 static int imx6q_enter_wait(struct cpuidle_device *dev,
-			    struct cpuidle_driver *drv, int index)
+							struct cpuidle_driver *drv, int index)
 {
-	if (atomic_inc_return(&master) == num_online_cpus()) {
+	if (atomic_inc_return(&master) == num_online_cpus())
+	{
 		/*
 		 * With this lock, we prevent other cpu to exit and enter
 		 * this function again and become the master.
 		 */
 		if (!spin_trylock(&master_lock))
+		{
 			goto idle;
+		}
+
 		imx6_set_lpm(WAIT_UNCLOCKED);
 		cpu_do_idle();
 		imx6_set_lpm(WAIT_CLOCKED);
@@ -44,7 +48,8 @@ done:
 	return index;
 }
 
-static struct cpuidle_driver imx6q_cpuidle_driver = {
+static struct cpuidle_driver imx6q_cpuidle_driver =
+{
 	.name = "imx6q_cpuidle",
 	.owner = THIS_MODULE,
 	.states = {

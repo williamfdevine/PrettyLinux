@@ -64,9 +64,9 @@ void dma_cache_wback(phys_addr_t start, unsigned long sz);
 /* To clear out stale userspace mappings */
 void flush_cache_mm(struct mm_struct *mm);
 void flush_cache_range(struct vm_area_struct *vma,
-	unsigned long start,unsigned long end);
+					   unsigned long start, unsigned long end);
 void flush_cache_page(struct vm_area_struct *vma,
-	unsigned long user_addr, unsigned long page);
+					  unsigned long user_addr, unsigned long page);
 
 /*
  * To make sure that userspace mapping is flushed to memory before
@@ -74,7 +74,7 @@ void flush_cache_page(struct vm_area_struct *vma,
  */
 #define ARCH_HAS_FLUSH_ANON_PAGE
 void flush_anon_page(struct vm_area_struct *vma,
-	struct page *page, unsigned long u_vaddr);
+					 struct page *page, unsigned long u_vaddr);
 
 #endif	/* CONFIG_ARC_CACHE_VIPT_ALIASING */
 
@@ -100,17 +100,17 @@ static inline int cache_is_vipt_aliasing(void)
  * checks if two addresses (after page aligning) index into same cache set
  */
 #define addr_not_cache_congruent(addr1, addr2)				\
-({									\
-	cache_is_vipt_aliasing() ? 					\
+	({									\
+		cache_is_vipt_aliasing() ? 					\
 		(CACHE_COLOR(addr1) != CACHE_COLOR(addr2)) : 0;		\
-})
+	})
 
 #define copy_to_user_page(vma, page, vaddr, dst, src, len)		\
-do {									\
-	memcpy(dst, src, len);						\
-	if (vma->vm_flags & VM_EXEC)					\
-		__sync_icache_dcache((unsigned long)(dst), vaddr, len);	\
-} while (0)
+	do {									\
+		memcpy(dst, src, len);						\
+		if (vma->vm_flags & VM_EXEC)					\
+			__sync_icache_dcache((unsigned long)(dst), vaddr, len);	\
+	} while (0)
 
 #define copy_from_user_page(vma, page, vaddr, dst, src, len)		\
 	memcpy(dst, src, len);						\

@@ -2,8 +2,8 @@
 #define __ASM_SH_FUTEX_CAS_H
 
 static inline int atomic_futex_op_cmpxchg_inatomic(u32 *uval,
-						   u32 __user *uaddr,
-						   u32 oldval, u32 newval)
+		u32 __user *uaddr,
+		u32 oldval, u32 newval)
 {
 	int err = 0;
 	__asm__ __volatile__(
@@ -26,7 +26,9 @@ static inline int atomic_futex_op_cmpxchg_inatomic(u32 *uval,
 		:"+r" (err), "+r" (newval)
 		:"r" (oldval), "i" (-EFAULT), "z" (uaddr)
 		:"t", "memory");
-	if (err) return err;
+
+	if (err) { return err; }
+
 	*uval = newval;
 	return 0;
 }

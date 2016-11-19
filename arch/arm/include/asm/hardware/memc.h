@@ -17,10 +17,10 @@
 extern void memc_write(unsigned int reg, unsigned long val);
 
 #define video_set_dma(start,end,offset)				\
-do {								\
-	memc_write (VDMA_START, (start >> 2));			\
-	memc_write (VDMA_END, (end - VDMA_XFERSIZE) >> 2);	\
-	memc_write (VDMA_INIT, (offset >> 2));			\
-} while (0)
+	do {								\
+		memc_write (VDMA_START, (start >> 2));			\
+		memc_write (VDMA_END, (end - VDMA_XFERSIZE) >> 2);	\
+		memc_write (VDMA_INIT, (offset >> 2));			\
+	} while (0)
 
 #endif

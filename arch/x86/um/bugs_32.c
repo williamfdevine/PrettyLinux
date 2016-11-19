@@ -31,12 +31,16 @@ void arch_check_bugs(void)
 	sigemptyset(&new.sa_mask);
 	sigaction(SIGILL, &new, &old);
 
-	if (setjmp(cmov_test_return) == 0) {
+	if (setjmp(cmov_test_return) == 0)
+	{
 		unsigned long foo = 0;
 		__asm__ __volatile__("cmovz %0, %1" : "=r" (foo) : "0" (foo));
 		printk(UM_KERN_CONT "Yes\n");
-	} else
+	}
+	else
+	{
 		printk(UM_KERN_CONT "No\n");
+	}
 
 	sigaction(SIGILL, &old, &new);
 }
@@ -50,25 +54,30 @@ void arch_examine_signal(int sig, struct uml_pt_regs *regs)
 	 * SIGILL in init.
 	 */
 	if ((sig != SIGILL) || (get_current_pid() != 1))
+	{
 		return;
+	}
 
-	if (copy_from_user_proc(tmp, (void *) UPT_IP(regs), 2)) {
+	if (copy_from_user_proc(tmp, (void *) UPT_IP(regs), 2))
+	{
 		printk(UM_KERN_ERR "SIGILL in init, could not read "
-		       "instructions!\n");
+			   "instructions!\n");
 		return;
 	}
 
 	if ((tmp[0] != 0x0f) || ((tmp[1] & 0xf0) != 0x40))
+	{
 		return;
+	}
 
 	if (host_has_cmov == 0)
 		printk(UM_KERN_ERR "SIGILL caused by cmov, which this "
-		       "processor doesn't implement.  Boot a filesystem "
-		       "compiled for older processors");
+			   "processor doesn't implement.  Boot a filesystem "
+			   "compiled for older processors");
 	else if (host_has_cmov == 1)
 		printk(UM_KERN_ERR "SIGILL caused by cmov, which this "
-		       "processor claims to implement");
+			   "processor claims to implement");
 	else
 		printk(UM_KERN_ERR "Bad value for host_has_cmov (%d)",
-			host_has_cmov);
+			   host_has_cmov);
 }

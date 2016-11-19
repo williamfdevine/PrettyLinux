@@ -53,7 +53,8 @@ void __init generate_cplb_tables_cpu(unsigned int cpu)
 	d_data = d_cache | CPLB_SUPV_WR | CPLB_VALID | PAGE_SIZE_4MB | CPLB_DIRTY;
 	i_data = i_cache | CPLB_VALID | CPLB_PORTPRIO | PAGE_SIZE_4MB;
 
-	for (; addr < memory_start; addr += 4 * 1024 * 1024) {
+	for (; addr < memory_start; addr += 4 * 1024 * 1024)
+	{
 		dcplb_tbl[cpu][i_d].addr = addr;
 		dcplb_tbl[cpu][i_d++].data = d_data;
 		icplb_tbl[cpu][i_i].addr = addr;
@@ -92,9 +93,14 @@ void __init generate_cplb_tables_cpu(unsigned int cpu)
 	first_switched_icplb = i_i;
 
 	while (i_d < MAX_CPLBS)
+	{
 		dcplb_tbl[cpu][i_d++].data = 0;
+	}
+
 	while (i_i < MAX_CPLBS)
+	{
 		icplb_tbl[cpu][i_i++].data = 0;
+	}
 }
 
 void __init generate_cplb_tables_all(void)

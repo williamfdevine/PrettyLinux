@@ -37,7 +37,8 @@
 #define CCB_SIZE		(0x10)
 #define CCB_ALIGN		CCB_SIZE
 
-struct coprocessor_completion_block {
+struct coprocessor_completion_block
+{
 	__be64 value;
 	__be64 address;
 } __packed __aligned(CCB_ALIGN);
@@ -82,7 +83,8 @@ struct coprocessor_completion_block {
 #define CSB_SIZE		(0x10)
 #define CSB_ALIGN		CSB_SIZE
 
-struct coprocessor_status_block {
+struct coprocessor_status_block
+{
 	u8 flags;
 	u8 cs;
 	u8 cc;
@@ -101,7 +103,8 @@ struct coprocessor_status_block {
 #define DDE_SIZE		(0x10)
 #define DDE_ALIGN		DDE_SIZE
 
-struct data_descriptor_entry {
+struct data_descriptor_entry
+{
 	__be16 flags;
 	u8 count;
 	u8 index;
@@ -126,7 +129,8 @@ struct data_descriptor_entry {
 #define CRB_CSB_AT		(0x0000000000000002)
 #define CRB_CSB_M		(0x0000000000000001)
 
-struct coprocessor_request_block {
+struct coprocessor_request_block
+{
 	__be32 ccw;
 	__be32 flags;
 	__be64 csb_addr;
@@ -172,11 +176,11 @@ static inline int icswx(__be32 ccw, struct coprocessor_request_block *crb)
 	u32 cr;
 
 	__asm__ __volatile__(
-	PPC_ICSWX(%1,0,%2) "\n"
-	"mfcr %0\n"
-	: "=r" (cr)
-	: "r" (ccw_reg), "r" (crb)
-	: "cr0", "memory");
+		PPC_ICSWX(%1, 0, %2) "\n"
+		"mfcr %0\n"
+		: "=r" (cr)
+		: "r" (ccw_reg), "r" (crb)
+		: "cr0", "memory");
 
 	return (int)((cr >> 28) & 0xf);
 }

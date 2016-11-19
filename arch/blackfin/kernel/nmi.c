@@ -37,7 +37,8 @@ static struct corelock_slot saved_corelock;
 static atomic_t nmi_touched[NR_CPUS];
 static struct timer_list ntimer;
 
-enum {
+enum
+{
 	COREA_ENTER_NMI = 0,
 	COREA_EXIT_NMI,
 	COREB_EXIT_NMI,
@@ -55,7 +56,10 @@ static inline void set_nmi_event(int event)
 static inline void wait_nmi_event(int event)
 {
 	while (!test_bit(event, &nmi_event))
+	{
 		barrier();
+	}
+
 	__clear_bit(event, &nmi_event);
 }
 
@@ -125,7 +129,9 @@ static inline int nmi_wdt_set_timeout(unsigned long t)
 	sclk = get_sclk();
 	max_t = -1 / sclk;
 	cnt = t * sclk;
-	if (t > max_t) {
+
+	if (t > max_t)
+	{
 		pr_warning("NMI: timeout value is too large\n");
 		return -EINVAL;
 	}
@@ -133,8 +139,11 @@ static inline int nmi_wdt_set_timeout(unsigned long t)
 	run = nmi_wdt_running();
 	nmi_wdt_stop();
 	bfin_write_WDOGB_CNT(cnt);
+
 	if (run)
+	{
 		nmi_wdt_start();
+	}
 
 	timeout = t;
 
@@ -148,17 +157,25 @@ int check_nmi_wdt_touched(void)
 	cpumask_t mask;
 
 	cpumask_copy(&mask, cpu_online_mask);
+
 	if (!atomic_read(&nmi_touched[this_cpu]))
+	{
 		return 0;
+	}
 
 	atomic_set(&nmi_touched[this_cpu], 0);
 
 	cpumask_clear_cpu(this_cpu, &mask);
-	for_each_cpu(cpu, &mask) {
+	for_each_cpu(cpu, &mask)
+	{
 		invalidate_dcache_range((unsigned long)(&nmi_touched[cpu]),
-				(unsigned long)(&nmi_touched[cpu]));
+								(unsigned long)(&nmi_touched[cpu]));
+
 		if (!atomic_read(&nmi_touched[cpu]))
+		{
 			return 0;
+		}
+
 		atomic_set(&nmi_touched[cpu], 0);
 	}
 
@@ -168,7 +185,9 @@ int check_nmi_wdt_touched(void)
 static void nmi_wdt_timer(unsigned long data)
 {
 	if (check_nmi_wdt_touched())
+	{
 		nmi_wdt_keepalive();
+	}
 
 	mod_timer(&ntimer, jiffies + NMI_CHECK_TIMEOUT);
 }
@@ -205,10 +224,13 @@ static int nmi_wdt_suspend(void)
 static void nmi_wdt_resume(void)
 {
 	if (nmi_active)
+	{
 		nmi_wdt_start();
+	}
 }
 
-static struct syscore_ops nmi_syscore_ops = {
+static struct syscore_ops nmi_syscore_ops =
+{
 	.resume		= nmi_wdt_resume,
 	.suspend	= nmi_wdt_suspend,
 };
@@ -216,7 +238,9 @@ static struct syscore_ops nmi_syscore_ops = {
 static int __init init_nmi_wdt_syscore(void)
 {
 	if (nmi_active)
+	{
 		register_syscore_ops(&nmi_syscore_ops);
+	}
 
 	return 0;
 }
@@ -232,7 +256,8 @@ asmlinkage notrace void do_nmi(struct pt_regs *fp)
 
 	cpu_pda[cpu].__nmi_count += 1;
 
-	if (cpu == nmi_wdt_cpu) {
+	if (cpu == nmi_wdt_cpu)
+	{
 		/* CoreB goes here first */
 
 		/* reload the WDOG_STAT */
@@ -256,7 +281,9 @@ asmlinkage notrace void do_nmi(struct pt_regs *fp)
 		/* corelock is save/cleared, CoreA is dummping messages */
 
 		wait_nmi_event(COREA_EXIT_NMI);
-	} else {
+	}
+	else
+	{
 		/* OK, CoreA entered NMI */
 		set_nmi_event(COREA_ENTER_NMI);
 	}
@@ -268,14 +295,17 @@ asmlinkage notrace void do_nmi(struct pt_regs *fp)
 	dump_bfin_trace_buffer();
 	show_stack(current, (unsigned long *)fp);
 
-	if (cpu == nmi_wdt_cpu) {
+	if (cpu == nmi_wdt_cpu)
+	{
 		pr_emerg("This fault is not recoverable, sorry!\n");
 
 		/* CoreA dump finished, restore the corelock */
 		restore_corelock();
 
 		set_nmi_event(COREB_EXIT_NMI);
-	} else {
+	}
+	else
+	{
 		/* CoreB dump finished, notice the CoreA we are done */
 		set_nmi_event(COREA_EXIT_NMI);
 

@@ -36,11 +36,12 @@
 
 #ifdef CONFIG_PM_SLEEP
 static int tegra30_idle_lp2(struct cpuidle_device *dev,
-			    struct cpuidle_driver *drv,
-			    int index);
+							struct cpuidle_driver *drv,
+							int index);
 #endif
 
-static struct cpuidle_driver tegra_idle_driver = {
+static struct cpuidle_driver tegra_idle_driver =
+{
 	.name = "tegra_idle",
 	.owner = THIS_MODULE,
 #ifdef CONFIG_PM_SLEEP
@@ -65,13 +66,14 @@ static struct cpuidle_driver tegra_idle_driver = {
 
 #ifdef CONFIG_PM_SLEEP
 static bool tegra30_cpu_cluster_power_down(struct cpuidle_device *dev,
-					   struct cpuidle_driver *drv,
-					   int index)
+		struct cpuidle_driver *drv,
+		int index)
 {
 	/* All CPUs entering LP2 is not working.
 	 * Don't let CPU0 enter LP2 when any secondary CPU is online.
 	 */
-	if (num_online_cpus() > 1 || !tegra_cpu_rail_off_ready()) {
+	if (num_online_cpus() > 1 || !tegra_cpu_rail_off_ready())
+	{
 		cpu_do_idle();
 		return false;
 	}
@@ -87,8 +89,8 @@ static bool tegra30_cpu_cluster_power_down(struct cpuidle_device *dev,
 
 #ifdef CONFIG_SMP
 static bool tegra30_cpu_core_power_down(struct cpuidle_device *dev,
-					struct cpuidle_driver *drv,
-					int index)
+										struct cpuidle_driver *drv,
+										int index)
 {
 	tick_broadcast_enter();
 
@@ -102,16 +104,16 @@ static bool tegra30_cpu_core_power_down(struct cpuidle_device *dev,
 }
 #else
 static inline bool tegra30_cpu_core_power_down(struct cpuidle_device *dev,
-					       struct cpuidle_driver *drv,
-					       int index)
+		struct cpuidle_driver *drv,
+		int index)
 {
 	return true;
 }
 #endif
 
 static int tegra30_idle_lp2(struct cpuidle_device *dev,
-			    struct cpuidle_driver *drv,
-			    int index)
+							struct cpuidle_driver *drv,
+							int index)
 {
 	bool entered_lp2 = false;
 	bool last_cpu;
@@ -121,13 +123,18 @@ static int tegra30_idle_lp2(struct cpuidle_device *dev,
 	last_cpu = tegra_set_cpu_in_lp2();
 	cpu_pm_enter();
 
-	if (dev->cpu == 0) {
+	if (dev->cpu == 0)
+	{
 		if (last_cpu)
 			entered_lp2 = tegra30_cpu_cluster_power_down(dev, drv,
-								     index);
+						  index);
 		else
+		{
 			cpu_do_idle();
-	} else {
+		}
+	}
+	else
+	{
 		entered_lp2 = tegra30_cpu_core_power_down(dev, drv, index);
 	}
 

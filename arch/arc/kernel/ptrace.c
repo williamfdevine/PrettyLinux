@@ -19,9 +19,9 @@ static struct callee_regs *task_callee_regs(struct task_struct *tsk)
 }
 
 static int genregs_get(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       void *kbuf, void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   void *kbuf, void __user *ubuf)
 {
 	const struct pt_regs *ptregs = task_pt_regs(target);
 	const struct callee_regs *cregs = task_callee_regs(target);
@@ -31,20 +31,20 @@ static int genregs_get(struct task_struct *target,
 #define REG_O_CHUNK(START, END, PTR)	\
 	if (!ret)	\
 		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf, PTR, \
-			offsetof(struct user_regs_struct, START), \
-			offsetof(struct user_regs_struct, END));
+								  offsetof(struct user_regs_struct, START), \
+								  offsetof(struct user_regs_struct, END));
 
 #define REG_O_ONE(LOC, PTR)	\
 	if (!ret)		\
 		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf, PTR, \
-			offsetof(struct user_regs_struct, LOC), \
-			offsetof(struct user_regs_struct, LOC) + 4);
+								  offsetof(struct user_regs_struct, LOC), \
+								  offsetof(struct user_regs_struct, LOC) + 4);
 
 #define REG_O_ZERO(LOC)		\
 	if (!ret)		\
 		ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf, \
-			offsetof(struct user_regs_struct, LOC), \
-			offsetof(struct user_regs_struct, LOC) + 4);
+									   offsetof(struct user_regs_struct, LOC), \
+									   offsetof(struct user_regs_struct, LOC) + 4);
 
 	REG_O_ZERO(pad);
 	REG_O_ONE(scratch.bta, &ptregs->bta);
@@ -89,11 +89,15 @@ static int genregs_get(struct task_struct *target,
 
 	REG_O_ONE(efa, &target->thread.fault_address);
 
-	if (!ret) {
-		if (in_brkpt_trap(ptregs)) {
+	if (!ret)
+	{
+		if (in_brkpt_trap(ptregs))
+		{
 			stop_pc_val = target->thread.fault_address;
 			pr_debug("\t\tstop_pc (brk-pt)\n");
-		} else {
+		}
+		else
+		{
 			stop_pc_val = ptregs->ret;
 			pr_debug("\t\tstop_pc (others)\n");
 		}
@@ -105,9 +109,9 @@ static int genregs_get(struct task_struct *target,
 }
 
 static int genregs_set(struct task_struct *target,
-		       const struct user_regset *regset,
-		       unsigned int pos, unsigned int count,
-		       const void *kbuf, const void __user *ubuf)
+					   const struct user_regset *regset,
+					   unsigned int pos, unsigned int count,
+					   const void *kbuf, const void __user *ubuf)
 {
 	const struct pt_regs *ptregs = task_pt_regs(target);
 	const struct callee_regs *cregs = task_callee_regs(target);
@@ -116,22 +120,22 @@ static int genregs_set(struct task_struct *target,
 #define REG_IN_CHUNK(FIRST, NEXT, PTR)	\
 	if (!ret)			\
 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, \
-			(void *)(PTR), \
-			offsetof(struct user_regs_struct, FIRST), \
-			offsetof(struct user_regs_struct, NEXT));
+								 (void *)(PTR), \
+								 offsetof(struct user_regs_struct, FIRST), \
+								 offsetof(struct user_regs_struct, NEXT));
 
 #define REG_IN_ONE(LOC, PTR)		\
 	if (!ret)			\
 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, \
-			(void *)(PTR), \
-			offsetof(struct user_regs_struct, LOC), \
-			offsetof(struct user_regs_struct, LOC) + 4);
+								 (void *)(PTR), \
+								 offsetof(struct user_regs_struct, LOC), \
+								 offsetof(struct user_regs_struct, LOC) + 4);
 
 #define REG_IGNORE_ONE(LOC)		\
 	if (!ret)			\
 		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf, \
-			offsetof(struct user_regs_struct, LOC), \
-			offsetof(struct user_regs_struct, LOC) + 4);
+										offsetof(struct user_regs_struct, LOC), \
+										offsetof(struct user_regs_struct, LOC) + 4);
 
 	REG_IGNORE_ONE(pad);
 
@@ -183,22 +187,25 @@ static int genregs_set(struct task_struct *target,
 	return ret;
 }
 
-enum arc_getset {
+enum arc_getset
+{
 	REGSET_GENERAL,
 };
 
-static const struct user_regset arc_regsets[] = {
+static const struct user_regset arc_regsets[] =
+{
 	[REGSET_GENERAL] = {
-	       .core_note_type = NT_PRSTATUS,
-	       .n = ELF_NGREG,
-	       .size = sizeof(unsigned long),
-	       .align = sizeof(unsigned long),
-	       .get = genregs_get,
-	       .set = genregs_set,
+		.core_note_type = NT_PRSTATUS,
+		.n = ELF_NGREG,
+		.size = sizeof(unsigned long),
+		.align = sizeof(unsigned long),
+		.get = genregs_get,
+		.set = genregs_set,
 	}
 };
 
-static const struct user_regset_view user_arc_view = {
+static const struct user_regset_view user_arc_view =
+{
 	.name		= UTS_MACHINE,
 	.e_machine	= EM_ARC_INUSE,
 	.regsets	= arc_regsets,
@@ -215,20 +222,22 @@ void ptrace_disable(struct task_struct *child)
 }
 
 long arch_ptrace(struct task_struct *child, long request,
-		 unsigned long addr, unsigned long data)
+				 unsigned long addr, unsigned long data)
 {
 	int ret = -EIO;
 
 	pr_debug("REQ=%ld: ADDR =0x%lx, DATA=0x%lx)\n", request, addr, data);
 
-	switch (request) {
-	case PTRACE_GET_THREAD_AREA:
-		ret = put_user(task_thread_info(child)->thr_ptr,
-			       (unsigned long __user *)data);
-		break;
-	default:
-		ret = ptrace_request(child, request, addr, data);
-		break;
+	switch (request)
+	{
+		case PTRACE_GET_THREAD_AREA:
+			ret = put_user(task_thread_info(child)->thr_ptr,
+						   (unsigned long __user *)data);
+			break;
+
+		default:
+			ret = ptrace_request(child, request, addr, data);
+			break;
 	}
 
 	return ret;
@@ -237,7 +246,9 @@ long arch_ptrace(struct task_struct *child, long request,
 asmlinkage int syscall_trace_entry(struct pt_regs *regs)
 {
 	if (tracehook_report_syscall_entry(regs))
+	{
 		return ULONG_MAX;
+	}
 
 	return regs->r8;
 }

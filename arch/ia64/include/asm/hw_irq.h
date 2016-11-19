@@ -56,11 +56,11 @@ extern int ia64_first_device_vector;
 extern int ia64_last_device_vector;
 
 #if defined(CONFIG_SMP) && (defined(CONFIG_IA64_GENERIC) || defined (CONFIG_IA64_DIG))
-/* Reserve the lower priority vector than device vectors for "move IRQ" IPI */
-#define IA64_IRQ_MOVE_VECTOR		0x30	/* "move IRQ" IPI */
-#define IA64_DEF_FIRST_DEVICE_VECTOR	0x31
+	/* Reserve the lower priority vector than device vectors for "move IRQ" IPI */
+	#define IA64_IRQ_MOVE_VECTOR		0x30	/* "move IRQ" IPI */
+	#define IA64_DEF_FIRST_DEVICE_VECTOR	0x31
 #else
-#define IA64_DEF_FIRST_DEVICE_VECTOR	0x30
+	#define IA64_DEF_FIRST_DEVICE_VECTOR	0x30
 #endif
 #define IA64_DEF_LAST_DEVICE_VECTOR	0xe7
 #define IA64_FIRST_DEVICE_VECTOR	ia64_first_device_vector
@@ -85,18 +85,20 @@ extern int ia64_last_device_vector;
 #define IA64_IPI_DEFAULT_BASE_ADDR	0xfee00000
 
 /* Delivery modes for inter-cpu interrupts */
-enum {
-        IA64_IPI_DM_INT =       0x0,    /* pend an external interrupt */
-        IA64_IPI_DM_PMI =       0x2,    /* pend a PMI */
-        IA64_IPI_DM_NMI =       0x4,    /* pend an NMI (vector 2) */
-        IA64_IPI_DM_INIT =      0x5,    /* pend an INIT interrupt */
-        IA64_IPI_DM_EXTINT =    0x7,    /* pend an 8259-compatible interrupt. */
+enum
+{
+	IA64_IPI_DM_INT =       0x0,    /* pend an external interrupt */
+	IA64_IPI_DM_PMI =       0x2,    /* pend a PMI */
+	IA64_IPI_DM_NMI =       0x4,    /* pend an NMI (vector 2) */
+	IA64_IPI_DM_INIT =      0x5,    /* pend an INIT interrupt */
+	IA64_IPI_DM_EXTINT =    0x7,    /* pend an 8259-compatible interrupt. */
 };
 
 extern __u8 isa_irq_to_vector_map[16];
 #define isa_irq_to_vector(x)	isa_irq_to_vector_map[(x)]
 
-struct irq_cfg {
+struct irq_cfg
+{
 	ia64_vector vector;
 	cpumask_t domain;
 	cpumask_t old_domain;

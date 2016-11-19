@@ -85,7 +85,7 @@
 #define AV_SPARC_FJFMAU		0x00200000 /* unfused multiply-add */
 #define AV_SPARC_IMA		0x00400000 /* integer multiply-add */
 #define AV_SPARC_ASI_CACHE_SPARING \
-				0x00800000 /* cache sparing ASIs available */
+	0x00800000 /* cache sparing ASIs available */
 #define AV_SPARC_PAUSE		0x01000000 /* PAUSE available */
 #define AV_SPARC_CBCOND		0x02000000 /* CBCOND insns available */
 
@@ -120,7 +120,8 @@ typedef unsigned long elf_greg_t;
 #define ELF_NGREG 36
 typedef elf_greg_t elf_gregset_t[ELF_NGREG];
 
-typedef struct {
+typedef struct
+{
 	unsigned long	pr_regs[32];
 	unsigned long	pr_fsr;
 	unsigned long	pr_gsr;
@@ -138,8 +139,10 @@ typedef unsigned int compat_elf_greg_t;
 #define COMPAT_ELF_NGREG 38
 typedef compat_elf_greg_t compat_elf_gregset_t[COMPAT_ELF_NGREG];
 
-typedef struct {
-	union {
+typedef struct
+{
+	union
+	{
 		unsigned int	pr_regs[32];
 		unsigned long	pr_dregs[16];
 	} pr_fr;
@@ -152,12 +155,16 @@ typedef struct {
 } compat_elf_fpregset_t;
 
 /* UltraSparc extensions.  Still unused, but will be eventually.  */
-typedef struct {
+typedef struct
+{
 	unsigned int pr_type;
 	unsigned int pr_align;
-	union {
-		struct {
-			union {
+	union
+	{
+		struct
+		{
+			union
+			{
 				unsigned int	pr_regs[32];
 				unsigned long	pr_dregs[16];
 				long double	pr_qregs[8];
@@ -177,7 +184,7 @@ typedef struct {
  */
 #define elf_check_arch(x)		((x)->e_machine == ELF_ARCH)
 #define compat_elf_check_arch(x)	((x)->e_machine == EM_SPARC || \
-					 (x)->e_machine == EM_SPARC32PLUS)
+									 (x)->e_machine == EM_SPARC32PLUS)
 #define compat_start_thread		start_thread32
 
 #define ELF_EXEC_PAGESIZE	PAGE_SIZE
@@ -200,14 +207,14 @@ extern unsigned long sparc64_elf_hwcap;
 #define ELF_PLATFORM	(NULL)
 
 #define SET_PERSONALITY(ex)				\
-do {	if ((ex).e_ident[EI_CLASS] == ELFCLASS32)	\
-		set_thread_flag(TIF_32BIT);		\
-	else						\
-		clear_thread_flag(TIF_32BIT);		\
-	/* flush_thread will update pgd cache */	\
-	if (personality(current->personality) != PER_LINUX32)	\
-		set_personality(PER_LINUX |		\
-			(current->personality & (~PER_MASK)));	\
-} while (0)
+	do {	if ((ex).e_ident[EI_CLASS] == ELFCLASS32)	\
+			set_thread_flag(TIF_32BIT);		\
+		else						\
+			clear_thread_flag(TIF_32BIT);		\
+		/* flush_thread will update pgd cache */	\
+		if (personality(current->personality) != PER_LINUX32)	\
+			set_personality(PER_LINUX |		\
+							(current->personality & (~PER_MASK)));	\
+	} while (0)
 
 #endif /* !(__ASM_SPARC64_ELF_H) */

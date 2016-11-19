@@ -19,13 +19,13 @@
 
 void __delay(unsigned long loops)
 {
-        /*
-         * To end the bloody studid and useless discussion about the
-         * BogoMips number I took the liberty to define the __delay
-         * function in a way that that resulting BogoMips number will
-         * yield the megahertz number of the cpu. The important function
-         * is udelay and that is done using the tod clock. -- martin.
-         */
+	/*
+	 * To end the bloody studid and useless discussion about the
+	 * BogoMips number I took the liberty to define the __delay
+	 * function in a way that that resulting BogoMips number will
+	 * yield the megahertz number of the cpu. The important function
+	 * is udelay and that is done using the tod clock. -- martin.
+	 */
 	asm volatile("0: brct %0,0b" : : "d" ((loops/2) + 1));
 }
 EXPORT_SYMBOL(__delay);
@@ -55,16 +55,25 @@ static void __udelay_enabled(unsigned long long usecs)
 	u64 clock_saved, end;
 
 	end = get_tod_clock_fast() + (usecs << 12);
-	do {
+
+	do
+	{
 		clock_saved = 0;
-		if (end < S390_lowcore.clock_comparator) {
+
+		if (end < S390_lowcore.clock_comparator)
+		{
 			clock_saved = local_tick_disable();
 			set_clock_comparator(end);
 		}
+
 		enabled_wait();
+
 		if (clock_saved)
+		{
 			local_tick_enable(clock_saved);
-	} while (get_tod_clock_fast() < end);
+		}
+	}
+	while (get_tod_clock_fast() < end);
 }
 
 /*
@@ -76,23 +85,35 @@ void __udelay(unsigned long long usecs)
 
 	preempt_disable();
 	local_irq_save(flags);
-	if (in_irq()) {
+
+	if (in_irq())
+	{
 		__udelay_disabled(usecs);
 		goto out;
 	}
-	if (in_softirq()) {
+
+	if (in_softirq())
+	{
 		if (raw_irqs_disabled_flags(flags))
+		{
 			__udelay_disabled(usecs);
+		}
 		else
+		{
 			__udelay_enabled(usecs);
+		}
+
 		goto out;
 	}
-	if (raw_irqs_disabled_flags(flags)) {
+
+	if (raw_irqs_disabled_flags(flags))
+	{
 		local_bh_disable();
 		__udelay_disabled(usecs);
 		_local_bh_enable();
 		goto out;
 	}
+
 	__udelay_enabled(usecs);
 out:
 	local_irq_restore(flags);
@@ -109,8 +130,11 @@ void udelay_simple(unsigned long long usecs)
 	u64 end;
 
 	end = get_tod_clock_fast() + (usecs << 12);
+
 	while (get_tod_clock_fast() < end)
+	{
 		cpu_relax();
+	}
 }
 
 void __ndelay(unsigned long long nsecs)
@@ -120,9 +144,15 @@ void __ndelay(unsigned long long nsecs)
 	nsecs <<= 9;
 	do_div(nsecs, 125);
 	end = get_tod_clock_fast() + nsecs;
+
 	if (nsecs & ~0xfffUL)
+	{
 		__udelay(nsecs >> 12);
+	}
+
 	while (get_tod_clock_fast() < end)
+	{
 		barrier();
+	}
 }
 EXPORT_SYMBOL(__ndelay);

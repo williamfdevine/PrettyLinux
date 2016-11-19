@@ -32,7 +32,8 @@
 
 struct task_struct;
 
-struct thread_info {
+struct thread_info
+{
 	/* D$ line 1 */
 	struct task_struct	*task;
 	unsigned long		flags;
@@ -60,7 +61,7 @@ struct thread_info {
 	unsigned int		kern_una_insn;
 
 	unsigned long		fpregs[(7 * 256) / sizeof(unsigned long)]
-		__attribute__ ((aligned(64)));
+	__attribute__ ((aligned(64)));
 };
 
 #endif /* !(__ASSEMBLY__) */
@@ -100,11 +101,11 @@ struct thread_info {
 #define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
 
 #if PAGE_SHIFT == 13
-#define THREAD_SIZE (2*PAGE_SIZE)
-#define THREAD_SHIFT (PAGE_SHIFT + 1)
+	#define THREAD_SIZE (2*PAGE_SIZE)
+	#define THREAD_SHIFT (PAGE_SHIFT + 1)
 #else /* PAGE_SHIFT == 13 */
-#define THREAD_SIZE PAGE_SIZE
-#define THREAD_SHIFT PAGE_SHIFT
+	#define THREAD_SIZE PAGE_SIZE
+	#define THREAD_SHIFT PAGE_SHIFT
 #endif /* PAGE_SHIFT == 13 */
 
 /*
@@ -113,11 +114,11 @@ struct thread_info {
 #ifndef __ASSEMBLY__
 
 #define INIT_THREAD_INFO(tsk)				\
-{							\
-	.task		=	&tsk,			\
-	.current_ds	=	ASI_P,			\
-	.preempt_count	=	INIT_PREEMPT_COUNT,	\
-}
+	{							\
+		.task		=	&tsk,			\
+						.current_ds	=	ASI_P,			\
+										.preempt_count	=	INIT_PREEMPT_COUNT,	\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -128,9 +129,9 @@ register struct thread_info *current_thread_info_reg asm("g6");
 
 /* thread information allocation */
 #if PAGE_SHIFT == 13
-#define THREAD_SIZE_ORDER	1
+	#define THREAD_SIZE_ORDER	1
 #else /* PAGE_SHIFT == 13 */
-#define THREAD_SIZE_ORDER	0
+	#define THREAD_SIZE_ORDER	0
 #endif /* PAGE_SHIFT == 13 */
 
 #define __thread_flag_byte_ptr(ti)	\
@@ -207,8 +208,8 @@ register struct thread_info *current_thread_info_reg asm("g6");
 #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
 
 #define _TIF_USER_WORK_MASK	((0xff << TI_FLAG_WSAVED_SHIFT) | \
-				 _TIF_DO_NOTIFY_RESUME_MASK | \
-				 _TIF_NEED_RESCHED)
+							 _TIF_DO_NOTIFY_RESUME_MASK | \
+							 _TIF_NEED_RESCHED)
 #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | _TIF_SIGPENDING)
 
 #define is_32bit_task()	(test_thread_flag(TIF_32BIT))

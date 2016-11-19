@@ -30,7 +30,8 @@
 #include <asm/mach-types.h>
 #include <asm/smp_plat.h>
 
-enum {
+enum
+{
 	ZONE_MAN_CLKEN_MASK		= BIT(0),
 	ZONE_MAN_RESET_CNTL_MASK	= BIT(1),
 	ZONE_MAN_MEM_PWR_MASK		= BIT(4),
@@ -111,15 +112,23 @@ static int pwr_ctrl_wait_tmout(unsigned int cpu, u32 set, u32 mask)
 	const unsigned long timeo = jiffies + msecs_to_jiffies(POLL_TMOUT_MS);
 	u32 tmp;
 
-	do {
+	do
+	{
 		tmp = pwr_ctrl_rd(cpu) & mask;
+
 		if (!set == !tmp)
+		{
 			return 0;
-	} while (time_before(jiffies, timeo));
+		}
+	}
+	while (time_before(jiffies, timeo));
 
 	tmp = pwr_ctrl_rd(cpu) & mask;
+
 	if (!set == !tmp)
+	{
 		return 0;
+	}
 
 	return -ETIMEDOUT;
 }
@@ -128,10 +137,16 @@ static void cpu_rst_cfg_set(u32 cpu, int set)
 {
 	u32 val;
 	val = readl_relaxed(cpubiuctrl_block + cpu_rst_cfg_reg);
+
 	if (set)
+	{
 		val |= BIT(cpu_logical_map(cpu));
+	}
 	else
+	{
 		val &= ~BIT(cpu_logical_map(cpu));
+	}
+
 	writel_relaxed(val, cpubiuctrl_block + cpu_rst_cfg_reg);
 }
 
@@ -170,12 +185,16 @@ static void brcmstb_cpu_power_on(u32 cpu)
 	pwr_ctrl_set(cpu, ZONE_MAN_MEM_PWR_MASK, -1);
 
 	if (pwr_ctrl_wait_tmout(cpu, 1, ZONE_MEM_PWR_STATE_MASK))
+	{
 		panic("ZONE_MEM_PWR_STATE_MASK set timeout");
+	}
 
 	pwr_ctrl_set(cpu, ZONE_MAN_CLKEN_MASK, -1);
 
 	if (pwr_ctrl_wait_tmout(cpu, 1, ZONE_DPG_PWR_STATE_MASK))
+	{
 		panic("ZONE_DPG_PWR_STATE_MASK set timeout");
+	}
 
 	pwr_ctrl_clr(cpu, ZONE_MAN_ISO_CNTL_MASK, -1);
 	pwr_ctrl_set(cpu, ZONE_MAN_RESET_CNTL_MASK, -1);
@@ -211,7 +230,8 @@ static int brcmstb_cpu_kill(u32 cpu)
 	 * manual mode.  Consequently, we must avoid turning off CPU0 here to
 	 * ensure that TI2C master reset will work.
 	 */
-	if (cpu == 0) {
+	if (cpu == 0)
+	{
 		pr_warn("SMP: refusing to power off CPU0\n");
 		return 1;
 	}
@@ -226,12 +246,16 @@ static int brcmstb_cpu_kill(u32 cpu)
 	pwr_ctrl_clr(cpu, ZONE_MAN_MEM_PWR_MASK, -1);
 
 	if (pwr_ctrl_wait_tmout(cpu, 0, ZONE_MEM_PWR_STATE_MASK))
+	{
 		panic("ZONE_MEM_PWR_STATE_MASK clear timeout");
+	}
 
 	pwr_ctrl_clr(cpu, ZONE_RESERVED_1_MASK, -1);
 
 	if (pwr_ctrl_wait_tmout(cpu, 0, ZONE_DPG_PWR_STATE_MASK))
+	{
 		panic("ZONE_DPG_PWR_STATE_MASK clear timeout");
+	}
 
 	/* Flush pipeline before resetting CPU */
 	mb();
@@ -253,33 +277,41 @@ static int __init setup_hifcpubiuctrl_regs(struct device_node *np)
 	name = "syscon-cpu";
 
 	syscon_np = of_parse_phandle(np, name, 0);
-	if (!syscon_np) {
+
+	if (!syscon_np)
+	{
 		pr_err("can't find phandle %s\n", name);
 		rc = -EINVAL;
 		goto cleanup;
 	}
 
 	cpubiuctrl_block = of_iomap(syscon_np, 0);
-	if (!cpubiuctrl_block) {
+
+	if (!cpubiuctrl_block)
+	{
 		pr_err("iomap failed for cpubiuctrl_block\n");
 		rc = -EINVAL;
 		goto cleanup;
 	}
 
 	rc = of_property_read_u32_index(np, name, CPU0_PWR_ZONE_CTRL_REG,
-					&cpu0_pwr_zone_ctrl_reg);
-	if (rc) {
+									&cpu0_pwr_zone_ctrl_reg);
+
+	if (rc)
+	{
 		pr_err("failed to read 1st entry from %s property (%d)\n", name,
-			rc);
+			   rc);
 		rc = -EINVAL;
 		goto cleanup;
 	}
 
 	rc = of_property_read_u32_index(np, name, CPU_RESET_CONFIG_REG,
-					&cpu_rst_cfg_reg);
-	if (rc) {
+									&cpu_rst_cfg_reg);
+
+	if (rc)
+	{
 		pr_err("failed to read 2nd entry from %s property (%d)\n", name,
-			rc);
+			   rc);
 		rc = -EINVAL;
 		goto cleanup;
 	}
@@ -298,14 +330,18 @@ static int __init setup_hifcont_regs(struct device_node *np)
 	name = "syscon-cont";
 
 	syscon_np = of_parse_phandle(np, name, 0);
-	if (!syscon_np) {
+
+	if (!syscon_np)
+	{
 		pr_err("can't find phandle %s\n", name);
 		rc = -EINVAL;
 		goto cleanup;
 	}
 
 	hif_cont_block = of_iomap(syscon_np, 0);
-	if (!hif_cont_block) {
+
+	if (!hif_cont_block)
+	{
 		pr_err("iomap failed for hif_cont_block\n");
 		rc = -EINVAL;
 		goto cleanup;
@@ -327,36 +363,49 @@ static void __init brcmstb_cpu_ctrl_setup(unsigned int max_cpus)
 
 	name = "brcm,brcmstb-smpboot";
 	np = of_find_compatible_node(NULL, NULL, name);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("can't find compatible node %s\n", name);
 		return;
 	}
 
 	rc = setup_hifcpubiuctrl_regs(np);
+
 	if (rc)
+	{
 		return;
+	}
 
 	rc = setup_hifcont_regs(np);
+
 	if (rc)
+	{
 		return;
+	}
 }
 
 static int brcmstb_boot_secondary(unsigned int cpu, struct task_struct *idle)
 {
 	/* Missing the brcm,brcmstb-smpboot DT node? */
 	if (!cpubiuctrl_block || !hif_cont_block)
+	{
 		return -ENODEV;
+	}
 
 	/* Bring up power to the core if necessary */
 	if (brcmstb_cpu_get_power_state(cpu) == 0)
+	{
 		brcmstb_cpu_power_on(cpu);
+	}
 
 	brcmstb_cpu_boot(cpu);
 
 	return 0;
 }
 
-static const struct smp_operations brcmstb_smp_ops __initconst = {
+static const struct smp_operations brcmstb_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= brcmstb_cpu_ctrl_setup,
 	.smp_boot_secondary	= brcmstb_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU

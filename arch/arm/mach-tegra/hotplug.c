@@ -40,7 +40,8 @@ int tegra_cpu_kill(unsigned cpu)
  */
 void tegra_cpu_die(unsigned int cpu)
 {
-	if (!tegra_hotplug_shutdown) {
+	if (!tegra_hotplug_shutdown)
+	{
 		WARN(1, "hotplug is not yet initialized\n");
 		return;
 	}
@@ -58,19 +59,34 @@ void tegra_cpu_die(unsigned int cpu)
 static int __init tegra_hotplug_init(void)
 {
 	if (!IS_ENABLED(CONFIG_HOTPLUG_CPU))
+	{
 		return 0;
+	}
 
 	if (!soc_is_tegra())
+	{
 		return 0;
+	}
 
 	if (IS_ENABLED(CONFIG_ARCH_TEGRA_2x_SOC) && tegra_get_chip_id() == TEGRA20)
+	{
 		tegra_hotplug_shutdown = tegra20_hotplug_shutdown;
+	}
+
 	if (IS_ENABLED(CONFIG_ARCH_TEGRA_3x_SOC) && tegra_get_chip_id() == TEGRA30)
+	{
 		tegra_hotplug_shutdown = tegra30_hotplug_shutdown;
+	}
+
 	if (IS_ENABLED(CONFIG_ARCH_TEGRA_114_SOC) && tegra_get_chip_id() == TEGRA114)
+	{
 		tegra_hotplug_shutdown = tegra30_hotplug_shutdown;
+	}
+
 	if (IS_ENABLED(CONFIG_ARCH_TEGRA_124_SOC) && tegra_get_chip_id() == TEGRA124)
+	{
 		tegra_hotplug_shutdown = tegra30_hotplug_shutdown;
+	}
 
 	return 0;
 }

@@ -31,7 +31,8 @@ static void i8237A_resume(void)
 	dma_outb(0, DMA1_RESET_REG);
 	dma_outb(0, DMA2_RESET_REG);
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		set_dma_addr(i, 0x000000);
 		/* DMA count is a bit weird so this is not 0 */
 		set_dma_count(i, 1);
@@ -43,7 +44,8 @@ static void i8237A_resume(void)
 	release_dma_lock(flags);
 }
 
-static struct syscore_ops i8237_syscore_ops = {
+static struct syscore_ops i8237_syscore_ops =
+{
 	.resume		= i8237A_resume,
 };
 

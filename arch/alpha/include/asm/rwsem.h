@@ -7,7 +7,7 @@
  */
 
 #ifndef _LINUX_RWSEM_H
-#error "please don't include asm/rwsem.h directly, use linux/rwsem.h instead"
+	#error "please don't include asm/rwsem.h directly, use linux/rwsem.h instead"
 #endif
 
 #ifdef __KERNEL__
@@ -30,19 +30,22 @@ static inline void __down_read(struct rw_semaphore *sem)
 #else
 	long temp;
 	__asm__ __volatile__(
-	"1:	ldq_l	%0,%1\n"
-	"	addq	%0,%3,%2\n"
-	"	stq_c	%2,%1\n"
-	"	beq	%2,2f\n"
-	"	mb\n"
-	".subsection 2\n"
-	"2:	br	1b\n"
-	".previous"
-	:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
-	:"Ir" (RWSEM_ACTIVE_READ_BIAS), "m" (sem->count) : "memory");
+		"1:	ldq_l	%0,%1\n"
+		"	addq	%0,%3,%2\n"
+		"	stq_c	%2,%1\n"
+		"	beq	%2,2f\n"
+		"	mb\n"
+		".subsection 2\n"
+		"2:	br	1b\n"
+		".previous"
+		:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
+		:"Ir" (RWSEM_ACTIVE_READ_BIAS), "m" (sem->count) : "memory");
 #endif
+
 	if (unlikely(oldcount < 0))
+	{
 		rwsem_down_read_failed(sem);
+	}
 }
 
 /*
@@ -53,13 +56,21 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
 	long old, new, res;
 
 	res = atomic_long_read(&sem->count);
-	do {
+
+	do
+	{
 		new = res + RWSEM_ACTIVE_READ_BIAS;
+
 		if (new <= 0)
+		{
 			break;
+		}
+
 		old = res;
 		res = atomic_long_cmpxchg(&sem->count, old, new);
-	} while (res != old);
+	}
+	while (res != old);
+
 	return res >= 0 ? 1 : 0;
 }
 
@@ -72,16 +83,16 @@ static inline long ___down_write(struct rw_semaphore *sem)
 #else
 	long temp;
 	__asm__ __volatile__(
-	"1:	ldq_l	%0,%1\n"
-	"	addq	%0,%3,%2\n"
-	"	stq_c	%2,%1\n"
-	"	beq	%2,2f\n"
-	"	mb\n"
-	".subsection 2\n"
-	"2:	br	1b\n"
-	".previous"
-	:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
-	:"Ir" (RWSEM_ACTIVE_WRITE_BIAS), "m" (sem->count) : "memory");
+		"1:	ldq_l	%0,%1\n"
+		"	addq	%0,%3,%2\n"
+		"	stq_c	%2,%1\n"
+		"	beq	%2,2f\n"
+		"	mb\n"
+		".subsection 2\n"
+		"2:	br	1b\n"
+		".previous"
+		:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
+		:"Ir" (RWSEM_ACTIVE_WRITE_BIAS), "m" (sem->count) : "memory");
 #endif
 	return oldcount;
 }
@@ -89,14 +100,18 @@ static inline long ___down_write(struct rw_semaphore *sem)
 static inline void __down_write(struct rw_semaphore *sem)
 {
 	if (unlikely(___down_write(sem)))
+	{
 		rwsem_down_write_failed(sem);
+	}
 }
 
 static inline int __down_write_killable(struct rw_semaphore *sem)
 {
 	if (unlikely(___down_write(sem)))
 		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
+		{
 			return -EINTR;
+		}
 
 	return 0;
 }
@@ -107,9 +122,13 @@ static inline int __down_write_killable(struct rw_semaphore *sem)
 static inline int __down_write_trylock(struct rw_semaphore *sem)
 {
 	long ret = atomic_long_cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
-			   RWSEM_ACTIVE_WRITE_BIAS);
+								   RWSEM_ACTIVE_WRITE_BIAS);
+
 	if (ret == RWSEM_UNLOCKED_VALUE)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -122,20 +141,23 @@ static inline void __up_read(struct rw_semaphore *sem)
 #else
 	long temp;
 	__asm__ __volatile__(
-	"	mb\n"
-	"1:	ldq_l	%0,%1\n"
-	"	subq	%0,%3,%2\n"
-	"	stq_c	%2,%1\n"
-	"	beq	%2,2f\n"
-	".subsection 2\n"
-	"2:	br	1b\n"
-	".previous"
-	:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
-	:"Ir" (RWSEM_ACTIVE_READ_BIAS), "m" (sem->count) : "memory");
+		"	mb\n"
+		"1:	ldq_l	%0,%1\n"
+		"	subq	%0,%3,%2\n"
+		"	stq_c	%2,%1\n"
+		"	beq	%2,2f\n"
+		".subsection 2\n"
+		"2:	br	1b\n"
+		".previous"
+		:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
+		:"Ir" (RWSEM_ACTIVE_READ_BIAS), "m" (sem->count) : "memory");
 #endif
+
 	if (unlikely(oldcount < 0))
 		if ((int)oldcount - RWSEM_ACTIVE_READ_BIAS == 0)
+		{
 			rwsem_wake(sem);
+		}
 }
 
 static inline void __up_write(struct rw_semaphore *sem)
@@ -147,21 +169,24 @@ static inline void __up_write(struct rw_semaphore *sem)
 #else
 	long temp;
 	__asm__ __volatile__(
-	"	mb\n"
-	"1:	ldq_l	%0,%1\n"
-	"	subq	%0,%3,%2\n"
-	"	stq_c	%2,%1\n"
-	"	beq	%2,2f\n"
-	"	subq	%0,%3,%0\n"
-	".subsection 2\n"
-	"2:	br	1b\n"
-	".previous"
-	:"=&r" (count), "=m" (sem->count), "=&r" (temp)
-	:"Ir" (RWSEM_ACTIVE_WRITE_BIAS), "m" (sem->count) : "memory");
+		"	mb\n"
+		"1:	ldq_l	%0,%1\n"
+		"	subq	%0,%3,%2\n"
+		"	stq_c	%2,%1\n"
+		"	beq	%2,2f\n"
+		"	subq	%0,%3,%0\n"
+		".subsection 2\n"
+		"2:	br	1b\n"
+		".previous"
+		:"=&r" (count), "=m" (sem->count), "=&r" (temp)
+		:"Ir" (RWSEM_ACTIVE_WRITE_BIAS), "m" (sem->count) : "memory");
 #endif
+
 	if (unlikely(count))
 		if ((int)count == 0)
+		{
 			rwsem_wake(sem);
+		}
 }
 
 /*
@@ -176,19 +201,22 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
 #else
 	long temp;
 	__asm__ __volatile__(
-	"1:	ldq_l	%0,%1\n"
-	"	addq	%0,%3,%2\n"
-	"	stq_c	%2,%1\n"
-	"	beq	%2,2f\n"
-	"	mb\n"
-	".subsection 2\n"
-	"2:	br	1b\n"
-	".previous"
-	:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
-	:"Ir" (-RWSEM_WAITING_BIAS), "m" (sem->count) : "memory");
+		"1:	ldq_l	%0,%1\n"
+		"	addq	%0,%3,%2\n"
+		"	stq_c	%2,%1\n"
+		"	beq	%2,2f\n"
+		"	mb\n"
+		".subsection 2\n"
+		"2:	br	1b\n"
+		".previous"
+		:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
+		:"Ir" (-RWSEM_WAITING_BIAS), "m" (sem->count) : "memory");
 #endif
+
 	if (unlikely(oldcount < 0))
+	{
 		rwsem_downgrade_wake(sem);
+	}
 }
 
 #endif /* __KERNEL__ */

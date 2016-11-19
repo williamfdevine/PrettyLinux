@@ -27,11 +27,12 @@ static void pentium_machine_check(struct pt_regs *regs, long error_code)
 	rdmsr(MSR_IA32_P5_MC_TYPE, lotype, hi);
 
 	pr_emerg("CPU#%d: Machine Check Exception:  0x%8X (type 0x%8X).\n",
-		 smp_processor_id(), loaddr, lotype);
+			 smp_processor_id(), loaddr, lotype);
 
-	if (lotype & (1<<5)) {
+	if (lotype & (1 << 5))
+	{
 		pr_emerg("CPU#%d: Possible thermal failure (CPU on fire ?).\n",
-			 smp_processor_id());
+				 smp_processor_id());
 	}
 
 	add_taint(TAINT_MACHINE_CHECK, LOCKDEP_NOW_UNRELIABLE);
@@ -46,11 +47,15 @@ void intel_p5_mcheck_init(struct cpuinfo_x86 *c)
 
 	/* Default P5 to off as its often misconnected: */
 	if (!mce_p5_enabled)
+	{
 		return;
+	}
 
 	/* Check for MCE support: */
 	if (!cpu_has(c, X86_FEATURE_MCE))
+	{
 		return;
+	}
 
 	machine_check_vector = pentium_machine_check;
 	/* Make sure the vector pointer is visible before we enable MCEs: */
@@ -64,5 +69,5 @@ void intel_p5_mcheck_init(struct cpuinfo_x86 *c)
 	/* Enable MCE: */
 	cr4_set_bits(X86_CR4_MCE);
 	pr_info("Intel old style machine check reporting enabled on CPU#%d.\n",
-		smp_processor_id());
+			smp_processor_id());
 }

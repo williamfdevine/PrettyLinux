@@ -29,12 +29,17 @@ static int __init set_numcpus(char *str)
 {
 	int newval;
 
-	if (get_option(&str, &newval)) {
+	if (get_option(&str, &newval))
+	{
 		if (newval < 1 || newval >= NR_CPUS)
+		{
 			goto bad;
+		}
+
 		numcpus = newval;
 		return 0;
 	}
+
 bad:
 	return -EINVAL;
 }
@@ -47,17 +52,22 @@ static void paravirt_smp_setup(void)
 	unsigned int cpunum = get_ebase_cpunum();
 
 	if (WARN_ON(cpunum >= NR_CPUS))
+	{
 		return;
+	}
 
 	/* The present CPUs are initially just the boot cpu (CPU 0). */
-	for (id = 0; id < NR_CPUS; id++) {
+	for (id = 0; id < NR_CPUS; id++)
+	{
 		set_cpu_possible(id, id == 0);
 		set_cpu_present(id, id == 0);
 	}
+
 	__cpu_number_map[cpunum] = 0;
 	__cpu_logical_map[0] = cpunum;
 
-	for (id = 0; id < numcpus; id++) {
+	for (id = 0; id < numcpus; id++)
+	{
 		set_cpu_possible(id, true);
 		set_cpu_present(id, true);
 		__cpu_number_map[id] = id;
@@ -76,7 +86,7 @@ static void paravirt_send_ipi_mask(const struct cpumask *mask, unsigned int acti
 	unsigned int cpu;
 
 	for_each_cpu(cpu, mask)
-		paravirt_send_ipi_single(cpu, action);
+	paravirt_send_ipi_single(cpu, action);
 }
 
 static void paravirt_init_secondary(void)
@@ -121,18 +131,22 @@ static irqreturn_t paravirt_function_interrupt(int irq, void *dev_id)
 static void paravirt_prepare_cpus(unsigned int max_cpus)
 {
 	if (request_irq(MIPS_IRQ_MBOX0, paravirt_reched_interrupt,
-			IRQF_PERCPU | IRQF_NO_THREAD, "Scheduler",
-			paravirt_reched_interrupt)) {
+					IRQF_PERCPU | IRQF_NO_THREAD, "Scheduler",
+					paravirt_reched_interrupt))
+	{
 		panic("Cannot request_irq for SchedulerIPI");
 	}
+
 	if (request_irq(MIPS_IRQ_MBOX1, paravirt_function_interrupt,
-			IRQF_PERCPU | IRQF_NO_THREAD, "SMP-Call",
-			paravirt_function_interrupt)) {
+					IRQF_PERCPU | IRQF_NO_THREAD, "SMP-Call",
+					paravirt_function_interrupt))
+	{
 		panic("Cannot request_irq for SMP-Call");
 	}
 }
 
-struct plat_smp_ops paravirt_smp_ops = {
+struct plat_smp_ops paravirt_smp_ops =
+{
 	.send_ipi_single	= paravirt_send_ipi_single,
 	.send_ipi_mask		= paravirt_send_ipi_mask,
 	.init_secondary		= paravirt_init_secondary,

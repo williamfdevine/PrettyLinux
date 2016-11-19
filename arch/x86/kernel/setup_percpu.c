@@ -25,16 +25,17 @@ DEFINE_PER_CPU_READ_MOSTLY(int, cpu_number);
 EXPORT_PER_CPU_SYMBOL(cpu_number);
 
 #ifdef CONFIG_X86_64
-#define BOOT_PERCPU_OFFSET ((unsigned long)__per_cpu_load)
+	#define BOOT_PERCPU_OFFSET ((unsigned long)__per_cpu_load)
 #else
-#define BOOT_PERCPU_OFFSET 0
+	#define BOOT_PERCPU_OFFSET 0
 #endif
 
 DEFINE_PER_CPU_READ_MOSTLY(unsigned long, this_cpu_off) = BOOT_PERCPU_OFFSET;
 EXPORT_PER_CPU_SYMBOL(this_cpu_off);
 
-unsigned long __per_cpu_offset[NR_CPUS] __ro_after_init = {
-	[0 ... NR_CPUS-1] = BOOT_PERCPU_OFFSET,
+unsigned long __per_cpu_offset[NR_CPUS] __ro_after_init =
+{
+	[0 ... NR_CPUS - 1] = BOOT_PERCPU_OFFSET,
 };
 EXPORT_SYMBOL(__per_cpu_offset);
 
@@ -46,9 +47,9 @@ EXPORT_SYMBOL(__per_cpu_offset);
  * address anywhere.  No need to reserve space in the first chunk.
  */
 #ifdef CONFIG_X86_64
-#define PERCPU_FIRST_CHUNK_RESERVE	PERCPU_MODULE_RESERVE
+	#define PERCPU_FIRST_CHUNK_RESERVE	PERCPU_MODULE_RESERVE
 #else
-#define PERCPU_FIRST_CHUNK_RESERVE	0
+	#define PERCPU_FIRST_CHUNK_RESERVE	0
 #endif
 
 #ifdef CONFIG_X86_32
@@ -68,12 +69,15 @@ static bool __init pcpu_need_numa(void)
 	pg_data_t *last = NULL;
 	unsigned int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		int node = early_cpu_to_node(cpu);
 
 		if (node_online(node) && NODE_DATA(node) &&
-		    last && last != NODE_DATA(node))
+			last && last != NODE_DATA(node))
+		{
 			return true;
+		}
 
 		last = NODE_DATA(node);
 	}
@@ -95,26 +99,30 @@ static bool __init pcpu_need_numa(void)
  * RETURNS:
  * Pointer to the allocated area on success, NULL on failure.
  */
-static void * __init pcpu_alloc_bootmem(unsigned int cpu, unsigned long size,
-					unsigned long align)
+static void *__init pcpu_alloc_bootmem(unsigned int cpu, unsigned long size,
+									   unsigned long align)
 {
 	const unsigned long goal = __pa(MAX_DMA_ADDRESS);
 #ifdef CONFIG_NEED_MULTIPLE_NODES
 	int node = early_cpu_to_node(cpu);
 	void *ptr;
 
-	if (!node_online(node) || !NODE_DATA(node)) {
+	if (!node_online(node) || !NODE_DATA(node))
+	{
 		ptr = __alloc_bootmem_nopanic(size, align, goal);
 		pr_info("cpu %d has no node %d or node-local memory\n",
-			cpu, node);
+				cpu, node);
 		pr_debug("per cpu data for cpu%d %lu bytes at %016lx\n",
-			 cpu, size, __pa(ptr));
-	} else {
-		ptr = __alloc_bootmem_node_nopanic(NODE_DATA(node),
-						   size, align, goal);
-		pr_debug("per cpu data for cpu%d %lu bytes on node%d at %016lx\n",
-			 cpu, size, node, __pa(ptr));
+				 cpu, size, __pa(ptr));
 	}
+	else
+	{
+		ptr = __alloc_bootmem_node_nopanic(NODE_DATA(node),
+										   size, align, goal);
+		pr_debug("per cpu data for cpu%d %lu bytes on node%d at %016lx\n",
+				 cpu, size, node, __pa(ptr));
+	}
+
 	return ptr;
 #else
 	return __alloc_bootmem_nopanic(size, align, goal);
@@ -124,7 +132,7 @@ static void * __init pcpu_alloc_bootmem(unsigned int cpu, unsigned long size,
 /*
  * Helpers for first chunk memory allocation
  */
-static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size, size_t align)
+static void *__init pcpu_fc_alloc(unsigned int cpu, size_t size, size_t align)
 {
 	return pcpu_alloc_bootmem(cpu, size, align);
 }
@@ -137,10 +145,16 @@ static void __init pcpu_fc_free(void *ptr, size_t size)
 static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
 {
 #ifdef CONFIG_NEED_MULTIPLE_NODES
+
 	if (early_cpu_to_node(from) == early_cpu_to_node(to))
+	{
 		return LOCAL_DISTANCE;
+	}
 	else
+	{
 		return REMOTE_DISTANCE;
+	}
+
 #else
 	return LOCAL_DISTANCE;
 #endif
@@ -157,10 +171,10 @@ static inline void setup_percpu_segment(int cpu)
 	struct desc_struct gdt;
 
 	pack_descriptor(&gdt, per_cpu_offset(cpu), 0xFFFFF,
-			0x2 | DESCTYPE_S, 0x8);
+					0x2 | DESCTYPE_S, 0x8);
 	gdt.s = 1;
 	write_gdt_entry(get_cpu_gdt_table(cpu),
-			GDT_ENTRY_PERCPU, &gdt, DESCTYPE_S);
+					GDT_ENTRY_PERCPU, &gdt, DESCTYPE_S);
 #endif
 }
 
@@ -171,7 +185,7 @@ void __init setup_per_cpu_areas(void)
 	int rc;
 
 	pr_info("NR_CPUS:%d nr_cpumask_bits:%d nr_cpu_ids:%d nr_node_ids:%d\n",
-		NR_CPUS, nr_cpumask_bits, nr_cpu_ids, nr_node_ids);
+			NR_CPUS, nr_cpumask_bits, nr_cpu_ids, nr_node_ids);
 
 	/*
 	 * Allocate percpu area.  Embedding allocator is our favorite;
@@ -180,13 +194,19 @@ void __init setup_per_cpu_areas(void)
 	 * on 32bit.  Use page in that case.
 	 */
 #ifdef CONFIG_X86_32
+
 	if (pcpu_chosen_fc == PCPU_FC_AUTO && pcpu_need_numa())
+	{
 		pcpu_chosen_fc = PCPU_FC_PAGE;
+	}
+
 #endif
 	rc = -EINVAL;
-	if (pcpu_chosen_fc != PCPU_FC_PAGE) {
+
+	if (pcpu_chosen_fc != PCPU_FC_PAGE)
+	{
 		const size_t dyn_size = PERCPU_MODULE_RESERVE +
-			PERCPU_DYNAMIC_RESERVE - PERCPU_FIRST_CHUNK_RESERVE;
+								PERCPU_DYNAMIC_RESERVE - PERCPU_FIRST_CHUNK_RESERVE;
 		size_t atom_size;
 
 		/*
@@ -202,23 +222,29 @@ void __init setup_per_cpu_areas(void)
 		atom_size = PAGE_SIZE;
 #endif
 		rc = pcpu_embed_first_chunk(PERCPU_FIRST_CHUNK_RESERVE,
-					    dyn_size, atom_size,
-					    pcpu_cpu_distance,
-					    pcpu_fc_alloc, pcpu_fc_free);
+									dyn_size, atom_size,
+									pcpu_cpu_distance,
+									pcpu_fc_alloc, pcpu_fc_free);
+
 		if (rc < 0)
 			pr_warning("%s allocator failed (%d), falling back to page size\n",
-				   pcpu_fc_names[pcpu_chosen_fc], rc);
+					   pcpu_fc_names[pcpu_chosen_fc], rc);
 	}
+
 	if (rc < 0)
 		rc = pcpu_page_first_chunk(PERCPU_FIRST_CHUNK_RESERVE,
-					   pcpu_fc_alloc, pcpu_fc_free,
-					   pcpup_populate_pte);
+								   pcpu_fc_alloc, pcpu_fc_free,
+								   pcpup_populate_pte);
+
 	if (rc < 0)
+	{
 		panic("cannot initialize percpu area (err=%d)", rc);
+	}
 
 	/* alrighty, percpu areas up and running */
 	delta = (unsigned long)pcpu_base_addr - (unsigned long)__per_cpu_start;
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		per_cpu_offset(cpu) = delta + pcpu_unit_offsets[cpu];
 		per_cpu(this_cpu_off, cpu) = per_cpu_offset(cpu);
 		per_cpu(cpu_number, cpu) = cpu;
@@ -261,12 +287,15 @@ void __init setup_per_cpu_areas(void)
 		 */
 		set_cpu_numa_node(cpu, early_cpu_to_node(cpu));
 #endif
+
 		/*
 		 * Up to this point, the boot CPU has been using .init.data
 		 * area.  Reload any changed state for the boot CPU.
 		 */
 		if (!cpu)
+		{
 			switch_to_new_gdt(cpu);
+		}
 	}
 
 	/* indicate the early static arrays will soon be gone */

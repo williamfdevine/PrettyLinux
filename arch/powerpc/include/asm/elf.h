@@ -43,14 +43,14 @@
  */
 #define PPC_ELF_CORE_COPY_REGS(elf_regs, regs) \
 	int i, nregs = min(sizeof(*regs) / sizeof(unsigned long), \
-			   (size_t)ELF_NGREG);			  \
+					   (size_t)ELF_NGREG);			  \
 	for (i = 0; i < nregs; i++) \
 		elf_regs[i] = ((unsigned long *) regs)[i]; \
 	memset(&elf_regs[i], 0, (ELF_NGREG - i) * sizeof(elf_regs[0]))
 
 /* Common routine for both 32-bit and 64-bit native processes */
 static inline void ppc_elf_core_copy_regs(elf_gregset_t elf_regs,
-					  struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 	PPC_ELF_CORE_COPY_REGS(elf_regs, regs);
 }
@@ -80,25 +80,25 @@ typedef elf_vrregset_t elf_fpxregset_t;
 
 #ifdef __powerpc64__
 # define ELF_PLAT_INIT(_r, load_addr)	do {	\
-	_r->gpr[2] = load_addr; 		\
-} while (0)
+		_r->gpr[2] = load_addr; 		\
+	} while (0)
 #endif /* __powerpc64__ */
 
 #ifdef __powerpc64__
 # define SET_PERSONALITY(ex)					\
-do {								\
-	if (((ex).e_flags & 0x3) == 2)				\
-		set_thread_flag(TIF_ELF2ABI);			\
-	else							\
-		clear_thread_flag(TIF_ELF2ABI);			\
-	if ((ex).e_ident[EI_CLASS] == ELFCLASS32)		\
-		set_thread_flag(TIF_32BIT);			\
-	else							\
-		clear_thread_flag(TIF_32BIT);			\
-	if (personality(current->personality) != PER_LINUX32)	\
-		set_personality(PER_LINUX |			\
-			(current->personality & (~PER_MASK)));	\
-} while (0)
+	do {								\
+		if (((ex).e_flags & 0x3) == 2)				\
+			set_thread_flag(TIF_ELF2ABI);			\
+		else							\
+			clear_thread_flag(TIF_ELF2ABI);			\
+		if ((ex).e_ident[EI_CLASS] == ELFCLASS32)		\
+			set_thread_flag(TIF_32BIT);			\
+		else							\
+			clear_thread_flag(TIF_32BIT);			\
+		if (personality(current->personality) != PER_LINUX32)	\
+			set_personality(PER_LINUX |			\
+							(current->personality & (~PER_MASK)));	\
+	} while (0)
 /*
  * An executable for which elf_read_implies_exec() returns TRUE will
  * have the READ_IMPLIES_EXEC personality flag set automatically. This
@@ -108,7 +108,7 @@ do {								\
  */
 # define elf_read_implies_exec(ex, exec_stk) (is_32bit_task() ? \
 		(exec_stk == EXSTACK_DEFAULT) : 0)
-#else 
+#else
 # define elf_read_implies_exec(ex, exec_stk) (exec_stk == EXSTACK_DEFAULT)
 #endif /* __powerpc64__ */
 
@@ -120,19 +120,19 @@ extern int ucache_bsize;
 #define ARCH_HAS_SETUP_ADDITIONAL_PAGES
 struct linux_binprm;
 extern int arch_setup_additional_pages(struct linux_binprm *bprm,
-				       int uses_interp);
+									   int uses_interp);
 #define VDSO_AUX_ENT(a,b) NEW_AUX_ENT(a,b)
 
 /* 1GB for 64bit, 8MB for 32bit */
 #define STACK_RND_MASK (is_32bit_task() ? \
-	(0x7ff >> (PAGE_SHIFT - 12)) : \
-	(0x3ffff >> (PAGE_SHIFT - 12)))
+						(0x7ff >> (PAGE_SHIFT - 12)) : \
+						(0x3ffff >> (PAGE_SHIFT - 12)))
 
 #ifdef CONFIG_SPU_BASE
-/* Notes used in ET_CORE. Note name is "SPU/<fd>/<filename>". */
-#define NT_SPU		1
+	/* Notes used in ET_CORE. Note name is "SPU/<fd>/<filename>". */
+	#define NT_SPU		1
 
-#define ARCH_HAVE_EXTRA_ELF_NOTES
+	#define ARCH_HAVE_EXTRA_ELF_NOTES
 
 #endif /* CONFIG_SPU_BASE */
 

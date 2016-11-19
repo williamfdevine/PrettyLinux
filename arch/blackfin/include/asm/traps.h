@@ -65,7 +65,7 @@
 	"RAISE 5 instruction\n" \
 	level "    Software issued a RAISE 5 instruction to invoke the Hardware\n"
 #define HWC_default(level) \
-	 "Reserved\n"
+	"Reserved\n"
 #define EXC_0x03(level) \
 	"Application stack overflow\n" \
 	level " - Please increase the stack size of the application using elf2flt -s option,\n" \

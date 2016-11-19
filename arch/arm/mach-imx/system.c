@@ -42,10 +42,14 @@ static int wcr_enable = (1 << 2);
 void mxc_restart(enum reboot_mode mode, const char *cmd)
 {
 	if (!wdog_base)
+	{
 		goto reset_fallback;
+	}
 
 	if (!IS_ERR(wdog_clk))
+	{
 		clk_enable(wdog_clk);
+	}
 
 	/* Assert SRS signal */
 	imx_writew(wcr_enable, wdog_base);
@@ -77,10 +81,15 @@ void __init mxc_arch_reset_init(void __iomem *base)
 	wdog_base = base;
 
 	wdog_clk = clk_get_sys("imx2-wdt.0", NULL);
+
 	if (IS_ERR(wdog_clk))
+	{
 		pr_warn("%s: failed to get wdog clock\n", __func__);
+	}
 	else
+	{
 		clk_prepare(wdog_clk);
+	}
 }
 
 #ifdef CONFIG_SOC_IMX1
@@ -99,19 +108,26 @@ void __init imx_init_l2cache(void)
 	unsigned int val;
 
 	np = of_find_compatible_node(NULL, NULL, "arm,pl310-cache");
+
 	if (!np)
+	{
 		return;
+	}
 
 	l2x0_base = of_iomap(np, 0);
-	if (!l2x0_base)
-		goto put_node;
 
-	if (!(readl_relaxed(l2x0_base + L2X0_CTRL) & L2X0_CTRL_EN)) {
+	if (!l2x0_base)
+	{
+		goto put_node;
+	}
+
+	if (!(readl_relaxed(l2x0_base + L2X0_CTRL) & L2X0_CTRL_EN))
+	{
 		/* Configure the L2 PREFETCH and POWER registers */
 		val = readl_relaxed(l2x0_base + L310_PREFETCH_CTRL);
 		val |= L310_PREFETCH_CTRL_DBL_LINEFILL |
-			L310_PREFETCH_CTRL_INSTR_PREFETCH |
-			L310_PREFETCH_CTRL_DATA_PREFETCH;
+			   L310_PREFETCH_CTRL_INSTR_PREFETCH |
+			   L310_PREFETCH_CTRL_DATA_PREFETCH;
 
 		/* Set perfetch offset to improve performance */
 		val &= ~L310_PREFETCH_CTRL_OFFSET_MASK;

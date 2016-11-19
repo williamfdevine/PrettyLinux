@@ -87,22 +87,25 @@ static void __init map_ram(void)
 
 	v = PAGE_OFFSET;
 
-	for_each_memblock(memory, region) {
+	for_each_memblock(memory, region)
+	{
 		p = (u32) region->base & PAGE_MASK;
 		e = p + (u32) region->size;
 
 		v = (u32) __va(p);
 		pge = pgd_offset_k(v);
 
-		while (p < e) {
+		while (p < e)
+		{
 			int j;
 			pue = pud_offset(pge, v);
 			pme = pmd_offset(pue, v);
 
-			if ((u32) pue != (u32) pge || (u32) pme != (u32) pge) {
+			if ((u32) pue != (u32) pge || (u32) pme != (u32) pge)
+			{
 				panic("%s: OR1K kernel hardcoded for "
-				      "two-level page tables",
-				     __func__);
+					  "two-level page tables",
+					  __func__);
 			}
 
 			/* Alloc one page for holding PTE's... */
@@ -111,12 +114,17 @@ static void __init map_ram(void)
 
 			/* Fill the newly allocated page with PTE'S */
 			for (j = 0; p < e && j < PTRS_PER_PGD;
-			     v += PAGE_SIZE, p += PAGE_SIZE, j++, pte++) {
+				 v += PAGE_SIZE, p += PAGE_SIZE, j++, pte++)
+			{
 				if (v >= (u32) _e_kernel_ro ||
-				    v < (u32) _s_kernel_ro)
+					v < (u32) _s_kernel_ro)
+				{
 					prot = PAGE_KERNEL;
+				}
 				else
+				{
 					prot = PAGE_KERNEL_RO;
+				}
 
 				set_pte(pte, mk_pte_phys(p, prot));
 			}
@@ -125,7 +133,7 @@ static void __init map_ram(void)
 		}
 
 		printk(KERN_INFO "%s: Memory: 0x%x-0x%x\n", __func__,
-		       region->base, region->base + region->size);
+			   region->base, region->base + region->size);
 	}
 }
 
@@ -141,7 +149,9 @@ void __init paging_init(void)
 	/* clear out the init_mm.pgd that will contain the kernel's mappings */
 
 	for (i = 0; i < PTRS_PER_PGD; i++)
+	{
 		swapper_pg_dir[i] = __pgd(0);
+	}
 
 	/* make sure the current pgd table points to something sane
 	 * (even if it is most probably not used until the next
@@ -170,7 +180,7 @@ void __init paging_init(void)
 
 		printk(KERN_INFO "itlb_miss_handler %p\n", &itlb_miss_handler);
 		*itlb_vector = ((unsigned long)&itlb_miss_handler -
-				(unsigned long)itlb_vector) >> 2;
+						(unsigned long)itlb_vector) >> 2;
 
 		/* Soft ordering constraint to ensure that dtlb_vector is
 		 * the last thing updated
@@ -179,7 +189,7 @@ void __init paging_init(void)
 
 		printk(KERN_INFO "dtlb_miss_handler %p\n", &dtlb_miss_handler);
 		*dtlb_vector = ((unsigned long)&dtlb_miss_handler -
-				(unsigned long)dtlb_vector) >> 2;
+						(unsigned long)dtlb_vector) >> 2;
 
 	}
 

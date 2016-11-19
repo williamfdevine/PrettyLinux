@@ -58,39 +58,56 @@ static void dump(struct pt_regs *fp)
 
 	pr_info("\nCURRENT PROCESS:\n\n");
 	pr_info("COMM=%s PID=%d\n", current->comm, current->pid);
-	if (current->mm) {
+
+	if (current->mm)
+	{
 		pr_info("TEXT=%08x-%08x DATA=%08x-%08x BSS=%08x-%08x\n",
-			(int) current->mm->start_code,
-			(int) current->mm->end_code,
-			(int) current->mm->start_data,
-			(int) current->mm->end_data,
-			(int) current->mm->end_data,
-			(int) current->mm->brk);
+				(int) current->mm->start_code,
+				(int) current->mm->end_code,
+				(int) current->mm->start_data,
+				(int) current->mm->end_data,
+				(int) current->mm->end_data,
+				(int) current->mm->brk);
 		pr_info("USER-STACK=%08x  KERNEL-STACK=%08lx\n\n",
-			(int) current->mm->start_stack,
-			(int) PAGE_SIZE+(unsigned long)current);
+				(int) current->mm->start_stack,
+				(int) PAGE_SIZE + (unsigned long)current);
 	}
 
 	show_regs(fp);
 	pr_info("\nCODE:");
 	tp = ((unsigned char *) fp->pc) - 0x20;
-	for (sp = (unsigned long *) tp, i = 0; (i < 0x40);  i += 4) {
+
+	for (sp = (unsigned long *) tp, i = 0; (i < 0x40);  i += 4)
+	{
 		if ((i % 0x10) == 0)
+		{
 			pr_info("\n%08x: ", (int) (tp + i));
+		}
+
 		pr_info("%08x ", (int) *sp++);
 	}
+
 	pr_info("\n");
 
 	pr_info("\nKERNEL STACK:");
 	tp = ((unsigned char *) fp) - 0x40;
-	for (sp = (unsigned long *) tp, i = 0; (i < 0xc0); i += 4) {
+
+	for (sp = (unsigned long *) tp, i = 0; (i < 0xc0); i += 4)
+	{
 		if ((i % 0x10) == 0)
+		{
 			pr_info("\n%08x: ", (int) (tp + i));
+		}
+
 		pr_info("%08x ", (int) *sp++);
 	}
+
 	pr_info("\n");
-	if (STACK_MAGIC != *(unsigned long *)((unsigned long)current+PAGE_SIZE))
+
+	if (STACK_MAGIC != *(unsigned long *)((unsigned long)current + PAGE_SIZE))
+	{
 		pr_info("(Possibly corrupted stack page??)\n");
+	}
 
 	pr_info("\n\n");
 }
@@ -119,25 +136,38 @@ void show_stack(struct task_struct *task, unsigned long *esp)
 	int i;
 
 	if (esp == NULL)
+	{
 		esp = (unsigned long *) &esp;
+	}
 
 	stack = esp;
 
 	pr_info("Stack from %08lx:", (unsigned long)stack);
-	for (i = 0; i < kstack_depth_to_print; i++) {
+
+	for (i = 0; i < kstack_depth_to_print; i++)
+	{
 		if (((unsigned long)stack & (THREAD_SIZE - 1)) >=
-		    THREAD_SIZE-4)
+			THREAD_SIZE - 4)
+		{
 			break;
+		}
+
 		if (i % 8 == 0)
+		{
 			pr_info(" ");
+		}
+
 		pr_cont(" %08lx", *stack++);
 	}
 
 	pr_info("\nCall Trace:\n");
 	i = 0;
 	stack = esp;
-	while (((unsigned long)stack & (THREAD_SIZE - 1)) < THREAD_SIZE-4) {
+
+	while (((unsigned long)stack & (THREAD_SIZE - 1)) < THREAD_SIZE - 4)
+	{
 		addr = *stack++;
+
 		/*
 		 * If the address is either in the text segment of the
 		 * kernel, or in the region which contains vmalloc'ed
@@ -146,12 +176,17 @@ void show_stack(struct task_struct *task, unsigned long *esp)
 		 * down the cause of the crash will be able to figure
 		 * out the call path that was taken.
 		 */
-		if (check_kernel_text(addr)) {
+		if (check_kernel_text(addr))
+		{
 			if (i % 4 == 0)
+			{
 				pr_info("       ");
+			}
+
 			pr_cont(" [<%08lx>]", addr);
 			i++;
 		}
 	}
+
 	pr_info("\n");
 }

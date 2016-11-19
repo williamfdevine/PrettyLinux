@@ -21,7 +21,8 @@
 
 struct task_struct;
 
-struct plat_smp_ops {
+struct plat_smp_ops
+{
 	void (*send_ipi_single)(int cpu, unsigned int action);
 	void (*send_ipi_mask)(const struct cpumask *mask, unsigned int action);
 	void (*init_secondary)(void);
@@ -46,7 +47,7 @@ static inline void plat_smp_setup(void)
 
 extern void mips_smp_send_ipi_single(int cpu, unsigned int action);
 extern void mips_smp_send_ipi_mask(const struct cpumask *mask,
-				      unsigned int action);
+								   unsigned int action);
 
 #else /* !CONFIG_SMP */
 
@@ -82,7 +83,9 @@ static inline int register_cmp_smp_ops(void)
 	extern struct plat_smp_ops cmp_smp_ops;
 
 	if (!mips_cm_present())
+	{
 		return -ENODEV;
+	}
 
 	register_smp_ops(&cmp_smp_ops);
 

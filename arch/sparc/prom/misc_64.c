@@ -25,12 +25,15 @@ static int prom_service_exists(const char *service_name)
 	args[1] = 1;
 	args[2] = 1;
 	args[3] = (unsigned long) service_name;
-	args[4] = (unsigned long) -1;
+	args[4] = (unsigned long) - 1;
 
 	p1275_cmd_direct(args);
 
 	if (args[4])
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -40,7 +43,10 @@ void prom_sun4v_guest_soft_state(void)
 	unsigned long args[3];
 
 	if (!prom_service_exists(svc))
+	{
 		return;
+	}
+
 	args[0] = (unsigned long) svc;
 	args[1] = 0;
 	args[2] = 0;
@@ -53,8 +59,12 @@ void prom_reboot(const char *bcommand)
 	unsigned long args[4];
 
 #ifdef CONFIG_SUN_LDOMS
+
 	if (ldom_domaining_enabled)
+	{
 		ldom_reboot(bcommand);
+	}
+
 #endif
 	args[0] = (unsigned long) "boot";
 	args[1] = 1;
@@ -70,12 +80,15 @@ void prom_feval(const char *fstring)
 	unsigned long args[5];
 
 	if (!fstring || fstring[0] == 0)
+	{
 		return;
+	}
+
 	args[0] = (unsigned long) "interpret";
 	args[1] = 1;
 	args[2] = 1;
 	args[3] = (unsigned long) fstring;
-	args[4] = (unsigned long) -1;
+	args[4] = (unsigned long) - 1;
 
 	p1275_cmd_direct(args);
 }
@@ -116,8 +129,12 @@ void notrace prom_halt(void)
 	unsigned long args[3];
 
 #ifdef CONFIG_SUN_LDOMS
+
 	if (ldom_domaining_enabled)
+	{
 		ldom_power_off();
+	}
+
 #endif
 again:
 	args[0] = (unsigned long) "exit";
@@ -132,8 +149,12 @@ void prom_halt_power_off(void)
 	unsigned long args[3];
 
 #ifdef CONFIG_SUN_LDOMS
+
 	if (ldom_domaining_enabled)
+	{
 		ldom_power_off();
+	}
+
 #endif
 	args[0] = (unsigned long) "SUNW,power-off";
 	args[1] = 0;
@@ -153,10 +174,16 @@ unsigned char prom_get_idprom(char *idbuf, int num_bytes)
 	int len;
 
 	len = prom_getproplen(prom_root_node, "idprom");
-	if ((len >num_bytes) || (len == -1))
+
+	if ((len > num_bytes) || (len == -1))
+	{
 		return 0xff;
+	}
+
 	if (!prom_getproperty(prom_root_node, "idprom", idbuf, num_bytes))
+	{
 		return idbuf[0];
+	}
 
 	return 0xff;
 }
@@ -167,14 +194,21 @@ int prom_get_mmu_ihandle(void)
 	int ret;
 
 	if (prom_mmu_ihandle_cache != 0)
+	{
 		return prom_mmu_ihandle_cache;
+	}
 
 	node = prom_finddevice(prom_chosen_path);
 	ret = prom_getint(node, prom_mmu_name);
+
 	if (ret == -1 || ret == 0)
+	{
 		prom_mmu_ihandle_cache = -1;
+	}
 	else
+	{
 		prom_mmu_ihandle_cache = ret;
+	}
 
 	return ret;
 }
@@ -186,21 +220,28 @@ static int prom_get_memory_ihandle(void)
 	int ret;
 
 	if (memory_ihandle_cache != 0)
+	{
 		return memory_ihandle_cache;
+	}
 
 	node = prom_finddevice("/chosen");
 	ret = prom_getint(node, "memory");
+
 	if (ret == -1 || ret == 0)
+	{
 		memory_ihandle_cache = -1;
+	}
 	else
+	{
 		memory_ihandle_cache = ret;
+	}
 
 	return ret;
 }
 
 /* Load explicit I/D TLB entries. */
 static long tlb_load(const char *type, unsigned long index,
-		     unsigned long tte_data, unsigned long vaddr)
+					 unsigned long tte_data, unsigned long vaddr)
 {
 	unsigned long args[9];
 
@@ -212,7 +253,7 @@ static long tlb_load(const char *type, unsigned long index,
 	args[5] = vaddr;
 	args[6] = tte_data;
 	args[7] = index;
-	args[8] = (unsigned long) -1;
+	args[8] = (unsigned long) - 1;
 
 	p1275_cmd_direct(args);
 
@@ -220,21 +261,21 @@ static long tlb_load(const char *type, unsigned long index,
 }
 
 long prom_itlb_load(unsigned long index,
-		    unsigned long tte_data,
-		    unsigned long vaddr)
+					unsigned long tte_data,
+					unsigned long vaddr)
 {
 	return tlb_load("SUNW,itlb-load", index, tte_data, vaddr);
 }
 
 long prom_dtlb_load(unsigned long index,
-		    unsigned long tte_data,
-		    unsigned long vaddr)
+					unsigned long tte_data,
+					unsigned long vaddr)
 {
 	return tlb_load("SUNW,dtlb-load", index, tte_data, vaddr);
 }
 
 int prom_map(int mode, unsigned long size,
-	     unsigned long vaddr, unsigned long paddr)
+			 unsigned long vaddr, unsigned long paddr)
 {
 	unsigned long args[11];
 	int ret;
@@ -249,13 +290,17 @@ int prom_map(int mode, unsigned long size,
 	args[7] = vaddr;
 	args[8] = 0;
 	args[9] = paddr;
-	args[10] = (unsigned long) -1;
+	args[10] = (unsigned long) - 1;
 
 	p1275_cmd_direct(args);
 
 	ret = (int) args[10];
+
 	if (ret == 0)
+	{
 		ret = -1;
+	}
+
 	return ret;
 }
 
@@ -278,7 +323,7 @@ void prom_unmap(unsigned long size, unsigned long vaddr)
  * across soft resets.
  */
 int prom_retain(const char *name, unsigned long size,
-		unsigned long align, unsigned long *paddr)
+				unsigned long align, unsigned long *paddr)
 {
 	unsigned long args[11];
 
@@ -290,14 +335,16 @@ int prom_retain(const char *name, unsigned long size,
 	args[5] = align;
 	args[6] = size;
 	args[7] = (unsigned long) name;
-	args[8] = (unsigned long) -1;
-	args[9] = (unsigned long) -1;
-	args[10] = (unsigned long) -1;
+	args[8] = (unsigned long) - 1;
+	args[9] = (unsigned long) - 1;
+	args[10] = (unsigned long) - 1;
 
 	p1275_cmd_direct(args);
 
 	if (args[8])
+	{
 		return (int) args[8];
+	}
 
 	/* Next we get "phys_high" then "phys_low".  On 64-bit
 	 * the phys_high cell is don't care since the phys_low
@@ -315,8 +362,8 @@ int prom_retain(const char *name, unsigned long size,
  * in question.
  */
 int prom_getunumber(int syndrome_code,
-		    unsigned long phys_addr,
-		    char *buf, int buflen)
+					unsigned long phys_addr,
+					char *buf, int buflen)
 {
 	unsigned long args[12];
 
@@ -330,8 +377,8 @@ int prom_getunumber(int syndrome_code,
 	args[7] = 0;
 	args[8] = phys_addr;
 	args[9] = (unsigned int) syndrome_code;
-	args[10] = (unsigned long) -1;
-	args[11] = (unsigned long) -1;
+	args[10] = (unsigned long) - 1;
+	args[11] = (unsigned long) - 1;
 
 	p1275_cmd_direct(args);
 
@@ -356,7 +403,7 @@ int prom_sleepsystem(void)
 	args[0] = (unsigned long) "SUNW,sleep-system";
 	args[1] = 0;
 	args[2] = 1;
-	args[3] = (unsigned long) -1;
+	args[3] = (unsigned long) - 1;
 	p1275_cmd_direct(args);
 
 	return (int) args[3];
@@ -369,7 +416,7 @@ int prom_wakeupsystem(void)
 	args[0] = (unsigned long) "SUNW,wakeup-system";
 	args[1] = 0;
 	args[2] = 1;
-	args[3] = (unsigned long) -1;
+	args[3] = (unsigned long) - 1;
 	p1275_cmd_direct(args);
 
 	return (int) args[3];

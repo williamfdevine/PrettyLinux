@@ -15,7 +15,8 @@
  * Signal context structure - contains all info to do with the state
  * before the signal handler was invoked.
  */
-struct sigcontext {
+struct sigcontext
+{
 	struct user_regs_struct regs;
 };
 

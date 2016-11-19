@@ -45,16 +45,22 @@ static __noreturn void ip32_poweroff(void *data)
 		symbol_get(ds1685_rtc_poweroff);
 
 #ifdef CONFIG_MODULES
+
 	/* If the first __symbol_get failed, our module wasn't loaded. */
-	if (!poweroff_func) {
+	if (!poweroff_func)
+	{
 		request_module("rtc-ds1685");
 		poweroff_func = symbol_get(ds1685_rtc_poweroff);
 	}
+
 #endif
 
 	if (!poweroff_func)
+	{
 		pr_emerg("RTC not available for power-off.  Spinning forever ...\n");
-	else {
+	}
+	else
+	{
 		(*poweroff_func)((struct platform_device *)data);
 		symbol_put(ds1685_rtc_poweroff);
 	}
@@ -90,9 +96,12 @@ static void power_timeout(unsigned long data)
 void ip32_prepare_poweroff(void)
 {
 	if (has_panicked)
+	{
 		return;
+	}
 
-	if (shutting_down || kill_cad_pid(SIGINT, 1)) {
+	if (shutting_down || kill_cad_pid(SIGINT, 1))
+	{
 		/* No init process or button pressed twice.  */
 		ip32_poweroff(&ip32_rtc_device);
 	}
@@ -108,12 +117,15 @@ void ip32_prepare_poweroff(void)
 }
 
 static int panic_event(struct notifier_block *this, unsigned long event,
-		       void *ptr)
+					   void *ptr)
 {
 	unsigned long led;
 
 	if (has_panicked)
+	{
 		return NOTIFY_DONE;
+	}
+
 	has_panicked = 1;
 
 	/* turn off the green LED */
@@ -126,7 +138,8 @@ static int panic_event(struct notifier_block *this, unsigned long event,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block panic_block = {
+static struct notifier_block panic_block =
+{
 	.notifier_call = panic_event,
 };
 

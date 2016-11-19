@@ -1,7 +1,8 @@
 #include <linux/device.h>
 #include <asm/mce.h>
 
-enum severity_level {
+enum severity_level
+{
 	MCE_NO_SEVERITY,
 	MCE_DEFERRED_SEVERITY,
 	MCE_UCNA_SEVERITY = MCE_DEFERRED_SEVERITY,
@@ -19,14 +20,16 @@ extern struct atomic_notifier_head x86_mce_decoder_chain;
 #define INITIAL_CHECK_INTERVAL	5 * 60 /* 5 minutes */
 
 /* One object for each MCE bank, shared by all CPUs */
-struct mce_bank {
+struct mce_bank
+{
 	u64			ctl;			/* subevents to enable */
 	unsigned char init;				/* initialise bank? */
 	struct device_attribute attr;			/* device attribute */
 	char			attrname[ATTR_LEN];	/* attribute name */
 };
 
-struct mce_evt_llist {
+struct mce_evt_llist
+{
 	struct llist_node llnode;
 	struct mce mce;
 };
@@ -92,7 +95,7 @@ void mce_inject_log(struct mce *m);
 static inline bool mce_cmp(struct mce *m1, struct mce *m2)
 {
 	return m1->bank != m2->bank ||
-		m1->status != m2->status ||
-		m1->addr != m2->addr ||
-		m1->misc != m2->misc;
+		   m1->status != m2->status ||
+		   m1->addr != m2->addr ||
+		   m1->misc != m2->misc;
 }

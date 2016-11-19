@@ -25,9 +25,9 @@
 #include <linux/vmalloc.h>
 
 #if 0
-#define DEBUGP printk
+	#define DEBUGP printk
 #else
-#define DEBUGP(fmt , ...)
+	#define DEBUGP(fmt , ...)
 #endif
 
 /*
@@ -38,29 +38,40 @@
  * @mod - pointer to module
  */
 int module_frob_arch_sections(Elf_Ehdr *hdr, Elf_Shdr *sechdrs,
-				char *secstrings,
-				struct module *mod)
+							  char *secstrings,
+							  struct module *mod)
 {
 	unsigned int i;
 	int found = 0;
 
 	/* Look for .plt and/or .got.plt and/or .init.plt sections */
-	for (i = 0; i < hdr->e_shnum; i++) {
+	for (i = 0; i < hdr->e_shnum; i++)
+	{
 		DEBUGP("Section %d is %s\n", i,
-		       secstrings + sechdrs[i].sh_name);
+			   secstrings + sechdrs[i].sh_name);
+
 		if (strcmp(secstrings + sechdrs[i].sh_name, ".plt") == 0)
-			found = i+1;
+		{
+			found = i + 1;
+		}
+
 		if (strcmp(secstrings + sechdrs[i].sh_name, ".got.plt") == 0)
-			found = i+1;
+		{
+			found = i + 1;
+		}
+
 		if (strcmp(secstrings + sechdrs[i].sh_name, ".rela.plt") == 0)
-			found = i+1;
+		{
+			found = i + 1;
+		}
 	}
 
 	/* At this time, we don't support modules comiled with -shared */
-	if (found) {
+	if (found)
+	{
 		printk(KERN_WARNING
-			"Module '%s' contains unexpected .plt/.got sections.\n",
-			mod->name);
+			   "Module '%s' contains unexpected .plt/.got sections.\n",
+			   mod->name);
 		/*  return -ENOEXEC;  */
 	}
 
@@ -78,8 +89,8 @@ int module_frob_arch_sections(Elf_Ehdr *hdr, Elf_Shdr *sechdrs,
  * Perform rela relocations.
  */
 int apply_relocate_add(Elf_Shdr *sechdrs, const char *strtab,
-			unsigned int symindex, unsigned int relsec,
-			struct module *module)
+					   unsigned int symindex, unsigned int relsec,
+					   struct module *module)
 {
 	unsigned int i;
 	Elf32_Sym *sym;
@@ -92,9 +103,10 @@ int apply_relocate_add(Elf_Shdr *sechdrs, const char *strtab,
 	void *loc_base = (void *) sechdrs[sym_info].sh_addr;
 
 	DEBUGP("Applying relocations in section %u to section %u base=%p\n",
-	       relsec, sym_info, loc_base);
+		   relsec, sym_info, loc_base);
 
-	for (i = 0; i < nrelocs; i++) {
+	for (i = 0; i < nrelocs; i++)
+	{
 
 		/* Symbol to relocate */
 		sym = sym_base + ELF32_R_SYM(rela[i].r_info);
@@ -106,57 +118,69 @@ int apply_relocate_add(Elf_Shdr *sechdrs, const char *strtab,
 		value = sym->st_value + rela[i].r_addend;
 
 		DEBUGP("%d: value=%08x loc=%p reloc=%d symbol=%s\n",
-		       i, value, location, ELF32_R_TYPE(rela[i].r_info),
-		       sym->st_name ?
-		       &strtab[sym->st_name] : "(anonymous)");
+			   i, value, location, ELF32_R_TYPE(rela[i].r_info),
+			   sym->st_name ?
+			   &strtab[sym->st_name] : "(anonymous)");
 
-		switch (ELF32_R_TYPE(rela[i].r_info)) {
-		case R_HEXAGON_B22_PCREL: {
-			int dist = (int)(value - (uint32_t)location);
-			if ((dist < -0x00800000) ||
-			    (dist >= 0x00800000)) {
-				printk(KERN_ERR
-				       "%s: %s: %08x=%08x-%08x %s\n",
-				       module->name,
-				       "R_HEXAGON_B22_PCREL reloc out of range",
-				       dist, value, (uint32_t)location,
-				       sym->st_name ?
-				       &strtab[sym->st_name] : "(anonymous)");
-				return -ENOEXEC;
-			}
-			DEBUGP("B22_PCREL contents: %08X.\n", *location);
-			*location &= ~0x01ff3fff;
-			*location |= 0x00003fff & dist;
-			*location |= 0x01ff0000 & (dist<<2);
-			DEBUGP("Contents after reloc: %08x\n", *location);
-			break;
-		}
-		case R_HEXAGON_HI16:
-			value = (value>>16) & 0xffff;
+		switch (ELF32_R_TYPE(rela[i].r_info))
+		{
+			case R_HEXAGON_B22_PCREL:
+				{
+					int dist = (int)(value - (uint32_t)location);
+
+					if ((dist < -0x00800000) ||
+						(dist >= 0x00800000))
+					{
+						printk(KERN_ERR
+							   "%s: %s: %08x=%08x-%08x %s\n",
+							   module->name,
+							   "R_HEXAGON_B22_PCREL reloc out of range",
+							   dist, value, (uint32_t)location,
+							   sym->st_name ?
+							   &strtab[sym->st_name] : "(anonymous)");
+						return -ENOEXEC;
+					}
+
+					DEBUGP("B22_PCREL contents: %08X.\n", *location);
+					*location &= ~0x01ff3fff;
+					*location |= 0x00003fff & dist;
+					*location |= 0x01ff0000 & (dist << 2);
+					DEBUGP("Contents after reloc: %08x\n", *location);
+					break;
+				}
+
+			case R_HEXAGON_HI16:
+				value = (value >> 16) & 0xffff;
+
 			/* fallthrough */
-		case R_HEXAGON_LO16:
-			*location &= ~0x00c03fff;
-			*location |= value & 0x3fff;
-			*location |= (value & 0xc000) << 8;
-			break;
-		case R_HEXAGON_32:
-			*location = value;
-			break;
-		case R_HEXAGON_32_PCREL:
-			*location = value - (uint32_t)location;
-			break;
-		case R_HEXAGON_PLT_B22_PCREL:
-		case R_HEXAGON_GOTOFF_LO16:
-		case R_HEXAGON_GOTOFF_HI16:
-			printk(KERN_ERR "%s: GOT/PLT relocations unsupported\n",
-			       module->name);
-			return -ENOEXEC;
-		default:
-			printk(KERN_ERR "%s: unknown relocation: %u\n",
-			       module->name,
-			       ELF32_R_TYPE(rela[i].r_info));
-			return -ENOEXEC;
+			case R_HEXAGON_LO16:
+				*location &= ~0x00c03fff;
+				*location |= value & 0x3fff;
+				*location |= (value & 0xc000) << 8;
+				break;
+
+			case R_HEXAGON_32:
+				*location = value;
+				break;
+
+			case R_HEXAGON_32_PCREL:
+				*location = value - (uint32_t)location;
+				break;
+
+			case R_HEXAGON_PLT_B22_PCREL:
+			case R_HEXAGON_GOTOFF_LO16:
+			case R_HEXAGON_GOTOFF_HI16:
+				printk(KERN_ERR "%s: GOT/PLT relocations unsupported\n",
+					   module->name);
+				return -ENOEXEC;
+
+			default:
+				printk(KERN_ERR "%s: unknown relocation: %u\n",
+					   module->name,
+					   ELF32_R_TYPE(rela[i].r_info));
+				return -ENOEXEC;
 		}
 	}
+
 	return 0;
 }

@@ -24,9 +24,9 @@
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-#include <asm/processor.h>
-#include <asm/registers.h>
-#include <asm/page.h>
+	#include <asm/processor.h>
+	#include <asm/registers.h>
+	#include <asm/page.h>
 #endif
 
 #define THREAD_SHIFT		12
@@ -35,7 +35,8 @@
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
@@ -45,7 +46,8 @@ typedef struct {
  * to access quickly.
  */
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;          /* low level flags */
 	__u32                   cpu;            /* current cpu */
@@ -74,15 +76,15 @@ struct thread_info {
 #ifndef __ASSEMBLY__
 
 #define INIT_THREAD_INFO(tsk)                   \
-{                                               \
-	.task           = &tsk,                 \
-	.flags          = 0,                    \
-	.cpu            = 0,                    \
-	.preempt_count  = 1,                    \
-	.addr_limit     = KERNEL_DS,            \
-	.sp = 0,				\
-	.regs = NULL,			\
-}
+	{                                               \
+		.task           = &tsk,                 \
+						  .flags          = 0,                    \
+											.cpu            = 0,                    \
+													.preempt_count  = 1,                    \
+															.addr_limit     = KERNEL_DS,            \
+																	.sp = 0,				\
+																			.regs = NULL,			\
+	}
 
 #define init_thread_info        (init_thread_union.thread_info)
 #define init_stack              (init_thread_union.stack)

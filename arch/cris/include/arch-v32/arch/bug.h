@@ -10,27 +10,27 @@
  * All other stuff is done out-of-band with exception handlers.
  */
 #define BUG()								\
-do {									\
-	__asm__ __volatile__ ("0: break 14\n\t"				\
-			      ".section .fixup,\"ax\"\n"		\
-			      "1:\n\t"					\
-			      "move.d %0, $r10\n\t"			\
-			      "move.d %1, $r11\n\t"			\
-			      "jump do_BUG\n\t"				\
-			      "nop\n\t"					\
-			      ".previous\n\t"				\
-			      ".section __ex_table,\"a\"\n\t"		\
-			      ".dword 0b, 1b\n\t"			\
-			      ".previous\n\t"				\
-			      : : "ri" (__FILE__), "i" (__LINE__));	\
-	unreachable();				\
-} while (0)
+	do {									\
+		__asm__ __volatile__ ("0: break 14\n\t"				\
+							  ".section .fixup,\"ax\"\n"		\
+							  "1:\n\t"					\
+							  "move.d %0, $r10\n\t"			\
+							  "move.d %1, $r11\n\t"			\
+							  "jump do_BUG\n\t"				\
+							  "nop\n\t"					\
+							  ".previous\n\t"				\
+							  ".section __ex_table,\"a\"\n\t"		\
+							  ".dword 0b, 1b\n\t"			\
+							  ".previous\n\t"				\
+							  : : "ri" (__FILE__), "i" (__LINE__));	\
+		unreachable();				\
+	} while (0)
 #else
 #define BUG() 					\
-do {						\
-	__asm__ __volatile__ ("break 14\n\t");	\
-	unreachable();				\
-} while (0)
+	do {						\
+		__asm__ __volatile__ ("break 14\n\t");	\
+		unreachable();				\
+	} while (0)
 #endif
 
 #define HAVE_ARCH_BUG

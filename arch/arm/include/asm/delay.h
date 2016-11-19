@@ -15,12 +15,14 @@
 
 #ifndef __ASSEMBLY__
 
-struct delay_timer {
+struct delay_timer
+{
 	unsigned long (*read_current_timer)(void);
 	unsigned long freq;
 };
 
-extern struct arm_delay_ops {
+extern struct arm_delay_ops
+{
 	void (*delay)(unsigned long);
 	void (*const_udelay)(unsigned long);
 	void (*udelay)(unsigned long);
@@ -53,9 +55,9 @@ extern void __bad_udelay(void);
 
 #define udelay(n)							\
 	(__builtin_constant_p(n) ?					\
-	  ((n) > (MAX_UDELAY_MS * 1000) ? __bad_udelay() :		\
-			__const_udelay((n) * UDELAY_MULT)) :		\
-	  __udelay(n))
+	 ((n) > (MAX_UDELAY_MS * 1000) ? __bad_udelay() :		\
+	  __const_udelay((n) * UDELAY_MULT)) :		\
+	 __udelay(n))
 
 /* Loop-based definitions for assembly code. */
 extern void __loop_delay(unsigned long loops);

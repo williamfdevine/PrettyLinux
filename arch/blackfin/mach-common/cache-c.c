@@ -37,22 +37,25 @@ void blackfin_invalidate_entire_icache(void)
 
 static void
 bfin_cache_init(struct cplb_entry *cplb_tbl, unsigned long cplb_addr,
-                unsigned long cplb_data, unsigned long mem_control,
-                unsigned long mem_mask)
+				unsigned long cplb_data, unsigned long mem_control,
+				unsigned long mem_mask)
 {
 	int i;
 #ifdef CONFIG_L1_PARITY_CHECK
 	u32 ctrl;
 
-	if (cplb_addr == DCPLB_ADDR0) {
+	if (cplb_addr == DCPLB_ADDR0)
+	{
 		ctrl = bfin_read32(mem_control) | (1 << RDCHK);
 		CSYNC();
 		bfin_write32(mem_control, ctrl);
 		SSYNC();
 	}
+
 #endif
 
-	for (i = 0; i < MAX_CPLBS; i++) {
+	for (i = 0; i < MAX_CPLBS; i++)
+	{
 		bfin_write32(cplb_addr + i * 4, cplb_tbl[i].addr);
 		bfin_write32(cplb_data + i * 4, cplb_tbl[i].data);
 	}
@@ -64,7 +67,7 @@ bfin_cache_init(struct cplb_entry *cplb_tbl, unsigned long cplb_addr,
 void bfin_icache_init(struct cplb_entry *icplb_tbl)
 {
 	bfin_cache_init(icplb_tbl, ICPLB_ADDR0, ICPLB_DATA0, IMEM_CONTROL,
-		(IMC | ENICPLB));
+					(IMC | ENICPLB));
 }
 #endif
 
@@ -78,7 +81,7 @@ void bfin_dcache_init(struct cplb_entry *dcplb_tbl)
 	 *  to port B
 	 */
 	bfin_cache_init(dcplb_tbl, DCPLB_ADDR0, DCPLB_DATA0, DMEM_CONTROL,
-		(DMEM_CNTR | PORT_PREF0 | (ANOMALY_05000287 ? PORT_PREF1 : 0)));
+					(DMEM_CNTR | PORT_PREF0 | (ANOMALY_05000287 ? PORT_PREF1 : 0)));
 }
 #endif
 

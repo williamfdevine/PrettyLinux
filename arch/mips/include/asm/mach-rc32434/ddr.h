@@ -32,7 +32,8 @@
 #include <asm/mach-rc32434/rb.h>
 
 /* DDR register structure */
-struct ddr_ram {
+struct ddr_ram
+{
 	u32 ddrbase;
 	u32 ddrmask;
 	u32 res1;

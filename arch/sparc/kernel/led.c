@@ -18,10 +18,13 @@ static inline void led_toggle(void)
 	unsigned char val = get_auxio();
 	unsigned char on, off;
 
-	if (val & AUXIO_LED) {
+	if (val & AUXIO_LED)
+	{
 		on = 0;
 		off = AUXIO_LED;
-	} else {
+	}
+	else
+	{
 		on = AUXIO_LED;
 		off = 0;
 	}
@@ -36,23 +39,32 @@ static void led_blink(unsigned long timeout)
 	led_toggle();
 
 	/* reschedule */
-	if (!timeout) { /* blink according to load */
+	if (!timeout)   /* blink according to load */
+	{
 		led_blink_timer.expires = jiffies +
-			((1 + (avenrun[0] >> FSHIFT)) * HZ);
+								  ((1 + (avenrun[0] >> FSHIFT)) * HZ);
 		led_blink_timer.data = 0;
-	} else { /* blink at user specified interval */
+	}
+	else     /* blink at user specified interval */
+	{
 		led_blink_timer.expires = jiffies + (timeout * HZ);
 		led_blink_timer.data = timeout;
 	}
+
 	add_timer(&led_blink_timer);
 }
 
 static int led_proc_show(struct seq_file *m, void *v)
 {
 	if (get_auxio() & AUXIO_LED)
+	{
 		seq_puts(m, "on\n");
+	}
 	else
+	{
 		seq_puts(m, "off\n");
+	}
+
 	return 0;
 }
 
@@ -62,18 +74,24 @@ static int led_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t led_proc_write(struct file *file, const char __user *buffer,
-			      size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	char *buf = NULL;
 
 	if (count > LED_MAX_LENGTH)
+	{
 		count = LED_MAX_LENGTH;
+	}
 
 	buf = kmalloc(sizeof(char) * (count + 1), GFP_KERNEL);
-	if (!buf)
-		return -ENOMEM;
 
-	if (copy_from_user(buf, buffer, count)) {
+	if (!buf)
+	{
+		return -ENOMEM;
+	}
+
+	if (copy_from_user(buf, buffer, count))
+	{
 		kfree(buf);
 		return -EFAULT;
 	}
@@ -82,22 +100,33 @@ static ssize_t led_proc_write(struct file *file, const char __user *buffer,
 
 	/* work around \n when echo'ing into proc */
 	if (buf[count - 1] == '\n')
+	{
 		buf[count - 1] = '\0';
+	}
 
 	/* before we change anything we want to stop any running timers,
 	 * otherwise calls such as on will have no persistent effect
 	 */
 	del_timer_sync(&led_blink_timer);
 
-	if (!strcmp(buf, "on")) {
+	if (!strcmp(buf, "on"))
+	{
 		auxio_set_led(AUXIO_LED_ON);
-	} else if (!strcmp(buf, "toggle")) {
+	}
+	else if (!strcmp(buf, "toggle"))
+	{
 		led_toggle();
-	} else if ((*buf > '0') && (*buf <= '9')) {
+	}
+	else if ((*buf > '0') && (*buf <= '9'))
+	{
 		led_blink(simple_strtoul(buf, NULL, 10));
-	} else if (!strcmp(buf, "load")) {
+	}
+	else if (!strcmp(buf, "load"))
+	{
 		led_blink(0);
-	} else {
+	}
+	else
+	{
 		auxio_set_led(AUXIO_LED_OFF);
 	}
 
@@ -106,7 +135,8 @@ static ssize_t led_proc_write(struct file *file, const char __user *buffer,
 	return count;
 }
 
-static const struct file_operations led_proc_fops = {
+static const struct file_operations led_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= led_proc_open,
 	.read		= seq_read,
@@ -125,12 +155,15 @@ static int __init led_init(void)
 	led_blink_timer.function = led_blink;
 
 	led = proc_create("led", 0, NULL, &led_proc_fops);
+
 	if (!led)
+	{
 		return -ENOMEM;
+	}
 
 	printk(KERN_INFO
-	       "led: version %s, Lars Kotthoff <metalhead@metalhead.ws>\n",
-	       LED_VERSION);
+		   "led: version %s, Lars Kotthoff <metalhead@metalhead.ws>\n",
+		   LED_VERSION);
 
 	return 0;
 }

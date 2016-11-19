@@ -90,7 +90,7 @@ extern struct machdep_calls pmac_md;
 #define DEFAULT_ROOT_DEVICE Root_SDA1	/* sda1 - slightly silly choice */
 
 #ifdef CONFIG_PPC64
-int sccdbg;
+	int sccdbg;
 #endif
 
 sys_ctrler_t sys_ctrler = SYS_CTRLER_UNKNOWN;
@@ -103,39 +103,59 @@ static void pmac_show_cpuinfo(struct seq_file *m)
 	int plen;
 	int mbmodel;
 	unsigned int mbflags;
-	char* mbname;
+	char *mbname;
 
 	mbmodel = pmac_call_feature(PMAC_FTR_GET_MB_INFO, NULL,
-				    PMAC_MB_INFO_MODEL, 0);
+								PMAC_MB_INFO_MODEL, 0);
 	mbflags = pmac_call_feature(PMAC_FTR_GET_MB_INFO, NULL,
-				    PMAC_MB_INFO_FLAGS, 0);
+								PMAC_MB_INFO_FLAGS, 0);
+
 	if (pmac_call_feature(PMAC_FTR_GET_MB_INFO, NULL, PMAC_MB_INFO_NAME,
-			      (long) &mbname) != 0)
+						  (long) &mbname) != 0)
+	{
 		mbname = "Unknown";
+	}
 
 	/* find motherboard type */
 	seq_printf(m, "machine\t\t: ");
 	np = of_find_node_by_path("/");
-	if (np != NULL) {
+
+	if (np != NULL)
+	{
 		pp = of_get_property(np, "model", NULL);
+
 		if (pp != NULL)
+		{
 			seq_printf(m, "%s\n", pp);
+		}
 		else
+		{
 			seq_printf(m, "PowerMac\n");
+		}
+
 		pp = of_get_property(np, "compatible", &plen);
-		if (pp != NULL) {
+
+		if (pp != NULL)
+		{
 			seq_printf(m, "motherboard\t:");
-			while (plen > 0) {
+
+			while (plen > 0)
+			{
 				int l = strlen(pp) + 1;
 				seq_printf(m, " %s", pp);
 				plen -= l;
 				pp += l;
 			}
+
 			seq_printf(m, "\n");
 		}
+
 		of_node_put(np);
-	} else
+	}
+	else
+	{
 		seq_printf(m, "PowerMac\n");
+	}
 
 	/* print parsed model */
 	seq_printf(m, "detected as\t: %d (%s)\n", mbmodel, mbname);
@@ -143,34 +163,51 @@ static void pmac_show_cpuinfo(struct seq_file *m)
 
 	/* find l2 cache info */
 	np = of_find_node_by_name(NULL, "l2-cache");
+
 	if (np == NULL)
+	{
 		np = of_find_node_by_type(NULL, "cache");
-	if (np != NULL) {
+	}
+
+	if (np != NULL)
+	{
 		const unsigned int *ic =
 			of_get_property(np, "i-cache-size", NULL);
 		const unsigned int *dc =
 			of_get_property(np, "d-cache-size", NULL);
 		seq_printf(m, "L2 cache\t:");
 		has_l2cache = 1;
-		if (of_get_property(np, "cache-unified", NULL) != 0 && dc) {
+
+		if (of_get_property(np, "cache-unified", NULL) != 0 && dc)
+		{
 			seq_printf(m, " %dK unified", *dc / 1024);
-		} else {
+		}
+		else
+		{
 			if (ic)
+			{
 				seq_printf(m, " %dK instruction", *ic / 1024);
+			}
+
 			if (dc)
 				seq_printf(m, "%s %dK data",
-					   (ic? " +": ""), *dc / 1024);
+						   (ic ? " +" : ""), *dc / 1024);
 		}
+
 		pp = of_get_property(np, "ram-type", NULL);
+
 		if (pp)
+		{
 			seq_printf(m, " %s", pp);
+		}
+
 		seq_printf(m, "\n");
 		of_node_put(np);
 	}
 
 	/* Indicate newworld/oldworld */
 	seq_printf(m, "pmac-generation\t: %s\n",
-		   pmac_newworld ? "NewWorld" : "OldWorld");
+			   pmac_newworld ? "NewWorld" : "OldWorld");
 }
 
 #ifndef CONFIG_ADB_CUDA
@@ -179,7 +216,10 @@ int find_via_cuda(void)
 	struct device_node *dn = of_find_node_by_name(NULL, "via-cuda");
 
 	if (!dn)
+	{
 		return 0;
+	}
+
 	of_node_put(dn);
 	printk("WARNING ! Your machine is CUDA-based but your kernel\n");
 	printk("          wasn't compiled with CONFIG_ADB_CUDA option !\n");
@@ -193,7 +233,10 @@ int find_via_pmu(void)
 	struct device_node *dn = of_find_node_by_name(NULL, "via-pmu");
 
 	if (!dn)
+	{
 		return 0;
+	}
+
 	of_node_put(dn);
 	printk("WARNING ! Your machine is PMU-based but your kernel\n");
 	printk("          wasn't compiled with CONFIG_ADB_PMU option !\n");
@@ -226,15 +269,26 @@ static void __init ohare_init(void)
 	 * we have an ohare I/O controller.
 	 */
 	dn = of_find_node_by_name(NULL, "ohare");
-	if (dn) {
+
+	if (dn)
+	{
 		of_node_put(dn);
-		if (((sysctrl_regs[2] >> 24) & 0xf) >= 3) {
+
+		if (((sysctrl_regs[2] >> 24) & 0xf) >= 3)
+		{
 			if (sysctrl_regs[4] & 0x10)
+			{
 				sysctrl_regs[4] |= 0x04000020;
+			}
 			else
+			{
 				sysctrl_regs[4] |= 0x04000000;
-			if(has_l2cache)
+			}
+
+			if (has_l2cache)
+			{
 				printk(KERN_INFO "Level 2 cache enabled\n");
+			}
 		}
 	}
 }
@@ -242,29 +296,38 @@ static void __init ohare_init(void)
 static void __init l2cr_init(void)
 {
 	/* Checks "l2cr-value" property in the registry */
-	if (cpu_has_feature(CPU_FTR_L2CR)) {
+	if (cpu_has_feature(CPU_FTR_L2CR))
+	{
 		struct device_node *np = of_find_node_by_name(NULL, "cpus");
+
 		if (np == 0)
+		{
 			np = of_find_node_by_type(NULL, "cpu");
-		if (np != 0) {
+		}
+
+		if (np != 0)
+		{
 			const unsigned int *l2cr =
 				of_get_property(np, "l2cr-value", NULL);
-			if (l2cr != 0) {
+
+			if (l2cr != 0)
+			{
 				ppc_override_l2cr = 1;
 				ppc_override_l2cr_value = *l2cr;
 				_set_L2CR(0);
 				_set_L2CR(ppc_override_l2cr_value);
 			}
+
 			of_node_put(np);
 		}
 	}
 
 	if (ppc_override_l2cr)
 		printk(KERN_INFO "L2CR overridden (0x%x), "
-		       "backside cache is %s\n",
-		       ppc_override_l2cr_value,
-		       (ppc_override_l2cr_value & 0x80000000)
-				? "enabled" : "disabled");
+			   "backside cache is %s\n",
+			   ppc_override_l2cr_value,
+			   (ppc_override_l2cr_value & 0x80000000)
+			   ? "enabled" : "disabled");
 }
 #endif
 
@@ -280,25 +343,38 @@ static void __init pmac_setup_arch(void)
 	   for use until calibrate_delay gets called. */
 	loops_per_jiffy = 50000000 / HZ;
 	cpu = of_find_node_by_type(NULL, "cpu");
-	if (cpu != NULL) {
+
+	if (cpu != NULL)
+	{
 		fp = of_get_property(cpu, "clock-frequency", NULL);
-		if (fp != NULL) {
+
+		if (fp != NULL)
+		{
 			if (pvr >= 0x30 && pvr < 0x80)
 				/* PPC970 etc. */
+			{
 				loops_per_jiffy = *fp / (3 * HZ);
+			}
 			else if (pvr == 4 || pvr >= 8)
 				/* 604, G3, G4 etc. */
+			{
 				loops_per_jiffy = *fp / HZ;
+			}
 			else
 				/* 601, 603, etc. */
+			{
 				loops_per_jiffy = *fp / (2 * HZ);
+			}
 		}
+
 		of_node_put(cpu);
 	}
 
 	/* See if newworld or oldworld */
 	ic = of_find_node_with_property(NULL, "interrupt-controller");
-	if (ic) {
+
+	if (ic)
+	{
 		pmac_newworld = 1;
 		of_node_put(ic);
 	}
@@ -321,18 +397,25 @@ static void __init pmac_setup_arch(void)
 #endif
 #ifdef CONFIG_PPC32
 #ifdef CONFIG_BLK_DEV_INITRD
+
 	if (initrd_start)
+	{
 		ROOT_DEV = Root_RAM0;
+	}
 	else
 #endif
 		ROOT_DEV = DEFAULT_ROOT_DEVICE;
+
 #endif
 
 #ifdef CONFIG_ADB
-	if (strstr(boot_command_line, "adb_sync")) {
+
+	if (strstr(boot_command_line, "adb_sync"))
+	{
 		extern int __adb_probe_sync;
 		__adb_probe_sync = 1;
 	}
+
 #endif /* CONFIG_ADB */
 }
 
@@ -363,13 +446,22 @@ void __ref note_bootable_part(dev_t dev, int part, int goodness)
 	char *p;
 
 	if (!initializing)
+	{
 		return;
+	}
+
 	if ((goodness <= current_root_goodness) &&
-	    ROOT_DEV != DEFAULT_ROOT_DEVICE)
+		ROOT_DEV != DEFAULT_ROOT_DEVICE)
+	{
 		return;
+	}
+
 	p = strstr(boot_command_line, "root=");
+
 	if (p != NULL && (p == boot_command_line || p[-1] == ' '))
+	{
 		return;
+	}
 
 	ROOT_DEV = dev + part;
 	current_root_goodness = goodness;
@@ -381,8 +473,11 @@ static void __noreturn cuda_restart(void)
 	struct adb_request req;
 
 	cuda_request(&req, NULL, 2, CUDA_PACKET, CUDA_RESET_SYSTEM);
+
 	for (;;)
+	{
 		cuda_poll();
+	}
 }
 
 static void __noreturn cuda_shutdown(void)
@@ -390,8 +485,11 @@ static void __noreturn cuda_shutdown(void)
 	struct adb_request req;
 
 	cuda_request(&req, NULL, 2, CUDA_PACKET, CUDA_POWERDOWN);
+
 	for (;;)
+	{
 		cuda_poll();
+	}
 }
 
 #else
@@ -400,46 +498,56 @@ static void __noreturn cuda_shutdown(void)
 #endif
 
 #ifndef CONFIG_ADB_PMU
-#define pmu_restart()
-#define pmu_shutdown()
+	#define pmu_restart()
+	#define pmu_shutdown()
 #endif
 
 #ifndef CONFIG_PMAC_SMU
-#define smu_restart()
-#define smu_shutdown()
+	#define smu_restart()
+	#define smu_shutdown()
 #endif
 
 static void __noreturn pmac_restart(char *cmd)
 {
-	switch (sys_ctrler) {
-	case SYS_CTRLER_CUDA:
-		cuda_restart();
-		break;
-	case SYS_CTRLER_PMU:
-		pmu_restart();
-		break;
-	case SYS_CTRLER_SMU:
-		smu_restart();
-		break;
-	default: ;
+	switch (sys_ctrler)
+	{
+		case SYS_CTRLER_CUDA:
+			cuda_restart();
+			break;
+
+		case SYS_CTRLER_PMU:
+			pmu_restart();
+			break;
+
+		case SYS_CTRLER_SMU:
+			smu_restart();
+			break;
+
+		default: ;
 	}
+
 	while (1) ;
 }
 
 static void __noreturn pmac_power_off(void)
 {
-	switch (sys_ctrler) {
-	case SYS_CTRLER_CUDA:
-		cuda_shutdown();
-		break;
-	case SYS_CTRLER_PMU:
-		pmu_shutdown();
-		break;
-	case SYS_CTRLER_SMU:
-		smu_shutdown();
-		break;
-	default: ;
+	switch (sys_ctrler)
+	{
+		case SYS_CTRLER_CUDA:
+			cuda_shutdown();
+			break;
+
+		case SYS_CTRLER_PMU:
+			pmu_shutdown();
+			break;
+
+		case SYS_CTRLER_SMU:
+			smu_shutdown();
+			break;
+
+		default: ;
 	}
+
 	while (1) ;
 }
 
@@ -449,13 +557,14 @@ pmac_halt(void)
 	pmac_power_off();
 }
 
-/* 
+/*
  * Early initialization.
  */
 static void __init pmac_init(void)
 {
 	/* Enable early btext debug if requested */
-	if (strstr(boot_command_line, "btextdbg")) {
+	if (strstr(boot_command_line, "btextdbg"))
+	{
 		udbg_adb_init_early();
 		register_early_udbg_console();
 	}
@@ -485,26 +594,39 @@ static int __init pmac_declare_of_platform_devices(void)
 	struct device_node *np;
 
 	np = of_find_node_by_name(NULL, "valkyrie");
-	if (np) {
+
+	if (np)
+	{
 		of_platform_device_create(np, "valkyrie", NULL);
 		of_node_put(np);
 	}
+
 	np = of_find_node_by_name(NULL, "platinum");
-	if (np) {
+
+	if (np)
+	{
 		of_platform_device_create(np, "platinum", NULL);
 		of_node_put(np);
 	}
-        np = of_find_node_by_type(NULL, "smu");
-        if (np) {
+
+	np = of_find_node_by_type(NULL, "smu");
+
+	if (np)
+	{
 		of_platform_device_create(np, "smu", NULL);
 		of_node_put(np);
 	}
+
 	np = of_find_node_by_type(NULL, "fcu");
-	if (np == NULL) {
+
+	if (np == NULL)
+	{
 		/* Some machines have strangely broken device-tree */
 		np = of_find_node_by_path("/u3@0,f8000000/i2c@f8001000/fan@15e");
 	}
-	if (np) {
+
+	if (np)
+	{
 		of_platform_device_create(np, "temperature", NULL);
 		of_node_put(np);
 	}
@@ -534,12 +656,14 @@ static int __init check_pmac_serial_console(void)
 	pr_debug(" -> check_pmac_serial_console()\n");
 
 	/* The user has requested a console so this is already set up. */
-	if (strstr(boot_command_line, "console=")) {
+	if (strstr(boot_command_line, "console="))
+	{
 		pr_debug(" console was specified !\n");
 		return -EBUSY;
 	}
 
-	if (!of_chosen) {
+	if (!of_chosen)
+	{
 		pr_debug(" of_chosen is NULL !\n");
 		return -ENODEV;
 	}
@@ -547,36 +671,51 @@ static int __init check_pmac_serial_console(void)
 	/* We are getting a weird phandle from OF ... */
 	/* ... So use the full path instead */
 	name = of_get_property(of_chosen, "linux,stdout-path", NULL);
-	if (name == NULL) {
+
+	if (name == NULL)
+	{
 		pr_debug(" no linux,stdout-path !\n");
 		return -ENODEV;
 	}
+
 	prom_stdout = of_find_node_by_path(name);
-	if (!prom_stdout) {
+
+	if (!prom_stdout)
+	{
 		pr_debug(" can't find stdout package %s !\n", name);
 		return -ENODEV;
 	}
+
 	pr_debug("stdout is %s\n", prom_stdout->full_name);
 
 	name = of_get_property(prom_stdout, "name", NULL);
-	if (!name) {
+
+	if (!name)
+	{
 		pr_debug(" stdout package has no name !\n");
 		goto not_found;
 	}
 
 	if (strcmp(name, "ch-a") == 0)
+	{
 		offset = 0;
+	}
 	else if (strcmp(name, "ch-b") == 0)
+	{
 		offset = 1;
+	}
 	else
+	{
 		goto not_found;
+	}
+
 	of_node_put(prom_stdout);
 
 	pr_debug("Found serial console at %s%d\n", devname, offset);
 
 	return add_preferred_console(devname, offset, NULL);
 
- not_found:
+not_found:
 	pr_debug("No preferred console found !\n");
 	of_node_put(prom_stdout);
 	return -ENODEV;
@@ -591,8 +730,10 @@ console_initcall(check_pmac_serial_console);
 static int __init pmac_probe(void)
 {
 	if (!of_machine_is_compatible("Power Macintosh") &&
-	    !of_machine_is_compatible("MacRISC"))
+		!of_machine_is_compatible("MacRISC"))
+	{
 		return 0;
+	}
 
 #ifdef CONFIG_PPC32
 	/* isa_io_base gets set in pmac_pci_init */
@@ -608,29 +749,30 @@ static int __init pmac_probe(void)
 	return 1;
 }
 
-define_machine(powermac) {
+define_machine(powermac)
+{
 	.name			= "PowerMac",
-	.probe			= pmac_probe,
-	.setup_arch		= pmac_setup_arch,
-	.show_cpuinfo		= pmac_show_cpuinfo,
-	.init_IRQ		= pmac_pic_init,
-	.get_irq		= NULL,	/* changed later */
-	.pci_irq_fixup		= pmac_pci_irq_fixup,
-	.restart		= pmac_restart,
-	.halt			= pmac_halt,
-	.time_init		= pmac_time_init,
-	.get_boot_time		= pmac_get_boot_time,
-	.set_rtc_time		= pmac_set_rtc_time,
-	.get_rtc_time		= pmac_get_rtc_time,
-	.calibrate_decr		= pmac_calibrate_decr,
-	.feature_call		= pmac_do_feature_call,
-	.progress		= udbg_progress,
+			 .probe			= pmac_probe,
+					 .setup_arch		= pmac_setup_arch,
+						 .show_cpuinfo		= pmac_show_cpuinfo,
+							   .init_IRQ		= pmac_pic_init,
+									 .get_irq		= NULL,	/* changed later */
+											.pci_irq_fixup		= pmac_pci_irq_fixup,
+												 .restart		= pmac_restart,
+														.halt			= pmac_halt,
+																 .time_init		= pmac_time_init,
+																	  .get_boot_time		= pmac_get_boot_time,
+																		   .set_rtc_time		= pmac_set_rtc_time,
+																				 .get_rtc_time		= pmac_get_rtc_time,
+																					   .calibrate_decr		= pmac_calibrate_decr,
+																						   .feature_call		= pmac_do_feature_call,
+																								 .progress		= udbg_progress,
 #ifdef CONFIG_PPC64
-	.power_save		= power4_idle,
-	.enable_pmcs		= power4_enable_pmcs,
+																									   .power_save		= power4_idle,
+																										   .enable_pmcs		= power4_enable_pmcs,
 #endif /* CONFIG_PPC64 */
 #ifdef CONFIG_PPC32
-	.pcibios_after_init	= pmac_pcibios_after_init,
-	.phys_mem_access_prot	= pci_phys_mem_access_prot,
+																												  .pcibios_after_init	= pmac_pcibios_after_init,
+																												   .phys_mem_access_prot	= pci_phys_mem_access_prot,
 #endif
 };

@@ -21,16 +21,16 @@
 #include <asm/fpu/api.h>
 
 #define BLOCK4(i) \
-		BLOCK(32 * i, 0) \
-		BLOCK(32 * (i + 1), 1) \
-		BLOCK(32 * (i + 2), 2) \
-		BLOCK(32 * (i + 3), 3)
+	BLOCK(32 * i, 0) \
+	BLOCK(32 * (i + 1), 1) \
+	BLOCK(32 * (i + 2), 2) \
+	BLOCK(32 * (i + 3), 3)
 
 #define BLOCK16() \
-		BLOCK4(0) \
-		BLOCK4(4) \
-		BLOCK4(8) \
-		BLOCK4(12)
+	BLOCK4(0) \
+	BLOCK4(4) \
+	BLOCK4(8) \
+	BLOCK4(12)
 
 static void xor_avx_2(unsigned long bytes, unsigned long *p0, unsigned long *p1)
 {
@@ -38,16 +38,17 @@ static void xor_avx_2(unsigned long bytes, unsigned long *p0, unsigned long *p1)
 
 	kernel_fpu_begin();
 
-	while (lines--) {
+	while (lines--)
+	{
 #undef BLOCK
 #define BLOCK(i, reg) \
-do { \
-	asm volatile("vmovdqa %0, %%ymm" #reg : : "m" (p1[i / sizeof(*p1)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm"  #reg : : \
-		"m" (p0[i / sizeof(*p0)])); \
-	asm volatile("vmovdqa %%ymm" #reg ", %0" : \
-		"=m" (p0[i / sizeof(*p0)])); \
-} while (0);
+	do { \
+		asm volatile("vmovdqa %0, %%ymm" #reg : : "m" (p1[i / sizeof(*p1)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm"  #reg : : \
+					 "m" (p0[i / sizeof(*p0)])); \
+		asm volatile("vmovdqa %%ymm" #reg ", %0" : \
+					 "=m" (p0[i / sizeof(*p0)])); \
+	} while (0);
 
 		BLOCK16()
 
@@ -59,24 +60,25 @@ do { \
 }
 
 static void xor_avx_3(unsigned long bytes, unsigned long *p0, unsigned long *p1,
-	unsigned long *p2)
+					  unsigned long *p2)
 {
 	unsigned long lines = bytes >> 9;
 
 	kernel_fpu_begin();
 
-	while (lines--) {
+	while (lines--)
+	{
 #undef BLOCK
 #define BLOCK(i, reg) \
-do { \
-	asm volatile("vmovdqa %0, %%ymm" #reg : : "m" (p2[i / sizeof(*p2)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p1[i / sizeof(*p1)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p0[i / sizeof(*p0)])); \
-	asm volatile("vmovdqa %%ymm" #reg ", %0" : \
-		"=m" (p0[i / sizeof(*p0)])); \
-} while (0);
+	do { \
+		asm volatile("vmovdqa %0, %%ymm" #reg : : "m" (p2[i / sizeof(*p2)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p1[i / sizeof(*p1)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p0[i / sizeof(*p0)])); \
+		asm volatile("vmovdqa %%ymm" #reg ", %0" : \
+					 "=m" (p0[i / sizeof(*p0)])); \
+	} while (0);
 
 		BLOCK16()
 
@@ -89,26 +91,27 @@ do { \
 }
 
 static void xor_avx_4(unsigned long bytes, unsigned long *p0, unsigned long *p1,
-	unsigned long *p2, unsigned long *p3)
+					  unsigned long *p2, unsigned long *p3)
 {
 	unsigned long lines = bytes >> 9;
 
 	kernel_fpu_begin();
 
-	while (lines--) {
+	while (lines--)
+	{
 #undef BLOCK
 #define BLOCK(i, reg) \
-do { \
-	asm volatile("vmovdqa %0, %%ymm" #reg : : "m" (p3[i / sizeof(*p3)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p2[i / sizeof(*p2)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p1[i / sizeof(*p1)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p0[i / sizeof(*p0)])); \
-	asm volatile("vmovdqa %%ymm" #reg ", %0" : \
-		"=m" (p0[i / sizeof(*p0)])); \
-} while (0);
+	do { \
+		asm volatile("vmovdqa %0, %%ymm" #reg : : "m" (p3[i / sizeof(*p3)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p2[i / sizeof(*p2)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p1[i / sizeof(*p1)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p0[i / sizeof(*p0)])); \
+		asm volatile("vmovdqa %%ymm" #reg ", %0" : \
+					 "=m" (p0[i / sizeof(*p0)])); \
+	} while (0);
 
 		BLOCK16();
 
@@ -122,28 +125,29 @@ do { \
 }
 
 static void xor_avx_5(unsigned long bytes, unsigned long *p0, unsigned long *p1,
-	unsigned long *p2, unsigned long *p3, unsigned long *p4)
+					  unsigned long *p2, unsigned long *p3, unsigned long *p4)
 {
 	unsigned long lines = bytes >> 9;
 
 	kernel_fpu_begin();
 
-	while (lines--) {
+	while (lines--)
+	{
 #undef BLOCK
 #define BLOCK(i, reg) \
-do { \
-	asm volatile("vmovdqa %0, %%ymm" #reg : : "m" (p4[i / sizeof(*p4)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p3[i / sizeof(*p3)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p2[i / sizeof(*p2)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p1[i / sizeof(*p1)])); \
-	asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
-		"m" (p0[i / sizeof(*p0)])); \
-	asm volatile("vmovdqa %%ymm" #reg ", %0" : \
-		"=m" (p0[i / sizeof(*p0)])); \
-} while (0);
+	do { \
+		asm volatile("vmovdqa %0, %%ymm" #reg : : "m" (p4[i / sizeof(*p4)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p3[i / sizeof(*p3)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p2[i / sizeof(*p2)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p1[i / sizeof(*p1)])); \
+		asm volatile("vxorps %0, %%ymm" #reg ", %%ymm" #reg : : \
+					 "m" (p0[i / sizeof(*p0)])); \
+		asm volatile("vmovdqa %%ymm" #reg ", %0" : \
+					 "=m" (p0[i / sizeof(*p0)])); \
+	} while (0);
 
 		BLOCK16()
 
@@ -157,7 +161,8 @@ do { \
 	kernel_fpu_end();
 }
 
-static struct xor_block_template xor_block_avx = {
+static struct xor_block_template xor_block_avx =
+{
 	.name = "avx",
 	.do_2 = xor_avx_2,
 	.do_3 = xor_avx_3,
@@ -166,10 +171,10 @@ static struct xor_block_template xor_block_avx = {
 };
 
 #define AVX_XOR_SPEED \
-do { \
-	if (boot_cpu_has(X86_FEATURE_AVX) && boot_cpu_has(X86_FEATURE_OSXSAVE)) \
-		xor_speed(&xor_block_avx); \
-} while (0)
+	do { \
+		if (boot_cpu_has(X86_FEATURE_AVX) && boot_cpu_has(X86_FEATURE_OSXSAVE)) \
+			xor_speed(&xor_block_avx); \
+	} while (0)
 
 #define AVX_SELECT(FASTEST) \
 	(boot_cpu_has(X86_FEATURE_AVX) && boot_cpu_has(X86_FEATURE_OSXSAVE) ? &xor_block_avx : FASTEST)

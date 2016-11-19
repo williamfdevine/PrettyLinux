@@ -24,12 +24,14 @@
 
 #ifdef CONFIG_PPC_EMULATED_STATS
 
-struct ppc_emulated_entry {
+struct ppc_emulated_entry
+{
 	const char *name;
 	atomic_t val;
 };
 
-extern struct ppc_emulated {
+extern struct ppc_emulated
+{
 #ifdef CONFIG_ALTIVEC
 	struct ppc_emulated_entry altivec;
 #endif
@@ -78,14 +80,14 @@ extern void ppc_warn_emulated_print(const char *type);
 #define PPC_WARN_EMULATED(type, regs)					\
 	do {								\
 		perf_sw_event(PERF_COUNT_SW_EMULATION_FAULTS,		\
-			1, regs, 0);					\
+					  1, regs, 0);					\
 		__PPC_WARN_EMULATED(type);				\
 	} while (0)
 
 #define PPC_WARN_ALIGNMENT(type, regs)					\
 	do {								\
 		perf_sw_event(PERF_COUNT_SW_ALIGNMENT_FAULTS,		\
-			1, regs, regs->dar);				\
+					  1, regs, regs->dar);				\
 		__PPC_WARN_EMULATED(type);				\
 	} while (0)
 

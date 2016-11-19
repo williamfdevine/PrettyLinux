@@ -5,7 +5,8 @@
 #include <asm/extable.h>
 #include <asm-generic/module.h>
 
-struct mod_arch_specific {
+struct mod_arch_specific
+{
 	/* Data Bus Error exception tables */
 	struct list_head dbe_list;
 	const struct exception_table_entry *dbe_start;

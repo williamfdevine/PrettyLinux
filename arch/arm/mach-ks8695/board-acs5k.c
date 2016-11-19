@@ -38,13 +38,15 @@
 
 #include "generic.h"
 
-static struct i2c_gpio_platform_data acs5k_i2c_device_platdata = {
+static struct i2c_gpio_platform_data acs5k_i2c_device_platdata =
+{
 	.sda_pin	= 4,
 	.scl_pin	= 5,
 	.udelay		= 10,
 };
 
-static struct platform_device acs5k_i2c_device = {
+static struct platform_device acs5k_i2c_device =
+{
 	.name		= "i2c-gpio",
 	.id		= -1,
 	.num_resources	= 0,
@@ -55,34 +57,42 @@ static struct platform_device acs5k_i2c_device = {
 };
 
 static int acs5k_pca9555_setup(struct i2c_client *client,
-			       unsigned gpio_base, unsigned ngpio,
-			       void *context)
+							   unsigned gpio_base, unsigned ngpio,
+							   void *context)
 {
-	static int acs5k_gpio_value[] = {
+	static int acs5k_gpio_value[] =
+	{
 		-1, -1, -1, -1, -1, -1, -1, 0, 1, 1, -1, 0, 1, 0, -1, -1
 	};
 	int n;
 
-	for (n = 0; n < ARRAY_SIZE(acs5k_gpio_value); ++n) {
+	for (n = 0; n < ARRAY_SIZE(acs5k_gpio_value); ++n)
+	{
 		gpio_request(gpio_base + n, "ACS-5000 GPIO Expander");
+
 		if (acs5k_gpio_value[n] < 0)
+		{
 			gpio_direction_input(gpio_base + n);
+		}
 		else
 			gpio_direction_output(gpio_base + n,
-					      acs5k_gpio_value[n]);
+								  acs5k_gpio_value[n]);
+
 		gpio_export(gpio_base + n, 0); /* Export, direction locked down */
 	}
 
 	return 0;
 }
 
-static struct pca953x_platform_data acs5k_i2c_pca9555_platdata = {
+static struct pca953x_platform_data acs5k_i2c_pca9555_platdata =
+{
 	.gpio_base	= 16, /* Start directly after the CPU's GPIO */
 	.invert		= 0, /* Do not invert */
 	.setup		= acs5k_pca9555_setup,
 };
 
-static struct i2c_board_info acs5k_i2c_devs[] __initdata = {
+static struct i2c_board_info acs5k_i2c_devs[] __initdata =
+{
 	{
 		I2C_BOARD_INFO("pcf8563", 0x51),
 	},
@@ -98,10 +108,11 @@ static void acs5k_i2c_init(void)
 	platform_device_register(&acs5k_i2c_device);
 	/* I2C devices */
 	i2c_register_board_info(0, acs5k_i2c_devs,
-				ARRAY_SIZE(acs5k_i2c_devs));
+							ARRAY_SIZE(acs5k_i2c_devs));
 }
 
-static struct mtd_partition acs5k_nor_partitions[] = {
+static struct mtd_partition acs5k_nor_partitions[] =
+{
 	[0] = {
 		.name	= "Boot Agent and config",
 		.size	= SZ_256K,
@@ -130,13 +141,15 @@ static struct mtd_partition acs5k_nor_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data acs5k_nor_pdata = {
+static struct physmap_flash_data acs5k_nor_pdata =
+{
 	.width		= 4,
 	.nr_parts	= ARRAY_SIZE(acs5k_nor_partitions),
 	.parts		= acs5k_nor_partitions,
 };
 
-static struct resource acs5k_nor_resource[] = {
+static struct resource acs5k_nor_resource[] =
+{
 	[0] = {
 		.start = SZ_32M, /* We expect the bootloader to map
 				  * the flash here.
@@ -151,7 +164,8 @@ static struct resource acs5k_nor_resource[] = {
 	}
 };
 
-static struct platform_device acs5k_device_nor = {
+static struct platform_device acs5k_device_nor =
+{
 	.name		= "physmap-flash",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(acs5k_nor_resource),
@@ -166,11 +180,16 @@ static void __init acs5k_register_nor(void)
 	int ret;
 
 	if (acs5k_nor_partitions[0].mask_flags == 0)
+	{
 		printk(KERN_WARNING "Warning: Unprotecting bootloader and configuration partition\n");
+	}
 
 	ret = platform_device_register(&acs5k_device_nor);
+
 	if (ret < 0)
+	{
 		printk(KERN_ERR "failed to register physmap-flash device\n");
+	}
 }
 
 static int __init acs5k_protection_setup(char *s)
@@ -180,7 +199,9 @@ static int __init acs5k_protection_setup(char *s)
 	 * bootloader partition or not
 	 */
 	if (strcmp(s, "no") == 0)
+	{
 		acs5k_nor_partitions[0].mask_flags = 0;
+	}
 
 	return 1;
 }
@@ -192,11 +213,18 @@ static void __init acs5k_init_gpio(void)
 	int i;
 
 	ks8695_register_gpios();
+
 	for (i = 0; i < 4; ++i)
+	{
 		gpio_request(i, "ACS5K IRQ");
+	}
+
 	gpio_request(7, "ACS5K KS_FRDY");
+
 	for (i = 8; i < 16; ++i)
+	{
 		gpio_request(i, "ACS5K Unused");
+	}
 
 	gpio_request(3, "ACS5K CAN Control");
 	gpio_request(6, "ACS5K Heartbeat");
@@ -222,11 +250,11 @@ static void __init acs5k_init(void)
 }
 
 MACHINE_START(ACS5K, "Brivo Systems LLC ACS-5000 Master board")
-	/* Maintainer: Simtec Electronics. */
-	.atag_offset	= 0x100,
+/* Maintainer: Simtec Electronics. */
+.atag_offset	= 0x100,
 	.map_io		= ks8695_map_io,
-	.init_irq	= ks8695_init_irq,
-	.init_machine	= acs5k_init,
-	.init_time	= ks8695_timer_init,
-	.restart	= ks8695_restart,
-MACHINE_END
+		.init_irq	= ks8695_init_irq,
+		   .init_machine	= acs5k_init,
+			  .init_time	= ks8695_timer_init,
+				.restart	= ks8695_restart,
+					MACHINE_END

@@ -23,7 +23,7 @@
 unsigned long acpi_realmode_flags;
 
 #if defined(CONFIG_SMP) && defined(CONFIG_64BIT)
-static char temp_stack[4096];
+	static char temp_stack[4096];
 #endif
 
 /**
@@ -48,7 +48,8 @@ int x86_acpi_suspend_lowlevel(void)
 	struct wakeup_header *header =
 		(struct wakeup_header *) __va(real_mode_header->wakeup_header);
 
-	if (header->signature != WAKEUP_HEADER_SIGNATURE) {
+	if (header->signature != WAKEUP_HEADER_SIGNATURE)
+	{
 		printk(KERN_ERR "wakeup header does not match\n");
 		return -EINVAL;
 	}
@@ -69,27 +70,34 @@ int x86_acpi_suspend_lowlevel(void)
 	 * nm process with 512-KB L2 Cache Specification Update".
 	 */
 	if (!rdmsr_safe(MSR_EFER,
-			&header->pmode_efer_low,
-			&header->pmode_efer_high) &&
-	    !wrmsr_safe(MSR_EFER,
-			header->pmode_efer_low,
-			header->pmode_efer_high))
+					&header->pmode_efer_low,
+					&header->pmode_efer_high) &&
+		!wrmsr_safe(MSR_EFER,
+					header->pmode_efer_low,
+					header->pmode_efer_high))
+	{
 		header->pmode_behavior |= (1 << WAKEUP_BEHAVIOR_RESTORE_EFER);
+	}
+
 #endif /* !CONFIG_64BIT */
 
 	header->pmode_cr0 = read_cr0();
-	if (__this_cpu_read(cpu_info.cpuid_level) >= 0) {
+
+	if (__this_cpu_read(cpu_info.cpuid_level) >= 0)
+	{
 		header->pmode_cr4 = __read_cr4();
 		header->pmode_behavior |= (1 << WAKEUP_BEHAVIOR_RESTORE_CR4);
 	}
+
 	if (!rdmsr_safe(MSR_IA32_MISC_ENABLE,
-			&header->pmode_misc_en_low,
-			&header->pmode_misc_en_high) &&
-	    !wrmsr_safe(MSR_IA32_MISC_ENABLE,
-			header->pmode_misc_en_low,
-			header->pmode_misc_en_high))
+					&header->pmode_misc_en_low,
+					&header->pmode_misc_en_high) &&
+		!wrmsr_safe(MSR_IA32_MISC_ENABLE,
+					header->pmode_misc_en_low,
+					header->pmode_misc_en_high))
 		header->pmode_behavior |=
 			(1 << WAKEUP_BEHAVIOR_RESTORE_MISC_ENABLE);
+
 	header->realmode_flags = acpi_realmode_flags;
 	header->real_magic = 0x12345678;
 
@@ -101,11 +109,11 @@ int x86_acpi_suspend_lowlevel(void)
 #ifdef CONFIG_SMP
 	initial_stack = (unsigned long)temp_stack + sizeof(temp_stack);
 	early_gdt_descr.address =
-			(unsigned long)get_cpu_gdt_table(smp_processor_id());
+		(unsigned long)get_cpu_gdt_table(smp_processor_id());
 	initial_gs = per_cpu_offset(smp_processor_id());
 #endif
 	initial_code = (unsigned long)wakeup_long64;
-       saved_magic = 0x123456789abcdef0L;
+	saved_magic = 0x123456789abcdef0L;
 #endif /* CONFIG_64BIT */
 
 	/*
@@ -120,27 +128,55 @@ int x86_acpi_suspend_lowlevel(void)
 
 static int __init acpi_sleep_setup(char *str)
 {
-	while ((str != NULL) && (*str != '\0')) {
+	while ((str != NULL) && (*str != '\0'))
+	{
 		if (strncmp(str, "s3_bios", 7) == 0)
+		{
 			acpi_realmode_flags |= 1;
+		}
+
 		if (strncmp(str, "s3_mode", 7) == 0)
+		{
 			acpi_realmode_flags |= 2;
+		}
+
 		if (strncmp(str, "s3_beep", 7) == 0)
+		{
 			acpi_realmode_flags |= 4;
+		}
+
 #ifdef CONFIG_HIBERNATION
+
 		if (strncmp(str, "s4_nohwsig", 10) == 0)
+		{
 			acpi_no_s4_hw_signature();
+		}
+
 #endif
+
 		if (strncmp(str, "nonvs", 5) == 0)
+		{
 			acpi_nvs_nosave();
+		}
+
 		if (strncmp(str, "nonvs_s3", 8) == 0)
+		{
 			acpi_nvs_nosave_s3();
+		}
+
 		if (strncmp(str, "old_ordering", 12) == 0)
+		{
 			acpi_old_suspend_ordering();
+		}
+
 		str = strchr(str, ',');
+
 		if (str != NULL)
+		{
 			str += strspn(str, ", \t");
+		}
 	}
+
 	return 1;
 }
 

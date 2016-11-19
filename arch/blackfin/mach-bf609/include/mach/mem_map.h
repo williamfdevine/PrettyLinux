@@ -9,7 +9,7 @@
 #define __BFIN_MACH_MEM_MAP_H__
 
 #ifndef __BFIN_MEM_MAP_H__
-# error "do not include mach/mem_map.h directly -- use asm/mem_map.h"
+	# error "do not include mach/mem_map.h directly -- use asm/mem_map.h"
 #endif
 
 /* Async Memory Banks */
@@ -31,11 +31,11 @@
 
 /* Memory Map for ADSP-BF60x processors */
 #ifdef CONFIG_BFIN_ICACHE
-#define BFIN_ICACHESIZE	(16*1024)
-#define L1_CODE_LENGTH      0x10000
+	#define BFIN_ICACHESIZE	(16*1024)
+	#define L1_CODE_LENGTH      0x10000
 #else
-#define BFIN_ICACHESIZE	(0*1024)
-#define L1_CODE_LENGTH      0x14000
+	#define BFIN_ICACHESIZE	(0*1024)
+	#define L1_CODE_LENGTH      0x14000
 #endif
 
 #define L1_CODE_START       0xFFA00000
@@ -57,26 +57,26 @@
 
 #ifdef CONFIG_BFIN_DCACHE
 
-#ifdef CONFIG_BFIN_DCACHE_BANKA
-#define DMEM_CNTR (ACACHE_BSRAM | ENDCPLB | PORT_PREF0)
-#define L1_DATA_A_LENGTH      (0x8000 - 0x4000)
-#define L1_DATA_B_LENGTH      0x8000
-#define BFIN_DCACHESIZE	(16*1024)
-#define BFIN_DSUPBANKS	1
-#else
-#define DMEM_CNTR (ACACHE_BCACHE | ENDCPLB | PORT_PREF0)
-#define L1_DATA_A_LENGTH      (0x8000 - 0x4000)
-#define L1_DATA_B_LENGTH      (0x8000 - 0x4000)
-#define BFIN_DCACHESIZE	(32*1024)
-#define BFIN_DSUPBANKS	2
-#endif
+	#ifdef CONFIG_BFIN_DCACHE_BANKA
+		#define DMEM_CNTR (ACACHE_BSRAM | ENDCPLB | PORT_PREF0)
+		#define L1_DATA_A_LENGTH      (0x8000 - 0x4000)
+		#define L1_DATA_B_LENGTH      0x8000
+		#define BFIN_DCACHESIZE	(16*1024)
+		#define BFIN_DSUPBANKS	1
+	#else
+		#define DMEM_CNTR (ACACHE_BCACHE | ENDCPLB | PORT_PREF0)
+		#define L1_DATA_A_LENGTH      (0x8000 - 0x4000)
+		#define L1_DATA_B_LENGTH      (0x8000 - 0x4000)
+		#define BFIN_DCACHESIZE	(32*1024)
+		#define BFIN_DSUPBANKS	2
+	#endif
 
 #else
-#define DMEM_CNTR (ASRAM_BSRAM | ENDCPLB | PORT_PREF0)
-#define L1_DATA_A_LENGTH      0x8000
-#define L1_DATA_B_LENGTH      0x8000
-#define BFIN_DCACHESIZE	(0*1024)
-#define BFIN_DSUPBANKS	0
+	#define DMEM_CNTR (ASRAM_BSRAM | ENDCPLB | PORT_PREF0)
+	#define L1_DATA_A_LENGTH      0x8000
+	#define L1_DATA_B_LENGTH      0x8000
+	#define BFIN_DCACHESIZE	(0*1024)
+	#define BFIN_DSUPBANKS	0
 #endif /*CONFIG_BFIN_DCACHE*/
 
 /* Level 2 Memory */

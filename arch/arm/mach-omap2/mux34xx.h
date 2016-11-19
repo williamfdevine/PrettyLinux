@@ -10,10 +10,10 @@
 #define OMAP3_CONTROL_PADCONF_MUX_PBASE				0x48002030LU
 
 #define OMAP3_MUX(mode0, mux_value)					\
-{									\
-	.reg_offset	= (OMAP3_CONTROL_PADCONF_##mode0##_OFFSET),	\
-	.value		= (mux_value),					\
-}
+	{									\
+		.reg_offset	= (OMAP3_CONTROL_PADCONF_##mode0##_OFFSET),	\
+					  .value		= (mux_value),					\
+	}
 
 /*
  * OMAP3 CONTROL_PADCONF* register offsets for pin-muxing
@@ -399,4 +399,4 @@
 #define OMAP3_CONTROL_PADCONF_GPIO_129				0xa2a
 
 #define OMAP3_CONTROL_PADCONF_MUX_SIZE				\
-		(OMAP3_CONTROL_PADCONF_GPIO_129 + 0x2)
+	(OMAP3_CONTROL_PADCONF_GPIO_129 + 0x2)

@@ -43,9 +43,9 @@
 #undef DEBUG
 
 #ifdef DEBUG
-#define DBG (fmt...) do { printk(KERN_ERR "SBC610: " fmt); } while (0)
+	#define DBG (fmt...) do { printk(KERN_ERR "SBC610: " fmt); } while (0)
 #else
-#define DBG (fmt...) do { } while (0)
+	#define DBG (fmt...) do { } while (0)
 #endif
 
 void __iomem *sbc610_regs;
@@ -61,7 +61,9 @@ static void __init gef_sbc610_init_irq(void)
 	 * to be cascaded into the MPIC
 	 */
 	cascade_node = of_find_compatible_node(NULL, NULL, "gef,fpga-pic");
-	if (!cascade_node) {
+
+	if (!cascade_node)
+	{
 		printk(KERN_WARNING "SBC610: No FPGA PIC\n");
 		return;
 	}
@@ -84,10 +86,16 @@ static void __init gef_sbc610_setup_arch(void)
 
 	/* Remap basic board registers */
 	regs = of_find_compatible_node(NULL, NULL, "gef,fpga-regs");
-	if (regs) {
+
+	if (regs)
+	{
 		sbc610_regs = of_iomap(regs, 0);
+
 		if (sbc610_regs == NULL)
+		{
 			printk(KERN_WARNING "Unable to map board registers\n");
+		}
+
 		of_node_put(regs);
 	}
 
@@ -130,7 +138,7 @@ static void gef_sbc610_show_cpuinfo(struct seq_file *m)
 	seq_printf(m, "Vendor\t\t: GE Intelligent Platforms\n");
 
 	seq_printf(m, "Revision\t: %u%c\n", gef_sbc610_get_pcb_rev(),
-		('A' + gef_sbc610_get_board_rev() - 1));
+			   ('A' + gef_sbc610_get_board_rev() - 1));
 	seq_printf(m, "FPGA Revision\t: %u\n", gef_sbc610_get_fpga_rev());
 
 	seq_printf(m, "SVR\t\t: 0x%x\n", svid);
@@ -142,7 +150,9 @@ static void gef_sbc610_nec_fixup(struct pci_dev *pdev)
 
 	/* Do not do the fixup on other platforms! */
 	if (!machine_is(gef_sbc610))
+	{
 		return;
+	}
 
 	printk(KERN_INFO "Running NEC uPD720101 Fixup\n");
 
@@ -154,7 +164,7 @@ static void gef_sbc610_nec_fixup(struct pci_dev *pdev)
 	pci_write_config_dword(pdev, 0xe4, 1 << 5);
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB,
-	gef_sbc610_nec_fixup);
+						 gef_sbc610_nec_fixup);
 
 /*
  * Called very early, device-tree isn't unflattened
@@ -167,24 +177,27 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB,
 static int __init gef_sbc610_probe(void)
 {
 	if (of_machine_is_compatible("gef,sbc610"))
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 machine_arch_initcall(gef_sbc610, mpc86xx_common_publish_devices);
 
-define_machine(gef_sbc610) {
+define_machine(gef_sbc610)
+{
 	.name			= "GE SBC610",
-	.probe			= gef_sbc610_probe,
-	.setup_arch		= gef_sbc610_setup_arch,
-	.init_IRQ		= gef_sbc610_init_irq,
-	.show_cpuinfo		= gef_sbc610_show_cpuinfo,
-	.get_irq		= mpic_get_irq,
-	.time_init		= mpc86xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= gef_sbc610_probe,
+					 .setup_arch		= gef_sbc610_setup_arch,
+						 .init_IRQ		= gef_sbc610_init_irq,
+							   .show_cpuinfo		= gef_sbc610_show_cpuinfo,
+									 .get_irq		= mpic_get_irq,
+											.time_init		= mpc86xx_time_init,
+												 .calibrate_decr		= generic_calibrate_decr,
+													 .progress		= udbg_progress,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+														   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
 #endif
 };

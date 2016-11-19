@@ -48,7 +48,9 @@ static void mvme5100_8259_cascade(struct irq_desc *desc)
 	unsigned int cascade_irq = i8259_irq();
 
 	if (cascade_irq)
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
 	chip->irq_eoi(&desc->irq_data);
 }
@@ -63,7 +65,9 @@ static void __init mvme5100_pic_init(void)
 	const u32 *prop = NULL;
 
 	np = of_find_node_by_type(NULL, "open-pic");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("Could not find open-pic node\n");
 		return;
 	}
@@ -78,30 +82,38 @@ static void __init mvme5100_pic_init(void)
 	mpic_init(mpic);
 
 	cp = of_find_compatible_node(NULL, NULL, "chrp,iic");
-	if (cp == NULL) {
+
+	if (cp == NULL)
+	{
 		pr_warn("mvme5100_pic_init: couldn't find i8259\n");
 		return;
 	}
 
 	cirq = irq_of_parse_and_map(cp, 0);
-	if (!cirq) {
+
+	if (!cirq)
+	{
 		pr_warn("mvme5100_pic_init: no cascade interrupt?\n");
 		return;
 	}
 
 	np = of_find_compatible_node(NULL, "pci", "mpc10x-pci");
-	if (np) {
+
+	if (np)
+	{
 		prop = of_get_property(np, "8259-interrupt-acknowledge", NULL);
 
 		if (prop)
+		{
 			intack = prop[0];
+		}
 
 		of_node_put(np);
 	}
 
 	if (intack)
 		pr_debug("mvme5100_pic_init: PCI 8259 intack at 0x%016lx\n",
-		   intack);
+				 intack);
 
 	i8259_init(cp, intack);
 	of_node_put(cp);
@@ -120,8 +132,11 @@ static int __init mvme5100_add_bridge(struct device_node *dev)
 	bus_range = of_get_property(dev, "bus-range", &len);
 
 	hose = pcibios_alloc_controller(dev);
+
 	if (hose == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	hose->first_busno = bus_range ? bus_range[0] : 0;
 	hose->last_busno = bus_range ? bus_range[1] : 0xff;
@@ -132,14 +147,16 @@ static int __init mvme5100_add_bridge(struct device_node *dev)
 
 	early_read_config_word(hose, 0, 0, PCI_DEVICE_ID, &devid);
 
-	if (devid != PCI_DEVICE_ID_MOTOROLA_HAWK) {
+	if (devid != PCI_DEVICE_ID_MOTOROLA_HAWK)
+	{
 		pr_err("HAWK PHB not present?\n");
 		return 0;
 	}
 
 	early_read_config_dword(hose, 0, 0, PCI_BASE_ADDRESS_1, &pci_membase);
 
-	if (pci_membase == 0) {
+	if (pci_membase == 0)
+	{
 		pr_err("HAWK PHB mibar not correctly set?\n");
 		return 0;
 	}
@@ -149,7 +166,8 @@ static int __init mvme5100_add_bridge(struct device_node *dev)
 	return 0;
 }
 
-static const struct of_device_id mvme5100_of_bus_ids[] __initconst = {
+static const struct of_device_id mvme5100_of_bus_ids[] __initconst =
+{
 	{ .compatible = "hawk-bridge", },
 	{},
 };
@@ -162,10 +180,12 @@ static void __init mvme5100_setup_arch(void)
 	struct device_node *np;
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mvme5100_setup_arch()", 0);
+	}
 
 	for_each_compatible_node(np, "pci", "hawk-pci")
-		mvme5100_add_bridge(np);
+	mvme5100_add_bridge(np);
 
 	restart = ioremap(BOARD_MODRST_REG, 4);
 }
@@ -206,14 +226,15 @@ static int __init probe_of_platform_devices(void)
 
 machine_device_initcall(mvme5100, probe_of_platform_devices);
 
-define_machine(mvme5100) {
+define_machine(mvme5100)
+{
 	.name			= "MVME5100",
-	.probe			= mvme5100_probe,
-	.setup_arch		= mvme5100_setup_arch,
-	.init_IRQ		= mvme5100_pic_init,
-	.show_cpuinfo		= mvme5100_show_cpuinfo,
-	.get_irq		= mpic_get_irq,
-	.restart		= mvme5100_restart,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mvme5100_probe,
+					 .setup_arch		= mvme5100_setup_arch,
+						 .init_IRQ		= mvme5100_pic_init,
+							   .show_cpuinfo		= mvme5100_show_cpuinfo,
+									 .get_irq		= mpic_get_irq,
+											.restart		= mvme5100_restart,
+												   .calibrate_decr		= generic_calibrate_decr,
+													   .progress		= udbg_progress,
 };

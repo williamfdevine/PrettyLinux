@@ -28,7 +28,8 @@
  * spaces wasted since ioremap() may be called multi times for the same
  * IO space.
  */
-static struct map_desc hi3620_io_desc[] __initdata = {
+static struct map_desc hi3620_io_desc[] __initdata =
+{
 	{
 		/* sysctrl */
 		.pfn		= __phys_to_pfn(HI3620_SYSCTRL_PHYS_BASE),
@@ -44,12 +45,13 @@ static void __init hi3620_map_io(void)
 	iotable_init(hi3620_io_desc, ARRAY_SIZE(hi3620_io_desc));
 }
 
-static const char *const hi3xxx_compat[] __initconst = {
+static const char *const hi3xxx_compat[] __initconst =
+{
 	"hisilicon,hi3620-hi4511",
 	NULL,
 };
 
 DT_MACHINE_START(HI3620, "Hisilicon Hi3620 (Flattened Device Tree)")
-	.map_io		= hi3620_map_io,
+.map_io		= hi3620_map_io,
 	.dt_compat	= hi3xxx_compat,
-MACHINE_END
+	  MACHINE_END

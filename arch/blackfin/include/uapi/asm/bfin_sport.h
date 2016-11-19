@@ -21,35 +21,36 @@
 #define ULAW_FORMAT	0x3
 
 /* Function driver which use sport must initialize the structure */
-struct sport_config {
+struct sport_config
+{
 	/* TDM (multichannels), I2S or other mode */
-	unsigned int mode:3;
+	unsigned int mode: 3;
 	unsigned int polled;	/* use poll instead of irq when set */
 
 	/* if TDM mode is selected, channels must be set */
 	int channels;	/* Must be in 8 units */
-	unsigned int frame_delay:4;	/* Delay between frame sync pulse and first bit */
+	unsigned int frame_delay: 4;	/* Delay between frame sync pulse and first bit */
 
 	/* I2S mode */
-	unsigned int right_first:1;	/* Right stereo channel first */
+	unsigned int right_first: 1;	/* Right stereo channel first */
 
 	/* In mormal mode, the following item need to be set */
-	unsigned int lsb_first:1;	/* order of transmit or receive data */
-	unsigned int fsync:1;	/* Frame sync required */
-	unsigned int data_indep:1;	/* data independent frame sync generated */
-	unsigned int act_low:1;	/* Active low TFS */
-	unsigned int late_fsync:1;	/* Late frame sync */
-	unsigned int tckfe:1;
-	unsigned int sec_en:1;	/* Secondary side enabled */
+	unsigned int lsb_first: 1;	/* order of transmit or receive data */
+	unsigned int fsync: 1;	/* Frame sync required */
+	unsigned int data_indep: 1;	/* data independent frame sync generated */
+	unsigned int act_low: 1;	/* Active low TFS */
+	unsigned int late_fsync: 1;	/* Late frame sync */
+	unsigned int tckfe: 1;
+	unsigned int sec_en: 1;	/* Secondary side enabled */
 
 	/* Choose clock source */
-	unsigned int int_clk:1;	/* Internal or external clock */
+	unsigned int int_clk: 1;	/* Internal or external clock */
 
 	/* If external clock is used, the following fields are ignored */
 	int serial_clk;
 	int fsync_clk;
 
-	unsigned int data_format:2;	/* Normal, u-law or a-law */
+	unsigned int data_format: 2;	/* Normal, u-law or a-law */
 
 	int word_len;		/* How length of the word in bits, 3-32 bits */
 	int dma_enabled;

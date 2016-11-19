@@ -10,9 +10,10 @@
 #include "../common.h"
 
 struct platform_device *__init mxc_register_gpio(char *name, int id,
-	resource_size_t iobase, resource_size_t iosize, int irq, int irq_high)
+		resource_size_t iobase, resource_size_t iosize, int irq, int irq_high)
 {
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start = iobase,
 			.end = iobase + iosize - 1,

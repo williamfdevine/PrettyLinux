@@ -61,7 +61,7 @@ static inline int au1300_gpio_set_value(unsigned int gpio, int v)
 	roff += GPIC_GPIO_BANKOFF(gpio);
 	bit = GPIC_GPIO_TO_BIT(gpio);
 	__raw_writel(bit, roff + (v ? AU1300_GPIC_PINVAL
-				    : AU1300_GPIC_PINVALCLR));
+							  : AU1300_GPIC_PINVALCLR));
 	wmb();
 
 	return 0;
@@ -87,13 +87,16 @@ static inline int au1300_gpio_is_valid(unsigned int gpio)
 {
 	int ret;
 
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1300:
-		ret = ((gpio >= AU1300_GPIO_BASE) && (gpio <= AU1300_GPIO_MAX));
-		break;
-	default:
-		ret = 0;
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1300:
+			ret = ((gpio >= AU1300_GPIO_BASE) && (gpio <= AU1300_GPIO_MAX));
+			break;
+
+		default:
+			ret = 0;
 	}
+
 	return ret;
 }
 
@@ -109,8 +112,11 @@ static inline int au1300_gpio_getinitlvl(unsigned int gpio)
 	unsigned long v;
 
 	if (unlikely(gpio > 63))
+	{
 		return 0;
-	else if (gpio > 31) {
+	}
+	else if (gpio > 31)
+	{
 		gpio -= 32;
 		roff += 4;
 	}
@@ -207,7 +213,7 @@ static inline int gpio_request(unsigned int gpio, const char *label)
 }
 
 static inline int gpio_request_one(unsigned gpio,
-					unsigned long flags, const char *label)
+								   unsigned long flags, const char *label)
 {
 	return 0;
 }
@@ -245,7 +251,7 @@ static inline int gpio_sysfs_set_active_low(unsigned gpio, int value)
 }
 
 static inline int gpio_export_link(struct device *dev, const char *name,
-				   unsigned gpio)
+								   unsigned gpio)
 {
 	return -ENOSYS;
 }

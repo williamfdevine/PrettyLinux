@@ -56,9 +56,13 @@ void __default_send_IPI_dest_field(unsigned int mask, int vector, unsigned int d
 	 * Wait for idle.
 	 */
 	if (unlikely(vector == NMI_VECTOR))
+	{
 		safe_apic_wait_icr_idle();
+	}
 	else
+	{
 		__xapic_wait_icr_idle();
+	}
 
 	/*
 	 * prepare target chip field
@@ -83,7 +87,7 @@ void default_send_IPI_single_phys(int cpu, int vector)
 
 	local_irq_save(flags);
 	__default_send_IPI_dest_field(per_cpu(x86_cpu_to_apicid, cpu),
-				      vector, APIC_DEST_PHYSICAL);
+								  vector, APIC_DEST_PHYSICAL);
 	local_irq_restore(flags);
 }
 
@@ -98,15 +102,16 @@ void default_send_IPI_mask_sequence_phys(const struct cpumask *mask, int vector)
 	 * - mbligh
 	 */
 	local_irq_save(flags);
-	for_each_cpu(query_cpu, mask) {
+	for_each_cpu(query_cpu, mask)
+	{
 		__default_send_IPI_dest_field(per_cpu(x86_cpu_to_apicid,
-				query_cpu), vector, APIC_DEST_PHYSICAL);
+											  query_cpu), vector, APIC_DEST_PHYSICAL);
 	}
 	local_irq_restore(flags);
 }
 
 void default_send_IPI_mask_allbutself_phys(const struct cpumask *mask,
-						 int vector)
+		int vector)
 {
 	unsigned int this_cpu = smp_processor_id();
 	unsigned int query_cpu;
@@ -115,11 +120,15 @@ void default_send_IPI_mask_allbutself_phys(const struct cpumask *mask,
 	/* See Hack comment above */
 
 	local_irq_save(flags);
-	for_each_cpu(query_cpu, mask) {
+	for_each_cpu(query_cpu, mask)
+	{
 		if (query_cpu == this_cpu)
+		{
 			continue;
+		}
+
 		__default_send_IPI_dest_field(per_cpu(x86_cpu_to_apicid,
-				 query_cpu), vector, APIC_DEST_PHYSICAL);
+											  query_cpu), vector, APIC_DEST_PHYSICAL);
 	}
 	local_irq_restore(flags);
 }
@@ -135,7 +144,7 @@ void default_send_IPI_single(int cpu, int vector)
 #ifdef CONFIG_X86_32
 
 void default_send_IPI_mask_sequence_logical(const struct cpumask *mask,
-						 int vector)
+		int vector)
 {
 	unsigned long flags;
 	unsigned int query_cpu;
@@ -148,14 +157,14 @@ void default_send_IPI_mask_sequence_logical(const struct cpumask *mask,
 
 	local_irq_save(flags);
 	for_each_cpu(query_cpu, mask)
-		__default_send_IPI_dest_field(
-			early_per_cpu(x86_cpu_to_logical_apicid, query_cpu),
-			vector, apic->dest_logical);
+	__default_send_IPI_dest_field(
+		early_per_cpu(x86_cpu_to_logical_apicid, query_cpu),
+		vector, apic->dest_logical);
 	local_irq_restore(flags);
 }
 
 void default_send_IPI_mask_allbutself_logical(const struct cpumask *mask,
-						 int vector)
+		int vector)
 {
 	unsigned long flags;
 	unsigned int query_cpu;
@@ -164,13 +173,17 @@ void default_send_IPI_mask_allbutself_logical(const struct cpumask *mask,
 	/* See Hack comment above */
 
 	local_irq_save(flags);
-	for_each_cpu(query_cpu, mask) {
+	for_each_cpu(query_cpu, mask)
+	{
 		if (query_cpu == this_cpu)
+		{
 			continue;
+		}
+
 		__default_send_IPI_dest_field(
 			early_per_cpu(x86_cpu_to_logical_apicid, query_cpu),
 			vector, apic->dest_logical);
-		}
+	}
 	local_irq_restore(flags);
 }
 
@@ -183,7 +196,9 @@ void default_send_IPI_mask_logical(const struct cpumask *cpumask, int vector)
 	unsigned long flags;
 
 	if (!mask)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 	WARN_ON(mask & ~cpumask_bits(cpu_online_mask)[0]);
@@ -198,7 +213,9 @@ void default_send_IPI_allbutself(int vector)
 	 * error if we try to broadcast, thus avoid sending IPIs in this case.
 	 */
 	if (!(num_online_cpus() > 1))
+	{
 		return;
+	}
 
 	__default_local_send_IPI_allbutself(vector);
 }
@@ -218,9 +235,12 @@ static int convert_apicid_to_cpu(int apic_id)
 {
 	int i;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		if (per_cpu(x86_cpu_to_apicid, i) == apic_id)
+		{
 			return i;
+		}
 	}
 	return -1;
 }
@@ -230,11 +250,16 @@ int safe_smp_processor_id(void)
 	int apicid, cpuid;
 
 	if (!boot_cpu_has(X86_FEATURE_APIC))
+	{
 		return 0;
+	}
 
 	apicid = hard_smp_processor_id();
+
 	if (apicid == BAD_APICID)
+	{
 		return 0;
+	}
 
 	cpuid = convert_apicid_to_cpu(apicid);
 

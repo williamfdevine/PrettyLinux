@@ -11,7 +11,8 @@ void memcpy_fromio(void *to, const volatile void __iomem *from, long count)
 {
 	char *dst = to;
 
-	while (count) {
+	while (count)
+	{
 		count--;
 		*dst++ = readb(from++);
 	}
@@ -26,7 +27,8 @@ void memcpy_toio(volatile void __iomem *to, const void *from, long count)
 {
 	const char *src = from;
 
-	while (count) {
+	while (count)
+	{
 		count--;
 		writeb(*src++, to++);
 	}
@@ -41,7 +43,8 @@ void memset_io(volatile void __iomem *dst, int c, long count)
 {
 	unsigned char ch = (char)(c & 0xff);
 
-	while (count) {
+	while (count)
+	{
 		count--;
 		writeb(ch, dst);
 		dst++;

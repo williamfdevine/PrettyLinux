@@ -50,21 +50,28 @@ asmlinkage int sysm_pipe(void)
 {
 	int fd[2];
 	int error = do_pipe_flags(fd, 0);
+
 	if (error)
+	{
 		return error;
+	}
+
 	current_pt_regs()->regs[3] = fd[1];
 	return fd[0];
 }
 
 SYSCALL_DEFINE6(mips_mmap, unsigned long, addr, unsigned long, len,
-	unsigned long, prot, unsigned long, flags, unsigned long,
-	fd, off_t, offset)
+				unsigned long, prot, unsigned long, flags, unsigned long,
+				fd, off_t, offset)
 {
 	unsigned long result;
 
 	result = -EINVAL;
+
 	if (offset & ~PAGE_MASK)
+	{
 		goto out;
+	}
 
 	result = sys_mmap_pgoff(addr, len, prot, flags, fd, offset >> PAGE_SHIFT);
 
@@ -73,13 +80,15 @@ out:
 }
 
 SYSCALL_DEFINE6(mips_mmap2, unsigned long, addr, unsigned long, len,
-	unsigned long, prot, unsigned long, flags, unsigned long, fd,
-	unsigned long, pgoff)
+				unsigned long, prot, unsigned long, flags, unsigned long, fd,
+				unsigned long, pgoff)
 {
 	if (pgoff & (~PAGE_MASK >> 12))
+	{
 		return -EINVAL;
+	}
 
-	return sys_mmap_pgoff(addr, len, prot, flags, fd, pgoff >> (PAGE_SHIFT-12));
+	return sys_mmap_pgoff(addr, len, prot, flags, fd, pgoff >> (PAGE_SHIFT - 12));
 }
 
 save_static_function(sys_fork);
@@ -90,8 +99,11 @@ SYSCALL_DEFINE1(set_thread_area, unsigned long, addr)
 	struct thread_info *ti = task_thread_info(current);
 
 	ti->tp_value = addr;
+
 	if (cpu_has_userlocal)
+	{
 		write_c0_userlocal(addr);
+	}
 
 	return 0;
 }
@@ -103,69 +115,79 @@ static inline int mips_atomic_set(unsigned long addr, unsigned long new)
 	unsigned int err;
 
 	if (unlikely(addr & 3))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(!access_ok(VERIFY_WRITE, addr, 4)))
+	{
 		return -EINVAL;
+	}
 
-	if (cpu_has_llsc && R10000_LLSC_WAR) {
+	if (cpu_has_llsc && R10000_LLSC_WAR)
+	{
 		__asm__ __volatile__ (
-		"	.set	arch=r4000				\n"
-		"	li	%[err], 0				\n"
-		"1:	ll	%[old], (%[addr])			\n"
-		"	move	%[tmp], %[new]				\n"
-		"2:	sc	%[tmp], (%[addr])			\n"
-		"	beqzl	%[tmp], 1b				\n"
-		"3:							\n"
-		"	.insn						\n"
-		"	.section .fixup,\"ax\"				\n"
-		"4:	li	%[err], %[efault]			\n"
-		"	j	3b					\n"
-		"	.previous					\n"
-		"	.section __ex_table,\"a\"			\n"
-		"	"STR(PTR)"	1b, 4b				\n"
-		"	"STR(PTR)"	2b, 4b				\n"
-		"	.previous					\n"
-		"	.set	mips0					\n"
-		: [old] "=&r" (old),
-		  [err] "=&r" (err),
-		  [tmp] "=&r" (tmp)
-		: [addr] "r" (addr),
-		  [new] "r" (new),
-		  [efault] "i" (-EFAULT)
-		: "memory");
-	} else if (cpu_has_llsc) {
+			"	.set	arch=r4000				\n"
+			"	li	%[err], 0				\n"
+			"1:	ll	%[old], (%[addr])			\n"
+			"	move	%[tmp], %[new]				\n"
+			"2:	sc	%[tmp], (%[addr])			\n"
+			"	beqzl	%[tmp], 1b				\n"
+			"3:							\n"
+			"	.insn						\n"
+			"	.section .fixup,\"ax\"				\n"
+			"4:	li	%[err], %[efault]			\n"
+			"	j	3b					\n"
+			"	.previous					\n"
+			"	.section __ex_table,\"a\"			\n"
+			"	"STR(PTR)"	1b, 4b				\n"
+			"	"STR(PTR)"	2b, 4b				\n"
+			"	.previous					\n"
+			"	.set	mips0					\n"
+			: [old] "=&r" (old),
+			[err] "=&r" (err),
+			[tmp] "=&r" (tmp)
+			: [addr] "r" (addr),
+			[new] "r" (new),
+			[efault] "i" (-EFAULT)
+			: "memory");
+	}
+	else if (cpu_has_llsc)
+	{
 		__asm__ __volatile__ (
-		"	.set	"MIPS_ISA_ARCH_LEVEL"			\n"
-		"	li	%[err], 0				\n"
-		"1:	ll	%[old], (%[addr])			\n"
-		"	move	%[tmp], %[new]				\n"
-		"2:	sc	%[tmp], (%[addr])			\n"
-		"	bnez	%[tmp], 4f				\n"
-		"3:							\n"
-		"	.insn						\n"
-		"	.subsection 2					\n"
-		"4:	b	1b					\n"
-		"	.previous					\n"
-		"							\n"
-		"	.section .fixup,\"ax\"				\n"
-		"5:	li	%[err], %[efault]			\n"
-		"	j	3b					\n"
-		"	.previous					\n"
-		"	.section __ex_table,\"a\"			\n"
-		"	"STR(PTR)"	1b, 5b				\n"
-		"	"STR(PTR)"	2b, 5b				\n"
-		"	.previous					\n"
-		"	.set	mips0					\n"
-		: [old] "=&r" (old),
-		  [err] "=&r" (err),
-		  [tmp] "=&r" (tmp)
-		: [addr] "r" (addr),
-		  [new] "r" (new),
-		  [efault] "i" (-EFAULT)
-		: "memory");
-	} else {
-		do {
+			"	.set	"MIPS_ISA_ARCH_LEVEL"			\n"
+			"	li	%[err], 0				\n"
+			"1:	ll	%[old], (%[addr])			\n"
+			"	move	%[tmp], %[new]				\n"
+			"2:	sc	%[tmp], (%[addr])			\n"
+			"	bnez	%[tmp], 4f				\n"
+			"3:							\n"
+			"	.insn						\n"
+			"	.subsection 2					\n"
+			"4:	b	1b					\n"
+			"	.previous					\n"
+			"							\n"
+			"	.section .fixup,\"ax\"				\n"
+			"5:	li	%[err], %[efault]			\n"
+			"	j	3b					\n"
+			"	.previous					\n"
+			"	.section __ex_table,\"a\"			\n"
+			"	"STR(PTR)"	1b, 5b				\n"
+			"	"STR(PTR)"	2b, 5b				\n"
+			"	.previous					\n"
+			"	.set	mips0					\n"
+			: [old] "=&r" (old),
+			[err] "=&r" (err),
+			[tmp] "=&r" (tmp)
+			: [addr] "r" (addr),
+			[new] "r" (new),
+			[efault] "i" (-EFAULT)
+			: "memory");
+	}
+	else
+	{
+		do
+		{
 			preempt_disable();
 			ll_bit = 1;
 			ll_task = current;
@@ -173,14 +195,21 @@ static inline int mips_atomic_set(unsigned long addr, unsigned long new)
 
 			err = __get_user(old, (unsigned int *) addr);
 			err |= __put_user(new, (unsigned int *) addr);
+
 			if (err)
+			{
 				break;
+			}
+
 			rmb();
-		} while (!ll_bit);
+		}
+		while (!ll_bit);
 	}
 
 	if (unlikely(err))
+	{
 		return err;
+	}
 
 	regs = current_pt_regs();
 	regs->regs[2] = old;
@@ -190,10 +219,10 @@ static inline int mips_atomic_set(unsigned long addr, unsigned long new)
 	 * Don't let your children do this ...
 	 */
 	__asm__ __volatile__(
-	"	move	$29, %0						\n"
-	"	j	syscall_exit					\n"
-	: /* no outputs */
-	: "r" (regs));
+		"	move	$29, %0						\n"
+		"	j	syscall_exit					\n"
+		: /* no outputs */
+		: "r" (regs));
 
 	/* unreached.  Honestly.  */
 	unreachable();
@@ -201,28 +230,40 @@ static inline int mips_atomic_set(unsigned long addr, unsigned long new)
 
 SYSCALL_DEFINE3(sysmips, long, cmd, long, arg1, long, arg2)
 {
-	switch (cmd) {
-	case MIPS_ATOMIC_SET:
-		return mips_atomic_set(arg1, arg2);
+	switch (cmd)
+	{
+		case MIPS_ATOMIC_SET:
+			return mips_atomic_set(arg1, arg2);
 
-	case MIPS_FIXADE:
-		if (arg1 & ~3)
-			return -EINVAL;
+		case MIPS_FIXADE:
+			if (arg1 & ~3)
+			{
+				return -EINVAL;
+			}
 
-		if (arg1 & 1)
-			set_thread_flag(TIF_FIXADE);
-		else
-			clear_thread_flag(TIF_FIXADE);
-		if (arg1 & 2)
-			set_thread_flag(TIF_LOGADE);
-		else
-			clear_thread_flag(TIF_LOGADE);
+			if (arg1 & 1)
+			{
+				set_thread_flag(TIF_FIXADE);
+			}
+			else
+			{
+				clear_thread_flag(TIF_FIXADE);
+			}
 
-		return 0;
+			if (arg1 & 2)
+			{
+				set_thread_flag(TIF_LOGADE);
+			}
+			else
+			{
+				clear_thread_flag(TIF_LOGADE);
+			}
 
-	case FLUSH_CACHE:
-		__flush_cache_all();
-		return 0;
+			return 0;
+
+		case FLUSH_CACHE:
+			__flush_cache_all();
+			return 0;
 	}
 
 	return -EINVAL;

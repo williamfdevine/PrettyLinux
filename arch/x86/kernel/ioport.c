@@ -27,20 +27,28 @@ asmlinkage long sys_ioperm(unsigned long from, unsigned long num, int turn_on)
 	unsigned int i, max_long, bytes, bytes_updated;
 
 	if ((from + num <= from) || (from + num > IO_BITMAP_BITS))
+	{
 		return -EINVAL;
+	}
+
 	if (turn_on && !capable(CAP_SYS_RAWIO))
+	{
 		return -EPERM;
+	}
 
 	/*
 	 * If it's the first ioperm() call in this thread's lifetime, set the
 	 * IO bitmap up. ioperm() is much less timing critical than clone(),
 	 * this is why we delay this operation until now:
 	 */
-	if (!t->io_bitmap_ptr) {
+	if (!t->io_bitmap_ptr)
+	{
 		unsigned long *bitmap = kmalloc(IO_BITMAP_BYTES, GFP_KERNEL);
 
 		if (!bitmap)
+		{
 			return -ENOMEM;
+		}
 
 		memset(bitmap, 0xff, IO_BITMAP_BYTES);
 		t->io_bitmap_ptr = bitmap;
@@ -57,18 +65,25 @@ asmlinkage long sys_ioperm(unsigned long from, unsigned long num, int turn_on)
 	tss = &per_cpu(cpu_tss, get_cpu());
 
 	if (turn_on)
+	{
 		bitmap_clear(t->io_bitmap_ptr, from, num);
+	}
 	else
+	{
 		bitmap_set(t->io_bitmap_ptr, from, num);
+	}
 
 	/*
 	 * Search for a (possibly new) maximum. This is simple and stupid,
 	 * to keep it obviously correct:
 	 */
 	max_long = 0;
+
 	for (i = 0; i < IO_BITMAP_LONGS; i++)
 		if (t->io_bitmap_ptr[i] != ~0UL)
+		{
 			max_long = i;
+		}
 
 	bytes = (max_long + 1) * sizeof(unsigned long);
 	bytes_updated = max(bytes, t->io_bitmap_max);
@@ -105,14 +120,21 @@ SYSCALL_DEFINE1(iopl, unsigned int, level)
 	unsigned int old = t->iopl >> X86_EFLAGS_IOPL_BIT;
 
 	if (level > 3)
+	{
 		return -EINVAL;
-	/* Trying to gain more privileges? */
-	if (level > old) {
-		if (!capable(CAP_SYS_RAWIO))
-			return -EPERM;
 	}
+
+	/* Trying to gain more privileges? */
+	if (level > old)
+	{
+		if (!capable(CAP_SYS_RAWIO))
+		{
+			return -EPERM;
+		}
+	}
+
 	regs->flags = (regs->flags & ~X86_EFLAGS_IOPL) |
-		(level << X86_EFLAGS_IOPL_BIT);
+				  (level << X86_EFLAGS_IOPL_BIT);
 	t->iopl = level << X86_EFLAGS_IOPL_BIT;
 	set_iopl_mask(t->iopl);
 

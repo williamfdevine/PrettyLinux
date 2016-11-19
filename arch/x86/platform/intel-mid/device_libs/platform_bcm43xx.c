@@ -23,12 +23,14 @@
 
 #define WLAN_DEV_NAME			"0000:00:01.3"
 
-static struct regulator_consumer_supply bcm43xx_vmmc_supply = {
+static struct regulator_consumer_supply bcm43xx_vmmc_supply =
+{
 	.dev_name		= WLAN_DEV_NAME,
 	.supply			= "vmmc",
 };
 
-static struct regulator_init_data bcm43xx_vmmc_data = {
+static struct regulator_init_data bcm43xx_vmmc_data =
+{
 	.constraints = {
 		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
 	},
@@ -36,7 +38,8 @@ static struct regulator_init_data bcm43xx_vmmc_data = {
 	.consumer_supplies	= &bcm43xx_vmmc_supply,
 };
 
-static struct fixed_voltage_config bcm43xx_vmmc = {
+static struct fixed_voltage_config bcm43xx_vmmc =
+{
 	.supply_name		= "bcm43xx-vmmc-regulator",
 	/*
 	 * Announce 2.0V here to be compatible with SDIO specification. The
@@ -50,7 +53,8 @@ static struct fixed_voltage_config bcm43xx_vmmc = {
 	.init_data		= &bcm43xx_vmmc_data,
 };
 
-static struct platform_device bcm43xx_vmmc_regulator = {
+static struct platform_device bcm43xx_vmmc_regulator =
+{
 	.name		= "reg-fixed-voltage",
 	.id		= PLATFORM_DEVID_AUTO,
 	.dev = {
@@ -64,7 +68,9 @@ static int __init bcm43xx_regulator_register(void)
 
 	bcm43xx_vmmc.gpio = get_gpio_by_name(WLAN_SFI_GPIO_ENABLE_NAME);
 	ret = platform_device_register(&bcm43xx_vmmc_regulator);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: vmmc regulator register failed\n", __func__);
 		return ret;
 	}
@@ -77,8 +83,11 @@ static void __init *bcm43xx_platform_data(void *info)
 	int ret;
 
 	ret = bcm43xx_regulator_register();
+
 	if (ret)
+	{
 		return NULL;
+	}
 
 	pr_info("Using generic wifi platform data\n");
 
@@ -86,7 +95,8 @@ static void __init *bcm43xx_platform_data(void *info)
 	return NULL;
 }
 
-static const struct devs_id bcm43xx_clk_vmmc_dev_id __initconst = {
+static const struct devs_id bcm43xx_clk_vmmc_dev_id __initconst =
+{
 	.name			= "bcm43xx_clk_vmmc",
 	.type			= SFI_DEV_TYPE_SD,
 	.get_platform_data	= &bcm43xx_platform_data,

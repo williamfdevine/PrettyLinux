@@ -17,8 +17,8 @@
 #include <linux/compiler.h>
 
 #ifndef __ASSEMBLY__
-/* Benefit from consistent use of "long" on all chips. */
-typedef unsigned long pt_reg_t;
+	/* Benefit from consistent use of "long" on all chips. */
+	typedef unsigned long pt_reg_t;
 #endif
 
 #include <uapi/asm/ptrace.h>
@@ -55,14 +55,17 @@ extern void do_syscall_trace_exit(struct pt_regs *regs);
  *
  * Also update defines in assembler section if it changes
  */
-struct single_step_state {
+struct single_step_state
+{
 	/* the page to which we will write hacked-up bundles */
 	void __user *buffer;
 
-	union {
+	union
+	{
 		int flags;
-		struct {
-			unsigned long is_enabled:1, update:1, update_reg:6;
+		struct
+		{
+			unsigned long is_enabled: 1, update: 1, update_reg: 6;
 		};
 	};
 
@@ -83,8 +86,8 @@ struct task_struct;
 extern void send_sigtrap(struct task_struct *tsk, struct pt_regs *regs);
 
 #ifdef __tilegx__
-/* We need this since sigval_t has a user pointer in it, for GETSIGINFO etc. */
-#define __ARCH_WANT_COMPAT_SYS_PTRACE
+	/* We need this since sigval_t has a user pointer in it, for GETSIGINFO etc. */
+	#define __ARCH_WANT_COMPAT_SYS_PTRACE
 #endif
 
 #endif /* !__ASSEMBLY__ */

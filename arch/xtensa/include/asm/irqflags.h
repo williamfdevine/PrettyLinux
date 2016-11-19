@@ -30,21 +30,21 @@ static inline unsigned long arch_local_irq_save(void)
 	unsigned long tmp;
 
 	asm volatile("rsr	%0, ps\t\n"
-		     "extui	%1, %0, 0, 4\t\n"
-		     "bgei	%1, "__stringify(LOCKLEVEL)", 1f\t\n"
-		     "rsil	%0, "__stringify(LOCKLEVEL)"\n"
-		     "1:"
-		     : "=a" (flags), "=a" (tmp) :: "memory");
+				 "extui	%1, %0, 0, 4\t\n"
+				 "bgei	%1, "__stringify(LOCKLEVEL)", 1f\t\n"
+				 "rsil	%0, "__stringify(LOCKLEVEL)"\n"
+				 "1:"
+				 : "=a" (flags), "=a" (tmp) :: "memory");
 #else
 	asm volatile("rsr	%0, ps\t\n"
-		     "or	%0, %0, %1\t\n"
-		     "xsr	%0, ps\t\n"
-		     "rsync"
-		     : "=&a" (flags) : "a" (LOCKLEVEL) : "memory");
+				 "or	%0, %0, %1\t\n"
+				 "xsr	%0, ps\t\n"
+				 "rsync"
+				 : "=&a" (flags) : "a" (LOCKLEVEL) : "memory");
 #endif
 #else
 	asm volatile("rsil	%0, "__stringify(LOCKLEVEL)
-		     : "=a" (flags) :: "memory");
+				 : "=a" (flags) :: "memory");
 #endif
 	return flags;
 }
@@ -63,7 +63,7 @@ static inline void arch_local_irq_enable(void)
 static inline void arch_local_irq_restore(unsigned long flags)
 {
 	asm volatile("wsr %0, ps; rsync"
-		     :: "a" (flags) : "memory");
+				 :: "a" (flags) : "memory");
 }
 
 static inline bool arch_irqs_disabled_flags(unsigned long flags)

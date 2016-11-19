@@ -15,7 +15,8 @@
 /*
  * All timing parameters are in nanoseconds.
  */
-struct smc_timing {
+struct smc_timing
+{
 	/* Delay from address valid to assertion of given strobe */
 	int ncs_read_setup;
 	int nrd_setup;
@@ -42,7 +43,8 @@ struct smc_timing {
 /*
  * All timing parameters are in clock cycles.
  */
-struct smc_config {
+struct smc_config
+{
 
 	/* Delay from address valid to assertion of given strobe */
 	u8		ncs_read_setup;
@@ -67,13 +69,13 @@ struct smc_config {
 	 * 0: Data is sampled on rising edge of NCS
 	 * 1: Data is sampled on rising edge of NRD
 	 */
-	unsigned int	nrd_controlled:1;
+	unsigned int	nrd_controlled: 1;
 
 	/*
 	 * 0: Data is driven on falling edge of NCS
 	 * 1: Data is driven on falling edge of NWR
 	 */
-	unsigned int	nwe_controlled:1;
+	unsigned int	nwe_controlled: 1;
 
 	/*
 	 * 0: NWAIT is disabled
@@ -81,13 +83,13 @@ struct smc_config {
 	 * 2: NWAIT is frozen mode
 	 * 3: NWAIT in ready mode
 	 */
-	unsigned int	nwait_mode:2;
+	unsigned int	nwait_mode: 2;
 
 	/*
 	 * 0: Byte select access type
 	 * 1: Byte write access type
 	 */
-	unsigned int	byte_write:1;
+	unsigned int	byte_write: 1;
 
 	/*
 	 * Number of clock cycles before data is released after
@@ -95,17 +97,17 @@ struct smc_config {
 	 *
 	 * Total cycles from SMC is tdf_cycles + 1
 	 */
-	unsigned int	tdf_cycles:4;
+	unsigned int	tdf_cycles: 4;
 
 	/*
 	 * 0: TDF optimization disabled
 	 * 1: TDF optimization enabled
 	 */
-	unsigned int	tdf_mode:1;
+	unsigned int	tdf_mode: 1;
 };
 
 extern void smc_set_timing(struct smc_config *config,
-			   const struct smc_timing *timing);
+						   const struct smc_timing *timing);
 
 extern int smc_set_configuration(int cs, const struct smc_config *config);
 extern struct smc_config *smc_get_configuration(int cs);

@@ -27,17 +27,23 @@ static irqreturn_t psw_irq_handler(int irq, void *arg)
 	l = __raw_readw(PA_DBSW);
 
 	/* Nothing to do if there's no state change */
-	if (psw->state) {
+	if (psw->state)
+	{
 		ret = 1;
 		goto out;
 	}
 
 	mask = l & 0x70;
+
 	/* Figure out who raised it */
-	if (mask & (1 << psw_info->bit)) {
+	if (mask & (1 << psw_info->bit))
+	{
 		psw->state = !!(mask & (1 << psw_info->bit));
+
 		if (psw->state)	/* debounce */
+		{
 			mod_timer(&psw->debounce, jiffies + 50);
+		}
 
 		ret = 1;
 	}
@@ -50,22 +56,25 @@ out:
 	return IRQ_RETVAL(ret);
 }
 
-static struct resource psw_resources[] = {
+static struct resource psw_resources[] =
+{
 	[0] = {
 		.start	= IRQ_PSW,
 		.flags	= IORESOURCE_IRQ,
 	},
 };
 
-static struct push_switch_platform_info s2_platform_data = {
+static struct push_switch_platform_info s2_platform_data =
+{
 	.name		= "s2",
 	.bit		= 6,
 	.irq_flags	= IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
-			  IRQF_SHARED,
+	IRQF_SHARED,
 	.irq_handler	= psw_irq_handler,
 };
 
-static struct platform_device s2_switch_device = {
+static struct platform_device s2_switch_device =
+{
 	.name		= "push-switch",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(psw_resources),
@@ -75,15 +84,17 @@ static struct platform_device s2_switch_device = {
 	},
 };
 
-static struct push_switch_platform_info s3_platform_data = {
+static struct push_switch_platform_info s3_platform_data =
+{
 	.name		= "s3",
 	.bit		= 5,
 	.irq_flags	= IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
-			  IRQF_SHARED,
+	IRQF_SHARED,
 	.irq_handler	= psw_irq_handler,
 };
 
-static struct platform_device s3_switch_device = {
+static struct platform_device s3_switch_device =
+{
 	.name		= "push-switch",
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(psw_resources),
@@ -93,15 +104,17 @@ static struct platform_device s3_switch_device = {
 	},
 };
 
-static struct push_switch_platform_info s4_platform_data = {
+static struct push_switch_platform_info s4_platform_data =
+{
 	.name		= "s4",
 	.bit		= 4,
 	.irq_flags	= IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
-			  IRQF_SHARED,
+	IRQF_SHARED,
 	.irq_handler	= psw_irq_handler,
 };
 
-static struct platform_device s4_switch_device = {
+static struct platform_device s4_switch_device =
+{
 	.name		= "push-switch",
 	.id		= 2,
 	.num_resources	= ARRAY_SIZE(psw_resources),
@@ -111,7 +124,8 @@ static struct platform_device s4_switch_device = {
 	},
 };
 
-static struct platform_device *psw_devices[] = {
+static struct platform_device *psw_devices[] =
+{
 	&s2_switch_device, &s3_switch_device, &s4_switch_device,
 };
 

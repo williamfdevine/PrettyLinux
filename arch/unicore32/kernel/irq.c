@@ -46,24 +46,41 @@ static int puv3_gpio_type(struct irq_data *d, unsigned int type)
 	unsigned int mask;
 
 	if (d->irq < IRQ_GPIOHIGH)
+	{
 		mask = 1 << d->irq;
+	}
 	else
+	{
 		mask = GPIO_MASK(d->irq);
+	}
 
-	if (type == IRQ_TYPE_PROBE) {
+	if (type == IRQ_TYPE_PROBE)
+	{
 		if ((GPIO_IRQ_rising_edge | GPIO_IRQ_falling_edge) & mask)
+		{
 			return 0;
+		}
+
 		type = IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING;
 	}
 
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		GPIO_IRQ_rising_edge |= mask;
+	}
 	else
+	{
 		GPIO_IRQ_rising_edge &= ~mask;
+	}
+
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		GPIO_IRQ_falling_edge |= mask;
+	}
 	else
+	{
 		GPIO_IRQ_falling_edge &= ~mask;
+	}
 
 	writel(GPIO_IRQ_rising_edge & GPIO_IRQ_mask, GPIO_GRER);
 	writel(GPIO_IRQ_falling_edge & GPIO_IRQ_mask, GPIO_GFER);
@@ -92,13 +109,19 @@ static void puv3_low_gpio_unmask(struct irq_data *d)
 static int puv3_low_gpio_wake(struct irq_data *d, unsigned int on)
 {
 	if (on)
+	{
 		writel(readl(PM_PWER) | (1 << d->irq), PM_PWER);
+	}
 	else
+	{
 		writel(readl(PM_PWER) & ~(1 << d->irq), PM_PWER);
+	}
+
 	return 0;
 }
 
-static struct irq_chip puv3_low_gpio_chip = {
+static struct irq_chip puv3_low_gpio_chip =
+{
 	.name		= "GPIO-low",
 	.irq_ack	= puv3_low_gpio_ack,
 	.irq_mask	= puv3_low_gpio_mask,
@@ -117,7 +140,9 @@ static void puv3_gpio_handler(struct irq_desc *desc)
 	unsigned int mask, irq;
 
 	mask = readl(GPIO_GEDR);
-	do {
+
+	do
+	{
 		/*
 		 * clear down all currently active IRQ sources.
 		 * We will be processing them all.
@@ -125,14 +150,22 @@ static void puv3_gpio_handler(struct irq_desc *desc)
 		writel(mask, GPIO_GEDR);
 
 		irq = IRQ_GPIO0;
-		do {
+
+		do
+		{
 			if (mask & 1)
+			{
 				generic_handle_irq(irq);
+			}
+
 			mask >>= 1;
 			irq++;
-		} while (mask);
+		}
+		while (mask);
+
 		mask = readl(GPIO_GEDR);
-	} while (mask);
+	}
+	while (mask);
 }
 
 /*
@@ -170,13 +203,19 @@ static void puv3_high_gpio_unmask(struct irq_data *d)
 static int puv3_high_gpio_wake(struct irq_data *d, unsigned int on)
 {
 	if (on)
+	{
 		writel(readl(PM_PWER) | PM_PWER_GPIOHIGH, PM_PWER);
+	}
 	else
+	{
 		writel(readl(PM_PWER) & ~PM_PWER_GPIOHIGH, PM_PWER);
+	}
+
 	return 0;
 }
 
-static struct irq_chip puv3_high_gpio_chip = {
+static struct irq_chip puv3_high_gpio_chip =
+{
 	.name		= "GPIO-high",
 	.irq_ack	= puv3_high_gpio_ack,
 	.irq_mask	= puv3_high_gpio_mask,
@@ -204,17 +243,25 @@ static void puv3_unmask_irq(struct irq_data *d)
  */
 static int puv3_set_wake(struct irq_data *d, unsigned int on)
 {
-	if (d->irq == IRQ_RTCAlarm) {
+	if (d->irq == IRQ_RTCAlarm)
+	{
 		if (on)
+		{
 			writel(readl(PM_PWER) | PM_PWER_RTC, PM_PWER);
+		}
 		else
+		{
 			writel(readl(PM_PWER) & ~PM_PWER_RTC, PM_PWER);
+		}
+
 		return 0;
 	}
+
 	return -EINVAL;
 }
 
-static struct irq_chip puv3_normal_chip = {
+static struct irq_chip puv3_normal_chip =
+{
 	.name		= "PKUnity-v3",
 	.irq_ack	= puv3_mask_irq,
 	.irq_mask	= puv3_mask_irq,
@@ -222,13 +269,15 @@ static struct irq_chip puv3_normal_chip = {
 	.irq_set_wake	= puv3_set_wake,
 };
 
-static struct resource irq_resource = {
+static struct resource irq_resource =
+{
 	.name	= "irqs",
 	.start	= io_v2p(PKUNITY_INTC_BASE),
 	.end	= io_v2p(PKUNITY_INTC_BASE) + 0xFFFFF,
 };
 
-static struct puv3_irq_state {
+static struct puv3_irq_state
+{
 	unsigned int	saved;
 	unsigned int	icmr;
 	unsigned int	iclr;
@@ -267,7 +316,8 @@ static void puv3_irq_resume(void)
 {
 	struct puv3_irq_state *st = &puv3_irq_state;
 
-	if (st->saved) {
+	if (st->saved)
+	{
 		writel(st->iccr, INTC_ICCR);
 		writel(st->iclr, INTC_ICLR);
 
@@ -278,7 +328,8 @@ static void puv3_irq_resume(void)
 	}
 }
 
-static struct syscore_ops puv3_irq_syscore_ops = {
+static struct syscore_ops puv3_irq_syscore_ops =
+{
 	.suspend	= puv3_irq_suspend,
 	.resume		= puv3_irq_resume,
 };
@@ -311,28 +362,31 @@ void __init init_IRQ(void)
 
 	writel(1, INTC_ICCR);
 
-	for (irq = 0; irq < IRQ_GPIOHIGH; irq++) {
+	for (irq = 0; irq < IRQ_GPIOHIGH; irq++)
+	{
 		irq_set_chip(irq, &puv3_low_gpio_chip);
 		irq_set_handler(irq, handle_edge_irq);
 		irq_modify_status(irq,
-			IRQ_NOREQUEST | IRQ_NOPROBE | IRQ_NOAUTOEN,
-			0);
+						  IRQ_NOREQUEST | IRQ_NOPROBE | IRQ_NOAUTOEN,
+						  0);
 	}
 
-	for (irq = IRQ_GPIOHIGH + 1; irq < IRQ_GPIO0; irq++) {
+	for (irq = IRQ_GPIOHIGH + 1; irq < IRQ_GPIO0; irq++)
+	{
 		irq_set_chip(irq, &puv3_normal_chip);
 		irq_set_handler(irq, handle_level_irq);
 		irq_modify_status(irq,
-			IRQ_NOREQUEST | IRQ_NOAUTOEN,
-			IRQ_NOPROBE);
+						  IRQ_NOREQUEST | IRQ_NOAUTOEN,
+						  IRQ_NOPROBE);
 	}
 
-	for (irq = IRQ_GPIO0; irq <= IRQ_GPIO27; irq++) {
+	for (irq = IRQ_GPIO0; irq <= IRQ_GPIO27; irq++)
+	{
 		irq_set_chip(irq, &puv3_high_gpio_chip);
 		irq_set_handler(irq, handle_edge_irq);
 		irq_modify_status(irq,
-			IRQ_NOREQUEST | IRQ_NOPROBE | IRQ_NOAUTOEN,
-			0);
+						  IRQ_NOREQUEST | IRQ_NOPROBE | IRQ_NOAUTOEN,
+						  0);
 	}
 
 	/*
@@ -361,11 +415,17 @@ asmlinkage void asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 	 * Some hardware gives randomly wrong interrupts.  Rather
 	 * than crashing, do something sensible.
 	 */
-	if (unlikely(irq >= nr_irqs)) {
+	if (unlikely(irq >= nr_irqs))
+	{
 		if (printk_ratelimit())
+		{
 			printk(KERN_WARNING "Bad IRQ%u\n", irq);
+		}
+
 		ack_bad_irq(irq);
-	} else {
+	}
+	else
+	{
 		generic_handle_irq(irq);
 	}
 

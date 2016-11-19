@@ -39,7 +39,8 @@
 #include <msp_int.h>
 #include <msp_regs.h>
 
-struct msp_uart_data {
+struct msp_uart_data
+{
 	int	last_lcr;
 };
 
@@ -48,7 +49,9 @@ static void msp_serial_out(struct uart_port *p, int offset, int value)
 	struct msp_uart_data *d = p->private_data;
 
 	if (offset == UART_LCR)
+	{
 		d->last_lcr = value;
+	}
 
 	offset <<= p->regshift;
 	writeb(value, p->membase + offset);
@@ -66,9 +69,12 @@ static int msp_serial_handle_irq(struct uart_port *p)
 	struct msp_uart_data *d = p->private_data;
 	unsigned int iir = readb(p->membase + (UART_IIR << p->regshift));
 
-	if (serial8250_handle_irq(p, iir)) {
+	if (serial8250_handle_irq(p, iir))
+	{
 		return 1;
-	} else if ((iir & UART_IIR_BUSY) == UART_IIR_BUSY) {
+	}
+	else if ((iir & UART_IIR_BUSY) == UART_IIR_BUSY)
+	{
 		/*
 		 * The DesignWare APB UART has an Busy Detect (0x07) interrupt
 		 * meaning an LCR write attempt occurred while the UART was
@@ -99,8 +105,12 @@ void __init msp_serial_setup(void)
 
 	/* Check if clock was specified in environment */
 	s = prom_getenv("uartfreqhz");
-	if(!(s && *s && (uartclk = simple_strtoul(s, &endp, 10)) && *endp == 0))
+
+	if (!(s && *s && (uartclk = simple_strtoul(s, &endp, 10)) && *endp == 0))
+	{
 		uartclk = MSP_BASE_BAUD;
+	}
+
 	ppfinit("UART clock set to %d\n", uartclk);
 
 	/* Initialize first serial port */
@@ -117,17 +127,22 @@ void __init msp_serial_setup(void)
 	up.serial_in	= msp_serial_in;
 	up.handle_irq	= msp_serial_handle_irq;
 	up.private_data = kzalloc(sizeof(struct msp_uart_data), GFP_KERNEL);
-	if (!up.private_data) {
+
+	if (!up.private_data)
+	{
 		pr_err("failed to allocate uart private data\n");
 		return;
 	}
-	if (early_serial_setup(&up)) {
+
+	if (early_serial_setup(&up))
+	{
 		kfree(up.private_data);
 		pr_err("Early serial init of port 0 failed\n");
 	}
 
 	/* Initialize the second serial port, if one exists */
-	switch (mips_machtype) {
+	switch (mips_machtype)
+	{
 		case MACH_MSP4200_EVAL:
 		case MACH_MSP4200_GW:
 		case MACH_MSP4200_FPGA:
@@ -146,8 +161,10 @@ void __init msp_serial_setup(void)
 	up.membase	= ioremap_nocache(up.mapbase, MSP_UART_REG_LEN);
 	up.irq		= MSP_INT_UART1;
 	up.line		= 1;
-	up.private_data		= (void*)UART1_STATUS_REG;
-	if (early_serial_setup(&up)) {
+	up.private_data		= (void *)UART1_STATUS_REG;
+
+	if (early_serial_setup(&up))
+	{
 		kfree(up.private_data);
 		pr_err("Early serial init of port 1 failed\n");
 	}

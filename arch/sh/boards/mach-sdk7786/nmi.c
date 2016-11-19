@@ -12,7 +12,8 @@
 #include <linux/string.h>
 #include <mach/fpga.h>
 
-enum {
+enum
+{
 	NMI_MODE_MANUAL,
 	NMI_MODE_AUX,
 	NMI_MODE_MASKED,
@@ -28,17 +29,28 @@ static unsigned int __initdata nmi_mode = NMI_MODE_ANY;
 static int __init nmi_mode_setup(char *str)
 {
 	if (!str)
+	{
 		return 0;
+	}
 
 	if (strcmp(str, "manual") == 0)
+	{
 		nmi_mode = NMI_MODE_MANUAL;
+	}
 	else if (strcmp(str, "aux") == 0)
+	{
 		nmi_mode = NMI_MODE_AUX;
+	}
 	else if (strcmp(str, "masked") == 0)
+	{
 		nmi_mode = NMI_MODE_MASKED;
+	}
 	else if (strcmp(str, "any") == 0)
+	{
 		nmi_mode = NMI_MODE_ANY;
-	else {
+	}
+	else
+	{
 		nmi_mode = NMI_MODE_UNKNOWN;
 		pr_warning("Unknown NMI mode %s\n", str);
 	}
@@ -52,24 +64,28 @@ void __init sdk7786_nmi_init(void)
 {
 	unsigned int source, mask, tmp;
 
-	switch (nmi_mode) {
-	case NMI_MODE_MANUAL:
-		source = NMISR_MAN_NMI;
-		mask = NMIMR_MAN_NMIM;
-		break;
-	case NMI_MODE_AUX:
-		source = NMISR_AUX_NMI;
-		mask = NMIMR_AUX_NMIM;
-		break;
-	case NMI_MODE_ANY:
-		source = NMISR_MAN_NMI | NMISR_AUX_NMI;
-		mask = NMIMR_MAN_NMIM | NMIMR_AUX_NMIM;
-		break;
-	case NMI_MODE_MASKED:
-	case NMI_MODE_UNKNOWN:
-	default:
-		source = mask = 0;
-		break;
+	switch (nmi_mode)
+	{
+		case NMI_MODE_MANUAL:
+			source = NMISR_MAN_NMI;
+			mask = NMIMR_MAN_NMIM;
+			break;
+
+		case NMI_MODE_AUX:
+			source = NMISR_AUX_NMI;
+			mask = NMIMR_AUX_NMIM;
+			break;
+
+		case NMI_MODE_ANY:
+			source = NMISR_MAN_NMI | NMISR_AUX_NMI;
+			mask = NMIMR_MAN_NMIM | NMIMR_AUX_NMIM;
+			break;
+
+		case NMI_MODE_MASKED:
+		case NMI_MODE_UNKNOWN:
+		default:
+			source = mask = 0;
+			break;
 	}
 
 	/* Set the NMI source */

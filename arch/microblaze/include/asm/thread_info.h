@@ -28,7 +28,8 @@
  *	 must also be changed
  */
 
-struct cpu_context {
+struct cpu_context
+{
 	__u32	r1; /* stack pointer */
 	__u32	r2;
 	/* dedicated registers */
@@ -59,11 +60,13 @@ struct cpu_context {
 	__u32	fsr;
 };
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task; /* main task structure */
 	unsigned long		flags; /* low level flags */
 	unsigned long		status; /* thread-synchronous flags */
@@ -78,13 +81,13 @@ struct thread_info {
  * macros/functions for gaining access to the thread information structure
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task		= &tsk,			\
-	.flags		= 0,			\
-	.cpu		= 0,			\
-	.preempt_count	= INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task		= &tsk,			\
+					  .flags		= 0,			\
+									.cpu		= 0,			\
+											.preempt_count	= INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -94,7 +97,7 @@ static inline struct thread_info *current_thread_info(void)
 {
 	register unsigned long sp asm("r1");
 
-	return (struct thread_info *)(sp & ~(THREAD_SIZE-1));
+	return (struct thread_info *)(sp & ~(THREAD_SIZE - 1));
 }
 
 /* thread information allocation */
@@ -131,7 +134,7 @@ static inline struct thread_info *current_thread_info(void)
 
 /* work to do in syscall trace */
 #define _TIF_WORK_SYSCALL_MASK  (_TIF_SYSCALL_TRACE | _TIF_SINGLESTEP | \
-				 _TIF_SYSCALL_AUDIT | _TIF_SECCOMP)
+								 _TIF_SYSCALL_AUDIT | _TIF_SECCOMP)
 
 /* work to do on interrupt/exception return */
 #define _TIF_WORK_MASK		0x0000FFFE

@@ -48,7 +48,9 @@ static void __init mvme7100_setup_arch(void)
 	u8 reg;
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mvme7100_setup_arch()", 0);
+	}
 
 #ifdef CONFIG_SMP
 	mpc86xx_smp_init();
@@ -58,20 +60,26 @@ static void __init mvme7100_setup_arch(void)
 
 	/* Remap BCSR registers */
 	bcsr_node = of_find_compatible_node(NULL, NULL,
-			"artesyn,mvme7100-bcsr");
-	if (bcsr_node) {
+										"artesyn,mvme7100-bcsr");
+
+	if (bcsr_node)
+	{
 		mvme7100_regs = of_iomap(bcsr_node, 0);
 		of_node_put(bcsr_node);
 	}
 
-	if (mvme7100_regs) {
+	if (mvme7100_regs)
+	{
 		/* Disable ds1375, max6649, and abort interrupts */
 		reg = readb(mvme7100_regs + MVME7100_INTERRUPT_REG_2_OFFSET);
 		reg |= MVME7100_DS1375_MASK | MVME7100_MAX6649_MASK
-			| MVME7100_ABORT_MASK;
+			   | MVME7100_ABORT_MASK;
 		writeb(reg, mvme7100_regs + MVME7100_INTERRUPT_REG_2_OFFSET);
-	} else
+	}
+	else
+	{
 		pr_warn("Unable to map board registers\n");
+	}
 
 	pr_info("MVME7100 board from Artesyn\n");
 }
@@ -91,7 +99,9 @@ static void mvme7100_usb_host_fixup(struct pci_dev *pdev)
 	unsigned int val;
 
 	if (!machine_is(mvme7100))
+	{
 		return;
+	}
 
 	/* Ensure only ports 1 & 2 are enabled */
 	pci_read_config_dword(pdev, 0xe0, &val);
@@ -101,20 +111,21 @@ static void mvme7100_usb_host_fixup(struct pci_dev *pdev)
 	pci_write_config_dword(pdev, 0xe4, 1 << 5);
 }
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_USB,
-	mvme7100_usb_host_fixup);
+						 mvme7100_usb_host_fixup);
 
 machine_arch_initcall(mvme7100, mpc86xx_common_publish_devices);
 
-define_machine(mvme7100) {
+define_machine(mvme7100)
+{
 	.name			= "MVME7100",
-	.probe			= mvme7100_probe,
-	.setup_arch		= mvme7100_setup_arch,
-	.init_IRQ		= mpc86xx_init_irq,
-	.get_irq		= mpic_get_irq,
-	.time_init		= mpc86xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mvme7100_probe,
+					 .setup_arch		= mvme7100_setup_arch,
+						 .init_IRQ		= mpc86xx_init_irq,
+							   .get_irq		= mpic_get_irq,
+									  .time_init		= mpc86xx_time_init,
+										   .calibrate_decr		= generic_calibrate_decr,
+											   .progress		= udbg_progress,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+													 .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
 #endif
 };

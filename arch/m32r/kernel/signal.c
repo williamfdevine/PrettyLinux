@@ -38,12 +38,12 @@ struct rt_sigframe
 	void __user *puc;
 	struct siginfo info;
 	struct ucontext uc;
-//	struct _fpstate fpstate;
+	//	struct _fpstate fpstate;
 };
 
 static int
 restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc,
-		   int *r0_p)
+				   int *r0_p)
 {
 	unsigned int err = 0;
 
@@ -87,25 +87,34 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc,
 
 asmlinkage int
 sys_rt_sigreturn(unsigned long r0, unsigned long r1,
-		 unsigned long r2, unsigned long r3, unsigned long r4,
-		 unsigned long r5, unsigned long r6, struct pt_regs *regs)
+				 unsigned long r2, unsigned long r3, unsigned long r4,
+				 unsigned long r5, unsigned long r6, struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame = (struct rt_sigframe __user *)regs->spu;
 	sigset_t set;
 	int result;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
+
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext, &result))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return result;
 
@@ -120,7 +129,7 @@ badframe:
 
 static int
 setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
-	         unsigned long mask)
+				 unsigned long mask)
 {
 	int err = 0;
 
@@ -168,7 +177,7 @@ get_sigframe(struct ksignal *ksig, unsigned long sp, size_t frame_size)
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe __user *frame;
 	int err = 0;
@@ -177,17 +186,25 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(ksig, regs->spu, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	err |= __put_user(sig, &frame->sig);
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	err |= __put_user(&frame->info, &frame->pinfo);
 	err |= __put_user(&frame->uc, &frame->puc);
 	err |= copy_siginfo_to_user(&frame->info, &ksig->info);
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Create the ucontext.  */
 	err |= __put_user(0, &frame->uc.uc_flags);
@@ -195,8 +212,11 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __save_altstack(&frame->uc.uc_stack, regs->spu);
 	err |= setup_sigcontext(&frame->uc.uc_mcontext, regs, set->sig[0]);
 	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up to return from userspace.  */
 	regs->lr = (unsigned long)ksig->ka.sa.sa_restorer;
@@ -210,7 +230,7 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 
 #if DEBUG_SIG
 	printk("SIG deliver (%s:%d): sp=%p pc=%p\n",
-		current->comm, current->pid, frame, regs->pc);
+		   current->comm, current->pid, frame, regs->pc);
 #endif
 
 	return 0;
@@ -219,12 +239,21 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 static int prev_insn(struct pt_regs *regs)
 {
 	u16 inst;
+
 	if (get_user(inst, (u16 __user *)(regs->bpc - 2)))
+	{
 		return -EFAULT;
+	}
+
 	if ((inst & 0xfff0) == 0x10f0)	/* trap ? */
+	{
 		regs->bpc -= 2;
+	}
 	else
+	{
 		regs->bpc -= 4;
+	}
+
 	regs->syscall_nr = -1;
 	return 0;
 }
@@ -239,24 +268,31 @@ handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	int ret;
 
 	/* Are we from a system call? */
-	if (regs->syscall_nr >= 0) {
+	if (regs->syscall_nr >= 0)
+	{
 		/* If so, check system call restarting.. */
-		switch (regs->r0) {
-		        case -ERESTART_RESTARTBLOCK:
+		switch (regs->r0)
+		{
+			case -ERESTART_RESTARTBLOCK:
 			case -ERESTARTNOHAND:
 				regs->r0 = -EINTR;
 				break;
 
 			case -ERESTARTSYS:
-				if (!(ksig->ka.sa.sa_flags & SA_RESTART)) {
+				if (!(ksig->ka.sa.sa_flags & SA_RESTART))
+				{
 					regs->r0 = -EINTR;
 					break;
 				}
+
 			/* fallthrough */
 			case -ERESTARTNOINTR:
 				regs->r0 = regs->orig_r0;
+
 				if (prev_insn(regs) < 0)
+				{
 					return;
+				}
 		}
 	}
 
@@ -282,9 +318,12 @@ static void do_signal(struct pt_regs *regs)
 	 * if so.
 	 */
 	if (!user_mode(regs))
+	{
 		return;
+	}
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* Re-enable any watchpoints before delivering the
 		 * signal to user space. The processor register will
 		 * have been cleared if the watchpoint triggered
@@ -298,19 +337,24 @@ static void do_signal(struct pt_regs *regs)
 	}
 
 	/* Did we come from a system call? */
-	if (regs->syscall_nr >= 0) {
+	if (regs->syscall_nr >= 0)
+	{
 		/* Restart the system call - no handlers present */
 		if (regs->r0 == -ERESTARTNOHAND ||
-		    regs->r0 == -ERESTARTSYS ||
-		    regs->r0 == -ERESTARTNOINTR) {
+			regs->r0 == -ERESTARTSYS ||
+			regs->r0 == -ERESTARTNOINTR)
+		{
 			regs->r0 = regs->orig_r0;
 			prev_insn(regs);
-		} else if (regs->r0 == -ERESTART_RESTARTBLOCK){
+		}
+		else if (regs->r0 == -ERESTART_RESTARTBLOCK)
+		{
 			regs->r0 = regs->orig_r0;
 			regs->r7 = __NR_restart_syscall;
 			prev_insn(regs);
 		}
 	}
+
 	restore_saved_sigmask();
 }
 
@@ -322,13 +366,18 @@ void do_notify_resume(struct pt_regs *regs, __u32 thread_info_flags)
 {
 	/* Pending single-step? */
 	if (thread_info_flags & _TIF_SINGLESTEP)
+	{
 		clear_thread_flag(TIF_SINGLESTEP);
+	}
 
 	/* deal with pending signal delivery */
 	if (thread_info_flags & _TIF_SIGPENDING)
+	{
 		do_signal(regs);
+	}
 
-	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}

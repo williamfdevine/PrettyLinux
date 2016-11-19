@@ -34,9 +34,13 @@ static unsigned int nlm_xlr_uart_in(struct uart_port *p, int offset)
 
 	/* See XLR/XLS errata */
 	if (offset == UART_MSR)
+	{
 		value ^= 0xF0;
+	}
 	else if (offset == UART_MCR)
+	{
 		value ^= 0x3;
+	}
 
 	return value;
 }
@@ -50,9 +54,13 @@ static void nlm_xlr_uart_out(struct uart_port *p, int offset, int value)
 
 	/* See XLR/XLS errata */
 	if (offset == UART_MSR)
+	{
 		value ^= 0xF0;
+	}
 	else if (offset == UART_MCR)
+	{
 		value ^= 0x3;
+	}
 
 	nlm_write_reg(uartbase, offset, value);
 }
@@ -60,23 +68,25 @@ static void nlm_xlr_uart_out(struct uart_port *p, int offset, int value)
 #define PORT(_irq)					\
 	{						\
 		.irq		= _irq,			\
-		.regshift	= 2,			\
-		.iotype		= UPIO_MEM32,		\
-		.flags		= (UPF_SKIP_TEST |	\
-			 UPF_FIXED_TYPE | UPF_BOOT_AUTOCONF),\
-		.uartclk	= PIC_CLK_HZ,		\
-		.type		= PORT_16550A,		\
-		.serial_in	= nlm_xlr_uart_in,	\
-		.serial_out	= nlm_xlr_uart_out,	\
+					  .regshift	= 2,			\
+									.iotype		= UPIO_MEM32,		\
+											.flags		= (UPF_SKIP_TEST |	\
+													UPF_FIXED_TYPE | UPF_BOOT_AUTOCONF),\
+													.uartclk	= PIC_CLK_HZ,		\
+															.type		= PORT_16550A,		\
+																	.serial_in	= nlm_xlr_uart_in,	\
+																			.serial_out	= nlm_xlr_uart_out,	\
 	}
 
-static struct plat_serial8250_port xlr_uart_data[] = {
+static struct plat_serial8250_port xlr_uart_data[] =
+{
 	PORT(PIC_UART_0_IRQ),
 	PORT(PIC_UART_1_IRQ),
 	{},
 };
 
-static struct platform_device uart_device = {
+static struct platform_device uart_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev = {
@@ -107,38 +117,40 @@ static u64 xls_usb_dmamask = ~(u32)0;
 #define USB_PLATFORM_DEV(n, i, irq)					\
 	{								\
 		.name		= n,					\
-		.id		= i,					\
-		.num_resources	= 2,					\
-		.dev		= {					\
-			.dma_mask	= &xls_usb_dmamask,		\
-			.coherent_dma_mask = 0xffffffff,		\
-		},							\
+					  .id		= i,					\
+								.num_resources	= 2,					\
+										.dev		= {					\
+																		.dma_mask	= &xls_usb_dmamask,		\
+																		.coherent_dma_mask = 0xffffffff,		\
+												},							\
 		.resource	= (struct resource[]) {			\
 			{						\
 				.flags = IORESOURCE_MEM,		\
 			},						\
 			{						\
-				.start	= irq,				\
-				.end	= irq,				\
-				.flags = IORESOURCE_IRQ,		\
+									.start	= irq,				\
+									.end	= irq,				\
+									.flags = IORESOURCE_IRQ,		\
 			},						\
 		},							\
 	}
 
-static struct usb_ehci_pdata xls_usb_ehci_pdata = {
+static struct usb_ehci_pdata xls_usb_ehci_pdata =
+{
 	.caps_offset	= 0,
 };
 
 static struct usb_ohci_pdata xls_usb_ohci_pdata;
 
 static struct platform_device xls_usb_ehci_device =
-			 USB_PLATFORM_DEV("ehci-platform", 0, PIC_USB_IRQ);
+	USB_PLATFORM_DEV("ehci-platform", 0, PIC_USB_IRQ);
 static struct platform_device xls_usb_ohci_device_0 =
-			 USB_PLATFORM_DEV("ohci-platform", 1, PIC_USB_IRQ);
+	USB_PLATFORM_DEV("ohci-platform", 1, PIC_USB_IRQ);
 static struct platform_device xls_usb_ohci_device_1 =
-			 USB_PLATFORM_DEV("ohci-platform", 2, PIC_USB_IRQ);
+	USB_PLATFORM_DEV("ohci-platform", 2, PIC_USB_IRQ);
 
-static struct platform_device *xls_platform_devices[] = {
+static struct platform_device *xls_platform_devices[] =
+{
 	&xls_usb_ehci_device,
 	&xls_usb_ohci_device_0,
 	&xls_usb_ohci_device_1,
@@ -151,7 +163,9 @@ int xls_platform_usb_init(void)
 	uint32_t val;
 
 	if (!nlm_chip_is_xls())
+	{
 		return 0;
+	}
 
 	gpio_mmio = nlm_mmio_base(NETLOGIC_IO_GPIO_OFFSET);
 	usb_mmio  = nlm_mmio_base(NETLOGIC_IO_USB_1_OFFSET);
@@ -165,7 +179,9 @@ int xls_platform_usb_init(void)
 	nlm_write_reg(usb_mmio,	 1, 0x07000500);
 
 	val = nlm_read_reg(gpio_mmio, 21);
-	if (((val >> 22) & 0x01) == 0) {
+
+	if (((val >> 22) & 0x01) == 0)
+	{
 		pr_info("Detected USB Device mode - Not supported!\n");
 		nlm_write_reg(usb_mmio,	 0, 0x01000000);
 		return 0;
@@ -193,14 +209,15 @@ int xls_platform_usb_init(void)
 	xls_usb_ohci_device_1.dev.platform_data = &xls_usb_ohci_pdata;
 
 	return platform_add_devices(xls_platform_devices,
-				ARRAY_SIZE(xls_platform_devices));
+								ARRAY_SIZE(xls_platform_devices));
 }
 
 arch_initcall(xls_platform_usb_init);
 #endif
 
 #ifdef CONFIG_I2C
-static struct i2c_board_info nlm_i2c_board_info1[] __initdata = {
+static struct i2c_board_info nlm_i2c_board_info1[] __initdata =
+{
 	/* All XLR boards have this RTC and Max6657 Temp Chip */
 	[0] = {
 		.type	= "ds1374",
@@ -212,7 +229,8 @@ static struct i2c_board_info nlm_i2c_board_info1[] __initdata = {
 	},
 };
 
-static struct resource i2c_resources[] = {
+static struct resource i2c_resources[] =
+{
 	[0] = {
 		.start	= 0,	/* filled at init */
 		.end	= 0,
@@ -220,7 +238,8 @@ static struct resource i2c_resources[] = {
 	},
 };
 
-static struct platform_device nlm_xlr_i2c_1 = {
+static struct platform_device nlm_xlr_i2c_1 =
+{
 	.name		= "xlr-i2cbus",
 	.id		= 1,
 	.num_resources	= 1,
@@ -240,9 +259,13 @@ static int __init nlm_i2c_init(void)
 	platform_device_register(&nlm_xlr_i2c_1);
 
 	err = i2c_register_board_info(1, nlm_i2c_board_info1,
-				ARRAY_SIZE(nlm_i2c_board_info1));
+								  ARRAY_SIZE(nlm_i2c_board_info1));
+
 	if (err < 0)
+	{
 		pr_err("nlm-i2c: cannot register board I2C devices\n");
+	}
+
 	return err;
 }
 

@@ -34,13 +34,15 @@
  */
 
 /* mpc5200 device tree match tables */
-static const struct of_device_id mpc5200_cdm_ids[] __initconst = {
+static const struct of_device_id mpc5200_cdm_ids[] __initconst =
+{
 	{ .compatible = "fsl,mpc5200-cdm", },
 	{ .compatible = "mpc5200-cdm", },
 	{}
 };
 
-static const struct of_device_id mpc5200_gpio_ids[] __initconst = {
+static const struct of_device_id mpc5200_gpio_ids[] __initconst =
+{
 	{ .compatible = "fsl,mpc5200-gpio", },
 	{ .compatible = "mpc5200-gpio", },
 	{}
@@ -62,19 +64,26 @@ lite5200_fix_clock_config(void)
 	np = of_find_matching_node(NULL, mpc5200_cdm_ids);
 	cdm = of_iomap(np, 0);
 	of_node_put(np);
-	if (!cdm) {
+
+	if (!cdm)
+	{
 		printk(KERN_ERR "%s() failed; expect abnormal behaviour\n",
-		       __func__);
+			   __func__);
 		return;
 	}
 
 	/* Use internal 48 Mhz */
 	out_8(&cdm->ext_48mhz_en, 0x00);
 	out_8(&cdm->fd_enable, 0x01);
+
 	if (in_be32(&cdm->rstcfg) & 0x40)	/* Assumes 33Mhz clock */
+	{
 		out_be16(&cdm->fd_counters, 0x0001);
+	}
 	else
+	{
 		out_be16(&cdm->fd_counters, 0x5555);
+	}
 
 	/* Unmap the regs */
 	iounmap(cdm);
@@ -97,9 +106,11 @@ lite5200_fix_port_config(void)
 	np = of_find_matching_node(NULL, mpc5200_gpio_ids);
 	gpio = of_iomap(np, 0);
 	of_node_put(np);
-	if (!gpio) {
+
+	if (!gpio)
+	{
 		printk(KERN_ERR "%s() failed. expect abnormal behavior\n",
-		       __func__);
+			   __func__);
 		return;
 	}
 
@@ -115,7 +126,7 @@ lite5200_fix_port_config(void)
 	port_config |=  0x01000000;
 
 	pr_debug("port_config: old:%x new:%x\n",
-	         in_be32(&gpio->port_config), port_config);
+			 in_be32(&gpio->port_config), port_config);
 	out_be32(&gpio->port_config, port_config);
 
 	/* Unmap zone */
@@ -151,7 +162,9 @@ static void lite5200_resume_finish(void __iomem *mbar)
 static void __init lite5200_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("lite5200_setup_arch()", 0);
+	}
 
 	/* Map important registers from the internal memory map */
 	mpc52xx_map_common_devices();
@@ -172,7 +185,8 @@ static void __init lite5200_setup_arch(void)
 	mpc52xx_setup_pci();
 }
 
-static const char * const board[] __initconst = {
+static const char *const board[] __initconst =
+{
 	"fsl,lite5200",
 	"fsl,lite5200b",
 	NULL,
@@ -186,13 +200,14 @@ static int __init lite5200_probe(void)
 	return of_device_compatible_match(of_root, board);
 }
 
-define_machine(lite5200) {
+define_machine(lite5200)
+{
 	.name 		= "lite5200",
-	.probe 		= lite5200_probe,
-	.setup_arch 	= lite5200_setup_arch,
-	.init		= mpc52xx_declare_of_platform_devices,
-	.init_IRQ 	= mpc52xx_init_irq,
-	.get_irq 	= mpc52xx_get_irq,
-	.restart	= mpc52xx_restart,
-	.calibrate_decr	= generic_calibrate_decr,
+		 .probe 		= lite5200_probe,
+			 .setup_arch 	= lite5200_setup_arch,
+				 .init		= mpc52xx_declare_of_platform_devices,
+					   .init_IRQ 	= mpc52xx_init_irq,
+						 .get_irq 	= mpc52xx_get_irq,
+							.restart	= mpc52xx_restart,
+								.calibrate_decr	= generic_calibrate_decr,
 };

@@ -53,10 +53,12 @@ static void __init prom_init_cmdline(void)
 
 	arcs_cmdline[0] = '\0';
 
-	for (i = 0; i < argc; i++) {
+	for (i = 0; i < argc; i++)
+	{
 		char *p = (char *) KSEG1ADDR(argv[i]);
 
-		if (CPHYSADDR(p) && *p) {
+		if (CPHYSADDR(p) && *p)
+		{
 			strlcat(arcs_cmdline, p, sizeof(arcs_cmdline));
 			strlcat(arcs_cmdline, " ", sizeof(arcs_cmdline));
 		}
@@ -75,11 +77,17 @@ void __init plat_mem_setup(void)
 	set_io_port_base((unsigned long) KSEG1);
 
 	if (fw_passed_dtb) /* UHI interface */
+	{
 		dtb = (void *)fw_passed_dtb;
+	}
 	else if (__dtb_start != __dtb_end)
+	{
 		dtb = (void *)__dtb_start;
+	}
 	else
+	{
 		panic("no dtb found");
+	}
 
 	/*
 	 * Load the devicetree. This causes the chosen node to be
@@ -98,14 +106,18 @@ void __init prom_init(void)
 	/* call the soc specific detetcion code and get it to fill soc_info */
 	ltq_soc_detect(&soc_info);
 	snprintf(soc_info.sys_type, LTQ_SYS_TYPE_LEN - 1, "%s rev %s",
-		soc_info.name, soc_info.rev_type);
+			 soc_info.name, soc_info.rev_type);
 	soc_info.sys_type[LTQ_SYS_TYPE_LEN - 1] = '\0';
 	pr_info("SoC: %s\n", soc_info.sys_type);
 	prom_init_cmdline();
 
 #if defined(CONFIG_MIPS_MT_SMP)
+
 	if (register_vsmp_smp_ops())
+	{
 		panic("failed to register_vsmp_smp_ops()");
+	}
+
 #endif
 }
 

@@ -43,18 +43,19 @@
 #include <asm/netlogic/common.h>
 
 #define COP2_CC_INIT_CPU_DEST(dest, conf) \
-do { \
-	nlm_write_c2_cc##dest(0, conf[(dest * 8) + 0]); \
-	nlm_write_c2_cc##dest(1, conf[(dest * 8) + 1]); \
-	nlm_write_c2_cc##dest(2, conf[(dest * 8) + 2]); \
-	nlm_write_c2_cc##dest(3, conf[(dest * 8) + 3]); \
-	nlm_write_c2_cc##dest(4, conf[(dest * 8) + 4]); \
-	nlm_write_c2_cc##dest(5, conf[(dest * 8) + 5]); \
-	nlm_write_c2_cc##dest(6, conf[(dest * 8) + 6]); \
-	nlm_write_c2_cc##dest(7, conf[(dest * 8) + 7]); \
-} while (0)
+	do { \
+		nlm_write_c2_cc##dest(0, conf[(dest * 8) + 0]); \
+		nlm_write_c2_cc##dest(1, conf[(dest * 8) + 1]); \
+		nlm_write_c2_cc##dest(2, conf[(dest * 8) + 2]); \
+		nlm_write_c2_cc##dest(3, conf[(dest * 8) + 3]); \
+		nlm_write_c2_cc##dest(4, conf[(dest * 8) + 4]); \
+		nlm_write_c2_cc##dest(5, conf[(dest * 8) + 5]); \
+		nlm_write_c2_cc##dest(6, conf[(dest * 8) + 6]); \
+		nlm_write_c2_cc##dest(7, conf[(dest * 8) + 7]); \
+	} while (0)
 
-struct fmn_message_handler {
+struct fmn_message_handler
+{
 	void (*action)(int, int, int, int, struct nlm_fmn_msg *, void *);
 	void *arg;
 } msg_handlers[128];
@@ -77,40 +78,59 @@ static irqreturn_t fmn_message_handler(int irq, void *data)
 	mflags = nlm_cop2_enable_irqsave();
 	/* Disable message ring interrupt */
 	nlm_fmn_setup_intr(irq, 0);
-	while (1) {
+
+	while (1)
+	{
 		/* 8 bkts per core, [24:31] each bit represents one bucket
 		 * Bit is Zero if bucket is not empty */
 		bkt_status = (nlm_read_c2_status0() >> 24) & 0xff;
+
 		if (bkt_status == 0xff)
+		{
 			break;
-		for (bucket = 0; bucket < 8; bucket++) {
+		}
+
+		for (bucket = 0; bucket < 8; bucket++)
+		{
 			/* Continue on empty bucket */
 			if (bkt_status & (1 << bucket))
+			{
 				continue;
+			}
+
 			rv = nlm_fmn_receive(bucket, &size, &code, &src_stnid,
-						&msg);
+								 &msg);
+
 			if (rv != 0)
+			{
 				continue;
+			}
 
 			hndlr = &msg_handlers[src_stnid];
+
 			if (hndlr->action == NULL)
 				pr_warn("No msgring handler for stnid %d\n",
 						src_stnid);
-			else {
+			else
+			{
 				nlm_cop2_disable_irqrestore(mflags);
 				hndlr->action(bucket, src_stnid, size, code,
-					&msg, hndlr->arg);
+							  &msg, hndlr->arg);
 				mflags = nlm_cop2_enable_irqsave();
 			}
 		}
 	};
+
 	/* Enable message ring intr, to any thread in core */
 	nlm_fmn_setup_intr(irq, (1 << nlm_threads_per_core) - 1);
+
 	nlm_cop2_disable_irqrestore(mflags);
+
 	return IRQ_HANDLED;
 }
 
-struct irqaction fmn_irqaction = {
+struct irqaction fmn_irqaction =
+{
 	.handler = fmn_message_handler,
 	.flags = IRQF_PERCPU,
 	.name = "fmn",
@@ -176,18 +196,20 @@ void xlr_percpu_fmn_init(void)
  * @action: Handler function pointer
  */
 int nlm_register_fmn_handler(int start_stnid, int end_stnid,
-	void (*action)(int, int, int, int, struct nlm_fmn_msg *, void *),
-	void *arg)
+							 void (*action)(int, int, int, int, struct nlm_fmn_msg *, void *),
+							 void *arg)
 {
 	int sstnid;
 
-	for (sstnid = start_stnid; sstnid <= end_stnid; sstnid++) {
+	for (sstnid = start_stnid; sstnid <= end_stnid; sstnid++)
+	{
 		msg_handlers[sstnid].arg = arg;
 		smp_wmb();
 		msg_handlers[sstnid].action = action;
 	}
+
 	pr_debug("Registered FMN msg handler for stnid %d-%d\n",
-			start_stnid, end_stnid);
+			 start_stnid, end_stnid);
 	return 0;
 }
 

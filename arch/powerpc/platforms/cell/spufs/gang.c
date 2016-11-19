@@ -29,9 +29,12 @@ struct spu_gang *alloc_spu_gang(void)
 {
 	struct spu_gang *gang;
 
-	gang = kzalloc(sizeof *gang, GFP_KERNEL);
+	gang = kzalloc(sizeof * gang, GFP_KERNEL);
+
 	if (!gang)
+	{
 		goto out;
+	}
 
 	kref_init(&gang->kref);
 	mutex_init(&gang->mutex);
@@ -75,10 +78,13 @@ void spu_gang_remove_ctx(struct spu_gang *gang, struct spu_context *ctx)
 {
 	mutex_lock(&gang->mutex);
 	WARN_ON(ctx->gang != gang);
-	if (!list_empty(&ctx->aff_list)) {
+
+	if (!list_empty(&ctx->aff_list))
+	{
 		list_del_init(&ctx->aff_list);
 		gang->aff_flags &= ~AFF_OFFSETS_SET;
 	}
+
 	list_del_init(&ctx->gang_list);
 	gang->contexts--;
 	mutex_unlock(&gang->mutex);

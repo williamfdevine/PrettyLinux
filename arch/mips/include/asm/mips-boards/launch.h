@@ -4,13 +4,14 @@
 
 #ifndef _ASSEMBLER_
 
-struct cpulaunch {
-    unsigned long	pc;
-    unsigned long	gp;
-    unsigned long	sp;
-    unsigned long	a0;
-    unsigned long	_pad[3]; /* pad to cache line size to avoid thrashing */
-    unsigned long	flags;
+struct cpulaunch
+{
+	unsigned long	pc;
+	unsigned long	gp;
+	unsigned long	sp;
+	unsigned long	a0;
+	unsigned long	_pad[3]; /* pad to cache line size to avoid thrashing */
+	unsigned long	flags;
 };
 
 #else

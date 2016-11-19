@@ -65,7 +65,9 @@ static u32 ug_io_transaction(u32 in)
 	out_be32(cr_reg, cr);
 
 	while (in_be32(cr_reg) & EXI_CR_TSTART)
+	{
 		barrier();
+	}
 
 	/* deselect */
 	out_be32(csr_reg, 0);
@@ -82,7 +84,9 @@ static u32 ug_io_transaction(u32 in)
 static int ug_is_adapter_present(void)
 {
 	if (!ug_io_base)
+	{
 		return 0;
+	}
 
 	return ug_io_transaction(0x90000000) == 0x04700000;
 }
@@ -113,15 +117,24 @@ static void ug_putc(char ch)
 	int count = UG_WRITE_ATTEMPTS;
 
 	if (!ug_io_base)
+	{
 		return;
+	}
 
 	if (ch == '\n')
+	{
 		ug_putc('\r');
+	}
 
 	while (!ug_is_txfifo_ready() && count--)
+	{
 		barrier();
+	}
+
 	if (count >= 0)
+	{
 		ug_raw_putc(ch);
+	}
 }
 
 /*
@@ -139,10 +152,15 @@ static int ug_is_rxfifo_ready(void)
 static int ug_raw_getc(void)
 {
 	u32 data = ug_io_transaction(0xa0000000);
+
 	if (data & 0x08000000)
+	{
 		return (data >> 16) & 0xff;
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 /*
@@ -154,10 +172,15 @@ static int ug_getc(void)
 	int count = UG_READ_ATTEMPTS;
 
 	if (!ug_io_base)
+	{
 		return -1;
+	}
 
 	while (!ug_is_rxfifo_ready() && count--)
+	{
 		barrier();
+	}
+
 	return ug_raw_getc();
 }
 
@@ -182,7 +205,10 @@ static int ug_udbg_getc(void)
 	int ch;
 
 	while ((ch = ug_getc()) == -1)
+	{
 		barrier();
+	}
+
 	return ch;
 }
 
@@ -192,7 +218,10 @@ static int ug_udbg_getc(void)
 static int ug_udbg_getc_poll(void)
 {
 	if (!ug_is_rxfifo_ready())
+	{
 		return -1;
+	}
+
 	return ug_getc();
 }
 
@@ -206,11 +235,17 @@ static void __iomem *ug_udbg_setup_exi_io_base(struct device_node *np)
 	const unsigned int *reg;
 
 	reg = of_get_property(np, "reg", NULL);
-	if (reg) {
+
+	if (reg)
+	{
 		paddr = of_translate_address(np, reg);
+
 		if (paddr)
+		{
 			exi_io_base = ioremap(paddr, reg[1]);
+		}
 	}
+
 	return exi_io_base;
 }
 
@@ -222,13 +257,21 @@ static void __iomem *ug_udbg_probe(void __iomem *exi_io_base)
 	int i;
 
 	/* look for a usbgecko on memcard slots A and B */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		ug_io_base = exi_io_base + 0x14 * i;
+
 		if (ug_is_adapter_present())
+		{
 			break;
+		}
 	}
+
 	if (i == 2)
+	{
 		ug_io_base = NULL;
+	}
+
 	return ug_io_base;
 
 }
@@ -242,24 +285,33 @@ void __init ug_udbg_init(void)
 	void __iomem *exi_io_base;
 
 	if (ug_io_base)
+	{
 		udbg_printf("%s: early -> final\n", __func__);
+	}
 
 	np = of_find_compatible_node(NULL, NULL, "nintendo,flipper-exi");
-	if (!np) {
+
+	if (!np)
+	{
 		udbg_printf("%s: EXI node not found\n", __func__);
 		goto out;
 	}
 
 	exi_io_base = ug_udbg_setup_exi_io_base(np);
-	if (!exi_io_base) {
+
+	if (!exi_io_base)
+	{
 		udbg_printf("%s: failed to setup EXI io base\n", __func__);
 		goto done;
 	}
 
-	if (!ug_udbg_probe(exi_io_base)) {
+	if (!ug_udbg_probe(exi_io_base))
+	{
 		udbg_printf("usbgecko_udbg: not found\n");
 		iounmap(exi_io_base);
-	} else {
+	}
+	else
+	{
 		udbg_putc = ug_udbg_putc;
 		udbg_getc = ug_udbg_getc;
 		udbg_getc_poll = ug_udbg_getc_poll;
@@ -306,7 +358,9 @@ void __init udbg_init_usbgecko(void)
 
 	/* try to detect a USB Gecko */
 	if (!ug_udbg_probe(exi_io_base))
+	{
 		return;
+	}
 
 	/* we found a USB Gecko, load udbg hooks */
 	udbg_putc = ug_udbg_putc;
@@ -321,7 +375,7 @@ void __init udbg_init_usbgecko(void)
 	 * a reserved fixmap area.
 	 */
 	setbat(1, (unsigned long)early_debug_area,
-	       ug_early_grab_io_addr(), 128*1024, PAGE_KERNEL_NCG);
+		   ug_early_grab_io_addr(), 128 * 1024, PAGE_KERNEL_NCG);
 }
 
 #endif /* CONFIG_PPC_EARLY_DEBUG_USBGECKO */

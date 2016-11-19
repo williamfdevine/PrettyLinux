@@ -50,7 +50,7 @@
  * definitions and reuse them for stage2. Till then...
  */
 #if STAGE2_PGTABLE_LEVELS > CONFIG_PGTABLE_LEVELS
-#error "Unsupported combination of guest IPA and host VA_BITS."
+	#error "Unsupported combination of guest IPA and host VA_BITS."
 #endif
 
 /* S2_PGDIR_SHIFT is the size mapped by top-level stage2 entry */
@@ -124,9 +124,9 @@ static inline phys_addr_t stage2_pmd_addr_end(phys_addr_t addr, phys_addr_t end)
 #define stage2_pte_table_empty(ptep)			kvm_page_empty(ptep)
 
 #if STAGE2_PGTABLE_LEVELS == 2
-#include <asm/stage2_pgtable-nopmd.h>
+	#include <asm/stage2_pgtable-nopmd.h>
 #elif STAGE2_PGTABLE_LEVELS == 3
-#include <asm/stage2_pgtable-nopud.h>
+	#include <asm/stage2_pgtable-nopud.h>
 #endif
 
 

@@ -34,7 +34,8 @@ extern struct atmel_lcdfb_pdata mimc200_lcdc_data;
 #include <mach/portmux.h>
 
 /* Oscillator frequencies. These are board-specific */
-unsigned long at32_board_osc_rates[3] = {
+unsigned long at32_board_osc_rates[3] =
+{
 	[0] = 32768,	/* 32.768 kHz on RTC osc */
 	[1] = 10000000,	/* 10 MHz on osc0 */
 	[2] = 12000000,	/* 12 MHz on osc1 */
@@ -43,7 +44,8 @@ unsigned long at32_board_osc_rates[3] = {
 /* Initialized by bootloader-specific startup code. */
 struct tag *bootloader_tags __initdata;
 
-static struct fb_videomode __initdata pt0434827_modes[] = {
+static struct fb_videomode __initdata pt0434827_modes[] =
+{
 	{
 		.name		= "480x272 @ 72",
 		.refresh	= 72,
@@ -59,7 +61,8 @@ static struct fb_videomode __initdata pt0434827_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata mimc200_default_monspecs = {
+static struct fb_monspecs __initdata mimc200_default_monspecs =
+{
 	.manufacturer		= "PT",
 	.monitor		= "PT0434827-A401",
 	.modedb			= pt0434827_modes,
@@ -71,31 +74,35 @@ static struct fb_monspecs __initdata mimc200_default_monspecs = {
 	.dclkmax		= 25200000,
 };
 
-struct atmel_lcdfb_pdata __initdata mimc200_lcdc_data = {
+struct atmel_lcdfb_pdata __initdata mimc200_lcdc_data =
+{
 	.default_bpp		= 16,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_INVCLK
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_INVCLK
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_MEMOR_BIG),
 	.default_monspecs	= &mimc200_default_monspecs,
 	.guard_time		= 2,
 };
 
-struct eth_addr {
+struct eth_addr
+{
 	u8 addr[6];
 };
 static struct eth_addr __initdata hw_addr[2];
 static struct macb_platform_data __initdata eth_data[2];
 
-static struct spi_eeprom eeprom_25lc010 = {
-		.name = "25lc010",
-		.byte_len = 128,
-		.page_size = 16,
-		.flags = EE_ADDR1,
+static struct spi_eeprom eeprom_25lc010 =
+{
+	.name = "25lc010",
+	.byte_len = 128,
+	.page_size = 16,
+	.flags = EE_ADDR1,
 };
 
-static struct spi_board_info spi0_board_info[] __initdata = {
+static struct spi_board_info spi0_board_info[] __initdata =
+{
 	{
 		.modalias	= "rtc-ds1390",
 		.max_speed_hz	= 4000000,
@@ -110,7 +117,8 @@ static struct spi_board_info spi0_board_info[] __initdata = {
 	},
 };
 
-static struct mci_platform_data __initdata mci0_data = {
+static struct mci_platform_data __initdata mci0_data =
+{
 	.slot[0] = {
 		.bus_width	= 4,
 		.detect_pin	= GPIO_PIN_PA(26),
@@ -131,9 +139,10 @@ static int __init parse_tag_ethernet(struct tag *tag)
 	int i;
 
 	i = tag->u.ethernet.mac_index;
+
 	if (i < ARRAY_SIZE(hw_addr))
 		memcpy(hw_addr[i].addr, tag->u.ethernet.hw_address,
-		       sizeof(hw_addr[i].addr));
+			   sizeof(hw_addr[i].addr));
 
 	return 0;
 }
@@ -147,13 +156,21 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	struct clk *pclk;
 
 	if (!res)
+	{
 		return;
+	}
+
 	if (pdev->id >= ARRAY_SIZE(hw_addr))
+	{
 		return;
+	}
 
 	addr = hw_addr[pdev->id].addr;
+
 	if (!is_valid_ether_addr(addr))
+	{
 		return;
+	}
 
 	/*
 	 * Since this is board-specific code, we'll cheat and use the
@@ -162,12 +179,15 @@ static void __init set_hw_addr(struct platform_device *pdev)
 	 */
 	regs = (void __iomem __force *)res->start;
 	pclk = clk_get(&pdev->dev, "pclk");
+
 	if (IS_ERR(pclk))
+	{
 		return;
+	}
 
 	clk_enable(pclk);
 	__raw_writel((addr[3] << 24) | (addr[2] << 16)
-		     | (addr[1] << 8) | addr[0], regs + 0x98);
+				 | (addr[1] << 8) | addr[0], regs + 0x98);
 	__raw_writel((addr[5] << 8) | addr[4], regs + 0x9c);
 	clk_disable(pclk);
 	clk_put(pclk);
@@ -181,7 +201,8 @@ void __init setup_board(void)
 	at32_map_usart(3, 3, 0);	/* USART 3: /dev/ttyS3 (RS422 Multidrop) */
 }
 
-static struct i2c_gpio_platform_data i2c_gpio_data = {
+static struct i2c_gpio_platform_data i2c_gpio_data =
+{
 	.sda_pin		= GPIO_PIN_PA(6),
 	.scl_pin		= GPIO_PIN_PA(7),
 	.sda_is_open_drain	= 1,
@@ -189,15 +210,17 @@ static struct i2c_gpio_platform_data i2c_gpio_data = {
 	.udelay			= 2,	/* close to 100 kHz */
 };
 
-static struct platform_device i2c_gpio_device = {
+static struct platform_device i2c_gpio_device =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev		= {
-	.platform_data	= &i2c_gpio_data,
+		.platform_data	= &i2c_gpio_data,
 	},
 };
 
-static struct i2c_board_info __initdata i2c_info[] = {
+static struct i2c_board_info __initdata i2c_info[] =
+{
 };
 
 static int __init mimc200_init(void)
@@ -221,15 +244,15 @@ static int __init mimc200_init(void)
 
 	at32_select_periph(GPIO_PIOB_BASE, 1 << 28, 0, AT32_GPIOF_PULLUP);
 	at32_select_gpio(i2c_gpio_data.sda_pin,
-		AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
+					 AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
 	at32_select_gpio(i2c_gpio_data.scl_pin,
-		AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
+					 AT32_GPIOF_MULTIDRV | AT32_GPIOF_OUTPUT | AT32_GPIOF_HIGH);
 	platform_device_register(&i2c_gpio_device);
 	i2c_register_board_info(0, i2c_info, ARRAY_SIZE(i2c_info));
 
 	at32_add_device_lcdc(0, &mimc200_lcdc_data,
-			     fbmem_start, fbmem_size,
-			     ATMEL_LCDC_CONTROL | ATMEL_LCDC_ALT_CONTROL | ATMEL_LCDC_ALT_24B_DATA);
+						 fbmem_start, fbmem_size,
+						 ATMEL_LCDC_CONTROL | ATMEL_LCDC_ALT_CONTROL | ATMEL_LCDC_ALT_24B_DATA);
 
 	return 0;
 }

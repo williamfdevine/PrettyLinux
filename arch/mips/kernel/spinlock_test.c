@@ -19,11 +19,16 @@ static int ss_get(void *data, u64 *val)
 
 	start = ktime_get();
 
-	while (cont) {
+	while (cont)
+	{
 		raw_spin_lock(&ss_spin);
 		loops--;
+
 		if (loops == 0)
+		{
 			cont = 0;
+		}
+
 		raw_spin_unlock(&ss_spin);
 	}
 
@@ -38,7 +43,8 @@ DEFINE_SIMPLE_ATTRIBUTE(fops_ss, ss_get, NULL, "%llu\n");
 
 
 
-struct spin_multi_state {
+struct spin_multi_state
+{
 	raw_spinlock_t lock;
 	atomic_t start_wait;
 	atomic_t enter_wait;
@@ -46,7 +52,8 @@ struct spin_multi_state {
 	int loops;
 };
 
-struct spin_multi_per_thread {
+struct spin_multi_per_thread
+{
 	struct spin_multi_state *state;
 	ktime_t start;
 };
@@ -73,17 +80,24 @@ static int multi_other(void *data)
 	while (atomic_read(&s->start_wait))
 		; /* spin */
 
-	while (cont) {
+	while (cont)
+	{
 		raw_spin_lock(&s->lock);
 		loops--;
+
 		if (loops == 0)
+		{
 			cont = 0;
+		}
+
 		raw_spin_unlock(&s->lock);
 	}
 
 	atomic_dec(&s->exit_wait);
+
 	while (atomic_read(&s->exit_wait))
 		; /* spin */
+
 	return 0;
 }
 
@@ -120,19 +134,27 @@ static int __init spinlock_test(void)
 	struct dentry *d;
 
 	if (!mips_debugfs_dir)
+	{
 		return -ENODEV;
+	}
 
 	d = debugfs_create_file("spin_single", S_IRUGO,
-				mips_debugfs_dir, NULL,
-				&fops_ss);
+							mips_debugfs_dir, NULL,
+							&fops_ss);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	d = debugfs_create_file("spin_multi", S_IRUGO,
-				mips_debugfs_dir, NULL,
-				&fops_multi);
+							mips_debugfs_dir, NULL,
+							&fops_multi);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

@@ -11,13 +11,13 @@
 
 #ifdef __KERNEL__
 
-#define __HAVE_ARCH_MEMSET
-#define __HAVE_ARCH_MEMCPY
-#define __HAVE_ARCH_MEMMOVE
+	#define __HAVE_ARCH_MEMSET
+	#define __HAVE_ARCH_MEMCPY
+	#define __HAVE_ARCH_MEMMOVE
 
-extern void *memset(void *s, int c, size_t count);
-extern void *memcpy(void *d, const void *s, size_t count);
-extern void *memmove(void *d, const void *s, size_t count);
+	extern void *memset(void *s, int c, size_t count);
+	extern void *memcpy(void *d, const void *s, size_t count);
+	extern void *memmove(void *d, const void *s, size_t count);
 
 #endif /* __KERNEL__ */
 

@@ -33,15 +33,15 @@ typedef u32 ppc_opcode_t;
 
 #ifdef CONFIG_PPC64
 #define is_trap(instr)		(IS_TW(instr) || IS_TD(instr) || \
-				IS_TWI(instr) || IS_TDI(instr))
+							 IS_TWI(instr) || IS_TDI(instr))
 #else
 #define is_trap(instr)		(IS_TW(instr) || IS_TWI(instr))
 #endif /* CONFIG_PPC64 */
 
 #ifdef CONFIG_PPC_ADV_DEBUG_REGS
-#define MSR_SINGLESTEP	(MSR_DE)
+	#define MSR_SINGLESTEP	(MSR_DE)
 #else
-#define MSR_SINGLESTEP	(MSR_SE)
+	#define MSR_SINGLESTEP	(MSR_SE)
 #endif
 
 /* Enable single stepping for the current task */

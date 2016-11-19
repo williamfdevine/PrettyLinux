@@ -23,57 +23,72 @@
  */
 
 const TBISTR *__TBIFindStr(const TBISTR *start,
-			   const char *str, int match_len)
+						   const char *str, int match_len)
 {
 	const TBISTR *search = start;
 	bool exact = true;
 	const TBISEG *seg;
 
-	if (match_len < 0) {
+	if (match_len < 0)
+	{
 		/* Make match_len always positive for the inner loop */
 		match_len = -match_len;
 		exact = false;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Also support historic behaviour, which expected match_len to
 		 * include null terminator
 		 */
-		if (match_len && str[match_len-1] == '\0')
+		if (match_len && str[match_len - 1] == '\0')
+		{
 			match_len--;
+		}
 	}
 
-	if (!search) {
+	if (!search)
+	{
 		/* Find global string table segment */
 		seg = __TBIFindSeg(NULL, TBID_SEG(TBID_THREAD_GLOBAL,
-						  TBID_SEGSCOPE_GLOBAL,
-						  TBID_SEGTYPE_STRING));
+										  TBID_SEGSCOPE_GLOBAL,
+										  TBID_SEGTYPE_STRING));
 
 		if (!seg || seg->Bytes < sizeof(TBISTR))
 			/* No string table! */
+		{
 			return NULL;
+		}
 
 		/* Start of string table */
 		search = seg->pGAddr;
 	}
 
-	for (;;) {
+	for (;;)
+	{
 		while (!search->Tag)
 			/* Allow simple gaps which are just zero initialised */
+		{
 			search = (const TBISTR *)((const char *)search + 8);
+		}
 
-		if (search->Tag == METAG_TBI_STRE) {
+		if (search->Tag == METAG_TBI_STRE)
+		{
 			/* Reached the end of the table */
 			search = NULL;
 			break;
 		}
 
 		if ((search->Len >= match_len) &&
-		    (!exact || (search->Len == match_len + 1)) &&
-		    (search->Tag != METAG_TBI_STRG)) {
+			(!exact || (search->Len == match_len + 1)) &&
+			(search->Tag != METAG_TBI_STRG))
+		{
 			/* Worth searching */
 			if (!strncmp(str, (const char *)search->String,
-				     match_len))
+						 match_len))
+			{
 				break;
+			}
 		}
 
 		/* Next entry */
@@ -88,19 +103,23 @@ const void *__TBITransStr(const char *str, int len)
 	const TBISTR *search = NULL;
 	const void *res = NULL;
 
-	for (;;) {
+	for (;;)
+	{
 		/* Search onwards */
 		search = __TBIFindStr(search, str, len);
 
 		/* No translation returns NULL */
 		if (!search)
+		{
 			break;
+		}
 
 		/* Skip matching entries with no translation data */
-		if (search->TransLen != METAG_TBI_STRX) {
+		if (search->TransLen != METAG_TBI_STRX)
+		{
 			/* Calculate base of translation string */
 			res = (const char *)search->String +
-				((search->Len + 7) & ~7);
+				  ((search->Len + 7) & ~7);
 			break;
 		}
 

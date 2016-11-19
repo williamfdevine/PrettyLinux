@@ -37,8 +37,8 @@ extern volatile u32 __iomem *master_l10_counter;
 irqreturn_t notrace timer_interrupt(int dummy, void *dev_id);
 
 #ifdef CONFIG_SMP
-DECLARE_PER_CPU(struct clock_event_device, sparc32_clockevent);
-void register_percpu_ce(int cpu);
+	DECLARE_PER_CPU(struct clock_event_device, sparc32_clockevent);
+	void register_percpu_ce(int cpu);
 #endif
 
 #endif /* !(_SPARC_TIMER_H) */

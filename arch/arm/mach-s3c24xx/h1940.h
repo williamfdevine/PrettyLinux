@@ -23,8 +23,8 @@ struct gpio_desc;
 
 extern void h1940_pm_return(void);
 extern int h1940_led_blink_set(struct gpio_desc *desc, int state,
-			       unsigned long *delay_on,
-			       unsigned long *delay_off);
+							   unsigned long *delay_on,
+							   unsigned long *delay_off);
 
 #include <linux/gpio.h>
 

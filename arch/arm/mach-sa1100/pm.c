@@ -44,12 +44,12 @@ extern int sa1100_finish_suspend(unsigned long);
  * on the stack and then the stack pointer is stored last in sleep.S.
  */
 enum {	SLEEP_SAVE_GPDR, SLEEP_SAVE_GAFR,
-	SLEEP_SAVE_PPDR, SLEEP_SAVE_PPSR, SLEEP_SAVE_PPAR, SLEEP_SAVE_PSDR,
+		SLEEP_SAVE_PPDR, SLEEP_SAVE_PPSR, SLEEP_SAVE_PPAR, SLEEP_SAVE_PSDR,
 
-	SLEEP_SAVE_Ser1SDCR0,
+		SLEEP_SAVE_Ser1SDCR0,
 
-	SLEEP_SAVE_COUNT
-};
+		SLEEP_SAVE_COUNT
+	 };
 
 
 static int sa11x0_pm_enter(suspend_state_t state)
@@ -114,7 +114,8 @@ static int sa11x0_pm_enter(suspend_state_t state)
 	return 0;
 }
 
-static const struct platform_suspend_ops sa11x0_pm_ops = {
+static const struct platform_suspend_ops sa11x0_pm_ops =
+{
 	.enter		= sa11x0_pm_enter,
 	.valid		= suspend_valid_only_mem,
 };

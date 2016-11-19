@@ -49,14 +49,18 @@ void p1022rdk_set_pixel_clock(unsigned int pixclock)
 
 	/* Map the global utilities registers. */
 	guts_np = of_find_compatible_node(NULL, NULL, "fsl,p1022-guts");
-	if (!guts_np) {
+
+	if (!guts_np)
+	{
 		pr_err("p1022rdk: missing global utilities device node\n");
 		return;
 	}
 
 	guts = of_iomap(guts_np, 0);
 	of_node_put(guts_np);
-	if (!guts) {
+
+	if (!guts)
+	{
 		pr_err("p1022rdk: could not map global utilities device\n");
 		return;
 	}
@@ -76,7 +80,7 @@ void p1022rdk_set_pixel_clock(unsigned int pixclock)
 
 	/* Disable the pixel clock, and set it to non-inverted and no delay */
 	clrbits32(&guts->clkdvdr,
-		  CLKDVDR_PXCKEN | CLKDVDR_PXCKDLY | CLKDVDR_PXCLK_MASK);
+			  CLKDVDR_PXCKEN | CLKDVDR_PXCKDLY | CLKDVDR_PXCLK_MASK);
 
 	/* Enable the clock and set the pxclk */
 	setbits32(&guts->clkdvdr, CLKDVDR_PXCKEN | (pxclk << 16));
@@ -98,8 +102,8 @@ p1022rdk_valid_monitor_port(enum fsl_diu_monitor_port port)
 void __init p1022_rdk_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN |
-		MPIC_SINGLE_DEST_CPU,
-		0, 256, " OpenPIC  ");
+								   MPIC_SINGLE_DEST_CPU,
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 }
@@ -110,7 +114,9 @@ void __init p1022_rdk_pic_init(void)
 static void __init p1022_rdk_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("p1022_rdk_setup_arch()", 0);
+	}
 
 #if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
 	diu_ops.set_pixel_clock		= p1022rdk_set_pixel_clock;
@@ -138,16 +144,17 @@ static int __init p1022_rdk_probe(void)
 	return of_machine_is_compatible("fsl,p1022rdk");
 }
 
-define_machine(p1022_rdk) {
+define_machine(p1022_rdk)
+{
 	.name			= "P1022 RDK",
-	.probe			= p1022_rdk_probe,
-	.setup_arch		= p1022_rdk_setup_arch,
-	.init_IRQ		= p1022_rdk_pic_init,
+			 .probe			= p1022_rdk_probe,
+					 .setup_arch		= p1022_rdk_setup_arch,
+						 .init_IRQ		= p1022_rdk_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+								 .pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+								  .get_irq		= mpic_get_irq,
+										 .calibrate_decr		= generic_calibrate_decr,
+											 .progress		= udbg_progress,
 };

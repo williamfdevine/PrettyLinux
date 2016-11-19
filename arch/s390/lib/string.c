@@ -19,8 +19,8 @@ static inline char *__strend(const char *s)
 	register unsigned long r0 asm("0") = 0;
 
 	asm volatile ("0: srst  %0,%1\n"
-		      "   jo    0b"
-		      : "+d" (r0), "+a" (s) :  : "cc" );
+				  "   jo    0b"
+				  : "+d" (r0), "+a" (s) :  : "cc" );
 	return (char *) r0;
 }
 
@@ -30,8 +30,8 @@ static inline char *__strnend(const char *s, size_t n)
 	const char *p = s + n;
 
 	asm volatile ("0: srst  %0,%1\n"
-		      "   jo    0b"
-		      : "+d" (p), "+a" (s) : "d" (r0) : "cc" );
+				  "   jo    0b"
+				  : "+d" (p), "+a" (s) : "d" (r0) : "cc" );
 	return (char *) p;
 }
 
@@ -54,7 +54,7 @@ EXPORT_SYMBOL(strlen);
  *
  * returns the minimum of the length of @s and @n
  */
-size_t strnlen(const char * s, size_t n)
+size_t strnlen(const char *s, size_t n)
 {
 	return __strnend(s, n) - s;
 }
@@ -73,9 +73,9 @@ char *strcpy(char *dest, const char *src)
 	char *ret = dest;
 
 	asm volatile ("0: mvst  %0,%1\n"
-		      "   jo    0b"
-		      : "+&a" (dest), "+&a" (src) : "d" (r0)
-		      : "cc", "memory" );
+				  "   jo    0b"
+				  : "+&a" (dest), "+&a" (src) : "d" (r0)
+				  : "cc", "memory" );
 	return ret;
 }
 EXPORT_SYMBOL(strcpy);
@@ -95,11 +95,13 @@ size_t strlcpy(char *dest, const char *src, size_t size)
 {
 	size_t ret = __strend(src) - src;
 
-	if (size) {
-		size_t len = (ret >= size) ? size-1 : ret;
+	if (size)
+	{
+		size_t len = (ret >= size) ? size - 1 : ret;
 		dest[len] = '\0';
 		memcpy(dest, src, len);
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL(strlcpy);
@@ -136,11 +138,11 @@ char *strcat(char *dest, const char *src)
 	char *ret = dest;
 
 	asm volatile ("0: srst  %0,%1\n"
-		      "   jo    0b\n"
-		      "1: mvst  %0,%2\n"
-		      "   jo    1b"
-		      : "=&a" (dummy), "+a" (dest), "+a" (src)
-		      : "d" (r0), "0" (0UL) : "cc", "memory" );
+				  "   jo    0b\n"
+				  "1: mvst  %0,%2\n"
+				  "   jo    1b"
+				  : "=&a" (dummy), "+a" (dest), "+a" (src)
+				  : "d" (r0), "0" (0UL) : "cc", "memory" );
 	return ret;
 }
 EXPORT_SYMBOL(strcat);
@@ -157,14 +159,20 @@ size_t strlcat(char *dest, const char *src, size_t n)
 	size_t len = __strend(src) - src;
 	size_t res = dsize + len;
 
-	if (dsize < n) {
+	if (dsize < n)
+	{
 		dest += dsize;
 		n -= dsize;
+
 		if (len >= n)
+		{
 			len = n - 1;
+		}
+
 		dest[len] = '\0';
 		memcpy(dest, src, len);
 	}
+
 	return res;
 }
 EXPORT_SYMBOL(strlcat);
@@ -206,14 +214,14 @@ int strcmp(const char *cs, const char *ct)
 	int ret = 0;
 
 	asm volatile ("0: clst %2,%3\n"
-		      "   jo   0b\n"
-		      "   je   1f\n"
-		      "   ic   %0,0(%2)\n"
-		      "   ic   %1,0(%3)\n"
-		      "   sr   %0,%1\n"
-		      "1:"
-		      : "+d" (ret), "+d" (r0), "+a" (cs), "+a" (ct)
-		      : : "cc" );
+				  "   jo   0b\n"
+				  "   je   1f\n"
+				  "   ic   %0,0(%2)\n"
+				  "   ic   %1,0(%3)\n"
+				  "   sr   %0,%1\n"
+				  "1:"
+				  : "+d" (ret), "+d" (r0), "+a" (cs), "+a" (ct)
+				  : : "cc" );
 	return ret;
 }
 EXPORT_SYMBOL(strcmp);
@@ -223,21 +231,26 @@ EXPORT_SYMBOL(strcmp);
  * @s: The string to be searched
  * @c: The character to search for
  */
-char * strrchr(const char * s, int c)
+char *strrchr(const char *s, int c)
 {
-       size_t len = __strend(s) - s;
+	size_t len = __strend(s) - s;
 
-       if (len)
-	       do {
-		       if (s[len] == (char) c)
-			       return (char *) s + len;
-	       } while (--len > 0);
-       return NULL;
+	if (len)
+		do
+		{
+			if (s[len] == (char) c)
+			{
+				return (char *) s + len;
+			}
+		}
+		while (--len > 0);
+
+	return NULL;
 }
 EXPORT_SYMBOL(strrchr);
 
 static inline int clcle(const char *s1, unsigned long l1,
-			const char *s2, unsigned long l2)
+						const char *s2, unsigned long l2)
 {
 	register unsigned long r2 asm("2") = (unsigned long) s1;
 	register unsigned long r3 asm("3") = (unsigned long) l1;
@@ -246,11 +259,11 @@ static inline int clcle(const char *s1, unsigned long l1,
 	int cc;
 
 	asm volatile ("0: clcle %1,%3,0\n"
-		      "   jo    0b\n"
-		      "   ipm   %0\n"
-		      "   srl   %0,28"
-		      : "=&d" (cc), "+a" (r2), "+a" (r3),
-			"+a" (r4), "+a" (r5) : : "cc");
+				  "   jo    0b\n"
+				  "   ipm   %0\n"
+				  "   srl   %0,28"
+				  : "=&d" (cc), "+a" (r2), "+a" (r3),
+				  "+a" (r4), "+a" (r5) : : "cc");
 	return cc;
 }
 
@@ -259,22 +272,33 @@ static inline int clcle(const char *s1, unsigned long l1,
  * @s1: The string to be searched
  * @s2: The string to search for
  */
-char * strstr(const char * s1,const char * s2)
+char *strstr(const char *s1, const char *s2)
 {
 	int l1, l2;
 
 	l2 = __strend(s2) - s2;
+
 	if (!l2)
+	{
 		return (char *) s1;
+	}
+
 	l1 = __strend(s1) - s1;
-	while (l1-- >= l2) {
+
+	while (l1-- >= l2)
+	{
 		int cc;
 
 		cc = clcle(s1, l2, s2, l2);
+
 		if (!cc)
+		{
 			return (char *) s1;
+		}
+
 		s1++;
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(strstr);
@@ -294,11 +318,11 @@ void *memchr(const void *s, int c, size_t n)
 	const void *ret = s + n;
 
 	asm volatile ("0: srst  %0,%1\n"
-		      "   jo    0b\n"
-		      "   jl	1f\n"
-		      "   la    %0,0\n"
-		      "1:"
-		      : "+a" (ret), "+&a" (s) : "d" (r0) : "cc" );
+				  "   jo    0b\n"
+				  "   jl	1f\n"
+				  "   la    %0,0\n"
+				  "1:"
+				  : "+a" (ret), "+&a" (s) : "d" (r0) : "cc" );
 	return (void *) ret;
 }
 EXPORT_SYMBOL(memchr);
@@ -314,8 +338,12 @@ int memcmp(const void *cs, const void *ct, size_t n)
 	int ret;
 
 	ret = clcle(cs, n, ct, n);
+
 	if (ret)
+	{
 		ret = ret == 1 ? -1 : 1;
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL(memcmp);
@@ -335,8 +363,8 @@ void *memscan(void *s, int c, size_t n)
 	const void *ret = s + n;
 
 	asm volatile ("0: srst  %0,%1\n"
-		      "   jo    0b\n"
-		      : "+a" (ret), "+&a" (s) : "d" (r0) : "cc" );
+				  "   jo    0b\n"
+				  : "+a" (ret), "+&a" (s) : "d" (r0) : "cc" );
 	return (void *) ret;
 }
 EXPORT_SYMBOL(memscan);

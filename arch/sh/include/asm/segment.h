@@ -3,7 +3,8 @@
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
@@ -18,9 +19,9 @@ typedef struct {
  */
 #define KERNEL_DS	MAKE_MM_SEG(0xFFFFFFFFUL)
 #ifdef CONFIG_MMU
-#define USER_DS		MAKE_MM_SEG(PAGE_OFFSET)
+	#define USER_DS		MAKE_MM_SEG(PAGE_OFFSET)
 #else
-#define USER_DS		KERNEL_DS
+	#define USER_DS		KERNEL_DS
 #endif
 
 #define segment_eq(a, b) ((a).seg == (b).seg)

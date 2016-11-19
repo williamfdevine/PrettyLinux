@@ -43,7 +43,7 @@
 void __init xes_mpc85xx_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 }
@@ -62,13 +62,16 @@ static void xes_mpc85xx_configure_l2(void __iomem *l2_base)
 	printk(KERN_INFO "xes_mpc85xx: Enabling L2 as cache\n");
 
 	ctl = MPC85xx_L2CTL_L2E | MPC85xx_L2CTL_L2I;
+
 	if (of_machine_is_compatible("MPC8540") ||
-	    of_machine_is_compatible("MPC8560"))
+		of_machine_is_compatible("MPC8560"))
 		/*
 		 * Assume L2 SRAM is used fully for cache, so set
 		 * L2BLKSZ (bits 4:5) to match L2SIZ (bits 2:3).
 		 */
+	{
 		ctl |= (tmp & MPC85xx_L2CTL_L2SIZ_MASK) >> 2;
+	}
 
 	asm volatile("msync; isync");
 	out_be32(l2_base, ctl);
@@ -84,24 +87,29 @@ static void xes_mpc85xx_fixups(void)
 	 * Legacy xMon firmware on some X-ES boards does not enable L2
 	 * as cache.  We must ensure that they get enabled here.
 	 */
-	for_each_node_by_name(np, "l2-cache-controller") {
+	for_each_node_by_name(np, "l2-cache-controller")
+	{
 		struct resource r[2];
 		void __iomem *l2_base;
 
 		/* Only MPC8548, MPC8540, and MPC8560 boards are affected */
 		if (!of_device_is_compatible(np,
-				    "fsl,mpc8548-l2-cache-controller") &&
-		    !of_device_is_compatible(np,
-				    "fsl,mpc8540-l2-cache-controller") &&
-		    !of_device_is_compatible(np,
-				    "fsl,mpc8560-l2-cache-controller"))
+									 "fsl,mpc8548-l2-cache-controller") &&
+			!of_device_is_compatible(np,
+									 "fsl,mpc8540-l2-cache-controller") &&
+			!of_device_is_compatible(np,
+									 "fsl,mpc8560-l2-cache-controller"))
+		{
 			continue;
+		}
 
 		err = of_address_to_resource(np, 0, &r[0]);
-		if (err) {
+
+		if (err)
+		{
 			printk(KERN_WARNING "xes_mpc85xx: Could not get "
-			       "resource for device tree node '%s'",
-			       np->full_name);
+				   "resource for device tree node '%s'",
+				   np->full_name);
 			continue;
 		}
 
@@ -120,13 +128,16 @@ static void __init xes_mpc85xx_setup_arch(void)
 	const char *model = "Unknown";
 
 	root = of_find_node_by_path("/");
+
 	if (root == NULL)
+	{
 		return;
+	}
 
 	model = of_get_property(root, "model", NULL);
 
 	printk(KERN_INFO "X-ES MPC85xx-based single-board computer: %s\n",
-	       model + strlen("xes,"));
+		   model + strlen("xes,"));
 
 	xes_mpc85xx_fixups();
 
@@ -157,44 +168,47 @@ static int __init xes_mpc8540_probe(void)
 	return of_machine_is_compatible("xes,MPC8540");
 }
 
-define_machine(xes_mpc8572) {
+define_machine(xes_mpc8572)
+{
 	.name			= "X-ES MPC8572",
-	.probe			= xes_mpc8572_probe,
-	.setup_arch		= xes_mpc85xx_setup_arch,
-	.init_IRQ		= xes_mpc85xx_pic_init,
+			 .probe			= xes_mpc8572_probe,
+					 .setup_arch		= xes_mpc85xx_setup_arch,
+						 .init_IRQ		= xes_mpc85xx_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+								 .pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+								  .get_irq		= mpic_get_irq,
+										 .calibrate_decr		= generic_calibrate_decr,
+											 .progress		= udbg_progress,
 };
 
-define_machine(xes_mpc8548) {
+define_machine(xes_mpc8548)
+{
 	.name			= "X-ES MPC8548",
-	.probe			= xes_mpc8548_probe,
-	.setup_arch		= xes_mpc85xx_setup_arch,
-	.init_IRQ		= xes_mpc85xx_pic_init,
+			 .probe			= xes_mpc8548_probe,
+					 .setup_arch		= xes_mpc85xx_setup_arch,
+						 .init_IRQ		= xes_mpc85xx_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+								 .pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+								  .get_irq		= mpic_get_irq,
+										 .calibrate_decr		= generic_calibrate_decr,
+											 .progress		= udbg_progress,
 };
 
-define_machine(xes_mpc8540) {
+define_machine(xes_mpc8540)
+{
 	.name			= "X-ES MPC8540",
-	.probe			= xes_mpc8540_probe,
-	.setup_arch		= xes_mpc85xx_setup_arch,
-	.init_IRQ		= xes_mpc85xx_pic_init,
+			 .probe			= xes_mpc8540_probe,
+					 .setup_arch		= xes_mpc85xx_setup_arch,
+						 .init_IRQ		= xes_mpc85xx_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+								 .pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-	.get_irq		= mpic_get_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+								  .get_irq		= mpic_get_irq,
+										 .calibrate_decr		= generic_calibrate_decr,
+											 .progress		= udbg_progress,
 };

@@ -40,7 +40,7 @@ static void __init imx6sx_enet_phy_init(void)
 {
 	if (IS_BUILTIN(CONFIG_PHYLIB))
 		phy_register_fixup_for_uid(PHY_ID_AR8031, 0xffffffff,
-					   ar8031_phy_fixup);
+								   ar8031_phy_fixup);
 }
 
 static void __init imx6sx_enet_clk_sel(void)
@@ -48,12 +48,16 @@ static void __init imx6sx_enet_clk_sel(void)
 	struct regmap *gpr;
 
 	gpr = syscon_regmap_lookup_by_compatible("fsl,imx6sx-iomuxc-gpr");
-	if (!IS_ERR(gpr)) {
+
+	if (!IS_ERR(gpr))
+	{
 		regmap_update_bits(gpr, IOMUXC_GPR1,
-				   IMX6SX_GPR1_FEC_CLOCK_MUX_SEL_MASK, 0);
+						   IMX6SX_GPR1_FEC_CLOCK_MUX_SEL_MASK, 0);
 		regmap_update_bits(gpr, IOMUXC_GPR1,
-				   IMX6SX_GPR1_FEC_CLOCK_PAD_DIR_MASK, 0);
-	} else {
+						   IMX6SX_GPR1_FEC_CLOCK_PAD_DIR_MASK, 0);
+	}
+	else
+	{
 		pr_err("failed to find fsl,imx6sx-iomux-gpr regmap\n");
 	}
 }
@@ -69,8 +73,11 @@ static void __init imx6sx_init_machine(void)
 	struct device *parent;
 
 	parent = imx_soc_device_init();
+
 	if (parent == NULL)
+	{
 		pr_warn("failed to initialize soc device\n");
+	}
 
 	of_platform_default_populate(NULL, NULL, parent);
 
@@ -94,19 +101,22 @@ static void __init imx6sx_init_late(void)
 	imx6sx_cpuidle_init();
 
 	if (IS_ENABLED(CONFIG_ARM_IMX6Q_CPUFREQ))
+	{
 		platform_device_register_simple("imx6q-cpufreq", -1, NULL, 0);
+	}
 }
 
-static const char * const imx6sx_dt_compat[] __initconst = {
+static const char *const imx6sx_dt_compat[] __initconst =
+{
 	"fsl,imx6sx",
 	NULL,
 };
 
 DT_MACHINE_START(IMX6SX, "Freescale i.MX6 SoloX (Device Tree)")
-	.l2c_aux_val 	= 0,
-	.l2c_aux_mask	= ~0,
-	.init_irq	= imx6sx_init_irq,
-	.init_machine	= imx6sx_init_machine,
-	.dt_compat	= imx6sx_dt_compat,
-	.init_late	= imx6sx_init_late,
-MACHINE_END
+.l2c_aux_val 	= 0,
+   .l2c_aux_mask	= ~0,
+	  .init_irq	= imx6sx_init_irq,
+		 .init_machine	= imx6sx_init_machine,
+			.dt_compat	= imx6sx_dt_compat,
+			  .init_late	= imx6sx_init_late,
+				MACHINE_END

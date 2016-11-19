@@ -36,7 +36,8 @@
  * The msg member must be at the end of the struct, as it's followed by the
  * message data.
  */
-struct opal_prd_msg_queue_item {
+struct opal_prd_msg_queue_item
+{
 	struct list_head		list;
 	struct opal_prd_msg_header	msg;
 };
@@ -53,15 +54,21 @@ static bool opal_prd_range_is_valid(uint64_t addr, uint64_t size)
 	bool found;
 
 	if (addr + size < addr)
+	{
 		return false;
+	}
 
 	parent = of_find_node_by_path("/reserved-memory");
+
 	if (!parent)
+	{
 		return false;
+	}
 
 	found = false;
 
-	for_each_child_of_node(parent, node) {
+	for_each_child_of_node(parent, node)
+	{
 		uint64_t range_addr, range_size, range_end;
 		const __be32 *addrp;
 		const char *label;
@@ -75,12 +82,17 @@ static bool opal_prd_range_is_valid(uint64_t addr, uint64_t size)
 
 		/* PRD ranges need a label */
 		if (!label)
+		{
 			continue;
+		}
 
 		if (range_end <= range_addr)
+		{
 			continue;
+		}
 
-		if (addr >= range_addr && addr + size <= range_end) {
+		if (addr >= range_addr && addr + size <= range_end)
+		{
 			found = true;
 			of_node_put(node);
 			break;
@@ -98,7 +110,9 @@ static int opal_prd_open(struct inode *inode, struct file *file)
 	 * with the FW PRD channel
 	 */
 	if (atomic_xchg(&prd_usage, 1) == 1)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -116,21 +130,23 @@ static int opal_prd_mmap(struct file *file, struct vm_area_struct *vma)
 	int rc;
 
 	pr_devel("opal_prd_mmap(0x%016lx, 0x%016lx, 0x%lx, 0x%lx)\n",
-			vma->vm_start, vma->vm_end, vma->vm_pgoff,
-			vma->vm_flags);
+			 vma->vm_start, vma->vm_end, vma->vm_pgoff,
+			 vma->vm_flags);
 
 	addr = vma->vm_pgoff << PAGE_SHIFT;
 	size = vma->vm_end - vma->vm_start;
 
 	/* ensure we're mapping within one of the allowable ranges */
 	if (!opal_prd_range_is_valid(addr, size))
+	{
 		return -EINVAL;
+	}
 
 	page_prot = phys_mem_access_prot(file, vma->vm_pgoff,
-					 size, vma->vm_page_prot);
+									 size, vma->vm_page_prot);
 
 	rc = remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff, size,
-				page_prot);
+						 page_prot);
 
 	return rc;
 }
@@ -148,18 +164,20 @@ static bool opal_msg_queue_empty(void)
 }
 
 static unsigned int opal_prd_poll(struct file *file,
-		struct poll_table_struct *wait)
+								  struct poll_table_struct *wait)
 {
 	poll_wait(file, &opal_prd_msg_wait, wait);
 
 	if (!opal_msg_queue_empty())
+	{
 		return POLLIN | POLLRDNORM;
+	}
 
 	return 0;
 }
 
 static ssize_t opal_prd_read(struct file *file, char __user *buf,
-		size_t count, loff_t *ppos)
+							 size_t count, loff_t *ppos)
 {
 	struct opal_prd_msg_queue_item *item;
 	unsigned long flags;
@@ -168,43 +186,62 @@ static ssize_t opal_prd_read(struct file *file, char __user *buf,
 
 	/* we need at least a header's worth of data */
 	if (count < sizeof(item->msg))
+	{
 		return -EINVAL;
+	}
 
 	if (*ppos)
+	{
 		return -ESPIPE;
+	}
 
 	item = NULL;
 
-	for (;;) {
+	for (;;)
+	{
 
 		spin_lock_irqsave(&opal_prd_msg_queue_lock, flags);
-		if (!list_empty(&opal_prd_msg_queue)) {
+
+		if (!list_empty(&opal_prd_msg_queue))
+		{
 			item = list_first_entry(&opal_prd_msg_queue,
-					struct opal_prd_msg_queue_item, list);
+									struct opal_prd_msg_queue_item, list);
 			list_del(&item->list);
 		}
+
 		spin_unlock_irqrestore(&opal_prd_msg_queue_lock, flags);
 
 		if (item)
+		{
 			break;
+		}
 
 		if (file->f_flags & O_NONBLOCK)
+		{
 			return -EAGAIN;
+		}
 
 		rc = wait_event_interruptible(opal_prd_msg_wait,
-				!opal_msg_queue_empty());
+									  !opal_msg_queue_empty());
+
 		if (rc)
+		{
 			return -EINTR;
+		}
 	}
 
 	size = be16_to_cpu(item->msg.size);
-	if (size > count) {
+
+	if (size > count)
+	{
 		err = -EINVAL;
 		goto err_requeue;
 	}
 
 	rc = copy_to_user(buf, &item->msg, size);
-	if (rc) {
+
+	if (rc)
+	{
 		err = -EFAULT;
 		goto err_requeue;
 	}
@@ -222,7 +259,7 @@ err_requeue:
 }
 
 static ssize_t opal_prd_write(struct file *file, const char __user *buf,
-		size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct opal_prd_msg_header hdr;
 	ssize_t size;
@@ -232,27 +269,39 @@ static ssize_t opal_prd_write(struct file *file, const char __user *buf,
 	size = sizeof(hdr);
 
 	if (count < size)
+	{
 		return -EINVAL;
+	}
 
 	/* grab the header */
 	rc = copy_from_user(&hdr, buf, sizeof(hdr));
+
 	if (rc)
+	{
 		return -EFAULT;
+	}
 
 	size = be16_to_cpu(hdr.size);
 
 	msg = kmalloc(size, GFP_KERNEL);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	rc = copy_from_user(msg, buf, size);
-	if (rc) {
+
+	if (rc)
+	{
 		size = -EFAULT;
 		goto out_free;
 	}
 
 	rc = opal_prd_msg(msg);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_warn("write: opal_prd_msg returned %d\n", rc);
 		size = -EIO;
 	}
@@ -278,59 +327,79 @@ static int opal_prd_release(struct inode *inode, struct file *file)
 }
 
 static long opal_prd_ioctl(struct file *file, unsigned int cmd,
-		unsigned long param)
+						   unsigned long param)
 {
 	struct opal_prd_info info;
 	struct opal_prd_scom scom;
 	int rc = 0;
 
-	switch (cmd) {
-	case OPAL_PRD_GET_INFO:
-		memset(&info, 0, sizeof(info));
-		info.version = OPAL_PRD_KERNEL_VERSION;
-		rc = copy_to_user((void __user *)param, &info, sizeof(info));
-		if (rc)
-			return -EFAULT;
-		break;
+	switch (cmd)
+	{
+		case OPAL_PRD_GET_INFO:
+			memset(&info, 0, sizeof(info));
+			info.version = OPAL_PRD_KERNEL_VERSION;
+			rc = copy_to_user((void __user *)param, &info, sizeof(info));
 
-	case OPAL_PRD_SCOM_READ:
-		rc = copy_from_user(&scom, (void __user *)param, sizeof(scom));
-		if (rc)
-			return -EFAULT;
+			if (rc)
+			{
+				return -EFAULT;
+			}
 
-		scom.rc = opal_xscom_read(scom.chip, scom.addr,
-				(__be64 *)&scom.data);
-		scom.data = be64_to_cpu(scom.data);
-		pr_devel("ioctl SCOM_READ: chip %llx addr %016llx data %016llx rc %lld\n",
-				scom.chip, scom.addr, scom.data, scom.rc);
+			break;
 
-		rc = copy_to_user((void __user *)param, &scom, sizeof(scom));
-		if (rc)
-			return -EFAULT;
-		break;
+		case OPAL_PRD_SCOM_READ:
+			rc = copy_from_user(&scom, (void __user *)param, sizeof(scom));
 
-	case OPAL_PRD_SCOM_WRITE:
-		rc = copy_from_user(&scom, (void __user *)param, sizeof(scom));
-		if (rc)
-			return -EFAULT;
+			if (rc)
+			{
+				return -EFAULT;
+			}
 
-		scom.rc = opal_xscom_write(scom.chip, scom.addr, scom.data);
-		pr_devel("ioctl SCOM_WRITE: chip %llx addr %016llx data %016llx rc %lld\n",
-				scom.chip, scom.addr, scom.data, scom.rc);
+			scom.rc = opal_xscom_read(scom.chip, scom.addr,
+									  (__be64 *)&scom.data);
+			scom.data = be64_to_cpu(scom.data);
+			pr_devel("ioctl SCOM_READ: chip %llx addr %016llx data %016llx rc %lld\n",
+					 scom.chip, scom.addr, scom.data, scom.rc);
 
-		rc = copy_to_user((void __user *)param, &scom, sizeof(scom));
-		if (rc)
-			return -EFAULT;
-		break;
+			rc = copy_to_user((void __user *)param, &scom, sizeof(scom));
 
-	default:
-		rc = -EINVAL;
+			if (rc)
+			{
+				return -EFAULT;
+			}
+
+			break;
+
+		case OPAL_PRD_SCOM_WRITE:
+			rc = copy_from_user(&scom, (void __user *)param, sizeof(scom));
+
+			if (rc)
+			{
+				return -EFAULT;
+			}
+
+			scom.rc = opal_xscom_write(scom.chip, scom.addr, scom.data);
+			pr_devel("ioctl SCOM_WRITE: chip %llx addr %016llx data %016llx rc %lld\n",
+					 scom.chip, scom.addr, scom.data, scom.rc);
+
+			rc = copy_to_user((void __user *)param, &scom, sizeof(scom));
+
+			if (rc)
+			{
+				return -EFAULT;
+			}
+
+			break;
+
+		default:
+			rc = -EINVAL;
 	}
 
 	return rc;
 }
 
-static const struct file_operations opal_prd_fops = {
+static const struct file_operations opal_prd_fops =
+{
 	.open		= opal_prd_open,
 	.mmap		= opal_prd_mmap,
 	.poll		= opal_prd_poll,
@@ -341,7 +410,8 @@ static const struct file_operations opal_prd_fops = {
 	.owner		= THIS_MODULE,
 };
 
-static struct miscdevice opal_prd_dev = {
+static struct miscdevice opal_prd_dev =
+{
 	.minor		= MISC_DYNAMIC_MINOR,
 	.name		= "opal-prd",
 	.fops		= &opal_prd_fops,
@@ -349,7 +419,7 @@ static struct miscdevice opal_prd_dev = {
 
 /* opal interface */
 static int opal_prd_msg_notifier(struct notifier_block *nb,
-		unsigned long msg_type, void *_msg)
+								 unsigned long msg_type, void *_msg)
 {
 	struct opal_prd_msg_queue_item *item;
 	struct opal_prd_msg_header *hdr;
@@ -358,7 +428,9 @@ static int opal_prd_msg_notifier(struct notifier_block *nb,
 	unsigned long flags;
 
 	if (msg_type != OPAL_MSG_PRD)
+	{
 		return 0;
+	}
 
 	/* Calculate total size of the message and item we need to store. The
 	 * 'size' field in the header includes the header itself. */
@@ -367,8 +439,11 @@ static int opal_prd_msg_notifier(struct notifier_block *nb,
 	item_size = msg_size + sizeof(*item) - sizeof(item->msg);
 
 	item = kzalloc(item_size, GFP_ATOMIC);
+
 	if (!item)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(&item->msg, msg->params, msg_size);
 
@@ -381,7 +456,8 @@ static int opal_prd_msg_notifier(struct notifier_block *nb,
 	return 0;
 }
 
-static struct notifier_block opal_prd_event_nb = {
+static struct notifier_block opal_prd_event_nb =
+{
 	.notifier_call	= opal_prd_msg_notifier,
 	.next		= NULL,
 	.priority	= 0,
@@ -392,27 +468,35 @@ static int opal_prd_probe(struct platform_device *pdev)
 	int rc;
 
 	if (!pdev || !pdev->dev.of_node)
+	{
 		return -ENODEV;
+	}
 
 	/* We should only have one prd driver instance per machine; ensure
 	 * that we only get a valid probe on a single OF node.
 	 */
 	if (prd_node)
+	{
 		return -EBUSY;
+	}
 
 	prd_node = pdev->dev.of_node;
 
 	rc = opal_message_notifier_register(OPAL_MSG_PRD, &opal_prd_event_nb);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("Couldn't register event notifier\n");
 		return rc;
 	}
 
 	rc = misc_register(&opal_prd_dev);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("failed to register miscdev\n");
 		opal_message_notifier_unregister(OPAL_MSG_PRD,
-				&opal_prd_event_nb);
+										 &opal_prd_event_nb);
 		return rc;
 	}
 
@@ -426,12 +510,14 @@ static int opal_prd_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id opal_prd_match[] = {
+static const struct of_device_id opal_prd_match[] =
+{
 	{ .compatible = "ibm,opal-prd" },
 	{ },
 };
 
-static struct platform_driver opal_prd_driver = {
+static struct platform_driver opal_prd_driver =
+{
 	.driver = {
 		.name		= "opal-prd",
 		.of_match_table	= opal_prd_match,

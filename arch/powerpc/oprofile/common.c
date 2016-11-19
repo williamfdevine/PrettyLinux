@@ -42,7 +42,9 @@ static void op_powerpc_cpu_setup(void *dummy)
 	ret = model->cpu_setup(ctr);
 
 	if (ret != 0)
+	{
 		op_per_cpu_rc = ret;
+	}
 }
 
 static int op_powerpc_setup(void)
@@ -53,20 +55,28 @@ static int op_powerpc_setup(void)
 
 	/* Grab the hardware */
 	err = reserve_pmc_hardware(op_handle_interrupt);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Pre-compute the values to stuff in the hardware registers.  */
 	op_per_cpu_rc = model->reg_setup(ctr, &sys, model->num_counters);
 
 	if (op_per_cpu_rc)
+	{
 		goto out;
+	}
 
 	/* Configure the registers on all cpus.	 If an error occurs on one
 	 * of the cpus, op_per_cpu_rc will be set to the error */
 	on_each_cpu(op_powerpc_cpu_setup, NULL, 1);
 
-out:	if (op_per_cpu_rc) {
+out:
+
+	if (op_per_cpu_rc)
+	{
 		/* error on setup release the performance counter hardware */
 		release_pmc_hardware();
 	}
@@ -88,8 +98,11 @@ static void op_powerpc_cpu_start(void *dummy)
 	int ret;
 
 	ret = model->start(ctr);
+
 	if (ret != 0)
+	{
 		op_per_cpu_rc = ret;
+	}
 }
 
 static int op_powerpc_start(void)
@@ -97,11 +110,16 @@ static int op_powerpc_start(void)
 	op_per_cpu_rc = 0;
 
 	if (model->global_start)
+	{
 		return model->global_start(ctr);
-	if (model->start) {
+	}
+
+	if (model->start)
+	{
 		on_each_cpu(op_powerpc_cpu_start, NULL, 1);
 		return op_per_cpu_rc;
 	}
+
 	return -EIO; /* No start function is defined for this
 			power architecture */
 }
@@ -114,9 +132,14 @@ static inline void op_powerpc_cpu_stop(void *dummy)
 static void op_powerpc_stop(void)
 {
 	if (model->stop)
+	{
 		on_each_cpu(op_powerpc_cpu_stop, NULL, 1);
-        if (model->global_stop)
-                model->global_stop();
+	}
+
+	if (model->global_stop)
+	{
+		model->global_stop();
+	}
 }
 
 static int op_powerpc_create_files(struct dentry *root)
@@ -155,7 +178,8 @@ static int op_powerpc_create_files(struct dentry *root)
 #endif
 #endif
 
-	for (i = 0; i < model->num_counters; ++i) {
+	for (i = 0; i < model->num_counters; ++i)
+	{
 		struct dentry *dir;
 		char buf[4];
 
@@ -192,36 +216,48 @@ static int op_powerpc_create_files(struct dentry *root)
 int __init oprofile_arch_init(struct oprofile_operations *ops)
 {
 	if (!cur_cpu_spec->oprofile_cpu_type)
+	{
 		return -ENODEV;
+	}
 
-	switch (cur_cpu_spec->oprofile_type) {
+	switch (cur_cpu_spec->oprofile_type)
+	{
 #ifdef CONFIG_PPC_BOOK3S_64
 #ifdef CONFIG_OPROFILE_CELL
+
 		case PPC_OPROFILE_CELL:
 			if (firmware_has_feature(FW_FEATURE_LPAR))
+			{
 				return -ENODEV;
+			}
+
 			model = &op_model_cell;
 			ops->sync_start = model->sync_start;
 			ops->sync_stop = model->sync_stop;
 			break;
 #endif
+
 		case PPC_OPROFILE_POWER4:
 			model = &op_model_power4;
 			break;
+
 		case PPC_OPROFILE_PA6T:
 			model = &op_model_pa6t;
 			break;
 #endif
 #ifdef CONFIG_6xx
+
 		case PPC_OPROFILE_G4:
 			model = &op_model_7450;
 			break;
 #endif
 #if defined(CONFIG_FSL_EMB_PERFMON)
+
 		case PPC_OPROFILE_FSL_EMB:
 			model = &op_model_fsl_emb;
 			break;
 #endif
+
 		default:
 			return -ENODEV;
 	}
@@ -237,7 +273,7 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
 	ops->backtrace = op_powerpc_backtrace;
 
 	printk(KERN_DEBUG "oprofile: using %s performance monitoring.\n",
-	       ops->cpu_type);
+		   ops->cpu_type);
 
 	return 0;
 }

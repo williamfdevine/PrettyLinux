@@ -42,10 +42,11 @@
 #include "setup.h"
 
 #ifndef MEM_SIZE
-#define MEM_SIZE	(16*1024*1024)
+	#define MEM_SIZE	(16*1024*1024)
 #endif
 
-struct stack {
+struct stack
+{
 	u32 irq[3];
 	u32 abt[3];
 	u32 und[3];
@@ -54,7 +55,7 @@ struct stack {
 static struct stack stacks[NR_CPUS];
 
 #ifdef CONFIG_VGA_CONSOLE
-struct screen_info screen_info;
+	struct screen_info screen_info;
 #endif
 
 char elf_platform[ELF_PLATFORM_SIZE];
@@ -67,7 +68,8 @@ static char default_command_line[COMMAND_LINE_SIZE] __initdata = CONFIG_CMDLINE;
 /*
  * Standard memory resources
  */
-static struct resource mem_res[] = {
+static struct resource mem_res[] =
+{
 	{
 		.name = "Kernel code",
 		.start = 0,
@@ -92,7 +94,7 @@ static struct resource mem_res[] = {
 static void __init setup_processor(void)
 {
 	printk(KERN_DEFAULT "CPU: UniCore-II [%08x] revision %d, cr=%08lx\n",
-	       uc32_cpuid, (int)(uc32_cpuid >> 16) & 15, cr_alignment);
+		   uc32_cpuid, (int)(uc32_cpuid >> 16) & 15, cr_alignment);
 
 	sprintf(init_utsname()->machine, "puv3");
 	sprintf(elf_platform, "ucv2");
@@ -112,32 +114,33 @@ void cpu_init(void)
 	 * setup stacks for re-entrant exception handlers
 	 */
 	__asm__ (
-	"mov.a	asr, %1\n\t"
-	"add	sp, %0, %2\n\t"
-	"mov.a	asr, %3\n\t"
-	"add	sp, %0, %4\n\t"
-	"mov.a	asr, %5\n\t"
-	"add	sp, %0, %6\n\t"
-	"mov.a	asr, %7"
-	    :
-	    : "r" (stk),
-	      "r" (PSR_R_BIT | PSR_I_BIT | INTR_MODE),
-	      "I" (offsetof(struct stack, irq[0])),
-	      "r" (PSR_R_BIT | PSR_I_BIT | ABRT_MODE),
-	      "I" (offsetof(struct stack, abt[0])),
-	      "r" (PSR_R_BIT | PSR_I_BIT | EXTN_MODE),
-	      "I" (offsetof(struct stack, und[0])),
-	      "r" (PSR_R_BIT | PSR_I_BIT | PRIV_MODE)
-	: "r30", "cc");
+		"mov.a	asr, %1\n\t"
+		"add	sp, %0, %2\n\t"
+		"mov.a	asr, %3\n\t"
+		"add	sp, %0, %4\n\t"
+		"mov.a	asr, %5\n\t"
+		"add	sp, %0, %6\n\t"
+		"mov.a	asr, %7"
+		:
+		: "r" (stk),
+		"r" (PSR_R_BIT | PSR_I_BIT | INTR_MODE),
+		"I" (offsetof(struct stack, irq[0])),
+		"r" (PSR_R_BIT | PSR_I_BIT | ABRT_MODE),
+		"I" (offsetof(struct stack, abt[0])),
+		"r" (PSR_R_BIT | PSR_I_BIT | EXTN_MODE),
+		"I" (offsetof(struct stack, und[0])),
+		"r" (PSR_R_BIT | PSR_I_BIT | PRIV_MODE)
+		: "r30", "cc");
 }
 
 static int __init uc32_add_memory(unsigned long start, unsigned long size)
 {
 	struct membank *bank = &meminfo.bank[meminfo.nr_banks];
 
-	if (meminfo.nr_banks >= NR_BANKS) {
+	if (meminfo.nr_banks >= NR_BANKS)
+	{
 		printk(KERN_CRIT "NR_BANKS too low, "
-			"ignoring memory at %#lx\n", start);
+			   "ignoring memory at %#lx\n", start);
 		return -EINVAL;
 	}
 
@@ -155,7 +158,9 @@ static int __init uc32_add_memory(unsigned long start, unsigned long size)
 	 * invalid node number.
 	 */
 	if (bank->size == 0)
+	{
 		return -EINVAL;
+	}
 
 	meminfo.nr_banks++;
 	return 0;
@@ -176,15 +181,19 @@ static int __init early_mem(char *p)
 	 * blow away any automatically generated
 	 * size.
 	 */
-	if (usermem) {
+	if (usermem)
+	{
 		usermem = 0;
 		meminfo.nr_banks = 0;
 	}
 
 	start = PHYS_OFFSET;
 	size  = memparse(p, &endp);
+
 	if (*endp == '@')
+	{
 		start = memparse(endp + 1, NULL);
+	}
 
 	uc32_add_memory(start, size);
 
@@ -203,9 +212,12 @@ request_standard_resources(struct meminfo *mi)
 	kernel_data.start   = virt_to_phys(_sdata);
 	kernel_data.end     = virt_to_phys(_end - 1);
 
-	for (i = 0; i < mi->nr_banks; i++) {
+	for (i = 0; i < mi->nr_banks; i++)
+	{
 		if (mi->bank[i].size == 0)
+		{
 			continue;
+		}
 
 		res = alloc_bootmem_low(sizeof(*res));
 		res->name  = "System RAM";
@@ -216,11 +228,16 @@ request_standard_resources(struct meminfo *mi)
 		request_resource(&iomem_resource, res);
 
 		if (kernel_code.start >= res->start &&
-		    kernel_code.end <= res->end)
+			kernel_code.end <= res->end)
+		{
 			request_resource(res, &kernel_code);
+		}
+
 		if (kernel_data.start >= res->start &&
-		    kernel_data.end <= res->end)
+			kernel_data.end <= res->end)
+		{
 			request_resource(res, &kernel_data);
+		}
 	}
 }
 
@@ -230,7 +247,10 @@ static int __init customize_machine(void)
 {
 	/* customizes platform devices, or adds new ones */
 	if (init_machine)
+	{
 		init_machine();
+	}
+
 	return 0;
 }
 arch_initcall(customize_machine);
@@ -284,7 +304,7 @@ static int __init topology_init(void)
 	int i;
 
 	for_each_possible_cpu(i)
-		register_cpu(&cpuinfo_unicore, i);
+	register_cpu(&cpuinfo_unicore, i);
 
 	return 0;
 }
@@ -296,8 +316,12 @@ static int __init proc_cpu_init(void)
 	struct proc_dir_entry *res;
 
 	res = proc_mkdir("cpu", NULL);
+
 	if (!res)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 fs_initcall(proc_cpu_init);
@@ -306,11 +330,11 @@ fs_initcall(proc_cpu_init);
 static int c_show(struct seq_file *m, void *v)
 {
 	seq_printf(m, "Processor\t: UniCore-II rev %d (%s)\n",
-		   (int)(uc32_cpuid >> 16) & 15, elf_platform);
+			   (int)(uc32_cpuid >> 16) & 15, elf_platform);
 
 	seq_printf(m, "BogoMIPS\t: %lu.%02lu\n",
-		   loops_per_jiffy / (500000/HZ),
-		   (loops_per_jiffy / (5000/HZ)) % 100);
+			   loops_per_jiffy / (500000 / HZ),
+			   (loops_per_jiffy / (5000 / HZ)) % 100);
 
 	/* dump out the processor features */
 	seq_puts(m, "Features\t: CMOV UC-F64");
@@ -320,9 +344,9 @@ static int c_show(struct seq_file *m, void *v)
 	seq_printf(m, "CPU revision\t: %d\n", (uc32_cpuid >> 16) & 15);
 
 	seq_printf(m, "Cache type\t: write-back\n"
-			"Cache clean\t: cp0 c5 ops\n"
-			"Cache lockdown\t: not support\n"
-			"Cache format\t: Harvard\n");
+			   "Cache clean\t: cp0 c5 ops\n"
+			   "Cache lockdown\t: not support\n"
+			   "Cache format\t: Harvard\n");
 
 	seq_puts(m, "\n");
 
@@ -346,7 +370,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,

@@ -97,9 +97,9 @@
  *	This macro creates the register values from the desired addresses.
  */
 #define	WXBTAR(hostaddr, pciaddr, size)	\
-			(((hostaddr) & 0xff000000) | \
-			((((size) - 1) & 0xff000000) >> 8) | \
-			(((pciaddr) & 0xff000000) >> 16))
+	(((hostaddr) & 0xff000000) | \
+	 ((((size) - 1) & 0xff000000) >> 8) | \
+	 (((pciaddr) & 0xff000000) >> 16))
 
 #define	PCIIWCR_W0_MEM	0x00000000		/* Window 0 is memory */
 #define	PCIIWCR_W0_IO	0x08000000		/* Window 0 is IO */

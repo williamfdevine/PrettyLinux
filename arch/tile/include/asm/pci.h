@@ -24,7 +24,8 @@
 /*
  * Structure of a PCI controller (host bridge)
  */
-struct pci_controller {
+struct pci_controller
+{
 	int index;		/* PCI domain number */
 	struct pci_bus *root_bus;
 
@@ -139,7 +140,8 @@ static inline void pci_iounmap(struct pci_dev *dev, void __iomem *addr) {}
 /*
  * Structure of a PCI controller (host bridge) on Gx.
  */
-struct pci_controller {
+struct pci_controller
+{
 
 	/* Pointer back to the TRIO that this PCIe port is connected to. */
 	gxio_trio_context_t *trio;

@@ -4,23 +4,29 @@
 #include <asm/stacktrace.h>
 
 void walk_stackframe(unsigned long sp,
-		     int (*fn)(unsigned long addr, void *data),
-		     void *data)
+					 int (*fn)(unsigned long addr, void *data),
+					 void *data)
 {
 	unsigned long high = ALIGN(sp, THREAD_SIZE);
 
-	for (; sp <= high - 4; sp += 4) {
+	for (; sp <= high - 4; sp += 4)
+	{
 		unsigned long addr = *(unsigned long *) sp;
 
 		if (!kernel_text_address(addr))
+		{
 			continue;
+		}
 
 		if (fn(addr, data))
+		{
 			break;
+		}
 	}
 }
 
-struct stack_trace_data {
+struct stack_trace_data
+{
 	struct stack_trace *trace;
 	unsigned int no_sched_functions;
 	unsigned int skip;
@@ -34,9 +40,12 @@ static int save_trace(unsigned long addr, void *d)
 	struct stack_trace *trace = data->trace;
 
 	if (data->no_sched_functions && in_sched_functions(addr))
+	{
 		return 0;
+	}
 
-	if (data->skip) {
+	if (data->skip)
+	{
 		data->skip--;
 		return 0;
 	}
@@ -54,17 +63,23 @@ void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
 	data.trace = trace;
 	data.skip = trace->skip;
 
-	if (tsk != current) {
+	if (tsk != current)
+	{
 		data.no_sched_functions = 1;
 		sp = tsk->thread.ksp;
-	} else {
+	}
+	else
+	{
 		data.no_sched_functions = 0;
 		sp = rdsp();
 	}
 
 	walk_stackframe(sp, save_trace, &data);
+
 	if (trace->nr_entries < trace->max_entries)
+	{
 		trace->entries[trace->nr_entries++] = ULONG_MAX;
+	}
 }
 
 void save_stack_trace(struct stack_trace *trace)

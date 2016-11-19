@@ -164,22 +164,22 @@ extern void paging_init(void);
 #define PAGE_READONLY_X __pgprot(_PAGE_ALL | _PAGE_URE | _PAGE_SRE | _PAGE_EXEC)
 #define PAGE_SHARED \
 	__pgprot(_PAGE_ALL | _PAGE_URE | _PAGE_SRE | _PAGE_UWE | _PAGE_SWE \
-		 | _PAGE_SHARED)
+			 | _PAGE_SHARED)
 #define PAGE_SHARED_X \
 	__pgprot(_PAGE_ALL | _PAGE_URE | _PAGE_SRE | _PAGE_UWE | _PAGE_SWE \
-		 | _PAGE_SHARED | _PAGE_EXEC)
+			 | _PAGE_SHARED | _PAGE_EXEC)
 #define PAGE_COPY       __pgprot(_PAGE_ALL | _PAGE_URE | _PAGE_SRE)
 #define PAGE_COPY_X     __pgprot(_PAGE_ALL | _PAGE_URE | _PAGE_SRE | _PAGE_EXEC)
 
 #define PAGE_KERNEL \
 	__pgprot(_PAGE_ALL | _PAGE_SRE | _PAGE_SWE \
-		 | _PAGE_SHARED | _PAGE_DIRTY | _PAGE_EXEC)
+			 | _PAGE_SHARED | _PAGE_DIRTY | _PAGE_EXEC)
 #define PAGE_KERNEL_RO \
 	__pgprot(_PAGE_ALL | _PAGE_SRE \
-		 | _PAGE_SHARED | _PAGE_DIRTY | _PAGE_EXEC)
+			 | _PAGE_SHARED | _PAGE_DIRTY | _PAGE_EXEC)
 #define PAGE_KERNEL_NOCACHE \
 	__pgprot(_PAGE_ALL | _PAGE_SRE | _PAGE_SWE \
-		 | _PAGE_SHARED | _PAGE_DIRTY | _PAGE_EXEC | _PAGE_CI)
+			 | _PAGE_SHARED | _PAGE_DIRTY | _PAGE_EXEC | _PAGE_CI)
 
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY_X
@@ -215,7 +215,7 @@ extern unsigned long empty_zero_page[2048];
 
 /* to find an entry in a page-table */
 #define PAGE_PTR(address) \
-((unsigned long)(address)>>(PAGE_SHIFT-SIZEOF_PTR_LOG2)&PTR_MASK&~PAGE_MASK)
+	((unsigned long)(address)>>(PAGE_SHIFT-SIZEOF_PTR_LOG2)&PTR_MASK&~PAGE_MASK)
 
 /* to set the page-dir */
 #define SET_PAGE_DIR(tsk, pgdir)
@@ -324,12 +324,12 @@ static inline pte_t __mk_pte(void *page, pgprot_t pgprot)
 #define mk_pte(page, pgprot) __mk_pte(page_address(page), (pgprot))
 
 #define mk_pte_phys(physpage, pgprot) \
-({                                                                      \
-	pte_t __pte;                                                    \
-									\
-	pte_val(__pte) = (physpage) + pgprot_val(pgprot);               \
-	__pte;                                                          \
-})
+	({                                                                      \
+		pte_t __pte;                                                    \
+		\
+		pte_val(__pte) = (physpage) + pgprot_val(pgprot);               \
+		__pte;                                                          \
+	})
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
@@ -406,10 +406,10 @@ static inline void pmd_set(pmd_t *pmdp, pte_t *ptep)
 
 #define pte_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pte %p(%08lx).\n", \
-	       __FILE__, __LINE__, &(e), pte_val(e))
+		   __FILE__, __LINE__, &(e), pte_val(e))
 #define pgd_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pgd %p(%08lx).\n", \
-	       __FILE__, __LINE__, &(e), pgd_val(e))
+		   __FILE__, __LINE__, &(e), pgd_val(e))
 
 extern pgd_t swapper_pg_dir[PTRS_PER_PGD]; /* defined in head.S */
 
@@ -420,7 +420,7 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD]; /* defined in head.S */
  * Actually I am not sure on what this could be used for.
  */
 static inline void update_mmu_cache(struct vm_area_struct *vma,
-	unsigned long address, pte_t *pte)
+									unsigned long address, pte_t *pte)
 {
 }
 

@@ -38,14 +38,14 @@
  */
 
 #ifdef CONFIG_HEXAGON_PHYS_OFFSET
-#ifndef __ASSEMBLY__
-extern unsigned long	__phys_offset;
-#endif
-#define PHYS_OFFSET	__phys_offset
+	#ifndef __ASSEMBLY__
+		extern unsigned long	__phys_offset;
+	#endif
+	#define PHYS_OFFSET	__phys_offset
 #endif
 
 #ifndef PHYS_OFFSET
-#define PHYS_OFFSET	0
+	#define PHYS_OFFSET	0
 #endif
 
 #define PHYS_PFN_OFFSET	(PHYS_OFFSET >> PAGE_SHIFT)
@@ -58,7 +58,8 @@ extern unsigned long	__phys_offset;
 #define STACK_TOP_MAX			TASK_SIZE
 
 #ifndef __ASSEMBLY__
-enum fixed_addresses {
+enum fixed_addresses
+{
 	FIX_KMAP_BEGIN,
 	FIX_KMAP_END,  /*  check for per-cpuism  */
 	__end_of_fixed_addresses

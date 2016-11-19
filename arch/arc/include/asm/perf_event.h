@@ -40,19 +40,21 @@
 #define ARC_REG_PCT_CONTROL_CC	(1 << 16)	/* clear counts */
 #define ARC_REG_PCT_CONTROL_SN	(1 << 17)	/* snapshot */
 
-struct arc_reg_pct_build {
+struct arc_reg_pct_build
+{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-	unsigned int m:8, c:8, r:5, i:1, s:2, v:8;
+	unsigned int m: 8, c: 8, r: 5, i: 1, s: 2, v: 8;
 #else
-	unsigned int v:8, s:2, i:1, r:5, c:8, m:8;
+	unsigned int v: 8, s: 2, i: 1, r: 5, c: 8, m: 8;
 #endif
 };
 
-struct arc_reg_cc_build {
+struct arc_reg_cc_build
+{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-	unsigned int c:16, r:8, v:8;
+	unsigned int c: 16, r: 8, v: 8;
 #else
-	unsigned int v:8, r:8, c:16;
+	unsigned int v: 8, r: 8, c: 16;
 #endif
 };
 
@@ -92,7 +94,8 @@ struct arc_reg_cc_build {
  * complete the mapping of perf event_id to h/w index as latter is needed
  * to program the counter really
  */
-static const char * const arc_pmu_ev_hw_map[] = {
+static const char *const arc_pmu_ev_hw_map[] =
+{
 	/* count cycles */
 	[PERF_COUNT_HW_CPU_CYCLES] = "crun",
 	[PERF_COUNT_HW_REF_CPU_CYCLES] = "crun",
@@ -126,7 +129,8 @@ static const char * const arc_pmu_ev_hw_map[] = {
 #define C(_x)			PERF_COUNT_HW_CACHE_##_x
 #define CACHE_OP_UNSUPPORTED	0xffff
 
-static const unsigned arc_pmu_cache_map[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
+static const unsigned arc_pmu_cache_map[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] =
+{
 	[C(L1D)] = {
 		[C(OP_READ)] = {
 			[C(RESULT_ACCESS)]	= PERF_COUNT_ARC_LDC,
@@ -174,7 +178,7 @@ static const unsigned arc_pmu_cache_map[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
 			[C(RESULT_ACCESS)]	= PERF_COUNT_ARC_LDC,
 			[C(RESULT_MISS)]	= PERF_COUNT_ARC_EDTLB,
 		},
-			/* DTLB LD/ST Miss not segregated by h/w*/
+		/* DTLB LD/ST Miss not segregated by h/w*/
 		[C(OP_WRITE)] = {
 			[C(RESULT_ACCESS)]	= CACHE_OP_UNSUPPORTED,
 			[C(RESULT_MISS)]	= CACHE_OP_UNSUPPORTED,

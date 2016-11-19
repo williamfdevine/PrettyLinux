@@ -31,7 +31,7 @@ extern unsigned long __phys_addr_symbol(unsigned long);
 #define __phys_reloc_hide(x)	(x)
 
 #ifdef CONFIG_FLATMEM
-#define pfn_valid(pfn)          ((pfn) < max_pfn)
+	#define pfn_valid(pfn)          ((pfn) < max_pfn)
 #endif
 
 void clear_page(void *page);
@@ -40,7 +40,7 @@ void copy_page(void *to, void *from);
 #endif	/* !__ASSEMBLY__ */
 
 #ifdef CONFIG_X86_VSYSCALL_EMULATION
-# define __HAVE_ARCH_GATE_AREA 1
+	#define __HAVE_ARCH_GATE_AREA 1
 #endif
 
 #endif /* _ASM_X86_PAGE_64_H */

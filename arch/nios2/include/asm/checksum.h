@@ -13,9 +13,9 @@
 /* Take these from lib/checksum.c */
 extern __wsum csum_partial(const void *buff, int len, __wsum sum);
 extern __wsum csum_partial_copy(const void *src, void *dst, int len,
-				__wsum sum);
+								__wsum sum);
 extern __wsum csum_partial_copy_from_user(const void __user *src, void *dst,
-					int len, __wsum sum, int *csum_err);
+		int len, __wsum sum, int *csum_err);
 #define csum_partial_copy_nocheck(src, dst, len, sum)	\
 	csum_partial_copy((src), (dst), (len), (sum))
 
@@ -45,8 +45,8 @@ static inline __sum16 csum_fold(__wsum sum)
  */
 #define csum_tcpudp_nofold csum_tcpudp_nofold
 static inline __wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr,
-					__u32 len, __u8 proto,
-					__wsum sum)
+										__u32 len, __u8 proto,
+										__wsum sum)
 {
 	__asm__ __volatile__(
 		"add	%0, %1, %0\n"
@@ -60,16 +60,16 @@ static inline __wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr,
 		"add	%0, %0, r8\n"	/* add carry */
 		: "=r" (sum), "=r" (saddr)
 		: "r" (daddr), "r" ((len + proto) << 8),
-		  "0" (sum),
-		  "1" (saddr)
+		"0" (sum),
+		"1" (saddr)
 		: "r8");
 
 	return sum;
 }
 
 static inline __sum16 csum_tcpudp_magic(__be32 saddr, __be32 daddr,
-					__u32 len, __u8 proto,
-					__wsum sum)
+										__u32 len, __u8 proto,
+										__wsum sum)
 {
 	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
 }

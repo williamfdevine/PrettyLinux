@@ -40,7 +40,7 @@ struct op_counter_config counter_config[OP_MAX_COUNTER];
 /* common functions */
 
 u64 op_x86_get_ctrl(struct op_x86_model_spec const *model,
-		    struct op_counter_config *counter_config)
+					struct op_counter_config *counter_config)
 {
 	u64 val = 0;
 	u16 event = (u16)counter_config->event;
@@ -50,8 +50,8 @@ u64 op_x86_get_ctrl(struct op_x86_model_spec const *model,
 	val |= counter_config->kernel ? ARCH_PERFMON_EVENTSEL_OS : 0;
 	val |= (counter_config->unit_mask & 0xFF) << 8;
 	counter_config->extra &= (ARCH_PERFMON_EVENTSEL_INV |
-				  ARCH_PERFMON_EVENTSEL_EDGE |
-				  ARCH_PERFMON_EVENTSEL_CMASK);
+							  ARCH_PERFMON_EVENTSEL_EDGE |
+							  ARCH_PERFMON_EVENTSEL_CMASK);
 	val |= counter_config->extra;
 	event &= model->event_mask ? model->event_mask : 0xFF;
 	val |= event & 0xFF;
@@ -64,11 +64,18 @@ u64 op_x86_get_ctrl(struct op_x86_model_spec const *model,
 static int profile_exceptions_notify(unsigned int val, struct pt_regs *regs)
 {
 	if (ctr_running)
+	{
 		model->check_ctrs(regs, this_cpu_ptr(&cpu_msrs));
+	}
 	else if (!nmi_enabled)
+	{
 		return NMI_DONE;
+	}
 	else
+	{
 		model->stop(this_cpu_ptr(&cpu_msrs));
+	}
+
 	return NMI_HANDLED;
 }
 
@@ -78,24 +85,35 @@ static void nmi_cpu_save_registers(struct op_msrs *msrs)
 	struct op_msr *controls = msrs->controls;
 	unsigned int i;
 
-	for (i = 0; i < model->num_counters; ++i) {
+	for (i = 0; i < model->num_counters; ++i)
+	{
 		if (counters[i].addr)
+		{
 			rdmsrl(counters[i].addr, counters[i].saved);
+		}
 	}
 
-	for (i = 0; i < model->num_controls; ++i) {
+	for (i = 0; i < model->num_controls; ++i)
+	{
 		if (controls[i].addr)
+		{
 			rdmsrl(controls[i].addr, controls[i].saved);
+		}
 	}
 }
 
 static void nmi_cpu_start(void *dummy)
 {
 	struct op_msrs const *msrs = this_cpu_ptr(&cpu_msrs);
+
 	if (!msrs->controls)
+	{
 		WARN_ON_ONCE(1);
+	}
 	else
+	{
 		model->start(msrs);
+	}
 }
 
 static int nmi_start(void)
@@ -112,10 +130,15 @@ static int nmi_start(void)
 static void nmi_cpu_stop(void *dummy)
 {
 	struct op_msrs const *msrs = this_cpu_ptr(&cpu_msrs);
+
 	if (!msrs->controls)
+	{
 		WARN_ON_ONCE(1);
+	}
 	else
+	{
 		model->stop(msrs);
+	}
 }
 
 static void nmi_stop(void)
@@ -150,9 +173,12 @@ static void nmi_shutdown_mux(void)
 	int i;
 
 	if (!has_mux())
+	{
 		return;
+	}
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		kfree(per_cpu(cpu_msrs, i).multiplex);
 		per_cpu(cpu_msrs, i).multiplex = NULL;
 		per_cpu(switch_index, i) = 0;
@@ -166,30 +192,42 @@ static int nmi_setup_mux(void)
 	int i;
 
 	if (!has_mux())
+	{
 		return 1;
+	}
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		per_cpu(cpu_msrs, i).multiplex =
 			kzalloc(multiplex_size, GFP_KERNEL);
+
 		if (!per_cpu(cpu_msrs, i).multiplex)
+		{
 			return 0;
+		}
 	}
 
 	return 1;
 }
 
-static void nmi_cpu_setup_mux(int cpu, struct op_msrs const * const msrs)
+static void nmi_cpu_setup_mux(int cpu, struct op_msrs const *const msrs)
 {
 	int i;
 	struct op_msr *multiplex = msrs->multiplex;
 
 	if (!has_mux())
+	{
 		return;
+	}
 
-	for (i = 0; i < model->num_virt_counters; ++i) {
-		if (counter_config[i].enabled) {
+	for (i = 0; i < model->num_virt_counters; ++i)
+	{
+		if (counter_config[i].enabled)
+		{
 			multiplex[i].saved = -(u64)counter_config[i].count;
-		} else {
+		}
+		else
+		{
 			multiplex[i].saved = 0;
 		}
 	}
@@ -203,10 +241,14 @@ static void nmi_cpu_save_mpx_registers(struct op_msrs *msrs)
 	struct op_msr *multiplex = msrs->multiplex;
 	int i;
 
-	for (i = 0; i < model->num_counters; ++i) {
+	for (i = 0; i < model->num_counters; ++i)
+	{
 		int virt = op_x86_phys_to_virt(i);
+
 		if (counters[i].addr)
+		{
 			rdmsrl(counters[i].addr, multiplex[virt].saved);
+		}
 	}
 }
 
@@ -216,10 +258,14 @@ static void nmi_cpu_restore_mpx_registers(struct op_msrs *msrs)
 	struct op_msr *multiplex = msrs->multiplex;
 	int i;
 
-	for (i = 0; i < model->num_counters; ++i) {
+	for (i = 0; i < model->num_counters; ++i)
+	{
 		int virt = op_x86_phys_to_virt(i);
+
 		if (counters[i].addr)
+		{
 			wrmsrl(counters[i].addr, multiplex[virt].saved);
+		}
 	}
 }
 
@@ -234,10 +280,15 @@ static void nmi_cpu_switch(void *dummy)
 
 	/* move to next set */
 	si += model->num_counters;
+
 	if ((si >= model->num_virt_counters) || (counter_config[si].count == 0))
+	{
 		per_cpu(switch_index, cpu) = 0;
+	}
 	else
+	{
 		per_cpu(switch_index, cpu) = si;
+	}
 
 	model->switch_ctrl(model, msrs);
 	nmi_cpu_restore_mpx_registers(msrs);
@@ -259,13 +310,22 @@ static int nmi_multiplex_on(void)
 static int nmi_switch_event(void)
 {
 	if (!has_mux())
-		return -ENOSYS;		/* not implemented */
+	{
+		return -ENOSYS;    /* not implemented */
+	}
+
 	if (nmi_multiplex_on() < 0)
-		return -EINVAL;		/* not necessary */
+	{
+		return -EINVAL;    /* not necessary */
+	}
 
 	get_online_cpus();
+
 	if (ctr_running)
+	{
 		on_each_cpu(nmi_cpu_switch, NULL, 1);
+	}
+
 	put_online_cpus();
 
 	return 0;
@@ -274,17 +334,21 @@ static int nmi_switch_event(void)
 static inline void mux_init(struct oprofile_operations *ops)
 {
 	if (has_mux())
+	{
 		ops->switch_events = nmi_switch_event;
+	}
 }
 
 static void mux_clone(int cpu)
 {
 	if (!has_mux())
+	{
 		return;
+	}
 
 	memcpy(per_cpu(cpu_msrs, cpu).multiplex,
-	       per_cpu(cpu_msrs, 0).multiplex,
-	       sizeof(struct op_msr) * model->num_virt_counters);
+		   per_cpu(cpu_msrs, 0).multiplex,
+		   sizeof(struct op_msr) * model->num_virt_counters);
 }
 
 #else
@@ -294,7 +358,7 @@ inline int op_x86_virt_to_phys(int virt) { return virt; }
 static inline void nmi_shutdown_mux(void) { }
 static inline int nmi_setup_mux(void) { return 1; }
 static inline void
-nmi_cpu_setup_mux(int cpu, struct op_msrs const * const msrs) { }
+nmi_cpu_setup_mux(int cpu, struct op_msrs const *const msrs) { }
 static inline void mux_init(struct oprofile_operations *ops) { }
 static void mux_clone(int cpu) { }
 
@@ -303,7 +367,8 @@ static void mux_clone(int cpu) { }
 static void free_msrs(void)
 {
 	int i;
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		kfree(per_cpu(cpu_msrs, i).counters);
 		per_cpu(cpu_msrs, i).counters = NULL;
 		kfree(per_cpu(cpu_msrs, i).controls);
@@ -318,19 +383,29 @@ static int allocate_msrs(void)
 	size_t counters_size = sizeof(struct op_msr) * model->num_counters;
 
 	int i;
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		per_cpu(cpu_msrs, i).counters = kzalloc(counters_size,
-							GFP_KERNEL);
+												GFP_KERNEL);
+
 		if (!per_cpu(cpu_msrs, i).counters)
+		{
 			goto fail;
+		}
+
 		per_cpu(cpu_msrs, i).controls = kzalloc(controls_size,
-							GFP_KERNEL);
+												GFP_KERNEL);
+
 		if (!per_cpu(cpu_msrs, i).controls)
+		{
 			goto fail;
+		}
 	}
 
 	if (!nmi_setup_mux())
+	{
 		goto fail;
+	}
 
 	return 1;
 
@@ -358,14 +433,20 @@ static void nmi_cpu_restore_registers(struct op_msrs *msrs)
 	struct op_msr *controls = msrs->controls;
 	unsigned int i;
 
-	for (i = 0; i < model->num_controls; ++i) {
+	for (i = 0; i < model->num_controls; ++i)
+	{
 		if (controls[i].addr)
+		{
 			wrmsrl(controls[i].addr, controls[i].saved);
+		}
 	}
 
-	for (i = 0; i < model->num_counters; ++i) {
+	for (i = 0; i < model->num_counters; ++i)
+	{
 		if (counters[i].addr)
+		{
 			wrmsrl(counters[i].addr, counters[i].saved);
+		}
 	}
 }
 
@@ -390,24 +471,35 @@ static void nmi_cpu_shutdown(void *dummy)
 static void nmi_cpu_up(void *dummy)
 {
 	if (nmi_enabled)
+	{
 		nmi_cpu_setup(dummy);
+	}
+
 	if (ctr_running)
+	{
 		nmi_cpu_start(dummy);
+	}
 }
 
 static void nmi_cpu_down(void *dummy)
 {
 	if (ctr_running)
+	{
 		nmi_cpu_stop(dummy);
+	}
+
 	if (nmi_enabled)
+	{
 		nmi_cpu_shutdown(dummy);
+	}
 }
 
 static int nmi_create_files(struct dentry *root)
 {
 	unsigned int i;
 
-	for (i = 0; i < model->num_virt_counters; ++i) {
+	for (i = 0; i < model->num_virt_counters; ++i)
+	{
 		struct dentry *dir;
 		char buf[4];
 
@@ -417,7 +509,9 @@ static int nmi_create_files(struct dentry *root)
 		 *        sequentially in their struct assignment).
 		 */
 		if (!avail_to_resrv_perfctr_nmi_bit(op_x86_virt_to_phys(i)))
+		{
 			continue;
+		}
 
 		snprintf(buf,  sizeof(buf), "%d", i);
 		dir = oprofilefs_mkdir(root, buf);
@@ -434,23 +528,27 @@ static int nmi_create_files(struct dentry *root)
 }
 
 static int oprofile_cpu_notifier(struct notifier_block *b, unsigned long action,
-				 void *data)
+								 void *data)
 {
 	int cpu = (unsigned long)data;
 
-	switch (action & ~CPU_TASKS_FROZEN) {
-	case CPU_DOWN_FAILED:
-	case CPU_ONLINE:
-		smp_call_function_single(cpu, nmi_cpu_up, NULL, 0);
-		break;
-	case CPU_DOWN_PREPARE:
-		smp_call_function_single(cpu, nmi_cpu_down, NULL, 1);
-		break;
+	switch (action & ~CPU_TASKS_FROZEN)
+	{
+		case CPU_DOWN_FAILED:
+		case CPU_ONLINE:
+			smp_call_function_single(cpu, nmi_cpu_up, NULL, 0);
+			break;
+
+		case CPU_DOWN_PREPARE:
+			smp_call_function_single(cpu, nmi_cpu_down, NULL, 1);
+			break;
 	}
+
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block oprofile_cpu_nb = {
+static struct notifier_block oprofile_cpu_nb =
+{
 	.notifier_call = oprofile_cpu_notifier
 };
 
@@ -460,7 +558,9 @@ static int nmi_setup(void)
 	int cpu;
 
 	if (!allocate_msrs())
+	{
 		return -ENOMEM;
+	}
 
 	/* We need to serialize save and setup for HT because the subset
 	 * of msrs are distinct for save and setup operations
@@ -468,20 +568,26 @@ static int nmi_setup(void)
 
 	/* Assume saved/restored counters are the same on all CPUs */
 	err = model->fill_in_addresses(&per_cpu(cpu_msrs, 0));
-	if (err)
-		goto fail;
 
-	for_each_possible_cpu(cpu) {
+	if (err)
+	{
+		goto fail;
+	}
+
+	for_each_possible_cpu(cpu)
+	{
 		if (!cpu)
+		{
 			continue;
+		}
 
 		memcpy(per_cpu(cpu_msrs, cpu).counters,
-		       per_cpu(cpu_msrs, 0).counters,
-		       sizeof(struct op_msr) * model->num_counters);
+			   per_cpu(cpu_msrs, 0).counters,
+			   sizeof(struct op_msr) * model->num_counters);
 
 		memcpy(per_cpu(cpu_msrs, cpu).controls,
-		       per_cpu(cpu_msrs, 0).controls,
-		       sizeof(struct op_msr) * model->num_controls);
+			   per_cpu(cpu_msrs, 0).controls,
+			   sizeof(struct op_msr) * model->num_controls);
 
 		mux_clone(cpu);
 	}
@@ -491,9 +597,12 @@ static int nmi_setup(void)
 	/* make variables visible to the nmi handler: */
 	smp_mb();
 	err = register_nmi_handler(NMI_LOCAL, profile_exceptions_notify,
-					0, "oprofile");
+							   0, "oprofile");
+
 	if (err)
+	{
 		goto fail;
+	}
 
 	cpu_notifier_register_begin();
 
@@ -545,17 +654,23 @@ static int nmi_suspend(void)
 {
 	/* Only one CPU left, just stop that one */
 	if (nmi_enabled == 1)
+	{
 		nmi_cpu_stop(NULL);
+	}
+
 	return 0;
 }
 
 static void nmi_resume(void)
 {
 	if (nmi_enabled == 1)
+	{
 		nmi_cpu_start(NULL);
+	}
 }
 
-static struct syscore_ops oprofile_syscore_ops = {
+static struct syscore_ops oprofile_syscore_ops =
+{
 	.resume		= nmi_resume,
 	.suspend	= nmi_suspend,
 };
@@ -582,24 +697,29 @@ static int __init p4_init(char **cpu_type)
 	__u8 cpu_model = boot_cpu_data.x86_model;
 
 	if (cpu_model > 6 || cpu_model == 5)
+	{
 		return 0;
+	}
 
 #ifndef CONFIG_SMP
 	*cpu_type = "i386/p4";
 	model = &op_p4_spec;
 	return 1;
 #else
-	switch (smp_num_siblings) {
-	case 1:
-		*cpu_type = "i386/p4";
-		model = &op_p4_spec;
-		return 1;
 
-	case 2:
-		*cpu_type = "i386/p4-ht";
-		model = &op_p4_ht2_spec;
-		return 1;
+	switch (smp_num_siblings)
+	{
+		case 1:
+			*cpu_type = "i386/p4";
+			model = &op_p4_spec;
+			return 1;
+
+		case 2:
+			*cpu_type = "i386/p4-ht";
+			model = &op_p4_ht2_spec;
+			return 1;
 	}
+
 #endif
 
 	printk(KERN_INFO "oprofile: P4 HyperThreading detected with > 2 threads\n");
@@ -607,7 +727,8 @@ static int __init p4_init(char **cpu_type)
 	return 0;
 }
 
-enum __force_cpu_type {
+enum __force_cpu_type
+{
 	reserved = 0,		/* do not force */
 	timer,
 	arch_perfmon,
@@ -617,13 +738,18 @@ static int force_cpu_type;
 
 static int set_cpu_type(const char *str, struct kernel_param *kp)
 {
-	if (!strcmp(str, "timer")) {
+	if (!strcmp(str, "timer"))
+	{
 		force_cpu_type = timer;
 		printk(KERN_INFO "oprofile: forcing NMI timer mode\n");
-	} else if (!strcmp(str, "arch_perfmon")) {
+	}
+	else if (!strcmp(str, "arch_perfmon"))
+	{
 		force_cpu_type = arch_perfmon;
 		printk(KERN_INFO "oprofile: forcing architectural perfmon\n");
-	} else {
+	}
+	else
+	{
 		force_cpu_type = 0;
 	}
 
@@ -637,7 +763,9 @@ static int __init ppro_init(char **cpu_type)
 	struct op_x86_model_spec *spec = &op_ppro_spec;	/* default */
 
 	if (force_cpu_type == arch_perfmon && boot_cpu_has(X86_FEATURE_ARCH_PERFMON))
+	{
 		return 0;
+	}
 
 	/*
 	 * Documentation on identifying Intel processors by CPU family
@@ -651,42 +779,51 @@ static int __init ppro_init(char **cpu_type)
 	 * Manual Volume 3B: System Programming Guide", "Table B-1
 	 * CPUID Signature Values of DisplayFamily_DisplayModel".
 	 */
-	switch (cpu_model) {
-	case 0 ... 2:
-		*cpu_type = "i386/ppro";
-		break;
-	case 3 ... 5:
-		*cpu_type = "i386/pii";
-		break;
-	case 6 ... 8:
-	case 10 ... 11:
-		*cpu_type = "i386/piii";
-		break;
-	case 9:
-	case 13:
-		*cpu_type = "i386/p6_mobile";
-		break;
-	case 14:
-		*cpu_type = "i386/core";
-		break;
-	case 0x0f:
-	case 0x16:
-	case 0x17:
-	case 0x1d:
-		*cpu_type = "i386/core_2";
-		break;
-	case 0x1a:
-	case 0x1e:
-	case 0x2e:
-		spec = &op_arch_perfmon_spec;
-		*cpu_type = "i386/core_i7";
-		break;
-	case 0x1c:
-		*cpu_type = "i386/atom";
-		break;
-	default:
-		/* Unknown */
-		return 0;
+	switch (cpu_model)
+	{
+		case 0 ... 2:
+			*cpu_type = "i386/ppro";
+			break;
+
+		case 3 ... 5:
+			*cpu_type = "i386/pii";
+			break;
+
+		case 6 ... 8:
+		case 10 ... 11:
+			*cpu_type = "i386/piii";
+			break;
+
+		case 9:
+		case 13:
+			*cpu_type = "i386/p6_mobile";
+			break;
+
+		case 14:
+			*cpu_type = "i386/core";
+			break;
+
+		case 0x0f:
+		case 0x16:
+		case 0x17:
+		case 0x1d:
+			*cpu_type = "i386/core_2";
+			break;
+
+		case 0x1a:
+		case 0x1e:
+		case 0x2e:
+			spec = &op_arch_perfmon_spec;
+			*cpu_type = "i386/core_i7";
+			break;
+
+		case 0x1c:
+			*cpu_type = "i386/atom";
+			break;
+
+		default:
+			/* Unknown */
+			return 0;
 	}
 
 	model = spec;
@@ -701,76 +838,96 @@ int __init op_nmi_init(struct oprofile_operations *ops)
 	int ret = 0;
 
 	if (!boot_cpu_has(X86_FEATURE_APIC))
+	{
 		return -ENODEV;
+	}
 
 	if (force_cpu_type == timer)
+	{
 		return -ENODEV;
+	}
 
-	switch (vendor) {
-	case X86_VENDOR_AMD:
-		/* Needs to be at least an Athlon (or hammer in 32bit mode) */
+	switch (vendor)
+	{
+		case X86_VENDOR_AMD:
 
-		switch (family) {
-		case 6:
-			cpu_type = "i386/athlon";
+			/* Needs to be at least an Athlon (or hammer in 32bit mode) */
+
+			switch (family)
+			{
+				case 6:
+					cpu_type = "i386/athlon";
+					break;
+
+				case 0xf:
+					/*
+					 * Actually it could be i386/hammer too, but
+					 * give user space an consistent name.
+					 */
+					cpu_type = "x86-64/hammer";
+					break;
+
+				case 0x10:
+					cpu_type = "x86-64/family10";
+					break;
+
+				case 0x11:
+					cpu_type = "x86-64/family11h";
+					break;
+
+				case 0x12:
+					cpu_type = "x86-64/family12h";
+					break;
+
+				case 0x14:
+					cpu_type = "x86-64/family14h";
+					break;
+
+				case 0x15:
+					cpu_type = "x86-64/family15h";
+					break;
+
+				default:
+					return -ENODEV;
+			}
+
+			model = &op_amd_spec;
 			break;
-		case 0xf:
-			/*
-			 * Actually it could be i386/hammer too, but
-			 * give user space an consistent name.
-			 */
-			cpu_type = "x86-64/hammer";
+
+		case X86_VENDOR_INTEL:
+			switch (family)
+			{
+				/* Pentium IV */
+				case 0xf:
+					p4_init(&cpu_type);
+					break;
+
+				/* A P6-class processor */
+				case 6:
+					ppro_init(&cpu_type);
+					break;
+
+				default:
+					break;
+			}
+
+			if (cpu_type)
+			{
+				break;
+			}
+
+			if (!boot_cpu_has(X86_FEATURE_ARCH_PERFMON))
+			{
+				return -ENODEV;
+			}
+
+			/* use arch perfmon as fallback */
+			cpu_type = "i386/arch_perfmon";
+			model = &op_arch_perfmon_spec;
 			break;
-		case 0x10:
-			cpu_type = "x86-64/family10";
-			break;
-		case 0x11:
-			cpu_type = "x86-64/family11h";
-			break;
-		case 0x12:
-			cpu_type = "x86-64/family12h";
-			break;
-		case 0x14:
-			cpu_type = "x86-64/family14h";
-			break;
-		case 0x15:
-			cpu_type = "x86-64/family15h";
-			break;
+
 		default:
 			return -ENODEV;
-		}
-		model = &op_amd_spec;
-		break;
-
-	case X86_VENDOR_INTEL:
-		switch (family) {
-			/* Pentium IV */
-		case 0xf:
-			p4_init(&cpu_type);
-			break;
-
-			/* A P6-class processor */
-		case 6:
-			ppro_init(&cpu_type);
-			break;
-
-		default:
-			break;
-		}
-
-		if (cpu_type)
-			break;
-
-		if (!boot_cpu_has(X86_FEATURE_ARCH_PERFMON))
-			return -ENODEV;
-
-		/* use arch perfmon as fallback */
-		cpu_type = "i386/arch_perfmon";
-		model = &op_arch_perfmon_spec;
-		break;
-
-	default:
-		return -ENODEV;
 	}
 
 	/* default values, can be overwritten by model */
@@ -782,12 +939,19 @@ int __init op_nmi_init(struct oprofile_operations *ops)
 	ops->cpu_type		= cpu_type;
 
 	if (model->init)
+	{
 		ret = model->init(ops);
+	}
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!model->num_virt_counters)
+	{
 		model->num_virt_counters = model->num_counters;
+	}
 
 	mux_init(ops);
 

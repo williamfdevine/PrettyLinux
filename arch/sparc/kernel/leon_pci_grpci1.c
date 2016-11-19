@@ -33,7 +33,8 @@
 /*
  * GRPCI1 APB Register MAP
  */
-struct grpci1_regs {
+struct grpci1_regs
+{
 	unsigned int cfg_stat;		/* 0x00 Configuration / Status */
 	unsigned int bar0;		/* 0x04 BAR0 (RO) */
 	unsigned int page0;		/* 0x08 PAGE0 (RO) */
@@ -71,14 +72,15 @@ struct grpci1_regs {
 #define IRQ_MASK_BIT 16
 
 #define DEF_PCI_ERRORS (PCI_STATUS_SIG_TARGET_ABORT | \
-			PCI_STATUS_REC_TARGET_ABORT | \
-			PCI_STATUS_REC_MASTER_ABORT)
+						PCI_STATUS_REC_TARGET_ABORT | \
+						PCI_STATUS_REC_MASTER_ABORT)
 #define ALL_PCI_ERRORS (PCI_STATUS_PARITY | PCI_STATUS_DETECTED_PARITY | \
-			PCI_STATUS_SIG_SYSTEM_ERROR | DEF_PCI_ERRORS)
+						PCI_STATUS_SIG_SYSTEM_ERROR | DEF_PCI_ERRORS)
 
 #define TGT 256
 
-struct grpci1_priv {
+struct grpci1_priv
+{
 	struct leon_pci_info	info; /* must be on top of this structure */
 	struct grpci1_regs __iomem *regs;		/* GRPCI register map */
 	struct device		*dev;
@@ -99,7 +101,7 @@ struct grpci1_priv {
 static struct grpci1_priv *grpci1priv;
 
 static int grpci1_cfg_w32(struct grpci1_priv *priv, unsigned int bus,
-				unsigned int devfn, int where, u32 val);
+						  unsigned int devfn, int where, u32 val);
 
 static int grpci1_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
@@ -114,16 +116,21 @@ static int grpci1_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 }
 
 static int grpci1_cfg_r32(struct grpci1_priv *priv, unsigned int bus,
-				unsigned int devfn, int where, u32 *val)
+						  unsigned int devfn, int where, u32 *val)
 {
 	u32 *pci_conf, tmp, cfg;
 
 	if (where & 0x3)
+	{
 		return -EINVAL;
+	}
 
-	if (bus == 0) {
+	if (bus == 0)
+	{
 		devfn += (0x8 * 6); /* start at AD16=Device0 */
-	} else if (bus == TGT) {
+	}
+	else if (bus == TGT)
+	{
 		bus = 0;
 		devfn = 0; /* special case: bridge controller itself */
 	}
@@ -137,12 +144,15 @@ static int grpci1_cfg_r32(struct grpci1_priv *priv, unsigned int bus,
 	tmp = LEON3_BYPASS_LOAD_PA(pci_conf);
 
 	/* check if master abort was received */
-	if (REGLOAD(priv->regs->cfg_stat) & CFGSTAT_CTO) {
+	if (REGLOAD(priv->regs->cfg_stat) & CFGSTAT_CTO)
+	{
 		*val = 0xffffffff;
 		/* Clear Master abort bit in PCI cfg space (is set) */
 		tmp = REGLOAD(priv->regs->stat_cmd);
 		grpci1_cfg_w32(priv, TGT, 0, PCI_COMMAND, tmp);
-	} else {
+	}
+	else
+	{
 		/* Bus always little endian (unaffected by byte-swapping) */
 		*val = swab32(tmp);
 	}
@@ -151,20 +161,23 @@ static int grpci1_cfg_r32(struct grpci1_priv *priv, unsigned int bus,
 }
 
 static int grpci1_cfg_r16(struct grpci1_priv *priv, unsigned int bus,
-				unsigned int devfn, int where, u32 *val)
+						  unsigned int devfn, int where, u32 *val)
 {
 	u32 v;
 	int ret;
 
 	if (where & 0x1)
+	{
 		return -EINVAL;
+	}
+
 	ret = grpci1_cfg_r32(priv, bus, devfn, where & ~0x3, &v);
 	*val = 0xffff & (v >> (8 * (where & 0x3)));
 	return ret;
 }
 
 static int grpci1_cfg_r8(struct grpci1_priv *priv, unsigned int bus,
-				unsigned int devfn, int where, u32 *val)
+						 unsigned int devfn, int where, u32 *val)
 {
 	u32 v;
 	int ret;
@@ -176,17 +189,22 @@ static int grpci1_cfg_r8(struct grpci1_priv *priv, unsigned int bus,
 }
 
 static int grpci1_cfg_w32(struct grpci1_priv *priv, unsigned int bus,
-				unsigned int devfn, int where, u32 val)
+						  unsigned int devfn, int where, u32 val)
 {
 	unsigned int *pci_conf;
 	u32 cfg;
 
 	if (where & 0x3)
+	{
 		return -EINVAL;
+	}
 
-	if (bus == 0) {
+	if (bus == 0)
+	{
 		devfn += (0x8 * 6); /* start at AD16=Device0 */
-	} else if (bus == TGT) {
+	}
+	else if (bus == TGT)
+	{
 		bus = 0;
 		devfn = 0; /* special case: bridge controller itself */
 	}
@@ -196,39 +214,50 @@ static int grpci1_cfg_w32(struct grpci1_priv *priv, unsigned int bus,
 	REGSTORE(priv->regs->cfg_stat, (cfg & ~(0xf << 23)) | (bus << 23));
 
 	pci_conf = (unsigned int *) (priv->pci_conf |
-						(devfn << 8) | (where & 0xfc));
+								 (devfn << 8) | (where & 0xfc));
 	LEON3_BYPASS_STORE_PA(pci_conf, swab32(val));
 
 	return 0;
 }
 
 static int grpci1_cfg_w16(struct grpci1_priv *priv, unsigned int bus,
-				unsigned int devfn, int where, u32 val)
+						  unsigned int devfn, int where, u32 val)
 {
 	int ret;
 	u32 v;
 
 	if (where & 0x1)
+	{
 		return -EINVAL;
-	ret = grpci1_cfg_r32(priv, bus, devfn, where&~3, &v);
+	}
+
+	ret = grpci1_cfg_r32(priv, bus, devfn, where & ~3, &v);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	v = (v & ~(0xffff << (8 * (where & 0x3)))) |
-	    ((0xffff & val) << (8 * (where & 0x3)));
+		((0xffff & val) << (8 * (where & 0x3)));
 	return grpci1_cfg_w32(priv, bus, devfn, where & ~0x3, v);
 }
 
 static int grpci1_cfg_w8(struct grpci1_priv *priv, unsigned int bus,
-				unsigned int devfn, int where, u32 val)
+						 unsigned int devfn, int where, u32 val)
 {
 	int ret;
 	u32 v;
 
 	ret = grpci1_cfg_r32(priv, bus, devfn, where & ~0x3, &v);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
+
 	v = (v & ~(0xff << (8 * (where & 0x3)))) |
-	    ((0xff & val) << (8 * (where & 0x3)));
+		((0xff & val) << (8 * (where & 0x3)));
 	return grpci1_cfg_w32(priv, bus, devfn, where & ~0x3, v);
 }
 
@@ -236,36 +265,41 @@ static int grpci1_cfg_w8(struct grpci1_priv *priv, unsigned int bus,
  * the pci_lock spinlock and IRQ is off.
  */
 static int grpci1_read_config(struct pci_bus *bus, unsigned int devfn,
-			      int where, int size, u32 *val)
+							  int where, int size, u32 *val)
 {
 	struct grpci1_priv *priv = grpci1priv;
 	unsigned int busno = bus->number;
 	int ret;
 
-	if (PCI_SLOT(devfn) > 15 || busno > 15) {
+	if (PCI_SLOT(devfn) > 15 || busno > 15)
+	{
 		*val = ~0;
 		return 0;
 	}
 
-	switch (size) {
-	case 1:
-		ret = grpci1_cfg_r8(priv, busno, devfn, where, val);
-		break;
-	case 2:
-		ret = grpci1_cfg_r16(priv, busno, devfn, where, val);
-		break;
-	case 4:
-		ret = grpci1_cfg_r32(priv, busno, devfn, where, val);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (size)
+	{
+		case 1:
+			ret = grpci1_cfg_r8(priv, busno, devfn, where, val);
+			break;
+
+		case 2:
+			ret = grpci1_cfg_r16(priv, busno, devfn, where, val);
+			break;
+
+		case 4:
+			ret = grpci1_cfg_r32(priv, busno, devfn, where, val);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 #ifdef GRPCI1_DEBUG_CFGACCESS
 	printk(KERN_INFO
-		"grpci1_read_config: [%02x:%02x:%x] ofs=%d val=%x size=%d\n",
-		busno, PCI_SLOT(devfn), PCI_FUNC(devfn), where, *val, size);
+		   "grpci1_read_config: [%02x:%02x:%x] ofs=%d val=%x size=%d\n",
+		   busno, PCI_SLOT(devfn), PCI_FUNC(devfn), where, *val, size);
 #endif
 
 	return ret;
@@ -275,33 +309,40 @@ static int grpci1_read_config(struct pci_bus *bus, unsigned int devfn,
  * the pci_lock spinlock and IRQ is off.
  */
 static int grpci1_write_config(struct pci_bus *bus, unsigned int devfn,
-			       int where, int size, u32 val)
+							   int where, int size, u32 val)
 {
 	struct grpci1_priv *priv = grpci1priv;
 	unsigned int busno = bus->number;
 
 	if (PCI_SLOT(devfn) > 15 || busno > 15)
+	{
 		return 0;
+	}
 
 #ifdef GRPCI1_DEBUG_CFGACCESS
 	printk(KERN_INFO
-		"grpci1_write_config: [%02x:%02x:%x] ofs=%d size=%d val=%x\n",
-		busno, PCI_SLOT(devfn), PCI_FUNC(devfn), where, size, val);
+		   "grpci1_write_config: [%02x:%02x:%x] ofs=%d size=%d val=%x\n",
+		   busno, PCI_SLOT(devfn), PCI_FUNC(devfn), where, size, val);
 #endif
 
-	switch (size) {
-	default:
-		return -EINVAL;
-	case 1:
-		return grpci1_cfg_w8(priv, busno, devfn, where, val);
-	case 2:
-		return grpci1_cfg_w16(priv, busno, devfn, where, val);
-	case 4:
-		return grpci1_cfg_w32(priv, busno, devfn, where, val);
+	switch (size)
+	{
+		default:
+			return -EINVAL;
+
+		case 1:
+			return grpci1_cfg_w8(priv, busno, devfn, where, val);
+
+		case 2:
+			return grpci1_cfg_w16(priv, busno, devfn, where, val);
+
+		case 4:
+			return grpci1_cfg_w32(priv, busno, devfn, where, val);
 	}
 }
 
-static struct pci_ops grpci1_ops = {
+static struct pci_ops grpci1_ops =
+{
 	.read =		grpci1_read_config,
 	.write =	grpci1_write_config,
 };
@@ -317,8 +358,12 @@ static void grpci1_mask_irq(struct irq_data *data)
 	struct grpci1_priv *priv = grpci1priv;
 
 	irqidx = (u32)data->chip_data - 1;
+
 	if (irqidx > 3) /* only mask PCI interrupts here */
+	{
 		return;
+	}
+
 	irqidx += IRQ_MASK_BIT;
 
 	REGSTORE(priv->regs->irq, REGLOAD(priv->regs->irq) & ~(1 << irqidx));
@@ -330,8 +375,12 @@ static void grpci1_unmask_irq(struct irq_data *data)
 	struct grpci1_priv *priv = grpci1priv;
 
 	irqidx = (u32)data->chip_data - 1;
+
 	if (irqidx > 3) /* only unmask PCI interrupts here */
+	{
 		return;
+	}
+
 	irqidx += IRQ_MASK_BIT;
 
 	REGSTORE(priv->regs->irq, REGLOAD(priv->regs->irq) | (1 << irqidx));
@@ -348,7 +397,8 @@ static void grpci1_shutdown_irq(struct irq_data *data)
 	grpci1_mask_irq(data);
 }
 
-static struct irq_chip grpci1_irq = {
+static struct irq_chip grpci1_irq =
+{
 	.name		= "grpci1",
 	.irq_startup	= grpci1_startup_irq,
 	.irq_shutdown	= grpci1_shutdown_irq,
@@ -367,18 +417,24 @@ static void grpci1_pci_flow_irq(struct irq_desc *desc)
 	irqreg = (irqreg >> IRQ_MASK_BIT) & irqreg;
 
 	/* Error Interrupt? */
-	if (irqreg & IRQ_ALL_ERRORS) {
+	if (irqreg & IRQ_ALL_ERRORS)
+	{
 		generic_handle_irq(priv->irq_err);
 		ack = 1;
 	}
 
 	/* PCI Interrupt? */
-	if (irqreg & IRQ_INTX) {
+	if (irqreg & IRQ_INTX)
+	{
 		/* Call respective PCI Interrupt handler */
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++)
+		{
 			if (irqreg & (1 << i))
+			{
 				generic_handle_irq(priv->irq_map[i]);
+			}
 		}
+
 		ack = 1;
 	}
 
@@ -388,7 +444,9 @@ static void grpci1_pci_flow_irq(struct irq_desc *desc)
 	 * avoid double IRQ generation
 	 */
 	if (ack)
+	{
 		desc->irq_data.chip->irq_eoi(&desc->irq_data);
+	}
 }
 
 /* Create a virtual IRQ */
@@ -398,11 +456,14 @@ static unsigned int grpci1_build_device_irq(unsigned int irq)
 
 	pil = 1 << 8;
 	virq = irq_alloc(irq, pil);
+
 	if (virq == 0)
+	{
 		goto out;
+	}
 
 	irq_set_chip_and_handler_name(virq, &grpci1_irq, handle_simple_irq,
-				      "pcilvl");
+								  "pcilvl");
 	irq_set_chip_data(virq, (void *)irq);
 
 out:
@@ -481,25 +542,39 @@ static irqreturn_t grpci1_err_interrupt(int irq, void *arg)
 	status &= priv->pci_err_mask;
 
 	if (status == 0)
+	{
 		return IRQ_NONE;
+	}
 
 	if (status & PCI_STATUS_PARITY)
+	{
 		dev_err(priv->dev, "Data Parity Error\n");
+	}
 
 	if (status & PCI_STATUS_SIG_TARGET_ABORT)
+	{
 		dev_err(priv->dev, "Signalled Target Abort\n");
+	}
 
 	if (status & PCI_STATUS_REC_TARGET_ABORT)
+	{
 		dev_err(priv->dev, "Received Target Abort\n");
+	}
 
 	if (status & PCI_STATUS_REC_MASTER_ABORT)
+	{
 		dev_err(priv->dev, "Received Master Abort\n");
+	}
 
 	if (status & PCI_STATUS_SIG_SYSTEM_ERROR)
+	{
 		dev_err(priv->dev, "Signalled System Error\n");
+	}
 
 	if (status & PCI_STATUS_DETECTED_PARITY)
+	{
 		dev_err(priv->dev, "Parity Error\n");
+	}
 
 	/* Clear handled INT TYPE IRQs */
 	grpci1_cfg_w16(priv, TGT, 0, PCI_STATUS, status);
@@ -516,36 +591,46 @@ static int grpci1_of_probe(struct platform_device *ofdev)
 	u32 cfg, size, err_mask;
 	struct resource *res;
 
-	if (grpci1priv) {
+	if (grpci1priv)
+	{
 		dev_err(&ofdev->dev, "only one GRPCI1 supported\n");
 		return -ENODEV;
 	}
 
-	if (ofdev->num_resources < 3) {
+	if (ofdev->num_resources < 3)
+	{
 		dev_err(&ofdev->dev, "not enough APB/AHB resources\n");
 		return -EIO;
 	}
 
 	priv = devm_kzalloc(&ofdev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&ofdev->dev, "memory allocation failed\n");
 		return -ENOMEM;
 	}
+
 	platform_set_drvdata(ofdev, priv);
 	priv->dev = &ofdev->dev;
 
 	/* find device register base address */
 	res = platform_get_resource(ofdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(&ofdev->dev, res);
+
 	if (IS_ERR(regs))
+	{
 		return PTR_ERR(regs);
+	}
 
 	/*
 	 * check that we're in Host Slot and that we can act as a Host Bridge
 	 * and not only as target/peripheral.
 	 */
 	cfg = REGLOAD(regs->cfg_stat);
-	if ((cfg & CFGSTAT_HOST) == 0) {
+
+	if ((cfg & CFGSTAT_HOST) == 0)
+	{
 		dev_err(&ofdev->dev, "not in host system slot\n");
 		return -EIO;
 	}
@@ -553,13 +638,16 @@ static int grpci1_of_probe(struct platform_device *ofdev)
 	/* check that BAR1 support 256 MByte so that we can map kernel space */
 	REGSTORE(regs->page1, 0xffffffff);
 	size = ~REGLOAD(regs->page1) + 1;
-	if (size < 0x10000000) {
+
+	if (size < 0x10000000)
+	{
 		dev_err(&ofdev->dev, "BAR1 must be at least 256MByte\n");
 		return -EIO;
 	}
 
 	/* hardware must support little-endian PCI (byte-twisting) */
-	if ((REGLOAD(regs->page0) & PAGE0_BTEN) == 0) {
+	if ((REGLOAD(regs->page0) & PAGE0_BTEN) == 0)
+	{
 		dev_err(&ofdev->dev, "byte-twisting is required\n");
 		return -EIO;
 	}
@@ -570,23 +658,25 @@ static int grpci1_of_probe(struct platform_device *ofdev)
 
 	/* Find PCI Memory, I/O and Configuration Space Windows */
 	priv->pci_area = ofdev->resource[1].start;
-	priv->pci_area_end = ofdev->resource[1].end+1;
+	priv->pci_area_end = ofdev->resource[1].end + 1;
 	priv->pci_io = ofdev->resource[2].start;
 	priv->pci_conf = ofdev->resource[2].start + 0x10000;
 	priv->pci_conf_end = priv->pci_conf + 0x10000;
 	priv->pci_io_va = (unsigned long)ioremap(priv->pci_io, 0x10000);
-	if (!priv->pci_io_va) {
+
+	if (!priv->pci_io_va)
+	{
 		dev_err(&ofdev->dev, "unable to map PCI I/O area\n");
 		return -EIO;
 	}
 
 	printk(KERN_INFO
-		"GRPCI1: MEMORY SPACE [0x%08lx - 0x%08lx]\n"
-		"        I/O    SPACE [0x%08lx - 0x%08lx]\n"
-		"        CONFIG SPACE [0x%08lx - 0x%08lx]\n",
-		priv->pci_area, priv->pci_area_end-1,
-		priv->pci_io, priv->pci_conf-1,
-		priv->pci_conf, priv->pci_conf_end-1);
+		   "GRPCI1: MEMORY SPACE [0x%08lx - 0x%08lx]\n"
+		   "        I/O    SPACE [0x%08lx - 0x%08lx]\n"
+		   "        CONFIG SPACE [0x%08lx - 0x%08lx]\n",
+		   priv->pci_area, priv->pci_area_end - 1,
+		   priv->pci_io, priv->pci_conf - 1,
+		   priv->pci_conf, priv->pci_conf_end - 1);
 
 	/*
 	 * I/O Space resources in I/O Window mapped into Virtual Adr Space
@@ -607,13 +697,15 @@ static int grpci1_of_probe(struct platform_device *ofdev)
 	priv->info.mem_space.end = priv->pci_area_end - 1;
 	priv->info.mem_space.flags = IORESOURCE_MEM;
 
-	if (request_resource(&iomem_resource, &priv->info.mem_space) < 0) {
+	if (request_resource(&iomem_resource, &priv->info.mem_space) < 0)
+	{
 		dev_err(&ofdev->dev, "unable to request PCI memory area\n");
 		err = -ENOMEM;
 		goto err1;
 	}
 
-	if (request_resource(&ioport_resource, &priv->info.io_space) < 0) {
+	if (request_resource(&ioport_resource, &priv->info.io_space) < 0)
+	{
 		dev_err(&ofdev->dev, "unable to request PCI I/O area\n");
 		err = -ENOMEM;
 		goto err2;
@@ -643,31 +735,39 @@ static int grpci1_of_probe(struct platform_device *ofdev)
 	priv->irq_err = grpci1_build_device_irq(5);
 
 	printk(KERN_INFO "        PCI INTA..D#: IRQ%d, IRQ%d, IRQ%d, IRQ%d\n",
-		priv->irq_map[0], priv->irq_map[1], priv->irq_map[2],
-		priv->irq_map[3]);
+		   priv->irq_map[0], priv->irq_map[1], priv->irq_map[2],
+		   priv->irq_map[3]);
 
 	/* Enable IRQs on LEON IRQ controller */
 	err = devm_request_irq(&ofdev->dev, priv->irq, grpci1_jump_interrupt, 0,
-				"GRPCI1_JUMP", priv);
-	if (err) {
+						   "GRPCI1_JUMP", priv);
+
+	if (err)
+	{
 		dev_err(&ofdev->dev, "ERR IRQ request failed: %d\n", err);
 		goto err3;
 	}
 
 	/* Setup IRQ handler for access errors */
 	err = devm_request_irq(&ofdev->dev, priv->irq_err,
-				grpci1_err_interrupt, IRQF_SHARED, "GRPCI1_ERR",
-				priv);
-	if (err) {
+						   grpci1_err_interrupt, IRQF_SHARED, "GRPCI1_ERR",
+						   priv);
+
+	if (err)
+	{
 		dev_err(&ofdev->dev, "ERR VIRQ request failed: %d\n", err);
 		goto err3;
 	}
 
 	tmp = of_get_property(ofdev->dev.of_node, "all_pci_errors", &len);
-	if (tmp && (len == 4)) {
+
+	if (tmp && (len == 4))
+	{
 		priv->pci_err_mask = ALL_PCI_ERRORS;
 		err_mask = IRQ_ALL_ERRORS << IRQ_MASK_BIT;
-	} else {
+	}
+	else
+	{
 		priv->pci_err_mask = DEF_PCI_ERRORS;
 		err_mask = IRQ_DEF_ERRORS << IRQ_MASK_BIT;
 	}
@@ -695,17 +795,19 @@ err1:
 	return err;
 }
 
-static struct of_device_id grpci1_of_match[] = {
+static struct of_device_id grpci1_of_match[] =
+{
 	{
-	 .name = "GAISLER_PCIFBRG",
-	 },
+		.name = "GAISLER_PCIFBRG",
+	},
 	{
-	 .name = "01_014",
-	 },
+		.name = "01_014",
+	},
 	{},
 };
 
-static struct platform_driver grpci1_of_driver = {
+static struct platform_driver grpci1_of_driver =
+{
 	.driver = {
 		.name = "grpci1",
 		.of_match_table = grpci1_of_match,

@@ -69,11 +69,11 @@ cycle_t ep93xx_clocksource_read(struct clocksource *c)
 }
 
 static int ep93xx_clkevt_set_next_event(unsigned long next,
-					struct clock_event_device *evt)
+										struct clock_event_device *evt)
 {
 	/* Default mode: periodic, off, 508 kHz */
 	u32 tmode = EP93XX_TIMER123_CONTROL_MODE |
-		    EP93XX_TIMER123_CONTROL_CLKSEL;
+				EP93XX_TIMER123_CONTROL_CLKSEL;
 
 	/* Clear timer */
 	writel(tmode, EP93XX_TIMER3_CONTROL);
@@ -81,8 +81,8 @@ static int ep93xx_clkevt_set_next_event(unsigned long next,
 	/* Set next event */
 	writel(next, EP93XX_TIMER3_LOAD);
 	writel(tmode | EP93XX_TIMER123_CONTROL_ENABLE,
-	       EP93XX_TIMER3_CONTROL);
-        return 0;
+		   EP93XX_TIMER3_CONTROL);
+	return 0;
 }
 
 
@@ -94,7 +94,8 @@ static int ep93xx_clkevt_shutdown(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device ep93xx_clockevent = {
+static struct clock_event_device ep93xx_clockevent =
+{
 	.name			= "timer1",
 	.features		= CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= ep93xx_clkevt_shutdown,
@@ -116,7 +117,8 @@ static irqreturn_t ep93xx_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction ep93xx_timer_irq = {
+static struct irqaction ep93xx_timer_irq =
+{
 	.name		= "ep93xx timer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= ep93xx_timer_interrupt,
@@ -127,17 +129,17 @@ void __init ep93xx_timer_init(void)
 {
 	/* Enable and register clocksource and sched_clock on timer 4 */
 	writel(EP93XX_TIMER4_VALUE_HIGH_ENABLE,
-	       EP93XX_TIMER4_VALUE_HIGH);
+		   EP93XX_TIMER4_VALUE_HIGH);
 	clocksource_mmio_init(NULL, "timer4",
-			      EP93XX_TIMER4_RATE, 200, 40,
-			      ep93xx_clocksource_read);
+						  EP93XX_TIMER4_RATE, 200, 40,
+						  ep93xx_clocksource_read);
 	sched_clock_register(ep93xx_read_sched_clock, 40,
-			     EP93XX_TIMER4_RATE);
+						 EP93XX_TIMER4_RATE);
 
 	/* Set up clockevent on timer 3 */
 	setup_irq(IRQ_EP93XX_TIMER3, &ep93xx_timer_irq);
 	clockevents_config_and_register(&ep93xx_clockevent,
-					EP93XX_TIMER123_RATE,
-					1,
-					0xffffffffU);
+									EP93XX_TIMER123_RATE,
+									1,
+									0xffffffffU);
 }

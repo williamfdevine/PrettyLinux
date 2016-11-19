@@ -9,10 +9,12 @@
 #define PCID		4
 
 /* This table is filled in by interrogating the PIIX4 chip */
-static char pci_irq[5] = {
+static char pci_irq[5] =
+{
 };
 
-static char irq_tab[][5] __initdata = {
+static char irq_tab[][5] __initdata =
+{
 	/*	INTA	INTB	INTC	INTD */
 	{0,	0,	0,	0,	0 },	/*  0: GT64120 PCI bridge */
 	{0,	0,	0,	0,	0 },	/*  1: Unused */
@@ -58,11 +60,11 @@ static void malta_piix_func3_base_fixup(struct pci_dev *dev)
 
 	/* Enable access to the PM I/O region */
 	pci_write_config_byte(dev, PIIX4_FUNC3_PMREGMISC,
-			      PIIX4_FUNC3_PMREGMISC_EN);
+						  PIIX4_FUNC3_PMREGMISC_EN);
 }
 
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371AB_3,
-			malta_piix_func3_base_fixup);
+						malta_piix_func3_base_fixup);
 
 static void malta_piix_func0_fixup(struct pci_dev *pdev)
 {
@@ -70,7 +72,8 @@ static void malta_piix_func0_fixup(struct pci_dev *pdev)
 	u32 reg_val32;
 	u16 reg_val16;
 	/* PIIX PIRQC[A:D] irq mappings */
-	static int piixirqmap[PIIX4_FUNC0_PIRQRC_IRQ_ROUTING_MAX] = {
+	static int piixirqmap[PIIX4_FUNC0_PIRQRC_IRQ_ROUTING_MAX] =
+	{
 		0,  0,	0,  3,
 		4,  5,	6,  7,
 		0,  9, 10, 11,
@@ -79,30 +82,35 @@ static void malta_piix_func0_fixup(struct pci_dev *pdev)
 	int i;
 
 	/* Interrogate PIIX4 to get PCI IRQ mapping */
-	for (i = 0; i <= 3; i++) {
-		pci_read_config_byte(pdev, PIIX4_FUNC0_PIRQRC+i, &reg_val);
+	for (i = 0; i <= 3; i++)
+	{
+		pci_read_config_byte(pdev, PIIX4_FUNC0_PIRQRC + i, &reg_val);
+
 		if (reg_val & PIIX4_FUNC0_PIRQRC_IRQ_ROUTING_DISABLE)
-			pci_irq[PCIA+i] = 0;	/* Disabled */
+		{
+			pci_irq[PCIA + i] = 0;    /* Disabled */
+		}
 		else
-			pci_irq[PCIA+i] = piixirqmap[reg_val &
-				PIIX4_FUNC0_PIRQRC_IRQ_ROUTING_MASK];
+			pci_irq[PCIA + i] = piixirqmap[reg_val &
+										   PIIX4_FUNC0_PIRQRC_IRQ_ROUTING_MASK];
 	}
 
 	/* Done by YAMON 2.00 onwards */
-	if (PCI_SLOT(pdev->devfn) == 10) {
+	if (PCI_SLOT(pdev->devfn) == 10)
+	{
 		/*
 		 * Set top of main memory accessible by ISA or DMA
 		 * devices to 16 Mb.
 		 */
 		pci_read_config_byte(pdev, PIIX4_FUNC0_TOM, &reg_val);
 		pci_write_config_byte(pdev, PIIX4_FUNC0_TOM, reg_val |
-				PIIX4_FUNC0_TOM_TOP_OF_MEMORY_MASK);
+							  PIIX4_FUNC0_TOM_TOP_OF_MEMORY_MASK);
 	}
 
 	/* Mux SERIRQ to its pin */
 	pci_read_config_dword(pdev, PIIX4_FUNC0_GENCFG, &reg_val32);
 	pci_write_config_dword(pdev, PIIX4_FUNC0_GENCFG,
-			       reg_val32 | PIIX4_FUNC0_GENCFG_SERIRQ);
+						   reg_val32 | PIIX4_FUNC0_GENCFG_SERIRQ);
 
 	/* Enable SERIRQ */
 	pci_read_config_byte(pdev, PIIX4_FUNC0_SERIRQC, &reg_val);
@@ -112,34 +120,35 @@ static void malta_piix_func0_fixup(struct pci_dev *pdev)
 	/* Enable response to special cycles */
 	pci_read_config_word(pdev, PCI_COMMAND, &reg_val16);
 	pci_write_config_word(pdev, PCI_COMMAND,
-			      reg_val16 | PCI_COMMAND_SPECIAL);
+						  reg_val16 | PCI_COMMAND_SPECIAL);
 }
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371AB_0,
-	 malta_piix_func0_fixup);
+						 malta_piix_func0_fixup);
 
 static void malta_piix_func1_fixup(struct pci_dev *pdev)
 {
 	unsigned char reg_val;
 
 	/* Done by YAMON 2.02 onwards */
-	if (PCI_SLOT(pdev->devfn) == 10) {
+	if (PCI_SLOT(pdev->devfn) == 10)
+	{
 		/*
 		 * IDE Decode enable.
 		 */
 		pci_read_config_byte(pdev, PIIX4_FUNC1_IDETIM_PRIMARY_HI,
-			&reg_val);
+							 &reg_val);
 		pci_write_config_byte(pdev, PIIX4_FUNC1_IDETIM_PRIMARY_HI,
-			reg_val|PIIX4_FUNC1_IDETIM_PRIMARY_HI_IDE_DECODE_EN);
+							  reg_val | PIIX4_FUNC1_IDETIM_PRIMARY_HI_IDE_DECODE_EN);
 		pci_read_config_byte(pdev, PIIX4_FUNC1_IDETIM_SECONDARY_HI,
-			&reg_val);
+							 &reg_val);
 		pci_write_config_byte(pdev, PIIX4_FUNC1_IDETIM_SECONDARY_HI,
-			reg_val|PIIX4_FUNC1_IDETIM_SECONDARY_HI_IDE_DECODE_EN);
+							  reg_val | PIIX4_FUNC1_IDETIM_SECONDARY_HI_IDE_DECODE_EN);
 	}
 }
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371AB,
-	 malta_piix_func1_fixup);
+						 malta_piix_func1_fixup);
 
 /* Enable PCI 2.1 compatibility in PIIX4 */
 static void quirk_dlcsetup(struct pci_dev *dev)
@@ -149,10 +158,10 @@ static void quirk_dlcsetup(struct pci_dev *dev)
 	(void) pci_read_config_byte(dev, PIIX4_FUNC0_DLC, &odlc);
 	/* Enable passive releases and delayed transaction */
 	ndlc = odlc | PIIX4_FUNC0_DLC_USBPR_EN |
-		      PIIX4_FUNC0_DLC_PASSIVE_RELEASE_EN |
-		      PIIX4_FUNC0_DLC_DELAYED_TRANSACTION_EN;
+		   PIIX4_FUNC0_DLC_PASSIVE_RELEASE_EN |
+		   PIIX4_FUNC0_DLC_DELAYED_TRANSACTION_EN;
 	(void) pci_write_config_byte(dev, PIIX4_FUNC0_DLC, ndlc);
 }
 
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371AB_0,
-	quirk_dlcsetup);
+						quirk_dlcsetup);

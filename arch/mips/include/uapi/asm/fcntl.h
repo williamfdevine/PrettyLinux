@@ -44,9 +44,9 @@
 #define F_GETOWN	23	/*  for sockets. */
 
 #ifndef __mips64
-#define F_GETLK64	33	/*  using 'struct flock64' */
-#define F_SETLK64	34
-#define F_SETLKW64	35
+	#define F_GETLK64	33	/*  using 'struct flock64' */
+	#define F_SETLK64	34
+	#define F_SETLKW64	35
 #endif
 
 /*
@@ -60,7 +60,8 @@
 
 #include <linux/types.h>
 
-struct flock {
+struct flock
+{
 	short	l_type;
 	short	l_whence;
 	__kernel_off_t	l_start;

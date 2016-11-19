@@ -21,16 +21,16 @@
 #define atomic64_set(v, i)	WRITE_ONCE(((v)->counter), (i))
 
 #define ATOMIC_OP(op)							\
-void atomic_##op(int, atomic_t *);					\
-void atomic64_##op(long, atomic64_t *);
+	void atomic_##op(int, atomic_t *);					\
+	void atomic64_##op(long, atomic64_t *);
 
 #define ATOMIC_OP_RETURN(op)						\
-int atomic_##op##_return(int, atomic_t *);				\
-long atomic64_##op##_return(long, atomic64_t *);
+	int atomic_##op##_return(int, atomic_t *);				\
+	long atomic64_##op##_return(long, atomic64_t *);
 
 #define ATOMIC_FETCH_OP(op)						\
-int atomic_fetch_##op(int, atomic_t *);					\
-long atomic64_fetch_##op(long, atomic64_t *);
+	int atomic_fetch_##op(int, atomic_t *);					\
+	long atomic64_fetch_##op(long, atomic64_t *);
 
 #define ATOMIC_OPS(op) ATOMIC_OP(op) ATOMIC_OP_RETURN(op) ATOMIC_FETCH_OP(op)
 
@@ -40,8 +40,8 @@ ATOMIC_OPS(sub)
 #undef ATOMIC_OPS
 #define ATOMIC_OPS(op) ATOMIC_OP(op) ATOMIC_FETCH_OP(op)
 
-ATOMIC_OPS(and)
-ATOMIC_OPS(or)
+ATOMIC_OPS( and )
+ATOMIC_OPS( or )
 ATOMIC_OPS(xor)
 
 #undef ATOMIC_OPS
@@ -88,14 +88,24 @@ static inline int __atomic_add_unless(atomic_t *v, int a, int u)
 {
 	int c, old;
 	c = atomic_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		if (unlikely(c == (u)))
+		{
 			break;
+		}
+
 		old = atomic_cmpxchg((v), c, c + (a));
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return c;
 }
 
@@ -107,14 +117,24 @@ static inline long atomic64_add_unless(atomic64_t *v, long a, long u)
 {
 	long c, old;
 	c = atomic64_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		if (unlikely(c == (u)))
+		{
 			break;
+		}
+
 		old = atomic64_cmpxchg((v), c, c + (a));
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return c != (u);
 }
 

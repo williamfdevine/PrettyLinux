@@ -18,9 +18,9 @@
  * overhead.
  */
 #ifdef __tilegx__
-#define CYCLES_PER_RELAX_LOOP 7
+	#define CYCLES_PER_RELAX_LOOP 7
 #else
-#define CYCLES_PER_RELAX_LOOP 8
+	#define CYCLES_PER_RELAX_LOOP 8
 #endif
 
 /*
@@ -30,7 +30,10 @@ static inline void
 relax(int iterations)
 {
 	for (/*above*/; iterations > 0; iterations--)
+	{
 		__insn_mfspr(SPR_PASS);
+	}
+
 	barrier();
 }
 
@@ -52,13 +55,15 @@ static void delay_backoff(int iterations)
 	 * or 1,024 (to 2,047) cycles, as our maximum.
 	 */
 	if (exponent > 8)
+	{
 		exponent = 8;
+	}
 
 	loops = 1 << exponent;
 
 	/* Add a randomness factor so two cpus never get in lock step. */
 	loops += __insn_crc32_32(stack_pointer, get_cycles_low()) &
-		(loops - 1);
+			 (loops - 1);
 
 	relax(loops);
 }

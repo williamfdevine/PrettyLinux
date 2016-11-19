@@ -14,7 +14,8 @@
 
 /* System configuration registers.
 */
-typedef	struct sys_82xx_conf {
+typedef	struct sys_82xx_conf
+{
 	u32	sc_siumcr;
 	u32	sc_sypcr;
 	u8	res1[6];
@@ -41,7 +42,8 @@ typedef	struct sys_82xx_conf {
 	u8	res6[163];
 } sysconf_82xx_cpm2_t;
 
-typedef	struct sys_85xx_conf {
+typedef	struct sys_85xx_conf
+{
 	u32	sc_cear;
 	u16	sc_ceer;
 	u16	sc_cemr;
@@ -57,7 +59,8 @@ typedef	struct sys_85xx_conf {
 	u8	res4[144];
 } sysconf_85xx_cpm2_t;
 
-typedef union sys_conf {
+typedef union sys_conf
+{
 	sysconf_82xx_cpm2_t	siu_82xx;
 	sysconf_85xx_cpm2_t	siu_85xx;
 } sysconf_cpm2_t;
@@ -66,7 +69,8 @@ typedef union sys_conf {
 
 /* Memory controller registers.
 */
-typedef struct	mem_ctlr {
+typedef struct	mem_ctlr
+{
 	u32	memc_br0;
 	u32	memc_or0;
 	u32	memc_br1;
@@ -123,7 +127,8 @@ typedef struct	mem_ctlr {
 
 /* System Integration Timers.
 */
-typedef struct	sys_int_timers {
+typedef struct	sys_int_timers
+{
 	u8	res1[32];
 	u16	sit_tmcntsc;
 	u8	res2[2];
@@ -147,7 +152,8 @@ typedef struct	sys_int_timers {
 
 /* PCI Controller.
 */
-typedef struct pci_ctlr {
+typedef struct pci_ctlr
+{
 	u32	pci_omisr;
 	u32	pci_omimr;
 	u8	res1[8];
@@ -279,7 +285,8 @@ typedef struct pci_ctlr {
 
 /* Interrupt Controller.
 */
-typedef struct interrupt_controller {
+typedef struct interrupt_controller
+{
 	u16	ic_sicr;
 	u8	res1[2];
 	u32	ic_sivec;
@@ -296,7 +303,8 @@ typedef struct interrupt_controller {
 
 /* Clocks and Reset.
 */
-typedef struct clk_and_reset {
+typedef struct clk_and_reset
+{
 	u32	car_sccr;
 	u8	res1[4];
 	u32	car_scmr;
@@ -310,7 +318,8 @@ typedef struct clk_and_reset {
  * Names consistent with processor manual, although they are different
  * from the original 8xx names.......
  */
-typedef struct io_port {
+typedef struct io_port
+{
 	u32	iop_pdira;
 	u32	iop_ppara;
 	u32	iop_psora;
@@ -339,7 +348,8 @@ typedef struct io_port {
 
 /* Communication Processor Module Timers
 */
-typedef struct cpm_timers {
+typedef struct cpm_timers
+{
 	u8	cpmt_tgcr1;
 	u8	res1[3];
 	u8	cpmt_tgcr2;
@@ -369,7 +379,8 @@ typedef struct cpm_timers {
 
 /* DMA control/status registers.
 */
-typedef struct sdma_csr {
+typedef struct sdma_csr
+{
 	u8	res0[24];
 	u8	sdma_sdsr;
 	u8	res1[3];
@@ -395,7 +406,8 @@ typedef struct sdma_csr {
 
 /* Fast controllers
 */
-typedef struct fcc {
+typedef struct fcc
+{
 	u32	fcc_gfmr;
 	u32	fcc_fpsmr;
 	u16	fcc_ftodr;
@@ -413,7 +425,8 @@ typedef struct fcc {
 
 /* Fast controllers continued
  */
-typedef struct fcc_c {
+typedef struct fcc_c
+{
 	u32	fcc_firper;
 	u32	fcc_firer;
 	u32	fcc_firsr_hi;
@@ -424,7 +437,8 @@ typedef struct fcc_c {
 
 /* TC Layer
  */
-typedef struct tclayer {
+typedef struct tclayer
+{
 	u16	tc_tcmode;
 	u16	tc_cdsmr;
 	u16	tc_tcer;
@@ -441,7 +455,8 @@ typedef struct tclayer {
 
 /* I2C
 */
-typedef struct i2c {
+typedef struct i2c
+{
 	u8	i2c_i2mod;
 	u8	res1[3];
 	u8	i2c_i2add;
@@ -456,7 +471,8 @@ typedef struct i2c {
 	u8	res6[331];
 } i2c_cpm2_t;
 
-typedef struct scc {		/* Serial communication channels */
+typedef struct scc  		/* Serial communication channels */
+{
 	u32	scc_gsmrl;
 	u32	scc_gsmrh;
 	u16	scc_psmr;
@@ -471,7 +487,8 @@ typedef struct scc {		/* Serial communication channels */
 	u8	res4[8];
 } scc_t;
 
-typedef struct smc {		/* Serial management channels */
+typedef struct smc  		/* Serial management channels */
+{
 	u8	res1[2];
 	u16	smc_smcmr;
 	u8	res2[2];
@@ -483,7 +500,8 @@ typedef struct smc {		/* Serial management channels */
 
 /* Serial Peripheral Interface.
 */
-typedef struct spi_ctrl {
+typedef struct spi_ctrl
+{
 	u16	spi_spmode;
 	u8	res1[4];
 	u8	spi_spie;
@@ -496,7 +514,8 @@ typedef struct spi_ctrl {
 
 /* CPM Mux.
 */
-typedef struct cpmux {
+typedef struct cpmux
+{
 	u8	cmx_si1cr;
 	u8	res1;
 	u8	cmx_si2cr;
@@ -511,7 +530,8 @@ typedef struct cpmux {
 
 /* SIRAM control
 */
-typedef struct siram {
+typedef struct siram
+{
 	u16	si_amr;
 	u16	si_bmr;
 	u16	si_cmr;
@@ -525,7 +545,8 @@ typedef struct siram {
 	u16	si_rsr;
 } siramctl_t;
 
-typedef struct mcc {
+typedef struct mcc
+{
 	u16	mcc_mcce;
 	u8	res1[2];
 	u16	mcc_mccm;
@@ -534,7 +555,8 @@ typedef struct mcc {
 	u8	res3[7];
 } mcc_t;
 
-typedef struct comm_proc {
+typedef struct comm_proc
+{
 	u32	cp_cpcr;
 	u32	cp_rccr;
 	u8	res1[14];
@@ -549,7 +571,8 @@ typedef struct comm_proc {
 
 /* USB Controller.
 */
-typedef struct cpm_usb_ctlr {
+typedef struct cpm_usb_ctlr
+{
 	u8	usb_usmod;
 	u8	usb_usadr;
 	u8	usb_uscom;
@@ -566,17 +589,18 @@ typedef struct cpm_usb_ctlr {
 /* ...and the whole thing wrapped up....
 */
 
-typedef struct immap {
+typedef struct immap
+{
 	/* Some references are into the unique and known dpram spaces,
 	 * others are from the generic base.
 	 */
 #define im_dprambase	im_dpram1
-	u8		im_dpram1[16*1024];
-	u8		res1[16*1024];
-	u8		im_dpram2[4*1024];
-	u8		res2[8*1024];
-	u8		im_dpram3[4*1024];
-	u8		res3[16*1024];
+	u8		im_dpram1[16 * 1024];
+	u8		res1[16 * 1024];
+	u8		im_dpram2[4 * 1024];
+	u8		res2[8 * 1024];
+	u8		im_dpram3[4 * 1024];
+	u8		res3[16 * 1024];
 
 	sysconf_cpm2_t	im_siu_conf;	/* SIU Configuration */
 	memctl_cpm2_t	im_memctl;	/* Memory Controller */

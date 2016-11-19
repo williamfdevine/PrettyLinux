@@ -77,14 +77,16 @@ static void write_imipr_3(u32 val)
 	asm volatile("mcr p6, 0, %0, c11, c1, 0"::"r" (val));
 }
 
-static u32 (*read_imipr[])(void) = {
+static u32 (*read_imipr[])(void) =
+{
 	read_imipr_0,
 	read_imipr_1,
 	read_imipr_2,
 	read_imipr_3,
 };
 
-static void (*write_imipr[])(u32) = {
+static void (*write_imipr[])(u32) =
+{
 	write_imipr_0,
 	write_imipr_1,
 	write_imipr_2,
@@ -99,17 +101,23 @@ static void iop13xx_msi_handler(struct irq_desc *desc)
 	/* read IMIPR registers and find any active interrupts,
 	 * then call ISR for each active interrupt
 	 */
-	for (i = 0; i < ARRAY_SIZE(read_imipr); i++) {
+	for (i = 0; i < ARRAY_SIZE(read_imipr); i++)
+	{
 		status = (read_imipr[i])();
-		if (!status)
-			continue;
 
-		do {
+		if (!status)
+		{
+			continue;
+		}
+
+		do
+		{
 			j = find_first_bit(&status, 32);
 			(write_imipr[i])(1 << j); /* write back to clear bit */
-			generic_handle_irq(IRQ_IOP13XX_MSI_0 + j + (32*i));
+			generic_handle_irq(IRQ_IOP13XX_MSI_0 + j + (32 * i));
 			status = (read_imipr[i])();
-		} while (status);
+		}
+		while (status);
 	}
 }
 
@@ -123,7 +131,8 @@ static void iop13xx_msi_nop(struct irq_data *d)
 	return;
 }
 
-static struct irq_chip iop13xx_msi_chip = {
+static struct irq_chip iop13xx_msi_chip =
+{
 	.name = "PCI-MSI",
 	.irq_ack = iop13xx_msi_nop,
 	.irq_enable = pci_msi_unmask_irq,
@@ -138,9 +147,12 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
 	struct msi_msg msg;
 
 	if (irq < 0)
+	{
 		return irq;
+	}
 
-	if (irq >= NR_IOP13XX_IRQS) {
+	if (irq >= NR_IOP13XX_IRQS)
+	{
 		irq_free_desc(irq);
 		return -ENOSPC;
 	}

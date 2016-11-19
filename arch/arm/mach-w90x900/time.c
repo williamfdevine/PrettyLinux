@@ -90,10 +90,11 @@ static int nuc900_clockevent_setnextevent(unsigned long evt,
 	return 0;
 }
 
-static struct clock_event_device nuc900_clockevent_device = {
+static struct clock_event_device nuc900_clockevent_device =
+{
 	.name			= "nuc900-timer0",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= nuc900_clockevent_shutdown,
 	.set_state_periodic	= nuc900_clockevent_set_periodic,
 	.set_state_oneshot	= nuc900_clockevent_set_oneshot,
@@ -114,7 +115,8 @@ static irqreturn_t nuc900_timer0_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction nuc900_timer0_irq = {
+static struct irqaction nuc900_timer0_irq =
+{
 	.name		= "nuc900-timer0",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= nuc900_timer0_interrupt,
@@ -140,7 +142,7 @@ static void __init nuc900_clockevents_init(void)
 	nuc900_clockevent_device.cpumask = cpumask_of(0);
 
 	clockevents_config_and_register(&nuc900_clockevent_device, rate,
-					0xf, 0xffffffff);
+									0xf, 0xffffffff);
 }
 
 static void __init nuc900_clocksource_init(void)
@@ -163,7 +165,7 @@ static void __init nuc900_clocksource_init(void)
 	__raw_writel(val, REG_TCSR1);
 
 	clocksource_mmio_init(REG_TDR1, "nuc900-timer1", rate, 200,
-		TDR_SHIFT, clocksource_mmio_readl_down);
+						  TDR_SHIFT, clocksource_mmio_readl_down);
 }
 
 void __init nuc900_timer_init(void)

@@ -7,7 +7,8 @@ extern unsigned int genconfig_shadow; /* defined and set in head.S */
 
 /* dma stuff */
 
-enum {                          /* Available in:  */
+enum                            /* Available in:  */
+{
 	d_eol      = (1 << 0),  /* flags          */
 	d_eop      = (1 << 1),  /* flags & status */
 	d_wait     = (1 << 2),  /* flags          */
@@ -27,7 +28,8 @@ enum {                          /* Available in:  */
  * to them instead of going through virt_to_phys/phys_to_virt.
  */
 
-typedef struct etrax_dma_descr {
+typedef struct etrax_dma_descr
+{
 	unsigned short sw_len;                /* 0-1 */
 	unsigned short ctrl;                  /* 2-3 */
 	unsigned long  next;                  /* 4-7 */
@@ -40,21 +42,21 @@ typedef struct etrax_dma_descr {
 
 /* Use this for constant numbers only */
 #define RESET_DMA_NUM( n ) \
-  *R_DMA_CH##n##_CMD = IO_STATE( R_DMA_CH0_CMD, cmd, reset )
+	*R_DMA_CH##n##_CMD = IO_STATE( R_DMA_CH0_CMD, cmd, reset )
 
-/* Use this for constant numbers or symbols, 
- * having two macros makes it possible to use constant expressions. 
+/* Use this for constant numbers or symbols,
+ * having two macros makes it possible to use constant expressions.
  */
 #define RESET_DMA( n ) RESET_DMA_NUM( n )
 
 
 /* Use this for constant numbers only */
 #define WAIT_DMA_NUM( n ) \
-  while( (*R_DMA_CH##n##_CMD & IO_MASK( R_DMA_CH0_CMD, cmd )) != \
-         IO_STATE( R_DMA_CH0_CMD, cmd, hold ) )
+	while( (*R_DMA_CH##n##_CMD & IO_MASK( R_DMA_CH0_CMD, cmd )) != \
+		   IO_STATE( R_DMA_CH0_CMD, cmd, hold ) )
 
-/* Use this for constant numbers or symbols 
- * having two macros makes it possible to use constant expressions. 
+/* Use this for constant numbers or symbols
+ * having two macros makes it possible to use constant expressions.
  */
 #define WAIT_DMA( n ) WAIT_DMA_NUM( n )
 

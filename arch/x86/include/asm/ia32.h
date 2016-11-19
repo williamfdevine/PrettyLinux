@@ -14,7 +14,8 @@
 
 /* signal.h */
 
-struct ucontext_ia32 {
+struct ucontext_ia32
+{
 	unsigned int	  uc_flags;
 	unsigned int 	  uc_link;
 	compat_stack_t	  uc_stack;
@@ -25,7 +26,8 @@ struct ucontext_ia32 {
 /* This matches struct stat64 in glibc2.2, hence the absolutely
  * insane amounts of padding around dev_t's.
  */
-struct stat64 {
+struct stat64
+{
 	unsigned long long	st_dev;
 	unsigned char		__pad0[4];
 
@@ -61,7 +63,7 @@ struct stat64 {
 #ifdef __KERNEL__
 struct linux_binprm;
 extern int ia32_setup_arg_pages(struct linux_binprm *bprm,
-				unsigned long stack_top, int exec_stack);
+								unsigned long stack_top, int exec_stack);
 struct mm_struct;
 extern void ia32_pick_mmap_layout(struct mm_struct *mm);
 

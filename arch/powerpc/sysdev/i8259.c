@@ -39,15 +39,20 @@ unsigned int i8259_irq(void)
 
 	/* Either int-ack or poll for the IRQ */
 	if (pci_intack)
+	{
 		irq = readb(pci_intack);
-	else {
+	}
+	else
+	{
 		raw_spin_lock(&i8259_lock);
 		lock = 1;
 
 		/* Perform an interrupt acknowledge cycle on controller 1. */
 		outb(0x0C, 0x20);		/* prepare for poll */
 		irq = inb(0x20) & 7;
-		if (irq == 2 ) {
+
+		if (irq == 2 )
+		{
 			/*
 			 * Interrupt is cascaded so perform interrupt
 			 * acknowledge on controller 2.
@@ -57,7 +62,8 @@ unsigned int i8259_irq(void)
 		}
 	}
 
-	if (irq == 7) {
+	if (irq == 7)
+	{
 		/*
 		 * This may be a spurious interrupt.
 		 *
@@ -66,14 +72,25 @@ unsigned int i8259_irq(void)
 		 * interrupt.
 		 */
 		if (!pci_intack)
-			outb(0x0B, 0x20);	/* ISR register */
-		if(~inb(0x20) & 0x80)
+		{
+			outb(0x0B, 0x20);    /* ISR register */
+		}
+
+		if (~inb(0x20) & 0x80)
+		{
 			irq = 0;
-	} else if (irq == 0xff)
+		}
+	}
+	else if (irq == 0xff)
+	{
 		irq = 0;
+	}
 
 	if (lock)
+	{
 		raw_spin_unlock(&i8259_lock);
+	}
+
 	return irq;
 }
 
@@ -82,25 +99,30 @@ static void i8259_mask_and_ack_irq(struct irq_data *d)
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&i8259_lock, flags);
-	if (d->irq > 7) {
-		cached_A1 |= 1 << (d->irq-8);
+
+	if (d->irq > 7)
+	{
+		cached_A1 |= 1 << (d->irq - 8);
 		inb(0xA1); 	/* DUMMY */
 		outb(cached_A1, 0xA1);
 		outb(0x20, 0xA0);	/* Non-specific EOI */
 		outb(0x20, 0x20);	/* Non-specific EOI to cascade */
-	} else {
+	}
+	else
+	{
 		cached_21 |= 1 << d->irq;
 		inb(0x21); 	/* DUMMY */
 		outb(cached_21, 0x21);
 		outb(0x20, 0x20);	/* Non-specific EOI */
 	}
+
 	raw_spin_unlock_irqrestore(&i8259_lock, flags);
 }
 
 static void i8259_set_irq_mask(int irq_nr)
 {
-	outb(cached_A1,0xA1);
-	outb(cached_21,0x21);
+	outb(cached_A1, 0xA1);
+	outb(cached_21, 0x21);
 }
 
 static void i8259_mask_irq(struct irq_data *d)
@@ -110,10 +132,16 @@ static void i8259_mask_irq(struct irq_data *d)
 	pr_debug("i8259_mask_irq(%d)\n", d->irq);
 
 	raw_spin_lock_irqsave(&i8259_lock, flags);
+
 	if (d->irq < 8)
+	{
 		cached_21 |= 1 << d->irq;
+	}
 	else
-		cached_A1 |= 1 << (d->irq-8);
+	{
+		cached_A1 |= 1 << (d->irq - 8);
+	}
+
 	i8259_set_irq_mask(d->irq);
 	raw_spin_unlock_irqrestore(&i8259_lock, flags);
 }
@@ -125,15 +153,22 @@ static void i8259_unmask_irq(struct irq_data *d)
 	pr_debug("i8259_unmask_irq(%d)\n", d->irq);
 
 	raw_spin_lock_irqsave(&i8259_lock, flags);
+
 	if (d->irq < 8)
+	{
 		cached_21 &= ~(1 << d->irq);
+	}
 	else
-		cached_A1 &= ~(1 << (d->irq-8));
+	{
+		cached_A1 &= ~(1 << (d->irq - 8));
+	}
+
 	i8259_set_irq_mask(d->irq);
 	raw_spin_unlock_irqrestore(&i8259_lock, flags);
 }
 
-static struct irq_chip i8259_pic = {
+static struct irq_chip i8259_pic =
+{
 	.name		= "i8259",
 	.irq_mask	= i8259_mask_irq,
 	.irq_disable	= i8259_mask_irq,
@@ -141,21 +176,24 @@ static struct irq_chip i8259_pic = {
 	.irq_mask_ack	= i8259_mask_and_ack_irq,
 };
 
-static struct resource pic1_iores = {
+static struct resource pic1_iores =
+{
 	.name = "8259 (master)",
 	.start = 0x20,
 	.end = 0x21,
 	.flags = IORESOURCE_BUSY,
 };
 
-static struct resource pic2_iores = {
+static struct resource pic2_iores =
+{
 	.name = "8259 (slave)",
 	.start = 0xa0,
 	.end = 0xa1,
 	.flags = IORESOURCE_BUSY,
 };
 
-static struct resource pic_edgectrl_iores = {
+static struct resource pic_edgectrl_iores =
+{
 	.name = "8259 edge control",
 	.start = 0x4d0,
 	.end = 0x4d1,
@@ -163,20 +201,22 @@ static struct resource pic_edgectrl_iores = {
 };
 
 static int i8259_host_match(struct irq_domain *h, struct device_node *node,
-			    enum irq_domain_bus_token bus_token)
+							enum irq_domain_bus_token bus_token)
 {
 	struct device_node *of_node = irq_domain_get_of_node(h);
 	return of_node == NULL || of_node == node;
 }
 
 static int i8259_host_map(struct irq_domain *h, unsigned int virq,
-			  irq_hw_number_t hw)
+						  irq_hw_number_t hw)
 {
 	pr_debug("i8259_host_map(%d, 0x%lx)\n", virq, hw);
 
 	/* We block the internal cascade */
 	if (hw == 2)
+	{
 		irq_set_status_flags(virq, IRQ_NOREQUEST);
+	}
 
 	/* We use the level handler only for now, we might want to
 	 * be more cautious here but that works for now
@@ -187,10 +227,11 @@ static int i8259_host_map(struct irq_domain *h, unsigned int virq,
 }
 
 static int i8259_host_xlate(struct irq_domain *h, struct device_node *ct,
-			    const u32 *intspec, unsigned int intsize,
-			    irq_hw_number_t *out_hwirq, unsigned int *out_flags)
+							const u32 *intspec, unsigned int intsize,
+							irq_hw_number_t *out_hwirq, unsigned int *out_flags)
 {
-	static unsigned char map_isa_senses[4] = {
+	static unsigned char map_isa_senses[4] =
+	{
 		IRQ_TYPE_LEVEL_LOW,
 		IRQ_TYPE_LEVEL_HIGH,
 		IRQ_TYPE_EDGE_FALLING,
@@ -198,15 +239,21 @@ static int i8259_host_xlate(struct irq_domain *h, struct device_node *ct,
 	};
 
 	*out_hwirq = intspec[0];
+
 	if (intsize > 1 && intspec[1] < 4)
+	{
 		*out_flags = map_isa_senses[intspec[1]];
+	}
 	else
+	{
 		*out_flags = IRQ_TYPE_NONE;
+	}
 
 	return 0;
 }
 
-static const struct irq_domain_ops i8259_host_ops = {
+static const struct irq_domain_ops i8259_host_ops =
+{
 	.match = i8259_host_match,
 	.map = i8259_host_map,
 	.xlate = i8259_host_xlate,
@@ -265,7 +312,9 @@ void i8259_init(struct device_node *node, unsigned long intack_addr)
 
 	/* create a legacy host */
 	i8259_host = irq_domain_add_legacy_isa(node, &i8259_host_ops, NULL);
-	if (i8259_host == NULL) {
+
+	if (i8259_host == NULL)
+	{
 		printk(KERN_ERR "i8259: failed to allocate irq host !\n");
 		return;
 	}
@@ -280,7 +329,9 @@ void i8259_init(struct device_node *node, unsigned long intack_addr)
 	request_resource(&ioport_resource, &pic_edgectrl_iores);
 
 	if (intack_addr != 0)
+	{
 		pci_intack = ioremap(intack_addr, 1);
+	}
 
 	printk(KERN_INFO "i8259 legacy interrupt controller initialized\n");
 }

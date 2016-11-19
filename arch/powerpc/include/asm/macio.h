@@ -74,8 +74,12 @@ static inline unsigned long macio_resource_end(struct macio_dev *dev, int resour
 static inline unsigned long macio_resource_len(struct macio_dev *dev, int resource_no)
 {
 	struct resource *res = &dev->resource[resource_no];
+
 	if (res->start == 0 || res->end == 0 || res->end < res->start)
+	{
 		return 0;
+	}
+
 	return resource_size(res);
 }
 
@@ -101,7 +105,7 @@ static inline void macio_set_drvdata(struct macio_dev *dev, void *data)
 	dev_set_drvdata(&dev->ofdev.dev, data);
 }
 
-static inline void* macio_get_drvdata(struct macio_dev *dev)
+static inline void *macio_get_drvdata(struct macio_dev *dev)
 {
 	return dev_get_drvdata(&dev->ofdev.dev);
 }
@@ -123,15 +127,15 @@ static inline struct pci_dev *macio_get_pci_dev(struct macio_dev *mdev)
  */
 struct macio_driver
 {
-	int	(*probe)(struct macio_dev* dev, const struct of_device_id *match);
-	int	(*remove)(struct macio_dev* dev);
+	int	(*probe)(struct macio_dev *dev, const struct of_device_id *match);
+	int	(*remove)(struct macio_dev *dev);
 
-	int	(*suspend)(struct macio_dev* dev, pm_message_t state);
-	int	(*resume)(struct macio_dev* dev);
-	int	(*shutdown)(struct macio_dev* dev);
+	int	(*suspend)(struct macio_dev *dev, pm_message_t state);
+	int	(*resume)(struct macio_dev *dev);
+	int	(*shutdown)(struct macio_dev *dev);
 
 #ifdef CONFIG_PMAC_MEDIABAY
-	void	(*mediabay_event)(struct macio_dev* dev, int mb_state);
+	void	(*mediabay_event)(struct macio_dev *dev, int mb_state);
 #endif
 	struct device_driver	driver;
 };

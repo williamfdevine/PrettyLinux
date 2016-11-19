@@ -32,18 +32,18 @@ static void show_dtlb_entry(unsigned int index)
 	tlbelo = sysreg_read(TLBELO);
 
 	printk("%2u: %c %c %02x   %05x %05x %o  %o  %c %c %c %c\n",
-	       index,
-	       SYSREG_BFEXT(TLBEHI_V, tlbehi) ? '1' : '0',
-	       SYSREG_BFEXT(G, tlbelo) ? '1' : '0',
-	       SYSREG_BFEXT(ASID, tlbehi),
-	       SYSREG_BFEXT(VPN, tlbehi) >> 2,
-	       SYSREG_BFEXT(PFN, tlbelo) >> 2,
-	       SYSREG_BFEXT(AP, tlbelo),
-	       SYSREG_BFEXT(SZ, tlbelo),
-	       SYSREG_BFEXT(TLBELO_C, tlbelo) ? 'C' : ' ',
-	       SYSREG_BFEXT(B, tlbelo) ? 'B' : ' ',
-	       SYSREG_BFEXT(W, tlbelo) ? 'W' : ' ',
-	       SYSREG_BFEXT(TLBELO_D, tlbelo) ? 'D' : ' ');
+		   index,
+		   SYSREG_BFEXT(TLBEHI_V, tlbehi) ? '1' : '0',
+		   SYSREG_BFEXT(G, tlbelo) ? '1' : '0',
+		   SYSREG_BFEXT(ASID, tlbehi),
+		   SYSREG_BFEXT(VPN, tlbehi) >> 2,
+		   SYSREG_BFEXT(PFN, tlbelo) >> 2,
+		   SYSREG_BFEXT(AP, tlbelo),
+		   SYSREG_BFEXT(SZ, tlbelo),
+		   SYSREG_BFEXT(TLBELO_C, tlbelo) ? 'C' : ' ',
+		   SYSREG_BFEXT(B, tlbelo) ? 'B' : ' ',
+		   SYSREG_BFEXT(W, tlbelo) ? 'W' : ' ',
+		   SYSREG_BFEXT(TLBELO_D, tlbelo) ? 'D' : ' ');
 
 	sysreg_write(MMUCR, mmucr_save);
 	sysreg_write(TLBEHI, tlbehi_save);
@@ -56,8 +56,11 @@ void dump_dtlb(void)
 	unsigned int i;
 
 	printk("ID  V G ASID VPN   PFN   AP SZ C B W D\n");
+
 	for (i = 0; i < NR_TLB_ENTRIES; i++)
+	{
 		show_dtlb_entry(i);
+	}
 }
 
 static void update_dtlb(unsigned long address, pte_t pte)
@@ -79,13 +82,16 @@ static void update_dtlb(unsigned long address, pte_t pte)
 	__builtin_tlbs();
 	mmucr = sysreg_read(MMUCR);
 
-	if (mmucr & SYSREG_BIT(MMUCR_N)) {
+	if (mmucr & SYSREG_BIT(MMUCR_N))
+	{
 		/* Not found -- pick a not-recently-accessed entry */
 		unsigned int rp;
 		u32 tlbar = sysreg_read(TLBARLO);
 
 		rp = 32 - fls(tlbar);
-		if (rp == 32) {
+
+		if (rp == 32)
+		{
 			rp = 0;
 			sysreg_write(TLBARLO, -1L);
 		}
@@ -101,13 +107,15 @@ static void update_dtlb(unsigned long address, pte_t pte)
 }
 
 void update_mmu_cache(struct vm_area_struct *vma,
-		      unsigned long address, pte_t *ptep)
+					  unsigned long address, pte_t *ptep)
 {
 	unsigned long flags;
 
 	/* ptrace may call this routine */
 	if (vma && current->active_mm != vma->vm_mm)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 	update_dtlb(address, *ptep);
@@ -129,7 +137,8 @@ static void __flush_tlb_page(unsigned long asid, unsigned long page)
 	__builtin_tlbs();
 	mmucr = sysreg_read(MMUCR);
 
-	if (!(mmucr & SYSREG_BIT(MMUCR_N))) {
+	if (!(mmucr & SYSREG_BIT(MMUCR_N)))
+	{
 		unsigned int entry;
 		u32 tlbarlo;
 
@@ -149,7 +158,8 @@ static void __flush_tlb_page(unsigned long asid, unsigned long page)
 
 void flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 {
-	if (vma->vm_mm && vma->vm_mm->context != NO_CONTEXT) {
+	if (vma->vm_mm && vma->vm_mm->context != NO_CONTEXT)
+	{
 		unsigned long flags, asid;
 		unsigned long saved_asid = MMU_NO_ASID;
 
@@ -157,7 +167,9 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 		page &= PAGE_MASK;
 
 		local_irq_save(flags);
-		if (vma->vm_mm != current->mm) {
+
+		if (vma->vm_mm != current->mm)
+		{
 			saved_asid = get_asid();
 			set_asid(asid);
 		}
@@ -165,28 +177,38 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
 		__flush_tlb_page(asid, page);
 
 		if (saved_asid != MMU_NO_ASID)
+		{
 			set_asid(saved_asid);
+		}
+
 		local_irq_restore(flags);
 	}
 }
 
 void flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-		     unsigned long end)
+					 unsigned long end)
 {
 	struct mm_struct *mm = vma->vm_mm;
 
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		unsigned long flags;
 		int size;
 
 		local_irq_save(flags);
 		size = (end - start + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
 
-		if (size > (MMU_DTLB_ENTRIES / 4)) { /* Too many entries to flush */
+		if (size > (MMU_DTLB_ENTRIES / 4))   /* Too many entries to flush */
+		{
 			mm->context = NO_CONTEXT;
+
 			if (mm == current->mm)
+			{
 				activate_context(mm);
-		} else {
+			}
+		}
+		else
+		{
 			unsigned long asid;
 			unsigned long saved_asid;
 
@@ -197,18 +219,24 @@ void flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 			end += (PAGE_SIZE - 1);
 			end &= PAGE_MASK;
 
-			if (mm != current->mm) {
+			if (mm != current->mm)
+			{
 				saved_asid = get_asid();
 				set_asid(asid);
 			}
 
-			while (start < end) {
+			while (start < end)
+			{
 				__flush_tlb_page(asid, start);
 				start += PAGE_SIZE;
 			}
+
 			if (saved_asid != MMU_NO_ASID)
+			{
 				set_asid(saved_asid);
+			}
 		}
+
 		local_irq_restore(flags);
 	}
 }
@@ -224,9 +252,13 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 	int size;
 
 	size = (end - start + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
-	if (size > (MMU_DTLB_ENTRIES / 4)) { /* Too many entries to flush */
+
+	if (size > (MMU_DTLB_ENTRIES / 4))   /* Too many entries to flush */
+	{
 		flush_tlb_all();
-	} else {
+	}
+	else
+	{
 		unsigned long asid;
 
 		local_irq_save(flags);
@@ -236,10 +268,12 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 		end += (PAGE_SIZE - 1);
 		end &= PAGE_MASK;
 
-		while (start < end) {
+		while (start < end)
+		{
 			__flush_tlb_page(asid, start);
 			start += PAGE_SIZE;
 		}
+
 		local_irq_restore(flags);
 	}
 }
@@ -247,13 +281,18 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 void flush_tlb_mm(struct mm_struct *mm)
 {
 	/* Invalidate all TLB entries of this process by getting a new ASID */
-	if (mm->context != NO_CONTEXT) {
+	if (mm->context != NO_CONTEXT)
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
 		mm->context = NO_CONTEXT;
+
 		if (mm == current->mm)
+		{
 			activate_context(mm);
+		}
+
 		local_irq_restore(flags);
 	}
 }
@@ -278,7 +317,9 @@ static void *tlb_start(struct seq_file *tlb, loff_t *pos)
 	static unsigned long tlb_index;
 
 	if (*pos >= NR_TLB_ENTRIES)
+	{
 		return NULL;
+	}
 
 	tlb_index = 0;
 	return &tlb_index;
@@ -289,7 +330,9 @@ static void *tlb_next(struct seq_file *tlb, void *v, loff_t *pos)
 	unsigned long *index = v;
 
 	if (*index >= NR_TLB_ENTRIES - 1)
+	{
 		return NULL;
+	}
 
 	++*pos;
 	++*index;
@@ -308,7 +351,9 @@ static int tlb_show(struct seq_file *tlb, void *v)
 	unsigned long *index = v;
 
 	if (*index == 0)
+	{
 		seq_puts(tlb, "ID  V G ASID VPN   PFN   AP SZ C B W D\n");
+	}
 
 	BUG_ON(*index >= NR_TLB_ENTRIES);
 
@@ -331,23 +376,24 @@ static int tlb_show(struct seq_file *tlb, void *v)
 	local_irq_restore(flags);
 
 	seq_printf(tlb, "%2lu: %c %c %02x   %05x %05x %o  %o  %c %c %c %c\n",
-		   *index,
-		   SYSREG_BFEXT(TLBEHI_V, tlbehi) ? '1' : '0',
-		   SYSREG_BFEXT(G, tlbelo) ? '1' : '0',
-		   SYSREG_BFEXT(ASID, tlbehi),
-		   SYSREG_BFEXT(VPN, tlbehi) >> 2,
-		   SYSREG_BFEXT(PFN, tlbelo) >> 2,
-		   SYSREG_BFEXT(AP, tlbelo),
-		   SYSREG_BFEXT(SZ, tlbelo),
-		   SYSREG_BFEXT(TLBELO_C, tlbelo) ? '1' : '0',
-		   SYSREG_BFEXT(B, tlbelo) ? '1' : '0',
-		   SYSREG_BFEXT(W, tlbelo) ? '1' : '0',
-		   SYSREG_BFEXT(TLBELO_D, tlbelo) ? '1' : '0');
+			   *index,
+			   SYSREG_BFEXT(TLBEHI_V, tlbehi) ? '1' : '0',
+			   SYSREG_BFEXT(G, tlbelo) ? '1' : '0',
+			   SYSREG_BFEXT(ASID, tlbehi),
+			   SYSREG_BFEXT(VPN, tlbehi) >> 2,
+			   SYSREG_BFEXT(PFN, tlbelo) >> 2,
+			   SYSREG_BFEXT(AP, tlbelo),
+			   SYSREG_BFEXT(SZ, tlbelo),
+			   SYSREG_BFEXT(TLBELO_C, tlbelo) ? '1' : '0',
+			   SYSREG_BFEXT(B, tlbelo) ? '1' : '0',
+			   SYSREG_BFEXT(W, tlbelo) ? '1' : '0',
+			   SYSREG_BFEXT(TLBELO_D, tlbelo) ? '1' : '0');
 
 	return 0;
 }
 
-static const struct seq_operations tlb_ops = {
+static const struct seq_operations tlb_ops =
+{
 	.start		= tlb_start,
 	.next		= tlb_next,
 	.stop		= tlb_stop,
@@ -359,7 +405,8 @@ static int tlb_open(struct inode *inode, struct file *file)
 	return seq_open(file, &tlb_ops);
 }
 
-static const struct file_operations proc_tlb_operations = {
+static const struct file_operations proc_tlb_operations =
+{
 	.open		= tlb_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

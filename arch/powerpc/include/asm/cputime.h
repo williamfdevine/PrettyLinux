@@ -59,10 +59,11 @@ static inline unsigned long cputime_to_jiffies(const cputime_t ct)
 static inline cputime_t cputime_to_scaled(const cputime_t ct)
 {
 	if (cpu_has_feature(CPU_FTR_SPURR) &&
-	    __this_cpu_read(cputime_last_delta))
+		__this_cpu_read(cputime_last_delta))
 		return (__force u64) ct *
-			__this_cpu_read(cputime_scaled_last_delta) /
-			__this_cpu_read(cputime_last_delta);
+			   __this_cpu_read(cputime_scaled_last_delta) /
+			   __this_cpu_read(cputime_last_delta);
+
 	return ct;
 }
 
@@ -74,12 +75,18 @@ static inline cputime_t jiffies_to_cputime(const unsigned long jif)
 	/* have to be a little careful about overflow */
 	ct = jif % HZ;
 	sec = jif / HZ;
-	if (ct) {
+
+	if (ct)
+	{
 		ct *= tb_ticks_per_sec;
 		do_div(ct, HZ);
 	}
+
 	if (sec)
+	{
 		ct += (cputime_t) sec * tb_ticks_per_sec;
+	}
+
 	return (__force cputime_t) ct;
 }
 
@@ -95,12 +102,18 @@ static inline cputime64_t jiffies64_to_cputime64(const u64 jif)
 
 	/* have to be a little careful about overflow */
 	ct = do_div(sec, HZ);
-	if (ct) {
+
+	if (ct)
+	{
 		ct *= tb_ticks_per_sec;
 		do_div(ct, HZ);
 	}
+
 	if (sec)
+	{
 		ct += (u64) sec * tb_ticks_per_sec;
+	}
+
 	return (__force cputime64_t) ct;
 }
 
@@ -127,12 +140,18 @@ static inline cputime_t usecs_to_cputime(const unsigned long us)
 	/* have to be a little careful about overflow */
 	ct = us % 1000000;
 	sec = us / 1000000;
-	if (ct) {
+
+	if (ct)
+	{
 		ct *= tb_ticks_per_sec;
 		do_div(ct, 1000000);
 	}
+
 	if (sec)
+	{
 		ct += (cputime_t) sec * tb_ticks_per_sec;
+	}
+
 	return (__force cputime_t) ct;
 }
 
@@ -219,12 +238,18 @@ static inline cputime_t clock_t_to_cputime(const unsigned long clk)
 	/* have to be a little careful about overflow */
 	ct = clk % USER_HZ;
 	sec = clk / USER_HZ;
-	if (ct) {
+
+	if (ct)
+	{
 		ct *= tb_ticks_per_sec;
 		do_div(ct, USER_HZ);
 	}
+
 	if (sec)
+	{
 		ct += (u64) sec * tb_ticks_per_sec;
+	}
+
 	return (__force cputime_t) ct;
 }
 

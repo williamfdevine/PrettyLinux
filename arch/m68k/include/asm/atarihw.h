@@ -35,9 +35,9 @@ extern int atari_SCC_reset_done;
 /* convenience macros for testing machine type */
 #define MACH_IS_ST	((atari_mch_cookie >> 16) == ATARI_MCH_ST)
 #define MACH_IS_STE	((atari_mch_cookie >> 16) == ATARI_MCH_STE && \
-			 (atari_mch_cookie & 0xffff) == 0)
+					 (atari_mch_cookie & 0xffff) == 0)
 #define MACH_IS_MSTE	((atari_mch_cookie >> 16) == ATARI_MCH_STE && \
-			 (atari_mch_cookie & 0xffff) == 0x10)
+						 (atari_mch_cookie & 0xffff) == 0x10)
 #define MACH_IS_TT	((atari_mch_cookie >> 16) == ATARI_MCH_TT)
 #define MACH_IS_FALCON	((atari_mch_cookie >> 16) == ATARI_MCH_FALCON)
 #define MACH_IS_MEDUSA	(atari_mch_type == ATARI_MACH_MEDUSA)
@@ -67,44 +67,45 @@ extern int atari_SCC_reset_done;
 #define ATARIHW_SET(name)	(atari_hw_present.name = 1)
 #define ATARIHW_PRESENT(name)	(atari_hw_present.name)
 
-struct atari_hw_present {
-    /* video hardware */
-    ATARIHW_DECLARE(STND_SHIFTER);	/* ST-Shifter - no base low ! */
-    ATARIHW_DECLARE(EXTD_SHIFTER);	/* STe-Shifter - 24 bit address */
-    ATARIHW_DECLARE(TT_SHIFTER);	/* TT-Shifter */
-    ATARIHW_DECLARE(VIDEL_SHIFTER);	/* Falcon-Shifter */
-    /* sound hardware */
-    ATARIHW_DECLARE(YM_2149);		/* Yamaha YM 2149 */
-    ATARIHW_DECLARE(PCM_8BIT);		/* PCM-Sound in STe-ATARI */
-    ATARIHW_DECLARE(CODEC);		/* CODEC Sound (Falcon) */
-    /* disk storage interfaces */
-    ATARIHW_DECLARE(TT_SCSI);		/* Directly mapped NCR5380 */
-    ATARIHW_DECLARE(ST_SCSI);		/* NCR5380 via ST-DMA (Falcon) */
-    ATARIHW_DECLARE(ACSI);		/* Standard ACSI like in STs */
-    ATARIHW_DECLARE(IDE);		/* IDE Interface */
-    ATARIHW_DECLARE(FDCSPEED);		/* 8/16 MHz switch for FDC */
-    /* other I/O hardware */
-    ATARIHW_DECLARE(ST_MFP);		/* The ST-MFP (there should be no Atari
+struct atari_hw_present
+{
+	/* video hardware */
+	ATARIHW_DECLARE(STND_SHIFTER);	/* ST-Shifter - no base low ! */
+	ATARIHW_DECLARE(EXTD_SHIFTER);	/* STe-Shifter - 24 bit address */
+	ATARIHW_DECLARE(TT_SHIFTER);	/* TT-Shifter */
+	ATARIHW_DECLARE(VIDEL_SHIFTER);	/* Falcon-Shifter */
+	/* sound hardware */
+	ATARIHW_DECLARE(YM_2149);		/* Yamaha YM 2149 */
+	ATARIHW_DECLARE(PCM_8BIT);		/* PCM-Sound in STe-ATARI */
+	ATARIHW_DECLARE(CODEC);		/* CODEC Sound (Falcon) */
+	/* disk storage interfaces */
+	ATARIHW_DECLARE(TT_SCSI);		/* Directly mapped NCR5380 */
+	ATARIHW_DECLARE(ST_SCSI);		/* NCR5380 via ST-DMA (Falcon) */
+	ATARIHW_DECLARE(ACSI);		/* Standard ACSI like in STs */
+	ATARIHW_DECLARE(IDE);		/* IDE Interface */
+	ATARIHW_DECLARE(FDCSPEED);		/* 8/16 MHz switch for FDC */
+	/* other I/O hardware */
+	ATARIHW_DECLARE(ST_MFP);		/* The ST-MFP (there should be no Atari
 					   without it... but who knows?) */
-    ATARIHW_DECLARE(TT_MFP);		/* 2nd MFP */
-    ATARIHW_DECLARE(SCC);		/* Serial Communications Contr. */
-    ATARIHW_DECLARE(ST_ESCC);		/* SCC Z83230 in an ST */
-    ATARIHW_DECLARE(ANALOG_JOY);	/* Paddle Interface for STe
+	ATARIHW_DECLARE(TT_MFP);		/* 2nd MFP */
+	ATARIHW_DECLARE(SCC);		/* Serial Communications Contr. */
+	ATARIHW_DECLARE(ST_ESCC);		/* SCC Z83230 in an ST */
+	ATARIHW_DECLARE(ANALOG_JOY);	/* Paddle Interface for STe
 					   and Falcon */
-    ATARIHW_DECLARE(MICROWIRE);		/* Microwire Interface */
-    /* DMA */
-    ATARIHW_DECLARE(STND_DMA);		/* 24 Bit limited ST-DMA */
-    ATARIHW_DECLARE(EXTD_DMA);		/* 32 Bit ST-DMA */
-    ATARIHW_DECLARE(SCSI_DMA);		/* DMA for the NCR5380 */
-    ATARIHW_DECLARE(SCC_DMA);		/* DMA for the SCC */
-    /* real time clocks */
-    ATARIHW_DECLARE(TT_CLK);		/* TT compatible clock chip */
-    ATARIHW_DECLARE(MSTE_CLK);		/* Mega ST(E) clock chip */
-    /* supporting hardware */
-    ATARIHW_DECLARE(SCU);		/* System Control Unit */
-    ATARIHW_DECLARE(BLITTER);		/* Blitter */
-    ATARIHW_DECLARE(VME);		/* VME Bus */
-    ATARIHW_DECLARE(DSP56K);		/* DSP56k processor in Falcon */
+	ATARIHW_DECLARE(MICROWIRE);		/* Microwire Interface */
+	/* DMA */
+	ATARIHW_DECLARE(STND_DMA);		/* 24 Bit limited ST-DMA */
+	ATARIHW_DECLARE(EXTD_DMA);		/* 32 Bit ST-DMA */
+	ATARIHW_DECLARE(SCSI_DMA);		/* DMA for the NCR5380 */
+	ATARIHW_DECLARE(SCC_DMA);		/* DMA for the SCC */
+	/* real time clocks */
+	ATARIHW_DECLARE(TT_CLK);		/* TT compatible clock chip */
+	ATARIHW_DECLARE(MSTE_CLK);		/* Mega ST(E) clock chip */
+	/* supporting hardware */
+	ATARIHW_DECLARE(SCU);		/* System Control Unit */
+	ATARIHW_DECLARE(BLITTER);		/* Blitter */
+	ATARIHW_DECLARE(VME);		/* VME Bus */
+	ATARIHW_DECLARE(DSP56K);		/* DSP56k processor in Falcon */
 };
 
 extern struct atari_hw_present atari_hw_present;
@@ -137,17 +138,23 @@ extern struct atari_hw_present atari_hw_present;
 #include <asm/cacheflush.h>
 
 static inline void dma_cache_maintenance( unsigned long paddr,
-					  unsigned long len,
-					  int writeflag )
+		unsigned long len,
+		int writeflag )
 
 {
-	if (writeflag) {
+	if (writeflag)
+	{
 		if (!MACH_IS_MEDUSA || CPU_IS_060)
+		{
 			cache_push( paddr, len );
+		}
 	}
-	else {
+	else
+	{
 		if (!MACH_IS_MEDUSA)
+		{
 			cache_clear( paddr, len );
+		}
 	}
 }
 
@@ -164,7 +171,7 @@ static inline void dma_cache_maintenance( unsigned long paddr,
 
 #define SHF_BAS (0xffff8200)
 struct SHIFTER
- {
+{
 	u_char pad1;
 	u_char bas_hi;
 	u_char pad2;
@@ -179,20 +186,21 @@ struct SHIFTER
 	u_char pad6;
 	u_char pad7;
 	u_char bas_lo;
- };
+};
 # define shifter ((*(volatile struct SHIFTER *)SHF_BAS))
 
 #define SHF_FBAS (0xffff820e)
 struct SHIFTER_F030
- {
-  u_short off_next;
-  u_short scn_width;
- };
+{
+	u_short off_next;
+	u_short scn_width;
+};
 # define shifter_f030 ((*(volatile struct SHIFTER_F030 *)SHF_FBAS))
 
 
 #define	SHF_TBAS (0xffff8200)
-struct SHIFTER_TT {
+struct SHIFTER_TT
+{
 	u_char	char_dummy0;
 	u_char	bas_hi;			/* video mem base addr, high and mid byte */
 	u_char	char_dummy1;
@@ -206,7 +214,7 @@ struct SHIFTER_TT {
 	u_short	st_sync;		/* ST compatible sync mode register, unused */
 	u_char	char_dummy5;
 	u_char	bas_lo;			/* video mem addr, low byte */
-	u_char	char_dummy6[2+3*16];
+	u_char	char_dummy6[2 + 3 * 16];
 	/* $ffff8240: */
 	u_short	color_reg[16];	/* 16 color registers */
 	u_char	st_shiftmode;	/* ST compatible shift mode register, unused */
@@ -251,7 +259,8 @@ struct SHIFTER_TT {
 #define f030_hscroll ((u_char*)		0xffff8265)
 
 #define VIDEL_BAS (0xffff8260)
-struct VIDEL {
+struct VIDEL
+{
 	u_short st_shift;
 	u_short pad1;
 	u_char  xoffset_s;
@@ -283,17 +292,17 @@ struct VIDEL {
 
 #define FWD_BAS (0xffff8604)
 struct DMA_WD
- {
-  u_short fdc_acces_seccount;
-  u_short dma_mode_status;
-  u_char dma_vhi;	/* Some extended ST-DMAs can handle 32 bit addresses */
-  u_char dma_hi;
-  u_char char_dummy2;
-  u_char dma_md;
-  u_char char_dummy3;
-  u_char dma_lo;
-  u_short fdc_speed;
- };
+{
+	u_short fdc_acces_seccount;
+	u_short dma_mode_status;
+	u_char dma_vhi;	/* Some extended ST-DMAs can handle 32 bit addresses */
+	u_char dma_hi;
+	u_char char_dummy2;
+	u_char dma_md;
+	u_char char_dummy3;
+	u_char dma_lo;
+	u_short fdc_speed;
+};
 # define dma_wd ((*(volatile struct DMA_WD *)FWD_BAS))
 /* alias */
 #define	st_dma dma_wd
@@ -309,17 +318,18 @@ struct DMA_WD
 
 #define YM_BAS (0xffff8800)
 struct SOUND_YM
- {
-  u_char rd_data_reg_sel;
-  u_char char_dummy1;
-  u_char wd_data;
- };
+{
+	u_char rd_data_reg_sel;
+	u_char char_dummy1;
+	u_char wd_data;
+};
 #define sound_ym ((*(volatile struct SOUND_YM *)YM_BAS))
 
 /* TT SCSI DMA */
 
 #define	TT_SCSI_DMA_BAS	(0xffff8700)
-struct TT_DMA {
+struct TT_DMA
+{
 	u_char	char_dummy0;
 	u_char	dma_addr_hi;
 	u_char	char_dummy1;
@@ -344,7 +354,8 @@ struct TT_DMA {
 /* TT SCSI Controller 5380 */
 
 #define	TT_5380_BAS	(0xffff8781)
-struct TT_5380 {
+struct TT_5380
+{
 	u_char	scsi_data;
 	u_char	char_dummy1;
 	u_char	scsi_icr;
@@ -372,39 +383,39 @@ struct TT_5380 {
 #define MATRIX_BASE (0xffff8930)
 struct MATRIX
 {
-  u_short source;
-  u_short destination;
-  u_char external_frequency_divider;
-  u_char internal_frequency_divider;
+	u_short source;
+	u_short destination;
+	u_char external_frequency_divider;
+	u_char internal_frequency_divider;
 };
 #define falcon_matrix (*(volatile struct MATRIX *)MATRIX_BASE)
 
 #define CODEC_BASE (0xffff8936)
 struct CODEC
 {
-  u_char tracks;
-  u_char input_source;
+	u_char tracks;
+	u_char input_source;
 #define CODEC_SOURCE_ADC        1
 #define CODEC_SOURCE_MATRIX     2
-  u_char adc_source;
+	u_char adc_source;
 #define ADC_SOURCE_RIGHT_PSG    1
 #define ADC_SOURCE_LEFT_PSG     2
-  u_char gain;
+	u_char gain;
 #define CODEC_GAIN_RIGHT        0x0f
 #define CODEC_GAIN_LEFT         0xf0
-  u_char attenuation;
+	u_char attenuation;
 #define CODEC_ATTENUATION_RIGHT 0x0f
 #define CODEC_ATTENUATION_LEFT  0xf0
-  u_char unused1;
-  u_char status;
+	u_char unused1;
+	u_char status;
 #define CODEC_OVERFLOW_RIGHT    1
 #define CODEC_OVERFLOW_LEFT     2
-  u_char unused2, unused3, unused4, unused5;
-  u_char gpio_directions;
+	u_char unused2, unused3, unused4, unused5;
+	u_char gpio_directions;
 #define CODEC_GPIO_IN           0
 #define CODEC_GPIO_OUT          1
-  u_char unused6;
-  u_char gpio_data;
+	u_char unused6;
+	u_char gpio_data;
 };
 #define falcon_codec (*(volatile struct CODEC *)CODEC_BASE)
 
@@ -415,24 +426,24 @@ struct CODEC
 #define BLT_BAS (0xffff8a00)
 
 struct BLITTER
- {
-  u_short halftone[16];
-  u_short src_x_inc;
-  u_short src_y_inc;
-  u_long src_address;
-  u_short endmask1;
-  u_short endmask2;
-  u_short endmask3;
-  u_short dst_x_inc;
-  u_short dst_y_inc;
-  u_long dst_address;
-  u_short wd_per_line;
-  u_short ln_per_bb;
-  u_short hlf_op_reg;
-  u_short log_op_reg;
-  u_short lin_nm_reg;
-  u_short skew_reg;
- };
+{
+	u_short halftone[16];
+	u_short src_x_inc;
+	u_short src_y_inc;
+	u_long src_address;
+	u_short endmask1;
+	u_short endmask2;
+	u_short endmask3;
+	u_short dst_x_inc;
+	u_short dst_y_inc;
+	u_long dst_address;
+	u_short wd_per_line;
+	u_short ln_per_bb;
+	u_short hlf_op_reg;
+	u_short log_op_reg;
+	u_short lin_nm_reg;
+	u_short skew_reg;
+};
 # define blitter ((*(volatile struct BLITTER *)BLT_BAS))
 
 
@@ -442,15 +453,15 @@ struct BLITTER
 
 #define SCC_BAS (0xffff8c81)
 struct SCC
- {
-  u_char cha_a_ctrl;
-  u_char char_dummy1;
-  u_char cha_a_data;
-  u_char char_dummy2;
-  u_char cha_b_ctrl;
-  u_char char_dummy3;
-  u_char cha_b_data;
- };
+{
+	u_char cha_a_ctrl;
+	u_char char_dummy1;
+	u_char cha_a_data;
+	u_char char_dummy2;
+	u_char cha_b_ctrl;
+	u_char char_dummy3;
+	u_char cha_b_data;
+};
 # define atari_scc ((*(volatile struct SCC*)SCC_BAS))
 
 /* The ESCC (Z85230) in an Atari ST. The channels are reversed! */
@@ -468,9 +479,9 @@ struct SCC
 
 #define FPL_BAS (0xffff9800)
 struct VIDEL_PALETTE
- {
-  u_long reg[256];
- };
+{
+	u_long reg[256];
+};
 # define videl_palette ((*(volatile struct VIDEL_PALETTE*)FPL_BAS))
 
 
@@ -479,8 +490,9 @@ struct VIDEL_PALETTE
  */
 
 #define DSP56K_HOST_INTERFACE_BASE (0xffffa200)
-struct DSP56K_HOST_INTERFACE {
-  u_char icr;
+struct DSP56K_HOST_INTERFACE
+{
+	u_char icr;
 #define DSP56K_ICR_RREQ	0x01
 #define DSP56K_ICR_TREQ	0x02
 #define DSP56K_ICR_HF0	0x08
@@ -489,11 +501,11 @@ struct DSP56K_HOST_INTERFACE {
 #define DSP56K_ICR_HM1	0x40
 #define DSP56K_ICR_INIT	0x80
 
-  u_char cvr;
+	u_char cvr;
 #define DSP56K_CVR_HV_MASK 0x1f
 #define DSP56K_CVR_HC	0x80
 
-  u_char isr;
+	u_char isr;
 #define DSP56K_ISR_RXDF	0x01
 #define DSP56K_ISR_TXDE	0x02
 #define DSP56K_ISR_TRDY	0x04
@@ -502,13 +514,14 @@ struct DSP56K_HOST_INTERFACE {
 #define DSP56K_ISR_DMA	0x40
 #define DSP56K_ISR_HREQ	0x80
 
-  u_char ivr;
+	u_char ivr;
 
-  union {
-    u_char b[4];
-    u_short w[2];
-    u_long l;
-  } data;
+	union
+	{
+		u_char b[4];
+		u_short w[2];
+		u_long l;
+	} data;
 };
 #define dsp56k_host_interface ((*(volatile struct DSP56K_HOST_INTERFACE *)DSP56K_HOST_INTERFACE_BASE))
 
@@ -518,55 +531,55 @@ struct DSP56K_HOST_INTERFACE {
 
 #define MFP_BAS (0xfffffa01)
 struct MFP
- {
-  u_char par_dt_reg;
-  u_char char_dummy1;
-  u_char active_edge;
-  u_char char_dummy2;
-  u_char data_dir;
-  u_char char_dummy3;
-  u_char int_en_a;
-  u_char char_dummy4;
-  u_char int_en_b;
-  u_char char_dummy5;
-  u_char int_pn_a;
-  u_char char_dummy6;
-  u_char int_pn_b;
-  u_char char_dummy7;
-  u_char int_sv_a;
-  u_char char_dummy8;
-  u_char int_sv_b;
-  u_char char_dummy9;
-  u_char int_mk_a;
-  u_char char_dummy10;
-  u_char int_mk_b;
-  u_char char_dummy11;
-  u_char vec_adr;
-  u_char char_dummy12;
-  u_char tim_ct_a;
-  u_char char_dummy13;
-  u_char tim_ct_b;
-  u_char char_dummy14;
-  u_char tim_ct_cd;
-  u_char char_dummy15;
-  u_char tim_dt_a;
-  u_char char_dummy16;
-  u_char tim_dt_b;
-  u_char char_dummy17;
-  u_char tim_dt_c;
-  u_char char_dummy18;
-  u_char tim_dt_d;
-  u_char char_dummy19;
-  u_char sync_char;
-  u_char char_dummy20;
-  u_char usart_ctr;
-  u_char char_dummy21;
-  u_char rcv_stat;
-  u_char char_dummy22;
-  u_char trn_stat;
-  u_char char_dummy23;
-  u_char usart_dta;
- };
+{
+	u_char par_dt_reg;
+	u_char char_dummy1;
+	u_char active_edge;
+	u_char char_dummy2;
+	u_char data_dir;
+	u_char char_dummy3;
+	u_char int_en_a;
+	u_char char_dummy4;
+	u_char int_en_b;
+	u_char char_dummy5;
+	u_char int_pn_a;
+	u_char char_dummy6;
+	u_char int_pn_b;
+	u_char char_dummy7;
+	u_char int_sv_a;
+	u_char char_dummy8;
+	u_char int_sv_b;
+	u_char char_dummy9;
+	u_char int_mk_a;
+	u_char char_dummy10;
+	u_char int_mk_b;
+	u_char char_dummy11;
+	u_char vec_adr;
+	u_char char_dummy12;
+	u_char tim_ct_a;
+	u_char char_dummy13;
+	u_char tim_ct_b;
+	u_char char_dummy14;
+	u_char tim_ct_cd;
+	u_char char_dummy15;
+	u_char tim_dt_a;
+	u_char char_dummy16;
+	u_char tim_dt_b;
+	u_char char_dummy17;
+	u_char tim_dt_c;
+	u_char char_dummy18;
+	u_char tim_dt_d;
+	u_char char_dummy19;
+	u_char sync_char;
+	u_char char_dummy20;
+	u_char usart_ctr;
+	u_char char_dummy21;
+	u_char rcv_stat;
+	u_char char_dummy22;
+	u_char trn_stat;
+	u_char char_dummy23;
+	u_char usart_dta;
+};
 # define st_mfp ((*(volatile struct MFP*)MFP_BAS))
 
 /* TT's second MFP */
@@ -578,7 +591,8 @@ struct MFP
 /* TT System Control Unit */
 
 #define	TT_SCU_BAS	(0xffff8e01)
-struct TT_SCU {
+struct TT_SCU
+{
 	u_char	sys_mask;
 	u_char	char_dummy1;
 	u_char	sys_stat;
@@ -600,7 +614,8 @@ struct TT_SCU {
 /* TT real time clock */
 
 #define	TT_RTC_BAS	(0xffff8961)
-struct TT_RTC {
+struct TT_RTC
+{
 	u_char	regsel;
 	u_char	dummy;
 	u_char	data;
@@ -651,19 +666,20 @@ struct TT_RTC {
 
 #define ACIA_BAS (0xfffffc00)
 struct ACIA
- {
-  u_char key_ctrl;
-  u_char char_dummy1;
-  u_char key_data;
-  u_char char_dummy2;
-  u_char mid_ctrl;
-  u_char char_dummy3;
-  u_char mid_data;
- };
+{
+	u_char key_ctrl;
+	u_char char_dummy1;
+	u_char key_data;
+	u_char char_dummy2;
+	u_char mid_ctrl;
+	u_char char_dummy3;
+	u_char mid_data;
+};
 # define acia ((*(volatile struct ACIA*)ACIA_BAS))
 
 #define	TT_DMASND_BAS (0xffff8900)
-struct TT_DMASND {
+struct TT_DMASND
+{
 	u_char	int_ctrl;	/* Falcon: Interrupt control */
 	u_char	ctrl;
 	u_char	pad2;
@@ -725,26 +741,27 @@ struct TT_DMASND {
 
 
 #define DMASNDSetBase(bufstart)						\
-    do {								\
-	tt_dmasnd.bas_hi  = (unsigned char)(((bufstart) & 0xff0000) >> 16); \
-	tt_dmasnd.bas_mid = (unsigned char)(((bufstart) & 0x00ff00) >> 8); \
-	tt_dmasnd.bas_low = (unsigned char) ((bufstart) & 0x0000ff); \
-    } while( 0 )
+	do {								\
+		tt_dmasnd.bas_hi  = (unsigned char)(((bufstart) & 0xff0000) >> 16); \
+		tt_dmasnd.bas_mid = (unsigned char)(((bufstart) & 0x00ff00) >> 8); \
+		tt_dmasnd.bas_low = (unsigned char) ((bufstart) & 0x0000ff); \
+	} while( 0 )
 
 #define DMASNDGetAdr() ((tt_dmasnd.addr_hi << 16) +	\
-			(tt_dmasnd.addr_mid << 8) +	\
-			(tt_dmasnd.addr_low))
+						(tt_dmasnd.addr_mid << 8) +	\
+						(tt_dmasnd.addr_low))
 
 #define DMASNDSetEnd(bufend)				\
-    do {						\
-	tt_dmasnd.end_hi  = (unsigned char)(((bufend) & 0xff0000) >> 16); \
-	tt_dmasnd.end_mid = (unsigned char)(((bufend) & 0x00ff00) >> 8); \
-	tt_dmasnd.end_low = (unsigned char) ((bufend) & 0x0000ff); \
-    } while( 0 )
+	do {						\
+		tt_dmasnd.end_hi  = (unsigned char)(((bufend) & 0xff0000) >> 16); \
+		tt_dmasnd.end_mid = (unsigned char)(((bufend) & 0x00ff00) >> 8); \
+		tt_dmasnd.end_low = (unsigned char) ((bufend) & 0x0000ff); \
+	} while( 0 )
 
 
 #define	TT_MICROWIRE_BAS	(0xffff8922)
-struct TT_MICROWIRE {
+struct TT_MICROWIRE
+{
 	u_short	data;
 	u_short	mask;
 };
@@ -753,15 +770,15 @@ struct TT_MICROWIRE {
 #define	MW_LM1992_ADDR		0x0400
 
 #define	MW_LM1992_VOLUME(dB)	\
-    (0x0c0 | ((dB) < -80 ? 0 : (dB) > 0 ? 40 : (((dB) + 80) / 2)))
+	(0x0c0 | ((dB) < -80 ? 0 : (dB) > 0 ? 40 : (((dB) + 80) / 2)))
 #define	MW_LM1992_BALLEFT(dB)	\
-    (0x140 | ((dB) < -40 ? 0 : (dB) > 0 ? 20 : (((dB) + 40) / 2)))
+	(0x140 | ((dB) < -40 ? 0 : (dB) > 0 ? 20 : (((dB) + 40) / 2)))
 #define	MW_LM1992_BALRIGHT(dB)	\
-    (0x100 | ((dB) < -40 ? 0 : (dB) > 0 ? 20 : (((dB) + 40) / 2)))
+	(0x100 | ((dB) < -40 ? 0 : (dB) > 0 ? 20 : (((dB) + 40) / 2)))
 #define	MW_LM1992_TREBLE(dB)	\
-    (0x080 | ((dB) < -12 ? 0 : (dB) > 12 ? 12 : (((dB) / 2) + 6)))
+	(0x080 | ((dB) < -12 ? 0 : (dB) > 12 ? 12 : (((dB) / 2) + 6)))
 #define	MW_LM1992_BASS(dB)	\
-    (0x040 | ((dB) < -12 ? 0 : (dB) > 12 ? 12 : (((dB) / 2) + 6)))
+	(0x040 | ((dB) < -12 ? 0 : (dB) > 12 ? 12 : (((dB) / 2) + 6)))
 
 #define	MW_LM1992_PSG_LOW	0x000
 #define	MW_LM1992_PSG_HIGH	0x001
@@ -769,7 +786,8 @@ struct TT_MICROWIRE {
 
 #define MSTE_RTC_BAS	(0xfffffc21)
 
-struct MSTE_RTC {
+struct MSTE_RTC
+{
 	u_char sec_ones;
 	u_char dummy1;
 	u_char sec_tens;

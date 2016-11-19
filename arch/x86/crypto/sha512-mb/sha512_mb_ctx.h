@@ -68,7 +68,8 @@
 #define HASH_CTX_STS_LAST       0x02
 #define HASH_CTX_STS_COMPLETE   0x04
 
-enum hash_ctx_error {
+enum hash_ctx_error
+{
 	HASH_CTX_ERROR_NONE               =  0,
 	HASH_CTX_ERROR_INVALID_FLAGS      = -1,
 	HASH_CTX_ERROR_ALREADY_PROCESSING = -2,
@@ -95,23 +96,25 @@ enum hash_ctx_error {
 
 #ifdef SHA_MB_DEBUG
 #define assert(expr) \
-do { \
-	if (unlikely(!(expr))) { \
-		printk(KERN_ERR "Assertion failed! %s,%s,%s,line=%d\n", \
-		#expr, __FILE__, __func__, __LINE__); \
-	} \
-} while (0)
+	do { \
+		if (unlikely(!(expr))) { \
+			printk(KERN_ERR "Assertion failed! %s,%s,%s,line=%d\n", \
+				   #expr, __FILE__, __func__, __LINE__); \
+		} \
+	} while (0)
 #else
 #define assert(expr) do {} while (0)
 #endif
 
-struct sha512_ctx_mgr {
+struct sha512_ctx_mgr
+{
 	struct sha512_mb_mgr mgr;
 };
 
 /* typedef struct sha512_ctx_mgr sha512_ctx_mgr; */
 
-struct sha512_hash_ctx {
+struct sha512_hash_ctx
+{
 	/* Must be at struct offset 0 */
 	struct job_sha512       job;
 	/* status flag */

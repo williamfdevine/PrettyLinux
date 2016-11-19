@@ -67,7 +67,9 @@ static inline int i8259_irq(void)
 	/* Perform an interrupt acknowledge cycle on controller 1. */
 	outb(0x0C, PIC_MASTER_CMD);		/* prepare for poll */
 	irq = inb(PIC_MASTER_CMD) & 7;
-	if (irq == PIC_CASCADE_IR) {
+
+	if (irq == PIC_CASCADE_IR)
+	{
 		/*
 		 * Interrupt is cascaded so perform interrupt
 		 * acknowledge on controller 2.
@@ -76,7 +78,8 @@ static inline int i8259_irq(void)
 		irq = (inb(PIC_SLAVE_CMD) & 7) + 8;
 	}
 
-	if (unlikely(irq == 7)) {
+	if (unlikely(irq == 7))
+	{
 		/*
 		 * This may be a spurious interrupt.
 		 *
@@ -85,8 +88,11 @@ static inline int i8259_irq(void)
 		 * interrupt.
 		 */
 		outb(0x0B, PIC_MASTER_ISR);		/* ISR register */
-		if(~inb(PIC_MASTER_ISR) & 0x80)
+
+		if (~inb(PIC_MASTER_ISR) & 0x80)
+		{
 			irq = -1;
+		}
 	}
 
 	raw_spin_unlock(&i8259A_lock);

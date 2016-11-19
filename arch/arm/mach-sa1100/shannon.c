@@ -25,7 +25,8 @@
 
 #include "generic.h"
 
-static struct mtd_partition shannon_partitions[] = {
+static struct mtd_partition shannon_partitions[] =
+{
 	{
 		.name		= "BLOB boot loader",
 		.offset		= 0,
@@ -38,12 +39,13 @@ static struct mtd_partition shannon_partitions[] = {
 	},
 	{
 		.name		= "initrd",
-		.offset		= MTDPART_OFS_APPEND,	
+		.offset		= MTDPART_OFS_APPEND,
 		.size		= MTDPART_SIZ_FULL
 	}
 };
 
-static struct flash_platform_data shannon_flash_data = {
+static struct flash_platform_data shannon_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.parts		= shannon_partitions,
 	.nr_parts	= ARRAY_SIZE(shannon_partitions),
@@ -52,12 +54,14 @@ static struct flash_platform_data shannon_flash_data = {
 static struct resource shannon_flash_resource =
 	DEFINE_RES_MEM(SA1100_CS0_PHYS, SZ_4M);
 
-static struct mcp_plat_data shannon_mcp_data = {
+static struct mcp_plat_data shannon_mcp_data =
+{
 	.mccr0		= MCCR0_ADM,
 	.sclk_rate	= 11981000,
 };
 
-static struct sa1100fb_mach_info shannon_lcd_info = {
+static struct sa1100fb_mach_info shannon_lcd_info =
+{
 	.pixclock	= 152500,	.bpp		= 8,
 	.xres		= 640,		.yres		= 480,
 
@@ -98,12 +102,12 @@ static void __init shannon_map_io(void)
 }
 
 MACHINE_START(SHANNON, "Shannon (AKA: Tuxscreen)")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= shannon_map_io,
-	.nr_irqs	= SA1100_NR_IRQS,
-	.init_irq	= sa1100_init_irq,
-	.init_time	= sa1100_timer_init,
-	.init_machine	= shannon_init,
-	.init_late	= sa11x0_init_late,
-	.restart	= sa11x0_restart,
-MACHINE_END
+		.nr_irqs	= SA1100_NR_IRQS,
+			.init_irq	= sa1100_init_irq,
+			   .init_time	= sa1100_timer_init,
+				 .init_machine	= shannon_init,
+					.init_late	= sa11x0_init_late,
+					  .restart	= sa11x0_restart,
+						  MACHINE_END

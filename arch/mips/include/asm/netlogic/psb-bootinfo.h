@@ -35,7 +35,8 @@
 #ifndef _ASM_NETLOGIC_BOOTINFO_H
 #define _ASM_NETLOGIC_BOOTINFO_H
 
-struct psb_info {
+struct psb_info
+{
 	uint64_t boot_level;
 	uint64_t io_base;
 	uint64_t output_device;
@@ -77,7 +78,8 @@ struct psb_info {
 	uint64_t avail_mem_map;
 };
 
-enum {
+enum
+{
 	NETLOGIC_IO_SPACE = 0x10,
 	PCIX_IO_SPACE,
 	PCIX_CFG_SPACE,
@@ -94,9 +96,11 @@ enum {
 
 /* This is what netlboot passes and linux boot_mem_map is subtly different */
 #define NLM_BOOT_MEM_MAP_MAX	32
-struct nlm_boot_mem_map {
+struct nlm_boot_mem_map
+{
 	int nr_map;
-	struct nlm_boot_mem_map_entry {
+	struct nlm_boot_mem_map_entry
+	{
 		uint64_t addr;		/* start of memory segment */
 		uint64_t size;		/* size of memory segment */
 		uint32_t type;		/* type of memory segment */

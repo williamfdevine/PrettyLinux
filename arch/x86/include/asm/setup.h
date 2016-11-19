@@ -10,12 +10,12 @@
 
 #ifdef __i386__
 
-#include <linux/pfn.h>
-/*
- * Reserved space for vmalloc and iomap - defined in asm/page.h
- */
-#define MAXMEM_PFN	PFN_DOWN(MAXMEM)
-#define MAX_NONPAE_PFN	(1 << 20)
+	#include <linux/pfn.h>
+	/*
+	* Reserved space for vmalloc and iomap - defined in asm/page.h
+	*/
+	#define MAXMEM_PFN	PFN_DOWN(MAXMEM)
+	#define MAX_NONPAE_PFN	(1 << 20)
 
 #endif /* __i386__ */
 
@@ -104,12 +104,12 @@ void *extend_brk(size_t size, size_t align);
 	static void __section(.discard.text) __used notrace		\
 	__brk_reservation_fn_##name##__(void) {				\
 		asm volatile (						\
-			".pushsection .brk_reservation,\"aw\",@nobits;" \
-			".brk." #name ":"				\
-			" 1:.skip %c0;"					\
-			" .size .brk." #name ", . - 1b;"		\
-			" .popsection"					\
-			: : "i" (sz));					\
+											".pushsection .brk_reservation,\"aw\",@nobits;" \
+											".brk." #name ":"				\
+											" 1:.skip %c0;"					\
+											" .size .brk." #name ", . - 1b;"		\
+											" .popsection"					\
+											: : "i" (sz));					\
 	}
 
 /* Helper for reserving space for arrays of things */
@@ -120,19 +120,19 @@ void *extend_brk(size_t size, size_t align);
 extern void probe_roms(void);
 #ifdef __i386__
 
-asmlinkage void __init i386_start_kernel(void);
+	asmlinkage void __init i386_start_kernel(void);
 
 #else
-asmlinkage void __init x86_64_start_kernel(char *real_mode);
-asmlinkage void __init x86_64_start_reservations(char *real_mode_data);
+	asmlinkage void __init x86_64_start_kernel(char *real_mode);
+	asmlinkage void __init x86_64_start_reservations(char *real_mode_data);
 
 #endif /* __i386__ */
 #endif /* _SETUP */
 #else
 #define RESERVE_BRK(name,sz)				\
 	.pushsection .brk_reservation,"aw",@nobits;	\
-.brk.name:						\
-1:	.skip sz;					\
+	.brk.name:						\
+	1:	.skip sz;					\
 	.size .brk.name,.-1b;				\
 	.popsection
 #endif /* __ASSEMBLY__ */

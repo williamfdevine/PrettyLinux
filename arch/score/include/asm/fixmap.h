@@ -40,7 +40,8 @@
  * future, say framebuffers for the console driver(s) could be
  * fix-mapped?
  */
-enum fixed_addresses {
+enum fixed_addresses
+{
 #define FIX_N_COLOURS 8
 	FIX_CMAP_BEGIN,
 	FIX_CMAP_END = FIX_CMAP_BEGIN + FIX_N_COLOURS,

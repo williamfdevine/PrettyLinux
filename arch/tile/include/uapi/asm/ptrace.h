@@ -20,9 +20,9 @@
 
 /* These must match struct pt_regs, below. */
 #if CHIP_WORD_SIZE() == 32
-#define PTREGS_OFFSET_REG(n)    ((n)*4)
+	#define PTREGS_OFFSET_REG(n)    ((n)*4)
 #else
-#define PTREGS_OFFSET_REG(n)    ((n)*8)
+	#define PTREGS_OFFSET_REG(n)    ((n)*8)
 #endif
 #define PTREGS_OFFSET_BASE      0
 #define PTREGS_OFFSET_TP        PTREGS_OFFSET_REG(53)
@@ -35,7 +35,7 @@
 #define PTREGS_OFFSET_ORIG_R0   PTREGS_OFFSET_REG(59)
 #define PTREGS_OFFSET_FLAGS     PTREGS_OFFSET_REG(60)
 #if CHIP_HAS_CMPEXCH()
-#define PTREGS_OFFSET_CMPEXCH   PTREGS_OFFSET_REG(61)
+	#define PTREGS_OFFSET_CMPEXCH   PTREGS_OFFSET_REG(61)
 #endif
 #define PTREGS_SIZE             PTREGS_OFFSET_REG(64)
 
@@ -43,19 +43,22 @@
 #ifndef __ASSEMBLY__
 
 #ifndef __KERNEL__
-/* Provide appropriate length type to userspace regardless of -m32/-m64. */
-typedef uint_reg_t pt_reg_t;
+	/* Provide appropriate length type to userspace regardless of -m32/-m64. */
+	typedef uint_reg_t pt_reg_t;
 #endif
 
 /*
  * This struct defines the way the registers are stored on the stack during a
  * system call or exception.  "struct sigcontext" has the same shape.
  */
-struct pt_regs {
-	union {
+struct pt_regs
+{
+	union
+	{
 		/* Saved main processor registers; 56..63 are special. */
 		pt_reg_t regs[56];
-		struct {
+		struct
+		{
 			pt_reg_t __regs[53];
 			pt_reg_t tp;		/* aliases regs[TREG_TP] */
 			pt_reg_t sp;		/* aliases regs[TREG_SP] */

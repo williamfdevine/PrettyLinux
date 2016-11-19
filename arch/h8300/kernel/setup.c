@@ -36,11 +36,11 @@
 #include <asm/page.h>
 
 #if defined(CONFIG_CPU_H8300H)
-#define CPU "H8/300H"
+	#define CPU "H8/300H"
 #elif defined(CONFIG_CPU_H8S)
-#define CPU "H8S"
+	#define CPU "H8S"
 #else
-#define CPU "Unknown"
+	#define CPU "Unknown"
 #endif
 
 unsigned long memory_start;
@@ -50,7 +50,7 @@ static unsigned long freq;
 extern char __dtb_start[];
 
 #ifdef CONFIG_VT
-struct screen_info screen_info;
+	struct screen_info screen_info;
 #endif
 
 char __initdata command_line[COMMAND_LINE_SIZE];
@@ -60,9 +60,13 @@ void sim_console_register(void);
 void __init h8300_fdt_init(void *fdt, char *bootargs)
 {
 	if (!fdt)
+	{
 		fdt = __dtb_start;
+	}
 	else
+	{
 		strcpy(command_line, bootargs);
+	}
 
 	early_init_dt_scan(fdt);
 	memblock_allow_resize();
@@ -79,13 +83,16 @@ static void __init bootmem_init(void)
 	memory_end = memory_start = 0;
 
 	/* Find main memory where is the kernel */
-	for_each_memblock(memory, region) {
+	for_each_memblock(memory, region)
+	{
 		memory_start = region->base;
 		memory_end = region->base + region->size;
 	}
 
 	if (!memory_end)
+	{
 		panic("No memory!");
+	}
 
 	ram_start_pfn = PFN_UP(memory_start);
 	/* free_ram_start_pfn is first page after kernel */
@@ -99,19 +106,20 @@ static void __init bootmem_init(void)
 	 * boot mem_map at the start of memory
 	 */
 	bootmap_size = init_bootmem_node(NODE_DATA(0),
-					 free_ram_start_pfn,
-					 0,
-					 ram_end_pfn);
+									 free_ram_start_pfn,
+									 0,
+									 ram_end_pfn);
 	/*
 	 * free the usable memory,  we have to make sure we do not free
 	 * the bootmem bitmap so we then reserve it after freeing it :-)
 	 */
 	free_bootmem(PFN_PHYS(free_ram_start_pfn),
-		     (ram_end_pfn - free_ram_start_pfn) << PAGE_SHIFT);
+				 (ram_end_pfn - free_ram_start_pfn) << PAGE_SHIFT);
 	reserve_bootmem(PFN_PHYS(free_ram_start_pfn), bootmap_size,
-			BOOTMEM_DEFAULT);
+					BOOTMEM_DEFAULT);
 
-	for_each_memblock(reserved, region) {
+	for_each_memblock(reserved, region)
+	{
 		reserve_bootmem(region->base, region->size, BOOTMEM_DEFAULT);
 	}
 }
@@ -129,7 +137,10 @@ void __init setup_arch(char **cmdline_p)
 	pr_notice("Flat model support (C) 1998,1999 Kenneth Albanowski, D. Jeff Dionne\n");
 
 	if (*command_line)
+	{
 		strcpy(boot_command_line, command_line);
+	}
+
 	*cmdline_p = boot_command_line;
 
 	parse_early_param();
@@ -152,14 +163,14 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	cpu = CPU;
 
 	seq_printf(m,  "CPU:\t\t%s\n"
-		   "Clock:\t\t%lu.%1luMHz\n"
-		   "BogoMips:\t%lu.%02lu\n"
-		   "Calibration:\t%lu loops\n",
-		   cpu,
-		   freq/1000, freq%1000,
-		   (loops_per_jiffy*HZ)/500000,
-		   ((loops_per_jiffy*HZ)/5000)%100,
-		   (loops_per_jiffy*HZ));
+			   "Clock:\t\t%lu.%1luMHz\n"
+			   "BogoMips:\t%lu.%02lu\n"
+			   "Calibration:\t%lu loops\n",
+			   cpu,
+			   freq / 1000, freq % 1000,
+			   (loops_per_jiffy * HZ) / 500000,
+			   ((loops_per_jiffy * HZ) / 5000) % 100,
+			   (loops_per_jiffy * HZ));
 
 	return 0;
 }
@@ -167,7 +178,7 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 static void *c_start(struct seq_file *m, loff_t *pos)
 {
 	return *pos < num_possible_cpus() ?
-		((void *) 0x12345678) : NULL;
+		   ((void *) 0x12345678) : NULL;
 }
 
 static void *c_next(struct seq_file *m, void *v, loff_t *pos)
@@ -180,7 +191,8 @@ static void c_stop(struct seq_file *m, void *v)
 {
 }
 
-const struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op =
+{
 	.start	= c_start,
 	.next	= c_next,
 	.stop	= c_stop,
@@ -198,16 +210,16 @@ device_initcall(device_probe);
 
 #if defined(CONFIG_CPU_H8300H)
 #define get_wait(base, addr) ({		\
-	int baddr;			\
-	baddr = ((addr) / 0x200000 * 2);			     \
-	w *= (readw((base) + 2) & (3 << baddr)) + 1;		     \
+		int baddr;			\
+		baddr = ((addr) / 0x200000 * 2);			     \
+		w *= (readw((base) + 2) & (3 << baddr)) + 1;		     \
 	})
 #endif
 #if defined(CONFIG_CPU_H8S)
 #define get_wait(base, addr) ({		\
-	int baddr;			\
-	baddr = ((addr) / 0x200000 * 16);			     \
-	w *= (readl((base) + 2) & (7 << baddr)) + 1;	\
+		int baddr;			\
+		baddr = ((addr) / 0x200000 * 16);			     \
+		w *= (readl((base) + 2) & (7 << baddr)) + 1;	\
 	})
 #endif
 
@@ -221,11 +233,17 @@ static __init int access_timing(void)
 
 	bsc = of_find_compatible_node(NULL, NULL, "renesas,h8300-bsc");
 	base = of_iomap(bsc, 0);
-	w = (readb(base + 0) & bit)?2:1;
+	w = (readb(base + 0) & bit) ? 2 : 1;
+
 	if (readb(base + 1) & bit)
+	{
 		w *= get_wait(base, addr);
+	}
 	else
+	{
 		w *= 2;
+	}
+
 	return w * 3 / 2;
 }
 
@@ -238,8 +256,8 @@ void __init calibrate_delay(void)
 	of_property_read_s32(cpu, "clock-frequency", &freq);
 	loops_per_jiffy = freq / HZ / (access_timing() * 2);
 	pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
-		loops_per_jiffy / (500000 / HZ),
-		(loops_per_jiffy / (5000 / HZ)) % 100, loops_per_jiffy);
+			loops_per_jiffy / (500000 / HZ),
+			(loops_per_jiffy / (5000 / HZ)) % 100, loops_per_jiffy);
 }
 
 

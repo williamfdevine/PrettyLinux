@@ -38,9 +38,9 @@
 #include "platform.h"
 
 #if defined(DEBUG)
-#define DBG udbg_printf
+	#define DBG udbg_printf
 #else
-#define DBG pr_debug
+	#define DBG pr_debug
 #endif
 
 /* mutex synchronizing GPU accesses and video mode changes */
@@ -65,7 +65,7 @@ int ps3_compare_firmware_version(u16 major, u16 minor, u16 rev)
 	x.rev = rev;
 
 	return (ps3_firmware_version.raw > x.raw) -
-	       (ps3_firmware_version.raw < x.raw);
+		   (ps3_firmware_version.raw < x.raw);
 }
 EXPORT_SYMBOL_GPL(ps3_compare_firmware_version);
 
@@ -114,8 +114,10 @@ static void ps3_panic(char *str)
 	printk("   Please press POWER button.\n");
 	printk("\n");
 
-	while(1)
+	while (1)
+	{
 		lv1_pause(1);
+	}
 }
 
 #if defined(CONFIG_FB_PS3) || defined(CONFIG_FB_PS3_MODULE) || \
@@ -123,20 +125,23 @@ static void ps3_panic(char *str)
 static void __init prealloc(struct ps3_prealloc *p)
 {
 	if (!p->size)
+	{
 		return;
+	}
 
 	p->address = memblock_virt_alloc(p->size, p->align);
 
 	printk(KERN_INFO "%s: %lu bytes at %p\n", p->name, p->size,
-	       p->address);
+		   p->address);
 }
 #endif
 
 #if defined(CONFIG_FB_PS3) || defined(CONFIG_FB_PS3_MODULE)
-struct ps3_prealloc ps3fb_videomemory = {
+struct ps3_prealloc ps3fb_videomemory =
+{
 	.name = "ps3fb videomemory",
-	.size = CONFIG_FB_PS3_DEFAULT_SIZE_M*1024*1024,
-	.align = 1024*1024		/* the GPU requires 1 MiB alignment */
+	.size = CONFIG_FB_PS3_DEFAULT_SIZE_M * 1024 * 1024,
+	.align = 1024 * 1024		/* the GPU requires 1 MiB alignment */
 };
 EXPORT_SYMBOL_GPL(ps3fb_videomemory);
 #define prealloc_ps3fb_videomemory()	prealloc(&ps3fb_videomemory)
@@ -144,10 +149,12 @@ EXPORT_SYMBOL_GPL(ps3fb_videomemory);
 static int __init early_parse_ps3fb(char *p)
 {
 	if (!p)
+	{
 		return 1;
+	}
 
 	ps3fb_videomemory.size = _ALIGN_UP(memparse(p, &p),
-					   ps3fb_videomemory.align);
+									   ps3fb_videomemory.align);
 	return 0;
 }
 early_param("ps3fb", early_parse_ps3fb);
@@ -156,10 +163,11 @@ early_param("ps3fb", early_parse_ps3fb);
 #endif
 
 #if defined(CONFIG_PS3_FLASH) || defined(CONFIG_PS3_FLASH_MODULE)
-struct ps3_prealloc ps3flash_bounce_buffer = {
+struct ps3_prealloc ps3flash_bounce_buffer =
+{
 	.name = "ps3flash bounce buffer",
-	.size = 256*1024,
-	.align = 256*1024
+	.size = 256 * 1024,
+	.align = 256 * 1024
 };
 EXPORT_SYMBOL_GPL(ps3flash_bounce_buffer);
 #define prealloc_ps3flash_bounce_buffer()	prealloc(&ps3flash_bounce_buffer)
@@ -167,10 +175,14 @@ EXPORT_SYMBOL_GPL(ps3flash_bounce_buffer);
 static int __init early_parse_ps3flash(char *p)
 {
 	if (!p)
+	{
 		return 1;
+	}
 
 	if (!strcmp(p, "off"))
+	{
 		ps3flash_bounce_buffer.size = 0;
+	}
 
 	return 0;
 }
@@ -183,7 +195,10 @@ static int ps3_set_dabr(unsigned long dabr, unsigned long dabrx)
 {
 	/* Have to set at least one bit in the DABRX */
 	if (dabrx == 0 && dabr == 0)
+	{
 		dabrx = DABRX_USER;
+	}
+
 	/* hypervisor only allows us to set BTI, Kernel and user */
 	dabrx &= DABRX_BTI | DABRX_KERNEL | DABRX_USER;
 
@@ -199,8 +214,8 @@ static void __init ps3_setup_arch(void)
 	lv1_get_version_info(&ps3_firmware_version.raw, &tmp);
 
 	printk(KERN_INFO "PS3 firmware version %u.%u.%u\n",
-	       ps3_firmware_version.major, ps3_firmware_version.minor,
-	       ps3_firmware_version.rev);
+		   ps3_firmware_version.major, ps3_firmware_version.minor,
+		   ps3_firmware_version.rev);
 
 	ps3_spu_set_platform();
 
@@ -240,7 +255,9 @@ static int __init ps3_probe(void)
 	DBG(" -> %s:%d\n", __func__, __LINE__);
 
 	if (!of_machine_is_compatible("sony,ps3"))
+	{
 		return 0;
+	}
 
 	ps3_os_area_save_params();
 
@@ -264,19 +281,20 @@ static void ps3_kexec_cpu_down(int crash_shutdown, int secondary)
 }
 #endif
 
-define_machine(ps3) {
+define_machine(ps3)
+{
 	.name				= "PS3",
-	.probe				= ps3_probe,
-	.setup_arch			= ps3_setup_arch,
-	.init_IRQ			= ps3_init_IRQ,
-	.panic				= ps3_panic,
-	.get_boot_time			= ps3_get_boot_time,
-	.set_dabr			= ps3_set_dabr,
-	.calibrate_decr			= ps3_calibrate_decr,
-	.progress			= ps3_progress,
-	.restart			= ps3_restart,
-	.halt				= ps3_halt,
+				.probe				= ps3_probe,
+						   .setup_arch			= ps3_setup_arch,
+								  .init_IRQ			= ps3_init_IRQ,
+										   .panic				= ps3_panic,
+													  .get_boot_time			= ps3_get_boot_time,
+															  .set_dabr			= ps3_set_dabr,
+																	   .calibrate_decr			= ps3_calibrate_decr,
+																			  .progress			= ps3_progress,
+																					   .restart			= ps3_restart,
+																								 .halt				= ps3_halt,
 #if defined(CONFIG_KEXEC)
-	.kexec_cpu_down			= ps3_kexec_cpu_down,
+																											 .kexec_cpu_down			= ps3_kexec_cpu_down,
 #endif
 };

@@ -24,7 +24,8 @@
 #include <asm/prom.h>
 #include "simple_gpio.h"
 
-struct u8_gpio_chip {
+struct u8_gpio_chip
+{
 	struct of_mm_gpio_chip mm_gc;
 	spinlock_t lock;
 
@@ -53,9 +54,13 @@ static void u8_gpio_set(struct gpio_chip *gc, unsigned int gpio, int val)
 	spin_lock_irqsave(&u8_gc->lock, flags);
 
 	if (val)
+	{
 		u8_gc->data |= u8_pin2mask(gpio);
+	}
 	else
+	{
 		u8_gc->data &= ~u8_pin2mask(gpio);
+	}
 
 	out_8(mm_gc->regs, u8_gc->data);
 
@@ -88,8 +93,11 @@ static int __init u8_simple_gpiochip_add(struct device_node *np)
 	struct gpio_chip *gc;
 
 	u8_gc = kzalloc(sizeof(*u8_gc), GFP_KERNEL);
+
 	if (!u8_gc)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&u8_gc->lock);
 
@@ -104,8 +112,12 @@ static int __init u8_simple_gpiochip_add(struct device_node *np)
 	gc->set = u8_gpio_set;
 
 	ret = of_mm_gpiochip_add_data(np, mm_gc, u8_gc);
+
 	if (ret)
+	{
 		goto err;
+	}
+
 	return 0;
 err:
 	kfree(u8_gc);
@@ -116,32 +128,43 @@ void __init simple_gpiochip_init(const char *compatible)
 {
 	struct device_node *np;
 
-	for_each_compatible_node(np, NULL, compatible) {
+	for_each_compatible_node(np, NULL, compatible)
+	{
 		int ret;
 		struct resource r;
 
 		ret = of_address_to_resource(np, 0, &r);
-		if (ret)
-			goto err;
 
-		switch (resource_size(&r)) {
-		case 1:
-			ret = u8_simple_gpiochip_add(np);
-			if (ret)
-				goto err;
-			break;
-		default:
-			/*
-			 * Whenever you need support for GPIO bank width > 1,
-			 * please just turn u8_ code into huge macros, and
-			 * construct needed uX_ code with it.
-			 */
-			ret = -ENOSYS;
+		if (ret)
+		{
 			goto err;
 		}
+
+		switch (resource_size(&r))
+		{
+			case 1:
+				ret = u8_simple_gpiochip_add(np);
+
+				if (ret)
+				{
+					goto err;
+				}
+
+				break;
+
+			default:
+				/*
+				 * Whenever you need support for GPIO bank width > 1,
+				 * please just turn u8_ code into huge macros, and
+				 * construct needed uX_ code with it.
+				 */
+				ret = -ENOSYS;
+				goto err;
+		}
+
 		continue;
 err:
 		pr_err("%s: registration failed, status %d\n",
-		       np->full_name, ret);
+			   np->full_name, ret);
 	}
 }

@@ -16,7 +16,8 @@ extern unsigned long sparc64_kern_pri_nuc_bits;
 extern unsigned long sparc64_kern_sec_context;
 void mmu_info(struct seq_file *m);
 
-struct linux_prom_translation {
+struct linux_prom_translation
+{
 	unsigned long virt;
 	unsigned long size;
 	unsigned long data;

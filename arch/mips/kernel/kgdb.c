@@ -34,14 +34,16 @@
 #include <asm/sigcontext.h>
 #include <asm/uaccess.h>
 
-static struct hard_trap_info {
+static struct hard_trap_info
+{
 	unsigned char tt;	/* Trap type code for MIPS R3xxx and R4xxx */
 	unsigned char signo;	/* Signal that we map this trap into */
-} hard_trap_info[] = {
+} hard_trap_info[] =
+{
 	{ 6, SIGBUS },		/* instruction bus error */
 	{ 7, SIGBUS },		/* data bus error */
 	{ 9, SIGTRAP },		/* break */
-/*	{ 11, SIGILL }, */	/* CPU unusable */
+	/*	{ 11, SIGILL }, */	/* CPU unusable */
 	{ 12, SIGFPE },		/* overflow */
 	{ 13, SIGTRAP },	/* trap */
 	{ 14, SIGSEGV },	/* virtual instruction cache coherency */
@@ -132,27 +134,39 @@ int dbg_set_reg(int regno, void *mem, struct pt_regs *regs)
 	int fp_reg;
 
 	if (regno < 0 || regno >= DBG_MAX_REG_NUM)
+	{
 		return -EINVAL;
+	}
 
-	if (dbg_reg_def[regno].offset != -1 && regno < 38) {
+	if (dbg_reg_def[regno].offset != -1 && regno < 38)
+	{
 		memcpy((void *)regs + dbg_reg_def[regno].offset, mem,
-		       dbg_reg_def[regno].size);
-	} else if (current && dbg_reg_def[regno].offset != -1 && regno < 72) {
+			   dbg_reg_def[regno].size);
+	}
+	else if (current && dbg_reg_def[regno].offset != -1 && regno < 72)
+	{
 		/* FP registers 38 -> 69 */
 		if (!(regs->cp0_status & ST0_CU1))
+		{
 			return 0;
-		if (regno == 70) {
+		}
+
+		if (regno == 70)
+		{
 			/* Process the fcr31/fsr (register 70) */
 			memcpy((void *)&current->thread.fpu.fcr31, mem,
-			       dbg_reg_def[regno].size);
+				   dbg_reg_def[regno].size);
 			goto out_save;
-		} else if (regno == 71) {
+		}
+		else if (regno == 71)
+		{
 			/* Ignore the fir (register 71) */
 			goto out_save;
 		}
+
 		fp_reg = dbg_reg_def[regno].offset;
 		memcpy((void *)&current->thread.fpu.fpr[fp_reg], mem,
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 out_save:
 		restore_fp(current);
 	}
@@ -165,30 +179,43 @@ char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 	int fp_reg;
 
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return NULL;
+	}
 
-	if (dbg_reg_def[regno].offset != -1 && regno < 38) {
+	if (dbg_reg_def[regno].offset != -1 && regno < 38)
+	{
 		/* First 38 registers */
 		memcpy(mem, (void *)regs + dbg_reg_def[regno].offset,
-		       dbg_reg_def[regno].size);
-	} else if (current && dbg_reg_def[regno].offset != -1 && regno < 72) {
+			   dbg_reg_def[regno].size);
+	}
+	else if (current && dbg_reg_def[regno].offset != -1 && regno < 72)
+	{
 		/* FP registers 38 -> 69 */
 		if (!(regs->cp0_status & ST0_CU1))
+		{
 			goto out;
+		}
+
 		save_fp(current);
-		if (regno == 70) {
+
+		if (regno == 70)
+		{
 			/* Process the fcr31/fsr (register 70) */
 			memcpy(mem, (void *)&current->thread.fpu.fcr31,
-			       dbg_reg_def[regno].size);
+				   dbg_reg_def[regno].size);
 			goto out;
-		} else if (regno == 71) {
+		}
+		else if (regno == 71)
+		{
 			/* Ignore the fir (register 71) */
 			memset(mem, 0, dbg_reg_def[regno].size);
 			goto out;
 		}
+
 		fp_reg = dbg_reg_def[regno].offset;
 		memcpy(mem, (void *)&current->thread.fpu.fpr[fp_reg],
-		       dbg_reg_def[regno].size);
+			   dbg_reg_def[regno].size);
 	}
 
 out:
@@ -232,7 +259,9 @@ static int compute_signal(int tt)
 
 	for (ht = hard_trap_info; ht->tt && ht->signo; ht++)
 		if (ht->tt == tt)
+		{
 			return ht->signo;
+		}
 
 	return SIGHUP;		/* default for things we don't know about */
 }
@@ -254,18 +283,26 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 #endif
 
 	for (reg = 0; reg < 16; reg++)
+	{
 		*(ptr++) = regs->regs[reg];
+	}
 
 	/* S0 - S7 */
 	for (reg = 16; reg < 24; reg++)
+	{
 		*(ptr++) = regs->regs[reg];
+	}
 
 	for (reg = 24; reg < 28; reg++)
+	{
 		*(ptr++) = 0;
+	}
 
 	/* GP, SP, FP, RA */
 	for (reg = 28; reg < 32; reg++)
+	{
 		*(ptr++) = regs->regs[reg];
+	}
 
 	*(ptr++) = regs->cp0_status;
 	*(ptr++) = regs->lo;
@@ -285,7 +322,7 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long pc)
  * then try to fall into the debugger
  */
 static int kgdb_mips_notify(struct notifier_block *self, unsigned long cmd,
-			    void *ptr)
+							void *ptr)
 {
 	struct die_args *args = (struct die_args *)ptr;
 	struct pt_regs *regs = args->regs;
@@ -293,33 +330,44 @@ static int kgdb_mips_notify(struct notifier_block *self, unsigned long cmd,
 	mm_segment_t old_fs;
 
 #ifdef CONFIG_KPROBES
+
 	/*
 	 * Return immediately if the kprobes fault notifier has set
 	 * DIE_PAGE_FAULT.
 	 */
 	if (cmd == DIE_PAGE_FAULT)
+	{
 		return NOTIFY_DONE;
+	}
+
 #endif /* CONFIG_KPROBES */
 
 	/* Userspace events, ignore. */
 	if (user_mode(regs))
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* Kernel mode. Set correct address limit */
 	old_fs = get_fs();
 	set_fs(get_ds());
 
 	if (atomic_read(&kgdb_active) != -1)
+	{
 		kgdb_nmicallback(smp_processor_id(), regs);
+	}
 
-	if (kgdb_handle_exception(trap, compute_signal(trap), cmd, regs)) {
+	if (kgdb_handle_exception(trap, compute_signal(trap), cmd, regs))
+	{
 		set_fs(old_fs);
 		return NOTIFY_DONE;
 	}
 
 	if (atomic_read(&kgdb_setting_breakpoint))
 		if ((trap == 9) && (regs->cp0_epc == (unsigned long)breakinst))
+		{
 			regs->cp0_epc += 4;
+		}
 
 	/* In SMP mode, __flush_cache_all does IPI */
 	local_irq_enable();
@@ -331,9 +379,10 @@ static int kgdb_mips_notify(struct notifier_block *self, unsigned long cmd,
 
 #ifdef CONFIG_KGDB_LOW_LEVEL_TRAP
 int kgdb_ll_trap(int cmd, const char *str,
-		 struct pt_regs *regs, long err, int trap, int sig)
+				 struct pt_regs *regs, long err, int trap, int sig)
 {
-	struct die_args args = {
+	struct die_args args =
+	{
 		.regs	= regs,
 		.str	= str,
 		.err	= err,
@@ -343,13 +392,16 @@ int kgdb_ll_trap(int cmd, const char *str,
 	};
 
 	if (!kgdb_io_module_registered)
+	{
 		return NOTIFY_DONE;
+	}
 
 	return kgdb_mips_notify(NULL, cmd, &args);
 }
 #endif /* CONFIG_KGDB_LOW_LEVEL_TRAP */
 
-static struct notifier_block kgdb_notifier = {
+static struct notifier_block kgdb_notifier =
+{
 	.notifier_call = kgdb_mips_notify,
 };
 
@@ -357,20 +409,24 @@ static struct notifier_block kgdb_notifier = {
  * Handle the 'c' command
  */
 int kgdb_arch_handle_exception(int vector, int signo, int err_code,
-			       char *remcom_in_buffer, char *remcom_out_buffer,
-			       struct pt_regs *regs)
+							   char *remcom_in_buffer, char *remcom_out_buffer,
+							   struct pt_regs *regs)
 {
 	char *ptr;
 	unsigned long address;
 
-	switch (remcom_in_buffer[0]) {
-	case 'c':
-		/* handle the optional parameter */
-		ptr = &remcom_in_buffer[1];
-		if (kgdb_hex2long(&ptr, &address))
-			regs->cp0_epc = address;
+	switch (remcom_in_buffer[0])
+	{
+		case 'c':
+			/* handle the optional parameter */
+			ptr = &remcom_in_buffer[1];
 
-		return 0;
+			if (kgdb_hex2long(&ptr, &address))
+			{
+				regs->cp0_epc = address;
+			}
+
+			return 0;
 	}
 
 	return -1;
@@ -380,7 +436,8 @@ struct kgdb_arch arch_kgdb_ops;
 
 int kgdb_arch_init(void)
 {
-	union mips_instruction insn = {
+	union mips_instruction insn =
+	{
 		.r_format = {
 			.opcode = spec_op,
 			.func	= break_op,

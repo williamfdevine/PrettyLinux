@@ -21,12 +21,14 @@
 /* Location of the trace bit in SYSCFG. */
 #define TRACE_BITS 0x0001
 
-struct fdpic_func_descriptor {
+struct fdpic_func_descriptor
+{
 	unsigned long	text;
 	unsigned long	GOT;
 };
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	int sig;
 	struct siginfo *pinfo;
 	void *puc;
@@ -86,21 +88,30 @@ asmlinkage int sys_rt_sigreturn(void)
 	int r0;
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
+
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (rt_restore_sigcontext(regs, &frame->uc.uc_mcontext, &r0))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return r0;
 
- badframe:
+badframe:
 	force_sig(SIGSEGV, current);
 	return 0;
 }
@@ -136,7 +147,7 @@ static inline int rt_setup_sigcontext(struct sigcontext *sc, struct pt_regs *reg
 }
 
 static inline void *get_sigframe(struct ksignal *ksig,
-				 size_t frame_size)
+								 size_t frame_size)
 {
 	unsigned long usp = sigsp(rdusp(), ksig);
 
@@ -165,21 +176,32 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	err |= copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up registers for signal handler */
-	if (current->personality & FDPIC_FUNCPTRS) {
+	if (current->personality & FDPIC_FUNCPTRS)
+	{
 		struct fdpic_func_descriptor __user *funcptr =
 			(struct fdpic_func_descriptor *) ksig->ka.sa.sa_handler;
 		u32 pc, p3;
 		err |= __get_user(pc, &funcptr->text);
 		err |= __get_user(p3, &funcptr->GOT);
+
 		if (err)
+		{
 			return -EFAULT;
+		}
+
 		regs->pc = pc;
 		regs->p3 = p3;
-	} else
+	}
+	else
+	{
 		regs->pc = (unsigned long)ksig->ka.sa.sa_handler;
+	}
+
 	wrusp((unsigned long)frame);
 	regs->rets = SIGRETURN_STUB;
 
@@ -193,30 +215,36 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 static inline void
 handle_restart(struct pt_regs *regs, struct k_sigaction *ka, int has_handler)
 {
-	switch (regs->r0) {
-	case -ERESTARTNOHAND:
-		if (!has_handler)
-			goto do_restart;
-		regs->r0 = -EINTR;
-		break;
+	switch (regs->r0)
+	{
+		case -ERESTARTNOHAND:
+			if (!has_handler)
+			{
+				goto do_restart;
+			}
 
-	case -ERESTARTSYS:
-		if (has_handler && !(ka->sa.sa_flags & SA_RESTART)) {
 			regs->r0 = -EINTR;
 			break;
-		}
-		/* fallthrough */
-	case -ERESTARTNOINTR:
- do_restart:
-		regs->p0 = regs->orig_p0;
-		regs->r0 = regs->orig_r0;
-		regs->pc -= 2;
-		break;
 
-	case -ERESTART_RESTARTBLOCK:
-		regs->p0 = __NR_restart_syscall;
-		regs->pc -= 2;
-		break;
+		case -ERESTARTSYS:
+			if (has_handler && !(ka->sa.sa_flags & SA_RESTART))
+			{
+				regs->r0 = -EINTR;
+				break;
+			}
+
+		/* fallthrough */
+		case -ERESTARTNOINTR:
+do_restart:
+			regs->p0 = regs->orig_p0;
+			regs->r0 = regs->orig_r0;
+			regs->pc -= 2;
+			break;
+
+		case -ERESTART_RESTARTBLOCK:
+			regs->p0 = __NR_restart_syscall;
+			regs->pc -= 2;
+			break;
 	}
 }
 
@@ -231,7 +259,9 @@ handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 	/* are we from a system call? to see pt_regs->orig_p0 */
 	if (regs->orig_p0 >= 0)
 		/* If so, check system call restarting.. */
+	{
 		handle_restart(regs, &ksig->ka, 1);
+	}
 
 	/* set up the stack frame */
 	ret = setup_rt_frame(ksig, sigmask_to_save(), regs);
@@ -254,7 +284,8 @@ asmlinkage void do_signal(struct pt_regs *regs)
 
 	current->thread.esp0 = (unsigned long)regs;
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* Whee!  Actually deliver the signal.  */
 		handle_signal(&ksig, regs);
 		return;
@@ -263,7 +294,9 @@ asmlinkage void do_signal(struct pt_regs *regs)
 	/* Did we come from a system call? */
 	if (regs->orig_p0 >= 0)
 		/* Restart the system call - no handlers present */
+	{
 		handle_restart(regs, NULL, 0);
+	}
 
 	/* if there's no signal to deliver, we just put the saved sigmask
 	 * back */
@@ -276,9 +309,12 @@ asmlinkage void do_signal(struct pt_regs *regs)
 asmlinkage void do_notify_resume(struct pt_regs *regs)
 {
 	if (test_thread_flag(TIF_SIGPENDING))
+	{
 		do_signal(regs);
+	}
 
-	if (test_thread_flag(TIF_NOTIFY_RESUME)) {
+	if (test_thread_flag(TIF_NOTIFY_RESUME))
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}

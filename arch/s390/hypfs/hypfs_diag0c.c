@@ -49,17 +49,26 @@ static void *diag0c_store(unsigned int *count)
 	get_online_cpus();
 	cpu_count = num_online_cpus();
 	cpu_vec = kmalloc(sizeof(*cpu_vec) * num_possible_cpus(), GFP_KERNEL);
+
 	if (!cpu_vec)
+	{
 		goto fail_put_online_cpus;
+	}
+
 	/* Note: Diag 0c needs 8 byte alignment and real storage */
 	diag0c_data = kzalloc(sizeof(struct hypfs_diag0c_hdr) +
-			      cpu_count * sizeof(struct hypfs_diag0c_entry),
-			      GFP_KERNEL | GFP_DMA);
+						  cpu_count * sizeof(struct hypfs_diag0c_entry),
+						  GFP_KERNEL | GFP_DMA);
+
 	if (!diag0c_data)
+	{
 		goto fail_kfree_cpu_vec;
+	}
+
 	i = 0;
 	/* Fill CPU vector for each online CPU */
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		diag0c_data->entry[i].cpu = cpu;
 		cpu_vec[cpu] = &diag0c_data->entry[i++];
 	}
@@ -94,8 +103,12 @@ static int dbfs_diag0c_create(void **data, void **data_free_ptr, size_t *size)
 	unsigned int count;
 
 	diag0c_data = diag0c_store(&count);
+
 	if (IS_ERR(diag0c_data))
+	{
 		return PTR_ERR(diag0c_data);
+	}
+
 	memset(&diag0c_data->hdr, 0, sizeof(diag0c_data->hdr));
 	get_tod_clock_ext(diag0c_data->hdr.tod_ext);
 	diag0c_data->hdr.len = count * sizeof(struct hypfs_diag0c_entry);
@@ -110,7 +123,8 @@ static int dbfs_diag0c_create(void **data, void **data_free_ptr, size_t *size)
 /*
  * Hypfs DBFS file structure
  */
-static struct hypfs_dbfs_file dbfs_file_0c = {
+static struct hypfs_dbfs_file dbfs_file_0c =
+{
 	.name		= "diag_0c",
 	.data_create	= dbfs_diag0c_create,
 	.data_free	= dbfs_diag0c_free,
@@ -122,7 +136,10 @@ static struct hypfs_dbfs_file dbfs_file_0c = {
 int __init hypfs_diag0c_init(void)
 {
 	if (!MACHINE_IS_VM)
+	{
 		return 0;
+	}
+
 	return hypfs_dbfs_create_file(&dbfs_file_0c);
 }
 
@@ -132,6 +149,9 @@ int __init hypfs_diag0c_init(void)
 void hypfs_diag0c_exit(void)
 {
 	if (!MACHINE_IS_VM)
+	{
 		return;
+	}
+
 	hypfs_dbfs_remove_file(&dbfs_file_0c);
 }

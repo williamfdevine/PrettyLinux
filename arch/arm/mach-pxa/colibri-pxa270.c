@@ -37,7 +37,8 @@
  * Evaluation board MFP
  ******************************************************************************/
 #ifdef	 CONFIG_MACH_COLIBRI_EVALBOARD
-static mfp_cfg_t colibri_pxa270_evalboard_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa270_evalboard_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
@@ -84,7 +85,8 @@ static mfp_cfg_t colibri_pxa270_evalboard_pin_config[] __initdata = {};
 #endif
 
 #ifdef	CONFIG_MACH_COLIBRI_PXA270_INCOME
-static mfp_cfg_t income_pin_config[] __initdata = {
+static mfp_cfg_t income_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
@@ -133,7 +135,8 @@ static mfp_cfg_t income_pin_config[] __initdata = {};
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static mfp_cfg_t colibri_pxa270_pin_config[] __initdata = {
+static mfp_cfg_t colibri_pxa270_pin_config[] __initdata =
+{
 	/* Ethernet */
 	GPIO78_nCS_2,	/* Ethernet CS */
 	GPIO114_GPIO,	/* Ethernet IRQ */
@@ -152,7 +155,8 @@ static mfp_cfg_t colibri_pxa270_pin_config[] __initdata = {
  * NOR Flash
  ******************************************************************************/
 #if defined(CONFIG_MTD_PHYSMAP) || defined(CONFIG_MTD_PHYSMAP_MODULE)
-static struct mtd_partition colibri_partitions[] = {
+static struct mtd_partition colibri_partitions[] =
+{
 	{
 		.name =		"Bootloader",
 		.offset =	0x00000000,
@@ -171,7 +175,8 @@ static struct mtd_partition colibri_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data colibri_flash_data[] = {
+static struct physmap_flash_data colibri_flash_data[] =
+{
 	{
 		.width		= 4,			/* bankwidth in bytes */
 		.parts		= colibri_partitions,
@@ -179,13 +184,15 @@ static struct physmap_flash_data colibri_flash_data[] = {
 	}
 };
 
-static struct resource colibri_pxa270_flash_resource = {
+static struct resource colibri_pxa270_flash_resource =
+{
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_32M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device colibri_pxa270_flash_device = {
+static struct platform_device colibri_pxa270_flash_device =
+{
 	.name	= "physmap-flash",
 	.id	= 0,
 	.dev 	= {
@@ -207,7 +214,8 @@ static inline void colibri_pxa270_nor_init(void) {}
  * Ethernet
  ******************************************************************************/
 #if defined(CONFIG_DM9000) || defined(CONFIG_DM9000_MODULE)
-static struct resource colibri_pxa270_dm9000_resources[] = {
+static struct resource colibri_pxa270_dm9000_resources[] =
+{
 	{
 		.start	= PXA_CS2_PHYS,
 		.end	= PXA_CS2_PHYS + 3,
@@ -225,7 +233,8 @@ static struct resource colibri_pxa270_dm9000_resources[] = {
 	},
 };
 
-static struct platform_device colibri_pxa270_dm9000_device = {
+static struct platform_device colibri_pxa270_dm9000_device =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(colibri_pxa270_dm9000_resources),
@@ -245,15 +254,18 @@ static inline void colibri_pxa270_eth_init(void) {}
  ******************************************************************************/
 #if	defined(CONFIG_TOUCHSCREEN_UCB1400) || \
 	defined(CONFIG_TOUCHSCREEN_UCB1400_MODULE)
-static pxa2xx_audio_ops_t colibri_pxa270_ac97_pdata = {
+static pxa2xx_audio_ops_t colibri_pxa270_ac97_pdata =
+{
 	.reset_gpio	= 95,
 };
 
-static struct ucb1400_pdata colibri_pxa270_ucb1400_pdata = {
+static struct ucb1400_pdata colibri_pxa270_ucb1400_pdata =
+{
 	.irq		= PXA_GPIO_TO_IRQ(GPIO113_COLIBRI_PXA270_TS_IRQ),
 };
 
-static struct platform_device colibri_pxa270_ucb1400_device = {
+static struct platform_device colibri_pxa270_ucb1400_device =
+{
 	.name		= "ucb1400_core",
 	.id		= -1,
 	.dev		= {
@@ -281,19 +293,22 @@ static void __init colibri_pxa270_init(void)
 	colibri_pxa270_eth_init();
 	colibri_pxa270_tsc_init();
 
-	switch (colibri_pxa270_baseboard) {
-	case COLIBRI_EVALBOARD:
-		pxa2xx_mfp_config(ARRAY_AND_SIZE(
-			colibri_pxa270_evalboard_pin_config));
-		colibri_evalboard_init();
-		break;
-	case COLIBRI_PXA270_INCOME:
-		pxa2xx_mfp_config(ARRAY_AND_SIZE(income_pin_config));
-		colibri_pxa270_income_boardinit();
-		break;
-	default:
-		printk(KERN_ERR "Illegal colibri_pxa270_baseboard type %d\n",
-				colibri_pxa270_baseboard);
+	switch (colibri_pxa270_baseboard)
+	{
+		case COLIBRI_EVALBOARD:
+			pxa2xx_mfp_config(ARRAY_AND_SIZE(
+								  colibri_pxa270_evalboard_pin_config));
+			colibri_evalboard_init();
+			break;
+
+		case COLIBRI_PXA270_INCOME:
+			pxa2xx_mfp_config(ARRAY_AND_SIZE(income_pin_config));
+			colibri_pxa270_income_boardinit();
+			break;
+
+		default:
+			printk(KERN_ERR "Illegal colibri_pxa270_baseboard type %d\n",
+				   colibri_pxa270_baseboard);
 	}
 
 	regulator_has_full_constraints();
@@ -310,24 +325,24 @@ static void __init colibri_pxa270_income_init(void)
 }
 
 MACHINE_START(COLIBRI, "Toradex Colibri PXA270")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.init_machine	= colibri_pxa270_init,
-	.map_io		= pxa27x_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+	   .map_io		= pxa27x_map_io,
+		   .nr_irqs	= PXA_NR_IRQS,
+			   .init_irq	= pxa27x_init_irq,
+				  .handle_irq	= pxa27x_handle_irq,
+				   .init_time	= pxa_timer_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END
 
-MACHINE_START(INCOME, "Income s.r.o. SH-Dmaster PXA270 SBC")
-	.atag_offset	= 0x100,
-	.init_machine	= colibri_pxa270_income_init,
-	.map_io		= pxa27x_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+						 MACHINE_START(INCOME, "Income s.r.o. SH-Dmaster PXA270 SBC")
+						 .atag_offset	= 0x100,
+							 .init_machine	= colibri_pxa270_income_init,
+								.map_io		= pxa27x_map_io,
+									.nr_irqs	= PXA_NR_IRQS,
+										.init_irq	= pxa27x_init_irq,
+										   .handle_irq	= pxa27x_handle_irq,
+											.init_time	= pxa_timer_init,
+											  .restart	= pxa_restart,
+												  MACHINE_END
 

@@ -31,7 +31,9 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
 {
 	if (dev && dev->dma_mask)
+	{
 		return addr + size - 1 <= *dev->dma_mask;
+	}
 
 	return 1;
 }
@@ -49,21 +51,24 @@ static inline phys_addr_t dma_to_phys(struct device *dev, dma_addr_t daddr)
 static inline void dma_mark_clean(void *addr, size_t size) {}
 
 static inline void dma_cache_sync(struct device *dev, void *vaddr,
-		size_t size, enum dma_data_direction direction)
+								  size_t size, enum dma_data_direction direction)
 {
 	unsigned long start = (unsigned long)vaddr;
 	unsigned long end   = start + size;
 
-	switch (direction) {
-	case DMA_NONE:
-		BUG();
-	case DMA_FROM_DEVICE:
-	case DMA_BIDIRECTIONAL:	/* writeback and invalidate */
-		__cpuc_dma_flush_range(start, end);
-		break;
-	case DMA_TO_DEVICE:		/* writeback only */
-		__cpuc_dma_clean_range(start, end);
-		break;
+	switch (direction)
+	{
+		case DMA_NONE:
+			BUG();
+
+		case DMA_FROM_DEVICE:
+		case DMA_BIDIRECTIONAL:	/* writeback and invalidate */
+			__cpuc_dma_flush_range(start, end);
+			break;
+
+		case DMA_TO_DEVICE:		/* writeback only */
+			__cpuc_dma_clean_range(start, end);
+			break;
 	}
 }
 

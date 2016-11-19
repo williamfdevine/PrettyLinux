@@ -19,7 +19,8 @@
 #include <asm/machvec.h>
 #include <asm/sizes.h>
 
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	[0] = {
 		.start		= 0x300,
 		.end		= 0x300 + SZ_4K - 1,
@@ -32,14 +33,16 @@ static struct resource smc91x_resources[] = {
 	},
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name		= "smc91x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smc91x_resources),
 	.resource	= smc91x_resources,
 };
 
-static struct s1d13xxxfb_regval s1d13806_initregs[] = {
+static struct s1d13xxxfb_regval s1d13806_initregs[] =
+{
 	{ S1DREG_MISC,			0x00 },
 	{ S1DREG_COM_DISP_MODE,		0x00 },
 	{ S1DREG_GPIO_CNF0,		0x00 },
@@ -149,12 +152,14 @@ static struct s1d13xxxfb_regval s1d13806_initregs[] = {
 	{ S1DREG_COM_DISP_MODE,		0x02 },
 };
 
-static struct s1d13xxxfb_pdata s1d13806_platform_data = {
+static struct s1d13xxxfb_pdata s1d13806_platform_data =
+{
 	.initregs	= s1d13806_initregs,
 	.initregssize	= ARRAY_SIZE(s1d13806_initregs),
 };
 
-static struct resource s1d13806_resources[] = {
+static struct resource s1d13806_resources[] =
+{
 	[0] = {
 		.start		= 0x07200000,
 		.end		= 0x07200000 + SZ_2M - 1,
@@ -167,7 +172,8 @@ static struct resource s1d13806_resources[] = {
 	},
 };
 
-static struct platform_device s1d13806_device = {
+static struct platform_device s1d13806_device =
+{
 	.name		= "s1d13806fb",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(s1d13806_resources),
@@ -178,7 +184,8 @@ static struct platform_device s1d13806_device = {
 	},
 };
 
-static struct platform_device *microdev_devices[] __initdata = {
+static struct platform_device *microdev_devices[] __initdata =
+{
 	&smc91x_device,
 	&s1d13806_device,
 };
@@ -192,7 +199,8 @@ device_initcall(microdev_devices_setup);
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_sh4202_microdev __initmv = {
+static struct sh_machine_vector mv_sh4202_microdev __initmv =
+{
 	.mv_name		= "SH4-202 MicroDev",
 	.mv_ioport_map		= microdev_ioport_map,
 	.mv_init_irq		= init_microdev_irq,

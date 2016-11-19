@@ -47,7 +47,8 @@
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static unsigned long vpac270_pin_config[] __initdata = {
+static unsigned long vpac270_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
@@ -151,7 +152,8 @@ static unsigned long vpac270_pin_config[] __initdata = {
  * NOR Flash
  ******************************************************************************/
 #if defined(CONFIG_MTD_PHYSMAP) || defined(CONFIG_MTD_PHYSMAP_MODULE)
-static struct mtd_partition vpac270_nor_partitions[] = {
+static struct mtd_partition vpac270_nor_partitions[] =
+{
 	{
 		.name		= "Flash",
 		.offset		= 0x00000000,
@@ -159,7 +161,8 @@ static struct mtd_partition vpac270_nor_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data vpac270_flash_data[] = {
+static struct physmap_flash_data vpac270_flash_data[] =
+{
 	{
 		.width		= 2,	/* bankwidth in bytes */
 		.parts		= vpac270_nor_partitions,
@@ -167,13 +170,15 @@ static struct physmap_flash_data vpac270_flash_data[] = {
 	}
 };
 
-static struct resource vpac270_flash_resource = {
+static struct resource vpac270_flash_resource =
+{
 	.start	= PXA_CS0_PHYS,
 	.end	= PXA_CS0_PHYS + SZ_64M - 1,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device vpac270_flash = {
+static struct platform_device vpac270_flash =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.resource	= &vpac270_flash_resource,
@@ -194,7 +199,8 @@ static inline void vpac270_nor_init(void) {}
  * OneNAND Flash
  ******************************************************************************/
 #if defined(CONFIG_MTD_ONENAND) || defined(CONFIG_MTD_ONENAND_MODULE)
-static struct mtd_partition vpac270_onenand_partitions[] = {
+static struct mtd_partition vpac270_onenand_partitions[] =
+{
 	{
 		.name		= "Flash",
 		.offset		= 0x00000000,
@@ -202,12 +208,14 @@ static struct mtd_partition vpac270_onenand_partitions[] = {
 	}
 };
 
-static struct onenand_platform_data vpac270_onenand_info = {
+static struct onenand_platform_data vpac270_onenand_info =
+{
 	.parts		= vpac270_onenand_partitions,
 	.nr_parts	= ARRAY_SIZE(vpac270_onenand_partitions),
 };
 
-static struct resource vpac270_onenand_resources[] = {
+static struct resource vpac270_onenand_resources[] =
+{
 	[0] = {
 		.start	= PXA_CS0_PHYS,
 		.end	= PXA_CS0_PHYS + SZ_1M,
@@ -215,7 +223,8 @@ static struct resource vpac270_onenand_resources[] = {
 	},
 };
 
-static struct platform_device vpac270_onenand = {
+static struct platform_device vpac270_onenand =
+{
 	.name		= "onenand-flash",
 	.id		= -1,
 	.resource	= vpac270_onenand_resources,
@@ -237,7 +246,8 @@ static void __init vpac270_onenand_init(void) {}
  * SD/MMC card controller
  ******************************************************************************/
 #if defined(CONFIG_MMC_PXA) || defined(CONFIG_MMC_PXA_MODULE)
-static struct pxamci_platform_data vpac270_mci_platform_data = {
+static struct pxamci_platform_data vpac270_mci_platform_data =
+{
 	.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.gpio_power		= -1,
 	.gpio_card_detect	= GPIO53_VPAC270_SD_DETECT_N,
@@ -257,16 +267,19 @@ static inline void vpac270_mmc_init(void) {}
  * GPIO keys
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-static struct gpio_keys_button vpac270_pxa_buttons[] = {
+static struct gpio_keys_button vpac270_pxa_buttons[] =
+{
 	{KEY_POWER, GPIO1_VPAC270_USER_BTN, 0, "USER BTN"},
 };
 
-static struct gpio_keys_platform_data vpac270_pxa_keys_data = {
+static struct gpio_keys_platform_data vpac270_pxa_keys_data =
+{
 	.buttons	= vpac270_pxa_buttons,
 	.nbuttons	= ARRAY_SIZE(vpac270_pxa_buttons),
 };
 
-static struct platform_device vpac270_pxa_keys = {
+static struct platform_device vpac270_pxa_keys =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -286,21 +299,24 @@ static inline void vpac270_keys_init(void) {}
  * LED
  ******************************************************************************/
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-struct gpio_led vpac270_gpio_leds[] = {
+struct gpio_led vpac270_gpio_leds[] =
 {
-	.name			= "vpac270:orange:user",
-	.default_trigger	= "none",
-	.gpio			= GPIO15_VPAC270_LED_ORANGE,
-	.active_low		= 1,
-}
+	{
+		.name			= "vpac270:orange:user",
+		.default_trigger	= "none",
+		.gpio			= GPIO15_VPAC270_LED_ORANGE,
+		.active_low		= 1,
+	}
 };
 
-static struct gpio_led_platform_data vpac270_gpio_led_info = {
+static struct gpio_led_platform_data vpac270_gpio_led_info =
+{
 	.leds		= vpac270_gpio_leds,
 	.num_leds	= ARRAY_SIZE(vpac270_gpio_leds),
 };
 
-static struct platform_device vpac270_leds = {
+static struct platform_device vpac270_leds =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -326,10 +342,11 @@ static int vpac270_ohci_init(struct device *dev)
 	return 0;
 }
 
-static struct pxaohci_platform_data vpac270_ohci_info = {
+static struct pxaohci_platform_data vpac270_ohci_info =
+{
 	.port_mode	= PMM_PERPORT_MODE,
 	.flags		= ENABLE_PORT1 | ENABLE_PORT2 |
-			POWER_CONTROL_LOW | POWER_SENSE_LOW,
+	POWER_CONTROL_LOW | POWER_SENSE_LOW,
 	.init		= vpac270_ohci_init,
 };
 
@@ -345,12 +362,14 @@ static inline void vpac270_uhc_init(void) {}
  * USB Gadget
  ******************************************************************************/
 #if defined(CONFIG_USB_PXA27X)||defined(CONFIG_USB_PXA27X_MODULE)
-static struct gpio_vbus_mach_info vpac270_gpio_vbus_info = {
+static struct gpio_vbus_mach_info vpac270_gpio_vbus_info =
+{
 	.gpio_vbus		= GPIO41_VPAC270_UDC_DETECT,
 	.gpio_pullup		= -1,
 };
 
-static struct platform_device vpac270_gpio_vbus = {
+static struct platform_device vpac270_gpio_vbus =
+{
 	.name	= "gpio-vbus",
 	.id	= -1,
 	.dev	= {
@@ -361,12 +380,17 @@ static struct platform_device vpac270_gpio_vbus = {
 static void vpac270_udc_command(int cmd)
 {
 	if (cmd == PXA2XX_UDC_CMD_CONNECT)
+	{
 		UP2OCR = UP2OCR_HXOE | UP2OCR_DPPUE;
+	}
 	else if (cmd == PXA2XX_UDC_CMD_DISCONNECT)
+	{
 		UP2OCR = UP2OCR_HXOE;
+	}
 }
 
-static struct pxa2xx_udc_mach_info vpac270_udc_info __initdata = {
+static struct pxa2xx_udc_mach_info vpac270_udc_info __initdata =
+{
 	.udc_command		= vpac270_udc_command,
 	.gpio_pullup		= -1,
 };
@@ -384,7 +408,8 @@ static inline void vpac270_udc_init(void) {}
  * Ethernet
  ******************************************************************************/
 #if defined(CONFIG_DM9000) || defined(CONFIG_DM9000_MODULE)
-static struct resource vpac270_dm9000_resources[] = {
+static struct resource vpac270_dm9000_resources[] =
+{
 	[0] = {
 		.start	= PXA_CS2_PHYS + 0x300,
 		.end	= PXA_CS2_PHYS + 0x303,
@@ -402,11 +427,13 @@ static struct resource vpac270_dm9000_resources[] = {
 	},
 };
 
-static struct dm9000_plat_data vpac270_dm9000_platdata = {
+static struct dm9000_plat_data vpac270_dm9000_platdata =
+{
 	.flags		= DM9000_PLATF_32BITONLY,
 };
 
-static struct platform_device vpac270_dm9000_device = {
+static struct platform_device vpac270_dm9000_device =
+{
 	.name		= "dm9000",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(vpac270_dm9000_resources),
@@ -429,15 +456,18 @@ static inline void vpac270_eth_init(void) {}
  ******************************************************************************/
 #if	defined(CONFIG_TOUCHSCREEN_UCB1400) || \
 	defined(CONFIG_TOUCHSCREEN_UCB1400_MODULE)
-static pxa2xx_audio_ops_t vpac270_ac97_pdata = {
+static pxa2xx_audio_ops_t vpac270_ac97_pdata =
+{
 	.reset_gpio	= 95,
 };
 
-static struct ucb1400_pdata vpac270_ucb1400_pdata = {
+static struct ucb1400_pdata vpac270_ucb1400_pdata =
+{
 	.irq		= PXA_GPIO_TO_IRQ(GPIO113_VPAC270_TS_IRQ),
 };
 
-static struct platform_device vpac270_ucb1400_device = {
+static struct platform_device vpac270_ucb1400_device =
+{
 	.name		= "ucb1400_core",
 	.id		= -1,
 	.dev		= {
@@ -458,7 +488,8 @@ static inline void vpac270_ts_init(void) {}
  * RTC
  ******************************************************************************/
 #if defined(CONFIG_RTC_DRV_DS1307) || defined(CONFIG_RTC_DRV_DS1307_MODULE)
-static struct i2c_board_info __initdata vpac270_i2c_devs[] = {
+static struct i2c_board_info __initdata vpac270_i2c_devs[] =
+{
 	{
 		I2C_BOARD_INFO("ds1339", 0x68),
 	},
@@ -476,75 +507,77 @@ static inline void vpac270_rtc_init(void) {}
  * Framebuffer
  ******************************************************************************/
 #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
-static struct pxafb_mode_info vpac270_lcd_modes[] = {
+static struct pxafb_mode_info vpac270_lcd_modes[] =
 {
-	.pixclock	= 57692,
-	.xres		= 640,
-	.yres		= 480,
-	.bpp		= 32,
-	.depth		= 18,
+	{
+		.pixclock	= 57692,
+		.xres		= 640,
+		.yres		= 480,
+		.bpp		= 32,
+		.depth		= 18,
 
-	.left_margin	= 144,
-	.right_margin	= 32,
-	.upper_margin	= 13,
-	.lower_margin	= 30,
+		.left_margin	= 144,
+		.right_margin	= 32,
+		.upper_margin	= 13,
+		.lower_margin	= 30,
 
-	.hsync_len	= 32,
-	.vsync_len	= 2,
+		.hsync_len	= 32,
+		.vsync_len	= 2,
 
-	.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-}, {	/* CRT 640x480 */
-	.pixclock	= 35000,
-	.xres		= 640,
-	.yres		= 480,
-	.bpp		= 16,
-	.depth		= 16,
+		.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	}, {	/* CRT 640x480 */
+		.pixclock	= 35000,
+		.xres		= 640,
+		.yres		= 480,
+		.bpp		= 16,
+		.depth		= 16,
 
-	.left_margin	= 96,
-	.right_margin	= 48,
-	.upper_margin	= 33,
-	.lower_margin	= 10,
+		.left_margin	= 96,
+		.right_margin	= 48,
+		.upper_margin	= 33,
+		.lower_margin	= 10,
 
-	.hsync_len	= 48,
-	.vsync_len	= 1,
+		.hsync_len	= 48,
+		.vsync_len	= 1,
 
-	.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-}, {	/* CRT 800x600 H=30kHz V=48HZ */
-	.pixclock	= 25000,
-	.xres		= 800,
-	.yres		= 600,
-	.bpp		= 16,
-	.depth		= 16,
+		.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	}, {	/* CRT 800x600 H=30kHz V=48HZ */
+		.pixclock	= 25000,
+		.xres		= 800,
+		.yres		= 600,
+		.bpp		= 16,
+		.depth		= 16,
 
-	.left_margin	= 50,
-	.right_margin	= 1,
-	.upper_margin	= 21,
-	.lower_margin	= 12,
+		.left_margin	= 50,
+		.right_margin	= 1,
+		.upper_margin	= 21,
+		.lower_margin	= 12,
 
-	.hsync_len	= 8,
-	.vsync_len	= 1,
+		.hsync_len	= 8,
+		.vsync_len	= 1,
 
-	.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-}, {	/* CRT 1024x768 H=40kHz V=50Hz */
-	.pixclock	= 15000,
-	.xres		= 1024,
-	.yres		= 768,
-	.bpp		= 16,
-	.depth		= 16,
+		.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	}, {	/* CRT 1024x768 H=40kHz V=50Hz */
+		.pixclock	= 15000,
+		.xres		= 1024,
+		.yres		= 768,
+		.bpp		= 16,
+		.depth		= 16,
 
-	.left_margin	= 220,
-	.right_margin	= 8,
-	.upper_margin	= 33,
-	.lower_margin	= 2,
+		.left_margin	= 220,
+		.right_margin	= 8,
+		.upper_margin	= 33,
+		.lower_margin	= 2,
 
-	.hsync_len	= 48,
-	.vsync_len	= 1,
+		.hsync_len	= 48,
+		.vsync_len	= 1,
 
-	.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-}
+		.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	}
 };
 
-static struct pxafb_mach_info vpac270_lcd_screen = {
+static struct pxafb_mach_info vpac270_lcd_screen =
+{
 	.modes		= vpac270_lcd_modes,
 	.num_modes	= ARRAY_SIZE(vpac270_lcd_modes),
 	.lcd_conn	= LCD_COLOR_TFT_18BPP,
@@ -560,13 +593,17 @@ static void __init vpac270_lcd_init(void)
 	int ret;
 
 	ret = gpio_request(GPIO81_VPAC270_BKL_ON, "BKL-ON");
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Requesting BKL-ON GPIO failed!\n");
 		goto err;
 	}
 
 	ret = gpio_direction_output(GPIO81_VPAC270_BKL_ON, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Setting BKL-ON GPIO direction failed!\n");
 		goto err2;
 	}
@@ -588,36 +625,39 @@ static inline void vpac270_lcd_init(void) {}
  * PATA IDE
  ******************************************************************************/
 #if defined(CONFIG_PATA_PXA) || defined(CONFIG_PATA_PXA_MODULE)
-static struct pata_pxa_pdata vpac270_pata_pdata = {
+static struct pata_pxa_pdata vpac270_pata_pdata =
+{
 	.reg_shift	= 1,
 	.dma_dreq	= 1,
 	.irq_flags	= IRQF_TRIGGER_RISING,
 };
 
-static struct resource vpac270_ide_resources[] = {
+static struct resource vpac270_ide_resources[] =
+{
 	[0] = {	/* I/O Base address */
-	       .start	= PXA_CS3_PHYS + 0x120,
-	       .end	= PXA_CS3_PHYS + 0x13f,
-	       .flags	= IORESOURCE_MEM
+		.start	= PXA_CS3_PHYS + 0x120,
+		.end	= PXA_CS3_PHYS + 0x13f,
+		.flags	= IORESOURCE_MEM
 	},
 	[1] = {	/* CTL Base address */
-	       .start	= PXA_CS3_PHYS + 0x15c,
-	       .end	= PXA_CS3_PHYS + 0x15f,
-	       .flags	= IORESOURCE_MEM
+		.start	= PXA_CS3_PHYS + 0x15c,
+		.end	= PXA_CS3_PHYS + 0x15f,
+		.flags	= IORESOURCE_MEM
 	},
 	[2] = {	/* DMA Base address */
-	       .start	= PXA_CS3_PHYS + 0x20,
-	       .end	= PXA_CS3_PHYS + 0x2f,
-	       .flags	= IORESOURCE_DMA
+		.start	= PXA_CS3_PHYS + 0x20,
+		.end	= PXA_CS3_PHYS + 0x2f,
+		.flags	= IORESOURCE_DMA
 	},
 	[3] = {	/* IDE IRQ pin */
-	       .start	= PXA_GPIO_TO_IRQ(GPIO36_VPAC270_IDE_IRQ),
-	       .end	= PXA_GPIO_TO_IRQ(GPIO36_VPAC270_IDE_IRQ),
-	       .flags	= IORESOURCE_IRQ
+		.start	= PXA_GPIO_TO_IRQ(GPIO36_VPAC270_IDE_IRQ),
+		.end	= PXA_GPIO_TO_IRQ(GPIO36_VPAC270_IDE_IRQ),
+		.flags	= IORESOURCE_IRQ
 	}
 };
 
-static struct platform_device vpac270_ide_device = {
+static struct platform_device vpac270_ide_device =
+{
 	.name		= "pata_pxa",
 	.num_resources	= ARRAY_SIZE(vpac270_ide_resources),
 	.resource	= vpac270_ide_resources,
@@ -640,11 +680,13 @@ static inline void vpac270_ide_init(void) {}
  ******************************************************************************/
 #if defined(CONFIG_REGULATOR_MAX1586) || \
     defined(CONFIG_REGULATOR_MAX1586_MODULE)
-static struct regulator_consumer_supply vpac270_max1587a_consumers[] = {
+static struct regulator_consumer_supply vpac270_max1587a_consumers[] =
+{
 	REGULATOR_SUPPLY("vcc_core", NULL),
 };
 
-static struct regulator_init_data vpac270_max1587a_v3_info = {
+static struct regulator_init_data vpac270_max1587a_v3_info =
+{
 	.constraints = {
 		.name		= "vcc_core range",
 		.min_uV		= 900000,
@@ -656,7 +698,8 @@ static struct regulator_init_data vpac270_max1587a_v3_info = {
 	.num_consumer_supplies	= ARRAY_SIZE(vpac270_max1587a_consumers),
 };
 
-static struct max1586_subdev_data vpac270_max1587a_subdevs[] = {
+static struct max1586_subdev_data vpac270_max1587a_subdevs[] =
+{
 	{
 		.name		= "vcc_core",
 		.id		= MAX1586_V3,
@@ -664,13 +707,15 @@ static struct max1586_subdev_data vpac270_max1587a_subdevs[] = {
 	}
 };
 
-static struct max1586_platform_data vpac270_max1587a_info = {
+static struct max1586_platform_data vpac270_max1587a_info =
+{
 	.subdevs     = vpac270_max1587a_subdevs,
 	.num_subdevs = ARRAY_SIZE(vpac270_max1587a_subdevs),
 	.v3_gain     = MAX1586_GAIN_R24_3k32, /* 730..1550 mV */
 };
 
-static struct i2c_board_info __initdata vpac270_pi2c_board_info[] = {
+static struct i2c_board_info __initdata vpac270_pi2c_board_info[] =
+{
 	{
 		I2C_BOARD_INFO("max1586", 0x14),
 		.platform_data	= &vpac270_max1587a_info,
@@ -717,12 +762,12 @@ static void __init vpac270_init(void)
 }
 
 MACHINE_START(VPAC270, "Voipac PXA270")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa27x_map_io,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= vpac270_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= PXA_NR_IRQS,
+			.init_irq	= pxa27x_init_irq,
+			   .handle_irq	= pxa27x_handle_irq,
+				.init_time	= pxa_timer_init,
+				  .init_machine	= vpac270_init,
+					 .restart	= pxa_restart,
+						 MACHINE_END

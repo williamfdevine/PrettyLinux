@@ -16,20 +16,23 @@
 #include <linux/sh_timer.h>
 #include <asm/addrspace.h>
 
-static struct plat_sci_port scif0_platform_data = {
+static struct plat_sci_port scif0_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF | UPF_IOREMAP,
 	.scscr		= SCSCR_RE | SCSCR_TE | SCSCR_REIE,
 	.type		= PORT_SCIF,
 };
 
-static struct resource scif0_resources[] = {
+static struct resource scif0_resources[] =
+{
 	DEFINE_RES_MEM(PHYS_PERIPHERAL_BLOCK + 0x01030000, 0x100),
 	DEFINE_RES_IRQ(39),
 	DEFINE_RES_IRQ(40),
 	DEFINE_RES_IRQ(42),
 };
 
-static struct platform_device scif0_device = {
+static struct platform_device scif0_device =
+{
 	.name		= "sh-sci",
 	.id		= 0,
 	.resource	= scif0_resources,
@@ -39,7 +42,8 @@ static struct platform_device scif0_device = {
 	},
 };
 
-static struct resource rtc_resources[] = {
+static struct resource rtc_resources[] =
+{
 	[0] = {
 		.start	= PHYS_PERIPHERAL_BLOCK + 0x01040000,
 		.end	= PHYS_PERIPHERAL_BLOCK + 0x01040000 + 0x58 - 1,
@@ -62,7 +66,8 @@ static struct resource rtc_resources[] = {
 	},
 };
 
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name		= "sh-rtc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(rtc_resources),
@@ -72,18 +77,21 @@ static struct platform_device rtc_device = {
 #define	TMU_BLOCK_OFF	0x01020000
 #define TMU_BASE	PHYS_PERIPHERAL_BLOCK + TMU_BLOCK_OFF
 
-static struct sh_timer_config tmu0_platform_data = {
+static struct sh_timer_config tmu0_platform_data =
+{
 	.channels_mask = 7,
 };
 
-static struct resource tmu0_resources[] = {
+static struct resource tmu0_resources[] =
+{
 	DEFINE_RES_MEM(TMU_BASE, 0x30),
 	DEFINE_RES_IRQ(IRQ_TUNI0),
 	DEFINE_RES_IRQ(IRQ_TUNI1),
 	DEFINE_RES_IRQ(IRQ_TUNI2),
 };
 
-static struct platform_device tmu0_device = {
+static struct platform_device tmu0_device =
+{
 	.name		= "sh-tmu",
 	.id		= 0,
 	.dev = {
@@ -93,12 +101,14 @@ static struct platform_device tmu0_device = {
 	.num_resources	= ARRAY_SIZE(tmu0_resources),
 };
 
-static struct platform_device *sh5_early_devices[] __initdata = {
+static struct platform_device *sh5_early_devices[] __initdata =
+{
 	&scif0_device,
 	&tmu0_device,
 };
 
-static struct platform_device *sh5_devices[] __initdata = {
+static struct platform_device *sh5_devices[] __initdata =
+{
 	&rtc_device,
 };
 
@@ -107,17 +117,20 @@ static int __init sh5_devices_setup(void)
 	int ret;
 
 	ret = platform_add_devices(sh5_early_devices,
-				   ARRAY_SIZE(sh5_early_devices));
+							   ARRAY_SIZE(sh5_early_devices));
+
 	if (unlikely(ret != 0))
+	{
 		return ret;
+	}
 
 	return platform_add_devices(sh5_devices,
-				    ARRAY_SIZE(sh5_devices));
+								ARRAY_SIZE(sh5_devices));
 }
 arch_initcall(sh5_devices_setup);
 
 void __init plat_early_device_setup(void)
 {
 	early_platform_add_devices(sh5_early_devices,
-				   ARRAY_SIZE(sh5_early_devices));
+							   ARRAY_SIZE(sh5_early_devices));
 }

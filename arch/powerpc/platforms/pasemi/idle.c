@@ -30,12 +30,14 @@
 
 #include "pasemi.h"
 
-struct sleep_mode {
+struct sleep_mode
+{
 	char *name;
 	void (*entry)(void);
 };
 
-static struct sleep_mode modes[] = {
+static struct sleep_mode modes[] =
+{
 	{ .name = "spin", .entry = &idle_spin },
 	{ .name = "doze", .entry = &idle_doze },
 };
@@ -50,18 +52,23 @@ static int pasemi_system_reset_exception(struct pt_regs *regs)
 	 */
 
 	if (regs->msr & SRR1_WAKEMASK)
+	{
 		regs->nip = regs->link;
+	}
 
-	switch (regs->msr & SRR1_WAKEMASK) {
-	case SRR1_WAKEEE:
-		do_IRQ(regs);
-		break;
-	case SRR1_WAKEDEC:
-		timer_interrupt(regs);
-		break;
-	default:
-		/* do system reset */
-		return 0;
+	switch (regs->msr & SRR1_WAKEMASK)
+	{
+		case SRR1_WAKEEE:
+			do_IRQ(regs);
+			break;
+
+		case SRR1_WAKEDEC:
+			timer_interrupt(regs);
+			break;
+
+		default:
+			/* do system reset */
+			return 0;
 	}
 
 	/* Set higher astate since we come out of power savings at 0 */
@@ -90,12 +97,16 @@ machine_late_initcall(pasemi, pasemi_idle_init);
 static int __init idle_param(char *p)
 {
 	int i;
-	for (i = 0; i < ARRAY_SIZE(modes); i++) {
-		if (!strcmp(modes[i].name, p)) {
+
+	for (i = 0; i < ARRAY_SIZE(modes); i++)
+	{
+		if (!strcmp(modes[i].name, p))
+		{
 			current_mode = i;
 			break;
 		}
 	}
+
 	return 0;
 }
 

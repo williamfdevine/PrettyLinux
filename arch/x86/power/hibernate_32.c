@@ -37,8 +37,11 @@ static pmd_t *resume_one_md_table_init(pgd_t *pgd)
 
 #ifdef CONFIG_X86_PAE
 	pmd_table = (pmd_t *)get_safe_page(GFP_ATOMIC);
+
 	if (!pmd_table)
+	{
 		return NULL;
+	}
 
 	set_pgd(pgd, __pgd(__pa(pmd_table) | _PAGE_PRESENT));
 	pud = pud_offset(pgd, 0);
@@ -58,10 +61,14 @@ static pmd_t *resume_one_md_table_init(pgd_t *pgd)
  */
 static pte_t *resume_one_page_table_init(pmd_t *pmd)
 {
-	if (pmd_none(*pmd)) {
+	if (pmd_none(*pmd))
+	{
 		pte_t *page_table = (pte_t *)get_safe_page(GFP_ATOMIC);
+
 		if (!page_table)
+		{
 			return NULL;
+		}
 
 		set_pmd(pmd, __pmd(__pa(page_table) | _PAGE_TABLE));
 
@@ -90,36 +97,55 @@ static int resume_physical_mapping_init(pgd_t *pgd_base)
 	pgd = pgd_base + pgd_idx;
 	pfn = 0;
 
-	for (; pgd_idx < PTRS_PER_PGD; pgd++, pgd_idx++) {
+	for (; pgd_idx < PTRS_PER_PGD; pgd++, pgd_idx++)
+	{
 		pmd = resume_one_md_table_init(pgd);
+
 		if (!pmd)
+		{
 			return -ENOMEM;
+		}
 
 		if (pfn >= max_low_pfn)
+		{
 			continue;
+		}
 
-		for (pmd_idx = 0; pmd_idx < PTRS_PER_PMD; pmd++, pmd_idx++) {
+		for (pmd_idx = 0; pmd_idx < PTRS_PER_PMD; pmd++, pmd_idx++)
+		{
 			if (pfn >= max_low_pfn)
+			{
 				break;
+			}
 
 			/* Map with big pages if possible, otherwise create
 			 * normal page tables.
 			 * NOTE: We can mark everything as executable here
 			 */
-			if (boot_cpu_has(X86_FEATURE_PSE)) {
+			if (boot_cpu_has(X86_FEATURE_PSE))
+			{
 				set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE_EXEC));
 				pfn += PTRS_PER_PTE;
-			} else {
+			}
+			else
+			{
 				pte_t *max_pte;
 
 				pte = resume_one_page_table_init(pmd);
+
 				if (!pte)
+				{
 					return -ENOMEM;
+				}
 
 				max_pte = pte + PTRS_PER_PTE;
-				for (; pte < max_pte; pte++, pfn++) {
+
+				for (; pte < max_pte; pte++, pfn++)
+				{
 					if (pfn >= max_low_pfn)
+					{
 						break;
+					}
 
 					set_pte(pte, pfn_pte(pfn, PAGE_KERNEL_EXEC));
 				}
@@ -138,7 +164,8 @@ static inline void resume_init_first_level_page_table(pgd_t *pg_dir)
 	/* Init entries of the first-level page table to the zero page */
 	for (i = 0; i < PTRS_PER_PGD; i++)
 		set_pgd(pg_dir + i,
-			__pgd(__pa(empty_zero_page) | _PAGE_PRESENT));
+				__pgd(__pa(empty_zero_page) | _PAGE_PRESENT));
+
 #endif
 }
 
@@ -147,13 +174,19 @@ int swsusp_arch_resume(void)
 	int error;
 
 	resume_pg_dir = (pgd_t *)get_safe_page(GFP_ATOMIC);
+
 	if (!resume_pg_dir)
+	{
 		return -ENOMEM;
+	}
 
 	resume_init_first_level_page_table(resume_pg_dir);
 	error = resume_physical_mapping_init(resume_pg_dir);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* We have got enough memory and from now on we cannot recover */
 	restore_image();

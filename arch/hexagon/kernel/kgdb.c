@@ -28,7 +28,8 @@
 
 /* The register names are used during printing of the regs;
  * Keep these at three letters to pretty-print. */
-struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] = {
+struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] =
+{
 	{ " r0", GDB_SIZEOF_REG, offsetof(struct pt_regs, r00)},
 	{ " r1", GDB_SIZEOF_REG, offsetof(struct pt_regs, r01)},
 	{ " r2", GDB_SIZEOF_REG, offsetof(struct pt_regs, r02)},
@@ -82,7 +83,8 @@ struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] = {
 	{ "syscall_nr", GDB_SIZEOF_REG, offsetof(struct pt_regs, syscall_nr)},
 };
 
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 	/* trap0(#0xDB) 0x0cdb0054 */
 	.gdb_bpt_instr = {0x54, 0x00, 0xdb, 0x0c},
 };
@@ -90,10 +92,12 @@ struct kgdb_arch arch_kgdb_ops = {
 char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return NULL;
+	}
 
 	*((unsigned long *) mem) = *((unsigned long *) ((void *)regs +
-		dbg_reg_def[regno].offset));
+								 dbg_reg_def[regno].offset));
 
 	return dbg_reg_def[regno].name;
 }
@@ -101,7 +105,9 @@ char *dbg_get_reg(int regno, void *mem, struct pt_regs *regs)
 int dbg_set_reg(int regno, void *mem, struct pt_regs *regs)
 {
 	if (regno >= DBG_MAX_REG_NUM || regno < 0)
+	{
 		return -EINVAL;
+	}
 
 	*((unsigned long *) ((void *)regs + dbg_reg_def[regno].offset)) =
 		*((unsigned long *) mem);
@@ -149,12 +155,14 @@ void kgdb_roundup_cpus(unsigned long flags)
 
 /*  Not yet working  */
 void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs,
-				 struct task_struct *task)
+								 struct task_struct *task)
 {
 	struct pt_regs *thread_regs;
 
 	if (task == NULL)
+	{
 		return;
+	}
 
 	/* Initialize to zero */
 	memset(gdb_regs, 0, NUMREGBYTES);
@@ -183,14 +191,16 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs,
  * Not yet working.
  */
 int kgdb_arch_handle_exception(int vector, int signo, int err_code,
-			       char *remcom_in_buffer, char *remcom_out_buffer,
-			       struct pt_regs *linux_regs)
+							   char *remcom_in_buffer, char *remcom_out_buffer,
+							   struct pt_regs *linux_regs)
 {
-	switch (remcom_in_buffer[0]) {
-	case 's':
-	case 'c':
-		return 0;
+	switch (remcom_in_buffer[0])
+	{
+		case 's':
+		case 'c':
+			return 0;
 	}
+
 	/* Stay in the debugger. */
 	return -1;
 }
@@ -198,17 +208,22 @@ int kgdb_arch_handle_exception(int vector, int signo, int err_code,
 static int __kgdb_notify(struct die_args *args, unsigned long cmd)
 {
 	/* cpu roundup */
-	if (atomic_read(&kgdb_active) != -1) {
+	if (atomic_read(&kgdb_active) != -1)
+	{
 		kgdb_nmicallback(smp_processor_id(), args->regs);
 		return NOTIFY_STOP;
 	}
 
 	if (user_mode(args->regs))
+	{
 		return NOTIFY_DONE;
+	}
 
 	if (kgdb_handle_exception(args->trapnr & 0xff, args->signr, args->err,
-				    args->regs))
+							  args->regs))
+	{
 		return NOTIFY_DONE;
+	}
 
 	return NOTIFY_STOP;
 }
@@ -226,7 +241,8 @@ kgdb_notify(struct notifier_block *self, unsigned long cmd, void *ptr)
 	return ret;
 }
 
-static struct notifier_block kgdb_notifier = {
+static struct notifier_block kgdb_notifier =
+{
 	.notifier_call = kgdb_notify,
 
 	/*

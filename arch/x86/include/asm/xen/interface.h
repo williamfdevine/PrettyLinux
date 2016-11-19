@@ -37,10 +37,10 @@
  */
 #ifdef __XEN__
 #define __DEFINE_GUEST_HANDLE(name, type) \
-    typedef struct { type *p; } __guest_handle_ ## name
+	typedef struct { type *p; } __guest_handle_ ## name
 #else
 #define __DEFINE_GUEST_HANDLE(name, type) \
-    typedef type * __guest_handle_ ## name
+	typedef type * __guest_handle_ ## name
 #endif
 
 #define DEFINE_GUEST_HANDLE_STRUCT(name) \
@@ -73,30 +73,30 @@
 #endif
 
 #ifndef __ASSEMBLY__
-/* Explicitly size integers that represent pfns in the public interface
- * with Xen so that on ARM we can have one ABI that works for 32 and 64
- * bit guests. */
-typedef unsigned long xen_pfn_t;
-#define PRI_xen_pfn "lx"
-typedef unsigned long xen_ulong_t;
-#define PRI_xen_ulong "lx"
-typedef long xen_long_t;
-#define PRI_xen_long "lx"
+	/* Explicitly size integers that represent pfns in the public interface
+	* with Xen so that on ARM we can have one ABI that works for 32 and 64
+	* bit guests. */
+	typedef unsigned long xen_pfn_t;
+	#define PRI_xen_pfn "lx"
+	typedef unsigned long xen_ulong_t;
+	#define PRI_xen_ulong "lx"
+	typedef long xen_long_t;
+	#define PRI_xen_long "lx"
 
-/* Guest handles for primitive C types. */
-__DEFINE_GUEST_HANDLE(uchar, unsigned char);
-__DEFINE_GUEST_HANDLE(uint,  unsigned int);
-DEFINE_GUEST_HANDLE(char);
-DEFINE_GUEST_HANDLE(int);
-DEFINE_GUEST_HANDLE(void);
-DEFINE_GUEST_HANDLE(uint64_t);
-DEFINE_GUEST_HANDLE(uint32_t);
-DEFINE_GUEST_HANDLE(xen_pfn_t);
-DEFINE_GUEST_HANDLE(xen_ulong_t);
+	/* Guest handles for primitive C types. */
+	__DEFINE_GUEST_HANDLE(uchar, unsigned char);
+	__DEFINE_GUEST_HANDLE(uint,  unsigned int);
+	DEFINE_GUEST_HANDLE(char);
+	DEFINE_GUEST_HANDLE(int);
+	DEFINE_GUEST_HANDLE(void);
+	DEFINE_GUEST_HANDLE(uint64_t);
+	DEFINE_GUEST_HANDLE(uint32_t);
+	DEFINE_GUEST_HANDLE(xen_pfn_t);
+	DEFINE_GUEST_HANDLE(xen_ulong_t);
 #endif
 
 #ifndef HYPERVISOR_VIRT_START
-#define HYPERVISOR_VIRT_START mk_unsigned_long(__HYPERVISOR_VIRT_START)
+	#define HYPERVISOR_VIRT_START mk_unsigned_long(__HYPERVISOR_VIRT_START)
 #endif
 
 #define MACH2PHYS_VIRT_START  mk_unsigned_long(__MACH2PHYS_VIRT_START)
@@ -138,15 +138,17 @@ DEFINE_GUEST_HANDLE(xen_ulong_t);
 #define TI_SET_IF(_ti, _if)	((_ti)->flags |= ((!!(_if))<<2))
 
 #ifndef __ASSEMBLY__
-struct trap_info {
-    uint8_t       vector;  /* exception vector                              */
-    uint8_t       flags;   /* 0-3: privilege level; 4: clear event enable?  */
-    uint16_t      cs;      /* code selector                                 */
-    unsigned long address; /* code offset                                   */
+struct trap_info
+{
+	uint8_t       vector;  /* exception vector                              */
+	uint8_t       flags;   /* 0-3: privilege level; 4: clear event enable?  */
+	uint16_t      cs;      /* code selector                                 */
+	unsigned long address; /* code offset                                   */
 };
 DEFINE_GUEST_HANDLE_STRUCT(trap_info);
 
-struct arch_shared_info {
+struct arch_shared_info
+{
 	/*
 	 * Number of valid entries in the p2m table(s) anchored at
 	 * pfn_to_mfn_frame_list_list and/or p2m_vaddr.
@@ -186,9 +188,9 @@ struct arch_shared_info {
 #endif	/* !__ASSEMBLY__ */
 
 #ifdef CONFIG_X86_32
-#include <asm/xen/interface_32.h>
+	#include <asm/xen/interface_32.h>
 #else
-#include <asm/xen/interface_64.h>
+	#include <asm/xen/interface_64.h>
 #endif
 
 #include <asm/pvclock-abi.h>
@@ -207,9 +209,10 @@ struct arch_shared_info {
  * - PVH guests are the same as HVM guests, but additionally use ctrlreg[3] to
  * set cr3. All other fields not used should be set to 0.
  */
-struct vcpu_guest_context {
-    /* FPU registers come first so they can be aligned for FXSAVE/FXRSTOR. */
-    struct { char x[512]; } fpu_ctxt;       /* User-level FPU registers     */
+struct vcpu_guest_context
+{
+	/* FPU registers come first so they can be aligned for FXSAVE/FXRSTOR. */
+	struct { char x[512]; } fpu_ctxt;       /* User-level FPU registers     */
 #define VGCF_I387_VALID                (1<<0)
 #define VGCF_IN_KERNEL                 (1<<2)
 #define _VGCF_i387_valid               0
@@ -222,37 +225,38 @@ struct vcpu_guest_context {
 #define VGCF_syscall_disables_events   (1<<_VGCF_syscall_disables_events)
 #define _VGCF_online                   5
 #define VGCF_online                    (1<<_VGCF_online)
-    unsigned long flags;                    /* VGCF_* flags                 */
-    struct cpu_user_regs user_regs;         /* User-level CPU registers     */
-    struct trap_info trap_ctxt[256];        /* Virtual IDT                  */
-    unsigned long ldt_base, ldt_ents;       /* LDT (linear address, # ents) */
-    unsigned long gdt_frames[16], gdt_ents; /* GDT (machine frames, # ents) */
-    unsigned long kernel_ss, kernel_sp;     /* Virtual TSS (only SS1/SP1)   */
-    /* NB. User pagetable on x86/64 is placed in ctrlreg[1]. */
-    unsigned long ctrlreg[8];               /* CR0-CR7 (control registers)  */
-    unsigned long debugreg[8];              /* DB0-DB7 (debug registers)    */
+	unsigned long flags;                    /* VGCF_* flags                 */
+	struct cpu_user_regs user_regs;         /* User-level CPU registers     */
+	struct trap_info trap_ctxt[256];        /* Virtual IDT                  */
+	unsigned long ldt_base, ldt_ents;       /* LDT (linear address, # ents) */
+	unsigned long gdt_frames[16], gdt_ents; /* GDT (machine frames, # ents) */
+	unsigned long kernel_ss, kernel_sp;     /* Virtual TSS (only SS1/SP1)   */
+	/* NB. User pagetable on x86/64 is placed in ctrlreg[1]. */
+	unsigned long ctrlreg[8];               /* CR0-CR7 (control registers)  */
+	unsigned long debugreg[8];              /* DB0-DB7 (debug registers)    */
 #ifdef __i386__
-    unsigned long event_callback_cs;        /* CS:EIP of event callback     */
-    unsigned long event_callback_eip;
-    unsigned long failsafe_callback_cs;     /* CS:EIP of failsafe callback  */
-    unsigned long failsafe_callback_eip;
+	unsigned long event_callback_cs;        /* CS:EIP of event callback     */
+	unsigned long event_callback_eip;
+	unsigned long failsafe_callback_cs;     /* CS:EIP of failsafe callback  */
+	unsigned long failsafe_callback_eip;
 #else
-    unsigned long event_callback_eip;
-    unsigned long failsafe_callback_eip;
-    unsigned long syscall_callback_eip;
+	unsigned long event_callback_eip;
+	unsigned long failsafe_callback_eip;
+	unsigned long syscall_callback_eip;
 #endif
-    unsigned long vm_assist;                /* VMASST_TYPE_* bitmap */
+	unsigned long vm_assist;                /* VMASST_TYPE_* bitmap */
 #ifdef __x86_64__
-    /* Segment base addresses. */
-    uint64_t      fs_base;
-    uint64_t      gs_base_kernel;
-    uint64_t      gs_base_user;
+	/* Segment base addresses. */
+	uint64_t      fs_base;
+	uint64_t      gs_base_kernel;
+	uint64_t      gs_base_user;
 #endif
 };
 DEFINE_GUEST_HANDLE_STRUCT(vcpu_guest_context);
 
 /* AMD PMU registers and structures */
-struct xen_pmu_amd_ctxt {
+struct xen_pmu_amd_ctxt
+{
 	/*
 	 * Offsets to counter and control MSRs (relative to xen_pmu_arch.c.amd).
 	 * For PV(H) guests these fields are RO.
@@ -269,12 +273,14 @@ struct xen_pmu_amd_ctxt {
 };
 
 /* Intel PMU registers and structures */
-struct xen_pmu_cntr_pair {
+struct xen_pmu_cntr_pair
+{
 	uint64_t counter;
 	uint64_t control;
 };
 
-struct xen_pmu_intel_ctxt {
+struct xen_pmu_intel_ctxt
+{
 	/*
 	 * Offsets to fixed and architectural counter MSRs (relative to
 	 * xen_pmu_arch.c.intel).
@@ -301,7 +307,8 @@ struct xen_pmu_intel_ctxt {
 };
 
 /* Sampled domain's registers */
-struct xen_pmu_regs {
+struct xen_pmu_regs
+{
 	uint64_t ip;
 	uint64_t sp;
 	uint64_t flags;
@@ -325,8 +332,10 @@ struct xen_pmu_regs {
  * hypervisor during PMU interrupt). Hypervisor will read updated data in
  * XENPMU_flush hypercall and clear PMU_CACHED bit.
  */
-struct xen_pmu_arch {
-	union {
+struct xen_pmu_arch
+{
+	union
+	{
 		/*
 		 * Processor's registers at the time of interrupt.
 		 * WO for hypervisor, RO for guests.
@@ -349,7 +358,8 @@ struct xen_pmu_arch {
 	 * Only APIC_LVT_MASKED bit is loaded by the hypervisor into hardware
 	 * during XENPMU_flush or XENPMU_lvtpc_set.
 	 */
-	union {
+	union
+	{
 		uint32_t lapic_lvtpc;
 		uint64_t pad;
 	} l;
@@ -360,7 +370,8 @@ struct xen_pmu_arch {
 	 * Guest's updates to this field are verified and then loaded by the
 	 * hypervisor into hardware during XENPMU_flush
 	 */
-	union {
+	union
+	{
 		struct xen_pmu_amd_ctxt amd;
 		struct xen_pmu_intel_ctxt intel;
 
@@ -380,11 +391,11 @@ struct xen_pmu_arch {
  * Currently only CPUID.
  */
 #ifdef __ASSEMBLY__
-#define XEN_EMULATE_PREFIX .byte 0x0f,0x0b,0x78,0x65,0x6e ;
-#define XEN_CPUID          XEN_EMULATE_PREFIX cpuid
+	#define XEN_EMULATE_PREFIX .byte 0x0f,0x0b,0x78,0x65,0x6e ;
+	#define XEN_CPUID          XEN_EMULATE_PREFIX cpuid
 #else
-#define XEN_EMULATE_PREFIX ".byte 0x0f,0x0b,0x78,0x65,0x6e ; "
-#define XEN_CPUID          XEN_EMULATE_PREFIX "cpuid"
+	#define XEN_EMULATE_PREFIX ".byte 0x0f,0x0b,0x78,0x65,0x6e ; "
+	#define XEN_CPUID          XEN_EMULATE_PREFIX "cpuid"
 #endif
 
 #endif /* _ASM_X86_XEN_INTERFACE_H */

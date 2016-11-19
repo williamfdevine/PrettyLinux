@@ -40,12 +40,15 @@ int __opal_async_get_token(void)
 
 	spin_lock_irqsave(&opal_async_comp_lock, flags);
 	token = find_first_bit(opal_async_complete_map, opal_max_async_tokens);
-	if (token >= opal_max_async_tokens) {
+
+	if (token >= opal_max_async_tokens)
+	{
 		token = -EBUSY;
 		goto out;
 	}
 
-	if (__test_and_set_bit(token, opal_async_token_map)) {
+	if (__test_and_set_bit(token, opal_async_token_map))
+	{
 		token = -EBUSY;
 		goto out;
 	}
@@ -63,11 +66,16 @@ int opal_async_get_token_interruptible(void)
 
 	/* Wait until a token is available */
 	if (down_interruptible(&opal_async_sem))
+	{
 		return -ERESTARTSYS;
+	}
 
 	token = __opal_async_get_token();
+
 	if (token < 0)
+	{
 		up(&opal_async_sem);
+	}
 
 	return token;
 }
@@ -77,9 +85,10 @@ int __opal_async_release_token(int token)
 {
 	unsigned long flags;
 
-	if (token < 0 || token >= opal_max_async_tokens) {
+	if (token < 0 || token >= opal_max_async_tokens)
+	{
 		pr_err("%s: Passed token is out of range, token %d\n",
-				__func__, token);
+			   __func__, token);
 		return -EINVAL;
 	}
 
@@ -96,8 +105,11 @@ int opal_async_release_token(int token)
 	int ret;
 
 	ret = __opal_async_release_token(token);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	up(&opal_async_sem);
 
@@ -107,12 +119,14 @@ EXPORT_SYMBOL_GPL(opal_async_release_token);
 
 int opal_async_wait_response(uint64_t token, struct opal_msg *msg)
 {
-	if (token >= opal_max_async_tokens) {
+	if (token >= opal_max_async_tokens)
+	{
 		pr_err("%s: Invalid token passed\n", __func__);
 		return -EINVAL;
 	}
 
-	if (!msg) {
+	if (!msg)
+	{
 		pr_err("%s: Invalid message pointer passed\n", __func__);
 		return -EINVAL;
 	}
@@ -130,14 +144,16 @@ int opal_async_wait_response(uint64_t token, struct opal_msg *msg)
 EXPORT_SYMBOL_GPL(opal_async_wait_response);
 
 static int opal_async_comp_event(struct notifier_block *nb,
-		unsigned long msg_type, void *msg)
+								 unsigned long msg_type, void *msg)
 {
 	struct opal_msg *comp_msg = msg;
 	unsigned long flags;
 	uint64_t token;
 
 	if (msg_type != OPAL_MSG_ASYNC_COMP)
+	{
 		return 0;
+	}
 
 	token = be64_to_cpu(comp_msg->params[0]);
 	memcpy(&opal_async_responses[token], comp_msg, sizeof(*comp_msg));
@@ -150,10 +166,11 @@ static int opal_async_comp_event(struct notifier_block *nb,
 	return 0;
 }
 
-static struct notifier_block opal_async_comp_nb = {
-		.notifier_call	= opal_async_comp_event,
-		.next		= NULL,
-		.priority	= 0,
+static struct notifier_block opal_async_comp_nb =
+{
+	.notifier_call	= opal_async_comp_event,
+	.next		= NULL,
+	.priority	= 0,
 };
 
 int __init opal_async_comp_init(void)
@@ -163,38 +180,49 @@ int __init opal_async_comp_init(void)
 	int err;
 
 	opal_node = of_find_node_by_path("/ibm,opal");
-	if (!opal_node) {
+
+	if (!opal_node)
+	{
 		pr_err("%s: Opal node not found\n", __func__);
 		err = -ENOENT;
 		goto out;
 	}
 
 	async = of_get_property(opal_node, "opal-msg-async-num", NULL);
-	if (!async) {
+
+	if (!async)
+	{
 		pr_err("%s: %s has no opal-msg-async-num\n",
-				__func__, opal_node->full_name);
+			   __func__, opal_node->full_name);
 		err = -ENOENT;
 		goto out_opal_node;
 	}
 
 	opal_max_async_tokens = be32_to_cpup(async);
+
 	if (opal_max_async_tokens > N_ASYNC_COMPLETIONS)
+	{
 		opal_max_async_tokens = N_ASYNC_COMPLETIONS;
+	}
 
 	err = opal_message_notifier_register(OPAL_MSG_ASYNC_COMP,
-			&opal_async_comp_nb);
-	if (err) {
+										 &opal_async_comp_nb);
+
+	if (err)
+	{
 		pr_err("%s: Can't register OPAL event notifier (%d)\n",
-				__func__, err);
+			   __func__, err);
 		goto out_opal_node;
 	}
 
 	opal_async_responses = kzalloc(
-			sizeof(*opal_async_responses) * opal_max_async_tokens,
-			GFP_KERNEL);
-	if (!opal_async_responses) {
+							   sizeof(*opal_async_responses) * opal_max_async_tokens,
+							   GFP_KERNEL);
+
+	if (!opal_async_responses)
+	{
 		pr_err("%s: Out of memory, failed to do asynchronous "
-				"completion init\n", __func__);
+			   "completion init\n", __func__);
 		err = -ENOMEM;
 		goto out_opal_node;
 	}

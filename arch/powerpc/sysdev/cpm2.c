@@ -90,9 +90,12 @@ int cpm_command(u32 command, u8 opcode)
 
 	ret = 0;
 	out_be32(&cpmp->cp_cpcr, command | opcode | CPM_CR_FLG);
+
 	for (i = 0; i < MAX_CR_CMD_LOOPS; i++)
 		if ((in_be32(&cpmp->cp_cpcr) & CPM_CR_FLG) == 0)
+		{
 			goto out;
+		}
 
 	printk(KERN_ERR "%s(): Not able to issue CPM command\n", __func__);
 	ret = -EIO;
@@ -119,17 +122,24 @@ void __cpm2_setbrg(uint brg, uint rate, uint clk, int div16, int src)
 
 	/* This is good enough to get SMCs running.....
 	*/
-	if (brg < 4) {
+	if (brg < 4)
+	{
 		bp = cpm2_map_size(im_brgc1, 16);
-	} else {
+	}
+	else
+	{
 		bp = cpm2_map_size(im_brgc5, 16);
 		brg -= 4;
 	}
+
 	bp += brg;
 	/* Round the clock divider to the nearest integer. */
 	val = (((clk * 2 / rate) - 1) & ~1) | CPM_BRG_EN | src;
+
 	if (div16)
+	{
 		val |= CPM_BRG_DIV16;
+	}
 
 	out_be32(bp, val);
 	cpm2_unmap(bp);
@@ -145,7 +155,8 @@ int cpm2_clk_setup(enum cpm_clk_target target, int clock, int mode)
 	u32 __iomem *reg;
 	u32 mask = 7;
 
-	u8 clk_map[][3] = {
+	u8 clk_map[][3] =
+	{
 		{CPM_CLK_FCC1, CPM_BRG5, 0},
 		{CPM_CLK_FCC1, CPM_BRG6, 1},
 		{CPM_CLK_FCC1, CPM_BRG7, 2},
@@ -206,56 +217,72 @@ int cpm2_clk_setup(enum cpm_clk_target target, int clock, int mode)
 
 	im_cpmux = cpm2_map(im_cpmux);
 
-	switch (target) {
-	case CPM_CLK_SCC1:
-		reg = &im_cpmux->cmx_scr;
-		shift = 24;
-		break;
-	case CPM_CLK_SCC2:
-		reg = &im_cpmux->cmx_scr;
-		shift = 16;
-		break;
-	case CPM_CLK_SCC3:
-		reg = &im_cpmux->cmx_scr;
-		shift = 8;
-		break;
-	case CPM_CLK_SCC4:
-		reg = &im_cpmux->cmx_scr;
-		shift = 0;
-		break;
-	case CPM_CLK_FCC1:
-		reg = &im_cpmux->cmx_fcr;
-		shift = 24;
-		break;
-	case CPM_CLK_FCC2:
-		reg = &im_cpmux->cmx_fcr;
-		shift = 16;
-		break;
-	case CPM_CLK_FCC3:
-		reg = &im_cpmux->cmx_fcr;
-		shift = 8;
-		break;
-	default:
-		printk(KERN_ERR "cpm2_clock_setup: invalid clock target\n");
-		return -EINVAL;
+	switch (target)
+	{
+		case CPM_CLK_SCC1:
+			reg = &im_cpmux->cmx_scr;
+			shift = 24;
+			break;
+
+		case CPM_CLK_SCC2:
+			reg = &im_cpmux->cmx_scr;
+			shift = 16;
+			break;
+
+		case CPM_CLK_SCC3:
+			reg = &im_cpmux->cmx_scr;
+			shift = 8;
+			break;
+
+		case CPM_CLK_SCC4:
+			reg = &im_cpmux->cmx_scr;
+			shift = 0;
+			break;
+
+		case CPM_CLK_FCC1:
+			reg = &im_cpmux->cmx_fcr;
+			shift = 24;
+			break;
+
+		case CPM_CLK_FCC2:
+			reg = &im_cpmux->cmx_fcr;
+			shift = 16;
+			break;
+
+		case CPM_CLK_FCC3:
+			reg = &im_cpmux->cmx_fcr;
+			shift = 8;
+			break;
+
+		default:
+			printk(KERN_ERR "cpm2_clock_setup: invalid clock target\n");
+			return -EINVAL;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(clk_map); i++) {
-		if (clk_map[i][0] == target && clk_map[i][1] == clock) {
+	for (i = 0; i < ARRAY_SIZE(clk_map); i++)
+	{
+		if (clk_map[i][0] == target && clk_map[i][1] == clock)
+		{
 			bits = clk_map[i][2];
 			break;
 		}
 	}
+
 	if (i == ARRAY_SIZE(clk_map))
-	    ret = -EINVAL;
+	{
+		ret = -EINVAL;
+	}
 
 	bits <<= shift;
 	mask <<= shift;
 
-	if (mode == CPM_CLK_RTX) {
+	if (mode == CPM_CLK_RTX)
+	{
 		bits |= bits << 3;
 		mask |= mask << 3;
-	} else if (mode == CPM_CLK_RX) {
+	}
+	else if (mode == CPM_CLK_RX)
+	{
 		bits <<= 3;
 		mask <<= 3;
 	}
@@ -275,7 +302,8 @@ int cpm2_smc_clk_setup(enum cpm_clk_target target, int clock)
 	u8 __iomem *reg;
 	u8 mask = 3;
 
-	u8 clk_map[][3] = {
+	u8 clk_map[][3] =
+	{
 		{CPM_CLK_SMC1, CPM_BRG1, 0},
 		{CPM_CLK_SMC1, CPM_BRG7, 1},
 		{CPM_CLK_SMC1, CPM_CLK7, 2},
@@ -288,30 +316,38 @@ int cpm2_smc_clk_setup(enum cpm_clk_target target, int clock)
 
 	im_cpmux = cpm2_map(im_cpmux);
 
-	switch (target) {
-	case CPM_CLK_SMC1:
-		reg = &im_cpmux->cmx_smr;
-		mask = 3;
-		shift = 4;
-		break;
-	case CPM_CLK_SMC2:
-		reg = &im_cpmux->cmx_smr;
-		mask = 3;
-		shift = 0;
-		break;
-	default:
-		printk(KERN_ERR "cpm2_smc_clock_setup: invalid clock target\n");
-		return -EINVAL;
+	switch (target)
+	{
+		case CPM_CLK_SMC1:
+			reg = &im_cpmux->cmx_smr;
+			mask = 3;
+			shift = 4;
+			break;
+
+		case CPM_CLK_SMC2:
+			reg = &im_cpmux->cmx_smr;
+			mask = 3;
+			shift = 0;
+			break;
+
+		default:
+			printk(KERN_ERR "cpm2_smc_clock_setup: invalid clock target\n");
+			return -EINVAL;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(clk_map); i++) {
-		if (clk_map[i][0] == target && clk_map[i][1] == clock) {
+	for (i = 0; i < ARRAY_SIZE(clk_map); i++)
+	{
+		if (clk_map[i][0] == target && clk_map[i][1] == clock)
+		{
 			bits = clk_map[i][2];
 			break;
 		}
 	}
+
 	if (i == ARRAY_SIZE(clk_map))
-	    ret = -EINVAL;
+	{
+		ret = -EINVAL;
+	}
 
 	bits <<= shift;
 	mask <<= shift;
@@ -322,7 +358,8 @@ int cpm2_smc_clk_setup(enum cpm_clk_target target, int clock)
 	return ret;
 }
 
-struct cpm2_ioports {
+struct cpm2_ioports
+{
 	u32 dir, par, sor, odr, dat;
 	u32 res[3];
 };
@@ -335,24 +372,40 @@ void cpm2_set_pin(int port, int pin, int flags)
 	pin = 1 << (31 - pin);
 
 	if (flags & CPM_PIN_OUTPUT)
+	{
 		setbits32(&iop[port].dir, pin);
+	}
 	else
+	{
 		clrbits32(&iop[port].dir, pin);
+	}
 
 	if (!(flags & CPM_PIN_GPIO))
+	{
 		setbits32(&iop[port].par, pin);
+	}
 	else
+	{
 		clrbits32(&iop[port].par, pin);
+	}
 
 	if (flags & CPM_PIN_SECONDARY)
+	{
 		setbits32(&iop[port].sor, pin);
+	}
 	else
+	{
 		clrbits32(&iop[port].sor, pin);
+	}
 
 	if (flags & CPM_PIN_OPENDRAIN)
+	{
 		setbits32(&iop[port].odr, pin);
+	}
 	else
+	{
 		clrbits32(&iop[port].odr, pin);
+	}
 }
 
 static int cpm_init_par_io(void)
@@ -360,7 +413,7 @@ static int cpm_init_par_io(void)
 	struct device_node *np;
 
 	for_each_compatible_node(np, NULL, "fsl,cpm2-pario-bank")
-		cpm2_gpiochip_add32(np);
+	cpm2_gpiochip_add32(np);
 	return 0;
 }
 arch_initcall(cpm_init_par_io);

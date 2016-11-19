@@ -80,16 +80,17 @@
  */
 
 #ifdef	__ARMEB__
-#define	REG_OFFSET	3
+	#define	REG_OFFSET	3
 #else
-#define	REG_OFFSET	0
+	#define	REG_OFFSET	0
 #endif
 
 /*
  * Only the second or "console" uart is connected on the gtwx5715.
  */
 
-static struct resource gtwx5715_uart_resources[] = {
+static struct resource gtwx5715_uart_resources[] =
+{
 	{
 		.start	= IXP4XX_UART2_BASE_PHYS,
 		.end	= IXP4XX_UART2_BASE_PHYS + 0x0fff,
@@ -104,20 +105,22 @@ static struct resource gtwx5715_uart_resources[] = {
 };
 
 
-static struct plat_serial8250_port gtwx5715_uart_platform_data[] = {
+static struct plat_serial8250_port gtwx5715_uart_platform_data[] =
+{
 	{
-	.mapbase	= IXP4XX_UART2_BASE_PHYS,
-	.membase	= (char *)IXP4XX_UART2_BASE_VIRT + REG_OFFSET,
-	.irq		= IRQ_IXP4XX_UART2,
-	.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,
-	.iotype		= UPIO_MEM,
-	.regshift	= 2,
-	.uartclk	= IXP4XX_UART_XTAL,
+		.mapbase	= IXP4XX_UART2_BASE_PHYS,
+		.membase	= (char *)IXP4XX_UART2_BASE_VIRT + REG_OFFSET,
+		.irq		= IRQ_IXP4XX_UART2,
+		.flags		= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,
+		.iotype		= UPIO_MEM,
+		.regshift	= 2,
+		.uartclk	= IXP4XX_UART_XTAL,
 	},
 	{ },
 };
 
-static struct platform_device gtwx5715_uart_device = {
+static struct platform_device gtwx5715_uart_device =
+{
 	.name		= "serial8250",
 	.id		= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -127,16 +130,19 @@ static struct platform_device gtwx5715_uart_device = {
 	.resource	= gtwx5715_uart_resources,
 };
 
-static struct flash_platform_data gtwx5715_flash_data = {
+static struct flash_platform_data gtwx5715_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.width		= 2,
 };
 
-static struct resource gtwx5715_flash_resource = {
+static struct resource gtwx5715_flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device gtwx5715_flash = {
+static struct platform_device gtwx5715_flash =
+{
 	.name		= "IXP4XX-Flash",
 	.id		= 0,
 	.dev		= {
@@ -146,7 +152,8 @@ static struct platform_device gtwx5715_flash = {
 	.resource	= &gtwx5715_flash_resource,
 };
 
-static struct platform_device *gtwx5715_devices[] __initdata = {
+static struct platform_device *gtwx5715_devices[] __initdata =
+{
 	&gtwx5715_uart_device,
 	&gtwx5715_flash,
 };
@@ -163,17 +170,17 @@ static void __init gtwx5715_init(void)
 
 
 MACHINE_START(GTWX5715, "Gemtek GTWX5715 (Linksys WRV54G)")
-	/* Maintainer: George Joseph */
-	.map_io		= ixp4xx_map_io,
+/* Maintainer: George Joseph */
+.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
-	.init_irq	= ixp4xx_init_irq,
-	.init_time	= ixp4xx_timer_init,
-	.atag_offset	= 0x100,
-	.init_machine	= gtwx5715_init,
+	 .init_irq	= ixp4xx_init_irq,
+		.init_time	= ixp4xx_timer_init,
+		  .atag_offset	= 0x100,
+			  .init_machine	= gtwx5715_init,
 #if defined(CONFIG_PCI)
 	.dma_zone_size	= SZ_64M,
 #endif
-	.restart	= ixp4xx_restart,
-MACHINE_END
+				 .restart	= ixp4xx_restart,
+					 MACHINE_END
 
 

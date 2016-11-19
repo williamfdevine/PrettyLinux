@@ -14,22 +14,22 @@
 #include <uapi/asm/ptrace.h>
 
 #ifndef __ASSEMBLY__
-#ifdef _BIG_ENDIAN
-#else
-#endif
+	#ifdef _BIG_ENDIAN
+	#else
+	#endif
 
-#include <linux/linkage.h>
+	#include <linux/linkage.h>
 
-#define user_mode(regs)	((((regs)->tsr) & 0x40) != 0)
+	#define user_mode(regs)	((((regs)->tsr) & 0x40) != 0)
 
-#define instruction_pointer(regs) ((regs)->pc)
-#define profile_pc(regs) instruction_pointer(regs)
-#define user_stack_pointer(regs) ((regs)->sp)
+	#define instruction_pointer(regs) ((regs)->pc)
+	#define profile_pc(regs) instruction_pointer(regs)
+	#define user_stack_pointer(regs) ((regs)->sp)
 
-extern void show_regs(struct pt_regs *);
+	extern void show_regs(struct pt_regs *);
 
-extern asmlinkage unsigned long syscall_trace_entry(struct pt_regs *regs);
-extern asmlinkage void syscall_trace_exit(struct pt_regs *regs);
+	extern asmlinkage unsigned long syscall_trace_entry(struct pt_regs *regs);
+	extern asmlinkage void syscall_trace_exit(struct pt_regs *regs);
 
 #endif /* __ASSEMBLY__ */
 #endif /* _ASM_C6X_PTRACE_H */

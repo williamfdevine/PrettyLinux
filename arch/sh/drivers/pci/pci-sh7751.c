@@ -20,32 +20,39 @@
 #include <asm/sizes.h>
 
 static int __init __area_sdram_check(struct pci_channel *chan,
-				     unsigned int area)
+									 unsigned int area)
 {
 	unsigned long word;
 
 	word = __raw_readl(SH7751_BCR1);
+
 	/* check BCR for SDRAM in area */
-	if (((word >> area) & 1) == 0) {
+	if (((word >> area) & 1) == 0)
+	{
 		printk("PCI: Area %d is not configured for SDRAM. BCR1=0x%lx\n",
-		       area, word);
+			   area, word);
 		return 0;
 	}
+
 	pci_write_reg(chan, word, SH4_PCIBCR1);
 
 	word = __raw_readw(SH7751_BCR2);
+
 	/* check BCR2 for 32bit SDRAM interface*/
-	if (((word >> (area << 1)) & 0x3) != 0x3) {
+	if (((word >> (area << 1)) & 0x3) != 0x3)
+	{
 		printk("PCI: Area %d is not 32 bit SDRAM. BCR2=0x%lx\n",
-		       area, word);
+			   area, word);
 		return 0;
 	}
+
 	pci_write_reg(chan, word, SH4_PCIBCR2);
 
 	return 1;
 }
 
-static struct resource sh7751_pci_resources[] = {
+static struct resource sh7751_pci_resources[] =
+{
 	{
 		.name	= "SH7751_IO",
 		.start	= 0x1000,
@@ -59,7 +66,8 @@ static struct resource sh7751_pci_resources[] = {
 	},
 };
 
-static struct pci_channel sh7751_pci_controller = {
+static struct pci_channel sh7751_pci_controller =
+{
 	.pci_ops	= &sh4_pci_ops,
 	.resources	= sh7751_pci_resources,
 	.nr_resources	= ARRAY_SIZE(sh7751_pci_resources),
@@ -68,7 +76,8 @@ static struct pci_channel sh7751_pci_controller = {
 	.io_map_base	= SH7751_PCI_IO_BASE,
 };
 
-static struct sh4_pci_address_map sh7751_pci_map = {
+static struct sh4_pci_address_map sh7751_pci_map =
+{
 	.window0	= {
 		.base	= SH7751_CS3_BASE_ADDR,
 		.size	= 0x04000000,
@@ -87,8 +96,10 @@ static int __init sh7751_pci_init(void)
 
 	/* check for SH7751/SH7751R hardware */
 	id = pci_read_reg(chan, SH7751_PCICONF0);
+
 	if (id != ((SH7751_DEVICE_ID << 16) | SH7751_VENDOR_ID) &&
-	    id != ((SH7751R_DEVICE_ID << 16) | SH7751_VENDOR_ID)) {
+		id != ((SH7751R_DEVICE_ID << 16) | SH7751_VENDOR_ID))
+	{
 		pr_debug("PCI: This is not an SH7751(R) (%x)\n", id);
 		return -ENODEV;
 	}
@@ -109,7 +120,7 @@ static int __init sh7751_pci_init(void)
 	 * Mem space enable
 	 */
 	word = SH7751_PCICONF1_WCC | SH7751_PCICONF1_PER |
-	       SH7751_PCICONF1_BUM | SH7751_PCICONF1_MES;
+		   SH7751_PCICONF1_BUM | SH7751_PCICONF1_MES;
 	pci_write_reg(chan, word, SH7751_PCICONF1);
 
 	/* define this host as the host bridge */
@@ -142,18 +153,27 @@ static int __init sh7751_pci_init(void)
 	/* Set PCI WCRx, BCRx's, copy from BSC locations */
 
 	/* check BCR for SDRAM in specified area */
-	switch (sh7751_pci_map.window0.base) {
-	case SH7751_CS0_BASE_ADDR: word = __area_sdram_check(chan, 0); break;
-	case SH7751_CS1_BASE_ADDR: word = __area_sdram_check(chan, 1); break;
-	case SH7751_CS2_BASE_ADDR: word = __area_sdram_check(chan, 2); break;
-	case SH7751_CS3_BASE_ADDR: word = __area_sdram_check(chan, 3); break;
-	case SH7751_CS4_BASE_ADDR: word = __area_sdram_check(chan, 4); break;
-	case SH7751_CS5_BASE_ADDR: word = __area_sdram_check(chan, 5); break;
-	case SH7751_CS6_BASE_ADDR: word = __area_sdram_check(chan, 6); break;
+	switch (sh7751_pci_map.window0.base)
+	{
+		case SH7751_CS0_BASE_ADDR: word = __area_sdram_check(chan, 0); break;
+
+		case SH7751_CS1_BASE_ADDR: word = __area_sdram_check(chan, 1); break;
+
+		case SH7751_CS2_BASE_ADDR: word = __area_sdram_check(chan, 2); break;
+
+		case SH7751_CS3_BASE_ADDR: word = __area_sdram_check(chan, 3); break;
+
+		case SH7751_CS4_BASE_ADDR: word = __area_sdram_check(chan, 4); break;
+
+		case SH7751_CS5_BASE_ADDR: word = __area_sdram_check(chan, 5); break;
+
+		case SH7751_CS6_BASE_ADDR: word = __area_sdram_check(chan, 6); break;
 	}
 
 	if (!word)
+	{
 		return -1;
+	}
 
 	/* configure the wait control registers */
 	word = __raw_readl(SH7751_WCR1);

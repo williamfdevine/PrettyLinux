@@ -43,44 +43,59 @@ void show_pte(struct mm_struct *mm, unsigned long addr)
 	pgd_t *pgd;
 
 	if (!mm)
+	{
 		mm = &init_mm;
+	}
 
 	printk(KERN_ALERT "pgd = %p\n", mm->pgd);
 	pgd = pgd_offset(mm, addr);
 	printk(KERN_ALERT "[%08lx] *pgd=%08lx", addr, pgd_val(*pgd));
 
-	do {
+	do
+	{
 		pmd_t *pmd;
 		pte_t *pte;
 
 		if (pgd_none(*pgd))
+		{
 			break;
+		}
 
-		if (pgd_bad(*pgd)) {
+		if (pgd_bad(*pgd))
+		{
 			printk("(bad)");
 			break;
 		}
 
 		pmd = pmd_offset((pud_t *) pgd, addr);
+
 		if (PTRS_PER_PMD != 1)
+		{
 			printk(", *pmd=%08lx", pmd_val(*pmd));
+		}
 
 		if (pmd_none(*pmd))
+		{
 			break;
+		}
 
-		if (pmd_bad(*pmd)) {
+		if (pmd_bad(*pmd))
+		{
 			printk("(bad)");
 			break;
 		}
 
 		/* We must not map this if we have highmem enabled */
 		if (PageHighMem(pfn_to_page(pmd_val(*pmd) >> PAGE_SHIFT)))
+		{
 			break;
+		}
 
 		pte = pte_offset_map(pmd, addr);
 		printk(", *pte=%08lx", pte_val(*pte));
 		pte_unmap(pte);
-	} while (0);
+	}
+	while (0);
 
 	printk("\n");
 }
@@ -89,22 +104,24 @@ void show_pte(struct mm_struct *mm, unsigned long addr)
  * Oops.  The kernel tried to access some page that wasn't present.
  */
 static void __do_kernel_fault(struct mm_struct *mm, unsigned long addr,
-		unsigned int fsr, struct pt_regs *regs)
+							  unsigned int fsr, struct pt_regs *regs)
 {
 	/*
 	 * Are we prepared to handle this kernel fault?
 	 */
 	if (fixup_exception(regs))
+	{
 		return;
+	}
 
 	/*
 	 * No handler, we'll have to terminate things with extreme prejudice.
 	 */
 	bust_spinlocks(1);
 	printk(KERN_ALERT
-	       "Unable to handle kernel %s at virtual address %08lx\n",
-	       (addr < PAGE_SIZE) ? "NULL pointer dereference" :
-	       "paging request", addr);
+		   "Unable to handle kernel %s at virtual address %08lx\n",
+		   (addr < PAGE_SIZE) ? "NULL pointer dereference" :
+		   "paging request", addr);
 
 	show_pte(mm, addr);
 	die("Oops", regs, fsr);
@@ -117,8 +134,8 @@ static void __do_kernel_fault(struct mm_struct *mm, unsigned long addr,
  * User mode accesses just cause a SIGSEGV
  */
 static void __do_user_fault(struct task_struct *tsk, unsigned long addr,
-		unsigned int fsr, unsigned int sig, int code,
-		struct pt_regs *regs)
+							unsigned int fsr, unsigned int sig, int code,
+							struct pt_regs *regs)
 {
 	struct siginfo si;
 
@@ -142,9 +159,13 @@ void do_bad_area(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	 * have no context to handle this fault with.
 	 */
 	if (user_mode(regs))
+	{
 		__do_user_fault(tsk, addr, fsr, SIGSEGV, SEGV_MAPERR, regs);
+	}
 	else
+	{
 		__do_kernel_fault(mm, addr, fsr, regs);
+	}
 }
 
 #define VM_FAULT_BADMAP		0x010000
@@ -160,32 +181,45 @@ static inline bool access_error(unsigned int fsr, struct vm_area_struct *vma)
 	unsigned int mask = VM_READ | VM_WRITE | VM_EXEC;
 
 	if (!(fsr ^ 0x12))	/* write? */
+	{
 		mask = VM_WRITE;
+	}
+
 	if (fsr & FSR_LNX_PF)
+	{
 		mask = VM_EXEC;
+	}
 
 	return vma->vm_flags & mask ? false : true;
 }
 
 static int __do_pf(struct mm_struct *mm, unsigned long addr, unsigned int fsr,
-		unsigned int flags, struct task_struct *tsk)
+				   unsigned int flags, struct task_struct *tsk)
 {
 	struct vm_area_struct *vma;
 	int fault;
 
 	vma = find_vma(mm, addr);
 	fault = VM_FAULT_BADMAP;
+
 	if (unlikely(!vma))
+	{
 		goto out;
+	}
+
 	if (unlikely(vma->vm_start > addr))
+	{
 		goto check_stack;
+	}
 
 	/*
 	 * Ok, we have a good vm_area for this
 	 * memory access, so we can handle it.
 	 */
 good_area:
-	if (access_error(fsr, vma)) {
+
+	if (access_error(fsr, vma))
+	{
 		fault = VM_FAULT_BADACCESS;
 		goto out;
 	}
@@ -198,8 +232,12 @@ good_area:
 	return fault;
 
 check_stack:
+
 	if (vma->vm_flags & VM_GROWSDOWN && !expand_stack(vma, addr))
+	{
 		goto good_area;
+	}
+
 out:
 	return fault;
 }
@@ -219,25 +257,38 @@ static int do_pf(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	 * context, we must not take the fault..
 	 */
 	if (faulthandler_disabled() || !mm)
+	{
 		goto no_context;
+	}
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 	if (!(fsr ^ 0x12))
+	{
 		flags |= FAULT_FLAG_WRITE;
+	}
 
 	/*
 	 * As per x86, we may deadlock here.  However, since the kernel only
 	 * validly references user space from well defined areas of the code,
 	 * we can bug out early if this is from code which shouldn't.
 	 */
-	if (!down_read_trylock(&mm->mmap_sem)) {
+	if (!down_read_trylock(&mm->mmap_sem))
+	{
 		if (!user_mode(regs)
-		    && !search_exception_tables(regs->UCreg_pc))
+			&& !search_exception_tables(regs->UCreg_pc))
+		{
 			goto no_context;
+		}
+
 retry:
 		down_read(&mm->mmap_sem);
-	} else {
+	}
+	else
+	{
 		/*
 		 * The above down_read_trylock() might have succeeded in
 		 * which case, we'll have missed the might_sleep() from
@@ -245,9 +296,13 @@ retry:
 		 */
 		might_sleep();
 #ifdef CONFIG_DEBUG_VM
+
 		if (!user_mode(regs) &&
-		    !search_exception_tables(regs->UCreg_pc))
+			!search_exception_tables(regs->UCreg_pc))
+		{
 			goto no_context;
+		}
+
 #endif
 	}
 
@@ -258,14 +313,23 @@ retry:
 	 * it would already be released in __lock_page_or_retry in
 	 * mm/filemap.c. */
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return 0;
+	}
 
-	if (!(fault & VM_FAULT_ERROR) && (flags & FAULT_FLAG_ALLOW_RETRY)) {
+	if (!(fault & VM_FAULT_ERROR) && (flags & FAULT_FLAG_ALLOW_RETRY))
+	{
 		if (fault & VM_FAULT_MAJOR)
+		{
 			tsk->maj_flt++;
+		}
 		else
+		{
 			tsk->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			/* Clear FAULT_FLAG_ALLOW_RETRY to avoid any risk
 			* of starvation. */
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
@@ -279,17 +343,22 @@ retry:
 	 * Handle the "normal" case first - VM_FAULT_MAJOR
 	 */
 	if (likely(!(fault &
-	       (VM_FAULT_ERROR | VM_FAULT_BADMAP | VM_FAULT_BADACCESS))))
+				 (VM_FAULT_ERROR | VM_FAULT_BADMAP | VM_FAULT_BADACCESS))))
+	{
 		return 0;
+	}
 
 	/*
 	 * If we are in kernel mode at this point, we
 	 * have no context to handle this fault with.
 	 */
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
 
-	if (fault & VM_FAULT_OOM) {
+	if (fault & VM_FAULT_OOM)
+	{
 		/*
 		 * We ran out of memory, call the OOM killer, and return to
 		 * userspace (which will retry the fault, or kill us if we
@@ -299,14 +368,17 @@ retry:
 		return 0;
 	}
 
-	if (fault & VM_FAULT_SIGBUS) {
+	if (fault & VM_FAULT_SIGBUS)
+	{
 		/*
 		 * We had some memory, but were unable to
 		 * successfully fix up this page fault.
 		 */
 		sig = SIGBUS;
 		code = BUS_ADRERR;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Something tried to access memory that
 		 * isn't in our memory map..
@@ -347,10 +419,14 @@ static int do_ifault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	pmd_t *pmd, *pmd_k;
 
 	if (addr < TASK_SIZE)
+	{
 		return do_pf(addr, fsr, regs);
+	}
 
 	if (user_mode(regs))
+	{
 		goto bad_area;
+	}
 
 	index = pgd_index(addr);
 
@@ -358,13 +434,17 @@ static int do_ifault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	pgd_k = init_mm.pgd + index;
 
 	if (pgd_none(*pgd_k))
+	{
 		goto bad_area;
+	}
 
 	pmd_k = pmd_offset((pud_t *) pgd_k, addr);
 	pmd = pmd_offset((pud_t *) pgd, addr);
 
 	if (pmd_none(*pmd_k))
+	{
 		goto bad_area;
+	}
 
 	set_pmd(pmd, *pmd_k);
 	flush_pmd_entry(pmd);
@@ -390,23 +470,25 @@ static int do_good(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 	printk("dabt exception but no error!\n");
 
 	__asm__ __volatile__(
-			"mff %0,f0\n"
-			"mff %1,f1\n"
-			: "=r"(res1), "=r"(res2)
-			:
-			: "memory");
+		"mff %0,f0\n"
+		"mff %1,f1\n"
+		: "=r"(res1), "=r"(res2)
+		:
+		: "memory");
 
 	printk(KERN_EMERG "r0 :%08x  r1 :%08x\n", res1, res2);
 	panic("shut up\n");
 	return 0;
 }
 
-static struct fsr_info {
+static struct fsr_info
+{
 	int (*fn) (unsigned long addr, unsigned int fsr, struct pt_regs *regs);
 	int sig;
 	int code;
 	const char *name;
-} fsr_info[] = {
+} fsr_info[] =
+{
 	/*
 	 * The following are the standard Unicore-I and UniCore-II aborts.
 	 */
@@ -445,11 +527,13 @@ static struct fsr_info {
 };
 
 void __init hook_fault_code(int nr,
-		int (*fn) (unsigned long, unsigned int, struct pt_regs *),
-		int sig, int code, const char *name)
+							int (*fn) (unsigned long, unsigned int, struct pt_regs *),
+							int sig, int code, const char *name)
 {
 	if (nr < 0 || nr >= ARRAY_SIZE(fsr_info))
+	{
 		BUG();
+	}
 
 	fsr_info[nr].fn   = fn;
 	fsr_info[nr].sig  = sig;
@@ -461,16 +545,18 @@ void __init hook_fault_code(int nr,
  * Dispatch a data abort to the relevant handler.
  */
 asmlinkage void do_DataAbort(unsigned long addr, unsigned int fsr,
-			struct pt_regs *regs)
+							 struct pt_regs *regs)
 {
 	const struct fsr_info *inf = fsr_info + fsr_fs(fsr);
 	struct siginfo info;
 
 	if (!inf->fn(addr, fsr & ~FSR_LNX_PF, regs))
+	{
 		return;
+	}
 
 	printk(KERN_ALERT "Unhandled fault: %s (0x%03x) at 0x%08lx\n",
-	       inf->name, fsr, addr);
+		   inf->name, fsr, addr);
 
 	info.si_signo = inf->sig;
 	info.si_errno = 0;
@@ -480,16 +566,18 @@ asmlinkage void do_DataAbort(unsigned long addr, unsigned int fsr,
 }
 
 asmlinkage void do_PrefetchAbort(unsigned long addr,
-			unsigned int ifsr, struct pt_regs *regs)
+								 unsigned int ifsr, struct pt_regs *regs)
 {
 	const struct fsr_info *inf = fsr_info + fsr_fs(ifsr);
 	struct siginfo info;
 
 	if (!inf->fn(addr, ifsr | FSR_LNX_PF, regs))
+	{
 		return;
+	}
 
 	printk(KERN_ALERT "Unhandled prefetch abort: %s (0x%03x) at 0x%08lx\n",
-	       inf->name, ifsr, addr);
+		   inf->name, ifsr, addr);
 
 	info.si_signo = inf->sig;
 	info.si_errno = 0;

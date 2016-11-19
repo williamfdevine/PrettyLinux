@@ -40,7 +40,7 @@ pmdval_t early_pmd_flags = __PAGE_KERNEL_LARGE & ~(_PAGE_GLOBAL | _PAGE_NX);
 /* Wipe all early page tables except for the kernel symbol map */
 static void __init reset_early_page_tables(void)
 {
-	memset(early_level4_pgt, 0, sizeof(pgd_t)*(PTRS_PER_PGD-1));
+	memset(early_level4_pgt, 0, sizeof(pgd_t) * (PTRS_PER_PGD - 1));
 	next_early_pgt = 0;
 	write_cr3(__pa_nodebug(early_level4_pgt));
 }
@@ -55,7 +55,9 @@ int __init early_make_pgtable(unsigned long address)
 
 	/* Invalid address or early pgt is done ?  */
 	if (physaddr >= MAXMEM || read_cr3() != __pa_nodebug(early_level4_pgt))
+	{
 		return -1;
+	}
 
 again:
 	pgd_p = &early_level4_pgt[pgd_index(address)].pgd;
@@ -67,9 +69,13 @@ again:
 	 * range and we might end up looping forever...
 	 */
 	if (pgd)
+	{
 		pud_p = (pudval_t *)((pgd & PTE_PFN_MASK) + __START_KERNEL_map - phys_base);
-	else {
-		if (next_early_pgt >= EARLY_DYNAMIC_PAGE_TABLES) {
+	}
+	else
+	{
+		if (next_early_pgt >= EARLY_DYNAMIC_PAGE_TABLES)
+		{
 			reset_early_page_tables();
 			goto again;
 		}
@@ -78,13 +84,18 @@ again:
 		memset(pud_p, 0, sizeof(*pud_p) * PTRS_PER_PUD);
 		*pgd_p = (pgdval_t)pud_p - __START_KERNEL_map + phys_base + _KERNPG_TABLE;
 	}
+
 	pud_p += pud_index(address);
 	pud = *pud_p;
 
 	if (pud)
+	{
 		pmd_p = (pmdval_t *)((pud & PTE_PFN_MASK) + __START_KERNEL_map - phys_base);
-	else {
-		if (next_early_pgt >= EARLY_DYNAMIC_PAGE_TABLES) {
+	}
+	else
+	{
+		if (next_early_pgt >= EARLY_DYNAMIC_PAGE_TABLES)
+		{
 			reset_early_page_tables();
 			goto again;
 		}
@@ -93,18 +104,19 @@ again:
 		memset(pmd_p, 0, sizeof(*pmd_p) * PTRS_PER_PMD);
 		*pud_p = (pudval_t)pmd_p - __START_KERNEL_map + phys_base + _KERNPG_TABLE;
 	}
+
 	pmd = (physaddr & PMD_MASK) + early_pmd_flags;
 	pmd_p[pmd_index(address)] = pmd;
 
 	return 0;
 }
 
-/* Don't add a printk in there. printk relies on the PDA which is not initialized 
+/* Don't add a printk in there. printk relies on the PDA which is not initialized
    yet. */
 static void __init clear_bss(void)
 {
 	memset(__bss_start, 0,
-	       (unsigned long) __bss_stop - (unsigned long) __bss_start);
+		   (unsigned long) __bss_stop - (unsigned long) __bss_start);
 }
 
 static unsigned long get_cmd_line_ptr(void)
@@ -118,19 +130,21 @@ static unsigned long get_cmd_line_ptr(void)
 
 static void __init copy_bootdata(char *real_mode_data)
 {
-	char * command_line;
+	char *command_line;
 	unsigned long cmd_line_ptr;
 
 	memcpy(&boot_params, real_mode_data, sizeof boot_params);
 	sanitize_boot_params(&boot_params);
 	cmd_line_ptr = get_cmd_line_ptr();
-	if (cmd_line_ptr) {
+
+	if (cmd_line_ptr)
+	{
 		command_line = __va(cmd_line_ptr);
 		memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
 	}
 }
 
-asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)
+asmlinkage __visible void __init x86_64_start_kernel(char *real_mode_data)
 {
 	int i;
 
@@ -140,12 +154,12 @@ asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)
 	 */
 	BUILD_BUG_ON(MODULES_VADDR < __START_KERNEL_map);
 	BUILD_BUG_ON(MODULES_VADDR - __START_KERNEL_map < KERNEL_IMAGE_SIZE);
-	BUILD_BUG_ON(MODULES_LEN + KERNEL_IMAGE_SIZE > 2*PUD_SIZE);
+	BUILD_BUG_ON(MODULES_LEN + KERNEL_IMAGE_SIZE > 2 * PUD_SIZE);
 	BUILD_BUG_ON((__START_KERNEL_map & ~PMD_MASK) != 0);
 	BUILD_BUG_ON((MODULES_VADDR & ~PMD_MASK) != 0);
 	BUILD_BUG_ON(!(MODULES_VADDR > __START_KERNEL));
 	BUILD_BUG_ON(!(((MODULES_END - 1) & PGDIR_MASK) ==
-				(__START_KERNEL & PGDIR_MASK)));
+				   (__START_KERNEL & PGDIR_MASK)));
 	BUILD_BUG_ON(__fix_to_virt(__end_of_fixed_addresses) <= MODULES_END);
 
 	cr4_init_shadow();
@@ -160,7 +174,10 @@ asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)
 	kasan_early_init();
 
 	for (i = 0; i < NUM_EXCEPTION_VECTORS; i++)
+	{
 		set_intr_gate(i, early_idt_handler_array[i]);
+	}
+
 	load_idt((const struct desc_ptr *)&idt_descr);
 
 	copy_bootdata(__va(real_mode_data));
@@ -180,16 +197,20 @@ void __init x86_64_start_reservations(char *real_mode_data)
 {
 	/* version is always not zero if it is copied */
 	if (!boot_params.hdr.version)
+	{
 		copy_bootdata(__va(real_mode_data));
+	}
 
 	x86_early_init_platform_quirks();
 
-	switch (boot_params.hdr.hardware_subarch) {
-	case X86_SUBARCH_INTEL_MID:
-		x86_intel_mid_early_setup();
-		break;
-	default:
-		break;
+	switch (boot_params.hdr.hardware_subarch)
+	{
+		case X86_SUBARCH_INTEL_MID:
+			x86_intel_mid_early_setup();
+			break;
+
+		default:
+			break;
 	}
 
 	start_kernel();

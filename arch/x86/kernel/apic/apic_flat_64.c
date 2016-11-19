@@ -76,7 +76,9 @@ flat_send_IPI_mask_allbutself(const struct cpumask *cpumask, int vector)
 	int cpu = smp_processor_id();
 
 	if (cpu < BITS_PER_LONG)
+	{
 		clear_bit(cpu, &mask);
+	}
 
 	_flat_send_IPI_mask(mask, vector);
 }
@@ -89,28 +91,38 @@ static void flat_send_IPI_allbutself(int vector)
 #else
 	int hotplug = 0;
 #endif
-	if (hotplug || vector == NMI_VECTOR) {
-		if (!cpumask_equal(cpu_online_mask, cpumask_of(cpu))) {
+
+	if (hotplug || vector == NMI_VECTOR)
+	{
+		if (!cpumask_equal(cpu_online_mask, cpumask_of(cpu)))
+		{
 			unsigned long mask = cpumask_bits(cpu_online_mask)[0];
 
 			if (cpu < BITS_PER_LONG)
+			{
 				clear_bit(cpu, &mask);
+			}
 
 			_flat_send_IPI_mask(mask, vector);
 		}
-	} else if (num_online_cpus() > 1) {
+	}
+	else if (num_online_cpus() > 1)
+	{
 		__default_send_IPI_shortcut(APIC_DEST_ALLBUT,
-					    vector, apic->dest_logical);
+									vector, apic->dest_logical);
 	}
 }
 
 static void flat_send_IPI_all(int vector)
 {
-	if (vector == NMI_VECTOR) {
+	if (vector == NMI_VECTOR)
+	{
 		flat_send_IPI_mask(cpu_online_mask, vector);
-	} else {
+	}
+	else
+	{
 		__default_send_IPI_shortcut(APIC_DEST_ALLINC,
-					    vector, apic->dest_logical);
+									vector, apic->dest_logical);
 	}
 }
 
@@ -144,7 +156,8 @@ static int flat_probe(void)
 	return 1;
 }
 
-static struct apic apic_flat __ro_after_init = {
+static struct apic apic_flat __ro_after_init =
+{
 	.name				= "flat",
 	.probe				= flat_probe,
 	.acpi_madt_oem_check		= flat_acpi_madt_oem_check,
@@ -200,21 +213,25 @@ static struct apic apic_flat __ro_after_init = {
 static int physflat_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 {
 #ifdef CONFIG_ACPI
+
 	/*
 	 * Quirk: some x86_64 machines can only use physical APIC mode
 	 * regardless of how many processors are present (x86_64 ES7000
 	 * is an example).
 	 */
 	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
-		(acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL)) {
+		(acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL))
+	{
 		printk(KERN_DEBUG "system APIC only can use physical flat");
 		return 1;
 	}
 
-	if (!strncmp(oem_id, "IBM", 3) && !strncmp(oem_table_id, "EXA", 3)) {
+	if (!strncmp(oem_id, "IBM", 3) && !strncmp(oem_table_id, "EXA", 3))
+	{
 		printk(KERN_DEBUG "IBM Summit detected, will use apic physical");
 		return 1;
 	}
+
 #endif
 
 	return 0;
@@ -233,12 +250,15 @@ static void physflat_send_IPI_all(int vector)
 static int physflat_probe(void)
 {
 	if (apic == &apic_physflat || num_possible_cpus() > 8)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
-static struct apic apic_physflat __ro_after_init = {
+static struct apic apic_physflat __ro_after_init =
+{
 
 	.name				= "physical flat",
 	.probe				= physflat_probe,

@@ -25,11 +25,11 @@
 	} while (0)
 
 #define __umulsidi3(u, v) (			\
-		{				\
-			DWunion __w;		\
-			umul_ppmm(__w.s.high, __w.s.low, u, v);	\
-			__w.ll; }					\
-		)
+{				\
+	DWunion __w;		\
+	umul_ppmm(__w.s.high, __w.s.low, u, v);	\
+	__w.ll; }					\
+						  )
 
 DWtype __muldi3(DWtype u, DWtype v)
 {
@@ -38,7 +38,7 @@ DWtype __muldi3(DWtype u, DWtype v)
 	DWunion w = {.ll = __umulsidi3(uu.s.low, vv.s.low)};
 
 	w.s.high += ((UWtype) uu.s.low * (UWtype) vv.s.high
-		     + (UWtype) uu.s.high * (UWtype) vv.s.low);
+				 + (UWtype) uu.s.high * (UWtype) vv.s.low);
 
 	return w.ll;
 }

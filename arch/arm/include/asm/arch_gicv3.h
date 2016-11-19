@@ -100,156 +100,156 @@
 /* A32-to-A64 mappings used by VGIC save/restore */
 
 #define CPUIF_MAP(a32, a64)			\
-static inline void write_ ## a64(u32 val)	\
-{						\
-	write_sysreg(val, a32);			\
-}						\
-static inline u32 read_ ## a64(void)		\
-{						\
-	return read_sysreg(a32); 		\
-}						\
+	static inline void write_ ## a64(u32 val)	\
+	{						\
+		write_sysreg(val, a32);			\
+	}						\
+	static inline u32 read_ ## a64(void)		\
+	{						\
+		return read_sysreg(a32); 		\
+	}						\
 
 #define CPUIF_MAP_LO_HI(a32lo, a32hi, a64)	\
-static inline void write_ ## a64(u64 val)	\
-{						\
-	write_sysreg(lower_32_bits(val), a32lo);\
-	write_sysreg(upper_32_bits(val), a32hi);\
-}						\
-static inline u64 read_ ## a64(void)		\
-{						\
-	u64 val = read_sysreg(a32lo);		\
-						\
-	val |=	(u64)read_sysreg(a32hi) << 32;	\
-						\
-	return val; 				\
-}
+	static inline void write_ ## a64(u64 val)	\
+	{						\
+		write_sysreg(lower_32_bits(val), a32lo);\
+		write_sysreg(upper_32_bits(val), a32hi);\
+	}						\
+	static inline u64 read_ ## a64(void)		\
+	{						\
+		u64 val = read_sysreg(a32lo);		\
+		\
+		val |=	(u64)read_sysreg(a32hi) << 32;	\
+		\
+		return val; 				\
+	}
 
-CPUIF_MAP(ICH_HCR, ICH_HCR_EL2)
-CPUIF_MAP(ICH_VTR, ICH_VTR_EL2)
-CPUIF_MAP(ICH_MISR, ICH_MISR_EL2)
-CPUIF_MAP(ICH_EISR, ICH_EISR_EL2)
-CPUIF_MAP(ICH_ELSR, ICH_ELSR_EL2)
-CPUIF_MAP(ICH_VMCR, ICH_VMCR_EL2)
-CPUIF_MAP(ICH_AP0R3, ICH_AP0R3_EL2)
-CPUIF_MAP(ICH_AP0R2, ICH_AP0R2_EL2)
-CPUIF_MAP(ICH_AP0R1, ICH_AP0R1_EL2)
-CPUIF_MAP(ICH_AP0R0, ICH_AP0R0_EL2)
-CPUIF_MAP(ICH_AP1R3, ICH_AP1R3_EL2)
-CPUIF_MAP(ICH_AP1R2, ICH_AP1R2_EL2)
-CPUIF_MAP(ICH_AP1R1, ICH_AP1R1_EL2)
-CPUIF_MAP(ICH_AP1R0, ICH_AP1R0_EL2)
-CPUIF_MAP(ICC_HSRE, ICC_SRE_EL2)
-CPUIF_MAP(ICC_SRE, ICC_SRE_EL1)
+	CPUIF_MAP(ICH_HCR, ICH_HCR_EL2)
+	CPUIF_MAP(ICH_VTR, ICH_VTR_EL2)
+	CPUIF_MAP(ICH_MISR, ICH_MISR_EL2)
+	CPUIF_MAP(ICH_EISR, ICH_EISR_EL2)
+	CPUIF_MAP(ICH_ELSR, ICH_ELSR_EL2)
+	CPUIF_MAP(ICH_VMCR, ICH_VMCR_EL2)
+	CPUIF_MAP(ICH_AP0R3, ICH_AP0R3_EL2)
+	CPUIF_MAP(ICH_AP0R2, ICH_AP0R2_EL2)
+	CPUIF_MAP(ICH_AP0R1, ICH_AP0R1_EL2)
+	CPUIF_MAP(ICH_AP0R0, ICH_AP0R0_EL2)
+	CPUIF_MAP(ICH_AP1R3, ICH_AP1R3_EL2)
+	CPUIF_MAP(ICH_AP1R2, ICH_AP1R2_EL2)
+	CPUIF_MAP(ICH_AP1R1, ICH_AP1R1_EL2)
+	CPUIF_MAP(ICH_AP1R0, ICH_AP1R0_EL2)
+	CPUIF_MAP(ICC_HSRE, ICC_SRE_EL2)
+	CPUIF_MAP(ICC_SRE, ICC_SRE_EL1)
 
-CPUIF_MAP_LO_HI(ICH_LR15, ICH_LRC15, ICH_LR15_EL2)
-CPUIF_MAP_LO_HI(ICH_LR14, ICH_LRC14, ICH_LR14_EL2)
-CPUIF_MAP_LO_HI(ICH_LR13, ICH_LRC13, ICH_LR13_EL2)
-CPUIF_MAP_LO_HI(ICH_LR12, ICH_LRC12, ICH_LR12_EL2)
-CPUIF_MAP_LO_HI(ICH_LR11, ICH_LRC11, ICH_LR11_EL2)
-CPUIF_MAP_LO_HI(ICH_LR10, ICH_LRC10, ICH_LR10_EL2)
-CPUIF_MAP_LO_HI(ICH_LR9, ICH_LRC9, ICH_LR9_EL2)
-CPUIF_MAP_LO_HI(ICH_LR8, ICH_LRC8, ICH_LR8_EL2)
-CPUIF_MAP_LO_HI(ICH_LR7, ICH_LRC7, ICH_LR7_EL2)
-CPUIF_MAP_LO_HI(ICH_LR6, ICH_LRC6, ICH_LR6_EL2)
-CPUIF_MAP_LO_HI(ICH_LR5, ICH_LRC5, ICH_LR5_EL2)
-CPUIF_MAP_LO_HI(ICH_LR4, ICH_LRC4, ICH_LR4_EL2)
-CPUIF_MAP_LO_HI(ICH_LR3, ICH_LRC3, ICH_LR3_EL2)
-CPUIF_MAP_LO_HI(ICH_LR2, ICH_LRC2, ICH_LR2_EL2)
-CPUIF_MAP_LO_HI(ICH_LR1, ICH_LRC1, ICH_LR1_EL2)
-CPUIF_MAP_LO_HI(ICH_LR0, ICH_LRC0, ICH_LR0_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR15, ICH_LRC15, ICH_LR15_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR14, ICH_LRC14, ICH_LR14_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR13, ICH_LRC13, ICH_LR13_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR12, ICH_LRC12, ICH_LR12_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR11, ICH_LRC11, ICH_LR11_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR10, ICH_LRC10, ICH_LR10_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR9, ICH_LRC9, ICH_LR9_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR8, ICH_LRC8, ICH_LR8_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR7, ICH_LRC7, ICH_LR7_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR6, ICH_LRC6, ICH_LR6_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR5, ICH_LRC5, ICH_LR5_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR4, ICH_LRC4, ICH_LR4_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR3, ICH_LRC3, ICH_LR3_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR2, ICH_LRC2, ICH_LR2_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR1, ICH_LRC1, ICH_LR1_EL2)
+	CPUIF_MAP_LO_HI(ICH_LR0, ICH_LRC0, ICH_LR0_EL2)
 
 #define read_gicreg(r)                 read_##r()
 #define write_gicreg(v, r)             write_##r(v)
 
-/* Low-level accessors */
+	/* Low-level accessors */
 
-static inline void gic_write_eoir(u32 irq)
-{
-	write_sysreg(irq, ICC_EOIR1);
-	isb();
-}
+	static inline void gic_write_eoir(u32 irq)
+	{
+		write_sysreg(irq, ICC_EOIR1);
+		isb();
+	}
 
-static inline void gic_write_dir(u32 val)
-{
-	write_sysreg(val, ICC_DIR);
-	isb();
-}
+	static inline void gic_write_dir(u32 val)
+	{
+		write_sysreg(val, ICC_DIR);
+		isb();
+	}
 
-static inline u32 gic_read_iar(void)
-{
-	u32 irqstat = read_sysreg(ICC_IAR1);
+	static inline u32 gic_read_iar(void)
+	{
+		u32 irqstat = read_sysreg(ICC_IAR1);
 
-	dsb(sy);
+		dsb(sy);
 
-	return irqstat;
-}
+		return irqstat;
+	}
 
-static inline void gic_write_pmr(u32 val)
-{
-	write_sysreg(val, ICC_PMR);
-}
+	static inline void gic_write_pmr(u32 val)
+	{
+		write_sysreg(val, ICC_PMR);
+	}
 
-static inline void gic_write_ctlr(u32 val)
-{
-	write_sysreg(val, ICC_CTLR);
-	isb();
-}
+	static inline void gic_write_ctlr(u32 val)
+	{
+		write_sysreg(val, ICC_CTLR);
+		isb();
+	}
 
-static inline void gic_write_grpen1(u32 val)
-{
-	write_sysreg(val, ICC_IGRPEN1);
-	isb();
-}
+	static inline void gic_write_grpen1(u32 val)
+	{
+		write_sysreg(val, ICC_IGRPEN1);
+		isb();
+	}
 
-static inline void gic_write_sgi1r(u64 val)
-{
-	write_sysreg(val, ICC_SGI1R);
-}
+	static inline void gic_write_sgi1r(u64 val)
+	{
+		write_sysreg(val, ICC_SGI1R);
+	}
 
-static inline u32 gic_read_sre(void)
-{
-	return read_sysreg(ICC_SRE);
-}
+	static inline u32 gic_read_sre(void)
+	{
+		return read_sysreg(ICC_SRE);
+	}
 
-static inline void gic_write_sre(u32 val)
-{
-	write_sysreg(val, ICC_SRE);
-	isb();
-}
+	static inline void gic_write_sre(u32 val)
+	{
+		write_sysreg(val, ICC_SRE);
+		isb();
+	}
 
-static inline void gic_write_bpr1(u32 val)
-{
-	write_sysreg(val, ICC_BPR1);
-}
+	static inline void gic_write_bpr1(u32 val)
+	{
+		write_sysreg(val, ICC_BPR1);
+	}
 
-/*
- * Even in 32bit systems that use LPAE, there is no guarantee that the I/O
- * interface provides true 64bit atomic accesses, so using strd/ldrd doesn't
- * make much sense.
- * Moreover, 64bit I/O emulation is extremely difficult to implement on
- * AArch32, since the syndrome register doesn't provide any information for
- * them.
- * Consequently, the following IO helpers use 32bit accesses.
- *
- * There are only two registers that need 64bit accesses in this driver:
- * - GICD_IROUTERn, contain the affinity values associated to each interrupt.
- *   The upper-word (aff3) will always be 0, so there is no need for a lock.
- * - GICR_TYPER is an ID register and doesn't need atomicity.
- */
-static inline void gic_write_irouter(u64 val, volatile void __iomem *addr)
-{
-	writel_relaxed((u32)val, addr);
-	writel_relaxed((u32)(val >> 32), addr + 4);
-}
+	/*
+	 * Even in 32bit systems that use LPAE, there is no guarantee that the I/O
+	 * interface provides true 64bit atomic accesses, so using strd/ldrd doesn't
+	 * make much sense.
+	 * Moreover, 64bit I/O emulation is extremely difficult to implement on
+	 * AArch32, since the syndrome register doesn't provide any information for
+	 * them.
+	 * Consequently, the following IO helpers use 32bit accesses.
+	 *
+	 * There are only two registers that need 64bit accesses in this driver:
+	 * - GICD_IROUTERn, contain the affinity values associated to each interrupt.
+	 *   The upper-word (aff3) will always be 0, so there is no need for a lock.
+	 * - GICR_TYPER is an ID register and doesn't need atomicity.
+	 */
+	static inline void gic_write_irouter(u64 val, volatile void __iomem *addr)
+	{
+		writel_relaxed((u32)val, addr);
+		writel_relaxed((u32)(val >> 32), addr + 4);
+	}
 
-static inline u64 gic_read_typer(const volatile void __iomem *addr)
-{
-	u64 val;
+	static inline u64 gic_read_typer(const volatile void __iomem *addr)
+	{
+		u64 val;
 
-	val = readl_relaxed(addr);
-	val |= (u64)readl_relaxed(addr + 4) << 32;
-	return val;
-}
+		val = readl_relaxed(addr);
+		val |= (u64)readl_relaxed(addr + 4) << 32;
+		return val;
+	}
 
 #endif /* !__ASSEMBLY__ */
 #endif /* !__ASM_ARCH_GICV3_H */

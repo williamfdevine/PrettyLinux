@@ -5,7 +5,8 @@
  * Three types of 8bit P-Unit IPC commands are supported,
  * bit[7:6]: [00]: BIOS; [01]: GTD; [10]: ISPD.
  */
-typedef enum {
+typedef enum
+{
 	BIOS_IPC = 0,
 	GTDRIVER_IPC,
 	ISPDRIVER_IPC,
@@ -85,13 +86,13 @@ int intel_punit_ipc_command(u32 cmd, u32 para1, u32 para2, u32 *in, u32 *out);
 #else
 
 static inline int intel_punit_ipc_simple_command(int cmd,
-						  int para1, int para2)
+		int para1, int para2)
 {
 	return -ENODEV;
 }
 
 static inline int intel_punit_ipc_command(u32 cmd, u32 para1, u32 para2,
-					  u32 *in, u32 *out)
+		u32 *in, u32 *out)
 {
 	return -ENODEV;
 }

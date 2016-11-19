@@ -34,14 +34,15 @@
 
 #define DEBUG_SIG 0
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo info;
 	struct ucontext uc;
 	unsigned char retcode[16];	/* trampoline code */
 };
 
 static int restore_sigcontext(struct pt_regs *regs,
-			      struct sigcontext __user *sc)
+							  struct sigcontext __user *sc)
 {
 	int err = 0;
 
@@ -81,20 +82,31 @@ asmlinkage long _sys_rt_sigreturn(struct pt_regs *regs)
 	 * not, then the user is trying to mess with us.
 	 */
 	if (((long)frame) & 3)
+	{
 		goto badframe;
+	}
 
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
+
 	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+	{
 		goto badframe;
+	}
 
 	if (restore_altstack(&frame->uc.uc_stack))
+	{
 		goto badframe;
+	}
 
 	return regs->gpr[11];
 
@@ -133,7 +145,7 @@ static inline unsigned long align_sigframe(unsigned long sp)
  */
 
 static inline void __user *get_sigframe(struct ksignal *ksig,
-					struct pt_regs *regs, size_t frame_size)
+										struct pt_regs *regs, size_t frame_size)
 {
 	unsigned long sp = regs->sp;
 
@@ -153,7 +165,7 @@ static inline void __user *get_sigframe(struct ksignal *ksig,
  * user-mode trampoline.
  */
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
-			  struct pt_regs *regs)
+						  struct pt_regs *regs)
 {
 	struct rt_sigframe *frame;
 	unsigned long return_ip;
@@ -162,11 +174,15 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	frame = get_sigframe(ksig, regs, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	/* Create siginfo.  */
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+	{
 		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
+	}
 
 	/* Create the ucontext.  */
 	err |= __put_user(0, &frame->uc.uc_flags);
@@ -177,7 +193,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* trampoline - the desired return ip is the retcode itself */
 	return_ip = (unsigned long)&frame->retcode;
@@ -191,7 +209,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	err |= __put_user(0x15000000, (unsigned long *)(frame->retcode + 8));
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Set up registers for signal handler */
 	regs->pc = (unsigned long)ksig->ka.sa.sa_handler; /* what we enter NOW */
@@ -236,7 +256,8 @@ int do_signal(struct pt_regs *regs, int syscall)
 	unsigned long retval = 0;
 	int restart = 0;
 
-	if (syscall) {
+	if (syscall)
+	{
 		continue_addr = regs->pc;
 		restart_addr = continue_addr - 4;
 		retval = regs->gpr[11];
@@ -245,17 +266,19 @@ int do_signal(struct pt_regs *regs, int syscall)
 		 * Setup syscall restart here so that a debugger will
 		 * see the already changed PC.
 		 */
-		switch (retval) {
-		case -ERESTART_RESTARTBLOCK:
-			restart = -2;
+		switch (retval)
+		{
+			case -ERESTART_RESTARTBLOCK:
+				restart = -2;
+
 			/* Fall through */
-		case -ERESTARTNOHAND:
-		case -ERESTARTSYS:
-		case -ERESTARTNOINTR:
-			restart++;
-			regs->gpr[11] = regs->orig_gpr11;
-			regs->pc = restart_addr;
-			break;
+			case -ERESTARTNOHAND:
+			case -ERESTARTSYS:
+			case -ERESTARTNOINTR:
+				restart++;
+				regs->gpr[11] = regs->orig_gpr11;
+				regs->pc = restart_addr;
+				break;
 		}
 	}
 
@@ -265,26 +288,34 @@ int do_signal(struct pt_regs *regs, int syscall)
 	 * the decision to restart the syscall; specifically, if the PC is
 	 * changed, don't restart the syscall.
 	 */
-	if (get_signal(&ksig)) {
-		if (unlikely(restart) && regs->pc == restart_addr) {
+	if (get_signal(&ksig))
+	{
+		if (unlikely(restart) && regs->pc == restart_addr)
+		{
 			if (retval == -ERESTARTNOHAND ||
-			    retval == -ERESTART_RESTARTBLOCK
-			    || (retval == -ERESTARTSYS
-			        && !(ksig.ka.sa.sa_flags & SA_RESTART))) {
+				retval == -ERESTART_RESTARTBLOCK
+				|| (retval == -ERESTARTSYS
+					&& !(ksig.ka.sa.sa_flags & SA_RESTART)))
+			{
 				/* No automatic restart */
 				regs->gpr[11] = -EINTR;
 				regs->pc = continue_addr;
 			}
 		}
+
 		handle_signal(&ksig, regs);
-	} else {
+	}
+	else
+	{
 		/* no handler */
 		restore_saved_sigmask();
+
 		/*
 		 * Restore pt_regs PC as syscall restart will be handled by
 		 * kernel without return to userspace
 		 */
-		if (unlikely(restart) && regs->pc == restart_addr) {
+		if (unlikely(restart) && regs->pc == restart_addr)
+		{
 			regs->pc = continue_addr;
 			return restart;
 		}
@@ -296,16 +327,27 @@ int do_signal(struct pt_regs *regs, int syscall)
 asmlinkage int
 do_work_pending(struct pt_regs *regs, unsigned int thread_flags, int syscall)
 {
-	do {
-		if (likely(thread_flags & _TIF_NEED_RESCHED)) {
+	do
+	{
+		if (likely(thread_flags & _TIF_NEED_RESCHED))
+		{
 			schedule();
-		} else {
+		}
+		else
+		{
 			if (unlikely(!user_mode(regs)))
+			{
 				return 0;
+			}
+
 			local_irq_enable();
-			if (thread_flags & _TIF_SIGPENDING) {
+
+			if (thread_flags & _TIF_SIGPENDING)
+			{
 				int restart = do_signal(regs, syscall);
-				if (unlikely(restart)) {
+
+				if (unlikely(restart))
+				{
 					/*
 					 * Restart without handlers.
 					 * Deal with it without leaving
@@ -313,14 +355,20 @@ do_work_pending(struct pt_regs *regs, unsigned int thread_flags, int syscall)
 					 */
 					return restart;
 				}
+
 				syscall = 0;
-			} else {
+			}
+			else
+			{
 				clear_thread_flag(TIF_NOTIFY_RESUME);
 				tracehook_notify_resume(regs);
 			}
 		}
+
 		local_irq_disable();
 		thread_flags = current_thread_info()->flags;
-	} while (thread_flags & _TIF_WORK_MASK);
+	}
+	while (thread_flags & _TIF_WORK_MASK);
+
 	return 0;
 }

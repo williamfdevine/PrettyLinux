@@ -33,7 +33,8 @@
 
 #define BCSR_USB_EN	0x11
 
-static const struct of_device_id ppc460ex_of_bus[] __initconst = {
+static const struct of_device_id ppc460ex_of_bus[] __initconst =
+{
 	{ .compatible = "ibm,plb4", },
 	{ .compatible = "ibm,opb", },
 	{ .compatible = "ibm,ebc", },
@@ -53,10 +54,12 @@ machine_device_initcall(canyonlands, ppc460ex_device_probe);
 
 static int __init ppc460ex_probe(void)
 {
-	if (of_machine_is_compatible("amcc,canyonlands")) {
+	if (of_machine_is_compatible("amcc,canyonlands"))
+	{
 		pci_set_flags(PCI_REASSIGN_ALL_RSRC);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -70,7 +73,9 @@ static int __init ppc460ex_canyonlands_fixup(void)
 	int ret = 0;
 
 	np = of_find_compatible_node(NULL, NULL, "amcc,ppc460ex-bcsr");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_ERR "failed did not find amcc, ppc460ex bcsr node\n");
 		return -ENODEV;
 	}
@@ -78,14 +83,17 @@ static int __init ppc460ex_canyonlands_fixup(void)
 	bcsr = of_iomap(np, 0);
 	of_node_put(np);
 
-	if (!bcsr) {
+	if (!bcsr)
+	{
 		printk(KERN_CRIT "Could not remap bcsr\n");
 		ret = -ENODEV;
 		goto err_bcsr;
 	}
 
 	np = of_find_compatible_node(NULL, NULL, "ibm,ppc4xx-gpio");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_ERR "failed did not find ibm,ppc4xx-gpio node\n");
 		return -ENODEV;
 	}
@@ -93,11 +101,13 @@ static int __init ppc460ex_canyonlands_fixup(void)
 	vaddr = of_iomap(np, 0);
 	of_node_put(np);
 
-	if (!vaddr) {
+	if (!vaddr)
+	{
 		printk(KERN_CRIT "Could not get gpio node address\n");
 		ret = -ENODEV;
 		goto err_gpio;
 	}
+
 	/* Disable USB, through the BCSR7 bits */
 	setbits8(&bcsr[7], BCSR_USB_EN);
 
@@ -122,12 +132,13 @@ err_bcsr:
 	return ret;
 }
 machine_device_initcall(canyonlands, ppc460ex_canyonlands_fixup);
-define_machine(canyonlands) {
+define_machine(canyonlands)
+{
 	.name = "Canyonlands",
-	.probe = ppc460ex_probe,
-	.progress = udbg_progress,
-	.init_IRQ = uic_init_tree,
-	.get_irq = uic_get_irq,
-	.restart = ppc4xx_reset_system,
-	.calibrate_decr = generic_calibrate_decr,
+	 .probe = ppc460ex_probe,
+	  .progress = udbg_progress,
+	   .init_IRQ = uic_init_tree,
+		.get_irq = uic_get_irq,
+		 .restart = ppc4xx_reset_system,
+		  .calibrate_decr = generic_calibrate_decr,
 };

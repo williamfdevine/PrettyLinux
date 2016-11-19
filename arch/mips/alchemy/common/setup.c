@@ -42,24 +42,35 @@ void __init plat_mem_setup(void)
 
 	if (au1xxx_cpu_needs_config_od())
 		/* Various early Au1xx0 errata corrected by this */
-		set_c0_config(1 << 19); /* Set Config[OD] */
+	{
+		set_c0_config(1 << 19);    /* Set Config[OD] */
+	}
 	else
 		/* Clear to obtain best system bus performance */
-		clear_c0_config(1 << 19); /* Clear Config[OD] */
+	{
+		clear_c0_config(1 << 19);    /* Clear Config[OD] */
+	}
 
 	hw_coherentio = 0;
 	coherentio = IO_COHERENCE_ENABLED;
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1000:
-	case ALCHEMY_CPU_AU1500:
-	case ALCHEMY_CPU_AU1100:
-		coherentio = IO_COHERENCE_DISABLED;
-		break;
-	case ALCHEMY_CPU_AU1200:
-		/* Au1200 AB USB does not support coherent memory */
-		if (0 == (read_c0_prid() & PRID_REV_MASK))
+
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1000:
+		case ALCHEMY_CPU_AU1500:
+		case ALCHEMY_CPU_AU1100:
 			coherentio = IO_COHERENCE_DISABLED;
-		break;
+			break;
+
+		case ALCHEMY_CPU_AU1200:
+
+			/* Au1200 AB USB does not support coherent memory */
+			if (0 == (read_c0_prid() & PRID_REV_MASK))
+			{
+				coherentio = IO_COHERENCE_DISABLED;
+			}
+
+			break;
 	}
 
 	board_setup();	/* board specific setup */
@@ -81,11 +92,15 @@ phys_addr_t __fixup_bigphys_addr(phys_addr_t phys_addr, phys_addr_t size)
 
 	/* Don't fixup 36-bit addresses */
 	if ((phys_addr >> 32) != 0)
+	{
 		return phys_addr;
+	}
 
 	/* Check for PCI memory window */
 	if (phys_addr >= start && (phys_addr + size - 1) <= end)
+	{
 		return (phys_addr_t)(AU1500_PCI_MEM_PHYS_ADDR + phys_addr);
+	}
 
 	/* default nop */
 	return phys_addr;

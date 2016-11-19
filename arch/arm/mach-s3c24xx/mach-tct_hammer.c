@@ -58,9 +58,10 @@
 #include "common.h"
 
 static struct resource tct_hammer_nor_resource =
-			DEFINE_RES_MEM(0x00000000, SZ_16M);
+	DEFINE_RES_MEM(0x00000000, SZ_16M);
 
-static struct mtd_partition tct_hammer_mtd_partitions[] = {
+static struct mtd_partition tct_hammer_mtd_partitions[] =
+{
 	{
 		.name		= "System",
 		.size		= 0x240000,
@@ -73,30 +74,34 @@ static struct mtd_partition tct_hammer_mtd_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data tct_hammer_flash_data = {
+static struct physmap_flash_data tct_hammer_flash_data =
+{
 	.width		= 2,
 	.parts		= tct_hammer_mtd_partitions,
 	.nr_parts	= ARRAY_SIZE(tct_hammer_mtd_partitions),
 };
 
-static struct platform_device tct_hammer_device_nor = {
+static struct platform_device tct_hammer_device_nor =
+{
 	.name		= "physmap-flash",
 	.id		= 0,
 	.dev = {
-			.platform_data = &tct_hammer_flash_data,
-		},
+		.platform_data = &tct_hammer_flash_data,
+	},
 	.num_resources	= 1,
 	.resource	= &tct_hammer_nor_resource,
 };
 
-static struct map_desc tct_hammer_iodesc[] __initdata = {
+static struct map_desc tct_hammer_iodesc[] __initdata =
+{
 };
 
 #define UCON S3C2410_UCON_DEFAULT
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg tct_hammer_uartcfgs[] = {
+static struct s3c2410_uartcfg tct_hammer_uartcfgs[] =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -121,7 +126,8 @@ static struct s3c2410_uartcfg tct_hammer_uartcfgs[] = {
 };
 
 
-static struct platform_device *tct_hammer_devices[] __initdata = {
+static struct platform_device *tct_hammer_devices[] __initdata =
+{
 	&s3c_device_adc,
 	&s3c_device_wdt,
 	&s3c_device_i2c0,
@@ -152,9 +158,9 @@ static void __init tct_hammer_init(void)
 }
 
 MACHINE_START(TCT_HAMMER, "TCT_HAMMER")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= tct_hammer_map_io,
-	.init_irq	= s3c2410_init_irq,
-	.init_machine	= tct_hammer_init,
-	.init_time	= tct_hammer_init_time,
-MACHINE_END
+		.init_irq	= s3c2410_init_irq,
+		   .init_machine	= tct_hammer_init,
+			  .init_time	= tct_hammer_init_time,
+				MACHINE_END

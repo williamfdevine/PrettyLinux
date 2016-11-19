@@ -1,7 +1,8 @@
 #ifndef __ASM_SH7203_H__
 #define __ASM_SH7203_H__
 
-enum {
+enum
+{
 	/* PA */
 	GPIO_PA7, GPIO_PA6, GPIO_PA5, GPIO_PA4,
 	GPIO_PA3, GPIO_PA2, GPIO_PA1, GPIO_PA0,

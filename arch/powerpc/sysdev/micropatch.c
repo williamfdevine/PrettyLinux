@@ -25,7 +25,8 @@
 
 #ifdef CONFIG_I2C_SPI_UCODE_PATCH
 
-static uint patch_2000[] __initdata = {
+static uint patch_2000[] __initdata =
+{
 	0x7FFFEFD9,
 	0x3FFD0000,
 	0x7FFB49F7,
@@ -144,7 +145,8 @@ static uint patch_2000[] __initdata = {
 	0x5F8247F8
 };
 
-static uint patch_2f00[] __initdata = {
+static uint patch_2f00[] __initdata =
+{
 	0x3E303430,
 	0x34343737,
 	0xABF7BF9B,
@@ -183,7 +185,8 @@ static uint patch_2f00[] __initdata = {
 
 #ifdef CONFIG_I2C_SPI_SMC1_UCODE_PATCH
 
-static uint patch_2000[] __initdata = {
+static uint patch_2000[] __initdata =
+{
 	0x3fff0000,
 	0x3ffd0000,
 	0x3ffb0000,
@@ -506,7 +509,8 @@ static uint patch_2000[] __initdata = {
 	0x6079e2bb
 };
 
-static uint patch_2f00[] __initdata = {
+static uint patch_2f00[] __initdata =
+{
 	0x30303030,
 	0x3e3e3434,
 	0xabbf9b99,
@@ -573,7 +577,8 @@ static uint patch_2f00[] __initdata = {
 	0xf22f3f23
 };
 
-static uint patch_2e00[] __initdata = {
+static uint patch_2e00[] __initdata =
+{
 	0x27eeeeee,
 	0xeeeeeeee,
 	0xeeeeeeee,
@@ -599,7 +604,8 @@ static uint patch_2e00[] __initdata = {
 
 #ifdef CONFIG_USB_SOF_UCODE_PATCH
 
-static uint patch_2000[] __initdata = {
+static uint patch_2000[] __initdata =
+{
 	0x7fff0000,
 	0x7ffd0000,
 	0x7ffb0000,
@@ -614,7 +620,8 @@ static uint patch_2000[] __initdata = {
 	0x60750000
 };
 
-static uint patch_2f00[] __initdata = {
+static uint patch_2f00[] __initdata =
+{
 	0x3030304c,
 	0xcab9e441,
 	0xa1aaf220
@@ -641,12 +648,18 @@ void __init cpm_load_patch(cpm8xx_t *cp)
 	commproc->cp_rccr = 0;
 
 	dp = (uint *)(commproc->cp_dpmem);
-	for (i=0; i<(sizeof(patch_2000)/4); i++)
-		*dp++ = patch_2000[i];
 
-	dp = (uint *)&(commproc->cp_dpmem[0x0f00]);
-	for (i=0; i<(sizeof(patch_2f00)/4); i++)
+	for (i = 0; i < (sizeof(patch_2000) / 4); i++)
+	{
+		*dp++ = patch_2000[i];
+	}
+
+	dp = (uint *) & (commproc->cp_dpmem[0x0f00]);
+
+	for (i = 0; i < (sizeof(patch_2f00) / 4); i++)
+	{
 		*dp++ = patch_2f00[i];
+	}
 
 	commproc->cp_rccr = 0x0009;
 
@@ -659,12 +672,18 @@ void __init cpm_load_patch(cpm8xx_t *cp)
 	commproc->cp_rccr = 0;
 
 	dp = (uint *)(commproc->cp_dpmem);
-	for (i=0; i<(sizeof(patch_2000)/4); i++)
-		*dp++ = patch_2000[i];
 
-	dp = (uint *)&(commproc->cp_dpmem[0x0f00]);
-	for (i=0; i<(sizeof(patch_2f00)/4); i++)
+	for (i = 0; i < (sizeof(patch_2000) / 4); i++)
+	{
+		*dp++ = patch_2000[i];
+	}
+
+	dp = (uint *) & (commproc->cp_dpmem[0x0f00]);
+
+	for (i = 0; i < (sizeof(patch_2f00) / 4); i++)
+	{
 		*dp++ = patch_2f00[i];
+	}
 
 	iip = (iic_t *)&commproc->cp_dparam[PROFF_IIC];
 # define RPBASE 0x0500
@@ -688,9 +707,12 @@ void __init cpm_load_patch(cpm8xx_t *cp)
 
 # if defined(CONFIG_I2C_SPI_SMC1_UCODE_PATCH)
 
-	dp = (uint *)&(commproc->cp_dpmem[0x0e00]);
-	for (i=0; i<(sizeof(patch_2e00)/4); i++)
+	dp = (uint *) & (commproc->cp_dpmem[0x0e00]);
+
+	for (i = 0; i < (sizeof(patch_2e00) / 4); i++)
+	{
 		*dp++ = patch_2e00[i];
+	}
 
 	commproc->cp_cpmcr1 = 0x8080;
 	commproc->cp_cpmcr2 = 0x808a;
@@ -726,17 +748,21 @@ verify_patch(volatile immap_t *immr)
 	commproc->cp_rccr = 0;
 
 	dp = (uint *)(commproc->cp_dpmem);
-	for (i=0; i<(sizeof(patch_2000)/4); i++)
-		if (*dp++ != patch_2000[i]) {
+
+	for (i = 0; i < (sizeof(patch_2000) / 4); i++)
+		if (*dp++ != patch_2000[i])
+		{
 			printk("patch_2000 bad at %d\n", i);
 			dp--;
 			printk("found 0x%X, wanted 0x%X\n", *dp, patch_2000[i]);
 			break;
 		}
 
-	dp = (uint *)&(commproc->cp_dpmem[0x0f00]);
-	for (i=0; i<(sizeof(patch_2f00)/4); i++)
-		if (*dp++ != patch_2f00[i]) {
+	dp = (uint *) & (commproc->cp_dpmem[0x0f00]);
+
+	for (i = 0; i < (sizeof(patch_2f00) / 4); i++)
+		if (*dp++ != patch_2f00[i])
+		{
 			printk("patch_2f00 bad at %d\n", i);
 			dp--;
 			printk("found 0x%X, wanted 0x%X\n", *dp, patch_2f00[i]);

@@ -63,12 +63,12 @@ feroceon_copy_user_page(void *kto, const void *kfrom)
 	bne	1b				\n\
 	mcr	p15, 0, ip, c7, c10, 4		@ drain WB\n\
 	ldmfd	sp!, {r4-r9, pc}"
-	:
-	: "r" (kto), "r" (kfrom), "I" (PAGE_SIZE));
+		:
+		: "r" (kto), "r" (kfrom), "I" (PAGE_SIZE));
 }
 
 void feroceon_copy_user_highpage(struct page *to, struct page *from,
-	unsigned long vaddr, struct vm_area_struct *vma)
+								 unsigned long vaddr, struct vm_area_struct *vma)
 {
 	void *kto, *kfrom;
 
@@ -99,13 +99,14 @@ void feroceon_clear_user_highpage(struct page *page, unsigned long vaddr)
 	add	%0, %0, #32			\n\
 	bne	1b				\n\
 	mcr	p15, 0, r1, c7, c10, 4		@ drain WB"
-	: "=r" (ptr)
-	: "0" (kaddr), "I" (PAGE_SIZE / 32)
-	: "r1", "r2", "r3", "r4", "r5", "r6", "r7", "ip", "lr");
+				  : "=r" (ptr)
+				  : "0" (kaddr), "I" (PAGE_SIZE / 32)
+				  : "r1", "r2", "r3", "r4", "r5", "r6", "r7", "ip", "lr");
 	kunmap_atomic(kaddr);
 }
 
-struct cpu_user_fns feroceon_user_fns __initdata = {
+struct cpu_user_fns feroceon_user_fns __initdata =
+{
 	.cpu_clear_user_highpage = feroceon_clear_user_highpage,
 	.cpu_copy_user_highpage	= feroceon_copy_user_highpage,
 };

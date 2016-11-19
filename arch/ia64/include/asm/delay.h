@@ -64,10 +64,13 @@ ia64_get_itc (void)
 	result = ia64_getreg(_IA64_REG_AR_ITC);
 	ia64_barrier();
 #ifdef CONFIG_ITANIUM
-	while (unlikely((__s32) result == -1)) {
+
+	while (unlikely((__s32) result == -1))
+	{
 		result = ia64_getreg(_IA64_REG_AR_ITC);
 		ia64_barrier();
 	}
+
 #endif
 	return result;
 }
@@ -78,7 +81,9 @@ static __inline__ void
 __delay (unsigned long loops)
 {
 	if (unlikely(loops < 1))
+	{
 		return;
+	}
 
 	ia64_delay_loop (loops - 1);
 }

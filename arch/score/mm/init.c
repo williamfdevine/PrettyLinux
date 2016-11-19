@@ -46,8 +46,11 @@ static void setup_zero_page(void)
 	struct page *page;
 
 	empty_zero_page = __get_free_pages(GFP_KERNEL | __GFP_ZERO, 0);
+
 	if (!empty_zero_page)
+	{
 		panic("Oh boy, that early out of memory?");
+	}
 
 	page = virt_to_page((void *) empty_zero_page);
 	mark_page_reserved(page);
@@ -57,9 +60,13 @@ static void setup_zero_page(void)
 int page_is_ram(unsigned long pagenr)
 {
 	if (pagenr >= min_low_pfn && pagenr < max_low_pfn)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 void __init paging_init(void)
@@ -87,7 +94,7 @@ void __init mem_init(void)
 void free_initrd_mem(unsigned long start, unsigned long end)
 {
 	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
-			   "initrd");
+					   "initrd");
 }
 #endif
 

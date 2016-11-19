@@ -143,11 +143,14 @@
  */
 struct device_node;
 
-static inline long pmac_call_feature(int selector, struct device_node* node,
-					long param, long value)
+static inline long pmac_call_feature(int selector, struct device_node *node,
+									 long param, long value)
 {
 	if (!ppc_md.feature_call || !machine_is(powermac))
+	{
 		return -ENODEV;
+	}
+
 	return ppc_md.feature_call(selector, node, param, value);
 }
 
@@ -159,10 +162,10 @@ static inline long pmac_call_feature(int selector, struct device_node* node,
  * for use by xmon.
  */
 #define PMAC_FTR_SCC_ENABLE		PMAC_FTR_DEF(0)
-	#define PMAC_SCC_ASYNC		0
-	#define PMAC_SCC_IRDA		1
-	#define PMAC_SCC_I2S1		2
-	#define PMAC_SCC_FLAG_XMON	0x00001000
+#define PMAC_SCC_ASYNC		0
+#define PMAC_SCC_IRDA		1
+#define PMAC_SCC_I2S1		2
+#define PMAC_SCC_FLAG_XMON	0x00001000
 
 /* PMAC_FTR_MODEM_ENABLE	(struct device_node* node, 0, int value)
  * enable/disable the internal modem.
@@ -309,8 +312,8 @@ extern void pmac_call_early_video_resume(void);
 
 /* The AGP driver registers itself here */
 extern void pmac_register_agp_pm(struct pci_dev *bridge,
-				 int (*suspend)(struct pci_dev *bridge),
-				 int (*resume)(struct pci_dev *bridge));
+								 int (*suspend)(struct pci_dev *bridge),
+								 int (*resume)(struct pci_dev *bridge));
 
 /* Those are meant to be used by video drivers to deal with AGP
  * suspend resume properly
@@ -326,7 +329,8 @@ extern void pmac_resume_agp_for_card(struct pci_dev *dev);
 
 #define MAX_MACIO_CHIPS		2
 
-enum {
+enum
+{
 	macio_unknown = 0,
 	macio_grand_central,
 	macio_ohare,
@@ -362,7 +366,7 @@ extern struct macio_chip macio_chips[MAX_MACIO_CHIPS];
 #define MACIO_FLAG_AIRPORT_ON	0x00000010
 #define MACIO_FLAG_FW_SUPPORTED	0x00000020
 
-extern struct macio_chip* macio_find(struct device_node* child, int type);
+extern struct macio_chip *macio_find(struct device_node *child, int type);
 
 #define MACIO_FCR32(macio, r)	((macio)->base + ((r) >> 2))
 #define MACIO_FCR8(macio, r)	(((volatile u8 __iomem *)((macio)->base)) + (r))

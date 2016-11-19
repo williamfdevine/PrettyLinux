@@ -48,7 +48,8 @@ MODULE_AUTHOR("Jan-Benedict Glaw <jbglaw@lug-owl.de>");
 MODULE_DESCRIPTION("Accessing Alpha SRM environment through procfs interface");
 MODULE_LICENSE("GPL");
 
-typedef struct _srm_env {
+typedef struct _srm_env
+{
 	char			*name;
 	unsigned long		id;
 } srm_env_t;
@@ -57,7 +58,8 @@ static struct proc_dir_entry	*base_dir;
 static struct proc_dir_entry	*named_dir;
 static struct proc_dir_entry	*numbered_dir;
 
-static srm_env_t	srm_named_entries[] = {
+static srm_env_t	srm_named_entries[] =
+{
 	{ "auto_action",	ENV_AUTO_ACTION		},
 	{ "boot_dev",		ENV_BOOT_DEV		},
 	{ "bootdef_dev",	ENV_BOOTDEF_DEV		},
@@ -83,16 +85,24 @@ static int srm_env_proc_show(struct seq_file *m, void *v)
 	char		*page;
 
 	page = (char *)__get_free_page(GFP_USER);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	ret = callback_getenv(id, page, PAGE_SIZE);
 
-	if ((ret >> 61) == 0) {
+	if ((ret >> 61) == 0)
+	{
 		seq_write(m, page, ret);
 		ret = 0;
-	} else
+	}
+	else
+	{
 		ret = -EFAULT;
+	}
+
 	free_page((unsigned long)page);
 	return ret;
 }
@@ -103,7 +113,7 @@ static int srm_env_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t srm_env_proc_write(struct file *file, const char __user *buffer,
-				  size_t count, loff_t *pos)
+								  size_t count, loff_t *pos)
 {
 	int res;
 	unsigned long	id = (unsigned long)PDE_DATA(file_inode(file));
@@ -111,31 +121,46 @@ static ssize_t srm_env_proc_write(struct file *file, const char __user *buffer,
 	unsigned long	ret1, ret2;
 
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	res = -EINVAL;
+
 	if (count >= PAGE_SIZE)
+	{
 		goto out;
+	}
 
 	res = -EFAULT;
+
 	if (copy_from_user(buf, buffer, count))
+	{
 		goto out;
+	}
+
 	buf[count] = '\0';
 
 	ret1 = callback_setenv(id, buf, count);
-	if ((ret1 >> 61) == 0) {
+
+	if ((ret1 >> 61) == 0)
+	{
 		do
+		{
 			ret2 = callback_save_env();
-		while((ret2 >> 61) == 1);
+		}
+		while ((ret2 >> 61) == 1);
+
 		res = (int) ret1;
 	}
 
- out:
+out:
 	free_page((unsigned long)buf);
 	return res;
 }
 
-static const struct file_operations srm_env_proc_fops = {
+static const struct file_operations srm_env_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= srm_env_proc_open,
 	.read		= seq_read,
@@ -153,11 +178,12 @@ srm_env_init(void)
 	/*
 	 * Check system
 	 */
-	if (!alpha_using_srm) {
+	if (!alpha_using_srm)
+	{
 		printk(KERN_INFO "%s: This Alpha system doesn't "
-				"know about SRM (or you've booted "
-				"SRM->MILO->Linux, which gets "
-				"misdetected)...\n", __func__);
+			   "know about SRM (or you've booted "
+			   "SRM->MILO->Linux, which gets "
+			   "misdetected)...\n", __func__);
 		return -ENODEV;
 	}
 
@@ -165,9 +191,11 @@ srm_env_init(void)
 	 * Create base directory
 	 */
 	base_dir = proc_mkdir(BASE_DIR, NULL);
-	if (!base_dir) {
+
+	if (!base_dir)
+	{
 		printk(KERN_ERR "Couldn't create base dir /proc/%s\n",
-				BASE_DIR);
+			   BASE_DIR);
 		return -ENOMEM;
 	}
 
@@ -175,9 +203,11 @@ srm_env_init(void)
 	 * Create per-name subdirectory
 	 */
 	named_dir = proc_mkdir(NAMED_DIR, base_dir);
-	if (!named_dir) {
+
+	if (!named_dir)
+	{
 		printk(KERN_ERR "Couldn't create dir /proc/%s/%s\n",
-				BASE_DIR, NAMED_DIR);
+			   BASE_DIR, NAMED_DIR);
 		goto cleanup;
 	}
 
@@ -185,9 +215,11 @@ srm_env_init(void)
 	 * Create per-number subdirectory
 	 */
 	numbered_dir = proc_mkdir(NUMBERED_DIR, base_dir);
-	if (!numbered_dir) {
+
+	if (!numbered_dir)
+	{
 		printk(KERN_ERR "Couldn't create dir /proc/%s/%s\n",
-				BASE_DIR, NUMBERED_DIR);
+			   BASE_DIR, NUMBERED_DIR);
 		goto cleanup;
 
 	}
@@ -196,26 +228,35 @@ srm_env_init(void)
 	 * Create all named nodes
 	 */
 	entry = srm_named_entries;
-	while (entry->name && entry->id) {
+
+	while (entry->name && entry->id)
+	{
 		if (!proc_create_data(entry->name, 0644, named_dir,
-			     &srm_env_proc_fops, (void *)entry->id))
+							  &srm_env_proc_fops, (void *)entry->id))
+		{
 			goto cleanup;
+		}
+
 		entry++;
 	}
 
 	/*
 	 * Create all numbered nodes
 	 */
-	for (var_num = 0; var_num <= 255; var_num++) {
+	for (var_num = 0; var_num <= 255; var_num++)
+	{
 		char name[4];
 		sprintf(name, "%ld", var_num);
+
 		if (!proc_create_data(name, 0644, numbered_dir,
-			     &srm_env_proc_fops, (void *)var_num))
+							  &srm_env_proc_fops, (void *)var_num))
+		{
 			goto cleanup;
+		}
 	}
 
 	printk(KERN_INFO "%s: version %s loaded successfully\n", NAME,
-			VERSION);
+		   VERSION);
 
 	return 0;
 

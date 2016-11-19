@@ -47,8 +47,8 @@ static int cf_pit_set_periodic(struct clock_event_device *evt)
 	__raw_writew(MCFPIT_PCSR_DISABLE, TA(MCFPIT_PCSR));
 	__raw_writew(PIT_CYCLES_PER_JIFFY, TA(MCFPIT_PMR));
 	__raw_writew(MCFPIT_PCSR_EN | MCFPIT_PCSR_PIE |
-		     MCFPIT_PCSR_OVW | MCFPIT_PCSR_RLD |
-		     MCFPIT_PCSR_CLK64, TA(MCFPIT_PCSR));
+				 MCFPIT_PCSR_OVW | MCFPIT_PCSR_RLD |
+				 MCFPIT_PCSR_CLK64, TA(MCFPIT_PCSR));
 	return 0;
 }
 
@@ -56,7 +56,7 @@ static int cf_pit_set_oneshot(struct clock_event_device *evt)
 {
 	__raw_writew(MCFPIT_PCSR_DISABLE, TA(MCFPIT_PCSR));
 	__raw_writew(MCFPIT_PCSR_EN | MCFPIT_PCSR_PIE |
-		     MCFPIT_PCSR_OVW | MCFPIT_PCSR_CLK64, TA(MCFPIT_PCSR));
+				 MCFPIT_PCSR_OVW | MCFPIT_PCSR_CLK64, TA(MCFPIT_PCSR));
 	return 0;
 }
 
@@ -72,16 +72,17 @@ static int cf_pit_shutdown(struct clock_event_device *evt)
  * Delta is given in PIT ticks
  */
 static int cf_pit_next_event(unsigned long delta,
-		struct clock_event_device *evt)
+							 struct clock_event_device *evt)
 {
 	__raw_writew(delta, TA(MCFPIT_PMR));
 	return 0;
 }
 
-struct clock_event_device cf_pit_clockevent = {
+struct clock_event_device cf_pit_clockevent =
+{
 	.name			= "pit",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= cf_pit_shutdown,
 	.set_state_periodic	= cf_pit_set_periodic,
 	.set_state_oneshot	= cf_pit_set_oneshot,
@@ -110,7 +111,8 @@ static irqreturn_t pit_tick(int irq, void *dummy)
 
 /***************************************************************************/
 
-static struct irqaction pit_irq = {
+static struct irqaction pit_irq =
+{
 	.name	 = "timer",
 	.flags	 = IRQF_TIMER,
 	.handler = pit_tick,
@@ -134,7 +136,8 @@ static cycle_t pit_read_clk(struct clocksource *cs)
 
 /***************************************************************************/
 
-static struct clocksource pit_clk = {
+static struct clocksource pit_clk =
+{
 	.name	= "pit",
 	.rating	= 100,
 	.read	= pit_read_clk,

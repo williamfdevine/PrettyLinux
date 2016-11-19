@@ -6,7 +6,8 @@
 #include <linux/atomic.h>
 #include <asm/asm.h>
 
-typedef struct {
+typedef struct
+{
 	atomic_long_t a;
 } local_t;
 
@@ -18,27 +19,27 @@ typedef struct {
 static inline void local_inc(local_t *l)
 {
 	asm volatile(_ASM_INC "%0"
-		     : "+m" (l->a.counter));
+				 : "+m" (l->a.counter));
 }
 
 static inline void local_dec(local_t *l)
 {
 	asm volatile(_ASM_DEC "%0"
-		     : "+m" (l->a.counter));
+				 : "+m" (l->a.counter));
 }
 
 static inline void local_add(long i, local_t *l)
 {
 	asm volatile(_ASM_ADD "%1,%0"
-		     : "+m" (l->a.counter)
-		     : "ir" (i));
+				 : "+m" (l->a.counter)
+				 : "ir" (i));
 }
 
 static inline void local_sub(long i, local_t *l)
 {
 	asm volatile(_ASM_SUB "%1,%0"
-		     : "+m" (l->a.counter)
-		     : "ir" (i));
+				 : "+m" (l->a.counter)
+				 : "ir" (i));
 }
 
 /**
@@ -106,8 +107,8 @@ static inline long local_add_return(long i, local_t *l)
 {
 	long __i = i;
 	asm volatile(_ASM_XADD "%0, %1;"
-		     : "+r" (i), "+m" (l->a.counter)
-		     : : "memory");
+				 : "+r" (i), "+m" (l->a.counter)
+				 : : "memory");
 	return i + __i;
 }
 
@@ -134,19 +135,19 @@ static inline long local_sub_return(long i, local_t *l)
  * Returns non-zero if @l was not @u, and zero otherwise.
  */
 #define local_add_unless(l, a, u)				\
-({								\
-	long c, old;						\
-	c = local_read((l));					\
-	for (;;) {						\
-		if (unlikely(c == (u)))				\
-			break;					\
-		old = local_cmpxchg((l), c, c + (a));		\
-		if (likely(old == c))				\
-			break;					\
-		c = old;					\
-	}							\
-	c != (u);						\
-})
+	({								\
+		long c, old;						\
+		c = local_read((l));					\
+		for (;;) {						\
+			if (unlikely(c == (u)))				\
+				break;					\
+			old = local_cmpxchg((l), c, c + (a));		\
+			if (likely(old == c))				\
+				break;					\
+			c = old;					\
+		}							\
+		c != (u);						\
+	})
 #define local_inc_not_zero(l) local_add_unless((l), 1, 0)
 
 /* On x86_32, these are no better than the atomic variants.

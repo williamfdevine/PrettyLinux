@@ -46,18 +46,24 @@
 void __init eseries_fixup(struct tag *tags, char **cmdline)
 {
 	if (machine_is_e800())
+	{
 		memblock_add(0xa0000000, SZ_128M);
+	}
 	else
+	{
 		memblock_add(0xa0000000, SZ_64M);
+	}
 }
 
-struct gpio_vbus_mach_info e7xx_udc_info = {
+struct gpio_vbus_mach_info e7xx_udc_info =
+{
 	.gpio_vbus   = GPIO_E7XX_USB_DISC,
 	.gpio_pullup = GPIO_E7XX_USB_PULLUP,
 	.gpio_pullup_inverted = 1
 };
 
-static struct platform_device e7xx_gpio_vbus __maybe_unused = {
+static struct platform_device e7xx_gpio_vbus __maybe_unused =
+{
 	.name	= "gpio-vbus",
 	.id	= -1,
 	.dev	= {
@@ -65,7 +71,8 @@ static struct platform_device e7xx_gpio_vbus __maybe_unused = {
 	},
 };
 
-struct pxaficp_platform_data e7xx_ficp_platform_data = {
+struct pxaficp_platform_data e7xx_ficp_platform_data =
+{
 	.gpio_pwdown		= GPIO_E7XX_IR_OFF,
 	.transceiver_cap	= IR_SIRMODE | IR_OFF,
 };
@@ -112,7 +119,8 @@ void eseries_get_tmio_gpios(void)
 }
 
 /* TMIO controller uses the same resources on all e-series machines. */
-struct resource eseries_tmio_resources[] = {
+struct resource eseries_tmio_resources[] =
+{
 	[0] = {
 		.start  = PXA_CS4_PHYS,
 		.end    = PXA_CS4_PHYS + 0x1fffff,
@@ -134,14 +142,16 @@ static void __init __maybe_unused eseries_register_clks(void)
 #ifdef CONFIG_MACH_E330
 /* -------------------- e330 tc6387xb parameters -------------------- */
 
-static struct tc6387xb_platform_data e330_tc6387xb_info = {
+static struct tc6387xb_platform_data e330_tc6387xb_info =
+{
 	.enable   = &eseries_tmio_enable,
 	.disable  = &eseries_tmio_disable,
 	.suspend  = &eseries_tmio_suspend,
 	.resume   = &eseries_tmio_resume,
 };
 
-static struct platform_device e330_tc6387xb_device = {
+static struct platform_device e330_tc6387xb_device =
+{
 	.name           = "tc6387xb",
 	.id             = -1,
 	.dev            = {
@@ -153,7 +163,8 @@ static struct platform_device e330_tc6387xb_device = {
 
 /* --------------------------------------------------------------- */
 
-static struct platform_device *e330_devices[] __initdata = {
+static struct platform_device *e330_devices[] __initdata =
+{
 	&e330_tc6387xb_device,
 	&e7xx_gpio_vbus,
 };
@@ -169,30 +180,32 @@ static void __init e330_init(void)
 }
 
 MACHINE_START(E330, "Toshiba e330")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
-	.atag_offset	= 0x100,
+/* Maintainer: Ian Molton (spyro@f2s.com) */
+.atag_offset	= 0x100,
 	.map_io		= pxa25x_map_io,
-	.nr_irqs	= ESERIES_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.fixup		= eseries_fixup,
-	.init_machine	= e330_init,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= ESERIES_NR_IRQS,
+			.init_irq	= pxa25x_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.fixup		= eseries_fixup,
+					 .init_machine	= e330_init,
+						.init_time	= pxa_timer_init,
+						  .restart	= pxa_restart,
+							  MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_E350
-/* -------------------- e350 t7l66xb parameters -------------------- */
+							  /* -------------------- e350 t7l66xb parameters -------------------- */
 
-static struct t7l66xb_platform_data e350_t7l66xb_info = {
+							  static struct t7l66xb_platform_data e350_t7l66xb_info =
+{
 	.irq_base               = IRQ_BOARD_START,
 	.enable                 = &eseries_tmio_enable,
 	.suspend                = &eseries_tmio_suspend,
 	.resume                 = &eseries_tmio_resume,
 };
 
-static struct platform_device e350_t7l66xb_device = {
+static struct platform_device e350_t7l66xb_device =
+{
 	.name           = "t7l66xb",
 	.id             = -1,
 	.dev            = {
@@ -204,7 +217,8 @@ static struct platform_device e350_t7l66xb_device = {
 
 /* ---------------------------------------------------------- */
 
-static struct platform_device *e350_devices[] __initdata = {
+static struct platform_device *e350_devices[] __initdata =
+{
 	&e350_t7l66xb_device,
 	&e7xx_gpio_vbus,
 };
@@ -220,23 +234,24 @@ static void __init e350_init(void)
 }
 
 MACHINE_START(E350, "Toshiba e350")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
-	.atag_offset	= 0x100,
+/* Maintainer: Ian Molton (spyro@f2s.com) */
+.atag_offset	= 0x100,
 	.map_io		= pxa25x_map_io,
-	.nr_irqs	= ESERIES_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.fixup		= eseries_fixup,
-	.init_machine	= e350_init,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= ESERIES_NR_IRQS,
+			.init_irq	= pxa25x_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.fixup		= eseries_fixup,
+					 .init_machine	= e350_init,
+						.init_time	= pxa_timer_init,
+						  .restart	= pxa_restart,
+							  MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_E400
-/* ------------------------ E400 LCD definitions ------------------------ */
+							  /* ------------------------ E400 LCD definitions ------------------------ */
 
-static struct pxafb_mode_info e400_pxafb_mode_info = {
+							  static struct pxafb_mode_info e400_pxafb_mode_info =
+{
 	.pixclock       = 140703,
 	.xres           = 240,
 	.yres           = 320,
@@ -250,7 +265,8 @@ static struct pxafb_mode_info e400_pxafb_mode_info = {
 	.sync           = 0,
 };
 
-static struct pxafb_mach_info e400_pxafb_mach_info = {
+static struct pxafb_mach_info e400_pxafb_mach_info =
+{
 	.modes          = &e400_pxafb_mode_info,
 	.num_modes      = 1,
 	.lcd_conn	= LCD_COLOR_TFT_16BPP,
@@ -260,7 +276,8 @@ static struct pxafb_mach_info e400_pxafb_mach_info = {
 
 /* ------------------------ E400 MFP config ----------------------------- */
 
-static unsigned long e400_pin_config[] __initdata = {
+static unsigned long e400_pin_config[] __initdata =
+{
 	/* Chip selects */
 	GPIO15_nCS_1,   /* CS1 - Flash */
 	GPIO80_nCS_4,   /* CS4 - TMIO */
@@ -283,7 +300,8 @@ static unsigned long e400_pin_config[] __initdata = {
 
 /* ---------------------------------------------------------------------- */
 
-static struct mtd_partition partition_a = {
+static struct mtd_partition partition_a =
+{
 	.name = "Internal NAND flash",
 	.offset =  0,
 	.size =  MTDPART_SIZ_FULL,
@@ -291,20 +309,23 @@ static struct mtd_partition partition_a = {
 
 static uint8_t scan_ff_pattern[] = { 0xff, 0xff };
 
-static struct nand_bbt_descr e400_t7l66xb_nand_bbt = {
+static struct nand_bbt_descr e400_t7l66xb_nand_bbt =
+{
 	.options = 0,
 	.offs = 4,
 	.len = 2,
 	.pattern = scan_ff_pattern
 };
 
-static struct tmio_nand_data e400_t7l66xb_nand_config = {
+static struct tmio_nand_data e400_t7l66xb_nand_config =
+{
 	.num_partitions = 1,
 	.partition = &partition_a,
 	.badblock_pattern = &e400_t7l66xb_nand_bbt,
 };
 
-static struct t7l66xb_platform_data e400_t7l66xb_info = {
+static struct t7l66xb_platform_data e400_t7l66xb_info =
+{
 	.irq_base 		= IRQ_BOARD_START,
 	.enable                 = &eseries_tmio_enable,
 	.suspend                = &eseries_tmio_suspend,
@@ -313,7 +334,8 @@ static struct t7l66xb_platform_data e400_t7l66xb_info = {
 	.nand_data              = &e400_t7l66xb_nand_config,
 };
 
-static struct platform_device e400_t7l66xb_device = {
+static struct platform_device e400_t7l66xb_device =
+{
 	.name           = "t7l66xb",
 	.id             = -1,
 	.dev            = {
@@ -325,7 +347,8 @@ static struct platform_device e400_t7l66xb_device = {
 
 /* ---------------------------------------------------------- */
 
-static struct platform_device *e400_devices[] __initdata = {
+static struct platform_device *e400_devices[] __initdata =
+{
 	&e400_t7l66xb_device,
 	&e7xx_gpio_vbus,
 };
@@ -344,23 +367,24 @@ static void __init e400_init(void)
 }
 
 MACHINE_START(E400, "Toshiba e400")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
-	.atag_offset	= 0x100,
+/* Maintainer: Ian Molton (spyro@f2s.com) */
+.atag_offset	= 0x100,
 	.map_io		= pxa25x_map_io,
-	.nr_irqs	= ESERIES_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.fixup		= eseries_fixup,
-	.init_machine	= e400_init,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= ESERIES_NR_IRQS,
+			.init_irq	= pxa25x_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.fixup		= eseries_fixup,
+					 .init_machine	= e400_init,
+						.init_time	= pxa_timer_init,
+						  .restart	= pxa_restart,
+							  MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_E740
-/* ------------------------ e740 video support --------------------------- */
+							  /* ------------------------ e740 video support --------------------------- */
 
-static struct w100_gen_regs e740_lcd_regs = {
+							  static struct w100_gen_regs e740_lcd_regs =
+{
 	.lcd_format =            0x00008023,
 	.lcdd_cntl1 =            0x0f000000,
 	.lcdd_cntl2 =            0x0003ffff,
@@ -369,7 +393,8 @@ static struct w100_gen_regs e740_lcd_regs = {
 	.genlcd_cntl3 =          0x000143aa,
 };
 
-static struct w100_mode e740_lcd_mode = {
+static struct w100_mode e740_lcd_mode =
+{
 	.xres            = 240,
 	.yres            = 320,
 	.left_margin     = 20,
@@ -393,7 +418,8 @@ static struct w100_mode e740_lcd_mode = {
 	.crtc_ps1_active =       0x41060010,
 };
 
-static struct w100_gpio_regs e740_w100_gpio_info = {
+static struct w100_gpio_regs e740_w100_gpio_info =
+{
 	.init_data1 = 0x21002103,
 	.gpio_dir1  = 0xffffdeff,
 	.gpio_oe1   = 0x03c00643,
@@ -402,7 +428,8 @@ static struct w100_gpio_regs e740_w100_gpio_info = {
 	.gpio_oe2   = 0x000000ff,
 };
 
-static struct w100fb_mach_info e740_fb_info = {
+static struct w100fb_mach_info e740_fb_info =
+{
 	.modelist   = &e740_lcd_mode,
 	.num_modes  = 1,
 	.regs       = &e740_lcd_regs,
@@ -411,7 +438,8 @@ static struct w100fb_mach_info e740_fb_info = {
 	.xtal_dbl   = 1,
 };
 
-static struct resource e740_fb_resources[] = {
+static struct resource e740_fb_resources[] =
+{
 	[0] = {
 		.start          = 0x0c000000,
 		.end            = 0x0cffffff,
@@ -419,7 +447,8 @@ static struct resource e740_fb_resources[] = {
 	},
 };
 
-static struct platform_device e740_fb_device = {
+static struct platform_device e740_fb_device =
+{
 	.name           = "w100fb",
 	.id             = -1,
 	.dev            = {
@@ -431,7 +460,8 @@ static struct platform_device e740_fb_device = {
 
 /* --------------------------- MFP Pin config -------------------------- */
 
-static unsigned long e740_pin_config[] __initdata = {
+static unsigned long e740_pin_config[] __initdata =
+{
 	/* Chip selects */
 	GPIO15_nCS_1,   /* CS1 - Flash */
 	GPIO79_nCS_3,   /* CS3 - IMAGEON */
@@ -493,14 +523,16 @@ static unsigned long e740_pin_config[] __initdata = {
 
 /* -------------------- e740 t7l66xb parameters -------------------- */
 
-static struct t7l66xb_platform_data e740_t7l66xb_info = {
+static struct t7l66xb_platform_data e740_t7l66xb_info =
+{
 	.irq_base 		= IRQ_BOARD_START,
 	.enable                 = &eseries_tmio_enable,
 	.suspend                = &eseries_tmio_suspend,
 	.resume                 = &eseries_tmio_resume,
 };
 
-static struct platform_device e740_t7l66xb_device = {
+static struct platform_device e740_t7l66xb_device =
+{
 	.name           = "t7l66xb",
 	.id             = -1,
 	.dev            = {
@@ -510,14 +542,16 @@ static struct platform_device e740_t7l66xb_device = {
 	.resource      = eseries_tmio_resources,
 };
 
-static struct platform_device e740_audio_device = {
+static struct platform_device e740_audio_device =
+{
 	.name		= "e740-audio",
 	.id		= -1,
 };
 
 /* ----------------------------------------------------------------------- */
 
-static struct platform_device *e740_devices[] __initdata = {
+static struct platform_device *e740_devices[] __initdata =
+{
 	&e740_fb_device,
 	&e740_t7l66xb_device,
 	&e7xx_gpio_vbus,
@@ -532,31 +566,32 @@ static void __init e740_init(void)
 	pxa_set_stuart_info(NULL);
 	eseries_register_clks();
 	clk_add_alias("CLK_CK48M", e740_t7l66xb_device.name,
-			"UDCCLK", &pxa25x_device_udc.dev),
-	eseries_get_tmio_gpios();
+				  "UDCCLK", &pxa25x_device_udc.dev),
+				  eseries_get_tmio_gpios();
 	platform_add_devices(ARRAY_AND_SIZE(e740_devices));
 	pxa_set_ac97_info(NULL);
 	pxa_set_ficp_info(&e7xx_ficp_platform_data);
 }
 
 MACHINE_START(E740, "Toshiba e740")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
-	.atag_offset	= 0x100,
+/* Maintainer: Ian Molton (spyro@f2s.com) */
+.atag_offset	= 0x100,
 	.map_io		= pxa25x_map_io,
-	.nr_irqs	= ESERIES_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.fixup		= eseries_fixup,
-	.init_machine	= e740_init,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= ESERIES_NR_IRQS,
+			.init_irq	= pxa25x_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.fixup		= eseries_fixup,
+					 .init_machine	= e740_init,
+						.init_time	= pxa_timer_init,
+						  .restart	= pxa_restart,
+							  MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_E750
-/* ---------------------- E750 LCD definitions -------------------- */
+							  /* ---------------------- E750 LCD definitions -------------------- */
 
-static struct w100_gen_regs e750_lcd_regs = {
+							  static struct w100_gen_regs e750_lcd_regs =
+{
 	.lcd_format =            0x00008003,
 	.lcdd_cntl1 =            0x00000000,
 	.lcdd_cntl2 =            0x0003ffff,
@@ -565,7 +600,8 @@ static struct w100_gen_regs e750_lcd_regs = {
 	.genlcd_cntl3 =          0x000143aa,
 };
 
-static struct w100_mode e750_lcd_mode = {
+static struct w100_mode e750_lcd_mode =
+{
 	.xres            = 240,
 	.yres            = 320,
 	.left_margin     = 21,
@@ -589,7 +625,8 @@ static struct w100_mode e750_lcd_mode = {
 	.sysclk_src     = CLK_SRC_PLL,
 };
 
-static struct w100_gpio_regs e750_w100_gpio_info = {
+static struct w100_gpio_regs e750_w100_gpio_info =
+{
 	.init_data1 = 0x01192f1b,
 	.gpio_dir1  = 0xd5ffdeff,
 	.gpio_oe1   = 0x000020bf,
@@ -598,7 +635,8 @@ static struct w100_gpio_regs e750_w100_gpio_info = {
 	.gpio_oe2   = 0x000001cf,
 };
 
-static struct w100fb_mach_info e750_fb_info = {
+static struct w100fb_mach_info e750_fb_info =
+{
 	.modelist   = &e750_lcd_mode,
 	.num_modes  = 1,
 	.regs       = &e750_lcd_regs,
@@ -607,7 +645,8 @@ static struct w100fb_mach_info e750_fb_info = {
 	.xtal_dbl   = 1,
 };
 
-static struct resource e750_fb_resources[] = {
+static struct resource e750_fb_resources[] =
+{
 	[0] = {
 		.start          = 0x0c000000,
 		.end            = 0x0cffffff,
@@ -615,7 +654,8 @@ static struct resource e750_fb_resources[] = {
 	},
 };
 
-static struct platform_device e750_fb_device = {
+static struct platform_device e750_fb_device =
+{
 	.name           = "w100fb",
 	.id             = -1,
 	.dev            = {
@@ -627,7 +667,8 @@ static struct platform_device e750_fb_device = {
 
 /* -------------------- e750 MFP parameters -------------------- */
 
-static unsigned long e750_pin_config[] __initdata = {
+static unsigned long e750_pin_config[] __initdata =
+{
 	/* Chip selects */
 	GPIO15_nCS_1,   /* CS1 - Flash */
 	GPIO79_nCS_3,   /* CS3 - IMAGEON */
@@ -689,7 +730,8 @@ static unsigned long e750_pin_config[] __initdata = {
 
 /* ----------------- e750 tc6393xb parameters ------------------ */
 
-static struct tc6393xb_platform_data e750_tc6393xb_info = {
+static struct tc6393xb_platform_data e750_tc6393xb_info =
+{
 	.irq_base       = IRQ_BOARD_START,
 	.scr_pll2cr     = 0x0cc1,
 	.scr_gper       = 0,
@@ -700,7 +742,8 @@ static struct tc6393xb_platform_data e750_tc6393xb_info = {
 	.disable        = &eseries_tmio_disable,
 };
 
-static struct platform_device e750_tc6393xb_device = {
+static struct platform_device e750_tc6393xb_device =
+{
 	.name           = "tc6393xb",
 	.id             = -1,
 	.dev            = {
@@ -710,14 +753,16 @@ static struct platform_device e750_tc6393xb_device = {
 	.resource      = eseries_tmio_resources,
 };
 
-static struct platform_device e750_audio_device = {
+static struct platform_device e750_audio_device =
+{
 	.name		= "e750-audio",
 	.id		= -1,
 };
 
 /* ------------------------------------------------------------- */
 
-static struct platform_device *e750_devices[] __initdata = {
+static struct platform_device *e750_devices[] __initdata =
+{
 	&e750_fb_device,
 	&e750_tc6393xb_device,
 	&e7xx_gpio_vbus,
@@ -731,31 +776,32 @@ static void __init e750_init(void)
 	pxa_set_btuart_info(NULL);
 	pxa_set_stuart_info(NULL);
 	clk_add_alias("CLK_CK3P6MI", e750_tc6393xb_device.name,
-			"GPIO11_CLK", NULL),
-	eseries_get_tmio_gpios();
+				  "GPIO11_CLK", NULL),
+				  eseries_get_tmio_gpios();
 	platform_add_devices(ARRAY_AND_SIZE(e750_devices));
 	pxa_set_ac97_info(NULL);
 	pxa_set_ficp_info(&e7xx_ficp_platform_data);
 }
 
 MACHINE_START(E750, "Toshiba e750")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
-	.atag_offset	= 0x100,
+/* Maintainer: Ian Molton (spyro@f2s.com) */
+.atag_offset	= 0x100,
 	.map_io		= pxa25x_map_io,
-	.nr_irqs	= ESERIES_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.fixup		= eseries_fixup,
-	.init_machine	= e750_init,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= ESERIES_NR_IRQS,
+			.init_irq	= pxa25x_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.fixup		= eseries_fixup,
+					 .init_machine	= e750_init,
+						.init_time	= pxa_timer_init,
+						  .restart	= pxa_restart,
+							  MACHINE_END
 #endif
 
 #ifdef CONFIG_MACH_E800
-/* ------------------------ e800 LCD definitions ------------------------- */
+							  /* ------------------------ e800 LCD definitions ------------------------- */
 
-static unsigned long e800_pin_config[] __initdata = {
+							  static unsigned long e800_pin_config[] __initdata =
+{
 	/* AC97 */
 	GPIO28_AC97_BITCLK,
 	GPIO29_AC97_SDATA_IN_0,
@@ -766,7 +812,8 @@ static unsigned long e800_pin_config[] __initdata = {
 	GPIO11_3_6MHz,
 };
 
-static struct w100_gen_regs e800_lcd_regs = {
+static struct w100_gen_regs e800_lcd_regs =
+{
 	.lcd_format =            0x00008003,
 	.lcdd_cntl1 =            0x02a00000,
 	.lcdd_cntl2 =            0x0003ffff,
@@ -775,7 +822,8 @@ static struct w100_gen_regs e800_lcd_regs = {
 	.genlcd_cntl3 =          0x000102aa,
 };
 
-static struct w100_mode e800_lcd_mode[2] = {
+static struct w100_mode e800_lcd_mode[2] =
+{
 	[0] = {
 		.xres            = 480,
 		.yres            = 640,
@@ -825,7 +873,8 @@ static struct w100_mode e800_lcd_mode[2] = {
 };
 
 
-static struct w100_gpio_regs e800_w100_gpio_info = {
+static struct w100_gpio_regs e800_w100_gpio_info =
+{
 	.init_data1 = 0xc13fc019,
 	.gpio_dir1  = 0x3e40df7f,
 	.gpio_oe1   = 0x003c3000,
@@ -834,7 +883,8 @@ static struct w100_gpio_regs e800_w100_gpio_info = {
 	.gpio_oe2   = 0x00000000,
 };
 
-static struct w100_mem_info e800_w100_mem_info = {
+static struct w100_mem_info e800_w100_mem_info =
+{
 	.ext_cntl        = 0x09640011,
 	.sdram_mode_reg  = 0x00600021,
 	.ext_timing_cntl = 0x10001545,
@@ -847,18 +897,26 @@ static void e800_tg_change(struct w100fb_par *par)
 	unsigned long tmp;
 
 	tmp = w100fb_gpio_read(W100_GPIO_PORT_A);
+
 	if (par->mode->xres == 480)
+	{
 		tmp |= 0x100;
+	}
 	else
+	{
 		tmp &= ~0x100;
+	}
+
 	w100fb_gpio_write(W100_GPIO_PORT_A, tmp);
 }
 
-static struct w100_tg_info e800_tg_info = {
+static struct w100_tg_info e800_tg_info =
+{
 	.change = e800_tg_change,
 };
 
-static struct w100fb_mach_info e800_fb_info = {
+static struct w100fb_mach_info e800_fb_info =
+{
 	.modelist   = e800_lcd_mode,
 	.num_modes  = 2,
 	.regs       = &e800_lcd_regs,
@@ -868,7 +926,8 @@ static struct w100fb_mach_info e800_fb_info = {
 	.xtal_freq  = 16000000,
 };
 
-static struct resource e800_fb_resources[] = {
+static struct resource e800_fb_resources[] =
+{
 	[0] = {
 		.start          = 0x0c000000,
 		.end            = 0x0cffffff,
@@ -876,7 +935,8 @@ static struct resource e800_fb_resources[] = {
 	},
 };
 
-static struct platform_device e800_fb_device = {
+static struct platform_device e800_fb_device =
+{
 	.name           = "w100fb",
 	.id             = -1,
 	.dev            = {
@@ -888,13 +948,15 @@ static struct platform_device e800_fb_device = {
 
 /* --------------------------- UDC definitions --------------------------- */
 
-static struct gpio_vbus_mach_info e800_udc_info = {
+static struct gpio_vbus_mach_info e800_udc_info =
+{
 	.gpio_vbus   = GPIO_E800_USB_DISC,
 	.gpio_pullup = GPIO_E800_USB_PULLUP,
 	.gpio_pullup_inverted = 1
 };
 
-static struct platform_device e800_gpio_vbus = {
+static struct platform_device e800_gpio_vbus =
+{
 	.name	= "gpio-vbus",
 	.id	= -1,
 	.dev	= {
@@ -905,7 +967,8 @@ static struct platform_device e800_gpio_vbus = {
 
 /* ----------------- e800 tc6393xb parameters ------------------ */
 
-static struct tc6393xb_platform_data e800_tc6393xb_info = {
+static struct tc6393xb_platform_data e800_tc6393xb_info =
+{
 	.irq_base       = IRQ_BOARD_START,
 	.scr_pll2cr     = 0x0cc1,
 	.scr_gper       = 0,
@@ -916,7 +979,8 @@ static struct tc6393xb_platform_data e800_tc6393xb_info = {
 	.disable        = &eseries_tmio_disable,
 };
 
-static struct platform_device e800_tc6393xb_device = {
+static struct platform_device e800_tc6393xb_device =
+{
 	.name           = "tc6393xb",
 	.id             = -1,
 	.dev            = {
@@ -926,14 +990,16 @@ static struct platform_device e800_tc6393xb_device = {
 	.resource      = eseries_tmio_resources,
 };
 
-static struct platform_device e800_audio_device = {
+static struct platform_device e800_audio_device =
+{
 	.name		= "e800-audio",
 	.id		= -1,
 };
 
 /* ----------------------------------------------------------------------- */
 
-static struct platform_device *e800_devices[] __initdata = {
+static struct platform_device *e800_devices[] __initdata =
+{
 	&e800_fb_device,
 	&e800_tc6393xb_device,
 	&e800_gpio_vbus,
@@ -947,22 +1013,22 @@ static void __init e800_init(void)
 	pxa_set_btuart_info(NULL);
 	pxa_set_stuart_info(NULL);
 	clk_add_alias("CLK_CK3P6MI", e800_tc6393xb_device.name,
-			"GPIO11_CLK", NULL),
-	eseries_get_tmio_gpios();
+				  "GPIO11_CLK", NULL),
+				  eseries_get_tmio_gpios();
 	platform_add_devices(ARRAY_AND_SIZE(e800_devices));
 	pxa_set_ac97_info(NULL);
 }
 
 MACHINE_START(E800, "Toshiba e800")
-	/* Maintainer: Ian Molton (spyro@f2s.com) */
-	.atag_offset	= 0x100,
+/* Maintainer: Ian Molton (spyro@f2s.com) */
+.atag_offset	= 0x100,
 	.map_io		= pxa25x_map_io,
-	.nr_irqs	= ESERIES_NR_IRQS,
-	.init_irq	= pxa25x_init_irq,
-	.handle_irq	= pxa25x_handle_irq,
-	.fixup		= eseries_fixup,
-	.init_machine	= e800_init,
-	.init_time	= pxa_timer_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.nr_irqs	= ESERIES_NR_IRQS,
+			.init_irq	= pxa25x_init_irq,
+			   .handle_irq	= pxa25x_handle_irq,
+				.fixup		= eseries_fixup,
+					 .init_machine	= e800_init,
+						.init_time	= pxa_timer_init,
+						  .restart	= pxa_restart,
+							  MACHINE_END
 #endif

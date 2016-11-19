@@ -74,15 +74,21 @@ static void get_clocks(void)
 	 * Determine forward divider B
 	 */
 	pllFwdDivB = ((cpr_plld & PLLD_FWDVB_MASK) >> 8);
+
 	if (pllFwdDivB == 0)
+	{
 		pllFwdDivB = 8;
+	}
 
 	/*
 	 * Determine FBK_DIV.
 	 */
 	pllFbkDiv = ((cpr_plld & PLLD_FBDV_MASK) >> 24);
+
 	if (pllFbkDiv == 0)
+	{
 		pllFbkDiv = 256;
+	}
 
 	/*
 	 * Read CPR_PRIMAD register
@@ -93,38 +99,50 @@ static void get_clocks(void)
 	 * Determine PLB_DIV.
 	 */
 	pllPlbDiv = ((cpr_primad & PRIMAD_PLBDV_MASK) >> 16);
+
 	if (pllPlbDiv == 0)
+	{
 		pllPlbDiv = 16;
+	}
 
 	/*
 	 * Determine EXTBUS_DIV.
 	 */
 	pllExtBusDiv = (cpr_primad & PRIMAD_EBCDV_MASK);
+
 	if (pllExtBusDiv == 0)
+	{
 		pllExtBusDiv = 16;
+	}
 
 	/*
 	 * Determine OPB_DIV.
 	 */
 	pllOpbDiv = ((cpr_primad & PRIMAD_OPBDV_MASK) >> 8);
+
 	if (pllOpbDiv == 0)
+	{
 		pllOpbDiv = 16;
+	}
 
 	/* There is a bug in U-Boot that prevents us from using
 	 * bd.bi_opbfreq because U-Boot doesn't populate it for
 	 * 405EZ.  We get to calculate it, yay!
 	 */
-	freqOPB = (sysclk *pllFbkDiv) /pllOpbDiv;
+	freqOPB = (sysclk * pllFbkDiv) / pllOpbDiv;
 
 	freqEBC = (sysclk * pllFbkDiv) / pllExtBusDiv;
 
 	plloutb = ((sysclk * ((cpr_pllc & PLLC_SRC_MASK) ?
-					   pllFwdDivB : pllFwdDiv) *
-		    pllFbkDiv) / pllFwdDivB);
+						  pllFwdDivB : pllFwdDiv) *
+				pllFbkDiv) / pllFwdDivB);
 
 	np = find_node_by_alias("serial0");
+
 	if (getprop(np, "current-speed", &baud, sizeof(baud)) != sizeof(baud))
+	{
 		fatal("no current-speed property\n\r");
+	}
 
 	udiv = 256;			/* Assume lowest possible serial clk */
 	div = plloutb / (16 * baud); /* total divisor */
@@ -135,18 +153,24 @@ static void get_clocks(void)
 	 * possible (256) to minimize serial clock and constrain
 	 * search to umin.
 	 */
-	for (i = 256; i > umin; i--) {
+	for (i = 256; i > umin; i--)
+	{
 		ibdiv = div / i;
 		est = i * ibdiv;
-		idiff = (est > div) ? (est-div) : (div-est);
-		if (idiff == 0) {
+		idiff = (est > div) ? (est - div) : (div - est);
+
+		if (idiff == 0)
+		{
 			udiv = i;
 			break;      /* can't do better */
-		} else if (idiff < diff) {
+		}
+		else if (idiff < diff)
+		{
 			udiv = i;       /* best so far */
 			diff = idiff;   /* update lowest diff*/
 		}
 	}
+
 	freqUART = plloutb / udiv;
 
 	dt_fixup_cpu_clocks(bd.bi_procfreq, bd.bi_intfreq, bd.bi_plb_busfreq);
@@ -162,9 +186,9 @@ static void acadia_fixups(void)
 	get_clocks();
 	dt_fixup_mac_address_by_alias("ethernet0", bd.bi_enetaddr);
 }
-	
+
 void platform_init(unsigned long r3, unsigned long r4, unsigned long r5,
-		unsigned long r6, unsigned long r7)
+				   unsigned long r6, unsigned long r7)
 {
 	CUBOOT_INIT();
 	platform_ops.fixups = acadia_fixups;

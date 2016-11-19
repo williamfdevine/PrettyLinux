@@ -45,7 +45,8 @@
 #include "common.h"
 #include "common-smdk.h"
 
-static struct map_desc smdk2440_iodesc[] __initdata = {
+static struct map_desc smdk2440_iodesc[] __initdata =
+{
 	/* ISA IO Space map (memory space selected by A24) */
 
 	{
@@ -55,7 +56,7 @@ static struct map_desc smdk2440_iodesc[] __initdata = {
 		.type		= MT_DEVICE,
 	}, {
 		.virtual	= (u32)S3C24XX_VA_ISA_WORD + 0x10000,
-		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1<<24)),
+		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1 << 24)),
 		.length		= SZ_4M,
 		.type		= MT_DEVICE,
 	}, {
@@ -65,7 +66,7 @@ static struct map_desc smdk2440_iodesc[] __initdata = {
 		.type		= MT_DEVICE,
 	}, {
 		.virtual	= (u32)S3C24XX_VA_ISA_BYTE + 0x10000,
-		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1<<24)),
+		.pfn		= __phys_to_pfn(S3C2410_CS2 + (1 << 24)),
 		.length		= SZ_4M,
 		.type		= MT_DEVICE,
 	}
@@ -75,7 +76,8 @@ static struct map_desc smdk2440_iodesc[] __initdata = {
 #define ULCON S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB
 #define UFCON S3C2410_UFCON_RXTRIG8 | S3C2410_UFCON_FIFOMODE
 
-static struct s3c2410_uartcfg smdk2440_uartcfgs[] __initdata = {
+static struct s3c2410_uartcfg smdk2440_uartcfgs[] __initdata =
+{
 	[0] = {
 		.hwport	     = 0,
 		.flags	     = 0,
@@ -102,13 +104,14 @@ static struct s3c2410_uartcfg smdk2440_uartcfgs[] __initdata = {
 
 /* LCD driver info */
 
-static struct s3c2410fb_display smdk2440_lcd_cfg __initdata = {
+static struct s3c2410fb_display smdk2440_lcd_cfg __initdata =
+{
 
 	.lcdcon5	= S3C2410_LCDCON5_FRM565 |
-			  S3C2410_LCDCON5_INVVLINE |
-			  S3C2410_LCDCON5_INVVFRAME |
-			  S3C2410_LCDCON5_PWREN |
-			  S3C2410_LCDCON5_HWSWP,
+	S3C2410_LCDCON5_INVVLINE |
+	S3C2410_LCDCON5_INVVFRAME |
+	S3C2410_LCDCON5_PWREN |
+	S3C2410_LCDCON5_HWSWP,
 
 	.type		= S3C2410_LCDCON1_TFT,
 
@@ -127,7 +130,8 @@ static struct s3c2410fb_display smdk2440_lcd_cfg __initdata = {
 	.vsync_len	= 4,
 };
 
-static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
+static struct s3c2410fb_mach_info smdk2440_fb_info __initdata =
+{
 	.displays	= &smdk2440_lcd_cfg,
 	.num_displays	= 1,
 	.default_display = 0,
@@ -144,10 +148,11 @@ static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
 	.gpdup_mask	= 0xffffffff,
 #endif
 
-	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
+	.lpcsel		= ((0xCE6) & ~7) | 1 << 4,
 };
 
-static struct platform_device *smdk2440_devices[] __initdata = {
+static struct platform_device *smdk2440_devices[] __initdata =
+{
 	&s3c_device_ohci,
 	&s3c_device_lcd,
 	&s3c_device_wdt,
@@ -178,11 +183,11 @@ static void __init smdk2440_machine_init(void)
 }
 
 MACHINE_START(S3C2440, "SMDK2440")
-	/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
-	.atag_offset	= 0x100,
+/* Maintainer: Ben Dooks <ben-linux@fluff.org> */
+.atag_offset	= 0x100,
 
 	.init_irq	= s3c2440_init_irq,
-	.map_io		= smdk2440_map_io,
-	.init_machine	= smdk2440_machine_init,
-	.init_time	= smdk2440_init_time,
-MACHINE_END
+	   .map_io		= smdk2440_map_io,
+		   .init_machine	= smdk2440_machine_init,
+			  .init_time	= smdk2440_init_time,
+				MACHINE_END

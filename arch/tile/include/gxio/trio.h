@@ -152,7 +152,8 @@
 #include <hv/iorpc.h>
 
 /* A context object used to manage TRIO hardware resources. */
-typedef struct {
+typedef struct
+{
 
 	/* File descriptor for calling up to Linux (and thus the HV). */
 	int fd;
@@ -187,7 +188,8 @@ typedef struct {
 typedef TRIO_DMA_DESC_t gxio_trio_dma_desc_t;
 
 /* A convenient, thread-safe interface to an eDMA ring. */
-typedef struct {
+typedef struct
+{
 
 	/* State object for tracking head and tail pointers. */
 	__gxio_dma_queue_t dma_queue;
@@ -212,13 +214,14 @@ typedef struct {
  * @param context Context object to be initialized.
  */
 extern int gxio_trio_init(gxio_trio_context_t *context,
-			  unsigned int trio_index);
+						  unsigned int trio_index);
 
 /* This indicates that an ASID hasn't been allocated. */
 #define GXIO_ASID_NULL -1
 
 /* Ordering modes for map memory regions and scatter queue regions. */
-typedef enum gxio_trio_order_mode_e {
+typedef enum gxio_trio_order_mode_e
+{
 	/* Writes are not ordered.  Reads always wait for previous writes. */
 	GXIO_TRIO_ORDER_MODE_UNORDERED =
 		TRIO_MAP_MEM_SETUP__ORDER_MODE_VAL_UNORDERED,
@@ -247,18 +250,20 @@ typedef enum gxio_trio_order_mode_e {
  * GXIO_TRIO_ERR_BAD_ASID, or ::GXIO_TRIO_ERR_BAD_BUS_RANGE.
  */
 extern int gxio_trio_init_memory_map(gxio_trio_context_t *context,
-				     unsigned int map, void *target_mem,
-				     size_t target_size, unsigned int asid,
-				     unsigned int mac, uint64_t bus_address,
-				     gxio_trio_order_mode_t order_mode);
+									 unsigned int map, void *target_mem,
+									 size_t target_size, unsigned int asid,
+									 unsigned int mac, uint64_t bus_address,
+									 gxio_trio_order_mode_t order_mode);
 
 /* Flags that can be passed to resource allocation functions. */
-enum gxio_trio_alloc_flags_e {
+enum gxio_trio_alloc_flags_e
+{
 	GXIO_TRIO_ALLOC_FIXED = HV_TRIO_ALLOC_FIXED,
 };
 
 /* Flags that can be passed to memory registration functions. */
-enum gxio_trio_mem_flags_e {
+enum gxio_trio_mem_flags_e
+{
 	/* Do not fill L3 when writing, and invalidate lines upon egress. */
 	GXIO_TRIO_MEM_FLAG_NT_HINT = IORPC_MEM_BUFFER_FLAG_NT_HINT,
 
@@ -292,7 +297,7 @@ enum gxio_trio_mem_flags_e {
  *   failed.
  */
 extern int gxio_trio_alloc_asids(gxio_trio_context_t *context,
-				 unsigned int count, unsigned int first,
-				 unsigned int flags);
+								 unsigned int count, unsigned int first,
+								 unsigned int flags);
 
 #endif /* ! _GXIO_TRIO_H_ */

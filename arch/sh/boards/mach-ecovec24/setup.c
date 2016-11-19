@@ -84,18 +84,21 @@
 /* Heartbeat */
 static unsigned char led_pos[] = { 0, 1, 2, 3 };
 
-static struct heartbeat_data heartbeat_data = {
+static struct heartbeat_data heartbeat_data =
+{
 	.nr_bits = 4,
 	.bit_pos = led_pos,
 };
 
-static struct resource heartbeat_resource = {
+static struct resource heartbeat_resource =
+{
 	.start  = 0xA405012C, /* PTG */
 	.end    = 0xA405012E - 1,
 	.flags  = IORESOURCE_MEM | IORESOURCE_MEM_8BIT,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name           = "heartbeat",
 	.id             = -1,
 	.dev = {
@@ -106,7 +109,8 @@ static struct platform_device heartbeat_device = {
 };
 
 /* MTD */
-static struct mtd_partition nor_flash_partitions[] = {
+static struct mtd_partition nor_flash_partitions[] =
+{
 	{
 		.name = "boot loader",
 		.offset = 0,
@@ -119,13 +123,15 @@ static struct mtd_partition nor_flash_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data nor_flash_data = {
+static struct physmap_flash_data nor_flash_data =
+{
 	.width		= 2,
 	.parts		= nor_flash_partitions,
 	.nr_parts	= ARRAY_SIZE(nor_flash_partitions),
 };
 
-static struct resource nor_flash_resources[] = {
+static struct resource nor_flash_resources[] =
+{
 	[0] = {
 		.name	= "NOR Flash",
 		.start	= 0x00000000,
@@ -134,7 +140,8 @@ static struct resource nor_flash_resources[] = {
 	}
 };
 
-static struct platform_device nor_flash_device = {
+static struct platform_device nor_flash_device =
+{
 	.name		= "physmap-flash",
 	.resource	= nor_flash_resources,
 	.num_resources	= ARRAY_SIZE(nor_flash_resources),
@@ -145,7 +152,8 @@ static struct platform_device nor_flash_device = {
 
 /* SH Eth */
 #define SH_ETH_ADDR	(0xA4600000)
-static struct resource sh_eth_resources[] = {
+static struct resource sh_eth_resources[] =
+{
 	[0] = {
 		.start = SH_ETH_ADDR,
 		.end   = SH_ETH_ADDR + 0x1FC,
@@ -157,14 +165,16 @@ static struct resource sh_eth_resources[] = {
 	},
 };
 
-static struct sh_eth_plat_data sh_eth_plat = {
+static struct sh_eth_plat_data sh_eth_plat =
+{
 	.phy = 0x1f, /* SMSC LAN8700 */
 	.edmac_endian = EDMAC_LITTLE_ENDIAN,
 	.phy_interface = PHY_INTERFACE_MODE_MII,
 	.ether_link_active_low = 1
 };
 
-static struct platform_device sh_eth_device = {
+static struct platform_device sh_eth_device =
+{
 	.name = "sh7724-ether",
 	.id = 0,
 	.dev = {
@@ -180,12 +190,14 @@ static void usb0_port_power(int port, int power)
 	gpio_set_value(GPIO_PTB4, power);
 }
 
-static struct r8a66597_platdata usb0_host_data = {
+static struct r8a66597_platdata usb0_host_data =
+{
 	.on_chip = 1,
 	.port_power = usb0_port_power,
 };
 
-static struct resource usb0_host_resources[] = {
+static struct resource usb0_host_resources[] =
+{
 	[0] = {
 		.start	= 0xa4d80000,
 		.end	= 0xa4d80124 - 1,
@@ -198,7 +210,8 @@ static struct resource usb0_host_resources[] = {
 	},
 };
 
-static struct platform_device usb0_host_device = {
+static struct platform_device usb0_host_device =
+{
 	.name		= "r8a66597_hcd",
 	.id		= 0,
 	.dev = {
@@ -216,12 +229,14 @@ static void usb1_port_power(int port, int power)
 	gpio_set_value(GPIO_PTB5, power);
 }
 
-static struct r8a66597_platdata usb1_common_data = {
+static struct r8a66597_platdata usb1_common_data =
+{
 	.on_chip = 1,
 	.port_power = usb1_port_power,
 };
 
-static struct resource usb1_common_resources[] = {
+static struct resource usb1_common_resources[] =
+{
 	[0] = {
 		.start	= 0xa4d90000,
 		.end	= 0xa4d90124 - 1,
@@ -234,7 +249,8 @@ static struct resource usb1_common_resources[] = {
 	},
 };
 
-static struct platform_device usb1_common_device = {
+static struct platform_device usb1_common_device =
+{
 	/* .name will be added in arch_setup */
 	.id		= 1,
 	.dev = {
@@ -258,12 +274,15 @@ static int usbhs_phy_reset(struct platform_device *pdev)
 {
 	/* enable vbus if HOST */
 	if (!gpio_get_value(GPIO_PTB3))
+	{
 		gpio_set_value(GPIO_PTB5, 1);
+	}
 
 	return 0;
 }
 
-static struct renesas_usbhs_platform_info usbhs_info = {
+static struct renesas_usbhs_platform_info usbhs_info =
+{
 	.platform_callback = {
 		.get_id		= usbhs_get_id,
 		.phy_reset	= usbhs_phy_reset,
@@ -278,7 +297,8 @@ static struct renesas_usbhs_platform_info usbhs_info = {
 	},
 };
 
-static struct resource usbhs_resources[] = {
+static struct resource usbhs_resources[] =
+{
 	[0] = {
 		.start	= 0xa4d90000,
 		.end	= 0xa4d90124 - 1,
@@ -291,7 +311,8 @@ static struct resource usbhs_resources[] = {
 	},
 };
 
-static struct platform_device usbhs_device = {
+static struct platform_device usbhs_device =
+{
 	.name	= "renesas_usbhs",
 	.id	= 1,
 	.dev = {
@@ -304,7 +325,8 @@ static struct platform_device usbhs_device = {
 };
 
 /* LCDC and backlight */
-static const struct fb_videomode ecovec_lcd_modes[] = {
+static const struct fb_videomode ecovec_lcd_modes[] =
+{
 	{
 		.name		= "Panel",
 		.xres		= 800,
@@ -319,7 +341,8 @@ static const struct fb_videomode ecovec_lcd_modes[] = {
 	},
 };
 
-static const struct fb_videomode ecovec_dvi_modes[] = {
+static const struct fb_videomode ecovec_dvi_modes[] =
+{
 	{
 		.name		= "DVI",
 		.xres		= 1280,
@@ -334,7 +357,8 @@ static const struct fb_videomode ecovec_dvi_modes[] = {
 	},
 };
 
-static struct sh_mobile_lcdc_info lcdc_info = {
+static struct sh_mobile_lcdc_info lcdc_info =
+{
 	.ch[0] = {
 		.interface_type = RGB18,
 		.chan = LCDC_CHAN_MAINLCD,
@@ -346,7 +370,8 @@ static struct sh_mobile_lcdc_info lcdc_info = {
 	}
 };
 
-static struct resource lcdc_resources[] = {
+static struct resource lcdc_resources[] =
+{
 	[0] = {
 		.name	= "LCDC",
 		.start	= 0xfe940000,
@@ -359,7 +384,8 @@ static struct resource lcdc_resources[] = {
 	},
 };
 
-static struct platform_device lcdc_device = {
+static struct platform_device lcdc_device =
+{
 	.name		= "sh_mobile_lcdc_fb",
 	.num_resources	= ARRAY_SIZE(lcdc_resources),
 	.resource	= lcdc_resources,
@@ -368,14 +394,16 @@ static struct platform_device lcdc_device = {
 	},
 };
 
-static struct gpio_backlight_platform_data gpio_backlight_data = {
+static struct gpio_backlight_platform_data gpio_backlight_data =
+{
 	.fbdev = &lcdc_device.dev,
 	.gpio = GPIO_PTR1,
 	.def_value = 1,
 	.name = "backlight",
 };
 
-static struct platform_device gpio_backlight_device = {
+static struct platform_device gpio_backlight_device =
+{
 	.name = "gpio-backlight",
 	.dev = {
 		.platform_data = &gpio_backlight_data,
@@ -383,11 +411,13 @@ static struct platform_device gpio_backlight_device = {
 };
 
 /* CEU0 */
-static struct sh_mobile_ceu_info sh_mobile_ceu0_info = {
+static struct sh_mobile_ceu_info sh_mobile_ceu0_info =
+{
 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
 };
 
-static struct resource ceu0_resources[] = {
+static struct resource ceu0_resources[] =
+{
 	[0] = {
 		.name	= "CEU0",
 		.start	= 0xfe910000,
@@ -403,7 +433,8 @@ static struct resource ceu0_resources[] = {
 	},
 };
 
-static struct platform_device ceu0_device = {
+static struct platform_device ceu0_device =
+{
 	.name		= "sh_mobile_ceu",
 	.id             = 0, /* "ceu0" clock */
 	.num_resources	= ARRAY_SIZE(ceu0_resources),
@@ -414,11 +445,13 @@ static struct platform_device ceu0_device = {
 };
 
 /* CEU1 */
-static struct sh_mobile_ceu_info sh_mobile_ceu1_info = {
+static struct sh_mobile_ceu_info sh_mobile_ceu1_info =
+{
 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
 };
 
-static struct resource ceu1_resources[] = {
+static struct resource ceu1_resources[] =
+{
 	[0] = {
 		.name	= "CEU1",
 		.start	= 0xfe914000,
@@ -434,7 +467,8 @@ static struct resource ceu1_resources[] = {
 	},
 };
 
-static struct platform_device ceu1_device = {
+static struct platform_device ceu1_device =
+{
 	.name		= "sh_mobile_ceu",
 	.id             = 1, /* "ceu1" clock */
 	.num_resources	= ARRAY_SIZE(ceu1_resources),
@@ -445,13 +479,15 @@ static struct platform_device ceu1_device = {
 };
 
 /* I2C device */
-static struct i2c_board_info i2c0_devices[] = {
+static struct i2c_board_info i2c0_devices[] =
+{
 	{
 		I2C_BOARD_INFO("da7210", 0x1a),
 	},
 };
 
-static struct i2c_board_info i2c1_devices[] = {
+static struct i2c_board_info i2c1_devices[] =
+{
 	{
 		I2C_BOARD_INFO("r2025sd", 0x32),
 	},
@@ -462,20 +498,24 @@ static struct i2c_board_info i2c1_devices[] = {
 };
 
 /* KEYSC */
-static struct sh_keysc_info keysc_info = {
+static struct sh_keysc_info keysc_info =
+{
 	.mode		= SH_KEYSC_MODE_1,
 	.scan_timing	= 3,
 	.delay		= 50,
 	.kycr2_delay	= 100,
-	.keycodes	= { KEY_1, 0, 0, 0, 0,
-			    KEY_2, 0, 0, 0, 0,
-			    KEY_3, 0, 0, 0, 0,
-			    KEY_4, 0, 0, 0, 0,
-			    KEY_5, 0, 0, 0, 0,
-			    KEY_6, 0, 0, 0, 0, },
+	.keycodes	= {
+		KEY_1, 0, 0, 0, 0,
+		KEY_2, 0, 0, 0, 0,
+		KEY_3, 0, 0, 0, 0,
+		KEY_4, 0, 0, 0, 0,
+		KEY_5, 0, 0, 0, 0,
+		KEY_6, 0, 0, 0, 0,
+	},
 };
 
-static struct resource keysc_resources[] = {
+static struct resource keysc_resources[] =
+{
 	[0] = {
 		.name	= "KEYSC",
 		.start  = 0x044b0000,
@@ -488,7 +528,8 @@ static struct resource keysc_resources[] = {
 	},
 };
 
-static struct platform_device keysc_device = {
+static struct platform_device keysc_device =
+{
 	.name           = "sh_keysc",
 	.id             = 0, /* keysc0 clock */
 	.num_resources  = ARRAY_SIZE(keysc_resources),
@@ -522,14 +563,16 @@ static int ts_init(void)
 	return 0;
 }
 
-static struct tsc2007_platform_data tsc2007_info = {
+static struct tsc2007_platform_data tsc2007_info =
+{
 	.model			= 2007,
 	.x_plate_ohms		= 180,
 	.get_pendown_state	= ts_get_pendown_state,
 	.init_platform_hw	= ts_init,
 };
 
-static struct i2c_board_info ts_i2c_clients = {
+static struct i2c_board_info ts_i2c_clients =
+{
 	I2C_BOARD_INFO("tsc2007", 0x48),
 	.type		= "tsc2007",
 	.platform_data	= &tsc2007_info,
@@ -544,7 +587,8 @@ static struct regulator_consumer_supply cn12_power_consumers[] =
 	REGULATOR_SUPPLY("vqmmc", "sh_mobile_sdhi.1"),
 };
 
-static struct regulator_init_data cn12_power_init_data = {
+static struct regulator_init_data cn12_power_init_data =
+{
 	.constraints = {
 		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
 	},
@@ -552,7 +596,8 @@ static struct regulator_init_data cn12_power_init_data = {
 	.consumer_supplies      = cn12_power_consumers,
 };
 
-static struct fixed_voltage_config cn12_power_info = {
+static struct fixed_voltage_config cn12_power_info =
+{
 	.supply_name = "CN12 SD/MMC Vdd",
 	.microvolts = 3300000,
 	.gpio = GPIO_PTB7,
@@ -560,7 +605,8 @@ static struct fixed_voltage_config cn12_power_info = {
 	.init_data = &cn12_power_init_data,
 };
 
-static struct platform_device cn12_power = {
+static struct platform_device cn12_power =
+{
 	.name = "reg-fixed-voltage",
 	.id   = 0,
 	.dev  = {
@@ -576,7 +622,8 @@ static struct regulator_consumer_supply sdhi0_power_consumers[] =
 	REGULATOR_SUPPLY("vqmmc", "sh_mobile_sdhi.0"),
 };
 
-static struct regulator_init_data sdhi0_power_init_data = {
+static struct regulator_init_data sdhi0_power_init_data =
+{
 	.constraints = {
 		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
 	},
@@ -584,7 +631,8 @@ static struct regulator_init_data sdhi0_power_init_data = {
 	.consumer_supplies      = sdhi0_power_consumers,
 };
 
-static struct fixed_voltage_config sdhi0_power_info = {
+static struct fixed_voltage_config sdhi0_power_info =
+{
 	.supply_name = "CN11 SD/MMC Vdd",
 	.microvolts = 3300000,
 	.gpio = GPIO_PTB6,
@@ -592,7 +640,8 @@ static struct fixed_voltage_config sdhi0_power_info = {
 	.init_data = &sdhi0_power_init_data,
 };
 
-static struct platform_device sdhi0_power = {
+static struct platform_device sdhi0_power =
+{
 	.name = "reg-fixed-voltage",
 	.id   = 1,
 	.dev  = {
@@ -600,16 +649,18 @@ static struct platform_device sdhi0_power = {
 	},
 };
 
-static struct tmio_mmc_data sdhi0_info = {
+static struct tmio_mmc_data sdhi0_info =
+{
 	.chan_priv_tx	= (void *)SHDMA_SLAVE_SDHI0_TX,
 	.chan_priv_rx	= (void *)SHDMA_SLAVE_SDHI0_RX,
 	.capabilities	= MMC_CAP_SDIO_IRQ | MMC_CAP_POWER_OFF_CARD |
-			  MMC_CAP_NEEDS_POLL,
+	MMC_CAP_NEEDS_POLL,
 	.flags		= TMIO_MMC_USE_GPIO_CD,
 	.cd_gpio	= GPIO_PTY7,
 };
 
-static struct resource sdhi0_resources[] = {
+static struct resource sdhi0_resources[] =
+{
 	[0] = {
 		.name	= "SDHI0",
 		.start  = 0x04ce0000,
@@ -622,7 +673,8 @@ static struct resource sdhi0_resources[] = {
 	},
 };
 
-static struct platform_device sdhi0_device = {
+static struct platform_device sdhi0_device =
+{
 	.name           = "sh_mobile_sdhi",
 	.num_resources  = ARRAY_SIZE(sdhi0_resources),
 	.resource       = sdhi0_resources,
@@ -634,16 +686,18 @@ static struct platform_device sdhi0_device = {
 
 #if !defined(CONFIG_MMC_SH_MMCIF) && !defined(CONFIG_MMC_SH_MMCIF_MODULE)
 /* SDHI1 */
-static struct tmio_mmc_data sdhi1_info = {
+static struct tmio_mmc_data sdhi1_info =
+{
 	.chan_priv_tx	= (void *)SHDMA_SLAVE_SDHI1_TX,
 	.chan_priv_rx	= (void *)SHDMA_SLAVE_SDHI1_RX,
 	.capabilities	= MMC_CAP_SDIO_IRQ | MMC_CAP_POWER_OFF_CARD |
-			  MMC_CAP_NEEDS_POLL,
+	MMC_CAP_NEEDS_POLL,
 	.flags		= TMIO_MMC_USE_GPIO_CD,
 	.cd_gpio	= GPIO_PTW7,
 };
 
-static struct resource sdhi1_resources[] = {
+static struct resource sdhi1_resources[] =
+{
 	[0] = {
 		.name	= "SDHI1",
 		.start  = 0x04cf0000,
@@ -656,7 +710,8 @@ static struct resource sdhi1_resources[] = {
 	},
 };
 
-static struct platform_device sdhi1_device = {
+static struct platform_device sdhi1_device =
+{
 	.name           = "sh_mobile_sdhi",
 	.num_resources  = ARRAY_SIZE(sdhi1_resources),
 	.resource       = sdhi1_resources,
@@ -675,7 +730,8 @@ static void mmc_spi_setpower(struct device *dev, unsigned int maskval)
 	gpio_set_value(GPIO_PTB6, maskval ? 1 : 0);
 }
 
-static struct mmc_spi_platform_data mmc_spi_info = {
+static struct mmc_spi_platform_data mmc_spi_info =
+{
 	.caps = MMC_CAP_NEEDS_POLL,
 	.caps2 = MMC_CAP2_RO_ACTIVE_HIGH,
 	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34, /* 3.3V only */
@@ -685,7 +741,8 @@ static struct mmc_spi_platform_data mmc_spi_info = {
 	.ro_gpio = GPIO_PTY6,
 };
 
-static struct spi_board_info spi_bus[] = {
+static struct spi_board_info spi_bus[] =
+{
 	{
 		.modalias	= "mmc_spi",
 		.platform_data	= &mmc_spi_info,
@@ -696,11 +753,13 @@ static struct spi_board_info spi_bus[] = {
 };
 
 /* MSIOF0 */
-static struct sh_msiof_spi_info msiof0_data = {
+static struct sh_msiof_spi_info msiof0_data =
+{
 	.num_chipselect = 1,
 };
 
-static struct resource msiof0_resources[] = {
+static struct resource msiof0_resources[] =
+{
 	[0] = {
 		.name	= "MSIOF0",
 		.start	= 0xa4c40000,
@@ -713,7 +772,8 @@ static struct resource msiof0_resources[] = {
 	},
 };
 
-static struct platform_device msiof0_device = {
+static struct platform_device msiof0_device =
+{
 	.name		= "spi_sh_msiof",
 	.id		= 0, /* MSIOF0 */
 	.dev = {
@@ -726,7 +786,8 @@ static struct platform_device msiof0_device = {
 #endif
 
 /* I2C Video/Camera */
-static struct i2c_board_info i2c_camera[] = {
+static struct i2c_board_info i2c_camera[] =
+{
 	{
 		I2C_BOARD_INFO("tw9910", 0x45),
 	},
@@ -746,18 +807,23 @@ static int tw9910_power(struct device *dev, int mode)
 	int val = mode ? 0 : 1;
 
 	gpio_set_value(GPIO_PTU2, val);
+
 	if (mode)
+	{
 		mdelay(100);
+	}
 
 	return 0;
 }
 
-static struct tw9910_video_info tw9910_info = {
+static struct tw9910_video_info tw9910_info =
+{
 	.buswidth	= SOCAM_DATAWIDTH_8,
 	.mpout		= TW9910_MPO_FIELD,
 };
 
-static struct soc_camera_link tw9910_link = {
+static struct soc_camera_link tw9910_link =
+{
 	.i2c_adapter_id	= 0,
 	.bus_id		= 1,
 	.power		= tw9910_power,
@@ -769,18 +835,23 @@ static struct soc_camera_link tw9910_link = {
 static int mt9t112_power1(struct device *dev, int mode)
 {
 	gpio_set_value(GPIO_PTA3, mode);
+
 	if (mode)
+	{
 		mdelay(100);
+	}
 
 	return 0;
 }
 
-static struct mt9t112_camera_info mt9t112_info1 = {
+static struct mt9t112_camera_info mt9t112_info1 =
+{
 	.flags = MT9T112_FLAG_PCLK_RISING_EDGE | MT9T112_FLAG_DATAWIDTH_8,
 	.divider = { 0x49, 0x6, 0, 6, 0, 9, 9, 6, 0 }, /* for 24MHz */
 };
 
-static struct soc_camera_link mt9t112_link1 = {
+static struct soc_camera_link mt9t112_link1 =
+{
 	.i2c_adapter_id	= 0,
 	.power		= mt9t112_power1,
 	.bus_id		= 0,
@@ -791,18 +862,23 @@ static struct soc_camera_link mt9t112_link1 = {
 static int mt9t112_power2(struct device *dev, int mode)
 {
 	gpio_set_value(GPIO_PTA4, mode);
+
 	if (mode)
+	{
 		mdelay(100);
+	}
 
 	return 0;
 }
 
-static struct mt9t112_camera_info mt9t112_info2 = {
+static struct mt9t112_camera_info mt9t112_info2 =
+{
 	.flags = MT9T112_FLAG_PCLK_RISING_EDGE | MT9T112_FLAG_DATAWIDTH_8,
 	.divider = { 0x49, 0x6, 0, 6, 0, 9, 9, 6, 0 }, /* for 24MHz */
 };
 
-static struct soc_camera_link mt9t112_link2 = {
+static struct soc_camera_link mt9t112_link2 =
+{
 	.i2c_adapter_id	= 1,
 	.power		= mt9t112_power2,
 	.bus_id		= 1,
@@ -810,7 +886,8 @@ static struct soc_camera_link mt9t112_link2 = {
 	.priv		= &mt9t112_info2,
 };
 
-static struct platform_device camera_devices[] = {
+static struct platform_device camera_devices[] =
+{
 	{
 		.name	= "soc-camera-pdrv",
 		.id	= 0,
@@ -835,7 +912,8 @@ static struct platform_device camera_devices[] = {
 };
 
 /* FSI */
-static struct resource fsi_resources[] = {
+static struct resource fsi_resources[] =
+{
 	[0] = {
 		.name	= "FSI",
 		.start	= 0xFE3C0000,
@@ -848,14 +926,16 @@ static struct resource fsi_resources[] = {
 	},
 };
 
-static struct platform_device fsi_device = {
+static struct platform_device fsi_device =
+{
 	.name		= "sh_fsi",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(fsi_resources),
 	.resource	= fsi_resources,
 };
 
-static struct asoc_simple_card_info fsi_da7210_info = {
+static struct asoc_simple_card_info fsi_da7210_info =
+{
 	.name		= "DA7210",
 	.card		= "FSIB-DA7210",
 	.codec		= "da7210.0-001a",
@@ -869,7 +949,8 @@ static struct asoc_simple_card_info fsi_da7210_info = {
 	},
 };
 
-static struct platform_device fsi_da7210_device = {
+static struct platform_device fsi_da7210_device =
+{
 	.name	= "asoc-simple-card",
 	.dev	= {
 		.platform_data	= &fsi_da7210_info,
@@ -880,7 +961,8 @@ static struct platform_device fsi_da7210_device = {
 
 
 /* IrDA */
-static struct resource irda_resources[] = {
+static struct resource irda_resources[] =
+{
 	[0] = {
 		.name	= "IrDA",
 		.start  = 0xA45D0000,
@@ -893,7 +975,8 @@ static struct resource irda_resources[] = {
 	},
 };
 
-static struct platform_device irda_device = {
+static struct platform_device irda_device =
+{
 	.name           = "sh_sir",
 	.num_resources  = ARRAY_SIZE(irda_resources),
 	.resource       = irda_resources,
@@ -902,23 +985,27 @@ static struct platform_device irda_device = {
 #include <media/i2c/ak881x.h>
 #include <media/drv-intf/sh_vou.h>
 
-static struct ak881x_pdata ak881x_pdata = {
+static struct ak881x_pdata ak881x_pdata =
+{
 	.flags = AK881X_IF_MODE_SLAVE,
 };
 
-static struct i2c_board_info ak8813 = {
+static struct i2c_board_info ak8813 =
+{
 	I2C_BOARD_INFO("ak8813", 0x20),
 	.platform_data = &ak881x_pdata,
 };
 
-static struct sh_vou_pdata sh_vou_pdata = {
+static struct sh_vou_pdata sh_vou_pdata =
+{
 	.bus_fmt	= SH_VOU_BUS_8BIT,
 	.flags		= SH_VOU_HSYNC_LOW | SH_VOU_VSYNC_LOW,
 	.board_info	= &ak8813,
 	.i2c_adap	= 0,
 };
 
-static struct resource sh_vou_resources[] = {
+static struct resource sh_vou_resources[] =
+{
 	[0] = {
 		.start  = 0xfe960000,
 		.end    = 0xfe962043,
@@ -930,7 +1017,8 @@ static struct resource sh_vou_resources[] = {
 	},
 };
 
-static struct platform_device vou_device = {
+static struct platform_device vou_device =
+{
 	.name           = "sh-vou",
 	.id		= -1,
 	.num_resources  = ARRAY_SIZE(sh_vou_resources),
@@ -942,7 +1030,8 @@ static struct platform_device vou_device = {
 
 #if defined(CONFIG_MMC_SH_MMCIF) || defined(CONFIG_MMC_SH_MMCIF_MODULE)
 /* SH_MMCIF */
-static struct resource sh_mmcif_resources[] = {
+static struct resource sh_mmcif_resources[] =
+{
 	[0] = {
 		.name	= "SH_MMCIF",
 		.start	= 0xA4CA0000,
@@ -961,15 +1050,17 @@ static struct resource sh_mmcif_resources[] = {
 	},
 };
 
-static struct sh_mmcif_plat_data sh_mmcif_plat = {
+static struct sh_mmcif_plat_data sh_mmcif_plat =
+{
 	.sup_pclk	= 0, /* SH7724: Max Pclk/2 */
 	.caps		= MMC_CAP_4_BIT_DATA |
-			  MMC_CAP_8_BIT_DATA |
-			  MMC_CAP_NEEDS_POLL,
+	MMC_CAP_8_BIT_DATA |
+	MMC_CAP_NEEDS_POLL,
 	.ocr		= MMC_VDD_32_33 | MMC_VDD_33_34,
 };
 
-static struct platform_device sh_mmcif_device = {
+static struct platform_device sh_mmcif_device =
+{
 	.name		= "sh_mmcif",
 	.id		= 0,
 	.dev		= {
@@ -980,7 +1071,8 @@ static struct platform_device sh_mmcif_device = {
 };
 #endif
 
-static struct platform_device *ecovec_devices[] __initdata = {
+static struct platform_device *ecovec_devices[] __initdata =
+{
 	&heartbeat_device,
 	&nor_flash_device,
 	&sh_eth_device,
@@ -1033,7 +1125,9 @@ static u8 mac_read(struct i2c_adapter *a, u8 command)
 	msg[1].buf   = &buf;
 
 	ret = i2c_transfer(a, msg, 2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "error %d\n", ret);
 		buf = 0xff;
 	}
@@ -1046,13 +1140,15 @@ static void __init sh_eth_init(struct sh_eth_plat_data *pd)
 	struct i2c_adapter *a = i2c_get_adapter(1);
 	int i;
 
-	if (!a) {
+	if (!a)
+	{
 		pr_err("can not get I2C 1\n");
 		return;
 	}
 
 	/* read MAC address from EEPROM */
-	for (i = 0; i < sizeof(pd->mac_addr); i++) {
+	for (i = 0; i < sizeof(pd->mac_addr); i++)
+	{
 		pd->mac_addr[i] = mac_read(a, 0x10 + i);
 		msleep(10);
 	}
@@ -1081,11 +1177,11 @@ static int __init arch_setup(void)
 
 	/* register board specific self-refresh code */
 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF |
-					SUSP_SH_RSTANDBY,
-					&ecovec24_sdram_enter_start,
-					&ecovec24_sdram_enter_end,
-					&ecovec24_sdram_leave_start,
-					&ecovec24_sdram_leave_end);
+									SUSP_SH_RSTANDBY,
+									&ecovec24_sdram_enter_start,
+									&ecovec24_sdram_enter_end,
+									&ecovec24_sdram_leave_start,
+									&ecovec24_sdram_leave_end);
 
 	/* enable STATUS0, STATUS2 and PDSTATUS */
 	gpio_request(GPIO_FN_STATUS0, NULL);
@@ -1136,10 +1232,13 @@ static int __init arch_setup(void)
 	__raw_writew(0x0600, 0xa40501d4);
 	__raw_writew(0x0600, 0xa4050192);
 
-	if (gpio_get_value(GPIO_PTB3)) {
+	if (gpio_get_value(GPIO_PTB3))
+	{
 		printk(KERN_INFO "USB1 function is selected\n");
 		usb1_common_device.name = "r8a66597_udc";
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "USB1 host is selected\n");
 		usb1_common_device.name = "r8a66597_hcd";
 	}
@@ -1187,7 +1286,8 @@ static int __init arch_setup(void)
 	/* I/O buffer drive ability is high */
 	__raw_writew((__raw_readw(IODRIVEA) & ~0x00c0) | 0x0080 , IODRIVEA);
 
-	if (gpio_get_value(GPIO_PTE6)) {
+	if (gpio_get_value(GPIO_PTE6))
+	{
 		/* DVI */
 		lcdc_info.clock_source			= LCDC_CLK_EXTERNAL;
 		lcdc_info.ch[0].clock_divider		= 1;
@@ -1199,7 +1299,9 @@ static int __init arch_setup(void)
 
 		gpio_set_value(GPIO_PTA2, 1);
 		gpio_set_value(GPIO_PTU1, 1);
-	} else {
+	}
+	else
+	{
 		/* Panel */
 		lcdc_info.clock_source			= LCDC_CLK_PERIPHERAL;
 		lcdc_info.ch[0].clock_divider		= 2;
@@ -1331,7 +1433,7 @@ static int __init arch_setup(void)
 	if (cn12_enabled)
 		/* I/O buffer drive ability is high for CN12 */
 		__raw_writew((__raw_readw(IODRIVEA) & ~0x3000) | 0x2000,
-			     IODRIVEA);
+					 IODRIVEA);
 
 	/* enable Video */
 	gpio_request(GPIO_PTU2, NULL);
@@ -1355,14 +1457,18 @@ static int __init arch_setup(void)
 
 	/* set SPU2 clock to 83.4 MHz */
 	clk = clk_get(NULL, "spu_clk");
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_set_rate(clk, clk_round_rate(clk, 83333333));
 		clk_put(clk);
 	}
 
 	/* change parent of FSI B */
 	clk = clk_get(NULL, "fsib_clk");
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		/* 48kHz dummy clock was used to make sure 1/1 divide */
 		clk_set_rate(&sh7724_fsimckb_clk, 48000);
 		clk_set_parent(clk, &sh7724_fsimckb_clk);
@@ -1380,7 +1486,9 @@ static int __init arch_setup(void)
 
 	/* set VPU clock to 166 MHz */
 	clk = clk_get(NULL, "vpu_clk");
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_set_rate(clk, clk_round_rate(clk, 166000000));
 		clk_put(clk);
 	}
@@ -1393,10 +1501,10 @@ static int __init arch_setup(void)
 
 	/* enable I2C device */
 	i2c_register_board_info(0, i2c0_devices,
-				ARRAY_SIZE(i2c0_devices));
+							ARRAY_SIZE(i2c0_devices));
 
 	i2c_register_board_info(1, i2c1_devices,
-				ARRAY_SIZE(i2c1_devices));
+							ARRAY_SIZE(i2c1_devices));
 
 #if defined(CONFIG_VIDEO_SH_VOU) || defined(CONFIG_VIDEO_SH_VOU_MODULE)
 	/* VOU */
@@ -1433,7 +1541,7 @@ static int __init arch_setup(void)
 #endif
 
 	return platform_add_devices(ecovec_devices,
-				    ARRAY_SIZE(ecovec_devices));
+								ARRAY_SIZE(ecovec_devices));
 }
 arch_initcall(arch_setup);
 
@@ -1444,6 +1552,7 @@ static int __init devices_setup(void)
 }
 device_initcall(devices_setup);
 
-static struct sh_machine_vector mv_ecovec __initmv = {
+static struct sh_machine_vector mv_ecovec __initmv =
+{
 	.mv_name	= "R0P7724 (EcoVec)",
 };

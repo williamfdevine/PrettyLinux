@@ -40,14 +40,15 @@
 #ifdef CONFIG_ARC_DW2_UNWIND
 
 static void seed_unwind_frame_info(struct task_struct *tsk,
-				   struct pt_regs *regs,
-				   struct unwind_frame_info *frame_info)
+								   struct pt_regs *regs,
+								   struct unwind_frame_info *frame_info)
 {
 	/*
 	 * synchronous unwinding (e.g. dump_stack)
 	 *  - uses current values of SP and friends
 	 */
-	if (tsk == NULL && regs == NULL) {
+	if (tsk == NULL && regs == NULL)
+	{
 		unsigned long fp, sp, blink, ret;
 		frame_info->task = current;
 
@@ -64,7 +65,9 @@ static void seed_unwind_frame_info(struct task_struct *tsk,
 		frame_info->regs.r31 = blink;
 		frame_info->regs.r63 = ret;
 		frame_info->call_frame = 0;
-	} else if (regs == NULL) {
+	}
+	else if (regs == NULL)
+	{
 		/*
 		 * Asynchronous unwinding of sleeping task
 		 *  - Gets SP etc from task's pt_regs (saved bottom of kernel
@@ -91,7 +94,9 @@ static void seed_unwind_frame_info(struct task_struct *tsk,
 		frame_info->regs.r28 += 60;
 		frame_info->call_frame = 0;
 
-	} else {
+	}
+	else
+	{
 		/*
 		 * Asynchronous unwinding of intr/exception
 		 *  - Just uses the pt_regs passed
@@ -110,7 +115,7 @@ static void seed_unwind_frame_info(struct task_struct *tsk,
 
 notrace noinline unsigned int
 arc_unwind_core(struct task_struct *tsk, struct pt_regs *regs,
-		int (*consumer_fn) (unsigned int, void *), void *arg)
+				int (*consumer_fn) (unsigned int, void *), void *arg)
 {
 #ifdef CONFIG_ARC_DW2_UNWIND
 	int ret = 0;
@@ -119,18 +124,26 @@ arc_unwind_core(struct task_struct *tsk, struct pt_regs *regs,
 
 	seed_unwind_frame_info(tsk, regs, &frame_info);
 
-	while (1) {
+	while (1)
+	{
 		address = UNW_PC(&frame_info);
 
 		if (!address || !__kernel_text_address(address))
+		{
 			break;
+		}
 
 		if (consumer_fn(address, arg) == -1)
+		{
 			break;
+		}
 
 		ret = arc_unwind(&frame_info);
+
 		if (ret)
+		{
 			break;
+		}
 
 		frame_info.regs.r63 = frame_info.regs.r31;
 	}
@@ -175,12 +188,18 @@ static int __collect_all(unsigned int address, void *arg)
 	struct stack_trace *trace = arg;
 
 	if (trace->skip > 0)
+	{
 		trace->skip--;
+	}
 	else
+	{
 		trace->entries[trace->nr_entries++] = address;
+	}
 
 	if (trace->nr_entries >= trace->max_entries)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -190,15 +209,23 @@ static int __collect_all_but_sched(unsigned int address, void *arg)
 	struct stack_trace *trace = arg;
 
 	if (in_sched_functions(address))
+	{
 		return 0;
+	}
 
 	if (trace->skip > 0)
+	{
 		trace->skip--;
+	}
 	else
+	{
 		trace->entries[trace->nr_entries++] = address;
+	}
 
 	if (trace->nr_entries >= trace->max_entries)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -208,7 +235,9 @@ static int __collect_all_but_sched(unsigned int address, void *arg)
 static int __get_first_nonsched(unsigned int address, void *unused)
 {
 	if (in_sched_functions(address))
+	{
 		return 0;
+	}
 
 	return -1;
 }

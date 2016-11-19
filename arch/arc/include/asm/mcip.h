@@ -20,11 +20,12 @@
 #define ARC_REG_MCIP_WDATA	0x601
 #define ARC_REG_MCIP_READBACK	0x602
 
-struct mcip_cmd {
+struct mcip_cmd
+{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-	unsigned int pad:8, param:16, cmd:8;
+	unsigned int pad: 8, param: 16, cmd: 8;
 #else
-	unsigned int cmd:8, param:16, pad:8;
+	unsigned int cmd: 8, param: 16, pad: 8;
 #endif
 
 #define CMD_INTRPT_GENERATE_IRQ		0x01
@@ -32,7 +33,7 @@ struct mcip_cmd {
 #define CMD_INTRPT_READ_STATUS		0x03
 #define CMD_INTRPT_CHECK_SOURCE		0x04
 
-/* Semaphore Commands */
+	/* Semaphore Commands */
 #define CMD_SEMA_CLAIM_AND_READ		0x11
 #define CMD_SEMA_RELEASE		0x12
 
@@ -55,19 +56,20 @@ struct mcip_cmd {
 #define IDU_M_DISTRI_DEST		0x2
 };
 
-struct mcip_bcr {
+struct mcip_bcr
+{
 #ifdef CONFIG_CPU_BIG_ENDIAN
-		unsigned int pad3:8,
-			     idu:1, llm:1, num_cores:6,
-			     iocoh:1,  gfrc:1, dbg:1, pad2:1,
-			     msg:1, sem:1, ipi:1, pad:1,
-			     ver:8;
+	unsigned int pad3: 8,
+			 idu: 1, llm: 1, num_cores: 6,
+			 iocoh: 1,  gfrc: 1, dbg: 1, pad2: 1,
+			 msg: 1, sem: 1, ipi: 1, pad: 1,
+			 ver: 8;
 #else
-		unsigned int ver:8,
-			     pad:1, ipi:1, sem:1, msg:1,
-			     pad2:1, dbg:1, gfrc:1, iocoh:1,
-			     num_cores:6, llm:1, idu:1,
-			     pad3:8;
+	unsigned int ver: 8,
+			 pad: 1, ipi: 1, sem: 1, msg: 1,
+			 pad2: 1, dbg: 1, gfrc: 1, iocoh: 1,
+			 num_cores: 6, llm: 1, idu: 1,
+			 pad3: 8;
 #endif
 };
 
@@ -95,7 +97,7 @@ static inline void __mcip_cmd(unsigned int cmd, unsigned int param)
  * Callers need to lock to ensure atomicity
  */
 static inline void __mcip_cmd_data(unsigned int cmd, unsigned int param,
-				   unsigned int data)
+								   unsigned int data)
 {
 	write_aux_reg(ARC_REG_MCIP_WDATA, data);
 

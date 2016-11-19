@@ -48,30 +48,36 @@ static irqreturn_t hp300_tick(int irq, void *dev_id)
 
 u32 hp300_gettimeoffset(void)
 {
-  /* Read current timer 1 value */
-  unsigned char lsb, msb1, msb2;
-  unsigned short ticks;
+	/* Read current timer 1 value */
+	unsigned char lsb, msb1, msb2;
+	unsigned short ticks;
 
-  msb1 = in_8(CLOCKBASE + 5);
-  lsb = in_8(CLOCKBASE + 7);
-  msb2 = in_8(CLOCKBASE + 5);
-  if (msb1 != msb2)
-    /* A carry happened while we were reading.  Read it again */
-    lsb = in_8(CLOCKBASE + 7);
-  ticks = INTVAL - ((msb2 << 8) | lsb);
-  return ((USECS_PER_JIFFY * ticks) / INTVAL) * 1000;
+	msb1 = in_8(CLOCKBASE + 5);
+	lsb = in_8(CLOCKBASE + 7);
+	msb2 = in_8(CLOCKBASE + 5);
+
+	if (msb1 != msb2)
+		/* A carry happened while we were reading.  Read it again */
+	{
+		lsb = in_8(CLOCKBASE + 7);
+	}
+
+	ticks = INTVAL - ((msb2 << 8) | lsb);
+	return ((USECS_PER_JIFFY * ticks) / INTVAL) * 1000;
 }
 
 void __init hp300_sched_init(irq_handler_t vector)
 {
-  out_8(CLOCKBASE + CLKCR2, 0x1);		/* select CR1 */
-  out_8(CLOCKBASE + CLKCR1, 0x1);		/* reset */
+	out_8(CLOCKBASE + CLKCR2, 0x1);		/* select CR1 */
+	out_8(CLOCKBASE + CLKCR1, 0x1);		/* reset */
 
-  asm volatile(" movpw %0,%1@(5)" : : "d" (INTVAL), "a" (CLOCKBASE));
+	asm volatile(" movpw %0,%1@(5)" : : "d" (INTVAL), "a" (CLOCKBASE));
 
-  if (request_irq(IRQ_AUTO_6, hp300_tick, 0, "timer tick", vector))
-    pr_err("Couldn't register timer interrupt\n");
+	if (request_irq(IRQ_AUTO_6, hp300_tick, 0, "timer tick", vector))
+	{
+		pr_err("Couldn't register timer interrupt\n");
+	}
 
-  out_8(CLOCKBASE + CLKCR2, 0x1);		/* select CR1 */
-  out_8(CLOCKBASE + CLKCR1, 0x40);		/* enable irq */
+	out_8(CLOCKBASE + CLKCR2, 0x1);		/* select CR1 */
+	out_8(CLOCKBASE + CLKCR1, 0x40);		/* enable irq */
 }

@@ -9,9 +9,9 @@
 #undef DEBUG
 
 #ifdef DEBUG
-#define DBG(x...) printk(x)
+	#define DBG(x...) printk(x)
 #else
-#define DBG(x...)
+	#define DBG(x...)
 #endif
 
 extern unsigned int __nongpreldata pci_probe;

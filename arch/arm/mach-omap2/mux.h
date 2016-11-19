@@ -40,21 +40,21 @@
 #define OMAP_PIN_OUTPUT			0
 #define OMAP_PIN_INPUT			OMAP_INPUT_EN
 #define OMAP_PIN_INPUT_PULLUP		(OMAP_PULL_ENA | OMAP_INPUT_EN \
-						| OMAP_PULL_UP)
+									 | OMAP_PULL_UP)
 #define OMAP_PIN_INPUT_PULLDOWN		(OMAP_PULL_ENA | OMAP_INPUT_EN)
 
 /* Off mode states */
 #define OMAP_PIN_OFF_NONE		0
 #define OMAP_PIN_OFF_OUTPUT_HIGH	(OMAP_OFF_EN | OMAP_OFFOUT_EN \
-						| OMAP_OFFOUT_VAL)
+									 | OMAP_OFFOUT_VAL)
 #define OMAP_PIN_OFF_OUTPUT_LOW		(OMAP_OFF_EN | OMAP_OFFOUT_EN)
 #define OMAP_PIN_OFF_INPUT_PULLUP	(OMAP_OFF_EN | OMAP_OFF_PULL_EN \
-						| OMAP_OFF_PULL_UP)
+									 | OMAP_OFF_PULL_UP)
 #define OMAP_PIN_OFF_INPUT_PULLDOWN	(OMAP_OFF_EN | OMAP_OFF_PULL_EN)
 #define OMAP_PIN_OFF_WAKEUPENABLE	OMAP_WAKEUP_EN
 
 #define OMAP_MODE_GPIO(partition, x)	(((x) & OMAP_MUX_MODE7) == \
-					  partition->gpio)
+		partition->gpio)
 #define OMAP_MODE_UART(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE0)
 
 /* Flags for omapX_mux_init */
@@ -92,7 +92,8 @@
  * @pads: array of device specific pads
  * @pads_cnt: ARRAY_SIZE() of pads
  */
-struct omap_board_data {
+struct omap_board_data
+{
 	int			id;
 	u32			flags;
 	struct omap_device_pad	*pads;
@@ -110,7 +111,8 @@ struct omap_board_data {
  * @muxmodes: list of nodes that belong to a partition
  * @node: list node for the partitions linked list
  */
-struct omap_mux_partition {
+struct omap_mux_partition
+{
 	const char		*name;
 	u32			flags;
 	u32			gpio;
@@ -128,7 +130,8 @@ struct omap_mux_partition {
  * @muxnames:	available signal modes for a ball
  * @balls:	available balls on the package
  */
-struct omap_mux {
+struct omap_mux
+{
 	u16	reg_offset;
 	u16	gpio;
 #ifdef CONFIG_OMAP_MUX
@@ -144,7 +147,8 @@ struct omap_mux {
  * @reg_offset:	mux register offset from the mux base
  * @balls:	available balls on the package
  */
-struct omap_ball {
+struct omap_ball
+{
 	u16	reg_offset;
 	char	*balls[OMAP_MUX_NR_SIDES];
 };
@@ -154,7 +158,8 @@ struct omap_ball {
  * @reg_offset:	mux register offset from the mux base
  * @mux_value:	desired mux value to set
  */
-struct omap_board_mux {
+struct omap_board_mux
+{
 	u16	reg_offset;
 	u16	value;
 };
@@ -174,7 +179,8 @@ struct omap_board_mux {
  * @partition:		mux partition
  * @mux:		mux register
  */
-struct omap_device_pad {
+struct omap_device_pad
+{
 	char				*name;
 	u8				flags;
 	u16				enable;
@@ -187,10 +193,10 @@ struct omap_device_pad {
 struct omap_hwmod_mux_info;
 
 #define OMAP_MUX_STATIC(signal, mode)					\
-{									\
-	.name	= (signal),						\
-	.enable	= (mode),						\
-}
+	{									\
+		.name	= (signal),						\
+				  .enable	= (mode),						\
+	}
 
 #if defined(CONFIG_OMAP_MUX)
 
@@ -226,13 +232,13 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
 void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
 
 int omap_mux_get_by_name(const char *muxname,
-		struct omap_mux_partition **found_partition,
-		struct omap_mux **found_mux);
+						 struct omap_mux_partition **found_partition,
+						 struct omap_mux **found_mux);
 #else
 
 static inline int omap_mux_get_by_name(const char *muxname,
-		struct omap_mux_partition **found_partition,
-		struct omap_mux **found_mux)
+									   struct omap_mux_partition **found_partition,
+									   struct omap_mux **found_mux)
 {
 	return 0;
 }
@@ -308,7 +314,7 @@ void omap_mux_write(struct omap_mux_partition *p, u16 val, u16 mux_offset);
  * This should be only needed for dynamic remuxing of non-gpio signals.
  */
 void omap_mux_write_array(struct omap_mux_partition *p,
-			  struct omap_board_mux *board_mux);
+						  struct omap_board_mux *board_mux);
 
 /**
  * omap2420_mux_init() - initialize mux system with board specific set
@@ -338,15 +344,15 @@ int omap3_mux_init(struct omap_board_mux *board_mux, int flags);
  * @flags:		OMAP package type used for the board
  */
 int omap4_mux_init(struct omap_board_mux *board_subset,
-	struct omap_board_mux *board_wkup_subset, int flags);
+				   struct omap_board_mux *board_wkup_subset, int flags);
 
 /**
  * omap_mux_init - private mux init function, do not call
  */
 int omap_mux_init(const char *name, u32 flags,
-		  u32 mux_pbase, u32 mux_size,
-		  struct omap_mux *superset,
-		  struct omap_mux *package_subset,
-		  struct omap_board_mux *board_mux,
-		  struct omap_ball *package_balls);
+				  u32 mux_pbase, u32 mux_size,
+				  struct omap_mux *superset,
+				  struct omap_mux *package_subset,
+				  struct omap_board_mux *board_mux,
+				  struct omap_ball *package_balls);
 

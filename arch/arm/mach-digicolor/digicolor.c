@@ -8,11 +8,12 @@
 
 #include <asm/mach/arch.h>
 
-static const char *const digicolor_dt_compat[] __initconst = {
+static const char *const digicolor_dt_compat[] __initconst =
+{
 	"cnxt,cx92755",
 	NULL,
 };
 
 DT_MACHINE_START(DIGICOLOR, "Conexant Digicolor (Flattened Device Tree)")
-	.dt_compat	= digicolor_dt_compat,
-MACHINE_END
+.dt_compat	= digicolor_dt_compat,
+  MACHINE_END

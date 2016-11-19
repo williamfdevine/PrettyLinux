@@ -30,7 +30,9 @@ static __inline__ int valid_user_regs(struct pt_regs *regs)
 	 * implement some support for that stuff...
 	 */
 	if ((regs->sr & 0xffff0000) == 0)
+	{
 		return 1;
+	}
 
 	/*
 	 * Force status register flags to be sane and report this

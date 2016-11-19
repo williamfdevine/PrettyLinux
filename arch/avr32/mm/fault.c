@@ -25,9 +25,12 @@ static inline int notify_page_fault(struct pt_regs *regs, int trap)
 {
 	int ret = 0;
 
-	if (!user_mode(regs)) {
+	if (!user_mode(regs))
+	{
 		if (kprobe_running() && kprobe_fault_handler(regs, trap))
+		{
 			ret = 1;
+		}
 	}
 
 	return ret;
@@ -67,7 +70,9 @@ asmlinkage void do_page_fault(unsigned long ecr, struct pt_regs *regs)
 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
 
 	if (notify_page_fault(regs, ecr))
+	{
 		return;
+	}
 
 	address = sysreg_read(TLBEAR);
 
@@ -82,24 +87,41 @@ asmlinkage void do_page_fault(unsigned long ecr, struct pt_regs *regs)
 	 * not take the fault...
 	 */
 	if (faulthandler_disabled() || !mm || regs->sr & SYSREG_BIT(GM))
+	{
 		goto no_context;
+	}
 
 	local_irq_enable();
 
 	if (user_mode(regs))
+	{
 		flags |= FAULT_FLAG_USER;
+	}
+
 retry:
 	down_read(&mm->mmap_sem);
 
 	vma = find_vma(mm, address);
+
 	if (!vma)
+	{
 		goto bad_area;
+	}
+
 	if (vma->vm_start <= address)
+	{
 		goto good_area;
+	}
+
 	if (!(vma->vm_flags & VM_GROWSDOWN))
+	{
 		goto bad_area;
+	}
+
 	if (expand_stack(vma, address))
+	{
 		goto bad_area;
+	}
 
 	/*
 	 * Ok, we have a good vm_area for this memory access, so we
@@ -108,25 +130,38 @@ retry:
 good_area:
 	code = SEGV_ACCERR;
 
-	switch (ecr) {
-	case ECR_PROTECTION_X:
-	case ECR_TLB_MISS_X:
-		if (!(vma->vm_flags & VM_EXEC))
-			goto bad_area;
-		break;
-	case ECR_PROTECTION_R:
-	case ECR_TLB_MISS_R:
-		if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
-			goto bad_area;
-		break;
-	case ECR_PROTECTION_W:
-	case ECR_TLB_MISS_W:
-		if (!(vma->vm_flags & VM_WRITE))
-			goto bad_area;
-		flags |= FAULT_FLAG_WRITE;
-		break;
-	default:
-		panic("Unhandled case %lu in do_page_fault!", ecr);
+	switch (ecr)
+	{
+		case ECR_PROTECTION_X:
+		case ECR_TLB_MISS_X:
+			if (!(vma->vm_flags & VM_EXEC))
+			{
+				goto bad_area;
+			}
+
+			break;
+
+		case ECR_PROTECTION_R:
+		case ECR_TLB_MISS_R:
+			if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
+			{
+				goto bad_area;
+			}
+
+			break;
+
+		case ECR_PROTECTION_W:
+		case ECR_TLB_MISS_W:
+			if (!(vma->vm_flags & VM_WRITE))
+			{
+				goto bad_area;
+			}
+
+			flags |= FAULT_FLAG_WRITE;
+			break;
+
+		default:
+			panic("Unhandled case %lu in do_page_fault!", ecr);
 	}
 
 	/*
@@ -137,24 +172,41 @@ good_area:
 	fault = handle_mm_fault(vma, address, flags);
 
 	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+	{
 		return;
+	}
 
-	if (unlikely(fault & VM_FAULT_ERROR)) {
+	if (unlikely(fault & VM_FAULT_ERROR))
+	{
 		if (fault & VM_FAULT_OOM)
+		{
 			goto out_of_memory;
+		}
 		else if (fault & VM_FAULT_SIGSEGV)
+		{
 			goto bad_area;
+		}
 		else if (fault & VM_FAULT_SIGBUS)
+		{
 			goto do_sigbus;
+		}
+
 		BUG();
 	}
 
-	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+	if (flags & FAULT_FLAG_ALLOW_RETRY)
+	{
 		if (fault & VM_FAULT_MAJOR)
+		{
 			tsk->maj_flt++;
+		}
 		else
+		{
 			tsk->min_flt++;
-		if (fault & VM_FAULT_RETRY) {
+		}
+
+		if (fault & VM_FAULT_RETRY)
+		{
 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 			flags |= FAULT_FLAG_TRIED;
 
@@ -177,13 +229,15 @@ good_area:
 bad_area:
 	up_read(&mm->mmap_sem);
 
-	if (user_mode(regs)) {
+	if (user_mode(regs))
+	{
 		if (exception_trace && printk_ratelimit())
 			printk("%s%s[%d]: segfault at %08lx pc %08lx "
-			       "sp %08lx ecr %lu\n",
-			       is_global_init(tsk) ? KERN_EMERG : KERN_INFO,
-			       tsk->comm, tsk->pid, address, regs->pc,
-			       regs->sp, ecr);
+				   "sp %08lx ecr %lu\n",
+				   is_global_init(tsk) ? KERN_EMERG : KERN_INFO,
+				   tsk->comm, tsk->pid, address, regs->pc,
+				   regs->sp, ecr);
+
 		_exception(SIGSEGV, regs, code, address);
 		return;
 	}
@@ -191,7 +245,9 @@ bad_area:
 no_context:
 	/* Are we prepared to handle this kernel fault? */
 	fixup = search_exception_tables(regs->pc);
-	if (fixup) {
+
+	if (fixup)
+	{
 		regs->pc = fixup->fixup;
 		return;
 	}
@@ -202,26 +258,35 @@ no_context:
 	 */
 	if (address < PAGE_SIZE)
 		printk(KERN_ALERT
-		       "Unable to handle kernel NULL pointer dereference");
+			   "Unable to handle kernel NULL pointer dereference");
 	else
 		printk(KERN_ALERT
-		       "Unable to handle kernel paging request");
+			   "Unable to handle kernel paging request");
+
 	printk(" at virtual address %08lx\n", address);
 
 	page = sysreg_read(PTBR);
 	printk(KERN_ALERT "ptbr = %08lx", page);
+
 	if (address >= TASK_SIZE)
+	{
 		page = (unsigned long)swapper_pg_dir;
-	if (page) {
+	}
+
+	if (page)
+	{
 		page = ((unsigned long *)page)[address >> 22];
 		printk(" pgd = %08lx", page);
-		if (page & _PAGE_PRESENT) {
+
+		if (page & _PAGE_PRESENT)
+		{
 			page &= PAGE_MASK;
 			address &= 0x003ff000;
 			page = ((unsigned long *)__va(page))[address >> PAGE_SHIFT];
 			printk(" pte = %08lx", page);
 		}
 	}
+
 	printk("\n");
 	die("Kernel access of bad area", regs, signr);
 	return;
@@ -232,8 +297,12 @@ no_context:
 	 */
 out_of_memory:
 	up_read(&mm->mmap_sem);
+
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
+
 	pagefault_out_of_memory();
 	return;
 
@@ -243,25 +312,28 @@ do_sigbus:
 	/* Kernel mode? Handle exceptions or die */
 	signr = SIGBUS;
 	code = BUS_ADRERR;
+
 	if (!user_mode(regs))
+	{
 		goto no_context;
+	}
 
 	if (exception_trace)
 		printk("%s%s[%d]: bus error at %08lx pc %08lx "
-		       "sp %08lx ecr %lu\n",
-		       is_global_init(tsk) ? KERN_EMERG : KERN_INFO,
-		       tsk->comm, tsk->pid, address, regs->pc,
-		       regs->sp, ecr);
+			   "sp %08lx ecr %lu\n",
+			   is_global_init(tsk) ? KERN_EMERG : KERN_INFO,
+			   tsk->comm, tsk->pid, address, regs->pc,
+			   regs->sp, ecr);
 
 	_exception(SIGBUS, regs, BUS_ADRERR, address);
 }
 
 asmlinkage void do_bus_error(unsigned long addr, int write_access,
-			     struct pt_regs *regs)
+							 struct pt_regs *regs)
 {
 	printk(KERN_ALERT
-	       "Bus error at physical address 0x%08lx (%s access)\n",
-	       addr, write_access ? "write" : "read");
+		   "Bus error at physical address 0x%08lx (%s access)\n",
+		   addr, write_access ? "write" : "read");
 	printk(KERN_INFO "DTLB dump:\n");
 	dump_dtlb();
 	die("Bus Error", regs, SIGKILL);

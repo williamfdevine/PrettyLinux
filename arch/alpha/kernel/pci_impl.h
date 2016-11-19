@@ -73,21 +73,21 @@ struct pci_iommu_arena;
 
 #define DEFAULT_AGP_APER_SIZE	(64*1024*1024)
 
-/* 
+/*
  * A small note about bridges and interrupts.  The DECchip 21050 (and
  * later) adheres to the PCI-PCI bridge specification.  This says that
  * the interrupts on the other side of a bridge are swizzled in the
  * following manner:
  *
- * Dev    Interrupt   Interrupt 
- *        Pin on      Pin on 
+ * Dev    Interrupt   Interrupt
+ *        Pin on      Pin on
  *        Device      Connector
  *
  *   4    A           A
  *        B           B
  *        C           C
  *        D           D
- * 
+ *
  *   5    A           B
  *        B           C
  *        C           D
@@ -116,10 +116,10 @@ struct pci_iommu_arena;
    function for all single-bus Alphas.  */
 
 #define COMMON_TABLE_LOOKUP						\
-({ long _ctl_ = -1; 							\
-   if (slot >= min_idsel && slot <= max_idsel && pin < irqs_per_slot)	\
-     _ctl_ = irq_tab[slot - min_idsel][pin];				\
-   _ctl_; })
+	({ long _ctl_ = -1; 							\
+		if (slot >= min_idsel && slot <= max_idsel && pin < irqs_per_slot)	\
+			_ctl_ = irq_tab[slot - min_idsel][pin];				\
+		_ctl_; })
 
 
 /* A PCI IOMMU allocation arena.  There are typically two of these
@@ -143,16 +143,16 @@ struct pci_iommu_arena
 };
 
 #if defined(CONFIG_ALPHA_SRM) && \
-    (defined(CONFIG_ALPHA_CIA) || defined(CONFIG_ALPHA_LCA))
-# define NEED_SRM_SAVE_RESTORE
+	(defined(CONFIG_ALPHA_CIA) || defined(CONFIG_ALPHA_LCA))
+	#define NEED_SRM_SAVE_RESTORE
 #else
-# undef NEED_SRM_SAVE_RESTORE
+	#undef NEED_SRM_SAVE_RESTORE
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(NEED_SRM_SAVE_RESTORE)
-# define ALPHA_RESTORE_SRM_SETUP
+	#define ALPHA_RESTORE_SRM_SETUP
 #else
-# undef ALPHA_RESTORE_SRM_SETUP
+	#undef ALPHA_RESTORE_SRM_SETUP
 #endif
 
 #ifdef ALPHA_RESTORE_SRM_SETUP
@@ -170,7 +170,7 @@ extern void pci_restore_srm_config(void);
 #endif
 
 /* The hose list.  */
-extern struct pci_controller *hose_head, **hose_tail;
+extern struct pci_controller *hose_head, * *hose_tail;
 extern struct pci_controller *pci_isa_hose;
 
 extern unsigned long alpha_agpgart_size;
@@ -181,12 +181,12 @@ extern struct pci_controller *alloc_pci_controller(void);
 extern struct resource *alloc_resource(void);
 
 extern struct pci_iommu_arena *iommu_arena_new_node(int,
-						    struct pci_controller *,
-					            dma_addr_t, unsigned long,
-					            unsigned long);
+		struct pci_controller *,
+		dma_addr_t, unsigned long,
+		unsigned long);
 extern struct pci_iommu_arena *iommu_arena_new(struct pci_controller *,
-					       dma_addr_t, unsigned long,
-					       unsigned long);
+		dma_addr_t, unsigned long,
+		unsigned long);
 extern const char *const pci_io_names[];
 extern const char *const pci_mem_names[];
 extern const char pci_hae0_name[];

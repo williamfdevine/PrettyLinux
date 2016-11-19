@@ -19,11 +19,11 @@ void mips_probe_watch_registers(struct cpuinfo_mips *c);
 
 #ifdef CONFIG_HARDWARE_WATCHPOINTS
 #define __restore_watch(task) do {					\
-	if (unlikely(test_bit(TIF_LOAD_WATCH,				\
-			      &task_thread_info(task)->flags))) {	\
-		mips_install_watch_registers(task);			\
-	}								\
-} while (0)
+		if (unlikely(test_bit(TIF_LOAD_WATCH,				\
+							  &task_thread_info(task)->flags))) {	\
+			mips_install_watch_registers(task);			\
+		}								\
+	} while (0)
 
 #else
 #define __restore_watch(task) do {} while (0)

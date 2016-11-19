@@ -43,14 +43,16 @@ static inline void pmax_setup_memory_region(void)
 	 * FIXME this should be replaced by the first free page!
 	 */
 	for (memory_page = (unsigned char *)CKSEG1 + CHUNK_SIZE;
-	     mem_err == 0 && memory_page < (unsigned char *)CKSEG1 + 0x1e00000;
-	     memory_page += CHUNK_SIZE) {
+		 mem_err == 0 && memory_page < (unsigned char *)CKSEG1 + 0x1e00000;
+		 memory_page += CHUNK_SIZE)
+	{
 		dummy = *memory_page;
 	}
+
 	memcpy((void *)(CKSEG0 + 0x80), &old_handler, 0x80);
 
 	add_memory_region(0, (unsigned long)memory_page - CKSEG1 - CHUNK_SIZE,
-			  BOOT_MEM_RAM);
+					  BOOT_MEM_RAM);
 }
 
 /*
@@ -68,28 +70,41 @@ static inline void rex_setup_memory_region(void)
 
 	bitmap_size = rex_getbitmap(bm);
 
-	for (i = 0; i < bitmap_size; i++) {
+	for (i = 0; i < bitmap_size; i++)
+	{
 		/* FIXME: very simplistically only add full sets of pages */
 		if (bm->bitmap[i] == 0xff)
+		{
 			mem_size += (8 * bm->pagesize);
+		}
 		else if (!mem_size)
+		{
 			mem_start += (8 * bm->pagesize);
-		else {
+		}
+		else
+		{
 			add_memory_region(mem_start, mem_size, BOOT_MEM_RAM);
 			mem_start += mem_size + (8 * bm->pagesize);
 			mem_size = 0;
 		}
 	}
+
 	if (mem_size)
+	{
 		add_memory_region(mem_start, mem_size, BOOT_MEM_RAM);
+	}
 }
 
 void __init prom_meminit(u32 magic)
 {
 	if (!prom_is_rex(magic))
+	{
 		pmax_setup_memory_region();
+	}
 	else
+	{
 		rex_setup_memory_region();
+	}
 }
 
 void __init prom_free_prom_memory(void)
@@ -102,6 +117,7 @@ void __init prom_free_prom_memory(void)
 	 */
 
 #if IS_ENABLED(CONFIG_DECLANCE)
+
 	/*
 	 * Leave 128 KB reserved for Lance memory for
 	 * IOASIC DECstations.
@@ -109,7 +125,9 @@ void __init prom_free_prom_memory(void)
 	 * XXX: save this address for use in dec_lance.c?
 	 */
 	if (IOASIC)
+	{
 		end = __pa(&_text) - 0x00020000;
+	}
 	else
 #endif
 		end = __pa(&_text);

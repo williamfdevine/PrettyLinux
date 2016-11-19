@@ -249,16 +249,16 @@
 /* External FPGA handles interrupts on Innovator boards */
 #define	OMAP_FPGA_IRQ_BASE	(OMAP_IRQ_END)
 #ifdef	CONFIG_MACH_OMAP_INNOVATOR
-#define OMAP_FPGA_NR_IRQS	24
+	#define OMAP_FPGA_NR_IRQS	24
 #else
-#define OMAP_FPGA_NR_IRQS	0
+	#define OMAP_FPGA_NR_IRQS	0
 #endif
 #define OMAP_FPGA_IRQ_END	(OMAP_FPGA_IRQ_BASE + OMAP_FPGA_NR_IRQS)
 
 #define OMAP_IRQ_BIT(irq)	(1 << ((irq - NR_IRQS_LEGACY) % 32))
 
 #ifdef CONFIG_FIQ
-#define FIQ_START		1024
+	#define FIQ_START		1024
 #endif
 
 #endif

@@ -42,7 +42,8 @@
 
 /* Initial IO mappings */
 
-static struct map_desc nuc900_iodesc[] __initdata = {
+static struct map_desc nuc900_iodesc[] __initdata =
+{
 	IODESC_ENT(IRQ),
 	IODESC_ENT(GCR),
 	IODESC_ENT(UART),
@@ -78,7 +79,8 @@ static DEFINE_CLK(timer2, 21);
 static DEFINE_CLK(timer3, 22);
 static DEFINE_CLK(timer4, 23);
 
-static struct clk_lookup nuc900_clkregs[] = {
+static struct clk_lookup nuc900_clkregs[] =
+{
 	DEF_CLKLOOK(&clk_lcd, "nuc900-lcd", NULL),
 	DEF_CLKLOOK(&clk_audio, "nuc900-ac97", NULL),
 	DEF_CLKLOOK(&clk_fmi, "nuc900-fmi", NULL),
@@ -108,12 +110,14 @@ static struct clk_lookup nuc900_clkregs[] = {
 
 /* Initial serial platform data */
 
-struct plat_serial8250_port nuc900_uart_data[] = {
+struct plat_serial8250_port nuc900_uart_data[] =
+{
 	NUC900_8250PORT(UART0),
 	{},
 };
 
-struct platform_device nuc900_serial_device = {
+struct platform_device nuc900_serial_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev			= {
@@ -130,36 +134,37 @@ static int __init nuc900_set_clkval(unsigned int cpufreq)
 	ahbclk = 0;
 	apbclk = 0;
 
-	switch (cpufreq) {
-	case 66:
-		pllclk = PLL_66MHZ;
-		ahbclk = AHB_CPUCLK_1_1;
-		apbclk = APB_AHB_1_2;
-		break;
+	switch (cpufreq)
+	{
+		case 66:
+			pllclk = PLL_66MHZ;
+			ahbclk = AHB_CPUCLK_1_1;
+			apbclk = APB_AHB_1_2;
+			break;
 
-	case 100:
-		pllclk = PLL_100MHZ;
-		ahbclk = AHB_CPUCLK_1_1;
-		apbclk = APB_AHB_1_2;
-		break;
+		case 100:
+			pllclk = PLL_100MHZ;
+			ahbclk = AHB_CPUCLK_1_1;
+			apbclk = APB_AHB_1_2;
+			break;
 
-	case 120:
-		pllclk = PLL_120MHZ;
-		ahbclk = AHB_CPUCLK_1_2;
-		apbclk = APB_AHB_1_2;
-		break;
+		case 120:
+			pllclk = PLL_120MHZ;
+			ahbclk = AHB_CPUCLK_1_2;
+			apbclk = APB_AHB_1_2;
+			break;
 
-	case 166:
-		pllclk = PLL_166MHZ;
-		ahbclk = AHB_CPUCLK_1_2;
-		apbclk = APB_AHB_1_2;
-		break;
+		case 166:
+			pllclk = PLL_166MHZ;
+			ahbclk = AHB_CPUCLK_1_2;
+			apbclk = APB_AHB_1_2;
+			break;
 
-	case 200:
-		pllclk = PLL_200MHZ;
-		ahbclk = AHB_CPUCLK_1_2;
-		apbclk = APB_AHB_1_2;
-		break;
+		case 200:
+			pllclk = PLL_200MHZ;
+			ahbclk = AHB_CPUCLK_1_2;
+			apbclk = APB_AHB_1_2;
+			break;
 	}
 
 	__raw_writel(pllclk, REG_PLLCON0);
@@ -176,10 +181,14 @@ static int __init nuc900_set_cpufreq(char *str)
 	unsigned long cpufreq, val;
 
 	if (!*str)
+	{
 		return 0;
+	}
 
 	if (kstrtoul(str, 0, &cpufreq))
+	{
 		return 0;
+	}
 
 	nuc900_clock_source(NULL, "ext");
 
@@ -209,14 +218,23 @@ void __init nuc900_map_io(struct map_desc *mach_desc, int mach_size)
 	iotable_init(nuc900_iodesc, ARRAY_SIZE(nuc900_iodesc));
 
 	idcode = __raw_readl(NUC900PDID);
+
 	if (idcode == NUC910_CPUID)
+	{
 		printk(KERN_INFO "CPU type 0x%08lx is NUC910\n", idcode);
+	}
 	else if (idcode == NUC920_CPUID)
+	{
 		printk(KERN_INFO "CPU type 0x%08lx is NUC920\n", idcode);
+	}
 	else if (idcode == NUC950_CPUID)
+	{
 		printk(KERN_INFO "CPU type 0x%08lx is NUC950\n", idcode);
+	}
 	else if (idcode == NUC960_CPUID)
+	{
 		printk(KERN_INFO "CPU type 0x%08lx is NUC960\n", idcode);
+	}
 }
 
 /*Init NUC900 clock*/
@@ -233,10 +251,13 @@ void __init nuc900_init_clocks(void)
 
 void nuc9xx_restart(enum reboot_mode mode, const char *cmd)
 {
-	if (mode == REBOOT_SOFT) {
+	if (mode == REBOOT_SOFT)
+	{
 		/* Jump into ROM at address 0 */
 		soft_restart(0);
-	} else {
+	}
+	else
+	{
 		__raw_writel(WTE | WTRE | WTCLK, WTCR);
 	}
 }

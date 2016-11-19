@@ -61,35 +61,40 @@ static int coherence_id_open(struct inode *inode, struct file *file)
 extern int sn_topology_open(struct inode *, struct file *);
 extern int sn_topology_release(struct inode *, struct file *);
 
-static const struct file_operations proc_partition_id_fops = {
+static const struct file_operations proc_partition_id_fops =
+{
 	.open		= partition_id_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
 
-static const struct file_operations proc_system_sn_fops = {
+static const struct file_operations proc_system_sn_fops =
+{
 	.open		= system_serial_number_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
 
-static const struct file_operations proc_license_id_fops = {
+static const struct file_operations proc_license_id_fops =
+{
 	.open		= licenseID_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
 
-static const struct file_operations proc_coherence_id_fops = {
+static const struct file_operations proc_coherence_id_fops =
+{
 	.open		= coherence_id_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
 
-static const struct file_operations proc_sn_topo_fops = {
+static const struct file_operations proc_sn_topo_fops =
+{
 	.open		= sn_topology_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -101,16 +106,19 @@ void register_sn_procfs(void)
 	static struct proc_dir_entry *sgi_proc_dir = NULL;
 
 	BUG_ON(sgi_proc_dir != NULL);
+
 	if (!(sgi_proc_dir = proc_mkdir("sgi_sn", NULL)))
+	{
 		return;
+	}
 
 	proc_create("partition_id", 0444, sgi_proc_dir,
-		    &proc_partition_id_fops);
+				&proc_partition_id_fops);
 	proc_create("system_serial_number", 0444, sgi_proc_dir,
-		    &proc_system_sn_fops);
+				&proc_system_sn_fops);
 	proc_create("licenseID", 0444, sgi_proc_dir, &proc_license_id_fops);
 	proc_create("coherence_id", 0444, sgi_proc_dir,
-		    &proc_coherence_id_fops);
+				&proc_coherence_id_fops);
 	proc_create("sn_topology", 0444, sgi_proc_dir, &proc_sn_topo_fops);
 }
 

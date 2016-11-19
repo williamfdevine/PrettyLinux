@@ -14,11 +14,12 @@
 #define SMP_MAGIC_IDENT	(('_'<<24) | ('P'<<16) | ('M'<<8) | '_')
 
 #ifdef CONFIG_X86_32
-# define MAX_MPC_ENTRY 1024
+	#define MAX_MPC_ENTRY 1024
 #endif
 
 /* Intel MP Floating Pointer Structure */
-struct mpf_intel {
+struct mpf_intel
+{
 	char signature[4];		/* "_MP_"			*/
 	unsigned int physptr;		/* Configuration table address	*/
 	unsigned char length;		/* Our length (paragraphs)	*/
@@ -33,7 +34,8 @@ struct mpf_intel {
 
 #define MPC_SIGNATURE "PCMP"
 
-struct mpc_table {
+struct mpc_table
+{
 	char signature[4];
 	unsigned short length;		/* Size of table */
 	char spec;			/* 0x01 */
@@ -64,7 +66,8 @@ struct mpc_table {
 #define CPU_MODEL_MASK		0x00F0
 #define CPU_FAMILY_MASK		0x0F00
 
-struct mpc_cpu {
+struct mpc_cpu
+{
 	unsigned char type;
 	unsigned char apicid;		/* Local APIC number */
 	unsigned char apicver;		/* Its versions */
@@ -74,7 +77,8 @@ struct mpc_cpu {
 	unsigned int reserved[2];
 };
 
-struct mpc_bus {
+struct mpc_bus
+{
 	unsigned char type;
 	unsigned char busid;
 	unsigned char bustype[6];
@@ -102,7 +106,8 @@ struct mpc_bus {
 
 #define MPC_APIC_USABLE		0x01
 
-struct mpc_ioapic {
+struct mpc_ioapic
+{
 	unsigned char type;
 	unsigned char apicid;
 	unsigned char apicver;
@@ -110,7 +115,8 @@ struct mpc_ioapic {
 	unsigned int apicaddr;
 };
 
-struct mpc_intsrc {
+struct mpc_intsrc
+{
 	unsigned char type;
 	unsigned char irqtype;
 	unsigned short irqflag;
@@ -120,7 +126,8 @@ struct mpc_intsrc {
 	unsigned char dstirq;
 };
 
-enum mp_irq_source_types {
+enum mp_irq_source_types
+{
 	mp_INT = 0,
 	mp_NMI = 1,
 	mp_SMI = 2,
@@ -133,7 +140,8 @@ enum mp_irq_source_types {
 
 #define MP_APIC_ALL	0xFF
 
-struct mpc_lintsrc {
+struct mpc_lintsrc
+{
 	unsigned char type;
 	unsigned char irqtype;
 	unsigned short irqflag;
@@ -145,7 +153,8 @@ struct mpc_lintsrc {
 
 #define MPC_OEM_SIGNATURE "_OEM"
 
-struct mpc_oemtable {
+struct mpc_oemtable
+{
 	char signature[4];
 	unsigned short length;		/* Size of table */
 	char  rev;			/* 0x01 */
@@ -165,7 +174,8 @@ struct mpc_oemtable {
  *	7	2 CPU MCA+PCI
  */
 
-enum mp_bustype {
+enum mp_bustype
+{
 	MP_BUS_ISA = 1,
 	MP_BUS_EISA,
 	MP_BUS_PCI,

@@ -39,7 +39,8 @@ static void __iomem *intcp_con_base;
  * fca00000	ca000000	SIC
  */
 
-static struct map_desc intcp_io_desc[] __initdata __maybe_unused = {
+static struct map_desc intcp_io_desc[] __initdata __maybe_unused =
+{
 	{
 		.virtual	= IO_ADDRESS(INTEGRATOR_IC_BASE),
 		.pfn		= __phys_to_pfn(INTEGRATOR_IC_BASE),
@@ -77,8 +78,9 @@ static unsigned int mmc_status(struct device *dev)
 	return status & 8;
 }
 
-static struct mmci_platform_data mmc_data = {
-	.ocr_mask	= MMC_VDD_32_33|MMC_VDD_33_34,
+static struct mmci_platform_data mmc_data =
+{
+	.ocr_mask	= MMC_VDD_32_33 | MMC_VDD_33_34,
 	.status		= mmc_status,
 	.gpio_wp	= -1,
 	.gpio_cd	= -1,
@@ -96,8 +98,12 @@ static u64 notrace intcp_read_sched_clock(void)
 static void __init intcp_init_early(void)
 {
 	cm_map = syscon_regmap_lookup_by_compatible("arm,core-module-integrator");
+
 	if (IS_ERR(cm_map))
+	{
 		return;
+	}
+
 	sched_clock_register(intcp_read_sched_clock, 32, 24000000);
 }
 
@@ -111,13 +117,15 @@ static void __init intcp_init_irq_of(void)
  * For the Device Tree, add in the UART, MMC and CLCD specifics as AUXDATA
  * and enforce the bus names since these are used for clock lookups.
  */
-static struct of_dev_auxdata intcp_auxdata_lookup[] __initdata = {
+static struct of_dev_auxdata intcp_auxdata_lookup[] __initdata =
+{
 	OF_DEV_AUXDATA("arm,primecell", INTEGRATOR_CP_MMC_BASE,
-		"mmci", &mmc_data),
+	"mmci", &mmc_data),
 	{ /* sentinel */ },
 };
 
-static const struct of_device_id intcp_syscon_match[] = {
+static const struct of_device_id intcp_syscon_match[] =
+{
 	{ .compatible = "arm,integrator-cp-syscon"},
 	{ },
 };
@@ -127,26 +135,33 @@ static void __init intcp_init_of(void)
 	struct device_node *cpcon;
 
 	cpcon = of_find_matching_node(NULL, intcp_syscon_match);
+
 	if (!cpcon)
+	{
 		return;
+	}
 
 	intcp_con_base = of_iomap(cpcon, 0);
+
 	if (!intcp_con_base)
+	{
 		return;
+	}
 
 	of_platform_default_populate(NULL, intcp_auxdata_lookup, NULL);
 }
 
-static const char * intcp_dt_board_compat[] = {
+static const char *intcp_dt_board_compat[] =
+{
 	"arm,integrator-cp",
 	NULL,
 };
 
 DT_MACHINE_START(INTEGRATOR_CP_DT, "ARM Integrator/CP (Device Tree)")
-	.reserve	= integrator_reserve,
+.reserve	= integrator_reserve,
 	.map_io		= intcp_map_io,
-	.init_early	= intcp_init_early,
-	.init_irq	= intcp_init_irq_of,
-	.init_machine	= intcp_init_of,
-	.dt_compat      = intcp_dt_board_compat,
-MACHINE_END
+		.init_early	= intcp_init_early,
+		 .init_irq	= intcp_init_irq_of,
+			.init_machine	= intcp_init_of,
+			   .dt_compat      = intcp_dt_board_compat,
+				MACHINE_END

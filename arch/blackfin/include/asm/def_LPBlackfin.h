@@ -20,28 +20,28 @@
 #include <linux/types.h>
 
 #if ANOMALY_05000198
-# define NOP_PAD_ANOMALY_05000198 "nop;"
+	#define NOP_PAD_ANOMALY_05000198 "nop;"
 #else
-# define NOP_PAD_ANOMALY_05000198
+	#define NOP_PAD_ANOMALY_05000198
 #endif
 
 #define _bfin_readX(addr, size, asm_size, asm_ext) ({ \
-	u32 __v; \
-	__asm__ __volatile__( \
-		NOP_PAD_ANOMALY_05000198 \
-		"%0 = " #asm_size "[%1]" #asm_ext ";" \
-		: "=d" (__v) \
-		: "a" (addr) \
-	); \
-	__v; })
+		u32 __v; \
+		__asm__ __volatile__( \
+							  NOP_PAD_ANOMALY_05000198 \
+							  "%0 = " #asm_size "[%1]" #asm_ext ";" \
+							  : "=d" (__v) \
+							  : "a" (addr) \
+							); \
+		__v; })
 #define _bfin_writeX(addr, val, size, asm_size) \
 	__asm__ __volatile__( \
-		NOP_PAD_ANOMALY_05000198 \
-		#asm_size "[%0] = %1;" \
-		: \
-		: "a" (addr), "d" ((u##size)(val)) \
-		: "memory" \
-	)
+						  NOP_PAD_ANOMALY_05000198 \
+						  #asm_size "[%0] = %1;" \
+						  : \
+						  : "a" (addr), "d" ((u##size)(val)) \
+						  : "memory" \
+						)
 
 #define bfin_read8(addr)  _bfin_readX(addr,  8, b, (z))
 #define bfin_read16(addr) _bfin_readX(addr, 16, w, (z))
@@ -51,33 +51,33 @@
 #define bfin_write32(addr, val) _bfin_writeX(addr, val, 32,  )
 
 #define bfin_read(addr) \
-({ \
-	sizeof(*(addr)) == 1 ? bfin_read8(addr)  : \
-	sizeof(*(addr)) == 2 ? bfin_read16(addr) : \
-	sizeof(*(addr)) == 4 ? bfin_read32(addr) : \
-	({ BUG(); 0; }); \
-})
+	({ \
+		sizeof(*(addr)) == 1 ? bfin_read8(addr)  : \
+		sizeof(*(addr)) == 2 ? bfin_read16(addr) : \
+		sizeof(*(addr)) == 4 ? bfin_read32(addr) : \
+		({ BUG(); 0; }); \
+	})
 #define bfin_write(addr, val) \
-do { \
-	switch (sizeof(*(addr))) { \
-	case 1: bfin_write8(addr, val);  break; \
-	case 2: bfin_write16(addr, val); break; \
-	case 4: bfin_write32(addr, val); break; \
-	default: BUG(); \
-	} \
-} while (0)
+	do { \
+		switch (sizeof(*(addr))) { \
+			case 1: bfin_write8(addr, val);  break; \
+			case 2: bfin_write16(addr, val); break; \
+			case 4: bfin_write32(addr, val); break; \
+			default: BUG(); \
+		} \
+	} while (0)
 
 #define bfin_write_or(addr, bits) \
-do { \
-	typeof(addr) __addr = (addr); \
-	bfin_write(__addr, bfin_read(__addr) | (bits)); \
-} while (0)
+	do { \
+		typeof(addr) __addr = (addr); \
+		bfin_write(__addr, bfin_read(__addr) | (bits)); \
+	} while (0)
 
 #define bfin_write_and(addr, bits) \
-do { \
-	typeof(addr) __addr = (addr); \
-	bfin_write(__addr, bfin_read(__addr) & (bits)); \
-} while (0)
+	do { \
+		typeof(addr) __addr = (addr); \
+		bfin_write(__addr, bfin_read(__addr) & (bits)); \
+	} while (0)
 
 #endif /* __ASSEMBLY__ */
 
@@ -175,23 +175,23 @@ do { \
 /* Masks */
 /* Exception cause */
 #define SEQSTAT_EXCAUSE        (MK_BMSK_(SEQSTAT_EXCAUSE0_P) | \
-                                MK_BMSK_(SEQSTAT_EXCAUSE1_P) | \
-                                MK_BMSK_(SEQSTAT_EXCAUSE2_P) | \
-                                MK_BMSK_(SEQSTAT_EXCAUSE3_P) | \
-                                MK_BMSK_(SEQSTAT_EXCAUSE4_P) | \
-                                MK_BMSK_(SEQSTAT_EXCAUSE5_P) | \
-                                0)
+								MK_BMSK_(SEQSTAT_EXCAUSE1_P) | \
+								MK_BMSK_(SEQSTAT_EXCAUSE2_P) | \
+								MK_BMSK_(SEQSTAT_EXCAUSE3_P) | \
+								MK_BMSK_(SEQSTAT_EXCAUSE4_P) | \
+								MK_BMSK_(SEQSTAT_EXCAUSE5_P) | \
+								0)
 
 /* Indicates whether the last reset was a software reset (=1) */
 #define SEQSTAT_SFTRESET       (MK_BMSK_(SEQSTAT_SFTRESET_P))
 
 /* Last hw error cause */
 #define SEQSTAT_HWERRCAUSE     (MK_BMSK_(SEQSTAT_HWERRCAUSE0_P) | \
-                                MK_BMSK_(SEQSTAT_HWERRCAUSE1_P) | \
-                                MK_BMSK_(SEQSTAT_HWERRCAUSE2_P) | \
-                                MK_BMSK_(SEQSTAT_HWERRCAUSE3_P) | \
-                                MK_BMSK_(SEQSTAT_HWERRCAUSE4_P) | \
-                                0)
+								MK_BMSK_(SEQSTAT_HWERRCAUSE1_P) | \
+								MK_BMSK_(SEQSTAT_HWERRCAUSE2_P) | \
+								MK_BMSK_(SEQSTAT_HWERRCAUSE3_P) | \
+								MK_BMSK_(SEQSTAT_HWERRCAUSE4_P) | \
+								0)
 
 /* Translate bits to something useful */
 
@@ -624,10 +624,10 @@ do { \
 #define PAGE_SIZE_1MB      0x00020000	/* 1 MB page size */
 #define PAGE_SIZE_4MB      0x00030000	/* 4 MB page size */
 #ifdef CONFIG_BF60x
-#define PAGE_SIZE_16KB     0x00040000	/* 16 KB page size */
-#define PAGE_SIZE_64KB     0x00050000	/* 64 KB page size */
-#define PAGE_SIZE_16MB     0x00060000	/* 16 MB page size */
-#define PAGE_SIZE_64MB     0x00070000	/* 64 MB page size */
+	#define PAGE_SIZE_16KB     0x00040000	/* 16 KB page size */
+	#define PAGE_SIZE_64KB     0x00050000	/* 64 KB page size */
+	#define PAGE_SIZE_16MB     0x00060000	/* 16 MB page size */
+	#define PAGE_SIZE_64MB     0x00070000	/* 64 MB page size */
 #endif
 #define CPLB_L1SRAM        0x00000020	/* 0=SRAM mapped in L1, 0=SRAM not
 					 * mapped to L1

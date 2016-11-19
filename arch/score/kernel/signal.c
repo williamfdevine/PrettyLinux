@@ -34,7 +34,8 @@
 #include <asm/syscalls.h>
 #include <asm/ucontext.h>
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	u32 rs_ass[4];		/* argument save space */
 	u32 rs_code[2];		/* signal trampoline */
 	struct siginfo rs_info;
@@ -52,9 +53,9 @@ static int setup_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc)
 
 
 #define save_gp_reg(i) {				\
-	reg = regs->regs[i];				\
-	err |= __put_user(reg, &sc->sc_regs[i]);	\
-} while (0)
+		reg = regs->regs[i];				\
+		err |= __put_user(reg, &sc->sc_regs[i]);	\
+	} while (0)
 	save_gp_reg(0); save_gp_reg(1); save_gp_reg(2);
 	save_gp_reg(3); save_gp_reg(4); save_gp_reg(5);
 	save_gp_reg(6);	save_gp_reg(7); save_gp_reg(8);
@@ -96,9 +97,9 @@ static int restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc
 	regs->cp0_ema = (int) reg;
 
 #define restore_gp_reg(i) do {				\
-	err |= __get_user(reg, &sc->sc_regs[i]);	\
-	regs->regs[i] = reg;				\
-} while (0)
+		err |= __get_user(reg, &sc->sc_regs[i]);	\
+		regs->regs[i] = reg;				\
+	} while (0)
 	restore_gp_reg(0); restore_gp_reg(1); restore_gp_reg(2);
 	restore_gp_reg(3); restore_gp_reg(4); restore_gp_reg(5);
 	restore_gp_reg(6); restore_gp_reg(7); restore_gp_reg(8);
@@ -118,7 +119,7 @@ static int restore_sigcontext(struct pt_regs *regs, struct sigcontext __user *sc
  * Determine which stack to use..
  */
 static void __user *get_sigframe(struct k_sigaction *ka,
-			struct pt_regs *regs, size_t frame_size)
+								 struct pt_regs *regs, size_t frame_size)
 {
 	unsigned long sp;
 
@@ -128,9 +129,11 @@ static void __user *get_sigframe(struct k_sigaction *ka,
 
 	/* This is the X/Open sanctioned signal stack switching.  */
 	if ((ka->sa.sa_flags & SA_ONSTACK) && (!on_sig_stack(sp)))
+	{
 		sp = current->sas_ss_sp + current->sas_ss_size;
+	}
 
-	return (void __user*)((sp - frame_size) & ~7);
+	return (void __user *)((sp - frame_size) & ~7);
 }
 
 asmlinkage long
@@ -144,21 +147,35 @@ score_rt_sigreturn(struct pt_regs *regs)
 	current->restart_block.fn = do_no_restart_syscall;
 
 	frame = (struct rt_sigframe __user *) regs->regs[0];
+
 	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	{
 		goto badframe;
+	}
+
 	if (__copy_from_user(&set, &frame->rs_uc.uc_sigmask, sizeof(set)))
+	{
 		goto badframe;
+	}
 
 	set_current_blocked(&set);
 
 	sig = restore_sigcontext(regs, &frame->rs_uc.uc_mcontext);
+
 	if (sig < 0)
+	{
 		goto badframe;
+	}
 	else if (sig)
+	{
 		force_sig(sig, current);
+	}
 
 	if (restore_altstack(&frame->rs_uc.uc_stack))
+	{
 		goto badframe;
+	}
+
 	regs->is_syscall = 0;
 
 	__asm__ __volatile__(
@@ -174,14 +191,17 @@ badframe:
 }
 
 static int setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs,
-			  sigset_t *set)
+						  sigset_t *set)
 {
 	struct rt_sigframe __user *frame;
 	int err = 0;
 
 	frame = get_sigframe(&ksig->ka, regs, sizeof(*frame));
+
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Set up the return code ...
@@ -189,8 +209,8 @@ static int setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs,
 	 *         li      v0, __NR_rt_sigreturn
 	 *         syscall
 	 */
-	err |= __put_user(0x87788000 + __NR_rt_sigreturn*2,
-			frame->rs_code + 0);
+	err |= __put_user(0x87788000 + __NR_rt_sigreturn * 2,
+					  frame->rs_code + 0);
 	err |= __put_user(0x80008002, frame->rs_code + 1);
 	flush_cache_sigtramp((unsigned long) frame->rs_code);
 
@@ -202,7 +222,9 @@ static int setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs,
 	err |= __copy_to_user(&frame->rs_uc.uc_sigmask, set, sizeof(*set));
 
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	regs->regs[0] = (unsigned long) frame;
 	regs->regs[3] = (unsigned long) frame->rs_code;
@@ -219,21 +241,26 @@ static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 {
 	int ret;
 
-	if (regs->is_syscall) {
-		switch (regs->regs[4]) {
-		case ERESTART_RESTARTBLOCK:
-		case ERESTARTNOHAND:
-			regs->regs[4] = EINTR;
-			break;
-		case ERESTARTSYS:
-			if (!(ksig->ka.sa.sa_flags & SA_RESTART)) {
+	if (regs->is_syscall)
+	{
+		switch (regs->regs[4])
+		{
+			case ERESTART_RESTARTBLOCK:
+			case ERESTARTNOHAND:
 				regs->regs[4] = EINTR;
 				break;
-			}
-		case ERESTARTNOINTR:
-			regs->regs[4] = regs->orig_r4;
-			regs->regs[7] = regs->orig_r7;
-			regs->cp0_epc -= 8;
+
+			case ERESTARTSYS:
+				if (!(ksig->ka.sa.sa_flags & SA_RESTART))
+				{
+					regs->regs[4] = EINTR;
+					break;
+				}
+
+			case ERESTARTNOINTR:
+				regs->regs[4] = regs->orig_r4;
+				regs->regs[7] = regs->orig_r7;
+				regs->cp0_epc -= 8;
 		}
 
 		regs->is_syscall = 0;
@@ -257,24 +284,30 @@ static void do_signal(struct pt_regs *regs)
 	 * if so.
 	 */
 	if (!user_mode(regs))
+	{
 		return;
+	}
 
-	if (get_signal(&ksig)) {
+	if (get_signal(&ksig))
+	{
 		/* Actually deliver the signal.  */
 		handle_signal(&ksig, regs);
 		return;
 	}
 
-	if (regs->is_syscall) {
+	if (regs->is_syscall)
+	{
 		if (regs->regs[4] == ERESTARTNOHAND ||
-		    regs->regs[4] == ERESTARTSYS ||
-		    regs->regs[4] == ERESTARTNOINTR) {
+			regs->regs[4] == ERESTARTSYS ||
+			regs->regs[4] == ERESTARTNOINTR)
+		{
 			regs->regs[4] = regs->orig_r4;
 			regs->regs[7] = regs->orig_r7;
 			regs->cp0_epc -= 8;
 		}
 
-		if (regs->regs[4] == ERESTART_RESTARTBLOCK) {
+		if (regs->regs[4] == ERESTART_RESTARTBLOCK)
+		{
 			regs->regs[27] = __NR_restart_syscall;
 			regs->regs[4] = regs->orig_r4;
 			regs->regs[7] = regs->orig_r7;
@@ -296,12 +329,16 @@ static void do_signal(struct pt_regs *regs)
  * - triggered by the TIF_WORK_MASK flags
  */
 asmlinkage void do_notify_resume(struct pt_regs *regs, void *unused,
-				__u32 thread_info_flags)
+								 __u32 thread_info_flags)
 {
 	/* deal with pending signal delivery */
 	if (thread_info_flags & _TIF_SIGPENDING)
+	{
 		do_signal(regs);
-	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+	}
+
+	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+	{
 		clear_thread_flag(TIF_NOTIFY_RESUME);
 		tracehook_notify_resume(regs);
 	}

@@ -174,15 +174,15 @@
 #define bfin_write_ICPLB_DATA15(val)         bfin_write32(ICPLB_DATA15,val)
 #define bfin_write_ITEST_COMMAND(val)        bfin_write32(ITEST_COMMAND,val)
 #if 0
-#define ITEST_INDEX            0xFFE01304   /* Instruction Test Index Register */
+	#define ITEST_INDEX            0xFFE01304   /* Instruction Test Index Register */
 #endif
 #define bfin_write_ITEST_DATA0(val)          bfin_write32(ITEST_DATA0,val)
 #define bfin_write_ITEST_DATA1(val)          bfin_write32(ITEST_DATA1,val)
 
 #if !ANOMALY_05000481
-#define bfin_read_ITEST_COMMAND()            bfin_read32(ITEST_COMMAND)
-#define bfin_read_ITEST_DATA0()              bfin_read32(ITEST_DATA0)
-#define bfin_read_ITEST_DATA1()              bfin_read32(ITEST_DATA1)
+	#define bfin_read_ITEST_COMMAND()            bfin_read32(ITEST_COMMAND)
+	#define bfin_read_ITEST_DATA0()              bfin_read32(ITEST_DATA0)
+	#define bfin_read_ITEST_DATA1()              bfin_read32(ITEST_DATA1)
 #endif
 
 /* Event/Interrupt Registers*/

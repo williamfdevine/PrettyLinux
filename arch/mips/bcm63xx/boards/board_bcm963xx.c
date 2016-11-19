@@ -42,7 +42,8 @@ static struct board_info board;
  * known 3368 boards
  */
 #ifdef CONFIG_BCM63XX_CPU_3368
-static struct board_info __initdata board_cvg834g = {
+static struct board_info __initdata board_cvg834g =
+{
 	.name				= "CVG834G_E15R3921",
 	.expected_cpu_id		= 0x3368,
 
@@ -61,7 +62,7 @@ static struct board_info __initdata board_cvg834g = {
 		{
 			.name		= "CVG834G:green:power",
 			.gpio		= 37,
-			.default_trigger= "default-on",
+			.default_trigger = "default-on",
 		},
 	},
 
@@ -74,7 +75,8 @@ static struct board_info __initdata board_cvg834g = {
  * known 6328 boards
  */
 #ifdef CONFIG_BCM63XX_CPU_6328
-static struct board_info __initdata board_96328avng = {
+static struct board_info __initdata board_96328avng =
+{
 	.name				= "96328avng",
 	.expected_cpu_id		= 0x6328,
 
@@ -122,7 +124,8 @@ static struct board_info __initdata board_96328avng = {
  * known 6338 boards
  */
 #ifdef CONFIG_BCM63XX_CPU_6338
-static struct board_info __initdata board_96338gw = {
+static struct board_info __initdata board_96338gw =
+{
 	.name				= "96338GW",
 	.expected_cpu_id		= 0x6338,
 
@@ -165,7 +168,8 @@ static struct board_info __initdata board_96338gw = {
 	},
 };
 
-static struct board_info __initdata board_96338w = {
+static struct board_info __initdata board_96338w =
+{
 	.name				= "96338W",
 	.expected_cpu_id		= 0x6338,
 
@@ -211,7 +215,8 @@ static struct board_info __initdata board_96338w = {
  * known 6345 boards
  */
 #ifdef CONFIG_BCM63XX_CPU_6345
-static struct board_info __initdata board_96345gw2 = {
+static struct board_info __initdata board_96345gw2 =
+{
 	.name				= "96345GW2",
 	.expected_cpu_id		= 0x6345,
 
@@ -223,7 +228,8 @@ static struct board_info __initdata board_96345gw2 = {
  * known 6348 boards
  */
 #ifdef CONFIG_BCM63XX_CPU_6348
-static struct board_info __initdata board_96348r = {
+static struct board_info __initdata board_96348r =
+{
 	.name				= "96348R",
 	.expected_cpu_id		= 0x6348,
 
@@ -267,7 +273,8 @@ static struct board_info __initdata board_96348r = {
 	},
 };
 
-static struct board_info __initdata board_96348gw_10 = {
+static struct board_info __initdata board_96348gw_10 =
+{
 	.name				= "96348GW-10",
 	.expected_cpu_id		= 0x6348,
 
@@ -327,7 +334,8 @@ static struct board_info __initdata board_96348gw_10 = {
 	},
 };
 
-static struct board_info __initdata board_96348gw_11 = {
+static struct board_info __initdata board_96348gw_11 =
+{
 	.name				= "96348GW-11",
 	.expected_cpu_id		= 0x6348,
 
@@ -381,7 +389,8 @@ static struct board_info __initdata board_96348gw_11 = {
 	},
 };
 
-static struct board_info __initdata board_96348gw = {
+static struct board_info __initdata board_96348gw =
+{
 	.name				= "96348GW",
 	.expected_cpu_id		= 0x6348,
 
@@ -439,7 +448,8 @@ static struct board_info __initdata board_96348gw = {
 	},
 };
 
-static struct board_info __initdata board_FAST2404 = {
+static struct board_info __initdata board_FAST2404 =
+{
 	.name				= "F@ST2404",
 	.expected_cpu_id		= 0x6348,
 
@@ -463,7 +473,8 @@ static struct board_info __initdata board_FAST2404 = {
 	.has_ehci0			= 1,
 };
 
-static struct board_info __initdata board_rta1025w_16 = {
+static struct board_info __initdata board_rta1025w_16 =
+{
 	.name				= "RTA1025W_16",
 	.expected_cpu_id		= 0x6348,
 
@@ -482,7 +493,8 @@ static struct board_info __initdata board_rta1025w_16 = {
 };
 
 
-static struct board_info __initdata board_DV201AMR = {
+static struct board_info __initdata board_DV201AMR =
+{
 	.name				= "DV201AMR",
 	.expected_cpu_id		= 0x6348,
 
@@ -502,7 +514,8 @@ static struct board_info __initdata board_DV201AMR = {
 	},
 };
 
-static struct board_info __initdata board_96348gw_a = {
+static struct board_info __initdata board_96348gw_a =
+{
 	.name				= "96348GW-A",
 	.expected_cpu_id		= 0x6348,
 
@@ -528,7 +541,8 @@ static struct board_info __initdata board_96348gw_a = {
  * known 6358 boards
  */
 #ifdef CONFIG_BCM63XX_CPU_6358
-static struct board_info __initdata board_96358vw = {
+static struct board_info __initdata board_96358vw =
+{
 	.name				= "96358VW",
 	.expected_cpu_id		= 0x6358,
 
@@ -580,7 +594,8 @@ static struct board_info __initdata board_96358vw = {
 	},
 };
 
-static struct board_info __initdata board_96358vw2 = {
+static struct board_info __initdata board_96358vw2 =
+{
 	.name				= "96358VW2",
 	.expected_cpu_id		= 0x6358,
 
@@ -628,7 +643,8 @@ static struct board_info __initdata board_96358vw2 = {
 	},
 };
 
-static struct board_info __initdata board_AGPFS0 = {
+static struct board_info __initdata board_AGPFS0 =
+{
 	.name				= "AGPF-S0",
 	.expected_cpu_id		= 0x6358,
 
@@ -651,7 +667,8 @@ static struct board_info __initdata board_AGPFS0 = {
 	.has_ehci0 = 1,
 };
 
-static struct board_info __initdata board_DWVS0 = {
+static struct board_info __initdata board_DWVS0 =
+{
 	.name				= "DWV-S0",
 	.expected_cpu_id		= 0x6358,
 
@@ -676,7 +693,8 @@ static struct board_info __initdata board_DWVS0 = {
 /*
  * all boards
  */
-static const struct board_info __initconst *bcm963xx_boards[] = {
+static const struct board_info __initconst *bcm963xx_boards[] =
+{
 #ifdef CONFIG_BCM63XX_CPU_3368
 	&board_cvg834g,
 #endif
@@ -714,7 +732,8 @@ static const struct board_info __initconst *bcm963xx_boards[] = {
  * bcm4318 WLAN work
  */
 #ifdef CONFIG_SSB_PCIHOST
-static struct ssb_sprom bcm63xx_sprom = {
+static struct ssb_sprom bcm63xx_sprom =
+{
 	.revision		= 0x02,
 	.board_rev		= 0x17,
 	.country_code		= 0x0,
@@ -737,10 +756,13 @@ static struct ssb_sprom bcm63xx_sprom = {
 
 int bcm63xx_get_fallback_sprom(struct ssb_bus *bus, struct ssb_sprom *out)
 {
-	if (bus->bustype == SSB_BUSTYPE_PCI) {
+	if (bus->bustype == SSB_BUSTYPE_PCI)
+	{
 		memcpy(out, &bcm63xx_sprom, sizeof(struct ssb_sprom));
 		return 0;
-	} else {
+	}
+	else
+	{
 		pr_err("unable to fill SPROM for given bustype\n");
 		return -EINVAL;
 	}
@@ -770,42 +792,59 @@ void __init board_prom_init(void)
 	/* read base address of boot chip select (0)
 	 * 6328/6362 do not have MPI but boot from a fixed address
 	 */
-	if (BCMCPU_IS_6328() || BCMCPU_IS_6362()) {
+	if (BCMCPU_IS_6328() || BCMCPU_IS_6362())
+	{
 		val = 0x18000000;
-	} else {
+	}
+	else
+	{
 		val = bcm_mpi_readl(MPI_CSBASE_REG(0));
 		val &= MPI_CSBASE_BASE_MASK;
 	}
+
 	boot_addr = (u8 *)KSEG1ADDR(val);
 
 	/* dump cfe version */
 	cfe = boot_addr + BCM963XX_CFE_VERSION_OFFSET;
+
 	if (!memcmp(cfe, "cfe-v", 5))
 		snprintf(cfe_version, sizeof(cfe_version), "%u.%u.%u-%u.%u",
-			 cfe[5], cfe[6], cfe[7], cfe[8], cfe[9]);
+				 cfe[5], cfe[6], cfe[7], cfe[8], cfe[9]);
 	else
+	{
 		strcpy(cfe_version, "unknown");
+	}
+
 	pr_info("CFE version: %s\n", cfe_version);
 
 	bcm63xx_nvram_init(boot_addr + BCM963XX_NVRAM_OFFSET);
 
-	if (BCMCPU_IS_3368()) {
+	if (BCMCPU_IS_3368())
+	{
 		hcs = (struct bcm_hcs *)boot_addr;
 		board_name = hcs->filename;
-	} else {
+	}
+	else
+	{
 		board_name = bcm63xx_nvram_get_name();
 	}
+
 	/* find board by name */
-	for (i = 0; i < ARRAY_SIZE(bcm963xx_boards); i++) {
+	for (i = 0; i < ARRAY_SIZE(bcm963xx_boards); i++)
+	{
 		if (strncmp(board_name, bcm963xx_boards[i]->name, 16))
+		{
 			continue;
+		}
+
 		/* copy, board desc array is marked initdata */
 		memcpy(&board, bcm963xx_boards[i], sizeof(board));
 		break;
 	}
 
 	/* bail out if board is not found, will complain later */
-	if (!board.name[0]) {
+	if (!board.name[0])
+	{
 		char name[17];
 		memcpy(name, board_name, 16);
 		name[16] = 0;
@@ -819,28 +858,39 @@ void __init board_prom_init(void)
 	val = 0;
 
 #ifdef CONFIG_PCI
-	if (board.has_pci) {
+
+	if (board.has_pci)
+	{
 		bcm63xx_pci_enabled = 1;
+
 		if (BCMCPU_IS_6348())
+		{
 			val |= GPIO_MODE_6348_G2_PCI;
+		}
 	}
+
 #endif
 
-	if (board.has_pccard) {
+	if (board.has_pccard)
+	{
 		if (BCMCPU_IS_6348())
+		{
 			val |= GPIO_MODE_6348_G1_MII_PCCARD;
+		}
 	}
 
-	if (board.has_enet0 && !board.enet0.use_internal_phy) {
+	if (board.has_enet0 && !board.enet0.use_internal_phy)
+	{
 		if (BCMCPU_IS_6348())
 			val |= GPIO_MODE_6348_G3_EXT_MII |
-				GPIO_MODE_6348_G0_EXT_MII;
+				   GPIO_MODE_6348_G0_EXT_MII;
 	}
 
-	if (board.has_enet1 && !board.enet1.use_internal_phy) {
+	if (board.has_enet1 && !board.enet1.use_internal_phy)
+	{
 		if (BCMCPU_IS_6348())
 			val |= GPIO_MODE_6348_G3_EXT_MII |
-				GPIO_MODE_6348_G0_EXT_MII;
+				   GPIO_MODE_6348_G0_EXT_MII;
 	}
 
 	bcm_gpio_writel(val, GPIO_MODE_REG);
@@ -853,17 +903,23 @@ void __init board_prom_init(void)
 void __init board_setup(void)
 {
 	if (!board.name[0])
+	{
 		panic("unable to detect bcm963xx board");
+	}
+
 	pr_info("board name: %s\n", board.name);
 
 	/* make sure we're running on expected cpu */
 	if (bcm63xx_get_cpu_id() != board.expected_cpu_id)
+	{
 		panic("unexpected CPU for bcm963xx board");
+	}
 }
 
 static struct gpio_led_platform_data bcm63xx_led_data;
 
-static struct platform_device bcm63xx_gpio_leds = {
+static struct platform_device bcm63xx_gpio_leds =
+{
 	.name			= "leds-gpio",
 	.id			= 0,
 	.dev.platform_data	= &bcm63xx_led_data,
@@ -875,43 +931,65 @@ static struct platform_device bcm63xx_gpio_leds = {
 int __init board_register_devices(void)
 {
 	if (board.has_uart0)
+	{
 		bcm63xx_uart_register(0);
+	}
 
 	if (board.has_uart1)
+	{
 		bcm63xx_uart_register(1);
+	}
 
 	if (board.has_pccard)
+	{
 		bcm63xx_pcmcia_register();
+	}
 
 	if (board.has_enet0 &&
-	    !bcm63xx_nvram_get_mac_address(board.enet0.mac_addr))
+		!bcm63xx_nvram_get_mac_address(board.enet0.mac_addr))
+	{
 		bcm63xx_enet_register(0, &board.enet0);
+	}
 
 	if (board.has_enet1 &&
-	    !bcm63xx_nvram_get_mac_address(board.enet1.mac_addr))
+		!bcm63xx_nvram_get_mac_address(board.enet1.mac_addr))
+	{
 		bcm63xx_enet_register(1, &board.enet1);
+	}
 
 	if (board.has_enetsw &&
-	    !bcm63xx_nvram_get_mac_address(board.enetsw.mac_addr))
+		!bcm63xx_nvram_get_mac_address(board.enetsw.mac_addr))
+	{
 		bcm63xx_enetsw_register(&board.enetsw);
+	}
 
 	if (board.has_usbd)
+	{
 		bcm63xx_usbd_register(&board.usbd);
+	}
 
 	if (board.has_dsp)
+	{
 		bcm63xx_dsp_register(&board.dsp);
+	}
 
 	/* Generate MAC address for WLAN and register our SPROM,
 	 * do this after registering enet devices
 	 */
 #ifdef CONFIG_SSB_PCIHOST
-	if (!bcm63xx_nvram_get_mac_address(bcm63xx_sprom.il0mac)) {
+
+	if (!bcm63xx_nvram_get_mac_address(bcm63xx_sprom.il0mac))
+	{
 		memcpy(bcm63xx_sprom.et0mac, bcm63xx_sprom.il0mac, ETH_ALEN);
 		memcpy(bcm63xx_sprom.et1mac, bcm63xx_sprom.il0mac, ETH_ALEN);
+
 		if (ssb_arch_register_fallback_sprom(
 				&bcm63xx_get_fallback_sprom) < 0)
+		{
 			pr_err("failed to register fallback SPROM\n");
+		}
 	}
+
 #endif
 
 	bcm63xx_spi_register();
@@ -927,7 +1005,7 @@ int __init board_register_devices(void)
 
 	if (board.ephy_reset_gpio && board.ephy_reset_gpio_flags)
 		gpio_request_one(board.ephy_reset_gpio,
-				board.ephy_reset_gpio_flags, "ephy-reset");
+						 board.ephy_reset_gpio_flags, "ephy-reset");
 
 	return 0;
 }

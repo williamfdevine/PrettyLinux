@@ -28,7 +28,9 @@ fcmpo(u32 *ccr, int crfD, void *frA, void *frB)
 #endif
 
 	if (A_c == FP_CLS_NAN || B_c == FP_CLS_NAN)
+	{
 		FP_SET_EXCEPTION(EFLAG_VXVC);
+	}
 
 	FP_CMP_D(cmp, A, B, 2);
 	cmp = code[(cmp + 1) & 3];

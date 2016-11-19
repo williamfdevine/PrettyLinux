@@ -37,7 +37,9 @@ asmlinkage void __init processor_init(void)
 
 	/* set up the exception table first */
 	for (loop = 0x000; loop < 0x400; loop += 8)
+	{
 		__set_intr_stub(loop, __common_exception);
+	}
 
 	__set_intr_stub(EXCEP_ITLBMISS,		itlb_miss);
 	__set_intr_stub(EXCEP_DTLBMISS,		dtlb_miss);
@@ -73,11 +75,19 @@ asmlinkage void __init processor_init(void)
 
 	/* disable all interrupts and set to priority 6 (lowest) */
 #ifdef	CONFIG_SMP
+
 	for (loop = 0; loop < GxICR_NUM_IRQS; loop++)
+	{
 		GxICR(loop) = GxICR_LEVEL_6 | GxICR_DETECT;
+	}
+
 #else	/* !CONFIG_SMP */
+
 	for (loop = 0; loop < NR_IRQS; loop++)
+	{
 		GxICR(loop) = GxICR_LEVEL_6 | GxICR_DETECT;
+	}
+
 #endif	/* !CONFIG_SMP */
 
 	/* clear the timers */
@@ -113,19 +123,23 @@ void __init get_mem_info(unsigned long *mem_base, unsigned long *mem_size)
 
 	*mem_base = 0x90000000; /* fixed address */
 
-	switch (memconf & 0x00000003) {
-	case 0x01:
-		size = 256 / 8;		/* 256 Mbit per chip */
-		break;
-	case 0x02:
-		size = 512 / 8;		/* 512 Mbit per chip */
-		break;
-	case 0x03:
-		size = 1024 / 8;	/*   1 Gbit per chip */
-		break;
-	default:
-		panic("Invalid SDRAM size");
-		break;
+	switch (memconf & 0x00000003)
+	{
+		case 0x01:
+			size = 256 / 8;		/* 256 Mbit per chip */
+			break;
+
+		case 0x02:
+			size = 512 / 8;		/* 512 Mbit per chip */
+			break;
+
+		case 0x03:
+			size = 1024 / 8;	/*   1 Gbit per chip */
+			break;
+
+		default:
+			panic("Invalid SDRAM size");
+			break;
 	}
 
 	printk(KERN_INFO "DDR2-SDRAM: %luMB x 2 @%08lx\n", size, *mem_base);

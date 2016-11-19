@@ -86,9 +86,9 @@ static inline unsigned long arch_local_irq_save(void)
 static inline void arch_local_irq_restore(unsigned long flags)
 {
 	asm volatile("mvtc %0,psw"
-		     :
-		     : "r" (flags)
-		     : "cbit", "memory");
+				 :
+				 : "r" (flags)
+				 : "cbit", "memory");
 }
 
 static inline bool arch_irqs_disabled_flags(unsigned long flags)

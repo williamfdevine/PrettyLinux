@@ -44,7 +44,8 @@
 
 #define GPC_CLK_MAX		6
 
-struct pu_domain {
+struct pu_domain
+{
 	struct generic_pm_domain base;
 	struct regulator *reg;
 	struct clk *clk[GPC_CLK_MAX];
@@ -58,13 +59,13 @@ static u32 gpc_saved_imrs[IMR_NUM];
 void imx_gpc_set_arm_power_up_timing(u32 sw2iso, u32 sw)
 {
 	writel_relaxed((sw2iso << GPC_PGC_SW2ISO_SHIFT) |
-		(sw << GPC_PGC_SW_SHIFT), gpc_base + GPC_PGC_CPU_PUPSCR);
+				   (sw << GPC_PGC_SW_SHIFT), gpc_base + GPC_PGC_CPU_PUPSCR);
 }
 
 void imx_gpc_set_arm_power_down_timing(u32 sw2iso, u32 sw)
 {
 	writel_relaxed((sw2iso << GPC_PGC_SW2ISO_SHIFT) |
-		(sw << GPC_PGC_SW_SHIFT), gpc_base + GPC_PGC_CPU_PDNSCR);
+				   (sw << GPC_PGC_SW_SHIFT), gpc_base + GPC_PGC_CPU_PDNSCR);
 }
 
 void imx_gpc_set_arm_power_in_lpm(bool power_off)
@@ -79,9 +80,12 @@ void imx_gpc_pre_suspend(bool arm_power_off)
 
 	/* Tell GPC to power off ARM core when suspend */
 	if (arm_power_off)
+	{
 		imx_gpc_set_arm_power_in_lpm(arm_power_off);
+	}
 
-	for (i = 0; i < IMR_NUM; i++) {
+	for (i = 0; i < IMR_NUM; i++)
+	{
 		gpc_saved_imrs[i] = readl_relaxed(reg_imr1 + i * 4);
 		writel_relaxed(~gpc_wake_irqs[i], reg_imr1 + i * 4);
 	}
@@ -96,7 +100,9 @@ void imx_gpc_post_resume(void)
 	imx_gpc_set_arm_power_in_lpm(false);
 
 	for (i = 0; i < IMR_NUM; i++)
+	{
 		writel_relaxed(gpc_saved_imrs[i], reg_imr1 + i * 4);
+	}
 }
 
 static int imx_gpc_irq_set_wake(struct irq_data *d, unsigned int on)
@@ -106,7 +112,7 @@ static int imx_gpc_irq_set_wake(struct irq_data *d, unsigned int on)
 
 	mask = 1 << d->hwirq % 32;
 	gpc_wake_irqs[idx] = on ? gpc_wake_irqs[idx] | mask :
-				  gpc_wake_irqs[idx] & ~mask;
+						 gpc_wake_irqs[idx] & ~mask;
 
 	/*
 	 * Do *not* call into the parent, as the GIC doesn't have any
@@ -120,7 +126,8 @@ void imx_gpc_mask_all(void)
 	void __iomem *reg_imr1 = gpc_base + GPC_IMR1;
 	int i;
 
-	for (i = 0; i < IMR_NUM; i++) {
+	for (i = 0; i < IMR_NUM; i++)
+	{
 		gpc_saved_imrs[i] = readl_relaxed(reg_imr1 + i * 4);
 		writel_relaxed(~0, reg_imr1 + i * 4);
 	}
@@ -133,7 +140,9 @@ void imx_gpc_restore_all(void)
 	int i;
 
 	for (i = 0; i < IMR_NUM; i++)
+	{
 		writel_relaxed(gpc_saved_imrs[i], reg_imr1 + i * 4);
+	}
 }
 
 void imx_gpc_hwirq_unmask(unsigned int hwirq)
@@ -170,7 +179,8 @@ static void imx_gpc_irq_mask(struct irq_data *d)
 	irq_chip_mask_parent(d);
 }
 
-static struct irq_chip imx_gpc_chip = {
+static struct irq_chip imx_gpc_chip =
+{
 	.name			= "GPC",
 	.irq_eoi		= irq_chip_eoi_parent,
 	.irq_mask		= imx_gpc_irq_mask,
@@ -184,17 +194,22 @@ static struct irq_chip imx_gpc_chip = {
 };
 
 static int imx_gpc_domain_translate(struct irq_domain *d,
-				    struct irq_fwspec *fwspec,
-				    unsigned long *hwirq,
-				    unsigned int *type)
+									struct irq_fwspec *fwspec,
+									unsigned long *hwirq,
+									unsigned int *type)
 {
-	if (is_of_node(fwspec->fwnode)) {
+	if (is_of_node(fwspec->fwnode))
+	{
 		if (fwspec->param_count != 3)
+		{
 			return -EINVAL;
+		}
 
 		/* No PPI should point to this domain */
 		if (fwspec->param[0] != 0)
+		{
 			return -EINVAL;
+		}
 
 		*hwirq = fwspec->param[1];
 		*type = fwspec->param[2];
@@ -205,8 +220,8 @@ static int imx_gpc_domain_translate(struct irq_domain *d,
 }
 
 static int imx_gpc_domain_alloc(struct irq_domain *domain,
-				  unsigned int irq,
-				  unsigned int nr_irqs, void *data)
+								unsigned int irq,
+								unsigned int nr_irqs, void *data)
 {
 	struct irq_fwspec *fwspec = data;
 	struct irq_fwspec parent_fwspec;
@@ -214,62 +229,81 @@ static int imx_gpc_domain_alloc(struct irq_domain *domain,
 	int i;
 
 	if (fwspec->param_count != 3)
-		return -EINVAL;	/* Not GIC compliant */
+	{
+		return -EINVAL;    /* Not GIC compliant */
+	}
+
 	if (fwspec->param[0] != 0)
-		return -EINVAL;	/* No PPI should point to this domain */
+	{
+		return -EINVAL;    /* No PPI should point to this domain */
+	}
 
 	hwirq = fwspec->param[1];
+
 	if (hwirq >= GPC_MAX_IRQS)
-		return -EINVAL;	/* Can't deal with this */
+	{
+		return -EINVAL;    /* Can't deal with this */
+	}
 
 	for (i = 0; i < nr_irqs; i++)
 		irq_domain_set_hwirq_and_chip(domain, irq + i, hwirq + i,
-					      &imx_gpc_chip, NULL);
+									  &imx_gpc_chip, NULL);
 
 	parent_fwspec = *fwspec;
 	parent_fwspec.fwnode = domain->parent->fwnode;
 	return irq_domain_alloc_irqs_parent(domain, irq, nr_irqs,
-					    &parent_fwspec);
+										&parent_fwspec);
 }
 
-static const struct irq_domain_ops imx_gpc_domain_ops = {
+static const struct irq_domain_ops imx_gpc_domain_ops =
+{
 	.translate	= imx_gpc_domain_translate,
 	.alloc		= imx_gpc_domain_alloc,
 	.free		= irq_domain_free_irqs_common,
 };
 
 static int __init imx_gpc_init(struct device_node *node,
-			       struct device_node *parent)
+							   struct device_node *parent)
 {
 	struct irq_domain *parent_domain, *domain;
 	int i;
 
-	if (!parent) {
+	if (!parent)
+	{
 		pr_err("%s: no parent, giving up\n", node->full_name);
 		return -ENODEV;
 	}
 
 	parent_domain = irq_find_host(parent);
-	if (!parent_domain) {
+
+	if (!parent_domain)
+	{
 		pr_err("%s: unable to obtain parent domain\n", node->full_name);
 		return -ENXIO;
 	}
 
 	gpc_base = of_iomap(node, 0);
+
 	if (WARN_ON(!gpc_base))
-	        return -ENOMEM;
+	{
+		return -ENOMEM;
+	}
 
 	domain = irq_domain_add_hierarchy(parent_domain, 0, GPC_MAX_IRQS,
-					  node, &imx_gpc_domain_ops,
-					  NULL);
-	if (!domain) {
+									  node, &imx_gpc_domain_ops,
+									  NULL);
+
+	if (!domain)
+	{
 		iounmap(gpc_base);
 		return -ENOMEM;
 	}
 
 	/* Initially mask all interrupts */
 	for (i = 0; i < IMR_NUM; i++)
+	{
 		writel_relaxed(~0, gpc_base + GPC_IMR1 + i * 4);
+	}
 
 	/*
 	 * Clear the OF_POPULATED flag set in of_irq_init so that
@@ -286,10 +320,14 @@ void __init imx_gpc_check_dt(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-gpc");
-	if (WARN_ON(!np))
-		return;
 
-	if (WARN_ON(!of_find_property(np, "interrupt-controller", NULL))) {
+	if (WARN_ON(!np))
+	{
+		return;
+	}
+
+	if (WARN_ON(!of_find_property(np, "interrupt-controller", NULL)))
+	{
 		pr_warn("Outdated DT detected, suspend/resume will NOT work\n");
 
 		/* map GPC, so that at least CPUidle and WARs keep working */
@@ -326,7 +364,9 @@ static int imx6q_pm_pu_power_off(struct generic_pm_domain *genpd)
 	_imx6q_pm_pu_power_off(genpd);
 
 	if (pu->reg)
+	{
 		regulator_disable(pu->reg);
+	}
 
 	return 0;
 }
@@ -338,15 +378,21 @@ static int imx6q_pm_pu_power_on(struct generic_pm_domain *genpd)
 	u32 val;
 
 	if (pu->reg)
+	{
 		ret = regulator_enable(pu->reg);
-	if (pu->reg && ret) {
+	}
+
+	if (pu->reg && ret)
+	{
 		pr_err("%s: failed to enable regulator: %d\n", __func__, ret);
 		return ret;
 	}
 
 	/* Enable reset clocks for all devices in the PU domain */
 	for (i = 0; i < pu->num_clks; i++)
+	{
 		clk_prepare_enable(pu->clk[i]);
+	}
 
 	/* Gate off PU domain when GPU/VPU when powered down */
 	writel_relaxed(0x1, gpc_base + GPC_PGC_GPU_PDN);
@@ -366,16 +412,20 @@ static int imx6q_pm_pu_power_on(struct generic_pm_domain *genpd)
 
 	/* Disable reset clocks for all devices in the PU domain */
 	for (i = 0; i < pu->num_clks; i++)
+	{
 		clk_disable_unprepare(pu->clk[i]);
+	}
 
 	return 0;
 }
 
-static struct generic_pm_domain imx6q_arm_domain = {
+static struct generic_pm_domain imx6q_arm_domain =
+{
 	.name = "ARM",
 };
 
-static struct pu_domain imx6q_pu_domain = {
+static struct pu_domain imx6q_pu_domain =
+{
 	.base = {
 		.name = "PU",
 		.power_off = imx6q_pm_pu_power_off,
@@ -390,17 +440,20 @@ static struct pu_domain imx6q_pu_domain = {
 	},
 };
 
-static struct generic_pm_domain imx6sl_display_domain = {
+static struct generic_pm_domain imx6sl_display_domain =
+{
 	.name = "DISPLAY",
 };
 
-static struct generic_pm_domain *imx_gpc_domains[] = {
+static struct generic_pm_domain *imx_gpc_domains[] =
+{
 	&imx6q_arm_domain,
 	&imx6q_pu_domain.base,
 	&imx6sl_display_domain,
 };
 
-static struct genpd_onecell_data imx_gpc_onecell_data = {
+static struct genpd_onecell_data imx_gpc_onecell_data =
+{
 	.domains = imx_gpc_domains,
 	.num_domains = ARRAY_SIZE(imx_gpc_domains),
 };
@@ -412,39 +465,58 @@ static int imx_gpc_genpd_init(struct device *dev, struct regulator *pu_reg)
 
 	imx6q_pu_domain.reg = pu_reg;
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		clk = of_clk_get(dev->of_node, i);
+
 		if (IS_ERR(clk))
+		{
 			break;
-		if (i >= GPC_CLK_MAX) {
+		}
+
+		if (i >= GPC_CLK_MAX)
+		{
 			dev_err(dev, "more than %d clocks\n", GPC_CLK_MAX);
 			goto clk_err;
 		}
+
 		imx6q_pu_domain.clk[i] = clk;
 	}
+
 	imx6q_pu_domain.num_clks = i;
 
 	/* Enable power always in case bootloader disabled it. */
 	imx6q_pm_pu_power_on(&imx6q_pu_domain.base);
 
 	if (!IS_ENABLED(CONFIG_PM_GENERIC_DOMAINS))
+	{
 		return 0;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(imx_gpc_domains); i++)
+	{
 		pm_genpd_init(imx_gpc_domains[i], NULL, false);
+	}
 
 	ret =  of_genpd_add_provider_onecell(dev->of_node,
-					     &imx_gpc_onecell_data);
+										 &imx_gpc_onecell_data);
+
 	if (ret)
+	{
 		goto power_off;
+	}
 
 	return 0;
 
 power_off:
 	imx6q_pm_pu_power_off(&imx6q_pu_domain.base);
 clk_err:
+
 	while (i--)
+	{
 		clk_put(imx6q_pu_domain.clk[i]);
+	}
+
 	imx6q_pu_domain.reg = NULL;
 	return -EINVAL;
 }
@@ -456,12 +528,19 @@ static int imx_gpc_probe(struct platform_device *pdev)
 
 	/* bail out if DT too old and doesn't provide the necessary info */
 	if (!of_property_read_bool(pdev->dev.of_node, "#power-domain-cells"))
+	{
 		return 0;
+	}
 
 	pu_reg = devm_regulator_get_optional(&pdev->dev, "pu");
+
 	if (PTR_ERR(pu_reg) == -ENODEV)
+	{
 		pu_reg = NULL;
-	if (IS_ERR(pu_reg)) {
+	}
+
+	if (IS_ERR(pu_reg))
+	{
 		ret = PTR_ERR(pu_reg);
 		dev_err(&pdev->dev, "failed to get pu regulator: %d\n", ret);
 		return ret;
@@ -470,13 +549,15 @@ static int imx_gpc_probe(struct platform_device *pdev)
 	return imx_gpc_genpd_init(&pdev->dev, pu_reg);
 }
 
-static const struct of_device_id imx_gpc_dt_ids[] = {
+static const struct of_device_id imx_gpc_dt_ids[] =
+{
 	{ .compatible = "fsl,imx6q-gpc" },
 	{ .compatible = "fsl,imx6sl-gpc" },
 	{ }
 };
 
-static struct platform_driver imx_gpc_driver = {
+static struct platform_driver imx_gpc_driver =
+{
 	.driver = {
 		.name = "imx-gpc",
 		.of_match_table = imx_gpc_dt_ids,

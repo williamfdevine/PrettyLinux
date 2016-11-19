@@ -32,7 +32,7 @@ void __init init_sh7763rdp_IRQ(void)
 
 	/* enable GPIO interrupts */
 	__raw_writel((__raw_readl(INTC_INT2PRI7) & 0xFF00FFFF) | 0x000F0000,
-		  INTC_INT2PRI7);
+				 INTC_INT2PRI7);
 
 	/* USBH enabled */
 	__raw_writel(1 << 17, INTC_INT2MSKCR1);

@@ -23,7 +23,8 @@
 #define PPC_DBELL_TYPE_MASK	PPC_DBELL_TYPE(0xf)
 #define PPC_DBELL_LPID(x)	((x) << (63 - 49))
 #define PPC_DBELL_PIR_MASK	0x3fff
-enum ppc_dbell {
+enum ppc_dbell
+{
 	PPC_DBELL = 0,		/* doorbell */
 	PPC_DBELL_CRIT = 1,	/* critical doorbell */
 	PPC_G_DBELL = 2,	/* guest doorbell */
@@ -41,9 +42,13 @@ enum ppc_dbell {
 static inline void _ppc_msgsnd(u32 msg)
 {
 	if (cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		__asm__ __volatile__ (PPC_MSGSND(%0) : : "r" (msg));
+	}
 	else
+	{
 		__asm__ __volatile__ (PPC_MSGSNDP(%0) : : "r" (msg));
+	}
 }
 
 #else /* CONFIG_PPC_BOOK3S */
@@ -66,7 +71,7 @@ extern void doorbell_setup_this_cpu(void);
 static inline void ppc_msgsnd(enum ppc_dbell type, u32 flags, u32 tag)
 {
 	u32 msg = PPC_DBELL_TYPE(type) | (flags & PPC_DBELL_MSG_BRDCAST) |
-			(tag & 0x07ffffff);
+			  (tag & 0x07ffffff);
 
 	_ppc_msgsnd(msg);
 }

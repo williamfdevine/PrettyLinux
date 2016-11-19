@@ -45,9 +45,13 @@ static int is64bit = 0;
 static int align(int n)
 {
 	if (is64bit)
+	{
 		return (n + 0x1fff) & ~0x1fff;
+	}
 	else
+	{
 		return (n + 0xfff) & ~0xfff;
+	}
 }
 
 /* read two bytes as big endian */
@@ -82,18 +86,28 @@ static void usage(void)
 static int start_line(const char *line)
 {
 	if (strcmp(line + 10, " _start\n") == 0)
+	{
 		return 1;
+	}
 	else if (strcmp(line + 18, " _start\n") == 0)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static int end_line(const char *line)
 {
 	if (strcmp(line + 10, " _end\n") == 0)
+	{
 		return 1;
+	}
 	else if (strcmp (line + 18, " _end\n") == 0)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -109,7 +123,7 @@ static int end_line(const char *line)
  * Return 0 if either start or end is not found
  */
 static int get_start_end(const char *filename, unsigned int *start,
-                                               unsigned int *end)
+						 unsigned int *end)
 {
 	FILE *map;
 	char buffer[1024];
@@ -117,18 +131,30 @@ static int get_start_end(const char *filename, unsigned int *start,
 	*start = 0;
 	*end = 0;
 	map = fopen(filename, "r");
+
 	if (!map)
+	{
 		die(filename);
-	while (fgets(buffer, 1024, map)) {
-		if (start_line(buffer))
-			*start = strtoul(buffer, NULL, 16);
-		else if (end_line(buffer))
-			*end = strtoul(buffer, NULL, 16);
 	}
+
+	while (fgets(buffer, 1024, map))
+	{
+		if (start_line(buffer))
+		{
+			*start = strtoul(buffer, NULL, 16);
+		}
+		else if (end_line(buffer))
+		{
+			*end = strtoul(buffer, NULL, 16);
+		}
+	}
+
 	fclose (map);
 
 	if (*start == 0 || *end == 0)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -150,14 +176,22 @@ static off_t get_hdrs_offset(int kernelfd, const char *filename)
 	int i;
 
 	if (lseek(kernelfd, 0, SEEK_SET) < 0)
+	{
 		die("lseek");
+	}
+
 	if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
+	{
 		die(filename);
+	}
 
 	if (buffer[40] == 'H' && buffer[41] == 'd' &&
-	    buffer[42] == 'r' && buffer[43] == 'S') {
+		buffer[42] == 'r' && buffer[43] == 'S')
+	{
 		return 40;
-	} else {
+	}
+	else
+	{
 		/*  Find the gokernel label */
 		/* Decode offset from branch instruction */
 		offset = ld2(buffer + AOUT_TEXT_OFFSET + 2) << 2;
@@ -165,23 +199,32 @@ static off_t get_hdrs_offset(int kernelfd, const char *filename)
 		offset -= LOOKBACK;
 		/* skip a.out header */
 		offset += AOUT_TEXT_OFFSET;
-		if (lseek(kernelfd, offset, SEEK_SET) < 0)
-			die("lseek");
-		if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
-			die(filename);
 
-		for (i = 0; i < LOOKBACK; i += 4) {
+		if (lseek(kernelfd, offset, SEEK_SET) < 0)
+		{
+			die("lseek");
+		}
+
+		if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
+		{
+			die(filename);
+		}
+
+		for (i = 0; i < LOOKBACK; i += 4)
+		{
 			if (buffer[i + 0] == 'H' && buffer[i + 1] == 'd' &&
-			    buffer[i + 2] == 'r' && buffer[i + 3] == 'S') {
+				buffer[i + 2] == 'r' && buffer[i + 3] == 'S')
+			{
 				return offset + i;
 			}
 		}
 	}
+
 	fprintf (stderr, "Couldn't find headers signature in %s\n", filename);
 	exit(1);
 }
 
-int main(int argc,char **argv)
+int main(int argc, char **argv)
 {
 	static char aout_magic[] = { 0x01, 0x03, 0x01, 0x07 };
 	char buffer[1024];
@@ -191,25 +234,43 @@ int main(int argc,char **argv)
 	int image, tail;
 
 	if (argc != 5)
+	{
 		usage();
-	if (strcmp(argv[1], "64") == 0)
-		is64bit = 1;
-	if (stat (argv[4], &s) < 0)
-		die(argv[4]);
+	}
 
-	if (!get_start_end(argv[3], &start, &end)) {
+	if (strcmp(argv[1], "64") == 0)
+	{
+		is64bit = 1;
+	}
+
+	if (stat (argv[4], &s) < 0)
+	{
+		die(argv[4]);
+	}
+
+	if (!get_start_end(argv[3], &start, &end))
+	{
 		fprintf(stderr, "Could not determine start and end from %s\n",
-		        argv[3]);
+				argv[3]);
 		exit(1);
 	}
+
 	if ((image = open(argv[2], O_RDWR)) < 0)
+	{
 		die(argv[2]);
+	}
+
 	if (read(image, buffer, 512) != 512)
+	{
 		die(argv[2]);
-	if (memcmp(buffer, aout_magic, 4) != 0) {
+	}
+
+	if (memcmp(buffer, aout_magic, 4) != 0)
+	{
 		fprintf (stderr, "Not a.out. Don't blame me.\n");
 		exit(1);
 	}
+
 	/*
 	 * We need to fill in values for
 	 * sparc_ramdisk_image + sparc_ramdisk_size
@@ -223,7 +284,9 @@ int main(int argc,char **argv)
 	offset += 10;
 
 	if (lseek(image, offset, 0) < 0)
+	{
 		die("lseek");
+	}
 
 	/*
 	 * root_flags = 0
@@ -238,35 +301,58 @@ int main(int argc,char **argv)
 	st4(buffer + 12, s.st_size);
 
 	if (write(image, buffer + 2, 14) != 14)
+	{
 		die(argv[2]);
+	}
 
 	/* For sparc64 update a_text and clear a_data + a_bss */
 	if (is64bit)
 	{
 		if (lseek(image, 4, 0) < 0)
+		{
 			die("lseek");
+		}
+
 		/* a_text */
 		st4(buffer, align(end + 32 + 8191) - (start & ~0x3fffffUL) +
-		            s.st_size);
+			s.st_size);
 		/* a_data */
 		st4(buffer + 4, 0);
 		/* a_bss */
 		st4(buffer + 8, 0);
+
 		if (write(image, buffer, 12) != 12)
+		{
 			die(argv[2]);
+		}
 	}
 
 	/* seek page aligned boundary in the image file and add boot image */
 	if (lseek(image, AOUT_TEXT_OFFSET - start + align(end + 32), 0) < 0)
+	{
 		die("lseek");
+	}
+
 	if ((tail = open(argv[4], O_RDONLY)) < 0)
+	{
 		die(argv[4]);
+	}
+
 	while ((i = read(tail, buffer, 1024)) > 0)
 		if (write(image, buffer, i) != i)
+		{
 			die(argv[2]);
+		}
+
 	if (close(image) < 0)
+	{
 		die("close");
+	}
+
 	if (close(tail) < 0)
+	{
 		die("close");
+	}
+
 	return 0;
 }

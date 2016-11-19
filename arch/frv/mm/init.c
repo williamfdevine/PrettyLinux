@@ -78,7 +78,9 @@ void __init paging_init(void)
 	memset((void *) empty_zero_page, 0, PAGE_SIZE);
 
 #ifdef CONFIG_HIGHMEM
-	if (get_num_physpages() - num_mappedpages) {
+
+	if (get_num_physpages() - num_mappedpages)
+	{
 		pgd_t *pge;
 		pud_t *pue;
 		pmd_t *pme;
@@ -90,6 +92,7 @@ void __init paging_init(void)
 		pme = pmd_offset(pue, PKMAP_BASE);
 		__set_pmd(pme, virt_to_phys(pkmap_page_table) | _PAGE_TABLE);
 	}
+
 #endif
 
 	/* distribute the allocatable pages across the various zones and pass them to the allocator
@@ -123,15 +126,18 @@ void __init mem_init(void)
 		unsigned long pfn;
 
 		for (pfn = get_num_physpages() - 1;
-		     pfn >= num_mappedpages; pfn--)
+			 pfn >= num_mappedpages; pfn--)
+		{
 			free_highmem_page(&mem_map[pfn]);
+		}
 	}
 #endif
 
 	mem_init_print_info(NULL);
+
 	if (rom_length > 0 && rom_length >= code_size)
 		printk("Memory available:  %luKiB/%luKiB ROM\n",
-			(rom_length - code_size) >> 10, rom_length >> 10);
+			   (rom_length - code_size) >> 10, rom_length >> 10);
 } /* end mem_init() */
 
 /*****************************************************************************/

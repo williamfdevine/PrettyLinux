@@ -42,18 +42,21 @@
 /* set if kernel is in ST-RAM */
 static int kernel_in_stram;
 
-static struct resource stram_pool = {
+static struct resource stram_pool =
+{
 	.name = "ST-RAM Pool"
 };
 
-static unsigned long pool_size = 1024*1024;
+static unsigned long pool_size = 1024 * 1024;
 
 static unsigned long stram_virt_offset;
 
 static int __init atari_stram_setup(char *arg)
 {
 	if (!MACH_IS_ATARI)
+	{
 		return 0;
+	}
 
 	pool_size = memparse(arg, NULL);
 	return 0;
@@ -76,8 +79,10 @@ void __init atari_stram_init(void)
 	 */
 	kernel_in_stram = (m68k_memory[0].addr == 0);
 
-	for (i = 0; i < m68k_num_memory; ++i) {
-		if (m68k_memory[i].addr == 0) {
+	for (i = 0; i < m68k_num_memory; ++i)
+	{
+		if (m68k_memory[i].addr == 0)
+		{
 			return;
 		}
 	}
@@ -93,16 +98,17 @@ void __init atari_stram_init(void)
  */
 void __init atari_stram_reserve_pages(void *start_mem)
 {
-	if (kernel_in_stram) {
+	if (kernel_in_stram)
+	{
 		pr_debug("atari_stram pool: kernel in ST-RAM, using alloc_bootmem!\n");
 		stram_pool.start = (resource_size_t)alloc_bootmem_low_pages(pool_size);
 		stram_pool.end = stram_pool.start + pool_size - 1;
 		request_resource(&iomem_resource, &stram_pool);
 		stram_virt_offset = 0;
 		pr_debug("atari_stram pool: size = %lu bytes, resource = %pR\n",
-			pool_size, &stram_pool);
+				 pool_size, &stram_pool);
 		pr_debug("atari_stram pool: stram_virt_offset = %lx\n",
-			stram_virt_offset);
+				 stram_virt_offset);
 	}
 }
 
@@ -113,7 +119,8 @@ void __init atari_stram_reserve_pages(void *start_mem)
  */
 int __init atari_stram_map_pages(void)
 {
-	if (!kernel_in_stram) {
+	if (!kernel_in_stram)
+	{
 		/*
 		 * Skip page 0, as the fhe first 2 KiB are supervisor-only!
 		 */
@@ -122,12 +129,13 @@ int __init atari_stram_map_pages(void)
 		stram_pool.end = stram_pool.start + pool_size - 1;
 		request_resource(&iomem_resource, &stram_pool);
 		stram_virt_offset = (unsigned long) ioremap(stram_pool.start,
-				resource_size(&stram_pool)) - stram_pool.start;
+							resource_size(&stram_pool)) - stram_pool.start;
 		pr_debug("atari_stram pool: size = %lu bytes, resource = %pR\n",
-			pool_size, &stram_pool);
+				 pool_size, &stram_pool);
 		pr_debug("atari_stram pool: stram_virt_offset = %lx\n",
-			stram_virt_offset);
+				 stram_virt_offset);
 	}
+
 	return 0;
 }
 arch_initcall(atari_stram_map_pages);
@@ -158,15 +166,20 @@ void *atari_stram_alloc(unsigned long size, const char *owner)
 	size = PAGE_ALIGN(size);
 
 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+
 	if (!res)
+	{
 		return NULL;
+	}
 
 	res->name = owner;
 	error = allocate_resource(&stram_pool, res, size, 0, UINT_MAX,
-				  PAGE_SIZE, NULL, NULL);
-	if (error < 0) {
+							  PAGE_SIZE, NULL, NULL);
+
+	if (error < 0)
+	{
 		pr_err("atari_stram_alloc: allocate_resource() failed %d!\n",
-		       error);
+			   error);
 		kfree(res);
 		return NULL;
 	}
@@ -184,9 +197,11 @@ void atari_stram_free(void *addr)
 	unsigned long size;
 
 	res = lookup_resource(&stram_pool, start);
-	if (!res) {
+
+	if (!res)
+	{
 		pr_err("atari_stram_free: trying to free nonexistent region "
-		       "at %p\n", addr);
+			   "at %p\n", addr);
 		return;
 	}
 

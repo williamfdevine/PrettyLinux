@@ -120,15 +120,15 @@ void output_thread_defines(void)
 	OFFSET(THREAD_REG30, task_struct, thread.reg30);
 	OFFSET(THREAD_REG31, task_struct, thread.reg31);
 	OFFSET(THREAD_STATUS, task_struct,
-	       thread.cp0_status);
+		   thread.cp0_status);
 	OFFSET(THREAD_FPU, task_struct, thread.fpu);
 
 	OFFSET(THREAD_BVADDR, task_struct, \
-	       thread.cp0_badvaddr);
+		   thread.cp0_badvaddr);
 	OFFSET(THREAD_BUADDR, task_struct, \
-	       thread.cp0_baduaddr);
+		   thread.cp0_baduaddr);
 	OFFSET(THREAD_ECODE, task_struct, \
-	       thread.error_code);
+		   thread.error_code);
 	OFFSET(THREAD_TRAPNO, task_struct, thread.trap_nr);
 	BLANK();
 }

@@ -47,7 +47,7 @@ static inline void imx_iomuxv1_writel(unsigned long val, unsigned offset)
 }
 
 static inline void imx_iomuxv1_rmwl(unsigned offset,
-		unsigned long mask, unsigned long value)
+									unsigned long mask, unsigned long value)
 {
 	unsigned long reg = imx_iomuxv1_readl(offset);
 
@@ -58,7 +58,7 @@ static inline void imx_iomuxv1_rmwl(unsigned offset,
 }
 
 static inline void imx_iomuxv1_set_puen(
-		unsigned int port, unsigned int pin, int on)
+	unsigned int port, unsigned int pin, int on)
 {
 	unsigned long mask = 1 << pin;
 
@@ -66,7 +66,7 @@ static inline void imx_iomuxv1_set_puen(
 }
 
 static inline void imx_iomuxv1_set_ddir(
-		unsigned int port, unsigned int pin, int out)
+	unsigned int port, unsigned int pin, int out)
 {
 	unsigned long mask = 1 << pin;
 
@@ -74,7 +74,7 @@ static inline void imx_iomuxv1_set_ddir(
 }
 
 static inline void imx_iomuxv1_set_gpr(
-		unsigned int port, unsigned int pin, int af)
+	unsigned int port, unsigned int pin, int af)
 {
 	unsigned long mask = 1 << pin;
 
@@ -82,7 +82,7 @@ static inline void imx_iomuxv1_set_gpr(
 }
 
 static inline void imx_iomuxv1_set_gius(
-		unsigned int port, unsigned int pin, int inuse)
+	unsigned int port, unsigned int pin, int inuse)
 {
 	unsigned long mask = 1 << pin;
 
@@ -90,7 +90,7 @@ static inline void imx_iomuxv1_set_gius(
 }
 
 static inline void imx_iomuxv1_set_ocr(
-		unsigned int port, unsigned int pin, unsigned int ocr)
+	unsigned int port, unsigned int pin, unsigned int ocr)
 {
 	unsigned long shift = (pin & 0xf) << 1;
 	unsigned long mask = 3 << shift;
@@ -101,7 +101,7 @@ static inline void imx_iomuxv1_set_ocr(
 }
 
 static inline void imx_iomuxv1_set_iconfa(
-		unsigned int port, unsigned int pin, unsigned int aout)
+	unsigned int port, unsigned int pin, unsigned int aout)
 {
 	unsigned long shift = (pin & 0xf) << 1;
 	unsigned long mask = 3 << shift;
@@ -112,7 +112,7 @@ static inline void imx_iomuxv1_set_iconfa(
 }
 
 static inline void imx_iomuxv1_set_iconfb(
-		unsigned int port, unsigned int pin, unsigned int bout)
+	unsigned int port, unsigned int pin, unsigned int bout)
 {
 	unsigned long shift = (pin & 0xf) << 1;
 	unsigned long mask = 3 << shift;
@@ -131,7 +131,9 @@ int mxc_gpio_mode(int gpio_mode)
 	unsigned int bout = (gpio_mode >> GPIO_BOUT_SHIFT) & 3;
 
 	if (port >= imx_iomuxv1_numports)
+	{
 		return -EINVAL;
+	}
 
 	/* Pullup enable */
 	imx_iomuxv1_set_puen(port, pin, gpio_mode & GPIO_PUEN);
@@ -159,18 +161,21 @@ static int imx_iomuxv1_setup_multiple(const int *list, unsigned count)
 	size_t i;
 	int ret = 0;
 
-	for (i = 0; i < count; ++i) {
+	for (i = 0; i < count; ++i)
+	{
 		ret = mxc_gpio_mode(list[i]);
 
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return ret;
 }
 
 int mxc_gpio_setup_multiple_pins(const int *pin_list, unsigned count,
-		const char *label)
+								 const char *label)
 {
 	int ret;
 

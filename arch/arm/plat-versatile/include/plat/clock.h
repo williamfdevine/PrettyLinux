@@ -3,7 +3,8 @@
 
 #include <asm/hardware/icst.h>
 
-struct clk_ops {
+struct clk_ops
+{
 	long	(*round)(struct clk *, unsigned long);
 	int	(*set)(struct clk *, unsigned long);
 	void	(*setvco)(struct clk *, struct icst_vco);

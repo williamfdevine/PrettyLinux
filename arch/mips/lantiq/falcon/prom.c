@@ -61,30 +61,37 @@ void __init ltq_soc_detect(struct ltq_soc_info *i)
 	i->compatible = COMP_FALCON;
 	i->type = SOC_TYPE_FALCON;
 	sprintf(i->rev_type, "%c%d%d", (i->srev & 0x4) ? ('B') : ('A'),
-		i->rev & 0x7, (i->srev & 0x3) + 1);
+			i->rev & 0x7, (i->srev & 0x3) + 1);
 
-	switch (i->partnum) {
-	case SOC_ID_FALCON:
-		type = (ltq_r32(FALCON_CHIPTYPE) & TYPE_MASK) >> TYPE_SHIFT;
-		switch (type) {
-		case 0:
-			i->name = SOC_FALCON_D;
+	switch (i->partnum)
+	{
+		case SOC_ID_FALCON:
+			type = (ltq_r32(FALCON_CHIPTYPE) & TYPE_MASK) >> TYPE_SHIFT;
+
+			switch (type)
+			{
+				case 0:
+					i->name = SOC_FALCON_D;
+					break;
+
+				case 1:
+					i->name = SOC_FALCON_V;
+					break;
+
+				case 2:
+					i->name = SOC_FALCON_M;
+					break;
+
+				default:
+					i->name = SOC_FALCON;
+					break;
+			}
+
 			break;
-		case 1:
-			i->name = SOC_FALCON_V;
-			break;
-		case 2:
-			i->name = SOC_FALCON_M;
-			break;
+
 		default:
-			i->name = SOC_FALCON;
+			unreachable();
 			break;
-		}
-		break;
-
-	default:
-		unreachable();
-		break;
 	}
 
 	board_nmi_handler_setup = ltq_soc_nmi_setup;

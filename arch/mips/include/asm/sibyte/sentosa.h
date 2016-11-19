@@ -22,16 +22,16 @@
 #include <asm/sibyte/sb1250_int.h>
 
 #ifdef CONFIG_SIBYTE_SENTOSA
-#define SIBYTE_BOARD_NAME "BCM91250E (Sentosa)"
+	#define SIBYTE_BOARD_NAME "BCM91250E (Sentosa)"
 #endif
 #ifdef CONFIG_SIBYTE_RHONE
-#define SIBYTE_BOARD_NAME "BCM91125E (Rhone)"
+	#define SIBYTE_BOARD_NAME "BCM91125E (Rhone)"
 #endif
 
 /* Generic bus chip selects */
 #ifdef CONFIG_SIBYTE_RHONE
-#define LEDS_CS		6
-#define LEDS_PHYS	0x1d0a0000
+	#define LEDS_CS		6
+	#define LEDS_PHYS	0x1d0a0000
 #endif
 
 /* GPIOs */

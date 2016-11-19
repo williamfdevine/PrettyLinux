@@ -156,7 +156,8 @@
 /* ??? access BAR */
 #define AR2315_PCI_HOST_MBAR2		0x30000000
 
-struct ar2315_pci_ctrl {
+struct ar2315_pci_ctrl
+{
 	void __iomem *cfg_mem;
 	void __iomem *mmr_mem;
 	unsigned irq;
@@ -180,13 +181,13 @@ static inline u32 ar2315_pci_reg_read(struct ar2315_pci_ctrl *apc, u32 reg)
 }
 
 static inline void ar2315_pci_reg_write(struct ar2315_pci_ctrl *apc, u32 reg,
-					u32 val)
+										u32 val)
 {
 	__raw_writel(val, apc->mmr_mem + reg);
 }
 
 static inline void ar2315_pci_reg_mask(struct ar2315_pci_ctrl *apc, u32 reg,
-				       u32 mask, u32 val)
+									   u32 mask, u32 val)
 {
 	u32 ret = ar2315_pci_reg_read(apc, reg);
 
@@ -196,7 +197,7 @@ static inline void ar2315_pci_reg_mask(struct ar2315_pci_ctrl *apc, u32 reg,
 }
 
 static int ar2315_pci_cfg_access(struct ar2315_pci_ctrl *apc, unsigned devfn,
-				 int where, int size, u32 *ptr, bool write)
+								 int where, int size, u32 *ptr, bool write)
 {
 	int func = PCI_FUNC(devfn);
 	int dev = PCI_SLOT(devfn);
@@ -207,13 +208,15 @@ static int ar2315_pci_cfg_access(struct ar2315_pci_ctrl *apc, unsigned devfn,
 
 	/* Prevent access past the remapped area */
 	if (addr >= AR2315_PCI_CFG_SIZE || dev > 18)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	/* Clear pending errors */
 	ar2315_pci_reg_write(apc, AR2315_PCI_ISR, AR2315_PCI_INT_ABORT);
 	/* Select Configuration access */
 	ar2315_pci_reg_mask(apc, AR2315_PCI_MISC_CONFIG, 0,
-			    AR2315_PCIMISC_CFG_SEL);
+						AR2315_PCIMISC_CFG_SEL);
 
 	mb();	/* PCI must see space change before we begin */
 
@@ -222,15 +225,23 @@ static int ar2315_pci_cfg_access(struct ar2315_pci_ctrl *apc, unsigned devfn,
 	isr = ar2315_pci_reg_read(apc, AR2315_PCI_ISR);
 
 	if (isr & AR2315_PCI_INT_ABORT)
+	{
 		goto exit_err;
+	}
 
-	if (write) {
+	if (write)
+	{
 		value = (value & ~(mask << sh)) | *ptr << sh;
 		__raw_writel(value, apc->cfg_mem + addr);
 		isr = ar2315_pci_reg_read(apc, AR2315_PCI_ISR);
+
 		if (isr & AR2315_PCI_INT_ABORT)
+		{
 			goto exit_err;
-	} else {
+		}
+	}
+	else
+	{
 		*ptr = (value >> sh) & mask;
 	}
 
@@ -238,55 +249,63 @@ static int ar2315_pci_cfg_access(struct ar2315_pci_ctrl *apc, unsigned devfn,
 
 exit_err:
 	ar2315_pci_reg_write(apc, AR2315_PCI_ISR, AR2315_PCI_INT_ABORT);
+
 	if (!write)
+	{
 		*ptr = 0xffffffff;
+	}
 
 exit:
 	/* Select Memory access */
 	ar2315_pci_reg_mask(apc, AR2315_PCI_MISC_CONFIG, AR2315_PCIMISC_CFG_SEL,
-			    0);
+						0);
 
 	return isr & AR2315_PCI_INT_ABORT ? PCIBIOS_DEVICE_NOT_FOUND :
-					    PCIBIOS_SUCCESSFUL;
+		   PCIBIOS_SUCCESSFUL;
 }
 
 static inline int ar2315_pci_local_cfg_rd(struct ar2315_pci_ctrl *apc,
-					  unsigned devfn, int where, u32 *val)
+		unsigned devfn, int where, u32 *val)
 {
 	return ar2315_pci_cfg_access(apc, devfn, where, sizeof(u32), val,
-				     false);
+								 false);
 }
 
 static inline int ar2315_pci_local_cfg_wr(struct ar2315_pci_ctrl *apc,
-					  unsigned devfn, int where, u32 val)
+		unsigned devfn, int where, u32 val)
 {
 	return ar2315_pci_cfg_access(apc, devfn, where, sizeof(u32), &val,
-				     true);
+								 true);
 }
 
 static int ar2315_pci_cfg_read(struct pci_bus *bus, unsigned devfn, int where,
-			       int size, u32 *value)
+							   int size, u32 *value)
 {
 	struct ar2315_pci_ctrl *apc = ar2315_pci_bus_to_apc(bus);
 
 	if (PCI_SLOT(devfn) == AR2315_PCI_HOST_SLOT)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	return ar2315_pci_cfg_access(apc, devfn, where, size, value, false);
 }
 
 static int ar2315_pci_cfg_write(struct pci_bus *bus, unsigned devfn, int where,
-				int size, u32 value)
+								int size, u32 value)
 {
 	struct ar2315_pci_ctrl *apc = ar2315_pci_bus_to_apc(bus);
 
 	if (PCI_SLOT(devfn) == AR2315_PCI_HOST_SLOT)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	return ar2315_pci_cfg_access(apc, devfn, where, size, &value, true);
 }
 
-static struct pci_ops ar2315_pci_ops = {
+static struct pci_ops ar2315_pci_ops =
+{
 	.read	= ar2315_pci_cfg_read,
 	.write	= ar2315_pci_cfg_write,
 };
@@ -298,22 +317,25 @@ static int ar2315_pci_host_setup(struct ar2315_pci_ctrl *apc)
 	u32 id;
 
 	res = ar2315_pci_local_cfg_rd(apc, devfn, PCI_VENDOR_ID, &id);
+
 	if (res != PCIBIOS_SUCCESSFUL || id != AR2315_PCI_HOST_DEVID)
+	{
 		return -ENODEV;
+	}
 
 	/* Program MBARs */
 	ar2315_pci_local_cfg_wr(apc, devfn, PCI_BASE_ADDRESS_0,
-				AR2315_PCI_HOST_MBAR0);
+							AR2315_PCI_HOST_MBAR0);
 	ar2315_pci_local_cfg_wr(apc, devfn, PCI_BASE_ADDRESS_1,
-				AR2315_PCI_HOST_MBAR1);
+							AR2315_PCI_HOST_MBAR1);
 	ar2315_pci_local_cfg_wr(apc, devfn, PCI_BASE_ADDRESS_2,
-				AR2315_PCI_HOST_MBAR2);
+							AR2315_PCI_HOST_MBAR2);
 
 	/* Run */
 	ar2315_pci_local_cfg_wr(apc, devfn, PCI_COMMAND, PCI_COMMAND_MEMORY |
-				PCI_COMMAND_MASTER | PCI_COMMAND_SPECIAL |
-				PCI_COMMAND_INVALIDATE | PCI_COMMAND_PARITY |
-				PCI_COMMAND_SERR | PCI_COMMAND_FAST_BACK);
+							PCI_COMMAND_MASTER | PCI_COMMAND_SPECIAL |
+							PCI_COMMAND_INVALIDATE | PCI_COMMAND_PARITY |
+							PCI_COMMAND_SERR | PCI_COMMAND_FAST_BACK);
 
 	return 0;
 }
@@ -322,16 +344,22 @@ static void ar2315_pci_irq_handler(struct irq_desc *desc)
 {
 	struct ar2315_pci_ctrl *apc = irq_desc_get_handler_data(desc);
 	u32 pending = ar2315_pci_reg_read(apc, AR2315_PCI_ISR) &
-		      ar2315_pci_reg_read(apc, AR2315_PCI_IMR);
+				  ar2315_pci_reg_read(apc, AR2315_PCI_IMR);
 	unsigned pci_irq = 0;
 
 	if (pending)
+	{
 		pci_irq = irq_find_mapping(apc->domain, __ffs(pending));
+	}
 
 	if (pci_irq)
+	{
 		generic_handle_irq(pci_irq);
+	}
 	else
+	{
 		spurious_interrupt();
+	}
 }
 
 static void ar2315_pci_irq_mask(struct irq_data *d)
@@ -357,7 +385,8 @@ static void ar2315_pci_irq_unmask(struct irq_data *d)
 	ar2315_pci_reg_mask(apc, AR2315_PCI_IMR, 0, BIT(d->hwirq));
 }
 
-static struct irq_chip ar2315_pci_irq_chip = {
+static struct irq_chip ar2315_pci_irq_chip =
+{
 	.name = "AR2315-PCI",
 	.irq_mask = ar2315_pci_irq_mask,
 	.irq_mask_ack = ar2315_pci_irq_mask_ack,
@@ -365,14 +394,15 @@ static struct irq_chip ar2315_pci_irq_chip = {
 };
 
 static int ar2315_pci_irq_map(struct irq_domain *d, unsigned irq,
-			      irq_hw_number_t hw)
+							  irq_hw_number_t hw)
 {
 	irq_set_chip_and_handler(irq, &ar2315_pci_irq_chip, handle_level_irq);
 	irq_set_chip_data(irq, d->host_data);
 	return 0;
 }
 
-static struct irq_domain_ops ar2315_pci_irq_domain_ops = {
+static struct irq_domain_ops ar2315_pci_irq_domain_ops =
+{
 	.map = ar2315_pci_irq_map,
 };
 
@@ -380,17 +410,17 @@ static void ar2315_pci_irq_init(struct ar2315_pci_ctrl *apc)
 {
 	ar2315_pci_reg_mask(apc, AR2315_PCI_IER, AR2315_PCI_IER_ENABLE, 0);
 	ar2315_pci_reg_mask(apc, AR2315_PCI_IMR, (AR2315_PCI_INT_ABORT |
-			    AR2315_PCI_INT_EXT), 0);
+						AR2315_PCI_INT_EXT), 0);
 
 	apc->irq_ext = irq_create_mapping(apc->domain, AR2315_PCI_IRQ_EXT);
 
 	irq_set_chained_handler_and_data(apc->irq, ar2315_pci_irq_handler,
-					 apc);
+									 apc);
 
 	/* Clear any pending Abort or external Interrupts
 	 * and enable interrupt processing */
 	ar2315_pci_reg_write(apc, AR2315_PCI_ISR, AR2315_PCI_INT_ABORT |
-						  AR2315_PCI_INT_EXT);
+						 AR2315_PCI_INT_EXT);
 	ar2315_pci_reg_mask(apc, AR2315_PCI_IER, 0, AR2315_PCI_IER_ENABLE);
 }
 
@@ -402,24 +432,37 @@ static int ar2315_pci_probe(struct platform_device *pdev)
 	int irq, err;
 
 	apc = devm_kzalloc(dev, sizeof(*apc), GFP_KERNEL);
+
 	if (!apc)
+	{
 		return -ENOMEM;
+	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return -EINVAL;
+	}
+
 	apc->irq = irq;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-					   "ar2315-pci-ctrl");
+									   "ar2315-pci-ctrl");
 	apc->mmr_mem = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(apc->mmr_mem))
+	{
 		return PTR_ERR(apc->mmr_mem);
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-					   "ar2315-pci-ext");
+									   "ar2315-pci-ext");
+
 	if (!res)
+	{
 		return -EINVAL;
+	}
 
 	apc->mem_res.name = "AR2315 PCI mem space";
 	apc->mem_res.parent = res;
@@ -429,38 +472,45 @@ static int ar2315_pci_probe(struct platform_device *pdev)
 
 	/* Remap PCI config space */
 	apc->cfg_mem = devm_ioremap_nocache(dev, res->start,
-					    AR2315_PCI_CFG_SIZE);
-	if (!apc->cfg_mem) {
+										AR2315_PCI_CFG_SIZE);
+
+	if (!apc->cfg_mem)
+	{
 		dev_err(dev, "failed to remap PCI config space\n");
 		return -ENOMEM;
 	}
 
 	/* Reset the PCI bus by setting bits 5-4 in PCI_MCFG */
 	ar2315_pci_reg_mask(apc, AR2315_PCI_MISC_CONFIG,
-			    AR2315_PCIMISC_RST_MODE,
-			    AR2315_PCIRST_LOW);
+						AR2315_PCIMISC_RST_MODE,
+						AR2315_PCIRST_LOW);
 	msleep(100);
 
 	/* Bring the PCI out of reset */
 	ar2315_pci_reg_mask(apc, AR2315_PCI_MISC_CONFIG,
-			    AR2315_PCIMISC_RST_MODE,
-			    AR2315_PCIRST_HIGH | AR2315_PCICACHE_DIS | 0x8);
+						AR2315_PCIMISC_RST_MODE,
+						AR2315_PCIRST_HIGH | AR2315_PCICACHE_DIS | 0x8);
 
 	ar2315_pci_reg_write(apc, AR2315_PCI_UNCACHE_CFG,
-			     0x1E | /* 1GB uncached */
-			     (1 << 5) | /* Enable uncached */
-			     (0x2 << 30) /* Base: 0x80000000 */);
+						 0x1E | /* 1GB uncached */
+						 (1 << 5) | /* Enable uncached */
+						 (0x2 << 30) /* Base: 0x80000000 */);
 	ar2315_pci_reg_read(apc, AR2315_PCI_UNCACHE_CFG);
 
 	msleep(500);
 
 	err = ar2315_pci_host_setup(apc);
+
 	if (err)
+	{
 		return err;
+	}
 
 	apc->domain = irq_domain_add_linear(NULL, AR2315_PCI_IRQ_COUNT,
-					    &ar2315_pci_irq_domain_ops, apc);
-	if (!apc->domain) {
+										&ar2315_pci_irq_domain_ops, apc);
+
+	if (!apc->domain)
+	{
 		dev_err(dev, "failed to add IRQ domain\n");
 		return -ENOMEM;
 	}
@@ -473,18 +523,19 @@ static int ar2315_pci_probe(struct platform_device *pdev)
 	apc->io_res.end = 0;
 	apc->io_res.flags = IORESOURCE_IO,
 
-	apc->pci_ctrl.pci_ops = &ar2315_pci_ops;
+				apc->pci_ctrl.pci_ops = &ar2315_pci_ops;
 	apc->pci_ctrl.mem_resource = &apc->mem_res,
-	apc->pci_ctrl.io_resource = &apc->io_res,
+				  apc->pci_ctrl.io_resource = &apc->io_res,
 
-	register_pci_controller(&apc->pci_ctrl);
+								register_pci_controller(&apc->pci_ctrl);
 
 	dev_info(dev, "register PCI controller\n");
 
 	return 0;
 }
 
-static struct platform_driver ar2315_pci_driver = {
+static struct platform_driver ar2315_pci_driver =
+{
 	.probe = ar2315_pci_probe,
 	.driver = {
 		.name = "ar2315-pci",

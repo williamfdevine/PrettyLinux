@@ -64,18 +64,24 @@ static void __init mpc8610_suspend_init(void)
 	int ret;
 
 	if (!pixis_node)
+	{
 		return;
+	}
 
 	irq = irq_of_parse_and_map(pixis_node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_err("%s: can't map pixis event IRQ.\n", __func__);
 		return;
 	}
 
 	ret = request_irq(irq, mpc8610_sw9_irq, 0, "sw9:wakeup", NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: can't request pixis event IRQ: %d\n",
-		       __func__, ret);
+			   __func__, ret);
 		irq_dispose_mapping(irq);
 	}
 
@@ -85,7 +91,8 @@ static void __init mpc8610_suspend_init(void)
 static inline void mpc8610_suspend_init(void) { }
 #endif /* CONFIG_SUSPEND */
 
-static const struct of_device_id mpc8610_ids[] __initconst = {
+static const struct of_device_id mpc8610_ids[] __initconst =
+{
 	{ .compatible = "fsl,mpc8610-immr", },
 	{ .compatible = "fsl,mpc8610-guts", },
 	/* So that the DMA channel nodes can be probed individually: */
@@ -149,15 +156,16 @@ machine_arch_initcall(mpc86xx_hpcd, mpc8610_declare_of_platform_devices);
 
 #define MAKE_AD(alpha, red, blue, green, size, c0, c1, c2, c3) \
 	cpu_to_le32(AD_BYTE_F | (alpha << AD_ALPHA_C_SHIFT) | \
-	(blue << AD_BLUE_C_SHIFT) | (green << AD_GREEN_C_SHIFT) | \
-	(red << AD_RED_C_SHIFT) | (c3 << AD_COMP_3_SHIFT) | \
-	(c2 << AD_COMP_2_SHIFT) | (c1 << AD_COMP_1_SHIFT) | \
-	(c0 << AD_COMP_0_SHIFT) | (size << AD_PIXEL_S_SHIFT))
+				(blue << AD_BLUE_C_SHIFT) | (green << AD_GREEN_C_SHIFT) | \
+				(red << AD_RED_C_SHIFT) | (c3 << AD_COMP_3_SHIFT) | \
+				(c2 << AD_COMP_2_SHIFT) | (c1 << AD_COMP_1_SHIFT) | \
+				(c0 << AD_COMP_0_SHIFT) | (size << AD_PIXEL_S_SHIFT))
 
 u32 mpc8610hpcd_get_pixel_format(enum fsl_diu_monitor_port port,
-				 unsigned int bits_per_pixel)
+								 unsigned int bits_per_pixel)
 {
-	static const u32 pixelformat[][3] = {
+	static const u32 pixelformat[][3] =
+	{
 		{
 			MAKE_AD(3, 0, 2, 1, 3, 8, 8, 8, 8),
 			MAKE_AD(4, 2, 0, 1, 2, 8, 8, 8, 0),
@@ -175,27 +183,33 @@ u32 mpc8610hpcd_get_pixel_format(enum fsl_diu_monitor_port port,
 	arch_monitor =
 		((*pixis_arch == 0x01) && (port == FSL_DIU_PORT_DVI)) ? 0 : 1;
 
-	switch (bits_per_pixel) {
-	case 32:
-		return pixelformat[arch_monitor][0];
-	case 24:
-		return pixelformat[arch_monitor][1];
-	case 16:
-		return pixelformat[arch_monitor][2];
-	default:
-		pr_err("fsl-diu: unsupported pixel depth %u\n", bits_per_pixel);
-		return 0;
+	switch (bits_per_pixel)
+	{
+		case 32:
+			return pixelformat[arch_monitor][0];
+
+		case 24:
+			return pixelformat[arch_monitor][1];
+
+		case 16:
+			return pixelformat[arch_monitor][2];
+
+		default:
+			pr_err("fsl-diu: unsupported pixel depth %u\n", bits_per_pixel);
+			return 0;
 	}
 }
 
 void mpc8610hpcd_set_gamma_table(enum fsl_diu_monitor_port port,
-				 char *gamma_table_base)
+								 char *gamma_table_base)
 {
 	int i;
-	if (port == FSL_DIU_PORT_DLVDS) {
-		for (i = 0; i < 256*3; i++)
+
+	if (port == FSL_DIU_PORT_DLVDS)
+	{
+		for (i = 0; i < 256 * 3; i++)
 			gamma_table_base[i] = (gamma_table_base[i] << 2) |
-					 ((gamma_table_base[i] >> 6) & 0x03);
+								  ((gamma_table_base[i] >> 6) & 0x03);
 	}
 }
 
@@ -205,18 +219,21 @@ void mpc8610hpcd_set_gamma_table(enum fsl_diu_monitor_port port,
 
 void mpc8610hpcd_set_monitor_port(enum fsl_diu_monitor_port port)
 {
-	switch (port) {
-	case FSL_DIU_PORT_DVI:
-		clrsetbits_8(pixis_bdcfg0, PX_BRDCFG0_DIU_MASK,
-			     PX_BRDCFG0_DVISEL | PX_BRDCFG0_DLINK);
-		break;
-	case FSL_DIU_PORT_LVDS:
-		clrsetbits_8(pixis_bdcfg0, PX_BRDCFG0_DIU_MASK,
-			     PX_BRDCFG0_DLINK);
-		break;
-	case FSL_DIU_PORT_DLVDS:
-		clrbits8(pixis_bdcfg0, PX_BRDCFG0_DIU_MASK);
-		break;
+	switch (port)
+	{
+		case FSL_DIU_PORT_DVI:
+			clrsetbits_8(pixis_bdcfg0, PX_BRDCFG0_DIU_MASK,
+						 PX_BRDCFG0_DVISEL | PX_BRDCFG0_DLINK);
+			break;
+
+		case FSL_DIU_PORT_LVDS:
+			clrsetbits_8(pixis_bdcfg0, PX_BRDCFG0_DIU_MASK,
+						 PX_BRDCFG0_DLINK);
+			break;
+
+		case FSL_DIU_PORT_DLVDS:
+			clrbits8(pixis_bdcfg0, PX_BRDCFG0_DIU_MASK);
+			break;
 	}
 }
 
@@ -235,14 +252,18 @@ void mpc8610hpcd_set_pixel_clock(unsigned int pixclock)
 
 	/* Map the global utilities registers. */
 	guts_np = of_find_compatible_node(NULL, NULL, "fsl,mpc8610-guts");
-	if (!guts_np) {
+
+	if (!guts_np)
+	{
 		pr_err("mpc8610hpcd: missing global utilities device node\n");
 		return;
 	}
 
 	guts = of_iomap(guts_np, 0);
 	of_node_put(guts_np);
-	if (!guts) {
+
+	if (!guts)
+	{
 		pr_err("mpc8610hpcd: could not map global utilities device\n");
 		return;
 	}
@@ -262,7 +283,7 @@ void mpc8610hpcd_set_pixel_clock(unsigned int pixclock)
 
 	/* Disable the pixel clock, and set it to non-inverted and no delay */
 	clrbits32(&guts->clkdvdr,
-		  CLKDVDR_PXCKEN | CLKDVDR_PXCKDLY | CLKDVDR_PXCLK_MASK);
+			  CLKDVDR_PXCKEN | CLKDVDR_PXCKDLY | CLKDVDR_PXCLK_MASK);
 
 	/* Enable the clock and set the pxclk */
 	setbits32(&guts->clkdvdr, CLKDVDR_PXCKEN | (pxclk << 16));
@@ -284,7 +305,9 @@ static void __init mpc86xx_hpcd_setup_arch(void)
 	unsigned char *pixis;
 
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mpc86xx_hpcd_setup_arch()", 0);
+	}
 
 	fsl_pci_assign_primary();
 
@@ -297,19 +320,25 @@ static void __init mpc86xx_hpcd_setup_arch(void)
 #endif
 
 	pixis_node = of_find_compatible_node(NULL, NULL, "fsl,fpga-pixis");
-	if (pixis_node) {
+
+	if (pixis_node)
+	{
 		of_address_to_resource(pixis_node, 0, &r);
 		of_node_put(pixis_node);
 		pixis = ioremap(r.start, 32);
-		if (!pixis) {
+
+		if (!pixis)
+		{
 			printk(KERN_ERR "Err: can't map FPGA cfg register!\n");
 			return;
 		}
+
 		pixis_bdcfg0 = pixis + 8;
 		pixis_arch = pixis + 1;
-	} else
+	}
+	else
 		printk(KERN_ERR "Err: "
-				"can't find device node 'fsl,fpga-pixis'\n");
+			   "can't find device node 'fsl,fpga-pixis'\n");
 
 	printk("MPC86xx HPCD board from Freescale Semiconductor\n");
 }
@@ -320,21 +349,24 @@ static void __init mpc86xx_hpcd_setup_arch(void)
 static int __init mpc86xx_hpcd_probe(void)
 {
 	if (of_machine_is_compatible("fsl,MPC8610HPCD"))
-		return 1;	/* Looks good */
+	{
+		return 1;    /* Looks good */
+	}
 
 	return 0;
 }
 
-define_machine(mpc86xx_hpcd) {
+define_machine(mpc86xx_hpcd)
+{
 	.name			= "MPC86xx HPCD",
-	.probe			= mpc86xx_hpcd_probe,
-	.setup_arch		= mpc86xx_hpcd_setup_arch,
-	.init_IRQ		= mpc86xx_init_irq,
-	.get_irq		= mpic_get_irq,
-	.time_init		= mpc86xx_time_init,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+			 .probe			= mpc86xx_hpcd_probe,
+					 .setup_arch		= mpc86xx_hpcd_setup_arch,
+						 .init_IRQ		= mpc86xx_init_irq,
+							   .get_irq		= mpic_get_irq,
+									  .time_init		= mpc86xx_time_init,
+										   .calibrate_decr		= generic_calibrate_decr,
+											   .progress		= udbg_progress,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+													 .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
 #endif
 };

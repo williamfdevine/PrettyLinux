@@ -6,7 +6,8 @@
 
 #include <asm/ptrace.h>
 
-struct swsusp_arch_regs {
+struct swsusp_arch_regs
+{
 	struct pt_regs user_regs;
 	unsigned long bank1_regs[8];
 };
@@ -31,11 +32,12 @@ extern struct atomic_notifier_head sh_mobile_post_sleep_notifier_list;
 
 /* board code registration function for self-refresh assembly snippets */
 void sh_mobile_register_self_refresh(unsigned long flags,
-				     void *pre_start, void *pre_end,
-				     void *post_start, void *post_end);
+									 void *pre_start, void *pre_end,
+									 void *post_start, void *post_end);
 
 /* register structure for address/data information */
-struct sh_sleep_regs {
+struct sh_sleep_regs
+{
 	unsigned long stbcr;
 	unsigned long bar;
 
@@ -55,7 +57,8 @@ struct sh_sleep_regs {
 };
 
 /* data area for low-level sleep code */
-struct sh_sleep_data {
+struct sh_sleep_data
+{
 	/* current sleep mode (SUSP_SH_...) */
 	unsigned long mode;
 

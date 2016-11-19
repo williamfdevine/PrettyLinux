@@ -14,7 +14,8 @@
 
 #include <asm/io.h>
 
-struct map_desc {
+struct map_desc
+{
 	unsigned long virtual;
 	unsigned long pfn;
 	unsigned long length;
@@ -22,7 +23,8 @@ struct map_desc {
 };
 
 /* types 0-3 are defined in asm/io.h */
-enum {
+enum
+{
 	MT_UNCACHED = 4,
 	MT_CACHECLEAN,
 	MT_MINICLEAN,
@@ -41,9 +43,9 @@ enum {
 #ifdef CONFIG_MMU
 extern void iotable_init(struct map_desc *, int);
 extern void vm_reserve_area_early(unsigned long addr, unsigned long size,
-				  void *caller);
+								  void *caller);
 extern void create_mapping_late(struct mm_struct *mm, struct map_desc *md,
-				bool ng);
+								bool ng);
 
 #ifdef CONFIG_DEBUG_LL
 extern void debug_ll_addr(unsigned long *paddr, unsigned long *vaddr);
@@ -58,7 +60,7 @@ extern const struct mem_type *get_mem_type(unsigned int type);
  * external interface to remap single page with appropriate type
  */
 extern int ioremap_page(unsigned long virt, unsigned long phys,
-			const struct mem_type *mtype);
+						const struct mem_type *mtype);
 #else
 #define iotable_init(map,num)	do { } while (0)
 #define vm_reserve_area_early(a,s,c)	do { } while (0)

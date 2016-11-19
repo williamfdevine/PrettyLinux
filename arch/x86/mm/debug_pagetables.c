@@ -14,7 +14,8 @@ static int ptdump_open(struct inode *inode, struct file *filp)
 	return single_open(filp, ptdump_show, NULL);
 }
 
-static const struct file_operations ptdump_fops = {
+static const struct file_operations ptdump_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= ptdump_open,
 	.read		= seq_read,
@@ -27,9 +28,12 @@ static struct dentry *pe;
 static int __init pt_dump_debug_init(void)
 {
 	pe = debugfs_create_file("kernel_page_tables", S_IRUSR, NULL, NULL,
-				 &ptdump_fops);
+							 &ptdump_fops);
+
 	if (!pe)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

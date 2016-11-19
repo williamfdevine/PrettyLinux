@@ -40,10 +40,11 @@ MODULE_LICENSE("GPL");
 static int
 default_validate(struct task_struct *task, unsigned int flags, int cpu, void *data)
 {
-	pfm_default_smpl_arg_t *arg = (pfm_default_smpl_arg_t*)data;
+	pfm_default_smpl_arg_t *arg = (pfm_default_smpl_arg_t *)data;
 	int ret = 0;
 
-	if (data == NULL) {
+	if (data == NULL)
+	{
 		DPRINT(("[%d] no argument passed\n", task_pid_nr(task)));
 		return -EINVAL;
 	}
@@ -53,7 +54,7 @@ default_validate(struct task_struct *task, unsigned int flags, int cpu, void *da
 	/*
 	 * must hold at least the buffer header + one minimally sized entry
 	 */
-	if (arg->buf_size < PFM_DEFAULT_SMPL_MIN_BUF_SIZE) return -EINVAL;
+	if (arg->buf_size < PFM_DEFAULT_SMPL_MIN_BUF_SIZE) { return -EINVAL; }
 
 	DPRINT(("buf_size=%lu\n", arg->buf_size));
 
@@ -88,12 +89,12 @@ default_init(struct task_struct *task, void *buf, unsigned int flags, int cpu, v
 	hdr->hdr_count        = 0UL;
 
 	DPRINT(("[%d] buffer=%p buf_size=%lu hdr_size=%lu hdr_version=%u cur_offs=%lu\n",
-		task_pid_nr(task),
-		buf,
-		hdr->hdr_buf_size,
-		sizeof(*hdr),
-		hdr->hdr_version,
-		hdr->hdr_cur_offs));
+			task_pid_nr(task),
+			buf,
+			hdr->hdr_buf_size,
+			sizeof(*hdr),
+			hdr->hdr_version,
+			hdr->hdr_cur_offs));
 
 	return 0;
 }
@@ -109,21 +110,22 @@ default_handler(struct task_struct *task, void *buf, pfm_ovfl_arg_t *arg, struct
 	unsigned char ovfl_pmd;
 	unsigned char ovfl_notify;
 
-	if (unlikely(buf == NULL || arg == NULL|| regs == NULL || task == NULL)) {
+	if (unlikely(buf == NULL || arg == NULL || regs == NULL || task == NULL))
+	{
 		DPRINT(("[%d] invalid arguments buf=%p arg=%p\n", task->pid, buf, arg));
 		return -EINVAL;
 	}
 
 	hdr         = (pfm_default_smpl_hdr_t *)buf;
-	cur         = buf+hdr->hdr_cur_offs;
-	last        = buf+hdr->hdr_buf_size;
+	cur         = buf + hdr->hdr_cur_offs;
+	last        = buf + hdr->hdr_buf_size;
 	ovfl_pmd    = arg->ovfl_pmd;
 	ovfl_notify = arg->ovfl_notify;
 
 	/*
 	 * precheck for sanity
 	 */
-	if ((last - cur) < PFM_DEFAULT_MAX_ENTRY_SIZE) goto full;
+	if ((last - cur) < PFM_DEFAULT_MAX_ENTRY_SIZE) { goto full; }
 
 	npmds = hweight64(arg->smpl_pmds[0]);
 
@@ -134,17 +136,17 @@ default_handler(struct task_struct *task, void *buf, pfm_ovfl_arg_t *arg, struct
 	entry_size = sizeof(*ent) + (npmds << 3);
 
 	/* position for first pmd */
-	e = (unsigned long *)(ent+1);
+	e = (unsigned long *)(ent + 1);
 
 	hdr->hdr_count++;
 
 	DPRINT_ovfl(("[%d] count=%lu cur=%p last=%p free_bytes=%lu ovfl_pmd=%d ovfl_notify=%d npmds=%u\n",
-			task->pid,
-			hdr->hdr_count,
-			cur, last,
-			last-cur,
-			ovfl_pmd,
-			ovfl_notify, npmds));
+				 task->pid,
+				 hdr->hdr_count,
+				 cur, last,
+				 last - cur,
+				 ovfl_pmd,
+				 ovfl_notify, npmds));
 
 	/*
 	 * current = task running at the time of the overflow.
@@ -173,9 +175,12 @@ default_handler(struct task_struct *task, void *buf, pfm_ovfl_arg_t *arg, struct
 	/*
 	 * selectively store PMDs in increasing index number
 	 */
-	if (npmds) {
+	if (npmds)
+	{
 		unsigned long *val = arg->smpl_pmds_values;
-		for(i=0; i < npmds; i++) {
+
+		for (i = 0; i < npmds; i++)
+		{
 			*e++ = *val++;
 		}
 	}
@@ -189,7 +194,7 @@ default_handler(struct task_struct *task, void *buf, pfm_ovfl_arg_t *arg, struct
 	/*
 	 * post check to avoid losing the last sample
 	 */
-	if ((last - cur) < PFM_DEFAULT_MAX_ENTRY_SIZE) goto full;
+	if ((last - cur) < PFM_DEFAULT_MAX_ENTRY_SIZE) { goto full; }
 
 	/*
 	 * keep same ovfl_pmds, ovfl_notify
@@ -201,7 +206,7 @@ default_handler(struct task_struct *task, void *buf, pfm_ovfl_arg_t *arg, struct
 
 	return 0;
 full:
-	DPRINT_ovfl(("sampling buffer full free=%lu, count=%lu, ovfl_notify=%d\n", last-cur, hdr->hdr_count, ovfl_notify));
+	DPRINT_ovfl(("sampling buffer full free=%lu, count=%lu, ovfl_notify=%d\n", last - cur, hdr->hdr_count, ovfl_notify));
 
 	/*
 	 * increment number of buffer overflow.
@@ -212,17 +217,21 @@ full:
 	/*
 	 * if no notification requested, then we saturate the buffer
 	 */
-	if (ovfl_notify == 0) {
+	if (ovfl_notify == 0)
+	{
 		arg->ovfl_ctrl.bits.notify_user     = 0;
 		arg->ovfl_ctrl.bits.block_task      = 0;
 		arg->ovfl_ctrl.bits.mask_monitoring = 1;
 		arg->ovfl_ctrl.bits.reset_ovfl_pmds = 0;
-	} else {
+	}
+	else
+	{
 		arg->ovfl_ctrl.bits.notify_user     = 1;
 		arg->ovfl_ctrl.bits.block_task      = 1; /* ignored for non-blocking context */
 		arg->ovfl_ctrl.bits.mask_monitoring = 1;
 		arg->ovfl_ctrl.bits.reset_ovfl_pmds = 0; /* no reset now */
 	}
+
 	return -1; /* we are full, sorry */
 }
 
@@ -249,17 +258,18 @@ default_exit(struct task_struct *task, void *buf, struct pt_regs *regs)
 	return 0;
 }
 
-static pfm_buffer_fmt_t default_fmt={
- 	.fmt_name 	    = "default_format",
- 	.fmt_uuid	    = PFM_DEFAULT_SMPL_UUID,
- 	.fmt_arg_size	    = sizeof(pfm_default_smpl_arg_t),
- 	.fmt_validate	    = default_validate,
- 	.fmt_getsize	    = default_get_size,
- 	.fmt_init	    = default_init,
- 	.fmt_handler	    = default_handler,
- 	.fmt_restart	    = default_restart,
- 	.fmt_restart_active = default_restart,
- 	.fmt_exit	    = default_exit,
+static pfm_buffer_fmt_t default_fmt =
+{
+	.fmt_name 	    = "default_format",
+	.fmt_uuid	    = PFM_DEFAULT_SMPL_UUID,
+	.fmt_arg_size	    = sizeof(pfm_default_smpl_arg_t),
+	.fmt_validate	    = default_validate,
+	.fmt_getsize	    = default_get_size,
+	.fmt_init	    = default_init,
+	.fmt_handler	    = default_handler,
+	.fmt_restart	    = default_restart,
+	.fmt_restart_active = default_restart,
+	.fmt_exit	    = default_exit,
 };
 
 static int __init
@@ -268,15 +278,19 @@ pfm_default_smpl_init_module(void)
 	int ret;
 
 	ret = pfm_register_buffer_fmt(&default_fmt);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		printk("perfmon_default_smpl: %s v%u.%u registered\n",
-			default_fmt.fmt_name,
-			PFM_DEFAULT_SMPL_VERSION_MAJ,
-			PFM_DEFAULT_SMPL_VERSION_MIN);
-	} else {
+			   default_fmt.fmt_name,
+			   PFM_DEFAULT_SMPL_VERSION_MAJ,
+			   PFM_DEFAULT_SMPL_VERSION_MIN);
+	}
+	else
+	{
 		printk("perfmon_default_smpl: %s cannot register ret=%d\n",
-			default_fmt.fmt_name,
-			ret);
+			   default_fmt.fmt_name,
+			   ret);
 	}
 
 	return ret;

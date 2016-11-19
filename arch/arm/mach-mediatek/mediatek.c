@@ -29,9 +29,10 @@ static void __init mediatek_timer_init(void)
 	void __iomem *gpt_base;
 
 	if (of_machine_is_compatible("mediatek,mt6589") ||
-	    of_machine_is_compatible("mediatek,mt7623") ||
-	    of_machine_is_compatible("mediatek,mt8135") ||
-	    of_machine_is_compatible("mediatek,mt8127")) {
+		of_machine_is_compatible("mediatek,mt7623") ||
+		of_machine_is_compatible("mediatek,mt8135") ||
+		of_machine_is_compatible("mediatek,mt8127"))
+	{
 		/* turn on GPT6 which ungates arch timer clocks */
 		gpt_base = ioremap(GPT6_CON_MT65xx, 0x04);
 
@@ -44,7 +45,8 @@ static void __init mediatek_timer_init(void)
 	clocksource_probe();
 };
 
-static const char * const mediatek_board_dt_compat[] = {
+static const char *const mediatek_board_dt_compat[] =
+{
 	"mediatek,mt2701",
 	"mediatek,mt6589",
 	"mediatek,mt6592",
@@ -55,6 +57,6 @@ static const char * const mediatek_board_dt_compat[] = {
 };
 
 DT_MACHINE_START(MEDIATEK_DT, "Mediatek Cortex-A7 (Device Tree)")
-	.dt_compat	= mediatek_board_dt_compat,
-	.init_time	= mediatek_timer_init,
-MACHINE_END
+.dt_compat	= mediatek_board_dt_compat,
+  .init_time	= mediatek_timer_init,
+	MACHINE_END

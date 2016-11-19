@@ -12,7 +12,8 @@
 #define KVM_APIC_SHORT_MASK	0xc0000
 #define KVM_APIC_DEST_MASK	0x800
 
-struct kvm_timer {
+struct kvm_timer
+{
 	struct hrtimer timer;
 	s64 period; 				/* unit: ns */
 	u32 timer_mode;
@@ -23,7 +24,8 @@ struct kvm_timer {
 	bool hv_timer_in_use;
 };
 
-struct kvm_lapic {
+struct kvm_lapic
+{
 	unsigned long base_address;
 	struct kvm_io_device dev;
 	struct kvm_timer lapic_timer;
@@ -66,18 +68,18 @@ u64 kvm_lapic_get_base(struct kvm_vcpu *vcpu);
 void kvm_apic_set_version(struct kvm_vcpu *vcpu);
 int kvm_lapic_reg_write(struct kvm_lapic *apic, u32 reg, u32 val);
 int kvm_lapic_reg_read(struct kvm_lapic *apic, u32 offset, int len,
-		       void *data);
+					   void *data);
 bool kvm_apic_match_dest(struct kvm_vcpu *vcpu, struct kvm_lapic *source,
-			   int short_hand, unsigned int dest, int dest_mode);
+						 int short_hand, unsigned int dest, int dest_mode);
 
 void __kvm_apic_update_irr(u32 *pir, void *regs);
 void kvm_apic_update_irr(struct kvm_vcpu *vcpu, u32 *pir);
 int kvm_apic_set_irq(struct kvm_vcpu *vcpu, struct kvm_lapic_irq *irq,
-		     struct dest_map *dest_map);
+					 struct dest_map *dest_map);
 int kvm_apic_local_deliver(struct kvm_lapic *apic, int lvt_type);
 
 bool kvm_irq_delivery_to_apic_fast(struct kvm *kvm, struct kvm_lapic *src,
-		struct kvm_lapic_irq *irq, int *r, struct dest_map *dest_map);
+								   struct kvm_lapic_irq *irq, int *r, struct dest_map *dest_map);
 
 u64 kvm_get_apic_base(struct kvm_vcpu *vcpu);
 int kvm_set_apic_base(struct kvm_vcpu *vcpu, struct msr_data *msr_info);
@@ -142,7 +144,10 @@ extern struct static_key kvm_no_apic_vcpu;
 static inline bool lapic_in_kernel(struct kvm_vcpu *vcpu)
 {
 	if (static_key_false(&kvm_no_apic_vcpu))
+	{
 		return vcpu->arch.apic;
+	}
+
 	return true;
 }
 
@@ -151,7 +156,10 @@ extern struct static_key_deferred apic_hw_disabled;
 static inline int kvm_apic_hw_enabled(struct kvm_lapic *apic)
 {
 	if (static_key_false(&apic_hw_disabled.key))
+	{
 		return apic->vcpu->arch.apic_base & MSR_IA32_APICBASE_ENABLE;
+	}
+
 	return MSR_IA32_APICBASE_ENABLE;
 }
 
@@ -160,7 +168,10 @@ extern struct static_key_deferred apic_sw_disabled;
 static inline bool kvm_apic_sw_enabled(struct kvm_lapic *apic)
 {
 	if (static_key_false(&apic_sw_disabled.key))
+	{
 		return apic->sw_enabled;
+	}
+
 	return true;
 }
 
@@ -206,7 +217,9 @@ static inline u32 kvm_apic_id(struct kvm_lapic *apic)
 	 * switching to x2apic_mode, the x2apic mode returns initial x2apic id.
 	 */
 	if (apic_x2apic_mode(apic))
+	{
 		return apic->vcpu->vcpu_id;
+	}
 
 	return kvm_lapic_get_reg(apic, APIC_ID) >> 24;
 }
@@ -216,9 +229,9 @@ bool kvm_apic_pending_eoi(struct kvm_vcpu *vcpu, int vector);
 void wait_lapic_expire(struct kvm_vcpu *vcpu);
 
 bool kvm_intr_is_single_vcpu_fast(struct kvm *kvm, struct kvm_lapic_irq *irq,
-			struct kvm_vcpu **dest_vcpu);
+								  struct kvm_vcpu **dest_vcpu);
 int kvm_vector_to_index(u32 vector, u32 dest_vcpus,
-			const unsigned long *bitmap, u32 bitmap_size);
+						const unsigned long *bitmap, u32 bitmap_size);
 void kvm_lapic_switch_to_sw_timer(struct kvm_vcpu *vcpu);
 void kvm_lapic_switch_to_hv_timer(struct kvm_vcpu *vcpu);
 void kvm_lapic_expired_hv_timer(struct kvm_vcpu *vcpu);

@@ -39,22 +39,27 @@ static int __init scu_a9_enable(void)
 	void __iomem *scu_base;
 	unsigned int i, ncores;
 
-	if (!scu_a9_has_base()) {
+	if (!scu_a9_has_base())
+	{
 		pr_err("no configuration base address register!\n");
 		return -ENXIO;
 	}
 
 	/* Config base address register value is zero for uniprocessor */
 	config_base = scu_a9_get_base();
-	if (!config_base) {
+
+	if (!config_base)
+	{
 		pr_err("hardware reports only one core\n");
 		return -ENOENT;
 	}
 
 	scu_base = ioremap((phys_addr_t)config_base, CORTEX_A9_SCU_SIZE);
-	if (!scu_base) {
+
+	if (!scu_base)
+	{
 		pr_err("failed to remap config base (%lu/%u) for SCU\n",
-			config_base, CORTEX_A9_SCU_SIZE);
+			   config_base, CORTEX_A9_SCU_SIZE);
 		return -ENOMEM;
 	}
 
@@ -62,7 +67,8 @@ static int __init scu_a9_enable(void)
 
 	ncores = scu_base ? scu_get_core_count(scu_base) : 1;
 
-	if (ncores > nr_cpu_ids) {
+	if (ncores > nr_cpu_ids)
+	{
 		pr_warn("SMP: %u cores greater than maximum (%u), clipping\n",
 				ncores, nr_cpu_ids);
 		ncores = nr_cpu_ids;
@@ -78,7 +84,9 @@ static int __init scu_a9_enable(void)
 	 * conditionals in hot-paths, so we just restrict the system to UP.
 	 */
 #ifdef CONFIG_VFP
-	if (ncores > 1) {
+
+	if (ncores > 1)
+	{
 		pr_warn("SMP: secondary CPUs lack VFP unit, disabling VFP\n");
 		vfp_disable();
 
@@ -87,17 +95,21 @@ static int __init scu_a9_enable(void)
 		ncores = 1;
 #endif
 	}
+
 #endif
 
 	for (i = 0; i < ncores; i++)
+	{
 		set_cpu_possible(i, true);
+	}
 
 	iounmap(scu_base);	/* That's the last we'll need of this */
 
 	return 0;
 }
 
-static const struct of_device_id bcm63138_bootlut_ids[] = {
+static const struct of_device_id bcm63138_bootlut_ids[] =
+{
 	{ .compatible = "brcm,bcm63138-bootlut", },
 	{ /* sentinel */ },
 };
@@ -105,7 +117,7 @@ static const struct of_device_id bcm63138_bootlut_ids[] = {
 #define BOOTLUT_RESET_VECT	0x20
 
 static int bcm63138_smp_boot_secondary(unsigned int cpu,
-				       struct task_struct *idle)
+									   struct task_struct *idle)
 {
 	void __iomem *bootlut_base;
 	struct device_node *dn;
@@ -113,7 +125,9 @@ static int bcm63138_smp_boot_secondary(unsigned int cpu,
 	u32 val;
 
 	dn = of_find_matching_node(NULL, bcm63138_bootlut_ids);
-	if (!dn) {
+
+	if (!dn)
+	{
 		pr_err("SMP: unable to find bcm63138 boot LUT node\n");
 		return -ENODEV;
 	}
@@ -121,14 +135,17 @@ static int bcm63138_smp_boot_secondary(unsigned int cpu,
 	bootlut_base = of_iomap(dn, 0);
 	of_node_put(dn);
 
-	if (!bootlut_base) {
+	if (!bootlut_base)
+	{
 		pr_err("SMP: unable to remap boot LUT base register\n");
 		return -ENOMEM;
 	}
 
 	/* Locate the secondary CPU node */
 	dn = of_get_cpu_node(cpu, NULL);
-	if (!dn) {
+
+	if (!dn)
+	{
 		pr_err("SMP: failed to locate secondary CPU%d node\n", cpu);
 		ret = -ENODEV;
 		goto out;
@@ -142,8 +159,12 @@ static int bcm63138_smp_boot_secondary(unsigned int cpu,
 	 * return
 	 */
 	ret = bcm63xx_pmb_power_on_cpu(dn);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 out:
 	iounmap(bootlut_base);
 
@@ -155,13 +176,16 @@ static void __init bcm63138_smp_prepare_cpus(unsigned int max_cpus)
 	int ret;
 
 	ret = scu_a9_enable();
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("SMP: Cortex-A9 SCU setup failed\n");
 		return;
 	}
 }
 
-static const struct smp_operations bcm63138_smp_ops __initconst = {
+static const struct smp_operations bcm63138_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= bcm63138_smp_prepare_cpus,
 	.smp_boot_secondary	= bcm63138_smp_boot_secondary,
 };

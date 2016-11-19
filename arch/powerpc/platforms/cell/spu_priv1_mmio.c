@@ -77,12 +77,15 @@ static void cpu_affinity_set(struct spu *spu, int cpu)
 	u64 target;
 	u64 route;
 
-	if (nr_cpus_node(spu->node)) {
+	if (nr_cpus_node(spu->node))
+	{
 		const struct cpumask *spumask = cpumask_of_node(spu->node),
-			*cpumask = cpumask_of_node(cpu_to_node(cpu));
+							  *cpumask = cpumask_of_node(cpu_to_node(cpu));
 
 		if (!cpumask_intersects(spumask, cpumask))
+		{
 			return;
+		}
 	}
 
 	target = iic_get_target_id(cpu);

@@ -23,9 +23,9 @@ static void fnop(void)
 static void fclex(void)
 {
 	partial_status &=
-	    ~(SW_Backward | SW_Summary | SW_Stack_Fault | SW_Precision |
-	      SW_Underflow | SW_Overflow | SW_Zero_Div | SW_Denorm_Op |
-	      SW_Invalid);
+		~(SW_Backward | SW_Summary | SW_Stack_Fault | SW_Precision |
+		  SW_Underflow | SW_Overflow | SW_Zero_Div | SW_Denorm_Op |
+		  SW_Invalid);
 	no_ip_update = 1;
 }
 
@@ -62,7 +62,8 @@ void finit(void)
 #define fdisi fnop
 #define fsetpm fnop
 
-static FUNC const finit_table[] = {
+static FUNC const finit_table[] =
+{
 	feni, fdisi, fclex, finit,
 	fsetpm, FPU_illegal, FPU_illegal, FPU_illegal
 };
@@ -78,7 +79,8 @@ static void fstsw_ax(void)
 	no_ip_update = 1;
 }
 
-static FUNC const fstsw_table[] = {
+static FUNC const fstsw_table[] =
+{
 	fstsw_ax, FPU_illegal, FPU_illegal, FPU_illegal,
 	FPU_illegal, FPU_illegal, FPU_illegal, FPU_illegal
 };
@@ -88,7 +90,8 @@ void fstsw_(void)
 	(fstsw_table[FPU_rm]) ();
 }
 
-static FUNC const fp_nop_table[] = {
+static FUNC const fp_nop_table[] =
+{
 	fnop, FPU_illegal, FPU_illegal, FPU_illegal,
 	FPU_illegal, FPU_illegal, FPU_illegal, FPU_illegal
 };
@@ -104,24 +107,33 @@ void fld_i_(void)
 	int i;
 	u_char tag;
 
-	if (STACK_OVERFLOW) {
+	if (STACK_OVERFLOW)
+	{
 		FPU_stack_overflow();
 		return;
 	}
 
 	/* fld st(i) */
 	i = FPU_rm;
-	if (NOT_EMPTY(i)) {
+
+	if (NOT_EMPTY(i))
+	{
 		reg_copy(&st(i), st_new_ptr);
 		tag = FPU_gettagi(i);
 		push();
 		FPU_settag0(tag);
-	} else {
-		if (control_word & CW_Invalid) {
+	}
+	else
+	{
+		if (control_word & CW_Invalid)
+		{
 			/* The masked response */
 			FPU_stack_underflow();
-		} else
+		}
+		else
+		{
 			EXCEPTION(EX_StackUnder);
+		}
 	}
 
 }
@@ -137,27 +149,37 @@ void fxch_i(void)
 	u_char st0_tag = (tag_word >> (regnr * 2)) & 3;
 	u_char sti_tag = (tag_word >> (regnri * 2)) & 3;
 
-	if (st0_tag == TAG_Empty) {
-		if (sti_tag == TAG_Empty) {
+	if (st0_tag == TAG_Empty)
+	{
+		if (sti_tag == TAG_Empty)
+		{
 			FPU_stack_underflow();
 			FPU_stack_underflow_i(i);
 			return;
 		}
-		if (control_word & CW_Invalid) {
+
+		if (control_word & CW_Invalid)
+		{
 			/* Masked response */
 			FPU_copy_to_reg0(sti_ptr, sti_tag);
 		}
+
 		FPU_stack_underflow_i(i);
 		return;
 	}
-	if (sti_tag == TAG_Empty) {
-		if (control_word & CW_Invalid) {
+
+	if (sti_tag == TAG_Empty)
+	{
+		if (control_word & CW_Invalid)
+		{
 			/* Masked response */
 			FPU_copy_to_regi(st0_ptr, st0_tag, i);
 		}
+
 		FPU_stack_underflow();
 		return;
 	}
+
 	clear_C1();
 
 	reg_copy(st0_ptr, &t);
@@ -180,11 +202,13 @@ static void fcmovCC(void)
 	int regnri = (top + i) & 7;
 	u_char sti_tag = (tag_word >> (regnri * 2)) & 3;
 
-	if (sti_tag == TAG_Empty) {
+	if (sti_tag == TAG_Empty)
+	{
 		FPU_stack_underflow();
 		clear_C1();
 		return;
 	}
+
 	reg_copy(sti_ptr, st0_ptr);
 	tag_word &= ~(3 << (regnr * 2));
 	tag_word |= (sti_tag << (regnr * 2));
@@ -194,49 +218,65 @@ static void fcmovCC(void)
 void fcmovb(void)
 {
 	if (FPU_EFLAGS & X86_EFLAGS_CF)
+	{
 		fcmovCC();
+	}
 }
 
 void fcmove(void)
 {
 	if (FPU_EFLAGS & X86_EFLAGS_ZF)
+	{
 		fcmovCC();
+	}
 }
 
 void fcmovbe(void)
 {
-	if (FPU_EFLAGS & (X86_EFLAGS_CF|X86_EFLAGS_ZF))
+	if (FPU_EFLAGS & (X86_EFLAGS_CF | X86_EFLAGS_ZF))
+	{
 		fcmovCC();
+	}
 }
 
 void fcmovu(void)
 {
 	if (FPU_EFLAGS & X86_EFLAGS_PF)
+	{
 		fcmovCC();
+	}
 }
 
 void fcmovnb(void)
 {
 	if (!(FPU_EFLAGS & X86_EFLAGS_CF))
+	{
 		fcmovCC();
+	}
 }
 
 void fcmovne(void)
 {
 	if (!(FPU_EFLAGS & X86_EFLAGS_ZF))
+	{
 		fcmovCC();
+	}
 }
 
 void fcmovnbe(void)
 {
-	if (!(FPU_EFLAGS & (X86_EFLAGS_CF|X86_EFLAGS_ZF)))
+	if (!(FPU_EFLAGS & (X86_EFLAGS_CF | X86_EFLAGS_ZF)))
+	{
 		fcmovCC();
+	}
 }
 
 void fcmovnu(void)
 {
 	if (!(FPU_EFLAGS & X86_EFLAGS_PF))
+	{
 		fcmovCC();
+	}
 }
 
 void ffree_(void)

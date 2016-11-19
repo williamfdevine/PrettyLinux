@@ -29,7 +29,7 @@ static inline void dvma_unmap_iommu(unsigned long a, int b)
 #endif
 
 #ifdef CONFIG_SUN3
-extern void sun3_dvma_init(void);
+	extern void sun3_dvma_init(void);
 #endif
 
 static unsigned long *iommu_use;
@@ -38,7 +38,8 @@ static unsigned long *iommu_use;
 
 #define dvma_entry_use(baddr)		(iommu_use[dvma_index(baddr)])
 
-struct hole {
+struct hole
+{
 	unsigned long start;
 	unsigned long end;
 	unsigned long size;
@@ -64,22 +65,25 @@ static void print_use(void)
 
 	printk("dvma entry usage:\n");
 
-	for(i = 0; i < IOMMU_TOTAL_ENTRIES; i++) {
-		if(!iommu_use[i])
+	for (i = 0; i < IOMMU_TOTAL_ENTRIES; i++)
+	{
+		if (!iommu_use[i])
+		{
 			continue;
+		}
 
 		j++;
 
 		printk("dvma entry: %08lx len %08lx\n",
-		       ( i << DVMA_PAGE_SHIFT) + DVMA_START,
-		       iommu_use[i]);
+			   ( i << DVMA_PAGE_SHIFT) + DVMA_START,
+			   iommu_use[i]);
 	}
 
 	printk("%d entries in use total\n", j);
 
 	printk("allocation/free calls: %lu/%lu\n", dvma_allocs, dvma_frees);
 	printk("allocation/free bytes: %Lx/%Lx\n", dvma_alloc_bytes,
-	       dvma_free_bytes);
+		   dvma_free_bytes);
 }
 
 static void print_holes(struct list_head *holes)
@@ -89,11 +93,14 @@ static void print_holes(struct list_head *holes)
 	struct hole *hole;
 
 	printk("listing dvma holes\n");
-	list_for_each(cur, holes) {
+	list_for_each(cur, holes)
+	{
 		hole = list_entry(cur, struct hole, list);
 
-		if((hole->start == 0) && (hole->end == 0) && (hole->size == 0))
+		if ((hole->start == 0) && (hole->end == 0) && (hole->size == 0))
+		{
 			continue;
+		}
 
 		printk("hole: start %08lx end %08lx size %08lx\n", hole->start, hole->end, hole->size);
 	}
@@ -111,15 +118,18 @@ static inline int refill(void)
 	struct list_head *cur;
 	int ret = 0;
 
-	list_for_each(cur, &hole_list) {
+	list_for_each(cur, &hole_list)
+	{
 		hole = list_entry(cur, struct hole, list);
 
-		if(!prev) {
+		if (!prev)
+		{
 			prev = hole;
 			continue;
 		}
 
-		if(hole->end == prev->start) {
+		if (hole->end == prev->start)
+		{
 			hole->size += prev->size;
 			hole->end = prev->end;
 			list_move(&(prev->list), &hole_cache);
@@ -135,8 +145,10 @@ static inline struct hole *rmcache(void)
 {
 	struct hole *ret;
 
-	if(list_empty(&hole_cache)) {
-		if(!refill()) {
+	if (list_empty(&hole_cache))
+	{
+		if (!refill())
+		{
 			printk("out of dvma hole cache!\n");
 			BUG();
 		}
@@ -155,7 +167,8 @@ static inline unsigned long get_baddr(int len, unsigned long align)
 	struct list_head *cur;
 	struct hole *hole;
 
-	if(list_empty(&hole_list)) {
+	if (list_empty(&hole_list))
+	{
 #ifdef DVMA_DEBUG
 		printk("out of dvma holes! (printing hole cache)\n");
 		print_holes(&hole_cache);
@@ -164,17 +177,23 @@ static inline unsigned long get_baddr(int len, unsigned long align)
 		BUG();
 	}
 
-	list_for_each(cur, &hole_list) {
+	list_for_each(cur, &hole_list)
+	{
 		unsigned long newlen;
 
 		hole = list_entry(cur, struct hole, list);
 
-		if(align > DVMA_PAGE_SIZE)
-			newlen = len + ((hole->end - len) & (align-1));
+		if (align > DVMA_PAGE_SIZE)
+		{
+			newlen = len + ((hole->end - len) & (align - 1));
+		}
 		else
+		{
 			newlen = len;
+		}
 
-		if(hole->size > newlen) {
+		if (hole->size > newlen)
+		{
 			hole->end -= newlen;
 			hole->size -= newlen;
 			dvma_entry_use(hole->end) = newlen;
@@ -183,7 +202,9 @@ static inline unsigned long get_baddr(int len, unsigned long align)
 			dvma_alloc_bytes += newlen;
 #endif
 			return hole->end;
-		} else if(hole->size == newlen) {
+		}
+		else if (hole->size == newlen)
+		{
 			list_move(&(hole->list), &hole_cache);
 			dvma_entry_use(hole->start) = newlen;
 #ifdef DVMA_DEBUG
@@ -219,14 +240,18 @@ static inline int free_baddr(unsigned long baddr)
 	dvma_free_bytes += len;
 #endif
 
-	list_for_each(cur, &hole_list) {
+	list_for_each(cur, &hole_list)
+	{
 		hole = list_entry(cur, struct hole, list);
 
-		if(hole->end == baddr) {
+		if (hole->end == baddr)
+		{
 			hole->end += len;
 			hole->size += len;
 			return 0;
-		} else if(hole->start == (baddr + len)) {
+		}
+		else if (hole->start == (baddr + len))
+		{
 			hole->start = baddr;
 			hole->size += len;
 			return 0;
@@ -240,7 +265,7 @@ static inline int free_baddr(unsigned long baddr)
 	hole->end = baddr + len;
 	hole->size = len;
 
-//	list_add_tail(&(hole->list), cur);
+	//	list_add_tail(&(hole->list), cur);
 	list_add(&(hole->list), cur);
 
 	return 0;
@@ -257,8 +282,10 @@ void __init dvma_init(void)
 	INIT_LIST_HEAD(&hole_cache);
 
 	/* prepare the hole cache */
-	for(i = 0; i < 64; i++)
+	for (i = 0; i < 64; i++)
+	{
 		list_add(&(initholes[i].list), &hole_cache);
+	}
 
 	hole = rmcache();
 	hole->start = DVMA_START;
@@ -283,34 +310,43 @@ unsigned long dvma_map_align(unsigned long kaddr, int len, int align)
 	unsigned long baddr;
 	unsigned long off;
 
-	if(!len)
+	if (!len)
+	{
 		len = 0x800;
+	}
 
-	if(!kaddr || !len) {
-//		printk("error: kaddr %lx len %x\n", kaddr, len);
-//		*(int *)4 = 0;
+	if (!kaddr || !len)
+	{
+		//		printk("error: kaddr %lx len %x\n", kaddr, len);
+		//		*(int *)4 = 0;
 		return 0;
 	}
 
 #ifdef DEBUG
 	printk("dvma_map request %08lx bytes from %08lx\n",
-	       len, kaddr);
+		   len, kaddr);
 #endif
 	off = kaddr & ~DVMA_PAGE_MASK;
 	kaddr &= PAGE_MASK;
 	len += off;
-	len = ((len + (DVMA_PAGE_SIZE-1)) & DVMA_PAGE_MASK);
+	len = ((len + (DVMA_PAGE_SIZE - 1)) & DVMA_PAGE_MASK);
 
-	if(align == 0)
+	if (align == 0)
+	{
 		align = DVMA_PAGE_SIZE;
+	}
 	else
-		align = ((align + (DVMA_PAGE_SIZE-1)) & DVMA_PAGE_MASK);
+	{
+		align = ((align + (DVMA_PAGE_SIZE - 1)) & DVMA_PAGE_MASK);
+	}
 
 	baddr = get_baddr(len, align);
-//	printk("using baddr %lx\n", baddr);
+	//	printk("using baddr %lx\n", baddr);
 
-	if(!dvma_map_iommu(kaddr, baddr, len))
+	if (!dvma_map_iommu(kaddr, baddr, len))
+	{
 		return (baddr + off);
+	}
 
 	printk("dvma_map failed kaddr %lx baddr %lx len %x\n", kaddr, baddr, len);
 	BUG();
@@ -323,9 +359,12 @@ void dvma_unmap(void *baddr)
 	unsigned long addr;
 
 	addr = (unsigned long)baddr;
+
 	/* check if this is a vme mapping */
-	if(!(addr & 0x00f00000))
+	if (!(addr & 0x00f00000))
+	{
 		addr |= 0xf00000;
+	}
 
 	free_baddr(addr);
 
@@ -340,25 +379,31 @@ void *dvma_malloc_align(unsigned long len, unsigned long align)
 	unsigned long baddr;
 	unsigned long vaddr;
 
-	if(!len)
+	if (!len)
+	{
 		return NULL;
+	}
 
 #ifdef DEBUG
 	printk("dvma_malloc request %lx bytes\n", len);
 #endif
-	len = ((len + (DVMA_PAGE_SIZE-1)) & DVMA_PAGE_MASK);
+	len = ((len + (DVMA_PAGE_SIZE - 1)) & DVMA_PAGE_MASK);
 
-        if((kaddr = __get_free_pages(GFP_ATOMIC, get_order(len))) == 0)
+	if ((kaddr = __get_free_pages(GFP_ATOMIC, get_order(len))) == 0)
+	{
 		return NULL;
+	}
 
-	if((baddr = (unsigned long)dvma_map_align(kaddr, len, align)) == 0) {
+	if ((baddr = (unsigned long)dvma_map_align(kaddr, len, align)) == 0)
+	{
 		free_pages(kaddr, get_order(len));
 		return NULL;
 	}
 
 	vaddr = dvma_btov(baddr);
 
-	if(dvma_map_cpu(kaddr, vaddr, len) < 0) {
+	if (dvma_map_cpu(kaddr, vaddr, len) < 0)
+	{
 		dvma_unmap((void *)baddr);
 		free_pages(kaddr, get_order(len));
 		return NULL;
@@ -366,7 +411,7 @@ void *dvma_malloc_align(unsigned long len, unsigned long align)
 
 #ifdef DEBUG
 	printk("mapped %08lx bytes %08lx kern -> %08lx bus\n",
-	       len, kaddr, baddr);
+		   len, kaddr, baddr);
 #endif
 
 	return (void *)vaddr;

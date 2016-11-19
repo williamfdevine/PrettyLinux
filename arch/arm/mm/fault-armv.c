@@ -38,7 +38,7 @@ static pteval_t shared_pte_mask = L_PTE_MT_BUFFERABLE;
  * without CONFIG_CPU_CACHE_VIPT) cannot support split page_table_lock.
  */
 static int do_adjust_pte(struct vm_area_struct *vma, unsigned long address,
-	unsigned long pfn, pte_t *ptep)
+						 unsigned long pfn, pte_t *ptep)
 {
 	pte_t entry = *ptep;
 	int ret;
@@ -52,10 +52,11 @@ static int do_adjust_pte(struct vm_area_struct *vma, unsigned long address,
 	 * If this page isn't present, or is already setup to
 	 * fault (ie, is old), we can safely ignore any issues.
 	 */
-	if (ret && (pte_val(entry) & L_PTE_MT_MASK) != shared_pte_mask) {
+	if (ret && (pte_val(entry) & L_PTE_MT_MASK) != shared_pte_mask)
+	{
 		flush_cache_page(vma, address, pfn);
 		outer_flush_range((pfn << PAGE_SHIFT),
-				  (pfn << PAGE_SHIFT) + PAGE_SIZE);
+						  (pfn << PAGE_SHIFT) + PAGE_SIZE);
 		pte_val(entry) &= ~L_PTE_MT_MASK;
 		pte_val(entry) |= shared_pte_mask;
 		set_pte_at(vma->vm_mm, address, ptep, entry);
@@ -90,7 +91,7 @@ static inline void do_pte_unlock(spinlock_t *ptl) {}
 #endif /* USE_SPLIT_PTE_PTLOCKS */
 
 static int adjust_pte(struct vm_area_struct *vma, unsigned long address,
-	unsigned long pfn)
+					  unsigned long pfn)
 {
 	spinlock_t *ptl;
 	pgd_t *pgd;
@@ -100,16 +101,25 @@ static int adjust_pte(struct vm_area_struct *vma, unsigned long address,
 	int ret;
 
 	pgd = pgd_offset(vma->vm_mm, address);
+
 	if (pgd_none_or_clear_bad(pgd))
+	{
 		return 0;
+	}
 
 	pud = pud_offset(pgd, address);
+
 	if (pud_none_or_clear_bad(pud))
+	{
 		return 0;
+	}
 
 	pmd = pmd_offset(pud, address);
+
 	if (pmd_none_or_clear_bad(pmd))
+	{
 		return 0;
+	}
 
 	/*
 	 * This is called while another page table is mapped, so we
@@ -130,7 +140,7 @@ static int adjust_pte(struct vm_area_struct *vma, unsigned long address,
 
 static void
 make_coherent(struct address_space *mapping, struct vm_area_struct *vma,
-	unsigned long addr, pte_t *ptep, unsigned long pfn)
+			  unsigned long addr, pte_t *ptep, unsigned long pfn)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	struct vm_area_struct *mpnt;
@@ -146,22 +156,32 @@ make_coherent(struct address_space *mapping, struct vm_area_struct *vma,
 	 * cache coherency.
 	 */
 	flush_dcache_mmap_lock(mapping);
-	vma_interval_tree_foreach(mpnt, &mapping->i_mmap, pgoff, pgoff) {
+	vma_interval_tree_foreach(mpnt, &mapping->i_mmap, pgoff, pgoff)
+	{
 		/*
 		 * If this VMA is not in our MM, we can ignore it.
 		 * Note that we intentionally mask out the VMA
 		 * that we are fixing up.
 		 */
 		if (mpnt->vm_mm != mm || mpnt == vma)
+		{
 			continue;
+		}
+
 		if (!(mpnt->vm_flags & VM_MAYSHARE))
+		{
 			continue;
+		}
+
 		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
 		aliases += adjust_pte(mpnt, mpnt->vm_start + offset, pfn);
 	}
 	flush_dcache_mmap_unlock(mapping);
+
 	if (aliases)
+	{
 		do_adjust_pte(vma, addr, pfn, ptep);
+	}
 }
 
 /*
@@ -178,31 +198,45 @@ make_coherent(struct address_space *mapping, struct vm_area_struct *vma,
  * Note that the pte lock will be held.
  */
 void update_mmu_cache(struct vm_area_struct *vma, unsigned long addr,
-	pte_t *ptep)
+					  pte_t *ptep)
 {
 	unsigned long pfn = pte_pfn(*ptep);
 	struct address_space *mapping;
 	struct page *page;
 
 	if (!pfn_valid(pfn))
+	{
 		return;
+	}
 
 	/*
 	 * The zero page is never written to, so never has any dirty
 	 * cache lines, and therefore never needs to be flushed.
 	 */
 	page = pfn_to_page(pfn);
+
 	if (page == ZERO_PAGE(0))
+	{
 		return;
+	}
 
 	mapping = page_mapping(page);
+
 	if (!test_and_set_bit(PG_dcache_clean, &page->flags))
+	{
 		__flush_dcache_page(mapping, page);
-	if (mapping) {
+	}
+
+	if (mapping)
+	{
 		if (cache_is_vivt())
+		{
 			make_coherent(mapping, vma, addr, ptep, pfn);
+		}
 		else if (vma->vm_flags & VM_EXEC)
+		{
 			__flush_icache_all();
+		}
 	}
 }
 #endif	/* __LINUX_ARM_ARCH__ < 6 */
@@ -238,32 +272,42 @@ void __init check_writebuffer_bugs(void)
 	pr_info("CPU: Testing write buffer coherency: ");
 
 	page = alloc_page(GFP_KERNEL);
-	if (page) {
+
+	if (page)
+	{
 		unsigned long *p1, *p2;
 		pgprot_t prot = __pgprot_modify(PAGE_KERNEL,
-					L_PTE_MT_MASK, L_PTE_MT_BUFFERABLE);
+										L_PTE_MT_MASK, L_PTE_MT_BUFFERABLE);
 
 		p1 = vmap(&page, 1, VM_IOREMAP, prot);
 		p2 = vmap(&page, 1, VM_IOREMAP, prot);
 
-		if (p1 && p2) {
+		if (p1 && p2)
+		{
 			v = check_writebuffer(p1, p2);
 			reason = "enabling work-around";
-		} else {
+		}
+		else
+		{
 			reason = "unable to map memory\n";
 		}
 
 		vunmap(p1);
 		vunmap(p2);
 		put_page(page);
-	} else {
+	}
+	else
+	{
 		reason = "unable to grab page\n";
 	}
 
-	if (v) {
+	if (v)
+	{
 		pr_cont("failed, %s\n", reason);
 		shared_pte_mask = L_PTE_MT_UNCACHED;
-	} else {
+	}
+	else
+	{
 		pr_cont("ok\n");
 	}
 }

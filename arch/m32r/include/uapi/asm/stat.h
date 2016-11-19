@@ -3,7 +3,8 @@
 
 #include <asm/byteorder.h>
 
-struct __old_kernel_stat {
+struct __old_kernel_stat
+{
 	unsigned short st_dev;
 	unsigned short st_ino;
 	unsigned short st_mode;
@@ -19,7 +20,8 @@ struct __old_kernel_stat {
 
 #define STAT_HAVE_NSEC	1
 
-struct stat {
+struct stat
+{
 	unsigned short st_dev;
 	unsigned short __pad1;
 	unsigned long  st_ino;
@@ -45,7 +47,8 @@ struct stat {
 /* This matches struct stat64 in glibc2.1, hence the absolutely
  * insane amounts of padding around dev_t's.
  */
-struct stat64 {
+struct stat64
+{
 	unsigned long long	st_dev;
 	unsigned char	__pad0[4];
 #define STAT64_HAS_BROKEN_ST_INO

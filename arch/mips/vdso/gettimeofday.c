@@ -21,28 +21,31 @@
 #include <asm/vdso.h>
 
 static __always_inline int do_realtime_coarse(struct timespec *ts,
-					      const union mips_vdso_data *data)
+		const union mips_vdso_data *data)
 {
 	u32 start_seq;
 
-	do {
+	do
+	{
 		start_seq = vdso_data_read_begin(data);
 
 		ts->tv_sec = data->xtime_sec;
 		ts->tv_nsec = data->xtime_nsec >> data->cs_shift;
-	} while (vdso_data_read_retry(data, start_seq));
+	}
+	while (vdso_data_read_retry(data, start_seq));
 
 	return 0;
 }
 
 static __always_inline int do_monotonic_coarse(struct timespec *ts,
-					       const union mips_vdso_data *data)
+		const union mips_vdso_data *data)
 {
 	u32 start_seq;
 	u32 to_mono_sec;
 	u32 to_mono_nsec;
 
-	do {
+	do
+	{
 		start_seq = vdso_data_read_begin(data);
 
 		ts->tv_sec = data->xtime_sec;
@@ -50,7 +53,8 @@ static __always_inline int do_monotonic_coarse(struct timespec *ts,
 
 		to_mono_sec = data->wall_to_mono_sec;
 		to_mono_nsec = data->wall_to_mono_nsec;
-	} while (vdso_data_read_retry(data, start_seq));
+	}
+	while (vdso_data_read_retry(data, start_seq));
 
 	ts->tv_sec += to_mono_sec;
 	timespec_add_ns(ts, to_mono_nsec);
@@ -65,11 +69,11 @@ static __always_inline u64 read_r4k_count(void)
 	unsigned int count;
 
 	__asm__ __volatile__(
-	"	.set push\n"
-	"	.set mips32r2\n"
-	"	rdhwr	%0, $2\n"
-	"	.set pop\n"
-	: "=r" (count));
+		"	.set push\n"
+		"	.set mips32r2\n"
+		"	rdhwr	%0, $2\n"
+		"	.set pop\n"
+		: "=r" (count));
 
 	return count;
 }
@@ -83,11 +87,13 @@ static __always_inline u64 read_gic_count(const union mips_vdso_data *data)
 	void __iomem *gic = get_gic(data);
 	u32 hi, hi2, lo;
 
-	do {
+	do
+	{
 		hi = __raw_readl(gic + GIC_UMV_SH_COUNTER_63_32_OFS);
 		lo = __raw_readl(gic + GIC_UMV_SH_COUNTER_31_00_OFS);
 		hi2 = __raw_readl(gic + GIC_UMV_SH_COUNTER_63_32_OFS);
-	} while (hi2 != hi);
+	}
+	while (hi2 != hi);
 
 	return (((u64)hi) << 32) + lo;
 }
@@ -98,19 +104,23 @@ static __always_inline u64 get_ns(const union mips_vdso_data *data)
 {
 	u64 cycle_now, delta, nsec;
 
-	switch (data->clock_mode) {
+	switch (data->clock_mode)
+	{
 #ifdef CONFIG_CSRC_R4K
-	case VDSO_CLOCK_R4K:
-		cycle_now = read_r4k_count();
-		break;
+
+		case VDSO_CLOCK_R4K:
+			cycle_now = read_r4k_count();
+			break;
 #endif
 #ifdef CONFIG_CLKSRC_MIPS_GIC
-	case VDSO_CLOCK_GIC:
-		cycle_now = read_gic_count(data);
-		break;
+
+		case VDSO_CLOCK_GIC:
+			cycle_now = read_gic_count(data);
+			break;
 #endif
-	default:
-		return 0;
+
+		default:
+			return 0;
 	}
 
 	delta = (cycle_now - data->cs_cycle_last) & data->cs_mask;
@@ -122,20 +132,24 @@ static __always_inline u64 get_ns(const union mips_vdso_data *data)
 }
 
 static __always_inline int do_realtime(struct timespec *ts,
-				       const union mips_vdso_data *data)
+									   const union mips_vdso_data *data)
 {
 	u32 start_seq;
 	u64 ns;
 
-	do {
+	do
+	{
 		start_seq = vdso_data_read_begin(data);
 
 		if (data->clock_mode == VDSO_CLOCK_NONE)
+		{
 			return -ENOSYS;
+		}
 
 		ts->tv_sec = data->xtime_sec;
 		ns = get_ns(data);
-	} while (vdso_data_read_retry(data, start_seq));
+	}
+	while (vdso_data_read_retry(data, start_seq));
 
 	ts->tv_nsec = 0;
 	timespec_add_ns(ts, ns);
@@ -144,25 +158,29 @@ static __always_inline int do_realtime(struct timespec *ts,
 }
 
 static __always_inline int do_monotonic(struct timespec *ts,
-					const union mips_vdso_data *data)
+										const union mips_vdso_data *data)
 {
 	u32 start_seq;
 	u64 ns;
 	u32 to_mono_sec;
 	u32 to_mono_nsec;
 
-	do {
+	do
+	{
 		start_seq = vdso_data_read_begin(data);
 
 		if (data->clock_mode == VDSO_CLOCK_NONE)
+		{
 			return -ENOSYS;
+		}
 
 		ts->tv_sec = data->xtime_sec;
 		ns = get_ns(data);
 
 		to_mono_sec = data->wall_to_mono_sec;
 		to_mono_nsec = data->wall_to_mono_nsec;
-	} while (vdso_data_read_retry(data, start_seq));
+	}
+	while (vdso_data_read_retry(data, start_seq));
 
 	ts->tv_sec += to_mono_sec;
 	ts->tv_nsec = 0;
@@ -186,15 +204,20 @@ int __vdso_gettimeofday(struct timeval *tv, struct timezone *tz)
 	int ret;
 
 	ret = do_realtime(&ts, data);
-	if (ret)
-		return ret;
 
-	if (tv) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (tv)
+	{
 		tv->tv_sec = ts.tv_sec;
 		tv->tv_usec = ts.tv_nsec / 1000;
 	}
 
-	if (tz) {
+	if (tz)
+	{
 		tz->tz_minuteswest = data->tz_minuteswest;
 		tz->tz_dsttime = data->tz_dsttime;
 	}
@@ -209,22 +232,27 @@ int __vdso_clock_gettime(clockid_t clkid, struct timespec *ts)
 	const union mips_vdso_data *data = get_vdso_data();
 	int ret;
 
-	switch (clkid) {
-	case CLOCK_REALTIME_COARSE:
-		ret = do_realtime_coarse(ts, data);
-		break;
-	case CLOCK_MONOTONIC_COARSE:
-		ret = do_monotonic_coarse(ts, data);
-		break;
-	case CLOCK_REALTIME:
-		ret = do_realtime(ts, data);
-		break;
-	case CLOCK_MONOTONIC:
-		ret = do_monotonic(ts, data);
-		break;
-	default:
-		ret = -ENOSYS;
-		break;
+	switch (clkid)
+	{
+		case CLOCK_REALTIME_COARSE:
+			ret = do_realtime_coarse(ts, data);
+			break;
+
+		case CLOCK_MONOTONIC_COARSE:
+			ret = do_monotonic_coarse(ts, data);
+			break;
+
+		case CLOCK_REALTIME:
+			ret = do_realtime(ts, data);
+			break;
+
+		case CLOCK_MONOTONIC:
+			ret = do_monotonic(ts, data);
+			break;
+
+		default:
+			ret = -ENOSYS;
+			break;
 	}
 
 	/* If we return -ENOSYS libc should fall back to a syscall. */

@@ -27,7 +27,8 @@
 #include "generic.h"
 
 /* PXA300/PXA310 common configurations */
-static mfp_cfg_t common_mfp_cfg[] __initdata = {
+static mfp_cfg_t common_mfp_cfg[] __initdata =
+{
 	/* LCD */
 	GPIO54_LCD_LDD_0,
 	GPIO55_LCD_LDD_1,
@@ -133,7 +134,8 @@ static mfp_cfg_t common_mfp_cfg[] __initdata = {
 	GPIO19_GPIO | MFP_PULL_HIGH,	/* GPIO Expander #1 INT_N */
 };
 
-static mfp_cfg_t pxa300_mfp_cfg[] __initdata = {
+static mfp_cfg_t pxa300_mfp_cfg[] __initdata =
+{
 	/* FFUART */
 	GPIO30_UART1_RXD | MFP_LPM_EDGE_FALL,
 	GPIO31_UART1_TXD,
@@ -149,7 +151,8 @@ static mfp_cfg_t pxa300_mfp_cfg[] __initdata = {
 	GPIO99_GPIO,
 };
 
-static mfp_cfg_t pxa310_mfp_cfg[] __initdata = {
+static mfp_cfg_t pxa310_mfp_cfg[] __initdata =
+{
 	/* FFUART */
 	GPIO99_UART1_RXD | MFP_LPM_EDGE_FALL,
 	GPIO100_UART1_TXD,
@@ -171,7 +174,8 @@ static mfp_cfg_t pxa310_mfp_cfg[] __initdata = {
 
 #define NUM_LCD_DETECT_PINS	7
 
-static int lcd_detect_pins[] __initdata = {
+static int lcd_detect_pins[] __initdata =
+{
 	MFP_PIN_GPIO71,	/* LCD_LDD_17 - ORIENT */
 	MFP_PIN_GPIO70, /* LCD_LDD_16 - LCDID[5] */
 	MFP_PIN_GPIO75, /* LCD_BIAS   - LCDID[4] */
@@ -189,19 +193,24 @@ static void __init zylonite_detect_lcd_panel(void)
 	/* save the original MFP settings of these pins and configure
 	 * them as GPIO Input, DS01X, Pull Neither, Edge Clear
 	 */
-	for (i = 0; i < NUM_LCD_DETECT_PINS; i++) {
+	for (i = 0; i < NUM_LCD_DETECT_PINS; i++)
+	{
 		mfpr_save[i] = pxa3xx_mfp_read(lcd_detect_pins[i]);
 		pxa3xx_mfp_write(lcd_detect_pins[i], 0x8440);
 	}
 
-	for (i = 0; i < NUM_LCD_DETECT_PINS; i++) {
+	for (i = 0; i < NUM_LCD_DETECT_PINS; i++)
+	{
 		id = id << 1;
 		gpio = mfp_to_gpio(lcd_detect_pins[i]);
 		gpio_request(gpio, "LCD_ID_PINS");
 		gpio_direction_input(gpio);
 
 		if (gpio_get_value(gpio))
+		{
 			id = id | 0x1;
+		}
+
 		gpio_free(gpio);
 	}
 
@@ -213,11 +222,14 @@ static void __init zylonite_detect_lcd_panel(void)
 
 	/* restore the original MFP settings */
 	for (i = 0; i < NUM_LCD_DETECT_PINS; i++)
+	{
 		pxa3xx_mfp_write(lcd_detect_pins[i], mfpr_save[i]);
+	}
 }
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-static struct pca953x_platform_data gpio_exp[] = {
+static struct pca953x_platform_data gpio_exp[] =
+{
 	[0] = {
 		.gpio_base	= 128,
 	},
@@ -226,7 +238,8 @@ static struct pca953x_platform_data gpio_exp[] = {
 	},
 };
 
-static struct i2c_board_info zylonite_i2c_board_info[] = {
+static struct i2c_board_info zylonite_i2c_board_info[] =
+{
 	{
 		.type		= "pca9539",
 		.addr		= 0x74,
@@ -251,7 +264,8 @@ static inline void zylonite_init_i2c(void) {}
 
 void __init zylonite_pxa300_init(void)
 {
-	if (cpu_is_pxa300() || cpu_is_pxa310()) {
+	if (cpu_is_pxa300() || cpu_is_pxa310())
+	{
 		/* initialize MFP */
 		pxa3xx_mfp_config(ARRAY_AND_SIZE(common_mfp_cfg));
 
@@ -264,12 +278,14 @@ void __init zylonite_pxa300_init(void)
 		zylonite_init_i2c();
 	}
 
-	if (cpu_is_pxa300()) {
+	if (cpu_is_pxa300())
+	{
 		pxa3xx_mfp_config(ARRAY_AND_SIZE(pxa300_mfp_cfg));
 		gpio_eth_irq = mfp_to_gpio(MFP_PIN_GPIO99);
 	}
 
-	if (cpu_is_pxa310()) {
+	if (cpu_is_pxa310())
+	{
 		pxa3xx_mfp_config(ARRAY_AND_SIZE(pxa310_mfp_cfg));
 		gpio_eth_irq = mfp_to_gpio(MFP_PIN_GPIO102);
 	}

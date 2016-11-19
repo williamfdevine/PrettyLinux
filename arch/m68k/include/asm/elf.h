@@ -60,9 +60,9 @@ typedef struct user_m68kfp_struct elf_fpregset_t;
 #define ELF_PLAT_INIT(_r, load_addr)	_r->a1 = 0
 
 #if defined(CONFIG_SUN3) || defined(CONFIG_COLDFIRE)
-#define ELF_EXEC_PAGESIZE	8192
+	#define ELF_EXEC_PAGESIZE	8192
 #else
-#define ELF_EXEC_PAGESIZE	4096
+	#define ELF_EXEC_PAGESIZE	4096
 #endif
 
 /* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
@@ -71,9 +71,9 @@ typedef struct user_m68kfp_struct elf_fpregset_t;
    that it will "exec", and that there is sufficient room for the brk.  */
 
 #ifndef CONFIG_SUN3
-#define ELF_ET_DYN_BASE         0xD0000000UL
+	#define ELF_ET_DYN_BASE         0xD0000000UL
 #else
-#define ELF_ET_DYN_BASE         0x0D800000UL
+	#define ELF_ET_DYN_BASE         0x0D800000UL
 #endif
 
 #define ELF_CORE_COPY_REGS(pr_reg, regs)				\
@@ -93,13 +93,13 @@ typedef struct user_m68kfp_struct elf_fpregset_t;
 	pr_reg[18] = regs->pc;						\
 	pr_reg[19] = (regs->format << 12) | regs->vector;		\
 	{								\
-	  struct switch_stack *sw = ((struct switch_stack *)regs) - 1;	\
-	  pr_reg[5] = sw->d6;						\
-	  pr_reg[6] = sw->d7;						\
-	  pr_reg[10] = sw->a3;						\
-	  pr_reg[11] = sw->a4;						\
-	  pr_reg[12] = sw->a5;						\
-	  pr_reg[13] = sw->a6;						\
+		struct switch_stack *sw = ((struct switch_stack *)regs) - 1;	\
+		pr_reg[5] = sw->d6;						\
+		pr_reg[6] = sw->d7;						\
+		pr_reg[10] = sw->a3;						\
+		pr_reg[11] = sw->a4;						\
+		pr_reg[12] = sw->a5;						\
+		pr_reg[13] = sw->a6;						\
 	}
 
 /* This yields a mask that user programs can use to figure out what

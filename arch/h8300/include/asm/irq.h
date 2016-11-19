@@ -4,15 +4,15 @@
 #include <linux/irqchip.h>
 
 #if defined(CONFIG_CPU_H8300H)
-#define NR_IRQS 64
-#define IRQ_CHIP h8300h_irq_chip
-#define EXT_IRQ0 12
-#define EXT_IRQS 6
+	#define NR_IRQS 64
+	#define IRQ_CHIP h8300h_irq_chip
+	#define EXT_IRQ0 12
+	#define EXT_IRQS 6
 #elif defined(CONFIG_CPU_H8S)
-#define NR_IRQS 128
-#define IRQ_CHIP h8s_irq_chip
-#define EXT_IRQ0 16
-#define EXT_IRQS 16
+	#define NR_IRQS 128
+	#define IRQ_CHIP h8s_irq_chip
+	#define EXT_IRQ0 16
+	#define EXT_IRQS 16
 #endif
 
 static inline int irq_canonicalize(int irq)

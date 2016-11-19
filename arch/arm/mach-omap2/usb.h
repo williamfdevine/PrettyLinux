@@ -53,7 +53,8 @@
 #define USBPHY_OTGSESSEND_EN	(1 << 20)
 #define USBPHY_DATA_POLARITY	(1 << 23)
 
-struct usbhs_phy_data {
+struct usbhs_phy_data
+{
 	int port;		/* 1 indexed port number */
 	int reset_gpio;
 	int vcc_gpio;

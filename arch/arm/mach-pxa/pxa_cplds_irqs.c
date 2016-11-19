@@ -27,7 +27,8 @@
 
 #define CPLDS_NB_IRQ	32
 
-struct cplds {
+struct cplds
+{
 	void __iomem *base;
 	int irq;
 	unsigned int irq_mask;
@@ -41,13 +42,16 @@ static irqreturn_t cplds_irq_handler(int in_irq, void *d)
 	unsigned long pending;
 	unsigned int bit;
 
-	do {
+	do
+	{
 		pending = readl(fpga->base + FPGA_IRQ_SET_CLR) & fpga->irq_mask;
-		for_each_set_bit(bit, &pending, CPLDS_NB_IRQ) {
+		for_each_set_bit(bit, &pending, CPLDS_NB_IRQ)
+		{
 			generic_handle_irq(irq_find_mapping(fpga->irqdomain,
-							    bit));
+												bit));
 		}
-	} while (pending);
+	}
+	while (pending);
 
 	return IRQ_HANDLED;
 }
@@ -75,7 +79,8 @@ static void cplds_irq_unmask(struct irq_data *d)
 	writel(fpga->irq_mask, fpga->base + FPGA_IRQ_MASK_EN);
 }
 
-static struct irq_chip cplds_irq_chip = {
+static struct irq_chip cplds_irq_chip =
+{
 	.name		= "pxa_cplds",
 	.irq_ack	= cplds_irq_mask,
 	.irq_mask	= cplds_irq_mask,
@@ -84,7 +89,7 @@ static struct irq_chip cplds_irq_chip = {
 };
 
 static int cplds_irq_domain_map(struct irq_domain *d, unsigned int irq,
-				   irq_hw_number_t hwirq)
+								irq_hw_number_t hwirq)
 {
 	struct cplds *fpga = d->host_data;
 
@@ -94,7 +99,8 @@ static int cplds_irq_domain_map(struct irq_domain *d, unsigned int irq,
 	return 0;
 }
 
-static const struct irq_domain_ops cplds_irq_domain_ops = {
+static const struct irq_domain_ops cplds_irq_domain_ops =
+{
 	.xlate = irq_domain_xlate_twocell,
 	.map = cplds_irq_domain_map,
 };
@@ -117,25 +123,39 @@ static int cplds_probe(struct platform_device *pdev)
 	unsigned long irqflags = 0;
 
 	fpga = devm_kzalloc(&pdev->dev, sizeof(*fpga), GFP_KERNEL);
+
 	if (!fpga)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (res) {
+
+	if (res)
+	{
 		fpga->irq = (unsigned int)res->start;
 		irqflags = res->flags;
 	}
+
 	if (!fpga->irq)
+	{
 		return -ENODEV;
+	}
 
 	base_irq = platform_get_irq(pdev, 1);
+
 	if (base_irq < 0)
+	{
 		base_irq = 0;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	fpga->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(fpga->base))
+	{
 		return PTR_ERR(fpga->base);
+	}
 
 	platform_set_drvdata(pdev, fpga);
 
@@ -143,29 +163,39 @@ static int cplds_probe(struct platform_device *pdev)
 	writel(0, fpga->base + FPGA_IRQ_SET_CLR);
 
 	ret = devm_request_irq(&pdev->dev, fpga->irq, cplds_irq_handler,
-			       irqflags, dev_name(&pdev->dev), fpga);
-	if (ret == -ENOSYS)
-		return -EPROBE_DEFER;
+						   irqflags, dev_name(&pdev->dev), fpga);
 
-	if (ret) {
+	if (ret == -ENOSYS)
+	{
+		return -EPROBE_DEFER;
+	}
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "couldn't request main irq%d: %d\n",
-			fpga->irq, ret);
+				fpga->irq, ret);
 		return ret;
 	}
 
 	irq_set_irq_wake(fpga->irq, 1);
 	fpga->irqdomain = irq_domain_add_linear(pdev->dev.of_node,
-					       CPLDS_NB_IRQ,
-					       &cplds_irq_domain_ops, fpga);
-	if (!fpga->irqdomain)
-		return -ENODEV;
+											CPLDS_NB_IRQ,
+											&cplds_irq_domain_ops, fpga);
 
-	if (base_irq) {
+	if (!fpga->irqdomain)
+	{
+		return -ENODEV;
+	}
+
+	if (base_irq)
+	{
 		ret = irq_create_strict_mappings(fpga->irqdomain, base_irq, 0,
-						 CPLDS_NB_IRQ);
-		if (ret) {
+										 CPLDS_NB_IRQ);
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "couldn't create the irq mapping %d..%d\n",
-				base_irq, base_irq + CPLDS_NB_IRQ);
+					base_irq, base_irq + CPLDS_NB_IRQ);
 			return ret;
 		}
 	}
@@ -182,14 +212,16 @@ static int cplds_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id cplds_id_table[] = {
+static const struct of_device_id cplds_id_table[] =
+{
 	{ .compatible = "intel,lubbock-cplds-irqs", },
 	{ .compatible = "intel,mainstone-cplds-irqs", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, cplds_id_table);
 
-static struct platform_driver cplds_driver = {
+static struct platform_driver cplds_driver =
+{
 	.driver		= {
 		.name	= "pxa_cplds_irqs",
 		.of_match_table = of_match_ptr(cplds_id_table),

@@ -69,19 +69,19 @@ static inline void set_fs(mm_segment_t s)
  * This needs 33-bit arithmetic. We have a carry...
  */
 #define __range_ok(addr, size) ({					\
-	unsigned long flag, roksum; 					\
-	__chk_user_ptr(addr);						\
-	asm ( 								\
-		"	cmpu	%1, %1    ; clear cbit\n"		\
-		"	addx	%1, %3    ; set cbit if overflow\n"	\
-		"	subx	%0, %0\n"				\
-		"	cmpu	%4, %1\n"				\
-		"	subx	%0, %5\n"				\
-		: "=&r" (flag), "=r" (roksum)				\
-		: "1" (addr), "r" ((int)(size)), 			\
-		  "r" (current_thread_info()->addr_limit.seg), "r" (0)	\
-		: "cbit" );						\
-	flag; })
+		unsigned long flag, roksum; 					\
+		__chk_user_ptr(addr);						\
+		asm ( 								\
+											"	cmpu	%1, %1    ; clear cbit\n"		\
+											"	addx	%1, %3    ; set cbit if overflow\n"	\
+											"	subx	%0, %0\n"				\
+											"	cmpu	%4, %1\n"				\
+											"	subx	%0, %5\n"				\
+											: "=&r" (flag), "=r" (roksum)				\
+											: "1" (addr), "r" ((int)(size)), 			\
+											"r" (current_thread_info()->addr_limit.seg), "r" (0)	\
+											: "cbit" );						\
+		flag; })
 
 /**
  * access_ok: - Checks if a user space pointer is valid
@@ -217,61 +217,61 @@ extern int fixup_exception(struct pt_regs *regs);
 	__get_user_nocheck((x), (ptr), sizeof(*(ptr)))
 
 #define __get_user_nocheck(x, ptr, size)				\
-({									\
-	long __gu_err = 0;						\
-	unsigned long __gu_val = 0;					\
-	might_fault();							\
-	__get_user_size(__gu_val, (ptr), (size), __gu_err);		\
-	(x) = (__force __typeof__(*(ptr)))__gu_val;			\
-	__gu_err;							\
-})
+	({									\
+		long __gu_err = 0;						\
+		unsigned long __gu_val = 0;					\
+		might_fault();							\
+		__get_user_size(__gu_val, (ptr), (size), __gu_err);		\
+		(x) = (__force __typeof__(*(ptr)))__gu_val;			\
+		__gu_err;							\
+	})
 
 #define __get_user_check(x, ptr, size)					\
-({									\
-	long __gu_err = -EFAULT;					\
-	unsigned long __gu_val = 0;					\
-	const __typeof__(*(ptr)) __user *__gu_addr = (ptr);		\
-	might_fault();							\
-	if (access_ok(VERIFY_READ, __gu_addr, size))			\
-		__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
-	(x) = (__force __typeof__(*(ptr)))__gu_val;			\
-	__gu_err;							\
-})
+	({									\
+		long __gu_err = -EFAULT;					\
+		unsigned long __gu_val = 0;					\
+		const __typeof__(*(ptr)) __user *__gu_addr = (ptr);		\
+		might_fault();							\
+		if (access_ok(VERIFY_READ, __gu_addr, size))			\
+			__get_user_size(__gu_val, __gu_addr, (size), __gu_err);	\
+		(x) = (__force __typeof__(*(ptr)))__gu_val;			\
+		__gu_err;							\
+	})
 
 extern long __get_user_bad(void);
 
 #define __get_user_size(x, ptr, size, retval)				\
-do {									\
-	retval = 0;							\
-	__chk_user_ptr(ptr);						\
-	switch (size) {							\
-	  case 1: __get_user_asm(x, ptr, retval, "ub"); break;		\
-	  case 2: __get_user_asm(x, ptr, retval, "uh"); break;		\
-	  case 4: __get_user_asm(x, ptr, retval, ""); break;		\
-	  default: (x) = __get_user_bad();				\
-	}								\
-} while (0)
+	do {									\
+		retval = 0;							\
+		__chk_user_ptr(ptr);						\
+		switch (size) {							\
+			case 1: __get_user_asm(x, ptr, retval, "ub"); break;		\
+			case 2: __get_user_asm(x, ptr, retval, "uh"); break;		\
+			case 4: __get_user_asm(x, ptr, retval, ""); break;		\
+			default: (x) = __get_user_bad();				\
+		}								\
+	} while (0)
 
 #define __get_user_asm(x, addr, err, itype)				\
 	__asm__ __volatile__(						\
-		"	.fillinsn\n"					\
-		"1:	ld"itype" %1,@%2\n"				\
-		"	.fillinsn\n"					\
-		"2:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"3:	ldi %0,%3\n"					\
-		"	seth r14,#high(2b)\n"				\
-		"	or3 r14,r14,#low(2b)\n"				\
-		"	jmp r14\n"					\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 1b,3b\n"					\
-		".previous"						\
-		: "=&r" (err), "=&r" (x)				\
-		: "r" (addr), "i" (-EFAULT), "0" (err)			\
-		: "r14", "memory")
+			"	.fillinsn\n"					\
+			"1:	ld"itype" %1,@%2\n"				\
+			"	.fillinsn\n"					\
+			"2:\n"							\
+			".section .fixup,\"ax\"\n"				\
+			"	.balign 4\n"					\
+			"3:	ldi %0,%3\n"					\
+			"	seth r14,#high(2b)\n"				\
+			"	or3 r14,r14,#low(2b)\n"				\
+			"	jmp r14\n"					\
+			".previous\n"						\
+			".section __ex_table,\"a\"\n"				\
+			"	.balign 4\n"					\
+			"	.long 1b,3b\n"					\
+			".previous"						\
+			: "=&r" (err), "=&r" (x)				\
+			: "r" (addr), "i" (-EFAULT), "0" (err)			\
+			: "r14", "memory")
 
 /**
  * __put_user: - Write a simple value into user space, with less checking.
@@ -298,73 +298,73 @@ do {									\
 
 
 #define __put_user_nocheck(x, ptr, size)				\
-({									\
-	long __pu_err;							\
-	might_fault();							\
-	__put_user_size((x), (ptr), (size), __pu_err);			\
-	__pu_err;							\
-})
+	({									\
+		long __pu_err;							\
+		might_fault();							\
+		__put_user_size((x), (ptr), (size), __pu_err);			\
+		__pu_err;							\
+	})
 
 
 #define __put_user_check(x, ptr, size)					\
-({									\
-	long __pu_err = -EFAULT;					\
-	__typeof__(*(ptr)) __user *__pu_addr = (ptr);			\
-	might_fault();							\
-	if (access_ok(VERIFY_WRITE, __pu_addr, size))			\
-		__put_user_size((x), __pu_addr, (size), __pu_err);	\
-	__pu_err;							\
-})
+	({									\
+		long __pu_err = -EFAULT;					\
+		__typeof__(*(ptr)) __user *__pu_addr = (ptr);			\
+		might_fault();							\
+		if (access_ok(VERIFY_WRITE, __pu_addr, size))			\
+			__put_user_size((x), __pu_addr, (size), __pu_err);	\
+		__pu_err;							\
+	})
 
 #if defined(__LITTLE_ENDIAN__)
 #define __put_user_u64(x, addr, err)					\
-        __asm__ __volatile__(						\
-                "       .fillinsn\n"					\
-                "1:     st %L1,@%2\n"					\
-                "       .fillinsn\n"					\
-                "2:     st %H1,@(4,%2)\n"				\
-                "       .fillinsn\n"					\
-                "3:\n"							\
-                ".section .fixup,\"ax\"\n"				\
-                "       .balign 4\n"					\
-                "4:     ldi %0,%3\n"					\
-                "       seth r14,#high(3b)\n"				\
-                "       or3 r14,r14,#low(3b)\n"				\
-                "       jmp r14\n"					\
-                ".previous\n"						\
-                ".section __ex_table,\"a\"\n"				\
-                "       .balign 4\n"					\
-                "       .long 1b,4b\n"					\
-                "       .long 2b,4b\n"					\
-                ".previous"						\
-                : "=&r" (err)						\
-                : "r" (x), "r" (addr), "i" (-EFAULT), "0" (err)		\
-                : "r14", "memory")
+	__asm__ __volatile__(						\
+			"       .fillinsn\n"					\
+			"1:     st %L1,@%2\n"					\
+			"       .fillinsn\n"					\
+			"2:     st %H1,@(4,%2)\n"				\
+			"       .fillinsn\n"					\
+			"3:\n"							\
+			".section .fixup,\"ax\"\n"				\
+			"       .balign 4\n"					\
+			"4:     ldi %0,%3\n"					\
+			"       seth r14,#high(3b)\n"				\
+			"       or3 r14,r14,#low(3b)\n"				\
+			"       jmp r14\n"					\
+			".previous\n"						\
+			".section __ex_table,\"a\"\n"				\
+			"       .balign 4\n"					\
+			"       .long 1b,4b\n"					\
+			"       .long 2b,4b\n"					\
+			".previous"						\
+			: "=&r" (err)						\
+			: "r" (x), "r" (addr), "i" (-EFAULT), "0" (err)		\
+			: "r14", "memory")
 
 #elif defined(__BIG_ENDIAN__)
 #define __put_user_u64(x, addr, err)					\
 	__asm__ __volatile__(						\
-		"	.fillinsn\n"					\
-		"1:	st %H1,@%2\n"					\
-		"	.fillinsn\n"					\
-		"2:	st %L1,@(4,%2)\n"				\
-		"	.fillinsn\n"					\
-		"3:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"4:	ldi %0,%3\n"					\
-		"	seth r14,#high(3b)\n"				\
-		"	or3 r14,r14,#low(3b)\n"				\
-		"	jmp r14\n"					\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 1b,4b\n"					\
-		"	.long 2b,4b\n"					\
-		".previous"						\
-		: "=&r" (err)						\
-		: "r" (x), "r" (addr), "i" (-EFAULT), "0" (err)		\
-		: "r14", "memory")
+			"	.fillinsn\n"					\
+			"1:	st %H1,@%2\n"					\
+			"	.fillinsn\n"					\
+			"2:	st %L1,@(4,%2)\n"				\
+			"	.fillinsn\n"					\
+			"3:\n"							\
+			".section .fixup,\"ax\"\n"				\
+			"	.balign 4\n"					\
+			"4:	ldi %0,%3\n"					\
+			"	seth r14,#high(3b)\n"				\
+			"	or3 r14,r14,#low(3b)\n"				\
+			"	jmp r14\n"					\
+			".previous\n"						\
+			".section __ex_table,\"a\"\n"				\
+			"	.balign 4\n"					\
+			"	.long 1b,4b\n"					\
+			"	.long 2b,4b\n"					\
+			".previous"						\
+			: "=&r" (err)						\
+			: "r" (x), "r" (addr), "i" (-EFAULT), "0" (err)		\
+			: "r14", "memory")
 #else
 #error no endian defined
 #endif
@@ -372,17 +372,17 @@ do {									\
 extern void __put_user_bad(void);
 
 #define __put_user_size(x, ptr, size, retval)				\
-do {									\
-	retval = 0;							\
-	__chk_user_ptr(ptr);						\
-	switch (size) {							\
-	  case 1: __put_user_asm(x, ptr, retval, "b"); break;		\
-	  case 2: __put_user_asm(x, ptr, retval, "h"); break;		\
-	  case 4: __put_user_asm(x, ptr, retval, ""); break;		\
-	  case 8: __put_user_u64((__typeof__(*ptr))(x), ptr, retval); break;\
-	  default: __put_user_bad();					\
-	}								\
-} while (0)
+	do {									\
+		retval = 0;							\
+		__chk_user_ptr(ptr);						\
+		switch (size) {							\
+			case 1: __put_user_asm(x, ptr, retval, "b"); break;		\
+			case 2: __put_user_asm(x, ptr, retval, "h"); break;		\
+			case 4: __put_user_asm(x, ptr, retval, ""); break;		\
+			case 8: __put_user_u64((__typeof__(*ptr))(x), ptr, retval); break;\
+			default: __put_user_bad();					\
+		}								\
+	} while (0)
 
 struct __large_struct { unsigned long buf[100]; };
 #define __m(x) (*(struct __large_struct *)(x))
@@ -394,24 +394,24 @@ struct __large_struct { unsigned long buf[100]; };
  */
 #define __put_user_asm(x, addr, err, itype)				\
 	__asm__ __volatile__(						\
-		"	.fillinsn\n"					\
-		"1:	st"itype" %1,@%2\n"				\
-		"	.fillinsn\n"					\
-		"2:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"3:	ldi %0,%3\n"					\
-		"	seth r14,#high(2b)\n"				\
-		"	or3 r14,r14,#low(2b)\n"				\
-		"	jmp r14\n"					\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 1b,3b\n"					\
-		".previous"						\
-		: "=&r" (err)						\
-		: "r" (x), "r" (addr), "i" (-EFAULT), "0" (err)		\
-		: "r14", "memory")
+			"	.fillinsn\n"					\
+			"1:	st"itype" %1,@%2\n"				\
+			"	.fillinsn\n"					\
+			"2:\n"							\
+			".section .fixup,\"ax\"\n"				\
+			"	.balign 4\n"					\
+			"3:	ldi %0,%3\n"					\
+			"	seth r14,#high(2b)\n"				\
+			"	or3 r14,r14,#low(2b)\n"				\
+			"	jmp r14\n"					\
+			".previous\n"						\
+			".section __ex_table,\"a\"\n"				\
+			"	.balign 4\n"					\
+			"	.long 1b,3b\n"					\
+			".previous"						\
+			: "=&r" (err)						\
+			: "r" (x), "r" (addr), "i" (-EFAULT), "0" (err)		\
+			: "r14", "memory")
 
 /*
  * Here we special-case 1, 2 and 4-byte copy_*_user invocations.  On a fault
@@ -427,138 +427,138 @@ struct __large_struct { unsigned long buf[100]; };
 /* Generic arbitrary sized copy.  */
 /* Return the number of bytes NOT copied.  */
 #define __copy_user(to, from, size)					\
-do {									\
-	unsigned long __dst, __src, __c;				\
-	__asm__ __volatile__ (						\
-		"	mv	r14, %0\n"				\
-		"	or	r14, %1\n"				\
-		"	beq	%0, %1, 9f\n"				\
-		"	beqz	%2, 9f\n"				\
-		"	and3	r14, r14, #3\n"				\
-		"	bnez	r14, 2f\n"				\
-		"	and3	%2, %2, #3\n"				\
-		"	beqz	%3, 2f\n"				\
-		"	addi	%0, #-4		; word_copy \n"		\
-		"	.fillinsn\n"					\
-		"0:	ld	r14, @%1+\n"				\
-		"	addi	%3, #-1\n"				\
-		"	.fillinsn\n"					\
-		"1:	st	r14, @+%0\n"				\
-		"	bnez	%3, 0b\n"				\
-		"	beqz	%2, 9f\n"				\
-		"	addi	%0, #4\n"				\
-		"	.fillinsn\n"					\
-		"2:	ldb	r14, @%1	; byte_copy \n"		\
-		"	.fillinsn\n"					\
-		"3:	stb	r14, @%0\n"				\
-		"	addi	%1, #1\n"				\
-		"	addi	%2, #-1\n"				\
-		"	addi	%0, #1\n"				\
-		"	bnez	%2, 2b\n"				\
-		"	.fillinsn\n"					\
-		"9:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"5:	addi	%3, #1\n"				\
-		"	addi	%1, #-4\n"				\
-		"	.fillinsn\n"					\
-		"6:	slli	%3, #2\n"				\
-		"	add	%2, %3\n"				\
-		"	addi	%0, #4\n"				\
-		"	.fillinsn\n"					\
-		"7:	seth	r14, #high(9b)\n"			\
-		"	or3	r14, r14, #low(9b)\n"			\
-		"	jmp	r14\n"					\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 0b,6b\n"					\
-		"	.long 1b,5b\n"					\
-		"	.long 2b,9b\n"					\
-		"	.long 3b,9b\n"					\
-		".previous\n"						\
-		: "=&r" (__dst), "=&r" (__src), "=&r" (size),		\
-		  "=&r" (__c)						\
-		: "0" (to), "1" (from), "2" (size), "3" (size / 4)	\
-		: "r14", "memory");					\
-} while (0)
+	do {									\
+		unsigned long __dst, __src, __c;				\
+		__asm__ __volatile__ (						\
+				"	mv	r14, %0\n"				\
+				"	or	r14, %1\n"				\
+				"	beq	%0, %1, 9f\n"				\
+				"	beqz	%2, 9f\n"				\
+				"	and3	r14, r14, #3\n"				\
+				"	bnez	r14, 2f\n"				\
+				"	and3	%2, %2, #3\n"				\
+				"	beqz	%3, 2f\n"				\
+				"	addi	%0, #-4		; word_copy \n"		\
+				"	.fillinsn\n"					\
+				"0:	ld	r14, @%1+\n"				\
+				"	addi	%3, #-1\n"				\
+				"	.fillinsn\n"					\
+				"1:	st	r14, @+%0\n"				\
+				"	bnez	%3, 0b\n"				\
+				"	beqz	%2, 9f\n"				\
+				"	addi	%0, #4\n"				\
+				"	.fillinsn\n"					\
+				"2:	ldb	r14, @%1	; byte_copy \n"		\
+				"	.fillinsn\n"					\
+				"3:	stb	r14, @%0\n"				\
+				"	addi	%1, #1\n"				\
+				"	addi	%2, #-1\n"				\
+				"	addi	%0, #1\n"				\
+				"	bnez	%2, 2b\n"				\
+				"	.fillinsn\n"					\
+				"9:\n"							\
+				".section .fixup,\"ax\"\n"				\
+				"	.balign 4\n"					\
+				"5:	addi	%3, #1\n"				\
+				"	addi	%1, #-4\n"				\
+				"	.fillinsn\n"					\
+				"6:	slli	%3, #2\n"				\
+				"	add	%2, %3\n"				\
+				"	addi	%0, #4\n"				\
+				"	.fillinsn\n"					\
+				"7:	seth	r14, #high(9b)\n"			\
+				"	or3	r14, r14, #low(9b)\n"			\
+				"	jmp	r14\n"					\
+				".previous\n"						\
+				".section __ex_table,\"a\"\n"				\
+				"	.balign 4\n"					\
+				"	.long 0b,6b\n"					\
+				"	.long 1b,5b\n"					\
+				"	.long 2b,9b\n"					\
+				"	.long 3b,9b\n"					\
+				".previous\n"						\
+				: "=&r" (__dst), "=&r" (__src), "=&r" (size),		\
+				"=&r" (__c)						\
+				: "0" (to), "1" (from), "2" (size), "3" (size / 4)	\
+				: "r14", "memory");					\
+	} while (0)
 
 #define __copy_user_zeroing(to, from, size)				\
-do {									\
-	unsigned long __dst, __src, __c;				\
-	__asm__ __volatile__ (						\
-		"	mv	r14, %0\n"				\
-		"	or	r14, %1\n"				\
-		"	beq	%0, %1, 9f\n"				\
-		"	beqz	%2, 9f\n"				\
-		"	and3	r14, r14, #3\n"				\
-		"	bnez	r14, 2f\n"				\
-		"	and3	%2, %2, #3\n"				\
-		"	beqz	%3, 2f\n"				\
-		"	addi	%0, #-4		; word_copy \n"		\
-		"	.fillinsn\n"					\
-		"0:	ld	r14, @%1+\n"				\
-		"	addi	%3, #-1\n"				\
-		"	.fillinsn\n"					\
-		"1:	st	r14, @+%0\n"				\
-		"	bnez	%3, 0b\n"				\
-		"	beqz	%2, 9f\n"				\
-		"	addi	%0, #4\n"				\
-		"	.fillinsn\n"					\
-		"2:	ldb	r14, @%1	; byte_copy \n"		\
-		"	.fillinsn\n"					\
-		"3:	stb	r14, @%0\n"				\
-		"	addi	%1, #1\n"				\
-		"	addi	%2, #-1\n"				\
-		"	addi	%0, #1\n"				\
-		"	bnez	%2, 2b\n"				\
-		"	.fillinsn\n"					\
-		"9:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"	.balign 4\n"					\
-		"5:	addi	%3, #1\n"				\
-		"	addi	%1, #-4\n"				\
-		"	.fillinsn\n"					\
-		"6:	slli	%3, #2\n"				\
-		"	add	%2, %3\n"				\
-		"	addi	%0, #4\n"				\
-		"	.fillinsn\n"					\
-		"7:	ldi	r14, #0		; store zero \n"	\
-		"	.fillinsn\n"					\
-		"8:	addi	%2, #-1\n"				\
-		"	stb	r14, @%0	; ACE? \n"		\
-		"	addi	%0, #1\n"				\
-		"	bnez	%2, 8b\n"				\
-		"	seth	r14, #high(9b)\n"			\
-		"	or3	r14, r14, #low(9b)\n"			\
-		"	jmp	r14\n"					\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.balign 4\n"					\
-		"	.long 0b,6b\n"					\
-		"	.long 1b,5b\n"					\
-		"	.long 2b,7b\n"					\
-		"	.long 3b,7b\n"					\
-		".previous\n"						\
-		: "=&r" (__dst), "=&r" (__src), "=&r" (size),		\
-		  "=&r" (__c)						\
-		: "0" (to), "1" (from), "2" (size), "3" (size / 4)	\
-		: "r14", "memory");					\
-} while (0)
+	do {									\
+		unsigned long __dst, __src, __c;				\
+		__asm__ __volatile__ (						\
+				"	mv	r14, %0\n"				\
+				"	or	r14, %1\n"				\
+				"	beq	%0, %1, 9f\n"				\
+				"	beqz	%2, 9f\n"				\
+				"	and3	r14, r14, #3\n"				\
+				"	bnez	r14, 2f\n"				\
+				"	and3	%2, %2, #3\n"				\
+				"	beqz	%3, 2f\n"				\
+				"	addi	%0, #-4		; word_copy \n"		\
+				"	.fillinsn\n"					\
+				"0:	ld	r14, @%1+\n"				\
+				"	addi	%3, #-1\n"				\
+				"	.fillinsn\n"					\
+				"1:	st	r14, @+%0\n"				\
+				"	bnez	%3, 0b\n"				\
+				"	beqz	%2, 9f\n"				\
+				"	addi	%0, #4\n"				\
+				"	.fillinsn\n"					\
+				"2:	ldb	r14, @%1	; byte_copy \n"		\
+				"	.fillinsn\n"					\
+				"3:	stb	r14, @%0\n"				\
+				"	addi	%1, #1\n"				\
+				"	addi	%2, #-1\n"				\
+				"	addi	%0, #1\n"				\
+				"	bnez	%2, 2b\n"				\
+				"	.fillinsn\n"					\
+				"9:\n"							\
+				".section .fixup,\"ax\"\n"				\
+				"	.balign 4\n"					\
+				"5:	addi	%3, #1\n"				\
+				"	addi	%1, #-4\n"				\
+				"	.fillinsn\n"					\
+				"6:	slli	%3, #2\n"				\
+				"	add	%2, %3\n"				\
+				"	addi	%0, #4\n"				\
+				"	.fillinsn\n"					\
+				"7:	ldi	r14, #0		; store zero \n"	\
+				"	.fillinsn\n"					\
+				"8:	addi	%2, #-1\n"				\
+				"	stb	r14, @%0	; ACE? \n"		\
+				"	addi	%0, #1\n"				\
+				"	bnez	%2, 8b\n"				\
+				"	seth	r14, #high(9b)\n"			\
+				"	or3	r14, r14, #low(9b)\n"			\
+				"	jmp	r14\n"					\
+				".previous\n"						\
+				".section __ex_table,\"a\"\n"				\
+				"	.balign 4\n"					\
+				"	.long 0b,6b\n"					\
+				"	.long 1b,5b\n"					\
+				"	.long 2b,7b\n"					\
+				"	.long 3b,7b\n"					\
+				".previous\n"						\
+				: "=&r" (__dst), "=&r" (__src), "=&r" (size),		\
+				"=&r" (__c)						\
+				: "0" (to), "1" (from), "2" (size), "3" (size / 4)	\
+				: "r14", "memory");					\
+	} while (0)
 
 
 /* We let the __ versions of copy_from/to_user inline, because they're often
  * used in fast paths and have only a small space overhead.
  */
 static inline unsigned long __generic_copy_from_user_nocheck(void *to,
-	const void __user *from, unsigned long n)
+		const void __user *from, unsigned long n)
 {
 	__copy_user_zeroing(to, from, n);
 	return n;
 }
 
 static inline unsigned long __generic_copy_to_user_nocheck(void __user *to,
-	const void *from, unsigned long n)
+		const void *from, unsigned long n)
 {
 	__copy_user(to, from, n);
 	return n;
@@ -603,10 +603,10 @@ unsigned long __generic_copy_from_user(void *, const void __user *, unsigned lon
  * On success, this will be zero.
  */
 #define copy_to_user(to, from, n)			\
-({							\
-	might_fault();					\
-	__generic_copy_to_user((to), (from), (n));	\
-})
+	({							\
+		might_fault();					\
+		__generic_copy_to_user((to), (from), (n));	\
+	})
 
 /**
  * __copy_from_user: - Copy a block of data from user space, with less checking. * @to:   Destination address, in kernel space.
@@ -646,15 +646,15 @@ unsigned long __generic_copy_from_user(void *, const void __user *, unsigned lon
  * data to the requested size using zero bytes.
  */
 #define copy_from_user(to, from, n)			\
-({							\
-	might_fault();					\
-	__generic_copy_from_user((to), (from), (n));	\
-})
+	({							\
+		might_fault();					\
+		__generic_copy_from_user((to), (from), (n));	\
+	})
 
 long __must_check strncpy_from_user(char *dst, const char __user *src,
-				long count);
+									long count);
 long __must_check __strncpy_from_user(char *dst,
-				const char __user *src, long count);
+									  const char __user *src, long count);
 
 /**
  * __clear_user: - Zero a block of memory in user space, with less checking.

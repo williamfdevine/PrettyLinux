@@ -39,10 +39,13 @@ static inline void putc(int c)
 {
 	int i;
 
-	for (i = 0; i < 10000; i++) {
+	for (i = 0; i < 10000; i++)
+	{
 		/* Transmit fifo not full? */
 		if (!(__raw_readb(PHYS_UART_FLAG) & UART_FLAG_TXFF))
+		{
 			break;
+		}
 	}
 
 	__raw_writeb(c, PHYS_UART_DATA);

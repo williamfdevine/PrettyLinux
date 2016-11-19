@@ -30,8 +30,11 @@ void init_messaging(void)
 	/* Allocate storage for messages in kernel space */
 	HV_MsgState *state = this_cpu_ptr(&msg_state);
 	int rc = hv_register_message_state(state);
+
 	if (rc != HV_OK)
+	{
 		panic("hv_register_message_state: error %d", rc);
+	}
 
 	/* Make sure downcall interrupts will be enabled. */
 	arch_local_irq_unmask(INT_INTCTRL_K);
@@ -46,7 +49,7 @@ void hv_message_intr(struct pt_regs *regs, int intnum)
 	 * with normal call entry for device interrupts.
 	 */
 
-	int message[HV_MAX_MESSAGE_SIZE/sizeof(int)];
+	int message[HV_MAX_MESSAGE_SIZE / sizeof(int)];
 	HV_RcvMsgInfo rmi;
 	int nmsgs = 0;
 
@@ -58,27 +61,36 @@ void hv_message_intr(struct pt_regs *regs, int intnum)
 	/* Debugging check for stack overflow: less than 1/8th stack free? */
 	{
 		long sp = stack_pointer - (long) current_thread_info();
-		if (unlikely(sp < (sizeof(struct thread_info) + STACK_WARN))) {
+
+		if (unlikely(sp < (sizeof(struct thread_info) + STACK_WARN)))
+		{
 			pr_emerg("%s: stack overflow: %ld\n",
-				 __func__, sp - sizeof(struct thread_info));
+					 __func__, sp - sizeof(struct thread_info));
 			dump_stack();
 		}
 	}
 #endif
 
-	while (1) {
+	while (1)
+	{
 		HV_MsgState *state = this_cpu_ptr(&msg_state);
 		rmi = hv_receive_message(*state, (HV_VirtAddr) message,
-					 sizeof(message));
+								 sizeof(message));
+
 		if (rmi.msglen == 0)
+		{
 			break;
+		}
 
 		if (rmi.msglen < 0)
+		{
 			panic("hv_receive_message failed: %d", rmi.msglen);
+		}
 
 		++nmsgs;
 
-		if (rmi.source == HV_MSG_TILE) {
+		if (rmi.source == HV_MSG_TILE)
+		{
 			int tag;
 
 			/* we just send tags for now */
@@ -90,7 +102,9 @@ void hv_message_intr(struct pt_regs *regs, int intnum)
 #else
 			panic("Received IPI message %d in UP mode", tag);
 #endif
-		} else if (rmi.source == HV_MSG_INTR) {
+		}
+		else if (rmi.source == HV_MSG_INTR)
+		{
 			HV_IntrMsg *him = (HV_IntrMsg *)message;
 			struct hv_driver_cb *cb =
 				(struct hv_driver_cb *)him->intarg;
@@ -104,7 +118,9 @@ void hv_message_intr(struct pt_regs *regs, int intnum)
 	 * messages available.
 	 */
 	if (nmsgs == 0)
+	{
 		panic("Message downcall invoked with no messages!");
+	}
 
 	/*
 	 * Track time spent against the current process again and

@@ -73,69 +73,74 @@
  * one of the xxx_IOP_BASE addresses given above.
  */
 
-struct mac_iop {
-    __u8	ram_addr_hi;	/* shared RAM address hi byte */
-    __u8	pad0;
-    __u8	ram_addr_lo;	/* shared RAM address lo byte */
-    __u8	pad1;
-    __u8	status_ctrl;	/* status/control register */
-    __u8	pad2[3];
-    __u8	ram_data;	/* RAM data byte at ramhi/lo */
+struct mac_iop
+{
+	__u8	ram_addr_hi;	/* shared RAM address hi byte */
+	__u8	pad0;
+	__u8	ram_addr_lo;	/* shared RAM address lo byte */
+	__u8	pad1;
+	__u8	status_ctrl;	/* status/control register */
+	__u8	pad2[3];
+	__u8	ram_data;	/* RAM data byte at ramhi/lo */
 
-    __u8	pad3[23];
+	__u8	pad3[23];
 
-    /* Bypass-mode hardware access registers */
+	/* Bypass-mode hardware access registers */
 
-    union {
-	struct {		/* SCC registers */
-	    __u8 sccb_cmd;	/* SCC B command reg */
-	    __u8 pad4;
-	    __u8 scca_cmd;	/* SCC A command reg */
-	    __u8 pad5;
-	    __u8 sccb_data;	/* SCC B data */
-	    __u8 pad6;
-	    __u8 scca_data;	/* SCC A data */
-	} scc_regs;
+	union
+	{
+		struct  		/* SCC registers */
+		{
+			__u8 sccb_cmd;	/* SCC B command reg */
+			__u8 pad4;
+			__u8 scca_cmd;	/* SCC A command reg */
+			__u8 pad5;
+			__u8 sccb_data;	/* SCC B data */
+			__u8 pad6;
+			__u8 scca_data;	/* SCC A data */
+		} scc_regs;
 
-	struct {		/* ISM registers */
-	    __u8 wdata;		/* write a data byte */
-	    __u8 pad7;
-	    __u8 wmark;		/* write a mark byte */
-	    __u8 pad8;
-	    __u8 wcrc;		/* write 2-byte crc to disk */
-	    __u8 pad9;
-	    __u8 wparams;	/* write the param regs */
-	    __u8 pad10;
-	    __u8 wphase;	/* write the phase states & dirs */
-	    __u8 pad11;
-	    __u8 wsetup;	/* write the setup register */
-	    __u8 pad12;
-	    __u8 wzeroes;	/* mode reg: 1's clr bits, 0's are x */
-	    __u8 pad13;
-	    __u8 wones;		/* mode reg: 1's set bits, 0's are x */
-	    __u8 pad14;
-	    __u8 rdata;		/* read a data byte */
-	    __u8 pad15;
-	    __u8 rmark;		/* read a mark byte */
-	    __u8 pad16;
-	    __u8 rerror;	/* read the error register */
-	    __u8 pad17;
-	    __u8 rparams;	/* read the param regs */
-	    __u8 pad18;
-	    __u8 rphase;	/* read the phase states & dirs */
-	    __u8 pad19;
-	    __u8 rsetup;	/* read the setup register */
-	    __u8 pad20;
-	    __u8 rmode;		/* read the mode register */
-	    __u8 pad21;
-	    __u8 rhandshake;	/* read the handshake register */
-	} ism_regs;
-    } b;
+		struct  		/* ISM registers */
+		{
+			__u8 wdata;		/* write a data byte */
+			__u8 pad7;
+			__u8 wmark;		/* write a mark byte */
+			__u8 pad8;
+			__u8 wcrc;		/* write 2-byte crc to disk */
+			__u8 pad9;
+			__u8 wparams;	/* write the param regs */
+			__u8 pad10;
+			__u8 wphase;	/* write the phase states & dirs */
+			__u8 pad11;
+			__u8 wsetup;	/* write the setup register */
+			__u8 pad12;
+			__u8 wzeroes;	/* mode reg: 1's clr bits, 0's are x */
+			__u8 pad13;
+			__u8 wones;		/* mode reg: 1's set bits, 0's are x */
+			__u8 pad14;
+			__u8 rdata;		/* read a data byte */
+			__u8 pad15;
+			__u8 rmark;		/* read a mark byte */
+			__u8 pad16;
+			__u8 rerror;	/* read the error register */
+			__u8 pad17;
+			__u8 rparams;	/* read the param regs */
+			__u8 pad18;
+			__u8 rphase;	/* read the phase states & dirs */
+			__u8 pad19;
+			__u8 rsetup;	/* read the setup register */
+			__u8 pad20;
+			__u8 rmode;		/* read the mode register */
+			__u8 pad21;
+			__u8 rhandshake;	/* read the handshake register */
+		} ism_regs;
+	} b;
 };
 
 /* This structure is used to track IOP messages in the Linux kernel */
 
-struct iop_msg {
+struct iop_msg
+{
 	struct iop_msg	*next;		/* next message in queue or NULL     */
 	uint	iop_num;		/* IOP number                        */
 	uint	channel;		/* channel number                    */
@@ -144,16 +149,16 @@ struct iop_msg {
 	__u8	message[IOP_MSG_LEN];	/* the message being sent/received   */
 	__u8	reply[IOP_MSG_LEN];	/* the reply to the message          */
 	void	(*handler)(struct iop_msg *);
-					/* function to call when reply recvd */
+	/* function to call when reply recvd */
 };
 
-extern int iop_scc_present,iop_ism_present;
+extern int iop_scc_present, iop_ism_present;
 
 extern int iop_listen(uint, uint,
-			void (*handler)(struct iop_msg *),
-			const char *);
+					  void (*handler)(struct iop_msg *),
+					  const char *);
 extern int iop_send_message(uint, uint, void *, uint, __u8 *,
-			    void (*)(struct iop_msg *));
+							void (*)(struct iop_msg *));
 extern void iop_complete_message(struct iop_msg *);
 extern void iop_upload_code(uint, __u8 *, uint, __u16);
 extern void iop_download_code(uint, __u8 *, uint, __u16);

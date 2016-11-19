@@ -148,20 +148,22 @@
 					 * a function descriptor, not
 					 * an address */
 
-/* The following are PA function descriptors 
+/* The following are PA function descriptors
  *
  * addr:	the absolute address of the function
  * gp:		either the data pointer (r27) for non-PIC code or the
  *		the PLT pointer (r19) for PIC code */
 
 /* Format for the Elf32 Function descriptor */
-typedef struct elf32_fdesc {
+typedef struct elf32_fdesc
+{
 	__u32	addr;
 	__u32	gp;
 } Elf32_Fdesc;
 
 /* Format for the Elf64 Function descriptor */
-typedef struct elf64_fdesc {
+typedef struct elf64_fdesc
+{
 	__u64	dummy[2]; /* FIXME: nothing uses these, why waste
 			   * the space */
 	__u64	addr;
@@ -170,11 +172,11 @@ typedef struct elf64_fdesc {
 
 #ifdef __KERNEL__
 
-#ifdef CONFIG_64BIT
-#define Elf_Fdesc	Elf64_Fdesc
-#else
-#define Elf_Fdesc	Elf32_Fdesc
-#endif /*CONFIG_64BIT*/
+	#ifdef CONFIG_64BIT
+		#define Elf_Fdesc	Elf64_Fdesc
+	#else
+		#define Elf_Fdesc	Elf32_Fdesc
+	#endif /*CONFIG_64BIT*/
 
 #endif /*__KERNEL__*/
 
@@ -231,9 +233,9 @@ typedef struct elf64_fdesc {
  * elf binary handler for 32 bit binaries (on the 64 bit kernel).
  */
 #ifdef CONFIG_64BIT
-#define ELF_CLASS   ELFCLASS64
+	#define ELF_CLASS   ELFCLASS64
 #else
-#define ELF_CLASS	ELFCLASS32
+	#define ELF_CLASS	ELFCLASS32
 #endif
 
 typedef unsigned long elf_greg_t;
@@ -251,28 +253,28 @@ typedef unsigned long elf_greg_t;
 	current->thread.map_base = DEFAULT_MAP_BASE; \
 	current->thread.task_size = DEFAULT_TASK_SIZE \
 
-/*
- * Fill in general registers in a core dump.  This saves pretty
- * much the same registers as hp-ux, although in a different order.
- * Registers marked # below are not currently saved in pt_regs, so
- * we use their current values here.
- *
- * 	gr0..gr31
- * 	sr0..sr7
- * 	iaoq0..iaoq1
- * 	iasq0..iasq1
- * 	cr11 (sar)
- * 	cr19 (iir)
- * 	cr20 (isr)
- * 	cr21 (ior)
- *  #	cr22 (ipsw)
- *  #	cr0 (recovery counter)
- *  #	cr24..cr31 (temporary registers)
- *  #	cr8,9,12,13 (protection IDs)
- *  #	cr10 (scr/ccr)
- *  #	cr15 (ext int enable mask)
- *
- */
+								/*
+								 * Fill in general registers in a core dump.  This saves pretty
+								 * much the same registers as hp-ux, although in a different order.
+								 * Registers marked # below are not currently saved in pt_regs, so
+								 * we use their current values here.
+								 *
+								 * 	gr0..gr31
+								 * 	sr0..sr7
+								 * 	iaoq0..iaoq1
+								 * 	iasq0..iasq1
+								 * 	cr11 (sar)
+								 * 	cr19 (iir)
+								 * 	cr20 (isr)
+								 * 	cr21 (ior)
+								 *  #	cr22 (ipsw)
+								 *  #	cr0 (recovery counter)
+								 *  #	cr24..cr31 (temporary registers)
+								 *  #	cr8,9,12,13 (protection IDs)
+								 *  #	cr10 (scr/ccr)
+								 *  #	cr15 (ext int enable mask)
+								 *
+								 */
 
 #define ELF_CORE_COPY_REGS(dst, pt)	\
 	memset(dst, 0, sizeof(dst));	/* don't leak any "random" bits */ \
@@ -318,7 +320,7 @@ struct pt_regs;	/* forward declaration... */
 #define ELF_ARCH	EM_PARISC
 #define ELF_OSABI 	ELFOSABI_LINUX
 
-/* %r23 is set by ld.so to a pointer to a function which might be 
+/* %r23 is set by ld.so to a pointer to a function which might be
    registered using atexit.  This provides a means for the dynamic
    linker to call DT_FINI functions for shared libraries that have
    been loaded before the code runs.
@@ -337,7 +339,7 @@ struct pt_regs;	/* forward declaration... */
 
    (2 * TASK_SIZE / 3) turns into something undefined when run through a
    32 bit preprocessor and in some cases results in the kernel trying to map
-   ld.so to the kernel virtual base. Use a sane value instead. /Jes 
+   ld.so to the kernel virtual base. Use a sane value instead. /Jes
   */
 
 #define ELF_ET_DYN_BASE         (TASK_UNMAPPED_BASE + 0x01000000)
@@ -349,8 +351,8 @@ struct pt_regs;	/* forward declaration... */
 #define ELF_HWCAP	0
 
 #define STACK_RND_MASK	(is_32bit_task() ? \
-				0x7ff >> (PAGE_SHIFT - 12) : \
-				0x3ffff >> (PAGE_SHIFT - 12))
+						 0x7ff >> (PAGE_SHIFT - 12) : \
+						 0x3ffff >> (PAGE_SHIFT - 12))
 
 struct mm_struct;
 extern unsigned long arch_randomize_brk(struct mm_struct *);

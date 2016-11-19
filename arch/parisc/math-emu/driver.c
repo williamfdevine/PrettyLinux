@@ -39,7 +39,8 @@
 #define FPUDEBUG 0
 
 /* Format of the floating-point exception registers. */
-struct exc_reg {
+struct exc_reg
+{
 	unsigned int exception : 6;
 	unsigned int ei : 26;
 };
@@ -87,7 +88,7 @@ handle_fpe(struct pt_regs *regs)
 	 * code expects an artificial last entry which contains zero
 	 *
 	 * also, the passed in fr registers contain one word that defines
-	 * the fpu type. the fpu type information is constructed 
+	 * the fpu type. the fpu type information is constructed
 	 * inside the emulation code
 	 */
 	__u64 frcopy[36];
@@ -97,7 +98,8 @@ handle_fpe(struct pt_regs *regs)
 
 	memcpy(&orig_sw, frcopy, sizeof(orig_sw));
 
-	if (FPUDEBUG) {
+	if (FPUDEBUG)
+	{
 		printk(KERN_DEBUG "FP VZOUICxxxxCQCQCQCQCQCRMxxTDVZOUI ->\n   ");
 		printbinary(orig_sw, 32);
 		printk(KERN_DEBUG "\n");
@@ -107,21 +109,25 @@ handle_fpe(struct pt_regs *regs)
 
 	/* Status word = FR0L. */
 	memcpy(&sw, frcopy, sizeof(sw));
-	if (FPUDEBUG) {
+
+	if (FPUDEBUG)
+	{
 		printk(KERN_DEBUG "VZOUICxxxxCQCQCQCQCQCRMxxTDVZOUI decode_fpu returns %d|0x%x\n",
-			signalcode >> 24, signalcode & 0xffffff);
+			   signalcode >> 24, signalcode & 0xffffff);
 		printbinary(sw, 32);
 		printk(KERN_DEBUG "\n");
 	}
 
 	memcpy(regs->fr, frcopy, sizeof regs->fr);
-	if (signalcode != 0) {
-	    si.si_signo = signalcode >> 24;
-	    si.si_errno = 0;
-	    si.si_code = signalcode & 0xffffff;
-	    si.si_addr = (void __user *) regs->iaoq[0];
-	    force_sig_info(si.si_signo, &si, current);
-	    return -1;
+
+	if (signalcode != 0)
+	{
+		si.si_signo = signalcode >> 24;
+		si.si_errno = 0;
+		si.si_code = signalcode & 0xffffff;
+		si.si_addr = (void __user *) regs->iaoq[0];
+		force_sig_info(si.si_signo, &si, current);
+		return -1;
 	}
 
 	return signalcode ? -1 : 0;

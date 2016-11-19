@@ -36,7 +36,7 @@
 #include <asm/lasat/serial.h>
 
 #ifdef CONFIG_PICVUE
-#include <linux/notifier.h>
+	#include <linux/notifier.h>
 #endif
 
 #include "ds1603.h"
@@ -54,7 +54,8 @@ extern void pcisetup(void);
 extern void edhac_init(void *, void *, void *);
 extern void addrflt_init(void);
 
-struct lasat_misc lasat_misc_info[N_MACHTYPES] = {
+struct lasat_misc lasat_misc_info[N_MACHTYPES] =
+{
 	{
 		.reset_reg	= (void *)KSEG1ADDR(0x1c840000),
 		.flash_wp_reg	= (void *)KSEG1ADDR(0x1c800000), 2
@@ -67,40 +68,54 @@ struct lasat_misc lasat_misc_info[N_MACHTYPES] = {
 struct lasat_misc *lasat_misc;
 
 #ifdef CONFIG_DS1603
-static struct ds_defs ds_defs[N_MACHTYPES] = {
-	{ (void *)DS1603_REG_100, (void *)DS1603_REG_100,
+static struct ds_defs ds_defs[N_MACHTYPES] =
+{
+	{
+		(void *)DS1603_REG_100, (void *)DS1603_REG_100,
 		DS1603_RST_100, DS1603_CLK_100, DS1603_DATA_100,
-		DS1603_DATA_SHIFT_100, 0, 0 },
-	{ (void *)DS1603_REG_200, (void *)DS1603_DATA_REG_200,
+		DS1603_DATA_SHIFT_100, 0, 0
+	},
+	{
+		(void *)DS1603_REG_200, (void *)DS1603_DATA_REG_200,
 		DS1603_RST_200, DS1603_CLK_200, DS1603_DATA_200,
-		DS1603_DATA_READ_SHIFT_200, 1, 2000 }
+		DS1603_DATA_READ_SHIFT_200, 1, 2000
+	}
 };
 #endif
 
 #ifdef CONFIG_PICVUE
 #include "picvue.h"
-static struct pvc_defs pvc_defs[N_MACHTYPES] = {
-	{ (void *)PVC_REG_100, PVC_DATA_SHIFT_100, PVC_DATA_M_100,
-		PVC_E_100, PVC_RW_100, PVC_RS_100 },
-	{ (void *)PVC_REG_200, PVC_DATA_SHIFT_200, PVC_DATA_M_200,
-		PVC_E_200, PVC_RW_200, PVC_RS_200 }
+static struct pvc_defs pvc_defs[N_MACHTYPES] =
+{
+	{
+		(void *)PVC_REG_100, PVC_DATA_SHIFT_100, PVC_DATA_M_100,
+		PVC_E_100, PVC_RW_100, PVC_RS_100
+	},
+	{
+		(void *)PVC_REG_200, PVC_DATA_SHIFT_200, PVC_DATA_M_200,
+		PVC_E_200, PVC_RW_200, PVC_RS_200
+	}
 };
 #endif
 
 static int lasat_panic_display(struct notifier_block *this,
-			     unsigned long event, void *ptr)
+							   unsigned long event, void *ptr)
 {
 #ifdef CONFIG_PICVUE
 	unsigned char *string = ptr;
+
 	if (string == NULL)
+	{
 		string = "Kernel Panic";
+	}
+
 	pvc_dump_string(string);
 #endif
 	return NOTIFY_DONE;
 }
 
 static int lasat_panic_prom_monitor(struct notifier_block *this,
-			     unsigned long event, void *ptr)
+									unsigned long event, void *ptr)
 {
 	prom_monitor();
 	return NOTIFY_DONE;
@@ -137,7 +152,7 @@ void __init plat_mem_setup(void)
 	/* Set up panic notifier */
 	for (i = 0; i < ARRAY_SIZE(lasat_panic_block); i++)
 		atomic_notifier_chain_register(&panic_notifier_list,
-				&lasat_panic_block[i]);
+									   &lasat_panic_block[i]);
 
 	lasat_reboot_setup();
 

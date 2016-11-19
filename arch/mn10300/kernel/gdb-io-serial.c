@@ -34,7 +34,7 @@ void gdbstub_io_init(void)
 	/* set up the serial port */
 	GDBPORT_SERIAL_LCR = UART_LCR_WLEN8; /* 1N8 */
 	GDBPORT_SERIAL_FCR = (UART_FCR_ENABLE_FIFO | UART_FCR_CLEAR_RCVR |
-			      UART_FCR_CLEAR_XMIT);
+						  UART_FCR_CLEAR_XMIT);
 
 	FLOWCTL_CLEAR(DTR);
 	FLOWCTL_SET(RTS);
@@ -62,7 +62,7 @@ void gdbstub_io_init(void)
 #endif
 
 	set_intr_stub(NUM2EXCEP_IRQ_LEVEL(CONFIG_GDBSTUB_IRQ_LEVEL),
-		gdbstub_io_rx_handler);
+				  gdbstub_io_rx_handler);
 
 	XIRQxICR(GDBPORT_SERIAL_IRQ) &= ~GxICR_REQUEST;
 	XIRQxICR(GDBPORT_SERIAL_IRQ) =
@@ -106,22 +106,32 @@ int gdbstub_io_rx_char(unsigned char *_ch, int nonblock)
 
 	*_ch = 0xff;
 
-	if (gdbstub_rx_unget) {
+	if (gdbstub_rx_unget)
+	{
 		*_ch = gdbstub_rx_unget;
 		gdbstub_rx_unget = 0;
 		return 0;
 	}
 
- try_again:
+try_again:
 	/* pull chars out of the buffer */
 	ix = gdbstub_rx_outp;
 	barrier();
-	if (ix == gdbstub_rx_inp) {
+
+	if (ix == gdbstub_rx_inp)
+	{
 		if (nonblock)
+		{
 			return -EAGAIN;
+		}
+
 #ifdef CONFIG_MN10300_WD_TIMER
-	for (cpu = 0; cpu < NR_CPUS; cpu++)
-		watchdog_alert_counter[cpu] = 0;
+
+		for (cpu = 0; cpu < NR_CPUS; cpu++)
+		{
+			watchdog_alert_counter[cpu] = 0;
+		}
+
 #endif
 		goto try_again;
 	}
@@ -131,13 +141,18 @@ int gdbstub_io_rx_char(unsigned char *_ch, int nonblock)
 	barrier();
 	gdbstub_rx_outp = ix & 0x00000fff;
 
-	if (st & UART_LSR_BI) {
+	if (st & UART_LSR_BI)
+	{
 		gdbstub_proto("### GDB Rx Break Detected ###\n");
 		return -EINTR;
-	} else if (st & (UART_LSR_FE | UART_LSR_OE | UART_LSR_PE)) {
+	}
+	else if (st & (UART_LSR_FE | UART_LSR_OE | UART_LSR_PE))
+	{
 		gdbstub_proto("### GDB Rx Error (st=%02x) ###\n", st);
 		return -EIO;
-	} else {
+	}
+	else
+	{
 		gdbstub_proto("### GDB Rx %02x (st=%02x) ###\n", ch, st);
 		*_ch = ch & 0x7f;
 		return 0;
@@ -153,11 +168,13 @@ void gdbstub_io_tx_char(unsigned char ch)
 	LSR_WAIT_FOR(THRE);
 	/* FLOWCTL_WAIT_FOR(CTS); */
 
-	if (ch == 0x0a) {
+	if (ch == 0x0a)
+	{
 		GDBPORT_SERIAL_TX = 0x0d;
 		LSR_WAIT_FOR(THRE);
 		/* FLOWCTL_WAIT_FOR(CTS); */
 	}
+
 	GDBPORT_SERIAL_TX = ch;
 
 	FLOWCTL_CLEAR(DTR);

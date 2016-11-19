@@ -25,7 +25,8 @@
 #include "r8a7791.h"
 #include "rcar-gen2.h"
 
-static struct rcar_apmu_config r8a7791_apmu_config[] = {
+static struct rcar_apmu_config r8a7791_apmu_config[] =
+{
 	{
 		.iomem = DEFINE_RES_MEM(0xe6152000, 0x188),
 		.cpus = { 0, 1 },
@@ -36,17 +37,18 @@ static void __init r8a7791_smp_prepare_cpus(unsigned int max_cpus)
 {
 	/* let APMU code install data related to shmobile_boot_vector */
 	shmobile_smp_apmu_prepare_cpus(max_cpus,
-				       r8a7791_apmu_config,
-				       ARRAY_SIZE(r8a7791_apmu_config));
+								   r8a7791_apmu_config,
+								   ARRAY_SIZE(r8a7791_apmu_config));
 
 	rcar_gen2_pm_init();
 }
 
 static int r8a7791_smp_boot_secondary(unsigned int cpu,
-				      struct task_struct *idle)
+									  struct task_struct *idle)
 {
 	/* Error out when hardware debug mode is enabled */
-	if (rcar_gen2_read_mode_pins() & BIT(21)) {
+	if (rcar_gen2_read_mode_pins() & BIT(21))
+	{
 		pr_warn("Unable to boot CPU%u when MD21 is set\n", cpu);
 		return -ENOTSUPP;
 	}
@@ -54,7 +56,8 @@ static int r8a7791_smp_boot_secondary(unsigned int cpu,
 	return shmobile_smp_apmu_boot_secondary(cpu, idle);
 }
 
-const struct smp_operations r8a7791_smp_ops __initconst = {
+const struct smp_operations r8a7791_smp_ops __initconst =
+{
 	.smp_prepare_cpus	= r8a7791_smp_prepare_cpus,
 	.smp_boot_secondary	= r8a7791_smp_boot_secondary,
 #ifdef CONFIG_HOTPLUG_CPU

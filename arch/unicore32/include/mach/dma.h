@@ -17,7 +17,8 @@
  */
 #define MAX_DMA_CHANNELS	6
 
-typedef enum {
+typedef enum
+{
 	DMA_PRIO_HIGH = 0,
 	DMA_PRIO_MEDIUM = 1,
 	DMA_PRIO_LOW = 2
@@ -28,10 +29,10 @@ typedef enum {
  */
 
 extern int puv3_request_dma(char *name,
-			 puv3_dma_prio prio,
-			 void (*irq_handler)(int, void *),
-			 void (*err_handler)(int, void *),
-			 void *data);
+							puv3_dma_prio prio,
+							void (*irq_handler)(int, void *),
+							void (*err_handler)(int, void *),
+							void *data);
 
 extern void puv3_free_dma(int dma_ch);
 

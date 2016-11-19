@@ -30,7 +30,7 @@
 /*
 ** We don't have DMA channels... well V-class does but the
 ** Dynamic DMA Mapping interface will support them... right? :^)
-** Note: this is not relevant right now for PA-RISC, but we cannot 
+** Note: this is not relevant right now for PA-RISC, but we cannot
 ** leave this as undefined because some things (e.g. sound)
 ** won't compile :-(
 */
@@ -90,36 +90,48 @@ static __inline__ void release_dma_lock(unsigned long flags)
  */
 static __inline__ int get_dma_residue(unsigned int dmanr)
 {
-	unsigned int io_port = (dmanr<=3)? ((dmanr&3)<<1) + 1 + IO_DMA1_BASE
-					 : ((dmanr&3)<<2) + 2 + IO_DMA2_BASE;
+	unsigned int io_port = (dmanr <= 3) ? ((dmanr & 3) << 1) + 1 + IO_DMA1_BASE
+						   : ((dmanr & 3) << 2) + 2 + IO_DMA2_BASE;
 
 	/* using short to get 16-bit wrap around */
 	unsigned short count;
 
 	count = 1 + dma_inb(io_port);
 	count += dma_inb(io_port) << 8;
-	
-	return (dmanr<=3)? count : (count<<1);
+
+	return (dmanr <= 3) ? count : (count << 1);
 }
 
 /* enable/disable a specific DMA channel */
 static __inline__ void enable_dma(unsigned int dmanr)
 {
 #ifdef CONFIG_SUPERIO
-	if (dmanr<=3)
+
+	if (dmanr <= 3)
+	{
 		dma_outb(dmanr,  DMA1_MASK_REG);
+	}
 	else
+	{
 		dma_outb(dmanr & 3,  DMA2_MASK_REG);
+	}
+
 #endif
 }
 
 static __inline__ void disable_dma(unsigned int dmanr)
 {
 #ifdef CONFIG_SUPERIO
-	if (dmanr<=3)
+
+	if (dmanr <= 3)
+	{
 		dma_outb(dmanr | 4,  DMA1_MASK_REG);
+	}
 	else
+	{
 		dma_outb((dmanr & 3) | 4,  DMA2_MASK_REG);
+	}
+
 #endif
 }
 
@@ -176,9 +188,9 @@ static __inline__ void set_dma_count(unsigned int dmanr, unsigned int count)
 #define free_dma(dmanr)
 
 #ifdef CONFIG_PCI
-extern int isa_dma_bridge_buggy;
+	extern int isa_dma_bridge_buggy;
 #else
-#define isa_dma_bridge_buggy 	(0)
+	#define isa_dma_bridge_buggy 	(0)
 #endif
 
 #endif /* _ASM_DMA_H */

@@ -28,18 +28,24 @@ stub_clone_handler(void)
 	long err;
 
 	err = stub_syscall2(__NR_clone, CLONE_PARENT | CLONE_FILES | SIGCHLD,
-			    STUB_DATA + UM_KERN_PAGE_SIZE / 2 - sizeof(void *));
+						STUB_DATA + UM_KERN_PAGE_SIZE / 2 - sizeof(void *));
+
 	if (err != 0)
+	{
 		goto out;
+	}
 
 	err = stub_syscall4(__NR_ptrace, PTRACE_TRACEME, 0, 0, 0);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	remap_stack(data->fd, data->offset);
 	goto done;
 
- out:
+out:
 	/*
 	 * save current result.
 	 * Parent: pid;
@@ -47,6 +53,6 @@ stub_clone_handler(void)
 	 * assignment
 	 */
 	data->err = err;
- done:
+done:
 	trap_myself();
 }

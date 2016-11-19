@@ -30,7 +30,9 @@ static void __init *msic_ocd_platform_data(void *info)
 	gpio = get_gpio_by_name("ocd_gpio");
 
 	if (gpio < 0)
+	{
 		return NULL;
+	}
 
 	msic_ocd_pdata.gpio = gpio;
 	msic_pdata.ocd = &msic_ocd_pdata;
@@ -38,7 +40,8 @@ static void __init *msic_ocd_platform_data(void *info)
 	return msic_generic_platform_data(info, INTEL_MSIC_BLOCK_OCD);
 }
 
-static const struct devs_id msic_ocd_dev_id __initconst = {
+static const struct devs_id msic_ocd_dev_id __initconst =
+{
 	.name = "msic_ocd",
 	.type = SFI_DEV_TYPE_IPC,
 	.delay = 1,

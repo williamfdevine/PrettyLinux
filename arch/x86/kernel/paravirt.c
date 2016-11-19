@@ -48,12 +48,12 @@
  */
 extern void _paravirt_nop(void);
 asm (".pushsection .entry.text, \"ax\"\n"
-     ".global _paravirt_nop\n"
-     "_paravirt_nop:\n\t"
-     "ret\n\t"
-     ".size _paravirt_nop, . - _paravirt_nop\n\t"
-     ".type _paravirt_nop, @function\n\t"
-     ".popsection");
+	 ".global _paravirt_nop\n"
+	 "_paravirt_nop:\n\t"
+	 "ret\n\t"
+	 ".size _paravirt_nop, . - _paravirt_nop\n\t"
+	 ".type _paravirt_nop, @function\n\t"
+	 ".popsection");
 
 /* identity function, which can be inlined */
 u32 notrace _paravirt_ident_32(u32 x)
@@ -69,29 +69,35 @@ u64 notrace _paravirt_ident_64(u64 x)
 void __init default_banner(void)
 {
 	printk(KERN_INFO "Booting paravirtualized kernel on %s\n",
-	       pv_info.name);
+		   pv_info.name);
 }
 
 /* Undefined instruction for dealing with missing ops pointers. */
 static const unsigned char ud2a[] = { 0x0f, 0x0b };
 
-struct branch {
+struct branch
+{
 	unsigned char opcode;
 	u32 delta;
 } __attribute__((packed));
 
 unsigned paravirt_patch_call(void *insnbuf,
-			     const void *target, u16 tgt_clobbers,
-			     unsigned long addr, u16 site_clobbers,
-			     unsigned len)
+							 const void *target, u16 tgt_clobbers,
+							 unsigned long addr, u16 site_clobbers,
+							 unsigned len)
 {
 	struct branch *b = insnbuf;
-	unsigned long delta = (unsigned long)target - (addr+5);
+	unsigned long delta = (unsigned long)target - (addr + 5);
 
 	if (tgt_clobbers & ~site_clobbers)
-		return len;	/* target would clobber too much for this site */
+	{
+		return len;    /* target would clobber too much for this site */
+	}
+
 	if (len < 5)
-		return len;	/* call too long for patch site */
+	{
+		return len;    /* call too long for patch site */
+	}
 
 	b->opcode = 0xe8; /* call */
 	b->delta = delta;
@@ -101,13 +107,15 @@ unsigned paravirt_patch_call(void *insnbuf,
 }
 
 unsigned paravirt_patch_jmp(void *insnbuf, const void *target,
-			    unsigned long addr, unsigned len)
+							unsigned long addr, unsigned len)
 {
 	struct branch *b = insnbuf;
-	unsigned long delta = (unsigned long)target - (addr+5);
+	unsigned long delta = (unsigned long)target - (addr + 5);
 
 	if (len < 5)
-		return len;	/* call too long for patch site */
+	{
+		return len;    /* call too long for patch site */
+	}
 
 	b->opcode = 0xe9;	/* jmp */
 	b->delta = delta;
@@ -119,7 +127,8 @@ unsigned paravirt_patch_jmp(void *insnbuf, const void *target,
  * corresponding structure. */
 static void *get_call_destination(u8 type)
 {
-	struct paravirt_patch_template tmpl = {
+	struct paravirt_patch_template tmpl =
+	{
 		.pv_init_ops = pv_init_ops,
 		.pv_time_ops = pv_time_ops,
 		.pv_cpu_ops = pv_cpu_ops,
@@ -133,45 +142,59 @@ static void *get_call_destination(u8 type)
 }
 
 unsigned paravirt_patch_default(u8 type, u16 clobbers, void *insnbuf,
-				unsigned long addr, unsigned len)
+								unsigned long addr, unsigned len)
 {
 	void *opfunc = get_call_destination(type);
 	unsigned ret;
 
 	if (opfunc == NULL)
 		/* If there's no function, patch it with a ud2a (BUG) */
-		ret = paravirt_patch_insns(insnbuf, len, ud2a, ud2a+sizeof(ud2a));
+	{
+		ret = paravirt_patch_insns(insnbuf, len, ud2a, ud2a + sizeof(ud2a));
+	}
 	else if (opfunc == _paravirt_nop)
+	{
 		ret = 0;
+	}
 
 	/* identity functions just return their single argument */
 	else if (opfunc == _paravirt_ident_32)
+	{
 		ret = paravirt_patch_ident_32(insnbuf, len);
+	}
 	else if (opfunc == _paravirt_ident_64)
+	{
 		ret = paravirt_patch_ident_64(insnbuf, len);
+	}
 
 	else if (type == PARAVIRT_PATCH(pv_cpu_ops.iret) ||
-		 type == PARAVIRT_PATCH(pv_cpu_ops.usergs_sysret64))
+			 type == PARAVIRT_PATCH(pv_cpu_ops.usergs_sysret64))
 		/* If operation requires a jmp, then jmp */
+	{
 		ret = paravirt_patch_jmp(insnbuf, opfunc, addr, len);
+	}
 	else
 		/* Otherwise call the function; assume target could
 		   clobber any caller-save reg */
 		ret = paravirt_patch_call(insnbuf, opfunc, CLBR_ANY,
-					  addr, clobbers, len);
+								  addr, clobbers, len);
 
 	return ret;
 }
 
 unsigned paravirt_patch_insns(void *insnbuf, unsigned len,
-			      const char *start, const char *end)
+							  const char *start, const char *end)
 {
 	unsigned insn_len = end - start;
 
 	if (insn_len > len || start == NULL)
+	{
 		insn_len = len;
+	}
 	else
+	{
 		memcpy(insnbuf, start, insn_len);
+	}
 
 	return insn_len;
 }
@@ -207,7 +230,8 @@ static u64 native_steal_clock(int cpu)
 extern void native_iret(void);
 extern void native_usergs_sysret64(void);
 
-static struct resource reserve_ioports = {
+static struct resource reserve_ioports =
+{
 	.start = 0,
 	.end = IO_SPACE_LIMIT,
 	.name = "paravirt-ioport",
@@ -256,7 +280,8 @@ void paravirt_flush_lazy_mmu(void)
 {
 	preempt_disable();
 
-	if (paravirt_get_lazy_mode() == PARAVIRT_LAZY_MMU) {
+	if (paravirt_get_lazy_mode() == PARAVIRT_LAZY_MMU)
+	{
 		arch_leave_lazy_mmu_mode();
 		arch_enter_lazy_mmu_mode();
 	}
@@ -268,10 +293,12 @@ void paravirt_start_context_switch(struct task_struct *prev)
 {
 	BUG_ON(preemptible());
 
-	if (this_cpu_read(paravirt_lazy_mode) == PARAVIRT_LAZY_MMU) {
+	if (this_cpu_read(paravirt_lazy_mode) == PARAVIRT_LAZY_MMU)
+	{
 		arch_leave_lazy_mmu_mode();
 		set_ti_thread_flag(task_thread_info(prev), TIF_LAZY_MMU_UPDATES);
 	}
+
 	enter_lazy(PARAVIRT_LAZY_CPU);
 }
 
@@ -282,18 +309,23 @@ void paravirt_end_context_switch(struct task_struct *next)
 	leave_lazy(PARAVIRT_LAZY_CPU);
 
 	if (test_and_clear_ti_thread_flag(task_thread_info(next), TIF_LAZY_MMU_UPDATES))
+	{
 		arch_enter_lazy_mmu_mode();
+	}
 }
 
 enum paravirt_lazy_mode paravirt_get_lazy_mode(void)
 {
 	if (in_interrupt())
+	{
 		return PARAVIRT_LAZY_NONE;
+	}
 
 	return this_cpu_read(paravirt_lazy_mode);
 }
 
-struct pv_info pv_info = {
+struct pv_info pv_info =
+{
 	.name = "bare hardware",
 	.kernel_rpl = 0,
 	.shared_kernel_pmd = 1,	/* Only used when CONFIG_X86_PAE is set */
@@ -303,16 +335,19 @@ struct pv_info pv_info = {
 #endif
 };
 
-struct pv_init_ops pv_init_ops = {
+struct pv_init_ops pv_init_ops =
+{
 	.patch = native_patch,
 };
 
-struct pv_time_ops pv_time_ops = {
+struct pv_time_ops pv_time_ops =
+{
 	.sched_clock = native_sched_clock,
 	.steal_clock = native_steal_clock,
 };
 
-__visible struct pv_irq_ops pv_irq_ops = {
+__visible struct pv_irq_ops pv_irq_ops =
+{
 	.save_fl = __PV_IS_CALLEE_SAVE(native_save_fl),
 	.restore_fl = __PV_IS_CALLEE_SAVE(native_restore_fl),
 	.irq_disable = __PV_IS_CALLEE_SAVE(native_irq_disable),
@@ -324,7 +359,8 @@ __visible struct pv_irq_ops pv_irq_ops = {
 #endif
 };
 
-__visible struct pv_cpu_ops pv_cpu_ops = {
+__visible struct pv_cpu_ops pv_cpu_ops =
+{
 	.cpuid = native_cpuid,
 	.get_debugreg = native_get_debugreg,
 	.set_debugreg = native_set_debugreg,
@@ -381,14 +417,15 @@ NOKPROBE_SYMBOL(native_set_debugreg);
 NOKPROBE_SYMBOL(native_load_idt);
 
 #if defined(CONFIG_X86_32) && !defined(CONFIG_X86_PAE)
-/* 32-bit pagetable entries */
-#define PTE_IDENT	__PV_IS_CALLEE_SAVE(_paravirt_ident_32)
+	/* 32-bit pagetable entries */
+	#define PTE_IDENT	__PV_IS_CALLEE_SAVE(_paravirt_ident_32)
 #else
-/* 64-bit pagetable entries */
-#define PTE_IDENT	__PV_IS_CALLEE_SAVE(_paravirt_ident_64)
+	/* 64-bit pagetable entries */
+	#define PTE_IDENT	__PV_IS_CALLEE_SAVE(_paravirt_ident_64)
 #endif
 
-struct pv_mmu_ops pv_mmu_ops __ro_after_init = {
+struct pv_mmu_ops pv_mmu_ops __ro_after_init =
+{
 
 	.read_cr2 = native_read_cr2,
 	.write_cr2 = native_write_cr2,

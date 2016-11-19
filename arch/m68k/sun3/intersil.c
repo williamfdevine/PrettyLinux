@@ -25,7 +25,7 @@
 /* does this need to be implemented? */
 u32 sun3_gettimeoffset(void)
 {
-  return 1000;
+	return 1000;
 }
 
 
@@ -36,14 +36,15 @@ int sun3_hwclk(int set, struct rtc_time *t)
 	volatile struct intersil_dt *todintersil;
 	unsigned long flags;
 
-        todintersil = (struct intersil_dt *) &intersil_clock->counter;
+	todintersil = (struct intersil_dt *) &intersil_clock->counter;
 
 	local_irq_save(flags);
 
 	intersil_clock->cmd_reg = STOP_VAL;
 
 	/* set or read the clock */
-	if(set) {
+	if (set)
+	{
 		todintersil->csec = 0;
 		todintersil->hour = t->tm_hour;
 		todintersil->minute = t->tm_min;
@@ -52,7 +53,9 @@ int sun3_hwclk(int set, struct rtc_time *t)
 		todintersil->day = t->tm_mday;
 		todintersil->year = t->tm_year - 68;
 		todintersil->weekday = t->tm_wday;
-	} else {
+	}
+	else
+	{
 		/* read clock */
 		t->tm_sec = todintersil->csec;
 		t->tm_hour = todintersil->hour;

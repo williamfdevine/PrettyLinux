@@ -29,15 +29,15 @@ unsigned int free_mem_end_ptr;
  * arch-dependent implementations
  */
 #ifndef ARCH_HAVE_DECOMP_ERROR
-#define arch_decomp_error(x)
+	#define arch_decomp_error(x)
 #endif
 
 #ifndef ARCH_HAVE_DECOMP_SETUP
-#define arch_decomp_setup()
+	#define arch_decomp_setup()
 #endif
 
 #ifndef ARCH_HAVE_DECOMP_PUTS
-#define arch_decomp_puts(p)
+	#define arch_decomp_puts(p)
 #endif
 
 void *memcpy(void *dest, const void *src, size_t n)
@@ -45,7 +45,8 @@ void *memcpy(void *dest, const void *src, size_t n)
 	int i = 0;
 	unsigned char *d = (unsigned char *)dest, *s = (unsigned char *)src;
 
-	for (i = n >> 3; i > 0; i--) {
+	for (i = n >> 3; i > 0; i--)
+	{
 		*d++ = *s++;
 		*d++ = *s++;
 		*d++ = *s++;
@@ -56,20 +57,24 @@ void *memcpy(void *dest, const void *src, size_t n)
 		*d++ = *s++;
 	}
 
-	if (n & 1 << 2) {
+	if (n & 1 << 2)
+	{
 		*d++ = *s++;
 		*d++ = *s++;
 		*d++ = *s++;
 		*d++ = *s++;
 	}
 
-	if (n & 1 << 1) {
+	if (n & 1 << 1)
+	{
 		*d++ = *s++;
 		*d++ = *s++;
 	}
 
 	if (n & 1)
+	{
 		*d++ = *s++;
+	}
 
 	return dest;
 }
@@ -88,24 +93,24 @@ void error(char *x)
 
 /* Heap size should be adjusted for different decompress method */
 #ifdef CONFIG_KERNEL_GZIP
-#include "../../../../lib/decompress_inflate.c"
+	#include "../../../../lib/decompress_inflate.c"
 #endif
 
 #ifdef CONFIG_KERNEL_BZIP2
-#include "../../../../lib/decompress_bunzip2.c"
+	#include "../../../../lib/decompress_bunzip2.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZO
-#include "../../../../lib/decompress_unlzo.c"
+	#include "../../../../lib/decompress_unlzo.c"
 #endif
 
 #ifdef CONFIG_KERNEL_LZMA
-#include "../../../../lib/decompress_unlzma.c"
+	#include "../../../../lib/decompress_unlzma.c"
 #endif
 
 unsigned long decompress_kernel(unsigned long output_start,
-		unsigned long free_mem_ptr_p,
-		unsigned long free_mem_ptr_end_p)
+								unsigned long free_mem_ptr_p,
+								unsigned long free_mem_ptr_end_p)
 {
 	unsigned char *tmp;
 
@@ -120,7 +125,7 @@ unsigned long decompress_kernel(unsigned long output_start,
 
 	arch_decomp_puts("Uncompressing Linux...");
 	__decompress(input_data, input_data_end - input_data, NULL, NULL,
-			output_data, 0, NULL, error);
+				 output_data, 0, NULL, error);
 	arch_decomp_puts(" done, booting the kernel.\n");
 	return output_ptr;
 }

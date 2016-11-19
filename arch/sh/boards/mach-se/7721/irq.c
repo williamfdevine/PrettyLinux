@@ -13,24 +13,29 @@
 #include <linux/io.h>
 #include <mach-se/mach/se7721.h>
 
-enum {
+enum
+{
 	UNUSED = 0,
 
 	/* board specific interrupt sources */
 	MRSHPC,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_IRQ(MRSHPC, MRSHPC_IRQ0),
 };
 
-static struct intc_prio_reg prio_registers[] __initdata = {
-	{ FPGA_ILSR6, 0, 8, 4, /* IRLMSK */
-	  { 0, MRSHPC } },
+static struct intc_prio_reg prio_registers[] __initdata =
+{
+	{
+		FPGA_ILSR6, 0, 8, 4, /* IRLMSK */
+		{ 0, MRSHPC }
+	},
 };
 
 static DECLARE_INTC_DESC(intc_desc, "SE7721", vectors,
-			 NULL, NULL, prio_registers, NULL);
+						 NULL, NULL, prio_registers, NULL);
 
 /*
  * Initialize IRQ setting

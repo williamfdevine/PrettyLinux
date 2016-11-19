@@ -37,18 +37,18 @@
 #define CAST5_PARALLEL_BLOCKS 16
 
 asmlinkage void cast5_ecb_enc_16way(struct cast5_ctx *ctx, u8 *dst,
-				    const u8 *src);
+									const u8 *src);
 asmlinkage void cast5_ecb_dec_16way(struct cast5_ctx *ctx, u8 *dst,
-				    const u8 *src);
+									const u8 *src);
 asmlinkage void cast5_cbc_dec_16way(struct cast5_ctx *ctx, u8 *dst,
-				    const u8 *src);
+									const u8 *src);
 asmlinkage void cast5_ctr_16way(struct cast5_ctx *ctx, u8 *dst, const u8 *src,
-				__be64 *iv);
+								__be64 *iv);
 
 static inline bool cast5_fpu_begin(bool fpu_enabled, unsigned int nbytes)
 {
 	return glue_fpu_begin(CAST5_BLOCK_SIZE, CAST5_PARALLEL_BLOCKS,
-			      NULL, fpu_enabled, nbytes);
+						  NULL, fpu_enabled, nbytes);
 }
 
 static inline void cast5_fpu_end(bool fpu_enabled)
@@ -57,13 +57,13 @@ static inline void cast5_fpu_end(bool fpu_enabled)
 }
 
 static int ecb_crypt(struct blkcipher_desc *desc, struct blkcipher_walk *walk,
-		     bool enc)
+					 bool enc)
 {
 	bool fpu_enabled = false;
 	struct cast5_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
 	const unsigned int bsize = CAST5_BLOCK_SIZE;
 	unsigned int nbytes;
-	void (*fn)(struct cast5_ctx *ctx, u8 *dst, const u8 *src);
+	void (*fn)(struct cast5_ctx * ctx, u8 * dst, const u8 * src);
 	int err;
 
 	fn = (enc) ? cast5_ecb_enc_16way : cast5_ecb_dec_16way;
@@ -71,36 +71,44 @@ static int ecb_crypt(struct blkcipher_desc *desc, struct blkcipher_walk *walk,
 	err = blkcipher_walk_virt(desc, walk);
 	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
 
-	while ((nbytes = walk->nbytes)) {
+	while ((nbytes = walk->nbytes))
+	{
 		u8 *wsrc = walk->src.virt.addr;
 		u8 *wdst = walk->dst.virt.addr;
 
 		fpu_enabled = cast5_fpu_begin(fpu_enabled, nbytes);
 
 		/* Process multi-block batch */
-		if (nbytes >= bsize * CAST5_PARALLEL_BLOCKS) {
-			do {
+		if (nbytes >= bsize * CAST5_PARALLEL_BLOCKS)
+		{
+			do
+			{
 				fn(ctx, wdst, wsrc);
 
 				wsrc += bsize * CAST5_PARALLEL_BLOCKS;
 				wdst += bsize * CAST5_PARALLEL_BLOCKS;
 				nbytes -= bsize * CAST5_PARALLEL_BLOCKS;
-			} while (nbytes >= bsize * CAST5_PARALLEL_BLOCKS);
+			}
+			while (nbytes >= bsize * CAST5_PARALLEL_BLOCKS);
 
 			if (nbytes < bsize)
+			{
 				goto done;
+			}
 		}
 
 		fn = (enc) ? __cast5_encrypt : __cast5_decrypt;
 
 		/* Handle leftovers */
-		do {
+		do
+		{
 			fn(ctx, wdst, wsrc);
 
 			wsrc += bsize;
 			wdst += bsize;
 			nbytes -= bsize;
-		} while (nbytes >= bsize);
+		}
+		while (nbytes >= bsize);
 
 done:
 		err = blkcipher_walk_done(desc, walk, nbytes);
@@ -111,7 +119,7 @@ done:
 }
 
 static int ecb_encrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-		       struct scatterlist *src, unsigned int nbytes)
+					   struct scatterlist *src, unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 
@@ -120,7 +128,7 @@ static int ecb_encrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 }
 
 static int ecb_decrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-		       struct scatterlist *src, unsigned int nbytes)
+					   struct scatterlist *src, unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 
@@ -129,7 +137,7 @@ static int ecb_decrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 }
 
 static unsigned int __cbc_encrypt(struct blkcipher_desc *desc,
-				  struct blkcipher_walk *walk)
+								  struct blkcipher_walk *walk)
 {
 	struct cast5_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
 	const unsigned int bsize = CAST5_BLOCK_SIZE;
@@ -138,7 +146,8 @@ static unsigned int __cbc_encrypt(struct blkcipher_desc *desc,
 	u64 *dst = (u64 *)walk->dst.virt.addr;
 	u64 *iv = (u64 *)walk->iv;
 
-	do {
+	do
+	{
 		*dst = *src ^ *iv;
 		__cast5_encrypt(ctx, (u8 *)dst, (u8 *)dst);
 		iv = dst;
@@ -146,14 +155,15 @@ static unsigned int __cbc_encrypt(struct blkcipher_desc *desc,
 		src += 1;
 		dst += 1;
 		nbytes -= bsize;
-	} while (nbytes >= bsize);
+	}
+	while (nbytes >= bsize);
 
 	*(u64 *)walk->iv = *iv;
 	return nbytes;
 }
 
 static int cbc_encrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-		       struct scatterlist *src, unsigned int nbytes)
+					   struct scatterlist *src, unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 	int err;
@@ -161,7 +171,8 @@ static int cbc_encrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 	blkcipher_walk_init(&walk, dst, src, nbytes);
 	err = blkcipher_walk_virt(desc, &walk);
 
-	while ((nbytes = walk.nbytes)) {
+	while ((nbytes = walk.nbytes))
+	{
 		nbytes = __cbc_encrypt(desc, &walk);
 		err = blkcipher_walk_done(desc, &walk, nbytes);
 	}
@@ -170,7 +181,7 @@ static int cbc_encrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 }
 
 static unsigned int __cbc_decrypt(struct blkcipher_desc *desc,
-				  struct blkcipher_walk *walk)
+								  struct blkcipher_walk *walk)
 {
 	struct cast5_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
 	const unsigned int bsize = CAST5_BLOCK_SIZE;
@@ -186,8 +197,10 @@ static unsigned int __cbc_decrypt(struct blkcipher_desc *desc,
 	last_iv = *src;
 
 	/* Process multi-block batch */
-	if (nbytes >= bsize * CAST5_PARALLEL_BLOCKS) {
-		do {
+	if (nbytes >= bsize * CAST5_PARALLEL_BLOCKS)
+	{
+		do
+		{
 			nbytes -= bsize * (CAST5_PARALLEL_BLOCKS - 1);
 			src -= CAST5_PARALLEL_BLOCKS - 1;
 			dst -= CAST5_PARALLEL_BLOCKS - 1;
@@ -195,22 +208,30 @@ static unsigned int __cbc_decrypt(struct blkcipher_desc *desc,
 			cast5_cbc_dec_16way(ctx, (u8 *)dst, (u8 *)src);
 
 			nbytes -= bsize;
+
 			if (nbytes < bsize)
+			{
 				goto done;
+			}
 
 			*dst ^= *(src - 1);
 			src -= 1;
 			dst -= 1;
-		} while (nbytes >= bsize * CAST5_PARALLEL_BLOCKS);
+		}
+		while (nbytes >= bsize * CAST5_PARALLEL_BLOCKS);
 	}
 
 	/* Handle leftovers */
-	for (;;) {
+	for (;;)
+	{
 		__cast5_decrypt(ctx, (u8 *)dst, (u8 *)src);
 
 		nbytes -= bsize;
+
 		if (nbytes < bsize)
+		{
 			break;
+		}
 
 		*dst ^= *(src - 1);
 		src -= 1;
@@ -225,7 +246,7 @@ done:
 }
 
 static int cbc_decrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-		       struct scatterlist *src, unsigned int nbytes)
+					   struct scatterlist *src, unsigned int nbytes)
 {
 	bool fpu_enabled = false;
 	struct blkcipher_walk walk;
@@ -235,7 +256,8 @@ static int cbc_decrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 	err = blkcipher_walk_virt(desc, &walk);
 	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
 
-	while ((nbytes = walk.nbytes)) {
+	while ((nbytes = walk.nbytes))
+	{
 		fpu_enabled = cast5_fpu_begin(fpu_enabled, nbytes);
 		nbytes = __cbc_decrypt(desc, &walk);
 		err = blkcipher_walk_done(desc, &walk, nbytes);
@@ -246,7 +268,7 @@ static int cbc_decrypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 }
 
 static void ctr_crypt_final(struct blkcipher_desc *desc,
-			    struct blkcipher_walk *walk)
+							struct blkcipher_walk *walk)
 {
 	struct cast5_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
 	u8 *ctrblk = walk->iv;
@@ -263,7 +285,7 @@ static void ctr_crypt_final(struct blkcipher_desc *desc,
 }
 
 static unsigned int __ctr_crypt(struct blkcipher_desc *desc,
-				struct blkcipher_walk *walk)
+								struct blkcipher_walk *walk)
 {
 	struct cast5_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
 	const unsigned int bsize = CAST5_BLOCK_SIZE;
@@ -272,26 +294,34 @@ static unsigned int __ctr_crypt(struct blkcipher_desc *desc,
 	u64 *dst = (u64 *)walk->dst.virt.addr;
 
 	/* Process multi-block batch */
-	if (nbytes >= bsize * CAST5_PARALLEL_BLOCKS) {
-		do {
+	if (nbytes >= bsize * CAST5_PARALLEL_BLOCKS)
+	{
+		do
+		{
 			cast5_ctr_16way(ctx, (u8 *)dst, (u8 *)src,
-					(__be64 *)walk->iv);
+							(__be64 *)walk->iv);
 
 			src += CAST5_PARALLEL_BLOCKS;
 			dst += CAST5_PARALLEL_BLOCKS;
 			nbytes -= bsize * CAST5_PARALLEL_BLOCKS;
-		} while (nbytes >= bsize * CAST5_PARALLEL_BLOCKS);
+		}
+		while (nbytes >= bsize * CAST5_PARALLEL_BLOCKS);
 
 		if (nbytes < bsize)
+		{
 			goto done;
+		}
 	}
 
 	/* Handle leftovers */
-	do {
+	do
+	{
 		u64 ctrblk;
 
 		if (dst != src)
+		{
 			*dst = *src;
+		}
 
 		ctrblk = *(u64 *)walk->iv;
 		be64_add_cpu((__be64 *)walk->iv, 1);
@@ -302,14 +332,15 @@ static unsigned int __ctr_crypt(struct blkcipher_desc *desc,
 		src += 1;
 		dst += 1;
 		nbytes -= bsize;
-	} while (nbytes >= bsize);
+	}
+	while (nbytes >= bsize);
 
 done:
 	return nbytes;
 }
 
 static int ctr_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-		     struct scatterlist *src, unsigned int nbytes)
+					 struct scatterlist *src, unsigned int nbytes)
 {
 	bool fpu_enabled = false;
 	struct blkcipher_walk walk;
@@ -319,7 +350,8 @@ static int ctr_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 	err = blkcipher_walk_virt_block(desc, &walk, CAST5_BLOCK_SIZE);
 	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
 
-	while ((nbytes = walk.nbytes) >= CAST5_BLOCK_SIZE) {
+	while ((nbytes = walk.nbytes) >= CAST5_BLOCK_SIZE)
+	{
 		fpu_enabled = cast5_fpu_begin(fpu_enabled, nbytes);
 		nbytes = __ctr_crypt(desc, &walk);
 		err = blkcipher_walk_done(desc, &walk, nbytes);
@@ -327,7 +359,8 @@ static int ctr_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 
 	cast5_fpu_end(fpu_enabled);
 
-	if (walk.nbytes) {
+	if (walk.nbytes)
+	{
 		ctr_crypt_final(desc, &walk);
 		err = blkcipher_walk_done(desc, &walk, 0);
 	}
@@ -337,140 +370,142 @@ static int ctr_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 
 
 static struct crypto_alg cast5_algs[6] = { {
-	.cra_name		= "__ecb-cast5-avx",
-	.cra_driver_name	= "__driver-ecb-cast5-avx",
-	.cra_priority		= 0,
-	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER |
-				  CRYPTO_ALG_INTERNAL,
-	.cra_blocksize		= CAST5_BLOCK_SIZE,
-	.cra_ctxsize		= sizeof(struct cast5_ctx),
-	.cra_alignmask		= 0,
-	.cra_type		= &crypto_blkcipher_type,
-	.cra_module		= THIS_MODULE,
-	.cra_u = {
-		.blkcipher = {
-			.min_keysize	= CAST5_MIN_KEY_SIZE,
-			.max_keysize	= CAST5_MAX_KEY_SIZE,
-			.setkey		= cast5_setkey,
-			.encrypt	= ecb_encrypt,
-			.decrypt	= ecb_decrypt,
+		.cra_name		= "__ecb-cast5-avx",
+		.cra_driver_name	= "__driver-ecb-cast5-avx",
+		.cra_priority		= 0,
+		.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER |
+		CRYPTO_ALG_INTERNAL,
+		.cra_blocksize		= CAST5_BLOCK_SIZE,
+		.cra_ctxsize		= sizeof(struct cast5_ctx),
+		.cra_alignmask		= 0,
+		.cra_type		= &crypto_blkcipher_type,
+		.cra_module		= THIS_MODULE,
+		.cra_u = {
+			.blkcipher = {
+				.min_keysize	= CAST5_MIN_KEY_SIZE,
+				.max_keysize	= CAST5_MAX_KEY_SIZE,
+				.setkey		= cast5_setkey,
+				.encrypt	= ecb_encrypt,
+				.decrypt	= ecb_decrypt,
+			},
 		},
-	},
-}, {
-	.cra_name		= "__cbc-cast5-avx",
-	.cra_driver_name	= "__driver-cbc-cast5-avx",
-	.cra_priority		= 0,
-	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER |
-				  CRYPTO_ALG_INTERNAL,
-	.cra_blocksize		= CAST5_BLOCK_SIZE,
-	.cra_ctxsize		= sizeof(struct cast5_ctx),
-	.cra_alignmask		= 0,
-	.cra_type		= &crypto_blkcipher_type,
-	.cra_module		= THIS_MODULE,
-	.cra_u = {
-		.blkcipher = {
-			.min_keysize	= CAST5_MIN_KEY_SIZE,
-			.max_keysize	= CAST5_MAX_KEY_SIZE,
-			.setkey		= cast5_setkey,
-			.encrypt	= cbc_encrypt,
-			.decrypt	= cbc_decrypt,
+	}, {
+		.cra_name		= "__cbc-cast5-avx",
+		.cra_driver_name	= "__driver-cbc-cast5-avx",
+		.cra_priority		= 0,
+		.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER |
+		CRYPTO_ALG_INTERNAL,
+		.cra_blocksize		= CAST5_BLOCK_SIZE,
+		.cra_ctxsize		= sizeof(struct cast5_ctx),
+		.cra_alignmask		= 0,
+		.cra_type		= &crypto_blkcipher_type,
+		.cra_module		= THIS_MODULE,
+		.cra_u = {
+			.blkcipher = {
+				.min_keysize	= CAST5_MIN_KEY_SIZE,
+				.max_keysize	= CAST5_MAX_KEY_SIZE,
+				.setkey		= cast5_setkey,
+				.encrypt	= cbc_encrypt,
+				.decrypt	= cbc_decrypt,
+			},
 		},
-	},
-}, {
-	.cra_name		= "__ctr-cast5-avx",
-	.cra_driver_name	= "__driver-ctr-cast5-avx",
-	.cra_priority		= 0,
-	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER |
-				  CRYPTO_ALG_INTERNAL,
-	.cra_blocksize		= 1,
-	.cra_ctxsize		= sizeof(struct cast5_ctx),
-	.cra_alignmask		= 0,
-	.cra_type		= &crypto_blkcipher_type,
-	.cra_module		= THIS_MODULE,
-	.cra_u = {
-		.blkcipher = {
-			.min_keysize	= CAST5_MIN_KEY_SIZE,
-			.max_keysize	= CAST5_MAX_KEY_SIZE,
-			.ivsize		= CAST5_BLOCK_SIZE,
-			.setkey		= cast5_setkey,
-			.encrypt	= ctr_crypt,
-			.decrypt	= ctr_crypt,
+	}, {
+		.cra_name		= "__ctr-cast5-avx",
+		.cra_driver_name	= "__driver-ctr-cast5-avx",
+		.cra_priority		= 0,
+		.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER |
+		CRYPTO_ALG_INTERNAL,
+		.cra_blocksize		= 1,
+		.cra_ctxsize		= sizeof(struct cast5_ctx),
+		.cra_alignmask		= 0,
+		.cra_type		= &crypto_blkcipher_type,
+		.cra_module		= THIS_MODULE,
+		.cra_u = {
+			.blkcipher = {
+				.min_keysize	= CAST5_MIN_KEY_SIZE,
+				.max_keysize	= CAST5_MAX_KEY_SIZE,
+				.ivsize		= CAST5_BLOCK_SIZE,
+				.setkey		= cast5_setkey,
+				.encrypt	= ctr_crypt,
+				.decrypt	= ctr_crypt,
+			},
 		},
-	},
-}, {
-	.cra_name		= "ecb(cast5)",
-	.cra_driver_name	= "ecb-cast5-avx",
-	.cra_priority		= 200,
-	.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
-	.cra_blocksize		= CAST5_BLOCK_SIZE,
-	.cra_ctxsize		= sizeof(struct async_helper_ctx),
-	.cra_alignmask		= 0,
-	.cra_type		= &crypto_ablkcipher_type,
-	.cra_module		= THIS_MODULE,
-	.cra_init		= ablk_init,
-	.cra_exit		= ablk_exit,
-	.cra_u = {
-		.ablkcipher = {
-			.min_keysize	= CAST5_MIN_KEY_SIZE,
-			.max_keysize	= CAST5_MAX_KEY_SIZE,
-			.setkey		= ablk_set_key,
-			.encrypt	= ablk_encrypt,
-			.decrypt	= ablk_decrypt,
+	}, {
+		.cra_name		= "ecb(cast5)",
+		.cra_driver_name	= "ecb-cast5-avx",
+		.cra_priority		= 200,
+		.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
+		.cra_blocksize		= CAST5_BLOCK_SIZE,
+		.cra_ctxsize		= sizeof(struct async_helper_ctx),
+		.cra_alignmask		= 0,
+		.cra_type		= &crypto_ablkcipher_type,
+		.cra_module		= THIS_MODULE,
+		.cra_init		= ablk_init,
+		.cra_exit		= ablk_exit,
+		.cra_u = {
+			.ablkcipher = {
+				.min_keysize	= CAST5_MIN_KEY_SIZE,
+				.max_keysize	= CAST5_MAX_KEY_SIZE,
+				.setkey		= ablk_set_key,
+				.encrypt	= ablk_encrypt,
+				.decrypt	= ablk_decrypt,
+			},
 		},
-	},
-}, {
-	.cra_name		= "cbc(cast5)",
-	.cra_driver_name	= "cbc-cast5-avx",
-	.cra_priority		= 200,
-	.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
-	.cra_blocksize		= CAST5_BLOCK_SIZE,
-	.cra_ctxsize		= sizeof(struct async_helper_ctx),
-	.cra_alignmask		= 0,
-	.cra_type		= &crypto_ablkcipher_type,
-	.cra_module		= THIS_MODULE,
-	.cra_init		= ablk_init,
-	.cra_exit		= ablk_exit,
-	.cra_u = {
-		.ablkcipher = {
-			.min_keysize	= CAST5_MIN_KEY_SIZE,
-			.max_keysize	= CAST5_MAX_KEY_SIZE,
-			.ivsize		= CAST5_BLOCK_SIZE,
-			.setkey		= ablk_set_key,
-			.encrypt	= __ablk_encrypt,
-			.decrypt	= ablk_decrypt,
+	}, {
+		.cra_name		= "cbc(cast5)",
+		.cra_driver_name	= "cbc-cast5-avx",
+		.cra_priority		= 200,
+		.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
+		.cra_blocksize		= CAST5_BLOCK_SIZE,
+		.cra_ctxsize		= sizeof(struct async_helper_ctx),
+		.cra_alignmask		= 0,
+		.cra_type		= &crypto_ablkcipher_type,
+		.cra_module		= THIS_MODULE,
+		.cra_init		= ablk_init,
+		.cra_exit		= ablk_exit,
+		.cra_u = {
+			.ablkcipher = {
+				.min_keysize	= CAST5_MIN_KEY_SIZE,
+				.max_keysize	= CAST5_MAX_KEY_SIZE,
+				.ivsize		= CAST5_BLOCK_SIZE,
+				.setkey		= ablk_set_key,
+				.encrypt	= __ablk_encrypt,
+				.decrypt	= ablk_decrypt,
+			},
 		},
-	},
-}, {
-	.cra_name		= "ctr(cast5)",
-	.cra_driver_name	= "ctr-cast5-avx",
-	.cra_priority		= 200,
-	.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
-	.cra_blocksize		= 1,
-	.cra_ctxsize		= sizeof(struct async_helper_ctx),
-	.cra_alignmask		= 0,
-	.cra_type		= &crypto_ablkcipher_type,
-	.cra_module		= THIS_MODULE,
-	.cra_init		= ablk_init,
-	.cra_exit		= ablk_exit,
-	.cra_u = {
-		.ablkcipher = {
-			.min_keysize	= CAST5_MIN_KEY_SIZE,
-			.max_keysize	= CAST5_MAX_KEY_SIZE,
-			.ivsize		= CAST5_BLOCK_SIZE,
-			.setkey		= ablk_set_key,
-			.encrypt	= ablk_encrypt,
-			.decrypt	= ablk_encrypt,
-			.geniv		= "chainiv",
+	}, {
+		.cra_name		= "ctr(cast5)",
+		.cra_driver_name	= "ctr-cast5-avx",
+		.cra_priority		= 200,
+		.cra_flags		= CRYPTO_ALG_TYPE_ABLKCIPHER | CRYPTO_ALG_ASYNC,
+		.cra_blocksize		= 1,
+		.cra_ctxsize		= sizeof(struct async_helper_ctx),
+		.cra_alignmask		= 0,
+		.cra_type		= &crypto_ablkcipher_type,
+		.cra_module		= THIS_MODULE,
+		.cra_init		= ablk_init,
+		.cra_exit		= ablk_exit,
+		.cra_u = {
+			.ablkcipher = {
+				.min_keysize	= CAST5_MIN_KEY_SIZE,
+				.max_keysize	= CAST5_MAX_KEY_SIZE,
+				.ivsize		= CAST5_BLOCK_SIZE,
+				.setkey		= ablk_set_key,
+				.encrypt	= ablk_encrypt,
+				.decrypt	= ablk_encrypt,
+				.geniv		= "chainiv",
+			},
 		},
-	},
-} };
+	}
+};
 
 static int __init cast5_init(void)
 {
 	const char *feature_name;
 
 	if (!cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM,
-				&feature_name)) {
+						   &feature_name))
+	{
 		pr_info("CPU feature '%s' is not supported.\n", feature_name);
 		return -ENODEV;
 	}

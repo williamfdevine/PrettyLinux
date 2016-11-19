@@ -59,7 +59,7 @@
 /*
  * The OSF/1 version of <sys/procfs.h> makes gregset_t 46 entries long.
  * I have no idea why that is so.  For now, we just leave it at 33
- * (32 general regs + processor status word). 
+ * (32 general regs + processor status word).
  */
 #define ELF_NGREG	33
 #define ELF_NFPREG	32
@@ -91,7 +91,7 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 
 #define ELF_ET_DYN_BASE		(TASK_UNMAPPED_BASE + 0x1000000)
 
-/* $0 is set by ld.so to a pointer to a function which might be 
+/* $0 is set by ld.so to a pointer to a function which might be
    registered using atexit.  This provides a mean for the dynamic
    linker to call DT_FINI functions for shared libraries that have
    been loaded before the code runs.
@@ -109,7 +109,7 @@ struct pt_regs;
 struct thread_info;
 struct task_struct;
 extern void dump_elf_thread(elf_greg_t *dest, struct pt_regs *pt,
-			    struct thread_info *ti);
+							struct thread_info *ti);
 #define ELF_CORE_COPY_REGS(DEST, REGS) \
 	dump_elf_thread(DEST, REGS, current_thread_info());
 
@@ -126,7 +126,7 @@ extern int dump_elf_task_fp(elf_fpreg_t *dest, struct task_struct *task);
 	dump_elf_task_fp(*(DEST), TASK)
 
 /* This yields a mask that user programs can use to figure out what
-   instruction set this CPU supports.  This is trivial on Alpha, 
+   instruction set this CPU supports.  This is trivial on Alpha,
    but not so on other machines. */
 
 #define ELF_HWCAP  (~amask(-1))
@@ -136,17 +136,17 @@ extern int dump_elf_task_fp(elf_fpreg_t *dest, struct task_struct *task);
    intent than poking at uname or /proc/cpuinfo.  */
 
 #define ELF_PLATFORM				\
-({						\
-	enum implver_enum i_ = implver();	\
-	( i_ == IMPLVER_EV4 ? "ev4"		\
-	: i_ == IMPLVER_EV5			\
-	  ? (amask(AMASK_BWX) ? "ev5" : "ev56")	\
-	: amask (AMASK_CIX) ? "ev6" : "ev67");	\
-})
+	({						\
+		enum implver_enum i_ = implver();	\
+		( i_ == IMPLVER_EV4 ? "ev4"		\
+		  : i_ == IMPLVER_EV5			\
+		  ? (amask(AMASK_BWX) ? "ev5" : "ev56")	\
+		  : amask (AMASK_CIX) ? "ev6" : "ev67");	\
+	})
 
 #define SET_PERSONALITY(EX)					\
 	set_personality(((EX).e_flags & EF_ALPHA_32BIT)		\
-	   ? PER_LINUX_32BIT : PER_LINUX)
+					? PER_LINUX_32BIT : PER_LINUX)
 
 extern int alpha_l1i_cacheshape;
 extern int alpha_l1d_cacheshape;
@@ -155,11 +155,11 @@ extern int alpha_l3_cacheshape;
 
 /* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
 #define ARCH_DLINFO						\
-  do {								\
-    NEW_AUX_ENT(AT_L1I_CACHESHAPE, alpha_l1i_cacheshape);	\
-    NEW_AUX_ENT(AT_L1D_CACHESHAPE, alpha_l1d_cacheshape);	\
-    NEW_AUX_ENT(AT_L2_CACHESHAPE, alpha_l2_cacheshape);		\
-    NEW_AUX_ENT(AT_L3_CACHESHAPE, alpha_l3_cacheshape);		\
-  } while (0)
+	do {								\
+		NEW_AUX_ENT(AT_L1I_CACHESHAPE, alpha_l1i_cacheshape);	\
+		NEW_AUX_ENT(AT_L1D_CACHESHAPE, alpha_l1d_cacheshape);	\
+		NEW_AUX_ENT(AT_L2_CACHESHAPE, alpha_l2_cacheshape);		\
+		NEW_AUX_ENT(AT_L3_CACHESHAPE, alpha_l3_cacheshape);		\
+	} while (0)
 
 #endif /* __ASM_ALPHA_ELF_H */

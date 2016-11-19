@@ -9,7 +9,7 @@ extern void __init cyclone_setup(void);
 static inline void cyclone_setup(void)
 {
 	printk(KERN_ERR "Cyclone Counter: System not configured"
-					" w/ CONFIG_IA64_CYCLONE.\n");
+		   " w/ CONFIG_IA64_CYCLONE.\n");
 }
 #endif	/* CONFIG_IA64_CYCLONE */
 #endif	/* !ASM_IA64_CYCLONE_H */

@@ -23,7 +23,7 @@
 
 #if CHIP_HAS_MMIO()
 void __iomem *iorpc_ioremap(int hv_fd, resource_size_t offset,
-			    unsigned long size);
+							unsigned long size);
 #endif
 
 #endif /* _GXIO_KIORPC_H */

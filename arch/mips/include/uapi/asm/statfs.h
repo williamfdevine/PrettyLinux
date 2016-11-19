@@ -13,13 +13,14 @@
 
 #ifndef __KERNEL_STRICT_NAMES
 
-#include <linux/types.h>
+	#include <linux/types.h>
 
-typedef __kernel_fsid_t	       fsid_t;
+	typedef __kernel_fsid_t	       fsid_t;
 
 #endif
 
-struct statfs {
+struct statfs
+{
 	long		f_type;
 #define f_fstyp f_type
 	long		f_bsize;
@@ -42,7 +43,8 @@ struct statfs {
 /*
  * Unlike the traditional version the LFAPI version has none of the ABI junk
  */
-struct statfs64 {
+struct statfs64
+{
 	__u32	f_type;
 	__u32	f_bsize;
 	__u32	f_frsize;	/* Fragment size - unsupported */
@@ -62,7 +64,8 @@ struct statfs64 {
 
 #if _MIPS_SIM == _MIPS_SIM_ABI64
 
-struct statfs64 {			/* Same as struct statfs */
+struct statfs64  			/* Same as struct statfs */
+{
 	long		f_type;
 	long		f_bsize;
 	long		f_frsize;	/* Fragment size - unsupported */
@@ -79,7 +82,8 @@ struct statfs64 {			/* Same as struct statfs */
 	long		f_spare[5];
 };
 
-struct compat_statfs64 {
+struct compat_statfs64
+{
 	__u32	f_type;
 	__u32	f_bsize;
 	__u32	f_frsize;	/* Fragment size - unsupported */

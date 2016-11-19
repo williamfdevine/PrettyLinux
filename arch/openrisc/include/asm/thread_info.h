@@ -22,8 +22,8 @@
 #ifdef __KERNEL__
 
 #ifndef __ASSEMBLY__
-#include <asm/types.h>
-#include <asm/processor.h>
+	#include <asm/types.h>
+	#include <asm/processor.h>
 #endif
 
 
@@ -46,7 +46,8 @@
 
 typedef unsigned long mm_segment_t;
 
-struct thread_info {
+struct thread_info
+{
 	struct task_struct	*task;		/* main task structure */
 	unsigned long		flags;		/* low level flags */
 	__u32			cpu;		/* current CPU */
@@ -70,14 +71,14 @@ struct thread_info {
  */
 #ifndef __ASSEMBLY__
 #define INIT_THREAD_INFO(tsk)				\
-{							\
-	.task		= &tsk,				\
-	.flags		= 0,				\
-	.cpu		= 0,				\
-	.preempt_count	= 1,				\
-	.addr_limit	= KERNEL_DS,			\
-	.ksp            = 0,                            \
-}
+	{							\
+		.task		= &tsk,				\
+					  .flags		= 0,				\
+									.cpu		= 0,				\
+											.preempt_count	= 1,				\
+													.addr_limit	= KERNEL_DS,			\
+															.ksp            = 0,                            \
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 

@@ -31,10 +31,10 @@
 /* CP0 hazard avoidance. */
 #define BARRIER				\
 	__asm__ __volatile__(		\
-		".set	push\n\t"	\
-		".set	noreorder\n\t"	\
-		"nop\n\t"		\
-		".set	pop\n\t")
+								".set	push\n\t"	\
+								".set	noreorder\n\t"	\
+								"nop\n\t"		\
+								".set	pop\n\t")
 
 /*
  * Bits 7:0 of the Control Register are write-only -- the
@@ -64,7 +64,7 @@ static inline void dec_kn01_be_ack(void)
 static int dec_kn01_be_backend(struct pt_regs *regs, int is_fixup, int invoker)
 {
 	volatile u32 *kn01_erraddr = (void *)CKSEG1ADDR(KN01_SLOT_BASE +
-							KN01_ERRADDR);
+								 KN01_ERRADDR);
 
 	static const char excstr[] = "exception";
 	static const char intstr[] = "interrupt";
@@ -77,7 +77,7 @@ static int dec_kn01_be_backend(struct pt_regs *regs, int is_fixup, int invoker)
 
 	int data = regs->cp0_cause & 4;
 	unsigned int __user *pc = (unsigned int __user *)regs->cp0_epc +
-				  ((regs->cp0_cause & CAUSEF_BD) != 0);
+							  ((regs->cp0_cause & CAUSEF_BD) != 0);
 	union mips_instruction insn;
 	unsigned long entrylo, offset;
 	long asid, entryhi, vaddr;
@@ -96,19 +96,30 @@ static int dec_kn01_be_backend(struct pt_regs *regs, int is_fixup, int invoker)
 	agent = cpustr;
 
 	if (invoker)
+	{
 		address = erraddr;
-	else {
+	}
+	else
+	{
 		/* Bloody hardware doesn't record the address for reads... */
-		if (data) {
+		if (data)
+		{
 			/* This never faults. */
 			__get_user(insn.word, pc);
 			vaddr = regs->regs[insn.i_format.rs] +
-				insn.i_format.simmediate;
-		} else
+					insn.i_format.simmediate;
+		}
+		else
+		{
 			vaddr = (long)pc;
+		}
+
 		if (KSEGX(vaddr) == CKSEG0 || KSEGX(vaddr) == CKSEG1)
+		{
 			address = CPHYSADDR(vaddr);
-		else {
+		}
+		else
+		{
 			/* Peek at what physical address the CPU used. */
 			asid = read_c0_entryhi();
 			entryhi = asid & (PAGE_SIZE - 1);
@@ -126,20 +137,25 @@ static int dec_kn01_be_backend(struct pt_regs *regs, int is_fixup, int invoker)
 	}
 
 	/* Treat low 256MB as memory, high -- as I/O. */
-	if (address < 0x10000000) {
+	if (address < 0x10000000)
+	{
 		cycle = mreadstr;
 		event = paritystr;
-	} else {
+	}
+	else
+	{
 		cycle = invoker ? writestr : readstr;
 		event = timestr;
 	}
 
 	if (is_fixup)
+	{
 		action = MIPS_BE_FIXUP;
+	}
 
 	if (action != MIPS_BE_FIXUP)
 		printk(KERN_ALERT "Bus error %s: %s %s %s at %#010lx\n",
-			kind, agent, cycle, event, address);
+			   kind, agent, cycle, event, address);
 
 	return action;
 }
@@ -156,12 +172,16 @@ irqreturn_t dec_kn01_be_interrupt(int irq, void *dev_id)
 	int action;
 
 	if (!(*csr & KN01_CSR_MEMERR))
-		return IRQ_NONE;		/* Must have been video. */
+	{
+		return IRQ_NONE;    /* Must have been video. */
+	}
 
 	action = dec_kn01_be_backend(regs, 0, 1);
 
 	if (action == MIPS_BE_DISCARD)
+	{
 		return IRQ_HANDLED;
+	}
 
 	/*
 	 * FIXME: Find the affected processes and kill them, otherwise
@@ -171,7 +191,7 @@ irqreturn_t dec_kn01_be_interrupt(int irq, void *dev_id)
 	 * may be irrelevant, but are printed for a reference.
 	 */
 	printk(KERN_ALERT "Fatal bus interrupt, epc == %08lx, ra == %08lx\n",
-	       regs->cp0_epc, regs->regs[31]);
+		   regs->cp0_epc, regs->regs[31]);
 	die("Unrecoverable bus error", regs);
 }
 

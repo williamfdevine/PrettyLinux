@@ -17,17 +17,17 @@
 #define H_CONTINUE	18	/* Returned from H_Join on success */
 #define H_LONG_BUSY_START_RANGE		9900  /* Start of long busy range */
 #define H_LONG_BUSY_ORDER_1_MSEC	9900  /* Long busy, hint that 1msec \
-						 is a good time to retry */
+is a good time to retry */
 #define H_LONG_BUSY_ORDER_10_MSEC	9901  /* Long busy, hint that 10msec \
-						 is a good time to retry */
+is a good time to retry */
 #define H_LONG_BUSY_ORDER_100_MSEC 	9902  /* Long busy, hint that 100msec \
-						 is a good time to retry */
+is a good time to retry */
 #define H_LONG_BUSY_ORDER_1_SEC		9903  /* Long busy, hint that 1sec \
-						 is a good time to retry */
+is a good time to retry */
 #define H_LONG_BUSY_ORDER_10_SEC	9904  /* Long busy, hint that 10sec \
-						 is a good time to retry */
+is a good time to retry */
 #define H_LONG_BUSY_ORDER_100_SEC	9905  /* Long busy, hint that 100sec \
-						 is a good time to retry */
+is a good time to retry */
 #define H_LONG_BUSY_END_RANGE		9905  /* End of long busy range */
 
 /* Internal value used in book3s_hv kvm support; not returned to guests */
@@ -110,7 +110,7 @@
  * way to check for the long_busy return codes
  */
 #define H_IS_LONG_BUSY(x)  ((x >= H_LONG_BUSY_START_RANGE) \
-			     && (x <= H_LONG_BUSY_END_RANGE))
+							&& (x <= H_LONG_BUSY_END_RANGE))
 
 /* Flags */
 #define H_LARGE_PAGE		(1UL<<(63-16))
@@ -358,7 +358,8 @@ long plpar_hcall9(unsigned long opcode, unsigned long *retbuf, ...);
 long plpar_hcall9_raw(unsigned long opcode, unsigned long *retbuf, ...);
 
 /* For hcall instrumentation.  One structure per-hcall, per-CPU */
-struct hcall_stats {
+struct hcall_stats
+{
 	unsigned long	num_calls;	/* number of calls (on this CPU) */
 	unsigned long	tb_total;	/* total wall time (mftb) of calls. */
 	unsigned long	purr_total;	/* total cpu time (PURR) of calls. */
@@ -367,7 +368,8 @@ struct hcall_stats {
 };
 #define HCALL_STAT_ARRAY_SIZE	((MAX_HCALL_OPCODE >> 2) + 1)
 
-struct hvcall_mpp_data {
+struct hvcall_mpp_data
+{
 	unsigned long entitled_mem;
 	unsigned long mapped_mem;
 	unsigned short group_num;
@@ -382,7 +384,8 @@ struct hvcall_mpp_data {
 
 int h_get_mpp(struct hvcall_mpp_data *);
 
-struct hvcall_mpp_x_data {
+struct hvcall_mpp_x_data
+{
 	unsigned long coalesced_bytes;
 	unsigned long pool_coalesced_bytes;
 	unsigned long pool_purr_cycles;
@@ -394,21 +397,28 @@ int h_get_mpp_x(struct hvcall_mpp_x_data *mpp_x_data);
 
 static inline unsigned int get_longbusy_msecs(int longbusy_rc)
 {
-	switch (longbusy_rc) {
-	case H_LONG_BUSY_ORDER_1_MSEC:
-		return 1;
-	case H_LONG_BUSY_ORDER_10_MSEC:
-		return 10;
-	case H_LONG_BUSY_ORDER_100_MSEC:
-		return 100;
-	case H_LONG_BUSY_ORDER_1_SEC:
-		return 1000;
-	case H_LONG_BUSY_ORDER_10_SEC:
-		return 10000;
-	case H_LONG_BUSY_ORDER_100_SEC:
-		return 100000;
-	default:
-		return 1;
+	switch (longbusy_rc)
+	{
+		case H_LONG_BUSY_ORDER_1_MSEC:
+			return 1;
+
+		case H_LONG_BUSY_ORDER_10_MSEC:
+			return 10;
+
+		case H_LONG_BUSY_ORDER_100_MSEC:
+			return 100;
+
+		case H_LONG_BUSY_ORDER_1_SEC:
+			return 1000;
+
+		case H_LONG_BUSY_ORDER_10_SEC:
+			return 10000;
+
+		case H_LONG_BUSY_ORDER_100_SEC:
+			return 100000;
+
+		default:
+			return 1;
 	}
 }
 

@@ -15,7 +15,7 @@
 #include <trace/events/thp.h>
 
 int (*register_process_table)(unsigned long base, unsigned long page_size,
-			      unsigned long tbl_size);
+							  unsigned long tbl_size);
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 /*
@@ -26,7 +26,7 @@ int (*register_process_table)(unsigned long base, unsigned long page_size,
  * permission here on some processors
  */
 int pmdp_set_access_flags(struct vm_area_struct *vma, unsigned long address,
-			  pmd_t *pmdp, pmd_t entry, int dirty)
+						  pmd_t *pmdp, pmd_t entry, int dirty)
 {
 	int changed;
 #ifdef CONFIG_DEBUG_VM
@@ -34,15 +34,18 @@ int pmdp_set_access_flags(struct vm_area_struct *vma, unsigned long address,
 	assert_spin_locked(&vma->vm_mm->page_table_lock);
 #endif
 	changed = !pmd_same(*(pmdp), entry);
-	if (changed) {
+
+	if (changed)
+	{
 		__ptep_set_access_flags(vma->vm_mm, pmdp_ptep(pmdp), pmd_pte(entry));
 		flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
 	}
+
 	return changed;
 }
 
 int pmdp_test_and_clear_young(struct vm_area_struct *vma,
-			      unsigned long address, pmd_t *pmdp)
+							  unsigned long address, pmd_t *pmdp)
 {
 	return __pmdp_test_and_clear_young(vma->vm_mm, address, pmdp);
 }
@@ -51,7 +54,7 @@ int pmdp_test_and_clear_young(struct vm_area_struct *vma,
  * an existing pmd entry. That should go via pmd_hugepage_update.
  */
 void set_pmd_at(struct mm_struct *mm, unsigned long addr,
-		pmd_t *pmdp, pmd_t pmd)
+				pmd_t *pmdp, pmd_t pmd)
 {
 #ifdef CONFIG_DEBUG_VM
 	WARN_ON(pte_present(pmd_pte(*pmdp)) && !pte_protnone(pmd_pte(*pmdp)));
@@ -66,7 +69,7 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
  * hugepte to regular pmd entry.
  */
 void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
-		     pmd_t *pmdp)
+					 pmd_t *pmdp)
 {
 	pmd_hugepage_update(vma->vm_mm, address, pmdp, _PAGE_PRESENT, 0);
 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
@@ -111,7 +114,7 @@ pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
  * the updated linux HUGE PMD entry.
  */
 void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
-			  pmd_t *pmd)
+						  pmd_t *pmd)
 {
 	return;
 }
@@ -121,7 +124,11 @@ void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
 void mmu_cleanup_all(void)
 {
 	if (radix_enabled())
+	{
 		radix__mmu_cleanup_all();
+	}
 	else if (mmu_hash_ops.hpte_clear_all)
+	{
 		mmu_hash_ops.hpte_clear_all();
+	}
 }

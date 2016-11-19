@@ -18,13 +18,15 @@
  */
 # define NR_BANKS 8
 
-struct membank {
+struct membank
+{
 	unsigned long start;
 	unsigned long size;
 	unsigned int highmem;
 };
 
-struct meminfo {
+struct meminfo
+{
 	int nr_banks;
 	struct membank bank[NR_BANKS];
 };

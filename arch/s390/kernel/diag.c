@@ -12,18 +12,21 @@
 #include <asm/diag.h>
 #include <asm/trace/diag.h>
 
-struct diag_stat {
+struct diag_stat
+{
 	unsigned int counter[NR_DIAG_STAT];
 };
 
 static DEFINE_PER_CPU(struct diag_stat, diag_stat);
 
-struct diag_desc {
+struct diag_desc
+{
 	int code;
 	char *name;
 };
 
-static const struct diag_desc diag_map[NR_DIAG_STAT] = {
+static const struct diag_desc diag_map[NR_DIAG_STAT] =
+{
 	[DIAG_STAT_X008] = { .code = 0x008, .name = "Console Function" },
 	[DIAG_STAT_X00C] = { .code = 0x00c, .name = "Pseudo Timer" },
 	[DIAG_STAT_X010] = { .code = 0x010, .name = "Release Pages" },
@@ -52,31 +55,42 @@ static int show_diag_stat(struct seq_file *m, void *v)
 	int cpu, prec, tmp;
 
 	get_online_cpus();
-	if (n == 0) {
+
+	if (n == 0)
+	{
 		seq_puts(m, "         ");
 
-		for_each_online_cpu(cpu) {
+		for_each_online_cpu(cpu)
+		{
 			prec = 10;
+
 			for (tmp = 10; cpu >= tmp; tmp *= 10)
+			{
 				prec--;
+			}
+
 			seq_printf(m, "%*s%d", prec, "CPU", cpu);
 		}
 		seq_putc(m, '\n');
-	} else if (n <= NR_DIAG_STAT) {
-		seq_printf(m, "diag %03x:", diag_map[n-1].code);
-		for_each_online_cpu(cpu) {
-			stat = &per_cpu(diag_stat, cpu);
-			seq_printf(m, " %10u", stat->counter[n-1]);
-		}
-		seq_printf(m, "    %s\n", diag_map[n-1].name);
 	}
+	else if (n <= NR_DIAG_STAT)
+	{
+		seq_printf(m, "diag %03x:", diag_map[n - 1].code);
+		for_each_online_cpu(cpu)
+		{
+			stat = &per_cpu(diag_stat, cpu);
+			seq_printf(m, " %10u", stat->counter[n - 1]);
+		}
+		seq_printf(m, "    %s\n", diag_map[n - 1].name);
+	}
+
 	put_online_cpus();
 	return 0;
 }
 
 static void *show_diag_stat_start(struct seq_file *m, loff_t *pos)
 {
-	return *pos <= nr_cpu_ids ? (void *)((unsigned long) *pos + 1) : NULL;
+	return *pos <= nr_cpu_ids ? (void *)((unsigned long) * pos + 1) : NULL;
 }
 
 static void *show_diag_stat_next(struct seq_file *m, void *v, loff_t *pos)
@@ -89,7 +103,8 @@ static void show_diag_stat_stop(struct seq_file *m, void *v)
 {
 }
 
-static const struct seq_operations show_diag_stat_sops = {
+static const struct seq_operations show_diag_stat_sops =
+{
 	.start	= show_diag_stat_start,
 	.next	= show_diag_stat_next,
 	.stop	= show_diag_stat_stop,
@@ -101,7 +116,8 @@ static int show_diag_stat_open(struct inode *inode, struct file *file)
 	return seq_open(file, &show_diag_stat_sops);
 }
 
-static const struct file_operations show_diag_stat_fops = {
+static const struct file_operations show_diag_stat_fops =
+{
 	.open		= show_diag_stat_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -112,7 +128,7 @@ static const struct file_operations show_diag_stat_fops = {
 static int __init show_diag_stat_init(void)
 {
 	debugfs_create_file("diag_stat", 0400, NULL, NULL,
-			    &show_diag_stat_fops);
+						&show_diag_stat_fops);
 	return 0;
 }
 
@@ -136,7 +152,7 @@ EXPORT_SYMBOL(diag_stat_inc_norecursion);
  * Diagnose 14: Input spool file manipulation
  */
 static inline int __diag14(unsigned long rx, unsigned long ry1,
-			   unsigned long subcode)
+						   unsigned long subcode)
 {
 	register unsigned long _ry1 asm("2") = ry1;
 	register unsigned long _ry2 asm("3") = subcode;
@@ -170,7 +186,7 @@ static inline int __diag204(unsigned long *subcode, unsigned long size, void *ad
 	asm volatile(
 		"	diag	%2,%0,0x204\n"
 		"0:	nopr	%%r7\n"
-		EX_TABLE(0b,0b)
+		EX_TABLE(0b, 0b)
 		: "+d" (_subcode), "+d" (_size) : "d" (addr) : "memory");
 	*subcode = _subcode;
 	return _size;
@@ -180,8 +196,12 @@ int diag204(unsigned long subcode, unsigned long size, void *addr)
 {
 	diag_stat_inc(DIAG_STAT_X204);
 	size = __diag204(&subcode, size, addr);
+
 	if (subcode)
+	{
 		return -1;
+	}
+
 	return size;
 }
 EXPORT_SYMBOL(diag204);
@@ -230,7 +250,7 @@ int diag224(void *ptr)
 		"	diag	%1,%2,0x224\n"
 		"0:	lhi	%0,0x0\n"
 		"1:\n"
-		EX_TABLE(0b,1b)
+		EX_TABLE(0b, 1b)
 		: "+d" (rc) :"d" (0), "d" (ptr) : "memory");
 	return rc;
 }

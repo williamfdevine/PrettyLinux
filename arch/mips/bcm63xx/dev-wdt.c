@@ -11,7 +11,8 @@
 #include <linux/platform_device.h>
 #include <bcm63xx_cpu.h>
 
-static struct resource wdt_resources[] = {
+static struct resource wdt_resources[] =
+{
 	{
 		.start		= -1, /* filled at runtime */
 		.end		= -1, /* filled at runtime */
@@ -19,7 +20,8 @@ static struct resource wdt_resources[] = {
 	},
 };
 
-static struct platform_device bcm63xx_wdt_device = {
+static struct platform_device bcm63xx_wdt_device =
+{
 	.name		= "bcm63xx-wdt",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(wdt_resources),

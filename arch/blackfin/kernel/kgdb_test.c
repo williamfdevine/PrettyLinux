@@ -58,7 +58,7 @@ noinline int kgdb_test(char *name, int len, int count, int z)
 
 static ssize_t
 kgdb_test_proc_read(struct file *file, char __user *buf,
-                    size_t count, loff_t *ppos)
+					size_t count, loff_t *ppos)
 {
 	kgdb_test("hello world!", 12, 0x55, 0x10);
 #ifndef CONFIG_SMP
@@ -73,7 +73,7 @@ kgdb_test_proc_read(struct file *file, char __user *buf,
 
 static ssize_t
 kgdb_test_proc_write(struct file *file, const char __user *buffer,
-                     size_t count, loff_t *pos)
+					 size_t count, loff_t *pos)
 {
 	len = min_t(size_t, 255, count);
 	memcpy(cmdline, buffer, count);
@@ -82,7 +82,8 @@ kgdb_test_proc_write(struct file *file, const char __user *buffer,
 	return len;
 }
 
-static const struct file_operations kgdb_test_proc_fops = {
+static const struct file_operations kgdb_test_proc_fops =
+{
 	.owner = THIS_MODULE,
 	.read  = kgdb_test_proc_read,
 	.write = kgdb_test_proc_write,
@@ -98,8 +99,11 @@ static int __init kgdbtest_init(void)
 #endif
 
 	entry = proc_create("kgdbtest", 0, NULL, &kgdb_test_proc_fops);
+
 	if (entry == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

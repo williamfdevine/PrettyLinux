@@ -30,17 +30,20 @@ static inline unsigned long xchg_u8(volatile u8 *m, unsigned long val)
 }
 
 static inline unsigned long __cmpxchg_u32(volatile int *m, unsigned long old,
-					  unsigned long new)
+		unsigned long new)
 {
 	__u32 retval;
 	unsigned long flags;
 
 	__global_lock2(flags);
 	retval = *m;
-	if (retval == old) {
+
+	if (retval == old)
+	{
 		fence();
 		*m = new;
 	}
+
 	__global_unlock2(flags);
 	return retval;
 }

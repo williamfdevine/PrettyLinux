@@ -29,7 +29,8 @@
  *  before touching them. [mj]
  */
 
-struct cpuinfo_m32r {
+struct cpuinfo_m32r
+{
 	unsigned long pgtable_cache_sz;
 	unsigned long cpu_clock;
 	unsigned long bus_clock;
@@ -44,25 +45,25 @@ struct cpuinfo_m32r {
 extern struct cpuinfo_m32r boot_cpu_data;
 
 #ifdef CONFIG_SMP
-extern struct cpuinfo_m32r cpu_data[];
-#define current_cpu_data cpu_data[smp_processor_id()]
+	extern struct cpuinfo_m32r cpu_data[];
+	#define current_cpu_data cpu_data[smp_processor_id()]
 #else
-#define cpu_data (&boot_cpu_data)
-#define current_cpu_data boot_cpu_data
+	#define cpu_data (&boot_cpu_data)
+	#define current_cpu_data boot_cpu_data
 #endif
 
 /*
  * User space process size: 2GB (default).
  */
 #ifdef CONFIG_MMU
-#define TASK_SIZE  (0x80000000UL)
+	#define TASK_SIZE  (0x80000000UL)
 #else
-#define TASK_SIZE  (0x00400000UL)
+	#define TASK_SIZE  (0x00400000UL)
 #endif
 
 #ifdef __KERNEL__
-#define STACK_TOP	TASK_SIZE
-#define STACK_TOP_MAX	STACK_TOP
+	#define STACK_TOP	TASK_SIZE
+	#define STACK_TOP_MAX	STACK_TOP
 #endif
 
 /* This decides where the kernel will search for a free chunk of vm
@@ -70,19 +71,22 @@ extern struct cpuinfo_m32r cpu_data[];
  */
 #define TASK_UNMAPPED_BASE	PAGE_ALIGN(TASK_SIZE / 3)
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
 #define MAX_TRAPS 10
 
-struct debug_trap {
+struct debug_trap
+{
 	int nr_trap;
 	unsigned long	addr[MAX_TRAPS];
 	unsigned long	insn[MAX_TRAPS];
 };
 
-struct thread_struct {
+struct thread_struct
+{
 	unsigned long address;
 	unsigned long trap_no;		/* Trap number  */
 	unsigned long error_code;	/* Error code of trap */
@@ -94,8 +98,8 @@ struct thread_struct {
 #define INIT_SP	(sizeof(init_stack) + (unsigned long) &init_stack)
 
 #define INIT_THREAD	{	\
-	.sp = INIT_SP,		\
-}
+		.sp = INIT_SP,		\
+	}
 
 /*
  * Do necessary setup to start up a newly executed thread.
@@ -119,8 +123,8 @@ struct mm_struct;
 extern void release_thread(struct task_struct *);
 
 /* Copy and release all segment info associated with a VM */
-extern void copy_segments(struct task_struct *p, struct mm_struct * mm);
-extern void release_segments(struct mm_struct * mm);
+extern void copy_segments(struct task_struct *p, struct mm_struct *mm);
+extern void release_segments(struct mm_struct *mm);
 
 extern unsigned long thread_saved_pc(struct task_struct *);
 

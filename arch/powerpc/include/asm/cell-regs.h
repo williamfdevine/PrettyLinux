@@ -37,21 +37,25 @@
  *
  */
 
-union spe_reg {
+union spe_reg
+{
 	u64 val;
 	u8 spe[8];
 };
 
-union ppe_spe_reg {
+union ppe_spe_reg
+{
 	u64 val;
-	struct {
+	struct
+	{
 		u32 ppe;
 		u32 spe;
 	};
 };
 
 
-struct cbe_pmd_regs {
+struct cbe_pmd_regs
+{
 	/* Debug Bus Control */
 	u64	pad_0x0000;					/* 0x0000 */
 
@@ -140,7 +144,8 @@ extern struct cbe_pmd_regs __iomem *cbe_get_cpu_pmd_regs(int cpu);
  * counters currently have a value waiting to be written.
  */
 
-struct cbe_pmd_shadow_regs {
+struct cbe_pmd_shadow_regs
+{
 	u32 group_control;
 	u32 debug_bus_control;
 	u32 trace_address;
@@ -164,7 +169,8 @@ extern struct cbe_pmd_shadow_regs *cbe_get_cpu_pmd_shadow_regs(int cpu);
  *
  */
 
-struct cbe_iic_pending_bits {
+struct cbe_iic_pending_bits
+{
 	u32 data;
 	u8 flags;
 	u8 class;
@@ -175,14 +181,16 @@ struct cbe_iic_pending_bits {
 #define CBE_IIC_IRQ_VALID	0x80
 #define CBE_IIC_IRQ_IPI		0x40
 
-struct cbe_iic_thread_regs {
+struct cbe_iic_thread_regs
+{
 	struct cbe_iic_pending_bits pending;
 	struct cbe_iic_pending_bits pending_destr;
 	u64 generate;
 	u64 prio;
 };
 
-struct cbe_iic_regs {
+struct cbe_iic_regs
+{
 	u8	pad_0x0000_0x0400[0x0400 - 0x0000];		/* 0x0000 */
 
 	/* IIC interrupt registers */
@@ -217,7 +225,8 @@ extern struct cbe_iic_regs __iomem *cbe_get_iic_regs(struct device_node *np);
 extern struct cbe_iic_regs __iomem *cbe_get_cpu_iic_regs(int cpu);
 
 
-struct cbe_mic_tm_regs {
+struct cbe_mic_tm_regs
+{
 	u8	pad_0x0000_0x0040[0x0040 - 0x0000];		/* 0x0000 */
 
 	u64	mic_ctl_cnfg2;					/* 0x0040 */

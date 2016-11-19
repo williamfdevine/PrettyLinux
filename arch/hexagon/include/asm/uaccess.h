@@ -55,7 +55,7 @@
 
 #define __access_ok(addr, size) \
 	((get_fs().seg == KERNEL_DS.seg) || \
-	(((unsigned long)addr < get_fs().seg) && \
+	 (((unsigned long)addr < get_fs().seg) && \
 	  (unsigned long)size < (get_fs().seg - (unsigned long)addr)))
 
 /*
@@ -69,9 +69,9 @@
 
 /*  Assembly somewhat optimized copy routines  */
 unsigned long __copy_from_user_hexagon(void *to, const void __user *from,
-				     unsigned long n);
+									   unsigned long n);
 unsigned long __copy_to_user_hexagon(void __user *to, const void *from,
-				   unsigned long n);
+									 unsigned long n);
 
 #define __copy_from_user(to, from, n) __copy_from_user_hexagon(to, from, n)
 #define __copy_to_user(to, from, n) __copy_to_user_hexagon(to, from, n)
@@ -93,25 +93,30 @@ __kernel_size_t __clear_user_hexagon(void __user *dest, unsigned long count);
 extern long __strnlen_user(const char __user *src, long n);
 
 static inline long hexagon_strncpy_from_user(char *dst, const char __user *src,
-					     long n);
+		long n);
 
 #include <asm-generic/uaccess.h>
 
 /*  Todo:  an actual accelerated version of this.  */
 static inline long hexagon_strncpy_from_user(char *dst, const char __user *src,
-					     long n)
+		long n)
 {
 	long res = __strnlen_user(src, n);
 
 	if (unlikely(!res))
+	{
 		return -EFAULT;
+	}
 
-	if (res > n) {
+	if (res > n)
+	{
 		copy_from_user(dst, src, n);
 		return n;
-	} else {
+	}
+	else
+	{
 		copy_from_user(dst, src, res);
-		return res-1;
+		return res - 1;
 	}
 }
 

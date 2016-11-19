@@ -31,7 +31,8 @@
 
 #define JASPER_NR_IRQS		(MMP_NR_IRQS + 48)
 
-static unsigned long jasper_pin_config[] __initdata = {
+static unsigned long jasper_pin_config[] __initdata =
+{
 	/* UART1 */
 	GPIO29_UART1_RXD,
 	GPIO30_UART1_TXD,
@@ -100,15 +101,18 @@ static unsigned long jasper_pin_config[] __initdata = {
 	GPIO151_MMC3_CLK,
 };
 
-static struct pxa_gpio_platform_data mmp2_gpio_pdata = {
+static struct pxa_gpio_platform_data mmp2_gpio_pdata =
+{
 	.irq_base	= MMP_GPIO_TO_IRQ(0),
 };
 
-static struct regulator_consumer_supply max8649_supply[] = {
+static struct regulator_consumer_supply max8649_supply[] =
+{
 	REGULATOR_SUPPLY("vcc_core", NULL),
 };
 
-static struct regulator_init_data max8649_init_data = {
+static struct regulator_init_data max8649_init_data =
+{
 	.constraints	= {
 		.name		= "vcc_core range",
 		.min_uV		= 1150000,
@@ -121,30 +125,35 @@ static struct regulator_init_data max8649_init_data = {
 	.consumer_supplies	= &max8649_supply[0],
 };
 
-static struct max8649_platform_data jasper_max8649_info = {
+static struct max8649_platform_data jasper_max8649_info =
+{
 	.mode		= 2,	/* VID1 = 1, VID0 = 0 */
 	.extclk		= 0,
 	.ramp_timing	= MAX8649_RAMP_32MV,
 	.regulator	= &max8649_init_data,
 };
 
-static struct max8925_backlight_pdata jasper_backlight_data = {
+static struct max8925_backlight_pdata jasper_backlight_data =
+{
 	.dual_string	= 0,
 };
 
-static struct max8925_power_pdata jasper_power_data = {
+static struct max8925_power_pdata jasper_power_data =
+{
 	.batt_detect		= 0,	/* can't detect battery by ID pin */
 	.topoff_threshold	= MAX8925_TOPOFF_THR_10PER,
 	.fast_charge		= MAX8925_FCHG_1000MA,
 };
 
-static struct max8925_platform_data jasper_max8925_info = {
+static struct max8925_platform_data jasper_max8925_info =
+{
 	.backlight		= &jasper_backlight_data,
 	.power			= &jasper_power_data,
 	.irq_base		= MMP_NR_IRQS,
 };
 
-static struct i2c_board_info jasper_twsi1_info[] = {
+static struct i2c_board_info jasper_twsi1_info[] =
+{
 	[0] = {
 		.type		= "max8649",
 		.addr		= 0x60,
@@ -158,7 +167,8 @@ static struct i2c_board_info jasper_twsi1_info[] = {
 	},
 };
 
-static struct sdhci_pxa_platdata mmp2_sdh_platdata_mmc0 = {
+static struct sdhci_pxa_platdata mmp2_sdh_platdata_mmc0 =
+{
 	.clk_delay_cycles = 0x1f,
 };
 
@@ -171,7 +181,7 @@ static void __init jasper_init(void)
 	mmp2_add_uart(3);
 	mmp2_add_twsi(1, NULL, ARRAY_AND_SIZE(jasper_twsi1_info));
 	platform_device_add_data(&mmp2_device_gpio, &mmp2_gpio_pdata,
-				 sizeof(struct pxa_gpio_platform_data));
+							 sizeof(struct pxa_gpio_platform_data));
 	platform_device_register(&mmp2_device_gpio);
 	mmp2_add_sdhost(0, &mmp2_sdh_platdata_mmc0); /* SD/MMC */
 
@@ -179,10 +189,10 @@ static void __init jasper_init(void)
 }
 
 MACHINE_START(MARVELL_JASPER, "Jasper Development Platform")
-	.map_io		= mmp_map_io,
+.map_io		= mmp_map_io,
 	.nr_irqs	= JASPER_NR_IRQS,
-	.init_irq       = mmp2_init_irq,
-	.init_time	= mmp2_timer_init,
-	.init_machine   = jasper_init,
-	.restart	= mmp_restart,
-MACHINE_END
+		.init_irq       = mmp2_init_irq,
+		 .init_time	= mmp2_timer_init,
+		   .init_machine   = jasper_init,
+			.restart	= mmp_restart,
+				MACHINE_END

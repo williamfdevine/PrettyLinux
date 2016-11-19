@@ -20,9 +20,10 @@ struct page;
 
 /* A controller.  Used to manage multiple PCI busses.  */
 
-struct pci_controller {
+struct pci_controller
+{
 	struct pci_controller *next;
-        struct pci_bus *bus;
+	struct pci_bus *bus;
 	struct resource *io_space;
 	struct resource *mem_space;
 
@@ -93,14 +94,14 @@ static inline int pci_proc_domain(struct pci_bus *bus)
 extern struct pci_dev *isa_bridge;
 
 extern int pci_legacy_read(struct pci_bus *bus, loff_t port, u32 *val,
-			   size_t count);
+						   size_t count);
 extern int pci_legacy_write(struct pci_bus *bus, loff_t port, u32 val,
-			    size_t count);
+							size_t count);
 extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
-				      struct vm_area_struct *vma,
-				      enum pci_mmap_state mmap_state);
+									  struct vm_area_struct *vma,
+									  enum pci_mmap_state mmap_state);
 extern void pci_adjust_legacy_attr(struct pci_bus *bus,
-				   enum pci_mmap_state mmap_type);
+								   enum pci_mmap_state mmap_type);
 #define HAVE_PCI_LEGACY	1
 
 extern int pci_create_resource_files(struct pci_dev *dev);

@@ -34,7 +34,8 @@
 #include <mach/regs-misc.h>
 
 
-static struct map_desc ks8695_io_desc[] __initdata = {
+static struct map_desc ks8695_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)KS8695_IO_VA,
 		.pfn		= __phys_to_pfn(KS8695_IO_PA),
@@ -61,7 +62,7 @@ static void __init ks8695_clock_info(void)
 	unsigned int scdc = __raw_readl(KS8695_SYS_VA + KS8695_CLKCON) & CLKCON_SCDC;
 
 	printk("Clocks: System %u MHz, CPU %u MHz\n",
-			sysclk[scdc] / 1000000, cpuclk[scdc] / 1000000);
+		   sysclk[scdc] / 1000000, cpuclk[scdc] / 1000000);
 }
 
 void __init ks8695_map_io(void)

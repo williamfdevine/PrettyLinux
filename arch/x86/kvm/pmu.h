@@ -8,15 +8,17 @@
 /* retrieve the 4 bits for EN and PMI out of IA32_FIXED_CTR_CTRL */
 #define fixed_ctrl_field(ctrl_reg, idx) (((ctrl_reg) >> ((idx)*4)) & 0xf)
 
-struct kvm_event_hw_type_mapping {
+struct kvm_event_hw_type_mapping
+{
 	u8 eventsel;
 	u8 unit_mask;
 	unsigned event_type;
 };
 
-struct kvm_pmu_ops {
+struct kvm_pmu_ops
+{
 	unsigned (*find_arch_event)(struct kvm_pmu *pmu, u8 event_select,
-				    u8 unit_mask);
+								u8 unit_mask);
 	unsigned (*find_fixed_event)(int idx);
 	bool (*pmc_is_enabled)(struct kvm_pmc *pmc);
 	struct kvm_pmc *(*pmc_idx_to_pmc)(struct kvm_pmu *pmu, int pmc_idx);
@@ -42,16 +44,19 @@ static inline u64 pmc_read_counter(struct kvm_pmc *pmc)
 	u64 counter, enabled, running;
 
 	counter = pmc->counter;
+
 	if (pmc->perf_event)
 		counter += perf_event_read_value(pmc->perf_event,
-						 &enabled, &running);
+										 &enabled, &running);
+
 	/* FIXME: Scaling needed? */
 	return counter & pmc_bitmask(pmc);
 }
 
 static inline void pmc_stop_counter(struct kvm_pmc *pmc)
 {
-	if (pmc->perf_event) {
+	if (pmc->perf_event)
+	{
 		pmc->counter = pmc_read_counter(pmc);
 		perf_event_release_kernel(pmc->perf_event);
 		pmc->perf_event = NULL;
@@ -78,10 +83,12 @@ static inline bool pmc_is_enabled(struct kvm_pmc *pmc)
  * paramenter to tell them apart.
  */
 static inline struct kvm_pmc *get_gp_pmc(struct kvm_pmu *pmu, u32 msr,
-					 u32 base)
+		u32 base)
 {
 	if (msr >= base && msr < base + pmu->nr_arch_gp_counters)
+	{
 		return &pmu->gp_counters[msr - base];
+	}
 
 	return NULL;
 }
@@ -92,7 +99,9 @@ static inline struct kvm_pmc *get_fixed_pmc(struct kvm_pmu *pmu, u32 msr)
 	int base = MSR_CORE_PERF_FIXED_CTR0;
 
 	if (msr >= base && msr < base + pmu->nr_arch_fixed_counters)
+	{
 		return &pmu->fixed_counters[msr - base];
+	}
 
 	return NULL;
 }

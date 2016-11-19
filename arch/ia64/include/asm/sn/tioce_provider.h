@@ -18,7 +18,8 @@
  * DO NOT CHANGE THIS STRUCT WITHOUT MAKING CORRESPONDING CHANGES TO THE
  * PROM VERSION.
  */
-struct tioce_common {
+struct tioce_common
+{
 	struct pcibus_bussoft	ce_pcibus;	/* common pciio header */
 
 	u32		ce_rev;
@@ -26,7 +27,8 @@ struct tioce_common {
 	u64		ce_prom_private;
 };
 
-struct tioce_kernel {
+struct tioce_kernel
+{
 	struct tioce_common	*ce_common;
 	spinlock_t		ce_lock;
 	struct list_head	ce_dmamap_list;
@@ -38,13 +40,15 @@ struct tioce_kernel {
 	u8			ce_port1_secondary;
 
 	/* per-port resources */
-	struct {
+	struct
+	{
 		int 		dirmap_refcnt;
 		u64	dirmap_shadow;
 	} ce_port[TIOCE_NUM_PORTS];
 };
 
-struct tioce_dmamap {
+struct tioce_dmamap
+{
 	struct list_head	ce_dmamap_list;	/* headed by tioce_kernel */
 	u32		refcnt;
 

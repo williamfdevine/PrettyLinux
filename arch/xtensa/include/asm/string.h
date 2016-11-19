@@ -22,14 +22,14 @@ static inline char *strcpy(char *__dest, const char *__src)
 	unsigned long __dummy;
 
 	__asm__ __volatile__("1:\n\t"
-		"l8ui	%2, %1, 0\n\t"
-		"s8i	%2, %0, 0\n\t"
-		"addi	%1, %1, 1\n\t"
-		"addi	%0, %0, 1\n\t"
-		"bnez	%2, 1b\n\t"
-		: "=r" (__dest), "=r" (__src), "=&r" (__dummy)
-		: "0" (__dest), "1" (__src)
-		: "memory");
+						 "l8ui	%2, %1, 0\n\t"
+						 "s8i	%2, %0, 0\n\t"
+						 "addi	%1, %1, 1\n\t"
+						 "addi	%0, %0, 1\n\t"
+						 "bnez	%2, 1b\n\t"
+						 : "=r" (__dest), "=r" (__src), "=&r" (__dummy)
+						 : "0" (__dest), "1" (__src)
+						 : "memory");
 
 	return __xdest;
 }
@@ -41,7 +41,9 @@ static inline char *strncpy(char *__dest, const char *__src, size_t __n)
 	unsigned long __dummy;
 
 	if (__n == 0)
+	{
 		return __xdest;
+	}
 
 	__asm__ __volatile__(
 		"1:\n\t"

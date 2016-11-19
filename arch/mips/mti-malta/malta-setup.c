@@ -36,13 +36,14 @@
 #include <asm/prom.h>
 #include <asm/traps.h>
 #ifdef CONFIG_VT
-#include <linux/console.h>
+	#include <linux/console.h>
 #endif
 
 #define ROCIT_CONFIG_GEN0		0x1f403000
 #define  ROCIT_CONFIG_GEN0_PCI_IOCU	BIT(7)
 
-static struct resource standard_io_resources[] = {
+static struct resource standard_io_resources[] =
+{
 	{
 		.name = "dma1",
 		.start = 0x00,
@@ -109,35 +110,47 @@ static int __init plat_enable_iocoherency(void)
 	int supported = 0;
 	u32 cfg;
 
-	if (mips_revision_sconid == MIPS_REVISION_SCON_BONITO) {
-		if (BONITO_PCICACHECTRL & BONITO_PCICACHECTRL_CPUCOH_PRES) {
+	if (mips_revision_sconid == MIPS_REVISION_SCON_BONITO)
+	{
+		if (BONITO_PCICACHECTRL & BONITO_PCICACHECTRL_CPUCOH_PRES)
+		{
 			BONITO_PCICACHECTRL |= BONITO_PCICACHECTRL_CPUCOH_EN;
 			pr_info("Enabled Bonito CPU coherency\n");
 			supported = 1;
 		}
-		if (strstr(fw_getcmdline(), "iobcuncached")) {
+
+		if (strstr(fw_getcmdline(), "iobcuncached"))
+		{
 			BONITO_PCICACHECTRL &= ~BONITO_PCICACHECTRL_IOBCCOH_EN;
 			BONITO_PCIMEMBASECFG = BONITO_PCIMEMBASECFG &
-				~(BONITO_PCIMEMBASECFG_MEMBASE0_CACHED |
-				  BONITO_PCIMEMBASECFG_MEMBASE1_CACHED);
+								   ~(BONITO_PCIMEMBASECFG_MEMBASE0_CACHED |
+									 BONITO_PCIMEMBASECFG_MEMBASE1_CACHED);
 			pr_info("Disabled Bonito IOBC coherency\n");
-		} else {
+		}
+		else
+		{
 			BONITO_PCICACHECTRL |= BONITO_PCICACHECTRL_IOBCCOH_EN;
 			BONITO_PCIMEMBASECFG |=
 				(BONITO_PCIMEMBASECFG_MEMBASE0_CACHED |
 				 BONITO_PCIMEMBASECFG_MEMBASE1_CACHED);
 			pr_info("Enabled Bonito IOBC coherency\n");
 		}
-	} else if (mips_cm_numiocu() != 0) {
+	}
+	else if (mips_cm_numiocu() != 0)
+	{
 		/* Nothing special needs to be done to enable coherency */
 		pr_info("CMP IOCU detected\n");
 		cfg = __raw_readl((u32 *)CKSEG1ADDR(ROCIT_CONFIG_GEN0));
-		if (!(cfg & ROCIT_CONFIG_GEN0_PCI_IOCU)) {
+
+		if (!(cfg & ROCIT_CONFIG_GEN0_PCI_IOCU))
+		{
 			pr_crit("IOCU OPERATION DISABLED BY SWITCH - DEFAULTING TO SW IO COHERENCY\n");
 			return 0;
 		}
+
 		supported = 1;
 	}
+
 	hw_coherentio = supported;
 	return supported;
 }
@@ -145,25 +158,42 @@ static int __init plat_enable_iocoherency(void)
 static void __init plat_setup_iocoherency(void)
 {
 #ifdef CONFIG_DMA_NONCOHERENT
+
 	/*
 	 * Kernel has been configured with software coherency
 	 * but we might choose to turn it off and use hardware
 	 * coherency instead.
 	 */
-	if (plat_enable_iocoherency()) {
+	if (plat_enable_iocoherency())
+	{
 		if (coherentio == IO_COHERENCE_DISABLED)
+		{
 			pr_info("Hardware DMA cache coherency disabled\n");
+		}
 		else
+		{
 			pr_info("Hardware DMA cache coherency enabled\n");
-	} else {
-		if (coherentio == IO_COHERENCE_ENABLED)
-			pr_info("Hardware DMA cache coherency unsupported, but enabled from command line!\n");
-		else
-			pr_info("Software DMA cache coherency enabled\n");
+		}
 	}
+	else
+	{
+		if (coherentio == IO_COHERENCE_ENABLED)
+		{
+			pr_info("Hardware DMA cache coherency unsupported, but enabled from command line!\n");
+		}
+		else
+		{
+			pr_info("Software DMA cache coherency enabled\n");
+		}
+	}
+
 #else
+
 	if (!plat_enable_iocoherency())
+	{
 		panic("Hardware DMA cache coherency not supported!");
+	}
+
 #endif
 }
 
@@ -172,7 +202,8 @@ static void __init pci_clock_check(void)
 	unsigned int __iomem *jmpr_p =
 		(unsigned int *) ioremap(MALTA_JMPRS_REG, sizeof(unsigned int));
 	int jmpr = (__raw_readl(jmpr_p) >> 2) & 0x07;
-	static const int pciclocks[] __initconst = {
+	static const int pciclocks[] __initconst =
+	{
 		33, 20, 25, 30, 12, 16, 37, 10
 	};
 	int pciclock = pciclocks[jmpr];
@@ -182,36 +213,42 @@ static void __init pci_clock_check(void)
 	 * If user passed a pci_clock= option, don't tack on another one
 	 */
 	optptr = strstr(argptr, "pci_clock=");
-	if (optptr && (optptr == argptr || optptr[-1] == ' '))
-		return;
 
-	if (pciclock != 33) {
+	if (optptr && (optptr == argptr || optptr[-1] == ' '))
+	{
+		return;
+	}
+
+	if (pciclock != 33)
+	{
 		pr_warn("WARNING: PCI clock is %dMHz, setting pci_clock\n",
-			pciclock);
+				pciclock);
 		argptr += strlen(argptr);
 		sprintf(argptr, " pci_clock=%d", pciclock);
+
 		if (pciclock < 20 || pciclock > 66)
 			pr_warn("WARNING: IDE timing calculations will be "
-			        "incorrect\n");
+					"incorrect\n");
 	}
 }
 
 #if defined(CONFIG_VT) && defined(CONFIG_VGA_CONSOLE)
 static void __init screen_info_setup(void)
 {
-	screen_info = (struct screen_info) {
+	screen_info = (struct screen_info)
+	{
 		.orig_x = 0,
-		.orig_y = 25,
-		.ext_mem_k = 0,
-		.orig_video_page = 0,
-		.orig_video_mode = 0,
-		.orig_video_cols = 80,
-		.unused2 = 0,
-		.orig_video_ega_bx = 0,
-		.unused3 = 0,
-		.orig_video_lines = 25,
-		.orig_video_isVGA = VIDEO_TYPE_VGAC,
-		.orig_video_points = 16
+		 .orig_y = 25,
+		  .ext_mem_k = 0,
+		   .orig_video_page = 0,
+			.orig_video_mode = 0,
+			 .orig_video_cols = 80,
+			  .unused2 = 0,
+			   .orig_video_ega_bx = 0,
+				.unused3 = 0,
+				 .orig_video_lines = 25,
+				  .orig_video_isVGA = VIDEO_TYPE_VGAC,
+				   .orig_video_points = 16
 	};
 }
 #endif
@@ -221,33 +258,48 @@ static void __init bonito_quirks_setup(void)
 	char *argptr;
 
 	argptr = fw_getcmdline();
-	if (strstr(argptr, "debug")) {
+
+	if (strstr(argptr, "debug"))
+	{
 		BONITO_BONGENCFG |= BONITO_BONGENCFG_DEBUGMODE;
 		pr_info("Enabled Bonito debug mode\n");
-	} else
+	}
+	else
+	{
 		BONITO_BONGENCFG &= ~BONITO_BONGENCFG_DEBUGMODE;
+	}
 
 #ifdef CONFIG_DMA_COHERENT
-	if (BONITO_PCICACHECTRL & BONITO_PCICACHECTRL_CPUCOH_PRES) {
+
+	if (BONITO_PCICACHECTRL & BONITO_PCICACHECTRL_CPUCOH_PRES)
+	{
 		BONITO_PCICACHECTRL |= BONITO_PCICACHECTRL_CPUCOH_EN;
 		pr_info("Enabled Bonito CPU coherency\n");
 
 		argptr = fw_getcmdline();
-		if (strstr(argptr, "iobcuncached")) {
+
+		if (strstr(argptr, "iobcuncached"))
+		{
 			BONITO_PCICACHECTRL &= ~BONITO_PCICACHECTRL_IOBCCOH_EN;
 			BONITO_PCIMEMBASECFG = BONITO_PCIMEMBASECFG &
-				~(BONITO_PCIMEMBASECFG_MEMBASE0_CACHED |
-					BONITO_PCIMEMBASECFG_MEMBASE1_CACHED);
+								   ~(BONITO_PCIMEMBASECFG_MEMBASE0_CACHED |
+									 BONITO_PCIMEMBASECFG_MEMBASE1_CACHED);
 			pr_info("Disabled Bonito IOBC coherency\n");
-		} else {
+		}
+		else
+		{
 			BONITO_PCICACHECTRL |= BONITO_PCICACHECTRL_IOBCCOH_EN;
 			BONITO_PCIMEMBASECFG |=
 				(BONITO_PCIMEMBASECFG_MEMBASE0_CACHED |
-					BONITO_PCIMEMBASECFG_MEMBASE1_CACHED);
+				 BONITO_PCIMEMBASECFG_MEMBASE1_CACHED);
 			pr_info("Enabled Bonito IOBC coherency\n");
 		}
-	} else
+	}
+	else
+	{
 		panic("Hardware DMA cache coherency not supported");
+	}
+
 #endif
 }
 
@@ -266,13 +318,17 @@ void __init plat_mem_setup(void)
 
 	if (IS_ENABLED(CONFIG_EVA))
 		/* EVA has already been configured in mach-malta/kernel-init.h */
+	{
 		pr_info("Enhanced Virtual Addressing (EVA) activated\n");
+	}
 
 	mips_pcibios_init();
 
 	/* Request I/O space for devices used on the Malta board. */
 	for (i = 0; i < ARRAY_SIZE(standard_io_resources); i++)
-		request_resource(&ioport_resource, standard_io_resources+i);
+	{
+		request_resource(&ioport_resource, standard_io_resources + i);
+	}
 
 	/*
 	 * Enable DMA channel 4 (cascade channel) in the PIIX4 south bridge.
@@ -280,12 +336,18 @@ void __init plat_mem_setup(void)
 	enable_dma(4);
 
 #ifdef CONFIG_DMA_COHERENT
+
 	if (mips_revision_sconid != MIPS_REVISION_SCON_BONITO)
+	{
 		panic("Hardware DMA cache coherency not supported");
+	}
+
 #endif
 
 	if (mips_revision_sconid == MIPS_REVISION_SCON_BONITO)
+	{
 		bonito_quirks_setup();
+	}
 
 	plat_setup_iocoherency();
 

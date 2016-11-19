@@ -5,7 +5,8 @@
 
 #include <asm/geode.h>
 
-struct olpc_platform_t {
+struct olpc_platform_t
+{
 	int flags;
 	uint32_t boardrev;
 	int ecver;
@@ -93,9 +94,9 @@ static inline bool olpc_ec_wakeup_available(void)
 #endif
 
 #ifdef CONFIG_OLPC_XO1_PM
-extern void do_olpc_suspend_lowlevel(void);
-extern void olpc_xo1_pm_wakeup_set(u16 value);
-extern void olpc_xo1_pm_wakeup_clear(u16 value);
+	extern void do_olpc_suspend_lowlevel(void);
+	extern void olpc_xo1_pm_wakeup_set(u16 value);
+	extern void olpc_xo1_pm_wakeup_clear(u16 value);
 #endif
 
 extern int pci_olpc_init(void);

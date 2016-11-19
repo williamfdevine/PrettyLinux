@@ -13,7 +13,7 @@
 
 struct pt_regs;
 
-DECLARE_PER_CPU(unsigned long [IRQ_STACK_SIZE/sizeof(long)], irq_stack);
+DECLARE_PER_CPU(unsigned long [IRQ_STACK_SIZE / sizeof(long)], irq_stack);
 
 /*
  * The highest address on the stack, and the first to be used. Used to

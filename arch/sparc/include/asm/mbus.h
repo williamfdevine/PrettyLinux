@@ -10,7 +10,8 @@
 #include <asm/ross.h>    /* HyperSparc stuff */
 #include <asm/viking.h>  /* Ugh, bug city... */
 
-enum mbus_module {
+enum mbus_module
+{
 	HyperSparc        = 0,
 	Swift_ok          = 4,
 	Swift_bad_c       = 5,
@@ -81,9 +82,9 @@ static inline int get_cpuid(void)
 {
 	register int retval;
 	__asm__ __volatile__("rd %%tbr, %0\n\t"
-			     "srl %0, %1, %0\n\t" :
-			     "=r" (retval) :
-			     "i" (TBR_ID_SHIFT));
+						 "srl %0, %1, %0\n\t" :
+						 "=r" (retval) :
+						 "i" (TBR_ID_SHIFT));
 	return (retval & 3);
 }
 
@@ -92,5 +93,5 @@ static inline int get_modid(void)
 	return (get_cpuid() | 0x8);
 }
 
-	
+
 #endif /* !(_SPARC_MBUS_H) */

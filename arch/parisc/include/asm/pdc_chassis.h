@@ -8,12 +8,12 @@
  *      This program is free software; you can redistribute it and/or modify
  *      it under the terms of the GNU General Public License, version 2, as
  *      published by the Free Software Foundation.
- *      
+ *
  *      This program is distributed in the hope that it will be useful,
  *      but WITHOUT ANY WARRANTY; without even the implied warranty of
  *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *      GNU General Public License for more details.
- *      
+ *
  *      You should have received a copy of the GNU General Public License
  *      along with this program; if not, write to the Free Software
  *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -22,7 +22,7 @@
  *      	- handle message ID
  *      	- handle timestamps
  */
- 
+
 
 #ifndef _PARISC_PDC_CHASSIS_H
 #define _PARISC_PDC_CHASSIS_H
@@ -64,7 +64,7 @@ void parisc_pdc_chassis_init(void);
 /* Old PDC LED control */
 #define PDC_CHASSIS_DISP_DATA(v)	((unsigned long)(v) << 17)
 
-/* 
+/*
  * Available PDC PAT LED states
  */
 
@@ -81,80 +81,80 @@ void parisc_pdc_chassis_init(void);
 #define PDC_CHASSIS_LED_FAULT_NC	(3ULL << 8)
 #define PDC_CHASSIS_LED_VALID		(1ULL << 10)
 
-/* 
+/*
  * Valid PDC PAT LED states combinations
  */
 
 /* System running normally */
 #define PDC_CHASSIS_LSTATE_RUN_NORMAL	(PDC_CHASSIS_LED_RUN_ON		| \
-					 PDC_CHASSIS_LED_ATTN_OFF	| \
-					 PDC_CHASSIS_LED_FAULT_OFF	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_OFF	| \
+		PDC_CHASSIS_LED_FAULT_OFF	| \
+		PDC_CHASSIS_LED_VALID		)
 /* System crashed and rebooted itself successfully */
 #define PDC_CHASSIS_LSTATE_RUN_CRASHREC	(PDC_CHASSIS_LED_RUN_ON		| \
-					 PDC_CHASSIS_LED_ATTN_OFF	| \
-					 PDC_CHASSIS_LED_FAULT_FLASH	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_OFF	| \
+		PDC_CHASSIS_LED_FAULT_FLASH	| \
+		PDC_CHASSIS_LED_VALID		)
 /* There was a system interruption that did not take the system down */
 #define PDC_CHASSIS_LSTATE_RUN_SYSINT	(PDC_CHASSIS_LED_RUN_ON		| \
-					 PDC_CHASSIS_LED_ATTN_FLASH	| \
-					 PDC_CHASSIS_LED_FAULT_OFF	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_FLASH	| \
+		PDC_CHASSIS_LED_FAULT_OFF	| \
+		PDC_CHASSIS_LED_VALID		)
 /* System running and unexpected reboot or non-critical error detected */
 #define PDC_CHASSIS_LSTATE_RUN_NCRIT	(PDC_CHASSIS_LED_RUN_ON		| \
-					 PDC_CHASSIS_LED_ATTN_FLASH	| \
-					 PDC_CHASSIS_LED_FAULT_FLASH	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_FLASH	| \
+		PDC_CHASSIS_LED_FAULT_FLASH	| \
+		PDC_CHASSIS_LED_VALID		)
 /* Executing non-OS code */
 #define PDC_CHASSIS_LSTATE_NONOS	(PDC_CHASSIS_LED_RUN_FLASH	| \
-					 PDC_CHASSIS_LED_ATTN_OFF	| \
-					 PDC_CHASSIS_LED_FAULT_OFF	| \
-					 PDC_CHASSIS_LED_VALID		)
+									 PDC_CHASSIS_LED_ATTN_OFF	| \
+									 PDC_CHASSIS_LED_FAULT_OFF	| \
+									 PDC_CHASSIS_LED_VALID		)
 /* Boot failed - Executing non-OS code */
 #define PDC_CHASSIS_LSTATE_NONOS_BFAIL	(PDC_CHASSIS_LED_RUN_FLASH	| \
-					 PDC_CHASSIS_LED_ATTN_OFF	| \
-					 PDC_CHASSIS_LED_FAULT_ON	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_OFF	| \
+		PDC_CHASSIS_LED_FAULT_ON	| \
+		PDC_CHASSIS_LED_VALID		)
 /* Unexpected reboot occurred - Executing non-OS code */
 #define PDC_CHASSIS_LSTATE_NONOS_UNEXP	(PDC_CHASSIS_LED_RUN_FLASH	| \
-					 PDC_CHASSIS_LED_ATTN_OFF	| \
-					 PDC_CHASSIS_LED_FAULT_FLASH	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_OFF	| \
+		PDC_CHASSIS_LED_FAULT_FLASH	| \
+		PDC_CHASSIS_LED_VALID		)
 /* Executing non-OS code - Non-critical error detected */
 #define PDC_CHASSIS_LSTATE_NONOS_NCRIT	(PDC_CHASSIS_LED_RUN_FLASH	| \
-					 PDC_CHASSIS_LED_ATTN_FLASH	| \
-					 PDC_CHASSIS_LED_FAULT_OFF	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_FLASH	| \
+		PDC_CHASSIS_LED_FAULT_OFF	| \
+		PDC_CHASSIS_LED_VALID		)
 /* Boot failed - Executing non-OS code - Non-critical error detected */
 #define PDC_CHASSIS_LSTATE_BFAIL_NCRIT	(PDC_CHASSIS_LED_RUN_FLASH	| \
-					 PDC_CHASSIS_LED_ATTN_FLASH	| \
-					 PDC_CHASSIS_LED_FAULT_ON	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_FLASH	| \
+		PDC_CHASSIS_LED_FAULT_ON	| \
+		PDC_CHASSIS_LED_VALID		)
 /* Unexpected reboot/recovering - Executing non-OS code - Non-critical error detected */
 #define PDC_CHASSIS_LSTATE_UNEXP_NCRIT	(PDC_CHASSIS_LED_RUN_FLASH	| \
-					 PDC_CHASSIS_LED_ATTN_FLASH	| \
-					 PDC_CHASSIS_LED_FAULT_FLASH	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_FLASH	| \
+		PDC_CHASSIS_LED_FAULT_FLASH	| \
+		PDC_CHASSIS_LED_VALID		)
 /* Cannot execute PDC */
 #define PDC_CHASSIS_LSTATE_CANNOT_PDC	(PDC_CHASSIS_LED_RUN_OFF	| \
-					 PDC_CHASSIS_LED_ATTN_OFF	| \
-					 PDC_CHASSIS_LED_FAULT_OFF	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_OFF	| \
+		PDC_CHASSIS_LED_FAULT_OFF	| \
+		PDC_CHASSIS_LED_VALID		)
 /* Boot failed - OS not up - PDC has detected a failure that prevents boot */
 #define PDC_CHASSIS_LSTATE_FATAL_BFAIL	(PDC_CHASSIS_LED_RUN_OFF	| \
-					 PDC_CHASSIS_LED_ATTN_OFF	| \
-					 PDC_CHASSIS_LED_FAULT_ON	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_OFF	| \
+		PDC_CHASSIS_LED_FAULT_ON	| \
+		PDC_CHASSIS_LED_VALID		)
 /* No code running - Non-critical error detected (double fault situation) */
 #define PDC_CHASSIS_LSTATE_NOCODE_NCRIT	(PDC_CHASSIS_LED_RUN_OFF	| \
-					 PDC_CHASSIS_LED_ATTN_FLASH	| \
-					 PDC_CHASSIS_LED_FAULT_OFF	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_FLASH	| \
+		PDC_CHASSIS_LED_FAULT_OFF	| \
+		PDC_CHASSIS_LED_VALID		)
 /* Boot failed - OS not up - Fatal failure detected - Non-critical error detected */
 #define PDC_CHASSIS_LSTATE_FATAL_NCRIT	(PDC_CHASSIS_LED_RUN_OFF	| \
-					 PDC_CHASSIS_LED_ATTN_FLASH	| \
-					 PDC_CHASSIS_LED_FAULT_ON	| \
-					 PDC_CHASSIS_LED_VALID		)
+		PDC_CHASSIS_LED_ATTN_FLASH	| \
+		PDC_CHASSIS_LED_FAULT_ON	| \
+		PDC_CHASSIS_LED_VALID		)
 /* All other states are invalid */
 
 
@@ -164,9 +164,9 @@ void parisc_pdc_chassis_init(void);
  * --------------
  * Here follows bits needed to fill up the log event sent to PDC_CHASSIS
  * The log message contains: Alert level, Source, Source detail,
- * Source ID, Problem detail, Caller activity, Activity status, 
+ * Source ID, Problem detail, Caller activity, Activity status,
  * Caller subactivity, Reporting entity type, Reporting entity ID,
- * Data type, Unique message ID and EOM. 
+ * Data type, Unique message ID and EOM.
  */
 
 /* Alert level */
@@ -285,97 +285,97 @@ void parisc_pdc_chassis_init(void);
 
 /* Boot started */
 #define PDC_CHASSIS_PMSG_BSTART		(PDC_CHASSIS_ALERT_SERPROC	| \
-					 PDC_CHASSIS_SRC_PROC		| \
-					 PDC_CHASSIS_SRC_D_PROC		| \
-					 PDC_CHASSIS_SRC_ID_UNSPEC	| \
-					 PDC_CHASSIS_PB_D_PROC_NONE	| \
-					 PDC_CHASSIS_CALL_ACT_HPUX_INIT	| \
-					 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
-					 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
-					 PDC_CHASSIS_RET_HPUX		| \
-					 PDC_CHASSIS_REID_UNSPEC	| \
-					 PDC_CHASSIS_DT_STATE_CHG	| \
-					 PDC_CHASSIS_SYSTATE_BSTART	| \
-					 PDC_CHASSIS_MSG_ID		| \
-					 PDC_CHASSIS_EOM_SET		)
+									 PDC_CHASSIS_SRC_PROC		| \
+									 PDC_CHASSIS_SRC_D_PROC		| \
+									 PDC_CHASSIS_SRC_ID_UNSPEC	| \
+									 PDC_CHASSIS_PB_D_PROC_NONE	| \
+									 PDC_CHASSIS_CALL_ACT_HPUX_INIT	| \
+									 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
+									 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
+									 PDC_CHASSIS_RET_HPUX		| \
+									 PDC_CHASSIS_REID_UNSPEC	| \
+									 PDC_CHASSIS_DT_STATE_CHG	| \
+									 PDC_CHASSIS_SYSTATE_BSTART	| \
+									 PDC_CHASSIS_MSG_ID		| \
+									 PDC_CHASSIS_EOM_SET		)
 
 /* Boot complete */
 #define PDC_CHASSIS_PMSG_BCOMPLETE	(PDC_CHASSIS_ALERT_SERPROC	| \
-					 PDC_CHASSIS_SRC_PROC		| \
-					 PDC_CHASSIS_SRC_D_PROC		| \
-					 PDC_CHASSIS_SRC_ID_UNSPEC	| \
-					 PDC_CHASSIS_PB_D_PROC_NONE	| \
-					 PDC_CHASSIS_CALL_ACT_HPUX_INIT	| \
-					 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
-					 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
-					 PDC_CHASSIS_RET_HPUX		| \
-					 PDC_CHASSIS_REID_UNSPEC	| \
-					 PDC_CHASSIS_DT_STATE_CHG	| \
-					 PDC_CHASSIS_SYSTATE_BCOMP	| \
-					 PDC_CHASSIS_MSG_ID		| \
-					 PDC_CHASSIS_EOM_SET		)
+									 PDC_CHASSIS_SRC_PROC		| \
+									 PDC_CHASSIS_SRC_D_PROC		| \
+									 PDC_CHASSIS_SRC_ID_UNSPEC	| \
+									 PDC_CHASSIS_PB_D_PROC_NONE	| \
+									 PDC_CHASSIS_CALL_ACT_HPUX_INIT	| \
+									 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
+									 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
+									 PDC_CHASSIS_RET_HPUX		| \
+									 PDC_CHASSIS_REID_UNSPEC	| \
+									 PDC_CHASSIS_DT_STATE_CHG	| \
+									 PDC_CHASSIS_SYSTATE_BCOMP	| \
+									 PDC_CHASSIS_MSG_ID		| \
+									 PDC_CHASSIS_EOM_SET		)
 
 /* Shutdown */
 #define PDC_CHASSIS_PMSG_SHUTDOWN	(PDC_CHASSIS_ALERT_SERPROC	| \
-					 PDC_CHASSIS_SRC_PROC		| \
-					 PDC_CHASSIS_SRC_D_PROC		| \
-					 PDC_CHASSIS_SRC_ID_UNSPEC	| \
-					 PDC_CHASSIS_PB_D_PROC_NONE	| \
-					 PDC_CHASSIS_CALL_ACT_HPUX_SHUT	| \
-					 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
-					 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
-					 PDC_CHASSIS_RET_HPUX		| \
-					 PDC_CHASSIS_REID_UNSPEC	| \
-					 PDC_CHASSIS_DT_STATE_CHG	| \
-					 PDC_CHASSIS_SYSTATE_HALT	| \
-					 PDC_CHASSIS_MSG_ID		| \
-					 PDC_CHASSIS_EOM_SET		)
+									 PDC_CHASSIS_SRC_PROC		| \
+									 PDC_CHASSIS_SRC_D_PROC		| \
+									 PDC_CHASSIS_SRC_ID_UNSPEC	| \
+									 PDC_CHASSIS_PB_D_PROC_NONE	| \
+									 PDC_CHASSIS_CALL_ACT_HPUX_SHUT	| \
+									 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
+									 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
+									 PDC_CHASSIS_RET_HPUX		| \
+									 PDC_CHASSIS_REID_UNSPEC	| \
+									 PDC_CHASSIS_DT_STATE_CHG	| \
+									 PDC_CHASSIS_SYSTATE_HALT	| \
+									 PDC_CHASSIS_MSG_ID		| \
+									 PDC_CHASSIS_EOM_SET		)
 
 /* Panic */
 #define PDC_CHASSIS_PMSG_PANIC		(PDC_CHASSIS_ALERT_SOFT_FAIL	| \
-					 PDC_CHASSIS_SRC_PROC		| \
-					 PDC_CHASSIS_SRC_D_PROC		| \
-					 PDC_CHASSIS_SRC_ID_UNSPEC	| \
-					 PDC_CHASSIS_PB_D_PROC_NONE	| \
-					 PDC_CHASSIS_CALL_ACT_HPUX_PANIC| \
-					 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
-					 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
-					 PDC_CHASSIS_RET_HPUX		| \
-					 PDC_CHASSIS_REID_UNSPEC	| \
-					 PDC_CHASSIS_DT_STATE_CHG	| \
-					 PDC_CHASSIS_SYSTATE_PANIC	| \
-					 PDC_CHASSIS_MSG_ID		| \
-					 PDC_CHASSIS_EOM_SET		)
+									 PDC_CHASSIS_SRC_PROC		| \
+									 PDC_CHASSIS_SRC_D_PROC		| \
+									 PDC_CHASSIS_SRC_ID_UNSPEC	| \
+									 PDC_CHASSIS_PB_D_PROC_NONE	| \
+									 PDC_CHASSIS_CALL_ACT_HPUX_PANIC| \
+									 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
+									 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
+									 PDC_CHASSIS_RET_HPUX		| \
+									 PDC_CHASSIS_REID_UNSPEC	| \
+									 PDC_CHASSIS_DT_STATE_CHG	| \
+									 PDC_CHASSIS_SYSTATE_PANIC	| \
+									 PDC_CHASSIS_MSG_ID		| \
+									 PDC_CHASSIS_EOM_SET		)
 
 // FIXME: extrapolated data
 /* HPMC */
 #define PDC_CHASSIS_PMSG_HPMC		(PDC_CHASSIS_ALERT_CONF_CHG /*?*/	| \
-					 PDC_CHASSIS_SRC_PROC		| \
-					 PDC_CHASSIS_SRC_D_PROC		| \
-					 PDC_CHASSIS_SRC_ID_UNSPEC	| \
-					 PDC_CHASSIS_PB_D_PROC_NONE	| \
-					 PDC_CHASSIS_CALL_ACT_HPUX_WARN	| \
-					 PDC_CHASSIS_RET_HPUX		| \
-					 PDC_CHASSIS_DT_STATE_CHG	| \
-					 PDC_CHASSIS_SYSTATE_HPMC	| \
-					 PDC_CHASSIS_MSG_ID		| \
-					 PDC_CHASSIS_EOM_SET		)
+									 PDC_CHASSIS_SRC_PROC		| \
+									 PDC_CHASSIS_SRC_D_PROC		| \
+									 PDC_CHASSIS_SRC_ID_UNSPEC	| \
+									 PDC_CHASSIS_PB_D_PROC_NONE	| \
+									 PDC_CHASSIS_CALL_ACT_HPUX_WARN	| \
+									 PDC_CHASSIS_RET_HPUX		| \
+									 PDC_CHASSIS_DT_STATE_CHG	| \
+									 PDC_CHASSIS_SYSTATE_HPMC	| \
+									 PDC_CHASSIS_MSG_ID		| \
+									 PDC_CHASSIS_EOM_SET		)
 
 /* LPMC */
 #define PDC_CHASSIS_PMSG_LPMC		(PDC_CHASSIS_ALERT_BLOCKED /*?*/| \
-					 PDC_CHASSIS_SRC_PROC		| \
-					 PDC_CHASSIS_SRC_D_PROC		| \
-					 PDC_CHASSIS_SRC_ID_UNSPEC	| \
-					 PDC_CHASSIS_PB_D_PROC_NONE	| \
-					 PDC_CHASSIS_CALL_ACT_HPUX_WARN	| \
-					 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
-					 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
-					 PDC_CHASSIS_RET_HPUX		| \
-					 PDC_CHASSIS_REID_UNSPEC	| \
-					 PDC_CHASSIS_DT_STATE_CHG	| \
-					 PDC_CHASSIS_SYSTATE_CHANGE	| \
-					 PDC_CHASSIS_MSG_ID		| \
-					 PDC_CHASSIS_EOM_SET		)
+									 PDC_CHASSIS_SRC_PROC		| \
+									 PDC_CHASSIS_SRC_D_PROC		| \
+									 PDC_CHASSIS_SRC_ID_UNSPEC	| \
+									 PDC_CHASSIS_PB_D_PROC_NONE	| \
+									 PDC_CHASSIS_CALL_ACT_HPUX_WARN	| \
+									 PDC_CHASSIS_ACT_STATUS_UNSPEC	| \
+									 PDC_CHASSIS_CALL_SACT_UNSPEC	| \
+									 PDC_CHASSIS_RET_HPUX		| \
+									 PDC_CHASSIS_REID_UNSPEC	| \
+									 PDC_CHASSIS_DT_STATE_CHG	| \
+									 PDC_CHASSIS_SYSTATE_CHANGE	| \
+									 PDC_CHASSIS_MSG_ID		| \
+									 PDC_CHASSIS_EOM_SET		)
 
 #endif /* _PARISC_PDC_CHASSIS_H */
 /* vim: set ts=8 */

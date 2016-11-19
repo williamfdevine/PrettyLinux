@@ -43,11 +43,11 @@ typedef ppc_opcode_t kprobe_opcode_t;
 #ifdef PPC64_ELF_ABI_v2
 /* PPC64 ABIv2 needs local entry point */
 #define kprobe_lookup_name(name, addr)					\
-{									\
-	addr = (kprobe_opcode_t *)kallsyms_lookup_name(name);		\
-	if (addr)							\
-		addr = (kprobe_opcode_t *)ppc_function_entry(addr);	\
-}
+	{									\
+		addr = (kprobe_opcode_t *)kallsyms_lookup_name(name);		\
+		if (addr)							\
+			addr = (kprobe_opcode_t *)ppc_function_entry(addr);	\
+	}
 #elif defined(PPC64_ELF_ABI_v1)
 /*
  * 64bit powerpc ABIv1 uses function descriptors:
@@ -58,39 +58,39 @@ typedef ppc_opcode_t kprobe_opcode_t;
  * Also handle <module:symbol> format.
  */
 #define kprobe_lookup_name(name, addr)					\
-{									\
-	char dot_name[MODULE_NAME_LEN + 1 + KSYM_NAME_LEN];		\
-	char *modsym;							\
-	bool dot_appended = false;					\
-	if ((modsym = strchr(name, ':')) != NULL) {			\
-		modsym++;						\
-		if (*modsym != '\0' && *modsym != '.') {		\
-			/* Convert to <module:.symbol> */		\
-			strncpy(dot_name, name, modsym - name);		\
-			dot_name[modsym - name] = '.';			\
-			dot_name[modsym - name + 1] = '\0';		\
-			strncat(dot_name, modsym,			\
-				sizeof(dot_name) - (modsym - name) - 2);\
-			dot_appended = true;				\
-		} else {						\
-			dot_name[0] = '\0';				\
-			strncat(dot_name, name, sizeof(dot_name) - 1);	\
-		}							\
-	} else if (name[0] != '.') {					\
-		dot_name[0] = '.';					\
-		dot_name[1] = '\0';					\
-		strncat(dot_name, name, KSYM_NAME_LEN - 2);		\
-		dot_appended = true;					\
-	} else {							\
-		dot_name[0] = '\0';					\
-		strncat(dot_name, name, KSYM_NAME_LEN - 1);		\
-	}								\
-	addr = (kprobe_opcode_t *)kallsyms_lookup_name(dot_name);	\
-	if (!addr && dot_appended) {					\
-		/* Let's try the original non-dot symbol lookup	*/	\
-		addr = (kprobe_opcode_t *)kallsyms_lookup_name(name);	\
-	}								\
-}
+	{									\
+		char dot_name[MODULE_NAME_LEN + 1 + KSYM_NAME_LEN];		\
+		char *modsym;							\
+		bool dot_appended = false;					\
+		if ((modsym = strchr(name, ':')) != NULL) {			\
+			modsym++;						\
+			if (*modsym != '\0' && *modsym != '.') {		\
+				/* Convert to <module:.symbol> */		\
+				strncpy(dot_name, name, modsym - name);		\
+				dot_name[modsym - name] = '.';			\
+				dot_name[modsym - name + 1] = '\0';		\
+				strncat(dot_name, modsym,			\
+						sizeof(dot_name) - (modsym - name) - 2);\
+				dot_appended = true;				\
+			} else {						\
+				dot_name[0] = '\0';				\
+				strncat(dot_name, name, sizeof(dot_name) - 1);	\
+			}							\
+		} else if (name[0] != '.') {					\
+			dot_name[0] = '.';					\
+			dot_name[1] = '\0';					\
+			strncat(dot_name, name, KSYM_NAME_LEN - 2);		\
+			dot_appended = true;					\
+		} else {							\
+			dot_name[0] = '\0';					\
+			strncat(dot_name, name, KSYM_NAME_LEN - 1);		\
+		}								\
+		addr = (kprobe_opcode_t *)kallsyms_lookup_name(dot_name);	\
+		if (!addr && dot_appended) {					\
+			/* Let's try the original non-dot symbol lookup	*/	\
+			addr = (kprobe_opcode_t *)kallsyms_lookup_name(name);	\
+		}								\
+	}
 #endif
 
 #define flush_insn_slot(p)	do { } while (0)
@@ -100,7 +100,8 @@ void kretprobe_trampoline(void);
 extern void arch_remove_kprobe(struct kprobe *p);
 
 /* Architecture specific copy of original instruction */
-struct arch_specific_insn {
+struct arch_specific_insn
+{
 	/* copy of original instruction */
 	kprobe_opcode_t *insn;
 	/*
@@ -110,14 +111,16 @@ struct arch_specific_insn {
 	int boostable;
 };
 
-struct prev_kprobe {
+struct prev_kprobe
+{
 	struct kprobe *kp;
 	unsigned long status;
 	unsigned long saved_msr;
 };
 
 /* per-cpu kprobe control block */
-struct kprobe_ctlblk {
+struct kprobe_ctlblk
+{
 	unsigned long kprobe_status;
 	unsigned long kprobe_saved_msr;
 	struct pt_regs jprobe_saved_regs;
@@ -125,7 +128,7 @@ struct kprobe_ctlblk {
 };
 
 extern int kprobe_exceptions_notify(struct notifier_block *self,
-					unsigned long val, void *data);
+									unsigned long val, void *data);
 extern int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
 #endif /* __KERNEL__ */
 #endif	/* _ASM_POWERPC_KPROBES_H */

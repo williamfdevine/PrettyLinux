@@ -54,9 +54,13 @@ static void __init rbtx4938_pci_setup(void)
 	writeb(0, rbtx4938_pcireset_addr);
 	/* Reset PCIC */
 	txx9_set64(&tx4938_ccfgptr->clkctr, TX4938_CLKCTR_PCIRST);
+
 	if ((txx9_pci_option & TXX9_PCI_OPT_CLK_MASK) ==
-	    TXX9_PCI_OPT_CLK_66)
+		TXX9_PCI_OPT_CLK_66)
+	{
 		tx4938_pciclk66_setup();
+	}
+
 	mdelay(10);
 	/* clear PCIC reset */
 	txx9_clear64(&tx4938_ccfgptr->clkctr, TX4938_CLKCTR_PCIRST);
@@ -65,9 +69,11 @@ static void __init rbtx4938_pci_setup(void)
 
 	tx4938_report_pciclk();
 	tx4927_pcic_setup(tx4938_pcicptr, c, extarb);
+
 	if ((txx9_pci_option & TXX9_PCI_OPT_CLK_MASK) ==
-	    TXX9_PCI_OPT_CLK_AUTO &&
-	    txx9_pci66_check(c, 0, 0)) {
+		TXX9_PCI_OPT_CLK_AUTO &&
+		txx9_pci66_check(c, 0, 0))
+	{
 		/* Reset PCI Bus */
 		writeb(0, rbtx4938_pcireset_addr);
 		/* Reset PCIC */
@@ -84,13 +90,18 @@ static void __init rbtx4938_pci_setup(void)
 	}
 
 	if (__raw_readq(&tx4938_ccfgptr->pcfg) &
-	    (TX4938_PCFG_ETH0_SEL|TX4938_PCFG_ETH1_SEL)) {
+		(TX4938_PCFG_ETH0_SEL | TX4938_PCFG_ETH1_SEL))
+	{
 		/* Reset PCIC1 */
 		txx9_set64(&tx4938_ccfgptr->clkctr, TX4938_CLKCTR_PCIC1RST);
+
 		/* PCI1DMD==0 => PCI1CLK==GBUSCLK/2 => PCI66 */
 		if (!(__raw_readq(&tx4938_ccfgptr->ccfg)
-		      & TX4938_CCFG_PCI1DMD))
+			  & TX4938_CCFG_PCI1DMD))
+		{
 			tx4938_ccfg_set(TX4938_CCFG_PCI1_66);
+		}
+
 		mdelay(10);
 		/* clear PCIC1 reset */
 		txx9_clear64(&tx4938_ccfgptr->clkctr, TX4938_CLKCTR_PCIC1RST);
@@ -101,6 +112,7 @@ static void __init rbtx4938_pci_setup(void)
 		register_pci_controller(c);
 		tx4927_pcic_setup(tx4938_pcic1ptr, c, 0);
 	}
+
 	tx4938_setup_pcierr_irq();
 #endif /* CONFIG_PCI */
 }
@@ -122,17 +134,29 @@ static int __init rbtx4938_ethaddr_init(void)
 	int i;
 
 	/* 0-3: "MAC\0", 4-9:eth0, 10-15:eth1, 16:sum */
-	if (spi_eeprom_read(SPI_BUSNO, SEEPROM1_CS, 0, dat, sizeof(dat))) {
+	if (spi_eeprom_read(SPI_BUSNO, SEEPROM1_CS, 0, dat, sizeof(dat)))
+	{
 		printk(KERN_ERR "seeprom: read error.\n");
 		return -ENODEV;
-	} else {
-		if (strcmp(dat, "MAC") != 0)
-			printk(KERN_WARNING "seeprom: bad signature.\n");
-		for (i = 0, sum = 0; i < sizeof(dat); i++)
-			sum += dat[i];
-		if (sum)
-			printk(KERN_WARNING "seeprom: bad checksum.\n");
 	}
+	else
+	{
+		if (strcmp(dat, "MAC") != 0)
+		{
+			printk(KERN_WARNING "seeprom: bad signature.\n");
+		}
+
+		for (i = 0, sum = 0; i < sizeof(dat); i++)
+		{
+			sum += dat[i];
+		}
+
+		if (sum)
+		{
+			printk(KERN_WARNING "seeprom: bad checksum.\n");
+		}
+	}
+
 	tx4938_ethaddr_init(&dat[4], &dat[4 + 6]);
 #endif /* CONFIG_PCI */
 	return 0;
@@ -156,7 +180,9 @@ static void __init rbtx4938_mem_setup(void)
 	unsigned long long pcfg;
 
 	if (txx9_master_clock == 0)
-		txx9_master_clock = 25000000; /* 25MHz */
+	{
+		txx9_master_clock = 25000000;    /* 25MHz */
+	}
 
 	tx4938_setup();
 
@@ -172,7 +198,7 @@ static void __init rbtx4938_mem_setup(void)
 #ifdef CONFIG_TOSHIBA_RBTX4938_MPLEX_PIO58_61
 	pr_info("PIOSEL: disabling both ATA and NAND selection\n");
 	txx9_clear64(&tx4938_ccfgptr->pcfg,
-		     TX4938_PCFG_NDF_SEL | TX4938_PCFG_ATA_SEL);
+				 TX4938_PCFG_NDF_SEL | TX4938_PCFG_ATA_SEL);
 #endif
 
 #ifdef CONFIG_TOSHIBA_RBTX4938_MPLEX_NAND
@@ -190,43 +216,48 @@ static void __init rbtx4938_mem_setup(void)
 #ifdef CONFIG_TOSHIBA_RBTX4938_MPLEX_KEEP
 	pcfg = ____raw_readq(&tx4938_ccfgptr->pcfg);
 	pr_info("PIOSEL: NAND %s, ATA %s\n",
-		(pcfg & TX4938_PCFG_NDF_SEL) ? "enabled" : "disabled",
-		(pcfg & TX4938_PCFG_ATA_SEL) ? "enabled" : "disabled");
+			(pcfg & TX4938_PCFG_NDF_SEL) ? "enabled" : "disabled",
+			(pcfg & TX4938_PCFG_ATA_SEL) ? "enabled" : "disabled");
 #endif
 
 	rbtx4938_spi_setup();
 	pcfg = ____raw_readq(&tx4938_ccfgptr->pcfg);	/* updated */
+
 	/* fixup piosel */
 	if ((pcfg & (TX4938_PCFG_ATA_SEL | TX4938_PCFG_NDF_SEL)) ==
-	    TX4938_PCFG_ATA_SEL)
+		TX4938_PCFG_ATA_SEL)
 		writeb((readb(rbtx4938_piosel_addr) & 0x03) | 0x04,
-		       rbtx4938_piosel_addr);
+			   rbtx4938_piosel_addr);
 	else if ((pcfg & (TX4938_PCFG_ATA_SEL | TX4938_PCFG_NDF_SEL)) ==
-		 TX4938_PCFG_NDF_SEL)
+			 TX4938_PCFG_NDF_SEL)
 		writeb((readb(rbtx4938_piosel_addr) & 0x03) | 0x08,
-		       rbtx4938_piosel_addr);
+			   rbtx4938_piosel_addr);
 	else
 		writeb(readb(rbtx4938_piosel_addr) & ~(0x08 | 0x04),
-		       rbtx4938_piosel_addr);
+			   rbtx4938_piosel_addr);
 
 	rbtx4938_fpga_resource.name = "FPGA Registers";
 	rbtx4938_fpga_resource.start = CPHYSADDR(RBTX4938_FPGA_REG_ADDR);
 	rbtx4938_fpga_resource.end = CPHYSADDR(RBTX4938_FPGA_REG_ADDR) + 0xffff;
 	rbtx4938_fpga_resource.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+
 	if (request_resource(&txx9_ce_res[2], &rbtx4938_fpga_resource))
+	{
 		printk(KERN_ERR "request resource for fpga failed\n");
+	}
 
 	_machine_restart = rbtx4938_machine_restart;
 
 	writeb(0xff, rbtx4938_led_addr);
 	printk(KERN_INFO "RBTX4938 --- FPGA(Rev %02x) DIPSW:%02x,%02x\n",
-	       readb(rbtx4938_fpga_rev_addr),
-	       readb(rbtx4938_dipsw_addr), readb(rbtx4938_bdipsw_addr));
+		   readb(rbtx4938_fpga_rev_addr),
+		   readb(rbtx4938_dipsw_addr), readb(rbtx4938_bdipsw_addr));
 }
 
 static void __init rbtx4938_ne_init(void)
 {
-	struct resource res[] = {
+	struct resource res[] =
+	{
 		{
 			.start	= RBTX4938_RTL_8019_BASE,
 			.end	= RBTX4938_RTL_8019_BASE + 0x20 - 1,
@@ -242,29 +273,36 @@ static void __init rbtx4938_ne_init(void)
 static DEFINE_SPINLOCK(rbtx4938_spi_gpio_lock);
 
 static void rbtx4938_spi_gpio_set(struct gpio_chip *chip, unsigned int offset,
-				  int value)
+								  int value)
 {
 	u8 val;
 	unsigned long flags;
 	spin_lock_irqsave(&rbtx4938_spi_gpio_lock, flags);
 	val = readb(rbtx4938_spics_addr);
+
 	if (value)
+	{
 		val |= 1 << offset;
+	}
 	else
+	{
 		val &= ~(1 << offset);
+	}
+
 	writeb(val, rbtx4938_spics_addr);
 	mmiowb();
 	spin_unlock_irqrestore(&rbtx4938_spi_gpio_lock, flags);
 }
 
 static int rbtx4938_spi_gpio_dir_out(struct gpio_chip *chip,
-				     unsigned int offset, int value)
+									 unsigned int offset, int value)
 {
 	rbtx4938_spi_gpio_set(chip, offset, value);
 	return 0;
 }
 
-static struct gpio_chip rbtx4938_spi_gpio_chip = {
+static struct gpio_chip rbtx4938_spi_gpio_chip =
+{
 	.set = rbtx4938_spi_gpio_set,
 	.direction_output = rbtx4938_spi_gpio_dir_out,
 	.label = "RBTX4938-SPICS",
@@ -274,7 +312,8 @@ static struct gpio_chip rbtx4938_spi_gpio_chip = {
 
 static int __init rbtx4938_spi_init(void)
 {
-	struct spi_board_info srtc_info = {
+	struct spi_board_info srtc_info =
+	{
 		.modalias = "rtc-rs5c348",
 		.max_speed_hz = 1000000, /* 1.0Mbps @ Vdd 2.0V */
 		.bus_num = 0,
@@ -300,37 +339,42 @@ static int __init rbtx4938_spi_init(void)
 
 static void __init rbtx4938_mtd_init(void)
 {
-	struct physmap_flash_data pdata = {
+	struct physmap_flash_data pdata =
+	{
 		.width = 4,
 	};
 
-	switch (readb(rbtx4938_bdipsw_addr) & 7) {
-	case 0:
-		/* Boot */
-		txx9_physmap_flash_init(0, 0x1fc00000, 0x400000, &pdata);
-		/* System */
-		txx9_physmap_flash_init(1, 0x1e000000, 0x1000000, &pdata);
-		break;
-	case 1:
-		/* System */
-		txx9_physmap_flash_init(0, 0x1f000000, 0x1000000, &pdata);
-		/* Boot */
-		txx9_physmap_flash_init(1, 0x1ec00000, 0x400000, &pdata);
-		break;
-	case 2:
-		/* Ext */
-		txx9_physmap_flash_init(0, 0x1f000000, 0x1000000, &pdata);
-		/* System */
-		txx9_physmap_flash_init(1, 0x1e000000, 0x1000000, &pdata);
-		/* Boot */
-		txx9_physmap_flash_init(2, 0x1dc00000, 0x400000, &pdata);
-		break;
-	case 3:
-		/* Boot */
-		txx9_physmap_flash_init(1, 0x1bc00000, 0x400000, &pdata);
-		/* System */
-		txx9_physmap_flash_init(2, 0x1a000000, 0x1000000, &pdata);
-		break;
+	switch (readb(rbtx4938_bdipsw_addr) & 7)
+	{
+		case 0:
+			/* Boot */
+			txx9_physmap_flash_init(0, 0x1fc00000, 0x400000, &pdata);
+			/* System */
+			txx9_physmap_flash_init(1, 0x1e000000, 0x1000000, &pdata);
+			break;
+
+		case 1:
+			/* System */
+			txx9_physmap_flash_init(0, 0x1f000000, 0x1000000, &pdata);
+			/* Boot */
+			txx9_physmap_flash_init(1, 0x1ec00000, 0x400000, &pdata);
+			break;
+
+		case 2:
+			/* Ext */
+			txx9_physmap_flash_init(0, 0x1f000000, 0x1000000, &pdata);
+			/* System */
+			txx9_physmap_flash_init(1, 0x1e000000, 0x1000000, &pdata);
+			/* Boot */
+			txx9_physmap_flash_init(2, 0x1dc00000, 0x400000, &pdata);
+			break;
+
+		case 3:
+			/* Boot */
+			txx9_physmap_flash_init(1, 0x1bc00000, 0x400000, &pdata);
+			/* System */
+			txx9_physmap_flash_init(2, 0x1a000000, 0x1000000, &pdata);
+			break;
 	}
 }
 
@@ -358,7 +402,8 @@ static void __init rbtx4938_device_init(void)
 	txx9_iocled_init(RBTX4938_LED_ADDR - IO_BASE, -1, 8, 1, "green", NULL);
 }
 
-struct txx9_board_vec rbtx4938_vec __initdata = {
+struct txx9_board_vec rbtx4938_vec __initdata =
+{
 	.system = "Toshiba RBTX4938",
 	.prom_init = rbtx4938_prom_init,
 	.mem_setup = rbtx4938_mem_setup,

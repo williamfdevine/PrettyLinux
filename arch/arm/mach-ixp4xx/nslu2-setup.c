@@ -51,16 +51,19 @@
 #define NSLU2_LED_DISK1_GPIO	3
 #define NSLU2_LED_DISK2_GPIO	2
 
-static struct flash_platform_data nslu2_flash_data = {
+static struct flash_platform_data nslu2_flash_data =
+{
 	.map_name		= "cfi_probe",
 	.width			= 2,
 };
 
-static struct resource nslu2_flash_resource = {
+static struct resource nslu2_flash_resource =
+{
 	.flags			= IORESOURCE_MEM,
 };
 
-static struct platform_device nslu2_flash = {
+static struct platform_device nslu2_flash =
+{
 	.name			= "IXP4XX-Flash",
 	.id			= 0,
 	.dev.platform_data	= &nslu2_flash_data,
@@ -68,18 +71,21 @@ static struct platform_device nslu2_flash = {
 	.resource		= &nslu2_flash_resource,
 };
 
-static struct i2c_gpio_platform_data nslu2_i2c_gpio_data = {
+static struct i2c_gpio_platform_data nslu2_i2c_gpio_data =
+{
 	.sda_pin		= NSLU2_SDA_PIN,
 	.scl_pin		= NSLU2_SCL_PIN,
 };
 
-static struct i2c_board_info __initdata nslu2_i2c_board_info [] = {
+static struct i2c_board_info __initdata nslu2_i2c_board_info [] =
+{
 	{
 		I2C_BOARD_INFO("x1205", 0x6f),
 	},
 };
 
-static struct gpio_led nslu2_led_pins[] = {
+static struct gpio_led nslu2_led_pins[] =
+{
 	{
 		.name		= "nslu2:green:ready",
 		.gpio		= NSLU2_LED_GRN_GPIO,
@@ -100,18 +106,21 @@ static struct gpio_led nslu2_led_pins[] = {
 	},
 };
 
-static struct gpio_led_platform_data nslu2_led_data = {
+static struct gpio_led_platform_data nslu2_led_data =
+{
 	.num_leds		= ARRAY_SIZE(nslu2_led_pins),
 	.leds			= nslu2_led_pins,
 };
 
-static struct platform_device nslu2_leds = {
+static struct platform_device nslu2_leds =
+{
 	.name			= "leds-gpio",
 	.id			= -1,
 	.dev.platform_data	= &nslu2_led_data,
 };
 
-static struct platform_device nslu2_i2c_gpio = {
+static struct platform_device nslu2_i2c_gpio =
+{
 	.name			= "i2c-gpio",
 	.id			= 0,
 	.dev	 = {
@@ -119,13 +128,15 @@ static struct platform_device nslu2_i2c_gpio = {
 	},
 };
 
-static struct platform_device nslu2_beeper = {
+static struct platform_device nslu2_beeper =
+{
 	.name			= "ixp4xx-beeper",
 	.id			= NSLU2_GPIO_BUZZ,
 	.num_resources		= 0,
 };
 
-static struct resource nslu2_uart_resources[] = {
+static struct resource nslu2_uart_resources[] =
+{
 	{
 		.start		= IXP4XX_UART1_BASE_PHYS,
 		.end		= IXP4XX_UART1_BASE_PHYS + 0x0fff,
@@ -138,7 +149,8 @@ static struct resource nslu2_uart_resources[] = {
 	}
 };
 
-static struct plat_serial8250_port nslu2_uart_data[] = {
+static struct plat_serial8250_port nslu2_uart_data[] =
+{
 	{
 		.mapbase	= IXP4XX_UART1_BASE_PHYS,
 		.membase	= (char *)IXP4XX_UART1_BASE_VIRT + REG_OFFSET,
@@ -160,7 +172,8 @@ static struct plat_serial8250_port nslu2_uart_data[] = {
 	{ }
 };
 
-static struct platform_device nslu2_uart = {
+static struct platform_device nslu2_uart =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev.platform_data	= nslu2_uart_data,
@@ -169,7 +182,8 @@ static struct platform_device nslu2_uart = {
 };
 
 /* Built-in 10/100 Ethernet MAC interfaces */
-static struct eth_plat_info nslu2_plat_eth[] = {
+static struct eth_plat_info nslu2_plat_eth[] =
+{
 	{
 		.phy		= 1,
 		.rxq		= 3,
@@ -177,7 +191,8 @@ static struct eth_plat_info nslu2_plat_eth[] = {
 	}
 };
 
-static struct platform_device nslu2_eth[] = {
+static struct platform_device nslu2_eth[] =
+{
 	{
 		.name			= "ixp4xx_eth",
 		.id			= IXP4XX_ETH_NPEB,
@@ -185,7 +200,8 @@ static struct platform_device nslu2_eth[] = {
 	}
 };
 
-static struct platform_device *nslu2_devices[] __initdata = {
+static struct platform_device *nslu2_devices[] __initdata =
+{
 	&nslu2_i2c_gpio,
 	&nslu2_flash,
 	&nslu2_beeper,
@@ -223,7 +239,9 @@ static irqreturn_t nslu2_reset_handler(int irq, void *dev_id)
 static int __init nslu2_gpio_init(void)
 {
 	if (!machine_is_nslu2())
+	{
 		return 0;
+	}
 
 	/* Request the power off GPIO */
 	return gpio_request(NSLU2_PO_GPIO, "power off");
@@ -232,11 +250,11 @@ device_initcall(nslu2_gpio_init);
 
 static void __init nslu2_timer_init(void)
 {
-    /* The xtal on this machine is non-standard. */
-    ixp4xx_timer_freq = NSLU2_FREQ;
+	/* The xtal on this machine is non-standard. */
+	ixp4xx_timer_freq = NSLU2_FREQ;
 
-    /* Call standard timer_init function. */
-    ixp4xx_timer_init();
+	/* Call standard timer_init function. */
+	ixp4xx_timer_init();
 }
 
 static void __init nslu2_init(void)
@@ -251,7 +269,7 @@ static void __init nslu2_init(void)
 		IXP4XX_EXP_BUS_BASE(0) + ixp4xx_exp_bus_size - 1;
 
 	i2c_register_board_info(0, nslu2_i2c_board_info,
-				ARRAY_SIZE(nslu2_i2c_board_info));
+							ARRAY_SIZE(nslu2_i2c_board_info));
 
 	/*
 	 * This is only useful on a modified machine, but it is valuable
@@ -265,17 +283,19 @@ static void __init nslu2_init(void)
 	pm_power_off = nslu2_power_off;
 
 	if (request_irq(gpio_to_irq(NSLU2_RB_GPIO), &nslu2_reset_handler,
-		IRQF_TRIGGER_LOW, "NSLU2 reset button", NULL) < 0) {
+					IRQF_TRIGGER_LOW, "NSLU2 reset button", NULL) < 0)
+	{
 
 		printk(KERN_DEBUG "Reset Button IRQ %d not available\n",
-			gpio_to_irq(NSLU2_RB_GPIO));
+			   gpio_to_irq(NSLU2_RB_GPIO));
 	}
 
 	if (request_irq(gpio_to_irq(NSLU2_PB_GPIO), &nslu2_power_handler,
-		IRQF_TRIGGER_HIGH, "NSLU2 power button", NULL) < 0) {
+					IRQF_TRIGGER_HIGH, "NSLU2 power button", NULL) < 0)
+	{
 
 		printk(KERN_DEBUG "Power Button IRQ %d not available\n",
-			gpio_to_irq(NSLU2_PB_GPIO));
+			   gpio_to_irq(NSLU2_PB_GPIO));
 	}
 
 	/*
@@ -284,30 +304,34 @@ static void __init nslu2_init(void)
 	 * byteswap it if we're in LE mode.
 	 */
 	f = ioremap(IXP4XX_EXP_BUS_BASE(0), 0x40000);
-	if (f) {
+
+	if (f)
+	{
 		for (i = 0; i < 6; i++)
 #ifdef __ARMEB__
 			nslu2_plat_eth[0].hwaddr[i] = readb(f + 0x3FFB0 + i);
+
 #else
-			nslu2_plat_eth[0].hwaddr[i] = readb(f + 0x3FFB0 + (i^3));
+			nslu2_plat_eth[0].hwaddr[i] = readb(f + 0x3FFB0 + (i ^ 3));
 #endif
 		iounmap(f);
 	}
+
 	printk(KERN_INFO "NSLU2: Using MAC address %pM for port 0\n",
-	       nslu2_plat_eth[0].hwaddr);
+		   nslu2_plat_eth[0].hwaddr);
 
 }
 
 MACHINE_START(NSLU2, "Linksys NSLU2")
-	/* Maintainer: www.nslu2-linux.org */
-	.atag_offset	= 0x100,
+/* Maintainer: www.nslu2-linux.org */
+.atag_offset	= 0x100,
 	.map_io		= ixp4xx_map_io,
-	.init_early	= ixp4xx_init_early,
-	.init_irq	= ixp4xx_init_irq,
-	.init_time	= nslu2_timer_init,
-	.init_machine	= nslu2_init,
+		.init_early	= ixp4xx_init_early,
+		 .init_irq	= ixp4xx_init_irq,
+			.init_time	= nslu2_timer_init,
+			  .init_machine	= nslu2_init,
 #if defined(CONFIG_PCI)
 	.dma_zone_size	= SZ_64M,
 #endif
-	.restart	= ixp4xx_restart,
-MACHINE_END
+				 .restart	= ixp4xx_restart,
+					 MACHINE_END

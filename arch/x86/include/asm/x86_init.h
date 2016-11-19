@@ -19,7 +19,8 @@ struct cpuinfo_x86;
  * @find_smp_config:		find the smp configuration
  * @get_smp_config:		get the smp configuration
  */
-struct x86_init_mpparse {
+struct x86_init_mpparse
+{
 	void (*mpc_record)(unsigned int mode);
 	void (*setup_ioapic_ids)(void);
 	int (*mpc_apic_id)(struct mpc_cpu *m);
@@ -38,7 +39,8 @@ struct x86_init_mpparse {
  * @memory_setup:		platform specific memory setup
  *
  */
-struct x86_init_resources {
+struct x86_init_resources
+{
 	void (*probe_roms)(void);
 	void (*reserve_resources)(void);
 	char *(*memory_setup)(void);
@@ -51,7 +53,8 @@ struct x86_init_resources {
  * @intr_init:			interrupt init code
  * @trap_init:			platform specific trap setup
  */
-struct x86_init_irqs {
+struct x86_init_irqs
+{
 	void (*pre_vector_init)(void);
 	void (*intr_init)(void);
 	void (*trap_init)(void);
@@ -62,7 +65,8 @@ struct x86_init_irqs {
  * @arch_setup:			platform specific architecure setup
  * @banner:			print a platform specific banner
  */
-struct x86_init_oem {
+struct x86_init_oem
+{
 	void (*arch_setup)(void);
 	void (*banner)(void);
 };
@@ -74,7 +78,8 @@ struct x86_init_oem {
  *			Callback must call paging_init(). Called once after the
  *			direct mapping for phys memory is available.
  */
-struct x86_init_paging {
+struct x86_init_paging
+{
 	void (*pagetable_init)(void);
 };
 
@@ -85,7 +90,8 @@ struct x86_init_paging {
  * @timer_init:			initialize the platform timer (default PIT/HPET)
  * @wallclock_init:		init the wallclock device
  */
-struct x86_init_timers {
+struct x86_init_timers
+{
 	void (*setup_percpu_clockev)(void);
 	void (*timer_init)(void);
 	void (*wallclock_init)(void);
@@ -95,7 +101,8 @@ struct x86_init_timers {
  * struct x86_init_iommu - platform specific iommu setup
  * @iommu_init:			platform specific iommu setup
  */
-struct x86_init_iommu {
+struct x86_init_iommu
+{
 	int (*iommu_init)(void);
 };
 
@@ -106,7 +113,8 @@ struct x86_init_iommu {
  * @init_irq:			platform specific pci irq init
  * @fixup_irqs:			platform specific pci irq fixup
  */
-struct x86_init_pci {
+struct x86_init_pci
+{
 	int (*arch_init)(void);
 	int (*init)(void);
 	void (*init_irq)(void);
@@ -117,7 +125,8 @@ struct x86_init_pci {
  * struct x86_init_ops - functions for platform specific setup
  *
  */
-struct x86_init_ops {
+struct x86_init_ops
+{
 	struct x86_init_resources	resources;
 	struct x86_init_mpparse		mpparse;
 	struct x86_init_irqs		irqs;
@@ -133,7 +142,8 @@ struct x86_init_ops {
  * @setup_percpu_clockev:	set up the per cpu clock event device
  * @early_percpu_clock_init:	early init of the per cpu clock event device
  */
-struct x86_cpuinit_ops {
+struct x86_cpuinit_ops
+{
 	void (*setup_percpu_clockev)(void);
 	void (*early_percpu_clock_init)(void);
 	void (*fixup_cpu_id)(struct cpuinfo_x86 *c, int node);
@@ -160,7 +170,8 @@ struct timespec;
  * A system which has does not have ACPI_FADT_LEGACY_DEVICES enabled must not
  * have any of the legacy devices enumerated below present.
  */
-struct x86_legacy_devices {
+struct x86_legacy_devices
+{
 	int pnpbios;
 };
 
@@ -174,7 +185,8 @@ struct x86_legacy_devices {
  * @devices: legacy x86 devices, refer to struct x86_legacy_devices
  * 	documentation for further details.
  */
-struct x86_legacy_features {
+struct x86_legacy_features
+{
 	int rtc;
 	int reserve_bios_regions;
 	struct x86_legacy_devices devices;
@@ -201,7 +213,8 @@ struct x86_legacy_features {
  * 				only using the current x86_hardware_subarch
  * 				semantics.
  */
-struct x86_platform_ops {
+struct x86_platform_ops
+{
 	unsigned long (*calibrate_cpu)(void);
 	unsigned long (*calibrate_tsc)(void);
 	void (*get_wallclock)(struct timespec *ts);
@@ -220,14 +233,16 @@ struct x86_platform_ops {
 
 struct pci_dev;
 
-struct x86_msi_ops {
+struct x86_msi_ops
+{
 	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
 	void (*teardown_msi_irq)(unsigned int irq);
 	void (*teardown_msi_irqs)(struct pci_dev *dev);
 	void (*restore_msi_irqs)(struct pci_dev *dev);
 };
 
-struct x86_io_apic_ops {
+struct x86_io_apic_ops
+{
 	unsigned int	(*read)   (unsigned int apic, unsigned int reg);
 	void		(*disable)(void);
 };

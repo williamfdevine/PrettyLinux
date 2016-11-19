@@ -33,7 +33,9 @@ static void mtm_init_nat(int cpu)
 
 	/* Iterate core threads and update nat */
 	for (i = 0, t = cpu; i < NPS_NUM_HW_THREADS; i++, t++)
+	{
 		nat += test_bit(t, cpumask_bits(cpu_possible_mask));
+	}
 
 	log_nat = ilog2(nat);
 
@@ -60,13 +62,21 @@ static void mtm_init_thread(int cpu)
 	iowrite32be(thr_init.value, MTM_THR_INIT(cpu));
 
 	/* Poll till thread init is done */
-	for (i = 0; i < tries; i++) {
+	for (i = 0; i < tries; i++)
+	{
 		thr_init_sts.value = ioread32be(MTM_THR_INIT_STS(cpu));
-		if (thr_init_sts.thr_id == thr_init.thr_id) {
+
+		if (thr_init_sts.thr_id == thr_init.thr_id)
+		{
 			if (thr_init_sts.bsy)
+			{
 				continue;
+			}
 			else if (thr_init_sts.err)
+			{
 				pr_warn("Failed to thread init cpu %u\n", cpu);
+			}
+
 			break;
 		}
 
@@ -75,7 +85,9 @@ static void mtm_init_thread(int cpu)
 	}
 
 	if (i == tries)
+	{
 		pr_warn("Got thread init timeout for cpu %u\n", cpu);
+	}
 }
 
 int mtm_enable_thread(int cpu)
@@ -83,7 +95,9 @@ int mtm_enable_thread(int cpu)
 	struct nps_host_reg_mtm_cfg mtm_cfg;
 
 	if (NPS_CPU_TO_THREAD_NUM(cpu) == 0)
+	{
 		return 1;
+	}
 
 	/* Enable thread in mtm */
 	mtm_cfg.value = ioread32be(MTM_CFG(cpu));
@@ -100,7 +114,9 @@ void mtm_enable_core(unsigned int cpu)
 	struct nps_host_reg_mtm_cfg mtm_cfg;
 
 	if (NPS_CPU_TO_THREAD_NUM(cpu) != 0)
+	{
 		return;
+	}
 
 	/* Initialize Number of Active Threads */
 	mtm_init_nat(cpu);
@@ -112,7 +128,9 @@ void mtm_enable_core(unsigned int cpu)
 
 	/* Initialize all other threads in core */
 	for (i = 1; i < NPS_NUM_HW_THREADS; i++)
+	{
 		mtm_init_thread(cpu + i);
+	}
 
 
 	/* Enable HW schedule, stall counter, mtm */

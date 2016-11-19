@@ -21,7 +21,7 @@
 
 /* PTE flags to conserve for HPTE identification */
 #define _PAGE_HPTEFLAGS (H_PAGE_BUSY | H_PAGE_HASHPTE | \
-			 H_PAGE_F_SECOND | H_PAGE_F_GIX)
+						 H_PAGE_F_SECOND | H_PAGE_F_GIX)
 /*
  * Not supported by 4k linux page size
  */
@@ -44,8 +44,11 @@ static inline int hash__hugepd_ok(hugepd_t hpd)
 	 * set, then it is a hugepd directory pointer
 	 */
 	if (!(hpd.pd & _PAGE_PTE) &&
-	    ((hpd.pd & HUGEPD_SHIFT_MASK) != 0))
+		((hpd.pd & HUGEPD_SHIFT_MASK) != 0))
+	{
 		return true;
+	}
+
 	return false;
 }
 #endif
@@ -65,14 +68,14 @@ static inline unsigned int hpte_valid(unsigned char *hpte_slot_array, int index)
 }
 
 static inline unsigned int hpte_hash_index(unsigned char *hpte_slot_array,
-					   int index)
+		int index)
 {
 	BUG();
 	return 0;
 }
 
 static inline void mark_hpte_slot_valid(unsigned char *hpte_slot_array,
-					unsigned int index, unsigned int hidx)
+										unsigned int index, unsigned int hidx)
 {
 	BUG();
 }
@@ -95,17 +98,17 @@ static inline pmd_t hash__pmd_mkhuge(pmd_t pmd)
 }
 
 extern unsigned long hash__pmd_hugepage_update(struct mm_struct *mm,
-					   unsigned long addr, pmd_t *pmdp,
-					   unsigned long clr, unsigned long set);
+		unsigned long addr, pmd_t *pmdp,
+		unsigned long clr, unsigned long set);
 extern pmd_t hash__pmdp_collapse_flush(struct vm_area_struct *vma,
-				   unsigned long address, pmd_t *pmdp);
+									   unsigned long address, pmd_t *pmdp);
 extern void hash__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-					 pgtable_t pgtable);
+		pgtable_t pgtable);
 extern pgtable_t hash__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
 extern void hash__pmdp_huge_split_prepare(struct vm_area_struct *vma,
-				      unsigned long address, pmd_t *pmdp);
+		unsigned long address, pmd_t *pmdp);
 extern pmd_t hash__pmdp_huge_get_and_clear(struct mm_struct *mm,
-				       unsigned long addr, pmd_t *pmdp);
+		unsigned long addr, pmd_t *pmdp);
 extern int hash__has_transparent_hugepage(void);
 #endif
 

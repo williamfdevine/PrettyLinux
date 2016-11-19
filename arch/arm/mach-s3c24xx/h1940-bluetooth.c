@@ -31,7 +31,8 @@
 /* Bluetooth control */
 static void h1940bt_enable(int on)
 {
-	if (on) {
+	if (on)
+	{
 		/* Power on the chip */
 		gpio_set_value(H1940_LATCH_BLUETOOTH_POWER, 1);
 		/* Reset the chip */
@@ -43,7 +44,8 @@ static void h1940bt_enable(int on)
 
 		h1940_led_blink_set(NULL, GPIO_LED_BLINK, NULL, NULL);
 	}
-	else {
+	else
+	{
 		gpio_set_value(S3C2410_GPH(1), 1);
 		mdelay(10);
 		gpio_set_value(S3C2410_GPH(1), 0);
@@ -60,7 +62,8 @@ static int h1940bt_set_block(void *data, bool blocked)
 	return 0;
 }
 
-static const struct rfkill_ops h1940bt_rfkill_ops = {
+static const struct rfkill_ops h1940bt_rfkill_ops =
+{
 	.set_block = h1940bt_set_block,
 };
 
@@ -70,13 +73,17 @@ static int h1940bt_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	ret = gpio_request(S3C2410_GPH(1), dev_name(&pdev->dev));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "could not get GPH1\n");
 		return ret;
 	}
 
 	ret = gpio_request(H1940_LATCH_BLUETOOTH_POWER, dev_name(&pdev->dev));
-	if (ret) {
+
+	if (ret)
+	{
 		gpio_free(S3C2410_GPH(1));
 		dev_err(&pdev->dev, "could not get BT_POWER\n");
 		return ret;
@@ -93,15 +100,20 @@ static int h1940bt_probe(struct platform_device *pdev)
 	s3c_gpio_setpull(S3C2410_GPH(3), S3C_GPIO_PULL_NONE);
 
 	rfk = rfkill_alloc(DRV_NAME, &pdev->dev, RFKILL_TYPE_BLUETOOTH,
-			&h1940bt_rfkill_ops, NULL);
-	if (!rfk) {
+					   &h1940bt_rfkill_ops, NULL);
+
+	if (!rfk)
+	{
 		ret = -ENOMEM;
 		goto err_rfk_alloc;
 	}
 
 	ret = rfkill_register(rfk);
+
 	if (ret)
+	{
 		goto err_rfkill;
+	}
 
 	platform_set_drvdata(pdev, rfk);
 
@@ -120,10 +132,12 @@ static int h1940bt_remove(struct platform_device *pdev)
 	platform_set_drvdata(pdev, NULL);
 	gpio_free(S3C2410_GPH(1));
 
-	if (rfk) {
+	if (rfk)
+	{
 		rfkill_unregister(rfk);
 		rfkill_destroy(rfk);
 	}
+
 	rfk = NULL;
 
 	h1940bt_enable(0);
@@ -132,7 +146,8 @@ static int h1940bt_remove(struct platform_device *pdev)
 }
 
 
-static struct platform_driver h1940bt_driver = {
+static struct platform_driver h1940bt_driver =
+{
 	.driver		= {
 		.name	= DRV_NAME,
 	},

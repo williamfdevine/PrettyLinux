@@ -17,12 +17,14 @@
 
 static unsigned char heartbeat_bit_pos[] = { 8, 9, 10, 11, 12, 13, 14, 15 };
 
-static struct heartbeat_data heartbeat_data = {
+static struct heartbeat_data heartbeat_data =
+{
 	.bit_pos	= heartbeat_bit_pos,
 	.nr_bits	= ARRAY_SIZE(heartbeat_bit_pos),
 };
 
-static struct resource heartbeat_resources[] = {
+static struct resource heartbeat_resources[] =
+{
 	[0] = {
 		.start	= PA_LED,
 		.end	= PA_LED,
@@ -30,7 +32,8 @@ static struct resource heartbeat_resources[] = {
 	},
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.dev	= {
@@ -40,7 +43,8 @@ static struct platform_device heartbeat_device = {
 	.resource	= heartbeat_resources,
 };
 
-static struct platform_device *se7751_devices[] __initdata = {
+static struct platform_device *se7751_devices[] __initdata =
+{
 	&heartbeat_device,
 };
 
@@ -53,7 +57,8 @@ device_initcall(se7751_devices_setup);
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_7751se __initmv = {
+static struct sh_machine_vector mv_7751se __initmv =
+{
 	.mv_name		= "7751 SolutionEngine",
 	.mv_init_irq		= init_7751se_IRQ,
 };

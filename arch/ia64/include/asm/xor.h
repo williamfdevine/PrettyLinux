@@ -14,13 +14,14 @@
 
 extern void xor_ia64_2(unsigned long, unsigned long *, unsigned long *);
 extern void xor_ia64_3(unsigned long, unsigned long *, unsigned long *,
-		       unsigned long *);
+					   unsigned long *);
 extern void xor_ia64_4(unsigned long, unsigned long *, unsigned long *,
-		       unsigned long *, unsigned long *);
+					   unsigned long *, unsigned long *);
 extern void xor_ia64_5(unsigned long, unsigned long *, unsigned long *,
-		       unsigned long *, unsigned long *, unsigned long *);
+					   unsigned long *, unsigned long *, unsigned long *);
 
-static struct xor_block_template xor_block_ia64 = {
+static struct xor_block_template xor_block_ia64 =
+{
 	.name =	"ia64",
 	.do_2 =	xor_ia64_2,
 	.do_3 =	xor_ia64_3,

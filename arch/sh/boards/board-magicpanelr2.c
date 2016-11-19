@@ -27,7 +27,8 @@
 #include <cpu/sh7720.h>
 
 /* Dummy supplies, where voltage doesn't matter */
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vddvario", "smsc911x"),
 	REGULATOR_SUPPLY("vdd33a", "smsc911x"),
 };
@@ -40,12 +41,18 @@ static int __init ethernet_reset_finished(void)
 	int i;
 
 	if (LAN9115_READY)
+	{
 		return 1;
+	}
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 10; ++i)
+	{
 		mdelay(10);
+
 		if (LAN9115_READY)
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -241,13 +248,16 @@ static void __init mpr2_setup(char **cmdline_p)
 	reset_ethernet();
 
 	printk(KERN_INFO "Magic Panel Release 2 A.%i\n",
-				CONFIG_SH_MAGIC_PANEL_R2_VERSION);
+		   CONFIG_SH_MAGIC_PANEL_R2_VERSION);
 
 	if (ethernet_reset_finished() == 0)
+	{
 		printk(KERN_WARNING "Ethernet not ready\n");
+	}
 }
 
-static struct resource smsc911x_resources[] = {
+static struct resource smsc911x_resources[] =
+{
 	[0] = {
 		.start		= 0xa8000000,
 		.end		= 0xabffffff,
@@ -260,14 +270,16 @@ static struct resource smsc911x_resources[] = {
 	},
 };
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.phy_interface	= PHY_INTERFACE_MODE_MII,
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
 	.flags		= SMSC911X_USE_32BIT,
 };
 
-static struct platform_device smsc911x_device = {
+static struct platform_device smsc911x_device =
+{
 	.name		= "smsc911x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smsc911x_resources),
@@ -277,7 +289,8 @@ static struct platform_device smsc911x_device = {
 	},
 };
 
-static struct resource heartbeat_resources[] = {
+static struct resource heartbeat_resources[] =
+{
 	[0] = {
 		.start	= PA_LED,
 		.end	= PA_LED,
@@ -285,11 +298,13 @@ static struct resource heartbeat_resources[] = {
 	},
 };
 
-static struct heartbeat_data heartbeat_data = {
+static struct heartbeat_data heartbeat_data =
+{
 	.flags		= HEARTBEAT_INVERTED,
 };
 
-static struct platform_device heartbeat_device = {
+static struct platform_device heartbeat_device =
+{
 	.name		= "heartbeat",
 	.id		= -1,
 	.dev	= {
@@ -299,7 +314,8 @@ static struct platform_device heartbeat_device = {
 	.resource	= heartbeat_resources,
 };
 
-static struct mtd_partition mpr2_partitions[] = {
+static struct mtd_partition mpr2_partitions[] =
+{
 	/* Reserved for bootloader, read-only */
 	{
 		.name = "Bootloader",
@@ -321,19 +337,22 @@ static struct mtd_partition mpr2_partitions[] = {
 	}
 };
 
-static struct physmap_flash_data flash_data = {
+static struct physmap_flash_data flash_data =
+{
 	.parts		= mpr2_partitions,
 	.nr_parts	= ARRAY_SIZE(mpr2_partitions),
 	.width		= 2,
 };
 
-static struct resource flash_resource = {
+static struct resource flash_resource =
+{
 	.start		= 0x00000000,
 	.end		= 0x2000000UL,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device flash_device = {
+static struct platform_device flash_device =
+{
 	.name		= "physmap-flash",
 	.id		= -1,
 	.resource	= &flash_resource,
@@ -347,7 +366,8 @@ static struct platform_device flash_device = {
  * Add all resources to the platform_device
  */
 
-static struct platform_device *mpr2_devices[] __initdata = {
+static struct platform_device *mpr2_devices[] __initdata =
+{
 	&heartbeat_device,
 	&smsc911x_device,
 	&flash_device,
@@ -386,7 +406,8 @@ static void __init init_mpr2_IRQ(void)
  * The Machine Vector
  */
 
-static struct sh_machine_vector mv_mpr2 __initmv = {
+static struct sh_machine_vector mv_mpr2 __initmv =
+{
 	.mv_name		= "mpr2",
 	.mv_setup		= mpr2_setup,
 	.mv_init_irq		= init_mpr2_IRQ,

@@ -12,7 +12,8 @@
 #define CACHE_FLUSH_IS_SAFE	1
 #define BUFMAX			2048
 
-enum regnames {
+enum regnames
+{
 	GDB_ER0, GDB_ER1, GDB_ER2, GDB_ER3,
 	GDB_ER4, GDB_ER5, GDB_ER6, GDB_SP,
 	GDB_CCR, GDB_PC,
@@ -30,9 +31,9 @@ enum regnames {
 
 #define GDB_SIZEOF_REG		sizeof(u32)
 #if defined(CONFIG_CPU_H8300H)
-#define DBG_MAX_REG_NUM		(13)
+	#define DBG_MAX_REG_NUM		(13)
 #elif defined(CONFIG_CPU_H8S)
-#define DBG_MAX_REG_NUM		(14)
+	#define DBG_MAX_REG_NUM		(14)
 #endif
 #define NUMREGBYTES		(DBG_MAX_REG_NUM * GDB_SIZEOF_REG)
 

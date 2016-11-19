@@ -15,7 +15,7 @@
  * everybody.
  */
 #ifndef __linux__
-#error Use a Linux compiler or give up.
+	#error Use a Linux compiler or give up.
 #endif
 
 /*

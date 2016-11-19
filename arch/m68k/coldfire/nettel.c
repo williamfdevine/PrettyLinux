@@ -39,7 +39,8 @@
 
 /***************************************************************************/
 
-static struct resource nettel_smc91x_0_resources[] = {
+static struct resource nettel_smc91x_0_resources[] =
+{
 	{
 		.start		= NETTEL_SMC0_ADDR,
 		.end		= NETTEL_SMC0_ADDR + 0x20,
@@ -52,7 +53,8 @@ static struct resource nettel_smc91x_0_resources[] = {
 	},
 };
 
-static struct resource nettel_smc91x_1_resources[] = {
+static struct resource nettel_smc91x_1_resources[] =
+{
 	{
 		.start		= NETTEL_SMC1_ADDR,
 		.end		= NETTEL_SMC1_ADDR + 0x20,
@@ -65,7 +67,8 @@ static struct resource nettel_smc91x_1_resources[] = {
 	},
 };
 
-static struct platform_device nettel_smc91x[] = {
+static struct platform_device nettel_smc91x[] =
+{
 	{
 		.name			= "smc91x",
 		.id			= 0,
@@ -80,14 +83,16 @@ static struct platform_device nettel_smc91x[] = {
 	},
 };
 
-static struct platform_device *nettel_devices[] __initdata = {
+static struct platform_device *nettel_devices[] __initdata =
+{
 	&nettel_smc91x[0],
 	&nettel_smc91x[1],
 };
 
 /***************************************************************************/
 
-static u8 nettel_macdefault[] __initdata = {
+static u8 nettel_macdefault[] __initdata =
+{
 	0x00, 0xd0, 0xcf, 0x00, 0x00, 0x01,
 };
 
@@ -102,8 +107,11 @@ static void __init nettel_smc91x_setmac(unsigned int ioaddr, unsigned int flasha
 	u16 *macp;
 
 	macp = (u16 *) flashaddr;
+
 	if ((macp[0] == 0xffff) && (macp[1] == 0xffff) && (macp[2] == 0xffff))
+	{
 		macp = (u16 *) &nettel_macdefault[0];
+	}
 
 	writew(1, NETTEL_SMC0_ADDR + SMC91xx_BANKSELECT);
 	writew(macp[0], ioaddr + SMC91xx_BASEMAC);

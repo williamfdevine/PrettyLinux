@@ -72,12 +72,14 @@ void __init s3c6410_init_irq(void)
 	s3c64xx_init_irq(~0 & ~(1 << 7), ~0);
 }
 
-struct bus_type s3c6410_subsys = {
+struct bus_type s3c6410_subsys =
+{
 	.name		= "s3c6410-core",
 	.dev_name	= "s3c6410-core",
 };
 
-static struct device s3c6410_dev = {
+static struct device s3c6410_dev =
+{
 	.bus	= &s3c6410_subsys,
 };
 
@@ -85,7 +87,9 @@ static int __init s3c6410_core_init(void)
 {
 	/* Not applicable when using DT. */
 	if (of_have_populated_dt() || !soc_is_s3c64xx())
+	{
 		return 0;
+	}
 
 	return subsys_system_register(&s3c6410_subsys, NULL);
 }

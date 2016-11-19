@@ -19,21 +19,21 @@ asmlinkage int sys_metag_set_tls(void __user *);
 asmlinkage void *sys_metag_get_tls(void);
 
 asmlinkage long sys_truncate64_metag(const char __user *, unsigned long,
-				     unsigned long);
+									 unsigned long);
 asmlinkage long sys_ftruncate64_metag(unsigned int, unsigned long,
-				      unsigned long);
+									  unsigned long);
 asmlinkage long sys_fadvise64_64_metag(int, unsigned long, unsigned long,
-				       unsigned long, unsigned long, int);
+									   unsigned long, unsigned long, int);
 asmlinkage long sys_readahead_metag(int, unsigned long, unsigned long, size_t);
 asmlinkage ssize_t sys_pread64_metag(unsigned long, char __user *, size_t,
-				     unsigned long, unsigned long);
+									 unsigned long, unsigned long);
 asmlinkage ssize_t sys_pwrite64_metag(unsigned long, char __user *, size_t,
-				      unsigned long, unsigned long);
+									  unsigned long, unsigned long);
 asmlinkage long sys_sync_file_range_metag(int, unsigned long, unsigned long,
-					  unsigned long, unsigned long,
-					  unsigned int);
+		unsigned long, unsigned long,
+		unsigned int);
 
 int do_work_pending(struct pt_regs *regs, unsigned int thread_flags,
-		    int syscall);
+					int syscall);
 
 #endif /* _ASM_METAG_SYSCALLS_H */

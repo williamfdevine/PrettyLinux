@@ -23,17 +23,20 @@ typedef u16	kprobe_opcode_t;
 #define arch_remove_kprobe(p)	do { } while (0)
 
 /* Architecture specific copy of original instruction */
-struct arch_specific_insn {
+struct arch_specific_insn
+{
 	kprobe_opcode_t	insn[MAX_INSN_SIZE];
 };
 
-struct prev_kprobe {
+struct prev_kprobe
+{
 	struct kprobe *kp;
 	unsigned int status;
 };
 
 /* per-cpu kprobe control block */
-struct kprobe_ctlblk {
+struct kprobe_ctlblk
+{
 	unsigned int kprobe_status;
 	struct prev_kprobe prev_kprobe;
 	struct pt_regs jprobe_saved_regs;
@@ -42,7 +45,7 @@ struct kprobe_ctlblk {
 
 extern int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
 extern int kprobe_exceptions_notify(struct notifier_block *self,
-				    unsigned long val, void *data);
+									unsigned long val, void *data);
 
 #define flush_insn_slot(p)	do { } while (0)
 

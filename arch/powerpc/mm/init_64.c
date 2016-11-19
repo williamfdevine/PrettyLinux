@@ -66,13 +66,13 @@
 #include "mmu_decl.h"
 
 #ifdef CONFIG_PPC_STD_MMU_64
-#if H_PGTABLE_RANGE > USER_VSID_RANGE
-#warning Limited user VSID range means pagetable space is wasted
-#endif
+	#if H_PGTABLE_RANGE > USER_VSID_RANGE
+		#warning Limited user VSID range means pagetable space is wasted
+	#endif
 
-#if (TASK_SIZE_USER64 < H_PGTABLE_RANGE) && (TASK_SIZE_USER64 < USER_VSID_RANGE)
-#warning TASK_SIZE is smaller than it needs to be.
-#endif
+	#if (TASK_SIZE_USER64 < H_PGTABLE_RANGE) && (TASK_SIZE_USER64 < USER_VSID_RANGE)
+		#warning TASK_SIZE is smaller than it needs to be.
+	#endif
 #endif /* CONFIG_PPC_STD_MMU_64 */
 
 phys_addr_t memstart_addr = ~0;
@@ -118,7 +118,7 @@ void pgtable_cache_add(unsigned shift, void (*ctor)(void *))
 	 * shift value in the low bits.  All tables must be aligned so
 	 * as to leave enough 0 bits in the address to contain it. */
 	unsigned long minalign = max(MAX_PGTABLE_INDEX_SIZE + 1,
-				     HUGEPD_SHIFT_MASK + 1);
+								 HUGEPD_SHIFT_MASK + 1);
 	struct kmem_cache *new;
 
 	/* It would be nice if this was a BUILD_BUG_ON(), but at the
@@ -128,7 +128,9 @@ void pgtable_cache_add(unsigned shift, void (*ctor)(void *))
 	BUG_ON((shift < 1) || (shift > MAX_PGTABLE_INDEX_SIZE));
 
 	if (PGT_CACHE(shift))
-		return; /* Already have a cache of this size */
+	{
+		return;    /* Already have a cache of this size */
+	}
 
 	align = max_t(unsigned long, align, minalign);
 	name = kasprintf(GFP_KERNEL, "pgtable-2^%d", shift);
@@ -143,18 +145,26 @@ void pgtable_cache_init(void)
 {
 	pgtable_cache_add(PGD_INDEX_SIZE, pgd_ctor);
 	pgtable_cache_add(PMD_CACHE_INDEX, pmd_ctor);
+
 	/*
 	 * In all current configs, when the PUD index exists it's the
 	 * same size as either the pgd or pmd index except with THP enabled
 	 * on book3s 64
 	 */
 	if (PUD_INDEX_SIZE && !PGT_CACHE(PUD_INDEX_SIZE))
+	{
 		pgtable_cache_add(PUD_INDEX_SIZE, pud_ctor);
+	}
 
 	if (!PGT_CACHE(PGD_INDEX_SIZE) || !PGT_CACHE(PMD_CACHE_INDEX))
+	{
 		panic("Couldn't allocate pgtable caches");
+	}
+
 	if (PUD_INDEX_SIZE && !PGT_CACHE(PUD_INDEX_SIZE))
+	{
 		panic("Couldn't allocate pud pgtable caches");
+	}
 }
 
 #ifdef CONFIG_SPARSEMEM_VMEMMAP
@@ -184,7 +194,9 @@ static int __meminit vmemmap_populated(unsigned long start, int page_size)
 
 	for (; start < end; start += (PAGES_PER_SECTION * sizeof(struct page)))
 		if (pfn_valid(page_to_pfn((struct page *)start)))
+		{
 			return 1;
+		}
 
 	return 0;
 }
@@ -194,11 +206,13 @@ static struct vmemmap_backing *next;
 static int num_left;
 static int num_freed;
 
-static __meminit struct vmemmap_backing * vmemmap_list_alloc(int node)
+static __meminit struct vmemmap_backing *vmemmap_list_alloc(int node)
 {
 	struct vmemmap_backing *vmem_back;
+
 	/* get from freed entries first */
-	if (num_freed) {
+	if (num_freed)
+	{
 		num_freed--;
 		vmem_back = next;
 		next = next->list;
@@ -207,12 +221,16 @@ static __meminit struct vmemmap_backing * vmemmap_list_alloc(int node)
 	}
 
 	/* allocate a page when required and hand out chunks */
-	if (!num_left) {
+	if (!num_left)
+	{
 		next = vmemmap_alloc_block(PAGE_SIZE, node);
-		if (unlikely(!next)) {
+
+		if (unlikely(!next))
+		{
 			WARN_ON(1);
 			return NULL;
 		}
+
 		num_left = PAGE_SIZE / sizeof(struct vmemmap_backing);
 	}
 
@@ -222,13 +240,15 @@ static __meminit struct vmemmap_backing * vmemmap_list_alloc(int node)
 }
 
 static __meminit void vmemmap_list_populate(unsigned long phys,
-					    unsigned long start,
-					    int node)
+		unsigned long start,
+		int node)
 {
 	struct vmemmap_backing *vmem_back;
 
 	vmem_back = vmemmap_list_alloc(node);
-	if (unlikely(!vmem_back)) {
+
+	if (unlikely(!vmem_back))
+	{
 		WARN_ON(1);
 		return;
 	}
@@ -249,24 +269,32 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
 
 	pr_debug("vmemmap_populate %lx..%lx, node %d\n", start, end, node);
 
-	for (; start < end; start += page_size) {
+	for (; start < end; start += page_size)
+	{
 		void *p;
 		int rc;
 
 		if (vmemmap_populated(start, page_size))
+		{
 			continue;
+		}
 
 		p = vmemmap_alloc_block(page_size, node);
+
 		if (!p)
+		{
 			return -ENOMEM;
+		}
 
 		vmemmap_list_populate(__pa(p), start, node);
 
 		pr_debug("      * %016lx..%016lx allocated at %p\n",
-			 start, start + page_size, p);
+				 start, start + page_size, p);
 
 		rc = vmemmap_create_mapping(start, page_size, __pa(p));
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			pr_warning(
 				"vmemmap_populate: Unable to create vmemmap mapping: %d\n",
 				rc);
@@ -285,22 +313,31 @@ static unsigned long vmemmap_list_free(unsigned long start)
 	vmem_back_prev = vmem_back = vmemmap_list;
 
 	/* look for it with prev pointer recorded */
-	for (; vmem_back; vmem_back = vmem_back->list) {
+	for (; vmem_back; vmem_back = vmem_back->list)
+	{
 		if (vmem_back->virt_addr == start)
+		{
 			break;
+		}
+
 		vmem_back_prev = vmem_back;
 	}
 
-	if (unlikely(!vmem_back)) {
+	if (unlikely(!vmem_back))
+	{
 		WARN_ON(1);
 		return 0;
 	}
 
 	/* remove it from vmemmap_list */
 	if (vmem_back == vmemmap_list) /* remove head */
+	{
 		vmemmap_list = vmem_back->list;
+	}
 	else
+	{
 		vmem_back_prev->list = vmem_back->list;
+	}
 
 	/* next point to this freed entry */
 	vmem_back->list = next;
@@ -318,7 +355,8 @@ void __ref vmemmap_free(unsigned long start, unsigned long end)
 
 	pr_debug("vmemmap_free %lx...%lx\n", start, end);
 
-	for (; start < end; start += page_size) {
+	for (; start < end; start += page_size)
+	{
 		unsigned long addr;
 
 		/*
@@ -327,29 +365,41 @@ void __ref vmemmap_free(unsigned long start, unsigned long end)
 		 * in this page, so skip it.
 		 */
 		if (vmemmap_populated(start, page_size))
+		{
 			continue;
+		}
 
 		addr = vmemmap_list_free(start);
-		if (addr) {
+
+		if (addr)
+		{
 			struct page *page = pfn_to_page(addr >> PAGE_SHIFT);
 
-			if (PageReserved(page)) {
+			if (PageReserved(page))
+			{
 				/* allocated from bootmem */
-				if (page_size < PAGE_SIZE) {
+				if (page_size < PAGE_SIZE)
+				{
 					/*
 					 * this shouldn't happen, but if it is
 					 * the case, leave the memory there
 					 */
 					WARN_ON_ONCE(1);
-				} else {
+				}
+				else
+				{
 					unsigned int nr_pages =
 						1 << get_order(page_size);
+
 					while (nr_pages--)
+					{
 						free_reserved_page(page++);
+					}
 				}
-			} else
+			}
+			else
 				free_pages((unsigned long)(__va(addr)),
-							get_order(page_size));
+						   get_order(page_size));
 
 			vmemmap_remove_mapping(start, page_size);
 		}
@@ -357,7 +407,7 @@ void __ref vmemmap_free(unsigned long start, unsigned long end)
 }
 #endif
 void register_page_bootmem_memmap(unsigned long section_nr,
-				  struct page *start_page, unsigned long size)
+								  struct page *start_page, unsigned long size)
 {
 }
 
@@ -383,15 +433,19 @@ struct page *realmode_pfn_to_page(unsigned long pfn)
 	unsigned long page_size = 1 << mmu_psize_defs[mmu_vmemmap_psize].shift;
 	unsigned long pg_va = (unsigned long) pfn_to_page(pfn);
 
-	for (vmem_back = vmemmap_list; vmem_back; vmem_back = vmem_back->list) {
+	for (vmem_back = vmemmap_list; vmem_back; vmem_back = vmem_back->list)
+	{
 		if (pg_va < vmem_back->virt_addr)
+		{
 			continue;
+		}
 
 		/* After vmemmap_list entry free is possible, need check all */
 		if ((pg_va + sizeof(struct page)) <=
-				(vmem_back->virt_addr + page_size)) {
+			(vmem_back->virt_addr + page_size))
+		{
 			page = (struct page *) (vmem_back->phys + pg_va -
-				vmem_back->virt_addr);
+									vmem_back->virt_addr);
 			return page;
 		}
 	}
@@ -425,11 +479,17 @@ void __init mmu_early_init_devtree(void)
 {
 	/* Disable radix mode based on kernel command line. */
 	if (disable_radix)
+	{
 		cur_cpu_spec->mmu_features &= ~MMU_FTR_TYPE_RADIX;
+	}
 
 	if (early_radix_enabled())
+	{
 		radix__early_init_devtree();
+	}
 	else
+	{
 		hash__early_init_devtree();
+	}
 }
 #endif /* CONFIG_PPC_STD_MMU_64 */

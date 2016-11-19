@@ -178,7 +178,8 @@
 
 /* Keyboard definition */
 
-static const unsigned int htc_herald_keymap[] = {
+static const unsigned int htc_herald_keymap[] =
+{
 	KEY(0, 0, KEY_RECORD), /* Mail button */
 	KEY(1, 0, KEY_CAMERA), /* Camera */
 	KEY(2, 0, KEY_PHONE), /* Send key */
@@ -229,12 +230,14 @@ static const unsigned int htc_herald_keymap[] = {
 	KEY(6, 6, KEY_CALENDAR), /* Left bar (portrait) */
 };
 
-static const struct matrix_keymap_data htc_herald_keymap_data = {
+static const struct matrix_keymap_data htc_herald_keymap_data =
+{
 	.keymap		= htc_herald_keymap,
 	.keymap_size	= ARRAY_SIZE(htc_herald_keymap),
 };
 
-static struct omap_kp_platform_data htcherald_kp_data = {
+static struct omap_kp_platform_data htcherald_kp_data =
+{
 	.rows	= 7,
 	.cols	= 7,
 	.delay = 20,
@@ -242,7 +245,8 @@ static struct omap_kp_platform_data htcherald_kp_data = {
 	.keymap_data = &htc_herald_keymap_data,
 };
 
-static struct resource kp_resources[] = {
+static struct resource kp_resources[] =
+{
 	[0] = {
 		.start	= INT_7XX_MPUIO_KEYPAD,
 		.end	= INT_7XX_MPUIO_KEYPAD,
@@ -250,7 +254,8 @@ static struct resource kp_resources[] = {
 	},
 };
 
-static struct platform_device kp_device = {
+static struct platform_device kp_device =
+{
 	.name		= "omap-keypad",
 	.id		= -1,
 	.dev		= {
@@ -261,7 +266,8 @@ static struct platform_device kp_device = {
 };
 
 /* GPIO buttons for keyboard slide and power button */
-static struct gpio_keys_button herald_gpio_keys_table[] = {
+static struct gpio_keys_button herald_gpio_keys_table[] =
+{
 	{BTN_0,  HTCHERALD_GPIO_POWER, 1, "POWER", EV_KEY, 1, 20},
 	{SW_LID, HTCHERALD_GPIO_SLIDE, 0, "SLIDE", EV_SW,  1, 20},
 
@@ -277,13 +283,15 @@ static struct gpio_keys_button herald_gpio_keys_table[] = {
 	{KEY_ENTER, HTCPLD_GPIO_ENTER_DPAD,  1, "DENTER", EV_KEY, 1, 20},
 };
 
-static struct gpio_keys_platform_data herald_gpio_keys_data = {
+static struct gpio_keys_platform_data herald_gpio_keys_data =
+{
 	.buttons	= herald_gpio_keys_table,
 	.nbuttons	= ARRAY_SIZE(herald_gpio_keys_table),
 	.rep		= true,
 };
 
-static struct platform_device herald_gpiokeys_device = {
+static struct platform_device herald_gpiokeys_device =
+{
 	.name      = "gpio-keys",
 	.id		= -1,
 	.dev = {
@@ -292,7 +300,8 @@ static struct platform_device herald_gpiokeys_device = {
 };
 
 /* LEDs for the Herald.  These connect to the HTCPLD GPIO device. */
-static struct gpio_led gpio_leds[] = {
+static struct gpio_led gpio_leds[] =
+{
 	{"dpad",        NULL, HTCPLD_GPIO_LED_DPAD,        0, 0, LEDS_GPIO_DEFSTATE_OFF},
 	{"kbd",         NULL, HTCPLD_GPIO_LED_KBD,         0, 0, LEDS_GPIO_DEFSTATE_OFF},
 	{"vibrate",     NULL, HTCPLD_GPIO_LED_VIBRATE,     0, 0, LEDS_GPIO_DEFSTATE_OFF},
@@ -306,12 +315,14 @@ static struct gpio_led gpio_leds[] = {
 	{"alt",         NULL, HTCPLD_GPIO_LED_ALT,         0, 0, LEDS_GPIO_DEFSTATE_OFF},
 };
 
-static struct gpio_led_platform_data gpio_leds_data = {
+static struct gpio_led_platform_data gpio_leds_data =
+{
 	.leds		= gpio_leds,
 	.num_leds	= ARRAY_SIZE(gpio_leds),
 };
 
-static struct platform_device gpio_leds_device = {
+static struct platform_device gpio_leds_device =
+{
 	.name		= "leds-gpio",
 	.id		= 0,
 	.dev	= {
@@ -321,13 +332,15 @@ static struct platform_device gpio_leds_device = {
 
 /* HTC PLD chips */
 
-static struct resource htcpld_resources[] = {
+static struct resource htcpld_resources[] =
+{
 	[0] = {
 		.flags  = IORESOURCE_IRQ,
 	},
 };
 
-static struct htcpld_chip_platform_data htcpld_chips[] = {
+static struct htcpld_chip_platform_data htcpld_chips[] =
+{
 	[0] = {
 		.addr		= 0x03,
 		.reset		= 0x04,
@@ -362,7 +375,8 @@ static struct htcpld_chip_platform_data htcpld_chips[] = {
 	},
 };
 
-static struct htcpld_core_platform_data htcpld_pfdata = {
+static struct htcpld_core_platform_data htcpld_pfdata =
+{
 	.int_reset_gpio_hi = HTCPLD_GPIO_INT_RESET_HI,
 	.int_reset_gpio_lo = HTCPLD_GPIO_INT_RESET_LO,
 	.i2c_adapter_id	   = 1,
@@ -371,7 +385,8 @@ static struct htcpld_core_platform_data htcpld_pfdata = {
 	.num_chip	   = ARRAY_SIZE(htcpld_chips),
 };
 
-static struct platform_device htcpld_device = {
+static struct platform_device htcpld_device =
+{
 	.name		= "i2c-htcpld",
 	.id		= -1,
 	.resource	= htcpld_resources,
@@ -382,7 +397,8 @@ static struct platform_device htcpld_device = {
 };
 
 /* USB Device */
-static struct omap_usb_config htcherald_usb_config __initdata = {
+static struct omap_usb_config htcherald_usb_config __initdata =
+{
 	.otg = 0,
 	.register_host = 0,
 	.register_dev  = 1,
@@ -391,18 +407,21 @@ static struct omap_usb_config htcherald_usb_config __initdata = {
 };
 
 /* LCD Device resources */
-static struct omap_lcd_config htcherald_lcd_config __initdata = {
+static struct omap_lcd_config htcherald_lcd_config __initdata =
+{
 	.ctrl_name	= "internal",
 };
 
-static struct platform_device lcd_device = {
+static struct platform_device lcd_device =
+{
 	.name           = "lcd_htcherald",
 	.id             = -1,
 };
 
 /* MMC Card */
 #if IS_ENABLED(CONFIG_MMC_OMAP)
-static struct omap_mmc_platform_data htc_mmc1_data = {
+static struct omap_mmc_platform_data htc_mmc1_data =
+{
 	.nr_slots                       = 1,
 	.switch_slot                    = NULL,
 	.slots[0]       = {
@@ -419,7 +438,8 @@ static struct omap_mmc_platform_data *htc_mmc_data[1];
 
 
 /* Platform devices for the Herald */
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&kp_device,
 	&lcd_device,
 	&htcpld_device,
@@ -430,7 +450,8 @@ static struct platform_device *devices[] __initdata = {
 /*
  * Touchscreen
  */
-static const struct ads7846_platform_data htcherald_ts_platform_data = {
+static const struct ads7846_platform_data htcherald_ts_platform_data =
+{
 	.model			= 7846,
 	.keep_vref_on		= 1,
 	.x_plate_ohms		= 496,
@@ -443,7 +464,8 @@ static const struct ads7846_platform_data htcherald_ts_platform_data = {
 	.y_max			= 3760,
 };
 
-static struct spi_board_info __initdata htcherald_spi_board_info[] = {
+static struct spi_board_info __initdata htcherald_spi_board_info[] =
+{
 	{
 		.modalias		= "ads7846",
 		.platform_data		= &htcherald_ts_platform_data,
@@ -464,18 +486,27 @@ static void __init htcherald_lcd_init(void)
 
 	/* disable controller if active */
 	reg = omap_readl(OMAP_LCDC_CONTROL);
-	if (reg & OMAP_LCDC_CTRL_LCD_EN) {
+
+	if (reg & OMAP_LCDC_CTRL_LCD_EN)
+	{
 		reg &= ~OMAP_LCDC_CTRL_LCD_EN;
 		omap_writel(reg, OMAP_LCDC_CONTROL);
 
 		/* wait for end of frame */
-		while (!(omap_readl(OMAP_LCDC_STATUS) & OMAP_LCDC_STAT_DONE)) {
+		while (!(omap_readl(OMAP_LCDC_STATUS) & OMAP_LCDC_STAT_DONE))
+		{
 			tries--;
+
 			if (!tries)
+			{
 				break;
+			}
 		}
+
 		if (!tries)
+		{
 			pr_err("Timeout waiting for end of frame -- LCD may not be available\n");
+		}
 
 		/* turn off DMA */
 		reg = omap_readw(OMAP_DMA_LCD_CCR);
@@ -504,7 +535,8 @@ static void __init htcherald_map_io(void)
 static void __init htcherald_disable_watchdog(void)
 {
 	/* Disable watchdog if running */
-	if (omap_readl(OMAP_WDT_TIMER_MODE) & 0x8000) {
+	if (omap_readl(OMAP_WDT_TIMER_MODE) & 0x8000)
+	{
 		/*
 		 * disable a potentially running watchdog timer before
 		 * it kills us.
@@ -527,26 +559,38 @@ static void __init htcherald_usb_enable(void)
 
 	/* Request the GPIOs we need to control here */
 	if (gpio_request(HTCHERALD_GPIO_USB_EN1, "herald_usb") < 0)
+	{
 		goto err1;
+	}
 
 	if (gpio_request(HTCHERALD_GPIO_USB_EN2, "herald_usb") < 0)
+	{
 		goto err2;
+	}
 
 	if (gpio_request(HTCHERALD_GPIO_USB_DM, "herald_usb") < 0)
+	{
 		goto err3;
+	}
 
 	if (gpio_request(HTCHERALD_GPIO_USB_DP, "herald_usb") < 0)
+	{
 		goto err4;
+	}
 
 	/* force USB_EN GPIO to 0 */
-	do {
+	do
+	{
 		/* output low */
 		gpio_direction_output(HTCHERALD_GPIO_USB_EN1, 0);
-	} while ((value = gpio_get_value(HTCHERALD_GPIO_USB_EN1)) == 1 &&
-			--tries);
+	}
+	while ((value = gpio_get_value(HTCHERALD_GPIO_USB_EN1)) == 1 &&
+		   --tries);
 
 	if (value == 1)
+	{
 		printk(KERN_WARNING "Unable to reset USB, trying to continue\n");
+	}
 
 	gpio_direction_output(HTCHERALD_GPIO_USB_EN2, 0); /* output low */
 	gpio_direction_input(HTCHERALD_GPIO_USB_DM); /* input */
@@ -582,7 +626,7 @@ static void __init htcherald_init(void)
 
 	htcherald_spi_board_info[0].irq = gpio_to_irq(HTCHERALD_GPIO_TS);
 	spi_register_board_info(htcherald_spi_board_info,
-		ARRAY_SIZE(htcherald_spi_board_info));
+							ARRAY_SIZE(htcherald_spi_board_info));
 
 	omap_register_i2c_bus(1, 100, NULL, 0);
 
@@ -595,15 +639,15 @@ static void __init htcherald_init(void)
 }
 
 MACHINE_START(HERALD, "HTC Herald")
-	/* Maintainer: Cory Maccarrone <darkstar6262@gmail.com> */
-	/* Maintainer: wing-linux.sourceforge.net */
-	.atag_offset    = 0x100,
-	.map_io         = htcherald_map_io,
-	.init_early     = omap1_init_early,
-	.init_irq       = omap1_init_irq,
+/* Maintainer: Cory Maccarrone <darkstar6262@gmail.com> */
+/* Maintainer: wing-linux.sourceforge.net */
+.atag_offset    = 0x100,
+ .map_io         = htcherald_map_io,
+  .init_early     = omap1_init_early,
+   .init_irq       = omap1_init_irq,
 	.handle_irq	= omap1_handle_irq,
-	.init_machine   = htcherald_init,
-	.init_late	= omap1_init_late,
-	.init_time	= omap1_timer_init,
-	.restart	= omap1_restart,
-MACHINE_END
+	 .init_machine   = htcherald_init,
+	  .init_late	= omap1_init_late,
+		.init_time	= omap1_timer_init,
+		  .restart	= omap1_restart,
+			  MACHINE_END

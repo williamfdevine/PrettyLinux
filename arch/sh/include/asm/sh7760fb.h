@@ -50,25 +50,25 @@
 #define LDCNTR_DON2 (1 << 4)
 
 #ifdef CONFIG_CPU_SUBTYPE_SH7763
-# define LDLIRNR       0x440
-/* LDINTR bit */
-# define LDINTR_MINTEN (1 << 15)
-# define LDINTR_FINTEN (1 << 14)
-# define LDINTR_VSINTEN (1 << 13)
-# define LDINTR_VEINTEN (1 << 12)
-# define LDINTR_MINTS (1 << 11)
-# define LDINTR_FINTS (1 << 10)
-# define LDINTR_VSINTS (1 << 9)
-# define LDINTR_VEINTS (1 << 8)
-# define VINT_START (LDINTR_VSINTEN)
-# define VINT_CHECK (LDINTR_VSINTS)
+	#define LDLIRNR       0x440
+	/* LDINTR bit */
+	#define LDINTR_MINTEN (1 << 15)
+	#define LDINTR_FINTEN (1 << 14)
+	#define LDINTR_VSINTEN (1 << 13)
+	#define LDINTR_VEINTEN (1 << 12)
+	#define LDINTR_MINTS (1 << 11)
+	#define LDINTR_FINTS (1 << 10)
+	#define LDINTR_VSINTS (1 << 9)
+	#define LDINTR_VEINTS (1 << 8)
+	#define VINT_START (LDINTR_VSINTEN)
+	#define VINT_CHECK (LDINTR_VSINTS)
 #else
-/* LDINTR bit */
-# define LDINTR_VINTSEL (1 << 12)
-# define LDINTR_VINTE (1 << 8)
-# define LDINTR_VINTS (1 << 0)
-# define VINT_START (LDINTR_VINTSEL)
-# define VINT_CHECK (LDINTR_VINTS)
+	/* LDINTR bit */
+	#define LDINTR_VINTSEL (1 << 12)
+	#define LDINTR_VINTE (1 << 8)
+	#define LDINTR_VINTS (1 << 0)
+	#define VINT_START (LDINTR_VINTSEL)
+	#define VINT_CHECK (LDINTR_VINTS)
 #endif
 
 /* HSYNC polarity inversion */
@@ -122,13 +122,14 @@
 #define LCDC_CLKSRC_EXTERNAL 2
 
 #define LDICKR_CLKSRC(x) \
-       (((x) & 3) << 12)
+	(((x) & 3) << 12)
 
 /* LCDC pixclock input divider. Set to 1 at a minimum! */
 #define LDICKR_CLKDIV(x) \
-       ((x) & 0x1f)
+	((x) & 0x1f)
 
-struct sh7760fb_platdata {
+struct sh7760fb_platdata
+{
 
 	/* Set this member to a valid fb_videmode for the display you
 	 * wish to use.  The following members must be initialized:

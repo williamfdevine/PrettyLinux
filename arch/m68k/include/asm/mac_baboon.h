@@ -6,7 +6,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct baboon {
+struct baboon
+{
 	char	pad1[208];	/* generic IDE registers, not used here */
 	short	mb_control;	/* Control register:
 				 * bit 5 : slot 2 power control

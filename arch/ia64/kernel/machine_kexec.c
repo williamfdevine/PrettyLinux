@@ -28,25 +28,27 @@
 #include <asm/mca.h>
 
 typedef void (*relocate_new_kernel_t)(
-					unsigned long indirection_page,
-					unsigned long start_address,
-					struct ia64_boot_param *boot_param,
-					unsigned long pal_addr) __noreturn;
+	unsigned long indirection_page,
+	unsigned long start_address,
+	struct ia64_boot_param *boot_param,
+	unsigned long pal_addr) __noreturn;
 
 struct kimage *ia64_kimage;
 
-struct resource efi_memmap_res = {
-        .name  = "EFI Memory Map",
-        .start = 0,
-        .end   = 0,
-        .flags = IORESOURCE_BUSY | IORESOURCE_MEM
+struct resource efi_memmap_res =
+{
+	.name  = "EFI Memory Map",
+	.start = 0,
+	.end   = 0,
+	.flags = IORESOURCE_BUSY | IORESOURCE_MEM
 };
 
-struct resource boot_param_res = {
-        .name  = "Boot parameter",
-        .start = 0,
-        .end   = 0,
-        .flags = IORESOURCE_BUSY | IORESOURCE_MEM
+struct resource boot_param_res =
+{
+	.name  = "Boot parameter",
+	.start = 0,
+	.end   = 0,
+	.flags = IORESOURCE_BUSY | IORESOURCE_MEM
 };
 
 
@@ -64,9 +66,9 @@ int machine_kexec_prepare(struct kimage *image)
 	/* Pre-load control code buffer to minimize work in kexec path */
 	control_code_buffer = page_address(image->control_code_page);
 	memcpy((void *)control_code_buffer, (const void *)func[0],
-			relocate_new_kernel_size);
+		   relocate_new_kernel_size);
 	flush_icache_range((unsigned long)control_code_buffer,
-			(unsigned long)control_code_buffer + relocate_new_kernel_size);
+					   (unsigned long)control_code_buffer + relocate_new_kernel_size);
 	ia64_kimage = image;
 
 	return 0;
@@ -92,7 +94,9 @@ static void ia64_machine_kexec(struct unw_frame_info *info, void *arg)
 
 	BUG_ON(!image);
 	code_addr = (unsigned long)page_address(image->control_code_page);
-	if (image->type == KEXEC_TYPE_CRASH) {
+
+	if (image->type == KEXEC_TYPE_CRASH)
+	{
 		crash_save_this_cpu();
 		current->thread.ksp = (__u64)info->sw - 16;
 
@@ -100,7 +104,9 @@ static void ia64_machine_kexec(struct unw_frame_info *info, void *arg)
 		fp = ia64_tpa(init_handler->fp);
 		gp = ia64_tpa(ia64_getreg(_IA64_REG_GP));
 		ia64_sal_set_vectors(SAL_VECTOR_OS_INIT, fp, gp, 0, fp, gp, 0);
-	} else {
+	}
+	else
+	{
 		/* Unregister init handlers of current kernel */
 		ia64_sal_set_vectors(SAL_VECTOR_OS_INIT, 0, 0, 0, 0, 0, 0);
 	}
@@ -122,17 +128,23 @@ static void ia64_machine_kexec(struct unw_frame_info *info, void *arg)
 
 	/* terminate possible nested in-service interrupts */
 	for (ii = 0; ii < 16; ii++)
+	{
 		ia64_eoi();
+	}
 
 	/* unmask TPR and clear any pending interrupts */
 	ia64_setreg(_IA64_REG_CR_TPR, 0);
 	ia64_srlz_d();
+
 	while (ia64_get_ivr() != IA64_SPURIOUS_INT_VECTOR)
+	{
 		ia64_eoi();
+	}
+
 	platform_kernel_launch_event();
 	rnk = (relocate_new_kernel_t)&code_addr;
 	(*rnk)(image->head, image->start, ia64_boot_param,
-		     GRANULEROUNDDOWN((unsigned long) pal_addr));
+		   GRANULEROUNDDOWN((unsigned long) pal_addr));
 	BUG();
 }
 
@@ -140,7 +152,8 @@ void machine_kexec(struct kimage *image)
 {
 	BUG_ON(!image);
 	unw_init_running(ia64_machine_kexec, image);
-	for(;;);
+
+	for (;;);
 }
 
 void arch_crash_save_vmcoreinfo(void)

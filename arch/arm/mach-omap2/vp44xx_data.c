@@ -27,7 +27,8 @@
 
 #include "vp.h"
 
-static const struct omap_vp_ops omap4_vp_ops = {
+static const struct omap_vp_ops omap4_vp_ops =
+{
 	.check_txdone = omap_prm_vp_check_txdone,
 	.clear_txdone = omap_prm_vp_clear_txdone,
 };
@@ -36,7 +37,8 @@ static const struct omap_vp_ops omap4_vp_ops = {
  * VP data common to 44xx chips
  * XXX This stuff presumably belongs in the vp44xx.c or vp.c file.
  */
-static const struct omap_vp_common omap4_vp_common = {
+static const struct omap_vp_common omap4_vp_common =
+{
 	.vpconfig_erroroffset_mask = OMAP4430_ERROROFFSET_MASK,
 	.vpconfig_errorgain_mask = OMAP4430_ERRORGAIN_MASK,
 	.vpconfig_initvoltage_mask = OMAP4430_INITVOLTAGE_MASK,
@@ -55,7 +57,8 @@ static const struct omap_vp_common omap4_vp_common = {
 	.ops = &omap4_vp_ops,
 };
 
-struct omap_vp_instance omap4_vp_mpu = {
+struct omap_vp_instance omap4_vp_mpu =
+{
 	.id = OMAP4_VP_VDD_MPU_ID,
 	.common = &omap4_vp_common,
 	.vpconfig = OMAP4_PRM_VP_MPU_CONFIG_OFFSET,
@@ -66,7 +69,8 @@ struct omap_vp_instance omap4_vp_mpu = {
 	.voltage = OMAP4_PRM_VP_MPU_VOLTAGE_OFFSET,
 };
 
-struct omap_vp_instance omap4_vp_iva = {
+struct omap_vp_instance omap4_vp_iva =
+{
 	.id = OMAP4_VP_VDD_IVA_ID,
 	.common = &omap4_vp_common,
 	.vpconfig = OMAP4_PRM_VP_IVA_CONFIG_OFFSET,
@@ -77,7 +81,8 @@ struct omap_vp_instance omap4_vp_iva = {
 	.voltage = OMAP4_PRM_VP_IVA_VOLTAGE_OFFSET,
 };
 
-struct omap_vp_instance omap4_vp_core = {
+struct omap_vp_instance omap4_vp_core =
+{
 	.id = OMAP4_VP_VDD_CORE_ID,
 	.common = &omap4_vp_common,
 	.vpconfig = OMAP4_PRM_VP_CORE_CONFIG_OFFSET,
@@ -88,17 +93,20 @@ struct omap_vp_instance omap4_vp_core = {
 	.voltage = OMAP4_PRM_VP_CORE_VOLTAGE_OFFSET,
 };
 
-struct omap_vp_param omap4_mpu_vp_data = {
+struct omap_vp_param omap4_mpu_vp_data =
+{
 	.vddmin			= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
 	.vddmax			= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
 };
 
-struct omap_vp_param omap4_iva_vp_data = {
+struct omap_vp_param omap4_iva_vp_data =
+{
 	.vddmin			= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
 	.vddmax			= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
 };
 
-struct omap_vp_param omap4_core_vp_data = {
+struct omap_vp_param omap4_core_vp_data =
+{
 	.vddmin			= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
 	.vddmax			= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
 };

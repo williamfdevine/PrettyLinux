@@ -31,7 +31,7 @@ void __init qemu_e500_pic_init(void)
 {
 	struct mpic *mpic;
 	unsigned int flags = MPIC_BIG_ENDIAN | MPIC_SINGLE_DEST_CPU |
-		MPIC_ENABLE_COREINT;
+						 MPIC_ENABLE_COREINT;
 
 	mpic = mpic_alloc(NULL, 0, flags, 0, 256, " OpenPIC  ");
 
@@ -67,16 +67,17 @@ static int __init qemu_e500_probe(void)
 
 machine_arch_initcall(qemu_e500, mpc85xx_common_publish_devices);
 
-define_machine(qemu_e500) {
+define_machine(qemu_e500)
+{
 	.name			= "QEMU e500",
-	.probe			= qemu_e500_probe,
-	.setup_arch		= qemu_e500_setup_arch,
-	.init_IRQ		= qemu_e500_pic_init,
+			 .probe			= qemu_e500_probe,
+					 .setup_arch		= qemu_e500_setup_arch,
+						 .init_IRQ		= qemu_e500_pic_init,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+							   .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+								 .pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-	.get_irq		= mpic_get_coreint_irq,
-	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= udbg_progress,
+								  .get_irq		= mpic_get_coreint_irq,
+										 .calibrate_decr		= generic_calibrate_decr,
+											 .progress		= udbg_progress,
 };

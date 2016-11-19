@@ -32,13 +32,24 @@ static ssize_t opal_nvram_read(char *buf, size_t count, loff_t *index)
 	int off;
 
 	if (*index >= nvram_size)
+	{
 		return 0;
+	}
+
 	off = *index;
+
 	if ((off + count) > nvram_size)
+	{
 		count = nvram_size - off;
+	}
+
 	rc = opal_read_nvram(__pa(buf), count, off);
+
 	if (rc != OPAL_SUCCESS)
+	{
 		return -EIO;
+	}
+
 	*index += count;
 	return count;
 }
@@ -49,16 +60,27 @@ static ssize_t opal_nvram_write(char *buf, size_t count, loff_t *index)
 	int off;
 
 	if (*index >= nvram_size)
+	{
 		return 0;
-	off = *index;
-	if ((off + count) > nvram_size)
-		count = nvram_size - off;
-
-	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT) {
-		rc = opal_write_nvram(__pa(buf), count, off);
-		if (rc == OPAL_BUSY_EVENT)
-			opal_poll_events(NULL);
 	}
+
+	off = *index;
+
+	if ((off + count) > nvram_size)
+	{
+		count = nvram_size - off;
+	}
+
+	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT)
+	{
+		rc = opal_write_nvram(__pa(buf), count, off);
+
+		if (rc == OPAL_BUSY_EVENT)
+		{
+			opal_poll_events(NULL);
+		}
+	}
+
 	*index += count;
 	return count;
 }
@@ -78,14 +100,20 @@ void __init opal_nvram_init(void)
 	const __be32 *nbytes_p;
 
 	np = of_find_compatible_node(NULL, NULL, "ibm,opal-nvram");
+
 	if (np == NULL)
+	{
 		return;
+	}
 
 	nbytes_p = of_get_property(np, "#bytes", NULL);
-	if (!nbytes_p) {
+
+	if (!nbytes_p)
+	{
 		of_node_put(np);
 		return;
 	}
+
 	nvram_size = be32_to_cpup(nbytes_p);
 
 	pr_info("OPAL nvram setup, %u bytes\n", nvram_size);

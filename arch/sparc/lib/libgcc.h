@@ -5,7 +5,8 @@
 
 typedef int word_type __attribute__ ((mode (__word__)));
 
-struct DWstruct {
+struct DWstruct
+{
 	int high, low;
 };
 

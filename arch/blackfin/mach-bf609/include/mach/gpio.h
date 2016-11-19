@@ -129,7 +129,8 @@
 
 #ifndef __ASSEMBLY__
 
-struct gpio_port_t {
+struct gpio_port_t
+{
 	unsigned long port_fer;
 	unsigned long port_fer_set;
 	unsigned long port_fer_clear;

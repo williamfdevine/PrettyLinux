@@ -74,7 +74,8 @@ nlm_read_reg64(uint64_t base, uint32_t reg)
 	volatile uint64_t *ptr = (volatile uint64_t *)(long)addr;
 	uint64_t val;
 
-	if (sizeof(unsigned long) == 4) {
+	if (sizeof(unsigned long) == 4)
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
@@ -88,8 +89,11 @@ nlm_read_reg64(uint64_t base, uint32_t reg)
 			: "=r" (val)
 			: "m" (*ptr));
 		local_irq_restore(flags);
-	} else
+	}
+	else
+	{
 		val = *ptr;
+	}
 
 	return val;
 }
@@ -100,7 +104,8 @@ nlm_write_reg64(uint64_t base, uint32_t reg, uint64_t val)
 	uint64_t addr = base + (reg >> 1) * sizeof(uint64_t);
 	volatile uint64_t *ptr = (volatile uint64_t *)(long)addr;
 
-	if (sizeof(unsigned long) == 4) {
+	if (sizeof(unsigned long) == 4)
+	{
 		unsigned long flags;
 		uint64_t tmp;
 
@@ -117,8 +122,11 @@ nlm_write_reg64(uint64_t base, uint32_t reg, uint64_t val)
 			: "=r" (tmp)
 			: "0" (val), "m" (*ptr));
 		local_irq_restore(flags);
-	} else
+	}
+	else
+	{
 		*ptr = val;
+	}
 }
 
 /*

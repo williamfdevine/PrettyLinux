@@ -56,7 +56,8 @@
 
 #ifdef CONFIG_BOARD_MRMT_LCD_LQ043T3DX0X
 /* Sharp LQ043T3DX0x (or compatible) panel */
-static struct fb_videomode __initdata lcd_fb_modes[] = {
+static struct fb_videomode __initdata lcd_fb_modes[] =
+{
 	{
 		.name		= "480x272 @ 59.94Hz",
 		.refresh	= 59.94,
@@ -72,7 +73,8 @@ static struct fb_videomode __initdata lcd_fb_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata lcd_fb_default_monspecs = {
+static struct fb_monspecs __initdata lcd_fb_default_monspecs =
+{
 	.manufacturer		= "SHA",
 	.monitor		= "LQ043T3DX02",
 	.modedb			= lcd_fb_modes,
@@ -84,13 +86,14 @@ static struct fb_monspecs __initdata lcd_fb_default_monspecs = {
 	.dclkmax		= 9260000,
 };
 
-static struct atmel_lcdfb_pdata __initdata rmt_lcdc_data = {
+static struct atmel_lcdfb_pdata __initdata rmt_lcdc_data =
+{
 	.default_bpp		= 24,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_INVCLK_NORMAL
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_INVCLK_NORMAL
+	| ATMEL_LCDC_MEMOR_BIG),
 	.lcd_wiring_mode	= ATMEL_LCDC_WIRING_RGB,
 	.default_monspecs	= &lcd_fb_default_monspecs,
 	.guard_time		= 2,
@@ -99,7 +102,8 @@ static struct atmel_lcdfb_pdata __initdata rmt_lcdc_data = {
 
 #ifdef CONFIG_BOARD_MRMT_LCD_KWH043GM08
 /* Sharp KWH043GM08-Fxx (or compatible) panel */
-static struct fb_videomode __initdata lcd_fb_modes[] = {
+static struct fb_videomode __initdata lcd_fb_modes[] =
+{
 	{
 		.name		= "480x272 @ 59.94Hz",
 		.refresh	= 59.94,
@@ -115,7 +119,8 @@ static struct fb_videomode __initdata lcd_fb_modes[] = {
 	},
 };
 
-static struct fb_monspecs __initdata lcd_fb_default_monspecs = {
+static struct fb_monspecs __initdata lcd_fb_default_monspecs =
+{
 	.manufacturer		= "FOR",
 	.monitor		= "KWH043GM08",
 	.modedb			= lcd_fb_modes,
@@ -127,13 +132,14 @@ static struct fb_monspecs __initdata lcd_fb_default_monspecs = {
 	.dclkmax		= 9260000,
 };
 
-static struct atmel_lcdfb_pdata __initdata rmt_lcdc_data = {
+static struct atmel_lcdfb_pdata __initdata rmt_lcdc_data =
+{
 	.default_bpp		= 24,
 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
-				   | ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
-				   | ATMEL_LCDC_INVCLK_INVERTED
-				   | ATMEL_LCDC_MEMOR_BIG),
+	| ATMEL_LCDC_CLKMOD_ALWAYSACTIVE
+	| ATMEL_LCDC_INVCLK_INVERTED
+	| ATMEL_LCDC_MEMOR_BIG),
 	.lcd_wiring_mode	= ATMEL_LCDC_WIRING_RGB,
 	.default_monspecs	= &lcd_fb_default_monspecs,
 	.guard_time		= 2,
@@ -141,14 +147,16 @@ static struct atmel_lcdfb_pdata __initdata rmt_lcdc_data = {
 #endif
 
 #ifdef CONFIG_BOARD_MRMT_AC97
-static struct ac97c_platform_data __initdata ac97c0_data = {
+static struct ac97c_platform_data __initdata ac97c0_data =
+{
 	.reset_pin		= PIN_AC97_RST_N,
 };
 #endif
 
 #ifdef CONFIG_BOARD_MRMT_UCB1400_TS
 /* NOTE: IRQ assignment relies on kernel module parameter */
-static struct platform_device rmt_ts_device = {
+static struct platform_device rmt_ts_device =
+{
 	.name	= "ucb1400_ts",
 	.id	= -1,
 };
@@ -156,24 +164,28 @@ static struct platform_device rmt_ts_device = {
 
 #ifdef CONFIG_BOARD_MRMT_BL_PWM
 /* PWM LEDs: LCD Backlight, etc */
-static struct pwm_lookup pwm_lookup[] = {
+static struct pwm_lookup pwm_lookup[] =
+{
 	PWM_LOOKUP("at91sam9rl-pwm", PWM_CH_BL, "leds_pwm", "ds1",
-		   5000, PWM_POLARITY_INVERSED),
+	5000, PWM_POLARITY_INVERSED),
 };
 
-static struct led_pwm pwm_leds[] = {
+static struct led_pwm pwm_leds[] =
+{
 	{
 		.name = "backlight",
 		.max_brightness = 255,
 	},
 };
 
-static struct led_pwm_platform_data pwm_data = {
+static struct led_pwm_platform_data pwm_data =
+{
 	.num_leds       = ARRAY_SIZE(pwm_leds),
 	.leds           = pwm_leds,
 };
 
-static struct platform_device leds_pwm = {
+static struct platform_device leds_pwm =
+{
 	.name   = "leds_pwm",
 	.id     = -1,
 	.dev    = {
@@ -188,7 +200,8 @@ static int ads7846_pendown_state(void)
 	return !gpio_get_value( PIN_TS_EXTINT );	/* PENIRQ.*/
 }
 
-static struct ads7846_platform_data ads_info = {
+static struct ads7846_platform_data ads_info =
+{
 	.model				= 7846,
 	.keep_vref_on			= 0,	/* Use external VREF pin */
 	.vref_delay_usecs		= 0,
@@ -206,10 +219,11 @@ static struct ads7846_platform_data ads_info = {
 	.filter_init			= NULL,
 };
 
-static struct spi_board_info spi01_board_info[] __initdata = {
+static struct spi_board_info spi01_board_info[] __initdata =
+{
 	{
 		.modalias	= "ads7846",
-		.max_speed_hz	= 31250*26,
+		.max_speed_hz	= 31250 * 26,
 		.bus_num	= 0,
 		.chip_select	= 1,
 		.platform_data	= &ads_info,
@@ -219,7 +233,8 @@ static struct spi_board_info spi01_board_info[] __initdata = {
 #endif
 
 /* GPIO Keys: left, right, power, etc */
-static const struct gpio_keys_button rmt_gpio_keys_buttons[] = {
+static const struct gpio_keys_button rmt_gpio_keys_buttons[] =
+{
 	[0] = {
 		.type		= EV_KEY,
 		.code		= KEY_POWER,
@@ -243,12 +258,14 @@ static const struct gpio_keys_button rmt_gpio_keys_buttons[] = {
 	},
 };
 
-static const struct gpio_keys_platform_data rmt_gpio_keys_data = {
+static const struct gpio_keys_platform_data rmt_gpio_keys_data =
+{
 	.nbuttons =	ARRAY_SIZE(rmt_gpio_keys_buttons),
 	.buttons =	(void *) rmt_gpio_keys_buttons,
 };
 
-static struct platform_device rmt_gpio_keys = {
+static struct platform_device rmt_gpio_keys =
+{
 	.name =		"gpio-keys",
 	.id =		-1,
 	.dev = {
@@ -257,7 +274,8 @@ static struct platform_device rmt_gpio_keys = {
 };
 
 #ifdef CONFIG_BOARD_MRMT_RTC_I2C
-static struct i2c_board_info __initdata mrmt1_i2c_rtc = {
+static struct i2c_board_info __initdata mrmt1_i2c_rtc =
+{
 	I2C_BOARD_INFO("s35390a", 0x30),
 	.irq		= 0,
 };
@@ -278,7 +296,7 @@ static int __init mrmt1_init(void)
 	/* Setup USARTS (other than console) */
 	at32_map_usart(2, 1, 0);	/* USART 2: /dev/ttyS1, RMT1:DB9M */
 	at32_map_usart(3, 2, ATMEL_USART_RTS | ATMEL_USART_CTS);
-			/* USART 3: /dev/ttyS2, RMT1:Wireless, w/ RTS/CTS */
+	/* USART 3: /dev/ttyS2, RMT1:Wireless, w/ RTS/CTS */
 	at32_add_device_usart(1);
 	at32_add_device_usart(2);
 
@@ -296,8 +314,8 @@ static int __init mrmt1_init(void)
 	/* User "alternate" LCDC inferface on Port E & D */
 	/* NB: exclude LCDC_CC pin, as NGW100 reserves it for other use */
 	at32_add_device_lcdc(0, &rmt_lcdc_data,
-		fbmem_start, fbmem_size,
-		(ATMEL_LCDC_ALT_24BIT | ATMEL_LCDC_PE_DVAL ) );
+						 fbmem_start, fbmem_size,
+						 (ATMEL_LCDC_ALT_24BIT | ATMEL_LCDC_PE_DVAL ) );
 #endif
 
 #ifdef CONFIG_BOARD_MRMT_AC97
@@ -306,17 +324,17 @@ static int __init mrmt1_init(void)
 
 #ifdef CONFIG_BOARD_MRMT_ADS7846_TS
 	/* Select the Touchscreen interrupt pin mode */
-	at32_select_periph( GPIO_PIOB_BASE, 1 << (PB_EXTINT_BASE+TS_IRQ),
-			GPIO_PERIPH_A, AT32_GPIOF_DEGLITCH);
+	at32_select_periph( GPIO_PIOB_BASE, 1 << (PB_EXTINT_BASE + TS_IRQ),
+						GPIO_PERIPH_A, AT32_GPIOF_DEGLITCH);
 	irq_set_irq_type(AT32_EXTINT(TS_IRQ), IRQ_TYPE_EDGE_FALLING);
-	at32_spi_setup_slaves(0,spi01_board_info,ARRAY_SIZE(spi01_board_info));
-	spi_register_board_info(spi01_board_info,ARRAY_SIZE(spi01_board_info));
+	at32_spi_setup_slaves(0, spi01_board_info, ARRAY_SIZE(spi01_board_info));
+	spi_register_board_info(spi01_board_info, ARRAY_SIZE(spi01_board_info));
 #endif
 
 #ifdef CONFIG_BOARD_MRMT_UCB1400_TS
 	/* Select the Touchscreen interrupt pin mode */
-	at32_select_periph( GPIO_PIOB_BASE, 1 << (PB_EXTINT_BASE+TS_IRQ),
-			GPIO_PERIPH_A, AT32_GPIOF_DEGLITCH);
+	at32_select_periph( GPIO_PIOB_BASE, 1 << (PB_EXTINT_BASE + TS_IRQ),
+						GPIO_PERIPH_A, AT32_GPIOF_DEGLITCH);
 	platform_device_register(&rmt_ts_device);
 #endif
 

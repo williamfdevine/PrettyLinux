@@ -33,20 +33,22 @@
 #include <msp_regs.h>
 
 #ifdef CONFIG_PMC_MSP7120_GW
-#define MSP_NUM_GPIOS		20
+	#define MSP_NUM_GPIOS		20
 #else
-#define MSP_NUM_GPIOS		28
+	#define MSP_NUM_GPIOS		28
 #endif
 
 /* -- GPIO Enumerations -- */
-enum msp_gpio_data {
+enum msp_gpio_data
+{
 	MSP_GPIO_LO = 0,
 	MSP_GPIO_HI = 1,
 	MSP_GPIO_NONE,		/* Special - Means pin is out of range */
 	MSP_GPIO_TOGGLE,	/* Special - Sets pin to opposite */
 };
 
-enum msp_gpio_mode {
+enum msp_gpio_mode
+{
 	MSP_GPIO_INPUT		= 0x0,
 	/* MSP_GPIO_ INTERRUPT	= 0x1,	Not supported yet */
 	MSP_GPIO_UART_INPUT	= 0x2,	/* Only GPIO 4 or 5 */
@@ -60,7 +62,8 @@ enum msp_gpio_mode {
 /* -- Static Tables -- */
 
 /* Maps pins to data register */
-static volatile u32 * const MSP_GPIO_DATA_REGISTER[] = {
+static volatile u32 *const MSP_GPIO_DATA_REGISTER[] =
+{
 	/* GPIO 0 and 1 on the first register */
 	GPIO_DATA1_REG, GPIO_DATA1_REG,
 	/* GPIO 2, 3, 4, and 5 on the second register */
@@ -80,7 +83,8 @@ static volatile u32 * const MSP_GPIO_DATA_REGISTER[] = {
 };
 
 /* Maps pins to mode register */
-static volatile u32 * const MSP_GPIO_MODE_REGISTER[] = {
+static volatile u32 *const MSP_GPIO_MODE_REGISTER[] =
+{
 	/* GPIO 0 and 1 on the first register */
 	GPIO_CFG1_REG, GPIO_CFG1_REG,
 	/* GPIO 2, 3, 4, and 5 on the second register */
@@ -100,7 +104,8 @@ static volatile u32 * const MSP_GPIO_MODE_REGISTER[] = {
 };
 
 /* Maps 'basic' pins to relative offset from 0 per register */
-static int MSP_GPIO_OFFSET[] = {
+static int MSP_GPIO_OFFSET[] =
+{
 	/* GPIO 0 and 1 on the first register */
 	0, 0,
 	/* GPIO 2, 3, 4, and 5 on the second register */
@@ -112,7 +117,8 @@ static int MSP_GPIO_OFFSET[] = {
 };
 
 /* Maps MODE to allowed pin mask */
-static unsigned int MSP_GPIO_MODE_ALLOWED[] = {
+static unsigned int MSP_GPIO_MODE_ALLOWED[] =
+{
 	0xffffffff,	/* Mode 0 - INPUT */
 	0x00000,	/* Mode 1 - INTERRUPT */
 	0x00030,	/* Mode 2 - UART_INPUT (GPIO 4, 5)*/
@@ -202,11 +208,16 @@ static inline enum msp_gpio_data msp_gpio_pin_get(unsigned int gpio)
 	u32 pinhi_mask = 0, pinhi_mask2 = 0;
 
 	if (gpio >= MSP_NUM_GPIOS)
+	{
 		return MSP_GPIO_NONE;
+	}
 
-	if (gpio < 16) {
+	if (gpio < 16)
+	{
 		pinhi_mask = BASIC_DATA_MASK(gpio);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Two cases are possible with the EXTENDED register:
 		 *  - In output mode (ENABLED flag set), check the CLR bit
@@ -215,31 +226,42 @@ static inline enum msp_gpio_data msp_gpio_pin_get(unsigned int gpio)
 		pinhi_mask = EXTENDED_ENABLE(gpio) | EXTENDED_CLR(gpio);
 		pinhi_mask2 = EXTENDED_SET(gpio);
 	}
+
 	if (((*MSP_GPIO_DATA_REGISTER[gpio] & pinhi_mask) == pinhi_mask) ||
-	    (*MSP_GPIO_DATA_REGISTER[gpio] & pinhi_mask2))
+		(*MSP_GPIO_DATA_REGISTER[gpio] & pinhi_mask2))
+	{
 		return MSP_GPIO_HI;
+	}
 	else
+	{
 		return MSP_GPIO_LO;
+	}
 }
 
 /* Sets the specified pin to the specified value */
 static inline void msp_gpio_pin_set(enum msp_gpio_data data, unsigned int gpio)
 {
 	if (gpio >= MSP_NUM_GPIOS)
+	{
 		return;
+	}
 
-	if (gpio < 16) {
+	if (gpio < 16)
+	{
 		if (data == MSP_GPIO_TOGGLE)
 			toggle_reg32(MSP_GPIO_DATA_REGISTER[gpio],
-					BASIC_DATA_MASK(gpio));
+						 BASIC_DATA_MASK(gpio));
 		else if (data == MSP_GPIO_HI)
 			set_reg32(MSP_GPIO_DATA_REGISTER[gpio],
-					BASIC_DATA_MASK(gpio));
+					  BASIC_DATA_MASK(gpio));
 		else
 			clear_reg32(MSP_GPIO_DATA_REGISTER[gpio],
-					BASIC_DATA_MASK(gpio));
-	} else {
-		if (data == MSP_GPIO_TOGGLE) {
+						BASIC_DATA_MASK(gpio));
+	}
+	else
+	{
+		if (data == MSP_GPIO_TOGGLE)
+		{
 			/* Special ugly case:
 			 *   We have to read the CLR bit.
 			 *   If set, we write the CLR bit.
@@ -248,22 +270,35 @@ static inline void msp_gpio_pin_set(enum msp_gpio_data data, unsigned int gpio)
 			u32 tmpdata;
 
 			custom_read_reg32(MSP_GPIO_DATA_REGISTER[gpio],
-								tmpdata);
+							  tmpdata);
+
 			if (tmpdata & EXTENDED_CLR(gpio))
+			{
 				tmpdata = EXTENDED_CLR(gpio);
+			}
 			else
+			{
 				tmpdata = EXTENDED_SET(gpio);
+			}
+
 			custom_write_reg32(MSP_GPIO_DATA_REGISTER[gpio],
-								tmpdata);
-		} else {
+							   tmpdata);
+		}
+		else
+		{
 			u32 newdata;
 
 			if (data == MSP_GPIO_HI)
+			{
 				newdata = EXTENDED_SET(gpio);
+			}
 			else
+			{
 				newdata = EXTENDED_CLR(gpio);
+			}
+
 			set_value_reg32(MSP_GPIO_DATA_REGISTER[gpio],
-						EXTENDED_FULL_MASK, newdata);
+							EXTENDED_FULL_MASK, newdata);
 		}
 	}
 }
@@ -293,18 +328,27 @@ static inline enum msp_gpio_mode msp_gpio_pin_get_mode(unsigned int gpio)
 	uint32_t data;
 
 	if (gpio >= MSP_NUM_GPIOS)
+	{
 		return retval;
+	}
 
 	data = *MSP_GPIO_MODE_REGISTER[gpio];
 
-	if (gpio < 16) {
+	if (gpio < 16)
+	{
 		retval = BASIC_MODE_FROM_REG(data, gpio);
-	} else {
+	}
+	else
+	{
 		/* Extended pins can only be either INPUT or OUTPUT */
 		if (data & EXTENDED_ENABLE(gpio))
+		{
 			retval = MSP_GPIO_OUTPUT;
+		}
 		else
+		{
 			retval = MSP_GPIO_INPUT;
+		}
 	}
 
 	return retval;
@@ -319,21 +363,34 @@ static inline int msp_gpio_pin_mode(enum msp_gpio_mode mode, unsigned int gpio)
 	u32 modemask, newmode;
 
 	if ((1 << gpio) & ~MSP_GPIO_MODE_ALLOWED[mode])
+	{
 		return -1;
+	}
 
 	if (gpio >= MSP_NUM_GPIOS)
+	{
 		return -1;
+	}
 
-	if (gpio < 16) {
+	if (gpio < 16)
+	{
 		modemask = BASIC_MODE_MASK(gpio);
 		newmode =  BASIC_MODE(mode, gpio);
-	} else {
-		modemask = EXTENDED_FULL_MASK;
-		if (mode == MSP_GPIO_INPUT)
-			newmode = EXTENDED_DISABLE(gpio);
-		else
-			newmode = EXTENDED_ENABLE(gpio);
 	}
+	else
+	{
+		modemask = EXTENDED_FULL_MASK;
+
+		if (mode == MSP_GPIO_INPUT)
+		{
+			newmode = EXTENDED_DISABLE(gpio);
+		}
+		else
+		{
+			newmode = EXTENDED_ENABLE(gpio);
+		}
+	}
+
 	/* Do the set atomically */
 	set_value_reg32(MSP_GPIO_MODE_REGISTER[gpio], modemask, newmode);
 

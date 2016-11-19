@@ -69,7 +69,8 @@ static inline unsigned int sizes(unsigned int tsz)
 	return 1 << (tsz + TOPA_SHIFT);
 };
 
-struct topa_entry {
+struct topa_entry
+{
 	u64	end	: 1;
 	u64	rsvd0	: 1;
 	u64	intr	: 1;
@@ -88,7 +89,8 @@ struct topa_entry {
 /* TSC to Core Crystal Clock Ratio */
 #define CPUID_TSC_LEAF		0x15
 
-enum pt_capabilities {
+enum pt_capabilities
+{
 	PT_CAP_max_subleaf = 0,
 	PT_CAP_cr3_filtering,
 	PT_CAP_psb_cyc,
@@ -106,7 +108,8 @@ enum pt_capabilities {
 	PT_CAP_psb_periods,
 };
 
-struct pt_pmu {
+struct pt_pmu
+{
 	struct pmu		pmu;
 	u32			caps[PT_CPUID_REGS_NUM * PT_CPUID_LEAVES];
 	bool			vmx;
@@ -135,7 +138,8 @@ struct pt_pmu {
  * @data_pages:	array of pages from perf
  * @topa_index:	table of topa entries indexed by page offset
  */
-struct pt_buffer {
+struct pt_buffer
+{
 	int			cpu;
 	struct list_head	tables;
 	struct topa		*first, *last, *cur;
@@ -159,7 +163,8 @@ struct pt_buffer {
  * @msr_b:	range end, goes to RTIT_ADDRn_B
  * @config:	4-bit field in RTIT_CTL
  */
-struct pt_filter {
+struct pt_filter
+{
 	unsigned long	msr_a;
 	unsigned long	msr_b;
 	unsigned long	config;
@@ -170,7 +175,8 @@ struct pt_filter {
  * @filter:	filters defined for this context
  * @nr_filters:	number of defined filters in the @filter array
  */
-struct pt_filters {
+struct pt_filters
+{
 	struct pt_filter	filter[PT_FILTERS_NUM];
 	unsigned int		nr_filters;
 };
@@ -182,7 +188,8 @@ struct pt_filters {
  * @handle_nmi:	do handle PT PMI on this cpu, there's an active event
  * @vmx_on:	1 if VMX is ON on this cpu
  */
-struct pt {
+struct pt
+{
 	struct perf_output_handle handle;
 	struct pt_filters	filters;
 	int			handle_nmi;

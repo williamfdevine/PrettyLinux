@@ -22,7 +22,7 @@
 #if IS_ENABLED(CONFIG_MMC_OMAP)
 
 static int mmc_set_power(struct device *dev, int slot, int power_on,
-				int vdd)
+						 int vdd)
 {
 	gpio_set_value(H2_TPS_GPIO_MMC_PWR_EN, power_on);
 	return 0;
@@ -31,8 +31,11 @@ static int mmc_set_power(struct device *dev, int slot, int power_on,
 static int mmc_late_init(struct device *dev)
 {
 	int ret = gpio_request(H2_TPS_GPIO_MMC_PWR_EN, "MMC power");
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	gpio_direction_output(H2_TPS_GPIO_MMC_PWR_EN, 0);
 
@@ -49,7 +52,8 @@ static void mmc_cleanup(struct device *dev)
  * - mmc_get_cover_state that uses OMAP_MPUIO(1)
  * - mmc_get_wp that uses OMAP_MPUIO(3)
  */
-static struct omap_mmc_platform_data mmc1_data = {
+static struct omap_mmc_platform_data mmc1_data =
+{
 	.nr_slots                       = 1,
 	.init				= mmc_late_init,
 	.cleanup			= mmc_cleanup,

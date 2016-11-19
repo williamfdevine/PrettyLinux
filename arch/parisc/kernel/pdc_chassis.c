@@ -1,4 +1,4 @@
-/* 
+/*
  *    interfaces to Chassis Codes via PDC (firmware)
  *
  *    Copyright (C) 2002 Laurent Canet <canetl@esiee.fr>
@@ -24,9 +24,9 @@
 
 #undef PDC_CHASSIS_DEBUG
 #ifdef PDC_CHASSIS_DEBUG
-#define DPRINTK(fmt, args...)	printk(fmt, ## args)
+	#define DPRINTK(fmt, args...)	printk(fmt, ## args)
 #else
-#define DPRINTK(fmt, args...)
+	#define DPRINTK(fmt, args...)
 #endif
 
 #include <linux/init.h>
@@ -54,7 +54,7 @@ static unsigned int pdc_chassis_enabled __read_mostly = 1;
  * @str configuration param: 0 to disable chassis log
  * @return 1
  */
- 
+
 static int __init pdc_chassis_setup(char *str)
 {
 	/*panic_timeout = simple_strtoul(str, NULL, 0);*/
@@ -64,17 +64,18 @@ static int __init pdc_chassis_setup(char *str)
 __setup("pdcchassis=", pdc_chassis_setup);
 
 
-/** 
+/**
  * pdc_chassis_checkold() - Checks for old PDC_CHASSIS compatibility
  * @pdc_chassis_old: 1 if old pdc chassis style
- * 
+ *
  * Currently, only E class and A180 are known to work with this.
  * Inspired by Christoph Plattner
  */
 #if 0
 static void __init pdc_chassis_checkold(void)
 {
-	switch(CPU_HVERSION) {
+	switch (CPU_HVERSION)
+	{
 		case 0x480:		/* E25 */
 		case 0x481:		/* E35 */
 		case 0x482:		/* E45 */
@@ -85,6 +86,7 @@ static void __init pdc_chassis_checkold(void)
 		default:
 			break;
 	}
+
 	DPRINTK(KERN_DEBUG "%s: pdc_chassis_checkold(); pdc_chassis_old = %d\n", __FILE__, pdc_chassis_old);
 }
 #endif
@@ -96,14 +98,15 @@ static void __init pdc_chassis_checkold(void)
  */
 
 static int pdc_chassis_panic_event(struct notifier_block *this,
-		        unsigned long event, void *ptr)
+								   unsigned long event, void *ptr)
 {
 	pdc_chassis_send_status(PDC_CHASSIS_DIRECT_PANIC);
-		return NOTIFY_DONE;
-}   
+	return NOTIFY_DONE;
+}
 
 
-static struct notifier_block pdc_chassis_panic_block = {
+static struct notifier_block pdc_chassis_panic_block =
+{
 	.notifier_call = pdc_chassis_panic_event,
 	.priority = INT_MAX,
 };
@@ -116,14 +119,15 @@ static struct notifier_block pdc_chassis_panic_block = {
  */
 
 static int pdc_chassis_reboot_event(struct notifier_block *this,
-		        unsigned long event, void *ptr)
+									unsigned long event, void *ptr)
 {
 	pdc_chassis_send_status(PDC_CHASSIS_DIRECT_SHUTDOWN);
-		return NOTIFY_DONE;
-}   
+	return NOTIFY_DONE;
+}
 
 
-static struct notifier_block pdc_chassis_reboot_block = {
+static struct notifier_block pdc_chassis_reboot_block =
+{
 	.notifier_call = pdc_chassis_reboot_event,
 	.priority = INT_MAX,
 };
@@ -137,36 +141,39 @@ static struct notifier_block pdc_chassis_reboot_block = {
 void __init parisc_pdc_chassis_init(void)
 {
 #ifdef CONFIG_PDC_CHASSIS
-	if (likely(pdc_chassis_enabled)) {
+
+	if (likely(pdc_chassis_enabled))
+	{
 		DPRINTK(KERN_DEBUG "%s: parisc_pdc_chassis_init()\n", __FILE__);
 
 		/* Let see if we have something to handle... */
 		printk(KERN_INFO "Enabling %s chassis codes support v%s\n",
-				is_pdc_pat() ? "PDC_PAT" : "regular",
-				PDC_CHASSIS_VER);
+			   is_pdc_pat() ? "PDC_PAT" : "regular",
+			   PDC_CHASSIS_VER);
 
 		/* initialize panic notifier chain */
 		atomic_notifier_chain_register(&panic_notifier_list,
-				&pdc_chassis_panic_block);
+									   &pdc_chassis_panic_block);
 
 		/* initialize reboot notifier chain */
 		register_reboot_notifier(&pdc_chassis_reboot_block);
 	}
+
 #endif /* CONFIG_PDC_CHASSIS */
 }
 
 
-/** 
+/**
  * pdc_chassis_send_status() - Sends a predefined message to the chassis,
  * and changes the front panel LEDs according to the new system state
  * @retval: PDC call return value.
  *
  * Only machines with 64 bits PDC PAT and those reported in
  * pdc_chassis_checkold() are supported atm.
- * 
+ *
  * returns 0 if no error, -1 if no supported PDC is present or invalid message,
  * else returns the appropriate PDC error code.
- * 
+ *
  * For a list of predefined messages, see asm-parisc/pdc_chassis.h
  */
 
@@ -175,13 +182,18 @@ int pdc_chassis_send_status(int message)
 	/* Maybe we should do that in an other way ? */
 	int retval = 0;
 #ifdef CONFIG_PDC_CHASSIS
-	if (likely(pdc_chassis_enabled)) {
+
+	if (likely(pdc_chassis_enabled))
+	{
 
 		DPRINTK(KERN_DEBUG "%s: pdc_chassis_send_status(%d)\n", __FILE__, message);
 
 #ifdef CONFIG_64BIT
-		if (is_pdc_pat()) {
-			switch(message) {
+
+		if (is_pdc_pat())
+		{
+			switch (message)
+			{
 				case PDC_CHASSIS_DIRECT_BSTART:
 					retval = pdc_pat_chassis_send_log(PDC_CHASSIS_PMSG_BSTART, PDC_CHASSIS_LSTATE_RUN_NORMAL);
 					break;
@@ -209,10 +221,15 @@ int pdc_chassis_send_status(int message)
 				default:
 					retval = -1;
 			}
-		} else retval = -1;
+		}
+		else { retval = -1; }
+
 #else
-		if (1) {
-			switch (message) {
+
+		if (1)
+		{
+			switch (message)
+			{
 				case PDC_CHASSIS_DIRECT_BSTART:
 					retval = pdc_chassis_disp(PDC_CHASSIS_DISP_DATA(OSTAT_INIT));
 					break;
@@ -237,9 +254,12 @@ int pdc_chassis_send_status(int message)
 				default:
 					retval = -1;
 			}
-		} else retval = -1;
+		}
+		else { retval = -1; }
+
 #endif /* CONFIG_64BIT */
 	}	/* if (pdc_chassis_enabled) */
+
 #endif /* CONFIG_PDC_CHASSIS */
 	return retval;
 }
@@ -252,13 +272,15 @@ static int pdc_chassis_warn_show(struct seq_file *m, void *v)
 	u32 warnreg;
 
 	if (pdc_chassis_warn(&warn) != PDC_OK)
+	{
 		return -EIO;
+	}
 
 	warnreg = (warn & 0xFFFFFFFF);
 
 	if ((warnreg >> 24) & 0xFF)
 		seq_printf(m, "Chassis component failure! (eg fan or PSU): 0x%.2x\n",
-			   (warnreg >> 24) & 0xFF);
+				   (warnreg >> 24) & 0xFF);
 
 	seq_printf(m, "Battery: %s\n", (warnreg & 0x04) ? "Low!" : "OK");
 	seq_printf(m, "Temp low: %s\n", (warnreg & 0x02) ? "Exceeded!" : "OK");
@@ -271,7 +293,8 @@ static int pdc_chassis_warn_open(struct inode *inode, struct file *file)
 	return single_open(file, pdc_chassis_warn_show, NULL);
 }
 
-static const struct file_operations pdc_chassis_warn_fops = {
+static const struct file_operations pdc_chassis_warn_fops =
+{
 	.open		= pdc_chassis_warn_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -284,14 +307,16 @@ static int __init pdc_chassis_create_procfs(void)
 	int ret;
 
 	ret = pdc_chassis_warn(&test);
-	if ((ret == PDC_BAD_PROC) || (ret == PDC_BAD_OPTION)) {
+
+	if ((ret == PDC_BAD_PROC) || (ret == PDC_BAD_OPTION))
+	{
 		/* seems that some boxes (eg L1000) do not implement this */
 		printk(KERN_INFO "Chassis warnings not supported.\n");
 		return 0;
 	}
 
 	printk(KERN_INFO "Enabling PDC chassis warnings support v%s\n",
-			PDC_CHASSIS_VER);
+		   PDC_CHASSIS_VER);
 	proc_create("chassis", 0400, NULL, &pdc_chassis_warn_fops);
 	return 0;
 }

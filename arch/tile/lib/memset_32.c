@@ -37,32 +37,39 @@ void *memset(void *s, int c, size_t n)
 #error "BYTE_CUTOFF is too small"
 #endif
 
-	if (n < BYTE_CUTOFF) {
+	if (n < BYTE_CUTOFF)
+	{
 		/* Strangely, this turns out to be the tightest way to
 		 * write this loop.
 		 */
-		if (n != 0) {
-			do {
+		if (n != 0)
+		{
+			do
+			{
 				/* Strangely, combining these into one line
 				 * performs worse.
 				 */
 				*out8 = c;
 				out8++;
-			} while (--n != 0);
+			}
+			while (--n != 0);
 		}
 
 		return s;
 	}
 
 	/* Align 'out8'. We know n >= 3 so this won't write past the end. */
-	while (((uintptr_t) out8 & 3) != 0) {
+	while (((uintptr_t) out8 & 3) != 0)
+	{
 		*out8++ = c;
 		--n;
 	}
 
 	/* Align 'n'. */
 	while (n & 3)
+	{
 		out8[--n] = c;
+	}
 
 	out32 = (uint32_t *) out8;
 	n32 = n >> 2;
@@ -84,12 +91,15 @@ void *memset(void *s, int c, size_t n)
 	 * one full cache line to process.  This check also prevents
 	 * overrunning the end of the buffer with alignment words.
 	 */
-	if (to_align32 <= n32 - CACHE_LINE_SIZE_IN_WORDS) {
+	if (to_align32 <= n32 - CACHE_LINE_SIZE_IN_WORDS)
+	{
 		int lines_left;
 
 		/* Align out32 mod the cache line size so we can use wh64. */
 		n32 -= to_align32;
-		for (; to_align32 != 0; to_align32--) {
+
+		for (; to_align32 != 0; to_align32--)
+		{
 			*out32 = v32;
 			out32++;
 		}
@@ -97,32 +107,37 @@ void *memset(void *s, int c, size_t n)
 		/* Use unsigned divide to turn this into a right shift. */
 		lines_left = (unsigned)n32 / CACHE_LINE_SIZE_IN_WORDS;
 
-		do {
+		do
+		{
 			/* Only wh64 a few lines at a time, so we don't
 			 * exceed the maximum number of victim lines.
 			 */
 			int x = ((lines_left < CHIP_MAX_OUTSTANDING_VICTIMS())
-				  ? lines_left
-				  : CHIP_MAX_OUTSTANDING_VICTIMS());
+					 ? lines_left
+					 : CHIP_MAX_OUTSTANDING_VICTIMS());
 			uint32_t *wh = out32;
 			int i = x;
 			int j;
 
 			lines_left -= x;
 
-			do {
+			do
+			{
 				__insn_wh64(wh);
 				wh += CACHE_LINE_SIZE_IN_WORDS;
-			} while (--i);
+			}
+			while (--i);
 
 			for (j = x * (CACHE_LINE_SIZE_IN_WORDS / 4);
-			     j != 0; j--) {
+				 j != 0; j--)
+			{
 				*out32++ = v32;
 				*out32++ = v32;
 				*out32++ = v32;
 				*out32++ = v32;
 			}
-		} while (lines_left != 0);
+		}
+		while (lines_left != 0);
 
 		/* We processed all full lines above, so only this many
 		 * words remain to be processed.
@@ -131,11 +146,14 @@ void *memset(void *s, int c, size_t n)
 	}
 
 	/* Now handle any leftover values. */
-	if (n32 != 0) {
-		do {
+	if (n32 != 0)
+	{
+		do
+		{
 			*out32 = v32;
 			out32++;
-		} while (--n32 != 0);
+		}
+		while (--n32 != 0);
 	}
 
 	return s;

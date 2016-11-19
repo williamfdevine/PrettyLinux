@@ -57,12 +57,13 @@ static DEFINE_SPINLOCK(au1xxx_dbdma_spin_lock);
 #define ALIGN_ADDR(x, a)	((((u32)(x)) + (a-1)) & ~(a-1))
 
 static dbdma_global_t *dbdma_gptr =
-			(dbdma_global_t *)KSEG1ADDR(AU1550_DBDMA_CONF_PHYS_ADDR);
+	(dbdma_global_t *)KSEG1ADDR(AU1550_DBDMA_CONF_PHYS_ADDR);
 static int dbdma_initialized;
 
 static dbdev_tab_t *dbdev_tab;
 
-static dbdev_tab_t au1550_dbdev_tab[] __initdata = {
+static dbdev_tab_t au1550_dbdev_tab[] __initdata =
+{
 	/* UARTS */
 	{ AU1550_DSCR_CMD0_UART0_TX, DEV_FLAGS_OUT, 0, 8, 0x11100004, 0, 0 },
 	{ AU1550_DSCR_CMD0_UART0_RX, DEV_FLAGS_IN,  0, 8, 0x11100000, 0, 0 },
@@ -108,7 +109,8 @@ static dbdev_tab_t au1550_dbdev_tab[] __initdata = {
 	{ DSCR_CMD0_ALWAYS,   DEV_FLAGS_ANYUSE, 0, 0, 0x00000000, 0, 0 },
 };
 
-static dbdev_tab_t au1200_dbdev_tab[] __initdata = {
+static dbdev_tab_t au1200_dbdev_tab[] __initdata =
+{
 	{ AU1200_DSCR_CMD0_UART0_TX, DEV_FLAGS_OUT, 0, 8, 0x11100004, 0, 0 },
 	{ AU1200_DSCR_CMD0_UART0_RX, DEV_FLAGS_IN,  0, 8, 0x11100000, 0, 0 },
 	{ AU1200_DSCR_CMD0_UART1_TX, DEV_FLAGS_OUT, 0, 8, 0x11200004, 0, 0 },
@@ -148,7 +150,8 @@ static dbdev_tab_t au1200_dbdev_tab[] __initdata = {
 	{ DSCR_CMD0_ALWAYS,   DEV_FLAGS_ANYUSE, 0, 0, 0x00000000, 0, 0 },
 };
 
-static dbdev_tab_t au1300_dbdev_tab[] __initdata = {
+static dbdev_tab_t au1300_dbdev_tab[] __initdata =
+{
 	{ AU1300_DSCR_CMD0_UART0_TX, DEV_FLAGS_OUT, 0, 8,  0x10100004, 0, 0 },
 	{ AU1300_DSCR_CMD0_UART0_RX, DEV_FLAGS_IN,  0, 8,  0x10100000, 0, 0 },
 	{ AU1300_DSCR_CMD0_UART1_TX, DEV_FLAGS_OUT, 0, 8,  0x10101004, 0, 0 },
@@ -201,11 +204,17 @@ static dbdev_tab_t *find_dbdev_id(u32 id)
 {
 	int i;
 	dbdev_tab_t *p;
-	for (i = 0; i < DBDEV_TAB_SIZE; ++i) {
+
+	for (i = 0; i < DBDEV_TAB_SIZE; ++i)
+	{
 		p = &dbdev_tab[i];
+
 		if (p->dev_id == id)
+		{
 			return p;
+		}
 	}
+
 	return NULL;
 }
 
@@ -222,14 +231,16 @@ u32 au1xxx_ddma_add_device(dbdev_tab_t *dev)
 	static u16 new_id = 0x1000;
 
 	p = find_dbdev_id(~0);
-	if (NULL != p) {
+
+	if (NULL != p)
+	{
 		memcpy(p, dev, sizeof(dbdev_tab_t));
 		p->dev_id = DSCR_DEV2CUSTOM_ID(new_id, dev->dev_id);
 		ret = p->dev_id;
 		new_id++;
 #if 0
 		printk(KERN_DEBUG "add_device: id:%x flags:%x padd:%x\n",
-				  p->dev_id, p->dev_flags, p->dev_physaddr);
+			   p->dev_id, p->dev_flags, p->dev_physaddr);
 #endif
 	}
 
@@ -241,7 +252,8 @@ void au1xxx_ddma_del_device(u32 devid)
 {
 	dbdev_tab_t *p = find_dbdev_id(devid);
 
-	if (p != NULL) {
+	if (p != NULL)
+	{
 		memset(p, 0, sizeof(dbdev_tab_t));
 		p->dev_id = ~0;
 	}
@@ -250,7 +262,7 @@ EXPORT_SYMBOL(au1xxx_ddma_del_device);
 
 /* Allocate a channel and return a non-zero descriptor if successful. */
 u32 au1xxx_dbdma_chan_alloc(u32 srcid, u32 destid,
-       void (*callback)(int, void *), void *callparam)
+							void (*callback)(int, void *), void *callparam)
 {
 	unsigned long	flags;
 	u32		used, chan;
@@ -266,45 +278,68 @@ u32 au1xxx_dbdma_chan_alloc(u32 srcid, u32 destid,
 	 * which can't be done successfully during board set up.
 	 */
 	if (!dbdma_initialized)
+	{
 		return 0;
+	}
 
 	stp = find_dbdev_id(srcid);
+
 	if (stp == NULL)
+	{
 		return 0;
+	}
+
 	dtp = find_dbdev_id(destid);
+
 	if (dtp == NULL)
+	{
 		return 0;
+	}
 
 	used = 0;
 
 	/* Check to see if we can get both channels. */
 	spin_lock_irqsave(&au1xxx_dbdma_spin_lock, flags);
+
 	if (!(stp->dev_flags & DEV_FLAGS_INUSE) ||
-	     (stp->dev_flags & DEV_FLAGS_ANYUSE)) {
+		(stp->dev_flags & DEV_FLAGS_ANYUSE))
+	{
 		/* Got source */
 		stp->dev_flags |= DEV_FLAGS_INUSE;
+
 		if (!(dtp->dev_flags & DEV_FLAGS_INUSE) ||
-		     (dtp->dev_flags & DEV_FLAGS_ANYUSE)) {
+			(dtp->dev_flags & DEV_FLAGS_ANYUSE))
+		{
 			/* Got destination */
 			dtp->dev_flags |= DEV_FLAGS_INUSE;
-		} else {
+		}
+		else
+		{
 			/* Can't get dest.  Release src. */
 			stp->dev_flags &= ~DEV_FLAGS_INUSE;
 			used++;
 		}
-	} else
+	}
+	else
+	{
 		used++;
+	}
+
 	spin_unlock_irqrestore(&au1xxx_dbdma_spin_lock, flags);
 
 	if (used)
+	{
 		return 0;
+	}
 
 	/* Let's see if we can allocate a channel for it. */
 	ctp = NULL;
 	chan = 0;
 	spin_lock_irqsave(&au1xxx_dbdma_spin_lock, flags);
+
 	for (i = 0; i < NUM_DBDMA_CHANS; i++)
-		if (chan_tab_ptr[i] == NULL) {
+		if (chan_tab_ptr[i] == NULL)
+		{
 			/*
 			 * If kmalloc fails, it is caught below same
 			 * as a channel not available.
@@ -313,9 +348,11 @@ u32 au1xxx_dbdma_chan_alloc(u32 srcid, u32 destid,
 			chan_tab_ptr[i] = ctp;
 			break;
 		}
+
 	spin_unlock_irqrestore(&au1xxx_dbdma_spin_lock, flags);
 
-	if (ctp != NULL) {
+	if (ctp != NULL)
+	{
 		memset(ctp, 0, sizeof(chan_tab_t));
 		ctp->chan_index = chan = i;
 		dcp = KSEG1ADDR(AU1550_DBDMA_PHYS_ADDR);
@@ -329,17 +366,33 @@ u32 au1xxx_dbdma_chan_alloc(u32 srcid, u32 destid,
 
 		/* Initialize channel configuration. */
 		i = 0;
+
 		if (stp->dev_intlevel)
+		{
 			i |= DDMA_CFG_SED;
+		}
+
 		if (stp->dev_intpolarity)
+		{
 			i |= DDMA_CFG_SP;
+		}
+
 		if (dtp->dev_intlevel)
+		{
 			i |= DDMA_CFG_DED;
+		}
+
 		if (dtp->dev_intpolarity)
+		{
 			i |= DDMA_CFG_DP;
+		}
+
 		if ((stp->dev_flags & DEV_FLAGS_SYNC) ||
 			(dtp->dev_flags & DEV_FLAGS_SYNC))
-				i |= DDMA_CFG_SYNC;
+		{
+			i |= DDMA_CFG_SYNC;
+		}
+
 		cp->ddma_cfg = i;
 		wmb(); /* drain writebuffer */
 
@@ -373,11 +426,14 @@ u32 au1xxx_dbdma_set_devwidth(u32 chanid, int bits)
 	dtp = ctp->chan_dest;
 	rv = 0;
 
-	if (stp->dev_flags & DEV_FLAGS_IN) {	/* Source in fifo */
+	if (stp->dev_flags & DEV_FLAGS_IN)  	/* Source in fifo */
+	{
 		rv = stp->dev_devwidth;
 		stp->dev_devwidth = bits;
 	}
-	if (dtp->dev_flags & DEV_FLAGS_OUT) {	/* Destination out fifo */
+
+	if (dtp->dev_flags & DEV_FLAGS_OUT)  	/* Destination out fifo */
+	{
 		rv = dtp->dev_devwidth;
 		dtp->dev_devwidth = bits;
 	}
@@ -412,11 +468,15 @@ u32 au1xxx_dbdma_ring_alloc(u32 chanid, int entries)
 	 * slabs of memory.
 	 */
 	desc_base = (u32)kmalloc(entries * sizeof(au1x_ddma_desc_t),
-				 GFP_KERNEL|GFP_DMA);
-	if (desc_base == 0)
-		return 0;
+							 GFP_KERNEL | GFP_DMA);
 
-	if (desc_base & 0x1f) {
+	if (desc_base == 0)
+	{
+		return 0;
+	}
+
+	if (desc_base & 0x1f)
+	{
 		/*
 		 * Lost....do it again, allocate extra, and round
 		 * the address base.
@@ -424,14 +484,20 @@ u32 au1xxx_dbdma_ring_alloc(u32 chanid, int entries)
 		kfree((const void *)desc_base);
 		i = entries * sizeof(au1x_ddma_desc_t);
 		i += (sizeof(au1x_ddma_desc_t) - 1);
-		desc_base = (u32)kmalloc(i, GFP_KERNEL|GFP_DMA);
+		desc_base = (u32)kmalloc(i, GFP_KERNEL | GFP_DMA);
+
 		if (desc_base == 0)
+		{
 			return 0;
+		}
 
 		ctp->cdb_membase = desc_base;
 		desc_base = ALIGN_ADDR(desc_base, sizeof(au1x_ddma_desc_t));
-	} else
+	}
+	else
+	{
 		ctp->cdb_membase = desc_base;
+	}
 
 	dp = (au1x_ddma_desc_t *)desc_base;
 
@@ -452,35 +518,43 @@ u32 au1xxx_dbdma_ring_alloc(u32 chanid, int entries)
 
 	/* Is it mem to mem transfer? */
 	if (((DSCR_CUSTOM2DEV_ID(srcid) == DSCR_CMD0_THROTTLE) ||
-	     (DSCR_CUSTOM2DEV_ID(srcid) == DSCR_CMD0_ALWAYS)) &&
-	    ((DSCR_CUSTOM2DEV_ID(destid) == DSCR_CMD0_THROTTLE) ||
-	     (DSCR_CUSTOM2DEV_ID(destid) == DSCR_CMD0_ALWAYS)))
+		 (DSCR_CUSTOM2DEV_ID(srcid) == DSCR_CMD0_ALWAYS)) &&
+		((DSCR_CUSTOM2DEV_ID(destid) == DSCR_CMD0_THROTTLE) ||
+		 (DSCR_CUSTOM2DEV_ID(destid) == DSCR_CMD0_ALWAYS)))
+	{
 		cmd0 |= DSCR_CMD0_MEM;
-
-	switch (stp->dev_devwidth) {
-	case 8:
-		cmd0 |= DSCR_CMD0_SW(DSCR_CMD0_BYTE);
-		break;
-	case 16:
-		cmd0 |= DSCR_CMD0_SW(DSCR_CMD0_HALFWORD);
-		break;
-	case 32:
-	default:
-		cmd0 |= DSCR_CMD0_SW(DSCR_CMD0_WORD);
-		break;
 	}
 
-	switch (dtp->dev_devwidth) {
-	case 8:
-		cmd0 |= DSCR_CMD0_DW(DSCR_CMD0_BYTE);
-		break;
-	case 16:
-		cmd0 |= DSCR_CMD0_DW(DSCR_CMD0_HALFWORD);
-		break;
-	case 32:
-	default:
-		cmd0 |= DSCR_CMD0_DW(DSCR_CMD0_WORD);
-		break;
+	switch (stp->dev_devwidth)
+	{
+		case 8:
+			cmd0 |= DSCR_CMD0_SW(DSCR_CMD0_BYTE);
+			break;
+
+		case 16:
+			cmd0 |= DSCR_CMD0_SW(DSCR_CMD0_HALFWORD);
+			break;
+
+		case 32:
+		default:
+			cmd0 |= DSCR_CMD0_SW(DSCR_CMD0_WORD);
+			break;
+	}
+
+	switch (dtp->dev_devwidth)
+	{
+		case 8:
+			cmd0 |= DSCR_CMD0_DW(DSCR_CMD0_BYTE);
+			break;
+
+		case 16:
+			cmd0 |= DSCR_CMD0_DW(DSCR_CMD0_HALFWORD);
+			break;
+
+		case 32:
+		default:
+			cmd0 |= DSCR_CMD0_DW(DSCR_CMD0_WORD);
+			break;
 	}
 
 	/*
@@ -488,79 +562,108 @@ u32 au1xxx_dbdma_ring_alloc(u32 chanid, int entries)
 	 * set non-coherent.
 	 */
 	if (stp->dev_flags & DEV_FLAGS_IN)
-		cmd0 |= DSCR_CMD0_SN;		/* Source in FIFO */
+	{
+		cmd0 |= DSCR_CMD0_SN;    /* Source in FIFO */
+	}
+
 	if (dtp->dev_flags & DEV_FLAGS_OUT)
-		cmd0 |= DSCR_CMD0_DN;		/* Destination out FIFO */
+	{
+		cmd0 |= DSCR_CMD0_DN;    /* Destination out FIFO */
+	}
 
 	/*
 	 * Set up source1.  For now, assume no stride and increment.
 	 * A channel attribute update can change this later.
 	 */
-	switch (stp->dev_tsize) {
-	case 1:
-		src1 |= DSCR_SRC1_STS(DSCR_xTS_SIZE1);
-		break;
-	case 2:
-		src1 |= DSCR_SRC1_STS(DSCR_xTS_SIZE2);
-		break;
-	case 4:
-		src1 |= DSCR_SRC1_STS(DSCR_xTS_SIZE4);
-		break;
-	case 8:
-	default:
-		src1 |= DSCR_SRC1_STS(DSCR_xTS_SIZE8);
-		break;
+	switch (stp->dev_tsize)
+	{
+		case 1:
+			src1 |= DSCR_SRC1_STS(DSCR_xTS_SIZE1);
+			break;
+
+		case 2:
+			src1 |= DSCR_SRC1_STS(DSCR_xTS_SIZE2);
+			break;
+
+		case 4:
+			src1 |= DSCR_SRC1_STS(DSCR_xTS_SIZE4);
+			break;
+
+		case 8:
+		default:
+			src1 |= DSCR_SRC1_STS(DSCR_xTS_SIZE8);
+			break;
 	}
 
 	/* If source input is FIFO, set static address. */
-	if (stp->dev_flags & DEV_FLAGS_IN) {
+	if (stp->dev_flags & DEV_FLAGS_IN)
+	{
 		if (stp->dev_flags & DEV_FLAGS_BURSTABLE)
+		{
 			src1 |= DSCR_SRC1_SAM(DSCR_xAM_BURST);
+		}
 		else
+		{
 			src1 |= DSCR_SRC1_SAM(DSCR_xAM_STATIC);
+		}
 	}
 
 	if (stp->dev_physaddr)
+	{
 		src0 = stp->dev_physaddr;
+	}
 
 	/*
 	 * Set up dest1.  For now, assume no stride and increment.
 	 * A channel attribute update can change this later.
 	 */
-	switch (dtp->dev_tsize) {
-	case 1:
-		dest1 |= DSCR_DEST1_DTS(DSCR_xTS_SIZE1);
-		break;
-	case 2:
-		dest1 |= DSCR_DEST1_DTS(DSCR_xTS_SIZE2);
-		break;
-	case 4:
-		dest1 |= DSCR_DEST1_DTS(DSCR_xTS_SIZE4);
-		break;
-	case 8:
-	default:
-		dest1 |= DSCR_DEST1_DTS(DSCR_xTS_SIZE8);
-		break;
+	switch (dtp->dev_tsize)
+	{
+		case 1:
+			dest1 |= DSCR_DEST1_DTS(DSCR_xTS_SIZE1);
+			break;
+
+		case 2:
+			dest1 |= DSCR_DEST1_DTS(DSCR_xTS_SIZE2);
+			break;
+
+		case 4:
+			dest1 |= DSCR_DEST1_DTS(DSCR_xTS_SIZE4);
+			break;
+
+		case 8:
+		default:
+			dest1 |= DSCR_DEST1_DTS(DSCR_xTS_SIZE8);
+			break;
 	}
 
 	/* If destination output is FIFO, set static address. */
-	if (dtp->dev_flags & DEV_FLAGS_OUT) {
+	if (dtp->dev_flags & DEV_FLAGS_OUT)
+	{
 		if (dtp->dev_flags & DEV_FLAGS_BURSTABLE)
+		{
 			dest1 |= DSCR_DEST1_DAM(DSCR_xAM_BURST);
+		}
 		else
+		{
 			dest1 |= DSCR_DEST1_DAM(DSCR_xAM_STATIC);
+		}
 	}
 
 	if (dtp->dev_physaddr)
+	{
 		dest0 = dtp->dev_physaddr;
+	}
 
 #if 0
-		printk(KERN_DEBUG "did:%x sid:%x cmd0:%x cmd1:%x source0:%x "
-				  "source1:%x dest0:%x dest1:%x\n",
-				  dtp->dev_id, stp->dev_id, cmd0, cmd1, src0,
-				  src1, dest0, dest1);
+	printk(KERN_DEBUG "did:%x sid:%x cmd0:%x cmd1:%x source0:%x "
+		   "source1:%x dest0:%x dest1:%x\n",
+		   dtp->dev_id, stp->dev_id, cmd0, cmd1, src0,
+		   src1, dest0, dest1);
 #endif
-	for (i = 0; i < entries; i++) {
+
+	for (i = 0; i < entries; i++)
+	{
 		dp->dscr_cmd0 = cmd0;
 		dp->dscr_cmd1 = cmd1;
 		dp->dscr_source0 = src0;
@@ -611,16 +714,24 @@ u32 au1xxx_dbdma_put_source(u32 chanid, dma_addr_t buf, int nbytes, u32 flags)
 	 * engine, so just return an error condition.
 	 */
 	if (dp->dscr_cmd0 & DSCR_CMD0_V)
+	{
 		return 0;
+	}
 
 	/* Load up buffer address and byte count. */
 	dp->dscr_source0 = buf & ~0UL;
 	dp->dscr_cmd1 = nbytes;
+
 	/* Check flags */
 	if (flags & DDMA_FLAGS_IE)
+	{
 		dp->dscr_cmd0 |= DSCR_CMD0_IE;
+	}
+
 	if (flags & DDMA_FLAGS_NOIE)
+	{
 		dp->dscr_cmd0 &= ~DSCR_CMD0_IE;
+	}
 
 	/*
 	 * There is an errata on the Au1200/Au1550 parts that could result
@@ -667,22 +778,29 @@ u32 au1xxx_dbdma_put_dest(u32 chanid, dma_addr_t buf, int nbytes, u32 flags)
 	 * engine, so just return an error condition.
 	 */
 	if (dp->dscr_cmd0 & DSCR_CMD0_V)
+	{
 		return 0;
+	}
 
 	/* Load up buffer address and byte count */
 
 	/* Check flags  */
 	if (flags & DDMA_FLAGS_IE)
+	{
 		dp->dscr_cmd0 |= DSCR_CMD0_IE;
+	}
+
 	if (flags & DDMA_FLAGS_NOIE)
+	{
 		dp->dscr_cmd0 &= ~DSCR_CMD0_IE;
+	}
 
 	dp->dscr_dest0 = buf & ~0UL;
 	dp->dscr_cmd1 = nbytes;
 #if 0
 	printk(KERN_DEBUG "cmd0:%x cmd1:%x source0:%x source1:%x dest0:%x dest1:%x\n",
-			  dp->dscr_cmd0, dp->dscr_cmd1, dp->dscr_source0,
-			  dp->dscr_source1, dp->dscr_dest0, dp->dscr_dest1);
+		   dp->dscr_cmd0, dp->dscr_cmd1, dp->dscr_source0,
+		   dp->dscr_source1, dp->dscr_dest0, dp->dscr_dest1);
 #endif
 	/*
 	 * There is an errata on the Au1200/Au1550 parts that could result in
@@ -735,7 +853,9 @@ u32 au1xxx_dbdma_get_dest(u32 chanid, void **buf, int *nbytes)
 	 * engine, so just return an error condition.
 	 */
 	if (dp->dscr_cmd0 & DSCR_CMD0_V)
+	{
 		return 0;
+	}
 
 	/* Return buffer address and byte count. */
 	*buf = (void *)(phys_to_virt(dp->dscr_dest0));
@@ -761,14 +881,19 @@ void au1xxx_dbdma_stop(u32 chanid)
 	cp = ctp->chan_ptr;
 	cp->ddma_cfg &= ~DDMA_CFG_EN;	/* Disable channel */
 	wmb(); /* drain writebuffer */
-	while (!(cp->ddma_stat & DDMA_STAT_H)) {
+
+	while (!(cp->ddma_stat & DDMA_STAT_H))
+	{
 		udelay(1);
 		halt_timeout++;
-		if (halt_timeout > 100) {
+
+		if (halt_timeout > 100)
+		{
 			printk(KERN_WARNING "warning: DMA channel won't halt\n");
 			break;
 		}
 	}
+
 	/* clear current desc valid and doorbell */
 	cp->ddma_stat |= (DDMA_STAT_DB | DDMA_STAT_V);
 	wmb(); /* drain writebuffer */
@@ -808,7 +933,8 @@ void au1xxx_dbdma_reset(u32 chanid)
 	/* Run through the descriptors and reset the valid indicator. */
 	dp = ctp->chan_desc_base;
 
-	do {
+	do
+	{
 		dp->dscr_cmd0 &= ~DSCR_CMD0_V;
 		/*
 		 * Reset our software status -- this is used to determine
@@ -817,7 +943,8 @@ void au1xxx_dbdma_reset(u32 chanid)
 		 */
 		dp->sw_status = 0;
 		dp = phys_to_virt(DSCR_GET_NXTPTR(dp->dscr_nxtptr));
-	} while (dp != ctp->chan_desc_base);
+	}
+	while (dp != ctp->chan_desc_base);
 }
 EXPORT_SYMBOL(au1xxx_dbdma_reset);
 
@@ -880,7 +1007,9 @@ static irqreturn_t dbdma_interrupt(int irq, void *dev_id)
 	wmb(); /* drain writebuffer */
 
 	if (ctp->chan_callback)
+	{
 		ctp->chan_callback(irq, ctp->chan_callparam);
+	}
 
 	ctp->cur_ptr = phys_to_virt(DSCR_GET_NXTPTR(dp->dscr_nxtptr));
 	return IRQ_RETVAL(1);
@@ -900,32 +1029,34 @@ void au1xxx_dbdma_dump(u32 chanid)
 	cp = ctp->chan_ptr;
 
 	printk(KERN_DEBUG "Chan %x, stp %x (dev %d)  dtp %x (dev %d)\n",
-			  (u32)ctp, (u32)stp, stp - dbdev_tab, (u32)dtp,
-			  dtp - dbdev_tab);
+		   (u32)ctp, (u32)stp, stp - dbdev_tab, (u32)dtp,
+		   dtp - dbdev_tab);
 	printk(KERN_DEBUG "desc base %x, get %x, put %x, cur %x\n",
-			  (u32)(ctp->chan_desc_base), (u32)(ctp->get_ptr),
-			  (u32)(ctp->put_ptr), (u32)(ctp->cur_ptr));
+		   (u32)(ctp->chan_desc_base), (u32)(ctp->get_ptr),
+		   (u32)(ctp->put_ptr), (u32)(ctp->cur_ptr));
 
 	printk(KERN_DEBUG "dbdma chan %x\n", (u32)cp);
 	printk(KERN_DEBUG "cfg %08x, desptr %08x, statptr %08x\n",
-			  cp->ddma_cfg, cp->ddma_desptr, cp->ddma_statptr);
+		   cp->ddma_cfg, cp->ddma_desptr, cp->ddma_statptr);
 	printk(KERN_DEBUG "dbell %08x, irq %08x, stat %08x, bytecnt %08x\n",
-			  cp->ddma_dbell, cp->ddma_irq, cp->ddma_stat,
-			  cp->ddma_bytecnt);
+		   cp->ddma_dbell, cp->ddma_irq, cp->ddma_stat,
+		   cp->ddma_bytecnt);
 
 	/* Run through the descriptors */
 	dp = ctp->chan_desc_base;
 
-	do {
+	do
+	{
 		printk(KERN_DEBUG "Dp[%d]= %08x, cmd0 %08x, cmd1 %08x\n",
-				  i++, (u32)dp, dp->dscr_cmd0, dp->dscr_cmd1);
+			   i++, (u32)dp, dp->dscr_cmd0, dp->dscr_cmd1);
 		printk(KERN_DEBUG "src0 %08x, src1 %08x, dest0 %08x, dest1 %08x\n",
-				  dp->dscr_source0, dp->dscr_source1,
-				  dp->dscr_dest0, dp->dscr_dest1);
+			   dp->dscr_source0, dp->dscr_source1,
+			   dp->dscr_dest0, dp->dscr_dest1);
 		printk(KERN_DEBUG "stat %08x, nxtptr %08x\n",
-				  dp->dscr_stat, dp->dscr_nxtptr);
+			   dp->dscr_stat, dp->dscr_nxtptr);
 		dp = phys_to_virt(DSCR_GET_NXTPTR(dp->dscr_nxtptr));
-	} while (dp != ctp->chan_desc_base);
+	}
+	while (dp != ctp->chan_desc_base);
 }
 
 /* Put a descriptor into the DMA ring.
@@ -955,7 +1086,9 @@ u32 au1xxx_dbdma_put_dscr(u32 chanid, au1x_ddma_desc_t *dscr)
 	 * engine, so just return an error condition.
 	 */
 	if (dp->dscr_cmd0 & DSCR_CMD0_V)
+	{
 		return 0;
+	}
 
 	/* Load up buffer addresses and byte count. */
 	dp->dscr_dest0 = dscr->dscr_dest0;
@@ -992,7 +1125,9 @@ static int alchemy_dbdma_suspend(void)
 
 	/* save channel configurations */
 	addr = (void __iomem *)KSEG1ADDR(AU1550_DBDMA_PHYS_ADDR);
-	for (i = 1; i <= NUM_DBDMA_CHANS; i++) {
+
+	for (i = 1; i <= NUM_DBDMA_CHANS; i++)
+	{
 		alchemy_dbdma_pm_data[i][0] = __raw_readl(addr + 0x00);
 		alchemy_dbdma_pm_data[i][1] = __raw_readl(addr + 0x04);
 		alchemy_dbdma_pm_data[i][2] = __raw_readl(addr + 0x08);
@@ -1003,11 +1138,15 @@ static int alchemy_dbdma_suspend(void)
 		/* halt channel */
 		__raw_writel(alchemy_dbdma_pm_data[i][0] & ~1, addr + 0x00);
 		wmb();
+
 		while (!(__raw_readl(addr + 0x14) & 1))
+		{
 			wmb();
+		}
 
 		addr += 0x100;	/* next channel base */
 	}
+
 	/* disable channel interrupts */
 	addr = (void __iomem *)KSEG1ADDR(AU1550_DBDMA_CONF_PHYS_ADDR);
 	__raw_writel(0, addr + 0x0c);
@@ -1029,7 +1168,9 @@ static void alchemy_dbdma_resume(void)
 
 	/* restore channel configurations */
 	addr = (void __iomem *)KSEG1ADDR(AU1550_DBDMA_PHYS_ADDR);
-	for (i = 1; i <= NUM_DBDMA_CHANS; i++) {
+
+	for (i = 1; i <= NUM_DBDMA_CHANS; i++)
+	{
 		__raw_writel(alchemy_dbdma_pm_data[i][0], addr + 0x00);
 		__raw_writel(alchemy_dbdma_pm_data[i][1], addr + 0x04);
 		__raw_writel(alchemy_dbdma_pm_data[i][2], addr + 0x08);
@@ -1041,7 +1182,8 @@ static void alchemy_dbdma_resume(void)
 	}
 }
 
-static struct syscore_ops alchemy_dbdma_syscore_ops = {
+static struct syscore_ops alchemy_dbdma_syscore_ops =
+{
 	.suspend	= alchemy_dbdma_suspend,
 	.resume		= alchemy_dbdma_resume,
 };
@@ -1051,12 +1193,18 @@ static int __init dbdma_setup(unsigned int irq, dbdev_tab_t *idtable)
 	int ret;
 
 	dbdev_tab = kzalloc(sizeof(dbdev_tab_t) * DBDEV_TAB_SIZE, GFP_KERNEL);
+
 	if (!dbdev_tab)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(dbdev_tab, idtable, 32 * sizeof(dbdev_tab_t));
+
 	for (ret = 32; ret < DBDEV_TAB_SIZE; ret++)
+	{
 		dbdev_tab[ret].dev_id = ~0;
+	}
 
 	dbdma_gptr->ddma_config = 0;
 	dbdma_gptr->ddma_throttle = 0;
@@ -1064,9 +1212,13 @@ static int __init dbdma_setup(unsigned int irq, dbdev_tab_t *idtable)
 	wmb(); /* drain writebuffer */
 
 	ret = request_irq(irq, dbdma_interrupt, 0, "dbdma", (void *)dbdma_gptr);
+
 	if (ret)
+	{
 		printk(KERN_ERR "Cannot grab DBDMA interrupt!\n");
-	else {
+	}
+	else
+	{
 		dbdma_initialized = 1;
 		register_syscore_ops(&alchemy_dbdma_syscore_ops);
 	}
@@ -1076,14 +1228,18 @@ static int __init dbdma_setup(unsigned int irq, dbdev_tab_t *idtable)
 
 static int __init alchemy_dbdma_init(void)
 {
-	switch (alchemy_get_cputype()) {
-	case ALCHEMY_CPU_AU1550:
-		return dbdma_setup(AU1550_DDMA_INT, au1550_dbdev_tab);
-	case ALCHEMY_CPU_AU1200:
-		return dbdma_setup(AU1200_DDMA_INT, au1200_dbdev_tab);
-	case ALCHEMY_CPU_AU1300:
-		return dbdma_setup(AU1300_DDMA_INT, au1300_dbdev_tab);
+	switch (alchemy_get_cputype())
+	{
+		case ALCHEMY_CPU_AU1550:
+			return dbdma_setup(AU1550_DDMA_INT, au1550_dbdev_tab);
+
+		case ALCHEMY_CPU_AU1200:
+			return dbdma_setup(AU1200_DDMA_INT, au1200_dbdev_tab);
+
+		case ALCHEMY_CPU_AU1300:
+			return dbdma_setup(AU1300_DDMA_INT, au1300_dbdev_tab);
 	}
+
 	return 0;
 }
 subsys_initcall(alchemy_dbdma_init);

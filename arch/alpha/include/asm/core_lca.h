@@ -162,7 +162,8 @@
  * Data structure for handling LCA machine checks.  Correctable errors
  * result in a short logout frame, uncorrectable ones in a long one.
  */
-struct el_lca_mcheck_short {
+struct el_lca_mcheck_short
+{
 	struct el_common	h;		/* common logout header */
 	unsigned long		esr;		/* error-status register */
 	unsigned long		ear;		/* error-address register */
@@ -171,7 +172,8 @@ struct el_lca_mcheck_short {
 	unsigned long		ioc_stat1;	/* I/O controller status register 1 */
 };
 
-struct el_lca_mcheck_long {
+struct el_lca_mcheck_long
+{
 	struct el_common	h;		/* common logout header */
 	unsigned long		pt[31];		/* PAL temps */
 	unsigned long		exc_addr;	/* exception address */
@@ -191,17 +193,18 @@ struct el_lca_mcheck_long {
 	unsigned long		va;		/* virtual address register */
 };
 
-union el_lca {
-	struct el_common *		c;
-	struct el_lca_mcheck_long *	l;
-	struct el_lca_mcheck_short *	s;
+union el_lca
+{
+	struct el_common 		*c;
+	struct el_lca_mcheck_long 	*l;
+	struct el_lca_mcheck_short 	*s;
 };
 
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -234,11 +237,14 @@ __EXTERN_INLINE unsigned int lca_ioread8(void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long result, base_and_type;
 
-	if (addr >= LCA_DENSE_MEM) {
+	if (addr >= LCA_DENSE_MEM)
+	{
 		addr -= LCA_DENSE_MEM;
 		LCA_SET_HAE;
 		base_and_type = LCA_SPARSE_MEM + 0x00;
-	} else {
+	}
+	else
+	{
 		addr -= LCA_IO;
 		base_and_type = LCA_IO + 0x00;
 	}
@@ -252,11 +258,14 @@ __EXTERN_INLINE void lca_iowrite8(u8 b, void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long w, base_and_type;
 
-	if (addr >= LCA_DENSE_MEM) {
+	if (addr >= LCA_DENSE_MEM)
+	{
 		addr -= LCA_DENSE_MEM;
 		LCA_SET_HAE;
 		base_and_type = LCA_SPARSE_MEM + 0x00;
-	} else {
+	}
+	else
+	{
 		addr -= LCA_IO;
 		base_and_type = LCA_IO + 0x00;
 	}
@@ -270,11 +279,14 @@ __EXTERN_INLINE unsigned int lca_ioread16(void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long result, base_and_type;
 
-	if (addr >= LCA_DENSE_MEM) {
+	if (addr >= LCA_DENSE_MEM)
+	{
 		addr -= LCA_DENSE_MEM;
 		LCA_SET_HAE;
 		base_and_type = LCA_SPARSE_MEM + 0x08;
-	} else {
+	}
+	else
+	{
 		addr -= LCA_IO;
 		base_and_type = LCA_IO + 0x08;
 	}
@@ -288,11 +300,14 @@ __EXTERN_INLINE void lca_iowrite16(u16 b, void __iomem *xaddr)
 	unsigned long addr = (unsigned long) xaddr;
 	unsigned long w, base_and_type;
 
-	if (addr >= LCA_DENSE_MEM) {
+	if (addr >= LCA_DENSE_MEM)
+	{
 		addr -= LCA_DENSE_MEM;
 		LCA_SET_HAE;
 		base_and_type = LCA_SPARSE_MEM + 0x08;
-	} else {
+	}
+	else
+	{
 		addr -= LCA_IO;
 		base_and_type = LCA_IO + 0x08;
 	}
@@ -304,16 +319,24 @@ __EXTERN_INLINE void lca_iowrite16(u16 b, void __iomem *xaddr)
 __EXTERN_INLINE unsigned int lca_ioread32(void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
+
 	if (addr < LCA_DENSE_MEM)
+	{
 		addr = ((addr - LCA_IO) << 5) + LCA_IO + 0x18;
+	}
+
 	return *(vuip)addr;
 }
 
 __EXTERN_INLINE void lca_iowrite32(u32 b, void __iomem *xaddr)
 {
 	unsigned long addr = (unsigned long) xaddr;
+
 	if (addr < LCA_DENSE_MEM)
+	{
 		addr = ((addr - LCA_IO) << 5) + LCA_IO + 0x18;
+	}
+
 	*(vuip)addr = b;
 }
 
@@ -323,7 +346,7 @@ __EXTERN_INLINE void __iomem *lca_ioportmap(unsigned long addr)
 }
 
 __EXTERN_INLINE void __iomem *lca_ioremap(unsigned long addr,
-					  unsigned long size)
+		unsigned long size)
 {
 	return (void __iomem *)(addr + LCA_DENSE_MEM);
 }
@@ -352,8 +375,8 @@ __EXTERN_INLINE int lca_is_mmio(const volatile void __iomem *addr)
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

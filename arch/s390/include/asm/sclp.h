@@ -13,7 +13,8 @@
 #define SCLP_CHP_INFO_MASK_SIZE		32
 #define SCLP_MAX_CORES			256
 
-struct sclp_chp_info {
+struct sclp_chp_info
+{
 	u8 recognized[SCLP_CHP_INFO_MASK_SIZE];
 	u8 standby[SCLP_CHP_INFO_MASK_SIZE];
 	u8 configured[SCLP_CHP_INFO_MASK_SIZE];
@@ -21,13 +22,15 @@ struct sclp_chp_info {
 
 #define LOADPARM_LEN 8
 
-struct sclp_ipl_info {
+struct sclp_ipl_info
+{
 	int is_valid;
 	int has_dump;
 	char loadparm[LOADPARM_LEN];
 };
 
-struct sclp_core_entry {
+struct sclp_core_entry
+{
 	u8 core_id;
 	u8 reserved0;
 	u8 : 4;
@@ -49,14 +52,16 @@ struct sclp_core_entry {
 	u8 reserved1;
 } __attribute__((packed));
 
-struct sclp_core_info {
+struct sclp_core_info
+{
 	unsigned int configured;
 	unsigned int standby;
 	unsigned int combined;
 	struct sclp_core_entry core[SCLP_MAX_CORES];
 };
 
-struct sclp_info {
+struct sclp_info
+{
 	unsigned char has_linemode : 1;
 	unsigned char has_vt220 : 1;
 	unsigned char has_siif : 1;
@@ -89,7 +94,8 @@ struct sclp_info {
 };
 extern struct sclp_info sclp;
 
-struct zpci_report_error_header {
+struct zpci_report_error_header
+{
 	u8 version;	/* Interface version byte */
 	u8 action;	/* Action qualifier byte
 			 * 1: Deconfigure and repair action requested

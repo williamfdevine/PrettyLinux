@@ -10,7 +10,8 @@
 #ifndef _ASM_C6X_DSCR_H
 #define _ASM_C6X_DSCR_H
 
-enum dscr_devstate_t {
+enum dscr_devstate_t
+{
 	DSCR_DEVSTATE_ENABLED,
 	DSCR_DEVSTATE_DISABLED,
 };

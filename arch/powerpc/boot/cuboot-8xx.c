@@ -29,16 +29,22 @@ static void platform_fixups(void)
 	dt_fixup_cpu_clocks(bd.bi_intfreq, bd.bi_busfreq / 16, bd.bi_busfreq);
 
 	node = finddevice("/soc/cpm");
+
 	if (node)
+	{
 		setprop(node, "clock-frequency", &bd.bi_busfreq, 4);
+	}
 
 	node = finddevice("/soc/cpm/brg");
+
 	if (node)
+	{
 		setprop(node, "clock-frequency",  &bd.bi_busfreq, 4);
+	}
 }
 
 void platform_init(unsigned long r3, unsigned long r4, unsigned long r5,
-                   unsigned long r6, unsigned long r7)
+				   unsigned long r6, unsigned long r7)
 {
 	CUBOOT_INIT();
 	fdt_init(_dtb_start);

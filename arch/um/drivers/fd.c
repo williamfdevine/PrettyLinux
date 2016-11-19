@@ -12,7 +12,8 @@
 #include <os.h>
 #include <um_malloc.h>
 
-struct fd_chan {
+struct fd_chan
+{
 	int fd;
 	int raw;
 	struct termios tt;
@@ -25,25 +26,35 @@ static void *fd_init(char *str, int device, const struct chan_opts *opts)
 	char *end;
 	int n;
 
-	if (*str != ':') {
+	if (*str != ':')
+	{
 		printk(UM_KERN_ERR "fd_init : channel type 'fd' must specify a "
-		       "file descriptor\n");
+			   "file descriptor\n");
 		return NULL;
 	}
+
 	str++;
 	n = strtoul(str, &end, 0);
-	if ((*end != '\0') || (end == str)) {
+
+	if ((*end != '\0') || (end == str))
+	{
 		printk(UM_KERN_ERR "fd_init : couldn't parse file descriptor "
-		       "'%s'\n", str);
+			   "'%s'\n", str);
 		return NULL;
 	}
 
 	data = uml_kmalloc(sizeof(*data), UM_GFP_KERNEL);
-	if (data == NULL)
-		return NULL;
 
-	*data = ((struct fd_chan) { .fd  	= n,
-				    .raw  	= opts->raw });
+	if (data == NULL)
+	{
+		return NULL;
+	}
+
+	*data = ((struct fd_chan)
+	{
+		.fd  	= n,
+		   .raw  	= opts->raw
+	});
 	return data;
 }
 
@@ -52,15 +63,23 @@ static int fd_open(int input, int output, int primary, void *d, char **dev_out)
 	struct fd_chan *data = d;
 	int err;
 
-	if (data->raw && isatty(data->fd)) {
+	if (data->raw && isatty(data->fd))
+	{
 		CATCH_EINTR(err = tcgetattr(data->fd, &data->tt));
+
 		if (err)
+		{
 			return err;
+		}
 
 		err = raw(data->fd);
+
 		if (err)
+		{
 			return err;
+		}
 	}
+
 	sprintf(data->str, "%d", data->fd);
 	*dev_out = data->str;
 	return data->fd;
@@ -72,16 +91,21 @@ static void fd_close(int fd, void *d)
 	int err;
 
 	if (!data->raw || !isatty(fd))
+	{
 		return;
+	}
 
 	CATCH_EINTR(err = tcsetattr(fd, TCSAFLUSH, &data->tt));
+
 	if (err)
 		printk(UM_KERN_ERR "Failed to restore terminal state - "
-		       "errno = %d\n", -err);
+			   "errno = %d\n", -err);
+
 	data->raw = 0;
 }
 
-const struct chan_ops fd_ops = {
+const struct chan_ops fd_ops =
+{
 	.type		= "fd",
 	.init		= fd_init,
 	.open		= fd_open,

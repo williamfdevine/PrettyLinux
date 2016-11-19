@@ -6,7 +6,8 @@
 
 /* We will add more stuff here as it becomes necessary, until we know
    it works. */
-struct sigcontext {
+struct sigcontext
+{
 	unsigned long sc_flags;
 
 	unsigned long sc_gr[32]; /* PSW in sc_gr[0] */

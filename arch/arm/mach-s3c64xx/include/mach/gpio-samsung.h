@@ -45,7 +45,8 @@
 #define S3C64XX_GPIO_NEXT(__gpio) \
 	((__gpio##_START) + (__gpio##_NR) + CONFIG_S3C_GPIO_SPACE + 1)
 
-enum s3c_gpio_number {
+enum s3c_gpio_number
+{
 	S3C64XX_GPIO_A_START = 0,
 	S3C64XX_GPIO_B_START = S3C64XX_GPIO_NEXT(S3C64XX_GPIO_A),
 	S3C64XX_GPIO_C_START = S3C64XX_GPIO_NEXT(S3C64XX_GPIO_B),

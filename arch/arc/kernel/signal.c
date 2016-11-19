@@ -55,7 +55,8 @@
 #include <linux/tracehook.h>
 #include <asm/ucontext.h>
 
-struct rt_sigframe {
+struct rt_sigframe
+{
 	struct siginfo info;
 	struct ucontext uc;
 #define MAGIC_SIGALTSTK		0x07302004
@@ -64,7 +65,7 @@ struct rt_sigframe {
 
 static int
 stash_usr_regs(struct rt_sigframe __user *sf, struct pt_regs *regs,
-	       sigset_t *set)
+			   sigset_t *set)
 {
 	int err;
 	struct user_regs_struct uregs;
@@ -94,7 +95,7 @@ stash_usr_regs(struct rt_sigframe __user *sf, struct pt_regs *regs,
 	uregs.scratch.sp	= regs->sp;
 
 	err = __copy_to_user(&(sf->uc.uc_mcontext.regs.scratch), &uregs.scratch,
-			     sizeof(sf->uc.uc_mcontext.regs.scratch));
+						 sizeof(sf->uc.uc_mcontext.regs.scratch));
 	err |= __copy_to_user(&sf->uc.uc_sigmask, set, sizeof(sigset_t));
 
 	return err;
@@ -108,10 +109,13 @@ static int restore_usr_regs(struct pt_regs *regs, struct rt_sigframe __user *sf)
 
 	err = __copy_from_user(&set, &sf->uc.uc_sigmask, sizeof(set));
 	err |= __copy_from_user(&uregs.scratch,
-				&(sf->uc.uc_mcontext.regs.scratch),
-				sizeof(sf->uc.uc_mcontext.regs.scratch));
+							&(sf->uc.uc_mcontext.regs.scratch),
+							sizeof(sf->uc.uc_mcontext.regs.scratch));
+
 	if (err)
+	{
 		return err;
+	}
 
 	set_current_blocked(&set);
 	regs->bta	= uregs.scratch.bta;
@@ -144,9 +148,13 @@ static int restore_usr_regs(struct pt_regs *regs, struct rt_sigframe __user *sf)
 static inline int is_do_ss_needed(unsigned int magic)
 {
 	if (MAGIC_SIGALTSTK == magic)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 SYSCALL_DEFINE0(rt_sigreturn)
@@ -163,22 +171,32 @@ SYSCALL_DEFINE0(rt_sigreturn)
 	 * not, then the user is trying to mess with us.
 	 */
 	if (regs->sp & 3)
+	{
 		goto badframe;
+	}
 
 	sf = (struct rt_sigframe __force __user *)(regs->sp);
 
 	if (!access_ok(VERIFY_READ, sf, sizeof(*sf)))
+	{
 		goto badframe;
+	}
 
 	if (__get_user(magic, &sf->sigret_magic))
+	{
 		goto badframe;
+	}
 
 	if (unlikely(is_do_ss_needed(magic)))
 		if (restore_altstack(&sf->uc.uc_stack))
+		{
 			goto badframe;
+		}
 
 	if (restore_usr_regs(regs, sf))
+	{
 		goto badframe;
+	}
 
 	/* Don't restart from sigreturn */
 	syscall_wont_restart(regs);
@@ -203,8 +221,8 @@ badframe:
  * Determine which stack to use..
  */
 static inline void __user *get_sigframe(struct ksignal *ksig,
-					struct pt_regs *regs,
-					unsigned long framesize)
+										struct pt_regs *regs,
+										unsigned long framesize)
 {
 	unsigned long sp = sigsp(regs->sp, ksig);
 	void __user *frame;
@@ -218,7 +236,9 @@ static inline void __user *get_sigframe(struct ksignal *ksig,
 
 	/* Check that we can actually write to the signal frame */
 	if (!access_ok(VERIFY_WRITE, frame, framesize))
+	{
 		frame = NULL;
+	}
 
 	return frame;
 }
@@ -231,8 +251,11 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	int err = 0;
 
 	sf = get_sigframe(ksig, regs, sizeof(struct rt_sigframe));
+
 	if (!sf)
+	{
 		return 1;
+	}
 
 	/*
 	 * w/o SA_SIGINFO, struct ucontext is partially populated (only
@@ -249,7 +272,8 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	 *  #2: struct siginfo
 	 *  #3: struct ucontext (completely populated)
 	 */
-	if (unlikely(ksig->ka.sa.sa_flags & SA_SIGINFO)) {
+	if (unlikely(ksig->ka.sa.sa_flags & SA_SIGINFO))
+	{
 		err |= copy_siginfo_to_user(&sf->info, &ksig->info);
 		err |= __put_user(0, &sf->uc.uc_flags);
 		err |= __put_user(NULL, &sf->uc.uc_link);
@@ -267,8 +291,11 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	}
 
 	err |= __put_user(magic, &sf->sigret_magic);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* #1 arg to the user Signal handler */
 	regs->r0 = ksig->sig;
@@ -280,8 +307,10 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	 * handler returns using sigreturn stub provided already by userpsace
 	 * If not, nuke the process right away
 	 */
-	if(!(ksig->ka.sa.sa_flags & SA_RESTORER))
+	if (!(ksig->ka.sa.sa_flags & SA_RESTORER))
+	{
 		return 1;
+	}
 
 	regs->blink = (unsigned long)ksig->ka.sa.sa_restorer;
 
@@ -300,44 +329,48 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 
 static void arc_restart_syscall(struct k_sigaction *ka, struct pt_regs *regs)
 {
-	switch (regs->r0) {
-	case -ERESTART_RESTARTBLOCK:
-	case -ERESTARTNOHAND:
-		/*
-		 * ERESTARTNOHAND means that the syscall should
-		 * only be restarted if there was no handler for
-		 * the signal, and since we only get here if there
-		 * is a handler, we don't restart
-		 */
-		regs->r0 = -EINTR;   /* ERESTART_xxx is internal */
-		break;
-
-	case -ERESTARTSYS:
-		/*
-		 * ERESTARTSYS means to restart the syscall if
-		 * there is no handler or the handler was
-		 * registered with SA_RESTART
-		 */
-		if (!(ka->sa.sa_flags & SA_RESTART)) {
-			regs->r0 = -EINTR;
+	switch (regs->r0)
+	{
+		case -ERESTART_RESTARTBLOCK:
+		case -ERESTARTNOHAND:
+			/*
+			 * ERESTARTNOHAND means that the syscall should
+			 * only be restarted if there was no handler for
+			 * the signal, and since we only get here if there
+			 * is a handler, we don't restart
+			 */
+			regs->r0 = -EINTR;   /* ERESTART_xxx is internal */
 			break;
-		}
+
+		case -ERESTARTSYS:
+
+			/*
+			 * ERESTARTSYS means to restart the syscall if
+			 * there is no handler or the handler was
+			 * registered with SA_RESTART
+			 */
+			if (!(ka->sa.sa_flags & SA_RESTART))
+			{
+				regs->r0 = -EINTR;
+				break;
+			}
+
 		/* fallthrough */
 
-	case -ERESTARTNOINTR:
-		/*
-		 * ERESTARTNOINTR means that the syscall should
-		 * be called again after the signal handler returns.
-		 * Setup reg state just as it was before doing the trap
-		 * r0 has been clobbered with sys call ret code thus it
-		 * needs to be reloaded with orig first arg to syscall
-		 * in orig_r0. Rest of relevant reg-file:
-		 * r8 (syscall num) and (r1 - r7) will be reset to
-		 * their orig user space value when we ret from kernel
-		 */
-		regs->r0 = regs->orig_r0;
-		regs->ret -= is_isa_arcv2() ? 2 : 4;
-		break;
+		case -ERESTARTNOINTR:
+			/*
+			 * ERESTARTNOINTR means that the syscall should
+			 * be called again after the signal handler returns.
+			 * Setup reg state just as it was before doing the trap
+			 * r0 has been clobbered with sys call ret code thus it
+			 * needs to be reloaded with orig first arg to syscall
+			 * in orig_r0. Rest of relevant reg-file:
+			 * r8 (syscall num) and (r1 - r7) will be reset to
+			 * their orig user space value when we ret from kernel
+			 */
+			regs->r0 = regs->orig_r0;
+			regs->ret -= is_isa_arcv2() ? 2 : 4;
+			break;
 	}
 }
 
@@ -363,25 +396,33 @@ void do_signal(struct pt_regs *regs)
 
 	restart_scall = in_syscall(regs) && syscall_restartable(regs);
 
-	if (get_signal(&ksig)) {
-		if (restart_scall) {
+	if (get_signal(&ksig))
+	{
+		if (restart_scall)
+		{
 			arc_restart_syscall(&ksig.ka, regs);
 			syscall_wont_restart(regs);	/* No more restarts */
 		}
+
 		handle_signal(&ksig, regs);
 		return;
 	}
 
-	if (restart_scall) {
+	if (restart_scall)
+	{
 		/* No handler for syscall: restart it */
 		if (regs->r0 == -ERESTARTNOHAND ||
-		    regs->r0 == -ERESTARTSYS || regs->r0 == -ERESTARTNOINTR) {
+			regs->r0 == -ERESTARTSYS || regs->r0 == -ERESTARTNOINTR)
+		{
 			regs->r0 = regs->orig_r0;
 			regs->ret -= is_isa_arcv2() ? 2 : 4;
-		} else if (regs->r0 == -ERESTART_RESTARTBLOCK) {
+		}
+		else if (regs->r0 == -ERESTART_RESTARTBLOCK)
+		{
 			regs->r8 = __NR_restart_syscall;
 			regs->ret -= is_isa_arcv2() ? 2 : 4;
 		}
+
 		syscall_wont_restart(regs);	/* No more restarts */
 	}
 
@@ -396,5 +437,7 @@ void do_notify_resume(struct pt_regs *regs)
 	 * user mode
 	 */
 	if (test_and_clear_thread_flag(TIF_NOTIFY_RESUME))
+	{
 		tracehook_notify_resume(regs);
+	}
 }

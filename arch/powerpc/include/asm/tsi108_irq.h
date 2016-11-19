@@ -33,7 +33,7 @@
  * Tsi108 interrupts
  */
 #ifndef TSI108_IRQ_REG_BASE
-#define TSI108_IRQ_REG_BASE		0
+	#define TSI108_IRQ_REG_BASE		0
 #endif
 
 #define TSI108_IRQ(x)		(TSI108_IRQ_REG_BASE + (x))
@@ -117,7 +117,8 @@
  * IRQ line configuration parameters */
 
 /* Interrupt delivery modes */
-typedef enum {
+typedef enum
+{
 	TSI108_IRQ_DIRECTED,
 	TSI108_IRQ_DISTRIBUTED,
 } TSI108_IRQ_MODE;

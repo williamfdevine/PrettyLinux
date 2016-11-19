@@ -31,7 +31,7 @@ int main(void)
 
 	/* offsets into the irq_cpustat_t struct */
 	DEFINE(CPUSTAT_SOFTIRQ_PENDING, offsetof(irq_cpustat_t,
-						 __softirq_pending));
+			__softirq_pending));
 
 	/* offsets into the thread struct */
 	OFFSET(THREAD_KSP, thread_struct, ksp);

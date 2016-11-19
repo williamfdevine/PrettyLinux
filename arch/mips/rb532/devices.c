@@ -65,13 +65,14 @@ unsigned char get_latch_u5(void)
 }
 EXPORT_SYMBOL(get_latch_u5);
 
-static struct resource korina_dev0_res[] = {
+static struct resource korina_dev0_res[] =
+{
 	{
 		.name = "korina_regs",
 		.start = ETH0_BASE_ADDR,
 		.end = ETH0_BASE_ADDR + sizeof(struct eth_regs),
 		.flags = IORESOURCE_MEM,
-	 }, {
+	}, {
 		.name = "korina_rx",
 		.start = ETH0_DMA_RX_IRQ,
 		.end = ETH0_DMA_RX_IRQ,
@@ -96,27 +97,30 @@ static struct resource korina_dev0_res[] = {
 		.start = ETH0_RX_DMA_ADDR,
 		.end = ETH0_RX_DMA_ADDR + DMA_CHAN_OFFSET - 1,
 		.flags = IORESOURCE_MEM,
-	 }, {
+	}, {
 		.name = "korina_dma_tx",
 		.start = ETH0_TX_DMA_ADDR,
 		.end = ETH0_TX_DMA_ADDR + DMA_CHAN_OFFSET - 1,
 		.flags = IORESOURCE_MEM,
-	 }
+	}
 };
 
-static struct korina_device korina_dev0_data = {
+static struct korina_device korina_dev0_data =
+{
 	.name = "korina0",
 	.mac = {0xde, 0xca, 0xff, 0xc0, 0xff, 0xee}
 };
 
-static struct platform_device korina_dev0 = {
+static struct platform_device korina_dev0 =
+{
 	.id = -1,
 	.name = "korina",
 	.resource = korina_dev0_res,
 	.num_resources = ARRAY_SIZE(korina_dev0_res),
 };
 
-static struct resource cf_slot0_res[] = {
+static struct resource cf_slot0_res[] =
+{
 	{
 		.name = "cf_membase",
 		.flags = IORESOURCE_MEM
@@ -128,11 +132,13 @@ static struct resource cf_slot0_res[] = {
 	}
 };
 
-static struct cf_device cf_slot0_data = {
+static struct cf_device cf_slot0_data =
+{
 	.gpio_pin = CF_GPIO_NUM
 };
 
-static struct platform_device cf_slot0 = {
+static struct platform_device cf_slot0 =
+{
 	.id = -1,
 	.name = "pata-rb532-cf",
 	.dev.platform_data = &cf_slot0_data,
@@ -151,7 +157,8 @@ static void rb532_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 	struct nand_chip *chip = mtd_to_nand(mtd);
 	unsigned char orbits, nandbits;
 
-	if (ctrl & NAND_CTRL_CHANGE) {
+	if (ctrl & NAND_CTRL_CHANGE)
+	{
 		orbits = (ctrl & NAND_CLE) << 1;
 		orbits |= (ctrl & NAND_ALE) >> 1;
 
@@ -160,23 +167,29 @@ static void rb532_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 
 		set_latch_u5(orbits, nandbits);
 	}
+
 	if (cmd != NAND_CMD_NONE)
+	{
 		writeb(cmd, chip->IO_ADDR_W);
+	}
 }
 
-static struct resource nand_slot0_res[] = {
+static struct resource nand_slot0_res[] =
+{
 	[0] = {
 		.name = "nand_membase",
 		.flags = IORESOURCE_MEM
 	}
 };
 
-static struct platform_nand_data rb532_nand_data = {
+static struct platform_nand_data rb532_nand_data =
+{
 	.ctrl.dev_ready = rb532_dev_ready,
 	.ctrl.cmd_ctrl	= rb532_cmd_ctrl,
 };
 
-static struct platform_device nand_slot0 = {
+static struct platform_device nand_slot0 =
+{
 	.name = "gen_nand",
 	.id = -1,
 	.resource = nand_slot0_res,
@@ -184,7 +197,8 @@ static struct platform_device nand_slot0 = {
 	.dev.platform_data = &rb532_nand_data,
 };
 
-static struct mtd_partition rb532_partition_info[] = {
+static struct mtd_partition rb532_partition_info[] =
+{
 	{
 		.name = "Routerboard NAND boot",
 		.offset = 0,
@@ -196,17 +210,20 @@ static struct mtd_partition rb532_partition_info[] = {
 	}
 };
 
-static struct platform_device rb532_led = {
+static struct platform_device rb532_led =
+{
 	.name = "rb532-led",
 	.id = -1,
 };
 
-static struct platform_device rb532_button = {
+static struct platform_device rb532_button =
+{
 	.name	= "rb532-button",
 	.id	= -1,
 };
 
-static struct resource rb532_wdt_res[] = {
+static struct resource rb532_wdt_res[] =
+{
 	{
 		.name = "rb532_wdt_res",
 		.start = INTEG0_BASE_ADDR,
@@ -215,14 +232,16 @@ static struct resource rb532_wdt_res[] = {
 	}
 };
 
-static struct platform_device rb532_wdt = {
+static struct platform_device rb532_wdt =
+{
 	.name		= "rc32434_wdt",
 	.id		= -1,
 	.resource	= rb532_wdt_res,
 	.num_resources	= ARRAY_SIZE(rb532_wdt_res),
 };
 
-static struct plat_serial8250_port rb532_uart_res[] = {
+static struct plat_serial8250_port rb532_uart_res[] =
+{
 	{
 		.type           = PORT_16550A,
 		.membase	= (char *)KSEG1ADDR(REGBASE + UART0BASE),
@@ -236,13 +255,15 @@ static struct plat_serial8250_port rb532_uart_res[] = {
 	}
 };
 
-static struct platform_device rb532_uart = {
+static struct platform_device rb532_uart =
+{
 	.name		   = "serial8250",
 	.id		   = PLAT8250_DEV_PLATFORM,
 	.dev.platform_data = &rb532_uart_res,
 };
 
-static struct platform_device *rb532_devs[] = {
+static struct platform_device *rb532_devs[] =
+{
 	&korina_dev0,
 	&nand_slot0,
 	&cf_slot0,
@@ -257,15 +278,17 @@ static struct platform_device *rb532_devs[] = {
 
 static void __init rb532_nand_setup(void)
 {
-	switch (mips_machtype) {
-	case MACH_MIKROTIK_RB532A:
-		set_latch_u5(LO_FOFF | LO_CEX,
-				LO_ULED | LO_ALE | LO_CLE | LO_WPX);
-		break;
-	default:
-		set_latch_u5(LO_WPX | LO_FOFF | LO_CEX,
-				LO_ULED | LO_ALE | LO_CLE);
-		break;
+	switch (mips_machtype)
+	{
+		case MACH_MIKROTIK_RB532A:
+			set_latch_u5(LO_FOFF | LO_CEX,
+						 LO_ULED | LO_ALE | LO_CLE | LO_WPX);
+			break;
+
+		default:
+			set_latch_u5(LO_WPX | LO_FOFF | LO_CEX,
+						 LO_ULED | LO_ALE | LO_CLE);
+			break;
 	}
 
 	/* Setup NAND specific settings */
@@ -280,10 +303,13 @@ static int __init plat_setup_devices(void)
 {
 	/* Look for the CF card reader */
 	if (!readl(IDT434_REG_BASE + DEV1MASK))
-		rb532_devs[2] = NULL;	/* disable cf_slot0 at index 2 */
-	else {
+	{
+		rb532_devs[2] = NULL;    /* disable cf_slot0 at index 2 */
+	}
+	else
+	{
 		cf_slot0_res[0].start =
-		    readl(IDT434_REG_BASE + DEV1BASE);
+			readl(IDT434_REG_BASE + DEV1BASE);
 		cf_slot0_res[0].end = cf_slot0_res[0].start + 0x1000;
 	}
 
@@ -294,7 +320,8 @@ static int __init plat_setup_devices(void)
 	/* Read and map device controller 3 */
 	dev3.base = ioremap_nocache(readl(IDT434_REG_BASE + DEV3BASE), 1);
 
-	if (!dev3.base) {
+	if (!dev3.base)
+	{
 		printk(KERN_ERR "rb532: cannot remap device controller 3\n");
 		return -ENXIO;
 	}
@@ -313,10 +340,13 @@ static int __init plat_setup_devices(void)
 static int __init setup_kmac(char *s)
 {
 	printk(KERN_INFO "korina mac = %s\n", s);
-	if (!mac_pton(s, korina_dev0_data.mac)) {
+
+	if (!mac_pton(s, korina_dev0_data.mac))
+	{
 		printk(KERN_ERR "Invalid mac\n");
 		return -EINVAL;
 	}
+
 	return 0;
 }
 

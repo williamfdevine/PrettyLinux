@@ -65,12 +65,12 @@ static void __hyp_text __sysreg_save_state(struct kvm_cpu_context *ctxt)
 
 	ctxt->gp_regs.sp_el1		= read_sysreg(sp_el1);
 	ctxt->gp_regs.elr_el1		= read_sysreg_el1(elr);
-	ctxt->gp_regs.spsr[KVM_SPSR_EL1]= read_sysreg_el1(spsr);
+	ctxt->gp_regs.spsr[KVM_SPSR_EL1] = read_sysreg_el1(spsr);
 }
 
 static hyp_alternate_select(__sysreg_call_save_host_state,
-			    __sysreg_save_state, __sysreg_do_nothing,
-			    ARM64_HAS_VIRT_HOST_EXTN);
+							__sysreg_save_state, __sysreg_do_nothing,
+							ARM64_HAS_VIRT_HOST_EXTN);
 
 void __hyp_text __sysreg_save_host_state(struct kvm_cpu_context *ctxt)
 {
@@ -111,19 +111,19 @@ static void __hyp_text __sysreg_restore_state(struct kvm_cpu_context *ctxt)
 	write_sysreg_el1(ctxt->sys_regs[FAR_EL1],	far);
 	write_sysreg_el1(ctxt->sys_regs[MAIR_EL1],	mair);
 	write_sysreg_el1(ctxt->sys_regs[VBAR_EL1],	vbar);
-	write_sysreg_el1(ctxt->sys_regs[CONTEXTIDR_EL1],contextidr);
+	write_sysreg_el1(ctxt->sys_regs[CONTEXTIDR_EL1], contextidr);
 	write_sysreg_el1(ctxt->sys_regs[AMAIR_EL1],	amair);
 	write_sysreg_el1(ctxt->sys_regs[CNTKCTL_EL1], 	cntkctl);
 	write_sysreg(ctxt->sys_regs[PAR_EL1],		par_el1);
 
 	write_sysreg(ctxt->gp_regs.sp_el1,		sp_el1);
 	write_sysreg_el1(ctxt->gp_regs.elr_el1,		elr);
-	write_sysreg_el1(ctxt->gp_regs.spsr[KVM_SPSR_EL1],spsr);
+	write_sysreg_el1(ctxt->gp_regs.spsr[KVM_SPSR_EL1], spsr);
 }
 
 static hyp_alternate_select(__sysreg_call_restore_host_state,
-			    __sysreg_restore_state, __sysreg_do_nothing,
-			    ARM64_HAS_VIRT_HOST_EXTN);
+							__sysreg_restore_state, __sysreg_do_nothing,
+							ARM64_HAS_VIRT_HOST_EXTN);
 
 void __hyp_text __sysreg_restore_host_state(struct kvm_cpu_context *ctxt)
 {
@@ -142,7 +142,9 @@ void __hyp_text __sysreg32_save_state(struct kvm_vcpu *vcpu)
 	u64 *spsr, *sysreg;
 
 	if (read_sysreg(hcr_el2) & HCR_RW)
+	{
 		return;
+	}
 
 	spsr = vcpu->arch.ctxt.gp_regs.spsr;
 	sysreg = vcpu->arch.ctxt.sys_regs;
@@ -156,10 +158,14 @@ void __hyp_text __sysreg32_save_state(struct kvm_vcpu *vcpu)
 	sysreg[IFSR32_EL2] = read_sysreg(ifsr32_el2);
 
 	if (__fpsimd_enabled())
+	{
 		sysreg[FPEXC32_EL2] = read_sysreg(fpexc32_el2);
+	}
 
 	if (vcpu->arch.debug_flags & KVM_ARM64_DEBUG_DIRTY)
+	{
 		sysreg[DBGVCR32_EL2] = read_sysreg(dbgvcr32_el2);
+	}
 }
 
 void __hyp_text __sysreg32_restore_state(struct kvm_vcpu *vcpu)
@@ -167,7 +173,9 @@ void __hyp_text __sysreg32_restore_state(struct kvm_vcpu *vcpu)
 	u64 *spsr, *sysreg;
 
 	if (read_sysreg(hcr_el2) & HCR_RW)
+	{
 		return;
+	}
 
 	spsr = vcpu->arch.ctxt.gp_regs.spsr;
 	sysreg = vcpu->arch.ctxt.sys_regs;
@@ -181,5 +189,7 @@ void __hyp_text __sysreg32_restore_state(struct kvm_vcpu *vcpu)
 	write_sysreg(sysreg[IFSR32_EL2], ifsr32_el2);
 
 	if (vcpu->arch.debug_flags & KVM_ARM64_DEBUG_DIRTY)
+	{
 		write_sysreg(sysreg[DBGVCR32_EL2], dbgvcr32_el2);
+	}
 }

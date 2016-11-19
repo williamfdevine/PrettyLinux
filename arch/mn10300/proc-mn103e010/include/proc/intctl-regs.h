@@ -2,7 +2,7 @@
 #define _ASM_PROC_INTCTL_REGS_H
 
 #ifndef _ASM_INTCTL_REGS_H
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
 /* intr acceptance group reg */
@@ -14,12 +14,12 @@
 #define __GET_XIRQ_TRIGGER(X, Z) (((Z) >> ((X) * 2)) & 3)
 
 #define __SET_XIRQ_TRIGGER(X, Y, Z)		\
-({						\
-	typeof(Z) x = (Z);			\
-	x &= ~(3 << ((X) * 2));			\
-	x |= ((Y) & 3) << ((X) * 2);		\
-	(Z) = x;				\
-})
+	({						\
+		typeof(Z) x = (Z);			\
+		x &= ~(3 << ((X) * 2));			\
+		x |= ((Y) & 3) << ((X) * 2);		\
+		(Z) = x;				\
+	})
 
 /* external pin intr spec reg */
 #define EXTMD			__SYSREG(0xd4000200, u16)

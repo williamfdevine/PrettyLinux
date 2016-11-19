@@ -26,7 +26,7 @@
 
 
 #ifndef LS_SIZE
-#define LS_SIZE                 0x40000	/* 256K (in bytes) */
+	#define LS_SIZE                 0x40000	/* 256K (in bytes) */
 #endif
 
 typedef unsigned int u32;
@@ -91,7 +91,9 @@ static inline void restore_decr(void)
 	 */
 	offset = LSCSA_QW_OFFSET(decr_status);
 	decr_running = regs_spill[offset].slot[0] & SPU_DECR_STATUS_RUNNING;
-	if (decr_running) {
+
+	if (decr_running)
+	{
 		offset = LSCSA_QW_OFFSET(decr);
 		decr = regs_spill[offset].slot[0];
 		spu_writech(SPU_WrDec, decr);
@@ -206,87 +208,98 @@ static inline void restore_complete(void)
 	stopped_status = regs_spill[offset].slot[0];
 	stopped_code = regs_spill[offset].slot[1];
 
-	switch (stopped_status) {
-	case SPU_STOPPED_STATUS_P_I:
-		/* SPU_Status[P,I]=1.  Add illegal instruction
-		 * followed by stop-and-signal instruction after
-		 * end of restore code.
-		 */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = ILLEGAL_INSTR;
-		exit_instrs[2] = STOP_INSTR | stopped_code;
-		break;
-	case SPU_STOPPED_STATUS_P_H:
-		/* SPU_Status[P,H]=1.  Add 'heq $0, $0' followed
-		 * by stop-and-signal instruction after end of
-		 * restore code.
-		 */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = HEQ_INSTR;
-		exit_instrs[2] = STOP_INSTR | stopped_code;
-		break;
-	case SPU_STOPPED_STATUS_S_P:
-		/* SPU_Status[S,P]=1.  Add nop instruction
-		 * followed by 'br -4' after end of restore
-		 * code.
-		 */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = STOP_INSTR | stopped_code;
-		exit_instrs[2] = NOP_INSTR;
-		exit_instrs[3] = BR_INSTR;
-		break;
-	case SPU_STOPPED_STATUS_S_I:
-		/* SPU_Status[S,I]=1.  Add  illegal instruction
-		 * followed by 'br -4' after end of restore code.
-		 */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = ILLEGAL_INSTR;
-		exit_instrs[2] = NOP_INSTR;
-		exit_instrs[3] = BR_INSTR;
-		break;
-	case SPU_STOPPED_STATUS_I:
-		/* SPU_Status[I]=1. Add illegal instruction followed
-		 * by infinite loop after end of restore sequence.
-		 */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = ILLEGAL_INSTR;
-		exit_instrs[2] = NOP_INSTR;
-		exit_instrs[3] = BR_INSTR;
-		break;
-	case SPU_STOPPED_STATUS_S:
-		/* SPU_Status[S]=1. Add two 'nop' instructions. */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = NOP_INSTR;
-		exit_instrs[2] = NOP_INSTR;
-		exit_instrs[3] = BR_INSTR;
-		break;
-	case SPU_STOPPED_STATUS_H:
-		/* SPU_Status[H]=1. Add 'heq $0, $0' instruction
-		 * after end of restore code.
-		 */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = HEQ_INSTR;
-		exit_instrs[2] = NOP_INSTR;
-		exit_instrs[3] = BR_INSTR;
-		break;
-	case SPU_STOPPED_STATUS_P:
-		/* SPU_Status[P]=1. Add stop-and-signal instruction
-		 * after end of restore code.
-		 */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = STOP_INSTR | stopped_code;
-		break;
-	case SPU_STOPPED_STATUS_R:
-		/* SPU_Status[I,S,H,P,R]=0. Add infinite loop. */
-		exit_instrs[0] = RESTORE_COMPLETE;
-		exit_instrs[1] = NOP_INSTR;
-		exit_instrs[2] = NOP_INSTR;
-		exit_instrs[3] = BR_INSTR;
-		break;
-	default:
-		/* SPU_Status[R]=1. No additional instructions. */
-		break;
+	switch (stopped_status)
+	{
+		case SPU_STOPPED_STATUS_P_I:
+			/* SPU_Status[P,I]=1.  Add illegal instruction
+			 * followed by stop-and-signal instruction after
+			 * end of restore code.
+			 */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = ILLEGAL_INSTR;
+			exit_instrs[2] = STOP_INSTR | stopped_code;
+			break;
+
+		case SPU_STOPPED_STATUS_P_H:
+			/* SPU_Status[P,H]=1.  Add 'heq $0, $0' followed
+			 * by stop-and-signal instruction after end of
+			 * restore code.
+			 */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = HEQ_INSTR;
+			exit_instrs[2] = STOP_INSTR | stopped_code;
+			break;
+
+		case SPU_STOPPED_STATUS_S_P:
+			/* SPU_Status[S,P]=1.  Add nop instruction
+			 * followed by 'br -4' after end of restore
+			 * code.
+			 */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = STOP_INSTR | stopped_code;
+			exit_instrs[2] = NOP_INSTR;
+			exit_instrs[3] = BR_INSTR;
+			break;
+
+		case SPU_STOPPED_STATUS_S_I:
+			/* SPU_Status[S,I]=1.  Add  illegal instruction
+			 * followed by 'br -4' after end of restore code.
+			 */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = ILLEGAL_INSTR;
+			exit_instrs[2] = NOP_INSTR;
+			exit_instrs[3] = BR_INSTR;
+			break;
+
+		case SPU_STOPPED_STATUS_I:
+			/* SPU_Status[I]=1. Add illegal instruction followed
+			 * by infinite loop after end of restore sequence.
+			 */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = ILLEGAL_INSTR;
+			exit_instrs[2] = NOP_INSTR;
+			exit_instrs[3] = BR_INSTR;
+			break;
+
+		case SPU_STOPPED_STATUS_S:
+			/* SPU_Status[S]=1. Add two 'nop' instructions. */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = NOP_INSTR;
+			exit_instrs[2] = NOP_INSTR;
+			exit_instrs[3] = BR_INSTR;
+			break;
+
+		case SPU_STOPPED_STATUS_H:
+			/* SPU_Status[H]=1. Add 'heq $0, $0' instruction
+			 * after end of restore code.
+			 */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = HEQ_INSTR;
+			exit_instrs[2] = NOP_INSTR;
+			exit_instrs[3] = BR_INSTR;
+			break;
+
+		case SPU_STOPPED_STATUS_P:
+			/* SPU_Status[P]=1. Add stop-and-signal instruction
+			 * after end of restore code.
+			 */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = STOP_INSTR | stopped_code;
+			break;
+
+		case SPU_STOPPED_STATUS_R:
+			/* SPU_Status[I,S,H,P,R]=0. Add infinite loop. */
+			exit_instrs[0] = RESTORE_COMPLETE;
+			exit_instrs[1] = NOP_INSTR;
+			exit_instrs[2] = NOP_INSTR;
+			exit_instrs[3] = BR_INSTR;
+			break;
+
+		default:
+			/* SPU_Status[R]=1. No additional instructions. */
+			break;
 	}
+
 	spu_sync();
 }
 
@@ -317,7 +330,7 @@ int main()
 	set_tag_mask();			/* Step 2.  */
 	build_dma_list(lscsa_ea);	/* Step 3.  */
 	restore_upper_240kb(lscsa_ea);	/* Step 4.  */
-					/* Step 5: done by 'exit'. */
+	/* Step 5: done by 'exit'. */
 	enqueue_putllc(lscsa_ea);	/* Step 7. */
 	set_tag_update();		/* Step 8. */
 	read_tag_status();		/* Step 9. */
@@ -329,7 +342,7 @@ int main()
 	restore_srr0();			/* Step 14. */
 	restore_event_mask();		/* Step 15. */
 	restore_tag_mask();		/* Step 16. */
-					/* Step 17. done by 'exit'. */
+	/* Step 17. done by 'exit'. */
 	restore_complete();		/* Step 18. */
 
 	return 0;

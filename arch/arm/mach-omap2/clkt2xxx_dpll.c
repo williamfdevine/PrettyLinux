@@ -32,7 +32,9 @@
 static void _allow_idle(struct clk_hw_omap *clk)
 {
 	if (!clk || !clk->dpll_data)
+	{
 		return;
+	}
 
 	omap2xxx_cm_set_dpll_auto_low_power_stop();
 }
@@ -46,14 +48,17 @@ static void _allow_idle(struct clk_hw_omap *clk)
 static void _deny_idle(struct clk_hw_omap *clk)
 {
 	if (!clk || !clk->dpll_data)
+	{
 		return;
+	}
 
 	omap2xxx_cm_set_dpll_disable_autoidle();
 }
 
 
 /* Public data */
-const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll = {
+const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll =
+{
 	.allow_idle	= _allow_idle,
 	.deny_idle	= _deny_idle,
 };

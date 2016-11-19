@@ -3,17 +3,17 @@
  * Copyright (C) 2001 Todd Inglett, IBM Corporation
  *
  * pSeries LPAR support.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
@@ -77,33 +77,42 @@ void vpa_init(int cpu)
 	WARN_ON(cpu != smp_processor_id());
 
 	if (cpu_has_feature(CPU_FTR_ALTIVEC))
+	{
 		lppaca_of(cpu).vmxregs_in_use = 1;
+	}
 
 	if (cpu_has_feature(CPU_FTR_ARCH_207S))
+	{
 		lppaca_of(cpu).ebb_regs_in_use = 1;
+	}
 
 	addr = __pa(&lppaca_of(cpu));
 	ret = register_vpa(hwcpu, addr);
 
-	if (ret) {
+	if (ret)
+	{
 		pr_err("WARNING: VPA registration for cpu %d (hw %d) of area "
-		       "%lx failed with %ld\n", cpu, hwcpu, addr, ret);
+			   "%lx failed with %ld\n", cpu, hwcpu, addr, ret);
 		return;
 	}
 
 #ifdef CONFIG_PPC_STD_MMU_64
+
 	/*
 	 * PAPR says this feature is SLB-Buffer but firmware never
 	 * reports that.  All SPLPAR support SLB shadow buffer.
 	 */
-	if (!radix_enabled() && firmware_has_feature(FW_FEATURE_SPLPAR)) {
+	if (!radix_enabled() && firmware_has_feature(FW_FEATURE_SPLPAR))
+	{
 		addr = __pa(paca[cpu].slb_shadow_ptr);
 		ret = register_slb_shadow(hwcpu, addr);
+
 		if (ret)
 			pr_err("WARNING: SLB shadow buffer registration for "
-			       "cpu %d (hw %d) of area %lx failed with %ld\n",
-			       cpu, hwcpu, addr, ret);
+				   "cpu %d (hw %d) of area %lx failed with %ld\n",
+				   cpu, hwcpu, addr, ret);
 	}
+
 #endif /* CONFIG_PPC_STD_MMU_64 */
 
 	/*
@@ -111,7 +120,9 @@ void vpa_init(int cpu)
 	 */
 	pp = &paca[cpu];
 	dtl = pp->dispatch_log;
-	if (dtl) {
+
+	if (dtl)
+	{
 		pp->dtl_ridx = 0;
 		pp->dtl_curr = dtl;
 		lppaca_of(cpu).dtl_idx = 0;
@@ -119,10 +130,12 @@ void vpa_init(int cpu)
 		/* hypervisor reads buffer length from this field */
 		dtl->enqueue_to_dispatch_time = cpu_to_be32(DISPATCH_LOG_BYTES);
 		ret = register_dtl(hwcpu, __pa(dtl));
+
 		if (ret)
 			pr_err("WARNING: DTL registration of cpu %d (hw %d) "
-			       "failed with %ld\n", smp_processor_id(),
-			       hwcpu, ret);
+				   "failed with %ld\n", smp_processor_id(),
+				   hwcpu, ret);
+
 		lppaca_of(cpu).dtl_enable_mask = 2;
 	}
 }
@@ -130,9 +143,9 @@ void vpa_init(int cpu)
 #ifdef CONFIG_PPC_STD_MMU_64
 
 static long pSeries_lpar_hpte_insert(unsigned long hpte_group,
-				     unsigned long vpn, unsigned long pa,
-				     unsigned long rflags, unsigned long vflags,
-				     int psize, int apsize, int ssize)
+									 unsigned long vpn, unsigned long pa,
+									 unsigned long rflags, unsigned long vflags,
+									 int psize, int apsize, int ssize)
 {
 	unsigned long lpar_rc;
 	unsigned long flags;
@@ -141,14 +154,16 @@ static long pSeries_lpar_hpte_insert(unsigned long hpte_group,
 
 	if (!(vflags & HPTE_V_BOLTED))
 		pr_devel("hpte_insert(group=%lx, vpn=%016lx, "
-			 "pa=%016lx, rflags=%lx, vflags=%lx, psize=%d)\n",
-			 hpte_group, vpn,  pa, rflags, vflags, psize);
+				 "pa=%016lx, rflags=%lx, vflags=%lx, psize=%d)\n",
+				 hpte_group, vpn,  pa, rflags, vflags, psize);
 
 	hpte_v = hpte_encode_v(vpn, psize, apsize, ssize) | vflags | HPTE_V_VALID;
 	hpte_r = hpte_encode_r(pa, psize, apsize, ssize) | rflags;
 
 	if (!(vflags & HPTE_V_BOLTED))
+	{
 		pr_devel(" hpte_v=%016lx, hpte_r=%016lx\n", hpte_v, hpte_r);
+	}
 
 	/* Now fill in the actual HPTE */
 	/* Set CEC cookie to 0         */
@@ -159,12 +174,19 @@ static long pSeries_lpar_hpte_insert(unsigned long hpte_group,
 	flags = 0;
 
 	if (firmware_has_feature(FW_FEATURE_XCMO) && !(hpte_r & HPTE_R_N))
+	{
 		flags |= H_COALESCE_CAND;
+	}
 
 	lpar_rc = plpar_pte_enter(flags, hpte_group, hpte_v, hpte_r, &slot);
-	if (unlikely(lpar_rc == H_PTEG_FULL)) {
+
+	if (unlikely(lpar_rc == H_PTEG_FULL))
+	{
 		if (!(vflags & HPTE_V_BOLTED))
+		{
 			pr_devel(" full\n");
+		}
+
 		return -1;
 	}
 
@@ -173,13 +195,20 @@ static long pSeries_lpar_hpte_insert(unsigned long hpte_group,
 	 * will fail. However we must catch the failure in hash_page
 	 * or we will loop forever, so return -2 in this case.
 	 */
-	if (unlikely(lpar_rc != H_SUCCESS)) {
+	if (unlikely(lpar_rc != H_SUCCESS))
+	{
 		if (!(vflags & HPTE_V_BOLTED))
+		{
 			pr_devel(" lpar err %ld\n", lpar_rc);
+		}
+
 		return -2;
 	}
+
 	if (!(vflags & HPTE_V_BOLTED))
+	{
 		pr_devel(" -> slot: %lu\n", slot & 7);
+	}
 
 	/* Because of iSeries, we have to pass down the secondary
 	 * bucket bit here as well
@@ -199,13 +228,17 @@ static long pSeries_lpar_hpte_remove(unsigned long hpte_group)
 	/* pick a random slot to start at */
 	slot_offset = mftb() & 0x7;
 
-	for (i = 0; i < HPTES_PER_GROUP; i++) {
+	for (i = 0; i < HPTES_PER_GROUP; i++)
+	{
 
 		/* don't remove a bolted entry */
 		lpar_rc = plpar_pte_remove(H_ANDCOND, hpte_group + slot_offset,
-					   (0x1UL << 4), &dummy1, &dummy2);
+								   (0x1UL << 4), &dummy1, &dummy2);
+
 		if (lpar_rc == H_SUCCESS)
+		{
 			return i;
+		}
 
 		/*
 		 * The test for adjunct partition is performed before the
@@ -225,7 +258,8 @@ static void pSeries_lpar_hptab_clear(void)
 {
 	unsigned long size_bytes = 1UL << ppc64_pft_size;
 	unsigned long hpte_count = size_bytes >> 4;
-	struct {
+	struct
+	{
 		unsigned long pteh;
 		unsigned long ptel;
 	} ptes[4];
@@ -235,22 +269,32 @@ static void pSeries_lpar_hptab_clear(void)
 	/* Read in batches of 4,
 	 * invalidate only valid entries not in the VRMA
 	 * hpte_count will be a multiple of 4
-         */
-	for (i = 0; i < hpte_count; i += 4) {
+	     */
+	for (i = 0; i < hpte_count; i += 4)
+	{
 		lpar_rc = plpar_pte_read_4_raw(0, i, (void *)ptes);
+
 		if (lpar_rc != H_SUCCESS)
+		{
 			continue;
-		for (j = 0; j < 4; j++){
+		}
+
+		for (j = 0; j < 4; j++)
+		{
 			if ((ptes[j].pteh & HPTE_V_VRMA_MASK) ==
 				HPTE_V_VRMA_MASK)
+			{
 				continue;
+			}
+
 			if (ptes[j].pteh & HPTE_V_VALID)
 				plpar_pte_remove_raw(0, i + j, 0,
-					&(ptes[j].pteh), &(ptes[j].ptel));
+									 &(ptes[j].pteh), &(ptes[j].ptel));
 		}
 	}
 
 #ifdef __LITTLE_ENDIAN__
+
 	/*
 	 * Reset exceptions to big endian.
 	 *
@@ -262,7 +306,10 @@ static void pSeries_lpar_hptab_clear(void)
 	 * must not change the exception endian mode.
 	 */
 	if (firmware_has_feature(FW_FEATURE_SET_MODE) && !is_fadump_active())
+	{
 		pseries_big_endian_exceptions();
+	}
+
 #endif
 }
 
@@ -273,10 +320,10 @@ static void pSeries_lpar_hptab_clear(void)
  * already zero.  For now I am paranoid.
  */
 static long pSeries_lpar_hpte_updatepp(unsigned long slot,
-				       unsigned long newpp,
-				       unsigned long vpn,
-				       int psize, int apsize,
-				       int ssize, unsigned long inv_flags)
+									   unsigned long newpp,
+									   unsigned long vpn,
+									   int psize, int apsize,
+									   int ssize, unsigned long inv_flags)
 {
 	unsigned long lpar_rc;
 	unsigned long flags = (newpp & 7) | H_AVPN;
@@ -285,11 +332,12 @@ static long pSeries_lpar_hpte_updatepp(unsigned long slot,
 	want_v = hpte_encode_avpn(vpn, psize, ssize);
 
 	pr_devel("    update: avpnv=%016lx, hash=%016lx, f=%lx, psize: %d ...",
-		 want_v, slot, flags, psize);
+			 want_v, slot, flags, psize);
 
 	lpar_rc = plpar_pte_protect(flags, slot, want_v);
 
-	if (lpar_rc == H_NOT_FOUND) {
+	if (lpar_rc == H_NOT_FOUND)
+	{
 		pr_devel("not found !\n");
 		return -1;
 	}
@@ -305,21 +353,29 @@ static long __pSeries_lpar_hpte_find(unsigned long want_v, unsigned long hpte_gr
 {
 	long lpar_rc;
 	unsigned long i, j;
-	struct {
+	struct
+	{
 		unsigned long pteh;
 		unsigned long ptel;
 	} ptes[4];
 
-	for (i = 0; i < HPTES_PER_GROUP; i += 4, hpte_group += 4) {
+	for (i = 0; i < HPTES_PER_GROUP; i += 4, hpte_group += 4)
+	{
 
 		lpar_rc = plpar_pte_read_4(0, hpte_group, (void *)ptes);
-		if (lpar_rc != H_SUCCESS)
-			continue;
 
-		for (j = 0; j < 4; j++) {
+		if (lpar_rc != H_SUCCESS)
+		{
+			continue;
+		}
+
+		for (j = 0; j < 4; j++)
+		{
 			if (HPTE_V_COMPARE(ptes[j].pteh, want_v) &&
-			    (ptes[j].pteh & HPTE_V_VALID))
+				(ptes[j].pteh & HPTE_V_VALID))
+			{
 				return i + j;
+			}
 		}
 	}
 
@@ -339,14 +395,18 @@ static long pSeries_lpar_hpte_find(unsigned long vpn, int psize, int ssize)
 	/* Bolted entries are always in the primary group */
 	hpte_group = (hash & htab_hash_mask) * HPTES_PER_GROUP;
 	slot = __pSeries_lpar_hpte_find(want_v, hpte_group);
+
 	if (slot < 0)
+	{
 		return -1;
+	}
+
 	return hpte_group + slot;
 }
 
 static void pSeries_lpar_hpte_updateboltedpp(unsigned long newpp,
-					     unsigned long ea,
-					     int psize, int ssize)
+		unsigned long ea,
+		int psize, int ssize)
 {
 	unsigned long vpn;
 	unsigned long lpar_rc, slot, vsid, flags;
@@ -364,20 +424,23 @@ static void pSeries_lpar_hpte_updateboltedpp(unsigned long newpp,
 }
 
 static void pSeries_lpar_hpte_invalidate(unsigned long slot, unsigned long vpn,
-					 int psize, int apsize,
-					 int ssize, int local)
+		int psize, int apsize,
+		int ssize, int local)
 {
 	unsigned long want_v;
 	unsigned long lpar_rc;
 	unsigned long dummy1, dummy2;
 
 	pr_devel("    inval : slot=%lx, vpn=%016lx, psize: %d, local: %d\n",
-		 slot, vpn, psize, local);
+			 slot, vpn, psize, local);
 
 	want_v = hpte_encode_avpn(vpn, psize, ssize);
 	lpar_rc = plpar_pte_remove(H_AVPN, slot, want_v, &dummy1, &dummy2);
+
 	if (lpar_rc == H_NOT_FOUND)
+	{
 		return;
+	}
 
 	BUG_ON(lpar_rc != H_SUCCESS);
 }
@@ -390,8 +453,8 @@ static void pSeries_lpar_hpte_invalidate(unsigned long slot, unsigned long vpn,
 #define PPC64_HUGE_HPTE_BATCH 12
 
 static void __pSeries_lpar_hugepage_invalidate(unsigned long *slot,
-					     unsigned long *vpn, int count,
-					     int psize, int ssize)
+		unsigned long *vpn, int count,
+		int psize, int ssize)
 {
 	unsigned long param[PLPAR_HCALL9_BUFSIZE];
 	int i = 0, pix = 0, rc;
@@ -399,43 +462,55 @@ static void __pSeries_lpar_hugepage_invalidate(unsigned long *slot,
 	int lock_tlbie = !mmu_has_feature(MMU_FTR_LOCKLESS_TLBIE);
 
 	if (lock_tlbie)
+	{
 		spin_lock_irqsave(&pSeries_lpar_tlbie_lock, flags);
+	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 
-		if (!firmware_has_feature(FW_FEATURE_BULK_REMOVE)) {
+		if (!firmware_has_feature(FW_FEATURE_BULK_REMOVE))
+		{
 			pSeries_lpar_hpte_invalidate(slot[i], vpn[i], psize, 0,
-						     ssize, 0);
-		} else {
+										 ssize, 0);
+		}
+		else
+		{
 			param[pix] = HBR_REQUEST | HBR_AVPN | slot[i];
-			param[pix+1] = hpte_encode_avpn(vpn[i], psize, ssize);
+			param[pix + 1] = hpte_encode_avpn(vpn[i], psize, ssize);
 			pix += 2;
-			if (pix == 8) {
+
+			if (pix == 8)
+			{
 				rc = plpar_hcall9(H_BULK_REMOVE, param,
-						  param[0], param[1], param[2],
-						  param[3], param[4], param[5],
-						  param[6], param[7]);
+								  param[0], param[1], param[2],
+								  param[3], param[4], param[5],
+								  param[6], param[7]);
 				BUG_ON(rc != H_SUCCESS);
 				pix = 0;
 			}
 		}
 	}
-	if (pix) {
+
+	if (pix)
+	{
 		param[pix] = HBR_END;
 		rc = plpar_hcall9(H_BULK_REMOVE, param, param[0], param[1],
-				  param[2], param[3], param[4], param[5],
-				  param[6], param[7]);
+						  param[2], param[3], param[4], param[5],
+						  param[6], param[7]);
 		BUG_ON(rc != H_SUCCESS);
 	}
 
 	if (lock_tlbie)
+	{
 		spin_unlock_irqrestore(&pSeries_lpar_tlbie_lock, flags);
+	}
 }
 
 static void pSeries_lpar_hugepage_invalidate(unsigned long vsid,
-					     unsigned long addr,
-					     unsigned char *hpte_slot_array,
-					     int psize, int ssize, int local)
+		unsigned long addr,
+		unsigned char *hpte_slot_array,
+		int psize, int ssize, int local)
 {
 	int i, index = 0;
 	unsigned long s_addr = addr;
@@ -447,52 +522,66 @@ static void pSeries_lpar_hugepage_invalidate(unsigned long vsid,
 	shift = mmu_psize_defs[psize].shift;
 	max_hpte_count = 1U << (PMD_SHIFT - shift);
 
-	for (i = 0; i < max_hpte_count; i++) {
+	for (i = 0; i < max_hpte_count; i++)
+	{
 		valid = hpte_valid(hpte_slot_array, i);
+
 		if (!valid)
+		{
 			continue;
+		}
+
 		hidx =  hpte_hash_index(hpte_slot_array, i);
 
 		/* get the vpn */
 		addr = s_addr + (i * (1ul << shift));
 		vpn = hpt_vpn(addr, vsid, ssize);
 		hash = hpt_hash(vpn, shift, ssize);
+
 		if (hidx & _PTEIDX_SECONDARY)
+		{
 			hash = ~hash;
+		}
 
 		slot = (hash & htab_hash_mask) * HPTES_PER_GROUP;
 		slot += hidx & _PTEIDX_GROUP_IX;
 
 		slot_array[index] = slot;
 		vpn_array[index] = vpn;
-		if (index == PPC64_HUGE_HPTE_BATCH - 1) {
+
+		if (index == PPC64_HUGE_HPTE_BATCH - 1)
+		{
 			/*
 			 * Now do a bluk invalidate
 			 */
 			__pSeries_lpar_hugepage_invalidate(slot_array,
-							   vpn_array,
-							   PPC64_HUGE_HPTE_BATCH,
-							   psize, ssize);
+											   vpn_array,
+											   PPC64_HUGE_HPTE_BATCH,
+											   psize, ssize);
 			index = 0;
-		} else
+		}
+		else
+		{
 			index++;
+		}
 	}
+
 	if (index)
 		__pSeries_lpar_hugepage_invalidate(slot_array, vpn_array,
-						   index, psize, ssize);
+										   index, psize, ssize);
 }
 #else
 static void pSeries_lpar_hugepage_invalidate(unsigned long vsid,
-					     unsigned long addr,
-					     unsigned char *hpte_slot_array,
-					     int psize, int ssize, int local)
+		unsigned long addr,
+		unsigned char *hpte_slot_array,
+		int psize, int ssize, int local)
 {
 	WARN(1, "%s called without THP support\n", __func__);
 }
 #endif
 
 static int pSeries_lpar_hpte_removebolted(unsigned long ea,
-					  int psize, int ssize)
+		int psize, int ssize)
 {
 	unsigned long vpn;
 	unsigned long slot, vsid;
@@ -501,8 +590,11 @@ static int pSeries_lpar_hpte_removebolted(unsigned long ea,
 	vpn = hpt_vpn(ea, vsid, ssize);
 
 	slot = pSeries_lpar_hpte_find(vpn, psize, ssize);
+
 	if (slot == -1)
+	{
 		return -ENOENT;
+	}
 
 	/*
 	 * lpar doesn't use the passed actual page size
@@ -528,62 +620,83 @@ static void pSeries_lpar_flush_hash_range(unsigned long number, int local)
 	int psize, ssize;
 
 	if (lock_tlbie)
+	{
 		spin_lock_irqsave(&pSeries_lpar_tlbie_lock, flags);
+	}
 
 	psize = batch->psize;
 	ssize = batch->ssize;
 	pix = 0;
-	for (i = 0; i < number; i++) {
+
+	for (i = 0; i < number; i++)
+	{
 		vpn = batch->vpn[i];
 		pte = batch->pte[i];
-		pte_iterate_hashed_subpages(pte, psize, vpn, index, shift) {
+		pte_iterate_hashed_subpages(pte, psize, vpn, index, shift)
+		{
 			hash = hpt_hash(vpn, shift, ssize);
 			hidx = __rpte_to_hidx(pte, index);
+
 			if (hidx & _PTEIDX_SECONDARY)
+			{
 				hash = ~hash;
+			}
+
 			slot = (hash & htab_hash_mask) * HPTES_PER_GROUP;
 			slot += hidx & _PTEIDX_GROUP_IX;
-			if (!firmware_has_feature(FW_FEATURE_BULK_REMOVE)) {
+
+			if (!firmware_has_feature(FW_FEATURE_BULK_REMOVE))
+			{
 				/*
 				 * lpar doesn't use the passed actual page size
 				 */
 				pSeries_lpar_hpte_invalidate(slot, vpn, psize,
-							     0, ssize, local);
-			} else {
+											 0, ssize, local);
+			}
+			else
+			{
 				param[pix] = HBR_REQUEST | HBR_AVPN | slot;
-				param[pix+1] = hpte_encode_avpn(vpn, psize,
-								ssize);
+				param[pix + 1] = hpte_encode_avpn(vpn, psize,
+												  ssize);
 				pix += 2;
-				if (pix == 8) {
+
+				if (pix == 8)
+				{
 					rc = plpar_hcall9(H_BULK_REMOVE, param,
-						param[0], param[1], param[2],
-						param[3], param[4], param[5],
-						param[6], param[7]);
+									  param[0], param[1], param[2],
+									  param[3], param[4], param[5],
+									  param[6], param[7]);
 					BUG_ON(rc != H_SUCCESS);
 					pix = 0;
 				}
 			}
 		} pte_iterate_hashed_end();
 	}
-	if (pix) {
+
+	if (pix)
+	{
 		param[pix] = HBR_END;
 		rc = plpar_hcall9(H_BULK_REMOVE, param, param[0], param[1],
-				  param[2], param[3], param[4], param[5],
-				  param[6], param[7]);
+						  param[2], param[3], param[4], param[5],
+						  param[6], param[7]);
 		BUG_ON(rc != H_SUCCESS);
 	}
 
 	if (lock_tlbie)
+	{
 		spin_unlock_irqrestore(&pSeries_lpar_tlbie_lock, flags);
+	}
 }
 
 static int __init disable_bulk_remove(char *str)
 {
 	if (strcmp(str, "off") == 0 &&
-	    firmware_has_feature(FW_FEATURE_BULK_REMOVE)) {
-			printk(KERN_INFO "Disabling BULK_REMOVE firmware feature");
-			powerpc_firmware_features &= ~FW_FEATURE_BULK_REMOVE;
+		firmware_has_feature(FW_FEATURE_BULK_REMOVE))
+	{
+		printk(KERN_INFO "Disabling BULK_REMOVE firmware feature");
+		powerpc_firmware_features &= ~FW_FEATURE_BULK_REMOVE;
 	}
+
 	return 1;
 }
 
@@ -611,7 +724,8 @@ static int __init cmo_free_hint(char *str)
 	char *parm;
 	parm = strstrip(str);
 
-	if (strcasecmp(parm, "no") == 0 || strcasecmp(parm, "off") == 0) {
+	if (strcasecmp(parm, "no") == 0 || strcasecmp(parm, "off") == 0)
+	{
 		printk(KERN_INFO "cmo_free_hint: CMO free page hinting is not active.\n");
 		cmo_free_hint_flag = 0;
 		return 1;
@@ -621,7 +735,9 @@ static int __init cmo_free_hint(char *str)
 	printk(KERN_INFO "cmo_free_hint: CMO free page hinting is active.\n");
 
 	if (strcasecmp(parm, "yes") == 0 || strcasecmp(parm, "on") == 0)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -629,7 +745,7 @@ static int __init cmo_free_hint(char *str)
 __setup("cmo_free_hint=", cmo_free_hint);
 
 static void pSeries_set_page_state(struct page *page, int order,
-				   unsigned long state)
+								   unsigned long state)
 {
 	int i, j;
 	unsigned long cmo_page_sz, addr;
@@ -637,18 +753,26 @@ static void pSeries_set_page_state(struct page *page, int order,
 	cmo_page_sz = cmo_get_page_size();
 	addr = __pa((unsigned long)page_address(page));
 
-	for (i = 0; i < (1 << order); i++, addr += PAGE_SIZE) {
+	for (i = 0; i < (1 << order); i++, addr += PAGE_SIZE)
+	{
 		for (j = 0; j < PAGE_SIZE; j += cmo_page_sz)
+		{
 			plpar_hcall_norets(H_PAGE_INIT, state, addr + j, 0);
+		}
 	}
 }
 
 void arch_free_page(struct page *page, int order)
 {
 	if (radix_enabled())
+	{
 		return;
+	}
+
 	if (!cmo_free_hint_flag || !firmware_has_feature(FW_FEATURE_CMO))
+	{
 		return;
+	}
 
 	pSeries_set_page_state(page, order, H_PAGE_SET_UNUSED);
 }
@@ -709,14 +833,18 @@ void __trace_hcall_entry(unsigned long opcode, unsigned long *args)
 	 * means we must not trace H_CEDE.
 	 */
 	if (opcode == H_CEDE)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
 	depth = this_cpu_ptr(&hcall_trace_depth);
 
 	if (*depth)
+	{
 		goto out;
+	}
 
 	(*depth)++;
 	preempt_disable();
@@ -728,20 +856,24 @@ out:
 }
 
 void __trace_hcall_exit(long opcode, unsigned long retval,
-			unsigned long *retbuf)
+						unsigned long *retbuf)
 {
 	unsigned long flags;
 	unsigned int *depth;
 
 	if (opcode == H_CEDE)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 
 	depth = this_cpu_ptr(&hcall_trace_depth);
 
 	if (*depth)
+	{
 		goto out;
+	}
 
 	(*depth)++;
 	trace_hcall_exit(opcode, retval, retbuf);

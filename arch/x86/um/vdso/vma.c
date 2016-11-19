@@ -30,11 +30,16 @@ static int __init init_vdso(void)
 	um_vdso_addr = task_size - PAGE_SIZE;
 
 	vdsop = kmalloc(sizeof(struct page *), GFP_KERNEL);
+
 	if (!vdsop)
+	{
 		goto oom;
+	}
 
 	um_vdso = alloc_page(GFP_KERNEL);
-	if (!um_vdso) {
+
+	if (!um_vdso)
+	{
 		kfree(vdsop);
 
 		goto oom;
@@ -59,15 +64,19 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 	struct mm_struct *mm = current->mm;
 
 	if (!vdso_enabled)
+	{
 		return 0;
+	}
 
 	if (down_write_killable(&mm->mmap_sem))
+	{
 		return -EINTR;
+	}
 
 	err = install_special_mapping(mm, um_vdso_addr, PAGE_SIZE,
-		VM_READ|VM_EXEC|
-		VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
-		vdsop);
+								  VM_READ | VM_EXEC |
+								  VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+								  vdsop);
 
 	up_write(&mm->mmap_sem);
 

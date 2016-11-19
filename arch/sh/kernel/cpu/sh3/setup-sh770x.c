@@ -22,7 +22,8 @@
 #include <linux/sh_intc.h>
 #include <cpu/serial.h>
 
-enum {
+enum
+{
 	UNUSED = 0,
 
 	/* interrupt sources */
@@ -34,7 +35,8 @@ enum {
 	RTC, WDT, REF,
 };
 
-static struct intc_vect vectors[] __initdata = {
+static struct intc_vect vectors[] __initdata =
+{
 	INTC_VECT(TMU0, 0x400), INTC_VECT(TMU1, 0x420),
 	INTC_VECT(TMU2, 0x440), INTC_VECT(TMU2, 0x460),
 	INTC_VECT(RTC, 0x480), INTC_VECT(RTC, 0x4a0),
@@ -66,7 +68,8 @@ static struct intc_vect vectors[] __initdata = {
 #endif
 };
 
-static struct intc_prio_reg prio_registers[] __initdata = {
+static struct intc_prio_reg prio_registers[] __initdata =
+{
 	{ 0xfffffee2, 0, 16, 4, /* IPRA */ { TMU0, TMU1, TMU2, RTC } },
 	{ 0xfffffee4, 0, 16, 4, /* IPRB */ { WDT, REF, SCI, 0 } },
 #if defined(CONFIG_CPU_SUBTYPE_SH7706) || \
@@ -87,9 +90,10 @@ static struct intc_prio_reg prio_registers[] __initdata = {
 };
 
 static DECLARE_INTC_DESC(intc_desc, "sh770x", vectors, NULL,
-			 NULL, prio_registers, NULL);
+						 NULL, prio_registers, NULL);
 
-static struct resource rtc_resources[] = {
+static struct resource rtc_resources[] =
+{
 	[0] =	{
 		.start	= 0xfffffec0,
 		.end	= 0xfffffec0 + 0x1e,
@@ -101,14 +105,16 @@ static struct resource rtc_resources[] = {
 	},
 };
 
-static struct platform_device rtc_device = {
+static struct platform_device rtc_device =
+{
 	.name		= "sh-rtc",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(rtc_resources),
 	.resource	= rtc_resources,
 };
 
-static struct plat_sci_port scif0_platform_data = {
+static struct plat_sci_port scif0_platform_data =
+{
 	.port_reg	= 0xa4000136,
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_TE | SCSCR_RE,
@@ -117,12 +123,14 @@ static struct plat_sci_port scif0_platform_data = {
 	.regshift	= 1,
 };
 
-static struct resource scif0_resources[] = {
+static struct resource scif0_resources[] =
+{
 	DEFINE_RES_MEM(0xfffffe80, 0x10),
 	DEFINE_RES_IRQ(evt2irq(0x4e0)),
 };
 
-static struct platform_device scif0_device = {
+static struct platform_device scif0_device =
+{
 	.name		= "sh-sci",
 	.id		= 0,
 	.resource	= scif0_resources,
@@ -134,7 +142,8 @@ static struct platform_device scif0_device = {
 #if defined(CONFIG_CPU_SUBTYPE_SH7706) || \
     defined(CONFIG_CPU_SUBTYPE_SH7707) || \
     defined(CONFIG_CPU_SUBTYPE_SH7709)
-static struct plat_sci_port scif1_platform_data = {
+static struct plat_sci_port scif1_platform_data =
+{
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_TE | SCSCR_RE,
 	.type		= PORT_SCIF,
@@ -142,12 +151,14 @@ static struct plat_sci_port scif1_platform_data = {
 	.regtype	= SCIx_SH3_SCIF_REGTYPE,
 };
 
-static struct resource scif1_resources[] = {
+static struct resource scif1_resources[] =
+{
 	DEFINE_RES_MEM(0xa4000150, 0x10),
 	DEFINE_RES_IRQ(evt2irq(0x900)),
 };
 
-static struct platform_device scif1_device = {
+static struct platform_device scif1_device =
+{
 	.name		= "sh-sci",
 	.id		= 1,
 	.resource	= scif1_resources,
@@ -159,7 +170,8 @@ static struct platform_device scif1_device = {
 #endif
 #if defined(CONFIG_CPU_SUBTYPE_SH7707) || \
     defined(CONFIG_CPU_SUBTYPE_SH7709)
-static struct plat_sci_port scif2_platform_data = {
+static struct plat_sci_port scif2_platform_data =
+{
 	.port_reg	= SCIx_NOT_SUPPORTED,
 	.flags		= UPF_BOOT_AUTOCONF,
 	.scscr		= SCSCR_TE | SCSCR_RE,
@@ -168,12 +180,14 @@ static struct plat_sci_port scif2_platform_data = {
 	.regshift	= 1,
 };
 
-static struct resource scif2_resources[] = {
+static struct resource scif2_resources[] =
+{
 	DEFINE_RES_MEM(0xa4000140, 0x10),
 	DEFINE_RES_IRQ(evt2irq(0x880)),
 };
 
-static struct platform_device scif2_device = {
+static struct platform_device scif2_device =
+{
 	.name		= "sh-sci",
 	.id		= 2,
 	.resource	= scif2_resources,
@@ -184,18 +198,21 @@ static struct platform_device scif2_device = {
 };
 #endif
 
-static struct sh_timer_config tmu0_platform_data = {
+static struct sh_timer_config tmu0_platform_data =
+{
 	.channels_mask = 7,
 };
 
-static struct resource tmu0_resources[] = {
+static struct resource tmu0_resources[] =
+{
 	DEFINE_RES_MEM(0xfffffe90, 0x2c),
 	DEFINE_RES_IRQ(evt2irq(0x400)),
 	DEFINE_RES_IRQ(evt2irq(0x420)),
 	DEFINE_RES_IRQ(evt2irq(0x440)),
 };
 
-static struct platform_device tmu0_device = {
+static struct platform_device tmu0_device =
+{
 	.name		= "sh-tmu-sh3",
 	.id		= 0,
 	.dev = {
@@ -205,7 +222,8 @@ static struct platform_device tmu0_device = {
 	.num_resources	= ARRAY_SIZE(tmu0_resources),
 };
 
-static struct platform_device *sh770x_devices[] __initdata = {
+static struct platform_device *sh770x_devices[] __initdata =
+{
 	&scif0_device,
 #if defined(CONFIG_CPU_SUBTYPE_SH7706) || \
     defined(CONFIG_CPU_SUBTYPE_SH7707) || \
@@ -223,11 +241,12 @@ static struct platform_device *sh770x_devices[] __initdata = {
 static int __init sh770x_devices_setup(void)
 {
 	return platform_add_devices(sh770x_devices,
-		ARRAY_SIZE(sh770x_devices));
+								ARRAY_SIZE(sh770x_devices));
 }
 arch_initcall(sh770x_devices_setup);
 
-static struct platform_device *sh770x_early_devices[] __initdata = {
+static struct platform_device *sh770x_early_devices[] __initdata =
+{
 	&scif0_device,
 #if defined(CONFIG_CPU_SUBTYPE_SH7706) || \
     defined(CONFIG_CPU_SUBTYPE_SH7707) || \
@@ -244,7 +263,7 @@ static struct platform_device *sh770x_early_devices[] __initdata = {
 void __init plat_early_device_setup(void)
 {
 	early_platform_add_devices(sh770x_early_devices,
-				   ARRAY_SIZE(sh770x_early_devices));
+							   ARRAY_SIZE(sh770x_early_devices));
 }
 
 void __init plat_irq_setup(void)

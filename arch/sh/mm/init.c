@@ -49,19 +49,25 @@ static pte_t *__get_pte_phys(unsigned long addr)
 	pmd_t *pmd;
 
 	pgd = pgd_offset_k(addr);
-	if (pgd_none(*pgd)) {
+
+	if (pgd_none(*pgd))
+	{
 		pgd_ERROR(*pgd);
 		return NULL;
 	}
 
 	pud = pud_alloc(NULL, pgd, addr);
-	if (unlikely(!pud)) {
+
+	if (unlikely(!pud))
+	{
 		pud_ERROR(*pud);
 		return NULL;
 	}
 
 	pmd = pmd_alloc(NULL, pud, addr);
-	if (unlikely(!pmd)) {
+
+	if (unlikely(!pmd))
+	{
 		pmd_ERROR(*pmd);
 		return NULL;
 	}
@@ -74,7 +80,9 @@ static void set_pte_phys(unsigned long addr, unsigned long phys, pgprot_t prot)
 	pte_t *pte;
 
 	pte = __get_pte_phys(addr);
-	if (!pte_none(*pte)) {
+
+	if (!pte_none(*pte))
+	{
 		pte_ERROR(*pte);
 		return;
 	}
@@ -83,7 +91,9 @@ static void set_pte_phys(unsigned long addr, unsigned long phys, pgprot_t prot)
 	local_flush_tlb_one(get_asid(), addr);
 
 	if (pgprot_val(prot) & _PAGE_WIRED)
+	{
 		tlb_wire_entry(NULL, addr, *pte);
+	}
 }
 
 static void clear_pte_phys(unsigned long addr, pgprot_t prot)
@@ -93,7 +103,9 @@ static void clear_pte_phys(unsigned long addr, pgprot_t prot)
 	pte = __get_pte_phys(addr);
 
 	if (pgprot_val(prot) & _PAGE_WIRED)
+	{
 		tlb_unwire_entry();
+	}
 
 	set_pte(pte, pfn_pte(0, __pgprot(0)));
 	local_flush_tlb_one(get_asid(), addr);
@@ -103,7 +115,8 @@ void __set_fixmap(enum fixed_addresses idx, unsigned long phys, pgprot_t prot)
 {
 	unsigned long address = __fix_to_virt(idx);
 
-	if (idx >= __end_of_fixed_addresses) {
+	if (idx >= __end_of_fixed_addresses)
+	{
 		BUG();
 		return;
 	}
@@ -115,7 +128,8 @@ void __clear_fixmap(enum fixed_addresses idx, pgprot_t prot)
 {
 	unsigned long address = __fix_to_virt(idx);
 
-	if (idx >= __end_of_fixed_addresses) {
+	if (idx >= __end_of_fixed_addresses)
+	{
 		BUG();
 		return;
 	}
@@ -123,9 +137,10 @@ void __clear_fixmap(enum fixed_addresses idx, pgprot_t prot)
 	clear_pte_phys(address, prot);
 }
 
-static pmd_t * __init one_md_table_init(pud_t *pud)
+static pmd_t *__init one_md_table_init(pud_t *pud)
 {
-	if (pud_none(*pud)) {
+	if (pud_none(*pud))
+	{
 		pmd_t *pmd;
 
 		pmd = alloc_bootmem_pages(PAGE_SIZE);
@@ -136,9 +151,10 @@ static pmd_t * __init one_md_table_init(pud_t *pud)
 	return pmd_offset(pud, 0);
 }
 
-static pte_t * __init one_page_table_init(pmd_t *pmd)
+static pte_t *__init one_page_table_init(pmd_t *pmd)
 {
-	if (pmd_none(*pmd)) {
+	if (pmd_none(*pmd))
+	{
 		pte_t *pte;
 
 		pte = alloc_bootmem_pages(PAGE_SIZE);
@@ -149,14 +165,14 @@ static pte_t * __init one_page_table_init(pmd_t *pmd)
 	return pte_offset_kernel(pmd, 0);
 }
 
-static pte_t * __init page_table_kmap_check(pte_t *pte, pmd_t *pmd,
-					    unsigned long vaddr, pte_t *lastpte)
+static pte_t *__init page_table_kmap_check(pte_t *pte, pmd_t *pmd,
+		unsigned long vaddr, pte_t *lastpte)
 {
 	return pte;
 }
 
 void __init page_table_range_init(unsigned long start, unsigned long end,
-					 pgd_t *pgd_base)
+								  pgd_t *pgd_base)
 {
 	pgd_t *pgd;
 	pud_t *pud;
@@ -171,20 +187,27 @@ void __init page_table_range_init(unsigned long start, unsigned long end,
 	k = __pmd_offset(vaddr);
 	pgd = pgd_base + i;
 
-	for ( ; (i < PTRS_PER_PGD) && (vaddr != end); pgd++, i++) {
+	for ( ; (i < PTRS_PER_PGD) && (vaddr != end); pgd++, i++)
+	{
 		pud = (pud_t *)pgd;
-		for ( ; (j < PTRS_PER_PUD) && (vaddr != end); pud++, j++) {
+
+		for ( ; (j < PTRS_PER_PUD) && (vaddr != end); pud++, j++)
+		{
 			pmd = one_md_table_init(pud);
 #ifndef __PAGETABLE_PMD_FOLDED
 			pmd += k;
 #endif
-			for (; (k < PTRS_PER_PMD) && (vaddr != end); pmd++, k++) {
+
+			for (; (k < PTRS_PER_PMD) && (vaddr != end); pmd++, k++)
+			{
 				pte = page_table_kmap_check(one_page_table_init(pmd),
-							    pmd, vaddr, pte);
+											pmd, vaddr, pte);
 				vaddr += PMD_SIZE;
 			}
+
 			k = 0;
 		}
+
 		j = 0;
 	}
 }
@@ -201,13 +224,17 @@ void __init allocate_pgdat(unsigned int nid)
 
 #ifdef CONFIG_NEED_MULTIPLE_NODES
 	phys = __memblock_alloc_base(sizeof(struct pglist_data),
-				SMP_CACHE_BYTES, end_pfn << PAGE_SHIFT);
+								 SMP_CACHE_BYTES, end_pfn << PAGE_SHIFT);
+
 	/* Retry with all of system memory */
 	if (!phys)
 		phys = __memblock_alloc_base(sizeof(struct pglist_data),
-					SMP_CACHE_BYTES, memblock_end_of_DRAM());
+									 SMP_CACHE_BYTES, memblock_end_of_DRAM());
+
 	if (!phys)
+	{
 		panic("Can't allocate pgdat for node %d\n", nid);
+	}
 
 	NODE_DATA(nid) = __va(phys);
 	memset(NODE_DATA(nid), 0, sizeof(struct pglist_data));
@@ -229,15 +256,20 @@ static void __init bootmem_init_one_node(unsigned int nid)
 
 	/* Nothing to do.. */
 	if (!p->node_spanned_pages)
+	{
 		return;
+	}
 
 	end_pfn = pgdat_end_pfn(p);
 
 	total_pages = bootmem_bootmap_pages(p->node_spanned_pages);
 
 	paddr = memblock_alloc(total_pages << PAGE_SHIFT, PAGE_SIZE);
+
 	if (!paddr)
+	{
 		panic("Can't allocate bootmap for nid[%d]\n", nid);
+	}
 
 	init_bootmem_node(p, paddr >> PAGE_SHIFT, p->node_start_pfn, end_pfn);
 
@@ -248,11 +280,13 @@ static void __init bootmem_init_one_node(unsigned int nid)
 	 * only for the moment, we'll refactor this later for handling
 	 * reservations in other nodes.
 	 */
-	if (nid == 0) {
+	if (nid == 0)
+	{
 		struct memblock_region *reg;
 
 		/* Reserve the sections we're already using. */
-		for_each_memblock(reserved, reg) {
+		for_each_memblock(reserved, reg)
+		{
 			reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
 		}
 	}
@@ -266,7 +300,8 @@ static void __init do_init_bootmem(void)
 	int i;
 
 	/* Add active regions with valid PFNs. */
-	for_each_memblock(memory, reg) {
+	for_each_memblock(memory, reg)
+	{
 		unsigned long start_pfn, end_pfn;
 		start_pfn = memblock_region_memory_base_pfn(reg);
 		end_pfn = memblock_region_memory_end_pfn(reg);
@@ -280,7 +315,7 @@ static void __init do_init_bootmem(void)
 	plat_mem_setup();
 
 	for_each_online_node(i)
-		bootmem_init_one_node(i);
+	bootmem_init_one_node(i);
 
 	sparse_init();
 }
@@ -309,7 +344,9 @@ static void __init early_reserve_mem(void)
 	 * Reserve physical pages below CONFIG_ZERO_PAGE_OFFSET.
 	 */
 	if (CONFIG_ZERO_PAGE_OFFSET != 0)
+	{
 		memblock_reserve(zero_base, CONFIG_ZERO_PAGE_OFFSET);
+	}
 
 	/*
 	 * Handle additional early reservations
@@ -333,7 +370,9 @@ void __init paging_init(void)
 	 * platforms a chance to kick out some memory.
 	 */
 	if (sh_mv.mv_mem_reserve)
+	{
 		sh_mv.mv_mem_reserve();
+	}
 
 	memblock_enforce_memory_limit(memory_limit);
 	memblock_allow_resize();
@@ -349,7 +388,7 @@ void __init paging_init(void)
 	nodes_clear(node_online_map);
 
 	memory_start = (unsigned long)__va(__MEMORY_START);
-	memory_end = memory_start + (memory_limit ?: memblock_phys_mem_size());
+	memory_end = memory_start + (memory_limit ? : memblock_phys_mem_size());
 
 	uncached_init();
 	pmb_init();
@@ -378,7 +417,8 @@ void __init paging_init(void)
 
 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
 
-	for_each_online_node(nid) {
+	for_each_online_node(nid)
+	{
 		pg_data_t *pgdat = NODE_DATA(nid);
 		unsigned long low, start_pfn;
 
@@ -386,10 +426,12 @@ void __init paging_init(void)
 		low = pgdat->bdata->node_low_pfn;
 
 		if (max_zone_pfns[ZONE_NORMAL] < low)
+		{
 			max_zone_pfns[ZONE_NORMAL] = low;
+		}
 
 		printk("Node %u: start_pfn = 0x%lx, low = 0x%lx\n",
-		       nid, start_pfn, low);
+			   nid, start_pfn, low);
 	}
 
 	free_area_init_nodes(max_zone_pfns);
@@ -413,8 +455,8 @@ void __init mem_init(void)
 
 	high_memory = NULL;
 	for_each_online_pgdat(pgdat)
-		high_memory = max_t(void *, high_memory,
-				    __va(pgdat_end_pfn(pgdat) << PAGE_SHIFT));
+	high_memory = max_t(void *, high_memory,
+						__va(pgdat_end_pfn(pgdat) << PAGE_SHIFT));
 
 	free_all_bootmem();
 
@@ -429,45 +471,45 @@ void __init mem_init(void)
 
 	mem_init_print_info(NULL);
 	pr_info("virtual kernel memory layout:\n"
-		"    fixmap  : 0x%08lx - 0x%08lx   (%4ld kB)\n"
+			"    fixmap  : 0x%08lx - 0x%08lx   (%4ld kB)\n"
 #ifdef CONFIG_HIGHMEM
-		"    pkmap   : 0x%08lx - 0x%08lx   (%4ld kB)\n"
+			"    pkmap   : 0x%08lx - 0x%08lx   (%4ld kB)\n"
 #endif
-		"    vmalloc : 0x%08lx - 0x%08lx   (%4ld MB)\n"
-		"    lowmem  : 0x%08lx - 0x%08lx   (%4ld MB) (cached)\n"
+			"    vmalloc : 0x%08lx - 0x%08lx   (%4ld MB)\n"
+			"    lowmem  : 0x%08lx - 0x%08lx   (%4ld MB) (cached)\n"
 #ifdef CONFIG_UNCACHED_MAPPING
-		"            : 0x%08lx - 0x%08lx   (%4ld MB) (uncached)\n"
+			"            : 0x%08lx - 0x%08lx   (%4ld MB) (uncached)\n"
 #endif
-		"      .init : 0x%08lx - 0x%08lx   (%4ld kB)\n"
-		"      .data : 0x%08lx - 0x%08lx   (%4ld kB)\n"
-		"      .text : 0x%08lx - 0x%08lx   (%4ld kB)\n",
-		FIXADDR_START, FIXADDR_TOP,
-		(FIXADDR_TOP - FIXADDR_START) >> 10,
+			"      .init : 0x%08lx - 0x%08lx   (%4ld kB)\n"
+			"      .data : 0x%08lx - 0x%08lx   (%4ld kB)\n"
+			"      .text : 0x%08lx - 0x%08lx   (%4ld kB)\n",
+			FIXADDR_START, FIXADDR_TOP,
+			(FIXADDR_TOP - FIXADDR_START) >> 10,
 
 #ifdef CONFIG_HIGHMEM
-		PKMAP_BASE, PKMAP_BASE+LAST_PKMAP*PAGE_SIZE,
-		(LAST_PKMAP*PAGE_SIZE) >> 10,
+			PKMAP_BASE, PKMAP_BASE + LAST_PKMAP * PAGE_SIZE,
+			(LAST_PKMAP * PAGE_SIZE) >> 10,
 #endif
 
-		(unsigned long)VMALLOC_START, VMALLOC_END,
-		(VMALLOC_END - VMALLOC_START) >> 20,
+			(unsigned long)VMALLOC_START, VMALLOC_END,
+			(VMALLOC_END - VMALLOC_START) >> 20,
 
-		(unsigned long)memory_start, (unsigned long)high_memory,
-		((unsigned long)high_memory - (unsigned long)memory_start) >> 20,
+			(unsigned long)memory_start, (unsigned long)high_memory,
+			((unsigned long)high_memory - (unsigned long)memory_start) >> 20,
 
 #ifdef CONFIG_UNCACHED_MAPPING
-		uncached_start, uncached_end, uncached_size >> 20,
+			uncached_start, uncached_end, uncached_size >> 20,
 #endif
 
-		(unsigned long)&__init_begin, (unsigned long)&__init_end,
-		((unsigned long)&__init_end -
-		 (unsigned long)&__init_begin) >> 10,
+			(unsigned long)&__init_begin, (unsigned long)&__init_end,
+			((unsigned long)&__init_end -
+			 (unsigned long)&__init_begin) >> 10,
 
-		(unsigned long)&_etext, (unsigned long)&_edata,
-		((unsigned long)&_edata - (unsigned long)&_etext) >> 10,
+			(unsigned long)&_etext, (unsigned long)&_edata,
+			((unsigned long)&_edata - (unsigned long)&_etext) >> 10,
 
-		(unsigned long)&_text, (unsigned long)&_etext,
-		((unsigned long)&_etext - (unsigned long)&_text) >> 10);
+			(unsigned long)&_text, (unsigned long)&_etext,
+			((unsigned long)&_etext - (unsigned long)&_text) >> 10);
 
 	mem_init_done = 1;
 }
@@ -496,11 +538,14 @@ int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
 
 	/* We only have ZONE_NORMAL, so this is easy.. */
 	ret = __add_pages(nid, pgdat->node_zones +
-			zone_for_memory(nid, start, size, ZONE_NORMAL,
-			for_device),
-			start_pfn, nr_pages);
+					  zone_for_memory(nid, start, size, ZONE_NORMAL,
+									  for_device),
+					  start_pfn, nr_pages);
+
 	if (unlikely(ret))
+	{
 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
+	}
 
 	return ret;
 }
@@ -525,9 +570,10 @@ int arch_remove_memory(u64 start, u64 size)
 
 	zone = page_zone(pfn_to_page(start_pfn));
 	ret = __remove_pages(zone, start_pfn, nr_pages);
+
 	if (unlikely(ret))
 		pr_warn("%s: Failed, __remove_pages() == %d\n", __func__,
-			ret);
+				ret);
 
 	return ret;
 }

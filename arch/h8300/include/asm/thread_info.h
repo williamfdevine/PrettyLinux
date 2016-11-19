@@ -25,7 +25,8 @@
  * low level task data.
  * If you change this, change the TI_* offsets below to match.
  */
-struct thread_info {
+struct thread_info
+{
 	struct task_struct *task;		/* main task structure */
 	unsigned long	   flags;		/* low level flags */
 	int		   cpu;			/* cpu we're on */
@@ -37,13 +38,13 @@ struct thread_info {
  * macros/functions for gaining access to the thread information structure
  */
 #define INIT_THREAD_INFO(tsk)			\
-{						\
-	.task =		&tsk,			\
-	.flags =	0,			\
-	.cpu =		0,			\
-	.preempt_count = INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-}
+	{						\
+		.task =		&tsk,			\
+					.flags =	0,			\
+								.cpu =		0,			\
+											.preempt_count = INIT_PREEMPT_COUNT,	\
+													.addr_limit	= KERNEL_DS,		\
+	}
 
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
@@ -54,9 +55,9 @@ static inline struct thread_info *current_thread_info(void)
 	struct thread_info *ti;
 
 	__asm__("mov.l	sp, %0\n\t"
-		"and.w	%1, %T0"
-		: "=&r"(ti)
-		: "i" (~(THREAD_SIZE-1) & 0xffff));
+			"and.w	%1, %T0"
+			: "=&r"(ti)
+			: "i" (~(THREAD_SIZE-1) & 0xffff));
 	return ti;
 }
 
@@ -88,17 +89,17 @@ static inline struct thread_info *current_thread_info(void)
 
 /* work to do in syscall trace */
 #define _TIF_WORK_SYSCALL_MASK	(_TIF_SYSCALL_TRACE | _TIF_SINGLESTEP | \
-				 _TIF_SYSCALL_AUDIT | _TIF_SYSCALL_TRACEPOINT)
+								 _TIF_SYSCALL_AUDIT | _TIF_SYSCALL_TRACEPOINT)
 
 /* work to do on any return to u-space */
 #define _TIF_ALLWORK_MASK	(_TIF_SYSCALL_TRACE | _TIF_SIGPENDING      | \
-				 _TIF_NEED_RESCHED  | _TIF_SYSCALL_AUDIT   | \
-				 _TIF_SINGLESTEP    | _TIF_NOTIFY_RESUME   | \
-				 _TIF_SYSCALL_TRACEPOINT)
+							 _TIF_NEED_RESCHED  | _TIF_SYSCALL_AUDIT   | \
+							 _TIF_SINGLESTEP    | _TIF_NOTIFY_RESUME   | \
+							 _TIF_SYSCALL_TRACEPOINT)
 
 /* work to do on interrupt/exception return */
 #define _TIF_WORK_MASK		(_TIF_ALLWORK_MASK & ~(_TIF_SYSCALL_TRACE | \
-				 _TIF_SYSCALL_AUDIT | _TIF_SINGLESTEP))
+							 _TIF_SYSCALL_AUDIT | _TIF_SINGLESTEP))
 
 #endif /* __KERNEL__ */
 

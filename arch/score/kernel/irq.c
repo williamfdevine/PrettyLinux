@@ -58,10 +58,10 @@ static void score_mask(struct irq_data *d)
 
 	if (irq_source < 32)
 		__raw_writel((__raw_readl(SCORE_PIC + INT_MASKL) | \
-			(1 << irq_source)), SCORE_PIC + INT_MASKL);
+					  (1 << irq_source)), SCORE_PIC + INT_MASKL);
 	else
 		__raw_writel((__raw_readl(SCORE_PIC + INT_MASKH) | \
-			(1 << (irq_source - 32))), SCORE_PIC + INT_MASKH);
+					  (1 << (irq_source - 32))), SCORE_PIC + INT_MASKH);
 }
 
 static void score_unmask(struct irq_data *d)
@@ -70,13 +70,14 @@ static void score_unmask(struct irq_data *d)
 
 	if (irq_source < 32)
 		__raw_writel((__raw_readl(SCORE_PIC + INT_MASKL) & \
-			~(1 << irq_source)), SCORE_PIC + INT_MASKL);
+					  ~(1 << irq_source)), SCORE_PIC + INT_MASKL);
 	else
 		__raw_writel((__raw_readl(SCORE_PIC + INT_MASKH) & \
-			~(1 << (irq_source - 32))), SCORE_PIC + INT_MASKH);
+					  ~(1 << (irq_source - 32))), SCORE_PIC + INT_MASKH);
 }
 
-struct irq_chip score_irq_chip = {
+struct irq_chip score_irq_chip =
+{
 	.name		= "Score7-level",
 	.irq_mask	= score_mask,
 	.irq_mask_ack	= score_mask,
@@ -93,13 +94,13 @@ void __init init_IRQ(void)
 
 	for (index = 0; index < NR_IRQS; ++index)
 		irq_set_chip_and_handler(index, &score_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 
 	for (target_addr = IRQ_VECTOR_BASE_ADDR;
-		target_addr <= IRQ_VECTOR_END_ADDR;
-		target_addr += IRQ_VECTOR_SIZE)
+		 target_addr <= IRQ_VECTOR_END_ADDR;
+		 target_addr += IRQ_VECTOR_SIZE)
 		memcpy((void *)target_addr, \
-			interrupt_exception_vector, IRQ_VECTOR_SIZE);
+			   interrupt_exception_vector, IRQ_VECTOR_SIZE);
 
 	__raw_writel(0xffffffff, SCORE_PIC + INT_MASKL);
 	__raw_writel(0xffffffff, SCORE_PIC + INT_MASKH);
@@ -107,5 +108,5 @@ void __init init_IRQ(void)
 	__asm__ __volatile__(
 		"mtcr	%0, cr3\n\t"
 		: : "r" (EXCEPTION_VECTOR_BASE_ADDR | \
-			VECTOR_ADDRESS_OFFSET_MODE16));
+				 VECTOR_ADDRESS_OFFSET_MODE16));
 }

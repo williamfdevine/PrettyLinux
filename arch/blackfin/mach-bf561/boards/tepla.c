@@ -19,7 +19,8 @@ const char bfin_board_name[] = "Tepla-BF561";
 /*
  *  Driver needs to know address, irq and flag pin.
  */
-static struct resource smc91x_resources[] = {
+static struct resource smc91x_resources[] =
+{
 	{
 		.start	= 0x2C000300,
 		.end	= 0x2C000320,
@@ -27,15 +28,16 @@ static struct resource smc91x_resources[] = {
 	}, {
 		.start	= IRQ_PROG_INTB,
 		.end	= IRQ_PROG_INTB,
-		.flags	= IORESOURCE_IRQ|IORESOURCE_IRQ_HIGHLEVEL,
+		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
 	}, {
 		.start	= IRQ_PF7,
 		.end	= IRQ_PF7,
-		.flags	= IORESOURCE_IRQ|IORESOURCE_IRQ_HIGHLEVEL,
+		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
 	},
 };
 
-static struct platform_device smc91x_device = {
+static struct platform_device smc91x_device =
+{
 	.name          = "smc91x",
 	.id            = 0,
 	.num_resources = ARRAY_SIZE(smc91x_resources),
@@ -44,10 +46,11 @@ static struct platform_device smc91x_device = {
 
 #if IS_ENABLED(CONFIG_SERIAL_BFIN)
 #ifdef CONFIG_SERIAL_BFIN_UART0
-static struct resource bfin_uart0_resources[] = {
+static struct resource bfin_uart0_resources[] =
+{
 	{
 		.start = BFIN_UART_THR,
-		.end = BFIN_UART_GCTL+2,
+		.end = BFIN_UART_GCTL + 2,
 		.flags = IORESOURCE_MEM,
 	},
 	{
@@ -77,11 +80,13 @@ static struct resource bfin_uart0_resources[] = {
 	},
 };
 
-static unsigned short bfin_uart0_peripherals[] = {
+static unsigned short bfin_uart0_peripherals[] =
+{
 	P_UART0_TX, P_UART0_RX, 0
 };
 
-static struct platform_device bfin_uart0_device = {
+static struct platform_device bfin_uart0_device =
+{
 	.name = "bfin-uart",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_uart0_resources),
@@ -95,7 +100,8 @@ static struct platform_device bfin_uart0_device = {
 
 #if IS_ENABLED(CONFIG_BFIN_SIR)
 #ifdef CONFIG_BFIN_SIR0
-static struct resource bfin_sir0_resources[] = {
+static struct resource bfin_sir0_resources[] =
+{
 	{
 		.start = 0xFFC00400,
 		.end = 0xFFC004FF,
@@ -103,17 +109,18 @@ static struct resource bfin_sir0_resources[] = {
 	},
 	{
 		.start = IRQ_UART0_RX,
-		.end = IRQ_UART0_RX+1,
+		.end = IRQ_UART0_RX + 1,
 		.flags = IORESOURCE_IRQ,
 	},
 	{
 		.start = CH_UART0_RX,
-		.end = CH_UART0_RX+1,
+		.end = CH_UART0_RX + 1,
 		.flags = IORESOURCE_DMA,
 	},
 };
 
-static struct platform_device bfin_sir0_device = {
+static struct platform_device bfin_sir0_device =
+{
 	.name = "bfin_sir",
 	.id = 0,
 	.num_resources = ARRAY_SIZE(bfin_sir0_resources),
@@ -122,7 +129,8 @@ static struct platform_device bfin_sir0_device = {
 #endif
 #endif
 
-static struct platform_device *tepla_devices[] __initdata = {
+static struct platform_device *tepla_devices[] __initdata =
+{
 	&smc91x_device,
 
 #if IS_ENABLED(CONFIG_SERIAL_BFIN)
@@ -146,7 +154,8 @@ static int __init tepla_init(void)
 
 arch_initcall(tepla_init);
 
-static struct platform_device *tepla_early_devices[] __initdata = {
+static struct platform_device *tepla_early_devices[] __initdata =
+{
 #if defined(CONFIG_SERIAL_BFIN_CONSOLE) || defined(CONFIG_EARLY_PRINTK)
 #ifdef CONFIG_SERIAL_BFIN_UART0
 	&bfin_uart0_device,
@@ -158,5 +167,5 @@ void __init native_machine_early_platform_add_devices(void)
 {
 	printk(KERN_INFO "register early platform devices\n");
 	early_platform_add_devices(tepla_early_devices,
-		ARRAY_SIZE(tepla_early_devices));
+							   ARRAY_SIZE(tepla_early_devices));
 }

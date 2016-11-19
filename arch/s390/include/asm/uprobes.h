@@ -17,8 +17,10 @@ typedef u16 uprobe_opcode_t;
 #define UPROBE_SWBP_INSN	0x0002
 #define UPROBE_SWBP_INSN_SIZE	2
 
-struct arch_uprobe {
-	union{
+struct arch_uprobe
+{
+	union
+	{
 		uprobe_opcode_t insn[3];
 		uprobe_opcode_t ixol[3];
 	};
@@ -26,7 +28,8 @@ struct arch_uprobe {
 	unsigned int saved_int_code;
 };
 
-struct arch_uprobe_task {
+struct arch_uprobe_task
+{
 };
 
 #endif	/* _ASM_UPROBES_H */

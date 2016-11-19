@@ -46,9 +46,9 @@
 
 #define DEBUG_SMP 0
 #if DEBUG_SMP
-#define DBGS(args)	printk args
+	#define DBGS(args)	printk args
 #else
-#define DBGS(args)
+	#define DBGS(args)
 #endif
 
 /* A collection of per-processor data.  */
@@ -56,11 +56,13 @@ struct cpuinfo_alpha cpu_data[NR_CPUS];
 EXPORT_SYMBOL(cpu_data);
 
 /* A collection of single bit ipi messages.  */
-static struct {
+static struct
+{
 	unsigned long bits ____cacheline_aligned;
 } ipi_data[NR_CPUS] __cacheline_aligned;
 
-enum ipi_message_type {
+enum ipi_message_type
+{
 	IPI_RESCHEDULE,
 	IPI_CALL_FUNC,
 	IPI_CPU_STOP,
@@ -99,17 +101,24 @@ smp_setup_percpu_timer(int cpuid)
 static void __init
 wait_boot_cpu_to_stop(int cpuid)
 {
-	unsigned long stop = jiffies + 10*HZ;
+	unsigned long stop = jiffies + 10 * HZ;
 
-	while (time_before(jiffies, stop)) {
-	        if (!smp_secondary_alive)
+	while (time_before(jiffies, stop))
+	{
+		if (!smp_secondary_alive)
+		{
 			return;
+		}
+
 		barrier();
 	}
 
 	printk("wait_boot_cpu_to_stop: FAILED on CPU %d, hanging now\n", cpuid);
+
 	for (;;)
+	{
 		barrier();
+	}
 }
 
 /*
@@ -120,10 +129,12 @@ smp_callin(void)
 {
 	int cpuid = hard_smp_processor_id();
 
-	if (cpu_online(cpuid)) {
+	if (cpu_online(cpuid))
+	{
 		printk("??, cpu 0x%x already present??\n", cpuid);
 		BUG();
 	}
+
 	set_cpu_online(cpuid, true);
 
 	/* Turn on machine checks.  */
@@ -141,7 +152,9 @@ smp_callin(void)
 
 	/* Call platform-specific callin, if specified */
 	if (alpha_mv.smp_callin)
+	{
 		alpha_mv.smp_callin();
+	}
 
 	/* All kernel threads share the same mm context.  */
 	atomic_inc(&init_mm.mm_count);
@@ -165,7 +178,7 @@ smp_callin(void)
 	smp_secondary_alive = 1;
 
 	DBGS(("smp_callin: commencing CPU %d current %p active_mm %p\n",
-	      cpuid, current, current->active_mm));
+		  cpuid, current, current->active_mm));
 
 	preempt_disable();
 	cpu_startup_entry(CPUHP_AP_ONLINE_IDLE);
@@ -178,12 +191,19 @@ wait_for_txrdy (unsigned long cpumask)
 	unsigned long timeout;
 
 	if (!(hwrpb->txrdy & cpumask))
+	{
 		return 0;
+	}
 
-	timeout = jiffies + 10*HZ;
-	while (time_before(jiffies, timeout)) {
+	timeout = jiffies + 10 * HZ;
+
+	while (time_before(jiffies, timeout))
+	{
 		if (!(hwrpb->txrdy & cpumask))
+		{
 			return 0;
+		}
+
 		udelay(10);
 		barrier();
 	}
@@ -204,13 +224,16 @@ send_secondary_console_msg(char *str, int cpuid)
 	size_t len;
 
 	cpu = (struct percpu_struct *)
-		((char*)hwrpb
-		 + hwrpb->processor_offset
-		 + cpuid * hwrpb->processor_size);
+		  ((char *)hwrpb
+		   + hwrpb->processor_offset
+		   + cpuid * hwrpb->processor_size);
 
 	cpumask = (1UL << cpuid);
+
 	if (wait_for_txrdy(cpumask))
+	{
 		goto timeout;
+	}
 
 	cp2 = str;
 	len = strlen(cp2);
@@ -223,10 +246,13 @@ send_secondary_console_msg(char *str, int cpuid)
 	set_bit(cpuid, &hwrpb->rxrdy);
 
 	if (wait_for_txrdy(cpumask))
+	{
 		goto timeout;
+	}
+
 	return;
 
- timeout:
+timeout:
 	printk("Processor %x not ready\n", cpuid);
 }
 
@@ -245,40 +271,51 @@ recv_secondary_console_msg(void)
 
 	mycpu = hard_smp_processor_id();
 
-	for (i = 0; i < NR_CPUS; i++) {
+	for (i = 0; i < NR_CPUS; i++)
+	{
 		if (!(txrdy & (1UL << i)))
+		{
 			continue;
+		}
 
 		DBGS(("recv_secondary_console_msg: "
-		      "TXRDY contains CPU %d.\n", i));
+			  "TXRDY contains CPU %d.\n", i));
 
 		cpu = (struct percpu_struct *)
-		  ((char*)hwrpb
-		   + hwrpb->processor_offset
-		   + i * hwrpb->processor_size);
+			  ((char *)hwrpb
+			   + hwrpb->processor_offset
+			   + i * hwrpb->processor_size);
 
- 		DBGS(("recv_secondary_console_msg: on %d from %d"
-		      " HALT_REASON 0x%lx FLAGS 0x%lx\n",
-		      mycpu, i, cpu->halt_reason, cpu->flags));
+		DBGS(("recv_secondary_console_msg: on %d from %d"
+			  " HALT_REASON 0x%lx FLAGS 0x%lx\n",
+			  mycpu, i, cpu->halt_reason, cpu->flags));
 
 		cnt = cpu->ipc_buffer[0] >> 32;
+
 		if (cnt <= 0 || cnt >= 80)
+		{
 			strcpy(buf, "<<< BOGUS MSG >>>");
-		else {
+		}
+		else
+		{
 			cp1 = (char *) &cpu->ipc_buffer[1];
 			cp2 = buf;
 			memcpy(cp2, cp1, cnt);
 			cp2[cnt] = '\0';
-			
-			while ((cp2 = strchr(cp2, '\r')) != 0) {
+
+			while ((cp2 = strchr(cp2, '\r')) != 0)
+			{
 				*cp2 = ' ';
+
 				if (cp2[1] == '\n')
+				{
 					cp2[1] = ' ';
+				}
 			}
 		}
 
 		DBGS((KERN_INFO "recv_secondary_console_msg: on %d "
-		      "message is '%s'\n", mycpu, buf));
+			  "message is '%s'\n", mycpu, buf));
 	}
 
 	hwrpb->txrdy = 0;
@@ -293,11 +330,11 @@ secondary_cpu_start(int cpuid, struct task_struct *idle)
 	struct percpu_struct *cpu;
 	struct pcb_struct *hwpcb, *ipcb;
 	unsigned long timeout;
-	  
+
 	cpu = (struct percpu_struct *)
-		((char*)hwrpb
-		 + hwrpb->processor_offset
-		 + cpuid * hwrpb->processor_size);
+		  ((char *)hwrpb
+		   + hwrpb->processor_offset
+		   + cpuid * hwrpb->processor_size);
 	hwpcb = (struct pcb_struct *) cpu->hwpcb;
 	ipcb = &task_thread_info(idle)->pcb;
 
@@ -316,10 +353,10 @@ secondary_cpu_start(int cpuid, struct task_struct *idle)
 
 #if 0
 	DBGS(("KSP 0x%lx PTBR 0x%lx VPTBR 0x%lx UNIQUE 0x%lx\n",
-	      hwpcb->ksp, hwpcb->ptbr, hwrpb->vptb, hwpcb->unique));
+		  hwpcb->ksp, hwpcb->ptbr, hwrpb->vptb, hwpcb->unique));
 #endif
 	DBGS(("Starting secondary cpu %d: state 0x%lx pal_flags 0x%lx\n",
-	      cpuid, idle->state, ipcb->flags));
+		  cpuid, idle->state, ipcb->flags));
 
 	/* Setup HWRPB fields that SRM uses to activate secondary CPU */
 	hwrpb->CPU_restart = __smp_callin;
@@ -340,17 +377,23 @@ secondary_cpu_start(int cpuid, struct task_struct *idle)
 	send_secondary_console_msg("START\r\n", cpuid);
 
 	/* Wait 10 seconds for an ACK from the console.  */
-	timeout = jiffies + 10*HZ;
-	while (time_before(jiffies, timeout)) {
+	timeout = jiffies + 10 * HZ;
+
+	while (time_before(jiffies, timeout))
+	{
 		if (cpu->flags & 1)
+		{
 			goto started;
+		}
+
 		udelay(10);
 		barrier();
 	}
+
 	printk(KERN_ERR "SMP: Processor %d failed to start.\n", cpuid);
 	return -1;
 
- started:
+started:
 	DBGS(("secondary_cpu_start: SUCCESS for CPU %d!!!\n", cpuid));
 	return 0;
 }
@@ -368,7 +411,9 @@ smp_boot_one_cpu(int cpuid, struct task_struct *idle)
 
 	/* Whirrr, whirrr, whirrrrrrrrr... */
 	if (secondary_cpu_start(cpuid, idle))
+	{
 		return -1;
+	}
 
 	/* Notify the secondary CPU it can run calibrate_delay.  */
 	mb();
@@ -376,10 +421,15 @@ smp_boot_one_cpu(int cpuid, struct task_struct *idle)
 
 	/* We've been acked by the console; wait one second for
 	   the task to start up for real.  */
-	timeout = jiffies + 1*HZ;
-	while (time_before(jiffies, timeout)) {
+	timeout = jiffies + 1 * HZ;
+
+	while (time_before(jiffies, timeout))
+	{
 		if (smp_secondary_alive == 1)
+		{
 			goto alive;
+		}
+
 		udelay(10);
 		barrier();
 	}
@@ -389,7 +439,7 @@ smp_boot_one_cpu(int cpuid, struct task_struct *idle)
 	printk(KERN_ERR "SMP: Processor %d is stuck.\n", cpuid);
 	return -1;
 
- alive:
+alive:
 	/* Another "Red Snapper". */
 	return 0;
 }
@@ -404,25 +454,30 @@ setup_smp(void)
 	struct percpu_struct *cpubase, *cpu;
 	unsigned long i;
 
-	if (boot_cpuid != 0) {
+	if (boot_cpuid != 0)
+	{
 		printk(KERN_WARNING "SMP: Booting off cpu %d instead of 0?\n",
-		       boot_cpuid);
+			   boot_cpuid);
 	}
 
-	if (hwrpb->nr_processors > 1) {
+	if (hwrpb->nr_processors > 1)
+	{
 		int boot_cpu_palrev;
 
 		DBGS(("setup_smp: nr_processors %ld\n",
-		      hwrpb->nr_processors));
+			  hwrpb->nr_processors));
 
 		cpubase = (struct percpu_struct *)
-			((char*)hwrpb + hwrpb->processor_offset);
+				  ((char *)hwrpb + hwrpb->processor_offset);
 		boot_cpu_palrev = cpubase->pal_revision;
 
-		for (i = 0; i < hwrpb->nr_processors; i++) {
+		for (i = 0; i < hwrpb->nr_processors; i++)
+		{
 			cpu = (struct percpu_struct *)
-				((char *)cpubase + i*hwrpb->processor_size);
-			if ((cpu->flags & 0x1cc) == 0x1cc) {
+				  ((char *)cpubase + i * hwrpb->processor_size);
+
+			if ((cpu->flags & 0x1cc) == 0x1cc)
+			{
 				smp_num_probed++;
 				set_cpu_possible(i, true);
 				set_cpu_present(i, true);
@@ -430,16 +485,18 @@ setup_smp(void)
 			}
 
 			DBGS(("setup_smp: CPU %d: flags 0x%lx type 0x%lx\n",
-			      i, cpu->flags, cpu->type));
+				  i, cpu->flags, cpu->type));
 			DBGS(("setup_smp: CPU %d: PAL rev 0x%lx\n",
-			      i, cpu->pal_revision));
+				  i, cpu->pal_revision));
 		}
-	} else {
+	}
+	else
+	{
 		smp_num_probed = 1;
 	}
 
 	printk(KERN_INFO "SMP: %d CPUs probed -- cpu_present_mask = %lx\n",
-	       smp_num_probed, cpumask_bits(cpu_present_mask)[0]);
+		   smp_num_probed, cpumask_bits(cpu_present_mask)[0]);
 }
 
 /*
@@ -457,7 +514,8 @@ smp_prepare_cpus(unsigned int max_cpus)
 	smp_setup_percpu_timer(boot_cpuid);
 
 	/* Nothing to do on a UP box, or when told not to.  */
-	if (smp_num_probed == 1 || max_cpus == 0) {
+	if (smp_num_probed == 1 || max_cpus == 0)
+	{
 		init_cpu_possible(cpumask_of(boot_cpuid));
 		init_cpu_present(cpumask_of(boot_cpuid));
 		printk(KERN_INFO "SMP mode deactivated.\n");
@@ -488,15 +546,17 @@ smp_cpus_done(unsigned int max_cpus)
 	int cpu;
 	unsigned long bogosum = 0;
 
-	for(cpu = 0; cpu < NR_CPUS; cpu++) 
+	for (cpu = 0; cpu < NR_CPUS; cpu++)
 		if (cpu_online(cpu))
+		{
 			bogosum += cpu_data[cpu].loops_per_jiffy;
-	
+		}
+
 	printk(KERN_INFO "SMP: Total of %d processors activated "
-	       "(%lu.%02lu BogoMIPS).\n",
-	       num_online_cpus(), 
-	       (bogosum + 2500) / (500000/HZ),
-	       ((bogosum + 2500) / (5000/HZ)) % 100);
+		   "(%lu.%02lu BogoMIPS).\n",
+		   num_online_cpus(),
+		   (bogosum + 2500) / (500000 / HZ),
+		   ((bogosum + 2500) / (5000 / HZ)) % 100);
 }
 
 int
@@ -512,11 +572,11 @@ send_ipi_message(const struct cpumask *to_whom, enum ipi_message_type operation)
 
 	mb();
 	for_each_cpu(i, to_whom)
-		set_bit(operation, &ipi_data[i].bits);
+	set_bit(operation, &ipi_data[i].bits);
 
 	mb();
 	for_each_cpu(i, to_whom)
-		wripir(i);
+	wripir(i);
 }
 
 void
@@ -528,54 +588,64 @@ handle_ipi(struct pt_regs *regs)
 
 #if 0
 	DBGS(("handle_ipi: on CPU %d ops 0x%lx PC 0x%lx\n",
-	      this_cpu, *pending_ipis, regs->pc));
+		  this_cpu, *pending_ipis, regs->pc));
 #endif
 
 	mb();	/* Order interrupt and bit testing. */
-	while ((ops = xchg(pending_ipis, 0)) != 0) {
-	  mb();	/* Order bit clearing and data access. */
-	  do {
-		unsigned long which;
 
-		which = ops & -ops;
-		ops &= ~which;
-		which = __ffs(which);
+	while ((ops = xchg(pending_ipis, 0)) != 0)
+	{
+		mb();	/* Order bit clearing and data access. */
 
-		switch (which) {
-		case IPI_RESCHEDULE:
-			scheduler_ipi();
-			break;
+		do
+		{
+			unsigned long which;
 
-		case IPI_CALL_FUNC:
-			generic_smp_call_function_interrupt();
-			break;
+			which = ops & -ops;
+			ops &= ~which;
+			which = __ffs(which);
 
-		case IPI_CPU_STOP:
-			halt();
+			switch (which)
+			{
+				case IPI_RESCHEDULE:
+					scheduler_ipi();
+					break;
 
-		default:
-			printk(KERN_CRIT "Unknown IPI on CPU %d: %lu\n",
-			       this_cpu, which);
-			break;
+				case IPI_CALL_FUNC:
+					generic_smp_call_function_interrupt();
+					break;
+
+				case IPI_CPU_STOP:
+					halt();
+
+				default:
+					printk(KERN_CRIT "Unknown IPI on CPU %d: %lu\n",
+						   this_cpu, which);
+					break;
+			}
 		}
-	  } while (ops);
+		while (ops);
 
-	  mb();	/* Order data access and bit testing. */
+		mb();	/* Order data access and bit testing. */
 	}
 
 	cpu_data[this_cpu].ipi_count++;
 
 	if (hwrpb->txrdy)
+	{
 		recv_secondary_console_msg();
+	}
 }
 
 void
 smp_send_reschedule(int cpu)
 {
 #ifdef DEBUG_IPI_MSG
+
 	if (cpu == hard_smp_processor_id())
 		printk(KERN_WARNING
-		       "smp_send_reschedule: Sending IPI to self.\n");
+			   "smp_send_reschedule: Sending IPI to self.\n");
+
 #endif
 	send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
 }
@@ -587,8 +657,12 @@ smp_send_stop(void)
 	cpumask_copy(&to_whom, cpu_possible_mask);
 	cpumask_clear_cpu(smp_processor_id(), &to_whom);
 #ifdef DEBUG_IPI_MSG
+
 	if (hard_smp_processor_id() != boot_cpu_id)
+	{
 		printk(KERN_WARNING "smp_send_stop: Not on boot cpu.\n");
+	}
+
 #endif
 	send_ipi_message(&to_whom, IPI_CPU_STOP);
 }
@@ -614,7 +688,9 @@ smp_imb(void)
 {
 	/* Must wait other processors to flush their icache before continue. */
 	if (on_each_cpu(ipi_imb, NULL, 1))
+	{
 		printk(KERN_CRIT "smp_imb: timed out\n");
+	}
 }
 EXPORT_SYMBOL(smp_imb);
 
@@ -629,7 +705,8 @@ flush_tlb_all(void)
 {
 	/* Although we don't have any data to pass, we do want to
 	   synchronize with the other processors.  */
-	if (on_each_cpu(ipi_flush_tlb_all, NULL, 1)) {
+	if (on_each_cpu(ipi_flush_tlb_all, NULL, 1))
+	{
 		printk(KERN_CRIT "flush_tlb_all: timed out\n");
 	}
 }
@@ -640,10 +717,15 @@ static void
 ipi_flush_tlb_mm(void *x)
 {
 	struct mm_struct *mm = (struct mm_struct *) x;
+
 	if (mm == current->active_mm && !asn_locked())
+	{
 		flush_tlb_current(mm);
+	}
 	else
+	{
 		flush_tlb_other(mm);
+	}
 }
 
 void
@@ -651,22 +733,34 @@ flush_tlb_mm(struct mm_struct *mm)
 {
 	preempt_disable();
 
-	if (mm == current->active_mm) {
+	if (mm == current->active_mm)
+	{
 		flush_tlb_current(mm);
-		if (atomic_read(&mm->mm_users) <= 1) {
+
+		if (atomic_read(&mm->mm_users) <= 1)
+		{
 			int cpu, this_cpu = smp_processor_id();
-			for (cpu = 0; cpu < NR_CPUS; cpu++) {
+
+			for (cpu = 0; cpu < NR_CPUS; cpu++)
+			{
 				if (!cpu_online(cpu) || cpu == this_cpu)
+				{
 					continue;
+				}
+
 				if (mm->context[cpu])
+				{
 					mm->context[cpu] = 0;
+				}
 			}
+
 			preempt_enable();
 			return;
 		}
 	}
 
-	if (smp_call_function(ipi_flush_tlb_mm, mm, 1)) {
+	if (smp_call_function(ipi_flush_tlb_mm, mm, 1))
+	{
 		printk(KERN_CRIT "flush_tlb_mm: timed out\n");
 	}
 
@@ -674,7 +768,8 @@ flush_tlb_mm(struct mm_struct *mm)
 }
 EXPORT_SYMBOL(flush_tlb_mm);
 
-struct flush_tlb_page_struct {
+struct flush_tlb_page_struct
+{
 	struct vm_area_struct *vma;
 	struct mm_struct *mm;
 	unsigned long addr;
@@ -684,12 +779,16 @@ static void
 ipi_flush_tlb_page(void *x)
 {
 	struct flush_tlb_page_struct *data = (struct flush_tlb_page_struct *)x;
-	struct mm_struct * mm = data->mm;
+	struct mm_struct *mm = data->mm;
 
 	if (mm == current->active_mm && !asn_locked())
+	{
 		flush_tlb_current_page(mm, data->vma, data->addr);
+	}
 	else
+	{
 		flush_tlb_other(mm);
+	}
 }
 
 void
@@ -700,16 +799,27 @@ flush_tlb_page(struct vm_area_struct *vma, unsigned long addr)
 
 	preempt_disable();
 
-	if (mm == current->active_mm) {
+	if (mm == current->active_mm)
+	{
 		flush_tlb_current_page(mm, vma, addr);
-		if (atomic_read(&mm->mm_users) <= 1) {
+
+		if (atomic_read(&mm->mm_users) <= 1)
+		{
 			int cpu, this_cpu = smp_processor_id();
-			for (cpu = 0; cpu < NR_CPUS; cpu++) {
+
+			for (cpu = 0; cpu < NR_CPUS; cpu++)
+			{
 				if (!cpu_online(cpu) || cpu == this_cpu)
+				{
 					continue;
+				}
+
 				if (mm->context[cpu])
+				{
 					mm->context[cpu] = 0;
+				}
 			}
+
 			preempt_enable();
 			return;
 		}
@@ -719,7 +829,8 @@ flush_tlb_page(struct vm_area_struct *vma, unsigned long addr)
 	data.mm = mm;
 	data.addr = addr;
 
-	if (smp_call_function(ipi_flush_tlb_page, &data, 1)) {
+	if (smp_call_function(ipi_flush_tlb_page, &data, 1))
+	{
 		printk(KERN_CRIT "flush_tlb_page: timed out\n");
 	}
 
@@ -739,39 +850,58 @@ static void
 ipi_flush_icache_page(void *x)
 {
 	struct mm_struct *mm = (struct mm_struct *) x;
+
 	if (mm == current->active_mm && !asn_locked())
+	{
 		__load_new_mm_context(mm);
+	}
 	else
+	{
 		flush_tlb_other(mm);
+	}
 }
 
 void
 flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
-			unsigned long addr, int len)
+						unsigned long addr, int len)
 {
 	struct mm_struct *mm = vma->vm_mm;
 
 	if ((vma->vm_flags & VM_EXEC) == 0)
+	{
 		return;
+	}
 
 	preempt_disable();
 
-	if (mm == current->active_mm) {
+	if (mm == current->active_mm)
+	{
 		__load_new_mm_context(mm);
-		if (atomic_read(&mm->mm_users) <= 1) {
+
+		if (atomic_read(&mm->mm_users) <= 1)
+		{
 			int cpu, this_cpu = smp_processor_id();
-			for (cpu = 0; cpu < NR_CPUS; cpu++) {
+
+			for (cpu = 0; cpu < NR_CPUS; cpu++)
+			{
 				if (!cpu_online(cpu) || cpu == this_cpu)
+				{
 					continue;
+				}
+
 				if (mm->context[cpu])
+				{
 					mm->context[cpu] = 0;
+				}
 			}
+
 			preempt_enable();
 			return;
 		}
 	}
 
-	if (smp_call_function(ipi_flush_icache_page, mm, 1)) {
+	if (smp_call_function(ipi_flush_icache_page, mm, 1))
+	{
 		printk(KERN_CRIT "flush_icache_page: timed out\n");
 	}
 

@@ -37,7 +37,9 @@
 static void __init mpc5200_simple_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("mpc5200_simple_setup_arch()", 0);
+	}
 
 	/* Map important registers from the internal memory map */
 	mpc52xx_map_common_devices();
@@ -49,7 +51,8 @@ static void __init mpc5200_simple_setup_arch(void)
 }
 
 /* list of the supported boards */
-static const char *board[] __initdata = {
+static const char *board[] __initdata =
+{
 	"anonymous,a3m071",
 	"anonymous,a4m072",
 	"anon,charon",
@@ -73,13 +76,14 @@ static int __init mpc5200_simple_probe(void)
 	return of_device_compatible_match(of_root, board);
 }
 
-define_machine(mpc5200_simple_platform) {
+define_machine(mpc5200_simple_platform)
+{
 	.name		= "mpc5200-simple-platform",
-	.probe		= mpc5200_simple_probe,
-	.setup_arch	= mpc5200_simple_setup_arch,
-	.init		= mpc52xx_declare_of_platform_devices,
-	.init_IRQ	= mpc52xx_init_irq,
-	.get_irq	= mpc52xx_get_irq,
-	.restart	= mpc52xx_restart,
-	.calibrate_decr	= generic_calibrate_decr,
+		  .probe		= mpc5200_simple_probe,
+			   .setup_arch	= mpc5200_simple_setup_arch,
+				.init		= mpc52xx_declare_of_platform_devices,
+					  .init_IRQ	= mpc52xx_init_irq,
+						 .get_irq	= mpc52xx_get_irq,
+							 .restart	= mpc52xx_restart,
+								 .calibrate_decr	= generic_calibrate_decr,
 };

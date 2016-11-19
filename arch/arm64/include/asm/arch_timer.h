@@ -46,28 +46,28 @@ u64 __fsl_a008585_read_cntvct_el0(void);
  * of iterations the loop has been observed to take.
  */
 #define __fsl_a008585_read_reg(reg) ({			\
-	u64 _old, _new;					\
-	int _retries = 200;				\
-							\
-	do {						\
-		_old = read_sysreg(reg);		\
-		_new = read_sysreg(reg);		\
-		_retries--;				\
-	} while (unlikely(_old != _new) && _retries);	\
-							\
-	WARN_ON_ONCE(!_retries);			\
-	_new;						\
-})
+		u64 _old, _new;					\
+		int _retries = 200;				\
+		\
+		do {						\
+			_old = read_sysreg(reg);		\
+			_new = read_sysreg(reg);		\
+			_retries--;				\
+		} while (unlikely(_old != _new) && _retries);	\
+		\
+		WARN_ON_ONCE(!_retries);			\
+		_new;						\
+	})
 
 #define arch_timer_reg_read_stable(reg) 		\
-({							\
-	u64 _val;					\
-	if (needs_fsl_a008585_workaround())		\
-		_val = __fsl_a008585_read_##reg();	\
-	else						\
-		_val = read_sysreg(reg);		\
-	_val;						\
-})
+	({							\
+		u64 _val;					\
+		if (needs_fsl_a008585_workaround())		\
+			_val = __fsl_a008585_read_##reg();	\
+		else						\
+			_val = read_sysreg(reg);		\
+		_val;						\
+	})
 
 /*
  * These register accessors are marked inline so the compiler can
@@ -77,23 +77,30 @@ u64 __fsl_a008585_read_cntvct_el0(void);
 static __always_inline
 void arch_timer_reg_write_cp15(int access, enum arch_timer_reg reg, u32 val)
 {
-	if (access == ARCH_TIMER_PHYS_ACCESS) {
-		switch (reg) {
-		case ARCH_TIMER_REG_CTRL:
-			write_sysreg(val, cntp_ctl_el0);
-			break;
-		case ARCH_TIMER_REG_TVAL:
-			write_sysreg(val, cntp_tval_el0);
-			break;
+	if (access == ARCH_TIMER_PHYS_ACCESS)
+	{
+		switch (reg)
+		{
+			case ARCH_TIMER_REG_CTRL:
+				write_sysreg(val, cntp_ctl_el0);
+				break;
+
+			case ARCH_TIMER_REG_TVAL:
+				write_sysreg(val, cntp_tval_el0);
+				break;
 		}
-	} else if (access == ARCH_TIMER_VIRT_ACCESS) {
-		switch (reg) {
-		case ARCH_TIMER_REG_CTRL:
-			write_sysreg(val, cntv_ctl_el0);
-			break;
-		case ARCH_TIMER_REG_TVAL:
-			write_sysreg(val, cntv_tval_el0);
-			break;
+	}
+	else if (access == ARCH_TIMER_VIRT_ACCESS)
+	{
+		switch (reg)
+		{
+			case ARCH_TIMER_REG_CTRL:
+				write_sysreg(val, cntv_ctl_el0);
+				break;
+
+			case ARCH_TIMER_REG_TVAL:
+				write_sysreg(val, cntv_tval_el0);
+				break;
 		}
 	}
 
@@ -103,19 +110,26 @@ void arch_timer_reg_write_cp15(int access, enum arch_timer_reg reg, u32 val)
 static __always_inline
 u32 arch_timer_reg_read_cp15(int access, enum arch_timer_reg reg)
 {
-	if (access == ARCH_TIMER_PHYS_ACCESS) {
-		switch (reg) {
-		case ARCH_TIMER_REG_CTRL:
-			return read_sysreg(cntp_ctl_el0);
-		case ARCH_TIMER_REG_TVAL:
-			return arch_timer_reg_read_stable(cntp_tval_el0);
+	if (access == ARCH_TIMER_PHYS_ACCESS)
+	{
+		switch (reg)
+		{
+			case ARCH_TIMER_REG_CTRL:
+				return read_sysreg(cntp_ctl_el0);
+
+			case ARCH_TIMER_REG_TVAL:
+				return arch_timer_reg_read_stable(cntp_tval_el0);
 		}
-	} else if (access == ARCH_TIMER_VIRT_ACCESS) {
-		switch (reg) {
-		case ARCH_TIMER_REG_CTRL:
-			return read_sysreg(cntv_ctl_el0);
-		case ARCH_TIMER_REG_TVAL:
-			return arch_timer_reg_read_stable(cntv_tval_el0);
+	}
+	else if (access == ARCH_TIMER_VIRT_ACCESS)
+	{
+		switch (reg)
+		{
+			case ARCH_TIMER_REG_CTRL:
+				return read_sysreg(cntv_ctl_el0);
+
+			case ARCH_TIMER_REG_TVAL:
+				return arch_timer_reg_read_stable(cntv_tval_el0);
 		}
 	}
 

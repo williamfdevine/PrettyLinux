@@ -51,13 +51,14 @@
 
 #if CVMX_ENABLE_DEBUG_PRINTS
 static const char *modes[] =
-    { "UNKNOWN", "TX Halfplex", "Rx Halfplex", "Duplex" };
+{ "UNKNOWN", "TX Halfplex", "Rx Halfplex", "Duplex" };
 #endif
 
 /* Default callbacks, can be overridden
  *  using cvmx_spi_get_callbacks/cvmx_spi_set_callbacks
  */
-static cvmx_spi_callbacks_t cvmx_spi_callbacks = {
+static cvmx_spi_callbacks_t cvmx_spi_callbacks =
+{
 	.reset_cb = cvmx_spi_reset_cb,
 	.calendar_setup_cb = cvmx_spi_calendar_setup_cb,
 	.clock_detect_cb = cvmx_spi_clock_detect_cb,
@@ -103,19 +104,21 @@ void cvmx_spi_set_callbacks(cvmx_spi_callbacks_t *new_callbacks)
  * Returns Zero on success, negative of failure.
  */
 int cvmx_spi_start_interface(int interface, cvmx_spi_mode_t mode, int timeout,
-			     int num_ports)
+							 int num_ports)
 {
 	int res = -1;
 
 	if (!(OCTEON_IS_MODEL(OCTEON_CN38XX) || OCTEON_IS_MODEL(OCTEON_CN58XX)))
+	{
 		return res;
+	}
 
 	/* Callback to perform SPI4 reset */
 	INVOKE_CB(cvmx_spi_callbacks.reset_cb, interface, mode);
 
 	/* Callback to perform calendar setup */
 	INVOKE_CB(cvmx_spi_callbacks.calendar_setup_cb, interface, mode,
-		  num_ports);
+			  num_ports);
 
 	/* Callback to perform clock detection */
 	INVOKE_CB(cvmx_spi_callbacks.clock_detect_cb, interface, mode, timeout);
@@ -125,7 +128,7 @@ int cvmx_spi_start_interface(int interface, cvmx_spi_mode_t mode, int timeout,
 
 	/* Callback to perform calendar sync */
 	INVOKE_CB(cvmx_spi_callbacks.calendar_sync_cb, interface, mode,
-		  timeout);
+			  timeout);
 
 	/* Callback to handle interface coming up */
 	INVOKE_CB(cvmx_spi_callbacks.interface_up_cb, interface, mode);
@@ -152,7 +155,9 @@ int cvmx_spi_restart_interface(int interface, cvmx_spi_mode_t mode, int timeout)
 	int res = -1;
 
 	if (!(OCTEON_IS_MODEL(OCTEON_CN38XX) || OCTEON_IS_MODEL(OCTEON_CN58XX)))
+	{
 		return res;
+	}
 
 	cvmx_dprintf("SPI%d: Restart %s\n", interface, modes[mode]);
 
@@ -170,7 +175,7 @@ int cvmx_spi_restart_interface(int interface, cvmx_spi_mode_t mode, int timeout)
 
 	/* Callback to perform calendar sync */
 	INVOKE_CB(cvmx_spi_callbacks.calendar_sync_cb, interface, mode,
-		  timeout);
+			  timeout);
 
 	/* Callback to handle interface coming up */
 	INVOKE_CB(cvmx_spi_callbacks.interface_up_cb, interface, mode);
@@ -217,39 +222,43 @@ int cvmx_spi_reset_cb(int interface, cvmx_spi_mode_t mode)
 	cvmx_write_csr(CVMX_SPXX_CLK_CTL(interface), spxx_clk_ctl.u64);
 	cvmx_wait(10 * MS);
 	spxx_bist_stat.u64 = cvmx_read_csr(CVMX_SPXX_BIST_STAT(interface));
+
 	if (spxx_bist_stat.s.stat0)
 		cvmx_dprintf
-		    ("ERROR SPI%d: BIST failed on receive datapath FIFO\n",
-		     interface);
+		("ERROR SPI%d: BIST failed on receive datapath FIFO\n",
+		 interface);
+
 	if (spxx_bist_stat.s.stat1)
 		cvmx_dprintf("ERROR SPI%d: BIST failed on RX calendar table\n",
-			     interface);
+					 interface);
+
 	if (spxx_bist_stat.s.stat2)
 		cvmx_dprintf("ERROR SPI%d: BIST failed on TX calendar table\n",
-			     interface);
+					 interface);
 
 	/* Clear the calendar table after BIST to fix parity errors */
-	for (index = 0; index < 32; index++) {
+	for (index = 0; index < 32; index++)
+	{
 		union cvmx_srxx_spi4_calx srxx_spi4_calx;
 		union cvmx_stxx_spi4_calx stxx_spi4_calx;
 
 		srxx_spi4_calx.u64 = 0;
 		srxx_spi4_calx.s.oddpar = 1;
 		cvmx_write_csr(CVMX_SRXX_SPI4_CALX(index, interface),
-			       srxx_spi4_calx.u64);
+					   srxx_spi4_calx.u64);
 
 		stxx_spi4_calx.u64 = 0;
 		stxx_spi4_calx.s.oddpar = 1;
 		cvmx_write_csr(CVMX_STXX_SPI4_CALX(index, interface),
-			       stxx_spi4_calx.u64);
+					   stxx_spi4_calx.u64);
 	}
 
 	/* Re enable reporting of error interrupts */
 	cvmx_write_csr(CVMX_SPXX_INT_REG(interface),
-		       cvmx_read_csr(CVMX_SPXX_INT_REG(interface)));
+				   cvmx_read_csr(CVMX_SPXX_INT_REG(interface)));
 	cvmx_write_csr(CVMX_SPXX_INT_MSK(interface), spxx_int_msk.u64);
 	cvmx_write_csr(CVMX_STXX_INT_REG(interface),
-		       cvmx_read_csr(CVMX_STXX_INT_REG(interface)));
+				   cvmx_read_csr(CVMX_STXX_INT_REG(interface)));
 	cvmx_write_csr(CVMX_STXX_INT_MSK(interface), stxx_int_msk.u64);
 
 	/* Setup the CLKDLY right in the middle */
@@ -279,17 +288,23 @@ int cvmx_spi_reset_cb(int interface, cvmx_spi_mode_t mode)
 	spxx_trn4_ctl.s.jitter = 1;
 	spxx_trn4_ctl.s.clr_boot = 1;
 	spxx_trn4_ctl.s.set_boot = 0;
+
 	if (OCTEON_IS_MODEL(OCTEON_CN58XX))
+	{
 		spxx_trn4_ctl.s.maxdist = 3;
+	}
 	else
+	{
 		spxx_trn4_ctl.s.maxdist = 8;
+	}
+
 	spxx_trn4_ctl.s.macro_en = 1;
 	spxx_trn4_ctl.s.mux_en = 1;
 	cvmx_write_csr(CVMX_SPXX_TRN4_CTL(interface), spxx_trn4_ctl.u64);
 
 	spxx_dbg_deskew_ctl.u64 = 0;
 	cvmx_write_csr(CVMX_SPXX_DBG_DESKEW_CTL(interface),
-		       spxx_dbg_deskew_ctl.u64);
+				   spxx_dbg_deskew_ctl.u64);
 
 	return 0;
 }
@@ -309,11 +324,13 @@ int cvmx_spi_reset_cb(int interface, cvmx_spi_mode_t mode)
  * SPI initialization to abort)
  */
 int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
-			       int num_ports)
+							   int num_ports)
 {
 	int port;
 	int index;
-	if (mode & CVMX_SPI_MODE_RX_HALFPLEX) {
+
+	if (mode & CVMX_SPI_MODE_RX_HALFPLEX)
+	{
 		union cvmx_srxx_com_ctl srxx_com_ctl;
 		union cvmx_srxx_spi4_stat srxx_spi4_stat;
 
@@ -327,7 +344,9 @@ int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
 		/* SRX0 Calendar Table. This round robbins through all ports */
 		port = 0;
 		index = 0;
-		while (port < num_ports) {
+
+		while (port < num_ports)
+		{
 			union cvmx_srxx_spi4_calx srxx_spi4_calx;
 			srxx_spi4_calx.u64 = 0;
 			srxx_spi4_calx.s.prt0 = port++;
@@ -335,19 +354,21 @@ int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
 			srxx_spi4_calx.s.prt2 = port++;
 			srxx_spi4_calx.s.prt3 = port++;
 			srxx_spi4_calx.s.oddpar =
-			    ~(cvmx_dpop(srxx_spi4_calx.u64) & 1);
+				~(cvmx_dpop(srxx_spi4_calx.u64) & 1);
 			cvmx_write_csr(CVMX_SRXX_SPI4_CALX(index, interface),
-				       srxx_spi4_calx.u64);
+						   srxx_spi4_calx.u64);
 			index++;
 		}
+
 		srxx_spi4_stat.u64 = 0;
 		srxx_spi4_stat.s.len = num_ports;
 		srxx_spi4_stat.s.m = 1;
 		cvmx_write_csr(CVMX_SRXX_SPI4_STAT(interface),
-			       srxx_spi4_stat.u64);
+					   srxx_spi4_stat.u64);
 	}
 
-	if (mode & CVMX_SPI_MODE_TX_HALFPLEX) {
+	if (mode & CVMX_SPI_MODE_TX_HALFPLEX)
+	{
 		union cvmx_stxx_arb_ctl stxx_arb_ctl;
 		union cvmx_gmxx_tx_spi_max gmxx_tx_spi_max;
 		union cvmx_gmxx_tx_spi_thresh gmxx_tx_spi_thresh;
@@ -366,18 +387,18 @@ int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
 		gmxx_tx_spi_max.s.max2 = 4;
 		gmxx_tx_spi_max.s.slice = 0;
 		cvmx_write_csr(CVMX_GMXX_TX_SPI_MAX(interface),
-			       gmxx_tx_spi_max.u64);
+					   gmxx_tx_spi_max.u64);
 
 		gmxx_tx_spi_thresh.u64 = 0;
 		gmxx_tx_spi_thresh.s.thresh = 4;
 		cvmx_write_csr(CVMX_GMXX_TX_SPI_THRESH(interface),
-			       gmxx_tx_spi_thresh.u64);
+					   gmxx_tx_spi_thresh.u64);
 
 		gmxx_tx_spi_ctl.u64 = 0;
 		gmxx_tx_spi_ctl.s.tpa_clr = 0;
 		gmxx_tx_spi_ctl.s.cont_pkt = 0;
 		cvmx_write_csr(CVMX_GMXX_TX_SPI_CTL(interface),
-			       gmxx_tx_spi_ctl.u64);
+					   gmxx_tx_spi_ctl.u64);
 
 		/* STX0 Training Control */
 		stxx_spi4_dat.u64 = 0;
@@ -385,12 +406,14 @@ int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
 		stxx_spi4_dat.s.alpha = 32;
 		stxx_spi4_dat.s.max_t = 0xFFFF; /*Minimum interval is 0x20 */
 		cvmx_write_csr(CVMX_STXX_SPI4_DAT(interface),
-			       stxx_spi4_dat.u64);
+					   stxx_spi4_dat.u64);
 
 		/* STX0 Calendar Table. This round robbins through all ports */
 		port = 0;
 		index = 0;
-		while (port < num_ports) {
+
+		while (port < num_ports)
+		{
 			union cvmx_stxx_spi4_calx stxx_spi4_calx;
 			stxx_spi4_calx.u64 = 0;
 			stxx_spi4_calx.s.prt0 = port++;
@@ -398,16 +421,17 @@ int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
 			stxx_spi4_calx.s.prt2 = port++;
 			stxx_spi4_calx.s.prt3 = port++;
 			stxx_spi4_calx.s.oddpar =
-			    ~(cvmx_dpop(stxx_spi4_calx.u64) & 1);
+				~(cvmx_dpop(stxx_spi4_calx.u64) & 1);
 			cvmx_write_csr(CVMX_STXX_SPI4_CALX(index, interface),
-				       stxx_spi4_calx.u64);
+						   stxx_spi4_calx.u64);
 			index++;
 		}
+
 		stxx_spi4_stat.u64 = 0;
 		stxx_spi4_stat.s.len = num_ports;
 		stxx_spi4_stat.s.m = 1;
 		cvmx_write_csr(CVMX_STXX_SPI4_STAT(interface),
-			       stxx_spi4_stat.u64);
+					   stxx_spi4_stat.u64);
 	}
 
 	return 0;
@@ -445,9 +469,13 @@ int cvmx_spi_clock_detect_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 	 * in the beginning.
 	 */
 	clock_transitions = 100;
-	do {
+
+	do
+	{
 		stat.u64 = cvmx_read_csr(CVMX_SPXX_CLK_STAT(interface));
-		if (stat.s.s4clk0 && stat.s.s4clk1 && clock_transitions) {
+
+		if (stat.s.s4clk0 && stat.s.s4clk1 && clock_transitions)
+		{
 			/*
 			 * We've seen a clock transition, so decrement
 			 * the number we still need.
@@ -457,11 +485,14 @@ int cvmx_spi_clock_detect_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 			stat.s.s4clk0 = 0;
 			stat.s.s4clk1 = 0;
 		}
-		if (cvmx_get_cycle() > timeout_time) {
+
+		if (cvmx_get_cycle() > timeout_time)
+		{
 			cvmx_dprintf("SPI%d: Timeout\n", interface);
 			return -1;
 		}
-	} while (stat.s.s4clk0 == 0 || stat.s.s4clk1 == 0);
+	}
+	while (stat.s.s4clk0 == 0 || stat.s.s4clk1 == 0);
 
 	cvmx_dprintf("SPI%d: Waiting to see RsClk...\n", interface);
 	timeout_time = cvmx_get_cycle() + 1000ull * MS * timeout;
@@ -470,9 +501,13 @@ int cvmx_spi_clock_detect_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 	 * beginning.
 	 */
 	clock_transitions = 100;
-	do {
+
+	do
+	{
 		stat.u64 = cvmx_read_csr(CVMX_SPXX_CLK_STAT(interface));
-		if (stat.s.d4clk0 && stat.s.d4clk1 && clock_transitions) {
+
+		if (stat.s.d4clk0 && stat.s.d4clk1 && clock_transitions)
+		{
 			/*
 			 * We've seen a clock transition, so decrement
 			 * the number we still need
@@ -482,11 +517,14 @@ int cvmx_spi_clock_detect_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 			stat.s.d4clk0 = 0;
 			stat.s.d4clk1 = 0;
 		}
-		if (cvmx_get_cycle() > timeout_time) {
+
+		if (cvmx_get_cycle() > timeout_time)
+		{
 			cvmx_dprintf("SPI%d: Timeout\n", interface);
 			return -1;
 		}
-	} while (stat.s.d4clk0 == 0 || stat.s.d4clk1 == 0);
+	}
+	while (stat.s.d4clk0 == 0 || stat.s.d4clk1 == 0);
 
 	return 0;
 }
@@ -544,18 +582,25 @@ int cvmx_spi_training_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 	 * We'll be pessimistic and wait for a lot more.
 	 */
 	rx_training_needed = 500;
-	do {
+
+	do
+	{
 		stat.u64 = cvmx_read_csr(CVMX_SPXX_CLK_STAT(interface));
-		if (stat.s.srxtrn && rx_training_needed) {
+
+		if (stat.s.srxtrn && rx_training_needed)
+		{
 			rx_training_needed--;
 			cvmx_write_csr(CVMX_SPXX_CLK_STAT(interface), stat.u64);
 			stat.s.srxtrn = 0;
 		}
-		if (cvmx_get_cycle() > timeout_time) {
+
+		if (cvmx_get_cycle() > timeout_time)
+		{
 			cvmx_dprintf("SPI%d: Timeout\n", interface);
 			return -1;
 		}
-	} while (stat.s.srxtrn == 0);
+	}
+	while (stat.s.srxtrn == 0);
 
 	return 0;
 }
@@ -577,19 +622,22 @@ int cvmx_spi_training_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 int cvmx_spi_calendar_sync_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 {
 	uint64_t MS = cvmx_sysinfo_get()->cpu_clock_hz / 1000;
-	if (mode & CVMX_SPI_MODE_RX_HALFPLEX) {
+
+	if (mode & CVMX_SPI_MODE_RX_HALFPLEX)
+	{
 		/* SRX0 interface should be good, send calendar data */
 		union cvmx_srxx_com_ctl srxx_com_ctl;
 		cvmx_dprintf
-		    ("SPI%d: Rx is synchronized, start sending calendar data\n",
-		     interface);
+		("SPI%d: Rx is synchronized, start sending calendar data\n",
+		 interface);
 		srxx_com_ctl.u64 = cvmx_read_csr(CVMX_SRXX_COM_CTL(interface));
 		srxx_com_ctl.s.inf_en = 1;
 		srxx_com_ctl.s.st_en = 1;
 		cvmx_write_csr(CVMX_SRXX_COM_CTL(interface), srxx_com_ctl.u64);
 	}
 
-	if (mode & CVMX_SPI_MODE_TX_HALFPLEX) {
+	if (mode & CVMX_SPI_MODE_TX_HALFPLEX)
+	{
 		/* STX0 has achieved sync */
 		/* The corespondant board should be sending calendar data */
 		/* Enable the STX0 STAT receiver. */
@@ -602,16 +650,21 @@ int cvmx_spi_calendar_sync_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 
 		/* Waiting for calendar sync on STX0 STAT */
 		cvmx_dprintf("SPI%d: Waiting to sync on STX[%d] STAT\n",
-			     interface, interface);
+					 interface, interface);
 		timeout_time = cvmx_get_cycle() + 1000ull * MS * timeout;
+
 		/* SPX0_CLK_STAT - SPX0_CLK_STAT[STXCAL] should be 1 (bit10) */
-		do {
+		do
+		{
 			stat.u64 = cvmx_read_csr(CVMX_SPXX_CLK_STAT(interface));
-			if (cvmx_get_cycle() > timeout_time) {
+
+			if (cvmx_get_cycle() > timeout_time)
+			{
 				cvmx_dprintf("SPI%d: Timeout\n", interface);
 				return -1;
 			}
-		} while (stat.s.stxcal == 0);
+		}
+		while (stat.s.stxcal == 0);
 	}
 
 	return 0;
@@ -636,7 +689,8 @@ int cvmx_spi_interface_up_cb(int interface, cvmx_spi_mode_t mode)
 	union cvmx_gmxx_rxx_frm_max gmxx_rxx_frm_max;
 	union cvmx_gmxx_rxx_jabber gmxx_rxx_jabber;
 
-	if (mode & CVMX_SPI_MODE_RX_HALFPLEX) {
+	if (mode & CVMX_SPI_MODE_RX_HALFPLEX)
+	{
 		union cvmx_srxx_com_ctl srxx_com_ctl;
 		srxx_com_ctl.u64 = cvmx_read_csr(CVMX_SRXX_COM_CTL(interface));
 		srxx_com_ctl.s.inf_en = 1;
@@ -644,7 +698,8 @@ int cvmx_spi_interface_up_cb(int interface, cvmx_spi_mode_t mode)
 		cvmx_dprintf("SPI%d: Rx is now up\n", interface);
 	}
 
-	if (mode & CVMX_SPI_MODE_TX_HALFPLEX) {
+	if (mode & CVMX_SPI_MODE_TX_HALFPLEX)
+	{
 		union cvmx_stxx_com_ctl stxx_com_ctl;
 		stxx_com_ctl.u64 = cvmx_read_csr(CVMX_STXX_COM_CTL(interface));
 		stxx_com_ctl.s.inf_en = 1;
@@ -655,11 +710,11 @@ int cvmx_spi_interface_up_cb(int interface, cvmx_spi_mode_t mode)
 	gmxx_rxx_frm_min.u64 = 0;
 	gmxx_rxx_frm_min.s.len = 64;
 	cvmx_write_csr(CVMX_GMXX_RXX_FRM_MIN(0, interface),
-		       gmxx_rxx_frm_min.u64);
+				   gmxx_rxx_frm_min.u64);
 	gmxx_rxx_frm_max.u64 = 0;
 	gmxx_rxx_frm_max.s.len = 64 * 1024 - 4;
 	cvmx_write_csr(CVMX_GMXX_RXX_FRM_MAX(0, interface),
-		       gmxx_rxx_frm_max.u64);
+				   gmxx_rxx_frm_max.u64);
 	gmxx_rxx_jabber.u64 = 0;
 	gmxx_rxx_jabber.s.cnt = 64 * 1024 - 4;
 	cvmx_write_csr(CVMX_GMXX_RXX_JABBER(0, interface), gmxx_rxx_jabber.u64);

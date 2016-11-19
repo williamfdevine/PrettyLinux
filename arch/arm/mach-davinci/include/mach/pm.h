@@ -19,7 +19,8 @@
  * Caution: Assembly code in sleep.S makes assumtion on the order
  * of the members of this structure.
  */
-struct davinci_pm_config {
+struct davinci_pm_config
+{
 	void __iomem *ddr2_ctlr_base;
 	void __iomem *ddrpsc_reg_base;
 	int ddrpsc_num;

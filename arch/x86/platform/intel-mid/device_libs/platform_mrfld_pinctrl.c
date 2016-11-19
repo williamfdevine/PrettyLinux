@@ -20,13 +20,15 @@
 #define FLIS_BASE_ADDR			0xff0c0000
 #define FLIS_LENGTH			0x8000
 
-static struct resource mrfld_pinctrl_mmio_resource = {
+static struct resource mrfld_pinctrl_mmio_resource =
+{
 	.start		= FLIS_BASE_ADDR,
 	.end		= FLIS_BASE_ADDR + FLIS_LENGTH - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device mrfld_pinctrl_device = {
+static struct platform_device mrfld_pinctrl_device =
+{
 	.name		= "pinctrl-merrifield",
 	.id		= PLATFORM_DEVID_NONE,
 	.resource	= &mrfld_pinctrl_mmio_resource,
@@ -36,7 +38,9 @@ static struct platform_device mrfld_pinctrl_device = {
 static int __init mrfld_pinctrl_init(void)
 {
 	if (intel_mid_identify_cpu() == INTEL_MID_CPU_CHIP_TANGIER)
+	{
 		return platform_device_register(&mrfld_pinctrl_device);
+	}
 
 	return -ENODEV;
 }

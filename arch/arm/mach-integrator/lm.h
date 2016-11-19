@@ -1,12 +1,14 @@
 
-struct lm_device {
+struct lm_device
+{
 	struct device		dev;
 	struct resource		resource;
 	unsigned int		irq;
 	unsigned int		id;
 };
 
-struct lm_driver {
+struct lm_driver
+{
 	struct device_driver	drv;
 	int			(*probe)(struct lm_device *);
 	void			(*remove)(struct lm_device *);

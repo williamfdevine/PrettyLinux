@@ -4,9 +4,9 @@
 #include <asm/tlbflush.h>
 
 #ifdef CONFIG_MMU
-extern void check_pgt_cache(void);
+	extern void check_pgt_cache(void);
 #else
-#define check_pgt_cache() do {} while(0)
+	#define check_pgt_cache() do {} while(0)
 #endif
 
 /*

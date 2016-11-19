@@ -20,9 +20,9 @@
 #define LUB_V2P(x)		((x) - LUBBOCK_FPGA_VIRT + LUBBOCK_FPGA_PHYS)
 
 #ifndef __ASSEMBLY__
-#  define __LUB_REG(x)		(*((volatile unsigned long *)LUB_P2V(x)))
+	#define __LUB_REG(x)		(*((volatile unsigned long *)LUB_P2V(x)))
 #else
-#  define __LUB_REG(x)		LUB_P2V(x)
+	#define __LUB_REG(x)		LUB_P2V(x)
 #endif
 
 /* FPGA register virtual addresses */
@@ -52,5 +52,5 @@
 #define LUBBOCK_SA1111_IRQ_BASE	(LUBBOCK_NR_IRQS + 32)
 
 #ifndef __ASSEMBLY__
-extern void lubbock_set_misc_wr(unsigned int mask, unsigned int set);
+	extern void lubbock_set_misc_wr(unsigned int mask, unsigned int set);
 #endif

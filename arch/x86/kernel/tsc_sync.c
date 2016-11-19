@@ -54,7 +54,8 @@ static void check_tsc_warp(unsigned int timeout)
 	end = start + (cycles_t) tsc_khz * timeout;
 	now = start;
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		/*
 		 * We take the global lock, measure TSC, save the
 		 * previous TSC that was measured (possibly on
@@ -72,26 +73,33 @@ static void check_tsc_warp(unsigned int timeout)
 		 * loops safety exit, so we dont lock up in case the
 		 * TSC readout is totally broken]):
 		 */
-		if (unlikely(!(i & 7))) {
+		if (unlikely(!(i & 7)))
+		{
 			if (now > end || i > 10000000)
+			{
 				break;
+			}
+
 			cpu_relax();
 			touch_nmi_watchdog();
 		}
+
 		/*
 		 * Outside the critical section we can now see whether
 		 * we saw a time-warp of the TSC going backwards:
 		 */
-		if (unlikely(prev > now)) {
+		if (unlikely(prev > now))
+		{
 			arch_spin_lock(&sync_lock);
 			max_warp = max(max_warp, prev - now);
 			nr_warps++;
 			arch_spin_unlock(&sync_lock);
 		}
 	}
-	WARN(!(now-start),
-		"Warning: zero tsc calibration delta: %Ld [max: %Ld]\n",
-			now-start, end-start);
+
+	WARN(!(now - start),
+		 "Warning: zero tsc calibration delta: %Ld [max: %Ld]\n",
+		 now - start, end - start);
 }
 
 /*
@@ -126,12 +134,16 @@ void check_tsc_sync_source(int cpu)
 	 * synchronized or if we have no TSC.
 	 */
 	if (unsynchronized_tsc())
+	{
 		return;
+	}
 
-	if (tsc_clocksource_reliable) {
-		if (cpu == (nr_cpu_ids-1) || system_state != SYSTEM_BOOTING)
+	if (tsc_clocksource_reliable)
+	{
+		if (cpu == (nr_cpu_ids - 1) || system_state != SYSTEM_BOOTING)
 			pr_info(
-			"Skipped synchronization checks as TSC is reliable.\n");
+				"Skipped synchronization checks as TSC is reliable.\n");
+
 		return;
 	}
 
@@ -143,8 +155,11 @@ void check_tsc_sync_source(int cpu)
 	/*
 	 * Wait for the target to arrive:
 	 */
-	while (atomic_read(&start_count) != cpus-1)
+	while (atomic_read(&start_count) != cpus - 1)
+	{
 		cpu_relax();
+	}
+
 	/*
 	 * Trigger the target to continue into the measurement too:
 	 */
@@ -152,18 +167,23 @@ void check_tsc_sync_source(int cpu)
 
 	check_tsc_warp(loop_timeout(cpu));
 
-	while (atomic_read(&stop_count) != cpus-1)
+	while (atomic_read(&stop_count) != cpus - 1)
+	{
 		cpu_relax();
+	}
 
-	if (nr_warps) {
+	if (nr_warps)
+	{
 		pr_warning("TSC synchronization [CPU#%d -> CPU#%d]:\n",
-			smp_processor_id(), cpu);
+				   smp_processor_id(), cpu);
 		pr_warning("Measured %Ld cycles TSC warp between CPUs, "
-			   "turning off TSC clock.\n", max_warp);
+				   "turning off TSC clock.\n", max_warp);
 		mark_tsc_unstable("check_tsc_sync_source failed");
-	} else {
+	}
+	else
+	{
 		pr_debug("TSC synchronization [CPU#%d -> CPU#%d]: passed\n",
-			smp_processor_id(), cpu);
+				 smp_processor_id(), cpu);
 	}
 
 	/*
@@ -189,15 +209,20 @@ void check_tsc_sync_target(void)
 
 	/* Also aborts if there is no TSC. */
 	if (unsynchronized_tsc() || tsc_clocksource_reliable)
+	{
 		return;
+	}
 
 	/*
 	 * Register this CPU's participation and wait for the
 	 * source CPU to start the measurement:
 	 */
 	atomic_inc(&start_count);
+
 	while (atomic_read(&start_count) != cpus)
+	{
 		cpu_relax();
+	}
 
 	check_tsc_warp(loop_timeout(smp_processor_id()));
 
@@ -210,5 +235,7 @@ void check_tsc_sync_target(void)
 	 * Wait for the source CPU to print stuff:
 	 */
 	while (atomic_read(&stop_count) != cpus)
+	{
 		cpu_relax();
+	}
 }

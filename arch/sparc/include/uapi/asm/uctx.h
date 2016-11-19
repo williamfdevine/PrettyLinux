@@ -32,13 +32,16 @@ typedef unsigned long mc_greg_t;
 typedef mc_greg_t mc_gregset_t[MC_NGREG];
 
 #define MC_MAXFPQ	16
-struct mc_fq {
+struct mc_fq
+{
 	unsigned long	*mcfq_addr;
 	unsigned int	mcfq_insn;
 };
 
-struct mc_fpu {
-	union {
+struct mc_fpu
+{
+	union
+	{
 		unsigned int	sregs[32];
 		unsigned long	dregs[32];
 		long double	qregs[16];
@@ -53,14 +56,16 @@ struct mc_fpu {
 };
 typedef struct mc_fpu mc_fpu_t;
 
-typedef struct {
+typedef struct
+{
 	mc_gregset_t	mc_gregs;
 	mc_greg_t	mc_fp;
 	mc_greg_t	mc_i7;
 	mc_fpu_t	mc_fpregs;
 } mcontext_t;
 
-struct ucontext {
+struct ucontext
+{
 	struct ucontext		*uc_link;
 	unsigned long		uc_flags;
 	sigset_t		uc_sigmask;

@@ -48,8 +48,8 @@ static __always_inline void atomic_set(atomic_t *v, int i)
 static __always_inline void atomic_add(int i, atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "addl %1,%0"
-		     : "+m" (v->counter)
-		     : "ir" (i));
+				 : "+m" (v->counter)
+				 : "ir" (i));
 }
 
 /**
@@ -62,8 +62,8 @@ static __always_inline void atomic_add(int i, atomic_t *v)
 static __always_inline void atomic_sub(int i, atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "subl %1,%0"
-		     : "+m" (v->counter)
-		     : "ir" (i));
+				 : "+m" (v->counter)
+				 : "ir" (i));
 }
 
 /**
@@ -89,7 +89,7 @@ static __always_inline bool atomic_sub_and_test(int i, atomic_t *v)
 static __always_inline void atomic_inc(atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "incl %0"
-		     : "+m" (v->counter));
+				 : "+m" (v->counter));
 }
 
 /**
@@ -101,7 +101,7 @@ static __always_inline void atomic_inc(atomic_t *v)
 static __always_inline void atomic_dec(atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "decl %0"
-		     : "+m" (v->counter));
+				 : "+m" (v->counter));
 }
 
 /**
@@ -192,33 +192,33 @@ static inline int atomic_xchg(atomic_t *v, int new)
 }
 
 #define ATOMIC_OP(op)							\
-static inline void atomic_##op(int i, atomic_t *v)			\
-{									\
-	asm volatile(LOCK_PREFIX #op"l %1,%0"				\
-			: "+m" (v->counter)				\
-			: "ir" (i)					\
-			: "memory");					\
-}
+	static inline void atomic_##op(int i, atomic_t *v)			\
+	{									\
+		asm volatile(LOCK_PREFIX #op"l %1,%0"				\
+					 : "+m" (v->counter)				\
+					 : "ir" (i)					\
+					 : "memory");					\
+	}
 
 #define ATOMIC_FETCH_OP(op, c_op)					\
-static inline int atomic_fetch_##op(int i, atomic_t *v)		\
-{									\
-	int old, val = atomic_read(v);					\
-	for (;;) {							\
-		old = atomic_cmpxchg(v, val, val c_op i);		\
-		if (old == val)						\
-			break;						\
-		val = old;						\
-	}								\
-	return old;							\
-}
+	static inline int atomic_fetch_##op(int i, atomic_t *v)		\
+	{									\
+		int old, val = atomic_read(v);					\
+		for (;;) {							\
+			old = atomic_cmpxchg(v, val, val c_op i);		\
+			if (old == val)						\
+				break;						\
+			val = old;						\
+		}								\
+		return old;							\
+	}
 
 #define ATOMIC_OPS(op, c_op)						\
 	ATOMIC_OP(op)							\
 	ATOMIC_FETCH_OP(op, c_op)
 
-ATOMIC_OPS(and, &)
-ATOMIC_OPS(or , |)
+ATOMIC_OPS( and , &)
+ATOMIC_OPS( or , | )
 ATOMIC_OPS(xor, ^)
 
 #undef ATOMIC_OPS
@@ -238,14 +238,24 @@ static __always_inline int __atomic_add_unless(atomic_t *v, int a, int u)
 {
 	int c, old;
 	c = atomic_read(v);
-	for (;;) {
+
+	for (;;)
+	{
 		if (unlikely(c == (u)))
+		{
 			break;
+		}
+
 		old = atomic_cmpxchg((v), c, c + (a));
+
 		if (likely(old == c))
+		{
 			break;
+		}
+
 		c = old;
 	}
+
 	return c;
 }
 
@@ -263,9 +273,9 @@ static __always_inline short int atomic_inc_short(short int *v)
 }
 
 #ifdef CONFIG_X86_32
-# include <asm/atomic64_32.h>
+	#include <asm/atomic64_32.h>
 #else
-# include <asm/atomic64_64.h>
+	#include <asm/atomic64_64.h>
 #endif
 
 #endif /* _ASM_X86_ATOMIC_H */

@@ -28,7 +28,8 @@
 
 #include "common.h"
 
-static struct map_desc exynos4_iodesc[] __initdata = {
+static struct map_desc exynos4_iodesc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)S5P_VA_COREPERI_BASE,
 		.pfn		= __phys_to_pfn(EXYNOS4_PA_COREPERI),
@@ -37,7 +38,8 @@ static struct map_desc exynos4_iodesc[] __initdata = {
 	},
 };
 
-static struct platform_device exynos_cpuidle = {
+static struct platform_device exynos_cpuidle =
+{
 	.name              = "exynos_cpuidle",
 #ifdef CONFIG_ARM_EXYNOS_CPUIDLE
 	.dev.platform_data = exynos_enter_aftr,
@@ -52,16 +54,24 @@ void __init exynos_sysram_init(void)
 {
 	struct device_node *node;
 
-	for_each_compatible_node(node, NULL, "samsung,exynos4210-sysram") {
+	for_each_compatible_node(node, NULL, "samsung,exynos4210-sysram")
+	{
 		if (!of_device_is_available(node))
+		{
 			continue;
+		}
+
 		sysram_base_addr = of_iomap(node, 0);
 		break;
 	}
 
-	for_each_compatible_node(node, NULL, "samsung,exynos4210-sysram-ns") {
+	for_each_compatible_node(node, NULL, "samsung,exynos4210-sysram-ns")
+	{
 		if (!of_device_is_available(node))
+		{
 			continue;
+		}
+
 		sysram_ns_base_addr = of_iomap(node, 0);
 		break;
 	}
@@ -71,13 +81,15 @@ static void __init exynos_init_late(void)
 {
 	if (of_machine_is_compatible("samsung,exynos5440"))
 		/* to be supported later */
+	{
 		return;
+	}
 
 	exynos_pm_init();
 }
 
 static int __init exynos_fdt_map_chipid(unsigned long node, const char *uname,
-					int depth, void *data)
+										int depth, void *data)
 {
 	struct map_desc iodesc;
 	const __be32 *reg;
@@ -85,11 +97,16 @@ static int __init exynos_fdt_map_chipid(unsigned long node, const char *uname,
 
 	if (!of_flat_dt_is_compatible(node, "samsung,exynos4210-chipid") &&
 		!of_flat_dt_is_compatible(node, "samsung,exynos5440-clock"))
+	{
 		return 0;
+	}
 
 	reg = of_get_flat_dt_prop(node, "reg", &len);
+
 	if (reg == NULL || len != (sizeof(unsigned long) * 2))
+	{
 		return 0;
+	}
 
 	iodesc.pfn = __phys_to_pfn(be32_to_cpu(reg[0]));
 	iodesc.length = be32_to_cpu(reg[1]) - 1;
@@ -107,7 +124,9 @@ static int __init exynos_fdt_map_chipid(unsigned long node, const char *uname,
 static void __init exynos_map_io(void)
 {
 	if (soc_is_exynos4())
+	{
 		iotable_init(exynos4_iodesc, ARRAY_SIZE(exynos4_iodesc));
+	}
 }
 
 static void __init exynos_init_io(void)
@@ -135,15 +154,23 @@ static void __init exynos_init_io(void)
  */
 void exynos_set_delayed_reset_assertion(bool enable)
 {
-	if (of_machine_is_compatible("samsung,exynos4")) {
+	if (of_machine_is_compatible("samsung,exynos4"))
+	{
 		unsigned int tmp, core_id;
 
-		for (core_id = 0; core_id < num_possible_cpus(); core_id++) {
+		for (core_id = 0; core_id < num_possible_cpus(); core_id++)
+		{
 			tmp = pmu_raw_readl(EXYNOS_ARM_CORE_OPTION(core_id));
+
 			if (enable)
+			{
 				tmp |= S5P_USE_DELAYED_RESET_ASSERTION;
+			}
 			else
+			{
 				tmp &= ~(S5P_USE_DELAYED_RESET_ASSERTION);
+			}
+
 			pmu_raw_writel(tmp, EXYNOS_ARM_CORE_OPTION(core_id));
 		}
 	}
@@ -154,7 +181,8 @@ void exynos_set_delayed_reset_assertion(bool enable)
  * the PMU. Too bad. Should they suddenly become capable of such a
  * feat, the matches below should be moved to suspend.c.
  */
-static const struct of_device_id exynos_dt_pmu_match[] = {
+static const struct of_device_id exynos_dt_pmu_match[] =
+{
 	{ .compatible = "samsung,exynos5260-pmu" },
 	{ .compatible = "samsung,exynos5410-pmu" },
 	{ /*sentinel*/ },
@@ -165,8 +193,11 @@ static void exynos_map_pmu(void)
 	struct device_node *np;
 
 	np = of_find_matching_node(NULL, exynos_dt_pmu_match);
+
 	if (np)
+	{
 		pmu_base_addr = of_iomap(np, 0);
+	}
 }
 
 static void __init exynos_init_irq(void)
@@ -187,23 +218,33 @@ static void __init exynos_dt_machine_init(void)
 	 * we still need to set it up for PM and firmware ops if not.
 	 */
 	if (!IS_ENABLED(CONFIG_SMP))
+	{
 		exynos_sysram_init();
+	}
 
 #if defined(CONFIG_SMP) && defined(CONFIG_ARM_EXYNOS_CPUIDLE)
+
 	if (of_machine_is_compatible("samsung,exynos4210") ||
-	    of_machine_is_compatible("samsung,exynos3250"))
+		of_machine_is_compatible("samsung,exynos3250"))
+	{
 		exynos_cpuidle.dev.platform_data = &cpuidle_coupled_exynos_data;
+	}
+
 #endif
+
 	if (of_machine_is_compatible("samsung,exynos4210") ||
-	    of_machine_is_compatible("samsung,exynos4212") ||
-	    (of_machine_is_compatible("samsung,exynos4412") &&
-	     of_machine_is_compatible("samsung,trats2")) ||
-	    of_machine_is_compatible("samsung,exynos3250") ||
-	    of_machine_is_compatible("samsung,exynos5250"))
+		of_machine_is_compatible("samsung,exynos4212") ||
+		(of_machine_is_compatible("samsung,exynos4412") &&
+		 of_machine_is_compatible("samsung,trats2")) ||
+		of_machine_is_compatible("samsung,exynos3250") ||
+		of_machine_is_compatible("samsung,exynos5250"))
+	{
 		platform_device_register(&exynos_cpuidle);
+	}
 }
 
-static char const *const exynos_dt_compat[] __initconst = {
+static char const *const exynos_dt_compat[] __initconst =
+{
 	"samsung,exynos3",
 	"samsung,exynos3250",
 	"samsung,exynos4",
@@ -229,16 +270,16 @@ static void __init exynos_dt_fixup(void)
 }
 
 DT_MACHINE_START(EXYNOS_DT, "SAMSUNG EXYNOS (Flattened Device Tree)")
-	/* Maintainer: Thomas Abraham <thomas.abraham@linaro.org> */
-	/* Maintainer: Kukjin Kim <kgene.kim@samsung.com> */
-	.l2c_aux_val	= 0x3c400001,
+/* Maintainer: Thomas Abraham <thomas.abraham@linaro.org> */
+/* Maintainer: Kukjin Kim <kgene.kim@samsung.com> */
+.l2c_aux_val	= 0x3c400001,
 	.l2c_aux_mask	= 0xc20fffff,
-	.smp		= smp_ops(exynos_smp_ops),
-	.map_io		= exynos_init_io,
-	.init_early	= exynos_firmware_init,
-	.init_irq	= exynos_init_irq,
-	.init_machine	= exynos_dt_machine_init,
-	.init_late	= exynos_init_late,
-	.dt_compat	= exynos_dt_compat,
-	.dt_fixup	= exynos_dt_fixup,
-MACHINE_END
+	   .smp		= smp_ops(exynos_smp_ops),
+			  .map_io		= exynos_init_io,
+				  .init_early	= exynos_firmware_init,
+				   .init_irq	= exynos_init_irq,
+					  .init_machine	= exynos_dt_machine_init,
+						 .init_late	= exynos_init_late,
+						   .dt_compat	= exynos_dt_compat,
+							 .dt_fixup	= exynos_dt_fixup,
+								MACHINE_END

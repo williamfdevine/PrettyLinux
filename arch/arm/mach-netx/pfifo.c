@@ -37,7 +37,8 @@ int pfifo_request(unsigned int pfifo_mask)
 
 	mutex_lock(&pfifo_lock);
 
-	if (pfifo_mask & pfifo_used) {
+	if (pfifo_mask & pfifo_used)
+	{
 		err = -EBUSY;
 		goto out;
 	}

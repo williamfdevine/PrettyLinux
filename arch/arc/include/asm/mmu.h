@@ -10,33 +10,33 @@
 #define _ASM_ARC_MMU_H
 
 #if defined(CONFIG_ARC_MMU_V1)
-#define CONFIG_ARC_MMU_VER 1
+	#define CONFIG_ARC_MMU_VER 1
 #elif defined(CONFIG_ARC_MMU_V2)
-#define CONFIG_ARC_MMU_VER 2
+	#define CONFIG_ARC_MMU_VER 2
 #elif defined(CONFIG_ARC_MMU_V3)
-#define CONFIG_ARC_MMU_VER 3
+	#define CONFIG_ARC_MMU_VER 3
 #elif defined(CONFIG_ARC_MMU_V4)
-#define CONFIG_ARC_MMU_VER 4
+	#define CONFIG_ARC_MMU_VER 4
 #endif
 
 /* MMU Management regs */
 #define ARC_REG_MMU_BCR		0x06f
 #if (CONFIG_ARC_MMU_VER < 4)
-#define ARC_REG_TLBPD0		0x405
-#define ARC_REG_TLBPD1		0x406
-#define ARC_REG_TLBPD1HI	0	/* Dummy: allows code sharing with ARC700 */
-#define ARC_REG_TLBINDEX	0x407
-#define ARC_REG_TLBCOMMAND	0x408
-#define ARC_REG_PID		0x409
-#define ARC_REG_SCRATCH_DATA0	0x418
+	#define ARC_REG_TLBPD0		0x405
+	#define ARC_REG_TLBPD1		0x406
+	#define ARC_REG_TLBPD1HI	0	/* Dummy: allows code sharing with ARC700 */
+	#define ARC_REG_TLBINDEX	0x407
+	#define ARC_REG_TLBCOMMAND	0x408
+	#define ARC_REG_PID		0x409
+	#define ARC_REG_SCRATCH_DATA0	0x418
 #else
-#define ARC_REG_TLBPD0		0x460
-#define ARC_REG_TLBPD1		0x461
-#define ARC_REG_TLBPD1HI	0x463
-#define ARC_REG_TLBINDEX	0x464
-#define ARC_REG_TLBCOMMAND	0x465
-#define ARC_REG_PID		0x468
-#define ARC_REG_SCRATCH_DATA0	0x46c
+	#define ARC_REG_TLBPD0		0x460
+	#define ARC_REG_TLBPD1		0x461
+	#define ARC_REG_TLBPD1HI	0x463
+	#define ARC_REG_TLBINDEX	0x464
+	#define ARC_REG_TLBCOMMAND	0x465
+	#define ARC_REG_PID		0x468
+	#define ARC_REG_SCRATCH_DATA0	0x46c
 #endif
 
 /* Bits in MMU PID register */
@@ -48,9 +48,9 @@
 #define TLB_LKUP_ERR		0x80000000
 
 #if (CONFIG_ARC_MMU_VER < 4)
-#define TLB_DUP_ERR	(TLB_LKUP_ERR | 0x00000001)
+	#define TLB_DUP_ERR	(TLB_LKUP_ERR | 0x00000001)
 #else
-#define TLB_DUP_ERR	(TLB_LKUP_ERR | 0x40000000)
+	#define TLB_DUP_ERR	(TLB_LKUP_ERR | 0x40000000)
 #endif
 
 /* TLB Commands */
@@ -60,25 +60,26 @@
 #define TLBProbe    0x4
 
 #if (CONFIG_ARC_MMU_VER >= 2)
-#define TLBWriteNI  0x5		/* write JTLB without inv uTLBs */
-#define TLBIVUTLB   0x6		/* explicitly inv uTLBs */
+	#define TLBWriteNI  0x5		/* write JTLB without inv uTLBs */
+	#define TLBIVUTLB   0x6		/* explicitly inv uTLBs */
 #endif
 
 #if (CONFIG_ARC_MMU_VER >= 4)
-#define TLBInsertEntry	0x7
-#define TLBDeleteEntry	0x8
+	#define TLBInsertEntry	0x7
+	#define TLBDeleteEntry	0x8
 #endif
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
+typedef struct
+{
 	unsigned long asid[NR_CPUS];	/* 8 bit MMU PID + Generation cycle */
 } mm_context_t;
 
 #ifdef CONFIG_ARC_DBG_TLB_PARANOIA
-void tlb_paranoid_check(unsigned int mm_asid, unsigned long address);
+	void tlb_paranoid_check(unsigned int mm_asid, unsigned long address);
 #else
-#define tlb_paranoid_check(a, b)
+	#define tlb_paranoid_check(a, b)
 #endif
 
 void arc_mmu_init(void);

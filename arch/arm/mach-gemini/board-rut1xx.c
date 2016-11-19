@@ -22,7 +22,8 @@
 
 #include "common.h"
 
-static struct gpio_keys_button rut1xx_keys[] = {
+static struct gpio_keys_button rut1xx_keys[] =
+{
 	{
 		.code		= KEY_SETUP,
 		.gpio		= 60,
@@ -32,12 +33,14 @@ static struct gpio_keys_button rut1xx_keys[] = {
 	},
 };
 
-static struct gpio_keys_platform_data rut1xx_keys_data = {
+static struct gpio_keys_platform_data rut1xx_keys_data =
+{
 	.buttons	= rut1xx_keys,
 	.nbuttons	= ARRAY_SIZE(rut1xx_keys),
 };
 
-static struct platform_device rut1xx_keys_device = {
+static struct platform_device rut1xx_keys_device =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -45,7 +48,8 @@ static struct platform_device rut1xx_keys_device = {
 	},
 };
 
-static struct gpio_led rut100_leds[] = {
+static struct gpio_led rut100_leds[] =
+{
 	{
 		.name			= "Power",
 		.default_trigger	= "heartbeat",
@@ -59,12 +63,14 @@ static struct gpio_led rut100_leds[] = {
 	},
 };
 
-static struct gpio_led_platform_data rut100_leds_data = {
+static struct gpio_led_platform_data rut100_leds_data =
+{
 	.num_leds	= ARRAY_SIZE(rut100_leds),
 	.leds		= rut100_leds,
 };
 
-static struct platform_device rut1xx_leds = {
+static struct platform_device rut1xx_leds =
+{
 	.name	= "leds-gpio",
 	.id	= -1,
 	.dev	= {
@@ -83,10 +89,10 @@ static void __init rut1xx_init(void)
 }
 
 MACHINE_START(RUT100, "Teltonika RUT100")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= gemini_map_io,
-	.init_irq	= gemini_init_irq,
-	.init_time	= gemini_timer_init,
-	.init_machine	= rut1xx_init,
-	.restart	= gemini_restart,
-MACHINE_END
+		.init_irq	= gemini_init_irq,
+		   .init_time	= gemini_timer_init,
+			 .init_machine	= rut1xx_init,
+				.restart	= gemini_restart,
+					MACHINE_END

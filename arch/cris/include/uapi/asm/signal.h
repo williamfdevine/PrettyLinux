@@ -7,10 +7,10 @@
 struct siginfo;
 
 #ifndef __KERNEL__
-/* Here we must cater to libcs that poke about in kernel headers.  */
+	/* Here we must cater to libcs that poke about in kernel headers.  */
 
-#define NSIG		32
-typedef unsigned long sigset_t;
+	#define NSIG		32
+	typedef unsigned long sigset_t;
 
 #endif /* __KERNEL__ */
 
@@ -91,10 +91,12 @@ typedef unsigned long sigset_t;
 #ifndef __KERNEL__
 /* Here we must cater to libcs that poke about in kernel headers.  */
 
-struct sigaction {
-	union {
-	  __sighandler_t _sa_handler;
-	  void (*_sa_sigaction)(int, struct siginfo *, void *);
+struct sigaction
+{
+	union
+	{
+		__sighandler_t _sa_handler;
+		void (*_sa_sigaction)(int, struct siginfo *, void *);
 	} _u;
 	sigset_t sa_mask;
 	unsigned long sa_flags;
@@ -106,7 +108,8 @@ struct sigaction {
 
 #endif /* __KERNEL__ */
 
-typedef struct sigaltstack {
+typedef struct sigaltstack
+{
 	void *ss_sp;
 	int ss_flags;
 	size_t ss_size;

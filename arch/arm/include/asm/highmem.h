@@ -36,17 +36,17 @@ extern void kunmap_high(struct page *page);
  */
 #define ARCH_NEEDS_KMAP_HIGH_GET
 #if defined(CONFIG_SMP) && defined(CONFIG_CPU_TLB_V6)
-#undef ARCH_NEEDS_KMAP_HIGH_GET
-#if defined(CONFIG_HIGHMEM) && defined(CONFIG_CPU_CACHE_VIVT)
-#error "The sum of features in your kernel config cannot be supported together"
-#endif
+	#undef ARCH_NEEDS_KMAP_HIGH_GET
+	#if defined(CONFIG_HIGHMEM) && defined(CONFIG_CPU_CACHE_VIVT)
+		#error "The sum of features in your kernel config cannot be supported together"
+	#endif
 #endif
 
 /*
  * Needed to be able to broadcast the TLB invalidation for kmap.
  */
 #ifdef CONFIG_ARM_ERRATA_798181
-#undef ARCH_NEEDS_KMAP_HIGH_GET
+	#undef ARCH_NEEDS_KMAP_HIGH_GET
 #endif
 
 #ifdef ARCH_NEEDS_KMAP_HIGH_GET
@@ -63,11 +63,11 @@ static inline void *kmap_high_get(struct page *page)
  * when CONFIG_HIGHMEM is not set.
  */
 #ifdef CONFIG_HIGHMEM
-extern void *kmap(struct page *page);
-extern void kunmap(struct page *page);
-extern void *kmap_atomic(struct page *page);
-extern void __kunmap_atomic(void *kvaddr);
-extern void *kmap_atomic_pfn(unsigned long pfn);
+	extern void *kmap(struct page *page);
+	extern void kunmap(struct page *page);
+	extern void *kmap_atomic(struct page *page);
+	extern void __kunmap_atomic(void *kvaddr);
+	extern void *kmap_atomic_pfn(unsigned long pfn);
 #endif
 
 #endif

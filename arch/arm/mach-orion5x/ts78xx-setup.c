@@ -39,16 +39,18 @@
 #define TS78XX_FPGA_REGS_VIRT_BASE	IOMEM(0xff900000)
 #define TS78XX_FPGA_REGS_SIZE		SZ_1M
 
-static struct ts78xx_fpga_data ts78xx_fpga = {
+static struct ts78xx_fpga_data ts78xx_fpga =
+{
 	.id		= 0,
 	.state		= 1,
-/*	.supports	= ... - populated by ts78xx_fpga_supports() */
+	/*	.supports	= ... - populated by ts78xx_fpga_supports() */
 };
 
 /*****************************************************************************
  * I/O Address Mapping
  ****************************************************************************/
-static struct map_desc ts78xx_io_desc[] __initdata = {
+static struct map_desc ts78xx_io_desc[] __initdata =
+{
 	{
 		.virtual	= (unsigned long)TS78XX_FPGA_REGS_VIRT_BASE,
 		.pfn		= __phys_to_pfn(TS78XX_FPGA_REGS_PHYS_BASE),
@@ -66,14 +68,16 @@ static void __init ts78xx_map_io(void)
 /*****************************************************************************
  * Ethernet
  ****************************************************************************/
-static struct mv643xx_eth_platform_data ts78xx_eth_data = {
+static struct mv643xx_eth_platform_data ts78xx_eth_data =
+{
 	.phy_addr	= MV643XX_ETH_PHY_ADDR(0),
 };
 
 /*****************************************************************************
  * SATA
  ****************************************************************************/
-static struct mv_sata_platform_data ts78xx_sata_data = {
+static struct mv_sata_platform_data ts78xx_sata_data =
+{
 	.n_ports	= 2,
 };
 
@@ -95,12 +99,14 @@ static void ts78xx_ts_rtc_writebyte(unsigned char value, unsigned long addr)
 	writeb(value, TS_RTC_DATA);
 }
 
-static struct m48t86_ops ts78xx_ts_rtc_ops = {
+static struct m48t86_ops ts78xx_ts_rtc_ops =
+{
 	.readbyte	= ts78xx_ts_rtc_readbyte,
 	.writebyte	= ts78xx_ts_rtc_writebyte,
 };
 
-static struct platform_device ts78xx_ts_rtc_device = {
+static struct platform_device ts78xx_ts_rtc_device =
+{
 	.name		= "rtc-m48t86",
 	.id		= -1,
 	.dev		= {
@@ -129,23 +135,35 @@ static int ts78xx_ts_rtc_load(void)
 
 	ts78xx_ts_rtc_writebyte(0x00, 126);
 	ts78xx_ts_rtc_writebyte(0x55, 127);
-	if (ts78xx_ts_rtc_readbyte(127) == 0x55) {
+
+	if (ts78xx_ts_rtc_readbyte(127) == 0x55)
+	{
 		ts78xx_ts_rtc_writebyte(0xaa, 127);
+
 		if (ts78xx_ts_rtc_readbyte(127) == 0xaa
-				&& ts78xx_ts_rtc_readbyte(126) == 0x00) {
+			&& ts78xx_ts_rtc_readbyte(126) == 0x00)
+		{
 			ts78xx_ts_rtc_writebyte(tmp_rtc0, 126);
 			ts78xx_ts_rtc_writebyte(tmp_rtc1, 127);
 
-			if (ts78xx_fpga.supports.ts_rtc.init == 0) {
+			if (ts78xx_fpga.supports.ts_rtc.init == 0)
+			{
 				rc = platform_device_register(&ts78xx_ts_rtc_device);
+
 				if (!rc)
+				{
 					ts78xx_fpga.supports.ts_rtc.init = 1;
-			} else
+				}
+			}
+			else
+			{
 				rc = platform_device_add(&ts78xx_ts_rtc_device);
+			}
 
 			if (rc)
 				pr_info("RTC could not be registered: %d\n",
-					rc);
+						rc);
+
 			return rc;
 		}
 	}
@@ -174,11 +192,12 @@ static void ts78xx_ts_rtc_unload(void)
  * NAND_ALE: bit 2 -> bit 0
  */
 static void ts78xx_ts_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-			unsigned int ctrl)
+									unsigned int ctrl)
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 
-	if (ctrl & NAND_CTRL_CHANGE) {
+	if (ctrl & NAND_CTRL_CHANGE)
+	{
 		unsigned char bits;
 
 		bits = (ctrl & NAND_NCE) << 2;
@@ -189,7 +208,9 @@ static void ts78xx_ts_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
 	}
 
 	if (cmd != NAND_CMD_NONE)
+	{
 		writeb(cmd, this->IO_ADDR_W);
+	}
 }
 
 static int ts78xx_ts_nand_dev_ready(struct mtd_info *mtd)
@@ -198,14 +219,15 @@ static int ts78xx_ts_nand_dev_ready(struct mtd_info *mtd)
 }
 
 static void ts78xx_ts_nand_write_buf(struct mtd_info *mtd,
-			const uint8_t *buf, int len)
+									 const uint8_t *buf, int len)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 	void __iomem *io_base = chip->IO_ADDR_W;
 	unsigned long off = ((unsigned long)buf & 3);
 	int sz;
 
-	if (off) {
+	if (off)
+	{
 		sz = min_t(int, 4 - off, len);
 		writesb(io_base, buf, sz);
 		buf += sz;
@@ -213,7 +235,9 @@ static void ts78xx_ts_nand_write_buf(struct mtd_info *mtd,
 	}
 
 	sz = len >> 2;
-	if (sz) {
+
+	if (sz)
+	{
 		u32 *buf32 = (u32 *)buf;
 		writesl(io_base, buf32, sz);
 		buf += sz << 2;
@@ -221,18 +245,21 @@ static void ts78xx_ts_nand_write_buf(struct mtd_info *mtd,
 	}
 
 	if (len)
+	{
 		writesb(io_base, buf, len);
+	}
 }
 
 static void ts78xx_ts_nand_read_buf(struct mtd_info *mtd,
-			uint8_t *buf, int len)
+									uint8_t *buf, int len)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 	void __iomem *io_base = chip->IO_ADDR_R;
 	unsigned long off = ((unsigned long)buf & 3);
 	int sz;
 
-	if (off) {
+	if (off)
+	{
 		sz = min_t(int, 4 - off, len);
 		readsb(io_base, buf, sz);
 		buf += sz;
@@ -240,7 +267,9 @@ static void ts78xx_ts_nand_read_buf(struct mtd_info *mtd,
 	}
 
 	sz = len >> 2;
-	if (sz) {
+
+	if (sz)
+	{
 		u32 *buf32 = (u32 *)buf;
 		readsl(io_base, buf32, sz);
 		buf += sz << 2;
@@ -248,10 +277,13 @@ static void ts78xx_ts_nand_read_buf(struct mtd_info *mtd,
 	}
 
 	if (len)
+	{
 		readsb(io_base, buf, len);
+	}
 }
 
-static struct mtd_partition ts78xx_ts_nand_parts[] = {
+static struct mtd_partition ts78xx_ts_nand_parts[] =
+{
 	{
 		.name		= "mbr",
 		.offset		= 0,
@@ -272,7 +304,8 @@ static struct mtd_partition ts78xx_ts_nand_parts[] = {
 	}
 };
 
-static struct platform_nand_data ts78xx_ts_nand_data = {
+static struct platform_nand_data ts78xx_ts_nand_data =
+{
 	.chip	= {
 		.nr_chips		= 1,
 		.partitions		= ts78xx_ts_nand_parts,
@@ -296,9 +329,10 @@ static struct platform_nand_data ts78xx_ts_nand_data = {
 };
 
 static struct resource ts78xx_ts_nand_resources
-			= DEFINE_RES_MEM(TS_NAND_DATA, 4);
+	= DEFINE_RES_MEM(TS_NAND_DATA, 4);
 
-static struct platform_device ts78xx_ts_nand_device = {
+static struct platform_device ts78xx_ts_nand_device =
+{
 	.name		= "gen_nand",
 	.id		= -1,
 	.dev		= {
@@ -312,15 +346,25 @@ static int ts78xx_ts_nand_load(void)
 {
 	int rc;
 
-	if (ts78xx_fpga.supports.ts_nand.init == 0) {
+	if (ts78xx_fpga.supports.ts_nand.init == 0)
+	{
 		rc = platform_device_register(&ts78xx_ts_nand_device);
+
 		if (!rc)
+		{
 			ts78xx_fpga.supports.ts_nand.init = 1;
-	} else
+		}
+	}
+	else
+	{
 		rc = platform_device_add(&ts78xx_ts_nand_device);
+	}
 
 	if (rc)
+	{
 		pr_info("NAND could not be registered: %d\n", rc);
+	}
+
 	return rc;
 };
 
@@ -335,13 +379,15 @@ static void ts78xx_ts_nand_unload(void)
 #define TS_RNG_DATA	(TS78XX_FPGA_REGS_PHYS_BASE | 0x044)
 
 static struct resource ts78xx_ts_rng_resource
-			= DEFINE_RES_MEM(TS_RNG_DATA, 4);
+	= DEFINE_RES_MEM(TS_RNG_DATA, 4);
 
-static struct timeriomem_rng_data ts78xx_ts_rng_data = {
+static struct timeriomem_rng_data ts78xx_ts_rng_data =
+{
 	.period		= 1000000, /* one second */
 };
 
-static struct platform_device ts78xx_ts_rng_device = {
+static struct platform_device ts78xx_ts_rng_device =
+{
 	.name		= "timeriomem_rng",
 	.id		= -1,
 	.dev		= {
@@ -355,15 +401,25 @@ static int ts78xx_ts_rng_load(void)
 {
 	int rc;
 
-	if (ts78xx_fpga.supports.ts_rng.init == 0) {
+	if (ts78xx_fpga.supports.ts_rng.init == 0)
+	{
 		rc = platform_device_register(&ts78xx_ts_rng_device);
+
 		if (!rc)
+		{
 			ts78xx_fpga.supports.ts_rng.init = 1;
-	} else
+		}
+	}
+	else
+	{
 		rc = platform_device_add(&ts78xx_ts_rng_device);
+	}
 
 	if (rc)
+	{
 		pr_info("RNG could not be registered: %d\n", rc);
+	}
+
 	return rc;
 };
 
@@ -385,35 +441,40 @@ static void ts78xx_fpga_devices_zero_init(void)
 static void ts78xx_fpga_supports(void)
 {
 	/* TODO: put this 'table' into ts78xx-fpga.h */
-	switch (ts78xx_fpga.id) {
-	case TS7800_REV_1:
-	case TS7800_REV_2:
-	case TS7800_REV_3:
-	case TS7800_REV_4:
-	case TS7800_REV_5:
-	case TS7800_REV_6:
-	case TS7800_REV_7:
-	case TS7800_REV_8:
-	case TS7800_REV_9:
-		ts78xx_fpga.supports.ts_rtc.present = 1;
-		ts78xx_fpga.supports.ts_nand.present = 1;
-		ts78xx_fpga.supports.ts_rng.present = 1;
-		break;
-	default:
-		/* enable devices if magic matches */
-		switch ((ts78xx_fpga.id >> 8) & 0xffffff) {
-		case TS7800_FPGA_MAGIC:
-			pr_warn("unrecognised FPGA revision 0x%.2x\n",
-				ts78xx_fpga.id & 0xff);
+	switch (ts78xx_fpga.id)
+	{
+		case TS7800_REV_1:
+		case TS7800_REV_2:
+		case TS7800_REV_3:
+		case TS7800_REV_4:
+		case TS7800_REV_5:
+		case TS7800_REV_6:
+		case TS7800_REV_7:
+		case TS7800_REV_8:
+		case TS7800_REV_9:
 			ts78xx_fpga.supports.ts_rtc.present = 1;
 			ts78xx_fpga.supports.ts_nand.present = 1;
 			ts78xx_fpga.supports.ts_rng.present = 1;
 			break;
+
 		default:
-			ts78xx_fpga.supports.ts_rtc.present = 0;
-			ts78xx_fpga.supports.ts_nand.present = 0;
-			ts78xx_fpga.supports.ts_rng.present = 0;
-		}
+
+			/* enable devices if magic matches */
+			switch ((ts78xx_fpga.id >> 8) & 0xffffff)
+			{
+				case TS7800_FPGA_MAGIC:
+					pr_warn("unrecognised FPGA revision 0x%.2x\n",
+							ts78xx_fpga.id & 0xff);
+					ts78xx_fpga.supports.ts_rtc.present = 1;
+					ts78xx_fpga.supports.ts_nand.present = 1;
+					ts78xx_fpga.supports.ts_rng.present = 1;
+					break;
+
+				default:
+					ts78xx_fpga.supports.ts_rtc.present = 0;
+					ts78xx_fpga.supports.ts_nand.present = 0;
+					ts78xx_fpga.supports.ts_rng.present = 0;
+			}
 	}
 }
 
@@ -421,22 +482,39 @@ static int ts78xx_fpga_load_devices(void)
 {
 	int tmp, ret = 0;
 
-	if (ts78xx_fpga.supports.ts_rtc.present == 1) {
+	if (ts78xx_fpga.supports.ts_rtc.present == 1)
+	{
 		tmp = ts78xx_ts_rtc_load();
+
 		if (tmp)
+		{
 			ts78xx_fpga.supports.ts_rtc.present = 0;
+		}
+
 		ret |= tmp;
 	}
-	if (ts78xx_fpga.supports.ts_nand.present == 1) {
+
+	if (ts78xx_fpga.supports.ts_nand.present == 1)
+	{
 		tmp = ts78xx_ts_nand_load();
+
 		if (tmp)
+		{
 			ts78xx_fpga.supports.ts_nand.present = 0;
+		}
+
 		ret |= tmp;
 	}
-	if (ts78xx_fpga.supports.ts_rng.present == 1) {
+
+	if (ts78xx_fpga.supports.ts_rng.present == 1)
+	{
 		tmp = ts78xx_ts_rng_load();
+
 		if (tmp)
+		{
 			ts78xx_fpga.supports.ts_rng.present = 0;
+		}
+
 		ret |= tmp;
 	}
 
@@ -448,11 +526,19 @@ static int ts78xx_fpga_unload_devices(void)
 	int ret = 0;
 
 	if (ts78xx_fpga.supports.ts_rtc.present == 1)
+	{
 		ts78xx_ts_rtc_unload();
+	}
+
 	if (ts78xx_fpga.supports.ts_nand.present == 1)
+	{
 		ts78xx_ts_nand_unload();
+	}
+
 	if (ts78xx_fpga.supports.ts_rng.present == 1)
+	{
 		ts78xx_ts_rng_unload();
+	}
 
 	return ret;
 }
@@ -467,7 +553,8 @@ static int ts78xx_fpga_load(void)
 
 	ts78xx_fpga_supports();
 
-	if (ts78xx_fpga_load_devices()) {
+	if (ts78xx_fpga_load_devices())
+	{
 		ts78xx_fpga.state = -1;
 		return -EBUSY;
 	}
@@ -488,16 +575,18 @@ static int ts78xx_fpga_unload(void)
 	 *
 	 * UrJTAG SVN since r1381 can be used to reprogram the FPGA
 	 */
-	if (ts78xx_fpga.id != fpga_id) {
+	if (ts78xx_fpga.id != fpga_id)
+	{
 		pr_err("FPGA magic/rev mismatch\n"
-			"TS-78xx FPGA: was 0x%.6x/%.2x but now 0x%.6x/%.2x\n",
-			(ts78xx_fpga.id >> 8) & 0xffffff, ts78xx_fpga.id & 0xff,
-			(fpga_id >> 8) & 0xffffff, fpga_id & 0xff);
+			   "TS-78xx FPGA: was 0x%.6x/%.2x but now 0x%.6x/%.2x\n",
+			   (ts78xx_fpga.id >> 8) & 0xffffff, ts78xx_fpga.id & 0xff,
+			   (fpga_id >> 8) & 0xffffff, fpga_id & 0xff);
 		ts78xx_fpga.state = -1;
 		return -EBUSY;
 	}
 
-	if (ts78xx_fpga_unload_devices()) {
+	if (ts78xx_fpga_unload_devices())
+	{
 		ts78xx_fpga.state = -1;
 		return -EBUSY;
 	}
@@ -506,40 +595,53 @@ static int ts78xx_fpga_unload(void)
 };
 
 static ssize_t ts78xx_fpga_show(struct kobject *kobj,
-			struct kobj_attribute *attr, char *buf)
+								struct kobj_attribute *attr, char *buf)
 {
 	if (ts78xx_fpga.state < 0)
+	{
 		return sprintf(buf, "borked\n");
+	}
 
 	return sprintf(buf, "%s\n", (ts78xx_fpga.state) ? "online" : "offline");
 }
 
 static ssize_t ts78xx_fpga_store(struct kobject *kobj,
-			struct kobj_attribute *attr, const char *buf, size_t n)
+								 struct kobj_attribute *attr, const char *buf, size_t n)
 {
 	int value, ret;
 
-	if (ts78xx_fpga.state < 0) {
+	if (ts78xx_fpga.state < 0)
+	{
 		pr_err("FPGA borked, you must powercycle ASAP\n");
 		return -EBUSY;
 	}
 
 	if (strncmp(buf, "online", sizeof("online") - 1) == 0)
+	{
 		value = 1;
+	}
 	else if (strncmp(buf, "offline", sizeof("offline") - 1) == 0)
+	{
 		value = 0;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	if (ts78xx_fpga.state == value)
+	{
 		return n;
+	}
 
 	ret = (ts78xx_fpga.state == 0)
-		? ts78xx_fpga_load()
-		: ts78xx_fpga_unload();
+		  ? ts78xx_fpga_load()
+		  : ts78xx_fpga_unload();
 
 	if (!(ret < 0))
+	{
 		ts78xx_fpga.state = value;
+	}
 
 	return n;
 }
@@ -550,7 +652,8 @@ static struct kobj_attribute ts78xx_fpga_attr =
 /*****************************************************************************
  * General Setup
  ****************************************************************************/
-static unsigned int ts78xx_mpp_modes[] __initdata = {
+static unsigned int ts78xx_mpp_modes[] __initdata =
+{
 	MPP0_UNUSED,
 	MPP1_GPIO,		/* JTAG Clock */
 	MPP2_GPIO,		/* JTAG Data In */
@@ -608,18 +711,21 @@ static void __init ts78xx_init(void)
 	ts78xx_fpga_devices_zero_init();
 	ret = ts78xx_fpga_load();
 	ret = sysfs_create_file(firmware_kobj, &ts78xx_fpga_attr.attr);
+
 	if (ret)
+	{
 		pr_err("sysfs_create_file failed: %d\n", ret);
+	}
 }
 
 MACHINE_START(TS78XX, "Technologic Systems TS-78xx SBC")
-	/* Maintainer: Alexander Clouter <alex@digriz.org.uk> */
-	.atag_offset	= 0x100,
+/* Maintainer: Alexander Clouter <alex@digriz.org.uk> */
+.atag_offset	= 0x100,
 	.nr_irqs	= ORION5X_NR_IRQS,
-	.init_machine	= ts78xx_init,
-	.map_io		= ts78xx_map_io,
-	.init_early	= orion5x_init_early,
-	.init_irq	= orion5x_init_irq,
-	.init_time	= orion5x_timer_init,
-	.restart	= orion5x_restart,
-MACHINE_END
+		.init_machine	= ts78xx_init,
+		   .map_io		= ts78xx_map_io,
+			   .init_early	= orion5x_init_early,
+				.init_irq	= orion5x_init_irq,
+				   .init_time	= orion5x_timer_init,
+					 .restart	= orion5x_restart,
+						 MACHINE_END

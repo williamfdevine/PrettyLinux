@@ -1,7 +1,8 @@
 #ifndef _ASM_IA64_UCONTEXT_H
 #define _ASM_IA64_UCONTEXT_H
 
-struct ucontext {
+struct ucontext
+{
 	struct sigcontext uc_mcontext;
 };
 

@@ -24,7 +24,8 @@
 #define HAS_IRQ_BUG     0x0080
 #define HAS_MMU_BUG     0x0100
 
-struct cpu_info {
+struct cpu_info
+{
 	char *cpu_model;
 	unsigned short rev;
 	unsigned short cache_size;
@@ -32,7 +33,8 @@ struct cpu_info {
 };
 
 /* Some of these model are here for historical reasons only. */
-static struct cpu_info cpinfo[] = {
+static struct cpu_info cpinfo[] =
+{
 	{"ETRAX 1", 0, 0, 0},
 	{"ETRAX 2", 1, 0, 0},
 	{"ETRAX 3", 2, 0, 0},
@@ -41,11 +43,15 @@ static struct cpu_info cpinfo[] = {
 	{"ETRAX 100", 8, 8, HAS_ETHERNET100 | HAS_SCSI | HAS_ATA | HAS_IRQ_BUG},
 	{"ETRAX 100", 9, 8, HAS_ETHERNET100 | HAS_SCSI | HAS_ATA},
 
-	{"ETRAX 100LX", 10, 8, HAS_ETHERNET100 | HAS_SCSI | HAS_ATA | HAS_USB
-			     | HAS_MMU | HAS_MMU_BUG},
+	{
+		"ETRAX 100LX", 10, 8, HAS_ETHERNET100 | HAS_SCSI | HAS_ATA | HAS_USB
+		| HAS_MMU | HAS_MMU_BUG
+	},
 
-	{"ETRAX 100LX v2", 11, 8, HAS_ETHERNET100 | HAS_SCSI | HAS_ATA | HAS_USB
-			        | HAS_MMU},
+	{
+		"ETRAX 100LX v2", 11, 8, HAS_ETHERNET100 | HAS_SCSI | HAS_ATA | HAS_USB
+		| HAS_MMU
+	},
 #ifdef CONFIG_ETRAXFS
 	{"ETRAX FS", 32, 32, HAS_ETHERNET100 | HAS_ATA | HAS_MMU},
 #else
@@ -65,43 +71,45 @@ int show_cpuinfo(struct seq_file *m, void *v)
 
 	revision = rdvr();
 
-	for (i = 0; i < ARRAY_SIZE(cpinfo); i++) {
-		if (cpinfo[i].rev == revision) {
+	for (i = 0; i < ARRAY_SIZE(cpinfo); i++)
+	{
+		if (cpinfo[i].rev == revision)
+		{
 			info = &cpinfo[i];
 			break;
 		}
 	}
 
 	seq_printf(m,
-		   "processor\t: %d\n"
-		   "cpu\t\t: CRIS\n"
-		   "cpu revision\t: %lu\n"
-		   "cpu model\t: %s\n"
-		   "cache size\t: %d KB\n"
-		   "fpu\t\t: %s\n"
-		   "mmu\t\t: %s\n"
-		   "mmu DMA bug\t: %s\n"
-		   "ethernet\t: %s Mbps\n"
-		   "token ring\t: %s\n"
-		   "scsi\t\t: %s\n"
-		   "ata\t\t: %s\n"
-		   "usb\t\t: %s\n"
-		   "bogomips\t: %lu.%02lu\n\n",
+			   "processor\t: %d\n"
+			   "cpu\t\t: CRIS\n"
+			   "cpu revision\t: %lu\n"
+			   "cpu model\t: %s\n"
+			   "cache size\t: %d KB\n"
+			   "fpu\t\t: %s\n"
+			   "mmu\t\t: %s\n"
+			   "mmu DMA bug\t: %s\n"
+			   "ethernet\t: %s Mbps\n"
+			   "token ring\t: %s\n"
+			   "scsi\t\t: %s\n"
+			   "ata\t\t: %s\n"
+			   "usb\t\t: %s\n"
+			   "bogomips\t: %lu.%02lu\n\n",
 
-		   cpu,
-		   revision,
-		   info->cpu_model,
-		   info->cache_size,
-		   info->flags & HAS_FPU ? "yes" : "no",
-		   info->flags & HAS_MMU ? "yes" : "no",
-		   info->flags & HAS_MMU_BUG ? "yes" : "no",
-		   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
-		   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
-		   info->flags & HAS_SCSI ? "yes" : "no",
-		   info->flags & HAS_ATA ? "yes" : "no",
-		   info->flags & HAS_USB ? "yes" : "no",
-		   (loops_per_jiffy * HZ + 500) / 500000,
-		   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
+			   cpu,
+			   revision,
+			   info->cpu_model,
+			   info->cache_size,
+			   info->flags & HAS_FPU ? "yes" : "no",
+			   info->flags & HAS_MMU ? "yes" : "no",
+			   info->flags & HAS_MMU_BUG ? "yes" : "no",
+			   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
+			   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
+			   info->flags & HAS_SCSI ? "yes" : "no",
+			   info->flags & HAS_ATA ? "yes" : "no",
+			   info->flags & HAS_USB ? "yes" : "no",
+			   (loops_per_jiffy * HZ + 500) / 500000,
+			   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
 
 	return 0;
 }
@@ -112,14 +120,15 @@ void show_etrax_copyright(void)
 {
 #ifdef CONFIG_ETRAXFS
 	printk(KERN_INFO "Linux/CRISv32 port on ETRAX FS "
-		"(C) 2003, 2004 Axis Communications AB\n");
+		   "(C) 2003, 2004 Axis Communications AB\n");
 #else
 	printk(KERN_INFO "Linux/CRISv32 port on ARTPEC-3 "
-		"(C) 2003-2009 Axis Communications AB\n");
+		   "(C) 2003-2009 Axis Communications AB\n");
 #endif
 }
 
-static struct i2c_board_info __initdata i2c_info[] = {
+static struct i2c_board_info __initdata i2c_info[] =
+{
 	{I2C_BOARD_INFO("camblock", 0x43)},
 	{I2C_BOARD_INFO("tmp100", 0x48)},
 	{I2C_BOARD_INFO("tmp100", 0x4A)},
@@ -135,7 +144,8 @@ static struct i2c_board_info __initdata i2c_info[] = {
 	{I2C_BOARD_INFO("adc101", 0x54)},
 };
 
-static struct i2c_board_info __initdata i2c_info2[] = {
+static struct i2c_board_info __initdata i2c_info2[] =
+{
 	{I2C_BOARD_INFO("camblock", 0x43)},
 	{I2C_BOARD_INFO("tmp100", 0x48)},
 	{I2C_BOARD_INFO("tmp100", 0x4A)},
@@ -148,7 +158,8 @@ static struct i2c_board_info __initdata i2c_info2[] = {
 	{I2C_BOARD_INFO("adc101", 0x54)},
 };
 
-static struct i2c_board_info __initdata i2c_info3[] = {
+static struct i2c_board_info __initdata i2c_info3[] =
+{
 	{I2C_BOARD_INFO("adc101", 0x54)},
 };
 

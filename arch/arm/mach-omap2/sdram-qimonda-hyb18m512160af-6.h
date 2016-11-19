@@ -17,7 +17,8 @@
 #include "sdrc.h"
 
 /* Qimonda HYB18M512160AF-6 */
-static struct omap_sdrc_params hyb18m512160af6_sdrc_params[] = {
+static struct omap_sdrc_params hyb18m512160af6_sdrc_params[] =
+{
 	[0] = {
 		.rate	     = 166000000,
 		.actim_ctrla = 0x629db4c6,

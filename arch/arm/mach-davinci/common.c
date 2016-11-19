@@ -33,14 +33,17 @@ void davinci_get_mac_addr(struct nvmem_device *nvmem, void *context)
 	char *mac_addr = davinci_soc_info.emac_pdata->mac_addr;
 	off_t offset = (off_t)context;
 
-	if (!IS_BUILTIN(CONFIG_NVMEM)) {
+	if (!IS_BUILTIN(CONFIG_NVMEM))
+	{
 		pr_warn("Cannot read MAC addr from EEPROM without CONFIG_NVMEM\n");
 		return;
 	}
 
 	/* Read MAC addr from EEPROM */
 	if (nvmem_device_read(nvmem, offset, ETH_ALEN, mac_addr) == ETH_ALEN)
+	{
 		pr_info("Read MAC addr from EEPROM: %pM\n", mac_addr);
+	}
 }
 
 static int __init davinci_init_id(struct davinci_soc_info *soc_info)
@@ -52,7 +55,9 @@ static int __init davinci_init_id(struct davinci_soc_info *soc_info)
 	void __iomem		*base;
 
 	base = ioremap(soc_info->jtag_id_reg, SZ_4K);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("Unable to map JTAG ID register\n");
 		return -ENOMEM;
 	}
@@ -64,9 +69,11 @@ static int __init davinci_init_id(struct davinci_soc_info *soc_info)
 	part_no = (soc_info->jtag_id & 0x0ffff000) >> 12;
 
 	for (i = 0, dip = soc_info->ids; i < soc_info->ids_num;
-			i++, dip++)
+		 i++, dip++)
+
 		/* Don't care about the manufacturer right now */
-		if ((dip->part_no == part_no) && (dip->variant == variant)) {
+		if ((dip->part_no == part_no) && (dip->variant == variant))
+		{
 			soc_info->cpu_id = dip->cpu_id;
 			pr_info("DaVinci %s variant 0x%x\n", dip->name,
 					dip->variant);
@@ -81,7 +88,8 @@ void __init davinci_common_init(struct davinci_soc_info *soc_info)
 {
 	int ret;
 
-	if (!soc_info) {
+	if (!soc_info)
+	{
 		ret = -EINVAL;
 		goto err;
 	}
@@ -90,7 +98,7 @@ void __init davinci_common_init(struct davinci_soc_info *soc_info)
 
 	if (davinci_soc_info.io_desc && (davinci_soc_info.io_desc_num > 0))
 		iotable_init(davinci_soc_info.io_desc,
-				davinci_soc_info.io_desc_num);
+					 davinci_soc_info.io_desc_num);
 
 	/*
 	 * Normally devicemaps_init() would flush caches and tlb after
@@ -105,8 +113,11 @@ void __init davinci_common_init(struct davinci_soc_info *soc_info)
 	 * IO space mapping must be initialized before we can do that.
 	 */
 	ret = davinci_init_id(&davinci_soc_info);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 
 	return;

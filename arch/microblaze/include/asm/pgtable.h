@@ -14,7 +14,7 @@
 #include <asm/setup.h>
 
 #ifndef __ASSEMBLY__
-extern int mem_init_done;
+	extern int mem_init_done;
 #endif
 
 #ifndef CONFIG_MMU
@@ -99,15 +99,15 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
  */
 
 #define _PAGE_CACHE_CTL	(_PAGE_GUARDED | _PAGE_NO_CACHE | \
-							_PAGE_WRITETHRU)
+						 _PAGE_WRITETHRU)
 
 #define pgprot_noncached(prot) \
-			(__pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) | \
-					_PAGE_NO_CACHE | _PAGE_GUARDED))
+	(__pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) | \
+			  _PAGE_NO_CACHE | _PAGE_GUARDED))
 
 #define pgprot_noncached_wc(prot) \
-			 (__pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) | \
-							_PAGE_NO_CACHE))
+	(__pgprot((pgprot_val(prot) & ~_PAGE_CACHE_CTL) | \
+			  _PAGE_NO_CACHE))
 
 /*
  * The MicroBlaze MMU is identical to the PPC-40x MMU, and uses a hash
@@ -164,13 +164,13 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
 
 #define pte_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pte "PTE_FMT".\n", \
-		__FILE__, __LINE__, pte_val(e))
+		   __FILE__, __LINE__, pte_val(e))
 #define pmd_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pmd %08lx.\n", \
-		__FILE__, __LINE__, pmd_val(e))
+		   __FILE__, __LINE__, pmd_val(e))
 #define pgd_ERROR(e) \
 	printk(KERN_ERR "%s:%d: bad pgd %08lx.\n", \
-		__FILE__, __LINE__, pgd_val(e))
+		   __FILE__, __LINE__, pgd_val(e))
 
 /*
  * Bits in a linux-style PTE.  These match the bits in the
@@ -220,16 +220,16 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
  * Some bits are unused...
  */
 #ifndef _PAGE_HASHPTE
-#define _PAGE_HASHPTE	0
+	#define _PAGE_HASHPTE	0
 #endif
 #ifndef _PTE_NONE_MASK
-#define _PTE_NONE_MASK	0
+	#define _PTE_NONE_MASK	0
 #endif
 #ifndef _PAGE_SHARED
-#define _PAGE_SHARED	0
+	#define _PAGE_SHARED	0
 #endif
 #ifndef _PAGE_EXEC
-#define _PAGE_EXEC	0
+	#define _PAGE_EXEC	0
 #endif
 
 #define _PAGE_CHG_MASK	(PAGE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY)
@@ -253,7 +253,7 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
 #define PAGE_READONLY_X	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_EXEC)
 #define PAGE_SHARED	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RW)
 #define PAGE_SHARED_X \
-		__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RW | _PAGE_EXEC)
+	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_RW | _PAGE_EXEC)
 #define PAGE_COPY	__pgprot(_PAGE_BASE | _PAGE_USER)
 #define PAGE_COPY_X	__pgprot(_PAGE_BASE | _PAGE_USER | _PAGE_EXEC)
 
@@ -284,12 +284,12 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
 #define __S111	PAGE_SHARED_X
 
 #ifndef __ASSEMBLY__
-/*
- * ZERO_PAGE is a global shared page that is always zero: used
- * for zero-mapped memory areas etc..
- */
-extern unsigned long empty_zero_page[1024];
-#define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
+	/*
+	* ZERO_PAGE is a global shared page that is always zero: used
+	* for zero-mapped memory areas etc..
+	*/
+	extern unsigned long empty_zero_page[1024];
+	#define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
 
 #endif /* __ASSEMBLY__ */
 
@@ -304,7 +304,7 @@ extern unsigned long empty_zero_page[1024];
 #define	pmd_clear(pmdp)		do { pmd_val(*(pmdp)) = 0; } while (0)
 
 #define pte_page(x)		(mem_map + (unsigned long) \
-				((pte_val(x) - memory_start) >> PAGE_SHIFT))
+						 ((pte_val(x) - memory_start) >> PAGE_SHIFT))
 #define PFN_SHIFT_OFFSET	(PAGE_SHIFT)
 
 #define pte_pfn(x)		(pte_val(x) >> PFN_SHIFT_OFFSET)
@@ -339,26 +339,26 @@ static inline void pte_uncache(pte_t pte) { pte_val(pte) |= _PAGE_NO_CACHE; }
 static inline void pte_cache(pte_t pte)   { pte_val(pte) &= ~_PAGE_NO_CACHE; }
 
 static inline pte_t pte_rdprotect(pte_t pte) \
-		{ pte_val(pte) &= ~_PAGE_USER; return pte; }
+{ pte_val(pte) &= ~_PAGE_USER; return pte; }
 static inline pte_t pte_wrprotect(pte_t pte) \
-	{ pte_val(pte) &= ~(_PAGE_RW | _PAGE_HWWRITE); return pte; }
+{ pte_val(pte) &= ~(_PAGE_RW | _PAGE_HWWRITE); return pte; }
 static inline pte_t pte_exprotect(pte_t pte) \
-	{ pte_val(pte) &= ~_PAGE_EXEC; return pte; }
+{ pte_val(pte) &= ~_PAGE_EXEC; return pte; }
 static inline pte_t pte_mkclean(pte_t pte) \
-	{ pte_val(pte) &= ~(_PAGE_DIRTY | _PAGE_HWWRITE); return pte; }
+{ pte_val(pte) &= ~(_PAGE_DIRTY | _PAGE_HWWRITE); return pte; }
 static inline pte_t pte_mkold(pte_t pte) \
-	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
+{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
 
 static inline pte_t pte_mkread(pte_t pte) \
-	{ pte_val(pte) |= _PAGE_USER; return pte; }
+{ pte_val(pte) |= _PAGE_USER; return pte; }
 static inline pte_t pte_mkexec(pte_t pte) \
-	{ pte_val(pte) |= _PAGE_USER | _PAGE_EXEC; return pte; }
+{ pte_val(pte) |= _PAGE_USER | _PAGE_EXEC; return pte; }
 static inline pte_t pte_mkwrite(pte_t pte) \
-	{ pte_val(pte) |= _PAGE_RW; return pte; }
+{ pte_val(pte) |= _PAGE_RW; return pte; }
 static inline pte_t pte_mkdirty(pte_t pte) \
-	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
+{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
 static inline pte_t pte_mkyoung(pte_t pte) \
-	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
 
 /*
  * Conversion functions: convert a page and protection to a page entry,
@@ -373,12 +373,12 @@ static inline pte_t mk_pte_phys(phys_addr_t physpage, pgprot_t pgprot)
 }
 
 #define mk_pte(page, pgprot) \
-({									   \
-	pte_t pte;							   \
-	pte_val(pte) = (((page - mem_map) << PAGE_SHIFT) + memory_start) |  \
-			pgprot_val(pgprot);				   \
-	pte;								   \
-})
+	({									   \
+		pte_t pte;							   \
+		pte_val(pte) = (((page - mem_map) << PAGE_SHIFT) + memory_start) |  \
+					   pgprot_val(pgprot);				   \
+		pte;								   \
+	})
 
 static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 {
@@ -395,19 +395,19 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
  * 32 bits of the PTE regardless of whether PTEs are 32 or 64 bits.
  */
 static inline unsigned long pte_update(pte_t *p, unsigned long clr,
-				unsigned long set)
+									   unsigned long set)
 {
 	unsigned long flags, old, tmp;
 
 	raw_local_irq_save(flags);
 
 	__asm__ __volatile__(	"lw	%0, %2, r0	\n"
-				"andn	%1, %0, %3	\n"
-				"or	%1, %1, %4	\n"
-				"sw	%1, %2, r0	\n"
-			: "=&r" (old), "=&r" (tmp)
-			: "r" ((unsigned long)(p + 1) - 4), "r" (clr), "r" (set)
-			: "cc");
+							"andn	%1, %0, %3	\n"
+							"or	%1, %1, %4	\n"
+							"sw	%1, %2, r0	\n"
+							: "=&r" (old), "=&r" (tmp)
+							: "r" ((unsigned long)(p + 1) - 4), "r" (clr), "r" (set)
+							: "cc");
 
 	raw_local_irq_restore(flags);
 
@@ -418,13 +418,13 @@ static inline unsigned long pte_update(pte_t *p, unsigned long clr,
  * set_pte stores a linux PTE into the linux page table.
  */
 static inline void set_pte(struct mm_struct *mm, unsigned long addr,
-		pte_t *ptep, pte_t pte)
+						   pte_t *ptep, pte_t pte)
 {
 	*ptep = pte;
 }
 
 static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-		pte_t *ptep, pte_t pte)
+							  pte_t *ptep, pte_t pte)
 {
 	*ptep = pte;
 }
@@ -440,12 +440,12 @@ static inline int ptep_test_and_clear_dirty(struct mm_struct *mm,
 		unsigned long addr, pte_t *ptep)
 {
 	return (pte_update(ptep, \
-		(_PAGE_DIRTY | _PAGE_HWWRITE), 0) & _PAGE_DIRTY) != 0;
+					   (_PAGE_DIRTY | _PAGE_HWWRITE), 0) & _PAGE_DIRTY) != 0;
 }
 
 #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
 static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
-		unsigned long addr, pte_t *ptep)
+									   unsigned long addr, pte_t *ptep)
 {
 	return __pte(pte_update(ptep, ~_PAGE_HASHPTE, 0));
 }
@@ -457,7 +457,7 @@ static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
 }*/
 
 static inline void ptep_mkdirty(struct mm_struct *mm,
-		unsigned long addr, pte_t *ptep)
+								unsigned long addr, pte_t *ptep)
 {
 	pte_update(ptep, 0, _PAGE_DIRTY);
 }
@@ -506,7 +506,7 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
 #define __swp_type(entry)		((entry).val & 0x3f)
 #define __swp_offset(entry)	((entry).val >> 6)
 #define __swp_entry(type, offset) \
-		((swp_entry_t) { (type) | ((offset) << 6) })
+	((swp_entry_t) { (type) | ((offset) << 6) })
 #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) >> 2 })
 #define __swp_entry_to_pte(x)	((pte_t) { (x).val << 2 })
 
@@ -530,7 +530,7 @@ extern unsigned long iopa(unsigned long addr);
 #define pgtable_cache_init()	do { } while (0)
 
 void do_page_fault(struct pt_regs *regs, unsigned long address,
-		   unsigned long error_code);
+				   unsigned long error_code);
 
 void mapin_ram(void);
 int map_page(unsigned long va, phys_addr_t pa, int flags);
@@ -555,7 +555,7 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle);
 void consistent_free(size_t size, void *vaddr);
 void consistent_sync(void *vaddr, size_t size, int direction);
 void consistent_sync_page(struct page *page, unsigned long offset,
-	size_t size, int direction);
+						  size_t size, int direction);
 unsigned long consistent_virt_to_pfn(void *vaddr);
 
 void setup_memory(void);

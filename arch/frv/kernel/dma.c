@@ -19,7 +19,8 @@
 #include <asm/irc-regs.h>
 #include <asm/cpu-irqs.h>
 
-struct frv_dma_channel {
+struct frv_dma_channel
+{
 	uint8_t			flags;
 #define FRV_DMA_FLAGS_RESERVED	0x01
 #define FRV_DMA_FLAGS_INUSE	0x02
@@ -39,18 +40,19 @@ struct frv_dma_channel {
 #define __get_DMAC(IO,X)	({ *(volatile unsigned long *)((IO) + DMAC_##X##x); })
 
 #define __set_DMAC(IO,X,V)					\
-do {								\
-	*(volatile unsigned long *)((IO) + DMAC_##X##x) = (V);	\
-	mb();							\
-} while(0)
+	do {								\
+		*(volatile unsigned long *)((IO) + DMAC_##X##x) = (V);	\
+		mb();							\
+	} while(0)
 
 #define ___set_DMAC(IO,X,V)					\
-do {								\
-	*(volatile unsigned long *)((IO) + DMAC_##X##x) = (V);	\
-} while(0)
+	do {								\
+		*(volatile unsigned long *)((IO) + DMAC_##X##x) = (V);	\
+	} while(0)
 
 
-static struct frv_dma_channel frv_dma_channels[FRV_DMA_NCHANS] = {
+static struct frv_dma_channel frv_dma_channels[FRV_DMA_NCHANS] =
+{
 	[0] = {
 		.cap		= FRV_DMA_CAP_DREQ | FRV_DMA_CAP_DACK | FRV_DMA_CAP_DONE,
 		.irq		= IRQ_CPU_DMA0,
@@ -127,8 +129,8 @@ static irqreturn_t dma_irq_handler(int irq, void *_channel)
 
 	frv_clear_dma_inprogress(channel - frv_dma_channels);
 	return channel->handler(channel - frv_dma_channels,
-				__get_DMAC(channel->ioaddr, CSTR),
-				channel->data);
+							__get_DMAC(channel->ioaddr, CSTR),
+							channel->data);
 
 } /* end dma_irq_handler() */
 
@@ -142,23 +144,26 @@ void __init frv_dma_init(void)
 	int num_dma, i;
 
 	/* First, determine how many DMA channels are available */
-	switch (PSR_IMPLE(psr)) {
-	case PSR_IMPLE_FR405:
-	case PSR_IMPLE_FR451:
-	case PSR_IMPLE_FR501:
-	case PSR_IMPLE_FR551:
-		num_dma = FRV_DMA_8CHANS;
-		break;
+	switch (PSR_IMPLE(psr))
+	{
+		case PSR_IMPLE_FR405:
+		case PSR_IMPLE_FR451:
+		case PSR_IMPLE_FR501:
+		case PSR_IMPLE_FR551:
+			num_dma = FRV_DMA_8CHANS;
+			break;
 
-	case PSR_IMPLE_FR401:
-	default:
-		num_dma = FRV_DMA_4CHANS;
-		break;
+		case PSR_IMPLE_FR401:
+		default:
+			num_dma = FRV_DMA_4CHANS;
+			break;
 	}
 
 	/* Now mark all of the non-existent channels as reserved */
-	for(i = num_dma; i < FRV_DMA_NCHANS; i++)
+	for (i = num_dma; i < FRV_DMA_NCHANS; i++)
+	{
 		frv_dma_channels[i].flags = FRV_DMA_FLAGS_RESERVED;
+	}
 
 } /* end frv_dma_init() */
 
@@ -167,11 +172,11 @@ void __init frv_dma_init(void)
  * allocate a DMA controller channel and the IRQ associated with it
  */
 int frv_dma_open(const char *devname,
-		 unsigned long dmamask,
-		 int dmacap,
-		 dma_irq_handler_t handler,
-		 unsigned long irq_flags,
-		 void *data)
+				 unsigned long dmamask,
+				 int dmacap,
+				 dma_irq_handler_t handler,
+				 unsigned long irq_flags,
+				 void *data)
 {
 	struct frv_dma_channel *channel;
 	int dma, ret;
@@ -181,25 +186,35 @@ int frv_dma_open(const char *devname,
 
 	ret = -ENOSPC;
 
-	for (dma = FRV_DMA_NCHANS - 1; dma >= 0; dma--) {
+	for (dma = FRV_DMA_NCHANS - 1; dma >= 0; dma--)
+	{
 		channel = &frv_dma_channels[dma];
 
 		if (!test_bit(dma, &dmamask))
+		{
 			continue;
+		}
 
 		if ((channel->cap & dmacap) != dmacap)
+		{
 			continue;
+		}
 
 		if (!frv_dma_channels[dma].flags)
+		{
 			goto found;
+		}
 	}
 
 	goto out;
 
- found:
+found:
 	ret = request_irq(channel->irq, dma_irq_handler, irq_flags, devname, channel);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* okay, we've allocated all the resources */
 	channel = &frv_dma_channels[dma];
@@ -214,18 +229,29 @@ int frv_dma_open(const char *devname,
 	__set_SIR(channel->dreqbit | __get_SIR());
 	/* SOR bits depend on what the caller requests */
 	val = __get_SOR();
-	if(dmacap & FRV_DMA_CAP_DACK)
+
+	if (dmacap & FRV_DMA_CAP_DACK)
+	{
 		val |= channel->dackbit;
+	}
 	else
+	{
 		val &= ~channel->dackbit;
-	if(dmacap & FRV_DMA_CAP_DONE)
+	}
+
+	if (dmacap & FRV_DMA_CAP_DONE)
+	{
 		val |= channel->donebit;
+	}
 	else
+	{
 		val &= ~channel->donebit;
+	}
+
 	__set_SOR(val);
 
 	ret = dma;
- out:
+out:
 	write_unlock(&frv_dma_channels_lock);
 	return ret;
 } /* end frv_dma_open() */
@@ -275,8 +301,8 @@ EXPORT_SYMBOL(frv_dma_config);
  * start a DMA channel
  */
 void frv_dma_start(int dma,
-		   unsigned long sba, unsigned long dba,
-		   unsigned long pix, unsigned long six, unsigned long bcl)
+				   unsigned long sba, unsigned long dba,
+				   unsigned long pix, unsigned long six, unsigned long bcl)
 {
 	unsigned long ioaddr = frv_dma_channels[dma].ioaddr;
 
@@ -383,24 +409,34 @@ void frv_dma_pause_all(void)
 
 	write_lock(&frv_dma_channels_lock);
 
-	for (dma = FRV_DMA_NCHANS - 1; dma >= 0; dma--) {
+	for (dma = FRV_DMA_NCHANS - 1; dma >= 0; dma--)
+	{
 		channel = &frv_dma_channels[dma];
 
 		if (!(channel->flags & FRV_DMA_FLAGS_INUSE))
+		{
 			continue;
+		}
 
 		ioaddr = channel->ioaddr;
 		cctr = __get_DMAC(ioaddr, CCTR);
-		if (cctr & DMAC_CCTRx_ACT) {
+
+		if (cctr & DMAC_CCTRx_ACT)
+		{
 			cctr &= ~DMAC_CCTRx_ACT;
 			__set_DMAC(ioaddr, CCTR, cctr);
 
-			do {
+			do
+			{
 				cstr = __get_DMAC(ioaddr, CSTR);
-			} while (cstr & DMAC_CSTRx_BUSY);
+			}
+			while (cstr & DMAC_CSTRx_BUSY);
 
 			if (cstr & DMAC_CSTRx_FED)
+			{
 				channel->flags |= FRV_DMA_FLAGS_PAUSED;
+			}
+
 			frv_clear_dma_inprogress(dma);
 		}
 	}
@@ -422,11 +458,14 @@ void frv_dma_resume_all(void)
 	unsigned long cstr, cctr;
 	int dma;
 
-	for (dma = FRV_DMA_NCHANS - 1; dma >= 0; dma--) {
+	for (dma = FRV_DMA_NCHANS - 1; dma >= 0; dma--)
+	{
 		channel = &frv_dma_channels[dma];
 
 		if (!(channel->flags & FRV_DMA_FLAGS_PAUSED))
+		{
 			continue;
+		}
 
 		ioaddr = channel->ioaddr;
 		cstr = __get_DMAC(ioaddr, CSTR);

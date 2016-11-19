@@ -63,7 +63,10 @@ static void per_hub_init(cnodeid_t cnode)
 	cpumask_set_cpu(smp_processor_id(), &hub->h_cpus);
 
 	if (test_and_set_bit(cnode, hub_init_mask))
+	{
 		return;
+	}
+
 	/*
 	 * Set CRB timeout at 5ms, (< PI timeout of 10ms)
 	 */
@@ -74,11 +77,13 @@ static void per_hub_init(cnodeid_t cnode)
 	xtalk_probe_node(cnode);
 
 #ifdef CONFIG_REPLICATE_EXHANDLERS
+
 	/*
 	 * If this is not a headless node initialization,
 	 * copy over the caliased exception handlers.
 	 */
-	if (get_compact_nodeid() == cnode) {
+	if (get_compact_nodeid() == cnode)
+	{
 		extern char except_vec2_generic, except_vec3_generic;
 		extern void build_tlb_refill_handler(void);
 
@@ -89,6 +94,7 @@ static void per_hub_init(cnodeid_t cnode)
 		memcpy((void *)(CKSEG0 + 0x180), &except_vec3_generic, 0x100);
 		__flush_cache_all();
 	}
+
 #endif
 
 	/*
@@ -96,7 +102,8 @@ static void per_hub_init(cnodeid_t cnode)
 	 * Mark these as reserved right away so they won't be used accidentally
 	 * later.
 	 */
-	for (i = 0; i <= BASE_PCI_IRQ; i++) {
+	for (i = 0; i <= BASE_PCI_IRQ; i++)
+	{
 		__set_bit(i, hub->irq_alloc_mask);
 		LOCAL_HUB_CLR_INTR(INT_PEND0_BASELVL + i);
 	}
@@ -104,7 +111,8 @@ static void per_hub_init(cnodeid_t cnode)
 	__set_bit(IP_PEND0_6_63, hub->irq_alloc_mask);
 	LOCAL_HUB_S(PI_INT_PEND_MOD, IP_PEND0_6_63);
 
-	for (i = NI_BRDCAST_ERR_A; i <= MSC_PANIC_INTR; i++) {
+	for (i = NI_BRDCAST_ERR_A; i <= MSC_PANIC_INTR; i++)
+	{
 		__set_bit(i, hub->irq_alloc_mask);
 		LOCAL_HUB_CLR_INTR(INT_PEND1_BASELVL + i);
 	}
@@ -120,14 +128,18 @@ void per_cpu_init(void)
 	int i;
 
 	if (test_and_set_bit(slice, &hub->slice_map))
+	{
 		return;
+	}
 
 	clear_c0_status(ST0_IM);
 
 	per_hub_init(cnode);
 
 	for (i = 0; i < LEVELS_PER_SLICE; i++)
+	{
 		si->level_to_irq[i] = -1;
+	}
 
 	/*
 	 * We use this so we can find the local hub's data as fast as only
@@ -151,7 +163,7 @@ nasid_t
 get_nasid(void)
 {
 	return (nasid_t)((LOCAL_HUB_L(NI_STATUS_REV_ID) & NSRI_NODEID_MASK)
-			 >> NSRI_NODEID_SHFT);
+					 >> NSRI_NODEID_SHFT);
 }
 
 /*
@@ -191,14 +203,14 @@ void __init plat_mem_setup(void)
 	p = LOCAL_HUB_L(PI_CPU_PRESENT_A) & 1;
 	e = LOCAL_HUB_L(PI_CPU_ENABLE_A) & 1;
 	printk("Node %d has %s primary CPU%s.\n", nid,
-	       p ? "a" : "no",
-	       e ? ", CPU is running" : "");
+		   p ? "a" : "no",
+		   e ? ", CPU is running" : "");
 
 	p = LOCAL_HUB_L(PI_CPU_PRESENT_B) & 1;
 	e = LOCAL_HUB_L(PI_CPU_ENABLE_B) & 1;
 	printk("Node %d has %s secondary CPU%s.\n", nid,
-	       p ? "a" : "no",
-	       e ? ", CPU is running" : "");
+		   p ? "a" : "no",
+		   e ? ", CPU is running" : "");
 
 	/*
 	 * Try to catch kernel missconfigurations and give user an
@@ -207,11 +219,19 @@ void __init plat_mem_setup(void)
 	n_mode = LOCAL_HUB_L(NI_STATUS_REV_ID) & NSRI_MORENODES_MASK;
 	printk("Machine is in %c mode.\n", n_mode ? 'N' : 'M');
 #ifdef CONFIG_SGI_SN_N_MODE
+
 	if (!n_mode)
+	{
 		panic("Kernel compiled for M mode.");
+	}
+
 #else
+
 	if (n_mode)
+	{
 		panic("Kernel compiled for N mode.");
+	}
+
 #endif
 
 	ioc3_eth_init();

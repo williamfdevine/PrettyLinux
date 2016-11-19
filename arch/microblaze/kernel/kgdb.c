@@ -42,15 +42,19 @@ void pt_regs_to_gdb_regs(unsigned long *gdb_regs, struct pt_regs *regs)
 
 	/* registers r0 - r31, pc, msr, ear, esr, fsr + do not save pt_mode */
 	for (i = 0; i < (sizeof(struct pt_regs) / 4) - 1; i++)
+	{
 		gdb_regs[i] = pt_regb[i];
+	}
 
 	/* Branch target register can't be changed */
 	__asm__ __volatile__ ("mfs %0, rbtr;" : "=r"(temp) : );
 	gdb_regs[GDB_BTR] = temp;
 
 	/* pvr part  - we have 11 pvr regs */
-	for (i = 0; i < sizeof(struct pvr_s)/4; i++)
+	for (i = 0; i < sizeof(struct pvr_s) / 4; i++)
+	{
 		gdb_regs[GDB_PVR + i] = pvr.pvr[i];
+	}
 
 	/* read special registers - can't be changed */
 	__asm__ __volatile__ ("mfs %0, redr;" : "=r"(temp) : );
@@ -76,18 +80,24 @@ void gdb_regs_to_pt_regs(unsigned long *gdb_regs, struct pt_regs *regs)
 	 * The rest of gdb_regs are unused and can't be changed.
 	 * r0 register value can't be changed too. */
 	for (i = 1; i < (sizeof(struct pt_regs) / 4) - 1; i++)
+	{
 		pt_regb[i] = gdb_regs[i];
+	}
 }
 
 asmlinkage void microblaze_kgdb_break(struct pt_regs *regs)
 {
 	if (kgdb_handle_exception(1, SIGTRAP, 0, regs) != 0)
+	{
 		return;
+	}
 
 	/* Jump over the first arch_kgdb_breakpoint which is barrier to
 	 * get kgdb work. The same solution is used for powerpc */
 	if (*(u32 *) (regs->pc) == *(u32 *) (&arch_kgdb_ops.gdb_bpt_instr))
+	{
 		regs->pc += BREAK_INSTR_SIZE;
+	}
 }
 
 /* untested */
@@ -98,11 +108,15 @@ void sleeping_thread_to_gdb_regs(unsigned long *gdb_regs, struct task_struct *p)
 
 	/* registers r0 - r31, pc, msr, ear, esr, fsr + do not save pt_mode */
 	for (i = 0; i < (sizeof(struct pt_regs) / 4) - 1; i++)
+	{
 		gdb_regs[i] = pt_regb[i];
+	}
 
 	/* pvr part  - we have 11 pvr regs */
-	for (i = 0; i < sizeof(struct pvr_s)/4; i++)
+	for (i = 0; i < sizeof(struct pvr_s) / 4; i++)
+	{
 		gdb_regs[GDB_PVR + i] = pvr.pvr[i];
+	}
 }
 
 void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long ip)
@@ -111,21 +125,26 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long ip)
 }
 
 int kgdb_arch_handle_exception(int vector, int signo, int err_code,
-			       char *remcom_in_buffer, char *remcom_out_buffer,
-			       struct pt_regs *regs)
+							   char *remcom_in_buffer, char *remcom_out_buffer,
+							   struct pt_regs *regs)
 {
 	char *ptr;
 	unsigned long address;
 
-	switch (remcom_in_buffer[0]) {
-	case 'c':
-		/* handle the optional parameter */
-		ptr = &remcom_in_buffer[1];
-		if (kgdb_hex2long(&ptr, &address))
-			regs->pc = address;
+	switch (remcom_in_buffer[0])
+	{
+		case 'c':
+			/* handle the optional parameter */
+			ptr = &remcom_in_buffer[1];
 
-		return 0;
+			if (kgdb_hex2long(&ptr, &address))
+			{
+				regs->pc = address;
+			}
+
+			return 0;
 	}
+
 	return -1; /* this means that we do not want to exit from the handler */
 }
 
@@ -143,7 +162,8 @@ void kgdb_arch_exit(void)
 /*
  * Global data
  */
-struct kgdb_arch arch_kgdb_ops = {
+struct kgdb_arch arch_kgdb_ops =
+{
 #ifdef __MICROBLAZEEL__
 	.gdb_bpt_instr = {0x18, 0x00, 0x0c, 0xba}, /* brki r16, 0x18 */
 #else

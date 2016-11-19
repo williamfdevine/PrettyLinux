@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
  * Licensed under the GPL
  */
@@ -20,12 +20,17 @@ static void kill_off_processes(void)
 	int pid;
 
 	read_lock(&tasklist_lock);
-	for_each_process(p) {
+	for_each_process(p)
+	{
 		struct task_struct *t;
 
 		t = find_lock_task_mm(p);
+
 		if (!t)
+		{
 			continue;
+		}
+
 		pid = t->mm->context.id.u.pid;
 		task_unlock(t);
 		os_kill_ptraced_process(pid, 1);
@@ -40,7 +45,7 @@ void uml_cleanup(void)
 	kill_off_processes();
 }
 
-void machine_restart(char * __unused)
+void machine_restart(char *__unused)
 {
 	uml_cleanup();
 	reboot_skas();

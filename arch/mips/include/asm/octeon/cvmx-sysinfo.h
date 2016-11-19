@@ -46,7 +46,8 @@
  * u-boot, etc.)  The cvmx_sysinfo_minimal_initialize() function is
  * provided to set the required values in these cases.
  */
-struct cvmx_sysinfo {
+struct cvmx_sysinfo
+{
 	/* System wide variables */
 	/* installed DRAM in system, in bytes */
 	uint64_t system_dram_size;

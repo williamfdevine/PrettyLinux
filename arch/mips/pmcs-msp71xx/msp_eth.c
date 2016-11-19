@@ -40,7 +40,8 @@
 
 #define MSP_ETH_ID	"pmc_mspeth"
 #define MSP_ETH_SIZE	0xE0
-static struct resource msp_eth0_resources[] = {
+static struct resource msp_eth0_resources[] =
+{
 	[0] = {
 		.start	= MSP_MAC0_BASE,
 		.end	= MSP_MAC0_BASE + MSP_ETH_SIZE - 1,
@@ -53,7 +54,8 @@ static struct resource msp_eth0_resources[] = {
 	},
 };
 
-static struct resource msp_eth1_resources[] = {
+static struct resource msp_eth1_resources[] =
+{
 	[0] = {
 		.start	= MSP_MAC1_BASE,
 		.end	= MSP_MAC1_BASE + MSP_ETH_SIZE - 1,
@@ -68,7 +70,8 @@ static struct resource msp_eth1_resources[] = {
 
 
 
-static struct platform_device mspeth_device[] = {
+static struct platform_device mspeth_device[] =
+{
 	[0] = {
 		.name	= MSP_ETH_ID,
 		.id	= 0,
@@ -93,10 +96,13 @@ int __init msp_eth_setup(void)
 	msp_gpio_pin_mode(MSP_GPIO_OUTPUT, MSP_ETHERNET_GPIO0);
 	msp_gpio_pin_hi(MSP_ETHERNET_GPIO0);
 
-	for (i = 0; i < ARRAY_SIZE(msp_eth_devs); i++) {
+	for (i = 0; i < ARRAY_SIZE(msp_eth_devs); i++)
+	{
 		ret = platform_device_register(&msp_eth_devs[i]);
 		printk(KERN_INFO "device: %d, return value = %d\n", i, ret);
-		if (ret) {
+
+		if (ret)
+		{
 			platform_device_unregister(&msp_eth_devs[i]);
 			break;
 		}
@@ -104,7 +110,7 @@ int __init msp_eth_setup(void)
 
 	if (ret)
 		printk(KERN_WARNING "Could not initialize "
-						"MSPETH device structures.\n");
+			   "MSPETH device structures.\n");
 
 	return ret;
 }

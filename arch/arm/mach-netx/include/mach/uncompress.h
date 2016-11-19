@@ -45,13 +45,20 @@ static inline void putc(char c)
 	unsigned long base;
 
 	if (REG(UART1_BASE + UART_CR) & CR_UART_EN)
+	{
 		base = UART1_BASE;
+	}
 	else if (REG(UART2_BASE + UART_CR) & CR_UART_EN)
+	{
 		base = UART2_BASE;
+	}
 	else
+	{
 		return;
+	}
 
 	while (REG(base + UART_FR) & FR_TXFF);
+
 	REG(base + UART_DR) = c;
 }
 
@@ -60,11 +67,17 @@ static inline void flush(void)
 	unsigned long base;
 
 	if (REG(UART1_BASE + UART_CR) & CR_UART_EN)
+	{
 		base = UART1_BASE;
+	}
 	else if (REG(UART2_BASE + UART_CR) & CR_UART_EN)
+	{
 		base = UART2_BASE;
+	}
 	else
+	{
 		return;
+	}
 
 	while (REG(base + UART_FR) & FR_BUSY);
 }

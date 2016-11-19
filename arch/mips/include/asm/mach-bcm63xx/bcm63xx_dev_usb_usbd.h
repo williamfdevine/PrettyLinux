@@ -4,7 +4,8 @@
 /*
  * usb device platform data
  */
-struct bcm63xx_usbd_platform_data {
+struct bcm63xx_usbd_platform_data
+{
 	/* board can only support full speed (USB 1.1) */
 	int use_fullspeed;
 

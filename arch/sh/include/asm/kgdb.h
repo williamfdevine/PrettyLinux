@@ -4,7 +4,8 @@
 #include <asm/cacheflush.h>
 #include <asm/ptrace.h>
 
-enum regnames {
+enum regnames
+{
 	GDB_R0, GDB_R1, GDB_R2, GDB_R3, GDB_R4, GDB_R5, GDB_R6, GDB_R7,
 	GDB_R8, GDB_R9, GDB_R10, GDB_R11, GDB_R12, GDB_R13, GDB_R14, GDB_R15,
 
@@ -27,9 +28,9 @@ static inline void arch_kgdb_breakpoint(void)
 #define BUFMAX			2048
 
 #ifdef CONFIG_SMP
-# define CACHE_FLUSH_IS_SAFE	0
+	#define CACHE_FLUSH_IS_SAFE	0
 #else
-# define CACHE_FLUSH_IS_SAFE	1
+	#define CACHE_FLUSH_IS_SAFE	1
 #endif
 
 #define GDB_ADJUSTS_BREAK_OFFSET

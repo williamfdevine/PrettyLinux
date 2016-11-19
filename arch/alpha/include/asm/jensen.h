@@ -72,8 +72,8 @@
 #ifdef __KERNEL__
 
 #ifndef __EXTERN_INLINE
-#define __EXTERN_INLINE extern inline
-#define __IO_EXTERN_INLINE
+	#define __EXTERN_INLINE extern inline
+	#define __IO_EXTERN_INLINE
 #endif
 
 /*
@@ -92,8 +92,11 @@ __EXTERN_INLINE void jensen_set_hae(unsigned long addr)
 {
 	/* hae on the Jensen is bits 31:25 shifted right */
 	addr >>= 25;
+
 	if (addr != alpha_mv.hae_cache)
+	{
 		set_hae(addr);
+	}
 }
 
 #define vuip	volatile unsigned int *
@@ -144,26 +147,34 @@ static inline void jensen_bus_outb(u8 b, unsigned long addr)
  */
 
 #define jensen_is_local(addr) ( \
-/* keyboard */	(addr == 0x60 || addr == 0x64) || \
-/* RTC */	(addr == 0x170 || addr == 0x171) || \
-/* mb COM2 */	(addr >= 0x2f8 && addr <= 0x2ff) || \
-/* mb LPT1 */	(addr >= 0x3bc && addr <= 0x3be) || \
-/* mb COM2 */	(addr >= 0x3f8 && addr <= 0x3ff))
+								/* keyboard */	(addr == 0x60 || addr == 0x64) || \
+								/* RTC */	(addr == 0x170 || addr == 0x171) || \
+								/* mb COM2 */	(addr >= 0x2f8 && addr <= 0x2ff) || \
+								/* mb LPT1 */	(addr >= 0x3bc && addr <= 0x3be) || \
+								/* mb COM2 */	(addr >= 0x3f8 && addr <= 0x3ff))
 
 __EXTERN_INLINE u8 jensen_inb(unsigned long addr)
 {
 	if (jensen_is_local(addr))
+	{
 		return jensen_local_inb(addr);
+	}
 	else
+	{
 		return jensen_bus_inb(addr);
+	}
 }
 
 __EXTERN_INLINE void jensen_outb(u8 b, unsigned long addr)
 {
 	if (jensen_is_local(addr))
+	{
 		jensen_local_outb(b, addr);
+	}
 	else
+	{
 		jensen_bus_outb(b, addr);
+	}
 }
 
 __EXTERN_INLINE u16 jensen_inw(unsigned long addr)
@@ -285,7 +296,7 @@ __EXTERN_INLINE void __iomem *jensen_ioportmap(unsigned long addr)
 }
 
 __EXTERN_INLINE void __iomem *jensen_ioremap(unsigned long addr,
-					     unsigned long size)
+		unsigned long size)
 {
 	return (void __iomem *)(addr + 0x100000000ul);
 }
@@ -304,20 +315,20 @@ __EXTERN_INLINE int jensen_is_mmio(const volatile void __iomem *addr)
    that it doesn't make sense to merge them.  */
 
 #define IOPORT(OS, NS)							\
-__EXTERN_INLINE unsigned int jensen_ioread##NS(void __iomem *xaddr)	\
-{									\
-	if (jensen_is_mmio(xaddr))					\
-		return jensen_read##OS(xaddr - 0x100000000ul);		\
-	else								\
-		return jensen_in##OS((unsigned long)xaddr);		\
-}									\
-__EXTERN_INLINE void jensen_iowrite##NS(u##NS b, void __iomem *xaddr)	\
-{									\
-	if (jensen_is_mmio(xaddr))					\
-		jensen_write##OS(b, xaddr - 0x100000000ul);		\
-	else								\
-		jensen_out##OS(b, (unsigned long)xaddr);		\
-}
+	__EXTERN_INLINE unsigned int jensen_ioread##NS(void __iomem *xaddr)	\
+	{									\
+		if (jensen_is_mmio(xaddr))					\
+			return jensen_read##OS(xaddr - 0x100000000ul);		\
+		else								\
+			return jensen_in##OS((unsigned long)xaddr);		\
+	}									\
+	__EXTERN_INLINE void jensen_iowrite##NS(u##NS b, void __iomem *xaddr)	\
+	{									\
+		if (jensen_is_mmio(xaddr))					\
+			jensen_write##OS(b, xaddr - 0x100000000ul);		\
+		else								\
+			jensen_out##OS(b, (unsigned long)xaddr);		\
+	}
 
 IOPORT(b, 8)
 IOPORT(w, 16)
@@ -337,8 +348,8 @@ IOPORT(l, 32)
 #include <asm/io_trivial.h>
 
 #ifdef __IO_EXTERN_INLINE
-#undef __EXTERN_INLINE
-#undef __IO_EXTERN_INLINE
+	#undef __EXTERN_INLINE
+	#undef __IO_EXTERN_INLINE
 #endif
 
 #endif /* __KERNEL__ */

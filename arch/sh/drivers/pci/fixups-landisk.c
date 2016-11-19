@@ -30,11 +30,13 @@ int pcibios_map_platform_irq(const struct pci_dev *pdev, u8 slot, u8 pin)
 	 */
 	int irq = ((slot + pin - 1) & 0x3) + evt2irq(0x2a0);
 
-	if ((slot | (pin - 1)) > 0x3) {
+	if ((slot | (pin - 1)) > 0x3)
+	{
 		printk(KERN_WARNING "PCI: Bad IRQ mapping request for slot %d pin %c\n",
-		       slot, pin - 1 + 'A');
+			   slot, pin - 1 + 'A');
 		return -1;
 	}
+
 	return irq;
 }
 

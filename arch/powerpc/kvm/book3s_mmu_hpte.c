@@ -42,7 +42,7 @@ static inline u64 kvmppc_mmu_hash_pte(u64 eaddr)
 static inline u64 kvmppc_mmu_hash_pte_long(u64 eaddr)
 {
 	return hash_64((eaddr & 0x0ffff000) >> PTE_SIZE,
-		       HPTEG_HASH_BITS_PTE_LONG);
+				   HPTEG_HASH_BITS_PTE_LONG);
 }
 
 static inline u64 kvmppc_mmu_hash_vpte(u64 vpage)
@@ -53,14 +53,14 @@ static inline u64 kvmppc_mmu_hash_vpte(u64 vpage)
 static inline u64 kvmppc_mmu_hash_vpte_long(u64 vpage)
 {
 	return hash_64((vpage & 0xffffff000ULL) >> 12,
-		       HPTEG_HASH_BITS_VPTE_LONG);
+				   HPTEG_HASH_BITS_VPTE_LONG);
 }
 
 #ifdef CONFIG_PPC_BOOK3S_64
 static inline u64 kvmppc_mmu_hash_vpte_64k(u64 vpage)
 {
 	return hash_64((vpage & 0xffffffff0ULL) >> 4,
-		       HPTEG_HASH_BITS_VPTE_64K);
+				   HPTEG_HASH_BITS_VPTE_64K);
 }
 #endif
 
@@ -80,7 +80,7 @@ void kvmppc_mmu_hpte_cache_map(struct kvm_vcpu *vcpu, struct hpte_cache *pte)
 	/* Add to ePTE_long list */
 	index = kvmppc_mmu_hash_pte_long(pte->pte.eaddr);
 	hlist_add_head_rcu(&pte->list_pte_long,
-			   &vcpu3s->hpte_hash_pte_long[index]);
+					   &vcpu3s->hpte_hash_pte_long[index]);
 
 	/* Add to vPTE list */
 	index = kvmppc_mmu_hash_vpte(pte->pte.vpage);
@@ -89,13 +89,13 @@ void kvmppc_mmu_hpte_cache_map(struct kvm_vcpu *vcpu, struct hpte_cache *pte)
 	/* Add to vPTE_long list */
 	index = kvmppc_mmu_hash_vpte_long(pte->pte.vpage);
 	hlist_add_head_rcu(&pte->list_vpte_long,
-			   &vcpu3s->hpte_hash_vpte_long[index]);
+					   &vcpu3s->hpte_hash_vpte_long[index]);
 
 #ifdef CONFIG_PPC_BOOK3S_64
 	/* Add to vPTE_64k list */
 	index = kvmppc_mmu_hash_vpte_64k(pte->pte.vpage);
 	hlist_add_head_rcu(&pte->list_vpte_64k,
-			   &vcpu3s->hpte_hash_vpte_64k[index]);
+					   &vcpu3s->hpte_hash_vpte_64k[index]);
 #endif
 
 	vcpu3s->hpte_cache_count++;
@@ -121,7 +121,8 @@ static void invalidate_pte(struct kvm_vcpu *vcpu, struct hpte_cache *pte)
 	spin_lock(&vcpu3s->mmu_lock);
 
 	/* pte already invalidated in between? */
-	if (hlist_unhashed(&pte->list_pte)) {
+	if (hlist_unhashed(&pte->list_pte))
+	{
 		spin_unlock(&vcpu3s->mmu_lock);
 		return;
 	}
@@ -148,11 +149,12 @@ static void kvmppc_mmu_pte_flush_all(struct kvm_vcpu *vcpu)
 
 	rcu_read_lock();
 
-	for (i = 0; i < HPTEG_HASH_NUM_VPTE_LONG; i++) {
+	for (i = 0; i < HPTEG_HASH_NUM_VPTE_LONG; i++)
+	{
 		struct hlist_head *list = &vcpu3s->hpte_hash_vpte_long[i];
 
 		hlist_for_each_entry_rcu(pte, list, list_vpte_long)
-			invalidate_pte(vcpu, pte);
+		invalidate_pte(vcpu, pte);
 	}
 
 	rcu_read_unlock();
@@ -171,8 +173,11 @@ static void kvmppc_mmu_pte_flush_page(struct kvm_vcpu *vcpu, ulong guest_ea)
 
 	/* Check the list for matching entries and invalidate */
 	hlist_for_each_entry_rcu(pte, list, list_pte)
-		if ((pte->pte.eaddr & ~0xfffUL) == guest_ea)
-			invalidate_pte(vcpu, pte);
+
+	if ((pte->pte.eaddr & ~0xfffUL) == guest_ea)
+	{
+		invalidate_pte(vcpu, pte);
+	}
 
 	rcu_read_unlock();
 }
@@ -185,14 +190,17 @@ static void kvmppc_mmu_pte_flush_long(struct kvm_vcpu *vcpu, ulong guest_ea)
 
 	/* Find the list of entries in the map */
 	list = &vcpu3s->hpte_hash_pte_long[
-			kvmppc_mmu_hash_pte_long(guest_ea)];
+			   kvmppc_mmu_hash_pte_long(guest_ea)];
 
 	rcu_read_lock();
 
 	/* Check the list for matching entries and invalidate */
 	hlist_for_each_entry_rcu(pte, list, list_pte_long)
-		if ((pte->pte.eaddr & 0x0ffff000UL) == guest_ea)
-			invalidate_pte(vcpu, pte);
+
+	if ((pte->pte.eaddr & 0x0ffff000UL) == guest_ea)
+	{
+		invalidate_pte(vcpu, pte);
+	}
 
 	rcu_read_unlock();
 }
@@ -202,20 +210,24 @@ void kvmppc_mmu_pte_flush(struct kvm_vcpu *vcpu, ulong guest_ea, ulong ea_mask)
 	trace_kvm_book3s_mmu_flush("", vcpu, guest_ea, ea_mask);
 	guest_ea &= ea_mask;
 
-	switch (ea_mask) {
-	case ~0xfffUL:
-		kvmppc_mmu_pte_flush_page(vcpu, guest_ea);
-		break;
-	case 0x0ffff000:
-		kvmppc_mmu_pte_flush_long(vcpu, guest_ea);
-		break;
-	case 0:
-		/* Doing a complete flush -> start from scratch */
-		kvmppc_mmu_pte_flush_all(vcpu);
-		break;
-	default:
-		WARN_ON(1);
-		break;
+	switch (ea_mask)
+	{
+		case ~0xfffUL:
+			kvmppc_mmu_pte_flush_page(vcpu, guest_ea);
+			break;
+
+		case 0x0ffff000:
+			kvmppc_mmu_pte_flush_long(vcpu, guest_ea);
+			break;
+
+		case 0:
+			/* Doing a complete flush -> start from scratch */
+			kvmppc_mmu_pte_flush_all(vcpu);
+			break;
+
+		default:
+			WARN_ON(1);
+			break;
 	}
 }
 
@@ -233,8 +245,11 @@ static void kvmppc_mmu_pte_vflush_short(struct kvm_vcpu *vcpu, u64 guest_vp)
 
 	/* Check the list for matching entries and invalidate */
 	hlist_for_each_entry_rcu(pte, list, list_vpte)
-		if ((pte->pte.vpage & vp_mask) == guest_vp)
-			invalidate_pte(vcpu, pte);
+
+	if ((pte->pte.vpage & vp_mask) == guest_vp)
+	{
+		invalidate_pte(vcpu, pte);
+	}
 
 	rcu_read_unlock();
 }
@@ -249,14 +264,17 @@ static void kvmppc_mmu_pte_vflush_64k(struct kvm_vcpu *vcpu, u64 guest_vp)
 	u64 vp_mask = 0xffffffff0ULL;
 
 	list = &vcpu3s->hpte_hash_vpte_64k[
-		kvmppc_mmu_hash_vpte_64k(guest_vp)];
+			   kvmppc_mmu_hash_vpte_64k(guest_vp)];
 
 	rcu_read_lock();
 
 	/* Check the list for matching entries and invalidate */
 	hlist_for_each_entry_rcu(pte, list, list_vpte_64k)
-		if ((pte->pte.vpage & vp_mask) == guest_vp)
-			invalidate_pte(vcpu, pte);
+
+	if ((pte->pte.vpage & vp_mask) == guest_vp)
+	{
+		invalidate_pte(vcpu, pte);
+	}
 
 	rcu_read_unlock();
 }
@@ -271,14 +289,17 @@ static void kvmppc_mmu_pte_vflush_long(struct kvm_vcpu *vcpu, u64 guest_vp)
 	u64 vp_mask = 0xffffff000ULL;
 
 	list = &vcpu3s->hpte_hash_vpte_long[
-		kvmppc_mmu_hash_vpte_long(guest_vp)];
+			   kvmppc_mmu_hash_vpte_long(guest_vp)];
 
 	rcu_read_lock();
 
 	/* Check the list for matching entries and invalidate */
 	hlist_for_each_entry_rcu(pte, list, list_vpte_long)
-		if ((pte->pte.vpage & vp_mask) == guest_vp)
-			invalidate_pte(vcpu, pte);
+
+	if ((pte->pte.vpage & vp_mask) == guest_vp)
+	{
+		invalidate_pte(vcpu, pte);
+	}
 
 	rcu_read_unlock();
 }
@@ -288,21 +309,25 @@ void kvmppc_mmu_pte_vflush(struct kvm_vcpu *vcpu, u64 guest_vp, u64 vp_mask)
 	trace_kvm_book3s_mmu_flush("v", vcpu, guest_vp, vp_mask);
 	guest_vp &= vp_mask;
 
-	switch(vp_mask) {
-	case 0xfffffffffULL:
-		kvmppc_mmu_pte_vflush_short(vcpu, guest_vp);
-		break;
+	switch (vp_mask)
+	{
+		case 0xfffffffffULL:
+			kvmppc_mmu_pte_vflush_short(vcpu, guest_vp);
+			break;
 #ifdef CONFIG_PPC_BOOK3S_64
-	case 0xffffffff0ULL:
-		kvmppc_mmu_pte_vflush_64k(vcpu, guest_vp);
-		break;
+
+		case 0xffffffff0ULL:
+			kvmppc_mmu_pte_vflush_64k(vcpu, guest_vp);
+			break;
 #endif
-	case 0xffffff000ULL:
-		kvmppc_mmu_pte_vflush_long(vcpu, guest_vp);
-		break;
-	default:
-		WARN_ON(1);
-		return;
+
+		case 0xffffff000ULL:
+			kvmppc_mmu_pte_vflush_long(vcpu, guest_vp);
+			break;
+
+		default:
+			WARN_ON(1);
+			return;
 	}
 }
 
@@ -316,13 +341,17 @@ void kvmppc_mmu_pte_pflush(struct kvm_vcpu *vcpu, ulong pa_start, ulong pa_end)
 
 	rcu_read_lock();
 
-	for (i = 0; i < HPTEG_HASH_NUM_VPTE_LONG; i++) {
+	for (i = 0; i < HPTEG_HASH_NUM_VPTE_LONG; i++)
+	{
 		struct hlist_head *list = &vcpu3s->hpte_hash_vpte_long[i];
 
 		hlist_for_each_entry_rcu(pte, list, list_vpte_long)
-			if ((pte->pte.raddr >= pa_start) &&
-			    (pte->pte.raddr < pa_end))
-				invalidate_pte(vcpu, pte);
+
+		if ((pte->pte.raddr >= pa_start) &&
+			(pte->pte.raddr < pa_end))
+		{
+			invalidate_pte(vcpu, pte);
+		}
 	}
 
 	rcu_read_unlock();
@@ -334,7 +363,9 @@ struct hpte_cache *kvmppc_mmu_hpte_cache_next(struct kvm_vcpu *vcpu)
 	struct hpte_cache *pte;
 
 	if (vcpu3s->hpte_cache_count == HPTEG_CACHE_NUM)
+	{
 		kvmppc_mmu_pte_flush_all(vcpu);
+	}
 
 	pte = kmem_cache_zalloc(hpte_cache, GFP_KERNEL);
 
@@ -356,7 +387,9 @@ static void kvmppc_mmu_hpte_init_hash(struct hlist_head *hash_list, int len)
 	int i;
 
 	for (i = 0; i < len; i++)
+	{
 		INIT_HLIST_HEAD(&hash_list[i]);
+	}
 }
 
 int kvmppc_mmu_hpte_init(struct kvm_vcpu *vcpu)
@@ -365,16 +398,16 @@ int kvmppc_mmu_hpte_init(struct kvm_vcpu *vcpu)
 
 	/* init hpte lookup hashes */
 	kvmppc_mmu_hpte_init_hash(vcpu3s->hpte_hash_pte,
-				  ARRAY_SIZE(vcpu3s->hpte_hash_pte));
+							  ARRAY_SIZE(vcpu3s->hpte_hash_pte));
 	kvmppc_mmu_hpte_init_hash(vcpu3s->hpte_hash_pte_long,
-				  ARRAY_SIZE(vcpu3s->hpte_hash_pte_long));
+							  ARRAY_SIZE(vcpu3s->hpte_hash_pte_long));
 	kvmppc_mmu_hpte_init_hash(vcpu3s->hpte_hash_vpte,
-				  ARRAY_SIZE(vcpu3s->hpte_hash_vpte));
+							  ARRAY_SIZE(vcpu3s->hpte_hash_vpte));
 	kvmppc_mmu_hpte_init_hash(vcpu3s->hpte_hash_vpte_long,
-				  ARRAY_SIZE(vcpu3s->hpte_hash_vpte_long));
+							  ARRAY_SIZE(vcpu3s->hpte_hash_vpte_long));
 #ifdef CONFIG_PPC_BOOK3S_64
 	kvmppc_mmu_hpte_init_hash(vcpu3s->hpte_hash_vpte_64k,
-				  ARRAY_SIZE(vcpu3s->hpte_hash_vpte_64k));
+							  ARRAY_SIZE(vcpu3s->hpte_hash_vpte_64k));
 #endif
 
 	spin_lock_init(&vcpu3s->mmu_lock);
@@ -386,7 +419,7 @@ int kvmppc_mmu_hpte_sysinit(void)
 {
 	/* init hpte slab cache */
 	hpte_cache = kmem_cache_create("kvm-spt", sizeof(struct hpte_cache),
-				       sizeof(struct hpte_cache), 0, NULL);
+								   sizeof(struct hpte_cache), 0, NULL);
 
 	return 0;
 }

@@ -39,7 +39,7 @@ struct task_struct;
  * Return: Zero on success, negative if ir is a NOP, signal number on failure.
  */
 extern int mips_dsemul(struct pt_regs *regs, mips_instruction ir,
-		       unsigned long branch_pc, unsigned long cont_pc);
+					   unsigned long branch_pc, unsigned long cont_pc);
 
 /**
  * do_dsemulret() - Return from a delay slot 'emulation' frame

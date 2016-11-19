@@ -10,7 +10,8 @@ typedef unsigned int	speed_t;
 typedef unsigned int	tcflag_t;
 
 #define NCCS 19
-struct termios {
+struct termios
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
@@ -19,7 +20,8 @@ struct termios {
 	cc_t c_cc[NCCS];		/* control characters */
 };
 
-struct termios2 {
+struct termios2
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
@@ -30,7 +32,8 @@ struct termios2 {
 	speed_t c_ospeed;		/* output speed */
 };
 
-struct ktermios {
+struct ktermios
+{
 	tcflag_t c_iflag;		/* input mode flags */
 	tcflag_t c_oflag;		/* output mode flags */
 	tcflag_t c_cflag;		/* control mode flags */
@@ -115,7 +118,7 @@ struct ktermios {
  *     3             2            1
  *    10 987 654 321 098 765 432 109 876 543 210
  *                             |           | ||| CBAUD
- *                                         obaud    
+ *                                         obaud
  *
  *                                       ||CSIZE
  *
@@ -123,7 +126,7 @@ struct ktermios {
  *                                    |CREAD
  *                                   |CPARENB
  *
- *                                 |CPARODD 
+ *                                 |CPARODD
  *                                |HUPCL
  *                               |CLOCAL
  *                             |CBAUDEX

@@ -56,7 +56,8 @@
  * appropriate baseboard support code.
  */
 
-static unsigned int mx31lilly_pins[] __initdata = {
+static unsigned int mx31lilly_pins[] __initdata =
+{
 	MX31_PIN_CTS1__CTS1,
 	MX31_PIN_RTS1__RTS1,
 	MX31_PIN_TXD1__TXD1,
@@ -72,13 +73,15 @@ static unsigned int mx31lilly_pins[] __initdata = {
 };
 
 /* UART */
-static const struct imxuart_platform_data uart_pdata __initconst = {
+static const struct imxuart_platform_data uart_pdata __initconst =
+{
 	.flags = IMXUART_HAVE_RTSCTS,
 };
 
 /* SMSC ethernet support */
 
-static struct resource smsc91x_resources[] = {
+static struct resource smsc91x_resources[] =
+{
 	{
 		.start	= MX31_CS4_BASE_ADDR,
 		.end	= MX31_CS4_BASE_ADDR + 0xffff,
@@ -90,16 +93,18 @@ static struct resource smsc91x_resources[] = {
 	}
 };
 
-static struct smsc911x_platform_config smsc911x_config = {
+static struct smsc911x_platform_config smsc911x_config =
+{
 	.phy_interface	= PHY_INTERFACE_MODE_MII,
 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
 	.flags		= SMSC911X_USE_32BIT |
-			  SMSC911X_SAVE_MAC_ADDRESS |
-			  SMSC911X_FORCE_INTERNAL_PHY,
+	SMSC911X_SAVE_MAC_ADDRESS |
+	SMSC911X_FORCE_INTERNAL_PHY,
 };
 
-static struct platform_device smsc91x_device = {
+static struct platform_device smsc91x_device =
+{
 	.name		= "smsc911x",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(smsc91x_resources),
@@ -110,17 +115,20 @@ static struct platform_device smsc91x_device = {
 };
 
 /* NOR flash */
-static struct physmap_flash_data nor_flash_data = {
+static struct physmap_flash_data nor_flash_data =
+{
 	.width  = 2,
 };
 
-static struct resource nor_flash_resource = {
+static struct resource nor_flash_resource =
+{
 	.start	= 0xa0000000,
 	.end	= 0xa1ffffff,
 	.flags	= IORESOURCE_MEM,
 };
 
-static struct platform_device physmap_flash_device = {
+static struct platform_device physmap_flash_device =
+{
 	.name	= "physmap-flash",
 	.id	= 0,
 	.dev	= {
@@ -133,11 +141,12 @@ static struct platform_device physmap_flash_device = {
 /* USB */
 
 #define USB_PAD_CFG (PAD_CTL_DRV_MAX | PAD_CTL_SRE_FAST | PAD_CTL_HYS_CMOS | \
-			PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
+					 PAD_CTL_ODE_CMOS | PAD_CTL_100K_PU)
 
 static int usbh1_init(struct platform_device *pdev)
 {
-	int pins[] = {
+	int pins[] =
+	{
 		MX31_PIN_CSPI1_MOSI__USBH1_RXDM,
 		MX31_PIN_CSPI1_MISO__USBH1_RXDP,
 		MX31_PIN_CSPI1_SS0__USBH1_TXDM,
@@ -162,12 +171,13 @@ static int usbh1_init(struct platform_device *pdev)
 	mdelay(10);
 
 	return mx31_initialize_usb_hw(pdev->id, MXC_EHCI_POWER_PINS_ENABLED |
-			MXC_EHCI_INTERFACE_SINGLE_UNI);
+								  MXC_EHCI_INTERFACE_SINGLE_UNI);
 }
 
 static int usbh2_init(struct platform_device *pdev)
 {
-	int pins[] = {
+	int pins[] =
+	{
 		MX31_PIN_USBH2_DATA0__USBH2_DATA0,
 		MX31_PIN_USBH2_DATA1__USBH2_DATA1,
 		MX31_PIN_USBH2_CLK__USBH2_CLK,
@@ -195,7 +205,7 @@ static int usbh2_init(struct platform_device *pdev)
 
 	/* chip select */
 	mxc_iomux_alloc_pin(IOMUX_MODE(MX31_PIN_DTR_DCE1, IOMUX_CONFIG_GPIO),
-				"USBH2_CS");
+						"USBH2_CS");
 	gpio_request(IOMUX_TO_GPIO(MX31_PIN_DTR_DCE1), "USBH2 CS");
 	gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_DTR_DCE1), 0);
 
@@ -204,12 +214,14 @@ static int usbh2_init(struct platform_device *pdev)
 	return mx31_initialize_usb_hw(pdev->id, MXC_EHCI_POWER_PINS_ENABLED);
 }
 
-static const struct mxc_usbh_platform_data usbh1_pdata __initconst = {
+static const struct mxc_usbh_platform_data usbh1_pdata __initconst =
+{
 	.init	= usbh1_init,
 	.portsc	= MXC_EHCI_MODE_UTMI | MXC_EHCI_SERIAL,
 };
 
-static struct mxc_usbh_platform_data usbh2_pdata __initdata = {
+static struct mxc_usbh_platform_data usbh2_pdata __initdata =
+{
 	.init	= usbh2_init,
 	.portsc	= MXC_EHCI_MODE_ULPI | MXC_EHCI_UTMI_8BIT,
 };
@@ -219,34 +231,42 @@ static void __init lilly1131_usb_init(void)
 	imx31_add_mxc_ehci_hs(1, &usbh1_pdata);
 
 	usbh2_pdata.otg = imx_otg_ulpi_create(ULPI_OTG_DRVVBUS |
-			ULPI_OTG_DRVVBUS_EXT);
+										  ULPI_OTG_DRVVBUS_EXT);
+
 	if (usbh2_pdata.otg)
+	{
 		imx31_add_mxc_ehci_hs(2, &usbh2_pdata);
+	}
 }
 
 /* SPI */
 
-static int spi_internal_chipselect[] = {
+static int spi_internal_chipselect[] =
+{
 	MXC_SPI_CS(0),
 	MXC_SPI_CS(1),
 	MXC_SPI_CS(2),
 };
 
-static const struct spi_imx_master spi0_pdata __initconst = {
+static const struct spi_imx_master spi0_pdata __initconst =
+{
 	.chipselect = spi_internal_chipselect,
 	.num_chipselect = ARRAY_SIZE(spi_internal_chipselect),
 };
 
-static const struct spi_imx_master spi1_pdata __initconst = {
+static const struct spi_imx_master spi1_pdata __initconst =
+{
 	.chipselect = spi_internal_chipselect,
 	.num_chipselect = ARRAY_SIZE(spi_internal_chipselect),
 };
 
-static struct mc13xxx_platform_data mc13783_pdata __initdata = {
+static struct mc13xxx_platform_data mc13783_pdata __initdata =
+{
 	.flags = MC13XXX_USE_RTC | MC13XXX_USE_TOUCHSCREEN,
 };
 
-static struct spi_board_info mc13783_dev __initdata = {
+static struct spi_board_info mc13783_dev __initdata =
+{
 	.modalias	= "mc13783",
 	.max_speed_hz	= 1000000,
 	.bus_num	= 1,
@@ -255,7 +275,8 @@ static struct spi_board_info mc13783_dev __initdata = {
 	/* irq number is run-time assigned */
 };
 
-static struct platform_device *devices[] __initdata = {
+static struct platform_device *devices[] __initdata =
+{
 	&smsc91x_device,
 	&physmap_flash_device,
 };
@@ -263,7 +284,8 @@ static struct platform_device *devices[] __initdata = {
 static int mx31lilly_baseboard;
 core_param(mx31lilly_baseboard, mx31lilly_baseboard, int, 0444);
 
-static struct regulator_consumer_supply dummy_supplies[] = {
+static struct regulator_consumer_supply dummy_supplies[] =
+{
 	REGULATOR_SUPPLY("vdd33a", "smsc911x"),
 	REGULATOR_SUPPLY("vddvario", "smsc911x"),
 };
@@ -273,7 +295,7 @@ static void __init mx31lilly_board_init(void)
 	imx31_soc_init();
 
 	mxc_iomux_setup_multiple_pins(mx31lilly_pins,
-				      ARRAY_SIZE(mx31lilly_pins), "mx31lily");
+								  ARRAY_SIZE(mx31lilly_pins), "mx31lily");
 
 	imx31_add_imx_uart0(&uart_pdata);
 	imx31_add_imx_uart1(&uart_pdata);
@@ -307,15 +329,17 @@ static void __init mx31lilly_board_init(void)
 static void __init mx31lilly_late_init(void)
 {
 	if (mx31lilly_baseboard == MX31LILLY_DB)
+	{
 		mx31lilly_db_init();
+	}
 
 	mc13783_dev.irq = gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_3));
 	spi_register_board_info(&mc13783_dev, 1);
 
 	smsc91x_resources[1].start =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_0));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_0));
 	smsc91x_resources[1].end =
-			gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_0));
+		gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_0));
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 
 	/* USB */
@@ -328,12 +352,12 @@ static void __init mx31lilly_timer_init(void)
 }
 
 MACHINE_START(LILLY1131, "INCO startec LILLY-1131")
-	.atag_offset = 0x100,
-	.map_io = mx31_map_io,
-	.init_early = imx31_init_early,
-	.init_irq = mx31_init_irq,
+.atag_offset = 0x100,
+ .map_io = mx31_map_io,
+  .init_early = imx31_init_early,
+   .init_irq = mx31_init_irq,
 	.init_time	= mx31lilly_timer_init,
-	.init_machine	= mx31lilly_board_init,
-	.init_late	= mx31lilly_late_init,
-	.restart	= mxc_restart,
-MACHINE_END
+	  .init_machine	= mx31lilly_board_init,
+		 .init_late	= mx31lilly_late_init,
+		   .restart	= mxc_restart,
+			   MACHINE_END

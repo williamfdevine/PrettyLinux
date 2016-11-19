@@ -3,13 +3,13 @@
 
 #ifdef CONFIG_X86_64
 
-#include <asm/percpu.h>
+	#include <asm/percpu.h>
 
-DECLARE_PER_CPU_READ_MOSTLY(unsigned long, espfix_stack);
-DECLARE_PER_CPU_READ_MOSTLY(unsigned long, espfix_waddr);
+	DECLARE_PER_CPU_READ_MOSTLY(unsigned long, espfix_stack);
+	DECLARE_PER_CPU_READ_MOSTLY(unsigned long, espfix_waddr);
 
-extern void init_espfix_bsp(void);
-extern void init_espfix_ap(int cpu);
+	extern void init_espfix_bsp(void);
+	extern void init_espfix_ap(int cpu);
 
 #endif /* CONFIG_X86_64 */
 

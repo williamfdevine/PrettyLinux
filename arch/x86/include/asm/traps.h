@@ -21,7 +21,7 @@ asmlinkage void bounds(void);
 asmlinkage void invalid_op(void);
 asmlinkage void device_not_available(void);
 #ifdef CONFIG_X86_64
-asmlinkage void double_fault(void);
+	asmlinkage void double_fault(void);
 #endif
 asmlinkage void coprocessor_segment_overrun(void);
 asmlinkage void invalid_TSS(void);
@@ -34,26 +34,26 @@ asmlinkage void spurious_interrupt_bug(void);
 asmlinkage void coprocessor_error(void);
 asmlinkage void alignment_check(void);
 #ifdef CONFIG_X86_MCE
-asmlinkage void machine_check(void);
+	asmlinkage void machine_check(void);
 #endif /* CONFIG_X86_MCE */
 asmlinkage void simd_coprocessor_error(void);
 
 #ifdef CONFIG_TRACING
-asmlinkage void trace_page_fault(void);
-#define trace_stack_segment stack_segment
-#define trace_divide_error divide_error
-#define trace_bounds bounds
-#define trace_invalid_op invalid_op
-#define trace_device_not_available device_not_available
-#define trace_coprocessor_segment_overrun coprocessor_segment_overrun
-#define trace_invalid_TSS invalid_TSS
-#define trace_segment_not_present segment_not_present
-#define trace_general_protection general_protection
-#define trace_spurious_interrupt_bug spurious_interrupt_bug
-#define trace_coprocessor_error coprocessor_error
-#define trace_alignment_check alignment_check
-#define trace_simd_coprocessor_error simd_coprocessor_error
-#define trace_async_page_fault async_page_fault
+	asmlinkage void trace_page_fault(void);
+	#define trace_stack_segment stack_segment
+	#define trace_divide_error divide_error
+	#define trace_bounds bounds
+	#define trace_invalid_op invalid_op
+	#define trace_device_not_available device_not_available
+	#define trace_coprocessor_segment_overrun coprocessor_segment_overrun
+	#define trace_invalid_TSS invalid_TSS
+	#define trace_segment_not_present segment_not_present
+	#define trace_general_protection general_protection
+	#define trace_spurious_interrupt_bug spurious_interrupt_bug
+	#define trace_coprocessor_error coprocessor_error
+	#define trace_alignment_check alignment_check
+	#define trace_simd_coprocessor_error simd_coprocessor_error
+	#define trace_async_page_fault async_page_fault
 #endif
 
 dotraplinkage void do_divide_error(struct pt_regs *, long);
@@ -69,8 +69,8 @@ dotraplinkage void do_invalid_TSS(struct pt_regs *, long);
 dotraplinkage void do_segment_not_present(struct pt_regs *, long);
 dotraplinkage void do_stack_segment(struct pt_regs *, long);
 #ifdef CONFIG_X86_64
-dotraplinkage void do_double_fault(struct pt_regs *, long);
-asmlinkage struct pt_regs *sync_regs(struct pt_regs *);
+	dotraplinkage void do_double_fault(struct pt_regs *, long);
+	asmlinkage struct pt_regs *sync_regs(struct pt_regs *);
 #endif
 dotraplinkage void do_general_protection(struct pt_regs *, long);
 dotraplinkage void do_page_fault(struct pt_regs *, unsigned long);
@@ -86,30 +86,36 @@ dotraplinkage void do_spurious_interrupt_bug(struct pt_regs *, long);
 dotraplinkage void do_coprocessor_error(struct pt_regs *, long);
 dotraplinkage void do_alignment_check(struct pt_regs *, long);
 #ifdef CONFIG_X86_MCE
-dotraplinkage void do_machine_check(struct pt_regs *, long);
+	dotraplinkage void do_machine_check(struct pt_regs *, long);
 #endif
 dotraplinkage void do_simd_coprocessor_error(struct pt_regs *, long);
 #ifdef CONFIG_X86_32
-dotraplinkage void do_iret_error(struct pt_regs *, long);
+	dotraplinkage void do_iret_error(struct pt_regs *, long);
 #endif
 
 static inline int get_si_code(unsigned long condition)
 {
 	if (condition & DR_STEP)
+	{
 		return TRAP_TRACE;
-	else if (condition & (DR_TRAP0|DR_TRAP1|DR_TRAP2|DR_TRAP3))
+	}
+	else if (condition & (DR_TRAP0 | DR_TRAP1 | DR_TRAP2 | DR_TRAP3))
+	{
 		return TRAP_HWBKPT;
+	}
 	else
+	{
 		return TRAP_BRKPT;
+	}
 }
 
 extern int panic_on_unrecovered_nmi;
 
 void math_emulate(struct math_emu_info *);
 #ifndef CONFIG_X86_32
-asmlinkage void smp_thermal_interrupt(void);
-asmlinkage void smp_threshold_interrupt(void);
-asmlinkage void smp_deferred_error_interrupt(void);
+	asmlinkage void smp_thermal_interrupt(void);
+	asmlinkage void smp_threshold_interrupt(void);
+	asmlinkage void smp_deferred_error_interrupt(void);
 #endif
 
 extern void ist_enter(struct pt_regs *regs);
@@ -119,12 +125,13 @@ extern void ist_end_non_atomic(void);
 
 #ifdef CONFIG_VMAP_STACK
 void __noreturn handle_stack_overflow(const char *message,
-				      struct pt_regs *regs,
-				      unsigned long fault_address);
+									  struct pt_regs *regs,
+									  unsigned long fault_address);
 #endif
 
 /* Interrupts/Exceptions */
-enum {
+enum
+{
 	X86_TRAP_DE = 0,	/*  0, Divide-by-zero */
 	X86_TRAP_DB,		/*  1, Debug */
 	X86_TRAP_NMI,		/*  2, Non-maskable Interrupt */

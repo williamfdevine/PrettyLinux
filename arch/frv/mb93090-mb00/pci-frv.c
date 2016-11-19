@@ -34,12 +34,14 @@
  */
 resource_size_t
 pcibios_align_resource(void *data, const struct resource *res,
-		       resource_size_t size, resource_size_t align)
+					   resource_size_t size, resource_size_t align)
 {
 	resource_size_t start = res->start;
 
 	if ((res->flags & IORESOURCE_IO) && (start & 0x300))
+	{
 		start = (start + 0x3ff) & ~0x3ff;
+	}
 
 	return start;
 }
@@ -87,16 +89,25 @@ static void __init pcibios_allocate_bus_resources(struct list_head *bus_list)
 	struct resource *r;
 
 	/* Depth-First Search on bus tree */
-	for (ln=bus_list->next; ln != bus_list; ln=ln->next) {
+	for (ln = bus_list->next; ln != bus_list; ln = ln->next)
+	{
 		bus = list_entry(ln, struct pci_bus, node);
-		if ((dev = bus->self)) {
-			for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++) {
+
+		if ((dev = bus->self))
+		{
+			for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++)
+			{
 				r = &dev->resource[idx];
+
 				if (!r->start)
+				{
 					continue;
+				}
+
 				pci_claim_bridge_resource(dev, idx);
 			}
 		}
+
 		pcibios_allocate_bus_resources(&bus->children);
 	}
 }
@@ -108,31 +119,53 @@ static void __init pcibios_allocate_resources(int pass)
 	u16 command;
 	struct resource *r;
 
-	for_each_pci_dev(dev) {
+	for_each_pci_dev(dev)
+	{
 		pci_read_config_word(dev, PCI_COMMAND, &command);
-		for(idx = 0; idx < 6; idx++) {
+
+		for (idx = 0; idx < 6; idx++)
+		{
 			r = &dev->resource[idx];
+
 			if (r->parent)		/* Already allocated */
+			{
 				continue;
+			}
+
 			if (!r->start)		/* Address not assigned at all */
+			{
 				continue;
+			}
+
 			if (r->flags & IORESOURCE_IO)
+			{
 				disabled = !(command & PCI_COMMAND_IO);
+			}
 			else
+			{
 				disabled = !(command & PCI_COMMAND_MEMORY);
-			if (pass == disabled) {
+			}
+
+			if (pass == disabled)
+			{
 				DBG("PCI: Resource %08lx-%08lx (f=%lx, d=%d, p=%d)\n",
-				    r->start, r->end, r->flags, disabled, pass);
-				if (pci_claim_resource(dev, idx) < 0) {
+					r->start, r->end, r->flags, disabled, pass);
+
+				if (pci_claim_resource(dev, idx) < 0)
+				{
 					/* We'll assign a new address later */
 					r->end -= r->start;
 					r->start = 0;
 				}
 			}
 		}
-		if (!pass) {
+
+		if (!pass)
+		{
 			r = &dev->resource[PCI_ROM_RESOURCE];
-			if (r->flags & IORESOURCE_ROM_ENABLE) {
+
+			if (r->flags & IORESOURCE_ROM_ENABLE)
+			{
 				/* Turn the ROM off, leave the resource region, but keep it unregistered. */
 				u32 reg;
 				DBG("PCI: Switching off ROM of %s\n", pci_name(dev));
@@ -150,22 +183,28 @@ static void __init pcibios_assign_resources(void)
 	int idx;
 	struct resource *r;
 
-	for_each_pci_dev(dev) {
+	for_each_pci_dev(dev)
+	{
 		int class = dev->class >> 8;
 
 		/* Don't touch classless devices and host bridges */
 		if (!class || class == PCI_CLASS_BRIDGE_HOST)
+		{
 			continue;
+		}
 
-		for(idx=0; idx<6; idx++) {
+		for (idx = 0; idx < 6; idx++)
+		{
 			r = &dev->resource[idx];
 
 			/*
 			 *  Don't touch IDE controllers and I/O ports of video cards!
 			 */
 			if ((class == PCI_CLASS_STORAGE_IDE && idx < 4) ||
-			    (class == PCI_CLASS_DISPLAY_VGA && (r->flags & IORESOURCE_IO)))
+				(class == PCI_CLASS_DISPLAY_VGA && (r->flags & IORESOURCE_IO)))
+			{
 				continue;
+			}
 
 			/*
 			 *  We shall assign a new address to this resource, either because
@@ -173,7 +212,9 @@ static void __init pcibios_assign_resources(void)
 			 *  address was unusable for some reason.
 			 */
 			if (!r->start && r->end)
+			{
 				pci_assign_resource(dev, idx);
+			}
 		}
 	}
 }

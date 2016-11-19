@@ -37,7 +37,8 @@
 
 static u64 eth_dmamask = 0xffffffffUL;
 
-static struct resource ks8695_wan_resources[] = {
+static struct resource ks8695_wan_resources[] =
+{
 	[0] = {
 		.start	= KS8695_WAN_PA,
 		.end	= KS8695_WAN_PA + 0x00ff,
@@ -69,19 +70,21 @@ static struct resource ks8695_wan_resources[] = {
 	},
 };
 
-static struct platform_device ks8695_wan_device = {
+static struct platform_device ks8695_wan_device =
+{
 	.name		= "ks8695_ether",
 	.id		= 0,
 	.dev		= {
-				.dma_mask		= &eth_dmamask,
-				.coherent_dma_mask	= 0xffffffff,
+		.dma_mask		= &eth_dmamask,
+		.coherent_dma_mask	= 0xffffffff,
 	},
 	.resource	= ks8695_wan_resources,
 	.num_resources	= ARRAY_SIZE(ks8695_wan_resources),
 };
 
 
-static struct resource ks8695_lan_resources[] = {
+static struct resource ks8695_lan_resources[] =
+{
 	[0] = {
 		.start	= KS8695_LAN_PA,
 		.end	= KS8695_LAN_PA + 0x00ff,
@@ -107,19 +110,21 @@ static struct resource ks8695_lan_resources[] = {
 	},
 };
 
-static struct platform_device ks8695_lan_device = {
+static struct platform_device ks8695_lan_device =
+{
 	.name		= "ks8695_ether",
 	.id		= 1,
 	.dev		= {
-				.dma_mask		= &eth_dmamask,
-				.coherent_dma_mask	= 0xffffffff,
+		.dma_mask		= &eth_dmamask,
+		.coherent_dma_mask	= 0xffffffff,
 	},
 	.resource	= ks8695_lan_resources,
 	.num_resources	= ARRAY_SIZE(ks8695_lan_resources),
 };
 
 
-static struct resource ks8695_hpna_resources[] = {
+static struct resource ks8695_hpna_resources[] =
+{
 	[0] = {
 		.start	= KS8695_HPNA_PA,
 		.end	= KS8695_HPNA_PA + 0x00ff,
@@ -139,12 +144,13 @@ static struct resource ks8695_hpna_resources[] = {
 	},
 };
 
-static struct platform_device ks8695_hpna_device = {
+static struct platform_device ks8695_hpna_device =
+{
 	.name		= "ks8695_ether",
 	.id		= 2,
 	.dev		= {
-				.dma_mask		= &eth_dmamask,
-				.coherent_dma_mask	= 0xffffffff,
+		.dma_mask		= &eth_dmamask,
+		.coherent_dma_mask	= 0xffffffff,
 	},
 	.resource	= ks8695_hpna_resources,
 	.num_resources	= ARRAY_SIZE(ks8695_hpna_resources),
@@ -170,7 +176,8 @@ void __init ks8696_add_device_hpna(void)
  *  Watchdog
  * -------------------------------------------------------------------- */
 
-static struct platform_device ks8695_wdt_device = {
+static struct platform_device ks8695_wdt_device =
+{
 	.name		= "ks8695_wdt",
 	.id		= -1,
 	.num_resources	= 0,

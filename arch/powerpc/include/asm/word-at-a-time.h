@@ -10,7 +10,8 @@
 
 #ifdef __BIG_ENDIAN__
 
-struct word_at_a_time {
+struct word_at_a_time
+{
 	const unsigned long high_bits, low_bits;
 };
 
@@ -50,7 +51,8 @@ static inline unsigned long zero_bytemask(unsigned long mask)
 #ifdef CONFIG_64BIT
 
 /* unused */
-struct word_at_a_time {
+struct word_at_a_time
+{
 };
 
 #define WORD_AT_A_TIME_CONSTANTS { }
@@ -79,8 +81,8 @@ static inline unsigned long create_zero_mask(unsigned long bits)
 	long trailing_zero_bit_mask;
 
 	asm("addi	%1,%2,-1\n\t"
-	    "andc	%1,%1,%2\n\t"
-	    "popcntd	%0,%1"
+		"andc	%1,%1,%2\n\t"
+		"popcntd	%0,%1"
 		: "=r" (leading_zero_bits), "=&r" (trailing_zero_bit_mask)
 		: "b" (bits));
 
@@ -100,7 +102,8 @@ static inline unsigned long zero_bytemask(unsigned long mask)
 
 #else	/* 32-bit case */
 
-struct word_at_a_time {
+struct word_at_a_time
+{
 	const unsigned long one_bits, high_bits;
 };
 
@@ -118,7 +121,7 @@ struct word_at_a_time {
 static inline long count_masked_bytes(long mask)
 {
 	/* (000000 0000ff 00ffff ffffff) -> ( 1 1 2 3 ) */
-	long a = (0x0ff0001+mask) >> 23;
+	long a = (0x0ff0001 + mask) >> 23;
 	/* Fix the 1 for 00 case */
 	return a & mask;
 }
@@ -160,7 +163,7 @@ static inline unsigned long prep_zero_mask(unsigned long a, unsigned long bits, 
  * the test code to use a different section name.
  */
 #ifndef FIXUP_SECTION
-#define FIXUP_SECTION ".fixup"
+	#define FIXUP_SECTION ".fixup"
 #endif
 
 static inline unsigned long load_unaligned_zeropad(const void *addr)
@@ -168,37 +171,37 @@ static inline unsigned long load_unaligned_zeropad(const void *addr)
 	unsigned long ret, offset, tmp;
 
 	asm(
-	"1:	" PPC_LL "%[ret], 0(%[addr])\n"
-	"2:\n"
-	".section " FIXUP_SECTION ",\"ax\"\n"
-	"3:	"
+		"1:	" PPC_LL "%[ret], 0(%[addr])\n"
+		"2:\n"
+		".section " FIXUP_SECTION ",\"ax\"\n"
+		"3:	"
 #ifdef __powerpc64__
-	"clrrdi		%[tmp], %[addr], 3\n\t"
-	"clrlsldi	%[offset], %[addr], 61, 3\n\t"
-	"ld		%[ret], 0(%[tmp])\n\t"
+		"clrrdi		%[tmp], %[addr], 3\n\t"
+		"clrlsldi	%[offset], %[addr], 61, 3\n\t"
+		"ld		%[ret], 0(%[tmp])\n\t"
 #ifdef __BIG_ENDIAN__
-	"sld		%[ret], %[ret], %[offset]\n\t"
+		"sld		%[ret], %[ret], %[offset]\n\t"
 #else
-	"srd		%[ret], %[ret], %[offset]\n\t"
+		"srd		%[ret], %[ret], %[offset]\n\t"
 #endif
 #else
-	"clrrwi		%[tmp], %[addr], 2\n\t"
-	"clrlslwi	%[offset], %[addr], 30, 3\n\t"
-	"lwz		%[ret], 0(%[tmp])\n\t"
+		"clrrwi		%[tmp], %[addr], 2\n\t"
+		"clrlslwi	%[offset], %[addr], 30, 3\n\t"
+		"lwz		%[ret], 0(%[tmp])\n\t"
 #ifdef __BIG_ENDIAN__
-	"slw		%[ret], %[ret], %[offset]\n\t"
+		"slw		%[ret], %[ret], %[offset]\n\t"
 #else
-	"srw		%[ret], %[ret], %[offset]\n\t"
+		"srw		%[ret], %[ret], %[offset]\n\t"
 #endif
 #endif
-	"b	2b\n"
-	".previous\n"
-	".section __ex_table,\"a\"\n\t"
+		"b	2b\n"
+		".previous\n"
+		".section __ex_table,\"a\"\n\t"
 		PPC_LONG_ALIGN "\n\t"
 		PPC_LONG "1b,3b\n"
-	".previous"
-	: [tmp] "=&b" (tmp), [offset] "=&r" (offset), [ret] "=&r" (ret)
-	: [addr] "b" (addr), "m" (*(unsigned long *)addr));
+		".previous"
+		: [tmp] "=&b" (tmp), [offset] "=&r" (offset), [ret] "=&r" (ret)
+		: [addr] "b" (addr), "m" (*(unsigned long *)addr));
 
 	return ret;
 }

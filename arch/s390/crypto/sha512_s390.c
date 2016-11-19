@@ -59,7 +59,10 @@ static int sha512_import(struct shash_desc *desc, const void *in)
 	const struct sha512_state *ictx = in;
 
 	if (unlikely(ictx->count[1]))
+	{
 		return -ERANGE;
+	}
+
 	sctx->count = ictx->count[0];
 
 	memcpy(sctx->state, ictx->state, sizeof(ictx->state));
@@ -68,7 +71,8 @@ static int sha512_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg sha512_alg = {
+static struct shash_alg sha512_alg =
+{
 	.digestsize	=	SHA512_DIGEST_SIZE,
 	.init		=	sha512_init,
 	.update		=	s390_sha_update,
@@ -79,7 +83,7 @@ static struct shash_alg sha512_alg = {
 	.statesize	=	sizeof(struct sha512_state),
 	.base		=	{
 		.cra_name	=	"sha512",
-		.cra_driver_name=	"sha512-s390",
+		.cra_driver_name =	"sha512-s390",
 		.cra_priority	=	300,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA512_BLOCK_SIZE,
@@ -107,7 +111,8 @@ static int sha384_init(struct shash_desc *desc)
 	return 0;
 }
 
-static struct shash_alg sha384_alg = {
+static struct shash_alg sha384_alg =
+{
 	.digestsize	=	SHA384_DIGEST_SIZE,
 	.init		=	sha384_init,
 	.update		=	s390_sha_update,
@@ -118,7 +123,7 @@ static struct shash_alg sha384_alg = {
 	.statesize	=	sizeof(struct sha512_state),
 	.base		=	{
 		.cra_name	=	"sha384",
-		.cra_driver_name=	"sha384-s390",
+		.cra_driver_name =	"sha384-s390",
 		.cra_priority	=	300,
 		.cra_flags	=	CRYPTO_ALG_TYPE_SHASH,
 		.cra_blocksize	=	SHA384_BLOCK_SIZE,
@@ -134,11 +139,20 @@ static int __init init(void)
 	int ret;
 
 	if (!cpacf_query_func(CPACF_KIMD, CPACF_KIMD_SHA_512))
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if ((ret = crypto_register_shash(&sha512_alg)) < 0)
+	{
 		goto out;
+	}
+
 	if ((ret = crypto_register_shash(&sha384_alg)) < 0)
+	{
 		crypto_unregister_shash(&sha512_alg);
+	}
+
 out:
 	return ret;
 }

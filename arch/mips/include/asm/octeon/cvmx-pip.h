@@ -43,7 +43,8 @@
 /*
  * Encodes the different error and exception codes
  */
-typedef enum {
+typedef enum
+{
 	CVMX_PIP_L4_NO_ERR = 0ull,
 	/*
 	 * 1 = TCP (UDP) packet not long enough to cover TCP (UDP)
@@ -73,7 +74,8 @@ typedef enum {
 	CVMX_PIP_TCP_FLG13_ERR = 13ull
 } cvmx_pip_l4_err_t;
 
-typedef enum {
+typedef enum
+{
 
 	CVMX_PIP_IP_NO_ERR = 0ull,
 	/* 1 = not IPv4 or IPv6 */
@@ -97,7 +99,8 @@ typedef enum {
  *	      they would appear as JAM bits which would appear as bad FCS
  *	      or carrier extend error which is CVMX_PIP_EXTEND_ERR
  */
-typedef enum {
+typedef enum
+{
 	/* No error */
 	CVMX_PIP_RX_NO_ERR = 0ull,
 	/* RGM+SPI 1 = partially received packet (buffering/bandwidth
@@ -159,19 +162,20 @@ typedef enum {
 	 * cover L2 hdr).
 	 */
 	CVMX_PIP_PIP_L2_MAL_HDR = 18L
-	/*
-	 * NOTES: xx = late collision (data received before collision)
-	 *	 late collisions cannot be detected by the receiver
-	 *	 they would appear as JAM bits which would appear as
-	 *	 bad FCS or carrier extend error which is
-	 *	 CVMX_PIP_EXTEND_ERR
-	 */
+							  /*
+							   * NOTES: xx = late collision (data received before collision)
+							   *	 late collisions cannot be detected by the receiver
+							   *	 they would appear as JAM bits which would appear as
+							   *	 bad FCS or carrier extend error which is
+							   *	 CVMX_PIP_EXTEND_ERR
+							   */
 } cvmx_pip_rcv_err_t;
 
 /**
  * This defines the err_code field errors in the work Q entry
  */
-typedef union {
+typedef union
+{
 	cvmx_pip_l4_err_t l4_err;
 	cvmx_pip_ip_exc_t ip_exc;
 	cvmx_pip_rcv_err_t rcv_err;
@@ -180,7 +184,8 @@ typedef union {
 /**
  * Status statistics for a port
  */
-typedef struct {
+typedef struct
+{
 	/* Inbound octets marked to be dropped by the IPD */
 	uint32_t dropped_octets;
 	/* Inbound packets marked to be dropped by the IPD */
@@ -242,40 +247,42 @@ typedef struct {
  * Definition of the PIP custom header that can be prepended
  * to a packet by external hardware.
  */
-typedef union {
+typedef union
+{
 	uint64_t u64;
-	struct {
+	struct
+	{
 		/*
 		 * Documented as R - Set if the Packet is RAWFULL. If
 		 * set, this header must be the full 8 bytes.
 		 */
-		uint64_t rawfull:1;
+		uint64_t rawfull: 1;
 		/* Must be zero */
-		uint64_t reserved0:5;
+		uint64_t reserved0: 5;
 		/* PIP parse mode for this packet */
-		uint64_t parse_mode:2;
+		uint64_t parse_mode: 2;
 		/* Must be zero */
-		uint64_t reserved1:1;
+		uint64_t reserved1: 1;
 		/*
 		 * Skip amount, including this header, to the
 		 * beginning of the packet
 		 */
-		uint64_t skip_len:7;
+		uint64_t skip_len: 7;
 		/* Must be zero */
-		uint64_t reserved2:6;
+		uint64_t reserved2: 6;
 		/* POW input queue for this packet */
-		uint64_t qos:3;
+		uint64_t qos: 3;
 		/* POW input group for this packet */
-		uint64_t grp:4;
+		uint64_t grp: 4;
 		/*
 		 * Flag to store this packet in the work queue entry,
 		 * if possible
 		 */
-		uint64_t rs:1;
+		uint64_t rs: 1;
 		/* POW input tag type */
-		uint64_t tag_type:2;
+		uint64_t tag_type: 2;
 		/* POW input tag */
-		uint64_t tag:32;
+		uint64_t tag: 32;
 	} s;
 } cvmx_pip_pkt_inst_hdr_t;
 
@@ -290,8 +297,8 @@ typedef union {
  *		   Port POW tagging configuration
  */
 static inline void cvmx_pip_config_port(uint64_t port_num,
-					union cvmx_pip_prt_cfgx port_cfg,
-					union cvmx_pip_prt_tagx port_tag_cfg)
+										union cvmx_pip_prt_cfgx port_cfg,
+										union cvmx_pip_prt_tagx port_tag_cfg)
 {
 	cvmx_write_csr(CVMX_PIP_PRT_CFGX(port_num), port_cfg.u64);
 	cvmx_write_csr(CVMX_PIP_PRT_TAGX(port_num), port_tag_cfg.u64);
@@ -314,8 +321,8 @@ static inline void cvmx_pip_config_port(uint64_t port_num,
  * @qos:	QoS queue for packets matching this watcher
  */
 static inline void cvmx_pip_config_watcher(uint64_t watcher,
-					   cvmx_pip_qos_watch_types match_type,
-					   uint64_t match_value, uint64_t qos)
+		cvmx_pip_qos_watch_types match_type,
+		uint64_t match_value, uint64_t qos)
 {
 	cvmx_pip_port_watcher_cfg_t watcher_config;
 
@@ -335,7 +342,7 @@ static inline void cvmx_pip_config_watcher(uint64_t watcher,
  * @qos:    QoS queue for packets matching this watcher
  */
 static inline void cvmx_pip_config_vlan_qos(uint64_t vlan_priority,
-					    uint64_t qos)
+		uint64_t qos)
 {
 	union cvmx_pip_qos_vlanx pip_qos_vlanx;
 	pip_qos_vlanx.u64 = 0;
@@ -365,7 +372,7 @@ static inline void cvmx_pip_config_diffserv_qos(uint64_t diffserv, uint64_t qos)
  * @status:   Where to put the results.
  */
 static inline void cvmx_pip_get_port_status(uint64_t port_num, uint64_t clear,
-					    cvmx_pip_port_status_t *status)
+		cvmx_pip_port_status_t *status)
 {
 	union cvmx_pip_stat_ctl pip_stat_ctl;
 	union cvmx_pip_stat0_prtx stat0;
@@ -397,11 +404,11 @@ static inline void cvmx_pip_get_port_status(uint64_t port_num, uint64_t clear,
 	stat8.u64 = cvmx_read_csr(CVMX_PIP_STAT8_PRTX(port_num));
 	stat9.u64 = cvmx_read_csr(CVMX_PIP_STAT9_PRTX(port_num));
 	pip_stat_inb_pktsx.u64 =
-	    cvmx_read_csr(CVMX_PIP_STAT_INB_PKTSX(port_num));
+		cvmx_read_csr(CVMX_PIP_STAT_INB_PKTSX(port_num));
 	pip_stat_inb_octsx.u64 =
-	    cvmx_read_csr(CVMX_PIP_STAT_INB_OCTSX(port_num));
+		cvmx_read_csr(CVMX_PIP_STAT_INB_OCTSX(port_num));
 	pip_stat_inb_errsx.u64 =
-	    cvmx_read_csr(CVMX_PIP_STAT_INB_ERRSX(port_num));
+		cvmx_read_csr(CVMX_PIP_STAT_INB_ERRSX(port_num));
 
 	status->dropped_octets = stat0.s.drp_octs;
 	status->dropped_packets = stat0.s.drp_pkts;
@@ -426,23 +433,29 @@ static inline void cvmx_pip_get_port_status(uint64_t port_num, uint64_t clear,
 	status->inb_octets = pip_stat_inb_octsx.s.octs;
 	status->inb_errors = pip_stat_inb_errsx.s.errs;
 
-	if (cvmx_octeon_is_pass1()) {
+	if (cvmx_octeon_is_pass1())
+	{
 		/*
 		 * Kludge to fix Octeon Pass 1 errata - Drop counts
 		 * don't work.
 		 */
 		if (status->inb_packets > status->packets)
 			status->dropped_packets =
-			    status->inb_packets - status->packets;
+				status->inb_packets - status->packets;
 		else
+		{
 			status->dropped_packets = 0;
+		}
+
 		if (status->inb_octets - status->inb_packets * 4 >
-		    status->octets)
+			status->octets)
 			status->dropped_octets =
-			    status->inb_octets - status->inb_packets * 4 -
-			    status->octets;
+				status->inb_octets - status->inb_packets * 4 -
+				status->octets;
 		else
+		{
 			status->dropped_octets = 0;
+		}
 	}
 }
 
@@ -457,10 +470,11 @@ static inline void cvmx_pip_get_port_status(uint64_t port_num, uint64_t clear,
  *		   CRC initialization vector
  */
 static inline void cvmx_pip_config_crc(uint64_t interface,
-				       uint64_t invert_result, uint64_t reflect,
-				       uint32_t initialization_vector)
+									   uint64_t invert_result, uint64_t reflect,
+									   uint32_t initialization_vector)
 {
-	if (OCTEON_IS_MODEL(OCTEON_CN38XX) || OCTEON_IS_MODEL(OCTEON_CN58XX)) {
+	if (OCTEON_IS_MODEL(OCTEON_CN38XX) || OCTEON_IS_MODEL(OCTEON_CN58XX))
+	{
 		union cvmx_pip_crc_ctlx config;
 		union cvmx_pip_crc_ivx pip_crc_ivx;
 
@@ -489,8 +503,11 @@ static inline void cvmx_pip_tag_mask_clear(uint64_t mask_index)
 	union cvmx_pip_tag_incx pip_tag_incx;
 	pip_tag_incx.u64 = 0;
 	pip_tag_incx.s.en = 0;
+
 	for (index = mask_index * 16; index < (mask_index + 1) * 16; index++)
+	{
 		cvmx_write_csr(CVMX_PIP_TAG_INCX(index), pip_tag_incx.u64);
+	}
 }
 
 /**
@@ -509,9 +526,10 @@ static inline void cvmx_pip_tag_mask_clear(uint64_t mask_index)
  *	    the field.
  */
 static inline void cvmx_pip_tag_mask_set(uint64_t mask_index, uint64_t offset,
-					 uint64_t len)
+		uint64_t len)
 {
-	while (len--) {
+	while (len--)
+	{
 		union cvmx_pip_tag_incx pip_tag_incx;
 		uint64_t index = mask_index * 16 + offset / 8;
 		pip_tag_incx.u64 = cvmx_read_csr(CVMX_PIP_TAG_INCX(index));

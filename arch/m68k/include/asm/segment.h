@@ -5,19 +5,20 @@
 /* Address spaces (FC0-FC2) */
 #define USER_DATA     (1)
 #ifndef __USER_DS
-#define __USER_DS     (USER_DATA)
+	#define __USER_DS     (USER_DATA)
 #endif
 #define USER_PROGRAM  (2)
 #define SUPER_DATA    (5)
 #ifndef __KERNEL_DS
-#define __KERNEL_DS   (SUPER_DATA)
+	#define __KERNEL_DS   (SUPER_DATA)
 #endif
 #define SUPER_PROGRAM (6)
 #define CPU_SPACE     (7)
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
+typedef struct
+{
 	unsigned long seg;
 } mm_segment_t;
 
@@ -40,14 +41,14 @@ static inline mm_segment_t get_fs(void)
 static inline void set_fs(mm_segment_t val)
 {
 	__asm__ __volatile__ ("movec %0,%/sfc\n\t"
-			      "movec %0,%/dfc\n\t"
-			      : /* no outputs */ : "r" (val.seg) : "memory");
+						  "movec %0,%/dfc\n\t"
+						  : /* no outputs */ : "r" (val.seg) : "memory");
 }
 
 static inline mm_segment_t get_ds(void)
 {
-    /* return the supervisor data space code */
-    return KERNEL_DS;
+	/* return the supervisor data space code */
+	return KERNEL_DS;
 }
 
 #else

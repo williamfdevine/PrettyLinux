@@ -1,4 +1,4 @@
-/* 
+/*
  * User address space access functions.
  *
  * Copyright 1997 Andi Kleen <ak@muc.de>
@@ -36,11 +36,11 @@ unsigned long __clear_user(void __user *addr, unsigned long size)
 		"3:	lea 0(%[size1],%[size8],8),%[size8]\n"
 		"	jmp 2b\n"
 		".previous\n"
-		_ASM_EXTABLE(0b,3b)
-		_ASM_EXTABLE(1b,2b)
+		_ASM_EXTABLE(0b, 3b)
+		_ASM_EXTABLE(1b, 2b)
 		: [size8] "=&c"(size), [dst] "=&D" (__d0)
 		: [size1] "r"(size & 7), "[size8]" (size / 8), "[dst]"(addr),
-		  [zero] "r" (0UL), [eight] "r" (8UL));
+		[zero] "r" (0UL), [eight] "r" (8UL));
 	clac();
 	return size;
 }
@@ -49,17 +49,22 @@ EXPORT_SYMBOL(__clear_user);
 unsigned long clear_user(void __user *to, unsigned long n)
 {
 	if (access_ok(VERIFY_WRITE, to, n))
+	{
 		return __clear_user(to, n);
+	}
+
 	return n;
 }
 EXPORT_SYMBOL(clear_user);
 
 unsigned long copy_in_user(void __user *to, const void __user *from, unsigned len)
 {
-	if (access_ok(VERIFY_WRITE, to, len) && access_ok(VERIFY_READ, from, len)) { 
+	if (access_ok(VERIFY_WRITE, to, len) && access_ok(VERIFY_READ, from, len))
+	{
 		return copy_user_generic((__force void *)to, (__force void *)from, len);
-	} 
-	return len;		
+	}
+
+	return len;
 }
 EXPORT_SYMBOL(copy_in_user);
 
@@ -71,18 +76,28 @@ EXPORT_SYMBOL(copy_in_user);
 __visible unsigned long
 copy_user_handle_tail(char *to, char *from, unsigned len)
 {
-	for (; len; --len, to++) {
+	for (; len; --len, to++)
+	{
 		char c;
 
 		if (__get_user_nocheck(c, from++, sizeof(char)))
+		{
 			break;
+		}
+
 		if (__put_user_nocheck(c, to, sizeof(char)))
+		{
 			break;
+		}
 	}
+
 	clac();
 
 	/* If the destination is a kernel buffer, we always clear the end */
 	if (!__addr_ok(to))
+	{
 		memset(to, 0, len);
+	}
+
 	return len;
 }

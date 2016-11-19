@@ -24,9 +24,13 @@
 static int is_io_mapping_possible(resource_size_t base, unsigned long size)
 {
 #if !defined(CONFIG_X86_PAE) && defined(CONFIG_PHYS_ADDR_T_64BIT)
+
 	/* There is no way to map greater than 1 << 32 address without PAE */
 	if (base + size > 0x100000000ULL)
+	{
 		return 0;
+	}
+
 #endif
 	return 1;
 }
@@ -37,11 +41,16 @@ int iomap_create_wc(resource_size_t base, unsigned long size, pgprot_t *prot)
 	int ret;
 
 	if (!is_io_mapping_possible(base, size))
+	{
 		return -EINVAL;
+	}
 
 	ret = io_reserve_memtype(base, base + size, &pcm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*prot = __pgprot(__PAGE_KERNEL | cachemode2protval(pcm));
 	return 0;
@@ -86,7 +95,7 @@ iomap_atomic_prot_pfn(unsigned long pfn, pgprot_t prot)
 	 */
 	if (!pat_enabled() && pgprot2cachemode(prot) != _PAGE_CACHE_MODE_WB)
 		prot = __pgprot(__PAGE_KERNEL |
-				cachemode2protval(_PAGE_CACHE_MODE_UC_MINUS));
+						cachemode2protval(_PAGE_CACHE_MODE_UC_MINUS));
 
 	return (void __force __iomem *) kmap_atomic_prot_pfn(pfn, prot);
 }
@@ -98,7 +107,8 @@ iounmap_atomic(void __iomem *kvaddr)
 	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
 
 	if (vaddr >= __fix_to_virt(FIX_KMAP_END) &&
-	    vaddr <= __fix_to_virt(FIX_KMAP_BEGIN)) {
+		vaddr <= __fix_to_virt(FIX_KMAP_BEGIN))
+	{
 		int idx, type;
 
 		type = kmap_atomic_idx();
@@ -113,7 +123,7 @@ iounmap_atomic(void __iomem *kvaddr)
 		 * is a bad idea also, in case the page changes cacheability
 		 * attributes or becomes a protected page in a hypervisor.
 		 */
-		kpte_clear_flush(kmap_pte-idx, vaddr);
+		kpte_clear_flush(kmap_pte - idx, vaddr);
 		kmap_atomic_idx_pop();
 	}
 

@@ -63,21 +63,21 @@ static inline bool mips_cpc_present(void)
 
 /* Macros to ease the creation of register access functions */
 #define BUILD_CPC_R_(name, off)					\
-static inline u32 *addr_cpc_##name(void)			\
-{								\
-	return (u32 *)(mips_cpc_base + (off));			\
-}								\
-								\
-static inline u32 read_cpc_##name(void)				\
-{								\
-	return __raw_readl(mips_cpc_base + (off));		\
-}
+	static inline u32 *addr_cpc_##name(void)			\
+	{								\
+		return (u32 *)(mips_cpc_base + (off));			\
+	}								\
+	\
+	static inline u32 read_cpc_##name(void)				\
+	{								\
+		return __raw_readl(mips_cpc_base + (off));		\
+	}
 
 #define BUILD_CPC__W(name, off) \
-static inline void write_cpc_##name(u32 value)			\
-{								\
-	__raw_writel(value, mips_cpc_base + (off));		\
-}
+	static inline void write_cpc_##name(u32 value)			\
+	{								\
+		__raw_writel(value, mips_cpc_base + (off));		\
+	}
 
 #define BUILD_CPC_RW(name, off)					\
 	BUILD_CPC_R_(name, off)					\

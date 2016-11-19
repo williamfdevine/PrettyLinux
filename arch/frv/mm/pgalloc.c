@@ -23,8 +23,12 @@ pgd_t swapper_pg_dir[PTRS_PER_PGD] __attribute__((aligned(PAGE_SIZE)));
 pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
 {
 	pte_t *pte = (pte_t *)__get_free_page(GFP_KERNEL);
+
 	if (pte)
+	{
 		clear_page(pte);
+	}
+
 	return pte;
 }
 
@@ -33,18 +37,24 @@ pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address)
 	struct page *page;
 
 #ifdef CONFIG_HIGHPTE
-	page = alloc_pages(GFP_KERNEL|__GFP_HIGHMEM, 0);
+	page = alloc_pages(GFP_KERNEL | __GFP_HIGHMEM, 0);
 #else
 	page = alloc_pages(GFP_KERNEL, 0);
 #endif
+
 	if (!page)
+	{
 		return NULL;
+	}
 
 	clear_highpage(page);
-	if (!pgtable_page_ctor(page)) {
+
+	if (!pgtable_page_ctor(page))
+	{
 		__free_page(page);
 		return NULL;
 	}
+
 	flush_dcache_page(page);
 	return page;
 }
@@ -54,13 +64,16 @@ void __set_pmd(pmd_t *pmdptr, unsigned long pmd)
 	unsigned long *__ste_p = pmdptr->ste;
 	int loop;
 
-	if (!pmd) {
+	if (!pmd)
+	{
 		memset(__ste_p, 0, PME_SIZE);
 	}
-	else {
+	else
+	{
 		BUG_ON(pmd & (0x3f00 | xAMPRx_SS | 0xe));
 
-		for (loop = PME_SIZE; loop > 0; loop -= 4) {
+		for (loop = PME_SIZE; loop > 0; loop -= 4)
+		{
 			*__ste_p++ = pmd;
 			pmd += __frv_PT_SIZE;
 		}
@@ -90,8 +103,12 @@ static inline void pgd_list_add(pgd_t *pgd)
 {
 	struct page *page = virt_to_page(pgd);
 	page->index = (unsigned long) pgd_list;
+
 	if (pgd_list)
+	{
 		set_page_private(pgd_list, (unsigned long) &page->index);
+	}
+
 	pgd_list = page;
 	set_page_private(page, (unsigned long)&pgd_list);
 }
@@ -102,8 +119,11 @@ static inline void pgd_list_del(pgd_t *pgd)
 	next = (struct page *) page->index;
 	pprev = (struct page **) page_private(page);
 	*pprev = next;
+
 	if (next)
+	{
 		set_page_private(next, (unsigned long) pprev);
+	}
 }
 
 void pgd_ctor(void *pgd)
@@ -111,14 +131,18 @@ void pgd_ctor(void *pgd)
 	unsigned long flags;
 
 	if (PTRS_PER_PMD == 1)
+	{
 		spin_lock_irqsave(&pgd_lock, flags);
+	}
 
 	memcpy((pgd_t *) pgd + USER_PGDS_IN_LAST_PML4,
-	       swapper_pg_dir + USER_PGDS_IN_LAST_PML4,
-	       (PTRS_PER_PGD - USER_PGDS_IN_LAST_PML4) * sizeof(pgd_t));
+		   swapper_pg_dir + USER_PGDS_IN_LAST_PML4,
+		   (PTRS_PER_PGD - USER_PGDS_IN_LAST_PML4) * sizeof(pgd_t));
 
 	if (PTRS_PER_PMD > 1)
+	{
 		return;
+	}
 
 	pgd_list_add(pgd);
 	spin_unlock_irqrestore(&pgd_lock, flags);
@@ -143,7 +167,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 {
 	/* in the non-PAE case, clear_page_tables() clears user pgd entries */
- 	quicklist_free(0, pgd_dtor, pgd);
+	quicklist_free(0, pgd_dtor, pgd);
 }
 
 void __init pgtable_cache_init(void)

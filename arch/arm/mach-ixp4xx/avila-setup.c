@@ -30,16 +30,19 @@
 #define AVILA_SDA_PIN	7
 #define AVILA_SCL_PIN	6
 
-static struct flash_platform_data avila_flash_data = {
+static struct flash_platform_data avila_flash_data =
+{
 	.map_name	= "cfi_probe",
 	.width		= 2,
 };
 
-static struct resource avila_flash_resource = {
+static struct resource avila_flash_resource =
+{
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device avila_flash = {
+static struct platform_device avila_flash =
+{
 	.name		= "IXP4XX-Flash",
 	.id		= 0,
 	.dev		= {
@@ -49,12 +52,14 @@ static struct platform_device avila_flash = {
 	.resource	= &avila_flash_resource,
 };
 
-static struct i2c_gpio_platform_data avila_i2c_gpio_data = {
+static struct i2c_gpio_platform_data avila_i2c_gpio_data =
+{
 	.sda_pin	= AVILA_SDA_PIN,
 	.scl_pin	= AVILA_SCL_PIN,
 };
 
-static struct platform_device avila_i2c_gpio = {
+static struct platform_device avila_i2c_gpio =
+{
 	.name		= "i2c-gpio",
 	.id		= 0,
 	.dev	 = {
@@ -62,7 +67,8 @@ static struct platform_device avila_i2c_gpio = {
 	},
 };
 
-static struct resource avila_uart_resources[] = {
+static struct resource avila_uart_resources[] =
+{
 	{
 		.start		= IXP4XX_UART1_BASE_PHYS,
 		.end		= IXP4XX_UART1_BASE_PHYS + 0x0fff,
@@ -75,7 +81,8 @@ static struct resource avila_uart_resources[] = {
 	}
 };
 
-static struct plat_serial8250_port avila_uart_data[] = {
+static struct plat_serial8250_port avila_uart_data[] =
+{
 	{
 		.mapbase	= IXP4XX_UART1_BASE_PHYS,
 		.membase	= (char *)IXP4XX_UART1_BASE_VIRT + REG_OFFSET,
@@ -97,7 +104,8 @@ static struct plat_serial8250_port avila_uart_data[] = {
 	{ },
 };
 
-static struct platform_device avila_uart = {
+static struct platform_device avila_uart =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_PLATFORM,
 	.dev.platform_data	= avila_uart_data,
@@ -105,7 +113,8 @@ static struct platform_device avila_uart = {
 	.resource		= avila_uart_resources
 };
 
-static struct resource avila_pata_resources[] = {
+static struct resource avila_pata_resources[] =
+{
 	{
 		.flags	= IORESOURCE_MEM
 	},
@@ -120,12 +129,14 @@ static struct resource avila_pata_resources[] = {
 	},
 };
 
-static struct ixp4xx_pata_data avila_pata_data = {
+static struct ixp4xx_pata_data avila_pata_data =
+{
 	.cs0_bits	= 0xbfff0043,
 	.cs1_bits	= 0xbfff0043,
 };
 
-static struct platform_device avila_pata = {
+static struct platform_device avila_pata =
+{
 	.name			= "pata_ixp4xx_cf",
 	.id			= 0,
 	.dev.platform_data      = &avila_pata_data,
@@ -133,7 +144,8 @@ static struct platform_device avila_pata = {
 	.resource		= avila_pata_resources,
 };
 
-static struct platform_device *avila_devices[] __initdata = {
+static struct platform_device *avila_devices[] __initdata =
+{
 	&avila_i2c_gpio,
 	&avila_flash,
 	&avila_uart
@@ -163,26 +175,26 @@ static void __init avila_init(void)
 }
 
 MACHINE_START(AVILA, "Gateworks Avila Network Platform")
-	/* Maintainer: Deepak Saxena <dsaxena@plexity.net> */
-	.map_io		= ixp4xx_map_io,
+/* Maintainer: Deepak Saxena <dsaxena@plexity.net> */
+.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
-	.init_irq	= ixp4xx_init_irq,
-	.init_time	= ixp4xx_timer_init,
-	.atag_offset	= 0x100,
-	.init_machine	= avila_init,
+	 .init_irq	= ixp4xx_init_irq,
+		.init_time	= ixp4xx_timer_init,
+		  .atag_offset	= 0x100,
+			  .init_machine	= avila_init,
 #if defined(CONFIG_PCI)
 	.dma_zone_size	= SZ_64M,
 #endif
-	.restart	= ixp4xx_restart,
-MACHINE_END
+				 .restart	= ixp4xx_restart,
+					 MACHINE_END
 
- /*
-  * Loft is functionally equivalent to Avila except that it has a
-  * different number for the maximum PCI devices.  The MACHINE
-  * structure below is identical to Avila except for the comment.
-  */
+					 /*
+					  * Loft is functionally equivalent to Avila except that it has a
+					  * different number for the maximum PCI devices.  The MACHINE
+					  * structure below is identical to Avila except for the comment.
+					  */
 #ifdef CONFIG_MACH_LOFT
-MACHINE_START(LOFT, "Giant Shoulder Inc Loft board")
+	MACHINE_START(LOFT, "Giant Shoulder Inc Loft board")
 	/* Maintainer: Tom Billman <kernel@giantshoulderinc.com> */
 	.map_io		= ixp4xx_map_io,
 	.init_early	= ixp4xx_init_early,
@@ -190,10 +202,10 @@ MACHINE_START(LOFT, "Giant Shoulder Inc Loft board")
 	.init_time	= ixp4xx_timer_init,
 	.atag_offset	= 0x100,
 	.init_machine	= avila_init,
-#if defined(CONFIG_PCI)
-	.dma_zone_size	= SZ_64M,
-#endif
+	#if defined(CONFIG_PCI)
+		.dma_zone_size	= SZ_64M,
+	#endif
 	.restart	= ixp4xx_restart,
-MACHINE_END
+	MACHINE_END
 #endif
 

@@ -68,47 +68,77 @@ fp_fadd(struct fp_ext *dest, struct fp_ext *src)
 
 	fp_dyadic_check(dest, src);
 
-	if (IS_INF(dest)) {
+	if (IS_INF(dest))
+	{
 		/* infinity - infinity == NaN */
 		if (IS_INF(src) && (src->sign != dest->sign))
+		{
 			fp_set_nan(dest);
+		}
+
 		return dest;
 	}
-	if (IS_INF(src)) {
+
+	if (IS_INF(src))
+	{
 		fp_copy_ext(dest, src);
 		return dest;
 	}
 
-	if (IS_ZERO(dest)) {
-		if (IS_ZERO(src)) {
-			if (src->sign != dest->sign) {
+	if (IS_ZERO(dest))
+	{
+		if (IS_ZERO(src))
+		{
+			if (src->sign != dest->sign)
+			{
 				if (FPDATA->rnd == FPCR_ROUND_RM)
+				{
 					dest->sign = 1;
+				}
 				else
+				{
 					dest->sign = 0;
+				}
 			}
-		} else
+		}
+		else
+		{
 			fp_copy_ext(dest, src);
+		}
+
 		return dest;
 	}
 
 	dest->lowmant = src->lowmant = 0;
 
 	if ((diff = dest->exp - src->exp) > 0)
+	{
 		fp_denormalize(src, diff);
+	}
 	else if ((diff = -diff) > 0)
+	{
 		fp_denormalize(dest, diff);
+	}
 
-	if (dest->sign == src->sign) {
+	if (dest->sign == src->sign)
+	{
 		if (fp_addmant(dest, src))
 			if (!fp_addcarry(dest))
+			{
 				return dest;
-	} else {
-		if (dest->mant.m64 < src->mant.m64) {
+			}
+	}
+	else
+	{
+		if (dest->mant.m64 < src->mant.m64)
+		{
 			fp_submant(dest, src, dest);
 			dest->sign = !dest->sign;
-		} else
+		}
+		else
+		{
 			fp_submant(dest, dest, src);
+		}
 	}
 
 	return dest;
@@ -163,23 +193,35 @@ fp_fmul(struct fp_ext *dest, struct fp_ext *src)
 	dest->sign = src->sign ^ dest->sign;
 
 	/* Handle infinities */
-	if (IS_INF(dest)) {
+	if (IS_INF(dest))
+	{
 		if (IS_ZERO(src))
+		{
 			fp_set_nan(dest);
+		}
+
 		return dest;
 	}
-	if (IS_INF(src)) {
+
+	if (IS_INF(src))
+	{
 		if (IS_ZERO(dest))
+		{
 			fp_set_nan(dest);
+		}
 		else
+		{
 			fp_copy_ext(dest, src);
+		}
+
 		return dest;
 	}
 
 	/* Of course, as we all know, zero * anything = zero.  You may
 	   not have known that it might be a positive or negative
 	   zero... */
-	if (IS_ZERO(dest) || IS_ZERO(src)) {
+	if (IS_ZERO(dest) || IS_ZERO(src))
+	{
 		dest->exp = 0;
 		dest->mant.m64 = 0;
 		dest->lowmant = 0;
@@ -193,27 +235,40 @@ fp_fmul(struct fp_ext *dest, struct fp_ext *src)
 	   so that the highest bit is set, this makes the
 	   shift of the result below easier */
 	if ((long)dest->mant.m32[0] >= 0)
+	{
 		exp -= fp_overnormalize(dest);
+	}
+
 	if ((long)src->mant.m32[0] >= 0)
+	{
 		exp -= fp_overnormalize(src);
+	}
 
 	/* now, do a 64-bit multiply with expansion */
 	fp_multiplymant(&temp, dest, src);
 
 	/* normalize it back to 64 bits and stuff it back into the
 	   destination struct */
-	if ((long)temp.m32[0] > 0) {
+	if ((long)temp.m32[0] > 0)
+	{
 		exp--;
 		fp_putmant128(dest, &temp, 1);
-	} else
+	}
+	else
+	{
 		fp_putmant128(dest, &temp, 0);
+	}
 
-	if (exp >= 0x7fff) {
+	if (exp >= 0x7fff)
+	{
 		fp_set_ovrflw(dest);
 		return dest;
 	}
+
 	dest->exp = exp;
-	if (exp < 0) {
+
+	if (exp < 0)
+	{
 		fp_set_sr(FPSR_EXC_UNFL);
 		fp_denormalize(dest, -exp);
 	}
@@ -241,14 +296,20 @@ fp_fdiv(struct fp_ext *dest, struct fp_ext *src)
 	dest->sign = src->sign ^ dest->sign;
 
 	/* Handle infinities */
-	if (IS_INF(dest)) {
+	if (IS_INF(dest))
+	{
 		/* infinity / infinity = NaN (quiet, as always) */
 		if (IS_INF(src))
+		{
 			fp_set_nan(dest);
+		}
+
 		/* infinity / anything else = infinity (with approprate sign) */
 		return dest;
 	}
-	if (IS_INF(src)) {
+
+	if (IS_INF(src))
+	{
 		/* anything / infinity = zero (with appropriate sign) */
 		dest->exp = 0;
 		dest->mant.m64 = 0;
@@ -258,14 +319,20 @@ fp_fdiv(struct fp_ext *dest, struct fp_ext *src)
 	}
 
 	/* zeroes */
-	if (IS_ZERO(dest)) {
+	if (IS_ZERO(dest))
+	{
 		/* zero / zero = NaN */
 		if (IS_ZERO(src))
+		{
 			fp_set_nan(dest);
+		}
+
 		/* zero / anything else = zero */
 		return dest;
 	}
-	if (IS_ZERO(src)) {
+
+	if (IS_ZERO(src))
+	{
 		/* anything / zero = infinity (with appropriate sign) */
 		fp_set_sr(FPSR_EXC_DZ);
 		dest->exp = 0x7fff;
@@ -280,27 +347,40 @@ fp_fdiv(struct fp_ext *dest, struct fp_ext *src)
 	   so that the highest bit is set, this makes lots
 	   of things below easier */
 	if ((long)dest->mant.m32[0] >= 0)
+	{
 		exp -= fp_overnormalize(dest);
+	}
+
 	if ((long)src->mant.m32[0] >= 0)
+	{
 		exp -= fp_overnormalize(src);
+	}
 
 	/* now, do the 64-bit divide */
 	fp_dividemant(&temp, dest, src);
 
 	/* normalize it back to 64 bits and stuff it back into the
 	   destination struct */
-	if (!temp.m32[0]) {
+	if (!temp.m32[0])
+	{
 		exp--;
 		fp_putmant128(dest, &temp, 32);
-	} else
+	}
+	else
+	{
 		fp_putmant128(dest, &temp, 31);
+	}
 
-	if (exp >= 0x7fff) {
+	if (exp >= 0x7fff)
+	{
 		fp_set_ovrflw(dest);
 		return dest;
 	}
+
 	dest->exp = exp;
-	if (exp < 0) {
+
+	if (exp < 0)
+	{
 		fp_set_sr(FPSR_EXC_UNFL);
 		fp_denormalize(dest, -exp);
 	}
@@ -321,23 +401,35 @@ fp_fsglmul(struct fp_ext *dest, struct fp_ext *src)
 	dest->sign = src->sign ^ dest->sign;
 
 	/* Handle infinities */
-	if (IS_INF(dest)) {
+	if (IS_INF(dest))
+	{
 		if (IS_ZERO(src))
+		{
 			fp_set_nan(dest);
+		}
+
 		return dest;
 	}
-	if (IS_INF(src)) {
+
+	if (IS_INF(src))
+	{
 		if (IS_ZERO(dest))
+		{
 			fp_set_nan(dest);
+		}
 		else
+		{
 			fp_copy_ext(dest, src);
+		}
+
 		return dest;
 	}
 
 	/* Of course, as we all know, zero * anything = zero.  You may
 	   not have known that it might be a positive or negative
 	   zero... */
-	if (IS_ZERO(dest) || IS_ZERO(src)) {
+	if (IS_ZERO(dest) || IS_ZERO(src))
+	{
 		dest->exp = 0;
 		dest->mant.m64 = 0;
 		dest->lowmant = 0;
@@ -349,15 +441,19 @@ fp_fsglmul(struct fp_ext *dest, struct fp_ext *src)
 
 	/* do a 32-bit multiply */
 	fp_mul64(dest->mant.m32[0], dest->mant.m32[1],
-		 dest->mant.m32[0] & 0xffffff00,
-		 src->mant.m32[0] & 0xffffff00);
+			 dest->mant.m32[0] & 0xffffff00,
+			 src->mant.m32[0] & 0xffffff00);
 
-	if (exp >= 0x7fff) {
+	if (exp >= 0x7fff)
+	{
 		fp_set_ovrflw(dest);
 		return dest;
 	}
+
 	dest->exp = exp;
-	if (exp < 0) {
+
+	if (exp < 0)
+	{
 		fp_set_sr(FPSR_EXC_UNFL);
 		fp_denormalize(dest, -exp);
 	}
@@ -379,14 +475,20 @@ fp_fsgldiv(struct fp_ext *dest, struct fp_ext *src)
 	dest->sign = src->sign ^ dest->sign;
 
 	/* Handle infinities */
-	if (IS_INF(dest)) {
+	if (IS_INF(dest))
+	{
 		/* infinity / infinity = NaN (quiet, as always) */
 		if (IS_INF(src))
+		{
 			fp_set_nan(dest);
+		}
+
 		/* infinity / anything else = infinity (with approprate sign) */
 		return dest;
 	}
-	if (IS_INF(src)) {
+
+	if (IS_INF(src))
+	{
 		/* anything / infinity = zero (with appropriate sign) */
 		dest->exp = 0;
 		dest->mant.m64 = 0;
@@ -396,14 +498,20 @@ fp_fsgldiv(struct fp_ext *dest, struct fp_ext *src)
 	}
 
 	/* zeroes */
-	if (IS_ZERO(dest)) {
+	if (IS_ZERO(dest))
+	{
 		/* zero / zero = NaN */
 		if (IS_ZERO(src))
+		{
 			fp_set_nan(dest);
+		}
+
 		/* zero / anything else = zero */
 		return dest;
 	}
-	if (IS_ZERO(src)) {
+
+	if (IS_ZERO(src))
+	{
 		/* anything / zero = infinity (with appropriate sign) */
 		fp_set_sr(FPSR_EXC_DZ);
 		dest->exp = 0x7fff;
@@ -418,24 +526,31 @@ fp_fsgldiv(struct fp_ext *dest, struct fp_ext *src)
 	src->mant.m32[0] &= 0xffffff00;
 
 	/* do the 32-bit divide */
-	if (dest->mant.m32[0] >= src->mant.m32[0]) {
+	if (dest->mant.m32[0] >= src->mant.m32[0])
+	{
 		fp_sub64(dest->mant, src->mant);
 		fp_div64(quot, rem, dest->mant.m32[0], 0, src->mant.m32[0]);
 		dest->mant.m32[0] = 0x80000000 | (quot >> 1);
 		dest->mant.m32[1] = (quot & 1) | rem;	/* only for rounding */
-	} else {
+	}
+	else
+	{
 		fp_div64(quot, rem, dest->mant.m32[0], 0, src->mant.m32[0]);
 		dest->mant.m32[0] = quot;
 		dest->mant.m32[1] = rem;		/* only for rounding */
 		exp--;
 	}
 
-	if (exp >= 0x7fff) {
+	if (exp >= 0x7fff)
+	{
 		fp_set_ovrflw(dest);
 		return dest;
 	}
+
 	dest->exp = exp;
-	if (exp < 0) {
+
+	if (exp < 0)
+	{
 		fp_set_sr(FPSR_EXC_UNFL);
 		fp_denormalize(dest, -exp);
 	}
@@ -455,32 +570,50 @@ static void fp_roundint(struct fp_ext *dest, int mode)
 	unsigned long mask;
 
 	if (!fp_normalize_ext(dest))
+	{
 		return;
+	}
 
 	/* infinities and zeroes */
 	if (IS_INF(dest) || IS_ZERO(dest))
+	{
 		return;
+	}
 
 	/* first truncate the lower bits */
 	oldmant = dest->mant;
-	switch (dest->exp) {
-	case 0 ... 0x3ffe:
-		dest->mant.m64 = 0;
-		break;
-	case 0x3fff ... 0x401e:
-		dest->mant.m32[0] &= 0xffffffffU << (0x401e - dest->exp);
-		dest->mant.m32[1] = 0;
-		if (oldmant.m64 == dest->mant.m64)
+
+	switch (dest->exp)
+	{
+		case 0 ... 0x3ffe:
+			dest->mant.m64 = 0;
+			break;
+
+		case 0x3fff ... 0x401e:
+			dest->mant.m32[0] &= 0xffffffffU << (0x401e - dest->exp);
+			dest->mant.m32[1] = 0;
+
+			if (oldmant.m64 == dest->mant.m64)
+			{
+				return;
+			}
+
+			break;
+
+		case 0x401f ... 0x403e:
+			dest->mant.m32[1] &= 0xffffffffU << (0x403e - dest->exp);
+
+			if (oldmant.m32[1] == dest->mant.m32[1])
+			{
+				return;
+			}
+
+			break;
+
+		default:
 			return;
-		break;
-	case 0x401f ... 0x403e:
-		dest->mant.m32[1] &= 0xffffffffU << (0x403e - dest->exp);
-		if (oldmant.m32[1] == dest->mant.m32[1])
-			return;
-		break;
-	default:
-		return;
 	}
+
 	fp_set_sr(FPSR_EXC_INEX2);
 
 	/* We might want to normalize upwards here... however, since
@@ -495,79 +628,139 @@ static void fp_roundint(struct fp_ext *dest, int mode)
 	   divisor will still produce a normal quotient, therefore, (normal
 	   << 64) / normal is normal in all cases) */
 
-	switch (mode) {
-	case FPCR_ROUND_RN:
-		switch (dest->exp) {
-		case 0 ... 0x3ffd:
+	switch (mode)
+	{
+		case FPCR_ROUND_RN:
+			switch (dest->exp)
+			{
+				case 0 ... 0x3ffd:
+					return;
+
+				case 0x3ffe:
+
+					/* As noted above, the input is always normal, so the
+					   guard bit (bit 63) is always set.  therefore, the
+					   only case in which we will NOT round to 1.0 is when
+					   the input is exactly 0.5. */
+					if (oldmant.m64 == (1ULL << 63))
+					{
+						return;
+					}
+
+					break;
+
+				case 0x3fff ... 0x401d:
+					mask = 1 << (0x401d - dest->exp);
+
+					if (!(oldmant.m32[0] & mask))
+					{
+						return;
+					}
+
+					if (oldmant.m32[0] & (mask << 1))
+					{
+						break;
+					}
+
+					if (!(oldmant.m32[0] << (dest->exp - 0x3ffd)) &&
+						!oldmant.m32[1])
+					{
+						return;
+					}
+
+					break;
+
+				case 0x401e:
+					if (oldmant.m32[1] & 0x80000000)
+					{
+						return;
+					}
+
+					if (oldmant.m32[0] & 1)
+					{
+						break;
+					}
+
+					if (!(oldmant.m32[1] << 1))
+					{
+						return;
+					}
+
+					break;
+
+				case 0x401f ... 0x403d:
+					mask = 1 << (0x403d - dest->exp);
+
+					if (!(oldmant.m32[1] & mask))
+					{
+						return;
+					}
+
+					if (oldmant.m32[1] & (mask << 1))
+					{
+						break;
+					}
+
+					if (!(oldmant.m32[1] << (dest->exp - 0x401d)))
+					{
+						return;
+					}
+
+					break;
+
+				default:
+					return;
+			}
+
+			break;
+
+		case FPCR_ROUND_RZ:
 			return;
-		case 0x3ffe:
-			/* As noted above, the input is always normal, so the
-			   guard bit (bit 63) is always set.  therefore, the
-			   only case in which we will NOT round to 1.0 is when
-			   the input is exactly 0.5. */
-			if (oldmant.m64 == (1ULL << 63))
-				return;
-			break;
-		case 0x3fff ... 0x401d:
-			mask = 1 << (0x401d - dest->exp);
-			if (!(oldmant.m32[0] & mask))
-				return;
-			if (oldmant.m32[0] & (mask << 1))
-				break;
-			if (!(oldmant.m32[0] << (dest->exp - 0x3ffd)) &&
-					!oldmant.m32[1])
-				return;
-			break;
-		case 0x401e:
-			if (oldmant.m32[1] & 0x80000000)
-				return;
-			if (oldmant.m32[0] & 1)
-				break;
-			if (!(oldmant.m32[1] << 1))
-				return;
-			break;
-		case 0x401f ... 0x403d:
-			mask = 1 << (0x403d - dest->exp);
-			if (!(oldmant.m32[1] & mask))
-				return;
-			if (oldmant.m32[1] & (mask << 1))
-				break;
-			if (!(oldmant.m32[1] << (dest->exp - 0x401d)))
-				return;
-			break;
+
 		default:
+			if (dest->sign ^ (mode - FPCR_ROUND_RM))
+			{
+				break;
+			}
+
 			return;
-		}
-		break;
-	case FPCR_ROUND_RZ:
-		return;
-	default:
-		if (dest->sign ^ (mode - FPCR_ROUND_RM))
-			break;
-		return;
 	}
 
-	switch (dest->exp) {
-	case 0 ... 0x3ffe:
-		dest->exp = 0x3fff;
-		dest->mant.m64 = 1ULL << 63;
-		break;
-	case 0x3fff ... 0x401e:
-		mask = 1 << (0x401e - dest->exp);
-		if (dest->mant.m32[0] += mask)
+	switch (dest->exp)
+	{
+		case 0 ... 0x3ffe:
+			dest->exp = 0x3fff;
+			dest->mant.m64 = 1ULL << 63;
 			break;
-		dest->mant.m32[0] = 0x80000000;
-		dest->exp++;
-		break;
-	case 0x401f ... 0x403e:
-		mask = 1 << (0x403e - dest->exp);
-		if (dest->mant.m32[1] += mask)
+
+		case 0x3fff ... 0x401e:
+			mask = 1 << (0x401e - dest->exp);
+
+			if (dest->mant.m32[0] += mask)
+			{
+				break;
+			}
+
+			dest->mant.m32[0] = 0x80000000;
+			dest->exp++;
 			break;
-		if (dest->mant.m32[0] += 1)
-                        break;
-		dest->mant.m32[0] = 0x80000000;
-                dest->exp++;
-		break;
+
+		case 0x401f ... 0x403e:
+			mask = 1 << (0x403e - dest->exp);
+
+			if (dest->mant.m32[1] += mask)
+			{
+				break;
+			}
+
+			if (dest->mant.m32[0] += 1)
+			{
+				break;
+			}
+
+			dest->mant.m32[0] = 0x80000000;
+			dest->exp++;
+			break;
 	}
 }
 
@@ -583,12 +776,16 @@ modrem_kernel(struct fp_ext *dest, struct fp_ext *src, int mode)
 	fp_dyadic_check(dest, src);
 
 	/* Infinities and zeros */
-	if (IS_INF(dest) || IS_ZERO(src)) {
+	if (IS_INF(dest) || IS_ZERO(src))
+	{
 		fp_set_nan(dest);
 		return dest;
 	}
+
 	if (IS_ZERO(dest) || IS_INF(src))
+	{
 		return dest;
+	}
 
 	/* FIXME: there is almost certainly a smarter way to do this */
 	fp_copy_ext(&tmp, dest);
@@ -662,19 +859,26 @@ fp_fscale(struct fp_ext *dest, struct fp_ext *src)
 	fp_dyadic_check(dest, src);
 
 	/* Infinities */
-	if (IS_INF(src)) {
+	if (IS_INF(src))
+	{
 		fp_set_nan(dest);
 		return dest;
 	}
+
 	if (IS_INF(dest))
+	{
 		return dest;
+	}
 
 	/* zeroes */
 	if (IS_ZERO(src) || IS_ZERO(dest))
+	{
 		return dest;
+	}
 
 	/* Source exponent out of range */
-	if (src->exp >= 0x400c) {
+	if (src->exp >= 0x400c)
+	{
 		fp_set_ovrflw(dest);
 		return dest;
 	}
@@ -688,13 +892,19 @@ fp_fscale(struct fp_ext *dest, struct fp_ext *src)
 	/* new exponent */
 	scale += dest->exp;
 
-	if (scale >= 0x7fff) {
+	if (scale >= 0x7fff)
+	{
 		fp_set_ovrflw(dest);
-	} else if (scale <= 0) {
+	}
+	else if (scale <= 0)
+	{
 		fp_set_sr(FPSR_EXC_UNFL);
 		fp_denormalize(dest, -scale);
-	} else
+	}
+	else
+	{
 		dest->exp = scale;
+	}
 
 	return dest;
 }

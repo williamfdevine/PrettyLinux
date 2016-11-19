@@ -35,7 +35,8 @@ static struct irq_domain *cpld_pic_host;
  */
 #define PCI_IGNORE 0x00
 
-struct cpld_pic {
+struct cpld_pic
+{
 	u8 pci_mask;
 	u8 pci_status;
 	u8 route;
@@ -65,7 +66,7 @@ cpld_mask_irq(struct irq_data *d)
 	void __iomem *pic_mask = irq_to_pic_mask(cpld_irq);
 
 	out_8(pic_mask,
-	      in_8(pic_mask) | irq_to_pic_bit(cpld_irq));
+		  in_8(pic_mask) | irq_to_pic_bit(cpld_irq));
 }
 
 static void
@@ -75,10 +76,11 @@ cpld_unmask_irq(struct irq_data *d)
 	void __iomem *pic_mask = irq_to_pic_mask(cpld_irq);
 
 	out_8(pic_mask,
-	      in_8(pic_mask) & ~irq_to_pic_bit(cpld_irq));
+		  in_8(pic_mask) & ~irq_to_pic_bit(cpld_irq));
 }
 
-static struct irq_chip cpld_pic = {
+static struct irq_chip cpld_pic =
+{
 	.name = "CPLD PIC",
 	.irq_mask = cpld_mask_irq,
 	.irq_ack = cpld_mask_irq,
@@ -87,7 +89,7 @@ static struct irq_chip cpld_pic = {
 
 static int
 cpld_pic_get_irq(int offset, u8 ignore, u8 __iomem *statusp,
-			    u8 __iomem *maskp)
+				 u8 __iomem *maskp)
 {
 	int cpld_irq;
 	u8 status = in_8(statusp);
@@ -97,7 +99,9 @@ cpld_pic_get_irq(int offset, u8 ignore, u8 __iomem *statusp,
 	status |= (ignore | mask);
 
 	if (status == 0xff)
+	{
 		return 0;
+	}
 
 	cpld_irq = ffz(status) + offset;
 
@@ -109,15 +113,19 @@ static void cpld_pic_cascade(struct irq_desc *desc)
 	unsigned int irq;
 
 	irq = cpld_pic_get_irq(0, PCI_IGNORE, &cpld_regs->pci_status,
-		&cpld_regs->pci_mask);
-	if (irq) {
+						   &cpld_regs->pci_mask);
+
+	if (irq)
+	{
 		generic_handle_irq(irq);
 		return;
 	}
 
 	irq = cpld_pic_get_irq(8, MISC_IGNORE, &cpld_regs->misc_status,
-		&cpld_regs->misc_mask);
-	if (irq) {
+						   &cpld_regs->misc_mask);
+
+	if (irq)
+	{
 		generic_handle_irq(irq);
 		return;
 	}
@@ -125,21 +133,22 @@ static void cpld_pic_cascade(struct irq_desc *desc)
 
 static int
 cpld_pic_host_match(struct irq_domain *h, struct device_node *node,
-		    enum irq_domain_bus_token bus_token)
+					enum irq_domain_bus_token bus_token)
 {
 	return cpld_pic_node == node;
 }
 
 static int
 cpld_pic_host_map(struct irq_domain *h, unsigned int virq,
-			     irq_hw_number_t hw)
+				  irq_hw_number_t hw)
 {
 	irq_set_status_flags(virq, IRQ_LEVEL);
 	irq_set_chip_and_handler(virq, &cpld_pic, handle_level_irq);
 	return 0;
 }
 
-static const struct irq_domain_ops cpld_pic_host_ops = {
+static const struct irq_domain_ops cpld_pic_host_ops =
+{
 	.match = cpld_pic_host_match,
 	.map = cpld_pic_host_map,
 };
@@ -150,7 +159,9 @@ mpc5121_ads_cpld_map(void)
 	struct device_node *np = NULL;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc5121ads-cpld-pic");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_ERR "CPLD PIC init: can not find cpld-pic node\n");
 		return;
 	}
@@ -168,17 +179,24 @@ mpc5121_ads_cpld_pic_init(void)
 	pr_debug("cpld_ic_init\n");
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc5121ads-cpld-pic");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_ERR "CPLD PIC init: can not find cpld-pic node\n");
 		return;
 	}
 
 	if (!cpld_regs)
+	{
 		goto end;
+	}
 
 	cascade_irq = irq_of_parse_and_map(np, 0);
+
 	if (!cascade_irq)
+	{
 		goto end;
+	}
 
 	/*
 	 * statically route touch screen pendown through 1
@@ -193,7 +211,9 @@ mpc5121_ads_cpld_pic_init(void)
 	cpld_pic_node = of_node_get(np);
 
 	cpld_pic_host = irq_domain_add_linear(np, 16, &cpld_pic_host_ops, NULL);
-	if (!cpld_pic_host) {
+
+	if (!cpld_pic_host)
+	{
 		printk(KERN_ERR "CPLD PIC: failed to allocate irq host!\n");
 		goto end;
 	}

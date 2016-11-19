@@ -37,7 +37,7 @@
 
 #if defined(ALPHA_RESTORE_SRM_SETUP)
 /* Save LCA configuration data as the console had it set up.  */
-struct 
+struct
 {
 	unsigned int orig_route_tab; /* for SAVE/RESTORE */
 } saved_config __attribute((common));
@@ -48,7 +48,9 @@ static void __init
 sio_init_irq(void)
 {
 	if (alpha_using_srm)
+	{
 		alpha_mv.device_interrupt = srm_device_interrupt;
+	}
 
 	init_i8259a_irqs();
 	common_init_isa_dma();
@@ -88,9 +90,9 @@ sio_pci_route(void)
 
 	/* First, ALWAYS read and print the original setting. */
 	pci_bus_read_config_dword(pci_isa_hose->bus, PCI_DEVFN(7, 0), 0x60,
-				  &orig_route_tab);
+							  &orig_route_tab);
 	printk("%s: PIRQ original 0x%x new 0x%x\n", __func__,
-	       orig_route_tab, alpha_mv.sys.sio.route_tab);
+		   orig_route_tab, alpha_mv.sys.sio.route_tab);
 
 #if defined(ALPHA_RESTORE_SRM_SETUP)
 	saved_config.orig_route_tab = orig_route_tab;
@@ -98,7 +100,7 @@ sio_pci_route(void)
 
 	/* Now override with desired setting. */
 	pci_bus_write_config_dword(pci_isa_hose->bus, PCI_DEVFN(7, 0), 0x60,
-				   alpha_mv.sys.sio.route_tab);
+							   alpha_mv.sys.sio.route_tab);
 }
 
 static unsigned int __init
@@ -108,13 +110,18 @@ sio_collect_irq_levels(void)
 	struct pci_dev *dev = NULL;
 
 	/* Iterate through the devices, collecting IRQ levels.  */
-	for_each_pci_dev(dev) {
+	for_each_pci_dev(dev)
+	{
 		if ((dev->class >> 16 == PCI_BASE_CLASS_BRIDGE) &&
-		    (dev->class >> 8 != PCI_CLASS_BRIDGE_PCMCIA))
+			(dev->class >> 8 != PCI_CLASS_BRIDGE_PCMCIA))
+		{
 			continue;
+		}
 
 		if (dev->irq)
+		{
 			level_bits |= (1 << dev->irq);
+		}
 	}
 	return level_bits;
 }
@@ -165,13 +172,14 @@ noname_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	 * that they use the default INTA line, if they are interrupt
 	 * driven at all).
 	 */
-	static char irq_tab[][5] __initdata = {
+	static char irq_tab[][5] __initdata =
+	{
 		/*INT A   B   C   D */
-		{ 3,  3,  3,  3,  3}, /* idsel  6 (53c810) */ 
-		{-1, -1, -1, -1, -1}, /* idsel  7 (SIO: PCI/ISA bridge) */
+		{ 3,  3,  3,  3,  3}, /* idsel  6 (53c810) */
+		{ -1, -1, -1, -1, -1}, /* idsel  7 (SIO: PCI/ISA bridge) */
 		{ 2,  2, -1, -1, -1}, /* idsel  8 (Hack: slot closest ISA) */
-		{-1, -1, -1, -1, -1}, /* idsel  9 (unused) */
-		{-1, -1, -1, -1, -1}, /* idsel 10 (unused) */
+		{ -1, -1, -1, -1, -1}, /* idsel  9 (unused) */
+		{ -1, -1, -1, -1, -1}, /* idsel 10 (unused) */
 		{ 0,  0,  2,  1,  0}, /* idsel 11 KN25_PCI_SLOT0 */
 		{ 1,  1,  0,  2,  1}, /* idsel 12 KN25_PCI_SLOT1 */
 		{ 2,  2,  1,  0,  2}, /* idsel 13 KN25_PCI_SLOT2 */
@@ -186,14 +194,15 @@ noname_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 static inline int __init
 p2k_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
-	static char irq_tab[][5] __initdata = {
+	static char irq_tab[][5] __initdata =
+	{
 		/*INT A   B   C   D */
 		{ 0,  0, -1, -1, -1}, /* idsel  6 (53c810) */
-		{-1, -1, -1, -1, -1}, /* idsel  7 (SIO: PCI/ISA bridge) */
+		{ -1, -1, -1, -1, -1}, /* idsel  7 (SIO: PCI/ISA bridge) */
 		{ 1,  1,  2,  3,  0}, /* idsel  8 (slot A) */
 		{ 2,  2,  3,  0,  1}, /* idsel  9 (slot B) */
-		{-1, -1, -1, -1, -1}, /* idsel 10 (unused) */
-		{-1, -1, -1, -1, -1}, /* idsel 11 (unused) */
+		{ -1, -1, -1, -1, -1}, /* idsel 10 (unused) */
+		{ -1, -1, -1, -1, -1}, /* idsel 11 (unused) */
 		{ 3,  3, -1, -1, -1}, /* idsel 12 (CMD0646) */
 	};
 	const long min_idsel = 6, max_idsel = 12, irqs_per_slot = 5;
@@ -209,11 +218,14 @@ noname_init_pci(void)
 	sio_pci_route();
 	sio_fixup_irq_levels(sio_collect_irq_levels());
 
-	if (pc873xx_probe() == -1) {
+	if (pc873xx_probe() == -1)
+	{
 		printk(KERN_ERR "Probing for PC873xx Super IO chip failed.\n");
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "Found %s Super IO chip at 0x%x\n",
-			pc873xx_get_model(), pc873xx_get_base());
+			   pc873xx_get_model(), pc873xx_get_base());
 
 		/* Enabling things in the Super IO chip doesn't actually
 		 * configure and enable things, the legacy drivers still
@@ -252,22 +264,27 @@ alphabook1_init_pci(void)
 	 */
 
 	dev = NULL;
-	while ((dev = pci_get_device(PCI_VENDOR_ID_NCR, PCI_ANY_ID, dev))) {
+
+	while ((dev = pci_get_device(PCI_VENDOR_ID_NCR, PCI_ANY_ID, dev)))
+	{
 		if (dev->device == PCI_DEVICE_ID_NCR_53C810
-		    || dev->device == PCI_DEVICE_ID_NCR_53C815
-		    || dev->device == PCI_DEVICE_ID_NCR_53C820
-		    || dev->device == PCI_DEVICE_ID_NCR_53C825) {
+			|| dev->device == PCI_DEVICE_ID_NCR_53C815
+			|| dev->device == PCI_DEVICE_ID_NCR_53C820
+			|| dev->device == PCI_DEVICE_ID_NCR_53C825)
+		{
 			unsigned long io_port;
 			unsigned char ctest4;
 
 			io_port = dev->resource[0].start;
-			ctest4 = inb(io_port+0x21);
-			if (!(ctest4 & 0x80)) {
+			ctest4 = inb(io_port + 0x21);
+
+			if (!(ctest4 & 0x80))
+			{
 				printk("AlphaBook1 NCR init: setting"
-				       " burst disable\n");
-				outb(ctest4 | 0x80, io_port+0x21);
+					   " burst disable\n");
+				outb(ctest4 | 0x80, io_port + 0x21);
 			}
-                }
+		}
 	}
 
 	/* Do not set *ANY* level triggers for AlphaBook1. */
@@ -277,11 +294,14 @@ alphabook1_init_pci(void)
 	outb(0x0f, 0x3ce); orig = inb(0x3cf);   /* read PR5  */
 	outb(0x0f, 0x3ce); outb(0x05, 0x3cf);   /* unlock PR0-4 */
 	outb(0x0b, 0x3ce); config = inb(0x3cf); /* read PR1 */
-	if ((config & 0xc0) != 0xc0) {
+
+	if ((config & 0xc0) != 0xc0)
+	{
 		printk("AlphaBook1 VGA init: setting 1Mb memory\n");
 		config |= 0xc0;
 		outb(0x0b, 0x3ce); outb(config, 0x3cf); /* write PR1 */
 	}
+
 	outb(0x0f, 0x3ce); outb(orig, 0x3cf); /* (re)lock PR0-4 */
 }
 
@@ -295,8 +315,8 @@ sio_kill_arch(int mode)
 	 * However, we CAN read the PIRQ route register, so restore it
 	 * now...
 	 */
- 	pci_bus_write_config_dword(pci_isa_hose->bus, PCI_DEVFN(7, 0), 0x60,
-				   saved_config.orig_route_tab);
+	pci_bus_write_config_dword(pci_isa_hose->bus, PCI_DEVFN(7, 0), 0x60,
+							   saved_config.orig_route_tab);
 #endif
 }
 
@@ -306,7 +326,8 @@ sio_kill_arch(int mode)
  */
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_BOOK1)
-struct alpha_machine_vector alphabook1_mv __initmv = {
+struct alpha_machine_vector alphabook1_mv __initmv =
+{
 	.vector_name		= "AlphaBook1",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -327,16 +348,19 @@ struct alpha_machine_vector alphabook1_mv __initmv = {
 	.pci_map_irq		= noname_map_irq,
 	.pci_swizzle		= common_swizzle,
 
-	.sys = { .sio = {
-		/* NCR810 SCSI is 14, PCMCIA controller is 15.  */
-		.route_tab	= 0x0e0f0a0a,
-	}}
+	.sys = {
+		.sio = {
+			/* NCR810 SCSI is 14, PCMCIA controller is 15.  */
+			.route_tab	= 0x0e0f0a0a,
+		}
+	}
 };
 ALIAS_MV(alphabook1)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_AVANTI)
-struct alpha_machine_vector avanti_mv __initmv = {
+struct alpha_machine_vector avanti_mv __initmv =
+{
 	.vector_name		= "Avanti",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -357,15 +381,18 @@ struct alpha_machine_vector avanti_mv __initmv = {
 	.pci_map_irq		= noname_map_irq,
 	.pci_swizzle		= common_swizzle,
 
-	.sys = { .sio = {
-		.route_tab	= 0x0b0a050f, /* leave 14 for IDE, 9 for SND */
-	}}
+	.sys = {
+		.sio = {
+			.route_tab	= 0x0b0a050f, /* leave 14 for IDE, 9 for SND */
+		}
+	}
 };
 ALIAS_MV(avanti)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_NONAME)
-struct alpha_machine_vector noname_mv __initmv = {
+struct alpha_machine_vector noname_mv __initmv =
+{
 	.vector_name		= "Noname",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -386,24 +413,27 @@ struct alpha_machine_vector noname_mv __initmv = {
 	.pci_map_irq		= noname_map_irq,
 	.pci_swizzle		= common_swizzle,
 
-	.sys = { .sio = {
-		/* For UDB, the only available PCI slot must not map to IRQ 9,
-		   since that's the builtin MSS sound chip. That PCI slot
-		   will map to PIRQ1 (for INTA at least), so we give it IRQ 15
-		   instead.
+	.sys = {
+		.sio = {
+			/* For UDB, the only available PCI slot must not map to IRQ 9,
+			   since that's the builtin MSS sound chip. That PCI slot
+			   will map to PIRQ1 (for INTA at least), so we give it IRQ 15
+			   instead.
 
-		   Unfortunately we have to do this for NONAME as well, since
-		   they are co-indicated when the platform type "Noname" is
-		   selected... :-(  */
+			   Unfortunately we have to do this for NONAME as well, since
+			   they are co-indicated when the platform type "Noname" is
+			   selected... :-(  */
 
-		.route_tab	= 0x0b0a0f0d,
-	}}
+			.route_tab	= 0x0b0a0f0d,
+		}
+	}
 };
 ALIAS_MV(noname)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_P2K)
-struct alpha_machine_vector p2k_mv __initmv = {
+struct alpha_machine_vector p2k_mv __initmv =
+{
 	.vector_name		= "Platform2000",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -424,15 +454,18 @@ struct alpha_machine_vector p2k_mv __initmv = {
 	.pci_map_irq		= p2k_map_irq,
 	.pci_swizzle		= common_swizzle,
 
-	.sys = { .sio = {
-		.route_tab	= 0x0b0a090f,
-	}}
+	.sys = {
+		.sio = {
+			.route_tab	= 0x0b0a090f,
+		}
+	}
 };
 ALIAS_MV(p2k)
 #endif
 
 #if defined(CONFIG_ALPHA_GENERIC) || defined(CONFIG_ALPHA_XL)
-struct alpha_machine_vector xl_mv __initmv = {
+struct alpha_machine_vector xl_mv __initmv =
+{
 	.vector_name		= "XL",
 	DO_EV4_MMU,
 	DO_DEFAULT_RTC,
@@ -453,9 +486,11 @@ struct alpha_machine_vector xl_mv __initmv = {
 	.pci_map_irq		= noname_map_irq,
 	.pci_swizzle		= common_swizzle,
 
-	.sys = { .sio = {
-		.route_tab	= 0x0b0a090f,
-	}}
+	.sys = {
+		.sio = {
+			.route_tab	= 0x0b0a090f,
+		}
+	}
 };
 ALIAS_MV(xl)
 #endif

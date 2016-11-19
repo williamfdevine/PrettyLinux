@@ -2,7 +2,7 @@
  *  Maple (970 eval board) setup code
  *
  *  (c) Copyright 2004 Benjamin Herrenschmidt (benh@kernel.crashing.org),
- *                     IBM Corp. 
+ *                     IBM Corp.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -63,9 +63,9 @@
 #include "maple.h"
 
 #ifdef DEBUG
-#define DBG(fmt...) udbg_printf(fmt)
+	#define DBG(fmt...) udbg_printf(fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 
 static unsigned long maple_find_nvram_base(void)
@@ -75,21 +75,32 @@ static unsigned long maple_find_nvram_base(void)
 
 	/* find NVRAM device */
 	rtcs = of_find_compatible_node(NULL, "nvram", "AMD8111");
-	if (rtcs) {
+
+	if (rtcs)
+	{
 		struct resource r;
-		if (of_address_to_resource(rtcs, 0, &r)) {
+
+		if (of_address_to_resource(rtcs, 0, &r))
+		{
 			printk(KERN_EMERG "Maple: Unable to translate NVRAM"
-			       " address\n");
+				   " address\n");
 			goto bail;
 		}
-		if (!(r.flags & IORESOURCE_IO)) {
+
+		if (!(r.flags & IORESOURCE_IO))
+		{
 			printk(KERN_EMERG "Maple: NVRAM address isn't PIO!\n");
 			goto bail;
 		}
+
 		result = r.start;
-	} else
+	}
+	else
+	{
 		printk(KERN_EMERG "Maple: Unable to find NVRAM\n");
- bail:
+	}
+
+bail:
 	of_node_put(rtcs);
 	return result;
 }
@@ -101,24 +112,33 @@ static void __noreturn maple_restart(char *cmd)
 	struct device_node *sp;
 
 	maple_nvram_base = maple_find_nvram_base();
+
 	if (maple_nvram_base == 0)
+	{
 		goto fail;
+	}
 
 	/* find service processor device */
 	sp = of_find_node_by_name(NULL, "service-processor");
-	if (!sp) {
+
+	if (!sp)
+	{
 		printk(KERN_EMERG "Maple: Unable to find Service Processor\n");
 		goto fail;
 	}
+
 	maple_nvram_offset = of_get_property(sp, "restart-addr", NULL);
 	maple_nvram_command = of_get_property(sp, "restart-value", NULL);
 	of_node_put(sp);
 
 	/* send command */
 	outb_p(*maple_nvram_command, maple_nvram_base + *maple_nvram_offset);
+
 	for (;;) ;
- fail:
+
+fail:
 	printk(KERN_EMERG "Maple: Manual Restart Required\n");
+
 	for (;;) ;
 }
 
@@ -129,24 +149,33 @@ static void __noreturn maple_power_off(void)
 	struct device_node *sp;
 
 	maple_nvram_base = maple_find_nvram_base();
+
 	if (maple_nvram_base == 0)
+	{
 		goto fail;
+	}
 
 	/* find service processor device */
 	sp = of_find_node_by_name(NULL, "service-processor");
-	if (!sp) {
+
+	if (!sp)
+	{
 		printk(KERN_EMERG "Maple: Unable to find Service Processor\n");
 		goto fail;
 	}
+
 	maple_nvram_offset = of_get_property(sp, "power-off-addr", NULL);
 	maple_nvram_command = of_get_property(sp, "power-off-value", NULL);
 	of_node_put(sp);
 
 	/* send command */
 	outb_p(*maple_nvram_command, maple_nvram_base + *maple_nvram_offset);
+
 	for (;;) ;
- fail:
+
+fail:
 	printk(KERN_EMERG "Maple: Manual Power-Down Required\n");
+
 	for (;;) ;
 }
 
@@ -156,7 +185,8 @@ static void __noreturn maple_halt(void)
 }
 
 #ifdef CONFIG_SMP
-static struct smp_ops_t maple_smp_ops = {
+static struct smp_ops_t maple_smp_ops =
+{
 	.probe		= smp_mpic_probe,
 	.message_pass	= smp_mpic_message_pass,
 	.kick_cpu	= smp_generic_kick_cpu,
@@ -169,7 +199,8 @@ static struct smp_ops_t maple_smp_ops = {
 static void __init maple_use_rtas_reboot_and_halt_if_present(void)
 {
 	if (rtas_service_present("system-reboot") &&
-	    rtas_service_present("power-off")) {
+		rtas_service_present("power-off"))
+	{
 		ppc_md.restart = rtas_restart;
 		pm_power_off = rtas_power_off;
 		ppc_md.halt = rtas_halt;
@@ -186,7 +217,7 @@ static void __init maple_setup_arch(void)
 	smp_ops = &maple_smp_ops;
 #endif
 	/* Lookup PCI hosts */
-       	maple_pci_init();
+	maple_pci_init();
 
 #ifdef CONFIG_DUMMY_CONSOLE
 	conswitchp = &dummy_con;
@@ -218,18 +249,24 @@ static void __init maple_init_IRQ(void)
 	 */
 
 	for_each_node_by_type(np, "interrupt-controller")
-		if (of_device_is_compatible(np, "open-pic")) {
-			mpic_node = np;
-			break;
-		}
+
+	if (of_device_is_compatible(np, "open-pic"))
+	{
+		mpic_node = np;
+		break;
+	}
+
 	if (mpic_node == NULL)
-		for_each_node_by_type(np, "open-pic") {
-			mpic_node = np;
-			break;
-		}
-	if (mpic_node == NULL) {
+		for_each_node_by_type(np, "open-pic")
+	{
+		mpic_node = np;
+		break;
+	}
+
+	if (mpic_node == NULL)
+	{
 		printk(KERN_ERR
-		       "Failed to locate the MPIC interrupt controller\n");
+			   "Failed to locate the MPIC interrupt controller\n");
 		return;
 	}
 
@@ -237,18 +274,22 @@ static void __init maple_init_IRQ(void)
 	root = of_find_node_by_path("/");
 	naddr = of_n_addr_cells(root);
 	opprop = of_get_property(root, "platform-open-pic", &opplen);
-	if (opprop != 0) {
+
+	if (opprop != 0)
+	{
 		openpic_addr = of_read_number(opprop, naddr);
 		has_isus = (opplen > naddr);
 		printk(KERN_DEBUG "OpenPIC addr: %lx, has ISUs: %d\n",
-		       openpic_addr, has_isus);
+			   openpic_addr, has_isus);
 	}
 
 	BUG_ON(openpic_addr == 0);
 
 	/* Check for a big endian MPIC */
 	if (of_get_property(np, "big-endian", NULL) != NULL)
+	{
 		flags |= MPIC_BIG_ENDIAN;
+	}
 
 	/* XXX Maple specific bits */
 	flags |= MPIC_U3_HT_IRQS;
@@ -260,12 +301,14 @@ static void __init maple_init_IRQ(void)
 	 * the firmware for those
 	 */
 	mpic = mpic_alloc(mpic_node, openpic_addr, flags,
-			  /*has_isus ? 16 :*/ 0, 0, " MPIC     ");
+					  /*has_isus ? 16 :*/ 0, 0, " MPIC     ");
 	BUG_ON(mpic == NULL);
 
 	/* Add ISUs */
 	opplen /= sizeof(u32);
-	for (n = 0, i = naddr; i < opplen; i += naddr, n++) {
+
+	for (n = 0, i = naddr; i < opplen; i += naddr, n++)
+	{
 		unsigned long isuaddr = of_read_number(opprop + i, naddr);
 		mpic_assign_isu(mpic, n, isuaddr);
 	}
@@ -289,8 +332,10 @@ static void __init maple_progress(char *s, unsigned short hex)
 static int __init maple_probe(void)
 {
 	if (!of_machine_is_compatible("Momentum,Maple") &&
-	    !of_machine_is_compatible("Momentum,Apache"))
+		!of_machine_is_compatible("Momentum,Apache"))
+	{
 		return 0;
+	}
 
 	pm_power_off = maple_power_off;
 
@@ -299,21 +344,22 @@ static int __init maple_probe(void)
 	return 1;
 }
 
-define_machine(maple) {
+define_machine(maple)
+{
 	.name			= "Maple",
-	.probe			= maple_probe,
-	.setup_arch		= maple_setup_arch,
-	.init_IRQ		= maple_init_IRQ,
-	.pci_irq_fixup		= maple_pci_irq_fixup,
-	.pci_get_legacy_ide_irq	= maple_pci_get_legacy_ide_irq,
-	.restart		= maple_restart,
-	.halt			= maple_halt,
-       	.get_boot_time		= maple_get_boot_time,
-       	.set_rtc_time		= maple_set_rtc_time,
-       	.get_rtc_time		= maple_get_rtc_time,
-      	.calibrate_decr		= generic_calibrate_decr,
-	.progress		= maple_progress,
-	.power_save		= power4_idle,
+			 .probe			= maple_probe,
+					 .setup_arch		= maple_setup_arch,
+						 .init_IRQ		= maple_init_IRQ,
+							   .pci_irq_fixup		= maple_pci_irq_fixup,
+									.pci_get_legacy_ide_irq	= maple_pci_get_legacy_ide_irq,
+									 .restart		= maple_restart,
+											.halt			= maple_halt,
+													 .get_boot_time		= maple_get_boot_time,
+														  .set_rtc_time		= maple_set_rtc_time,
+																.get_rtc_time		= maple_get_rtc_time,
+																	  .calibrate_decr		= generic_calibrate_decr,
+																		  .progress		= maple_progress,
+																				.power_save		= power4_idle,
 };
 
 #ifdef CONFIG_EDAC
@@ -331,40 +377,49 @@ static int __init maple_cpc925_edac_setup(void)
 	u32 rev;
 
 	np = of_find_node_by_type(NULL, "memory-controller");
-	if (!np) {
+
+	if (!np)
+	{
 		printk(KERN_ERR "%s: Unable to find memory-controller node\n",
-			__func__);
+			   __func__);
 		return -ENODEV;
 	}
 
 	ret = of_address_to_resource(np, 0, &r);
 	of_node_put(np);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		printk(KERN_ERR "%s: Unable to get memory-controller reg\n",
-			__func__);
+			   __func__);
 		return -ENODEV;
 	}
 
 	mem = ioremap(r.start, resource_size(&r));
-	if (!mem) {
+
+	if (!mem)
+	{
 		printk(KERN_ERR "%s: Unable to map memory-controller memory\n",
-				__func__);
+			   __func__);
 		return -ENOMEM;
 	}
 
 	rev = __raw_readl(mem);
 	iounmap(mem);
 
-	if (rev < 0x34 || rev > 0x3f) { /* U3H */
+	if (rev < 0x34 || rev > 0x3f)   /* U3H */
+	{
 		printk(KERN_ERR "%s: Non-CPC925(U3H) bridge revision: %02x\n",
-			__func__, rev);
+			   __func__, rev);
 		return 0;
 	}
 
 	pdev = platform_device_register_simple("cpc925_edac", 0, &r, 1);
+
 	if (IS_ERR(pdev))
+	{
 		return PTR_ERR(pdev);
+	}
 
 	printk(KERN_INFO "%s: CPC925 platform device created\n", __func__);
 

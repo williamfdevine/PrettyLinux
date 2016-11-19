@@ -47,7 +47,8 @@
 #define DMACH_SECURITY_RX	"sec_rx"
 #define DMACH_SECURITY_TX	"sec_tx"
 
-enum dma_ch {
+enum dma_ch
+{
 	DMACH_MAX = 32
 };
 

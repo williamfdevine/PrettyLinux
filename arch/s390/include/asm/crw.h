@@ -15,7 +15,8 @@
 /*
  * Channel Report Word
  */
-struct crw {
+struct crw
+{
 	__u32 res1 :  1;   /* reserved zero */
 	__u32 slct :  1;   /* solicited */
 	__u32 oflw :  1;   /* overflow */

@@ -24,7 +24,7 @@
 
 int
 sal_pcibr_slot_enable(struct pcibus_info *soft, int device, void *resp,
-                      char **ssdt)
+					  char **ssdt)
 {
 	struct ia64_sal_retval ret_stuff;
 	u64 busnum;
@@ -36,15 +36,15 @@ sal_pcibr_slot_enable(struct pcibus_info *soft, int device, void *resp,
 	segment = soft->pbi_buscommon.bs_persist_segment;
 	busnum = soft->pbi_buscommon.bs_persist_busnum;
 	SAL_CALL_NOLOCK(ret_stuff, (u64) SN_SAL_IOIF_SLOT_ENABLE, segment,
-			busnum, (u64) device, (u64) resp, (u64)ia64_tpa(ssdt),
-			0, 0);
+					busnum, (u64) device, (u64) resp, (u64)ia64_tpa(ssdt),
+					0, 0);
 
 	return (int)ret_stuff.v0;
 }
 
 int
 sal_pcibr_slot_disable(struct pcibus_info *soft, int device, int action,
-		       void *resp)
+					   void *resp)
 {
 	struct ia64_sal_retval ret_stuff;
 	u64 busnum;
@@ -56,8 +56,8 @@ sal_pcibr_slot_disable(struct pcibus_info *soft, int device, int action,
 	segment = soft->pbi_buscommon.bs_persist_segment;
 	busnum = soft->pbi_buscommon.bs_persist_busnum;
 	SAL_CALL_NOLOCK(ret_stuff, (u64) SN_SAL_IOIF_SLOT_DISABLE,
-			segment, busnum, (u64) device, (u64) action,
-			(u64) resp, 0, 0);
+					segment, busnum, (u64) device, (u64) action,
+					(u64) resp, 0, 0);
 
 	return (int)ret_stuff.v0;
 }
@@ -73,8 +73,8 @@ static int sal_pcibr_error_interrupt(struct pcibus_info *soft)
 	segment = soft->pbi_buscommon.bs_persist_segment;
 	busnum = soft->pbi_buscommon.bs_persist_busnum;
 	SAL_CALL_NOLOCK(ret_stuff,
-			(u64) SN_SAL_IOIF_ERROR_INTERRUPT,
-			(u64) segment, (u64) busnum, 0, 0, 0, 0, 0);
+					(u64) SN_SAL_IOIF_ERROR_INTERRUPT,
+					(u64) segment, (u64) busnum, 0, 0, 0, 0, 0);
 
 	return (int)ret_stuff.v0;
 }
@@ -86,17 +86,19 @@ u16 sn_ioboard_to_pci_bus(struct pci_bus *pci_bus)
 	nasid_t nasid = NASID_GET(SN_PCIBUS_BUSSOFT(pci_bus)->bs_base);
 
 	rc = ia64_sn_sysctl_ioboard_get(nasid, &ioboard);
-	if (rc) {
+
+	if (rc)
+	{
 		printk(KERN_WARNING "ia64_sn_sysctl_ioboard_get failed: %ld\n",
-		       rc);
+			   rc);
 		return 0;
 	}
 
 	return ioboard;
 }
 
-/* 
- * PCI Bridge Error interrupt handler.  Gets invoked whenever a PCI 
+/*
+ * PCI Bridge Error interrupt handler.  Gets invoked whenever a PCI
  * bridge sends an error interrupt.
  */
 static irqreturn_t
@@ -105,7 +107,9 @@ pcibr_error_intr_handler(int irq, void *arg)
 	struct pcibus_info *soft = arg;
 
 	if (sal_pcibr_error_interrupt(soft) < 0)
+	{
 		panic("pcibr_error_intr_handler(): Fatal Bridge Error");
+	}
 
 	return IRQ_HANDLED;
 }
@@ -119,7 +123,8 @@ pcibr_bus_fixup(struct pcibus_bussoft *prom_bussoft, struct pci_controller *cont
 	struct sn_flush_device_kernel *sn_flush_device_kernel;
 	struct sn_flush_device_common *common;
 
-	if (! IS_PCI_BRIDGE_ASIC(prom_bussoft->bs_asic_type)) {
+	if (! IS_PCI_BRIDGE_ASIC(prom_bussoft->bs_asic_type))
+	{
 		return NULL;
 	}
 
@@ -128,13 +133,15 @@ pcibr_bus_fixup(struct pcibus_bussoft *prom_bussoft, struct pci_controller *cont
 	 */
 
 	soft = kmemdup(prom_bussoft, sizeof(struct pcibus_info), GFP_KERNEL);
-	if (!soft) {
+
+	if (!soft)
+	{
 		return NULL;
 	}
 
 	soft->pbi_buscommon.bs_base = (unsigned long)
-		ioremap(REGION_OFFSET(soft->pbi_buscommon.bs_base),
-			sizeof(struct pic));
+								  ioremap(REGION_OFFSET(soft->pbi_buscommon.bs_base),
+										  sizeof(struct pic));
 
 	spin_lock_init(&soft->pbi_lock);
 
@@ -142,19 +149,24 @@ pcibr_bus_fixup(struct pcibus_bussoft *prom_bussoft, struct pci_controller *cont
 	 * register the bridge's error interrupt handler
 	 */
 	if (request_irq(SGI_PCIASIC_ERROR, pcibr_error_intr_handler,
-			IRQF_SHARED, "PCIBR error", (void *)(soft))) {
+					IRQF_SHARED, "PCIBR error", (void *)(soft)))
+	{
 		printk(KERN_WARNING
-		       "pcibr cannot allocate interrupt for error handler\n");
+			   "pcibr cannot allocate interrupt for error handler\n");
 	}
+
 	irq_set_handler(SGI_PCIASIC_ERROR, handle_level_irq);
 	sn_set_err_irq_affinity(SGI_PCIASIC_ERROR);
 
-	/* 
-	 * Update the Bridge with the "kernel" pagesize 
+	/*
+	 * Update the Bridge with the "kernel" pagesize
 	 */
-	if (PAGE_SIZE < 16384) {
+	if (PAGE_SIZE < 16384)
+	{
 		pcireg_control_bit_clr(soft, PCIBR_CTRL_PAGE_SIZE);
-	} else {
+	}
+	else
+	{
 		pcireg_control_bit_set(soft, PCIBR_CTRL_PAGE_SIZE);
 	}
 
@@ -162,21 +174,29 @@ pcibr_bus_fixup(struct pcibus_bussoft *prom_bussoft, struct pci_controller *cont
 	cnode = nasid_to_cnodeid(nasid);
 	hubdev_info = (struct hubdev_info *)(NODEPDA(cnode)->pdinfo);
 
-	if (hubdev_info->hdi_flush_nasid_list.widget_p) {
+	if (hubdev_info->hdi_flush_nasid_list.widget_p)
+	{
 		sn_flush_device_kernel = hubdev_info->hdi_flush_nasid_list.
-		    widget_p[(int)soft->pbi_buscommon.bs_xid];
-		if (sn_flush_device_kernel) {
+								 widget_p[(int)soft->pbi_buscommon.bs_xid];
+
+		if (sn_flush_device_kernel)
+		{
 			for (j = 0; j < DEV_PER_WIDGET;
-			     j++, sn_flush_device_kernel++) {
+				 j++, sn_flush_device_kernel++)
+			{
 				common = sn_flush_device_kernel->common;
+
 				if (common->sfdl_slot == -1)
+				{
 					continue;
+				}
+
 				if ((common->sfdl_persistent_segment ==
-				     soft->pbi_buscommon.bs_persist_segment) &&
-				     (common->sfdl_persistent_busnum ==
-				     soft->pbi_buscommon.bs_persist_busnum))
+					 soft->pbi_buscommon.bs_persist_segment) &&
+					(common->sfdl_persistent_busnum ==
+					 soft->pbi_buscommon.bs_persist_busnum))
 					common->sfdl_pcibus_info =
-					    soft;
+						soft;
 			}
 		}
 	}
@@ -184,9 +204,10 @@ pcibr_bus_fixup(struct pcibus_bussoft *prom_bussoft, struct pci_controller *cont
 	/* Setup the PMU ATE map */
 	soft->pbi_int_ate_resource.lowest_free_index = 0;
 	soft->pbi_int_ate_resource.ate =
-	    kzalloc(soft->pbi_int_ate_size * sizeof(u64), GFP_KERNEL);
+		kzalloc(soft->pbi_int_ate_size * sizeof(u64), GFP_KERNEL);
 
-	if (!soft->pbi_int_ate_resource.ate) {
+	if (!soft->pbi_int_ate_resource.ate)
+	{
 		kfree(soft);
 		return NULL;
 	}
@@ -201,13 +222,17 @@ void pcibr_force_interrupt(struct sn_irq_info *sn_irq_info)
 	int bit = sn_irq_info->irq_int_bit;
 
 	if (! sn_irq_info->irq_bridge)
+	{
 		return;
+	}
 
 	pcidev_info = (struct pcidev_info *)sn_irq_info->irq_pciioinfo;
-	if (pcidev_info) {
+
+	if (pcidev_info)
+	{
 		pcibus_info =
-		    (struct pcibus_info *)pcidev_info->pdi_host_pcidev_info->
-		    pdi_pcibus_info;
+			(struct pcibus_info *)pcidev_info->pdi_host_pcidev_info->
+			pdi_pcibus_info;
 		pcireg_force_intr_set(pcibus_info, bit);
 	}
 }
@@ -220,10 +245,12 @@ void pcibr_target_interrupt(struct sn_irq_info *sn_irq_info)
 	u64 xtalk_addr = sn_irq_info->irq_xtalkaddr;
 
 	pcidev_info = (struct pcidev_info *)sn_irq_info->irq_pciioinfo;
-	if (pcidev_info) {
+
+	if (pcidev_info)
+	{
 		pcibus_info =
-		    (struct pcibus_info *)pcidev_info->pdi_host_pcidev_info->
-		    pdi_pcibus_info;
+			(struct pcibus_info *)pcidev_info->pdi_host_pcidev_info->
+			pdi_pcibus_info;
 
 		/* Disable the device's IRQ   */
 		pcireg_intr_enable_bit_clr(pcibus_info, (1 << bit));
@@ -242,7 +269,8 @@ void pcibr_target_interrupt(struct sn_irq_info *sn_irq_info)
  * Provider entries for PIC/CP
  */
 
-struct sn_pcibus_provider pcibr_provider = {
+struct sn_pcibus_provider pcibr_provider =
+{
 	.dma_map = pcibr_dma_map,
 	.dma_map_consistent = pcibr_dma_map_consistent,
 	.dma_unmap = pcibr_dma_unmap,

@@ -42,10 +42,11 @@ static int __init eraseconfig_init(void)
 	/* Setup "EraseConfig" switch on external IRQ 0 */
 	if (request_irq(irq, eraseconfig_interrupt, 0, "Erase Config", NULL))
 		printk("SnapGear: failed to register IRQ%d for Reset witch\n",
-				irq);
+			   irq);
 	else
 		printk("SnapGear: registered EraseConfig switch on IRQ%d\n",
-				irq);
+			   irq);
+
 	return 0;
 }
 device_initcall(eraseconfig_init);
@@ -68,7 +69,8 @@ static void __init init_snapgear_IRQ(void)
 /*
  * The Machine Vector
  */
-static struct sh_machine_vector mv_snapgear __initmv = {
+static struct sh_machine_vector mv_snapgear __initmv =
+{
 	.mv_name		= "SnapGear SecureEdge5410",
 	.mv_init_irq		= init_snapgear_IRQ,
 };

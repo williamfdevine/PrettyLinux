@@ -60,7 +60,8 @@
 #define PALMTE_MMC2_GPIO	OMAP_MPUIO(7)
 #define PALMTE_MMC3_GPIO	OMAP_MPUIO(11)
 
-static const unsigned int palmte_keymap[] = {
+static const unsigned int palmte_keymap[] =
+{
 	KEY(0, 0, KEY_F1),		/* Calendar */
 	KEY(1, 0, KEY_F2),		/* Contacts */
 	KEY(2, 0, KEY_F3),		/* Tasks List */
@@ -73,12 +74,14 @@ static const unsigned int palmte_keymap[] = {
 	KEY(4, 1, KEY_ENTER),
 };
 
-static const struct matrix_keymap_data palmte_keymap_data = {
+static const struct matrix_keymap_data palmte_keymap_data =
+{
 	.keymap		= palmte_keymap,
 	.keymap_size	= ARRAY_SIZE(palmte_keymap),
 };
 
-static struct omap_kp_platform_data palmte_kp_data = {
+static struct omap_kp_platform_data palmte_kp_data =
+{
 	.rows	= 8,
 	.cols	= 8,
 	.keymap_data = &palmte_keymap_data,
@@ -86,7 +89,8 @@ static struct omap_kp_platform_data palmte_kp_data = {
 	.delay	= 12,
 };
 
-static struct resource palmte_kp_resources[] = {
+static struct resource palmte_kp_resources[] =
+{
 	[0]	= {
 		.start	= INT_KEYBOARD,
 		.end	= INT_KEYBOARD,
@@ -94,7 +98,8 @@ static struct resource palmte_kp_resources[] = {
 	},
 };
 
-static struct platform_device palmte_kp_device = {
+static struct platform_device palmte_kp_device =
+{
 	.name		= "omap-keypad",
 	.id		= -1,
 	.dev		= {
@@ -104,7 +109,8 @@ static struct platform_device palmte_kp_device = {
 	.resource	= palmte_kp_resources,
 };
 
-static struct mtd_partition palmte_rom_partitions[] = {
+static struct mtd_partition palmte_rom_partitions[] =
+{
 	/* PalmOS "Small ROM", contains the bootloader and the debugger */
 	{
 		.name		= "smallrom",
@@ -125,20 +131,23 @@ static struct mtd_partition palmte_rom_partitions[] = {
 	},
 };
 
-static struct physmap_flash_data palmte_rom_data = {
+static struct physmap_flash_data palmte_rom_data =
+{
 	.width		= 2,
 	.set_vpp	= omap1_set_vpp,
 	.parts		= palmte_rom_partitions,
 	.nr_parts	= ARRAY_SIZE(palmte_rom_partitions),
 };
 
-static struct resource palmte_rom_resource = {
+static struct resource palmte_rom_resource =
+{
 	.start		= OMAP_CS0_PHYS,
 	.end		= OMAP_CS0_PHYS + SZ_8M - 1,
 	.flags		= IORESOURCE_MEM,
 };
 
-static struct platform_device palmte_rom_device = {
+static struct platform_device palmte_rom_device =
+{
 	.name		= "physmap-flash",
 	.id		= -1,
 	.dev		= {
@@ -148,16 +157,19 @@ static struct platform_device palmte_rom_device = {
 	.resource	= &palmte_rom_resource,
 };
 
-static struct platform_device palmte_lcd_device = {
+static struct platform_device palmte_lcd_device =
+{
 	.name		= "lcd_palmte",
 	.id		= -1,
 };
 
-static struct omap_backlight_config palmte_backlight_config = {
+static struct omap_backlight_config palmte_backlight_config =
+{
 	.default_intensity	= 0xa0,
 };
 
-static struct platform_device palmte_backlight_device = {
+static struct platform_device palmte_backlight_device =
+{
 	.name		= "omap-bl",
 	.id		= -1,
 	.dev		= {
@@ -165,24 +177,28 @@ static struct platform_device palmte_backlight_device = {
 	},
 };
 
-static struct platform_device *palmte_devices[] __initdata = {
+static struct platform_device *palmte_devices[] __initdata =
+{
 	&palmte_rom_device,
 	&palmte_kp_device,
 	&palmte_lcd_device,
 	&palmte_backlight_device,
 };
 
-static struct omap_usb_config palmte_usb_config __initdata = {
+static struct omap_usb_config palmte_usb_config __initdata =
+{
 	.register_dev	= 1,	/* Mini-B only receptacle */
 	.hmc_mode	= 0,
 	.pins[0]	= 2,
 };
 
-static struct omap_lcd_config palmte_lcd_config __initdata = {
+static struct omap_lcd_config palmte_lcd_config __initdata =
+{
 	.ctrl_name	= "internal",
 };
 
-static struct spi_board_info palmte_spi_info[] __initdata = {
+static struct spi_board_info palmte_spi_info[] __initdata =
+{
 	{
 		.modalias	= "tsc2102",
 		.bus_num	= 2,	/* uWire (officially) */
@@ -194,17 +210,21 @@ static struct spi_board_info palmte_spi_info[] __initdata = {
 static void __init palmte_misc_gpio_setup(void)
 {
 	/* Set TSC2102 PINTDAV pin as input (used by TSC2102 driver) */
-	if (gpio_request(PALMTE_PINTDAV_GPIO, "TSC2102 PINTDAV") < 0) {
+	if (gpio_request(PALMTE_PINTDAV_GPIO, "TSC2102 PINTDAV") < 0)
+	{
 		printk(KERN_ERR "Could not reserve PINTDAV GPIO!\n");
 		return;
 	}
+
 	gpio_direction_input(PALMTE_PINTDAV_GPIO);
 
 	/* Set USB-or-DC-IN pin as input (unused) */
-	if (gpio_request(PALMTE_USB_OR_DC_GPIO, "USB/DC-IN") < 0) {
+	if (gpio_request(PALMTE_USB_OR_DC_GPIO, "USB/DC-IN") < 0)
+	{
 		printk(KERN_ERR "Could not reserve cable signal GPIO!\n");
 		return;
 	}
+
 	gpio_direction_input(PALMTE_USB_OR_DC_GPIO);
 }
 
@@ -231,13 +251,13 @@ static void __init omap_palmte_init(void)
 }
 
 MACHINE_START(OMAP_PALMTE, "OMAP310 based Palm Tungsten E")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= omap15xx_map_io,
-	.init_early     = omap1_init_early,
-	.init_irq	= omap1_init_irq,
-	.handle_irq	= omap1_handle_irq,
-	.init_machine	= omap_palmte_init,
-	.init_late	= omap1_init_late,
-	.init_time	= omap1_timer_init,
-	.restart	= omap1_restart,
-MACHINE_END
+		.init_early     = omap1_init_early,
+		 .init_irq	= omap1_init_irq,
+			.handle_irq	= omap1_handle_irq,
+			 .init_machine	= omap_palmte_init,
+				.init_late	= omap1_init_late,
+				  .init_time	= omap1_timer_init,
+					.restart	= omap1_restart,
+						MACHINE_END

@@ -59,13 +59,14 @@
 #define NUM_SHA512_DIGEST_WORDS 8
 
 enum job_sts {STS_UNKNOWN = 0,
-	STS_BEING_PROCESSED = 1,
-	STS_COMPLETED =       2,
-	STS_INTERNAL_ERROR = 3,
-	STS_ERROR = 4
-};
+			  STS_BEING_PROCESSED = 1,
+			  STS_COMPLETED =       2,
+			  STS_INTERNAL_ERROR = 3,
+			  STS_ERROR = 4
+			 };
 
-struct job_sha512 {
+struct job_sha512
+{
 	u8  *buffer;
 	u64  len;
 	u64  result_digest[NUM_SHA512_DIGEST_WORDS] __aligned(32);
@@ -73,16 +74,19 @@ struct job_sha512 {
 	void   *user_data;
 };
 
-struct sha512_args_x4 {
+struct sha512_args_x4
+{
 	uint64_t        digest[8][4];
 	uint8_t         *data_ptr[4];
 };
 
-struct sha512_lane_data {
+struct sha512_lane_data
+{
 	struct job_sha512 *job_in_lane;
 };
 
-struct sha512_mb_mgr {
+struct sha512_mb_mgr
+{
 	struct sha512_args_x4 args;
 
 	uint64_t lens[4];
@@ -97,7 +101,7 @@ struct sha512_mb_mgr {
 
 void sha512_mb_mgr_init_avx2(struct sha512_mb_mgr *state);
 struct job_sha512 *sha512_mb_mgr_submit_avx2(struct sha512_mb_mgr *state,
-						struct job_sha512 *job);
+		struct job_sha512 *job);
 struct job_sha512 *sha512_mb_mgr_flush_avx2(struct sha512_mb_mgr *state);
 struct job_sha512 *sha512_mb_mgr_get_comp_job_avx2(struct sha512_mb_mgr *state);
 

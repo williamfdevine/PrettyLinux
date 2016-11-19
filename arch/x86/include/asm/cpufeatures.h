@@ -2,11 +2,11 @@
 #define _ASM_X86_CPUFEATURES_H
 
 #ifndef _ASM_X86_REQUIRED_FEATURES_H
-#include <asm/required-features.h>
+	#include <asm/required-features.h>
 #endif
 
 #ifndef _ASM_X86_DISABLED_FEATURES_H
-#include <asm/disabled-features.h>
+	#include <asm/disabled-features.h>
 #endif
 
 /*
@@ -37,7 +37,7 @@
 #define X86_FEATURE_PGE		( 0*32+13) /* Page Global Enable */
 #define X86_FEATURE_MCA		( 0*32+14) /* Machine Check Architecture */
 #define X86_FEATURE_CMOV	( 0*32+15) /* CMOV instructions */
-					  /* (plus FCMOVcc, FCOMI with FPU) */
+/* (plus FCMOVcc, FCOMI with FPU) */
 #define X86_FEATURE_PAT		( 0*32+16) /* Page Attribute Table */
 #define X86_FEATURE_PSE36	( 0*32+17) /* 36-bit PSEs */
 #define X86_FEATURE_PN		( 0*32+18) /* Processor serial number */
@@ -302,11 +302,11 @@
 #define X86_BUG_CLFLUSH_MONITOR	X86_BUG(7) /* AAI65, CLFLUSH required before MONITOR */
 #define X86_BUG_SYSRET_SS_ATTRS	X86_BUG(8) /* SYSRET doesn't fix up SS attrs */
 #ifdef CONFIG_X86_32
-/*
- * 64-bit kernels don't use X86_BUG_ESPFIX.  Make the define conditional
- * to avoid confusion.
- */
-#define X86_BUG_ESPFIX		X86_BUG(9) /* "" IRET to 16-bit SS corrupts ESP/RSP high bits */
+	/*
+	* 64-bit kernels don't use X86_BUG_ESPFIX.  Make the define conditional
+	* to avoid confusion.
+	*/
+	#define X86_BUG_ESPFIX		X86_BUG(9) /* "" IRET to 16-bit SS corrupts ESP/RSP high bits */
 #endif
 #define X86_BUG_NULL_SEG	X86_BUG(10) /* Nulling a selector preserves the base */
 #define X86_BUG_SWAPGS_FENCE	X86_BUG(11) /* SWAPGS without input dep on GS */

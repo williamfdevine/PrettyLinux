@@ -18,7 +18,8 @@ extern u_long apollo_model;
 
 #define DECLARE_2681_FIELD(x) unsigned char x; unsigned char dummy##x
 
-struct SCN2681 {
+struct SCN2681
+{
 
 	DECLARE_2681_FIELD(mra);
 	DECLARE_2681_FIELD(sra_csra);
@@ -39,12 +40,13 @@ struct SCN2681 {
 
 };
 
-struct mc146818 {
-        unsigned char second, alarm_second;
-        unsigned char minute, alarm_minute;
-        unsigned char hours, alarm_hours;
-        unsigned char day_of_week, day_of_month;
-        unsigned char month, year;
+struct mc146818
+{
+	unsigned char second, alarm_second;
+	unsigned char minute, alarm_minute;
+	unsigned char hours, alarm_hours;
+	unsigned char day_of_week, day_of_month;
+	unsigned char month, year;
 };
 
 

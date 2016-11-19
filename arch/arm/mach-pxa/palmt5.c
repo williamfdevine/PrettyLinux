@@ -50,7 +50,8 @@
 /******************************************************************************
  * Pin configuration
  ******************************************************************************/
-static unsigned long palmt5_pin_config[] __initdata = {
+static unsigned long palmt5_pin_config[] __initdata =
+{
 	/* MMC */
 	GPIO32_MMC_CLK,
 	GPIO92_MMC_DAT_0,
@@ -108,7 +109,8 @@ static unsigned long palmt5_pin_config[] __initdata = {
  * GPIO keyboard
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_PXA27x) || defined(CONFIG_KEYBOARD_PXA27x_MODULE)
-static const unsigned int palmt5_matrix_keys[] = {
+static const unsigned int palmt5_matrix_keys[] =
+{
 	KEY(0, 0, KEY_POWER),
 	KEY(0, 1, KEY_F1),
 	KEY(0, 2, KEY_ENTER),
@@ -124,12 +126,14 @@ static const unsigned int palmt5_matrix_keys[] = {
 	KEY(3, 2, KEY_LEFT),
 };
 
-static struct matrix_keymap_data palmt5_matrix_keymap_data = {
+static struct matrix_keymap_data palmt5_matrix_keymap_data =
+{
 	.keymap			= palmt5_matrix_keys,
 	.keymap_size		= ARRAY_SIZE(palmt5_matrix_keys),
 };
 
-static struct pxa27x_keypad_platform_data palmt5_keypad_platform_data = {
+static struct pxa27x_keypad_platform_data palmt5_keypad_platform_data =
+{
 	.matrix_key_rows	= 4,
 	.matrix_key_cols	= 3,
 	.matrix_keymap_data	= &palmt5_matrix_keymap_data,
@@ -149,16 +153,19 @@ static inline void palmt5_kpc_init(void) {}
  * GPIO keys
  ******************************************************************************/
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-static struct gpio_keys_button palmt5_pxa_buttons[] = {
+static struct gpio_keys_button palmt5_pxa_buttons[] =
+{
 	{KEY_F8, GPIO_NR_PALMT5_HOTSYNC_BUTTON_N, 1, "HotSync Button" },
 };
 
-static struct gpio_keys_platform_data palmt5_pxa_keys_data = {
+static struct gpio_keys_platform_data palmt5_pxa_keys_data =
+{
 	.buttons	= palmt5_pxa_buttons,
 	.nbuttons	= ARRAY_SIZE(palmt5_pxa_buttons),
 };
 
-static struct platform_device palmt5_pxa_keys = {
+static struct platform_device palmt5_pxa_keys =
+{
 	.name	= "gpio-keys",
 	.id	= -1,
 	.dev	= {
@@ -190,14 +197,14 @@ static void __init palmt5_init(void)
 	pxa_set_stuart_info(NULL);
 
 	palm27x_mmc_init(GPIO_NR_PALMT5_SD_DETECT_N, GPIO_NR_PALMT5_SD_READONLY,
-			GPIO_NR_PALMT5_SD_POWER, 0);
+					 GPIO_NR_PALMT5_SD_POWER, 0);
 	palm27x_pm_init(PALMT5_STR_BASE);
 	palm27x_lcd_init(-1, &palm_320x480_lcd_mode);
 	palm27x_udc_init(GPIO_NR_PALMT5_USB_DETECT_N,
-			GPIO_NR_PALMT5_USB_PULLUP, 1);
+					 GPIO_NR_PALMT5_USB_PULLUP, 1);
 	palm27x_irda_init(GPIO_NR_PALMT5_IR_DISABLE);
 	palm27x_ac97_init(PALMT5_BAT_MIN_VOLTAGE, PALMT5_BAT_MAX_VOLTAGE,
-			GPIO_NR_PALMT5_EARPHONE_DETECT, 95);
+					  GPIO_NR_PALMT5_EARPHONE_DETECT, 95);
 	palm27x_pwm_init(GPIO_NR_PALMT5_BL_POWER, GPIO_NR_PALMT5_LCD_POWER);
 	palm27x_power_init(GPIO_NR_PALMT5_POWER_DETECT, -1);
 	palm27x_pmic_init();
@@ -206,13 +213,13 @@ static void __init palmt5_init(void)
 }
 
 MACHINE_START(PALMT5, "Palm Tungsten|T5")
-	.atag_offset	= 0x100,
+.atag_offset	= 0x100,
 	.map_io		= pxa27x_map_io,
-	.reserve	= palmt5_reserve,
-	.nr_irqs	= PXA_NR_IRQS,
-	.init_irq	= pxa27x_init_irq,
-	.handle_irq	= pxa27x_handle_irq,
-	.init_time	= pxa_timer_init,
-	.init_machine	= palmt5_init,
-	.restart	= pxa_restart,
-MACHINE_END
+		.reserve	= palmt5_reserve,
+			.nr_irqs	= PXA_NR_IRQS,
+				.init_irq	= pxa27x_init_irq,
+				   .handle_irq	= pxa27x_handle_irq,
+					.init_time	= pxa_timer_init,
+					  .init_machine	= palmt5_init,
+						 .restart	= pxa_restart,
+							 MACHINE_END

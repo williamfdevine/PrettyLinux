@@ -69,24 +69,24 @@
 	 (((x) & 0xff000000) >> 24))
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define HOST_ORDER ELFDATA2LSB
+	#define HOST_ORDER ELFDATA2LSB
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#define HOST_ORDER ELFDATA2MSB
+	#define HOST_ORDER ELFDATA2MSB
 #endif
 
 /* Some of the ELF constants we'd like to use were added to <elf.h>
  * relatively recently.
  */
 #ifndef EF_ARM_EABI_VER5
-#define EF_ARM_EABI_VER5 0x05000000
+	#define EF_ARM_EABI_VER5 0x05000000
 #endif
 
 #ifndef EF_ARM_ABI_FLOAT_SOFT
-#define EF_ARM_ABI_FLOAT_SOFT 0x200
+	#define EF_ARM_ABI_FLOAT_SOFT 0x200
 #endif
 
 #ifndef EF_ARM_ABI_FLOAT_HARD
-#define EF_ARM_ABI_FLOAT_HARD 0x400
+	#define EF_ARM_ABI_FLOAT_HARD 0x400
 #endif
 
 static int failed;
@@ -108,7 +108,9 @@ static void fail(const char *fmt, ...)
 static void cleanup(void)
 {
 	if (failed && outfile != NULL)
+	{
 		unlink(outfile);
+	}
 }
 
 static Elf32_Word read_elf_word(Elf32_Word word, bool swap)
@@ -143,69 +145,99 @@ int main(int argc, char **argv)
 	argv0 = argv[0];
 
 	if (argc != 3)
+	{
 		fail("Usage: %s [infile] [outfile]\n", argv[0]);
+	}
 
 	infile = argv[1];
 	outfile = argv[2];
 
 	infd = open(infile, O_RDONLY);
+
 	if (infd < 0)
+	{
 		fail("Cannot open %s: %s\n", infile, strerror(errno));
+	}
 
 	if (fstat(infd, &stat) != 0)
+	{
 		fail("Failed stat for %s: %s\n", infile, strerror(errno));
+	}
 
 	inbuf = mmap(NULL, stat.st_size, PROT_READ, MAP_PRIVATE, infd, 0);
+
 	if (inbuf == MAP_FAILED)
+	{
 		fail("Failed to map %s: %s\n", infile, strerror(errno));
+	}
 
 	close(infd);
 
 	inhdr = inbuf;
 
 	if (memcmp(&inhdr->e_ident, ELFMAG, SELFMAG) != 0)
+	{
 		fail("Not an ELF file\n");
+	}
 
 	if (inhdr->e_ident[EI_CLASS] != ELFCLASS32)
+	{
 		fail("Unsupported ELF class\n");
+	}
 
 	swap = inhdr->e_ident[EI_DATA] != HOST_ORDER;
 
 	if (read_elf_half(inhdr->e_type, swap) != ET_DYN)
+	{
 		fail("Not a shared object\n");
+	}
 
 	if (read_elf_half(inhdr->e_machine, swap) != EM_ARM)
+	{
 		fail("Unsupported architecture %#x\n", inhdr->e_machine);
+	}
 
 	e_flags = read_elf_word(inhdr->e_flags, swap);
 
-	if (EF_ARM_EABI_VERSION(e_flags) != EF_ARM_EABI_VER5) {
+	if (EF_ARM_EABI_VERSION(e_flags) != EF_ARM_EABI_VER5)
+	{
 		fail("Unsupported EABI version %#x\n",
-		     EF_ARM_EABI_VERSION(e_flags));
+			 EF_ARM_EABI_VERSION(e_flags));
 	}
 
 	if (e_flags & EF_ARM_ABI_FLOAT_HARD)
+	{
 		fail("Unexpected hard-float flag set in e_flags\n");
+	}
 
 	clear_soft_float = !!(e_flags & EF_ARM_ABI_FLOAT_SOFT);
 
 	outfd = open(outfile, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
 	if (outfd < 0)
+	{
 		fail("Cannot open %s: %s\n", outfile, strerror(errno));
+	}
 
 	if (ftruncate(outfd, stat.st_size) != 0)
+	{
 		fail("Cannot truncate %s: %s\n", outfile, strerror(errno));
+	}
 
 	outbuf = mmap(NULL, stat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED,
-		      outfd, 0);
+				  outfd, 0);
+
 	if (outbuf == MAP_FAILED)
+	{
 		fail("Failed to map %s: %s\n", outfile, strerror(errno));
+	}
 
 	close(outfd);
 
 	memcpy(outbuf, inbuf, stat.st_size);
 
-	if (clear_soft_float) {
+	if (clear_soft_float)
+	{
 		Elf32_Ehdr *outhdr;
 
 		outhdr = outbuf;
@@ -214,7 +246,9 @@ int main(int argc, char **argv)
 	}
 
 	if (msync(outbuf, stat.st_size, MS_SYNC) != 0)
+	{
 		fail("Failed to sync %s: %s\n", outfile, strerror(errno));
+	}
 
 	return EXIT_SUCCESS;
 }

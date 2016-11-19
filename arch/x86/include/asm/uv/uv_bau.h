@@ -47,7 +47,7 @@
 #define UV1_NET_ENDPOINT_INTD		0x38
 #define UV2_NET_ENDPOINT_INTD		0x28
 #define UV_NET_ENDPOINT_INTD		(is_uv1_hub() ?			\
-			UV1_NET_ENDPOINT_INTD : UV2_NET_ENDPOINT_INTD)
+									 UV1_NET_ENDPOINT_INTD : UV2_NET_ENDPOINT_INTD)
 #define UV_DESC_PSHIFT			49
 #define UV_PAYLOADQ_GNODE_SHIFT		49
 #define UV_PTC_BASENAME			"sgi_uv/ptc_statistics"
@@ -195,7 +195,8 @@
  * 'base_dest_nasid' field of the header corresponds to the
  * destination nodeID associated with that specified bit.
  */
-struct pnmask {
+struct pnmask
+{
 	unsigned long		bits[BITS_TO_LONGS(UV_DISTRIBUTION_SIZE)];
 };
 
@@ -204,7 +205,8 @@ struct pnmask {
  * (during initialization we need to check that unsigned long has
  *  enough bits for max. cpu's per uvhub)
  */
-struct bau_local_cpumask {
+struct bau_local_cpumask
+{
 	unsigned long		bits;
 };
 
@@ -225,7 +227,8 @@ struct bau_local_cpumask {
 /*
  * The payload is software-defined for INTD transactions
  */
-struct bau_msg_payload {
+struct bau_msg_payload
+{
 	unsigned long	address;		/* signifies a page or all
 						   TLB's of the cpu */
 	/* 64 bits */
@@ -233,7 +236,7 @@ struct bau_msg_payload {
 	/* 16 bits */
 	unsigned short	acknowledge_count;	/* filled in by destination */
 	/* 16 bits */
-	unsigned int	reserved1:32;		/* not usable */
+	unsigned int	reserved1: 32;		/* not usable */
 };
 
 
@@ -241,82 +244,83 @@ struct bau_msg_payload {
  * UV1 Message header:  16 bytes (128 bits) (bytes 0x30-0x3f of descriptor)
  * see table 4.2.3.0.1 in broacast_assist spec.
  */
-struct uv1_bau_msg_header {
-	unsigned int	dest_subnodeid:6;	/* must be 0x10, for the LB */
+struct uv1_bau_msg_header
+{
+	unsigned int	dest_subnodeid: 6;	/* must be 0x10, for the LB */
 	/* bits 5:0 */
-	unsigned int	base_dest_nasid:15;	/* nasid of the first bit */
+	unsigned int	base_dest_nasid: 15;	/* nasid of the first bit */
 	/* bits 20:6 */				/* in uvhub map */
-	unsigned int	command:8;		/* message type */
+	unsigned int	command: 8;		/* message type */
 	/* bits 28:21 */
 	/* 0x38: SN3net EndPoint Message */
-	unsigned int	rsvd_1:3;		/* must be zero */
+	unsigned int	rsvd_1: 3;		/* must be zero */
 	/* bits 31:29 */
 	/* int will align on 32 bits */
-	unsigned int	rsvd_2:9;		/* must be zero */
+	unsigned int	rsvd_2: 9;		/* must be zero */
 	/* bits 40:32 */
 	/* Suppl_A is 56-41 */
-	unsigned int	sequence:16;		/* message sequence number */
+	unsigned int	sequence: 16;		/* message sequence number */
 	/* bits 56:41 */			/* becomes bytes 16-17 of msg */
-						/* Address field (96:57) is
-						   never used as an address
-						   (these are address bits
-						   42:3) */
+	/* Address field (96:57) is
+	   never used as an address
+	   (these are address bits
+	   42:3) */
 
-	unsigned int	rsvd_3:1;		/* must be zero */
+	unsigned int	rsvd_3: 1;		/* must be zero */
 	/* bit 57 */
 	/* address bits 27:4 are payload */
 	/* these next 24  (58-81) bits become bytes 12-14 of msg */
 	/* bits 65:58 land in byte 12 */
-	unsigned int	replied_to:1;		/* sent as 0 by the source to
+	unsigned int	replied_to: 1;		/* sent as 0 by the source to
 						   byte 12 */
 	/* bit 58 */
-	unsigned int	msg_type:3;		/* software type of the
+	unsigned int	msg_type: 3;		/* software type of the
 						   message */
 	/* bits 61:59 */
-	unsigned int	canceled:1;		/* message canceled, resource
+	unsigned int	canceled: 1;		/* message canceled, resource
 						   is to be freed*/
 	/* bit 62 */
-	unsigned int	payload_1a:1;		/* not currently used */
+	unsigned int	payload_1a: 1;		/* not currently used */
 	/* bit 63 */
-	unsigned int	payload_1b:2;		/* not currently used */
+	unsigned int	payload_1b: 2;		/* not currently used */
 	/* bits 65:64 */
 
 	/* bits 73:66 land in byte 13 */
-	unsigned int	payload_1ca:6;		/* not currently used */
+	unsigned int	payload_1ca: 6;		/* not currently used */
 	/* bits 71:66 */
-	unsigned int	payload_1c:2;		/* not currently used */
+	unsigned int	payload_1c: 2;		/* not currently used */
 	/* bits 73:72 */
 
 	/* bits 81:74 land in byte 14 */
-	unsigned int	payload_1d:6;		/* not currently used */
+	unsigned int	payload_1d: 6;		/* not currently used */
 	/* bits 79:74 */
-	unsigned int	payload_1e:2;		/* not currently used */
+	unsigned int	payload_1e: 2;		/* not currently used */
 	/* bits 81:80 */
 
-	unsigned int	rsvd_4:7;		/* must be zero */
+	unsigned int	rsvd_4: 7;		/* must be zero */
 	/* bits 88:82 */
-	unsigned int	swack_flag:1;		/* software acknowledge flag */
+	unsigned int	swack_flag: 1;		/* software acknowledge flag */
 	/* bit 89 */
-						/* INTD trasactions at
-						   destination are to wait for
-						   software acknowledge */
-	unsigned int	rsvd_5:6;		/* must be zero */
+	/* INTD trasactions at
+	   destination are to wait for
+	   software acknowledge */
+	unsigned int	rsvd_5: 6;		/* must be zero */
 	/* bits 95:90 */
-	unsigned int	rsvd_6:5;		/* must be zero */
+	unsigned int	rsvd_6: 5;		/* must be zero */
 	/* bits 100:96 */
-	unsigned int	int_both:1;		/* if 1, interrupt both sockets
+	unsigned int	int_both: 1;		/* if 1, interrupt both sockets
 						   on the uvhub */
 	/* bit 101*/
-	unsigned int	fairness:3;		/* usually zero */
+	unsigned int	fairness: 3;		/* usually zero */
 	/* bits 104:102 */
-	unsigned int	multilevel:1;		/* multi-level multicast
+	unsigned int	multilevel: 1;		/* multi-level multicast
 						   format */
 	/* bit 105 */
 	/* 0 for TLB: endpoint multi-unicast messages */
-	unsigned int	chaining:1;		/* next descriptor is part of
+	unsigned int	chaining: 1;		/* next descriptor is part of
 						   this activation*/
 	/* bit 106 */
-	unsigned int	rsvd_7:21;		/* must be zero */
+	unsigned int	rsvd_7: 21;		/* must be zero */
 	/* bits 127:107 */
 };
 
@@ -325,68 +329,70 @@ struct uv1_bau_msg_header {
  * see figure 9-2 of harp_sys.pdf
  * assuming UV3 is the same
  */
-struct uv2_3_bau_msg_header {
-	unsigned int	base_dest_nasid:15;	/* nasid of the first bit */
+struct uv2_3_bau_msg_header
+{
+	unsigned int	base_dest_nasid: 15;	/* nasid of the first bit */
 	/* bits 14:0 */				/* in uvhub map */
-	unsigned int	dest_subnodeid:5;	/* must be 0x10, for the LB */
+	unsigned int	dest_subnodeid: 5;	/* must be 0x10, for the LB */
 	/* bits 19:15 */
-	unsigned int	rsvd_1:1;		/* must be zero */
+	unsigned int	rsvd_1: 1;		/* must be zero */
 	/* bit 20 */
 	/* Address bits 59:21 */
 	/* bits 25:2 of address (44:21) are payload */
 	/* these next 24 bits become bytes 12-14 of msg */
 	/* bits 28:21 land in byte 12 */
-	unsigned int	replied_to:1;		/* sent as 0 by the source to
+	unsigned int	replied_to: 1;		/* sent as 0 by the source to
 						   byte 12 */
 	/* bit 21 */
-	unsigned int	msg_type:3;		/* software type of the
+	unsigned int	msg_type: 3;		/* software type of the
 						   message */
 	/* bits 24:22 */
-	unsigned int	canceled:1;		/* message canceled, resource
+	unsigned int	canceled: 1;		/* message canceled, resource
 						   is to be freed*/
 	/* bit 25 */
-	unsigned int	payload_1:3;		/* not currently used */
+	unsigned int	payload_1: 3;		/* not currently used */
 	/* bits 28:26 */
 
 	/* bits 36:29 land in byte 13 */
-	unsigned int	payload_2a:3;		/* not currently used */
-	unsigned int	payload_2b:5;		/* not currently used */
+	unsigned int	payload_2a: 3;		/* not currently used */
+	unsigned int	payload_2b: 5;		/* not currently used */
 	/* bits 36:29 */
 
 	/* bits 44:37 land in byte 14 */
-	unsigned int	payload_3:8;		/* not currently used */
+	unsigned int	payload_3: 8;		/* not currently used */
 	/* bits 44:37 */
 
-	unsigned int	rsvd_2:7;		/* reserved */
+	unsigned int	rsvd_2: 7;		/* reserved */
 	/* bits 51:45 */
-	unsigned int	swack_flag:1;		/* software acknowledge flag */
+	unsigned int	swack_flag: 1;		/* software acknowledge flag */
 	/* bit 52 */
-	unsigned int	rsvd_3a:3;		/* must be zero */
-	unsigned int	rsvd_3b:8;		/* must be zero */
-	unsigned int	rsvd_3c:8;		/* must be zero */
-	unsigned int	rsvd_3d:3;		/* must be zero */
+	unsigned int	rsvd_3a: 3;		/* must be zero */
+	unsigned int	rsvd_3b: 8;		/* must be zero */
+	unsigned int	rsvd_3c: 8;		/* must be zero */
+	unsigned int	rsvd_3d: 3;		/* must be zero */
 	/* bits 74:53 */
-	unsigned int	fairness:3;		/* usually zero */
+	unsigned int	fairness: 3;		/* usually zero */
 	/* bits 77:75 */
 
-	unsigned int	sequence:16;		/* message sequence number */
+	unsigned int	sequence: 16;		/* message sequence number */
 	/* bits 93:78  Suppl_A  */
-	unsigned int	chaining:1;		/* next descriptor is part of
+	unsigned int	chaining: 1;		/* next descriptor is part of
 						   this activation*/
 	/* bit 94 */
-	unsigned int	multilevel:1;		/* multi-level multicast
+	unsigned int	multilevel: 1;		/* multi-level multicast
 						   format */
 	/* bit 95 */
-	unsigned int	rsvd_4:24;		/* ordered / source node /
+	unsigned int	rsvd_4: 24;		/* ordered / source node /
 						   source subnode / aging
 						   must be zero */
 	/* bits 119:96 */
-	unsigned int	command:8;		/* message type */
+	unsigned int	command: 8;		/* message type */
 	/* bits 127:120 */
 };
 
 /* Abstracted BAU functions */
-struct bau_operations {
+struct bau_operations
+{
 	unsigned long (*read_l_sw_ack)(void);
 	unsigned long (*read_g_sw_ack)(int pnode);
 	unsigned long (*bau_gpa_to_offset)(unsigned long vaddr);
@@ -401,12 +407,14 @@ struct bau_operations {
  * The format of the message to send, plus all accompanying control
  * Should be 64 bytes
  */
-struct bau_desc {
+struct bau_desc
+{
 	struct pnmask				distribution;
 	/*
 	 * message template, consisting of header and payload:
 	 */
-	union bau_msg_header {
+	union bau_msg_header
+	{
 		struct uv1_bau_msg_header	uv1_hdr;
 		struct uv2_3_bau_msg_header	uv2_3_hdr;
 	} header;
@@ -445,7 +453,8 @@ struct bau_desc {
  *  Acknowledge Processing) also selects 32 byte (17 bytes usable) payload
  *  operation."
  */
-struct bau_pq_entry {
+struct bau_pq_entry
+{
 	unsigned long	address;	/* signifies a page or all TLB's
 					   of the cpu */
 	/* 64 bits, bytes 0-7 */
@@ -454,10 +463,10 @@ struct bau_pq_entry {
 	unsigned short	acknowledge_count; /* filled in by destination */
 	/* 16 bits, bytes 10-11 */
 	/* these next 3 bytes come from bits 58-81 of the message header */
-	unsigned short	replied_to:1;	/* sent as 0 by the source */
-	unsigned short	msg_type:3;	/* software message type */
-	unsigned short	canceled:1;	/* sent as 0 by the source */
-	unsigned short	unused1:3;	/* not currently using */
+	unsigned short	replied_to: 1;	/* sent as 0 by the source */
+	unsigned short	msg_type: 3;	/* software message type */
+	unsigned short	canceled: 1;	/* sent as 0 by the source */
+	unsigned short	unused1: 3;	/* not currently using */
 	/* byte 12 */
 	unsigned char	unused2a;	/* not currently using */
 	/* byte 13 */
@@ -475,21 +484,24 @@ struct bau_pq_entry {
 	/* bytes 24-31 */
 };
 
-struct msg_desc {
+struct msg_desc
+{
 	struct bau_pq_entry	*msg;
 	int			msg_slot;
 	struct bau_pq_entry	*queue_first;
 	struct bau_pq_entry	*queue_last;
 };
 
-struct reset_args {
+struct reset_args
+{
 	int			sender;
 };
 
 /*
  * This structure is allocated per_cpu for UV TLB shootdown statistics.
  */
-struct ptc_stats {
+struct ptc_stats
+{
 	/* sender statistics */
 	unsigned long	s_giveup;		/* number of fall backs to
 						   IPI-style flushes */
@@ -565,22 +577,26 @@ struct ptc_stats {
 						   by resets */
 };
 
-struct tunables {
+struct tunables
+{
 	int			*tunp;
 	int			deflt;
 };
 
-struct hub_and_pnode {
+struct hub_and_pnode
+{
 	short			uvhub;
 	short			pnode;
 };
 
-struct socket_desc {
+struct socket_desc
+{
 	short			num_cpus;
 	short			cpu_number[MAX_CPUS_PER_SOCKET];
 };
 
-struct uvhub_desc {
+struct uvhub_desc
+{
 	unsigned short		socket_mask;
 	short			num_cpus;
 	short			uvhub;
@@ -591,7 +607,8 @@ struct uvhub_desc {
 /*
  * one per-cpu; to locate the software tables
  */
-struct bau_control {
+struct bau_control
+{
 	struct bau_desc		*descriptor_base;
 	struct bau_pq_entry	*queue_first;
 	struct bau_pq_entry	*queue_last;
@@ -753,14 +770,14 @@ static inline void bau_uvhub_set(int pnode, struct pnmask *dstp)
 	__set_bit(pnode, &dstp->bits[0]);
 }
 static inline void bau_uvhubs_clear(struct pnmask *dstp,
-				    int nbits)
+									int nbits)
 {
 	bitmap_zero(&dstp->bits[0], nbits);
 }
 static inline int bau_uvhub_weight(struct pnmask *dstp)
 {
 	return bitmap_weight((unsigned long *)&dstp->bits[0],
-				UV_DISTRIBUTION_SIZE);
+						 UV_DISTRIBUTION_SIZE);
 }
 
 static inline void bau_cpubits_clear(struct bau_local_cpumask *dstp, int nbits)
@@ -770,11 +787,12 @@ static inline void bau_cpubits_clear(struct bau_local_cpumask *dstp, int nbits)
 
 extern void uv_bau_message_intr1(void);
 #ifdef CONFIG_TRACING
-#define trace_uv_bau_message_intr1 uv_bau_message_intr1
+	#define trace_uv_bau_message_intr1 uv_bau_message_intr1
 #endif
 extern void uv_bau_timeout_intr1(void);
 
-struct atomic_short {
+struct atomic_short
+{
 	short counter;
 };
 
@@ -800,8 +818,8 @@ static inline int atom_asr(short i, struct atomic_short *v)
 {
 	short __i = i;
 	asm volatile(LOCK_PREFIX "xaddw %0, %1"
-			: "+r" (i), "+m" (v->counter)
-			: : "memory");
+				 : "+r" (i), "+m" (v->counter)
+				 : : "memory");
 	return i + __i;
 }
 
@@ -818,10 +836,13 @@ static inline int atom_asr(short i, struct atomic_short *v)
 static inline int atomic_inc_unless_ge(spinlock_t *lock, atomic_t *v, int u)
 {
 	spin_lock(lock);
-	if (atomic_read(v) >= u) {
+
+	if (atomic_read(v) >= u)
+	{
 		spin_unlock(lock);
 		return 0;
 	}
+
 	atomic_inc(v);
 	spin_unlock(lock);
 	return 1;

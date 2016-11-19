@@ -87,10 +87,10 @@
 #define nlm_read_sata_reg(b, r)		nlm_read_reg(b, r)
 #define nlm_write_sata_reg(b, r, v)	nlm_write_reg(b, r, v)
 #define nlm_get_sata_pcibase(node)	\
-		nlm_pcicfg_base(XLP_IO_SATA_OFFSET(node))
+	nlm_pcicfg_base(XLP_IO_SATA_OFFSET(node))
 /* SATA device specific configuration registers are starts at 0x900 offset */
 #define nlm_get_sata_regbase(node)	\
-		(nlm_get_sata_pcibase(node) + 0x900)
+	(nlm_get_sata_pcibase(node) + 0x900)
 
 static void sata_clear_glue_reg(uint64_t regbase, uint32_t off, uint32_t bit)
 {
@@ -121,28 +121,36 @@ static void nlm_sata_firmware_init(int node)
 	sata_clear_glue_reg(regbase, SATA_CTL, SATA_RST_N);
 	/* Reset PHY */
 	sata_clear_glue_reg(regbase, SATA_CTL,
-			(PHY3_RESET_N | PHY2_RESET_N
-			 | PHY1_RESET_N | PHY0_RESET_N));
+						(PHY3_RESET_N | PHY2_RESET_N
+						 | PHY1_RESET_N | PHY0_RESET_N));
 
 	/* Set SATA */
 	sata_set_glue_reg(regbase, SATA_CTL, SATA_RST_N);
 	/* Set PHY */
 	sata_set_glue_reg(regbase, SATA_CTL,
-			(PHY3_RESET_N | PHY2_RESET_N
-			 | PHY1_RESET_N | PHY0_RESET_N));
+					  (PHY3_RESET_N | PHY2_RESET_N
+					   | PHY1_RESET_N | PHY0_RESET_N));
 
 	pr_debug("Waiting for PHYs to come up.\n");
 	i = 0;
-	do {
+
+	do
+	{
 		reg_val = nlm_read_sata_reg(regbase, SATA_STATUS);
 		i++;
-	} while (((reg_val & 0xF0) != 0xF0) && (i < 10000));
+	}
+	while (((reg_val & 0xF0) != 0xF0) && (i < 10000));
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		if (reg_val  & (P0_PHY_READY << i))
+		{
 			pr_info("PHY%d is up.\n", i);
+		}
 		else
+		{
 			pr_info("PHY%d is down.\n", i);
+		}
 	}
 
 	pr_info("XLP AHCI init done.\n");
@@ -154,7 +162,10 @@ static int __init nlm_ahci_init(void)
 	int chip = read_c0_prid() & PRID_IMP_MASK;
 
 	if (chip == PRID_IMP_NETLOGIC_XLP3XX)
+	{
 		nlm_sata_firmware_init(node);
+	}
+
 	return 0;
 }
 
@@ -204,6 +215,6 @@ static void nlm_sata_fixup_final(struct pci_dev *dev)
 arch_initcall(nlm_ahci_init);
 
 DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_NETLOGIC, PCI_DEVICE_ID_NLM_SATA,
-		nlm_sata_fixup_bar);
+						 nlm_sata_fixup_bar);
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_NETLOGIC, PCI_DEVICE_ID_NLM_SATA,
-		nlm_sata_fixup_final);
+						nlm_sata_fixup_final);

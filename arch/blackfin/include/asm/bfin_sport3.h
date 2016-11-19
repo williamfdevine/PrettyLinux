@@ -81,7 +81,8 @@
 #define SPORT_CTL2_CKMUXSEL           0x00000002    /* Clock MUX Select */
 #define SPORT_CTL2_LBSEL              0x00000004    /* Loopback Select */
 
-struct sport_register {
+struct sport_register
+{
 	u32 spctl;
 	u32 div;
 	u32 spmctl;
@@ -100,7 +101,8 @@ struct sport_register {
 	u32 revid;
 };
 
-struct bfin_snd_platform_data {
+struct bfin_snd_platform_data
+{
 	const unsigned short *pin_req;
 };
 

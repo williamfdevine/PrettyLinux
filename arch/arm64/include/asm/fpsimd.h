@@ -28,10 +28,13 @@
  * Note that user_fpsimd forms a prefix of this structure, which is
  * relied upon in the ptrace FP/SIMD accessors.
  */
-struct fpsimd_state {
-	union {
+struct fpsimd_state
+{
+	union
+	{
 		struct user_fpsimd_state user_fpsimd;
-		struct {
+		struct
+		{
 			__uint128_t vregs[32];
 			u32 fpsr;
 			u32 fpcr;
@@ -44,7 +47,8 @@ struct fpsimd_state {
 /*
  * Struct for stacking the bottom 'n' FP/SIMD registers.
  */
-struct fpsimd_partial_state {
+struct fpsimd_partial_state
+{
 	u32		fpsr;
 	u32		fpcr;
 	u32		num_regs;
@@ -53,14 +57,14 @@ struct fpsimd_partial_state {
 
 
 #if defined(__KERNEL__) && defined(CONFIG_COMPAT)
-/* Masks for extracting the FPSR and FPCR from the FPSCR */
-#define VFP_FPSCR_STAT_MASK	0xf800009f
-#define VFP_FPSCR_CTRL_MASK	0x07f79f00
-/*
- * The VFP state has 32x64-bit registers and a single 32-bit
- * control/status register.
- */
-#define VFP_STATE_SIZE		((32 * 8) + 4)
+	/* Masks for extracting the FPSR and FPCR from the FPSCR */
+	#define VFP_FPSCR_STAT_MASK	0xf800009f
+	#define VFP_FPSCR_CTRL_MASK	0x07f79f00
+	/*
+	* The VFP state has 32x64-bit registers and a single 32-bit
+	* control/status register.
+	*/
+	#define VFP_STATE_SIZE		((32 * 8) + 4)
 #endif
 
 struct task_struct;
@@ -78,7 +82,7 @@ extern void fpsimd_update_current_state(struct fpsimd_state *state);
 extern void fpsimd_flush_task_state(struct task_struct *target);
 
 extern void fpsimd_save_partial_state(struct fpsimd_partial_state *state,
-				      u32 num_regs);
+									  u32 num_regs);
 extern void fpsimd_load_partial_state(struct fpsimd_partial_state *state);
 
 #endif

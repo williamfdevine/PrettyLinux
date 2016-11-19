@@ -18,7 +18,8 @@
 #include <asm/fpu/api.h>
 #include <asm/simd.h>
 
-struct poly1305_simd_desc_ctx {
+struct poly1305_simd_desc_ctx
+{
 	struct poly1305_desc_ctx base;
 	/* derived key u set? */
 	bool uset;
@@ -32,12 +33,12 @@ struct poly1305_simd_desc_ctx {
 };
 
 asmlinkage void poly1305_block_sse2(u32 *h, const u8 *src,
-				    const u32 *r, unsigned int blocks);
+									const u32 *r, unsigned int blocks);
 asmlinkage void poly1305_2block_sse2(u32 *h, const u8 *src, const u32 *r,
-				     unsigned int blocks, const u32 *u);
+									 unsigned int blocks, const u32 *u);
 #ifdef CONFIG_AS_AVX2
 asmlinkage void poly1305_4block_avx2(u32 *h, const u8 *src, const u32 *r,
-				     unsigned int blocks, const u32 *u);
+									 unsigned int blocks, const u32 *u);
 static bool poly1305_use_avx2;
 #endif
 
@@ -65,7 +66,7 @@ static void poly1305_simd_mult(u32 *a, const u32 *b)
 }
 
 static unsigned int poly1305_simd_blocks(struct poly1305_desc_ctx *dctx,
-					 const u8 *src, unsigned int srclen)
+		const u8 *src, unsigned int srclen)
 {
 	struct poly1305_simd_desc_ctx *sctx;
 	unsigned int blocks, datalen;
@@ -73,77 +74,97 @@ static unsigned int poly1305_simd_blocks(struct poly1305_desc_ctx *dctx,
 	BUILD_BUG_ON(offsetof(struct poly1305_simd_desc_ctx, base));
 	sctx = container_of(dctx, struct poly1305_simd_desc_ctx, base);
 
-	if (unlikely(!dctx->sset)) {
+	if (unlikely(!dctx->sset))
+	{
 		datalen = crypto_poly1305_setdesckey(dctx, src, srclen);
 		src += srclen - datalen;
 		srclen = datalen;
 	}
 
 #ifdef CONFIG_AS_AVX2
-	if (poly1305_use_avx2 && srclen >= POLY1305_BLOCK_SIZE * 4) {
-		if (unlikely(!sctx->wset)) {
-			if (!sctx->uset) {
+
+	if (poly1305_use_avx2 && srclen >= POLY1305_BLOCK_SIZE * 4)
+	{
+		if (unlikely(!sctx->wset))
+		{
+			if (!sctx->uset)
+			{
 				memcpy(sctx->u, dctx->r, sizeof(sctx->u));
 				poly1305_simd_mult(sctx->u, dctx->r);
 				sctx->uset = true;
 			}
+
 			memcpy(sctx->u + 5, sctx->u, sizeof(sctx->u));
 			poly1305_simd_mult(sctx->u + 5, dctx->r);
 			memcpy(sctx->u + 10, sctx->u + 5, sizeof(sctx->u));
 			poly1305_simd_mult(sctx->u + 10, dctx->r);
 			sctx->wset = true;
 		}
+
 		blocks = srclen / (POLY1305_BLOCK_SIZE * 4);
 		poly1305_4block_avx2(dctx->h, src, dctx->r, blocks, sctx->u);
 		src += POLY1305_BLOCK_SIZE * 4 * blocks;
 		srclen -= POLY1305_BLOCK_SIZE * 4 * blocks;
 	}
+
 #endif
-	if (likely(srclen >= POLY1305_BLOCK_SIZE * 2)) {
-		if (unlikely(!sctx->uset)) {
+
+	if (likely(srclen >= POLY1305_BLOCK_SIZE * 2))
+	{
+		if (unlikely(!sctx->uset))
+		{
 			memcpy(sctx->u, dctx->r, sizeof(sctx->u));
 			poly1305_simd_mult(sctx->u, dctx->r);
 			sctx->uset = true;
 		}
+
 		blocks = srclen / (POLY1305_BLOCK_SIZE * 2);
 		poly1305_2block_sse2(dctx->h, src, dctx->r, blocks, sctx->u);
 		src += POLY1305_BLOCK_SIZE * 2 * blocks;
 		srclen -= POLY1305_BLOCK_SIZE * 2 * blocks;
 	}
-	if (srclen >= POLY1305_BLOCK_SIZE) {
+
+	if (srclen >= POLY1305_BLOCK_SIZE)
+	{
 		poly1305_block_sse2(dctx->h, src, dctx->r, 1);
 		srclen -= POLY1305_BLOCK_SIZE;
 	}
+
 	return srclen;
 }
 
 static int poly1305_simd_update(struct shash_desc *desc,
-				const u8 *src, unsigned int srclen)
+								const u8 *src, unsigned int srclen)
 {
 	struct poly1305_desc_ctx *dctx = shash_desc_ctx(desc);
 	unsigned int bytes;
 
 	/* kernel_fpu_begin/end is costly, use fallback for small updates */
 	if (srclen <= 288 || !may_use_simd())
+	{
 		return crypto_poly1305_update(desc, src, srclen);
+	}
 
 	kernel_fpu_begin();
 
-	if (unlikely(dctx->buflen)) {
+	if (unlikely(dctx->buflen))
+	{
 		bytes = min(srclen, POLY1305_BLOCK_SIZE - dctx->buflen);
 		memcpy(dctx->buf + dctx->buflen, src, bytes);
 		src += bytes;
 		srclen -= bytes;
 		dctx->buflen += bytes;
 
-		if (dctx->buflen == POLY1305_BLOCK_SIZE) {
+		if (dctx->buflen == POLY1305_BLOCK_SIZE)
+		{
 			poly1305_simd_blocks(dctx, dctx->buf,
-					     POLY1305_BLOCK_SIZE);
+								 POLY1305_BLOCK_SIZE);
 			dctx->buflen = 0;
 		}
 	}
 
-	if (likely(srclen >= POLY1305_BLOCK_SIZE)) {
+	if (likely(srclen >= POLY1305_BLOCK_SIZE))
+	{
 		bytes = poly1305_simd_blocks(dctx, src, srclen);
 		src += srclen - bytes;
 		srclen = bytes;
@@ -151,7 +172,8 @@ static int poly1305_simd_update(struct shash_desc *desc,
 
 	kernel_fpu_end();
 
-	if (unlikely(srclen)) {
+	if (unlikely(srclen))
+	{
 		dctx->buflen = srclen;
 		memcpy(dctx->buf, src, srclen);
 	}
@@ -159,7 +181,8 @@ static int poly1305_simd_update(struct shash_desc *desc,
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize	= POLY1305_DIGEST_SIZE,
 	.init		= poly1305_simd_init,
 	.update		= poly1305_simd_update,
@@ -180,15 +203,21 @@ static struct shash_alg alg = {
 static int __init poly1305_simd_mod_init(void)
 {
 	if (!boot_cpu_has(X86_FEATURE_XMM2))
+	{
 		return -ENODEV;
+	}
 
 #ifdef CONFIG_AS_AVX2
 	poly1305_use_avx2 = boot_cpu_has(X86_FEATURE_AVX) &&
-			    boot_cpu_has(X86_FEATURE_AVX2) &&
-			    cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM, NULL);
+						boot_cpu_has(X86_FEATURE_AVX2) &&
+						cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM, NULL);
 	alg.descsize = sizeof(struct poly1305_simd_desc_ctx);
+
 	if (poly1305_use_avx2)
+	{
 		alg.descsize += 10 * sizeof(u32);
+	}
+
 #endif
 	return crypto_register_shash(&alg);
 }

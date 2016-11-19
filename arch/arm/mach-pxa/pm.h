@@ -9,7 +9,8 @@
 
 #include <linux/suspend.h>
 
-struct pxa_cpu_pm_fns {
+struct pxa_cpu_pm_fns
+{
 	int	save_count;
 	void	(*save)(unsigned long *);
 	void	(*restore)(unsigned long *);

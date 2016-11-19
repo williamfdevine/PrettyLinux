@@ -18,8 +18,8 @@
 
 static void
 ev4_reg_setup(struct op_register_config *reg,
-	      struct op_counter_config *ctr,
-	      struct op_system_config *sys)
+			  struct op_counter_config *ctr,
+			  struct op_system_config *sys)
 {
 	unsigned long ctl = 0, count, hilo;
 
@@ -46,18 +46,30 @@ ev4_reg_setup(struct op_register_config *reg,
 	   map it onto one of the possible values, and write it back.  */
 
 	count = ctr[0].count;
+
 	if (count <= 4096)
+	{
 		count = 4096, hilo = 1;
+	}
 	else
+	{
 		count = 65536, hilo = 0;
+	}
+
 	ctr[0].count = count;
 	ctl |= (ctr[0].enabled && hilo) << 3;
 
 	count = ctr[1].count;
+
 	if (count <= 256)
+	{
 		count = 256, hilo = 1;
+	}
 	else
+	{
 		count = 4096, hilo = 0;
+	}
+
 	ctr[1].count = count;
 	ctl |= (ctr[1].enabled && hilo);
 
@@ -91,19 +103,22 @@ ev4_cpu_setup(void *x)
 
 static void
 ev4_handle_interrupt(unsigned long which, struct pt_regs *regs,
-		     struct op_counter_config *ctr)
+					 struct op_counter_config *ctr)
 {
 	/* EV4 can't properly disable counters individually.
 	   Discard "disabled" events now.  */
 	if (!ctr[which].enabled)
+	{
 		return;
+	}
 
 	/* Record the sample.  */
 	oprofile_add_sample(regs, which);
 }
 
 
-struct op_axp_model op_model_ev4 = {
+struct op_axp_model op_model_ev4 =
+{
 	.reg_setup		= ev4_reg_setup,
 	.cpu_setup		= ev4_cpu_setup,
 	.reset_ctr		= NULL,

@@ -54,9 +54,13 @@ static int __init omap_i2c_bus_setup(char *str)
 	int ints[3];
 
 	get_options(str, 3, ints);
+
 	if (ints[0] < 2 || ints[1] < 1 ||
-			ints[1] > OMAP_I2C_MAX_CONTROLLERS)
+		ints[1] > OMAP_I2C_MAX_CONTROLLERS)
+	{
 		return 0;
+	}
+
 	i2c_pdata[ints[1] - 1].clkrate = ints[2];
 	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
 
@@ -73,11 +77,15 @@ int __init omap_register_i2c_bus_cmdline(void)
 	int i, err = 0;
 
 	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
-		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
+		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP)
+		{
 			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
 			err = omap_i2c_add_bus(&i2c_pdata[i], i + 1);
+
 			if (err)
+			{
 				goto out;
+			}
 		}
 
 out:
@@ -94,21 +102,27 @@ out:
  * Returns 0 on success or an error code.
  */
 int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
-			  struct i2c_board_info const *info,
-			  unsigned len)
+								 struct i2c_board_info const *info,
+								 unsigned len)
 {
 	int err;
 
 	BUG_ON(bus_id < 1 || bus_id > OMAP_I2C_MAX_CONTROLLERS);
 
-	if (info) {
+	if (info)
+	{
 		err = i2c_register_board_info(bus_id, info, len);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	if (!i2c_pdata[bus_id - 1].clkrate)
+	{
 		i2c_pdata[bus_id - 1].clkrate = clkrate;
+	}
 
 	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
 

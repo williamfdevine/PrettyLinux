@@ -28,11 +28,11 @@
 	((read_c0_tcbind() >> TCBIND_CURVPE_SHIFT) & TCBIND_CURVPE)
 
 #ifdef CONFIG_SMP
-/*
- * The PER registers must be protected from concurrent access.
- */
+	/*
+	* The PER registers must be protected from concurrent access.
+	*/
 
-static DEFINE_SPINLOCK(per_lock);
+	static DEFINE_SPINLOCK(per_lock);
 #endif
 
 /* ensure writes to per are completed */
@@ -86,7 +86,7 @@ static inline void msp_per_irq_ack(struct irq_data *d)
 
 #ifdef CONFIG_SMP
 static int msp_per_irq_set_affinity(struct irq_data *d,
-				    const struct cpumask *affinity, bool force)
+									const struct cpumask *affinity, bool force)
 {
 	/* WTF is this doing ????? */
 	unmask_per_irq(d);
@@ -94,7 +94,8 @@ static int msp_per_irq_set_affinity(struct irq_data *d,
 }
 #endif
 
-static struct irq_chip msp_per_irq_controller = {
+static struct irq_chip msp_per_irq_controller =
+{
 	.name = "MSP_PER",
 	.irq_enable = unmask_per_irq,
 	.irq_disable = mask_per_irq,
@@ -110,8 +111,10 @@ void __init msp_per_irq_init(void)
 	/* Mask/clear interrupts. */
 	*PER_INT_MSK_REG  = 0x00000000;
 	*PER_INT_STS_REG  = 0xFFFFFFFF;
+
 	/* initialize all the IRQ descriptors */
-	for (i = MSP_PER_INTBASE; i < MSP_PER_INTBASE + 32; i++) {
+	for (i = MSP_PER_INTBASE; i < MSP_PER_INTBASE + 32; i++)
+	{
 		irq_set_chip(i, &msp_per_irq_controller);
 	}
 }
@@ -123,9 +126,13 @@ void msp_per_irq_dispatch(void)
 	u32	pending;
 
 	pending = per_status & per_mask;
-	if (pending) {
+
+	if (pending)
+	{
 		do_IRQ(ffs(pending) + MSP_PER_INTBASE - 1);
-	} else {
+	}
+	else
+	{
 		spurious_interrupt();
 	}
 }

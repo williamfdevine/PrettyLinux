@@ -32,9 +32,9 @@
  *   erratum #52
  */
 #ifdef CONFIG_CPU_R4000_WORKAROUNDS
-#define R4000_WAR 1
+	#define R4000_WAR 1
 #else
-#define R4000_WAR 0
+	#define R4000_WAR 0
 #endif
 
 /*
@@ -46,9 +46,9 @@
  *   "MIPS R4400MC Errata, Processor Revision 2.0 & 3.0", erratum #4
  */
 #ifdef CONFIG_CPU_R4400_WORKAROUNDS
-#define R4400_WAR 1
+	#define R4400_WAR 1
 #else
-#define R4400_WAR 0
+	#define R4400_WAR 0
 #endif
 
 /*
@@ -67,9 +67,9 @@
  *   "MIPS R4400MC Errata, Processor Revision 1.0", erratum #5
  */
 #ifdef CONFIG_CPU_DADDI_WORKAROUNDS
-#define DADDI_WAR 1
+	#define DADDI_WAR 1
 #else
-#define DADDI_WAR 0
+	#define DADDI_WAR 0
 #endif
 
 /*
@@ -79,7 +79,7 @@
  * with the issue.
  */
 #ifndef R4600_V1_INDEX_ICACHEOP_WAR
-#error Check setting of R4600_V1_INDEX_ICACHEOP_WAR for your platform
+	#error Check setting of R4600_V1_INDEX_ICACHEOP_WAR for your platform
 #endif
 
 /*
@@ -109,7 +109,7 @@
  *				cache	    Hit_Writeback_Invalidate_D
  */
 #ifndef R4600_V1_HIT_CACHEOP_WAR
-#error Check setting of R4600_V1_HIT_CACHEOP_WAR for your platform
+	#error Check setting of R4600_V1_HIT_CACHEOP_WAR for your platform
 #endif
 
 
@@ -125,7 +125,7 @@
  * in .pdf format.)
  */
 #ifndef R4600_V2_HIT_CACHEOP_WAR
-#error Check setting of R4600_V2_HIT_CACHEOP_WAR for your platform
+	#error Check setting of R4600_V2_HIT_CACHEOP_WAR for your platform
 #endif
 
 /*
@@ -138,7 +138,7 @@
  * pre-conditions for this problem.
  */
 #ifndef R5432_CP0_INTERRUPT_WAR
-#error Check setting of R5432_CP0_INTERRUPT_WAR for your platform
+	#error Check setting of R5432_CP0_INTERRUPT_WAR for your platform
 #endif
 
 /*
@@ -152,14 +152,14 @@
  * found to be inconsistent.
  */
 #ifndef BCM1250_M3_WAR
-#error Check setting of BCM1250_M3_WAR for your platform
+	#error Check setting of BCM1250_M3_WAR for your platform
 #endif
 
 /*
  * This is a DUART workaround related to glitches around register accesses
  */
 #ifndef SIBYTE_1956_WAR
-#error Check setting of SIBYTE_1956_WAR for your platform
+	#error Check setting of SIBYTE_1956_WAR for your platform
 #endif
 
 /*
@@ -175,7 +175,7 @@
  *  MIPS 4K		RTL revision <3.0, PRID revision <4
  */
 #ifndef MIPS4K_ICACHE_REFILL_WAR
-#error Check setting of MIPS4K_ICACHE_REFILL_WAR for your platform
+	#error Check setting of MIPS4K_ICACHE_REFILL_WAR for your platform
 #endif
 
 /*
@@ -194,7 +194,7 @@
  *   MIPS 20Kc		RTL revision <4.0, PRID revision <?
  */
 #ifndef MIPS_CACHE_SYNC_WAR
-#error Check setting of MIPS_CACHE_SYNC_WAR for your platform
+	#error Check setting of MIPS_CACHE_SYNC_WAR for your platform
 #endif
 
 /*
@@ -205,7 +205,7 @@
  * Workaround: do two phase flushing for Index_Invalidate_I
  */
 #ifndef TX49XX_ICACHE_INDEX_INV_WAR
-#error Check setting of TX49XX_ICACHE_INDEX_INV_WAR for your platform
+	#error Check setting of TX49XX_ICACHE_INDEX_INV_WAR for your platform
 #endif
 
 /*
@@ -215,7 +215,7 @@
  * exceptions.
  */
 #ifndef ICACHE_REFILLS_WORKAROUND_WAR
-#error Check setting of ICACHE_REFILLS_WORKAROUND_WAR for your platform
+	#error Check setting of ICACHE_REFILLS_WORKAROUND_WAR for your platform
 #endif
 
 /*
@@ -223,14 +223,14 @@
  * may cause ll / sc and lld / scd sequences to execute non-atomically.
  */
 #ifndef R10000_LLSC_WAR
-#error Check setting of R10000_LLSC_WAR for your platform
+	#error Check setting of R10000_LLSC_WAR for your platform
 #endif
 
 /*
  * 34K core erratum: "Problems Executing the TLBR Instruction"
  */
 #ifndef MIPS34K_MISSED_ITLB_WAR
-#error Check setting of MIPS34K_MISSED_ITLB_WAR for your platform
+	#error Check setting of MIPS34K_MISSED_ITLB_WAR for your platform
 #endif
 
 #endif /* _ASM_WAR_H */

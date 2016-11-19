@@ -64,10 +64,15 @@ EXPORT_SYMBOL(mvme16x_config);
 int __init mvme16x_parse_bootinfo(const struct bi_record *bi)
 {
 	uint16_t tag = be16_to_cpu(bi->tag);
+
 	if (tag == BI_VME_TYPE || tag == BI_VME_BRDINFO)
+	{
 		return 0;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 void mvme16x_reset(void)
@@ -81,33 +86,33 @@ void mvme16x_reset(void)
 
 static void mvme16x_get_model(char *model)
 {
-    p_bdid p = &mvme_bdid;
-    char suf[4];
+	p_bdid p = &mvme_bdid;
+	char suf[4];
 
-    suf[1] = p->brdsuffix[0];
-    suf[2] = p->brdsuffix[1];
-    suf[3] = '\0';
-    suf[0] = suf[1] ? '-' : '\0';
+	suf[1] = p->brdsuffix[0];
+	suf[2] = p->brdsuffix[1];
+	suf[3] = '\0';
+	suf[0] = suf[1] ? '-' : '\0';
 
-    sprintf(model, "Motorola MVME%x%s", be16_to_cpu(p->brdno), suf);
+	sprintf(model, "Motorola MVME%x%s", be16_to_cpu(p->brdno), suf);
 }
 
 
 static void mvme16x_get_hardware_list(struct seq_file *m)
 {
-    uint16_t brdno = be16_to_cpu(mvme_bdid.brdno);
+	uint16_t brdno = be16_to_cpu(mvme_bdid.brdno);
 
-    if (brdno == 0x0162 || brdno == 0x0172)
-    {
-	unsigned char rev = *(unsigned char *)MVME162_VERSION_REG;
+	if (brdno == 0x0162 || brdno == 0x0172)
+	{
+		unsigned char rev = *(unsigned char *)MVME162_VERSION_REG;
 
-	seq_printf (m, "VMEchip2        %spresent\n",
-			rev & MVME16x_CONFIG_NO_VMECHIP2 ? "NOT " : "");
-	seq_printf (m, "SCSI interface  %spresent\n",
-			rev & MVME16x_CONFIG_NO_SCSICHIP ? "NOT " : "");
-	seq_printf (m, "Ethernet i/f    %spresent\n",
-			rev & MVME16x_CONFIG_NO_ETHERNET ? "NOT " : "");
-    }
+		seq_printf (m, "VMEchip2        %spresent\n",
+					rev & MVME16x_CONFIG_NO_VMECHIP2 ? "NOT " : "");
+		seq_printf (m, "SCSI interface  %spresent\n",
+					rev & MVME16x_CONFIG_NO_SCSICHIP ? "NOT " : "");
+		seq_printf (m, "Ethernet i/f    %spresent\n",
+					rev & MVME16x_CONFIG_NO_ETHERNET ? "NOT " : "");
+	}
 }
 
 /*
@@ -225,42 +230,55 @@ void mvme16x_cons_write(struct console *co, const char *str, unsigned count)
 
 	port = 0;
 	base_addr[CyCAR] = (u_char)port;
+
 	while (base_addr[CyCCR])
 		;
+
 	base_addr[CyCCR] = CyENB_XMTR;
 
 	ier = base_addr[CyIER];
 	base_addr[CyIER] = CyTxMpty;
 
-	while (1) {
+	while (1)
+	{
 		if (pcc2chip[PccSCCTICR] & 0x20)
 		{
 			/* We have a Tx int. Acknowledge it */
 			sink = pcc2chip[PccTPIACKR];
-			if ((base_addr[CyLICR] >> 2) == port) {
-				if (i == count) {
+
+			if ((base_addr[CyLICR] >> 2) == port)
+			{
+				if (i == count)
+				{
 					/* Last char of string is now output */
 					base_addr[CyTEOIR] = CyNOTRANS;
 					break;
 				}
-				if (do_lf) {
+
+				if (do_lf)
+				{
 					base_addr[CyTDR] = '\n';
 					str++;
 					i++;
 					do_lf = 0;
 				}
-				else if (*str == '\n') {
+				else if (*str == '\n')
+				{
 					base_addr[CyTDR] = '\r';
 					do_lf = 1;
 				}
-				else {
+				else
+				{
 					base_addr[CyTDR] = *str++;
 					i++;
 				}
+
 				base_addr[CyTEOIR] = 0;
 			}
 			else
+			{
 				base_addr[CyTEOIR] = CyNOTRANS;
+			}
 		}
 	}
 
@@ -271,57 +289,62 @@ void mvme16x_cons_write(struct console *co, const char *str, unsigned count)
 
 void __init config_mvme16x(void)
 {
-    p_bdid p = &mvme_bdid;
-    char id[40];
-    uint16_t brdno = be16_to_cpu(p->brdno);
+	p_bdid p = &mvme_bdid;
+	char id[40];
+	uint16_t brdno = be16_to_cpu(p->brdno);
 
-    mach_max_dma_address = 0xffffffff;
-    mach_sched_init      = mvme16x_sched_init;
-    mach_init_IRQ        = mvme16x_init_IRQ;
-    arch_gettimeoffset   = mvme16x_gettimeoffset;
-    mach_hwclk           = mvme16x_hwclk;
-    mach_set_clock_mmss	 = mvme16x_set_clock_mmss;
-    mach_reset		 = mvme16x_reset;
-    mach_get_model       = mvme16x_get_model;
-    mach_get_hardware_list = mvme16x_get_hardware_list;
+	mach_max_dma_address = 0xffffffff;
+	mach_sched_init      = mvme16x_sched_init;
+	mach_init_IRQ        = mvme16x_init_IRQ;
+	arch_gettimeoffset   = mvme16x_gettimeoffset;
+	mach_hwclk           = mvme16x_hwclk;
+	mach_set_clock_mmss	 = mvme16x_set_clock_mmss;
+	mach_reset		 = mvme16x_reset;
+	mach_get_model       = mvme16x_get_model;
+	mach_get_hardware_list = mvme16x_get_hardware_list;
 
-    /* Report board revision */
+	/* Report board revision */
 
-    if (strncmp("BDID", p->bdid, 4))
-    {
-	printk ("\n\nBug call .BRD_ID returned garbage - giving up\n\n");
-	while (1)
-		;
-    }
-    /* Board type is only set by newer versions of vmelilo/tftplilo */
-    if (vme_brdtype == 0)
-	vme_brdtype = brdno;
+	if (strncmp("BDID", p->bdid, 4))
+	{
+		printk ("\n\nBug call .BRD_ID returned garbage - giving up\n\n");
 
-    mvme16x_get_model(id);
-    printk ("\nBRD_ID: %s   BUG %x.%x %02x/%02x/%02x\n", id, p->rev>>4,
-					p->rev&0xf, p->yr, p->mth, p->day);
-    if (brdno == 0x0162 || brdno == 0x172)
-    {
-	unsigned char rev = *(unsigned char *)MVME162_VERSION_REG;
+		while (1)
+			;
+	}
 
-	mvme16x_config = rev | MVME16x_CONFIG_GOT_SCCA;
+	/* Board type is only set by newer versions of vmelilo/tftplilo */
+	if (vme_brdtype == 0)
+	{
+		vme_brdtype = brdno;
+	}
 
-	printk ("MVME%x Hardware status:\n", brdno);
-	printk ("    CPU Type           68%s040\n",
-			rev & MVME16x_CONFIG_GOT_FPU ? "" : "LC");
-	printk ("    CPU clock          %dMHz\n",
-			rev & MVME16x_CONFIG_SPEED_32 ? 32 : 25);
-	printk ("    VMEchip2           %spresent\n",
-			rev & MVME16x_CONFIG_NO_VMECHIP2 ? "NOT " : "");
-	printk ("    SCSI interface     %spresent\n",
-			rev & MVME16x_CONFIG_NO_SCSICHIP ? "NOT " : "");
-	printk ("    Ethernet interface %spresent\n",
-			rev & MVME16x_CONFIG_NO_ETHERNET ? "NOT " : "");
-    }
-    else
-    {
-	mvme16x_config = MVME16x_CONFIG_GOT_LP | MVME16x_CONFIG_GOT_CD2401;
-    }
+	mvme16x_get_model(id);
+	printk ("\nBRD_ID: %s   BUG %x.%x %02x/%02x/%02x\n", id, p->rev >> 4,
+			p->rev & 0xf, p->yr, p->mth, p->day);
+
+	if (brdno == 0x0162 || brdno == 0x172)
+	{
+		unsigned char rev = *(unsigned char *)MVME162_VERSION_REG;
+
+		mvme16x_config = rev | MVME16x_CONFIG_GOT_SCCA;
+
+		printk ("MVME%x Hardware status:\n", brdno);
+		printk ("    CPU Type           68%s040\n",
+				rev & MVME16x_CONFIG_GOT_FPU ? "" : "LC");
+		printk ("    CPU clock          %dMHz\n",
+				rev & MVME16x_CONFIG_SPEED_32 ? 32 : 25);
+		printk ("    VMEchip2           %spresent\n",
+				rev & MVME16x_CONFIG_NO_VMECHIP2 ? "NOT " : "");
+		printk ("    SCSI interface     %spresent\n",
+				rev & MVME16x_CONFIG_NO_SCSICHIP ? "NOT " : "");
+		printk ("    Ethernet interface %spresent\n",
+				rev & MVME16x_CONFIG_NO_ETHERNET ? "NOT " : "");
+	}
+	else
+	{
+		mvme16x_config = MVME16x_CONFIG_GOT_LP | MVME16x_CONFIG_GOT_CD2401;
+	}
 }
 
 static irqreturn_t mvme16x_abort_int (int irq, void *dev_id)
@@ -341,63 +364,80 @@ static irqreturn_t mvme16x_abort_int (int irq, void *dev_id)
 	{
 		*(volatile unsigned long *)0xfff40074 = 0x40000000;
 	}
-	*(new+4) = *(old+4);		/* Illegal instruction */
-	*(new+9) = *(old+9);		/* Trace */
-	*(new+47) = *(old+47);		/* Trap #15 */
+
+	*(new + 4) = *(old + 4);		/* Illegal instruction */
+	*(new + 9) = *(old + 9);		/* Trace */
+	*(new + 47) = *(old + 47);		/* Trap #15 */
 
 	if (brdno == 0x0162 || brdno == 0x172)
-		*(new+0x5e) = *(old+0x5e);	/* ABORT switch */
+	{
+		*(new + 0x5e) = *(old + 0x5e);    /* ABORT switch */
+	}
 	else
-		*(new+0x6e) = *(old+0x6e);	/* ABORT switch */
+	{
+		*(new + 0x6e) = *(old + 0x6e);    /* ABORT switch */
+	}
+
 	return IRQ_HANDLED;
 }
 
 static irqreturn_t mvme16x_timer_int (int irq, void *dev_id)
 {
-    *(volatile unsigned char *)0xfff4201b |= 8;
-    return tick_handler(irq, dev_id);
+	*(volatile unsigned char *)0xfff4201b |= 8;
+	return tick_handler(irq, dev_id);
 }
 
 void mvme16x_sched_init (irq_handler_t timer_routine)
 {
-    uint16_t brdno = be16_to_cpu(mvme_bdid.brdno);
-    int irq;
+	uint16_t brdno = be16_to_cpu(mvme_bdid.brdno);
+	int irq;
 
-    tick_handler = timer_routine;
-    /* Using PCCchip2 or MC2 chip tick timer 1 */
-    *(volatile unsigned long *)0xfff42008 = 0;
-    *(volatile unsigned long *)0xfff42004 = 10000;	/* 10ms */
-    *(volatile unsigned char *)0xfff42017 |= 3;
-    *(volatile unsigned char *)0xfff4201b = 0x16;
-    if (request_irq(MVME16x_IRQ_TIMER, mvme16x_timer_int, 0,
-				"timer", mvme16x_timer_int))
-	panic ("Couldn't register timer int");
+	tick_handler = timer_routine;
+	/* Using PCCchip2 or MC2 chip tick timer 1 */
+	*(volatile unsigned long *)0xfff42008 = 0;
+	*(volatile unsigned long *)0xfff42004 = 10000;	/* 10ms */
+	*(volatile unsigned char *)0xfff42017 |= 3;
+	*(volatile unsigned char *)0xfff4201b = 0x16;
 
-    if (brdno == 0x0162 || brdno == 0x172)
-	irq = MVME162_IRQ_ABORT;
-    else
-        irq = MVME167_IRQ_ABORT;
-    if (request_irq(irq, mvme16x_abort_int, 0,
-				"abort", mvme16x_abort_int))
-	panic ("Couldn't register abort int");
+	if (request_irq(MVME16x_IRQ_TIMER, mvme16x_timer_int, 0,
+					"timer", mvme16x_timer_int))
+	{
+		panic ("Couldn't register timer int");
+	}
+
+	if (brdno == 0x0162 || brdno == 0x172)
+	{
+		irq = MVME162_IRQ_ABORT;
+	}
+	else
+	{
+		irq = MVME167_IRQ_ABORT;
+	}
+
+	if (request_irq(irq, mvme16x_abort_int, 0,
+					"abort", mvme16x_abort_int))
+	{
+		panic ("Couldn't register abort int");
+	}
 }
 
 
 /* This is always executed with interrupts disabled.  */
 u32 mvme16x_gettimeoffset(void)
 {
-    return (*(volatile u32 *)0xfff42008) * 1000;
+	return (*(volatile u32 *)0xfff42008) * 1000;
 }
 
 int bcd2int (unsigned char b)
 {
-	return ((b>>4)*10 + (b&15));
+	return ((b >> 4) * 10 + (b & 15));
 }
 
 int mvme16x_hwclk(int op, struct rtc_time *t)
 {
 #warning check me!
-	if (!op) {
+	if (!op)
+	{
 		rtc->ctrl = RTC_READ;
 		t->tm_year = bcd2int (rtc->bcd_year);
 		t->tm_mon  = bcd2int (rtc->bcd_mth);
@@ -407,6 +447,7 @@ int mvme16x_hwclk(int op, struct rtc_time *t)
 		t->tm_sec  = bcd2int (rtc->bcd_sec);
 		rtc->ctrl = 0;
 	}
+
 	return 0;
 }
 

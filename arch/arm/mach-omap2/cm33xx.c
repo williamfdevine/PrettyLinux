@@ -103,7 +103,7 @@ static bool _is_module_ready(u16 inst, u16 clkctrl_offs)
 	v = _clkctrl_idlest(inst, clkctrl_offs);
 
 	return (v == CLKCTRL_IDLEST_FUNCTIONAL ||
-		v == CLKCTRL_IDLEST_INTERFACE_IDLE) ? true : false;
+			v == CLKCTRL_IDLEST_INTERFACE_IDLE) ? true : false;
 }
 
 /**
@@ -216,12 +216,12 @@ static void am33xx_cm_clkdm_force_wakeup(u16 inst, u16 cdoffs)
  * external abort"
  */
 static int am33xx_cm_wait_module_ready(u8 part, s16 inst, u16 clkctrl_offs,
-				       u8 bit_shift)
+									   u8 bit_shift)
 {
 	int i = 0;
 
 	omap_test_timeout(_is_module_ready(inst, clkctrl_offs),
-			  MAX_MODULE_READY_TIME, i);
+					  MAX_MODULE_READY_TIME, i);
 
 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
 }
@@ -239,13 +239,13 @@ static int am33xx_cm_wait_module_ready(u8 part, s16 inst, u16 clkctrl_offs,
  * module to be fully disabled.
  */
 static int am33xx_cm_wait_module_idle(u8 part, s16 inst, u16 clkctrl_offs,
-				      u8 bit_shift)
+									  u8 bit_shift)
 {
 	int i = 0;
 
 	omap_test_timeout((_clkctrl_idlest(inst, clkctrl_offs) ==
-				CLKCTRL_IDLEST_DISABLED),
-				MAX_MODULE_READY_TIME, i);
+					   CLKCTRL_IDLEST_DISABLED),
+					  MAX_MODULE_READY_TIME, i);
 
 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
 }
@@ -260,7 +260,7 @@ static int am33xx_cm_wait_module_idle(u8 part, s16 inst, u16 clkctrl_offs,
  * No return value.
  */
 static void am33xx_cm_module_enable(u8 mode, u8 part, u16 inst,
-				    u16 clkctrl_offs)
+									u16 clkctrl_offs)
 {
 	u32 v;
 
@@ -316,7 +316,9 @@ static void am33xx_clkdm_deny_idle(struct clockdomain *clkdm)
 static int am33xx_clkdm_clk_enable(struct clockdomain *clkdm)
 {
 	if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
+	{
 		return am33xx_clkdm_wakeup(clkdm);
+	}
 
 	return 0;
 }
@@ -328,12 +330,15 @@ static int am33xx_clkdm_clk_disable(struct clockdomain *clkdm)
 	hwsup = am33xx_cm_is_clkdm_in_hwsup(clkdm->cm_inst, clkdm->clkdm_offs);
 
 	if (!hwsup && (clkdm->flags & CLKDM_CAN_FORCE_SLEEP))
+	{
 		am33xx_clkdm_sleep(clkdm);
+	}
 
 	return 0;
 }
 
-struct clkdm_ops am33xx_clkdm_operations = {
+struct clkdm_ops am33xx_clkdm_operations =
+{
 	.clkdm_sleep		= am33xx_clkdm_sleep,
 	.clkdm_wakeup		= am33xx_clkdm_wakeup,
 	.clkdm_allow_idle	= am33xx_clkdm_allow_idle,
@@ -342,7 +347,8 @@ struct clkdm_ops am33xx_clkdm_operations = {
 	.clkdm_clk_disable	= am33xx_clkdm_clk_disable,
 };
 
-static struct cm_ll_data am33xx_cm_ll_data = {
+static struct cm_ll_data am33xx_cm_ll_data =
+{
 	.wait_module_ready	= &am33xx_cm_wait_module_ready,
 	.wait_module_idle	= &am33xx_cm_wait_module_idle,
 	.module_enable		= &am33xx_cm_module_enable,

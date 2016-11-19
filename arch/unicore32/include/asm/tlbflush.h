@@ -17,7 +17,7 @@
 #include <linux/sched.h>
 
 extern void __cpu_flush_user_tlb_range(unsigned long, unsigned long,
-					struct vm_area_struct *);
+									   struct vm_area_struct *);
 extern void __cpu_flush_kern_tlb_range(unsigned long, unsigned long);
 
 /*
@@ -76,18 +76,21 @@ static inline void local_flush_tlb_mm(struct mm_struct *mm)
 {
 	const int zero = 0;
 
-	if (cpumask_test_cpu(get_cpu(), mm_cpumask(mm))) {
+	if (cpumask_test_cpu(get_cpu(), mm_cpumask(mm)))
+	{
 		/* TLB invalidate all */
 		asm("movc p0.c6, %0, #6; nop; nop; nop; nop; nop; nop; nop; nop"
 			: : "r" (zero) : "cc");
 	}
+
 	put_cpu();
 }
 
 static inline void
 local_flush_tlb_page(struct vm_area_struct *vma, unsigned long uaddr)
 {
-	if (cpumask_test_cpu(smp_processor_id(), mm_cpumask(vma->vm_mm))) {
+	if (cpumask_test_cpu(smp_processor_id(), mm_cpumask(vma->vm_mm)))
+	{
 #ifndef CONFIG_CPU_TLB_SINGLE_ENTRY_DISABLE
 		/* iTLB invalidate page */
 		asm("movc p0.c6, %0, #5; nop; nop; nop; nop; nop; nop; nop; nop"
@@ -185,10 +188,10 @@ static inline void clean_pmd_entry(pmd_t *pmd)
  * back to the page.
  */
 extern void update_mmu_cache(struct vm_area_struct *vma,
-		unsigned long addr, pte_t *ptep);
+							 unsigned long addr, pte_t *ptep);
 
 extern void do_bad_area(unsigned long addr, unsigned int fsr,
-		struct pt_regs *regs);
+						struct pt_regs *regs);
 
 #endif
 

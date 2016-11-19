@@ -18,7 +18,8 @@ static inline unsigned long ftrace_call_adjust(unsigned long addr)
 	return addr - 0x12;
 }
 
-struct dyn_arch_ftrace {
+struct dyn_arch_ftrace
+{
 };
 #endif
 

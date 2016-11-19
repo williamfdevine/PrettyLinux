@@ -15,7 +15,8 @@
 
 /* System configuration registers.
 */
-typedef	struct sys_conf {
+typedef	struct sys_conf
+{
 	uint	sc_siumcr;
 	uint	sc_sypcr;
 	uint	sc_swt;
@@ -33,7 +34,8 @@ typedef	struct sys_conf {
 
 /* PCMCIA configuration registers.
 */
-typedef struct pcmcia_conf {
+typedef struct pcmcia_conf
+{
 	uint	pcmc_pbr0;
 	uint	pcmc_por0;
 	uint	pcmc_pbr1;
@@ -63,7 +65,8 @@ typedef struct pcmcia_conf {
 
 /* Memory controller registers.
 */
-typedef struct	mem_ctlr {
+typedef struct	mem_ctlr
+{
 	uint	memc_br0;
 	uint	memc_or0;
 	uint	memc_br1;
@@ -115,7 +118,7 @@ typedef struct	mem_ctlr {
 #define OR_AM_MSK	0xffff8000	/* Address Mask Mask			*/
 #define OR_ATM_MSK	0x00007000	/* Address Type Mask Mask		*/
 #define OR_CSNT_SAM	0x00000800	/* Chip Select Negation Time/ Start	*/
-					/* Address Multiplex			*/
+/* Address Multiplex			*/
 #define OR_ACS_MSK	0x00000600	/* Address to Chip Select Setup mask	*/
 #define OR_ACS_DIV1	0x00000000	/* CS is output at the same time	*/
 #define OR_ACS_DIV4	0x00000400	/* CS is output 1/4 a clock later	*/
@@ -146,7 +149,8 @@ typedef struct	mem_ctlr {
 
 /* System Integration Timers.
 */
-typedef struct	sys_int_timers {
+typedef struct	sys_int_timers
+{
 	ushort	sit_tbscr;
 	char	res0[0x02];
 	uint	sit_tbreff0;
@@ -190,7 +194,8 @@ typedef struct	sys_int_timers {
 
 /* Clocks and Reset.
 */
-typedef struct clk_and_reset {
+typedef struct clk_and_reset
+{
 	uint	car_sccr;
 	uint	car_plprcr;
 	uint	car_rsr;
@@ -199,7 +204,8 @@ typedef struct clk_and_reset {
 
 /* System Integration Timers keys.
 */
-typedef struct sitk {
+typedef struct sitk
+{
 	uint	sitk_tbscrk;
 	uint	sitk_tbreff0k;
 	uint	sitk_tbreff1k;
@@ -217,7 +223,8 @@ typedef struct sitk {
 
 /* Clocks and reset keys.
 */
-typedef struct cark {
+typedef struct cark
+{
 	uint	cark_sccrk;
 	uint	cark_plprcrk;
 	uint	cark_rsrk;
@@ -230,7 +237,8 @@ typedef struct cark {
 
 /* Video interface.  MPC823 Only.
 */
-typedef struct vid823 {
+typedef struct vid823
+{
 	ushort	vid_vccr;
 	ushort	res1;
 	u_char	vid_vsr;
@@ -250,7 +258,8 @@ typedef struct vid823 {
 
 /* LCD interface.  823 Only.
 */
-typedef struct lcd {
+typedef struct lcd
+{
 	uint	lcd_lccr;
 	uint	lcd_lchcr;
 	uint	lcd_lcvcr;
@@ -263,7 +272,8 @@ typedef struct lcd {
 
 /* I2C
 */
-typedef struct i2c {
+typedef struct i2c
+{
 	u_char	i2c_i2mod;
 	char	res1[3];
 	u_char	i2c_i2add;
@@ -280,7 +290,8 @@ typedef struct i2c {
 
 /* DMA control/status registers.
 */
-typedef struct sdma_csr {
+typedef struct sdma_csr
+{
 	char	res1[4];
 	uint	sdma_sdar;
 	u_char	sdma_sdsr;
@@ -299,7 +310,8 @@ typedef struct sdma_csr {
 
 /* Communication Processor Module Interrupt Controller.
 */
-typedef struct cpm_ic {
+typedef struct cpm_ic
+{
 	ushort	cpic_civr;
 	char	res[0xe];
 	uint	cpic_cicr;
@@ -310,7 +322,8 @@ typedef struct cpm_ic {
 
 /* Input/Output Port control/status registers.
 */
-typedef struct io_port {
+typedef struct io_port
+{
 	ushort	iop_padir;
 	ushort	iop_papar;
 	ushort	iop_paodr;
@@ -332,7 +345,8 @@ typedef struct io_port {
 
 /* Communication Processor Module Timers
 */
-typedef struct cpm_timers {
+typedef struct cpm_timers
+{
 	ushort	cpmt_tgcr;
 	char	res1[0xe];
 	ushort	cpmt_tmr1;
@@ -360,7 +374,8 @@ typedef struct cpm_timers {
 
 /* Finally, the Communication Processor stuff.....
 */
-typedef struct scc {		/* Serial communication channels */
+typedef struct scc  		/* Serial communication channels */
+{
 	uint	scc_gsmrl;
 	uint	scc_gsmrh;
 	ushort	scc_psmr;
@@ -375,7 +390,8 @@ typedef struct scc {		/* Serial communication channels */
 	char	res4[8];
 } scc_t;
 
-typedef struct smc {		/* Serial management channels */
+typedef struct smc  		/* Serial management channels */
+{
 	char	res1[2];
 	ushort	smc_smcmr;
 	char	res2[2];
@@ -389,7 +405,8 @@ typedef struct smc {		/* Serial management channels */
  * it fits within the address space.
  */
 
-typedef struct fec {
+typedef struct fec
+{
 	uint	fec_addr_low;		/* lower 32 bits of station address	*/
 	ushort	fec_addr_high;		/* upper 16 bits of station address	*/
 	ushort	res1;			/* reserved				*/
@@ -426,12 +443,14 @@ typedef struct fec {
 /* The FEC and LCD color map share the same address space....
  * I guess we will never see an 823T :-).
  */
-union fec_lcd {
+union fec_lcd
+{
 	fec_t	fl_un_fec;
 	u_char	fl_un_cmap[0x200];
 };
 
-typedef struct comm_proc {
+typedef struct comm_proc
+{
 	/* General control and status registers.
 	*/
 	ushort	cp_cpcr;
@@ -542,7 +561,8 @@ typedef struct comm_proc {
 
 /* Internal memory map.
 */
-typedef struct immap {
+typedef struct immap
+{
 	sysconf8xx_t	im_siu_conf;	/* SIU Configuration */
 	pcmconf8xx_t	im_pcmcia;	/* PCMCIA Configuration */
 	memctl8xx_t	im_memctl;	/* Memory Controller */

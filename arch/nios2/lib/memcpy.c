@@ -33,16 +33,16 @@
 /* Copy exactly NBYTES bytes from SRC_BP to DST_BP,
    without any assumptions about alignment of the pointers.  */
 #define BYTE_COPY_FWD(dst_bp, src_bp, nbytes)				\
-do {									\
-	size_t __nbytes = (nbytes);					\
-	while (__nbytes > 0) {						\
-		unsigned char __x = ((unsigned char *) src_bp)[0];	\
-		src_bp += 1;						\
-		__nbytes -= 1;						\
-		((unsigned char *) dst_bp)[0] = __x;			\
-		dst_bp += 1;						\
-	}								\
-} while (0)
+	do {									\
+		size_t __nbytes = (nbytes);					\
+		while (__nbytes > 0) {						\
+			unsigned char __x = ((unsigned char *) src_bp)[0];	\
+			src_bp += 1;						\
+			__nbytes -= 1;						\
+			((unsigned char *) dst_bp)[0] = __x;			\
+			dst_bp += 1;						\
+		}								\
+	} while (0)
 
 /* Copy *up to* NBYTES bytes from SRC_BP to DST_BP, with
    the assumption that DST_BP is aligned on an OPSIZ multiple.  If
@@ -51,15 +51,15 @@ do {									\
 /* extern void _wordcopy_fwd_aligned __P ((long int, long int, size_t)); */
 /* extern void _wordcopy_fwd_dest_aligned __P ((long int, long int, size_t)); */
 #define WORD_COPY_FWD(dst_bp, src_bp, nbytes_left, nbytes)		\
-do {									\
-	if (src_bp % OPSIZ == 0)					\
-		_wordcopy_fwd_aligned(dst_bp, src_bp, (nbytes) / OPSIZ);\
-	else								\
-		_wordcopy_fwd_dest_aligned(dst_bp, src_bp, (nbytes) / OPSIZ);\
-	src_bp += (nbytes) & -OPSIZ;					\
-	dst_bp += (nbytes) & -OPSIZ;					\
-	(nbytes_left) = (nbytes) % OPSIZ;				\
-} while (0)
+	do {									\
+		if (src_bp % OPSIZ == 0)					\
+			_wordcopy_fwd_aligned(dst_bp, src_bp, (nbytes) / OPSIZ);\
+		else								\
+			_wordcopy_fwd_dest_aligned(dst_bp, src_bp, (nbytes) / OPSIZ);\
+		src_bp += (nbytes) & -OPSIZ;					\
+		dst_bp += (nbytes) & -OPSIZ;					\
+		(nbytes_left) = (nbytes) % OPSIZ;				\
+	} while (0)
 
 
 /* Threshold value for when to enter the unrolled loops.  */
@@ -71,7 +71,8 @@ do {									\
 /* stream-lined (read x8 + write x8) */
 static void _wordcopy_fwd_aligned(long int dstp, long int srcp, size_t len)
 {
-	while (len > 7) {
+	while (len > 7)
+	{
 		register op_t a0, a1, a2, a3, a4, a5, a6, a7;
 
 		a0 = ((op_t *) srcp)[0];
@@ -95,7 +96,9 @@ static void _wordcopy_fwd_aligned(long int dstp, long int srcp, size_t len)
 		dstp += 8 * OPSIZ;
 		len -= 8;
 	}
-	while (len > 0) {
+
+	while (len > 0)
+	{
 		*(op_t *)dstp = *(op_t *)srcp;
 
 		srcp += OPSIZ;
@@ -110,7 +113,7 @@ static void _wordcopy_fwd_aligned(long int dstp, long int srcp, size_t len)
    *not* be aligned.  */
 /* stream-lined (read x4 + write x4) */
 static void _wordcopy_fwd_dest_aligned(long int dstp, long int srcp,
-					size_t len)
+									   size_t len)
 {
 	op_t ap;
 	int sh_1, sh_2;
@@ -127,7 +130,8 @@ static void _wordcopy_fwd_dest_aligned(long int dstp, long int srcp,
 	ap = ((op_t *) srcp)[0];
 	srcp += OPSIZ;
 
-	while (len > 3) {
+	while (len > 3)
+	{
 		op_t a0, a1, a2, a3;
 
 		a0 = ((op_t *) srcp)[0];
@@ -144,7 +148,9 @@ static void _wordcopy_fwd_dest_aligned(long int dstp, long int srcp,
 		dstp += 4 * OPSIZ;
 		len -= 4;
 	}
-	while (len > 0) {
+
+	while (len > 0)
+	{
 		register op_t a0;
 
 		a0 = ((op_t *) srcp)[0];
@@ -165,7 +171,8 @@ void *memcpy(void *dstpp, const void *srcpp, size_t len)
 	/* Copy from the beginning to the end.  */
 
 	/* If there not too few bytes to copy, use word copy.  */
-	if (len >= OP_T_THRES) {
+	if (len >= OP_T_THRES)
+	{
 		/* Copy just a few bytes to make DSTP aligned.  */
 		len -= (-dstp) % OPSIZ;
 		BYTE_COPY_FWD(dstp, srcp, (-dstp) % OPSIZ);

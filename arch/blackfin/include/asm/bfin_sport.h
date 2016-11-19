@@ -17,17 +17,20 @@
  * itself is only 16bits.  So use a helper macro to streamline this.
  */
 #define __BFP(m) u16 m; u16 __pad_##m
-struct sport_register {
+struct sport_register
+{
 	__BFP(tcr1);
 	__BFP(tcr2);
 	__BFP(tclkdiv);
 	__BFP(tfsdiv);
-	union {
+	union
+	{
 		u32 tx32;
 		u16 tx16;
 	};
 	u32 __pad_tx;
-	union {
+	union
+	{
 		u32 rx32;	/* use the anomaly wrapper below */
 		u16 rx16;
 	};
@@ -51,21 +54,22 @@ struct sport_register {
 };
 #undef __BFP
 
-struct bfin_snd_platform_data {
+struct bfin_snd_platform_data
+{
 	const unsigned short *pin_req;
 };
 
 #define bfin_read_sport_rx32(base) \
-({ \
-	struct sport_register *__mmrs = (void *)base; \
-	u32 __ret; \
-	unsigned long flags; \
-	if (ANOMALY_05000473) \
-		local_irq_save(flags); \
-	__ret = __mmrs->rx32; \
-	if (ANOMALY_05000473) \
-		local_irq_restore(flags); \
-	__ret; \
-})
+	({ \
+		struct sport_register *__mmrs = (void *)base; \
+		u32 __ret; \
+		unsigned long flags; \
+		if (ANOMALY_05000473) \
+			local_irq_save(flags); \
+		__ret = __mmrs->rx32; \
+		if (ANOMALY_05000473) \
+			local_irq_restore(flags); \
+		__ret; \
+	})
 
 #endif

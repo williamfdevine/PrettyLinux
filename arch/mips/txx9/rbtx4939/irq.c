@@ -34,7 +34,8 @@ static void rbtx4939_ioc_irq_mask(struct irq_data *d)
 	mmiowb();
 }
 
-static struct irq_chip rbtx4939_ioc_irq_chip = {
+static struct irq_chip rbtx4939_ioc_irq_chip =
+{
 	.name		= "IOC",
 	.irq_mask	= rbtx4939_ioc_irq_mask,
 	.irq_unmask	= rbtx4939_ioc_irq_unmask,
@@ -46,7 +47,10 @@ static inline int rbtx4939_ioc_irqroute(void)
 	unsigned char istat = readb(rbtx4939_ifac2_addr);
 
 	if (unlikely(istat == 0))
+	{
 		return -1;
+	}
+
 	return RBTX4939_IRQ_IOC + __fls8(istat);
 }
 
@@ -55,21 +59,35 @@ static int rbtx4939_irq_dispatch(int pending)
 	int irq;
 
 	if (pending & CAUSEF_IP7)
+	{
 		return MIPS_CPU_IRQ_BASE + 7;
+	}
+
 	irq = tx4939_irq();
-	if (likely(irq >= 0)) {
+
+	if (likely(irq >= 0))
+	{
 		/* redirect IOC interrupts */
-		switch (irq) {
-		case RBTX4939_IRQ_IOCINT:
-			irq = rbtx4939_ioc_irqroute();
-			break;
+		switch (irq)
+		{
+			case RBTX4939_IRQ_IOCINT:
+				irq = rbtx4939_ioc_irqroute();
+				break;
 		}
-	} else if (pending & CAUSEF_IP0)
+	}
+	else if (pending & CAUSEF_IP0)
+	{
 		irq = MIPS_CPU_IRQ_BASE + 0;
+	}
 	else if (pending & CAUSEF_IP1)
+	{
 		irq = MIPS_CPU_IRQ_BASE + 1;
+	}
 	else
+	{
 		irq = -1;
+	}
+
 	return irq;
 }
 
@@ -86,10 +104,11 @@ void __init rbtx4939_irq_setup(void)
 	txx9_irq_dispatch = rbtx4939_irq_dispatch;
 
 	tx4939_irq_init();
+
 	for (i = RBTX4939_IRQ_IOC;
-	     i < RBTX4939_IRQ_IOC + RBTX4939_NR_IRQ_IOC; i++)
+		 i < RBTX4939_IRQ_IOC + RBTX4939_NR_IRQ_IOC; i++)
 		irq_set_chip_and_handler(i, &rbtx4939_ioc_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 
 	irq_set_chained_handler(RBTX4939_IRQ_IOCINT, handle_simple_irq);
 }

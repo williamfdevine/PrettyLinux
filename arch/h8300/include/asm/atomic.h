@@ -17,52 +17,52 @@
 #include <linux/kernel.h>
 
 #define ATOMIC_OP_RETURN(op, c_op)				\
-static inline int atomic_##op##_return(int i, atomic_t *v)	\
-{								\
-	h8300flags flags;					\
-	int ret;						\
-								\
-	flags = arch_local_irq_save();				\
-	ret = v->counter c_op i;				\
-	arch_local_irq_restore(flags);				\
-	return ret;						\
-}
+	static inline int atomic_##op##_return(int i, atomic_t *v)	\
+	{								\
+		h8300flags flags;					\
+		int ret;						\
+		\
+		flags = arch_local_irq_save();				\
+		ret = v->counter c_op i;				\
+		arch_local_irq_restore(flags);				\
+		return ret;						\
+	}
 
 #define ATOMIC_FETCH_OP(op, c_op)				\
-static inline int atomic_fetch_##op(int i, atomic_t *v)		\
-{								\
-	h8300flags flags;					\
-	int ret;						\
-								\
-	flags = arch_local_irq_save();				\
-	ret = v->counter;					\
-	v->counter c_op i;					\
-	arch_local_irq_restore(flags);				\
-	return ret;						\
-}
+	static inline int atomic_fetch_##op(int i, atomic_t *v)		\
+	{								\
+		h8300flags flags;					\
+		int ret;						\
+		\
+		flags = arch_local_irq_save();				\
+		ret = v->counter;					\
+		v->counter c_op i;					\
+		arch_local_irq_restore(flags);				\
+		return ret;						\
+	}
 
 #define ATOMIC_OP(op, c_op)					\
-static inline void atomic_##op(int i, atomic_t *v)		\
-{								\
-	h8300flags flags;					\
-								\
-	flags = arch_local_irq_save();				\
-	v->counter c_op i;					\
-	arch_local_irq_restore(flags);				\
-}
+	static inline void atomic_##op(int i, atomic_t *v)		\
+	{								\
+		h8300flags flags;					\
+		\
+		flags = arch_local_irq_save();				\
+		v->counter c_op i;					\
+		arch_local_irq_restore(flags);				\
+	}
 
-ATOMIC_OP_RETURN(add, +=)
-ATOMIC_OP_RETURN(sub, -=)
+ATOMIC_OP_RETURN(add, += )
+ATOMIC_OP_RETURN(sub, -= )
 
 #define ATOMIC_OPS(op, c_op)					\
 	ATOMIC_OP(op, c_op)					\
 	ATOMIC_FETCH_OP(op, c_op)
 
-ATOMIC_OPS(and, &=)
-ATOMIC_OPS(or,  |=)
-ATOMIC_OPS(xor, ^=)
-ATOMIC_OPS(add, +=)
-ATOMIC_OPS(sub, -=)
+ATOMIC_OPS( and , &= )
+ATOMIC_OPS( or ,  |= )
+ATOMIC_OPS(xor, ^= )
+ATOMIC_OPS(add, += )
+ATOMIC_OPS(sub, -= )
 
 #undef ATOMIC_OPS
 #undef ATOMIC_OP_RETURN
@@ -87,8 +87,12 @@ static inline int atomic_cmpxchg(atomic_t *v, int old, int new)
 
 	flags = arch_local_irq_save();
 	ret = v->counter;
+
 	if (likely(ret == old))
+	{
 		v->counter = new;
+	}
+
 	arch_local_irq_restore(flags);
 	return ret;
 }
@@ -100,8 +104,12 @@ static inline int __atomic_add_unless(atomic_t *v, int a, int u)
 
 	flags = arch_local_irq_save();
 	ret = v->counter;
+
 	if (ret != u)
+	{
 		v->counter += a;
+	}
+
 	arch_local_irq_restore(flags);
 	return ret;
 }

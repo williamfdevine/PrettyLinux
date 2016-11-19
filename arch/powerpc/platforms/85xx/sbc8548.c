@@ -54,7 +54,7 @@ static int sbc_rev;
 static void __init sbc8548_pic_init(void)
 {
 	struct mpic *mpic = mpic_alloc(NULL, 0, MPIC_BIG_ENDIAN,
-			0, 256, " OpenPIC  ");
+								   0, 256, " OpenPIC  ");
 	BUG_ON(mpic == NULL);
 	mpic_init(mpic);
 }
@@ -68,7 +68,9 @@ static int __init sbc8548_hw_rev(void)
 	int board_rev = 0;
 
 	np = of_find_compatible_node(NULL, NULL, "hw-rev");
-	if (np == NULL) {
+
+	if (np == NULL)
+	{
 		printk("No HW-REV found in DTB.\n");
 		return -ENODEV;
 	}
@@ -76,7 +78,7 @@ static int __init sbc8548_hw_rev(void)
 	of_address_to_resource(np, 0, &res);
 	of_node_put(np);
 
-	rev = ioremap(res.start,sizeof(unsigned int));
+	rev = ioremap(res.start, sizeof(unsigned int));
 	board_rev = (*rev) >> 28;
 	iounmap(rev);
 
@@ -89,7 +91,9 @@ static int __init sbc8548_hw_rev(void)
 static void __init sbc8548_setup_arch(void)
 {
 	if (ppc_md.progress)
+	{
 		ppc_md.progress("sbc8548_setup_arch()", 0);
+	}
 
 	fsl_pci_assign_primary();
 
@@ -123,17 +127,18 @@ static int __init sbc8548_probe(void)
 	return of_machine_is_compatible("SBC8548");
 }
 
-define_machine(sbc8548) {
+define_machine(sbc8548)
+{
 	.name		= "SBC8548",
-	.probe		= sbc8548_probe,
-	.setup_arch	= sbc8548_setup_arch,
-	.init_IRQ	= sbc8548_pic_init,
-	.show_cpuinfo	= sbc8548_show_cpuinfo,
-	.get_irq	= mpic_get_irq,
+		  .probe		= sbc8548_probe,
+			   .setup_arch	= sbc8548_setup_arch,
+				.init_IRQ	= sbc8548_pic_init,
+				   .show_cpuinfo	= sbc8548_show_cpuinfo,
+					  .get_irq	= mpic_get_irq,
 #ifdef CONFIG_PCI
-	.pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
-	.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
+						  .pcibios_fixup_bus	= fsl_pcibios_fixup_bus,
+							.pcibios_fixup_phb      = fsl_pcibios_fixup_phb,
 #endif
-	.calibrate_decr = generic_calibrate_decr,
-	.progress	= udbg_progress,
+							 .calibrate_decr = generic_calibrate_decr,
+							  .progress	= udbg_progress,
 };

@@ -2,20 +2,20 @@
 #define _ASM_POWERPC_PGTABLE_H
 
 #ifndef __ASSEMBLY__
-#include <linux/mmdebug.h>
-#include <linux/mmzone.h>
-#include <asm/processor.h>		/* For TASK_SIZE */
-#include <asm/mmu.h>
-#include <asm/page.h>
+	#include <linux/mmdebug.h>
+	#include <linux/mmzone.h>
+	#include <asm/processor.h>		/* For TASK_SIZE */
+	#include <asm/mmu.h>
+	#include <asm/page.h>
 
-struct mm_struct;
+	struct mm_struct;
 
 #endif /* !__ASSEMBLY__ */
 
 #ifdef CONFIG_PPC_BOOK3S
-#include <asm/book3s/pgtable.h>
+	#include <asm/book3s/pgtable.h>
 #else
-#include <asm/nohash/pgtable.h>
+	#include <asm/nohash/pgtable.h>
 #endif /* !CONFIG_PPC_BOOK3S */
 
 #ifndef __ASSEMBLY__
@@ -61,18 +61,18 @@ extern void paging_init(void);
 extern void update_mmu_cache(struct vm_area_struct *, unsigned long, pte_t *);
 
 extern int gup_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
-		       unsigned long end, int write,
-		       struct page **pages, int *nr);
+					   unsigned long end, int write,
+					   struct page **pages, int *nr);
 #ifndef CONFIG_TRANSPARENT_HUGEPAGE
-#define pmd_large(pmd)		0
+	#define pmd_large(pmd)		0
 #endif
 pte_t *__find_linux_pte_or_hugepte(pgd_t *pgdir, unsigned long ea,
-				   bool *is_thp, unsigned *shift);
+								   bool *is_thp, unsigned *shift);
 static inline pte_t *find_linux_pte_or_hugepte(pgd_t *pgdir, unsigned long ea,
-					       bool *is_thp, unsigned *shift)
+		bool *is_thp, unsigned *shift)
 {
 	VM_WARN(!arch_irqs_disabled(),
-		"%s called with irq enabled\n", __func__);
+			"%s called with irq enabled\n", __func__);
 	return __find_linux_pte_or_hugepte(pgdir, ea, is_thp, shift);
 }
 

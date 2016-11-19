@@ -22,10 +22,10 @@
 static inline void __delay(unsigned long loops)
 {
 	__asm__ __volatile__(
-	"	lp  1f	\n"
-	"	nop	\n"
-	"1:		\n"
-	: "+l"(loops));
+		"	lp  1f	\n"
+		"	nop	\n"
+		"1:		\n"
+		: "+l"(loops));
 }
 
 extern void __bad_udelay(void);
@@ -61,6 +61,6 @@ static inline void __udelay(unsigned long usecs)
 }
 
 #define udelay(n) (__builtin_constant_p(n) ? ((n) > 20000 ? __bad_udelay() \
-				: __udelay(n)) : __udelay(n))
+				   : __udelay(n)) : __udelay(n))
 
 #endif /* __ASM_ARC_UDELAY_H */

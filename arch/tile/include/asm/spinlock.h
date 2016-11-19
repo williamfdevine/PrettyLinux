@@ -16,9 +16,9 @@
 #define _ASM_TILE_SPINLOCK_H
 
 #ifdef __tilegx__
-#include <asm/spinlock_64.h>
+	#include <asm/spinlock_64.h>
 #else
-#include <asm/spinlock_32.h>
+	#include <asm/spinlock_32.h>
 #endif
 
 #endif /* _ASM_TILE_SPINLOCK_H */

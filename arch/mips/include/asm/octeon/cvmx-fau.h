@@ -45,7 +45,8 @@
 #define CVMX_FAU_BITS_SIZE	    12, 11
 #define CVMX_FAU_BITS_REGISTER	    10, 0
 
-typedef enum {
+typedef enum
+{
 	CVMX_FAU_OP_SIZE_8 = 0,
 	CVMX_FAU_OP_SIZE_16 = 1,
 	CVMX_FAU_OP_SIZE_32 = 2,
@@ -57,9 +58,10 @@ typedef enum {
  * bit will be set. Otherwise the value of the register before
  * the update will be returned.
  */
-typedef struct {
-	uint64_t error:1;
-	int64_t value:63;
+typedef struct
+{
+	uint64_t error: 1;
+	int64_t value: 63;
 } cvmx_fau_tagwait64_t;
 
 /**
@@ -67,9 +69,10 @@ typedef struct {
  * bit will be set. Otherwise the value of the register before
  * the update will be returned.
  */
-typedef struct {
-	uint64_t error:1;
-	int32_t value:31;
+typedef struct
+{
+	uint64_t error: 1;
+	int32_t value: 31;
 } cvmx_fau_tagwait32_t;
 
 /**
@@ -77,9 +80,10 @@ typedef struct {
  * bit will be set. Otherwise the value of the register before
  * the update will be returned.
  */
-typedef struct {
-	uint64_t error:1;
-	int16_t value:15;
+typedef struct
+{
+	uint64_t error: 1;
+	int16_t value: 15;
 } cvmx_fau_tagwait16_t;
 
 /**
@@ -87,9 +91,10 @@ typedef struct {
  * bit will be set. Otherwise the value of the register before
  * the update will be returned.
  */
-typedef struct {
-	uint64_t error:1;
-	int8_t value:7;
+typedef struct
+{
+	uint64_t error: 1;
+	int8_t value: 7;
 } cvmx_fau_tagwait8_t;
 
 /**
@@ -97,22 +102,24 @@ typedef struct {
  * the error bit will be set. Otherwise the value of the
  * register before the update will be returned.
  */
-typedef union {
+typedef union
+{
 	uint64_t u64;
-	struct {
-		uint64_t invalid:1;
-		uint64_t data:63;	/* unpredictable if invalid is set */
+	struct
+	{
+		uint64_t invalid: 1;
+		uint64_t data: 63;	/* unpredictable if invalid is set */
 	} s;
 } cvmx_fau_async_tagwait_result_t;
 
 #ifdef __BIG_ENDIAN_BITFIELD
-#define SWIZZLE_8  0
-#define SWIZZLE_16 0
-#define SWIZZLE_32 0
+	#define SWIZZLE_8  0
+	#define SWIZZLE_16 0
+	#define SWIZZLE_32 0
 #else
-#define SWIZZLE_8  0x7
-#define SWIZZLE_16 0x6
-#define SWIZZLE_32 0x4
+	#define SWIZZLE_8  0x7
+	#define SWIZZLE_16 0x6
+	#define SWIZZLE_32 0x4
 #endif
 
 /**
@@ -129,8 +136,8 @@ typedef union {
 static inline uint64_t __cvmx_fau_store_address(uint64_t noadd, uint64_t reg)
 {
 	return CVMX_ADD_IO_SEG(CVMX_FAU_LOAD_IO_ADDRESS) |
-	       cvmx_build_bits(CVMX_FAU_BITS_NOADD, noadd) |
-	       cvmx_build_bits(CVMX_FAU_BITS_REGISTER, reg);
+		   cvmx_build_bits(CVMX_FAU_BITS_NOADD, noadd) |
+		   cvmx_build_bits(CVMX_FAU_BITS_REGISTER, reg);
 }
 
 /**
@@ -150,12 +157,12 @@ static inline uint64_t __cvmx_fau_store_address(uint64_t noadd, uint64_t reg)
  * Returns Address to read from for atomic update
  */
 static inline uint64_t __cvmx_fau_atomic_address(uint64_t tagwait, uint64_t reg,
-						 int64_t value)
+		int64_t value)
 {
 	return CVMX_ADD_IO_SEG(CVMX_FAU_LOAD_IO_ADDRESS) |
-	       cvmx_build_bits(CVMX_FAU_BITS_INEVAL, value) |
-	       cvmx_build_bits(CVMX_FAU_BITS_TAGWAIT, tagwait) |
-	       cvmx_build_bits(CVMX_FAU_BITS_REGISTER, reg);
+		   cvmx_build_bits(CVMX_FAU_BITS_INEVAL, value) |
+		   cvmx_build_bits(CVMX_FAU_BITS_TAGWAIT, tagwait) |
+		   cvmx_build_bits(CVMX_FAU_BITS_REGISTER, reg);
 }
 
 /**
@@ -168,7 +175,7 @@ static inline uint64_t __cvmx_fau_atomic_address(uint64_t tagwait, uint64_t reg,
  * Returns Value of the register before the update
  */
 static inline int64_t cvmx_fau_fetch_and_add64(cvmx_fau_reg_64_t reg,
-					       int64_t value)
+		int64_t value)
 {
 	return cvmx_read64_int64(__cvmx_fau_atomic_address(0, reg, value));
 }
@@ -183,7 +190,7 @@ static inline int64_t cvmx_fau_fetch_and_add64(cvmx_fau_reg_64_t reg,
  * Returns Value of the register before the update
  */
 static inline int32_t cvmx_fau_fetch_and_add32(cvmx_fau_reg_32_t reg,
-					       int32_t value)
+		int32_t value)
 {
 	reg ^= SWIZZLE_32;
 	return cvmx_read64_int32(__cvmx_fau_atomic_address(0, reg, value));
@@ -198,7 +205,7 @@ static inline int32_t cvmx_fau_fetch_and_add32(cvmx_fau_reg_32_t reg,
  * Returns Value of the register before the update
  */
 static inline int16_t cvmx_fau_fetch_and_add16(cvmx_fau_reg_16_t reg,
-					       int16_t value)
+		int16_t value)
 {
 	reg ^= SWIZZLE_16;
 	return cvmx_read64_int16(__cvmx_fau_atomic_address(0, reg, value));
@@ -232,12 +239,13 @@ static inline int8_t cvmx_fau_fetch_and_add8(cvmx_fau_reg_8_t reg, int8_t value)
 static inline cvmx_fau_tagwait64_t
 cvmx_fau_tagwait_fetch_and_add64(cvmx_fau_reg_64_t reg, int64_t value)
 {
-	union {
+	union
+	{
 		uint64_t i64;
 		cvmx_fau_tagwait64_t t;
 	} result;
 	result.i64 =
-	    cvmx_read64_int64(__cvmx_fau_atomic_address(1, reg, value));
+		cvmx_read64_int64(__cvmx_fau_atomic_address(1, reg, value));
 	return result.t;
 }
 
@@ -256,13 +264,14 @@ cvmx_fau_tagwait_fetch_and_add64(cvmx_fau_reg_64_t reg, int64_t value)
 static inline cvmx_fau_tagwait32_t
 cvmx_fau_tagwait_fetch_and_add32(cvmx_fau_reg_32_t reg, int32_t value)
 {
-	union {
+	union
+	{
 		uint64_t i32;
 		cvmx_fau_tagwait32_t t;
 	} result;
 	reg ^= SWIZZLE_32;
 	result.i32 =
-	    cvmx_read64_int32(__cvmx_fau_atomic_address(1, reg, value));
+		cvmx_read64_int32(__cvmx_fau_atomic_address(1, reg, value));
 	return result.t;
 }
 
@@ -280,13 +289,14 @@ cvmx_fau_tagwait_fetch_and_add32(cvmx_fau_reg_32_t reg, int32_t value)
 static inline cvmx_fau_tagwait16_t
 cvmx_fau_tagwait_fetch_and_add16(cvmx_fau_reg_16_t reg, int16_t value)
 {
-	union {
+	union
+	{
 		uint64_t i16;
 		cvmx_fau_tagwait16_t t;
 	} result;
 	reg ^= SWIZZLE_16;
 	result.i16 =
-	    cvmx_read64_int16(__cvmx_fau_atomic_address(1, reg, value));
+		cvmx_read64_int16(__cvmx_fau_atomic_address(1, reg, value));
 	return result.t;
 }
 
@@ -303,7 +313,8 @@ cvmx_fau_tagwait_fetch_and_add16(cvmx_fau_reg_16_t reg, int16_t value)
 static inline cvmx_fau_tagwait8_t
 cvmx_fau_tagwait_fetch_and_add8(cvmx_fau_reg_8_t reg, int8_t value)
 {
-	union {
+	union
+	{
 		uint64_t i8;
 		cvmx_fau_tagwait8_t t;
 	} result;
@@ -335,17 +346,17 @@ cvmx_fau_tagwait_fetch_and_add8(cvmx_fau_reg_8_t reg, int8_t value)
  * Returns Data to write using cvmx_send_single
  */
 static inline uint64_t __cvmx_fau_iobdma_data(uint64_t scraddr, int64_t value,
-					      uint64_t tagwait,
-					      cvmx_fau_op_size_t size,
-					      uint64_t reg)
+		uint64_t tagwait,
+		cvmx_fau_op_size_t size,
+		uint64_t reg)
 {
 	return CVMX_FAU_LOAD_IO_ADDRESS |
-	       cvmx_build_bits(CVMX_FAU_BITS_SCRADDR, scraddr >> 3) |
-	       cvmx_build_bits(CVMX_FAU_BITS_LEN, 1) |
-	       cvmx_build_bits(CVMX_FAU_BITS_INEVAL, value) |
-	       cvmx_build_bits(CVMX_FAU_BITS_TAGWAIT, tagwait) |
-	       cvmx_build_bits(CVMX_FAU_BITS_SIZE, size) |
-	       cvmx_build_bits(CVMX_FAU_BITS_REGISTER, reg);
+		   cvmx_build_bits(CVMX_FAU_BITS_SCRADDR, scraddr >> 3) |
+		   cvmx_build_bits(CVMX_FAU_BITS_LEN, 1) |
+		   cvmx_build_bits(CVMX_FAU_BITS_INEVAL, value) |
+		   cvmx_build_bits(CVMX_FAU_BITS_TAGWAIT, tagwait) |
+		   cvmx_build_bits(CVMX_FAU_BITS_SIZE, size) |
+		   cvmx_build_bits(CVMX_FAU_BITS_REGISTER, reg);
 }
 
 /**
@@ -361,11 +372,11 @@ static inline uint64_t __cvmx_fau_iobdma_data(uint64_t scraddr, int64_t value,
  * Returns Placed in the scratch pad register
  */
 static inline void cvmx_fau_async_fetch_and_add64(uint64_t scraddr,
-						  cvmx_fau_reg_64_t reg,
-						  int64_t value)
+		cvmx_fau_reg_64_t reg,
+		int64_t value)
 {
 	cvmx_send_single(__cvmx_fau_iobdma_data
-			 (scraddr, value, 0, CVMX_FAU_OP_SIZE_64, reg));
+					 (scraddr, value, 0, CVMX_FAU_OP_SIZE_64, reg));
 }
 
 /**
@@ -381,11 +392,11 @@ static inline void cvmx_fau_async_fetch_and_add64(uint64_t scraddr,
  * Returns Placed in the scratch pad register
  */
 static inline void cvmx_fau_async_fetch_and_add32(uint64_t scraddr,
-						  cvmx_fau_reg_32_t reg,
-						  int32_t value)
+		cvmx_fau_reg_32_t reg,
+		int32_t value)
 {
 	cvmx_send_single(__cvmx_fau_iobdma_data
-			 (scraddr, value, 0, CVMX_FAU_OP_SIZE_32, reg));
+					 (scraddr, value, 0, CVMX_FAU_OP_SIZE_32, reg));
 }
 
 /**
@@ -400,11 +411,11 @@ static inline void cvmx_fau_async_fetch_and_add32(uint64_t scraddr,
  * Returns Placed in the scratch pad register
  */
 static inline void cvmx_fau_async_fetch_and_add16(uint64_t scraddr,
-						  cvmx_fau_reg_16_t reg,
-						  int16_t value)
+		cvmx_fau_reg_16_t reg,
+		int16_t value)
 {
 	cvmx_send_single(__cvmx_fau_iobdma_data
-			 (scraddr, value, 0, CVMX_FAU_OP_SIZE_16, reg));
+					 (scraddr, value, 0, CVMX_FAU_OP_SIZE_16, reg));
 }
 
 /**
@@ -418,11 +429,11 @@ static inline void cvmx_fau_async_fetch_and_add16(uint64_t scraddr,
  * Returns Placed in the scratch pad register
  */
 static inline void cvmx_fau_async_fetch_and_add8(uint64_t scraddr,
-						 cvmx_fau_reg_8_t reg,
-						 int8_t value)
+		cvmx_fau_reg_8_t reg,
+		int8_t value)
 {
 	cvmx_send_single(__cvmx_fau_iobdma_data
-			 (scraddr, value, 0, CVMX_FAU_OP_SIZE_8, reg));
+					 (scraddr, value, 0, CVMX_FAU_OP_SIZE_8, reg));
 }
 
 /**
@@ -441,11 +452,11 @@ static inline void cvmx_fau_async_fetch_and_add8(uint64_t scraddr,
  * Returns Placed in the scratch pad register
  */
 static inline void cvmx_fau_async_tagwait_fetch_and_add64(uint64_t scraddr,
-							  cvmx_fau_reg_64_t reg,
-							  int64_t value)
+		cvmx_fau_reg_64_t reg,
+		int64_t value)
 {
 	cvmx_send_single(__cvmx_fau_iobdma_data
-			 (scraddr, value, 1, CVMX_FAU_OP_SIZE_64, reg));
+					 (scraddr, value, 1, CVMX_FAU_OP_SIZE_64, reg));
 }
 
 /**
@@ -464,11 +475,11 @@ static inline void cvmx_fau_async_tagwait_fetch_and_add64(uint64_t scraddr,
  * Returns Placed in the scratch pad register
  */
 static inline void cvmx_fau_async_tagwait_fetch_and_add32(uint64_t scraddr,
-							  cvmx_fau_reg_32_t reg,
-							  int32_t value)
+		cvmx_fau_reg_32_t reg,
+		int32_t value)
 {
 	cvmx_send_single(__cvmx_fau_iobdma_data
-			 (scraddr, value, 1, CVMX_FAU_OP_SIZE_32, reg));
+					 (scraddr, value, 1, CVMX_FAU_OP_SIZE_32, reg));
 }
 
 /**
@@ -487,11 +498,11 @@ static inline void cvmx_fau_async_tagwait_fetch_and_add32(uint64_t scraddr,
  * Returns Placed in the scratch pad register
  */
 static inline void cvmx_fau_async_tagwait_fetch_and_add16(uint64_t scraddr,
-							  cvmx_fau_reg_16_t reg,
-							  int16_t value)
+		cvmx_fau_reg_16_t reg,
+		int16_t value)
 {
 	cvmx_send_single(__cvmx_fau_iobdma_data
-			 (scraddr, value, 1, CVMX_FAU_OP_SIZE_16, reg));
+					 (scraddr, value, 1, CVMX_FAU_OP_SIZE_16, reg));
 }
 
 /**
@@ -509,11 +520,11 @@ static inline void cvmx_fau_async_tagwait_fetch_and_add16(uint64_t scraddr,
  * Returns Placed in the scratch pad register
  */
 static inline void cvmx_fau_async_tagwait_fetch_and_add8(uint64_t scraddr,
-							 cvmx_fau_reg_8_t reg,
-							 int8_t value)
+		cvmx_fau_reg_8_t reg,
+		int8_t value)
 {
 	cvmx_send_single(__cvmx_fau_iobdma_data
-			 (scraddr, value, 1, CVMX_FAU_OP_SIZE_8, reg));
+					 (scraddr, value, 1, CVMX_FAU_OP_SIZE_8, reg));
 }
 
 /**

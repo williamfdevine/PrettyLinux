@@ -10,22 +10,25 @@
 #include <linux/fs.h>
 
 /* Note:
- * struct __debug_entry must be defined outside of #ifdef __KERNEL__ 
+ * struct __debug_entry must be defined outside of #ifdef __KERNEL__
  * in order to allow a user program to analyze the 'raw'-view.
  */
 
-struct __debug_entry{
-        union {
-                struct {
-                        unsigned long long clock:52;
-                        unsigned long long exception:1;
-                        unsigned long long level:3;
-                        unsigned long long cpuid:8;
-                } fields;
+struct __debug_entry
+{
+	union
+	{
+		struct
+		{
+			unsigned long long clock: 52;
+			unsigned long long exception: 1;
+			unsigned long long level: 3;
+			unsigned long long cpuid: 8;
+		} fields;
 
-                unsigned long long stck;
-        } id;
-        void* caller;
+		unsigned long long stck;
+	} id;
+	void *caller;
 } __attribute__((packed));
 
 

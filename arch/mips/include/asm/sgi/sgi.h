@@ -11,7 +11,8 @@
 #define _ASM_SGI_SGI_H
 
 /* UP=UniProcessor MP=MultiProcessor(capable) */
-enum sgi_mach {
+enum sgi_mach
+{
 	ip4,	/* R2k UP */
 	ip5,	/* R2k MP */
 	ip6,	/* R3k UP */
@@ -40,9 +41,9 @@ extern void sgi_sysinit(void);
  * one byte per word, specifically the MSB, this macro helps out.
  */
 #ifdef __MIPSEL__
-#define SGI_MSB(regaddr)   (regaddr)
+	#define SGI_MSB(regaddr)   (regaddr)
 #else
-#define SGI_MSB(regaddr)   ((regaddr) | 0x3)
+	#define SGI_MSB(regaddr)   ((regaddr) | 0x3)
 #endif
 
 #endif /* _ASM_SGI_SGI_H */

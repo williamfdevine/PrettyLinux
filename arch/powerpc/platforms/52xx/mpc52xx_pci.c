@@ -37,13 +37,13 @@
 
 
 #define MPC52xx_PCI_IWBTAR_TRANSLATION(proc_ad,pci_ad,size)	  \
-		( ( (proc_ad) & 0xff000000 )			| \
-		  ( (((size) - 1) >> 8) & 0x00ff0000 )		| \
-		  ( ((pci_ad) >> 16) & 0x0000ff00 ) )
+	( ( (proc_ad) & 0xff000000 )			| \
+	  ( (((size) - 1) >> 8) & 0x00ff0000 )		| \
+	  ( ((pci_ad) >> 16) & 0x0000ff00 ) )
 
 #define MPC52xx_PCI_IWCR_PACK(win0,win1,win2)	(((win0) << 24) | \
-						 ((win1) << 16) | \
-						 ((win2) <<  8))
+		((win1) << 16) | \
+		((win2) <<  8))
 
 #define MPC52xx_PCI_IWCR_DISABLE	0x0
 #define MPC52xx_PCI_IWCR_ENABLE		0x1
@@ -60,7 +60,8 @@
 #define MPC52xx_PCI_TBATR_DISABLE	0x0
 #define MPC52xx_PCI_TBATR_ENABLE	0x1
 
-struct mpc52xx_pci {
+struct mpc52xx_pci
+{
 	u32	idr;		/* PCI + 0x00 */
 	u32	scr;		/* PCI + 0x04 */
 	u32	ccrir;		/* PCI + 0x08 */
@@ -93,7 +94,8 @@ struct mpc52xx_pci {
 };
 
 /* MPC5200 device tree match tables */
-const struct of_device_id mpc52xx_pci_ids[] __initconst = {
+const struct of_device_id mpc52xx_pci_ids[] __initconst =
+{
 	{ .type = "pci", .compatible = "fsl,mpc5200-pci", },
 	{ .type = "pci", .compatible = "mpc5200-pci", },
 	{}
@@ -105,40 +107,46 @@ const struct of_device_id mpc52xx_pci_ids[] __initconst = {
 
 static int
 mpc52xx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
-				int offset, int len, u32 *val)
+						int offset, int len, u32 *val)
 {
 	struct pci_controller *hose = pci_bus_to_host(bus);
 	u32 value;
 
 	if (ppc_md.pci_exclude_device)
 		if (ppc_md.pci_exclude_device(hose, bus->number, devfn))
+		{
 			return PCIBIOS_DEVICE_NOT_FOUND;
+		}
 
 	out_be32(hose->cfg_addr,
-		(1 << 31) |
-		(bus->number << 16) |
-		(devfn << 8) |
-		(offset & 0xfc));
+			 (1 << 31) |
+			 (bus->number << 16) |
+			 (devfn << 8) |
+			 (offset & 0xfc));
 	mb();
 
 #if defined(CONFIG_PPC_MPC5200_BUGFIX)
-	if (bus->number) {
+
+	if (bus->number)
+	{
 		/* workaround for the bug 435 of the MPC5200 (L25R);
 		 * Don't do 32 bits config access during type-1 cycles */
-		switch (len) {
-		      case 1:
-			value = in_8(((u8 __iomem *)hose->cfg_data) +
-			             (offset & 3));
-			break;
-		      case 2:
-			value = in_le16(((u16 __iomem *)hose->cfg_data) +
-			                ((offset>>1) & 1));
-			break;
+		switch (len)
+		{
+			case 1:
+				value = in_8(((u8 __iomem *)hose->cfg_data) +
+							 (offset & 3));
+				break;
 
-		      default:
-			value = in_le16((u16 __iomem *)hose->cfg_data) |
-				(in_le16(((u16 __iomem *)hose->cfg_data) + 1) << 16);
-			break;
+			case 2:
+				value = in_le16(((u16 __iomem *)hose->cfg_data) +
+								((offset >> 1) & 1));
+				break;
+
+			default:
+				value = in_le16((u16 __iomem *)hose->cfg_data) |
+						(in_le16(((u16 __iomem *)hose->cfg_data) + 1) << 16);
+				break;
 		}
 	}
 	else
@@ -146,7 +154,8 @@ mpc52xx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
 	{
 		value = in_le32(hose->cfg_data);
 
-		if (len != 4) {
+		if (len != 4)
+		{
 			value >>= ((offset & 0x3) << 3);
 			value &= 0xffffffff >> (32 - (len << 3));
 		}
@@ -162,48 +171,55 @@ mpc52xx_pci_read_config(struct pci_bus *bus, unsigned int devfn,
 
 static int
 mpc52xx_pci_write_config(struct pci_bus *bus, unsigned int devfn,
-				int offset, int len, u32 val)
+						 int offset, int len, u32 val)
 {
 	struct pci_controller *hose = pci_bus_to_host(bus);
 	u32 value, mask;
 
 	if (ppc_md.pci_exclude_device)
 		if (ppc_md.pci_exclude_device(hose, bus->number, devfn))
+		{
 			return PCIBIOS_DEVICE_NOT_FOUND;
+		}
 
 	out_be32(hose->cfg_addr,
-		(1 << 31) |
-		(bus->number << 16) |
-		(devfn << 8) |
-		(offset & 0xfc));
+			 (1 << 31) |
+			 (bus->number << 16) |
+			 (devfn << 8) |
+			 (offset & 0xfc));
 	mb();
 
 #if defined(CONFIG_PPC_MPC5200_BUGFIX)
-	if (bus->number) {
+
+	if (bus->number)
+	{
 		/* workaround for the bug 435 of the MPC5200 (L25R);
 		 * Don't do 32 bits config access during type-1 cycles */
-		switch (len) {
-		      case 1:
-			out_8(((u8 __iomem *)hose->cfg_data) +
-				(offset & 3), val);
-			break;
-		      case 2:
-			out_le16(((u16 __iomem *)hose->cfg_data) +
-				((offset>>1) & 1), val);
-			break;
+		switch (len)
+		{
+			case 1:
+				out_8(((u8 __iomem *)hose->cfg_data) +
+					  (offset & 3), val);
+				break;
 
-		      default:
-			out_le16((u16 __iomem *)hose->cfg_data,
-				(u16)val);
-			out_le16(((u16 __iomem *)hose->cfg_data) + 1,
-				(u16)(val>>16));
-			break;
+			case 2:
+				out_le16(((u16 __iomem *)hose->cfg_data) +
+						 ((offset >> 1) & 1), val);
+				break;
+
+			default:
+				out_le16((u16 __iomem *)hose->cfg_data,
+						 (u16)val);
+				out_le16(((u16 __iomem *)hose->cfg_data) + 1,
+						 (u16)(val >> 16));
+				break;
 		}
 	}
 	else
 #endif
 	{
-		if (len != 4) {
+		if (len != 4)
+		{
 			value = in_le32(hose->cfg_data);
 
 			offset = (offset & 0x3) << 3;
@@ -216,6 +232,7 @@ mpc52xx_pci_write_config(struct pci_bus *bus, unsigned int devfn,
 
 		out_le32(hose->cfg_data, val);
 	}
+
 	mb();
 
 	out_be32(hose->cfg_addr, 0);
@@ -224,7 +241,8 @@ mpc52xx_pci_write_config(struct pci_bus *bus, unsigned int devfn,
 	return PCIBIOS_SUCCESSFUL;
 }
 
-static struct pci_ops mpc52xx_pci_ops = {
+static struct pci_ops mpc52xx_pci_ops =
+{
 	.read  = mpc52xx_pci_read_config,
 	.write = mpc52xx_pci_write_config
 };
@@ -236,7 +254,7 @@ static struct pci_ops mpc52xx_pci_ops = {
 
 static void __init
 mpc52xx_pci_setup(struct pci_controller *hose,
-                  struct mpc52xx_pci __iomem *pci_regs, phys_addr_t pci_phys)
+				  struct mpc52xx_pci __iomem *pci_regs, phys_addr_t pci_phys)
 {
 	struct resource *res;
 	u32 tmp;
@@ -256,51 +274,68 @@ mpc52xx_pci_setup(struct pci_controller *hose,
 
 	/* Memory windows */
 	res = &hose->mem_resources[0];
-	if (res->flags) {
+
+	if (res->flags)
+	{
 		pr_debug("mem_resource[0] = "
-		         "{.start=%llx, .end=%llx, .flags=%llx}\n",
-		         (unsigned long long)res->start,
-			 (unsigned long long)res->end,
-			 (unsigned long long)res->flags);
+				 "{.start=%llx, .end=%llx, .flags=%llx}\n",
+				 (unsigned long long)res->start,
+				 (unsigned long long)res->end,
+				 (unsigned long long)res->flags);
 		out_be32(&pci_regs->iw0btar,
-		         MPC52xx_PCI_IWBTAR_TRANSLATION(res->start, res->start,
-							resource_size(res)));
+				 MPC52xx_PCI_IWBTAR_TRANSLATION(res->start, res->start,
+												resource_size(res)));
 		iwcr0 = MPC52xx_PCI_IWCR_ENABLE | MPC52xx_PCI_IWCR_MEM;
+
 		if (res->flags & IORESOURCE_PREFETCH)
+		{
 			iwcr0 |= MPC52xx_PCI_IWCR_READ_MULTI;
+		}
 		else
+		{
 			iwcr0 |= MPC52xx_PCI_IWCR_READ;
+		}
 	}
 
 	res = &hose->mem_resources[1];
-	if (res->flags) {
+
+	if (res->flags)
+	{
 		pr_debug("mem_resource[1] = {.start=%x, .end=%x, .flags=%lx}\n",
-		         res->start, res->end, res->flags);
+				 res->start, res->end, res->flags);
 		out_be32(&pci_regs->iw1btar,
-		         MPC52xx_PCI_IWBTAR_TRANSLATION(res->start, res->start,
-							resource_size(res)));
+				 MPC52xx_PCI_IWBTAR_TRANSLATION(res->start, res->start,
+												resource_size(res)));
 		iwcr1 = MPC52xx_PCI_IWCR_ENABLE | MPC52xx_PCI_IWCR_MEM;
+
 		if (res->flags & IORESOURCE_PREFETCH)
+		{
 			iwcr1 |= MPC52xx_PCI_IWCR_READ_MULTI;
+		}
 		else
+		{
 			iwcr1 |= MPC52xx_PCI_IWCR_READ;
+		}
 	}
 
 	/* IO resources */
 	res = &hose->io_resource;
-	if (!res) {
+
+	if (!res)
+	{
 		printk(KERN_ERR "%s: Didn't find IO resources\n", __FILE__);
 		return;
 	}
+
 	pr_debug(".io_resource={.start=%llx,.end=%llx,.flags=%llx} "
-	         ".io_base_phys=0x%p\n",
-	         (unsigned long long)res->start,
-		 (unsigned long long)res->end,
-		 (unsigned long long)res->flags, (void*)hose->io_base_phys);
+			 ".io_base_phys=0x%p\n",
+			 (unsigned long long)res->start,
+			 (unsigned long long)res->end,
+			 (unsigned long long)res->flags, (void *)hose->io_base_phys);
 	out_be32(&pci_regs->iw2btar,
-	         MPC52xx_PCI_IWBTAR_TRANSLATION(hose->io_base_phys,
-	                                        res->start,
-						resource_size(res)));
+			 MPC52xx_PCI_IWBTAR_TRANSLATION(hose->io_base_phys,
+											res->start,
+											resource_size(res)));
 	iwcr2 = MPC52xx_PCI_IWCR_ENABLE | MPC52xx_PCI_IWCR_IO;
 
 	/* Set all the IWCR fields at once; they're in the same reg */
@@ -337,13 +372,16 @@ mpc52xx_pci_fixup_resources(struct pci_dev *dev)
 	int i;
 
 	pr_debug("mpc52xx_pci_fixup_resources() %.4x:%.4x\n",
-	         dev->vendor, dev->device);
+			 dev->vendor, dev->device);
 
 	/* We don't rely on boot loader for PCI and resets all
 	   devices */
-	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++)
+	{
 		struct resource *res = &dev->resource[i];
-		if (res->end > res->start) {	/* Only valid resources */
+
+		if (res->end > res->start)  	/* Only valid resources */
+		{
 			res->end -= res->start;
 			res->start = 0;
 			res->flags |= IORESOURCE_UNSET;
@@ -353,8 +391,9 @@ mpc52xx_pci_fixup_resources(struct pci_dev *dev)
 	/* The PCI Host bridge of MPC52xx has a prefetch memory resource
 	   fixed to 1Gb. Doesn't fit in the resource system so we remove it */
 	if ( (dev->vendor == PCI_VENDOR_ID_MOTOROLA) &&
-	     (   dev->device == PCI_DEVICE_ID_MOTOROLA_MPC5200
-	      || dev->device == PCI_DEVICE_ID_MOTOROLA_MPC5200B) ) {
+		 (   dev->device == PCI_DEVICE_ID_MOTOROLA_MPC5200
+			 || dev->device == PCI_DEVICE_ID_MOTOROLA_MPC5200B) )
+	{
 		struct resource *res = &dev->resource[1];
 		res->start = res->end = res->flags = 0;
 	}
@@ -373,15 +412,18 @@ mpc52xx_add_bridge(struct device_node *node)
 
 	pci_add_flags(PCI_REASSIGN_ALL_BUS);
 
-	if (of_address_to_resource(node, 0, &rsrc) != 0) {
+	if (of_address_to_resource(node, 0, &rsrc) != 0)
+	{
 		printk(KERN_ERR "Can't get %s resources\n", node->full_name);
 		return -EINVAL;
 	}
 
 	bus_range = of_get_property(node, "bus-range", &len);
-	if (bus_range == NULL || len < 2 * sizeof(int)) {
+
+	if (bus_range == NULL || len < 2 * sizeof(int))
+	{
 		printk(KERN_WARNING "Can't get %s bus-range, assume bus 0\n",
-		       node->full_name);
+			   node->full_name);
 		bus_range = NULL;
 	}
 
@@ -394,8 +436,11 @@ mpc52xx_add_bridge(struct device_node *node)
 	 * than parse the tree here, let pci_process_bridge_OF_ranges()
 	 * do it for us and extract the values after the fact */
 	hose = pcibios_alloc_controller(node);
+
 	if (!hose)
+	{
 		return -ENOMEM;
+	}
 
 	hose->first_busno = bus_range ? bus_range[0] : 0;
 	hose->last_busno = bus_range ? bus_range[1] : 0xff;
@@ -403,8 +448,11 @@ mpc52xx_add_bridge(struct device_node *node)
 	hose->ops = &mpc52xx_pci_ops;
 
 	pci_regs = ioremap(rsrc.start, resource_size(&rsrc));
+
 	if (!pci_regs)
+	{
 		return -ENOMEM;
+	}
 
 	pci_process_bridge_OF_ranges(hose, node, 1);
 
@@ -420,8 +468,11 @@ void __init mpc52xx_setup_pci(void)
 	struct device_node *pci;
 
 	pci = of_find_matching_node(NULL, mpc52xx_pci_ids);
+
 	if (!pci)
+	{
 		return;
+	}
 
 	mpc52xx_add_bridge(pci);
 	of_node_put(pci);

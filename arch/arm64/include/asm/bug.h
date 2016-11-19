@@ -26,12 +26,12 @@
 #ifdef CONFIG_DEBUG_BUGVERBOSE
 #define _BUGVERBOSE_LOCATION(file, line) __BUGVERBOSE_LOCATION(file, line)
 #define __BUGVERBOSE_LOCATION(file, line)				\
-		".pushsection .rodata.str,\"aMS\",@progbits,1\n"	\
+	".pushsection .rodata.str,\"aMS\",@progbits,1\n"	\
 	"2:	.string \"" file "\"\n\t"				\
-		".popsection\n\t"					\
-									\
-		".long 2b - 0b\n\t"					\
-		".short " #line "\n\t"
+	".popsection\n\t"					\
+	\
+	".long 2b - 0b\n\t"					\
+	".short " #line "\n\t"
 #else
 #define _BUGVERBOSE_LOCATION(file, line)
 #endif
@@ -41,19 +41,19 @@
 #define __BUG_FLAGS(flags) asm volatile (		\
 		".pushsection __bug_table,\"a\"\n\t"	\
 		".align 2\n\t"				\
-	"0:	.long 1f - 0b\n\t"			\
-_BUGVERBOSE_LOCATION(__FILE__, __LINE__)		\
+		"0:	.long 1f - 0b\n\t"			\
+		_BUGVERBOSE_LOCATION(__FILE__, __LINE__)		\
 		".short " #flags "\n\t"			\
 		".popsection\n"				\
-							\
-	"1:	brk %[imm]"				\
+		\
+		"1:	brk %[imm]"				\
 		:: [imm] "i" (BUG_BRK_IMM)		\
-)
+										)
 
 #define BUG() do {				\
-	_BUG_FLAGS(0);				\
-	unreachable();				\
-} while (0)
+		_BUG_FLAGS(0);				\
+		unreachable();				\
+	} while (0)
 
 #define __WARN_TAINT(taint) _BUG_FLAGS(BUGFLAG_TAINT(taint))
 

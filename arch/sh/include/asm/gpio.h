@@ -16,7 +16,7 @@
 #include <linux/errno.h>
 
 #if defined(CONFIG_CPU_SH3)
-#include <cpu/gpio.h>
+	#include <cpu/gpio.h>
 #endif
 
 #define ARCH_NR_GPIOS 512

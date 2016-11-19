@@ -28,9 +28,14 @@ void *sram_alloc(size_t len, dma_addr_t *dma)
 	dma_addr_t dma_base = davinci_soc_info.sram_dma;
 
 	if (dma)
+	{
 		*dma = 0;
+	}
+
 	if (!sram_pool || (dma && !dma_base))
+	{
 		return NULL;
+	}
 
 	return gen_pool_dma_alloc(sram_pool, len, dma);
 
@@ -57,21 +62,33 @@ static int __init sram_init(void)
 	int status = 0;
 	void __iomem *addr;
 
-	if (len) {
+	if (len)
+	{
 		len = min_t(unsigned, len, SRAM_SIZE);
 		sram_pool = gen_pool_create(ilog2(SRAM_GRANULARITY), -1);
+
 		if (!sram_pool)
+		{
 			status = -ENOMEM;
+		}
 	}
 
-	if (sram_pool) {
+	if (sram_pool)
+	{
 		addr = ioremap(phys, len);
+
 		if (!addr)
+		{
 			return -ENOMEM;
+		}
+
 		status = gen_pool_add_virt(sram_pool, (unsigned long) addr,
-					   phys, len, -1);
+								   phys, len, -1);
+
 		if (status < 0)
+		{
 			iounmap(addr);
+		}
 	}
 
 	WARN_ON(status < 0);

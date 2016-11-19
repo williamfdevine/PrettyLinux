@@ -26,7 +26,7 @@
 
 
 #ifndef LS_SIZE
-#define LS_SIZE                 0x40000	/* 256K (in bytes) */
+	#define LS_SIZE                 0x40000	/* 256K (in bytes) */
 #endif
 
 typedef unsigned int u32;

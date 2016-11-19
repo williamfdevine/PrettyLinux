@@ -15,15 +15,15 @@
 
 /* Pickup Book E specific registers. */
 #if defined(CONFIG_BOOKE) || defined(CONFIG_40x)
-#include <asm/reg_booke.h>
+	#include <asm/reg_booke.h>
 #endif /* CONFIG_BOOKE || CONFIG_40x */
 
 #ifdef CONFIG_FSL_EMB_PERFMON
-#include <asm/reg_fsl_emb.h>
+	#include <asm/reg_fsl_emb.h>
 #endif
 
 #ifdef CONFIG_8xx
-#include <asm/reg_8xx.h>
+	#include <asm/reg_8xx.h>
 #endif /* CONFIG_8xx */
 
 #define MSR_SF_LG	63              /* Enable 64 bit mode */
@@ -59,20 +59,20 @@
 #define MSR_LE_LG	0 		/* Little Endian */
 
 #ifdef __ASSEMBLY__
-#define __MASK(X)	(1<<(X))
+	#define __MASK(X)	(1<<(X))
 #else
-#define __MASK(X)	(1UL<<(X))
+	#define __MASK(X)	(1UL<<(X))
 #endif
 
 #ifdef CONFIG_PPC64
-#define MSR_SF		__MASK(MSR_SF_LG)	/* Enable 64 bit mode */
-#define MSR_ISF		__MASK(MSR_ISF_LG)	/* Interrupt 64b mode valid on 630 */
-#define MSR_HV 		__MASK(MSR_HV_LG)	/* Hypervisor state */
+	#define MSR_SF		__MASK(MSR_SF_LG)	/* Enable 64 bit mode */
+	#define MSR_ISF		__MASK(MSR_ISF_LG)	/* Interrupt 64b mode valid on 630 */
+	#define MSR_HV 		__MASK(MSR_HV_LG)	/* Hypervisor state */
 #else
-/* so tests for these bits fail on 32-bit */
-#define MSR_SF		0
-#define MSR_ISF		0
-#define MSR_HV		0
+	/* so tests for these bits fail on 32-bit */
+	#define MSR_SF		0
+	#define MSR_ISF		0
+	#define MSR_HV		0
 #endif
 
 /*
@@ -80,7 +80,7 @@
  * book S/book E in shared code
  */
 #ifndef MSR_SPE
-#define MSR_SPE 	0
+	#define MSR_SPE 	0
 #endif
 
 #define MSR_VEC		__MASK(MSR_VEC_LG)	/* Enable AltiVec */
@@ -105,7 +105,7 @@
 #define MSR_PE		__MASK(MSR_PE_LG)	/* Protection Enable */
 #define MSR_PX		__MASK(MSR_PX_LG)	/* Protection Exclusive Mode */
 #ifndef MSR_PMM
-#define MSR_PMM		__MASK(MSR_PMM_LG)	/* Performance monitor */
+	#define MSR_PMM		__MASK(MSR_PMM_LG)	/* Performance monitor */
 #endif
 #define MSR_RI		__MASK(MSR_RI_LG)	/* Recoverable Exception */
 #define MSR_LE		__MASK(MSR_LE_LG)	/* Little Endian */
@@ -121,28 +121,28 @@
 #define MSR_TM_SUSPENDED(x)	(((x) & MSR_TS_MASK) == MSR_TS_S)
 
 #if defined(CONFIG_PPC_BOOK3S_64)
-#define MSR_64BIT	MSR_SF
+	#define MSR_64BIT	MSR_SF
 
-/* Server variant */
-#define __MSR		(MSR_ME | MSR_RI | MSR_IR | MSR_DR | MSR_ISF |MSR_HV)
-#ifdef __BIG_ENDIAN__
-#define MSR_		__MSR
-#define MSR_IDLE	(MSR_ME | MSR_SF | MSR_HV)
-#else
-#define MSR_		(__MSR | MSR_LE)
-#define MSR_IDLE	(MSR_ME | MSR_SF | MSR_HV | MSR_LE)
-#endif
-#define MSR_KERNEL	(MSR_ | MSR_64BIT)
-#define MSR_USER32	(MSR_ | MSR_PR | MSR_EE)
-#define MSR_USER64	(MSR_USER32 | MSR_64BIT)
+	/* Server variant */
+	#define __MSR		(MSR_ME | MSR_RI | MSR_IR | MSR_DR | MSR_ISF |MSR_HV)
+	#ifdef __BIG_ENDIAN__
+		#define MSR_		__MSR
+		#define MSR_IDLE	(MSR_ME | MSR_SF | MSR_HV)
+	#else
+		#define MSR_		(__MSR | MSR_LE)
+		#define MSR_IDLE	(MSR_ME | MSR_SF | MSR_HV | MSR_LE)
+	#endif
+	#define MSR_KERNEL	(MSR_ | MSR_64BIT)
+	#define MSR_USER32	(MSR_ | MSR_PR | MSR_EE)
+	#define MSR_USER64	(MSR_USER32 | MSR_64BIT)
 #elif defined(CONFIG_PPC_BOOK3S_32) || defined(CONFIG_8xx)
-/* Default MSR for kernel mode. */
-#define MSR_KERNEL	(MSR_ME|MSR_RI|MSR_IR|MSR_DR)
-#define MSR_USER	(MSR_KERNEL|MSR_PR|MSR_EE)
+	/* Default MSR for kernel mode. */
+	#define MSR_KERNEL	(MSR_ME|MSR_RI|MSR_IR|MSR_DR)
+	#define MSR_USER	(MSR_KERNEL|MSR_PR|MSR_EE)
 #endif
 
 #ifndef MSR_64BIT
-#define MSR_64BIT	0
+	#define MSR_64BIT	0
 #endif
 
 /* Power Management - Processor Stop Status and Control Register Fields */
@@ -216,12 +216,12 @@
 /* Special Purpose Registers (SPRNs)*/
 
 #ifdef CONFIG_40x
-#define SPRN_PID	0x3B1	/* Process ID */
+	#define SPRN_PID	0x3B1	/* Process ID */
 #else
-#define SPRN_PID	0x030	/* Process ID */
-#ifdef CONFIG_BOOKE
-#define SPRN_PID0	SPRN_PID/* Process ID Register 0 */
-#endif
+	#define SPRN_PID	0x030	/* Process ID */
+	#ifdef CONFIG_BOOKE
+		#define SPRN_PID0	SPRN_PID/* Process ID Register 0 */
+	#endif
 #endif
 
 #define SPRN_CTR	0x009	/* Count Register */
@@ -368,7 +368,7 @@
 #define   LPCR_UPRT		ASM_CONST(0x0000000000400000)      /* Use Process Table (ISA 3) */
 #define   LPCR_HR		ASM_CONST(0x0000000000100000)
 #ifndef SPRN_LPID
-#define SPRN_LPID	0x13F	/* Logical Partition Identifier */
+	#define SPRN_LPID	0x13F	/* Logical Partition Identifier */
 #endif
 #define   LPID_RSVD	0x3ff		/* Reserved LPID for partn switching */
 #define	SPRN_HMER	0x150	/* Hardware m? error recovery */
@@ -480,15 +480,15 @@
 
 #define SPRN_HID1	0x3F1		/* Hardware Implementation Register 1 */
 #ifdef CONFIG_6xx
-#define HID1_EMCP	(1<<31)		/* 7450 Machine Check Pin Enable */
-#define HID1_DFS	(1<<22)		/* 7447A Dynamic Frequency Scaling */
-#define HID1_PC0	(1<<16)		/* 7450 PLL_CFG[0] */
-#define HID1_PC1	(1<<15)		/* 7450 PLL_CFG[1] */
-#define HID1_PC2	(1<<14)		/* 7450 PLL_CFG[2] */
-#define HID1_PC3	(1<<13)		/* 7450 PLL_CFG[3] */
-#define HID1_SYNCBE	(1<<11)		/* 7450 ABE for sync, eieio */
-#define HID1_ABE	(1<<10)		/* 7450 Address Broadcast Enable */
-#define HID1_PS		(1<<16)		/* 750FX PLL selection */
+	#define HID1_EMCP	(1<<31)		/* 7450 Machine Check Pin Enable */
+	#define HID1_DFS	(1<<22)		/* 7447A Dynamic Frequency Scaling */
+	#define HID1_PC0	(1<<16)		/* 7450 PLL_CFG[0] */
+	#define HID1_PC1	(1<<15)		/* 7450 PLL_CFG[1] */
+	#define HID1_PC2	(1<<14)		/* 7450 PLL_CFG[2] */
+	#define HID1_PC3	(1<<13)		/* 7450 PLL_CFG[3] */
+	#define HID1_SYNCBE	(1<<11)		/* 7450 ABE for sync, eieio */
+	#define HID1_ABE	(1<<10)		/* 7450 Address Broadcast Enable */
+	#define HID1_PS		(1<<16)		/* 750FX PLL selection */
 #endif
 #define SPRN_HID2	0x3F8		/* Hardware Implementation Register 2 */
 #define SPRN_HID2_GEKKO	0x398		/* Gekko HID2 Register */
@@ -518,8 +518,8 @@
 #define SPRN_TSC 	0x3FD	/* Thread switch control on others */
 #define SPRN_TST 	0x3FC	/* Thread switch timeout on others */
 #if !defined(SPRN_IAC1) && !defined(SPRN_IAC2)
-#define SPRN_IAC1	0x3F4		/* Instruction Address Compare 1 */
-#define SPRN_IAC2	0x3F5		/* Instruction Address Compare 2 */
+	#define SPRN_IAC1	0x3F4		/* Instruction Address Compare 1 */
+	#define SPRN_IAC2	0x3F5		/* Instruction Address Compare 2 */
 #endif
 #define SPRN_IBAT0L	0x211		/* Instruction BAT 0 Lower Register */
 #define SPRN_IBAT0U	0x210		/* Instruction BAT 0 Upper Register */
@@ -607,7 +607,7 @@
 #define SPRN_LDSTDB	0x3f4	/* */
 #define SPRN_LR		0x008	/* Link Register */
 #ifndef SPRN_PIR
-#define SPRN_PIR	0x3FF	/* Processor Identification Register */
+	#define SPRN_PIR	0x3FF	/* Processor Identification Register */
 #endif
 #define SPRN_TIR	0x1BE	/* Thread Identification Register */
 #define SPRN_PTCR	0x1D0	/* Partition table control Register */
@@ -672,7 +672,7 @@
 #define   TBCTL_UPDATE_LOWER	0x0000000300000000ull /* Set lower 32 bits */
 
 #ifndef SPRN_SVR
-#define SPRN_SVR	0x11E	/* System Version Register */
+	#define SPRN_SVR	0x11E	/* System Version Register */
 #endif
 #define SPRN_THRM1	0x3FC		/* Thermal Management Register 1 */
 /* these bits were defined in inverted endian sense originally, ugh, confusing */
@@ -710,220 +710,220 @@
 
 /* Performance monitor SPRs */
 #ifdef CONFIG_PPC64
-#define SPRN_MMCR0	795
-#define   MMCR0_FC	0x80000000UL /* freeze counters */
-#define   MMCR0_FCS	0x40000000UL /* freeze in supervisor state */
-#define   MMCR0_KERNEL_DISABLE MMCR0_FCS
-#define   MMCR0_FCP	0x20000000UL /* freeze in problem state */
-#define   MMCR0_PROBLEM_DISABLE MMCR0_FCP
-#define   MMCR0_FCM1	0x10000000UL /* freeze counters while MSR mark = 1 */
-#define   MMCR0_FCM0	0x08000000UL /* freeze counters while MSR mark = 0 */
-#define   MMCR0_PMXE	ASM_CONST(0x04000000) /* perf mon exception enable */
-#define   MMCR0_FCECE	ASM_CONST(0x02000000) /* freeze ctrs on enabled cond or event */
-#define   MMCR0_TBEE	0x00400000UL /* time base exception enable */
-#define   MMCR0_BHRBA	0x00200000UL /* BHRB Access allowed in userspace */
-#define   MMCR0_EBE	0x00100000UL /* Event based branch enable */
-#define   MMCR0_PMCC	0x000c0000UL /* PMC control */
-#define   MMCR0_PMCC_U6	0x00080000UL /* PMC1-6 are R/W by user (PR) */
-#define   MMCR0_PMC1CE	0x00008000UL /* PMC1 count enable*/
-#define   MMCR0_PMCjCE	ASM_CONST(0x00004000) /* PMCj count enable*/
-#define   MMCR0_TRIGGER	0x00002000UL /* TRIGGER enable */
-#define   MMCR0_PMAO_SYNC ASM_CONST(0x00000800) /* PMU intr is synchronous */
-#define   MMCR0_C56RUN	ASM_CONST(0x00000100) /* PMC5/6 count when RUN=0 */
-/* performance monitor alert has occurred, set to 0 after handling exception */
-#define   MMCR0_PMAO	ASM_CONST(0x00000080)
-#define   MMCR0_SHRFC	0x00000040UL /* SHRre freeze conditions between threads */
-#define   MMCR0_FC56	0x00000010UL /* freeze counters 5 and 6 */
-#define   MMCR0_FCTI	0x00000008UL /* freeze counters in tags inactive mode */
-#define   MMCR0_FCTA	0x00000004UL /* freeze counters in tags active mode */
-#define   MMCR0_FCWAIT	0x00000002UL /* freeze counter in WAIT state */
-#define   MMCR0_FCHV	0x00000001UL /* freeze conditions in hypervisor mode */
-#define SPRN_MMCR1	798
-#define SPRN_MMCR2	785
-#define SPRN_UMMCR2	769
-#define SPRN_MMCRA	0x312
-#define   MMCRA_SDSYNC	0x80000000UL /* SDAR synced with SIAR */
-#define   MMCRA_SDAR_DCACHE_MISS 0x40000000UL
-#define   MMCRA_SDAR_ERAT_MISS   0x20000000UL
-#define   MMCRA_SIHV	0x10000000UL /* state of MSR HV when SIAR set */
-#define   MMCRA_SIPR	0x08000000UL /* state of MSR PR when SIAR set */
-#define   MMCRA_SLOT	0x07000000UL /* SLOT bits (37-39) */
-#define   MMCRA_SLOT_SHIFT	24
-#define   MMCRA_SAMPLE_ENABLE 0x00000001UL /* enable sampling */
-#define   POWER6_MMCRA_SDSYNC 0x0000080000000000ULL	/* SDAR/SIAR synced */
-#define   POWER6_MMCRA_SIHV   0x0000040000000000ULL
-#define   POWER6_MMCRA_SIPR   0x0000020000000000ULL
-#define   POWER6_MMCRA_THRM	0x00000020UL
-#define   POWER6_MMCRA_OTHER	0x0000000EUL
+	#define SPRN_MMCR0	795
+	#define   MMCR0_FC	0x80000000UL /* freeze counters */
+	#define   MMCR0_FCS	0x40000000UL /* freeze in supervisor state */
+	#define   MMCR0_KERNEL_DISABLE MMCR0_FCS
+	#define   MMCR0_FCP	0x20000000UL /* freeze in problem state */
+	#define   MMCR0_PROBLEM_DISABLE MMCR0_FCP
+	#define   MMCR0_FCM1	0x10000000UL /* freeze counters while MSR mark = 1 */
+	#define   MMCR0_FCM0	0x08000000UL /* freeze counters while MSR mark = 0 */
+	#define   MMCR0_PMXE	ASM_CONST(0x04000000) /* perf mon exception enable */
+	#define   MMCR0_FCECE	ASM_CONST(0x02000000) /* freeze ctrs on enabled cond or event */
+	#define   MMCR0_TBEE	0x00400000UL /* time base exception enable */
+	#define   MMCR0_BHRBA	0x00200000UL /* BHRB Access allowed in userspace */
+	#define   MMCR0_EBE	0x00100000UL /* Event based branch enable */
+	#define   MMCR0_PMCC	0x000c0000UL /* PMC control */
+	#define   MMCR0_PMCC_U6	0x00080000UL /* PMC1-6 are R/W by user (PR) */
+	#define   MMCR0_PMC1CE	0x00008000UL /* PMC1 count enable*/
+	#define   MMCR0_PMCjCE	ASM_CONST(0x00004000) /* PMCj count enable*/
+	#define   MMCR0_TRIGGER	0x00002000UL /* TRIGGER enable */
+	#define   MMCR0_PMAO_SYNC ASM_CONST(0x00000800) /* PMU intr is synchronous */
+	#define   MMCR0_C56RUN	ASM_CONST(0x00000100) /* PMC5/6 count when RUN=0 */
+	/* performance monitor alert has occurred, set to 0 after handling exception */
+	#define   MMCR0_PMAO	ASM_CONST(0x00000080)
+	#define   MMCR0_SHRFC	0x00000040UL /* SHRre freeze conditions between threads */
+	#define   MMCR0_FC56	0x00000010UL /* freeze counters 5 and 6 */
+	#define   MMCR0_FCTI	0x00000008UL /* freeze counters in tags inactive mode */
+	#define   MMCR0_FCTA	0x00000004UL /* freeze counters in tags active mode */
+	#define   MMCR0_FCWAIT	0x00000002UL /* freeze counter in WAIT state */
+	#define   MMCR0_FCHV	0x00000001UL /* freeze conditions in hypervisor mode */
+	#define SPRN_MMCR1	798
+	#define SPRN_MMCR2	785
+	#define SPRN_UMMCR2	769
+	#define SPRN_MMCRA	0x312
+	#define   MMCRA_SDSYNC	0x80000000UL /* SDAR synced with SIAR */
+	#define   MMCRA_SDAR_DCACHE_MISS 0x40000000UL
+	#define   MMCRA_SDAR_ERAT_MISS   0x20000000UL
+	#define   MMCRA_SIHV	0x10000000UL /* state of MSR HV when SIAR set */
+	#define   MMCRA_SIPR	0x08000000UL /* state of MSR PR when SIAR set */
+	#define   MMCRA_SLOT	0x07000000UL /* SLOT bits (37-39) */
+	#define   MMCRA_SLOT_SHIFT	24
+	#define   MMCRA_SAMPLE_ENABLE 0x00000001UL /* enable sampling */
+	#define   POWER6_MMCRA_SDSYNC 0x0000080000000000ULL	/* SDAR/SIAR synced */
+	#define   POWER6_MMCRA_SIHV   0x0000040000000000ULL
+	#define   POWER6_MMCRA_SIPR   0x0000020000000000ULL
+	#define   POWER6_MMCRA_THRM	0x00000020UL
+	#define   POWER6_MMCRA_OTHER	0x0000000EUL
 
-#define   POWER7P_MMCRA_SIAR_VALID 0x10000000	/* P7+ SIAR contents valid */
-#define   POWER7P_MMCRA_SDAR_VALID 0x08000000	/* P7+ SDAR contents valid */
+	#define   POWER7P_MMCRA_SIAR_VALID 0x10000000	/* P7+ SIAR contents valid */
+	#define   POWER7P_MMCRA_SDAR_VALID 0x08000000	/* P7+ SDAR contents valid */
 
-#define SPRN_MMCRH	316	/* Hypervisor monitor mode control register */
-#define SPRN_MMCRS	894	/* Supervisor monitor mode control register */
-#define SPRN_MMCRC	851	/* Core monitor mode control register */
-#define SPRN_EBBHR	804	/* Event based branch handler register */
-#define SPRN_EBBRR	805	/* Event based branch return register */
-#define SPRN_BESCR	806	/* Branch event status and control register */
-#define   BESCR_GE	0x8000000000000000ULL /* Global Enable */
-#define SPRN_WORT	895	/* Workload optimization register - thread */
-#define SPRN_WORC	863	/* Workload optimization register - core */
+	#define SPRN_MMCRH	316	/* Hypervisor monitor mode control register */
+	#define SPRN_MMCRS	894	/* Supervisor monitor mode control register */
+	#define SPRN_MMCRC	851	/* Core monitor mode control register */
+	#define SPRN_EBBHR	804	/* Event based branch handler register */
+	#define SPRN_EBBRR	805	/* Event based branch return register */
+	#define SPRN_BESCR	806	/* Branch event status and control register */
+	#define   BESCR_GE	0x8000000000000000ULL /* Global Enable */
+	#define SPRN_WORT	895	/* Workload optimization register - thread */
+	#define SPRN_WORC	863	/* Workload optimization register - core */
 
-#define SPRN_PMC1	787
-#define SPRN_PMC2	788
-#define SPRN_PMC3	789
-#define SPRN_PMC4	790
-#define SPRN_PMC5	791
-#define SPRN_PMC6	792
-#define SPRN_PMC7	793
-#define SPRN_PMC8	794
-#define SPRN_SIER	784
-#define   SIER_SIPR		0x2000000	/* Sampled MSR_PR */
-#define   SIER_SIHV		0x1000000	/* Sampled MSR_HV */
-#define   SIER_SIAR_VALID	0x0400000	/* SIAR contents valid */
-#define   SIER_SDAR_VALID	0x0200000	/* SDAR contents valid */
-#define SPRN_SIAR	796
-#define SPRN_SDAR	797
-#define SPRN_TACR	888
-#define SPRN_TCSCR	889
-#define SPRN_CSIGR	890
-#define SPRN_SPMC1	892
-#define SPRN_SPMC2	893
+	#define SPRN_PMC1	787
+	#define SPRN_PMC2	788
+	#define SPRN_PMC3	789
+	#define SPRN_PMC4	790
+	#define SPRN_PMC5	791
+	#define SPRN_PMC6	792
+	#define SPRN_PMC7	793
+	#define SPRN_PMC8	794
+	#define SPRN_SIER	784
+	#define   SIER_SIPR		0x2000000	/* Sampled MSR_PR */
+	#define   SIER_SIHV		0x1000000	/* Sampled MSR_HV */
+	#define   SIER_SIAR_VALID	0x0400000	/* SIAR contents valid */
+	#define   SIER_SDAR_VALID	0x0200000	/* SDAR contents valid */
+	#define SPRN_SIAR	796
+	#define SPRN_SDAR	797
+	#define SPRN_TACR	888
+	#define SPRN_TCSCR	889
+	#define SPRN_CSIGR	890
+	#define SPRN_SPMC1	892
+	#define SPRN_SPMC2	893
 
-/* When EBB is enabled, some of MMCR0/MMCR2/SIER are user accessible */
-#define MMCR0_USER_MASK	(MMCR0_FC | MMCR0_PMXE | MMCR0_PMAO)
-#define MMCR2_USER_MASK	0x4020100804020000UL /* (FC1P|FC2P|FC3P|FC4P|FC5P|FC6P) */
-#define SIER_USER_MASK	0x7fffffUL
+	/* When EBB is enabled, some of MMCR0/MMCR2/SIER are user accessible */
+	#define MMCR0_USER_MASK	(MMCR0_FC | MMCR0_PMXE | MMCR0_PMAO)
+	#define MMCR2_USER_MASK	0x4020100804020000UL /* (FC1P|FC2P|FC3P|FC4P|FC5P|FC6P) */
+	#define SIER_USER_MASK	0x7fffffUL
 
-#define SPRN_PA6T_MMCR0 795
-#define   PA6T_MMCR0_EN0	0x0000000000000001UL
-#define   PA6T_MMCR0_EN1	0x0000000000000002UL
-#define   PA6T_MMCR0_EN2	0x0000000000000004UL
-#define   PA6T_MMCR0_EN3	0x0000000000000008UL
-#define   PA6T_MMCR0_EN4	0x0000000000000010UL
-#define   PA6T_MMCR0_EN5	0x0000000000000020UL
-#define   PA6T_MMCR0_SUPEN	0x0000000000000040UL
-#define   PA6T_MMCR0_PREN	0x0000000000000080UL
-#define   PA6T_MMCR0_HYPEN	0x0000000000000100UL
-#define   PA6T_MMCR0_FCM0	0x0000000000000200UL
-#define   PA6T_MMCR0_FCM1	0x0000000000000400UL
-#define   PA6T_MMCR0_INTGEN	0x0000000000000800UL
-#define   PA6T_MMCR0_INTEN0	0x0000000000001000UL
-#define   PA6T_MMCR0_INTEN1	0x0000000000002000UL
-#define   PA6T_MMCR0_INTEN2	0x0000000000004000UL
-#define   PA6T_MMCR0_INTEN3	0x0000000000008000UL
-#define   PA6T_MMCR0_INTEN4	0x0000000000010000UL
-#define   PA6T_MMCR0_INTEN5	0x0000000000020000UL
-#define   PA6T_MMCR0_DISCNT	0x0000000000040000UL
-#define   PA6T_MMCR0_UOP	0x0000000000080000UL
-#define   PA6T_MMCR0_TRG	0x0000000000100000UL
-#define   PA6T_MMCR0_TRGEN	0x0000000000200000UL
-#define   PA6T_MMCR0_TRGREG	0x0000000001600000UL
-#define   PA6T_MMCR0_SIARLOG	0x0000000002000000UL
-#define   PA6T_MMCR0_SDARLOG	0x0000000004000000UL
-#define   PA6T_MMCR0_PROEN	0x0000000008000000UL
-#define   PA6T_MMCR0_PROLOG	0x0000000010000000UL
-#define   PA6T_MMCR0_DAMEN2	0x0000000020000000UL
-#define   PA6T_MMCR0_DAMEN3	0x0000000040000000UL
-#define   PA6T_MMCR0_DAMEN4	0x0000000080000000UL
-#define   PA6T_MMCR0_DAMEN5	0x0000000100000000UL
-#define   PA6T_MMCR0_DAMSEL2	0x0000000200000000UL
-#define   PA6T_MMCR0_DAMSEL3	0x0000000400000000UL
-#define   PA6T_MMCR0_DAMSEL4	0x0000000800000000UL
-#define   PA6T_MMCR0_DAMSEL5	0x0000001000000000UL
-#define   PA6T_MMCR0_HANDDIS	0x0000002000000000UL
-#define   PA6T_MMCR0_PCTEN	0x0000004000000000UL
-#define   PA6T_MMCR0_SOCEN	0x0000008000000000UL
-#define   PA6T_MMCR0_SOCMOD	0x0000010000000000UL
+	#define SPRN_PA6T_MMCR0 795
+	#define   PA6T_MMCR0_EN0	0x0000000000000001UL
+	#define   PA6T_MMCR0_EN1	0x0000000000000002UL
+	#define   PA6T_MMCR0_EN2	0x0000000000000004UL
+	#define   PA6T_MMCR0_EN3	0x0000000000000008UL
+	#define   PA6T_MMCR0_EN4	0x0000000000000010UL
+	#define   PA6T_MMCR0_EN5	0x0000000000000020UL
+	#define   PA6T_MMCR0_SUPEN	0x0000000000000040UL
+	#define   PA6T_MMCR0_PREN	0x0000000000000080UL
+	#define   PA6T_MMCR0_HYPEN	0x0000000000000100UL
+	#define   PA6T_MMCR0_FCM0	0x0000000000000200UL
+	#define   PA6T_MMCR0_FCM1	0x0000000000000400UL
+	#define   PA6T_MMCR0_INTGEN	0x0000000000000800UL
+	#define   PA6T_MMCR0_INTEN0	0x0000000000001000UL
+	#define   PA6T_MMCR0_INTEN1	0x0000000000002000UL
+	#define   PA6T_MMCR0_INTEN2	0x0000000000004000UL
+	#define   PA6T_MMCR0_INTEN3	0x0000000000008000UL
+	#define   PA6T_MMCR0_INTEN4	0x0000000000010000UL
+	#define   PA6T_MMCR0_INTEN5	0x0000000000020000UL
+	#define   PA6T_MMCR0_DISCNT	0x0000000000040000UL
+	#define   PA6T_MMCR0_UOP	0x0000000000080000UL
+	#define   PA6T_MMCR0_TRG	0x0000000000100000UL
+	#define   PA6T_MMCR0_TRGEN	0x0000000000200000UL
+	#define   PA6T_MMCR0_TRGREG	0x0000000001600000UL
+	#define   PA6T_MMCR0_SIARLOG	0x0000000002000000UL
+	#define   PA6T_MMCR0_SDARLOG	0x0000000004000000UL
+	#define   PA6T_MMCR0_PROEN	0x0000000008000000UL
+	#define   PA6T_MMCR0_PROLOG	0x0000000010000000UL
+	#define   PA6T_MMCR0_DAMEN2	0x0000000020000000UL
+	#define   PA6T_MMCR0_DAMEN3	0x0000000040000000UL
+	#define   PA6T_MMCR0_DAMEN4	0x0000000080000000UL
+	#define   PA6T_MMCR0_DAMEN5	0x0000000100000000UL
+	#define   PA6T_MMCR0_DAMSEL2	0x0000000200000000UL
+	#define   PA6T_MMCR0_DAMSEL3	0x0000000400000000UL
+	#define   PA6T_MMCR0_DAMSEL4	0x0000000800000000UL
+	#define   PA6T_MMCR0_DAMSEL5	0x0000001000000000UL
+	#define   PA6T_MMCR0_HANDDIS	0x0000002000000000UL
+	#define   PA6T_MMCR0_PCTEN	0x0000004000000000UL
+	#define   PA6T_MMCR0_SOCEN	0x0000008000000000UL
+	#define   PA6T_MMCR0_SOCMOD	0x0000010000000000UL
 
-#define SPRN_PA6T_MMCR1 798
-#define   PA6T_MMCR1_ES2	0x00000000000000ffUL
-#define   PA6T_MMCR1_ES3	0x000000000000ff00UL
-#define   PA6T_MMCR1_ES4	0x0000000000ff0000UL
-#define   PA6T_MMCR1_ES5	0x00000000ff000000UL
+	#define SPRN_PA6T_MMCR1 798
+	#define   PA6T_MMCR1_ES2	0x00000000000000ffUL
+	#define   PA6T_MMCR1_ES3	0x000000000000ff00UL
+	#define   PA6T_MMCR1_ES4	0x0000000000ff0000UL
+	#define   PA6T_MMCR1_ES5	0x00000000ff000000UL
 
-#define SPRN_PA6T_UPMC0 771	/* User PerfMon Counter 0 */
-#define SPRN_PA6T_UPMC1 772	/* ... */
-#define SPRN_PA6T_UPMC2 773
-#define SPRN_PA6T_UPMC3 774
-#define SPRN_PA6T_UPMC4 775
-#define SPRN_PA6T_UPMC5 776
-#define SPRN_PA6T_UMMCR0 779	/* User Monitor Mode Control Register 0 */
-#define SPRN_PA6T_SIAR	780	/* Sampled Instruction Address */
-#define SPRN_PA6T_UMMCR1 782	/* User Monitor Mode Control Register 1 */
-#define SPRN_PA6T_SIER	785	/* Sampled Instruction Event Register */
-#define SPRN_PA6T_PMC0	787
-#define SPRN_PA6T_PMC1	788
-#define SPRN_PA6T_PMC2	789
-#define SPRN_PA6T_PMC3	790
-#define SPRN_PA6T_PMC4	791
-#define SPRN_PA6T_PMC5	792
-#define SPRN_PA6T_TSR0	793	/* Timestamp Register 0 */
-#define SPRN_PA6T_TSR1	794	/* Timestamp Register 1 */
-#define SPRN_PA6T_TSR2	799	/* Timestamp Register 2 */
-#define SPRN_PA6T_TSR3	784	/* Timestamp Register 3 */
+	#define SPRN_PA6T_UPMC0 771	/* User PerfMon Counter 0 */
+	#define SPRN_PA6T_UPMC1 772	/* ... */
+	#define SPRN_PA6T_UPMC2 773
+	#define SPRN_PA6T_UPMC3 774
+	#define SPRN_PA6T_UPMC4 775
+	#define SPRN_PA6T_UPMC5 776
+	#define SPRN_PA6T_UMMCR0 779	/* User Monitor Mode Control Register 0 */
+	#define SPRN_PA6T_SIAR	780	/* Sampled Instruction Address */
+	#define SPRN_PA6T_UMMCR1 782	/* User Monitor Mode Control Register 1 */
+	#define SPRN_PA6T_SIER	785	/* Sampled Instruction Event Register */
+	#define SPRN_PA6T_PMC0	787
+	#define SPRN_PA6T_PMC1	788
+	#define SPRN_PA6T_PMC2	789
+	#define SPRN_PA6T_PMC3	790
+	#define SPRN_PA6T_PMC4	791
+	#define SPRN_PA6T_PMC5	792
+	#define SPRN_PA6T_TSR0	793	/* Timestamp Register 0 */
+	#define SPRN_PA6T_TSR1	794	/* Timestamp Register 1 */
+	#define SPRN_PA6T_TSR2	799	/* Timestamp Register 2 */
+	#define SPRN_PA6T_TSR3	784	/* Timestamp Register 3 */
 
-#define SPRN_PA6T_IER	981	/* Icache Error Register */
-#define SPRN_PA6T_DER	982	/* Dcache Error Register */
-#define SPRN_PA6T_BER	862	/* BIU Error Address Register */
-#define SPRN_PA6T_MER	849	/* MMU Error Register */
+	#define SPRN_PA6T_IER	981	/* Icache Error Register */
+	#define SPRN_PA6T_DER	982	/* Dcache Error Register */
+	#define SPRN_PA6T_BER	862	/* BIU Error Address Register */
+	#define SPRN_PA6T_MER	849	/* MMU Error Register */
 
-#define SPRN_PA6T_IMA0	880	/* Instruction Match Array 0 */
-#define SPRN_PA6T_IMA1	881	/* ... */
-#define SPRN_PA6T_IMA2	882
-#define SPRN_PA6T_IMA3	883
-#define SPRN_PA6T_IMA4	884
-#define SPRN_PA6T_IMA5	885
-#define SPRN_PA6T_IMA6	886
-#define SPRN_PA6T_IMA7	887
-#define SPRN_PA6T_IMA8	888
-#define SPRN_PA6T_IMA9	889
-#define SPRN_PA6T_BTCR	978	/* Breakpoint and Tagging Control Register */
-#define SPRN_PA6T_IMAAT	979	/* Instruction Match Array Action Table */
-#define SPRN_PA6T_PCCR	1019	/* Power Counter Control Register */
-#define SPRN_BKMK	1020	/* Cell Bookmark Register */
-#define SPRN_PA6T_RPCCR	1021	/* Retire PC Trace Control Register */
+	#define SPRN_PA6T_IMA0	880	/* Instruction Match Array 0 */
+	#define SPRN_PA6T_IMA1	881	/* ... */
+	#define SPRN_PA6T_IMA2	882
+	#define SPRN_PA6T_IMA3	883
+	#define SPRN_PA6T_IMA4	884
+	#define SPRN_PA6T_IMA5	885
+	#define SPRN_PA6T_IMA6	886
+	#define SPRN_PA6T_IMA7	887
+	#define SPRN_PA6T_IMA8	888
+	#define SPRN_PA6T_IMA9	889
+	#define SPRN_PA6T_BTCR	978	/* Breakpoint and Tagging Control Register */
+	#define SPRN_PA6T_IMAAT	979	/* Instruction Match Array Action Table */
+	#define SPRN_PA6T_PCCR	1019	/* Power Counter Control Register */
+	#define SPRN_BKMK	1020	/* Cell Bookmark Register */
+	#define SPRN_PA6T_RPCCR	1021	/* Retire PC Trace Control Register */
 
 
 #else /* 32-bit */
-#define SPRN_MMCR0	952	/* Monitor Mode Control Register 0 */
-#define   MMCR0_FC	0x80000000UL /* freeze counters */
-#define   MMCR0_FCS	0x40000000UL /* freeze in supervisor state */
-#define   MMCR0_FCP	0x20000000UL /* freeze in problem state */
-#define   MMCR0_FCM1	0x10000000UL /* freeze counters while MSR mark = 1 */
-#define   MMCR0_FCM0	0x08000000UL /* freeze counters while MSR mark = 0 */
-#define   MMCR0_PMXE	0x04000000UL /* performance monitor exception enable */
-#define   MMCR0_FCECE	0x02000000UL /* freeze ctrs on enabled cond or event */
-#define   MMCR0_TBEE	0x00400000UL /* time base exception enable */
-#define   MMCR0_PMC1CE	0x00008000UL /* PMC1 count enable*/
-#define   MMCR0_PMCnCE	0x00004000UL /* count enable for all but PMC 1*/
-#define   MMCR0_TRIGGER	0x00002000UL /* TRIGGER enable */
-#define   MMCR0_PMC1SEL	0x00001fc0UL /* PMC 1 Event */
-#define   MMCR0_PMC2SEL	0x0000003fUL /* PMC 2 Event */
+	#define SPRN_MMCR0	952	/* Monitor Mode Control Register 0 */
+	#define   MMCR0_FC	0x80000000UL /* freeze counters */
+	#define   MMCR0_FCS	0x40000000UL /* freeze in supervisor state */
+	#define   MMCR0_FCP	0x20000000UL /* freeze in problem state */
+	#define   MMCR0_FCM1	0x10000000UL /* freeze counters while MSR mark = 1 */
+	#define   MMCR0_FCM0	0x08000000UL /* freeze counters while MSR mark = 0 */
+	#define   MMCR0_PMXE	0x04000000UL /* performance monitor exception enable */
+	#define   MMCR0_FCECE	0x02000000UL /* freeze ctrs on enabled cond or event */
+	#define   MMCR0_TBEE	0x00400000UL /* time base exception enable */
+	#define   MMCR0_PMC1CE	0x00008000UL /* PMC1 count enable*/
+	#define   MMCR0_PMCnCE	0x00004000UL /* count enable for all but PMC 1*/
+	#define   MMCR0_TRIGGER	0x00002000UL /* TRIGGER enable */
+	#define   MMCR0_PMC1SEL	0x00001fc0UL /* PMC 1 Event */
+	#define   MMCR0_PMC2SEL	0x0000003fUL /* PMC 2 Event */
 
-#define SPRN_MMCR1	956
-#define   MMCR1_PMC3SEL	0xf8000000UL /* PMC 3 Event */
-#define   MMCR1_PMC4SEL	0x07c00000UL /* PMC 4 Event */
-#define   MMCR1_PMC5SEL	0x003e0000UL /* PMC 5 Event */
-#define   MMCR1_PMC6SEL 0x0001f800UL /* PMC 6 Event */
-#define SPRN_MMCR2	944
-#define SPRN_PMC1	953	/* Performance Counter Register 1 */
-#define SPRN_PMC2	954	/* Performance Counter Register 2 */
-#define SPRN_PMC3	957	/* Performance Counter Register 3 */
-#define SPRN_PMC4	958	/* Performance Counter Register 4 */
-#define SPRN_PMC5	945	/* Performance Counter Register 5 */
-#define SPRN_PMC6	946	/* Performance Counter Register 6 */
+	#define SPRN_MMCR1	956
+	#define   MMCR1_PMC3SEL	0xf8000000UL /* PMC 3 Event */
+	#define   MMCR1_PMC4SEL	0x07c00000UL /* PMC 4 Event */
+	#define   MMCR1_PMC5SEL	0x003e0000UL /* PMC 5 Event */
+	#define   MMCR1_PMC6SEL 0x0001f800UL /* PMC 6 Event */
+	#define SPRN_MMCR2	944
+	#define SPRN_PMC1	953	/* Performance Counter Register 1 */
+	#define SPRN_PMC2	954	/* Performance Counter Register 2 */
+	#define SPRN_PMC3	957	/* Performance Counter Register 3 */
+	#define SPRN_PMC4	958	/* Performance Counter Register 4 */
+	#define SPRN_PMC5	945	/* Performance Counter Register 5 */
+	#define SPRN_PMC6	946	/* Performance Counter Register 6 */
 
-#define SPRN_SIAR	955	/* Sampled Instruction Address Register */
+	#define SPRN_SIAR	955	/* Sampled Instruction Address Register */
 
-/* Bit definitions for MMCR0 and PMC1 / PMC2. */
-#define MMCR0_PMC1_CYCLES	(1 << 7)
-#define MMCR0_PMC1_ICACHEMISS	(5 << 7)
-#define MMCR0_PMC1_DTLB		(6 << 7)
-#define MMCR0_PMC2_DCACHEMISS	0x6
-#define MMCR0_PMC2_CYCLES	0x1
-#define MMCR0_PMC2_ITLB		0x7
-#define MMCR0_PMC2_LOADMISSTIME	0x5
+	/* Bit definitions for MMCR0 and PMC1 / PMC2. */
+	#define MMCR0_PMC1_CYCLES	(1 << 7)
+	#define MMCR0_PMC1_ICACHEMISS	(5 << 7)
+	#define MMCR0_PMC1_DTLB		(6 << 7)
+	#define MMCR0_PMC2_DCACHEMISS	0x6
+	#define MMCR0_PMC2_CYCLES	0x1
+	#define MMCR0_PMC2_ITLB		0x7
+	#define MMCR0_PMC2_LOADMISSTIME	0x5
 #endif
 
 /*
@@ -991,9 +991,9 @@
  *
  */
 #ifdef CONFIG_PPC64
-#define SPRN_SPRG_PACA 		SPRN_SPRG1
+	#define SPRN_SPRG_PACA 		SPRN_SPRG1
 #else
-#define SPRN_SPRG_THREAD 	SPRN_SPRG3
+	#define SPRN_SPRG_THREAD 	SPRN_SPRG3
 #endif
 
 #ifdef CONFIG_PPC_BOOK3S_64
@@ -1038,66 +1038,66 @@
 #endif
 
 #ifdef CONFIG_PPC_BOOK3E_64
-#define SPRN_SPRG_MC_SCRATCH	SPRN_SPRG8
-#define SPRN_SPRG_CRIT_SCRATCH	SPRN_SPRG3
-#define SPRN_SPRG_DBG_SCRATCH	SPRN_SPRG9
-#define SPRN_SPRG_TLB_EXFRAME	SPRN_SPRG2
-#define SPRN_SPRG_TLB_SCRATCH	SPRN_SPRG6
-#define SPRN_SPRG_GEN_SCRATCH	SPRN_SPRG0
-#define SPRN_SPRG_GDBELL_SCRATCH SPRN_SPRG_GEN_SCRATCH
-#define SPRN_SPRG_VDSO_READ	SPRN_USPRG7
-#define SPRN_SPRG_VDSO_WRITE	SPRN_SPRG7
+	#define SPRN_SPRG_MC_SCRATCH	SPRN_SPRG8
+	#define SPRN_SPRG_CRIT_SCRATCH	SPRN_SPRG3
+	#define SPRN_SPRG_DBG_SCRATCH	SPRN_SPRG9
+	#define SPRN_SPRG_TLB_EXFRAME	SPRN_SPRG2
+	#define SPRN_SPRG_TLB_SCRATCH	SPRN_SPRG6
+	#define SPRN_SPRG_GEN_SCRATCH	SPRN_SPRG0
+	#define SPRN_SPRG_GDBELL_SCRATCH SPRN_SPRG_GEN_SCRATCH
+	#define SPRN_SPRG_VDSO_READ	SPRN_USPRG7
+	#define SPRN_SPRG_VDSO_WRITE	SPRN_SPRG7
 
-#define SET_PACA(rX)	mtspr	SPRN_SPRG_PACA,rX
-#define GET_PACA(rX)	mfspr	rX,SPRN_SPRG_PACA
+	#define SET_PACA(rX)	mtspr	SPRN_SPRG_PACA,rX
+	#define GET_PACA(rX)	mfspr	rX,SPRN_SPRG_PACA
 
 #endif
 
 #ifdef CONFIG_PPC_BOOK3S_32
-#define SPRN_SPRG_SCRATCH0	SPRN_SPRG0
-#define SPRN_SPRG_SCRATCH1	SPRN_SPRG1
-#define SPRN_SPRG_RTAS		SPRN_SPRG2
-#define SPRN_SPRG_603_LRU	SPRN_SPRG4
+	#define SPRN_SPRG_SCRATCH0	SPRN_SPRG0
+	#define SPRN_SPRG_SCRATCH1	SPRN_SPRG1
+	#define SPRN_SPRG_RTAS		SPRN_SPRG2
+	#define SPRN_SPRG_603_LRU	SPRN_SPRG4
 #endif
 
 #ifdef CONFIG_40x
-#define SPRN_SPRG_SCRATCH0	SPRN_SPRG0
-#define SPRN_SPRG_SCRATCH1	SPRN_SPRG1
-#define SPRN_SPRG_SCRATCH2	SPRN_SPRG2
-#define SPRN_SPRG_SCRATCH3	SPRN_SPRG4
-#define SPRN_SPRG_SCRATCH4	SPRN_SPRG5
-#define SPRN_SPRG_SCRATCH5	SPRN_SPRG6
-#define SPRN_SPRG_SCRATCH6	SPRN_SPRG7
+	#define SPRN_SPRG_SCRATCH0	SPRN_SPRG0
+	#define SPRN_SPRG_SCRATCH1	SPRN_SPRG1
+	#define SPRN_SPRG_SCRATCH2	SPRN_SPRG2
+	#define SPRN_SPRG_SCRATCH3	SPRN_SPRG4
+	#define SPRN_SPRG_SCRATCH4	SPRN_SPRG5
+	#define SPRN_SPRG_SCRATCH5	SPRN_SPRG6
+	#define SPRN_SPRG_SCRATCH6	SPRN_SPRG7
 #endif
 
 #ifdef CONFIG_BOOKE
-#define SPRN_SPRG_RSCRATCH0	SPRN_SPRG0
-#define SPRN_SPRG_WSCRATCH0	SPRN_SPRG0
-#define SPRN_SPRG_RSCRATCH1	SPRN_SPRG1
-#define SPRN_SPRG_WSCRATCH1	SPRN_SPRG1
-#define SPRN_SPRG_RSCRATCH_CRIT	SPRN_SPRG2
-#define SPRN_SPRG_WSCRATCH_CRIT	SPRN_SPRG2
-#define SPRN_SPRG_RSCRATCH2	SPRN_SPRG4R
-#define SPRN_SPRG_WSCRATCH2	SPRN_SPRG4W
-#define SPRN_SPRG_RSCRATCH3	SPRN_SPRG5R
-#define SPRN_SPRG_WSCRATCH3	SPRN_SPRG5W
-#define SPRN_SPRG_RSCRATCH_MC	SPRN_SPRG1
-#define SPRN_SPRG_WSCRATCH_MC	SPRN_SPRG1
-#define SPRN_SPRG_RSCRATCH4	SPRN_SPRG7R
-#define SPRN_SPRG_WSCRATCH4	SPRN_SPRG7W
-#ifdef CONFIG_E200
-#define SPRN_SPRG_RSCRATCH_DBG	SPRN_SPRG6R
-#define SPRN_SPRG_WSCRATCH_DBG	SPRN_SPRG6W
-#else
-#define SPRN_SPRG_RSCRATCH_DBG	SPRN_SPRG9
-#define SPRN_SPRG_WSCRATCH_DBG	SPRN_SPRG9
-#endif
+	#define SPRN_SPRG_RSCRATCH0	SPRN_SPRG0
+	#define SPRN_SPRG_WSCRATCH0	SPRN_SPRG0
+	#define SPRN_SPRG_RSCRATCH1	SPRN_SPRG1
+	#define SPRN_SPRG_WSCRATCH1	SPRN_SPRG1
+	#define SPRN_SPRG_RSCRATCH_CRIT	SPRN_SPRG2
+	#define SPRN_SPRG_WSCRATCH_CRIT	SPRN_SPRG2
+	#define SPRN_SPRG_RSCRATCH2	SPRN_SPRG4R
+	#define SPRN_SPRG_WSCRATCH2	SPRN_SPRG4W
+	#define SPRN_SPRG_RSCRATCH3	SPRN_SPRG5R
+	#define SPRN_SPRG_WSCRATCH3	SPRN_SPRG5W
+	#define SPRN_SPRG_RSCRATCH_MC	SPRN_SPRG1
+	#define SPRN_SPRG_WSCRATCH_MC	SPRN_SPRG1
+	#define SPRN_SPRG_RSCRATCH4	SPRN_SPRG7R
+	#define SPRN_SPRG_WSCRATCH4	SPRN_SPRG7W
+	#ifdef CONFIG_E200
+		#define SPRN_SPRG_RSCRATCH_DBG	SPRN_SPRG6R
+		#define SPRN_SPRG_WSCRATCH_DBG	SPRN_SPRG6W
+	#else
+		#define SPRN_SPRG_RSCRATCH_DBG	SPRN_SPRG9
+		#define SPRN_SPRG_WSCRATCH_DBG	SPRN_SPRG9
+	#endif
 #endif
 
 #ifdef CONFIG_8xx
-#define SPRN_SPRG_SCRATCH0	SPRN_SPRG0
-#define SPRN_SPRG_SCRATCH1	SPRN_SPRG1
-#define SPRN_SPRG_SCRATCH2	SPRN_SPRG2
+	#define SPRN_SPRG_SCRATCH0	SPRN_SPRG0
+	#define SPRN_SPRG_SCRATCH1	SPRN_SPRG1
+	#define SPRN_SPRG_SCRATCH2	SPRN_SPRG2
 #endif
 
 
@@ -1222,36 +1222,36 @@
 /* Macros for setting and retrieving special purpose registers */
 #ifndef __ASSEMBLY__
 #define mfmsr()		({unsigned long rval; \
-			asm volatile("mfmsr %0" : "=r" (rval) : \
-						: "memory"); rval;})
+		asm volatile("mfmsr %0" : "=r" (rval) : \
+					 : "memory"); rval;})
 #ifdef CONFIG_PPC_BOOK3S_64
 #define __mtmsrd(v, l)	asm volatile("mtmsrd %0," __stringify(l) \
-				     : : "r" (v) : "memory")
+									 : : "r" (v) : "memory")
 #define mtmsr(v)	__mtmsrd((v), 0)
 #define __MTMSR		"mtmsrd"
 #else
 #define mtmsr(v)	asm volatile("mtmsr %0" : \
-				     : "r" ((unsigned long)(v)) \
-				     : "memory")
+								 : "r" ((unsigned long)(v)) \
+								 : "memory")
 #define __MTMSR		"mtmsr"
 #endif
 
 static inline void mtmsr_isync(unsigned long val)
 {
 	asm volatile(__MTMSR " %0; " ASM_FTR_IFCLR("isync", "nop", %1) : :
-			"r" (val), "i" (CPU_FTR_ARCH_206) : "memory");
+				 "r" (val), "i" (CPU_FTR_ARCH_206) : "memory");
 }
 
 #define mfspr(rn)	({unsigned long rval; \
-			asm volatile("mfspr %0," __stringify(rn) \
-				: "=r" (rval)); rval;})
+		asm volatile("mfspr %0," __stringify(rn) \
+					 : "=r" (rval)); rval;})
 #ifndef mtspr
 #define mtspr(rn, v)	asm volatile("mtspr " __stringify(rn) ",%0" : \
-				     : "r" ((unsigned long)(v)) \
-				     : "memory")
+									 : "r" ((unsigned long)(v)) \
+									 : "memory")
 #endif
 #define wrtspr(rn)	asm volatile("mtspr " __stringify(rn) ",0" : \
-				     : : "memory")
+								 : : "memory")
 
 extern unsigned long msr_check_and_set(unsigned long bits);
 extern bool strict_msr_control;
@@ -1259,50 +1259,52 @@ extern void __msr_check_and_clear(unsigned long bits);
 static inline void msr_check_and_clear(unsigned long bits)
 {
 	if (strict_msr_control)
+	{
 		__msr_check_and_clear(bits);
+	}
 }
 
 #ifdef __powerpc64__
 #if defined(CONFIG_PPC_CELL) || defined(CONFIG_PPC_FSL_BOOK3E)
 #define mftb()		({unsigned long rval;				\
-			asm volatile(					\
-				"90:	mfspr %0, %2;\n"		\
-				"97:	cmpwi %0,0;\n"			\
-				"	beq- 90b;\n"			\
-				"99:\n"					\
-				".section __ftr_fixup,\"a\"\n"		\
-				".align 3\n"				\
-				"98:\n"					\
-				"	.llong %1\n"			\
-				"	.llong %1\n"			\
-				"	.llong 97b-98b\n"		\
-				"	.llong 99b-98b\n"		\
-				"	.llong 0\n"			\
-				"	.llong 0\n"			\
-				".previous"				\
-			: "=r" (rval) \
-			: "i" (CPU_FTR_CELL_TB_BUG), "i" (SPRN_TBRL)); \
-			rval;})
+		asm volatile(					\
+										"90:	mfspr %0, %2;\n"		\
+										"97:	cmpwi %0,0;\n"			\
+										"	beq- 90b;\n"			\
+										"99:\n"					\
+										".section __ftr_fixup,\"a\"\n"		\
+										".align 3\n"				\
+										"98:\n"					\
+										"	.llong %1\n"			\
+										"	.llong %1\n"			\
+										"	.llong 97b-98b\n"		\
+										"	.llong 99b-98b\n"		\
+										"	.llong 0\n"			\
+										"	.llong 0\n"			\
+										".previous"				\
+										: "=r" (rval) \
+										: "i" (CPU_FTR_CELL_TB_BUG), "i" (SPRN_TBRL)); \
+		rval;})
 #else
 #define mftb()		({unsigned long rval;	\
-			asm volatile("mfspr %0, %1" : \
-				     "=r" (rval) : "i" (SPRN_TBRL)); rval;})
+		asm volatile("mfspr %0, %1" : \
+					 "=r" (rval) : "i" (SPRN_TBRL)); rval;})
 #endif /* !CONFIG_PPC_CELL */
 
 #else /* __powerpc64__ */
 
 #if defined(CONFIG_8xx)
 #define mftbl()		({unsigned long rval;	\
-			asm volatile("mftbl %0" : "=r" (rval)); rval;})
+		asm volatile("mftbl %0" : "=r" (rval)); rval;})
 #define mftbu()		({unsigned long rval;	\
-			asm volatile("mftbu %0" : "=r" (rval)); rval;})
+		asm volatile("mftbu %0" : "=r" (rval)); rval;})
 #else
 #define mftbl()		({unsigned long rval;	\
-			asm volatile("mfspr %0, %1" : "=r" (rval) : \
-				"i" (SPRN_TBRL)); rval;})
+		asm volatile("mfspr %0, %1" : "=r" (rval) : \
+					 "i" (SPRN_TBRL)); rval;})
 #define mftbu()		({unsigned long rval;	\
-			asm volatile("mfspr %0, %1" : "=r" (rval) : \
-				"i" (SPRN_TBRU)); rval;})
+		asm volatile("mfspr %0, %1" : "=r" (rval) : \
+					 "i" (SPRN_TBRU)); rval;})
 #endif
 #define mftb()		mftbl()
 #endif /* !__powerpc64__ */
@@ -1312,8 +1314,8 @@ static inline void msr_check_and_clear(unsigned long bits)
 
 #ifdef CONFIG_PPC32
 #define mfsrin(v)	({unsigned int rval; \
-			asm volatile("mfsrin %0,%1" : "=r" (rval) : "r" (v)); \
-					rval;})
+		asm volatile("mfsrin %0,%1" : "=r" (rval) : "r" (v)); \
+		rval;})
 #endif
 
 #define proc_trap()	asm volatile("trap")

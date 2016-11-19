@@ -38,14 +38,17 @@ void __init octeon_setup_delays(void)
 
 	preset_lpj = octeon_get_clock_rate() / HZ;
 
-	if (current_cpu_type() == CPU_CAVIUM_OCTEON2) {
+	if (current_cpu_type() == CPU_CAVIUM_OCTEON2)
+	{
 		union cvmx_mio_rst_boot rst_boot;
 
 		rst_boot.u64 = cvmx_read_csr(CVMX_MIO_RST_BOOT);
 		rdiv = rst_boot.s.c_mul;	/* CPU clock */
 		sdiv = rst_boot.s.pnr_mul;	/* I/O clock */
 		f = (0x8000000000000000ull / sdiv) * 2;
-	} else if (current_cpu_type() == CPU_CAVIUM_OCTEON3) {
+	}
+	else if (current_cpu_type() == CPU_CAVIUM_OCTEON3)
+	{
 		union cvmx_rst_boot rst_boot;
 
 		rst_boot.u64 = cvmx_read_csr(CVMX_RST_BOOT);
@@ -71,30 +74,38 @@ void octeon_init_cvmcount(void)
 	unsigned loops = 2;
 
 	clk_reg = octeon_has_feature(OCTEON_FEATURE_FPA3) ?
-		CVMX_FPA_CLK_COUNT : CVMX_IPD_CLK_COUNT;
+			  CVMX_FPA_CLK_COUNT : CVMX_IPD_CLK_COUNT;
 
 	/* Clobber loops so GCC will not unroll the following while loop. */
 	asm("" : "+r" (loops));
 
 	local_irq_save(flags);
+
 	/*
 	 * Loop several times so we are executing from the cache,
 	 * which should give more deterministic timing.
 	 */
-	while (loops--) {
+	while (loops--)
+	{
 		u64 clk_count = cvmx_read_csr(clk_reg);
-		if (rdiv != 0) {
+
+		if (rdiv != 0)
+		{
 			clk_count *= rdiv;
-			if (f != 0) {
+
+			if (f != 0)
+			{
 				asm("dmultu\t%[cnt],%[f]\n\t"
-				    "mfhi\t%[cnt]"
-				    : [cnt] "+r" (clk_count)
-				    : [f] "r" (f)
-				    : "hi", "lo");
+					"mfhi\t%[cnt]"
+					: [cnt] "+r" (clk_count)
+					: [f] "r" (f)
+					: "hi", "lo");
 			}
 		}
+
 		write_c0_cvmcount(clk_count);
 	}
+
 	local_irq_restore(flags);
 }
 
@@ -103,7 +114,8 @@ static cycle_t octeon_cvmcount_read(struct clocksource *cs)
 	return read_c0_cvmcount();
 }
 
-static struct clocksource clocksource_mips = {
+static struct clocksource clocksource_mips =
+{
 	.name		= "OCTEON_CVMCOUNT",
 	.read		= octeon_cvmcount_read,
 	.mask		= CLOCKSOURCE_MASK(64),
@@ -150,7 +162,9 @@ void __udelay(unsigned long us)
 	end = cur + inc;
 
 	while (end > cur)
+	{
 		cur = read_c0_cvmcount();
+	}
 }
 EXPORT_SYMBOL(__udelay);
 
@@ -164,7 +178,9 @@ void __ndelay(unsigned long ns)
 	end = cur + inc;
 
 	while (end > cur)
+	{
 		cur = read_c0_cvmcount();
+	}
 }
 EXPORT_SYMBOL(__ndelay);
 
@@ -176,7 +192,9 @@ void __delay(unsigned long loops)
 	end = cur + loops;
 
 	while (end > cur)
+	{
 		cur = read_c0_cvmcount();
+	}
 }
 EXPORT_SYMBOL(__delay);
 
@@ -194,20 +212,30 @@ void octeon_io_clk_delay(unsigned long count)
 	u64 cur, end;
 
 	cur = read_c0_cvmcount();
-	if (rdiv != 0) {
+
+	if (rdiv != 0)
+	{
 		end = count * rdiv;
-		if (f != 0) {
+
+		if (f != 0)
+		{
 			asm("dmultu\t%[cnt],%[f]\n\t"
 				"mfhi\t%[cnt]"
 				: [cnt] "+r" (end)
 				: [f] "r" (f)
 				: "hi", "lo");
 		}
+
 		end = cur + end;
-	} else {
+	}
+	else
+	{
 		end = cur + count;
 	}
+
 	while (end > cur)
+	{
 		cur = read_c0_cvmcount();
+	}
 }
 EXPORT_SYMBOL(octeon_io_clk_delay);

@@ -22,13 +22,14 @@
 #include <asm/sizes.h>
 
 #if defined(CONFIG_CPU_BIG_ENDIAN)
-# define PCICR_ENDIANNESS SH4_PCICR_BSWP
+	#define PCICR_ENDIANNESS SH4_PCICR_BSWP
 #else
-# define PCICR_ENDIANNESS 0
+	#define PCICR_ENDIANNESS 0
 #endif
 
 
-static struct resource sh7785_pci_resources[] = {
+static struct resource sh7785_pci_resources[] =
+{
 	{
 		.name	= "PCI IO",
 		.start	= 0x1000,
@@ -55,7 +56,8 @@ static struct resource sh7785_pci_resources[] = {
 	},
 };
 
-static struct pci_channel sh7780_pci_controller = {
+static struct pci_channel sh7780_pci_controller =
+{
 	.pci_ops	= &sh4_pci_ops,
 	.resources	= sh7785_pci_resources,
 	.nr_resources	= ARRAY_SIZE(sh7785_pci_resources),
@@ -66,10 +68,12 @@ static struct pci_channel sh7780_pci_controller = {
 	.err_irq	= evt2irq(0xaa0),
 };
 
-struct pci_errors {
+struct pci_errors
+{
 	unsigned int	mask;
 	const char	*str;
-} pci_arbiter_errors[] = {
+} pci_arbiter_errors[] =
+{
 	{ SH4_PCIAINT_MBKN,	"master broken" },
 	{ SH4_PCIAINT_TBTO,	"target bus time out" },
 	{ SH4_PCIAINT_MBTO,	"master bus time out" },
@@ -77,7 +81,8 @@ struct pci_errors {
 	{ SH4_PCIAINT_MABT,	"master abort" },
 	{ SH4_PCIAINT_RDPE,	"read data parity error" },
 	{ SH4_PCIAINT_WDPE,	"write data parity error" },
-}, pci_interrupt_errors[] = {
+}, pci_interrupt_errors[] =
+{
 	{ SH4_PCIINT_MLCK,	"master lock error" },
 	{ SH4_PCIINT_TABT,	"target-target abort" },
 	{ SH4_PCIINT_TRET,	"target retry time out" },
@@ -106,40 +111,53 @@ static irqreturn_t sh7780_pci_err_irq(int irq, void *dev_id)
 	 * Handle status errors.
 	 */
 	status = __raw_readw(hose->reg_base + PCI_STATUS);
+
 	if (status & (PCI_STATUS_PARITY |
-		      PCI_STATUS_DETECTED_PARITY |
-		      PCI_STATUS_SIG_TARGET_ABORT |
-		      PCI_STATUS_REC_TARGET_ABORT |
-		      PCI_STATUS_REC_MASTER_ABORT)) {
+				  PCI_STATUS_DETECTED_PARITY |
+				  PCI_STATUS_SIG_TARGET_ABORT |
+				  PCI_STATUS_REC_TARGET_ABORT |
+				  PCI_STATUS_REC_MASTER_ABORT))
+	{
 		cmd = pcibios_handle_status_errors(addr, status, hose);
+
 		if (likely(cmd))
+		{
 			__raw_writew(cmd, hose->reg_base + PCI_STATUS);
+		}
 	}
 
 	/*
 	 * Handle arbiter errors.
 	 */
 	status = __raw_readl(hose->reg_base + SH4_PCIAINT);
-	for (i = cmd = 0; i < ARRAY_SIZE(pci_arbiter_errors); i++) {
-		if (status & pci_arbiter_errors[i].mask) {
+
+	for (i = cmd = 0; i < ARRAY_SIZE(pci_arbiter_errors); i++)
+	{
+		if (status & pci_arbiter_errors[i].mask)
+		{
 			printk(KERN_DEBUG "PCI: %s, addr=%08lx\n",
-			       pci_arbiter_errors[i].str, addr);
+				   pci_arbiter_errors[i].str, addr);
 			cmd |= pci_arbiter_errors[i].mask;
 		}
 	}
+
 	__raw_writel(cmd, hose->reg_base + SH4_PCIAINT);
 
 	/*
 	 * Handle the remaining PCI errors.
 	 */
 	status = __raw_readl(hose->reg_base + SH4_PCIINT);
-	for (i = cmd = 0; i < ARRAY_SIZE(pci_interrupt_errors); i++) {
-		if (status & pci_interrupt_errors[i].mask) {
+
+	for (i = cmd = 0; i < ARRAY_SIZE(pci_interrupt_errors); i++)
+	{
+		if (status & pci_interrupt_errors[i].mask)
+		{
 			printk(KERN_DEBUG "PCI: %s, addr=%08lx\n",
-			       pci_interrupt_errors[i].str, addr);
+				   pci_interrupt_errors[i].str, addr);
 			cmd |= pci_interrupt_errors[i].mask;
 		}
 	}
+
 	__raw_writel(cmd, hose->reg_base + SH4_PCIINT);
 
 	return IRQ_HANDLED;
@@ -173,15 +191,17 @@ static int __init sh7780_pci_setup_irqs(struct pci_channel *hose)
 
 	/* Clear all error conditions */
 	__raw_writew(PCI_STATUS_DETECTED_PARITY  | \
-		     PCI_STATUS_SIG_SYSTEM_ERROR | \
-		     PCI_STATUS_REC_MASTER_ABORT | \
-		     PCI_STATUS_REC_TARGET_ABORT | \
-		     PCI_STATUS_SIG_TARGET_ABORT | \
-		     PCI_STATUS_PARITY, hose->reg_base + PCI_STATUS);
+				 PCI_STATUS_SIG_SYSTEM_ERROR | \
+				 PCI_STATUS_REC_MASTER_ABORT | \
+				 PCI_STATUS_REC_TARGET_ABORT | \
+				 PCI_STATUS_SIG_TARGET_ABORT | \
+				 PCI_STATUS_PARITY, hose->reg_base + PCI_STATUS);
 
 	ret = request_irq(hose->serr_irq, sh7780_pci_serr_irq, 0,
-			  "PCI SERR interrupt", hose);
-	if (unlikely(ret)) {
+					  "PCI SERR interrupt", hose);
+
+	if (unlikely(ret))
+	{
 		printk(KERN_ERR "PCI: Failed hooking SERR IRQ\n");
 		return ret;
 	}
@@ -193,24 +213,26 @@ static int __init sh7780_pci_setup_irqs(struct pci_channel *hose)
 	 * source for multiple events.
 	 */
 	ret = request_irq(hose->err_irq, sh7780_pci_err_irq, IRQF_SHARED,
-			  "PCI ERR interrupt", hose);
-	if (unlikely(ret)) {
+					  "PCI ERR interrupt", hose);
+
+	if (unlikely(ret))
+	{
 		free_irq(hose->serr_irq, hose);
 		return ret;
 	}
 
 	/* Unmask all of the arbiter IRQs. */
 	__raw_writel(SH4_PCIAINT_MBKN | SH4_PCIAINT_TBTO | SH4_PCIAINT_MBTO | \
-		     SH4_PCIAINT_TABT | SH4_PCIAINT_MABT | SH4_PCIAINT_RDPE | \
-		     SH4_PCIAINT_WDPE, hose->reg_base + SH4_PCIAINTM);
+				 SH4_PCIAINT_TABT | SH4_PCIAINT_MABT | SH4_PCIAINT_RDPE | \
+				 SH4_PCIAINT_WDPE, hose->reg_base + SH4_PCIAINTM);
 
 	/* Unmask all of the PCI IRQs */
 	__raw_writel(SH4_PCIINTM_TTADIM  | SH4_PCIINTM_TMTOIM  | \
-		     SH4_PCIINTM_MDEIM   | SH4_PCIINTM_APEDIM  | \
-		     SH4_PCIINTM_SDIM    | SH4_PCIINTM_DPEITWM | \
-		     SH4_PCIINTM_PEDITRM | SH4_PCIINTM_TADIMM  | \
-		     SH4_PCIINTM_MADIMM  | SH4_PCIINTM_MWPDIM  | \
-		     SH4_PCIINTM_MRDPEIM, hose->reg_base + SH4_PCIINTM);
+				 SH4_PCIINTM_MDEIM   | SH4_PCIINTM_APEDIM  | \
+				 SH4_PCIINTM_SDIM    | SH4_PCIINTM_DPEITWM | \
+				 SH4_PCIINTM_PEDITRM | SH4_PCIINTM_TADIMM  | \
+				 SH4_PCIINTM_MADIMM  | SH4_PCIINTM_MWPDIM  | \
+				 SH4_PCIINTM_MRDPEIM, hose->reg_base + SH4_PCIINTM);
 
 	return ret;
 }
@@ -226,7 +248,9 @@ static void __init sh7780_pci66_init(struct pci_channel *hose)
 	unsigned int tmp;
 
 	if (!pci_is_66mhz_capable(hose, 0, 0))
+	{
 		return;
+	}
 
 	/* Enable register access */
 	tmp = __raw_readl(hose->reg_base + SH4_PCICR);
@@ -262,7 +286,7 @@ static int __init sh7780_pci_init(void)
 
 	/* Reset */
 	__raw_writel(SH4_PCICR_PREFIX | SH4_PCICR_PRST | PCICR_ENDIANNESS,
-		     chan->reg_base + SH4_PCICR);
+				 chan->reg_base + SH4_PCICR);
 
 	/*
 	 * Wait for it to come back up. The spec says to allow for up to
@@ -272,33 +296,37 @@ static int __init sh7780_pci_init(void)
 	mdelay(100);
 
 	id = __raw_readw(chan->reg_base + PCI_VENDOR_ID);
-	if (id != PCI_VENDOR_ID_RENESAS) {
+
+	if (id != PCI_VENDOR_ID_RENESAS)
+	{
 		printk(KERN_ERR "PCI: Unknown vendor ID 0x%04x.\n", id);
 		return -ENODEV;
 	}
 
 	id = __raw_readw(chan->reg_base + PCI_DEVICE_ID);
 	type = (id == PCI_DEVICE_ID_RENESAS_SH7763) ? "SH7763" :
-	       (id == PCI_DEVICE_ID_RENESAS_SH7780) ? "SH7780" :
-	       (id == PCI_DEVICE_ID_RENESAS_SH7781) ? "SH7781" :
-	       (id == PCI_DEVICE_ID_RENESAS_SH7785) ? "SH7785" :
-					  NULL;
-	if (unlikely(!type)) {
+		   (id == PCI_DEVICE_ID_RENESAS_SH7780) ? "SH7780" :
+		   (id == PCI_DEVICE_ID_RENESAS_SH7781) ? "SH7781" :
+		   (id == PCI_DEVICE_ID_RENESAS_SH7785) ? "SH7785" :
+		   NULL;
+
+	if (unlikely(!type))
+	{
 		printk(KERN_ERR "PCI: Found an unsupported Renesas host "
-		       "controller, device id 0x%04x.\n", id);
+			   "controller, device id 0x%04x.\n", id);
 		return -EINVAL;
 	}
 
 	printk(KERN_NOTICE "PCI: Found a Renesas %s host "
-	       "controller, revision %d.\n", type,
-	       __raw_readb(chan->reg_base + PCI_REVISION_ID));
+		   "controller, revision %d.\n", type,
+		   __raw_readb(chan->reg_base + PCI_REVISION_ID));
 
 	/*
 	 * Now throw it in to register initialization mode and
 	 * start the real work.
 	 */
 	__raw_writel(SH4_PCICR_PREFIX | PCICR_ENDIANNESS,
-		     chan->reg_base + SH4_PCICR);
+				 chan->reg_base + SH4_PCICR);
 
 	memphys = __pa(memory_start);
 	memsize = roundup_pow_of_two(memory_end - memory_start);
@@ -307,12 +335,15 @@ static int __init sh7780_pci_init(void)
 	 * If there's more than 512MB of memory, we need to roll over to
 	 * LAR1/LSR1.
 	 */
-	if (memsize > SZ_512M) {
+	if (memsize > SZ_512M)
+	{
 		__raw_writel(memphys + SZ_512M, chan->reg_base + SH4_PCILAR1);
 		__raw_writel((((memsize - SZ_512M) - SZ_1M) & 0x1ff00000) | 1,
-			     chan->reg_base + SH4_PCILSR1);
+					 chan->reg_base + SH4_PCILSR1);
 		memsize = SZ_512M;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Otherwise just zero it out and disable it.
 		 */
@@ -326,14 +357,17 @@ static int __init sh7780_pci_init(void)
 	 */
 	__raw_writel(memphys, chan->reg_base + SH4_PCILAR0);
 	__raw_writel(((memsize - SZ_1M) & 0x1ff00000) | 1,
-		     chan->reg_base + SH4_PCILSR0);
+				 chan->reg_base + SH4_PCILSR0);
 
 	/*
 	 * Hook up the ERR and SERR IRQs.
 	 */
 	ret = sh7780_pci_setup_irqs(chan);
+
 	if (unlikely(ret))
+	{
 		return ret;
+	}
 
 	/*
 	 * Disable the cache snoop controller for non-coherent DMA.
@@ -346,18 +380,22 @@ static int __init sh7780_pci_init(void)
 	/*
 	 * Setup the memory BARs
 	 */
-	for (i = 1; i < chan->nr_resources; i++) {
+	for (i = 1; i < chan->nr_resources; i++)
+	{
 		struct resource *res = chan->resources + i;
 		resource_size_t size;
 
 		if (unlikely(res->flags & IORESOURCE_IO))
+		{
 			continue;
+		}
 
 		/*
 		 * Make sure we're in the right physical addressing mode
 		 * for dealing with the resource.
 		 */
-		if ((res->flags & IORESOURCE_MEM_32BIT) && __in_29bit_mode()) {
+		if ((res->flags & IORESOURCE_MEM_32BIT) && __in_29bit_mode())
+		{
 			chan->nr_resources--;
 			continue;
 		}
@@ -369,7 +407,7 @@ static int __init sh7780_pci_init(void)
 		 * keeps things pretty simple.
 		 */
 		__raw_writel(((roundup_pow_of_two(size) / SZ_256K) - 1) << 18,
-			     chan->reg_base + SH7780_PCIMBMR(i - 1));
+					 chan->reg_base + SH7780_PCIMBMR(i - 1));
 		__raw_writel(res->start, chan->reg_base + SH7780_PCIMBR(i - 1));
 	}
 
@@ -381,26 +419,29 @@ static int __init sh7780_pci_init(void)
 	__raw_writel(0, chan->reg_base + SH7780_PCIIOBMR);
 
 	__raw_writew(PCI_COMMAND_SERR   | PCI_COMMAND_WAIT   | \
-		     PCI_COMMAND_PARITY | PCI_COMMAND_MASTER | \
-		     PCI_COMMAND_MEMORY, chan->reg_base + PCI_COMMAND);
+				 PCI_COMMAND_PARITY | PCI_COMMAND_MASTER | \
+				 PCI_COMMAND_MEMORY, chan->reg_base + PCI_COMMAND);
 
 	/*
 	 * Initialization mode complete, release the control register and
 	 * enable round robin mode to stop device overruns/starvation.
 	 */
 	__raw_writel(SH4_PCICR_PREFIX | SH4_PCICR_CFIN | SH4_PCICR_FTO |
-		     PCICR_ENDIANNESS,
-		     chan->reg_base + SH4_PCICR);
+				 PCICR_ENDIANNESS,
+				 chan->reg_base + SH4_PCICR);
 
 	ret = register_pci_controller(chan);
+
 	if (unlikely(ret))
+	{
 		goto err;
+	}
 
 	sh7780_pci66_init(chan);
 
 	printk(KERN_NOTICE "PCI: Running at %dMHz.\n",
-	       (__raw_readw(chan->reg_base + PCI_STATUS) & PCI_STATUS_66MHZ) ?
-	       66 : 33);
+		   (__raw_readw(chan->reg_base + PCI_STATUS) & PCI_STATUS_66MHZ) ?
+		   66 : 33);
 
 	return 0;
 

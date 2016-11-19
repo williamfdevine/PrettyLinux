@@ -52,7 +52,8 @@
 /* Early prototypes of the QI LB60 had only 1GB of NAND.
  * In order to support these devices as well the partition and ecc layout is
  * initialized depending on the NAND size */
-static struct mtd_partition qi_lb60_partitions_1gb[] = {
+static struct mtd_partition qi_lb60_partitions_1gb[] =
+{
 	{
 		.name = "NAND BOOT partition",
 		.offset = 0 * 0x100000,
@@ -70,7 +71,8 @@ static struct mtd_partition qi_lb60_partitions_1gb[] = {
 	},
 };
 
-static struct mtd_partition qi_lb60_partitions_2gb[] = {
+static struct mtd_partition qi_lb60_partitions_2gb[] =
+{
 	{
 		.name = "NAND BOOT partition",
 		.offset = 0 * 0x100000,
@@ -89,15 +91,18 @@ static struct mtd_partition qi_lb60_partitions_2gb[] = {
 };
 
 static int qi_lb60_ooblayout_ecc(struct mtd_info *mtd, int section,
-				 struct mtd_oob_region *oobregion)
+								 struct mtd_oob_region *oobregion)
 {
 	if (section)
+	{
 		return -ERANGE;
+	}
 
 	oobregion->length = 36;
 	oobregion->offset = 6;
 
-	if (mtd->oobsize == 128) {
+	if (mtd->oobsize == 128)
+	{
 		oobregion->length *= 2;
 		oobregion->offset *= 2;
 	}
@@ -106,22 +111,28 @@ static int qi_lb60_ooblayout_ecc(struct mtd_info *mtd, int section,
 }
 
 static int qi_lb60_ooblayout_free(struct mtd_info *mtd, int section,
-				  struct mtd_oob_region *oobregion)
+								  struct mtd_oob_region *oobregion)
 {
 	int eccbytes = 36, eccoff = 6;
 
 	if (section > 1)
+	{
 		return -ERANGE;
+	}
 
-	if (mtd->oobsize == 128) {
+	if (mtd->oobsize == 128)
+	{
 		eccbytes *= 2;
 		eccoff *= 2;
 	}
 
-	if (!section) {
+	if (!section)
+	{
 		oobregion->offset = 2;
 		oobregion->length = eccoff - 2;
-	} else {
+	}
+	else
+	{
 		oobregion->offset = eccoff + eccbytes;
 		oobregion->length = mtd->oobsize - oobregion->offset;
 	}
@@ -129,21 +140,25 @@ static int qi_lb60_ooblayout_free(struct mtd_info *mtd, int section,
 	return 0;
 }
 
-static const struct mtd_ooblayout_ops qi_lb60_ooblayout_ops = {
+static const struct mtd_ooblayout_ops qi_lb60_ooblayout_ops =
+{
 	.ecc = qi_lb60_ooblayout_ecc,
 	.free = qi_lb60_ooblayout_free,
 };
 
 static void qi_lb60_nand_ident(struct platform_device *pdev,
-		struct mtd_info *mtd, struct mtd_partition **partitions,
-		int *num_partitions)
+							   struct mtd_info *mtd, struct mtd_partition **partitions,
+							   int *num_partitions)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 
-	if (chip->page_shift == 12) {
+	if (chip->page_shift == 12)
+	{
 		*partitions = qi_lb60_partitions_2gb;
 		*num_partitions = ARRAY_SIZE(qi_lb60_partitions_2gb);
-	} else {
+	}
+	else
+	{
 		*partitions = qi_lb60_partitions_1gb;
 		*num_partitions = ARRAY_SIZE(qi_lb60_partitions_1gb);
 	}
@@ -151,12 +166,14 @@ static void qi_lb60_nand_ident(struct platform_device *pdev,
 	mtd_set_ooblayout(mtd, &qi_lb60_ooblayout_ops);
 }
 
-static struct jz_nand_platform_data qi_lb60_nand_pdata = {
+static struct jz_nand_platform_data qi_lb60_nand_pdata =
+{
 	.ident_callback = qi_lb60_nand_ident,
 	.banks = { 1 },
 };
 
-static struct gpiod_lookup_table qi_lb60_nand_gpio_table = {
+static struct gpiod_lookup_table qi_lb60_nand_gpio_table =
+{
 	.dev_id = "jz4740-nand.0",
 	.table = {
 		GPIO_LOOKUP("Bank C", 30, "busy", 0),
@@ -173,7 +190,8 @@ static struct gpiod_lookup_table qi_lb60_nand_gpio_table = {
 #define KEY_QI_VOLDOWN	KEY_VOLUMEDOWN
 #define KEY_QI_FN	KEY_LEFTCTRL
 
-static const uint32_t qi_lb60_keymap[] = {
+static const uint32_t qi_lb60_keymap[] =
+{
 	KEY(0, 0, KEY_F1),	/* S2 */
 	KEY(0, 1, KEY_F2),	/* S3 */
 	KEY(0, 2, KEY_F3),	/* S4 */
@@ -236,12 +254,14 @@ static const uint32_t qi_lb60_keymap[] = {
 	KEY(7, 2, KEY_QI_FN),	/* S60 */
 };
 
-static const struct matrix_keymap_data qi_lb60_keymap_data = {
+static const struct matrix_keymap_data qi_lb60_keymap_data =
+{
 	.keymap		= qi_lb60_keymap,
 	.keymap_size	= ARRAY_SIZE(qi_lb60_keymap),
 };
 
-static const unsigned int qi_lb60_keypad_cols[] = {
+static const unsigned int qi_lb60_keypad_cols[] =
+{
 	QI_LB60_GPIO_KEYOUT(0),
 	QI_LB60_GPIO_KEYOUT(1),
 	QI_LB60_GPIO_KEYOUT(2),
@@ -252,7 +272,8 @@ static const unsigned int qi_lb60_keypad_cols[] = {
 	QI_LB60_GPIO_KEYOUT(7),
 };
 
-static const unsigned int qi_lb60_keypad_rows[] = {
+static const unsigned int qi_lb60_keypad_rows[] =
+{
 	QI_LB60_GPIO_KEYIN(0),
 	QI_LB60_GPIO_KEYIN(1),
 	QI_LB60_GPIO_KEYIN(2),
@@ -263,7 +284,8 @@ static const unsigned int qi_lb60_keypad_rows[] = {
 	QI_LB60_GPIO_KEYIN8,
 };
 
-static struct matrix_keypad_platform_data qi_lb60_pdata = {
+static struct matrix_keypad_platform_data qi_lb60_pdata =
+{
 	.keymap_data = &qi_lb60_keymap_data,
 	.col_gpios	= qi_lb60_keypad_cols,
 	.row_gpios	= qi_lb60_keypad_rows,
@@ -275,7 +297,8 @@ static struct matrix_keypad_platform_data qi_lb60_pdata = {
 	.active_low		= 1,
 };
 
-static struct platform_device qi_lb60_keypad = {
+static struct platform_device qi_lb60_keypad =
+{
 	.name		= "matrix-keypad",
 	.id		= -1,
 	.dev		= {
@@ -284,7 +307,8 @@ static struct platform_device qi_lb60_keypad = {
 };
 
 /* Display */
-static struct fb_videomode qi_lb60_video_modes[] = {
+static struct fb_videomode qi_lb60_video_modes[] =
+{
 	{
 		.name = "320x240",
 		.xres = 320,
@@ -301,7 +325,8 @@ static struct fb_videomode qi_lb60_video_modes[] = {
 	},
 };
 
-static struct jz4740_fb_platform_data qi_lb60_fb_pdata = {
+static struct jz4740_fb_platform_data qi_lb60_fb_pdata =
+{
 	.width		= 60,
 	.height		= 45,
 	.num_modes	= ARRAY_SIZE(qi_lb60_video_modes),
@@ -311,14 +336,16 @@ static struct jz4740_fb_platform_data qi_lb60_fb_pdata = {
 	.pixclk_falling_edge = 1,
 };
 
-struct spi_gpio_platform_data spigpio_platform_data = {
+struct spi_gpio_platform_data spigpio_platform_data =
+{
 	.sck = JZ_GPIO_PORTC(23),
 	.mosi = JZ_GPIO_PORTC(22),
 	.miso = -1,
 	.num_chipselect = 1,
 };
 
-static struct platform_device spigpio_device = {
+static struct platform_device spigpio_device =
+{
 	.name = "spi_gpio",
 	.id   = 1,
 	.dev = {
@@ -326,7 +353,8 @@ static struct platform_device spigpio_device = {
 	},
 };
 
-static struct spi_board_info qi_lb60_spi_board_info[] = {
+static struct spi_board_info qi_lb60_spi_board_info[] =
+{
 	{
 		.modalias = "ili8960",
 		.controller_data = (void *)JZ_GPIO_PORTC(21),
@@ -338,7 +366,8 @@ static struct spi_board_info qi_lb60_spi_board_info[] = {
 };
 
 /* Battery */
-static struct jz_battery_platform_data qi_lb60_battery_pdata = {
+static struct jz_battery_platform_data qi_lb60_battery_pdata =
+{
 	.gpio_charge =	JZ_GPIO_PORTC(27),
 	.gpio_charge_active_low = 1,
 	.info = {
@@ -350,7 +379,8 @@ static struct jz_battery_platform_data qi_lb60_battery_pdata = {
 };
 
 /* GPIO Key: power */
-static struct gpio_keys_button qi_lb60_gpio_keys_buttons[] = {
+static struct gpio_keys_button qi_lb60_gpio_keys_buttons[] =
+{
 	[0] = {
 		.code		= KEY_POWER,
 		.gpio		= JZ_GPIO_PORTD(29),
@@ -360,12 +390,14 @@ static struct gpio_keys_button qi_lb60_gpio_keys_buttons[] = {
 	},
 };
 
-static struct gpio_keys_platform_data qi_lb60_gpio_keys_data = {
+static struct gpio_keys_platform_data qi_lb60_gpio_keys_data =
+{
 	.nbuttons = ARRAY_SIZE(qi_lb60_gpio_keys_buttons),
 	.buttons = qi_lb60_gpio_keys_buttons,
 };
 
-static struct platform_device qi_lb60_gpio_keys = {
+static struct platform_device qi_lb60_gpio_keys =
+{
 	.name = "gpio-keys",
 	.id =	-1,
 	.dev = {
@@ -373,7 +405,8 @@ static struct platform_device qi_lb60_gpio_keys = {
 	}
 };
 
-static struct jz4740_mmc_platform_data qi_lb60_mmc_pdata = {
+static struct jz4740_mmc_platform_data qi_lb60_mmc_pdata =
+{
 	.gpio_card_detect	= QI_LB60_GPIO_SD_CD,
 	.gpio_read_only		= -1,
 	.gpio_power		= QI_LB60_GPIO_SD_VCC_EN_N,
@@ -381,22 +414,26 @@ static struct jz4740_mmc_platform_data qi_lb60_mmc_pdata = {
 };
 
 /* beeper */
-static struct pwm_lookup qi_lb60_pwm_lookup[] = {
+static struct pwm_lookup qi_lb60_pwm_lookup[] =
+{
 	PWM_LOOKUP("jz4740-pwm", 4, "pwm-beeper", NULL, 0,
-		   PWM_POLARITY_NORMAL),
+	PWM_POLARITY_NORMAL),
 };
 
-static struct platform_device qi_lb60_pwm_beeper = {
+static struct platform_device qi_lb60_pwm_beeper =
+{
 	.name = "pwm-beeper",
 	.id = -1,
 };
 
 /* charger */
-static char *qi_lb60_batteries[] = {
+static char *qi_lb60_batteries[] =
+{
 	"battery",
 };
 
-static struct gpio_charger_platform_data qi_lb60_charger_pdata = {
+static struct gpio_charger_platform_data qi_lb60_charger_pdata =
+{
 	.name = "usb",
 	.type = POWER_SUPPLY_TYPE_USB,
 	.gpio = JZ_GPIO_PORTD(28),
@@ -405,7 +442,8 @@ static struct gpio_charger_platform_data qi_lb60_charger_pdata = {
 	.num_supplicants = ARRAY_SIZE(qi_lb60_batteries),
 };
 
-static struct platform_device qi_lb60_charger_device = {
+static struct platform_device qi_lb60_charger_device =
+{
 	.name = "gpio-charger",
 	.dev = {
 		.platform_data = &qi_lb60_charger_pdata,
@@ -413,12 +451,14 @@ static struct platform_device qi_lb60_charger_device = {
 };
 
 /* audio */
-static struct platform_device qi_lb60_audio_device = {
+static struct platform_device qi_lb60_audio_device =
+{
 	.name = "qi-lb60-audio",
 	.id = -1,
 };
 
-static struct gpiod_lookup_table qi_lb60_audio_gpio_table = {
+static struct gpiod_lookup_table qi_lb60_audio_gpio_table =
+{
 	.dev_id = "qi-lb60-audio",
 	.table = {
 		GPIO_LOOKUP("Bank B", 29, "snd", 0),
@@ -427,7 +467,8 @@ static struct gpiod_lookup_table qi_lb60_audio_gpio_table = {
 	},
 };
 
-static struct platform_device *jz_platform_devices[] __initdata = {
+static struct platform_device *jz_platform_devices[] __initdata =
+{
 	&jz4740_udc_device,
 	&jz4740_udc_xceiv_device,
 	&jz4740_mmc_device,
@@ -467,12 +508,12 @@ static int __init qi_lb60_init_platform_devices(void)
 	gpiod_add_lookup_table(&qi_lb60_nand_gpio_table);
 
 	spi_register_board_info(qi_lb60_spi_board_info,
-				ARRAY_SIZE(qi_lb60_spi_board_info));
+							ARRAY_SIZE(qi_lb60_spi_board_info));
 
 	pwm_add_table(qi_lb60_pwm_lookup, ARRAY_SIZE(qi_lb60_pwm_lookup));
 
 	return platform_add_devices(jz_platform_devices,
-					ARRAY_SIZE(jz_platform_devices));
+								ARRAY_SIZE(jz_platform_devices));
 
 }
 
@@ -483,7 +524,9 @@ static int __init qi_lb60_board_setup(void)
 	board_gpio_setup();
 
 	if (qi_lb60_init_platform_devices())
+	{
 		panic("Failed to initialize platform devices");
+	}
 
 	return 0;
 }

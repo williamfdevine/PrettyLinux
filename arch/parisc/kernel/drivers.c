@@ -9,9 +9,9 @@
  * Copyright (c) 1999 The Puffin Group
  * Copyright (c) 2001 Matthew Wilcox for Hewlett Packard
  * Copyright (c) 2001 Helge Deller <deller@gmx.de>
- * Copyright (c) 2001,2002 Ryan Bradetich 
+ * Copyright (c) 2001,2002 Ryan Bradetich
  * Copyright (c) 2004-2005 Thibaut VARENE <varenet@parisc-linux.org>
- * 
+ *
  * The file handles registering devices and drivers, then matching them.
  * It's the closest we get to a dating agency.
  *
@@ -43,36 +43,44 @@
 struct dma_map_ops *hppa_dma_ops __read_mostly;
 EXPORT_SYMBOL(hppa_dma_ops);
 
-static struct device root = {
+static struct device root =
+{
 	.init_name = "parisc",
 };
 
 static inline int check_dev(struct device *dev)
 {
-	if (dev->bus == &parisc_bus_type) {
+	if (dev->bus == &parisc_bus_type)
+	{
 		struct parisc_device *pdev;
 		pdev = to_parisc_device(dev);
 		return pdev->id.hw_type != HPHW_FAULTY;
 	}
+
 	return 1;
 }
 
 static struct device *
 parse_tree_node(struct device *parent, int index, struct hardware_path *modpath);
 
-struct recurse_struct {
-	void * obj;
+struct recurse_struct
+{
+	void *obj;
 	int (*fn)(struct device *, void *);
 };
 
-static int descend_children(struct device * dev, void * data)
+static int descend_children(struct device *dev, void *data)
 {
-	struct recurse_struct * recurse_data = (struct recurse_struct *)data;
+	struct recurse_struct *recurse_data = (struct recurse_struct *)data;
 
 	if (recurse_data->fn(dev, recurse_data->obj))
+	{
 		return 1;
+	}
 	else
+	{
 		return device_for_each_child(dev, recurse_data, descend_children);
+	}
 }
 
 /**
@@ -85,9 +93,10 @@ static int descend_children(struct device * dev, void * data)
  *	before children.
  */
 
-static int for_each_padev(int (*fn)(struct device *, void *), void * data)
+static int for_each_padev(int (*fn)(struct device *, void *), void *data)
 {
-	struct recurse_struct recurse_data = {
+	struct recurse_struct recurse_data =
+	{
 		.obj	= data,
 		.fn	= fn,
 	};
@@ -103,21 +112,29 @@ static int match_device(struct parisc_driver *driver, struct parisc_device *dev)
 {
 	const struct parisc_device_id *ids;
 
-	for (ids = driver->id_table; ids->sversion; ids++) {
+	for (ids = driver->id_table; ids->sversion; ids++)
+	{
 		if ((ids->sversion != SVERSION_ANY_ID) &&
-		    (ids->sversion != dev->id.sversion))
+			(ids->sversion != dev->id.sversion))
+		{
 			continue;
+		}
 
 		if ((ids->hw_type != HWTYPE_ANY_ID) &&
-		    (ids->hw_type != dev->id.hw_type))
+			(ids->hw_type != dev->id.hw_type))
+		{
 			continue;
+		}
 
 		if ((ids->hversion != HVERSION_ANY_ID) &&
-		    (ids->hversion != dev->id.hversion))
+			(ids->hversion != dev->id.hversion))
+		{
 			continue;
+		}
 
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -130,7 +147,9 @@ static int parisc_driver_probe(struct device *dev)
 	rc = pa_drv->probe(pa_dev);
 
 	if (!rc)
+	{
 		pa_dev->driver = pa_drv;
+	}
 
 	return rc;
 }
@@ -139,12 +158,15 @@ static int parisc_driver_remove(struct device *dev)
 {
 	struct parisc_device *pa_dev = to_parisc_device(dev);
 	struct parisc_driver *pa_drv = to_parisc_driver(dev->driver);
+
 	if (pa_drv->remove)
+	{
 		pa_drv->remove(pa_dev);
+	}
 
 	return 0;
 }
-	
+
 
 /**
  * register_parisc_driver - Register this driver if it can handle a device
@@ -154,17 +176,19 @@ int register_parisc_driver(struct parisc_driver *driver)
 {
 	/* FIXME: we need this because apparently the sti
 	 * driver can be registered twice */
-	if(driver->drv.name) {
-		printk(KERN_WARNING 
-		       "BUG: skipping previously registered driver %s\n",
-		       driver->name);
+	if (driver->drv.name)
+	{
+		printk(KERN_WARNING
+			   "BUG: skipping previously registered driver %s\n",
+			   driver->name);
 		return 1;
 	}
 
-	if (!driver->probe) {
-		printk(KERN_WARNING 
-		       "BUG: driver %s has no probe routine\n",
-		       driver->name);
+	if (!driver->probe)
+	{
+		printk(KERN_WARNING
+			   "BUG: driver %s has no probe routine\n",
+			   driver->name);
 		return 1;
 	}
 
@@ -181,20 +205,25 @@ int register_parisc_driver(struct parisc_driver *driver)
 EXPORT_SYMBOL(register_parisc_driver);
 
 
-struct match_count {
-	struct parisc_driver * driver;
+struct match_count
+{
+	struct parisc_driver *driver;
 	int count;
 };
 
-static int match_and_count(struct device * dev, void * data)
+static int match_and_count(struct device *dev, void *data)
 {
-	struct match_count * m = data;
-	struct parisc_device * pdev = to_parisc_device(dev);
+	struct match_count *m = data;
+	struct parisc_device *pdev = to_parisc_device(dev);
 
-	if (check_dev(dev)) {
+	if (check_dev(dev))
+	{
 		if (match_device(m->driver, pdev))
+		{
 			m->count++;
+		}
 	}
+
 	return 0;
 }
 
@@ -207,7 +236,8 @@ static int match_and_count(struct device * dev, void * data)
  */
 int count_parisc_driver(struct parisc_driver *driver)
 {
-	struct match_count m = {
+	struct match_count m =
+	{
 		.driver	= driver,
 		.count	= 0,
 	};
@@ -230,28 +260,33 @@ int unregister_parisc_driver(struct parisc_driver *driver)
 }
 EXPORT_SYMBOL(unregister_parisc_driver);
 
-struct find_data {
+struct find_data
+{
 	unsigned long hpa;
-	struct parisc_device * dev;
+	struct parisc_device *dev;
 };
 
-static int find_device(struct device * dev, void * data)
+static int find_device(struct device *dev, void *data)
 {
-	struct parisc_device * pdev = to_parisc_device(dev);
-	struct find_data * d = (struct find_data*)data;
+	struct parisc_device *pdev = to_parisc_device(dev);
+	struct find_data *d = (struct find_data *)data;
 
-	if (check_dev(dev)) {
-		if (pdev->hpa.start == d->hpa) {
+	if (check_dev(dev))
+	{
+		if (pdev->hpa.start == d->hpa)
+		{
 			d->dev = pdev;
 			return 1;
 		}
 	}
+
 	return 0;
 }
 
 static struct parisc_device *find_device_by_addr(unsigned long hpa)
 {
-	struct find_data d = {
+	struct find_data d =
+	{
 		.hpa	= hpa,
 	};
 	int ret;
@@ -272,10 +307,16 @@ const struct parisc_device *
 find_pa_parent_type(const struct parisc_device *padev, int type)
 {
 	const struct device *dev = &padev->dev;
-	while (dev != &root) {
+
+	while (dev != &root)
+	{
 		struct parisc_device *candidate = to_parisc_device(dev);
+
 		if (candidate->id.hw_type == type)
+		{
 			return candidate;
+		}
+
 		dev = dev->parent;
 	}
 
@@ -294,20 +335,26 @@ static void get_node_path(struct device *dev, struct hardware_path *path)
 	int i = 5;
 	memset(&path->bc, -1, 6);
 
-	if (dev_is_pci(dev)) {
+	if (dev_is_pci(dev))
+	{
 		unsigned int devfn = to_pci_dev(dev)->devfn;
 		path->mod = PCI_FUNC(devfn);
 		path->bc[i--] = PCI_SLOT(devfn);
 		dev = dev->parent;
 	}
 
-	while (dev != &root) {
-		if (dev_is_pci(dev)) {
+	while (dev != &root)
+	{
+		if (dev_is_pci(dev))
+		{
 			unsigned int devfn = to_pci_dev(dev)->devfn;
-			path->bc[i--] = PCI_SLOT(devfn) | (PCI_FUNC(devfn)<< 5);
-		} else if (dev->bus == &parisc_bus_type) {
+			path->bc[i--] = PCI_SLOT(devfn) | (PCI_FUNC(devfn) << 5);
+		}
+		else if (dev->bus == &parisc_bus_type)
+		{
 			path->bc[i--] = to_parisc_device(dev)->hw_path;
 		}
+
 		dev = dev->parent;
 	}
 }
@@ -315,11 +362,17 @@ static void get_node_path(struct device *dev, struct hardware_path *path)
 static char *print_hwpath(struct hardware_path *path, char *output)
 {
 	int i;
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		if (path->bc[i] == -1)
+		{
 			continue;
+		}
+
 		output += sprintf(output, "%u/", (unsigned char) path->bc[i]);
 	}
+
 	output += sprintf(output, "%u", (unsigned char) path->mod);
 	return output;
 }
@@ -388,20 +441,28 @@ static void setup_bus_id(struct parisc_device *padev)
 
 	get_node_path(padev->dev.parent, &path);
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		if (path.bc[i] == -1)
+		{
 			continue;
+		}
+
 		output += sprintf(output, "%u:", (unsigned char) path.bc[i]);
 	}
+
 	sprintf(output, "%u", (unsigned char) padev->hw_path);
 	dev_set_name(&padev->dev, name);
 }
 
-struct parisc_device * create_tree_node(char id, struct device *parent)
+struct parisc_device *create_tree_node(char id, struct device *parent)
 {
 	struct parisc_device *dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	dev->hw_path = id;
 	dev->id.hw_type = HPHW_FAULTY;
@@ -415,7 +476,9 @@ struct parisc_device * create_tree_node(char id, struct device *parent)
 	/* make the generic dma mask a pointer to the parisc one */
 	dev->dev.dma_mask = &dev->dma_mask;
 	dev->dev.coherent_dma_mask = dev->dma_mask;
-	if (device_register(&dev->dev)) {
+
+	if (device_register(&dev->dev))
+	{
 		kfree(dev);
 		return NULL;
 	}
@@ -423,20 +486,23 @@ struct parisc_device * create_tree_node(char id, struct device *parent)
 	return dev;
 }
 
-struct match_id_data {
+struct match_id_data
+{
 	char id;
-	struct parisc_device * dev;
+	struct parisc_device *dev;
 };
 
-static int match_by_id(struct device * dev, void * data)
+static int match_by_id(struct device *dev, void *data)
 {
-	struct parisc_device * pdev = to_parisc_device(dev);
-	struct match_id_data * d = data;
+	struct parisc_device *pdev = to_parisc_device(dev);
+	struct match_id_data *d = data;
 
-	if (pdev->hw_path == d->id) {
+	if (pdev->hw_path == d->id)
+	{
 		d->dev = pdev;
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -448,26 +514,38 @@ static int match_by_id(struct device * dev, void * data)
  * Checks all the children of @parent for a matching @id.  If none
  * found, it allocates a new device and returns it.
  */
-static struct parisc_device * alloc_tree_node(struct device *parent, char id)
+static struct parisc_device *alloc_tree_node(struct device *parent, char id)
 {
-	struct match_id_data d = {
+	struct match_id_data d =
+	{
 		.id = id,
 	};
+
 	if (device_for_each_child(parent, &d, match_by_id))
+	{
 		return d.dev;
+	}
 	else
+	{
 		return create_tree_node(id, parent);
+	}
 }
 
 static struct parisc_device *create_parisc_device(struct hardware_path *modpath)
 {
 	int i;
 	struct device *parent = &root;
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		if (modpath->bc[i] == -1)
+		{
 			continue;
+		}
+
 		parent = &alloc_tree_node(parent, modpath->bc[i])->dev;
 	}
+
 	return alloc_tree_node(parent, modpath->mod);
 }
 
@@ -482,20 +560,27 @@ alloc_pa_dev(unsigned long hpa, struct hardware_path *mod_path)
 
 	/* Check to make sure this device has not already been added - Ryan */
 	if (find_device_by_addr(hpa) != NULL)
+	{
 		return NULL;
+	}
 
 	status = pdc_iodc_read(&bytecnt, hpa, 0, &iodc_data, 32);
+
 	if (status != PDC_OK)
+	{
 		return NULL;
+	}
 
 	dev = create_parisc_device(mod_path);
-	if (dev->id.hw_type != HPHW_FAULTY) {
+
+	if (dev->id.hw_type != HPHW_FAULTY)
+	{
 		printk(KERN_ERR "Two devices have hardware path [%s].  "
-				"IODC data for second device: "
-				"%02x%02x%02x%02x%02x%02x\n"
-				"Rearranging GSC cards sometimes helps\n",
-			parisc_pathname(dev), iodc_data[0], iodc_data[1],
-			iodc_data[3], iodc_data[4], iodc_data[5], iodc_data[6]);
+			   "IODC data for second device: "
+			   "%02x%02x%02x%02x%02x%02x\n"
+			   "Rearranging GSC cards sometimes helps\n",
+			   parisc_pathname(dev), iodc_data[0], iodc_data[1],
+			   iodc_data[3], iodc_data[4], iodc_data[5], iodc_data[6]);
 		return NULL;
 	}
 
@@ -503,23 +588,32 @@ alloc_pa_dev(unsigned long hpa, struct hardware_path *mod_path)
 	dev->id.hversion = (iodc_data[0] << 4) | ((iodc_data[1] & 0xf0) >> 4);
 	dev->id.hversion_rev = iodc_data[1] & 0x0f;
 	dev->id.sversion = ((iodc_data[4] & 0x0f) << 16) |
-			(iodc_data[5] << 8) | iodc_data[6];
+					   (iodc_data[5] << 8) | iodc_data[6];
 	dev->hpa.name = parisc_pathname(dev);
 	dev->hpa.start = hpa;
+
 	/* This is awkward.  The STI spec says that gfx devices may occupy
 	 * 32MB or 64MB.  Unfortunately, we don't know how to tell whether
 	 * it's the former or the latter.  Assumptions either way can hurt us.
 	 */
-	if (hpa == 0xf4000000 || hpa == 0xf8000000) {
+	if (hpa == 0xf4000000 || hpa == 0xf8000000)
+	{
 		dev->hpa.end = hpa + 0x03ffffff;
-	} else if (hpa == 0xf6000000 || hpa == 0xfa000000) {
+	}
+	else if (hpa == 0xf6000000 || hpa == 0xfa000000)
+	{
 		dev->hpa.end = hpa + 0x01ffffff;
-	} else {
+	}
+	else
+	{
 		dev->hpa.end = hpa + 0xfff;
 	}
+
 	dev->hpa.flags = IORESOURCE_MEM;
 	name = parisc_hardware_description(&dev->id);
-	if (name) {
+
+	if (name)
+	{
 		strlcpy(dev->name, name, sizeof(dev->name));
 	}
 
@@ -528,7 +622,7 @@ alloc_pa_dev(unsigned long hpa, struct hardware_path *mod_path)
 	 */
 	if ((hpa & 0xfff) == 0 && insert_resource(&iomem_resource, &dev->hpa))
 		printk("Unable to claim HPA %lx for device %s\n",
-				hpa, name);
+			   hpa, name);
 
 	return dev;
 }
@@ -544,8 +638,8 @@ static ssize_t make_modalias(struct device *dev, char *buf)
 	const struct parisc_device_id *id = &padev->id;
 
 	return sprintf(buf, "parisc:t%02Xhv%04Xrev%02Xsv%08X\n",
-		(u8)id->hw_type, (u16)id->hversion, (u8)id->hversion_rev,
-		(u32)id->sversion);
+				   (u8)id->hw_type, (u16)id->hversion, (u8)id->hversion_rev,
+				   (u32)id->sversion);
 }
 
 static int parisc_uevent(struct device *dev, struct kobj_uevent_env *env)
@@ -554,28 +648,38 @@ static int parisc_uevent(struct device *dev, struct kobj_uevent_env *env)
 	char modalias[40];
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	padev = to_parisc_device(dev);
+
 	if (!padev)
+	{
 		return -ENODEV;
+	}
 
 	if (add_uevent_var(env, "PARISC_NAME=%s", padev->name))
+	{
 		return -ENOMEM;
+	}
 
 	make_modalias(dev, modalias);
+
 	if (add_uevent_var(env, "MODALIAS=%s", modalias))
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 #define pa_dev_attr(name, field, format_string)				\
-static ssize_t name##_show(struct device *dev, struct device_attribute *attr, char *buf)		\
-{									\
-	struct parisc_device *padev = to_parisc_device(dev);		\
-	return sprintf(buf, format_string, padev->field);		\
-}
+	static ssize_t name##_show(struct device *dev, struct device_attribute *attr, char *buf)		\
+	{									\
+		struct parisc_device *padev = to_parisc_device(dev);		\
+		return sprintf(buf, format_string, padev->field);		\
+	}
 
 #define pa_dev_attr_id(field, format) pa_dev_attr(field, id.field, format)
 
@@ -590,7 +694,8 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr, 
 	return make_modalias(dev, buf);
 }
 
-static struct device_attribute parisc_device_attrs[] = {
+static struct device_attribute parisc_device_attrs[] =
+{
 	__ATTR_RO(irq),
 	__ATTR_RO(hw_type),
 	__ATTR_RO(rev),
@@ -600,7 +705,8 @@ static struct device_attribute parisc_device_attrs[] = {
 	__ATTR_NULL,
 };
 
-struct bus_type parisc_bus_type = {
+struct bus_type parisc_bus_type =
+{
 	.name = "parisc",
 	.match = parisc_generic_match,
 	.uevent = parisc_uevent,
@@ -619,10 +725,14 @@ struct bus_type parisc_bus_type = {
 int register_parisc_device(struct parisc_device *dev)
 {
 	if (!dev)
+	{
 		return 0;
+	}
 
 	if (dev->driver)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -636,16 +746,17 @@ int register_parisc_device(struct parisc_device *dev)
  * @return: true if the device matches the hardware path.
  */
 static int match_pci_device(struct device *dev, int index,
-		struct hardware_path *modpath)
+							struct hardware_path *modpath)
 {
 	struct pci_dev *pdev = to_pci_dev(dev);
 	int id;
 
-	if (index == 5) {
+	if (index == 5)
+	{
 		/* we are at the end of the path, and on the actual device */
 		unsigned int devfn = pdev->devfn;
 		return ((modpath->bc[5] == PCI_SLOT(devfn)) &&
-					(modpath->mod == PCI_FUNC(devfn)));
+				(modpath->mod == PCI_FUNC(devfn)));
 	}
 
 	id = PCI_SLOT(pdev->devfn) | (PCI_FUNC(pdev->devfn) << 5);
@@ -661,7 +772,7 @@ static int match_pci_device(struct device *dev, int index,
  * @return: true if the device matches the hardware path.
  */
 static int match_parisc_device(struct device *dev, int index,
-		struct hardware_path *modpath)
+							   struct hardware_path *modpath)
 {
 	struct parisc_device *curr = to_parisc_device(dev);
 	char id = (index == 6) ? modpath->mod : modpath->bc[index];
@@ -669,30 +780,45 @@ static int match_parisc_device(struct device *dev, int index,
 	return (curr->hw_path == id);
 }
 
-struct parse_tree_data {
+struct parse_tree_data
+{
 	int index;
-	struct hardware_path * modpath;
-	struct device * dev;
+	struct hardware_path *modpath;
+	struct device *dev;
 };
 
-static int check_parent(struct device * dev, void * data)
+static int check_parent(struct device *dev, void *data)
 {
-	struct parse_tree_data * d = data;
+	struct parse_tree_data *d = data;
 
-	if (check_dev(dev)) {
-		if (dev->bus == &parisc_bus_type) {
+	if (check_dev(dev))
+	{
+		if (dev->bus == &parisc_bus_type)
+		{
 			if (match_parisc_device(dev, d->index, d->modpath))
+			{
 				d->dev = dev;
-		} else if (dev_is_pci(dev)) {
+			}
+		}
+		else if (dev_is_pci(dev))
+		{
 			if (match_pci_device(dev, d->index, d->modpath))
+			{
 				d->dev = dev;
-		} else if (dev->bus == NULL) {
+			}
+		}
+		else if (dev->bus == NULL)
+		{
 			/* we are on a bus bridge */
 			struct device *new = parse_tree_node(dev, d->index, d->modpath);
+
 			if (new)
+			{
 				d->dev = new;
+			}
 		}
 	}
+
 	return d->dev != NULL;
 }
 
@@ -709,12 +835,14 @@ static int check_parent(struct device * dev, void * data)
 static struct device *
 parse_tree_node(struct device *parent, int index, struct hardware_path *modpath)
 {
-	struct parse_tree_data d = {
+	struct parse_tree_data d =
+	{
 		.index          = index,
 		.modpath        = modpath,
 	};
 
-	struct recurse_struct recurse_data = {
+	struct recurse_struct recurse_data =
+	{
 		.obj	= &d,
 		.fn	= check_parent,
 	};
@@ -734,17 +862,30 @@ struct device *hwpath_to_device(struct hardware_path *modpath)
 {
 	int i;
 	struct device *parent = &root;
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		if (modpath->bc[i] == -1)
+		{
 			continue;
+		}
+
 		parent = parse_tree_node(parent, i, modpath);
+
 		if (!parent)
+		{
 			return NULL;
+		}
 	}
+
 	if (dev_is_pci(parent)) /* pci devices already parse MOD */
+	{
 		return parent;
+	}
 	else
+	{
 		return parse_tree_node(parent, 6, modpath);
+	}
 }
 EXPORT_SYMBOL(hwpath_to_device);
 
@@ -756,11 +897,15 @@ EXPORT_SYMBOL(hwpath_to_device);
 void device_to_hwpath(struct device *dev, struct hardware_path *path)
 {
 	struct parisc_device *padev;
-	if (dev->bus == &parisc_bus_type) {
+
+	if (dev->bus == &parisc_bus_type)
+	{
 		padev = to_parisc_device(dev);
 		get_node_path(dev->parent, path);
 		path->mod = padev->hw_path;
-	} else if (dev_is_pci(dev)) {
+	}
+	else if (dev_is_pci(dev))
+	{
 		get_node_path(dev, path);
 	}
 }
@@ -770,11 +915,11 @@ EXPORT_SYMBOL(device_to_hwpath);
 #define BC_LOWER_PORT 0x8
 
 #define BUS_CONVERTER(dev) \
-        ((dev->id.hw_type == HPHW_IOA) || (dev->id.hw_type == HPHW_BCPORT))
+	((dev->id.hw_type == HPHW_IOA) || (dev->id.hw_type == HPHW_BCPORT))
 
 #define IS_LOWER_PORT(dev) \
-        ((gsc_readl(dev->hpa.start + offsetof(struct bc_module, io_status)) \
-                & BC_PORT_MASK) == BC_LOWER_PORT)
+	((gsc_readl(dev->hpa.start + offsetof(struct bc_module, io_status)) \
+	  & BC_PORT_MASK) == BC_LOWER_PORT)
 
 #define MAX_NATIVE_DEVICES 64
 #define NATIVE_DEVICE_OFFSET 0x1000
@@ -786,21 +931,26 @@ EXPORT_SYMBOL(device_to_hwpath);
 #define READ_IO_IO_HIGH(dev) (unsigned long)(signed int)gsc_readl(dev->hpa.start + IO_IO_HIGH)
 
 static void walk_native_bus(unsigned long io_io_low, unsigned long io_io_high,
-                            struct device *parent);
+							struct device *parent);
 
 void walk_lower_bus(struct parisc_device *dev)
 {
 	unsigned long io_io_low, io_io_high;
 
 	if (!BUS_CONVERTER(dev) || IS_LOWER_PORT(dev))
+	{
 		return;
+	}
 
-	if (dev->id.hw_type == HPHW_IOA) {
+	if (dev->id.hw_type == HPHW_IOA)
+	{
 		io_io_low = (unsigned long)(signed int)(READ_IO_IO_LOW(dev) << 16);
 		io_io_high = io_io_low + MAX_NATIVE_DEVICES * NATIVE_DEVICE_OFFSET;
-	} else {
+	}
+	else
+	{
 		io_io_low = (READ_IO_IO_LOW(dev) + ~FLEX_MASK) & FLEX_MASK;
-		io_io_high = (READ_IO_IO_HIGH(dev)+ ~FLEX_MASK) & FLEX_MASK;
+		io_io_high = (READ_IO_IO_HIGH(dev) + ~FLEX_MASK) & FLEX_MASK;
 	}
 
 	walk_native_bus(io_io_low, io_io_high, &dev->dev);
@@ -811,7 +961,7 @@ void walk_lower_bus(struct parisc_device *dev)
  * @io_io_low: Base address of this bus.
  * @io_io_high: Last address of this bus.
  * @parent: The parent bus device.
- * 
+ *
  * A native bus (eg Runway or GSC) may have up to 64 devices on it,
  * spaced at intervals of 0x1000 bytes.  PDC may not inform us of these
  * devices, so we have to probe for them.  Unfortunately, we may find
@@ -819,31 +969,41 @@ void walk_lower_bus(struct parisc_device *dev)
  * keyboard ports).  This problem is not yet solved.
  */
 static void walk_native_bus(unsigned long io_io_low, unsigned long io_io_high,
-                            struct device *parent)
+							struct device *parent)
 {
 	int i, devices_found = 0;
 	unsigned long hpa = io_io_low;
 	struct hardware_path path;
 
 	get_node_path(parent, &path);
-	do {
-		for(i = 0; i < MAX_NATIVE_DEVICES; i++, hpa += NATIVE_DEVICE_OFFSET) {
+
+	do
+	{
+		for (i = 0; i < MAX_NATIVE_DEVICES; i++, hpa += NATIVE_DEVICE_OFFSET)
+		{
 			struct parisc_device *dev;
 
 			/* Was the device already added by Firmware? */
 			dev = find_device_by_addr(hpa);
-			if (!dev) {
+
+			if (!dev)
+			{
 				path.mod = i;
 				dev = alloc_pa_dev(hpa, &path);
+
 				if (!dev)
+				{
 					continue;
+				}
 
 				register_parisc_device(dev);
 				devices_found++;
 			}
+
 			walk_lower_bus(dev);
 		}
-	} while(!devices_found && hpa < io_io_high);
+	}
+	while (!devices_found && hpa < io_io_high);
 }
 
 #define CENTRAL_BUS_ADDR F_EXTEND(0xfff80000)
@@ -857,8 +1017,8 @@ static void walk_native_bus(unsigned long io_io_low, unsigned long io_io_high,
 void walk_central_bus(void)
 {
 	walk_native_bus(CENTRAL_BUS_ADDR,
-			CENTRAL_BUS_ADDR + (MAX_NATIVE_DEVICES * NATIVE_DEVICE_OFFSET),
-			&root);
+					CENTRAL_BUS_ADDR + (MAX_NATIVE_DEVICES * NATIVE_DEVICE_OFFSET),
+					&root);
 }
 
 static void print_parisc_device(struct parisc_device *dev)
@@ -868,15 +1028,20 @@ static void print_parisc_device(struct parisc_device *dev)
 
 	print_pa_hwpath(dev, hw_path);
 	printk(KERN_INFO "%d. %s at 0x%p [%s] { %d, 0x%x, 0x%.3x, 0x%.5x }",
-		++count, dev->name, (void*) dev->hpa.start, hw_path, dev->id.hw_type,
-		dev->id.hversion_rev, dev->id.hversion, dev->id.sversion);
+		   ++count, dev->name, (void *) dev->hpa.start, hw_path, dev->id.hw_type,
+		   dev->id.hversion_rev, dev->id.hversion, dev->id.sversion);
 
-	if (dev->num_addrs) {
+	if (dev->num_addrs)
+	{
 		int k;
 		pr_cont(", additional addresses: ");
+
 		for (k = 0; k < dev->num_addrs; k++)
+		{
 			pr_cont("0x%lx ", dev->addr[k]);
+		}
 	}
+
 	pr_cont("\n");
 }
 
@@ -886,19 +1051,28 @@ static void print_parisc_device(struct parisc_device *dev)
 void init_parisc_bus(void)
 {
 	if (bus_register(&parisc_bus_type))
+	{
 		panic("Could not register PA-RISC bus type\n");
+	}
+
 	if (device_register(&root))
+	{
 		panic("Could not register PA-RISC root device\n");
+	}
+
 	get_device(&root);
 }
 
 
-static int print_one_device(struct device * dev, void * data)
+static int print_one_device(struct device *dev, void *data)
 {
-	struct parisc_device * pdev = to_parisc_device(dev);
+	struct parisc_device *pdev = to_parisc_device(dev);
 
 	if (check_dev(dev))
+	{
 		print_parisc_device(pdev);
+	}
+
 	return 0;
 }
 

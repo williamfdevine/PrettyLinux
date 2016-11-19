@@ -27,10 +27,10 @@
 #include <limits.h>
 
 #ifndef TEST
-#include <um_malloc.h>
+	#include <um_malloc.h>
 #else
-#include <stdio.h>
-#define um_kmalloc malloc
+	#include <stdio.h>
+	#define um_kmalloc malloc
 #endif
 #include <os.h>
 
@@ -38,20 +38,27 @@
    no slashes, with arguments ARGV and environment from `environ'.  */
 int execvp_noalloc(char *buf, const char *file, char *const argv[])
 {
-	if (*file == '\0') {
+	if (*file == '\0')
+	{
 		return -ENOENT;
 	}
 
-	if (strchr (file, '/') != NULL) {
+	if (strchr (file, '/') != NULL)
+	{
 		/* Don't search when it contains a slash.  */
 		execv(file, argv);
-	} else {
+	}
+	else
+	{
 		int got_eacces;
 		size_t len, pathlen;
 		char *name, *p;
 		char *path = getenv("PATH");
+
 		if (path == NULL)
+		{
 			path = ":/bin:/usr/bin";
+		}
 
 		len = strlen(file) + 1;
 		pathlen = strlen(path);
@@ -62,22 +69,31 @@ int execvp_noalloc(char *buf, const char *file, char *const argv[])
 
 		got_eacces = 0;
 		p = path;
-		do {
+
+		do
+		{
 			char *startp;
 
 			path = p;
 			//Let's avoid this GNU extension.
 			//p = strchrnul (path, ':');
 			p = strchr(path, ':');
+
 			if (!p)
+			{
 				p = strchr(path, '\0');
+			}
 
 			if (p == path)
 				/* Two adjacent colons, or a colon at the beginning or the end
 				   of `PATH' means to search the current directory.  */
+			{
 				startp = name + 1;
+			}
 			else
+			{
 				startp = memcpy(name - (p - path), path, p - path);
+			}
 
 			/* Try to execute this name.  If it works, execv will not return.  */
 			execv(startp, argv);
@@ -87,23 +103,27 @@ int execvp_noalloc(char *buf, const char *file, char *const argv[])
 			}
 			*/
 
-			switch (errno) {
+			switch (errno)
+			{
 				case EACCES:
 					/* Record the we got a `Permission denied' error.  If we end
 					   up finding no executable we can use, we want to diagnose
 					   that we did find one but were denied access.  */
 					got_eacces = 1;
+
 				case ENOENT:
 				case ESTALE:
 				case ENOTDIR:
-					/* Those errors indicate the file is missing or not executable
-					   by us, in which case we want to just try the next path
-					   directory.  */
+
+				/* Those errors indicate the file is missing or not executable
+				   by us, in which case we want to just try the next path
+				   directory.  */
 				case ENODEV:
 				case ETIMEDOUT:
-					/* Some strange filesystems like AFS return even
-					   stranger error numbers.  They cannot reasonably mean
-					   anything else so ignore those, too.  */
+
+				/* Some strange filesystems like AFS return even
+				   stranger error numbers.  They cannot reasonably mean
+				   anything else so ignore those, too.  */
 				case ENOEXEC:
 					/* We won't go searching for the shell
 					 * if it is not executable - the Linux
@@ -117,33 +137,42 @@ int execvp_noalloc(char *buf, const char *file, char *const argv[])
 					   caller.  */
 					return -errno;
 			}
-		} while (*p++ != '\0');
+		}
+		while (*p++ != '\0');
 
 		/* We tried every element and none of them worked.  */
 		if (got_eacces)
 			/* At least one failure was due to permissions, so report that
 			   error.  */
+		{
 			return -EACCES;
+		}
 	}
 
 	/* Return the error from the last attempt (probably ENOENT).  */
 	return -errno;
 }
 #ifdef TEST
-int main(int argc, char**argv)
+int main(int argc, char **argv)
 {
 	char buf[PATH_MAX];
 	int ret;
 	argc--;
-	if (!argc) {
+
+	if (!argc)
+	{
 		fprintf(stderr, "Not enough arguments\n");
 		return 1;
 	}
+
 	argv++;
-	if (ret = execvp_noalloc(buf, argv[0], argv)) {
+
+	if (ret = execvp_noalloc(buf, argv[0], argv))
+	{
 		errno = -ret;
 		perror("execvp_noalloc");
 	}
+
 	return 0;
 }
 #endif

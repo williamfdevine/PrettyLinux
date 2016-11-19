@@ -40,8 +40,11 @@ static void __init mpc512x_restart_init(void)
 
 	reset_compat = mpc512x_select_reset_compat();
 	np = of_find_compatible_node(NULL, NULL, reset_compat);
+
 	if (!np)
+	{
 		return;
+	}
 
 	reset_module_base = of_iomap(np, 0);
 	of_node_put(np);
@@ -49,19 +52,24 @@ static void __init mpc512x_restart_init(void)
 
 void __noreturn mpc512x_restart(char *cmd)
 {
-	if (reset_module_base) {
+	if (reset_module_base)
+	{
 		/* Enable software reset "RSTE" */
 		out_be32(&reset_module_base->rpr, 0x52535445);
 		/* Set software hard reset */
 		out_be32(&reset_module_base->rcr, 0x2);
-	} else {
+	}
+	else
+	{
 		pr_err("Restart module not mapped.\n");
 	}
+
 	for (;;)
 		;
 }
 
-struct fsl_diu_shared_fb {
+struct fsl_diu_shared_fb
+{
 	u8		gamma[0x300];	/* 32-bit aligned! */
 	struct diu_ad	ad0;		/* 32-bit aligned! */
 	phys_addr_t	fb_phys;
@@ -79,21 +87,31 @@ static void mpc512x_set_pixel_clock(unsigned int pixclock)
 
 	/* lookup and enable the DIU clock */
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc5121-diu");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("Could not find DIU device tree node.\n");
 		return;
 	}
+
 	clk_diu = of_clk_get(np, 0);
-	if (IS_ERR(clk_diu)) {
+
+	if (IS_ERR(clk_diu))
+	{
 		/* backwards compat with device trees that lack clock specs */
 		clk_diu = clk_get_sys(np->name, "ipg");
 	}
+
 	of_node_put(np);
-	if (IS_ERR(clk_diu)) {
+
+	if (IS_ERR(clk_diu))
+	{
 		pr_err("Could not lookup DIU clock.\n");
 		return;
 	}
-	if (clk_prepare_enable(clk_diu)) {
+
+	if (clk_prepare_enable(clk_diu))
+	{
 		pr_err("Could not enable DIU clock.\n");
 		return;
 	}
@@ -137,30 +155,44 @@ static void mpc512x_set_pixel_clock(unsigned int pixclock)
 	 * value, while the error rate will be in the order of single
 	 * percents
 	 */
-	for (offset = 0; offset <= epsilon; offset += pixclock / 64) {
+	for (offset = 0; offset <= epsilon; offset += pixclock / 64)
+	{
 		want = pixclock - offset;
 		pr_debug("DIU checking clock - %lu\n", want);
 		clk_set_rate(clk_diu, want);
 		got = clk_get_rate(clk_diu);
 		delta = abs(pixclock - got);
+
 		if (delta < epsilon)
+		{
 			break;
+		}
+
 		if (!offset)
+		{
 			continue;
+		}
+
 		want = pixclock + offset;
 		pr_debug("DIU checking clock - %lu\n", want);
 		clk_set_rate(clk_diu, want);
 		got = clk_get_rate(clk_diu);
 		delta = abs(pixclock - got);
+
 		if (delta < epsilon)
+		{
 			break;
+		}
 	}
-	if (offset <= epsilon) {
+
+	if (offset <= epsilon)
+	{
 		pr_debug("DIU clock accepted - %lu\n", want);
 		pr_debug("DIU pixclock want %u, got %lu, delta %lu, eps %lu\n",
-			 pixclock, got, delta, epsilon);
+				 pixclock, got, delta, epsilon);
 		return;
 	}
+
 	pr_warn("DIU pixclock auto search unsuccessful\n");
 
 	/*
@@ -174,7 +206,7 @@ static void mpc512x_set_pixel_clock(unsigned int pixclock)
 	got = clk_get_rate(clk_diu);
 	delta = abs(pixclock - got);
 	pr_debug("DIU pixclock want %u, got %lu, delta %lu, eps %lu\n",
-		 pixclock, got, delta, epsilon);
+			 pixclock, got, delta, epsilon);
 }
 
 static enum fsl_diu_monitor_port
@@ -198,15 +230,19 @@ static void mpc512x_release_bootmem(void)
 	unsigned long size = diu_shared_fb.fb_len;
 	unsigned long start, end;
 
-	if (diu_shared_fb.in_use) {
+	if (diu_shared_fb.in_use)
+	{
 		start = PFN_UP(addr);
 		end = PFN_DOWN(addr + size);
 
 		for (; start < end; start++)
+		{
 			mpc512x_free_bootmem(pfn_to_page(start));
+		}
 
 		diu_shared_fb.in_use = false;
 	}
+
 	diu_ops.release_bootmem	= NULL;
 }
 
@@ -228,30 +264,39 @@ static void __init mpc512x_init_diu(void)
 	unsigned long dst;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc5121-diu");
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("No DIU node\n");
 		return;
 	}
 
 	diu_reg = of_iomap(np, 0);
 	of_node_put(np);
-	if (!diu_reg) {
+
+	if (!diu_reg)
+	{
 		pr_err("Can't map DIU\n");
 		return;
 	}
 
 	mode = in_be32(&diu_reg->diu_mode);
-	if (mode == MFB_MODE0) {
+
+	if (mode == MFB_MODE0)
+	{
 		pr_info("%s: DIU OFF\n", __func__);
 		goto out;
 	}
 
 	desc = in_be32(&diu_reg->desc[0]);
 	vaddr = ioremap(desc, sizeof(struct diu_ad));
-	if (!vaddr) {
+
+	if (!vaddr)
+	{
 		pr_err("Can't map DIU area desc.\n");
 		goto out;
 	}
+
 	memcpy(&diu_shared_fb.ad0, vaddr, sizeof(struct diu_ad));
 	/* flush fb area descriptor */
 	dst = (unsigned long)&diu_shared_fb.ad0;
@@ -267,11 +312,14 @@ static void __init mpc512x_init_diu(void)
 
 	desc = in_be32(&diu_reg->gamma);
 	vaddr = ioremap(desc, sizeof(diu_shared_fb.gamma));
-	if (!vaddr) {
+
+	if (!vaddr)
+	{
 		pr_err("Can't map DIU area desc.\n");
 		diu_shared_fb.in_use = false;
 		goto out;
 	}
+
 	memcpy(&diu_shared_fb.gamma, vaddr, sizeof(diu_shared_fb.gamma));
 	/* flush gamma table */
 	dst = (unsigned long)&diu_shared_fb.gamma;
@@ -301,10 +349,13 @@ static void __init mpc512x_setup_diu(void)
 	 * freed later on first open of fbdev, when splash image is not
 	 * needed any more.
 	 */
-	if (diu_shared_fb.in_use) {
+	if (diu_shared_fb.in_use)
+	{
 		ret = memblock_reserve(diu_shared_fb.fb_phys,
-				       diu_shared_fb.fb_len);
-		if (ret) {
+							   diu_shared_fb.fb_len);
+
+		if (ret)
+		{
 			pr_err("%s: reserve bootmem failed\n", __func__);
 			diu_shared_fb.in_use = false;
 		}
@@ -320,8 +371,11 @@ void __init mpc512x_init_IRQ(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,mpc5121-ipic");
+
 	if (!np)
+	{
 		return;
+	}
 
 	ipic_init(np, 0);
 	of_node_put(np);
@@ -336,7 +390,8 @@ void __init mpc512x_init_IRQ(void)
 /*
  * Nodes to do bus probe on, soc and localbus
  */
-static const struct of_device_id of_bus_ids[] __initconst = {
+static const struct of_device_id of_bus_ids[] __initconst =
+{
 	{ .compatible = "fsl,mpc5121-immr", },
 	{ .compatible = "fsl,mpc5121-localbus", },
 	{ .compatible = "fsl,mpc5121-mbx", },
@@ -351,7 +406,7 @@ static void __init mpc512x_declare_of_platform_devices(void)
 {
 	if (of_platform_bus_probe(NULL, of_bus_ids, NULL))
 		printk(KERN_ERR __FILE__ ": "
-			"Error while probing of_platform bus\n");
+			   "Error while probing of_platform bus\n");
 }
 
 #define DEFAULT_FIFO_SIZE 16
@@ -359,10 +414,14 @@ static void __init mpc512x_declare_of_platform_devices(void)
 const char *mpc512x_select_psc_compat(void)
 {
 	if (of_machine_is_compatible("fsl,mpc5121"))
+	{
 		return "fsl,mpc5121-psc";
+	}
 
 	if (of_machine_is_compatible("fsl,mpc5125"))
+	{
 		return "fsl,mpc5125-psc";
+	}
 
 	return NULL;
 }
@@ -370,31 +429,38 @@ const char *mpc512x_select_psc_compat(void)
 const char *mpc512x_select_reset_compat(void)
 {
 	if (of_machine_is_compatible("fsl,mpc5121"))
+	{
 		return "fsl,mpc5121-reset";
+	}
 
 	if (of_machine_is_compatible("fsl,mpc5125"))
+	{
 		return "fsl,mpc5125-reset";
+	}
 
 	return NULL;
 }
 
 static unsigned int __init get_fifo_size(struct device_node *np,
-					 char *prop_name)
+		char *prop_name)
 {
 	const unsigned int *fp;
 
 	fp = of_get_property(np, prop_name, NULL);
+
 	if (fp)
+	{
 		return *fp;
+	}
 
 	pr_warning("no %s property in %s node, defaulting to %d\n",
-		   prop_name, np->full_name, DEFAULT_FIFO_SIZE);
+			   prop_name, np->full_name, DEFAULT_FIFO_SIZE);
 
 	return DEFAULT_FIFO_SIZE;
 }
 
 #define FIFOC(_base) ((struct mpc512x_psc_fifo __iomem *) \
-		    ((u32)(_base) + sizeof(struct mpc52xx_psc)))
+					  ((u32)(_base) + sizeof(struct mpc52xx_psc)))
 
 /* Init PSC FIFO space for TX and RX slices */
 static void __init mpc512x_psc_fifo_init(void)
@@ -407,34 +473,46 @@ static void __init mpc512x_psc_fifo_init(void)
 	int fifobase = 0; /* current fifo address in 32 bit words */
 
 	psc_compat = mpc512x_select_psc_compat();
-	if (!psc_compat) {
+
+	if (!psc_compat)
+	{
 		pr_err("%s: no compatible devices found\n", __func__);
 		return;
 	}
 
-	for_each_compatible_node(np, NULL, psc_compat) {
+	for_each_compatible_node(np, NULL, psc_compat)
+	{
 		tx_fifo_size = get_fifo_size(np, "fsl,tx-fifo-size");
 		rx_fifo_size = get_fifo_size(np, "fsl,rx-fifo-size");
 
 		/* size in register is in 4 byte units */
 		tx_fifo_size /= 4;
 		rx_fifo_size /= 4;
+
 		if (!tx_fifo_size)
+		{
 			tx_fifo_size = 1;
+		}
+
 		if (!rx_fifo_size)
+		{
 			rx_fifo_size = 1;
+		}
 
 		psc = of_iomap(np, 0);
-		if (!psc) {
+
+		if (!psc)
+		{
 			pr_err("%s: Can't map %s device\n",
-				__func__, np->full_name);
+				   __func__, np->full_name);
 			continue;
 		}
 
 		/* FIFO space is 4KiB, check if requested size is available */
-		if ((fifobase + tx_fifo_size + rx_fifo_size) > 0x1000) {
+		if ((fifobase + tx_fifo_size + rx_fifo_size) > 0x1000)
+		{
 			pr_err("%s: no fifo space available for %s\n",
-				__func__, np->full_name);
+				   __func__, np->full_name);
 			iounmap(psc);
 			/*
 			 * chances are that another device requests less
@@ -462,8 +540,11 @@ static void __init mpc512x_psc_fifo_init(void)
 void __init mpc512x_init_early(void)
 {
 	mpc512x_restart_init();
+
 	if (IS_ENABLED(CONFIG_FB_FSL_DIU))
+	{
 		mpc512x_init_diu();
+	}
 }
 
 void __init mpc512x_init(void)
@@ -476,7 +557,9 @@ void __init mpc512x_init(void)
 void __init mpc512x_setup_arch(void)
 {
 	if (IS_ENABLED(CONFIG_FB_FSL_DIU))
+	{
 		mpc512x_setup_diu();
+	}
 }
 
 /**
@@ -494,14 +577,20 @@ int mpc512x_cs_config(unsigned int cs, u32 val)
 	struct device_node *np;
 
 	if (cs > 7)
+	{
 		return -EINVAL;
+	}
 
-	if (!lpc) {
+	if (!lpc)
+	{
 		np = of_find_compatible_node(NULL, NULL, "fsl,mpc5121-lpc");
 		lpc = of_iomap(np, 0);
 		of_node_put(np);
+
 		if (!lpc)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	out_be32(&lpc->cs_cfg[cs], val);

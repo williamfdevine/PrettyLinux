@@ -37,7 +37,8 @@
  * by the bootloader with the strings in @dt_compat, and sets up any aspects of
  * the machine that aren't configured with device tree (yet).
  */
-struct machine_desc {
+struct machine_desc
+{
 	const char		*name;
 	const char		**dt_compat;
 	struct meta_clock_desc	*clocks;
@@ -66,7 +67,10 @@ static inline struct machine_desc *default_machine_desc(void)
 {
 	/* the default machine is the last one linked in */
 	if (__arch_info_end - 1 < __arch_info_begin)
+	{
 		return NULL;
+	}
+
 	return __arch_info_end - 1;
 }
 
@@ -75,12 +79,12 @@ static inline struct machine_desc *default_machine_desc(void)
  * a table by the linker.
  */
 #define MACHINE_START(_type, _name)			\
-static const struct machine_desc __mach_desc_##_type	\
-__used							\
-__attribute__((__section__(".arch.info.init"))) = {	\
-	.name		= _name,
+	static const struct machine_desc __mach_desc_##_type	\
+		__used							\
+	__attribute__((__section__(".arch.info.init"))) = {	\
+														.name		= _name,
 
 #define MACHINE_END				\
-};
+	};
 
 #endif /* _METAG_MACH_ARCH_H_ */

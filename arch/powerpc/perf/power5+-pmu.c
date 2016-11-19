@@ -117,14 +117,16 @@
  *     0-9: Count of events needing PMC1..PMC5
  */
 
-static const int grsel_shift[8] = {
+static const int grsel_shift[8] =
+{
 	MMCR1_GRS_L2SEL_SH, MMCR1_GRS_L2SEL_SH, MMCR1_GRS_L2SEL_SH,
 	MMCR1_GRS_L3SEL_SH, MMCR1_GRS_L3SEL_SH, MMCR1_GRS_L3SEL_SH,
 	MMCR1_GRS_MCSEL_SH, MMCR1_GRS_FABSEL_SH
 };
 
 /* Masks and values for using events from the various units */
-static unsigned long unit_cons[PM_LASTUNIT+1][2] = {
+static unsigned long unit_cons[PM_LASTUNIT + 1][2] =
+{
 	[PM_FPU] =   { 0x3200000000ul, 0x0100000000ul },
 	[PM_ISU0] =  { 0x0200000000ul, 0x0080000000ul },
 	[PM_ISU1] =  { 0x3200000000ul, 0x3100000000ul },
@@ -134,55 +136,83 @@ static unsigned long unit_cons[PM_LASTUNIT+1][2] = {
 };
 
 static int power5p_get_constraint(u64 event, unsigned long *maskp,
-				  unsigned long *valp)
+								  unsigned long *valp)
 {
 	int pmc, byte, unit, sh;
 	int bit, fmask;
 	unsigned long mask = 0, value = 0;
 
 	pmc = (event >> PM_PMC_SH) & PM_PMC_MSK;
-	if (pmc) {
+
+	if (pmc)
+	{
 		if (pmc > 6)
+		{
 			return -1;
+		}
+
 		sh = (pmc - 1) * 2;
 		mask |= 2 << sh;
 		value |= 1 << sh;
+
 		if (pmc >= 5 && !(event == 0x500009 || event == 0x600005))
+		{
 			return -1;
+		}
 	}
-	if (event & PM_BUSEVENT_MSK) {
+
+	if (event & PM_BUSEVENT_MSK)
+	{
 		unit = (event >> PM_UNIT_SH) & PM_UNIT_MSK;
+
 		if (unit > PM_LASTUNIT)
+		{
 			return -1;
+		}
+
 		if (unit == PM_ISU0_ALT)
+		{
 			unit = PM_ISU0;
+		}
+
 		mask |= unit_cons[unit][0];
 		value |= unit_cons[unit][1];
 		byte = (event >> PM_BYTE_SH) & PM_BYTE_MSK;
-		if (byte >= 4) {
+
+		if (byte >= 4)
+		{
 			if (unit != PM_LSU1)
+			{
 				return -1;
+			}
+
 			/* Map LSU1 low word (bytes 4-7) to unit LSU1+1 */
 			++unit;
 			byte &= 3;
 		}
-		if (unit == PM_GRS) {
+
+		if (unit == PM_GRS)
+		{
 			bit = event & 7;
-			fmask = (bit == 6)? 7: 3;
+			fmask = (bit == 6) ? 7 : 3;
 			sh = grsel_shift[bit];
 			mask |= (unsigned long)fmask << sh;
 			value |= (unsigned long)((event >> PM_GRS_SH) & fmask)
-				<< sh;
+					 << sh;
 		}
+
 		/* Set byte lane select field */
 		mask  |= 0xfUL << (24 - 4 * byte);
 		value |= (unsigned long)unit << (24 - 4 * byte);
 	}
-	if (pmc < 5) {
+
+	if (pmc < 5)
+	{
 		/* need a counter from PMC1-4 set */
 		mask  |= 0x8000000000000ul;
 		value |= 0x1000000000000ul;
 	}
+
 	*maskp = mask;
 	*valp = value;
 	return 0;
@@ -197,7 +227,8 @@ static int power5p_limited_pmc_event(u64 event)
 
 #define MAX_ALT	3	/* at most 3 alternatives for any event */
 
-static const unsigned int event_alternatives[][MAX_ALT] = {
+static const unsigned int event_alternatives[][MAX_ALT] =
+{
 	{ 0x100c0,  0x40001f },			/* PM_GCT_FULL_CYC */
 	{ 0x120e4,  0x400002 },			/* PM_GRP_DISP_REJECT */
 	{ 0x230e2,  0x323087 },			/* PM_BR_PRED_CR */
@@ -219,17 +250,25 @@ static int find_alternative(unsigned int event)
 {
 	int i, j;
 
-	for (i = 0; i < ARRAY_SIZE(event_alternatives); ++i) {
+	for (i = 0; i < ARRAY_SIZE(event_alternatives); ++i)
+	{
 		if (event < event_alternatives[i][0])
+		{
 			break;
+		}
+
 		for (j = 0; j < MAX_ALT && event_alternatives[i][j]; ++j)
 			if (event == event_alternatives[i][j])
+			{
 				return i;
+			}
 	}
+
 	return -1;
 }
 
-static const unsigned char bytedecode_alternatives[4][4] = {
+static const unsigned char bytedecode_alternatives[4][4] =
+{
 	/* PMC 1 */	{ 0x21, 0x23, 0x25, 0x27 },
 	/* PMC 2 */	{ 0x07, 0x17, 0x0e, 0x1e },
 	/* PMC 3 */	{ 0x20, 0x22, 0x24, 0x26 },
@@ -247,28 +286,40 @@ static s64 find_alternative_bdecode(u64 event)
 	int pmc, altpmc, pp, j;
 
 	pmc = (event >> PM_PMC_SH) & PM_PMC_MSK;
+
 	if (pmc == 0 || pmc > 4)
+	{
 		return -1;
+	}
+
 	altpmc = 5 - pmc;	/* 1 <-> 4, 2 <-> 3 */
 	pp = event & PM_PMCSEL_MSK;
-	for (j = 0; j < 4; ++j) {
-		if (bytedecode_alternatives[pmc - 1][j] == pp) {
+
+	for (j = 0; j < 4; ++j)
+	{
+		if (bytedecode_alternatives[pmc - 1][j] == pp)
+		{
 			return (event & ~(PM_PMC_MSKS | PM_PMCSEL_MSK)) |
-				(altpmc << PM_PMC_SH) |
-				bytedecode_alternatives[altpmc - 1][j];
+				   (altpmc << PM_PMC_SH) |
+				   bytedecode_alternatives[altpmc - 1][j];
 		}
 	}
 
 	/* new decode alternatives for power5+ */
 	if (pmc == 1 && (pp == 0x0d || pp == 0x0e))
+	{
 		return event + (2 << PM_PMC_SH) + (0x2e - 0x0d);
+	}
+
 	if (pmc == 3 && (pp == 0x2e || pp == 0x2f))
+	{
 		return event - (2 << PM_PMC_SH) - (0x2e - 0x0d);
+	}
 
 	/* alternative add event encodings */
 	if (pp == 0x10 || pp == 0x28)
 		return ((event ^ (0x10 ^ 0x28)) & ~PM_PMC_MSKS) |
-			(altpmc << PM_PMC_SH);
+			   (altpmc << PM_PMC_SH);
 
 	return -1;
 }
@@ -283,20 +334,33 @@ static int power5p_get_alternatives(u64 event, unsigned int flags, u64 alt[])
 	nalt = 1;
 	nlim = power5p_limited_pmc_event(event);
 	i = find_alternative(event);
-	if (i >= 0) {
-		for (j = 0; j < MAX_ALT; ++j) {
+
+	if (i >= 0)
+	{
+		for (j = 0; j < MAX_ALT; ++j)
+		{
 			ae = event_alternatives[i][j];
+
 			if (ae && ae != event)
+			{
 				alt[nalt++] = ae;
+			}
+
 			nlim += power5p_limited_pmc_event(ae);
 		}
-	} else {
+	}
+	else
+	{
 		ae = find_alternative_bdecode(event);
+
 		if (ae > 0)
+		{
 			alt[nalt++] = ae;
+		}
 	}
 
-	if (flags & PPMU_ONLY_COUNT_RUN) {
+	if (flags & PPMU_ONLY_COUNT_RUN)
+	{
 		/*
 		 * We're only counting in RUN state,
 		 * so PM_CYC is equivalent to PM_RUN_CYC
@@ -308,47 +372,65 @@ static int power5p_get_alternatives(u64 event, unsigned int flags, u64 alt[])
 		 * we never end up with more than 3 alternatives for any event.
 		 */
 		j = nalt;
-		for (i = 0; i < nalt; ++i) {
-			switch (alt[i]) {
-			case 0xf:	/* PM_CYC */
-				alt[j++] = 0x600005;	/* PM_RUN_CYC */
-				++nlim;
-				break;
-			case 0x600005:	/* PM_RUN_CYC */
-				alt[j++] = 0xf;
-				break;
-			case 0x100009:	/* PM_INST_CMPL */
-				alt[j++] = 0x500009;	/* PM_RUN_INST_CMPL */
-				++nlim;
-				break;
-			case 0x500009:	/* PM_RUN_INST_CMPL */
-				alt[j++] = 0x100009;	/* PM_INST_CMPL */
-				alt[j++] = 0x200009;
-				break;
+
+		for (i = 0; i < nalt; ++i)
+		{
+			switch (alt[i])
+			{
+				case 0xf:	/* PM_CYC */
+					alt[j++] = 0x600005;	/* PM_RUN_CYC */
+					++nlim;
+					break;
+
+				case 0x600005:	/* PM_RUN_CYC */
+					alt[j++] = 0xf;
+					break;
+
+				case 0x100009:	/* PM_INST_CMPL */
+					alt[j++] = 0x500009;	/* PM_RUN_INST_CMPL */
+					++nlim;
+					break;
+
+				case 0x500009:	/* PM_RUN_INST_CMPL */
+					alt[j++] = 0x100009;	/* PM_INST_CMPL */
+					alt[j++] = 0x200009;
+					break;
 			}
 		}
+
 		nalt = j;
 	}
 
-	if (!(flags & PPMU_LIMITED_PMC_OK) && nlim) {
+	if (!(flags & PPMU_LIMITED_PMC_OK) && nlim)
+	{
 		/* remove the limited PMC events */
 		j = 0;
-		for (i = 0; i < nalt; ++i) {
-			if (!power5p_limited_pmc_event(alt[i])) {
+
+		for (i = 0; i < nalt; ++i)
+		{
+			if (!power5p_limited_pmc_event(alt[i]))
+			{
 				alt[j] = alt[i];
 				++j;
 			}
 		}
+
 		nalt = j;
-	} else if ((flags & PPMU_LIMITED_PMC_REQD) && nlim < nalt) {
+	}
+	else if ((flags & PPMU_LIMITED_PMC_REQD) && nlim < nalt)
+	{
 		/* remove all but the limited PMC events */
 		j = 0;
-		for (i = 0; i < nalt; ++i) {
-			if (power5p_limited_pmc_event(alt[i])) {
+
+		for (i = 0; i < nalt; ++i)
+		{
+			if (power5p_limited_pmc_event(alt[i]))
+			{
 				alt[j] = alt[i];
 				++j;
 			}
 		}
+
 		nalt = j;
 	}
 
@@ -361,7 +443,8 @@ static int power5p_get_alternatives(u64 event, unsigned int flags, u64 alt[])
  * Bit 0 is set if it is marked for all PMCs.
  * The 0x80 bit indicates a byte decode PMCSEL value.
  */
-static unsigned char direct_event_is_marked[0x28] = {
+static unsigned char direct_event_is_marked[0x28] =
+{
 	0,	/* 00 */
 	0x1f,	/* 01 PM_IOPS_CMPL */
 	0x2,	/* 02 PM_MRK_GRP_DISP */
@@ -410,49 +493,80 @@ static int power5p_marked_instr_event(u64 event)
 
 	pmc = (event >> PM_PMC_SH) & PM_PMC_MSK;
 	psel = event & PM_PMCSEL_MSK;
+
 	if (pmc >= 5)
+	{
 		return 0;
+	}
 
 	bit = -1;
-	if (psel < sizeof(direct_event_is_marked)) {
+
+	if (psel < sizeof(direct_event_is_marked))
+	{
 		if (direct_event_is_marked[psel] & (1 << pmc))
+		{
 			return 1;
+		}
+
 		if (direct_event_is_marked[psel] & 0x80)
+		{
 			bit = 4;
+		}
 		else if (psel == 0x08)
+		{
 			bit = pmc - 1;
+		}
 		else if (psel == 0x10)
+		{
 			bit = 4 - pmc;
+		}
 		else if (psel == 0x1b && (pmc == 1 || pmc == 3))
+		{
 			bit = 4;
-	} else if ((psel & 0x48) == 0x40) {
+		}
+	}
+	else if ((psel & 0x48) == 0x40)
+	{
 		bit = psel & 7;
-	} else if (psel == 0x28) {
+	}
+	else if (psel == 0x28)
+	{
 		bit = pmc - 1;
-	} else if (pmc == 3 && (psel == 0x2e || psel == 0x2f)) {
+	}
+	else if (pmc == 3 && (psel == 0x2e || psel == 0x2f))
+	{
 		bit = 4;
 	}
 
 	if (!(event & PM_BUSEVENT_MSK) || bit == -1)
+	{
 		return 0;
+	}
 
 	byte = (event >> PM_BYTE_SH) & PM_BYTE_MSK;
 	unit = (event >> PM_UNIT_SH) & PM_UNIT_MSK;
-	if (unit == PM_LSU0) {
+
+	if (unit == PM_LSU0)
+	{
 		/* byte 1 bits 0-7, byte 2 bits 0,2-4,6 */
 		mask = 0x5dff00;
-	} else if (unit == PM_LSU1 && byte >= 4) {
+	}
+	else if (unit == PM_LSU1 && byte >= 4)
+	{
 		byte -= 4;
 		/* byte 5 bits 6-7, byte 6 bits 0,4, byte 7 bits 0-4,6 */
 		mask = 0x5f11c000;
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 
 	return (mask >> (byte * 8 + bit)) & 1;
 }
 
 static int power5p_compute_mmcr(u64 event[], int n_ev,
-				unsigned int hwc[], unsigned long mmcr[], struct perf_event *pevents[])
+								unsigned int hwc[], unsigned long mmcr[], struct perf_event *pevents[])
 {
 	unsigned long mmcr1 = 0;
 	unsigned long mmcra = 0;
@@ -465,35 +579,64 @@ static int power5p_compute_mmcr(u64 event[], int n_ev,
 	int ttmuse;
 
 	if (n_ev > 6)
+	{
 		return -1;
+	}
 
 	/* First pass to count resource use */
 	memset(busbyte, 0, sizeof(busbyte));
 	memset(unituse, 0, sizeof(unituse));
-	for (i = 0; i < n_ev; ++i) {
+
+	for (i = 0; i < n_ev; ++i)
+	{
 		pmc = (event[i] >> PM_PMC_SH) & PM_PMC_MSK;
-		if (pmc) {
+
+		if (pmc)
+		{
 			if (pmc > 6)
+			{
 				return -1;
+			}
+
 			if (pmc_inuse & (1 << (pmc - 1)))
+			{
 				return -1;
+			}
+
 			pmc_inuse |= 1 << (pmc - 1);
 		}
-		if (event[i] & PM_BUSEVENT_MSK) {
+
+		if (event[i] & PM_BUSEVENT_MSK)
+		{
 			unit = (event[i] >> PM_UNIT_SH) & PM_UNIT_MSK;
 			byte = (event[i] >> PM_BYTE_SH) & PM_BYTE_MSK;
+
 			if (unit > PM_LASTUNIT)
+			{
 				return -1;
+			}
+
 			if (unit == PM_ISU0_ALT)
+			{
 				unit = PM_ISU0;
-			if (byte >= 4) {
+			}
+
+			if (byte >= 4)
+			{
 				if (unit != PM_LSU1)
+				{
 					return -1;
+				}
+
 				++unit;
 				byte &= 3;
 			}
+
 			if (busbyte[byte] && busbyte[byte] != unit)
+			{
 				return -1;
+			}
+
 			busbyte[byte] = unit;
 			unituse[unit] = 1;
 		}
@@ -506,95 +649,162 @@ static int power5p_compute_mmcr(u64 event[], int n_ev,
 	 * choice we have to deal with.
 	 */
 	if (unituse[PM_ISU0] &
-	    (unituse[PM_FPU] | unituse[PM_IFU] | unituse[PM_ISU1])) {
+		(unituse[PM_FPU] | unituse[PM_IFU] | unituse[PM_ISU1]))
+	{
 		unituse[PM_ISU0_ALT] = 1;	/* move ISU to TTM1 */
 		unituse[PM_ISU0] = 0;
 	}
+
 	/* Set TTM[01]SEL fields. */
 	ttmuse = 0;
-	for (i = PM_FPU; i <= PM_ISU1; ++i) {
+
+	for (i = PM_FPU; i <= PM_ISU1; ++i)
+	{
 		if (!unituse[i])
+		{
 			continue;
+		}
+
 		if (ttmuse++)
+		{
 			return -1;
+		}
+
 		mmcr1 |= (unsigned long)i << MMCR1_TTM0SEL_SH;
 	}
+
 	ttmuse = 0;
-	for (; i <= PM_GRS; ++i) {
+
+	for (; i <= PM_GRS; ++i)
+	{
 		if (!unituse[i])
+		{
 			continue;
+		}
+
 		if (ttmuse++)
+		{
 			return -1;
+		}
+
 		mmcr1 |= (unsigned long)(i & 3) << MMCR1_TTM1SEL_SH;
 	}
+
 	if (ttmuse > 1)
+	{
 		return -1;
+	}
 
 	/* Set byte lane select fields, TTM[23]SEL and GRS_*SEL. */
-	for (byte = 0; byte < 4; ++byte) {
+	for (byte = 0; byte < 4; ++byte)
+	{
 		unit = busbyte[byte];
+
 		if (!unit)
+		{
 			continue;
-		if (unit == PM_ISU0 && unituse[PM_ISU0_ALT]) {
+		}
+
+		if (unit == PM_ISU0 && unituse[PM_ISU0_ALT])
+		{
 			/* get ISU0 through TTM1 rather than TTM0 */
 			unit = PM_ISU0_ALT;
-		} else if (unit == PM_LSU1 + 1) {
+		}
+		else if (unit == PM_LSU1 + 1)
+		{
 			/* select lower word of LSU1 for this byte */
 			mmcr1 |= 1ul << (MMCR1_TTM3SEL_SH + 3 - byte);
 		}
+
 		ttm = unit >> 2;
 		mmcr1 |= (unsigned long)ttm
-			<< (MMCR1_TD_CP_DBG0SEL_SH - 2 * byte);
+				 << (MMCR1_TD_CP_DBG0SEL_SH - 2 * byte);
 	}
 
 	/* Second pass: assign PMCs, set PMCxSEL and PMCx_ADDER_SEL fields */
-	for (i = 0; i < n_ev; ++i) {
+	for (i = 0; i < n_ev; ++i)
+	{
 		pmc = (event[i] >> PM_PMC_SH) & PM_PMC_MSK;
 		unit = (event[i] >> PM_UNIT_SH) & PM_UNIT_MSK;
 		byte = (event[i] >> PM_BYTE_SH) & PM_BYTE_MSK;
 		psel = event[i] & PM_PMCSEL_MSK;
 		isbus = event[i] & PM_BUSEVENT_MSK;
-		if (!pmc) {
+
+		if (!pmc)
+		{
 			/* Bus event or any-PMC direct event */
-			for (pmc = 0; pmc < 4; ++pmc) {
+			for (pmc = 0; pmc < 4; ++pmc)
+			{
 				if (!(pmc_inuse & (1 << pmc)))
+				{
 					break;
+				}
 			}
+
 			if (pmc >= 4)
+			{
 				return -1;
+			}
+
 			pmc_inuse |= 1 << pmc;
-		} else if (pmc <= 4) {
+		}
+		else if (pmc <= 4)
+		{
 			/* Direct event */
 			--pmc;
+
 			if (isbus && (byte & 2) &&
-			    (psel == 8 || psel == 0x10 || psel == 0x28))
+				(psel == 8 || psel == 0x10 || psel == 0x28))
 				/* add events on higher-numbered bus */
+			{
 				mmcr1 |= 1ul << (MMCR1_PMC1_ADDER_SEL_SH - pmc);
-		} else {
+			}
+		}
+		else
+		{
 			/* Instructions or run cycles on PMC5/6 */
 			--pmc;
 		}
-		if (isbus && unit == PM_GRS) {
+
+		if (isbus && unit == PM_GRS)
+		{
 			bit = psel & 7;
 			grsel = (event[i] >> PM_GRS_SH) & PM_GRS_MSK;
 			mmcr1 |= (unsigned long)grsel << grsel_shift[bit];
 		}
+
 		if (power5p_marked_instr_event(event[i]))
+		{
 			mmcra |= MMCRA_SAMPLE_ENABLE;
+		}
+
 		if ((psel & 0x58) == 0x40 && (byte & 1) != ((pmc >> 1) & 1))
 			/* select alternate byte lane */
+		{
 			psel |= 0x10;
+		}
+
 		if (pmc <= 3)
+		{
 			mmcr1 |= psel << MMCR1_PMCSEL_SH(pmc);
+		}
+
 		hwc[i] = pmc;
 	}
 
 	/* Return MMCRx values */
 	mmcr[0] = 0;
+
 	if (pmc_inuse & 1)
+	{
 		mmcr[0] = MMCR0_PMC1CE;
+	}
+
 	if (pmc_inuse & 0x3e)
+	{
 		mmcr[0] |= MMCR0_PMCjCE;
+	}
+
 	mmcr[1] = mmcr1;
 	mmcr[2] = mmcra;
 	return 0;
@@ -603,10 +813,13 @@ static int power5p_compute_mmcr(u64 event[], int n_ev,
 static void power5p_disable_pmc(unsigned int pmc, unsigned long mmcr[])
 {
 	if (pmc <= 3)
+	{
 		mmcr[1] &= ~(0x7fUL << MMCR1_PMCSEL_SH(pmc));
+	}
 }
 
-static int power5p_generic_events[] = {
+static int power5p_generic_events[] =
+{
 	[PERF_COUNT_HW_CPU_CYCLES]		= 0xf,
 	[PERF_COUNT_HW_INSTRUCTIONS]		= 0x100009,
 	[PERF_COUNT_HW_CACHE_REFERENCES]	= 0x1c10a8, /* LD_REF_L1 */
@@ -622,7 +835,8 @@ static int power5p_generic_events[] = {
  * 0 means not supported, -1 means nonsensical, other values
  * are event codes.
  */
-static int power5p_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
+static int power5p_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] =
+{
 	[C(L1D)] = {		/* 	RESULT_ACCESS	RESULT_MISS */
 		[C(OP_READ)] = {	0x1c10a8,	0x3c1088	},
 		[C(OP_WRITE)] = {	0x2c10a8,	0xc10c3		},
@@ -660,7 +874,8 @@ static int power5p_cache_events[C(MAX)][C(OP_MAX)][C(RESULT_MAX)] = {
 	},
 };
 
-static struct power_pmu power5p_pmu = {
+static struct power_pmu power5p_pmu =
+{
 	.name			= "POWER5+/++",
 	.n_counter		= 6,
 	.max_alternatives	= MAX_ALT,
@@ -680,9 +895,11 @@ static struct power_pmu power5p_pmu = {
 static int __init init_power5p_pmu(void)
 {
 	if (!cur_cpu_spec->oprofile_cpu_type ||
-	    (strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc64/power5+")
-	     && strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc64/power5++")))
+		(strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc64/power5+")
+		 && strcmp(cur_cpu_spec->oprofile_cpu_type, "ppc64/power5++")))
+	{
 		return -ENODEV;
+	}
 
 	return register_power_pmu(&power5p_pmu);
 }

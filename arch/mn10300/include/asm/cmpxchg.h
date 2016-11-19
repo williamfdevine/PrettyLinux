@@ -37,7 +37,7 @@ unsigned long __xchg(volatile unsigned long *m, unsigned long val)
 }
 
 static inline unsigned long __cmpxchg(volatile unsigned long *m,
-				      unsigned long old, unsigned long new)
+									  unsigned long old, unsigned long new)
 {
 	unsigned long status;
 	unsigned long oldval;
@@ -54,7 +54,7 @@ static inline unsigned long __cmpxchg(volatile unsigned long *m,
 		"	bne	1b		\n"
 		: "=&r"(status), "=&r"(oldval), "=m"(*m)
 		: "a"(ATOMIC_OPS_BASE_ADDR), "r"(m),
-		  "r"(old), "r"(new)
+		"r"(old), "r"(new)
 		: "memory", "cc");
 
 	return oldval;
@@ -88,15 +88,19 @@ unsigned long __xchg(volatile unsigned long *m, unsigned long val)
  * Emulate cmpxchg for non-SMP MN10300
  */
 static inline unsigned long __cmpxchg(volatile unsigned long *m,
-				      unsigned long old, unsigned long new)
+									  unsigned long old, unsigned long new)
 {
 	unsigned long oldval;
 	unsigned long flags;
 
 	flags = arch_local_cli_save();
 	oldval = *m;
+
 	if (oldval == old)
+	{
 		*m = new;
+	}
+
 	arch_local_irq_restore(flags);
 	return oldval;
 }
@@ -105,11 +109,11 @@ static inline unsigned long __cmpxchg(volatile unsigned long *m,
 
 #define xchg(ptr, v)						\
 	((__typeof__(*(ptr))) __xchg((unsigned long *)(ptr),	\
-				     (unsigned long)(v)))
+								 (unsigned long)(v)))
 
 #define cmpxchg(ptr, o, n)					\
 	((__typeof__(*(ptr))) __cmpxchg((unsigned long *)(ptr), \
-					(unsigned long)(o),	\
-					(unsigned long)(n)))
+									(unsigned long)(o),	\
+									(unsigned long)(n)))
 
 #endif /* _ASM_CMPXCHG_H */

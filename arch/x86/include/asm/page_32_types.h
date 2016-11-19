@@ -28,13 +28,13 @@
 #define N_EXCEPTION_STACKS 1
 
 #ifdef CONFIG_X86_PAE
-/* 44=32+12, the limit we can fit into an unsigned long pfn */
-#define __PHYSICAL_MASK_SHIFT	44
-#define __VIRTUAL_MASK_SHIFT	32
+	/* 44=32+12, the limit we can fit into an unsigned long pfn */
+	#define __PHYSICAL_MASK_SHIFT	44
+	#define __VIRTUAL_MASK_SHIFT	32
 
 #else  /* !CONFIG_X86_PAE */
-#define __PHYSICAL_MASK_SHIFT	32
-#define __VIRTUAL_MASK_SHIFT	32
+	#define __PHYSICAL_MASK_SHIFT	32
+	#define __VIRTUAL_MASK_SHIFT	32
 #endif	/* CONFIG_X86_PAE */
 
 /*
@@ -44,15 +44,15 @@
 
 #ifndef __ASSEMBLY__
 
-/*
- * This much address space is reserved for vmalloc() and iomap()
- * as well as fixmap mappings.
- */
-extern unsigned int __VMALLOC_RESERVE;
-extern int sysctl_legacy_va_layout;
+	/*
+	* This much address space is reserved for vmalloc() and iomap()
+	* as well as fixmap mappings.
+	*/
+	extern unsigned int __VMALLOC_RESERVE;
+	extern int sysctl_legacy_va_layout;
 
-extern void find_low_pfn_range(void);
-extern void setup_bootmem_allocator(void);
+	extern void find_low_pfn_range(void);
+	extern void setup_bootmem_allocator(void);
 
 #endif	/* !__ASSEMBLY__ */
 

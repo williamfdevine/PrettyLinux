@@ -31,24 +31,33 @@
  * copied or negative error in case of failure.
  */
 ssize_t copy_oldmem_page(unsigned long pfn, char *buf,
-			 size_t csize, unsigned long offset,
-			 int userbuf)
+						 size_t csize, unsigned long offset,
+						 int userbuf)
 {
 	void *vaddr;
 
 	if (!csize)
+	{
 		return 0;
+	}
 
 	vaddr = ioremap(__pfn_to_phys(pfn), PAGE_SIZE);
-	if (!vaddr)
-		return -ENOMEM;
 
-	if (userbuf) {
-		if (copy_to_user(buf, vaddr + offset, csize)) {
+	if (!vaddr)
+	{
+		return -ENOMEM;
+	}
+
+	if (userbuf)
+	{
+		if (copy_to_user(buf, vaddr + offset, csize))
+		{
 			iounmap(vaddr);
 			return -EFAULT;
 		}
-	} else {
+	}
+	else
+	{
 		memcpy(buf, vaddr + offset, csize);
 	}
 

@@ -40,7 +40,9 @@ void (*x86_platform_ipi_callback)(void) = NULL;
 void ack_bad_irq(unsigned int irq)
 {
 	if (printk_ratelimit())
+	{
 		pr_err("unexpected IRQ trap at vector %02x\n", irq);
+	}
 
 	/*
 	 * Currently unexpected vectors happen only on SMP and APIC.
@@ -64,87 +66,93 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 
 	seq_printf(p, "%*s: ", prec, "NMI");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->__nmi_count);
+	seq_printf(p, "%10u ", irq_stats(j)->__nmi_count);
 	seq_puts(p, "  Non-maskable interrupts\n");
 #ifdef CONFIG_X86_LOCAL_APIC
 	seq_printf(p, "%*s: ", prec, "LOC");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->apic_timer_irqs);
+	seq_printf(p, "%10u ", irq_stats(j)->apic_timer_irqs);
 	seq_puts(p, "  Local timer interrupts\n");
 
 	seq_printf(p, "%*s: ", prec, "SPU");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_spurious_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_spurious_count);
 	seq_puts(p, "  Spurious interrupts\n");
 	seq_printf(p, "%*s: ", prec, "PMI");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->apic_perf_irqs);
+	seq_printf(p, "%10u ", irq_stats(j)->apic_perf_irqs);
 	seq_puts(p, "  Performance monitoring interrupts\n");
 	seq_printf(p, "%*s: ", prec, "IWI");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->apic_irq_work_irqs);
+	seq_printf(p, "%10u ", irq_stats(j)->apic_irq_work_irqs);
 	seq_puts(p, "  IRQ work interrupts\n");
 	seq_printf(p, "%*s: ", prec, "RTR");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->icr_read_retry_count);
+	seq_printf(p, "%10u ", irq_stats(j)->icr_read_retry_count);
 	seq_puts(p, "  APIC ICR read retries\n");
 #endif
-	if (x86_platform_ipi_callback) {
+
+	if (x86_platform_ipi_callback)
+	{
 		seq_printf(p, "%*s: ", prec, "PLT");
 		for_each_online_cpu(j)
-			seq_printf(p, "%10u ", irq_stats(j)->x86_platform_ipis);
+		seq_printf(p, "%10u ", irq_stats(j)->x86_platform_ipis);
 		seq_puts(p, "  Platform interrupts\n");
 	}
+
 #ifdef CONFIG_SMP
 	seq_printf(p, "%*s: ", prec, "RES");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_resched_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_resched_count);
 	seq_puts(p, "  Rescheduling interrupts\n");
 	seq_printf(p, "%*s: ", prec, "CAL");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_call_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_call_count);
 	seq_puts(p, "  Function call interrupts\n");
 	seq_printf(p, "%*s: ", prec, "TLB");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_tlb_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_tlb_count);
 	seq_puts(p, "  TLB shootdowns\n");
 #endif
 #ifdef CONFIG_X86_THERMAL_VECTOR
 	seq_printf(p, "%*s: ", prec, "TRM");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_thermal_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_thermal_count);
 	seq_puts(p, "  Thermal event interrupts\n");
 #endif
 #ifdef CONFIG_X86_MCE_THRESHOLD
 	seq_printf(p, "%*s: ", prec, "THR");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_threshold_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_threshold_count);
 	seq_puts(p, "  Threshold APIC interrupts\n");
 #endif
 #ifdef CONFIG_X86_MCE_AMD
 	seq_printf(p, "%*s: ", prec, "DFR");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->irq_deferred_error_count);
+	seq_printf(p, "%10u ", irq_stats(j)->irq_deferred_error_count);
 	seq_puts(p, "  Deferred Error APIC interrupts\n");
 #endif
 #ifdef CONFIG_X86_MCE
 	seq_printf(p, "%*s: ", prec, "MCE");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", per_cpu(mce_exception_count, j));
+	seq_printf(p, "%10u ", per_cpu(mce_exception_count, j));
 	seq_puts(p, "  Machine check exceptions\n");
 	seq_printf(p, "%*s: ", prec, "MCP");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", per_cpu(mce_poll_count, j));
+	seq_printf(p, "%10u ", per_cpu(mce_poll_count, j));
 	seq_puts(p, "  Machine check polls\n");
 #endif
 #if IS_ENABLED(CONFIG_HYPERV) || defined(CONFIG_XEN)
-	if (test_bit(HYPERVISOR_CALLBACK_VECTOR, used_vectors)) {
+
+	if (test_bit(HYPERVISOR_CALLBACK_VECTOR, used_vectors))
+	{
 		seq_printf(p, "%*s: ", prec, "HYP");
 		for_each_online_cpu(j)
-			seq_printf(p, "%10u ",
+		seq_printf(p, "%10u ",
 				   irq_stats(j)->irq_hv_callback_count);
 		seq_puts(p, "  Hypervisor callback interrupts\n");
 	}
+
 #endif
 	seq_printf(p, "%*s: %10u\n", prec, "ERR", atomic_read(&irq_err_count));
 #if defined(CONFIG_X86_IO_APIC)
@@ -153,12 +161,12 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 #ifdef CONFIG_HAVE_KVM
 	seq_printf(p, "%*s: ", prec, "PIN");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ", irq_stats(j)->kvm_posted_intr_ipis);
+	seq_printf(p, "%10u ", irq_stats(j)->kvm_posted_intr_ipis);
 	seq_puts(p, "  Posted-interrupt notification event\n");
 
 	seq_printf(p, "%*s: ", prec, "PIW");
 	for_each_online_cpu(j)
-		seq_printf(p, "%10u ",
+	seq_printf(p, "%10u ",
 			   irq_stats(j)->kvm_posted_intr_wakeup_ipis);
 	seq_puts(p, "  Posted-interrupt wakeup event\n");
 #endif
@@ -179,8 +187,12 @@ u64 arch_irq_stat_cpu(unsigned int cpu)
 	sum += irq_stats(cpu)->apic_irq_work_irqs;
 	sum += irq_stats(cpu)->icr_read_retry_count;
 #endif
+
 	if (x86_platform_ipi_callback)
+	{
 		sum += irq_stats(cpu)->x86_platform_ipis;
+	}
+
 #ifdef CONFIG_SMP
 	sum += irq_stats(cpu)->irq_resched_count;
 	sum += irq_stats(cpu)->irq_call_count;
@@ -213,7 +225,7 @@ u64 arch_irq_stat(void)
 __visible unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
-	struct irq_desc * desc;
+	struct irq_desc *desc;
 	/* high bit used in ret_from_ code  */
 	unsigned vector = ~regs->orig_ax;
 
@@ -236,14 +248,18 @@ __visible unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
 
 	desc = __this_cpu_read(vector_irq[vector]);
 
-	if (!handle_irq(desc, regs)) {
+	if (!handle_irq(desc, regs))
+	{
 		ack_APIC_irq();
 
-		if (desc != VECTOR_RETRIGGERED) {
+		if (desc != VECTOR_RETRIGGERED)
+		{
 			pr_emerg_ratelimited("%s: %d.%d No irq handler for vector\n",
-					     __func__, smp_processor_id(),
-					     vector);
-		} else {
+								 __func__, smp_processor_id(),
+								 vector);
+		}
+		else
+		{
 			__this_cpu_write(vector_irq[vector], VECTOR_UNUSED);
 		}
 	}
@@ -262,7 +278,9 @@ void __smp_x86_platform_ipi(void)
 	inc_irq_stat(x86_platform_ipis);
 
 	if (x86_platform_ipi_callback)
+	{
 		x86_platform_ipi_callback();
+	}
 }
 
 __visible void smp_x86_platform_ipi(struct pt_regs *regs)
@@ -282,9 +300,13 @@ static void (*kvm_posted_intr_wakeup_handler)(void) = dummy_handler;
 void kvm_set_posted_intr_wakeup_handler(void (*handler)(void))
 {
 	if (handler)
+	{
 		kvm_posted_intr_wakeup_handler = handler;
+	}
 	else
+	{
 		kvm_posted_intr_wakeup_handler = dummy_handler;
+	}
 }
 EXPORT_SYMBOL_GPL(kvm_set_posted_intr_wakeup_handler);
 
@@ -356,10 +378,16 @@ int check_irq_vectors_for_cpu_disable(void)
 	cpumask_clear_cpu(this_cpu, &online_new);
 
 	this_count = 0;
-	for (vector = FIRST_EXTERNAL_VECTOR; vector < NR_VECTORS; vector++) {
+
+	for (vector = FIRST_EXTERNAL_VECTOR; vector < NR_VECTORS; vector++)
+	{
 		desc = __this_cpu_read(vector_irq[vector]);
+
 		if (IS_ERR_OR_NULL(desc))
+		{
 			continue;
+		}
+
 		/*
 		 * Protect against concurrent action removal, affinity
 		 * changes etc.
@@ -367,16 +395,18 @@ int check_irq_vectors_for_cpu_disable(void)
 		raw_spin_lock(&desc->lock);
 		data = irq_desc_get_irq_data(desc);
 		cpumask_copy(&affinity_new,
-			     irq_data_get_affinity_mask(data));
+					 irq_data_get_affinity_mask(data));
 		cpumask_clear_cpu(this_cpu, &affinity_new);
 
 		/* Do not count inactive or per-cpu irqs. */
-		if (!irq_desc_has_action(desc) || irqd_is_per_cpu(data)) {
+		if (!irq_desc_has_action(desc) || irqd_is_per_cpu(data))
+		{
 			raw_spin_unlock(&desc->lock);
 			continue;
 		}
 
 		raw_spin_unlock(&desc->lock);
+
 		/*
 		 * A single irq may be mapped to multiple cpu's
 		 * vector_irq[] (for example IOAPIC cluster mode).  In
@@ -392,14 +422,20 @@ int check_irq_vectors_for_cpu_disable(void)
 		 * cpu in a user set affinity mask.
 		 */
 		if (cpumask_empty(&affinity_new) ||
-		    !cpumask_subset(&affinity_new, &online_new))
+			!cpumask_subset(&affinity_new, &online_new))
+		{
 			this_count++;
+		}
 	}
 
 	count = 0;
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		if (cpu == this_cpu)
+		{
 			continue;
+		}
+
 		/*
 		 * We scan from FIRST_EXTERNAL_VECTOR to first system
 		 * vector. If the vector is marked in the used vectors
@@ -410,18 +446,23 @@ int check_irq_vectors_for_cpu_disable(void)
 		 * this w/o holding vector_lock.
 		 */
 		for (vector = FIRST_EXTERNAL_VECTOR;
-		     vector < first_system_vector; vector++) {
+			 vector < first_system_vector; vector++)
+		{
 			if (!test_bit(vector, used_vectors) &&
-			    IS_ERR_OR_NULL(per_cpu(vector_irq, cpu)[vector]))
-			    count++;
+				IS_ERR_OR_NULL(per_cpu(vector_irq, cpu)[vector]))
+			{
+				count++;
+			}
 		}
 	}
 
-	if (count < this_count) {
+	if (count < this_count)
+	{
 		pr_warn("CPU %d disable failed: CPU has %u vectors assigned and there are only %u available.\n",
-			this_cpu, this_count, count);
+				this_cpu, this_count, count);
 		return -ERANGE;
 	}
+
 	return 0;
 }
 
@@ -435,23 +476,31 @@ void fixup_irqs(void)
 	struct irq_chip *chip;
 	int ret;
 
-	for_each_irq_desc(irq, desc) {
+	for_each_irq_desc(irq, desc)
+	{
 		int break_affinity = 0;
 		int set_affinity = 1;
 		const struct cpumask *affinity;
 
 		if (!desc)
+		{
 			continue;
+		}
+
 		if (irq == 2)
+		{
 			continue;
+		}
 
 		/* interrupt's are disabled at this point */
 		raw_spin_lock(&desc->lock);
 
 		data = irq_desc_get_irq_data(desc);
 		affinity = irq_data_get_affinity_mask(data);
+
 		if (!irq_has_action(irq) || irqd_is_per_cpu(data) ||
-		    cpumask_subset(affinity, cpu_online_mask)) {
+			cpumask_subset(affinity, cpu_online_mask))
+		{
 			raw_spin_unlock(&desc->lock);
 			continue;
 		}
@@ -463,31 +512,45 @@ void fixup_irqs(void)
 		 */
 		irq_force_complete_move(desc);
 
-		if (cpumask_any_and(affinity, cpu_online_mask) >= nr_cpu_ids) {
+		if (cpumask_any_and(affinity, cpu_online_mask) >= nr_cpu_ids)
+		{
 			break_affinity = 1;
 			affinity = cpu_online_mask;
 		}
 
 		chip = irq_data_get_irq_chip(data);
+
 		/*
 		 * The interrupt descriptor might have been cleaned up
 		 * already, but it is not yet removed from the radix tree
 		 */
-		if (!chip) {
+		if (!chip)
+		{
 			raw_spin_unlock(&desc->lock);
 			continue;
 		}
 
 		if (!irqd_can_move_in_process_context(data) && chip->irq_mask)
+		{
 			chip->irq_mask(data);
+		}
 
-		if (chip->irq_set_affinity) {
+		if (chip->irq_set_affinity)
+		{
 			ret = chip->irq_set_affinity(data, affinity, true);
+
 			if (ret == -ENOSPC)
-				pr_crit("IRQ %d set affinity failed because there are no available vectors.  The device assigned to this IRQ is unstable.\n", irq);
-		} else {
+			{
+				pr_crit("IRQ %d set affinity failed because there are no available vectors.  The device assigned to this IRQ is unstable.\n",
+						irq);
+			}
+		}
+		else
+		{
 			if (!(warned++))
+			{
 				set_affinity = 0;
+			}
 		}
 
 		/*
@@ -496,15 +559,21 @@ void fixup_irqs(void)
 		 * behaviour.
 		 */
 		if (!irqd_can_move_in_process_context(data) &&
-		    !irqd_irq_masked(data) && chip->irq_unmask)
+			!irqd_irq_masked(data) && chip->irq_unmask)
+		{
 			chip->irq_unmask(data);
+		}
 
 		raw_spin_unlock(&desc->lock);
 
 		if (break_affinity && set_affinity)
+		{
 			pr_notice("Broke affinity for irq %i\n", irq);
+		}
 		else if (!set_affinity)
+		{
 			pr_notice("Cannot set affinity for irq %i\n", irq);
+		}
 	}
 
 	/*
@@ -523,27 +592,38 @@ void fixup_irqs(void)
 	 * vector_lock because the cpu is already marked !online, so
 	 * nothing else will touch it.
 	 */
-	for (vector = FIRST_EXTERNAL_VECTOR; vector < NR_VECTORS; vector++) {
+	for (vector = FIRST_EXTERNAL_VECTOR; vector < NR_VECTORS; vector++)
+	{
 		unsigned int irr;
 
 		if (IS_ERR_OR_NULL(__this_cpu_read(vector_irq[vector])))
+		{
 			continue;
+		}
 
 		irr = apic_read(APIC_IRR + (vector / 32 * 0x10));
-		if (irr  & (1 << (vector % 32))) {
+
+		if (irr  & (1 << (vector % 32)))
+		{
 			desc = __this_cpu_read(vector_irq[vector]);
 
 			raw_spin_lock(&desc->lock);
 			data = irq_desc_get_irq_data(desc);
 			chip = irq_data_get_irq_chip(data);
-			if (chip->irq_retrigger) {
+
+			if (chip->irq_retrigger)
+			{
 				chip->irq_retrigger(data);
 				__this_cpu_write(vector_irq[vector], VECTOR_RETRIGGERED);
 			}
+
 			raw_spin_unlock(&desc->lock);
 		}
+
 		if (__this_cpu_read(vector_irq[vector]) != VECTOR_RETRIGGERED)
+		{
 			__this_cpu_write(vector_irq[vector], VECTOR_UNUSED);
+		}
 	}
 }
 #endif

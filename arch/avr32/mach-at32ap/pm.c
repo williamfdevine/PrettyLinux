@@ -21,7 +21,7 @@
 #include "sdramc.h"
 
 #define SRAM_PAGE_FLAGS	(SYSREG_BIT(TLBELO_D) | SYSREG_BF(SZ, 1)	\
-				| SYSREG_BF(AP, 3) | SYSREG_BIT(G))
+						 | SYSREG_BF(AP, 3) | SYSREG_BIT(G))
 
 
 static unsigned long	pm_sram_start;
@@ -98,14 +98,15 @@ static void avr32_pm_unmap_sram(void)
 
 static int avr32_pm_valid_state(suspend_state_t state)
 {
-	switch (state) {
-	case PM_SUSPEND_ON:
-	case PM_SUSPEND_STANDBY:
-	case PM_SUSPEND_MEM:
-		return 1;
+	switch (state)
+	{
+		case PM_SUSPEND_ON:
+		case PM_SUSPEND_STANDBY:
+		case PM_SUSPEND_MEM:
+			return 1;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 }
 
@@ -115,59 +116,60 @@ static int avr32_pm_enter(suspend_state_t state)
 	u32		evba_saved;
 	void		*sram;
 
-	switch (state) {
-	case PM_SUSPEND_STANDBY:
-		sram = avr32_pm_map_sram();
+	switch (state)
+	{
+		case PM_SUSPEND_STANDBY:
+			sram = avr32_pm_map_sram();
 
-		/* Switch to in-sram exception handlers */
-		evba_saved = sysreg_read(EVBA);
-		sysreg_write(EVBA, (unsigned long)sram);
+			/* Switch to in-sram exception handlers */
+			evba_saved = sysreg_read(EVBA);
+			sysreg_write(EVBA, (unsigned long)sram);
 
-		/*
-		 * Save the LPR register so that we can re-enable
-		 * SDRAM Low Power mode on resume.
-		 */
-		lpr_saved = sdramc_readl(LPR);
-		pr_debug("%s: Entering standby...\n", __func__);
-		avr32_pm_enter_standby(SDRAMC_BASE);
-		sdramc_writel(LPR, lpr_saved);
+			/*
+			 * Save the LPR register so that we can re-enable
+			 * SDRAM Low Power mode on resume.
+			 */
+			lpr_saved = sdramc_readl(LPR);
+			pr_debug("%s: Entering standby...\n", __func__);
+			avr32_pm_enter_standby(SDRAMC_BASE);
+			sdramc_writel(LPR, lpr_saved);
 
-		/* Switch back to regular exception handlers */
-		sysreg_write(EVBA, evba_saved);
+			/* Switch back to regular exception handlers */
+			sysreg_write(EVBA, evba_saved);
 
-		avr32_pm_unmap_sram();
-		break;
+			avr32_pm_unmap_sram();
+			break;
 
-	case PM_SUSPEND_MEM:
-		sram = avr32_pm_map_sram();
+		case PM_SUSPEND_MEM:
+			sram = avr32_pm_map_sram();
 
-		/* Switch to in-sram exception handlers */
-		evba_saved = sysreg_read(EVBA);
-		sysreg_write(EVBA, (unsigned long)sram);
+			/* Switch to in-sram exception handlers */
+			evba_saved = sysreg_read(EVBA);
+			sysreg_write(EVBA, (unsigned long)sram);
 
-		/*
-		 * Save the LPR register so that we can re-enable
-		 * SDRAM Low Power mode on resume.
-		 */
-		lpr_saved = sdramc_readl(LPR);
-		pr_debug("%s: Entering suspend-to-ram...\n", __func__);
-		avr32_pm_enter_str(SDRAMC_BASE);
-		sdramc_writel(LPR, lpr_saved);
+			/*
+			 * Save the LPR register so that we can re-enable
+			 * SDRAM Low Power mode on resume.
+			 */
+			lpr_saved = sdramc_readl(LPR);
+			pr_debug("%s: Entering suspend-to-ram...\n", __func__);
+			avr32_pm_enter_str(SDRAMC_BASE);
+			sdramc_writel(LPR, lpr_saved);
 
-		/* Switch back to regular exception handlers */
-		sysreg_write(EVBA, evba_saved);
+			/* Switch back to regular exception handlers */
+			sysreg_write(EVBA, evba_saved);
 
-		avr32_pm_unmap_sram();
-		break;
+			avr32_pm_unmap_sram();
+			break;
 
-	case PM_SUSPEND_ON:
-		pr_debug("%s: Entering idle...\n", __func__);
-		cpu_enter_idle();
-		break;
+		case PM_SUSPEND_ON:
+			pr_debug("%s: Entering idle...\n", __func__);
+			cpu_enter_idle();
+			break;
 
-	default:
-		pr_debug("%s: Invalid suspend state %d\n", __func__, state);
-		goto out;
+		default:
+			pr_debug("%s: Invalid suspend state %d\n", __func__, state);
+			goto out;
 	}
 
 	pr_debug("%s: wakeup\n", __func__);
@@ -176,7 +178,8 @@ out:
 	return 0;
 }
 
-static const struct platform_suspend_ops avr32_pm_ops = {
+static const struct platform_suspend_ops avr32_pm_ops =
+{
 	.valid	= avr32_pm_valid_state,
 	.enter	= avr32_pm_enter,
 };
@@ -202,17 +205,27 @@ static int __init avr32_pm_init(void)
 	 * single page.
 	 */
 	pm_sram_size = avr32_pm_offset(pm_sram_end);
+
 	if (pm_sram_size > PAGE_SIZE)
+	{
 		goto err;
+	}
 
 	pm_sram_start = sram_alloc(pm_sram_size);
+
 	if (!pm_sram_start)
+	{
 		goto err_alloc_sram;
+	}
 
 	/* Grab a virtual area we can use later on. */
 	pm_sram_area = get_vm_area(pm_sram_size, VM_IOREMAP);
+
 	if (!pm_sram_area)
+	{
 		goto err_vm_area;
+	}
+
 	pm_sram_area->phys_addr = pm_sram_start;
 
 	local_irq_disable();

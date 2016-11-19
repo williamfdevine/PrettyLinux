@@ -55,50 +55,70 @@ static void bcm47xx_machine_restart(char *command)
 {
 	pr_alert("Please stand by while rebooting the system...\n");
 	local_irq_disable();
+
 	/* Set the watchdog timer to reset immediately */
-	switch (bcm47xx_bus_type) {
+	switch (bcm47xx_bus_type)
+	{
 #ifdef CONFIG_BCM47XX_SSB
-	case BCM47XX_BUS_TYPE_SSB:
-		if (bcm47xx_bus.ssb.chip_id == 0x4785)
-			write_c0_diag4(1 << 22);
-		ssb_watchdog_timer_set(&bcm47xx_bus.ssb, 1);
-		if (bcm47xx_bus.ssb.chip_id == 0x4785) {
-			__asm__ __volatile__(
-				".set\tmips3\n\t"
-				"sync\n\t"
-				"wait\n\t"
-				".set\tmips0");
-		}
-		break;
+
+		case BCM47XX_BUS_TYPE_SSB:
+			if (bcm47xx_bus.ssb.chip_id == 0x4785)
+			{
+				write_c0_diag4(1 << 22);
+			}
+
+			ssb_watchdog_timer_set(&bcm47xx_bus.ssb, 1);
+
+			if (bcm47xx_bus.ssb.chip_id == 0x4785)
+			{
+				__asm__ __volatile__(
+					".set\tmips3\n\t"
+					"sync\n\t"
+					"wait\n\t"
+					".set\tmips0");
+			}
+
+			break;
 #endif
 #ifdef CONFIG_BCM47XX_BCMA
-	case BCM47XX_BUS_TYPE_BCMA:
-		bcma_chipco_watchdog_timer_set(&bcm47xx_bus.bcma.bus.drv_cc, 1);
-		break;
+
+		case BCM47XX_BUS_TYPE_BCMA:
+			bcma_chipco_watchdog_timer_set(&bcm47xx_bus.bcma.bus.drv_cc, 1);
+			break;
 #endif
 	}
+
 	while (1)
+	{
 		cpu_relax();
+	}
 }
 
 static void bcm47xx_machine_halt(void)
 {
 	/* Disable interrupts and watchdog and spin forever */
 	local_irq_disable();
-	switch (bcm47xx_bus_type) {
+
+	switch (bcm47xx_bus_type)
+	{
 #ifdef CONFIG_BCM47XX_SSB
-	case BCM47XX_BUS_TYPE_SSB:
-		ssb_watchdog_timer_set(&bcm47xx_bus.ssb, 0);
-		break;
+
+		case BCM47XX_BUS_TYPE_SSB:
+			ssb_watchdog_timer_set(&bcm47xx_bus.ssb, 0);
+			break;
 #endif
 #ifdef CONFIG_BCM47XX_BCMA
-	case BCM47XX_BUS_TYPE_BCMA:
-		bcma_chipco_watchdog_timer_set(&bcm47xx_bus.bcma.bus.drv_cc, 0);
-		break;
+
+		case BCM47XX_BUS_TYPE_BCMA:
+			bcma_chipco_watchdog_timer_set(&bcm47xx_bus.bcma.bus.drv_cc, 0);
+			break;
 #endif
 	}
+
 	while (1)
+	{
 		cpu_relax();
+	}
 }
 
 #ifdef CONFIG_BCM47XX_SSB
@@ -109,19 +129,25 @@ static void __init bcm47xx_register_ssb(void)
 	struct ssb_mipscore *mcore;
 
 	err = ssb_bus_host_soc_register(&bcm47xx_bus.ssb, SSB_ENUM_BASE);
+
 	if (err)
+	{
 		panic("Failed to initialize SSB bus (err %d)", err);
+	}
 
 	mcore = &bcm47xx_bus.ssb.mipscore;
-	if (bcm47xx_nvram_getenv("kernel_args", buf, sizeof(buf)) >= 0) {
-		if (strstr(buf, "console=ttyS1")) {
+
+	if (bcm47xx_nvram_getenv("kernel_args", buf, sizeof(buf)) >= 0)
+	{
+		if (strstr(buf, "console=ttyS1"))
+		{
 			struct ssb_serial_port port;
 
 			pr_debug("Swapping serial ports!\n");
 			/* swap serial ports */
 			memcpy(&port, &mcore->serial_ports[0], sizeof(port));
 			memcpy(&mcore->serial_ports[0], &mcore->serial_ports[1],
-			       sizeof(port));
+				   sizeof(port));
 			memcpy(&mcore->serial_ports[1], &port, sizeof(port));
 		}
 	}
@@ -134,8 +160,11 @@ static void __init bcm47xx_register_bcma(void)
 	int err;
 
 	err = bcma_host_soc_register(&bcm47xx_bus.bcma);
+
 	if (err)
+	{
 		panic("Failed to register BCMA bus (err %d)", err);
+	}
 }
 #endif
 
@@ -148,7 +177,8 @@ void __init plat_mem_setup(void)
 {
 	struct cpuinfo_mips *c = &current_cpu_data;
 
-	if ((c->cputype == CPU_74K) || (c->cputype == CPU_1074K)) {
+	if ((c->cputype == CPU_74K) || (c->cputype == CPU_1074K))
+	{
 		pr_info("Using bcma bus\n");
 #ifdef CONFIG_BCM47XX_BCMA
 		bcm47xx_bus_type = BCM47XX_BUS_TYPE_BCMA;
@@ -158,7 +188,9 @@ void __init plat_mem_setup(void)
 		bcm47xx_prom_highmem_init();
 #endif
 #endif
-	} else {
+	}
+	else
+	{
 		pr_info("Using ssb bus\n");
 #ifdef CONFIG_BCM47XX_SSB
 		bcm47xx_bus_type = BCM47XX_BUS_TYPE_SSB;
@@ -180,13 +212,19 @@ void __init plat_mem_setup(void)
 void __init bcm47xx_bus_setup(void)
 {
 #ifdef CONFIG_BCM47XX_BCMA
-	if (bcm47xx_bus_type == BCM47XX_BUS_TYPE_BCMA) {
+
+	if (bcm47xx_bus_type == BCM47XX_BUS_TYPE_BCMA)
+	{
 		int err;
 
 		err = bcma_host_soc_init(&bcm47xx_bus.bcma);
+
 		if (err)
+		{
 			panic("Failed to initialize BCMA bus (err %d)", err);
+		}
 	}
+
 #endif
 
 	/* With bus initialized we can access NVRAM and detect the board */
@@ -196,30 +234,39 @@ void __init bcm47xx_bus_setup(void)
 
 static int __init bcm47xx_cpu_fixes(void)
 {
-	switch (bcm47xx_bus_type) {
+	switch (bcm47xx_bus_type)
+	{
 #ifdef CONFIG_BCM47XX_SSB
-	case BCM47XX_BUS_TYPE_SSB:
-		/* Nothing to do */
-		break;
+
+		case BCM47XX_BUS_TYPE_SSB:
+			/* Nothing to do */
+			break;
 #endif
 #ifdef CONFIG_BCM47XX_BCMA
-	case BCM47XX_BUS_TYPE_BCMA:
-		/* The BCM4706 has a problem with the CPU wait instruction.
-		 * When r4k_wait or r4k_wait_irqoff is used will just hang and
-		 * not return from a msleep(). Removing the cpu_wait
-		 * functionality is a workaround for this problem. The BCM4716
-		 * does not have this problem.
-		 */
-		if (bcm47xx_bus.bcma.bus.chipinfo.id == BCMA_CHIP_ID_BCM4706)
-			cpu_wait = NULL;
-		break;
+
+		case BCM47XX_BUS_TYPE_BCMA:
+
+			/* The BCM4706 has a problem with the CPU wait instruction.
+			 * When r4k_wait or r4k_wait_irqoff is used will just hang and
+			 * not return from a msleep(). Removing the cpu_wait
+			 * functionality is a workaround for this problem. The BCM4716
+			 * does not have this problem.
+			 */
+			if (bcm47xx_bus.bcma.bus.chipinfo.id == BCMA_CHIP_ID_BCM4706)
+			{
+				cpu_wait = NULL;
+			}
+
+			break;
 #endif
 	}
+
 	return 0;
 }
 arch_initcall(bcm47xx_cpu_fixes);
 
-static struct fixed_phy_status bcm47xx_fixed_phy_status __initdata = {
+static struct fixed_phy_status bcm47xx_fixed_phy_status __initdata =
+{
 	.link	= 1,
 	.speed	= SPEED_100,
 	.duplex	= DUPLEX_FULL,
@@ -227,18 +274,22 @@ static struct fixed_phy_status bcm47xx_fixed_phy_status __initdata = {
 
 static int __init bcm47xx_register_bus_complete(void)
 {
-	switch (bcm47xx_bus_type) {
+	switch (bcm47xx_bus_type)
+	{
 #ifdef CONFIG_BCM47XX_SSB
-	case BCM47XX_BUS_TYPE_SSB:
-		/* Nothing to do */
-		break;
+
+		case BCM47XX_BUS_TYPE_SSB:
+			/* Nothing to do */
+			break;
 #endif
 #ifdef CONFIG_BCM47XX_BCMA
-	case BCM47XX_BUS_TYPE_BCMA:
-		bcma_bus_register(&bcm47xx_bus.bcma.bus);
-		break;
+
+		case BCM47XX_BUS_TYPE_BCMA:
+			bcma_bus_register(&bcm47xx_bus.bcma.bus);
+			break;
 #endif
 	}
+
 	bcm47xx_buttons_register();
 	bcm47xx_leds_register();
 	bcm47xx_workarounds();
